@@ -25,14 +25,14 @@ public:
 };
 
 template<typename KeyType, typename ValueType, typename LockType>
-bool insert(const KeyType& key, const ValueType& value)
+  bool AccessMethod<KeyType, ValueType, LockType>::insert(const KeyType& key, const ValueType& value)
 {
     DataType<KeyType,ValueType> data(key,value);
     return insert(data);
 }
 
 template<typename KeyType, typename ValueType, typename LockType>
-bool update(const KeyType& key, const ValueType& value)
+  bool AccessMethod<KeyType, ValueType, LockType>::update(const KeyType& key, const ValueType& value)
 {
     DataType<KeyType,ValueType> data(key,value);
     return update(data);
@@ -51,20 +51,20 @@ public:
 
     virtual bool update(const DataType<KeyType>& data) = 0;
 
-    virtual ValueType* find(const KeyType& key) = 0;
+    virtual KeyType* find(const KeyType& key) = 0;
 
     virtual bool del(const KeyType& key) = 0;
 };
 
 template<typename KeyType, typename LockType>
-bool insert(const KeyType& key)
+  bool UnaryAccessMethod<KeyType, LockType>::insert(const KeyType& key)
 {
     DataType<KeyType> data(key);
     return insert(data);
 }
 
 template<typename KeyType, typename LockType>
-bool update(const KeyType& key)
+bool UnaryAccessMethod<KeyType, LockType>::update(const KeyType& key)
 {
     DataType<KeyType> data(key);
     return update(data);
