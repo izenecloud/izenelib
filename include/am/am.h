@@ -8,7 +8,7 @@
 NS_IZENELIB_AM_BEGIN
 
 template<typename KeyType, typename ValueType,
-         typename LockType=NullLock, typename Alloc=std::allocator<KeyType,ValueType> >
+         typename LockType=NullLock, typename Alloc=std::allocator<DataType<KeyType,ValueType> > >
 class AccessMethod
 {
 public:
@@ -26,7 +26,7 @@ public:
 };
 
 template<typename KeyType, typename ValueType,
-         typename LockType=NullLock, typename Alloc=std::allocator<KeyType,ValueType> >
+         typename LockType=NullLock, typename Alloc=std::allocator<DataType<KeyType,ValueType> > >
 bool insert(const KeyType& key, const ValueType& value)
 {
     DataType<KeyType,ValueType> data(key,value);
@@ -34,7 +34,7 @@ bool insert(const KeyType& key, const ValueType& value)
 }
 
 template<typename KeyType, typename ValueType,
-         typename LockType=NullLock, typename Alloc=std::allocator<KeyType,ValueType> >
+         typename LockType=NullLock, typename Alloc=std::allocator<DataType<KeyType,ValueType> > >
 bool update(const KeyType& key, const ValueType& value)
 {
     DataType<KeyType,ValueType> data(key,value);
@@ -42,7 +42,7 @@ bool update(const KeyType& key, const ValueType& value)
 }
 
 
-template<typename KeyType, typename LockType=NullLock,typename Alloc=std::allocator<KeyType> >
+template<typename KeyType, typename LockType=NullLock,typename Alloc=std::allocator<DataType<KeyType> > >
 class UnaryAccessMethod
 {
 public:
@@ -59,14 +59,14 @@ public:
     virtual bool del(const KeyType& key) = 0;
 };
 
-template<typename KeyType, typename LockType=NullLock,typename Alloc=std::allocator<KeyType> >
+template<typename KeyType, typename LockType=NullLock,typename Alloc=std::allocator<DataType<KeyType> > >
 bool insert(const KeyType& key)
 {
     DataType<KeyType> data(key);
     return insert(data);
 }
 
-template<typename KeyType, typename LockType=NullLock,typename Alloc=std::allocator<KeyType> >
+template<typename KeyType, typename LockType=NullLock,typename Alloc=std::allocator<DataType<KeyType> > >
 bool update(const KeyType& key)
 {
     DataType<KeyType> data(key);
