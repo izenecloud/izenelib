@@ -29,16 +29,16 @@ public:
 
 
 template<typename KeyType, typename ValueType,
-         typename LockType=NullLock, typename Alloc=std::allocator<DataType<KeyType,ValueType> > >
-bool insert(const KeyType& key, const ValueType& value)
+         typename LockType, typename Alloc>
+  bool AccessMethod<KeyType, ValueType, LockType, Alloc>::insert(const KeyType& key, const ValueType& value)
 {
     DataType<KeyType,ValueType> data(key,value);
     return insert(data);
 }
 
 template<typename KeyType, typename ValueType,
-         typename LockType=NullLock, typename Alloc=std::allocator<DataType<KeyType,ValueType> > >
-bool update(const KeyType& key, const ValueType& value)
+         typename LockType, typename Alloc >
+bool AccessMethod<KeyType, ValueType, LockType, Alloc>::update(const KeyType& key, const ValueType& value)
 {
     DataType<KeyType,ValueType> data(key,value);
     return update(data);
@@ -62,15 +62,15 @@ public:
     virtual bool del(const KeyType& key) = 0;
 };
 
-template<typename KeyType, typename LockType=NullLock,typename Alloc=std::allocator<DataType<KeyType> > >
-bool insert(const KeyType& key)
+template<typename KeyType, typename LockType,typename Alloc >
+bool UnaryAccessMethod<KeyType, LockType, Alloc>::insert(const KeyType& key)
 {
     DataType<KeyType> data(key);
     return insert(data);
 }
 
-template<typename KeyType, typename LockType=NullLock,typename Alloc=std::allocator<DataType<KeyType> > >
-bool update(const KeyType& key)
+template<typename KeyType, typename LockType,typename Alloc >
+bool UnaryAccessMethod<KeyType, LockType, Alloc>::update(const KeyType& key)
 {
     DataType<KeyType> data(key);
     return update(data);
