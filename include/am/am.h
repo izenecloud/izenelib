@@ -4,10 +4,12 @@
 #include <types.h>
 #include <am/concept/DataType.h>
 #include <am/concept/ThreadModel.h>
+#include <memory>
 
 NS_IZENELIB_AM_BEGIN
 
-template<typename KeyType, typename ValueType, typename LockType=NullLock>
+template<typename KeyType, typename ValueType,
+         typename LockType=NullLock, typename Alloc=std::allocator<KeyType,ValueType> >
 class AccessMethod
 {
 public:
@@ -24,22 +26,26 @@ public:
     virtual bool del(const KeyType& key) = 0;
 };
 
-template<typename KeyType, typename ValueType, typename LockType>
-  bool AccessMethod<KeyType, ValueType, LockType>::insert(const KeyType& key, const ValueType& value)
+
+
+template<typename KeyType, typename ValueType,
+         typename LockType=NullLock, typename Alloc=std::allocator<KeyType,ValueType> >
+bool insert(const KeyType& key, const ValueType& value)
 {
     DataType<KeyType,ValueType> data(key,value);
     return insert(data);
 }
 
-template<typename KeyType, typename ValueType, typename LockType>
-  bool AccessMethod<KeyType, ValueType, LockType>::update(const KeyType& key, const ValueType& value)
+template<typename KeyType, typename ValueType,
+         typename LockType=NullLock, typename Alloc=std::allocator<KeyType,ValueType> >
+bool update(const KeyType& key, const ValueType& value)
 {
     DataType<KeyType,ValueType> data(key,value);
     return update(data);
 }
 
 
-template<typename KeyType, typename LockType=NullLock>
+template<typename KeyType, typename LockType=NullLock,typename Alloc=std::allocator<KeyType> >
 class UnaryAccessMethod
 {
 public:
@@ -56,15 +62,17 @@ public:
     virtual bool del(const KeyType& key) = 0;
 };
 
-template<typename KeyType, typename LockType>
-  bool UnaryAccessMethod<KeyType, LockType>::insert(const KeyType& key)
+
+
+template<typename KeyType, typename LockType=NullLock,typename Alloc=std::allocator<KeyType> >
+bool insert(const KeyType& key)
 {
     DataType<KeyType> data(key);
     return insert(data);
 }
 
-template<typename KeyType, typename LockType>
-bool UnaryAccessMethod<KeyType, LockType>::update(const KeyType& key)
+template<typename KeyType, typename LockType=NullLock,typename Alloc=std::allocator<KeyType> >
+bool update(const KeyType& key)
 {
     DataType<KeyType> data(key);
     return update(data);
