@@ -4,6 +4,7 @@
 #include <types.h>
 #include <am/concept/DataType.h>
 #include <am/concept/ThreadModel.h>
+#include <memory>
 
 NS_IZENELIB_AM_BEGIN
 
@@ -24,6 +25,8 @@ public:
 
     virtual bool del(const KeyType& key) = 0;
 };
+
+
 
 template<typename KeyType, typename ValueType,
          typename LockType=NullLock, typename Alloc=std::allocator<DataType<KeyType,ValueType> > >
@@ -54,7 +57,7 @@ public:
 
     virtual bool update(const DataType<KeyType>& data) = 0;
 
-    virtual ValueType* find(const KeyType& key) = 0;
+    virtual KeyType* find(const KeyType& key) = 0;
 
     virtual bool del(const KeyType& key) = 0;
 };
