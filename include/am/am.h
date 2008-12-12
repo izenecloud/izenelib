@@ -30,7 +30,7 @@ public:
 
 template<typename KeyType, typename ValueType,
          typename LockType, typename Alloc>
-  bool AccessMethod<KeyType, ValueType, LockType, Alloc>::insert(const KeyType& key, const ValueType& value)
+bool AccessMethod<KeyType, ValueType, LockType, Alloc>::insert(const KeyType& key, const ValueType& value)
 {
     DataType<KeyType,ValueType> data(key,value);
     return insert(data);

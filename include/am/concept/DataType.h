@@ -5,10 +5,23 @@
 #include <boost/type_traits.hpp>
 #include <boost/mpl/bool.hpp>
 #include <boost/mpl/not.hpp>
+#include <boost/concept_check.hpp>
+#include <boost/concept/assert.hpp>
 
 #include <types.h>
 
 NS_IZENELIB_AM_BEGIN
+
+template<typename KeyType>
+struct KeyTypeConcept
+{
+    void constraints()
+    {
+        KeyType key1;
+        KeyType key2;
+        key1.compare(key2);
+    }
+};
 
 template<typename KeyType, typename ValueType=void, typename Disable=void>
 class DataType
@@ -38,6 +51,7 @@ private:
 
     int _compare(const DataType& other, const boost::mpl::false_*) const
     {
+        BOOST_CONCEPT_ASSERT((KeyTypeConcept<KeyType>));
         return key.compare(other.key);
     }
 
@@ -76,6 +90,7 @@ private:
 
     int _compare(const DataType& other, const boost::mpl::false_*) const
     {
+        BOOST_CONCEPT_ASSERT((KeyTypeConcept<KeyType>));
         return key.compare(other.key);
     }
 public:
