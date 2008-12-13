@@ -17,13 +17,16 @@ public:
         return 0;
     }
 
-    inline int actuire_write_lock(){
+    inline int acquire_write_lock(){
         return 0;
     }
 
     inline int release_write_lock(){
         return 0;
     }
+
+
+    
 };
 
 /* class ReadWriteLock : private boost::noncopyable */
