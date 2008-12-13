@@ -7,7 +7,7 @@
 
 #include <boost/pool/pool.hpp>
 #include <boost/pool/object_pool.hpp>
-
+#include <string>
 
 // -------------------------------------------------------------------------
 
@@ -32,10 +32,10 @@ public:
 				{
 					p[i] = new Type;
 				}
-				for (i = 0; i < PerAlloc; ++i)
-				{
-					delete p[i];
-				}
+// 				for (i = 0; i < PerAlloc; ++i)
+// 				{
+// 					delete p[i];
+//				}
 			}
 		}
 		m_acc.accumulate(counter.trace(log));
@@ -168,6 +168,13 @@ public:
 			doAutoAlloc(log, NAlloc, PerAlloc);
 		m_acc.trace_avg(log);
 
+        
+		m_acc.start();
+		log.trace("\n===== NewDelete(%d) =====\n", PerAlloc);
+		for (i = 0; i < Count; ++i)
+			doNewDelete(log, NAlloc, PerAlloc);
+		m_acc.trace_avg(log);
+        
 		m_acc.start();
 		log.trace("\n===== TLS boost::scoped_alloc(%d) =====\n", PerAlloc);
 		for (i = 0; i < Count; ++i)
@@ -201,11 +208,6 @@ public:
 		m_acc.trace_avg(log);
 #endif
 
-		m_acc.start();
-		log.trace("\n===== NewDelete(%d) =====\n", PerAlloc);
-		for (i = 0; i < Count; ++i)
-			doNewDelete(log, NAlloc, PerAlloc);
-		m_acc.trace_avg(log);
 	}
 	
 	void testComparison(LogT& log)
@@ -230,7 +232,7 @@ void testPerformance()
 {
 	typedef NS_BOOST_DETAIL::stdout_log LogT;
 	LogT log;
-	TestAllocatorPerformance<LogT> test;
+	TestAllocatorPerformance<LogT, std::string> test;
 	test.testComparison(log);
 }
 

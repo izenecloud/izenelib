@@ -1,6 +1,6 @@
 GPP=/usr/bin/g++
 
-IZENELIB = ~/CodeBase/izenelib/include
+IZENELIB = ../../../../../include
 
 INC_PATH = -I $(IZENELIB)/3rdparty -I /usr/local/include/boost-1_37
 
