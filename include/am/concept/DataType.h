@@ -27,6 +27,8 @@ template<typename KeyType, typename ValueType=void, typename Disable=void>
 class DataType
 {
 public:
+	DataType(){		
+	}	
     DataType(const KeyType& key)
     :key(key)
     {
@@ -43,6 +45,8 @@ public:
         ar & key;
     }
 
+    const KeyType get_key() const {return key;}    
+   
 private:
     int _compare(const DataType& other, const boost::mpl::true_*) const
     {
@@ -66,6 +70,9 @@ class DataType<KeyType, ValueType, typename boost::disable_if<
                                        boost::is_void<ValueType> >::type>
 {
 public:
+	DataType(){
+		
+	}
     DataType(const KeyType& key, const ValueType& value)
             :key(key),value(value)
     {}
@@ -82,6 +89,9 @@ public:
         ar & value;
     }
 
+    const KeyType get_key() const {return key;}
+    
+    const ValueType get_data()const {return value;}
 private:
     int _compare(const DataType& other, const boost::mpl::true_*) const
     {
