@@ -29,49 +29,49 @@ public:
     
 };
 
-/* class ReadWriteLock : private boost::noncopyable */
-/* { */
-/* private: */
-/*     boost::shared_mutex rwMutex_; */
-/* public: */
-/*     ReadWriteLock() */
-/*     { */
-/*     } */
+class ReadWriteLock : private boost::noncopyable
+{
+private:
+    boost::shared_mutex rwMutex_;
+public:
+    ReadWriteLock()
+    {
+    }
 
-/*     ~ReadWriteLock() */
-/*     { */
-/*     } */
+    ~ReadWriteLock()
+    {
+    }
 
-/*     /\** */
-/*      @ brief Attempts to get the read lock. */
-/*     *\/ */
-/*     inline int acquire_read_lock{ */
-/*         rwMutex_.lock_shared(); */
-/*         return 0 ; */
-/*     } */
-/*     /\** */
-/*      @ brief Attempts to get the write lock. */
-/*     *\/ */
-/*     inline int acquire_write_lock{ */
-/*         rwMutex_.lock(); */
-/*         return 0 ; */
-/*     } */
-/*     /\** */
-/*      @ brief Attempts to release the  read lock . */
-/*     *\/ */
-/*     inline int release_read_lock(){ */
-/*         rwMutex_.unlockshared(); */
-/*         return 0; */
-/*     } */
-/*     /\** */
-/*      @ brief Attempts to release the write lock. */
-/*     *\/ */
-/*     inline int release_write_lock(){ */
-/*         rwMutex_.unlock(); */
-/*         return 0; */
-/*     } */
+    /**
+     @ brief Attempts to get the read lock.
+    */
+    inline int acquire_read_lock{
+        rwMutex_.lock_shared();
+        return 0 ;
+    }
+    /**
+     @ brief Attempts to get the write lock.
+    */
+    inline int acquire_write_lock{
+        rwMutex_.lock();
+        return 0 ;
+    }
+    /**
+     @ brief Attempts to release the  read lock .
+    */
+    inline int release_read_lock(){
+        rwMutex_.unlockshared();
+        return 0;
+    }
+    /**
+     @ brief Attempts to release the write lock.
+    */
+    inline int release_write_lock(){
+        rwMutex_.unlock();
+        return 0;
+    }
 
-/* }; */
+};
 
 
 NS_IZENELIB_AM_END
