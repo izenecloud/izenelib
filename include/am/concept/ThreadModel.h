@@ -38,6 +38,18 @@ public:
     {
     }
 
+<<<<<<< HEAD:include/am/concept/ThreadModel.h
+=======
+class ReadWriteLock : private boost::noncopyable
+{
+private:
+    boost::shared_mutex rwMutex_;
+public:
+    ReadWriteLock()
+    {
+    }
+
+>>>>>>> 4aa7a43085b87e0ee191658f3a2c59af88b51a1d:include/am/concept/ThreadModel.h
     ~ReadWriteLock()
     {
     }
