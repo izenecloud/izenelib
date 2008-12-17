@@ -37,153 +37,107 @@
 
 BOOST_AUTO_TEST_SUITE( t_BTreeFile_suite )
 
-int degree = 256;
+int degree = 128;
 
-struct myKeyType {
-	int a;
-	int compare(const myKeyType& other) const {
-		return a -other.a;
-	}
-	myKeyType(int b):a(b) {};
-	myKeyType() {};
-	template<class Archive> void serialize(Archive & ar,
-			const unsigned int version) {
-		ar & a;
+/*
+ struct myKeyType {
+ int a;
+ int compare(const myKeyType& other) const {
+ return a -other.a;
+ }
+ myKeyType(int b):a(b) {};
+ myKeyType() {};
+ template<class Archive> void serialize(Archive & ar,
+ const unsigned int version) {
+ ar & a;
 
-	}
-};
+ }
+ 
+ 
+ char p[20];
+		if (!rnd) {
+			sprintf(p, "%08d", i);
+		} else {
+			sprintf(p, "%08d", myrand()% num+1);
+		}
+		YString str = p;
+ };*/
+
+izenelib::am::BTreeFile<string> tb("sdb.dat", degree);
 
 BOOST_AUTO_TEST_CASE(Insertion_check )
 {
-
-	izenelib::am::BTreeFile<myKeyType, std::string> tb("sdb.dat",degree);
+	tb.setPageSize(50,1024);
 	tb.open();
 
-	class Ele
-	{
-	public:
-		Ele()
-		{
-		}
-
-		Ele(int a,const std::string& b )
-		:k(a),str(b)
-		{
-		}
-
-		int k;
-		std::string str;
-
-	};
-
-	std::string s = "Kevin";
-	Ele* ele = new Ele[SIZE];
-	for (int i=0; i<SIZE; i++)
-	{
-		if (i%100 == 0)
-		s.append("_");
-
-		ele[i]= Ele(rand()%SIZE, s);
-
-	}
+	//std::string s = "Kevin";
 
 	clock_t start, finish;
 	start = clock();
 	for (int i=0; i<SIZE; i++)
 	{
-		tb.insert(myKeyType(ele[i].k), ele[i].str);
+		char p[20];
+	    sprintf(p, "%08d", i);
+	    string str = p;		
+		tb.insert( str);
 	}
 	tb.flush();
 	finish = clock();
-	printf( "\nIt takes %f seconds to insert 1000000 random data!\n", (double)(finish - start) / CLOCKS_PER_SEC );
+	printf( "\nIt takes %f seconds to insert %d random data!\n", (double)(finish - start) / CLOCKS_PER_SEC, SIZE );
 
 	//  tb.display(std::cout);
 
 }
-
 /*
- BOOST_AUTO_TEST_CASE(Searching_check )
- {
- izenelib::am::BTreeFile<int, std::string > tb("sdb.dat",degree);
- std::string s = "Kevin";
- for (int i=1; i<=SIZE; i++)
- {
- if (i%100 == 0)
- s.append("_");
+BOOST_AUTO_TEST_CASE(Searching_check )
+{
 
- tb.insert(rand()%SIZE, s);
- 
- }
+	clock_t start, finish;
+	int c ,b;
+	c=b=0;
 
- clock_t start, finish;
- int c ,b;
- c=b=0;
- int r[SIZE];
- 
- for (int i=0; i<SIZE; i++)
- {
- r[i] = rand()%SIZE;
- }
- 
- start = clock();
- 
- for (int i=0; i<SIZE; i++)
- {
- if (tb.find(r[i])!=0)
- c++;
- else
- b++;
- }
+	start = clock();
 
- finish = clock();
- printf( "\nIt takes %f seconds to find 1000000 random data! %d data found, %d data lost!\n",
- (double)(finish - start) / CLOCKS_PER_SEC,
- c,
- b);
- 
- //  tb.display(std::cout)
- }
+	for (int i=0; i<SIZE; i++)
+	{
+		if ( tb.find(i) != 0 )
+		c++;
+		else
+		b++;
+	}
 
- BOOST_AUTO_TEST_CASE(Delete_check )
- {
- izenelib::am::BTreeFile<int, std::string > tb("sdb.dat",degree);
- std::string s = "Kevin";
- for (int i=1; i<=SIZE; i++)
- {
- if (i%100 == 0)
- s.append("_");
+	finish = clock();
+	printf( "\nIt takes %f seconds to find %d random data! %d data found, %d data lost!\n",
+			(double)(finish - start) / CLOCKS_PER_SEC, SIZE,
+			c,
+			b);
 
- tb.insert(rand()%SIZE, s);
- 
- }
+	//  tb.display(std::cout)
+}
 
- clock_t start, finish;
- int c ,b;
- c=b=0;
- int r[SIZE];
- 
- for (int i=0; i<SIZE; i++)
- {
- r[i] = rand()%SIZE;
- }
- 
- start = clock();
- 
- for (int i=0; i<SIZE; i++)
- {
- if (tb.del(r[i])!=0)
- c++;
- else
- b++;
- }
+BOOST_AUTO_TEST_CASE(Delete_check )
+{
 
- finish = clock();
- printf( "\nIt takes %f seconds to delete 1000000 random data! %d data found, %d data lost!\n",
- (double)(finish - start) / CLOCKS_PER_SEC,
- c,
- b);
+	clock_t start, finish;
+	int c,b;
+	c=b=0;
 
- }*/
+	start = clock();
+	for (int i=0; i<SIZE/2; i++)
+	{
+		if (tb.del( i ) != 0)
+		c++;
+		else
+		b++;
+	}
+    tb.flush();
+	finish = clock();
+	printf( "\nIt takes %f seconds to delete %d random data! %d data found, %d data lost!\n",
+			(double)(finish - start) / CLOCKS_PER_SEC,SIZE/2,
+			c,
+			b);
+
+}
 
 /*
  BOOST_AUTO_TEST_CASE(Allocator_check )

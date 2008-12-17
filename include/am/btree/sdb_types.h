@@ -12,6 +12,8 @@
 #include <boost/memory.hpp>
 #include <boost/static_assert.hpp>
 
+//#include "BTreeFileException.h"
+
 using namespace izenelib::am::util;
 
 NS_IZENELIB_AM_BEGIN

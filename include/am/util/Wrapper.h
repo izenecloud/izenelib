@@ -2,8 +2,6 @@
 #define WRAPPER_H_
 
 #include <am/util/DbObj.h>
-//#include "sdb_types.h"
-//#include "YString.h"
 #include <sstream>
 // for serialization
 #include <boost/archive/text_oarchive.hpp>

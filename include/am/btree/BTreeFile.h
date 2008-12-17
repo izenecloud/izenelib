@@ -42,7 +42,7 @@ NS_IZENELIB_AM_BEGIN
  * 
  */
 
-template<typename KeyType, typename ValueType, typename LockType=NullLock, typename Alloc=std::allocator<DataType<KeyType,ValueType> > >class BTreeFile
+template<typename KeyType, typename ValueType=NullType, typename LockType=NullLock, typename Alloc=std::allocator<DataType<KeyType,ValueType> > >class BTreeFile
 : public AccessMethod<KeyType, ValueType, LockType, Alloc> {
 
 	typedef DataType<KeyType,ValueType> DataType;
@@ -65,6 +65,41 @@ public:
 	~BTreeFile();
 
 	/**
+	 * 	\brief set tha pageSize.
+	 *  \param maxDataSize if we can get it first, we can reduce the file space.
+	 */
+	void setPageSize(size_t maxDataSize, size_t overFlowSize) {
+		_pageSize = sizeof(byte); //leafFlag
+		_pageSize = sizeof(size_t); // object count
+
+		_pageSize += (_minDegree * 2 - 1) * (sizeof(size_t) + maxDataSize
+				+ sizeof(long) + sizeof(byte) ); // records + overflow address
+		_pageSize += _minDegree * 2 * sizeof(long); // child locations	
+		_overFlowSize = overFlowSize;
+		_maxDataSize = maxDataSize;
+
+		BTreeNode<KeyType, ValueType, LockType, Alloc>::setDataSize(maxDataSize,
+				_pageSize, _overFlowSize);
+		//_pageSize += sizeof(long);//extra size
+
+		//_pageSize += BOOST_SERIAZLIZATION_HEAD_LENGTH;
+	}
+
+	/**
+	 * 	\brief return the file name of the SequentialDB
+	 */
+	std::string getFileName() const {
+		return _fileName;
+	}
+
+	/**
+	 * 	We would peroidically flush the memory items, according to the cache Size. 
+	 */
+
+	void setCacheSize(size_t sz) {
+		_cacheSize = sz;
+	}
+	/**
 	 * 	 \brief open the database. 
 	 * 
 	 *   Everytime  we use the database, we mush open it first.  
@@ -81,29 +116,18 @@ public:
 	bool insert(const DataType& rec);
 
 	bool insert(const KeyType& key, const ValueType& value) {
-		DataType data(key, value);
-		return insert(data);
+		//DataType data(key, value);
+		return insert( DataType(key, value) ) ;
 	}
 
 	ValueType* find(const KeyType& key) {
-		//to be implemented
-		return NULL;
-
+		DataType temp;
+		ValueType* pv = NULL;
+		if( get(key, temp) ) {
+			pv = new ValueType( temp.get_value() );
+		}
+		return pv;
 	}
-
-	/**
-	 *  \brief get an item from given Locn.	 * 
-	 */
-	bool get(const NodeKeyLocn& locn, DataType& rec);
-	/**
-	 * 	\brief get an item by its key.
-	 */
-	bool get(const KeyType& key, DataType& rec);
-
-	/**
-	 * 	\brief get an item by its key.
-	 */
-	//bool get(KeyType& key, DataType& rec);
 
 	/**
 	 *  \brief updata an item with given key, if it not exist, insert it directly. 
@@ -118,45 +142,26 @@ public:
 	}
 
 	/**
-	 * 
-	 *  \brief External method that searches for elements that match the	 
-	 *  given key. 
-	 *
+	 * 	
+	 * \brief get the number of the items.
 	 */
-	NodeKeyLocn search(const KeyType& key) {
-
-		//do Flush, when there are too many active nodes.
-		_flushCache();
-
-		NodeKeyLocn ret(BTreeNodePtr(), (size_t)-1);
-		BTreeNodePtr temp = _root;
-		while (1) {
-			int ctr = temp->objCount;
-			int low = 0;
-			int high = ctr-1;
-			int compVal;
-			while (low <= high) {
-				int mid = (low+high)/2; //cout<<"mid "<<mid<<endl;
-				compVal = key.compare(temp->elements[mid]->pdat->get_key() );
-				if (compVal == 0)
-				return NodeKeyLocn(temp, mid);
-				else if (compVal < 0)
-				high = mid-1;
-				else {
-					low = mid+1;
-				}
-			}
-			//	cout<<"serach childno0 "<<low<<endl;
-			if (!temp->isLeaf) {
-				temp = temp->loadChild(low, _dataFile, _fileName);
-			} else {
-				break;
-			}
-			//	cout<<"serach childno "<<low<<endl;
-		}
-		return ret;
-
+	int num_items() {
+		return _numItem;
 	}
+	/**
+	 *  \brief get an item from given Locn.	 * 
+	 */
+	bool get(const NodeKeyLocn& locn, DataType& rec);
+	/**
+	 * 	\brief get an item by its key.
+	 */
+	bool get(const KeyType& key, DataType& rec);
+
+	/**
+	 * 	\brief get an item by its key.
+	 */
+	//bool get(KeyType& key, DataType& rec);
+
 
 	/**
 	 * 	\brief get the next item.
@@ -165,6 +170,9 @@ public:
 	seq(NodeKeyLocn& locn, DataType& rec,
 			ESeqDirection sdir = ESD_FORWARD);
 
+	/**
+	 *  \brief given a  key, get next key
+	 */
 	KeyType getNext(const KeyType& key) {
 		NodeKeyLocn locn =search(key);
 		if (locn.second == size_t(-1) ) {
@@ -176,6 +184,9 @@ public:
 		}
 	}
 
+	/**
+	 *  \brief given a  key, get next key
+	 */
 	KeyType getPrev(const KeyType& key) {
 		NodeKeyLocn locn = search(key);
 		if (locn.second == size_t(-1) ) {
@@ -220,50 +231,6 @@ public:
 
 	void display() {
 		_root->display();
-	}
-
-	/**
-	 * 	\brief set tha pageSize.
-	 *  \param maxDataSize if we can get it first, we can reduce the file space.
-	 */
-	void setPageSize(size_t maxDataSize, size_t overFlowSize) {
-		_pageSize = sizeof(byte); //leafFlag
-		_pageSize = sizeof(size_t); // object count
-
-		_pageSize += (_minDegree * 2 - 1) * (sizeof(size_t) + maxDataSize
-				+ sizeof(long) + sizeof(byte) ); // records + overflow address
-		_pageSize += _minDegree * 2 * sizeof(long); // child locations	
-		_overFlowSize = overFlowSize;
-		_maxDataSize = maxDataSize;
-
-		BTreeNode<KeyType, ValueType, LockType, Alloc>::setDataSize(maxDataSize,
-				_pageSize, _overFlowSize);
-		//_pageSize += sizeof(long);//extra size
-
-		//_pageSize += BOOST_SERIAZLIZATION_HEAD_LENGTH;
-	}
-
-	/**
-	 * 	\brief return the file name of the SequentialDB
-	 */
-	std::string getFileName() const {
-		return _fileName;
-	}
-
-	/**
-	 * 	We would peroidically flush the memory items, according to the cache Size. 
-	 */
-
-	void setCacheSize(size_t sz) {
-		_cacheSize = sz;
-	}
-
-	/**
-	 * 	
-	 * \brief get the number of the items.
-	 */
-	int numItems() {
-		return _numItem;
 	}
 
 	/**
@@ -317,12 +284,51 @@ public:
 		}
 	}
 
+	/**
+	 * 
+	 *  \brief External method that searches for elements that match the	 
+	 *  given key. 
+	 *
+	 */
+	NodeKeyLocn search(const KeyType& key) {
+
+		//do Flush, when there are too many active nodes.
+		_flushCache();
+
+		NodeKeyLocn ret(BTreeNodePtr(), (size_t)-1);
+		BTreeNodePtr temp = _root;
+		while (1) {
+			int ctr = temp->objCount;
+			int low = 0;
+			int high = ctr-1;
+			int compVal;
+			while (low <= high) {
+				int mid = (low+high)/2; //cout<<"mid "<<mid<<endl;
+				compVal = comp(key,temp->elements[mid]->pdat->get_key() );
+				if (compVal == 0)
+				return NodeKeyLocn(temp, mid);
+				else if (compVal < 0)
+				high = mid-1;
+				else {
+					low = mid+1;
+				}
+			}
+			//	cout<<"serach childno0 "<<low<<endl;
+			if (!temp->isLeaf) {
+				temp = temp->loadChild(low, _dataFile, _fileName);
+			} else {
+				break;
+			}
+			//	cout<<"serach childno "<<low<<endl;
+		}
+		return ret;
+	}
+
 private:
 	/**
 	 *  \brief it provides the basical information of the btree.
 	 * 
 	 */
-
 	struct SFileHeader {
 		int magic; //set it as 0x061561, check consistence.
 		size_t minDegree;
@@ -364,6 +370,7 @@ private:
 
 private:
 	BTreeNodeVECTOR _dirtyPages;
+	CompareFunctor<KeyType> comp;
 
 private:
 
@@ -531,7 +538,7 @@ template<typename KeyType, typename ValueType, typename LockType,
 	_fileName(fileName), _minDegree(minDegree), _dataFile(0), _numItem(0) {
 	_pageSize = 1024; //default set 1024
 	_overFlowSize = 1024;
-	_cacheSize = 1000000; //default set 1000000	
+	_cacheSize = 100000; //default set 1000000	
 
 	//strcpy( BTreeNode<KeyType, ValueType, LockType, Alloc>::fileName, fileName.c_str());
 	_isUnload = false;
@@ -547,8 +554,7 @@ template<typename KeyType, typename ValueType, typename LockType,
 // actual node will be deleted.
 // We also have to close the file.
 template<typename KeyType, typename ValueType, typename LockType,
-		typename Alloc> BTreeFile< KeyType, ValueType, LockType, Alloc>::~BTreeFile(
-		) {
+		typename Alloc> BTreeFile< KeyType, ValueType, LockType, Alloc>::~BTreeFile() {
 
 	flush();//write back the dirty pages.
 	_root->unload();
@@ -655,7 +661,7 @@ template<typename KeyType, typename ValueType, typename LockType,
 			int compVal;
 			while (low<=high) {
 				int mid = (low+high)/2;//cout<<"mid "<<mid<<endl;
-				compVal = key.compare(node->elements[mid]->pdat->get_key());
+				compVal = comp(key, node->elements[mid]->pdat->get_key());
 				if (compVal == 0)
 					return false;
 				else if (compVal < 0)
@@ -684,7 +690,7 @@ template<typename KeyType, typename ValueType, typename LockType,
 			int compVal;
 			while (low<=high) {
 				int mid = (low+high)/2;
-				compVal = key.compare(node->elements[mid]->pdat->get_key());
+				compVal = comp(key, node->elements[mid]->pdat->get_key());
 				if (compVal == 0)
 					return false;
 				else if (compVal < 0)
@@ -702,8 +708,8 @@ template<typename KeyType, typename ValueType, typename LockType,
 			// to split the node.
 			if (child->objCount == _minDegree *2 - 1) {
 				_split(node, ctr, child);
-				int compVal =
-						key.compare(node->elements[ctr]->pdat->get_key() );
+				int compVal =comp(key, node->elements[ctr]->pdat->get_key() );
+				//comp(key, node->elements[ctr]->pdat->get_key() );
 				if (compVal == 0)
 					return false;
 				if (compVal> 0) {
@@ -1046,7 +1052,6 @@ template<typename KeyType, typename ValueType, typename LockType,
 			ret = true;
 
 		}
-
 		// If note creating, just create and read
 		// rather than allocating.
 	}
@@ -1128,8 +1133,9 @@ template<typename KeyType, typename ValueType, typename LockType,
 		const KeyType& key, const DataType& rec) {
 	NodeKeyLocn locn(BTreeNodePtr(), (size_t)-1);
 	locn = search(key);
-	if (key.compare(rec.get_key() ) != 0) {
-		throw SDBException("UpdateError: key mismatch\n");
+	if (comp(key, rec.get_key() ) != 0) {
+		assert(0);
+		//throw BTreeFileException(KEY_MISMATCH, "UpdateError: key mismatch\n");
 	}
 	if (locn.second != (size_t) -1) {
 		locn.first->elements[locn.second].reset(new PtrObj<DataType, LockType, Alloc>(rec));

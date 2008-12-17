@@ -8,8 +8,8 @@
 #ifndef BTREENODE_H_
 #define BTREENODE_H_
 
+#include <am/concept/DataType.h>
 #include "sdb_types.h"
-#include "SDBException.h"
 
 #include <vector>
 using namespace std;
@@ -57,10 +57,12 @@ public:
 		pdat = new DataType(*other.pdat);
 		return *this;
 	}
-	bool operator <=(PtrObj& other) {
+	
+	/*bool operator <=(PtrObj& other) {
 		return *pdat.compare(*other.pdat);
 
-	}
+	}*/
+	
 public:
 	DataType* pdat;
 };
@@ -266,6 +268,7 @@ private:
 	static size_t _overFlowSize;
 	//LockType _lock;
 	static LockType _lock;
+	static CompareFunctor<KeyType> comp;
 private:
 //typedef pair<long, size_t> OverflowInfo;
 //map<size_t, OverflowInfo> _preOverflowMap;
@@ -285,6 +288,9 @@ template<typename KeyType, typename DataType, typename LockType, typename Alloc>
 
 template<typename KeyType, typename DataType, typename LockType, typename Alloc> LockType
 		BTreeNode< KeyType, DataType, LockType, Alloc>::_lock;
+
+template<typename KeyType, typename DataType, typename LockType, typename Alloc> CompareFunctor<KeyType>
+		BTreeNode< KeyType, DataType, LockType, Alloc>::comp;
 
 // Constructor initialises everything to its default value.
 // Not that we assume that the node is a leaf,
@@ -700,7 +706,7 @@ template<typename KeyType, typename DataType, typename LockType, typename Alloc>
 	size_t ctr = 0;
 	while (dovit < elements.end()) {
 		//int compVal = CompareFun(key, (*dovit)->dat.get_key() );
-		int compVal = key.compare((*dovit)->pdat->get_key() );
+		int compVal = comp(key, (*dovit)->pdat->get_key() );
 		if (compVal == 0) {
 			return OBJECTPOS(ctr, ECP_INTHIS);
 		} else if (compVal < 0) {
@@ -727,7 +733,7 @@ template<typename KeyType, typename DataType, typename LockType, typename Alloc>
 	size_t ctr = 0;
 	while (dovit < elements.end()) {
 		//int compVal = CompareFun(key, (*dovit)->dat.get_key() );
-		int compVal = key.compare((*dovit)->pdat->get_key() );
+		int compVal = comp(key, (*dovit)->pdat->get_key() );
 		if (compVal == 0) {
 			return OBJECTPOS(ctr, ECP_INTHIS);
 		} else if (compVal < 0) {
