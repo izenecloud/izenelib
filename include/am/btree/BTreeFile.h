@@ -78,7 +78,7 @@ public:
 		_overFlowSize = overFlowSize;
 		_maxDataSize = maxDataSize;
 
-		BTreeNode<KeyType, ValueType, LockType, Alloc>::setDataSize(maxDataSize,
+		BTreeNode<KeyType, DataType, LockType, Alloc>::setDataSize(maxDataSize,
 				_pageSize, _overFlowSize);
 		//_pageSize += sizeof(long);//extra size
 
@@ -380,7 +380,7 @@ private:
 >				_cacheSize) {
 #ifdef DEBUG
 			cout<<"flush ... "<<_cacheSize << endl;
-			cout<<"activeNode: " <<BTreeNode<KeyType, ValueType, LockType, Alloc>::activeNodeNum
+			cout<<"activeNode: " <<BTreeNode<KeyType, DataType, LockType, Alloc>::activeNodeNum
 			<<endl;
 #endif
 			_isUnload = true;

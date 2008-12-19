@@ -608,30 +608,6 @@ template<typename KeyType, typename DataType, typename LockType, typename Alloc>
 	}
 	_lock.release_write_lock();
 	return child;
-
-	/*assert(childNum <= objCount);
-	BTreeNodePtr child;
-	child = children[childNum];
-
-	if (child !=0 && child->loaded) {
-		return child;
-	}
-
-	if ((BTreeNodePtr)child == 0 && !child->loaded) {
-		child.reset(new BTreeNode);
-		children[childNo] = child;
-	}
-	child->childNo = childNum;
-	//	boost::mutex::scoped_lock lk(mtx);	
-	_lock.acquire_write_lock();
-	if ( !child->loaded) {
-		//f = fopen(fileName.c_str(), "r");		
-		child->read(f);
-		child->parent.reset(this);
-		//fclose(f);			
-	}
-	_lock.release_write_lock();
-	return child;*/
 }
 
 // Unload a child, which means that we get rid of all

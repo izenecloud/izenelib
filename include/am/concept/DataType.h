@@ -31,10 +31,9 @@ struct NullType{
 	
 };
 
-
+//When ValueType is NullType, it is equivatent to unary DataType.
 template<typename KeyType, typename ValueType=NullType>
-class DataType
-{
+class DataType{		
 public:
 	DataType(){		
 	}	
@@ -52,6 +51,7 @@ public:
     void serialize(Archive& ar, const unsigned int version)
     {
         ar & key;
+        ar & value;
     }
 
     const KeyType& get_key() const {return key;}    
@@ -77,6 +77,7 @@ public:
 template<typename KeyType>
 class DataType<KeyType, NullType>
 {
+	
 public:
 	DataType(){		
 	}	
@@ -86,8 +87,7 @@ public:
     }
     DataType(const KeyType& key, const NullType&)
     :key(key)
-    {
-    	std::cout<<"dfwf"<<endl;
+    {    	
     }
 
     int compare(const DataType& other) const
@@ -144,18 +144,5 @@ private:
 };
 
 NS_IZENELIB_AM_END
-
-/*
-namespace boost {
-    namespace serialization {
-        template<typename Archive> void serialize(Archive & ar, ylib::YString & t,
-		const unsigned int) {
-	    string temp;
-	    temp = t;
-	    ar & temp;
-	    t = temp;
-       }
-    }
-}*/
 
 #endif //End of AM_CONCEPT_DATATYPE_H

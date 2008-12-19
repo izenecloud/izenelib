@@ -39,31 +39,7 @@ BOOST_AUTO_TEST_SUITE( t_BTreeFile_suite )
 
 int degree = 128;
 
-/*
- struct myKeyType {
- int a;
- int compare(const myKeyType& other) const {
- return a -other.a;
- }
- myKeyType(int b):a(b) {};
- myKeyType() {};
- template<class Archive> void serialize(Archive & ar,
- const unsigned int version) {
- ar & a;
-
- }
- 
- 
- char p[20];
-		if (!rnd) {
-			sprintf(p, "%08d", i);
-		} else {
-			sprintf(p, "%08d", myrand()% num+1);
-		}
-		YString str = p;
- };*/
-
-izenelib::am::BTreeFile<string> tb("sdb.dat", degree);
+izenelib::am::BTreeFile<int, string> tb("sdb.dat", degree);
 
 BOOST_AUTO_TEST_CASE(Insertion_check )
 {
@@ -79,16 +55,13 @@ BOOST_AUTO_TEST_CASE(Insertion_check )
 		char p[20];
 	    sprintf(p, "%08d", i);
 	    string str = p;		
-		tb.insert( str);
+		tb.insert(i, str);
 	}
 	tb.flush();
 	finish = clock();
 	printf( "\nIt takes %f seconds to insert %d random data!\n", (double)(finish - start) / CLOCKS_PER_SEC, SIZE );
-
-	//  tb.display(std::cout);
-
 }
-/*
+
 BOOST_AUTO_TEST_CASE(Searching_check )
 {
 
@@ -100,12 +73,12 @@ BOOST_AUTO_TEST_CASE(Searching_check )
 
 	for (int i=0; i<SIZE; i++)
 	{
-		if ( tb.find(i) != 0 )
+		if ( tb.find(i)  )
 		c++;
 		else
 		b++;
 	}
-
+    tb.flush();
 	finish = clock();
 	printf( "\nIt takes %f seconds to find %d random data! %d data found, %d data lost!\n",
 			(double)(finish - start) / CLOCKS_PER_SEC, SIZE,

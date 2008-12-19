@@ -2,7 +2,7 @@ GPP :=g++
 
 GCC :=/usr/bin/gcc
 
-CC_OPTIONS :=  -O0 -g -Wall -c -fmessage-length=0 -DDEBUG -pg
+CC_OPTIONS :=  -O3 -g -Wall -c -fmessage-length=0 -DDEBUG -pg
 
 LIBS =     /usr/local/lib/libboost_thread-gcc41-mt.so  /usr/local/lib/libboost_unit_test_framework-gcc41-mt.so  /usr/local/lib/libboost_serialization-gcc41-mt.so
 

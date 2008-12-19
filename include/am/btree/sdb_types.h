@@ -35,18 +35,4 @@ const int BOOST_SERIAZLIZATION_HEAD_LENGTH = 40;
 
 NS_IZENELIB_AM_END
 
-/*namespace boost {
-namespace serialization {
-template<typename Archive> void serialize(Archive & ar, YString & t,
-		const unsigned int) {
-	string temp;
-	temp = t;
-	ar & temp;
-	t = temp;
-
-}
-}
-}*/
-
-
 #endif /*SDB_TYPES_H_*/
