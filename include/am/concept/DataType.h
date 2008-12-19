@@ -102,6 +102,7 @@ public:
     }
 
     const KeyType& get_key() const {return key;}    
+    const NullType& get_value() const {return value;}  
    
    
 private:
@@ -118,6 +119,7 @@ private:
 
 public:
     KeyType key;
+    NullType value;
 };
 
 template<class KeyType>

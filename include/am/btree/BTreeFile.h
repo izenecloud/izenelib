@@ -132,14 +132,14 @@ public:
 	/**
 	 *  \brief updata an item with given key, if it not exist, insert it directly. 
 	 */
-	bool update(const KeyType& key, const DataType& rec);
+	bool update(const KeyType& key, const ValueType& val)
+	{
+		return update( DataType(key, val) );
+	}
 	/**
 	 *  \brief updata an item with given key, if it not exist, insert it directly. 
 	 */
-	bool update(const DataType& rec)
-	{
-		return update(rec.get_key(), rec);
-	}
+	bool update(const DataType& rec);	
 
 	/**
 	 * 	
@@ -1130,13 +1130,9 @@ template<typename KeyType, typename ValueType, typename LockType,
 
 template<typename KeyType, typename ValueType, typename LockType,
 		typename Alloc> bool BTreeFile< KeyType, ValueType, LockType, Alloc>::update(
-		const KeyType& key, const DataType& rec) {
+		 const DataType& rec) {
 	NodeKeyLocn locn(BTreeNodePtr(), (size_t)-1);
-	locn = search(key);
-	if (comp(key, rec.get_key() ) != 0) {
-		assert(0);
-		//throw BTreeFileException(KEY_MISMATCH, "UpdateError: key mismatch\n");
-	}
+	locn = search( rec.get_key() );
 	if (locn.second != (size_t) -1) {
 		locn.first->elements[locn.second].reset(new PtrObj<DataType, LockType, Alloc>(rec));
 		return true;
