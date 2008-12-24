@@ -222,7 +222,7 @@ public:
 
     x = pHeader_;
     while (x != pBottom_) {
-      while (v > x->key_)
+      while (compare(v,  x->key_)>0)
         x = x->pRight_;
       if (x->pDown_ == pBottom_ || v == x->key_)
         return ( (v == x->key_) ? (x->pValue_) : 0);
@@ -317,9 +317,9 @@ public:
     pBottom_->pValue_ = BOOST_NEW(alloc_, ValueType)(data);
     
     while (x != pBottom_) {
-      while (key > x->key_)
+      while (compare(key, x->key_)>0)
         x = x->pRight_;
-      if ((x->pDown_ == pBottom_) && (key == x->key_))
+      if ((x->pDown_ == pBottom_) && (compare(key,x->key_)==0))
       {
         pBottom_->pValue_ = 0;
         return false; // already inserted
@@ -358,9 +358,9 @@ public:
     
     x = pHeader_;
     while (x != pBottom_) {
-      while (v > x->key_)
+      while (compare(v,x->key_)>0)
         x = x->pRight_;
-      if (v == x->key_ && x->pValue_!=0)
+      if (compare(v,x->key_)==0 && x->pValue_!=0)
       {
         x->pValue_ = 0;
         r= true;
@@ -404,6 +404,21 @@ private:
   std::vector<ValueType*, boost::stl_allocator<ValueType*> > pPool_;
   boost::scoped_alloc alloc_;
   //  std::allocator<ValueType*> alloc_;
+  
+  int compare(const KeyType& a, const KeyType& b) const
+  {
+    return _compare(a,b, static_cast<boost::is_arithmetic<KeyType>*>(0));
+  }
+  int _compare(const KeyType& a, const KeyType& b, const boost::mpl::true_*) const
+  {
+    return a-b;
+  }
+
+  int _compare(const KeyType& a, const KeyType& b, const boost::mpl::false_*) const
+  {
+    BOOST_CONCEPT_ASSERT((KeyTypeConcept<KeyType>));
+    return a.compare(b);
+  }
   
   
 };

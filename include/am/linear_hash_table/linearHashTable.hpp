@@ -4,16 +4,23 @@
  */
 
 #ifndef LINEARHASHTABLE_HPP
-#define LINEARHASHTABLE_HPP 
+#define LINEARHASHTABLE_HPP
 
+#include <util/log.h>
 #include <types.h>
 #include <util/hashFunction.h>
 #include <am/am.h>
+#include <am/concept/DataType.h>
 #include <iostream>
 #include <am/concept/DataType.h>
 #include <boost/memory.hpp>
 #include <boost/static_assert.hpp>
-
+#include <boost/concept_check.hpp>
+#include <boost/mpl/bool.hpp>
+#include <boost/type_traits.hpp>
+#include <boost/utility/enable_if.hpp>
+#include <boost/mpl/not.hpp>
+#include <boost/concept/assert.hpp>
 
 NS_IZENELIB_AM_BEGIN
   
@@ -36,6 +43,7 @@ class MemStorage
   {
     static inline Size getHashValue(const KeyType& key)
     {
+      return -1;
       
     }
     
@@ -72,7 +80,7 @@ template<
   int DIRECTORY_SIZE = 1024,
   int expandFctrPerc = 100,
   int shrinkFctrPerc = 50,
-  class LockType=NullLock,
+  class LockType= ReadWriteLock,
   template<class> class HashFuncType = ModeHashFunction
   >
 class LinearHashTable
@@ -82,18 +90,26 @@ class LinearHashTable
 public:
   virtual bool insert(const DataType<KeyType,ValueType>& data) 
   {
+    return false;
+    
   }
 
   virtual bool update(const DataType<KeyType,ValueType>& data)
   {
+    return false;
+    
   }
 
   virtual ValueType* find(const KeyType& key)
   {
+    return NULL;
+    
   }
 
   virtual bool del(const KeyType& key)
   {
+    return false;
+    
   }
 
     
@@ -116,7 +132,7 @@ public:
  *
  *
  */
-  
+
 template<
   class ValueType,
   class KeyType,
@@ -218,15 +234,14 @@ class LinearHashTable<ValueType,KeyType, MemStorage,
 
 protected:
     
-  int next_; // next bucket to be split
-  int maxp_; // upper bound on next during this expansion
-  int keycount_; // number of records in the table
-  int currentsize_; // current number of buckets
+  Size next_; // next bucket to be split
+  Size maxp_; // upper bound on next during this expansion
+  Size keycount_; // number of records in the table
+  Size currentsize_; // current number of buckets
   double minloadfctr_, maxloadfctr_; // lower and upper bound on the load factor
   Segment* pDirectory_[DIRECTORY_SIZE];
   LockType locker_; // for thread-safe
   boost::auto_alloc alloc_;
-
   
   /**
    *  @brief Returns a hash value of a key.
@@ -243,12 +258,28 @@ protected:
     return address;
   }
   
+  int compare(const KeyType& a, const KeyType& b) const
+  {
+    return _compare(a,b, static_cast<boost::is_arithmetic<KeyType>*>(0));
+  }
+  int _compare(const KeyType& a, const KeyType& b, const boost::mpl::true_*) const
+  {
+    return a-b;
+  }
 
+  int _compare(const KeyType& a, const KeyType& b, const boost::mpl::false_*) const
+  {
+    BOOST_CONCEPT_ASSERT((KeyTypeConcept<KeyType>));
+    return a.compare(b);
+  }
+  
   /**
    * @brief Expands the table.
    */
   void expand_table()
   {
+    LDBG_<<"expand_table";
+    
     int newaddress, oldsegmentindex, newsegmentindex;
     Segment* oldsegment, *newsegment;
     LHTElem* current, *previous; // for scanning down the old chain
@@ -388,7 +419,7 @@ protected:
       expand_table(); // due for expanding table
 
     const KeyType& key = elem.key_;
-    int address = hash(key);
+    Size address = hash(key);
     Segment* currentSegment = pDirectory_[address/SEGMENT_SIZE];
     int segIndex = address % SEGMENT_SIZE;
     LHTElem* e = currentSegment->pSeg_[segIndex]; // first on chain
@@ -396,14 +427,14 @@ protected:
       currentSegment->pSeg_[segIndex] = BOOST_NEW(alloc_, LHTElem)(elem);//new LHTElem(elem);
     else {
       while (e->pNext_ != NULL) {
-        if (e->key_ == key) {// duplicate data
+        if (compare(e->key_, key)==0) {// duplicate data
           // release the write lock
           locker_.release_write_lock();
           return false;
         }
         e = e->pNext_; // go to the end of the chain
       }
-      if (e->key_ == key) {
+      if (compare(e->key_, key)==0) {
         // release the write lock
         locker_.release_write_lock();
         return false;
@@ -481,7 +512,7 @@ public:
     LHTElem* elem =
       pDirectory_[address/SEGMENT_SIZE]->pSeg_[address % SEGMENT_SIZE]; // first on chain
     while (elem != NULL) {
-      if (key == elem->key_) {// found!
+      if (compare(key, elem->key_)==0) {// found!
         // release the read lock
         locker_.release_read_lock();
         return &elem->data_;
@@ -520,7 +551,7 @@ public:
     LHTElem* elem =
       pDirectory_[address/SEGMENT_SIZE]->pSeg_[address % SEGMENT_SIZE]; // first on chain
     while (elem != NULL) {
-      if (key == elem->key_) {// found!
+      if (compare(key, elem->key_)==0) {// found!
         // release the read lock
         elem->data_ = data;
         r = true;
@@ -557,7 +588,7 @@ public:
     LHTElem* prev = elem;
 
     while (elem != NULL) {
-      if (key == elem->key_) { // found!
+      if (compare(key, elem->key_)) { // found!
         if (prev == elem) //
           pDirectory_[address/SEGMENT_SIZE]->pSeg_[address % SEGMENT_SIZE]
             = prev->pNext_;
@@ -680,7 +711,11 @@ public:
   }
 
 
+
+
 };
+
+
 
 NS_IZENELIB_AM_END
 #endif
