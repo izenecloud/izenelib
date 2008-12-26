@@ -33,6 +33,8 @@
 #include <math.h>
 #include <boost/test/unit_test.hpp>
 #include <time.h>
+#include <util/log.h>
+
 
 #define SIZE 1000000
 
@@ -40,6 +42,8 @@ BOOST_AUTO_TEST_SUITE( t_LinearHashTable_suite )
 
 BOOST_AUTO_TEST_CASE(Insertion_check )
 {
+  USING_IZENE_LOG();
+  
   izenelib::am::LinearHashTable< std::string > tb;
 
   class Ele
@@ -168,39 +172,39 @@ BOOST_AUTO_TEST_CASE(Delete_check )
 
 }
 
-BOOST_AUTO_TEST_CASE(Allocator_check )
-{
-  clock_t start, finish;
-  std::string* p[SIZE];
-  start = clock();
-  for (int j=0; j<32; j++)
-  for (int i=0; i<SIZE; i++)
-  {
-    p[i] = new std::string();
-    delete p[i];
+// BOOST_AUTO_TEST_CASE(Allocator_check )
+// {
+//   clock_t start, finish;
+//   std::string* p[SIZE];
+//   start = clock();
+//   for (int j=0; j<32; j++)
+//   for (int i=0; i<SIZE; i++)
+//   {
+//     p[i] = new std::string();
+//     delete p[i];
     
     
-  }
+//   }
 
-  finish = clock();
-  printf( "\nNEW: It takes %f seconds to new 1000000 object\n",
-          (double)(finish - start) / CLOCKS_PER_SEC);
+//   finish = clock();
+//   printf( "\nNEW: It takes %f seconds to new 1000000 object\n",
+//           (double)(finish - start) / CLOCKS_PER_SEC);
 
 
-  boost::scoped_alloc alloc_;
-  start = clock();
-  for (int j=0; j<32; j++)
-  for (int i=0; i<SIZE; i++)
-  {
-    p[i] = BOOST_NEW(alloc_, std::string);
+//   boost::scoped_alloc alloc_;
+//   start = clock();
+//   for (int j=0; j<32; j++)
+//   for (int i=0; i<SIZE; i++)
+//   {
+//     p[i] = BOOST_NEW(alloc_, std::string);
     
-  }
-  finish = clock();
-  printf( "\nBOOST_NEW: It takes %f seconds to new 1000000 object\n",
-          (double)(finish - start) / CLOCKS_PER_SEC);
+//   }
+//   finish = clock();
+//   printf( "\nBOOST_NEW: It takes %f seconds to new 1000000 object\n",
+//           (double)(finish - start) / CLOCKS_PER_SEC);
   
   
-}
+// }
 
 BOOST_AUTO_TEST_SUITE_END()
 
