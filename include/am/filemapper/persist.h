@@ -260,9 +260,6 @@ void map_file::unlock()
 
 NS_IZENELIB_AM_END
 
-
-void *operator new(size_t size, izenelib::am::map_file&share);
-void operator delete(void *p, izenelib::am::map_file&share);
 // operator new
 //
 // Allocates space for one object in the shared memory
