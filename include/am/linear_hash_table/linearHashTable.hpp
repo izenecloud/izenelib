@@ -18,9 +18,9 @@
 #include <boost/concept_check.hpp>
 #include <boost/mpl/bool.hpp>
 #include <boost/type_traits.hpp>
-#include <boost/utility/enable_if.hpp>
-#include <boost/mpl/not.hpp>
-#include <boost/concept/assert.hpp>
+//#include <boost/utility/enable_if.hpp>
+//#include <boost/mpl/not.hpp>
+//#include <boost/concept/assert.hpp>
 
 NS_IZENELIB_AM_BEGIN
   
@@ -278,8 +278,6 @@ protected:
    */
   void expand_table()
   {
-    LDBG_<<"expand_table";
-    
     int newaddress, oldsegmentindex, newsegmentindex;
     Segment* oldsegment, *newsegment;
     LHTElem* current, *previous; // for scanning down the old chain
@@ -394,6 +392,8 @@ protected:
   
   void init()
   {
+    //  USING_IZENE_LOG();
+    
     next_= 0;
     maxp_ = SEGMENT_SIZE;
     keycount_ = 0;
@@ -504,7 +504,6 @@ public:
     return currentsize_;
   }
 
-    
   virtual ValueType* find(const KeyType& key)
   {
     locker_.acquire_read_lock();
@@ -515,6 +514,9 @@ public:
       if (compare(key, elem->key_)==0) {// found!
         // release the read lock
         locker_.release_read_lock();
+   
+        //      IF_DLOG(compare(key, elem->key_)==0)<<"compare(key, elem->key_)==0";
+           
         return &elem->data_;
       } else
         elem = elem->pNext_;

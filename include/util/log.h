@@ -16,7 +16,7 @@ typedef logger_format_write< > logger_type;
 BOOST_DEFINE_LOG_FILTER(g_dbg_filter, filter::no_ts )
 BOOST_DEFINE_LOG_FILTER(g_app_filter, filter::no_ts )
 BOOST_DEFINE_LOG_FILTER(g_err_filter, filter::no_ts )
-BOOST_DEFINE_LOG_FILTER(g_block, filter::no_ts )
+//BOOST_DEFINE_LOG_FILTER(g_block, filter::no_ts )
 
 BOOST_DEFINE_LOG(g_log_err, logger_type)
 BOOST_DEFINE_LOG(g_log_app, logger_type)
@@ -39,10 +39,18 @@ BOOST_DEFINE_LOG(vacancy_log, logger_type)
 #define LDBG_ BOOST_LOG_USE_LOG_IF_FILTER(g_log_dbg(), g_dbg_filter()->is_enabled() ) << DBG_TAG
 #define LERR_ BOOST_LOG_USE_LOG_IF_FILTER(g_log_err(), g_err_filter()->is_enabled() ) << ERR_TAG
 #define LAPP_ BOOST_LOG_USE_LOG_IF_FILTER(g_log_app(), g_app_filter()->is_enabled() ) << APP_TAG
-#define VACANCY_ BOOST_LOG_USE_LOG_IF_FILTER(vacancy_log(), g_block()->is_enabled() )
+//#define VACANCY_ BOOST_LOG_USE_LOG_IF_FILTER(vacancy_log(), g_block()->is_enabled() )
  
 #ifndef ERR_LOG_NAME
-#define ERR_LOG_NAME "err.txt"//defult error log file name
+#define ERR_LOG_NAME "./err.txt"//defult error log file name
+#endif
+
+#ifndef APP_LOG_NAME
+#define APP_LOG_NAME "./app.txt"//defult application output log file name
+#endif
+
+#ifndef DBG_LOG_NAME
+#define DBG_LOG_NAME "./dbg.txt"
 #endif
 
 void initiateLog()
@@ -57,9 +65,6 @@ void initiateLog()
   g_log_err()->writer().add_destination( destination::cout() );
 #endif
 
-#ifndef APP_LOG_NAME
-#define APP_LOG_NAME "out.txt"//defult application output log file name
-#endif
   // App log
   g_log_app()->writer().add_formatter( formatter::time("$hh:$mm.$ss ") );
   g_log_app()->writer().add_formatter( formatter::append_newline() );
@@ -68,14 +73,11 @@ void initiateLog()
   g_log_app()->writer().add_destination( destination::cout() );
 #endif
 
-#ifndef DBG_LOG_NAME
-#define DBG_LOG_NAME "dbg.txt"
-#endif
   // Debug log
   g_log_dbg()->writer().add_formatter( formatter::time("$hh:$mm.$ss ") );
   g_log_dbg()->writer().add_formatter( formatter::append_newline() );
-  g_log_dbg()->writer().add_destination( destination::dbg_window() );
-  g_log_dbg()->writer().add_destination( destination::file(ERR_LOG_NAME) );
+  //g_log_dbg()->writer().add_destination( destination::dbg_window() );
+  g_log_dbg()->writer().add_destination( destination::file(DBG_LOG_NAME) );
 #ifdef DBG2CONSOLE // put debug info into console
   g_log_dbg()->writer().add_destination( destination::cout() );
 #endif
@@ -102,42 +104,137 @@ void initiateLog()
   g_err_filter()->set_enabled(false);
 #endif
 
-  g_block()->set_enabled(false);
+  //g_block()->set_enabled(false);
 }
 
-enum LogLevel
+
+class dbg_log:public std::ostream
+{
+  
+ public:
+  dbg_log& operator << (const char* in)
   {
-    ERR,
-    DBG,
-    APP
-  };
+    LDBG_<<in;
+    return *this;
+    
+  }
 
+  dbg_log& operator << (double in)
+  {
+    LDBG_<<in;
+    return *this;
+    
+  }
 
-/* std::ostream LOG_IF( bool flag, int level=APP) */
-/* { */
-/*   if (!flag) */
-/*     ;//return VACANCY_; */
+  dbg_log& operator << (int in)
+  {
+    LDBG_<<in;
+    return *this;
+    
+  }
+
+  dbg_log& operator << (const std::string& in)
+  {
+    LDBG_<<in.c_str();
+    return *this;
+    
+  }
   
-/*   if (level == ERR) */
-/*   { */
-/*     return LERR_; */
-/*   } */
+};
 
-/*   if (level== DBG) */
-/*   { */
-/*     return LDBG_; */
-/*   } */
+class app_log:public std::ostream
+{
+ public:
+  app_log& operator << (const char* in)
+  {
+    LAPP_<<in;
+    return *this;
+    
+  }
+
+  app_log& operator << (double in)
+  {
+    LAPP_<<in;
+    return *this;
+    
+  }
+
+  app_log& operator << (int in)
+  {
+    LAPP_<<in;
+    return *this;
+    
+  }
+
+  app_log& operator << (const std::string& in)
+  {
+    LAPP_<<in.c_str();
+    return *this;
+    
+  }
   
-/*   if (level== APP) */
-/*   { */
-/*     return LAPP_; */
-/*   } */
+};
+
+class err_log:public std::ostream
+{
+ public:
+  err_log& operator << (const char* in)
+  {
+    LERR_<<in;
+    return *this;
+    
+  }
+
+  err_log& operator << (double in)
+  {
+    LERR_<<in;
+    return *this;
+    
+  }
+
+  err_log& operator << (int in)
+  {
+    LERR_<<in;
+    return *this;
+    
+  }
+
+  err_log& operator << (const std::string& in)
+  {
+    LERR_<<in.c_str();
+    return *this;
+    
+  }
   
-/* } */
+};
+  
+dbg_log dbg;
+//no_log nlog;
+app_log app;
+err_log err;
 
-NS_IZENELIB_UTIL_BEGIN
 
+dbg_log& IF_DLOG(int f)
+{
+  if (f)
+    return dbg;
+}
 
-NS_IZENELIB_UTIL_END
+std::ostream& IF_ELOG(int f)
+{
+  if (f)
+    return err;
+  
+}
+
+std::ostream& IF_ALOG(int f)
+{
+  if (f)
+    return app;
+}
+
+//#define IF_DLOG izene_log::IF_DLOG
+
+#define USING_IZENE_LOG() initiateLog()
 
 #endif //End of IZENE_UTIL_LOG_H
