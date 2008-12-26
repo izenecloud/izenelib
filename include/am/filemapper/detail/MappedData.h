@@ -50,13 +50,13 @@ struct MappedData : public MappedDataBase
 
     void *free_space[64];   // An embarrassingly simple memory manager
 
-    enum { block_size = 1<<20, num_blocks = 1<<12 };
+    //num_blocks*block_size equals to the maximum size that the file mapper supported
+    enum { block_size = 1<<20, num_blocks = 1<<20 };
 
     int num_mapped_blocks;	// The number of mapped blocks
     mapped_block blocks[num_blocks];
 
     MappedData()
-
     {
         top=0;
         end=0;
