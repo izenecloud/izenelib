@@ -82,7 +82,7 @@ BOOST_AUTO_TEST_CASE(Insertion_check )
     tb.insert(ele[i].k, ele[i].str);
   }
   finish = clock();
-  printf( "\nIt takes %f seconds to insert 1000000 random data!\n", (double)(finish - start) / CLOCKS_PER_SEC );
+  printf( "\nIt takes %f seconds to insert 1000000 random data!\n", (double)(finish - start) / CLOCKS_PER_SEC);
   
   //  tb.display(std::cout);
    
@@ -170,6 +170,39 @@ BOOST_AUTO_TEST_CASE(Delete_check )
           c,
           b);
 
+}
+
+BOOST_AUTO_TEST_CASE(Allocator_check )
+{
+  char chars[10000];
+  for (int i = 0; i<10000; i++)
+  {
+    chars[i] = rand()%26+'a';
+  }
+
+  clock_t start, finish;
+  std::vector<std::string*> pv;
+  start = clock();
+  for (int i=0; i<100000; i++)
+  {
+    std::string* k = new std::string(chars, 10000);
+    pv.push_back(k);
+  }
+  finish = clock();
+  printf( "\nIt takes %f seconds to delete 1000000 random string*!",
+          (double)(finish - start) / CLOCKS_PER_SEC);
+
+  std::vector<std::string> v;
+  start = clock();
+  for (int i=0; i<100000; i++)
+  {
+    std::string k(chars, 10000);
+    v.push_back(k);
+  }
+  finish = clock();
+  printf( "\nIt takes %f seconds to delete 1000000 random string!",
+          (double)(finish - start) / CLOCKS_PER_SEC);
+    
 }
 
 // BOOST_AUTO_TEST_CASE(Allocator_check )

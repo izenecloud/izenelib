@@ -16,7 +16,7 @@ typedef logger_format_write< > logger_type;
 BOOST_DEFINE_LOG_FILTER(g_dbg_filter, filter::no_ts )
 BOOST_DEFINE_LOG_FILTER(g_app_filter, filter::no_ts )
 BOOST_DEFINE_LOG_FILTER(g_err_filter, filter::no_ts )
-//BOOST_DEFINE_LOG_FILTER(g_block, filter::no_ts )
+BOOST_DEFINE_LOG_FILTER(g_block, filter::no_ts )
 
 BOOST_DEFINE_LOG(g_log_err, logger_type)
 BOOST_DEFINE_LOG(g_log_app, logger_type)
@@ -39,7 +39,7 @@ BOOST_DEFINE_LOG(vacancy_log, logger_type)
 #define LDBG_ BOOST_LOG_USE_LOG_IF_FILTER(g_log_dbg(), g_dbg_filter()->is_enabled() ) << DBG_TAG
 #define LERR_ BOOST_LOG_USE_LOG_IF_FILTER(g_log_err(), g_err_filter()->is_enabled() ) << ERR_TAG
 #define LAPP_ BOOST_LOG_USE_LOG_IF_FILTER(g_log_app(), g_app_filter()->is_enabled() ) << APP_TAG
-//#define VACANCY_ BOOST_LOG_USE_LOG_IF_FILTER(vacancy_log(), g_block()->is_enabled() )
+#define VACANCY_ BOOST_LOG_USE_LOG_IF_FILTER(vacancy_log(), g_block()->is_enabled() )
  
 #ifndef ERR_LOG_NAME
 #define ERR_LOG_NAME "./err.txt"//defult error log file name
@@ -104,9 +104,43 @@ void initiateLog()
   g_err_filter()->set_enabled(false);
 #endif
 
-  //g_block()->set_enabled(false);
+  g_block()->set_enabled(false);
 }
 
+
+class no_log:public std::ostream
+{
+  
+ public:
+  no_log& operator << (const char* in)
+  {
+    VACANCY_<<in;
+    return *this;
+    
+  }
+
+  no_log& operator << (double in)
+  {
+    VACANCY_<<in;
+    return *this;
+    
+  }
+
+  no_log& operator << (int in)
+  {
+    VACANCY_<<in;
+    return *this;
+    
+  }
+
+  no_log& operator << (const std::string& in)
+  {
+    VACANCY_<<in.c_str();
+    return *this;
+    
+  }
+  
+};
 
 class dbg_log:public std::ostream
 {
@@ -209,21 +243,25 @@ class err_log:public std::ostream
 };
   
 dbg_log dbg;
-//no_log nlog;
+no_log nlog;
 app_log app;
 err_log err;
 
 
-dbg_log& IF_DLOG(int f)
+std::ostream& IF_DLOG(int f)
 {
   if (f)
     return dbg;
+
+  return nlog;
 }
 
 std::ostream& IF_ELOG(int f)
 {
   if (f)
     return err;
+
+  return nlog;
   
 }
 
@@ -231,6 +269,8 @@ std::ostream& IF_ALOG(int f)
 {
   if (f)
     return app;
+
+  return nlog;
 }
 
 //#define IF_DLOG izene_log::IF_DLOG

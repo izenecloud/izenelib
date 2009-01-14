@@ -1,0 +1,208 @@
+#ifndef ALPHABET_NODE_HPP
+#define ALPHABET_NODE_HPP
+
+#include <stdio.h>
+#include <type.h>
+using namespace std;
+
+char a2z[26] = 
+  {'a','b','c','d','e','f','g','h','i','j','k','l','m','n','o','p','q','r','s','t','u','v','w','x','y','z'
+  }
+  ;
+
+template<
+  char* ALPHABET = a2z
+  >
+class AlphabetNode
+{
+public:
+  AlphabetNode(FILE* f)
+    :f_(f),size_((uint8_t)sizeof(ALPHABET)), pNode_(NULL)
+  {
+    pNode_ = new struct _node_();
+  }
+
+  ~AlphabetNode()
+  {
+    if (pNode_!=NULL)
+      delete pNode_;
+  }
+  
+
+//   struct _address_
+//   {
+//     uint64_t disk_addr_;
+//     uint32_t mem_addr_;
+
+//     inline _address(uint64_t disk, uint32_t mem )
+//     {
+//       disk_addr_ = disk;
+//       mem_addr = mem;
+//     }
+    
+//   }
+//     ;
+
+  struct _disk_node_
+  {
+    uint64_t addrs_[sizeof(ALPHABET)]  ;
+    uint32_t level_;
+
+  }
+    ;
+  
+  struct _node_
+  {
+    struct _disk_node_ diskNode_;
+    uint32_t mem_addr_[sizeof(ALPHABET)];
+    bool dirty_;
+    uint64_t diskPos_;
+
+    inline _node_()
+    {
+      for (uint8_t i =0;i<sizeof(ALPHABET); i++)
+      {
+        mem_addr_[i] = (uint32_t)-1;
+        diskNode_.addrs[i] = (uint64_t)-1;
+      }
+      dirty = true;
+      diskPos_ = (uint64_t)-1;
+      diskNode_.level_ = (uint32_t)-1;
+
+    }
+    
+  };
+
+  bool load(uint64_t addr)
+  {
+    if (pNode_!=NULL)
+      delete pNode_;
+    
+    if (addr == (uint64_t)-1)
+      return false;
+
+    if (pNode_!=NULL)
+      delete pNode_;
+    
+    pNode_ = new struct _node_();
+    int b = fread(f_, &(pNode->diskNode_), sizeof(struct _disk_node_));
+    if (!b)
+      return false;
+
+    pNode_->dirty_ = false;
+    pNode_->diskPos = addr;
+    for (uint8_t i =0;i<sizeof(ALPHABET); i++)
+      pNode_->mem_addr_[i] = (uint32_t)-1;
+    
+    return true;
+  }
+
+  bool update2disk()
+  {
+    if (pNode_==NULL)
+      return false;
+
+    if (pNode_->dirty)
+    {
+      fseek(f_, pNode_->diskPos_, SEEK_SET);
+      return fwrite(f_, &(pNode->diskNode_), sizeof(struct _disk_node_));
+    }
+
+    return true;
+  }
+
+  uint64_t add2disk()
+  {
+     if (pNode_==NULL)
+       return (uint64_t)-1;
+
+     uint64_t end = fseek(f_, 0, SEEK_END);
+     if (end%2==0)//alphabet node only be stored at odds address, which distinguish from bucket
+      end = fseek(f_, 1, SEEK_END);
+     
+     if (fwrite(f_, &(pNode->diskNode_), sizeof(struct _disk_node_))!=sizeof(struct _disk_node_))
+       return (uint64_t)-1;
+
+     return end;
+     
+  }
+
+  uint8_t getIndexOf(uint8_t ch)
+  {
+    if(ALPHABET == a2z)
+    {
+      if (ch <= 'Z' && ch >='A')
+        return ch-'A';
+      return ch-ALPHABET[0];
+    }
+
+    uint8_t start = 0;
+    uint8_t end  = size_ -1;
+    uint8_t mid = (start + end)/2;
+    
+    while ( && mid<end && mid>start)
+    {
+      if (ALPHABET[mid]==ch)
+        return mid;
+      
+      if (ALPHABET[mid]<ch)
+      {
+        start = mid;
+        mid = (start + end)/2;
+        continue;
+      }
+
+      if (ALPHABET[mid]>ch)
+      {
+        end = mid;
+        mid = (start + end)/2;
+        continue;
+      }
+    }
+
+    return -1;
+  }
+  
+  uint8_t getSize() const
+  {
+    return size_;
+  }
+
+  void setMemAddr(uint8_t index,uint32_t addr )
+  {
+    if (index>=size_)
+    {
+      //throw exception
+      return;
+    }
+    
+    pNode_->mem_addr_[index] = addr;
+  }
+
+  uint32_t getMemAddr(uint8_t index) const
+  {
+    return pNode_->mem_addr_[index];
+  }
+
+  uint32_t getDiskAddr(uint8_t index) const
+  {
+    return pNode_->diskNode_.addrs_[index];
+  }
+  
+  
+  
+protected:
+  FILE* f_;
+  uint8_t size_;
+  struct _node_* pNode_;
+  
+  
+}
+  ;
+
+
+
+
+
+
+#endif
