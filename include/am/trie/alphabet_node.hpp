@@ -16,22 +16,7 @@ template<
   >
 class AlphabetNode
 {
-public:
-  typedef AlphabetNode<ALPHABET, ALPHABET_SIZE> SelfType;
   
-  AlphabetNode(FILE* f)
-    :f_(f), pNode_(NULL)
-  {
-    pNode_ = new struct _node_();
-  }
-
-  ~AlphabetNode()
-  {
-    if (pNode_!=NULL)
-      delete pNode_;
-  }
-  
-
   struct _disk_node_
   {
     uint64_t addrs_[ALPHABET_SIZE]  ;
@@ -61,6 +46,23 @@ public:
     }
     
   };
+
+public:
+  typedef AlphabetNode<ALPHABET, ALPHABET_SIZE> SelfType;
+  enum slef_size{ SIZE_= sizeof(_node_)+sizeof(_node_*)+sizeof(FILE*)}; 
+  
+  AlphabetNode(FILE* f)
+    :f_(f), pNode_(NULL)
+  {
+    pNode_ = new struct _node_();
+  }
+
+  ~AlphabetNode()
+  {
+    if (pNode_!=NULL)
+      delete pNode_;
+  }
+  
 
   ostream& display(ostream& os)
   {
@@ -108,7 +110,11 @@ friend ostream& operator << ( ostream& os, const SelfType& node)
   bool load(uint64_t addr)
   {
     if (pNode_!=NULL)
+    {
+      update2disk();
       delete pNode_;
+    }
+    
     pNode_ = NULL;
     
     if (addr == (uint64_t)-1)
@@ -137,20 +143,25 @@ friend ostream& operator << ( ostream& os, const SelfType& node)
     return true;
   }
 
-  bool update2disk()
+  uint64_t update2disk()
   {
     if (pNode_==NULL)
       return false;
 
     if (pNode_->dirty_)
     {
+      pNode_->dirty_ = false;
       if (pNode_->diskPos_ == (uint64_t)-1)
       {
-        return ((add2disk()==(uint64_t)-1)? false: true);
+        return add2disk();
       }
       
       fseek(f_, pNode_->diskPos_, SEEK_SET);
-      return fwrite(&(pNode_->diskNode_), sizeof(struct _disk_node_), 1, f_)==1;
+      if ( fwrite(&(pNode_->diskNode_), sizeof(struct _disk_node_), 1, f_)!=1)
+      {
+        return (uint64_t)-1;
+      }
+      return pNode_->diskPos_;
     }
 
     return true;
@@ -185,6 +196,9 @@ friend ostream& operator << ( ostream& os, const SelfType& node)
 
   static uint8_t getIndexOf(uint8_t ch)
   {
+    if (ch<ALPHABET[0] || ch>ALPHABET[ALPHABET_SIZE-1])
+      return 0;
+    
     if(ALPHABET == a2z)
     {
       if (ch <= 'Z' && ch >='A')
@@ -245,18 +259,57 @@ friend ostream& operator << ( ostream& os, const SelfType& node)
       //throw exception
       return;
     }
+    if (pNode_->diskNode_.addrs_[index] == addr)
+      return;
+    
     pNode_->dirty_ = true;
     pNode_->diskNode_.addrs_[index] = addr;
   }
 
+  void setMemAddr(uint8_t fromCh, uint8_t toCh, uint32_t addr )
+  {
+    
+    for (uint8_t i= getIndexOf(fromCh); i<=getIndexOf(toCh); i++)
+      if (pNode_->diskNode_.mem_addr_[i] != addr)
+      {
+        pNode_->dirty_ = true;
+        pNode_->diskNode_.mem_addr_[i] = addr;
+      }
+  }
+
+  void setDiskAddr(uint8_t fromCh, uint8_t toCh, uint64_t addr )
+  {
+    for (uint8_t i= getIndexOf(fromCh); i<=getIndexOf(toCh); i++)
+      if (pNode_->diskNode_.addrs_[i] != addr)
+      {
+        pNode_->dirty_ = true;
+        pNode_->diskNode_.addrs_[i] = addr;
+      }
+  }
+
+  void setAllDiskAddr(uint64_t addr)
+  {
+    for (uint8_t i= 0; i<getSize(); i++)
+      if (pNode_->diskNode_.addrs_[i] != addr)
+      {
+        pNode_->dirty_ = true;
+        pNode_->diskNode_.addrs_[i] = addr;
+      }  
+  }
+  
   uint32_t getMemAddr(uint8_t index) const
   {
     return pNode_->mem_addr_[index];
   }
 
-  uint32_t getDiskAddr(uint8_t index) const
+  uint64_t getDiskAddr(uint8_t index) const
   {
     return pNode_->diskNode_.addrs_[index];
+  }
+
+  uint64_t getDiskAddr() const
+  {
+    return pNode_->diskPos_;
   }
   
   
@@ -268,8 +321,6 @@ protected:
   
 }
   ;
-
-
 
 
 

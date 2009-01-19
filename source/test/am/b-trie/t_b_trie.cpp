@@ -40,6 +40,8 @@
 #include <cstdio>
 #include <fstream>
 #include <iostream>
+#include <am/trie/node_cache.hpp>
+#include <am/trie/b_trie.hpp>
 
 #define SIZE 27
 using namespace izenelib::am;
@@ -47,85 +49,86 @@ using namespace std;
 
 BOOST_AUTO_TEST_SUITE( b_trie_suite )
 
-BOOST_AUTO_TEST_CASE(AlphabetNode_check )
-{
-  USING_IZENE_LOG();
-  remove("./test");
-  FILE* f = fopen("./test", "w+");
-  AlphabetNode<>* alph = new AlphabetNode<>(f);
-  uint64_t root = alph->add2disk();
-  cout<<"root:"<<(int)root<<endl;
-  list<AlphabetNode<>*> v;
-  v.push_back(alph);
+// BOOST_AUTO_TEST_CASE(AlphabetNode_check )
+// {
+//   USING_IZENE_LOG();
+//   remove("./test");
+//   FILE* f = fopen("./test", "w+");
+//   AlphabetNode<>* alph = new AlphabetNode<>(f);
+//   uint64_t root = alph->add2disk();
+//   cout<<"root:"<<(int)root<<endl;
+//   list<AlphabetNode<>*> v;
+//   v.push_back(alph);
 
-  clock_t start, finish;
-  uint64_t c = 1;
-  start = clock();
-  while (v.size()!=0)
-  {
-    if (c < SIZE)
-    {
-      for (int i=0; i<alph->getSize(); i++)
-      {
-        AlphabetNode<>* n = new AlphabetNode<>(f);
-        v.push_back(n);
-        v.front()->setDiskAddr(i, n->add2disk());
-        c++;
-      }
-    }
+//   clock_t start, finish;
+//   uint64_t c = 1;
+//   start = clock();
+//   while (v.size()!=0)
+//   {
+//     if (c < SIZE)
+//     {
+//       for (int i=0; i<alph->getSize(); i++)
+//       {
+//         AlphabetNode<>* n = new AlphabetNode<>(f);
+//         v.push_back(n);
+//         v.front()->setDiskAddr(i, n->add2disk());
+//         c++;
+//       }
+//     }
     
-    v.front()->update2disk();
-    //cout<<*(v.front());
-    delete v.front();
-    v.pop_front();
-  }
-  finish = clock();
-  fflush(f);
+//     v.front()->update2disk();
+//     //cout<<*(v.front());
+//     delete v.front();
+//     v.pop_front();
+//   }
+//   finish = clock();
+//   fflush(f);
   
-  start = clock();
-  uint64_t addr = 1;
-  while(c!=0)
-  {
-    c--;
-    AlphabetNode<> n(f);
-    if (!n.load(addr))
-    {
-      cout<<"Wrong loading!\n";
-      continue;
-    }
+//   start = clock();
+//   uint64_t addr = 1;
+//   while(c!=0)
+//   {
+//     c--;
+//     AlphabetNode<> n(f);
+//     if (!n.load(addr))
+//     {
+//       cout<<"Wrong loading!\n";
+//       continue;
+//     }
 
-    n.setDiskAddr(3, 1234);
-    if (!n.update2disk())
-    {
-      cout<<"Wrong updating!\n";
-      continue;
-    }
+//     n.setDiskAddr(3, 1234);
+//     if (!n.update2disk())
+//     {
+//       cout<<"Wrong updating!\n";
+//       continue;
+//     }
     
-    if (!n.load(addr))
-    {
-      cout<<"Wrong loading!\n";
-      continue;
-    }
-    addr += 216;
-    //cout<<n<<endl;
+//     if (!n.load(addr))
+//     {
+//       cout<<"Wrong loading!\n";
+//       continue;
+//     }
+//     addr += 216;
+//     //cout<<n<<endl;
     
-  }
-  finish = clock();
-  printf( "\nIt takes %f seconds to insert %d random data!\n", (double)(finish - start) / CLOCKS_PER_SEC, SIZE);
-  fclose(f);
+//   }
+//   finish = clock();
+//   printf( "\nIt takes %f seconds to insert %d random data!\n", (double)(finish - start) / CLOCKS_PER_SEC, SIZE);
+//   fclose(f);
   
-  //  tb.display(std::cout);
+//   //  tb.display(std::cout);
    
-}
-string genRandomStr(unsigned int maxLen)
-{
-  string s;
-  maxLen = rand()%maxLen;
-  for (unsigned int i=0; i<maxLen; i++)
-    s += 'a'+rand()%26;
+// }
 
-  return s;
-}
+// string genRandomStr(unsigned int maxLen)
+// {
+//   string s;
+//   maxLen = rand()%maxLen;
+//   for (unsigned int i=0; i<maxLen; i++)
+//     s += 'a'+rand()%26;
+
+//   return s;
+// }
 
 void readDict(const string& dict, vector<string>& v)
 {
@@ -180,51 +183,244 @@ void readDict(const string& dict, vector<string>& v)
   
 }
 
-BOOST_AUTO_TEST_CASE(Bucket_add_string )
+// BOOST_AUTO_TEST_CASE(Bucket_add_string )
+// {
+//   //unsigned int amount =  10000;
+//   //unsigned int maxLen = 10;
+  
+//   USING_IZENE_LOG();
+//   remove("./test");
+//   FILE* f = fopen("./test", "w+");
+//   Bucket<> b(f);
+    
+//   clock_t start, finish;
+
+//   vector<string> v;
+//   readDict("./dict", v);
+//   start = clock();
+
+//   unsigned int k = 0;
+//   unsigned int size = 0;
+  
+//   for (vector<string>::iterator i=v.begin(); i!=v.end();i++)
+//   {
+//     transform((*i).begin(), (*i).end(), (*i).begin(),::tolower);
+//     unsigned int p=b.addString(*i,k);
+//     if(!b.canAddString(*i))
+//     {
+//       //b.split(&b2);
+//       break;
+//     }
+    
+//     k = p;
+
+//     size+=(*i).length()+sizeof(uint64_t)+sizeof(uint32_t);
+//     //cout<<p<<" "<<*i<<endl;
+//   }
+//   finish = clock();
+//   //cout<<b;
+  
+//   cout<<"\nSize: "<<size+sizeof(uint8_t)*2+sizeof(uint32_t)*2;
+  
+//   printf( "\nIt takes %f seconds to insert %d random data!\n", (double)(finish - start) / CLOCKS_PER_SEC, k);
+//   fclose(f);
+  
+//   //  tb.display(std::cout);
+   
+// }
+
+// BOOST_AUTO_TEST_CASE(Bucket_split )
+// {
+//   //unsigned int amount =  10000;
+//   //unsigned int maxLen = 10;
+  
+//   USING_IZENE_LOG();
+//   remove("./test");
+//   FILE* f = fopen("./test", "w+");
+//   Bucket<> b(f);
+//   b.setLowBound('a');
+//   Bucket<> b2(f);
+  
+//   clock_t start, finish;
+
+//   vector<string> v;
+//   readDict("./dict", v);
+//   start = clock();
+
+//   unsigned int k = 0;
+//   unsigned int size = 0;
+  
+//   for (vector<string>::iterator i=v.begin(); i!=v.end();i++)
+//   {
+//     transform((*i).begin(), (*i).end(), (*i).begin(),::tolower);
+//     unsigned int p=b.addString(*i,k);
+//     if(!b.canAddString(*i))
+//     {
+//       b.split(&b2);
+//       break;
+//     }
+    
+//     k = p;
+
+//     size+=(*i).length()+sizeof(uint64_t)+sizeof(uint32_t);
+//     //cout<<p<<" "<<*i<<endl;
+//   }
+//   finish = clock();
+//   //cout<<b;
+//   //cout<<b2;
+//   cout<<"\nSize: "<<size+sizeof(uint8_t)*2+sizeof(uint32_t)*2;
+  
+//   printf( "\nIt takes %f seconds to insert %d random data!\n", (double)(finish - start) / CLOCKS_PER_SEC, k);
+//   fclose(f);   
+// }
+
+
+// BOOST_AUTO_TEST_CASE(Bucket_update )
+// {
+//   //unsigned int amount =  10000;
+//   //unsigned int maxLen = 10;
+  
+//   USING_IZENE_LOG();
+//   remove("./test");
+//   FILE* f = fopen("./test", "w+");
+//   Bucket<> b(f);
+//   b.setLowBound('a');
+//   Bucket<> b2(f);
+  
+//   clock_t start, finish;
+
+//   vector<string> v;
+//   readDict("./dict", v);
+//   start = clock();
+
+//   unsigned int k = 0;
+//   unsigned int size = 0;
+  
+//   for (vector<string>::iterator i=v.begin(); i!=v.end();i++)
+//   {
+//     transform((*i).begin(), (*i).end(), (*i).begin(),::tolower);
+//     unsigned int p=b.addString(*i,k);
+//     if(!b.canAddString(*i))
+//     {
+//       b.split(&b2);
+//       break;
+//     }
+    
+//     k = p;
+
+//     size+=(*i).length()+sizeof(uint64_t)+sizeof(uint32_t);
+//     //cout<<p<<" "<<*i<<endl;
+//   }
+//   finish = clock();
+//   uint64_t addr1 = b.update2disk();//cout<<addr1<<endl;
+//   uint64_t addr2 = b2.update2disk();//cout<<addr2<<endl;
+//   b.load(addr1);
+//   b2.load(addr2);
+// //   cout<<b;
+// //   cout<<b2;
+// //   cout<<"\nSize: "<<size+sizeof(uint8_t)*2+sizeof(uint32_t)*2;
+  
+//   printf( "\nIt takes %f seconds to insert %d random data!\n", (double)(finish - start) / CLOCKS_PER_SEC, k);
+//   fclose(f);   
+// }
+
+
+// BOOST_AUTO_TEST_CASE(NodeCache_check )
+// {
+//   USING_IZENE_LOG();
+  
+//   remove("./test");
+//   FILE* f = fopen("./test", "w+");
+//   NodeCache<> cache(f, 1);
+//   NodeCache<>::nodePtr alph = cache.newNode();
+  
+//   uint64_t root = alph->add2disk();
+//   cout<<"root:"<<(int)root<<endl;
+//   list<NodeCache<>::nodePtr> v;
+//   v.push_back(alph);
+
+//   clock_t start, finish;
+//   uint64_t c = 1;
+//   start = clock();
+//   while (v.size()!=0)
+//   {
+//     if (c < SIZE)
+//     {
+//       for (int i=0; i<alph->getSize(); i++)
+//       {
+//         NodeCache<>::nodePtr n = cache.newNode();
+//         v.push_back(n);
+//         uint64_t disk = n->add2disk();
+//         v.front()->setDiskAddr(i, disk);
+//         v.front()->setMemAddr(i, n.getIndex());
+        
+//         c++;
+//       }
+//     }
+    
+//     v.front()->update2disk();
+//     //cout<<*(v.front());
+//     //v.front().eleminate();
+//     v.pop_front();
+//   }
+//   finish = clock();
+//   fflush(f);
+//   //cache.reload();
+  
+//   uint32_t m = 1;
+//   NodeCache<>::nodePtr n  = cache.getNodeByMemAddr(m, 5401);
+//   //n->load(5401);
+//   //n->display(cout);
+//   //cout<<"\nmmmmmmmmmmmmm"<<cache.kickOutNodes(0)<<endl;
+
+//   //  cout<<cache;
+//   printf( "\nIt takes %f seconds to insert %d random data!\n", (double)(finish - start) / CLOCKS_PER_SEC, SIZE);
+//   fclose(f);
+  
+//   //  tb.display(std::cout);
+   
+// }
+
+
+BOOST_AUTO_TEST_CASE(B_trie_insertion_check )
 {
-  //unsigned int amount =  10000;
-  //unsigned int maxLen = 10;
+  cout<<"Running B_trie_insertion_check ... \n";
   
   USING_IZENE_LOG();
-  remove("./test");
-  FILE* f = fopen("./test", "w+");
-  Bucket<> b(f);
-  Bucket<> b2(f);
   
-  clock_t start, finish;
-
+  remove("./test.buk");
+  remove("./test.nod");
   vector<string> v;
-  readDict("./dict", v);
-  start = clock();
+  readDict("./input", v);
+  BTrie<> trie("./test");
 
-  unsigned int k = 0;
-  unsigned int size = 0;
-  
+  clock_t start, finish;
+  start = clock();
+  int c = 0;
   for (vector<string>::iterator i=v.begin(); i!=v.end();i++)
   {
     transform((*i).begin(), (*i).end(), (*i).begin(),::tolower);
-    unsigned int p=b.addString(*i,k);
-    if(k == p)
-    {
-      b.split(&b2);
-      break;
-    }
+    //gcout<<*i<<endl;
     
-    k = p;
-
-    size+=(*i).length()+sizeof(uint64_t)+sizeof(uint32_t);
-    //cout<<p<<" "<<*i<<endl;
+    trie.insert(*i, 2);
+    c++;
+    //cout<<endl<<c<<" ***************\n";
   }
+
+//   trie.insert("fuck", 2);
+//   trie.insert("fonny", 2);
+//   trie.insert("jar", 2);
+//   cout<<"###########\n";
+  
   finish = clock();
-  cout<<b;
-  cout<<b2;
-  cout<<"\nSize: "<<size+sizeof(uint8_t)*2+sizeof(uint32_t)*2;
+  printf( "\nIt takes %f seconds to insert %d random data!\n", (double)(finish - start) / CLOCKS_PER_SEC, v.size());
+  //trie.display(cout, "far");
+  cout<<"Node amount: "<<trie.getNodeAmount()<<endl;
+  start = clock();
+  cout<<trie.query("ixfclbstnosvdkujcpwsdqhxrkiueziowoqjpiecwxxbjtnmkjgncpmvauqgtausokbfugjtfiuqbjclvlazamucimicnewdoxjlfuemdadgkhufsuevjaxrnivcorhfrqqwnujquoyevslq");
+  finish = clock();
+  printf( "\nIt takes %f seconds to insert %d random data!\n", (double)(finish - start) / CLOCKS_PER_SEC, v.size());
   
-  printf( "\nIt takes %f seconds to insert %d random data!\n", (double)(finish - start) / CLOCKS_PER_SEC, k);
-  fclose(f);
-  
-  //  tb.display(std::cout);
-   
 }
 
 BOOST_AUTO_TEST_SUITE_END()

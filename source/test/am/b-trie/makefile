@@ -14,12 +14,16 @@ OBJS := $(patsubst %.cpp, %.o, $(wildcard *.cpp))
 #./t_main.o
 
 
-all: amlib
+all: amlib get-input
 
 
 
 .cpp.o:
 	$(GPP) $(CC_OPTIONS) $(INC_PATH)  -o"./$@" "$<"
+
+get-input: gen_input.o
+	$(GPP)  -g -o "get-input"  $^ 
+	-rm -f gen_input.o
 
 amlib: $(OBJS)
 	$(GPP)  -g -o "b-trie"  $^ $(LIBS) 

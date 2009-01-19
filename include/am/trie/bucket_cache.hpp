@@ -1,8 +1,8 @@
-#ifndef NODE_CACHE_HPP
-#define NODE_CACHE_HPP
+#ifndef BUCKET_CACHE_HPP
+#define BUCKET_CACHE_HPP
 
 #include <stdio.h>
-#include "alphabet_node.hpp"
+#include "bucket.hpp"
 #include <time.h>
 #inlcude "cache_strategy.h"
 
@@ -12,14 +12,16 @@ using namespace std;
 
 template<
   uint64_t CACHE_LENGTH = 1000000,//bytes
+  uint32_t BUCKET_SIZE = 8192,//byte
+  uint8_t SPLIT_RATIO = 75,
   class CacheType = CachePolicyLARU,
   char* ALPHABET = a2z,
   uint8_t ALPHABET_SIZE = a2z_size
   >
-class NodeCache
+class BucketCache
 {
 public:
-  typedef AlphabetNode<ALPHABET, ALPHABET_SIZE> NodeType;
+  typedef Bucket<BUCKET_SIZE, SPLIT_RATIO,ALPHABET, ALPHABET_SIZE> NodeType;
 
 protected:
   struct _cache_node_
@@ -104,56 +106,9 @@ public:
 
   uint32_t load()
   {
-    vector<uint32_t> indexes;
-    indexes.push_back(0);
-
-    
-    NodeType* t = new NodeType(f_);
-    t->load(rootAddr_);
-    nodes[count_] = _cache_node_(t);
-    count_++;
-      
-    while (indexes.size()>0)
-    {
-      load_(indexes);
-    }
-
     return count_;
   }
   
-  void load_(vector<uint32_t>& indexes)
-  {
-    uint32_t idx = indexes.front();
-    indexes.erase(indexes.begin());
-    
-    NodeType* n = nodes[idx].pNode_ ;
-    nodes[idx] =  _cache_node_(n);
-    
-    for (uint8_t i=0; i<n->getSize();i++)
-    {
-      if (n->getDiskAddr(i)==(uint64_t)-1)
-        continue;
-      
-      if (n->getDiskAddr(i)%2==0)
-        continue;
-      
-      NodeType* t = new NodeType(f_);
-      t->load(n->getDiskAddr(i));
-      nodes[count_] = _cache_node_(t);
-      
-      indexes.push_back(count_);
-      n->setMemAddr(i, count_);
-      
-      count_++;
-      if (count_>=CACHE_SIZE)
-      {
-        indexes.clear();
-        return;
-      }
-      
-    }
-  }
-
   uint32_t reload()
   {
     for(uint32_t i=0; i<CACHE_SIZE; i++)
@@ -302,18 +257,6 @@ friend ostream& operator << ( ostream& os, const SelfType& node)
     if (memAddr==(uint32_t)-1 || nodes[memAddr].pNode_ == NULL)
       return (uint64_t)-1;
 
-    for (uint8_t i=0; i<nodes[memAddr].pNode_->getSize(); i++)
-    {
-      uint32_t m = nodes[memAddr].pNode_->getMemAddr(i);
-      uint64_t d = nodes[memAddr].pNode_->getDiskAddr(i);
-      //    cout<<memAddr<<"    "<<m<<"   "<<d<<"pppp\n";
-
-      if (m == (uint32_t)-1 || nodes[m].pNode_==NULL || nodes[m].pNode_->getDiskAddr()!=d )
-        continue;
-
-      nodes[memAddr].pNode_->setDiskAddr(i, kickOutNodes(m));
-    }
-
     uint64_t ret = nodes[memAddr].pNode_->update2disk();
     delete nodes[memAddr].pNode_;
     nodes[memAddr]=  _cache_node_(NULL);
@@ -322,17 +265,8 @@ friend ostream& operator << ( ostream& os, const SelfType& node)
     
   }
 
-  void flush()
-  {
-    for (uint32_t i=0; i<CACHE_SIZE; i++)
-      if (nodes[i].pNode_ != NULL)
-        nodes[i].pNode_->update2disk();
-    
-  }
-  
 protected:
   FILE* f_;
-  uint32_t rootAddr_;
   uint32_t count_;
   struct _cache_node_ nodes[CACHE_SIZE];
   
