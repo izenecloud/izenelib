@@ -2,7 +2,7 @@ GPP :=g++
 
 GCC :=/usr/bin/gcc
 
-CC_OPTIONS :=  -O3 -g -Wall -c -fmessage-length=0 
+CC_OPTIONS :=  -O3 -g -rdynamic -Wall -c -fmessage-length=0 
 
 
 LIBS := -lpthread /usr/local/lib/libboost_unit_test_framework-gcc41-mt-1_37.so /usr/local/lib/libboost_thread-gcc41-mt-1_37.so /usr/local/lib/libboost_filesystem-gcc41-mt-1_37.so /usr/local/lib/libboost_date_time-gcc41-mt.so

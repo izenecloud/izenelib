@@ -4,7 +4,7 @@
 #include <stdio.h>
 #include "alphabet_node.hpp"
 #include <time.h>
-#inlcude "cache_strategy.h"
+#include "cache_strategy.h"
 
 NS_IZENELIB_AM_BEGIN
 using namespace std;
@@ -26,14 +26,17 @@ protected:
   {
     CacheType cacheInfo_;
     NodeType* pNode_;
+    bool locked_;
 
     inline _cache_node_(NodeType* p)
     {
       pNode_ = p;
+      locked_ = false;
     }
     inline _cache_node_()
     {
       pNode_ = NULL;
+      locked_ = false;
     }
     
     
@@ -100,8 +103,20 @@ public:
     :f_(f),rootAddr_(rootAddr),count_(0)
   {
     //cout<<NodeType::SIZE_ <<"///////"<<CACHE_SIZE<<endl;
+    nodes  = new struct _cache_node_ [CACHE_SIZE];
   }
 
+  ~NodeCache()
+  {
+    for (uint32_t i=0; i<CACHE_SIZE; i++)
+      if (nodes[i].pNode_ != NULL)
+      {
+        delete nodes[i].pNode_;
+        nodes[i].pNode_ = NULL;
+      }
+    delete [] nodes;
+  }
+  
   uint32_t load()
   {
     vector<uint32_t> indexes;
@@ -194,7 +209,7 @@ friend ostream& operator << ( ostream& os, const SelfType& node)
       if (nodes[i].pNode_==NULL)
         return i;
       
-      if (nodes[i].cacheInfo_.compare(nodes[minIdx].cacheInfo_)<0)
+      if (!nodes[i].locked_&& nodes[i].cacheInfo_.compare(nodes[minIdx].cacheInfo_)<0)
       {
         minIdx = i;
       }
@@ -203,6 +218,18 @@ friend ostream& operator << ( ostream& os, const SelfType& node)
 
     return minIdx;
   }
+
+  
+  void lockNode(uint32_t memAddr)
+  {
+    nodes[memAddr].locked_ = true;
+  }
+
+  void unlockNode(uint32_t memAddr)
+  {
+    nodes[memAddr].locked_ = false;
+  }
+
 
   uint32_t getCount()const
   {
@@ -220,7 +247,7 @@ friend ostream& operator << ( ostream& os, const SelfType& node)
     if (memAddr!=(uint32_t)-1)
     {
       NodeType* t = nodes[memAddr].pNode_;
-      if (t->getDiskAddr()==diskAddr)
+      if (t!=NULL && t->getDiskAddr()==diskAddr)
         return nodePtr(nodes[memAddr], memAddr);
     }
 
@@ -286,7 +313,7 @@ friend ostream& operator << ( ostream& os, const SelfType& node)
 
     
     uint32_t ret = findSwitchOut();
-    //<<"\nswitch out: "<<ret<<endl;
+    //cout<<"\nswitch out: "<<ret<<endl;
     kickOutNodes(ret);
     
     NodeType* t = new NodeType(f_);
@@ -299,6 +326,7 @@ friend ostream& operator << ( ostream& os, const SelfType& node)
 
   uint64_t kickOutNodes(uint32_t memAddr)
   {
+    //cout<<CACHE_SIZE<<endl;
     if (memAddr==(uint32_t)-1 || nodes[memAddr].pNode_ == NULL)
       return (uint64_t)-1;
 
@@ -308,15 +336,18 @@ friend ostream& operator << ( ostream& os, const SelfType& node)
       uint64_t d = nodes[memAddr].pNode_->getDiskAddr(i);
       //    cout<<memAddr<<"    "<<m<<"   "<<d<<"pppp\n";
 
-      if (m == (uint32_t)-1 || nodes[m].pNode_==NULL || nodes[m].pNode_->getDiskAddr()!=d )
+      if (m == (uint32_t)-1 || nodes[m].pNode_==NULL || d%2==0 || nodes[m].pNode_->getDiskAddr()!=d )
         continue;
 
-      nodes[memAddr].pNode_->setDiskAddr(i, kickOutNodes(m));
+      kickOutNodes(m);
+      //nodes[memAddr].pNode_->setDiskAddr(i, 2);
+      //nodes[memAddr].pNode_->setDiskAddr(i, kickOutNodes(m));
     }
 
     uint64_t ret = nodes[memAddr].pNode_->update2disk();
     delete nodes[memAddr].pNode_;
-    nodes[memAddr]=  _cache_node_(NULL);
+    nodes[memAddr].pNode_ = NULL;
+    nodes[memAddr]=  _cache_node_();
 
     return ret;
     
@@ -334,7 +365,7 @@ protected:
   FILE* f_;
   uint32_t rootAddr_;
   uint32_t count_;
-  struct _cache_node_ nodes[CACHE_SIZE];
+  struct _cache_node_* nodes;
   
 }
   ;

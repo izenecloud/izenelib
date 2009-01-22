@@ -190,7 +190,7 @@ friend ostream& operator << ( ostream& os, const SelfType& node)
 
     pNode_->dirty_ = 1;
     pNode_->diskPos_ = end;
-     return end;
+    return end;
      
   }
 
@@ -248,6 +248,11 @@ friend ostream& operator << ( ostream& os, const SelfType& node)
       //throw exception
       return;
     }
+
+    if (pNode_ == NULL)
+    {
+      cout<<"ERRor: alphabet node -> setMemAddr()\n";
+    }
     
     pNode_->mem_addr_[index] = addr;
   }
@@ -270,10 +275,10 @@ friend ostream& operator << ( ostream& os, const SelfType& node)
   {
     
     for (uint8_t i= getIndexOf(fromCh); i<=getIndexOf(toCh); i++)
-      if (pNode_->diskNode_.mem_addr_[i] != addr)
+      if (pNode_->mem_addr_[i] != addr)
       {
         pNode_->dirty_ = true;
-        pNode_->diskNode_.mem_addr_[i] = addr;
+        pNode_->mem_addr_[i] = addr;
       }
   }
 
@@ -294,6 +299,16 @@ friend ostream& operator << ( ostream& os, const SelfType& node)
       {
         pNode_->dirty_ = true;
         pNode_->diskNode_.addrs_[i] = addr;
+      }  
+  }
+
+  void setAllMemAddr(uint64_t addr)
+  {
+    for (uint8_t i= 0; i<getSize(); i++)
+      if (pNode_->mem_addr_[i] != addr)
+      {
+        pNode_->dirty_ = true;
+        pNode_->mem_addr_[i] = addr;
       }  
   }
   

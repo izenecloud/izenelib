@@ -42,12 +42,13 @@
 #include <iostream>
 #include <am/trie/node_cache.hpp>
 #include <am/trie/b_trie.hpp>
+#include <signal.h>
 
 #define SIZE 27
 using namespace izenelib::am;
 using namespace std;
 
-BOOST_AUTO_TEST_SUITE( b_trie_suite )
+//BOOST_AUTO_TEST_SUITE( b_trie_suite )
 
 // BOOST_AUTO_TEST_CASE(AlphabetNode_check )
 // {
@@ -382,8 +383,31 @@ void readDict(const string& dict, vector<string>& v)
 // }
 
 
-BOOST_AUTO_TEST_CASE(B_trie_insertion_check )
+//BOOST_AUTO_TEST_CASE(B_trie_insertion_check )
+
+void dump(int signo)
 {
+        char buf[1024];
+        char cmd[1024];
+        FILE *fh;
+
+        snprintf(buf, sizeof(buf), "/proc/%d/cmdline", getpid());
+        if(!(fh = fopen(buf, "r")))
+                exit(0);
+        if(!fgets(buf, sizeof(buf), fh))
+                exit(0);
+        fclose(fh);
+        if(buf[strlen(buf) - 1] == '\n')
+                buf[strlen(buf) - 1] = '\0';
+        snprintf(cmd, sizeof(cmd), "gdb %s %d", buf, getpid());
+        system(cmd);
+
+        exit(0);
+}
+
+  int main (int argc,char **argv)
+{
+  signal(SIGSEGV, &dump);
   cout<<"Running B_trie_insertion_check ... \n";
   
   USING_IZENE_LOG();
@@ -400,28 +424,28 @@ BOOST_AUTO_TEST_CASE(B_trie_insertion_check )
   for (vector<string>::iterator i=v.begin(); i!=v.end();i++)
   {
     transform((*i).begin(), (*i).end(), (*i).begin(),::tolower);
-    //gcout<<*i<<endl;
+    //cout<<*i<<endl;
+    string* str = new string (*i);
     
-    trie.insert(*i, 2);
+    trie.insert(str,2);
     c++;
     //cout<<endl<<c<<" ***************\n";
   }
 
-//   trie.insert("fuck", 2);
-//   trie.insert("fonny", 2);
-//   trie.insert("jar", 2);
-//   cout<<"###########\n";
-  
+
+  trie.flush();
+  //trie.flush();
   finish = clock();
   printf( "\nIt takes %f seconds to insert %d random data!\n", (double)(finish - start) / CLOCKS_PER_SEC, v.size());
   //trie.display(cout, "far");
   cout<<"Node amount: "<<trie.getNodeAmount()<<endl;
-  start = clock();
-  cout<<trie.query("ixfclbstnosvdkujcpwsdqhxrkiueziowoqjpiecwxxbjtnmkjgncpmvauqgtausokbfugjtfiuqbjclvlazamucimicnewdoxjlfuemdadgkhufsuevjaxrnivcorhfrqqwnujquoyevslq");
-  finish = clock();
-  printf( "\nIt takes %f seconds to insert %d random data!\n", (double)(finish - start) / CLOCKS_PER_SEC, v.size());
   
+  start = clock();
+  cout<<trie.query("hyvhgvwujbqxxpitcvograiddvhrrdsycqhkleewhxtembaqwqwpqhsuebnvfgvjwdvjjafqzzxlcxdzncqgjlapopkvxfgvicetcmkbljopgtqvvhbgsdvivhesnkqxmwrqidrvmhlubbryktheyentmrobdeyqcrgluaiihveixwjjrqopubjguxhxdipfzwswybg");
+  finish = clock();
+  printf( "\nIt takes %f seconds to insert %d random data!\n", (double)(finish - start)/CLOCKS_PER_SEC, v.size());
 }
 
-BOOST_AUTO_TEST_SUITE_END()
+//BOOST_AUTO_TEST_SUITE_END()
+
 

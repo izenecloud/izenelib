@@ -22,7 +22,7 @@ class Bucket
 protected:
 #define INITIAL_BUCKET_SIZE (sizeof(uint32_t)*2 +2*sizeof(uint8_t))
 #define DISK_STR_BUF_SIZE (BUCKET_SIZE - INITIAL_BUCKET_SIZE)
-#define ONE_STRING_SIZE(STR) (STR).length()+sizeof(uint32_t)+sizeof(uint64_t)
+#define ONE_STRING_SIZE(STR) ((STR).length()+sizeof(uint32_t)+sizeof(uint64_t))
 
   struct _disk_bucket_
   {
@@ -37,7 +37,7 @@ protected:
   class _string_ptr_
   {
   public:
-    string* p_;
+    string*  p_;
     uint64_t contentAddr_;
     
     _string_ptr_(string* p, uint64_t addr)
@@ -141,9 +141,10 @@ protected:
       return firstChar_ <= str[0];
     }
 
-    size_t addString(const string& str, uint64_t addr)
+    size_t addString(string* pStr, uint64_t addr)
     {
-      _string_ptr_ p(new string(str.length()>1?str.substr(1):""), addr);
+      pStr->erase(0,1);
+      _string_ptr_ p(pStr, addr);
       str_ptr_it it = lower_bound(strPtrs_.begin(), strPtrs_.end(), p);
       if (it!=strPtrs_.end() && (*it)==p)
         return strPtrs_.size();
@@ -207,7 +208,7 @@ protected:
 
         //cout<<sizeof(disk->strBuf)<<"  "<<t<<"  "<<len<<" 1\n";
         
-        string s(disk->strBuf+t, len);
+        string* s = new  string(disk->strBuf+t, len);
         
         uint8_t firstCh = *(disk->strBuf+t);
         t += len;
@@ -226,18 +227,19 @@ protected:
           LDBG_<<"\nError:  _bucket_(struct _disk_bucket_* disk, uint64_t addr ) 3:\n";
           return;
         }
-                
+
+        s->erase(0,1);
         if (first!=firstCh)
         {
           _string_group_ sg;
           sg.firstChar_ = firstCh;
-          sg.strPtrs_.push_back(_string_ptr_(new string(s.substr(1)), cont));
+          sg.strPtrs_.push_back(_string_ptr_(s, cont));
           first = firstCh;
           strGroup_.push_back(sg);
         }
         else
         {
-          strGroup_.back().strPtrs_.push_back(_string_ptr_(new string(s.substr(1)), cont));
+          strGroup_.back().strPtrs_.push_back(_string_ptr_(s, cont));
         }
       }
       
@@ -248,7 +250,7 @@ protected:
   
 public:
   typedef Bucket<BUCKET_SIZE,SPLIT_RATIO,ALPHABET, ALPHABET_SIZE > SelfType;
-    enum slef_size{ SIZE_= BUCKET_SIZE};
+  enum slef_size{ SIZE_= BUCKET_SIZE};
   
   Bucket(FILE* f)
     :f_(f),pBucket_(NULL)
@@ -263,31 +265,60 @@ public:
     {
       for (str_ptr_it j=(*i).strPtrs_.begin(); j!=(*i).strPtrs_.end();j++)
         if ((*j).p_!=NULL)
+        {
           delete (*j).p_;
+          (*j).p_ = NULL;
+        }
+      
     }
     delete pBucket_;
+    pBucket_ = NULL;
+  }
+
+  bool isEmpty()
+  {
+    if (pBucket_==NULL)
+      return true;
+
+    if (pBucket_->strGroup_.size()==0)
+      return true;
+
+    return false;
   }
   
   bool load(uint64_t addr)
   {
+//     fseek(f_, 0, SEEK_END);
+//     if (ftell(f_)<=addr)
+//       cout<<"Bucket load error: address too large!\n";
+
+    //cout<<"bucket loading!\n";
     struct _disk_bucket_ b;
     
     fseek(f_, addr, SEEK_SET);
     if(fread(&b, sizeof(struct _disk_bucket_),1,f_)!=1)
       return false;
 
-    if (pBucket_!=NULL)
+    if (!isEmpty())
     {
       update2disk();
       for (str_group_it i=pBucket_->strGroup_.begin(); i!=pBucket_->strGroup_.end();i++)
       {
         for (str_ptr_it j=(*i).strPtrs_.begin(); j!=(*i).strPtrs_.end();j++)
           if ((*j).p_!=NULL)
+          {
             delete (*j).p_;
+            (*j).p_ = NULL;
+          }
+        
       }
       
       delete pBucket_;
+      pBucket_ = NULL;
     }
+
+    if (pBucket_!=NULL)
+      delete pBucket_;
     
     pBucket_ = new struct _bucket_(&b, addr);
 
@@ -298,6 +329,22 @@ public:
     return true;
   }
 
+  uint32_t getBucketSize()
+  {
+    uint32_t s = INITIAL_BUCKET_SIZE;
+    
+    for (str_group_it i=pBucket_->strGroup_.begin(); i!=pBucket_->strGroup_.end();i++)
+    {
+      for (str_ptr_it j=(*i).strPtrs_.begin();j!=(*i).strPtrs_.end(); j++)
+      {
+        s += ONE_STRING_SIZE(*((*j).p_))+1;
+      }
+    }
+
+    return s;
+    
+  }
+  
   uint32_t bucket2disk(struct _bucket_* b, struct _disk_bucket_* d)
   {
     d->from_ = b->from_;
@@ -321,11 +368,12 @@ public:
         
         *(d->strBuf+t) = (*i).firstChar_;
         t++;
-        memcpy(d->strBuf+t, (*j).p_->c_str(), (*j).p_->length());
+        (*j).p_->copy(d->strBuf+t,  (*j).p_->length());
+        //memcpy(d->strBuf+t, (*j).p_->c_str(), (*j).p_->length());
         t += (*j).p_->length();
         if (t > DISK_STR_BUF_SIZE)
         {
-          LDBG_<<"bucket2disk(struct _bucket_* b, struct _disk_bucket_* d): 2";
+          LDBG_<<"bucket2disk(struct _bucket_* b, struct _disk_bucket_* d): 2->"<< (*j).p_->length();
           return (uint32_t)-1;
         }
         *(uint64_t*)(d->strBuf+t) = (*j).contentAddr_;
@@ -336,18 +384,22 @@ public:
     return t;
     
   }
-
+  
   uint64_t update2disk()
   {
+    //cout<<"update2disk()\n";
+    
     if (pBucket_==NULL)
       return false;
     
     
     if (pBucket_->dirty_)
     {
+      //cout<<"update2disk\n";
       pBucket_->dirty_ = false;
       if (pBucket_->diskPos_ == (uint64_t)-1)
       {
+        //cout<<"add2disk\n";
         return add2disk();
       }
 
@@ -390,6 +442,9 @@ public:
 
     if (getStrCount() != pBucket_->count_)
       LDBG_<<"Bucket add2disk()**********\n**********\n*************\n************\n*******************Bucket()\n";
+    
+    pBucket_->dirty_ = false;
+    
     return end;
   }
 
@@ -432,49 +487,63 @@ friend ostream& operator << ( ostream& os, const SelfType& node)
     return os;
   }
 
-  uint32_t addString(const string& str, uint64_t addr)
+  void display(ostream& os)
+  {
+    os<<*this;
+  }
+  
+  uint32_t addString(string* pStr, uint64_t addr)
   {
     //if (!canAddString(str))
     //return pBucket_->size_;
 
-    if (str.length()<=1)
+    if (pStr->length()<=1)
       return pBucket_->size_;
 
-    if (str[0]<pBucket_->from_ || str[0]>pBucket_->to_)
+    if ((*pStr)[0]<pBucket_->from_ || (*pStr)[0]>pBucket_->to_)
       return pBucket_->size_;
 
-    if (getStrCount() != pBucket_->count_)
-      LDBG_<<"before addstring()"<<getStrCount()<<"**********\n"<<pBucket_->count_<<"**********\n*************\n************\n*******************before addstring()\n";
+    //if (getStrCount() != pBucket_->count_)
+    //LDBG_<<"before addstring(): string count in bucket error!";
+
+    //if (pBucket_->size_ != getBucketSize())
+    // LDBG_<<"before addstring(): bucket size error!";
     
-    str_group_it t = lower_bound(pBucket_->strGroup_.begin(), pBucket_->strGroup_.end(), str);
+    str_group_it t = lower_bound(pBucket_->strGroup_.begin(), pBucket_->strGroup_.end(), (*pStr));
     
-    if (t!=pBucket_->strGroup_.end() && (*t)==str)
-    {
-      
+    if (t!=pBucket_->strGroup_.end() && (*t)==(*pStr))
+    {    
       //has group
+      //LDBG_<<"group exist!";
+      
         size_t s = (*t).strPtrs_.size();
-        if(s<(*t).addString(str, addr))
+        if(s<(*t).addString(pStr, addr))
         {
           pBucket_->count_++;
-          pBucket_->size_ += ONE_STRING_SIZE(str);
+          pBucket_->size_ += ONE_STRING_SIZE(*pStr)+1;
         }
         
     }
     else
     {// no group at all
+      //LDBG_<<"group inexist!";
       _string_group_ g;
-      g.firstChar_ = str[0];
-      g.addString(str, addr);
+      g.firstChar_ = (*pStr)[0];
+      g.addString(pStr, addr);
       pBucket_->count_++;
-      pBucket_->size_ += ONE_STRING_SIZE(str);
+      pBucket_->size_ += ONE_STRING_SIZE(*pStr)+1;
       pBucket_->strGroup_.insert(t,g);
     }
 
     pBucket_->dirty_ = true;
 
     //LDBG_<<"ending addstring()\n";
-    if (getStrCount() != pBucket_->count_)
-      LDBG_<<"addstring()"<<getStrCount()<<"**********\n"<<pBucket_->count_<<"**********\n*************\n************\n*******************addstring()\n";
+    //if (getStrCount() != pBucket_->count_)
+    //  LDBG_<<"addstring(): string count in bucket error!";
+
+    //if (pBucket_->size_ != getBucketSize())
+    // LDBG_<<"addstring(): bucket size error!";
+    
     return pBucket_->size_;
   }
 
@@ -509,8 +578,11 @@ friend ostream& operator << ( ostream& os, const SelfType& node)
   
   uint8_t split(Bucket* newBucket)
   {
-    if (getStrCount() != pBucket_->count_)
-      LDBG_<<"before split()**********\n**********\n*************\n************\n*******************before split()\n";
+    //if (getStrCount() != pBucket_->count_)
+    //LDBG_<<"before split()**********\n**********\n*************\n************\n*******************before split()\n";
+
+    //if (pBucket_->size_ != getBucketSize())
+    //LDBG_<<"before split(): bucket size error!";
     
     if (isPure())
     {
@@ -521,8 +593,8 @@ friend ostream& operator << ( ostream& os, const SelfType& node)
       {
         for (str_ptr_it j=(*i).strPtrs_.begin(); j!=(*i).strPtrs_.end();j++)
         {
-          addString(*((*j).p_),(*j).contentAddr_ );
-          delete (*j).p_;
+          addString(((*j).p_),(*j).contentAddr_ );
+          //delete (*j).p_;
         }
       }
 
@@ -540,10 +612,11 @@ friend ostream& operator << ( ostream& os, const SelfType& node)
     }
     
     uint32_t left = (uint32_t)(pBucket_->count_/100.00*SPLIT_RATIO);
-    //cout<<left<<"  \n";
+    //
     uint32_t c = 0;
     
     str_group_it i=pBucket_->strGroup_.begin();
+    //cout<<pBucket_->strGroup_.size()<<"  \n";
     for (size_t j=1; i!=pBucket_->strGroup_.end();i++,j++)
     {
       //cout<<(*i).strPtrs_.size()<<endl;
@@ -567,8 +640,10 @@ friend ostream& operator << ( ostream& os, const SelfType& node)
 
     pBucket_->dirty_ = true;
 
-     if (getStrCount() != pBucket_->count_)
-      LDBG_<<"split()**********\n**********\n*************\n************\n*******************split()\n";
+//     if (getStrCount() != pBucket_->count_)
+//       LDBG_<<"split()**********\n**********\n*************\n************\n*******************split()\n";
+//     if (pBucket_->size_ != getBucketSize())
+//       LDBG_<<"split(): bucket size error!";
      
     return pBucket_->to_;
   }
@@ -628,6 +703,11 @@ friend ostream& operator << ( ostream& os, const SelfType& node)
     return pBucket_->strGroup_.size();
   }
 
+  uint64_t getDiskAddr()const
+  {
+    return pBucket_->diskPos_;
+  }
+  
   uint8_t getGroupChar(size_t idx)
   {
     if (idx>=getStrGroupAmount())

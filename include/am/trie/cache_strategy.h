@@ -5,6 +5,11 @@ class CachePolicyLRU//latest rare used
 {
   clock_t time_;
 public:
+  CachePolicyLRU()
+  {
+    time_ = clock();
+  }
+  
   int compare(const CachePolicyLRU& t)const
   {
     return time_ - t.time_;
@@ -63,12 +68,13 @@ class CachePolicyLARU//least and rarest used
 public:
   CachePolicyLARU()
   {
-    visit_count_ = 0;
+    visit_count_ = 1;
+    time_ = clock();
   }
   
   int compare(const CachePolicyLARU& t)const
   {
-    return (visit_count_*time_ - t.visit_count_*t.time_)/CLOCKS_PER_SEC;
+    return (visit_count_*10000+time_) - (t.visit_count_*10000 + t.time_);
   }
 
   void visit()
