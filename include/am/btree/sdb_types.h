@@ -9,7 +9,7 @@
 #include <am/util/Wrapper.h>
 #include <util/RefCount.h>
 
-#include <boost/memory.hpp>
+//#include <boost/memory.hpp>
 #include <boost/static_assert.hpp>
 
 //#include "BTreeFileException.h"

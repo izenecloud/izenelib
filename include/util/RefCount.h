@@ -50,16 +50,16 @@ template<> struct RefCount<ReadWriteLock> {
 };
 
 inline void intrusive_ptr_add_ref(RefCount<NullLock> * p) {
-	p->refer();
+	if(p)p->refer();
 }
 inline void intrusive_ptr_release(RefCount<NullLock> * p) {
-	p->unrefer();
+	if(p)p->unrefer();
 }
 inline void intrusive_ptr_add_ref(RefCount<ReadWriteLock> * p) {
-	p->refer();
+	if(p)p->refer();
 }
 inline void intrusive_ptr_release(RefCount<ReadWriteLock> * p) {
-	p->unrefer();
+	if(p)p->unrefer();
 }
 
 NS_IZENELIB_UTIL_END

@@ -10,17 +10,23 @@ LIBS =     /usr/local/lib/libboost_thread-gcc41-mt.so  /usr/local/lib/libboost_u
 INC_PATH := -I  /usr/local/include/boost-1_35/ -I ../../../../include/ -I ../../../../include/3rdparty/
 
 
-OBJS := $(patsubst %.cpp, %.o, $(wildcard *.cpp))
+OBJ1 := t_master_suite.o t_btree.o
+OBJ2 := t_master_suite.o t_btree_v2.o
 
-all: t_btree
+
+all: t_btree t_btree_v2
 
 
 .cpp.o:
 	$(GPP) $(CC_OPTIONS) $(INC_PATH)  -o"./$@" "$<"
 
-t_btree:  $(OBJS)
-	$(GPP) $(OBJS) $(LIBS) -o $@ -pg
+t_btree:  $(OBJ1)
+	$(GPP) $(OBJ1) $(LIBS) -o $@ -pg
+	#-rm -f $(OBJS)
+	
+t_btree_v2:  $(OBJ2)
+	$(GPP) $(OBJ2) $(LIBS) -o $@ -pg
 	#-rm -f $(OBJS)
 
 clean:
-	-rm -f $(OBJS) t_btree sdb.dat
+	-rm -f *.o t_btree t_btree_v2 sdb.dat
