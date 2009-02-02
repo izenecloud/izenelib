@@ -44,7 +44,7 @@ NS_IZENELIB_AM_BEGIN
 
 template<typename KeyType, typename ValueType=NullType, typename LockType=NullLock, typename Alloc=std::allocator<DataType<KeyType,ValueType> > >class BTreeFile
 : public AccessMethod<KeyType, ValueType, LockType, Alloc> {
-
+public:
 	typedef DataType<KeyType,ValueType> DataType;
 	typedef intrusive_ptr<BTreeNode<KeyType, DataType, LockType, Alloc> >
 	BTreeNodePtr;
@@ -70,7 +70,7 @@ public:
 	 */
 	void setPageSize(size_t maxDataSize, size_t overFlowSize) {
 		_pageSize = sizeof(byte); //leafFlag
-		_pageSize = sizeof(size_t); // object count
+		_pageSize += sizeof(size_t); // object count
 
 		_pageSize += (_minDegree * 2 - 1) * (sizeof(size_t) + maxDataSize
 				+ sizeof(long) + sizeof(byte) ); // records + overflow address
@@ -744,10 +744,10 @@ template<typename KeyType, typename ValueType, typename LockType,
 			popNode->write(f);
 		}
 		qnode.pop();
-		if (!popNode->isLeaf) {
+		if (!popNode->isLeaf) {			
 			for (BIT tnvit = popNode->children.begin(); tnvit
 					!= popNode->children.end(); tnvit++) {
-				qnode.push(*tnvit);
+				if(*tnvit)qnode.push(*tnvit);
 			}
 
 		}
@@ -1199,7 +1199,6 @@ template<typename KeyType, typename ValueType, typename LockType,
 		if (lastPos < node->objCount - 1) {
 			rec = *(node->elements[lastPos + 1]->pdat);
 			locn.second = lastPos + 1;
-
 			return true;
 		}
 		goUp = (lastPos == node->objCount - 1);

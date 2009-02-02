@@ -37,13 +37,13 @@
 
 BOOST_AUTO_TEST_SUITE( t_BTreeFile_suite )
 
-int degree = 128;
+int degree = 1024;
 
 izenelib::am::BTreeFile<int, string> tb("sdb.dat", degree);
 
 BOOST_AUTO_TEST_CASE(Insertion_check )
 {
-	tb.setPageSize(50,1024);
+	tb.setPageSize(60,1024);
 	tb.open();
 
 	//std::string s = "Kevin";
@@ -61,7 +61,7 @@ BOOST_AUTO_TEST_CASE(Insertion_check )
 	finish = clock();
 	printf( "\nIt takes %f seconds to insert %d random data!\n", (double)(finish - start) / CLOCKS_PER_SEC, SIZE );
 }
-
+/*
 BOOST_AUTO_TEST_CASE(Searching_check )
 {
 
@@ -110,7 +110,7 @@ BOOST_AUTO_TEST_CASE(Delete_check )
 			c,
 			b);
 
-}
+}*/
 
 /*
  BOOST_AUTO_TEST_CASE(Allocator_check )
