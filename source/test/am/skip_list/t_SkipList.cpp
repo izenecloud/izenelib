@@ -50,8 +50,9 @@ BOOST_AUTO_TEST_CASE(Insertion_check )
     }
     
     Ele(int a,const std::string& b )
-      :k(a),str(b)
     {
+      k =a;
+      str = b;
     }
     
     std::string str;
