@@ -6,23 +6,13 @@
 #include <types.h>
 
 #include <boost/logging/format_fwd.hpp>
+#include <boost/logging/format.hpp>
+
 BOOST_LOG_FORMAT_MSG(optimize::cache_string_one_str<> )
 
-#include <boost/logging/format.hpp>
 using namespace boost::logging;
 
 typedef logger_format_write< > logger_type;
-
-BOOST_DEFINE_LOG_FILTER(g_dbg_filter, filter::no_ts )
-BOOST_DEFINE_LOG_FILTER(g_app_filter, filter::no_ts )
-BOOST_DEFINE_LOG_FILTER(g_err_filter, filter::no_ts )
-BOOST_DEFINE_LOG_FILTER(g_block, filter::no_ts )
-
-BOOST_DEFINE_LOG(g_log_err, logger_type)
-BOOST_DEFINE_LOG(g_log_app, logger_type)
-BOOST_DEFINE_LOG(g_log_dbg, logger_type)
-
-BOOST_DEFINE_LOG(vacancy_log, logger_type)
  
 #ifndef ERR_TAG
 #define ERR_TAG "[ERR] "//defult error log tag
@@ -53,65 +43,16 @@ BOOST_DEFINE_LOG(vacancy_log, logger_type)
 #define DBG_LOG_NAME "./dbg.txt"
 #endif
 
-void initiateLog()
-{
-// Err log
-  g_log_err()->writer().add_formatter( formatter::idx(), "[%] "  );
-  g_log_err()->writer().add_formatter( formatter::time("$hh:$mm.$ss ") );
-  g_log_err()->writer().add_formatter( formatter::append_newline() );
-  g_log_err()->writer().add_destination( destination::file(ERR_LOG_NAME) );
-
-#ifdef ERR2CONSOLE// put error info into the console
-  g_log_err()->writer().add_destination( destination::cout() );
-#endif
-
-  // App log
-  g_log_app()->writer().add_formatter( formatter::time("$hh:$mm.$ss ") );
-  g_log_app()->writer().add_formatter( formatter::append_newline() );
-  g_log_app()->writer().add_destination( destination::file(APP_LOG_NAME) );
-#ifdef APP2CONSOLE // put application info to console
-  g_log_app()->writer().add_destination( destination::cout() );
-#endif
-
-  // Debug log
-  g_log_dbg()->writer().add_formatter( formatter::time("$hh:$mm.$ss ") );
-  g_log_dbg()->writer().add_formatter( formatter::append_newline() );
-  //g_log_dbg()->writer().add_destination( destination::dbg_window() );
-  g_log_dbg()->writer().add_destination( destination::file(DBG_LOG_NAME) );
-#ifdef DBG2CONSOLE // put debug info into console
-  g_log_dbg()->writer().add_destination( destination::cout() );
-#endif
- 
-  g_log_app()->mark_as_initialized();
-  g_log_err()->mark_as_initialized();
-  g_log_dbg()->mark_as_initialized();
-
-#ifndef DBG_DISABLE //disable the debug info
-  g_dbg_filter()->set_enabled(true);
-#else
-  g_dbg_filter()->set_enabled(false);
-#endif
-
-#ifndef APP_DISABLE // disable the app info
-  g_app_filter()->set_enabled(true);
-#else
-  g_app_filter()->set_enabled(false);
-#endif
-
-#ifndef ERR_DISABLE // disable the error info
-  g_err_filter()->set_enabled(true);
-#else
-  g_err_filter()->set_enabled(false);
-#endif
-
-  g_block()->set_enabled(false);
-}
-
-
 class no_log:public std::ostream
 {
-  
- public:
+
+ BOOST_DEFINE_LOG_FILTER(g_block, filter::no_ts )
+   BOOST_DEFINE_LOG(vacancy_log, logger_type)
+   public:
+  no_log()
+  {
+    g_block()->set_enabled(false);
+  }
   no_log& operator << (const char* in)
   {
     VACANCY_<<in;
@@ -144,8 +85,33 @@ class no_log:public std::ostream
 
 class dbg_log:public std::ostream
 {
-  
- public:
+
+ BOOST_DEFINE_LOG_FILTER(g_dbg_filter, filter::no_ts )
+   BOOST_DEFINE_LOG(g_log_dbg, logger_type)
+      
+   public:
+  dbg_log()
+  {
+      
+    // Debug log
+    g_log_dbg()->writer().add_formatter( formatter::time("$hh:$mm.$ss ") );
+    g_log_dbg()->writer().add_formatter( formatter::append_newline() );
+    //g_log_dbg()->writer().add_destination( destination::dbg_window() );
+    g_log_dbg()->writer().add_destination( destination::file(DBG_LOG_NAME) );
+#ifdef DBG2CONSOLE // put debug info into console
+    g_log_dbg()->writer().add_destination( destination::cout() );
+#endif
+
+    g_log_dbg()->mark_as_initialized();
+    
+#ifndef DBG_DISABLE //disable the debug info
+    g_dbg_filter()->set_enabled(true);
+#else
+    g_dbg_filter()->set_enabled(false);
+#endif
+
+  }
+    
   dbg_log& operator << (const char* in)
   {
     LDBG_<<in;
@@ -178,7 +144,29 @@ class dbg_log:public std::ostream
 
 class app_log:public std::ostream
 {
- public:
+ BOOST_DEFINE_LOG_FILTER(g_app_filter, filter::no_ts )
+   BOOST_DEFINE_LOG(g_log_app, logger_type)
+   public:
+  app_log()
+  {
+      
+    // App log
+    g_log_app()->writer().add_formatter( formatter::time("$hh:$mm.$ss ") );
+    g_log_app()->writer().add_formatter( formatter::append_newline() );
+    g_log_app()->writer().add_destination( destination::file(APP_LOG_NAME) );
+#ifdef APP2CONSOLE // put application info to console
+    g_log_app()->writer().add_destination( destination::cout() );
+#endif
+    g_log_app()->mark_as_initialized();
+    
+#ifndef APP_DISABLE // disable the app info
+    g_app_filter()->set_enabled(true);
+#else
+    g_app_filter()->set_enabled(false);
+#endif
+
+  }
+    
   app_log& operator << (const char* in)
   {
     LAPP_<<in;
@@ -203,15 +191,39 @@ class app_log:public std::ostream
   app_log& operator << (const std::string& in)
   {
     LAPP_<<in.c_str();
-    return *this;
-    
+    return *this;    
   }
   
 };
 
 class err_log:public std::ostream
 {
- public:
+ BOOST_DEFINE_LOG_FILTER(g_err_filter, filter::no_ts )
+   BOOST_DEFINE_LOG(g_log_err, logger_type)
+   public:
+  err_log()
+  {
+      
+    // Err log
+    g_log_err()->writer().add_formatter( formatter::idx(), "[%] "  );
+    g_log_err()->writer().add_formatter( formatter::time("$hh:$mm.$ss ") );
+    g_log_err()->writer().add_formatter( formatter::append_newline() );
+    g_log_err()->writer().add_destination( destination::file(ERR_LOG_NAME) );
+
+#ifdef ERR2CONSOLE// put error info into the console
+    g_log_err()->writer().add_destination( destination::cout() );
+#endif
+
+    g_log_err()->mark_as_initialized();
+    
+#ifndef ERR_DISABLE // disable the error info
+    g_err_filter()->set_enabled(true);
+#else
+    g_err_filter()->set_enabled(false);
+#endif
+
+  }
+    
   err_log& operator << (const char* in)
   {
     LERR_<<in;
@@ -241,40 +253,51 @@ class err_log:public std::ostream
   }
   
 };
+
+
   
-dbg_log dbg;
-no_log nlog;
-app_log app;
-err_log err;
+extern dbg_log dbg;
+extern no_log nlog;
+extern app_log app;
+extern err_log err;
 
-
-std::ostream& IF_DLOG(int f)
+class if_log
 {
-  if (f)
-    return dbg;
-
-  return nlog;
-}
-
-std::ostream& IF_ELOG(int f)
-{
-  if (f)
-    return err;
-
-  return nlog;
   
+  static std::ostream& if_dlog(int f)
+  {
+    if (f)
+      return dbg;
+
+    return nlog;
+  }
+
+  static std::ostream& if_elog(int f)
+  {
+    if (f)
+      return err;
+
+    return nlog;
+  
+  }
+
+  static std::ostream& if_alog(int f)
+  {
+    if (f)
+      return app;
+
+    return nlog;
+  }
 }
+;
 
-std::ostream& IF_ALOG(int f)
-{
-  if (f)
-    return app;
 
-  return nlog;
-}
+#define IF_DLOG(F) log::if_dlog(f)
+#define IF_ELOG(F) log::if_elog(f)
+#define IF_ALOG(F) log::if_alog(f)
 
-//#define IF_DLOG izene_log::IF_DLOG
+//#define USING_IZENE_LOG() initiate_log::initiateLog()
+#define USING_IZENE_LOG() dbg_log dbg;no_log nlog;app_log app;err_log err;
 
-#define USING_IZENE_LOG() initiateLog()
-
+                               //#define LDBG_ cout
 #endif //End of IZENE_UTIL_LOG_H

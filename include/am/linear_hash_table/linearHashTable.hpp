@@ -6,13 +6,14 @@
 #ifndef LINEARHASHTABLE_HPP
 #define LINEARHASHTABLE_HPP
 
-#include <util/log.h>
+//#include <util/log.h>
 #include <types.h>
 #include <util/hashFunction.h>
 #include <am/am.h>
 #include <am/concept/DataType.h>
 #include <iostream>
 #include <am/concept/DataType.h>
+#include <boost/memory.hpp>
 #include <boost/static_assert.hpp>
 #include <boost/concept_check.hpp>
 #include <boost/mpl/bool.hpp>
