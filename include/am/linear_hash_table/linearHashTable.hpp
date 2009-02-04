@@ -118,7 +118,7 @@ public:
   
 /**
  *
- * @brief LinearHashTable is based on Per-Ake Larson's work, Dynamic  Hash Tables.
+ * @brief LinearHashTable is based on Per-Ake Larson's work, Dynamic Hash Tables.
  *
  *  It is the fastest hash table that I know and have implemented.
  *	               There are several parameters to tune for faster performance.
@@ -278,7 +278,7 @@ protected:
    */
   void expand_table()
   {
-    int newaddress, oldsegmentindex, newsegmentindex;
+    Size newaddress, oldsegmentindex, newsegmentindex;
     Segment* oldsegment, *newsegment;
     LHTElem* current, *previous; // for scanning down the old chain
     LHTElem* lastofnew; // points to the last ValueType of the new chain

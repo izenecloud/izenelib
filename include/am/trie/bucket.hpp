@@ -576,8 +576,9 @@ friend ostream& operator << ( ostream& os, const SelfType& node)
     return c;
   }
   
-  uint8_t split(Bucket* newBucket)
+  uint8_t split(Bucket* newBucket, vector<string>& leftStr)
   {
+    leftStr.clear();
     //if (getStrCount() != pBucket_->count_)
     //LDBG_<<"before split()**********\n**********\n*************\n************\n*******************before split()\n";
 
@@ -593,6 +594,15 @@ friend ostream& operator << ( ostream& os, const SelfType& node)
       {
         for (str_ptr_it j=(*i).strPtrs_.begin(); j!=(*i).strPtrs_.end();j++)
         {
+          if (((*j).p_)->length()<=1)
+          {
+            string s = "";
+            s += (*i).firstChar_;
+            s.append(*(*j).p_);
+            leftStr.push_back(s);
+            continue;
+          }
+          
           addString(((*j).p_),(*j).contentAddr_ );
           //delete (*j).p_;
         }

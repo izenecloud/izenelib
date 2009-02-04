@@ -12,7 +12,7 @@
 #include <vector>
 #include <boost/memory.hpp>
 #include <boost/static_assert.hpp>
-
+#include <math.h>
 
 #define screen std::cout 
   
@@ -28,6 +28,56 @@ class MemStorage
 
 NS_IZENELIB_AM_BEGIN
 
+template<class type>
+type max_value_of()
+{
+  return 0;
+}
+
+template<>
+double max_value_of<double>()
+{
+  return 1.7* pow(10.0,308);
+}
+
+template<>
+float max_value_of<float>()
+{
+  return 3.4* pow(10.,38);
+}
+
+template<>
+int max_value_of<int>()
+{
+  return (int)pow(2., sizeof(int)*8.)-1;
+}
+
+template<>
+long max_value_of<long>()
+{
+  return (long)pow(2., sizeof(long)*8.)-1;
+}
+
+
+template<>
+unsigned long max_value_of<unsigned long>()
+{
+  return (unsigned long)-1;
+}
+
+
+template<>
+unsigned int max_value_of<unsigned int>()
+{
+  return (unsigned int)-1;
+}
+
+template<>
+unsigned short max_value_of<unsigned short>()
+{
+  return (unsigned short)-1;
+}
+  
 
 template <
   class ValueType,
@@ -40,18 +90,22 @@ class SkipList : public AccessMethod<KeyType, ValueType, LockType>
 public:
   virtual bool insert(const DataType<KeyType,ValueType>& data) 
   {
+    return false;
   }
 
   virtual bool update(const DataType<KeyType,ValueType>& data)
   {
+    return false;
   }
 
   virtual ValueType* find(const KeyType& key)
   {
+    return false;
   }
 
   virtual bool del(const KeyType& key)
   {
+    return false;
   }
   
 }
@@ -126,7 +180,7 @@ public:
    * inf is the largest DataType
    * and is used to signal failed finds.
    */
-  explicit SkipList():m_infinity(1000000),pPool_(alloc_)
+  explicit SkipList():m_infinity(max_value_of<KeyType>()),pPool_(alloc_)
   {
     //pBottom_ = new SkipNode();
     pBottom_ = BOOST_NEW(alloc_, SkipNode);
@@ -135,9 +189,9 @@ public:
     pTail_   = BOOST_NEW(alloc_, SkipNode);
     pTail_->pRight_ = pTail_;
     pTail_->pDown_ = 0;
-    pTail_->key_ = 1000001;
+    pTail_->key_ = m_infinity;//1000001
     //pHeader_ = new SkipNode(1000000,0, pTail_, pBottom_);
-    pHeader_ = BOOST_NEW(alloc_, SkipNode)(1000000,0, pTail_, pBottom_);
+    pHeader_ = BOOST_NEW(alloc_, SkipNode)(m_infinity,0, pTail_, pBottom_);
     size_ = 0;
     //assert(MAX_GAP>3);
   }

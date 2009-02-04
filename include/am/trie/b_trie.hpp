@@ -7,6 +7,7 @@
 #include "bucket_cache.hpp"
 #include <string>
 #include <stdio.h>
+#include <am/cccr_string_hash_table/cccr_str_hash_table.hpp>
 
 using namespace std;
 
@@ -17,24 +18,30 @@ template<
   //------------bucket property-------------
   uint32_t BUCKET_SIZE = 8196,//byte
   uint8_t SPLIT_RATIO = 75,
+  
+  char* ALPHABET = a2z,
+  uint8_t ALPHABET_SIZE = a2z_size,
+  
+  //--------------hash table-------------
+  size_t ENTRY_SIZE= 10000,
+  class HASH_FUNCTION = simple_hash,
+  int EXPAND = PAGE_EXPANDING,
   //----------bucket cache---------
   uint64_t BUCKET_CACHE_LENGTH = 10000000000,//bytes
   class BucketCachePolicy= CachePolicyLARU,
   //----------node cache-----------
-  uint64_t NODE_CACHE_LENGTH = 1000000,//bytes
-  class NodeCachePolicy = CachePolicyLARU,
-  
-  char* ALPHABET = a2z,
-  uint8_t ALPHABET_SIZE = a2z_size
+  uint64_t NODE_CACHE_LENGTH = 100000000,//bytes
+  class NodeCachePolicy = CachePolicyLARU
   >
 class BTrie
 {
-  typedef BTrie<BUCKET_SIZE, SPLIT_RATIO, BUCKET_CACHE_LENGTH, BucketCachePolicy, NODE_CACHE_LENGTH, NodeCachePolicy, ALPHABET, ALPHABET_SIZE> SelfType;
+  typedef BTrie<BUCKET_SIZE, SPLIT_RATIO, ALPHABET, ALPHABET_SIZE, ENTRY_SIZE, HASH_FUNCTION,PAGE_EXPANDING, BUCKET_CACHE_LENGTH, BucketCachePolicy, NODE_CACHE_LENGTH, NodeCachePolicy> SelfType;
   typedef Bucket<BUCKET_SIZE, SPLIT_RATIO, ALPHABET, ALPHABET_SIZE> BucketType;
   typedef NodeCache<NODE_CACHE_LENGTH, NodeCachePolicy, ALPHABET, ALPHABET_SIZE> NodeCacheType;
   typedef BucketCache<BUCKET_CACHE_LENGTH, BUCKET_SIZE, SPLIT_RATIO, BucketCachePolicy, ALPHABET, ALPHABET_SIZE> BucketCacheType;
   typedef typename NodeCacheType::nodePtr AlphabetNodePtr;
   typedef typename BucketCacheType::nodePtr BucketPtr;
+  typedef CCCR_StrHashTable<ENTRY_SIZE, HASH_FUNCTION,PAGE_EXPANDING> HashTable;
 
 public:
   BTrie(const string& filename)
@@ -42,6 +49,7 @@ public:
   {
     string bstr = filename+".buk";
     string nstr = filename + ".nod";
+    string hstr = filename + ".has";
     
     nodf_ = fopen(nstr.c_str(), "r+");
     if (nodf_ == NULL)
@@ -64,6 +72,16 @@ public:
       bukf_ = fopen(bstr.c_str(), "w+");
     }
     pBucketCache_ =  new BucketCacheType(bukf_ );
+
+    hashf_ = fopen(hstr.c_str(), "r+");
+    if (hashf_ == NULL)
+    {
+      hashf_ = fopen(hstr.c_str(), "w+");
+    }
+    else
+      hashTable_.load(hashf_);
+    
+    
   }
 
   ~BTrie()
@@ -78,6 +96,7 @@ public:
   {
     pBucketCache_->flush();
     pNodeCache_ ->flush();
+    hashTable_.unload(hashf_);
   }
 
   bool insert(string* pStr, uint64_t contentAddr)
@@ -86,14 +105,15 @@ public:
     {
       return false;
     }
-    
+
+    string consumeStr = *pStr;
     uint64_t addr = 1;
     AlphabetNodePtr n_1 ;
     uint32_t memAddr = 0;
     
     AlphabetNodePtr n = pNodeCache_->getNodeByMemAddr(memAddr, addr);//root node address is 1 in disk and 0 in cache
         
-    for (; pStr->length()>0; )
+    for (; pStr->length()>1; )
     {
       if (n.isNull())
       {
@@ -143,6 +163,7 @@ public:
         //cout<<diskAddr<<" add string!;\n";
         //cout<<diskAddr<<str<<" :bucket add string;\n";
         //pStr->erase(0,1);
+        size_t len = pStr->length();
         b->addString(pStr, contentAddr);
         //cout<<diskAddr<<" added string!;\n";
         
@@ -154,7 +175,16 @@ public:
           //if (diskAddr == 336200)
           // cout<<"------------------ bucket full, split it*********************\n";
           // if bucket full, split it;
-          splitBucket(b, n, diskAddr, idx);
+          vector<string> left;
+          splitBucket(b, n, diskAddr, idx, left);
+          string prefix = consumeStr.substr(0, consumeStr.length()-len);
+          
+          for (vector<string>::iterator k=left.begin(); k!=left.end(); k++)
+          {
+            //LDBG_<<consumeStr<<"     "<<prefix<<"    "<<(*k);
+            hashTable_.insert(prefix+(*k), contentAddr);
+          }
+          
           //cout<<"splitted...\n";
           
           //if (diskAddr == 336200)
@@ -180,12 +210,11 @@ public:
       n = n_1;
       pStr->erase(0,1);
     }
-
-    //in hash table
-    return true;
+    
+    return hashTable_.insert(consumeStr,contentAddr);
   }
 
-  void splitBucket(BucketPtr& b,  AlphabetNodePtr& n, uint64_t diskAddr, uint8_t idx)
+  void splitBucket(BucketPtr& b,  AlphabetNodePtr& n, uint64_t diskAddr, uint8_t idx, vector<string>& left)
   {
     uint8_t up = b->getUpBound();
     uint8_t low = b->getLowBound();
@@ -222,7 +251,7 @@ public:
     
     BucketPtr bu = pBucketCache_->newNode();
     //cout<<"splitting!\n";
-    uint8_t splitPoint = b->split(bu.pN_);
+    uint8_t splitPoint = b->split(bu.pN_, left);
     //cout<<"splitting point: "<<splitPoint<<endl;
     uint64_t newBktAddr =  bu->add2disk();
     
@@ -254,7 +283,7 @@ public:
   
   bool del(const string& str)
   {
-    return false;
+    return update(str, (uint64_t)-1);
   }
 
   bool update(const string& str, uint64_t contentAddr)
@@ -268,7 +297,7 @@ public:
     uint64_t addr = 1;
     AlphabetNodePtr n_1;
     uint32_t idx_1 = 0;
-    for (size_t i=0; i<str.length(); i++)
+    for (size_t i=0; i<str.length()-1; i++)
     {
       if (addr == (uint64_t)-1)
       {
@@ -299,8 +328,7 @@ public:
       addr = n->getDiskAddr(ch);
     }
 
-    //in hash table
-    return true;
+    return hashTable_.update(str, contentAddr);
   }
 
   uint64_t query(const string& str)
@@ -318,7 +346,7 @@ public:
     AlphabetNodePtr n = pNodeCache_->getNodeByMemAddr(rootIdx, addr);//root node address is 1 in disk and 0 in cache
     for (size_t i=0; i<str.length()-1; i++)
     {
-      cout<<str[i]<<"====>\n";
+      //cout<<str[i]<<"====>\n";
       
       if (n.isNull())
       {
@@ -344,17 +372,15 @@ public:
         //load bucket
         BucketPtr b = pBucketCache_->getNodeByMemAddr(memAddr, diskAddr);
         //b->display(cout);
-        cout<<str.substr(i)<<"++++++>";
+        //cout<<str.substr(i)<<"++++++>";
         return b->getContentBy(str.substr(i));
       }
       
       n = pNodeCache_->getNodeByMemAddr(memAddr, diskAddr);
 
     }
-
-    //in hash table
-
-    return 0;
+    
+    return hashTable_.find(str);
   }
 
   uint32_t getNodeAmount() const
@@ -368,7 +394,7 @@ public:
     AlphabetNodePtr n = pNodeCache_->getNodeByMemAddr(root, 1);
     n->display(os);
     
-    for (size_t i=0; i<str.length(); i++)
+    for (size_t i=0; i<str.length()-1; i++)
     {
       os<<endl<<"=========>>>> "<<str[i]<<endl;
       uint64_t diskAddr = n->getDiskAddr(n->getIndexOf(str[i]));
@@ -389,6 +415,12 @@ public:
       
       n = pNodeCache_->getNodeByMemAddr(memAddr, diskAddr);
     }
+
+    os<<"\nThen, search hash table!";
+    if(hashTable_.find(str)!= (uint64_t)-1)
+      os<<"Found!"<<endl;
+    else
+      os<<"Not Found!\n";
     
   }
 
@@ -410,8 +442,10 @@ public:
 protected:
   FILE* nodf_;
   FILE* bukf_;
+  FILE* hashf_;
   BucketCacheType* pBucketCache_;
   NodeCacheType* pNodeCache_;
+  HashTable hashTable_;
 
 }
   ;
