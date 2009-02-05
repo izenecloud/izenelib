@@ -26,9 +26,9 @@ typedef logger_format_write< > logger_type;
 #define DBG_TAG "[DBG] "//defult debug log tag
 #endif
 
-#define LDBG_ BOOST_LOG_USE_LOG_IF_FILTER(g_log_dbg(), g_dbg_filter()->is_enabled() ) << DBG_TAG
-#define LERR_ BOOST_LOG_USE_LOG_IF_FILTER(g_log_err(), g_err_filter()->is_enabled() ) << ERR_TAG
-#define LAPP_ BOOST_LOG_USE_LOG_IF_FILTER(g_log_app(), g_app_filter()->is_enabled() ) << APP_TAG
+#define LDBG__ BOOST_LOG_USE_LOG_IF_FILTER(g_log_dbg(), g_dbg_filter()->is_enabled() ) << DBG_TAG
+#define LERR__ BOOST_LOG_USE_LOG_IF_FILTER(g_log_err(), g_err_filter()->is_enabled() ) << ERR_TAG
+#define LAPP__ BOOST_LOG_USE_LOG_IF_FILTER(g_log_app(), g_app_filter()->is_enabled() ) << APP_TAG
 #define VACANCY_ BOOST_LOG_USE_LOG_IF_FILTER(vacancy_log(), g_block()->is_enabled() )
  
 #ifndef ERR_LOG_NAME
@@ -43,7 +43,30 @@ typedef logger_format_write< > logger_type;
 #define DBG_LOG_NAME "./dbg.txt"
 #endif
 
-class no_log:public std::ostream
+class log
+{
+ public:
+
+  virtual ~log()
+  {
+  }
+  
+  virtual log& operator << (const char* in){return *this;}
+  virtual log& operator << (int in){return *this;}
+  virtual log& operator << (double in){return *this;}
+  virtual log& operator << (long double in){return *this;}
+  virtual log& operator << (unsigned long in){return *this;}
+  virtual log& operator << (float in){return *this;}
+  virtual log& operator << (char in){return *this;}
+  virtual log& operator << (unsigned short in){return *this;}
+  virtual log& operator << (short in){return *this;}
+  virtual log& operator << (unsigned int in){return *this;}
+  virtual log& operator << (bool in){return *this;}
+  
+}
+;
+
+class no_log:public log
 {
 
  BOOST_DEFINE_LOG_FILTER(g_block, filter::no_ts )
@@ -53,37 +76,27 @@ class no_log:public std::ostream
   {
     g_block()->set_enabled(false);
   }
-  no_log& operator << (const char* in)
-  {
-    VACANCY_<<in;
-    return *this;
-    
-  }
 
-  no_log& operator << (double in)
-  {
-    VACANCY_<<in;
-    return *this;
-    
-  }
 
-  no_log& operator << (int in)
+  virtual ~no_log()
   {
-    VACANCY_<<in;
-    return *this;
-    
-  }
-
-  no_log& operator << (const std::string& in)
-  {
-    VACANCY_<<in.c_str();
-    return *this;
-    
   }
   
+  virtual no_log& operator << (const char* in){VACANCY_<<in;return *this;}
+  virtual no_log& operator << (int in){VACANCY_<<in;return *this;}
+  virtual no_log& operator << (double in){VACANCY_<<in;return *this;}
+  virtual no_log& operator << (long double in){VACANCY_<<in;return *this;}
+  virtual no_log& operator << (unsigned long in){VACANCY_<<in;return *this;}
+  virtual no_log& operator << (float in){VACANCY_<<in;return *this;}
+  virtual no_log& operator << (char in){VACANCY_<<in;return *this;}
+  virtual no_log& operator << (unsigned short in){VACANCY_<<in;return *this;}
+  virtual no_log& operator << (short in){VACANCY_<<in;return *this;}
+  virtual no_log& operator << (unsigned int in){VACANCY_<<in;return *this;}
+  virtual no_log& operator << (bool in){VACANCY_<<in;return *this;}  
 };
 
-class dbg_log:public std::ostream
+class dbg_log
+  :public log
 {
 
  BOOST_DEFINE_LOG_FILTER(g_dbg_filter, filter::no_ts )
@@ -111,38 +124,26 @@ class dbg_log:public std::ostream
 #endif
 
   }
-    
-  dbg_log& operator << (const char* in)
-  {
-    LDBG_<<in;
-    return *this;
-    
-  }
 
-  dbg_log& operator << (double in)
+  virtual ~dbg_log()
   {
-    LDBG_<<in;
-    return *this;
-    
-  }
-
-  dbg_log& operator << (int in)
-  {
-    LDBG_<<in;
-    return *this;
-    
-  }
-
-  dbg_log& operator << (const std::string& in)
-  {
-    LDBG_<<in.c_str();
-    return *this;
-    
   }
   
+  virtual dbg_log& operator << (const char* in){LDBG__<<in;return *this;}
+  virtual dbg_log& operator << (int in){LDBG__<<in;return *this;}
+  virtual dbg_log& operator << (double in){LDBG__<<in;return *this;}
+  virtual dbg_log& operator << (long double in){LDBG__<<in;return *this;}
+  virtual dbg_log& operator << (unsigned long in){LDBG__<<in;return *this;}
+  virtual dbg_log& operator << (float in){LDBG__<<in;return *this;}
+  virtual dbg_log& operator << (char in){LDBG__<<in;return *this;}
+  virtual dbg_log& operator << (unsigned short in){LDBG__<<in;return *this;}
+  virtual dbg_log& operator << (short in){LDBG__<<in;return *this;}
+  virtual dbg_log& operator << (unsigned int in){LDBG__<<in;return *this;}
+  virtual dbg_log& operator << (bool in){LDBG__<<in;return *this;}
+    
 };
 
-class app_log:public std::ostream
+class app_log :public log
 {
  BOOST_DEFINE_LOG_FILTER(g_app_filter, filter::no_ts )
    BOOST_DEFINE_LOG(g_log_app, logger_type)
@@ -166,37 +167,26 @@ class app_log:public std::ostream
 #endif
 
   }
-    
-  app_log& operator << (const char* in)
-  {
-    LAPP_<<in;
-    return *this;
-    
-  }
 
-  app_log& operator << (double in)
+  virtual ~app_log()
   {
-    LAPP_<<in;
-    return *this;
-    
-  }
-
-  app_log& operator << (int in)
-  {
-    LAPP_<<in;
-    return *this;
-    
-  }
-
-  app_log& operator << (const std::string& in)
-  {
-    LAPP_<<in.c_str();
-    return *this;    
   }
   
+  virtual app_log& operator << (const char* in){LAPP__<<in;return *this;}
+  virtual app_log& operator << (int in){LAPP__<<in;return *this;}
+  virtual app_log& operator << (double in){LAPP__<<in;return *this;}
+  virtual app_log& operator << (long double in){LAPP__<<in;return *this;}
+  virtual app_log& operator << (unsigned long in){LAPP__<<in;return *this;}
+  virtual app_log& operator << (float in){LAPP__<<in;return *this;}
+  virtual app_log& operator << (char in){LAPP__<<in;return *this;}
+  virtual app_log& operator << (unsigned short in){LAPP__<<in;return *this;}
+  virtual app_log& operator << (short in){LAPP__<<in;return *this;}
+  virtual app_log& operator << (unsigned int in){LAPP__<<in;return *this;}
+  virtual app_log& operator << (bool in){LAPP__<<in;return *this;}
+      
 };
 
-class err_log:public std::ostream
+class err_log:public log
 {
  BOOST_DEFINE_LOG_FILTER(g_err_filter, filter::no_ts )
    BOOST_DEFINE_LOG(g_log_err, logger_type)
@@ -223,34 +213,23 @@ class err_log:public std::ostream
 #endif
 
   }
-    
-  err_log& operator << (const char* in)
-  {
-    LERR_<<in;
-    return *this;
-    
-  }
 
-  err_log& operator << (double in)
-  {
-    LERR_<<in;
-    return *this;
-    
-  }
 
-  err_log& operator << (int in)
+  virtual ~err_log()
   {
-    LERR_<<in;
-    return *this;
-    
   }
-
-  err_log& operator << (const std::string& in)
-  {
-    LERR_<<in.c_str();
-    return *this;
-    
-  }
+  
+  virtual err_log& operator << (const char* in){LERR__<<in;return *this;}
+  virtual err_log& operator << (int in){LERR__<<in;return *this;}
+  virtual err_log& operator << (double in){LERR__<<in;return *this;}
+  virtual err_log& operator << (long double in){LERR__<<in;return *this;}
+  virtual err_log& operator << (unsigned long in){LERR__<<in;return *this;}
+  virtual err_log& operator << (float in){LERR__<<in;return *this;}
+  virtual err_log& operator << (char in){LERR__<<in;return *this;}
+  virtual err_log& operator << (unsigned short in){LERR__<<in;return *this;}
+  virtual err_log& operator << (short in){LERR__<<in;return *this;}
+  virtual err_log& operator << (unsigned int in){LERR__<<in;return *this;}
+  virtual err_log& operator << (bool in){LERR__<<in;return *this;}
   
 };
 
@@ -263,8 +242,8 @@ extern err_log err;
 
 class if_log
 {
-  
-  static std::ostream& if_dlog(int f)
+ public:
+  static log& if_dlog(int f)
   {
     if (f)
       return dbg;
@@ -272,7 +251,7 @@ class if_log
     return nlog;
   }
 
-  static std::ostream& if_elog(int f)
+  static log& if_elog(int f)
   {
     if (f)
       return err;
@@ -281,7 +260,7 @@ class if_log
   
   }
 
-  static std::ostream& if_alog(int f)
+  static log& if_alog(int f)
   {
     if (f)
       return app;
@@ -291,10 +270,15 @@ class if_log
 }
 ;
 
+#define IF_DLOG(F) if_log::if_dlog(F)
+  
+#define IF_ELOG(F) if_log::if_elog(F)
+#define IF_ALOG(F) if_log::if_alog(F)
 
-#define IF_DLOG(F) log::if_dlog(f)
-#define IF_ELOG(F) log::if_elog(f)
-#define IF_ALOG(F) log::if_alog(f)
+
+#define LDBG_ dbg
+#define LERR_ err
+#define LAPP_ app
 
 //#define USING_IZENE_LOG() initiate_log::initiateLog()
 #define USING_IZENE_LOG() dbg_log dbg;no_log nlog;app_log app;err_log err;
