@@ -1,0 +1,5 @@
+//#include <am/linear_hash_table/linearHashTable.hpp>
+//#include<util/log.h>
+
+#include "k.h"
+void cash(){kkk=0;}
