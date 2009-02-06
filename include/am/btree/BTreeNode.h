@@ -43,7 +43,7 @@ public:
 
 	void display() {
 		//pdat->display();
-		//cout<<*pdat;
+		//cout<<pdat->key;
 	}
 
 	virtual ~PtrObj() {
@@ -128,8 +128,7 @@ public:
 	/**
 	 * 	\brief when we want to access to node, we should load it to memory from disk. 
 	 */
-	inline BTreeNodePtr loadChild(size_t childNum, FILE* f,
-			const string& fileName);
+	inline BTreeNodePtr loadChild(size_t childNum, FILE* f);
 
 	/**
 	 * Unload a child, which means that we get rid of all
@@ -591,8 +590,7 @@ template<typename KeyType, typename DataType, typename LockType, typename Alloc>
 // Load a child node from the disk. This requires that we
 // have the filepos already in place.
 template<typename KeyType, typename DataType, typename LockType, typename Alloc> intrusive_ptr<BTreeNode<KeyType, DataType,LockType, Alloc> > BTreeNode<
-		KeyType, DataType, LockType, Alloc>::loadChild(size_t childNum, FILE* f,
-		const string& fileName) {
+		KeyType, DataType, LockType, Alloc>::loadChild(size_t childNum, FILE* f) {
 	
 	BTreeNodePtr child;
 	child = children[childNum];

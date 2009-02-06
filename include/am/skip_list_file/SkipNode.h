@@ -4,7 +4,6 @@
 #include "slf_types.h"
 #include "slf_util.h"
 #include "SlfHeader.h"
-#include "MemMap.h"
 
 NS_IZENELIB_AM_BEGIN
 /**
@@ -88,11 +87,9 @@ public:
 
 	}
 
-	static void setDataSize(size_t maxDataSize, size_t pageSize,
-			size_t overFlowSize) {
+	static void setDataSize(size_t maxDataSize, size_t pageSize) {
 		maxDataSize_ = maxDataSize;
-		pageSize_ = pageSize;
-		overFlowSize_ = overFlowSize;
+		pageSize_ = pageSize;		
 	}
 public:
 	DataType element;
@@ -123,7 +120,7 @@ public:
 private:
 	DbObjPtr object_;
 	static size_t maxDataSize_;
-	static size_t overFlowSize_;
+	//static size_t overFlowSize_;
 	static size_t pageSize_;
 	static LockType lock_;
 	static map<long, SkipNode<DataType, LockType, Alloc>*> pos2node_;
@@ -142,8 +139,8 @@ template<typename DataType, typename LockType, typename Alloc> size_t SkipNode<
 template<typename DataType, typename LockType, typename Alloc> size_t SkipNode<
 		DataType, LockType, Alloc>::pageSize_;
 
-template<typename DataType, typename LockType, typename Alloc> size_t SkipNode<
-		DataType, LockType, Alloc>::overFlowSize_;
+//template<typename DataType, typename LockType, typename Alloc> size_t SkipNode<
+//		DataType, LockType, Alloc>::overFlowSize_;
 
 template<typename DataType, typename LockType, typename Alloc> LockType
 		SkipNode<DataType, LockType, Alloc>::lock_;
@@ -279,9 +276,12 @@ template <typename DataType, typename LockType, typename Alloc> bool SkipNode<
 
 	//	long overFlowAddress;
 	size_t recSize;
+	
+	//size_t overFlowSize_ = pageSize_;
+	
 	//byte leafFlag = 0;
 	//byte rightFlag = 0;
-	byte* temp;
+	char* temp;
 
 	if (!p) {
 		//lock_.release_write_lock();
@@ -330,7 +330,7 @@ template <typename DataType, typename LockType, typename Alloc> bool SkipNode<
 	memcpy(&recSize, p, sizeof(size_t));
 	p += sizeof(size_t);
 
-	temp = new byte[recSize];
+	temp = new char[recSize];
 	if (recSize <= maxDataSize_) {
 		memcpy(temp, p, recSize);
 		p += recSize;
@@ -500,6 +500,8 @@ template <typename DataType, typename LockType, typename Alloc> bool SkipNode<
 	}
 
 	char* p = pBuf;
+	
+	//size_t overFlowSize_ = pageSize_;
 
 	//long overFlowAddress = ftell(f);
 
@@ -536,8 +538,8 @@ template <typename DataType, typename LockType, typename Alloc> bool SkipNode<
 	memcpy(p, &recSize, sizeof(size_t));
 	p += sizeof(size_t);
 
-	byte *pd;
-	pd = ( byte* )object_->getData();
+	char *pd;
+	pd = ( char* )object_->getData();
 	if (recSize <= maxDataSize_) {
 		memcpy(p, pd, recSize);
 		p += recSize;
