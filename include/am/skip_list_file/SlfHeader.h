@@ -12,7 +12,6 @@ struct SlfHeader {
 	int magic; //set it as 0x061561, check consistence.
 	size_t degree;
 	size_t pageSize;
-	size_t overFlowSize;
 	size_t cacheSize;
 	size_t numItem;
 	size_t nNode;
@@ -25,8 +24,7 @@ struct SlfHeader {
 	SlfHeader() {
 		magic = 0x061561;
 		degree = 2;
-		pageSize = 1024;
-		overFlowSize = 1024;
+		pageSize = 1024;	
 		cacheSize = 1000000;
 		numItem = 0;
 		height = 0;
@@ -39,8 +37,7 @@ struct SlfHeader {
 		cout<<"magic: "<<magic<<endl;
 		cout<<"degree: "<<degree<<endl;
 		cout<<"numItem: "<<numItem<<endl;
-		cout<<"pageSize: "<<pageSize<<endl;
-		cout<<"overFlowSize: "<<overFlowSize<<endl;
+		cout<<"pageSize: "<<pageSize<<endl;	
 		cout<<"cacheSize: "<<cacheSize<<endl;
 		cout<<"height: "<<height<<endl;
 		cout<<"nNode: "<<nNode<<endl;

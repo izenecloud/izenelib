@@ -7,7 +7,6 @@
 
 #include "SlfHeader.h"
 #include "SkipNode.h"
-#include "MemMap.h"
 
 #include <iostream>
 #include <sys/stat.h>
@@ -32,21 +31,24 @@ template<typename KeyType, typename ValueType=NullType, typename LockType=NullLo
 public:
 	typedef DataType<KeyType, ValueType> DataType;
 	typedef SkipNode<DataType, LockType, Alloc> SkipNode;
-
-	SkipListFile(const std::string& fileName, const size_t& minDegree = 2);
+	typedef SkipNode* NodeKeyLocn;
+public:
+	SkipListFile(const std::string& fileName);
 	virtual ~SkipListFile();
 
-	void setPageSize(size_t maxDataSize, size_t overFlowSize) {
+	void setPageSize(size_t maxDataSize) {
 		maxDataSize_ = maxDataSize;
 		size_t pageSize = sizeof(int) + MAX_LEVEL*sizeof(long) + maxDataSize;
-
 		//	size_t pageSize = sizeof(byte) + 4*sizeof(long) + maxDataSize;
 
 		sfh_.pageSize = pageSize;
-		sfh_.overFlowSize = overFlowSize;
 
-		SkipNode::setDataSize(maxDataSize,
-				pageSize, overFlowSize);
+		//SkipNode::setDataSize(maxDataSize,
+		//		pageSize);
+	}
+
+	void setDegree(int degree) {
+		minDegree_ = degree;
 	}
 
 	/**
@@ -64,14 +66,7 @@ public:
 		sfh_.cacheSize = sz;
 	}
 
-	const KeyType* find_min() const;
-
-	const KeyType* find_max() const;
-
 	ValueType* find(const KeyType& x);
-	/*ValueType* find(const KeyType& x) {
-	 return (ValueType*)((const SkipListFile*)this)->find(x);
-	 }*/
 
 	/**
 	 *  \brief updata an item with given key, if it not exist, insert it directly. 
@@ -84,7 +79,9 @@ public:
 	 *  \brief updata an item with given key, if it not exist, insert it directly. 
 	 */
 	bool update(const DataType& rec) {
-		if( find (rec.get_key() ) ) {
+		SkipNode* p = search(rec.get_key());
+		if( p ) {
+			p->element = rec;
 			//to be implemented
 		}
 		else {
@@ -107,6 +104,26 @@ public:
 
 	bool del(const KeyType& x);
 
+	NodeKeyLocn search(const KeyType& key) {
+		SkipNode* x = header_;
+		int h = x->height-1;
+		if (sfh_.numItem == 0)
+		return NULL;
+		while (h>=0) {
+			x->loadRight(h, dataFile_);
+			while (x->right[h] && comp_(key, x->right[h]->KEY)> 0 )
+			{	x = x->loadRight(h, dataFile_);
+				if( x->right[h] )x->loadRight(h, dataFile_);
+			}
+			if( x->right[h] && comp_( key, x->right[h]->KEY) == 0 ) {
+				return x->right[h];
+			}
+			--h;
+		}
+		return NULL;
+
+	}
+
 	SkipNode* searchPre(const KeyType& key)
 	{
 		SkipNode* x = header_;
@@ -126,6 +143,10 @@ public:
 		}
 		return NULL;
 	}
+
+	const KeyType* find_min() const;
+
+	const KeyType* find_max() const;
 
 	/**
 	 *  \brief given a  key, get next key
@@ -149,6 +170,59 @@ public:
 		return KeyType();
 	}
 
+	/**
+	 *  if the input key exists, just return itself, otherwise return 
+	 * 	the smallest existing key that bigger than it.   
+	 */
+	KeyType getNearest(const KeyType& key) {
+
+		SkipNode* x = header_;
+		KeyType rk;
+
+		int h = x->height-1;
+		if (sfh_.numItem == 0)
+		return rk;
+		while (h>=0) {
+			x->loadRight(h, dataFile_);
+			while (x->right[h] && comp_(key, x->right[h]->KEY)> 0 )
+			{	x = x->loadRight(h, dataFile_);
+				if(x->right[h])x->loadRight(h, dataFile_);
+			}
+			if(h == 0 && x->right[h] ) {
+				return x->right[h]->KEY;
+			}
+			if( x->right[h] && comp_( key, x->right[h]->KEY) == 0 ) {
+				return key;
+			}
+			--h;
+		}
+		return rk;
+
+	}
+
+	/**
+	 * 	\brief get the next or prev item.
+	 */
+	bool
+	seq(NodeKeyLocn& locn, DataType& rec, SlSeqDirection sdir = SLSD_FORWARD) {
+		if(sdir == SLSD_FORWARD) {
+			if(locn) {
+				locn = locn->loadRight(0, dataFile_);
+				rec = locn->element;
+				return true;
+			}
+			else {
+				return false;
+			}
+		}
+		else
+		{
+			//to to implemented
+			return false;
+		}
+
+	}
+
 	SkipNode* firstNode() {
 		return header_->right[0];
 	}
@@ -169,10 +243,12 @@ public:
 			SkipNode* p = dirtyPages_.back();
 			//	p->display();
 			dirtyPages_.pop_back();
-			if(p)p->write(dataFile_);
+			if (p)
+			p->write(dataFile_);
 		}
-		for(vector<MemBlock*>::iterator it=mbList.begin(); it !=mbList.end(); it++ ) {
-			if(*it)(*it)->flush(dataFile_);
+		for (vector<MemBlock*>::iterator it=mbList.begin(); it !=mbList.end(); it++) {
+			if (*it)
+			(*it)->flush(dataFile_);
 		}
 
 	}
@@ -189,7 +265,7 @@ public:
 		 }*/
 
 		vector<MemBlock*>::iterator it, it1;
-		for(it=mbList.begin(); it != mbList.end(); it++ ) {
+		for (it=mbList.begin(); it != mbList.end(); it++) {
 			it1 = it;
 			delete (*it1);
 			*it1 = 0;
@@ -263,10 +339,18 @@ public:
 				sfh_.display();
 #endif
 
-				mbList.resize( sfh_.nNode/BLOCK_SIZE+1 );
-				header_ = new SkipNode;
-				header_ -> fpos = sfh_.headerPos;
-				header_ -> read(dataFile_);
+				mbList.resize(sfh_.nNode/BLOCK_SIZE+1);
+				if(sfh_.numItem == 0) {
+					header_ = allocateNode_();
+					header_->height = 1;
+					sfh_.toFile(dataFile_);
+					dirtyPages_.push_back(header_);
+				}
+				else {
+					header_ = new SkipNode;
+					header_ -> fpos = sfh_.headerPos;
+					header_ -> read(dataFile_);
+				}
 
 				//header_->display();
 				ret = true;
@@ -275,8 +359,7 @@ public:
 			// rather than allocating.
 		}
 
-		SkipNode::setDataSize(maxDataSize_,
-				sfh_.pageSize, sfh_.overFlowSize);
+		SkipNode::setDataSize(maxDataSize_, sfh_.pageSize);
 		return ret;
 	}
 
@@ -341,8 +424,8 @@ private:
 		 MemBlock* newBlock = new MemBlock( sizeof(SlfHeader)+ sfh_.pageSize*sfh_.nNode, sfh_.pageSize);
 		 mbList.push_back( newBlock );
 		 }*/
-		if( sfh_.nNode % BLOCK_SIZE == 0) {
-			mbList.resize( sfh_.nNode/BLOCK_SIZE+1 );
+		if (sfh_.nNode % BLOCK_SIZE == 0) {
+			mbList.resize(sfh_.nNode/BLOCK_SIZE+1);
 		}
 		sfh_.nNode++;
 
@@ -378,7 +461,8 @@ private:
 		//	int tb = totalBand(sfh_.numItem);
 
 
-		if(from == to)return;
+		if (from == to)
+		return;
 		//protome to the top
 		//int h = x->height;
 		x->height = to;
@@ -386,13 +470,12 @@ private:
 		SkipNode* temp;
 		int h= from;
 		int i = update.size()-1;
-		for(; i>=0; i--, h++)
-		{
+		for (; i>=0; i--, h++) {
 			temp = update[i];
 			//	cout<<h<<"update "<<update[i]->KEY<<endl;
-			if( h<=to && h>from ) {
+			if (h<=to && h>from) {
 				x->right[h-1] = temp->loadRight(h-1, dataFile_);
-				if( temp->right[h-1] )
+				if (temp->right[h-1])
 				temp->right[h-1]->left[h-1] = x;
 
 				temp->right[h-1] = x;
@@ -406,9 +489,9 @@ private:
 
 	}
 
-	void demote_(vector<SkipNode*>& update, int from, int to)
-	{
-		if(from == to)return;
+	void demote_(vector<SkipNode*>& update, int from, int to) {
+		if (from == to)
+		return;
 		//cout<<"\nsearch_ pre: \n"<<endl;
 		//	for(int i=0; i<(int)update.size(); i++) {
 		//		cout<<update[i]->KEY<<endl;
@@ -420,21 +503,23 @@ private:
 		//		cout<<h<<endl;
 		//		cout<<from<<endl;
 		//		cout<<to<<endl;
-		for(int i=1; i<(int)update.size() && h>0; i++,h--) {
+		for (int i=1; i<(int)update.size() && h>0; i++, h--) {
 			//cout<<"height 0: "<<update[i]->height<<endl;
 			//cout<<"demote 0 "<<update[i]->KEY<<endl;
-			if(update[i] == header_) {continue;}
+			if (update[i] == header_) {
+				continue;
+			}
 			//cout<<h<<" "<<update[i]->KEY<<endl;
 			//cout<<update[i]->left[h-1];
 			//if( h<=from && h>to && update[i]->left[h-1])
-			if( update[i]->height> to )
-			{
+			if (update[i]->height> to) {
 				//cout<<h-1<<" demoting "<<update[i]->KEY<<endl;
 				//	if( update[i]->left[h-1] )cout<<update[i]->left[h-1]->KEY<<endl;
 				//	if(update[i]->right[h-1])cout<<update[i]->right[h-1]->KEY<<endl;
-				if(update[i]->left[h-1])
-				update[i]->left[h-1]->right[h-1] = update[i]->loadRight(h-1, dataFile_);
-				if( update[i]->right[h-1] )
+				if (update[i]->left[h-1])
+				update[i]->left[h-1]->right[h-1] = update[i]->loadRight(h-1,
+						dataFile_);
+				if (update[i]->right[h-1])
 				update[i]->right[h-1]->left[h-1] = update[i]->left[h-1];
 
 				update[i]->height = update[i]->height - 1;
@@ -443,7 +528,8 @@ private:
 			//cout<<"!!!after demote "<<update[i]->KEY<<endl;
 			//display();
 			dirtyPages_.push_back(update[i]);
-			if( update[i]->left[h-1] )dirtyPages_.push_back(update[i]->left[h-1]);
+			if (update[i]->left[h-1])
+			dirtyPages_.push_back(update[i]->left[h-1]);
 		}
 
 	}
@@ -569,7 +655,7 @@ template <typename KeyType, typename ValueType, typename LockType,
 	SkipNode *p =searchPre(key);
 	ValueType* pv= NULL;
 	if (p) {
-	   pv = new ValueType( p->right[0]->element.get_value() );
+		pv = new ValueType( p->right[0]->element.get_value() );
 	}
 	return pv;
 
@@ -611,16 +697,11 @@ template <typename KeyType, typename ValueType, typename LockType,
  */
 template <typename KeyType, typename ValueType, typename LockType,
 		typename Alloc> SkipListFile<KeyType, ValueType, LockType, Alloc>::SkipListFile(
-		const string& fileName, const size_t& degree) :
-	fileName_(fileName), minDegree_(degree) {
+		const string& fileName) :
+	fileName_(fileName), minDegree_(2) {
 
 	isUnload_ = false;
-	sfh_.degree = degree;
-
-	//SkipNode::bottom = new SkipNode;
-	//SkipNode::bottom->right = SkipNode::bottom->down = SkipNode::bottom;
-	//open_();
-
+	sfh_.degree = minDegree_;
 }
 
 /**
@@ -899,7 +980,7 @@ template <typename KeyType, typename ValueType, typename LockType,
 	if (header_->right[0])
 		return &(header_->right[0]->KEY);
 		else
-			return NULL;
+		return NULL;
 	}
 	/**
 	 * @brief Find the largest item in the tree.

@@ -10,6 +10,7 @@
 
 #include <am/concept/DataType.h>
 #include "sdb_types.h"
+#include "SFileHeader.h"
 
 #include <vector>
 using namespace std;
@@ -31,7 +32,8 @@ enum EChildPos
 
 typedef std::pair<size_t, EChildPos> OBJECTPOS;
 
-template <typename DataType, typename LockType, typename Alloc =std::allocator<DataType> > class PtrObj :
+template <typename DataType, typename LockType,
+		typename Alloc =std::allocator<DataType> > class PtrObj :
 	public RefCount<LockType> {
 public:
 	PtrObj() {
@@ -43,7 +45,7 @@ public:
 
 	void display() {
 		//pdat->display();
-		//cout<<pdat->key;
+		cout<<pdat->key;
 	}
 
 	virtual ~PtrObj() {
@@ -57,12 +59,12 @@ public:
 		pdat = new DataType(*other.pdat);
 		return *this;
 	}
-	
-	/*bool operator <=(PtrObj& other) {
-		return *pdat.compare(*other.pdat);
 
-	}*/
-	
+	/*bool operator <=(PtrObj& other) {
+	 return *pdat.compare(*other.pdat);
+
+	 }*/
+
 public:
 	DataType* pdat;
 };
@@ -139,10 +141,12 @@ public:
 	 * 	\brief read the node from disk.
 	 */
 	bool read(FILE* f);
+	bool read(char* pbuf);
 	/**
 	 * 	\brief write the node to  disk.
 	 */
 	bool write(FILE* f);
+	bool write(char* pbuf);
 	/**
 	 *
 	 *  \brief delete a child from a given node.
@@ -176,9 +180,14 @@ public:
 	 */
 	inline void setCount(size_t newSize) {
 		objCount = newSize;
-		//objects. resize(newSize);
+
+		objects. resize(newSize);
 		elements.resize(newSize);
 		children.resize(newSize + 1);
+
+		//elements.reserve(2*_degree-1);
+		//objects.reserve(2*_degree-1);
+		//children.reserve(2*_degree);
 	}
 
 	/**
@@ -189,11 +198,10 @@ public:
 		_isDirty = is;
 	}
 
-	static void setDataSize(size_t maxDataSize, size_t pageSize,
-			size_t overFlowSize) {
+	static void setDataSize(size_t maxDataSize, size_t pageSize, size_t degree) {
 		_maxDataSize = maxDataSize;
 		_pageSize = pageSize;
-		_overFlowSize = overFlowSize;
+		_degree = degree;
 	}
 
 public:
@@ -245,7 +253,7 @@ public:
 				elements[i]->display();
 				if (parent) {
 					//cout<<"( "<<childNo<<" "<<parent->objCount<<") ";
-					assert(childNo <= parent->objCount);
+					//assert(childNo <= parent->objCount);
 				}
 			}
 			cout<<endl;
@@ -262,28 +270,58 @@ public:
 private:
 	DBOBJVECTOR objects;
 	bool _isDirty;
+	FILE* _dataFile;
+
 	static size_t _pageSize;
 	static size_t _maxDataSize;
-	static size_t _overFlowSize;
+	//static size_t _overFlowSize;
+	static size_t _degree;
 	//LockType _lock;
 	static LockType _lock;
 	static CompareFunctor<KeyType> comp;
 private:
-//typedef pair<long, size_t> OverflowInfo;
-//map<size_t, OverflowInfo> _preOverflowMap;
+	char* getBlock(long fpos, bool isLoad) {
+		int n = (fpos - sizeof(SFileHeader) )/_pageSize;
+		n /= BLOCK_SIZE;
+		if (n >= (int)mbList.size() )
+			mbList.resize(sfh.nNode/BLOCK_SIZE+1);
+		if ( !mbList[n]) {
+			mbList[n] = new MemBlock(sizeof(SFileHeader) + n*_pageSize*BLOCK_SIZE, _pageSize);
+			if (isLoad)
+				mbList[n]-> load(_dataFile);
+		}
+		return mbList[n]->getP(fpos);
+	}
+	void readOverFlow(long overFlowAddress, char* to, size_t sz) {
+		//cout<<"read oveflow "<<overFlowAddress<<endl;
+		//cout<<sz<<endl;
+		char* pm = getBlock(overFlowAddress, true);
+		memcpy(to, pm, sz);
+	}
+
+	void writeOverFlow(long overFlowAddress, char* from, size_t sz) {
+		//cout<<"overFlowAddress"<<overFlowAddress<<endl;
+		char* pm = getBlock(overFlowAddress, false);
+		memcpy(pm, from, sz);
+	}
+	//typedef pair<long, size_t> OverflowInfo;
+	//map<size_t, OverflowInfo> _preOverflowMap;
 };
 
-template<typename KeyType, typename DataType, typename LockType, typename Alloc> size_t BTreeNode<
-		KeyType, DataType, LockType, Alloc>::activeNodeNum;
+template<typename KeyType, typename DataType, typename LockType, typename Alloc> size_t
+		BTreeNode< KeyType, DataType, LockType, Alloc>::activeNodeNum;
 
-template<typename KeyType, typename DataType, typename LockType, typename Alloc> size_t BTreeNode<
-		KeyType, DataType, LockType, Alloc>::_pageSize;
+template<typename KeyType, typename DataType, typename LockType, typename Alloc> size_t
+		BTreeNode< KeyType, DataType, LockType, Alloc>::_pageSize;
 
-template<typename KeyType, typename DataType, typename LockType, typename Alloc> size_t BTreeNode<
-		KeyType, DataType, LockType, Alloc>::_maxDataSize;
+template<typename KeyType, typename DataType, typename LockType, typename Alloc> size_t
+		BTreeNode< KeyType, DataType, LockType, Alloc>::_maxDataSize;
 
-template<typename KeyType, typename DataType, typename LockType, typename Alloc> size_t BTreeNode<
-		KeyType, DataType, LockType, Alloc>::_overFlowSize;
+//template<typename KeyType, typename DataType, typename LockType, typename Alloc> size_t
+//		BTreeNode< KeyType, DataType, LockType, Alloc>::_overFlowSize;
+
+template<typename KeyType, typename DataType, typename LockType, typename Alloc> size_t
+		BTreeNode< KeyType, DataType, LockType, Alloc>::_degree;
 
 template<typename KeyType, typename DataType, typename LockType, typename Alloc> LockType
 		BTreeNode< KeyType, DataType, LockType, Alloc>::_lock;
@@ -299,59 +337,88 @@ template<typename KeyType, typename DataType, typename LockType, typename Alloc>
 	childNo((size_t)-1), objCount(0), isLeaf(true), loaded(false), fpos(-1) {
 	_isDirty = 1;
 	//_overFlowAddress = 0;
+	//elements.resize(2*_degree-1);
+	//objects.resize(2*_degree-1);
+	//children.resize(2*_degree);
 
 	activeNodeNum++;
 	//cout<<"activeNodeNum: "<<activeNodeNum<<endl;
 
 }
 
-// Read a node page to initialize this node from the disk
 template<typename KeyType, typename DataType, typename LockType, typename Alloc> bool BTreeNode<
 		KeyType, DataType, LockType, Alloc>::read(FILE* f) {
 
+	if (loaded)
+		return true;
+	_dataFile = f;
+	cout<<"read from fpos="<<fpos<<endl;
+	return read(getBlock(fpos, true) );
+}
+
+// Read a node page to initialize this node from the disk
+template<typename KeyType, typename DataType, typename LockType, typename Alloc> bool BTreeNode<
+		KeyType, DataType, LockType, Alloc>::read(char* pbuf) {
+
+	cout<<"reading... "<<fpos<<endl;
 	long _overFlowAddress;
+	char *p =pbuf;
 	//static int _rcount;
 
-	if (!f) {
+	if (!p) {
 		return false;
 	}
+
+	//size_t _overFlowSize = _pageSize;
 
 	//cout<<"read from fpos "<<fpos<<endl;
 	// get to the right location
-	if (0 != fseek(f, fpos, SEEK_SET)) {
-		return false;
-	}
+	//	if (0 != fseek(f, fpos, SEEK_SET)) {
+	//		return false;
+	//	}
 	// read the leaf flag and the object count
 	byte leafFlag = 0;
-	if (1 != fread(&leafFlag, sizeof(byte), 1, f)) {
-		return false;
-	}
-	if (1 != fread(&objCount, sizeof(size_t), 1, f)) {
-		return false;
-	}
+	/*if (1 != fread(&leafFlag, sizeof(byte), 1, f)) {
+	 return false;
+	 }*/
+	memcpy(&leafFlag, p, sizeof(byte));
+	p += sizeof(byte);
+
+	/*if (1 != fread(&objCount, sizeof(size_t), 1, f)) {
+	 return false;
+	 }*/
+	memcpy(&objCount, p, sizeof(size_t));
+	p += sizeof(size_t);
+
 	isLeaf = (leafFlag == 1);
+
+	//cout<<"isLeaf: "<<isLeaf<<endl;
+	//cout<<"objCount: "<<objCount<<endl;
 
 	// read the addresses of the child pages
 	if (objCount> 0 && !isLeaf) {
 		long* childAddresses = new long[objCount + 1];
 		long* thisChild = childAddresses;
 		memset(childAddresses, 0xff, sizeof(long) * (objCount + 1));
-		if (objCount + 1
-				!= fread(childAddresses, sizeof(long), objCount + 1, f)) {
-			delete[] childAddresses;
-			return false;
-		}
+		/*	if (objCount + 1
+		 != fread(childAddresses, sizeof(long), objCount + 1, f)) {
+		 delete[] childAddresses;
+		 return false;
+		 }*/
+		memcpy(childAddresses, p, sizeof(long)*(objCount+1));
+		p += sizeof(long)*(objCount+1);
+
 		children.resize(objCount + 1);
 
 		//Only allocate childnode when the node is no a leaf node.
-		if ( !isLeaf ) {
+		if ( !isLeaf) {
 			for (size_t ctr = 0; ctr <= objCount; ctr++) {
 				if (children[ctr] == 0) {
 					children[ctr].reset(new BTreeNode);
 				}
 				children[ctr]->fpos = *thisChild++;
 				children[ctr]->childNo = ctr;
-				//cout<<children[ctr]->fpos<<endl;
+				//cout<<"child->fpos "<<children[ctr]->fpos<<endl;
 			}
 			delete[] childAddresses;
 		}
@@ -361,54 +428,79 @@ template<typename KeyType, typename DataType, typename LockType, typename Alloc>
 	objects.resize(objCount);
 	elements.resize(objCount);
 
-	long nextReadPos = ftell(f);
+	//long nextReadPos = ftell(f);
 
-	bool fposChanged = false;
+	//bool fposChanged = false;
 
 	for (size_t ctr = 0; ctr < objCount; ctr++) {
-		if (fposChanged) {
-			if (0 != fseek(f, nextReadPos, SEEK_SET)) {
-				return false;
-			}
-		}
+		//if (fposChanged) {
+		//if (0 != fseek(f, nextReadPos, SEEK_SET)) {
+		//	return false;
+		//}
+		//}
 		//cout<<" read from data"<< nextReadPos<<endl;
 		size_t recSize;
 
 		// read the size of the DbObj.
-		if (1 != fread(&recSize, sizeof(size_t), 1, f)) {
-			return false;
-		}
+		//if (1 != fread(&recSize, sizeof(size_t), 1, f)) {
+		//	return false;
+		//}
+		memcpy(&recSize, p, sizeof(size_t));
+		p += sizeof(size_t);
 		//cout<<recSize<< " vs "<< _maxDataSize<<endl;
 
-		byte* pBuf = new byte[recSize];
+		char* pBuf = new char[recSize];
 		if (recSize <= _maxDataSize) {
 			//read the data of the DbObj to pBuf.
-			if (1 != fread(pBuf, recSize, 1, f)) {
-				return false;
-			}
-			nextReadPos = ftell(f);
-			fposChanged = false;
+			//if (1 != fread(pBuf, recSize, 1, f)) {
+			//	return false;
+			//}
+			memcpy(pBuf, p, recSize);
+			p += recSize;
+			//nextReadPos = ftell(f);
+			//fposChanged = false;
 		} else {
-			if (1 != fread(pBuf, _maxDataSize, 1, f)) {
-				return false;
-			}
+			//assert(false);
 
-			if (1 != fread(&_overFlowAddress, sizeof(long), 1, f) ) {
-				return false;
-			}
-			nextReadPos = ftell(f);
+			//	if (1 != fread(pBuf, _maxDataSize, 1, f)) {
+			//		return false;
+			//	}
+			memcpy(pBuf, p, _maxDataSize);
+			p += _maxDataSize;
+
+			//if (1 != fread(&_overFlowAddress, sizeof(long), 1, f) ) {
+			//	return false;
+			//}
+
+			memcpy(&_overFlowAddress, p, sizeof(long));
+			p += sizeof(long);
+
+			//nextReadPos = ftell(f);
 
 			//cout<<" read from overflow"<< _overFlowAddress<<endl;
 			//cout<<" read left size "<<recSize - _maxDataSize<<endl;
 
 			// get to the overflow location
-			fposChanged = true;
-			if (0 != fseek(f, _overFlowAddress, SEEK_SET)) {
-				return false;
-			}
-			if (1 != fread(pBuf + _maxDataSize, recSize - _maxDataSize, 1, f)) {
-				return false;
-			}
+			// fposChanged = true;
+			/*	int n = (_overFlowAddress - sizeof(SFileHeader) )/_pageSize;		
+			 n /= BLOCK_SIZE;
+
+			 if ( !mbList[n]) {
+			 mbList[n] = new MemBlock(sizeof(SFileHeader) + n*_pageSize*BLOCK_SIZE, _pageSize);
+			 mbList[n]->load(f);
+			 }			
+			 memcpy(pBuf, mbList[n]->getP(fpos), recSize - _maxDataSize);*/
+
+			readOverFlow(_overFlowAddress, pBuf+_maxDataSize, recSize
+					- _maxDataSize);
+
+			//if (0 != fseek(f, _overFlowAddress, SEEK_SET)) {
+			//	return false;
+			//}
+			//if (1 != fread(pBuf + _maxDataSize, recSize - _maxDataSize, 1, f)) {
+			//	return false;
+			//}
+
 			//int nopage = (recSize -_maxDataSize) / _overFlowSize;
 			//if (recSize - _maxDataSize > nopage * _overFlowSize) {
 			//nopage++;
@@ -418,15 +510,14 @@ template<typename KeyType, typename DataType, typename LockType, typename Alloc>
 		}
 		assert(recSize != 0);
 		//for dbg		
-		objects[ctr]. reset(new DbObj(pBuf, recSize));
+		objects[ctr].reset(new DbObj(pBuf, recSize));
 
 		//sync
 		DataType dat;
 		read_image(dat, objects[ctr]);
 		elements[ctr].reset(new PtrObj<DataType, LockType, Alloc>(dat));
 
-		//cout<<"reading ";
-		//cout<<dat.size()<<" "<<dat<<endl;
+		cout<<"read key="<<dat.key<<endl;
 
 		delete[] pBuf;
 	}
@@ -438,49 +529,91 @@ template<typename KeyType, typename DataType, typename LockType, typename Alloc>
 
 template<typename KeyType, typename DataType, typename LockType, typename Alloc> bool BTreeNode<
 		KeyType, DataType, LockType, Alloc>::write(FILE* f) {
-
-	//static int _wcount;
-
-	typedef pair<long, size_t> OverflowInfo;
-	map<size_t, OverflowInfo> _overflowMap;
-
-	long _overFlowAddress = 0;
-
-	// If we're not loaded, we haven't been changed it ,
-	// so we can say that the flush was successful.
 	if (!_isDirty) {
 		return true;
 	}
 
-	if (!loaded) {
+	/*int n = (fpos - sizeof(SFileHeader) )/(_pageSize*BLOCK_SIZE);
+
+	 //cout<<"writing.."<<endl;
+	 //cout<<n;
+	 //cout<<fpos<<endl;
+	 if ( !mbList[n]) {
+	 mbList[n] = new MemBlock(sizeof(SFileHeader) + n*_pageSize*BLOCK_SIZE, _pageSize);
+	 //mbList[n]-> load(f);
+	 }*/
+	_dataFile = f;
+	return write(getBlock(fpos, false) );
+
+}
+
+template<typename KeyType, typename DataType, typename LockType, typename Alloc> bool BTreeNode<
+		KeyType, DataType, LockType, Alloc>::write(char* pbuf) {
+	cout<<"writing to "<<fpos<<endl;
+	display();
+	if (!_isDirty) {
+		cout<<"haha not diry"<<endl;
+		display();
 		return true;
 	}
 
-	if (!f) {
-		return false;
+	if (!loaded) {
+		cout<<"haha not loaded"<<endl;
+		display();
+		return true;
 	}
 
-	if (0 != fseek(f, 0, SEEK_END)) {
+	if (!pbuf) {
+		cout<<"haha nowhere to write"<<endl;
+		display();
 		return false;
-	}
-	_overFlowAddress = ftell(f);
+	}	
+	
+	char* p = pbuf;
+
+	//static int _wcount;
+
+	//typedef pair<long, size_t> OverflowInfo;
+	//map<size_t, OverflowInfo> _overflowMap;
+
+	//set _overFlowSize to _pageSize
+
+	size_t _overFlowSize = _pageSize;
+	long _overFlowAddress = sizeof(SFileHeader) + sfh.pageSize *sfh.nNode;
+	//sfh.nNode++;
+
+	//long _overFlowAddress = 0;
+
+	// If we're not loaded, we haven't been changed it ,
+	// so we can say that the flush was successful.
+
+
+	//if (0 != fseek(f, 0, SEEK_END)) {
+	//	return false;
+	//}
+	//_overFlowAddress = ftell(f);
 
 	//cout<<"write "<<_wcount++ <<endl;;
 
 	// get to the right location
-	if (0 != fseek(f, fpos, SEEK_SET)) {
-		return false;
-	}
+	//if (0 != fseek(f, fpos, SEEK_SET)) {
+	//	return false;
+	//}
 	//cout<<"write data "<<fpos<<endl;
 
 	// write the leaf flag and the object count
 	byte leafFlag = isLeaf ? 1 : 0;
-	if (1 != fwrite(&leafFlag, sizeof(byte), 1, f)) {
-		return false;
-	}
-	if (1 != fwrite(&objCount, sizeof(size_t), 1, f)) {
-		return false;
-	}
+	//if (1 != fwrite(&leafFlag, sizeof(byte), 1, f)) {
+	//	return false;
+	//}
+	memcpy(p, &leafFlag, sizeof(byte));
+	p += sizeof(byte);
+	//if (1 != fwrite(&objCount, sizeof(size_t), 1, f)) {
+	//	return false;
+	//}
+
+	memcpy(p, &objCount, sizeof(size_t));
+	p += sizeof(size_t);
 
 	//cout<<"write count= "<<objCount<<endl;
 
@@ -490,100 +623,93 @@ template<typename KeyType, typename DataType, typename LockType, typename Alloc>
 		long* thisChild = childAddresses;
 		memset(childAddresses, 0xff, sizeof(long) * (objCount + 1));
 
-		BIT tnvit = children.begin();
-		while (tnvit != children.end()) {
-			if ((BTreeNodePtr)(*tnvit) != 0) {
-				*thisChild = (*tnvit)->fpos;
-			}
-			++thisChild;
-			++tnvit;
+		/*BIT tnvit = children.begin();
+		 while (tnvit != children.end()) {
+		 if ((BTreeNodePtr)(*tnvit) != 0) {
+		 *thisChild = (*tnvit)->fpos;
+		 }
+		 ++thisChild;
+		 ++tnvit;
+		 }*/
+		for (size_t ctr=0; ctr<objCount+1; ctr++, thisChild++) {
+			*thisChild = children[ctr]->fpos;
 		}
-		size_t longsWritten = fwrite(childAddresses, sizeof(long),
-				objCount + 1, f);
+
+		//size_t longsWritten = fwrite(childAddresses, sizeof(long),
+		//		objCount + 1, f);
+		memcpy(p, childAddresses, sizeof(long)*(objCount+1));
+		p += sizeof(long)*(objCount+1);
 		delete[] childAddresses;
-		if (objCount + 1 != longsWritten) {
-			return false;
-		}
+		//
+		//if (objCount + 1 != longsWritten) {
+		//	return false;
+		//}
 	}
 	//sync
 	objects.resize(elements.size() );
 	for (size_t ctr=0; ctr<objCount; ctr++) {
 		objects[ctr].reset(new DbObj);
 		write_image(*elements[ctr]->pdat, objects[ctr]);
-		//cout<<"writing "<< *elements[ctr]->pdat <<endl;
+		cout<<"writing "<< (*elements[ctr]->pdat).key <<endl;
 	}
 
 	// write the contents
-	DBOBJVECTOR::iterator dovit = objects.begin();
+	//DBOBJVECTOR::iterator dovit = objects.begin();
 	for (size_t ctr=0; ctr<objCount; ctr++) {
 
 		DbObjPtr pObj = objects[ctr];
 		size_t sz = pObj->getSize();
 		//write the size of the data of DbObj.	
 
-		if ( 1 != fwrite(&sz, sizeof(size_t), 1, f)) {
-			return false;
-		}
+		//if ( 1 != fwrite(&sz, sizeof(size_t), 1, f)) {
+		//	return false;
+		//}
+		memcpy(p, &sz, sizeof(size_t));
+		p += sizeof(size_t);
 
 		//write the data of DbObj.	
-		byte *pd;
-		pd = (byte* )pObj->getData();
+		char *pd;
+		pd = (char* )pObj->getData();
 		if (sz <= _maxDataSize) {
-			if ( 1 != fwrite(pd, sz, 1, f) ) {
-				return false;
-			}
+			memcpy(p, pd, sz);
+			p += sz;
+
+			//if ( 1 != fwrite(pd, sz, 1, f) ) {
+			//	return false;
+			//}
 		} else {
+			//	assert(false);
 			int nopage = (sz -_maxDataSize) / _overFlowSize;
 			if (sz - _maxDataSize > nopage * _overFlowSize) {
 				nopage++;
 			}
-			if (1 != fwrite(pd, _maxDataSize, 1, f)) {
-				return false;
-			}
-			if (1 != fwrite(&_overFlowAddress, sizeof(long), 1, f)) {
-				return false;
-			}
-			_overflowMap[ctr] = make_pair(_overFlowAddress, nopage);
+			//if (1 != fwrite(pd, _maxDataSize, 1, f)) {
+			//	return false;
+			//}
+			memcpy(p, pd, _maxDataSize);
+			p += _maxDataSize;
+
+			//if (1 != fwrite(&_overFlowAddress, sizeof(long), 1, f)) {
+			//	return false;
+			//}
+			memcpy(p, &_overFlowAddress, sizeof(long));
+			p += sizeof(long);
+
+			writeOverFlow(_overFlowAddress, pd+_maxDataSize, nopage
+					*_overFlowSize);
+
+			//_overflowMap[ctr] = make_pair(_overFlowAddress, nopage);
 
 			//overFlowAddress is always at the end of file.
 			_overFlowAddress += _overFlowSize * nopage;
+
+			//update sfh info
+			sfh.nNode += nopage;
 		}
 	}
 
-	//write overflowpage
-	for (map<size_t, OverflowInfo>::iterator it = _overflowMap.begin(); it
-			!= _overflowMap.end(); it++) {
-
-		byte *pd;
-		size_t sz;
-		pd = (byte* )objects[it->first]->getData();
-		sz = objects[it->first]->getSize();
-
-		//cout<<"size "<<sz<<endl;	
-		//cout<<"overflow size "<< sz- _maxDataSize<<endl;
-
-		byte *pbuf;
-		pbuf = new byte[it->second.second * _overFlowSize];
-		memcpy(pbuf, pd + _maxDataSize, sz- _maxDataSize);
-
-		long overFlowAddress = it->second.first;
-
-		/*if ( (_preOverflowMap.find(it->first) != _preOverflowMap.end())
-		 && _preOverflowMap[it->first].second >= it->second.second) {
-		 cout<<"not change overFlwoAddress";
-		 overFlowAddress = _preOverflowMap[it->first].first;
-		 }*/
-
-		if (0 != fseek(f, overFlowAddress, SEEK_SET)) {
-			return false;
-		}
-		if (1 != fwrite(pbuf, it->second.second*_overFlowSize, 1, f)) {
-			return false;
-		}
-		delete [] pbuf;
-	}
 	_isDirty = false;
-	fflush(f);
+	//fflush(f);
 	return true;
 }
 
@@ -591,7 +717,10 @@ template<typename KeyType, typename DataType, typename LockType, typename Alloc>
 // have the filepos already in place.
 template<typename KeyType, typename DataType, typename LockType, typename Alloc> intrusive_ptr<BTreeNode<KeyType, DataType,LockType, Alloc> > BTreeNode<
 		KeyType, DataType, LockType, Alloc>::loadChild(size_t childNum, FILE* f) {
-	
+
+	//if(childNum > objCount)
+	//	cout<<childNum<<" vs "<<objCount<<endl;
+	assert(childNum <= objCount);
 	BTreeNodePtr child;
 	child = children[childNum];
 	if ((BTreeNodePtr)child == 0) {
@@ -615,24 +744,30 @@ template<typename KeyType, typename DataType, typename LockType, typename Alloc>
 	if (loaded) {
 		// Clear out all of the children
 		BIT tnvit = children.begin();
-		while (!isLeaf && tnvit != children.end()) {
+		size_t ctr = 0;
+		while (!isLeaf && tnvit != children.end() && ctr<objCount+1) {
 			(*tnvit)->unload();
 			//BIT temp = tnvit;
 			tnvit->reset(0);
-			++tnvit;			
+			++tnvit;
+			++ctr;
 		}
 
 		DBOBJVECTOR::iterator dovit = objects.begin();
 		DIT dovit1 = elements.begin();
 
-		while (dovit != objects.end()) {
+		ctr = 0;
+		while (dovit != objects.end() && ctr<objCount) {
 			dovit->reset(0);
 			++dovit;
+			++ctr;
 		}
 
-		while (dovit1 != elements.end()) {
+		ctr = 0;
+		while (dovit1 != elements.end() && ctr<objCount) {
 			dovit1->reset(0);
 			++dovit1;
+			++ctr;
 		}
 
 		children.resize(0);
@@ -677,8 +812,23 @@ template<typename KeyType, typename DataType, typename LockType, typename Alloc>
 
 	OBJECTPOS ret((size_t)-1, ECP_NONE);
 	DIT dovit = elements.begin();
+
 	size_t ctr = 0;
-	while (dovit < elements.end()) {
+	 
+	 for (ctr=0; ctr<objCount; ctr++) {
+	 int compVal = comp(key, elements[ctr]->pdat->get_key() );
+	 if (compVal == 0) {
+	 return OBJECTPOS(ctr, ECP_INTHIS);
+	 } else if (compVal < 0) {
+	 if (isLeaf) {
+	 return ret;
+	 } else {
+	 return OBJECTPOS(ctr, ECP_INLEFT);
+	 }
+	 }		
+	 }
+/*
+	while (dovit < elements.end() && ctr<objCount) {
 		//int compVal = CompareFun(key, (*dovit)->dat.get_key() );
 		int compVal = comp(key, (*dovit)->pdat->get_key() );
 		if (compVal == 0) {
@@ -692,6 +842,8 @@ template<typename KeyType, typename DataType, typename LockType, typename Alloc>
 		}
 		++dovit, ++ctr;
 	}
+	*/
+	 
 	if (!isLeaf) {
 		return OBJECTPOS(ctr - 1, ECP_INRIGHT);
 	}
@@ -705,20 +857,32 @@ template<typename KeyType, typename DataType, typename LockType, typename Alloc>
 	OBJECTPOS ret((size_t)-1, ECP_NONE);
 	DIT dovit = elements.begin();
 	size_t ctr = 0;
-	while (dovit < elements.end()) {
-		//int compVal = CompareFun(key, (*dovit)->dat.get_key() );
-		int compVal = comp(key, (*dovit)->pdat->get_key() );
+	for (ctr=0; ctr<objCount; ctr++) {
+		int compVal = comp(key, elements[ctr]->pdat->get_key() );
 		if (compVal == 0) {
 			return OBJECTPOS(ctr, ECP_INTHIS);
 		} else if (compVal < 0) {
 			if (isLeaf) {
-				return OBJECTPOS(ctr, ECP_NEARLEFT);;
+				return ret;
 			} else {
 				return OBJECTPOS(ctr, ECP_INLEFT);
 			}
 		}
-		++dovit, ++ctr;
 	}
+	/*while (dovit < elements.end() && ctr<objCount) {
+	 //int compVal = CompareFun(key, (*dovit)->dat.get_key() );
+	 int compVal = comp(key, (*dovit)->pdat->get_key() );
+	 if (compVal == 0) {
+	 return OBJECTPOS(ctr, ECP_INTHIS);
+	 } else if (compVal < 0) {
+	 if (isLeaf) {
+	 return OBJECTPOS(ctr, ECP_NEARLEFT);;
+	 } else {
+	 return OBJECTPOS(ctr, ECP_INLEFT);
+	 }
+	 }
+	 ++dovit, ++ctr;
+	 }*/
 	if (!isLeaf) {
 		return OBJECTPOS(ctr - 1, ECP_INRIGHT);
 	} else if (ctr>0) {
