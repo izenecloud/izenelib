@@ -182,6 +182,21 @@ friend ostream& operator << ( ostream& os, const SelfType& node)
     return count_;
   }
   
+  uint32_t findInCache(uint64_t diskAddr)
+  {
+    for (uint32_t i=0; i<CACHE_SIZE; i++)
+    {
+      if (nodes[i].pNode_ == NULL)
+        continue;
+
+      if(nodes[i].pNode_->getDiskAddr()== diskAddr)
+        return i;
+    }
+
+    return -1;
+    
+  }
+
   nodePtr getNodeByMemAddr(uint32_t& memAddr, uint64_t diskAddr)
   {    
     if (diskAddr%2==1)
@@ -199,6 +214,13 @@ friend ostream& operator << ( ostream& os, const SelfType& node)
         return nodePtr(nodes[memAddr], memAddr);
       }
       
+    }
+    
+    uint32_t i = findInCache(diskAddr);
+    if (i != (uint32_t)-1)
+    {
+      memAddr = i;
+      return nodePtr(nodes[i], memAddr);
     }
 
     if (count_<CACHE_SIZE)
