@@ -65,7 +65,7 @@ class MemStorage
     static inline Size getHashValue(const String& key)
     {
       return izenelib::util::HashFunction<String>::convert_key(key)
-        % izenelib::util::HashFunction<String>::PRIME;;
+        % izenelib::util::HashFunction<String>::PRIME;
     }
     
   };
