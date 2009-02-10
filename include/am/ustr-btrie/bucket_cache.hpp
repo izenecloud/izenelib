@@ -6,22 +6,25 @@
 #include <time.h>
 #include "cache_strategy.h"
 
+extern int debug_count;
+
 NS_IZENELIB_AM_BEGIN
 using namespace std;
 
 
 template<
+  UString::EncodingType ENCODE_TYPE,
   uint64_t CACHE_LENGTH = 100000000,//bytes
   uint32_t BUCKET_SIZE = 8192,//byte
   uint8_t SPLIT_RATIO = 75,
   class CacheType = CachePolicyLARU,
-  char* ALPHABET = a2z,
-  uint8_t ALPHABET_SIZE = a2z_size
+  unsigned short* ALPHABET = a2z,
+  uint32_t ALPHABET_SIZE = a2z_size
   >
 class BucketCache
 {
 public:
-  typedef Bucket<BUCKET_SIZE, SPLIT_RATIO,ALPHABET, ALPHABET_SIZE> NodeType;
+  typedef Bucket<ENCODE_TYPE, BUCKET_SIZE, SPLIT_RATIO,ALPHABET, ALPHABET_SIZE> NodeType;
 
 protected:
   struct _cache_node_
@@ -48,7 +51,7 @@ protected:
   
   
 public:
-  typedef BucketCache <CACHE_LENGTH,BUCKET_SIZE, SPLIT_RATIO, CacheType, ALPHABET, ALPHABET_SIZE> SelfType;
+  typedef BucketCache <ENCODE_TYPE, CACHE_LENGTH,BUCKET_SIZE, SPLIT_RATIO, CacheType, ALPHABET, ALPHABET_SIZE> SelfType;
   
   class nodePtr
   {
@@ -181,7 +184,7 @@ friend ostream& operator << ( ostream& os, const SelfType& node)
   {
     return count_;
   }
-  
+
   uint32_t findInCache(uint64_t diskAddr)
   {
     for (uint32_t i=0; i<CACHE_SIZE; i++)
@@ -196,7 +199,7 @@ friend ostream& operator << ( ostream& os, const SelfType& node)
     return -1;
     
   }
-
+  
   nodePtr getNodeByMemAddr(uint32_t& memAddr, uint64_t diskAddr)
   {    
     if (diskAddr%2==1)
@@ -213,19 +216,18 @@ friend ostream& operator << ( ostream& os, const SelfType& node)
         //t->load(diskAddr);
         return nodePtr(nodes[memAddr], memAddr);
       }
-      
     }
-    
+
     uint32_t i = findInCache(diskAddr);
     if (i != (uint32_t)-1)
     {
       memAddr = i;
       return nodePtr(nodes[i], memAddr);
     }
-
+    
     if (count_<CACHE_SIZE)
     {
-      //cout<<"load bucket from disk!\n"<<endl;
+      //cout<<memAddr<<"  "<<diskAddr<<" "<<debug_count<<" load bucket from disk!\n";
       
       NodeType* t = new NodeType(f_);
       t->load(diskAddr);
@@ -312,7 +314,7 @@ friend ostream& operator << ( ostream& os, const SelfType& node)
 
   uint64_t kickOutNodes(uint32_t memAddr)
   {
-    //cout<<"Kick out bucket: "<<memAddr<<" "<<count_<<endl;
+    cout<<"Kick out bucket: "<<memAddr<<" "<<count_;
     
     if (memAddr==(uint32_t)-1 || nodes[memAddr].pNode_ == NULL)
       return (uint64_t)-1;
