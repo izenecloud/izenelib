@@ -1,15 +1,19 @@
 #ifndef AUTOMATION_HPP
 #define AUTOMATION_HPP
 
-#include <string>
 #include <vector>
+#include <ustring/UString.h>
 
 using namespace std;
+using namespace sf1lib;
 
-
+/**
+ *@class Automation
+ * It generates a automation for wildcard '*' and '?'.
+ **/
 template<
-  char MULTI_WORDS_WILDCARD = '*',
-  char SINGLE_WORD_WILDCARD = '?'
+  UCS2Char MULTI_WORDS_WILDCARD = '*',
+  UCS2Char SINGLE_WORD_WILDCARD = '?'
   >
 class Automation
 {
@@ -19,12 +23,12 @@ class Automation
   class _edge_
   {
   public:
-    _edge_(char c, _state_* p)
+    _edge_(UCS2Char c, _state_* p)
       :p_(p),ch_(c)
     {
     }
 
-    _state_* leadTo(char c)
+    _state_* leadTo(UCS2Char c)
     {
       if (c == ch_)
         return p_;
@@ -47,7 +51,7 @@ class Automation
     
   protected:
     _state_* p_;
-    char ch_;
+    UCS2Char ch_;
   }
     ;
 
@@ -56,7 +60,7 @@ class Automation
     vector<_edge_> edges_;
 
   public:
-    _state_* nextState(char ch)
+    _state_* nextState(UCS2Char ch)
     {
       for (typename vector<_edge_>::iterator i=edges_.begin(); i!=edges_.end(); i++)
       {
@@ -68,7 +72,7 @@ class Automation
       return NULL;
     }
 
-    void insertEdge(char ch, _state_* p)
+    void insertEdge(UCS2Char ch, _state_* p)
     {
       edges_.push_back(_edge_(ch, p));
     }
@@ -98,12 +102,16 @@ class Automation
   
   
 public:
-  Automation(const string& regex)
+  /**
+   *According the regular express, it builds an automation
+   **/
+  Automation(const UString& regex)
   {
     _state_* back = NULL;
     _edge_ back_edge(0,0);
     _state_* pThisState = new _state_();
     pV_.push_back(pThisState);
+    has_wildcard_ = false;
     
     pStart_ = pThisState;
     pEnd_ = NULL;
@@ -118,6 +126,8 @@ public:
       
       if (regex[i]==MULTI_WORDS_WILDCARD)
       {
+        has_wildcard_ = true;
+        
         if (i == regex.length()-1)
         {
           pThisState->insertEdge(MULTI_WORDS_WILDCARD, pThisState);
@@ -140,6 +150,7 @@ public:
       pThisState->insertEdge(regex[i], pNextState);
       if (back != NULL && regex[i]!=SINGLE_WORD_WILDCARD )
       {
+        has_wildcard_ = true;
         pThisState->insertEdge(back_edge);
         pThisState->insertEdge(MULTI_WORDS_WILDCARD, back);
       }
@@ -173,7 +184,10 @@ friend ostream& operator << ( ostream& os, const Automation<MULTI_WORDS_WILDCARD
     return os;
   }
   
-  bool match(const string& str)
+  /**
+   *If the 'str' can go through the automation, it mathes, returns true.
+   **/
+  bool match(const UString& str)
   {
     _state_* next = pStart_;
     
@@ -194,13 +208,20 @@ friend ostream& operator << ( ostream& os, const Automation<MULTI_WORDS_WILDCARD
     return false;
   }
   
+  /**
+   *Does the automation have wildcard.
+   **/
+  bool hasWildcard()const
+  {
+    return has_wildcard_;
+  }
   
 
 protected:
   _state_* pStart_;
   _state_* pEnd_;
   vector<_state_*> pV_;
-  
+  bool has_wildcard_;
   
 }
   ;

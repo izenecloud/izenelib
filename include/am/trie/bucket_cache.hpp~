@@ -263,7 +263,7 @@ friend ostream& operator << ( ostream& os, const SelfType& node)
     if (diskAddr%2==1)
       return nodePtr();
     
-    if (memAddr>=count_ && memAddr!=(uint32_t)-1&&count_!=0)
+    if (memAddr>=count_ && memAddr!=(uint32_t)-1)
       return nodePtr();
 
     if (memAddr!=(uint32_t)-1)

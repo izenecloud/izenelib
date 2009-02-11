@@ -1,8 +1,8 @@
-/**********************************************************
+/**
  * @brief	Source file of UString class 
  * @author	Do Hyun Yun
- * @date	2008-06-26 ~
- **********************************************************/
+ * @date	2008-06-26
+ */
 
 #include <fstream>
 
@@ -148,12 +148,6 @@ UString::UString(const string&  initString, EncodingType encodingType)
     assign(initString, encodingType);
 }
 
-// Disabled
-// UString::UString(const string&  initString, const char* encodingTypeString): bufferSize_(0), length_(0), isLengthChanged_(true)
-// {
-//     assign(initString, convertEncodingTypeFromStringToEnum(encodingTypeString) ); 
-// }
- 
 UString::UString(const char*  initString, EncodingType encodingType)
     : bufferSize_(0), length_(0), data_(0), isLengthChanged_(false) 
 
@@ -161,13 +155,6 @@ UString::UString(const char*  initString, EncodingType encodingType)
     string init(initString);
     assign(init, encodingType);
 }
-
-// Disabled
-//UString::UString(const char*  initString, const char* encodingTypeString): bufferSize_(0), length_(0), isLengthChanged_(true)
-//{
-//    string init(initString);
-//    assign(init, convertEncodingTypeFromStringToEnum(encodingTypeString) );
-//}  
 
 UString::~UString()
 {
@@ -233,11 +220,6 @@ UString& UString::assign(const string& inputString, EncodingType encodingType)
     return *this;
 } // end - assign()
 
-// Disabled
-//UString& UString::assign(const std::string& inputString, const char* encodingTypeString)
-//{
-//    return assign( inputString, convertEncodingTypeFromStringToEnum(encodingTypeString) );
-//}
 
 UString& UString::assign(const char* inputString, EncodingType encodingType)
 {
@@ -245,13 +227,6 @@ UString& UString::assign(const char* inputString, EncodingType encodingType)
     return assign( init, encodingType );
 }
 
-// Disabled
-//UString& UString::assign(const char* inputString, const char* encodingTypeString)
-//{
-//    string init(inputString);
-//    return assign( init, convertEncodingTypeFromStringToEnum(encodingTypeString) );
-//}
- 
 
 
 // ---------------------------------------------[ setUString() ]
@@ -335,12 +310,6 @@ void UString::setUString(const string& inputString, EncodingType encodingType)
 
 // ---------------------------------------------[ convertString() ]
 
-// Disabled
-//void UString::convertString(string& outputString, const char* encodingTypeString) const
-//{
-//    convertString( outputString, convertEncodingTypeFromStringToEnum(encodingTypeString) );
-//}
-
 void UString::convertString(string& outputString, EncodingType encodingType) const
 {
     outputString.clear();
@@ -354,7 +323,15 @@ void UString::convertString(string& outputString, EncodingType encodingType) con
     int inputStringIndex  = 0;
     int inputStringLength = length();
     int outputStringIndex = 0;
-    int outputBufferSize  = sizeof(UCS2Char) * bufferSize_ + 1;
+	
+    // Log 2009.02.10
+    // Previous code
+    // -----------------------------------------------------------
+    // int outputBufferSize  = sizeof(UCS2Char) * bufferSize_ + 1;
+    //
+    // New code
+    // -----------------------------------------------------------
+    int outputBufferSize  = 3 * bufferSize_ + 1; // UTF-8 consumes a maximum of 3 bytes.
 
     //char* outputStringBuffer = new char[outputBufferSize + 1];
     char* outputStringBuffer = static_cast<char*>( malloc( (outputBufferSize+1) * sizeof(char) ) );
@@ -408,9 +385,9 @@ void UString::convertString(string& outputString, EncodingType encodingType) con
         inputStringLength--;
 
     } // end - while()
-
-    // If there is no characters which needs to be convert, insert NULL into the output.
-    if (outputStringBuffer)
+    
+    // If there's a space to insert NULL charactor, insert NULL.
+    if (outputBufferSize > 0)
         outputStringBuffer[outputStringIndex] = 0;
     
     outputString = (const char*)outputStringBuffer;
@@ -792,11 +769,6 @@ unsigned int UString::find(const string&   patternString, unsigned int startOffs
     return find(patternUString, startOffset);
 } // end - find()
 
-// Disabled
-//unsigned int UString::find(const string&   patternString, unsigned int startOffset, const char* encodingTypeString) const
-//{
-//    return find(patternString, startOffset, convertEncodingTypeFromStringToEnum(encodingTypeString)); 
-//} // end - find()
 
 unsigned int UString::find(UCS2Char c, unsigned int startPosition) const
 {
@@ -819,14 +791,6 @@ void UString::format(EncodingType encodingType, const char* formatString, ...)
 
 } // end - format()
 
-// Disabled
-//void UString::format(const char* encodingTypeString, const char* formatString, ...)
-//{
-//    va_list argumentList; // argumentList contains ...
-//    va_start(argumentList, formatString);
-//    formatProcess(convertEncodingTypeFromStringToEnum(encodingTypeString), 1024, formatString, argumentList);
-//} // end - format()
-
 
 void UString::format(EncodingType encodingType, int maxBufferSize, const char* formatString, ...)
 {
@@ -835,13 +799,6 @@ void UString::format(EncodingType encodingType, int maxBufferSize, const char* f
     formatProcess(encodingType, maxBufferSize, formatString, argumentList);
 } // end - format()
 
-// Disabled
-//void UString::format(const char* encodingTypeString, int maxBufferSize, const char* formatString, ...)
-//{
-//    va_list argumentList; // argumentList contains ...
-//    va_start(argumentList, formatString);
-//    formatProcess(convertEncodingTypeFromStringToEnum(encodingTypeString), maxBufferSize, formatString, argumentList);
-//} // end - format()
 
 
 // private function
@@ -877,11 +834,6 @@ void UString::displayStringValue(EncodingType encodingType, ostream& outputStrea
     outputStream << output;
 } // end - displayStringValue()
 
-// Disabled
-//void UString::displayStringValue(const char* encodingTypeString, ostream& outputStream) const
-//{
-//    displayStringValue(convertEncodingTypeFromStringToEnum(encodingTypeString), outputStream);
-//} // end - displayStringValue()
 
 void UString::displayStringInfo(EncodingType encodingType, ostream& outputStream) const
 {
@@ -891,12 +843,6 @@ void UString::displayStringInfo(EncodingType encodingType, ostream& outputStream
     outputStream << "NumOfChar_ : "<< length() << endl;
     outputStream << "bufferSize_ : " << bufferSize_ <<endl;
 } // end - displayStringInfo()
-
-// Disabled
-// void UString::displayStringInfo(const char* encodingTypeString, ostream& outputStream) const
-//{
-//    displayStringInfo(convertEncodingTypeFromStringToEnum(encodingTypeString), outputStream);
-//} // end - displayStringValue()
 
 
 

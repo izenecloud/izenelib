@@ -32,6 +32,7 @@ public:
 
 NS_IZENELIB_AM_BEGIN
 /**
+ *@class CCCR_StrHashTable Cache-Conscious Collision Resolution String Hash Table
  *@brief CCCR_StrHashTable stands for Cache-Conscious Collision Resolution String Hash Table.
  *
  * This is based on work of Nikolas Askitis and Justin Zobel, 'Cache-Conscious Collision Resolution
@@ -74,12 +75,19 @@ public:
     }
   }
 
+  /**
+   *Insert string and value pair for ustring
+   **/
   bool insert(const UString& str, uint64_t value)
   {
     string tmp(str.c_str(), str.size());
     return insert(tmp, value);
   }
+
   
+  /**
+   *Insert string and value pair
+   **/
   bool insert(const string& str, uint64_t value)
   {
     uint32_t idx = HASH_FUNCTION::getValue(str)%ENTRY_SIZE;
@@ -148,13 +156,19 @@ public:
     
   }
 
-  
+  /**
+   *Find string in table for ustring.
+   **/
   uint64_t find(const UString& str)
   {
     string tmp(str.c_str(), str.size());
     return find(tmp);
   }
 
+  
+  /**
+   *Find string in table.
+   **/
   uint64_t find(const string & str)
   {
     uint32_t idx = HASH_FUNCTION::getValue(str)%ENTRY_SIZE;
@@ -198,13 +212,19 @@ public:
     return (uint64_t) -1;
   }
 
-  
+
+  /**
+   *Delete a string for ustring.
+   **/
   bool del(const UString& str)
   {
     string tmp(str.c_str(), str.size());
     return del(tmp);
   }
 
+  /**
+   *Delete a string.
+   **/
   bool del(const string& str)
   {
     uint32_t idx = HASH_FUNCTION::getValue(str)%ENTRY_SIZE;
@@ -248,13 +268,19 @@ public:
 
     return false;
   }
-  
+
+  /**
+   *Update the value of a string. This is for ustring.
+   **/
   bool update(const UString& str, uint64_t value)
   {
     string tmp(str.c_str(), str.size());
     return update(tmp, value);
   }
 
+  /**
+   *Update the value of string.
+   **/
   bool update(const string& str, uint64_t value)
   {
     uint32_t idx = HASH_FUNCTION::getValue(str)%ENTRY_SIZE;
@@ -335,6 +361,9 @@ friend ostream& operator << ( ostream& os, const SelfType& node)
     return os;
   }
 
+  /**
+   *Update memory data to file data.
+   **/
   bool unload(FILE* f)
   {
     fseek(f, 0, SEEK_SET);
@@ -358,6 +387,9 @@ friend ostream& operator << ( ostream& os, const SelfType& node)
     return false;
   }
 
+  /**
+   *Load file data into memory.
+   **/
   bool load(FILE* f)
   {
     fseek(f, 0, SEEK_SET);
@@ -393,7 +425,7 @@ friend ostream& operator << ( ostream& os, const SelfType& node)
   
   
 protected:
-  char* entry_[ENTRY_SIZE];
+  char* entry_[ENTRY_SIZE];//!< Hash table entry.
 }
   ;
 

@@ -437,7 +437,8 @@ AlphabetNodePtr n_1 ;
    **/
   void findRegExp(uint32_t idx, uint64_t addr, const string& regexp, const string& sofar,  vector<item_pair>& ret)
   {
-   if (pNodeCache_==NULL)
+     
+    if (pNodeCache_==NULL)
     {
       return ;
     }
@@ -452,7 +453,7 @@ AlphabetNodePtr n_1 ;
     
     AlphabetNodePtr n = pNodeCache_->getNodeByMemAddr(idx, addr);//root node address is 1 in disk and 0 in cache
     pNodeCache_->lockNode(n.getIndex());
-          
+    
     if (n.isNull())
     {
       //throw exception
@@ -462,7 +463,6 @@ AlphabetNodePtr n_1 ;
       
     string sub = regexp.substr( 1);
     uint64_t last_addr = -1;
-    uint32_t last_mem = -1;
     
     switch (regexp[0])
     {
@@ -474,11 +474,7 @@ AlphabetNodePtr n_1 ;
         uint64_t diskAddr = n->getDiskAddr(i);
         
         if (diskAddr == last_addr)
-        {
-          n->setMemAddr(i, last_mem);
           continue;
-        }
-        
         last_addr = diskAddr;
         
         uint32_t memAddr = n->getMemAddr(i);
@@ -490,18 +486,11 @@ AlphabetNodePtr n_1 ;
           //load bucket
           BucketPtr b = pBucketCache_->getNodeByMemAddr(memAddr, diskAddr);
           b->findRegExp(regexp, sofar, ret);
-          //regexp.displayStringValue(ENCODE_TYPE, cout);
-
-          //cout<<endl;
-          
           n->setMemAddr(i, memAddr);
-          last_mem = memAddr;
-
           continue;
         }
           
         findRegExp(memAddr, diskAddr, regexp, sf, ret);
-
       }
         
       findRegExp(idx, addr, sub, sofar, ret);
@@ -519,11 +508,7 @@ AlphabetNodePtr n_1 ;
         uint32_t memAddr = n->getMemAddr(i);
         
         if (diskAddr == last_addr)
-        {
-          n->setMemAddr(i, last_mem);
           continue;
-        }
-        
         last_addr = diskAddr;
         
         if (diskAddr == (uint64_t)-1)
@@ -534,17 +519,16 @@ AlphabetNodePtr n_1 ;
           //load bucket
           BucketPtr b = pBucketCache_->getNodeByMemAddr(memAddr, diskAddr);
         
-          b->findRegExp(regexp, sf, ret);
+          b->findRegExp(sub, sf, ret);
           n->setMemAddr(i, memAddr);
-          last_mem = memAddr;
           continue;
         }
           
         findRegExp(memAddr, diskAddr, sub, sf, ret);
       }
+
       findRegExp(idx, addr, sub, sofar, ret);
       pNodeCache_->unlockNode(n.getIndex());
-
       break;
 
     default:
@@ -569,9 +553,7 @@ AlphabetNodePtr n_1 ;
         BucketPtr b = pBucketCache_->getNodeByMemAddr(memAddr, diskAddr);
         n->setMemAddr(idx, memAddr);
         pNodeCache_->unlockNode(n.getIndex());
-        //sub.displayStringValue(ENCODE_TYPE, cout);
-        //b->display(cout);
-        return b->findRegExp(regexp, sf, ret);
+        return b->findRegExp(sub, sf, ret);
       }
       
       findRegExp(memAddr, diskAddr, sub, sf, ret);
@@ -579,7 +561,6 @@ AlphabetNodePtr n_1 ;
       break;
       
     }    
-
   }
 
   /**
