@@ -8,6 +8,7 @@
 #include <am/util/DbObj.h>
 #include <am/util/Wrapper.h>
 #include <am/util/MemMap.h>
+#include <am/util/SdbUtil.h>
 
 #include <util/RefCount.h>
 
@@ -19,19 +20,6 @@
 using namespace izenelib::am::util;
 
 NS_IZENELIB_AM_BEGIN
-
-enum ESeqPos
-{
-	ESP_START = 0, // start iterating through the entire tree
-	ESP_KEY, // start from the key provided
-	ESP_CONT // continue from the last position
-};
-
-enum ESeqDirection
-{
-	ESD_FORWARD = 0, // iterate forwards through the tree
-	ESD_BACKWARD // seek backwards through the tree
-};
 
 const int BOOST_SERIAZLIZATION_HEAD_LENGTH = 40;
 

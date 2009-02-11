@@ -8,6 +8,7 @@
 #include <am/util/DbObj.h>
 #include <am/util/Wrapper.h>
 #include <am/util/MemMap.h>
+#include <am/util/SdbUtil.h>
 #include <util/RefCount.h>
 
 #include <boost/memory.hpp>
@@ -29,12 +30,6 @@ NS_IZENELIB_AM_BEGIN
 typedef int NodeID;
 
 const int MAX_LEVEL = 32;
-
-enum SlSeqDirection
-{
-	SLSD_FORWARD = 0, // iterate forwards through the tree
-	SLSD_BACKWARD // seek backwards through the tree
-};
 
 NS_IZENELIB_AM_END
 

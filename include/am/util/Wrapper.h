@@ -2,6 +2,7 @@
 #define WRAPPER_H_
 
 #include <am/util/DbObj.h>
+#include <am/concept/DataType.h>
 #include <sstream>
 // for serialization
 #include <boost/archive/text_oarchive.hpp>
@@ -60,6 +61,14 @@ template<> inline void read_image<int>(int& dat, const DbObjPtr& ptr) {
 
 template<> inline void write_image<int>(const int& dat, DbObjPtr& ptr) {
 	ptr->setData(&dat, sizeof(dat));
+}
+
+
+template<> inline void read_image<NullType>(NullType& dat, const DbObjPtr& ptr) {	
+}
+
+template<> inline void write_image<NullType>(const NullType& dat, DbObjPtr& ptr) {
+	
 }
 
 /*
