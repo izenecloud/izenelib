@@ -103,7 +103,7 @@ public:
 	 */
 
 	void setCacheSize(size_t sz) {
-		_cacheSize = sz;
+		_cacheSize = 2*sz/_minDegree;
 	}
 	
 	/**
@@ -399,14 +399,15 @@ private:
 private:
 
 	void _flushCache() {	
-		if (BTreeNode<KeyType, ValueType, LockType, Alloc>::activeNodeNum
->				_cacheSize) {
+		//cout<<BTreeNode<KeyType, DataType, LockType, Alloc>::activeNodeNum <<" > "<<_cacheSize<<endl;
+		
+		if (BTreeNode<KeyType, DataType, LockType, Alloc>::activeNodeNum > _cacheSize) {
 #ifdef DEBUG
 			cout<<"flush ... "<<_cacheSize << endl;
 			cout<<"activeNode: " <<BTreeNode<KeyType, DataType, LockType, Alloc>::activeNodeNum
 			<<endl;
 #endif
-			_isUnload = true;
+			_isUnload = true;			
 			flush();
 		}
 
@@ -1115,7 +1116,7 @@ template<typename KeyType, typename ValueType, typename LockType,
 			_root.reset(new BTreeNode<KeyType, DataType, LockType, Alloc>);
 			_root->fpos = sfh.rootPos;
 			_root->read(_dataFile);
-			_root->display();
+			//_root->display();
 			ret = true;
 
 		}
@@ -1411,7 +1412,7 @@ template<typename KeyType, typename ValueType, typename LockType,
 		for (size_t ctr = 0; ctr <= _root->objCount; ctr++) {
 			// keep engough node in memory to impove the efficency.
 			if (BTreeNode<KeyType, DataType, LockType, Alloc>::activeNodeNum
-					< _cacheSize/2 && _isUnload) {
+					< _cacheSize/2 ) {
 #ifdef DEBUG
 				cout<<"AcitveNodeNum= "
 				<<BTreeNode<KeyType, DataType, LockType, Alloc>::activeNodeNum
@@ -1425,6 +1426,7 @@ template<typename KeyType, typename ValueType, typename LockType,
 			if ((BTreeNodePtr)pChild != 0) {
 				_root->children[ctr]->unload();
 			}
+			_isUnload = false;
 
 		}
 	}
