@@ -6,7 +6,10 @@
 
 using namespace std;
 
-
+/**
+ *@class Automation
+ * It generates a automation for wildcard '*' and '?'.
+ **/
 template<
   char MULTI_WORDS_WILDCARD = '*',
   char SINGLE_WORD_WILDCARD = '?'
@@ -98,12 +101,16 @@ class Automation
   
   
 public:
+  /**
+   *According the regular express, it builds an automation
+   **/
   Automation(const string& regex)
   {
     _state_* back = NULL;
     _edge_ back_edge(0,0);
     _state_* pThisState = new _state_();
     pV_.push_back(pThisState);
+    has_wildcard_ = false;
     
     pStart_ = pThisState;
     pEnd_ = NULL;
@@ -118,6 +125,8 @@ public:
       
       if (regex[i]==MULTI_WORDS_WILDCARD)
       {
+        has_wildcard_ = true;
+
         if (i == regex.length()-1)
         {
           pThisState->insertEdge(MULTI_WORDS_WILDCARD, pThisState);
@@ -140,6 +149,7 @@ public:
       pThisState->insertEdge(regex[i], pNextState);
       if (back != NULL && regex[i]!=SINGLE_WORD_WILDCARD )
       {
+        has_wildcard_ = true;
         pThisState->insertEdge(back_edge);
         pThisState->insertEdge(MULTI_WORDS_WILDCARD, back);
       }
@@ -172,7 +182,10 @@ friend ostream& operator << ( ostream& os, const Automation<MULTI_WORDS_WILDCARD
     
     return os;
   }
-  
+
+  /**
+   *If the 'str' can go through the automation, it mathes, returns true.
+   **/
   bool match(const string& str)
   {
     _state_* next = pStart_;
@@ -193,13 +206,21 @@ friend ostream& operator << ( ostream& os, const Automation<MULTI_WORDS_WILDCARD
 
     return false;
   }
-  
-  
+
+  /**
+   *Does the automation have wildcard.
+   **/
+  bool hasWildcard()const
+  {
+    return has_wildcard_;
+  }
+
 
 protected:
   _state_* pStart_;
   _state_* pEnd_;
   vector<_state_*> pV_;
+  bool has_wildcard_;
   
   
 }

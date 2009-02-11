@@ -9,7 +9,9 @@
 NS_IZENELIB_AM_BEGIN
 using namespace std;
 
-
+/**
+ *@class BucketCache
+ **/
 template<
   uint64_t CACHE_LENGTH = 100000000,//bytes
   uint32_t BUCKET_SIZE = 8192,//byte
@@ -156,10 +158,18 @@ friend ostream& operator << ( ostream& os, const SelfType& node)
     
   }
   
+  /**
+   *Find out the switched one.
+   **/
   uint32_t findSwitchOut() const
   {
     uint32_t minIdx = 0;
-    for (uint32_t i=0; i<count_; i++)
+    while(minIdx<count_ && nodes[minIdx].locked_)
+      minIdx++;
+    if (minIdx==count_)
+      cout<<"All bucket locked up, Why?\n";
+    
+    for (uint32_t i=minIdx+1; i<count_; i++)
     {
       if (nodes[i].pNode_==NULL)
         return i;
@@ -171,8 +181,8 @@ friend ostream& operator << ( ostream& os, const SelfType& node)
       
     }
 
-    if (minIdx == 0)
-      LDBG_<<"Bucket cache is full. Can't find one to switch out";
+    //if (minIdx == 0)
+    //  LDBG_<<"Bucket cache is full. Can't find one to switch out";
     
     return minIdx;
   }
@@ -182,6 +192,9 @@ friend ostream& operator << ( ostream& os, const SelfType& node)
     return count_;
   }
   
+  /**
+   *Find the bucket with specific disk address.
+   **/
   uint32_t findInCache(uint64_t diskAddr)
   {
     for (uint32_t i=0; i<CACHE_SIZE; i++)
@@ -197,12 +210,60 @@ friend ostream& operator << ( ostream& os, const SelfType& node)
     
   }
 
+  /**
+   *Load bucket of specific disk address into memory when the program loads data.
+   **/
+  nodePtr getNodeByMemAddrForLoading(uint32_t& memAddr, uint64_t diskAddr)
+  {    
+    if (diskAddr%2==1)
+      return nodePtr();
+    
+    if (memAddr>=count_ && memAddr!=(uint32_t)-1&&count_!=0)
+      return nodePtr();
+
+    if (memAddr!=(uint32_t)-1)
+    {
+      NodeType* t = nodes[memAddr].pNode_;
+      if (t->getDiskAddr()==diskAddr)
+      {
+        return nodePtr(nodes[memAddr], memAddr);
+      }
+    }
+    
+    if (count_<CACHE_SIZE)
+    {
+      NodeType* t = new NodeType(f_);
+      t->load(diskAddr);
+      nodes[count_] = _cache_node_(t);
+      
+      memAddr = count_;
+      
+      count_++;
+      return nodePtr(nodes[memAddr], memAddr);
+    }
+
+    //cout<< "getNodeByMemAddr()\n";
+
+    memAddr = findSwitchOut();
+    cout<<"\nswitch out-: "<<memAddr<<endl;
+    kickOutNodes(memAddr);
+    
+    
+    NodeType* t = new NodeType(f_);
+    t->load(diskAddr);
+    nodes[memAddr] = _cache_node_(t);
+    return nodePtr(nodes[memAddr], memAddr);
+  }
+
+  /**
+   *Load bucket of specific disk address into memory.
+   **/
   nodePtr getNodeByMemAddr(uint32_t& memAddr, uint64_t diskAddr)
   {    
     if (diskAddr%2==1)
       return nodePtr();
     
-    if (memAddr>=count_ && memAddr!=(uint32_t)-1)
+    if (memAddr>=count_ && memAddr!=(uint32_t)-1&&count_!=0)
       return nodePtr();
 
     if (memAddr!=(uint32_t)-1)
@@ -250,17 +311,25 @@ friend ostream& operator << ( ostream& os, const SelfType& node)
     return nodePtr(nodes[memAddr], memAddr);
   }
 
+  /**
+   *Locked node can't be switch out
+   **/
   void lockNode(uint32_t memAddr)
   {
     nodes[memAddr].locked_ = true;
   }
 
+  /**
+   *Unlock on node of 'memAddr'
+   **/
   void unlockNode(uint32_t memAddr)
   {
     nodes[memAddr].locked_ = false;
   }
   
-
+  /**
+   *Get a new node in cache which is stroed in position 'diskAddr'.
+   **/
   nodePtr newNode(uint64_t diskAddr)
   {
     if (count_<CACHE_SIZE)
@@ -285,6 +354,9 @@ friend ostream& operator << ( ostream& os, const SelfType& node)
 
   }
   
+  /**
+   *New a node
+   **/
   nodePtr newNode()
   {
     if (count_<CACHE_SIZE)
@@ -309,7 +381,9 @@ friend ostream& operator << ( ostream& os, const SelfType& node)
 
   }
 
-
+  /**
+   *Kick out some older and rarer used node out of cache.
+   **/
   uint64_t kickOutNodes(uint32_t memAddr)
   {
     //cout<<"Kick out bucket: "<<memAddr<<" "<<count_<<endl;
@@ -327,17 +401,26 @@ friend ostream& operator << ( ostream& os, const SelfType& node)
     return ret;
   }
 
+  /**
+   *Flush all the node into disk.
+   **/
   void flush()
   {
     for (uint32_t i=0; i<CACHE_SIZE; i++)
       if (nodes[i].pNode_ != NULL)
-        nodes[i].pNode_->update2disk();    
+        nodes[i].pNode_->update2disk();   
+    fflush(f_);
+  }
+
+  bool isFull()
+  {
+    return count_ >= CACHE_SIZE;
   }
 
 protected:
-  FILE* f_;
-  uint32_t count_;
-  struct _cache_node_* nodes;
+  FILE* f_;//!<File handler of bucket data file.
+  uint32_t count_;//!<Node count
+  struct _cache_node_* nodes;//!<Nods are stored in this array.
   
 }
   ;

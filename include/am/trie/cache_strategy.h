@@ -3,6 +3,9 @@
 
 #include <time.h>
 
+/**
+ *@class CachePolicyLRU Latest rare used out
+ **/
 class CachePolicyLRU//latest rare used
 {
   time_t time_;
@@ -32,6 +35,9 @@ friend ostream& operator << ( ostream& os, const CachePolicyLRU& inf)
 }
   ;
 
+/**
+ *@class CachePolicyLU Latest used out
+ **/
 class CachePolicyLU//least used
 {
   uint64_t visit_count_;
@@ -62,6 +68,9 @@ friend ostream& operator << ( ostream& os, const CachePolicyLU& inf)
 }
   ;
 
+/**
+ *@class CachePolicyLARU least and rarest used out
+ **/
 class CachePolicyLARU//least and rarest used
 {
   uint64_t visit_count_;
@@ -76,7 +85,10 @@ public:
   
   int compare(const CachePolicyLARU& t)const
   {
-    return (visit_count_/10+time_) - (t.visit_count_/10 + t.time_);
+    //cout<<time_<<" "<<t.time_<<"  "<<visit_count_<<"  "<<t.visit_count_<<endl;
+    
+    return (visit_count_+time_*1000) - (t.visit_count_ + t.time_*1000);
+
   }
 
   void visit()

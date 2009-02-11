@@ -44,7 +44,7 @@
 #include <am/trie/b_trie.hpp>
 #include <signal.h>
 #include <am/trie/automation.hpp>
-
+USING_IZENE_LOG();
 #define SIZE 27
 using namespace izenelib::am;
 using namespace std;

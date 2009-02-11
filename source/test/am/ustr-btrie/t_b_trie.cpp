@@ -71,6 +71,7 @@ void checkInput(const UString& u)
   {
     if (AlphabetNode<>::getIndexOf(u[i])>=a2z_size)
     {
+      cout<<"Not exist in alphabet: "<<u[i]<<"   ";
       u.displayStringValue(ENCODE_TYPE, cout);
       cout<<endl;
       break;
@@ -158,75 +159,147 @@ void dump(int signo)
         exit(0);
 }
 
-BOOST_AUTO_TEST_CASE(B_trie_insertion_check )
+/**
+ *This is for testing the correction of insertion and querying of Ustring version B-trie.
+ *
+ **/
+
+// BOOST_AUTO_TEST_CASE(B_trie_insertion_check )
+// {
+//   signal(SIGSEGV, &dump);
+    
+//   LDBG_<<"Running B_trie_insertion_check ... \n";
+  
+  //  AlphabetGenerator<ENCODE_TYPE> alp("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz1234567890");
+  
+  //  cout<<alp;
+  
+//   remove("./test.buk");
+//   remove("./test.nod");
+//   remove("./test.has");
+  
+//   vector<UString> vstr;
+//   vector<UString*> vp;
+//   readDict("./dict1.txt", vstr);
+//   cout<<"\nData is ready!\n";
+  
+//   BTrie<ENCODE_TYPE> trie("./test");
+
+//     clock_t start, finish;
+//   for (vector<UString>::iterator i=vstr.begin(); i!=vstr.end();i++)
+//   {
+//     //transform((*i).begin(), (*i).end(), (*i).begin(),::tolower);
+//     //cout<<*i<<endl;
+//     UString* str = new UString (*i);
+//     //str->displayStringValue(ENCODE_TYPE, cout);
+    
+//     vp.push_back(str);
+//   }
+
+  
+//   start = clock();
+//   for (vector<UString*>::iterator i=vp.begin(); i!=vp.end();i++,debug_count++)
+//   {
+//     trie.insert(*i,2);
+//   }
+  
+
+//   trie.flush();
+//   //trie.flush();
+//   finish = clock();
+//   printf( "\nIt takes %f seconds to insert %d random data!\n", (double)(finish - start) / CLOCKS_PER_SEC, vp.size());
+//   //trie.display(cout, "far");
+//   cout<<"Node amount: "<<trie.getNodeAmount()<<endl;
+
+//   BTrie<ENCODE_TYPE> trie("./test");
+//   cout<<"Node amount: "<<trie.getNodeAmount()<<endl;
+//   cout<<"Loaded.\n";
+//   debug_count = 100;
+//   start = clock();
+//   for (vector<UString>::iterator i=vstr.begin(); i!=vstr.end();i++)
+//   {
+//     if (trie.query(*i) != 2)
+//     {
+//       (*i).displayStringValue(ENCODE_TYPE, cout);
+//       cout<<" Not Found!\n";
+//       break;
+//     }
+    
+//   }
+
+  //trie1.display(cout,UString("GIdku3vr_C5jIUtVQHXNf5pPWRn3uiJa", ENCODE_TYPE));
+  
+//   finish = clock();
+//   printf( "\nIt takes %f seconds to insert %d random data!\n", (double)(finish - start)/CLOCKS_PER_SEC, vstr.size());
+
+// }
+
+// BOOST_AUTO_TEST_SUITE_END()
+
+
+/**
+ *This is for testing the correction of insertion and querying of Ustring version B-trie.
+ *
+ **/
+
+BOOST_AUTO_TEST_CASE(B_trie_regex_check )
 {
   signal(SIGSEGV, &dump);
-    
-  cout<<"Running B_trie_insertion_check ... \n";
   
-//   AlphabetGenerator<ENCODE_TYPE> alp("abcdefghijklmnopqrstuvwxyz");
+//   remove("./test.buk");
+//   remove("./test.nod");
+//   remove("./test.has");
   
-//   cout<<alp;
-  
-  remove("./test.buk");
-  remove("./test.nod");
-  remove("./test.has");
   vector<UString> vstr;
   vector<UString*> vp;
-  readDict("./input", vstr);
+  readDict("./dict1.txt", vstr);
   cout<<"\nData is ready!\n";
-  
-  BTrie<ENCODE_TYPE> trie("./test");
+   clock_t start, finish;
+   
+//   BTrie<ENCODE_TYPE> trie("./test");
 
-  clock_t start, finish;
-  for (vector<UString>::iterator i=vstr.begin(); i!=vstr.end();i++)
-  {
-    //transform((*i).begin(), (*i).end(), (*i).begin(),::tolower);
-    //cout<<*i<<endl;
-    UString* str = new UString (*i);
-    //str->displayStringValue(ENCODE_TYPE, cout);
+
+//   for (vector<UString>::iterator i=vstr.begin(); i!=vstr.end();i++)
+//   {
+//     UString* str = new UString (*i);
     
-    vp.push_back(str);
-  }
+//     vp.push_back(str);
+//   }
+//   start = clock();
+//   for (vector<UString*>::iterator i=vp.begin(); i!=vp.end();i++,debug_count++)
+//   {
+//     trie.insert(*i,2);
+//   }
+//   trie.flush();
+//   finish = clock();
+//   printf( "\nIt takes %f seconds to insert %d random data!\n", (double)(finish - start) / CLOCKS_PER_SEC, vp.size());
+//   cout<<"Node amount: "<<trie.getNodeAmount()<<endl;
+//   //------------------------------------------------------------------------------
 
   
-  start = clock();
-  for (vector<UString*>::iterator i=vp.begin(); i!=vp.end();i++,debug_count++)
-  {
-    //cout<<c<<"  "<<trie.getNodeAmount()<<"  ";
-    //(*i)->displayStringValue(ENCODE_TYPE, cout);
-    //cout<<debug_count<<endl;
-    trie.insert(*i,2);
-  }
   
-
-  trie.flush();
-  //trie.flush();
-  finish = clock();
-  printf( "\nIt takes %f seconds to insert %d random data!\n", (double)(finish - start) / CLOCKS_PER_SEC, vp.size());
   //trie.display(cout, "far");
-  cout<<"Node amount: "<<trie.getNodeAmount()<<endl;
-  
+  BTrie<ENCODE_TYPE> trie("./test");  
   start = clock();
-  for (vector<UString>::iterator i=vstr.begin(); i!=vstr.end();i++)
+  uint64_t diskAdd = 1;
+  uint32_t memAdd = 0;
+  vector<item_pair> ip;
+  //*1M77N?fH*C3lJt
+  //cout<<trie.query(UString("GIdku3vr_C5jIUtVQHXNf5pPWRn3uiJa", ENCODE_TYPE))<<endl;
+  
+  trie.findRegExp(memAdd, diskAdd, UString("*u3vr_C5jIUtVQHXNf?pPW*iJa", ENCODE_TYPE), UString(), ip);
+  for (vector<item_pair>::iterator i = ip.begin(); i!= ip.end(); i++)
   {
-    //cout<<*i<<endl;
-    if (trie.query(*i) != 2)
-    {
-      (*i).displayStringValue(ENCODE_TYPE, cout);
-      cout<<" Not Found!\n";
-      break;
-    }
-    
+    (*i).str_.displayStringValue(ENCODE_TYPE, cout);
+    cout<<"===>"<<(*i).addr_<<endl;
   }
-
+  
   //trie.display(cout,UString("澎纲测赂梯坏嘘确扣", ENCODE_TYPE));
   
   finish = clock();
-  printf( "\nIt takes %f seconds to insert %d random data!\n", (double)(finish - start)/CLOCKS_PER_SEC, vstr.size());
+  printf( "\nIt takes %f seconds to find!\n", (double)(finish - start)/CLOCKS_PER_SEC);
 
 }
-
 BOOST_AUTO_TEST_SUITE_END()
 
 
