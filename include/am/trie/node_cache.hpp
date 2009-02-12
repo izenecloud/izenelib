@@ -222,7 +222,7 @@ friend ostream& operator << ( ostream& os, const SelfType& node)
     while(minIdx<count_ && nodes[minIdx].locked_)
       minIdx++;
     if (minIdx==count_)
-      cout<<"All locked up, Why?\n";
+      cout<<count_<<"All locked up, Why?\n";
 
     for (uint32_t i=count_-1; i>0; i--)
     {

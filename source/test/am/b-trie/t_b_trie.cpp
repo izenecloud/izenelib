@@ -51,6 +51,24 @@ using namespace std;
 
 BOOST_AUTO_TEST_SUITE( b_trie_suite )
 
+void checkInput(const string& u)
+{
+  if (u.length() == 0)
+    cout<<"Empty string!\n";
+  
+  for (size_t i=0; i<u.length(); i++)
+  {
+    if (AlphabetNode<>::getIndexOf(u[i])>=a2z_size)
+    {
+      cout<<"Not exist in alphabet: "<<u[i]<<"   ";
+      cout<<u;
+      cout<<endl;
+      break;
+    }
+    
+  }
+}
+
 // BOOST_AUTO_TEST_CASE(AlphabetNode_check )
 // {
 //   USING_IZENE_LOG();
@@ -430,30 +448,35 @@ BOOST_AUTO_TEST_CASE(B_trie_insertion_check )
   cout<<"Running B_trie_insertion_check ... \n";
   
   USING_IZENE_LOG();
+
+   AlphabetGenerator alp("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz1234567890_");
+   cout<<alp;
   
   remove("./test.buk");
   remove("./test.nod");
   remove("./test.has");
   vector<string> vstr;
   vector<string*> vp;
-  readDict("./input", vstr);
+  readDict("./dict1.txt", vstr);
+  
   BTrie<> trie("./test");
 
   clock_t start, finish;
   int c = 0;
   for (vector<string>::iterator i=vstr.begin(); i!=vstr.end();i++)
   {
-    transform((*i).begin(), (*i).end(), (*i).begin(),::tolower);
-    //cout<<*i<<endl;
     string* str = new string (*i);
     vp.push_back(str);
     c++;
     //cout<<endl<<c<<" ***************\n";
   }
 
+  cout<<"Data is ready!\n";
   start = clock();
   for (vector<string*>::iterator i=vp.begin(); i!=vp.end();i++)
   {
+    checkInput(*(*i));
+    
     trie.insert(*i,2);
   }
   

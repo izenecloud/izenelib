@@ -843,7 +843,7 @@ friend ostream& operator << ( ostream& os, const SelfType& node)
 
       if (ALPHABET[mid]>ch)
       {
-        end = mid+1;
+        end = mid-1;
         mid = (start + end)/2;
         continue;
       }

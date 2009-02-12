@@ -224,6 +224,8 @@ friend ostream& operator << ( ostream& os, const SelfType& node)
    **/
   static uint8_t getIndexOf(uint8_t ch)
   {
+    //cout<<ch<<endl;
+    
     if (ch<ALPHABET[0] || ch>ALPHABET[ALPHABET_SIZE-1])
     {
       LDBG_<<"Can't find '"<<ch<<ALPHABET[0]<<ALPHABET[ALPHABET_SIZE-1]<<"' in alphabet";
@@ -244,6 +246,8 @@ friend ostream& operator << ( ostream& os, const SelfType& node)
     
     while ( mid<=end && mid>=start)
     {
+      //cout<<ALPHABET[start]<<" "<<ALPHABET[mid]<<" "<<ALPHABET[end]<<endl;
+      
       if (ALPHABET[mid]==ch)
         return mid;
       
@@ -256,7 +260,7 @@ friend ostream& operator << ( ostream& os, const SelfType& node)
 
       if (ALPHABET[mid]>ch)
       {
-        end = mid+1;
+        end = mid-1;
         mid = (start + end)/2;
         continue;
       }
