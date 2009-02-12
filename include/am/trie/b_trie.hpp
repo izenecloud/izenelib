@@ -36,10 +36,10 @@ template<
   class HASH_FUNCTION = simple_hash,
   int EXPAND = PAGE_EXPANDING,
   //----------bucket cache---------
-  uint64_t BUCKET_CACHE_LENGTH = 100000,//10000000000,//bytes, it must be larger than 2 bucket size
+  uint64_t BUCKET_CACHE_LENGTH = 10000000000,//bytes, it must be larger than 2 bucket size
   class BucketCachePolicy= CachePolicyLARU,
   //----------node cache-----------
-  uint64_t NODE_CACHE_LENGTH = 10000,//100000000,//bytes, it must be larger than 3 node size.
+  uint64_t NODE_CACHE_LENGTH = 100000000,//bytes, it must be larger than 3 node size.
   class NodeCachePolicy = CachePolicyLARU
   >
 class BTrie
