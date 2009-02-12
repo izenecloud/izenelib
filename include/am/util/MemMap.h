@@ -2,11 +2,15 @@
 #define MEMMAP_H_
 
 
+#include <iostream>
+#include <vector>
+#include "SdbUtil.h"
+
+using namespace std;
+
 NS_IZENELIB_AM_BEGIN
 
 namespace util{
-
-const size_t BLOCK_SIZE = 1;
 
 class MemBlock {
 private:
@@ -59,13 +63,9 @@ public:
 	}
 	char* getP(long fpos) {
 		if( !pBuf_ )
-			return NULL;
-		//cout<<"startingPoint: "<< startingPoint_<<endl;
-		//cout<<"fpos: "<<fpos<<endl;
-		//cout<<( fpos-sizeof(SlfHeader) )/pageSize_<<endl;
+			return NULL;	
 		assert(fpos >= startingPoint_ && fpos <= startingPoint_ + long(pageSize_*BLOCK_SIZE) );
-		size_t i = (fpos - startingPoint_)/pageSize_;
-		//cout<<i<<endl;
+		size_t i = (fpos - startingPoint_)/pageSize_;		
 		assert( i>=0 && i<BLOCK_SIZE );			
 		return pBuf_ + pageSize_*i*sizeof(char);
 	}

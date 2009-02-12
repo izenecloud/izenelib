@@ -310,8 +310,12 @@ template<typename KeyType, typename DataType, typename LockType, typename Alloc>
 		KeyType, DataType, LockType, Alloc>::read(FILE* f) {
 
 	long _overFlowAddress;
-	//static int _rcount;
-
+	
+#ifdef DEBUG
+	static int _rcount;
+	cout<<"reading "<<_rcount++<<endl;
+#endif
+	
 	if (!f) {
 		return false;
 	}
@@ -439,7 +443,6 @@ template<typename KeyType, typename DataType, typename LockType, typename Alloc>
 template<typename KeyType, typename DataType, typename LockType, typename Alloc> bool BTreeNode<
 		KeyType, DataType, LockType, Alloc>::write(FILE* f) {
 
-	//static int _wcount;
 
 	typedef pair<long, size_t> OverflowInfo;
 	map<size_t, OverflowInfo> _overflowMap;
@@ -460,12 +463,17 @@ template<typename KeyType, typename DataType, typename LockType, typename Alloc>
 		return false;
 	}
 
+#ifdef DEBUG
+	static int _wcount;
+	cout<<"write "<<_wcount++ <<endl;
+#endif
+	
 	if (0 != fseek(f, 0, SEEK_END)) {
 		return false;
 	}
 	_overFlowAddress = ftell(f);
 
-	//cout<<"write "<<_wcount++ <<endl;;
+	
 
 	// get to the right location
 	if (0 != fseek(f, fpos, SEEK_SET)) {

@@ -29,4 +29,4 @@ t_btree_v2:  $(OBJ2)
 	#-rm -f $(OBJS)
 
 clean:
-	-rm -f *.o t_btree t_btree_v2 sdb.dat
+	rm -f *.o t_btree t_btree_v2 sdb.dat gmon.out

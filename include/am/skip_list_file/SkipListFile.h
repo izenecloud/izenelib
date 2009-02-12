@@ -204,8 +204,8 @@ public:
 	 * 	\brief get the next or prev item.
 	 */
 	bool
-	seq(NodeKeyLocn& locn, DataType& rec, SlSeqDirection sdir = SLSD_FORWARD) {
-		if(sdir == SLSD_FORWARD) {
+	seq(NodeKeyLocn& locn, DataType& rec, ESeqDirection sdir = ESD_FORWARD) {
+		if(sdir == ESD_FORWARD) {
 			if(locn) {
 				locn = locn->loadRight(0, dataFile_);
 				rec = locn->element;

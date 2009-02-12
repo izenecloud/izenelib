@@ -10,15 +10,23 @@ LIBS =     /usr/local/lib/libboost_thread-gcc41-mt.so  /usr/local/lib/libboost_u
 INC_PATH := -I  /usr/local/include/boost-1_35/ -I ../../../../include/ -I ../../../../include/3rdparty/
 
 
-OBJS := t_slf.o
+SDB_HASH_OBJ  := t_sdb_hash.o 
 
-all: t_slf
+SDB_SH_OBJ := t_sh.o
+
+ 
+
+all:  t_sh  #t_sdb_hash
 
 .cpp.o:
 	$(GPP) $(CC_OPTIONS) $(INC_PATH)  $< 
 
-t_slf:  $(OBJS)
-	$(GPP) $(OBJS) $(LIBS) -o $@ -pg	
+t_sdb_hash:  $(SDB_HASH_OBJ)
+	$(GPP) $(SDB_HASH_OBJ) $(LIBS)  -o $@ -pg		
+	
+t_sh:  $(SDB_SH_OBJ)
+	$(GPP) $(SDB_SH_OBJ) $(LIBS)  -o $@ -pg	
+
 
 clean:
-	rm -f $(OBJS) t_slf sdb.dat
+	rm -f *.o  t_sh t_sdb_hash sdb.dat

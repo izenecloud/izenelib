@@ -237,12 +237,17 @@ public:
 		if (1 != fwrite(&sfh, sizeof(sfh), 1, _dataFile)) {
 			abort();
 		}
+		cout<<_dirtyPages.size()<<endl
+		;
+		clock_t t1 = clock();
 		while( !_dirtyPages.empty() )
 		{
 			BTreeNodePtr ptr = _dirtyPages.back();
 			_dirtyPages.pop_back();
 			ptr->write(_dataFile);
 		}
+		printf("eclipse: %lf seconds\n", double(clock()- t1)/CLOCKS_PER_SEC);
+		cout<<_dirtyPages.size()<<endl;
 		fflush(_dataFile);
 		//for (BnPtrIter it=_dirtyPages.begin(); it != _dirtyPages.end(); it++)
 		//(*it)->write(_dataFile);
@@ -566,8 +571,7 @@ template<typename KeyType, typename ValueType, typename LockType,
 	_cacheSize = 1000000; //default set 1000000	
 	
 	_isUnload = false;
-	_root = 0;
-	_dataFile = 0;
+	_root = 0;	
 }
 
 // The destructor of a BTreeFile object unloads the root
