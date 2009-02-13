@@ -54,7 +54,7 @@ class BTrie
 
 public:
 
-/**
+  /**
    *@param filename Name of file stores trie data. It will generate 3 files. The suffix of them are '.buk', '.nod', '.has'.
    * They stands for bucket file, trie node file and hash table file respectively.
    **/
@@ -64,7 +64,7 @@ public:
     string bstr = filename+".buk";
     string nstr = filename + ".nod";
     string hstr = filename + ".has";
-bool isload = false;
+    bool isload = false;
     
     nodf_ = fopen(nstr.c_str(), "r+");
     if (nodf_ == NULL)
@@ -108,7 +108,7 @@ bool isload = false;
       delete pBucketCache_;
   }
   
-/**
+  /**
    * Flush trie data onto disk.
    **/
   void flush()
@@ -195,7 +195,7 @@ public:
 
     string consumeStr = *pStr;
     
-AlphabetNodePtr n_1 ;
+    AlphabetNodePtr n_1 ;
     
     uint64_t addr = 1;
     uint32_t memAddr = 0;
@@ -227,9 +227,8 @@ AlphabetNodePtr n_1 ;
         uint64_t addr =b->add2disk();
         n->setAllDiskAddr( addr);
         n->setAllMemAddr(b.getIndex());
-        //n = pNodeCache_->getNodeByMemAddr(rootIdx, 1);//
-        //n->display(cout);
-        //cout<<*pBucket_;
+        pNodeCache_->unlockNode(n.getIndex());
+  
         return true;
       }
 
@@ -274,14 +273,8 @@ AlphabetNodePtr n_1 ;
             //LDBG_<<consumeStr<<"     "<<prefix<<"    "<<(*k);
             hashTable_.insert(prefix+(*k), contentAddr);
           }
-          
-          //cout<<"splitted...\n";
-          
         }
-
-        //n->display(cout);
         
-        //b->update2disk();
         pBucketCache_->unlockNode(memAddr);
         pNodeCache_->unlockNode(n.getIndex());
         return true;
@@ -303,7 +296,7 @@ AlphabetNodePtr n_1 ;
     return hashTable_.insert(consumeStr,contentAddr);
   }
 
-/**
+  /**
    *Split bucket indicated by idx of 'n'.
    **/
   void splitBucket(BucketPtr& b,  AlphabetNodePtr& n, uint64_t diskAddr, uint8_t idx, vector<string>& left)
@@ -373,7 +366,7 @@ AlphabetNodePtr n_1 ;
 
   }
   
-/**
+  /**
    *Delete string in trie.
    **/
   bool del(const string& str)
@@ -381,7 +374,7 @@ AlphabetNodePtr n_1 ;
     return update(str, (uint64_t)-1);
   }
 
-/**
+  /**
    *Update string 'str' related content
    **/
   bool update(const string& str, uint64_t contentAddr)
@@ -429,7 +422,7 @@ AlphabetNodePtr n_1 ;
     return hashTable_.update(str, contentAddr);
   }
 
-/**
+  /**
    *Find regular expression in trie tree.
    *@param regexp Regular expression.
    *@param sofar Record the string ahead sofar.
@@ -437,7 +430,7 @@ AlphabetNodePtr n_1 ;
    **/
   void findRegExp(uint32_t idx, uint64_t addr, const string& regexp, const string& sofar,  vector<item_pair>& ret)
   {
-   if (pNodeCache_==NULL)
+    if (pNodeCache_==NULL)
     {
       return ;
     }
@@ -610,7 +603,7 @@ AlphabetNodePtr n_1 ;
       }
 
       uint8_t idx = n->getIndexOf(str[i]);
-pNodeCache_->lockNode(n.getIndex());
+      pNodeCache_->lockNode(n.getIndex());
       uint64_t diskAddr = n->getDiskAddr(idx);
       uint32_t memAddr = n->getMemAddr(idx);
 
@@ -626,7 +619,7 @@ pNodeCache_->lockNode(n.getIndex());
       {
         //load bucket
         BucketPtr b = pBucketCache_->getNodeByMemAddr(memAddr, diskAddr);
-         n->setMemAddr(idx, memAddr);
+        n->setMemAddr(idx, memAddr);
         pNodeCache_->unlockNode(n.getIndex());
         return b->getContentBy(str.substr(i));
       }
@@ -642,7 +635,7 @@ pNodeCache_->lockNode(n.getIndex());
     return hashTable_.find(str);
   }
 
-/**
+  /**
    *Get thet total amount of nodes.
    **/
   uint32_t getNodeAmount() const
@@ -697,12 +690,12 @@ pNodeCache_->lockNode(n.getIndex());
     
   }
   
-// friend ostream& operator << ( ostream& os, const SelfType& node)
-//   {
-//   }
+  // friend ostream& operator << ( ostream& os, const SelfType& node)
+  //   {
+  //   }
   
 protected:
-   FILE* nodf_;//!<Node data file handler.
+  FILE* nodf_;//!<Node data file handler.
   FILE* bukf_;//!<Bucket data file handler.
   FILE* hashf_;//!<Hash table data file handler.
   BucketCacheType* pBucketCache_;//!<Bucket cache.
