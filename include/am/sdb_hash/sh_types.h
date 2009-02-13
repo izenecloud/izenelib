@@ -21,7 +21,6 @@
 #include <fstream>
 #include <iostream>
 
-//#include "SkipListFileException.h"
 
 using namespace std;
 
@@ -29,8 +28,6 @@ using namespace izenelib::am::util;
 
 NS_IZENELIB_AM_BEGIN
 
-const size_t SH_SEGMENT_SIZE = 2048;
-const size_t SH_DIRECTORY_SIZE = 2048;
 
 class sdb_hashing {
 public:

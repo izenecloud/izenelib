@@ -3,7 +3,7 @@
 
 
 class string_chain {	
-	size_t blockSize_;
+	size_t bucketSize_;
 public:
 	char *str;
 	long fpos;
@@ -12,11 +12,17 @@ public:
 	bool isLoaded;
 	bool isDirty;
 	
-	static int activeNum;
+	
+	int level;
+	
+	//It indicates how many active string_chains in memory.
+	//It increases when allocateBlock() called, or reading from disk,
+	//and decreases when unload() called. 
+	static size_t activeNum;
 
 public:
-	string_chain(size_t blockSize) :
-	blockSize_(blockSize) {
+	string_chain(size_t bucketSize) :
+	bucketSize_(bucketSize) {
 		str = NULL;
 		num = 0;
 		next = 0;
@@ -24,17 +30,17 @@ public:
 		isDirty = true;
 		fpos = 0;
 		
-		++activeNum;
+		level = 0;		
+		
+		//++activeNum;
 	}
 
-	~string_chain() {
-		delete str;
+	virtual ~string_chain() {
+		if( str ) delete str;
 		str = 0;
-		next = 0;
-		num = 0;
-		isLoaded = false;
+		next = 0;	
 		
-		--activeNum;
+		//--activeNum;
 	}
 
 	bool write(FILE* f) {
@@ -59,7 +65,9 @@ public:
 		}
 		//cout<<"write num="<<num<<endl;
 
-		if (1 != fwrite(str, blockSize_, 1, f) ) {
+		size_t blockSize = bucketSize_ - sizeof(int) - sizeof(long);
+			
+		if (1 != fwrite(str, blockSize, 1, f) ) {
 			return false;
 		}
 
@@ -69,7 +77,6 @@ public:
 		nextfpos = next->fpos;
 
 		//cout<<"write nextfpos = "<< nextfpos<<endl;
-
 		if (1 != fwrite(&nextfpos, sizeof(long), 1, f) ) {
 			return false;
 		}
@@ -79,6 +86,7 @@ public:
 
 		return true;
 	}
+	
 	bool read(FILE* f) {
 		if (!f) {
 			return false;
@@ -91,15 +99,18 @@ public:
 		if (1 != fread(&num, sizeof(int), 1, f) ) {
 			return false;
 		}
+		
 		//cout<<"read num="<<num<<endl;
-
-		if ( !str)
-		str = new char[blockSize_];
-	    memset(str, 0, blockSize_);
-
-		//cout<<"write blocksize="<<blockSize_<<endl;
-
-		if (1 != fread(str, blockSize_, 1, f) ) {
+		size_t blockSize = bucketSize_ - sizeof(int) - sizeof(long);
+		
+		if ( !str )
+		{
+			str = new char[blockSize];		
+     	    memset(str, 0, blockSize);
+		}
+ 
+		//cout<<"read blocksize="<<blockSize<<endl;
+		if (1 != fread(str, blockSize, 1, f) ) {
 			return false;
 		}
 
@@ -111,35 +122,57 @@ public:
 
 		//cout<<"read next fpos="<<nextfpos<<endl;
 		if (nextfpos !=0) {
-			next = new string_chain(blockSize_);
+			if( !next )next = new string_chain(bucketSize_);
 			next->fpos = nextfpos;
 		}
 		isLoaded = true;
-		isDirty = false;
-
+		isDirty = false;		
+				
+		++activeNum;
+		
 		return true;
 	}
 
 	string_chain* loadNext(FILE* f) {
-		if (next && !next->isLoaded) {
+		//cout<<"loadNext"<<endl;	
+		//if(next)cout<<next->fpos<<endl;		
+		if (next && !next->isLoaded) {			
+			next->read(f);			
 			//cout<<"load from file"<<endl;
-			next->read(f);
+			//cout<<"activeNode: "<<activeNum<<endl;	
 		}
+		//
+		if( next )next->level = level+1;
 		return next;
 	}
-
-	void display(std::ostream& os = std::cout) {
-		cout<<"\nstring_chain display...."<<endl;
-		os<<num<<endl;
-		os<<fpos<<endl;
-		os<<str<<endl;
-		if (next)
-		next->display(os);
+	
+	void unload(){			
+		if(str){
+			delete str;
+			str = 0;			
+			--activeNum;			
+		}	
+		isLoaded = false;
+		
+		//cout<<"unload fpos="<<fpos<<endl;
+		//cout<<"activeNode: "<<activeNum<<endl;
 	}
 
+	void display(std::ostream& os = std::cout) {		
+		os<<"(level: "<<level;
+		os<<"  isLoaded: "<<isLoaded;
+		os<<"  bucketSize: "<<bucketSize_;
+		os<<"  numitems: "<<num;
+		os<<"  fpos: "<<fpos;
+		if(next)os<<"  nextfpos: "<<next->fpos;
+		//os<<"str: "<<str;
+		os<<")- > ";		
+		if (next)
+			next->display(os);
+	}
 };
 
-int string_chain::activeNum;
+size_t string_chain::activeNum;
 
 
 #endif /*STRING_CHAIN_H_*/

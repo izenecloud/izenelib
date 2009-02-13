@@ -12,7 +12,7 @@ const char* indexFile = "sdb.dat";
 static string inputFile = "test.txt";
 static int degree = 2;
 static size_t cacheSize = 1000000;
-static int num = 30;
+static int num = 10000;
 
 static bool trace = 1;
 static bool rnd = 0;
@@ -77,6 +77,7 @@ template<typename T> void insert_test(T& tb) {
 	//printf("eclipse: %ld seconds\n", time(0)- start);
 	cout<<"\nnumItem: "<<tb.num_items()<<endl;
 	cout<<"hit ratio: "<<hit<<"/"<<sum<<endl;
+	//tb.display();
 }
 
 template<typename T> void find_test(T& tb) {
@@ -113,7 +114,7 @@ template<typename T> void find_test(T& tb) {
 
 }
 
-template<typename T> void del_test(T& tb) {
+template<typename T> void update_test(T& tb) {
 	clock_t start;
 	start = clock();
 	//int sum =0;
@@ -121,6 +122,35 @@ template<typename T> void del_test(T& tb) {
 	ifstream inf(inputFile.c_str());
 	string ystr;
 	while (inf>>ystr) {
+		myDataType rec(ystr);
+		if (tb.update(rec) ) {
+		} else {
+		}
+		if (trace) {
+			cout<<" After update: key="<<ystr<<endl;
+			tb.display();
+			//tb.display();
+			cout<<"\nnumItem: "<<tb.num_items()<<endl;
+		}
+	}
+	//printf("Before commit, elapsed: %lf seconds\n", double(clock()- start)/CLOCKS_PER_SEC);
+	tb.flush();
+	printf("update elapsed: %lf seconds\n", double(clock()- start)/CLOCKS_PER_SEC);
+	//printf("eclipse: %ld seconds\n", time(0)- start);
+	cout<<"\nnumItem: "<<tb.num_items()<<endl;
+	//cout<<"hit ratio: "<<hit<<"/"<<sum<<endl;
+
+}
+
+template<typename T> void del_test(T& tb) {
+	clock_t start;
+	start = clock();
+	//int sum =0;
+	//int hit =0;
+	ifstream inf(inputFile.c_str());
+	string ystr;	
+	
+	while (inf>>ystr && num--) {
 		if (tb.del(ystr) ) {
 		} else {
 		}
@@ -141,8 +171,14 @@ template<typename T> void del_test(T& tb) {
 }
 
 template<typename T> void seq_test(T& tb) {
-	clock_t start;
+	clock_t start = clock();
 
+	SDB_HASH::NodeKeyLocn locn = tb.get_first_Locn();
+	myDataType rec;
+	while (tb.seq(locn, rec) ) {
+		if (trace)
+			cout<<rec.key<<endl;
+	}
 	tb.flush();
 	printf("sequence access elapsed: %lf seconds\n", double(clock()- start)/CLOCKS_PER_SEC);
 	//printf("eclipse: %ld seconds\n", time(0)- start);
@@ -153,11 +189,13 @@ template<typename T> void seq_test(T& tb) {
 
 template<typename T> void run(T& tb) {
 	insert_test(tb);
-	//find_test(tb);
-	//seq_test(tb);
-	//del_test(tb);
-	//delete_test(tb);
-	//search_test(tb);*/
+	find_test(tb);
+	seq_test(tb);
+	update_test(tb);
+	del_test(tb);
+	find_test(tb);
+	insert_test(tb);
+	find_test(tb);
 }
 
 void ReportUsage(void) {
@@ -224,9 +262,9 @@ int main(int argc, char *argv[]) {
 	try
 	{
 		SDB_HASH tb(indexFile);
+		tb.setCacheSize(cacheSize);
 		tb.open();
 		run(tb);
-
 	}
 	catch(bad_alloc)
 	{

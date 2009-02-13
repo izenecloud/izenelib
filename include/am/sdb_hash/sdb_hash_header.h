@@ -10,7 +10,8 @@ NS_IZENELIB_AM_BEGIN
 
 struct ShFileHeader {
 		int magic; //set it as 0x061561, check consistence.			
-		size_t blockSize;
+		size_t bucketSize;
+		size_t directorySize;
 		size_t cacheSize;	
 		size_t numItems;
 		size_t nBlock;
@@ -18,19 +19,20 @@ struct ShFileHeader {
 		ShFileHeader()
 		{
 			magic = 0x061561;
-			blockSize = 1024*128 - sizeof(long)-sizeof(int);		
-			cacheSize = 100000;
+			bucketSize = 4096;		
+			directorySize = 4096;
+			cacheSize = 10000;			
 			numItems = 0;
 			nBlock = 0;		
-			
 		}
 
 		void display(std::ostream& os = std::cout) {
 			os<<"magic: "<<magic<<endl;	
-			os<<"blockSize: "<<blockSize<<endl;			
+			os<<"bucketSize: "<<bucketSize<<endl;		
+			os<<"directorySize: "<<directorySize<<endl;
+			os<<"cacheSize: "<<cacheSize<<endl;
 			os<<"numItem: "<<numItems<<endl;
-			os<<"nBlock: "<<nBlock<<endl;
-			
+			os<<"nBlock: "<<nBlock<<endl;			
 		}
 
 		bool toFile(FILE* f)
