@@ -1,3 +1,15 @@
+/**
+ * @file sdb_hash.h
+ * @brief The header file of sdb_hash.
+ * @author peisheng wang 
+ * 
+ * @history
+ * =============
+ * 1. 2009-02-16 first version.
+ * 
+ *
+ * This file defines class sdb_hash.
+ */
 #ifndef SDB_HASH_H
 #define SDB_HASH_H
 
@@ -12,49 +24,82 @@
 
 #include "sh_types.h"
 #include "sdb_hash_header.h"
-#include "string_chain.h"
+#include "bucket_chain.h"
 
 using namespace std;
 
 NS_IZENELIB_AM_BEGIN
 
+/**
+ *  \brief  file version of array hash using Cache-Conscious Collision Resolution.
+ * 
+ *  sdb_hash is built on array hash using Cache-Conscious Collision Resolution.
+ * 
+ *  For file version, there is a little different, each bucket is now a bucket_chain, and each bucket_chain
+ *  hash fixed size.
+ *   
+ * 
+ */
+
 template< typename KeyType, typename ValueType, typename LockType =NullLock> class sdb_hash :
 public AccessMethod<KeyType, ValueType, LockType>
 {
 public:
-	typedef std::pair<string_chain*, char*> NodeKeyLocn;
+	//NodeKeyLocn is like db cursor
+	typedef std::pair<bucket_chain*, char*> NodeKeyLocn;
 	typedef DataType<KeyType,ValueType> DataType;
 public:
-	sdb_hash(const string& fileName = "sdb_hash.dat"):fileName_(fileName) {			
-	}
-
-	virtual ~sdb_hash() {
-		close();
+	/**
+	 *   constructor
+	 */
+	sdb_hash(const string& fileName = "sdb_hash.dat"):fileName_(fileName) {
 		dataFile_ = 0;
 	}
 
+	/**
+	 *   deconstructor
+	 */
+	virtual ~sdb_hash() {
+		if(dataFile_)
+		close();
+	}
+	/**
+	 *  set bucket size, if not called use default size 8192
+	 */
 	void setBucketSize(size_t bucketSize) {
 		sfh_.bucketSize = bucketSize;
 	}
 
+	/**
+	 *  set directory size, if not called use default size 4096
+	 */
 	void setDirectorySize(size_t dirSize) {
 		sfh_.directorySize = dirSize;
 
 	}
 
+	/**
+	 *  set cache size, if not called use default size 100000
+	 */
 	void setCacheSize(size_t cacheSize)
 	{
 		sfh_.cacheSize = cacheSize;
 		if(sfh_.cacheSize < sfh_.directorySize)
-			sfh_.cacheSize = sfh_.directorySize;
+		sfh_.cacheSize = sfh_.directorySize;
 	}
 
+	/**
+	 *  insert an item
+	 */
 	bool insert(const DataType& dat) {
 		return insert(dat.get_key(), dat.get_value() );
 	}
 
+	/**
+	 *  insert an item
+	 */
 	bool insert(const KeyType& key, const ValueType& value) {
-		
+
 		NodeKeyLocn locn;
 		if( search(key, locn) )
 		return false;
@@ -69,7 +114,7 @@ public:
 			size_t ksize = ptr->getSize();
 			size_t vsize = ptr1->getSize();
 
-			string_chain* sa = locn.first;
+			bucket_chain* sa = locn.first;
 			char* p = locn.second;
 
 			//entry_[idx] is even NULL.
@@ -86,23 +131,23 @@ public:
 				}
 			}
 			else
-			{			
+			{
 				//cout<<sa->level<<endl;
 				//sa->display();
 				assert(locn.second != NULL);
-				size_t gap = sizeof(long)+sizeof(int)+ksize+vsize+2*sizeof(size_t);				
+				size_t gap = sizeof(long)+sizeof(int)+ksize+vsize+2*sizeof(size_t);
 
-				//add an extra size_t to indicate if reach the end of  string_chain.
-				if ( size_t(p - sa->str) > sfh_.bucketSize-gap-sizeof(size_t) ) {
+				//add an extra size_t to indicate if reach the end of  bucket_chain.
+				if ( size_t(p - sa->str)> sfh_.bucketSize-gap-sizeof(size_t) ) {
 					if (sa->next == 0) {
 						sa->isDirty = true;
-						sa->next = allocateBlock_();						
+						sa->next = allocateBlock_();
 					}
 					sa = sa->loadNext(dataFile_);
 					p = sa->str;
 				}
 			}
-			
+
 			memcpy(p, &ksize, sizeof(size_t));
 			p += sizeof(size_t);
 			memcpy(p, &vsize, sizeof(size_t));
@@ -113,15 +158,18 @@ public:
 			p += vsize;
 
 			assert( size_t (p-sa->str) + sizeof(long) +sizeof(int) <= sfh_.bucketSize);
-			
+
 			sa->isDirty = true;
 			sa->num++;
 			sfh_.numItems++;
 			return true;
 		}
-	
+
 	}
 
+	/**
+	 *  find  an item
+	 */
 	ValueType* find(const KeyType & key) {
 
 		NodeKeyLocn locn;
@@ -144,9 +192,12 @@ public:
 			pv = new ValueType(val);
 
 			return pv;
-		}		
+		}
 	}
 
+	/**
+	 *  delete  an item
+	 */
 	bool del(const KeyType& key) {
 
 		NodeKeyLocn locn;
@@ -177,11 +228,17 @@ public:
 
 	}
 
+	/**
+	 *  upate  an item
+	 */
 	bool update(const DataType& dat)
 	{
 		return update( dat.get_key(), dat.get_value() );
 	}
 
+	/**
+	 *  upate  an item
+	 */
 	bool update(const KeyType& key, const ValueType& value) {
 		NodeKeyLocn locn;
 		if( !search(key, locn) )
@@ -197,7 +254,7 @@ public:
 			size_t ksize = ptr->getSize();
 			size_t vsize = ptr1->getSize();
 
-			string_chain* sa = locn.first;
+			bucket_chain* sa = locn.first;
 			char *p = locn.second;
 			size_t ksz, vsz;
 			memcpy(&ksz, p, sizeof(size_t));
@@ -218,9 +275,12 @@ public:
 			}
 			return true;
 		}
-		
+
 	}
 
+	/**
+	 *  search an item
+	 */
 	bool search(const KeyType&key, NodeKeyLocn& locn)
 	{
 		flushCache_();
@@ -243,7 +303,7 @@ public:
 			return false;
 		} else {
 			int i = 0;
-			string_chain* sa = entry_[idx];
+			bucket_chain* sa = entry_[idx];
 			char* p = sa->str;
 
 			while ( sa ) {
@@ -259,21 +319,20 @@ public:
 
 					//cout<<ksz<<endl;
 					//cout<<vsz<<endl;
-					
+
 					if (ksz != ksize) {
 						p += ksz + vsz;
 						continue;
 					}
 
-					
 					char *pd = (char *)ptr->getData();
 					size_t j=0;
 					for (; j<ksz; j++) {
 						if (pd[j] != p[j]) {
 							break;
 						}
-					}			
-				
+					}
+
 					if (j == ksz) {
 						locn.second = p-2*sizeof(size_t);
 						//cout<<key<<" found"<<endl;
@@ -281,13 +340,16 @@ public:
 					}
 					p += ksz + vsz;
 				}
-				sa = sa->loadNext(dataFile_);				
+				sa = sa->loadNext(dataFile_);
 			}
 			locn.second = p;
 		}
 		return false;
 	}
 
+	/**
+	 *  get the NodeKeyLocn of first item in the first not empty bucket.
+	 */
 	NodeKeyLocn get_first_Locn()
 	{
 		NodeKeyLocn locn;
@@ -303,9 +365,12 @@ public:
 		return locn;
 	}
 
+	/**
+	 *  get an item from given NodeKeyLocn
+	 */
 	bool get(const NodeKeyLocn& locn, DataType& rec) {
 
-		string_chain* sa = locn.first;
+		bucket_chain* sa = locn.first;
 		char* p = locn.second;
 
 		if(sa == NULL)return false;
@@ -335,12 +400,20 @@ public:
 
 	}
 
+	/**
+	 *   \brief sequential access method
+	 * 
+	 *   @param locn is the current NodeKeyLocn, and will replaced next NodeKeyLocn when route finished. 
+	 *   @param rec is the item in NodeKeyLocn locn.
+	 *   @param sdir is sequential access direction, for hash is unordered, we only implement forward case.
+	 *   
+	 */
 	bool seq(NodeKeyLocn& locn, DataType& rec, ESeqDirection sdir=ESD_FORWARD) {
 
 		flushCache_();
 
 		if( sdir == ESD_FORWARD ) {
-			string_chain* sa = locn.first;
+			bucket_chain* sa = locn.first;
 			char* p = locn.second;
 
 			if(sa == NULL)return false;
@@ -367,10 +440,10 @@ public:
 			rec.key = key;
 			rec.value = val;
 
-			memcpy(&ksize, p, sizeof(size_t));	
+			memcpy(&ksize, p, sizeof(size_t));
 			if( ksize == 0 ) {
 				sa = sa->loadNext(dataFile_);
-				if( sa ) {					
+				if( sa ) {
 					p = sa->str;
 				}
 				else
@@ -400,13 +473,18 @@ public:
 		}
 	}
 
+	/**
+	 *   get the num of items
+	 */
 	int num_items() {
 		return sfh_.numItems;
 	}
 
 public:
-
-	bool open() {		
+	/**
+	 *   db must be opened to be used.
+	 */
+	bool open() {
 		struct stat statbuf;
 		bool creating = stat(fileName_.c_str(), &statbuf);
 
@@ -417,14 +495,14 @@ public:
 		}
 		bool ret = false;
 		if (creating) {
-			
-		// We're creating if the file doesn't exist.			
+
+			// We're creating if the file doesn't exist.			
 #ifdef DEBUG
 			cout<<"creating...\n"<<endl;
 			sfh_.display();
 #endif
 			bucketAddr = new long[sfh_.directorySize];
-			entry_ = new string_chain*[sfh_.directorySize];
+			entry_ = new bucket_chain*[sfh_.directorySize];
 
 			for(size_t i=0; i<sfh_.directorySize; i++)
 			bucketAddr[i] = 0;
@@ -443,7 +521,7 @@ public:
 				sfh_.display();
 #endif
 				bucketAddr = new long[sfh_.directorySize];
-				entry_ = new string_chain*[sfh_.directorySize];
+				entry_ = new bucket_chain*[sfh_.directorySize];
 
 				if (sfh_.directorySize != fread(bucketAddr, sizeof(long),
 								sfh_.directorySize, dataFile_))
@@ -451,9 +529,9 @@ public:
 				for (size_t i=0; i<sfh_.directorySize; i++) {
 					if (bucketAddr[i] != 0) {
 						//cout<<"bucket addr: "<<bucketAddr[i]<<endl;
-						entry_[i] = new string_chain(sfh_.bucketSize);
+						entry_[i] = new bucket_chain(sfh_.bucketSize);
 						entry_[i]->fpos = bucketAddr[i];
-						entry_[i]->read(dataFile_);					
+						entry_[i]->read(dataFile_);
 					}
 				}
 				ret = true;
@@ -461,33 +539,35 @@ public:
 		}
 		return ret;
 	}
-
+	/**
+	 *   db should be closed after open, and  it will automatically called in deconstuctor.
+	 */
 	bool close()
 	{
 		flush();
-		for (size_t i=0; i<sfh_.directorySize; i++) {
-			string_chain* sc = entry_[i];
-			while ( entry_[i] ) {
-				sc = entry_[i]->next;
-				delete entry_[i];
-				entry_[i] = 0;
-				entry_[i] = sc;
-			}
+		for (size_t i=0; i<sfh_.directorySize; i++)
+		{
+			delete entry_[i];
+			entry_[i] = 0;
 		}
-		delete [] bucketAddr;
 		delete entry_;
-		fclose(dataFile_);
 
+		delete [] bucketAddr;
+		fclose(dataFile_);
+		dataFile_ = 0;
 		return true;
 	}
-
-	void flush() {
+	/**
+	 *  write the dirty buckets to disk.
+	 *  
+	 */
+	void commit() {
 		sfh_.toFile(dataFile_);
 		if (sfh_.directorySize != fwrite(bucketAddr, sizeof(long),
 						sfh_.directorySize, dataFile_) )
 		return;
 		for (size_t i=0; i<sfh_.directorySize; i++) {
-			string_chain* sc = entry_[i];
+			bucket_chain* sc = entry_[i];
 			while (sc) {
 				if (sc->write(dataFile_) ) {
 					sc = sc->next;
@@ -498,16 +578,38 @@ public:
 		}
 		fflush(dataFile_);
 	}
-
-	void display(std::ostream& os = std::cout) {	
-		sfh_.display(os);		
-		os<<"activeNum: "<<string_chain::activeNum<<endl;
+	/**
+	 *   Write the dirty buckets to disk and also free up most of the memory.
+	 *   Note that, for efficieny, entry_[] is not freed up.
+	 */
+	void flush() {
+		commit();
+		for (size_t i=0; i<sfh_.directorySize; i++) {
+			if(entry_[i]) {
+				bucket_chain* sc = entry_[i]->next;
+				bucket_chain* sa;
+				while ( sc ) {
+					sa = sc->next;
+					delete sc;
+					sc = 0;
+					sc = sa;
+				}
+			}
+		}
+	}
+	/**
+	 *  display the info of sdb_hash
+	 */
+	void display(std::ostream& os = std::cout) {
+		sfh_.display(os);
+		os<<"activeNum: "<<bucket_chain::activeNum<<endl;
 		for (size_t i=0; i<sfh_.directorySize; i++) {
 			os<<"["<<i<<"]: ";
 			if (entry_[i])
 			entry_[i]->display(os);
-			os<<endl;			
+			os<<endl;
 		}
+		os<<"loadFactor: "<<loadFactor()<<endl;
 	}
 
 	/**	 
@@ -523,7 +625,7 @@ public:
 	{
 		int nslot = 0;
 		for (size_t i=0; i<sfh_.directorySize; i++) {
-			string_chain* sc = entry_[i];
+			bucket_chain* sc = entry_[i];
 			while (sc) {
 				nslot += sc->num;
 				sc = sc->next;
@@ -536,11 +638,14 @@ public:
 	}
 
 protected:
-	string_chain** entry_;
+	bucket_chain** entry_;
+
+	//bucketAddr stores fpos for entry_ and it was store in disk after fileHeader.
 	long *bucketAddr;
 
-	multimap<int, string_chain*, greater<int> > sh_cache_;
-	typedef typename multimap<int, string_chain*, greater<int> >::iterator CacheIter;
+	//levle->bucket_chain* map, used for caching
+	multimap<int, bucket_chain*, greater<int> > sh_cache_;
+	typedef typename multimap<int, bucket_chain*, greater<int> >::iterator CacheIter;
 
 private:
 	ShFileHeader sfh_;
@@ -548,73 +653,79 @@ private:
 	FILE* dataFile_;
 
 private:
-	string_chain* allocateBlock_() {
+	/**
+	 *   Allocate an bucket_chain element 
+	 */
+	bucket_chain* allocateBlock_() {
 		//cout<<"allocateBlock idx="<<sfh_.nBlock<<endl;
-		string_chain* newBlock;
-		newBlock = new string_chain(sfh_.bucketSize);
+		bucket_chain* newBlock;
+		newBlock = new bucket_chain(sfh_.bucketSize);
 		newBlock->str = new char[sfh_.bucketSize-sizeof(long)-sizeof(int)];
 		memset(newBlock->str, 0, sfh_.bucketSize-sizeof(long)-sizeof(int));
 		newBlock->isLoaded = true;
 		newBlock->isDirty = true;
 
 		newBlock->fpos = sizeof(ShFileHeader) + sizeof(long)*sfh_.directorySize + sfh_.bucketSize*sfh_.nBlock;
-		sfh_.nBlock++;		
-		
-		string_chain::activeNum++;
+		sfh_.nBlock++;
+
+		bucket_chain::activeNum++;
 
 		return newBlock;
 	}
-
+	/**
+	 *  when cache is full, it was called to reduce memory usage.
+	 * 
+	 */
 	void flushCache_()
 	{
 
-		//cout<<string_chain::activeNum<<" vs "<<sfh_.cacheSize <<endl;
-		if( string_chain::activeNum >  sfh_.cacheSize )
+		//cout<<bucket_chain::activeNum<<" vs "<<sfh_.cacheSize <<endl;
+		if( bucket_chain::activeNum> sfh_.cacheSize )
 		{
 #ifdef DEBUG
 			cout<<"cache is full..."<<endl;
-			cout<<string_chain::activeNum<<" vs "<<sfh_.cacheSize <<endl;
+			cout<<bucket_chain::activeNum<<" vs "<<sfh_.cacheSize <<endl;
 #endif
 
-			
-			for(size_t i=0; i<sfh_.directorySize; i++){
-				string_chain* sc = entry_[i];
-				while( sc ){
+			for(size_t i=0; i<sfh_.directorySize; i++) {
+				bucket_chain* sc = entry_[i];
+				while( sc ) {
 					//if(  sc->level>0 && (size_t)sc->level > sfh_.cacheSize/sfh_.directorySize/2 - 1 )
 					if( sc->level>0 )
 					{
 						if(sc->isLoaded)
-							sh_cache_.insert(make_pair(sc->level, sc ));			
+						sh_cache_.insert(make_pair(sc->level, sc ));
 					}
 					sc = sc->next;
-				}						
-			}	
-			
+				}
+			}
+
 			//cout<<sh_cache_.size()<<endl;				
 			for(CacheIter it = sh_cache_.begin(); it != sh_cache_.end(); it++ )
-			 {
+			{
 #ifdef DEBUG
 				//display cache
+
 				/*cout<<"(level: "<<it->second->level;
-				cout<<"  val:  "<<it->second;
-				cout<<"  fpos: "<<it->second->fpos;	
-				cout<<"  num: "<<it->second->num;		
-				cout<<" )-> ";*/
+				 cout<<"  val:  "<<it->second;
+				 cout<<"  fpos: "<<it->second->fpos;	
+				 cout<<"  num: "<<it->second->num;		
+				 cout<<" )-> ";*/
 #endif				
 				it->second->write(dataFile_);
 				it->second->unload();
-				if( string_chain::activeNum < sfh_.cacheSize/2 ){
+				if( bucket_chain::activeNum < sfh_.cacheSize/2 ) {
 					fflush(dataFile_);
-					sh_cache_.clear();	
-					
-					//cout<<" !!!! "<<string_chain::activeNum<<" vs "<<sfh_.cacheSize <<endl;
+					sh_cache_.clear();
+
+					//cout<<" !!!! "<<bucket_chain::activeNum<<" vs "<<sfh_.cacheSize <<endl;
 					//display();
 					return;
 				}
-			 }		
+			}
 			fflush(dataFile_);
-			sh_cache_.clear();				
-			//cout<<" !!!! "<<string_chain::activeNum<<" vs "<<sfh_.cacheSize <<endl;
+			sh_cache_.clear();
+			//cout<<" !!!! "<<bucket_chain::activeNum<<" vs "<<sfh_.cacheSize <<endl;
 			//display();	
 		}
 	}

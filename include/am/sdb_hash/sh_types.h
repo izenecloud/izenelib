@@ -7,7 +7,6 @@
 
 #include <am/util/DbObj.h>
 #include <am/util/Wrapper.h>
-#include <am/util/MemMap.h>
 #include <am/util/SdbUtil.h>
 
 #include <util/RefCount.h>
@@ -28,7 +27,9 @@ using namespace izenelib::am::util;
 
 NS_IZENELIB_AM_BEGIN
 
-
+/**
+ *   hashing function object used for sdb_hash
+ */
 class sdb_hashing {
 public:
 	static uint32_t hash_fun(const void* kbuf, const size_t ksize) {
@@ -39,7 +40,6 @@ public:
 		return convkey;
 	}
 };
-
 
 
 NS_IZENELIB_AM_END

@@ -1,27 +1,44 @@
-#ifndef STRING_CHAIN_H_
-#define STRING_CHAIN_H_
+/**
+ * @file bucket_chain.h
+ * @brief The header file of bucket_chain.
+ * @author peisheng wang * 
+ *
+ * This file defines class bucket_chain.
+ */
 
+#ifndef bucket_chain_H_
+#define bucket_chain_H_
 
-class string_chain {	
+/**
+ *  \brief bucket_chain, represents a bucket of our array hash. 
+ *   
+ *   It has fixed size and an pointer to next bucket_chain element.
+ *   It uses a char* member str to store item(binary) sequentially. When full, items will 
+ *   be stored to next bucket_chain element.   
+ *
+ */
+class bucket_chain {	
 	size_t bucketSize_;
 public:
 	char *str;
 	long fpos;
 	int num;
-	string_chain* next;
+	bucket_chain* next;
 	bool isLoaded;
-	bool isDirty;
-	
+	bool isDirty;	
 	
 	int level;
 	
-	//It indicates how many active string_chains in memory.
+	//It indicates how many active bucket_chains in memory.
 	//It increases when allocateBlock() called, or reading from disk,
 	//and decreases when unload() called. 
 	static size_t activeNum;
 
 public:
-	string_chain(size_t bucketSize) :
+	/**
+	 *  constructor
+	 */
+	bucket_chain(size_t bucketSize) :
 	bucketSize_(bucketSize) {
 		str = NULL;
 		num = 0;
@@ -30,19 +47,23 @@ public:
 		isDirty = true;
 		fpos = 0;
 		
-		level = 0;		
-		
+		level = 0;				
 		//++activeNum;
 	}
-
-	virtual ~string_chain() {
+    
+	/**	 
+	 *  deconstructor
+	 */
+	virtual ~bucket_chain() {
 		if( str ) delete str;
 		str = 0;
-		next = 0;	
-		
+		next = 0;			
 		//--activeNum;
 	}
 
+	/**
+	 *  write to disk
+	 */
 	bool write(FILE* f) {
 		if (!isDirty) {
 			return true;
@@ -87,6 +108,10 @@ public:
 		return true;
 	}
 	
+
+	/**
+	 *  read from disk
+	 */
 	bool read(FILE* f) {
 		if (!f) {
 			return false;
@@ -122,7 +147,7 @@ public:
 
 		//cout<<"read next fpos="<<nextfpos<<endl;
 		if (nextfpos !=0) {
-			if( !next )next = new string_chain(bucketSize_);
+			if( !next )next = new bucket_chain(bucketSize_);
 			next->fpos = nextfpos;
 		}
 		isLoaded = true;
@@ -133,19 +158,22 @@ public:
 		return true;
 	}
 
-	string_chain* loadNext(FILE* f) {
-		//cout<<"loadNext"<<endl;	
-		//if(next)cout<<next->fpos<<endl;		
+	/**
+	 *    load next bucket_chain element
+	 */ 
+	bucket_chain* loadNext(FILE* f) {		
 		if (next && !next->isLoaded) {			
-			next->read(f);			
-			//cout<<"load from file"<<endl;
-			//cout<<"activeNode: "<<activeNum<<endl;	
+			next->read(f);						
 		}
 		//
 		if( next )next->level = level+1;
 		return next;
 	}
 	
+	/**
+	 *   unload a buck_chain element.
+	 *   It releases most of the memory, and was used to recycle memory when cache is full. 
+	 */
 	void unload(){			
 		if(str){
 			delete str;
@@ -158,6 +186,9 @@ public:
 		//cout<<"activeNode: "<<activeNum<<endl;
 	}
 
+	/**
+	 *   display string_chain info.
+	 */
 	void display(std::ostream& os = std::cout) {		
 		os<<"(level: "<<level;
 		os<<"  isLoaded: "<<isLoaded;
@@ -172,7 +203,7 @@ public:
 	}
 };
 
-size_t string_chain::activeNum;
+size_t bucket_chain::activeNum;
 
 
-#endif /*STRING_CHAIN_H_*/
+#endif /*bucket_chain_H_*/

@@ -65,6 +65,9 @@ public:
 	BTreeFile(const std::string& fileName = "sequentialdb.dat");
 	virtual ~BTreeFile();
 
+	/**
+	 *   set the degree
+	 */
 	void setDegree(int degree)
 	{
 		_minDegree = degree;
@@ -250,8 +253,11 @@ public:
 	/**
 	 * 	\brief write all the items in memory to file.
 	 */
+	
 	void flush();
-
+	/**
+	 * 	\brief write back the dirypages
+	 */
 	void commit() {
 		//write back the fileHead
 		if(_root)
@@ -267,21 +273,15 @@ public:
 		if (1 != fwrite(&sfh, sizeof(sfh), 1, _dataFile)) {
 			abort();
 		}
-		//cout<<_dirtyPages.size()<<endl;
-		//clock_t t1 = clock();
-		
+
 		while( !_dirtyPages.empty() )
 		{
 			BTreeNodePtr ptr = _dirtyPages.back();
 			_dirtyPages.pop_back();
 			ptr->write(_dataFile);
 		}
-		
-		//printf("after commit: eclipse: %lf seconds\n", double(clock()- t1)/CLOCKS_PER_SEC);
-		//cout<<_dirtyPages.size()<<endl;
 		fflush(_dataFile);
-		//for (BnPtrIter it=_dirtyPages.begin(); it != _dirtyPages.end(); it++)
-		//(*it)->write(_dataFile);
+
 	}
 
 	/**
@@ -1454,7 +1454,7 @@ template<typename KeyType, typename ValueType, typename LockType,
 		typename Alloc> void BTreeFile< KeyType, ValueType, LockType, Alloc>::flush() {
 
 	//write back the fileHead and dirtypage
-	commit();	
+	commit();
 	// Unload each of the root's childrent. 
 	if (_root && !_root->isLeaf) {
 		for (size_t ctr = 0; ctr <= _root->objCount; ctr++) {
