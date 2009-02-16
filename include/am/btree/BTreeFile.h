@@ -2,6 +2,7 @@
  * @file BTREEFILE.h
  * @brief The header file of BTreeFile.
  *
+ *
  * This file defines class BTreeFile.
  */
 #ifndef BTREEFILE_H_
@@ -66,10 +67,9 @@ public:
 
 	void setDegree(int degree)
 	{
-		_minDegree  = degree;
+		_minDegree = degree;
 	}
-	
-	
+
 	/**
 	 * 	\brief set tha pageSize.
 	 *  \param maxDataSize if the size of DataType(binary) exceeds maxDataSize, overflowing accur.
@@ -85,8 +85,8 @@ public:
 		_maxDataSize = maxDataSize;
 
 		BTreeNode<KeyType, DataType, LockType, Alloc>::setDataSize(maxDataSize,
-			_pageSize, _overFlowSize);
-		
+				_pageSize, _overFlowSize);
+
 		//_pageSize += BOOST_SERIAZLIZATION_HEAD_LENGTH;
 	}
 
@@ -94,10 +94,10 @@ public:
 	 *  \brief set size for overflow page.
 	 * 
 	 */
-	void setOverFlowPageSize(size_t overFlowSize){
+	void setOverFlowPageSize(size_t overFlowSize) {
 		_overFlowSize = overFlowSize;
 	}
-	
+
 	/**
 	 * 	We would peroidically flush the memory items, according to the cache Size. 
 	 */
@@ -105,7 +105,7 @@ public:
 	void setCacheSize(size_t sz) {
 		_cacheSize = 2*sz/_minDegree;
 	}
-	
+
 	/**
 	 * 	\brief return the file name of the SequentialDB
 	 */
@@ -119,6 +119,27 @@ public:
 	 *   Everytime  we use the database, we mush open it first.  
 	 */
 	bool open();
+
+	/**
+	 * 	 \brief close the database. 
+	 * 
+	 *    if we don't call it, it will be automately called in deconstructor 	 
+	 */
+	bool close() {
+		//note that _root can be  NULL, if no items.
+		flush();
+		if (_root) {
+			_root->unload();
+			_root.reset(0);
+		}
+
+		if (_dataFile != 0) {
+			fclose(_dataFile);
+			_dataFile = 0;
+		}
+		return true;
+	}
+
 	/**
 	 * 	 \brief del an item from the database
 	 * 
@@ -131,10 +152,10 @@ public:
 
 	/**
 	 *  \brief insert an item.
-	 */ 
+	 */
 	bool insert(const KeyType& key, const ValueType& value) {
 		//DataType data(key, value);
-		return insert( DataType(key, value) ) ;
+		return insert( DataType(key, value) );
 	}
 
 	/**
@@ -159,7 +180,7 @@ public:
 	/**
 	 *  \brief updata an item with given key, if it not exist, insert it directly. 
 	 */
-	bool update(const DataType& rec);	
+	bool update(const DataType& rec);
 
 	/**
 	 * 	
@@ -178,11 +199,16 @@ public:
 	bool get(const KeyType& key, DataType& rec);
 
 	/**
-	 * 	\brief get an item by its key.
+	 *  \brief get the cursor of the first item.
+	 * 
 	 */
-	//bool get(KeyType& key, DataType& rec);
 
-
+	NodeKeyLocn get_first_Locn()
+	{
+		NodeKeyLocn locn;
+		search(KeyType(), locn);
+		return locn;
+	}
 	/**
 	 * 	\brief get the next or prev item.
 	 */
@@ -194,7 +220,9 @@ public:
 	 *  \brief given a  key, get next key
 	 */
 	KeyType getNext(const KeyType& key) {
-		NodeKeyLocn locn =search(key);
+		//NodeKeyLocn locn =search(key);
+		NodeKeyLocn locn;
+		search(key, locn);
 		if (locn.second == size_t(-1) ) {
 			return KeyType();
 		} else {
@@ -208,7 +236,9 @@ public:
 	 *  \brief given a  key, get next key
 	 */
 	KeyType getPrev(const KeyType& key) {
-		NodeKeyLocn locn = search(key);
+		//NodeKeyLocn locn = search(key);
+		NodeKeyLocn locn;
+		search(key, locn);
 		if (locn.second == size_t(-1) ) {
 			return KeyType();
 		} else {
@@ -225,29 +255,30 @@ public:
 	void commit() {
 		//write back the fileHead
 		if(_root)
-			sfh.rootPos = _root->fpos;
+		sfh.rootPos = _root->fpos;
 		sfh.numItem = _numItem;
 		sfh.pageSize = _pageSize;
-        
-		if( !_dataFile )return ;
-		
+
+		if( !_dataFile )return;
+
 		if ( 0 != fseek(_dataFile, 0, SEEK_SET)) {
 			abort();
 		}
 		if (1 != fwrite(&sfh, sizeof(sfh), 1, _dataFile)) {
 			abort();
 		}
-		cout<<_dirtyPages.size()<<endl
-		;
-		clock_t t1 = clock();
+		//cout<<_dirtyPages.size()<<endl;
+		//clock_t t1 = clock();
+		
 		while( !_dirtyPages.empty() )
 		{
 			BTreeNodePtr ptr = _dirtyPages.back();
 			_dirtyPages.pop_back();
 			ptr->write(_dataFile);
 		}
-		printf("eclipse: %lf seconds\n", double(clock()- t1)/CLOCKS_PER_SEC);
-		cout<<_dirtyPages.size()<<endl;
+		
+		//printf("after commit: eclipse: %lf seconds\n", double(clock()- t1)/CLOCKS_PER_SEC);
+		//cout<<_dirtyPages.size()<<endl;
 		fflush(_dataFile);
 		//for (BnPtrIter it=_dirtyPages.begin(); it != _dirtyPages.end(); it++)
 		//(*it)->write(_dataFile);
@@ -318,12 +349,14 @@ public:
 	 *  given key. 
 	 *
 	 */
-	NodeKeyLocn search(const KeyType& key) {
+	bool search(const KeyType& key, NodeKeyLocn& locn) {
 
 		//do Flush, when there are too many active nodes.
 		_flushCache();
 
-		NodeKeyLocn ret(BTreeNodePtr(), (size_t)-1);
+		locn.first = BTreeNodePtr();
+		locn.second = (size_t)-1;
+
 		BTreeNodePtr temp = _root;
 		while (1) {
 			int ctr = temp->objCount;
@@ -331,25 +364,28 @@ public:
 			int high = ctr-1;
 			int compVal;
 			while (low <= high) {
-				int mid = (low+high)/2; //cout<<"mid "<<mid<<endl;
+				int mid = (low+high)/2;
+				//cout<<"mid "<<mid<<endl;
 				compVal = comp(key,temp->elements[mid]->pdat->get_key() );
-				if (compVal == 0)
-				return NodeKeyLocn(temp, mid);
+				if (compVal == 0) {
+					locn.first = temp;
+					locn.second = mid;
+					return true;
+				}
 				else if (compVal < 0)
 				high = mid-1;
 				else {
 					low = mid+1;
 				}
 			}
-			//	cout<<"serach childno0 "<<low<<endl;
+
 			if (!temp->isLeaf) {
 				temp = temp->loadChild(low, _dataFile);
 			} else {
 				break;
 			}
-			//	cout<<"serach childno "<<low<<endl;
 		}
-		return ret;
+		return false;
 	}
 
 private:
@@ -392,7 +428,7 @@ private:
 	size_t _numItem;
 	//long _recOff;
 
-	
+
 	SFileHeader sfh;
 
 	bool _isUnload;
@@ -403,17 +439,41 @@ private:
 
 private:
 
-	void _flushCache() {	
+	void _flushCache() {
+
 		//cout<<BTreeNode<KeyType, DataType, LockType, Alloc>::activeNodeNum <<" > "<<_cacheSize<<endl;
-		
-		if (BTreeNode<KeyType, DataType, LockType, Alloc>::activeNodeNum > _cacheSize) {
+		if (BTreeNode<KeyType, DataType, LockType, Alloc>::activeNodeNum> _cacheSize) {
 #ifdef DEBUG
 			cout<<"flush ... "<<_cacheSize << endl;
 			cout<<"activeNode: " <<BTreeNode<KeyType, DataType, LockType, Alloc>::activeNodeNum
 			<<endl;
 #endif
-			_isUnload = true;			
-			flush();
+			_isUnload = true;
+
+			if ( _root && !_root->isLeaf) {
+				for (size_t ctr = 0; ctr <= _root->objCount; ctr++) {
+					// keep engough node in memory to impove the efficency.
+					if (BTreeNode<KeyType, DataType, LockType, Alloc>::activeNodeNum
+							< _cacheSize/2 ) {
+#ifdef DEBUG
+						cout<<"AcitveNodeNum= "
+						<<BTreeNode<KeyType, DataType, LockType, Alloc>::activeNodeNum
+						<<"\n stop unload\n";
+#endif
+
+						break;
+					}
+
+					BTreeNodePtr pChild = _root->children[ctr];
+					if ((BTreeNodePtr)pChild != 0) {
+						_root->children[ctr]->write(_dataFile);
+						_root->children[ctr]->unload();
+					}
+					_isUnload = false;
+
+				}
+			}
+
 		}
 
 	}
@@ -499,7 +559,7 @@ private:
 		{
 			parent = c1;
 		}
-	
+
 		// Write the two affected nodes to the disk. Note that
 		// c2 just goes away. The node will be deallocated because
 		// of the smart pointers, and the node's location on
@@ -532,7 +592,7 @@ private:
 		NodeKeyLocn ret(BTreeNodePtr(), (size_t)-1);
 		BTreeNodePtr child = node;
 		while (!child->isLeaf) {
-			child = child->loadChild(child->objCount, _dataFile);		
+			child = child->loadChild(child->objCount, _dataFile);
 		}
 		ret.first = child;
 		ret.second = child->objCount - 1;
@@ -546,7 +606,7 @@ private:
 		NodeKeyLocn ret(BTreeNodePtr(), (size_t)-1);
 		BTreeNodePtr child = node;
 		while (!child->isLeaf) {
-			child = child->loadChild(0, _dataFile);			
+			child = child->loadChild(0, _dataFile);
 		}
 		ret.first = child;
 		ret.second = 0;
@@ -561,17 +621,17 @@ private:
 template<typename KeyType, typename ValueType, typename LockType,
 		typename Alloc> BTreeFile< KeyType, ValueType, LockType, Alloc>::BTreeFile(
 		const std::string& fileName) :
-	_fileName(fileName), _dataFile(0), _numItem(0) {  
-    _minDegree = 16;
-    
-    _maxDataSize = 64;
-	setPageSize(_maxDataSize); 
-	
+	_fileName(fileName), _dataFile(0), _numItem(0) {
+	_minDegree = 16;
+
+	_maxDataSize = 64;
+	setPageSize(_maxDataSize);
+
 	_overFlowSize = 1024;
 	_cacheSize = 1000000; //default set 1000000	
-	
+
 	_isUnload = false;
-	_root = 0;	
+	_root = 0;
 }
 
 // The destructor of a BTreeFile object unloads the root
@@ -585,20 +645,7 @@ template<typename KeyType, typename ValueType, typename LockType,
 // We also have to close the file.
 template<typename KeyType, typename ValueType, typename LockType,
 		typename Alloc> BTreeFile< KeyType, ValueType, LockType, Alloc>::~BTreeFile() {
-
-	flush();//write back the dirty pages.
-	
-	//note that _root can be  NULL, if no items.
-	if(_root){
-		_root->unload();
-		_root.reset(0);
-	}
-
-	if (_dataFile != 0) {
-		fclose(_dataFile);
-		_dataFile = 0;
-	}
-
+	close();
 }
 
 // Splits a child node, creating a new node. The median value from the
@@ -779,10 +826,11 @@ template<typename KeyType, typename ValueType, typename LockType,
 			popNode->write(f);
 		}
 		qnode.pop();
-		if (!popNode->isLeaf) {			
+		if (!popNode->isLeaf) {
 			for (BIT tnvit = popNode->children.begin(); tnvit
 					!= popNode->children.end(); tnvit++) {
-				if(*tnvit)qnode.push(*tnvit);
+				if (*tnvit)
+					qnode.push(*tnvit);
 			}
 
 		}
@@ -816,7 +864,7 @@ template<typename KeyType, typename ValueType, typename LockType,
 			// Case 1: deletion from leaf node.
 			if (node->isLeaf) {
 				node->delFromLeaf(op.first);
-				
+
 				//now node is dirty
 				node->setDirty(1);
 				_dirtyPages.push_back(node);
@@ -836,11 +884,11 @@ template<typename KeyType, typename ValueType, typename LockType,
 					DataTypePtr pdat;
 					pdat.reset(new PtrObj<DataType, LockType, Alloc>(dat));
 					node->elements[op.first] = pdat;
-					
+
 					//now node is dirty
 					node->setDirty(1);
 					_dirtyPages.push_back(node);
-					
+
 					node = childNode;
 					key = dat.get_key();
 					goto L0;
@@ -856,11 +904,11 @@ template<typename KeyType, typename ValueType, typename LockType,
 					DataTypePtr pdat;
 					pdat.reset(new PtrObj<DataType, LockType, Alloc>(dat));
 					node->elements[op.first] = pdat;
-					
+
 					//now node is dirty
 					node->setDirty(1);
 					_dirtyPages.push_back(node);
-					
+
 					node = childNode;
 					key = dat.get_key();
 					goto L0;
@@ -954,7 +1002,7 @@ template<typename KeyType, typename ValueType, typename LockType,
 							childNode->children[0]->parent = childNode;//wps add it
 						}
 						--leftSib->objCount;
-						
+
 						//now node is dirty
 						leftSib->setDirty(1);
 						node->setDirty(1);
@@ -1000,7 +1048,7 @@ template<typename KeyType, typename ValueType, typename LockType,
 							rightSib->children[ctr]->childNo = ctr;
 						}
 						rightSib->setCount(rightSib->objCount - 1);
-						
+
 						//now node is dirty
 						rightSib->setDirty(true);
 						node->setDirty(1);
@@ -1008,7 +1056,7 @@ template<typename KeyType, typename ValueType, typename LockType,
 						_dirtyPages.push_back(node);
 					}
 					node = childNode;
-					
+
 					node->setDirty(true);
 					_dirtyPages.push_back(node);
 					goto L0;
@@ -1061,7 +1109,7 @@ template<typename KeyType, typename ValueType, typename LockType,
 		sfh.overFlowSize = _overFlowSize;
 		sfh.minDegree = _minDegree;
 		sfh.cacheSize = _cacheSize;
-		
+
 		sfh.rootPos = sizeof(sfh);
 
 #ifdef DEBUG
@@ -1081,13 +1129,13 @@ template<typename KeyType, typename ValueType, typename LockType,
 		_root = _allocateNode();
 		_root->isLeaf = true;
 		_root->loaded = true;
-		
+
 		_root->write(_dataFile);
 		ret = true;
-		
-		BTreeNode<KeyType, DataType, LockType, Alloc>::setDataSize(_maxDataSize,
-				_pageSize, _overFlowSize);
-		
+
+		BTreeNode<KeyType, DataType, LockType, Alloc>::setDataSize(
+				_maxDataSize, _pageSize, _overFlowSize);
+
 	} else {
 
 		// when not creating, read the root node from the disk.
@@ -1113,10 +1161,9 @@ template<typename KeyType, typename ValueType, typename LockType,
 			sfh.display();
 #endif
 
-			BTreeNode<KeyType, DataType, LockType, Alloc>::setDataSize(_maxDataSize,
-					_pageSize, _overFlowSize);
-			
-			
+			BTreeNode<KeyType, DataType, LockType, Alloc>::setDataSize(
+					_maxDataSize, _pageSize, _overFlowSize);
+
 			_root.reset(new BTreeNode<KeyType, DataType, LockType, Alloc>);
 			_root->fpos = sfh.rootPos;
 			_root->read(_dataFile);
@@ -1194,15 +1241,17 @@ template<typename KeyType, typename ValueType, typename LockType,
 template<typename KeyType, typename ValueType, typename LockType,
 		typename Alloc> bool BTreeFile< KeyType, ValueType, LockType, Alloc>::get(
 		const KeyType& key, DataType& rec) {
-	NodeKeyLocn locn = search(key);
+	NodeKeyLocn locn;
+	search(key, locn);
 	return get(locn, rec);
 }
 
 template<typename KeyType, typename ValueType, typename LockType,
 		typename Alloc> bool BTreeFile< KeyType, ValueType, LockType, Alloc>::update(
-		 const DataType& rec) {
+		const DataType& rec) {
 	NodeKeyLocn locn(BTreeNodePtr(), (size_t)-1);
-	locn = search( rec.get_key() );
+	//locn = search( rec.get_key() );
+	search(rec.get_key(), locn);
 	if (locn.second != (size_t) -1) {
 		locn.first->elements[locn.second].reset(new PtrObj<DataType, LockType, Alloc>(rec));
 		return true;
@@ -1398,33 +1447,17 @@ template<typename KeyType, typename ValueType, typename LockType,
 }
 
 // This method flushes all loaded nodes to the file and
-// then unloads the root node. So not only do we commit
-// everything to file, we also free up any memory previously
+// then unloads the root node' children. So not only do we commit
+// everything to file, we also free up most memory previously
 // allocated.
 template<typename KeyType, typename ValueType, typename LockType,
 		typename Alloc> void BTreeFile< KeyType, ValueType, LockType, Alloc>::flush() {
 
 	//write back the fileHead and dirtypage
-
-	commit();
-	// Unload each of the root's childrent. If we
-	// unload the root itself, we lose the use of
-	// the tree.
-	//_root->unload();
-
-	if ( _root && !_root->isLeaf) {
+	commit();	
+	// Unload each of the root's childrent. 
+	if (_root && !_root->isLeaf) {
 		for (size_t ctr = 0; ctr <= _root->objCount; ctr++) {
-			// keep engough node in memory to impove the efficency.
-			if (BTreeNode<KeyType, DataType, LockType, Alloc>::activeNodeNum
-					< _cacheSize/2 ) {
-#ifdef DEBUG
-				cout<<"AcitveNodeNum= "
-				<<BTreeNode<KeyType, DataType, LockType, Alloc>::activeNodeNum
-				<<"\n stop unload\n";
-#endif
-
-				break;
-			}
 
 			BTreeNodePtr pChild = _root->children[ctr];
 			if ((BTreeNodePtr)pChild != 0) {

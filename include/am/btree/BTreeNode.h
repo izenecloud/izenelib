@@ -31,7 +31,8 @@ enum EChildPos
 
 typedef std::pair<size_t, EChildPos> OBJECTPOS;
 
-template <typename DataType, typename LockType, typename Alloc =std::allocator<DataType> > class PtrObj :
+template <typename DataType, typename LockType,
+		typename Alloc =std::allocator<DataType> > class PtrObj :
 	public RefCount<LockType> {
 public:
 	PtrObj() {
@@ -57,12 +58,12 @@ public:
 		pdat = new DataType(*other.pdat);
 		return *this;
 	}
-	
-	/*bool operator <=(PtrObj& other) {
-		return *pdat.compare(*other.pdat);
 
-	}*/
-	
+	/*bool operator <=(PtrObj& other) {
+	 return *pdat.compare(*other.pdat);
+
+	 }*/
+
 public:
 	DataType* pdat;
 };
@@ -273,17 +274,17 @@ private:
 //map<size_t, OverflowInfo> _preOverflowMap;
 };
 
-template<typename KeyType, typename DataType, typename LockType, typename Alloc> size_t BTreeNode<
-		KeyType, DataType, LockType, Alloc>::activeNodeNum;
+template<typename KeyType, typename DataType, typename LockType, typename Alloc> size_t
+		BTreeNode< KeyType, DataType, LockType, Alloc>::activeNodeNum;
 
-template<typename KeyType, typename DataType, typename LockType, typename Alloc> size_t BTreeNode<
-		KeyType, DataType, LockType, Alloc>::_pageSize;
+template<typename KeyType, typename DataType, typename LockType, typename Alloc> size_t
+		BTreeNode< KeyType, DataType, LockType, Alloc>::_pageSize;
 
-template<typename KeyType, typename DataType, typename LockType, typename Alloc> size_t BTreeNode<
-		KeyType, DataType, LockType, Alloc>::_maxDataSize;
+template<typename KeyType, typename DataType, typename LockType, typename Alloc> size_t
+		BTreeNode< KeyType, DataType, LockType, Alloc>::_maxDataSize;
 
-template<typename KeyType, typename DataType, typename LockType, typename Alloc> size_t BTreeNode<
-		KeyType, DataType, LockType, Alloc>::_overFlowSize;
+template<typename KeyType, typename DataType, typename LockType, typename Alloc> size_t
+		BTreeNode< KeyType, DataType, LockType, Alloc>::_overFlowSize;
 
 template<typename KeyType, typename DataType, typename LockType, typename Alloc> LockType
 		BTreeNode< KeyType, DataType, LockType, Alloc>::_lock;
@@ -310,12 +311,12 @@ template<typename KeyType, typename DataType, typename LockType, typename Alloc>
 		KeyType, DataType, LockType, Alloc>::read(FILE* f) {
 
 	long _overFlowAddress;
-	
-#ifdef DEBUG
-	static int _rcount;
-	cout<<"reading "<<_rcount++<<endl;
-#endif
-	
+
+//#ifdef DEBUG
+//	static int _rcount;
+//	cout<<"reading "<<_rcount++<<endl;
+//#endif
+
 	if (!f) {
 		return false;
 	}
@@ -348,7 +349,7 @@ template<typename KeyType, typename DataType, typename LockType, typename Alloc>
 		children.resize(objCount + 1);
 
 		//Only allocate childnode when the node is no a leaf node.
-		if ( !isLeaf ) {
+		if ( !isLeaf) {
 			for (size_t ctr = 0; ctr <= objCount; ctr++) {
 				if (children[ctr] == 0) {
 					children[ctr].reset(new BTreeNode);
@@ -443,7 +444,6 @@ template<typename KeyType, typename DataType, typename LockType, typename Alloc>
 template<typename KeyType, typename DataType, typename LockType, typename Alloc> bool BTreeNode<
 		KeyType, DataType, LockType, Alloc>::write(FILE* f) {
 
-
 	typedef pair<long, size_t> OverflowInfo;
 	map<size_t, OverflowInfo> _overflowMap;
 
@@ -463,17 +463,15 @@ template<typename KeyType, typename DataType, typename LockType, typename Alloc>
 		return false;
 	}
 
-#ifdef DEBUG
-	static int _wcount;
-	cout<<"write "<<_wcount++ <<endl;
-#endif
-	
+//#ifdef DEBUG
+	//static int _wcount;
+	//cout<<"write "<<_wcount++ <<endl;
+//#endif
+
 	if (0 != fseek(f, 0, SEEK_END)) {
 		return false;
 	}
 	_overFlowAddress = ftell(f);
-
-	
 
 	// get to the right location
 	if (0 != fseek(f, fpos, SEEK_SET)) {
@@ -599,7 +597,7 @@ template<typename KeyType, typename DataType, typename LockType, typename Alloc>
 // have the filepos already in place.
 template<typename KeyType, typename DataType, typename LockType, typename Alloc> intrusive_ptr<BTreeNode<KeyType, DataType,LockType, Alloc> > BTreeNode<
 		KeyType, DataType, LockType, Alloc>::loadChild(size_t childNum, FILE* f) {
-	
+
 	BTreeNodePtr child;
 	child = children[childNum];
 	if ((BTreeNodePtr)child == 0) {
@@ -627,7 +625,7 @@ template<typename KeyType, typename DataType, typename LockType, typename Alloc>
 			(*tnvit)->unload();
 			//BIT temp = tnvit;
 			tnvit->reset(0);
-			++tnvit;			
+			++tnvit;
 		}
 
 		DBOBJVECTOR::iterator dovit = objects.begin();
