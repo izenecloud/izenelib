@@ -27,6 +27,8 @@ public:
 	bool isLoaded;
 	bool isDirty;	
 	
+	long nextfpos;
+	
 	int level;
 	
 	//It indicates how many active bucket_chains in memory.
@@ -46,6 +48,7 @@ public:
 		isLoaded = false;
 		isDirty = true;
 		fpos = 0;
+		nextfpos = 0;
 		
 		level = 0;				
 		//++activeNum;
@@ -55,9 +58,11 @@ public:
 	 *  deconstructor
 	 */
 	virtual ~bucket_chain() {
-		if( str ) delete str;
-		str = 0;
-		next = 0;			
+		if( str ){
+			delete str;
+			str = 0;
+		}					
+		isLoaded = false;
 		//--activeNum;
 	}
 
@@ -92,7 +97,7 @@ public:
 			return false;
 		}
 
-		long nextfpos = 0;
+		//long nextfpos = 0;
 
 		if (next)
 		nextfpos = next->fpos;
@@ -139,7 +144,7 @@ public:
 			return false;
 		}
 
-		long nextfpos = 0;
+		//long nextfpos = 0;
 
 		if (1 != fread(&nextfpos, sizeof(long), 1, f) ) {
 			return false;
@@ -162,10 +167,10 @@ public:
 	 *    load next bucket_chain element
 	 */ 
 	bucket_chain* loadNext(FILE* f) {		
-		if (next && !next->isLoaded) {			
+		if (next && !next->isLoaded) {	
+			//cout<<"reading next"<<endl;
 			next->read(f);						
-		}
-		//
+		}		
 		if( next )next->level = level+1;
 		return next;
 	}

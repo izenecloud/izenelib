@@ -16,7 +16,7 @@ SDB_SH_OBJ := t_sh.o
 
  
 
-all:  t_sh  #t_sdb_hash
+all:  t_sh  t_sdb_hash
 
 .cpp.o:
 	$(GPP) $(CC_OPTIONS) $(INC_PATH)  $< 

@@ -19,32 +19,33 @@ static bool rnd = 0;
 static bool ins = 1;
 
 typedef string KeyType;
-typedef izenelib::am::NullType ValueType;
-typedef izenelib::am::DataType<KeyType, NullType> DataType;
-typedef izenelib::am::DataType<KeyType, NullType> myDataType;
-typedef izenelib::am::sdb_hash<KeyType, izenelib::am::NullType> SDB_HASH;
-
+typedef int ValueType;
+typedef izenelib::am::DataType<KeyType, int> DataType;
+typedef izenelib::am::DataType<KeyType, int> myDataType;
+typedef izenelib::am::sdb_hash<KeyType, int> SDB_HASH;
 
 namespace izenelib {
 namespace am {
 namespace util {
 
-template<> inline void read_image<myDataType>(myDataType& dat, const DbObjPtr& ptr) {
+template<> inline void read_image<myDataType>(myDataType& dat,
+		const DbObjPtr& ptr) {
 	dat.key = (KeyType)((char*)ptr->getData() );
-};
+}
+;
 
-template<> inline void write_image<myDataType>(const myDataType& dat, DbObjPtr& ptr) {
+template<> inline void write_image<myDataType>(const myDataType& dat,
+		DbObjPtr& ptr) {
 	KeyType key = dat.get_key();
 	ptr->setData(key.c_str(), key.size()+1);
-};
+}
+;
 
 }
 }
 }
 
-
-template<typename T>
-void insert_test(T& tb) {
+template<typename T> void insert_test(T& tb) {
 	clock_t start, finish;
 	start = clock();
 	for (int i=0; i<num; i++) {
@@ -53,29 +54,30 @@ void insert_test(T& tb) {
 		}
 		char p[20];
 		sprintf(p, "%08d", i);
-		string str = p;	
+		string str = p;
 		//tb.insert(i, str);
-		tb.insert(str);
+		tb.insert(str, i);
 		if (trace) {
 			cout<<"numItem: "<<tb.num_items()<<endl<<endl;
-			tb.display();
+			//tb.display();
 		}
 		//cout<<"\nafte insert ...\n";		
 	}
 	cout<<"mumItem: "<<tb.num_items()<<endl;
-	printf("\nIt takes %f seconds before commit()\n", (double)(clock() - start)
+	printf("\nIt takes %f seconds before flush()\n", (double)(clock() - start)
 			/CLOCKS_PER_SEC);
 	if (trace)
 		tb.display();
 	tb.flush();
+	if (trace)
+		tb.display();
 	finish = clock();
 	printf("\nIt takes %f seconds to insert %d  data!\n", (double)(finish
 			- start) / CLOCKS_PER_SEC, num);
 
 }
 
-template<typename T>
-void random_insert_test(T& tb) {
+template<typename T> void random_insert_test(T& tb) {
 	clock_t start, finish;
 	start = clock();
 	for (int i=0; i<num; i++) {
@@ -87,7 +89,7 @@ void random_insert_test(T& tb) {
 		sprintf(p, "%08d", k);
 		string str = p;
 		//tb.insert(rand()%num, str);
-		tb.insert(str);
+		tb.insert(str, i);
 		if (trace) {
 			cout<<"numItem: "<<tb.num_items()<<endl<<endl;
 			tb.display();
@@ -95,7 +97,7 @@ void random_insert_test(T& tb) {
 		//cout<<"\nafte insert ...\n";		
 	}
 	cout<<"mumItem: "<<tb.num_items()<<endl;
-	printf("\nIt takes %f seconds before commit()\n", (double)(clock() - start)
+	printf("\nIt takes %f seconds before flush()\n", (double)(clock() - start)
 			/CLOCKS_PER_SEC);
 	if (trace)
 		tb.display();
@@ -106,26 +108,27 @@ void random_insert_test(T& tb) {
 
 }
 
-template<typename T>
-void random_search_test(T& tb) {
+template<typename T> void random_search_test(T& tb) {
 
 	clock_t start, finish;
 	ValueType * v;
 	start = clock();
 	int c, b;
-	c=b=0;    
+	c=b=0;
 	for (int i=0; i<num; i++) {
 		int k = rand()%num;
 		if (trace)
 			cout<<"finding "<<k<<endl;
-		
+
 		char p[20];
 		sprintf(p, "%08d", k);
 		string str = p;
 		v = tb.find(p);
 		if (v) {
-			if (trace)
+			if (trace) {
 				cout<<str<<" found"<<endl;
+				tb.display();
+			}
 			c++;
 		} else
 			b++;
@@ -135,14 +138,13 @@ void random_search_test(T& tb) {
 	tb.flush();
 	finish = clock();
 	printf(
-			"\nIt takes %f seconds to find %d random data! %d data found, %d data lost!\n",
+			"\nIt takes %f seconds to random find %d random data! %d data found, %d data lost!\n",
 			(double)(finish - start) / CLOCKS_PER_SEC, num, c, b);
 
 	//  tb.display(std::cout)
 }
 
-template<typename T>
-void  search_test(T& tb) {
+template<typename T> void search_test(T& tb) {
 
 	clock_t start, finish;
 	ValueType* v;
@@ -150,7 +152,7 @@ void  search_test(T& tb) {
 	int c, b;
 	c=b=0;
 
-	num = 5;
+	//num = 5;
 	for (int i=0; i<num; i++) {
 		if (trace)
 			cout<<"finding "<<i<<endl;
@@ -159,15 +161,17 @@ void  search_test(T& tb) {
 		string str = p;
 		v = tb.find(str);
 		if (v) {
-			if (trace)
+			if (trace) {
 				cout<<str<<" found"<<endl;
+				tb.display();
+			}
 			c++;
 		} else
 			b++;
 	}
 	if (trace)
 		tb.display();
-	tb.flush();
+	//tb.flush();
 	finish = clock();
 	printf(
 			"\nIt takes %f seconds to find %d random data! %d data found, %d data lost!\n",
@@ -176,8 +180,7 @@ void  search_test(T& tb) {
 	//  tb.display(std::cout)
 }
 
-template<typename T>
-void delete_test(T& tb){
+template<typename T> void delete_test(T& tb) {
 
 	clock_t start, finish;
 	int c, b;
@@ -207,6 +210,28 @@ void delete_test(T& tb){
 
 }
 
+template<typename T> void seq_test(T& tb) {
+
+	clock_t start, finish;
+
+	start = clock();
+	SDB_HASH::NodeKeyLocn locn;
+	locn = tb.get_first_Locn();
+	myDataType dat;
+	int a=0;
+	while (tb.seq(locn, dat) ) {
+		a++;
+		if (trace)
+			cout<<dat.key<<"->"<<dat.value<<endl;
+	}
+
+	tb.flush();
+	finish = clock();
+	printf("\nIt takes %f seconds to sequential Access %d random data! \n",
+			(double)(finish - start) / CLOCKS_PER_SEC, a);
+
+}
+
 template<typename T> void run(T& tb) {
 	//search_test(tb);
 	if (rnd)
@@ -217,10 +242,12 @@ template<typename T> void run(T& tb) {
 		random_search_test(tb);
 	else
 		search_test(tb);
-	//delete_test(tb);
-	//search_test(tb);*/
+	seq_test(tb);
+	delete_test(tb);
+	search_test(tb);
+	insert_test(tb);
+	search_test(tb);
 }
-
 
 void ReportUsage(void) {
 	cout
@@ -244,7 +271,6 @@ void ReportUsage(void) {
 	cout<<"-index <index_file>\n";
 	cout<<"the storage file of the B tree, default is sdb.dat.\n";
 }
-
 
 int main(int argc, char *argv[]) {
 
@@ -273,10 +299,9 @@ int main(int argc, char *argv[]) {
 				num = atoi(*argv++);
 			} else if (str == "rnd") {
 				rnd = bool(atoi(*argv++));
-			}else if (str == "ins") {
+			} else if (str == "ins") {
 				ins = bool(atoi(*argv++));
-			}
-			else {
+			} else {
 				cout<<"Input parameters error\n";
 				return 0;
 			}
@@ -287,7 +312,10 @@ int main(int argc, char *argv[]) {
 	}
 	try
 	{
-		SDB_HASH tb;	
+		SDB_HASH tb(indexFile);
+		tb.setDirectorySize(8);
+		tb.setBucketSize(128);
+		tb.open();
 		run(tb);
 
 	}

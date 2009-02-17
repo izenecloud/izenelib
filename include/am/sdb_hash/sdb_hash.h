@@ -4,7 +4,7 @@
  * @author peisheng wang 
  * 
  * @history
- * =============
+ * ==========================
  * 1. 2009-02-16 first version.
  * 
  *
@@ -89,6 +89,13 @@ public:
 	}
 
 	/**
+	 * 	\brief return the file name of the SequentialDB
+	 */
+	std::string getFileName() const {
+		return fileName_;
+	}
+
+	/**
 	 *  insert an item
 	 */
 	bool insert(const DataType& dat) {
@@ -132,8 +139,6 @@ public:
 			}
 			else
 			{
-				//cout<<sa->level<<endl;
-				//sa->display();
 				assert(locn.second != NULL);
 				size_t gap = sizeof(long)+sizeof(int)+ksize+vsize+2*sizeof(size_t);
 
@@ -309,7 +314,9 @@ public:
 			while ( sa ) {
 				locn.first = sa;
 				//cout<<"search level: "<<sa->level<<endl;
+
 				p = sa->str;
+				//if( !p )return false;
 				for (i=0; i<sa->num; i++) {
 					size_t ksz, vsz;
 					memcpy(&ksz, p, sizeof(size_t));
@@ -424,48 +431,70 @@ public:
 			KeyType key;
 			ValueType val;
 
-			memcpy(&ksize, p, sizeof(size_t));
-			p += sizeof(size_t);
-			memcpy(&vsize, p, sizeof(size_t));
-			p += sizeof(size_t);
+			while(true) {		
 
-			ptr.reset(new DbObj(p, ksize));
-			read_image(key, ptr);
-			p += ksize;
-			ptr1.reset(new DbObj(p, vsize));
-			read_image(val, ptr1);
-			p += vsize;
+				memcpy(&ksize, p, sizeof(size_t));
+				p += sizeof(size_t);
+				memcpy(&vsize, p, sizeof(size_t));
+				p += sizeof(size_t);
 
-			//cout<<"!!!! seq "<<key<<endl;
-			rec.key = key;
-			rec.value = val;
-
-			memcpy(&ksize, p, sizeof(size_t));
-			if( ksize == 0 ) {
-				sa = sa->loadNext(dataFile_);
-				if( sa ) {
-					p = sa->str;
+				bool isContinue = false;
+				//to determine if encountered item is deleted.
+				char *a = new char[ksize];
+				memset(a, 0, ksize);
+				if(memcmp(p, a, ksize) == 0) {
+					delete a;
+					a = 0;
+					isContinue = true;
 				}
-				else
-				{
-					uint32_t idx = sdb_hashing::hash_fun(ptr->getData(), ptr->getSize() )
-					% sfh_.directorySize;
+				delete a;
+				a = 0;
 
-					while( !entry_[++idx] ) {
-						//cout<<"idx="<<idx<<endl;
-						if( idx >= sfh_.directorySize )
-						return false;
+				ptr.reset(new DbObj(p, ksize));
+				read_image(key, ptr);
+
+				p += ksize;
+				ptr1.reset(new DbObj(p, vsize));
+				read_image(val, ptr1);
+				p += vsize;
+
+				memcpy(&ksize, p, sizeof(size_t));
+				if( ksize == 0 ) {
+					sa = sa->loadNext(dataFile_);
+					if( sa ) {
+						p = sa->str;
 					}
+					else
+					{
+						uint32_t idx = sdb_hashing::hash_fun(ptr->getData(), ptr->getSize() )
+						% sfh_.directorySize;
 
-					//get next bucket;
-					sa = entry_[idx];
-					p = sa->str;
+						while( !entry_[++idx] ) {
+							//cout<<"idx="<<idx<<endl;
+							if( idx >= sfh_.directorySize-1 )
+							break;
+							//return false;
+						}
+
+						//get next bucket;
+						sa = entry_[idx];
+						if( sa) p = sa->str;
+						else
+						p = NULL;
+					}
 				}
-			}
-			locn.first = sa;
-			locn.second = p;
 
-			return true;
+				if( isContinue )continue;
+
+				//cout<<"!!!! seq "<<key<<endl;
+				rec.key = key;
+				rec.value = val;
+				locn.first = sa;
+				locn.second = p;
+
+				return true;
+
+			}
 		} else
 		{
 			//it seems unecessary, for items are unordered.
@@ -547,10 +576,16 @@ public:
 		flush();
 		for (size_t i=0; i<sfh_.directorySize; i++)
 		{
-			delete entry_[i];
-			entry_[i] = 0;
+			while(entry_[i])
+			{
+				bucket_chain* sc = entry_[i]->next;
+				delete entry_[i];
+				entry_[i] = 0;
+				entry_[i] = sc;
+			}
+
 		}
-		delete entry_;
+		delete [] entry_;
 
 		delete [] bucketAddr;
 		fclose(dataFile_);
@@ -590,8 +625,11 @@ public:
 				bucket_chain* sa;
 				while ( sc ) {
 					sa = sc->next;
-					delete sc;
-					sc = 0;
+					if( sc) {
+						sc->unload();
+						//delete sc;
+						//sc = 0;
+					}
 					sc = sa;
 				}
 			}
@@ -628,12 +666,12 @@ public:
 			bucket_chain* sc = entry_[i];
 			while (sc) {
 				nslot += sc->num;
-				sc = sc->next;
+				sc = sc->loadNext(dataFile_);
 			}
 		}
 		if(nslot == 0 )return 0.0;
 		else
-		return sfh_.numItems/nslot;
+		return double(sfh_.numItems)/nslot;
 
 	}
 
