@@ -9,6 +9,13 @@
 #ifndef bucket_chain_H_
 #define bucket_chain_H_
 
+
+#include <cstdlib>
+#include <cstddef>
+#include <fstream>
+#include <iostream>
+
+using namespace std;
 /**
  *  \brief bucket_chain, represents a bucket of our array hash. 
  *   
@@ -207,8 +214,6 @@ public:
 			next->display(os);
 	}
 };
-
-size_t bucket_chain::activeNum;
 
 
 #endif /*bucket_chain_H_*/

@@ -89,7 +89,8 @@ struct SlfHeader {
 			fwrite( &listPos[i], sizeof(long), 1, f);
 		}*/
 		return true;
-	}
+	}	
+
 };
 
 NS_IZENELIB_AM_END
