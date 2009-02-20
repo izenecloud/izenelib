@@ -1,6 +1,12 @@
 #ifndef SDB_UTIL_H_
 #define SDB_UTIL_H_
 
+#include "../../types.h"
+#include <cstdlib>
+#include <cstddef>
+#include <cassert>
+using namespace std;
+
 NS_IZENELIB_AM_BEGIN
 
 namespace util{

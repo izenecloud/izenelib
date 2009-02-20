@@ -21,7 +21,7 @@ NSLF_OBJ := t_nslf.o
 SEQSLF_OBJ := t_seqslf.o
  
 
-all:  t_dslf t_sasl t_nslf t_seqslf
+all:  t_slf #t_seqslf t_dslf t_sasl t_nslf t_seqslf
 
 .cpp.o:
 	$(GPP) $(CC_OPTIONS) $(INC_PATH)  $< 

@@ -3,7 +3,7 @@
 #include <ctime>
 //#include <time.h>
 
-#include <am/slf/SkipListFile.h>
+#include <am/skip_list_file/SkipListFile.h>
 
 using namespace std;
 using namespace izenelib::am;
@@ -287,8 +287,8 @@ int main(int argc, char *argv[]) {
 	}
 	try
 	{
-		SLF tb(indexFile, degree);
-		tb.setPageSize(10, 1024);
+		SLF tb(indexFile);
+		tb.setPageSize(20);
 		tb.open();
 		run(tb);
 

@@ -1,7 +1,6 @@
 #ifndef MEMMAP_H_
 #define MEMMAP_H_
 
-
 #include <iostream>
 #include <vector>
 #include "SdbUtil.h"
@@ -71,9 +70,6 @@ public:
 	}
 
 };
-
-//extern vector< boost::shared_ptr<MemBlock> > mbList;
-vector< MemBlock* > mbList;
 
 }
 

@@ -10,13 +10,9 @@ NS_IZENELIB_AM_BEGIN
  */
 inline int coin_flip(int b){
 	int t = 1;
-	//can be faster?
 	while( rand()%b == 0 ){
 		t++;
 	}
-//	cout<<"coin_flip\n";
-//	cout<<"input= "<<b<<endl;
-//	cout<<"outPut= "<<t<<endl;
 	return t;	
 }
 

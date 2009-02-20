@@ -31,6 +31,9 @@ typedef int NodeID;
 
 const int MAX_LEVEL = 32;
 
+
+vector<MemBlock* > mbList;
+
 NS_IZENELIB_AM_END
 
 
