@@ -26,7 +26,7 @@ get-input: gen_input.o
 	-rm -f gen_input.o
 
 amlib: $(OBJS)
-	$(GPP)  -g -o "cccr-ht"  $^ $(LIBS) 
+	$(GPP)  -g -o "dp-ht"  $^ $(LIBS) 
 	-rm -f $(OBJS)
 
 clean:

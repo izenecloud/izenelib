@@ -5,12 +5,18 @@
 #include <iostream>
 #include <types.h>
 #include <util/log.h>
-#include <stdio.h>
+#include <cstdio>
+#include <boost/archive/text_iarchive.hpp>
+#include <boost/archive/text_oarchive.hpp>
+#include <am/am.h>
 
 #define PAGE_EXPANDING 1
 #define EXACT_EXPANDING 0
 
 using namespace std;
+
+typedef boost::archive::text_iarchive iarchive;
+typedef boost::archive::text_oarchive oarchive;
 
 class simple_hash
 {
@@ -23,6 +29,21 @@ public:
       convkey = 37*convkey + *str++;
 
     return convkey;
+  }
+  
+}
+  ;
+
+class numeric_hash
+{
+public:
+  static uint32_t getValue(const unsigned int& key)
+  {
+    uint32_t k = 12;
+    uint32_t u = 99;
+    uint32_t p = 1000000;
+
+    return (k*key+u)%p;
   }
   
 }
@@ -42,16 +63,19 @@ NS_IZENELIB_AM_BEGIN
  *
  *
  **/
+//////////////////////////////// This is for numeric key /////////////////////////////////
 template<
   size_t ENTRY_SIZE,
+  class KeyType = string,
+  class ValueType = uint64_t,
   class HASH_FUNCTION = simple_hash,
   int EXPAND = PAGE_EXPANDING
   >
-class CCCR_StrHashTable
+class CCCR_StrHashTable :public AccessMethod<KeyType, ValueType>
 {
 #define INIT_BUCKET_SIZE 64
 
-  typedef CCCR_StrHashTable<ENTRY_SIZE, HASH_FUNCTION,PAGE_EXPANDING> SelfType;
+  typedef CCCR_StrHashTable<ENTRY_SIZE,KeyType, ValueType, HASH_FUNCTION,EXPAND> SelfType;
   
 public:
   CCCR_StrHashTable()
@@ -72,8 +96,339 @@ public:
     }
   }
 
-  bool insert(const string& str, uint64_t value)
+  
+  //bool insert(const KeyType& key, const ValueType& v)
+  using AccessMethod<KeyType, ValueType>::insert;
+  virtual bool insert(const DataType<KeyType,ValueType>& data)
   {
+    KeyType key = data.key;
+    ValueType v = data.value;
+    
+    uint64_t value = dataVec_.size();
+    dataVec_.push_back(v);
+    
+    uint32_t idx = HASH_FUNCTION::getValue(key)%ENTRY_SIZE;
+    char* pBkt = entry_[idx];
+    
+    if (pBkt == NULL)
+    {
+      entry_[idx] = pBkt = new char[INIT_BUCKET_SIZE];
+      *(uint32_t*)(pBkt) = 64;//bucket size
+      *((uint32_t*)(pBkt)+1) = 2*sizeof(uint32_t);//how much size of bucket has been taken?
+    }
+    else
+    {//does it exist?
+      uint32_t content_len = *((uint32_t*)pBkt+1);
+      uint32_t p = sizeof(uint32_t)*2;;
+      while (p < content_len)
+      {
+        if (*((KeyType*)(pBkt+p)) == key)
+        {
+          p += sizeof(KeyType);
+          *(uint64_t*)(pBkt+p) = value;
+          return true;
+        }
+
+        p += sizeof(KeyType) + sizeof(uint64_t);
+      }      
+    }
+    
+
+    uint32_t bs =  *(uint32_t*)(pBkt);
+    uint32_t content_len = *((uint32_t*)pBkt+1);
+
+    if (bs-content_len<sizeof(KeyType)+sizeof(uint64_t))
+    {
+      bs += EXPAND==PAGE_EXPANDING? INIT_BUCKET_SIZE: sizeof(KeyType)+sizeof(uint64_t);
+      //content_len += str.length()+sizeof(uint32_t);
+      pBkt = new char[bs];
+      memcpy(pBkt, entry_[idx],  *(uint32_t*)(entry_[idx]) );
+      delete entry_[idx];
+      entry_[idx] = pBkt;
+    }
+
+    *((KeyType*)(pBkt+content_len)) = key;
+    content_len += sizeof(KeyType);
+    
+
+    *((uint64_t*)(pBkt+content_len)) = value;
+    content_len += sizeof(uint64_t);
+
+    *(uint32_t*)(pBkt) = bs;
+    *((uint32_t*)pBkt+1) = content_len;
+
+    return true;
+    //LDBG_<<str;
+
+  }
+
+  
+  ValueType* find(const KeyType & key)
+  {
+    uint32_t idx = HASH_FUNCTION::getValue(key)%ENTRY_SIZE;
+    char* pBkt = entry_[idx];
+    
+    if (pBkt == NULL)
+      return NULL;
+
+    
+    uint32_t content_len = *((uint32_t*)(pBkt)+1);
+    
+    uint32_t p = sizeof(uint32_t)*2;;
+    while (p < content_len)
+    {
+      if (*((KeyType*)(pBkt+p)) == key)
+      {
+        p += sizeof(KeyType);
+        if(*(uint64_t*)(pBkt+p)!=(uint64_t)-1)
+          return &dataVec_[*(uint64_t*)(pBkt+p)];
+        else
+          return NULL;
+      }
+      p += sizeof (KeyType) + sizeof (uint64_t);      
+    }
+
+    return NULL;
+  }
+
+  bool del(const KeyType& key)
+  {
+    uint32_t idx = HASH_FUNCTION::getValue(key)%ENTRY_SIZE;
+    char* pBkt = entry_[idx];
+    
+    if (pBkt ==NULL)
+      return -1;
+    
+    uint32_t content_len = *((uint32_t*)(pBkt)+1);
+    
+    uint32_t p = sizeof(uint32_t)*2;;
+    while (p < content_len)
+    {
+      
+      if (*((KeyType*)(pBkt+p)) == key)
+      {
+        p += sizeof(KeyType);
+        *(uint64_t*)(pBkt+p)=(uint64_t)-1;
+        return true;
+      }
+
+      p += sizeof (KeyType) + sizeof (uint64_t);
+      
+    }
+
+    return false;
+  }
+
+  //bool update(const KeyType& key, const ValueType& v)
+  using AccessMethod<KeyType, ValueType>::update;
+  virtual bool update(const DataType<KeyType,ValueType>& data)
+  {
+    KeyType key = data.key;
+    ValueType v = data.value;
+    
+    uint64_t value = dataVec_.size();
+    dataVec_.push_back(v);
+
+    uint32_t idx = HASH_FUNCTION::getValue(key)%ENTRY_SIZE;
+    char* pBkt = entry_[idx];
+    
+    if (pBkt ==NULL)
+      return false;
+    
+    uint32_t content_len = *((uint32_t*)(pBkt)+1);
+    
+    uint32_t p = sizeof(uint32_t)*2;;
+    while (p < content_len)
+    {
+      if (*((KeyType*)(pBkt+p)) == key)
+      {
+        p += sizeof(KeyType);
+        if(*(uint64_t*)(pBkt+p)!=(uint64_t)-1)
+        {
+          *(uint64_t*)(pBkt+p) = value;
+          return true;
+        }
+        else
+          return false;
+      }
+
+      p += sizeof (KeyType) + sizeof(uint64_t);
+    }
+
+    return false;
+  }
+  
+friend ostream& operator << ( ostream& os, const SelfType& node)  
+  {
+    for(size_t i=0; i<ENTRY_SIZE; i++)
+    {
+      char* pBkt = node.entry_[i];
+    
+      if (pBkt ==NULL)
+        continue;
+
+      os<<endl<<i<<" Entry===========\n";
+    
+      uint32_t bs =  *(uint32_t*)(pBkt);
+      uint32_t content_len = *((uint32_t*)(pBkt)+1);
+      os<<"bucket size: "<<bs<<endl;
+      os<<"content len: "<<content_len<<endl;
+    
+      uint32_t p = sizeof(uint32_t)*2;;
+      while (p < content_len)
+      {
+        os<<"[";
+        os << *((size_t*)(pBkt+p));
+        os<<",";
+        
+        p += sizeof (KeyType);
+        os << *((uint64_t*)(pBkt+p));
+        os<<"]";
+
+        p += sizeof (uint64_t);
+      }      
+    }
+
+    return os;
+  }
+
+
+  bool save(const string& keyFilename, const string& valueFilename)
+  {
+    FILE* f = fopen(keyFilename.c_str(), "w+");
+    if (f ==NULL)
+    {
+      cout<<"\nCan't open file: "<<keyFilename<<endl;
+      return false;
+    }
+
+    fseek(f, 0, SEEK_SET);
+    
+    for(size_t i=0; i<ENTRY_SIZE; i++)
+    {
+      char* pBkt = entry_[i];
+    
+      if (pBkt ==NULL)
+        continue;
+
+      if ( fwrite(&i, sizeof(size_t), 1, f)!=1)
+        return false;
+      
+      uint32_t bs =  *(uint32_t*)(pBkt);
+      if ( fwrite(pBkt, bs, 1, f)!=1)
+        return false;
+      
+    }
+
+
+    fclose(f);
+    
+    ofstream of(valueFilename.c_str());
+    oarchive oa(of);
+    size_t size = dataVec_.size();
+    oa << size;
+    
+    for(typename vector<ValueType>::iterator i =dataVec_.begin(); i!=dataVec_.end(); i++)
+    {
+      oa<<(*i);
+    }
+
+    of.close();
+
+    return true;
+  }
+
+  bool load(const string& keyFilename, const string& valueFilename)
+  {
+    FILE* f = fopen(keyFilename.c_str(), "r");
+    if (f ==NULL)
+    {
+      cout<<"\nCan't open file: "<<keyFilename<<endl;
+      return false;
+    }
+    
+    fseek(f, 0, SEEK_SET);
+    size_t s;
+    
+    while(fread(&s, sizeof(size_t), 1, f)==1)
+    {
+      uint32_t bs;
+      if(fread(&bs, sizeof(uint32_t), 1, f)!=1)
+        return false;
+
+      entry_[s] = new char[bs];
+      char* pBkt = entry_[s];
+      *(uint32_t*)pBkt = bs;
+      if(fread(pBkt+sizeof(uint32_t),bs-sizeof(uint32_t), 1, f)!=1)
+        return false;
+    }
+
+    fclose(f);
+    
+    dataVec_.clear();
+    
+    ifstream ifs(valueFilename.c_str());
+    iarchive ia(ifs);
+    size_t size;
+    ia>>size;
+
+    for (size_t i =0; i<size; i++)
+    {
+      ValueType v;
+      ia>>v;
+      //cout<<v;
+      dataVec_.push_back(v);
+    }
+        
+    ifs.close();
+    
+    return true;
+  }
+  
+    
+protected:
+  char* entry_[ENTRY_SIZE];
+  vector<ValueType> dataVec_;
+}
+  ;
+
+////////////////////////////////// For std::string key ///////////////////////////////////////////
+template<
+  size_t ENTRY_SIZE,
+  class ValueType ,
+  class HASH_FUNCTION,
+  int EXPAND
+  >
+class CCCR_StrHashTable<ENTRY_SIZE, string, ValueType, HASH_FUNCTION, EXPAND>
+{
+#define INIT_BUCKET_SIZE 64
+
+  typedef CCCR_StrHashTable<ENTRY_SIZE,string, ValueType, HASH_FUNCTION,EXPAND> SelfType;
+  
+public:
+  CCCR_StrHashTable()
+  {
+    for(size_t i=0; i<ENTRY_SIZE; i++)
+    {
+      entry_[i] = NULL;
+    }
+    
+  }
+
+  ~CCCR_StrHashTable()
+  {
+    for(size_t i=0; i<ENTRY_SIZE; i++)
+    {
+      if (entry_[i]!=NULL) delete entry_[i];
+      entry_[i] = NULL;
+    }
+  }
+
+  bool insert(const string& str, const ValueType& v)
+  {
+    uint64_t value = dataVec_.size();
+    dataVec_.push_back(v);
+    
     uint32_t idx = HASH_FUNCTION::getValue(str)%ENTRY_SIZE;
     char* pBkt = entry_[idx];
     
@@ -84,7 +439,7 @@ public:
       *((uint32_t*)(pBkt)+1) = 2*sizeof(uint32_t);
     }
     else
-    {
+    {//does it exist?
       uint32_t content_len = *((uint32_t*)pBkt+1);
       uint32_t p = sizeof(uint32_t)*2;;
       while (p < content_len)
@@ -105,7 +460,11 @@ public:
             break;
 
         if (j == len)
+        {
+          *(uint64_t*)(pBkt+p+j) = value;
           return true;
+        }
+        
         
         p += len + sizeof (uint64_t);
       }      
@@ -140,13 +499,13 @@ public:
     
   }
 
-  uint64_t find(const string & str)
+  ValueType* find(const string & str)
   {
     uint32_t idx = HASH_FUNCTION::getValue(str)%ENTRY_SIZE;
     char* pBkt = entry_[idx];
     
     if (pBkt == NULL)
-      return -1;
+      return NULL;
 
     
     uint32_t content_len = *((uint32_t*)(pBkt)+1);
@@ -175,12 +534,16 @@ public:
       }
 
       p += len;
-      
-      return *((uint64_t*)(pBkt+p));
+
+      if (*((uint64_t*)(pBkt+p))!=(uint64_t)-1)
+        return &(dataVec_[*((uint64_t*)(pBkt+p))]);
+      else
+        return NULL;
       
     }
 
-    return (uint64_t) -1;
+    return NULL;
+    
   }
 
   bool del(const string& str)
@@ -190,8 +553,7 @@ public:
     
     if (pBkt ==NULL)
       return -1;
-
-    uint32_t bs =  *(uint32_t*)(pBkt);
+    
     uint32_t content_len = *((uint32_t*)(pBkt)+1);
     
     uint32_t p = sizeof(uint32_t)*2;;
@@ -227,15 +589,14 @@ public:
     return false;
   }
 
-  bool update(const string& str, uint64_t value)
+  bool update(const string& str, const ValueType& v)
   {
     uint32_t idx = HASH_FUNCTION::getValue(str)%ENTRY_SIZE;
     char* pBkt = entry_[idx];
     
     if (pBkt ==NULL)
       return -1;
-
-    uint32_t bs =  *(uint32_t*)(pBkt);
+    
     uint32_t content_len = *((uint32_t*)(pBkt)+1);
     
     uint32_t p = sizeof(uint32_t)*2;;
@@ -263,10 +624,14 @@ public:
       }
 
       p += len;
-      
-      *((uint64_t*)(pBkt+p)) = value;
-      
-      return true;
+
+      if (*((uint64_t*)(pBkt+p)) != (uint64_t)-1)
+      {
+        dataVec_[*((uint64_t*)(pBkt+p))] = v;
+        return true;
+      }
+      else
+        return false;
     }
 
     return false;
@@ -307,8 +672,16 @@ friend ostream& operator << ( ostream& os, const SelfType& node)
     return os;
   }
 
-  bool unload(FILE* f)
+
+  bool save(const string& keyFilename, const string& valueFilename)
   {
+    FILE* f = fopen(keyFilename.c_str(), "w+");
+    if (f ==NULL)
+    {
+      cout<<"\nCan't open file: "<<keyFilename<<endl;
+      return false;
+    }
+
     fseek(f, 0, SEEK_SET);
     
     for(size_t i=0; i<ENTRY_SIZE; i++)
@@ -322,43 +695,74 @@ friend ostream& operator << ( ostream& os, const SelfType& node)
         return false;
       
       uint32_t bs =  *(uint32_t*)(pBkt);
+      
       if ( fwrite(pBkt, bs, 1, f)!=1)
         return false;
       
     }
 
-    return false;
+
+    fclose(f);
+    
+    ofstream of(valueFilename.c_str());
+    oarchive oa(of);
+    size_t size = dataVec_.size();
+    oa << size;
+    
+    for(typename vector<ValueType>::iterator i =dataVec_.begin(); i!=dataVec_.end(); i++)
+    {
+      oa<<(*i);
+    }
+
+    of.close();
+
+    return true;
   }
 
-  bool load(FILE* f)
+  bool load(const string& keyFilename, const string& valueFilename)
   {
+    FILE* f = fopen(keyFilename.c_str(), "r");
+    if (f ==NULL)
+    {
+      cout<<"\nCan't open file: "<<keyFilename<<endl;
+      return false;
+    }
+    
     fseek(f, 0, SEEK_SET);
     size_t s;
     
-    if(fread(&s, sizeof(size_t), 1, f)!=1)
-      return false;
-    
-    for(size_t i=0; i<ENTRY_SIZE; i++)
-    {
-      if (i==s)
-      {
-        uint32_t bs;
-        if(fread(&bs, sizeof(uint32_t), 1, f)!=1)
-          return false;
-
-        entry_[i] = new char[bs];
-        char* pBkt = entry_[i];
-        *(uint32_t*)pBkt = bs;
-        if(fread(pBkt+sizeof(uint32_t),bs-sizeof(uint32_t), 1, f)!=1)
-          return false;
-
-        if (feof(f))
-          return true;
-        
-        if(fread(&s, sizeof(size_t), 1, f)!=1)
-          return false;
-      }
+    while(fread(&s, sizeof(size_t), 1, f)==1)
+    {      
+      uint32_t bs;
+      if(fread(&bs, sizeof(uint32_t), 1, f)!=1)
+        return false;
+      
+      entry_[s] = new char[bs];
+      char* pBkt = entry_ [s];
+      *(uint32_t*)pBkt = bs;
+      if(fread(pBkt+sizeof(uint32_t),bs-sizeof(uint32_t), 1, f)!=1)
+        return false;
+      
     }
+
+    fclose(f);
+
+    dataVec_.clear();
+    
+    ifstream ifs(valueFilename.c_str());
+    iarchive ia(ifs);
+    size_t size;
+    ia>>size;
+
+    for (size_t i =0; i<size; i++)
+    {
+      ValueType v;
+      ia>>v;
+      dataVec_.push_back(v);
+    }
+        
+    ifs.close();
+    
     return true;
   }
   
@@ -366,6 +770,7 @@ friend ostream& operator << ( ostream& os, const SelfType& node)
   
 protected:
   char* entry_[ENTRY_SIZE];
+  vector<ValueType> dataVec_;
 }
   ;
 
