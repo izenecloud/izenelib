@@ -52,7 +52,7 @@ public:
 	/**
 	 *   constructor
 	 */
-	sdb_hash(const string& fileName = "sdb_hash.dat"):fileName_(fileName) {
+	sdb_hash(const string& fileName = "sdb_hash.dat"):sfh_(), fileName_(fileName) {
 		dataFile_ = 0;
 	}
 
@@ -286,6 +286,14 @@ public:
 	/**
 	 *  search an item
 	 */
+	NodeKeyLocn search(const KeyType& key)
+	{
+		NodeKeyLocn locn;		
+		search(key, locn);
+		return locn;
+	}
+	
+	
 	bool search(const KeyType&key, NodeKeyLocn& locn)
 	{
 		flushCache_();

@@ -589,7 +589,7 @@ template<typename KeyType, typename DataType, typename LockType, typename Alloc>
 		delete [] pbuf;
 	}
 	_isDirty = false;
-	fflush(f);
+	//fflush(f);
 	return true;
 }
 
@@ -651,6 +651,7 @@ template<typename KeyType, typename DataType, typename LockType, typename Alloc>
 		loaded = false;
 	}
 }
+
 
 template<typename KeyType, typename DataType, typename LockType, typename Alloc> bool BTreeNode<
 		KeyType, DataType, LockType, Alloc>::delFromLeaf(size_t objNo) {

@@ -19,10 +19,10 @@ static bool rnd = 0;
 static bool ins = 1;
 
 typedef string KeyType;
-typedef int ValueType;
-typedef izenelib::am::DataType<KeyType, int> DataType;
-typedef izenelib::am::DataType<KeyType, int> myDataType;
-typedef izenelib::am::sdb_hash<KeyType, int> SDB_HASH;
+typedef NullType ValueType;
+typedef izenelib::am::DataType<KeyType, NullType> DataType;
+typedef izenelib::am::DataType<KeyType, NullType> myDataType;
+typedef izenelib::am::sdb_hash<KeyType, NullType> SDB_HASH;
 
 namespace izenelib {
 namespace am {
@@ -56,7 +56,7 @@ template<typename T> void insert_test(T& tb) {
 		sprintf(p, "%08d", i);
 		string str = p;
 		//tb.insert(i, str);
-		tb.insert(str, i);
+		tb.insert(str);
 		if (trace) {
 			cout<<"numItem: "<<tb.num_items()<<endl<<endl;
 			//tb.display();
@@ -89,7 +89,7 @@ template<typename T> void random_insert_test(T& tb) {
 		sprintf(p, "%08d", k);
 		string str = p;
 		//tb.insert(rand()%num, str);
-		tb.insert(str, i);
+		tb.insert(str);
 		if (trace) {
 			cout<<"numItem: "<<tb.num_items()<<endl<<endl;
 			tb.display();
@@ -187,7 +187,7 @@ template<typename T> void delete_test(T& tb) {
 	c=b=0;
 
 	start = clock();
-	for (int i=0; i<num/2; i++) {
+	for (int i=0; i<num; i++) {
 		if (trace)
 			cout<<"del "<<i<<endl;
 		char p[20];
@@ -210,6 +210,36 @@ template<typename T> void delete_test(T& tb) {
 
 }
 
+template<typename T> void random_delete_test(T& tb) {
+
+	clock_t start, finish;
+	int c, b;
+	c=b=0;
+
+	start = clock();
+	for (int i=0; i<num; i++) {
+		int k = rand()%num;
+		if (trace)
+			cout<<"del "<<k<<endl;
+		char p[20];
+		sprintf(p, "%08d", k);
+		string str = p;
+		if (tb.del(str) != 0)
+			c++;
+		else
+			b++;
+		if (trace) {
+			cout<<"numItem: "<<tb.num_items()<<endl;
+			tb.display();
+		}
+	}
+	tb.flush();
+	finish = clock();
+	printf(
+			"\nIt takes %f seconds to delete %d random data! %d data found, %d data lost!\n",
+			(double)(finish - start) / CLOCKS_PER_SEC, num/2, c, b);
+
+}
 template<typename T> void seq_test(T& tb) {
 
 	clock_t start, finish;
@@ -222,7 +252,7 @@ template<typename T> void seq_test(T& tb) {
 	while (tb.seq(locn, dat) ) {
 		a++;
 		if (trace)
-			cout<<dat.key<<"->"<<dat.value<<endl;
+			cout<<dat.key<<endl;
 	}
 
 	tb.flush();
@@ -234,24 +264,27 @@ template<typename T> void seq_test(T& tb) {
 
 template<typename T> void run(T& tb) {
 	//search_test(tb);
-	if (rnd)
+	if (rnd) {
 		random_insert_test(tb);
-	else
-		insert_test(tb);
-	if (rnd)
 		random_search_test(tb);
-	else
+		seq_test(tb);
+		random_delete_test(tb);
+	} else {
+		insert_test(tb);
 		search_test(tb);
-	seq_test(tb);
-	delete_test(tb);
-	search_test(tb);
-	insert_test(tb);
-	search_test(tb);
+		seq_test(tb);
+		delete_test(tb);
+	}
+	
+	/*delete_test(tb);
+	 search_test(tb);
+	 insert_test(tb);
+	 search_test(tb);*/
 }
 
 void ReportUsage(void) {
 	cout
-			<<"\nUSAGE:./t_slf [-T <trace_option>] [-degree <degree>]  [-n <num>] [-index <index_file>] [-cache <cache_size>.] <input_file>\n\n";
+			<<"\nUSAGE:./t_slf [-T <trace_option>] [-degree <degree>] [-rnd <0|1>]  [-n <num>] [-index <index_file>] [-cache <cache_size>.] <input_file>\n\n";
 
 	cout
 			<<"Example: /t_slf -T 1 -degree 2  -index sdb.dat -cache 10000 wordlist.txt\n";
@@ -313,8 +346,8 @@ int main(int argc, char *argv[]) {
 	try
 	{
 		SDB_HASH tb(indexFile);
-		tb.setDirectorySize(8);
-		tb.setBucketSize(128);
+		tb.setDirectorySize(8192);
+		tb.setBucketSize(4096);
 		tb.open();
 		run(tb);
 

@@ -349,6 +349,14 @@ public:
 	 *  given key. 
 	 *
 	 */
+	NodeKeyLocn search(const KeyType& key)
+	{
+		NodeKeyLocn locn;
+		search(key, locn);
+		return locn;		
+	}	
+
+	
 	bool search(const KeyType& key, NodeKeyLocn& locn) {
 
 		//do Flush, when there are too many active nodes.
@@ -440,7 +448,7 @@ private:
 private:
 
 	void _flushCache() {
-
+        commit();
 		//cout<<BTreeNode<KeyType, DataType, LockType, Alloc>::activeNodeNum <<" > "<<_cacheSize<<endl;
 		if (BTreeNode<KeyType, DataType, LockType, Alloc>::activeNodeNum> _cacheSize) {
 #ifdef DEBUG
@@ -465,9 +473,8 @@ private:
 					}
 
 					BTreeNodePtr pChild = _root->children[ctr];
-					if ((BTreeNodePtr)pChild != 0) {
-						_root->children[ctr]->write(_dataFile);
-						_root->children[ctr]->unload();
+					if ((BTreeNodePtr)pChild != 0) {	
+						_root->children[ctr]->unload();						
 					}
 					_isUnload = false;
 
