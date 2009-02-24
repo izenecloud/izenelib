@@ -18,11 +18,11 @@ What about using it from DLL/EXE?
 
 @section rationale_caching Rationale for - when caching - to use a mutex
 
-When caching messages before logs are initialized, I internally use a mutex for adding each message to the cache.
+When caching messages before logs are initialized, the lib internally uses a mutex for adding each message to the cache.
 I use this because:
-- I assume there won't be too many (<1000), thus the impact on speed should be minimal
+- it's assumed there won't be too many (<1000), thus the impact on speed should be minimal
 - this will be applied only while cache is turned off
-- I do prefer safety over efficiency
+- safety is preferred over efficiency
 - easier to implement this scenario
 
 

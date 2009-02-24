@@ -13,7 +13,9 @@ This library uses a few concepts.
 Take filter, for instance. It's a very simple concept - it tells you if "it's enabled".
 
 Each concept can be implemented in several ways. To make it easier for you, <b>each concept is a namespace</b>.
-In the given namespace, you'll find possible implementations of that concept. Of course, to those implementations, you can add your own ;)
+What this means:
+- in the given namespace, you'll find possible implementations of that concept. 
+- of course, to those implementations, you can add your own ;)
 
 \n\n
 @section namespace_general General concepts
@@ -45,7 +47,7 @@ In the given namespace, you'll find possible implementations of that concept. Of
 - op_equal - implements operator==, in order to compare formatters and/or destinations. Useful when you want to 
              erase formatters/destinations from a logger.
 - optimize - (related to gathering the message) optimizes holding the message, as it's formatted. Formatting can modify the message.
-                     Implementations from this namespace allow optimizing the medium so that modifying the message is as fast as possible
+  Implementations from this namespace allow optimizing the medium so that modifying the message is as fast as possible
 
 
 

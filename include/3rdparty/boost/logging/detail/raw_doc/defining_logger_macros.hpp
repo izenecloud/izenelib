@@ -31,7 +31,7 @@ The parameters are:
 - @c %logger - a pointer to a logger you've declared
 - @c filter_is_enabled - how to determine if the filter is enabled. 
   - For simple filters this can be a simple <tt>filter()->is_enabled()</tt>
-  - More complex filters can be passed additional information (as you'll see below)
+  - More complex filters can be passed additional information (shown below)
   - As an example of filter that needs an extra argument, we have: \n
     <tt>BOOST_LOG_USE_LOG_IF_LEVEL(l, holder, the_level) = BOOST_LOG_USE_LOG_IF_FILTER(l, holder->is_enabled(the_level)) </tt>
 - @c %level - in case you have a filter based on level
@@ -66,8 +66,8 @@ L_ << "this is another cool message " << i++;
 @section defining_logger_macros_levels Example of Logging, filtered by levels
 
 Assuming you have a filter based on levels, you can:
-- either define an <tt>L_(level)</tt> macro, which will care about the level or,
-- define an <tt>L..._</tt> macro for each level you want (for instance, LDBG_, LAPP_, LERR_).
+- either define an <tt>L_(level)</tt> macro, which will care about the level or
+- define an <tt>L..._</tt> macro for each level you want (for instance, LDBG_, LAPP_, LERR_)
 
 Here's how you'd do each of the above:
 

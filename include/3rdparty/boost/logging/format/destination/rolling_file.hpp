@@ -48,7 +48,7 @@ struct rolling_file_settings {
         , file_count(this, 10)
         , initial_erase(this, false)
         , start_where_size_not_exceeded(this, true) 
-        , flush_each_time(this, false)
+        , flush_each_time(this, true)
         , extra_flags(this, std::ios_base::out) 
     {}
 
@@ -62,7 +62,7 @@ struct rolling_file_settings {
     /// otherwise, it starts with the first file (default = true)
     flag::t<bool> start_where_size_not_exceeded;
 
-    /// if true, always flush after write (by default, false)
+    /// if true, always flush after write (by default, true)
     flag::t<bool> flush_each_time;
 
     /// just in case you have some extra flags to pass, when opening each file
@@ -98,7 +98,7 @@ namespace detail {
             if ( m_flags.start_where_size_not_exceeded() ) {
                 for ( m_cur_idx = 0; m_cur_idx < m_flags.file_count(); ++m_cur_idx )
                     if ( fs::exists( file_name(m_cur_idx) )) {
-                        if ( fs::file_size( file_name(m_cur_idx))  < m_flags.max_size_bytes() )
+                        if ( static_cast<int>(fs::file_size( file_name(m_cur_idx)))  < m_flags.max_size_bytes() )
                             // file hasn't reached max size
                             break;
                     }
@@ -110,8 +110,8 @@ namespace detail {
                     // all files are too full (we'll overwrite the first one)
                     m_cur_idx = 0;
             }
-
-            recreate_file();
+            // force reopen, even if already open
+            m_out = boost::shared_ptr< std::basic_ofstream<char_type> >();
         }
 
         std::string file_name(int idx) {
@@ -135,7 +135,13 @@ namespace detail {
             }
         }
 
+        void create_if_needed() {
+            if ( !m_out)
+                recreate_file();
+        }
+
         template<class msg_type> void write( const msg_type& msg) {
+            create_if_needed();
             convert_dest::write(msg, (*m_out) );
             if ( m_flags.flush_each_time())
                 m_out->flush();
@@ -147,7 +153,8 @@ namespace detail {
         }
 
         void flush() {
-            m_out->flush();            
+            if ( m_out)
+                m_out->flush();            
         }
 
         boost::shared_ptr< std::basic_ofstream<char_type> > m_out;

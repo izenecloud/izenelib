@@ -18,7 +18,7 @@ So, you don't have time to spend (at least not right now), to read the @ref log_
 @section getting_started_basics The basics
 
 Here are the quick facts:
-- We use the folloging concepts:
+- we use the folloging concepts:
   - logger : the class that does the logging. You can have several logger objects in your code, but usually one will suffice.
     - writer : an object, part of the logger, that is in charge of writing the message
   - filter : the class that does the filtering - that is, it knows if a message should be logged or not
@@ -41,7 +41,7 @@ In other words, you set @ref format_string_syntax "a format string" and @ref des
 
 You'll use macros to:
 - declare and define the filters and loggers
-- do %logging.
+- do %logging
 
 You should structure your code like this:
 - have a header file, in which you @c \#include the Boost Logging Lib forward classes, and you declare your loggers and filters
@@ -54,8 +54,11 @@ You should structure your code like this:
 Assume you want one logger and one filter - the filter is a simple filter that can only be turned on/off (the filter is not thread-safe). \n
 This is something you can copy-paste into your program.
 
+The header file
 @include fast_start/no_levels.h
 
+The source file
+@include fast_start/no_levels.cpp
 
 \n\n 
 @section getting_started_example_use_levels Example 2 : Have one Named Writer , Use Levels
@@ -63,7 +66,11 @@ This is something you can copy-paste into your program.
 Assume you want one logger and one filter - the filter is a based on levels (the filter is not thread-safe). \n
 This is something you can copy-paste into your program.
 
+The header file
 @include fast_start/use_levels.h
+
+The source file
+@include fast_start/use_levels.cpp
 
 
 @section getting_started_other_examples Other examples...

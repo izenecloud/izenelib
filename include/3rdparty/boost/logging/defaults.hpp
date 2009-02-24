@@ -34,7 +34,7 @@ The logging lib has a few default types, used throughout the lib. They are:
 - @c char_type - the char type used throught the lib; by default, it's @c char
 - @c hold_string_type - the type used to hold a string; by default, it's @c std::string
 - @c filter_type - the default filter; by default, it's filter::no_ts
-- @c lock_resource - used to lock resources for access. See locker namespace.
+- @c lock_resource - used to lock resources for access. See locker namespace
 - @c mutex - the mutex class used throughout the library. By default, it's mutex_win32 for Windows, or mutex_posix for POSIX 
 
 They are all present in @c default_types structure.

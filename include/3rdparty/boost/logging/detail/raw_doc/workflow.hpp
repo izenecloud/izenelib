@@ -90,7 +90,7 @@ Once we've established that the logger is enabled, we'll @em process the message
 
 The meaning of "gathering the message" depends on your application. The message can:
 - be a simple string,
-- it can contain extra info, like: level, category, etc.
+- it can contain extra info, like: level, category, etc
 - it can be written all at once, or using the cool "<<" operator
 - or any combination of the above
 

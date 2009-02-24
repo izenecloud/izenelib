@@ -18,7 +18,7 @@ The short answer : yes. How? The order of inialization between translation units
 for destruction. The following can happen: 
 - a global object is constructed @em before a logger
 - thus, it will be destroyed @em after the logger
-- if in its destructor it tries to use the logger, there we go - logger is used after it's been destroyed.
+- if in its destructor it tries to use the logger, there we go - logger is used after it's been destroyed
 
 
 

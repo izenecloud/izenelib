@@ -22,6 +22,12 @@ If you want to make sure a feature is implemented sooner, drop me a note: http:/
 
 @section todo_implementation Implementation
 
+-@c high            1. always_disabled/always_enabled -> allow any no of arguments
+
+-@c high            filter : instead of is_enabled() - just have a functor (operator())
+
+- @c normal         make it possible to enumerate formatters/destinations, and to reuse a certain formatter/destination
+                    in 2 loggers in an easy way - that is, request it from one logger, and add it to another.
 
 - @c normal         destination::stream_ptr - just like stream, but hold the stream as a shared pointer. Thus , we won't have to worry
                     about outliving the stream.
@@ -38,9 +44,9 @@ If you want to make sure a feature is implemented sooner, drop me a note: http:/
 
 - @c normal         must have helper to call on on_destructed - like, to be able to write to cout,etc
 
-- @c normal         turn_cache_off() -> find better name, like mark_init_complete()  (add a function named like this to call turn_cache_off()).
+- @c normal         turn_cache_off() -> find better name, like mark_init_complete()  (add a function named like this to call turn_cache_off())
 
-- @c normal         have a logger_with_filter class, to make using the lib easier (this would hold the logger and the filter).
+- @c normal         have a logger_with_filter class, to make using the lib easier (this would hold the logger and the filter)
 
 - @c high           destination::stream - have flush() and flush_each_time
 
@@ -104,7 +110,7 @@ If you want to make sure a feature is implemented sooner, drop me a note: http:/
   -- the idea is that a __FILE__ is a const char* and will always have the same (pointer) value. So once I know if it's enabled or not,
   it'll always be like that. once specifically turned on/off - we update the 2 maps
 
-- @c low            composite_filter \n I want to allow an and_filter = filter1 && filter2, and an or_filter = filter1 || filter2.
+- @c low            composite_filter \n I want to allow an and_filter = filter1 && filter2, and an or_filter = filter1 || filter2; 
   to see how I can find out if such a filter is enabled or not - for instance, receive 2 args = pass 1 to filter1 and 2 to filter2;
   or if get only one arg, you need to specify to whom to pass to
 
@@ -112,7 +118,7 @@ If you want to make sure a feature is implemented sooner, drop me a note: http:/
   Such assert would log into log file and invoke system assert depends in assert level. It could be an addon to core functionality. \n
   Note: SMART_ASSERT should be used for this.
 
-- @c normal           Allow using log from DLL and EXE (on Windows). Same for Linux. This should normally work - just need to explain how.
+- @c normal           Allow using log from DLL and EXE (on Windows). Same for Linux. This should normally work - just need to explain how
 
 
 @section todo_formatters Formatters
@@ -143,7 +149,7 @@ If you want to make sure a feature is implemented sooner, drop me a note: http:/
 
 - @c normal         new destination : to Event log
 
-- @c normal         shared_memory is to use interprocess lib.
+- @c normal         shared_memory is to use interprocess lib
 
 
 
@@ -160,14 +166,14 @@ If you want to make sure a feature is implemented sooner, drop me a note: http:/
 
 - @c normal         about is_generic formatters/destinations (note that I might have already written about this)
 
-- @c low            Nice to have docs wish: a page discussing stranghts of this logger vs other common ones (log4cpp etc).
+- @c low            Nice to have docs wish: a page discussing stranghts of this logger vs other common ones (log4cpp etc)
 
-- @c normal         Documentation about performance of the library is missing - absolute times, # of dynamic allocations per typical log, etc.
+- @c normal         Documentation about performance of the library is missing - absolute times, # of dynamic allocations per typical log, etc
 
-- @c high           For formatters/destinations - make it easier to see - not necessary from examples.
+- @c high           For formatters/destinations - make it easier to see - not necessary from examples;
                     By looking at the namespace itself, it contains other stuff as well. See if I can use @ ingroup or something
 
-- @c normal         Explain about config files - you can use named_spacer,named.
+- @c normal         Explain about config files - you can use named_spacer,named
 
 - @c high           explain about common_base()
 
@@ -177,6 +183,8 @@ If you want to make sure a feature is implemented sooner, drop me a note: http:/
                     i should explain that this could not work immediately because of caching.
 
 - @c normal         scoped logs - scoped_write_msg - explain that you need to implement this in case you have your own gather.read_msg().out() class
+
+- @c high           explain more about filters
 
 */
 

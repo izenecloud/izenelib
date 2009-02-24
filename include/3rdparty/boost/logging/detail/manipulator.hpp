@@ -284,7 +284,7 @@ When it comes to keeping its state, a manipulator (formatter or destination) ins
 In the former case, all the member functions the manipulator exposes are <tt>const</tt>ant.
 
 In the latter case, 
-- your manipulator class can have member functions that can change its state (non-const member functions).
+- your manipulator class can have member functions that can change its state (non-const member functions)
 - your manipulator class @b must use the non_const_context class to hold all its non-const state  
 
 What this guarantees is @ref non_const_pointer_semantics "pointer-like semantics".
@@ -541,6 +541,7 @@ g_l().add_formatter( my_cool_formatter() );
 @sa boost::logging::destination::convert, boost::logging::formatter::convert
 */
 struct is_generic {
+    virtual ~is_generic() {}
 
     /** @brief Override this if you want to allow configuration through scripting
 

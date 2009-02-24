@@ -53,9 +53,9 @@ Also, thread-safety can be implemented in many ways: see scenario::usage
 
 @subsection bl_requirements_scope Scope logging
 
-Couldn't agree more. I will provide for scoped logging soon.
+Couldn't agree more. Done.
 
-@subsection bl_requirements_eliminate Eliminate log statemets from generated code (Michael Lacher)
+@subsection bl_requirements_eliminate Eliminate log statements from generated code (Michael Lacher)
 
 "Requirement: It should be possible to prevent all or a specified subset of log messages from generating any code, symbols or strings in the object file."
 
@@ -97,8 +97,8 @@ Yup, done.
 
 @subsection bl_requirements_sinks Sinks (JD)
 
-- Sink nature (JD) : @b yes
-- Independent output formatting and filtering (JD) : @b yes
+- sink nature (JD) : @b yes
+- independent output formatting and filtering (JD) : @b yes
 
 @subsection bl_requirements_exception Exception safety (abingham)
 
@@ -147,7 +147,7 @@ Don't agree. You will need to have a logger defined somewhere. Note that when yo
 which logger you use to log a certain message.  
 
 
-@subsection bl_requirements_general_thoughts General Thoghths
+@subsection bl_requirements_general_thoughts General Thoughts
 
 - "In my experience, there are two completely unrelated tasks for logging with quite different requirements. Usually logging libraries map those two to different log levels, but this is not really correct. There are debug messages which need a very high level (like assertion failures) but which are nonetheless completely unneeded and maybe even harmfull in a release build. On the other hand many normal logging messages "user clicked button x" are not really important in most cases and it is cumbersome of having to enable those just to be able to see debug log messages. (Michael Lacher)"
 

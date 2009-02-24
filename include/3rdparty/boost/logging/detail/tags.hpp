@@ -88,18 +88,18 @@ my_cool_sample:234 [dbg] hello, world
 @endcode
 
 I can see a few issues with the above
-- The context formatting is fixed 
-  - You can't choose at runtime - what if I want to see the level first, then the file & line?
-  - You can't choose at runtime if you want to ignore some of that context (to speed up the app in some cases, you might decide not to log the file & line)
-  - You can't mix the context formatting with the rest of the formatting. For example, what if I want to log info like this : \n
+- the context formatting is fixed 
+  - you can't choose at runtime - what if I want to see the level first, then the file & line?
+  - you can't choose at runtime if you want to ignore some of that context (to speed up the app in some cases, you might decide not to log the file & line)
+  - you can't mix the context formatting with the rest of the formatting. For example, what if I want to log info like this : \n
     <tt>[idx] file_and_line [time] message [level]</tt> ?
-  - You can't do extra formatting to any of the context. For example, when dumping file/line, 
+  - you can't do extra formatting to any of the context. For example, when dumping file/line, 
     what if you want to strip some information from the file (the file name could be pretty big). Or, you might want to @em normalize 
     the file/line (like, fix it at 50 chars - by stripping or padding information)
-- If you want to be efficient and do the logging on a @ref boost::logging::writer::on_dedicated_thread "dedicated thread"
-  - You can't use formatter::thread_id, because the thread_id is computed when being written (which when used on a dedicated thread, would always
+- if you want to be efficient and do the logging on a @ref boost::logging::writer::on_dedicated_thread "dedicated thread"
+  - you can't use formatter::thread_id, because the thread_id is computed when being written (which when used on a dedicated thread, would always
     return the same value)
-  - Logging the context takes time as well. For instance, <tt>" << __FILE__ << ":" << __LINE__ << " [dbg] "</tt> , in the above case,
+  - logging the context takes time as well. For instance, <tt>" << __FILE__ << ":" << __LINE__ << " [dbg] "</tt> , in the above case,
     takes time. It is much faster to only @em gather the context on the current thread, and then dump it on the dedicated thread. You can use tags for that.
 
 If you're ok with the above issues, no need to delve into tags. You can dump context like shown above, and be fine with it.
@@ -107,6 +107,8 @@ If you're ok with the above issues, no need to delve into tags. You can dump con
 Otherwise, welcome to the world of @b tags!
 
 @section tag_explained Tags - explained
+
+To use tags, you need to include:
 
 @code
 #include <boost/logging/format_fwd.hpp>

@@ -20,13 +20,13 @@ It's quite easy to end up doing this:
     - indirectly (from some constructor you call a function, which calls a function... which in turn does some logging)
 
 You could even run into more complicated scenarios, where you create other threads, 
-which, until you initialize your logs, do some logging. It's good practice to log a thread's begin and end, for instance.
+which which do some logging before you initialize your logs. It's good practice to log a thread's begin and end, for instance.
 
 Even though you think this'll never happen to you, usage of singletons and other static variables is quite common,
 so better to guard against it.
 
 One solution would be for the library to rely on an external function, like <tt>void boost::logging::init_logs()</tt>,
-and have your application have to define it, and it its body, initialize the logs. The library would then make sure
+and have your application have to define it, and in its body, initialize the logs. The library would then make sure
 the @c init_logs() is called before any log is used.
 
 There are several problems with this solution:
@@ -36,18 +36,18 @@ There are several problems with this solution:
   I would need to check if init_logs has been called or not - not very efficient
 - within init_logs() I might end up using logs, thus ending in an infinite loop (log needs init_logs(), which uses log)
 - you would not have any control over when @c init_logs() is called - what if they need some context information -
-  they wouldn't have any context do rely on
+  they wouldn't have any context to rely on
 - depending on your application, some logs could only be initialized later than others
 - if your application has several modules, assume each module has its own log. Thus, each module should be able to 
   initialize its own log when the module is initialized
 
 Thus, I came up with a caching mechanism. You can choose to:
-- Cache messages that are written before logs are initialized. For each logged message, you will also cache its corresponding filter 
+- cache messages that are written before logs are initialized. For each logged message, you will also cache its corresponding filter 
   (so that if, when initializing the logs, a certain filter is turned off, that message won't be logged)
-- Cache messages that are written before logs are initialized. When logs are initialized, all these cached messages are logged
-- Ignore messages that are written before the logs are initialized
+- cache messages that are written before logs are initialized. When logs are initialized, all these cached messages are logged
+- ignore messages that are written before the logs are initialized
 
-<b>By default, for each log, cache is turned on. To turn cache off (mark the log as initialized), just call @c mark_as_initialized() on it.
+<b>By default, for each log, cache is turned on. To turn cache off (mark the log as initialized), just call @ref logger_base::mark_as_initialized "mark_as_initialized()" on the logger.
 You'll see that I'm doing this on all examples that come with the library.</b>
 
 
@@ -58,9 +58,7 @@ You'll see that I'm doing this on all examples that come with the library.</b>
 @section caching_BOOST_LOG_BEFORE_INIT_LOG_ALL Cache messages before logs are initialized regardless of their filter (BOOST_LOG_BEFORE_INIT_LOG_ALL)
 
 This case is the @b default. When cache is on, all messages are cached, regardless of their filter (as if all filters are turned on).
-Then, when cache is marked as initialized, all cached messages are logged.
-
-If you want to force this setting, make sure you define the @c BOOST_LOG_BEFORE_INIT_LOG_ALL globally (it's on by default anyway).
+Then, when logger is marked as initialized (i.e., cache is turned off), all cached messages are logged.
 
 @code
 ...
@@ -71,6 +69,8 @@ L_ << "this message will be logged, even if filter will be turned off";
 g_log_filter()->set_enabled(false);
 g_l()->mark_as_initialized();
 @endcode
+
+If you want to force this setting, make sure you define the @c BOOST_LOG_BEFORE_INIT_LOG_ALL (it's on by default anyway).
 
 
 \n
@@ -90,7 +90,7 @@ g_log_filter()->set_enabled(false);
 g_l()->mark_as_initialized();
 @endcode
 
-If you do want to use this setting, make sure you define the @c BOOST_LOG_BEFORE_INIT_CACHE_FILTER globally.
+If you do want to use this setting, make sure you define the @c BOOST_LOG_BEFORE_INIT_CACHE_FILTER.
 
 
 @subsection caching_BOOST_LOG_BEFORE_INIT_CACHE_FILTER_the_catch BOOST_LOG_BEFORE_INIT_CACHE_FILTER - the catch...
@@ -109,7 +109,7 @@ Assume you have a logger with a filter based on levels:
 @endcode
 
 If you cache the filter, the expression <tt>g_log_level()->is_enabled( lvl )</tt> needs to be recomputed at a later time 
-(when the log is marked as initialized, and all messages that were cached, are logged).
+(when the logger is marked as initialized, and all messages that were cached, are logged).
 Thus, all parameters that are passed to the your L_ macro need to be either compile-time constants or global values. Otherwise, a compile-time error will
 be issued:
 
@@ -130,9 +130,7 @@ Normally you should not care about this, since whatever you pass to your logging
 \n
 @section caching_BOOST_LOG_BEFORE_INIT_IGNORE_BEFORE_INIT Ignore all messages before mark_as_initialized (BOOST_LOG_BEFORE_INIT_IGNORE_BEFORE_INIT)
 
-In the last case, all messages before @c mark_as_initialized() are ignored.
-
-If you do want to use this setting, make sure you define the @c BOOST_LOG_BEFORE_INIT_IGNORE_BEFORE_INIT globally.
+In the last case, all messages before @ref logger_base::mark_as_initialized "mark_as_initialized()" are ignored.
 
 @code
 ...
@@ -143,6 +141,7 @@ L_ << "this message will NOT be logged";
 g_l()->mark_as_initialized();
 @endcode
 
+If you do want to use this setting, make sure you define the @c BOOST_LOG_BEFORE_INIT_IGNORE_BEFORE_INIT globally.
 
 
 
