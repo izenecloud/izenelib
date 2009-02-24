@@ -253,7 +253,7 @@ public:
 	/**
 	 * 	\brief write all the items in memory to file.
 	 */
-	
+
 	void flush();
 	/**
 	 * 	\brief write back the dirypages
@@ -274,12 +274,14 @@ public:
 			abort();
 		}
 
-		while( !_dirtyPages.empty() )
+		_flush(_root, _dataFile);
+		
+		/*while( !_dirtyPages.empty() )
 		{
 			BTreeNodePtr ptr = _dirtyPages.back();
 			_dirtyPages.pop_back();
 			ptr->write(_dataFile);
-		}
+		}*/
 		fflush(_dataFile);
 
 	}
@@ -353,10 +355,9 @@ public:
 	{
 		NodeKeyLocn locn;
 		search(key, locn);
-		return locn;		
-	}	
+		return locn;
+	}
 
-	
 	bool search(const KeyType& key, NodeKeyLocn& locn) {
 
 		//do Flush, when there are too many active nodes.
@@ -442,48 +443,105 @@ private:
 	bool _isUnload;
 
 private:
-	BTreeNodeVECTOR _dirtyPages;
+	//BTreeNodeVECTOR _dirtyPages;
 	CompareFunctor<KeyType> comp;
 
 private:
 
 	void _flushCache() {
-        commit();
-		//cout<<BTreeNode<KeyType, DataType, LockType, Alloc>::activeNodeNum <<" > "<<_cacheSize<<endl;
-		if (BTreeNode<KeyType, DataType, LockType, Alloc>::activeNodeNum> _cacheSize) {
-#ifdef DEBUG
-			cout<<"flush ... "<<_cacheSize << endl;
-			cout<<"activeNode: " <<BTreeNode<KeyType, DataType, LockType, Alloc>::activeNodeNum
-			<<endl;
-#endif
-			_isUnload = true;
 
-			if ( _root && !_root->isLeaf) {
-				for (size_t ctr = 0; ctr <= _root->objCount; ctr++) {
-					// keep engough node in memory to impove the efficency.
-					if (BTreeNode<KeyType, DataType, LockType, Alloc>::activeNodeNum
-							< _cacheSize/2 ) {
-#ifdef DEBUG
-						cout<<"AcitveNodeNum= "
-						<<BTreeNode<KeyType, DataType, LockType, Alloc>::activeNodeNum
-						<<"\n stop unload\n";
+		//cout<<bucket_chain::activeNum<<" vs "<<sfh_.cacheSize <<endl;
+		if( BTreeNode<KeyType, DataType, LockType, Alloc>::activeNodeNum> sfh.cacheSize )
+		{
+			//commit();
+			//_dirtyPages.clear();
+#ifdef  DEBUG
+			cout<<"cache is full..."<<endl;
+			cout<<BTreeNode<KeyType, DataType, LockType, Alloc>::activeNodeNum<<" vs "<<sfh.cacheSize <<endl;
 #endif
 
+			queue<BTreeNodePtr> qnode;
+			qnode.push(_root);		
+			//_root->unload();
+			
+			size_t popNum = 0;
+			while ( !qnode.empty() ) {
+				BTreeNodePtr popNode = qnode.front();
+				qnode.pop();
+				popNum++;
+				if(popNum >= sfh.cacheSize/_minDegree/_minDegree)				
+				{
+					if(popNode->_isDirty)
+						_flush(popNode, _dataFile);
+					popNode->unload();
+
+					//cout<<"unload....";
+					//cout<<BTreeNode<KeyType, DataType, LockType, Alloc>::activeNodeNum<<" vs "<<sfh.cacheSize <<endl;
+
+					if(BTreeNode<KeyType, DataType, LockType, Alloc>::activeNodeNum < sfh.cacheSize/2)
+					{
 						break;
 					}
-
-					BTreeNodePtr pChild = _root->children[ctr];
-					if ((BTreeNodePtr)pChild != 0) {	
-						_root->children[ctr]->unload();						
+				}
+				if (!popNode->isLeaf) {
+					for (BIT tnvit = popNode->children.begin(); tnvit
+							!= popNode->children.end(); tnvit++) {
+						if (*tnvit)
+						qnode.push(*tnvit);
 					}
-					_isUnload = false;
 
 				}
+				popNode.reset(0);
 			}
-
+			//display();
+#ifdef DEBUG
+			cout<<"stop unload..."<<endl;
+			cout<<BTreeNode<KeyType, DataType, LockType, Alloc>::activeNodeNum<<" vs "<<sfh.cacheSize <<endl;
+#endif		
 		}
+		fflush(_dataFile);
 
 	}
+
+	
+	 void _flushCache1() {
+	 commit();	 
+	 //cout<<BTreeNode<KeyType, DataType, LockType, Alloc>::activeNodeNum <<" > "<<_cacheSize<<endl;
+	 if (BTreeNode<KeyType, DataType, LockType, Alloc>::activeNodeNum> _cacheSize) {
+	 #ifdef DEBUG
+	// display();	
+	 cout<<"flush ... "<<_cacheSize << endl;
+	 cout<<"activeNode: " <<BTreeNode<KeyType, DataType, LockType, Alloc>::activeNodeNum
+	 <<endl;
+	 #endif
+	 _isUnload = true;
+
+	 if ( _root && !_root->isLeaf) {
+	 for (size_t ctr = 0; ctr <= _root->objCount; ctr++) {
+	 // keep engough node in memory to impove the efficency.
+	 if (BTreeNode<KeyType, DataType, LockType, Alloc>::activeNodeNum
+	 < _cacheSize/2 ) {
+	 #ifdef DEBUG
+	 cout<<"AcitveNodeNum= "
+	 <<BTreeNode<KeyType, DataType, LockType, Alloc>::activeNodeNum
+	 <<"\n stop unload\n";
+	 #endif
+
+	 break;
+	 }
+
+	 BTreeNodePtr pChild = _root->children[ctr];
+	 if ((BTreeNodePtr)pChild != 0) {
+	 _root->children[ctr]->unload();
+	 }
+	 _isUnload = false;
+
+	 }
+	 }	
+	 //display();
+	 }	 
+
+	 }
 
 	// internal data manipulation functions (see Cormen, Leiserson, Rivest).
 	//	static inline int _defaultCompare(const DbObjPtr& obj1, const DbObjPtr& obj2);
@@ -579,8 +637,8 @@ private:
 		c1->setDirty(1);
 		parent->setDirty(_dataFile);
 
-		_dirtyPages.push_back(c1);
-		_dirtyPages.push_back(parent);
+		//_dirtyPages.push_back(c1);
+		//_dirtyPages.push_back(parent);
 
 		// Return a pointer to the new child.
 		return c1;
@@ -702,9 +760,9 @@ template<typename KeyType, typename ValueType, typename LockType,
 	newChild->setDirty(1);
 	parent->setDirty(1);
 
-	_dirtyPages.push_back(child);
-	_dirtyPages.push_back(newChild);
-	_dirtyPages.push_back(parent);
+	//_dirtyPages.push_back(child);
+	//_dirtyPages.push_back(newChild);
+	//_dirtyPages.push_back(parent);
 	//child->write(_dataFile);	
 	//newChild->write(_dataFile);	
 	//parent->write(_dataFile);
@@ -767,7 +825,7 @@ template<typename KeyType, typename ValueType, typename LockType,
 
 			node->elements[low].reset(new PtrObj<DataType, LockType, Alloc>(dat));
 			node->setDirty(1);
-			_dirtyPages.push_back(node);
+			//_dirtyPages.push_back(node);
 			return true;
 		}
 
@@ -841,7 +899,9 @@ template<typename KeyType, typename ValueType, typename LockType,
 			}
 
 		}
+		popNode.reset(0);
 	}
+
 }
 
 // Internal delete function, used once we've identified the
@@ -874,7 +934,7 @@ template<typename KeyType, typename ValueType, typename LockType,
 
 				//now node is dirty
 				node->setDirty(1);
-				_dirtyPages.push_back(node);
+				//_dirtyPages.push_back(node);
 				ret = true;
 			}
 			// Case 2: Exact match on internal leaf.
@@ -894,7 +954,7 @@ template<typename KeyType, typename ValueType, typename LockType,
 
 					//now node is dirty
 					node->setDirty(1);
-					_dirtyPages.push_back(node);
+					//_dirtyPages.push_back(node);
 
 					node = childNode;
 					key = dat.get_key();
@@ -914,7 +974,7 @@ template<typename KeyType, typename ValueType, typename LockType,
 
 					//now node is dirty
 					node->setDirty(1);
-					_dirtyPages.push_back(node);
+					//_dirtyPages.push_back(node);
 
 					node = childNode;
 					key = dat.get_key();
@@ -1013,8 +1073,8 @@ template<typename KeyType, typename ValueType, typename LockType,
 						//now node is dirty
 						leftSib->setDirty(1);
 						node->setDirty(1);
-						_dirtyPages.push_back(leftSib);
-						_dirtyPages.push_back(node);
+						//_dirtyPages.push_back(leftSib);
+						//_dirtyPages.push_back(node);
 					}
 
 					// Bringing a new key in from the right sibling
@@ -1059,13 +1119,13 @@ template<typename KeyType, typename ValueType, typename LockType,
 						//now node is dirty
 						rightSib->setDirty(true);
 						node->setDirty(1);
-						_dirtyPages.push_back(rightSib);
-						_dirtyPages.push_back(node);
+						//_dirtyPages.push_back(rightSib);
+						//_dirtyPages.push_back(node);
 					}
 					node = childNode;
 
 					node->setDirty(true);
-					_dirtyPages.push_back(node);
+					//_dirtyPages.push_back(node);
 					goto L0;
 					//ret = _delete(childNode, key);
 				}
