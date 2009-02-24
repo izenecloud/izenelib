@@ -9,10 +9,15 @@
 #include <stdio.h>
 #include <am/cccr_ustring_hash_table/cccr_ustr_hash_table.hpp>
 #include <ustring/UString.h>
+//#include <boost/archive/text_iarchive.hpp>
+//#include <boost/archive/text_oarchive.hpp>
 
-using namespace sf1lib;
+
 using namespace std;
 extern int debug_count;
+
+//typedef boost::archive::text_iarchive iarchive;
+//typedef boost::archive::text_oarchive oarchive;
 
 NS_IZENELIB_AM_BEGIN
 /**
@@ -26,6 +31,7 @@ NS_IZENELIB_AM_BEGIN
  **/
 template<
   UString::EncodingType ENCODE_TYPE,
+  //class ValueType = uint64_t,
   unsigned short* ALPHABET = a2z,
   uint32_t ALPHABET_SIZE = a2z_size,
 
@@ -48,7 +54,7 @@ template<
   >
 class BTrie
 {
-  typedef BTrie<ENCODE_TYPE, ALPHABET, ALPHABET_SIZE, BUCKET_SIZE, SPLIT_RATIO, ENTRY_SIZE, HASH_FUNCTION,PAGE_EXPANDING, BUCKET_CACHE_LENGTH, BucketCachePolicy, NODE_CACHE_LENGTH, NodeCachePolicy> SelfType;
+  typedef BTrie<ENCODE_TYPE,  ALPHABET, ALPHABET_SIZE, BUCKET_SIZE, SPLIT_RATIO, ENTRY_SIZE, HASH_FUNCTION,PAGE_EXPANDING, BUCKET_CACHE_LENGTH, BucketCachePolicy, NODE_CACHE_LENGTH, NodeCachePolicy> SelfType;
   typedef Bucket<ENCODE_TYPE, BUCKET_SIZE, SPLIT_RATIO, ALPHABET, ALPHABET_SIZE> BucketType;
   typedef NodeCache<NODE_CACHE_LENGTH, NodeCachePolicy, ALPHABET, ALPHABET_SIZE> NodeCacheType;
   typedef BucketCache<ENCODE_TYPE, BUCKET_CACHE_LENGTH, BUCKET_SIZE, SPLIT_RATIO, BucketCachePolicy, ALPHABET, ALPHABET_SIZE> BucketCacheType;
@@ -67,6 +73,8 @@ public:
     string bstr = filename+".buk";
     string nstr = filename + ".nod";
     string hstr = filename + ".has";
+    //valuePoolFileName_ = filename + ".val";
+    
     bool isload = false;
     
     nodf_ = fopen(nstr.c_str(), "r+");
@@ -98,9 +106,9 @@ public:
     }
     
     if (isload)
+    {
       load();
-    
-    
+    }
   }
 
   ~BTrie()
@@ -122,6 +130,19 @@ public:
     pBucketCache_->flush();
     pNodeCache_ ->flush();
     hashTable_.unload(hashf_);
+    
+//     ofstream of(valuePoolFileName.c_str());
+//     oarchive oa(of);
+//     size_t size = dataVec_.size();
+//     oa << size;
+    
+//     for(typename vector<ValueType>::iterator i =dataVec_.begin(); i!=dataVec_.end(); i++)
+//     {
+//       oa<<(*i);
+//     }
+
+//     of.close();
+
   }
 
   /**
@@ -137,6 +158,22 @@ public:
     load_(n);
     
     hashTable_.load(hashf_);
+
+          
+//       ifstream ifs(valuePoolFileName_.c_str());
+//       iarchive ia(ifs);
+//       size_t size;
+//       ia>>size;
+
+//       for (size_t i =0; i<size; i++)
+//       {
+//         ValueType v;
+//         ia>>v;
+//         //cout<<v;
+//         dataVec_.push_back(v);
+//       }
+        
+//       ifs.close();
   }
 
 protected:
@@ -198,7 +235,7 @@ public:
     {
       return false;
     }
-
+    
     UString* pStr = new UString(str);
     strPool_.push_back(pStr);
 
@@ -462,7 +499,7 @@ public:
   /**
    *Get the content of 'str'
    **/
-  uint64_t query(const UString& str)
+  uint64_t find(const UString& str)
   {
     
     if (pNodeCache_==NULL)
@@ -483,7 +520,7 @@ public:
       {
         //throw exception
         cout<<"Eception 1\n";
-        return false;
+        return NULL;
       }
 
       uint32_t idx = n->getIndexOf(str[i]);
@@ -745,6 +782,8 @@ protected:
   NodeCacheType* pNodeCache_;//!<Nodes cache
   HashTable hashTable_;//!<Hash table
   vector<UString*> strPool_;
+  //  string valuePoolFileName_;
+  //vector<ValueType> valuePool_;
 }
   ;
 
