@@ -444,161 +444,15 @@ public:
 
     return hashTable_.update(str, contentAddr);
   }
-  
-  /**
-   *Find regular expression in trie tree.
-   *@param regexp Regular expression.
-   *@param sofar Record the string ahead sofar.
-   *@param ret The found results.
-   **/
-  void findRegExp(uint32_t idx, uint64_t addr, const UString& regexp, const UString& sofar,  vector<item_pair>& ret)
+
+  void findRegExp(const UString& regexp,  vector<item_pair>& ret)
   {
-     
-    if (pNodeCache_==NULL)
-    {
-      return ;
-    }
-
-    if (regexp.empty())
-    {
-      uint64_t ad = hashTable_.find(sofar);
-      ret.push_back(item_pair(sofar, ad));
-      return;
-    }
+    UString sofar;
+    findRegExp_(0,1, regexp, sofar, ret);
     
-    
-    AlphabetNodePtr n = pNodeCache_->getNodeByMemAddr(idx, addr);//root node address is 1 in disk and 0 in cache
-    pNodeCache_->lockNode(n.getIndex());
-          
-    if (n.isNull())
-    {
-      //throw exception
-      cout<<"Eception 1\n";
-      return ;
-    }
-      
-    UString sub;
-    regexp.subString(sub, 1);
-    uint64_t last_addr = -1;
-    uint32_t last_mem = -1;
-    
-    switch (regexp[0])
-    {
-    case '*':
-      for (uint32_t i=0; i<ALPHABET_SIZE; i++)
-      {
-        UString sf = sofar;
-        sf += ALPHABET[i];
-        uint64_t diskAddr = n->getDiskAddr(i);
-        
-        if (diskAddr == last_addr)
-        {
-          n->setMemAddr(i, last_mem);
-          continue;
-        }
-        
-        last_addr = diskAddr;
-        
-        uint32_t memAddr = n->getMemAddr(i);
-        if (diskAddr == (uint64_t)-1)
-          continue;
-
-        if (diskAddr%2==0)
-        {
-          //load bucket
-          BucketPtr b = pBucketCache_->getNodeByMemAddr(memAddr, diskAddr);
-          b->findRegExp(regexp, sofar, ret);
-          //regexp.displayStringValue(ENCODE_TYPE, cout);
-
-          //cout<<endl;
-          
-          n->setMemAddr(i, memAddr);
-          last_mem = memAddr;
-
-          continue;
-        }
-          
-        findRegExp(memAddr, diskAddr, regexp, sf, ret);
-
-      }
-        
-      findRegExp(idx, addr, sub, sofar, ret);
-      pNodeCache_->unlockNode(n.getIndex());
-      break;
-
-    case '?':
-      
-      last_addr =  -1;
-      for (uint32_t i=0; i<ALPHABET_SIZE; i++)
-      {
-        UString sf = sofar;
-        sf += ALPHABET[i];
-        uint64_t diskAddr = n->getDiskAddr(i);
-        uint32_t memAddr = n->getMemAddr(i);
-        
-        if (diskAddr == last_addr)
-        {
-          n->setMemAddr(i, last_mem);
-          continue;
-        }
-        
-        last_addr = diskAddr;
-        
-        if (diskAddr == (uint64_t)-1)
-          continue;
-
-        if (diskAddr%2==0)
-        {
-          //load bucket
-          BucketPtr b = pBucketCache_->getNodeByMemAddr(memAddr, diskAddr);
-        
-          b->findRegExp(regexp, sf, ret);
-          n->setMemAddr(i, memAddr);
-          last_mem = memAddr;
-          continue;
-        }
-          
-        findRegExp(memAddr, diskAddr, sub, sf, ret);
-      }
-      findRegExp(idx, addr, sub, sofar, ret);
-      pNodeCache_->unlockNode(n.getIndex());
-
-      break;
-
-    default:
-          
-      idx = n->getIndexOf(regexp[0]);
-      uint64_t diskAddr = n->getDiskAddr(idx);
-      uint32_t memAddr = n->getMemAddr(idx);
-      UString sf = sofar;
-      sf += regexp[0];
-      
-      if (diskAddr == (uint64_t)-1)
-      {
-        //throw exception
-        cout<<"Eception 2\n";
-        return ;
-      }
-
-      
-      if (diskAddr%2==0)
-      {
-        //load bucket
-        BucketPtr b = pBucketCache_->getNodeByMemAddr(memAddr, diskAddr);
-        n->setMemAddr(idx, memAddr);
-        pNodeCache_->unlockNode(n.getIndex());
-        //sub.displayStringValue(ENCODE_TYPE, cout);
-        //b->display(cout);
-        return b->findRegExp(regexp, sf, ret);
-      }
-      
-      findRegExp(memAddr, diskAddr, sub, sf, ret);
-      pNodeCache_->unlockNode(n.getIndex());
-      break;
-      
-    }    
   }
-
+  
+    
   /**
    *Get the content of 'str'
    **/
@@ -716,7 +570,163 @@ public:
     return pBucketCache_->newNode();
     
   }
-  
+
+protected:
+    
+  /**
+   *Find regular expression in trie tree.
+   *@param regexp Regular expression.
+   *@param sofar Record the string ahead sofar.
+   *@param ret The found results.
+   **/
+  void findRegExp_(uint32_t idx, uint64_t addr, const UString& regexp, const UString& sofar,  vector<item_pair>& ret)
+  {
+     
+    if (pNodeCache_==NULL)
+    {
+      return ;
+    }
+
+    if (regexp.empty())
+    {
+      uint64_t ad = hashTable_.find(sofar);
+      ret.push_back(item_pair(sofar, ad));
+      return;
+    }
+    
+    
+    AlphabetNodePtr n = pNodeCache_->getNodeByMemAddr(idx, addr);//root node address is 1 in disk and 0 in cache
+    pNodeCache_->lockNode(n.getIndex());
+          
+    if (n.isNull())
+    {
+      //throw exception
+      cout<<"Eception 1\n";
+      return ;
+    }
+      
+    UString sub;
+    regexp.subString(sub, 1);
+    uint64_t last_addr = -1;
+    uint32_t last_mem = -1;
+    
+    switch (regexp[0])
+    {
+    case '*':
+      for (uint32_t i=0; i<ALPHABET_SIZE; i++)
+      {
+        UString sf = sofar;
+        sf += ALPHABET[i];
+        uint64_t diskAddr = n->getDiskAddr(i);
+        
+        if (diskAddr == last_addr)
+        {
+          n->setMemAddr(i, last_mem);
+          continue;
+        }
+        
+        last_addr = diskAddr;
+        
+        uint32_t memAddr = n->getMemAddr(i);
+        if (diskAddr == (uint64_t)-1)
+          continue;
+
+        if (diskAddr%2==0)
+        {
+          //load bucket
+          BucketPtr b = pBucketCache_->getNodeByMemAddr(memAddr, diskAddr);
+          b->findRegExp(regexp, sofar, ret);
+          //regexp.displayStringValue(ENCODE_TYPE, cout);
+
+          //cout<<endl;
+          
+          n->setMemAddr(i, memAddr);
+          last_mem = memAddr;
+
+          continue;
+        }
+          
+        findRegExp_(memAddr, diskAddr, regexp, sf, ret);
+
+      }
+        
+      findRegExp_(idx, addr, sub, sofar, ret);
+      pNodeCache_->unlockNode(n.getIndex());
+      break;
+
+    case '?':
+      
+      last_addr =  -1;
+      for (uint32_t i=0; i<ALPHABET_SIZE; i++)
+      {
+        UString sf = sofar;
+        sf += ALPHABET[i];
+        uint64_t diskAddr = n->getDiskAddr(i);
+        uint32_t memAddr = n->getMemAddr(i);
+        
+        if (diskAddr == last_addr)
+        {
+          n->setMemAddr(i, last_mem);
+          continue;
+        }
+        
+        last_addr = diskAddr;
+        
+        if (diskAddr == (uint64_t)-1)
+          continue;
+
+        if (diskAddr%2==0)
+        {
+          //load bucket
+          BucketPtr b = pBucketCache_->getNodeByMemAddr(memAddr, diskAddr);
+        
+          b->findRegExp(regexp, sf, ret);
+          n->setMemAddr(i, memAddr);
+          last_mem = memAddr;
+          continue;
+        }
+          
+        findRegExp_(memAddr, diskAddr, sub, sf, ret);
+      }
+      findRegExp_(idx, addr, sub, sofar, ret);
+      pNodeCache_->unlockNode(n.getIndex());
+
+      break;
+
+    default:
+          
+      idx = n->getIndexOf(regexp[0]);
+      uint64_t diskAddr = n->getDiskAddr(idx);
+      uint32_t memAddr = n->getMemAddr(idx);
+      UString sf = sofar;
+      sf += regexp[0];
+      
+      if (diskAddr == (uint64_t)-1)
+      {
+        //throw exception
+        cout<<"Eception 2\n";
+        return ;
+      }
+
+      
+      if (diskAddr%2==0)
+      {
+        //load bucket
+        BucketPtr b = pBucketCache_->getNodeByMemAddr(memAddr, diskAddr);
+        n->setMemAddr(idx, memAddr);
+        pNodeCache_->unlockNode(n.getIndex());
+        //sub.displayStringValue(ENCODE_TYPE, cout);
+        //b->display(cout);
+        return b->findRegExp(regexp, sf, ret);
+      }
+      
+      findRegExp_(memAddr, diskAddr, sub, sf, ret);
+      pNodeCache_->unlockNode(n.getIndex());
+      break;
+      
+    }    
+  }
+
 // friend ostream& operator << ( ostream& os, const SelfType& node)
 //   {
 //   }

@@ -245,16 +245,16 @@ void dump(int signo)
 BOOST_AUTO_TEST_CASE(B_trie_regex_check )
 {
   signal(SIGSEGV, &dump);
+
+  remove("./test.buk");
+  remove("./test.nod");
+  remove("./test.has");
   
-//   remove("./test.buk");
-//   remove("./test.nod");
-//   remove("./test.has");
-  
-  vector<UString> vstr;
-  vector<UString*> vp;
-  readDict("./dict1.txt", vstr);
-  cout<<"\nData is ready!\n";
-   clock_t start, finish;
+//   vector<UString> vstr;
+//   vector<UString*> vp;
+//   readDict("./dict1.txt", vstr);
+//   cout<<"\nData is ready!\n";
+//    clock_t start, finish;
    
 //   BTrie<ENCODE_TYPE> trie("./test");
 
@@ -276,28 +276,52 @@ BOOST_AUTO_TEST_CASE(B_trie_regex_check )
 //   cout<<"Node amount: "<<trie.getNodeAmount()<<endl;
 //   //------------------------------------------------------------------------------
 
+//   //trie.display(cout, "far");
+//   //BTrie<ENCODE_TYPE> trie("./test");  
+//   start = clock();
+//   uint64_t diskAdd = 1;
+//   uint32_t memAdd = 0;
+//   vector<item_pair> ip;
+//   //*1M77N?fH*C3lJt
+//   //cout<<trie.query(UString("GIdku3vr_C5jIUtVQHXNf5pPWRn3uiJa", ENCODE_TYPE))<<endl;
   
+//   trie.findRegExp(UString("*u3vr_C5jIUtVQHXNf?pPW*iJa", ENCODE_TYPE), ip);//(memAdd, diskAdd, , UString(), ip);
+//   for (vector<item_pair>::iterator i = ip.begin(); i!= ip.end(); i++)
+//   {
+//     (*i).str_.displayStringValue(ENCODE_TYPE, cout);
+//     cout<<"===>"<<(*i).addr_<<endl;
+//   }
   
-  //trie.display(cout, "far");
-  BTrie<ENCODE_TYPE> trie("./test");  
-  start = clock();
-  uint64_t diskAdd = 1;
-  uint32_t memAdd = 0;
-  vector<item_pair> ip;
-  //*1M77N?fH*C3lJt
-  //cout<<trie.query(UString("GIdku3vr_C5jIUtVQHXNf5pPWRn3uiJa", ENCODE_TYPE))<<endl;
+
   
-  trie.findRegExp(memAdd, diskAdd, UString("*u3vr_C5jIUtVQHXNf?pPW*iJa", ENCODE_TYPE), UString(), ip);
-  for (vector<item_pair>::iterator i = ip.begin(); i!= ip.end(); i++)
-  {
-    (*i).str_.displayStringValue(ENCODE_TYPE, cout);
-    cout<<"===>"<<(*i).addr_<<endl;
-  }
-  
-  //trie.display(cout,UString("澎纲测赂梯坏嘘确扣", ENCODE_TYPE));
-  
-  finish = clock();
-  printf( "\nIt takes %f seconds to find!\n", (double)(finish - start)/CLOCKS_PER_SEC);
+//   finish = clock();
+//   printf( "\nIt takes %f seconds to find!\n", (double)(finish - start)/CLOCKS_PER_SEC);
+
+  BTrie<sf1lib::UString::UTF_8> trie("./test"); 
+    ifstream inf("./dict1.txt");
+    string str;
+    unsigned int id = 0;
+    while (inf>>str)
+    {
+        sf1lib::UString ustr(str,sf1lib::UString::UTF_8);
+        trie.insert(&ustr,2);
+        cout<<str;
+        
+        str.clear();
+    }
+	trie.flush();
+    cout<<"----------\n";
+    
+    vector<item_pair> ip;
+	UString pattern("*u3vr_C5jIUtVQHXNf?pPW*iJa", sf1lib::UString::UTF_8);
+	trie.findRegExp(pattern, ip);
+    cout<<"5555555555555555555\n";
+    
+	for (vector<item_pair>::iterator i = ip.begin(); i!= ip.end(); i++)
+	{
+	  (*i).str_.displayStringValue(sf1lib::UString::UTF_8, cout);
+	  cout<<"===>"<<(*i).addr_<<endl;
+	}
 
 }
 BOOST_AUTO_TEST_SUITE_END()
