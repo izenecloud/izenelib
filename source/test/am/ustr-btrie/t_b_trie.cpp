@@ -304,8 +304,8 @@ BOOST_AUTO_TEST_CASE(B_trie_regex_check )
     while (inf>>str)
     {
         sf1lib::UString ustr(str,sf1lib::UString::UTF_8);
-        trie.insert(&ustr,2);
-        cout<<str;
+        trie.insert(ustr,2);
+        //cout<<str;
         
         str.clear();
     }

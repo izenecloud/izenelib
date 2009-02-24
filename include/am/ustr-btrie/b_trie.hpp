@@ -109,6 +109,9 @@ public:
       delete pNodeCache_;
     if ( pBucketCache_ != NULL)
       delete pBucketCache_;
+
+    //for (vector<UString*>::iterator i=strPool_.begin(); i!=strPool_.end(); i++)
+    //delete *i;
   }
 
   /**
@@ -189,12 +192,15 @@ public:
   /**
    *Insert a string and content address pair into trie.
    **/
-  bool insert(UString* pStr, uint64_t contentAddr)
+  bool insert(const UString& str, uint64_t contentAddr)
   {
     if (pNodeCache_==NULL)
     {
       return false;
     }
+
+    UString* pStr = new UString(str);
+    strPool_.push_back(pStr);
 
     UString consumeStr = *pStr;
     AlphabetNodePtr n_1 ;
@@ -738,7 +744,7 @@ protected:
   BucketCacheType* pBucketCache_;//!<Bucket cache.
   NodeCacheType* pNodeCache_;//!<Nodes cache
   HashTable hashTable_;//!<Hash table
-
+  vector<UString*> strPool_;
 }
   ;
 
