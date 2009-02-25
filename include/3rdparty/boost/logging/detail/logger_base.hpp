@@ -52,7 +52,7 @@ namespace boost { namespace logging {
         */
         template<class cache_type> struct default_cache_keeper {
             default_cache_keeper() : m_is_cache_turned_off(false) {}
-            ~default_cache_keeper() {
+            virtual ~default_cache_keeper() {
                 // after we're destroyed, always consider the cache turned off
                 // (just in case someone is using the logger after it's been destroyed
                 m_is_cache_turned_off = true;

@@ -77,16 +77,16 @@ g_l()->writer().destination("cout file(out.txt) debug");
 
 @section format_string_syntax The syntax of the format string
 
-- The format string specifies how the message is to be logged
-- Every formatter is escaped using <tt>%</tt><em>fmt</em><tt>%</tt>
-  - Available formatters:
+- the format string specifies how the message is to be logged
+- every formatter is escaped using <tt>%</tt><em>fmt</em><tt>%</tt>
+  - available formatters:
     - <tt>"%idx%"</tt> - writes the index of the message (formatter::idx)
     - <tt>"%time%"</tt> - writes the time (formatter::high_precision_time)
     - <tt>"%thread_id%"</tt> - writes the thread id (formatter::thread_id)
     - if you want to write @c "%", double it, like this: @c "%%"
 - @c "|" is used to specify the original message. What is before it, is prepended to the message, what is after, is appended to the message 
-- If a formatter is configurable, append @em (params) to it
-  - For now, only @c "%time%" is configurable. For instance, @c "%time%($hh:$mm.$ss.$mili)" writes time like @c "21:14.24.674"
+- if a formatter is configurable, append @em (params) to it
+  - for now, only @c "%time%" is configurable. For instance, @c "%time%($hh:$mm.$ss.$mili)" writes time like @c "21:14.24.674"
 
 Example:
 @code
@@ -104,10 +104,10 @@ The output can look like:
 
 @section dest_string_syntax The syntax of the destinations string
 
-- The syntax of the destination string specifies where the message is to be logged
-  - Every destination is specified by name
-  - Separate destinations by space (' ')
-- Available destinations
+- the syntax of the destination string specifies where the message is to be logged
+  - every destination is specified by name
+  - separate destinations by space (' ')
+- available destinations
   - <tt>"cout"</tt> - writes to std::cout (destination::cout)
   - <tt>"cerr"</tt> - writes to std::cerr (destination::cerr)
   - <tt>"debug"</tt> - writes to the debug window: OutputDebugString in Windows, console on Linux (destination::dbg_window)
@@ -115,9 +115,9 @@ The output can look like:
   - <tt>"file2"</tt> - writes to a second file (destination::file)
   - <tt>"rol_file"</tt> - writes to a rolling file (destination::rolling_file)
   - <tt>"rol_file2"</tt> - writes to a second rolling file (destination::rolling_file)
-- If a destination is configurable, append @em (params) to it
-  - Right now, @c "file", @c "file2", @c "rol_file" and @c "rol_file2" are configurable
-    - Append <tt>(</tt><em>filename</em><tt>)</tt> to them to specify the file name. Example: @c "file(out.txt)" will write to the out.txt file
+- if a destination is configurable, append @em (params) to it
+  - right now, @c "file", @c "file2", @c "rol_file" and @c "rol_file2" are configurable
+    - append <tt>(</tt><em>filename</em><tt>)</tt> to them to specify the file name. Example: @c "file(out.txt)" will write to the out.txt file
 
 Examples:
 - <tt>"file(out.txt) cout"</tt> - will write to a file called out.txt and to cout
@@ -152,6 +152,18 @@ template<class format_write_ /* = default_ */ > struct named_write {
 
         init();
     }
+
+    /** @brief Constructs the named_write, and specifies the formats and destinations 
+    */
+    named_write(const string_type & format_str, const string_type & destination_str) {
+        m_writer.add_formatter( m_format_before);
+        m_writer.add_formatter( m_format_after);
+        m_writer.add_destination( m_destination);
+
+        init();
+        write(format_str, destination_str);
+    }
+
 
     /** @brief sets the format string: what should be before, and what after the original message, separated by "|"
 

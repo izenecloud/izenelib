@@ -1,11 +1,16 @@
 namespace boost { namespace logging {
 
 /** 
-@mainpage Boost Logging Library v2 - Table of contents
+@mainpage Boost Logging Library v3 - Table of contents
+
+\n
+Disclaimer - not yet in boost
+\n
 
 
 - @ref main_intro
     - @ref main_motivation
+    - @ref last_v2
     - @ref main_feeback
     - @ref page_changelog
         - @ref changelog_cur_ver 

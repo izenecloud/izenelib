@@ -68,12 +68,14 @@ typedef bl::filter::no_ts filter_type;
 Now that you know the types of your logger(s) and filter(s), you have to declare and define them.
 The easiest way is to use the @c BOOST_DECLARE_LOG* and @c BOOST_DEFINE_LOG* macros:
 
+In a header file
 @code
-// in a header file
 BOOST_DECLARE_LOG_FILTER(g_log_filter, filter_type ) 
 BOOST_DECLARE_LOG(g_l, logger_type) 
+@endcode
 
-// in a source file
+In a source file
+@code
 BOOST_DEFINE_LOG_FILTER(g_log_filter, filter_type ) 
 BOOST_DEFINE_LOG(g_l, logger_type) 
 
@@ -413,15 +415,16 @@ throughly, so that you know what you should watch for.
 
 For example, declaring/defining your logger can be as easy as:
 
+In a header file
 @code
-// in a header file
 logger_type * g_l();
 
 // example of macro used for logging
 #define L_ BOOST_LOG_USE_LOG_IF_FILTER(g_l(), g_log_filter()->is_enabled() ) 
+@endcode
 
-
-// in a source file
+In a source file
+@code
 logger_type * g_l() { static logger_type l; return &l; } 
 
 // example of usage
@@ -439,15 +442,16 @@ As I said, you should prefer @ref declare_define_use_macros_as_functions "functi
 
 Thus (when using functions), your code should look like:
 
+In a header file
 @code
-// in a header file
 logger_type * g_l();
 
 // example of macro used for logging
 #define L_ BOOST_LOG_USE_LOG_IF_FILTER(g_l(), g_log_filter()->is_enabled() ) 
+@endcode
 
-
-// in a source file
+In a source file
+@code
 logger_type * g_l() { static logger_type l; return &l; } 
 
 // example of usage
@@ -459,15 +463,16 @@ L_ << hello << ", " << world;
 \n
 You can use variables, provided that @ref declare_define_use_macros_as_functions "you know the risks".
 
+In a header file
 @code
-// in a header file
 extern logger_type g_l;
 
 // example of macro used for logging
 #define L_ BOOST_LOG_USE_LOG_IF_FILTER((*g_l), g_log_filter()->is_enabled() ) 
+@endcode
 
-
-// in a source file
+In a source file
+@code
 logger_type g_l;
 
 // example of usage
@@ -499,15 +504,16 @@ The possible implementations are :
 
 Example of using logger_holder<> :
 
+In a header file
 @code
-// in a header file
 logger_holder<logger_type> & g_l();
 
 // example of macro used for logging
 #define L_ BOOST_LOG_USE_LOG_IF_FILTER(g_l(), g_log_filter()->is_enabled() ) 
+@endcode
 
-
-// in a source file
+In a source file
+@code
 logger_holder<logger_type> & g_l() {
   static logger_holder_by_value<logger_type> l;
   return l;

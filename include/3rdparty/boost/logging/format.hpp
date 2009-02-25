@@ -252,8 +252,8 @@ L_ << "testing " << i << i+1 << i+2;
 @endcode
 
 In the above case:
-- First, the formatters are called: @c write_idx() is called, then @c write_time(), then @c append_newline(). 
-- Then, the destinations are called: @c write_to_cout(), and then @c write_to_file().
+- first, the formatters are called: @c write_idx() is called, then @c write_time(), then @c append_newline()
+- then, the destinations are called: @c write_to_cout(), and then @c write_to_file()
 
 
 

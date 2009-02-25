@@ -1,7 +1,22 @@
 /** 
 @page page_changelog Changelog
 
-@section changelog_cur_ver Current Version: v0.22.8, 4 feb 2008
+@section changelog_cur_ver Current Version: v0.23.2, 18 march 2008
+- destination::rolling_file - by default, flush after each write
+- destination::file - file is created only if logging to it
+  (this way, if using named_writer, you won't see spurious files called out.txt, even if not using them)
+- destination::rolling_file - file is created only if logging to it
+- solved bug: formatter::syslog derived from an undefined class
+
+
+v0.22.10, 26 feb 2008
+- solved bug: using scoped logs when using tags : used to generate compile time error
+- added few fixes, due to feedback review
+  - out_of_the_box usage
+  - logger_base - virtual destructor
+  - custom_tag example
+  - header_only_lib example
+- added index.html
 - added license to all .h .cpp files (in scenarios/tests - they were missing)
 - removed loggingvc8.cpp file (useless)
 - lib -> libs
@@ -16,6 +31,7 @@
 - solved gcc warning - m_writer initialized before m_original_logger
 - fixed issue in Jamfile.v2 - runtime-link should refer only to msvc
 
+
 v0.21.13, 1 feb 2008
 - added known_issues section
 - added getting_started section
@@ -24,7 +40,7 @@ v0.21.13, 1 feb 2008
 - updated Jamfile.v2 files for examples and test, for them to compile all files tests/examples
 - updated Jamfile.v2 to actually build the tests + the tests to use BOOST_CHECK
 - updated docs : about caching/destruction
-- not using after_being_destroyed.hpp anymore - no need (see @ref after_destruction).
+- not using after_being_destroyed.hpp anymore - no need (see @ref after_destruction)
 - made it much easier to include Boost Logging Lib headers: format_fwd.hpp, named_write_fwd.hpp, which internally accomodate for slow compilation
   (that is, even if slow compile, you won't need to include more headers in your your_app_log.h file)
 - updated docs + named_writer -> named_write
@@ -36,6 +52,7 @@ v0.21.13, 1 feb 2008
 - simplified examples, removed some of them from the "Scenarios" page; they're still found in the "Examples" section in the docs
 - should only fix bugs & update docs until review
 
+
 v0.20.16, 21 jan 2008
 - docs about using loggers/filters are they were destroyed
 - more docs about @ref defining_your_logger_filter 
@@ -46,7 +63,7 @@ v0.20.16, 21 jan 2008
 - modified compile_time example, to see compile time with precompiled header
 - added profiler - allow profiling the logging code
 - solved bug in logger_holder_by_value - many thanks to Olaf!
-- refactored logger_holder - that is, we need to return logger_holder, 
+- refactored logger_holder - that is, we need to return logger_holder,
   but keep logger_holder_by_value, for after_destroyed to work
 - added test for using logger after it's been destroyed 
 - handle using logger after it's been destroyed 
@@ -177,7 +194,7 @@ v0.9.3, 30 oct 2007
     - removed most of references to @c process_msg class
 
 v0.9.2, 30 oct 2007
-- Breaking chage: 
+- breaking chage: 
   - @c process_msg class has been removed. Now @c logger takes its place
   - Instead of logger<use_format_write<>>, use logger_format_write<>
 
@@ -192,7 +209,7 @@ v0.9.0, 28 oct 2007
 - use_format_write has 4 params now, I've added 2 new params: thread_safety and gather 
   - if you want to leave something unchanged, use "default_" as argument
 - added more complex example: Line Counter application
-- Breaking change: 
+- breaking change: 
   - filters are declared with BOOST_DECLARE_LOG_FILTER, and defined with BOOST_DEFINE_LOG_FILTER
   - filters are now used with operator->, instead of "."
   - Example: 
@@ -231,22 +248,27 @@ v0.7.2, 18 oct 2007
 - format_write cares if formatter/destination is generic or not
 - solved bug when deleting manipulators (same_type needed to have a virtual destructor)
 
-v0.4, 9 oct 2007
-- ts_write and on_dedicated_thread work
 
-v0.5, 11 oct 2007
-- compiles
-- added documentation
+v0.7, 15 oct 2007
+- compiles with gcc 3.4.2
 
-v0.5.2, 11 oct 2007
-- changed license
-- added to boost
 
 v0.6, 13 oct 2007
 - added formatters from v1. of the library
 - added convert_format cool function :P
 
-v0.7, 15 oct 2007
-- compiles with gcc 3.4.2
+
+v0.5.2, 11 oct 2007
+- changed license
+- added to boost
+
+
+v0.5, 11 oct 2007
+- compiles
+- added documentation
+
+
+v0.4, 9 oct 2007
+- ts_write and on_dedicated_thread work
 
 */
