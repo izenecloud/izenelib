@@ -28,13 +28,14 @@
 
 #include <boost/memory.hpp>
 #include <am/linear_hash_table/linearHashTable.hpp>
+#include <util/log.h>
 #include <string>
 #include <time.h>
 #include <math.h>
 #include <boost/test/unit_test.hpp>
 #include <time.h>
-#include <util/log.h>
 
+//USING_IZENE_LOG();
 
 #define SIZE 1000000
 
@@ -42,8 +43,6 @@ BOOST_AUTO_TEST_SUITE( t_LinearHashTable_suite )
 
 BOOST_AUTO_TEST_CASE(Insertion_check )
 {
-  USING_IZENE_LOG();
-  
   izenelib::am::LinearHashTable< std::string > tb;
 
   class Ele

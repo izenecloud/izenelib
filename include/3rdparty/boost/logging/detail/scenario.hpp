@@ -30,9 +30,9 @@ namespace boost { namespace logging {
 /** @page your_scenario_examples Examples of customizing your scenario 
 
 Example 1:
-- Use a filter that uses per-thread caching with resync once at 10 secs, 
-- The filter uses levels
-- Use a logger that will favor speed
+- use a filter that uses per-thread caching with resync once at 10 secs
+- the filter uses levels
+- use a logger that will favor speed
 
 @code
 using namespace boost::logging::scenario::usage;
@@ -45,9 +45,9 @@ BOOST_DECLARE_LOG(g_l, finder::logger)
 
 
 Example 2:
-- Use a filter that is initialized only once, when multiple threads are running
-- The filter does not use levels
-- Use a logger that is initialized only once, when only one thread is running
+- use a filter that is initialized only once, when multiple threads are running
+- the filter does not use levels
+- use a logger that is initialized only once, when only one thread is running
 
 @code
 using namespace boost::logging::scenario::usage;
@@ -421,9 +421,9 @@ using namespace boost::logging::scenario::ts;
 Then, you can specify the logger and filter, in a very easy manner
 
 Example:
-- Use a filter that uses TSS (Thread Specific Storage)
-- The filter uses levels
-- Use a logger that uses TSS
+- use a filter that uses TSS (Thread Specific Storage)
+- the filter uses levels
+- use a logger that uses TSS
 
 @code
 using namespace boost::logging::scenario::ts;

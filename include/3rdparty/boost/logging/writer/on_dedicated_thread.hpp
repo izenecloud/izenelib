@@ -130,7 +130,7 @@ struct on_dedicated_thread
         non_const_context_base::context().write_period_ms = period_ms;
     }
 
-    ~on_dedicated_thread() {
+    virtual ~on_dedicated_thread() {
         boost::shared_ptr<boost::thread> writer;
         { scoped_lock lk( non_const_context_base::context().cs);
           non_const_context_base::context().is_working = false;

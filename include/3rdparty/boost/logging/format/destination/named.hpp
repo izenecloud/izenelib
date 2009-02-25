@@ -169,7 +169,7 @@ In the above code, we'll write to 3 destinations, in the following order:
 
 As an extra feature:
 - if a name starts with '-' is ignored
-- if a name starts with '+', is included.
+- if a name starts with '+', is included
 
 This is useful if you want to set this format string in a config file. The good thing is that this way you can easily turn on/off
 certain destinations, while seing all the available destinations as well.

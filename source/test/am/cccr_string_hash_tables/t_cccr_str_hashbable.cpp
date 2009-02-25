@@ -38,6 +38,8 @@
 #include <fstream>
 #include <iostream>
 
+  USING_IZENE_LOG();
+
 BOOST_AUTO_TEST_SUITE( t_cccr_str_hashtable_suite )
 
 
@@ -94,10 +96,57 @@ void readDict(const string& dict, vector<string>& v)
   
 }
 
+BOOST_AUTO_TEST_CASE(CCCR_for_numeric_check)
+{
+  #define SIZE 1000000
+  
+  vector<uint64_t> v;
+  for (int i=0; i<SIZE; i++)
+  {
+    v.push_back(rand());
+  }
+
+    
+  clock_t start, finish;
+  izenelib::am::CCCR_StrHashTable<10000, uint64_t, uint64_t, numeric_hash> tb;
+  
+  start = clock();
+  for (size_t i=0; i<v.size(); i++)
+  {
+    tb.insert(v[i], v[i]/10);
+  }
+  finish = clock();
+  printf( "\nIt takes %f seconds to insert %d random data!\n", (double)(finish - start) / CLOCKS_PER_SEC, v.size());
+  tb.save("./data1.k", "./data1.v");
+
+  
+  izenelib::am::CCCR_StrHashTable<10000, uint64_t, uint64_t, numeric_hash> tb1;
+  tb1.load("./data1.k", "./data1.v");
+  start = clock();
+  for (size_t i=0; i<v.size(); i++)
+  {
+    if(*tb.find(v[i])!= v[i]/10)
+    {
+      cout<<"ERORR:can't find "<<v[i]<<endl;
+      break;
+    }
+    
+  }
+  finish = clock();
+  printf( "\nIt takes %f seconds to insert %d random data!\n", (double)(finish - start) / CLOCKS_PER_SEC, v.size());
+
+  tb1.update(v[3000], v[3000]/3);
+  if (*tb1.find(v[3000]) == v[3000]/3)
+    cout<<"good!\n";
+
+  tb1.del(v[3000]);
+  if (tb1.find(v[3000])==NULL)
+    cout<<"good!\n";
+}
+
 BOOST_AUTO_TEST_CASE(CCCR_insertion_check )
 {
-  USING_IZENE_LOG();
-  
+
   vector<string> vstr;
   readDict("./input", vstr);
 
@@ -113,21 +162,18 @@ BOOST_AUTO_TEST_CASE(CCCR_insertion_check )
   printf( "\nIt takes %f seconds to insert 1000000 random data!\n", (double)(finish - start) / CLOCKS_PER_SEC);
   //tb.del(vstr[180]);
   
-  FILE* f = fopen("date", "w+");
-  tb.unload(f);
-  fclose(f);
+  cout<<tb.save("./data.k", "./data.v")<<endl;
   
   //cout<<tb;
-
-  f = fopen("date", "r");
+  
   izenelib::am::CCCR_StrHashTable<10000> tb1;
-  tb1.load(f);
+  cout<<tb1.load("./data.k", "./data.v")<<endl;
   start = clock();
   for (size_t i=0; i<vstr.size(); i++)
   {
-    if (tb1.find(vstr[i])!=2)
+    if (*tb1.find(vstr[i])!=2)
     {
-      cout<<"Error! "<<i<<"  "<<vstr[i]<<"=>"<<tb1.find(vstr[i])<<endl;
+      cout<<"Error! "<<i<<"  "<<vstr[i]<<"=>"<<*tb1.find(vstr[i])<<endl;
       break;
     }
     
@@ -135,8 +181,14 @@ BOOST_AUTO_TEST_CASE(CCCR_insertion_check )
   finish = clock();
   printf( "\nIt takes %f seconds to self-query %d random data!\n", (double)(finish - start) / CLOCKS_PER_SEC, vstr.size());
 
-  fclose(f);
   
+  tb1.update(vstr[3000], 3000);
+  if (*tb1.find(vstr[3000]) == 3000)
+    cout<<"good!\n";
+
+  tb1.del(vstr[3000]);
+  if (tb1.find(vstr[3000])==NULL)
+    cout<<"good!\n";
   
   //cout<<endl<<"pan--->"<<tb.find(vstr[70])<<endl;
   
@@ -144,28 +196,28 @@ BOOST_AUTO_TEST_CASE(CCCR_insertion_check )
    
 }
 
-BOOST_AUTO_TEST_CASE(LHT_insertion_check )
-{
-  USING_IZENE_LOG();
+// BOOST_AUTO_TEST_CASE(LHT_insertion_check )
+// {
+//   USING_IZENE_LOG();
 
 
-  vector<string> vstr;
-  readDict("./input", vstr);
+//   vector<string> vstr;
+//   readDict("./input", vstr);
 
-  izenelib::am::LinearHashTable<uint64_t, string> tb;
+//   izenelib::am::LinearHashTable<uint64_t, string> tb;
   
-  clock_t start, finish;
-  start = clock();
-  for (size_t i=0; i<vstr.size(); i++)
-  {
-    tb.insert(vstr[i], 2);
-  }
-  finish = clock();
-  printf( "\nIt takes %f seconds to insert 1000000 random data!\n", (double)(finish - start) / CLOCKS_PER_SEC);
+//   clock_t start, finish;
+//   start = clock();
+//   for (size_t i=0; i<vstr.size(); i++)
+//   {
+//     tb.insert(vstr[i], 2);
+//   }
+//   finish = clock();
+//   printf( "\nIt takes %f seconds to insert 1000000 random data!\n", (double)(finish - start) / CLOCKS_PER_SEC);
   
-  //  tb.display(std::cout);
+//   //  tb.display(std::cout);
    
-}
+// }
 
 
 BOOST_AUTO_TEST_SUITE_END()

@@ -6,7 +6,7 @@
 #ifndef LINEARHASHTABLE_HPP
 #define LINEARHASHTABLE_HPP
 
-//#include <util/log.h>
+#include <util/log.h>
 #include <types.h>
 #include <util/hashFunction.h>
 #include <am/am.h>

@@ -27,6 +27,13 @@
 
 namespace boost { namespace logging {
 
+namespace gather { namespace ostream_like {
+    template<class holder_type, class stream_type> struct return_tag_holder ;
+}}
+
+ 
+
+
 
 #ifndef BOOST_LOG_USE_WCHAR_T
 
@@ -55,9 +62,19 @@ template<class char_type, class char_traits> inline void scoped_write_msg(const 
     out << str;
 }
 
+template<class holder, class stream> inline void scoped_write_msg(
+            const hold_string_type & str,
+            gather::ostream_like::return_tag_holder<holder,stream> & dest) {
+        typedef typename holder ::string_type string_type;
+    dest << str;
+}
+
+
+
 namespace detail {
 
     template<class gather_msg = default_> struct scoped_gather_base {
+        virtual ~scoped_gather_base() {}
         typedef typename detail::find_gather_if_default<gather_msg>::msg_type msg_type;
         virtual void do_gather(const msg_type & ) = 0;
     };

@@ -83,7 +83,7 @@ Example:
 
 @code
 using namespace destination;
-file f("out.txt", file_settings.initial_overwrite(true).do_append(false) );
+file f("out.txt", file_settings().initial_overwrite(true).do_append(false) );
 @endcode
 
 */

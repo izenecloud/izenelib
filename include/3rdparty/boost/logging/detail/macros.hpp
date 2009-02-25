@@ -478,7 +478,7 @@ By default, for TSS, we use the internal implementation (no dependency).
 
 The possibilities are:
 - @ref BOOST_LOG_TSS_USE_INTERNAL : use our internal implementation (no dependency on boost::thread)
-- @ref BOOST_LOG_TSS_USE_BOOST : use the implementation from boost::thread (dependency on boost::thread, of course).
+- @ref BOOST_LOG_TSS_USE_BOOST : use the implementation from boost::thread (dependency on boost::thread, of course)
 - @ref BOOST_LOG_TSS_USE_CUSTOM : uses a custom implementation. The interface of this implementation should match boost::thread's interface of @c thread_specific_ptr class
 - @ref BOOST_LOG_NO_TSS : don't use TSS
 

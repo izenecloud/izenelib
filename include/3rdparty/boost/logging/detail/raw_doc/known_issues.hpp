@@ -39,22 +39,22 @@ If the above code executes concurrently on Threads 1 and 2, we could get in trou
 
 This happens because the thread-safe access is guaranteed :
 - only if you specify it - when defining the writer (see @ref scenario::usage "scenario based on usage" and logger_format_write)
-- it's guaranteed only for <em>adding and deleting</em> manipulators, not for modifying manipulators.
+- it's guaranteed only for <em>adding and deleting</em> manipulators, not for modifying manipulators
 
 If we were to allow modifying manipulators, we'd have to:
 -# either allow a way to pause()/resume() the logger(s) that use a given manipulator or
 -# allow thread-safe access to the manipulator objects (meaning each public method would use a mutex, and keep it locked)
 
 In case of the former, pitfalls:
-- When modifying a manipulator, you'd need to pause() all loggers that use it. You need to know them.
-- This pause()/resume() mechanism will slow the logging process a bit
-- This will mean tight coupling between the writer and its member data. 
-- In case a lot of logging happens while a logger is paused, could cause either a lot of caching, or a performance hit
+- when modifying a manipulator, you'd need to pause() all loggers that use it. You need to know them.
+- this pause()/resume() mechanism will slow the logging process a bit
+- this will mean tight coupling between the writer and its member data. 
+- in case a lot of logging happens while a logger is paused, could cause either a lot of caching, or a performance hit
   (a lot of threads would have to wait for the resume() to happen)
 
 In case of the latter, pitfalls:
-- This will incur a big speed penalty - each time you invoke operator() on the manipulator, will involve a mutex lock/unlock
-- The more manipulators a logger uses, the more mutex lock/unlocks will happen. Thus, the speed penalty will be even bigger.
+- this will incur a big speed penalty - each time you invoke operator() on the manipulator, will involve a mutex lock/unlock
+- the more manipulators a logger uses, the more mutex lock/unlocks will happen. Thus, the speed penalty will be even bigger.
 
 As a side-note, if I were a well known company, I'd just say "This behavior is by design".
 

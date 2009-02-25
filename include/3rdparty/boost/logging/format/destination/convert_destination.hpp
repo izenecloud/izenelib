@@ -23,9 +23,28 @@
 
 #include <boost/logging/detail/fwd.hpp>
 
-namespace boost { namespace logging { namespace destination {
+namespace boost { namespace logging { 
+    
+namespace tag {
+    template<
+            class string_ ,
+            class param1 ,
+            class param2 ,
+            class param3 ,
+            class param4 ,
+            class param5 ,
+            class param6 ,
+            class param7 ,
+            class param8 ,
+            class param9 ,
+            class param10> struct holder ;
+}
+    
+namespace destination {
 
 template<class t> struct into {};
+
+
 
 /** 
 @brief Allows writing messages to destinations
@@ -37,8 +56,13 @@ It has 2 function overloads:
 FIXME
 */
 namespace convert {
-    template<class obj, class char_traits, class char_type> void write(const obj & m, std::basic_ostream<char_type, char_traits> & out) {
+    template<class obj, class char_type, class char_traits> void write(const obj & m, std::basic_ostream<char_type, char_traits> & out) {
         out << m;
+    }
+
+    template<class string_, class p1, class p2, class p3, class p4, class p5, class p6, class p7, class p8, class p9, class p10, class char_type, class char_traits> void write(const ::boost::logging::tag::holder<string_,p1,p2,p3,p4,p5,p6,p7,p8,p9,p10> & src, std::basic_ostream<char_type, char_traits> & out ) {
+        typedef typename ::boost::logging::tag::holder<string_,p1,p2,p3,p4,p5,p6,p7,p8,p9,p10>::string_type string_type;
+        out << (const string_type&)src;
     }
 
     template<class char_traits, class char_type> void write(const char_type* m, std::basic_ostream<char_type, char_traits> & out) {
