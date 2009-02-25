@@ -412,7 +412,8 @@ public:
     {
       entry_[i] = NULL;
     }
-    
+
+    count_ = 0;
   }
 
   ~CCCR_StrHashTable()
@@ -494,6 +495,7 @@ public:
     *(uint32_t*)(pBkt) = bs;
     *((uint32_t*)pBkt+1) = content_len;
 
+    count_++;
     return true;
     //LDBG_<<str;
     
@@ -546,6 +548,11 @@ public:
     
   }
 
+  size_t num_items() const 
+  {
+    return count_;
+  }
+  
   bool del(const string& str)
   {
     uint32_t idx = HASH_FUNCTION::getValue(str)%ENTRY_SIZE;
@@ -582,7 +589,8 @@ public:
       p += len;
       
       *((uint64_t*)(pBkt+p)) = (uint64_t)-1;
-      
+
+      count_ --;
       return true;
     }
 
@@ -771,6 +779,7 @@ friend ostream& operator << ( ostream& os, const SelfType& node)
 protected:
   char* entry_[ENTRY_SIZE];
   vector<ValueType> dataVec_;
+  size_t count_;
 }
   ;
 

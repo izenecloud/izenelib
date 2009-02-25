@@ -25,6 +25,7 @@
 ///     -# Check size, buffer size, and its length. Clear string data and re-check its information including empty().\n\n
 /// \n
 /// -# Tested all the interfaces by using correct and incorrect test sets.
+#define IZENE_LOG
 
 #include <boost/memory.hpp>
 #include <am/cccr_string_hash_table/cccr_str_hash_table.hpp>

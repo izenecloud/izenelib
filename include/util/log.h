@@ -234,11 +234,12 @@ class err_log:public log
 };
 
 
-  
+#ifdef IZENE_LOG  
 extern dbg_log dbg;
 extern no_log nlog;
 extern app_log app;
 extern err_log err;
+#endif
 
 class if_log
 {
