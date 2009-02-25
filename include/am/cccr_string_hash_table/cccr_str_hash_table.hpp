@@ -65,9 +65,9 @@ NS_IZENELIB_AM_BEGIN
  **/
 //////////////////////////////// This is for numeric key /////////////////////////////////
 template<
-  size_t ENTRY_SIZE,
   class KeyType = string,
   class ValueType = uint64_t,
+  size_t ENTRY_SIZE = 1024,
   class HASH_FUNCTION = simple_hash,
   int EXPAND = PAGE_EXPANDING
   >
@@ -75,7 +75,7 @@ class CCCR_StrHashTable :public AccessMethod<KeyType, ValueType>
 {
 #define INIT_BUCKET_SIZE 64
 
-  typedef CCCR_StrHashTable<ENTRY_SIZE,KeyType, ValueType, HASH_FUNCTION,EXPAND> SelfType;
+  typedef CCCR_StrHashTable<KeyType, ValueType,ENTRY_SIZE, HASH_FUNCTION,EXPAND> SelfType;
   
 public:
   CCCR_StrHashTable()
@@ -394,16 +394,16 @@ protected:
 
 ////////////////////////////////// For std::string key ///////////////////////////////////////////
 template<
-  size_t ENTRY_SIZE,
   class ValueType ,
   class HASH_FUNCTION,
+  size_t ENTRY_SIZE,
   int EXPAND
   >
-class CCCR_StrHashTable<ENTRY_SIZE, string, ValueType, HASH_FUNCTION, EXPAND>
+class CCCR_StrHashTable<string, ValueType,ENTRY_SIZE, HASH_FUNCTION, EXPAND>
 {
 #define INIT_BUCKET_SIZE 64
 
-  typedef CCCR_StrHashTable<ENTRY_SIZE,string, ValueType, HASH_FUNCTION,EXPAND> SelfType;
+  typedef CCCR_StrHashTable<string, ValueType, ENTRY_SIZE, HASH_FUNCTION,EXPAND> SelfType;
   
 public:
   CCCR_StrHashTable()

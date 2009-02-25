@@ -108,7 +108,7 @@ BOOST_AUTO_TEST_CASE(CCCR_for_numeric_check)
 
     
   clock_t start, finish;
-  izenelib::am::CCCR_StrHashTable<10000, uint64_t, uint64_t, numeric_hash> tb;
+  izenelib::am::CCCR_StrHashTable<uint64_t, uint64_t, 10000, numeric_hash> tb;
   
   start = clock();
   for (size_t i=0; i<v.size(); i++)
@@ -120,7 +120,7 @@ BOOST_AUTO_TEST_CASE(CCCR_for_numeric_check)
   tb.save("./data1.k", "./data1.v");
 
   
-  izenelib::am::CCCR_StrHashTable<10000, uint64_t, uint64_t, numeric_hash> tb1;
+  izenelib::am::CCCR_StrHashTable<uint64_t, uint64_t,10000, numeric_hash> tb1;
   tb1.load("./data1.k", "./data1.v");
   start = clock();
   for (size_t i=0; i<v.size(); i++)
@@ -150,7 +150,7 @@ BOOST_AUTO_TEST_CASE(CCCR_insertion_check )
   vector<string> vstr;
   readDict("./input", vstr);
 
-  izenelib::am::CCCR_StrHashTable<10000> tb;
+  izenelib::am::CCCR_StrHashTable<> tb;
   
   clock_t start, finish;
   start = clock();
@@ -166,7 +166,7 @@ BOOST_AUTO_TEST_CASE(CCCR_insertion_check )
   
   //cout<<tb;
   
-  izenelib::am::CCCR_StrHashTable<10000> tb1;
+  izenelib::am::CCCR_StrHashTable<> tb1;
   cout<<tb1.load("./data.k", "./data.v")<<endl;
   start = clock();
   for (size_t i=0; i<vstr.size(); i++)
