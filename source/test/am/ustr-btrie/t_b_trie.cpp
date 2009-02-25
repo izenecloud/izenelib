@@ -312,15 +312,16 @@ BOOST_AUTO_TEST_CASE(B_trie_regex_check )
 	trie.flush();
     cout<<"----------\n";
     
-    vector<item_pair> ip;
+    //vector<item_pair> ip;
+    vector<uint64_t> ip;
 	UString pattern("*u3vr_C5jIUtVQHXNf?pPW*iJa", sf1lib::UString::UTF_8);
 	trie.findRegExp(pattern, ip);
     cout<<"5555555555555555555\n";
     
-	for (vector<item_pair>::iterator i = ip.begin(); i!= ip.end(); i++)
+	for (vector<uint64_t>::iterator i = ip.begin(); i!= ip.end(); i++)
 	{
-	  (*i).str_.displayStringValue(sf1lib::UString::UTF_8, cout);
-	  cout<<"===>"<<(*i).addr_<<endl;
+	 // (*i).str_.displayStringValue(sf1lib::UString::UTF_8, cout);
+	  cout<<"===>"<<(*i)<<endl;
 	}
 
 }

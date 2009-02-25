@@ -488,7 +488,7 @@ public:
     return hashTable_.update(str, contentAddr);
   }
 
-  void findRegExp(const UString& regexp,  vector<item_pair>& ret)
+  void findRegExp(const UString& regexp,  vector<uint64_t>& ret)
   {
     UString sofar;
     findRegExp_(0,1, regexp, sofar, ret);
@@ -622,7 +622,7 @@ protected:
    *@param sofar Record the string ahead sofar.
    *@param ret The found results.
    **/
-  void findRegExp_(uint32_t idx, uint64_t addr, const UString& regexp, const UString& sofar,  vector<item_pair>& ret)
+  void findRegExp_(uint32_t idx, uint64_t addr, const UString& regexp, const UString& sofar,  vector<uint64_t>& ret)
   {
      
     if (pNodeCache_==NULL)
@@ -633,7 +633,8 @@ protected:
     if (regexp.empty())
     {
       uint64_t ad = hashTable_.find(sofar);
-      ret.push_back(item_pair(sofar, ad));
+      //ret.push_back(item_pair(sofar, ad));
+      ret.push_back(ad);
       return;
     }
     

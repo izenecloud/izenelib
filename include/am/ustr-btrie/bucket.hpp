@@ -573,7 +573,7 @@ public:
    *@param sofar Record the string ahead sofar.
    *@param ret The found results.
    **/
-  void findRegExp(const UString& regexp, const UString& sofar, vector<item_pair>& ret)
+  void findRegExp(const UString& regexp, const UString& sofar, vector<uint64_t>& ret)
   {
     if (regexp.length()==0)
       return ;
@@ -593,7 +593,8 @@ public:
           {
             s = sofar;
             s += regexp;
-            ret.push_back(item_pair(s, (*p).contentAddr_));
+            //ret.push_back(item_pair(s, (*p).contentAddr_));
+            ret.push_back((*p).contentAddr_);
             return;
           }
           return;
@@ -605,7 +606,8 @@ public:
           {
             UString tmp = sofar;
             tmp +=  (*(*j).p_);
-            ret.push_back(item_pair(tmp, (*j).contentAddr_));
+            //ret.push_back(item_pair(tmp, (*j).contentAddr_));
+            ret.push_back((*j).contentAddr_);
           }
         }
 
@@ -626,7 +628,8 @@ public:
           {
             UString tmp = sofar;
             tmp +=  (*(*j).p_);
-            ret.push_back(item_pair(tmp, (*j).contentAddr_));
+            //ret.push_back(item_pair(tmp, (*j).contentAddr_));
+            ret.push_back((*j).contentAddr_);
           }
       }
     }
