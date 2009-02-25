@@ -206,7 +206,8 @@ public:
 	bool loaded; //if it is loaded from disk.
 	long fpos; //its streamoff in file.
 
-
+    int level;
+	
 	DataTypeVECTOR elements;
 	BTreeNodeVECTOR children;
 	BTreeNodePtr parent;
@@ -260,9 +261,9 @@ public:
 
 public:
 	static size_t activeNodeNum;
+	bool _isDirty;
 private:
 	DBOBJVECTOR objects;
-	bool _isDirty;
 	static size_t _pageSize;
 	static size_t _maxDataSize;
 	static size_t _overFlowSize;
@@ -301,6 +302,7 @@ template<typename KeyType, typename DataType, typename LockType, typename Alloc>
 	_isDirty = 1;
 	//_overFlowAddress = 0;
 
+	level = 0;
 	activeNodeNum++;
 	//cout<<"activeNodeNum: "<<activeNodeNum<<endl;
 
@@ -589,7 +591,7 @@ template<typename KeyType, typename DataType, typename LockType, typename Alloc>
 		delete [] pbuf;
 	}
 	_isDirty = false;
-	fflush(f);
+	//fflush(f);
 	return true;
 }
 
@@ -610,7 +612,8 @@ template<typename KeyType, typename DataType, typename LockType, typename Alloc>
 		child->read(f);
 		child->parent.reset(this);
 	}
-	_lock.release_write_lock();
+	_lock.release_write_lock();	
+	child->level = this->level+1;
 	return child;
 }
 
@@ -651,6 +654,7 @@ template<typename KeyType, typename DataType, typename LockType, typename Alloc>
 		loaded = false;
 	}
 }
+
 
 template<typename KeyType, typename DataType, typename LockType, typename Alloc> bool BTreeNode<
 		KeyType, DataType, LockType, Alloc>::delFromLeaf(size_t objNo) {

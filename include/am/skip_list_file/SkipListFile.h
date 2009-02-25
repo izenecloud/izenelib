@@ -100,6 +100,14 @@ public:
 	bool insert1(const DataType& x);
 
 	bool del(const KeyType& x);
+	
+	
+	NodeKeyLocn search(const KeyType& key)
+	{
+		NodeKeyLocn locn = 0;
+		search(key, locn);
+		return locn;
+	}
 
 	bool search(const KeyType& key, NodeKeyLocn& locn)
 	{

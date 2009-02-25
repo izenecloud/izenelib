@@ -32,10 +32,8 @@ public:
 	int num;
 	bucket_chain* next;
 	bool isLoaded;
-	bool isDirty;	
-	
-	long nextfpos;
-	
+	bool isDirty;		
+	long nextfpos;	
 	int level;
 	
 	//It indicates how many active bucket_chains in memory.
@@ -171,7 +169,7 @@ public:
 	}
 
 	/**
-	 *    load next bucket_chain element
+	 *    load next bucket_chain element.
 	 */ 
 	bucket_chain* loadNext(FILE* f) {		
 		if (next && !next->isLoaded) {	
