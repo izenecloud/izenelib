@@ -469,7 +469,7 @@ private:
 				BTreeNodePtr popNode = qnode.front();
 				qnode.pop();
 				popNum++;
-				if(popNum >= sfh.cacheSize/_minDegree/_minDegree)				
+				if(popNum >= sfh.cacheSize/_minDegree/2)				
 				{
 					if(popNode->_isDirty)
 						_flush(popNode, _dataFile);
