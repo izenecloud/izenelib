@@ -67,7 +67,7 @@ NS_IZENELIB_AM_BEGIN
 template<
   class KeyType = string,
   class ValueType = uint64_t,
-  size_t ENTRY_SIZE = 1024,
+  size_t ENTRY_SIZE = 131072,
   class HASH_FUNCTION = simple_hash,
   int EXPAND = PAGE_EXPANDING
   >
