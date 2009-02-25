@@ -157,11 +157,17 @@ public:
     *(uint32_t*)(pBkt) = bs;
     *((uint32_t*)pBkt+1) = content_len;
 
+    count_++;
     return true;
     //LDBG_<<str;
 
   }
 
+
+  size_t num_items()
+  {
+    return count_;
+  }
   
   ValueType* find(const KeyType & key)
   {
@@ -209,6 +215,7 @@ public:
       {
         p += sizeof(KeyType);
         *(uint64_t*)(pBkt+p)=(uint64_t)-1;
+        count_--;
         return true;
       }
 
@@ -389,6 +396,7 @@ friend ostream& operator << ( ostream& os, const SelfType& node)
 protected:
   char* entry_[ENTRY_SIZE];
   vector<ValueType> dataVec_;
+    size_t count_;
 }
   ;
 
@@ -399,7 +407,7 @@ template<
   size_t ENTRY_SIZE,
   int EXPAND
   >
-class CCCR_StrHashTable<string, ValueType,ENTRY_SIZE, HASH_FUNCTION, EXPAND>
+class CCCR_StrHashTable<string, ValueType,ENTRY_SIZE, HASH_FUNCTION, EXPAND> :public AccessMethod<string, ValueType>
 {
 #define INIT_BUCKET_SIZE 64
 
@@ -425,8 +433,12 @@ public:
     }
   }
 
-  bool insert(const string& str, const ValueType& v)
+  using AccessMethod<string, ValueType>::insert;
+  virtual bool insert(const DataType<string,ValueType>& data)
   {
+    string str = data.key;
+    ValueType v = data.value;
+
     uint64_t value = dataVec_.size();
     dataVec_.push_back(v);
     
@@ -597,8 +609,13 @@ public:
     return false;
   }
 
-  bool update(const string& str, const ValueType& v)
+  using AccessMethod<string, ValueType>::update;
+  
+  virtual bool update(const DataType<string,ValueType>& data)
   {
+    string str = data.key;
+    ValueType v = data.value;
+
     uint32_t idx = HASH_FUNCTION::getValue(str)%ENTRY_SIZE;
     char* pBkt = entry_[idx];
     
