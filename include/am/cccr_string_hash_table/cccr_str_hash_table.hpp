@@ -164,7 +164,7 @@ public:
   }
 
 
-  size_t num_items()
+  int num_items()
   {
     return count_;
   }
@@ -396,7 +396,7 @@ friend ostream& operator << ( ostream& os, const SelfType& node)
 protected:
   char* entry_[ENTRY_SIZE];
   vector<ValueType> dataVec_;
-    size_t count_;
+  int count_;
 }
   ;
 
@@ -560,7 +560,7 @@ public:
     
   }
 
-  size_t num_items() const 
+  int num_items() const 
   {
     return count_;
   }
@@ -796,7 +796,7 @@ friend ostream& operator << ( ostream& os, const SelfType& node)
 protected:
   char* entry_[ENTRY_SIZE];
   vector<ValueType> dataVec_;
-  size_t count_;
+  int count_;
 }
   ;
 
