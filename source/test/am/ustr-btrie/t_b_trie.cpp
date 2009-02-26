@@ -25,6 +25,7 @@
 ///     -# Check size, buffer size, and its length. Clear string data and re-check its information including empty().\n\n
 /// \n
 /// -# Tested all the interfaces by using correct and incorrect test sets.
+#define IZENE_LOG
 
 #include <boost/memory.hpp>
 #include <am/ustr-btrie/bucket.hpp>
@@ -36,7 +37,7 @@
 #include <math.h>
 #include <boost/test/unit_test.hpp>
 #include <time.h>
-#include <util/log.h>
+//#include <util/log.h>
 #include <stdio.h>
 #include <list>
 #include <cstdio>
@@ -49,6 +50,7 @@
 //#include <am/ustr-btrie/automation.hpp>
 #include <ustring/UString.h>
 #include <am/linear_hash_table/linearHashTable.hpp>
+USING_IZENE_LOG();
 
 using namespace sf1lib;
 using namespace izenelib::am;
@@ -57,7 +59,7 @@ using namespace std;
 #define SIZE 27
 #define ENCODE_TYPE UString::UTF_8//EUC_KR//GB2312//
 
-USING_IZENE_LOG();
+
 
 BOOST_AUTO_TEST_SUITE( b_trie_suite )
 //extern int debug_count;

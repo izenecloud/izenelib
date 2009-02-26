@@ -237,7 +237,6 @@ public:
     }
     
     UString* pStr = new UString(str);
-    strPool_.push_back(pStr);
 
     UString consumeStr = *pStr;
     AlphabetNodePtr n_1 ;
@@ -782,7 +781,6 @@ protected:
   BucketCacheType* pBucketCache_;//!<Bucket cache.
   NodeCacheType* pNodeCache_;//!<Nodes cache
   HashTable hashTable_;//!<Hash table
-  vector<UString*> strPool_;
   //  string valuePoolFileName_;
   //vector<ValueType> valuePool_;
 }

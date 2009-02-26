@@ -241,8 +241,6 @@ extern no_log nlog;
 extern app_log app;
 extern err_log err;
 
-#endif
-
 class if_log
 {
  public:
@@ -286,5 +284,18 @@ class if_log
 //#define USING_IZENE_LOG() initiate_log::initiateLog()
 #define USING_IZENE_LOG() dbg_log dbg;no_log nlog;app_log app;err_log err;
 
+#else
+
+#define IF_DLOG(F) if(F)cout
+  
+#define IF_ELOG(F) if(F)cout
+#define IF_ALOG(F) if(F)cout
+
+
+#define LDBG_ cout
+#define LERR_ cout
+#define LAPP_ cout
+
+#endif
                                //#define LDBG_ cout
 #endif //End of IZENE_UTIL_LOG_H
