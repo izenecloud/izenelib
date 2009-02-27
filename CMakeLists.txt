@@ -8,6 +8,6 @@ cmake_minimum_required (VERSION 2.4)
 #message( STATUS "source is: ${izenelib_SOURCE_DIR}" )
 #message( STATUS "bin is: ${izenelib_BINARY_DIR}" )
 
-add_subdirectory( include )
+add_subdirectory( source)
 
       

@@ -7,7 +7,10 @@ using namespace std;
 
 NS_IZENELIB_AM_BEGIN
 
-
+/**
+ * \brief FileHeader of sdb_hash
+ *  
+ */
 struct ShFileHeader {
 		int magic; //set it as 0x061561, check consistence.			
 		size_t bucketSize;
