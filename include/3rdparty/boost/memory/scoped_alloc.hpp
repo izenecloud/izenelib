@@ -145,6 +145,7 @@ typedef block_pool_imp<NS_BOOST_MEMORY_POLICY::sys> block_pool;
 #if !defined(BOOST_MEMORY_NO_SYSTEM_POOL_DYN_)
 
 typedef tls_object<block_pool> tls_block_pool_t;
+tls_block_pool_t* _boost_TlsBlockPool();
 
 template <class Unused>
 class tls_block_pool_imp
@@ -165,10 +166,10 @@ public:
 	}
 };
 
-tls_block_pool_t g_tls_blockPool;
+extern tls_block_pool_t g_tls_blockPool;
 
 template <class Unused>
-tls_block_pool_t* tls_block_pool_imp<Unused>::_tls_blockPool = &g_tls_blockPool;
+tls_block_pool_t* tls_block_pool_imp<Unused>::_tls_blockPool = _boost_TlsBlockPool();
 
 class tls_block_pool_init
 {
@@ -176,8 +177,6 @@ public:
 	tls_block_pool_init() { g_tls_blockPool.init(); }
 	~tls_block_pool_init() { g_tls_blockPool.term(); }
 };
-
-tls_block_pool_init g_tls_blockPoolInit;
 
 typedef tls_block_pool_imp<int> tls_block_pool;
 

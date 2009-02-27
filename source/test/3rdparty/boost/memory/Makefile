@@ -4,7 +4,7 @@ IZENELIB = ../../../../../include
 
 INC_PATH = -I $(IZENELIB)/3rdparty -I /usr/local/include/boost-1_37
 
-LIB_PATH = -lpthread -lrt 
+LIB_PATH = -lpthread -lrt ../../../../../lib/libboost_memory.a
 
 CC_OPTIONS= -O3 -Wall -c -g  -fPIC -rdynamic 
 
@@ -28,5 +28,5 @@ t_memory_perform:$(T_MEMORY_PERFORM_OBJ)
 	$(GPP) $(T_MEMORY_PERFORM_OBJ) ${LIB_PATH} -o $@ 
 
 clean:
-	rm -rf *.o *~
+	rm -rf *.o *~ $(TARGET)
 

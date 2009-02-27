@@ -13,7 +13,6 @@
 using namespace std;
 using boost::stl_allocator;
 
-
 void testAutoAlloc()
 {
 	boost::auto_alloc alloc;
