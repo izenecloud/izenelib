@@ -234,7 +234,7 @@ public:
 	}
 
 	/**
-	 *  upate  an item
+	 *  update  an item
 	 */
 	bool update(const DataType& dat)
 	{
@@ -242,7 +242,7 @@ public:
 	}
 
 	/**
-	 *  upate  an item
+	 *  update  an item
 	 */
 	bool update(const KeyType& key, const ValueType& value) {
 		NodeKeyLocn locn;
