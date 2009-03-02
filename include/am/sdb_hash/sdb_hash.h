@@ -57,7 +57,7 @@ public:
 	}
 
 	/**
-	 *   deconstructor
+	 *   deconstructor, close() will also be called here.
 	 */
 	virtual ~sdb_hash() {
 		if(dataFile_)
@@ -96,14 +96,14 @@ public:
 	}
 
 	/**
-	 *  insert an item
+	 *  insert an item of DataType 
 	 */
 	bool insert(const DataType& dat) {
 		return insert(dat.get_key(), dat.get_value() );
 	}
 
 	/**
-	 *  insert an item
+	 *  insert an item in key/value pair
 	 */
 	bool insert(const KeyType& key, const ValueType& value) {
 
@@ -173,7 +173,8 @@ public:
 	}
 
 	/**
-	 *  find  an item
+	 *  find an item, return pointer to the value.
+	 *  Note that, there will be memory leak if not delete the value 
 	 */
 	ValueType* find(const KeyType & key) {
 
@@ -234,7 +235,7 @@ public:
 	}
 
 	/**
-	 *  update  an item
+	 *  update  an item through DataType data
 	 */
 	bool update(const DataType& dat)
 	{
@@ -242,7 +243,7 @@ public:
 	}
 
 	/**
-	 *  update  an item
+	 *  update  an item by key/value pair
 	 */
 	bool update(const KeyType& key, const ValueType& value) {
 		NodeKeyLocn locn;
@@ -285,6 +286,8 @@ public:
 
 	/**
 	 *  search an item
+	 * 
+	 *   @return NodeKeyLocn
 	 */
 	NodeKeyLocn search(const KeyType& key)
 	{
@@ -293,7 +296,10 @@ public:
 		return locn;
 	}
 	
-	
+	/**
+	 *    another search function, flushCache_() will be called at the beginning,
+	 * 
+	 */
 	bool search(const KeyType&key, NodeKeyLocn& locn)
 	{
 		flushCache_();
@@ -511,7 +517,7 @@ public:
 	}
 
 	/**
-	 *   get the num of items
+	 *   get the num of items 
 	 */
 	int num_items() {
 		return sfh_.numItems;
@@ -601,7 +607,7 @@ public:
 		return true;
 	}
 	/**
-	 *  write the dirty buckets to disk.
+	 *  write the dirty buckets to disk, not release the memory
 	 *  
 	 */
 	void commit() {
@@ -660,8 +666,9 @@ public:
 
 	/**	 
 	 * 
-	 *    It displays how much space has been wasted after deleting or updates.   
-	 * 
+	 *    \brief It displays how much space has been wasted in percentage after deleting or updates.   
+	 *           
+	 *  
 	 *    when an item is deleted, we don't release its space in disk but set a flag that
 	 *    it have been deleted. And it will lead to low efficiency. Maybe we should dump it 
 	 * 	  to another files when loadFactor are low.

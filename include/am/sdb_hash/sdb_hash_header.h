@@ -17,7 +17,7 @@ struct ShFileHeader {
 		size_t directorySize;
 		size_t cacheSize;	
 		size_t numItems;
-		size_t nBlock;
+		size_t nBlock; //the number of bucket allocated, it indicates the file size: sizeof(ShFileHeader) + nblock*bucketSize
 		
 		ShFileHeader()
 		{

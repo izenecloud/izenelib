@@ -14,7 +14,7 @@ OBJ1 := t_master_suite.o t_btree.o
 OBJ2 := t_master_suite.o t_btree_v2.o
 
 
-all: t_btree t_btree_v2
+all: t_btree #t_btree_v2
 
 
 .cpp.o:

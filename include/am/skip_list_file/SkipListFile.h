@@ -23,7 +23,7 @@ NS_IZENELIB_AM_BEGIN
 
 /**
  * @brief The definition and implementation of the
- *        SkipList(Actually, it is a deterministic skip list)
+ *        SkipList
  */
 template<typename KeyType, typename ValueType=NullType, typename LockType=NullLock, typename Alloc=std::allocator<DataType<KeyType,ValueType> > >class SkipListFile
 : public AccessMethod<KeyType, ValueType, LockType, Alloc>
@@ -33,9 +33,18 @@ public:
 	typedef SkipNode<DataType, LockType, Alloc> SkipNode;
 	typedef SkipNode* NodeKeyLocn;
 public:
+	/**
+	 *   constructor
+	 */
 	SkipListFile(const std::string& fileName);
+	/**
+	 *   deconstructor
+	 */
 	virtual ~SkipListFile();
 
+	/**	 
+	 *   set the page size by maxDataSize
+	 */
 	void setPageSize(size_t maxDataSize) {
 		maxDataSize_ = maxDataSize;
 		size_t pageSize = sizeof(int) + MAX_LEVEL*sizeof(long) + maxDataSize;		
@@ -61,6 +70,10 @@ public:
 		sfh_.cacheSize = sz;
 	}
 
+	/**
+	 *  find an item, return pointer to the value.
+	 *  Note that, there will be memory leak if not delete the value 
+	 */
 	ValueType* find(const KeyType& x);
 
 	/**
@@ -86,22 +99,37 @@ public:
 		return true;
 	}
 
+	/**
+	 *   get the number of the items
+	 */
 	int num_items() const {
 		return sfh_.numItem;
 	}
-	
+	/**
+	 *  insert a key/value pair
+	 *   
+	 */
 	bool insert(const KeyType& key, const ValueType& value)
 	{
 		return insert( DataType(key, value) );
 	}
 	
+	/**
+	 *    insert a dataType item
+	 */
 	bool insert(const DataType& x);
 	
 	bool insert1(const DataType& x);
 
+	/**
+	 *   delete an item  given a key, if not deleted return false
+	 * 
+	 */
 	bool del(const KeyType& x);
 	
-	
+	/**
+	 *   search an item by key
+	 */
 	NodeKeyLocn search(const KeyType& key)
 	{
 		NodeKeyLocn locn = 0;
@@ -109,6 +137,9 @@ public:
 		return locn;
 	}
 
+	/**
+	 *   search an item,  NodeKeyLocn is like database cursor.
+	 */ 
 	bool search(const KeyType& key, NodeKeyLocn& locn)
 	{
 		SkipNode* x = header_;
@@ -187,7 +218,9 @@ public:
 
 	}
 
-	
+	/**
+	 *  get the NodeKeyLocn of first key
+	 */
 	NodeKeyLocn get_first_locn()
 	{
 		return header_->right[0];
@@ -219,7 +252,9 @@ public:
 	SkipNode* firstNode() {
 		return header_->right[0];
 	}
-
+    /**
+     *   write the dirypage back
+     */
 	void commit() {
 		//cout<<"commiting... "<<endl;
 		//sfh_.headerPos = header_->fpos;
@@ -238,6 +273,10 @@ public:
 		}
 
 	}
+	/**
+	 *   Beside committment, it also releases the memory
+	 * 
+	 */
 
 	void flush() {
 		commit();	
@@ -249,11 +288,16 @@ public:
 		}	
 
 	}
-
+   /**
+    *   display the info of skiplist
+    */
 	void display() {
 		print_list();
 	}
-
+    /**
+     *  SDB/skiplist must be opened for use
+     * 
+     */
 	bool open() {
 		// We're creating if the file doesn't exist.
 		struct stat statbuf;
@@ -323,6 +367,9 @@ public:
 		return ret;
 	}
 
+	/**
+	 *  After use, it must be closed, and it will be automatically called in deconstrutor
+	 */
 	bool close(){
 		release();
 		return true;

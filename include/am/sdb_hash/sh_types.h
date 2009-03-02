@@ -28,7 +28,7 @@ using namespace izenelib::am::util;
 NS_IZENELIB_AM_BEGIN
 
 /**
- *   hashing function object used for sdb_hash
+ *  \brief hashing function object used for sdb_hash
  */
 class sdb_hashing {
 public:

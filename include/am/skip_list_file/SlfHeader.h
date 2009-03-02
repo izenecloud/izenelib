@@ -6,7 +6,10 @@
 
 
 NS_IZENELIB_AM_BEGIN
-
+/**
+ *    \brief file header of sdb/skiplist
+ * 
+ */
 
 struct SlfHeader {
 	int magic; //set it as 0x061561, check consistence.
