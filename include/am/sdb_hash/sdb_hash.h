@@ -22,7 +22,7 @@
 //#include <util/log.h>
 #include <stdio.h>
 
-#include "sh_types.h"
+#include "sdb_hash_types.h"
 #include "sdb_hash_header.h"
 #include "bucket_chain.h"
 
@@ -54,6 +54,7 @@ public:
 	 */
 	sdb_hash(const string& fileName = "sdb_hash.dat"):sfh_(), fileName_(fileName) {
 		dataFile_ = 0;
+		isOpen_ = false;
 	}
 
 	/**
@@ -64,16 +65,22 @@ public:
 		close();
 	}
 	/**
-	 *  set bucket size, if not called use default size 8192
+	 *  \brief set bucket size of fileHeader
+	 * 
+	 *   if not called use default size 8192
 	 */
 	void setBucketSize(size_t bucketSize) {
+		assert(isOpen_ == false);
 		sfh_.bucketSize = bucketSize;
 	}
 
 	/**
-	 *  set directory size, if not called use default size 4096
+	 *  set directory size if fileHeader
+	 * 
+	 *  if not called use default size 4096
 	 */
 	void setDirectorySize(size_t dirSize) {
+		assert(isOpen_ == false);
 		sfh_.directorySize = dirSize;
 
 	}
@@ -291,11 +298,11 @@ public:
 	 */
 	NodeKeyLocn search(const KeyType& key)
 	{
-		NodeKeyLocn locn;		
+		NodeKeyLocn locn;
 		search(key, locn);
 		return locn;
 	}
-	
+
 	/**
 	 *    another search function, flushCache_() will be called at the beginning,
 	 * 
@@ -386,6 +393,16 @@ public:
 		return locn;
 	}
 
+	bool get(const NodeKeyLocn& locn, KeyType& key, ValueType& value)
+	{
+		DataType dat;
+		bool ret =get(locn, dat);
+		if(ret) {
+			key = dat.get_key();
+			value = dat.get_value();
+		}
+		return ret;
+	}
 	/**
 	 *  get an item from given NodeKeyLocn
 	 */
@@ -445,7 +462,7 @@ public:
 			KeyType key;
 			ValueType val;
 
-			while(true) {		
+			while(true) {
 
 				memcpy(&ksize, p, sizeof(size_t));
 				p += sizeof(size_t);
@@ -580,6 +597,7 @@ public:
 				ret = true;
 			}
 		}
+		isOpen_ = true;
 		return ret;
 	}
 	/**
@@ -704,6 +722,7 @@ private:
 	ShFileHeader sfh_;
 	string fileName_;
 	FILE* dataFile_;
+	bool isOpen_;
 
 private:
 	/**
@@ -752,19 +771,17 @@ private:
 					sc = sc->next;
 				}
 			}
-
 			//cout<<sh_cache_.size()<<endl;				
 			for(CacheIter it = sh_cache_.begin(); it != sh_cache_.end(); it++ )
 			{
-#ifdef DEBUG
-				//display cache
 
+				//display cache
 				/*cout<<"(level: "<<it->second->level;
 				 cout<<"  val:  "<<it->second;
 				 cout<<"  fpos: "<<it->second->fpos;	
 				 cout<<"  num: "<<it->second->num;		
 				 cout<<" )-> ";*/
-#endif				
+
 				it->second->write(dataFile_);
 				it->second->unload();
 				if( bucket_chain::activeNum < sfh_.cacheSize/2 ) {

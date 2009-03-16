@@ -1,0 +1,1529 @@
+/**
+ * @file sdb_btree.h
+ * @brief The header file of sdb_btree.
+ *
+ *
+ * This file defines class sdb_btree.
+ */
+#ifndef sdb_btree_H_
+#define sdb_btree_H_
+
+#include "sdb_node.h"
+#include <iostream>
+#include <sys/stat.h>
+#include <fstream>
+#include <queue>
+
+#include <am/concept/DataType.h>
+using namespace std;
+
+NS_IZENELIB_AM_BEGIN
+
+/**
+ * 	\brief file version of cc-b*-btree
+ * 
+ *   A B*-tree is a tree data structure used in the HFS and Reiser4 file systems,
+ *  which requires non-root nodes to be at least 2/3 full instead of 1/2. To maintain
+ *  this, instead of immediately splitting up a node when it gets full, its keys are
+ *  shared with the node next to it. When both are full, then the two of them
+ *  are split into three. Now SDBv1.0’s disk space is large than BerkeleyDB when
+ *  storing the same data set. There is a perspective that, B*-tree can save more
+ *  disk space than normal btree.
+ * 
+ *  For implementation convience and maintainess, we only apply this delay splitting
+ *  at leaves nodes.
+ * 
+ *  Merging will occur when two sibling nodes' objCount both less than maxKeys/3/ 
+ * 
+ *   
+ * 
+ */
+
+template<typename KeyType, typename ValueType=NullType, typename LockType=NullLock, typename Alloc=std::allocator<DataType<KeyType,ValueType> > >class sdb_btree
+: public AccessMethod<KeyType, ValueType, LockType, Alloc> {
+public:
+	typedef sdb_node<KeyType, ValueType, LockType, Alloc> sdb_node;
+	typedef DataType<KeyType,ValueType> DataType;
+	typedef std::pair<sdb_node*, size_t> NodeKeyLocn;
+public:
+	/**
+	 * \brief constructor
+	 * 
+	 * \param fileName is the name for data file
+	 */
+	sdb_btree(const std::string& fileName = "sequentialdb.dat");
+	virtual ~sdb_btree();
+
+	/**
+	 *  \brief set the MaxKeys
+	 * 
+	 *  Note that it must be at least 6.
+	 *  It can only be called before open. And it doesn't work when open an existing dat file,
+	 *  _sfh.maxKeys will be read from file.
+	 * 
+	 */
+	void setMaxKeys(size_t maxkeys) {
+		assert( _isOpen == false );
+		_sfh.maxKeys = maxkeys;
+		if(_sfh.maxKeys < 6)
+		{
+			cout<<"Error: maxKeys at leaset 6.\nSet to 6 automatically.\n";
+			_sfh.maxKeys = 6;
+		}
+	}
+
+	/**
+	 *   \brief set maxKeys for fileHeader
+	 * 
+	 *   maxKeys is 2*degree
+	 *   Note that it must be at least 6
+	 *   It can only be called  before opened.And it doesn't work when open an existing dat file,
+	 *  _sfh.maxKeys will be read from file.
+	 */
+	void setDegree(size_t degree)
+	{
+		assert( _isOpen == false );
+		_sfh.maxKeys = 2*degree;
+		if(_sfh.maxKeys < 6)
+		{
+			cout<<"Error: maxKeys at leaset 6.\nSet to 6 automatically.\n";
+			_sfh.maxKeys = 6;
+		}
+	}
+
+	/**
+	 * 	\brief set tha pageSize of fileHeader.
+	 *
+	 *   It can only be called before open.And it doesn't work when open an existing dat file,
+	 *  _sfh.pageSize will be read from file.
+	 * 
+	 *   It should set the pageSize according the maxKeys and max inserting data size.
+	 *   When pageSize is too small, overflowing will occur and cause efficiency to decline.
+	 *   When pageSize is too large, it will waste disk space.
+	 *    
+	 */
+	void setPageSize(size_t pageSize) {
+		assert( _isOpen == false );
+		_sfh.pageSize = pageSize;
+	}
+
+	/**
+	 *  \brief set Cache Size.
+	 * 
+	 *  Cache Size is the active node number in memory.When cache is full, 
+	 *  some nodes will be released.
+	 * 
+	 * 	We would peroidically flush the memory items, according to the cache Size. 
+	 */
+
+	void setCacheSize(size_t sz) {
+		_sfh.cacheSize = sz;
+		_cacheSize = sz;
+	}
+
+	/**
+	 * 	\brief return the file name of the SequentialDB
+	 */
+	std::string getFileName() const {
+		return _fileName;
+	}
+
+	/**
+	 * 	 \brief open the database. 
+	 * 
+	 *   Everytime  we use the database, we mush open it first.  
+	 */
+	bool open();
+
+	/**
+	 * 	 \brief close the database. 
+	 * 
+	 *    if we don't call it, it will be automately called in deconstructor 	 
+	 */
+	bool close() {
+		flush();
+		//note that _root can be  NULL, if there is no items.		
+		if (_root) {
+			_root->unload();
+			delete _root;
+			_root = 0;
+		}
+		if (_dataFile != 0) {
+			fclose(_dataFile);
+			_dataFile = 0;
+		}
+		return true;
+	}
+
+	/**
+	 * 	 \brief del an item from the database
+	 * 
+	 */
+	bool del(const KeyType& key);
+	/**
+	 * 	\brief insert an item.
+	 */
+	bool insert(const DataType& rec)
+	{
+		return insert(rec.key, rec.value);
+	}
+
+	/**
+	 *  \brief insert an item.
+	 */
+	bool insert(const KeyType& key, const ValueType& value);
+
+	/**
+	 *  \brief find an item given a key.
+	 */
+	ValueType* find(const KeyType& key) {
+		NodeKeyLocn locn;
+		if( search(key, locn) )
+		return &(locn.first->values[locn.second]);
+		return NULL;
+	}
+
+	/**
+	 *  \brief find an item given a key.
+	 */
+	const ValueType* find(const KeyType& key)const {
+		return (const ValueType*) (this->find(key));
+	}
+
+	/**
+	 *  \brief updata an item with given key, if it not exist, insert it directly. 
+	 */
+	bool update(const KeyType& key, const ValueType& val);
+
+	/**
+	 *  \brief updata an item with given key, if it not exist, insert it directly. 
+	 */
+	bool update(const DataType& rec)
+	{
+		return update(rec.key, rec.value);
+	}
+
+	/**
+	 * 	
+	 * \brief get the number of the items.
+	 */
+	int num_items() {
+		return _sfh.numItems;
+	}
+
+	/**
+	 *  \brief get an item from given Locn.	 * 
+	 */
+	bool get(const NodeKeyLocn& locn, DataType& rec);
+
+	/**
+	 *  \brief get an item from given Locn.	 * 
+	 */
+	bool get(const NodeKeyLocn& locn, KeyType& key, ValueType& value)
+	{
+		DataType dat;
+		bool ret =get(locn, dat);
+		if(ret) {
+			key = dat.get_key();
+			value = dat.get_value();
+		}
+		return ret;
+	}
+	/**
+	 *  \brief get the cursor of the first item.
+	 * 
+	 */
+	NodeKeyLocn get_first_Locn()
+	{
+		NodeKeyLocn locn;
+		search(KeyType(), locn);
+		return locn;
+	}
+
+	/**
+	 * 	\brief get the next or prev item.
+	 * 
+	 *  \locn when locn is default value, it will start with firt element when sdri=ESD_FORWARD
+	 *   and start with last element when sdir = ESD_BACKWARD
+	 */
+	bool
+	seq(NodeKeyLocn& locn, DataType& rec,
+			ESeqDirection sdir = ESD_FORWARD);
+
+	/**
+	 * 	\brief write all the items in memory to file.
+	 */
+
+	void flush();
+	/**
+	 * 	\brief write back the dirypages
+	 */
+	void commit() {
+		_flush(_root, _dataFile);
+
+		if(_root)
+		_sfh.rootPos = _root->fpos;
+
+		if( !_dataFile )return;
+
+		if ( 0 != fseek(_dataFile, 0, SEEK_SET)) {
+			abort();
+		}
+
+		//write back the fileHead later, for overflow may occur when
+		//flushing.
+		_sfh.toFile(_dataFile);
+
+		/*while( !_dirtyPages.empty() )
+		 {
+		 sdb_node* ptr = _dirtyPages.back();
+		 _dirtyPages.pop_back();
+		 ptr->write(_dataFile);
+		 }*/
+		fflush(_dataFile);
+	}
+
+	/**
+	 *   for debug.  print the shape of the B tree.
+	 */
+	void display(std::ostream& os = std::cout) {
+		if(_root)_root->display(os);
+	}
+
+	/**
+	 *  if the input key exists, just return itself, otherwise return 
+	 * 	the smallest existing key that bigger than it.   
+	 */
+	KeyType getNearest(const KeyType& key) {
+		NodeKeyLocn locn;
+		search(key, locn);
+		if( locn.first )
+		return locn.first->keys[locn.second];
+		else
+		return KeyType();
+	}
+
+	/**
+	 * 
+	 *  \brief Get the DB cursor of given key
+	 *
+	 */
+	NodeKeyLocn search(const KeyType& key) {
+		NodeKeyLocn locn;
+		search(key, locn);
+		return locn;
+	}
+	/**
+	 *   \brief get the cursor for given key
+	 *   
+	 *   @param locn is cursor of key.
+	 *   @return true if key exists otherwise false. 
+	 * 
+	 */
+	bool search(const KeyType& key, NodeKeyLocn& locn);
+private:
+	sdb_node* _root;
+	FILE* _dataFile;
+	CbFileHeader _sfh;
+	size_t _cacheSize;
+	bool _isOpen;
+
+	izenelib::am::CompareFunctor<KeyType> _comp;
+	std::string _fileName; // name of the database file		
+private:
+
+	void _flushCache(bool quickFlush=true) {
+		if( sdb_node::activeNodeNum> _sfh.cacheSize )
+		{
+			if( !quickFlush )
+			commit();
+#ifdef  DEBUG
+			cout<<"cache is full..."<<endl;
+			cout<<sdb_node::activeNodeNum<<" vs "<<_sfh.cacheSize <<endl;
+			//display();
+#endif
+
+			queue<sdb_node*> qnode;
+			qnode.push(_root);
+
+			size_t popNum = 0;
+			size_t escapeNum = _sfh.cacheSize>>1;
+			sdb_node* interval = NULL;
+			while ( !qnode.empty() ) {
+				sdb_node* popNode = qnode.front();
+				qnode.pop();
+				popNum++;
+
+				if (popNode && !popNode->isLeaf) {
+					for(size_t i=0; i<popNode->objCount+1; i++)
+					{
+						if(popNode->children[i] && popNode->children[i]->objCount>0 ) {
+							qnode.push( popNode->children[i] );
+						}
+					}
+				}
+
+				if( popNum >= escapeNum )
+				{
+					if( popNode == interval )
+					break;
+
+					if( interval == NULL && !popNode->isLeaf ) {
+						interval = popNode->children[0];
+					}
+
+					if( popNode->isDirty && quickFlush)
+					_flush(popNode, _dataFile);
+					popNode->unload();
+
+					//cout<<"unloading....";
+					//cout<<sdb_node::activeNodeNum<<" vs "<<_sfh.cacheSize <<endl;					
+				}
+
+			}
+#ifdef DEBUG
+			cout<<"stop unload..."<<endl;
+			cout<<sdb_node::activeNodeNum<<" vs "<<_sfh.cacheSize <<endl;
+			//display();
+#endif		
+			fflush(_dataFile);
+		}
+
+	}
+
+	sdb_node* _allocateNode() {
+
+		sdb_node* newNode;
+
+		newNode = new sdb_node;
+		newNode->isLoaded = true;
+		newNode->isDirty = true;
+		newNode->fpos = sizeof(CbFileHeader)+sizeof(size_t) + _sfh.pageSize
+		*CbFileHeader::nPages;
+
+		//cout<<"allocate idx="<<CbFileHeader::nPages<<" "<<newNode->fpos;
+		CbFileHeader::nPages++;
+		sdb_node::activeNodeNum++;
+
+		//pre allocate memory for newNode for efficiency
+		newNode->keys.resize(_sfh.maxKeys);
+		newNode->values.resize(_sfh.maxKeys);
+		newNode->children.resize(_sfh.maxKeys+1);
+
+		return newNode;
+	}
+
+	void _split(sdb_node* parent, size_t childNum, sdb_node* child);
+	void _split3Leaf(sdb_node* parent, size_t childNum);
+	sdb_node* _merge(sdb_node* &parent, size_t objNo);
+
+	bool _insert(const KeyType& key, const ValueType& value);
+	bool _seqNext(NodeKeyLocn& locn, DataType& rec);
+	bool _seqPrev(NodeKeyLocn& locn, DataType& rec);
+	void _flush(sdb_node* node, FILE* f);
+	bool _delete(sdb_node* node, const KeyType& key);
+
+	// Finds the location of the predecessor of this key, given
+	// the root of the subtree to search. The predecessor is going
+	// to be the right-most object in the right-most leaf node.
+	NodeKeyLocn _findPred(sdb_node* node) {
+		NodeKeyLocn ret(NULL, (size_t)-1);
+		sdb_node* child = node;
+		while (!child->isLeaf) {
+			child = child->loadChild(child->objCount, _dataFile);
+		}
+		ret.first = child;
+		ret.second = child->objCount - 1;
+		return ret;
+	}
+
+	// Finds the location of the successor of this key, given
+	// the root of the subtree to search. The successor is the
+	// left-most object in the left-most leaf node.
+	NodeKeyLocn _findSucc(sdb_node* node) {
+		NodeKeyLocn ret(NULL, (size_t)-1);
+		sdb_node* child = node;
+		while (!child->isLeaf) {
+			child = child->loadChild(0, _dataFile);
+		}
+		ret.first = child;
+		ret.second = 0;
+		return ret;
+	}
+
+};
+
+// The constructor simply sets up the different data members
+template<typename KeyType, typename ValueType, typename LockType,
+		typename Alloc> sdb_btree< KeyType, ValueType, LockType, Alloc>::sdb_btree(
+		const std::string& fileName) {
+	_root = 0;
+	_fileName = fileName;
+	_dataFile = 0;
+	_cacheSize = 0;
+	_isOpen = false;
+}
+
+template<typename KeyType, typename ValueType, typename LockType,
+		typename Alloc> sdb_btree< KeyType, ValueType, LockType, Alloc>::~sdb_btree() {
+	close();
+}
+
+template<typename KeyType, typename ValueType, typename LockType,
+		typename Alloc> bool sdb_btree< KeyType, ValueType, LockType, Alloc>::search(
+		const KeyType& key, NodeKeyLocn& locn) {
+	//do Flush, when cache is full
+	_flushCache();
+
+	locn.first = 0;
+	locn.second = (size_t)-1;
+
+	sdb_node* temp = _root;
+	while (1) {
+		int i = temp->objCount;
+		int low = 0;
+		int high = i-1;
+		int compVal;
+		while (low <= high) {
+			int mid = (low+high)/2;
+			compVal = _comp(key, temp->keys[mid]);
+			if (compVal == 0) {
+				locn.first = temp;
+				locn.second = mid;
+				return true;
+			} else if (compVal < 0)
+				high = mid-1;
+			else {
+				low = mid+1;
+			}
+		}
+
+		if (!temp->isLeaf) {
+			temp = temp->loadChild(low, _dataFile);
+		} else {
+			break;
+		}
+	}
+	return false;
+}
+
+// Splits a child node, creating a new node. The median value from the
+// full child is moved into the *non-full* parent. The keys above the
+// median are moved from the full child to the new child.
+template<typename KeyType, typename ValueType, typename LockType,
+		typename Alloc> void sdb_btree< KeyType, ValueType, LockType, Alloc>::_split(
+		sdb_node* parent, size_t childNum, sdb_node* child) {
+
+	//display();
+	size_t i = 0;
+	size_t leftCount = (child->objCount)>>1;
+	size_t rightCount = child->objCount-1-leftCount;
+	sdb_node* newChild = _allocateNode();
+	newChild->childNo = childNum+1;
+
+	newChild->isLeaf = child->isLeaf;
+	newChild->setCount(rightCount);
+
+	// Put the high values in the new child, then shrink the existing child.
+	for (i = 0; i < rightCount; i++) {
+		newChild->keys[i] = child->keys[leftCount +1 + i];
+		newChild->values[i] = child->values[leftCount +1 + i];
+	}
+
+	if (!child->isLeaf) {
+		for (i = 0; i < rightCount+1; i++) {
+			sdb_node* mover = child->children[leftCount +1 + i];
+			newChild->children[i] = mover;
+			mover->childNo = i;
+			mover->parent = newChild;
+		}
+	}
+
+	KeyType savekey = child->keys[leftCount];
+	ValueType savevalue = child->values[leftCount];
+	child->setCount(leftCount);
+
+	// Move the child pointers above childNum up in the parent
+	parent->setCount(parent->objCount + 1);
+	for (i = parent->objCount; i> childNum + 1; i--) {
+		parent->children[i] = parent->children[i - 1];
+		//if(parent->children[i]) 
+		parent->children[i]->childNo = i;
+	}
+	parent->children[childNum + 1] = newChild;
+	newChild->childNo = childNum + 1;
+	newChild->parent = parent;
+
+	for (i = parent->objCount - 1; i> childNum; i--) {
+		parent->keys[i] = parent->keys[i - 1];
+		parent->values[i] = parent->values[i - 1];
+	}
+	parent->keys[childNum] = savekey;
+	parent->values[childNum] = savevalue;
+	child->setDirty(1);
+	newChild->setDirty(1);
+	parent->setDirty(1);
+
+	//cout<<"after split !!!!"<<endl;
+	//display();
+
+	//_dirtyPages.push_back(child);
+	//_dirtyPages.push_back(newChild);
+	//_dirtyPages.push_back(parent);
+
+}
+//split two full leaf nodes into tree 2/3 ful nodes.
+template<typename KeyType, typename ValueType, typename LockType,
+		typename Alloc> void sdb_btree< KeyType, ValueType, LockType, Alloc>::_split3Leaf(
+		sdb_node* parent, size_t childNum) {
+
+	size_t i = 0;
+	size_t count1 = (_sfh.maxKeys<<1)/3;
+	size_t count2 = _sfh.maxKeys - _sfh.maxKeys/3-1;
+	size_t count3 = (_sfh.maxKeys<<1) -1 -count1 -count2;
+
+	sdb_node* child1 = parent->loadChild(childNum, _dataFile);
+	sdb_node* child2 = parent->loadChild(childNum+1, _dataFile);
+
+	sdb_node* newChild = _allocateNode();
+	newChild->isLeaf =true;
+	newChild->setCount(count3);
+
+	KeyType tkey1 = child1->keys[(_sfh.maxKeys<<1)/3];
+	ValueType tvalue1 = child1->values[(_sfh.maxKeys<<1)/3];
+	KeyType tkey2 = child2->keys[_sfh.maxKeys/3];
+	ValueType tvalue2 = child2->values[_sfh.maxKeys/3];
+
+	// Put the high values in the new child, then shrink the existing child.
+	for (i = 0; i < _sfh.maxKeys - count1 -1; i++) {
+		newChild->keys[i] = child1->keys[count1+1+i];
+		newChild->values[i] = child1->values[count1+1+i];
+	}
+
+	newChild->keys[ _sfh.maxKeys - count1 -1] = parent->keys[childNum];
+	newChild->values[ _sfh.maxKeys - count1 -1] = parent->values[childNum];
+
+	for (i = _sfh.maxKeys - count1; i < count3; i++) {
+		newChild->keys[i] = child2->keys[i-_sfh.maxKeys+count1];
+		newChild->values[i] = child2->values[i-_sfh.maxKeys+count1];
+	}
+
+	for (i=0; i<count2; i++) {
+		child2->keys[i] = child2->keys[_sfh.maxKeys/3+1+i];
+		child2->values[i] = child2->values[_sfh.maxKeys/3+1+i];
+	}
+
+	child1->setCount(count1);
+	child2->setCount(count2);
+
+	// Move the child pointers above childNum up in the parent
+	parent->setCount(parent->objCount + 1);
+	parent->keys[childNum] = tkey1;
+	parent->values[childNum] = tvalue1;
+
+	for (i = parent->objCount; i> childNum + 2; i--) {
+		parent->children[i] = parent->children[i - 1];
+		parent->children[i]->childNo = i;
+	}
+	parent->children[childNum + 1] = newChild;
+	newChild->childNo = childNum + 1;
+
+	for (i = parent->objCount-1; i> childNum+1; i--) {
+		parent->keys[i] = parent->keys[i - 1];
+		parent->values[i] = parent->values[i - 1];
+	}
+	parent->keys[childNum+1] = tkey2;
+	parent->values[childNum+1] = tvalue2;
+	parent->children[childNum+2] = child2;
+	child2->childNo = childNum+2;
+
+	child1->setDirty(1);
+	child2->setDirty(1);
+	newChild->setDirty(1);
+	parent->setDirty(1);
+}
+
+template<typename KeyType, typename ValueType, typename LockType,
+		typename Alloc> sdb_node<KeyType, ValueType, LockType, Alloc>* sdb_btree<
+		KeyType, ValueType, LockType, Alloc>::_merge(sdb_node* &parent,
+		size_t objNo) {
+	//cout<<"befor merge...\n";
+	//display();
+
+	size_t i = 0;
+	sdb_node* c1 = parent->loadChild(objNo, _dataFile);
+	sdb_node* c2 = parent->loadChild(objNo+1, _dataFile);
+	size_t _minDegree = _sfh.maxKeys/3;
+
+	for (i = 0; i < _minDegree - 1; i++) {
+		c1->keys[_minDegree+i] = c2->keys[i];
+		c1->values[_minDegree+i] = c2->values[i];
+
+	}
+	if (!c2->isLeaf) {
+		for (i = 0; i < _minDegree; i++) {
+			size_t newPos = _minDegree + i;
+			c2->loadChild(i, _dataFile);
+			c1->children[newPos] = c2->children[i];
+			c1->children[newPos]->childNo = newPos;
+			c1->children[newPos]->parent = c1;//wps add it!				
+		}
+	}
+
+	// Put the parent into the middle
+	//c1->elements[_minDegree - 1] = parent->elements[objNo];
+
+	c1->keys[_minDegree-1] = parent->keys[objNo];
+	c1->values[_minDegree-1] = parent->values[objNo];
+	c1->setCount(2*_minDegree-1);
+
+	// Reshuffle the parent (it has one less object/child)
+	for (i = objNo + 1; i < parent->objCount; i++) {
+		parent->keys[i-1] = parent->keys[i];
+		parent->values[i-1] = parent->values[i];
+		parent->loadChild(i+1, _dataFile);
+		parent->children[i] = parent->children[i + 1];
+		parent->children[i]->childNo = i;
+	}
+	parent->setCount(parent->objCount-1);
+
+	if (parent->objCount == 0) {
+		parent = c1;
+	}
+
+	// Note that c2 will be release. The node will be deallocated
+	// and the node's location on
+	// disk will become inaccessible. 
+
+	c2->unloadself();
+	delete c2;
+	c2 = 0;
+
+	c1->setDirty(1);
+	parent->setDirty(_dataFile);
+
+	// Return a pointer to the new child.
+	return c1;
+}
+
+template<typename KeyType, typename ValueType, typename LockType,
+		typename Alloc> bool sdb_btree< KeyType, ValueType, LockType, Alloc>::insert(
+		const KeyType& key, const ValueType& value) {
+	_flushCache();
+	if (_root->objCount >= _sfh.maxKeys) {
+		// Growing the tree happens by creating a new
+		// node as the new root, and splitting the
+		// old root into a pair of children.
+		sdb_node* oldRoot = _root;
+
+		_root = _allocateNode();
+		_root->setCount(0);
+		_root->isLeaf = false;
+		_root->children[0] = oldRoot;
+		oldRoot->childNo = 0;
+		oldRoot->parent = _root;
+		_split(_root, 0, oldRoot);
+		goto L0;
+	} else {
+		L0: register sdb_node* node = _root;
+
+		L1: register size_t i = node->objCount;
+		register int low = 0;
+		register int high = i-1;
+		register int mid;
+		register int compVal;
+		while (low<=high) {
+			mid = (low+high)>>1;
+			compVal = _comp(key, node->keys[mid]);
+			if (compVal == 0)
+				return false;
+			else if (compVal < 0)
+				high = mid-1;
+			else {
+				low = mid+1;
+			}
+		}
+
+		// If the node is a leaf, we just find the location to insert
+		// the new item, and shuffle everything else up.
+		if (node->isLeaf) {
+			node->setCount(node->objCount + 1);
+			for (; (int)i> low; i--) {
+				//cout<<node->keys[i-1]<<endl;
+				node->keys[i] = node->keys[i-1];
+				node->values[i] = node->values[i-1];
+			}
+			node->keys[low] = key;
+			node->values[low] = value;
+			node->setDirty(1);
+
+			++_sfh.numItems;
+			return true;
+
+		}
+
+		// If the node is an internal node, we need to find
+		// the location to insert the value ...
+		else {
+			// Load the child into which the value will be inserted.
+			sdb_node* child = node->loadChild(low, _dataFile);
+
+			//If the child node is full , we will insert into its adjacent nodes, and if bothe are
+			//are full, we will split the two node to three nodes.			
+			if (child->objCount >= _sfh.maxKeys) {
+				if ( !child->isLeaf) {
+					_split(node, low, child);
+					compVal = _comp(key, node->keys[low]);
+					if (compVal == 0)
+						return false;
+					if (compVal> 0) {
+						++low;
+					}
+					child = node->loadChild(low, _dataFile);
+				} else {
+					sdb_node* adjNode;
+					int splitNum = low;
+					if ((size_t)low < node->objCount) {
+						adjNode = node->loadChild(low+1, _dataFile);
+						if (adjNode->objCount < _sfh.maxKeys) {
+
+							//case: child's last key equal inserting key
+							if ( _comp(child->keys[child->objCount-1],key)==0 ) {
+								return false;
+							}
+							adjNode->setCount(adjNode->objCount+1);
+							for (size_t j=child->objCount-1; j>0; j--) {
+								adjNode->keys[j] = adjNode->keys[j-1];
+								adjNode->values[j] = adjNode->values[j-1];
+							}
+							adjNode->keys[0] = node->keys[low];
+							adjNode->values[0] = node->values[low];
+							adjNode->setDirty(true);
+							node->setDirty(true);
+
+							//case: all of the keys in child are less than inserting keys.
+							if ( _comp(child->keys[child->objCount-1], key)<0 ) {
+								node->keys[low] = key;
+								node->values[low] = value;
+								++_sfh.numItems;
+								return true;
+
+							}
+
+							//case: insert the item into the new child.							
+							node->keys[low] = child->keys[child->objCount-1];
+							node->values[low]
+									= child->values[child->objCount-1];
+							child->setDirty(true);
+							child->setCount(child->objCount-1);
+							node = child;
+
+							goto L1;
+						}
+					}
+
+					//case: the right sibling is full or no right sibling
+					if (low>0) {
+						adjNode = node->loadChild(low-1, _dataFile);
+						//case: left sibling is no full
+						if (adjNode->objCount < _sfh.maxKeys) {
+							//cacheL child's first key equal inserting key,do nothing
+							if (_comp(child->keys[0],key) == 0) {
+								return false;
+							}
+
+							adjNode->setCount(adjNode->objCount+1);
+							adjNode->keys[adjNode->objCount-1]
+									= node->keys[low-1];
+							adjNode->values[adjNode->objCount-1]
+									= node->values[low-1];
+							adjNode->setDirty(true);
+							node->setDirty(true);
+							//case: all of the keys in child are bigger than inserting keys.
+							if ( _comp(key, child->keys[0])< 0 ) {
+								node->keys[low-1] = key;
+								node->values[low-1] = value;
+								++_sfh.numItems;
+								return true;
+							}
+							node->keys[low-1] = child->keys[0];
+							node->values[low-1] = child->values[0];
+
+							//insert key into child, child's firt item is already put to its parent
+							size_t j=1;
+							bool ret=true;
+							child->setDirty(true);
+							for (; j<child->objCount; j++) {
+								//inserting key exists, mark it
+								if ( _comp(child->keys[j],key) == 0) {
+									ret = false;
+								}
+								//have found the right place for inserting key.
+								if (ret && _comp(child->keys[j], key)>0) {
+									child->keys[j-1] = key;
+									child->values[j-1] = value;
+									++_sfh.numItems;
+									return true;
+								}
+								child->keys[j-1] = child->keys[j];
+								child->values[j-1] = child->values[j];
+							}
+							//inserting key exists
+							if ( !ret) {
+								child->setCount(child->objCount-1);
+								return false;
+							}
+							//insert the key at last positon of child
+							child->keys[j-1] = key;
+							child->values[j-1] = value;
+							++_sfh.numItems;
+							return true;
+						}
+					}
+
+					//case: both nodes are full
+					if ( (size_t)splitNum >0) {
+						splitNum = splitNum -1;
+					}
+					_split3Leaf(node, splitNum);
+
+					if ( _comp(node->keys[splitNum],key) == 0)
+						return false;
+					if ( _comp(node->keys[splitNum+1],key) == 0)
+						return false;
+					if (_comp(key, node->keys[splitNum]) < 0 ) {
+						child = node->loadChild(splitNum, _dataFile);
+					} else if (_comp(key, node->keys[splitNum+1]) <0) {
+						child=node->loadChild(splitNum+1, _dataFile);
+					} else {
+						child=node->loadChild(splitNum+2, _dataFile);
+					}
+				}
+			}
+			// Insert the key (recursively) into the non-full child
+			// node.
+			node = child;
+			goto L1;
+		}
+	}
+}
+
+// Write all nodes in the tree to the file given.
+template<typename KeyType, typename ValueType, typename LockType,
+		typename Alloc> void sdb_btree< KeyType, ValueType, LockType, Alloc>::_flush(
+		sdb_node* node, FILE* f) {
+
+	// Bug out if the file is not valid
+	if (!f) {
+		return;
+	}
+	queue<sdb_node*> qnode;
+	qnode.push(node);
+	while (!qnode.empty()) {
+		sdb_node* popNode = qnode.front();
+		if (popNode->isLoaded) {
+			popNode->write(f);
+		}
+		qnode.pop();
+		if (!popNode->isLeaf) {
+			for (size_t i=0; i<popNode->objCount+1; i++) {
+				if (popNode->children[i])
+					qnode.push(popNode->children[i]);
+			}
+
+		}
+
+	}
+
+}
+
+// Internal delete function, used once we've identified the
+// location of the node from which a key is to be deleted.
+template<typename KeyType, typename ValueType, typename LockType,
+		typename Alloc> bool sdb_btree< KeyType, ValueType, LockType, Alloc>::_delete(
+		sdb_node* nd, const KeyType& k) {
+	bool ret = false;
+
+	// Find the object position. op will have the position
+	// of the object in op.first, and a flag (op.second)
+	// saying whether the object at op.first is an exact
+	// match (true) or if the object is in a child of the
+	// current node (false). If op.first is -1, the object
+	// is neither in this node, or a child node.	
+
+	sdb_node* node = nd;
+	KeyType key = k;
+	size_t _minDegree = _sfh.maxKeys/3;
+
+	L0: KEYPOS op = node->findPos(key);
+	if (op.first != (size_t)-1) // it's in there somewhere ...
+	{
+		if (op.second == CCP_INTHIS) // we've got an exact match
+		{
+			// Case 1: deletion from leaf node.
+			if (node->isLeaf) {
+				//assert(node->objCount >= _minDegree-1);
+				node->delFromLeaf(op.first);
+
+				//now node is dirty
+				node->setDirty(1);
+				//_dirtyPages.push_back(node);
+				ret = true;
+			}
+			// Case 2: Exact match on internal leaf.
+			else {
+				// Case 2a: prior child has enough elements to pull one out.
+				node->loadChild(op.first, _dataFile);
+				node->loadChild(op.first+1, _dataFile);
+				if (node->children[op.first]->objCount >= _minDegree) {
+					sdb_node* childNode = node->loadChild(op.first, _dataFile);
+					NodeKeyLocn locn = _findPred(childNode);
+
+					node->keys[op.first] = locn.first->keys[locn.second];
+					node->values[op.first] = locn.first->values[locn.second];
+
+					//now node is dirty
+					node->setDirty(1);
+					//_dirtyPages.push_back(node);
+
+					node = childNode;
+					key = locn.first->keys[locn.second];
+					goto L0;
+					//ret = _delete(childNode, dat.get_key());
+				}
+
+				// Case 2b: successor child has enough elements to pull one out.
+				else if (node->children[op.first + 1]->objCount >= _minDegree) {
+					sdb_node* childNode = node->loadChild(op.first + 1,
+							_dataFile);
+					NodeKeyLocn locn = _findSucc(childNode);
+
+					node->keys[op.first] = locn.first->keys[locn.second];
+					node->values[op.first] = locn.first->values[locn.second];
+
+					//now node is dirty					
+					node->setDirty(1);
+					//_dirtyPages.push_back(node);
+
+					node = childNode;
+					key = locn.first->keys[locn.second];
+					goto L0;
+					//ret = _delete(childNode, dat.get_key());
+				}
+
+				// Case 2c: both children have only t-1 elements.
+				// Merge the two children, putting the key into the
+				// new child. Then delete from the new child.
+				else {
+					assert(node->children[op.first]->objCount == _minDegree-1);
+					assert(node->children[op.first+1]->objCount == _minDegree-1);
+					sdb_node* mergedChild = _merge(node, op.first);
+					node = mergedChild;
+					goto L0;
+					//ret = _delete(mergedChild, key);
+				}
+			}
+		}
+
+		// Case 3: key is not in the internal node being examined,
+		// but is in one of the children.
+		else if (op.second == CCP_INLEFT || op.second == CCP_INRIGHT) {
+			// Find out if the child tree containing the key
+			// has enough elements. If so, we just recurse into
+			// that child.
+
+			node->loadChild(op.first, _dataFile);
+			if (op.first+1<=node->objCount)
+				node->loadChild(op.first+1, _dataFile);
+			size_t keyChildPos = (op.second == CCP_INLEFT) ? op.first
+					: op.first + 1;
+			sdb_node* childNode = node->loadChild(keyChildPos, _dataFile);
+			if (childNode->objCount >= _minDegree) {
+				node = childNode;
+				goto L0;
+				//ret = _delete(childNode, key);
+			} else {
+				// Find out if the childNode has an immediate
+				// sibling with _minDegree keys.
+				sdb_node* leftSib = 0;
+				sdb_node* rightSib = 0;
+				size_t leftCount = 0;
+				size_t rightCount = 0;
+				if (keyChildPos> 0) {
+					leftSib = node->loadChild(keyChildPos - 1, _dataFile);
+					leftCount = leftSib->objCount;
+				}
+				if (keyChildPos < node->objCount) {
+					rightSib = node->loadChild(keyChildPos + 1, _dataFile);
+					rightCount = rightSib->objCount;
+				}
+
+				// Case 3a: There is a sibling with _minDegree or more keys.
+				if (leftCount >= _minDegree || rightCount >= _minDegree) {
+					// Part of this process is making sure that the
+					// child node has minDegree elements.
+
+					childNode->setCount(_minDegree);
+
+					// Bringing the new key from the left sibling
+					if (leftCount >= _minDegree) {
+						// Shuffle the keys and elements up
+						size_t i = _minDegree - 1;
+						for (; i> 0; i--) {
+							childNode->keys[i] = childNode->keys[i - 1];
+							childNode->values[i] = childNode->values[i - 1];
+							childNode->children[i + 1] = childNode->children[i];
+							if (childNode->children[i + 1]) {
+								childNode->children[i + 1]->childNo = i + 1;
+							}
+						}
+						childNode->children[i + 1] = childNode->children[i];
+						if (childNode->children[i + 1]) {
+							childNode->children[i + 1]->childNo = i +1;
+						}
+
+						// Put the key from the parent into the empty space,
+						// pull the replacement key from the sibling, and
+						// move the appropriate child from the sibling to
+						// the target child.
+
+						childNode->keys[0] = node->keys[keyChildPos - 1];
+						childNode->values[0] = node->values[keyChildPos - 1];
+
+						node->keys[keyChildPos - 1]
+								= leftSib->keys[leftSib->objCount - 1];
+						node->values[keyChildPos - 1]
+								= leftSib->values[leftSib->objCount - 1];
+						if (!leftSib->isLeaf) {
+							childNode->children[0]
+									= leftSib->children[leftSib->objCount];
+							childNode->children[0]->childNo = 0;
+							childNode->children[0]->parent = childNode;
+						}
+						leftSib->setCount(leftSib->objCount-1);
+						//--leftSib->objCount;
+						assert(leftSib->objCount >= _minDegree-1);
+
+						//now node is dirty
+						leftSib->setDirty(1);
+						node->setDirty(1);
+						//_dirtyPages.push_back(leftSib);
+						//_dirtyPages.push_back(node);
+					}
+
+					// Bringing a new key in from the right sibling
+					else {
+						// Put the key from the parent into the child,
+						// put the key from the sibling into the parent,
+						// and move the appropriate child from the
+						// sibling to the target child node.
+						childNode->keys[childNode->objCount - 1]
+								= node->keys[op.first];
+						childNode->values[childNode->objCount - 1]
+								= node->values[op.first];
+						node->keys[op.first] = rightSib->keys[0];
+						node->values[op.first] = rightSib->values[0];
+
+						if (!rightSib->isLeaf) {
+							childNode->children[childNode->objCount]
+									= rightSib->children[0];
+
+							childNode->children[childNode->objCount]->childNo
+									= childNode->objCount;//wps add it!
+							childNode->children[childNode->objCount]->parent
+									= childNode;//wps add it!
+						}
+
+						// Now clean up the right node, shuffling keys
+						// and elements to the left and resizing.
+						size_t i = 0;
+						for (; i < rightSib->objCount - 1; i++) {
+							rightSib->keys[i] = rightSib->keys[i + 1];
+							rightSib->values[i] = rightSib->values[i + 1];
+							if (!rightSib->isLeaf) {
+								rightSib->children[i]
+										= rightSib->children[i + 1];
+
+								rightSib->children[i]->childNo = i;
+							}
+						}
+						if (!rightSib->isLeaf) {
+							rightSib->children[i] = rightSib->children[i + 1];
+							rightSib->children[i]->childNo = i;
+						}
+						rightSib->setCount(rightSib->objCount - 1);
+						assert(rightSib->objCount >= _minDegree-1);
+
+						//now node is dirty
+						rightSib->setDirty(true);
+						node->setDirty(1);
+						//_dirtyPages.push_back(rightSib);
+						//_dirtyPages.push_back(node);
+					}
+					node = childNode;
+
+					node->setDirty(true);
+					//_dirtyPages.push_back(node);
+					goto L0;
+					//ret = _delete(childNode, key);
+				}
+
+				// Case 3b: All siblings have _minDegree - 1 keys
+				else {
+					assert(node->children[op.first]->objCount == _minDegree-1);
+					assert(node->children[op.first+1]->objCount == _minDegree-1);
+					sdb_node* mergedChild = _merge(node, op.first);
+					node = mergedChild;
+					goto L0;
+					//ret = _delete(mergedChild, key);
+				}
+			}
+		}
+	}
+	return ret;
+}
+
+// Opening the database means that we check the file
+// and see if it exists. If it doesn't exist, start a database
+// from scratch. If it does exist, load the root node into
+// memory.
+template<typename KeyType, typename ValueType, typename LockType,
+		typename Alloc> bool sdb_btree< KeyType, ValueType, LockType, Alloc>::open() {
+	// We're creating if the file doesn't exist.
+
+	struct stat statbuf;
+	bool creating = stat(_fileName.c_str(), &statbuf);
+
+	_dataFile = fopen(_fileName.c_str(), creating ? "w+b" : "r+b");
+	if (0 == _dataFile) {
+#ifdef DEBUG		
+		cout <<"SDB Error: open file failed, check if dat directory exists"
+		<<endl;
+#endif
+		return false;
+	}
+
+	// Create a new node
+	bool ret = false;
+	if (creating) {
+
+#ifdef DEBUG
+		cout<<"creating...\n"<<endl;
+		_sfh.display();
+#endif
+
+		sdb_node::sdb_node::initialize(_sfh.pageSize, _sfh.maxKeys);;
+
+		_sfh.toFile(_dataFile);
+
+		// If creating, allocate a node instead of
+		// reading one.
+		_root = _allocateNode();
+		_root->isLeaf = true;
+		_root->isLoaded = true;
+
+		_root->write(_dataFile);
+		ret = true;
+
+	} else {
+
+		// when not creating, read the root node from the disk.
+		memset(&_sfh, 0, sizeof(_sfh));
+		_sfh.fromFile(_dataFile);
+		if (_sfh.magic != 0x061561) {
+			cout<<"Error, read wrong file header\n"<<endl;
+			assert(false);
+			return false;
+		}
+		if (_cacheSize != 0) {
+			//reset cacheSize that has been set before open.
+			//cacheSize is dynamic at runtime
+			_sfh.cacheSize = _cacheSize;
+		}
+#ifdef DEBUG
+		cout<<"open exist...\n"<<endl;
+		_sfh.display();
+#endif
+
+		sdb_node::sdb_node::initialize(_sfh.pageSize, _sfh.maxKeys);;
+
+		_root = new sdb_node;
+		_root->fpos = _sfh.rootPos;
+		_root->read(_dataFile);
+		//_root->display();
+		ret = true;
+
+	}
+	_isOpen = true;
+	return ret;
+}
+
+// This is the external delete function.
+template<typename KeyType, typename ValueType, typename LockType,
+		typename Alloc> bool sdb_btree< KeyType, ValueType, LockType, Alloc>::del(
+		const KeyType& key) {
+
+	_flushCache();
+	// Determine if the root node is empty.
+	bool ret = (_root->objCount != 0);
+	if (_root->objCount == (size_t) -1) {
+		return 0;
+	}
+
+	// If we successfully deleted the key, and there
+	// is nothing left in the root node and the root
+	// node is not a leaf, we need to shrink the tree
+	// by making the root's child (there should only
+	// be one) the new root. Write the location of
+	// the new root to the start of the file so we
+	// know where to look
+	if (_root->objCount == 0 && !_root->isLeaf) {
+		_root = _root->children[0];
+	}
+
+	// If our root is not empty, call the internal
+	// delete method on it.
+	ret = _delete(_root, key);
+
+	if (ret)
+		_sfh.numItems--;
+	return ret;
+}
+
+// This method retrieves a record from the database
+// given its location.
+template<typename KeyType, typename ValueType, typename LockType,
+		typename Alloc> bool sdb_btree< KeyType, ValueType, LockType, Alloc>::get(
+		const NodeKeyLocn& locn, DataType& rec) {
+	if ((sdb_node*)locn.first == 0 || locn.second == (size_t)-1) {
+		return false;
+	}	
+	rec = DataType(locn.first->keys[locn.second],
+			locn.first->values[locn.second]);
+	return true;
+}
+
+template<typename KeyType, typename ValueType, typename LockType,
+		typename Alloc> bool sdb_btree< KeyType, ValueType, LockType, Alloc>::update(
+		const KeyType& key, const ValueType& value) {
+	NodeKeyLocn locn(NULL, (size_t)-1);
+	if (search(key, locn) ) {
+		locn.first->values[locn.second] = value;
+		locn.first->setDirty(true);
+		return true;
+	} else {
+		return insert(key, value);
+	}
+	return false;
+}
+
+// This method finds the record following the one at the
+// location given as locn, and copies the record into rec.
+// The direction can be either forward or backward.
+template<typename KeyType, typename ValueType, typename LockType,
+		typename Alloc> bool sdb_btree< KeyType, ValueType, LockType, Alloc>::seq(
+		NodeKeyLocn& locn, DataType& rec, ESeqDirection sdir) {
+	if( _sfh.numItems <=0 )
+	{
+		return false;
+	}
+	switch (sdir) {
+	case ESD_FORWARD:
+		return _seqNext(locn, rec);
+
+	case ESD_BACKWARD:
+		return _seqPrev(locn, rec);
+	}
+
+	return false;
+}
+
+// Find the next item in the database given a location. Return
+// the subsequent item in rec.
+template<typename KeyType, typename ValueType, typename LockType,
+		typename Alloc> bool sdb_btree< KeyType, ValueType, LockType, Alloc>::_seqNext(
+		NodeKeyLocn& locn, DataType& rec) {
+	// Set up a couple of convenience values
+	bool ret = false;
+	sdb_node* node = locn.first;
+	size_t lastPos = locn.second;
+	bool goUp = false; // indicates whether or not we've exhausted a node.
+
+	// If we are starting at the beginning, initialise
+	// the locn reference and return with the value set.
+	// This means we have to plunge into the depths of the
+	// tree to find the first leaf node.
+	if ((sdb_node*)node == 0) {
+		node = _root;
+		while ((sdb_node*)node != 0 && !node->isLeaf) {
+			node = node->loadChild(0, _dataFile);
+		}
+		if ((sdb_node*)node == 0) {
+			return false;
+		}
+		rec = DataType(node->keys[0], node->values[0]);
+		locn.first = node;
+		locn.second = 0;
+		return true;
+	}
+
+	// Advance the locn object to the next item
+
+	// If we have a leaf node, we don't need to worry about
+	// traversing into children ... only need to worry about
+	// going back up the tree.
+	if (node->isLeaf) {
+		// didn't visit the last node last time.
+		if (lastPos < node->objCount - 1) {
+			rec = DataType(node->keys[lastPos + 1], node->values[lastPos + 1]);
+			locn.second = lastPos + 1;
+			return true;
+		}
+		goUp = (lastPos == node->objCount - 1);
+	}
+
+	// Not a leaf, therefore need to worry about traversing
+	// into child nodes.
+	else {
+		node = node->loadChild(lastPos + 1, _dataFile);//_cacheInsert(node);
+		while ((sdb_node*)node != 0 && !node->isLeaf) {
+			node = node->loadChild(0, _dataFile);
+		}
+		if ((sdb_node*)node == 0) {
+			return false;
+		}
+		rec = DataType(node->keys[0], node->values[0]);
+		locn.first = node;
+		locn.second = 0;
+		return true;
+	}
+
+	// Finished off a leaf, therefore need to go up to
+	// a parent.
+	if (goUp) {
+		size_t childNo = node->childNo;
+		node = node->parent;
+		while ((sdb_node*)node != 0 && childNo >= node->objCount) {
+			childNo = node->childNo;
+			node = node->parent;
+		}
+		if ((sdb_node*)node != 0) {
+			locn.first = node;
+			locn.second = childNo;
+			ret = true;
+			rec = DataType(node->keys[childNo], node->values[childNo]);
+		}
+	}
+	return ret;
+}
+
+// Find the previous item in the database given a location. Return
+// the item in rec.
+template<typename KeyType, typename ValueType, typename LockType,
+		typename Alloc> bool sdb_btree< KeyType, ValueType, LockType, Alloc>::_seqPrev(
+		NodeKeyLocn& locn, DataType& rec) {
+	// Set up a couple of convenience values
+
+	bool ret = false;
+	sdb_node* node = locn.first;
+	size_t lastPos = locn.second;
+	bool goUp = false; // indicates whether or not we've exhausted a node.
+
+
+	// If we are starting at the end, initialise
+	// the locn reference and return with the value set.
+	// This means we have to plunge into the depths of the
+	// tree to find the first leaf node.
+
+	if ((sdb_node*)node == 0) {
+		node = _root;
+		while ((sdb_node*)node != 0 && !node->isLeaf) {
+			node = node->loadChild(node->objCount, _dataFile);
+		}
+		if ((sdb_node*)node == 0) {
+			return false;
+		}
+		locn.first = node;
+		locn.second = node->objCount - 1;
+
+		if (locn.second == size_t(-1) )
+			return false;
+		rec = DataType(node->keys[locn.second], node->values[locn.second]);
+		return true;
+	}
+
+	// Advance the locn object to the next item
+
+	// If we have a leaf node, we don't need to worry about
+	// traversing into children ... only need to worry about
+	// going back up the tree.
+	if (node->isLeaf) {
+		// didn't visit the last node last time.
+		if (lastPos> 0) {
+			locn.second = lastPos - 1;
+			rec = DataType(node->keys[locn.second], node->values[locn.second]);
+			return true;
+		}
+		goUp = (lastPos == 0);
+	}
+
+	// Not a leaf, therefore need to worry about traversing
+	// into child nodes.
+	else {
+		node = node->loadChild(lastPos, _dataFile);
+		while ((sdb_node*)node != 0 && !node->isLeaf) {
+			node = node->loadChild(node->objCount, _dataFile);
+		}
+		if ((sdb_node*)node == 0) {
+
+			return false;
+		}
+		locn.first = node;
+		locn.second = node->objCount - 1;
+		//rec = *(node->elements[locn.second]->pdat);
+		rec = DataType(node->keys[locn.second], node->values[locn.second]);
+		return true;
+	}
+
+	// Finished off a leaf, therefore need to go up to
+	// a parent.
+	if (goUp) {
+		size_t childNo = node->childNo;
+		node = node->parent;
+
+		while ((sdb_node*)node != 0 && childNo == 0) {
+			childNo = node->childNo;
+			node = node->parent;
+		}
+		if ((sdb_node*)node != 0) {
+			locn.first = node;
+			locn.second = childNo - 1;
+			rec = DataType(node->keys[locn.second], node->values[locn.second]);
+			ret = true;
+		}
+	}
+	return ret;
+}
+
+// This method flushes all loaded nodes to the file and
+// then unloads the root node' children. So not only do we commit
+// everything to file, we also free up most memory previously
+// allocated.
+template<typename KeyType, typename ValueType, typename LockType,
+		typename Alloc> void sdb_btree< KeyType, ValueType, LockType, Alloc>::flush() {
+
+	//write back the fileHead and dirtypage
+	commit();
+	// Unload each of the root's childrent. 
+	if (_root && !_root->isLeaf) {
+		for (size_t i = 0; i < _root->objCount+1; i++) {
+			sdb_node* pChild = _root->children[i];
+			if ((sdb_node*)pChild != 0 && pChild->isLoaded) {
+				_root->children[i]->unload();
+			}
+		}
+	}
+}
+
+NS_IZENELIB_AM_END
+#endif /*sdb_btree_H_*/
