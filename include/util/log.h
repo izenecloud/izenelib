@@ -1,10 +1,11 @@
 #ifndef IZENE_UTIL_LOG_H
 #define IZENE_UTIL_LOG_H
 
+#ifdef IZENE_LOG
 
 #include <ostream>
 #include <types.h>
-
+#include <string>
 #include <boost/logging/format_fwd.hpp>
 #include <boost/logging/format.hpp>
 
@@ -52,6 +53,7 @@ class log
   }
   
   virtual log& operator << (const char* in){return *this;}
+  virtual log& operator << (const std::string in){return *this;}
   virtual log& operator << (int in){return *this;}
   virtual log& operator << (double in){return *this;}
   virtual log& operator << (long double in){return *this;}
@@ -83,6 +85,7 @@ class no_log:public log
   }
   
   virtual no_log& operator << (const char* in){VACANCY_<<in;return *this;}
+  virtual no_log& operator << (const std::string in){VACANCY_<<in.c_str();return *this;}
   virtual no_log& operator << (int in){VACANCY_<<in;return *this;}
   virtual no_log& operator << (double in){VACANCY_<<in;return *this;}
   virtual no_log& operator << (long double in){VACANCY_<<in;return *this;}
@@ -130,6 +133,7 @@ class dbg_log
   }
   
   virtual dbg_log& operator << (const char* in){LDBG__<<in;return *this;}
+  virtual dbg_log& operator << (const std::string in){LDBG__<<in.c_str();return *this;}
   virtual dbg_log& operator << (int in){LDBG__<<in;return *this;}
   virtual dbg_log& operator << (double in){LDBG__<<in;return *this;}
   virtual dbg_log& operator << (long double in){LDBG__<<in;return *this;}
@@ -173,6 +177,7 @@ class app_log :public log
   }
   
   virtual app_log& operator << (const char* in){LAPP__<<in;return *this;}
+  virtual app_log& operator << (const std::string in){LAPP__<<in.c_str();return *this;}
   virtual app_log& operator << (int in){LAPP__<<in;return *this;}
   virtual app_log& operator << (double in){LAPP__<<in;return *this;}
   virtual app_log& operator << (long double in){LAPP__<<in;return *this;}
@@ -220,6 +225,7 @@ class err_log:public log
   }
   
   virtual err_log& operator << (const char* in){LERR__<<in;return *this;}
+  virtual err_log& operator << (const std::string in){LERR__<<in.c_str();return *this;}
   virtual err_log& operator << (int in){LERR__<<in;return *this;}
   virtual err_log& operator << (double in){LERR__<<in;return *this;}
   virtual err_log& operator << (long double in){LERR__<<in;return *this;}
@@ -232,9 +238,6 @@ class err_log:public log
   virtual err_log& operator << (bool in){LERR__<<in;return *this;}
   
 };
-
-
-#ifdef IZENE_LOG
 
 extern dbg_log dbg;
 extern no_log nlog;
