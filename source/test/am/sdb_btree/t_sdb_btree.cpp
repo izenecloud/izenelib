@@ -3,16 +3,16 @@
 #include <ctime>
 //#include <time.h>
 
-#include <am/sdb_hash/sdb_hash.h>
+#include <am/sdb_btree/sdb_btree.h>
 
 using namespace std;
 using namespace izenelib::am;
 
 const char* indexFile = "sdb.dat";
 static string inputFile = "test.txt";
-static size_t bucketSize = 1024;
-static size_t directorySize = 8192;
-static size_t cacheSize = 10000000;
+static size_t maxKeys = 32;
+static size_t pageSize = 1024;
+static size_t cacheSize = 100000;
 static int num = 1000000;
 
 static bool trace = 1;
@@ -23,28 +23,7 @@ typedef string KeyType;
 typedef NullType ValueType;
 typedef izenelib::am::DataType<KeyType, NullType> DataType;
 typedef izenelib::am::DataType<KeyType, NullType> myDataType;
-typedef izenelib::am::sdb_hash<KeyType, NullType> SDB_HASH;
-
-namespace izenelib {
-namespace am {
-namespace util {
-
-template<> inline void read_image<myDataType>(myDataType& dat,
-		const DbObjPtr& ptr) {
-	dat.key = (KeyType)((char*)ptr->getData() );
-}
-;
-
-template<> inline void write_image<myDataType>(const myDataType& dat,
-		DbObjPtr& ptr) {
-	KeyType key = dat.get_key();
-	ptr->setData(key.c_str(), key.size()+1);
-}
-;
-
-}
-}
-}
+typedef izenelib::am::sdb_btree<KeyType, NullType> SDB_BTREE;
 
 template<typename T> void insert_test(T& tb) {
 	clock_t start, finish;
@@ -59,8 +38,8 @@ template<typename T> void insert_test(T& tb) {
 		//tb.insert(i, str);
 		tb.insert(str);
 		if (trace) {
-			cout<<"numItem: "<<tb.num_items()<<endl<<endl;
-			//tb.display();
+			cout<<"numItem: "<<tb.num_items()<<"a"<<endl;
+			tb.display();
 		}
 		//cout<<"\nafte insert ...\n";		
 	}
@@ -139,7 +118,7 @@ template<typename T> void random_search_test(T& tb) {
 	tb.flush();
 	finish = clock();
 	printf(
-			"\nIt takes %f seconds to random find %d data! %d data found, %d data lost!\n",
+			"\nIt takes %f seconds to random find %d random data! %d data found, %d data lost!\n",
 			(double)(finish - start) / CLOCKS_PER_SEC, num, c, b);
 
 	//  tb.display(std::cout)
@@ -172,10 +151,10 @@ template<typename T> void search_test(T& tb) {
 	}
 	if (trace)
 		tb.display();
-	//tb.flush();
+	tb.flush();
 	finish = clock();
 	printf(
-			"\nIt takes %f seconds to find %d data! %d data found, %d data lost!\n",
+			"\nIt takes %f seconds to find %d random data! %d data found, %d data lost!\n",
 			(double)(finish - start) / CLOCKS_PER_SEC, num, c, b);
 
 	//  tb.display(std::cout)
@@ -188,7 +167,7 @@ template<typename T> void delete_test(T& tb) {
 	c=b=0;
 
 	start = clock();
-	for (int i=0; i<num; i++) {
+	for (int i=0; i<num/2; i++) {
 		if (trace)
 			cout<<"del "<<i<<endl;
 		char p[20];
@@ -206,7 +185,7 @@ template<typename T> void delete_test(T& tb) {
 	tb.flush();
 	finish = clock();
 	printf(
-			"\nIt takes %f seconds to delete %d data! %d data found, %d data lost!\n",
+			"\nIt takes %f seconds to delete %d random data! %d data found, %d data lost!\n",
 			(double)(finish - start) / CLOCKS_PER_SEC, num/2, c, b);
 
 }
@@ -220,8 +199,6 @@ template<typename T> void random_delete_test(T& tb) {
 	start = clock();
 	for (int i=0; i<num; i++) {
 		int k = rand()%num;
-		if (trace)
-			cout<<"del "<<k<<endl;
 		char p[20];
 		sprintf(p, "%08d", k);
 		string str = p;
@@ -232,12 +209,12 @@ template<typename T> void random_delete_test(T& tb) {
 		if (trace) {
 			cout<<"numItem: "<<tb.num_items()<<endl;
 			tb.display();
-		}
-	}
+		}		
+	}	
 	tb.flush();
 	finish = clock();
 	printf(
-			"\nIt takes %f seconds to delete %d  data! %d data found, %d data lost!\n",
+			"\nIt takes %f seconds to delete %d random data! %d data found, %d data lost!\n",
 			(double)(finish - start) / CLOCKS_PER_SEC, num/2, c, b);
 
 }
@@ -246,7 +223,7 @@ template<typename T> void seq_test(T& tb) {
 	clock_t start, finish;
 
 	start = clock();
-	SDB_HASH::NodeKeyLocn locn;
+	SDB_BTREE::NodeKeyLocn locn;
 	locn = tb.get_first_locn();
 	myDataType dat;
 	int a=0;
@@ -258,7 +235,7 @@ template<typename T> void seq_test(T& tb) {
 
 	tb.flush();
 	finish = clock();
-	printf("\nIt takes %f seconds to sequential Access %d  data! \n",
+	printf("\nIt takes %f seconds to sequential Access %d random data! \n",
 			(double)(finish - start) / CLOCKS_PER_SEC, a);
 
 }
@@ -267,25 +244,22 @@ template<typename T> void run(T& tb) {
 	//search_test(tb);
 	if (rnd) {
 		random_insert_test(tb);
-		random_search_test(tb);
+		search_test(tb);
 		seq_test(tb);
 		random_delete_test(tb);
+		search_test(tb);
 	} else {
 		insert_test(tb);
 		search_test(tb);
 		seq_test(tb);
-		delete_test(tb);
+		random_delete_test(tb);
+		search_test(tb);
 	}
-
-	/*delete_test(tb);
-	 search_test(tb);
-	 insert_test(tb);
-	 search_test(tb);*/
 }
 
 void ReportUsage(void) {
 	cout
-			<<"\nUSAGE:./t_slf [-T <trace_option>] [-dir <directorySize>] [-bkt <bucketSize>] [-rnd <0|1>]  [-n <num>] [-index <index_file>] [-cache <cache_size>.] <input_file>\n\n";
+			<<"\nUSAGE:./t_slf [-T <trace_option>] [-mkey <maxKeys>] [-page <pageSize>] [-rnd <0|1>]  [-n <num>] [-index <index_file>] [-cache <cache_size>.] <input_file>\n\n";
 
 	cout<<"\nDescription:\n\n";
 	cout
@@ -317,12 +291,12 @@ int main(int argc, char *argv[]) {
 			str = str.substr(1, str.length());
 			if (str == "T") {
 				trace = bool(atoi(*argv++));
-			} else if (str == "dir") {
-				directorySize = atoi(*argv++);
+			} else if (str == "mkey") {
+				maxKeys = atoi(*argv++);
+			} else if (str == "page") {
+				pageSize = atoi(*argv++);
 			} else if (str == "cache") {
 				cacheSize = atoi(*argv++);
-			} else if (str == "bkt") {
-				bucketSize = atoi(*argv++);
 			} else if (str == "index") {
 				indexFile = *argv++;
 			} else if (str == "n") {
@@ -342,9 +316,9 @@ int main(int argc, char *argv[]) {
 	}
 	try
 	{
-		SDB_HASH tb(indexFile);
-		tb.setDirectorySize(directorySize);
-		tb.setBucketSize(bucketSize);
+		SDB_BTREE tb(indexFile);
+		tb.setMaxKeys(maxKeys);
+		tb.setPageSize(pageSize);
 		tb.setCacheSize(cacheSize);
 		tb.open();
 		run(tb);

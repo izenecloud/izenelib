@@ -234,7 +234,7 @@ public:
 			if(locn) {
 				locn = locn->loadRight(0, dataFile_);
 				rec = locn->element;
-				cout<<"seq: "<<rec.key<<endl;
+				//cout<<"seq: "<<rec.key<<endl;
 				return true;
 			}
 			else {
@@ -291,8 +291,8 @@ public:
    /**
     *   display the info of skiplist
     */
-	void display() {
-		print_list();
+	void display(std::ostream& os = std::cout) {
+		print_list(os);
 	}
     /**
      *  SDB/skiplist must be opened for use
@@ -377,7 +377,7 @@ public:
 	
 private:
 	bool is_empty() const;
-	void print_list() const;
+	void print_list(std::ostream& os = std::cout) const;
 	void release();
 	void release(SkipNode * ph);
 	SkipNode* searchPre(const KeyType& key)
@@ -825,7 +825,7 @@ template <typename KeyType, typename ValueType, typename LockType,
  * @brief Print the SkipList.
  */
 template <typename KeyType, typename ValueType, typename LockType,
-		typename Alloc> void SkipListFile<KeyType, ValueType, LockType, Alloc>::print_list() const {
+		typename Alloc> void SkipListFile<KeyType, ValueType, LockType, Alloc>::print_list(std::ostream& os) const {
 	SkipNode *current = header_;
 	//header_->display();
 	int h = header_->height-1;
@@ -835,10 +835,10 @@ template <typename KeyType, typename ValueType, typename LockType,
 	while (h>=0) {
 		current = header_;
 		while (current) {
-			cout<<current->element.get_key()<<" -> ";			
+			os<<current->element.get_key()<<" -> ";			
 			current = current->right[h];
 		}
-		cout<<" tail "<<endl;
+		os<<" tail "<<endl;
 		if (counted)
 			b++;
 		h--;

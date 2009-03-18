@@ -42,7 +42,7 @@ public:
 		pdat = new DataType(other);
 	}
 
-	void display() {
+	void display(std::ostream& os = std::cout) {
 		//pdat->display();
 		//cout<<pdat->key;
 	}
@@ -234,17 +234,17 @@ public:
 	 *	week
 	 * 	 
 	 */
-	void display() {
+	void display(std::ostream& os = std::cout) {
 
 		size_t i;
 		for (i=0; i<objCount; i++) {
 			if (!isLeaf) {
 				if (children[i])
-					children[i]->display();
-				cout<<"----|";
+					children[i]->display(os);
+				os<<"----|";
 			}
 			if (elements[i]) {
-				elements[i]->display();
+				elements[i]->display(os);
 				if (parent) {
 					//cout<<"( "<<childNo<<" "<<parent->objCount<<") ";
 					assert(childNo <= parent->objCount);
@@ -255,7 +255,7 @@ public:
 		if (!isLeaf) {
 			if (children[i])
 				children[i]->display();
-			cout<<"----|";
+			os<<"----|";
 		}
 	}
 

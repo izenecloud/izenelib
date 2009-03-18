@@ -1,5 +1,5 @@
-#ifndef SH_TYPES_H_
-#define SH_TYPES_H_
+#ifndef SDB_HASH_TYPES_H_
+#define SDB_HASH_TYPES_H_
 
 #include <types.h>
 #include <am/am.h>
@@ -45,4 +45,4 @@ public:
 NS_IZENELIB_AM_END
 
 
-#endif /*SLF_TYPES_H_*/
+#endif /*SDB_HASH_TYPES_H_*/

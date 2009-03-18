@@ -52,15 +52,15 @@ public:
 		return right[h];
 	}
 
-	void display() {
-		cout<<"diplaying skipnode...\n\n";
-		cout<<element.get_key()<<endl;
-		cout<<"isLoaded: "<<isLoaded<<endl;
-		cout<<"isDirty: "<<isDirty<<endl;
-		cout<<"fpos: "<<fpos<<endl;
-		cout<<"height: "<<height<<endl;
+	void display(std::ostream& os = std::cout) {
+		os<<"diplaying skipnode...\n\n";
+		os<<element.get_key()<<endl;
+		os<<"isLoaded: "<<isLoaded<<endl;
+		os<<"isDirty: "<<isDirty<<endl;
+		os<<"fpos: "<<fpos<<endl;
+		os<<"height: "<<height<<endl;
 		for (int i=0; i<height; i++) {
-			cout<<"rfpos: "<<rfpos[i]<<endl;
+			os<<"rfpos: "<<rfpos[i]<<endl;
 		}
 
 	}

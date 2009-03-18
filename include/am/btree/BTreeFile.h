@@ -165,12 +165,15 @@ public:
 	 *  \brief find an item given a key.
 	 */
 	ValueType* find(const KeyType& key) {
-		DataType temp;
-		ValueType* pv = NULL;
-		if( get(key, temp) ) {
-			pv = new ValueType( temp.get_value() );
-		}
-		return pv;
+		NodeKeyLocn locn;
+		if (search(key, locn))
+		return (ValueType*) &(locn.first->elements[locn.second]->pdat->get_value());
+		else
+		return NULL;
+	}
+
+	const ValueType* find(const KeyType& key)const {
+		return (const ValueType*) (this->find(key));
 	}
 
 	/**
@@ -192,21 +195,35 @@ public:
 	int num_items() {
 		return _numItem;
 	}
-	/**
-	 *  \brief get an item from given Locn.	 * 
-	 */
-	bool get(const NodeKeyLocn& locn, DataType& rec);
+
 	/**
 	 * 	\brief get an item by its key.
 	 */
 	bool get(const KeyType& key, DataType& rec);
 
 	/**
+	 *  \brief get an item from given Locn.	 * 
+	 */
+	bool get(const NodeKeyLocn& locn, DataType& rec);
+
+	/**
+	 *  \brief get an item from given Locn.	 * 
+	 */
+	bool get(const NodeKeyLocn& locn, KeyType& key, ValueType& value)
+	{
+		DataType dat;
+		bool ret =get(locn, dat);
+		key = dat.get_key();
+		value = dat.get_value();
+		return ret;
+	}
+
+	/**
 	 *  \brief get the cursor of the first item.
 	 * 
 	 */
 
-	NodeKeyLocn get_first_Locn()
+	NodeKeyLocn get_first_locn()
 	{
 		NodeKeyLocn locn;
 		search(KeyType(), locn);
@@ -275,13 +292,13 @@ public:
 		}
 
 		_flush(_root, _dataFile);
-		
+
 		/*while( !_dirtyPages.empty() )
-		{
-			BTreeNodePtr ptr = _dirtyPages.back();
-			_dirtyPages.pop_back();
-			ptr->write(_dataFile);
-		}*/
+		 {
+		 BTreeNodePtr ptr = _dirtyPages.back();
+		 _dirtyPages.pop_back();
+		 ptr->write(_dataFile);
+		 }*/
 		fflush(_dataFile);
 
 	}
@@ -290,8 +307,8 @@ public:
 	 *   for debug.  print the shape of the B tree.
 	 */
 
-	void display() {
-		if(_root)_root->display();
+	void display(std::ostream& os = std::cout) {
+		if(_root)_root->display(os);
 	}
 
 	/**
@@ -461,18 +478,18 @@ private:
 #endif
 
 			queue<BTreeNodePtr> qnode;
-			qnode.push(_root);		
+			qnode.push(_root);
 			//_root->unload();
-			
+
 			size_t popNum = 0;
 			while ( !qnode.empty() ) {
 				BTreeNodePtr popNode = qnode.front();
 				qnode.pop();
 				popNum++;
-				if(popNum >= sfh.cacheSize/_minDegree/2)				
+				if(popNum >= sfh.cacheSize/_minDegree/2)
 				{
 					if(popNode->_isDirty)
-						_flush(popNode, _dataFile);
+					_flush(popNode, _dataFile);
 					popNode->unload();
 
 					//cout<<"unload....";
@@ -503,45 +520,44 @@ private:
 
 	}
 
-	
-	 void _flushCache1() {
-	 commit();	 
-	 //cout<<BTreeNode<KeyType, DataType, LockType, Alloc>::activeNodeNum <<" > "<<_cacheSize<<endl;
-	 if (BTreeNode<KeyType, DataType, LockType, Alloc>::activeNodeNum> _cacheSize) {
-	 #ifdef DEBUG
-	// display();	
-	 cout<<"flush ... "<<_cacheSize << endl;
-	 cout<<"activeNode: " <<BTreeNode<KeyType, DataType, LockType, Alloc>::activeNodeNum
-	 <<endl;
-	 #endif
-	 _isUnload = true;
+	void _flushCache1() {
+		commit();
+		//cout<<BTreeNode<KeyType, DataType, LockType, Alloc>::activeNodeNum <<" > "<<_cacheSize<<endl;
+		if (BTreeNode<KeyType, DataType, LockType, Alloc>::activeNodeNum> _cacheSize) {
+#ifdef DEBUG
+			// display();	
+			cout<<"flush ... "<<_cacheSize << endl;
+			cout<<"activeNode: " <<BTreeNode<KeyType, DataType, LockType, Alloc>::activeNodeNum
+			<<endl;
+#endif
+			_isUnload = true;
 
-	 if ( _root && !_root->isLeaf) {
-	 for (size_t ctr = 0; ctr <= _root->objCount; ctr++) {
-	 // keep engough node in memory to impove the efficency.
-	 if (BTreeNode<KeyType, DataType, LockType, Alloc>::activeNodeNum
-	 < _cacheSize/2 ) {
-	 #ifdef DEBUG
-	 cout<<"AcitveNodeNum= "
-	 <<BTreeNode<KeyType, DataType, LockType, Alloc>::activeNodeNum
-	 <<"\n stop unload\n";
-	 #endif
+			if ( _root && !_root->isLeaf) {
+				for (size_t ctr = 0; ctr <= _root->objCount; ctr++) {
+					// keep engough node in memory to impove the efficency.
+					if (BTreeNode<KeyType, DataType, LockType, Alloc>::activeNodeNum
+							< _cacheSize/2 ) {
+#ifdef DEBUG
+						cout<<"AcitveNodeNum= "
+						<<BTreeNode<KeyType, DataType, LockType, Alloc>::activeNodeNum
+						<<"\n stop unload\n";
+#endif
 
-	 break;
-	 }
+						break;
+					}
 
-	 BTreeNodePtr pChild = _root->children[ctr];
-	 if ((BTreeNodePtr)pChild != 0) {
-	 _root->children[ctr]->unload();
-	 }
-	 _isUnload = false;
+					BTreeNodePtr pChild = _root->children[ctr];
+					if ((BTreeNodePtr)pChild != 0) {
+						_root->children[ctr]->unload();
+					}
+					_isUnload = false;
 
-	 }
-	 }	
-	 //display();
-	 }	 
+				}
+			}
+			//display();
+		}
 
-	 }
+	}
 
 	// internal data manipulation functions (see Cormen, Leiserson, Rivest).
 	//	static inline int _defaultCompare(const DbObjPtr& obj1, const DbObjPtr& obj2);
