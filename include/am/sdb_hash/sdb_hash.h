@@ -449,11 +449,12 @@ public:
 	 */
 	bool seq(NodeKeyLocn& locn, DataType& rec, ESeqDirection sdir=ESD_FORWARD) {
 
-		flushCache_();
-
-		if( sdir == ESD_FORWARD ) {
+		//flushCache_();
+		if( sdir == ESD_FORWARD ) {				
 			bucket_chain* sa = locn.first;
 			char* p = locn.second;
+			//if( sa && !sa->isLoaded)
+				//sa->read(dataFile_);
 
 			if(sa == NULL)return false;
 			if(p == NULL)return false;
