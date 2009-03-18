@@ -67,7 +67,7 @@ public:
 		_sfh.maxKeys = maxkeys;
 		if(_sfh.maxKeys < 6)
 		{
-			cout<<"Error: maxKeys at leaset 6.\nSet to 6 automatically.\n";
+			cout<<"Note: maxKeys at least 6.\nSet to 6 automatically.\n";
 			_sfh.maxKeys = 6;
 		}
 	}
@@ -86,7 +86,7 @@ public:
 		_sfh.maxKeys = 2*degree;
 		if(_sfh.maxKeys < 6)
 		{
-			cout<<"Error: maxKeys at leaset 6.\nSet to 6 automatically.\n";
+			cout<<"Note: maxKeys at leaset 6.\nSet to 6 automatically.\n";
 			_sfh.maxKeys = 6;
 		}
 	}
@@ -233,7 +233,7 @@ public:
 	 *  \brief get the cursor of the first item.
 	 * 
 	 */
-	NodeKeyLocn get_first_Locn()
+	NodeKeyLocn get_first_locn()
 	{
 		NodeKeyLocn locn;
 		search(KeyType(), locn);
@@ -288,19 +288,6 @@ public:
 	 */
 	void display(std::ostream& os = std::cout) {
 		if(_root)_root->display(os);
-	}
-
-	/**
-	 *  if the input key exists, just return itself, otherwise return 
-	 * 	the smallest existing key that bigger than it.   
-	 */
-	KeyType getNearest(const KeyType& key) {
-		NodeKeyLocn locn;
-		search(key, locn);
-		if( locn.first )
-		return locn.first->keys[locn.second];
-		else
-		return KeyType();
 	}
 
 	/**
@@ -501,6 +488,8 @@ template<typename KeyType, typename ValueType, typename LockType,
 		if (!temp->isLeaf) {
 			temp = temp->loadChild(low, _dataFile);
 		} else {
+			locn.first = temp;
+			locn.second = low;
 			break;
 		}
 	}
@@ -588,6 +577,7 @@ template<typename KeyType, typename ValueType, typename LockType,
 	sdb_node* newChild = _allocateNode();
 	newChild->isLeaf =true;
 	newChild->setCount(count3);
+	newChild->parent = parent;
 
 	KeyType tkey1 = child1->keys[(_sfh.maxKeys<<1)/3];
 	ValueType tvalue1 = child1->values[(_sfh.maxKeys<<1)/3];
@@ -788,7 +778,7 @@ template<typename KeyType, typename ValueType, typename LockType,
 						if (adjNode->objCount < _sfh.maxKeys) {
 
 							//case: child's last key equal inserting key
-							if ( _comp(child->keys[child->objCount-1],key)==0 ) {
+							if (_comp(child->keys[child->objCount-1], key)==0) {
 								return false;
 							}
 							adjNode->setCount(adjNode->objCount+1);
@@ -802,7 +792,7 @@ template<typename KeyType, typename ValueType, typename LockType,
 							node->setDirty(true);
 
 							//case: all of the keys in child are less than inserting keys.
-							if ( _comp(child->keys[child->objCount-1], key)<0 ) {
+							if (_comp(child->keys[child->objCount-1], key)<0) {
 								node->keys[low] = key;
 								node->values[low] = value;
 								++_sfh.numItems;
@@ -828,7 +818,7 @@ template<typename KeyType, typename ValueType, typename LockType,
 						//case: left sibling is no full
 						if (adjNode->objCount < _sfh.maxKeys) {
 							//cacheL child's first key equal inserting key,do nothing
-							if (_comp(child->keys[0],key) == 0) {
+							if (_comp(child->keys[0], key) == 0) {
 								return false;
 							}
 
@@ -840,7 +830,7 @@ template<typename KeyType, typename ValueType, typename LockType,
 							adjNode->setDirty(true);
 							node->setDirty(true);
 							//case: all of the keys in child are bigger than inserting keys.
-							if ( _comp(key, child->keys[0])< 0 ) {
+							if (_comp(key, child->keys[0])< 0) {
 								node->keys[low-1] = key;
 								node->values[low-1] = value;
 								++_sfh.numItems;
@@ -855,7 +845,7 @@ template<typename KeyType, typename ValueType, typename LockType,
 							child->setDirty(true);
 							for (; j<child->objCount; j++) {
 								//inserting key exists, mark it
-								if ( _comp(child->keys[j],key) == 0) {
+								if (_comp(child->keys[j], key) == 0) {
 									ret = false;
 								}
 								//have found the right place for inserting key.
@@ -887,11 +877,11 @@ template<typename KeyType, typename ValueType, typename LockType,
 					}
 					_split3Leaf(node, splitNum);
 
-					if ( _comp(node->keys[splitNum],key) == 0)
+					if (_comp(node->keys[splitNum], key) == 0)
 						return false;
-					if ( _comp(node->keys[splitNum+1],key) == 0)
+					if (_comp(node->keys[splitNum+1], key) == 0)
 						return false;
-					if (_comp(key, node->keys[splitNum]) < 0 ) {
+					if (_comp(key, node->keys[splitNum]) < 0) {
 						child = node->loadChild(splitNum, _dataFile);
 					} else if (_comp(key, node->keys[splitNum+1]) <0) {
 						child=node->loadChild(splitNum+1, _dataFile);
@@ -1295,7 +1285,7 @@ template<typename KeyType, typename ValueType, typename LockType,
 template<typename KeyType, typename ValueType, typename LockType,
 		typename Alloc> bool sdb_btree< KeyType, ValueType, LockType, Alloc>::get(
 		const NodeKeyLocn& locn, DataType& rec) {
-	if ((sdb_node*)locn.first == 0 || locn.second == (size_t)-1) {
+	if ((sdb_node*)locn.first == 0 || locn.second == (size_t)-1 || locn.second >=  locn.first->objCount) {
 		return false;
 	}	
 	rec = DataType(locn.first->keys[locn.second],
@@ -1323,14 +1313,12 @@ template<typename KeyType, typename ValueType, typename LockType,
 template<typename KeyType, typename ValueType, typename LockType,
 		typename Alloc> bool sdb_btree< KeyType, ValueType, LockType, Alloc>::seq(
 		NodeKeyLocn& locn, DataType& rec, ESeqDirection sdir) {
-	if( _sfh.numItems <=0 )
-	{
+	if (_sfh.numItems <=0) {
 		return false;
 	}
 	switch (sdir) {
 	case ESD_FORWARD:
 		return _seqNext(locn, rec);
-
 	case ESD_BACKWARD:
 		return _seqPrev(locn, rec);
 	}
@@ -1400,14 +1388,14 @@ template<typename KeyType, typename ValueType, typename LockType,
 
 	// Finished off a leaf, therefore need to go up to
 	// a parent.
-	if (goUp) {
+	if (goUp) {		
 		size_t childNo = node->childNo;
 		node = node->parent;
-		while ((sdb_node*)node != 0 && childNo >= node->objCount) {
+		while ((sdb_node*)node != 0 && childNo >= node->objCount) {				
 			childNo = node->childNo;
 			node = node->parent;
 		}
-		if ((sdb_node*)node != 0) {
+		if ((sdb_node*)node != 0) {		
 			locn.first = node;
 			locn.second = childNo;
 			ret = true;
@@ -1487,7 +1475,7 @@ template<typename KeyType, typename ValueType, typename LockType,
 
 	// Finished off a leaf, therefore need to go up to
 	// a parent.
-	if (goUp) {
+	if (goUp) {		
 		size_t childNo = node->childNo;
 		node = node->parent;
 

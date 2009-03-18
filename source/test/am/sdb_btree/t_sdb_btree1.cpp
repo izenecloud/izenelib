@@ -26,26 +26,7 @@ typedef izenelib::am::DataType<KeyType, NullType> myDataType;
 typedef izenelib::am::sdb_btree<KeyType, izenelib::am::NullType, NullLock>
 		SDB_HASH;
 
-namespace izenelib {
-namespace am {
-namespace util {
 
-template<> inline void read_image<myDataType>(myDataType& dat,
-		const DbObjPtr& ptr) {
-	dat.key = (KeyType)((char*)ptr->getData() );
-}
-;
-
-template<> inline void write_image<myDataType>(const myDataType& dat,
-		DbObjPtr& ptr) {
-	KeyType key = dat.get_key();
-	ptr->setData(key.c_str(), key.size()+1);
-}
-;
-
-}
-}
-}
 
 template<typename T> void insert_test(T& tb) {
 
@@ -173,13 +154,35 @@ template<typename T> void del_test(T& tb) {
 
 template<typename T> void seq_test(T& tb) {
 	clock_t start = clock();
-
-	SDB_HASH::NodeKeyLocn locn = tb.get_first_Locn();
 	myDataType rec;
+	KeyType key;
+	ValueType val;	
+	
+	SDB_HASH::NodeKeyLocn locn1 = tb.get_first_locn();
+	tb.get(locn1, key, val);
+	cout<<"get_first_locn:  key="<<key<<endl;
+
+	
+	SDB_HASH::NodeKeyLocn locn;
+	int a = 0;
 	while (tb.seq(locn, rec) ) {
+		tb.get(locn, key, val);
 		if (trace)
-			cout<<rec.key<<endl;
+			cout<<++a<<endl;
+			cout<<"get from locn:  key="<<key<<endl;		    
+			cout<<"by seq forward:  key="<<rec.key<<endl;	
 	}
+	
+	SDB_HASH::NodeKeyLocn locn2;
+	int b = 0;
+	while (tb.seq(locn2, rec, ESD_BACKWARD) ) {
+		tb.get(locn2, key, val);
+		if (trace)
+			cout<<++b<<endl;
+			cout<<"get from locn:  key="<<key<<endl;		    
+			cout<<"by seq backward:  key="<<rec.key<<endl;	
+	}
+	
 	tb.flush();
 	printf("sequence access elapsed: %lf seconds\n", double(clock()- start)/CLOCKS_PER_SEC);
 	//printf("eclipse: %ld seconds\n", time(0)- start);

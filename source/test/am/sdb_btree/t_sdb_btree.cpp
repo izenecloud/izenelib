@@ -224,7 +224,7 @@ template<typename T> void seq_test(T& tb) {
 
 	start = clock();
 	SDB_BTREE::NodeKeyLocn locn;
-	locn = tb.get_first_Locn();
+	locn = tb.get_first_locn();
 	myDataType dat;
 	int a=0;
 	while (tb.seq(locn, dat) ) {

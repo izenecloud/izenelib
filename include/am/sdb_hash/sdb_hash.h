@@ -46,6 +46,7 @@ public AccessMethod<KeyType, ValueType, LockType>
 {
 public:
 	//NodeKeyLocn is like db cursor
+	typedef bucket_chain<LockType> bucket_chain;
 	typedef std::pair<bucket_chain*, char*> NodeKeyLocn;
 	typedef DataType<KeyType,ValueType> DataType;
 public:
@@ -378,7 +379,7 @@ public:
 	/**
 	 *  get the NodeKeyLocn of first item in the first not empty bucket.
 	 */
-	NodeKeyLocn get_first_Locn()
+	NodeKeyLocn get_first_locn()
 	{
 		NodeKeyLocn locn;
 		for(size_t i=0; i<sfh_.directorySize; i++)

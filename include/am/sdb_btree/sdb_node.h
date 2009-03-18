@@ -195,7 +195,9 @@ public:
 			}
 			//keys[i]->display();
 			//os<<keys[i];
-			os<<"("<<fpos<<")"<<endl;
+			size_t pfos=0;
+			if( parent) pfos = parent->fpos;
+			os<<"("<<fpos<<" parent="<<pfos<<" childNo="<<childNo<<" objCount="<<objCount<<")"<<endl;
 			//os<<"("<<isDirty<<" "<<parent<<" "<<this<<")";	
 			os<<endl;
 		}
@@ -568,11 +570,12 @@ template<typename KeyType, typename ValueType, typename LockType,
 	}
 	child->childNo = childNum;
 	child->parent = this;
-	_fileLock.acquire_write_lock();
-	if (child && !child->isLoaded) {		
+	if (child && !child->isLoaded) {
+		_fileLock.acquire_write_lock();
 		child->read(f);
+		_fileLock.release_write_lock();
 	}
-	_fileLock.release_write_lock();
+	
 	return child;
 }
 

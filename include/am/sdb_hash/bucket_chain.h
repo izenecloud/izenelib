@@ -24,6 +24,8 @@ using namespace std;
  *   be stored to next bucket_chain element.   
  *
  */
+
+template<typename LockType = NullLock>
 class bucket_chain {	
 	size_t bucketSize_;
 public:
@@ -40,6 +42,8 @@ public:
 	//It increases when allocateBlock() called, or reading from disk,
 	//and decreases when unload() called. 
 	static size_t activeNum;
+private:	
+	static LockType fileLock_;
 
 public:
 	/**
@@ -174,7 +178,9 @@ public:
 	bucket_chain* loadNext(FILE* f) {		
 		if (next && !next->isLoaded) {	
 			//cout<<"reading next"<<endl;
-			next->read(f);						
+			fileLock_.acquire_write_lock();
+			next->read(f);	
+			fileLock_.release_write_lock();
 		}		
 		if( next )next->level = level+1;
 		return next;
@@ -213,5 +219,11 @@ public:
 	}
 };
 
+
+template<typename LockType >
+LockType bucket_chain<LockType>::fileLock_;
+
+template<typename LockType>
+size_t bucket_chain<LockType>::activeNum;
 
 #endif /*bucket_chain_H_*/

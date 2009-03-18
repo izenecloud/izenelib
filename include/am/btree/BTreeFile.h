@@ -165,12 +165,15 @@ public:
 	 *  \brief find an item given a key.
 	 */
 	ValueType* find(const KeyType& key) {
-		DataType temp;
-		ValueType* pv = NULL;
-		if( get(key, temp) ) {
-			pv = new ValueType( temp.get_value() );
-		}
-		return pv;
+		NodeKeyLocn locn;
+		if (search(key, locn))
+		return (ValueType*) &(locn.first->elements[locn.second]->pdat->get_value());
+		else
+		return NULL;
+	}
+
+	const ValueType* find(const KeyType& key)const {
+		return (const ValueType*) (this->find(key));
 	}
 
 	/**
@@ -220,7 +223,7 @@ public:
 	 * 
 	 */
 
-	NodeKeyLocn get_first_Locn()
+	NodeKeyLocn get_first_locn()
 	{
 		NodeKeyLocn locn;
 		search(KeyType(), locn);
