@@ -17,20 +17,26 @@ using namespace std;
 
 NS_IZENELIB_AM_BEGIN
 
+/**
+   @class AlphaSort
+   This work is based on Chris Nyberg’s work in 1995. It uses quick sort to generate runs, and tournament tree sort to merge runs.
+   Both quick sort and tournament sort is made as cache-sensitive algorithms.
+ **/
 template<
-  uint64_t TOTAL_BUFFER_SIZE = 100000,//300000000,//at leat 20000
-  uint32_t CACHE_BLOCK_SIZE = 2880
+  class PRE_KEY_TYPE = uint32_t,//pre-key type, indicate the length of the pre-key.
+  uint64_t TOTAL_BUFFER_SIZE = 30000,//300000000,//at leat 20000
+  uint32_t CACHE_BLOCK_SIZE = 2880//CPU cache size
   >
 class AlphaSort
 {
   
   struct PRE_KEY_POINTER_
   {
-    uint32_t pre_key_;
-    uint64_t rcrd_addr_;
-    FILE* f_;
+    PRE_KEY_TYPE pre_key_;//!< pre-key, used to compare
+    uint64_t rcrd_addr_;//!< record address
+    FILE* f_;//!< record file handler
 
-    inline PRE_KEY_POINTER_(uint32_t pre_key,uint64_t rcrd_addr, FILE* f)
+    inline PRE_KEY_POINTER_(PRE_KEY_TYPE pre_key,uint64_t rcrd_addr, FILE* f)
     {
       pre_key_ = pre_key;
       rcrd_addr_ = rcrd_addr;
@@ -49,14 +55,120 @@ class AlphaSort
     {
       return rcrd_addr_ == p.rcrd_addr_;
     }
-    
+
+    /**
+       If pre-key is the same, it loads next 4 bytes data of the record to compare
+     **/
     bool operator < (const PRE_KEY_POINTER_& p) const
     {
+      if (pre_key_== p.pre_key_)
+      {
+        if (f_==NULL || p.f_==NULL)
+          return false;
+        
+        PRE_KEY_TYPE k=pre_key_, pk=p.pre_key_;
+        uint32_t shift = sizeof(PRE_KEY_TYPE);
+        fseek(f_, rcrd_addr_, SEEK_SET);
+        uint16_t len;
+        if (fread(&len, sizeof(uint16_t), 1, f_)!=1)
+        {
+          LDBG_<<"Operator <: can't read len";
+          return false;
+        }
+        
+        fseek(p.f_, p.rcrd_addr_, SEEK_SET);
+        uint16_t plen;
+        if (fread(&plen, sizeof(uint16_t), 1, p.f_)!=1)
+        {
+          LDBG_<<"Operator <: can't read len of second param";
+          return false;
+        }
+
+        while (k == pk && len>shift && plen>shift)
+        {
+          fseek(f_, rcrd_addr_+sizeof(uint16_t)+shift, SEEK_SET);
+          uint32_t s = shift+sizeof(PRE_KEY_TYPE)>len? len-shift:sizeof(PRE_KEY_TYPE);
+          
+          if (fread(&k,s, 1, f_ )!=1)
+          {
+            LDBG_<<"Operator <: can't read";
+            return false;
+          }
+
+          fseek(p.f_, p.rcrd_addr_+sizeof(uint16_t)+shift, SEEK_SET);
+          s = shift+sizeof(PRE_KEY_TYPE)>plen? plen-shift:sizeof(PRE_KEY_TYPE);
+          
+          if (fread(&pk,s, 1, p.f_ )!=1)
+          {
+            LDBG_<<"Operator <: can't read";
+            return false;
+          }
+
+          shift += sizeof(PRE_KEY_TYPE);
+        }
+        
+        return k< pk;
+      }
+      
       return pre_key_ < p.pre_key_;
     }
 
+    
+    /**
+       If pre-key is the same, it loads next 4 bytes data of the record to compare
+     **/
     bool operator > (const PRE_KEY_POINTER_& p) const
     {
+      
+      if (pre_key_== p.pre_key_)
+      {
+        if (f_==NULL || p.f_==NULL)
+          return false;
+        
+        PRE_KEY_TYPE k=pre_key_, pk=p.pre_key_;
+        uint32_t shift = sizeof(PRE_KEY_TYPE);
+        fseek(f_, rcrd_addr_, SEEK_SET);
+        uint16_t len;
+        if (fread(&len, sizeof(uint16_t), 1, f_)!=1)
+        {
+          LDBG_<<"Operator <: can't read len";
+          return false;
+        }
+        
+        fseek(p.f_, p.rcrd_addr_, SEEK_SET);
+        uint16_t plen;
+        if (fread(&plen, sizeof(uint16_t), 1, p.f_)!=1)
+        {
+          LDBG_<<"Operator <: can't read len of second param";
+          return false;
+        }
+
+        while (k == pk && len>shift && plen>shift)
+        {
+          fseek(f_, rcrd_addr_+sizeof(uint16_t)+shift, SEEK_SET);
+          uint32_t s = shift+sizeof(PRE_KEY_TYPE)>len? len-shift:sizeof(PRE_KEY_TYPE);
+          
+          if (fread(&k,s, 1, f_ )!=1)
+          {
+            LDBG_<<"Operator <: can't read";
+            return false;
+          }
+
+          fseek(p.f_, p.rcrd_addr_+sizeof(uint16_t)+shift, SEEK_SET);
+          s = shift+sizeof(PRE_KEY_TYPE)>plen? plen-shift:sizeof(PRE_KEY_TYPE);
+          
+          if (fread(&pk,s, 1, p.f_ )!=1)
+          {
+            LDBG_<<"Operator <: can't read";
+            return false;
+          }
+
+          shift += sizeof(PRE_KEY_TYPE);
+        }
+
+        return k> pk;
+      }
+
       return pre_key_ > p.pre_key_;
     }
 
@@ -69,6 +181,9 @@ class AlphaSort
     
   };
 
+  /**
+     Tournament tree node.
+   **/
   struct T_TREE_NODE_
   {
     PRE_KEY_POINTER_ key_;
@@ -95,31 +210,31 @@ class AlphaSort
     
     bool operator < (const T_TREE_NODE_& p) const
     {
-      if (key_.pre_key_ == p.key_.pre_key_)
-      {
-        if (idx_ == p.idx_)
-          return idx_in_block_<p.idx_in_block_;
-        return idx_ < p.idx_;
-      }
+//       if (key_.pre_key_ == p.key_.pre_key_)
+//       {
+//         if (idx_ == p.idx_)
+//           return idx_in_block_<p.idx_in_block_;
+//         return idx_ < p.idx_;
+//       }
       
-      return key_.pre_key_ < p.key_.pre_key_;
+      return key_ < p.key_;
     }
 
     bool operator > (const T_TREE_NODE_& p) const
     {      
-      if (key_.pre_key_ == p.key_.pre_key_)
-      {
-        if (idx_ == p.idx_)
-          return idx_in_block_ > p.idx_in_block_;
-        return idx_ > p.idx_;
-      }
+//       if (key_.pre_key_ == p.key_.pre_key_)
+//       {
+//         if (idx_ == p.idx_)
+//           return idx_in_block_ > p.idx_in_block_;
+//         return idx_ > p.idx_;
+//       }
 
-      return key_.pre_key_ > p.key_.pre_key_;
+      return key_ > p.key_;
     }
 
     bool isMax() const
     {
-      return key_.pre_key_==(uint32_t)-1 && key_.rcrd_addr_==(uint64_t)-1;
+      return key_.pre_key_==(PRE_KEY_TYPE)-1 && key_.rcrd_addr_==(uint64_t)-1;
     }
 
   friend ostream& operator <<(ostream& os, const T_TREE_NODE_& v)
@@ -134,6 +249,9 @@ class AlphaSort
 #define ND_CACHE_SIZE ((CACHE_BLOCK_SIZE-sizeof(uint32_t))/sizeof(T_TREE_NODE_))
 #define ND_CACHE_MAX_LEN ((ND_CACHE_SIZE+1)/2)
 
+  /**
+     Tree is splitted into sub-trees. This is the container of the sub-tree.
+   **/
   class TREE_BUCKET_
   {
     T_TREE_NODE_ pool_[ND_CACHE_SIZE];
@@ -259,11 +377,11 @@ public:
     :in_mem_blk_amnt_(TOTAL_BUFFER_SIZE/(2*CACHE_BLOCK_SIZE+2*TREE_NODE_SIZE)-1),
      per_block_(CACHE_BLOCK_SIZE/UNIT_SIZE), output_buffer_size_(in_mem_blk_amnt_*CACHE_BLOCK_SIZE/UNIT_SIZE)
   {
-    cout<<"in_mem_blk_amnt_: "<<in_mem_blk_amnt_<<endl;
-    cout<<"per_block_: "<<per_block_<<endl;
-    cout<<"output_buffer_size_: "<<output_buffer_size_<<endl;
-    cout<<"ND_CACHE_SIZE: "<<ND_CACHE_SIZE<<endl;
-    cout<<"ND_CACHE_MAX_LEN: "<<ND_CACHE_MAX_LEN<<endl;
+//     cout<<"in_mem_blk_amnt_: "<<in_mem_blk_amnt_<<endl;
+//     cout<<"per_block_: "<<per_block_<<endl;
+//     cout<<"output_buffer_size_: "<<output_buffer_size_<<endl;
+//     cout<<"ND_CACHE_SIZE: "<<ND_CACHE_SIZE<<endl;
+//     cout<<"ND_CACHE_MAX_LEN: "<<ND_CACHE_MAX_LEN<<endl;
     
     output_buffer_ = new PRE_KEY_POINTER_[output_buffer_size_];
     blk_amnt_ = data_amount_ = 0;
@@ -279,6 +397,7 @@ public:
     {
       LDBG_<<"can't create temple file.";
     }
+    
     mediaBlock_ = new PRE_KEY_POINTER_[output_buffer_size_];
     mediaIdx_ = -1;
 
@@ -296,45 +415,58 @@ public:
     //for(typename vector<FileCache_*>::iterator i=inputFileCacheVctr_.begin(); i!=inputFileCacheVctr_.end();i++)
     //if (*i != NULL)
     //  delete *i;
-
+    
     if(output_buffer_!=NULL)
       delete output_buffer_;
-
-    delete mediaBlock_;
+    
+    if (mediaBlock_!=NULL)
+      delete mediaBlock_;
   }
 
+  /**
+     Add input file. This should be called before sorting.
+   **/
   void addInputFile(const string& fileName)
   {
     input_files_.push_back(fileName);
   }
 
+  
+  /**
+     Add input file. This should be called before sorting.
+   **/
   void addInputFiles(const vector<string>& fileNames)
   {
     input_files_.insert(input_files_.begin(), fileNames.begin(),fileNames.end());
   }
-  
+
+  /**
+     Start to sort, the result will be put into output file.
+   **/
   void sort(const string& outputFile)
   {
      outputFileNm_ = outputFile;
     
-    boost::function0< void> f =  boost::bind(&AlphaSort::inputThread,this);
-    boost::thread inputting( f );
+//     boost::function0< void> f =  boost::bind(&AlphaSort::inputThread,this);
+//     boost::thread inputting( f );
 
-    boost::function0< void> f1 =  boost::bind(&AlphaSort::sortThread,this);
-    boost::thread sorting( f1 );
+//     boost::function0< void> f1 =  boost::bind(&AlphaSort::sortThread,this);
+//     boost::thread sorting( f1 );
 
-    boost::function0< void> f2 =  boost::bind(&AlphaSort::outputThread,this);
-    boost::thread outputting( f2 );
+//     boost::function0< void> f2 =  boost::bind(&AlphaSort::outputThread,this);
+//     boost::thread outputting( f2 );
     
-    inputting.join();
-    sorting.join();
-    outputting.join();
+//     inputting.join();
+    
+//     sorting.join();
+    
+//     outputting.join();
 
-//     clock_t start, finish;
-//     start = clock();
-//     inputThread();
-//     finish = clock();
-//     cout<<"\nInput Thread: "<<(double)(finish - start) / CLOCKS_PER_SEC;
+     //clock_t start, finish;
+     //start = clock();
+    inputThread();
+    //finish = clock();
+    //cout<<"\nInput Thread: "<<(double)(finish - start) / CLOCKS_PER_SEC;
 
 //     start = clock();
 //     sortThread();
@@ -348,6 +480,9 @@ public:
     
   }
 
+  /**
+     This is used to debug.
+   **/
   void printRawPool()
   {
     for(typename vector<PRE_KEY_POINTER_*>::iterator i=raw_pool_.begin(); i<raw_pool_.end();i++)
@@ -360,6 +495,10 @@ public:
     }
   }
 
+  
+  /**
+     This is used to debug.
+   **/
   bool t_checkSortedPool()
   {
     for(typename vector<PRE_KEY_POINTER_*>::iterator i=sorted_pool_.begin(); i<sorted_pool_.end();i++)
@@ -375,25 +514,11 @@ public:
     }
 
     return true;
-  }  
-
-  void printTournamentTree()
-  {
-    uint32_t c = blk_amnt_%2==0? blk_amnt_: blk_amnt_+1;
-    
-    for(typename vector<T_TREE_NODE_*>::iterator i=t_tree_pool_.begin(); i!=t_tree_pool_.end();i++)
-    {
-      T_TREE_NODE_* b = *i;
-      cout<<"\n-------------"<<c<<"----------------\n";
-      for (uint32_t j=0; j < c; j++)
-      {
-        cout<<b[j];
-      }
-      c = c/2;
-      c = (c%2==0||c==1)? c: c+1;
-    }
   }
-
+  
+  /**
+     This is used to debug.
+   **/
   void cs_printTournamentTree()
   {
     size_t l = 0;
@@ -410,6 +535,10 @@ public:
     cout<<endl;
   }
 
+  
+  /**
+     This is used to debug.
+   **/
   void printOutputBuffer()
   {
     cout<<endl;
@@ -419,7 +548,10 @@ public:
     }
     
   }
-
+  
+  /**
+     This is used to debug.
+   **/
   bool t_checkOutputBuffer()
   {
     cout<<endl;
@@ -435,10 +567,14 @@ public:
     return true;
     
   }
+
   
+  /**
+     This is used to test if the output is correct.
+   **/
   bool t_checkOutputFile()
   {
-    const uint16_t read_size = sizeof(uint16_t)+sizeof(uint32_t);
+    const uint16_t read_size = sizeof(uint16_t)+sizeof(PRE_KEY_TYPE);
     
     FILE* f = fopen(outputFileNm_.c_str(), "r");
     if (f ==NULL)
@@ -455,19 +591,21 @@ public:
       return false;
     }
 
-    uint32_t last_key = 0;
+    //cout<<count<<endl;
+    
+    PRE_KEY_TYPE last_key = 0;
     for (uint64_t j=0; j<count; j++)
     {
       char rec[read_size];
         
       if(fread(rec, read_size, 1, f)!=1)
       {
-        LDBG_<<"Reading record faild in output file: "<<outputFileNm_;
+        LDBG_<<"Reading record faild in output file: "<<outputFileNm_<<j;
         fclose(f);
         return false;
       }
 
-      uint32_t k = *(uint32_t*)(rec+sizeof(uint16_t));
+      PRE_KEY_TYPE k = *(PRE_KEY_TYPE*)(rec+sizeof(uint16_t));
 
       if (k<last_key)
       {
@@ -476,7 +614,7 @@ public:
       }
       last_key = k;
       
-      fseek(f,(*(uint16_t*)rec)-sizeof(uint32_t) ,SEEK_CUR);
+      fseek(f,(*(uint16_t*)rec)-sizeof(PRE_KEY_TYPE) ,SEEK_CUR);
     }
 
     return true;
@@ -507,7 +645,7 @@ protected:
     {
       {
         boost::mutex::scoped_lock lock(input_mutex_);
-        f = raw_pool_.size()==0;
+        f = (raw_pool_.size()==0);
       }
       if (f && isInputDone())
         return NULL;
@@ -535,12 +673,15 @@ protected:
 
     return false;
   }
-  
+
+  /**
+     Input thread, read records from file into memory.
+   **/
   uint64_t inputThread()
   {
     PRE_KEY_POINTER_* block = new PRE_KEY_POINTER_[per_block_];
     uint32_t c = 0;
-    const uint16_t read_size = sizeof(uint16_t)+sizeof(uint32_t);
+    const uint16_t read_size = sizeof(uint16_t)+sizeof(PRE_KEY_TYPE);
     
     for (vector<string>::iterator i=input_files_.begin(); i!=input_files_.end();i++)
     {
@@ -571,18 +712,21 @@ protected:
         
         if (c == per_block_)
         {
-          push2rawPool(block);
+          uint64_t addr = ftell(f);
+          sort(block);
+          fseek(f, addr, SEEK_SET);
+          //push2rawPool(block);
           blk_amnt_++;
           block = new PRE_KEY_POINTER_[per_block_];            
           c = 0;
         }
 
-        block[c] = PRE_KEY_POINTER_ (*(uint32_t*)(rec+sizeof(uint16_t)), pos,f);
+        block[c] = PRE_KEY_POINTER_ (*(PRE_KEY_TYPE*)(rec+sizeof(uint16_t)), pos,f);
         c++;
 
         data_amount_++;
-        fseek(f, (*(uint16_t*)rec)-sizeof(uint32_t), SEEK_CUR);
-        //start += (*(uint16_t*)rec)+sizeof(uint32_t);
+        fseek(f, (*(uint16_t*)rec)-sizeof(PRE_KEY_TYPE), SEEK_CUR);
+        //start += (*(uint16_t*)rec)+sizeof(PRE_KEY_TYPE);
       }
     }
 
@@ -595,14 +739,41 @@ protected:
         c++;
       }
       blk_amnt_++;
-      push2rawPool(block);
+      sort(block);
+      //push2rawPool(block);
     }
 
     inputDone();
+
+    ///////////////////////
+    fflush(tempFile_);
+
+    cs_makeTournamentTree();
+    
+    cs_treeGrow();
     
     return data_amount_;
   }
 
+  /**
+     Quick sort one block.
+   **/
+  void sort(PRE_KEY_POINTER_* block)
+  {
+    quickSort(block, 0, per_block_-1);
+      
+    if( sorted_pool_.size()<in_mem_blk_amnt_)
+      sorted_pool_.push_back(block);
+    else
+    {
+      //write into temple file
+      add2TempFile(block);
+    }
+  }
+
+  /**
+     Sort thread, sort blocks while input thread is reading records.
+   **/
   void sortThread()
   {
     PRE_KEY_POINTER_* block = popFromRawPool();
@@ -627,50 +798,31 @@ protected:
     
     cs_treeGrow();
   }
-
-  void treeGrow()
-  {
-    T_TREE_NODE_* top = t_tree_pool_.back();
-    T_TREE_NODE_* leaf = t_tree_pool_.front();
-    
-    while (!top->isMax())
-    {
-      PRE_KEY_POINTER_* block;
-      T_TREE_NODE_ newNode;
-      getSortedBlockOf(top->idx_, &block);
-      
-      if (top->idx_in_block_<per_block_-1)
-        newNode = T_TREE_NODE_(block[top->idx_in_block_+1], top->idx_, top->idx_in_block_+1);
-      
-      uint64_t i=0;
-      
-      for (; i<blk_amnt_; i++)
-      {
-        if (leaf[i]==*top)
-        {
-          leaf[i] = newNode;
-          break;
-        }
-        
-      }
-      //cout<<endl;
-      
-      writeOutputBuff(top->key_);
-      top = getTopOfTree(i);
-    }
-  }
-
+  
+  /**
+     This is cache-sensitive algorithm. Replace tournament tree's root node with sorted block records one by one.
+   **/
   void cs_treeGrow()
   {
+    FILE* f = fopen(outputFileNm_.c_str(), "w+");
+    if (f==NULL)
+    {
+      LDBG_<<"Can not open file: "<<outputFileNm_;
+      return;
+    }
+
+    if(fwrite(&data_amount_, sizeof(uint64_t), 1, f)!=1)
+    {
+      LDBG_<<"Can't write data amount: ";
+      return;
+    }
+    
     T_TREE_NODE_* top = (*cs_tree_pool_.back())[0]->getTop();
-    writeOutputBuff(top->key_);
+    //writeOutputBuff(top->key_);
+    output(f, top->key_);
     
     while (!top->isMax())
-    {
-      //cout<<"\n-----------------------\n";
-//       cout<<*top<<endl;
-//       cs_printTournamentTree();
-      
+    {      
       PRE_KEY_POINTER_* block;
       T_TREE_NODE_ newNode;
       getSortedBlockOf(top->idx_, &block);
@@ -695,7 +847,6 @@ protected:
           j1 = bu->find(*top);
           if (j1== (uint32_t)-1)
           {
-            cout<<i<<"  "<<j<<endl;
             LDBG_<<"TREE_BUCKET_: 2";
             return ;
           }
@@ -723,30 +874,10 @@ protected:
         T_TREE_NODE_* newTop = (*cs_tree_pool_[i])[j]->replace(*top, newNode);
 
         if(newTop == NULL)
-        {
-//           cs_printTournamentTree();
-//           cout<<i<<"--"<<j<<endl;
-//           cout<<newNode<<endl;
-//           cout<<*top<<endl;
-          
+        {          
           LDBG_<<"TREE_BUCKET_: 4";
           return;
         }
-
-//         if (newNode.key_.pre_key_ == 1418754838 && newNode.idx_ == 6891)
-//         {
-//           cout<<i<<"--"<<j<<endl;
-//           cout<<*top<<endl;
-//         }
-        
-        
-//         if (i==3 && j==3 && newNode.idx_ == 7070)
-//         {
-//           cs_printTournamentTree();
-//           cout<<"ooeoeoeo\n";
-//           cout<<newNode<<endl;
-//           cout<<*top<<endl;
-//         }
 
         if (j%2==0)
         {
@@ -766,16 +897,59 @@ protected:
         
         j = j/2/ND_CACHE_MAX_LEN;
         i++;
-        //cs_printTournamentTree();
       }
       
       *top = newNode;
-      writeOutputBuff(top->key_);
-      //cout<<"\n..................\n";
-      //cs_printTournamentTree();
+      //writeOutputBuff(top->key_);
+      output(f, top->key_);
     }
+
+    fclose(f);
+  }
+
+  /**
+     Read record from input file then write it into output file.
+   **/
+  void output(FILE* f,const PRE_KEY_POINTER_& k)
+  {
+    if (f==NULL || k.f_==NULL)
+      return;
+        
+    uint16_t len;
+
+    fseek(k.f_, k.rcrd_addr_, SEEK_SET);
+    if (fread(&len, sizeof(uint16_t), 1, k.f_)!=1)
+    {
+      LDBG_<<"can't read len of record!";
+      return;
+    }
+
+    if (fwrite(&len, sizeof(uint16_t), 1, f)!=1)
+    {
+      LDBG_<<"can't write len of record!";
+      return;
+    }
+      
+    char buf[len];
+    if (fread(buf, len, 1, k.f_)!=1)
+    {
+      LDBG_<<"can't read record!";
+      return;
+    }
+      
+    if (fwrite(buf, len, 1, f)!=1)
+    {
+      LDBG_<<"can't write record!";
+      return;
+    }
+
+    return;
+    
   }
   
+  /**
+     Output thread, read record from input file then write it into output file.
+   **/
   void outputThread()
   {
     FILE* f = fopen(outputFileNm_.c_str(), "w+");
@@ -826,24 +1000,10 @@ protected:
 
     fclose(f);
   }
-  
-  T_TREE_NODE_* getTopOfTree(uint64_t idx)
-  {
-    for (size_t i = 0;i<t_tree_pool_.size()-1;i++)
-    {
-      uint64_t up_idx = idx%2==0? idx/2: (idx-1)/2;
-      if (idx%2==0)
-        t_tree_pool_[i+1][up_idx] = t_tree_pool_[i][idx]<t_tree_pool_[i][idx+1]? t_tree_pool_[i][idx]: t_tree_pool_[i][idx+1];
-      else
-        t_tree_pool_[i+1][up_idx] = t_tree_pool_[i][idx]<t_tree_pool_[i][idx-1]? t_tree_pool_[i][idx]: t_tree_pool_[i][idx-1];
 
-      idx = up_idx;
-    }
-
-    return t_tree_pool_.back();
-    
-  }
-  
+  /**
+     Put item into output buffer
+   **/
   void writeOutputBuff(const PRE_KEY_POINTER_& k)
   {
     bool f = true;
@@ -860,6 +1020,9 @@ protected:
     write_output_idx_++;
   }
 
+  /**
+     Read on item from output buffer.
+   **/
   void readOutputBuff(PRE_KEY_POINTER_* p)
   {
     bool f = true;
@@ -875,7 +1038,10 @@ protected:
       
     read_output_idx_++;
   }
-  
+
+  /**
+     When memory is full, it put sorted block in a temperary file.
+   **/
   bool add2TempFile(PRE_KEY_POINTER_* block)
   {
     if (tempFile_ == NULL)
@@ -890,6 +1056,9 @@ protected:
     return true;
   }
 
+  /**
+     It return sorted block of specific index.
+   **/
   void getSortedBlockOf(uint64_t idx, PRE_KEY_POINTER_** block)
   {
     if (idx<sorted_pool_.size())
@@ -901,7 +1070,10 @@ protected:
     readFromTempFile(idx);
     *block = mediaBlock_;
   }
-  
+
+  /**
+     Read block into "mediaBlock_" from temperory file. 
+   **/
   bool readFromTempFile(uint64_t idx)
   {
     if (tempFile_ == NULL)
@@ -934,7 +1106,9 @@ protected:
     return true;
   }
   
-  //Swap two elements
+  /**
+     Swap two elements.
+  **/
   void swap(PRE_KEY_POINTER_* a, PRE_KEY_POINTER_* b)
   {
     PRE_KEY_POINTER_ temp;
@@ -943,6 +1117,9 @@ protected:
     *b = temp;
   }
 
+  /**
+     When quick sort, it return the index of media element.
+   **/
   uint32_t findMedianIndex(PRE_KEY_POINTER_* array, uint32_t left, uint32_t right)
   {
     return (left+right)/2;
@@ -969,13 +1146,13 @@ protected:
       }
     }
 
-    uint32_t average = (min.pre_key_+max.pre_key_)/2;
+    PRE_KEY_TYPE average = (min.pre_key_+max.pre_key_)/2;
     uint32_t idx = left;
-    uint32_t minGap = average>array[idx].pre_key_? average-array[idx].pre_key_ : array[idx].pre_key_-average;
+    PRE_KEY_TYPE minGap = average>array[idx].pre_key_? average-array[idx].pre_key_ : array[idx].pre_key_-average;
     
     for (uint32_t i=left+shift; i<=right; i+=shift)
     {
-      uint32_t gap = average>array[i].pre_key_? average-array[i].pre_key_ : array[i].pre_key_-average;
+      PRE_KEY_TYPE gap = average>array[i].pre_key_? average-array[i].pre_key_ : array[i].pre_key_-average;
       if (gap<minGap)
       {
         minGap = gap;
@@ -986,8 +1163,9 @@ protected:
     return idx;
   }
   
-  //Partition the array into two halves and return the
-  //index about which the array is partitioned
+  /**
+     Partition the array into two halves and return the index about which the array is partitioned.
+  **/
   uint32_t partition(PRE_KEY_POINTER_* array, uint32_t left, uint32_t right)
   {
     uint32_t pivotIndex = findMedianIndex(array, left, right), index = left, i;
@@ -1008,6 +1186,9 @@ protected:
     return index;
   }
 
+  /**
+     A recursive function applying quick sort.
+   **/
   void quickSort(PRE_KEY_POINTER_* array, uint32_t left, uint32_t right)
   {
     if(right-left<=1)
@@ -1025,6 +1206,9 @@ protected:
       quickSort(array, idx + 1, right);
   }
 
+  /**
+     Buid cache-sensitive tournament tree.
+   **/
   void cs_makeTournamentTree()
   {
     TREE_BUCKET_* b = new TREE_BUCKET_();
@@ -1107,87 +1291,38 @@ protected:
     }
     
   }
-  
-  void makeTournamentTree()
-  {
-    T_TREE_NODE_* leaf;
-    uint64_t level_c = blk_amnt_;
-
-    level_c = level_c%2==0? level_c: level_c+1;
-    leaf = new T_TREE_NODE_[level_c];
-    
-    uint64_t c=0;
-    for(typename vector<PRE_KEY_POINTER_*>::iterator i=sorted_pool_.begin(); i!=sorted_pool_.end()&&c<blk_amnt_;i++,c++)
-    {
-      leaf[c]  = T_TREE_NODE_((*i)[0], c, 0);
-    }
-
-    for(;c<blk_amnt_;c++)
-    {
-      PRE_KEY_POINTER_* b;
-      getSortedBlockOf(c, &b);
-      leaf[c] = T_TREE_NODE_(*b, c, 0);
-    }
-
-    t_tree_pool_.push_back(leaf);
-
-        
-    while ((uint64_t)(level_c/2.+0.6)!=1)
-    {
-      T_TREE_NODE_* last_leaf = t_tree_pool_.back();
-      uint64_t last_lvl_c = level_c;
-
-      level_c = (uint64_t)(level_c/2.+0.6);
-      level_c = level_c%2==0? level_c: level_c+1;
-      
-      leaf = new  T_TREE_NODE_[level_c];
-
-      for (uint64_t i=0, j=0; i<last_lvl_c-1; i+=2,j++)
-      {
-        leaf[j] = last_leaf[i]<last_leaf[i+1]? last_leaf[i]: last_leaf[i+1];
-      }
-      
-      t_tree_pool_.push_back(leaf);
-    }
-
-    t_tree_pool_.push_back(new T_TREE_NODE_(leaf[0]<leaf[1]?leaf[0]: leaf[1]));
-  }
-  
-  
 
 protected:
-  string outputFileNm_;
+  string outputFileNm_;//!< Output file name.
   
-  const uint64_t in_mem_blk_amnt_;
-  const uint32_t per_block_;
-  const uint64_t output_buffer_size_;
-  uint64_t blk_amnt_;
+  const uint64_t in_mem_blk_amnt_;//!< Amount of blocks in memory.
+  const uint32_t per_block_;//!< Amount of element per block.
+  const uint64_t output_buffer_size_;//!< Buffer size for output
+  uint64_t blk_amnt_;//!< Total amount of block.
 
-  vector<PRE_KEY_POINTER_*> raw_pool_;
-  vector<PRE_KEY_POINTER_*> sorted_pool_;
-  vector<T_TREE_NODE_* > t_tree_pool_;
-  vector<vector<TREE_BUCKET_* >* > cs_tree_pool_;
+  vector<PRE_KEY_POINTER_*> raw_pool_;//!< A pool for unsorted block.
+  vector<PRE_KEY_POINTER_*> sorted_pool_;//!< A pool for sorted block.
 
-  vector<string> input_files_;
+  vector<vector<TREE_BUCKET_* >* > cs_tree_pool_;//!< Container for tournament tree.
 
-  PRE_KEY_POINTER_* output_buffer_;
-  uint64_t data_amount_;
+  vector<string> input_files_;//!< Vector of input file names.
 
-  bool isInputed_;
+  PRE_KEY_POINTER_* output_buffer_;//!< Buffer for output.
+  uint64_t data_amount_;//!< Amount of elements.
 
-  FILE* tempFile_;
+  bool isInputed_;//!< A flag, indicate if input proccedure is over.
 
-  PRE_KEY_POINTER_* mediaBlock_;
-  uint64_t mediaIdx_;
+  FILE* tempFile_;//!< File handler of temperory file.
 
-  uint64_t read_output_idx_;
-  uint64_t write_output_idx_;
+  PRE_KEY_POINTER_* mediaBlock_;//!< Sotre the block read from temperory file.
+  uint64_t mediaIdx_;//!< The index of block sotred in mediaBlock_ currently.
+
+  uint64_t read_output_idx_;//!< An index in output buffer, indicate where the read proccedure is reading.
+  uint64_t write_output_idx_;//!< An index in output buffer, indicate where the write proccedure is writing.
 
   boost::mutex input_mutex_;
   boost::mutex is_input_mutex_;
   boost::mutex output_mutex_;
-
-  //  vector<FileCache_*> inputFileCacheVctr_;
 }
   ;
 

@@ -360,8 +360,8 @@ public:
     pBucket_ = new struct _bucket_(&b, addr);
 
     // cout<<"pBucket->load()\n";
-    if (getStrCount() != pBucket_->count_)
-      LDBG_<<"Bucket load()**********\n**********\n*************\n************\n*******************Bucket()\n";
+    //if (getStrCount() != pBucket_->count_)
+    // LDBG_<<"Bucket load()**********\n**********\n*************\n************\n*******************Bucket()\n";
     
     return true;
   }
@@ -460,8 +460,8 @@ public:
       
     }
 
-    if (getStrCount() != pBucket_->count_)
-      LDBG_<<"Bucket update()**********\n**********\n*************\n************\n*******************Bucket()\n";
+    // if (getStrCount() != pBucket_->count_)
+//       LDBG_<<"Bucket update()**********\n**********\n*************\n************\n*******************Bucket()\n";
 
     return true;
   }
@@ -489,8 +489,8 @@ public:
     if (fwrite( &b, sizeof(struct _disk_bucket_), 1, f_)!=1)
       return (uint64_t) -1;
 
-    if (getStrCount() != pBucket_->count_)
-      LDBG_<<"Bucket add2disk()**********\n**********\n*************\n************\n*******************Bucket()\n";
+    // if (getStrCount() != pBucket_->count_)
+//       LDBG_<<"Bucket add2disk()**********\n**********\n*************\n************\n*******************Bucket()\n";
     
     pBucket_->dirty_ = false;
     
@@ -725,9 +725,10 @@ friend ostream& operator << ( ostream& os, const SelfType& node)
   /**
    *Split bucket into 'newBucket'. Some short string is consumed whitch is stored into leftStr.
    **/
-  uint8_t split(Bucket* newBucket, vector<string>& leftStr)
+  uint8_t split(Bucket* newBucket, vector<string>& leftStr, vector<uint64_t>& leftAddr)
   {
     leftStr.clear();
+    leftAddr.clear();
     //if (getStrCount() != pBucket_->count_)
     //LDBG_<<"before split()**********\n**********\n*************\n************\n*******************before split()\n";
 
@@ -749,6 +750,7 @@ friend ostream& operator << ( ostream& os, const SelfType& node)
             s += (*i).firstChar_;
             s.append(*(*j).p_);
             leftStr.push_back(s);
+            leftAddr.push_back((*j).contentAddr_);
             continue;
           }
           

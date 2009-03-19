@@ -25,6 +25,7 @@
 ///     -# Check size, buffer size, and its length. Clear string data and re-check its information including empty().\n\n
 /// \n
 /// -# Tested all the interfaces by using correct and incorrect test sets.
+#define IZENE_LOG
 
 #include <boost/memory.hpp>
 #include <am/trie/alphabet_node.hpp>
@@ -41,9 +42,11 @@
 #include <fstream>
 #include <iostream>
 #include <am/trie/node_cache.hpp>
+#include <am/trie/string_b_trie.hpp>
 #include <am/trie/b_trie.hpp>
 #include <signal.h>
 #include <am/trie/automation.hpp>
+
 USING_IZENE_LOG();
 #define SIZE 27
 using namespace izenelib::am;
@@ -442,22 +445,85 @@ void dump(int signo)
 
 // }
 
+BOOST_AUTO_TEST_CASE(string_B_trie_insertion_check )
+{
+  signal(SIGSEGV, &dump);
+  cout<<"Running B_trie_insertion_check ... \n";
+  
+  remove("./test.buk");
+  remove("./test.nod");
+  remove("./test.val");
+  remove("./test.has.k");
+  remove("./test.has.v");
+  vector<string> vstr;
+  vector<string*> vp;
+  readDict("./input", vstr);
+  
+  StringBTrie<> trie("./test");
+
+  clock_t start, finish;
+  int c = 0;
+  for (vector<string>::iterator i=vstr.begin(); i!=vstr.end();i++)
+  {
+    string* str = new string (*i);
+    vp.push_back(str);
+    c++;
+    //cout<<endl<<c<<" ***************\n";
+  }
+
+  cout<<"Data is ready!\n";
+  start = clock();
+  for (vector<string*>::iterator i=vp.begin(); i!=vp.end();i++)
+  {
+    //checkInput(*(*i));
+    string k = *(*i);
+    
+    trie.insert(*i,k);
+   //  if (k.compare("tsow")==0)
+//       break;
+    
+  }
+  
+
+  trie.flush();
+  
+  finish = clock();
+  printf( "\nIt takes %f seconds to insert %d random data!\n", (double)(finish - start) / CLOCKS_PER_SEC, vp.size());
+  //trie.display(cout, "far");
+  //cout<<"Node amount: "<<trie.getNodeAmount()<<endl;
+  
+  start = clock();
+  c =0;
+  for (vector<string>::iterator i=vstr.begin(); i!=vstr.end();i++)
+  {
+    string h;
+    trie.find(*i, h);
+    if (h.compare((*i)))
+    {
+      cout<<*i<<endl<<h<<endl;
+      cout<<"]]]]]]]]]]]\n";
+    }
+    
+  }
+
+  //trie.display(cout, "mxk");
+  
+  finish = clock();
+  printf( "\nIt takes %f seconds to insert %d random data!\n", (double)(finish - start)/CLOCKS_PER_SEC, vstr.size());
+}
+
 BOOST_AUTO_TEST_CASE(B_trie_insertion_check )
 {
   signal(SIGSEGV, &dump);
   cout<<"Running B_trie_insertion_check ... \n";
   
-  USING_IZENE_LOG();
-
-   AlphabetGenerator alp("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz1234567890_");
-   cout<<alp;
-  
   remove("./test.buk");
   remove("./test.nod");
-  remove("./test.has");
+  remove("./test.has.k");
+  remove("./test.has.v");
   vector<string> vstr;
   vector<string*> vp;
-  readDict("./dict1.txt", vstr);
+  readDict("./input", vstr);
   
   BTrie<> trie("./test");
 
@@ -475,27 +541,25 @@ BOOST_AUTO_TEST_CASE(B_trie_insertion_check )
   start = clock();
   for (vector<string*>::iterator i=vp.begin(); i!=vp.end();i++)
   {
-    checkInput(*(*i));
+    //checkInput(*(*i));
     
     trie.insert(*i,2);
   }
   
-
   trie.flush();
-  //trie.flush();
+  
   finish = clock();
   printf( "\nIt takes %f seconds to insert %d random data!\n", (double)(finish - start) / CLOCKS_PER_SEC, vp.size());
   //trie.display(cout, "far");
-  cout<<"Node amount: "<<trie.getNodeAmount()<<endl;
+  //cout<<"Node amount: "<<trie.getNodeAmount()<<endl;
   
   start = clock();
-  c =0;
   for (vector<string>::iterator i=vstr.begin(); i!=vstr.end();i++)
   {
-    //cout<<*i<<endl;
-    if (trie.query(*i) != 2)
+    if (trie.find(*i)!=2)
     {
       cout<<*i<<endl;
+      cout<<trie.find(*i);
       break;
     }
     

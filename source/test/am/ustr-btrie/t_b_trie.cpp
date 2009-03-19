@@ -243,7 +243,6 @@ void dump(int signo)
  *This is for testing the correction of insertion and querying of Ustring version B-trie.
  *
  **/
-
 BOOST_AUTO_TEST_CASE(B_trie_regex_check )
 {
   signal(SIGSEGV, &dump);
@@ -312,13 +311,11 @@ BOOST_AUTO_TEST_CASE(B_trie_regex_check )
         str.clear();
     }
 	trie.flush();
-    cout<<"----------\n";
     
     //vector<item_pair> ip;
     vector<uint64_t> ip;
 	UString pattern("*u3vr_C5jIUtVQHXNf?pPW*iJa", sf1lib::UString::UTF_8);
 	trie.findRegExp(pattern, ip);
-    cout<<"5555555555555555555\n";
     
 	for (vector<uint64_t>::iterator i = ip.begin(); i!= ip.end(); i++)
 	{

@@ -309,12 +309,15 @@ public:
           //if (diskAddr == 336200)
           // cout<<"------------------ bucket full, split it*********************\n";
           // if bucket full, split it;
-          vector<UString> left;
-          splitBucket(b, n, diskAddr, idx, left);
+          vector<UString> leftStr;
+          vector<uint64_t> leftAddr;
+          splitBucket(b, n, diskAddr, idx, leftStr, leftAddr);
           UString prefix;
           consumeStr.subString(prefix,0, consumeStr.length()-len);
-          
-          for (vector<UString>::iterator k=left.begin(); k!=left.end(); k++)
+
+          vector<UString>::iterator k=leftStr.begin();
+          vector<uint64_t>::iterator v=leftAddr.begin();
+            for (; k!=leftStr.end()&& v!=leftAddr.end(); v++,k++)
           {
             UString tmp = prefix;
             tmp += (*k);
@@ -323,7 +326,7 @@ public:
             //prefix.displayStringValue(ENCODE_TYPE, cout);
             //cout<<endl;
 
-            hashTable_.insert(tmp, contentAddr);
+            hashTable_.insert(tmp, *v);
           }
           
           //cout<<"splitted...\n";
@@ -359,7 +362,8 @@ public:
   /**
    *Split bucket indicated by idx of 'n'.
    **/
-  void splitBucket(BucketPtr& b,  AlphabetNodePtr& n, uint64_t diskAddr, uint32_t idx, vector<UString>& left)
+  void splitBucket(BucketPtr& b,  AlphabetNodePtr& n, uint64_t diskAddr,
+                   uint32_t idx, vector<UString>& leftStr, vector<uint64_t>& leftAddr)
   {
     unsigned short up = b->getUpBound();
     unsigned short low = b->getLowBound();
@@ -398,7 +402,7 @@ public:
     
     BucketPtr bu = pBucketCache_->newNode();
     //cout<<"splitting!\n";
-    unsigned short splitPoint = b->split(bu.pN_, left);
+    unsigned short splitPoint = b->split(bu.pN_, leftStr, leftAddr);
     //cout<<"splitting point: "<<splitPoint<<endl;
     uint64_t newBktAddr =  bu->add2disk();
     

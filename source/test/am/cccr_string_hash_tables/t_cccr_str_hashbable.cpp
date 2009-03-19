@@ -155,9 +155,10 @@ BOOST_AUTO_TEST_CASE(CCCR_insertion_check )
   
   clock_t start, finish;
   start = clock();
-  for (size_t i=0; i<vstr.size(); i++)
+  uint64_t j=0;
+  for (size_t i=0; i<vstr.size(); i++, j++)
   {
-    tb.insert(vstr[i], 2);
+    tb.insert(vstr[i], j);
   }
   finish = clock();
   printf( "\nIt takes %f seconds to insert 1000000 random data!\n", (double)(finish - start) / CLOCKS_PER_SEC);
@@ -170,9 +171,10 @@ BOOST_AUTO_TEST_CASE(CCCR_insertion_check )
   izenelib::am::CCCR_StrHashTable<> tb1;
   cout<<tb1.load("./data.k", "./data.v")<<endl;
   start = clock();
-  for (size_t i=0; i<vstr.size(); i++)
+  j=0;
+  for (size_t i=0; i<vstr.size(); i++, j++)
   {
-    if (*tb1.find(vstr[i])!=2)
+    if (*tb1.find(vstr[i])!=j)
     {
       cout<<"Error! "<<i<<"  "<<vstr[i]<<"=>"<<*tb1.find(vstr[i])<<endl;
       break;
