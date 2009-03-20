@@ -18,7 +18,7 @@ public:
    *@param filename The output file name. Default value is './input'.
    *
    **/
-  static bool doit(unsigned long size=1000000, unsigned long maxChars=20, const std::string& filename="./input")
+  static bool doit(unsigned long size=1000000, unsigned long maxChars=200, const std::string& filename="./input")
   {
     std::ofstream of;
     of.open (filename.c_str(), std::ofstream::out);

@@ -765,7 +765,7 @@ friend ostream& operator << ( ostream& os, const SelfType& node)
   /**
    *Split bucket into 'newBucket'. Some short string is consumed whitch is stored into leftStr.
    **/
-  unsigned short split(Bucket* newBucket, vector<UString>& leftStr)
+  unsigned short split(Bucket* newBucket, vector<UString>& leftStr, vector<uint64_t>& leftAddr)
   {
 //     leftStr.clear();
 //     if (getStrCount() != pBucket_->count_)
@@ -789,6 +789,7 @@ friend ostream& operator << ( ostream& os, const SelfType& node)
             s += (*i).firstChar_;
             s += (*(*j).p_);
             leftStr.push_back(s);
+            leftAddr.push_back((*j).contentAddr_);
             continue;
           }
           
