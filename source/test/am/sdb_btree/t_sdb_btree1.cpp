@@ -5,7 +5,6 @@
 
 #include <am/sdb_btree/sdb_btree.h>
 
-
 using namespace std;
 using namespace izenelib::am;
 
@@ -13,6 +12,7 @@ const char* indexFile = "sdb.dat";
 static string inputFile = "test.txt";
 static int degree = 2;
 static size_t cacheSize = 1000000;
+static size_t pageSize = 1024;
 static int num = 10000;
 
 static bool trace = 1;
@@ -25,8 +25,6 @@ typedef izenelib::am::DataType<KeyType, NullType> DataType;
 typedef izenelib::am::DataType<KeyType, NullType> myDataType;
 typedef izenelib::am::sdb_btree<KeyType, izenelib::am::NullType, NullLock>
 		SDB_HASH;
-
-
 
 template<typename T> void insert_test(T& tb) {
 
@@ -130,8 +128,8 @@ template<typename T> void del_test(T& tb) {
 	//int sum =0;
 	//int hit =0;
 	ifstream inf(inputFile.c_str());
-	string ystr;	
-	
+	string ystr;
+
 	while (inf>>ystr && num--) {
 		if (tb.del(ystr) ) {
 		} else {
@@ -156,33 +154,35 @@ template<typename T> void seq_test(T& tb) {
 	clock_t start = clock();
 	myDataType rec;
 	KeyType key;
-	ValueType val;	
-	
+	ValueType val;
+
 	SDB_HASH::NodeKeyLocn locn1 = tb.get_first_locn();
 	tb.get(locn1, key, val);
-	cout<<"get_first_locn:  key="<<key<<endl;
+	//cout<<"get_first_locn:  key="<<key<<endl;
 
-	
+
 	SDB_HASH::NodeKeyLocn locn;
 	int a = 0;
 	while (tb.seq(locn, rec) ) {
 		tb.get(locn, key, val);
-		if (trace)
+		if (trace) {
 			cout<<++a<<endl;
-			cout<<"get from locn:  key="<<key<<endl;		    
-			cout<<"by seq forward:  key="<<rec.key<<endl;	
+			cout<<"get from locn:  key="<<key<<endl;
+			cout<<"by seq forward:  key="<<rec.key<<endl;
+		}
 	}
-	
+
 	SDB_HASH::NodeKeyLocn locn2;
 	int b = 0;
 	while (tb.seq(locn2, rec, ESD_BACKWARD) ) {
 		tb.get(locn2, key, val);
-		if (trace)
+		if (trace) {
 			cout<<++b<<endl;
-			cout<<"get from locn:  key="<<key<<endl;		    
-			cout<<"by seq backward:  key="<<rec.key<<endl;	
+			cout<<"get from locn:  key="<<key<<endl;
+			cout<<"by seq backward:  key="<<rec.key<<endl;
+		}
 	}
-	
+
 	tb.flush();
 	printf("sequence access elapsed: %lf seconds\n", double(clock()- start)/CLOCKS_PER_SEC);
 	//printf("eclipse: %ld seconds\n", time(0)- start);
@@ -246,6 +246,8 @@ int main(int argc, char *argv[]) {
 				degree = atoi(*argv++);
 			} else if (str == "cache") {
 				cacheSize = atoi(*argv++);
+			} else if (str == "page") {
+				pageSize = atoi(*argv++);
 			} else if (str == "index") {
 				indexFile = *argv++;
 			} else if (str == "n") {
@@ -266,6 +268,8 @@ int main(int argc, char *argv[]) {
 	try
 	{
 		SDB_HASH tb(indexFile);
+		tb.setDegree(degree);
+		tb.setPageSize(pageSize);
 		tb.setCacheSize(cacheSize);
 		tb.open();
 		run(tb);
