@@ -40,7 +40,8 @@ NS_IZENELIB_AM_BEGIN
  */
 
 template<typename KeyType, typename ValueType=NullType, typename LockType=NullLock, typename Alloc=std::allocator<DataType<KeyType,ValueType> > >class sdb_btree
-: public AccessMethod<KeyType, ValueType, LockType, Alloc> {
+: public AccessMethod<KeyType, ValueType, LockType, Alloc>
+{
 public:
 	typedef sdb_node<KeyType, ValueType, LockType, Alloc> sdb_node;
 	typedef DataType<KeyType,ValueType> DataType;
@@ -49,11 +50,28 @@ public:
 	/**
 	 * \brief constructor
 	 * 
-	 * \param fileName is the name for data file
+	 * \param fileName is the name for data file if fileName ends with '#', we set b-tree mode to
+	 *  not delay split.
 	 */
-	sdb_btree(const std::string& fileName = "sequentialdb.dat");
+	sdb_btree(const std::string& fileName = "sequentialdb.dat#");
 	virtual ~sdb_btree();
 
+	
+	/**
+	 * 
+	 *  \brief set mod
+	 * 
+	 *  \param delaySplit, if true, the btree is cc-b*-btee, otherwise is normal cc-b-tree.
+	 *  
+	 *  For ascending insertion, cc-b-tree is much faster than cc-b*-btree, while cc-b*-btree 
+	 *  uses less disk space and find faster than cc-b-btree.
+	 *  
+	 * 
+	 */	
+	void setBtreeMode(bool delaySplit)
+	{
+		_isDelaySplit = delaySplit;
+	}	
 	/**
 	 *  \brief set the MaxKeys
 	 * 
@@ -313,6 +331,8 @@ private:
 	FILE* _dataFile;
 	CbFileHeader _sfh;
 	size_t _cacheSize;
+	
+	bool _isDelaySplit;
 	bool _isOpen;
 
 	izenelib::am::CompareFunctor<KeyType> _comp;
@@ -445,10 +465,19 @@ template<typename KeyType, typename ValueType, typename LockType,
 		typename Alloc> sdb_btree< KeyType, ValueType, LockType, Alloc>::sdb_btree(
 		const std::string& fileName) {
 	_root = 0;
+	_isDelaySplit = true;
 	_fileName = fileName;
+	
+	int len = _fileName.size();
+	if(_fileName[len-1] == '#')
+	{
+		_isDelaySplit = false;
+		_fileName.erase(len-1);
+	}	
 	_dataFile = 0;
 	_cacheSize = 0;
 	_isOpen = false;
+
 }
 
 template<typename KeyType, typename ValueType, typename LockType,
@@ -761,7 +790,8 @@ template<typename KeyType, typename ValueType, typename LockType,
 			//If the child node is full , we will insert into its adjacent nodes, and if bothe are
 			//are full, we will split the two node to three nodes.			
 			if (child->objCount >= _sfh.maxKeys) {
-				if ( !child->isLeaf) {
+				if ( !child->isLeaf || !_isDelaySplit) 
+				{
 					_split(node, low, child);
 					compVal = _comp(key, node->keys[low]);
 					if (compVal == 0)

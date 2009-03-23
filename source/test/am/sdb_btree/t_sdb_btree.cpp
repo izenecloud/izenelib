@@ -246,7 +246,7 @@ template<typename T> void run(T& tb) {
 		random_insert_test(tb);
 		search_test(tb);
 		seq_test(tb);
-		random_delete_test(tb);
+	   random_delete_test(tb);
 		search_test(tb);
 	} else {
 		insert_test(tb);
