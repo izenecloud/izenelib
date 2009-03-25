@@ -424,7 +424,6 @@ private:
 	void _split3Leaf(sdb_node* parent, size_t childNum);
 	sdb_node* _merge(sdb_node* &parent, size_t objNo);
 
-	bool _insert(const KeyType& key, const ValueType& value);
 	bool _seqNext(NodeKeyLocn& locn, DataType& rec);
 	bool _seqPrev(NodeKeyLocn& locn, DataType& rec);
 	void _flush(sdb_node* node, FILE* f);
@@ -1530,6 +1529,7 @@ template<typename KeyType, typename ValueType, typename LockType,
 template<typename KeyType, typename ValueType, typename LockType,
 		typename Alloc> void sdb_btree< KeyType, ValueType, LockType, Alloc>::flush() {
 
+	//_sfh.display();
 	//write back the fileHead and dirtypage
 	commit();
 	// Unload each of the root's childrent. 
