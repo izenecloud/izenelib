@@ -3,6 +3,10 @@ project (izenelib)
 #NEED TO UPGRADE TO 2.4
 cmake_minimum_required (VERSION 2.4)
 
+# force out-of-source build
+if (cmake_binary_dir strequal cmake_source_dir)
+    message(fatal_error "In source build is not allowed")
+endif (cmake_binary_dir strequal cmake_source_dir)
 
 #debugging
 #message( STATUS "source is: ${izenelib_SOURCE_DIR}" )
