@@ -244,16 +244,16 @@ template<typename T> void run(T& tb) {
 	//search_test(tb);
 	if (rnd) {
 		random_insert_test(tb);
-		search_test(tb);
+		random_search_test(tb);
 		seq_test(tb);
-	   random_delete_test(tb);
-		search_test(tb);
+	   //random_delete_test(tb);
+		//search_test(tb);
 	} else {
-		insert_test(tb);
-		search_test(tb);
-		seq_test(tb);
-		random_delete_test(tb);
-		search_test(tb);
+		 insert_test(tb);
+		 search_test(tb);
+		 seq_test(tb);
+		 delete_test(tb);
+		 search_test(tb);
 	}
 }
 

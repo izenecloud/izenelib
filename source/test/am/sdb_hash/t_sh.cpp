@@ -11,10 +11,12 @@ using namespace izenelib::am;
 const char* indexFile = "sdb.dat";
 static string inputFile = "test.txt";
 static int degree = 2;
+static size_t bucketSize = 1024;
+static size_t directorySize = 8192;
 static size_t cacheSize = 1000000;
 static int num = 10000;
 
-static bool trace = 1;
+static bool trace = 0;
 static bool rnd = 0;
 static bool ins = 1;
 
@@ -148,8 +150,8 @@ template<typename T> void del_test(T& tb) {
 	//int sum =0;
 	//int hit =0;
 	ifstream inf(inputFile.c_str());
-	string ystr;	
-	
+	string ystr;
+
 	while (inf>>ystr && num--) {
 		if (tb.del(ystr) ) {
 		} else {
@@ -191,16 +193,16 @@ template<typename T> void run(T& tb) {
 	insert_test(tb);
 	find_test(tb);
 	seq_test(tb);
-	update_test(tb);
+	/*update_test(tb);
 	del_test(tb);
 	find_test(tb);
 	insert_test(tb);
-	find_test(tb);
+	find_test(tb);*/
 }
 
 void ReportUsage(void) {
 	cout
-			<<"\nUSAGE:./t_slf [-T <trace_option>] [-degree <degree>]  [-n <num>] [-index <index_file>] [-cache <cache_size>.] <input_file>\n\n";
+			<<"\nUSAGE:./t_slf [-T <trace_option>]  [-dir <directorySize>] [-bkt <bucketSize>] [-degree <degree>]  [-n <num>] [-index <index_file>] [-cache <cache_size>.] <input_file>\n\n";
 
 	cout
 			<<"Example: /t_slf -T 1 -degree 2  -index sdb.dat -cache 10000 wordlist.txt\n";
@@ -240,6 +242,10 @@ int main(int argc, char *argv[]) {
 				trace = bool(atoi(*argv++));
 			} else if (str == "degree") {
 				degree = atoi(*argv++);
+			} else if (str == "dir") {
+				directorySize = atoi(*argv++);
+			} else if (str == "bkt") {
+				bucketSize = atoi(*argv++);
 			} else if (str == "cache") {
 				cacheSize = atoi(*argv++);
 			} else if (str == "index") {
@@ -262,6 +268,8 @@ int main(int argc, char *argv[]) {
 	try
 	{
 		SDB_HASH tb(indexFile);
+		tb.setDirectorySize(directorySize);
+		tb.setBucketSize(bucketSize);
 		tb.setCacheSize(cacheSize);
 		tb.open();
 		run(tb);
