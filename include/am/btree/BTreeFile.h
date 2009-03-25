@@ -307,8 +307,9 @@ public:
 	 *   for debug.  print the shape of the B tree.
 	 */
 
-	void display(std::ostream& os = std::cout) {
-		if(_root)_root->display(os);
+	void display(std::ostream& os = std::cout, bool onlyheader = true) {
+		sfh.display();
+		if(!onlyheader && _root)_root->display(os);
 	}
 
 	/**

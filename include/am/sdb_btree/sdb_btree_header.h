@@ -47,19 +47,21 @@ struct CbFileHeader {
 		long rootPos;
 		
 		//totally allocated pages.
-		//fileSize = nPages * pageSize
+		//fileSize = (nPages+oPages) * pageSize
 		static size_t nPages; 
+		static size_t oPages;
 		
 		CbFileHeader()
 		{
 			magic = 0x061561;
-			maxKeys = 32;
+			maxKeys = 24;
 			pageSize = 1024;	
 			cacheSize = 1000000;			
 			numItems = 0;
 			rootPos = sizeof(CbFileHeader)+sizeof(size_t);
 			
-			CbFileHeader::nPages = 0;				
+			CbFileHeader::nPages = 0;	
+			CbFileHeader::oPages = 0;
 		}
 
 		void display(std::ostream& os = std::cout) {
@@ -70,7 +72,16 @@ struct CbFileHeader {
 			os<<"numItem: "<<numItems<<endl;				
 			os<<"rootPos: "<<rootPos<<endl;
 			
-			os<<"nPages: "<<nPages<<endl;	
+			os<<"node Pages: "<<nPages<<endl;
+			os<<"overflow Pages: "<<oPages<<endl;	
+			os<<endl;
+			os<<"file size: "<<pageSize*(nPages+oPages)+sizeof(CbFileHeader)+2*sizeof(size_t)<<"bytes"<<endl;
+			if(nPages != 0)
+			{
+				os<<"average items number in a btree ndoe: "<<double(numItems)/double(nPages)<<endl;
+				os<<"average overflow page for a node: "<<double(oPages)/double(nPages)<<endl;
+			}
+			
 		}
 
 		bool toFile(FILE* f)
@@ -79,6 +90,7 @@ struct CbFileHeader {
 				return false;
 			fwrite(this, sizeof(CbFileHeader), 1, f);		
 			fwrite(&nPages, sizeof(size_t), 1, f);	
+			fwrite(&oPages, sizeof(size_t), 1, f);	
 			return true;
 		}
 
@@ -87,12 +99,14 @@ struct CbFileHeader {
 			if ( 0 != fseek(f, 0, SEEK_SET) )
 				return false;
 			fread(this, sizeof(CbFileHeader), 1, f);
-			fread(&nPages, sizeof(size_t), 1, f);				
+			fread(&nPages, sizeof(size_t), 1, f);
+			fread(&oPages, sizeof(size_t), 1, f);
 			return true;
 		}
 	};
 
 size_t CbFileHeader::nPages=0;
+size_t CbFileHeader::oPages=0;
 
 NS_IZENELIB_AM_END
 

@@ -304,8 +304,10 @@ public:
 	/**
 	 *   for debug.  print the shape of the B tree.
 	 */
-	void display(std::ostream& os = std::cout) {
-		if(_root)_root->display(os);
+	void display(std::ostream& os = std::cout, bool onlyheader = true) {
+		_sfh.display(os);
+		os<<"activeNum: "<<sdb_node::activeNodeNum<<endl;
+		if(!onlyheader && _root)_root->display(os);
 	}
 
 	/**
@@ -339,7 +341,7 @@ private:
 	std::string _fileName; // name of the database file		
 private:
 
-	void _flushCache(bool quickFlush=true) {
+	void _flushCache(bool quickFlush=false) {
 		if( sdb_node::activeNodeNum> _sfh.cacheSize )
 		{
 			if( !quickFlush )
@@ -405,8 +407,8 @@ private:
 		newNode = new sdb_node;
 		newNode->isLoaded = true;
 		newNode->isDirty = true;
-		newNode->fpos = sizeof(CbFileHeader)+sizeof(size_t) + _sfh.pageSize
-		*CbFileHeader::nPages;
+		newNode->fpos = sizeof(CbFileHeader)+2*sizeof(size_t) + _sfh.pageSize
+		*(CbFileHeader::nPages+CbFileHeader::oPages);
 
 		//cout<<"allocate idx="<<CbFileHeader::nPages<<" "<<newNode->fpos;
 		CbFileHeader::nPages++;
@@ -1528,8 +1530,7 @@ template<typename KeyType, typename ValueType, typename LockType,
 // allocated.
 template<typename KeyType, typename ValueType, typename LockType,
 		typename Alloc> void sdb_btree< KeyType, ValueType, LockType, Alloc>::flush() {
-
-	//_sfh.display();
+	
 	//write back the fileHead and dirtypage
 	commit();
 	// Unload each of the root's childrent. 

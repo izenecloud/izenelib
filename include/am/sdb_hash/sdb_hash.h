@@ -450,11 +450,11 @@ public:
 	bool seq(NodeKeyLocn& locn, DataType& rec, ESeqDirection sdir=ESD_FORWARD) {
 
 		//flushCache_();
-		if( sdir == ESD_FORWARD ) {				
+		if( sdir == ESD_FORWARD ) {
 			bucket_chain* sa = locn.first;
 			char* p = locn.second;
 			//if( sa && !sa->isLoaded)
-				//sa->read(dataFile_);
+			//sa->read(dataFile_);
 
 			if(sa == NULL)return false;
 			if(p == NULL)return false;
@@ -672,16 +672,20 @@ public:
 	/**
 	 *  display the info of sdb_hash
 	 */
-	void display(std::ostream& os = std::cout) {
+	void display(std::ostream& os = std::cout, bool onlyheader = true) {
 		sfh_.display(os);
 		os<<"activeNum: "<<bucket_chain::activeNum<<endl;
-		for (size_t i=0; i<sfh_.directorySize; i++) {
-			os<<"["<<i<<"]: ";
-			if (entry_[i])
-			entry_[i]->display(os);
-			os<<endl;
-		}
 		os<<"loadFactor: "<<loadFactor()<<endl;
+
+		if( !onlyheader ) {
+			for (size_t i=0; i<sfh_.directorySize; i++) {
+				os<<"["<<i<<"]: ";
+				if (entry_[i])
+				entry_[i]->display(os);
+				os<<endl;
+			}
+		}
+
 	}
 
 	/**	 
@@ -750,7 +754,7 @@ private:
 	 *  when cache is full, it was called to reduce memory usage.
 	 * 
 	 */
-	void flushCache_()
+	void flushCache_(bool quickFlush = false)
 	{
 
 		//cout<<bucket_chain::activeNum<<" vs "<<sfh_.cacheSize <<endl;
@@ -759,8 +763,8 @@ private:
 #ifdef DEBUG
 			cout<<"cache is full..."<<endl;
 			cout<<bucket_chain::activeNum<<" vs "<<sfh_.cacheSize <<endl;
-#endif
-
+#endif 
+			if( !quickFlush )commit();
 			for(size_t i=0; i<sfh_.directorySize; i++) {
 				bucket_chain* sc = entry_[i];
 				while( sc ) {
@@ -783,7 +787,7 @@ private:
 				 cout<<"  fpos: "<<it->second->fpos;	
 				 cout<<"  num: "<<it->second->num;		
 				 cout<<" )-> ";*/
-
+				if(quickFlush)
 				it->second->write(dataFile_);
 				it->second->unload();
 				if( bucket_chain::activeNum < sfh_.cacheSize/2 ) {
