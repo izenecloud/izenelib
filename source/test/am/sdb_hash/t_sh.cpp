@@ -175,7 +175,7 @@ template<typename T> void del_test(T& tb) {
 template<typename T> void seq_test(T& tb) {
 	clock_t start = clock();
 
-	SDB_HASH::NodeKeyLocn locn = tb.get_first_locn();
+	SDB_HASH::SDBCursor locn = tb.get_first_locn();
 	myDataType rec;
 	while (tb.seq(locn, rec) ) {
 		if (trace)

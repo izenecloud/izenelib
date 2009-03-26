@@ -31,7 +31,7 @@ template<typename KeyType, typename ValueType=NullType, typename LockType=NullLo
 public:
 	typedef DataType<KeyType, ValueType> DataType;
 	typedef SkipNode<DataType, LockType, Alloc> SkipNode;
-	typedef SkipNode* NodeKeyLocn;
+	typedef SkipNode* SDBCursor;
 public:
 	/**
 	 *   constructor
@@ -130,17 +130,17 @@ public:
 	/**
 	 *   search an item by key
 	 */
-	NodeKeyLocn search(const KeyType& key)
+	SDBCursor search(const KeyType& key)
 	{
-		NodeKeyLocn locn = 0;
+		SDBCursor locn = 0;
 		search(key, locn);
 		return locn;
 	}
 
 	/**
-	 *   search an item,  NodeKeyLocn is like database cursor.
+	 *   search an item,  SDBCursor is like database cursor.
 	 */ 
-	bool search(const KeyType& key, NodeKeyLocn& locn)
+	bool search(const KeyType& key, SDBCursor& locn)
 	{
 		SkipNode* x = header_;
 		int h = x->height-1;
@@ -219,9 +219,9 @@ public:
 	}
 
 	/**
-	 *  get the NodeKeyLocn of first key
+	 *  get the SDBCursor of first key
 	 */
-	NodeKeyLocn get_first_locn()
+	SDBCursor get_first_locn()
 	{
 		return header_->right[0];
 	}
@@ -229,7 +229,7 @@ public:
 	 * 	\brief get the next or prev item.
 	 */
 	bool
-	seq(NodeKeyLocn& locn, DataType& rec, ESeqDirection sdir = ESD_FORWARD) {
+	seq(SDBCursor& locn, DataType& rec, ESeqDirection sdir = ESD_FORWARD) {
 		if(sdir == ESD_FORWARD) {
 			if(locn) {
 				locn = locn->loadRight(0, dataFile_);

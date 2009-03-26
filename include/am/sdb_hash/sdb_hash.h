@@ -45,9 +45,9 @@ template< typename KeyType, typename ValueType, typename LockType =NullLock> cla
 public AccessMethod<KeyType, ValueType, LockType>
 {
 public:
-	//NodeKeyLocn is like db cursor
+	//SDBCursor is like db cursor
 	typedef bucket_chain<LockType> bucket_chain;
-	typedef std::pair<bucket_chain*, char*> NodeKeyLocn;
+	typedef std::pair<bucket_chain*, char*> SDBCursor;
 	typedef DataType<KeyType,ValueType> DataType;
 public:
 	/**
@@ -115,7 +115,7 @@ public:
 	 */
 	bool insert(const KeyType& key, const ValueType& value) {
 
-		NodeKeyLocn locn;
+		SDBCursor locn;
 		if( search(key, locn) )
 		return false;
 		else {
@@ -186,7 +186,7 @@ public:
 	 */
 	ValueType* find(const KeyType & key) {
 
-		NodeKeyLocn locn;
+		SDBCursor locn;
 		if( !search(key, locn) )
 		return NULL;
 		else {
@@ -214,7 +214,7 @@ public:
 	 */
 	bool del(const KeyType& key) {
 
-		NodeKeyLocn locn;
+		SDBCursor locn;
 		if( !search(key, locn) )
 		return false;
 		else
@@ -254,7 +254,7 @@ public:
 	 *  update  an item by key/value pair
 	 */
 	bool update(const KeyType& key, const ValueType& value) {
-		NodeKeyLocn locn;
+		SDBCursor locn;
 		if( !search(key, locn) )
 		return insert(key, value);
 		else
@@ -295,11 +295,11 @@ public:
 	/**
 	 *  search an item
 	 * 
-	 *   @return NodeKeyLocn
+	 *   @return SDBCursor
 	 */
-	NodeKeyLocn search(const KeyType& key)
+	SDBCursor search(const KeyType& key)
 	{
-		NodeKeyLocn locn;
+		SDBCursor locn;
 		search(key, locn);
 		return locn;
 	}
@@ -308,7 +308,7 @@ public:
 	 *    another search function, flushCache_() will be called at the beginning,
 	 * 
 	 */
-	bool search(const KeyType&key, NodeKeyLocn& locn)
+	bool search(const KeyType&key, SDBCursor& locn)
 	{
 		flushCache_();
 
@@ -377,11 +377,11 @@ public:
 	}
 
 	/**
-	 *  get the NodeKeyLocn of first item in the first not empty bucket.
+	 *  get the SDBCursor of first item in the first not empty bucket.
 	 */
-	NodeKeyLocn get_first_locn()
+	SDBCursor get_first_locn()
 	{
-		NodeKeyLocn locn;
+		SDBCursor locn;
 		for(size_t i=0; i<sfh_.directorySize; i++)
 		{
 			if( entry_[i] )
@@ -394,7 +394,7 @@ public:
 		return locn;
 	}
 
-	bool get(const NodeKeyLocn& locn, KeyType& key, ValueType& value)
+	bool get(const SDBCursor& locn, KeyType& key, ValueType& value)
 	{
 		DataType dat;
 		bool ret =get(locn, dat);
@@ -405,9 +405,9 @@ public:
 		return ret;
 	}
 	/**
-	 *  get an item from given NodeKeyLocn
+	 *  get an item from given SDBCursor
 	 */
-	bool get(const NodeKeyLocn& locn, DataType& rec) {
+	bool get(const SDBCursor& locn, DataType& rec) {
 
 		bucket_chain* sa = locn.first;
 		char* p = locn.second;
@@ -442,12 +442,12 @@ public:
 	/**
 	 *   \brief sequential access method
 	 * 
-	 *   @param locn is the current NodeKeyLocn, and will replaced next NodeKeyLocn when route finished. 
-	 *   @param rec is the item in NodeKeyLocn locn.
+	 *   @param locn is the current SDBCursor, and will replaced next SDBCursor when route finished. 
+	 *   @param rec is the item in SDBCursor locn.
 	 *   @param sdir is sequential access direction, for hash is unordered, we only implement forward case.
 	 *   
 	 */
-	bool seq(NodeKeyLocn& locn, DataType& rec, ESeqDirection sdir=ESD_FORWARD) {
+	bool seq(SDBCursor& locn, DataType& rec, ESeqDirection sdir=ESD_FORWARD) {
 
 		//flushCache_();
 		if( sdir == ESD_FORWARD ) {

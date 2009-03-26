@@ -246,7 +246,7 @@ template<typename T> void seq_test(T& tb) {
 	clock_t start, finish;
 
 	start = clock();
-	SDB_HASH::NodeKeyLocn locn;
+	SDB_HASH::SDBCursor locn;
 	locn = tb.get_first_locn();
 	myDataType dat;
 	int a=0;

@@ -187,9 +187,8 @@ template<typename T> void delete_test(T& tb) {
 	}
 	tb.flush();
 	finish = clock();
-	printf(
-			"\nIt takes %f seconds to delete %d data! \n",
-			(double)(finish - start) / CLOCKS_PER_SEC, num);
+	printf("\nIt takes %f seconds to delete %d data! \n", (double)(finish
+			- start) / CLOCKS_PER_SEC, num);
 
 }
 
@@ -218,47 +217,46 @@ template<typename T> void random_delete_test(T& tb) {
 	}
 	tb.flush();
 	finish = clock();
-	printf(
-			"\nIt takes %f seconds to delete %d  data!\n",
-			(double)(finish - start) / CLOCKS_PER_SEC, num);
+	printf("\nIt takes %f seconds to delete %d  data!\n", (double)(finish
+			- start) / CLOCKS_PER_SEC, num);
 
 }
 
-/*
- template<typename T> void seq_test(T& tb) {
+template<typename T> void seq_test(T& tb) {
 
- clock_t start, finish;
+	clock_t start, finish;
 
- start = clock();
- SDB_HASH::NodeKeyLocn locn;
- locn = tb.get_first_locn();
- myDataType dat;
- int a=0;
- while (tb.seq(locn, dat) ) {
- a++;
- if (trace)
- cout<<dat.key<<endl;
- }
+	start = clock();
+	TC_HASH::SDBCursor locn;
+	locn = tb.get_first_locn();
+	//locn = "00000082";
+	myDataType dat;
+	int a=0;
+	while (tb.seq(locn, dat) ) {
+		a++;
+		if (trace)
+			cout<<dat.key<<endl;
+	}
 
- tb.flush();
- finish = clock();
- printf("\nIt takes %f seconds to sequential Access %d  data! \n",
- (double)(finish - start) / CLOCKS_PER_SEC, a);
+	tb.flush();
+	finish = clock();
+	printf("\nIt takes %f seconds to sequential Access %d  data! \n",
+			(double)(finish - start) / CLOCKS_PER_SEC, a);
 
- }*/
+}
 
 template<typename T> void run(T& tb) {
 	//search_test(tb);
 	if (rnd) {
 		random_insert_test(tb);
 		search_test(tb);
-		//seq_test(tb);
+		seq_test(tb);
 		random_delete_test(tb);
 		search_test(tb);
 	} else {
 		insert_test(tb);
 		search_test(tb);
-		//seq_test(tb);
+		seq_test(tb);
 		delete_test(tb);
 		search_test(tb);
 	}
@@ -328,12 +326,12 @@ int main(int argc, char *argv[]) {
 			tb.open();
 			run(tb);
 		}
-		else
+		/*else
 		{
 			TC_BTREE tb(indexFile);
 			tb.open();
 			run(tb);
-		}
+		}*/
 
 	}
 	catch(bad_alloc)

@@ -1,7 +1,6 @@
 #ifndef TC_TYPES_H_
 #define TC_TYPES_H_
 
-
 #include <types.h>
 #include <am/am.h>
 #include <am/concept/DataType.h>
@@ -21,6 +20,8 @@
 #include <fstream>
 #include <iostream>
 
+#include <tchdb.h>
+
 #include <tcutil.h>
 #include <tcadb.h>
 #include <stdlib.h>
@@ -33,9 +34,6 @@ using namespace izenelib::am::util;
 
 NS_IZENELIB_AM_BEGIN
 
-
 NS_IZENELIB_AM_END
-
-
 
 #endif /*TC_TYPES_H_*/

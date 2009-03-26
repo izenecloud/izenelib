@@ -23,13 +23,13 @@ template< typename KeyType, typename ValueType, typename LockType =NullLock> cla
 public AccessMethod<KeyType, ValueType, LockType>
 {
 public:
-	//typedef std::pair<bucket_chain*, char*> NodeKeyLocn;
+	typedef KeyType SDBCursor;
 	typedef DataType<KeyType,ValueType> DataType;
 public:
 	/**
 	 *   constructor
 	 */
-	tc_hash(const string& fileName = "tc_hash.dat"): fileName_(fileName) {		
+	tc_hash(const string& fileName = "tc_hash.dat"): fileName_(fileName) {
 	}
 
 	/**
@@ -132,59 +132,95 @@ public:
 	/**
 	 *  search an item
 	 * 
-	 *   @return NodeKeyLocn
+	 *   @return SDBCursor
 	 */
-	//NodeKeyLocn search(const KeyType& key)
-	//{
-	////	NodeKeyLocn locn;
-	//	search(key, locn);
-	//	return locn;
-	//}
+	SDBCursor search(const KeyType& key)
+	{
+		SDBCursor cur;
+		if( find(key) ) {
+			cur = key;
+		}
+		return cur;
+	}
 
 	/**
 	 *    another search function, flushCache_() will be called at the beginning,
 	 * 
 	 */
 
-	//bool search(const KeyType&key, NodeKeyLocn& locn)
-	//{
-	//	return false;
-	//}
+	bool search(const KeyType&key, SDBCursor& locn)
+	{
+		if( find(key) ) {
+			locn = key;
+			return true;
+		}
+		return false;
+	}
 
 	/**
-	 *  get the NodeKeyLocn of first item in the first not empty bucket.
+	 *  get the SDBCursor of first item in the first not empty bucket.
 	 */
 
-	//NodeKeyLocn get_first_locn()
-	//{
-	//	
-	//}
+	SDBCursor get_first_locn()
+	{
+		SDBCursor cur;
+		return cur;
+	}
 
-	//bool get(const NodeKeyLocn& locn, KeyType& key, ValueType& value)
-	//{
-	//	return false;
-	//}
+	bool get(const SDBCursor& locn, KeyType& key, ValueType& value)
+	{
+		ValueType* pv = find(locn);
+		if( pv )
+		{
+			key = locn;
+			value = *pv;
+			return true;
+		}
+		return false;
+	}
+
 	/**
-	 *  get an item from given NodeKeyLocn
+	 *  get an item from given SDBCursor
 	 */
-	//bool get(const NodeKeyLocn& locn, DataType& rec) {
-	//	
-	//	return true;
-
-	//}
+	bool get(const SDBCursor& locn, DataType& rec) {
+		return get(locn, rec.get_key(), rec.get_value() );
+	}
 
 	/**
 	 *   \brief sequential access method
 	 * 
-	 *   @param locn is the current NodeKeyLocn, and will replaced next NodeKeyLocn when route finished. 
-	 *   @param rec is the item in NodeKeyLocn locn.
+	 *   @param locn is the current SDBCursor, and will replaced next SDBCursor when route finished. 
+	 *   @param rec is the item in SDBCursor locn.
 	 *   @param sdir is sequential access direction, for hash is unordered, we only implement forward case.
 	 *   
 	 */
-	//bool seq(NodeKeyLocn& locn, DataType& rec, ESeqDirection sdir=ESD_FORWARD) {
-	//	return false;
+	bool seq(SDBCursor& locn, DataType& rec, ESeqDirection sdir=ESD_FORWARD) {
+		DbObjPtr ptr, ptr1;
+		ptr.reset(new DbObj);
 
-	//}
+		write_image(locn, ptr);
+		ValueType* pv;
+		pv = find(locn);
+		if( pv )
+		{
+			rec.key = locn;
+			rec.value = *pv;
+		}
+		else
+		{
+			ptr.reset(new DbObj);
+		}
+		int sp;
+		void *buf;
+		buf = tchdbgetnext(hdb_, ptr->getData(), ptr->getSize(),&sp);
+		if(buf != NULL)
+		{
+			ptr1.reset(new DbObj(buf, sp));
+			read_image(locn, ptr1);			
+			return true;
+		}
+		return false;
+	}
 
 	/**
 	 *   get the num of items 
@@ -208,7 +244,7 @@ public:
 	{
 		return tchdbclose(hdb_);
 	}
-		
+
 	/**
 	 *  write the dirty buckets to disk, not release the memory
 	 *  
@@ -229,7 +265,9 @@ public:
 	void display(std::ostream& os = std::cout) {
 
 	}
-
+	/**
+	 *  We can directly process hdb_ by this handle.
+	 */
 	TCHDB* getHandle() {
 		return hdb_;
 	}
@@ -237,7 +275,6 @@ public:
 private:
 	string fileName_;
 	TCHDB* hdb_;
-
 };
 
 NS_IZENELIB_AM_END

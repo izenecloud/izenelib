@@ -37,6 +37,8 @@ NS_IZENELIB_AM_BEGIN
  *     |----------------|
  *     |   nPages       |
  *     |----------------| 
+ *     |   oPages       |
+ *     |----------------|
  */
 struct CbFileHeader {
 		int magic;  //set it as 0x061561, check consistence.			
@@ -44,10 +46,8 @@ struct CbFileHeader {
 		size_t pageSize;	
 		size_t cacheSize;	
 		size_t numItems;		
-		long rootPos;
-		
-		//totally allocated pages.
-		//fileSize = (nPages+oPages) * pageSize
+		long rootPos;		
+
 		static size_t nPages; 
 		static size_t oPages;
 		
