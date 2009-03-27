@@ -29,7 +29,7 @@ namespace util {
 	const size_t BLOCK_SIZE = 16;
 
 	inline int uint_to_bytes(unsigned int val, char* dest) {
-		int i;
+		unsigned int i;
 		for(i = 0; i < sizeof(int); i++) {
 			dest[i] = (char)((val) & 0xFF);
 			val >>= 8;
