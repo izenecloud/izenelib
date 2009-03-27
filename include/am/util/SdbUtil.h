@@ -32,7 +32,7 @@ namespace util {
 		int i;
 		for(i = 0; i < sizeof(int); i++) {
 			dest[i] = (char)((val) & 0xFF);
-			var >>= 8;
+			val >>= 8;
 			if( val == 0)
 			break;
 		}
