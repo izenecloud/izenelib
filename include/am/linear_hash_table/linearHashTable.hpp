@@ -195,8 +195,6 @@ class LinearHashTable<ValueType,KeyType, MemStorage,
     {
       out<<ele.key_<<":"<<ele.data_;
       return out;
-      
-      
     }
 
   };
