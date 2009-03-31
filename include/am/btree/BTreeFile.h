@@ -51,7 +51,7 @@ public:
 	BTreeNodePtr;
 	typedef std::vector<BTreeNodePtr> BTreeNodeVECTOR;
 	typedef typename std::vector<BTreeNodePtr>::iterator BnPtrIter;
-	typedef std::pair<BTreeNodePtr, size_t> NodeKeyLocn;
+	typedef std::pair<BTreeNodePtr, size_t> SDBCursor;
 	typedef intrusive_ptr<PtrObj<DataType, LockType, Alloc> > DataTypePtr;
 	typedef std::vector<DataTypePtr> DataTypeVECTOR;
 
@@ -165,7 +165,7 @@ public:
 	 *  \brief find an item given a key.
 	 */
 	ValueType* find(const KeyType& key) {
-		NodeKeyLocn locn;
+		SDBCursor locn;
 		if (search(key, locn))
 		return (ValueType*) &(locn.first->elements[locn.second]->pdat->get_value());
 		else
@@ -204,12 +204,12 @@ public:
 	/**
 	 *  \brief get an item from given Locn.	 * 
 	 */
-	bool get(const NodeKeyLocn& locn, DataType& rec);
+	bool get(const SDBCursor& locn, DataType& rec);
 
 	/**
 	 *  \brief get an item from given Locn.	 * 
 	 */
-	bool get(const NodeKeyLocn& locn, KeyType& key, ValueType& value)
+	bool get(const SDBCursor& locn, KeyType& key, ValueType& value)
 	{
 		DataType dat;
 		bool ret =get(locn, dat);
@@ -223,9 +223,9 @@ public:
 	 * 
 	 */
 
-	NodeKeyLocn get_first_locn()
+	SDBCursor get_first_locn()
 	{
-		NodeKeyLocn locn;
+		SDBCursor locn;
 		search(KeyType(), locn);
 		return locn;
 	}
@@ -233,15 +233,15 @@ public:
 	 * 	\brief get the next or prev item.
 	 */
 	bool
-	seq(NodeKeyLocn& locn, DataType& rec,
+	seq(SDBCursor& locn, DataType& rec,
 			ESeqDirection sdir = ESD_FORWARD);
 
 	/**
 	 *  \brief given a  key, get next key
 	 */
 	KeyType getNext(const KeyType& key) {
-		//NodeKeyLocn locn =search(key);
-		NodeKeyLocn locn;
+		//SDBCursor locn =search(key);
+		SDBCursor locn;
 		search(key, locn);
 		if (locn.second == size_t(-1) ) {
 			return KeyType();
@@ -256,8 +256,8 @@ public:
 	 *  \brief given a  key, get next key
 	 */
 	KeyType getPrev(const KeyType& key) {
-		//NodeKeyLocn locn = search(key);
-		NodeKeyLocn locn;
+		//SDBCursor locn = search(key);
+		SDBCursor locn;
 		search(key, locn);
 		if (locn.second == size_t(-1) ) {
 			return KeyType();
@@ -307,8 +307,9 @@ public:
 	 *   for debug.  print the shape of the B tree.
 	 */
 
-	void display(std::ostream& os = std::cout) {
-		if(_root)_root->display(os);
+	void display(std::ostream& os = std::cout, bool onlyheader = true) {
+		sfh.display();
+		if(!onlyheader && _root)_root->display(os);
 	}
 
 	/**
@@ -319,7 +320,7 @@ public:
 
 		BTreeNodePtr node = _root;
 		OBJECTPOS op;
-		NodeKeyLocn locn;
+		SDBCursor locn;
 		DataType dat;
 
 		while (true) {
@@ -368,14 +369,14 @@ public:
 	 *  given key. 
 	 *
 	 */
-	NodeKeyLocn search(const KeyType& key)
+	SDBCursor search(const KeyType& key)
 	{
-		NodeKeyLocn locn;
+		SDBCursor locn;
 		search(key, locn);
 		return locn;
 	}
 
-	bool search(const KeyType& key, NodeKeyLocn& locn) {
+	bool search(const KeyType& key, SDBCursor& locn) {
 
 		//do Flush, when there are too many active nodes.
 		_flushCache();
@@ -661,16 +662,16 @@ private:
 	}
 
 	bool _insert(const DataType& data);
-	bool _seqNext(NodeKeyLocn& locn, DataType& rec);
-	bool _seqPrev(NodeKeyLocn& locn, DataType& rec);
+	bool _seqNext(SDBCursor& locn, DataType& rec);
+	bool _seqPrev(SDBCursor& locn, DataType& rec);
 	void _flush(BTreeNodePtr& node, FILE* f);
 	bool _delete(BTreeNodePtr& node, const KeyType& key);
 
 	// Finds the location of the predecessor of this key, given
 	// the root of the subtree to search. The predecessor is going
 	// to be the right-most object in the right-most leaf node.
-	NodeKeyLocn _findPred(BTreeNodePtr& node) {
-		NodeKeyLocn ret(BTreeNodePtr(), (size_t)-1);
+	SDBCursor _findPred(BTreeNodePtr& node) {
+		SDBCursor ret(BTreeNodePtr(), (size_t)-1);
 		BTreeNodePtr child = node;
 		while (!child->isLeaf) {
 			child = child->loadChild(child->objCount, _dataFile);
@@ -683,8 +684,8 @@ private:
 	// Finds the location of the successor of this key, given
 	// the root of the subtree to search. The successor is the
 	// left-most object in the left-most leaf node.
-	NodeKeyLocn _findSucc(BTreeNodePtr& node) {
-		NodeKeyLocn ret(BTreeNodePtr(), (size_t)-1);
+	SDBCursor _findSucc(BTreeNodePtr& node) {
+		SDBCursor ret(BTreeNodePtr(), (size_t)-1);
 		BTreeNodePtr child = node;
 		while (!child->isLeaf) {
 			child = child->loadChild(0, _dataFile);
@@ -961,7 +962,7 @@ template<typename KeyType, typename ValueType, typename LockType,
 				if (node->children[op.first]->objCount >= _minDegree) {
 					BTreeNodePtr childNode = node->loadChild(op.first,
 							_dataFile);
-					NodeKeyLocn locn = _findPred(childNode);
+					SDBCursor locn = _findPred(childNode);
 
 					DataType dat = *(locn.first->elements[locn.second]->pdat);
 					DataTypePtr pdat;
@@ -982,7 +983,7 @@ template<typename KeyType, typename ValueType, typename LockType,
 				else if (node->children[op.first + 1]->objCount >= _minDegree) {
 					BTreeNodePtr childNode = node->loadChild(op.first + 1,
 							_dataFile);
-					NodeKeyLocn locn = _findSucc(childNode);
+					SDBCursor locn = _findSucc(childNode);
 					DataType dat = *(locn.first->elements[locn.second]->pdat);
 					DataTypePtr pdat;
 					pdat.reset(new PtrObj<DataType, LockType, Alloc>(dat));
@@ -1311,7 +1312,7 @@ template<typename KeyType, typename ValueType, typename LockType,
 // given its location.
 template<typename KeyType, typename ValueType, typename LockType,
 		typename Alloc> bool BTreeFile< KeyType, ValueType, LockType, Alloc>::get(
-		const NodeKeyLocn& locn, DataType& rec) {
+		const SDBCursor& locn, DataType& rec) {
 	if ((BTreeNodePtr)locn.first == 0 || locn.second == (size_t)-1) {
 		return false;
 	}
@@ -1324,7 +1325,7 @@ template<typename KeyType, typename ValueType, typename LockType,
 template<typename KeyType, typename ValueType, typename LockType,
 		typename Alloc> bool BTreeFile< KeyType, ValueType, LockType, Alloc>::get(
 		const KeyType& key, DataType& rec) {
-	NodeKeyLocn locn;
+	SDBCursor locn;
 	search(key, locn);
 	return get(locn, rec);
 }
@@ -1332,7 +1333,7 @@ template<typename KeyType, typename ValueType, typename LockType,
 template<typename KeyType, typename ValueType, typename LockType,
 		typename Alloc> bool BTreeFile< KeyType, ValueType, LockType, Alloc>::update(
 		const DataType& rec) {
-	NodeKeyLocn locn(BTreeNodePtr(), (size_t)-1);
+	SDBCursor locn(BTreeNodePtr(), (size_t)-1);
 	//locn = search( rec.get_key() );
 	search(rec.get_key(), locn);
 	if (locn.second != (size_t) -1) {
@@ -1349,7 +1350,7 @@ template<typename KeyType, typename ValueType, typename LockType,
 // The direction can be either forward or backward.
 template<typename KeyType, typename ValueType, typename LockType,
 		typename Alloc> bool BTreeFile< KeyType, ValueType, LockType, Alloc>::seq(
-		NodeKeyLocn& locn, DataType& rec, ESeqDirection sdir) {
+		SDBCursor& locn, DataType& rec, ESeqDirection sdir) {
 	switch (sdir) {
 	case ESD_FORWARD:
 		return _seqNext(locn, rec);
@@ -1365,7 +1366,7 @@ template<typename KeyType, typename ValueType, typename LockType,
 // the subsequent item in rec.
 template<typename KeyType, typename ValueType, typename LockType,
 		typename Alloc> bool BTreeFile< KeyType, ValueType, LockType, Alloc>::_seqNext(
-		NodeKeyLocn& locn, DataType& rec) {
+		SDBCursor& locn, DataType& rec) {
 	// Set up a couple of convenience values
 	bool ret = false;
 	BTreeNodePtr node = locn.first;
@@ -1445,7 +1446,7 @@ template<typename KeyType, typename ValueType, typename LockType,
 // the item in rec.
 template<typename KeyType, typename ValueType, typename LockType,
 		typename Alloc> bool BTreeFile< KeyType, ValueType, LockType, Alloc>::_seqPrev(
-		NodeKeyLocn& locn, DataType& rec) {
+		SDBCursor& locn, DataType& rec) {
 	// Set up a couple of convenience values
 
 	bool ret = false;

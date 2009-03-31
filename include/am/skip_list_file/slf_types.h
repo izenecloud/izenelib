@@ -31,6 +31,19 @@ typedef int NodeID;
 
 const int MAX_LEVEL = 32;
 
+/**
+ *   flip a coin until a tail come up. Tail come up with a probability 1/b.
+ *   \param b probability is 1/b/
+ *   \return the least times that the tail come up. 
+ */
+inline int coin_flip(int b){
+	int t = 1;
+	while( rand()%b == 0 ){
+		t++;
+	}
+	return t;	
+}
+
 
 vector<MemBlock* > mbList;
 

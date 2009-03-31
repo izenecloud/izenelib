@@ -26,11 +26,11 @@ public:
     	return update(data);
 	}
 
-	virtual bool update(const DataType<KeyType,ValueType>& data) = 0;
+	virtual bool update(const DataType<KeyType,ValueType>& data){return false;}
 
 	virtual ValueType* find(const KeyType& key) = 0;
 
-	virtual bool del(const KeyType& key) = 0;
+	virtual bool del(const KeyType& key){return false;}
 
 	virtual ~AccessMethod() {};
 };
@@ -39,10 +39,11 @@ template<typename KeyType, typename LockType, typename Alloc >
 class AccessMethod<KeyType, NullType, LockType, Alloc>
 {
 public:
-	virtual bool insert(const KeyType& key){
+	virtual bool insert(const KeyType& key, const NullType val=NullType()){
 		DataType<KeyType> data(key);
     	return insert(data);
 	}
+
 
 	virtual bool insert(const DataType<KeyType>& data) = 0;
 
@@ -51,10 +52,10 @@ public:
     	return update(data);
 	}
 
-	virtual bool update(const DataType<KeyType>& data) = 0;
+	virtual bool update(const DataType<KeyType>& data) {return false;}
 
 
-	virtual bool del(const KeyType& key) = 0;
+	virtual bool del(const KeyType& key){return false;}
 
 	virtual ~AccessMethod() {};
 };

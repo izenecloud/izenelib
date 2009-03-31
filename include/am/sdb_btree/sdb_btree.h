@@ -45,7 +45,7 @@ template<typename KeyType, typename ValueType=NullType, typename LockType=NullLo
 public:
 	typedef sdb_node<KeyType, ValueType, LockType, Alloc> sdb_node;
 	typedef DataType<KeyType,ValueType> DataType;
-	typedef std::pair<sdb_node*, size_t> NodeKeyLocn;
+	typedef std::pair<sdb_node*, size_t> SDBCursor;
 public:
 	/**
 	 * \brief constructor
@@ -195,7 +195,7 @@ public:
 	 *  \brief find an item given a key.
 	 */
 	ValueType* find(const KeyType& key) {
-		NodeKeyLocn locn;
+		SDBCursor locn;
 		if( search(key, locn) )
 		return &(locn.first->values[locn.second]);
 		return NULL;
@@ -232,12 +232,12 @@ public:
 	/**
 	 *  \brief get an item from given Locn.	 * 
 	 */
-	bool get(const NodeKeyLocn& locn, DataType& rec);
+	bool get(const SDBCursor& locn, DataType& rec);
 
 	/**
 	 *  \brief get an item from given Locn.	 * 
 	 */
-	bool get(const NodeKeyLocn& locn, KeyType& key, ValueType& value)
+	bool get(const SDBCursor& locn, KeyType& key, ValueType& value)
 	{
 		DataType dat;
 		bool ret =get(locn, dat);
@@ -251,9 +251,9 @@ public:
 	 *  \brief get the cursor of the first item.
 	 * 
 	 */
-	NodeKeyLocn get_first_locn()
+	SDBCursor get_first_locn()
 	{
-		NodeKeyLocn locn;
+		SDBCursor locn;
 		search(KeyType(), locn);
 		return locn;
 	}
@@ -265,7 +265,7 @@ public:
 	 *   and start with last element when sdir = ESD_BACKWARD
 	 */
 	bool
-	seq(NodeKeyLocn& locn, DataType& rec,
+	seq(SDBCursor& locn, DataType& rec,
 			ESeqDirection sdir = ESD_FORWARD);
 
 	/**
@@ -304,8 +304,10 @@ public:
 	/**
 	 *   for debug.  print the shape of the B tree.
 	 */
-	void display(std::ostream& os = std::cout) {
-		if(_root)_root->display(os);
+	void display(std::ostream& os = std::cout, bool onlyheader = true) {
+		_sfh.display(os);
+		os<<"activeNum: "<<sdb_node::activeNodeNum<<endl;
+		if(!onlyheader && _root)_root->display(os);
 	}
 
 	/**
@@ -313,8 +315,8 @@ public:
 	 *  \brief Get the DB cursor of given key
 	 *
 	 */
-	NodeKeyLocn search(const KeyType& key) {
-		NodeKeyLocn locn;
+	SDBCursor search(const KeyType& key) {
+		SDBCursor locn;
 		search(key, locn);
 		return locn;
 	}
@@ -325,7 +327,7 @@ public:
 	 *   @return true if key exists otherwise false. 
 	 * 
 	 */
-	bool search(const KeyType& key, NodeKeyLocn& locn);
+	bool search(const KeyType& key, SDBCursor& locn);
 private:
 	sdb_node* _root;
 	FILE* _dataFile;
@@ -339,7 +341,7 @@ private:
 	std::string _fileName; // name of the database file		
 private:
 
-	void _flushCache(bool quickFlush=true) {
+	void _flushCache(bool quickFlush=false) {
 		if( sdb_node::activeNodeNum> _sfh.cacheSize )
 		{
 			if( !quickFlush )
@@ -405,8 +407,8 @@ private:
 		newNode = new sdb_node;
 		newNode->isLoaded = true;
 		newNode->isDirty = true;
-		newNode->fpos = sizeof(CbFileHeader)+sizeof(size_t) + _sfh.pageSize
-		*CbFileHeader::nPages;
+		newNode->fpos = sizeof(CbFileHeader)+2*sizeof(size_t) + _sfh.pageSize
+		*(CbFileHeader::nPages+CbFileHeader::oPages);
 
 		//cout<<"allocate idx="<<CbFileHeader::nPages<<" "<<newNode->fpos;
 		CbFileHeader::nPages++;
@@ -424,16 +426,16 @@ private:
 	void _split3Leaf(sdb_node* parent, size_t childNum);
 	sdb_node* _merge(sdb_node* &parent, size_t objNo);
 
-	bool _seqNext(NodeKeyLocn& locn, DataType& rec);
-	bool _seqPrev(NodeKeyLocn& locn, DataType& rec);
+	bool _seqNext(SDBCursor& locn, DataType& rec);
+	bool _seqPrev(SDBCursor& locn, DataType& rec);
 	void _flush(sdb_node* node, FILE* f);
 	bool _delete(sdb_node* node, const KeyType& key);
 
 	// Finds the location of the predecessor of this key, given
 	// the root of the subtree to search. The predecessor is going
 	// to be the right-most object in the right-most leaf node.
-	NodeKeyLocn _findPred(sdb_node* node) {
-		NodeKeyLocn ret(NULL, (size_t)-1);
+	SDBCursor _findPred(sdb_node* node) {
+		SDBCursor ret(NULL, (size_t)-1);
 		sdb_node* child = node;
 		while (!child->isLeaf) {
 			child = child->loadChild(child->objCount, _dataFile);
@@ -446,8 +448,8 @@ private:
 	// Finds the location of the successor of this key, given
 	// the root of the subtree to search. The successor is the
 	// left-most object in the left-most leaf node.
-	NodeKeyLocn _findSucc(sdb_node* node) {
-		NodeKeyLocn ret(NULL, (size_t)-1);
+	SDBCursor _findSucc(sdb_node* node) {
+		SDBCursor ret(NULL, (size_t)-1);
 		sdb_node* child = node;
 		while (!child->isLeaf) {
 			child = child->loadChild(0, _dataFile);
@@ -486,7 +488,7 @@ template<typename KeyType, typename ValueType, typename LockType,
 
 template<typename KeyType, typename ValueType, typename LockType,
 		typename Alloc> bool sdb_btree< KeyType, ValueType, LockType, Alloc>::search(
-		const KeyType& key, NodeKeyLocn& locn) {
+		const KeyType& key, SDBCursor& locn) {
 	//do Flush, when cache is full
 	_flushCache();
 
@@ -996,7 +998,7 @@ template<typename KeyType, typename ValueType, typename LockType,
 				node->loadChild(op.first+1, _dataFile);
 				if (node->children[op.first]->objCount >= _minDegree) {
 					sdb_node* childNode = node->loadChild(op.first, _dataFile);
-					NodeKeyLocn locn = _findPred(childNode);
+					SDBCursor locn = _findPred(childNode);
 
 					node->keys[op.first] = locn.first->keys[locn.second];
 					node->values[op.first] = locn.first->values[locn.second];
@@ -1015,7 +1017,7 @@ template<typename KeyType, typename ValueType, typename LockType,
 				else if (node->children[op.first + 1]->objCount >= _minDegree) {
 					sdb_node* childNode = node->loadChild(op.first + 1,
 							_dataFile);
-					NodeKeyLocn locn = _findSucc(childNode);
+					SDBCursor locn = _findSucc(childNode);
 
 					node->keys[op.first] = locn.first->keys[locn.second];
 					node->values[op.first] = locn.first->values[locn.second];
@@ -1313,7 +1315,7 @@ template<typename KeyType, typename ValueType, typename LockType,
 // given its location.
 template<typename KeyType, typename ValueType, typename LockType,
 		typename Alloc> bool sdb_btree< KeyType, ValueType, LockType, Alloc>::get(
-		const NodeKeyLocn& locn, DataType& rec) {
+		const SDBCursor& locn, DataType& rec) {
 	if ((sdb_node*)locn.first == 0 || locn.second == (size_t)-1 || locn.second >=  locn.first->objCount) {
 		return false;
 	}	
@@ -1325,7 +1327,7 @@ template<typename KeyType, typename ValueType, typename LockType,
 template<typename KeyType, typename ValueType, typename LockType,
 		typename Alloc> bool sdb_btree< KeyType, ValueType, LockType, Alloc>::update(
 		const KeyType& key, const ValueType& value) {
-	NodeKeyLocn locn(NULL, (size_t)-1);
+	SDBCursor locn(NULL, (size_t)-1);
 	if (search(key, locn) ) {
 		locn.first->values[locn.second] = value;
 		locn.first->setDirty(true);
@@ -1341,7 +1343,7 @@ template<typename KeyType, typename ValueType, typename LockType,
 // The direction can be either forward or backward.
 template<typename KeyType, typename ValueType, typename LockType,
 		typename Alloc> bool sdb_btree< KeyType, ValueType, LockType, Alloc>::seq(
-		NodeKeyLocn& locn, DataType& rec, ESeqDirection sdir) {
+		SDBCursor& locn, DataType& rec, ESeqDirection sdir) {
 	if (_sfh.numItems <=0) {
 		return false;
 	}
@@ -1359,7 +1361,7 @@ template<typename KeyType, typename ValueType, typename LockType,
 // the subsequent item in rec.
 template<typename KeyType, typename ValueType, typename LockType,
 		typename Alloc> bool sdb_btree< KeyType, ValueType, LockType, Alloc>::_seqNext(
-		NodeKeyLocn& locn, DataType& rec) {
+		SDBCursor& locn, DataType& rec) {
 	// Set up a couple of convenience values
 	bool ret = false;
 	sdb_node* node = locn.first;
@@ -1438,7 +1440,7 @@ template<typename KeyType, typename ValueType, typename LockType,
 // the item in rec.
 template<typename KeyType, typename ValueType, typename LockType,
 		typename Alloc> bool sdb_btree< KeyType, ValueType, LockType, Alloc>::_seqPrev(
-		NodeKeyLocn& locn, DataType& rec) {
+		SDBCursor& locn, DataType& rec) {
 	// Set up a couple of convenience values
 
 	bool ret = false;
@@ -1528,8 +1530,7 @@ template<typename KeyType, typename ValueType, typename LockType,
 // allocated.
 template<typename KeyType, typename ValueType, typename LockType,
 		typename Alloc> void sdb_btree< KeyType, ValueType, LockType, Alloc>::flush() {
-
-	//_sfh.display();
+	
 	//write back the fileHead and dirtypage
 	commit();
 	// Unload each of the root's childrent. 

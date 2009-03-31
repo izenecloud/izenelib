@@ -126,6 +126,8 @@ template<typename T> void random_search_test(T& tb) {
 		string str = p;
 		v = tb.find(p);
 		if (v) {
+			delete v;
+			v = 0;
 			if (trace) {
 				cout<<str<<" found"<<endl;
 				tb.display();
@@ -133,6 +135,7 @@ template<typename T> void random_search_test(T& tb) {
 			c++;
 		} else
 			b++;
+
 	}
 	if (trace)
 		tb.display();
@@ -162,6 +165,8 @@ template<typename T> void search_test(T& tb) {
 		string str = p;
 		v = tb.find(str);
 		if (v) {
+			delete v;
+			v = 0;
 			if (trace) {
 				cout<<str<<" found"<<endl;
 				tb.display();
@@ -246,7 +251,7 @@ template<typename T> void seq_test(T& tb) {
 	clock_t start, finish;
 
 	start = clock();
-	SDB_HASH::NodeKeyLocn locn;
+	SDB_HASH::SDBCursor locn;
 	locn = tb.get_first_locn();
 	myDataType dat;
 	int a=0;

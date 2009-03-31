@@ -2,7 +2,6 @@
 #define SKIPNODE_H_
 
 #include "slf_types.h"
-#include "slf_util.h"
 #include "SlfHeader.h"
 
 NS_IZENELIB_AM_BEGIN

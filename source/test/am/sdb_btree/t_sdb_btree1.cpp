@@ -156,12 +156,12 @@ template<typename T> void seq_test(T& tb) {
 	KeyType key;
 	ValueType val;
 
-	SDB_HASH::NodeKeyLocn locn1 = tb.get_first_locn();
+	SDB_HASH::SDBCursor locn1 = tb.get_first_locn();
 	tb.get(locn1, key, val);
 	//cout<<"get_first_locn:  key="<<key<<endl;
 
 
-	SDB_HASH::NodeKeyLocn locn;
+	SDB_HASH::SDBCursor locn;
 	int a = 0;
 	while (tb.seq(locn, rec) ) {
 		tb.get(locn, key, val);
@@ -172,7 +172,7 @@ template<typename T> void seq_test(T& tb) {
 		}
 	}
 
-	SDB_HASH::NodeKeyLocn locn2;
+	SDB_HASH::SDBCursor locn2;
 	int b = 0;
 	while (tb.seq(locn2, rec, ESD_BACKWARD) ) {
 		tb.get(locn2, key, val);

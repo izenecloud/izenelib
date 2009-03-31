@@ -534,9 +534,9 @@ template<typename KeyType, typename ValueType, typename LockType,
 		//oveflow		
 		//cout<<"writing overflow!!!!"<<endl;
 		if (_overflowAddress <0 || _overflowPageCount < np-1) {
-			_overflowAddress = sizeof(CbFileHeader)+sizeof(size_t)+_pageSize
-					*CbFileHeader::nPages;			
-			CbFileHeader::nPages += (np-1);
+			_overflowAddress = sizeof(CbFileHeader)+2*sizeof(size_t)+_pageSize
+					*(CbFileHeader::nPages+CbFileHeader::oPages);			
+			CbFileHeader::oPages += (np-1);
 		}
 		_overflowPageCount = np-1;
 		memcpy(pBuf+ovfloff, &_overflowAddress, sizeof(long));
