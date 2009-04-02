@@ -3,6 +3,7 @@
 
 #include <boost/noncopyable.hpp>
 #include <boost/thread/shared_mutex.hpp>
+#include <types.h>
 
 NS_IZENELIB_UTIL_BEGIN
 

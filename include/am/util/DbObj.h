@@ -14,10 +14,14 @@
 #include <iostream>
 #include <boost/intrusive_ptr.hpp>
 
+#include <types.h>
 #include <util/RefCount.h>
+
 
 using namespace std;
 using namespace boost;
+
+using namespace izenelib::util;
 
 NS_IZENELIB_AM_BEGIN
 
@@ -193,6 +197,7 @@ typedef std::vector<DbObjPtr> DBOBJVECTOR;
 typedef std::list<DbObjPtr> DBOBJLIST;
 
 }//end of namespace util
-NS_IZENELIB_UTIL_END
+
+NS_IZENELIB_AM_END
 
 #endif /*DBOBJ_H_*/

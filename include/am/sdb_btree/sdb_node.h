@@ -197,7 +197,7 @@ public:
 			//os<<keys[i];
 			size_t pfos=0;
 			if( parent) pfos = parent->fpos;
-			os<<"("<<fpos<<" parent="<<pfos<<" childNo="<<childNo<<" objCount="<<objCount<<")"<<endl;
+			os<<"("<<fpos<<" parent="<<pfos<<" isLeaf="<<isLeaf<<" childNo="<<childNo<<" objCount="<<objCount<<")"<<endl;
 			//os<<"("<<isDirty<<" "<<parent<<" "<<this<<")";	
 			os<<endl;
 		}

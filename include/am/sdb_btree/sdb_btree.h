@@ -1300,6 +1300,7 @@ template<typename KeyType, typename ValueType, typename LockType,
 	// know where to look
 	if (_root->objCount == 0 && !_root->isLeaf) {
 		_root = _root->children[0];
+		_root->parent = 0;
 	}
 
 	// If our root is not empty, call the internal
@@ -1347,6 +1348,7 @@ template<typename KeyType, typename ValueType, typename LockType,
 	if (_sfh.numItems <=0) {
 		return false;
 	}
+	_root->parent = 0;
 	switch (sdir) {
 	case ESD_FORWARD:
 		return _seqNext(locn, rec);
@@ -1398,7 +1400,7 @@ template<typename KeyType, typename ValueType, typename LockType,
 			locn.second = lastPos + 1;
 			return true;
 		}
-		goUp = (lastPos == node->objCount - 1);
+		goUp = (lastPos == node->objCount - 1);	
 	}
 
 	// Not a leaf, therefore need to worry about traversing
@@ -1421,11 +1423,11 @@ template<typename KeyType, typename ValueType, typename LockType,
 	// a parent.
 	if (goUp) {		
 		size_t childNo = node->childNo;
-		node = node->parent;
+		node = node->parent;			
 		while ((sdb_node*)node != 0 && childNo >= node->objCount) {				
 			childNo = node->childNo;
-			node = node->parent;
-		}
+			node = node->parent;			
+		}	
 		if ((sdb_node*)node != 0) {		
 			locn.first = node;
 			locn.second = childNo;
