@@ -9,8 +9,8 @@
 #include <am/util/Wrapper.h>
 #include <am/util/SdbUtil.h>
 
-#include <boost/memory.hpp>
-#include <boost/static_assert.hpp>
+//#include <boost/memory.hpp>
+//#include <boost/static_assert.hpp>
 
 using namespace izenelib::am::util;
 

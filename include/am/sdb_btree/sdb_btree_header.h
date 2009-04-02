@@ -9,6 +9,7 @@
 #define SDB_BTREE_HEADER_H_
 
 #include <iostream>
+#include "../../types.h"
 
 using namespace std;
 
@@ -105,8 +106,6 @@ struct CbFileHeader {
 		}
 	};
 
-size_t CbFileHeader::nPages=0;
-size_t CbFileHeader::oPages=0;
 
 NS_IZENELIB_AM_END
 

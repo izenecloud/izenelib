@@ -6,7 +6,7 @@ include_directories (
 # This section build the libraries
 SET(CPP ProcMemInfo.cpp)
         
-SET(LIBRARY_OUTPUT_PATH ../../../../lib)
+SET(LIBRARY_OUTPUT_PATH ../../../lib)
 
 ADD_LIBRARY(ProcMemInfo_shared SHARED ${CPP})
 SET_TARGET_PROPERTIES(ProcMemInfo_shared PROPERTIES OUTPUT_NAME "ProcMemInfo")
