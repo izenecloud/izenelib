@@ -1,0 +1,60 @@
+
+/**
+*
+*	@mainpage About sf1lib
+*
+*	sf1lib is library for Search Formula 1 (SF1 v5.0), which includes many components such as cache components, DB components,
+*	 ... and so on. All testing files are in source directory.
+*
+*        Usage:
+*        Just input the command at directory source:
+*        
+*	./Make
+*         
+*       (Make sure ylib is at the some directory as sf1lib,and libylib.a is generated.)
+*       
+*       Then sf1lib.a and testing promgramms will be generated.
+*
+*       ===============================================================
+*
+*       Cache(MFCache and MCache)
+*	
+*       @htmlonly  <img src="Cache.jpg">  @endhtmlonly
+*
+* 
+*	Cache is a vital component of a search engine system. And only hash cache is concerned here. Most cache system resides in memory
+* 	and use list for storage of caching information to implement replacement algorithm.  However, this Cache(MFCache) would
+*	resides in both memory 	and file for scalability and  use RB-tree to store the caching information. 
+*	
+*	It is also a policy-based CacheManager in the form of C++ template class.  With RB-tree structure,  all kinds of 
+*	replacement algorithm can be easily implemented under replacement policy.  With storage policy, combination of 
+*	hashes(memory-based hash and file-based hash)can be used for storage of caching information. With Capacity policy, large 
+*	size of Cache can be applied. With Thread-safe policy,multi-thread or single thread application using this Cache Manager
+*       is available. Testing result shows that this Cache is also highly effective. 
+*
+*	When we only used memory-based hash for storage, the cache would be basical cache(MCache), which is MFCache with ratio = 1.0.   	
+*
+*       Testing program:
+*       
+*       t_MCache.cc, example for MCache.
+*       t_MFCache.cc, example for MFCache.
+*       t_ mfserialize.cc and t mserialize.cc, example for MCache  and MFCache serialization.
+* 
+*
+*
+*	CacheDB
+*
+*
+*	It is file-based data structure for storage. It is persistent in that it stores all the key-value pairs in file. Plus,
+*	it also caches(using MCache above) most of the items being used in memory such that  it provides fast lookup to most of the 
+*	retrieval calls. It has all the replacement policy, storage policy,and others. CacheDB can be usedas our base DB for key-value 
+*	pairs. There are many open source platforms like this, such as berkeley DB and gdbm. Our version is based on  Linear Hashtable
+*	and supports efficient caching explicitly (instead of relying on OS virtual memory/swapping system). It also support 
+*	multi-threads and locking/concurrency. 
+*       
+*       Testing program:
+*       t_CacheDB.cc.
+*	
+*
+*/
+
