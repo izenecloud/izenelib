@@ -142,8 +142,8 @@ public:
 
 private:
 
-	CacheExtHash<KeyType, CachedData, cccrHash, cccrHash> hash_; // Use hash for Storage
-	//CacheExtHash<KeyType, CachedData, linHash, linHash> hash_; // Use hash for Storage
+	//CacheExtHash<KeyType, CachedData, cccrHash, cccrHash> hash_; // Use hash for Storage
+	CacheExtHash<KeyType, CachedData, linHash, linHash> hash_; // Use hash for Storage
 	CacheInfoList cacheContainer_;
 	unsigned int cacheSize_; // Capacity of Cache	
 
