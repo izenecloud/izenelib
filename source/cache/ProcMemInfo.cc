@@ -1,6 +1,8 @@
 #include "ProcMemInfo.h"
 
-NS_IZENELIB_UTIL_BEGIN
+
+namespace izenelib{
+namespace cache{
 
 void ProcMemInfo::getProcMemInfo(unsigned long & virtualMem, unsigned long & realMem, unsigned long & procMaxMem)
     throw (ios_base::failure)
@@ -96,6 +98,5 @@ void ProcMemInfo::readProcStatus(
     sscanf(pBuf, "%lu %lu %lu", &virtualMem, &realMem, &procMaxMem);
 }
 
-
-
-NS_IZENELIB_UTIL_END
+}
+}

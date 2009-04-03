@@ -17,7 +17,11 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 
+#include "../types.h"
+
 using namespace std;
+
+NS_IZENELIB_UTIL_BEGIN
 
 /**
  * @brief ProcMemInfo reads the current process' memory usage status
@@ -105,4 +109,5 @@ private:
 
 };
 
+NS_IZENELIB_UTIL_END
 #endif

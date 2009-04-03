@@ -1,0 +1,14 @@
+*~
+\#*
+.\#*
+/*
+!/bin
+!/build
+!/lib
+!/conf
+!/lib
+!/docs
+!/source
+!/cmake
+!/include
+!/.gitignore
