@@ -235,6 +235,7 @@ template<typename T> void run_flush(T& cm) {
 		}
 	}
 	//cout<<"Memory usage: " <<cm.getMemSizeOfValue()<<" bytes"<<endl;
+	cout<< "MCache numItem = "<<cm.numItems()<<endl;
 	cout<<"eclipse:"<<time(0)- start<<endl;
 }
 

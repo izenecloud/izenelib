@@ -33,8 +33,6 @@ namespace cache{
  *	ThreadSafeLock          :   it can be NullLock or ReadWriteLock, which are defined in ylib/lock.h. If using NullLock, then 
  *				                No threa dsafe. 	 
  */
-
-//static ofstream loggerFile1("./mcache_logger");
 template <class KeyType, class ValueType, class Hash,
 		class ThreadSafeLock=NullLock> class MLRUCache {
 

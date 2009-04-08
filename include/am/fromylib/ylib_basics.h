@@ -24,11 +24,11 @@ using namespace izenelib::util;
 
 NS_IZENELIB_AM_BEGIN
 
-const int SEGMENT_SIZE = 2048;
-const int DIRECTORY_SIZE = 1024;
+const int IZENE_SEGMENT_SIZE = 2048;
+const int IZENE_DIRECTORY_SIZE = 1024;
 
-const double MIN_LOAD_FACTOR = 0.5;
-const double MAX_LOAD_FACTOR = 1; // the paper says up to 5 is fine.
+const double IZENE_MIN_LOAD_FACTOR = 0.5;
+const double IZENE_MAX_LOAD_FACTOR = 1; // the paper says up to 5 is fine.
 
 NS_IZENELIB_AM_END
 

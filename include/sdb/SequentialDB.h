@@ -11,7 +11,10 @@
 
 #include <am/sdb_hash/sdb_hash.h>
 #include <am/sdb_btree/sdb_btree.h>
-#include <am/tokyo_cabinet/tc_hash.h>
+
+#ifdef EXTERNAL_TOKYO_CABINET
+	#include <am/tokyo_cabinet/tc_hash.h>
+#endif
 //#include <am/btree/BTreeFile.h>
 
 using namespace izenelib::am;
