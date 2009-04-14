@@ -28,25 +28,6 @@ namespace util {
 
 	const size_t BLOCK_SIZE = 16;
 
-	inline int uint_to_bytes(unsigned int val, char* dest) {
-		unsigned int i;
-		for(i = 0; i < sizeof(int); i++) {
-			dest[i] = (char)((val) & 0xFF);
-			val >>= 8;
-			if( val == 0)
-			break;
-		}
-		return i;
-	}
-
-	inline unsigned int bytes_to_uint(int len, char * vals) {
-		int dest = 0;
-		for(int i = 0; i < len; i++) {
-			dest = (dest << 8) | (vals[sizeof(int) - i - 1] & 0xFF);
-		}
-		return dest;
-	}
-
 }
 
 NS_IZENELIB_AM_END

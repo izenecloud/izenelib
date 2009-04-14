@@ -218,16 +218,35 @@ public:
 	}
 };
 
-//added by wps
-template<typename KeyType> inline ub4 sdb_hashing(const KeyType& key) 
-{
+template<typename KeyType> inline ub4 sdb_hashing(const KeyType& key) {
 	using namespace izenelib::am::util;
-	
+
 	DbObjPtr ptr(new DbObj);
 	write_image(key, ptr);
 	uint32_t convkey = 0;
 	const char* str = (const char*)ptr->getData();
 	for (size_t i = 0; i < ptr->getSize(); i++)
+		convkey = 37*convkey + (uint8_t)*str++;
+	return convkey;
+}
+
+template<class T> struct HashFunctor {
+	size_t operator()(const T& key) const {
+		using namespace izenelib::am::util;
+		DbObjPtr ptr(new DbObj);
+		write_image(key, ptr);
+		uint32_t convkey = 0;
+		const char* str = (const char*)ptr->getData();
+		for (size_t i = 0; i < ptr->getSize(); i++)
+			convkey = 37*convkey + (uint8_t)*str++;
+		return convkey;
+	}
+};
+
+inline uint32_t sdb_hash_fun(const void* kbuf, const size_t ksize) {
+	uint32_t convkey = 0;
+	const char* str = (const char*)kbuf;
+	for (size_t i = 0; i < ksize; i++)
 		convkey = 37*convkey + (uint8_t)*str++;
 	return convkey;
 }
