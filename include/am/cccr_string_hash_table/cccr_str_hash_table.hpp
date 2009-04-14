@@ -602,7 +602,9 @@ public:
       
       *((uint64_t*)(pBkt+p)) = (uint64_t)-1;
 
-      count_ --;
+      if (count_>0)
+        count_ --;
+      
       return true;
     }
 

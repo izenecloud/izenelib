@@ -109,12 +109,12 @@ BOOST_AUTO_TEST_CASE(CCCR_for_numeric_check)
 
     
   clock_t start, finish;
-  izenelib::am::CCCR_StrHashTable<uint64_t, uint64_t, 10000, numeric_hash> tb;
+  izenelib::am::CCCR_StrHashTable<uint64_t, string, 10000, numeric_hash> tb;
   
   start = clock();
   for (size_t i=0; i<v.size(); i++)
   {
-    tb.insert(v[i], v[i]/10);
+    tb.insert(v[i], "dddf");
   }
   finish = clock();
   printf( "\nIt takes %f seconds to insert %d random data!\n", (double)(finish - start) / CLOCKS_PER_SEC, v.size());
@@ -126,7 +126,7 @@ BOOST_AUTO_TEST_CASE(CCCR_for_numeric_check)
   start = clock();
   for (size_t i=0; i<v.size(); i++)
   {
-    if(*tb.find(v[i])!= v[i]/10)
+    if(*tb1.find(v[i])!= v[i]/10)
     {
       cout<<"ERORR:can't find "<<v[i]<<endl;
       break;

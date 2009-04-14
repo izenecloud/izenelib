@@ -5,6 +5,7 @@
 #include <util/log.h>
 #include <math.h>
 #include <iostream>
+#include <fstream>
 #include <string>
 #include <vector>
 #include <boost/archive/text_iarchive.hpp>
@@ -102,7 +103,7 @@ class DynamicPerfectHash : public AccessMethod<KeyType, ValueType>
 
     subtable_cell()
     {
-      data_ = 0;
+      //data_ = 0;
       valueIndex_ = -1;
     }
 
@@ -326,7 +327,7 @@ public:
     
     uint64_t sub_j = hashFunc(pMainT_[j].k_, pMainT_[j].u_, pMainT_[j].p_, pMainT_[j].s_, x);
     
-    if (pMainT_[j].pSub_!=NULL && pMainT_[j].pSub_[sub_j].data_==x && pMainT_[j].pSub_[sub_j].valueIndex_!= -1)
+    if (pMainT_[j].pSub_!=NULL && pMainT_[j].pSub_[sub_j].data_==x && pMainT_[j].pSub_[sub_j].valueIndex_!=(uint64_t) -1)
       return &(dataVec_[pMainT_[j].pSub_[sub_j].valueIndex_]);
 
     return NULL;
@@ -665,9 +666,25 @@ protected:
     return sum_s_<= (32*M_*M_/mainT_size_ + 4*M_);
   }
   
-  uint64_t hashFunc(uint64_t a,uint64_t b, uint64_t p, uint64_t s, const KeyType& x)
+  uint64_t hashFunc(uint64_t a,uint64_t b, uint64_t p, uint64_t s, const uint64_t& x)
   {
     return ((a*x+b)%p)%s;
+  }
+
+  uint64_t hashFunc(uint64_t a,uint64_t b, uint64_t p, uint64_t s, const uint32_t& x)
+  {
+    return ((a*x+b)%p)%s;
+  }
+
+  uint64_t hashFunc(uint64_t a,uint64_t b, uint64_t p, uint64_t s, const string& x)
+  {
+    
+    uint32_t convkey = 0;
+    const char* str = (const char*)x.c_str();
+    for (size_t i = 0; i < x.size(); i++)
+      convkey = 37*convkey + *str++;
+
+    return ((a*convkey+b)%p)%s;
   }
 
   void adjustSubTable(uint64_t idx, const subtable_cell& x = subtable_cell(0,-1))

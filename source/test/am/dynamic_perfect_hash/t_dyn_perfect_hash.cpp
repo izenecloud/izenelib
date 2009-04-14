@@ -25,7 +25,7 @@
 ///     -# Check size, buffer size, and its length. Clear string data and re-check its information including empty().\n\n
 /// \n
 /// -# Tested all the interfaces by using correct and incorrect test sets.
-#include <util/log.h>
+//#include <util/log.h>
 #include <am/dynamic_perfect_hash/dynamic_perfect_hash.hpp>
 #include <string>
 #include <time.h>
@@ -35,7 +35,7 @@
 #include <fstream>
 #include <iostream>
 
-USING_IZENE_LOG();
+//USING_IZENE_LOG();
 
 BOOST_AUTO_TEST_SUITE( t_dyn_perfect_hash_suite )
 
@@ -103,6 +103,8 @@ BOOST_AUTO_TEST_CASE(dp_hash_insertion_check )
   {
     v.push_back(rand());
   }
+
+  DynamicPerfectHash<string, uint32_t> dpp;
   
   DynamicPerfectHash<> dp;
   
