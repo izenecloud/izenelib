@@ -94,7 +94,7 @@ void readDict(const string& dict, vector<string>& v)
   
 }
 
-BOOST_AUTO_TEST_CASE(dp_hash_insertion_check )
+BOOST_AUTO_TEST_CASE(dp_hash_numeric_insertion_check )
 {
   #define SIZE 1000000
   
@@ -103,7 +103,7 @@ BOOST_AUTO_TEST_CASE(dp_hash_insertion_check )
   {
     v.push_back(rand());
   }
-  
+  DynamicPerfectHash<string, string> dpp;
   DynamicPerfectHash<> dp;
   
   clock_t start, finish;
@@ -134,7 +134,7 @@ BOOST_AUTO_TEST_CASE(dp_hash_insertion_check )
     
   }
   finish = clock();
-  printf( "\nIt takes %f seconds to insert %d random data!\n", (double)(finish - start) / CLOCKS_PER_SEC, v.size());
+  printf( "\nIt takes %f seconds to self-query %d random data!\n", (double)(finish - start) / CLOCKS_PER_SEC, v.size());
   
   dd.update(v[1002], v[1002]/3);
   if (*dd.find(v[1002])==v[1002]/3)
@@ -148,8 +148,58 @@ BOOST_AUTO_TEST_CASE(dp_hash_insertion_check )
   
 }
 
+BOOST_AUTO_TEST_CASE(dp_hash_string_insertion_check )
+{
+  vector<string> vstr;
+  readDict("./input", vstr);
+  
+  DynamicPerfectHash<string, int> dp;
+  
+  clock_t start, finish;
+    
+  start = clock();
+  for (size_t i=0; i<vstr.size(); i++)
+  {
+    dp.insert(vstr[i], i);
+  }
+  finish = clock();
+  printf( "\nIt takes %f seconds to insert %d random data!\n", (double)(finish - start) / CLOCKS_PER_SEC, vstr.size());
+  
+  cout<<dp.save("./data.k", "./data.v")<<" saved!\n";
+
+  //cout<<dp;
+  
+  DynamicPerfectHash<string, int> dd;
+  cout<<dd.load("./data.k", "./data.v")<<" loaded!\n";;
+  //cout<<dd;
+  start = clock();
+  for (size_t i=0; i<vstr.size(); i++)
+  {
+    if(*dp.find(vstr[i])!= i)
+    {
+      cout<<"ERORR:can't find "<<vstr[i]<<endl;
+      break;
+    }
+    
+  }
+  finish = clock();
+  printf( "\nIt takes %f seconds to self-query %d random data!\n", (double)(finish - start) / CLOCKS_PER_SEC, vstr.size());
+  
+  dd.update(vstr[1002], 99);
+  if (*dd.find(vstr[1002])== 99)
+    cout<<"Good!";
+  
+  cout<<dd.del(vstr[1002])<<endl;
+  //cout<<*dd.find(v[1002])<<endl;
+  
+  if (dd.find(vstr[1002])==NULL)
+    cout<<"Good!";
+  
+}
+
 // BOOST_AUTO_TEST_CASE(LHT_insertion_check )
 // {
+
 //   vector<string> vstr;
 //   readDict("./input", vstr);
 

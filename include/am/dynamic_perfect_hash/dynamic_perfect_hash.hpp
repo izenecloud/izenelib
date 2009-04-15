@@ -98,16 +98,16 @@ class DynamicPerfectHash : public AccessMethod<KeyType, ValueType>
   class subtable_cell
   {
   public:
-    KeyType data_;
+    uint64_t data_;
     uint64_t valueIndex_;
 
     subtable_cell()
     {
-      //data_ = 0;
+      data_ = 0;
       valueIndex_ = -1;
     }
 
-    subtable_cell(const KeyType& data, uint64_t valueIdx)
+    subtable_cell(uint64_t data, uint64_t valueIdx)
     {
       data_ = data;
       valueIndex_ = valueIdx;
@@ -192,10 +192,8 @@ public:
   
   virtual bool insert(const DataType<KeyType,ValueType>& data)
   {
-    KeyType x = data.key;
-    //clock_t start, finish;
-    //    start = clock();
-    //cout<<"inserting: "<<x<<"  "<<count_<<"  "<<update_count_<<endl;
+    uint64_t x = str_hash(data.key);
+
     uint64_t valueIdx = dataVec_.size();
     dataVec_.push_back(data.value);
     
@@ -271,8 +269,10 @@ public:
     }
   }
 
-  virtual bool del(const KeyType& x)
+  virtual bool del(const KeyType& k)
   {
+    uint64_t x = str_hash(k);
+    
     update_count_++;
     uint64_t j = hashFunc(main_k_, main_u_,main_p_, mainT_size_, x);
     if (pMainT_[j].pSub_ ==NULL)
@@ -299,7 +299,7 @@ public:
   using AccessMethod<KeyType, ValueType>::update;//bool update(const KeyType& x, const ValueType& data)
   virtual bool update(const DataType<KeyType,ValueType>& data)
   {
-    KeyType x = data.key;
+    uint64_t x = str_hash(data.key);
     
     uint64_t j = hashFunc(main_k_, main_u_,main_p_, mainT_size_, x);
     
@@ -318,8 +318,9 @@ public:
     return false;
   }
 
-  virtual ValueType* find(const KeyType& x)
+  virtual ValueType* find(const KeyType& k)
   {
+    uint64_t x = str_hash(k);
     uint64_t j = hashFunc(main_k_, main_u_,main_p_, mainT_size_, x);
 
     if (pMainT_[j].pSub_ ==NULL || pMainT_[j].b_ == 0)
@@ -511,11 +512,8 @@ protected:
   /**
    *RehashAll(x) is either called by insert(x) or del(x), and then x=-1. rehashAll(x) build a new table for all elements currently in table.
    **/
-  bool rehashAll(const KeyType& x, uint64_t valueIdx)
+  bool rehashAll(uint64_t x, uint64_t valueIdx)
   {
-    //  clock_t start, finish;
-    //    start = clock();
-    //Go through the whole table T, put all elements not tagged 'deleted' into list L, count them, and mark all positions in T 'empty'.
     subtable_cell* L = NULL;
     uint64_t idx = 0;
 
@@ -665,26 +663,25 @@ protected:
     
     return sum_s_<= (32*M_*M_/mainT_size_ + 4*M_);
   }
-  
-  uint64_t hashFunc(uint64_t a,uint64_t b, uint64_t p, uint64_t s, const uint64_t& x)
-  {
-    return ((a*x+b)%p)%s;
-  }
 
-  uint64_t hashFunc(uint64_t a,uint64_t b, uint64_t p, uint64_t s, const uint32_t& x)
+  uint64_t str_hash(const string& x)
   {
-    return ((a*x+b)%p)%s;
-  }
-
-  uint64_t hashFunc(uint64_t a,uint64_t b, uint64_t p, uint64_t s, const string& x)
-  {
-    
     uint32_t convkey = 0;
     const char* str = (const char*)x.c_str();
     for (size_t i = 0; i < x.size(); i++)
       convkey = 37*convkey + *str++;
 
-    return ((a*convkey+b)%p)%s;
+    return convkey;
+  }
+
+  uint64_t str_hash(uint64_t x)
+  {
+    return x;
+  }
+  
+  uint64_t hashFunc(uint64_t a,uint64_t b, uint64_t p, uint64_t s, const uint64_t& x)
+  {
+    return ((a*x+b)%p)%s;
   }
 
   void adjustSubTable(uint64_t idx, const subtable_cell& x = subtable_cell(0,-1))
