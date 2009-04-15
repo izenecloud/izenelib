@@ -412,7 +412,9 @@ class CCCR_StrHashTable<string, ValueType,ENTRY_SIZE, HASH_FUNCTION, EXPAND> :pu
 #define INIT_BUCKET_SIZE 64
 
   typedef CCCR_StrHashTable<string, ValueType, ENTRY_SIZE, HASH_FUNCTION,EXPAND> SelfType;
-  
+
+  typedef boost::archive::binary_iarchive iarchive;
+  typedef boost::archive::binary_oarchive oarchive;
 public:
   CCCR_StrHashTable()
   {
