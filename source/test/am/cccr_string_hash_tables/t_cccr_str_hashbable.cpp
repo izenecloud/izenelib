@@ -39,7 +39,7 @@
 #include <fstream>
 #include <iostream>
 
-  USING_IZENE_LOG();
+USING_IZENE_LOG();
 
 BOOST_AUTO_TEST_SUITE( t_cccr_str_hashtable_suite )
 
@@ -109,19 +109,19 @@ BOOST_AUTO_TEST_CASE(CCCR_for_numeric_check)
 
     
   clock_t start, finish;
-  izenelib::am::CCCR_StrHashTable<uint64_t, string, 10000, numeric_hash> tb;
+  izenelib::am::CCCR_StrHashTable<uint64_t, uint64_t, 131072, numeric_hash> tb;
   
   start = clock();
   for (size_t i=0; i<v.size(); i++)
   {
-    tb.insert(v[i], "dddf");
+    tb.insert(v[i], v[i]/10);
   }
   finish = clock();
   printf( "\nIt takes %f seconds to insert %d random data!\n", (double)(finish - start) / CLOCKS_PER_SEC, v.size());
   tb.save("./data1.k", "./data1.v");
 
   
-  izenelib::am::CCCR_StrHashTable<uint64_t, uint64_t,10000, numeric_hash> tb1;
+  izenelib::am::CCCR_StrHashTable<uint64_t, uint64_t, 131072, numeric_hash> tb1;
   tb1.load("./data1.k", "./data1.v");
   start = clock();
   for (size_t i=0; i<v.size(); i++)
@@ -134,7 +134,7 @@ BOOST_AUTO_TEST_CASE(CCCR_for_numeric_check)
     
   }
   finish = clock();
-  printf( "\nIt takes %f seconds to insert %d random data!\n", (double)(finish - start) / CLOCKS_PER_SEC, v.size());
+  printf( "\nIt takes %f seconds to self-query %d random data!\n", (double)(finish - start) / CLOCKS_PER_SEC, v.size());
 
   tb1.update(v[3000], v[3000]/3);
   if (*tb1.find(v[3000]) == v[3000]/3)
@@ -163,13 +163,13 @@ BOOST_AUTO_TEST_CASE(CCCR_insertion_check )
   finish = clock();
   printf( "\nIt takes %f seconds to insert 1000000 random data!\n", (double)(finish - start) / CLOCKS_PER_SEC);
   //tb.del(vstr[180]);
-  
-  cout<<tb.save("./data.k", "./data.v")<<endl;
+  //cout<<*tb.find(vstr[0])<<endl;
+  tb.save("./data.k", "./data.v");
   
   //cout<<tb;
   
   izenelib::am::CCCR_StrHashTable<> tb1;
-  cout<<tb1.load("./data.k", "./data.v")<<endl;
+  tb1.load("./data.k", "./data.v");
   start = clock();
   j=0;
   for (size_t i=0; i<vstr.size(); i++, j++)
@@ -179,19 +179,17 @@ BOOST_AUTO_TEST_CASE(CCCR_insertion_check )
       cout<<"Error! "<<i<<"  "<<vstr[i]<<"=>"<<*tb1.find(vstr[i])<<endl;
       break;
     }
-    
   }
   finish = clock();
   printf( "\nIt takes %f seconds to self-query %d random data!\n", (double)(finish - start) / CLOCKS_PER_SEC, vstr.size());
-
   
-  tb1.update(vstr[3000], 3000);
-  if (*tb1.find(vstr[3000]) == 3000)
-    cout<<"good!\n";
+//   tb1.update(vstr[3000], 3000);
+//   if (*tb1.find(vstr[3000]) == 3000)
+//     cout<<"good!\n";
 
-  tb1.del(vstr[3000]);
-  if (tb1.find(vstr[3000])==NULL)
-    cout<<"good!\n";
+//   tb1.del(vstr[3000]);
+//   if (tb1.find(vstr[3000])==NULL)
+//     cout<<"good!\n";
   
   //cout<<endl<<"pan--->"<<tb.find(vstr[70])<<endl;
   

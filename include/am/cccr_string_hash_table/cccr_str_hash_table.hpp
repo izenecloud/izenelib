@@ -6,8 +6,8 @@
 #include <types.h>
 #include <util/log.h>
 #include <cstdio>
-#include <boost/archive/text_iarchive.hpp>
-#include <boost/archive/text_oarchive.hpp>
+#include <boost/archive/binary_iarchive.hpp>
+#include <boost/archive/binary_oarchive.hpp>
 #include <am/am.h>
 
 #define PAGE_EXPANDING 1
@@ -15,8 +15,8 @@
 
 using namespace std;
 
-typedef boost::archive::text_iarchive iarchive;
-typedef boost::archive::text_oarchive oarchive;
+typedef boost::archive::binary_iarchive iarchive;
+typedef boost::archive::binary_oarchive oarchive;
 
 class simple_hash
 {
@@ -107,7 +107,7 @@ public:
     uint64_t value = dataVec_.size();
     dataVec_.push_back(v);
     
-    uint32_t idx = HASH_FUNCTION::getValue(key)%ENTRY_SIZE;
+    uint32_t idx = HASH_FUNCTION::getValue(key) % ENTRY_SIZE;
     char* pBkt = entry_[idx];
     
     if (pBkt == NULL)
@@ -171,7 +171,7 @@ public:
   
   ValueType* find(const KeyType & key)
   {
-    uint32_t idx = HASH_FUNCTION::getValue(key)%ENTRY_SIZE;
+    uint32_t idx = HASH_FUNCTION::getValue(key) %ENTRY_SIZE;
     char* pBkt = entry_[idx];
     
     if (pBkt == NULL)
@@ -524,7 +524,7 @@ public:
     
     uint32_t content_len = *((uint32_t*)(pBkt)+1);
     
-    uint32_t p = sizeof(uint32_t)*2;;
+    uint32_t p = sizeof(uint32_t)*2;
     while (p < content_len)
     {
       size_t len = *((size_t*)(pBkt+p));
@@ -552,8 +552,7 @@ public:
       if (*((uint64_t*)(pBkt+p))!=(uint64_t)-1)
         return &(dataVec_[*((uint64_t*)(pBkt+p))]);
       else
-        return NULL;
-      
+        return NULL;    
     }
 
     return NULL;
@@ -733,6 +732,7 @@ friend ostream& operator << ( ostream& os, const SelfType& node)
     
     ofstream of(valueFilename.c_str());
     oarchive oa(of);
+    
     size_t size = dataVec_.size();
     oa << size;
     
@@ -778,9 +778,11 @@ friend ostream& operator << ( ostream& os, const SelfType& node)
     
     ifstream ifs(valueFilename.c_str());
     iarchive ia(ifs);
+    
     size_t size;
     ia>>size;
-
+    //dataVec_.resize(size);
+    
     for (size_t i =0; i<size; i++)
     {
       ValueType v;

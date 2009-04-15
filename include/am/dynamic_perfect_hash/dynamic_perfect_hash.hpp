@@ -27,7 +27,7 @@ NS_IZENELIB_AM_BEGIN
 template<
   class KeyType = uint32_t,
   class ValueType = uint32_t,//string,
-  uint32_t c = 250000,
+  uint32_t c = 2500000,
   uint32_t SM_O = 1
   >
 class DynamicPerfectHash : public AccessMethod<KeyType, ValueType>

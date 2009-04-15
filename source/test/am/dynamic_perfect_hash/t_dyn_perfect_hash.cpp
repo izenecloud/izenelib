@@ -103,8 +103,6 @@ BOOST_AUTO_TEST_CASE(dp_hash_insertion_check )
   {
     v.push_back(rand());
   }
-
-  DynamicPerfectHash<string, uint32_t> dpp;
   
   DynamicPerfectHash<> dp;
   
