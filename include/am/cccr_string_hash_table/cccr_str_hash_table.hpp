@@ -15,9 +15,6 @@
 
 using namespace std;
 
-typedef boost::archive::binary_iarchive iarchive;
-typedef boost::archive::binary_oarchive oarchive;
-
 class simple_hash
 {
 public:
@@ -76,6 +73,9 @@ class CCCR_StrHashTable :public AccessMethod<KeyType, ValueType>
 #define INIT_BUCKET_SIZE 64
 
   typedef CCCR_StrHashTable<KeyType, ValueType,ENTRY_SIZE, HASH_FUNCTION,EXPAND> SelfType;
+
+  typedef boost::archive::binary_iarchive iarchive;
+  typedef boost::archive::binary_oarchive oarchive;
   
 public:
   CCCR_StrHashTable()

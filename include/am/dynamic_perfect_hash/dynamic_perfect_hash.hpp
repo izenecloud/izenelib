@@ -13,9 +13,6 @@
 #include <time.h>
 #include <am/am.h>
 
-typedef boost::archive::text_iarchive iarchive;
-typedef boost::archive::text_oarchive oarchive;
-
 using namespace std;
 
 NS_IZENELIB_AM_BEGIN
@@ -32,6 +29,9 @@ template<
   >
 class DynamicPerfectHash : public AccessMethod<KeyType, ValueType>
 {
+  typedef boost::archive::text_iarchive iarchive;
+  typedef boost::archive::text_oarchive oarchive;
+  
   typedef DynamicPerfectHash<KeyType, ValueType, c, SM_O> SelfType;
   
   class subtable_cell;
