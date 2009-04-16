@@ -171,7 +171,13 @@ public:
   {
     return mainT_size_;
   }
+
   
+  int num_items() const 
+  {
+    return count_;
+  }
+
   //  void print_time()
   // {
 //     cout<<"Adjusting subtable takes "<<(double)adjust_time_ / CLOCKS_PER_SEC<<" seconds!\n";

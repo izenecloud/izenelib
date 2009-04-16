@@ -5,6 +5,7 @@
 #include <iostream>
 #include <types.h>
 #include <util/log.h>
+#include <util/hashFunction.h>
 #include <cstdio>
 #include <boost/archive/binary_iarchive.hpp>
 #include <boost/archive/binary_oarchive.hpp>
@@ -20,12 +21,7 @@ class simple_hash
 public:
   static uint32_t getValue(const string& key)
   {
-    uint32_t convkey = 0;
-    const char* str = (const char*)key.c_str();
-    for (size_t i = 0; i < key.size(); i++)
-      convkey = 37*convkey + *str++;
-
-    return convkey;
+    return izenelib::util::sdb_hash_fun(key.c_str(),key.length());
   }
   
 }
@@ -36,11 +32,14 @@ class numeric_hash
 public:
   static uint32_t getValue(const unsigned int& key)
   {
-    uint32_t k = 12;
-    uint32_t u = 99;
-    uint32_t p = 1000000;
+    return key;
+    
+//     uint32_t k = 12;
+//     uint32_t u = 99;
+//     uint32_t p = 1000000;
 
-    return (k*key+u)%p;
+//     return (k*key+u)%p;
+    
   }
   
 }
@@ -98,11 +97,17 @@ public:
 
   
   //bool insert(const KeyType& key, const ValueType& v)
-  using AccessMethod<KeyType, ValueType>::insert;
-  virtual bool insert(const DataType<KeyType,ValueType>& data)
+  //using AccessMethod<KeyType, ValueType>::insert;
+  //virtual bool insert(const DataType<KeyType,ValueType>& data)
+  bool insert(const DataType<KeyType,ValueType>& data)
   {
-    KeyType key = data.key;
-    ValueType v = data.value;
+    return insert(data.get_key(), data.get_value());
+  }
+  
+  bool insert(const KeyType& key, const ValueType& v)
+  {
+    //KeyType key = data.key;
+    //ValueType v = data.value;
     
     uint64_t value = dataVec_.size();
     dataVec_.push_back(v);
@@ -113,7 +118,7 @@ public:
     if (pBkt == NULL)
     {
       entry_[idx] = pBkt = new char[INIT_BUCKET_SIZE];
-      *(uint32_t*)(pBkt) = 64;//bucket size
+      *(uint32_t*)(pBkt) = INIT_BUCKET_SIZE;//bucket size
       *((uint32_t*)(pBkt)+1) = 2*sizeof(uint32_t);//how much size of bucket has been taken?
     }
     else
@@ -227,11 +232,16 @@ public:
   }
 
   //bool update(const KeyType& key, const ValueType& v)
-  using AccessMethod<KeyType, ValueType>::update;
-  virtual bool update(const DataType<KeyType,ValueType>& data)
+  //using AccessMethod<KeyType, ValueType>::update;
+  bool update(const DataType<KeyType,ValueType>& data)
   {
-    KeyType key = data.key;
-    ValueType v = data.value;
+    return update(data.get_key(), data.get_value());
+  }
+  
+  bool update(const KeyType& key, const ValueType& v)
+  {
+//     KeyType key = data.key;
+//     ValueType v = data.value;
     
     uint64_t value = dataVec_.size();
     dataVec_.push_back(v);
@@ -401,6 +411,7 @@ protected:
   ;
 
 ////////////////////////////////// For std::string key ///////////////////////////////////////////
+
 template<
   class ValueType ,
   class HASH_FUNCTION,
@@ -435,33 +446,40 @@ public:
     }
   }
 
-  using AccessMethod<string, ValueType>::insert;
-  virtual bool insert(const DataType<string,ValueType>& data)
+  //using AccessMethod<string, ValueType>::insert;
+  //bool insert(const DataType<string,ValueType>& data)
+  
+  bool insert(const DataType<string,ValueType>& data)
   {
-    string str = data.key;
-    ValueType v = data.value;
+    return insert(data.get_key(), data.get_value());
+  }
 
+  bool insert(const string& str, const ValueType& v)
+  {
+    size_t ksize = str.length();
+
+    uint32_t idx = HASH_FUNCTION::getValue(str)%ENTRY_SIZE;
+      
     uint64_t value = dataVec_.size();
     dataVec_.push_back(v);
     
-    uint32_t idx = HASH_FUNCTION::getValue(str)%ENTRY_SIZE;
     char* pBkt = entry_[idx];
     
     if (pBkt == NULL)
     {
       entry_[idx] = pBkt = new char[INIT_BUCKET_SIZE];
-      *(uint32_t*)(pBkt) = 64;
+      *(uint32_t*)(pBkt) = INIT_BUCKET_SIZE;
       *((uint32_t*)(pBkt)+1) = 2*sizeof(uint32_t);
     }
     else
     {//does it exist?
       uint32_t content_len = *((uint32_t*)pBkt+1);
-      uint32_t p = sizeof(uint32_t)*2;;
+      uint32_t p = sizeof(uint32_t)*2;
       while (p < content_len)
       {
         size_t len = *((size_t*)(pBkt+p));
 
-        if (len != str.length())
+        if (len != ksize)
         {
           p += sizeof (size_t) + len + sizeof(uint64_t);
           continue;
@@ -489,9 +507,9 @@ public:
     uint32_t bs =  *(uint32_t*)(pBkt);
     uint32_t content_len = *((uint32_t*)pBkt+1);
 
-    if (bs-content_len<str.length()+sizeof(size_t)+sizeof(uint64_t))
+    if (bs-content_len<ksize+sizeof(size_t)+sizeof(uint64_t))
     {
-      bs += EXPAND==PAGE_EXPANDING? INIT_BUCKET_SIZE: str.length()+sizeof(size_t)+sizeof(uint64_t);
+      bs += EXPAND==PAGE_EXPANDING? INIT_BUCKET_SIZE: ksize+sizeof(size_t)+sizeof(uint64_t);
       //content_len += str.length()+sizeof(uint32_t);
       pBkt = new char[bs];
       memcpy(pBkt, entry_[idx],  *(uint32_t*)(entry_[idx]) );
@@ -499,9 +517,9 @@ public:
       entry_[idx] = pBkt;
     }
 
-    *((size_t*)(pBkt+content_len)) = str.length();
+    *((size_t*)(pBkt+content_len)) = ksize;
     content_len += sizeof(size_t);
-    memcpy(pBkt+content_len, str.c_str(), str.length());
+    memcpy(pBkt+content_len, str.c_str(), ksize);
     content_len += str.length();
     *((uint64_t*)(pBkt+content_len)) = value;
     content_len += sizeof(uint64_t);
@@ -612,12 +630,16 @@ public:
     return false;
   }
 
-  using AccessMethod<string, ValueType>::update;
-  
-  virtual bool update(const DataType<string,ValueType>& data)
+  //using AccessMethod<string, ValueType>::update;
+  bool update(const DataType<string,ValueType>& data)
   {
-    string str = data.key;
-    ValueType v = data.value;
+    return update(data.get_key(), data.get_value());
+  }
+  
+  bool update(const string& str, const ValueType & v)
+  {
+//     string str = data.key;
+//     ValueType v = data.value;
 
     uint32_t idx = HASH_FUNCTION::getValue(str)%ENTRY_SIZE;
     char* pBkt = entry_[idx];
