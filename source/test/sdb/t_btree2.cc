@@ -13,7 +13,7 @@ static int degree = 2;
 static size_t cacheSize = 1000000;
 static size_t pageSize = 1024;
 
-typedef SequentialDB<Key, Value, NullLock> SDB;
+typedef SequentialDB<Key, Value, ReadWriteLock> SDB;
 
 
 bool trace = 0;
@@ -101,7 +101,7 @@ template<typename T> void run_insert(T& cm) {
 			cout<<"\nnumItem: "<<cm.numItems()<<endl;
 		}
 	}
-	cm.flush();
+	cm.commit();
 	printf("eclipse: %lf seconds\n", double(clock()- t1)/CLOCKS_PER_SEC);
 	//printf("eclipse: %ld seconds\n", time(0)- start);
 	cout<<"\nnumItem: "<<cm.numItems()<<endl;

@@ -277,7 +277,7 @@ template <typename KeyType, typename ValueType, typename LockType> int LinearHas
 		KeyType, ValueType, LockType>::hash(const KeyType& key) const {
 	int h, address;
 
-	h = izenelib::util::HashFunction<KeyType>::convert_key(key) % HashFunction<KeyType>::PRIME;
+	h = izenelib::util::sdb_hashing<KeyType>(key) % HashFunction<KeyType>::PRIME;
 	address = h % maxp;
 	if (address < p)
 		address = h % (2*maxp);

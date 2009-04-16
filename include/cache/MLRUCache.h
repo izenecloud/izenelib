@@ -49,7 +49,8 @@ template <class KeyType, class ValueType, class Hash,
 	typedef _CachedData<ValueType> CachedData;
 	//typedef ExtendibleHash<KeyType, CachedData, NullLock> extHash;
 	typedef izenelib::am::LinearHashTable<KeyType, CachedData, NullLock> linHash;	
-	typedef izenelib::am::CCCR_StrHashTable<KeyType, CachedData, 8192*16> cccrHash;
+	//typedef izenelib::am::CCCR_StrHashTable<KeyType, CachedData, 8192*16> cccrHash;
+	typedef izenelib::am::cccr_hash<KeyType, CachedData> cccrHash;
 	typedef izenelib::am::DataType<KeyType,ValueType> DataType;
 public:
 	/**
@@ -142,8 +143,8 @@ public:
 
 private:
 
-	//CacheExtHash<KeyType, CachedData, cccrHash, cccrHash> hash_; // Use hash for Storage
-	CacheExtHash<KeyType, CachedData, linHash, linHash> hash_; // Use hash for Storage
+	CacheExtHash<KeyType, CachedData, cccrHash, cccrHash> hash_; // Use hash for Storage
+	//CacheExtHash<KeyType, CachedData, linHash, linHash> hash_; // Use hash for Storage
 	CacheInfoList cacheContainer_;
 	unsigned int cacheSize_; // Capacity of Cache	
 
