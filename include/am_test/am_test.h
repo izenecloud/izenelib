@@ -216,14 +216,19 @@ template<typename T> void run_insert(T& cm) {
 }
 
 template<typename T> void run_loop(unsigned int loop) {
+	clock_t t1 = clock();
 	vector< boost::shared_ptr<T> > am_group;
 	for (unsigned int i=0; i<loop; i++) {
-		am_group.push_back(new T);
+		boost::shared_ptr<T> am;
+		am.reset(new T);
+		am->setNum(100);
+		am_group.push_back(am);
 	}
 	typename vector< boost::shared_ptr<T> >::iterator it = am_group.begin();
 	for (; it != am_group.end(); it++) {
 		(*it)->run_insert(false);
 	}
+	printf("insert elapsed: %lf seconds\n", double(clock()- t1)/CLOCKS_PER_SEC);
 	displayMemInfo();
 }
 

@@ -11,6 +11,7 @@
 #include <boost/archive/binary_iarchive.hpp>
 #include <boost/serialization/vector.hpp>
 #include <boost/serialization/map.hpp>
+#include <wiselib/ustring/UString.h>
 
 using namespace std;
 using namespace boost;
@@ -53,6 +54,58 @@ namespace util {
 	template<> inline void write_image<string>(const string& dat, DbObjPtr& ptr) {
 		ptr->setData(dat.c_str(), dat.size()+1);
 	}
+
+	/*
+	template<> inline void read_image<wiselib::UString>(wiselib::UString& dat, const DbObjPtr& ptr) {
+		char* buf = (char*)ptr->getData();
+		char* p = buf;
+		unsigned int length;
+		unsigned int bufferSize;
+
+		memcpy(&length, p, sizeof(unsigned int));
+		p += sizeof(unsigned int);
+		memcpy(&bufferSize, p, sizeof(unsigned int));
+		p += sizeof(unsigned int);
+		dat.assign(length, buffSize, p);
+	}
+	
+	template<> inline void write_image<wiselib::UString>(const wiselib::UString& dat, DbObjPtr& ptr) {
+		char* buf = new char[sizeof(unsigned int)*2 + dat.bufferSize()];
+		char* p=buf;
+		memcpy(p, &(dat.length()), sizeof(unsigned int));
+		p += sizeof(unsigned int);
+		memcpy(p, &(dat.bufferSize()), sizeof(unsigned int));
+		p += sizeof(unsigned int);
+		mempcy(p, dat.c_str(), dat.bufferSize())
+		delete buf;
+		buf = 0;
+	}
+
+	template<> inline void read_image<wiselib::GCUString>(wiselib::GCUString& dat, const DbObjPtr& ptr) {
+		char* buf = (char*)ptr->getData();
+		char* p = buf;
+		unsigned int length;
+		unsigned int bufferSize;
+
+		memcpy(&length, p, sizeof(unsigned int));
+		p += sizeof(unsigned int);
+		memcpy(&bufferSize, p, sizeof(unsigned int));
+		p += sizeof(unsigned int);
+		dat.assign(length, buffSize, p);
+
+	}
+
+	template<> inline void write_image<wiselib::GCUString>(const wiselib::GCUString& dat, DbObjPtr& ptr) {
+		char* buf = new char[sizeof(unsigned int)*2 + dat.bufferSize()];
+		char* p=buf;
+		memcpy(p, &(dat.length()), sizeof(unsigned int));
+		p += sizeof(unsigned int);
+		memcpy(p, &(dat.bufferSize()), sizeof(unsigned int));
+		p += sizeof(unsigned int);
+		mempcy(p, dat.c_str(), dat.bufferSize())
+		delete buf;
+		buf = 0;
+	}*/
 
 	/*
 	 template<> inline void read_image<char* >(char* dat, const DbObjPtr& ptr) {
