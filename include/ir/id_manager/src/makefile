@@ -9,9 +9,10 @@ else
 CXXFLAGS = -Wall -O3
 endif
 
-izenelib = /home/wps/workspace/izenelib
+WISELIB = /home/wps/workspace/wiselib
+IZENELIB = /home/wps/workspace/izenelib
 
-TARGET_PATH = $(izenelib)/lib
+TARGET_PATH = $(IZENELIB)/lib
 TARGET = $(TARGET_PATH)/libidmanager.a
 
 INCLUDE_PATH = -I../include \
