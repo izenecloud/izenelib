@@ -30,6 +30,7 @@
  */
 #include <fstream>
 #include <boost/test/unit_test.hpp>
+#include <wiselib/ustring/UString.h>
 
 #include <CollectionIdManager.h>
 #include <algorithm>
@@ -164,7 +165,7 @@ public:
  * @brief Check function which checks if all the ids are corretly generated.
  */
 
-inline bool isIdListCorrect(const vector<unsigned int>& collectionIdList,const vector<UString>& collectionNameList, CollectionIdManager& collectionIdManager)
+inline bool isIdListCorrect(const vector<unsigned int>& collectionIdList,const vector<UString>& collectionNameList, CollectionIdManager<UString, unsigned int>& collectionIdManager)
 {
     UString compare;
     
@@ -213,7 +214,7 @@ BOOST_AUTO_TEST_CASE( TestCase1 )
     cerr << "[ CollectionIdManager ] Test Case 1 : Simple Collection Id Manager check ...........";
 
     
-    CollectionIdManager collectionIdManager("colid1");
+    CollectionIdManager<UString, unsigned int> collectionIdManager("colid1");
 
     string insertString("Test CollectionIdManager");
     UString insertUString(insertString, UString::CP949);
@@ -258,7 +259,7 @@ BOOST_AUTO_TEST_CASE( TestCase2 )
     cerr << "[ CollectionIdManager ] Test Case 2 : 2450 collection name insertion checking ......";
     
     unsigned int i;
-    CollectionIdManager collectionIdManager("colid2");
+    CollectionIdManager<UString, unsigned int> collectionIdManager("colid2");
 
     // termUStringList1_ (100 terms) and termUStringList2_ (2500 terms) are already generated.
 

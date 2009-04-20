@@ -39,10 +39,23 @@
  */
 namespace idmanager {
 
-class IDManager {
-public:
+#define MAJOR_VERSION "1"
+#define MINOR_VERSION "0"
+#define PATCH_VERSION "20081203"
 
-	IDManager(const string& sdbname = "idm");
+
+template<typename NameString, typename NameID> class IDManager {
+public:
+	IDManager(const string& sdbname = "idm") :
+		termIdManager_(sdbname + "_tid"), docIdManager_(sdbname + "_did"),
+				collectionIdManager_(sdbname + "_cid") {
+		version_ = "ID Manager - ver. alpha ";
+		version_ += MAJOR_VERSION;
+		version_ += ".";
+		version_ += MINOR_VERSION;
+		version_ += ".";
+		version_ += PATCH_VERSION;
+	}
 
 	~IDManager();
 
@@ -54,8 +67,7 @@ public:
 	 * @return true  : 	Term exists in the dictionary.
 	 * @return false : 	Term does not exist in the dictionary.
 	 */
-	bool getTermIdByTermString(const wiselib::UString& termString,
-			unsigned int& termId);
+	bool getTermIdByTermString(const NameString& termString, NameID& termId);
 
 	/**
 	 * @brief a member function to get a set of term ID list which matches to the given term strings respectively. 
@@ -66,8 +78,8 @@ public:
 	 * @return false :		No term exists in the dictionary.
 	 */
 	bool getTermIdListByTermStringList(
-			const std::vector<wiselib::UString>& termStringList,
-			std::vector<unsigned int>& termIdList);
+			const std::vector<NameString>& termStringList,
+			std::vector<NameID>& termIdList);
 
 	/**
 	 * @brief a member function to offer a result set of wildcard search with WildcardSearchManager.
@@ -77,9 +89,8 @@ public:
 	 * @return true  :          Given wildcard pattern is matched at least once in the dictionary.
 	 * @return false :          Given wildcard pattern is not matched in the dictionary. 
 	 */
-	bool getTermIdListByWildcardPattern(
-			const wiselib::UString& wildcardPattern,
-			std::vector<unsigned int>& termIdList);
+	bool getTermIdListByWildcardPattern(const NameString& wildcardPattern,
+			std::vector<NameID>& termIdList);
 
 	/**
 	 * @brief a member function to get term string by its ID. 
@@ -89,9 +100,7 @@ public:
 	 * @return true  :  Given term string exists in the dictionary.
 	 * @return false :  Given term string does not exist in the dictionary.
 	 */
-	bool
-			getTermStringByTermId(unsigned int termId,
-					wiselib::UString& termString);
+	bool getTermStringByTermId(NameID termId, NameString& termString);
 
 	/**
 	 * @brief a member function to term string list by a set of term IDs.
@@ -101,9 +110,8 @@ public:
 	 * @return true  :      At least one term in the given list is matched in the dictionary.
 	 * @return false :      No term is matched in the dictionary. 
 	 */
-	bool getTermStringListByTermIdList(
-			const std::vector<unsigned int>& termIdList,
-			std::vector<wiselib::UString>& termStringList);
+	bool getTermStringListByTermIdList(const std::vector<NameID>& termIdList,
+			std::vector<NameString>& termStringList);
 
 	/**
 	 * @brief a member function to get document ID from the vocabulary which matches to the given document name. 
@@ -114,8 +122,8 @@ public:
 	 * @return true  : 	    Document name exists in the dictionary.
 	 * @return false : 	    Document name does not exist in the dictionary.
 	 */
-	bool getDocIdByDocName(unsigned int collectionId,
-			const wiselib::UString& docName, unsigned int& docId);
+	bool getDocIdByDocName(NameID collectionId, const NameString& docName,
+			NameID& docId);
 
 	/**
 	 * @brief a member function to get a name of the document by its ID. 
@@ -126,8 +134,8 @@ public:
 	 * @return true  : 	    Given document name exists in the dictionary.
 	 * @return false : 	    Given document name does not exist in the dictionary.
 	 */
-	bool getDocNameByDocId(unsigned int collectionId, unsigned int docId,
-			wiselib::UString& docName);
+	bool getDocNameByDocId(NameID collectionId, NameID docId,
+			NameString& docName);
 
 	/**
 	 * @brief a member function to get a collection ID which is matched to the given collection name.
@@ -137,8 +145,8 @@ public:
 	 * @return true  : 	        Collection name exists in the dictionary.
 	 * @return false : 	        Collection name does not exist in the dictionary.
 	 */
-	bool getCollectionIdByCollectionName(
-			const wiselib::UString& collectionName, unsigned int& collectionId);
+	bool getCollectionIdByCollectionName(const NameString& collectionName,
+			NameID& collectionId);
 
 	/**
 	 * @brief a member function to get collection name by its ID 
@@ -148,8 +156,8 @@ public:
 	 * @return true  : 	        Given collection name exists in the dictionary.
 	 * @return false : 	        Given collection name does not exist in the dictionary.
 	 */
-	bool getCollectionNameByCollectionId(unsigned int collectionId,
-			wiselib::UString& collectionName);
+	bool getCollectionNameByCollectionId(NameID collectionId,
+			NameString& collectionName);
 
 	/** 
 	 * @brief retrieve version string of id-manager
@@ -160,12 +168,90 @@ public:
 	}
 
 private:
-	TermIdManager termIdManager_; ///< Term Id Manager Class
-	DocIdManager docIdManager_; ///< Document Id Manager Class
-	CollectionIdManager collectionIdManager_; ///< Collection Id Manager Class
+	TermIdManager<NameString, NameID> termIdManager_; ///< Term Id Manager Class
+	DocIdManager<NameString, NameID> docIdManager_; ///< Document Id Manager Class
+	CollectionIdManager<NameString, NameID> collectionIdManager_; ///< Collection Id Manager Class
 	std::string version_; ///< version of id-manager
 
 }; // end - class IDManager
+
+
+/*****************************************************************************
+ *                                                     Term Related Interfaces
+ *****************************************************************************/
+
+
+template<typename NameString, typename NameID> IDManager<NameString, NameID>::~IDManager() {
+
+} // end - ~IDManager()
+
+/*****************************************************************************
+ *                                                     Term Related Interfaces
+ *****************************************************************************/
+
+template<typename NameString, typename NameID> bool IDManager<NameString,
+	NameID>::getTermIdByTermString(const NameString& termString, NameID& termId) {
+return termIdManager_.getTermIdByTermString(termString, termId);
+} // end - getTermIdByTermString() 
+
+template<typename NameString, typename NameID> bool IDManager<NameString,
+	NameID>::getTermIdListByTermStringList(
+	const std::vector<NameString>& termStringList, std::vector<NameID>& termIdList) {
+return termIdManager_.getTermIdListByTermStringList(termStringList, termIdList);
+} // end - getTermIdListByTermStringList()
+
+template<typename NameString, typename NameID> bool IDManager<NameString,
+	NameID>::getTermIdListByWildcardPattern(const NameString& wildcardString,
+	std::vector<NameID>& termIdList) {
+return termIdManager_.getTermIdListByWildcardPattern(wildcardString, termIdList);
+} // end - getTermIdListByWildcardString()
+
+template<typename NameString, typename NameID> bool IDManager<NameString,
+	NameID>::getTermStringByTermId(NameID termId, NameString& termString) {
+return termIdManager_.getTermStringByTermId(termId, termString);
+} // end - getTermStringByTermId()
+
+template<typename NameString, typename NameID> bool IDManager<NameString,
+	NameID>::getTermStringListByTermIdList(
+	const std::vector<NameID>& termIdList, std::vector<NameString>& termStringList) {
+return termIdManager_.getTermStringListByTermIdList(termIdList, termStringList);
+} // end - getTermStringListByTermIdList()
+
+
+/*****************************************************************************
+ *                                                 Document Related Interfaces
+ *****************************************************************************/
+template<typename NameString, typename NameID> bool IDManager<NameString,
+	NameID>::getDocIdByDocName(NameID collectionId, const NameString& docName,
+	NameID& docId) {
+return docIdManager_.getDocIdByDocName(collectionId, docName, docId);
+} // end - getDocIdByDocName()
+
+template<typename NameString, typename NameID> bool IDManager<NameString,
+	NameID>::getDocNameByDocId(NameID collectionId, NameID docId,
+	NameString& docName) {
+return docIdManager_.getDocNameByDocId(collectionId, docId, docName);
+} // end - getDocNameByDocId()
+
+
+/*****************************************************************************
+ *                                               Collection Related Interfaces
+ *****************************************************************************/
+
+template<typename NameString, typename NameID> bool IDManager<NameString,
+	NameID>::getCollectionIdByCollectionName(const NameString& collectionName,
+	NameID& collectionId) {
+return collectionIdManager_.getCollectionIdByCollectionName(collectionName,
+		collectionId);
+} // end - getCollectionIdByCollectionName()
+
+template<typename NameString, typename NameID> bool IDManager<NameString,
+	NameID>::getCollectionNameByCollectionId(NameID collectionId,
+	NameString& collectionName) {
+return collectionIdManager_.getCollectionNameByCollectionId(collectionId,
+		collectionName);
+} // end - getCollectionNameByCollectionId()
+
 
 } // end - namespace sf1v5
 

@@ -24,13 +24,8 @@ namespace idmanager {
 
 template <typename NameString, typename NameID,
 		typename LockType =izenelib::util::NullLock > class IDFactory {
-
-	typedef izenelib::am::tc_hash<NameString, NameID> SDB_HASH_SI;
-	typedef izenelib::am::tc_hash<NameID, NameString> SDB_HASH_IS;
-	//typedef izenelib::sdb::SequentialDB<NameString, NameID,  LockType, SDB_HASH_SI> IdFinder;
-	//typedef izenelib::sdb::SequentialDB<NameID, NameString,  LockType, SDB_HASH_IS> NameFinder;
-	typedef izenelib::sdb::SequentialDB<NameString, NameID, LockType> IdFinder;
-	typedef izenelib::sdb::SequentialDB<NameID, NameString, LockType> NameFinder;
+	typedef izenelib::sdb::ordered_sdb<NameString, NameID, LockType> IdFinder;
+	typedef izenelib::sdb::ordered_sdb<NameID, NameString, LockType>	NameFinder;
 public:
 
 	/**
@@ -126,16 +121,12 @@ protected:
 
 template <typename NameString, typename NameID, typename LockType> IDFactory<
 		NameString, NameID, LockType>::IDFactory(const string& sdbName,
-				NameID& initialValue, NameID& maxValue) :
-	minID_(initialValue), 
-	maxID_(maxValue),
-	newID_(initialValue),
-	sdbName_(sdbName),
-	idFinder_(sdbName_ + "_name.sdb"),
-	nameFinder_(sdbName_ + "_id.sdb") 
-	{
-			idFinder_.open();
-			nameFinder_.open();
+		NameID& initialValue, NameID& maxValue) :
+	minID_(initialValue), maxID_(maxValue), newID_(initialValue),
+			sdbName_(sdbName), idFinder_(sdbName_ + "_name.sdb"),
+			nameFinder_(sdbName_ + "_id.sdb") {
+	idFinder_.open();
+	nameFinder_.open();
 } // end - IDFactory()
 
 
@@ -172,10 +163,10 @@ template <typename NameString, typename NameID, typename LockType> bool IDFactor
 	// check correctness of input nameID
 	if (newID_> maxID_)
 		throw IDFactoryException(SF1_ID_FACTORY_OUT_OF_BOUND, __LINE__, __FILE__);
-	
+
 	idFinder_.insertValue(nameString, nameID);
-	nameFinder_.insertValue(nameID, nameString);	
-	
+	nameFinder_.insertValue(nameID, nameString);
+
 	return false;
 
 } // end - getNameIDByNameString()

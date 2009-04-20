@@ -10,15 +10,15 @@
 
 #include <vector>
 #include <list>
-#include <wiselib/ustring/UString.h>
 #include <sdb/SequentialDB.h>
 #include <am/tokyo_cabinet/tc_hash.h>
 
 namespace idmanager {
 
+template<typename NameString>
 struct NameHook {
 	unsigned int collId;
-	wiselib::UString docName;
+	NameString docName;
 
 	template<class Archive> void serialize(Archive & ar,
 			const unsigned int version) {
@@ -36,9 +36,16 @@ struct NameHook {
 
 };
 
+template<typename NameID>
 struct IDHook {
 	unsigned int collId;
-	unsigned int docId;
+	NameID docId;	
+
+	template<class Archive> void serialize(Archive & ar,
+			const unsigned int version) {
+		ar & collId;
+		ar & docId;
+	}
 
 	int compare(const IDHook& other) const {
 		if (collId != other.collId)
@@ -77,13 +84,16 @@ namespace util {
  ptr->setData(dat.c_str(), dat.length()+1);
  }*/
 
+
+/*
 template<> inline void read_image<IDHook>(IDHook& dat, const DbObjPtr& ptr) {
 memcpy(&dat, ptr->getData(), ptr->getSize());
 }
 
 template<> inline void write_image<IDHook>(const IDHook& dat, DbObjPtr& ptr) {
 ptr->setData(&dat, sizeof(IDHook));
-}
+}*/
+
 
 }
 }

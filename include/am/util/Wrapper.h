@@ -11,7 +11,7 @@
 #include <boost/archive/binary_iarchive.hpp>
 #include <boost/serialization/vector.hpp>
 #include <boost/serialization/map.hpp>
-#include <wiselib/ustring/UString.h>
+//#include <wiselib/ustring/UString.h>
 
 using namespace std;
 using namespace boost;
@@ -131,6 +131,25 @@ namespace util {
 	template<> inline void write_image<unsigned int>(const unsigned int& dat, DbObjPtr& ptr) {
 		ptr->setData(&dat, sizeof(unsigned int));
 	}
+	
+	template<> inline void read_image<vector<int> >(vector<int>& dat, const DbObjPtr& ptr) {
+		dat.resize( ptr->getSize()/sizeof(int) );
+		memcpy(&dat[0], ptr->getData(), ptr->getSize() );
+	}
+
+	template<> inline void write_image<vector<int> >(const vector<int>& dat, DbObjPtr& ptr) {
+		ptr->setData( &dat[0], sizeof(int)*dat.size() );
+	}
+	
+	template<> inline void read_image<vector<unsigned int> >(vector<unsigned int>& dat, const DbObjPtr& ptr) {
+		dat.resize( ptr->getSize()/sizeof(unsigned int) );
+		memcpy(&dat[0], ptr->getData(), ptr->getSize());
+	}
+
+	template<> inline void write_image<vector<unsigned int> >(const vector<unsigned int>& dat, DbObjPtr& ptr) {		
+		ptr->setData( &dat[0], sizeof(int)*dat.size() );
+	}
+	
 
 	template<> inline void read_image<long>(long& dat, const DbObjPtr& ptr) {
 		memcpy(&dat, ptr->getData(), ptr->getSize());

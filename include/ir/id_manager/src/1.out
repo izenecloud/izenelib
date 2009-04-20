@@ -1,0 +1,969 @@
+Running 17 test cases...
+creating...
+
+magic: 398689
+maxKeys: 24
+pageSize: 1024
+cacheSize: 1000000
+numItem: 0
+rootPos: 56
+node Pages: 0
+overflow Pages: 0
+
+file size: 64bytes
+creating...
+
+magic: 398689
+maxKeys: 24
+pageSize: 1024
+cacheSize: 1000000
+numItem: 0
+rootPos: 56
+node Pages: 1
+overflow Pages: 0
+
+file size: 1088bytes
+average items number in a btree ndoe: 0
+average overflow page for a node: 0
+creating...
+
+magic: 398689
+maxKeys: 24
+pageSize: 1024
+cacheSize: 1000000
+numItem: 0
+rootPos: 56
+node Pages: 0
+overflow Pages: 0
+
+file size: 64bytes
+creating...
+
+magic: 398689
+maxKeys: 24
+pageSize: 1024
+cacheSize: 1000000
+numItem: 0
+rootPos: 56
+node Pages: 1
+overflow Pages: 0
+
+file size: 1088bytes
+average items number in a btree ndoe: 0
+average overflow page for a node: 0
+creating...
+
+magic: 398689
+maxKeys: 24
+pageSize: 1024
+cacheSize: 1000000
+numItem: 0
+rootPos: 56
+node Pages: 0
+overflow Pages: 0
+
+file size: 64bytes
+creating...
+
+magic: 398689
+maxKeys: 24
+pageSize: 1024
+cacheSize: 1000000
+numItem: 0
+rootPos: 56
+node Pages: 1
+overflow Pages: 0
+
+file size: 1088bytes
+average items number in a btree ndoe: 0
+average overflow page for a node: 0
+t_TermIdManager.cpp(307): error in "TestCase3": check termIdList1_.size() == static_cast<unsigned int>(35) failed [0 != 35]
+t_TermIdManager.cpp(316): error in "TestCase3": check termIdList1_.size() == static_cast<unsigned int>(4) failed [0 != 4]
+t_TermIdManager.cpp(325): error in "TestCase3": check termIdList1_.size() == static_cast<unsigned int>(81) failed [0 != 81]
+creating...
+
+magic: 398689
+maxKeys: 24
+pageSize: 1024
+cacheSize: 1000000
+numItem: 0
+rootPos: 56
+node Pages: 0
+overflow Pages: 0
+
+file size: 64bytes
+creating...
+
+magic: 398689
+maxKeys: 24
+pageSize: 1024
+cacheSize: 1000000
+numItem: 0
+rootPos: 56
+node Pages: 1
+overflow Pages: 0
+
+file size: 1088bytes
+average items number in a btree ndoe: 0
+average overflow page for a node: 0
+creating...
+
+magic: 398689
+maxKeys: 24
+pageSize: 1024
+cacheSize: 1000000
+numItem: 0
+rootPos: 56
+node Pages: 0
+overflow Pages: 0
+
+file size: 64bytes
+creating...
+
+magic: 398689
+maxKeys: 24
+pageSize: 1024
+cacheSize: 1000000
+numItem: 0
+rootPos: 56
+node Pages: 1
+overflow Pages: 0
+
+file size: 1088bytes
+average items number in a btree ndoe: 0
+average overflow page for a node: 0
+creating...
+
+magic: 398689
+maxKeys: 24
+pageSize: 1024
+cacheSize: 1000000
+numItem: 0
+rootPos: 56
+node Pages: 0
+overflow Pages: 0
+
+file size: 64bytes
+creating...
+
+magic: 398689
+maxKeys: 24
+pageSize: 1024
+cacheSize: 1000000
+numItem: 0
+rootPos: 56
+node Pages: 1
+overflow Pages: 0
+
+file size: 1088bytes
+average items number in a btree ndoe: 0
+average overflow page for a node: 0
+creating...
+
+magic: 398689
+maxKeys: 24
+pageSize: 1024
+cacheSize: 1000000
+numItem: 0
+rootPos: 56
+node Pages: 0
+overflow Pages: 0
+
+file size: 64bytes
+creating...
+
+magic: 398689
+maxKeys: 24
+pageSize: 1024
+cacheSize: 1000000
+numItem: 0
+rootPos: 56
+node Pages: 1
+overflow Pages: 0
+
+file size: 1088bytes
+average items number in a btree ndoe: 0
+average overflow page for a node: 0
+creating...
+
+magic: 398689
+maxKeys: 24
+pageSize: 1024
+cacheSize: 1000000
+numItem: 0
+rootPos: 56
+node Pages: 0
+overflow Pages: 0
+
+file size: 64bytes
+creating...
+
+magic: 398689
+maxKeys: 24
+pageSize: 1024
+cacheSize: 1000000
+numItem: 0
+rootPos: 56
+node Pages: 1
+overflow Pages: 0
+
+file size: 1088bytes
+average items number in a btree ndoe: 0
+average overflow page for a node: 0
+creating...
+
+magic: 398689
+maxKeys: 24
+pageSize: 1024
+cacheSize: 1000000
+numItem: 0
+rootPos: 56
+node Pages: 0
+overflow Pages: 0
+
+file size: 64bytes
+creating...
+
+magic: 398689
+maxKeys: 24
+pageSize: 1024
+cacheSize: 1000000
+numItem: 0
+rootPos: 56
+node Pages: 1
+overflow Pages: 0
+
+file size: 1088bytes
+average items number in a btree ndoe: 0
+average overflow page for a node: 0
+creating...
+
+magic: 398689
+maxKeys: 24
+pageSize: 1024
+cacheSize: 1000000
+numItem: 0
+rootPos: 56
+node Pages: 0
+overflow Pages: 0
+
+file size: 64bytes
+creating...
+
+magic: 398689
+maxKeys: 24
+pageSize: 1024
+cacheSize: 1000000
+numItem: 0
+rootPos: 56
+node Pages: 1
+overflow Pages: 0
+
+file size: 1088bytes
+average items number in a btree ndoe: 0
+average overflow page for a node: 0
+creating...
+
+magic: 398689
+maxKeys: 24
+pageSize: 1024
+cacheSize: 1000000
+numItem: 0
+rootPos: 56
+node Pages: 0
+overflow Pages: 0
+
+file size: 64bytes
+creating...
+
+magic: 398689
+maxKeys: 24
+pageSize: 1024
+cacheSize: 1000000
+numItem: 0
+rootPos: 56
+node Pages: 1
+overflow Pages: 0
+
+file size: 1088bytes
+average items number in a btree ndoe: 0
+average overflow page for a node: 0
+creating...
+
+magic: 398689
+maxKeys: 24
+pageSize: 1024
+cacheSize: 1000000
+numItem: 0
+rootPos: 56
+node Pages: 0
+overflow Pages: 0
+
+file size: 64bytes
+creating...
+
+magic: 398689
+maxKeys: 24
+pageSize: 1024
+cacheSize: 1000000
+numItem: 0
+rootPos: 56
+node Pages: 1
+overflow Pages: 0
+
+file size: 1088bytes
+average items number in a btree ndoe: 0
+average overflow page for a node: 0
+creating...
+
+magic: 398689
+maxKeys: 24
+pageSize: 1024
+cacheSize: 1000000
+numItem: 0
+rootPos: 56
+node Pages: 0
+overflow Pages: 0
+
+file size: 64bytes
+creating...
+
+magic: 398689
+maxKeys: 24
+pageSize: 1024
+cacheSize: 1000000
+numItem: 0
+rootPos: 56
+node Pages: 1
+overflow Pages: 0
+
+file size: 1088bytes
+average items number in a btree ndoe: 0
+average overflow page for a node: 0
+creating...
+
+magic: 398689
+maxKeys: 24
+pageSize: 1024
+cacheSize: 1000000
+numItem: 0
+rootPos: 56
+node Pages: 0
+overflow Pages: 0
+
+file size: 64bytes
+creating...
+
+magic: 398689
+maxKeys: 24
+pageSize: 1024
+cacheSize: 1000000
+numItem: 0
+rootPos: 56
+node Pages: 1
+overflow Pages: 0
+
+file size: 1088bytes
+average items number in a btree ndoe: 0
+average overflow page for a node: 0
+t_IDManager.cpp(405): error in "TestCase3": check termIdList1_.size() == static_cast<unsigned int>(35) failed [0 != 35]
+t_IDManager.cpp(414): error in "TestCase3": check termIdList1_.size() == static_cast<unsigned int>(4) failed [0 != 4]
+t_IDManager.cpp(423): error in "TestCase3": check termIdList1_.size() == static_cast<unsigned int>(81) failed [0 != 81]
+creating...
+
+magic: 398689
+maxKeys: 24
+pageSize: 1024
+cacheSize: 1000000
+numItem: 0
+rootPos: 56
+node Pages: 0
+overflow Pages: 0
+
+file size: 64bytes
+creating...
+
+magic: 398689
+maxKeys: 24
+pageSize: 1024
+cacheSize: 1000000
+numItem: 0
+rootPos: 56
+node Pages: 1
+overflow Pages: 0
+
+file size: 1088bytes
+average items number in a btree ndoe: 0
+average overflow page for a node: 0
+creating...
+
+magic: 398689
+maxKeys: 24
+pageSize: 1024
+cacheSize: 1000000
+numItem: 0
+rootPos: 56
+node Pages: 0
+overflow Pages: 0
+
+file size: 64bytes
+creating...
+
+magic: 398689
+maxKeys: 24
+pageSize: 1024
+cacheSize: 1000000
+numItem: 0
+rootPos: 56
+node Pages: 1
+overflow Pages: 0
+
+file size: 1088bytes
+average items number in a btree ndoe: 0
+average overflow page for a node: 0
+creating...
+
+magic: 398689
+maxKeys: 24
+pageSize: 1024
+cacheSize: 1000000
+numItem: 0
+rootPos: 56
+node Pages: 0
+overflow Pages: 0
+
+file size: 64bytes
+creating...
+
+magic: 398689
+maxKeys: 24
+pageSize: 1024
+cacheSize: 1000000
+numItem: 0
+rootPos: 56
+node Pages: 1
+overflow Pages: 0
+
+file size: 1088bytes
+average items number in a btree ndoe: 0
+average overflow page for a node: 0
+creating...
+
+magic: 398689
+maxKeys: 24
+pageSize: 1024
+cacheSize: 1000000
+numItem: 0
+rootPos: 56
+node Pages: 0
+overflow Pages: 0
+
+file size: 64bytes
+creating...
+
+magic: 398689
+maxKeys: 24
+pageSize: 1024
+cacheSize: 1000000
+numItem: 0
+rootPos: 56
+node Pages: 1
+overflow Pages: 0
+
+file size: 1088bytes
+average items number in a btree ndoe: 0
+average overflow page for a node: 0
+creating...
+
+magic: 398689
+maxKeys: 24
+pageSize: 1024
+cacheSize: 1000000
+numItem: 0
+rootPos: 56
+node Pages: 0
+overflow Pages: 0
+
+file size: 64bytes
+creating...
+
+magic: 398689
+maxKeys: 24
+pageSize: 1024
+cacheSize: 1000000
+numItem: 0
+rootPos: 56
+node Pages: 1
+overflow Pages: 0
+
+file size: 1088bytes
+average items number in a btree ndoe: 0
+average overflow page for a node: 0
+creating...
+
+magic: 398689
+maxKeys: 24
+pageSize: 1024
+cacheSize: 1000000
+numItem: 0
+rootPos: 56
+node Pages: 0
+overflow Pages: 0
+
+file size: 64bytes
+creating...
+
+magic: 398689
+maxKeys: 24
+pageSize: 1024
+cacheSize: 1000000
+numItem: 0
+rootPos: 56
+node Pages: 1
+overflow Pages: 0
+
+file size: 1088bytes
+average items number in a btree ndoe: 0
+average overflow page for a node: 0
+creating...
+
+magic: 398689
+maxKeys: 24
+pageSize: 1024
+cacheSize: 1000000
+numItem: 0
+rootPos: 56
+node Pages: 0
+overflow Pages: 0
+
+file size: 64bytes
+creating...
+
+magic: 398689
+maxKeys: 24
+pageSize: 1024
+cacheSize: 1000000
+numItem: 0
+rootPos: 56
+node Pages: 1
+overflow Pages: 0
+
+file size: 1088bytes
+average items number in a btree ndoe: 0
+average overflow page for a node: 0
+creating...
+
+magic: 398689
+maxKeys: 24
+pageSize: 1024
+cacheSize: 1000000
+numItem: 0
+rootPos: 56
+node Pages: 0
+overflow Pages: 0
+
+file size: 64bytes
+creating...
+
+magic: 398689
+maxKeys: 24
+pageSize: 1024
+cacheSize: 1000000
+numItem: 0
+rootPos: 56
+node Pages: 1
+overflow Pages: 0
+
+file size: 1088bytes
+average items number in a btree ndoe: 0
+average overflow page for a node: 0
+creating...
+
+magic: 398689
+maxKeys: 24
+pageSize: 1024
+cacheSize: 1000000
+numItem: 0
+rootPos: 56
+node Pages: 0
+overflow Pages: 0
+
+file size: 64bytes
+creating...
+
+magic: 398689
+maxKeys: 24
+pageSize: 1024
+cacheSize: 1000000
+numItem: 0
+rootPos: 56
+node Pages: 1
+overflow Pages: 0
+
+file size: 1088bytes
+average items number in a btree ndoe: 0
+average overflow page for a node: 0
+creating...
+
+magic: 398689
+maxKeys: 24
+pageSize: 1024
+cacheSize: 1000000
+numItem: 0
+rootPos: 56
+node Pages: 0
+overflow Pages: 0
+
+file size: 64bytes
+creating...
+
+magic: 398689
+maxKeys: 24
+pageSize: 1024
+cacheSize: 1000000
+numItem: 0
+rootPos: 56
+node Pages: 1
+overflow Pages: 0
+
+file size: 1088bytes
+average items number in a btree ndoe: 0
+average overflow page for a node: 0
+creating...
+
+magic: 398689
+maxKeys: 24
+pageSize: 1024
+cacheSize: 1000000
+numItem: 0
+rootPos: 56
+node Pages: 0
+overflow Pages: 0
+
+file size: 64bytes
+creating...
+
+magic: 398689
+maxKeys: 24
+pageSize: 1024
+cacheSize: 1000000
+numItem: 0
+rootPos: 56
+node Pages: 1
+overflow Pages: 0
+
+file size: 1088bytes
+average items number in a btree ndoe: 0
+average overflow page for a node: 0
+creating...
+
+magic: 398689
+maxKeys: 24
+pageSize: 1024
+cacheSize: 1000000
+numItem: 0
+rootPos: 56
+node Pages: 0
+overflow Pages: 0
+
+file size: 64bytes
+creating...
+
+magic: 398689
+maxKeys: 24
+pageSize: 1024
+cacheSize: 1000000
+numItem: 0
+rootPos: 56
+node Pages: 1
+overflow Pages: 0
+
+file size: 1088bytes
+average items number in a btree ndoe: 0
+average overflow page for a node: 0
+creating...
+
+magic: 398689
+maxKeys: 24
+pageSize: 1024
+cacheSize: 1000000
+numItem: 0
+rootPos: 56
+node Pages: 0
+overflow Pages: 0
+
+file size: 64bytes
+creating...
+
+magic: 398689
+maxKeys: 24
+pageSize: 1024
+cacheSize: 1000000
+numItem: 0
+rootPos: 56
+node Pages: 1
+overflow Pages: 0
+
+file size: 1088bytes
+average items number in a btree ndoe: 0
+average overflow page for a node: 0
+creating...
+
+magic: 398689
+maxKeys: 24
+pageSize: 1024
+cacheSize: 1000000
+numItem: 0
+rootPos: 56
+node Pages: 0
+overflow Pages: 0
+
+file size: 64bytes
+creating...
+
+magic: 398689
+maxKeys: 24
+pageSize: 1024
+cacheSize: 1000000
+numItem: 0
+rootPos: 56
+node Pages: 1
+overflow Pages: 0
+
+file size: 1088bytes
+average items number in a btree ndoe: 0
+average overflow page for a node: 0
+creating...
+
+magic: 398689
+maxKeys: 24
+pageSize: 1024
+cacheSize: 1000000
+numItem: 0
+rootPos: 56
+node Pages: 0
+overflow Pages: 0
+
+file size: 64bytes
+creating...
+
+magic: 398689
+maxKeys: 24
+pageSize: 1024
+cacheSize: 1000000
+numItem: 0
+rootPos: 56
+node Pages: 1
+overflow Pages: 0
+
+file size: 1088bytes
+average items number in a btree ndoe: 0
+average overflow page for a node: 0
+open exist...
+
+magic: 398689
+maxKeys: 24
+pageSize: 1024
+cacheSize: 1000000
+numItem: 0
+rootPos: 56
+node Pages: 0
+overflow Pages: 0
+
+file size: 64bytes
+open exist...
+
+magic: 398689
+maxKeys: 24
+pageSize: 1024
+cacheSize: 1000000
+numItem: 0
+rootPos: 56
+node Pages: 1
+overflow Pages: 0
+
+file size: 1088bytes
+average items number in a btree ndoe: 0
+average overflow page for a node: 0
+open exist...
+
+magic: 398689
+maxKeys: 24
+pageSize: 1024
+cacheSize: 1000000
+numItem: 0
+rootPos: 56
+node Pages: 0
+overflow Pages: 0
+
+file size: 64bytes
+open exist...
+
+magic: 398689
+maxKeys: 24
+pageSize: 1024
+cacheSize: 1000000
+numItem: 0
+rootPos: 56
+node Pages: 1
+overflow Pages: 0
+
+file size: 1088bytes
+average items number in a btree ndoe: 0
+average overflow page for a node: 0
+open exist...
+
+magic: 398689
+maxKeys: 24
+pageSize: 1024
+cacheSize: 1000000
+numItem: 0
+rootPos: 56
+node Pages: 0
+overflow Pages: 0
+
+file size: 64bytes
+open exist...
+
+magic: 398689
+maxKeys: 24
+pageSize: 1024
+cacheSize: 1000000
+numItem: 0
+rootPos: 56
+node Pages: 1
+overflow Pages: 0
+
+file size: 1088bytes
+average items number in a btree ndoe: 0
+average overflow page for a node: 0
+creating...
+
+magic: 398689
+maxKeys: 24
+pageSize: 1024
+cacheSize: 1000000
+numItem: 0
+rootPos: 56
+node Pages: 0
+overflow Pages: 0
+
+file size: 64bytes
+creating...
+
+magic: 398689
+maxKeys: 24
+pageSize: 1024
+cacheSize: 1000000
+numItem: 0
+rootPos: 56
+node Pages: 1
+overflow Pages: 0
+
+file size: 1088bytes
+average items number in a btree ndoe: 0
+average overflow page for a node: 0
+creating...
+
+magic: 398689
+maxKeys: 24
+pageSize: 1024
+cacheSize: 1000000
+numItem: 0
+rootPos: 56
+node Pages: 0
+overflow Pages: 0
+
+file size: 64bytes
+creating...
+
+magic: 398689
+maxKeys: 24
+pageSize: 1024
+cacheSize: 1000000
+numItem: 0
+rootPos: 56
+node Pages: 1
+overflow Pages: 0
+
+file size: 1088bytes
+average items number in a btree ndoe: 0
+average overflow page for a node: 0
+creating...
+
+magic: 398689
+maxKeys: 24
+pageSize: 1024
+cacheSize: 1000000
+numItem: 0
+rootPos: 56
+node Pages: 0
+overflow Pages: 0
+
+file size: 64bytes
+creating...
+
+magic: 398689
+maxKeys: 24
+pageSize: 1024
+cacheSize: 1000000
+numItem: 0
+rootPos: 56
+node Pages: 1
+overflow Pages: 0
+
+file size: 1088bytes
+average items number in a btree ndoe: 0
+average overflow page for a node: 0
+creating...
+
+magic: 398689
+maxKeys: 24
+pageSize: 1024
+cacheSize: 1000000
+numItem: 0
+rootPos: 56
+node Pages: 0
+overflow Pages: 0
+
+file size: 64bytes
+creating...
+
+magic: 398689
+maxKeys: 24
+pageSize: 1024
+cacheSize: 1000000
+numItem: 0
+rootPos: 56
+node Pages: 1
+overflow Pages: 0
+
+file size: 1088bytes
+average items number in a btree ndoe: 0
+average overflow page for a node: 0
+creating...
+
+magic: 398689
+maxKeys: 24
+pageSize: 1024
+cacheSize: 1000000
+numItem: 0
+rootPos: 56
+node Pages: 0
+overflow Pages: 0
+
+file size: 64bytes
+creating...
+
+magic: 398689
+maxKeys: 24
+pageSize: 1024
+cacheSize: 1000000
+numItem: 0
+rootPos: 56
+node Pages: 1
+overflow Pages: 0
+
+file size: 1088bytes
+average items number in a btree ndoe: 0
+average overflow page for a node: 0

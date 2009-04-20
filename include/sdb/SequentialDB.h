@@ -8,19 +8,19 @@
 #ifndef SEQUENTIALDB_H_
 #define SEQUENTIALDB_H_
 
-
 #include <am/sdb_hash/sdb_hash.h>
 #include <am/sdb_btree/sdb_btree.h>
+#include <am/tokyo_cabinet/tc_hash.h>
 
-#ifdef EXTERNAL_TOKYO_CABINET
-	#include <am/tokyo_cabinet/tc_hash.h>
-#endif
+/*#ifdef EXTERNAL_TOKYO_CABINET
+#include <am/tokyo_cabinet/tc_hash.h>
+#endif*/
 //#include <am/btree/BTreeFile.h>
 
 using namespace izenelib::am;
 using namespace std;
 
-namespace izenelib{
+namespace izenelib {
 
 namespace sdb {
 
@@ -41,12 +41,11 @@ namespace sdb {
  * 
  */
 template<
-		typename KeyType = string,
+		typename KeyType =string,
 		typename ValueType=NullType,
 		typename LockType =NullLock,
 		typename ContainerType=izenelib::am::sdb_btree<KeyType, ValueType, LockType>,
 		typename Alloc=std::allocator<DataType<KeyType,ValueType> > > class SequentialDB {
-
 public:
 	typedef DataType<KeyType, ValueType> DataType;
 	typedef typename ContainerType::SDBCursor SDBCursor;
@@ -295,7 +294,6 @@ public:
 		container_.flush();
 		lock_.release_write_lock();
 	}
-	
 
 	/// Note that,  getnext, getPrev, getNearest, getValueForwar,getValueBackWard, getValuePrefix, getValueBetween
 	/// only for BTree	
@@ -303,7 +301,7 @@ public:
 	/**
 	 *   \brief get the  next key
 	 */
-	KeyType getNext(const KeyType& key) {	
+	KeyType getNext(const KeyType& key) {
 		SDBCursor locn;
 		DataType dat;
 		KeyType rk;
@@ -344,7 +342,7 @@ public:
 	 *  key that bigger than input key. 
 	 *   
 	 */
-	KeyType getNearest(const KeyType& key) {		
+	KeyType getNearest(const KeyType& key) {
 		SDBCursor locn;
 		lock_.acquire_read_lock();
 		container_.search(key, locn);
@@ -416,7 +414,7 @@ public:
 		}
 		lock_.release_read_lock();
 	}
-	
+
 	void getValuePrefix(const KeyType& key, vector<KeyType>& result) {
 		SDBCursor locn;
 		search(key, locn);
@@ -429,13 +427,12 @@ public:
 		}
 		lock_.release_read_lock();
 	}
-	
 
-	ContainerType& getContainer(){
+	ContainerType& getContainer() {
 		return container_;
 	}
 private:
-	ContainerType container_; 
+	ContainerType container_;
 	LockType lock_; // for multithread access.
 };
 
@@ -584,7 +581,7 @@ template<typename KeyType, typename ValueType, typename LockType,
 	if (container_.get(locn, rec)) {
 		result.push_back(rec);
 	}
-	
+
 	//if lowKey not exist in database, it starts from the lowest key.
 	//container_.search(newLowKey, locn);
 	do {
@@ -602,6 +599,32 @@ template<typename KeyType, typename ValueType, typename LockType,
 	lock_.release_read_lock();
 	return true;
 }
+
+template<
+	typename KeyType = string,
+	typename ValueType=NullType,
+	typename LockType =NullLock
+>class unordered_sdb:
+public SequentialDB<KeyType, ValueType, LockType, tc_hash<KeyType, ValueType, LockType>  >
+{
+public:
+	unordered_sdb(const string& sdbname):SequentialDB<KeyType, ValueType, LockType, tc_hash<KeyType, ValueType, LockType>  >(sdbname) {
+
+	}
+};
+
+template<
+	typename KeyType = string,
+	typename ValueType=NullType,
+	typename LockType =NullLock
+>class ordered_sdb:
+public SequentialDB<KeyType, ValueType, LockType, sdb_btree<KeyType, ValueType, LockType> >
+{
+public:
+	ordered_sdb(const string& sdbname):SequentialDB<KeyType, ValueType, LockType, sdb_btree<KeyType, ValueType, LockType> >(sdbname) {
+
+	}
+};
 
 }
 

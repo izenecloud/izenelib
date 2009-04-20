@@ -25,7 +25,7 @@
  *      - Using collection Ids, insert 235 documents for each collection.
  *      - Check all the terms are correctly inserted into collectionIdManager and docIdManager.
  *\n
- *  -# Test Case 6 : Simple CollectionIdManager check.
+ *  -# Test Case 6 : Simple CollectionIdManager<UString, unsigned int><UString, unsigned int> check.
  *      - Inset one collection name to the empty collectionIndexer using 
  *        getCollectionIdByCollectionName() interface. And check if the return value is false 
  *        which means the collection name is not in the collectionIndexer. Also check if the
@@ -47,6 +47,7 @@
 #include <algorithm>
 
 #include <boost/test/unit_test.hpp>
+#include <wiselib/ustring/UString.h>
 
 #include <IDManager.h>
 
@@ -180,7 +181,7 @@ public:
  * @brief Check function which ckecks if all the ids are corretly generated.
  */
 
-inline bool isIdListCorrect(const vector<unsigned int>& termIdList,const vector<UString>& termStringList, IDManager& idManager)
+inline bool isIdListCorrect(const vector<unsigned int>& termIdList,const vector<UString>& termStringList, IDManager<UString, unsigned int>& idManager)
 {
     UString compare;
     
@@ -207,7 +208,7 @@ inline bool isIdListCorrect(const vector<unsigned int>& termIdList,const vector<
  * @brief Check function which checks if all the collection ids are corretly generated.
  */
 
-inline bool isCollectionIdListCorrect(const vector<unsigned int>& collectionIdList,const vector<UString>& collectionNameList, IDManager& idManager)
+inline bool isCollectionIdListCorrect(const vector<unsigned int>& collectionIdList,const vector<UString>& collectionNameList, IDManager<UString, unsigned int>& idManager)
 {
     UString compare;
     
@@ -215,7 +216,7 @@ inline bool isCollectionIdListCorrect(const vector<unsigned int>& collectionIdLi
     for(unsigned int i = 0; i < collectionIdList.size(); i++) 
     {
 
-        // Check if the id is in the CollectionIdManager with getting collection name according to the id.
+        // Check if the id is in the CollectionIdManager<UString, unsigned int><UString, unsigned int> with getting collection name according to the id.
         if ( idManager.getCollectionNameByCollectionId(collectionIdList[i], compare) == false )
             return false;
 
@@ -233,7 +234,7 @@ inline bool isCollectionIdListCorrect(const vector<unsigned int>& collectionIdLi
  * @brief Check function which checks if all the doc ids are corretly generated.
  */
 
-inline bool isDocIdListCorrect(unsigned int collectionIdNum, unsigned int docIdNum, const vector<UString>& docNameList, IDManager& IDManager)
+inline bool isDocIdListCorrect(unsigned int collectionIdNum, unsigned int docIdNum, const vector<UString>& docNameList, IDManager<UString, unsigned int>& IDManager)
 {
     UString compare;
 
@@ -289,7 +290,7 @@ BOOST_AUTO_TEST_CASE( TestCase1 )
     // remove(TermIdManager::TERM_ID_MANAGER_INDEX_FILE.c_str());
 
 
-    IDManager idManager("idm1");
+    IDManager<UString, unsigned int> idManager("idm1");
     unsigned int i;
     UString compare;
     
@@ -338,7 +339,7 @@ BOOST_AUTO_TEST_CASE( TestCase2 )
     // remove(TermIdManager::TERM_ID_MANAGER_INDEX_FILE.c_str());
 
 
-    IDManager idManager("idm2");
+    IDManager<UString, unsigned int> idManager("idm2");
 
     // termUStringList1_ (100 terms) and termUStringList2_ (2500 terms) are already generated.
 
@@ -378,7 +379,7 @@ BOOST_AUTO_TEST_CASE( TestCase3 )
     // remove(TermIdManager::TERM_ID_MANAGER_INDEX_FILE.c_str());
 
 
-    IDManager idManager("idm3");
+    IDManager<UString, unsigned int> idManager("idm3");
     UString compare;
 
     // Build term index dictionary using getTermIdListByTermStringList() Interface.    
@@ -443,10 +444,10 @@ BOOST_AUTO_TEST_CASE( TestCase4 )
 
     // remove previous index file
     // remove(DocIdManager::DOC_ID_MANAGER_INDEX_FILE.c_str());
-    // remove(CollectionIdManager::COLLECTION_ID_MANAGER_INDEX_FILE.c_str());
+    // remove(CollectionIdManager<UString, unsigned int><UString, unsigned int>::COLLECTION_ID_MANAGER_INDEX_FILE.c_str());
 
 
-    IDManager idManager("idm4");
+    IDManager<UString, unsigned int> idManager("idm4");
 
     string insertString("Test DocIdManager");
     UString insertUString(insertString, UString::CP949);
@@ -494,12 +495,12 @@ BOOST_AUTO_TEST_CASE( TestCase5 )
 
     // remove previous index file
     // remove(DocIdManager::DOC_ID_MANAGER_INDEX_FILE.c_str());
-    // remove( CollectionIdManager::COLLECTION_ID_MANAGER_INDEX_FILE.c_str() );
+    // remove( CollectionIdManager<UString, unsigned int><UString, unsigned int>::COLLECTION_ID_MANAGER_INDEX_FILE.c_str() );
 
 
     unsigned int i;
     unsigned int collectionId;
-    IDManager idManager("idm5");
+    IDManager<UString, unsigned int> idManager("idm5");
 
 
     // Get ids for each collection names using getCollectionIdByCollectionName().
@@ -533,7 +534,7 @@ BOOST_AUTO_TEST_CASE( TestCase5 )
 //*/
 
 /**
- * @brief  Test Case 6 : Simple CollectionIdManager check.
+ * @brief  Test Case 6 : Simple CollectionIdManager<UString, unsigned int> check.
  * @details
  *      - Inset one collection name to the empty collectionIndexer_ using 
  *        getCollectionIdByCollectionName() interface. And check if the return value is false 
@@ -551,13 +552,13 @@ BOOST_AUTO_TEST_CASE( TestCase6 )
     cerr << "[ IDManager ] Test Case 6 : Simple Collection Id Manager check ...........";
 
     // remove previous index file
-    // remove(CollectionIdManager::COLLECTION_ID_MANAGER_INDEX_FILE.c_str());
+    // remove(CollectionIdManager<UString, unsigned int>::COLLECTION_ID_MANAGER_INDEX_FILE.c_str());
 
 
 
-    IDManager idManager("idm6");
+    IDManager<UString, unsigned int> idManager("idm6");
 
-    string insertString("Test CollectionIdManager");
+    string insertString("Test CollectionIdManager<UString, unsigned int>");
     UString insertUString(insertString, UString::CP949);
     UString resultUString;
 
@@ -601,12 +602,12 @@ BOOST_AUTO_TEST_CASE( TestCase7 )
     cerr << "[ IDManager ] Test Case 7 : 2450 collection name insertion checking ......";
 
     // remove previous index file
-    // remove(CollectionIdManager::COLLECTION_ID_MANAGER_INDEX_FILE.c_str());
+    // remove(CollectionIdManager<UString, unsigned int>::COLLECTION_ID_MANAGER_INDEX_FILE.c_str());
 
 
     unsigned int i;
 
-    IDManager idManager("idm7");
+    IDManager<UString, unsigned int> idManager("idm7");
 
     // termUStringList1_ (100 terms) and termUStringList2_ (2500 terms) are already generated.
 
@@ -651,7 +652,7 @@ BOOST_AUTO_TEST_CASE( TestCase8 )
     cerr << "[ IDManager ] Test Case 8 : test read/write from/to file ......";
 
     // remove previous index file
-    // remove(CollectionIdManager::COLLECTION_ID_MANAGER_INDEX_FILE.c_str());
+    // remove(CollectionIdManager<UString, unsigned int>::COLLECTION_ID_MANAGER_INDEX_FILE.c_str());
 
 
     unsigned int i;
@@ -728,13 +729,13 @@ BOOST_AUTO_TEST_CASE( TestCase9 )
     cerr << "[ IDManager ] Test Case 9 : test read/write from/to file ......";
 
     // remove previous index file
-    // remove(CollectionIdManager::COLLECTION_ID_MANAGER_INDEX_FILE.c_str());
+    // remove(CollectionIdManager<UString, unsigned int>::COLLECTION_ID_MANAGER_INDEX_FILE.c_str());
 
 
     unsigned int i;
 	unsigned int collectionId = 1;
-    IDManager idManager_Store;
-    IDManager* idManager_Load;
+    IDManager<UString, unsigned int> idManager_Store;
+    IDManager<UString, unsigned int>* idManager_Load;
     std::vector<unsigned int> termIdList;
     std::vector<unsigned int> docIdList;
     std::vector<unsigned int> collectionIdList;
@@ -754,7 +755,7 @@ BOOST_AUTO_TEST_CASE( TestCase9 )
 	}
 
 	// load data from IDManagerData.dat
-	idManager_Load = new IDManager();
+	idManager_Load = new IDManager<UString, unsigned int>();
     for(i = 0; i < termUStringList2_.size(); i++) 
 	{
 		// check if the IDs are changed

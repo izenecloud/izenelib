@@ -13,7 +13,7 @@ TARGET_PATH = .
 WISELIB = /home/wps/workspace/wiselib
 IZENELIB = /home/wps/workspace/izenelib
 
-IDMANAGER_PATH = ../../include/
+IDMANAGER_PATH = ../include/
 
 INCLUDE_PATH = \
 			   -I $(IDMANAGER_PATH) \
@@ -22,10 +22,6 @@ INCLUDE_PATH = \
 			   -I $(IZENELIB)/include/3rdparty \
 			   -I /usr/local/include/boost-1_36 \
 
-CORE_LIB_PATH = -L $(IDMANAGER_PATH)/lib \
-
-CORE_LIB = \
-		   -l idmanager\
 		  
 EXT_LIB_PATH = \
 			   -L $(IZENELIB)/lib \
@@ -56,7 +52,7 @@ TARGET = test
 all: $(TARGET)
 
 $(TARGET) : $(OBJECTS)
-	$(CXX) -o $@ $^ $(CORE_LIB_PATH) $(CORE_LIB) $(EXT_LIB_PATH) $(EXT_LIB) 
+	$(CXX) -o $@ $^  $(EXT_LIB_PATH) $(EXT_LIB) 
 
 clean:
 	rm -rf *.o $(TARGET) *.sdb 

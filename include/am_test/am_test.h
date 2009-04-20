@@ -45,6 +45,24 @@ template<> inline int generateData<int>(const int a, int num, bool rand) {
 		return a;
 }
 
+template<> inline vector<int> generateData<vector<int> >(const int a, int num, bool rand) {
+	vector<int> vret;
+	int max;
+	if (rand){
+		max = myrand()%( (num+1)>>13 );	
+	}
+	else
+	{
+		max = ( num>>13 );		
+	}
+	for(int i=0; i<max; i++)
+	{
+		vret.push_back(i);
+	}
+	return vret;
+}
+
+
 void displayMemInfo(std::ostream& os = std::cout) {
 	unsigned long rlimit = 0, vm = 0, rss = 0;
 	ProcMemInfo::getProcMemInfo(vm, rss, rlimit);

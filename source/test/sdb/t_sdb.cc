@@ -14,7 +14,7 @@ static int degree = 2;
 static size_t cacheSize = 1000000;
 
 enum {BTREE=0, TCHASH, HASH, OBTREE, SKIPLIST};
-static int container = BTREE;
+static int container = 5;
 
 typedef BTreeFile<Key, NullType, NullLock> BTF;
 typedef sdb_btree<Key, NullType,NullLock> SBTREE;
@@ -23,10 +23,14 @@ typedef sdb_hash<Key, NullType, NullLock> SHASH;
 typedef tc_hash<Key, NullType, NullLock> THASH;
 
 typedef SequentialDB<Key, NullType, NullLock, BTF> SDB_BT;
-typedef SequentialDB<Key, NullType,NullLock,SLF> SDB_SL;
-typedef SequentialDB<Key, NullType,NullLock,SHASH> SDB_HASH;
-typedef SequentialDB<Key, NullType,NullLock,SBTREE> SDB_BTREE;
-typedef SequentialDB<Key, NullType,NullLock,THASH> SDB_TCHASH;
+typedef SequentialDB<Key, NullType, NullLock,SLF> SDB_SL;
+typedef SequentialDB<Key, NullType, NullLock,SHASH> SDB_HASH;
+typedef SequentialDB<Key, NullType, NullLock,SBTREE> SDB_BTREE;
+typedef SequentialDB<Key, NullType, NullLock,THASH> SDB_TCHASH;
+
+typedef unordered_sdb<Key, NullType> UNORDERED_SDB;
+typedef ordered_sdb<Key, NullType> ORDERED_SDB;
+
 
 bool trace = 0;
 static int op = 31;
@@ -268,12 +272,13 @@ int main(int argc, char *argv[]) {
 		}
 		else //if(container == HASH) 
 		{
-			SDB_HASH sdb4(indexFile);
-			sdb4.setDirectorySize(8192);
-			sdb4.setBucketSize(1024);
-			sdb4.setCacheSize(cacheSize);
+			UNORDERED_SDB sdb4(string("unordered_")+indexFile);			
 			sdb4.open();
 			run(sdb4);
+			
+			ORDERED_SDB sdb5(string("ordered_")+indexFile);			
+			sdb5.open();
+			run(sdb5);
 		}
 
 	}

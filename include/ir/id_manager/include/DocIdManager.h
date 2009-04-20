@@ -21,17 +21,12 @@
 
 namespace idmanager {
 
-class DocIdManager {
-	typedef unsigned int NameId;
-	typedef wiselib::UString NameString;
-	typedef izenelib::util::NullLock LockType;
-	typedef izenelib::am::tc_hash<NameHook, NameId> SDB_HASH_SI;
-	typedef izenelib::am::tc_hash<IDHook, NameString> SDB_HASH_IS;
-	//typedef izenelib::sdb::SequentialDB<NameHook, NameId, LockType, SDB_HASH_SI> IdFinder;
-	//typedef izenelib::sdb::SequentialDB<IDHook, NameString, LockType, SDB_HASH_IS> NameFinder;
-	typedef izenelib::sdb::SequentialDB<NameHook, NameId, LockType> IdFinder;
-	typedef izenelib::sdb::SequentialDB<IDHook, NameString, LockType> NameFinder;
-
+template<typename NameString, typename NameID> class DocIdManager {
+	typedef  NameHook<NameString> NameHook;
+	typedef  IDHook<NameID> IDHook;
+	typedef  izenelib::sdb::ordered_sdb<NameHook, NameID> 	IdFinder;
+	typedef  izenelib::sdb::ordered_sdb<IDHook, NameString>  NameFinder;
+	
 public:
 
 	/**
@@ -41,8 +36,8 @@ public:
 	 *  - Create docIndexer_ and invertedDocIndexer_ which size is  the amount of 
 	 *    DEFAULT_COLLECTION_SIZE. 
 	 */
-	DocIdManager(const string& sdbname="docid_manager", unsigned int initialDocIdValue =1,
-			unsigned int maxDocIdValue = -2);
+	DocIdManager(const string& sdbname="docid_manager",
+			NameID initialDocIdValue =1, NameID maxDocIdValue = -2);
 
 	~DocIdManager();
 
@@ -58,8 +53,8 @@ public:
 	 * @return true     :   The document ID is in dictionary. 
 	 * @return false    :   There is no matched ID in dictionary.
 	 */
-	bool getDocIdByDocName(unsigned int collectionId,
-			const wiselib::UString& docName, unsigned int& docId);
+	bool getDocIdByDocName(NameID collectionId, const NameString& docName,
+			NameID& docId);
 
 	/**
 	 * @brief a member function to offer a document name according to the ID.
@@ -70,8 +65,8 @@ public:
 	 * @return true  :  Given docId exists in the dictionary.	
 	 * @return false :	Given docId does not exist in the dictionary.	
 	 */
-	bool getDocNameByDocId(unsigned int collectionId, unsigned int docId,
-			wiselib::UString& docName);
+	bool getDocNameByDocId(NameID collectionId, NameID docId,
+			NameString& docName);
 
 	/**
 	 * @brief a member function to display all the contents of the sequential db. this function is used for debugging. 
@@ -89,8 +84,8 @@ private:
 	 * @return true  :  Insertion is completed.	
 	 * @return false :  Inserted string already exists in the dictionary..
 	 */
-	bool insertDocName(unsigned int collectionId,
-			const wiselib::UString& docName, unsigned int docId);
+	bool insertDocName(NameID collectionId, const NameString& docName,
+			NameID docId);
 
 	/**
 	 * @brief a member function to recover document string and ID of sequential db index file into dictionary.
@@ -101,8 +96,8 @@ private:
 	 * @return true  :  Insertion is completed.	
 	 * @return false :  Inserted string already exists in the dictionary..
 	 */
-	bool recoverDocName(unsigned int collectionId,
-			const wiselib::UString& docName, unsigned int docId);
+	bool recoverDocName(NameID collectionId, const NameString& docName,
+			NameID docId);
 
 	/**
 	 * @brief This function adds new pair of (UString, ID) to DocIdManager
@@ -110,18 +105,95 @@ private:
 	 * the string and id values
 	 */
 	/*void addData(unsigned int collectionId,
-	 const wiselib::UString& docName, unsigned int& docId)*/
-
-	friend class IDManager;
+	 const NameString& docName, unsigned int& docId)*/	
 private:
-	unsigned int minID_; /// <initial value of DocId
-	unsigned int maxID_; /// << maximum value of DocId
-	unsigned int newID_;
+	NameID minID_; /// <initial value of DocId
+	NameID maxID_; /// << maximum value of DocId
+	NameID newID_;
 
 	IdFinder idFinder_; ///< an indexer which gives ids according to the name.
 	NameFinder nameFinder_; ///< an inverted indexer which gives name according to the id.		
 
 }; // end - class DocIdManager 
+
+
+template<typename NameString, typename NameID> DocIdManager<NameString, NameID>::DocIdManager(
+		const string& sdbname, NameID initialDocIdValue, NameID maxDocIdValue) :
+	minID_(initialDocIdValue), maxID_(maxDocIdValue),
+			newID_(initialDocIdValue), idFinder_(sdbname+ "_name.sdb"),
+			nameFinder_(sdbname+"_id.sdb") {
+	idFinder_.open();
+	nameFinder_.open();
+} // end - IDFactory()
+
+
+template<typename NameString, typename NameID> DocIdManager<NameString, NameID>::~DocIdManager() {
+} // end - ~DocIdManager()
+
+template<typename NameString, typename NameID> bool DocIdManager<NameString,
+		NameID>::getDocIdByDocName(NameID collectionId,
+		const NameString& docName, NameID& docId) {
+	NameHook nameHook;
+	nameHook.collId = collectionId;
+	nameHook.docName = docName;
+
+	// If name string is found, return the id.
+	if (idFinder_.getValue(nameHook, docId) ) {
+		return true;
+	} // end - if
+
+	// Because there's no name string in idFinder, create new id according to the string. 
+	docId = newID_;
+	newID_++;
+
+	IDHook idHook;
+	idHook.collId = collectionId;
+	idHook.docId = docId;
+
+	// check correctness of input nameID
+	if (newID_> maxID_)
+		throw IDFactoryException(SF1_ID_FACTORY_OUT_OF_BOUND, __LINE__, __FILE__);
+
+	// insert (nameString, nameID) to sdb
+	idFinder_.insertValue(nameHook, docId);
+	nameFinder_.insertValue(idHook, docName);
+	return false;
+}
+
+template<typename NameString, typename NameID> bool DocIdManager<NameString,
+		NameID>::getDocNameByDocId(NameID collectionId, NameID docId,
+		NameString& docName) {
+	IDHook idHook;
+	idHook.collId = collectionId;
+	idHook.docId = docId;
+	return nameFinder_.getValue(idHook, docName);
+
+} // end - getDocNameByDocId()
+
+
+/**********************************************************
+ *                                Display SequentialDB List 
+ **********************************************************/
+
+template<typename NameString, typename NameID> void DocIdManager<NameString,
+		NameID>::displaySDBList() {
+	idFinder_.display();
+	nameFinder_.display();
+} // end - displaySDBList()
+
+/*
+ void DocIdManager::addData(NameID collectionId,
+ const NameString& docName, NameID& docId) {
+ NameHook nameHook;
+ nameHook.colId = collectionId;
+ nameHook.docName = docName;
+ IDHook idHook;
+ idHook.collId = collectionId;
+ idHook.docId = docId;
+
+ idFinder_.insert(nameHook, docId);
+ nameFinder_.insert(idHook, docName);
+ }*/
 
 } // end - namespace sf1v5
 

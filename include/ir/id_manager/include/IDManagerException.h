@@ -7,6 +7,7 @@
 #define _ID_MANAGER_EXCEPTION_H_
 
 #include <iostream>
+#include "IDManagerErrorString.h"
 
 namespace idmanager 
 {
@@ -23,15 +24,37 @@ namespace idmanager
         ///		errorLine - Line number where the exception occurs
         /// @param
         ///		fileName - file where the exception occurs
-        IDManagerException(int errorNo, int errorLine, const std::string& fileName);
+        IDManagerException(int errorNo, int errorLine, const std::string& fileName)
+        {
+        	errorCodeNo_ = errorNo;
+        	line_ = errorLine;
+        	errorString_ = IDManagerErrorString[errorNo];
+        	exceptionLocation_ = fileName;
+        }
+
 
         /// A destructor, destroy variables if it is neccessary
-        virtual ~IDManagerException();
+        virtual ~IDManagerException(){
+        	
+        }
 
         /// print out the exception's description to the file
         /// @param
         ///		outputStream - where the error description is written to
-        virtual void output(std::ostream& outputStream = std::cerr);
+        virtual void output(std::ostream& outputStream = std::cerr)
+        {
+        	time_t rawtime;
+        	struct tm * timeinfo;
+        	char timebuffer [80];
+
+        	time ( &rawtime );
+        	timeinfo = localtime ( &rawtime );
+        	strftime (timebuffer,80,"%Y.%m.%d %H:%M:%S",timeinfo);
+
+        	outputStream << timebuffer << ":" << errorString_;
+        	outputStream << ": Exception occurs at line " << line_ << " in file ";
+        	outputStream <<  exceptionLocation_ << std::endl;
+        }
 
         /// get the error code
         /// @return

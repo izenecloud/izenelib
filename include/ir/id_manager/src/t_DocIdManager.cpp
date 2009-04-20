@@ -34,6 +34,7 @@
 
 #include <CollectionIdManager.h>
 #include <DocIdManager.h>
+#include <wiselib/ustring/UString.h>
 
 using namespace std;
 using namespace wiselib;
@@ -165,7 +166,7 @@ public:
  * @brief Check function which checks if all the collection ids are corretly generated.
  */
 
-inline bool isCollectionIdListCorrect(const vector<unsigned int>& collectionIdList,const vector<UString>& collectionNameList, CollectionIdManager& collectionIdManager)
+inline bool isCollectionIdListCorrect(const vector<unsigned int>& collectionIdList,const vector<UString>& collectionNameList, CollectionIdManager<UString, unsigned int>& collectionIdManager)
 {
     UString compare;
     
@@ -173,7 +174,7 @@ inline bool isCollectionIdListCorrect(const vector<unsigned int>& collectionIdLi
     for(unsigned int i = 0; i < collectionIdList.size(); i++) 
     {
 
-        // Check if the id is in the CollectionIdManager with getting collection name according to the id.
+        // Check if the id is in the CollectionIdManager<UString, unsigned int> with getting collection name according to the id.
         if ( collectionIdManager.getCollectionNameByCollectionId(collectionIdList[i], compare) == false )
             return false;
 
@@ -191,7 +192,7 @@ inline bool isCollectionIdListCorrect(const vector<unsigned int>& collectionIdLi
  * @brief Check function which checks if all the doc ids are corretly generated.
  */
 
-inline bool isDocIdListCorrect(unsigned int collectionIdNum, unsigned int docIdNum, const vector<UString>& docNameList, DocIdManager& docIdManager)
+inline bool isDocIdListCorrect(unsigned int collectionIdNum, unsigned int docIdNum, const vector<UString>& docNameList, DocIdManager<UString, unsigned int>& docIdManager)
 {
     UString compare;
 
@@ -240,12 +241,12 @@ BOOST_AUTO_TEST_CASE( TestCase1 )
 {
     // remove previous index file
     // remove(DocIdManager::DOC_ID_MANAGER_INDEX_FILE.c_str());
-    // remove(CollectionIdManager::COLLECTION_ID_MANAGER_INDEX_FILE.c_str());
+    // remove(CollectionIdManager<UString, unsigned int>::COLLECTION_ID_MANAGER_INDEX_FILE.c_str());
 
     cerr << endl;
     cerr << "[ DocIdManager ] Test Case 1 : Simple Document Id Manager check .............."; 
     
-    DocIdManager docIdManager("docid1");
+    DocIdManager<UString, unsigned int> docIdManager("docid1");
 
     string insertString("Test DocIdManager");
     UString insertUString(insertString, UString::CP949);
@@ -287,14 +288,14 @@ BOOST_AUTO_TEST_CASE( TestCase2 )
 {
     // remove previous index file
     // remove(DocIdManager::DOC_ID_MANAGER_INDEX_FILE.c_str());
-    // remove( CollectionIdManager::COLLECTION_ID_MANAGER_INDEX_FILE.c_str() );
+    // remove( CollectionIdManager<UString, unsigned int>::COLLECTION_ID_MANAGER_INDEX_FILE.c_str() );
 
     cerr << "[ DocIdManager ] Test Case 2 : collectionIdManager and docIdManager check ....";
 
     unsigned int i;
     unsigned int collectionId;
-    CollectionIdManager collectionIdManager("colid_d");   
-    DocIdManager docIdManager("docid2");
+    CollectionIdManager<UString, unsigned int> collectionIdManager("colid_d");   
+    DocIdManager<UString, unsigned int> docIdManager("docid2");
 
 
     // Get ids for each collection names using getCollectionIdByCollectionName().
@@ -342,7 +343,7 @@ BOOST_AUTO_TEST_CASE( TestCase3 )
 
     unsigned int i;
     unsigned int collectionId;
-    CollectionIdManager collectionIdManager;
+    CollectionIdManager<UString, unsigned int><UString, unsigned int> collectionIdManager;
     DocIdManager        docIdManager;
 
     // Get ids for each collection names using getCollectionIdByCollectionName().
@@ -350,7 +351,7 @@ BOOST_AUTO_TEST_CASE( TestCase3 )
     termIdList2_.resize(termUStringList2_.size());
 
 
-    // Check if the collection id is already in the CollectionIdManager.
+    // Check if the collection id is already in the CollectionIdManager<UString, unsigned int>.
     for(i = 0; i < termUStringList1_.size(); i++) 
         BOOST_CHECK_EQUAL( collectionIdManager.getCollectionIdByCollectionName( termUStringList1_[i], termIdList1_[i] ) , true );
 
