@@ -31,4 +31,7 @@ typedef unsigned __int64  uint64_t;
 #define NS_IZENELIB_UTIL_BEGIN namespace izenelib{ namespace util{
 #define NS_IZENELIB_UTIL_END }}
 
+#define BEGIN_SERIALIZATION namespace izenelib{ namespace am{ namespace util{
+#define END_SERIALIZATION }}}
+
 #endif // end of TYPES_H
