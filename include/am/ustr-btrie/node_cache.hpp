@@ -5,6 +5,7 @@
 #include "alphabet_node.hpp"
 #include <time.h>
 #include "cache_strategy.h"
+#include <string>
 
 NS_IZENELIB_AM_BEGIN
 using namespace std;
@@ -14,15 +15,16 @@ using namespace std;
  *@class NodeCache
  **/
 template<
+  class STRING_TYPE = string,
   uint64_t CACHE_LENGTH = 1000000,//bytes
   class CacheType = CachePolicyLARU,
-  unsigned short* ALPHABET = a2z,
+  STRING_TYPE::value_type* ALPHABET = a2z,
   uint32_t ALPHABET_SIZE = a2z_size
   >
 class NodeCache
 {
 public:
-  typedef AlphabetNode<ALPHABET, ALPHABET_SIZE> NodeType;
+  typedef AlphabetNode<STRING_TYPE::value_type, ALPHABET, ALPHABET_SIZE> NodeType;
 
 protected:
   struct _cache_node_
@@ -49,7 +51,7 @@ protected:
   
   
 public:
-  typedef NodeCache <CACHE_LENGTH, CacheType, ALPHABET, ALPHABET_SIZE> SelfType;
+  typedef NodeCache <STRING_TYPE, CACHE_LENGTH, CacheType, ALPHABET, ALPHABET_SIZE> SelfType;
   
   class nodePtr
   {
