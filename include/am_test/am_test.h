@@ -13,6 +13,15 @@ using namespace __gnu_cxx;
 using namespace boost;
 using namespace izenelib::util;
 
+#ifdef TRACE
+#undef TRACE
+#define TRACE 0
+#endif
+
+#ifndef TRACE	
+#define TRACE 0
+#endif
+
 namespace izenelib {
 namespace am_test {
 
@@ -45,23 +54,20 @@ template<> inline int generateData<int>(const int a, int num, bool rand) {
 		return a;
 }
 
-template<> inline vector<int> generateData<vector<int> >(const int a, int num, bool rand) {
+template<> inline vector<int> generateData<vector<int> >(const int a, int num,
+		bool rand) {
 	vector<int> vret;
 	int max;
-	if (rand){
-		max = myrand()%( (num+1)>>13 );	
+	if (rand) {
+		max = myrand()%( (num+1)>>13 );
+	} else {
+		max = (num>>13 );
 	}
-	else
-	{
-		max = ( num>>13 );		
-	}
-	for(int i=0; i<max; i++)
-	{
+	for (int i=0; i<max; i++) {
 		vret.push_back(i);
 	}
 	return vret;
 }
-
 
 void displayMemInfo(std::ostream& os = std::cout) {
 	unsigned long rlimit = 0, vm = 0, rss = 0;
@@ -151,10 +157,12 @@ public:
 	void run_insert(bool mem=true) {
 		clock_t t1 = clock();
 		for (int i =0; i<num_; i++) {
+#if TRACE
 			if (trace_) {
 				cout<<"Insert key="<<generateData<KeyType>(i, num_, rand_)
-						<<endl;
+				<<endl;
 			}
+#endif			
 			am_.insert(generateData<KeyType>(i, num_, rand_), generateData<
 					ValueType>(i, num_, rand_) );
 		}
@@ -168,8 +176,10 @@ public:
 		clock_t t1 = clock();
 		for (int i =0; i<num_; i++) {
 			if (trace_) {
+#if TRACE						
 				cout<<"Insert key="<<generateData<KeyType>(i, num_, rand_)
-						<<endl;
+				<<endl;
+#endif			
 			}
 			am_.insert(generateData<KeyType>(i, num_, rand_) );
 		}
@@ -181,9 +191,11 @@ public:
 	void run_find(bool mem=true) {
 		clock_t t1 = clock();
 		for (int i =0; i<num_; i++) {
+#if TRACE			
 			if (trace_) {
 				cout<<"find key="<<generateData<KeyType>(i, num_, rand_)<<endl;
 			}
+#endif			
 			am_.find(generateData<KeyType>(i, num_, rand_) );
 		}
 		printf("find elapsed: %lf seconds\n", double(clock()- t1)/CLOCKS_PER_SEC);
@@ -194,9 +206,12 @@ public:
 	void run_del(bool mem=true) {
 		clock_t t1 = clock();
 		for (int i =0; i<num_; i++) {
+
+#if TRACE			
 			if (trace_) {
 				cout<<"del key="<<generateData<KeyType>(i, num_, rand_)<<endl;
 			}
+#endif 			
 			am_.del(generateData<KeyType>(i, num_, rand_) );
 		}
 		printf("del elapsed: %lf seconds\n", double(clock()- t1)/CLOCKS_PER_SEC);
@@ -229,8 +244,11 @@ template<typename T> void run_am(T& cm) {
 	cout<<"num: "<<cm.num_items()<<endl;
 }
 
-template<typename T> void run_insert(T& cm) {
+template<typename T> void run_am_nod(T& cm) {
 	cm.run_insert();
+	cout<<"num: "<<cm.num_items()<<endl;
+	cm.run_find();
+	cout<<"num: "<<cm.num_items()<<endl;
 }
 
 template<typename T> void run_loop(unsigned int loop) {

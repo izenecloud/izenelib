@@ -84,15 +84,14 @@ public:
 		ptr.reset(new DbObj);
 		write_image(key, ptr);
 
-		void* value =NULL;
 		int sp;
-		value = tchdbget(hdb_, (void*)(ptr->getData()), ptr->getSize(), &sp);
+		void* value = tchdbget(hdb_, (void*)(ptr->getData()), ptr->getSize(), &sp);
 		if( !value )return NULL;
 		else {
 			ptr1.reset(new DbObj(value, sp));
-			ValueType *val = new ValueType;
-			read_image(*val, ptr1);
-			return val;
+			ValueType val;
+			read_image(val, ptr1);
+			return new ValueType(val);
 		}
 	}
 

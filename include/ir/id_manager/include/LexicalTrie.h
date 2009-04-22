@@ -26,7 +26,7 @@ namespace idmanager {
  * indicates if the word up to that point is in fact contained in the trie.
  */
 template<typename NameString> class LexicalTrie {
-	typedef typename NameString::charT charType;
+	typedef typename NameString::value_type charType;
 public:
 
 	LexicalTrie();
