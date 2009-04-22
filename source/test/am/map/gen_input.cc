@@ -2,17 +2,10 @@
 #include <fstream>
 #include <iostream>
 #include <sstream>
-#include <am/ustr-btrie/alphabet.hpp>
-#include <am/linear_hash_table/linearHashTable.hpp>
-#include <wiselib/ustring/UString.h>
 
-#define ENCODE_TYPE UString::UTF_8//EUC_KR//GB2312//
-
-using namespace wiselib;
-using namespace std;
 
 /** * @class get_input gen_input.cc
- *  @brief Genarate random words with random k for sEdit-Distance. 
+ *  @brief Genarate random words with random k for Edit-Distance. 
  * 
  **/
 class get_input
@@ -35,8 +28,7 @@ public:
       return 0;
       
     }
-    UString str("", ENCODE_TYPE);
-    UString line("\n", ENCODE_TYPE);
+    std::string str;
     
     for (unsigned long i = 0; i<size; i++)
     {
@@ -44,18 +36,19 @@ public:
       while (charCount == 0)
         charCount = rand()%maxChars;
       
-      for (unsigned long j=0; j<charCount; j++)
+      for (int j=0; j<charCount; j++)
       {
-        str += a2z[rand()%a2z_size];
+        std::string s("a");
+        s[0] += rand()%26;
+        
+        str.append(s);  
       }
 
-      str += (UCS2Char)'\n';
+      str.append("\n");
       
     }
 
-    str.displayStringValue(ENCODE_TYPE, of);
-    
-    //of.write(str.c_str(), str.size());
+    of.write(str.c_str(), str.length());
     of.close();
 
     return true;

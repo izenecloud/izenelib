@@ -20,6 +20,50 @@ NS_IZENELIB_AM_BEGIN
 
 namespace util {
 
+	template<typename T>
+	inline void write_image(const T& dat, char* &str, size_t& size)
+	{
+		DbObjPtr ptr;
+		ptr.reset(new DbObj);
+		write_image(dat, ptr);
+		str = (char*)ptr->getData();
+		size = ptr->getSize();
+	}
+
+	template<typename T>
+	inline void read_image(T& dat, const char* str, const size_t& size)
+	{
+		DbObjPtr ptr;
+		ptr.reset(new DbObj(str, size));
+		read_image(dat, ptr);
+	}
+
+	template<>
+	inline void write_image<string>(const string& dat, char* &str, size_t& size)
+	{
+		str = (char*)dat.c_str();
+		size = dat.size();
+	}
+
+	template<>
+	inline void read_image<string>(string& dat, const char* str, const size_t& size)
+	{
+		dat = str;
+	}
+
+	template<>
+	inline void write_image<int>(const int& dat, char* &str, size_t& size)
+	{
+		str = (char*)(&dat);
+		size = sizeof(dat);
+	}
+
+	template<>
+	inline void read_image<int>(int& dat, const char* str, const size_t& size)
+	{
+		memcpy(&dat, str,sizeof(int));
+	}
+
 	inline int uint_to_bytes(unsigned int val, char* dest) {
 		unsigned int i;
 		for(i = 0; i < sizeof(int); i++) {

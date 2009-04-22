@@ -7,8 +7,8 @@
 #include "bucket_cache.hpp"
 #include <string>
 #include <stdio.h>
-#include <am/cccr_ustring_hash_table/cccr_ustr_hash_table.hpp>
-#include <ustring/UString.h>
+#include <am/map/map.hpp>
+#include <wiselib/ustring/UString.h>
 //#include <boost/archive/text_iarchive.hpp>
 //#include <boost/archive/text_oarchive.hpp>
 
@@ -30,9 +30,8 @@ NS_IZENELIB_AM_BEGIN
  *a strings may involve splitting bucket.
  **/
 template<
-  UString::EncodingType ENCODE_TYPE,
-  //class ValueType = uint64_t,
-  unsigned short* ALPHABET = a2z,
+  class STRING_TYPE = string,
+  STRING_TYPE::value_type* ALPHABET = a2z,
   uint32_t ALPHABET_SIZE = a2z_size,
 
   //------------bucket property-------------
@@ -40,7 +39,7 @@ template<
   uint8_t SPLIT_RATIO = 75,
   
   //--------------hash table-------------
-  size_t ENTRY_SIZE= 10000,
+  size_t ENTRY_SIZE_POW= 10,//2^10
   class HASH_FUNCTION = simple_hash,
   int EXPAND = PAGE_EXPANDING,
   
@@ -54,14 +53,14 @@ template<
   >
 class BTrie
 {
-  typedef BTrie<ENCODE_TYPE,  ALPHABET, ALPHABET_SIZE, BUCKET_SIZE, SPLIT_RATIO, ENTRY_SIZE, HASH_FUNCTION,PAGE_EXPANDING, BUCKET_CACHE_LENGTH, BucketCachePolicy, NODE_CACHE_LENGTH, NodeCachePolicy> SelfType;
-  typedef Bucket<ENCODE_TYPE, BUCKET_SIZE, SPLIT_RATIO, ALPHABET, ALPHABET_SIZE> BucketType;
+  typedef BTrie<STRING_TYPE,  ALPHABET, ALPHABET_SIZE, BUCKET_SIZE, SPLIT_RATIO, ENTRY_SIZE, HASH_FUNCTION,PAGE_EXPANDING, BUCKET_CACHE_LENGTH, BucketCachePolicy, NODE_CACHE_LENGTH, NodeCachePolicy> SelfType;
+  typedef Bucket<STRING_TYPE, BUCKET_SIZE, SPLIT_RATIO, ALPHABET, ALPHABET_SIZE> BucketType;
   typedef NodeCache<NODE_CACHE_LENGTH, NodeCachePolicy, ALPHABET, ALPHABET_SIZE> NodeCacheType;
-  typedef BucketCache<ENCODE_TYPE, BUCKET_CACHE_LENGTH, BUCKET_SIZE, SPLIT_RATIO, BucketCachePolicy, ALPHABET, ALPHABET_SIZE> BucketCacheType;
+  typedef BucketCache<STRING_TYPE, BUCKET_CACHE_LENGTH, BUCKET_SIZE, SPLIT_RATIO, BucketCachePolicy, ALPHABET, ALPHABET_SIZE> BucketCacheType;
   typedef typename NodeCacheType::nodePtr AlphabetNodePtr;
   typedef typename BucketCacheType::nodePtr BucketPtr;
-  typedef CCCR_StrHashTable<ENTRY_SIZE, HASH_FUNCTION,PAGE_EXPANDING> HashTable;
-
+  typedef Map<string, uint64_t, ENTRY_SIZE_POW, HASH_FUNCTION,PAGE_EXPANDING> HashTable;
+  typedef typename STRING_TYPE::value_type charT;
 public:
   /**
    *@param filename Name of file stores trie data. It will generate 3 files. The suffix of them are '.buk', '.nod', '.has'.
@@ -224,21 +223,42 @@ protected:
     }
     
   }
+  
+  string substr(const string& str, size_t pos, size_t len = (size_t)-1)
+  {
+    if (len != (size_t)-1)
+      return str.substr(pos, len);
+
+    return str.substr(pos);
+  }
+
+  wiselib::UString substr(const wiselib::UString& str, size_t pos, size_t len=(size_t)-1)
+  {
+    wiselib::UString tmp;
+    if (len != (size_t)-1)
+    {
+      str.subString(tmp, pos, len);
+      return tmp;
+    }
+
+    str.subString(tmp, pos);
+    return tmp;
+  }
 
 public:
   /**
    *Insert a string and content address pair into trie.
    **/
-  bool insert(const UString& str, uint64_t contentAddr)
+  bool insert(const STRING_TYPE& str, uint64_t contentAddr)
   {
     if (pNodeCache_==NULL)
     {
       return false;
     }
     
-    UString* pStr = new UString(str);
+    STRING_TYPE* pStr = new STRING_TYPE(str);
 
-    UString consumeStr = *pStr;
+    STRING_TYPE consumeStr = *pStr;
     AlphabetNodePtr n_1 ;
     
     uint64_t addr = 1;
@@ -309,24 +329,25 @@ public:
           //if (diskAddr == 336200)
           // cout<<"------------------ bucket full, split it*********************\n";
           // if bucket full, split it;
-          vector<UString> leftStr;
+          vector<STRING_TYPE> leftStr;
           vector<uint64_t> leftAddr;
           splitBucket(b, n, diskAddr, idx, leftStr, leftAddr);
-          UString prefix;
-          consumeStr.subString(prefix,0, consumeStr.length()-len);
+          STRING_TYPE prefix = substr(consumeStr, 0, consumeStr.length()-len);
+          //consumeStr.subString(prefix,0, consumeStr.length()-len);
 
-          vector<UString>::iterator k=leftStr.begin();
+          vector<STRING_TYPE>::iterator k=leftStr.begin();
           vector<uint64_t>::iterator v=leftAddr.begin();
             for (; k!=leftStr.end()&& v!=leftAddr.end(); v++,k++)
           {
-            UString tmp = prefix;
+            STRING_TYPE tmp = prefix;
             tmp += (*k);
             //tmp.displayStringValue(ENCODE_TYPE, cout);
             //cout<<"     ";
             //prefix.displayStringValue(ENCODE_TYPE, cout);
             //cout<<endl;
 
-            hashTable_.insert(tmp, *v);
+            string ss(tmp.c_str(), tmp.size());
+            hashTable_.insert(ss, *v);
           }
           
           //cout<<"splitted...\n";
@@ -350,9 +371,9 @@ public:
       pNodeCache_->unlockNode(n.getIndex());
 
       n = n_1;
-      UString tmp;
-      pStr->subString(tmp,1);
-      *pStr = tmp;
+      //UString tmp;
+      //pStr->subString(tmp,1);
+      *pStr = substr(*pStr ,1);
     }
 
     //cout<<"hash table\n";
@@ -363,20 +384,20 @@ public:
    *Split bucket indicated by idx of 'n'.
    **/
   void splitBucket(BucketPtr& b,  AlphabetNodePtr& n, uint64_t diskAddr,
-                   uint32_t idx, vector<UString>& leftStr, vector<uint64_t>& leftAddr)
+                   uint32_t idx, vector<STRING_TYPE>& leftStr, vector<uint64_t>& leftAddr)
   {
-    unsigned short up = b->getUpBound();
-    unsigned short low = b->getLowBound();
+    charT up = b->getUpBound();
+    charT low = b->getLowBound();
     //cout<<up<<" "<<low<<"  "<<b->getStrGroupAmount()<<" 8888888888\n";
     
     if (b->getStrGroupAmount()==1 && up!=low)
     {
       //if only have one string group
-      unsigned short splitPoint = b->getGroupChar(0);
+      charT splitPoint = b->getGroupChar(0);
       //cout<<splitPoint<<"  00000000000\n";
       if (up!=splitPoint)
       {
-        unsigned short beforeSplitPoint = ALPHABET[n->getIndexOf(splitPoint)-1];
+        charT beforeSplitPoint = ALPHABET[n->getIndexOf(splitPoint)-1];
         BucketPtr b1 =  pBucketCache_->newNode();
         
         b1->setUpBound(up);
@@ -387,7 +408,7 @@ public:
       
       if (splitPoint != low)
       {
-        unsigned short afterSplitPoint = ALPHABET[n->getIndexOf(splitPoint)+1];
+        charT afterSplitPoint = ALPHABET[n->getIndexOf(splitPoint)+1];
         BucketPtr b2  = pBucketCache_->newNode();
 
         b2->setUpBound(afterSplitPoint);
@@ -402,7 +423,7 @@ public:
     
     BucketPtr bu = pBucketCache_->newNode();
     //cout<<"splitting!\n";
-    unsigned short splitPoint = b->split(bu.pN_, leftStr, leftAddr);
+    charT splitPoint = b->split(bu.pN_, leftStr, leftAddr);
     //cout<<"splitting point: "<<splitPoint<<endl;
     uint64_t newBktAddr =  bu->add2disk();
     
@@ -435,7 +456,7 @@ public:
   /**
    *Delete string in trie.
    **/
-  bool del(const UString& str)
+  bool del(const STRING_TYPE& str)
   {
     return update(str, (uint64_t)-1);
   }
@@ -443,7 +464,7 @@ public:
   /**
    *Update string 'str' related content
    **/
-  bool update(const UString& str, uint64_t contentAddr)
+  bool update(const STRING_TYPE& str, uint64_t contentAddr)
   {
     if (pNodeCache_==NULL)
     {
@@ -467,10 +488,10 @@ public:
         //load bucket
         BucketPtr b = pBucketCache_->getNodeByMemAddr(idx, addr);
 
-        UString tmp;
-        str.subString(tmp, i-1);
+        //UString tmp;
+        //str.subString(tmp, i-1);
         
-        b->updateContent(tmp,contentAddr);
+        b->updateContent(substr(str, i-1),contentAddr);
         return b->update2disk();
       }
       
@@ -491,9 +512,9 @@ public:
     return hashTable_.update(str, contentAddr);
   }
 
-  void findRegExp(const UString& regexp,  vector<uint64_t>& ret)
+  void findRegExp(const STRING_TYPE& regexp,  vector<uint64_t>& ret)
   {
-    UString sofar;
+    STRING_TYPE sofar;
     findRegExp_(0,1, regexp, sofar, ret);
     
   }
@@ -502,7 +523,7 @@ public:
   /**
    *Get the content of 'str'
    **/
-  uint64_t find(const UString& str)
+  uint64_t find(const STRING_TYPE& str)
   {
     
     if (pNodeCache_==NULL)
@@ -545,11 +566,12 @@ public:
         BucketPtr b = pBucketCache_->getNodeByMemAddr(memAddr, diskAddr);
         //b->display(cout);
         //cout<<str.substr(i)<<"++++++>";
-        UString tmp;
-        str.subString(tmp, i);
+
+        //UString tmp;
+        //str.subString(tmp, i);
         n->setMemAddr(idx, memAddr);
         pNodeCache_->unlockNode(n.getIndex());
-        return b->getContentBy(tmp);
+        return b->getContentBy(substr(str, i));
       }
       
       AlphabetNodePtr n1 = pNodeCache_->getNodeByMemAddr(memAddr, diskAddr);
@@ -557,8 +579,9 @@ public:
       pNodeCache_->unlockNode(n.getIndex());
       n = n1;
     }
-    
-    return hashTable_.find(str);
+
+    string ss (str.c_str(), str.size());
+    return hashTable_.find(ss);
     
   }
 
@@ -570,7 +593,7 @@ public:
     return pNodeCache_->getCount();
   }
 
-  void display(ostream& os, const UString& str)
+  void display(ostream& os, const STRING_TYPE& str)
   {
     uint32_t root = 0;
     AlphabetNodePtr n = pNodeCache_->getNodeByMemAddr(root, 1);
@@ -625,7 +648,7 @@ protected:
    *@param sofar Record the string ahead sofar.
    *@param ret The found results.
    **/
-  void findRegExp_(uint32_t idx, uint64_t addr, const UString& regexp, const UString& sofar,  vector<uint64_t>& ret)
+  void findRegExp_(uint32_t idx, uint64_t addr, const STRING_TYPE& regexp, const STRING_TYPE& sofar,  vector<uint64_t>& ret)
   {
      
     if (pNodeCache_==NULL)
@@ -635,7 +658,8 @@ protected:
 
     if (regexp.empty())
     {
-      uint64_t ad = hashTable_.find(sofar);
+      string ss(sofar.c_str(), sofar.size());
+      uint64_t ad = hashTable_.find(ss);
       //ret.push_back(item_pair(sofar, ad));
       ret.push_back(ad);
       return;
@@ -652,8 +676,8 @@ protected:
       return ;
     }
       
-    UString sub;
-    regexp.subString(sub, 1);
+    STRING_TYPE sub = substr(regexp , 1);
+    //regexp.subString(sub, 1);
     uint64_t last_addr = -1;
     uint32_t last_mem = -1;
     
@@ -662,7 +686,7 @@ protected:
     case '*':
       for (uint32_t i=0; i<ALPHABET_SIZE; i++)
       {
-        UString sf = sofar;
+        STRING_TYPE sf = sofar;
         sf += ALPHABET[i];
         uint64_t diskAddr = n->getDiskAddr(i);
         
@@ -706,7 +730,7 @@ protected:
       last_addr =  -1;
       for (uint32_t i=0; i<ALPHABET_SIZE; i++)
       {
-        UString sf = sofar;
+        STRING_TYPE sf = sofar;
         sf += ALPHABET[i];
         uint64_t diskAddr = n->getDiskAddr(i);
         uint32_t memAddr = n->getMemAddr(i);
@@ -745,7 +769,7 @@ protected:
       idx = n->getIndexOf(regexp[0]);
       uint64_t diskAddr = n->getDiskAddr(idx);
       uint32_t memAddr = n->getMemAddr(idx);
-      UString sf = sofar;
+      STRING_TYPE sf = sofar;
       sf += regexp[0];
       
       if (diskAddr == (uint64_t)-1)

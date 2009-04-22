@@ -420,6 +420,16 @@ protected:
 	int count_;
 };
 
+
+template<
+	typename KeyType = string,
+	typename ValueType = NullType
+>
+class cccr_small_hash: public cccr_hash<KeyType, ValueType, 6>
+{
+	
+};
+
 NS_IZENELIB_AM_END
 
 #endif

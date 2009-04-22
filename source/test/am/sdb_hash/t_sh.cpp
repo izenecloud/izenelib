@@ -1,4 +1,3 @@
-#include <boost/memory.hpp>
 #include <string>
 #include <ctime>
 //#include <time.h>
@@ -27,26 +26,6 @@ typedef izenelib::am::DataType<KeyType, NullType> myDataType;
 typedef izenelib::am::sdb_hash<KeyType, izenelib::am::NullType, NullLock>
 		SDB_HASH;
 
-namespace izenelib {
-namespace am {
-namespace util {
-
-template<> inline void read_image<myDataType>(myDataType& dat,
-		const DbObjPtr& ptr) {
-	dat.key = (KeyType)((char*)ptr->getData() );
-}
-;
-
-template<> inline void write_image<myDataType>(const myDataType& dat,
-		DbObjPtr& ptr) {
-	KeyType key = dat.get_key();
-	ptr->setData(key.c_str(), key.size()+1);
-}
-;
-
-}
-}
-}
 
 template<typename T> void insert_test(T& tb) {
 

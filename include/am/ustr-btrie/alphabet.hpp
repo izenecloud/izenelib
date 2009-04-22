@@ -1,11 +1,11 @@
 #ifndef ALPHABET_H
 #define ALPHABET_H
 
-#include <ustring/UString.h>
+#include <wiselib/ustring/UString.h>
 #include<string>
 #include <ostream>
 
-using namespace sf1lib;
+using namespace wiselib;
 using namespace std;
 
 /**

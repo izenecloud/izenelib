@@ -15,18 +15,18 @@ using namespace std;
  *@class BucketCache
  **/
 template<
-  UString::EncodingType ENCODE_TYPE,
+  class STRING_TYPE = string,
   uint64_t CACHE_LENGTH = 100000000,//bytes
   uint32_t BUCKET_SIZE = 8192,//byte
   uint8_t SPLIT_RATIO = 75,
   class CacheType = CachePolicyLARU,
-  unsigned short* ALPHABET = a2z,
+  STRING_TYPE::value_type* ALPHABET = a2z,
   uint32_t ALPHABET_SIZE = a2z_size
   >
 class BucketCache
 {
 public:
-  typedef Bucket<ENCODE_TYPE, BUCKET_SIZE, SPLIT_RATIO,ALPHABET, ALPHABET_SIZE> NodeType;
+  typedef Bucket<STRING_TYPE, BUCKET_SIZE, SPLIT_RATIO,ALPHABET, ALPHABET_SIZE> NodeType;
 
 protected:
   struct _cache_node_
@@ -53,7 +53,7 @@ protected:
   
   
 public:
-  typedef BucketCache <ENCODE_TYPE, CACHE_LENGTH,BUCKET_SIZE, SPLIT_RATIO, CacheType, ALPHABET, ALPHABET_SIZE> SelfType;
+  typedef BucketCache <STRING_TYPE, CACHE_LENGTH,BUCKET_SIZE, SPLIT_RATIO, CacheType, ALPHABET, ALPHABET_SIZE> SelfType;
   
   class nodePtr
   {
