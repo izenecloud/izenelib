@@ -237,11 +237,11 @@ protected:
     wiselib::UString tmp;
     if (len != (size_t)-1)
     {
-      str.subString(tmp, pos, len);
+      str.substr(tmp, pos, len);
       return tmp;
     }
 
-    str.subString(tmp, pos);
+    str.substr(tmp, pos);
     return tmp;
   }
 

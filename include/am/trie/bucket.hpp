@@ -72,7 +72,7 @@ protected:
   static wiselib::UString substr(const wiselib::UString& str, size_t pos)
   {
     wiselib::UString tmp;
-    str.subString(tmp, pos);
+    str.substr(tmp, pos);
    
     return tmp;
   }  
