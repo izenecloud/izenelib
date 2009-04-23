@@ -197,15 +197,11 @@ public:
 			memcpy(&vsz, p, sizeof(size_t));
 			p += sizeof(size_t);
 
-			ValueType* pv;
-			ValueType val;
-
+			ValueType *val = new ValueType;
 			DbObjPtr ptr;
 			ptr.reset( new DbObj(p+ksz, vsz) );
-			read_image(val, ptr);
-			pv = new ValueType(val);
-
-			return pv;
+			read_image(*val, ptr);
+			return val;
 		}
 	}
 
@@ -225,13 +221,11 @@ public:
 			p += sizeof(size_t);
 			memcpy(&vsz, p, sizeof(size_t));
 			p += sizeof(size_t);
+			memset(p, 0xff, ksz);
 
-			memset(p, 0, ksz);
-
-			/* 
-			 //this is much slower.
-			 vsz += ksz;
-			 ksz = 0;
+			//this is much slower.
+			/*vsz += ksz+1;
+			 ksz = -1;
 			 memcpy(p-2*sizeof(size_t), &ksz, sizeof(size_t) );
 			 memcpy(p-sizeof(size_t), &vsz, sizeof(size_t) );*/
 
@@ -474,7 +468,7 @@ public:
 				bool isContinue = false;
 				//to determine if encountered item is deleted.
 				char *a = new char[ksize];
-				memset(a, 0, ksize);
+				memset(a, 0xff, ksize);
 				if(memcmp(p, a, ksize) == 0) {
 					delete a;
 					a = 0;
@@ -565,9 +559,13 @@ public:
 #endif
 			bucketAddr = new long[sfh_.directorySize];
 			entry_ = new bucket_chain*[sfh_.directorySize];
-
-			for(size_t i=0; i<sfh_.directorySize; i++)
-			bucketAddr[i] = 0;
+			memset(bucketAddr, 0, sizeof(long)*sfh_.directorySize);
+            memset(entry_ , 0, sizeof(bucket_chain*)*sfh_.directorySize);
+            
+			/*for(size_t i=0; i<sfh_.directorySize; i++) {
+				bucketAddr[i] = 0;
+				entry_[i] = 0;
+			}*/
 			sfh_.toFile(dataFile_);
 			ret = true;
 		} else {
@@ -620,8 +618,10 @@ public:
 
 		}
 		delete [] entry_;
+		entry_ = 0;
 
 		delete [] bucketAddr;
+		bucketAddr = 0;
 		fclose(dataFile_);
 		dataFile_ = 0;
 		return true;
@@ -638,9 +638,10 @@ public:
 		for (size_t i=0; i<sfh_.directorySize; i++) {
 			bucket_chain* sc = entry_[i];
 			while (sc) {
-				if (sc->write(dataFile_) ) {
+				if ( sc->write(dataFile_) ) {
 					sc = sc->next;
 				} else {
+					//sc->display();
 					assert(0);
 				}
 			}

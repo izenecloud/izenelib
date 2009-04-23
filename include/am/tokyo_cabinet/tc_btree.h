@@ -84,7 +84,7 @@ public:
 		ptr.reset(new DbObj);
 		ptr1.reset(new DbObj);
 		write_image(key, ptr);
-		write_image(key, ptr1);
+		write_image(value, ptr1);
 
 		return tcbdbputkeep(bdb_, ptr->getData(), ptr->getSize(), ptr1->getData(), ptr1->getSize());
 	}
@@ -106,6 +106,7 @@ public:
 			ptr1.reset(new DbObj(value, sp));
 			ValueType *val = new ValueType;
 			read_image(*val, ptr1);
+			free(value);
 			return val;
 		}
 	}
@@ -137,7 +138,7 @@ public:
 		ptr.reset(new DbObj);
 		ptr1.reset(new DbObj);
 		write_image(key, ptr);
-		write_image(key, ptr1);
+		write_image(value, ptr1);
 
 		return tcbdbput(bdb_, ptr->getData(), ptr->getSize(), ptr1->getData(), ptr1->getSize());
 
@@ -223,6 +224,7 @@ public:
 	 */
 	bool close()
 	{
+		commit();
 		return tcbdbclose(bdb_);
 	}
 	/**

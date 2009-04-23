@@ -13,6 +13,7 @@ using namespace __gnu_cxx;
 using namespace boost;
 using namespace izenelib::util;
 
+
 #ifdef TRACE
 #undef TRACE
 #define TRACE 0
@@ -59,9 +60,9 @@ template<> inline vector<int> generateData<vector<int> >(const int a, int num,
 	vector<int> vret;
 	int max;
 	if (rand) {
-		max = myrand()%( (num+1)>>13 );
+		max = myrand()%( 100  );
 	} else {
-		max = (num>>13 );
+		max = num %100 ;
 	}
 	for (int i=0; i<max; i++) {
 		vret.push_back(i);
@@ -105,10 +106,19 @@ public:
 template<typename KeyType, typename ValueType, typename AM> class AMOBJ<
 		KeyType, ValueType, AM, true> {
 	AM am_;
+	string getStr() {
+		char p[10];
+		sprintf(p, "%s_%s_%s.dat",typeid(AM).name(), typeid(KeyType).name(), typeid(ValueType).name());
+		return p;
+	}
 public:
 	AMOBJ() :
-		am_() {
+		am_(getStr() ) {
 		am_.open();
+	}
+	~AMOBJ()
+	{		
+		am_.close();		
 	}
 	AM& getInstance() {
 		return am_;
@@ -159,16 +169,17 @@ public:
 		for (int i =0; i<num_; i++) {
 #if TRACE
 			if (trace_) {
-				cout<<"Insert key="<<generateData<KeyType>(i, num_, rand_)
-				<<endl;
+				cout<<"Insert key="<<generateData<KeyType>(i, num_, rand_)<<endl;
 			}
+			am_.display();
 #endif			
 			am_.insert(generateData<KeyType>(i, num_, rand_), generateData<
 					ValueType>(i, num_, rand_) );
 		}
-		printf("insert elapsed: %lf seconds\n", double(clock()- t1)/CLOCKS_PER_SEC);
-		if (mem)
+		if (mem) {
+			printf("insert elapsed: %lf seconds\n", double(clock()- t1)/CLOCKS_PER_SEC);
 			displayMemInfo();
+		}
 	}
 
 	//when KeyType is YString, for ylib
@@ -177,15 +188,15 @@ public:
 		for (int i =0; i<num_; i++) {
 			if (trace_) {
 #if TRACE						
-				cout<<"Insert key="<<generateData<KeyType>(i, num_, rand_)
-				<<endl;
+				cout<<"Insert key="<<generateData<KeyType>(i, num_, rand_)<<endl;
 #endif			
 			}
 			am_.insert(generateData<KeyType>(i, num_, rand_) );
 		}
-		printf("insert elapsed: %lf seconds\n", double(clock()- t1)/CLOCKS_PER_SEC);
-		if (mem)
+		if (mem) {
+			printf("insert elapsed: %lf seconds\n", double(clock()- t1)/CLOCKS_PER_SEC);
 			displayMemInfo();
+		}
 	}
 
 	void run_find(bool mem=true) {
@@ -196,11 +207,13 @@ public:
 				cout<<"find key="<<generateData<KeyType>(i, num_, rand_)<<endl;
 			}
 #endif			
-			am_.find(generateData<KeyType>(i, num_, rand_) );
+			/*ValueType * p = am_.find(generateData<KeyType>(i, num_, rand_) );
+			delete p;*/
 		}
-		printf("find elapsed: %lf seconds\n", double(clock()- t1)/CLOCKS_PER_SEC);
-		if (mem)
+		if (mem) {
+			printf("find elapsed: %lf seconds\n", double(clock()- t1)/CLOCKS_PER_SEC);
 			displayMemInfo();
+		}
 	}
 
 	void run_del(bool mem=true) {
@@ -214,9 +227,10 @@ public:
 #endif 			
 			am_.del(generateData<KeyType>(i, num_, rand_) );
 		}
-		printf("del elapsed: %lf seconds\n", double(clock()- t1)/CLOCKS_PER_SEC);
-		if (mem)
+		if (mem) {
+			printf("del elapsed: %lf seconds\n", double(clock()- t1)/CLOCKS_PER_SEC);
 			displayMemInfo();
+		}
 	}
 
 	void run_seq(bool mem=true) {
@@ -258,6 +272,7 @@ template<typename T> void run_loop(unsigned int loop) {
 		boost::shared_ptr<T> am;
 		am.reset(new T);
 		am->setNum(100);
+		am->setRandom(true);
 		am_group.push_back(am);
 	}
 	typename vector< boost::shared_ptr<T> >::iterator it = am_group.begin();

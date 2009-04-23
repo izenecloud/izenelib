@@ -605,10 +605,10 @@ template<
 	typename ValueType=NullType,
 	typename LockType =NullLock
 >class unordered_sdb:
-public SequentialDB<KeyType, ValueType, LockType, tc_hash<KeyType, ValueType, LockType>  >
+public SequentialDB<KeyType, ValueType, LockType, sdb_btree<KeyType, ValueType, LockType>  >
 {
 public:
-	unordered_sdb(const string& sdbname):SequentialDB<KeyType, ValueType, LockType, tc_hash<KeyType, ValueType, LockType>  >(sdbname) {
+	unordered_sdb(const string& sdbname):SequentialDB<KeyType, ValueType, LockType, sdb_btree<KeyType, ValueType, LockType>  >(sdbname) {
 
 	}
 };
