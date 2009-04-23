@@ -6,6 +6,8 @@
 #include <time.h>
 #include "cache_strategy.h"
 
+extern int debug_count;
+
 NS_IZENELIB_AM_BEGIN
 using namespace std;
 
@@ -13,17 +15,18 @@ using namespace std;
  *@class BucketCache
  **/
 template<
+  class STRING_TYPE = string,
   uint64_t CACHE_LENGTH = 100000000,//bytes
   uint32_t BUCKET_SIZE = 8192,//byte
   uint8_t SPLIT_RATIO = 75,
   class CacheType = CachePolicyLARU,
-  char* ALPHABET = a2z,
-  uint8_t ALPHABET_SIZE = a2z_size
+  typename STRING_TYPE::value_type* ALPHABET = a2z,
+  uint32_t ALPHABET_SIZE = a2z_size
   >
 class BucketCache
 {
 public:
-  typedef Bucket<BUCKET_SIZE, SPLIT_RATIO,ALPHABET, ALPHABET_SIZE> NodeType;
+  typedef Bucket<STRING_TYPE, BUCKET_SIZE, SPLIT_RATIO,ALPHABET, ALPHABET_SIZE> NodeType;
 
 protected:
   struct _cache_node_
@@ -50,7 +53,7 @@ protected:
   
   
 public:
-  typedef BucketCache <CACHE_LENGTH,BUCKET_SIZE, SPLIT_RATIO, CacheType, ALPHABET, ALPHABET_SIZE> SelfType;
+  typedef BucketCache <STRING_TYPE, CACHE_LENGTH,BUCKET_SIZE, SPLIT_RATIO, CacheType, ALPHABET, ALPHABET_SIZE> SelfType;
   
   class nodePtr
   {
@@ -157,7 +160,7 @@ friend ostream& operator << ( ostream& os, const SelfType& node)
     return os;
     
   }
-  
+
   /**
    *Find out the switched one.
    **/
@@ -182,7 +185,7 @@ friend ostream& operator << ( ostream& os, const SelfType& node)
     }
 
     //if (minIdx == 0)
-    //  LDBG_<<"Bucket cache is full. Can't find one to switch out";
+    // LDBG_<<"Bucket cache is full. Can't find one to switch out";
     
     return minIdx;
   }
@@ -191,7 +194,7 @@ friend ostream& operator << ( ostream& os, const SelfType& node)
   {
     return count_;
   }
-  
+
   /**
    *Find the bucket with specific disk address.
    **/
@@ -271,23 +274,19 @@ friend ostream& operator << ( ostream& os, const SelfType& node)
       NodeType* t = nodes[memAddr].pNode_;
       if (t->getDiskAddr()==diskAddr)
       {
-        //t->load(diskAddr);
         return nodePtr(nodes[memAddr], memAddr);
       }
-      
     }
-    
+
     uint32_t i = findInCache(diskAddr);
     if (i != (uint32_t)-1)
     {
       memAddr = i;
       return nodePtr(nodes[i], memAddr);
     }
-
+    
     if (count_<CACHE_SIZE)
     {
-      //cout<<"load bucket from disk!\n"<<endl;
-      
       NodeType* t = new NodeType(f_);
       t->load(diskAddr);
       nodes[count_] = _cache_node_(t);
@@ -326,7 +325,7 @@ friend ostream& operator << ( ostream& os, const SelfType& node)
   {
     nodes[memAddr].locked_ = false;
   }
-  
+
   /**
    *Get a new node in cache which is stroed in position 'diskAddr'.
    **/
@@ -351,9 +350,8 @@ friend ostream& operator << ( ostream& os, const SelfType& node)
     nodes[ret] = _cache_node_(t);
     nodePtr p(nodes[ret]);
     return p;
-
   }
-  
+
   /**
    *New a node
    **/
@@ -386,7 +384,7 @@ friend ostream& operator << ( ostream& os, const SelfType& node)
    **/
   uint64_t kickOutNodes(uint32_t memAddr)
   {
-    //cout<<"Kick out bucket: "<<memAddr<<" "<<count_<<endl;
+    //cout<<"Kick out bucket: "<<memAddr<<" "<<count_;
     
     if (memAddr==(uint32_t)-1 || nodes[memAddr].pNode_ == NULL)
       return (uint64_t)-1;
@@ -408,7 +406,7 @@ friend ostream& operator << ( ostream& os, const SelfType& node)
   {
     for (uint32_t i=0; i<CACHE_SIZE; i++)
       if (nodes[i].pNode_ != NULL)
-        nodes[i].pNode_->update2disk();   
+        nodes[i].pNode_->update2disk();
     fflush(f_);
   }
 
@@ -416,7 +414,7 @@ friend ostream& operator << ( ostream& os, const SelfType& node)
   {
     return count_ >= CACHE_SIZE;
   }
-
+  
 protected:
   FILE* f_;//!<File handler of bucket data file.
   uint32_t count_;//!<Node count

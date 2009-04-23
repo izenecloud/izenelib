@@ -15,10 +15,10 @@ NS_IZENELIB_AM_BEGIN
  * @class AlphabetNode
  *B-tire has two types of node, alphabet node and bucket. This is for laphabet node.
  **/
-
 template<
-  char* ALPHABET = a2z,
-  uint8_t ALPHABET_SIZE = a2z_size
+  class CHAR_T = char,
+  CHAR_T* ALPHABET = a2z,
+  uint32_t ALPHABET_SIZE = a2z_size
   >
 class AlphabetNode
 {
@@ -40,7 +40,7 @@ class AlphabetNode
 
     inline _node_()
     {
-      for (uint8_t i =0;i<ALPHABET_SIZE; i++)
+      for (uint32_t i =0;i<ALPHABET_SIZE; i++)
       {
         mem_addr_[i] = (uint32_t)-1;
         diskNode_.addrs_[i] = (uint64_t)-1;
@@ -54,9 +54,9 @@ class AlphabetNode
   };
 
 public:
-  typedef AlphabetNode<ALPHABET, ALPHABET_SIZE> SelfType;
+  typedef AlphabetNode<CHAR_T, ALPHABET, ALPHABET_SIZE> SelfType;
   enum slef_size{ SIZE_= sizeof(_node_)+sizeof(_node_*)+sizeof(FILE*)}; 
-  
+
   /**
    * @param f Used for storing alphabet nodes data
    **/
@@ -70,23 +70,24 @@ public:
   {
     if (pNode_!=NULL)
       delete pNode_;
-	pNode_ = NULL;
+    pNode_ = NULL;
   }
   
+
   /**
    *Input the node to an ostream.
    **/
   ostream& display(ostream& os)
   {
     os<<"\ndis: [";
-    for (uint8_t i=0; i<ALPHABET_SIZE; i++)
+    for (uint32_t i=0; i<ALPHABET_SIZE; i++)
     {
       os<<pNode_->diskNode_.addrs_[i]<<",";
     }
     os<<"]\n";
 
     os<<"\nmem: [";
-    for (uint8_t i=0; i<ALPHABET_SIZE; i++)
+    for (uint32_t i=0; i<ALPHABET_SIZE; i++)
     {
       os<<pNode_->mem_addr_[i]<<",";
     }
@@ -97,20 +98,21 @@ public:
     return os;
   }
 
+  
   /**
    *Input the node to an ostream.
    **/
 friend ostream& operator << ( ostream& os, const SelfType& node)
   {
     os<<"\ndis: [";
-    for (uint8_t i=0; i<ALPHABET_SIZE; i++)
+    for (uint32_t i=0; i<ALPHABET_SIZE; i++)
     {
       os<<node.pNode_->diskNode_.addrs_[i]<<",";
     }
     os<<"]\n";
 
     os<<"\nmem: [";
-    for (uint8_t i=0; i<ALPHABET_SIZE; i++)
+    for (uint32_t i=0; i<ALPHABET_SIZE; i++)
     {
       os<<node.pNode_->mem_addr_[i]<<",";
     }
@@ -120,6 +122,7 @@ friend ostream& operator << ( ostream& os, const SelfType& node)
 
     return os;
   }
+
 
   /**
    *Load a node from disk.
@@ -155,7 +158,7 @@ friend ostream& operator << ( ostream& os, const SelfType& node)
 
     pNode_->dirty_ = false;
     pNode_->diskPos_ = addr;
-    for (uint8_t i =0;i<ALPHABET_SIZE; i++)
+    for (uint32_t i =0;i<ALPHABET_SIZE; i++)
       pNode_->mem_addr_[i] = (uint32_t)-1;
     
     return true;
@@ -211,7 +214,7 @@ friend ostream& operator << ( ostream& os, const SelfType& node)
     
      
     if (fwrite(&(pNode_->diskNode_), sizeof(struct _disk_node_), 1, f_)!=1)
-      return (uint64_t)-1;
+       return (uint64_t)-1;
 
     pNode_->dirty_ = 1;
     pNode_->diskPos_ = end;
@@ -222,16 +225,14 @@ friend ostream& operator << ( ostream& os, const SelfType& node)
   /**
    *Get the index of an char in the alphabet
    **/
-  static uint8_t getIndexOf(uint8_t ch)
+  static uint32_t getIndexOf(CHAR_T ch)
   {
-    //cout<<ch<<endl;
-    
     if (ch<ALPHABET[0] || ch>ALPHABET[ALPHABET_SIZE-1])
     {
       LDBG_<<"Can't find '"<<ch<<ALPHABET[0]<<ALPHABET[ALPHABET_SIZE-1]<<"' in alphabet";
       return -1;
     }
-
+    
     
     if(ALPHABET[0] == 'a' && ALPHABET[ALPHABET_SIZE-1]=='z')
     {
@@ -240,14 +241,12 @@ friend ostream& operator << ( ostream& os, const SelfType& node)
       return ch-ALPHABET[0];
     }
 
-    uint8_t start = 0;
-    uint8_t end  = ALPHABET_SIZE -1;
-    uint8_t mid = (start + end)/2;
+    uint32_t start = 0;
+    uint32_t end  = ALPHABET_SIZE -1;
+    uint32_t mid = (start + end)/2;
     
     while ( mid<=end && mid>=start)
     {
-      //cout<<ALPHABET[start]<<" "<<ALPHABET[mid]<<" "<<ALPHABET[end]<<endl;
-      
       if (ALPHABET[mid]==ch)
         return mid;
       
@@ -268,11 +267,11 @@ friend ostream& operator << ( ostream& os, const SelfType& node)
 
     return -1;
   }
-  
+
   /**
    *Get aphabet size.
    **/
-  uint8_t getSize() const
+  uint32_t getSize() const
   {
     return ALPHABET_SIZE;
   }
@@ -280,7 +279,7 @@ friend ostream& operator << ( ostream& os, const SelfType& node)
   /**
    *Set the next node memory address of the one char in alphabet.
    **/
-  void setMemAddr(uint8_t index,uint32_t addr )
+  void setMemAddr(uint32_t index,uint32_t addr )
   {
     if (index>=ALPHABET_SIZE)
     {
@@ -296,10 +295,11 @@ friend ostream& operator << ( ostream& os, const SelfType& node)
     pNode_->mem_addr_[index] = addr;
   }
 
+  
   /**
    *Set the next node disk address of the one char in alphabet.
    **/
-  void setDiskAddr(uint8_t index,uint64_t addr )
+  void setDiskAddr(uint32_t index,uint64_t addr )
   {
     if (index>=ALPHABET_SIZE)
     {
@@ -316,23 +316,23 @@ friend ostream& operator << ( ostream& os, const SelfType& node)
   /**
    *Set memory adresses from 'fromCh' to 'toCh' the same address.
    **/
-  void setMemAddr(uint8_t fromCh, uint8_t toCh, uint32_t addr )
+  void setMemAddr(CHAR_T fromCh, CHAR_T toCh, uint32_t addr )
   {
     
-    for (uint8_t i= getIndexOf(fromCh); i<=getIndexOf(toCh); i++)
+    for (uint32_t i= getIndexOf(fromCh); i<=getIndexOf(toCh); i++)
       if (pNode_->mem_addr_[i] != addr)
       {
         pNode_->dirty_ = true;
         pNode_->mem_addr_[i] = addr;
       }
   }
-
+  
   /**
    *Set disk adresses from 'fromCh' to 'toCh' the same address.
    **/
-  void setDiskAddr(uint8_t fromCh, uint8_t toCh, uint64_t addr )
+  void setDiskAddr(CHAR_T fromCh, CHAR_T toCh, uint64_t addr )
   {
-    for (uint8_t i= getIndexOf(fromCh); i<=getIndexOf(toCh); i++)
+    for (uint32_t i= getIndexOf(fromCh); i<=getIndexOf(toCh); i++)
       if (pNode_->diskNode_.addrs_[i] != addr)
       {
         pNode_->dirty_ = true;
@@ -345,7 +345,7 @@ friend ostream& operator << ( ostream& os, const SelfType& node)
    **/
   void setAllDiskAddr(uint64_t addr)
   {
-    for (uint8_t i= 0; i<getSize(); i++)
+    for (uint32_t i= 0; i<getSize(); i++)
       if (pNode_->diskNode_.addrs_[i] != addr)
       {
         pNode_->dirty_ = true;
@@ -353,31 +353,33 @@ friend ostream& operator << ( ostream& os, const SelfType& node)
       }  
   }
 
+  
   /**
    *Set all the char one next-node memory address
    **/
   void setAllMemAddr(uint64_t addr)
   {
-    for (uint8_t i= 0; i<getSize(); i++)
+    for (uint32_t i= 0; i<getSize(); i++)
       if (pNode_->mem_addr_[i] != addr)
       {
         pNode_->dirty_ = true;
         pNode_->mem_addr_[i] = addr;
       }  
   }
-  
+
   /**
    *Get memory address of 'index' in alphabet.
    **/
-  uint32_t getMemAddr(uint8_t index) const
+  uint32_t getMemAddr(uint32_t index) const
   {
     return pNode_->mem_addr_[index];
   }
 
+  
   /**
    *Get disk address of 'index' in alphabet.
    **/
-  uint64_t getDiskAddr(uint8_t index) const
+  uint64_t getDiskAddr(uint32_t index) const
   {
     return pNode_->diskNode_.addrs_[index];
   }
@@ -395,9 +397,6 @@ friend ostream& operator << ( ostream& os, const SelfType& node)
 protected:
   FILE* f_;//<!File handler for node data file.
   struct _node_* pNode_;//<! Data storage
-
-  
-  
 }
   ;
 

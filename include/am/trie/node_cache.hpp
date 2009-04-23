@@ -5,23 +5,26 @@
 #include "alphabet_node.hpp"
 #include <time.h>
 #include "cache_strategy.h"
+#include <string>
 
 NS_IZENELIB_AM_BEGIN
 using namespace std;
+
 
 /**
  *@class NodeCache
  **/
 template<
+  class STRING_TYPE = string,
   uint64_t CACHE_LENGTH = 1000000,//bytes
   class CacheType = CachePolicyLARU,
-  char* ALPHABET = a2z,
-  uint8_t ALPHABET_SIZE = a2z_size
+  typename STRING_TYPE::value_type* ALPHABET = a2z,
+  uint32_t ALPHABET_SIZE = a2z_size
   >
 class NodeCache
 {
 public:
-  typedef AlphabetNode<ALPHABET, ALPHABET_SIZE> NodeType;
+  typedef AlphabetNode<typename STRING_TYPE::value_type, ALPHABET, ALPHABET_SIZE> NodeType;
 
 protected:
   struct _cache_node_
@@ -48,7 +51,7 @@ protected:
   
   
 public:
-  typedef NodeCache <CACHE_LENGTH, CacheType, ALPHABET, ALPHABET_SIZE> SelfType;
+  typedef NodeCache <STRING_TYPE, CACHE_LENGTH, CacheType, ALPHABET, ALPHABET_SIZE> SelfType;
   
   class nodePtr
   {
@@ -100,7 +103,7 @@ public:
     uint32_t idx_;
   }
     ;
-  
+
   /**
    *@param f Node data file handler.
    *@param rootAddr The trie tree root node's disk address
@@ -122,7 +125,7 @@ public:
       }
     delete [] nodes;
   }
-  
+
   /**
    *Load data from disk.
    **/
@@ -153,7 +156,7 @@ public:
     NodeType* n = nodes[idx].pNode_ ;
     nodes[idx] =  _cache_node_(n);
     
-    for (uint8_t i=0; i<n->getSize();i++)
+    for (uint32_t i=0; i<n->getSize();i++)
     {
       if (n->getDiskAddr(i)==(uint64_t)-1)
         continue;
@@ -212,6 +215,7 @@ friend ostream& operator << ( ostream& os, const SelfType& node)
     return os;
     
   }
+
   
   /**
    *Find out the switched one.
@@ -222,14 +226,14 @@ friend ostream& operator << ( ostream& os, const SelfType& node)
     while(minIdx<count_ && nodes[minIdx].locked_)
       minIdx++;
     if (minIdx==count_)
-      cout<<count_<<"All locked up, Why?\n";
-
+      cout<<"All locked up, Why?\n";
+    
     for (uint32_t i=count_-1; i>0; i--)
     {
       if (nodes[i].pNode_==NULL)
         return i;
       
-      if (!nodes[i].locked_&& nodes[i].cacheInfo_.compare(nodes[minIdx].cacheInfo_)<0)
+      if (!nodes[i].locked_ && nodes[i].cacheInfo_.compare(nodes[minIdx].cacheInfo_)<0)
       {
         minIdx = i;
       }
@@ -262,7 +266,7 @@ friend ostream& operator << ( ostream& os, const SelfType& node)
   {
     return count_;
   }
-  
+
   /**
    *Get node by specific disk address into memory.
    **/
@@ -272,8 +276,10 @@ friend ostream& operator << ( ostream& os, const SelfType& node)
       return nodePtr();
     
     if (memAddr>=count_ && memAddr!=(uint32_t)-1 && count_!=0)
+    {
       return nodePtr();
-
+    }
+    
     if (memAddr!=(uint32_t)-1)
     {
       NodeType* t = nodes[memAddr].pNode_;
@@ -282,8 +288,7 @@ friend ostream& operator << ( ostream& os, const SelfType& node)
     }
 
     if (count_<CACHE_SIZE)
-    {
-       
+    {      
       NodeType* t = new NodeType(f_);
       t->load(diskAddr);
       nodes[count_] = _cache_node_(t);
@@ -305,6 +310,7 @@ friend ostream& operator << ( ostream& os, const SelfType& node)
     return nodePtr(nodes[memAddr], memAddr);
   }
 
+  
   /**
    *Get a new node in cache which is stroed in position 'diskAddr'.
    **/
@@ -331,12 +337,14 @@ friend ostream& operator << ( ostream& os, const SelfType& node)
     return p;
 
   }
-  
+
   /**
    *New a node
    **/
   nodePtr newNode()
   {
+    //cout<<"newNode "<<CACHE_SIZE<<endl;
+    
     if (count_<CACHE_SIZE)
     {
       NodeType* t = new NodeType(f_);
@@ -358,76 +366,78 @@ friend ostream& operator << ( ostream& os, const SelfType& node)
 
   }
 
+
   /**
    *Kick out the 'memAddr' node.
    **/
   uint64_t kickOutNodes(uint32_t memAddr)
   {
-    //cout<<CACHE_SIZE<<endl;
+    // cout<<"KickOutNodes(): ";
+//     cout<<count_<<"  "<<CACHE_SIZE<<"  "<<memAddr<<endl;
+    
     if (memAddr==(uint32_t)-1 || nodes[memAddr].pNode_ == NULL)
       return (uint64_t)-1;
 
     uint64_t last_disk = -1;
-    for (uint8_t i=0; i<nodes[memAddr].pNode_->getSize(); i++)
+    for (uint32_t i=0; i<nodes[memAddr].pNode_->getSize(); i++)
     {
       uint32_t m = nodes[memAddr].pNode_->getMemAddr(i);
       uint64_t d = nodes[memAddr].pNode_->getDiskAddr(i);
       //    cout<<memAddr<<"    "<<m<<"   "<<d<<"pppp\n";
 
-      if (d==(uint64_t)-1 || d==last_disk || m == (uint32_t)-1 
-           || nodes[m].pNode_==NULL || d%2==0 || nodes[m].pNode_->getDiskAddr()!=d )
-        {
-          last_disk = d;
-          continue;
-        }
-
-          last_disk = d;
-          if (m==memAddr)
-            cout<<i<<" kick out sub nodes: "<<m<<"  "<<d<<endl;
+      if (d==(uint64_t)-1 || d==last_disk || m == (uint32_t)-1
+          || nodes[m].pNode_==NULL || d%2==0 || nodes[m].pNode_->getDiskAddr()!=d )
+      {
+        last_disk = d;
+        continue;
+      }
       
 
-          kickOutNodes(m);
-          //nodes[memAddr].pNode_->setDiskAddr(i, 2);
-          //nodes[memAddr].pNode_->setDiskAddr(i, kickOutNodes(m));
-          }
+      last_disk = d;
+      if (m==memAddr)
+        cout<<i<<" kick out sub nodes: "<<m<<"  "<<d<<endl;
+      
+      kickOutNodes(m);
+      //nodes[memAddr].pNode_->setDiskAddr(i, 2);
+      //nodes[memAddr].pNode_->setDiskAddr(i, kickOutNodes(m));
+    }
 
-      uint64_t ret = nodes[memAddr].pNode_->update2disk();
-      delete nodes[memAddr].pNode_;
-      nodes[memAddr].pNode_ = NULL;
-      nodes[memAddr]=  _cache_node_();
+    uint64_t ret = nodes[memAddr].pNode_->update2disk();
+    delete nodes[memAddr].pNode_;
+    nodes[memAddr].pNode_ = NULL;
+    nodes[memAddr]=  _cache_node_();
 
-      return ret;
+    return ret;
     
-    }
-
-    /**
-     *Flush nodes data into disk.
-     **/
-    void flush()
-    {
-      for (uint32_t i=0; i<CACHE_SIZE; i++)
-        if (nodes[i].pNode_ != NULL)
-          nodes[i].pNode_->update2disk();
-      fflush(f_);
-    }
-
-  
-    bool isFull()
-    {
-      return count_>=CACHE_SIZE;
-    }
-
-  
-  protected:
-    FILE* f_;//!<File handler
-    uint32_t rootAddr_;//!<Trie tree root node disk address
-    uint32_t count_;//!< Node count
-    struct _cache_node_* nodes;//!<Nods are stored in this array.
-
-  
   }
+
+  /**
+   *Flush nodes data into disk.
+   **/
+  void flush()
+  {
+    for (uint32_t i=0; i<CACHE_SIZE; i++)
+      if (nodes[i].pNode_ != NULL)
+        nodes[i].pNode_->update2disk();
+
+    fflush(f_);
+  }
+
+  
+  bool isFull()
+  {
+    return count_>=CACHE_SIZE;
+  }
+
+protected:
+  FILE* f_;//!<File handler
+  uint32_t rootAddr_;//!<Trie tree root node disk address
+  uint32_t count_;//!< Node count
+  struct _cache_node_* nodes;//!<Nods are stored in this array.
+  
+}
   ;
 
 
-  NS_IZENELIB_AM_END
+NS_IZENELIB_AM_END
 #endif
