@@ -82,7 +82,7 @@ template<> inline void write_image<unsigned int>(const unsigned int& dat, DbObjP
 }
 
 template<> inline void read_image<vector<int> >(vector<int>& dat, const DbObjPtr& ptr) {
-	dat.resize( ptr->getSize()/sizeof(int) );
+	dat.resize( ptr->getSize()/sizeof(int) );	
 	memcpy(&dat[0], ptr->getData(), ptr->getSize() );
 }
 
@@ -98,6 +98,7 @@ template<> inline void read_image<vector<unsigned int> >(vector<unsigned int>& d
 template<> inline void write_image<vector<unsigned int> >(const vector<unsigned int>& dat, DbObjPtr& ptr) {
 	ptr->setData( &dat[0], sizeof(int)*dat.size() );
 }
+
 
 template<> inline void read_image<long>(long& dat, const DbObjPtr& ptr) {
 	memcpy(&dat, ptr->getData(), ptr->getSize());

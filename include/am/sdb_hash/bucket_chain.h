@@ -67,10 +67,11 @@ public:
 	 *  deconstructor
 	 */
 	virtual ~bucket_chain() {
-		if( str ){
+		/*if( str ){
 			delete str;
 			str = 0;
-		}					
+		}*/			
+		unload();
 		isLoaded = false;
 		//--activeNum;
 	}

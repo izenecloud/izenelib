@@ -7,14 +7,18 @@ int rnd = 1;
 using namespace izenelib::am_test;
 using namespace izenelib::am;
 
-int main()
-{	
+static int num = 1000000;
 
+
+int main()
+{
+	
 	{
-		cout<<"\nsdb_hash<int, int >"<<endl;
-		typedef sdb_hash<int, int > SDB_STRING_INT;
-		AmTest<int, int, SDB_STRING_INT, true> am;		
-		//am.setRandom(rnd);		
+		cout<<"\nsdb_hash<int, unsigned int >"<<endl;
+		typedef sdb_hash<int, unsigned  int > SDB_STRING_INT;
+		AmTest<int, unsigned  int, SDB_STRING_INT, true> am;		
+		am.setRandom(false);	
+		am.setNum(num);
 		run_am(am);
 	}
 	
@@ -22,7 +26,18 @@ int main()
 		cout<<"\nsdb_hash<int, vector<int> >"<<endl;
 		typedef sdb_hash<int, vector<int> > SDB_STRING_INT;
 		AmTest<int, vector<int>, SDB_STRING_INT, true> am;		
-		am.setRandom(rnd);		
+		am.setRandom(rnd);	
+		am.setTrace(true);
+		am.setNum(num);
+		run_am(am);
+	}
+	
+	{
+		cout<<"\nsdb_hash<int, int >"<<endl;
+		typedef sdb_hash<int, int > SDB_STRING_INT;
+		AmTest<int, int, SDB_STRING_INT, true> am;		
+		am.setRandom(false);	
+		am.setNum(num);
 		run_am(am);
 	}
 }

@@ -7,7 +7,7 @@ CC_OPTIONS :=  -O3 -g -Wall -c  -fmessage-length=0 -DDEBUG -pg
 LIBS =    /usr/local/lib/libboost_thread-gcc41-mt.so   /usr/local/lib/libboost_unit_test_framework-gcc41-mt.so   /usr/local/lib/libboost_serialization-gcc41-mt.so   ../../../../lib/libprocmeminfo.a	\
 		     
 
-INC_PATH := -I  /usr/local/include/boost-1_35/ -I ../../../../include/ -I ../../../../include/3rdparty/
+INC_PATH := -I  /usr/local/include/boost-1_36/ -I ../../../../include/ -I ../../../../include/3rdparty/
 
 
 SDB_HASH_OBJ  := t_sdb_hash.o 
@@ -33,4 +33,4 @@ t_am:  $(AM_OBJ)
 
 
 clean:
-	rm -f *.o  t_sh t_sdb_hash sdb.dat
+	rm -f *.o  t_sh t_sdb_hash *.dat
