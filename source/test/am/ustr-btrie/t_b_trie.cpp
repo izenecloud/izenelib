@@ -48,7 +48,7 @@
 #include <am/ustr-btrie/alphabet.hpp>
 #include <signal.h>
 //#include <am/ustr-btrie/automation.hpp>
-#include <ustring/UString.h>
+#include <wiselib/ustring/UString.h>
 #include <am/linear_hash_table/linearHashTable.hpp>
 USING_IZENE_LOG();
 
@@ -245,83 +245,85 @@ void dump(int signo)
  **/
 BOOST_AUTO_TEST_CASE(B_trie_regex_check )
 {
+  using namespace wiselib;
+  
   signal(SIGSEGV, &dump);
 
   remove("./test.buk");
   remove("./test.nod");
   remove("./test.has");
   
-//   vector<UString> vstr;
-//   vector<UString*> vp;
-//   readDict("./dict1.txt", vstr);
-//   cout<<"\nData is ready!\n";
-//    clock_t start, finish;
+  vector<UString> vstr;
+  vector<UString*> vp;
+  readDict("./dict1.txt", vstr);
+  cout<<"\nData is ready!\n";
+   clock_t start, finish;
    
-//   BTrie<ENCODE_TYPE> trie("./test");
+  BTrie<UString> trie("./test");
 
 
-//   for (vector<UString>::iterator i=vstr.begin(); i!=vstr.end();i++)
-//   {
-//     UString* str = new UString (*i);
+  for (vector<UString>::iterator i=vstr.begin(); i!=vstr.end();i++)
+  {
+    UString* str = new UString (*i);
     
-//     vp.push_back(str);
-//   }
-//   start = clock();
-//   for (vector<UString*>::iterator i=vp.begin(); i!=vp.end();i++,debug_count++)
-//   {
-//     trie.insert(*i,2);
-//   }
-//   trie.flush();
-//   finish = clock();
-//   printf( "\nIt takes %f seconds to insert %d random data!\n", (double)(finish - start) / CLOCKS_PER_SEC, vp.size());
-//   cout<<"Node amount: "<<trie.getNodeAmount()<<endl;
-//   //------------------------------------------------------------------------------
+    vp.push_back(str);
+  }
+  start = clock();
+  for (vector<UString*>::iterator i=vp.begin(); i!=vp.end();i++,debug_count++)
+  {
+    trie.insert(*i,2);
+  }
+  trie.flush();
+  finish = clock();
+  printf( "\nIt takes %f seconds to insert %d random data!\n", (double)(finish - start) / CLOCKS_PER_SEC, vp.size());
+  cout<<"Node amount: "<<trie.getNodeAmount()<<endl;
+  //------------------------------------------------------------------------------
 
-//   //trie.display(cout, "far");
-//   //BTrie<ENCODE_TYPE> trie("./test");  
-//   start = clock();
-//   uint64_t diskAdd = 1;
-//   uint32_t memAdd = 0;
-//   vector<item_pair> ip;
-//   //*1M77N?fH*C3lJt
-//   //cout<<trie.query(UString("GIdku3vr_C5jIUtVQHXNf5pPWRn3uiJa", ENCODE_TYPE))<<endl;
+  //trie.display(cout, "far");
+  //BTrie<ENCODE_TYPE> trie("./test");  
+  start = clock();
+  uint64_t diskAdd = 1;
+  uint32_t memAdd = 0;
+  vector<item_pair> ip;
+  //*1M77N?fH*C3lJt
+  //cout<<trie.query(UString("GIdku3vr_C5jIUtVQHXNf5pPWRn3uiJa", ENCODE_TYPE))<<endl;
   
-//   trie.findRegExp(UString("*u3vr_C5jIUtVQHXNf?pPW*iJa", ENCODE_TYPE), ip);//(memAdd, diskAdd, , UString(), ip);
-//   for (vector<item_pair>::iterator i = ip.begin(); i!= ip.end(); i++)
-//   {
-//     (*i).str_.displayStringValue(ENCODE_TYPE, cout);
-//     cout<<"===>"<<(*i).addr_<<endl;
-//   }
+  trie.findRegExp(UString("*u3vr_C5jIUtVQHXNf?pPW*iJa", ENCODE_TYPE), ip);//(memAdd, diskAdd, , UString(), ip);
+  for (vector<item_pair>::iterator i = ip.begin(); i!= ip.end(); i++)
+  {
+    (*i).str_.displayStringValue(ENCODE_TYPE, cout);
+    cout<<"===>"<<(*i).addr_<<endl;
+  }
   
 
   
-//   finish = clock();
-//   printf( "\nIt takes %f seconds to find!\n", (double)(finish - start)/CLOCKS_PER_SEC);
+  finish = clock();
+  printf( "\nIt takes %f seconds to find!\n", (double)(finish - start)/CLOCKS_PER_SEC);
 
-  BTrie<sf1lib::UString::UTF_8> trie("./test"); 
-    ifstream inf("./dict1.txt");
-    string str;
-    unsigned int id = 0;
-    while (inf>>str)
-    {
-        sf1lib::UString ustr(str,sf1lib::UString::UTF_8);
-        trie.insert(ustr,2);
-        //cout<<str;
+//   BTrie<wiselib::UString> trie("./test"); 
+//     ifstream inf("./dict1.txt");
+//     string str;
+//     unsigned int id = 0;
+//     while (inf>>str)
+//     {
+//         wiselib::UString ustr(str,wiselib::UString::UTF_8);
+//         trie.insert(ustr,2);
+//         //cout<<str;
         
-        str.clear();
-    }
-	trie.flush();
+//         str.clear();
+//     }
+// 	trie.flush();
     
-    //vector<item_pair> ip;
-    vector<uint64_t> ip;
-	UString pattern("*u3vr_C5jIUtVQHXNf?pPW*iJa", sf1lib::UString::UTF_8);
-	trie.findRegExp(pattern, ip);
+//     //vector<item_pair> ip;
+//     vector<uint64_t> ip;
+// 	UString pattern("*u3vr_C5jIUtVQHXNf?pPW*iJa", sf1lib::UString::UTF_8);
+// 	trie.findRegExp(pattern, ip);
     
-	for (vector<uint64_t>::iterator i = ip.begin(); i!= ip.end(); i++)
-	{
-	 // (*i).str_.displayStringValue(sf1lib::UString::UTF_8, cout);
-	  cout<<"===>"<<(*i)<<endl;
-	}
+// 	for (vector<uint64_t>::iterator i = ip.begin(); i!= ip.end(); i++)
+// 	{
+// 	 // (*i).str_.displayStringValue(sf1lib::UString::UTF_8, cout);
+// 	  cout<<"===>"<<(*i)<<endl;
+// 	}
 
 }
 BOOST_AUTO_TEST_SUITE_END()

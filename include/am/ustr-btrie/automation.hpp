@@ -2,33 +2,36 @@
 #define AUTOMATION_HPP
 
 #include <vector>
-#include <ustring/UString.h>
+#include <wiselib/ustring/UString.h>
 
 using namespace std;
-using namespace sf1lib;
+using namespace wiselib;
 
 /**
  *@class Automation
  * It generates a automation for wildcard '*' and '?'.
  **/
 template<
-  UCS2Char MULTI_WORDS_WILDCARD = '*',
-  UCS2Char SINGLE_WORD_WILDCARD = '?'
+  class STRING_TYPE = string,
+  STRING_TYPE::value_type MULTI_WORDS_WILDCARD = '*',
+  STRING_TYPE::value_type SINGLE_WORD_WILDCARD = '?'
   >
 class Automation
 {
+  typedef STRING_TYPE::value_type charT;
+  
   class _state_ ;
   
 
   class _edge_
   {
   public:
-    _edge_(UCS2Char c, _state_* p)
+    _edge_(charT c, _state_* p)
       :p_(p),ch_(c)
     {
     }
 
-    _state_* leadTo(UCS2Char c)
+    _state_* leadTo(charT c)
     {
       if (c == ch_)
         return p_;
@@ -51,7 +54,7 @@ class Automation
     
   protected:
     _state_* p_;
-    UCS2Char ch_;
+    charT ch_;
   }
     ;
 
@@ -60,7 +63,7 @@ class Automation
     vector<_edge_> edges_;
 
   public:
-    _state_* nextState(UCS2Char ch)
+    _state_* nextState(charT ch)
     {
       for (typename vector<_edge_>::iterator i=edges_.begin(); i!=edges_.end(); i++)
       {
@@ -72,7 +75,7 @@ class Automation
       return NULL;
     }
 
-    void insertEdge(UCS2Char ch, _state_* p)
+    void insertEdge(charT ch, _state_* p)
     {
       edges_.push_back(_edge_(ch, p));
     }
@@ -105,7 +108,7 @@ public:
   /**
    *According the regular express, it builds an automation
    **/
-  Automation(const UString& regex)
+  Automation(const STRING_TYPE& regex)
   {
     _state_* back = NULL;
     _edge_ back_edge(0,0);
@@ -187,7 +190,7 @@ friend ostream& operator << ( ostream& os, const Automation<MULTI_WORDS_WILDCARD
   /**
    *If the 'str' can go through the automation, it mathes, returns true.
    **/
-  bool match(const UString& str)
+  bool match(const STRING_TYPE& str)
   {
     _state_* next = pStart_;
     

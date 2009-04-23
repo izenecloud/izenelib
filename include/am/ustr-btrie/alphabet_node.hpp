@@ -7,7 +7,6 @@
 #include "alphabet.hpp"
 #include <util/log.h>
 
-
 using namespace std;
 
 NS_IZENELIB_AM_BEGIN
@@ -17,7 +16,8 @@ NS_IZENELIB_AM_BEGIN
  *B-tire has two types of node, alphabet node and bucket. This is for laphabet node.
  **/
 template<
-  unsigned short* ALPHABET = a2z,
+  class CHAR_T = char,
+  CHAR_T* ALPHABET = a2z,
   uint32_t ALPHABET_SIZE = a2z_size
   >
 class AlphabetNode
@@ -225,7 +225,7 @@ friend ostream& operator << ( ostream& os, const SelfType& node)
   /**
    *Get the index of an char in the alphabet
    **/
-  static uint32_t getIndexOf(unsigned short ch)
+  static uint32_t getIndexOf(CHAR_T ch)
   {
     if (ch<ALPHABET[0] || ch>ALPHABET[ALPHABET_SIZE-1])
     {
@@ -316,7 +316,7 @@ friend ostream& operator << ( ostream& os, const SelfType& node)
   /**
    *Set memory adresses from 'fromCh' to 'toCh' the same address.
    **/
-  void setMemAddr(unsigned short fromCh, unsigned short toCh, uint32_t addr )
+  void setMemAddr(CHAR_T fromCh, CHAR_T toCh, uint32_t addr )
   {
     
     for (uint32_t i= getIndexOf(fromCh); i<=getIndexOf(toCh); i++)
@@ -330,7 +330,7 @@ friend ostream& operator << ( ostream& os, const SelfType& node)
   /**
    *Set disk adresses from 'fromCh' to 'toCh' the same address.
    **/
-  void setDiskAddr(unsigned short fromCh, unsigned short toCh, uint64_t addr )
+  void setDiskAddr(CHAR_T fromCh, CHAR_T toCh, uint64_t addr )
   {
     for (uint32_t i= getIndexOf(fromCh); i<=getIndexOf(toCh); i++)
       if (pNode_->diskNode_.addrs_[i] != addr)

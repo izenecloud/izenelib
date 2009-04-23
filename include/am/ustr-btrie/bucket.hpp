@@ -9,18 +9,36 @@
 #include "automation.hpp"
 #include <vector>
 #include <util/log.h>
-#include <ustring/UString.h>
+#include <wiselib/ustring/UString.h>
 
 using namespace sf1lib;
 using namespace std;
 
 int debug_count = 0;
+
+/**
+ *@class Bucket
+ * B-trie has two typess of nodes, alphabet node and bucket. Bucket stores string and value pair in increasing sequencial order.
+ **/
+template<
+  class STRING_TYPE = string,
+  uint32_t BUCKET_SIZE = 8192,//byte
+  uint8_t SPLIT_RATIO = 75,
+  unsigned short* ALPHABET = a2z,
+  uint32_t ALPHABET_SIZE = a2z_size 
+  >
+class Bucket
+{
+  typedef typename STRING_TYPE::value_type charT;
+
+public:
+  
 typedef struct item_pair
 {
-  UString str_;
+  STRING_TYPE str_;
   uint64_t addr_;
 
-  inline item_pair(const UString& str, uint64_t addr)
+  inline item_pair(const STRING_TYPE& str, uint64_t addr)
   {
     str_ = str;
     // str_.displayStringValue(UString::UTF_8, cout);
@@ -30,24 +48,11 @@ typedef struct item_pair
   
 }item_pair;
 
-/**
- *@class Bucket
- * B-trie has two typess of nodes, alphabet node and bucket. Bucket stores string and value pair in increasing sequencial order.
- **/
-template<
-  UString::EncodingType ENCODE_TYPE,
-  uint32_t BUCKET_SIZE = 8192,//byte
-  uint8_t SPLIT_RATIO = 75,
-  unsigned short* ALPHABET = a2z,
-  uint32_t ALPHABET_SIZE = a2z_size 
-  >
-class Bucket
-{
 protected:
   /**
  * @def INITIAL_BUCKET_SIZE The initial bucket size for disk space
  * */
-#define INITIAL_BUCKET_SIZE (sizeof(uint32_t)*2 +2*sizeof(unsigned short))
+#define INITIAL_BUCKET_SIZE (sizeof(uint32_t)*2 +2*sizeof(charT))
     /**
  * @def DISK_STR_BUF_SIZE The bucket string array size.
  * */
@@ -55,12 +60,25 @@ protected:
   /**
  * @def ONE_STRING_SIZE(STR) One string space it takes.
  * */
-#define ONE_STRING_SIZE(STR) ((STR).size()+sizeof(UCS2Char)+sizeof(uint32_t)+sizeof(uint64_t))
+#define ONE_STRING_SIZE(STR) ((STR).size()+sizeof(charT)+sizeof(uint32_t)+sizeof(uint64_t))
 
+  string substr(const string& str, size_t pos)
+  {
+    return str.substr(pos);
+  }
+
+  wiselib::UString substr(const wiselib::UString& str, size_t pos)
+  {
+    wiselib::UString tmp;
+    str.subString(tmp, pos);
+    return tmp;
+  }
+  
+  
   struct _disk_bucket_
   {
-    unsigned short from_;
-    unsigned short to_;
+    charT from_;
+    charT to_;
     uint32_t count_;
     uint32_t size_;
     char strBuf[DISK_STR_BUF_SIZE];
@@ -70,10 +88,10 @@ protected:
   class _string_ptr_
   {
   public:
-    UString*  p_;
+    STRING_TYPE*  p_;
     uint64_t contentAddr_;
     
-    _string_ptr_(UString* p, uint64_t addr)
+    _string_ptr_(STRING_TYPE* p, uint64_t addr)
       :p_(p),contentAddr_(addr)
     {
     }
@@ -94,17 +112,17 @@ protected:
       return p_->compare(*p.p_)<0;
     }
 
-    bool operator == (const UString* p)const
+    bool operator == (const STRING_TYPE* p)const
     {
       return p_->compare(*p)==0;
     }
 
-    bool operator >  (const UString* p)const
+    bool operator >  (const STRING_TYPE* p)const
     {
       return p_->compare(*p)>0;
     }
 
-    bool operator <  (const UString* p)const
+    bool operator <  (const STRING_TYPE* p)const
     {
       return p_->compare(*p)<0;
     }
@@ -121,7 +139,7 @@ protected:
     {
     }
     
-    unsigned short firstChar_;
+    charT firstChar_;
     vector<_string_ptr_> strPtrs_;
 
     bool operator == (const _string_group_& sg)const
@@ -149,36 +167,36 @@ protected:
       return firstChar_ <= sg.firstChar_;
     }
     //////////////////////////
-    bool operator == (const UString& str)const
+    bool operator == (const STRING_TYPE& str)const
     {
       return firstChar_==str[0];
     }
 
-    bool operator > (const UString& str)const
+    bool operator > (const STRING_TYPE& str)const
     {
       return firstChar_ > str[0];
     }
 
-    bool operator < (const UString& str)const
+    bool operator < (const STRING_TYPE& str)const
     {
       return firstChar_ < str[0];
     }
 
-    bool operator >= (const UString& str)const
+    bool operator >= (const STRING_TYPE& str)const
     {
       return firstChar_ >= str[0];
     }
 
-    bool operator <= (const UString& str)const
+    bool operator <= (const STRING_TYPE& str)const
     {
       return firstChar_ <= str[0];
     }
 
-    size_t addString(UString* pStr, uint64_t addr)
+    size_t addString(STRING_TYPE* pStr, uint64_t addr)
     {
-      UString tmp;
-      pStr->subString(tmp,1);
-      *pStr = tmp;
+      //      STRING_TYPE tmp;
+      //pStr->subString(tmp,1);
+      *pStr = substr(*pStr , 1);
       _string_ptr_ p(pStr, addr);
       str_ptr_it it = lower_bound(strPtrs_.begin(), strPtrs_.end(), p);
       if (it!=strPtrs_.end() && (*it)==p)
@@ -195,15 +213,15 @@ protected:
   typedef typename vector<struct _string_group_>::const_iterator const_str_group_it;
   struct _bucket_
   {
-    unsigned short from_;
-    unsigned short to_;
+    charT from_;
+    charT to_;
     uint32_t count_;
     uint32_t size_;
     bool dirty_;
     vector<_string_group_> strGroup_;
     uint64_t diskPos_;
 
-    inline _bucket_(unsigned short from, unsigned short to)
+    inline _bucket_(charT from, charT to)
     {
       /*
         if(from>to)
@@ -217,7 +235,7 @@ protected:
       diskPos_ = -1;
     }
 
-    void setUstring(UString& ustr, const UCS2Char* p, size_t len)
+    void setUstring(STRING_TYPE& ustr, const charT* p, size_t len)
     {
       for (size_t i=0; i<len; i++)
         ustr += p[i];
@@ -235,7 +253,7 @@ protected:
       //cout<<count_<<" "<<size_<<" "<<from_<<" "<<to_<<"  "<<addr<<endl;
       
       uint32_t t=0;
-      unsigned short first = -1;
+      charT first = -1;
       for (uint32_t i =0; i<count_; i++)
       {
         uint32_t strSize = *(uint32_t*)(disk->strBuf+t);//ustring's length
@@ -247,11 +265,11 @@ protected:
           return;
         }
         
-        unsigned short firstCh = *(UCS2Char*)(disk->strBuf+t);
-        t += sizeof (UCS2Char);//strSize;
+        charT firstCh = *(charT*)(disk->strBuf+t);
+        t += sizeof (charT);//strSize;
         
-        UString* s = new  UString();
-        setUstring(*s, (const UCS2Char*)(disk->strBuf+t), strSize);
+        STRING_TYPE* s = new  STRING_TYPE();
+        setUstring(*s, (const charT*)(disk->strBuf+t), strSize);
 //         s->displayStringValue(ENCODE_TYPE, cout);
 //         cout<<endl;
         
@@ -296,7 +314,7 @@ protected:
     ;
   
 public:
-  typedef Bucket<ENCODE_TYPE, BUCKET_SIZE,SPLIT_RATIO,ALPHABET, ALPHABET_SIZE > SelfType;
+  typedef Bucket<STRING_TYPE, ENCODE_TYPE, BUCKET_SIZE,SPLIT_RATIO,ALPHABET, ALPHABET_SIZE > SelfType;
   enum slef_size{ SIZE_= BUCKET_SIZE};
 
   /**
@@ -431,8 +449,8 @@ public:
           return (uint32_t)-1;
         }
         
-        *(UCS2Char*)(d->strBuf+t) = (*i).firstChar_;
-        t += sizeof(UCS2Char);
+        *(charT*)(d->strBuf+t) = (*i).firstChar_;
+        t += sizeof(charT);
         //(*j).p_->copy(d->strBuf+t,  (*j).p_->length());
 
         memcpy(d->strBuf+t, (*j).p_->c_str(),  (*j).p_->size());
@@ -531,13 +549,13 @@ public:
   /**
    *Update the content related to a specific string.
    **/
-  bool updateContent(const UString& str, uint64_t contentAddr)
+  bool updateContent(const STRING_TYPE& str, uint64_t contentAddr)
   {
     str_group_it g = lower_bound(pBucket_->strGroup_.begin(), pBucket_->strGroup_.end(), str);
     if (g != pBucket_->strGroup_.end() && *g==str)
     {
-      UString s;
-      str.subString(s, 1);
+      STRING_TYPE s = substr(str ,1);
+      //str.subString(s, 1);
       str_ptr_it p = lower_bound((*g).strPtrs_.begin(), (*g).strPtrs_.end(), &s);
       if (p !=  (*g).strPtrs_.end() && (*p)==&s )
       {
@@ -552,13 +570,14 @@ public:
   /**
    *Get content of a string.
    **/
-  uint64_t getContentBy(const UString& str)const
+  uint64_t getContentBy(const STRING_TYPE& str)const
   {
     str_group_it g = lower_bound(pBucket_->strGroup_.begin(), pBucket_->strGroup_.end(), str);
     if (g != pBucket_->strGroup_.end() && *g==str)
     {
-      UString s;
-      str.subString(s, 1);
+      STRING_TYPE s = substr(str ,1);
+      //UString s;
+      //str.subString(s, 1);
       str_ptr_it p = lower_bound((*g).strPtrs_.begin(), (*g).strPtrs_.end(), &s);
       if (p !=  (*g).strPtrs_.end() && (*p)==&s )
         return (*p).contentAddr_;
@@ -573,7 +592,7 @@ public:
    *@param sofar Record the string ahead sofar.
    *@param ret The found results.
    **/
-  void findRegExp(const UString& regexp, const UString& sofar, vector<uint64_t>& ret)
+  void findRegExp(const STRING_TYPE& regexp, const STRING_TYPE& sofar, vector<uint64_t>& ret)
   {
     if (regexp.length()==0)
       return ;
@@ -583,8 +602,8 @@ public:
       str_group_it g = lower_bound(pBucket_->strGroup_.begin(), pBucket_->strGroup_.end(), regexp);
       if (g != pBucket_->strGroup_.end() && *g==regexp)
       {
-        UString s;
-        regexp.subString(s, 1);
+        STRING_TYPE s = substr(regexp ,1);
+        //regexp.subString(s, 1);
         Automation<> aut(s);
         if (!aut.hasWildcard())
         {
@@ -604,7 +623,7 @@ public:
         {
           if (aut.match(*(*j).p_))
           {
-            UString tmp = sofar;
+            STRING_TYPE tmp = sofar;
             tmp +=  (*(*j).p_);
             //ret.push_back(item_pair(tmp, (*j).contentAddr_));
             ret.push_back((*j).contentAddr_);
@@ -615,7 +634,7 @@ public:
       }
     }
 
-    UString s = regexp;
+    STRING_TYPE s = regexp;
     if (regexp[0]=='?')
       regexp.subString(s, 1);
 
@@ -626,7 +645,7 @@ public:
       {  
           if (aut.match(*(*j).p_))
           {
-            UString tmp = sofar;
+            STRING_TYPE tmp = sofar;
             tmp +=  (*(*j).p_);
             //ret.push_back(item_pair(tmp, (*j).contentAddr_));
             ret.push_back((*j).contentAddr_);
@@ -650,7 +669,7 @@ friend ostream& operator << ( ostream& os, const SelfType& node)
       cout<<"@"<<(*i).firstChar_<<" ........."<<endl;
       for (str_ptr_it j=(*i).strPtrs_.begin(); j!=(*i).strPtrs_.end();j++)
       {
-        (*(*j).p_).displayStringValue(ENCODE_TYPE, os);
+        //(*(*j).p_).displayStringValue(ENCODE_TYPE, os);
         os<<" =>"<<(*j).contentAddr_<<endl;
       }
     }
@@ -666,7 +685,7 @@ friend ostream& operator << ( ostream& os, const SelfType& node)
   /**
    *Add string and content pair into bucket
    **/
-  uint32_t addString(UString* pStr, uint64_t addr)
+  uint32_t addString(STRING_TYPE* pStr, uint64_t addr)
   {
     //if (!canAddString(str))
     //return pBucket_->size_;
@@ -736,7 +755,7 @@ friend ostream& operator << ( ostream& os, const SelfType& node)
   /**
    *Can string be added into bucket.
    **/
-  bool canAddString(const UString& str)
+  bool canAddString(const STRING_TYPE& str)
   {
     return length()+ONE_STRING_SIZE(str)<=BUCKET_SIZE;
   }
@@ -765,7 +784,7 @@ friend ostream& operator << ( ostream& os, const SelfType& node)
   /**
    *Split bucket into 'newBucket'. Some short string is consumed whitch is stored into leftStr.
    **/
-  unsigned short split(Bucket* newBucket, vector<UString>& leftStr, vector<uint64_t>& leftAddr)
+  charT split(Bucket* newBucket, vector<STRING_TYPE>& leftStr, vector<uint64_t>& leftAddr)
   {
 //     leftStr.clear();
 //     if (getStrCount() != pBucket_->count_)
@@ -785,7 +804,7 @@ friend ostream& operator << ( ostream& os, const SelfType& node)
         {
           if (((*j).p_)->length()<=1)
           {
-            UString s;
+            STRING_TYPE s;
             s += (*i).firstChar_;
             s += (*(*j).p_);
             leftStr.push_back(s);
@@ -810,7 +829,7 @@ friend ostream& operator << ( ostream& os, const SelfType& node)
     {
       //throw exception
       //cout<<"\n-------------------Split error!--------------------";
-      return (unsigned short)-1;
+      return (charT)-1;
     }
     
     uint32_t left = (uint32_t)(pBucket_->count_/100.00*SPLIT_RATIO);
@@ -853,7 +872,7 @@ friend ostream& operator << ( ostream& os, const SelfType& node)
   /**
    *Get index of 'ch' in alphabet.
    **/
-  static uint32_t getIndexOf(unsigned short ch)
+  static uint32_t getIndexOf(charT ch)
   {
     if (ch<ALPHABET[0] || ch>ALPHABET[ALPHABET_SIZE-1])
     {
@@ -906,7 +925,7 @@ friend ostream& operator << ( ostream& os, const SelfType& node)
   /**
    *Get up bound of bucket
    **/
-  unsigned short getUpBound()const
+  charT getUpBound()const
   {
     return pBucket_->from_;
   }
@@ -930,10 +949,10 @@ friend ostream& operator << ( ostream& os, const SelfType& node)
   /**
    *Get the 'idx' group first char whitch stands for this group
    **/
-  unsigned short getGroupChar(size_t idx)
+  charT getGroupChar(size_t idx)
   {
     if (idx>=getStrGroupAmount())
-      return (unsigned short)-1;
+      return (charT)-1;
 
     return pBucket_->strGroup_[idx].firstChar_;
     
@@ -942,7 +961,7 @@ friend ostream& operator << ( ostream& os, const SelfType& node)
   /**
    *Get low bound of this bucket.
    **/
-  unsigned short getLowBound() const
+  charT getLowBound() const
   {
     return pBucket_->to_;
   }
@@ -971,7 +990,7 @@ friend ostream& operator << ( ostream& os, const SelfType& node)
   /**
    *Set up bound of this bucket.
    **/
-  void setUpBound(unsigned short ch)
+  void setUpBound(charT ch)
   {
     if (pBucket_->from_!=ch)
       pBucket_->dirty_ = true;
@@ -982,7 +1001,7 @@ friend ostream& operator << ( ostream& os, const SelfType& node)
   /**
    *Set low bound of this bucket.
    **/
-  void setLowBound(unsigned short ch)
+  void setLowBound(charT ch)
   {
     if (pBucket_->to_!=ch)
       pBucket_->dirty_ = true;
