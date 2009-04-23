@@ -183,7 +183,7 @@ public:
 	void display() {
 		cout<<"\nDbObj display..\n";
 		cout<<"_size "<<_size<<endl;
-		//cout<<"_data "<<(char*)_data<<endl;
+		cout<<"_data "<<(char*)_data<<endl;
 	}
 
 

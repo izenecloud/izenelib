@@ -35,7 +35,7 @@ public:
 	/**
 	 *   deconstructor, close() will also be called here.
 	 */
-	virtual ~tc_hash() {
+	virtual ~tc_hash() {		
 		close();
 		tchdbdel(hdb_);
 	}
@@ -70,7 +70,7 @@ public:
 		ptr.reset(new DbObj);
 		ptr1.reset(new DbObj);
 		write_image(key, ptr);
-		write_image(key, ptr1);
+		write_image(value, ptr1);
 
 		return tchdbputkeep(hdb_, ptr->getData(), ptr->getSize(), ptr1->getData(), ptr1->getSize());
 	}
@@ -87,11 +87,12 @@ public:
 		int sp;
 		void* value = tchdbget(hdb_, (void*)(ptr->getData()), ptr->getSize(), &sp);
 		if( !value )return NULL;
-		else {
-			ptr1.reset(new DbObj(value, sp));
-			ValueType val;
-			read_image(val, ptr1);
-			return new ValueType(val);
+		else {			
+			ptr1.reset(new DbObj(value, sp));			
+			ValueType *val = new ValueType;			
+			read_image(*val, ptr1);		
+			free(value);
+			return val;
 		}
 	}
 
@@ -102,7 +103,8 @@ public:
 		DbObjPtr ptr;
 		ptr.reset(new DbObj);
 		write_image(key, ptr);
-
+		
+		//ptr->display();
 		return tchdbout(hdb_, ptr->getData(), ptr->getSize() );
 	}
 
@@ -122,8 +124,7 @@ public:
 		ptr.reset(new DbObj);
 		ptr1.reset(new DbObj);
 		write_image(key, ptr);
-		write_image(key, ptr1);
-
+		write_image(value, ptr1);
 		return tchdbput(hdb_, ptr->getData(), ptr->getSize(), ptr1->getData(), ptr1->getSize());
 
 	}
@@ -215,7 +216,7 @@ public:
 		if(buf != NULL)
 		{
 			ptr1.reset(new DbObj(buf, sp));
-			read_image(locn, ptr1);			
+			read_image(locn, ptr1);
 			return true;
 		}
 		return false;
@@ -241,6 +242,7 @@ public:
 	 */
 	bool close()
 	{
+		commit();
 		return tchdbclose(hdb_);
 	}
 
