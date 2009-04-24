@@ -44,7 +44,7 @@ namespace idmanager {
 #define PATCH_VERSION "20081203"
 
 
-template<typename NameString, typename NameID> class IDManager {
+template<typename NameString=wiselib::UString, typename NameID=unsigned int> class IDManager {
 public:
 	IDManager(const string& sdbname = "idm") :
 		termIdManager_(sdbname + "_tid"), docIdManager_(sdbname + "_did"),

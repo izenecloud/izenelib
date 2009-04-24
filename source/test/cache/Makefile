@@ -4,7 +4,7 @@ GCC=/usr/bin/gcc
 CC_OPTIONS= -O3 -Wall -c -g -pg  -DDEBUG
 
 
-INC_PATH=  -I  ../../../../izenelib/include/  -I /usr/local/include/boost-1_35 \
+INC_PATH=  -I  ../../../../izenelib/include/  -I /usr/local/include/boost-1_36 \
              -I  ../../../../ylib/include/   -I ../../../../izenelib/include/3rdparty/
 
 LIBS =   ../../../../izenelib/lib/libprocmeminfo.a  /usr/local/lib/libboost_thread-gcc41-mt.so  ../../../../ylib/lib/libylib.a   /usr/local/lib/libboost_serialization-gcc41-mt.so  

@@ -29,7 +29,7 @@ typedef izenelib::am::NullType Value;
 //Storage policy.
 typedef izenelib::am::LinearHashTable<Key,Value, NullLock> linHash;
 //typedef ExtendibleHash<Key, NullType, NullLock> extHash;
-typedef izenelib::am::CCCR_StrHashTable<Key, Value> cccrHash;
+typedef izenelib::am::cccr_hash<Key, Value> cccrHash;
 
 void ReportUsage(void) {
 	cout

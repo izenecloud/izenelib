@@ -33,7 +33,7 @@ typedef YString Value;
 //Storage policy.
 typedef izenelib::am::LinearHashTable<Key,Value, NullLock> linFirstHash;
 //typedef izenelib::am::ExtendibleHashTable<Key,Value, NullLock> extHash;
-typedef izenelib::am::CCCR_StrHashTable<Key, Value> extFirstHash;
+typedef izenelib::am::cccr_hash<Key, Value> extFirstHash;
 
 typedef izenelib::am::sdb_hash<Key, Value, NullLock> extSecondHash;
 typedef izenelib::am::sdb_hash<Key, Value, NullLock> linSecondHash;

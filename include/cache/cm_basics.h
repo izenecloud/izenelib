@@ -12,7 +12,7 @@
 #include <iostream>
 
 #include <am/fromylib/LinearHashTable.h>
-#include <am/cccr_string_hash_table/cccr_str_hash_table.hpp>
+//#include <am/cccr_string_hash_table/cccr_str_hash_table.hpp>
 #include <am/sdb_hash/sdb_hash.h>
 #include <am/cccr_hash/cccr_hash.h>
 #include <util/ProcMemInfo.h>

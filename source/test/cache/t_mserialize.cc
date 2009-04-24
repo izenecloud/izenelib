@@ -31,7 +31,7 @@ typedef YString Value;
 //Storage policy.
 typedef izenelib::am::LinearHashTable<Key,Value, NullLock> linFirstHash;
 //typedef izenelib::am::ExtendibleHashTable<Key,Value, NullLock> extHash;
-typedef izenelib::am::CCCR_StrHashTable<Key, Value> extFirstHash;
+typedef izenelib::am::cccr_hash<Key, Value> extFirstHash;
 
 int sum =0;
 int hit =0;

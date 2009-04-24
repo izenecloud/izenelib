@@ -39,12 +39,12 @@ namespace cache{
  *	RelacementPolciy        :   it can be lruCmp, lfuCmp or slruCmp, which are defined in CacheInfo.h.
  *	MCache			:   Using the MCache to cache the most frequent items in DataHash to improve the efficency. 
  *       DataHash		:   Store the data, can be extendibleHashFile, linearHashFile.				  
- *	ThreadSafeLock          :   it can be NullLock or ReadWriteLock, which are defined in ylib/lock.h. If using NullLock, then 
+ *	LockType          :   it can be NullLock or ReadWriteLock, which are defined in ylib/lock.h. If using NullLock, then 
  *				    No threa dsafe. 	 
  */
 
 template <class KeyType, class ValueType, class ReplacementPolicy, class MCache,
-		class DataHash, class ThreadSafeLock =NullLock> class CacheDB {
+		class DataHash, class LockType =NullLock> class CacheDB {
 
 	typedef izenelib::am::DataType<KeyType,ValueType> DataType;
 public:
@@ -113,7 +113,7 @@ public:
 private:
 	MCache mCache_;
 	DataHash dataHash_;
-	ThreadSafeLock lock;//use threadsafe only when dataHash_ is not threadSafe.	
+	LockType lock;//use threadsafe only when dataHash_ is not threadSafe.	
 };
 
 /**
@@ -122,8 +122,8 @@ private:
  *	@return TRUE if found, otherwise return faulse
  */
 template <class KeyType, class ValueType, class ReplacementPolicy, class MCache,
-		class DataHash, class ThreadSafeLock> bool CacheDB<KeyType, ValueType,
-		ReplacementPolicy, MCache, DataHash, ThreadSafeLock>::getValue(
+		class DataHash, class LockType> bool CacheDB<KeyType, ValueType,
+		ReplacementPolicy, MCache, DataHash, LockType>::getValue(
 		const KeyType& key, ValueType& value) {
 	lock.acquire_write_lock();
 	if (mCache_.getValue(key, value) ) {
@@ -149,8 +149,8 @@ template <class KeyType, class ValueType, class ReplacementPolicy, class MCache,
  */
 
 template <class KeyType, class ValueType, class ReplacementPolicy, class MCache,
-		class DataHash, class ThreadSafeLock> void CacheDB<KeyType, ValueType,
-		ReplacementPolicy, MCache, DataHash, ThreadSafeLock>::insertValue(
+		class DataHash, class LockType> void CacheDB<KeyType, ValueType,
+		ReplacementPolicy, MCache, DataHash, LockType>::insertValue(
 		const DataType& dat) {
 	lock.acquire_write_lock();
 	if (dataHash_.insert(dat) ) {
@@ -164,8 +164,8 @@ template <class KeyType, class ValueType, class ReplacementPolicy, class MCache,
  * 	
  */
 template <class KeyType, class ValueType, class ReplacementPolicy, class MCache,
-		class DataHash, class ThreadSafeLock> bool CacheDB<KeyType, ValueType,
-		ReplacementPolicy, MCache, DataHash, ThreadSafeLock>::getValueNoInsert(
+		class DataHash, class LockType> bool CacheDB<KeyType, ValueType,
+		ReplacementPolicy, MCache, DataHash, LockType>::getValueNoInsert(
 		const KeyType& key, ValueType& value) {
 	return getValue(key, value);
 }
@@ -176,8 +176,8 @@ template <class KeyType, class ValueType, class ReplacementPolicy, class MCache,
  *         @return TRUE if hits, othewise reture False and insert into the new item.	
  */
 template <class KeyType, class ValueType, class ReplacementPolicy, class MCache,
-		class DataHash, class ThreadSafeLock> bool CacheDB<KeyType, ValueType,
-		ReplacementPolicy, MCache, DataHash, ThreadSafeLock>::getValueWithInsert(
+		class DataHash, class LockType> bool CacheDB<KeyType, ValueType,
+		ReplacementPolicy, MCache, DataHash, LockType>::getValueWithInsert(
 		const KeyType& key, ValueType& value) {
 
 	if (getValue(key, value) )
@@ -194,8 +194,8 @@ template <class KeyType, class ValueType, class ReplacementPolicy, class MCache,
  */
 
 template <class KeyType, class ValueType, class ReplacementPolicy, class MCache,
-		class DataHash, class ThreadSafeLock> bool CacheDB<KeyType, ValueType,
-		ReplacementPolicy, MCache, DataHash, ThreadSafeLock>::del(
+		class DataHash, class LockType> bool CacheDB<KeyType, ValueType,
+		ReplacementPolicy, MCache, DataHash, LockType>::del(
 		const KeyType& key) {
 	lock.acquire_write_lock();
 	if (dataHash_.del(key) ) {
@@ -213,8 +213,8 @@ template <class KeyType, class ValueType, class ReplacementPolicy, class MCache,
  * 
  */
 template <class KeyType, class ValueType, class ReplacementPolicy, class MCache,
-		class DataHash, class ThreadSafeLock> bool CacheDB<KeyType, ValueType,
-		ReplacementPolicy, MCache, DataHash, ThreadSafeLock>::hasKey(
+		class DataHash, class LockType> bool CacheDB<KeyType, ValueType,
+		ReplacementPolicy, MCache, DataHash, LockType>::hasKey(
 		const KeyType& key) {
 	lock.acquire_read_lock();
 	bool is = mCache_.hasKey(key) || (dataHash_.find(key) != NULL);
@@ -229,8 +229,8 @@ template <class KeyType, class ValueType, class ReplacementPolicy, class MCache,
  *
  */
 template <class KeyType, class ValueType, class ReplacementPolicy, class MCache,
-		class DataHash, class ThreadSafeLock> int CacheDB<KeyType, ValueType,
-		ReplacementPolicy, MCache, DataHash, ThreadSafeLock>::numItems() {
+		class DataHash, class LockType> int CacheDB<KeyType, ValueType,
+		ReplacementPolicy, MCache, DataHash, LockType>::numItems() {
 	lock.acquire_read_lock();
 	int num = dataHash_.num_items();
 	lock.release_read_lock();
@@ -242,8 +242,8 @@ template <class KeyType, class ValueType, class ReplacementPolicy, class MCache,
  *	\brief It displays the number of items in memory Cache.
  */
 template <class KeyType, class ValueType, class ReplacementPolicy, class MCache,
-		class DataHash, class ThreadSafeLock> void CacheDB<KeyType, ValueType,
-		ReplacementPolicy, MCache, DataHash, ThreadSafeLock>::displayHash() {
+		class DataHash, class LockType> void CacheDB<KeyType, ValueType,
+		ReplacementPolicy, MCache, DataHash, LockType>::displayHash() {
 	mCache_.displayHash();
 	cout<<"dataHash: numItems ="<< numItems()<<endl;
 }
@@ -253,8 +253,8 @@ template <class KeyType, class ValueType, class ReplacementPolicy, class MCache,
  * 	
  */
 template <class KeyType, class ValueType, class ReplacementPolicy, class MCache,
-		class DataHash, class ThreadSafeLock> void CacheDB<KeyType, ValueType,
-		ReplacementPolicy, MCache, DataHash, ThreadSafeLock>::flush(
+		class DataHash, class LockType> void CacheDB<KeyType, ValueType,
+		ReplacementPolicy, MCache, DataHash, LockType>::flush(
 		const KeyType& key) {
 	mCache_.flush(key);	
 }
@@ -264,8 +264,8 @@ template <class KeyType, class ValueType, class ReplacementPolicy, class MCache,
  * 	
  */
 /*template <class KeyType, class DataType, class ReplacementPolicy, class MCache,
-		class DataHash, class ThreadSafeLock> void CacheDB<KeyType, DataType,
-		ReplacementPolicy, MCache, DataHash, ThreadSafeLock>::flush() {
+		class DataHash, class LockType> void CacheDB<KeyType, DataType,
+		ReplacementPolicy, MCache, DataHash, LockType>::flush() {
 	mCache_.flush();
 }*/
 
@@ -274,8 +274,8 @@ template <class KeyType, class ValueType, class ReplacementPolicy, class MCache,
  *
  */
 template <class KeyType, class DataType, class ReplacementPolicy, class MCache,
-		class DataHash, class ThreadSafeLock> void CacheDB<KeyType, DataType,
-		ReplacementPolicy, MCache, DataHash, ThreadSafeLock>::dump() {
+		class DataHash, class LockType> void CacheDB<KeyType, DataType,
+		ReplacementPolicy, MCache, DataHash, LockType>::dump() {
 	//to be implemented
 }
 
@@ -284,8 +284,8 @@ template <class KeyType, class DataType, class ReplacementPolicy, class MCache,
  *
  */
 template <class KeyType, class DataType, class ReplacementPolicy, class MCache,
-		class DataHash, class ThreadSafeLock> void CacheDB<KeyType, DataType,
-		ReplacementPolicy, MCache, DataHash, ThreadSafeLock>::clear() {
+		class DataHash, class LockType> void CacheDB<KeyType, DataType,
+		ReplacementPolicy, MCache, DataHash, LockType>::clear() {
 	dataHash_.flush();
 	mCache_.clear();
 }

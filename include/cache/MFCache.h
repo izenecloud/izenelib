@@ -38,20 +38,20 @@ namespace cache{
  *	RelacementPolciy        :   it can be lruCmp, lfuCmp or slruCmp, which are defined in CacheInfo.h.
  *	FirstHash and SecondHash:   it detemines the type of hybird  hash as storage of cache. 
  *				                And Canadiates are LinearHashTable,ExtendibleHash,ExtendibleHashFile, LinearHashFile, or others.				  
- *	ThreadSafeLock          :   it can be NullLock or ReadWriteLock, which are defined in ylib/lock.h. If using NullLock, then 
+ *	LockType          :   it can be NullLock or ReadWriteLock, which are defined in ylib/lock.h. If using NullLock, then 
  *				                No threadsafe. 	 
  */
 
 //static ofstream loggerFile("./mfcache_logger");
 template <class KeyType, class ValueType, class ReplacementPolicy,
-		class FirstHash, class SecondHash, class ThreadSafeLock =NullLock> class MFCache {
+		class FirstHash, class SecondHash, class LockType =NullLock> class MFCache {
 	enum {EVICT_NUM = 30};
 	typedef typename map<CacheInfo<KeyType>, bool, ReplacementPolicy> :: iterator
 			MIT;
 	typedef typename hash_map<KeyType, CacheInfo<KeyType>, HashFun<KeyType> > ::iterator
 			HIT;
 
-	ThreadSafeLock lock;
+	LockType lock;
 	typedef izenelib::am::DataType<KeyType,ValueType> DataType;
 public:
 	/**
@@ -293,9 +293,9 @@ private:
  *	@return TRUE if found, otherwise return faulse
  */
 template <class KeyType, class ValueType, class ReplacementPolicy,
-		class FirstHash, class SecondHash, class ThreadSafeLock> bool MFCache<
+		class FirstHash, class SecondHash, class LockType> bool MFCache<
 		KeyType, ValueType, ReplacementPolicy, FirstHash, SecondHash,
-		ThreadSafeLock>::getValue(const KeyType& key, ValueType& value) {
+		LockType>::getValue(const KeyType& key, ValueType& value) {
 
 	lock.acquire_write_lock();
 	nTotal_++;
@@ -339,9 +339,9 @@ template <class KeyType, class ValueType, class ReplacementPolicy,
  */
 
 template <class KeyType, class ValueType, class ReplacementPolicy,
-		class FirstHash, class SecondHash, class ThreadSafeLock> void MFCache<
+		class FirstHash, class SecondHash, class LockType> void MFCache<
 		KeyType, ValueType, ReplacementPolicy, FirstHash, SecondHash,
-		ThreadSafeLock>::insertValue(const DataType& dat) {
+		LockType>::insertValue(const DataType& dat) {
 	lock.acquire_write_lock();
 	KeyType key = dat.get_key();//value should have get_key() method.							
 	if (hash_.insert(dat) ) {
@@ -378,9 +378,9 @@ template <class KeyType, class ValueType, class ReplacementPolicy,
  * 	
  */
 template <class KeyType, class ValueType, class ReplacementPolicy,
-		class FirstHash, class SecondHash, class ThreadSafeLock> bool MFCache<
+		class FirstHash, class SecondHash, class LockType> bool MFCache<
 		KeyType, ValueType, ReplacementPolicy, FirstHash, SecondHash,
-		ThreadSafeLock>::getValueNoInsert(const KeyType& key, ValueType& value) {
+		LockType>::getValueNoInsert(const KeyType& key, ValueType& value) {
 	return getValue(key, value);
 }
 
@@ -390,9 +390,9 @@ template <class KeyType, class ValueType, class ReplacementPolicy,
  *         @return TRUE if hits, othewise reture False and insert into the new item.	
  */
 template <class KeyType, class ValueType, class ReplacementPolicy,
-		class FirstHash, class SecondHash, class ThreadSafeLock> bool MFCache<
+		class FirstHash, class SecondHash, class LockType> bool MFCache<
 		KeyType, ValueType, ReplacementPolicy, FirstHash, SecondHash,
-		ThreadSafeLock>::getValueWithInsert(const KeyType& key, ValueType& value) {
+		LockType>::getValueWithInsert(const KeyType& key, ValueType& value) {
 
 	if (getValue(key, value) )
 		return TRUE;
@@ -408,9 +408,9 @@ template <class KeyType, class ValueType, class ReplacementPolicy,
  * 
  */
 template <class KeyType, class ValueType, class ReplacementPolicy,
-		class FirstHash, class SecondHash, class ThreadSafeLock> bool MFCache<
+		class FirstHash, class SecondHash, class LockType> bool MFCache<
 		KeyType, ValueType, ReplacementPolicy, FirstHash, SecondHash,
-		ThreadSafeLock>::hasKey(const KeyType& key) {
+		LockType>::hasKey(const KeyType& key) {
 	lock.acquire_read_lock();
 	bool isFound = cacheContainer_.find(key);
 	lock.release_read_lock();
@@ -423,9 +423,9 @@ template <class KeyType, class ValueType, class ReplacementPolicy,
  *
  */
 template <class KeyType, class ValueType, class ReplacementPolicy,
-		class FirstHash, class SecondHash, class ThreadSafeLock> int MFCache<
+		class FirstHash, class SecondHash, class LockType> int MFCache<
 		KeyType, ValueType, ReplacementPolicy, FirstHash, SecondHash,
-		ThreadSafeLock>::numItems() {
+		LockType>::numItems() {
 	lock.acquire_read_lock();
 	int num = hash_.numItems();
 	lock.release_read_lock();
@@ -437,9 +437,9 @@ template <class KeyType, class ValueType, class ReplacementPolicy,
  *
  */
 template <class KeyType, class ValueType, class ReplacementPolicy,
-		class FirstHash, class SecondHash, class ThreadSafeLock> void MFCache<
+		class FirstHash, class SecondHash, class LockType> void MFCache<
 		KeyType, ValueType, ReplacementPolicy, FirstHash, SecondHash,
-		ThreadSafeLock>::printKeyInfoMap() {
+		LockType>::printKeyInfoMap() {
 	lock.acquire_read_lock();
 	cacheContainer_.printKeyInfoMap();
 	lock.release_read_lock();
@@ -450,9 +450,9 @@ template <class KeyType, class ValueType, class ReplacementPolicy,
  *
  */
 template <class KeyType, class ValueType, class ReplacementPolicy,
-		class FirstHash, class SecondHash, class ThreadSafeLock> void MFCache<
+		class FirstHash, class SecondHash, class LockType> void MFCache<
 		KeyType, ValueType, ReplacementPolicy, FirstHash, SecondHash,
-		ThreadSafeLock>::evict_memory(unsigned int num) {
+		LockType>::evict_memory(unsigned int num) {
 
 	ValueType dat;
 	MIT it = cacheContainer_.begin();
@@ -480,9 +480,9 @@ template <class KeyType, class ValueType, class ReplacementPolicy,
  *
  */
 template <class KeyType, class ValueType, class ReplacementPolicy,
-		class FirstHash, class SecondHash, class ThreadSafeLock> void MFCache<
+		class FirstHash, class SecondHash, class LockType> void MFCache<
 		KeyType, ValueType, ReplacementPolicy, FirstHash, SecondHash,
-		ThreadSafeLock>::evict(unsigned int num) {
+		LockType>::evict(unsigned int num) {
 
 	MIT it = cacheContainer_.begin();
 	while (it != cacheContainer_.end() && num>0) {
@@ -505,9 +505,9 @@ template <class KeyType, class ValueType, class ReplacementPolicy,
  *	 precondition -- key is in fileHash.
  */
 template <class KeyType, class ValueType, class ReplacementPolicy,
-		class FirstHash, class SecondHash, class ThreadSafeLock> DUMP_RESULT MFCache<
+		class FirstHash, class SecondHash, class LockType> DUMP_RESULT MFCache<
 		KeyType, ValueType, ReplacementPolicy, FirstHash, SecondHash,
-		ThreadSafeLock>::dump_f2m(const KeyType& key) {
+		LockType>::dump_f2m(const KeyType& key) {
 
 	HASH_STATUS hs = getHashStatus();
 	if (hs & 1)// memory is not full.
@@ -542,9 +542,9 @@ template <class KeyType, class ValueType, class ReplacementPolicy,
 }
 
 template <class KeyType, class ValueType, class ReplacementPolicy,
-		class FirstHash, class SecondHash, class ThreadSafeLock> void MFCache<
+		class FirstHash, class SecondHash, class LockType> void MFCache<
 		KeyType, ValueType, ReplacementPolicy, FirstHash, SecondHash,
-		ThreadSafeLock>::UpdateKeyInfoMap() {
+		LockType>::UpdateKeyInfoMap() {
 	lock.acquire_write_lock();
 	cacheContainer_.UpdateKeyInfoMap();
 	lock.release_write_lock();
@@ -555,9 +555,9 @@ template <class KeyType, class ValueType, class ReplacementPolicy,
  * 	
  */
 template <class KeyType, class ValueType, class ReplacementPolicy,
-		class FirstHash, class SecondHash, class ThreadSafeLock> void MFCache<
+		class FirstHash, class SecondHash, class LockType> void MFCache<
 		KeyType, ValueType, ReplacementPolicy, FirstHash, SecondHash,
-		ThreadSafeLock>::flush(const KeyType& key) {
+		LockType>::flush(const KeyType& key) {
 	lock.acquire_write_lock();
 	if ( hash_.del(key) )
 		//hash_.del(key); 
@@ -571,9 +571,9 @@ template <class KeyType, class ValueType, class ReplacementPolicy,
  */
 
 template <class KeyType, class ValueType, class ReplacementPolicy,
-		class FirstHash, class SecondHash, class ThreadSafeLock> void MFCache<
+		class FirstHash, class SecondHash, class LockType> void MFCache<
 		KeyType, ValueType, ReplacementPolicy, FirstHash, SecondHash,
-		ThreadSafeLock>::flush() {
+		LockType>::flush() {
 	lock.acquire_write_lock();
 	UpdateKeyInfoMap();
 	MIT it = cacheContainer_.begin();
@@ -593,9 +593,9 @@ template <class KeyType, class ValueType, class ReplacementPolicy,
  *	
  */
 template <class KeyType, class ValueType, class ReplacementPolicy,
-		class FirstHash, class SecondHash, class ThreadSafeLock> void MFCache<
+		class FirstHash, class SecondHash, class LockType> void MFCache<
 		KeyType, ValueType, ReplacementPolicy, FirstHash, SecondHash,
-		ThreadSafeLock>::dump() {
+		LockType>::dump() {
 	lock.acquire_write_lock();
 	typename list<KeyType>::iterator it, it1;
 	it = dumpList_.begin();
@@ -615,9 +615,9 @@ template <class KeyType, class ValueType, class ReplacementPolicy,
  *	
  */
 template <class KeyType, class ValueType, class ReplacementPolicy,
-		class FirstHash, class SecondHash, class ThreadSafeLock> void MFCache<
+		class FirstHash, class SecondHash, class LockType> void MFCache<
 		KeyType, ValueType, ReplacementPolicy, FirstHash, SecondHash,
-		ThreadSafeLock>::clear() {
+		LockType>::clear() {
 	lock.acquire_write_lock();
 	UpdateKeyInfoMap();
 	MIT it = cacheContainer_.begin();
