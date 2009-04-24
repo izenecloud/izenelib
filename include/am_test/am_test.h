@@ -13,14 +13,13 @@ using namespace __gnu_cxx;
 using namespace boost;
 using namespace izenelib::util;
 
-
-#ifdef TRACE
-#undef TRACE
-#define TRACE 0
+#ifdef INNER_TRACE
+#undef INNER_TRACE
+#define INNER_TRACE 0
 #endif
 
-#ifndef TRACE	
-#define TRACE 0
+#ifndef INNER_TRACE	
+#define INNER_TRACE 0
 #endif
 
 namespace izenelib {
@@ -60,9 +59,9 @@ template<> inline vector<int> generateData<vector<int> >(const int a, int num,
 	vector<int> vret;
 	int max;
 	if (rand) {
-		max = myrand()%( 100  );
+		max = myrand()%( 100 );
 	} else {
-		max = num %100 ;
+		max = num %100;
 	}
 	for (int i=0; i<max; i++) {
 		vret.push_back(i);
@@ -107,8 +106,8 @@ template<typename KeyType, typename ValueType, typename AM> class AMOBJ<
 		KeyType, ValueType, AM, true> {
 	AM am_;
 	string getStr() {
-		char p[10];
-		sprintf(p, "%s_%s_%s.dat",typeid(AM).name(), typeid(KeyType).name(), typeid(ValueType).name());
+		char p[1000];
+		sprintf(p, "%s_%s_%s.dat", typeid(AM).name(), typeid(KeyType).name(), typeid(ValueType).name());
 		return p;
 	}
 public:
@@ -116,9 +115,8 @@ public:
 		am_(getStr() ) {
 		am_.open();
 	}
-	~AMOBJ()
-	{		
-		am_.close();		
+	~AMOBJ() {
+		am_.close();
 	}
 	AM& getInstance() {
 		return am_;
@@ -151,6 +149,7 @@ public:
 		rand_(true), num_(1000000), loop_(1), trace_(false) {
 
 	}
+
 	void setNum(int num) {
 		num_ = num;
 	}
@@ -167,7 +166,7 @@ public:
 	void run_insert(bool mem=true) {
 		clock_t t1 = clock();
 		for (int i =0; i<num_; i++) {
-#if TRACE
+#if INNER_TRACE
 			if (trace_) {
 				cout<<"Insert key="<<generateData<KeyType>(i, num_, rand_)<<endl;
 			}
@@ -187,7 +186,7 @@ public:
 		clock_t t1 = clock();
 		for (int i =0; i<num_; i++) {
 			if (trace_) {
-#if TRACE						
+#if INNER_TRACE						
 				cout<<"Insert key="<<generateData<KeyType>(i, num_, rand_)<<endl;
 #endif			
 			}
@@ -201,17 +200,25 @@ public:
 
 	void run_find(bool mem=true) {
 		clock_t t1 = clock();
+		int hit = 0;
+		int sum = 0;
 		for (int i =0; i<num_; i++) {
-#if TRACE			
+			sum++;
+#if INNER_TRACE			
 			if (trace_) {
 				cout<<"find key="<<generateData<KeyType>(i, num_, rand_)<<endl;
 			}
 #endif			
-			/*ValueType * p = am_.find(generateData<KeyType>(i, num_, rand_) );
-			delete p;*/
+			ValueType *pv = am_.find(generateData<KeyType>(i, num_, rand_) );
+			if (pv) {
+				hit++;
+			} else {
+				//cout<<"Unfound idx="<<i<<endl;
+			}
 		}
 		if (mem) {
 			printf("find elapsed: %lf seconds\n", double(clock()- t1)/CLOCKS_PER_SEC);
+			printf("hit ratio: %d /%d\n", hit, sum);
 			displayMemInfo();
 		}
 	}
@@ -220,7 +227,7 @@ public:
 		clock_t t1 = clock();
 		for (int i =0; i<num_; i++) {
 
-#if TRACE			
+#if INNER_TRACE			
 			if (trace_) {
 				cout<<"del key="<<generateData<KeyType>(i, num_, rand_)<<endl;
 			}

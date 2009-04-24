@@ -13,8 +13,8 @@
 #include <am/tokyo_cabinet/tc_hash.h>
 
 /*#ifdef EXTERNAL_TOKYO_CABINET
-#include <am/tokyo_cabinet/tc_hash.h>
-#endif*/
+ #include <am/tokyo_cabinet/tc_hash.h>
+ #endif*/
 //#include <am/btree/BTreeFile.h>
 
 using namespace izenelib::am;
@@ -441,14 +441,12 @@ template<typename KeyType, typename ValueType, typename LockType,
 		ValueType, LockType, ContainerType, Alloc>::getValue(
 		const KeyType& key, ValueType& val) {
 	lock_.acquire_read_lock();
-	ValueType* pv = container_.find(key);
-	if (pv) {
-		val = *pv;
-		lock_.release_read_lock();
-		return 1;
+	bool ret = container_.get(key, val);
+	if (ret) {
+		return true;
 	}
 	lock_.release_read_lock();
-	return 0;
+	return false;
 }
 
 template<typename KeyType, typename ValueType, typename LockType,
@@ -600,28 +598,24 @@ template<typename KeyType, typename ValueType, typename LockType,
 	return true;
 }
 
-template<
-	typename KeyType = string,
-	typename ValueType=NullType,
-	typename LockType =NullLock
->class unordered_sdb:
-public SequentialDB<KeyType, ValueType, LockType, sdb_btree<KeyType, ValueType, LockType>  >
-{
+template< typename KeyType =string, typename ValueType=NullType,
+		typename LockType =NullLock > class unordered_sdb :
+	public SequentialDB<KeyType, ValueType, LockType, sdb_hash<KeyType, ValueType, LockType> > {
 public:
-	unordered_sdb(const string& sdbname):SequentialDB<KeyType, ValueType, LockType, sdb_btree<KeyType, ValueType, LockType>  >(sdbname) {
+	unordered_sdb(const string& sdbname) :
+		SequentialDB<KeyType, ValueType, LockType,
+				sdb_hash<KeyType, ValueType, LockType> >(sdbname) {
 
 	}
 };
 
-template<
-	typename KeyType = string,
-	typename ValueType=NullType,
-	typename LockType =NullLock
->class ordered_sdb:
-public SequentialDB<KeyType, ValueType, LockType, sdb_btree<KeyType, ValueType, LockType> >
-{
+template< typename KeyType =string, typename ValueType=NullType,
+		typename LockType =NullLock > class ordered_sdb :
+	public SequentialDB<KeyType, ValueType, LockType, sdb_btree<KeyType, ValueType, LockType> > {
 public:
-	ordered_sdb(const string& sdbname):SequentialDB<KeyType, ValueType, LockType, sdb_btree<KeyType, ValueType, LockType> >(sdbname) {
+	ordered_sdb(const string& sdbname) :
+		SequentialDB<KeyType, ValueType, LockType,
+				sdb_btree<KeyType, ValueType, LockType> >(sdbname) {
 
 	}
 };

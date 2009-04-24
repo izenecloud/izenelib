@@ -56,7 +56,6 @@ public:
 	sdb_btree(const std::string& fileName = "sequentialdb.dat#");
 	virtual ~sdb_btree();
 
-	
 	/**
 	 * 
 	 *  \brief set mod
@@ -67,11 +66,11 @@ public:
 	 *  uses less disk space and find faster than cc-b-btree.
 	 *  
 	 * 
-	 */	
+	 */
 	void setBtreeMode(bool delaySplit)
 	{
 		_isDelaySplit = delaySplit;
-	}	
+	}
 	/**
 	 *  \brief set the MaxKeys
 	 * 
@@ -167,6 +166,7 @@ public:
 			_root = 0;
 		}
 		if (_dataFile != 0) {
+			fflush(_dataFile);
 			fclose(_dataFile);
 			_dataFile = 0;
 		}
@@ -197,8 +197,18 @@ public:
 	ValueType* find(const KeyType& key) {
 		SDBCursor locn;
 		if( search(key, locn) )
-		return &(locn.first->values[locn.second]);
+		return new ValueType(locn.first->values[locn.second]);
 		return NULL;
+	}
+
+	bool get(const KeyType& key, ValueType& value)
+	{
+		SDBCursor locn;
+		if( search(key, locn) ) {
+			value = locn.first->values[locn.second];
+			return true;
+		}
+		return false;
 	}
 
 	/**
@@ -266,7 +276,7 @@ public:
 	 */
 	bool
 	seq(SDBCursor& locn, DataType& rec,
-			ESeqDirection sdir = ESD_FORWARD);
+	ESeqDirection sdir = ESD_FORWARD);
 
 	/**
 	 * 	\brief write all the items in memory to file.
@@ -333,7 +343,7 @@ private:
 	FILE* _dataFile;
 	CbFileHeader _sfh;
 	size_t _cacheSize;
-	
+
 	bool _isDelaySplit;
 	bool _isOpen;
 
@@ -468,13 +478,12 @@ template<typename KeyType, typename ValueType, typename LockType,
 	_root = 0;
 	_isDelaySplit = true;
 	_fileName = fileName;
-	
+
 	int len = _fileName.size();
-	if(_fileName[len-1] == '#')
-	{
+	if (_fileName[len-1] == '#') {
 		_isDelaySplit = false;
 		_fileName.erase(len-1);
-	}	
+	}
 	_dataFile = 0;
 	_cacheSize = 0;
 	_isOpen = false;
@@ -791,8 +800,7 @@ template<typename KeyType, typename ValueType, typename LockType,
 			//If the child node is full , we will insert into its adjacent nodes, and if bothe are
 			//are full, we will split the two node to three nodes.			
 			if (child->objCount >= _sfh.maxKeys) {
-				if ( !child->isLeaf || !_isDelaySplit) 
-				{
+				if ( !child->isLeaf || !_isDelaySplit) {
 					_split(node, low, child);
 					compVal = _comp(key, node->keys[low]);
 					if (compVal == 0)
@@ -942,11 +950,11 @@ template<typename KeyType, typename ValueType, typename LockType,
 	qnode.push(node);
 	while (!qnode.empty()) {
 		sdb_node* popNode = qnode.front();
-		if (popNode->isLoaded) {
+		if (popNode && popNode->isLoaded) {
 			popNode->write(f);
 		}
 		qnode.pop();
-		if (!popNode->isLeaf) {
+		if (popNode && !popNode->isLeaf) {
 			for (size_t i=0; i<popNode->objCount+1; i++) {
 				if (popNode->children[i])
 					qnode.push(popNode->children[i]);
@@ -1317,9 +1325,10 @@ template<typename KeyType, typename ValueType, typename LockType,
 template<typename KeyType, typename ValueType, typename LockType,
 		typename Alloc> bool sdb_btree< KeyType, ValueType, LockType, Alloc>::get(
 		const SDBCursor& locn, DataType& rec) {
-	if ((sdb_node*)locn.first == 0 || locn.second == (size_t)-1 || locn.second >=  locn.first->objCount) {
+	if ((sdb_node*)locn.first == 0 || locn.second == (size_t)-1 || locn.second
+			>= locn.first->objCount) {
 		return false;
-	}	
+	}
 	rec = DataType(locn.first->keys[locn.second],
 			locn.first->values[locn.second]);
 	return true;
@@ -1400,7 +1409,7 @@ template<typename KeyType, typename ValueType, typename LockType,
 			locn.second = lastPos + 1;
 			return true;
 		}
-		goUp = (lastPos == node->objCount - 1);	
+		goUp = (lastPos == node->objCount - 1);
 	}
 
 	// Not a leaf, therefore need to worry about traversing
@@ -1421,14 +1430,14 @@ template<typename KeyType, typename ValueType, typename LockType,
 
 	// Finished off a leaf, therefore need to go up to
 	// a parent.
-	if (goUp) {		
+	if (goUp) {
 		size_t childNo = node->childNo;
-		node = node->parent;			
-		while ((sdb_node*)node != 0 && childNo >= node->objCount) {				
+		node = node->parent;
+		while ((sdb_node*)node != 0 && childNo >= node->objCount) {
 			childNo = node->childNo;
-			node = node->parent;			
-		}	
-		if ((sdb_node*)node != 0) {		
+			node = node->parent;
+		}
+		if ((sdb_node*)node != 0) {
 			locn.first = node;
 			locn.second = childNo;
 			ret = true;
@@ -1508,7 +1517,7 @@ template<typename KeyType, typename ValueType, typename LockType,
 
 	// Finished off a leaf, therefore need to go up to
 	// a parent.
-	if (goUp) {		
+	if (goUp) {
 		size_t childNo = node->childNo;
 		node = node->parent;
 
@@ -1532,7 +1541,7 @@ template<typename KeyType, typename ValueType, typename LockType,
 // allocated.
 template<typename KeyType, typename ValueType, typename LockType,
 		typename Alloc> void sdb_btree< KeyType, ValueType, LockType, Alloc>::flush() {
-	
+
 	//write back the fileHead and dirtypage
 	commit();
 	// Unload each of the root's childrent. 

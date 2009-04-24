@@ -158,7 +158,7 @@ public:
 
 			LetterTriePair * pair = findLetterPair(word[0]);
 			NameString subWord;
-			word.subString(subWord, 1);
+			word.substr(subWord, 1);
 
 			if (pair) {
 				// pair exists so update it...
@@ -207,14 +207,14 @@ public:
 					// Try matching 0 characters
 
 					NameString newPattern;
-					pattern.subString(newPattern, 1);
+					pattern.substr(newPattern, 1);
 					this->matchRegExp(results, newPattern, soFar);
 					break;
 				}
 				//case '?':
 				case 63: {
 					NameString newPattern;
-					pattern.subString(newPattern, 1);
+					pattern.substr(newPattern, 1);
 
 					// Try matching no character
 					this->matchRegExp(results, newPattern, soFar);
@@ -237,7 +237,7 @@ public:
 					NameString newSoFar(soFar);
 					newSoFar += pair->letter_;
 					NameString newPattern;
-					pattern.subString(newPattern, 1);
+					pattern.substr(newPattern, 1);
 
 					pair->trie_->matchRegExp(results, newPattern, newSoFar);
 				} else {

@@ -172,6 +172,16 @@ public:
 		return NULL;
 	}
 
+	bool get(const KeyType& key, ValueType& value) {
+		SDBCursor locn;
+		if (search(key, locn)) {
+			value = locn.first->elements[locn.second]->pdat->get_value();
+			return true;
+		}
+		else
+		return false;
+	}
+
 	const ValueType* find(const KeyType& key)const {
 		return (const ValueType*) (this->find(key));
 	}

@@ -97,7 +97,7 @@ template<> inline void write_image< iKeyType<KeyType> >(
 	ptr->setData(&key, sizeof(iKeyType<KeyType>));
 }
 
-
+/*
 template<> inline void read_image<std::vector<DocID> >(std::vector<DocID>& val,
 		const DbObjPtr& ptr) {
 	val.resize(ptr->getSize()/sizeof(DocID));
@@ -107,7 +107,7 @@ template<> inline void read_image<std::vector<DocID> >(std::vector<DocID>& val,
 template<> inline void write_image<std::vector<DocID> >(
 		const std::vector<DocID>& val, DbObjPtr& ptr) {	
 	ptr->setData(&val[0], sizeof(DocID)*val.size() );
-}
+}*/
 
 }
 

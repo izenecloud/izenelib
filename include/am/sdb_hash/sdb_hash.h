@@ -205,6 +205,26 @@ public:
 		}
 	}
 
+	bool get(const KeyType& key, ValueType& value)
+	{
+		SDBCursor locn;
+		if( !search(key, locn) )
+		return false;
+		else {
+			char *p = locn.second;
+			size_t ksz, vsz;
+			memcpy(&ksz, p, sizeof(size_t));
+			p += sizeof(size_t);
+			memcpy(&vsz, p, sizeof(size_t));
+			p += sizeof(size_t);
+
+			DbObjPtr ptr;
+			ptr.reset( new DbObj(p+ksz, vsz) );
+			read_image(value, ptr);
+			return true;
+		}
+	}
+
 	/**
 	 *  delete  an item
 	 */
@@ -312,9 +332,9 @@ public:
 		DbObjPtr ptr;
 		ptr.reset(new DbObj);
 		write_image(key, ptr);
-
-		size_t ksize = ptr->getSize();
-
+		
+		size_t ksize = ptr->getSize();		
+		
 		uint32_t idx = sdb_hashing::hash_fun(ptr->getData(), ptr->getSize() )
 		% sfh_.directorySize;
 
@@ -560,12 +580,12 @@ public:
 			bucketAddr = new long[sfh_.directorySize];
 			entry_ = new bucket_chain*[sfh_.directorySize];
 			memset(bucketAddr, 0, sizeof(long)*sfh_.directorySize);
-            memset(entry_ , 0, sizeof(bucket_chain*)*sfh_.directorySize);
-            
+			memset(entry_ , 0, sizeof(bucket_chain*)*sfh_.directorySize);
+
 			/*for(size_t i=0; i<sfh_.directorySize; i++) {
-				bucketAddr[i] = 0;
-				entry_[i] = 0;
-			}*/
+			 bucketAddr[i] = 0;
+			 entry_[i] = 0;
+			 }*/
 			sfh_.toFile(dataFile_);
 			ret = true;
 		} else {
@@ -582,6 +602,8 @@ public:
 #endif
 				bucketAddr = new long[sfh_.directorySize];
 				entry_ = new bucket_chain*[sfh_.directorySize];
+				memset(bucketAddr, 0, sizeof(long)*sfh_.directorySize);
+				memset(entry_ , 0, sizeof(bucket_chain*)*sfh_.directorySize);
 
 				if (sfh_.directorySize != fread(bucketAddr, sizeof(long),
 								sfh_.directorySize, dataFile_))

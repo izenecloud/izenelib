@@ -6,8 +6,9 @@
 #include <util/ThreadModel.h>
 #include <memory>
 
-using namespace izenelib::util;
 NS_IZENELIB_AM_BEGIN
+
+using namespace izenelib::util;
 
 template<typename KeyType, typename ValueType,
 typename LockType=NullLock, typename Alloc=std::allocator<DataType<KeyType,ValueType> > >

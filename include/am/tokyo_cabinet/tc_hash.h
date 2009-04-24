@@ -35,7 +35,7 @@ public:
 	/**
 	 *   deconstructor, close() will also be called here.
 	 */
-	virtual ~tc_hash() {		
+	virtual ~tc_hash() {
 		close();
 		tchdbdel(hdb_);
 	}
@@ -83,16 +83,33 @@ public:
 		DbObjPtr ptr, ptr1;
 		ptr.reset(new DbObj);
 		write_image(key, ptr);
-
+		
 		int sp;
 		void* value = tchdbget(hdb_, (void*)(ptr->getData()), ptr->getSize(), &sp);
 		if( !value )return NULL;
-		else {			
-			ptr1.reset(new DbObj(value, sp));			
-			ValueType *val = new ValueType;			
-			read_image(*val, ptr1);		
+		else {
+			ptr1.reset(new DbObj(value, sp));
+			ValueType *val = new ValueType;
+			read_image(*val, ptr1);
 			free(value);
 			return val;
+		}
+	}
+
+	bool get(const KeyType& key, ValueType& value)
+	{
+		DbObjPtr ptr, ptr1;
+		ptr.reset(new DbObj);
+		write_image(key, ptr);
+
+		int sp;
+		void* pv = tchdbget(hdb_, (void*)(ptr->getData()), ptr->getSize(), &sp);
+		if( !pv )return false;
+		else {
+			ptr1.reset(new DbObj(pv, sp));
+			read_image(value, ptr1);
+			free(pv);
+			return true;
 		}
 	}
 
@@ -103,7 +120,7 @@ public:
 		DbObjPtr ptr;
 		ptr.reset(new DbObj);
 		write_image(key, ptr);
-		
+
 		//ptr->display();
 		return tchdbout(hdb_, ptr->getData(), ptr->getSize() );
 	}
