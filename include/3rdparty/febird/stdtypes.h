@@ -48,7 +48,7 @@ namespace integer_types
 }
 using namespace integer_types;
 
-#if !defined(BOOST_NO_INTRINSIC_INT64_T)
+#if !defined(BOOST_NO_INT64_T)
 typedef uint64_t stream_position_t;
 typedef int64_t  stream_offset_t;
 #else

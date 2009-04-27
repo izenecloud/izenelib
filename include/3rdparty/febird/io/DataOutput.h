@@ -400,7 +400,7 @@ public:
 		return static_cast<Final_Output&>(*this);
 	}
 
-#if !defined(BOOST_NO_INTRINSIC_INT64_T)
+#if !defined(BOOST_NO_INT64_T)
 	Final_Output& operator<<(var_int64_t x)
 	{
 		byte buf[9];
@@ -433,7 +433,7 @@ public:
 	Final_Output& operator<<(var_int32_t  x) { return this->operator<<(x.t); }
 	Final_Output& operator<<(var_uint32_t x) { return this->operator<<(x.t); }
 
-#if !defined(BOOST_NO_INTRINSIC_INT64_T)
+#if !defined(BOOST_NO_INT64_T)
 	Final_Output& operator<<(var_int64_t  x) { return this->operator<<(x.t); }
 	Final_Output& operator<<(var_uint64_t x) { return this->operator<<(x.t); }
 #endif

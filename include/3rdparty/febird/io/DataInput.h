@@ -434,7 +434,7 @@ public:
 	Final_Input& operator>>(var_uint16_t& x) { x.t = load_var_uint32(); return static_cast<Final_Input&>(*this); }
 	Final_Input& operator>>(var_uint32_t& x) { x.t = load_var_uint32(); return static_cast<Final_Input&>(*this); }
 
-#if !defined(BOOST_NO_INTRINSIC_INT64_T)
+#if !defined(BOOST_NO_INT64_T)
 	Final_Input& operator>>(var_int64_t& x)
 	{
 		x.t = var_int64_u2s(load_var_uint64());
@@ -456,7 +456,7 @@ public:
 	Final_Input& operator>>(var_int32_t & x) { return *this >> x.t; }
 	Final_Input& operator>>(var_uint32_t& x) { return *this >> x.t; }
 
-#if !defined(BOOST_NO_INTRINSIC_INT64_T)
+#if !defined(BOOST_NO_INT64_T)
 	Final_Input& operator>>(var_int64_t & x) { return *this >> x.t; }
 	Final_Input& operator>>(var_uint64_t& x) { return *this >> x.t; }
 #endif
