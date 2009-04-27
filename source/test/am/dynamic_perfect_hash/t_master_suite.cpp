@@ -20,7 +20,7 @@
 #define BOOST_TEST_MAIN         
 
 /** Can define a test module in the following way. */
-#define BOOST_TEST_MODULE izenelib::am::DynamicPerfectHash test example test suite
+#define BOOST_TEST_MODULE izenelib::am::DynammicStrArray test example test suite
 
 
 #include <boost/test/unit_test.hpp>

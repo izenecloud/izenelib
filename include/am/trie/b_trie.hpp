@@ -502,11 +502,22 @@ public:
     return hashTable_.update(str, contentAddr);
   }
 
-  void findRegExp(const STRING_TYPE& regexp,  vector<item_pair<STRING_TYPE> >& ret)
+  void findRegExp(const STRING_TYPE& regexp,  vector<uint64_t>& ret)
+  {
+    vector<item_pair<STRING_TYPE> > v;
+    findRegExp(regexp, v);
+
+    for (typename vector<item_pair<STRING_TYPE> >::iterator i=v.begin(); i!=v.end();i++)
+      ret.push_back((*i).addr_);
+
+    return ret.size()!=0;
+  }
+  
+  bool findRegExp(const STRING_TYPE& regexp,  vector<item_pair<STRING_TYPE> >& ret)
   {
     STRING_TYPE sofar;
     findRegExp_(0,1, regexp, sofar, ret);
-    
+    return ret.size()!=0;
   }
   
     
