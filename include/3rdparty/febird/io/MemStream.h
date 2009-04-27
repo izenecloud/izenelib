@@ -407,7 +407,10 @@ inline byte MemIO::readByte() FEBIRD_RESTRICT throw(EndOfFileException)
 	if (m_pos < m_end)
 		return *m_pos++;
 	else
+	{
 		throw_EndOfFile(BOOST_CURRENT_FUNCTION, 1);
+		return -1;
+	}
 }
 
 #ifdef _MSC_VER
