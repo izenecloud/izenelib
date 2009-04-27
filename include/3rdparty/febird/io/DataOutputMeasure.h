@@ -136,7 +136,7 @@ public:
 	FEBIRD_GEN_MEASURE_VAR_INT(var_int32_t)
 	FEBIRD_GEN_MEASURE_VAR_INT(var_uint32_t)
 
-#if !defined(BOOST_NO_INTRINSIC_INT64_T)
+#if !defined(BOOST_NO_INT64_T)
 	FEBIRD_GEN_MEASURE_VAR_INT(var_int64_t)
 	FEBIRD_GEN_MEASURE_VAR_INT(var_uint64_t)
 #endif

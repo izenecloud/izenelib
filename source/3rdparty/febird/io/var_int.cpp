@@ -150,7 +150,7 @@ int16_t reverse_get_var_int16(const unsigned char* buf, unsigned char const ** c
 	return var_int16_u2s(reverse_get_var_uint16(buf, cur));
 }
 
-#if !defined(BOOST_NO_INTRINSIC_INT64_T)
+#if !defined(BOOST_NO_INT64_T)
 /**
  @brief reverse get var_uint64_t
   
@@ -192,7 +192,7 @@ int64_t reverse_get_var_int64(const unsigned char* buf, unsigned char const ** c
 	return var_int64_u2s(reverse_get_var_uint64(buf, cur));
 }
 
-#endif //BOOST_NO_INTRINSIC_INT64_T
+#endif //BOOST_NO_INT64_T
 
 } // namespace febird
 

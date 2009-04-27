@@ -65,10 +65,10 @@ FEBIRD_DEFINE_VAR_INT(uint16_t)
 FEBIRD_DEFINE_VAR_INT( int32_t)
 FEBIRD_DEFINE_VAR_INT(uint32_t)
 
-//#if !defined(BOOST_NO_INTRINSIC_INT64_T)
+#if !defined(BOOST_NO_INT64_T)
 FEBIRD_DEFINE_VAR_INT( int64_t)
 FEBIRD_DEFINE_VAR_INT(uint64_t)
-//#endif
+#endif
 /*
 inline void byte_swap_in(var_int16_t& x, boost::mpl::true_) { x.t = byte_swap(x.t); }
 inline void byte_swap_in(var_int32_t& x, boost::mpl::true_) { x.t = byte_swap(x.t); }
@@ -242,7 +242,7 @@ inline uint32_t var_int32_s2u(int32_t x) { return var_int_s2u<int32_t, uint32_t>
 inline int16_t var_int16_u2s(uint16_t u) { return var_int_u2s<uint16_t, int16_t>(u); }
 inline int32_t var_int32_u2s(uint32_t u) { return var_int_u2s<uint32_t, int32_t>(u); }
 
-#if !defined(BOOST_NO_INTRINSIC_INT64_T)
+#if !defined(BOOST_NO_INT64_T)
 inline uint64_t var_int64_s2u(int64_t x) { return var_int_s2u<int64_t, uint64_t>(x); }
 inline int64_t var_int64_u2s(uint64_t u) { return var_int_u2s<uint64_t, int64_t>(u); }
 #endif
@@ -270,7 +270,7 @@ FEBIRD_DLL_EXPORT int32_t reverse_get_var_int32(const unsigned char* buf, unsign
 FEBIRD_DLL_EXPORT uint16_t reverse_get_var_uint16(const unsigned char* buf, unsigned char const ** cur);
 FEBIRD_DLL_EXPORT int16_t reverse_get_var_int16(const unsigned char* buf, unsigned char const ** cur);
 
-#if !defined(BOOST_NO_INTRINSIC_INT64_T)
+#if !defined(BOOST_NO_INT64_T)
 FEBIRD_DLL_EXPORT uint64_t reverse_get_var_uint64(const unsigned char* buf, unsigned char const ** cur);
 FEBIRD_DLL_EXPORT int64_t reverse_get_var_int64(const unsigned char* buf, unsigned char const ** cur);
 #endif

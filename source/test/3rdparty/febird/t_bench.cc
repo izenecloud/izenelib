@@ -1,5 +1,3 @@
-//#define BOOST_NO_INTRINSIC_INT64_T
-
 #include <febird/io/DataIO.h>
 #include <febird/io/DataInput.h>
 #include <febird/io/DataOutput.h>
