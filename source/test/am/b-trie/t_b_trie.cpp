@@ -27,44 +27,49 @@
 /// -# Tested all the interfaces by using correct and incorrect test sets.
 #define IZENE_LOG
 
-#include <boost/memory.hpp>
-#include <am/trie/alphabet_node.hpp>
-#include <am/trie/bucket.hpp>
+#include <util/log.h>
+
 #include <string>
 #include <time.h>
 #include <math.h>
 #include <boost/test/unit_test.hpp>
-#include <time.h>
-#include <util/log.h>
-#include <stdio.h>
-#include <list>
-#include <cstdio>
+
 #include <fstream>
 #include <iostream>
-#include <am/trie/node_cache.hpp>
-#include <am/trie/string_b_trie.hpp>
+
 #include <am/trie/b_trie.hpp>
+#include <am/trie/alphabet.hpp>
+#include <am/map/map.hpp>
 #include <signal.h>
-#include <am/trie/automation.hpp>
+
+#include <wiselib/ustring/UString.h>
+
 
 USING_IZENE_LOG();
-#define SIZE 27
+
+using namespace wiselib;
 using namespace izenelib::am;
 using namespace std;
 
-BOOST_AUTO_TEST_SUITE( b_trie_suite )
+#define SIZE 27
+#define ENCODE_TYPE UString::UTF_8//EUC_KR//GB2312//
 
-void checkInput(const string& u)
+BOOST_AUTO_TEST_SUITE( b_trie_suite )
+//extern int debug_count;
+
+typedef string string_type;
+
+void checkInput(const string_type& u)
 {
   if (u.length() == 0)
     cout<<"Empty string!\n";
   
   for (size_t i=0; i<u.length(); i++)
   {
-    if (AlphabetNode<>::getIndexOf(u[i])>=a2z_size)
+    if (AlphabetNode<string_type::value_type>::getIndexOf(u[i])>=a2z_size)
     {
       cout<<"Not exist in alphabet: "<<u[i]<<"   ";
-      cout<<u;
+      //u.displayStringValue(ENCODE_TYPE, cout);
       cout<<endl;
       break;
     }
@@ -72,88 +77,18 @@ void checkInput(const string& u)
   }
 }
 
-// BOOST_AUTO_TEST_CASE(AlphabetNode_check )
-// {
-//   USING_IZENE_LOG();
-//   remove("./test");
-//   FILE* f = fopen("./test", "w+");
-//   AlphabetNode<>* alph = new AlphabetNode<>(f);
-//   uint64_t root = alph->add2disk();
-//   cout<<"root:"<<(int)root<<endl;
-//   list<AlphabetNode<>*> v;
-//   v.push_back(alph);
+UString init (const string& str, UString*)
+{
+  UString t(str.c_str(), ENCODE_TYPE);
+  return t;
+}
 
-//   clock_t start, finish;
-//   uint64_t c = 1;
-//   start = clock();
-//   while (v.size()!=0)
-//   {
-//     if (c < SIZE)
-//     {
-//       for (int i=0; i<alph->getSize(); i++)
-//       {
-//         AlphabetNode<>* n = new AlphabetNode<>(f);
-//         v.push_back(n);
-//         v.front()->setDiskAddr(i, n->add2disk());
-//         c++;
-//       }
-//     }
-    
-//     v.front()->update2disk();
-//     //cout<<*(v.front());
-//     delete v.front();
-//     v.pop_front();
-//   }
-//   finish = clock();
-//   fflush(f);
-  
-//   start = clock();
-//   uint64_t addr = 1;
-//   while(c!=0)
-//   {
-//     c--;
-//     AlphabetNode<> n(f);
-//     if (!n.load(addr))
-//     {
-//       cout<<"Wrong loading!\n";
-//       continue;
-//     }
+string init (const string& str, string*)
+{
+  return str;
+}
 
-//     n.setDiskAddr(3, 1234);
-//     if (!n.update2disk())
-//     {
-//       cout<<"Wrong updating!\n";
-//       continue;
-//     }
-    
-//     if (!n.load(addr))
-//     {
-//       cout<<"Wrong loading!\n";
-//       continue;
-//     }
-//     addr += 216;
-//     //cout<<n<<endl;
-    
-//   }
-//   finish = clock();
-//   printf( "\nIt takes %f seconds to insert %d random data!\n", (double)(finish - start) / CLOCKS_PER_SEC, SIZE);
-//   fclose(f);
-  
-//   //  tb.display(std::cout);
-   
-// }
-
-// string genRandomStr(unsigned int maxLen)
-// {
-//   string s;
-//   maxLen = rand()%maxLen;
-//   for (unsigned int i=0; i<maxLen; i++)
-//     s += 'a'+rand()%26;
-
-//   return s;
-// }
-
-void readDict(const string& dict, vector<string>& v)
+void readDict(const string& dict, vector<string_type>& v)
 {
   std::ifstream f;
 
@@ -176,11 +111,12 @@ void readDict(const string& dict, vector<string>& v)
   f.read (buffer,length);
   f.close();
   //cout<<buffer;
-  std::string bf(buffer);
-  std::size_t i=0;
-  std::size_t start = 0;
+  string bf(buffer, length);
+  //UString bf(tmp, ENCODE_TYPE);
+  size_t i=0;
+  size_t start = 0;
   
-  for (; i<length; i++)
+  for (; i<bf.length(); i++)
   {
     if (bf[i]==' '|| bf[i]=='\n')
     {
@@ -191,9 +127,14 @@ void readDict(const string& dict, vector<string>& v)
         continue;
       }
 
-      std::string str = bf.substr(start, i-start);
-
+      string_type str  = init(bf.substr(start, i-start), (string_type*)0);
+      //UString tp;
+      //bf.subString(tp ,start, i-start);
+      checkInput(str);
       v.push_back(str);
+      // str.displayStringValue(ENCODE_TYPE, cout);
+//       cout<<endl;
+      
       start = i+1;
       i++;
                 
@@ -206,371 +147,121 @@ void readDict(const string& dict, vector<string>& v)
   
 }
 
-// BOOST_AUTO_TEST_CASE(Bucket_add_string )
-// {
-//   //unsigned int amount =  10000;
-//   //unsigned int maxLen = 10;
-  
-//   USING_IZENE_LOG();
-//   remove("./test");
-//   FILE* f = fopen("./test", "w+");
-//   Bucket<> b(f);
-    
-//   clock_t start, finish;
 
-//   vector<string> v;
-//   readDict("./dict", v);
-//   start = clock();
 
-//   unsigned int k = 0;
-//   unsigned int size = 0;
-  
-//   for (vector<string>::iterator i=v.begin(); i!=v.end();i++)
-//   {
-//     transform((*i).begin(), (*i).end(), (*i).begin(),::tolower);
-//     unsigned int p=b.addString(*i,k);
-//     if(!b.canAddString(*i))
-//     {
-//       //b.split(&b2);
-//       break;
-//     }
-    
-//     k = p;
+/**
+ *This is for testing the correction of insertion and querying of Ustring version B-trie.
+ *
+ **/
+BOOST_AUTO_TEST_CASE(B_trie_regex_check )
+{
+  using namespace wiselib;
+  //signal(SIGSEGV, &dump);
 
-//     size+=(*i).length()+sizeof(uint64_t)+sizeof(uint32_t);
-//     //cout<<p<<" "<<*i<<endl;
-//   }
-//   finish = clock();
-//   //cout<<b;
+  remove("./test.buk");
+  remove("./test.nod");
+  remove("./test.has");
   
-//   cout<<"\nSize: "<<size+sizeof(uint8_t)*2+sizeof(uint32_t)*2;
-  
-//   printf( "\nIt takes %f seconds to insert %d random data!\n", (double)(finish - start) / CLOCKS_PER_SEC, k);
-//   fclose(f);
-  
-//   //  tb.display(std::cout);
+  vector<string_type> vstr;
+  vector<string_type*> vp;
+
+  readDict("./input", vstr);
+  cout<<"\nData is ready!\n";
+  clock_t start, finish;
    
-// }
-
-// BOOST_AUTO_TEST_CASE(Bucket_split )
-// {
-//   //unsigned int amount =  10000;
-//   //unsigned int maxLen = 10;
+  BTrie<string_type> trie("./test");
   
-//   USING_IZENE_LOG();
-//   remove("./test");
-//   FILE* f = fopen("./test", "w+");
-//   Bucket<> b(f);
-//   b.setLowBound('a');
-//   Bucket<> b2(f);
-  
-//   clock_t start, finish;
+  Map<string, uint64_t, 10> map;
 
-//   vector<string> v;
-//   readDict("./dict", v);
-//   start = clock();
-
-//   unsigned int k = 0;
-//   unsigned int size = 0;
   
-//   for (vector<string>::iterator i=v.begin(); i!=v.end();i++)
-//   {
-//     transform((*i).begin(), (*i).end(), (*i).begin(),::tolower);
-//     unsigned int p=b.addString(*i,k);
-//     if(!b.canAddString(*i))
-//     {
-//       b.split(&b2);
-//       break;
-//     }
+  
+  for (vector<string_type>::iterator i=vstr.begin(); i!=vstr.end();i++)
+  {
+    string_type* str = new string_type (*i);
+
+//     string s(str->c_str(), str->size());
+//     map.insert(s, rand());
     
-//     k = p;
-
-//     size+=(*i).length()+sizeof(uint64_t)+sizeof(uint32_t);
-//     //cout<<p<<" "<<*i<<endl;
-//   }
-//   finish = clock();
-//   //cout<<b;
-//   //cout<<b2;
-//   cout<<"\nSize: "<<size+sizeof(uint8_t)*2+sizeof(uint32_t)*2;
+    vp.push_back(str);
+  }
+  //map.save("hehe");
+  //map.load("hehe");
   
-//   printf( "\nIt takes %f seconds to insert %d random data!\n", (double)(finish - start) / CLOCKS_PER_SEC, k);
-//   fclose(f);   
-// }
-
-
-// BOOST_AUTO_TEST_CASE(Bucket_update )
-// {
-//   //unsigned int amount =  10000;
-//   //unsigned int maxLen = 10;
-  
-//   USING_IZENE_LOG();
-//   remove("./test");
-//   FILE* f = fopen("./test", "w+");
-//   Bucket<> b(f);
-//   b.setLowBound('a');
-//   Bucket<> b2(f);
-  
-//   clock_t start, finish;
-
-//   vector<string> v;
-//   readDict("./dict", v);
-//   start = clock();
-
-//   unsigned int k = 0;
-//   unsigned int size = 0;
-  
-//   for (vector<string>::iterator i=v.begin(); i!=v.end();i++)
-//   {
-//     transform((*i).begin(), (*i).end(), (*i).begin(),::tolower);
-//     unsigned int p=b.addString(*i,k);
-//     if(!b.canAddString(*i))
-//     {
-//       b.split(&b2);
-//       break;
-//     }
+  start = clock();
+  for (vector<string_type*>::iterator i=vp.begin(); i!=vp.end();i++,debug_count++)
+  {
+//     (*i)->displayStringValue(ENCODE_TYPE);
+//     cout<<endl;
     
-//     k = p;
+    //uint64_t t = rand();
+    trie.insert(*(*i),22);
+    
+    //if (t!=trie.find(*(*i)))
+    {
+//       (*i)->displayStringValue(ENCODE_TYPE);
+//       cout<<endl<<debug_count<<endl<<trie.find(*(*i))<<endl;
+      
+      //break;
+    }
+    
+  }
+  trie.flush();
+  finish = clock();
+  printf( "\nIt takes %f seconds to insert %d random data!\n", (double)(finish - start) / CLOCKS_PER_SEC, vp.size());
+  cout<<"Node amount: "<<trie.getNodeAmount()<<endl;
+  //------------------------------------------------------------------------------
 
-//     size+=(*i).length()+sizeof(uint64_t)+sizeof(uint32_t);
-//     //cout<<p<<" "<<*i<<endl;
-//   }
-//   finish = clock();
-//   uint64_t addr1 = b.update2disk();//cout<<addr1<<endl;
-//   uint64_t addr2 = b2.update2disk();//cout<<addr2<<endl;
-//   b.load(addr1);
-//   b2.load(addr2);
-// //   cout<<b;
-// //   cout<<b2;
-// //   cout<<"\nSize: "<<size+sizeof(uint8_t)*2+sizeof(uint32_t)*2;
-  
-//   printf( "\nIt takes %f seconds to insert %d random data!\n", (double)(finish - start) / CLOCKS_PER_SEC, k);
-//   fclose(f);   
-// }
-
-
-// BOOST_AUTO_TEST_CASE(NodeCache_check )
-// {
-//   USING_IZENE_LOG();
-  
-//   remove("./test");
-//   FILE* f = fopen("./test", "w+");
-//   NodeCache<> cache(f, 1);
-//   NodeCache<>::nodePtr alph = cache.newNode();
-  
-//   uint64_t root = alph->add2disk();
-//   cout<<"root:"<<(int)root<<endl;
-//   list<NodeCache<>::nodePtr> v;
-//   v.push_back(alph);
-
-//   clock_t start, finish;
-//   uint64_t c = 1;
+//   //trie.display(cout, "far");
+//   //BTrie<ENCODE_TYPE> trie("./test");  
 //   start = clock();
-//   while (v.size()!=0)
+//   uint64_t diskAdd = 1;
+//   uint32_t memAdd = 0;
+//   vector<item_pair<string_type> > ip;
+//   //*1M77N?fH*C3lJt
+//   //cout<<trie.query(string_type("GIdku3vr_C5jIUtVQHXNf5pPWRn3uiJa", ENCODE_TYPE))<<endl;
+  
+//   trie.findRegExp(string_type("*u3vr_C5jIUtVQHXNf?pPW*iJa", ENCODE_TYPE), ip);//(memAdd, diskAdd, , string_type(), ip);
+//   for (vector<item_pair<string_type> >::iterator i = ip.begin(); i!= ip.end(); i++)
 //   {
-//     if (c < SIZE)
+//     (*i).str_.displayStringValue(ENCODE_TYPE, cout);
+//     cout<<"===>"<<(*i).addr_<<endl;
+//   }
+  
+
+  
+//   finish = clock();
+//   printf( "\nIt takes %f seconds to find!\n", (double)(finish - start)/CLOCKS_PER_SEC);
+
+//   BTrie<wiselib::string_type> trie("./test"); 
+//     ifstream inf("./dict1.txt");
+//     string str;
+//     unsigned int id = 0;
+//     while (inf>>str)
 //     {
-//       for (int i=0; i<alph->getSize(); i++)
-//       {
-//         NodeCache<>::nodePtr n = cache.newNode();
-//         v.push_back(n);
-//         uint64_t disk = n->add2disk();
-//         v.front()->setDiskAddr(i, disk);
-//         v.front()->setMemAddr(i, n.getIndex());
+//         string_type ustr(str,string_type::UTF_8);
+//         trie.insert(ustr,2);
+//         //cout<<str;
         
-//         c++;
-//       }
+//         str.clear();
 //     }
+// 	trie.flush();
     
-//     v.front()->update2disk();
-//     //cout<<*(v.front());
-//     //v.front().eleminate();
-//     v.pop_front();
-//   }
-//   finish = clock();
-//   fflush(f);
-//   //cache.reload();
-  
-//   uint32_t m = 1;
-//   NodeCache<>::nodePtr n  = cache.getNodeByMemAddr(m, 5401);
-//   //n->load(5401);
-//   //n->display(cout);
-//   //cout<<"\nmmmmmmmmmmmmm"<<cache.kickOutNodes(0)<<endl;
 
-//   //  cout<<cache;
-//   printf( "\nIt takes %f seconds to insert %d random data!\n", (double)(finish - start) / CLOCKS_PER_SEC, SIZE);
-//   fclose(f);
-  
-//   //  tb.display(std::cout);
-   
-// }
-
-
-//
-
-void dump(int signo)
-{
-        char buf[1024];
-        char cmd[1024];
-        FILE *fh;
-
-        snprintf(buf, sizeof(buf), "/proc/%d/cmdline", getpid());
-        if(!(fh = fopen(buf, "r")))
-                exit(0);
-        if(!fgets(buf, sizeof(buf), fh))
-                exit(0);
-        fclose(fh);
-        if(buf[strlen(buf) - 1] == '\n')
-                buf[strlen(buf) - 1] = '\0';
-        snprintf(cmd, sizeof(cmd), "gdb %s %d", buf, getpid());
-        system(cmd);
-
-        exit(0);
-}
-
-// BOOST_AUTO_TEST_CASE(automation_check )
-// {
-//   Automation<> aut("abc*bd?dg");
-//   cout<<aut;
-//   vector<string> v;
-//   readDict("./input", v);
-
-//     clock_t start, finish;
-//   start = clock();
-//   for (vector<string>::iterator i=v.begin(); i!=v.end();i++)
-//   {
-//     aut.match((*i).substr(0,8));
-//   }
-//     finish = clock();
-//   printf( "\nIt takes %f seconds to insert %d random data!\n", (double)(finish - start) / CLOCKS_PER_SEC, v.size());
-
-// }
-
-BOOST_AUTO_TEST_CASE(string_B_trie_insertion_check )
-{
-  signal(SIGSEGV, &dump);
-  cout<<"Running B_trie_insertion_check ... \n";
-  
-  remove("./test.buk");
-  remove("./test.nod");
-  remove("./test.val");
-  remove("./test.has.k");
-  remove("./test.has.v");
-  vector<string> vstr;
-  vector<string*> vp;
-  readDict("./input", vstr);
-  
-  StringBTrie<> trie("./test");
-
-  clock_t start, finish;
-  int c = 0;
-  for (vector<string>::iterator i=vstr.begin(); i!=vstr.end();i++)
-  {
-    string* str = new string (*i);
-    vp.push_back(str);
-    c++;
-    //cout<<endl<<c<<" ***************\n";
-  }
-
-  cout<<"Data is ready!\n";
-  start = clock();
-  for (vector<string*>::iterator i=vp.begin(); i!=vp.end();i++)
-  {
-    //checkInput(*(*i));
-    string k = *(*i);
+  BTrie<string_type> trie1("./test");
+  vector<item_pair<string_type> > ip;
+//     vector<uint64_t> ip;xknajiqdasotghofnza
+  string_type pattern = init("weyzrcpe*gkhzwvb", (string_type*)0);
+ 	trie1.findRegExp(pattern, ip);
     
-    trie.insert(*i,k);
-   //  if (k.compare("tsow")==0)
-//       break;
-    
-  }
-  
-
-  trie.flush();
-  
-  finish = clock();
-  printf( "\nIt takes %f seconds to insert %d random data!\n", (double)(finish - start) / CLOCKS_PER_SEC, vp.size());
-  //trie.display(cout, "far");
-  //cout<<"Node amount: "<<trie.getNodeAmount()<<endl;
-  
-  start = clock();
-  c =0;
-  for (vector<string>::iterator i=vstr.begin(); i!=vstr.end();i++)
-  {
-    string h;
-    trie.find(*i, h);
-    if (h.compare((*i)))
-    {
-      cout<<*i<<endl<<h<<endl;
-      cout<<"]]]]]]]]]]]\n";
+ 	for (vector<item_pair<string_type> >::iterator i = ip.begin(); i!= ip.end(); i++)
+ 	{
+      //(*i).str_.displayStringValue(string_type::UTF_8, cout);
+      //cout<<"===>"<<(*i)<<endl;
+      cout<<"pppppp\n";
+      
     }
-    
-  }
 
-  //trie.display(cout, "mxk");
-  
-  finish = clock();
-  printf( "\nIt takes %f seconds to insert %d random data!\n", (double)(finish - start)/CLOCKS_PER_SEC, vstr.size());
 }
-
-BOOST_AUTO_TEST_CASE(B_trie_insertion_check )
-{
-  signal(SIGSEGV, &dump);
-  cout<<"Running B_trie_insertion_check ... \n";
-  
-  remove("./test.buk");
-  remove("./test.nod");
-  remove("./test.has.k");
-  remove("./test.has.v");
-  vector<string> vstr;
-  vector<string*> vp;
-  readDict("./input", vstr);
-  
-  BTrie<> trie("./test");
-
-  clock_t start, finish;
-  int c = 0;
-  for (vector<string>::iterator i=vstr.begin(); i!=vstr.end();i++)
-  {
-    string* str = new string (*i);
-    vp.push_back(str);
-    c++;
-    //cout<<endl<<c<<" ***************\n";
-  }
-
-  cout<<"Data is ready!\n";
-  start = clock();
-  for (vector<string*>::iterator i=vp.begin(); i!=vp.end();i++)
-  {
-    //checkInput(*(*i));
-    
-    trie.insert(*i,2);
-  }
-  
-  trie.flush();
-  
-  finish = clock();
-  printf( "\nIt takes %f seconds to insert %d random data!\n", (double)(finish - start) / CLOCKS_PER_SEC, vp.size());
-  //trie.display(cout, "far");
-  //cout<<"Node amount: "<<trie.getNodeAmount()<<endl;
-  
-  start = clock();
-  for (vector<string>::iterator i=vstr.begin(); i!=vstr.end();i++)
-  {
-    if (trie.find(*i)!=2)
-    {
-      cout<<*i<<endl;
-      cout<<trie.find(*i);
-      break;
-    }
-    
-  }
-
-  //trie.display(cout, "mxk");
-  
-  finish = clock();
-  printf( "\nIt takes %f seconds to insert %d random data!\n", (double)(finish - start)/CLOCKS_PER_SEC, vstr.size());
-}
-
 BOOST_AUTO_TEST_SUITE_END()
 
 

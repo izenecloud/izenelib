@@ -125,8 +125,7 @@ public:
 	/**
 	 * \brief Destructor. Delete the pointer if the size is non-zero.
 	 */
-	~DbObj() {
-		//cout<<"~DbObj"<<endl;
+	~DbObj() {		
 		if (_size != 0) {
 			delete[] _data;
 			_data = 0;

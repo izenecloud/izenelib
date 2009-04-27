@@ -5,9 +5,9 @@ GCC :=/usr/bin/gcc
 CC_OPTIONS :=  -O3 -g -rdynamic -Wall -c -fmessage-length=0 
 
 
-LIBS := -lpthread /usr/local/lib/libboost_unit_test_framework-gcc41-mt.so /usr/local/lib/libboost_thread-gcc41-mt.so /usr/local/lib/libboost_filesystem-gcc41-mt.so /usr/local/lib/libboost_date_time-gcc41-mt.so /usr/local/lib/libboost_serialization-gcc41-mt.so
+LIBS := /usr/local/lib/libboost_unit_test_framework-gcc41-mt-1_37.so /usr/local/lib/libboost_system-gcc41-mt-1_37.so /usr/local/lib/libboost_serialization-gcc41-mt.so
 #lboost_unit_test_framework-gcc41-mt /usr/local/lib/libboost_serialization-gcc41-mt-1_37.so /usr/local/lib/libboost_system-gcc41-mt-1_37.so /usr/local/lib/libboost_iostreams-gcc41-mt-1_37.so
-INC_PATH := -I  /usr/local/include/boost-1_35/ -I ../../../../include/ -I ../../../../include/3rdparty/
+INC_PATH := -I  /usr/local/include/boost-1_37/ -I ../../../../include/ -I ../../../../include/3rdparty/ -I /home/Kevin/wiselib/include/
 
 
 OBJS := $(patsubst %.cpp, %.o, $(wildcard *.cpp))
@@ -21,12 +21,16 @@ all: amlib get-input
 .cpp.o:
 	$(GPP) $(CC_OPTIONS) $(INC_PATH)  -o"./$@" "$<"
 
-get-input: gen_input.o
-	$(GPP)  -g -o "get-input"  $^ 
-	-rm -f gen_input.o
+.cc.o:
+	$(GPP) $(CC_OPTIONS) $(INC_PATH)  -o"./$@" "$<"
+
 
 amlib: $(OBJS)
 	$(GPP)  -g -o "b-trie"  $^ $(LIBS) 
+
+get-input: gen_input.o
+	$(GPP)  -g -o "get-input"  $^ $(LIBS)
+	-rm -f gen_input.o
 	-rm -f $(OBJS)
 
 clean:

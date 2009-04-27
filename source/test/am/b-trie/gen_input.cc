@@ -2,14 +2,34 @@
 #include <fstream>
 #include <iostream>
 #include <sstream>
+#include <am/trie/alphabet.hpp>
+#include <am/linear_hash_table/linearHashTable.hpp>
+#include <wiselib/ustring/UString.h>
 
+#define ENCODE_TYPE UString::UTF_8//EUC_KR//GB2312//
+
+using namespace wiselib;
+using namespace std;
 
 /** * @class get_input gen_input.cc
- *  @brief Genarate random words with random k for Edit-Distance. 
+ *  @brief Genarate random words with random k for sEdit-Distance. 
  * 
  **/
+template<
+  class STRING_TYPE
+  >
 class get_input
 {
+  static void input(const UString& str, ostream& of)
+  {
+    str.displayStringValue(ENCODE_TYPE, of);
+  }
+
+  static void input(const string& str, ostream& of)
+  {
+    of <<str;
+  }
+  
 public:
   /**
    *This is a static function to generate random query into 'filename' file.
@@ -18,7 +38,7 @@ public:
    *@param filename The output file name. Default value is './input'.
    *
    **/
-  static bool doit(unsigned long size=1000000, unsigned long maxChars=200, const std::string& filename="./input")
+  static bool doit(unsigned long size=1000000, unsigned long maxChars=20, const std::string& filename="./input")
   {
     std::ofstream of;
     of.open (filename.c_str(), std::ofstream::out);
@@ -28,7 +48,9 @@ public:
       return 0;
       
     }
-    std::string str;
+    STRING_TYPE str;//("", ENCODE_TYPE);
+    STRING_TYPE line;//("\n", ENCODE_TYPE);
+    line += (typename STRING_TYPE::value_type)'\n';
     
     for (unsigned long i = 0; i<size; i++)
     {
@@ -36,19 +58,20 @@ public:
       while (charCount == 0)
         charCount = rand()%maxChars;
       
-      for (int j=0; j<charCount; j++)
+      for (unsigned long j=0; j<charCount; j++)
       {
-        std::string s("a");
-        s[0] += rand()%26;
-        
-        str.append(s);  
+        str += a2z[rand()%a2z_size];
       }
 
-      str.append("\n");
+      str += (typename STRING_TYPE::value_type)'\n';
       
     }
 
-    of.write(str.c_str(), str.length());
+    //str.displayStringValue(ENCODE_TYPE, of);
+    input(str, of);
+    
+    
+    //of.write(str.c_str(), str.size());
     of.close();
 
     return true;
@@ -82,17 +105,19 @@ int main (int argc,char **argv)
   ss <<*argv;
   ss >> maxChars;
 
+  typedef string string_type;
+  
   if (size ==0)
   {
-    get_input::doit();
+    get_input<string_type>::doit();
   }
   
   else
   {
     if (maxChars==0)
-      get_input::doit(size);
+      get_input<string_type>::doit(size);
     else
-      get_input::doit(size, maxChars);
+      get_input<string_type>::doit(size, maxChars);
     
   }
   

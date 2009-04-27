@@ -1,4 +1,4 @@
-CXX = g++ -DDEBUG
+CXX = g++ 
 
 ######################################################
 # if $(COMPILE_FLAGS) is given by upper makefile 

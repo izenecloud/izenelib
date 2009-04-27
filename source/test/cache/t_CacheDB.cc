@@ -29,7 +29,7 @@ typedef izenelib::am::NullType Value;
 
 typedef izenelib::am::LinearHashTable<Key,Value, NullLock> linHash;
 //typedef izenelib::am::ExtendibleHashTable<Key,Value, NullLock> extHash;
-typedef izenelib::am::CCCR_StrHashTable<Key, Value> extHash;
+typedef izenelib::am::cccr_hash<Key, Value> extHash;
 
 typedef izenelib::am::sdb_hash<Key, Value, NullLock> extDataHash;
 typedef izenelib::am::sdb_hash<Key, Value, NullLock> linDataHash;

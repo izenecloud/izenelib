@@ -1,33 +1,37 @@
 #ifndef AUTOMATION_HPP
 #define AUTOMATION_HPP
 
-#include <string>
 #include <vector>
+#include <wiselib/ustring/UString.h>
 
 using namespace std;
+using namespace wiselib;
 
 /**
  *@class Automation
  * It generates a automation for wildcard '*' and '?'.
  **/
 template<
-  char MULTI_WORDS_WILDCARD = '*',
-  char SINGLE_WORD_WILDCARD = '?'
+  class STRING_TYPE = string,
+  typename STRING_TYPE::value_type MULTI_WORDS_WILDCARD = '*',
+  typename STRING_TYPE::value_type SINGLE_WORD_WILDCARD = '?'
   >
 class Automation
 {
+  typedef typename STRING_TYPE::value_type charT;
+  
   class _state_ ;
   
 
   class _edge_
   {
   public:
-    _edge_(char c, _state_* p)
+    _edge_(charT c, _state_* p)
       :p_(p),ch_(c)
     {
     }
 
-    _state_* leadTo(char c)
+    _state_* leadTo(charT c)
     {
       if (c == ch_)
         return p_;
@@ -50,7 +54,7 @@ class Automation
     
   protected:
     _state_* p_;
-    char ch_;
+    charT ch_;
   }
     ;
 
@@ -59,7 +63,7 @@ class Automation
     vector<_edge_> edges_;
 
   public:
-    _state_* nextState(char ch)
+    _state_* nextState(charT ch)
     {
       for (typename vector<_edge_>::iterator i=edges_.begin(); i!=edges_.end(); i++)
       {
@@ -71,7 +75,7 @@ class Automation
       return NULL;
     }
 
-    void insertEdge(char ch, _state_* p)
+    void insertEdge(charT ch, _state_* p)
     {
       edges_.push_back(_edge_(ch, p));
     }
@@ -104,7 +108,7 @@ public:
   /**
    *According the regular express, it builds an automation
    **/
-  Automation(const string& regex)
+  Automation(const STRING_TYPE& regex)
   {
     _state_* back = NULL;
     _edge_ back_edge(0,0);
@@ -126,7 +130,7 @@ public:
       if (regex[i]==MULTI_WORDS_WILDCARD)
       {
         has_wildcard_ = true;
-
+        
         if (i == regex.length()-1)
         {
           pThisState->insertEdge(MULTI_WORDS_WILDCARD, pThisState);
@@ -175,18 +179,18 @@ public:
     }
   }
 
-friend ostream& operator << ( ostream& os, const Automation<MULTI_WORDS_WILDCARD, SINGLE_WORD_WILDCARD>& aut)
+friend ostream& operator << ( ostream& os, const Automation<STRING_TYPE, MULTI_WORDS_WILDCARD, SINGLE_WORD_WILDCARD>& aut)
   {
     for (typename vector<_state_*>::const_iterator i=aut.pV_.begin(); i!=aut.pV_.end(); i++)
       os<< *(*i);
     
     return os;
   }
-
+  
   /**
    *If the 'str' can go through the automation, it mathes, returns true.
    **/
-  bool match(const string& str)
+  bool match(const STRING_TYPE& str)
   {
     _state_* next = pStart_;
     
@@ -206,7 +210,7 @@ friend ostream& operator << ( ostream& os, const Automation<MULTI_WORDS_WILDCARD
 
     return false;
   }
-
+  
   /**
    *Does the automation have wildcard.
    **/
@@ -214,14 +218,13 @@ friend ostream& operator << ( ostream& os, const Automation<MULTI_WORDS_WILDCARD
   {
     return has_wildcard_;
   }
-
+  
 
 protected:
   _state_* pStart_;
   _state_* pEnd_;
   vector<_state_*> pV_;
   bool has_wildcard_;
-  
   
 }
   ;

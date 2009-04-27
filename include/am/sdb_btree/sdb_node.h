@@ -75,7 +75,7 @@ public:
 	 */
 	sdb_node();
 
-	~sdb_node() {
+	~sdb_node() {		
 		unload();
 	}
 

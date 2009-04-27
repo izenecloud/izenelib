@@ -47,7 +47,7 @@ public:
 	 */
 	void setPageSize(size_t maxDataSize) {
 		maxDataSize_ = maxDataSize;
-		size_t pageSize = sizeof(int) + MAX_LEVEL*sizeof(long) + maxDataSize;		
+		size_t pageSize = sizeof(int) + MAX_LEVEL*sizeof(long) + maxDataSize;
 		sfh_.pageSize = pageSize;
 	}
 
@@ -91,7 +91,7 @@ public:
 		search(rec.get_key(), p);
 		if( p ) {
 			p->element = rec;
-			p->isDirty = true;			
+			p->isDirty = true;
 		}
 		else {
 			return insert(rec);
@@ -113,12 +113,12 @@ public:
 	{
 		return insert( DataType(key, value) );
 	}
-	
+
 	/**
 	 *    insert a dataType item
 	 */
 	bool insert(const DataType& x);
-	
+
 	bool insert1(const DataType& x);
 
 	/**
@@ -126,7 +126,7 @@ public:
 	 * 
 	 */
 	bool del(const KeyType& x);
-	
+
 	/**
 	 *   search an item by key
 	 */
@@ -139,7 +139,7 @@ public:
 
 	/**
 	 *   search an item,  SDBCursor is like database cursor.
-	 */ 
+	 */
 	bool search(const KeyType& key, SDBCursor& locn)
 	{
 		SkipNode* x = header_;
@@ -153,7 +153,7 @@ public:
 				if( x->right[h] )x->loadRight(h, dataFile_);
 			}
 			if( x->right[h] && comp_( key, x->right[h]->KEY) == 0 ) {
-				locn =  x->right[h];
+				locn = x->right[h];
 				return true;
 			}
 			--h;
@@ -161,6 +161,15 @@ public:
 		return false;
 	}
 
+	bool get(const KeyType& key, ValueType& value)
+	{
+		SkipNode *p =searchPre(key);
+		if (p) {
+			value = p->right[0]->element.get_value();
+			return true;
+		}
+		return false;
+	}
 
 	const KeyType* find_min() const;
 
@@ -252,9 +261,9 @@ public:
 	SkipNode* firstNode() {
 		return header_->right[0];
 	}
-    /**
-     *   write the dirypage back
-     */
+	/**
+	 *   write the dirypage back
+	 */
 	void commit() {
 		//cout<<"commiting... "<<endl;
 		//sfh_.headerPos = header_->fpos;
@@ -262,7 +271,7 @@ public:
 		//sfh_.display();
 
 		while ( !dirtyPages_.empty() ) {
-			SkipNode* p = dirtyPages_.back();			
+			SkipNode* p = dirtyPages_.back();
 			dirtyPages_.pop_back();
 			if (p)
 			p->write(dataFile_);
@@ -279,25 +288,25 @@ public:
 	 */
 
 	void flush() {
-		commit();	
+		commit();
 		vector<MemBlock*>::iterator it, it1;
 		for (it=mbList.begin(); it != mbList.end(); it++) {
 			it1 = it;
 			delete (*it1);
 			*it1 = 0;
-		}	
+		}
 
 	}
-   /**
-    *   display the info of skiplist
-    */
+	/**
+	 *   display the info of skiplist
+	 */
 	void display(std::ostream& os = std::cout) {
 		print_list(os);
 	}
-    /**
-     *  SDB/skiplist must be opened for use
-     * 
-     */
+	/**
+	 *  SDB/skiplist must be opened for use
+	 * 
+	 */
 	bool open() {
 		// We're creating if the file doesn't exist.
 		struct stat statbuf;
@@ -306,7 +315,7 @@ public:
 		dataFile_ = fopen(fileName_.c_str(), creating ? "w+b" : "r+b");
 		if ( 0 == dataFile_) {
 			cout<<"Error in open(): open file failed"<<endl;
-			return false;		
+			return false;
 		}
 		// Create a new node
 		bool ret = false;
@@ -370,11 +379,11 @@ public:
 	/**
 	 *  After use, it must be closed, and it will be automatically called in deconstrutor
 	 */
-	bool close(){
+	bool close() {
 		release();
 		return true;
 	}
-	
+
 private:
 	bool is_empty() const;
 	void print_list(std::ostream& os = std::cout) const;
@@ -399,7 +408,7 @@ private:
 		}
 		return NULL;
 	}
-	
+
 private:
 	string fileName_;
 	size_t minDegree_;
@@ -458,7 +467,7 @@ private:
 		 MemBlock* newBlock = new MemBlock( sizeof(SlfHeader)+ sfh_.pageSize*sfh_.nNode, sfh_.pageSize);
 		 mbList.push_back( newBlock );
 		 }*/
-		
+
 		if (sfh_.nNode % BLOCK_SIZE == 0) {
 			mbList.resize(sfh_.nNode/BLOCK_SIZE+1);
 		}
@@ -494,61 +503,60 @@ private:
 
 	/*void promote_(SkipNode* x, vector<SkipNode*>& update, int from, int to) {
 
-		if (from == to)
-		return;
-	
-		x->height = to;
+	 if (from == to)
+	 return;
+	 
+	 x->height = to;
 
-		SkipNode* temp;
-		int h= from;
-		int i = update.size()-1;
-		for (; i>=0; i--, h++) {
-			temp = update[i];		
-			if (h<=to && h>from) {
-				x->right[h-1] = temp->loadRight(h-1, dataFile_);
-				if (temp->right[h-1])
-				temp->right[h-1]->left[h-1] = x;
+	 SkipNode* temp;
+	 int h= from;
+	 int i = update.size()-1;
+	 for (; i>=0; i--, h++) {
+	 temp = update[i];		
+	 if (h<=to && h>from) {
+	 x->right[h-1] = temp->loadRight(h-1, dataFile_);
+	 if (temp->right[h-1])
+	 temp->right[h-1]->left[h-1] = x;
 
-				temp->right[h-1] = x;
-				x->left[h-1] = temp;
-				dirtyPages_.push_back(temp);
-			}
-		}		
-		dirtyPages_.push_back(x);	
+	 temp->right[h-1] = x;
+	 x->left[h-1] = temp;
+	 dirtyPages_.push_back(temp);
+	 }
+	 }		
+	 dirtyPages_.push_back(x);	
 
-	}*/
+	 }*/
 
-	
 	/*
-	void demote_(vector<SkipNode*>& update, int from, int to) {
-		if (from == to)
-		return;	
+	 void demote_(vector<SkipNode*>& update, int from, int to) {
+	 if (from == to)
+	 return;	
 
-		int h = update[1]->height;
+	 int h = update[1]->height;
 
-		for (int i=1; i<(int)update.size() && h>0; i++, h--) {
-			
-			if (update[i] == header_) {
-				continue;
-			}
-			
-			if (update[i]->height> to) {
-		
-				if (update[i]->left[h-1])
-				update[i]->left[h-1]->right[h-1] = update[i]->loadRight(h-1,
-						dataFile_);
-				if (update[i]->right[h-1])
-				update[i]->right[h-1]->left[h-1] = update[i]->left[h-1];
+	 for (int i=1; i<(int)update.size() && h>0; i++, h--) {
+	 
+	 if (update[i] == header_) {
+	 continue;
+	 }
+	 
+	 if (update[i]->height> to) {
+	 
+	 if (update[i]->left[h-1])
+	 update[i]->left[h-1]->right[h-1] = update[i]->loadRight(h-1,
+	 dataFile_);
+	 if (update[i]->right[h-1])
+	 update[i]->right[h-1]->left[h-1] = update[i]->left[h-1];
 
-				update[i]->height = update[i]->height - 1;
-			}
-			
-			dirtyPages_.push_back(update[i]);
-			if (update[i]->left[h-1])
-			dirtyPages_.push_back(update[i]->left[h-1]);
-		}
-	}
-	*/	
+	 update[i]->height = update[i]->height - 1;
+	 }
+	 
+	 dirtyPages_.push_back(update[i]);
+	 if (update[i]->left[h-1])
+	 dirtyPages_.push_back(update[i]->left[h-1]);
+	 }
+	 }
+	 */
 };
 
 /**
@@ -589,7 +597,7 @@ template <typename KeyType, typename ValueType, typename LockType,
  */
 template <typename KeyType, typename ValueType, typename LockType,
 		typename Alloc> SkipListFile<KeyType, ValueType, LockType, Alloc>::~SkipListFile() {
-	if(dataFile_)
+	if (dataFile_)
 		release();
 }
 
@@ -607,9 +615,9 @@ template <typename KeyType, typename ValueType, typename LockType,
 
 	vector<SkipNode*> update;
 
-	while (h>=0) {		
+	while (h>=0) {
 		while (x->right[h] && comp_(v.get_key(), x->right[h]->KEY)> 0) {
-			x = x->loadRight(h, dataFile_);			
+			x = x->loadRight(h, dataFile_);
 		}
 		update.push_back(x);
 		if( x->right[h] && comp_( v.get_key(), x->right[h]->KEY) == 0 ) {
@@ -640,12 +648,12 @@ template <typename KeyType, typename ValueType, typename LockType,
 	for(int i=0; i<height; i++)
 	{
 		SkipNode* p = *it;
-		it--;	
+		it--;
 		t->right[i] = p->right[i];
 		if( p->right[i] )p->right[i]->left[i] = t->right[i];
-		
-		p->right[i] = t;		
-		dirtyPages_.push_back(p);		
+
+		p->right[i] = t;
+		dirtyPages_.push_back(p);
 	}
 	dirtyPages_.push_back(t);
 	sfh_.numItem++;
@@ -660,16 +668,16 @@ template <typename KeyType, typename ValueType, typename LockType,
 		const DataType& v) {
 	SkipNode *t, *x;
 	x = header_;
-	int h = x->height - 1;	
+	int h = x->height - 1;
 
-	while (h>=0 && x) {	
-		while (x->right[h] && comp_(v.get_key(), x->right[h]->KEY)> 0) {	
-			x = x->loadRight(h, dataFile_);			
+	while (h>=0 && x) {
+		while (x->right[h] && comp_(v.get_key(), x->right[h]->KEY)> 0) {
+			x = x->loadRight(h, dataFile_);
 		}
-		
-		if( x->right[h] && comp_( v.get_key(), x->right[h]->KEY) == 0 ) {			
+
+		if( x->right[h] && comp_( v.get_key(), x->right[h]->KEY) == 0 ) {
 			return false;
-		}		
+		}
 		SkipNode* temp = x;
 
 		bool isSplit = false;
@@ -678,7 +686,7 @@ template <typename KeyType, typename ValueType, typename LockType,
 			if( temp->right[h-1] ) temp = temp->loadRight(h-1, dataFile_);
 			if( temp->right[h-1] ) {
 				temp = temp->loadRight(h-1, dataFile_);
-				isSplit = true;				
+				isSplit = true;
 			}
 		}
 
@@ -687,33 +695,33 @@ template <typename KeyType, typename ValueType, typename LockType,
 				&& (x->right[h] == temp->right[h-1]
 						|| ( (x->right[h] && temp->right[h-1])
 								&& (temp->right[h-1]->isLoaded)
-								&& (x->right[h]->KEY> temp->right[h-1]->KEY) ) ) ) )		
+								&& (x->right[h]->KEY> temp->right[h-1]->KEY) ) ) ) )
 		{
-			if( h == 0 ) {				
+			if( h == 0 ) {
 				t = allocateNode_();
-				t->element = v;				
+				t->element = v;
 			}
 			else {
-				t = x->right[h-1] ->right[h-1];				
+				t = x->right[h-1] ->right[h-1];
 			}
-			
+
 			t->height++;
 			t->right[h] = x->right[h];
-			
-			t->isDirty = true;
-			dirtyPages_.push_back(t);		
 
-			x->right[h] = t;			
+			t->isDirty = true;
+			dirtyPages_.push_back(t);
+
+			x->right[h] = t;
 			x->isDirty = true;
-			dirtyPages_.push_back(x);			
-		}		
+			dirtyPages_.push_back(x);
+		}
 		--h;
-		
+
 	}
 
-	if (header_->right[header_->height-1] != NULL) {	
+	if (header_->right[header_->height-1] != NULL) {
 		header_->height++;
-		dirtyPages_.push_back(t);		
+		dirtyPages_.push_back(t);
 	}
 	sfh_.numItem++;
 	return true;
@@ -747,7 +755,7 @@ template <typename KeyType, typename ValueType, typename LockType,
 	if( p ) {
 		delete p;
 		p = 0;
-		--sfh_.numItem;		
+		--sfh_.numItem;
 		return true;
 	}
 
@@ -802,7 +810,7 @@ template <typename KeyType, typename ValueType, typename LockType,
 	 */
 template <typename KeyType, typename ValueType, typename LockType,
 		typename Alloc> void SkipListFile<KeyType, ValueType, LockType, Alloc>::release() {
-	
+
 	vector<MemBlock*>::iterator it, it1;
 	for (it = mbList.begin(); it != mbList.end(); it++) {
 		it1 = it;
@@ -825,7 +833,8 @@ template <typename KeyType, typename ValueType, typename LockType,
  * @brief Print the SkipList.
  */
 template <typename KeyType, typename ValueType, typename LockType,
-		typename Alloc> void SkipListFile<KeyType, ValueType, LockType, Alloc>::print_list(std::ostream& os) const {
+		typename Alloc> void SkipListFile<KeyType, ValueType, LockType, Alloc>::print_list(
+		std::ostream& os) const {
 	SkipNode *current = header_;
 	//header_->display();
 	int h = header_->height-1;
@@ -835,7 +844,7 @@ template <typename KeyType, typename ValueType, typename LockType,
 	while (h>=0) {
 		current = header_;
 		while (current) {
-			os<<current->element.get_key()<<" -> ";			
+			os<<current->element.get_key()<<" -> ";
 			current = current->right[h];
 		}
 		os<<" tail "<<endl;
@@ -843,7 +852,7 @@ template <typename KeyType, typename ValueType, typename LockType,
 			b++;
 		h--;
 		a++;
-	}	
+	}
 }
 
 NS_IZENELIB_AM_END

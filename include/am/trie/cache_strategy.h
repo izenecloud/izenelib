@@ -6,7 +6,7 @@
 /**
  *@class CachePolicyLRU Latest rare used out
  **/
-class CachePolicyLRU//latest rare used
+class CachePolicyLRU
 {
   time_t time_;
 public:
@@ -34,6 +34,7 @@ friend ostream& operator << ( ostream& os, const CachePolicyLRU& inf)
 
 }
   ;
+
 
 /**
  *@class CachePolicyLU Latest used out
@@ -68,6 +69,7 @@ friend ostream& operator << ( ostream& os, const CachePolicyLU& inf)
 }
   ;
 
+
 /**
  *@class CachePolicyLARU least and rarest used out
  **/
@@ -88,7 +90,6 @@ public:
     //cout<<time_<<" "<<t.time_<<"  "<<visit_count_<<"  "<<t.visit_count_<<endl;
     
     return (visit_count_+time_*1000) - (t.visit_count_ + t.time_*1000);
-
   }
 
   void visit()

@@ -37,18 +37,18 @@ namespace cache{
  *  KeyType and DataType    :   the type of what we want to cache.
  *	RelacementPolciy        :   it can be lruCmp, lfuCmp or slruCmp, which are defined in CacheInfo.h.
  *	Hash                    :   Canadiates are LinearHashTable,ExtendibleHash, or others.				  
- *	ThreadSafeLock          :   it can be NullLock or ReadWriteLock, which are defined in ylib/lock.h. If using NullLock, then 
+ *	LockType          :   it can be NullLock or ReadWriteLock, which are defined in ylib/lock.h. If using NullLock, then 
  *				                No threa dsafe. 	 
  */
 
 //static ofstream loggerFile1("./mcache_logger");
 template <class KeyType, class ValueType, class ReplacementPolicy, class Hash,
-		class ThreadSafeLock =NullLock> class MCache {
+		class LockType =NullLock> class MCache {
 	typedef typename map<CacheInfo<KeyType>, bool, ReplacementPolicy> :: iterator
 			MIT;
 	typedef typename hash_map<KeyType, CacheInfo<KeyType>, HashFun<KeyType> > ::iterator
 			HIT;
-	ThreadSafeLock lock;
+	LockType lock;
 	typedef izenelib::am::DataType<KeyType,ValueType> DataType;
 public:
 	/**
@@ -217,8 +217,8 @@ private:
  *	@return TRUE if found, otherwise return faulse
  */
 template <class KeyType, class ValueType, class ReplacementPolicy, class Hash,
-		class ThreadSafeLock> bool MCache<KeyType, ValueType, ReplacementPolicy,
-		Hash, ThreadSafeLock>::getValue(const KeyType& key, ValueType& value) {
+		class LockType> bool MCache<KeyType, ValueType, ReplacementPolicy,
+		Hash, LockType>::getValue(const KeyType& key, ValueType& value) {
 	lock.acquire_write_lock();
 	nTotal_++;
 	if (cacheContainer_.find(key) ) {	
@@ -243,8 +243,8 @@ template <class KeyType, class ValueType, class ReplacementPolicy, class Hash,
  */
 
 template <class KeyType, class ValueType, class ReplacementPolicy, class Hash,
-		class ThreadSafeLock> void MCache<KeyType, ValueType, ReplacementPolicy,
-		Hash, ThreadSafeLock>::insertValue(const DataType& dat) {
+		class LockType> void MCache<KeyType, ValueType, ReplacementPolicy,
+		Hash, LockType>::insertValue(const DataType& dat) {
 	lock.acquire_write_lock();
 	KeyType key = dat.get_key();
 	if (hash_.insert(dat) ) {
@@ -270,8 +270,8 @@ template <class KeyType, class ValueType, class ReplacementPolicy, class Hash,
  * 	
  */
 template <class KeyType, class ValueType, class ReplacementPolicy, class Hash,
-		class ThreadSafeLock> bool MCache<KeyType, ValueType, ReplacementPolicy,
-		Hash, ThreadSafeLock>::getValueNoInsert(const KeyType& key,
+		class LockType> bool MCache<KeyType, ValueType, ReplacementPolicy,
+		Hash, LockType>::getValueNoInsert(const KeyType& key,
 		ValueType& value) {
 	return getValue(key, value);
 }
@@ -282,8 +282,8 @@ template <class KeyType, class ValueType, class ReplacementPolicy, class Hash,
  *         @return TRUE if hits, othewise reture False and insert into the new item.	
  */
 template <class KeyType, class ValueType, class ReplacementPolicy, class Hash,
-		class ThreadSafeLock> bool MCache<KeyType, ValueType, ReplacementPolicy,
-		Hash, ThreadSafeLock>::getValueWithInsert(const KeyType& key,
+		class LockType> bool MCache<KeyType, ValueType, ReplacementPolicy,
+		Hash, LockType>::getValueWithInsert(const KeyType& key,
 		ValueType& value) {
 
 #if 0	//for debug
@@ -308,8 +308,8 @@ template <class KeyType, class ValueType, class ReplacementPolicy, class Hash,
  * 
  */
 template <class KeyType, class ValueType, class ReplacementPolicy, class Hash,
-		class ThreadSafeLock> bool MCache<KeyType, ValueType, ReplacementPolicy,
-		Hash, ThreadSafeLock>::hasKey(const KeyType& key) {
+		class LockType> bool MCache<KeyType, ValueType, ReplacementPolicy,
+		Hash, LockType>::hasKey(const KeyType& key) {
 	lock.acquire_read_lock();
 	bool isFound = cacheContainer_.find(key);
 	lock.release_read_lock();
@@ -321,8 +321,8 @@ template <class KeyType, class ValueType, class ReplacementPolicy, class Hash,
  *
  */
 template <class KeyType, class DataType, class ReplacementPolicy, class Hash,
-		class ThreadSafeLock> int MCache<KeyType, DataType, ReplacementPolicy,
-		Hash, ThreadSafeLock>::numItems() {
+		class LockType> int MCache<KeyType, DataType, ReplacementPolicy,
+		Hash, LockType>::numItems() {
 	lock.acquire_read_lock();
 	int num = hash_.numItems();
 	lock.release_read_lock();
@@ -333,8 +333,8 @@ template <class KeyType, class DataType, class ReplacementPolicy, class Hash,
  *	\brief Display the number of items in memory hash and file hash.
  */
 template <class KeyType, class DataType, class ReplacementPolicy, class Hash,
-		class ThreadSafeLock> void MCache<KeyType, DataType, ReplacementPolicy,
-		Hash, ThreadSafeLock>::displayHash() {
+		class LockType> void MCache<KeyType, DataType, ReplacementPolicy,
+		Hash, LockType>::displayHash() {
 	lock.acquire_read_lock();
 	cout<<"MCache: numItems="<<hash_.numItems()<<endl;
 	lock.release_read_lock();
@@ -345,8 +345,8 @@ template <class KeyType, class DataType, class ReplacementPolicy, class Hash,
  *
  */
 template <class KeyType, class DataType, class ReplacementPolicy, class Hash,
-		class ThreadSafeLock> void MCache<KeyType, DataType, ReplacementPolicy,
-		Hash, ThreadSafeLock>::printKeyInfoMap() {
+		class LockType> void MCache<KeyType, DataType, ReplacementPolicy,
+		Hash, LockType>::printKeyInfoMap() {
 	lock.acquire_read_lock();
 	cacheContainer_.printKeyInfoMap();
 	lock.release_read_lock();
@@ -357,8 +357,8 @@ template <class KeyType, class DataType, class ReplacementPolicy, class Hash,
  *
  */
 template <class KeyType, class DataType, class ReplacementPolicy, class Hash,
-		class ThreadSafeLock> void MCache<KeyType, DataType, ReplacementPolicy,
-		Hash, ThreadSafeLock>::evict(unsigned int num) {
+		class LockType> void MCache<KeyType, DataType, ReplacementPolicy,
+		Hash, LockType>::evict(unsigned int num) {
 	MIT it = cacheContainer_.begin();
 	while (it != cacheContainer_.end() && num>0) {
 		//cout<<it->first.key<<endl; 	
@@ -380,8 +380,8 @@ template <class KeyType, class DataType, class ReplacementPolicy, class Hash,
  * 	
  */
 template <class KeyType, class DataType, class ReplacementPolicy, class Hash,
-		class ThreadSafeLock> void MCache<KeyType, DataType, ReplacementPolicy,
-		Hash, ThreadSafeLock>::flush(const KeyType& key) {
+		class LockType> void MCache<KeyType, DataType, ReplacementPolicy,
+		Hash, LockType>::flush(const KeyType& key) {
 	lock.acquire_write_lock();
 	if (hash_.del(key))
 		cacheContainer_.del(key);
@@ -394,8 +394,8 @@ template <class KeyType, class DataType, class ReplacementPolicy, class Hash,
  */
 
 template <class KeyType, class DataType, class ReplacementPolicy, class Hash,
-		class ThreadSafeLock> void MCache<KeyType, DataType, ReplacementPolicy,
-		Hash, ThreadSafeLock>::flush() {
+		class LockType> void MCache<KeyType, DataType, ReplacementPolicy,
+		Hash, LockType>::flush() {
 	lock.acquire_write_lock();
 	UpdateKeyInfoMap();
 	MIT it = cacheContainer_.begin();
@@ -415,8 +415,8 @@ template <class KeyType, class DataType, class ReplacementPolicy, class Hash,
  */
 
 template <class KeyType, class DataType, class ReplacementPolicy, class Hash,
-		class ThreadSafeLock> void MCache<KeyType, DataType, ReplacementPolicy,
-		Hash, ThreadSafeLock>::clear() {
+		class LockType> void MCache<KeyType, DataType, ReplacementPolicy,
+		Hash, LockType>::clear() {
 	lock.acquire_write_lock();
 	UpdateKeyInfoMap();
 	MIT it = cacheContainer_.begin();

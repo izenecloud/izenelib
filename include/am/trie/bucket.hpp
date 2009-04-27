@@ -9,53 +9,78 @@
 #include "automation.hpp"
 #include <vector>
 #include <util/log.h>
+#include <wiselib/ustring/UString.h>
+
+using namespace wiselib;
 using namespace std;
 
-int debug_count = 0;
-typedef struct item_pair
+//int debug_count = 0;
+template <
+  class STRING_TYPE = string
+  >
+struct item_pair
 {
-  string str_;
+  STRING_TYPE str_;
   uint64_t addr_;
 
-  inline item_pair(const string& str, uint64_t addr)
+  inline item_pair(const STRING_TYPE& str, uint64_t addr)
   {
     str_ = str;
+    // str_.displayStringValue(UString::UTF_8, cout);
+    //cout<<endl;
     addr_ = addr;
   }
   
-}item_pair;
+};
 
 /**
  *@class Bucket
  * B-trie has two typess of nodes, alphabet node and bucket. Bucket stores string and value pair in increasing sequencial order.
  **/
-
 template<
+  class STRING_TYPE = string,
   uint32_t BUCKET_SIZE = 8192,//byte
   uint8_t SPLIT_RATIO = 75,
-  char* ALPHABET = a2z,
-  uint8_t ALPHABET_SIZE = a2z_size 
+  typename STRING_TYPE::value_type* ALPHABET = a2z,
+  uint32_t ALPHABET_SIZE = a2z_size 
   >
 class Bucket
 {
+
+public:
+  typedef typename STRING_TYPE::value_type charT;
+  typedef Bucket<STRING_TYPE, BUCKET_SIZE,SPLIT_RATIO,ALPHABET, ALPHABET_SIZE > SelfType;
 protected:
   /**
-   * @def INITIAL_BUCKET_SIZE The initial bucket size for disk space
-   * */
-#define INITIAL_BUCKET_SIZE (sizeof(uint32_t)*2 +2*sizeof(uint8_t))
-  /**
-   * @def DISK_STR_BUF_SIZE The bucket string array size.
-   * */
+ * @def INITIAL_BUCKET_SIZE The initial bucket size for disk space
+ * */
+#define INITIAL_BUCKET_SIZE (sizeof(uint32_t)*2 +2*sizeof(charT))
+    /**
+ * @def DISK_STR_BUF_SIZE The bucket string array size.
+ * */
 #define DISK_STR_BUF_SIZE (BUCKET_SIZE - INITIAL_BUCKET_SIZE)
   /**
-   * @def ONE_STRING_SIZE(STR) One string space it takes.
-   * */
-#define ONE_STRING_SIZE(STR) ((STR).length()+sizeof(uint32_t)+sizeof(uint64_t))
+ * @def ONE_STRING_SIZE(STR) One string space it takes.
+ * */
+#define ONE_STRING_SIZE(STR) ((STR).size()+sizeof(charT)+sizeof(uint32_t)+sizeof(uint64_t))
 
+  static string substr(const string& str, size_t pos)
+  {
+    return str.substr(pos);
+  }
+
+  static wiselib::UString substr(const wiselib::UString& str, size_t pos)
+  {
+    wiselib::UString tmp;
+    str.substr(tmp, pos);
+   
+    return tmp;
+  }  
+  
   struct _disk_bucket_
   {
-    uint8_t from_;
-    uint8_t to_;
+    charT from_;
+    charT to_;
     uint32_t count_;
     uint32_t size_;
     char strBuf[DISK_STR_BUF_SIZE];
@@ -65,10 +90,10 @@ protected:
   class _string_ptr_
   {
   public:
-    string*  p_;
+    STRING_TYPE*  p_;
     uint64_t contentAddr_;
     
-    _string_ptr_(string* p, uint64_t addr)
+    _string_ptr_(STRING_TYPE* p, uint64_t addr)
       :p_(p),contentAddr_(addr)
     {
     }
@@ -89,17 +114,17 @@ protected:
       return p_->compare(*p.p_)<0;
     }
 
-    bool operator == (const string* p)const
+    bool operator == (const STRING_TYPE* p)const
     {
       return p_->compare(*p)==0;
     }
 
-    bool operator >  (const string* p)const
+    bool operator >  (const STRING_TYPE* p)const
     {
       return p_->compare(*p)>0;
     }
 
-    bool operator <  (const string* p)const
+    bool operator <  (const STRING_TYPE* p)const
     {
       return p_->compare(*p)<0;
     }
@@ -116,7 +141,7 @@ protected:
     {
     }
     
-    uint8_t firstChar_;
+    charT firstChar_;
     vector<_string_ptr_> strPtrs_;
 
     bool operator == (const _string_group_& sg)const
@@ -144,34 +169,37 @@ protected:
       return firstChar_ <= sg.firstChar_;
     }
     //////////////////////////
-    bool operator == (const string& str)const
+    bool operator == (const STRING_TYPE& str)const
     {
       return firstChar_==str[0];
     }
 
-    bool operator > (const string& str)const
+    bool operator > (const STRING_TYPE& str)const
     {
       return firstChar_ > str[0];
     }
 
-    bool operator < (const string& str)const
+    bool operator < (const STRING_TYPE& str)const
     {
       return firstChar_ < str[0];
     }
 
-    bool operator >= (const string& str)const
+    bool operator >= (const STRING_TYPE& str)const
     {
       return firstChar_ >= str[0];
     }
 
-    bool operator <= (const string& str)const
+    bool operator <= (const STRING_TYPE& str)const
     {
       return firstChar_ <= str[0];
     }
 
-    size_t addString(string* pStr, uint64_t addr)
+    size_t addString(STRING_TYPE* pStr, uint64_t addr)
     {
-      pStr->erase(0,1);
+      //STRING_TYPE tmp;
+      //pStr->subString(tmp,1);
+      *pStr = SelfType::substr(*pStr , 1);
+      
       _string_ptr_ p(pStr, addr);
       str_ptr_it it = lower_bound(strPtrs_.begin(), strPtrs_.end(), p);
       if (it!=strPtrs_.end() && (*it)==p)
@@ -188,15 +216,15 @@ protected:
   typedef typename vector<struct _string_group_>::const_iterator const_str_group_it;
   struct _bucket_
   {
-    uint8_t from_;
-    uint8_t to_;
+    charT from_;
+    charT to_;
     uint32_t count_;
     uint32_t size_;
     bool dirty_;
     vector<_string_group_> strGroup_;
     uint64_t diskPos_;
 
-    inline _bucket_(uint8_t from, uint8_t to)
+    inline _bucket_(charT from, charT to)
     {
       /*
         if(from>to)
@@ -209,7 +237,13 @@ protected:
       dirty_ = true;
       diskPos_ = -1;
     }
-    
+
+    void setUstring(STRING_TYPE& ustr, const charT* p, size_t len)
+    {
+      for (size_t i=0; i<len; i++)
+        ustr += p[i];
+    }
+
     inline _bucket_(struct _disk_bucket_* disk, uint64_t addr )
     {
       from_ = disk->from_;
@@ -222,28 +256,33 @@ protected:
       //cout<<count_<<" "<<size_<<" "<<from_<<" "<<to_<<"  "<<addr<<endl;
       
       uint32_t t=0;
-      uint8_t first = -1;
+      charT first = -1;
       for (uint32_t i =0; i<count_; i++)
       {
-        uint32_t len = *(uint32_t*)(disk->strBuf+t);
+        uint32_t strSize = *(uint32_t*)(disk->strBuf+t);//ustring's length
         t += sizeof (uint32_t);
-        if (t > DISK_STR_BUF_SIZE)
+        if (t > DISK_STR_BUF_SIZE || strSize > DISK_STR_BUF_SIZE)
         {
           //THROW exception
-          LDBG_<<"\nError:  _bucket_(struct _disk_bucket_* disk, uint64_t addr ) 1:\n";
+          //LDBG_<<"\nError:  _bucket_(struct _disk_bucket_* disk, uint64_t addr ) 1:"<<debug_count;
+          LDBG_<<"\nError:  _bucket_(struct _disk_bucket_* disk, uint64_t addr ) 1:";
           return;
         }
-
-        //cout<<sizeof(disk->strBuf)<<"  "<<t<<"  "<<len<<" 1\n";
         
-        string* s = new  string(disk->strBuf+t, len);
+        charT firstCh = *(charT*)(disk->strBuf+t);
+        t += sizeof (charT);//strSize;
         
-        uint8_t firstCh = *(disk->strBuf+t);
-        t += len;
+        STRING_TYPE* s = new  STRING_TYPE();
+        setUstring(*s, (const charT*)(disk->strBuf+t), strSize);
+//         s->displayStringValue(ENCODE_TYPE, cout);
+//         cout<<endl;
+        
+        t += s->size();
+        
         if (t > DISK_STR_BUF_SIZE)
         {
           //THROW exception
-          LDBG_<<"\nError:  _bucket_(struct _disk_bucket_* disk, uint64_t addr ) 2:"<<len<<"\n";
+          LDBG_<<"\nError:  _bucket_(struct _disk_bucket_* disk, uint64_t addr ) 2:"<<strSize<<"\n";
           return;
         }
                 
@@ -256,7 +295,7 @@ protected:
           return;
         }
 
-        s->erase(0,1);
+        
         if (first!=firstCh)
         {
           _string_group_ sg;
@@ -269,6 +308,8 @@ protected:
         {
           strGroup_.back().strPtrs_.push_back(_string_ptr_(s, cont));
         }
+
+        
       }
       
     }
@@ -277,9 +318,8 @@ protected:
     ;
   
 public:
-  typedef Bucket<BUCKET_SIZE,SPLIT_RATIO,ALPHABET, ALPHABET_SIZE > SelfType;
   enum slef_size{ SIZE_= BUCKET_SIZE};
-  
+
   /**
    *@param f File handler of bucket data file.
    **/
@@ -319,16 +359,12 @@ public:
 
     return false;
   }
-  
+
   /**
    *Load bucket data from disk starting from the position 'addr'.
    **/
   bool load(uint64_t addr)
   {
-    //     fseek(f_, 0, SEEK_END);
-    //     if (ftell(f_)<=addr)
-    //       cout<<"Bucket load error: address too large!\n";
-
     //cout<<"bucket loading!\n";
     struct _disk_bucket_ b;
     
@@ -359,11 +395,14 @@ public:
     
     pBucket_ = new struct _bucket_(&b, addr);
 
-    // cout<<"pBucket->load()\n";
-    //if (getStrCount() != pBucket_->count_)
-    // LDBG_<<"Bucket load()**********\n**********\n*************\n************\n*******************Bucket()\n";
-    
+//     if (getStrCount() != pBucket_->count_)
+//       LDBG_<<"Bucket load()**********\n**********\n*************\n************\n*******************Bucket()\n";
+
+//     if (pBucket_->size_ != getBucketSize())
+//       LDBG_<<pBucket_->diskPos_<<getBucketSize()<<pBucket_->size_<<pBucket_->count_<<"Bucket load(): bucket size error!"<<debug_count;
+
     return true;
+    
   }
 
   /**
@@ -377,14 +416,14 @@ public:
     {
       for (str_ptr_it j=(*i).strPtrs_.begin();j!=(*i).strPtrs_.end(); j++)
       {
-        s += ONE_STRING_SIZE(*((*j).p_))+1;
+        s += ONE_STRING_SIZE(*((*j).p_));
       }
     }
 
     return s;
     
   }
-  
+
   /**
    *Turn the bucket into disk format.
    **/
@@ -394,14 +433,18 @@ public:
     d->to_ = b->to_;
     d->count_ = b->count_;
     d->size_ = b->size_;
-
+    
     uint32_t t=0;
     
     for (str_group_it i=b->strGroup_.begin(); i!=b->strGroup_.end();i++)
     {
       for (str_ptr_it j=(*i).strPtrs_.begin();j!=(*i).strPtrs_.end(); j++)
       {
-        *(uint32_t*)(d->strBuf+t) = (*j).p_->length()+1;
+//         string tmp;
+//         (*j).p_->convertString(tmp, ENCODE_TYPE);
+
+        *(uint32_t*)(d->strBuf+t) = (*j).p_->length();// + sizeof(UCS2Char);
+        
         t += sizeof(uint32_t);
         if (t > DISK_STR_BUF_SIZE)
         {
@@ -409,14 +452,16 @@ public:
           return (uint32_t)-1;
         }
         
-        *(d->strBuf+t) = (*i).firstChar_;
-        t++;
-        (*j).p_->copy(d->strBuf+t,  (*j).p_->length());
-        //memcpy(d->strBuf+t, (*j).p_->c_str(), (*j).p_->length());
-        t += (*j).p_->length();
+        *(charT*)(d->strBuf+t) = (*i).firstChar_;
+        t += sizeof(charT);
+        //(*j).p_->copy(d->strBuf+t,  (*j).p_->length());
+
+        memcpy(d->strBuf+t, (*j).p_->c_str(),  (*j).p_->size());
+        
+        t += (*j).p_->size();
         if (t > DISK_STR_BUF_SIZE)
         {
-          LDBG_<<"bucket2disk(struct _bucket_* b, struct _disk_bucket_* d): 2->"<< (*j).p_->length();
+          LDBG_<<"bucket2disk(struct _bucket_* b, struct _disk_bucket_* d): 2->"<< (*j).p_->size();
           return (uint32_t)-1;
         }
         *(uint64_t*)(d->strBuf+t) = (*j).contentAddr_;
@@ -425,9 +470,8 @@ public:
     }
 
     return t;
-    
   }
-  
+
   /**
    *Update the bucket data onto disk.
    **/
@@ -460,8 +504,12 @@ public:
       
     }
 
-    // if (getStrCount() != pBucket_->count_)
+//     if (getStrCount() != pBucket_->count_)
 //       LDBG_<<"Bucket update()**********\n**********\n*************\n************\n*******************Bucket()\n";
+
+    
+//     if (pBucket_->size_ != getBucketSize())
+//       LDBG_<<pBucket_->diskPos_<<getBucketSize()<<pBucket_->size_<<pBucket_->count_<<"Bucket update(): bucket size error!"<<debug_count;
 
     return true;
   }
@@ -489,9 +537,13 @@ public:
     if (fwrite( &b, sizeof(struct _disk_bucket_), 1, f_)!=1)
       return (uint64_t) -1;
 
-    // if (getStrCount() != pBucket_->count_)
+//     if (getStrCount() != pBucket_->count_)
 //       LDBG_<<"Bucket add2disk()**********\n**********\n*************\n************\n*******************Bucket()\n";
+
     
+//     if (pBucket_->size_ != getBucketSize())
+//       LDBG_<<pBucket_->diskPos_<<getBucketSize()<<pBucket_->size_<<pBucket_->count_<<"Bucket add2disk(): bucket size error!"<<debug_count;
+
     pBucket_->dirty_ = false;
     
     return end;
@@ -500,17 +552,18 @@ public:
   /**
    *Update the content related to a specific string.
    **/
-  bool updateContent(const string& str, uint64_t contentAddr)
+  bool updateContent(const STRING_TYPE& str, uint64_t contentAddr)
   {
     str_group_it g = lower_bound(pBucket_->strGroup_.begin(), pBucket_->strGroup_.end(), str);
     if (g != pBucket_->strGroup_.end() && *g==str)
     {
-      string s = str.substr(1);
+      STRING_TYPE s = substr(str ,1);
+      //str.subString(s, 1);
       str_ptr_it p = lower_bound((*g).strPtrs_.begin(), (*g).strPtrs_.end(), &s);
       if (p !=  (*g).strPtrs_.end() && (*p)==&s )
       {
-        (*p).contentAddr_ = contentAddr;
-        return true;
+         (*p).contentAddr_ = contentAddr;
+         return true;
       }
       
     }
@@ -520,12 +573,14 @@ public:
   /**
    *Get content of a string.
    **/
-  uint64_t getContentBy(const string& str)const
+  uint64_t getContentBy(const STRING_TYPE& str)const
   {
     str_group_it g = lower_bound(pBucket_->strGroup_.begin(), pBucket_->strGroup_.end(), str);
     if (g != pBucket_->strGroup_.end() && *g==str)
     {
-      string s = str.substr(1);
+      STRING_TYPE s = substr(str ,1);
+      //UString s;
+      //str.subString(s, 1);
       str_ptr_it p = lower_bound((*g).strPtrs_.begin(), (*g).strPtrs_.end(), &s);
       if (p !=  (*g).strPtrs_.end() && (*p)==&s )
         return (*p).contentAddr_;
@@ -540,27 +595,28 @@ public:
    *@param sofar Record the string ahead sofar.
    *@param ret The found results.
    **/
-  void findRegExp(const string& regexp, const string& sofar, vector<item_pair>& ret)
+  void findRegExp(const STRING_TYPE& regexp, const STRING_TYPE& sofar, vector<item_pair<STRING_TYPE> >& ret)
   {
     if (regexp.length()==0)
       return ;
-
-    Automation<>* aut = new Automation<>(regexp);
     
     if (regexp[0]!='*' && regexp[0]!='?')
     {
       str_group_it g = lower_bound(pBucket_->strGroup_.begin(), pBucket_->strGroup_.end(), regexp);
       if (g != pBucket_->strGroup_.end() && *g==regexp)
       {
-        string s = regexp.substr( 1);
-        if (!aut->hasWildcard())
+        STRING_TYPE s = substr(regexp ,1);
+        //regexp.subString(s, 1);
+        Automation<STRING_TYPE> aut(s);
+        if (!aut.hasWildcard())
         {
           str_ptr_it p = lower_bound((*g).strPtrs_.begin(), (*g).strPtrs_.end(), &s);
           if (p !=  (*g).strPtrs_.end() && (*p)==&s )
           {
             s = sofar;
             s += regexp;
-            ret.push_back(item_pair(s, (*p).contentAddr_));
+            ret.push_back(item_pair<STRING_TYPE>(s, (*p).contentAddr_));
+            //ret.push_back((*p).contentAddr_);
             return;
           }
           return;
@@ -568,32 +624,41 @@ public:
         
         for (str_ptr_it j=(*g).strPtrs_.begin(); j!=(*g).strPtrs_.end();j++)
         {
-          if (aut->match(*(*j).p_))
+          if (aut.match(*(*j).p_))
           {
-            string tmp = sofar;
+            STRING_TYPE tmp = sofar;
             tmp +=  (*(*j).p_);
-            ret.push_back(item_pair(tmp, (*j).contentAddr_));
+            ret.push_back(item_pair<STRING_TYPE>(tmp, (*j).contentAddr_));
+            //ret.push_back((*j).contentAddr_);
           }
         }
 
         return;
       }
     }
+
+    STRING_TYPE s = regexp;
+    if (regexp[0]=='?')
+    {
+      s = substr(regexp,1);
+      //regexp.subString(s, 1);
+    }
     
+
+    Automation<STRING_TYPE> aut(s);
     for (str_group_it i=pBucket_->strGroup_.begin(); i!=pBucket_->strGroup_.end();i++)
     {
       for (str_ptr_it j=(*i).strPtrs_.begin(); j!=(*i).strPtrs_.end();j++)
       {  
-        if (aut->match(*(*j).p_))
-        {
-          string tmp = sofar;
-          tmp +=  (*(*j).p_);
-          ret.push_back(item_pair(tmp, (*j).contentAddr_));
-        }
+          if (aut.match(*(*j).p_))
+          {
+            STRING_TYPE tmp = sofar;
+            tmp +=  (*(*j).p_);
+            ret.push_back(item_pair<STRING_TYPE>(tmp, (*j).contentAddr_));
+            //ret.push_back((*j).contentAddr_);
+          }
       }
     }
-
-    delete aut;
 
   }
   
@@ -611,7 +676,8 @@ friend ostream& operator << ( ostream& os, const SelfType& node)
       cout<<"@"<<(*i).firstChar_<<" ........."<<endl;
       for (str_ptr_it j=(*i).strPtrs_.begin(); j!=(*i).strPtrs_.end();j++)
       {
-        cout<<(*(*j).p_)<<" =>"<<(*j).contentAddr_<<endl;
+        //(*(*j).p_).displayStringValue(ENCODE_TYPE, os);
+        os<<" =>"<<(*j).contentAddr_<<endl;
       }
     }
 
@@ -622,26 +688,26 @@ friend ostream& operator << ( ostream& os, const SelfType& node)
   {
     os<<*this;
   }
-  
+
   /**
    *Add string and content pair into bucket
    **/
-  uint32_t addString(string* pStr, uint64_t addr)
+  uint32_t addString(STRING_TYPE* pStr, uint64_t addr)
   {
     //if (!canAddString(str))
     //return pBucket_->size_;
-
+    
     if (pStr->length()<=1)
       return pBucket_->size_;
 
     if ((*pStr)[0]<pBucket_->from_ || (*pStr)[0]>pBucket_->to_)
       return pBucket_->size_;
 
-    //if (getStrCount() != pBucket_->count_)
-    //LDBG_<<"before addstring(): string count in bucket error!";
+//     if (getStrCount() != pBucket_->count_)
+//     LDBG_<<"before addstring(): string count in bucket error!";
 
-    //if (pBucket_->size_ != getBucketSize())
-    // LDBG_<<"before addstring(): bucket size error!";
+//     if (pBucket_->size_ != getBucketSize())
+//       LDBG_<<"before addstring(): bucket size error!"<<debug_count;
     
     str_group_it t = lower_bound(pBucket_->strGroup_.begin(), pBucket_->strGroup_.end(), (*pStr));
     
@@ -650,12 +716,12 @@ friend ostream& operator << ( ostream& os, const SelfType& node)
       //has group
       //LDBG_<<"group exist!";
       
-      size_t s = (*t).strPtrs_.size();
-      if(s<(*t).addString(pStr, addr))
-      {
-        pBucket_->count_++;
-        pBucket_->size_ += ONE_STRING_SIZE(*pStr)+1;
-      }
+        size_t s = (*t).strPtrs_.size();
+        if(s<(*t).addString(pStr, addr))
+        {
+          pBucket_->count_++;
+          pBucket_->size_ += ONE_STRING_SIZE(*pStr);
+        }
         
     }
     else
@@ -663,20 +729,22 @@ friend ostream& operator << ( ostream& os, const SelfType& node)
       //LDBG_<<"group inexist!";
       _string_group_ g;
       g.firstChar_ = (*pStr)[0];
+      
       g.addString(pStr, addr);
+      
       pBucket_->count_++;
-      pBucket_->size_ += ONE_STRING_SIZE(*pStr)+1;
+      pBucket_->size_ += ONE_STRING_SIZE(*pStr);
       pBucket_->strGroup_.insert(t,g);
     }
 
     pBucket_->dirty_ = true;
 
-    //LDBG_<<"ending addstring()\n";
-    //if (getStrCount() != pBucket_->count_)
-    //  LDBG_<<"addstring(): string count in bucket error!";
+    
+//     if (getStrCount() != pBucket_->count_)
+//      LDBG_<<"after addstring(): string count in bucket error!";
 
-    //if (pBucket_->size_ != getBucketSize())
-    // LDBG_<<"addstring(): bucket size error!";
+//     if (pBucket_->size_ != getBucketSize())
+//       LDBG_<<"after addstring(): bucket size error!";
     
     return pBucket_->size_;
   }
@@ -696,11 +764,11 @@ friend ostream& operator << ( ostream& os, const SelfType& node)
   /**
    *Can string be added into bucket.
    **/
-  bool canAddString(const string& str)
+  bool canAddString(const STRING_TYPE& str)
   {
     return length()+ONE_STRING_SIZE(str)<=BUCKET_SIZE;
   }
-  
+
   /**
    *Bucket size.
    **/
@@ -721,19 +789,18 @@ friend ostream& operator << ( ostream& os, const SelfType& node)
 
     return c;
   }
-  
+
   /**
    *Split bucket into 'newBucket'. Some short string is consumed whitch is stored into leftStr.
    **/
-  uint8_t split(Bucket* newBucket, vector<string>& leftStr, vector<uint64_t>& leftAddr)
+  charT split(Bucket* newBucket, vector<STRING_TYPE>& leftStr, vector<uint64_t>& leftAddr)
   {
-    leftStr.clear();
-    leftAddr.clear();
-    //if (getStrCount() != pBucket_->count_)
-    //LDBG_<<"before split()**********\n**********\n*************\n************\n*******************before split()\n";
+//     leftStr.clear();
+//     if (getStrCount() != pBucket_->count_)
+//       LDBG_<<"before split()**********\n**********\n*************\n************\n*******************before split()\n";
 
-    //if (pBucket_->size_ != getBucketSize())
-    //LDBG_<<"before split(): bucket size error!";
+//     if (pBucket_->size_ != getBucketSize())
+//       LDBG_<<"before split(): bucket size error!";
     
     if (isPure())
     {
@@ -746,13 +813,14 @@ friend ostream& operator << ( ostream& os, const SelfType& node)
         {
           if (((*j).p_)->length()<=1)
           {
-            string s = "";
+            STRING_TYPE s;
             s += (*i).firstChar_;
-            s.append(*(*j).p_);
+            s += (*(*j).p_);
             leftStr.push_back(s);
             leftAddr.push_back((*j).contentAddr_);
             continue;
           }
+          
           
           addString(((*j).p_),(*j).contentAddr_ );
           //delete (*j).p_;
@@ -763,13 +831,14 @@ friend ostream& operator << ( ostream& os, const SelfType& node)
       pBucket_->dirty_ = true;
       
       delete t;
+      
     }
 
     if (pBucket_->strGroup_.size()==1)
     {
       //throw exception
-      cout<<"\n-------------------Split error!--------------------";
-      return (uint8_t)-1;
+      //cout<<"\n-------------------Split error!--------------------";
+      return (charT)-1;
     }
     
     uint32_t left = (uint32_t)(pBucket_->count_/100.00*SPLIT_RATIO);
@@ -777,7 +846,7 @@ friend ostream& operator << ( ostream& os, const SelfType& node)
     uint32_t c = 0;
     
     str_group_it i=pBucket_->strGroup_.begin();
-    //cout<<pBucket_->strGroup_.size()<<"  \n";
+    
     for (size_t j=1; i!=pBucket_->strGroup_.end();i++,j++)
     {
       //cout<<(*i).strPtrs_.size()<<endl;
@@ -801,10 +870,10 @@ friend ostream& operator << ( ostream& os, const SelfType& node)
 
     pBucket_->dirty_ = true;
 
-    //     if (getStrCount() != pBucket_->count_)
-    //       LDBG_<<"split()**********\n**********\n*************\n************\n*******************split()\n";
-    //     if (pBucket_->size_ != getBucketSize())
-    //       LDBG_<<"split(): bucket size error!";
+//     if (getStrCount() != pBucket_->count_)
+//       LDBG_<<"split()**********\n**********\n*************\n************\n*******************split()\n";
+//     if (pBucket_->size_ != getBucketSize())
+//       LDBG_<<"split(): bucket size error!";
      
     return pBucket_->to_;
   }
@@ -812,14 +881,14 @@ friend ostream& operator << ( ostream& os, const SelfType& node)
   /**
    *Get index of 'ch' in alphabet.
    **/
-  static uint8_t getIndexOf(uint8_t ch)
+  static uint32_t getIndexOf(charT ch)
   {
     if (ch<ALPHABET[0] || ch>ALPHABET[ALPHABET_SIZE-1])
     {
       LDBG_<<"Can't find '"<<ch<<"' in alphabet";
       return -1;
     }
-
+    
     if(ALPHABET[0] == 'a' && ALPHABET[ALPHABET_SIZE-1]=='z')
     {
       if (ch <= 'Z' && ch >='A')
@@ -827,9 +896,9 @@ friend ostream& operator << ( ostream& os, const SelfType& node)
       return ch-ALPHABET[0];
     }
 
-    uint8_t start = 0;
-    uint8_t end  = ALPHABET_SIZE -1;
-    uint8_t mid = (start + end)/2;
+    uint32_t start = 0;
+    uint32_t end  = ALPHABET_SIZE -1;
+    uint32_t mid = (start + end)/2;
     
     while ( mid<=end && mid>=start)
     {
@@ -865,7 +934,7 @@ friend ostream& operator << ( ostream& os, const SelfType& node)
   /**
    *Get up bound of bucket
    **/
-  unsigned short getUpBound()const
+  charT getUpBound()const
   {
     return pBucket_->from_;
   }
@@ -889,19 +958,19 @@ friend ostream& operator << ( ostream& os, const SelfType& node)
   /**
    *Get the 'idx' group first char whitch stands for this group
    **/
-  uint8_t getGroupChar(size_t idx)
+  charT getGroupChar(size_t idx)
   {
     if (idx>=getStrGroupAmount())
-      return (uint8_t)-1;
+      return (charT)-1;
 
     return pBucket_->strGroup_[idx].firstChar_;
     
   }
-  
+
   /**
    *Get low bound of this bucket.
    **/
-  uint8_t getLowBound() const
+  charT getLowBound() const
   {
     return pBucket_->to_;
   }
@@ -915,7 +984,7 @@ friend ostream& operator << ( ostream& os, const SelfType& node)
     for (const_str_ptr_it j=g.strPtrs_.begin(); j!=g.strPtrs_.end();j++)
     {
       //cout<<*((*j).p_)<<endl;
-      size += ONE_STRING_SIZE(*((*j).p_)) + 1;
+      size += ONE_STRING_SIZE(*((*j).p_));
       pBucket_->count_++;
     }
     
@@ -930,7 +999,7 @@ friend ostream& operator << ( ostream& os, const SelfType& node)
   /**
    *Set up bound of this bucket.
    **/
-  void setUpBound(uint8_t ch)
+  void setUpBound(charT ch)
   {
     if (pBucket_->from_!=ch)
       pBucket_->dirty_ = true;
@@ -941,7 +1010,7 @@ friend ostream& operator << ( ostream& os, const SelfType& node)
   /**
    *Set low bound of this bucket.
    **/
-  void setLowBound(uint8_t ch)
+  void setLowBound(charT ch)
   {
     if (pBucket_->to_!=ch)
       pBucket_->dirty_ = true;
@@ -954,8 +1023,7 @@ friend ostream& operator << ( ostream& os, const SelfType& node)
 protected:
   FILE* f_; //!< File handler.
   struct _bucket_* pBucket_;//!< Storage of bucket data.
-
-
+  
   
 }
   ;

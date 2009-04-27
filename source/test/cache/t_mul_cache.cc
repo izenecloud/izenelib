@@ -22,7 +22,7 @@ typedef YString Value;
 
 typedef izenelib::am::LinearHashTable<Key,Value, izenelib::util::NullLock> FirstHash;
 //typedef izenelib::am::ExtendibleHashTable<Key,Value, NullLock> extHash;
-//typedef izenelib::am::CCCR_StrHashTable<Key, Value> FirstHash;
+//typedef izenelib::am::cccr_hash<Key, Value> FirstHash;
 
 typedef izenelib::am::sdb_hash<Key, Value, izenelib::util::NullLock> SecondHash;
 typedef izenelib::am::sdb_hash<Key, Value, izenelib::util::NullLock> linSecondHash;

@@ -14,6 +14,7 @@
 #include <sdb/SequentialDB.h>
 #include <wiselib/ustring/UString.h>
 #include <am/tokyo_cabinet/tc_hash.h>
+#include <am/trie/b_trie.hpp>
 
 namespace idmanager {
 
