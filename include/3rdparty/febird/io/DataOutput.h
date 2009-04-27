@@ -22,6 +22,7 @@
 
 #if BOOST_VERSION < 103301
 # include <boost/limits.hpp>
+# include <boost/detail/limits.hpp>
 #else
 # include <boost/detail/endian.hpp>
 #endif

@@ -210,9 +210,8 @@ void febird_test(size_t loop, size_t vctr_sz, InAr& ia, OutAr& oa, T*)
   
   cout <<"Serialization: "<< (float)time/CLOCKS_PER_SEC<<" s\n";
   
-  time = 0;
-
   ia.clone(oa);
+  time = 0;  
   for (size_t i=0; i<loop; i++)
   {
     vector<T> v;
@@ -223,7 +222,6 @@ void febird_test(size_t loop, size_t vctr_sz, InAr& ia, OutAr& oa, T*)
 
   cout <<"Deserialization: "<< (float)time/CLOCKS_PER_SEC<<" s\n";
 }
-
 
 template<class T>
 void memcopy_test(size_t loop, size_t vctr_sz, T*)
@@ -271,13 +269,14 @@ void compare(size_t loop, size_t vctr_sz, T*)
   stringstream ss;
   boost_test(loop, vctr_sz, ss, (T*)0);
 
-  cout<<"\nfebird:\n";
+  cout<<"\nfebird AutoGrownMemIO:\n";
+
   NativeDataOutput<AutoGrownMemIO> oa;
   NativeDataInput<AutoGrownMemIO> ia;
 
   febird_test(loop, vctr_sz, ia, oa, (T*)0);
 
-// memcpy test
+//  memcpy test
 //  cout<<"\nmemcpy:\n";
 //  char* buf = new char[loop*vctr_sz*sizeof(T)*2];
 //  memcopy_test(loop, vctr_sz, (T*)0);
