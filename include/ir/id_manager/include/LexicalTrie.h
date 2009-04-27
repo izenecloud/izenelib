@@ -41,16 +41,16 @@ public:
 	 * Parameters:
 	 *  word - Word to add.
 	 */
-	void addWord(const NameString & word, const unsigned int id);
+	void insert(const NameString & word, const unsigned int id);
 
 	/** Returns the number of words in the trie.
 	 *
 	 * \return The number of words.
 	 */
-	int numWords();
+	int num_items();
 
 	/*
-	 * Method: matchRegExp
+	 * Method: findRegExp
 	 *
 	 * Matches a regular expression against the contents of the trie. Stores
 	 * the matches in the set 'results'.
@@ -65,7 +65,7 @@ public:
 	 *  exp - The regular expression.
 	 *  results - The set to store results in.
 	 */
-	bool matchRegExp(const NameString& exp, std::vector<unsigned int> & results);
+	bool findRegExp(const NameString& exp, std::vector<unsigned int> & results);
 
 	struct TrieNode; // forward declaration
 
@@ -141,7 +141,7 @@ public:
 
 		// Add this word (recursive)
 		// Return true if actually added
-		bool addWord(const NameString & word, const unsigned int id)
+		bool insert(const NameString & word, const unsigned int id)
 		{
 			// recursive base case:
 			if (word.length()== 0) {
@@ -162,13 +162,13 @@ public:
 
 			if (pair) {
 				// pair exists so update it...
-				return pair->trie_->addWord(subWord, id);
+				return pair->trie_->insert(subWord, id);
 			} else {
 				// pair doesn't exist, so create it
 				TrieNode * newTrie = new TrieNode();
 
 				// add the word recursively to the new trie
-				newTrie->addWord(subWord, id);
+				newTrie->insert(subWord, id);
 
 				letters_.push_back(LetterTriePair(word[0], newTrie));
 
@@ -183,7 +183,7 @@ public:
 		}
 
 		// Find all regex matches (recursive)
-		inline void matchRegExp(std::vector<unsigned int> & results,
+		inline void findRegExp(std::vector<unsigned int> & results,
 				const NameString & pattern,
 				const NameString & soFar)
 		{
@@ -202,13 +202,13 @@ public:
 					for (it = letters_.begin(); it != letters_.end(); it++) {
 						NameString newSoFar(soFar);
 						newSoFar += it->letter_;
-						it->trie_->matchRegExp(results, pattern, newSoFar);
+						it->trie_->findRegExp(results, pattern, newSoFar);
 					}
 					// Try matching 0 characters
 
 					NameString newPattern;
 					pattern.substr(newPattern, 1);
-					this->matchRegExp(results, newPattern, soFar);
+					this->findRegExp(results, newPattern, soFar);
 					break;
 				}
 				//case '?':
@@ -217,14 +217,14 @@ public:
 					pattern.substr(newPattern, 1);
 
 					// Try matching no character
-					this->matchRegExp(results, newPattern, soFar);
+					this->findRegExp(results, newPattern, soFar);
 
 					// Try matching one character
 
 					for (it = letters_.begin(); it != letters_.end(); it++) {
 						NameString newSoFar(soFar);
 						newSoFar += it->letter_;
-						it->trie_->matchRegExp(results, newPattern, newSoFar);
+						it->trie_->findRegExp(results, newPattern, newSoFar);
 					}
 					break;
 				}
@@ -239,7 +239,7 @@ public:
 					NameString newPattern;
 					pattern.substr(newPattern, 1);
 
-					pair->trie_->matchRegExp(results, newPattern, newSoFar);
+					pair->trie_->findRegExp(results, newPattern, newSoFar);
 				} else {
 					// we don't have the letter... abort
 					return;
@@ -270,20 +270,20 @@ template<typename NameString> LexicalTrie<NameString>::LexicalTrie() {
 template<typename NameString> LexicalTrie<NameString>::~LexicalTrie() {
 	delete root_;
 }
-template<typename NameString> void LexicalTrie<NameString>::addWord(
+template<typename NameString> void LexicalTrie<NameString>::insert(
 		const NameString & word, const unsigned int id) {
-	bool added = root_->addWord(word,id);
+	bool added = root_->insert(word,id);
 	if (added)
 	numWords_++;
 
 }
-template<typename NameString> bool LexicalTrie<NameString>::matchRegExp(
+template<typename NameString> bool LexicalTrie<NameString>::findRegExp(
 		const NameString & exp, std::vector<unsigned int> & results) {
 	NameString sofar;
-	root_->matchRegExp(results, exp, sofar);
+	root_->findRegExp(results, exp, sofar);
 	return results.size()>0 ? true : false;
 }
-template<typename NameString> int LexicalTrie<NameString>::numWords() {
+template<typename NameString> int LexicalTrie<NameString>::num_items() {
 	return numWords_;
 }
 

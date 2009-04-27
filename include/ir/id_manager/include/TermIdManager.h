@@ -28,7 +28,8 @@ namespace idmanager {
 
 
 template<typename NameString, typename NameID,
-		typename TRIE = LexicalTrie<NameString> > class TermIdManager :
+		//typename TRIE = LexicalTrie<NameString> > class TermIdManager :
+		typename TRIE = izenelib::am::BTrie<NameString> > class TermIdManager :
 	protected IDFactory<NameString, NameID> {
 
 public:
@@ -163,7 +164,7 @@ template<typename NameString, typename NameID, typename TRIE>bool TermIdManager<
 
 		// Write into startSearchIndexer
 		boost::mutex::scoped_lock lock(termIndexerLock_);
-		starSearchIndexer_.addWord(termString, termId);
+		starSearchIndexer_.insert(termString, (int64_t)termId);
 		return false;
 	}
 
@@ -181,8 +182,8 @@ template<typename NameString, typename NameID, typename TRIE> bool TermIdManager
 template<typename NameString, typename NameID, typename TRIE>bool TermIdManager<
 		NameString, NameID, TRIE>::getTermIdListByWildcardPattern(
 		const NameString& wildcardPattern, std::vector<NameID>& termIdList) {
-	boost::mutex::scoped_lock indexLock(termIndexerLock_);
-	return starSearchIndexer_.matchRegExp(wildcardPattern, termIdList);
+	boost::mutex::scoped_lock indexLock(termIndexerLock_);	
+	return starSearchIndexer_.findRegExp(wildcardPattern, termIdList);
 
 }
 

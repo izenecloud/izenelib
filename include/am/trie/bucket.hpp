@@ -14,7 +14,7 @@
 using namespace wiselib;
 using namespace std;
 
-int debug_count = 0;
+//int debug_count = 0;
 template <
   class STRING_TYPE = string
   >
@@ -264,7 +264,8 @@ protected:
         if (t > DISK_STR_BUF_SIZE || strSize > DISK_STR_BUF_SIZE)
         {
           //THROW exception
-          LDBG_<<"\nError:  _bucket_(struct _disk_bucket_* disk, uint64_t addr ) 1:"<<debug_count;
+          //LDBG_<<"\nError:  _bucket_(struct _disk_bucket_* disk, uint64_t addr ) 1:"<<debug_count;
+          LDBG_<<"\nError:  _bucket_(struct _disk_bucket_* disk, uint64_t addr ) 1:";
           return;
         }
         

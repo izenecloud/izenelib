@@ -14,7 +14,7 @@
 
 
 using namespace std;
-extern int debug_count;
+//extern int debug_count;
 
 //typedef boost::archive::text_iarchive iarchive;
 //typedef boost::archive::text_oarchive oarchive;
@@ -66,7 +66,7 @@ public:
    *@param filename Name of file stores trie data. It will generate 3 files. The suffix of them are '.buk', '.nod', '.has'.
    * They stands for bucket file, trie node file and hash table file respectively.
    **/
-  BTrie(const string& filename)
+  BTrie(const string& filename="_btrie")
     :pNodeCache_(NULL)
   {
     string bstr = filename+".buk";
@@ -502,13 +502,13 @@ public:
     return hashTable_.update(str, contentAddr);
   }
 
-  void findRegExp(const STRING_TYPE& regexp,  vector<uint64_t>& ret)
+  bool findRegExp(const STRING_TYPE& regexp,  vector<uint32_t>& ret)
   {
     vector<item_pair<STRING_TYPE> > v;
     findRegExp(regexp, v);
 
     for (typename vector<item_pair<STRING_TYPE> >::iterator i=v.begin(); i!=v.end();i++)
-      ret.push_back((*i).addr_);
+      ret.push_back((uint32_t)i->addr_);
 
     return ret.size()!=0;
   }
