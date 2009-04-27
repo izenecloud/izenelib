@@ -1,12 +1,12 @@
 PROJECT(ProcMemInfo)
 
 include_directories ( 
-		../../../include/am/sdb_btree
+		${izenelib_SOURCE_DIR}/include/am/sdb_btree
 		)
 # This section build the libraries
 SET(CPP sdb_btree_header.cpp)
         
-SET(LIBRARY_OUTPUT_PATH ../../../lib)
+set ( LIBRARY_OUTPUT_PATH ${izenelib_SOURCE_DIR}/lib ) 
 
 ADD_LIBRARY( sdb_btree_shared SHARED ${CPP})
 SET_TARGET_PROPERTIES( sdb_btree_shared PROPERTIES OUTPUT_NAME "sdb_btree")

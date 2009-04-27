@@ -1,12 +1,12 @@
 PROJECT(ProcMemInfo)
 
 include_directories ( 
-		../../include/util
+		${izenelib_SOURCE_DIR}/include/util
 		)
 # This section build the libraries
 SET(CPP ProcMemInfo.cpp)
         
-SET(LIBRARY_OUTPUT_PATH  ../../lib)
+set ( LIBRARY_OUTPUT_PATH ${izenelib_SOURCE_DIR}/lib ) 
 
 ADD_LIBRARY(procmeminfo_shared SHARED ${CPP})
 SET_TARGET_PROPERTIES(procmeminfo_shared PROPERTIES OUTPUT_NAME "procmeminfo")
