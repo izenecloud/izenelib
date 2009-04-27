@@ -10,14 +10,18 @@ INC_PATH = -I $(IZENELIB)/3rdparty -I /usr/local/include/boost-1_38
 .cc.o:
 	$(GPP) $(CC_OPTIONS) ${INC_PATH} $<
 
-TARGET = t_bench
+TARGET = t_bench t_febird
 
 T_BENCH_OBJ = t_bench.o
+T_FEBIRD_OBJ = t_febird.o
 
 all:$(TARGET)
 
 t_bench:$(T_BENCH_OBJ)
 	$(GPP) $(T_BENCH_OBJ) ${LIB_PATH} -o $@ 
 
+t_febird:$(T_FEBIRD_OBJ)
+	$(GPP) $(T_FEBIRD_OBJ) ${LIB_PATH} -o $@ 
+
 clean:
-	-rm -f $(TARGET) ${T_BENCH_OBJ}
+	-rm -f $(TARGET) ${T_BENCH_OBJ} ${T_FEBIRD_OBJ} *.bin
