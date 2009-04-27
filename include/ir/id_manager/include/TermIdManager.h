@@ -28,8 +28,8 @@ namespace idmanager {
 
 
 template<typename NameString, typename NameID,
-		//typename TRIE = LexicalTrie<NameString> > class TermIdManager :
-		typename TRIE = izenelib::am::BTrie<NameString> > class TermIdManager :
+		typename TRIE = LexicalTrie<NameString> > class TermIdManager :
+		//typename TRIE = izenelib::am::BTrie<NameString> > class TermIdManager :
 	protected IDFactory<NameString, NameID> {
 
 public:
