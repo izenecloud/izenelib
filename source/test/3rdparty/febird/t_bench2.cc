@@ -63,7 +63,7 @@ private:
     {
         ar & a & b & c & d & e;
     }
-DATA_IO_LOAD_SAVE(MyData2, &a&b&c&d&e)
+    DATA_IO_LOAD_SAVE(MyData2, &a&b&c&d&e)
 };
 }
 
@@ -98,14 +98,6 @@ struct VarIntD
 
 	DATA_IO_LOAD_SAVE(VarIntD, &a&b&c&d&e&f)
 
-// 如果使用var_int存储小整数会节省点空间
-// 无需使用 as_var_int, 它们本身已是 var_int
-// 	DATA_IO_LOAD_SAVE(VarIntD,
-// 		&as_var_int(a)
-// 		&as_var_int(b)
-// 		&as_var_int(c)
-// 		&as_var_int(d))
-
 private:
     friend class boost::serialization::access;
     template<class Archive>
@@ -137,8 +129,7 @@ struct Bench
 	LARGE_INTEGER freq;
 #endif
 
-Bench(int loop, int count)
-: loop(loop), count(count)
+Bench(int loop, int count): loop(loop), count(count)
 {
 #if defined(_WIN32) || defined(_WIN64)
 	QueryPerformanceFrequency(&freq);
@@ -148,7 +139,6 @@ Bench(int loop, int count)
 		char szbuf[32];
 		int x = rand();
 	//	itoa(x, szbuf, 10);
-	// 输出16字节长的 string 是为了使存储格式的地址对齐
 		sprintf(szbuf, "%016d", x);
 		v0.push_back(make_pair(x, x));
 		v2.push_back(szbuf);
@@ -161,6 +151,7 @@ Bench(int loop, int count)
 		MyData2 md2;
 		MyData3 md3;
 		md2.a = md2.b = md2.c = md2.d = x;
+		md2.e = md1;
 		md3.a = md3.b = md3.c = md3.d = x;
 		v4.push_back(make_pair(md2, md3));
 	}
@@ -169,13 +160,13 @@ Bench(int loop, int count)
 void print_report(const char* prefix, const TimeCost& d, const TimeCost& bd)
 {
 	printf("%s: loop=%d, time[febird, boost, ratio=b/f] in us\n", prefix, loop);
-	printf("    vector<pair<int,int> >.size=%5d, time[%7lld, %7lld, %9.4f]\n", count, us(d.d0), us(bd.d0), (double)bd.d0/d.d0);
-	printf("    vector<MyData1>       .size=%5d, time[%7lld, %7lld, %9.4f]\n", count, us(d.d1), us(bd.d1), (double)bd.d1/d.d1);
-	printf("    vector<string>        .size=%5d, time[%7lld, %7lld, %9.4f]\n", count, us(d.d2), us(bd.d2), (double)bd.d2/d.d2);
-	printf("    map<int,string>       .size=%5d, time[%7lld, %7lld, %9.4f]\n",v3.size(), us(d.d3), us(bd.d3), (double)bd.d3/d.d3);
-	printf("    loop{MyData1 },  loop count=%5d, time[%7lld, %7lld, %9.4f]\n", count, us(d.d4), us(bd.d4), (double)bd.d4/d.d4);
-	printf("    loop{VarIntD },  loop count=%5d, time[%7lld, %7lld, %9.4f]\n", count, us(d.d5), us(bd.d5), (double)bd.d5/d.d5);
-	printf("    vector<MyData23>,     .size=%5d, time[%7lld, %7lld, %9.4f]\n", count, us(d.d6), us(bd.d6), (double)bd.d6/d.d6);
+	printf("    vector<pair<int,int> >.size=%5d, time[%7ld, %7ld, %9.4f]\n", count, us(d.d0), us(bd.d0), (double)bd.d0/d.d0);
+	printf("    vector<MyData1>       .size=%5d, time[%7ld, %7ld, %9.4f]\n", count, us(d.d1), us(bd.d1), (double)bd.d1/d.d1);
+	printf("    vector<string>        .size=%5d, time[%7ld, %7ld, %9.4f]\n", count, us(d.d2), us(bd.d2), (double)bd.d2/d.d2);
+	printf("    map<int,string>       .size=%5d, time[%7ld, %7ld, %9.4f]\n",(int)v3.size(), us(d.d3), us(bd.d3), (double)bd.d3/d.d3);
+	printf("    loop{MyData1 },  loop count=%5d, time[%7ld, %7ld, %9.4f]\n", count, us(d.d4), us(bd.d4), (double)bd.d4/d.d4);
+	printf("    loop{VarIntD },  loop count=%5d, time[%7ld, %7ld, %9.4f]\n", count, us(d.d5), us(bd.d5), (double)bd.d5/d.d5);
+	printf("    vector<MyData23>,     .size=%5d, time[%7ld, %7ld, %9.4f]\n", count, us(d.d6), us(bd.d6), (double)bd.d6/d.d6);
 	printf("\n");
 }
 
@@ -198,9 +189,6 @@ void print_report(const char* prefix, const TimeCost& d, const TimeCost& bd)
 #endif
 
 	template<class ArchiveT>
-// #ifdef _MSC_VER
-// 	__forceinline
-// #endif
 	void test_serialize(ArchiveT& ar, TimeCost& d)
 	{
 		int64_t c0, c1, c2, c3, c4, c5, c6, c7;
@@ -251,11 +239,7 @@ void print_report(const char* prefix, const TimeCost& d, const TimeCost& bd)
 				binary_oarchive ar(file);
 			//	test_serialize(ar, bdo);
 				TimeCost& d = bdo;
-#ifdef _DEBUG
-			test_serialize(ar, d);
-#else
-			#include "ben_body.h"
-#endif
+				test_serialize(ar, d);
 			}
 			print_report("boost_bin_save", bdo, bdo);
 		}
@@ -267,11 +251,7 @@ void print_report(const char* prefix, const TimeCost& d, const TimeCost& bd)
 				binary_iarchive ar(file);
 			//	test_serialize(ar, bdi);
 				TimeCost& d = bdi;
-#ifdef _DEBUG
-			test_serialize(ar, d);
-#else
-			#include "ben_body.h"
-#endif
+				test_serialize(ar, d);
 			}
 			print_report("boost_bin_load", bdi, bdi);
 		}
@@ -290,12 +270,7 @@ void file_ar_run(const char* prefix, const char* mode, Archive*)
 		file0.seek(0);
 		Archive ar;
 		ar.attach(&file0);
-	//	test_serialize(ar, d);
-#ifdef _DEBUG
-			test_serialize(ar, d);
-#else
-			#include "ben_body.h"
-#endif
+		test_serialize(ar, d);
 	}
 	print_report(prefix, d, Archive::is_loading::value ? bdi : bdo);
 }
@@ -321,11 +296,7 @@ void mem_ar_run(const char* prefix, unsigned char* buffer, int length, Archive*)
 	for (int i = 0; i < loop; ++i)
 	{
 		Archive ar = new_mem_ar(buffer, length, (Archive*)0, (typename Archive::stream_t*)0);
-#ifdef _DEBUG
-			test_serialize(ar, d);
-#else
-			#include "ben_body.h"
-#endif
+		test_serialize(ar, d);
 	//	tail = ar.current();
 
 		if (ar.diff(buffer) > length)
@@ -333,6 +304,18 @@ void mem_ar_run(const char* prefix, unsigned char* buffer, int length, Archive*)
 			fprintf(stderr, "buffer overrun\n");
 			abort();
 		}
+	}
+	print_report(prefix, d, Archive::is_loading::value ? bdi : bdo);
+}
+
+template<class Archive>
+void mem_ar_run(const char* prefix, Archive*)
+{
+	TimeCost d;
+	for (int i = 0; i < loop; ++i)
+	{
+		Archive ar;
+		test_serialize(ar, d);
 	}
 	print_report(prefix, d, Archive::is_loading::value ? bdi : bdo);
 }
@@ -371,6 +354,10 @@ void run_febird()
 	mem_ar_run("Uncheck Load NoVarInt Native", buffer, length, (NativeNoVarIntInput<MinMemIO>*)(0));
 	mem_ar_run("Uncheck Save NoVarInt Portable", buffer, length, (PortableNoVarIntOutput<MinMemIO>*)(0));
 	mem_ar_run("Uncheck Load NoVarInt Portable", buffer, length, (PortableNoVarIntInput<MinMemIO>*)(0));
+
+	mem_ar_run("Memory Save AutoGrown", (NativeDataOutput<AutoGrownMemIO>*)(0));
+//	mem_ar_run("Memory Load AutoGrown", (NativeDataInput<AutoGrownMemIO>*)(0));
+	
 }
 };
 
@@ -380,17 +367,13 @@ int main(int argc, char* argv[])
 	int loop = argc >= 2 ? atoi(argv[1]) : 1000;
 	int count = argc >= 3 ? atoi(argv[2]) : 1000;
 
-	printf("sizeof MyData1=%02d\n", sizeof(MyData1));
-	printf("sizeof MyData2=%02d\n", sizeof(MyData2));
-	printf("sizeof MyData3=%02d\n", sizeof(MyData3));
-	printf("sizeof MyData23=%02d\n", sizeof(MyData23));
-	printf("sizeof pair<int,int>=%02d\n", sizeof(pair<int,int>));
+	printf("sizeof MyData1=%02d\n", (int)sizeof(MyData1));
+	printf("sizeof MyData2=%02d\n", (int)sizeof(MyData2));
+	printf("sizeof MyData3=%02d\n", (int)sizeof(MyData3));
+	printf("sizeof MyData23=%02d\n", (int)sizeof(MyData23));
+	printf("sizeof pair<int,int>=%02d\n", (int)sizeof(pair<int,int>));
 
 	Bench ben(loop, count);
-#ifdef _DEBUG
-		ben.run_boost();
-		ben.run_febird();
-#else
 	try {
 		ben.run_boost();
 		ben.run_febird();
@@ -399,7 +382,6 @@ int main(int argc, char* argv[])
 	{
 		fprintf(stderr, "exception: %s\n", exp.what());
 	}
-#endif
 	return 0;
 }
 

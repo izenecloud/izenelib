@@ -18,6 +18,12 @@
 #  include <boost/shared_ptr.hpp>
 #endif
 
+#if BOOST_VERSION < 103301
+# include <boost/limits.hpp>
+# include <boost/detail/limits.hpp>
+#else
+# include <boost/detail/endian.hpp>
+#endif
 #include <boost/cstdint.hpp>
 #include <boost/mpl/bool.hpp>
 #include "var_int.h"
