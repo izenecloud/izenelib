@@ -252,7 +252,7 @@ public:
 	 */
 	bool open() {
 		hdb_ = tchdbnew();
-		return tchdbopen(hdb_, fileName_.c_str(), 15);
+		return tchdbopen(hdb_, fileName_.c_str(), HDBOCREAT | HDBOWRITER);
 	}
 	/**
 	 *   db should be closed after open, and  it will automatically called in deconstuctor.

@@ -164,18 +164,23 @@ public:
 
 	void run_insert(bool mem=true) {
 		clock_t t1 = clock();
+		int hit = 0;
+		int sum = 0;
 		for (int i =0; i<num_; i++) {
+			sum++;
 #if INNER_TRACE
 			if (trace_) {
 				cout<<"Insert key="<<generateData<KeyType>(i, num_, rand_)<<endl;
 			}
 			am_.display();
 #endif			
-			am_.insert(generateData<KeyType>(i, num_, rand_), generateData<
-					ValueType>(i, num_, rand_) );
+			if (am_.insert(generateData<KeyType>(i, num_, rand_), generateData<
+					ValueType>(i, num_, rand_) ) )
+				hit++;
 		}
 		if (mem) {
 			printf("insert elapsed: %lf seconds\n", double(clock()- t1)/CLOCKS_PER_SEC);
+			printf("insert success ratio: %d /%d\n", hit, sum);
 			displayMemInfo();
 		}
 	}
@@ -217,24 +222,29 @@ public:
 		}
 		if (mem) {
 			printf("find elapsed: %lf seconds\n", double(clock()- t1)/CLOCKS_PER_SEC);
-			printf("hit ratio: %d /%d\n", hit, sum);
+			printf("find hit ratio: %d /%d\n", hit, sum);
 			displayMemInfo();
 		}
 	}
 
 	void run_del(bool mem=true) {
 		clock_t t1 = clock();
+		int hit = 0;
+		int sum = 0;
 		for (int i =0; i<num_; i++) {
+			sum++;
 
 #if INNER_TRACE			
 			if (trace_) {
 				cout<<"del key="<<generateData<KeyType>(i, num_, rand_)<<endl;
 			}
 #endif 			
-			am_.del(generateData<KeyType>(i, num_, rand_) );
+			if (am_.del(generateData<KeyType>(i, num_, rand_) ))
+				hit++;
 		}
 		if (mem) {
 			printf("del elapsed: %lf seconds\n", double(clock()- t1)/CLOCKS_PER_SEC);
+			printf("del success ratio: %d /%d\n", hit, sum);
 			displayMemInfo();
 		}
 	}

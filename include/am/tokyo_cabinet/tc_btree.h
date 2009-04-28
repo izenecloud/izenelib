@@ -217,7 +217,7 @@ public:
 		if(setCmpFun){
 			tcbdbsetcmpfunc(bdb_, compare_tc<KeyType>, NULL);
 		}
-		return tcbdbopen(bdb_, fileName_.c_str(), 15);
+		return tcbdbopen(bdb_, fileName_.c_str(), HDBOCREAT | HDBOWRITER);
 	}
 	/**
 	 *   db should be closed after open, and  it will automatically called in deconstuctor.
