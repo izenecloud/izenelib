@@ -44,9 +44,9 @@ namespace idmanager {
 #define PATCH_VERSION "20081203"
 
 
-template<typename NameString=wiselib::UString, typename NameID=unsigned int> class IDManager {
+template<typename NameString=wiselib::UString, typename NameID=unsigned int> class _IDManager {
 public:
-	IDManager(const string& sdbname = "idm") :
+	_IDManager(const string& sdbname = "idm") :
 		termIdManager_(sdbname + "_tid"), docIdManager_(sdbname + "_did"),
 				collectionIdManager_(sdbname + "_cid") {
 		version_ = "ID Manager - ver. alpha ";
@@ -57,7 +57,7 @@ public:
 		version_ += PATCH_VERSION;
 	}
 
-	~IDManager();
+	~_IDManager();
 
 	/**
 	 * @brief a member function to get term ID from vocabulary which matches to the given term string.
@@ -173,7 +173,7 @@ private:
 	CollectionIdManager<NameString, NameID> collectionIdManager_; ///< Collection Id Manager Class
 	std::string version_; ///< version of id-manager
 
-}; // end - class IDManager
+}; // end - class _IDManager
 
 
 /*****************************************************************************
@@ -181,37 +181,37 @@ private:
  *****************************************************************************/
 
 
-template<typename NameString, typename NameID> IDManager<NameString, NameID>::~IDManager() {
+template<typename NameString, typename NameID> _IDManager<NameString, NameID>::~_IDManager() {
 
-} // end - ~IDManager()
+} // end - ~_IDManager()
 
 /*****************************************************************************
  *                                                     Term Related Interfaces
  *****************************************************************************/
 
-template<typename NameString, typename NameID> bool IDManager<NameString,
+template<typename NameString, typename NameID> bool _IDManager<NameString,
 	NameID>::getTermIdByTermString(const NameString& termString, NameID& termId) {
 return termIdManager_.getTermIdByTermString(termString, termId);
 } // end - getTermIdByTermString() 
 
-template<typename NameString, typename NameID> bool IDManager<NameString,
+template<typename NameString, typename NameID> bool _IDManager<NameString,
 	NameID>::getTermIdListByTermStringList(
 	const std::vector<NameString>& termStringList, std::vector<NameID>& termIdList) {
 return termIdManager_.getTermIdListByTermStringList(termStringList, termIdList);
 } // end - getTermIdListByTermStringList()
 
-template<typename NameString, typename NameID> bool IDManager<NameString,
+template<typename NameString, typename NameID> bool _IDManager<NameString,
 	NameID>::getTermIdListByWildcardPattern(const NameString& wildcardString,
 	std::vector<NameID>& termIdList) {
 return termIdManager_.getTermIdListByWildcardPattern(wildcardString, termIdList);
 } // end - getTermIdListByWildcardString()
 
-template<typename NameString, typename NameID> bool IDManager<NameString,
+template<typename NameString, typename NameID> bool _IDManager<NameString,
 	NameID>::getTermStringByTermId(NameID termId, NameString& termString) {
 return termIdManager_.getTermStringByTermId(termId, termString);
 } // end - getTermStringByTermId()
 
-template<typename NameString, typename NameID> bool IDManager<NameString,
+template<typename NameString, typename NameID> bool _IDManager<NameString,
 	NameID>::getTermStringListByTermIdList(
 	const std::vector<NameID>& termIdList, std::vector<NameString>& termStringList) {
 return termIdManager_.getTermStringListByTermIdList(termIdList, termStringList);
@@ -221,13 +221,13 @@ return termIdManager_.getTermStringListByTermIdList(termIdList, termStringList);
 /*****************************************************************************
  *                                                 Document Related Interfaces
  *****************************************************************************/
-template<typename NameString, typename NameID> bool IDManager<NameString,
+template<typename NameString, typename NameID> bool _IDManager<NameString,
 	NameID>::getDocIdByDocName(NameID collectionId, const NameString& docName,
 	NameID& docId) {
 return docIdManager_.getDocIdByDocName(collectionId, docName, docId);
 } // end - getDocIdByDocName()
 
-template<typename NameString, typename NameID> bool IDManager<NameString,
+template<typename NameString, typename NameID> bool _IDManager<NameString,
 	NameID>::getDocNameByDocId(NameID collectionId, NameID docId,
 	NameString& docName) {
 return docIdManager_.getDocNameByDocId(collectionId, docId, docName);
@@ -238,20 +238,21 @@ return docIdManager_.getDocNameByDocId(collectionId, docId, docName);
  *                                               Collection Related Interfaces
  *****************************************************************************/
 
-template<typename NameString, typename NameID> bool IDManager<NameString,
+template<typename NameString, typename NameID> bool _IDManager<NameString,
 	NameID>::getCollectionIdByCollectionName(const NameString& collectionName,
 	NameID& collectionId) {
 return collectionIdManager_.getCollectionIdByCollectionName(collectionName,
 		collectionId);
 } // end - getCollectionIdByCollectionName()
 
-template<typename NameString, typename NameID> bool IDManager<NameString,
+template<typename NameString, typename NameID> bool _IDManager<NameString,
 	NameID>::getCollectionNameByCollectionId(NameID collectionId,
 	NameString& collectionName) {
 return collectionIdManager_.getCollectionNameByCollectionId(collectionId,
 		collectionName);
 } // end - getCollectionNameByCollectionId()
 
+typedef _IDManager<> IDManager;
 
 } // end - namespace sf1v5
 
