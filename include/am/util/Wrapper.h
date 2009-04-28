@@ -18,12 +18,14 @@
 using namespace std;
 using namespace boost;
 
+const int archive_flags = archive::no_header | archive::no_codecvt; 
+
 BEGIN_SERIALIZATION
 
 template<class T> inline void read_image(T& dat, const DbObjPtr& ptr) {
 	stringstream istr((char*)ptr->getData());
 	{
-		boost::archive::text_iarchive ia(istr);
+		boost::archive::text_iarchive ia(istr, archive_flags);
 		ia & dat;
 	}
 	//make sure oa is deconstructed to avoid stream_error exception.
@@ -33,7 +35,7 @@ template<class T> inline void read_image(T& dat, const DbObjPtr& ptr) {
 template<class T> inline void write_image(const T& dat, DbObjPtr& ptr) {
 	stringstream ostr;
 	{
-		boost::archive::text_oarchive oa(ostr);
+		boost::archive::text_oarchive oa(ostr, archive_flags);
 		oa & dat;
 	}
 	//make sure oa is deconstructed to avoid stream_error exception.	
