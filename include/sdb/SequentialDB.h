@@ -599,10 +599,10 @@ template<typename KeyType, typename ValueType, typename LockType,
 }
 
 template< typename KeyType =string, typename ValueType=NullType,
-		typename LockType =NullLock > class unordered_sdb :
+		typename LockType =NullLock > class unordered_sdb_1 :
 	public SequentialDB<KeyType, ValueType, LockType, tc_hash<KeyType, ValueType, LockType> > {
 public:
-	unordered_sdb(const string& sdbname) :
+	unordered_sdb_1(const string& sdbname) :
 		SequentialDB<KeyType, ValueType, LockType,
 				tc_hash<KeyType, ValueType, LockType> >(sdbname) {
 
@@ -610,10 +610,10 @@ public:
 };
 
 template< typename KeyType =string, typename ValueType=NullType,
-		typename LockType =NullLock > class unordered_sdb_1 :
+		typename LockType =NullLock > class unordered_sdb :
 	public SequentialDB<KeyType, ValueType, LockType, sdb_hash<KeyType, ValueType, LockType> > {
 public:
-	unordered_sdb_1(const string& sdbname) :
+	unordered_sdb(const string& sdbname) :
 		SequentialDB<KeyType, ValueType, LockType,
 				sdb_hash<KeyType, ValueType, LockType> >(sdbname) {
 
