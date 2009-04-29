@@ -1,9 +1,9 @@
 /* vim: set tabstop=4 : */
 #include <sstream>
 #include <stdexcept>
-#include <StreamBuffer.h>
-#include <IStreamWrapper.h>
-#include <FileStream.h>
+#include "StreamBuffer.h"
+#include "IStreamWrapper.h"
+#include "FileStream.h"
 
 namespace febird {
 

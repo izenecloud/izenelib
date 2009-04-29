@@ -1,6 +1,6 @@
 /* vim: set tabstop=4 : */
-#include <HexCodingStream.h>
-#include <DataInput.h>
+#include "HexCodingStream.h"
+#include "DataInput.h"
 #include <sstream>
 
 namespace febird {

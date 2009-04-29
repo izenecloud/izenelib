@@ -1,5 +1,5 @@
 /* vim: set tabstop=4 : */
-#include <var_int.h>
+#include "var_int.h"
 #include <assert.h>
 #include <stdexcept>
 

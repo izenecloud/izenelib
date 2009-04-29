@@ -1,5 +1,5 @@
 /* vim: set tabstop=4 : */
-#include <MemStream.h>
+#include "MemStream.h"
 #include <sstream>
 #include <stdexcept>
 #include <typeinfo>

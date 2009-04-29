@@ -1,5 +1,5 @@
 /* vim: set tabstop=4 : */
-#include <FileStream.h>
+#include "FileStream.h"
 
 #include <assert.h>
 #include <string.h>
