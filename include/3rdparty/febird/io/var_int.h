@@ -31,7 +31,7 @@ struct var_int_org;
 
 template<class IntT>
 struct var_int;
-
+/*
 //! is_primitive && is_var_int
 //!
 #define FEBIRD_DEFINE_VAR_INT(IntT)	\
@@ -41,7 +41,18 @@ struct var_int;
 	template<> struct var_int<IntT> { typedef BOOST_JOIN(var_, IntT) type; };	 \
 	template<> struct var_int<BOOST_JOIN(var_, IntT)> { typedef BOOST_JOIN(var_, IntT) type; };	 \
 	template<> struct var_int_org<BOOST_JOIN(var_, IntT)> { typedef IntT type; };\
-/**/
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+*/
+#define FEBIRD_DEFINE_VAR_INT_IMPL(IntT, VarIntT)\
+	BOOST_STRONG_TYPEDEF(IntT, VarIntT)	\
+	template<> struct is_var_int<VarIntT> : boost::mpl::true_ {}; \
+	template<> struct is_primitive<VarIntT> : boost::mpl::true_ {}; \
+	template<> struct var_int<IntT> { typedef VarIntT type; }; \
+	template<> struct var_int<VarIntT> { typedef VarIntT type; };	 \
+	template<> struct var_int_org<VarIntT> { typedef IntT type; };\
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+#define FEBIRD_DEFINE_VAR_INT(IntT)	 FEBIRD_DEFINE_VAR_INT_IMPL(IntT, BOOST_JOIN(var_, IntT))
+
 
 // template<class T, class SFINAE = void>
 // struct to_var_int
@@ -69,14 +80,14 @@ FEBIRD_DEFINE_VAR_INT(uint32_t)
 FEBIRD_DEFINE_VAR_INT( int64_t)
 FEBIRD_DEFINE_VAR_INT(uint64_t)
 #endif
-/*
+
 inline void byte_swap_in(var_int16_t& x, boost::mpl::true_) { x.t = byte_swap(x.t); }
 inline void byte_swap_in(var_int32_t& x, boost::mpl::true_) { x.t = byte_swap(x.t); }
 inline void byte_swap_in(var_int64_t& x, boost::mpl::true_) { x.t = byte_swap(x.t); }
 inline void byte_swap_in(var_uint16_t& x, boost::mpl::true_) { x.t = byte_swap(x.t); }
 inline void byte_swap_in(var_uint32_t& x, boost::mpl::true_) { x.t = byte_swap(x.t); }
 inline void byte_swap_in(var_uint64_t& x, boost::mpl::true_) { x.t = byte_swap(x.t); }
-*/
+
 /*
 #if ULONG_MAX == 0xffffffff
 template<> struct var_int<unsigned long> { typedef var_uint32_t type; };

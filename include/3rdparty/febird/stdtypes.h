@@ -35,7 +35,7 @@ namespace integer_types
 	using boost::uint16_t;
 	using boost::uint32_t;
 
-#if !defined(BOOST_NO_INTRINSIC_INT64_T)
+#if !defined(BOOST_NO_INT64_T)
 	using boost::int64_t;
 	using boost::uint64_t;
 #endif
