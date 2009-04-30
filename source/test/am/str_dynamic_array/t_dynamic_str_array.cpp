@@ -139,6 +139,7 @@ BOOST_AUTO_TEST_CASE(dyn_insertion_check )
   printf( "\nIt takes %f seconds for dynamic string array to insert %d random strings\n", (double)dsa_t/ CLOCKS_PER_SEC, vstr.size());
   printf( "\nIt takes %f seconds for vector<string> to insert %d random strings\n", (double)vs_t/ CLOCKS_PER_SEC, vstr.size());
 
+  ////////////////////////////////////////////
 
   dsa_t = vs_t = 0;
   ofstream of1("./db", ios_base::trunc);
@@ -172,6 +173,8 @@ BOOST_AUTO_TEST_CASE(dyn_insertion_check )
   printf( "\nIt takes %f seconds for dynamic string array to serialize & deserialize %d random strings\n", (double)dsa_t/ CLOCKS_PER_SEC, vstr.size());
   printf( "\nIt takes %f seconds for vector<string> to serialize & deserialize %d random strings\n", (double)vs_t/ CLOCKS_PER_SEC, vstr.size());
 
+  ///////////////////////////////////////
+  
   dsa_t = vs_t = 0;
   start = clock();
   dsa.sort();
@@ -185,6 +188,60 @@ BOOST_AUTO_TEST_CASE(dyn_insertion_check )
   vs_t += finish-start;
   printf( "\nIt takes %f seconds for vector<string> to sort\n", (double)vs_t/ CLOCKS_PER_SEC);
 
+  ///////////////////////////////////////
+    
+  dsa_t = vs_t = 0;
+  start = clock();
+  for (DynamicStrArray::const_iterator i =dsa.begin(); i!=dsa.end();i++)
+  {
+    string s = *i;
+    //cout<<s<<endl;
+  }
+  finish = clock();
+  dsa_t += finish -start ;
+  printf( "\nIt takes %f seconds for DynammicStrArray's iterator to get %d strings\n", (double)dsa_t/ CLOCKS_PER_SEC, vstr.size());
+
+  start = clock();
+  for (vector<string>::const_iterator i =vs.begin(); i!=vs.end();i++)
+    string s = *i;
+  finish = clock();
+  vs_t += finish -start ;
+  printf( "\nIt takes %f seconds for vector<string>'s iterator to get %d strings\n", (double)vs_t/ CLOCKS_PER_SEC, vstr.size());
+
+  ///////////////////////////////////////
+  
+  dsa_t = vs_t = 0;
+  start = clock();
+  for (size_t i=0; i<dsa.size(); i++)
+    string s = dsa[i];
+  finish = clock();
+  dsa_t += finish -start ;
+  printf( "\nIt takes %f seconds for dynamic string array's operator [] to get %d strings\n", (double)dsa_t/ CLOCKS_PER_SEC, vstr.size());
+
+  start = clock();
+  for (size_t i=0; i<vs.size(); i++)
+    string ss = vs[i];
+  finish = clock();
+  vs_t += finish -start ;
+  printf( "\nIt takes %f seconds for vector<string>'s operator [] to get %d strings\n", (double)vs_t/ CLOCKS_PER_SEC, vstr.size());
+
+  dsa_t = vs_t = 0;
+  start = clock();
+  for (size_t i=0; i<vstr.size()/10000; i++)
+    dsa.find(vstr[i]);
+  finish = clock();
+  dsa_t += finish -start ;
+  printf( "\nIt takes %f seconds for DynammicStrArray to find %d strings\n", (double)dsa_t/ CLOCKS_PER_SEC, vstr.size()/10000);
+
+  start = clock();
+  for (size_t i=0; i<vstr.size()/10000; i++)
+    find(vs.begin(), vs.end(), vstr[i]);
+  finish = clock();
+  vs_t += finish -start ;
+  printf( "\nIt takes %f seconds for vector<string> to find %d strings\n", (double)vs_t/ CLOCKS_PER_SEC, vstr.size()/10000);
+
+  /////////////////////////////////////////////
+    
   DynamicStrArray::const_iterator it =dsa.begin();
   it++;
   it++;  
@@ -206,39 +263,7 @@ BOOST_AUTO_TEST_CASE(dyn_insertion_check )
   vs_t += finish -start ;
   printf( "\nIt takes %f seconds for vector<string> to insert %d strings\n", (double)vs_t/ CLOCKS_PER_SEC, vstr.size()/100000);
 
-  
-  dsa_t = vs_t = 0;
-  start = clock();
-  for (DynamicStrArray::const_iterator i =dsa.begin(); i!=dsa.end();i++)
-  {
-    string s = *i;
-    cout<<s<<endl;
-  }
-  finish = clock();
-  dsa_t += finish -start ;
-  printf( "\nIt takes %f seconds for DynammicStrArray's iterator to get %d strings\n", (double)dsa_t/ CLOCKS_PER_SEC, vstr.size());
 
-  start = clock();
-  for (vector<string>::const_iterator i =vs.begin(); i!=vs.end();i++)
-    string s = *i;
-  finish = clock();
-  vs_t += finish -start ;
-  printf( "\nIt takes %f seconds for vector<string>'s iterator to get %d strings\n", (double)vs_t/ CLOCKS_PER_SEC, vstr.size());
-
-  dsa_t = vs_t = 0;
-  start = clock();
-  for (size_t i=0; i<dsa.size(); i++)
-    string s = dsa[i];
-  finish = clock();
-  dsa_t += finish -start ;
-  printf( "\nIt takes %f seconds for dynamic string array's operator [] to get %d strings\n", (double)dsa_t/ CLOCKS_PER_SEC, vstr.size());
-
-  start = clock();
-  for (size_t i=0; i<vs.size(); i++)
-    string ss = vs[i];
-  finish = clock();
-  vs_t += finish -start ;
-  printf( "\nIt takes %f seconds for vector<string>'s operator [] to get %d strings\n", (double)vs_t/ CLOCKS_PER_SEC, vstr.size());  
 }
 
 BOOST_AUTO_TEST_SUITE_END()
