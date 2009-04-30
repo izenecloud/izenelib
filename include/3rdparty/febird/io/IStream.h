@@ -6,7 +6,7 @@
 # pragma once
 #endif
 
-#include <boost/type_traits.hpp>
+#include <boost/mpl/bool.hpp>
 #include "../stdtypes.h"
 
 namespace febird {

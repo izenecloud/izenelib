@@ -198,6 +198,82 @@ int InputBuffer::fill_and_get_byte() FEBIRD_RESTRICT
 		return -1;
 }
 
+void InputBuffer::getline(std::string& line, size_t maxlen)
+{
+	if (line.capacity() < maxlen)
+		line.reserve(maxlen);
+	line.resize(0);
+	size_t len = 0;
+	for (;;)
+	{
+		for (byte* p = m_cur; ; ++p, ++len)
+		{
+			if (len == maxlen)
+			{
+				line.append((char*)m_cur, maxlen-len);
+				assert(line.size() == len);
+				m_cur = p;
+				return;
+			}
+			if (p == m_end)
+			{
+				if (0 == m_beg)
+				{
+					initbuf(m_capacity);
+					break;
+				}
+				line.append((char*)m_cur, (char*)m_end);
+				assert(line.size() == len);
+				m_cur = m_end;
+
+				size_t nRead = read_min_max(m_beg, m_capacity, m_capacity);
+				if (0 == nRead)
+				{
+					if (line.empty())
+						throw EndOfFileException("InputBuffer::getline, read 0 byte");
+					else {
+						m_cur = m_end = m_beg;
+						return;
+					}
+				}
+				this->update_pos(nRead);
+				m_end = m_beg + nRead;
+				p = m_cur = m_beg;
+			}
+			// 换行有三种，在这里都支持
+			//  1. "\r\n"
+			//  2. "\r"
+			//  3. "\n"
+			if ('\r' == *p)
+			{
+				line.append((char*)m_cur, (char*)p);
+				assert(line.size() == len);
+
+				// m_cur move to next char point by p, maybe p+1 == m_end
+				m_cur = p + 1;
+
+				// 如果下一个字符是换行，就直接吃掉它
+				// 如果是文件末尾，直接返回
+				int nextCh = getByte();
+				if (-1 == nextCh) // eof
+					return;
+				if ('\n' != nextCh)
+					// not line feed, push back the byte
+					--m_cur;
+
+				return;
+			}
+			if ('\n' == *p)
+			{
+				line.append((char*)m_cur, (char*)p);
+				assert(line.size() == len);
+				m_cur = p + 1;
+				return;
+			}
+		}
+	}
+}
+
 //////////////////////////////////////////////////////////////////////////////////////////////////////
 
 template<class BaseClass>

@@ -32,6 +32,7 @@ public:
 
 public:
 	FileStream(const char* fpath, const char* mode);
+	FileStream(int fd, const char* mode);
 //	explicit FileStream(FILE* fp = 0) throw() : m_fp(fp) {}
 	FileStream() throw() : m_fp(0) {} // 不是我打开的文件，请显式 attach/detach
 	~FileStream() throw() { if (m_fp) ::fclose(m_fp); }
@@ -40,6 +41,7 @@ public:
 	operator FILE*() const throw() { return m_fp; }
 
 	bool open(const char* fpath, const char* mode, bool ignoreOpenError=true);
+	void dopen(int fd, const char* mode);
 	void close() throw();
 
 	void attach(::FILE* fp) throw();

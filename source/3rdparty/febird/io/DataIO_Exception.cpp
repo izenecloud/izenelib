@@ -35,7 +35,7 @@ SizeValueTooLargeException::SizeValueTooLargeException(size_t value, size_t maxV
 	: DataFormatException(szMsg)
 {
 	char szBuf[256];
-	sprintf(szBuf, "[value=%d(0x%X), maxValue=%d(0x%X)]", value, value, maxValue, maxValue);
+	sprintf(szBuf, "[value=%zd(0x%zX), maxValue=%zd(0x%zX)]", value, value, maxValue, maxValue);
 	m_message.append(szBuf);
 }
 SizeValueTooLargeException::SizeValueTooLargeException(const std::string& strMsg)

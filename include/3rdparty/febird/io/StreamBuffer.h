@@ -155,6 +155,8 @@ public:
 			return this->fill_and_get_byte();
 	}
 
+	void getline(std::string& line, size_t maxlen);
+
 	template<class OutputStream>
 	void to_output(OutputStream& output, size_t length) FEBIRD_RESTRICT
 	{

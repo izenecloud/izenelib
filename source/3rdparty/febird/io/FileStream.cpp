@@ -27,6 +27,11 @@ FileStream::FileStream(const char* fpath, const char* mode)
    	open(fpath, mode, false);
 }
 
+FileStream::FileStream(int fd, const char* mode)
+{
+	dopen(fd, mode);
+}
+
 void FileStream::ThrowOpenFileException(const char* fpath, const char* mode)
 {
 	std::ostringstream oss;
@@ -72,6 +77,22 @@ bool FileStream::open(const char* fpath, const char* mode, bool ignoreOpenError)
 	if (!ignoreOpenError && 0 == m_fp)
 		ThrowOpenFileException(fpath, mode);
 	return 0 != m_fp;
+}
+
+void FileStream::dopen(int fd, const char* mode)
+{
+	assert(0 == m_fp);
+#ifdef _MSC_VER
+	m_fp = ::_fdopen(fd, mode);
+#else
+	m_fp = ::fdopen(fd, mode);
+#endif
+	if (0 == m_fp)
+	{
+		char szbuf[64];
+		sprintf(szbuf, "fd=%d");
+		ThrowOpenFileException(szbuf, mode);
+	}
 }
 
 void FileStream::attach(::FILE* fp) throw()
