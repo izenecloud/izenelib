@@ -24,7 +24,8 @@ public:
 
 	bool isOpen() const { return 0 != m_fp; }
 
-	bool open(const char* fpath, const char* mode, bool ignoreOpenError=true);
+	void open(const char* fpath, const char* mode);
+	bool xopen(const char* fpath, const char* mode);
 	void dopen(int fd, const char* mode);
 	void close();
 };
@@ -34,8 +35,8 @@ class FEBIRD_DLL_EXPORT ZlibInputStream	: public IInputStream, public ZlibStream
 	DECLARE_NONE_COPYABLE_CLASS(ZlibInputStream)
 
 public:
-	ZlibInputStream(const char* fpath, const char* mode);
-	ZlibInputStream(int fd, const char* mode);
+	explicit ZlibInputStream(const char* fpath, const char* mode = "rb");
+	explicit ZlibInputStream(int fd, const char* mode = "rb");
 	ZlibInputStream() throw() {} // 不是我打开的文件，请显式 attach/detach
 
 	bool eof() const;
@@ -49,8 +50,8 @@ class FEBIRD_DLL_EXPORT ZlibOutputStream : public IOutputStream, public ZlibStre
 	DECLARE_NONE_COPYABLE_CLASS(ZlibOutputStream)
 
 public:
-	ZlibOutputStream(const char* fpath, const char* mode);
-	ZlibOutputStream(int fd, const char* mode);
+	explicit ZlibOutputStream(const char* fpath, const char* mode = "wb");
+	explicit ZlibOutputStream(int fd, const char* mode = "wb");
 	ZlibOutputStream() throw() {} // 不是我打开的文件，请显式 attach/detach
 
 	void ensureWrite(const void* vbuf, size_t length);

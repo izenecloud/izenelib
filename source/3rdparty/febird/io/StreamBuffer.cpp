@@ -200,8 +200,8 @@ int InputBuffer::fill_and_get_byte() FEBIRD_RESTRICT
 
 void InputBuffer::getline(std::string& line, size_t maxlen)
 {
-	if (line.capacity() < maxlen)
-		line.reserve(maxlen);
+//	if (line.capacity() < maxlen)
+//		line.reserve(maxlen);
 	line.resize(0);
 	size_t len = 0;
 	for (;;)
@@ -238,7 +238,8 @@ void InputBuffer::getline(std::string& line, size_t maxlen)
 				}
 				this->update_pos(nRead);
 				m_end = m_beg + nRead;
-				p = m_cur = m_beg;
+				m_cur = m_beg;
+				break;
 			}
 			// 换行有三种，在这里都支持
 			//  1. "\r\n"

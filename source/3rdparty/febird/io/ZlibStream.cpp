@@ -30,12 +30,18 @@ void ZlibStreamBase::ThrowOpenFileException(const char* fpath, const char* mode)
 }
 
 // only can call on unopened ZlibInputStream
-bool ZlibStreamBase::open(const char* fpath, const char* mode, bool ignoreOpenError)
+void ZlibStreamBase::open(const char* fpath, const char* mode)
 {
 	assert(0 == m_fp);
 	m_fp = gzopen(fpath, mode);
-	if (!ignoreOpenError && 0 == m_fp)
+	if (0 == m_fp)
 		ThrowOpenFileException(fpath, mode);
+}
+
+bool ZlibStreamBase::xopen(const char* fpath, const char* mode)
+{
+	assert(0 == m_fp);
+	m_fp = gzopen(fpath, mode);
 	return 0 != m_fp;
 }
 
@@ -69,7 +75,7 @@ ZlibStreamBase::~ZlibStreamBase()
 ZlibInputStream::ZlibInputStream(const char* fpath, const char* mode)
 {
 	m_fp = 0;
-   	open(fpath, mode, false);
+   	open(fpath, mode);
 }
 
 ZlibInputStream::ZlibInputStream(int fd, const char* mode)
@@ -96,7 +102,7 @@ FEBIRD_GEN_ensureRead (ZlibInputStream::)
 ZlibOutputStream::ZlibOutputStream(const char* fpath, const char* mode)
 {
 	m_fp = 0;
-   	open(fpath, mode, false);
+   	open(fpath, mode);
 }
 
 ZlibOutputStream::ZlibOutputStream(int fd, const char* mode)

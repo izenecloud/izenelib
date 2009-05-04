@@ -45,15 +45,15 @@ class FEBIRD_DLL_EXPORT BzipOutputStream : public IOutputStream
 	FILE* m_cf;
 
 public:
-	explicit BzipOutputStream(const char* fpath, const char* mode = "wb+");
-	BzipOutputStream(int fd, const char* mode = "wb+");
+	explicit BzipOutputStream(const char* fpath, const char* mode = "wb");
+	explicit BzipOutputStream(int fd, const char* mode = "wb");
 	BzipOutputStream() : m_fp(0), m_cf(0) {}
 	~BzipOutputStream();
 
 	void close();
 
-	void open(const char* fpath, const char* mode = "wb+");
-	void dopen(int fd, const char* mode = "wb+");
+	void open(const char* fpath, const char* mode = "wb");
+	void dopen(int fd, const char* mode = "wb");
 	bool isOpen() const { return 0 != m_fp; }
 
 	void ensureWrite(const void* vbuf, size_t length);
