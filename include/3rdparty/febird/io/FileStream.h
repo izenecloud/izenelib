@@ -40,8 +40,13 @@ public:
 	bool isOpen() const throw() { return 0 != m_fp; }
 	operator FILE*() const throw() { return m_fp; }
 
-	bool open(const char* fpath, const char* mode, bool ignoreOpenError=true);
-	void dopen(int fd, const char* mode);
+	void open(const char* fpath, const char* mode);
+
+	//! no throw
+	bool xopen(const char* fpath, const char* mode) throw();
+
+	void dopen(int fd, const char* mode) throw();
+
 	void close() throw();
 
 	void attach(::FILE* fp) throw();

@@ -18,67 +18,56 @@
 #include "byte_swap.h"
 #include "is_primitive.h"
 
-// should be the last #include
-#include <boost/type_traits/detail/bool_trait_def.hpp>
-
 #undef min
 #undef max
 
 namespace febird {
 
-template<class VarIntT>
-struct var_int_org;
+template<class VarIntT> struct var_int_org;
+template<class T> struct var_int;
+template<class T> struct is_var_int : boost::mpl::false_ {};
 
-template<class IntT>
-struct var_int;
-/*
-//! is_primitive && is_var_int
-//!
-#define FEBIRD_DEFINE_VAR_INT(IntT)	\
-	BOOST_STRONG_TYPEDEF(IntT, BOOST_JOIN(var_, IntT))	\
-	BOOST_TT_AUX_BOOL_TRAIT_CV_SPEC1(is_var_int, BOOST_JOIN(var_, IntT), true)	 \
-	BOOST_TT_AUX_BOOL_TRAIT_CV_SPEC1(is_primitive, BOOST_JOIN(var_, IntT), true) \
-	template<> struct var_int<IntT> { typedef BOOST_JOIN(var_, IntT) type; };	 \
-	template<> struct var_int<BOOST_JOIN(var_, IntT)> { typedef BOOST_JOIN(var_, IntT) type; };	 \
-	template<> struct var_int_org<BOOST_JOIN(var_, IntT)> { typedef IntT type; };\
-//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-*/
 #define FEBIRD_DEFINE_VAR_INT_IMPL(IntT, VarIntT)\
 	BOOST_STRONG_TYPEDEF(IntT, VarIntT)	\
 	template<> struct is_var_int<VarIntT> : boost::mpl::true_ {}; \
 	template<> struct is_primitive<VarIntT> : boost::mpl::true_ {}; \
-	template<> struct var_int<IntT> { typedef VarIntT type; }; \
-	template<> struct var_int<VarIntT> { typedef VarIntT type; };	 \
+	template<> struct var_int<IntT> : VarIntT { typedef VarIntT type; }; \
+	template<> struct var_int<VarIntT> : VarIntT { typedef VarIntT type; };	 \
 	template<> struct var_int_org<VarIntT> { typedef IntT type; };\
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-#define FEBIRD_DEFINE_VAR_INT(IntT)	 FEBIRD_DEFINE_VAR_INT_IMPL(IntT, BOOST_JOIN(var_, IntT))
-
-
-// template<class T, class SFINAE = void>
-// struct to_var_int
-// {
-// 	typedef T type;
-// };
-// template<>
-// struct to_var_int<IntT, void>
-// {
-// 	typedef typename var_int<IntT>::type type;
-// };
-
-BOOST_TT_AUX_BOOL_TRAIT_DEF1(is_var_int,T,false)
 
 // var int is  var_+IntT, var_int16_t, var_uint16_t, ...
-// var_int<IntT>::org_int is original int of the var int
+// var_int_org<IntT>::type is original int of the var int
 // is_var_int is the typetrait of var int
 
-FEBIRD_DEFINE_VAR_INT( int16_t)
-FEBIRD_DEFINE_VAR_INT(uint16_t)
-FEBIRD_DEFINE_VAR_INT( int32_t)
-FEBIRD_DEFINE_VAR_INT(uint32_t)
+FEBIRD_DEFINE_VAR_INT_IMPL(         short, var_int16_t)
+FEBIRD_DEFINE_VAR_INT_IMPL(unsigned short, var_uint16_t)
 
-#if !defined(BOOST_NO_INT64_T)
-FEBIRD_DEFINE_VAR_INT( int64_t)
-FEBIRD_DEFINE_VAR_INT(uint64_t)
+#if defined(BOOST_HAS_LONG_LONG)
+	FEBIRD_DEFINE_VAR_INT_IMPL(         long long, var_int64_t)
+	FEBIRD_DEFINE_VAR_INT_IMPL(unsigned long long, var_uint64_t)
+#elif defined(BOOST_HAS_MS_INT64)
+	FEBIRD_DEFINE_VAR_INT_IMPL(         __int64, var_int64_t)
+	FEBIRD_DEFINE_VAR_INT_IMPL(unsigned __int64, var_uint64_t)
+#endif
+
+#if ULONG_MAX == 0xFFFFFFFF
+	FEBIRD_DEFINE_VAR_INT_IMPL(         long, var_int32_t)
+	FEBIRD_DEFINE_VAR_INT_IMPL(unsigned long, var_uint32_t)
+  #if UINT_MAX == 0xFFFFFFFF
+	template<> struct var_int<         int> : var_int32_t  { typedef var_int32_t type; };
+	template<> struct var_int<unsigned int> : var_uint32_t { typedef var_uint32_t type; };
+  #elif UINT_MAX == 0xFFFF
+	template<> struct var_int<         int> : var_int16_t  { typedef var_int16_t type; };
+	template<> struct var_int<unsigned int> : var_uint16_t { typedef var_uint16_t type; };
+  #endif
+#elif UINT_MAX == 0xFFFFFFFF
+	FEBIRD_DEFINE_VAR_INT_IMPL(         int, var_int32_t)
+	FEBIRD_DEFINE_VAR_INT_IMPL(unsigned int, var_uint32_t)
+	template<> struct var_int<         long> : var_int64_t  { typedef var_int64_t type; };
+	template<> struct var_int<unsigned long> : var_uint64_t { typedef var_uint64_t type; };
+#else
+#   error no int32
 #endif
 
 inline void byte_swap_in(var_int16_t& x, boost::mpl::true_) { x.t = byte_swap(x.t); }
@@ -87,19 +76,6 @@ inline void byte_swap_in(var_int64_t& x, boost::mpl::true_) { x.t = byte_swap(x.
 inline void byte_swap_in(var_uint16_t& x, boost::mpl::true_) { x.t = byte_swap(x.t); }
 inline void byte_swap_in(var_uint32_t& x, boost::mpl::true_) { x.t = byte_swap(x.t); }
 inline void byte_swap_in(var_uint64_t& x, boost::mpl::true_) { x.t = byte_swap(x.t); }
-
-/*
-#if ULONG_MAX == 0xffffffff
-template<> struct var_int<unsigned long> { typedef var_uint32_t type; };
-template<> struct var_int<long> { typedef var_int32_t type; };
-#endif
-
-#if UINT_MAX == 0xffffffff
-template<> struct var_int<unsigned int> { typedef var_uint32_t type; };
-template<> struct var_int<int> { typedef var_int32_t type; };
-#endif
-*/
-//#undef FEBIRD_DEFINE_VAR_INT
 
 template<class IntT>
 class as_var_int_ref
@@ -286,12 +262,7 @@ FEBIRD_DLL_EXPORT uint64_t reverse_get_var_uint64(const unsigned char* buf, unsi
 FEBIRD_DLL_EXPORT int64_t reverse_get_var_int64(const unsigned char* buf, unsigned char const ** cur);
 #endif
 
-//#undef FEBIRD_DEFINE_VAR_INT
-
 } // namespace febird
-
-
-#include "boost/type_traits/detail/bool_trait_undef.hpp"
 
 
 #endif // __febird_io_var_int_h__

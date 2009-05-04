@@ -24,7 +24,7 @@ namespace febird {
 FileStream::FileStream(const char* fpath, const char* mode)
 {
 	m_fp = 0;
-   	open(fpath, mode, false);
+   	open(fpath, mode);
 }
 
 FileStream::FileStream(int fd, const char* mode)
@@ -39,47 +39,23 @@ void FileStream::ThrowOpenFileException(const char* fpath, const char* mode)
 	throw OpenFileException(fpath, oss.str().c_str());
 }
 
-bool FileStream::copyFile(const char* srcPath, const char* dstPath)
-{
-	FileStream fsrc(srcPath, "rb");
-	FileStream fdst(dstPath, "wb+");
-
-	if (fsrc && fdst)
-	{
-		setvbuf(fsrc.fp(), NULL, _IONBF, 0);
-		setvbuf(fdst.fp(), NULL, _IONBF, 0);
-		size_t nbuf = 64 * 1024;
-		char*  pbuf = (char*)malloc(nbuf);
-		try {
-			while (!fsrc.eof())
-			{
-				size_t nRead  = fsrc.read(pbuf, nbuf);
-				size_t nWrite = fdst.write(pbuf, nRead);
-				if (nWrite != nRead) {
-					throw OutOfSpaceException(BOOST_CURRENT_FUNCTION);
-				}
-			}
-			free(pbuf);
-		} catch (const std::exception& ) {
-			free(pbuf);
-			throw;
-		}
-		return true;
-	}
-	return false;
-}
-
 // only can call on unopened FileStream
-bool FileStream::open(const char* fpath, const char* mode, bool ignoreOpenError)
+void FileStream::open(const char* fpath, const char* mode)
 {
 	assert(0 == m_fp);
 	m_fp = fopen(fpath, mode);
-	if (!ignoreOpenError && 0 == m_fp)
+	if (0 == m_fp)
 		ThrowOpenFileException(fpath, mode);
+}
+
+bool FileStream::xopen(const char* fpath, const char* mode) throw()
+{
+	assert(0 == m_fp);
+	m_fp = fopen(fpath, mode);
 	return 0 != m_fp;
 }
 
-void FileStream::dopen(int fd, const char* mode)
+void FileStream::dopen(int fd, const char* mode) throw()
 {
 	assert(0 == m_fp);
 #ifdef _MSC_VER
@@ -188,6 +164,38 @@ void FileStream::disbuf() throw()
 	assert(m_fp);
 	setvbuf(m_fp, NULL, _IONBF, 0);
 }
+
+//////////////////////////////////////////////////////////////////////
+bool FileStream::copyFile(const char* srcPath, const char* dstPath)
+{
+	FileStream fsrc(srcPath, "rb");
+	FileStream fdst(dstPath, "wb+");
+
+	if (fsrc && fdst)
+	{
+		setvbuf(fsrc.fp(), NULL, _IONBF, 0);
+		setvbuf(fdst.fp(), NULL, _IONBF, 0);
+		size_t nbuf = 64 * 1024;
+		char*  pbuf = (char*)malloc(nbuf);
+		try {
+			while (!fsrc.eof())
+			{
+				size_t nRead  = fsrc.read(pbuf, nbuf);
+				size_t nWrite = fdst.write(pbuf, nRead);
+				if (nWrite != nRead) {
+					throw OutOfSpaceException(BOOST_CURRENT_FUNCTION);
+				}
+			}
+			free(pbuf);
+		} catch (const std::exception& ) {
+			free(pbuf);
+			throw;
+		}
+		return true;
+	}
+	return false;
+}
+
 
 } // namespace febird
 
