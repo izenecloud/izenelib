@@ -8,7 +8,7 @@ include_directories (
 # This section build the libraries
 set(CPP "${UDT_SOURCE}")
 
-set( CXXFLAGS "-Wall -O3 -DAMD64" )
+set( CXXFLAGS "-fPIC -Wall -finline-functions -O3 -DIA32 -DLINUX " )
         
 set ( LIBRARY_OUTPUT_PATH ${izenelib_SOURCE_DIR}/lib ) 
 
