@@ -120,6 +120,8 @@ public:
 		m_is = stream;
 	}
 
+	bool eof() const { return m_cur == m_end && (0 == m_is || m_is->eof()); }
+
 	size_t read(void* FEBIRD_RESTRICT vbuf, size_t length) FEBIRD_RESTRICT
 	{
 		if (m_cur+length <= m_end) {
