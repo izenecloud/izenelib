@@ -1,5 +1,5 @@
 /*****************************************************************************
-Copyright (c) 2001 - 2008, The Board of Trustees of the University of Illinois.
+Copyright (c) 2001 - 2009, The Board of Trustees of the University of Illinois.
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -35,13 +35,15 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 /*****************************************************************************
 written by
-   Yunhong Gu, last updated 12/08/2008
+   Yunhong Gu, last updated 05/05/2009
 *****************************************************************************/
 
 #ifdef WIN32
    #include <winsock2.h>
    #include <ws2tcpip.h>
-   #include <wspiapi.h>
+   #ifdef LEGACY_WIN32
+      #include <wspiapi.h>
+   #endif
 #endif
 
 #include <cstring>
@@ -56,7 +58,9 @@ m_pQEntry(NULL),
 m_pCurrQueue(NULL),
 m_pLastQueue(NULL),
 m_iSize(0),
-m_iCount(0)
+m_iCount(0),
+m_iMSS(),
+m_iIPversion()
 {
 }
 
@@ -219,11 +223,16 @@ CUnit* CUnitQueue::getNextAvailUnit()
 }
 
 
-CSndUList::CSndUList()
+CSndUList::CSndUList():
+m_pHeap(NULL),
+m_iArrayLength(4096),
+m_iLastEntry(-1),
+m_ListLock(),
+m_pWindowLock(NULL),
+m_pWindowCond(NULL),
+m_pTimer(NULL)
 {
-   m_iArrayLength = 4096;
    m_pHeap = new CSNode*[m_iArrayLength];
-   m_iLastEntry = -1;
 
    #ifndef WIN32
       pthread_mutex_init(&m_ListLock, NULL);
@@ -421,10 +430,14 @@ void CSndUList::remove_(const CUDT* u)
 
 //
 CSndQueue::CSndQueue():
+m_WorkerThread(),
 m_pSndUList(NULL),
 m_pChannel(NULL),
 m_pTimer(NULL),
-m_bClosing(false)
+m_WindowLock(),
+m_WindowCond(),
+m_bClosing(false),
+m_ExitCond()
 {
    #ifndef WIN32
       pthread_cond_init(&m_WindowCond, NULL);
@@ -727,15 +740,15 @@ void CHash::remove(const int32_t& id)
 
 
 //
-CRendezvousQueue::CRendezvousQueue()
+CRendezvousQueue::CRendezvousQueue():
+m_vRendezvousID(),
+m_RIDVectorLock()
 {
    #ifndef WIN32
       pthread_mutex_init(&m_RIDVectorLock, NULL);
    #else
       m_RIDVectorLock = CreateMutex(NULL, false, NULL);
    #endif
-
-   m_vRendezvousID.clear();
 }
 
 CRendezvousQueue::~CRendezvousQueue()
@@ -807,13 +820,23 @@ bool CRendezvousQueue::retrieve(const sockaddr* addr, UDTSOCKET& id)
 
 //
 CRcvQueue::CRcvQueue():
+m_WorkerThread(),
+m_UnitQueue(),
 m_pRcvUList(NULL),
 m_pHash(NULL),
 m_pChannel(NULL),
 m_pTimer(NULL),
+m_iPayloadSize(),
 m_bClosing(false),
+m_ExitCond(),
+m_LSLock(),
 m_pListener(NULL),
-m_pRendezvousQueue(NULL)
+m_pRendezvousQueue(NULL),
+m_vNewEntry(),
+m_IDLock(),
+m_mBuffer(),
+m_PassLock(),
+m_PassCond()
 {
    #ifndef WIN32
       pthread_mutex_init(&m_PassLock, NULL);
@@ -827,9 +850,6 @@ m_pRendezvousQueue(NULL)
       m_IDLock = CreateMutex(NULL, false, NULL);
       m_ExitCond = CreateEvent(NULL, false, false, NULL);
    #endif
-
-   m_vNewEntry.clear();
-   m_mBuffer.clear();
 }
 
 CRcvQueue::~CRcvQueue()
@@ -927,10 +947,11 @@ void CRcvQueue::init(const int& qsize, const int& payload, const int& version, c
       if (NULL == unit)
       {
          // no space, skip this packet
-         CUnit temp;
-         temp.m_Packet.m_pcData = new char[self->m_iPayloadSize];
-         self->m_pChannel->recvfrom(addr, temp.m_Packet);
-         delete [] temp.m_Packet.m_pcData;
+         CPacket temp;
+         temp.m_pcData = new char[self->m_iPayloadSize];
+         temp.setLength(self->m_iPayloadSize);
+         self->m_pChannel->recvfrom(addr, temp);
+         delete [] temp.m_pcData;
          goto TIMER_CHECK;
       }
 

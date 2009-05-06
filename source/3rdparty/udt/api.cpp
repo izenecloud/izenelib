@@ -35,13 +35,15 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 /*****************************************************************************
 written by
-   Yunhong Gu, last updated 01/22/2009
+   Yunhong Gu, last updated 05/05/2009
 *****************************************************************************/
 
 #ifdef WIN32
    #include <winsock2.h>
    #include <ws2tcpip.h>
-   #include <wspiapi.h>
+   #ifdef LEGACY_WIN32
+      #include <wspiapi.h>
+   #endif
 #else
    #include <unistd.h>
 #endif
@@ -52,11 +54,21 @@ written by
 using namespace std;
 
 CUDTSocket::CUDTSocket():
+m_Status(INIT),
+m_TimeStamp(0),
+m_iIPversion(0),
 m_pSelfAddr(NULL),
 m_pPeerAddr(NULL),
+m_SocketID(0),
+m_ListenSocket(0),
+m_PeerID(0),
+m_iISN(0),
 m_pUDT(NULL),
 m_pQueuedSockets(NULL),
-m_pAcceptSockets(NULL)
+m_pAcceptSockets(NULL),
+m_AcceptCond(),
+m_AcceptLock(),
+m_uiBackLog(0)
 {
    #ifndef WIN32
       pthread_mutex_init(&m_AcceptLock, NULL);
@@ -96,10 +108,25 @@ CUDTSocket::~CUDTSocket()
 
 ////////////////////////////////////////////////////////////////////////////////
 
-CUDTUnited::CUDTUnited()
+CUDTUnited::CUDTUnited():
+m_Sockets(),
+m_ControlLock(),
+m_IDLock(),
+m_SocketID(0),
+m_TLSError(),
+m_vMultiplexer(),
+m_MultiplexerLock(),
+m_pController(NULL),
+m_bClosing(false),
+m_GCStopLock(),
+m_GCStopCond(),
+m_InitLock(),
+m_bGCStatus(false),
+m_GCThread(),
+m_ClosedSockets()
 {
    srand((unsigned int)CTimer::getTime());
-   m_SocketID = 1 + (int)((1 << 30) * (rand()/(RAND_MAX + 1.0)));
+   m_SocketID = 1 + (int)((1 << 30) * (double(rand()) / RAND_MAX));
 
    #ifndef WIN32
       pthread_mutex_init(&m_ControlLock, NULL);
@@ -128,10 +155,7 @@ CUDTUnited::CUDTUnited()
          throw CUDTException(1, 0,  WSAGetLastError());
    #endif
 
-   m_vMultiplexer.clear();
    m_pController = new CControl;
-
-   m_bGCStatus = false;
 }
 
 CUDTUnited::~CUDTUnited()
@@ -153,7 +177,6 @@ CUDTUnited::~CUDTUnited()
       CloseHandle(m_TLSLock);
    #endif
 
-   m_vMultiplexer.clear();
    delete m_pController;
 
    // Global destruction code
@@ -275,6 +298,9 @@ int CUDTUnited::newConnection(const UDTSOCKET listen, const sockaddr* peer, CHan
 {
    CUDTSocket* ns = NULL;
    CUDTSocket* ls = locate(listen);
+
+   if (NULL == ls)
+      return -1;
 
    // if this connection has already been processed
    if (NULL != (ns = locate(listen, peer, hs->m_iID, hs->m_iISN)))
@@ -893,7 +919,7 @@ int CUDTUnited::select(ud_set* readfds, ud_set* writefds, ud_set* exceptfds, con
          }
       }
 
-      // query expections on sockets
+      // query exceptions on sockets
       for (vector<CUDTSocket*>::iterator j3 = eu.begin(); j3 != eu.end(); ++ j3)
       {
          // check connection request status, not supported now
@@ -1054,6 +1080,7 @@ void CUDTUnited::removeSocket(const UDTSOCKET u)
          m_Sockets[*q]->m_pUDT->close();
          m_Sockets[*q]->m_TimeStamp = CTimer::getTime();
          m_Sockets[*q]->m_Status = CUDTSocket::CLOSED;
+         tbc.insert(*q);
          m_ClosedSockets[*q] = m_Sockets[*q];
       }
       for (set<UDTSOCKET>::iterator c = tbc.begin(); c != tbc.end(); ++ c)
@@ -1132,6 +1159,7 @@ void CUDTUnited::checkTLSValue()
          delete i->second;
          tbr.insert(tbr.end(), i->first);
       }
+      CloseHandle(h);
    }
    for (vector<DWORD>::iterator j = tbr.begin(); j != tbr.end(); ++ j)
       m_mTLSRecord.erase(*j);
@@ -1255,13 +1283,30 @@ void CUDTUnited::updateMux(CUDT* u, const CUDTSocket* ls)
       #endif
    }
 
-   // remove all active sockets
+   // remove all sockets and multiplexers
    for (map<UDTSOCKET, CUDTSocket*>::iterator i = self->m_Sockets.begin(); i != self->m_Sockets.end(); ++ i)
    {
+      i->second->m_pUDT->close();
       i->second->m_Status = CUDTSocket::CLOSED;
       i->second->m_TimeStamp = 0;
+      self->m_ClosedSockets[i->first] = i->second;
    }
+   self->m_Sockets.clear();
    self->checkBrokenSockets();
+
+   for (vector<CMultiplexer>::iterator m = self->m_vMultiplexer.begin(); m != self->m_vMultiplexer.end(); ++ m)
+   {
+      m->m_pChannel->close();
+      delete m->m_pSndQueue;
+      delete m->m_pRcvQueue;
+      delete m->m_pTimer;
+      delete m->m_pChannel;
+   }
+   self->m_vMultiplexer.clear();
+
+   for (map<UDTSOCKET, CUDTSocket*>::iterator c = self->m_ClosedSockets.begin(); c != self->m_ClosedSockets.end(); ++ c)
+      delete c->second;
+   self->m_ClosedSockets.clear();
 
    #ifndef WIN32
       return NULL;
@@ -1598,7 +1643,7 @@ int CUDT::recvmsg(UDTSOCKET u, char* buf, int len)
    }
 }
 
-int64_t CUDT::sendfile(UDTSOCKET u, ifstream& ifs, const int64_t& offset, const int64_t& size, const int& block)
+int64_t CUDT::sendfile(UDTSOCKET u, fstream& ifs, const int64_t& offset, const int64_t& size, const int& block)
 {
    try
    {
@@ -1622,7 +1667,7 @@ int64_t CUDT::sendfile(UDTSOCKET u, ifstream& ifs, const int64_t& offset, const 
    }
 }
 
-int64_t CUDT::recvfile(UDTSOCKET u, ofstream& ofs, const int64_t& offset, const int64_t& size, const int& block)
+int64_t CUDT::recvfile(UDTSOCKET u, fstream& ofs, const int64_t& offset, const int64_t& size, const int& block)
 {
    try
    {
@@ -1697,7 +1742,14 @@ int CUDT::perfmon(UDTSOCKET u, CPerfMon* perf, bool clear)
 
 CUDT* CUDT::getUDTHandle(UDTSOCKET u)
 {
-   return s_UDTUnited.lookup(u);
+   try
+   {
+      return s_UDTUnited.lookup(u);
+   }
+   catch (...)
+   {
+      return NULL;
+   }
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -1790,12 +1842,12 @@ int recvmsg(UDTSOCKET u, char* buf, int len)
    return CUDT::recvmsg(u, buf, len);
 }
 
-int64_t sendfile(UDTSOCKET u, ifstream& ifs, int64_t offset, int64_t size, int block)
+int64_t sendfile(UDTSOCKET u, fstream& ifs, int64_t offset, int64_t size, int block)
 {
    return CUDT::sendfile(u, ifs, offset, size, block);
 }
 
-int64_t recvfile(UDTSOCKET u, ofstream& ofs, int64_t offset, int64_t size, int block)
+int64_t recvfile(UDTSOCKET u, fstream& ofs, int64_t offset, int64_t size, int block)
 {
    return CUDT::recvfile(u, ofs, offset, size, block);
 }

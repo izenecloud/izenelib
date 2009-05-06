@@ -1,5 +1,5 @@
 /*****************************************************************************
-Copyright (c) 2001 - 2008, The Board of Trustees of the University of Illinois.
+Copyright (c) 2001 - 2009, The Board of Trustees of the University of Illinois.
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -35,7 +35,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 /*****************************************************************************
 written by
-   Yunhong Gu, last updated 12/01/2008
+   Yunhong Gu, last updated 05/05/2009
 *****************************************************************************/
 
 
@@ -56,6 +56,7 @@ public:
    virtual ~CCC();
 
 private:
+   CCC(const CCC&);
    CCC& operator=(const CCC&) {return *this;}
 
 public:
@@ -251,6 +252,9 @@ public:
 
 class CUDTCC: public CCC
 {
+public:
+   CUDTCC();
+
 public:
    virtual void init();
    virtual void onACK(const int32_t&);

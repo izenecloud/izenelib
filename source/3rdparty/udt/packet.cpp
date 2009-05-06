@@ -1,5 +1,5 @@
 /*****************************************************************************
-Copyright (c) 2001 - 2008, The Board of Trustees of the University of Illinois.
+Copyright (c) 2001 - 2009, The Board of Trustees of the University of Illinois.
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -35,7 +35,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 /*****************************************************************************
 written by
-   Yunhong Gu, last updated 07/25/2007
+   Yunhong Gu, last updated 05/05/2009
 *****************************************************************************/
 
 
@@ -152,7 +152,8 @@ m_iSeqNo((int32_t&)(m_nHeader[0])),
 m_iMsgNo((int32_t&)(m_nHeader[1])),
 m_iTimeStamp((int32_t&)(m_nHeader[2])),
 m_iID((int32_t&)(m_nHeader[3])),
-m_pcData((char*&)(m_PacketVector[1].iov_base))
+m_pcData((char*&)(m_PacketVector[1].iov_base)),
+__pad()
 {
    m_PacketVector[0].iov_base = (char *)m_nHeader;
    m_PacketVector[0].iov_len = CPacket::m_iPktHdrSize;

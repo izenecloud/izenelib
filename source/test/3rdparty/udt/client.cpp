@@ -61,7 +61,7 @@ public:
 
 
         int64_t size;
-        ifstream ifs;
+        fstream ifs;
         ifs.open(path.c_str(), ios::in | ios::binary);
 
         if (ifs.fail() || ifs.bad())

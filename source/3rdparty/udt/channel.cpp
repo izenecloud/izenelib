@@ -1,5 +1,5 @@
 /*****************************************************************************
-Copyright (c) 2001 - 2008, The Board of Trustees of the University of Illinois.
+Copyright (c) 2001 - 2009, The Board of Trustees of the University of Illinois.
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -35,7 +35,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 /****************************************************************************
 written by
-   Yunhong Gu, last updated 12/08/2008
+   Yunhong Gu, last updated 05/05/2008
 *****************************************************************************/
 
 #ifndef WIN32
@@ -49,7 +49,9 @@ written by
 #else
    #include <winsock2.h>
    #include <ws2tcpip.h>
-   #include <wspiapi.h>
+   #ifdef LEGACY_WIN32
+      #include <wspiapi.h>
+   #endif
 #endif
 #include "channel.h"
 #include "packet.h"
@@ -67,6 +69,7 @@ written by
 
 CChannel::CChannel():
 m_iIPversion(AF_INET),
+m_iSocket(),
 m_iSndBufSize(65536),
 m_iRcvBufSize(65536)
 {
@@ -74,6 +77,7 @@ m_iRcvBufSize(65536)
 
 CChannel::CChannel(const int& version):
 m_iIPversion(version),
+m_iSocket(),
 m_iSndBufSize(65536),
 m_iRcvBufSize(65536)
 {
@@ -88,7 +92,11 @@ void CChannel::open(const sockaddr* addr)
    // construct an socket
    m_iSocket = socket(m_iIPversion, SOCK_DGRAM, 0);
 
-   if (m_iSocket < 0)
+   #ifdef WIN32
+      if (INVALID_SOCKET == m_iSocket)
+   #else
+      if (m_iSocket < 0)
+   #endif
       throw CUDTException(1, 0, NET_ERROR);
 
    if (NULL != addr)
@@ -130,9 +138,19 @@ void CChannel::open(UDPSOCKET udpsock)
 
 void CChannel::setUDPSockOpt()
 {
-   if ((0 != setsockopt(m_iSocket, SOL_SOCKET, SO_RCVBUF, (char *)&m_iRcvBufSize, sizeof(int))) ||
-       (0 != setsockopt(m_iSocket, SOL_SOCKET, SO_SNDBUF, (char *)&m_iSndBufSize, sizeof(int))))
-      throw CUDTException(1, 3, NET_ERROR);
+   #if defined(BSD) || defined(OSX)
+      // BSD system will fail setsockopt if the requested buffer size exceeds system maximum value
+      int maxsize = 262144;
+      if (0 != setsockopt(m_iSocket, SOL_SOCKET, SO_RCVBUF, (char*)&m_iRcvBufSize, sizeof(int)))
+         setsockopt(m_iSocket, SOL_SOCKET, SO_RCVBUF, (char*)&maxsize, sizeof(int));
+      if (0 != setsockopt(m_iSocket, SOL_SOCKET, SO_SNDBUF, (char*)&m_iSndBufSize, sizeof(int)))
+         setsockopt(m_iSocket, SOL_SOCKET, SO_SNDBUF, (char*)&maxsize, sizeof(int));
+   #else
+      // for other systems, if requested is greated than maximum, the maximum value will be automactally used
+      if ((0 != setsockopt(m_iSocket, SOL_SOCKET, SO_RCVBUF, (char*)&m_iRcvBufSize, sizeof(int))) ||
+          (0 != setsockopt(m_iSocket, SOL_SOCKET, SO_SNDBUF, (char*)&m_iSndBufSize, sizeof(int))))
+         throw CUDTException(1, 3, NET_ERROR);
+   #endif
 
    timeval tv;
    tv.tv_sec = 0;

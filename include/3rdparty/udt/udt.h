@@ -1,5 +1,5 @@
 /*****************************************************************************
-Copyright (c) 2001 - 2008, The Board of Trustees of the University of Illinois.
+Copyright (c) 2001 - 2009, The Board of Trustees of the University of Illinois.
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -35,7 +35,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 /*****************************************************************************
 written by
-   Yunhong Gu, last updated 12/01/2008
+   Yunhong Gu, last updated 05/05/2009
 *****************************************************************************/
 
 #ifndef __UDT_H__
@@ -56,12 +56,19 @@ written by
 
 ////////////////////////////////////////////////////////////////////////////////
 
+//if compiling on VC6.0 or pre-WindowsXP systems
+//use -DLEGACY_WIN32
+
+//if compiling on MinGW
+//use -D_WIN32_WINNT=0x0501
+
+
 #ifdef WIN32
    // Explicitly define 32-bit and 64-bit numbers
    typedef __int32 int32_t;
    typedef __int64 int64_t;
    typedef unsigned __int32 uint32_t;
-   #if _MSC_VER >= 1300
+   #ifndef LEGACY_WIN32
       typedef unsigned __int64 uint64_t;
    #else
       // VC 6.0 does not support unsigned __int64: may cause potential problems.
@@ -113,7 +120,7 @@ enum UDTOpt
    UDT_SNDTIMEO,        // send() timeout
    UDT_RCVTIMEO,        // recv() timeout
    UDT_REUSEADDR,	// reuse an existing port or create a new one
-   UDT_MAXBW		// maximum bandwidth (bps) that the connection can use
+   UDT_MAXBW		// maximum bandwidth (bytes per second) that the connection can use
 };
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -131,6 +138,7 @@ struct CPerfMon
    int pktRecvACKTotal;                 // total number of received ACK packets
    int pktSentNAKTotal;                 // total number of sent NAK packets
    int pktRecvNAKTotal;                 // total number of received NAK packets
+   int64_t usSndDurationTotal;		// total time duration when UDT is sending data (idle time exclusive)
 
    // local measurements
    int64_t pktSent;                     // number of sent data packets, including retransmissions
@@ -144,6 +152,7 @@ struct CPerfMon
    int pktRecvNAK;                      // number of received NAK packets
    double mbpsSendRate;                 // sending rate in Mb/s
    double mbpsRecvRate;                 // receiving rate in Mb/s
+   int64_t usSndDuration;		// busy sending time (i.e., idle time exclusive)
 
    // instant measurements
    double usPktSndPeriod;               // packet sending period, in microseconds
@@ -274,8 +283,8 @@ UDT_API int send(UDTSOCKET u, const char* buf, int len, int flags);
 UDT_API int recv(UDTSOCKET u, char* buf, int len, int flags);
 UDT_API int sendmsg(UDTSOCKET u, const char* buf, int len, int ttl = -1, bool inorder = false);
 UDT_API int recvmsg(UDTSOCKET u, char* buf, int len);
-UDT_API int64_t sendfile(UDTSOCKET u, std::ifstream& ifs, int64_t offset, int64_t size, int block = 364000);
-UDT_API int64_t recvfile(UDTSOCKET u, std::ofstream& ofs, int64_t offset, int64_t size, int block = 7280000);
+UDT_API int64_t sendfile(UDTSOCKET u, std::fstream& ifs, int64_t offset, int64_t size, int block = 364000);
+UDT_API int64_t recvfile(UDTSOCKET u, std::fstream& ofs, int64_t offset, int64_t size, int block = 7280000);
 UDT_API int select(int nfds, UDSET* readfds, UDSET* writefds, UDSET* exceptfds, const struct timeval* timeout);
 UDT_API ERRORINFO& getlasterror();
 UDT_API int perfmon(UDTSOCKET u, TRACEINFO* perf, bool clear = true);

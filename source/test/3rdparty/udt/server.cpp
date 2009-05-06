@@ -110,7 +110,7 @@ public:
 
             string path("./tmp/");
             path += file;
-            ofstream ofs(path.c_str(), ios::out | ios::binary | ios::trunc);
+            fstream ofs(path.c_str(), ios::out | ios::binary | ios::trunc);
             int64_t recvsize;
 
             if (UDT::ERROR == (recvsize = UDT::recvfile(recver, ofs, 0, size)))

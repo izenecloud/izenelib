@@ -1,5 +1,5 @@
 /*****************************************************************************
-Copyright (c) 2001 - 2008, The Board of Trustees of the University of Illinois.
+Copyright (c) 2001 - 2009, The Board of Trustees of the University of Illinois.
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -35,7 +35,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 /*****************************************************************************
 written by
-   Yunhong Gu, last updated 12/04/2008
+   Yunhong Gu, last updated 05/05/2009
 *****************************************************************************/
 
 #ifndef __UDT_COMMON_H__
@@ -184,7 +184,7 @@ private:
    pthread_mutex_t& m_Mutex;            // Alias name of the mutex to be protected
    int m_iLocked;                       // Locking status
 
-   void operator = (const CGuard&) {}
+   CGuard& operator=(const CGuard&);
 };
 
 ////////////////////////////////////////////////////////////////////////////////

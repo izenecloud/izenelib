@@ -1,5 +1,5 @@
 /*****************************************************************************
-Copyright (c) 2001 - 2008, The Board of Trustees of the University of Illinois.
+Copyright (c) 2001 - 2009, The Board of Trustees of the University of Illinois.
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -35,13 +35,15 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 /*****************************************************************************
 written by
-   Yunhong Gu, last updated 05/07/2008
+   Yunhong Gu, last updated 05/05/2009
 *****************************************************************************/
 
 #ifdef WIN32
    #include <winsock2.h>
    #include <ws2tcpip.h>
-   #include <wspiapi.h>
+   #ifdef LEGACY_WIN32
+      #include <wspiapi.h>
+   #endif
 #endif
 
 #include <cstring>
@@ -73,7 +75,10 @@ bool CTSComp::operator()(const CHistoryBlock* hb1, const CHistoryBlock* hb2) con
 }
 
 CHistory::CHistory():
-m_uiSize(1024)
+m_uiSize(1024),
+m_sIPIndex(),
+m_sTSIndex(),
+m_Lock()
 {
    #ifndef WIN32
       pthread_mutex_init(&m_Lock, NULL);
@@ -83,7 +88,10 @@ m_uiSize(1024)
 }
 
 CHistory::CHistory(const unsigned int& size):
-m_uiSize(size)
+m_uiSize(size),
+m_sIPIndex(),
+m_sTSIndex(),
+m_Lock()
 {
    #ifndef WIN32
       pthread_mutex_init(&m_Lock, NULL);
@@ -204,7 +212,11 @@ bool CUDTComp::operator()(const CUDT* u1, const CUDT* u2) const
    return (u1->m_SocketID > u2->m_SocketID);
 }
 
-CControl::CControl()
+CControl::CControl():
+m_pHistoryRecord(NULL),
+m_mControlBlock(),
+m_mUDTIndex(),
+m_Lock()
 {
    #ifndef WIN32
       pthread_mutex_init(&m_Lock, NULL);
@@ -265,18 +277,24 @@ void CControl::leave(CUDT* udt, const int& rtt, const int& bw)
 {
    CGuard ctrlguard(m_Lock);
 
-   CHistoryBlock* hb = m_mUDTIndex[udt];
-   map<CHistoryBlock*, set<CUDT*, CUDTComp>, CIPComp>::iterator i = m_mControlBlock.find(hb);
+   std::map<CUDT*, CHistoryBlock*, CUDTComp>::iterator ui = m_mUDTIndex.find(udt);
+   if (ui == m_mUDTIndex.end())
+      return;
+
+   CHistoryBlock* hb = ui->second;
+   map<CHistoryBlock*, set<CUDT*, CUDTComp>, CIPComp>::iterator hi = m_mControlBlock.find(hb);
+   if (hi == m_mControlBlock.end())
+      return;
 
    hb->m_iRTT = rtt;
    hb->m_iBandwidth = bw;
    m_pHistoryRecord->update(hb);
 
-   i->second.erase(udt);
-   if (i->second.empty())
+   hi->second.erase(udt);
+   if (hi->second.empty())
    {
-      m_mControlBlock.erase(i);
+      m_mControlBlock.erase(hi);
       delete hb;
    }
-   m_mUDTIndex.erase(udt);
+   m_mUDTIndex.erase(ui);
 }

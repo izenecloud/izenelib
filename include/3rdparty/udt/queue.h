@@ -125,6 +125,10 @@ private:
 
    int m_iMSS;			// unit buffer size
    int m_iIPversion;		// IP version
+
+private:
+   CUnitQueue(const CUnitQueue&);
+   CUnitQueue& operator=(const CUnitQueue&);
 };
 
 struct CSNode
@@ -208,6 +212,10 @@ private:
    pthread_cond_t* m_pWindowCond;
 
    CTimer* m_pTimer;
+
+private:
+   CSndUList(const CSndUList&);
+   CSndUList& operator=(const CSndUList&);
 };
 
 struct CRNode
@@ -261,6 +269,10 @@ public:
 
 private:
    CRNode* m_pLast;		// the last node
+
+private:
+   CRcvUList(const CRcvUList&);
+   CRcvUList& operator=(const CRcvUList&);
 };
 
 class CHash
@@ -318,6 +330,10 @@ private:
    } **m_pBucket;		// list of buckets (the hash table)
 
    int m_iHashSize;		// size of hash table
+
+private:
+   CHash(const CHash&);
+   CHash& operator=(const CHash&);
 };
 
 class CRendezvousQueue
@@ -393,6 +409,10 @@ private:
 
    volatile bool m_bClosing;		// closing the worker
    pthread_cond_t m_ExitCond;
+
+private:
+   CSndQueue(const CSndQueue&);
+   CSndQueue& operator=(const CSndQueue&);
 };
 
 class CRcvQueue
@@ -473,11 +493,14 @@ private:
    std::map<int32_t, CPacket*> m_mBuffer;	// temporary buffer for rendezvous connection request
    pthread_mutex_t m_PassLock;
    pthread_cond_t m_PassCond;
+
+private:
+   CRcvQueue(const CRcvQueue&);
+   CRcvQueue& operator=(const CRcvQueue&);
 };
 
-class CMultiplexer
+struct CMultiplexer
 {
-public:
    CSndQueue* m_pSndQueue;	// The sending queue
    CRcvQueue* m_pRcvQueue;	// The receiving queue
    CChannel* m_pChannel;	// The UDP channel for sending and receiving

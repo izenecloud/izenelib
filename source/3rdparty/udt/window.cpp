@@ -1,5 +1,5 @@
 /*****************************************************************************
-Copyright (c) 2001 - 2008, The Board of Trustees of the University of Illinois.
+Copyright (c) 2001 - 2009, The Board of Trustees of the University of Illinois.
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -35,7 +35,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 /*****************************************************************************
 written by
-   Yunhong Gu, last updated 12/06/2008
+   Yunhong Gu, last updated 05/05/2009
 *****************************************************************************/
 
 #include <cmath>
@@ -154,19 +154,20 @@ int CACKWindow::acknowledge(const int32_t& seq, int32_t& ack)
 CPktTimeWindow::CPktTimeWindow():
 m_iAWSize(16),
 m_piPktWindow(NULL),
+m_iPktWindowPtr(0),
 m_iPWSize(16),
-m_piProbeWindow(NULL)
+m_piProbeWindow(NULL),
+m_iProbeWindowPtr(0),
+m_iLastSentTime(0),
+m_iMinPktSndInt(1000000),
+m_LastArrTime(),
+m_CurrArrTime(),
+m_ProbeTime()
 {
    m_piPktWindow = new int[m_iAWSize];
    m_piProbeWindow = new int[m_iPWSize];
 
-   m_iPktWindowPtr = 0;
-   m_iProbeWindowPtr = 0;
-
    m_LastArrTime = CTimer::getTime();
-
-   m_iLastSentTime = 0;
-   m_iMinPktSndInt = 1000000;
 
    for (int i = 0; i < m_iAWSize; ++ i)
       m_piPktWindow[i] = 1;
@@ -178,19 +179,20 @@ m_piProbeWindow(NULL)
 CPktTimeWindow::CPktTimeWindow(const int& asize, const int& psize):
 m_iAWSize(asize),
 m_piPktWindow(NULL),
+m_iPktWindowPtr(0),
 m_iPWSize(psize),
-m_piProbeWindow(NULL)
+m_piProbeWindow(NULL),
+m_iProbeWindowPtr(0),
+m_iLastSentTime(0),
+m_iMinPktSndInt(1000000),
+m_LastArrTime(),
+m_CurrArrTime(),
+m_ProbeTime()
 {
    m_piPktWindow = new int[m_iAWSize];
    m_piProbeWindow = new int[m_iPWSize];
 
-   m_iPktWindowPtr = 0;
-   m_iProbeWindowPtr = 0;
-
    m_LastArrTime = CTimer::getTime();
-
-   m_iLastSentTime = 0;
-   m_iMinPktSndInt = 1000000;
 
    for (int i = 0; i < m_iAWSize; ++ i)
       m_piPktWindow[i] = 1;

@@ -1,5 +1,5 @@
 /*****************************************************************************
-Copyright (c) 2001 - 2008, The Board of Trustees of the University of Illinois.
+Copyright (c) 2001 - 2009, The Board of Trustees of the University of Illinois.
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -35,7 +35,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 /*****************************************************************************
 written by
-   Yunhong Gu, last updated 12/28/2008
+   Yunhong Gu, last updated 05/05/2009
 *****************************************************************************/
 
 #include <cstring>
@@ -45,10 +45,12 @@ written by
 using namespace std;
 
 CSndBuffer::CSndBuffer(const int& size, const int& mss):
+m_BufLock(),
 m_pBlock(NULL),
 m_pFirstBlock(NULL),
 m_pCurrBlock(NULL),
 m_pLastBlock(NULL),
+m_pBuffer(NULL),
 m_iNextMsgNo(0),
 m_iSize(size),
 m_iMSS(mss),
@@ -158,7 +160,7 @@ void CSndBuffer::addBuffer(const char* data, const int& len, const int& ttl, con
    m_iNextMsgNo ++;
 }
 
-int CSndBuffer::addBufferFromFile(ifstream& ifs, const int& len)
+int CSndBuffer::addBufferFromFile(fstream& ifs, const int& len)
 {
    int size = len / m_iMSS;
    if ((len % m_iMSS) != 0)
@@ -416,7 +418,7 @@ int CRcvBuffer::readBuffer(char* data, const int& len)
    return len - rs;
 }
 
-int CRcvBuffer::readBufferToFile(ofstream& file, const int& len)
+int CRcvBuffer::readBufferToFile(fstream& ofs, const int& len)
 {
    int p = m_iStartPos;
    int lastack = m_iLastAckPos;
@@ -428,7 +430,7 @@ int CRcvBuffer::readBufferToFile(ofstream& file, const int& len)
       if (unitsize > rs)
          unitsize = rs;
 
-      file.write(m_pUnit[p]->m_Packet.m_pcData + m_iNotch, unitsize);
+      ofs.write(m_pUnit[p]->m_Packet.m_pcData + m_iNotch, unitsize);
 
       if ((rs > unitsize) || (rs == m_pUnit[p]->m_Packet.getLength() - m_iNotch))
       {

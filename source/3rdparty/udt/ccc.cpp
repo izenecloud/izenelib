@@ -1,5 +1,5 @@
 /*****************************************************************************
-Copyright (c) 2001 - 2008, The Board of Trustees of the University of Illinois.
+Copyright (c) 2001 - 2009, The Board of Trustees of the University of Illinois.
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -35,25 +35,34 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 /*****************************************************************************
 written by
-   Yunhong Gu, last updated 12/01/2008
+   Yunhong Gu, last updated 05/05/2009
 *****************************************************************************/
 
 
 #include "core.h"
 #include "ccc.h"
 #include <cmath>
+#include <cstring>
 
 
 CCC::CCC():
 m_iSYNInterval(CUDT::m_iSYNInterval),
 m_dPktSndPeriod(1.0),
 m_dCWndSize(16.0),
+m_iBandwidth(),
+m_dMaxCWndSize(),
+m_iMSS(),
+m_iSndCurrSeqNo(),
+m_iRcvRate(),
+m_iRTT(),
 m_pcParam(NULL),
 m_iPSize(0),
+m_UDT(),
 m_iACKPeriod(0),
 m_iACKInterval(0),
 m_bUserDefinedRTO(false),
-m_iRTO(-1)
+m_iRTO(-1),
+m_PerfInfo()
 {
 }
 
@@ -133,9 +142,25 @@ void CCC::setUserParam(const char* param, const int& size)
    delete [] m_pcParam;
    m_pcParam = new char[size];
    memcpy(m_pcParam, param, size);
+   m_iPSize = size;
 }
 
 //
+CUDTCC::CUDTCC():
+m_iRCInterval(),
+m_LastRCTime(),
+m_bSlowStart(),
+m_iLastAck(),
+m_bLoss(),
+m_iLastDecSeq(),
+m_dLastDecPeriod(),
+m_iNAKCount(),
+m_iDecRandom(),
+m_iAvgNAKNum(),
+m_iDecCount()
+{
+}
+
 void CUDTCC::init()
 {
    m_iRCInterval = m_iSYNInterval;
@@ -212,7 +237,7 @@ void CUDTCC::onACK(const int32_t& ack)
    m_dPktSndPeriod = (m_dPktSndPeriod * m_iRCInterval) / (m_dPktSndPeriod * inc + m_iRCInterval);
 
    //set maximum transfer rate
-   if ((NULL != m_pcParam) && (m_iPSize != 8))
+   if ((NULL != m_pcParam) && (m_iPSize == 8))
    {
       int64_t maxSR = *(int64_t*)m_pcParam;
       if (maxSR <= 0)
@@ -251,7 +276,7 @@ void CUDTCC::onLoss(const int32_t* losslist, const int&)
 
       // remove global synchronization using randomization
       srand(m_iLastDecSeq);
-      m_iDecRandom = (int)ceil(rand() * double(m_iAvgNAKNum) / (RAND_MAX + 1.0));
+      m_iDecRandom = (int)ceil(m_iAvgNAKNum * (double(rand()) / RAND_MAX));
       if (m_iDecRandom < 1)
          m_iDecRandom = 1;
    }

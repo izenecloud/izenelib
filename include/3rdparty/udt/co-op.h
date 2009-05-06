@@ -114,6 +114,10 @@ private:
    std::map<CUDT*, CHistoryBlock*, CUDTComp> m_mUDTIndex;
 
    pthread_mutex_t m_Lock;
+
+private:
+   CControl(const CControl&);
+   CControl& operator=(const CControl&);
 };
 
 #endif

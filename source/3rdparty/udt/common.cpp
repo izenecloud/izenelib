@@ -1,5 +1,5 @@
 /*****************************************************************************
-Copyright (c) 2001 - 2008, The Board of Trustees of the University of Illinois.
+Copyright (c) 2001 - 2009, The Board of Trustees of the University of Illinois.
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -35,7 +35,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 /*****************************************************************************
 written by
-   Yunhong Gu, last updated 12/05/2008
+   Yunhong Gu, last updated 05/05/2009
 *****************************************************************************/
 
 
@@ -45,7 +45,9 @@ written by
 #else
    #include <winsock2.h>
    #include <ws2tcpip.h>
-   #include <wspiapi.h>
+   #ifdef LEGACY_WIN32
+      #include <wspiapi.h>
+   #endif
 #endif
 #include <cmath>
 #include "md5.h"
@@ -60,7 +62,10 @@ uint64_t CTimer::s_ullCPUFrequency = CTimer::readCPUFrequency();
    pthread_cond_t CTimer::m_EventCond = CreateEvent(NULL, false, false, NULL);
 #endif
 
-CTimer::CTimer()
+CTimer::CTimer():
+m_ullSchedTime(),
+m_TickCond(),
+m_TickLock()
 {
    #ifndef WIN32
       pthread_mutex_init(&m_TickLock, NULL);
@@ -130,12 +135,12 @@ uint64_t CTimer::readCPUFrequency()
       rdtsc(t1);
       timespec ts;
       ts.tv_sec = 0;
-      ts.tv_nsec = 100000000;
+      ts.tv_nsec = 1000000000;
       nanosleep(&ts, NULL);
       rdtsc(t2);
 
       // CPU clocks per microsecond
-      return (t2 - t1) / 100000;
+      return (t2 - t1) / 1000000;
    #else
       return 1;
    #endif
@@ -279,7 +284,8 @@ void CTimer::waitForEvent()
 //
 // Automatically lock in constructor
 CGuard::CGuard(pthread_mutex_t& lock):
-m_Mutex(lock)
+m_Mutex(lock),
+m_iLocked()
 {
    #ifndef WIN32
       m_iLocked = pthread_mutex_lock(&m_Mutex);
@@ -337,7 +343,8 @@ m_iMinor(minor)
 CUDTException::CUDTException(const CUDTException& e):
 m_iMajor(e.m_iMajor),
 m_iMinor(e.m_iMinor),
-m_iErrno(e.m_iErrno)
+m_iErrno(e.m_iErrno),
+m_strMsg()
 {
 }
 
