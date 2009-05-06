@@ -135,7 +135,7 @@ uint64_t CTimer::readCPUFrequency()
       rdtsc(t1);
       timespec ts;
       ts.tv_sec = 0;
-      ts.tv_nsec = 1000000000;
+      ts.tv_nsec = 100000000;
       nanosleep(&ts, NULL);
       rdtsc(t2);
 
