@@ -11,7 +11,8 @@ using namespace izenelib::am;
 const char* indexFile = "sdb.dat";
 static string inputFile = "test.txt";
 static size_t bucketSize = 1024;
-static size_t directorySize = 8192;
+//static size_t directorySize = 8192;
+static size_t degree = 16;
 static size_t cacheSize = 10000000;
 static int num = 1000000;
 
@@ -252,14 +253,14 @@ template<typename T> void run(T& tb) {
 	//search_test(tb);
 	if (rnd) {
 		random_insert_test(tb);
-		random_search_test(tb);
+		//random_search_test(tb);
 		seq_test(tb);
-		random_delete_test(tb);
+		//random_delete_test(tb);
 	} else {
 		insert_test(tb);
-		search_test(tb);
+		//search_test(tb);
 		seq_test(tb);
-		delete_test(tb);
+		//delete_test(tb);
 	}
 
 	/*delete_test(tb);
@@ -270,7 +271,7 @@ template<typename T> void run(T& tb) {
 
 void ReportUsage(void) {
 	cout
-			<<"\nUSAGE:./t_slf [-T <trace_option>] [-dir <directorySize>] [-bkt <bucketSize>] [-rnd <0|1>]  [-n <num>] [-index <index_file>] [-cache <cache_size>.] <input_file>\n\n";
+			<<"\nUSAGE:./t_slf [-T <trace_option>] [-degree <degree>] [-bkt <bucketSize>] [-rnd <0|1>]  [-n <num>] [-index <index_file>] [-cache <cache_size>.] <input_file>\n\n";
 
 	cout<<"\nDescription:\n\n";
 	cout
@@ -302,8 +303,8 @@ int main(int argc, char *argv[]) {
 			str = str.substr(1, str.length());
 			if (str == "T") {
 				trace = bool(atoi(*argv++));
-			} else if (str == "dir") {
-				directorySize = atoi(*argv++);
+			} else if (str == "degree") {
+				degree = atoi(*argv++);
 			} else if (str == "cache") {
 				cacheSize = atoi(*argv++);
 			} else if (str == "bkt") {
@@ -328,7 +329,8 @@ int main(int argc, char *argv[]) {
 	try
 	{
 		SDB_HASH tb(indexFile);
-		tb.setDirectorySize(directorySize);
+		//tb.setDirectorySize(directorySize);
+		tb.setDegree(degree);
 		tb.setBucketSize(bucketSize);
 		tb.setCacheSize(cacheSize);
 		tb.open();

@@ -3,7 +3,7 @@
 #include <ctime>
 //#include <time.h>
 
-#include <am/sdb_btree/sdb_btree.h>
+#include <am/sdb_btree1/sdb_btree.h>
 
 using namespace std;
 using namespace izenelib::am;

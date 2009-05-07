@@ -276,7 +276,7 @@ public:
 	 */
 	bool
 	seq(SDBCursor& locn, DataType& rec,
-	ESeqDirection sdir = ESD_FORWARD);
+			ESeqDirection sdir = ESD_FORWARD);
 
 	/**
 	 * 	\brief write all the items in memory to file.
@@ -354,59 +354,76 @@ private:
 	void _flushCache(bool quickFlush=false) {
 		if( sdb_node::activeNodeNum> _sfh.cacheSize )
 		{
-			if( !quickFlush )
-			commit();
+			_flushCacheImpl(quickFlush);
+		}
+	}
+
+	//for seq, reset SDBCursor
+	void _flushCache(SDBCursor locn) {
+		if( sdb_node::activeNodeNum> _sfh.cacheSize )
+		{
+			KeyType key;
+			ValueType value;
+			get(locn, key, value);
+			_flushCacheImpl();
+			search(key, locn);
+		}
+	}
+
+	void _flushCacheImpl(bool quickFlush=false) {
+
+		if( !quickFlush )
+		commit();
 #ifdef  DEBUG
-			cout<<"cache is full..."<<endl;
-			cout<<sdb_node::activeNodeNum<<" vs "<<_sfh.cacheSize <<endl;
-			//display();
+		cout<<"cache is full..."<<endl;
+		cout<<sdb_node::activeNodeNum<<" vs "<<_sfh.cacheSize <<endl;
+		//display();
 #endif
 
-			queue<sdb_node*> qnode;
-			qnode.push(_root);
+		queue<sdb_node*> qnode;
+		qnode.push(_root);
 
-			size_t popNum = 0;
-			size_t escapeNum = _sfh.cacheSize>>1;
-			sdb_node* interval = NULL;
-			while ( !qnode.empty() ) {
-				sdb_node* popNode = qnode.front();
-				qnode.pop();
-				popNum++;
+		size_t popNum = 0;
+		size_t escapeNum = _sfh.cacheSize>>1;
+		sdb_node* interval = NULL;
+		while ( !qnode.empty() ) {
+			sdb_node* popNode = qnode.front();
+			qnode.pop();
+			popNum++;
 
-				if (popNode && !popNode->isLeaf) {
-					for(size_t i=0; i<popNode->objCount+1; i++)
-					{
-						if(popNode->children[i] && popNode->children[i]->objCount>0 ) {
-							qnode.push( popNode->children[i] );
-						}
-					}
-				}
-
-				if( popNum >= escapeNum )
+			if (popNode && !popNode->isLeaf) {
+				for(size_t i=0; i<popNode->objCount+1; i++)
 				{
-					if( popNode == interval )
-					break;
-
-					if( interval == NULL && !popNode->isLeaf ) {
-						interval = popNode->children[0];
+					if(popNode->children[i] && popNode->children[i]->objCount>0 ) {
+						qnode.push( popNode->children[i] );
 					}
+				}
+			}
 
-					if( popNode->isDirty && quickFlush)
-					_flush(popNode, _dataFile);
-					popNode->unload();
+			if( popNum >= escapeNum )
+			{
+				if( popNode == interval )
+				break;
 
-					//cout<<"unloading....";
-					//cout<<sdb_node::activeNodeNum<<" vs "<<_sfh.cacheSize <<endl;					
+				if( interval == NULL && !popNode->isLeaf ) {
+					interval = popNode->children[0];
 				}
 
+				if( popNode->isDirty && quickFlush)
+				_flush(popNode, _dataFile);
+				popNode->unload();
+				
+				//cout<<"unloading....";
+				//cout<<sdb_node::activeNodeNum<<" vs "<<_sfh.cacheSize <<endl;					
 			}
-#ifdef DEBUG
-			cout<<"stop unload..."<<endl;
-			cout<<sdb_node::activeNodeNum<<" vs "<<_sfh.cacheSize <<endl;
-			//display();
-#endif		
-			fflush(_dataFile);
+
 		}
+#ifdef DEBUG
+		cout<<"stop unload..."<<endl;
+		cout<<sdb_node::activeNodeNum<<" vs "<<_sfh.cacheSize <<endl;
+		//display();
+#endif		
+		fflush(_dataFile);
 
 	}
 
@@ -1358,6 +1375,7 @@ template<typename KeyType, typename ValueType, typename LockType,
 		return false;
 	}
 	_root->parent = 0;
+	_flushCache(locn);
 	switch (sdir) {
 	case ESD_FORWARD:
 		return _seqNext(locn, rec);

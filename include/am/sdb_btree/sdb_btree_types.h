@@ -8,6 +8,7 @@
 #include <am/util/DbObj.h>
 #include <am/util/Wrapper.h>
 #include <am/util/SdbUtil.h>
+#include <util/izene_serialization.h>
 
 //#include <boost/memory.hpp>
 //#include <boost/static_assert.hpp>

@@ -66,13 +66,17 @@ public:
 	 *  insert an item in key/value pair
 	 */
 	bool insert(const KeyType& key, const ValueType& value) {
-		DbObjPtr ptr, ptr1;
-		ptr.reset(new DbObj);
-		ptr1.reset(new DbObj);
-		write_image(key, ptr);
-		write_image(value, ptr1);
 
-		return tchdbputkeep(hdb_, ptr->getData(), ptr->getSize(), ptr1->getData(), ptr1->getSize());
+		char* ptr;
+		char* ptr1;
+		size_t ksize;
+		size_t vsize;
+		izene_serialization<KeyType> izs(key);
+		izene_serialization<ValueType> izs1(value);
+		izs.write_image(ptr, ksize);
+		izs1.write_image(ptr1, vsize);
+
+		return tchdbputkeep(hdb_, ptr, ksize, ptr1, vsize);
 	}
 
 	/**
@@ -80,17 +84,18 @@ public:
 	 *  Note that, there will be memory leak if not delete the value 
 	 */
 	ValueType* find(const KeyType & key) {
-		DbObjPtr ptr, ptr1;
-		ptr.reset(new DbObj);
-		write_image(key, ptr);
-		
+		char* ptr;
+		size_t ksize;
+		izene_serialization<KeyType> izs(key);
+		izs.write_image(ptr, ksize);
+
 		int sp;
-		void* value = tchdbget(hdb_, (void*)(ptr->getData()), ptr->getSize(), &sp);
+		void* value = tchdbget(hdb_, ptr, ksize, &sp);
 		if( !value )return NULL;
 		else {
-			ptr1.reset(new DbObj(value, sp));
 			ValueType *val = new ValueType;
-			read_image(*val, ptr1);
+			izene_deserialization<ValueType> izd((char*)value, (size_t)sp);
+			izd.read_image(*val);
 			free(value);
 			return val;
 		}
@@ -98,16 +103,18 @@ public:
 
 	bool get(const KeyType& key, ValueType& value)
 	{
-		DbObjPtr ptr, ptr1;
-		ptr.reset(new DbObj);
-		write_image(key, ptr);
+
+		char* ptr;
+		size_t ksize;
+		izene_serialization<KeyType> izs(key);
+		izs.write_image(ptr, ksize);
 
 		int sp;
-		void* pv = tchdbget(hdb_, (void*)(ptr->getData()), ptr->getSize(), &sp);
+		void* pv = tchdbget(hdb_, ptr, ksize, &sp);
 		if( !pv )return false;
 		else {
-			ptr1.reset(new DbObj(pv, sp));
-			read_image(value, ptr1);
+			izene_deserialization<ValueType> izd((char*)pv, (size_t)sp);
+			izd.read_image(value);
 			free(pv);
 			return true;
 		}
@@ -117,12 +124,13 @@ public:
 	 *  delete  an item
 	 */
 	bool del(const KeyType& key) {
-		DbObjPtr ptr;
-		ptr.reset(new DbObj);
-		write_image(key, ptr);
+		char* ptr;
+		size_t ksize;
+		izene_serialization<KeyType> izs(key);
+		izs.write_image(ptr, ksize);
 
 		//ptr->display();
-		return tchdbout(hdb_, ptr->getData(), ptr->getSize() );
+		return tchdbout(hdb_, ptr, ksize);
 	}
 
 	/**
@@ -137,12 +145,16 @@ public:
 	 *  update  an item by key/value pair
 	 */
 	bool update(const KeyType& key, const ValueType& value) {
-		DbObjPtr ptr, ptr1;
-		ptr.reset(new DbObj);
-		ptr1.reset(new DbObj);
-		write_image(key, ptr);
-		write_image(value, ptr1);
-		return tchdbput(hdb_, ptr->getData(), ptr->getSize(), ptr1->getData(), ptr1->getSize());
+		char* ptr;
+		char* ptr1;
+		size_t ksize;
+		size_t vsize;
+		izene_serialization<KeyType> izs(key);
+		izene_serialization<ValueType> izs1(value);
+		izs.write_image(ptr, ksize);
+		izs1.write_image(ptr1, vsize);
+		
+		return tchdbput(hdb_, ptr, ksize, ptr1, vsize);
 
 	}
 
@@ -212,10 +224,12 @@ public:
 	 *   
 	 */
 	bool seq(SDBCursor& locn, DataType& rec, ESeqDirection sdir=ESD_FORWARD) {
-		DbObjPtr ptr, ptr1;
-		ptr.reset(new DbObj);
-
-		write_image(locn, ptr);
+				
+		char* ptr;
+		size_t ksize;
+		izene_serialization<KeyType> izs(locn);
+		izs.write_image(ptr, ksize);		
+		
 		ValueType* pv;
 		pv = find(locn);
 		if( pv )
@@ -225,15 +239,15 @@ public:
 		}
 		else
 		{
-			ptr.reset(new DbObj);
+			ptr = NULL;
 		}
 		int sp;
 		void *buf;
-		buf = tchdbgetnext(hdb_, ptr->getData(), ptr->getSize(),&sp);
+		buf = tchdbgetnext(hdb_, ptr, ksize, &sp);
 		if(buf != NULL)
-		{
-			ptr1.reset(new DbObj(buf, sp));
-			read_image(locn, ptr1);
+		{			
+			izene_deserialization<KeyType> izd((char*)buf, (size_t)sp);
+			izd.read_image(locn);
 			return true;
 		}
 		return false;

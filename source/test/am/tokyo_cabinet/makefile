@@ -12,7 +12,7 @@ INC_PATH := -I  /usr/local/include/boost-1_35/  -I /usr/local/include/  -I ../..
 TC_OBJ := t_tc.o
  
 
-all:  t_tc 
+all:  t_tc  
 
 .cpp.o:
 	$(GPP) $(CC_OPTIONS) $(INC_PATH)  $< 

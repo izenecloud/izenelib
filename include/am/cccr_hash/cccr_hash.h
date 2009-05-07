@@ -96,8 +96,10 @@ public:
 	bool insert(const KeyType& key, const ValueType& v)
 	{
 		char* str;
-		size_t ksize;
-		write_image(key, str, ksize);
+		std::size_t ksize;
+		//write_image(key, str, ksize);	
+		izene_serialization<KeyType> izs(key);
+		izs.write_image(str, ksize);
 
 		uint32_t idx = izenelib::util::sdb_hash_fun(str,ksize) & ENTRY_MASK;
 
@@ -135,8 +137,8 @@ public:
 
 				if (j == len)
 				{
-					*(uint64_t*)(pBkt+p+j) = value;
-					return true;
+					//*(uint64_t*)(pBkt+p+j) = value;
+					return false;
 				}
 
 				p += len + sizeof (uint64_t);
@@ -176,9 +178,12 @@ public:
 	{
 		char* str;
 		size_t ksize;
-		write_image(key, str, ksize);
+		//write_image(key, str, ksize);
+		izene_serialization<KeyType> izs(key);
+		izs.write_image(str, ksize);
+
 		uint32_t idx = izenelib::util::sdb_hash_fun(str,ksize) & ENTRY_MASK;
-		
+
 		char* pBkt = entry_[idx];
 		if (pBkt == NULL)
 		return NULL;
@@ -226,9 +231,12 @@ public:
 
 		char* str;
 		size_t ksize;
-		write_image(key, str, ksize);
+		//write_image(key, str, ksize);
+		izene_serialization<KeyType> izs(key);
+		izs.write_image(str, ksize);
+
 		uint32_t idx = izenelib::util::sdb_hash_fun(str,ksize) & ENTRY_MASK;
-		
+
 		char* pBkt = entry_[idx];
 		if (pBkt ==NULL)
 		return -1;
@@ -274,9 +282,12 @@ public:
 
 		char* str;
 		size_t ksize;
-		write_image(key, str, ksize);
+		//write_image(key, str, ksize);
+		izene_serialization<KeyType> izs(key);
+		izs.write_image(str, ksize);
+
 		uint32_t idx = izenelib::util::sdb_hash_fun(str,ksize) & ENTRY_MASK;
-		
+
 		char* pBkt = entry_[idx];
 
 		if (pBkt ==NULL)
@@ -420,14 +431,9 @@ protected:
 	int count_;
 };
 
+template< typename KeyType =string, typename ValueType =NullType > class cccr_small_hash :
+	public cccr_hash<KeyType, ValueType, 6> {
 
-template<
-	typename KeyType = string,
-	typename ValueType = NullType
->
-class cccr_small_hash: public cccr_hash<KeyType, ValueType, 6>
-{
-	
 };
 
 NS_IZENELIB_AM_END

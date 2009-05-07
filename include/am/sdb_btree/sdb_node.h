@@ -352,7 +352,8 @@ template<typename KeyType, typename ValueType, typename LockType,
 	for (size_t i = 0; i < objCount; i++) {
 		//cout<<" read data idx="<<i<<endl;
 		size_t ksize, vsize;
-		DbObjPtr ptr, ptr1;
+		
+		//DbObjPtr ptr, ptr1;	
 
 		memcpy(&ksize, p, sizeof(size_t));
 
@@ -376,27 +377,39 @@ template<typename KeyType, typename ValueType, typename LockType,
 			memcpy(&ksize, p, sizeof(size_t));
 			assert(ksize != 0);
 		}
-		p += sizeof(size_t);
-		byte* kBuf = new byte[ksize];
-		memcpy(kBuf, p, ksize);
+		p += sizeof(size_t);	
+		
+		//byte* kBuf = new byte[ksize];
+		//memcpy(kBuf, p, ksize);		
+		
+		//ptr.reset(new DbObj(kBuf, ksize));
+		//read_image(keys[i], ptr);
+		izene_deserialization<KeyType> izd(p, ksize);
+		izd.read_image( keys[i] );
+		
+		//delete[] kBuf;
+		//kBuf = 0;
+		
 		p += ksize;
-		ptr.reset(new DbObj(kBuf, ksize));
-		read_image(keys[i], ptr);
-		delete[] kBuf;
-		kBuf = 0;
 
 		memcpy(&vsize, p, sizeof(size_t));
 		p += sizeof(size_t);
 
 		//if value is of NULLType, the vsize is 0
 		if (vsize != 0) {
-			byte* vBuf = new byte[vsize];
-			memcpy(vBuf, p, vsize);
-			p += vsize;
-			ptr1.reset(new DbObj(vBuf, vsize));
-			read_image(values[i], ptr1);
-			delete[] vBuf;
-			vBuf = 0;
+			//byte* vBuf = new byte[vsize];
+			//memcpy(vBuf, p, vsize);
+		
+			//ptr1.reset(new DbObj(vBuf, vsize));
+			//read_image(values[i], ptr1);
+			
+			izene_deserialization<ValueType> izd1(p, vsize);
+			izd1.read_image( values[i] );
+			
+			p += vsize;		
+			
+			//delete[] vBuf;
+			//vBuf = 0;
 		}
 	}
 
@@ -490,14 +503,23 @@ template<typename KeyType, typename ValueType, typename LockType,
 
 	for (size_t i=0; i<objCount; i++) {
 		//cout<<"write key ="<<keys[i]<<endl;
-		DbObjPtr ptr, ptr1;
+		/*DbObjPtr ptr, ptr1;
 		ptr.reset(new DbObj);
 		ptr1.reset(new DbObj);
 		write_image(keys[i], ptr);
 		write_image(values[i], ptr1);
-
 		size_t ksize = ptr->getSize();
-		size_t vsize = ptr1->getSize();
+		size_t vsize = ptr1->getSize();*/
+		
+		char *ptr, *ptr1;
+		size_t ksize, vsize;
+		izene_serialization<KeyType> izs( keys[i] );
+		izene_serialization<ValueType> izs1( values[i] );
+		izs.write_image(ptr, ksize);
+		izs1.write_image(ptr1, vsize);
+		
+		
+		
 		size_t esize = 2*sizeof(size_t)+ksize+vsize;
 
 		//when overflowing occurs, append the overflow buf
@@ -514,11 +536,11 @@ template<typename KeyType, typename ValueType, typename LockType,
 		}
 		memcpy(p, &ksize, sizeof(size_t));
 		p += sizeof(size_t);
-		memcpy(p, ptr->getData(), ksize);
+		memcpy(p, ptr, ksize);
 		p += ksize;
 		memcpy(p, &vsize, sizeof(size_t));
 		p += sizeof(size_t);
-		memcpy(p, ptr1->getData(), vsize);
+		memcpy(p, ptr1, vsize);
 		p += vsize;
 
 		tsz += esize;

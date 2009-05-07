@@ -54,6 +54,8 @@ public:
 	 *   constructor
 	 */
 	sdb_hash(const string& fileName = "sdb_hash.dat"):sfh_(), fileName_(fileName) {
+		directorySize_ = (1<<sfh_.dpow);
+		dmask_ = directorySize_ - 1;
 		dataFile_ = 0;
 		isOpen_ = false;
 	}
@@ -80,9 +82,16 @@ public:
 	 * 
 	 *  if not called use default size 4096
 	 */
-	void setDirectorySize(size_t dirSize) {
+	/*void setDirectorySize(size_t dirSize) {
+	 assert(isOpen_ == false);
+	 sfh_.directorySize = dirSize;
+	 }*/
+
+	void setDegree(size_t dpow) {
 		assert(isOpen_ == false);
-		sfh_.directorySize = dirSize;
+		sfh_.dpow = dpow;
+		directorySize_ = (1<<dpow);
+		dmask_ = directorySize_ - 1;
 
 	}
 
@@ -92,8 +101,8 @@ public:
 	void setCacheSize(size_t cacheSize)
 	{
 		sfh_.cacheSize = cacheSize;
-		if(sfh_.cacheSize < sfh_.directorySize)
-		sfh_.cacheSize = sfh_.directorySize;
+		if(sfh_.cacheSize < directorySize_)
+		sfh_.cacheSize = directorySize_;
 	}
 
 	/**
@@ -119,23 +128,21 @@ public:
 		if( search(key, locn) )
 		return false;
 		else {
-			DbObjPtr ptr, ptr1;
-
-			ptr.reset(new DbObj);
-			ptr1.reset(new DbObj);
-			write_image(key, ptr);
-			write_image(value, ptr1);
-
-			size_t ksize = ptr->getSize();
-			size_t vsize = ptr1->getSize();
-
+			char* ptr = 0;
+			char* ptr1 = 0;
+			size_t ksize;
+			size_t vsize;
+			izene_serialization<KeyType> izs(key);
+			izene_serialization<ValueType> izs1(value);
+			izs.write_image(ptr, ksize);
+			izs1.write_image(ptr1, vsize);	
+			
 			bucket_chain* sa = locn.first;
 			char* p = locn.second;
 
 			//entry_[idx] is even NULL.
 			if(locn.first == NULL) {
-				uint32_t idx = sdb_hashing::hash_fun(ptr->getData(), ptr->getSize() )
-				% sfh_.directorySize;
+				uint32_t idx = sdb_hashing::hash_fun(ptr, ksize) & dmask_;				;
 
 				if (bucketAddr[idx] == 0) {
 					entry_[idx] = allocateBlock_();
@@ -165,16 +172,16 @@ public:
 			p += sizeof(size_t);
 			memcpy(p, &vsize, sizeof(size_t));
 			p += sizeof(size_t);
-			memcpy(p, ptr->getData(), ksize);
+			memcpy(p, ptr, ksize);
 			p += ksize;
-			memcpy(p, ptr1->getData(), vsize);
+			memcpy(p, ptr1, vsize);
 			p += vsize;
 
-			assert( size_t (p-sa->str) + sizeof(long) +sizeof(int) <= sfh_.bucketSize);
+			assert( size_t (p-sa->str) + sizeof(long) + sizeof(int) <= sfh_.bucketSize);
 
 			sa->isDirty = true;
 			sa->num++;
-			sfh_.numItems++;
+			++sfh_.numItems;
 			return true;
 		}
 
@@ -198,9 +205,8 @@ public:
 			p += sizeof(size_t);
 
 			ValueType *val = new ValueType;
-			DbObjPtr ptr;
-			ptr.reset( new DbObj(p+ksz, vsz) );
-			read_image(*val, ptr);
+			izene_deserialization<ValueType> isd(p+ksz, vsz);
+			isd.read_image(*val);
 			return val;
 		}
 	}
@@ -218,9 +224,8 @@ public:
 			memcpy(&vsz, p, sizeof(size_t));
 			p += sizeof(size_t);
 
-			DbObjPtr ptr;
-			ptr.reset( new DbObj(p+ksz, vsz) );
-			read_image(value, ptr);
+			izene_deserialization<ValueType> isd(p+ksz, vsz);
+			isd.read_image(value);
 			return true;
 		}
 	}
@@ -273,14 +278,14 @@ public:
 		return insert(key, value);
 		else
 		{
-			DbObjPtr ptr, ptr1;
-			ptr.reset(new DbObj);
-			ptr1.reset(new DbObj);
-			write_image(key, ptr);
-			write_image(value, ptr1);
-
-			size_t ksize = ptr->getSize();
-			size_t vsize = ptr1->getSize();
+			char* ptr;
+			char* ptr1;
+			size_t ksize;
+			size_t vsize;
+			izene_serialization<KeyType> izs(key);
+			izene_serialization<ValueType> izs1(value);
+			izs.write_image(ptr, ksize);
+			izs1.write_image(ptr1, vsize);
 
 			bucket_chain* sa = locn.first;
 			char *p = locn.second;
@@ -292,13 +297,14 @@ public:
 			if(vsz == vsize)
 			{
 				sa->isDirty = true;
-				memcpy(p+ksz, ptr1->getData(), vsz);
+				memcpy(p+ksz, ptr1, vsz);
 				return true;
 			}
 			else
 			{
 				sa->isDirty = true;
-				memset(p, 0, ksize);
+				//delete it first!
+				memset(p, 0xff, ksize);
 				return insert(key, value);
 			}
 			return true;
@@ -322,22 +328,19 @@ public:
 	 *    another search function, flushCache_() will be called at the beginning,
 	 * 
 	 */
-	bool search(const KeyType&key, SDBCursor& locn)
+	bool search(const KeyType &key, SDBCursor &locn)
 	{
 		flushCache_();
 
 		locn.first = NULL;
 		locn.second = NULL;
 
-		DbObjPtr ptr;
-		ptr.reset(new DbObj);
-		write_image(key, ptr);
-		
-		size_t ksize = ptr->getSize();		
-		
-		uint32_t idx = sdb_hashing::hash_fun(ptr->getData(), ptr->getSize() )
-		% sfh_.directorySize;
+		char* ptr=0;
+		size_t ksize;
+		izene_serialization<KeyType> izs(key);
+		izs.write_image(ptr, ksize);
 
+		uint32_t idx = sdb_hashing::hash_fun(ptr, ksize) & dmask_;		
 		locn.first = entry_[idx];
 
 		if (entry_[idx] == NULL) {
@@ -350,7 +353,6 @@ public:
 			while ( sa ) {
 				locn.first = sa;
 				//cout<<"search level: "<<sa->level<<endl;
-
 				p = sa->str;
 				//if( !p )return false;
 				for (i=0; i<sa->num; i++) {
@@ -368,9 +370,10 @@ public:
 						continue;
 					}
 
-					char *pd = (char *)ptr->getData();
+					char *pd = ptr;
 					size_t j=0;
 					for (; j<ksz; j++) {
+						//cout<<pd[j]<<" vs "<<p[j]<<endl;
 						if (pd[j] != p[j]) {
 							break;
 						}
@@ -396,7 +399,7 @@ public:
 	SDBCursor get_first_locn()
 	{
 		SDBCursor locn;
-		for(size_t i=0; i<sfh_.directorySize; i++)
+		for(size_t i=0; i<directorySize_; i++)
 		{
 			if( entry_[i] )
 			{
@@ -430,7 +433,9 @@ public:
 		if(p == NULL)return false;
 
 		size_t ksize, vsize;
-		DbObjPtr ptr, ptr1;
+		//DbObjPtr ptr, ptr1;
+		//char* ptr, ptr1;
+
 		KeyType key;
 		ValueType val;
 
@@ -439,11 +444,12 @@ public:
 		memcpy(&vsize, p, sizeof(size_t));
 		p += sizeof(size_t);
 
-		ptr.reset(new DbObj(p, ksize));
-		read_image(key, ptr);
+		izene_deserialization<KeyType> izs(p, ksize);
+		izs.read_image(key);
 		p += ksize;
-		ptr1.reset(new DbObj(p, vsize));
-		read_image(val, ptr1);
+
+		izene_deserialization<ValueType> izs1(p, vsize);
+		izs1.read_image(val);
 		p += vsize;
 
 		rec.key = key;
@@ -462,19 +468,18 @@ public:
 	 *   
 	 */
 	bool seq(SDBCursor& locn, DataType& rec, ESeqDirection sdir=ESD_FORWARD) {
-
-		//flushCache_();
+		flushCache_(locn);
 		if( sdir == ESD_FORWARD ) {
 			bucket_chain* sa = locn.first;
 			char* p = locn.second;
-			//if( sa && !sa->isLoaded)
-			//sa->read(dataFile_);
 
 			if(sa == NULL)return false;
 			if(p == NULL)return false;
 
 			size_t ksize, vsize;
-			DbObjPtr ptr, ptr1;
+			//DbObjPtr ptr, ptr1;	
+			char* ptr;
+			size_t poff;
 			KeyType key;
 			ValueType val;
 
@@ -497,12 +502,14 @@ public:
 				delete a;
 				a = 0;
 
-				ptr.reset(new DbObj(p, ksize));
-				read_image(key, ptr);
-
+				ptr = p;
+				poff = ksize;
+				izene_deserialization<KeyType> izd(p, ksize);
+				izd.read_image(key);
 				p += ksize;
-				ptr1.reset(new DbObj(p, vsize));
-				read_image(val, ptr1);
+
+				izene_deserialization<ValueType> izd1(p, vsize);
+				izd1.read_image(val);
 				p += vsize;
 
 				memcpy(&ksize, p, sizeof(size_t));
@@ -513,19 +520,16 @@ public:
 					}
 					else
 					{
-						uint32_t idx = sdb_hashing::hash_fun(ptr->getData(), ptr->getSize() )
-						% sfh_.directorySize;
-
+						uint32_t idx = sdb_hashing::hash_fun(ptr, poff) & dmask_;
 						while( !entry_[++idx] ) {
-							//cout<<"idx="<<idx<<endl;
-							if( idx >= sfh_.directorySize-1 )
+							if( idx >= directorySize_-1 )
 							break;
 							//return false;
 						}
 
 						//get next bucket;
 						sa = entry_[idx];
-						if( sa) p = sa->str;
+						if( sa ) p = sa->str;
 						else
 						p = NULL;
 					}
@@ -577,15 +581,13 @@ public:
 			cout<<"creating...\n"<<endl;
 			sfh_.display();
 #endif
-			bucketAddr = new long[sfh_.directorySize];
-			entry_ = new bucket_chain*[sfh_.directorySize];
-			memset(bucketAddr, 0, sizeof(long)*sfh_.directorySize);
-			memset(entry_ , 0, sizeof(bucket_chain*)*sfh_.directorySize);
+			bucketAddr = new long[directorySize_];
+			entry_ = new bucket_chain*[directorySize_];
 
-			/*for(size_t i=0; i<sfh_.directorySize; i++) {
-			 bucketAddr[i] = 0;
-			 entry_[i] = 0;
-			 }*/
+			//initialization
+			memset(bucketAddr, 0, sizeof(long)*directorySize_);
+			memset(entry_ , 0, sizeof(bucket_chain*)*directorySize_);
+
 			sfh_.toFile(dataFile_);
 			ret = true;
 		} else {
@@ -600,17 +602,19 @@ public:
 				cout<<"open exist...\n"<<endl;
 				sfh_.display();
 #endif
-				bucketAddr = new long[sfh_.directorySize];
-				entry_ = new bucket_chain*[sfh_.directorySize];
-				memset(bucketAddr, 0, sizeof(long)*sfh_.directorySize);
-				memset(entry_ , 0, sizeof(bucket_chain*)*sfh_.directorySize);
+				directorySize_ = (1<<sfh_.dpow);
+				dmask_ = directorySize_ - 1;
 
-				if (sfh_.directorySize != fread(bucketAddr, sizeof(long),
-								sfh_.directorySize, dataFile_))
+				bucketAddr = new long[directorySize_];
+				entry_ = new bucket_chain*[directorySize_];
+				memset(bucketAddr, 0, sizeof(long)*directorySize_);
+				memset(entry_ , 0, sizeof(bucket_chain*)*directorySize_);
+
+				if (directorySize_ != fread(bucketAddr, sizeof(long),
+								directorySize_, dataFile_))
 				return false;
-				for (size_t i=0; i<sfh_.directorySize; i++) {
-					if (bucketAddr[i] != 0) {
-						//cout<<"bucket addr: "<<bucketAddr[i]<<endl;
+				for (size_t i=0; i<directorySize_; i++) {
+					if (bucketAddr[i] != 0) {						
 						entry_[i] = new bucket_chain(sfh_.bucketSize);
 						entry_[i]->fpos = bucketAddr[i];
 						entry_[i]->read(dataFile_);
@@ -628,7 +632,7 @@ public:
 	bool close()
 	{
 		flush();
-		for (size_t i=0; i<sfh_.directorySize; i++)
+		for (size_t i=0; i<directorySize_; i++)
 		{
 			while(entry_[i])
 			{
@@ -654,10 +658,10 @@ public:
 	 */
 	void commit() {
 		sfh_.toFile(dataFile_);
-		if (sfh_.directorySize != fwrite(bucketAddr, sizeof(long),
-						sfh_.directorySize, dataFile_) )
+		if (directorySize_ != fwrite(bucketAddr, sizeof(long),
+						directorySize_, dataFile_) )
 		return;
-		for (size_t i=0; i<sfh_.directorySize; i++) {
+		for (size_t i=0; i<directorySize_; i++) {
 			bucket_chain* sc = entry_[i];
 			while (sc) {
 				if ( sc->write(dataFile_) ) {
@@ -676,7 +680,7 @@ public:
 	 */
 	void flush() {
 		commit();
-		for (size_t i=0; i<sfh_.directorySize; i++) {
+		for (size_t i=0; i<directorySize_; i++) {
 			if(entry_[i]) {
 				bucket_chain* sc = entry_[i]->next;
 				bucket_chain* sa;
@@ -701,7 +705,7 @@ public:
 		os<<"loadFactor: "<<loadFactor()<<endl;
 
 		if( !onlyheader ) {
-			for (size_t i=0; i<sfh_.directorySize; i++) {
+			for (size_t i=0; i<directorySize_; i++) {
 				os<<"["<<i<<"]: ";
 				if (entry_[i])
 				entry_[i]->display(os);
@@ -724,7 +728,7 @@ public:
 	double loadFactor()
 	{
 		int nslot = 0;
-		for (size_t i=0; i<sfh_.directorySize; i++) {
+		for (size_t i=0; i<directorySize_; i++) {
 			bucket_chain* sc = entry_[i];
 			while (sc) {
 				nslot += sc->num;
@@ -754,6 +758,9 @@ private:
 	bool isOpen_;
 
 private:
+	size_t directorySize_;
+	size_t dmask_;
+
 	/**
 	 *   Allocate an bucket_chain element 
 	 */
@@ -766,13 +773,14 @@ private:
 		newBlock->isLoaded = true;
 		newBlock->isDirty = true;
 
-		newBlock->fpos = sizeof(ShFileHeader) + sizeof(long)*sfh_.directorySize + sfh_.bucketSize*sfh_.nBlock;
+		newBlock->fpos = sizeof(ShFileHeader) + sizeof(long)*directorySize_ + sfh_.bucketSize*sfh_.nBlock;
 		sfh_.nBlock++;
 
 		bucket_chain::activeNum++;
 
 		return newBlock;
 	}
+
 	/**
 	 *  when cache is full, it was called to reduce memory usage.
 	 * 
@@ -783,51 +791,75 @@ private:
 		//cout<<bucket_chain::activeNum<<" vs "<<sfh_.cacheSize <<endl;
 		if( bucket_chain::activeNum> sfh_.cacheSize )
 		{
-#ifdef DEBUG
-			cout<<"cache is full..."<<endl;
-			cout<<bucket_chain::activeNum<<" vs "<<sfh_.cacheSize <<endl;
-#endif 
-			if( !quickFlush )commit();
-			for(size_t i=0; i<sfh_.directorySize; i++) {
-				bucket_chain* sc = entry_[i];
-				while( sc ) {
-					//if(  sc->level>0 && (size_t)sc->level > sfh_.cacheSize/sfh_.directorySize/2 - 1 )
-					if( sc->level>0 )
-					{
-						if(sc->isLoaded)
-						sh_cache_.insert(make_pair(sc->level, sc ));
-					}
-					sc = sc->next;
-				}
-			}
-			//cout<<sh_cache_.size()<<endl;				
-			for(CacheIter it = sh_cache_.begin(); it != sh_cache_.end(); it++ )
-			{
-
-				//display cache
-				/*cout<<"(level: "<<it->second->level;
-				 cout<<"  val:  "<<it->second;
-				 cout<<"  fpos: "<<it->second->fpos;	
-				 cout<<"  num: "<<it->second->num;		
-				 cout<<" )-> ";*/
-				if(quickFlush)
-				it->second->write(dataFile_);
-				it->second->unload();
-				if( bucket_chain::activeNum < sfh_.cacheSize/2 ) {
-					fflush(dataFile_);
-					sh_cache_.clear();
-
-					//cout<<" !!!! "<<bucket_chain::activeNum<<" vs "<<sfh_.cacheSize <<endl;
-					//display();
-					return;
-				}
-			}
-			fflush(dataFile_);
-			sh_cache_.clear();
-			//cout<<" !!!! "<<bucket_chain::activeNum<<" vs "<<sfh_.cacheSize <<endl;
-			//display();	
-		}
+			flushCacheImpl_(quickFlush);			
+		}		
 	}
+
+	void flushCache_(SDBCursor &locn)
+	{
+		//cout<<bucket_chain::activeNum<<" vs "<<sfh_.cacheSize <<endl;
+		if( bucket_chain::activeNum> sfh_.cacheSize )
+		{
+			KeyType key;
+			ValueType value;
+			get(locn, key, value);
+			flushCacheImpl_();
+			search(key, locn);			
+		}
+
+	}
+
+	void flushCacheImpl_(bool quickFlush = false)
+	{
+#ifdef DEBUG
+		cout<<"cache is full..."<<endl;
+		cout<<bucket_chain::activeNum<<" vs "<<sfh_.cacheSize <<endl;
+#endif 
+		if( !quickFlush )commit();
+		for(size_t i=0; i<directorySize_; i++) {
+			bucket_chain* sc = entry_[i];
+			while( sc ) {
+				//if(  sc->level>0 && (size_t)sc->level > sfh_.cacheSize/sfh_.directorySize/2 - 1 )
+				if( sc->level>0 )
+				{
+					if(sc->isLoaded)
+					sh_cache_.insert(make_pair(sc->level, sc ));
+				}
+				sc = sc->next;
+			}
+		}
+		//cout<<sh_cache_.size()<<endl;				
+		for(CacheIter it = sh_cache_.begin(); it != sh_cache_.end(); it++ )
+		{
+
+			//display cache
+			/*cout<<"(level: "<<it->second->level;
+			 cout<<"  val:  "<<it->second;
+			 cout<<"  fpos: "<<it->second->fpos;	
+			 cout<<"  num: "<<it->second->num;		
+			 cout<<" )-> ";*/
+
+			if(quickFlush)
+			it->second->write(dataFile_);
+			it->second->unload();
+			if( bucket_chain::activeNum < sfh_.cacheSize/2 ) {
+				fflush(dataFile_);
+				sh_cache_.clear();
+
+				//cout<<" !!!! "<<bucket_chain::activeNum<<" vs "<<sfh_.cacheSize <<endl;
+				//display();
+
+				return;
+			}
+		}
+		fflush(dataFile_);
+		sh_cache_.clear();
+
+		//cout<<" !!!! "<<bucket_chain::activeNum<<" vs "<<sfh_.cacheSize <<endl;
+		//display();	
+
+	}
+
 };
 
 NS_IZENELIB_AM_END

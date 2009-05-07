@@ -11,6 +11,7 @@ using namespace boost;
 
 NS_IZENELIB_UTIL_BEGIN
 
+
 template <typename T>
 struct IsMemcpySerial{
 	enum {yes = is_arithmetic<T>::value 
@@ -29,29 +30,30 @@ struct IsMemcpySerial<std::vector<T> >{
 template <typename T>
 struct IsFebirdSerial{
 	enum {yes = 0, 
-		no= !yes};	
+		no = !yes};	
 };
 
 
-#define MAKE_FEBIRD_SERIALIZATION(type) 	\
-namespace izenelib{namespace util{	 	\
-	template <>struct IsFebirdSerial<type>{	 \
-		enum { yes = 1, no= 0}; 		\	
-	}; \
-	}  \
-	}
+#define MAKE_FEBIRD_SERIALIZATION(type) \
+	namespace izenelib{namespace util{ \
+	template <>struct IsFebirdSerial<type>{ \
+		enum { yes=1, no=!yes}; \
+		}; \
+		} \
+		}
 
 
-#define MAKE_MEMCPY_SERIALIZATION(type) 	\
-	namespace izenelib{namespace util{	\
+#define MAKE_MEMCPY_SERIALIZATION(type) \
+	namespace izenelib{namespace util{ \
 	template <>struct IsMemcpySerial<type>{ \
-		enum {yes = 1, no= 0};  \		
-	}; \
-	}  \
-	}
+		enum { yes=1, no=!yes}; \
+		}; \
+		} \
+		}
 
 NS_IZENELIB_UTIL_END
 
 MAKE_MEMCPY_SERIALIZATION(std::string)
+//MAKE_FEBIRD_SERIALIZATION(std::string)
 		
 #endif /*IZENE_TYPE_TRAITS_H_*/

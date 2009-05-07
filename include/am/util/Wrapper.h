@@ -18,9 +18,9 @@
 using namespace std;
 using namespace boost;
 
-const int archive_flags = archive::no_header | archive::no_codecvt; 
-
 BEGIN_SERIALIZATION
+
+const int archive_flags = archive::no_header | archive::no_codecvt; 
 
 template<class T> inline void read_image(T& dat, const DbObjPtr& ptr) {
 	stringstream istr((char*)ptr->getData());

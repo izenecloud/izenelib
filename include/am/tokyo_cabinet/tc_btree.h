@@ -20,20 +20,28 @@ NS_IZENELIB_AM_BEGIN
  */
 template<typename KeyType>
 int compare_tc(const char* aptr, int asize, const char* bptr, int bsize, void* op=0) {
-	DbObjPtr ptr, ptr1;
-	KeyType key, key1;
+
 	izenelib::am::CompareFunctor<KeyType> _comp;
-	
-	ptr.reset(new DbObj(aptr,asize));
-	ptr1.reset(new DbObj(bptr, bsize));
-	read_image(key, ptr);
-	read_image(key1, ptr1);
-	return _comp(key,key1);
+
+	/*DbObjPtr ptr, ptr1;
+	 KeyType key, key1;
+	 ptr.reset(new DbObj(aptr,asize));
+	 ptr1.reset(new DbObj(bptr, bsize));
+	 read_image(key, ptr);
+	 read_image(key1, ptr1);*/
+
+	//char *ptr, *ptr1;
+	KeyType key, key1;
+	izene_deserialization<KeyType> izd(aptr, asize);
+	izene_deserialization<KeyType> izd1(bptr, bsize);
+	izd.read_image(key);
+	izd.read_image(key1);
+
+	return _comp(key, key1);
 }
 
 template< typename KeyType, typename ValueType, typename LockType =NullLock> class tc_btree :
-public AccessMethod<KeyType, ValueType, LockType>
-{
+	public AccessMethod<KeyType, ValueType, LockType> {
 public:
 	//typedef std::pair<bucket_chain*, char*> SDBCursor;
 	typedef DataType<KeyType,ValueType> DataType;
@@ -42,8 +50,9 @@ public:
 	/**
 	 *   constructor
 	 */
-	tc_btree(const string& fileName = "tc_btree.dat"): fileName_(fileName) {
-		
+	tc_btree(const string& fileName = "tc_btree.dat") :
+		fileName_(fileName) {
+
 	}
 
 	/**
@@ -57,8 +66,7 @@ public:
 	/**
 	 *  set cache size, if not called use default size 100000
 	 */
-	void setCacheSize(size_t cacheSize)
-	{
+	void setCacheSize(size_t cacheSize) {
 		tcbdbsetcache(bdb_, cacheSize/2, cacheSize/2);
 	}
 
@@ -80,13 +88,17 @@ public:
 	 *  insert an item in key/value pair
 	 */
 	bool insert(const KeyType& key, const ValueType& value) {
-		DbObjPtr ptr, ptr1;
-		ptr.reset(new DbObj);
-		ptr1.reset(new DbObj);
-		write_image(key, ptr);
-		write_image(value, ptr1);
 
-		return tcbdbputkeep(bdb_, ptr->getData(), ptr->getSize(), ptr1->getData(), ptr1->getSize());
+		char* ptr;
+		char* ptr1;
+		size_t ksize;
+		size_t vsize;
+		izene_serialization<KeyType> izs(key);
+		izene_serialization<ValueType> izs1(value);
+		izs.write_image(ptr, ksize);
+		izs1.write_image(ptr1, vsize);
+
+		return tcbdbputkeep(bdb_, ptr, ksize, ptr1, vsize);
 	}
 
 	/**
@@ -94,20 +106,40 @@ public:
 	 *  Note that, there will be memory leak if not delete the value 
 	 */
 	ValueType* find(const KeyType & key) {
-		DbObjPtr ptr, ptr1;
-		ptr.reset(new DbObj);
-		write_image(key, ptr);
+		char* ptr;
+		size_t ksize;
+		izene_serialization<KeyType> izs(key);
+		izs.write_image(ptr, ksize);
 
-		void* value =NULL;
 		int sp;
-		value = tcbdbget(bdb_, (void*)(ptr->getData()), ptr->getSize(), &sp);
-		if( !value )return NULL;
+		void* value = tcbdbget(bdb_, ptr, ksize, &sp);
+		if ( !value)
+			return NULL;
 		else {
-			ptr1.reset(new DbObj(value, sp));
 			ValueType *val = new ValueType;
-			read_image(*val, ptr1);
+			izene_deserialization<ValueType> izd((char*)value, (size_t)sp);
+			izd.read_image(*val);
 			free(value);
 			return val;
+		}
+	}
+
+	bool get(const KeyType& key, ValueType& value) {
+
+		char* ptr;
+		size_t ksize;
+		izene_serialization<KeyType> izs(key);
+		izs.write_image(ptr, ksize);
+
+		int sp;
+		void* pv = tcbdbget(bdb_, ptr, ksize, &sp);
+		if ( !pv)
+			return false;
+		else {
+			izene_deserialization<ValueType> izd((char*)pv, (size_t)sp);
+			izd.read_image(value);
+			free(pv);
+			return true;
 		}
 	}
 
@@ -115,32 +147,36 @@ public:
 	 *  delete  an item
 	 */
 	bool del(const KeyType& key) {
-		DbObjPtr ptr;
-		ptr.reset(new DbObj);
-		write_image(key, ptr);
+		char* ptr;
+		size_t ksize;
+		izene_serialization<KeyType> izs(key);
+		izs.write_image(ptr, ksize);
 
-		return tcbdbout(bdb_, ptr->getData(), ptr->getSize() );
+		//ptr->display();
+		return tcbdbout(bdb_, ptr, ksize);
 	}
 
 	/**
 	 *  update  an item through DataType data
 	 */
-	bool update(const DataType& dat)
-	{
-		return update( dat.get_key(), dat.get_value() );
+	bool update(const DataType& dat) {
+		return update(dat.get_key(), dat.get_value() );
 	}
 
 	/**
 	 *  update  an item by key/value pair
 	 */
 	bool update(const KeyType& key, const ValueType& value) {
-		DbObjPtr ptr, ptr1;
-		ptr.reset(new DbObj);
-		ptr1.reset(new DbObj);
-		write_image(key, ptr);
-		write_image(value, ptr1);
+		char* ptr;
+		char* ptr1;
+		size_t ksize;
+		size_t vsize;
+		izene_serialization<KeyType> izs(key);
+		izene_serialization<ValueType> izs1(value);
+		izs.write_image(ptr, ksize);
+		izs1.write_image(ptr1, vsize);
 
-		return tcbdbput(bdb_, ptr->getData(), ptr->getSize(), ptr1->getData(), ptr1->getSize());
+		return tcbdbput(bdb_, ptr, ksize, ptr1, vsize);
 
 	}
 
@@ -212,18 +248,17 @@ public:
 	/**
 	 *   db must be opened to be used.
 	 */
-	bool open(bool setCmpFun = false ) {
+	bool open(bool setCmpFun = false) {
 		bdb_ = tcbdbnew();
-		if(setCmpFun){
+		if (setCmpFun) {
 			tcbdbsetcmpfunc(bdb_, compare_tc<KeyType>, NULL);
 		}
-		return tcbdbopen(bdb_, fileName_.c_str(), HDBOCREAT | HDBOWRITER);
+		return tcbdbopen(bdb_, fileName_.c_str(), BDBOCREAT | BDBOWRITER);
 	}
 	/**
 	 *   db should be closed after open, and  it will automatically called in deconstuctor.
 	 */
-	bool close()
-	{
+	bool close() {
 		commit();
 		return tcbdbclose(bdb_);
 	}

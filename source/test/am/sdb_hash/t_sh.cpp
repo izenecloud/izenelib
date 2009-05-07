@@ -9,7 +9,7 @@ using namespace izenelib::am;
 
 const char* indexFile = "sdb.dat";
 static string inputFile = "test.txt";
-static int degree = 2;
+static int degree = 16;
 static size_t bucketSize = 1024;
 static size_t directorySize = 8192;
 static size_t cacheSize = 1000000;
@@ -153,7 +153,6 @@ template<typename T> void del_test(T& tb) {
 
 template<typename T> void seq_test(T& tb) {
 	clock_t start = clock();
-
 	SDB_HASH::SDBCursor locn = tb.get_first_locn();
 	myDataType rec;
 	while (tb.seq(locn, rec) ) {
@@ -170,8 +169,8 @@ template<typename T> void seq_test(T& tb) {
 
 template<typename T> void run(T& tb) {
 	insert_test(tb);
-	find_test(tb);
-	seq_test(tb);
+	//find_test(tb);
+	//seq_test(tb);
 	/*update_test(tb);
 	del_test(tb);
 	find_test(tb);
@@ -247,7 +246,8 @@ int main(int argc, char *argv[]) {
 	try
 	{
 		SDB_HASH tb(indexFile);
-		tb.setDirectorySize(directorySize);
+		//tb.setDirectorySize(directorySize);
+		tb.setDegree(degree);
 		tb.setBucketSize(bucketSize);
 		tb.setCacheSize(cacheSize);
 		tb.open();

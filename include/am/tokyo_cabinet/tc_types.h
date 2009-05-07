@@ -11,6 +11,7 @@
 
 #include <util/RefCount.h>
 #include <util/hashFunction.h>
+#include <util/izene_serialization.h>
 
 //#include <boost/memory.hpp>
 #include <boost/static_assert.hpp>

@@ -17,7 +17,7 @@ int main()
 		cout<<"\nsdb_hash<int, unsigned int >"<<endl;
 		typedef sdb_hash<int, unsigned  int > SDB_STRING_INT;
 		AmTest<int, unsigned  int, SDB_STRING_INT, true> am;		
-		am.setRandom(false);	
+		am.setRandom(rnd);	
 		am.setNum(num);
 		run_am(am);
 	}
@@ -36,7 +36,7 @@ int main()
 		cout<<"\nsdb_hash<int, int >"<<endl;
 		typedef sdb_hash<int, int > SDB_STRING_INT;
 		AmTest<int, int, SDB_STRING_INT, true> am;		
-		am.setRandom(false);	
+		am.setRandom(rnd);	
 		am.setNum(num);
 		run_am(am);
 	}

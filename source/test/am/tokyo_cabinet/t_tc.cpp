@@ -250,15 +250,15 @@ template<typename T> void run(T& tb) {
 	if (rnd) {
 		random_insert_test(tb);
 		search_test(tb);
-		seq_test(tb);
+	//	seq_test(tb);
 	//	random_delete_test(tb);
-		search_test(tb);
+	//	search_test(tb);
 	} else {
 		insert_test(tb);
 		search_test(tb);
-		seq_test(tb);
+	//	seq_test(tb);
 	//	delete_test(tb);
-		search_test(tb);
+	//	search_test(tb);
 	}
 	/*delete_test(tb);
 	 search_test(tb);
@@ -326,12 +326,12 @@ int main(int argc, char *argv[]) {
 			tb.open();
 			run(tb);
 		}
-		/*else
+		else
 		{
 			TC_BTREE tb(indexFile);
 			tb.open();
 			run(tb);
-		}*/
+		}
 
 	}
 	catch(bad_alloc)

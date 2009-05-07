@@ -8,7 +8,8 @@
 //
 
 #include <boost/type_traits.hpp>
-namespace detail{
+NS_IZENELIB_UTIL_BEGIN
+{
 
 template<typename I1, typename I2, bool b>
 I2 copy_imp(I1 first, I1 last, I2 out, const boost::integral_constant<bool, b>&)
@@ -44,6 +45,6 @@ inline I2 copy(I1 first, I1 last, I2 out)
    return detail::copy_imp(first, last, out, boost::has_trivial_assign<value_type>());
 }
 
-
+NS_IZENELIB_UTIL_END
 
 #endif /*COPY_H_*/

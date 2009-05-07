@@ -7,11 +7,14 @@
 #include <map>
 #include <ext/hash_map>
 #include <boost/shared_ptr.hpp>
+#include <am/am.h>
+#include <util/ClockTimer.h>
 
 using namespace std;
 using namespace __gnu_cxx;
 using namespace boost;
-using namespace izenelib::util;
+//using namespace izenelib::util;
+using namespace izenelib::am;
 
 #ifdef INNER_TRACE
 #undef INNER_TRACE
@@ -75,74 +78,13 @@ void displayMemInfo(std::ostream& os = std::cout) {
 	os << "vm: " << vm << "bytes rss: " << rss << "bytes" << endl;
 }
 
-template<typename KeyType, typename ValueType, typename AM, bool open=false> class AMOBJ {
-	AM am_;
-public:
-	AMOBJ() :
-		am_() {
-	}
-	AM& getInstance() {
-		return am_;
-	}
-	bool insert(const KeyType& key, const ValueType& value) {
-		return am_.insert(key, value);
-	}
-	bool insert(const KeyType& value) {
-		return am_.insert(value);
-	}
-	bool del(const KeyType& key) {
-		return am_.del(key);
-	}
-	ValueType* find(const KeyType& key) {
-		return am_.find(key);
-	}
-	int num_items() {
-		return am_.num_items();
-	}
-};
-
-template<typename KeyType, typename ValueType, typename AM> class AMOBJ<
-		KeyType, ValueType, AM, true> {
-	AM am_;
-	string getStr() {
-		char p[1000];
-		sprintf(p, "%s_%s_%s.dat", typeid(AM).name(), typeid(KeyType).name(), typeid(ValueType).name());
-		return p;
-	}
-public:
-	AMOBJ() :
-		am_(getStr() ) {
-		am_.open();
-	}
-	~AMOBJ() {
-		am_.close();
-	}
-	AM& getInstance() {
-		return am_;
-	}
-	bool insert(const KeyType& key, const ValueType& value) {
-		return am_.insert(key, value);
-	}
-	bool insert(const KeyType& value) {
-		return am_.insert(value);
-	}
-	bool del(const KeyType& key) {
-		return am_.del(key);
-	}
-	ValueType* find(const KeyType& key) {
-		return am_.find(key);
-	}
-	int num_items() {
-		return am_.num_items();
-	}
-};
-
 template<typename KeyType, typename ValueType, typename AM, bool open=false> class AmTest {
 	bool rand_;
 	int num_;
 	int loop_;
 	bool trace_;
 	AMOBJ<KeyType, ValueType, AM, open> am_;
+	izenelib::util::ClockTimer timer;
 public:
 	AmTest() :
 		rand_(true), num_(1000000), loop_(1), trace_(false) {
@@ -163,7 +105,8 @@ public:
 	}
 
 	void run_insert(bool mem=true) {
-		clock_t t1 = clock();
+		clock_t t1 = clock();	
+		timer.restart();
 		int hit = 0;
 		int sum = 0;
 		for (int i =0; i<num_; i++) {
@@ -179,7 +122,8 @@ public:
 				hit++;
 		}
 		if (mem) {
-			printf("insert elapsed: %lf seconds\n", double(clock()- t1)/CLOCKS_PER_SEC);
+			printf("insert elapsed 0 ( by clock(), cpu ) : %lf seconds\n", double(clock()- t1)/CLOCKS_PER_SEC);
+			printf("insert elapsed 1 ( actually ): %lf seconds\n", timer.elapsed() );
 			printf("insert success ratio: %d /%d\n", hit, sum);
 			displayMemInfo();
 		}
@@ -188,6 +132,7 @@ public:
 	//when KeyType is YString, for ylib
 	void run_insert_ylib(bool mem=true) {
 		clock_t t1 = clock();
+		timer.restart();
 		for (int i =0; i<num_; i++) {
 			if (trace_) {
 #if INNER_TRACE						
@@ -204,6 +149,7 @@ public:
 
 	void run_find(bool mem=true) {
 		clock_t t1 = clock();
+		timer.restart();
 		int hit = 0;
 		int sum = 0;
 		for (int i =0; i<num_; i++) {
@@ -221,7 +167,8 @@ public:
 			}
 		}
 		if (mem) {
-			printf("find elapsed: %lf seconds\n", double(clock()- t1)/CLOCKS_PER_SEC);
+			printf("find elapsed 0: %lf seconds\n", double(clock()- t1)/CLOCKS_PER_SEC);
+			printf("insert elapsed 1: %lf seconds\n", timer.elapsed() );
 			printf("find hit ratio: %d /%d\n", hit, sum);
 			displayMemInfo();
 		}
@@ -229,6 +176,7 @@ public:
 
 	void run_del(bool mem=true) {
 		clock_t t1 = clock();
+		timer.restart();
 		int hit = 0;
 		int sum = 0;
 		for (int i =0; i<num_; i++) {
@@ -243,7 +191,8 @@ public:
 				hit++;
 		}
 		if (mem) {
-			printf("del elapsed: %lf seconds\n", double(clock()- t1)/CLOCKS_PER_SEC);
+			printf("del elapsed 0: %lf seconds\n", double(clock()- t1)/CLOCKS_PER_SEC);
+			printf("insert elapsed 1: %lf seconds\n", timer.elapsed() );
 			printf("del success ratio: %d /%d\n", hit, sum);
 			displayMemInfo();
 		}
@@ -283,6 +232,7 @@ template<typename T> void run_am_nod(T& cm) {
 
 template<typename T> void run_loop(unsigned int loop) {
 	clock_t t1 = clock();
+	izenelib::util::ClockTimer timer;
 	vector< boost::shared_ptr<T> > am_group;
 	for (unsigned int i=0; i<loop; i++) {
 		boost::shared_ptr<T> am;
@@ -295,7 +245,8 @@ template<typename T> void run_loop(unsigned int loop) {
 	for (; it != am_group.end(); it++) {
 		(*it)->run_insert(false);
 	}
-	printf("insert elapsed: %lf seconds\n", double(clock()- t1)/CLOCKS_PER_SEC);
+	printf("insert elapsed 0: %lf seconds\n", double(clock()- t1)/CLOCKS_PER_SEC);
+	printf("insert elapsed 1: %lf seconds\n", timer.elapsed() );
 	displayMemInfo();
 }
 
