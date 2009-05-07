@@ -63,7 +63,7 @@ public:
 	izene_serialization_memcpy(const std::vector<T>& dat) :
 		dat_(dat) {
 
-	}	
+	}
 	void write_image(char* &ptr, size_t& size) {
 		ptr = (char*)&dat_[0];
 		size = dat_.size()*sizeof(T);
@@ -81,6 +81,27 @@ public:
 	void read_image(std::vector<T>& dat) {
 		dat.resize(size_/sizeof(T));
 		memcpy(&dat[0], ptr_, size_);
+	}
+};
+
+template<> class izene_serialization_memcpy<izenelib::am::NullType> {
+public:
+	izene_serialization_memcpy(const izenelib::am::NullType& dat) {
+
+	}
+	void write_image(char* &ptr, size_t& size) {
+		ptr = 0;
+		size = 0;
+	}
+};
+
+template<> class izene_deserialization_memcpy<izenelib::am::NullType> {
+public:
+	izene_deserialization_memcpy(const char* ptr, const size_t size) {
+
+	}
+	void read_image(izenelib::am::NullType& dat) {
+
 	}
 };
 
