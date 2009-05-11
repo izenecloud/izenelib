@@ -117,7 +117,7 @@ CUDT::CUDT()
 
    m_pCCFactory = new CCCFactory<CUDTCC>;
    m_pCC = NULL;
-   m_pController = NULL;
+   m_pCache = NULL;
 
    // Initial status
    m_bOpened = false;
@@ -167,7 +167,7 @@ CUDT::CUDT(const CUDT& ancestor)
 
    m_pCCFactory = ancestor.m_pCCFactory->clone();
    m_pCC = NULL;
-   m_pController = ancestor.m_pController;
+   m_pCache = ancestor.m_pCache;
 
    // Initial status
    m_bOpened = false;
@@ -683,7 +683,11 @@ void CUDT::connect(const sockaddr* serv_addr)
    m_ullInterval = (uint64_t)(m_pCC->m_dPktSndPeriod * m_ullCPUFrequency);
    m_dCongestionWindow = m_pCC->m_dCWndSize;
 
-   m_pController->join(this, serv_addr, m_iIPversion, m_iRTT, m_iBandwidth);
+   CInfoBlock ib;
+   m_pCache->lookup(serv_addr, m_iIPversion, &ib);
+   m_iRTT = ib.m_iRTT;
+   m_iBandwidth = ib.m_iBandwidth;
+
    m_pCC->setMSS(m_iMSS);
    m_pCC->setMaxCWndSize((int&)m_iFlowWindowSize);
    m_pCC->setSndCurrSeqNo((int32_t&)m_iSndCurrSeqNo);
@@ -773,7 +777,11 @@ void CUDT::connect(const sockaddr* peer, CHandShake* hs)
    m_ullInterval = (uint64_t)(m_pCC->m_dPktSndPeriod * m_ullCPUFrequency);
    m_dCongestionWindow = m_pCC->m_dCWndSize;
 
-   m_pController->join(this, peer, m_iIPversion, m_iRTT, m_iBandwidth);
+   CInfoBlock ib;
+   m_pCache->lookup(peer, m_iIPversion, &ib);
+   m_iRTT = ib.m_iRTT;
+   m_iBandwidth = ib.m_iBandwidth;
+
    m_pCC->setMSS(m_iMSS);
    m_pCC->setMaxCWndSize((int&)m_iFlowWindowSize);
    m_pCC->setSndCurrSeqNo((int32_t&)m_iSndCurrSeqNo);
@@ -841,7 +849,10 @@ void CUDT::close()
          sendCtrl(5);
 
       m_pCC->close();
-      m_pController->leave(this, m_iRTT, m_iBandwidth);
+      CInfoBlock ib;
+      ib.m_iRTT = m_iRTT;
+      ib.m_iBandwidth = m_iBandwidth;
+      m_pCache->update(m_pPeerAddr, m_iIPversion, &ib);
 
       m_bConnected = false;
    }

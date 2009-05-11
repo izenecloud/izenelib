@@ -47,7 +47,7 @@ written by
 #include "udt.h"
 #include "packet.h"
 #include "queue.h"
-#include "co-op.h"
+#include "cache.h"
 
 
 class CUDT;
@@ -216,7 +216,7 @@ private:
    pthread_mutex_t m_MultiplexerLock;
 
 private:
-   CControl* m_pController;				// UDT congestion control manager
+   CCache* m_pCache;					// UDT network information cache
 
 private:
    volatile bool m_bClosing;

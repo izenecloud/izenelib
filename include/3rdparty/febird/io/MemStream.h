@@ -8,6 +8,7 @@
 
 #include <assert.h>
 #include <string.h> // for memcpy
+//#include <stdarg.h>
 //#include <stdio.h>  // for size_t
 #include <stdexcept>
 #include <boost/current_function.hpp>
@@ -19,10 +20,8 @@
 
 namespace febird {
 
-FEBIRD_DLL_EXPORT void throw_EndOfFile(const char* func, size_t want,
-		size_t available);
-FEBIRD_DLL_EXPORT void throw_OutOfSpace(const char* func, size_t want,
-		size_t available);
+FEBIRD_DLL_EXPORT void throw_EndOfFile(const char* func, size_t want, size_t available);
+FEBIRD_DLL_EXPORT void throw_OutOfSpace(const char* func, size_t want, size_t available);
 
 //! MinMemIO
 //! +--MemIO
@@ -30,42 +29,42 @@ FEBIRD_DLL_EXPORT void throw_OutOfSpace(const char* func, size_t want,
 //!       +--AutoGrownMemIO
 
 /**
- @brief ����Ч��MemIO
+ @brief ×îÓÐÐ§µÄMemIO
  
- ֻ��һ��ָ�뱣�浱ǰλ�ã�û�з�Χ��飬ֻӦ������ȫ��Ԥ��������ʹ�������
+ Ö»ÓÃÒ»¸öÖ¸Õë±£´æµ±Ç°Î»ÖÃ£¬Ã»ÓÐ·¶Î§¼ì²é£¬Ö»Ó¦¸ÃÔÚÍêÈ«¿ÉÔ¤²âµÄÇé¿öÏÂÊ¹ÓÃÕâ¸öÀà
 
  @note
- -# ����޷�Ԥ���Ƿ��Խ�磬��ֹʹ�ø���
+  -# Èç¹ûÎÞ·¨Ô¤²âÊÇ·ñ»áÔ½½ç£¬½ûÖ¹Ê¹ÓÃ¸ÃÀà
  */
 class FEBIRD_DLL_EXPORT MinMemIO
 {
 public:
-	typedef boost::mpl::false_ is_seekable; //!< ���� seek
+	typedef boost::mpl::false_ is_seekable; //!< ²»ÄÜ seek
 
-	void set(void* FEBIRD_RESTRICT vptr) {m_pos = (unsigned char*)vptr;}
+	void set(void* FEBIRD_RESTRICT vptr) { m_pos = (unsigned char*)vptr; }
 
-	byte readByte() FEBIRD_RESTRICT {return *m_pos++;}
-	int getByte() FEBIRD_RESTRICT {return *m_pos++;}
-	void writeByte(byte b) FEBIRD_RESTRICT {*m_pos++ = b;}
+	byte readByte() FEBIRD_RESTRICT { return *m_pos++; }
+	int  getByte() FEBIRD_RESTRICT { return *m_pos++; }
+	void writeByte(byte b) FEBIRD_RESTRICT { *m_pos++ = b; }
 
-	void ensureRead(void* FEBIRD_RESTRICT data, size_t length) FEBIRD_RESTRICT
+	void ensureRead(void* FEBIRD_RESTRICT data, size_t length) FEBIRD_RESTRICT 
 	{
 		memcpy(data, m_pos, length);
 		m_pos += length;
 	}
-	void ensureWrite(const void* FEBIRD_RESTRICT data, size_t length) FEBIRD_RESTRICT
+	void ensureWrite(const void* FEBIRD_RESTRICT data, size_t length) FEBIRD_RESTRICT 
 	{
 		memcpy(m_pos, data, length);
 		m_pos += length;
 	}
 
-	size_t read(void* FEBIRD_RESTRICT data, size_t length) FEBIRD_RESTRICT
+	size_t read(void* FEBIRD_RESTRICT data, size_t length) FEBIRD_RESTRICT 
 	{
 		memcpy(data, m_pos, length);
 		m_pos += length;
 		return length;
 	}
-	size_t write(const void* FEBIRD_RESTRICT data, size_t length) FEBIRD_RESTRICT
+	size_t write(const void* FEBIRD_RESTRICT data, size_t length) FEBIRD_RESTRICT 
 	{
 		memcpy(m_pos, data, length);
 		m_pos += length;
@@ -74,24 +73,24 @@ public:
 
 	void flush() {} // do nothing...
 
-	byte* current() const {return m_pos;}
+	byte* current() const { return m_pos; }
 
 	//! caller can use this function to determine an offset difference
-	ptrdiff_t diff(const void* FEBIRD_RESTRICT start) const throw() {return m_pos - (byte*)start;}
+	ptrdiff_t diff(const void* FEBIRD_RESTRICT start) const throw() { return m_pos - (byte*)start; }
 
-	void skip(ptrdiff_t diff) throw() {m_pos += diff;}
+	void skip(ptrdiff_t diff) throw() {	m_pos += diff; }
 
-	byte uncheckedReadByte() FEBIRD_RESTRICT {return *m_pos++;}
-	void uncheckedWriteByte(byte b) FEBIRD_RESTRICT {*m_pos++ = b;}
+	byte uncheckedReadByte() FEBIRD_RESTRICT { return *m_pos++; }
+	void uncheckedWriteByte(byte b) FEBIRD_RESTRICT { *m_pos++ = b; }
 
 	template<class InputStream>
-	void from_input(InputStream& input, size_t length) FEBIRD_RESTRICT
+	void from_input(InputStream& input, size_t length) FEBIRD_RESTRICT 
 	{
 		input.ensureRead(m_pos, length);
 		m_pos += length;
 	}
 	template<class OutputStream>
-	void to_output(OutputStream& output, size_t length) FEBIRD_RESTRICT
+	void to_output(OutputStream& output, size_t length) FEBIRD_RESTRICT 
 	{
 		output.ensureWrite(m_pos, length);
 		m_pos += length;
@@ -102,17 +101,17 @@ protected:
 };
 
 /**
- @brief Mem Stream �����������С����
- 
- �����ĳߴ�ǳ�С���ڼ��������Ч�ʷǳ��ߣ���ʹ���ⲿ�ṩ�Ļ���ʱ�����������ѵ�ѡ��
- �������Կ���
+ @brief Mem Stream ²Ù×÷ËùÐèµÄ×îÐ¡¼¯ºÏ
+  
+  Õâ¸öÀàµÄ³ß´ç·Ç³£Ð¡£¬ÔÚ¼«¶ËÇé¿öÏÂÐ§ÂÊ·Ç³£¸ß£¬ÔÚÊ¹ÓÃÍâ²¿Ìá¹©µÄ»º³åÊ±£¬Õâ¸öÀàÊÇ×î¼ÑµÄÑ¡Ôñ
+  Õâ¸öÀà¿ÉÒÔ¿½±´
  */
 class FEBIRD_DLL_EXPORT MemIO : public MinMemIO
 {
 public:
 	MemIO() {}
-	MemIO(void* buf, size_t size) {set(buf, size);}
-	MemIO(void* beg, void* end) {set(beg, end);}
+	MemIO(void* buf, size_t size) { set(buf, size); }
+	MemIO(void* beg, void* end) { set(beg, end); }
 
 	void set(void* buf, size_t size)
 	{
@@ -133,46 +132,46 @@ public:
 	}
 
 	byte readByte() FEBIRD_RESTRICT throw(EndOfFileException);
-	int getByte() FEBIRD_RESTRICT throw();
+	int  getByte() FEBIRD_RESTRICT throw();
 	void writeByte(byte b) FEBIRD_RESTRICT throw(OutOfSpaceException);
 
-	void ensureRead(void* FEBIRD_RESTRICT data, size_t length) FEBIRD_RESTRICT;
-	void ensureWrite(const void* FEBIRD_RESTRICT data, size_t length)FEBIRD_RESTRICT;
+	void ensureRead(void* FEBIRD_RESTRICT data, size_t length) FEBIRD_RESTRICT ;
+	void ensureWrite(const void* FEBIRD_RESTRICT data, size_t length)FEBIRD_RESTRICT ;
 
 	size_t read(void* FEBIRD_RESTRICT data, size_t length) throw();
 	size_t write(const void* FEBIRD_RESTRICT data, size_t length) throw();
 
 	// rarely used methods....
 	//
-	size_t available() const throw() {return m_end - m_pos;}
-	byte* end() const throw() {return m_end;}
+	size_t available() const throw() { return m_end - m_pos; }
+	byte*  end() const throw() { return m_end; }
 
 	/**
-	 @brief ��ǰ��� @a diff ���ֽ�
-	 @a �����Ǹ����ʾ�����Ծ
+	 @brief ÏòÇ°Ìø¹ý @a diff ¸ö×Ö½Ú
+	 @a ¿ÉÒÔÊÇ¸ºÊý£¬±íÊ¾ÏòºóÌøÔ¾
 	 */
 	void skip(ptrdiff_t diff)
 	{
 		assert(m_pos + diff <= m_end);
 		if (m_pos + diff <= m_end)
-		m_pos += diff;
+			m_pos += diff;
 		else
-		throw std::invalid_argument("diff is too large");
+			throw std::invalid_argument("diff is too large");
 	}
 
 	template<class InputStream>
-	void from_input(InputStream& input, size_t length)FEBIRD_RESTRICT
+	void from_input(InputStream& input, size_t length)FEBIRD_RESTRICT 
 	{
-		if (m_pos + length> m_end)
-		throw_OutOfSpace(BOOST_CURRENT_FUNCTION, length);
+		if (m_pos + length > m_end)
+			throw_OutOfSpace(BOOST_CURRENT_FUNCTION, length);
 		input.ensureRead(m_pos, length);
 		m_pos += length;
 	}
 	template<class OutputStream>
-	void to_output(OutputStream& output, size_t length)FEBIRD_RESTRICT
+	void to_output(OutputStream& output, size_t length)FEBIRD_RESTRICT 
 	{
-		if (m_pos + length> m_end)
-		throw_EndOfFile(BOOST_CURRENT_FUNCTION, length);
+		if (m_pos + length > m_end)
+			throw_EndOfFile(BOOST_CURRENT_FUNCTION, length);
 		output.ensureWrite(m_pos, length);
 		m_pos += length;
 	}
@@ -190,12 +189,12 @@ class FEBIRD_DLL_EXPORT AutoGrownMemIO;
 class FEBIRD_DLL_EXPORT SeekableMemIO : public MemIO
 {
 public:
-	typedef boost::mpl::true_ is_seekable; //!< ���� seek
+	typedef boost::mpl::true_ is_seekable; //!< ¿ÉÒÔ seek
 
-	SeekableMemIO() {m_pos = m_beg = m_end = 0;}
-	SeekableMemIO(void* buf, size_t size) {set(buf, size);}
-	SeekableMemIO(void* beg, void* end) {set(beg, end);}
-	SeekableMemIO(const MemIO& x) {set(x.current(), x.end());}
+	SeekableMemIO() { m_pos = m_beg = m_end = 0; }
+	SeekableMemIO(void* buf, size_t size) { set(buf, size); }
+	SeekableMemIO(void* beg, void* end) { set(beg, end); }
+	SeekableMemIO(const MemIO& x) { set(x.current(), x.end()); }
 
 	void set(void* buf, size_t size) throw()
 	{
@@ -210,13 +209,13 @@ public:
 		m_end = (byte*)end;
 	}
 
-	byte* begin()const throw() {return m_beg;}
-	byte* buf() const throw() {return m_beg;}
-	size_t size() const throw() {return m_end-m_beg;}
+	byte*  begin()const throw() { return m_beg; }
+	byte*  buf()  const throw() { return m_beg; }
+	size_t size() const throw() { return m_end-m_beg; }
 
-	size_t tell() const throw() {return m_pos-m_beg;}
+	size_t tell() const throw() { return m_pos-m_beg; }
 
-	void rewind() throw() {m_pos = m_beg;}
+	void rewind() throw() { m_pos = m_beg; }
 	void seek(long newPos);
 	void seek(long offset, int origin);
 
@@ -225,9 +224,9 @@ public:
 	//@{
 	//! return part of (*this) as a MemIO
 	MemIO range(size_t ibeg, size_t iend) const;
-	MemIO head() const throw() {return MemIO(m_beg, m_pos);}
-	MemIO tail() const throw() {return MemIO(m_pos, m_end);}
-	MemIO whole()const throw() {return MemIO(m_beg, m_end);}
+	MemIO head() const throw() { return MemIO(m_beg, m_pos); }
+	MemIO tail() const throw() { return MemIO(m_pos, m_end); }
+	MemIO whole()const throw() { return MemIO(m_beg, m_end); }
 	//@}
 
 protected:
@@ -239,36 +238,36 @@ private:
 };
 
 /**
- @brief AutoGrownMemIO ���Թ����Լ��� buffer
+ @brief AutoGrownMemIO ¿ÉÒÔ¹ÜÀí×Ô¼ºµÄ buffer
 
  @note
- - ���ֻ��Ҫ Eofmark, ʹ�� MemIO �Ϳ�����
- - �����Ҫ seekable, ʹ�� SeekableMemIO
+  - Èç¹ûÖ»ÐèÒª Eofmark, Ê¹ÓÃ MemIO ¾Í¿ÉÒÔÁË
+  - Èç¹û»¹ÐèÒª seekable, Ê¹ÓÃ SeekableMemIO
  */
 //template<bool Use_c_malloc>
 class FEBIRD_DLL_EXPORT AutoGrownMemIO : public SeekableMemIO
 {
 	DECLARE_NONE_COPYABLE_CLASS(AutoGrownMemIO);
 
-	void growAndWrite(const void* FEBIRD_RESTRICT data, size_t length)FEBIRD_RESTRICT;
-	void growAndWriteByte(byte b)FEBIRD_RESTRICT;
+	void growAndWrite(const void* FEBIRD_RESTRICT data, size_t length)FEBIRD_RESTRICT ;
+	void growAndWriteByte(byte b)FEBIRD_RESTRICT ;
 
 public:
 	explicit AutoGrownMemIO(size_t size = 0);
 
 	~AutoGrownMemIO();
 
-	void writeByte(byte b) FEBIRD_RESTRICT
+	void writeByte(byte b) FEBIRD_RESTRICT 
 	{
 		assert(m_pos <= m_end);
 
 		if (m_pos < m_end)
-		*m_pos++ = b;
+			*m_pos++ = b;
 		else
-		growAndWriteByte(b);
+			growAndWriteByte(b);
 	}
 
-	void ensureWrite(const void* data, size_t length) FEBIRD_RESTRICT
+	void ensureWrite(const void* data, size_t length) FEBIRD_RESTRICT 
 	{
 		assert(m_pos <= m_end);
 
@@ -276,7 +275,7 @@ public:
 			::memcpy(m_pos, data, length);
 			m_pos += length;
 		} else
-		growAndWrite(data, length);
+			growAndWrite(data, length);
 	}
 
 	size_t write(const void* data, size_t length) FEBIRD_RESTRICT throw()
@@ -284,7 +283,19 @@ public:
 		ensureWrite(data, length);
 		return length;
 	}
+/*
+	void printf(const char* format, ...)
+#ifdef __GNUC__
+	__THROW __attribute__ ((__format__ (__printf__, 1, 2)))
+#endif
+	;
 
+	void vprintf(const char* format, av_list ap);
+#ifdef __GNUC__
+	__THROW __attribute__ ((__format__ (__printf__, 1, 0)))
+#endif
+	;
+*/
 	void clone(const AutoGrownMemIO& src);
 
 	// rarely used methods....
@@ -293,27 +304,21 @@ public:
 	void init(size_t size);
 
 	template<class InputStream>
-	void from_input(InputStream& input, size_t length) FEBIRD_RESTRICT
+	void from_input(InputStream& input, size_t length) FEBIRD_RESTRICT 
 	{
-		if (m_pos + length> m_end)
-		resize(tell() + length);
+		if (m_pos + length > m_end)
+			resize(tell() + length);
 		input.ensureRead(m_pos, length);
 		m_pos += length;
 	}
 
 	void swap(AutoGrownMemIO& that);
 
-	void set(void* buf, size_t size) {
-		m_pos = (byte*)buf;
-		m_beg = (byte*)buf;
-		m_end = (byte*)buf + size;
-	}
-
 private:
 	//@{
 	//! disable MemIO::set
 	//!
-
+	void set(void* buf, size_t size);
 	void set(void* beg, void* end);
 	//@}
 
@@ -321,19 +326,19 @@ private:
 	//! disable convert-ability to MemIO
 	//! this cause gcc warning: conversion to a reference to a base class will never use a type conversion operator
 	//! see SeekableMemIO::SeekableMemIO(const AutoGrownMemIO&)
-	//	operator const SeekableMemIO&() const;
-	//	operator SeekableMemIO&();
+//	operator const SeekableMemIO&() const;
+//	operator SeekableMemIO&();
 	//@}
 };
 
 //////////////////////////////////////////////////////////////////////////
 
 /**
- * @brief ��ȡ length ������ݵ� data
+ * @brief ¶ÁÈ¡ length ³¤µÄÊý¾Ýµ½ data
  * 
- * �������ֵ�� inline �ģ����Բο������ֹ��Ļ����룺
+ * Õâ¸öº¯Êý»¹ÊÇÖµµÃ inline µÄ£¬¿ÉÒÔ²Î¿¼ÈçÏÂÊÖ¹¤µÄ»ã±à´úÂë£º
  *
- * inlined in caller, ʡ���˼Ĵ����ͻظ�ָ�ʵ�������Ҳ�п��ܲ��ñ���ͻָ�
+ * inlined in caller, Ê¡ÂÔÁË¼Ä´æÆ÷±£´æºÍ»Ø¸´Ö¸Áî£¬Êµ¼ÊÇé¿öÏÂÒ²ÓÐ¿ÉÄÜ²»ÓÃ±£´æºÍ»Ö¸´
  *   mov eax, m_end
  *   sub eax, m_pos
  *   mov ecx, length
@@ -355,14 +360,14 @@ private:
  *   push data
  *   push this
  *   call MemIO::read
- *   add  esp, 12 ; ����� stdcall, ��û���������
+ *   add  esp, 12 ; Èç¹ûÊÇ stdcall, ÔòÃ»ÓÐÕâÌõÓï¾ä
  */
 inline size_t MemIO::read(void* FEBIRD_RESTRICT data, size_t length) FEBIRD_RESTRICT throw()
 {
 	register int n = m_end - m_pos;
 	if (n < int(length)) {
 		::memcpy(data, m_pos, n);
-		//	m_pos = m_end;
+	//	m_pos = m_end;
 		m_pos += n;
 		return n;
 	} else {
@@ -377,7 +382,7 @@ inline size_t MemIO::write(const void* FEBIRD_RESTRICT data, size_t length) FEBI
 	register int n = m_end - m_pos;
 	if (n < int(length)) {
 		::memcpy(m_pos, data, n);
-		//	m_pos = m_end;
+	//	m_pos = m_end;
 		m_pos += n;
 		return n;
 	} else {
@@ -387,22 +392,22 @@ inline size_t MemIO::write(const void* FEBIRD_RESTRICT data, size_t length) FEBI
 	}
 }
 
-inline void MemIO::ensureRead(void* FEBIRD_RESTRICT data, size_t length)FEBIRD_RESTRICT
+inline void MemIO::ensureRead(void* FEBIRD_RESTRICT data, size_t length)FEBIRD_RESTRICT 
 {
 	if (m_pos + length <= m_end) {
 		::memcpy(data, m_pos, length);
 		m_pos += length;
 	} else
-	throw_EndOfFile(BOOST_CURRENT_FUNCTION, length);
+		throw_EndOfFile(BOOST_CURRENT_FUNCTION, length);
 }
 
-inline void MemIO::ensureWrite(const void* FEBIRD_RESTRICT data, size_t length)FEBIRD_RESTRICT
+inline void MemIO::ensureWrite(const void* FEBIRD_RESTRICT data, size_t length)FEBIRD_RESTRICT 
 {
 	if (m_pos + length <= m_end) {
 		::memcpy(m_pos, data, length);
 		m_pos += length;
 	} else
-	throw_OutOfSpace(BOOST_CURRENT_FUNCTION, length);
+		throw_OutOfSpace(BOOST_CURRENT_FUNCTION, length);
 }
 
 #ifdef _MSC_VER
@@ -413,7 +418,7 @@ inline void MemIO::ensureWrite(const void* FEBIRD_RESTRICT data, size_t length)F
 inline byte MemIO::readByte() FEBIRD_RESTRICT throw(EndOfFileException)
 {
 	if (m_pos < m_end)
-	return *m_pos++;
+		return *m_pos++;
 	else
 	{
 		throw_EndOfFile(BOOST_CURRENT_FUNCTION, 1);
@@ -428,16 +433,16 @@ inline byte MemIO::readByte() FEBIRD_RESTRICT throw(EndOfFileException)
 inline void MemIO::writeByte(byte b) FEBIRD_RESTRICT throw(OutOfSpaceException)
 {
 	if (m_pos < m_end)
-	*m_pos++ = b;
+		*m_pos++ = b;
 	else
-	throw_OutOfSpace(BOOST_CURRENT_FUNCTION, 1);
+		throw_OutOfSpace(BOOST_CURRENT_FUNCTION, 1);
 }
 inline int MemIO::getByte() FEBIRD_RESTRICT throw()
 {
 	if (m_pos < m_end)
-	return *m_pos++;
+		return *m_pos++;
 	else
-	return -1;
+		return -1;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -446,8 +451,7 @@ inline int MemIO::getByte() FEBIRD_RESTRICT throw()
 
 //////////////////////////////////////////////////////////////////////////
 
-}
-// namespace febird
+} // namespace febird
 
 #endif
 
