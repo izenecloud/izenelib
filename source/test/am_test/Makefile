@@ -3,16 +3,16 @@ GCC=/usr/bin/gcc -lstdc++
 
 CC_OPTIONS= -O2 -Wall -c -g -pg  -DDEBUG
 
+WISELIB = ~/CodeBase/wiselib
 
 INC_PATH=    -I /usr/local/include/  -I  ../../../../izenelib/include/ -I  ../../../../ylib/include/\
              -I ../../../../izenelib/include/3rdparty/ -I /usr/local/include/boost-1_36 \
-             -I /home/wps/workspace/wiselib/include \
+             -I $(WISELIB)/include \
 
 
 LIBS =    ../../../../izenelib/lib/libsdb_btree.so   /usr/local/lib/libboost_thread-gcc41-mt.so \
            /usr/local/lib/libtokyocabinet.so   /usr/local/lib/libboost_serialization-gcc41-mt.so \
-           ../../../../ylib/lib/libylib.a   ../../../../izenelib/lib/libprocmeminfo.a \
-	   ../../../../izenelib/lib/libfebird.a 
+           ../../../../izenelib/lib/libprocmeminfo.a  ../../../../izenelib/lib/libfebird.a 
 .cc.o:
 
 	$(GPP) $(INC_PATH) $(CC_OPTIONS) $< 
