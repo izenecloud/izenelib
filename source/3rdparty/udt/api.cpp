@@ -35,7 +35,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 /*****************************************************************************
 written by
-   Yunhong Gu, last updated 05/05/2009
+   Yunhong Gu, last updated 05/06/2009
 *****************************************************************************/
 
 #ifdef WIN32
@@ -1262,6 +1262,8 @@ void CUDTUnited::updateMux(CUDT* u, const CUDTSocket* ls)
 {
    CUDTUnited* self = (CUDTUnited*)p;
 
+   CGuard gcguard(self->m_GCStopLock);
+
    while (!self->m_bClosing)
    {
       self->checkBrokenSockets();
@@ -1312,7 +1314,7 @@ void CUDTUnited::updateMux(CUDT* u, const CUDTSocket* ls)
       return NULL;
    #else
       return 0;
-   #endif   
+   #endif
 }
 
 ////////////////////////////////////////////////////////////////////////////////
