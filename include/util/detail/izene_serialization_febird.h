@@ -3,9 +3,9 @@
 
 #include "izene_type_traits.h"
 
-#include <febird/io/DataIO.h>
-#include <febird/io/StreamBuffer.h>
-#include <febird/io/FileStream.h>
+#include <3rdparty/febird/io/DataIO.h>
+#include <3rdparty/febird/io/StreamBuffer.h>
+#include <3rdparty/febird/io/FileStream.h>
 
 using namespace febird;
 using febird::ulong;
