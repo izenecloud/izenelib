@@ -116,7 +116,7 @@ m_SocketID(0),
 m_TLSError(),
 m_vMultiplexer(),
 m_MultiplexerLock(),
-m_pController(NULL),
+m_pCache(NULL),
 m_bClosing(false),
 m_GCStopLock(),
 m_GCStopCond(),
@@ -155,7 +155,7 @@ m_ClosedSockets()
          throw CUDTException(1, 0,  WSAGetLastError());
    #endif
 
-   m_pController = new CControl;
+   m_pCache = new CCache;
 }
 
 CUDTUnited::~CUDTUnited()
@@ -177,7 +177,7 @@ CUDTUnited::~CUDTUnited()
       CloseHandle(m_TLSLock);
    #endif
 
-   delete m_pController;
+   delete m_pCache;
 
    // Global destruction code
    #ifdef WIN32
@@ -272,7 +272,7 @@ UDTSOCKET CUDTUnited::newSocket(const int& af, const int& type)
    ns->m_pUDT->m_SocketID = ns->m_SocketID;
    ns->m_pUDT->m_iSockType = (SOCK_STREAM == type) ? UDT_STREAM : UDT_DGRAM;
    ns->m_pUDT->m_iIPversion = ns->m_iIPversion = af;
-   ns->m_pUDT->m_pController = m_pController;
+   ns->m_pUDT->m_pCache = m_pCache;
 
    // protect the m_Sockets structure.
    CGuard::enterCS(m_ControlLock);

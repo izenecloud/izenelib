@@ -48,6 +48,9 @@ written by
    #include <netinet/in.h>
 #else
    #include <windows.h>
+   #ifdef __MINGW__
+      #include <ws2tcpip.h>
+   #endif
 #endif
 #include <fstream>
 #include <set>
@@ -64,7 +67,7 @@ written by
 
 
 #ifdef WIN32
-   #ifndef MINGW
+   #ifndef __MINGW__
       // Explicitly define 32-bit and 64-bit numbers
       typedef __int32 int32_t;
       typedef __int64 int64_t;
@@ -88,10 +91,14 @@ written by
 
 #define NO_BUSY_WAITING
 
-#ifndef WIN32
-   typedef int UDPSOCKET;
+#ifdef WIN32
+   #ifndef __MINGW__
+      typedef SOCKET UDPSOCKET;
+   #else
+      typedef int UDPSOCKET;
+   #endif
 #else
-   typedef SOCKET UDPSOCKET;
+   typedef int UDPSOCKET;
 #endif
 
 typedef int UDTSOCKET;

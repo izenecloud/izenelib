@@ -35,7 +35,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 /*****************************************************************************
 written by
-   Yunhong Gu, last updated 04/21/2009
+   Yunhong Gu, last updated 05/06/2009
 *****************************************************************************/
 
 #ifndef __UDT_CORE_H__
@@ -51,7 +51,7 @@ written by
 #include "channel.h"
 #include "api.h"
 #include "ccc.h"
-#include "co-op.h"
+#include "cache.h"
 #include "queue.h"
 
 enum UDTSockType {UDT_STREAM = 1, UDT_DGRAM};
@@ -62,7 +62,7 @@ friend class CUDTSocket;
 friend class CUDTUnited;
 friend class CCC;
 friend struct CUDTComp;
-friend class CControl;
+friend class CCache;
 friend class CSndQueue;
 friend class CRcvQueue;
 friend class CSndUList;
@@ -282,7 +282,7 @@ private: // Options
 private: // congestion control
    CCCVirtualFactory* m_pCCFactory;             // Factory class to create a specific CC instance
    CCC* m_pCC;                                  // congestion control class
-   CControl* m_pController;			// congestion control manager
+   CCache* m_pCache;				// network information cache
 
 private: // Status
    volatile bool m_bListening;                  // If the UDT entit is listening to connection
