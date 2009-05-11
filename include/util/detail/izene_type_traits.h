@@ -33,14 +33,17 @@ struct IsFebirdSerial{
 		no = !yes};	
 };
 
+NS_IZENELIB_UTIL_END
+
 
 #define MAKE_FEBIRD_SERIALIZATION(type) \
-	namespace izenelib{namespace util{ \
-	template <>struct IsFebirdSerial<type>{ \
+	 namespace izenelib{namespace util{ \
+	 template <>struct IsFebirdSerial<type>{ \
 		enum { yes=1, no=!yes}; \
 		}; \
 		} \
-		}
+		} 
+
 
 
 #define MAKE_MEMCPY_SERIALIZATION(type) \
@@ -50,8 +53,6 @@ struct IsFebirdSerial{
 		}; \
 		} \
 		}
-
-NS_IZENELIB_UTIL_END
 
 MAKE_MEMCPY_SERIALIZATION(std::string)
 //MAKE_FEBIRD_SERIALIZATION(std::string)

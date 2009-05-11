@@ -15,9 +15,11 @@ SDB_HASH_OBJ  := t_sdb_hash.o
 SDB_SH_OBJ := t_sh.o
 
 AM_OBJ := t_am.o
+
+AM_OBJ1 := t_am1.o
  
 
-all: t_am t_sh  t_sdb_hash
+all: t_am  t_sh  t_sdb_hash t_am1
 
 .cpp.o:
 	$(GPP) $(CC_OPTIONS) $(INC_PATH)  $< 
@@ -30,6 +32,9 @@ t_sh:  $(SDB_SH_OBJ)
 	
 t_am:  $(AM_OBJ)
 	$(GPP) $(AM_OBJ) $(LIBS)  -o $@ -pg	
+	
+t_am1:  $(AM_OBJ1)
+	$(GPP) $(AM_OBJ1) $(LIBS)  -o $@ -pg	
 
 
 clean:

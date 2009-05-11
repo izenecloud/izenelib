@@ -29,6 +29,10 @@ using namespace izenelib::am::util;
 
 using namespace izenelib::util;
 
+//MAKE_FEBIRD_SERIALIZATION(int);
+
+//MAKE_FEBIRD_SERIALIZATION(string);
+
 NS_IZENELIB_AM_BEGIN
 
 #define PAGE_EXPANDING 1

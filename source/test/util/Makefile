@@ -6,7 +6,7 @@ INC_PATH = -I $(IZENELIB) -I $(IZENELIB)/3rdparty  -I /usr/local/include/boost-1
 
 LIB_PATH = -lpthread -lrt  /usr/local/lib/libboost_serialization-gcc41-mt.so  -luuid  ../../../lib/libfebird.a
 
-CC_OPTIONS= -O3 -Wall -c -g  -fPIC -rdynamic -DDATA_IO_ALLOW_DEFAULT_SERIALIZE
+CC_OPTIONS= -O3 -Wall -c -g  -fPIC -rdynamic #-DDATA_IO_ALLOW_DEFAULT_SERIALIZE
 
 TARGET =  t_serialization #t_map t_wrapper
 
