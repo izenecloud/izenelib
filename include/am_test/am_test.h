@@ -168,7 +168,7 @@ public:
 		}
 		if (mem) {
 			printf("find elapsed 0: %lf seconds\n", double(clock()- t1)/CLOCKS_PER_SEC);
-			printf("insert elapsed 1: %lf seconds\n", timer.elapsed() );
+			printf("find elapsed 1: %lf seconds\n", timer.elapsed() );
 			printf("find hit ratio: %d /%d\n", hit, sum);
 			displayMemInfo();
 		}
@@ -192,7 +192,7 @@ public:
 		}
 		if (mem) {
 			printf("del elapsed 0: %lf seconds\n", double(clock()- t1)/CLOCKS_PER_SEC);
-			printf("insert elapsed 1: %lf seconds\n", timer.elapsed() );
+			printf("del elapsed 1: %lf seconds\n", timer.elapsed() );
 			printf("del success ratio: %d /%d\n", hit, sum);
 			displayMemInfo();
 		}
