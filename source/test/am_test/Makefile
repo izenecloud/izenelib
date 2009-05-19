@@ -3,7 +3,8 @@ GCC=/usr/bin/gcc -lstdc++
 
 CC_OPTIONS= -O2 -Wall -c -g -pg  -DDEBUG
 
-WISELIB = ~/CodeBase/wiselib
+WISELIB = ~/workspace/wiselib
+
 
 INC_PATH=    -I /usr/local/include/  -I  ../../../../izenelib/include/ -I  ../../../../ylib/include/\
              -I ../../../../izenelib/include/3rdparty/ -I /usr/local/include/boost-1_36 \

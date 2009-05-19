@@ -59,7 +59,8 @@ typedef enum {NONE=0, ONLY_DUMP, DUMP_EVICT, ONLY_EVICT, DUMP_LATER}
 
 template<class T> struct HashFun {
 	size_t operator()(const T& key) const {	
-		return izenelib::util::HashFunction<T>::convert_key(key) % HashFunction<T>::PRIME;
+		return izenelib::util::izene_hashing(key);
+		//return izenelib::util::HashFunction<T>::convert_key(key) % HashFunction<T>::PRIME;
 	}
 };
 

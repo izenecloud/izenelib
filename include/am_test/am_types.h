@@ -10,7 +10,7 @@
 #include <am/tokyo_cabinet/tc_hash.h>
 #include <am/tokyo_cabinet/tc_btree.h>
 #include <am/skip_list_file/SkipListFile.h>
-#include <am/trie/b_trie.hpp>
+//#include <am/trie/b_trie.hpp>
 #include <am/cccr_hash/cccr_hash.h>
 
 

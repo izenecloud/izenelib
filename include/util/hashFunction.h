@@ -9,6 +9,7 @@
 #include <stdlib.h>
 #include "../am/util/DbObj.h"
 #include "../am/util/Wrapper.h"
+#include "izene_serialization.h"
 
 NS_IZENELIB_UTIL_BEGIN
 
@@ -250,6 +251,25 @@ inline uint32_t sdb_hash_fun(const void* kbuf, const size_t ksize) {
 		convkey = 37*convkey + (uint8_t)*str++;
 	return convkey;
 }
+
+template<typename KeyType> inline ub4 izene_hashing(const KeyType& key) {
+	char* ptr = 0;			
+	size_t ksize;			
+	izene_serialization<KeyType> izs(key);				
+	izs.write_image(ptr, ksize);
+
+	uint32_t convkey = 0;
+	for (size_t i = 0; i < ksize; i++)
+		convkey = 37*convkey + (uint8_t)*ptr++;
+	return convkey % HashFunction<KeyType>::PRIME;
+}
+
+template<class T> struct izene_HashFunctor {
+	size_t operator()(const T& key) const {
+	    return izene_hashing( key );
+	}
+};
+
 
 NS_IZENELIB_UTIL_END
 #endif
