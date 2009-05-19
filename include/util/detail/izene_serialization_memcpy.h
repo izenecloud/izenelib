@@ -162,8 +162,36 @@ inline void read_image_memcpy<TYPE>(TYPE& dat, const char* str, const size_t siz
 } \
 }*/
 
+//MAKE_MEMECPY_TYPE = MAKE_MEMCPY + MAKE_MEMCPY_SERIALIZATION
+#define MAKE_MEMCPY_TYPE(TYPE) \	
+namespace izenelib{namespace util{ \
+template <>struct IsMemcpySerial<type>{ \
+		enum { yes=1, no=!yes}; \
+		}; \
+template<> \
+class izene_serialization_memcpy<TYPE>{ \
+	const TYPE& dat_; \
+public: \
+izene_serialization_memcpy(const TYPE& dat):dat_(dat) {} \
+	void write_image(char* &ptr, size_t& size) { \
+		ptr = (char*)&dat_; \
+		size = sizeof(dat_); \
+	} \
+}; \
+template<> class izene_deserialization_memcpy<TYPE> { \
+    const char* &ptr_; \
+    const size_t &size_; \
+public: \
+    izene_deserialization_memcpy(const char* ptr, const size_t size):ptr_(ptr),size_(size){}\
+	void read_image(TYPE& dat) { \
+		memcpy(&dat, ptr_, size_); \
+	} \
+}; \
+} \
+}
 
-#define MAKE_MEMCPY(TYPE) \
+
+#define MAKE_MEMCPY(TYPE) \	
 namespace izenelib{namespace util{ \
 template<> \
 class izene_serialization_memcpy<TYPE>{ \
