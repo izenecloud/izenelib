@@ -163,7 +163,7 @@ inline void read_image_memcpy<TYPE>(TYPE& dat, const char* str, const size_t siz
 }*/
 
 //MAKE_MEMECPY_TYPE = MAKE_MEMCPY + MAKE_MEMCPY_SERIALIZATION
-#define MAKE_MEMCPY_TYPE(TYPE) \	
+#define MAKE_MEMCPY_TYPE(TYPE) \
 namespace izenelib{namespace util{ \
 template <>struct IsMemcpySerial<type>{ \
 		enum { yes=1, no=!yes}; \
@@ -191,7 +191,7 @@ public: \
 }
 
 
-#define MAKE_MEMCPY(TYPE) \	
+#define MAKE_MEMCPY(TYPE) \
 namespace izenelib{namespace util{ \
 template<> \
 class izene_serialization_memcpy<TYPE>{ \

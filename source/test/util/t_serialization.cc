@@ -93,7 +93,7 @@ template<typename T> void test_serialization_boost(T &dat) {
 	izene_serialization_boost<T> isf(dat);
 	isf.write_image(ptr, sz);
 
-	cout<<"serialization febird: "<<(char*)ptr<<" | "<<sz<<endl;
+	cout<<"serialization boost: "<<(char*)ptr<<" | "<<sz<<endl;
 
 	izene_deserialization_boost<T> idb(ptr, sz);
 	idb.read_image(dat1);

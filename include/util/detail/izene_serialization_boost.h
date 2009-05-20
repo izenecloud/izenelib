@@ -18,8 +18,6 @@ NS_IZENELIB_UTIL_BEGIN
 
 const int archive_flags = archive::no_header | archive::no_codecvt;
 
-//const int archive_flags =  archive::no_codecvt;
-
 template<typename T> class izene_serialization_boost {
 	size_t size_;
 	izene_streambuf b;
@@ -42,16 +40,17 @@ public:
 };
 
 template<typename T> class izene_deserialization_boost {
-	stringstream istr;
+	stringbuf b;
+	istream istr;
 public:
-	izene_deserialization_boost(const char* ptr, const size_t size) :
-		istr(ptr) {
+	izene_deserialization_boost(char* ptr, const size_t size) 
+		:istr(&b) 
+	{
+		istr.rdbuf()->pubsetbuf(ptr,size);
 	}
 	void read_image(T& dat) {
-		{
-			boost::archive::binary_iarchive ia(istr, archive_flags);
-			ia & dat;
-		}
+		boost::archive::binary_iarchive ia(istr, archive_flags);
+		ia & dat;
 	}
 };
 
