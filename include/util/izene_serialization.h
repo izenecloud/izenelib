@@ -54,7 +54,7 @@ template <typename T> class izene_deserialization {
 			dtype;
 	dtype impl;
 public:
-	izene_deserialization(const char* ptr, const size_t size) :
+	izene_deserialization(char* ptr, const size_t size) :
 		impl(ptr, size) {
 	}
 	void read_image(T& dat) {
