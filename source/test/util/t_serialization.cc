@@ -134,7 +134,7 @@ public:
 MAKE_FEBIRD_SERIALIZATION(testobj)
 //MAKE_MEMCPY_SERIALIZATION(testobj)
 
-MAKE_MEMCPY(testobj);
+//MAKE_MEMCPY_TYPE(testobj)
 
 namespace boost {
 namespace serialization {
@@ -164,9 +164,9 @@ struct SOBJ {
 	}
 };
 
-MAKE_MEMCPY(SOBJ);
+MAKE_MEMCPY_TYPE(SOBJ);
 
-MAKE_MEMCPY_SERIALIZATION(SOBJ)
+//MAKE_MEMCPY_SERIALIZATION(SOBJ)
 
 MAKE_FEBIRD_SERIALIZATION( vector<string> )
 

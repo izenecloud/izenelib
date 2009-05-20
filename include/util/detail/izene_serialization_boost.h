@@ -26,7 +26,7 @@ template<typename T> class izene_serialization_boost {
 public:
 	izene_serialization_boost(const T& dat) :ostr(&b){
 		{
-			boost::archive::binary_oarchive oa(ostr, archive_flags);
+			boost::archive::text_oarchive oa(ostr, archive_flags);
 			oa & dat;
 		}
 		size_ = ((izene_streambuf *)ostr.rdbuf() )->size();
