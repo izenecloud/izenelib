@@ -35,7 +35,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 /*****************************************************************************
 written by
-   Yunhong Gu, last updated 04/21/2009
+   Yunhong Gu, last updated 05/19/2009
 *****************************************************************************/
 
 #ifndef WIN32
@@ -617,7 +617,7 @@ void CUDT::connect(const sockaddr* serv_addr)
       if (response.getLength() > 0)
          break;
 
-      if (CTimer::getTime() - entertime > timeo)
+      if (CTimer::getTime() > entertime + timeo))
       {
          // timeout
          e = CUDTException(1, 1, 0);
