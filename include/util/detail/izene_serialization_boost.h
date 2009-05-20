@@ -23,12 +23,12 @@ const int archive_flags = archive::no_header | archive::no_codecvt;
 template<typename T> class izene_serialization_boost {
 	size_t size_;
 	izene_streambuf b;
-       ostream ostr;
+        ostream ostr;
 
 public:
 	izene_serialization_boost(const T& dat) :ostr(&b){
 		{
-			boost::archive::binary_oarchive oa(ostr, archive_flags);
+			boost::archive::text_oarchive oa(ostr, archive_flags);
 			oa & dat;
 		}
 		size_ = ((izene_streambuf *)ostr.rdbuf() )->size();
@@ -49,7 +49,7 @@ public:
 	}
 	void read_image(T& dat) {
 		{
-			boost::archive::binary_iarchive ia(istr, archive_flags);
+			boost::archive::text_iarchive ia(istr, archive_flags);
 			ia & dat;
 		}
 	}
