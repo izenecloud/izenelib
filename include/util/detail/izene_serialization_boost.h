@@ -26,7 +26,7 @@ template<typename T> class izene_serialization_boost {
 public:
 	izene_serialization_boost(const T& dat) :ostr(&b){
 		{
-			boost::archive::text_oarchive oa(ostr, archive_flags);
+			boost::archive::binary_oarchive oa(ostr, archive_flags);
 			oa & dat;
 		}
 		size_ = ((izene_streambuf *)ostr.rdbuf() )->size();
@@ -43,10 +43,10 @@ template<typename T> class izene_deserialization_boost {
 	stringbuf b;
 	istream istr;
 public:
-	izene_deserialization_boost(char* ptr, const size_t size) 
+	izene_deserialization_boost(const char* ptr, const size_t size) 
 		:istr(&b) 
 	{
-		istr.rdbuf()->pubsetbuf(ptr,size);
+		istr.rdbuf()->pubsetbuf((char* )ptr,size);
 	}
 	void read_image(T& dat) {
 		boost::archive::binary_iarchive ia(istr, archive_flags);
