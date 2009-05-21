@@ -592,7 +592,8 @@ public:
   {
     size_t r = 0;
     for (size_t i=pos; i<str.length(); i++)
-      if (IS_ALPHABET::equal_ignore_case(str[i], from))
+      if (caseChk==SM_IGNORE && IS_ALPHABET::equal_ignore_case(str[i], from)
+          ||caseChk==SM_SENSITIVE && str[i]==from)
       {
         r++;
         str[i] = to;
@@ -606,7 +607,8 @@ public:
     StringT s = str;
     size_t r = 0;
     for (size_t i=pos; i<str.length(); i++)
-      if (IS_ALPHABET::equal_ignore_case(str[i], from))
+      if (caseChk==SM_IGNORE && IS_ALPHABET::equal_ignore_case(str[i], from)
+          ||caseChk==SM_SENSITIVE && str[i]==from)
       {
         r++;
         s[i] = to;
@@ -620,17 +622,19 @@ public:
   {
     std::vector<size_t> v;
     multi_find(str, from, v, pos, caseChk);
+    
     StringT s;
 
     size_t last = 0;
     for (typename std::vector<size_t>::iterator i=v.begin(); i!=v.end(); i++)
     {
       assert(last<str.length());
-      s += str.substr(last, *i-last);
+      StringT ssss = str.substr(last, *i-last);
+      s += ssss;
       s += to;
       last = *i+from.length();
     }
-
+    
     s += str.substr(last);
     str = s;
     
@@ -662,20 +666,10 @@ public:
                                    const StringT& str, size_t pos = 0,
                                    StrCompMode caseChk=SM_IGNORE)
   {
-    size_t i = find(str, from, pos, caseChk);
-    StringT s;
-    if (i != (size_t)-1)
-    {
-      s += str.substr(0, i+1);
-      s += to;
-      i += from.length();
-      if (i<str.length())
-        s += str.substr(i);
-    }
-    else
-      s = str;
-
+    StringT s = str;
+    substitute_string(from, to, s, pos, caseChk);
     return s;
+    
   }
 
   static void substitute_string(const StringT& from, const StringT& to,
@@ -687,7 +681,7 @@ public:
     if (i == (size_t)-1)
       return;
 
-    s += str.substr(0, i+1);
+    s += str.substr(0, i);
     s += to;
     i += from.length();
     if (i<str.length())
@@ -706,6 +700,14 @@ public:
         str[i] = ' ';
       }
     
+    return r;
+  }
+
+  
+  static StringT remove_newlines(const StringT& str)
+  {
+    StringT r = str;
+    remove_newlines(r);
     return r;
   }
 
@@ -731,32 +733,17 @@ public:
       }
     }
 
+    //std::cout<<s.getReferCnt()<<std::endl;
     str = s;
+    //std::cout<<s.getReferCnt()<<std::endl;
   }
 
   static StringT remove_duplicate_chars(const StringT& str, CharT c)
   {
-    StringT s;
-    s.reserve(str.length());
-    
-    size_t i;
-    int count = 0;
-    
-    for (i = 0; i < str.length(); i++)
-    {
-      if (str[i] == c)
-      {
-        if (count > 0);
-        else s += c;
-        count++;
-      }
-      else {
-        s += str[i];
-        count = 0;
-      }
-    }
-
+    StringT s = str;
+    remove_duplicate_chars(s, c);
     return s;
+    
   }
 
   static void remove_multi_whitespace(StringT& str)
@@ -781,12 +768,11 @@ public:
     tokens.reserve(indices.size()+1);
     indices.push_back(-1);
     
-
     size_t i = indices[0];
     if (i!=0)
-      tokens.push_back(str.substr(0, *i));
+      tokens.push_back(str.substr(0, i));
 
-    for (; i<indices.size()-1;i++)
+    for (; i<indices.size()-2;i++)
     {
       if (indices[i]+delimiter.length()>=indices[i+1])
         continue;
@@ -807,6 +793,13 @@ public:
 
   static StringT cut_delimiter(const StringT& str, size_t start, CharT delimiter) 
   {
+    StringT s =str;
+    cut_delimiter(s, start, delimiter);
+    return s;
+  }
+
+  static void cut_delimiter(StringT& str, size_t start, CharT delimiter) 
+  {
     assert(start < str.length());
     
     size_t i=start;
@@ -815,41 +808,63 @@ public:
     {
       i++;
       if (start + i >= str.length())
-        return "";
+      {
+        str = "";
+        return;
+      }
     }
 
-    if (i==start)return "";
+    if (i==start){
+      str = "";
+      return ;
+    }
+    
     
     return cut_range(str, start, i-1);
-  }
-
-  static void cut_delimiter(StringT& str, size_t start, CharT delimiter) 
-  {
-    str = cut_delimiter(str, start, delimiter);
   }
 
   static StringT cut_between_words(const StringT& str, const StringT& p1,
                                    const StringT& p2, StrCompMode caseChk=SM_SENSITIVE) 
   {
-    size_t i = find(str, p1, 0, caseChk);
-    if (i==(size_t)-1)
-      return "";
-    size_t j = rfind(str, p2, StringT::npos, caseChk);
-    if (j==(size_t)-1)
-      return "";
-    if (i+p1.length()>=j)
-      return "";
-
-    return str.substr(i+p1.length(), j-i-p1.length());
+    StringT s = str;
+    cut_between_words(s, p1, p2, caseChk);
+    return s;
   }
 
   static void cut_between_words(StringT& str, const StringT& p1,
                                 const StringT& p2, StrCompMode caseChk=SM_SENSITIVE ) 
   {
-    str = cut_between_words(str, p1, p2, caseChk);
+    size_t i = find(str, p1, 0, caseChk);
+    if (i==(size_t)-1)
+    {
+      str = "";
+      return;
+    }
+    
+    size_t j = rfind(str, p2, StringT::npos, caseChk);
+    if (j==(size_t)-1)
+    {
+      str = "";
+      return ;
+    }
+    
+    if (i+p1.length()>=j)
+    {
+      str = "";
+      return ;
+    }
+
+    str = str.substr(i+p1.length(), j-i-p1.length()-1);
   }
 
   static StringT cut_word_after(const StringT& str, const StringT& tag, StrCompMode caseChk=SM_IGNORE) 
+  {
+    StringT s = str;
+    cut_word_after(s, tag, caseChk);
+    return s;
+  }
+
+  static void cut_word_after(StringT& str, const StringT& tag, StrCompMode caseChk=SM_IGNORE) 
   {
     size_t index = find(str, tag,0, caseChk);
     if (index!=(size_t)-1)
@@ -858,43 +873,49 @@ public:
       for (; i < str.length() && IS_ALPHABET::is_space(str[i]); i++);
       
       if (i == str.length())
-        return "";
+      {
+        str = "";
+        return ;
+      }
+      
       
       size_t start = i;
       for (; i < str.length() && !IS_ALPHABET::is_space(str[i]); i++);
       
-      return cut_range(str, start, i - 1);
+      cut_range(str, start, i - 1);
+      return;
     }
     
-    return "";
-  }
-
-  static void cut_word_after(StringT& str, const StringT& tag, StrCompMode caseChk=SM_IGNORE) 
-  {
-    str = cut_word_after(str, tag, caseChk);
+    str = "";
   }
 
   static StringT cut_line_after(const StringT& str, const StringT& tag, StrCompMode caseChk=SM_IGNORE) 
+  {
+    StringT s = str;
+    cut_line_after(s, tag, caseChk);
+    return s;
+  }
+
+  static void cut_line_after(StringT& str, const StringT& tag, StrCompMode caseChk=SM_IGNORE) 
   {
     size_t index = find(str, tag, 0, caseChk);
     if (index!=(size_t)-1)
     {
       size_t i = index + tag.length();
       if (i == str.length())
-        return "";
-      
+      {
+        str = "";
+        return;
+      }
+
       size_t start = i;
       for (; i < str.length() && !IS_ALPHABET::is_new_line(str[i]); i++);
       
-      return cut_range(str, start, i - 1);
+      cut_range(str, start, i - 1);
+      return;
     }
     
-    return "";
-  }
-
-  static void cut_line_after(StringT& str, const StringT& tag, StrCompMode caseChk=SM_IGNORE) 
-  {
-    str = cut_line_after(str, tag, caseChk);
+    str = "";
   }
 
     /**
@@ -904,9 +925,11 @@ public:
 	       It doesn't contain the marks itself.
    *
    */
-  void take_between_marks(const StringT& str, CharT beg, CharT end,
-                          std::vector<StringT>& arrayOfstrings) const
+  static void take_between_marks(const StringT& str, CharT beg, CharT end,
+                          std::vector<StringT>& arrayOfstrings) 
   {
+    arrayOfstrings.clear();
+    
     if (beg == end)
       return;
 
@@ -930,7 +953,7 @@ public:
         }
       }
       else if (level > 0) {
-        StringT temp = str[i];
+        CharT temp = str[i];
         size_t finalIndex = index - step;
         while (finalIndex >=arrayOfstrings.size())
           arrayOfstrings.push_back("");
@@ -940,12 +963,13 @@ public:
     }
   }
 
-  void take_between_mark(const StringT& str, CharT mark,
-				  std::vector<StringT>& arrayOfstrings) const
+  static void take_between_mark(const StringT& str, CharT mark,
+				  std::vector<StringT>& arrayOfstrings) 
   {
+    arrayOfstrings.clear();
+    
     size_t index = 0;
     size_t prev = 0;
-    size_t cnt = 0;
 
     index = str.find(mark);
     prev = index;
@@ -962,7 +986,15 @@ public:
       @brief Returns the rear part that begins with the tag, including
                       the tag depending on the option.
    */
-  static StringT reverse_cut_rear_with(const StringT& str, char tag,
+  static StringT reverse_cut_rear_with(const StringT& str, CharT tag,
+                                       bool includeTag = false, StrCompMode caseChk = SM_IGNORE) 
+  {
+    StringT s = str;
+    reverse_cut_rear_with(s, tag, includeTag, caseChk);
+    return s;
+  }
+
+  static void reverse_cut_rear_with(StringT& str, CharT tag,
                                        bool includeTag = false, StrCompMode caseChk = SM_IGNORE) 
   {
     size_t i;
@@ -974,22 +1006,27 @@ public:
 
     if (i!=(size_t)-1) {
       if (includeTag)
-        return cut_range(i, str.length()-1);
-      else
-        return cut_range(i+1, str.length()-1);
+        cut_range(str, i, str.length()-1);
+      else if (i < str.length()-1)
+        cut_range(str, i+1, str.length()-1);
+
+      return;
+      
     }
 
-    return "";
-  }
-
-  static void reverse_cut_rear_with(StringT& str, char tag,
-                                       bool includeTag = false, StrCompMode caseChk = SM_IGNORE) 
-  {
-    str = reverse_cut_rear_with(str, tag, includeTag, caseChk);
+    str = "";
   }
 
   static StringT reverse_cut_front_with(const StringT& str, CharT tag,
                                        bool includeTag = false, StrCompMode caseChk = SM_IGNORE) 
+  {
+    StringT s = str;
+    reverse_cut_front_with(s, tag, includeTag, caseChk);
+    return s;
+  }
+
+  static void reverse_cut_front_with(StringT& str, CharT tag,
+                                        bool includeTag = false, StrCompMode caseChk = SM_IGNORE) 
   {
     size_t i;
     for (i = str.length()-1; i!=(size_t)-1; i--)
@@ -999,61 +1036,63 @@ public:
 
     if (i!=(size_t)-1) {
       if (includeTag)
-        return cut_range(0, i);
-      else
-        return cut_range(0, i-1);
+        cut_range(str, 0, i);
+      else if (i!=0)
+        cut_range(str, 0, i-1);
+      return;
     }
 
-    return "";
-  }
-
-  static void reverse_cut_front_with(StringT& str, CharT tag,
-                                        bool includeTag = false, StrCompMode caseChk = SM_IGNORE) 
-  {
-    str = reverse_cut_front_with(str, tag, includeTag, caseChk);
+    str = "";
   }
 
   static StringT compact_head(const StringT& str)
+  {
+    StringT s = str;
+    
+    compact_head(s);
+    return s;
+
+  }
+
+  static void compact_head(StringT& str)
   {
     size_t i=0;
     for (; i<str.length(); i++)
       if (!IS_ALPHABET::is_space(str[i]))
         break;
 
-    return str.substr(i);
-  }
-
-  static void compact_head(StringT& str)
-  {
-    str = compact_head(str);
+    str = str.substr(i);
   }
 
   static StringT compact_tail(const StringT& str)
+  {
+    StringT s = str;
+    compact_tail(s);
+    return s;
+  }
+
+  static void compact_tail(StringT& str)
   {
     size_t i=str.length()-1;
     for (; i!=(size_t)-1; i--)
       if (!IS_ALPHABET::is_space(str[i]))
         break;
 
-    return str.substr(0, i+1);
-  }
-
-  static void compact_tail(StringT& str)
-  {
-    str = compact_tail(str);
+    str = str.substr(0, i+1);
   }
 
   static StringT compact(const StringT& str)
   {
     StringT s;
     s = compact_head(str);
-    s = compact_tail(s);
+    compact_tail(s);
     return s;
   }
   
   static void compact(StringT& str)
   {
-    str = compact(str);
+    compact_head(str);
+    compact_tail(str);
   }
 
   static StringT trim(const StringT& str)
@@ -1070,12 +1109,12 @@ public:
       
       if (last<i )
       {
-        s += str.substr(last, last-i);
+        s += str.substr(last, i-last);
       }
       
       last = i+1;
     }
-
+    
     if (last < str.length())
       s += str.substr(last);
 
@@ -1084,7 +1123,8 @@ public:
 
   static void trim(StringT& str)
   {
-    str = trim(str);
+    const StringT s =str;
+    str = trim(s);
   }
 
   static void read_from_file(const StringT& filename, std::vector<StringT>& lines, CharT line='\n')

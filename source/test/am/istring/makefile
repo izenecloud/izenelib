@@ -15,20 +15,22 @@ OBJS := $(patsubst %.cpp, %.o, $(wildcard *.cpp))
 #./t_main.o
 
 
-all: amlib get-input
+all: vstring dstring
 
 
 
 .cpp.o:
 	$(GPP) $(CC_OPTIONS) $(INC_PATH)  -o"./$@" "$<"
 
-get-input: gen_input.o
-	$(GPP)  -g -o "get-input"  $^ 
-	-rm -f gen_input.o
 
-amlib: $(OBJS)
-	$(GPP)  -g -o "istring"  $^ $(LIBS) 
-	-rm -f $(OBJS)
+
+vstring: t_vstring.o t_master_suite.o
+	$(GPP)  -g -o "vstring"  $^ $(LIBS) 
+	-rm -f t_vstring.o
+
+dstring: t_dstring.o t_master_suite.o
+	$(GPP)  -g -o "dstring"  $^ $(LIBS) 
+	-rm -f t_dstring.o t_master_suite.o
 
 clean:
 	-rm -f $(OBJS)

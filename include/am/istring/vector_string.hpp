@@ -26,7 +26,7 @@ public:
   typedef CHAR_TYPE value_type;
   typedef CHAR_TYPE CharT;
   typedef uint16_t  ReferT;
-  typedef vector_string<CHAR_TYPE, COPY_ON_WRITE> SelfT;
+  typedef vector_string<CHAR_TYPE, COPY_ON_WRITE, APPEND_RATE> SelfT;
   typedef std::size_t size_t;
   
   static const size_t npos;
@@ -119,6 +119,18 @@ public:
       }
       
       return(*p_);
+    }
+    
+    iterator& operator + (size_t i)
+    {
+      p_ += i;
+      return *this;
+    }
+
+    iterator& operator - (size_t i)
+    {
+      p_ -= i;
+      return *this;
     }
 
     uint64_t operator - (const CharT* s) const
@@ -227,6 +239,18 @@ public:
     {
       return p_ -s;
     }
+    
+    iterator& operator + (size_t i)
+    {
+      p_ += i;
+      return *this;
+    }
+
+    iterator& operator - (size_t i)
+    {
+      p_ -= i;
+      return *this;
+    }
 
   private:
     const CharT* p_;
@@ -320,6 +344,18 @@ public:
       }
 
       return *p_;
+    }
+        
+    iterator& operator + (size_t i)
+    {
+      p_ -= i;
+      return *this;
+    }
+
+    iterator& operator - (size_t i)
+    {
+      p_ += i;
+      return *this;
     }
 
     uint64_t operator - (const CharT* s)
@@ -417,6 +453,19 @@ public:
       return(*p_);
     }
 
+        
+    iterator& operator + (size_t i)
+    {
+      p_ += i;
+      return *this;
+    }
+
+    iterator& operator - (size_t i)
+    {
+      p_ -= i;
+      return *this;
+    }
+
     uint64_t operator - (const CharT* s)
     {
       return p_ -s;
@@ -436,7 +485,7 @@ protected:
 
   static const float append_rate_;
 
-  bool refer()
+  inline bool refer()
   {
     if (!COPY_ON_WRITE)
       return false;
@@ -472,13 +521,14 @@ protected:
     if (p_!=NULL)
       if (*(ReferT*)p_== 0)
       {
+        //std::cout<<"derefer\n";
         hlfree(p_);
         p_ = NULL;
       }
     
   }
 
-  void clear_reference()
+  inline void clear_reference()
   {     
     if (!COPY_ON_WRITE)
       return ;
@@ -491,7 +541,7 @@ protected:
       (*(ReferT*)p_) = 1;
   }
 
-  bool is_refered() const
+  inline bool is_refered() const
   {
     if (!COPY_ON_WRITE)
       return false;
@@ -526,7 +576,7 @@ protected:
     clear_reference(); 
   }
 
-  size_t getLen(const CharT* s) const
+  inline size_t getLen(const CharT* s) const
   {
     CharT e = '\0';
     size_t i = 0;
@@ -641,6 +691,13 @@ public:
   {
     derefer();
   }
+
+  ReferT getReferCnt()
+  {
+    if (p_ != NULL)
+      return *(ReferT*)p_;
+    return 0;
+  }
   
   SelfT& operator= ( const SelfT& str )
   {
@@ -724,9 +781,9 @@ public:
   {
     assert (max_size_>=length_);
     
-    if (n == length_ && n == max_size_)
+    if (n == length_ && n+1 == max_size_)
       return;
-
+    
     if (is_refered())
     {
       char* p = (char*)hlmalloc(get_total_size(n));
@@ -741,6 +798,7 @@ public:
       
       derefer();
       p_ = p;
+      str_[n] = '\0';
       clear_reference();
       is_attached_ = false;
     }
@@ -753,9 +811,11 @@ public:
       }
       for (size_t i=length_; i<n; i++)
         str_[i] = c;
+      str_[n] = '\0';
     }
 
-    length_ = max_size_ = n;
+    length_ = n;
+    max_size_ = n+1;
   }
 
   void resize ( size_t n )
@@ -779,6 +839,7 @@ public:
       max_size_ = n;
       derefer();
       p_ = p;
+      str_[n]='\0';
       clear_reference();
       is_attached_ = false;
     }
@@ -786,11 +847,11 @@ public:
     {
       p_ = (char*)hlrealloc(p_, get_total_size(n));
       str_ = (CharT*)(p_ + sizeof (ReferT));
-      max_size_ = n;
+      str_[n]='\0';
     }
-
-    if (max_size_<length_)
-      length_ = max_size_;
+    
+    length_ = n;
+    max_size_ = n+1;
   }
 
   size_t capacity ( ) const
@@ -803,26 +864,31 @@ public:
     if (res_arg<= capacity())
       return;
 
-    max_size_ = res_arg/sizeof(CharT);
+    max_size_ = res_arg/sizeof(CharT)+1;
     if (is_refered())
     {
-      char* p = (char*)hlmalloc(get_total_size(max_size_));
+      char* p = (char*)hlmalloc(get_total_size(max_size_-1));
       memcpy(p + sizeof(ReferT), str_, capacity());
       str_ = (CharT*)(p+sizeof (ReferT));
     
       derefer();
       p_ = p;
       is_attached_ = false;
-      clear_reference();
     }
     else
     {
-      p_ = (char*)hlrealloc(p_, get_total_size(max_size_));
+      if (p_==NULL)
+        p_ = (char*)hlmalloc(get_total_size(max_size_-1));
+      else
+        p_ = (char*)hlrealloc(p_, get_total_size(max_size_-1));
       str_ = (CharT*)(p_+sizeof (ReferT));
     }
 
-    if (max_size_ < length_)
-      length_ = max_size_;
+    if (max_size_-1 < length_)
+      length_ = max_size_-1;
+    
+    str_[length_] = '\0';
+    clear_reference();
   }
 
   void clear()
@@ -854,13 +920,13 @@ public:
     
   }
 
-  const char& at ( size_t pos ) const
+  const CharT& at ( size_t pos ) const
   {
     assert(pos<length_);
     return str_[pos];
   }
   
-  char& at ( size_t pos )
+  CharT& at ( size_t pos )
   {
     assert(pos<length_);
     assign_self();
@@ -874,13 +940,13 @@ public:
     return append(str);
   }
   
-  SelfT& operator+= ( const char* s )
+  SelfT& operator+= ( const CharT* s )
   {
     size_t len = getLen(s);
     return append(s, len);
   }
   
-  SelfT& operator+= ( char c )
+  SelfT& operator+= ( CharT c )
   {
     return append(1, c);
   }
@@ -910,16 +976,22 @@ public:
       return *this;
     }
 
-    if (str.length()+length_>max_size_)
+    if (str.length()+length_+1>max_size_)
     {
-      p_  = (char*)hlrealloc(p_, get_total_size(new_len));
+      if (p_!=NULL)
+        p_  = (char*)hlrealloc(p_, get_total_size(new_len));
+      else
+        p_  = (char*)hlmalloc(get_total_size(new_len));
+      
       str_ = (CharT*)(p_ + sizeof (ReferT));
+      max_size_ = new_len+1;
     }
     
     memcpy(str_ + length_, str.str_, str.size());
-    length_ += str.length();
-    max_size_ = new_len+1;
+    length_ +=  str.length();
     str_[length_] = '\0';
+    
+    clear_reference();
 
     return *this;
   }
@@ -954,22 +1026,26 @@ public:
       return *this;
     }
 
-    if ( n + length_ > max_size_)
+    if ( n + length_+1 > max_size_)
     {
-      p_  = (char*)hlrealloc(p_, get_total_size(new_len));
+      if (p_!=NULL)
+        p_  = (char*)hlrealloc(p_, get_total_size(new_len));
+      else
+        p_  = (char*)hlmalloc(get_total_size(new_len));
       str_ = (CharT*)(p_ + sizeof (ReferT));
+      max_size_ = new_len+1;
     }
     
     memcpy(str_ + length_, s, n);
     length_ += n;
-    max_size_ = new_len+1;
     str_[length_] = '\0';
+    clear_reference();
 
     return *this;
     
   }
 
-  SelfT& append ( const char* s )
+  SelfT& append ( const CharT* s )
   {
     size_t len = getLen(s);
     return append(s, len);
@@ -1003,7 +1079,11 @@ public:
 
     if ( n + length_ > max_size_)
     {
-      p_  = (char*)hlrealloc(p_, get_total_size(new_len));
+      if (p_!=NULL)
+        p_  = (char*)hlrealloc(p_, get_total_size(new_len));
+      else
+        p_  = (char*)hlmalloc(get_total_size(new_len));
+      
       str_ = (CharT*)(p_ + sizeof (ReferT));
     }
     
@@ -1013,6 +1093,7 @@ public:
     length_ += n;
     max_size_ = new_len+1;
     str_[length_] = '\0';
+    clear_reference();
 
     return *this;
   }
@@ -1026,24 +1107,25 @@ public:
     return *this;
   }
 
-  void push_back ( char c )
+  void push_back ( CharT c )
   {
     append(1, c);
   }
 
   SelfT& assign ( const SelfT& str )
-  {    
+  {
+    //std::cout<<getReferCnt()<<std::endl;
+    derefer();
     if (COPY_ON_WRITE)
     {
-      derefer();
       p_ = str.p_;
-      refer();
       
       str_ = str.str_;
       length_ = str.length_;
       is_attached_ = str.is_attached_;
       max_size_ = str.max_size_;
-
+      refer();
+      
       assert(length_<=max_size_);
     }
     else
@@ -1120,11 +1202,13 @@ public:
     return *this;
   }
 
-  SelfT& assign ( const char* s )
+  SelfT& assign ( const CharT* s )
   {
     assert (s !=NULL);
 
+    //std::cout<<"--"<<getReferCnt()<<std::endl;
     derefer();
+    //std::cout<<"++"<<getReferCnt()<<std::endl;
     
     length_ = getLen(s);
 
@@ -1135,9 +1219,9 @@ public:
       str_[i] = s[i];
 
     is_attached_ = false;
-    clear_reference();
     max_size_ = length_ + 1;
     str_[length_] = '\0';
+    clear_reference();
 
     return *this;
   }
@@ -1154,9 +1238,9 @@ public:
       str_[i] = c;
 
     is_attached_ = false;
-    clear_reference();
     max_size_ = length_+1;
     str_[length_] = '\0';
+    clear_reference();
     
     return *this;
   }
@@ -1173,9 +1257,9 @@ public:
       str_[i] = v[i];
 
     is_attached_ = false;
-    clear_reference();
     max_size_ = length_+1;
     str_[length_] = '\0';
+    clear_reference();
 
     return *this;
   }
@@ -1194,9 +1278,9 @@ public:
       str_[i] = s[i];
 
     is_attached_ = false;
-    clear_reference();
     max_size_ = length_+1;
     str_[length_] = '\0';
+    clear_reference();
 
     return *this;
   }
@@ -1245,7 +1329,8 @@ public:
       return *this;
     }
 
-    assert(p_!=NULL);
+    if (p_ == NULL)
+      return assign(str);
     
     if (new_len+1 > max_size_)
     {
@@ -1265,6 +1350,7 @@ public:
     str_ = (CharT*)(p_ + sizeof (ReferT));
     str_[length_] = '\0';
     is_attached_ = false;
+    clear_reference();
     
     return *this;
   }
@@ -1302,7 +1388,7 @@ public:
     return iterator(str_+i+1);
   }
   
-  void insert ( iterator p, size_t n, char c )
+  void insert ( iterator p, size_t n, CharT c )
   {
     uint64_t i = p - str_;
     assign_self();
@@ -1323,6 +1409,12 @@ public:
 
   SelfT& erase ( size_t pos = 0, size_t n = npos )
   {
+
+    assign_self();
+    
+    if (p_==NULL)
+        return *this;
+
     if (pos ==0 && n>= length_)
     {
       length_ = 0;
@@ -1339,33 +1431,13 @@ public:
       return *this;
     }
 
-    if (is_refered())
-    {
-      char* p = (char*)hlmalloc(get_total_size(length_ - n));
-      memcpy(p + sizeof (ReferT), str_, pos);
       
-      for (size_t i=0; i<length_-n-pos; i++)
-        ((CharT*)(p+sizeof (ReferT)))[pos+i] = str_[pos+n+i];
-      str_ = (CharT*)(p+sizeof (ReferT));
-
-      length_ -= n;
-      max_size_ = length_+1;
-      str_[length_]= '\0';
-      
-      derefer();
-      p_ = p;
-      clear_reference();
-
-      return *this;
-    }
-    else
-    {
-      for (size_t i=0; i<length_-n-pos; i++)
+    for (size_t i=0; i<length_-n-pos; i++)
         str_[pos+i] = str_[pos+n+i];
 
-      length_ -= n;
-      str_[length_]= '\0';
-    }
+    length_ -= n;
+    str_[length_]= '\0';
+    clear_reference();
 
     return *this;
   }
@@ -1388,8 +1460,6 @@ public:
 
   SelfT& replace ( size_t pos1, size_t n1,   const SelfT& str )
   {
-    assert(n1 >= str.length());
-      
     if (str.length() == 0)
     {
       erase(pos1, n1);
@@ -1418,12 +1488,16 @@ public:
       return *this;
     }
 
+    if (p_==NULL)
+      return *this;
+
     memcpy(str_ + pos1, str.str_, str.size());
     for (size_t i=0; i<length_-n1 -pos1; i++)
       str_[pos1+str.length() + i] = str_[pos1+n1+i];
     
     length_ = new_len;
     str_[length_]= '\0';
+    clear_reference();
     
     return *this;
   }
@@ -1632,7 +1706,7 @@ public:
     return Algorithm<SelfT>::rKMP(substr(0, (pos!=npos? pos+1: npos)), ss);
   }
   
-  size_t rfind ( const char* s, size_t pos = npos ) const
+  size_t rfind ( const CharT* s, size_t pos = npos ) const
   {
     assert(pos == npos || pos<length_);
     
@@ -1641,7 +1715,7 @@ public:
     return Algorithm<SelfT>::rKMP(substr(0, (pos!=npos? pos+1: npos)), ss);
   }
   
-  size_t rfind ( char c, size_t pos = npos ) const
+  size_t rfind ( CharT c, size_t pos = npos ) const
   {
     assert(pos == npos || pos<length_);
     for (size_t i = (pos!=npos? pos+1: npos); i!=-1; i--)

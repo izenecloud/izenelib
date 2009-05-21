@@ -36,6 +36,7 @@
 
 #include <iostream>
 #include <am/istring/vector_string.hpp>
+#include <am/istring/deque_string.hpp>
 #include <vector>
 #include <boost/archive/binary_iarchive.hpp>
 #include <boost/archive/binary_oarchive.hpp>
@@ -44,12 +45,15 @@
 using namespace std;
 using namespace izenelib::am;
 
-BOOST_AUTO_TEST_SUITE( t_istring_suite )
+BOOST_AUTO_TEST_SUITE( t_dstring_suite )
 
 #define SCALE 10000000
 #define MAX_LEN 1024
 
-typedef vector_string<char> istring;
+typedef char CharT;
+const int BUCKET_BYTES = 64;
+const int BUCKET_LENGTH = 64/sizeof(CharT);
+typedef deque_string<CharT, 1, BUCKET_BYTES> istring;
 
 BOOST_AUTO_TEST_CASE(izene_istring_construction_check)
 {
@@ -117,26 +121,28 @@ BOOST_AUTO_TEST_CASE(izene_istring_capacity_check)
 
   t++;
   s.resize(32);
-  if (s.length()!=16 || s.max_size()!=32)
+  if (s.length()!=32
+      || s.max_size()!=(32/BUCKET_LENGTH + (32%BUCKET_LENGTH==0? 0: 1))*BUCKET_LENGTH)
     cout<<"["<<t<<"] ERROR\n";
   
   t++;
   s = is;
   is.resize(10);
-  if (is.capacity()!=10 || is.max_size()!=10)
+  if (is.max_size()!= (10/BUCKET_LENGTH + (10%BUCKET_LENGTH==0? 0: 1))*BUCKET_LENGTH)
     cout<<"["<<t<<"] ERROR\n";
 
   
   t++;
   s = is;
-  is.reserve(11);
-  if (is.capacity()!=11 || is.max_size()!=11)
+  is.reserve(64);
+  if (is.capacity()!=(64/BUCKET_LENGTH + (64%BUCKET_LENGTH==0? 0: 1))*BUCKET_LENGTH)
     cout<<"["<<t<<"] ERROR\n";
-  
+
   t++;
   s = is;
   s.resize(32, 'T');
-  if (s.length()!=32 || s.max_size()!=32)
+  if (s.length()!=32
+      || s.max_size()!= (32/BUCKET_LENGTH + (32%BUCKET_LENGTH==0? 0: 1))*BUCKET_LENGTH)
     cout<<"["<<t<<"] ERROR\n";
 
   cout<<"izene_istring_capacity_check is done!\n";
@@ -210,7 +216,8 @@ BOOST_AUTO_TEST_CASE(izene_istring_modifiers_check)
   s.append("oweirer", 3);
   if (s.compare("sfdfsfssfssfskkdfsowe")!=0)
     cout<<"["<<t<<"] ERROR\n";
-  
+
+  // 5 
   t++;
   s = ss;
   s.append(4,' ');
@@ -288,10 +295,11 @@ BOOST_AUTO_TEST_CASE(izene_istring_modifiers_check)
   
   t++;
   s = "fdfuiehjka";
-  ss = "jjj";
-  s.replace(3, 3, ss);
-  if (s.compare("fdfjjjhjka")!=0)
+  ss = "jj";
+  s.replace(3, 5, ss);
+  if (s.compare("fdfjjka")!=0)
     cout<<"["<<t<<"] ERROR\n";
+  cout<<ss<<endl;
 
   t++;
   s = "fdfuiehjka";
@@ -315,18 +323,6 @@ BOOST_AUTO_TEST_CASE(izene_istring_modifiers_check)
   ss = "sss";
   ss.swap(s);
   if (ss.compare("fdfuiehjka")!=0 || s.compare("sss")!=0)
-    cout<<"["<<t<<"] ERROR\n";
-
-  // 20  
-  t++;
-  char* jj = "fdfuiehjka";
-  ss.attach(jj);
-  if (ss.compare("fdfuiehjka")!=0)
-    cout<<"["<<t<<"] ERROR\n";
-  
-  t++;
-  ss.attach(jj, 3);
-  if (ss.compare("fdf")!=0)
     cout<<"["<<t<<"] ERROR\n";
 
   cout<<"izene_istring_modifiers_check is done!\n";
@@ -436,7 +432,7 @@ BOOST_AUTO_TEST_CASE(izene_istring_algorithms_check)
   typedef Algorithm<istring> algo;
   
   int t=0;
-
+  
   istring s("-11013");
   if (algo::to_integer(s)!= -11013)
     cout<<"["<<t<<"] ERROR\n";
@@ -535,7 +531,7 @@ BOOST_AUTO_TEST_CASE(izene_istring_algorithms_check)
   
   t++;
   s= "ssfdgfdsfdsdfds";
-  istring ss = "Fd";
+   istring ss = "Fd";
   vector<size_t> v;
   algo::multi_find(s, ss, v);
   if (v.size()!=4)
@@ -578,22 +574,177 @@ BOOST_AUTO_TEST_CASE(izene_istring_algorithms_check)
   ss = "fd";
   if (algo::num_occurrence(s, ss, 3, algo::SM_SENSITIVE) != 3)
     cout<<"["<<t<<"] ERROR\n";
-
+  
   t++;
-  vector<istring> iv(3);
+   vector<istring> iv(3);
   iv[0] = "fS";
   iv[1] = "sG";
   iv[2] = "rT";
   algo::frequency_counter("fsgsgdfsgrtsdfsgdfsg", iv, v);
   if (v[0] != 4 || v[1]!=5 || v[2]!=1)
     cout<<"["<<t<<"] ERROR\n";
+  
+  t++;
+  ss = "kdjdkdjksdkfjskddfu";
+  algo::substitute_char('k', '*', ss);
+  if (ss.compare("*djd*dj*sd*fjs*ddfu")!=0)
+    cout<<"["<<t<<"] ERROR\n";
 
-  float e = 6119.;
-  float r = 1.0225;
+  t++;
+  ss = "kdjdkdjksdkfjsKddfu";
+  algo::substitute_char('k', '*', ss, 1, algo::SM_SENSITIVE);
+  if (ss.compare("kdjd*dj*sd*fjsKddfu")!=0)
+    cout<<"["<<t<<"] ERROR\n";
+  
+  t++;
+  ss = "aabcdsfklsabcklsdlabckldabcsldkabc";
+  algo::multi_substitute_string("abc","*", ss);
+  if (ss.compare("a*dsfkls*klsdl*kld*sldk*")!=0)
+    cout<<"["<<t<<"] ERROR\n";
+  
+  // 30
+  t++;
+  ss = "aabcdsfklsAbcklsdlabckldaBcsldkabc";
+  algo::multi_substitute_string("abc","****", ss, 2, algo::SM_SENSITIVE);
+  if (ss.compare("aabcdsfklsAbcklsdl****kldaBcsldk****")!=0)
+    cout<<"["<<t<<"] ERROR\n";
+  
+  t++;
+  ss = "aabcdsfklsAbcklsdlabckldaBcsldkabc";
+  algo::substitute_string("abc","****", ss, 2, algo::SM_SENSITIVE);
+  if (ss.compare("aabcdsfklsAbcklsdl****kldaBcsldkabc")!=0)
+    cout<<"["<<t<<"] ERROR\n";
+  
+  t++;
+  ss = "aAbcdsfklsAbcklsdlabckldaBcsldkabc";
+  algo::substitute_string("abc","****", ss);
+  if (ss.compare("a****dsfklsAbcklsdlabckldaBcsldkabc")!=0)
+    cout<<"["<<t<<"] ERROR\n";
+  
+  t++;
+  ss = "aAbcdsfklsAbckl\ndlabck\nldaBcsldkabc\n";
+  algo::remove_newlines(ss);
+  if (ss.compare("aAbcdsfklsAbckl dlabck ldaBcsldkabc ")!=0)
+    cout<<"["<<t<<"] ERROR\n";
+  
+  t++;
+  ss = "qwergggtgygguiopgggg";
+  algo::remove_duplicate_chars(ss, 'g');
+  if (ss.compare("qwergtgyguiopg")!=0)
+    cout<<"["<<t<<"] ERROR\n";
+  
+  // 35
+  t++;
+  ss = "  qwergg g   t  gyggui  opgggg    ";
+  algo::remove_multi_whitespace(ss);
+  if (ss.compare(" qwergg g t gyggui opgggg ")!=0)
+    cout<<"["<<t<<"] ERROR\n";
+
+  t++;
+  ss = "  qwergg g   t  gyggui    ";
+  algo::make_tokens_with_delimiter(ss, " ", iv);
+  if (iv.size()!=4 || iv[0].compare("qwergg")!=0
+      || iv[1].compare("g")!=0 || iv[2].compare("t")!=0
+      ||iv[3].compare("gyggui")!=0)
+    cout<<"["<<t<<"] ERROR\n";
+
+  t++;
+  ss = "sdfohdfghsdo";
+  algo::cut_range(ss, 2, 3);
+  if (ss.compare("fo")!=0)
+    cout<<"["<<t<<"] ERROR\n";
+
+  t++;
+  ss = "sdfohdfghsdo";
+  algo::cut_range(ss, 3, 3);
+  if (ss.compare("o")!=0)
+    cout<<"["<<t<<"] ERROR\n";
+
+  t++;
+  ss = "sdfohdfghsdo";
+  algo::cut_delimiter(ss, 3, 'f');
+  if (ss.compare("ohd")!=0)
+    cout<<"["<<t<<"] ERROR\n";
+
+  // 40
+  t++;
+  ss = "sdfohdifghsdio";
+  algo::cut_between_words(ss, "fo", "di");
+  if (ss.compare("hdifghs")!=0)
+    cout<<"["<<t<<"] ERROR\n";
+
+  t++;
+  ss = "sdfohdifghsdio";
+  algo::cut_between_words(ss, "hs", "di");
+  if (ss.compare("")!=0)
+    cout<<"["<<t<<"] ERROR\n";
+
+  t++;
+  ss = "sdfohdi\nfghs\ndio";
+  algo::cut_line_after(ss, "\n");
+  if (ss.compare("fghs")!=0)
+    cout<<"["<<t<<"] ERROR\n";
+
+  t++;
+  ss = "sdf ohdif\nghs dio\n";
+  algo::take_between_marks(ss, ' ', '\n', iv);
+  if (iv.size()!=2 || iv[0].compare("ohdif")!=0 || iv[1].compare("dio")!=0)
+    cout<<"["<<t<<"] ERROR\n";
+
+  t++;
+  ss = "sdf\nohdif\nghsdio\n\n";
+  algo::take_between_mark(ss,'\n', iv);
+  if (iv.size()!=3 || iv[0].compare("ohdif")!=0 || iv[1].compare("ghsdio")!=0
+      || iv[2].compare("")!=0)
+    cout<<"["<<t<<"] ERROR\n";
+
+  // 45
+  t++;
+  ss = "sdf\nohdif\nghsdio\n\n";
+  algo::reverse_cut_rear_with(ss,'s');
+  if (ss.compare("dio\n\n")!=0)
+    cout<<"["<<t<<"] ERROR\n";
+  
+  t++;
+  ss = "sdf\nohdif\nghsdio\n\n";
+  algo::reverse_cut_front_with(ss,'s');
+  if (ss.compare("sdf\nohdif\ngh")!=0)
+    cout<<"["<<t<<"] ERROR\n";
+
+  t++;
+  ss = "   sdfdfgdfgdfg    ";
+  algo::compact_head(ss);
+  if (ss.compare("sdfdfgdfgdfg    ")!=0)
+    cout<<"["<<t<<"] ERROR\n";
+
+  t++;
+  ss = "   sdfdfgdfgdfg    ";
+  algo::compact_tail(ss);
+  if (ss.compare("   sdfdfgdfgdfg")!=0)
+    cout<<"["<<t<<"] ERROR\n";
+
+  t++;
+  ss = "   sdfdf  gdfgdfg    ";
+  algo::compact(ss);
+  if (ss.compare("sdfdf  gdfgdfg")!=0)
+    cout<<"["<<t<<"] ERROR\n";
+  
+  t++;
+  ss = "   sdfdf  gdfgdfg    ";
+  algo::trim(ss);
+  if (ss.compare("sdfdfgdfgdfg")!=0)
+    cout<<"["<<t<<"] ERROR\n";
+
+
+
+
+
+  float e = 6037*12.;
+  float r = 1.0252;
   float g = 0;
   for (int i=0; i<10; i++)
     g = g*r+e;
-  cout<<g;
+  cout<<(g)<<endl;
   
   cout<<"izene_istring_algorithm_check is done!\n";
 }
