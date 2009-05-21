@@ -13,27 +13,7 @@
 #define __BOOST_MEMORY_SYSTEM_POOL_HPP__
 #include "basic.hpp"
 
-/*
-#ifndef BOOST_MEMORY_BASIC_HPP
-#include "basic.hpp"
-#endif
 
-#ifndef BOOST_MEMORY_POLICY_HPP
-#include "policy.hpp"
-#endif
-
-#ifndef BOOST_DETAIL_WINAPI_WINBASE_H
-#include <boost/detail/winapi/winbase.h>
-#endif
-*/
-
-#if 1 // defined(BOOST_DETAIL_NO_TAGGED_COMPARE_AND_SWAP_POINTER)
-#define BOOST_MEMORY_NO_LOCKFREE
-#else
-#ifndef BOOST_LOCKFREE_STACK_HPP
-#include <boost/lockfree/stack.hpp>
-#endif
-#endif
 
 NS_BOOST_MEMORY_BEGIN
 
@@ -94,11 +74,7 @@ public:
 	}
 };
 
-#if defined(BOOST_MEMORY_NO_LOCKFREE)
 typedef normal_stack default_stack;
-#else
-typedef NS_BOOST_LOCKFREE::stack default_stack;
-#endif
 
 // -------------------------------------------------------------------------
 // class system_pool_imp

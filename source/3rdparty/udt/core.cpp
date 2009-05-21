@@ -617,7 +617,7 @@ void CUDT::connect(const sockaddr* serv_addr)
       if (response.getLength() > 0)
          break;
 
-      if (CTimer::getTime() > entertime + timeo))
+      if (CTimer::getTime() > entertime + timeo)
       {
          // timeout
          e = CUDTException(1, 1, 0);

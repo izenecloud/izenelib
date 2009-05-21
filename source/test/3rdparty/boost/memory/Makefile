@@ -2,7 +2,7 @@ GPP=/usr/bin/g++
 
 IZENELIB = ../../../../../include
 
-INC_PATH = -I $(IZENELIB)/3rdparty -I /usr/local/include/boost-1_37
+INC_PATH = -I $(IZENELIB) -I /usr/local/include/boost-1_37
 
 LIB_PATH = -lpthread -lrt ../../../../../lib/libboost_memory.a
 

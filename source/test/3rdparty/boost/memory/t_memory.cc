@@ -8,7 +8,7 @@
 #include <deque>
 #include <cstdio>
 
-#include <boost/memory.hpp>
+#include <3rdparty/boost/memory.hpp>
 
 using namespace std;
 using boost::stl_allocator;

@@ -14,7 +14,7 @@
 
 #include "basic.hpp"
 
-#include <boost/detail/threadmodel.hpp>
+#include "../detail/threadmodel.hpp"
 #include <algorithm> // std::swap
 
 #include <cstdlib> // malloc, free

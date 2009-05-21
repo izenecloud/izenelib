@@ -62,7 +62,7 @@ written by
 //if compiling on VC6.0 or pre-WindowsXP systems
 //use -DLEGACY_WIN32
 
-//if compiling with MinGW, only works on XP or above
+//if compiling with MinGW, it only works on XP or above
 //use -D_WIN32_WINNT=0x0501
 
 
@@ -78,12 +78,14 @@ written by
          // VC 6.0 does not support unsigned __int64: may cause potential problems.
          typedef __int64 uint64_t;
       #endif
-   #endif
 
-   #ifdef UDT_EXPORTS
-      #define UDT_API __declspec(dllexport)
+      #ifdef UDT_EXPORTS
+         #define UDT_API __declspec(dllexport)
+      #else
+         #define UDT_API __declspec(dllimport)
+      #endif
    #else
-      #define UDT_API __declspec(dllimport)
+      #define UDT_API
    #endif
 #else
    #define UDT_API

@@ -1,6 +1,7 @@
 PROJECT(boost_memory)
 
 include_directories ( 
+		${izenelib_SOURCE_DIR}/include
 		${izenelib_SOURCE_DIR}/include/3rdparty
 		)
 

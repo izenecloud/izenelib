@@ -17,7 +17,7 @@
 #endif
 
 #ifndef BOOST_DETAIL_THREADMODEL_HPP
-#include <boost/detail/threadmodel.hpp>
+#include "../../detail/threadmodel.hpp"
 #endif
 
 // -------------------------------------------------------------------------

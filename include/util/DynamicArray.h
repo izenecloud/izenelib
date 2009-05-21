@@ -2,6 +2,7 @@
 #define DYNAMICARRAY_H
 
 #include <types.h>
+#include <3rdparty/boost/memory.hpp>
 
 NS_IZENELIB_UTIL_BEGIN
 
@@ -126,6 +127,7 @@ private:
     int32_t	blkBase_;
     int32_t	numBlks_;
     size_t maxLength_;
+    boost::auto_alloc alloc_;
 };
 //////////////////////////////////////////////////////////////////////////
 //
@@ -147,7 +149,8 @@ DynamicArray<ElemT,NullValue>::DynamicArray(int32_t blksize)
         ,numBlks_(1)
         ,maxLength_(blksize)
 {
-    blocks_ = new ElemT*[numBlks_];
+    //blocks_ = new ElemT*[numBlks_];
+    blocks_ = BOOST_NEW(alloc_, ElemT*);
     blocks_[0] = NULL;
 }
 template<class ElemT,class NullValue>
@@ -157,7 +160,9 @@ DynamicArray<ElemT,NullValue>::DynamicArray(size_t initSize,int32_t blksize)
         ,maxLength_(initSize)
 {
     numBlks_ = (int32_t)((initSize + blksize - 1)/blksize);
-    blocks_ = new ElemT*[numBlks_];
+    //blocks_ = new ElemT*[numBlks_];
+    blocks_ = BOOST_NEW(alloc_, ElemT*);
+    
     memset(blocks_,0,numBlks_*sizeof(ElemT*));
 }
 
@@ -186,10 +191,12 @@ DynamicArray<ElemT,NullValue>::~DynamicArray(void)
 template<class ElemT,class NullValue>
 ElemT& DynamicArray<ElemT,NullValue>::operator[](size_t order)
 {
-    if (order >= maxLength_)
-        grow(order+1);
     int32_t blk = block(order);
     int32_t off = offset(order);
+
+//    if (order >= maxLength_)
+    if(blk >= numBlks_)
+        grow(order+1);
     if (blocks_[blk] == NULL)
         allocBlock(blk);
     return blocks_[blk][off];
@@ -229,6 +236,7 @@ template<class ElemT,class NullValue>
 void DynamicArray<ElemT,NullValue>::grow(size_t newLen)
 {
     int32_t numBlks = (int32_t)((newLen + blkSize_ - 1)/blkSize_);
+
     ElemT** tmpBlks = new ElemT*[numBlks];
     memset(tmpBlks,0,numBlks*sizeof(ElemT*));
     memcpy(tmpBlks,blocks_,numBlks_*sizeof(ElemT*));

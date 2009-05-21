@@ -1,5 +1,5 @@
-#include <boost/memory.hpp>
-#include <boost/detail/performance_counter.hpp>
+#include <3rdparty/boost/memory.hpp>
+#include <3rdparty/boost/detail/performance_counter.hpp>
 
 #if defined(__GNUG__)
 #include <ext/mt_allocator.h>
