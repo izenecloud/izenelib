@@ -35,7 +35,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 /*****************************************************************************
 written by
-   Yunhong Gu, last updated 05/05/2009
+   Yunhong Gu, last updated 05/21/2009
 *****************************************************************************/
 
 #ifndef __UDT_PACKET_H__
@@ -206,6 +206,7 @@ struct CHandShake
    int32_t m_iReqType;          // connection request type: 1: regular connection request, 0: rendezvous connection request, -1/-2: response
    int32_t m_iID;		// socket ID
    int32_t m_iCookie;		// cookie
+   uint32_t m_piPeerIP[4];	// The IP address that the peer's UDP port is bound to
 };
 
 
