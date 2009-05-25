@@ -35,7 +35,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 /*****************************************************************************
 written by
-   Yunhong Gu, last updated 05/05/2009
+   Yunhong Gu, last updated 05/21/2009
 *****************************************************************************/
 
 #ifndef __UDT_COMMON_H__
@@ -283,6 +283,8 @@ public:
 struct CIPAddress
 {
    static bool ipcmp(const sockaddr* addr1, const sockaddr* addr2, const int& ver = AF_INET);
+   static void ntop(const sockaddr* addr, uint32_t ip[4], const int& ver = AF_INET);
+   static void pton(sockaddr* addr, const uint32_t ip[4], const int& ver = AF_INET);
 };
 
 ////////////////////////////////////////////////////////////////////////////////

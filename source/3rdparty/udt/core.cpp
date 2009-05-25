@@ -35,7 +35,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 /*****************************************************************************
 written by
-   Yunhong Gu, last updated 05/19/2009
+   Yunhong Gu, last updated 05/21/2009
 *****************************************************************************/
 
 #ifndef WIN32
@@ -539,6 +539,7 @@ void CUDT::connect(const sockaddr* serv_addr)
    req->m_iFlightFlagSize = (m_iRcvBufSize < m_iFlightFlagSize)? m_iRcvBufSize : m_iFlightFlagSize;
    req->m_iReqType = (!m_bRendezvous) ? 1 : 0;
    req->m_iID = m_SocketID;
+   CIPAddress::ntop(serv_addr, req->m_piPeerIP, m_iIPversion);
 
    // Random Initial Sequence Number
    srand((unsigned int)CTimer::getTime());
@@ -580,6 +581,7 @@ void CUDT::connect(const sockaddr* serv_addr)
             // in this situation, a previously recorded response (tmp) will be used
             memcpy(resdata, tmp, sizeof(CHandShake));
             delete [] tmp;
+            memcpy(m_piSelfIP, res->m_piPeerIP, 16);
             break;
          }
 
@@ -615,7 +617,10 @@ void CUDT::connect(const sockaddr* serv_addr)
       }
 
       if (response.getLength() > 0)
+      {
+         memcpy(m_piSelfIP, res->m_piPeerIP, 16);
          break;
+      }
 
       if (CTimer::getTime() > entertime + timeo)
       {
@@ -684,9 +689,11 @@ void CUDT::connect(const sockaddr* serv_addr)
    m_dCongestionWindow = m_pCC->m_dCWndSize;
 
    CInfoBlock ib;
-   m_pCache->lookup(serv_addr, m_iIPversion, &ib);
-   m_iRTT = ib.m_iRTT;
-   m_iBandwidth = ib.m_iBandwidth;
+   if (m_pCache->lookup(serv_addr, m_iIPversion, &ib) >= 0)
+   {
+      m_iRTT = ib.m_iRTT;
+      m_iBandwidth = ib.m_iBandwidth;
+   }
 
    m_pCC->setMSS(m_iMSS);
    m_pCC->setMaxCWndSize((int&)m_iFlowWindowSize);
@@ -750,6 +757,10 @@ void CUDT::connect(const sockaddr* peer, CHandShake* hs)
    // this is a reponse handshake
    ci.m_iReqType = -1;
 
+   // get local IP address and send the peer its IP address (because UDP cannot get local IP address)
+   memcpy(m_piSelfIP, ci.m_piPeerIP, 16);
+   CIPAddress::ntop(peer, ci.m_piPeerIP, m_iIPversion);
+
    // Save the negotiated configurations.
    memcpy(hs, &ci, sizeof(CHandShake));
   
@@ -778,9 +789,11 @@ void CUDT::connect(const sockaddr* peer, CHandShake* hs)
    m_dCongestionWindow = m_pCC->m_dCWndSize;
 
    CInfoBlock ib;
-   m_pCache->lookup(peer, m_iIPversion, &ib);
-   m_iRTT = ib.m_iRTT;
-   m_iBandwidth = ib.m_iBandwidth;
+   if (m_pCache->lookup(peer, m_iIPversion, &ib) >= 0)
+   {
+      m_iRTT = ib.m_iRTT;
+      m_iBandwidth = ib.m_iBandwidth;
+   }
 
    m_pCC->setMSS(m_iMSS);
    m_pCC->setMaxCWndSize((int&)m_iFlowWindowSize);

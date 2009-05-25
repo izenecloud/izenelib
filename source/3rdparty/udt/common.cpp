@@ -35,7 +35,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 /*****************************************************************************
 written by
-   Yunhong Gu, last updated 05/05/2009
+   Yunhong Gu, last updated 05/21/2009
 *****************************************************************************/
 
 
@@ -633,6 +633,42 @@ bool CIPAddress::ipcmp(const sockaddr* addr1, const sockaddr* addr2, const int& 
    return false;
 }
 
+void CIPAddress::ntop(const sockaddr* addr, uint32_t ip[4], const int& ver)
+{
+   if (AF_INET == ver)
+   {
+      sockaddr_in* a = (sockaddr_in*)addr;
+      ip[0] = a->sin_addr.s_addr;
+   }
+   else
+   {
+      sockaddr_in6* a = (sockaddr_in6*)addr;
+      ip[3] = (a->sin6_addr.s6_addr[15] << 24) + (a->sin6_addr.s6_addr[14] << 16) + (a->sin6_addr.s6_addr[13] << 8) + a->sin6_addr.s6_addr[12];
+      ip[2] = (a->sin6_addr.s6_addr[11] << 24) + (a->sin6_addr.s6_addr[10] << 16) + (a->sin6_addr.s6_addr[9] << 8) + a->sin6_addr.s6_addr[8];
+      ip[1] = (a->sin6_addr.s6_addr[7] << 24) + (a->sin6_addr.s6_addr[6] << 16) + (a->sin6_addr.s6_addr[5] << 8) + a->sin6_addr.s6_addr[4];
+      ip[0] = (a->sin6_addr.s6_addr[3] << 24) + (a->sin6_addr.s6_addr[2] << 16) + (a->sin6_addr.s6_addr[1] << 8) + a->sin6_addr.s6_addr[0];
+   }
+}
+
+void CIPAddress::pton(sockaddr* addr, const uint32_t ip[4], const int& ver)
+{
+   if (AF_INET == ver)
+   {
+      sockaddr_in* a = (sockaddr_in*)addr;
+      a->sin_addr.s_addr = ip[0];
+   }
+   else
+   {
+      sockaddr_in6* a = (sockaddr_in6*)addr;
+      for (int i = 0; i < 4; ++ i)
+      {
+         a->sin6_addr.s6_addr[i * 4] = ip[i] & 0xFF;
+         a->sin6_addr.s6_addr[i * 4 + 1] = ip[i] & 0xFF00;
+         a->sin6_addr.s6_addr[i * 4 + 2] = ip[i] & 0xFF0000;
+         a->sin6_addr.s6_addr[i * 4 + 3] = ip[i] & 0xFF000000;
+      }
+   }
+}
 
 //
 void CMD5::compute(const char* input, unsigned char result[16])
