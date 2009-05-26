@@ -1,5 +1,8 @@
 /**
  * @file util/ClockTimer.h
+ * @author Ian Yang
+ * @date Created <2009-05-06 09:34:37>
+ * @date Updated <2009-05-26 10:35:24>
  * @brief Timer using wall clock instead of CPU ticks.
  *
  * In some performance measurement, the total elapsed time is more important
@@ -8,9 +11,6 @@
  *
  * Because it use the Boost Date Time library, you may need to link that
  * library.
- *
- * Created      <2009-05-06 09:48:07 Ian Yang>
- * Last Updated <2009-05-06 09:49:14 Ian Yang>
  */
 #ifndef UTIL_CLOCK_TIMER_H
 #define UTIL_CLOCK_TIMER_H
