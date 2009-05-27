@@ -51,8 +51,8 @@ BOOST_AUTO_TEST_SUITE( t_dstring_suite )
 #define MAX_LEN 1024
 
 typedef char CharT;
-const int BUCKET_BYTES = 64;
-const int BUCKET_LENGTH = 64/sizeof(CharT);
+const int BUCKET_BYTES = 2;
+const int BUCKET_LENGTH = BUCKET_BYTES/sizeof(CharT);
 typedef deque_string<CharT, 1, BUCKET_BYTES> istring;
 
 BOOST_AUTO_TEST_CASE(izene_istring_construction_check)
@@ -203,7 +203,7 @@ BOOST_AUTO_TEST_CASE(izene_istring_modifiers_check)
   ss += 'T';
   if (ss.compare("sfdfsfssfssfsT")!=0)
     cout<<"["<<t<<"] ERROR\n";
-    
+  
   t++;
   s += "kk";
   ss = s;
@@ -216,7 +216,7 @@ BOOST_AUTO_TEST_CASE(izene_istring_modifiers_check)
   s.append("oweirer", 3);
   if (s.compare("sfdfsfssfssfskkdfsowe")!=0)
     cout<<"["<<t<<"] ERROR\n";
-
+  
   // 5 
   t++;
   s = ss;
@@ -285,7 +285,7 @@ BOOST_AUTO_TEST_CASE(izene_istring_modifiers_check)
   s.erase(3);
   if (s.compare("fdf")!=0)
     cout<<"["<<t<<"] ERROR\n";
-
+  
   // 15
   t++;
   s = "fdfuiehjka";
@@ -299,7 +299,6 @@ BOOST_AUTO_TEST_CASE(izene_istring_modifiers_check)
   s.replace(3, 5, ss);
   if (s.compare("fdfjjka")!=0)
     cout<<"["<<t<<"] ERROR\n";
-  cout<<ss<<endl;
 
   t++;
   s = "fdfuiehjka";
@@ -391,18 +390,42 @@ BOOST_AUTO_TEST_CASE(izene_istring_iterator_check)
   vt.push_back('d');
   vt.push_back('s');
   vt.push_back('w');
-
+  
   istring s;
   s.assign<vector<char>::iterator >(vt.begin(),vt.end());
-
+  
   int t=0;
   if (s.compare("gfvdsw") != 0)
     cout<<"["<<t<<"] ERROR\n";
 
-  s.insert(s.begin(), vt.begin(),vt.end());
   t++;
+  istring::iterator i = s.begin();
+  i--;
+  i++;
+  // i = i-1;
+  //i = i+1;
+  if (*i!='g')
+    cout<<"["<<t<<"] ERROR\n";
+
+  t++;
+  i =s.end();
+  i--;
+  //i = i -1;
+  if (*i!='w')
+    cout<<"["<<t<<"] ERROR\n";
+
+  t++;
+  i =s.begin();
+  i = i + 3;
+  if (*i!='d')
+    cout<<"["<<t<<"] ERROR\n";
+  
+  
+  t++;
+  s.insert(s.begin(), vt.begin(),vt.end());
   if (s.compare("ggfvdswfvdsw") != 0)
     cout<<"["<<t<<"] ERROR\n";
+  
 
   t++;
   s = "dkghk";
@@ -432,11 +455,10 @@ BOOST_AUTO_TEST_CASE(izene_istring_algorithms_check)
   typedef Algorithm<istring> algo;
   
   int t=0;
-  
   istring s("-11013");
   if (algo::to_integer(s)!= -11013)
     cout<<"["<<t<<"] ERROR\n";
-
+  
   t++;
   s = "11234";
   if (algo::to_integer(s)!= 11234)
@@ -481,7 +503,7 @@ BOOST_AUTO_TEST_CASE(izene_istring_algorithms_check)
   t++;
   if (algo::to_upper(cs).compare("QWERTYUIOP")!=0)
     cout<<"["<<t<<"] ERROR\n";
-
+  
   // 10
   t++;
   s = cs;
@@ -568,7 +590,7 @@ BOOST_AUTO_TEST_CASE(izene_istring_algorithms_check)
   t++;
   if (algo::num_occurrence(s, ss) != 4)
     cout<<"["<<t<<"] ERROR\n";
-
+  
   // 25
   t++;
   ss = "fd";
@@ -665,39 +687,39 @@ BOOST_AUTO_TEST_CASE(izene_istring_algorithms_check)
   algo::cut_delimiter(ss, 3, 'f');
   if (ss.compare("ohd")!=0)
     cout<<"["<<t<<"] ERROR\n";
-
+  
   // 40
   t++;
   ss = "sdfohdifghsdio";
   algo::cut_between_words(ss, "fo", "di");
   if (ss.compare("hdifghs")!=0)
     cout<<"["<<t<<"] ERROR\n";
-
+  
   t++;
   ss = "sdfohdifghsdio";
   algo::cut_between_words(ss, "hs", "di");
   if (ss.compare("")!=0)
     cout<<"["<<t<<"] ERROR\n";
-
+  
   t++;
   ss = "sdfohdi\nfghs\ndio";
   algo::cut_line_after(ss, "\n");
   if (ss.compare("fghs")!=0)
     cout<<"["<<t<<"] ERROR\n";
-
+  
   t++;
   ss = "sdf ohdif\nghs dio\n";
   algo::take_between_marks(ss, ' ', '\n', iv);
   if (iv.size()!=2 || iv[0].compare("ohdif")!=0 || iv[1].compare("dio")!=0)
     cout<<"["<<t<<"] ERROR\n";
-
+  
   t++;
   ss = "sdf\nohdif\nghsdio\n\n";
   algo::take_between_mark(ss,'\n', iv);
   if (iv.size()!=3 || iv[0].compare("ohdif")!=0 || iv[1].compare("ghsdio")!=0
       || iv[2].compare("")!=0)
     cout<<"["<<t<<"] ERROR\n";
-
+  
   // 45
   t++;
   ss = "sdf\nohdif\nghsdio\n\n";
@@ -716,19 +738,20 @@ BOOST_AUTO_TEST_CASE(izene_istring_algorithms_check)
   algo::compact_head(ss);
   if (ss.compare("sdfdfgdfgdfg    ")!=0)
     cout<<"["<<t<<"] ERROR\n";
-
+  
   t++;
   ss = "   sdfdfgdfgdfg    ";
   algo::compact_tail(ss);
   if (ss.compare("   sdfdfgdfgdfg")!=0)
     cout<<"["<<t<<"] ERROR\n";
-
+  
   t++;
   ss = "   sdfdf  gdfgdfg    ";
   algo::compact(ss);
   if (ss.compare("sdfdf  gdfgdfg")!=0)
     cout<<"["<<t<<"] ERROR\n";
-  
+
+  // 50
   t++;
   ss = "   sdfdf  gdfgdfg    ";
   algo::trim(ss);

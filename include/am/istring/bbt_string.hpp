@@ -1,5 +1,5 @@
-#ifndef VECTOR_STRING_HPP
-#define VECTOR_STRING_HPP
+#ifndef AVL_STRING_HPP
+#define AVL_STRING_HPP
 
 #include <hlmalloc.h>
 #include <types.h>
@@ -18,19 +18,126 @@ NS_IZENELIB_AM_BEGIN
 template <
   class CHAR_TYPE = char,
   int COPY_ON_WRITE = 1,
-  uint8_t APPEND_RATE = 50
+  uint64_t BUCKET_BYTES = 64
   >
-class vector_string
-{
+class bbt_string
+{  
 public:
   typedef CHAR_TYPE value_type;
   typedef CHAR_TYPE CharT;
   typedef uint16_t  ReferT;
-  typedef vector_string<CHAR_TYPE, COPY_ON_WRITE, APPEND_RATE> SelfT;
+  typedef bbt_string<CHAR_TYPE, COPY_ON_WRITE, BUCKET_BYTES> SelfT;
   typedef std::size_t size_t;
+
+  enum 
+    {
+      BUCKET_LENGTH = BUCKET_BYTES/sizeof(CharT) -1;
+      BUCKEY_SIZE = BUCKET_BYTES + sizeof(ReferT) + sizeof(void*)
+    };
+
   
   static const size_t npos;
+protected:
 
+  struct BUCKET_
+  {
+    char p_[BUCKET_SIZE];
+
+    inline BUCKET_()
+    {
+      *(ReferT*)(p_ + BUCKET_BYTES) = 1;
+      *(LEEF_*)(p_ + BUCKET_BYTES + sizeof(ReferT)) = NULL;
+    }
+    
+    inline CharT& operator [] (size_t i)
+    {
+      assert(i<BUCKET_LENGTH);
+      return *((CharT*)p_ + i);
+    }
+
+    inline size_t length()const
+    {
+      size_t i=0;
+      for (;i<BUCKET_LENGTH; i++)
+        if (*((CharT*)p_ + i)=='\0')
+          return i;
+
+      assert(false);
+    }
+
+    inline void refer()
+    {
+      *(ReferT*)(p_ + BUCKET_BYTES) += 1;
+    }
+
+    inline bool is_refered()
+    {
+      if (*(ReferT*)(p_ + BUCKET_BYTES)>1)
+        return true;
+      return false;
+    }
+
+    inline void derefer()
+    {
+      if (*(ReferT*)(p_ + BUCKET_BYTES) != 0)
+        *(ReferT*)(p_ + BUCKET_BYTES) -= 1;
+    }
+
+    BUCKET_* next()
+    {
+      return *(LEEF_**)(p_ + BUCKET_BYTES + sizeof(ReferT));
+    }
+    
+    void set_next(BUCKET_* lf)
+    {
+      *(BUCKET_**)(p_ + BUCKET_BYTES + sizeof(ReferT)) = lf;
+    }
+    
+    void clear_reference()
+    {
+      *(ReferT*)(p_ + BUCKET_BYTES) = 1;
+    }    
+    
+  }
+    ;
+
+  struct INDEX_
+  {
+    size_t len_;
+    BUKCET_* bptr_;
+
+    inline INDEX_()
+    {
+      len_ = 0;
+      bptr_ = NULL;
+    }
+
+    bool operator == (size_t i) const
+    {
+      return len_==i;
+    }
+
+    bool operator > (size_t i) const
+    {
+      return len_ > i;
+    }
+
+    bool operator < (size_t i) const
+    {
+      return len_ < i;
+    }
+
+    
+    bool operator != (size_t i) const
+    {
+      return len_ != i;
+    }
+
+    
+  }
+    ;
+  
+public:
   class const_iterator;
   
   class iterator :
@@ -477,107 +584,96 @@ public:
 
   
 protected:
-  char* p_;
-  CharT* str_;
-  bool is_attached_;
+  BUCKET_* head_;
+  INDEX_* indice_;
+  size_t idx_len_;
+  size_t idx_size_;
   size_t length_;
-  size_t max_size_;
-
-  static const float append_rate_;
 
   inline bool refer()
   {
     if (!COPY_ON_WRITE)
       return false;
+
     //lock
-    if (is_attached_)
-      return true;
-    
-    if (p_!=NULL)
-      (*(ReferT*)p_)++;
+    BUCKET_* b = head_;
+    while (b !=NULL)
+    {
+      b->refer();
+      b = b->next();
+    }
 
     return true;
   }
-  
+
   void derefer()
-  { 
+  {
+    hlfree(indice_);
+    indice_ = NULL;
+    idx_len_ = length_ = 0;
+    
     if (!COPY_ON_WRITE)
     {
-      if (p_!=NULL){
-        hlfree(p_);
-        p_ = NULL;
+      BUCKET_* b = head_;
+      while (b !=NULL)
+      {
+        BUCKET_* t = b->next();
+        hlfree(b);
+        b = t;
       }
-      
-      return ;
-    }
 
-    //lock
-    if (is_attached_)
-    {
-      is_attached_ =false;
+      head_ = NULL;
       return;
     }
-
-    if (p_!=NULL)
-      if (*(ReferT*)p_ > 0)
-      (*(ReferT*)p_)--;
-
-    if (p_!=NULL)
-      if (*(ReferT*)p_== 0)
-      {
-        //std::cout<<"derefer\n";
-        hlfree(p_);
-        p_ = NULL;
-      }
     
+    BUCKET_* b = head_;
+    BUCKET_* last = NULL;
+    while (b !=NULL)
+    {
+      BUCKET_* t = b->next();
+      //lock
+      b->derefer();
+      if (!b->is_refered())
+      {
+        hlfree(b);
+        if (last != NULL)
+        {
+          last->set_next(NULL);
+          last = NULL;
+        }
+      }
+      else
+        last = b;
+      
+      b = t;
+    }
+
+    head_ = NULL;
   }
 
-  inline void clear_reference()
+  void clear_reference(BUCKET_* b)
+  {
+    if (b == NULL)
+      return;
+
+    clear_reference(lf->next());
+    lf->clear_reference();
+  }
+  
+  void clear_reference()
   {     
     if (!COPY_ON_WRITE)
       return ;
 
-    //lock
-    if (is_attached_)
-      return;
-    
-    if (p_!=NULL)
-      (*(ReferT*)p_) = 1;
-  }
+        
+    BUCKET_* b = head_;
+    while (b !=NULL)
+    {
+      //lock
+      b->clear_reference();
+      b = b->next();
+    }
 
-  inline bool is_refered() const
-  {
-    if (!COPY_ON_WRITE)
-      return false;
-    
-    //lock
-    if (is_attached_)
-      return true;
-
-    if (p_ == NULL)
-      return false;
-    
-    if (*(ReferT*)p_ > 1)
-      return true;
-
-    return false;
-  }
-   
-  void assign_self()
-  {
-    if (!is_refered())
-      return;
-
-    char* p = (char*)hlmalloc(get_total_size(length_));
-    memcpy(p + sizeof (ReferT), str_, capacity());
-    str_ = (CharT*)(p+sizeof (ReferT));
-    max_size_ = length_+1;
-    str_[length_] = '\0';
-    
-    derefer();
-    p_ = p;
-    is_attached_ = false;
-    clear_reference(); 
   }
 
   inline size_t getLen(const CharT* s) const
@@ -593,114 +689,193 @@ protected:
     return i;
   }
 
-  inline size_t get_total_size(size_t str_len)
+  void duplicate(INDEX_** indice, BUCKET_** bu) const
   {
-    return (str_len+1)*sizeof(CharT) + sizeof(ReferT);
+    *indice = (INDEX_*)hlmalloc(idx_len_*sizeof(INDEX_));
+    memcpy (*indice, indice_, idx_len_*sizeof(INDEX_));
+    if (COPY_ON_WRITE)
+    {
+      *bu = head_;
+      return;
+    }
+
+    size_t i = 0;
+    BUCKET_* b1 = head_;
+    
+    if (b1!=NULL)
+    {
+      *bu = (BUCKET_*)hlmalloc(BUCKET_SIZE);
+      memcpy(*bu, b1, BUCKET_SIZE);
+      (*indice)[i].bptr_ = *bu;
+      i++;
+      b1 = b1->next();
+    }
+    
+    BUCKET_* last = *bu;
+    
+    while (b1!=NULL)
+    {
+      BUCKET_* t = (BUCKET_*)hlmalloc(BUCKET_SIZE);
+      memcpy(t, b1, BUCKET_SIZE);
+      (*indice)[i].bptr_ = t;
+      last->set_next(t);
+      last = b1;
+      
+      b1 = b1->next();
+      i++;
+    }
+
+    if (head_!=NULL)
+      last->set_next(NULL);
+    
+    
   }
   
-public:
-  explicit vector_string()
+  size_t binary_search(size_t i, size_t start, size_t end)
   {
-    p_ = NULL;
-    str_ = NULL;
-    is_attached_ = false;
-    length_ = 0;
-    max_size_ = 0;
+    if (end == start)
+      return end;
+
+    size_t mid = (start+end)/2;
+    if (i+1 > indice[mid])
+      return binary_search(i, mid+1, end);
+    else if (i+1 == indice[mid])
+      return mid;
+    else if (i+1 < indice[mid])
+      return binary_search(i, start, mid-1);
+  }
+  
+  size_t duplicate(size_t start, size_t n, INDEX_** indice, BUCKET_** bu) const
+  {
+    assert(start + n < length_);
+    
+    size_t i = binary_search(start, 0, idx_len_-1);
+    size_t last_i = i==0? 0: indice_[i-1].len_;
+    if (i-last_i==0)
+    {
+      *bu = indice_[i].bptr_;
+      *bu->refer();
+    }
+    else
+    {
+      *bu = (BUCKET_*)hlmalloc(BUCKET_SIZE);
+      memcpy(*bu, indice_[i].bptr_->p_ + (i-last_i)*sizeof(CharT), BUCKET_SIZE-(i-last_i)*sizeof(CharT));
+      *bu->clear_reference();
+      *bu->set_next(indice_[i].bptr_->next());
+    }
+    
+    size_t e = binary_search(start+n-1, i, idx_len_-1);
+    *indice = (INDEX_*)hlmalloc((e-i+1)*sizeof(INDEX_));
+    memcpy (*indice, indice_ + i, (e-i+1)*sizeof(INDEX_));
+    (*indice)[0].bptr_ = *bu;
+    BUCKET_* b = *bu->next();
+    size_t ii = 1;
+    i++;
+
+    while (i<=e)
+    {
+      assert(b!=NULL);
+
+      if (COPY_ON_WRITE)
+      {
+        (*indice)[ii].bptr_->refer();
+      }
+      else
+      {
+        BUCKET_* t = (BUCKET_*)hlmalloc(BUCKET_SIZE);
+        memcpy(t, indice_[i].bptr_, BUCKET_SIZE);
+        t->clear_reference();
+        (*indice)[ii].bptr_ = t;
+        (*indice)[ii-1].bptr_->set_next(t);
+      }
+
+      b = b->next();
+      i++;
+      ii++;
+    }
+
+    return e-i+1;
   }
 
-  vector_string ( const SelfT& str )
+public:
+  explicit bbt_string()
+  {
+    idx_len_ = length_ = 0;
+    head_ = (BUCKET_*)hlmalloc(sizeof(BUCKET_));
+    indice_ = (INDEX_*)hlmalloc(BUCKET_LENGTH*sizeof(INDEX_));
+    memset(indice_, BUCKET_LENGTH*sizeof(INDEX_),0);
+    idx_size_ = BUCKET_LENGTH;
+  }
+
+  bbt_string ( const SelfT& str )
   //    :p_(NULL), is_attached_(false),str_(NULL),length_(0),max_size_(0)
-  {    
-    p_ = NULL;
-    str_ = NULL;
-    is_attached_ = false;
+  {
     length_ = 0;
-    max_size_ = 0;
+    root_ =NULL;
+    head_ = NULL;
     assign(str);
   }
   
-  vector_string ( const SelfT& str, size_t pos, size_t n = npos )
+  bbt_string ( const SelfT& str, size_t pos, size_t n = npos )
   {
-        
-    p_ = NULL;
-    str_ = NULL;
-    is_attached_ = false;
     length_ = 0;
-    max_size_ = 0;
+    root_ =NULL;
+    head_ = NULL;
     assign(str, pos, n);
   }
   
-  vector_string ( const CharT * s, size_t n )
-  {    
-    p_ = NULL;
-    str_ = NULL;
-    is_attached_ = false;
+  bbt_string ( const CharT * s, size_t n )
+  {
     length_ = 0;
-    max_size_ = 0;
+    root_ =NULL;
+    head_ = NULL;
     assign(s, n);
   }
   
-  vector_string ( const CharT * s )
-  {    
-    p_ = NULL;
-    str_ = NULL;
-    is_attached_ = false;
+  bbt_string ( const CharT * s )
+  {
     length_ = 0;
-    max_size_ = 0;
+    root_ =NULL;
+    head_ = NULL;
     assign(s);
   }
   
-  vector_string ( size_t n, CharT c )
-  {    
-    p_ = NULL;
-    str_ = NULL;
-    is_attached_ = false;
+  bbt_string ( size_t n, CharT c )
+  {
     length_ = 0;
-    max_size_ = 0;
+    root_ =NULL;
+    head_ = NULL;
     assign(n, c);
   }
 
-  vector_string (const std::vector<CharT>& v)
-  {    
-    p_ = NULL;
-    str_ = NULL;
-    is_attached_ = false;
+  bbt_string (const std::vector<CharT>& v)
+  {
     length_ = 0;
-    max_size_ = 0;
+    root_ =NULL;
+    head_ = NULL;
     assign(v);
   }
 
-  vector_string (const std::string& str)
-  {    
-    p_ = NULL;
-    str_ = NULL;
-    is_attached_ = false;
+  bbt_string (const std::string& str)
+  {
     length_ = 0;
-    max_size_ = 0;
+    root_ =NULL;
+    head_ = NULL;
     assign(str);
   }
   
 
-  template<class InputIterator> vector_string (InputIterator begin, InputIterator end)
-  {    
-    p_ = NULL;
-    str_ = NULL;
-    is_attached_ = false;
+  template<class InputIterator> bbt_string (InputIterator begin, InputIterator end)
+  {
     length_ = 0;
-    max_size_ = 0;
+    root_ =NULL;
+    head_ = NULL;
     assign(begin(), end);
   }
 
-  virtual ~vector_string()
+  virtual ~bbt_string()
   {
     derefer();
-  }
-
-  ReferT getReferCnt()
-  {
-    if (p_ != NULL)
-      return *(ReferT*)p_;
-    return 0;
   }
   
   SelfT& operator= ( const SelfT& str )
@@ -778,89 +953,105 @@ public:
 
   size_t max_size ( ) const
   {
-    return (max_size_);
+    return idx_len_ * BUCKET_LENGTH;
   }
 
   void resize (size_t n, CharT c)
   {
-    assert (max_size_>=length_);
-    
-    if (n == length_ && n+1 == max_size_)
+    if (n == length_ && n == max_size())
       return;
+
     
-    if (is_refered())
+    idx_len_ = n%BUCKET_LENGTH==0? n/BUCKET_LENGTH: n/BUCKET_LENGTH+1;
+    if (n > idx_size_*BUCKET_LENGTH)
     {
-      char* p = (char*)hlmalloc(get_total_size(n));
-      if (max_size_ <= n)
-        memcpy(p + sizeof (ReferT), str_, capacity());
-      else
-        memcpy(p + sizeof (ReferT), str_, n*sizeof(CharT));
-      str_ = (CharT*)(p+sizeof (ReferT));
-    
-      for (size_t i=length_; i<n; i++)
-        str_[i] = c;
-      
-      derefer();
-      p_ = p;
-      str_[n] = '\0';
-      clear_reference();
-      is_attached_ = false;
-    }
-    else
-    {
-      if (n!=max_size_)
-      {
-        p_ = (char*)hlrealloc(p_, get_total_size(n));
-        str_ = (CharT*)(p_ + sizeof (ReferT));
-      }
-      for (size_t i=length_; i<n; i++)
-        str_[i] = c;
-      str_[n] = '\0';
+      idx_size_ = idx_len_;
+      indice_ = (INDEX_*)hlreallocate(indice_, idx_size_);
     }
 
-    length_ = n;
-    max_size_ = n+1;
+    for (size_t i=0; i<idx_len_; i++)
+    {
+      if (indice_[i].bptr_ != NULL )
+      {
+        if(indice_[i].bptr_->is_refered())
+        {
+          BUCKET_* t= indice_[i].bptr_;
+          indice_[i].bptr_ = (BUCKET_*)hlmalloc(BUCKET_SIZE);
+          memcpy(indice_[i].bptr_, t, BUCKET_SIZE);
+          indice_[i].bptr_->clear_reference();
+          t->derefer();
+        }
+
+        if (i==0 && indice_[i].len_==0
+            || i!=0 && indice_[i-1].len_ == indice_[i].len_)
+        {
+          for (size_t k=0; k<BUCKET_LENGTH; k++)
+            indice_[i].bptr_->p_[i] = c;
+          indice_[i].bptr_->p_[BUCKET_LENGTH] = '\0';
+          indice_[i].len_ = BUCKET_LENGTH + (i==0?0: indice_[i-1].len_);
+          length_ += BUCKET_LENGTH;
+        }
+        
+      }
+      else
+      {
+        indice_[i].bptr_ = (BUCKET_*)hlmalloc(BUCKET_SIZE);
+        indice_[i].bptr_->clear_reference();
+        for (size_t k=0; k<BUCKET_LENGTH; k++)
+            indice_[i].bptr_->p_[i] = c;
+          indice_[i].bptr_->p_[BUCKET_LENGTH] = '\0';
+        indice_[i].len_ = BUCKET_LENGTH + (i!=0? indice_[i].len_: 0);
+        length_ += BUCKET_LENGTH;
+      }
+
+      if (i!=0)
+        indice_[i-1].bptr_->set_next(indice_[i].bptr_);
+    }
   }
 
   void resize ( size_t n )
   {
-    assert (max_size_>=length_);
-    
-    if (n == max_size_)
-    {
+    if (n == max_size())
       return;
+
+    idx_len_ = n%BUCKET_LENGTH==0? n/BUCKET_LENGTH: n/BUCKET_LENGTH+1;
+    if (n > idx_size_*BUCKET_LENGTH)
+    {
+      idx_size_ = idx_len_;
+      indice_ = (INDEX_*)hlreallocate(indice_, idx_size_);
     }
 
-    if (is_refered())
+    for (size_t i=0; i<idx_len_; i++)
     {
-      char* p = (char*)hlmalloc(get_total_size(n));
-      if (max_size_ <= n)
-        memcpy(p +sizeof (ReferT), str_, capacity());
+      if (indice_[i].bptr_ != NULL )
+      {
+        if(indice_[i].bptr_->is_refered())
+        {
+          BUCKET_* t= indice_[i].bptr_;
+          indice_[i].bptr_ = (BUCKET_*)hlmalloc(BUCKET_SIZE);
+          memcpy(indice_[i].bptr_, t, BUCKET_SIZE);
+          indice_[i].bptr_->clear_reference();
+          t->derefer();
+        }
+      }
       else
-        memcpy(p +sizeof (ReferT), str_, n*sizeof(CharT));
-      str_ = (CharT*)(p+sizeof (ReferT));
-    
-      max_size_ = n;
-      derefer();
-      p_ = p;
-      str_[n]='\0';
-      clear_reference();
-      is_attached_ = false;
+      {
+        indice_[i].bptr_ = (BUCKET_*)hlmalloc(BUCKET_SIZE);
+        indice_[i].bptr_->clear_reference();
+        indice_[i].len_ = BUCKET_LENGTH + (i!=0? indice_[i].len_: 0);
+      }
+
+      if (i!=0)
+        indice_[i-1].bptr_->set_next(indice_[i].bptr_);
     }
-    else
-    {
-      p_ = (char*)hlrealloc(p_, get_total_size(n));
-      str_ = (CharT*)(p_ + sizeof (ReferT));
-      str_[n]='\0';
-    }
-    
+
     length_ = n;
-    max_size_ = n+1;
+
   }
 
   size_t capacity ( ) const
   {
-    return max_size_ * sizeof(CharT);
+    return idx_len_ * sizeof(CharT) * BUCKET_LENGTH;
   }
 
   void reserve ( size_t res_arg=0 )
@@ -868,31 +1059,6 @@ public:
     if (res_arg<= capacity())
       return;
 
-    max_size_ = res_arg/sizeof(CharT)+1;
-    if (is_refered())
-    {
-      char* p = (char*)hlmalloc(get_total_size(max_size_-1));
-      memcpy(p + sizeof(ReferT), str_, capacity());
-      str_ = (CharT*)(p+sizeof (ReferT));
-    
-      derefer();
-      p_ = p;
-      is_attached_ = false;
-    }
-    else
-    {
-      if (p_==NULL)
-        p_ = (char*)hlmalloc(get_total_size(max_size_-1));
-      else
-        p_ = (char*)hlrealloc(p_, get_total_size(max_size_-1));
-      str_ = (CharT*)(p_+sizeof (ReferT));
-    }
-
-    if (max_size_-1 < length_)
-      length_ = max_size_-1;
-    
-    str_[length_] = '\0';
-    clear_reference();
   }
 
   void clear()
@@ -1118,33 +1284,11 @@ public:
 
   SelfT& assign ( const SelfT& str )
   {
-    //std::cout<<getReferCnt()<<std::endl;
     derefer();
-    if (COPY_ON_WRITE)
-    {
-      p_ = str.p_;
-      
-      str_ = str.str_;
-      length_ = str.length_;
-      is_attached_ = str.is_attached_;
-      max_size_ = str.max_size_;
-      refer();
-      
-      assert(length_<=max_size_);
-    }
-    else
-    {
-      p_ = (char*)hlmalloc(get_total_size(str.length()));
-      str_ = (CharT*)(p_ + sizeof (ReferT));
-      length_ = str.length_;
-      max_size_ = length_+1;
-      memcpy(str_, str.str_, str.size());
-      str_[length_] = '\0';
 
-      is_attached_ = false;
-      clear_reference();
-    }
-
+    str.duplicate(&indice_, &head_);
+    refer();
+  
     return *this;
   }
   
@@ -1153,55 +1297,55 @@ public:
     if (n != npos)
       assert(str.length_ >= pos+n);
 
+    derefer();
+    
     if (n == npos)
         length_ = str.length_ - pos;
       else
         length_ = n;
-
-    derefer();
-    if (COPY_ON_WRITE)
-    {
-      p_ = str.p_;
-      refer();
-      
-      str_ = str.str_ + pos;
-      max_size_ = length_;
-      is_attached_ = str.is_attached_;
-    }
-    else
-    {
-      p_ = (char*)hlmalloc(get_total_size(length_));
-      str_ = (CharT*)(p_+sizeof (ReferT));
-      max_size_ = length_+1;
-      
-      for(size_t i=0; i<length_; i++)
-        str_[i] = str[i+pos];
-
-      str_[length_] = '\0';
-      is_attached_ = false;
-      clear_reference();
-    }
-
+    
+    idx_len_ = idx_size_ = duplicate(pos, length_, &indice_, &head_);
+    
     return *this;
   }
   
   SelfT& assign ( const CharT* s, size_t n )
   {
     derefer();
-    
-    p_ = (char*)hlmalloc(get_total_size(n));
-    str_ = (CharT*)(p_+sizeof (ReferT));
 
-    for(size_t i=0; i<n; i++)
-      str_[i] = s[i];
-
+    size_t i=0;
+    size_t j=0;
     length_ = n;
 
-    is_attached_ = false;
-    max_size_ = length_ +1 ;
-    str_[length_] = '\0';
+    head_ = (BUCKET_*)hlmalloc(BUCKET_SIZE);
+    indice_[j].len_ = n>BUCKET_LENGTH? BUCKET_LENGTH:n;
+    memcpy(head_->p_, s, indice_[j].len_*sizeof(CharT) );
+    i+= indice_[j].len_;
 
-    clear_reference();
+    idx_size_ = n/BUCKET_LENGTH+1;
+    indice_ = (INDEX_*)hlmalloc(idx_size_*sizeof(INDEX_));
+    indice_[j].bptr_ = head_;
+    head_->p_[i] = '\0';
+    j++;
+
+    while (i < n)
+    {
+      BUCKET_* t = (BUCKET_*)hlmalloc(BUCKET_SIZE);
+      indice_[j].len_ = n-i>BUCKET_LENGTH? BUCKET_LENGTH:n-i;
+      memcpy(t->p_, s+i, indice_[j].len_*sizeof(CharT) );
+      t->p_[indice_[j].len_] = '\0';
+      t->clear_reference();
+      t->set_next(NULL);
+      
+      indice_[j-1].bptr_->set_next(t);
+      indice_[j].bptr_ = t;
+      indice_[j].len_ += indice_[j-1].len_;
+
+      i+= BUCKET_LENGTH;
+      j++;
+    }
+
+    idx_len_ = j;
 
     return *this;
   }
@@ -1209,84 +1353,65 @@ public:
   SelfT& assign ( const CharT* s )
   {
     assert (s !=NULL);
-
-    //std::cout<<"--"<<getReferCnt()<<std::endl;
     derefer();
-    //std::cout<<"++"<<getReferCnt()<<std::endl;
     
     length_ = getLen(s);
 
-    p_ = (char*)hlmalloc(get_total_size(length_));
-    str_ = (CharT*)(p_+sizeof (ReferT));
-    
-    for(size_t i=0; i<length_; i++)
-      str_[i] = s[i];
-
-    is_attached_ = false;
-    max_size_ = length_ + 1;
-    str_[length_] = '\0';
-    clear_reference();
-
-    return *this;
+    return assign(s, n);
   }
 
   SelfT& assign ( size_t n, CharT c )
   {
     derefer();
     
+    size_t i=0;
+    size_t j=0;
     length_ = n;
-    p_ = (char*)hlmalloc(get_total_size(length_));
-    str_ = (CharT*)(p_+sizeof (ReferT));
-    
-    for(size_t i=0; i<length_; i++)
-      str_[i] = c;
 
-    is_attached_ = false;
-    max_size_ = length_+1;
-    str_[length_] = '\0';
-    clear_reference();
+    head_ = (BUCKET_*)hlmalloc(BUCKET_SIZE);
+    indice_[j].len_ = n>BUCKET_LENGTH? BUCKET_LENGTH:n;
+    for (size_t k=0; k<indice_[j].len_; k++)
+      head_->p_[k] = c;
+    i+= indice_[j].len_;
+
+    idx_size_ = n/BUCKET_LENGTH+1;
+    indice_ = (INDEX_*)hlmalloc(idx_size_*sizeof(INDEX_));
+    indice_[j].bptr_ = head_;
+    head_->p_[i] = '\0';
+    j++;
+
+    while (i < n)
+    {
+      BUCKET_* t = (BUCKET_*)hlmalloc(BUCKET_SIZE);
+      indice_[j].len_ = n-i>BUCKET_LENGTH? BUCKET_LENGTH:n-i;
+      for (size_t k=0; k<indice_[j].len_; k++)
+        t_->p_[k] = c;
+      
+      t->p_[indice_[j].len_] = '\0';
+      t->clear_reference();
+      t->set_next(NULL);
+      
+      indice_[j-1].bptr_->set_next(t);
+      indice_[j].bptr_ = t;
+      indice_[j].len_ += indice_[j-1].len_;
+
+      i+= BUCKET_LENGTH;
+      j++;
+    }
+
+    idx_len_ = j;
     
     return *this;
   }
 
   SelfT& assign (const std::vector<CharT>& v)
   {
-    derefer();
-
-    length_ = v.size();
-    p_ = (char*)hlmalloc(get_total_size(length_));
-    str_ = (CharT*)(p_+sizeof (ReferT));
-    
-    for(size_t i=0; i<length_; i++)
-      str_[i] = v[i];
-
-    is_attached_ = false;
-    max_size_ = length_+1;
-    str_[length_] = '\0';
-    clear_reference();
-
-    return *this;
+    return assign(v.data(), v.size());
   }
 
   SelfT& assign (const std::string& str)
   {
-    derefer();
-
-    CharT* s = (CharT*)str.c_str();
-    
-    length_ = str.length()/sizeof(CharT);
-    p_ = (char*)hlmalloc(get_total_size(length_));
-    str_ = (CharT*)(p_+sizeof (ReferT));
-    
-    for(size_t i=0; i<length_; i++)
-      str_[i] = s[i];
-
-    is_attached_ = false;
-    max_size_ = length_+1;
-    str_[length_] = '\0';
-    clear_reference();
-
-    return *this;
+    return assign(str.data(), str.length())
   }
   
   template <class InputIterator>
@@ -1882,14 +2007,7 @@ template <
   int COPY_ON_WRITE,
   uint8_t APPEND_RATE
   >
-const size_t vector_string<CHAR_TYPE ,COPY_ON_WRITE, APPEND_RATE>::npos = -1;
-
-
-template <
-  class CHAR_TYPE ,int COPY_ON_WRITE, uint8_t APPEND_RATE
-  >
-const float vector_string<CHAR_TYPE ,COPY_ON_WRITE, APPEND_RATE>::append_rate_ = (float)APPEND_RATE/100.+1.;
-
+const size_t bbt_string<CHAR_TYPE ,COPY_ON_WRITE, APPEND_RATE>::npos = -1;
 
 NS_IZENELIB_AM_END
 #endif
