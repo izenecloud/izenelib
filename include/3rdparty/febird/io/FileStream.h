@@ -10,13 +10,15 @@
 #include <assert.h>
 
 #include "../stdtypes.h"
+#include "../refcount.h"
 #include "IOException.h"
 #include "IStream.h"
 
 namespace febird {
 
 class FEBIRD_DLL_EXPORT FileStream
-	: public IInputStream
+	: public RefCounter
+	, public IInputStream
 	, public IOutputStream
 	, public ISeekable
 {

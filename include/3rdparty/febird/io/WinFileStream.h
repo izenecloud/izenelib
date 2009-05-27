@@ -8,6 +8,7 @@
 # pragma warning(disable: 4267)
 #endif
 
+#include "../refcount.h"
 #include "IOException.h"
 #include "IStream.h"
 
@@ -18,7 +19,7 @@
 
 namespace febird {
 
-	class WinFileStream : public ISeekableStream
+	class WinFileStream : public RefCounter, public ISeekableStream
 	{
 	public:
 		typedef boost::mpl::true_ is_seekable;
