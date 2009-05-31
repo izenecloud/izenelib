@@ -284,6 +284,7 @@ public:
       if (!IS_NUMERIC::value(*i))
       {
         assert(IS_NUMERIC::is_positive( *i) || IS_NUMERIC::is_negative( *i));
+        
         if (IS_NUMERIC::is_negative( *i))
           return -1*r;
         return r;
@@ -853,7 +854,7 @@ public:
       str = "";
       return ;
     }
-
+    
     str = str.substr(i+p1.length(), j-i-p1.length()-1);
   }
 
@@ -932,18 +933,19 @@ public:
     
     if (beg == end)
       return;
-
-    size_t i;
+    
     size_t index = -1;
     size_t level = 0;
     size_t step = 0;
     
-    for (i = 0; i < str.length(); i++) {
-      if (str[i] == beg) {
+    for (typename StringT::const_iterator i = str.begin();
+         i != str.end(); i++)
+    {
+      if (*i == beg) {
         index++;
         level++;
       }
-      else if (str[i] == end) {
+      else if (*i == end) {
         if (level > 0) {
           level--;
           if (level == 0)
@@ -953,10 +955,13 @@ public:
         }
       }
       else if (level > 0) {
-        CharT temp = str[i];
+        CharT temp = *i;
         size_t finalIndex = index - step;
         while (finalIndex >=arrayOfstrings.size())
+        {
           arrayOfstrings.push_back("");
+        }
+        
         arrayOfstrings[finalIndex] += temp;
       }
       else;

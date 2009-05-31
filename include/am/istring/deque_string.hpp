@@ -89,13 +89,29 @@ public:
     // SQueue.
     iterator& operator++()
     {
-      p_++;
-      if ((CharT*)(entry_array_[entry_i_]+BUCKET_LENGTH) < p_)
+      if (p_==(CharT*)(entry_array_[entry_i_]+BUCKET_LENGTH))
+        return *this;
+
+      // tuch the end of bucket
+      if (p_==(CharT*)(entry_array_[entry_i_]+BUCKET_LENGTH-1))
       {
         entry_i_++;
+        // tuch the end of entry array
+        if ((CharT*)entry_array_[entry_i_]== NULL)
+        {
+          entry_i_--;
+          p_ = (CharT*)(entry_array_[entry_i_]+BUCKET_LENGTH);
+          return *this;
+        }
+
         p_ = (CharT*)entry_array_[entry_i_];
+        
       }
-      
+      else
+      {
+        p_++;
+      }
+            
       return(*this);
     }
 
@@ -103,11 +119,27 @@ public:
     {
       iterator tmp(*this);
 
-      p_++;
-      if ((CharT*)(entry_array_[entry_i_]+BUCKET_LENGTH) < p_)
+      if (p_==(CharT*)(entry_array_[entry_i_]+BUCKET_LENGTH))
+        return tmp;
+
+      // tuch the end of bucket
+      if (p_==(CharT*)(entry_array_[entry_i_]+BUCKET_LENGTH-1))
       {
         entry_i_++;
+        // tuch the end of entry array
+        if ((CharT*)entry_array_[entry_i_]== NULL)
+        {
+          entry_i_--;
+          p_ = (CharT*)(entry_array_[entry_i_]+BUCKET_LENGTH);
+          return tmp;
+        }
+
         p_ = (CharT*)entry_array_[entry_i_];
+        
+      }
+      else
+      {
+        p_++;
       }
 
       return(tmp);
@@ -117,17 +149,27 @@ public:
     // SQueue.
     iterator& operator--()
     {
-      p_--;
-      if ((CharT*)(entry_array_[entry_i_]) > p_)
+      if (p_==(CharT*)(entry_array_[entry_i_]-1))
+        return *this;
+
+       // tuch the end of bucket
+      if (p_==(CharT*)(entry_array_[entry_i_]))
       {
         entry_i_--;
-        if (entry_i_ == (size_t)-1)
+        // tuch the end of entry array
+        if (entry_i_==(size_t)-1 || (CharT*)entry_array_[entry_i_]== NULL)
         {
-          entry_i_ = 0;
-          p_ = (CharT*)entry_array_[entry_i_] -1;
+          entry_i_++;
+          p_ = (CharT*)(entry_array_[entry_i_]-1);
+          return *this;
         }
-        else
-          p_ = (CharT*)entry_array_[entry_i_] + BUCKET_LENGTH -1;
+
+        p_ = (CharT*)entry_array_[entry_i_] + BUCKET_LENGTH-1;
+        
+      }
+      else
+      {
+        p_--;
       }
 
       return(*this);
@@ -136,17 +178,28 @@ public:
     iterator operator--(int)
     {
       iterator tmp(*this);
-      p_--;
-      if ((CharT*)(entry_array_[entry_i_]) > p_)
+      
+      if (p_==(CharT*)(entry_array_[entry_i_]-1))
+        return tmp;
+
+       // tuch the end of bucket
+      if (p_==(CharT*)(entry_array_[entry_i_]))
       {
         entry_i_--;
-        if (entry_i_ == (size_t)-1)
+        // tuch the end of entry array
+        if (entry_i_==(size_t)-1 || (CharT*)entry_array_[entry_i_]== NULL)
         {
-          entry_i_ = 0;
-          p_ = (CharT*)entry_array_[entry_i_] -1;
+          entry_i_++;
+          p_ = (CharT*)(entry_array_[entry_i_]-1);
+          return tmp;
         }
-        else
-          p_ = (CharT*)entry_array_[entry_i_] + BUCKET_LENGTH -1;
+
+        p_ = (CharT*)entry_array_[entry_i_] + BUCKET_LENGTH-1;
+        
+      }
+      else
+      {
+        p_--;
       }
 
       return(tmp);
@@ -182,12 +235,31 @@ public:
 
     iterator& operator + (const int& gap) 
     {
+      if (p_==(CharT*)(entry_array_[entry_i_]+BUCKET_LENGTH))
+        return *this;
+
       int k = gap - (BUCKET_LENGTH-(uint64_t)(p_ - (CharT*)entry_array_[entry_i_])-1);
       if (k > 0)
       {
-        entry_i_ += k/BUCKET_LENGTH+1;
-        p_ = (CharT*)entry_array_[entry_i_] + k%BUCKET_LENGTH-1;
-      }else
+        size_t t = obj_->need_bucket_num(k);
+        
+        while (t!=0 && (CharT*)entry_array_[entry_i_]!= NULL)
+        {
+          entry_i_ ++;
+          t--;
+        }
+        
+        // tuch the end of entry array
+        if ((CharT*)entry_array_[entry_i_]== NULL)
+        {
+          entry_i_--;
+          p_ = (CharT*)(entry_array_[entry_i_]+BUCKET_LENGTH);
+          return *this;
+        }
+        
+        p_ = (CharT*)entry_array_[entry_i_] + (k%BUCKET_LENGTH==0?BUCKET_LENGTH:k%BUCKET_LENGTH )-1;
+      }
+      else
       {
         p_ += gap;
       }
@@ -197,23 +269,33 @@ public:
 
     iterator& operator - (const int& gap) 
     {
-      int k = gap - (uint64_t)(p_ - (CharT*)entry_array_[entry_i_]+1);
+      if (p_==(CharT*)(entry_array_[entry_i_]-1))
+        return *this;
 
-      if (k>0 )
+      int k = gap - (uint64_t)(p_ - (CharT*)entry_array_[entry_i_]);
+      if (k > 0)
       {
-        if (entry_i_ < (uint64_t)k/BUCKET_LENGTH+1)
+        size_t t = k/BUCKET_LENGTH  + (k%BUCKET_LENGTH==0? 0: 1);
+        while (t!=0 && entry_i_!=(size_t)-1 && (CharT*)entry_array_[entry_i_]!= NULL)
         {
-          entry_i_ = 0;
-          p_ = (CharT*)entry_array_[entry_i_] -1;
+          entry_i_ --;
+          t--;
+        }
+        
+        // tuch the end of entry array
+        if (entry_i_==(size_t)-1 || (CharT*)entry_array_[entry_i_]== NULL)
+        {
+          entry_i_++;
+          p_ = (CharT*)(entry_array_[entry_i_]-1);
           return *this;
         }
         
-        entry_i_ -= k/BUCKET_LENGTH+1;
-        p_ = (CharT*)entry_array_[entry_i_] + (BUCKET_LENGTH - k%BUCKET_LENGTH)-1;
+        p_ = (CharT*)entry_array_[entry_i_] + (BUCKET_LENGTH - k%BUCKET_LENGTH);
       }
       else
       {
         p_ -= gap;
+        assert(p_>=(CharT*)entry_array_[entry_i_]);
       }
       
       return *this;
@@ -260,6 +342,11 @@ public:
       return(p_ == other.p_);
     }
 
+    bool operator==(const iterator& other)const
+    {
+      return(p_ == other.p_);
+    }
+
     bool operator!=(const const_iterator& other)const
     {
       return(p_ != other.p_);
@@ -282,11 +369,27 @@ public:
     // SQueue.
     const_iterator& operator++()
     {
-      p_++;
-      if ((CharT*)(entry_array_[entry_i_]+BUCKET_LENGTH) < p_)
+      if (p_==(CharT*)(entry_array_[entry_i_]+BUCKET_LENGTH))
+        return *this;
+
+      // tuch the end of bucket
+      if (p_==(CharT*)(entry_array_[entry_i_]+BUCKET_LENGTH-1))
       {
         entry_i_++;
+        // tuch the end of entry array
+        if ((CharT*)entry_array_[entry_i_]== NULL)
+        {
+          entry_i_--;
+          p_ = (CharT*)(entry_array_[entry_i_]+BUCKET_LENGTH);
+          return *this;
+        }
+
         p_ = (CharT*)entry_array_[entry_i_];
+        
+      }
+      else
+      {
+        p_++;
       }
       
       return(*this);
@@ -296,11 +399,27 @@ public:
     {
       const_iterator tmp(*this);
 
-      p_++;
-      if ((CharT*)(entry_array_[entry_i_]+BUCKET_LENGTH) < p_)
+      if (p_==(CharT*)(entry_array_[entry_i_]+BUCKET_LENGTH))
+        return tmp;
+
+      // tuch the end of bucket
+      if (p_==(CharT*)(entry_array_[entry_i_]+BUCKET_LENGTH-1))
       {
         entry_i_++;
+        // tuch the end of entry array
+        if ((CharT*)entry_array_[entry_i_]== NULL)
+        {
+          entry_i_--;
+          p_ = (CharT*)(entry_array_[entry_i_]+BUCKET_LENGTH);
+          return tmp;
+        }
+
         p_ = (CharT*)entry_array_[entry_i_];
+        
+      }
+      else
+      {
+        p_++;
       }
 
       return(tmp);
@@ -310,17 +429,27 @@ public:
     // SQueue.
     const_iterator& operator--()
     {
-      p_--;
-      if ((CharT*)(entry_array_[entry_i_]) > p_)
+      if (p_==(CharT*)(entry_array_[entry_i_]-1))
+        return *this;
+
+       // tuch the end of bucket
+      if (p_==(CharT*)(entry_array_[entry_i_]))
       {
         entry_i_--;
-        if (entry_i_ == (size_t)-1)
+        // tuch the end of entry array
+        if (entry_i_==(size_t)-1 || (CharT*)entry_array_[entry_i_]== NULL)
         {
-          entry_i_ = 0;
-          p_ = (CharT*)entry_array_[entry_i_] -1;
+          entry_i_++;
+          p_ = (CharT*)(entry_array_[entry_i_]-1);
+          return *this;
         }
-        else
-          p_ = (CharT*)entry_array_[entry_i_] + BUCKET_LENGTH -1;
+
+        p_ = (CharT*)entry_array_[entry_i_] + BUCKET_LENGTH-1;
+        
+      }
+      else
+      {
+        p_--;
       }
 
       return(*this);
@@ -329,17 +458,27 @@ public:
     const_iterator operator--(int)
     {
       const_iterator tmp(*this);
-      p_--;
-      if ((CharT*)(entry_array_[entry_i_]) > p_)
+      if (p_==(CharT*)(entry_array_[entry_i_]-1))
+        return tmp;
+
+       // tuch the end of bucket
+      if (p_==(CharT*)(entry_array_[entry_i_]))
       {
         entry_i_--;
-        if (entry_i_ == (size_t)-1)
+        // tuch the end of entry array
+        if (entry_i_==(size_t)-1 || (CharT*)entry_array_[entry_i_]== NULL)
         {
-          entry_i_ = 0;
-          p_ = (CharT*)entry_array_[entry_i_] -1;
+          entry_i_++;
+          p_ = (CharT*)(entry_array_[entry_i_]-1);
+          return tmp;
         }
-        else
-          p_ = (CharT*)entry_array_[entry_i_] + BUCKET_LENGTH -1;
+
+        p_ = (CharT*)entry_array_[entry_i_] + BUCKET_LENGTH-1;
+        
+      }
+      else
+      {
+        p_--;
       }
 
       return(tmp);
@@ -366,11 +505,29 @@ public:
 
     const_iterator& operator + (const int& gap) 
     {
+      if (p_==(CharT*)(entry_array_[entry_i_]+BUCKET_LENGTH))
+        return *this;
+
       int k = gap - (BUCKET_LENGTH-(uint64_t)(p_ - (CharT*)entry_array_[entry_i_])-1);
       if (k > 0)
       {
-        entry_i_ += k/BUCKET_LENGTH+1;
-        p_ = (CharT*)(entry_array_[entry_i_]) + k%BUCKET_LENGTH-1;
+        size_t t = k/BUCKET_LENGTH + (k%BUCKET_LENGTH==0? 0: 1);
+        
+        while (t!=0 && (CharT*)entry_array_[entry_i_]!= NULL)
+        {
+          entry_i_ ++;
+          t--;
+        }
+        
+        // tuch the end of entry array
+        if ((CharT*)entry_array_[entry_i_]== NULL)
+        {
+          entry_i_--;
+          p_ = (CharT*)(entry_array_[entry_i_]+BUCKET_LENGTH);
+          return *this;
+        }
+        
+        p_ = (CharT*)entry_array_[entry_i_] + (k%BUCKET_LENGTH==0?BUCKET_LENGTH:k%BUCKET_LENGTH )-1;
       }
       else
       {
@@ -380,23 +537,36 @@ public:
       return *this;
     }
 
-    const_iterator& operator - (const int& gap) const
+    const_iterator& operator - (const int& gap)
     {
-      int k = gap - (p_ - entry_array_[entry_i_]+1);
-      if (k>0 )
+      if (p_==(CharT*)(entry_array_[entry_i_])-1)
+        return *this;
+
+      int k = gap - (uint64_t)(p_ - (CharT*)entry_array_[entry_i_]);
+      if (k > 0)
       {
-        if (entry_i_ < k/BUCKET_LENGTH+1)
+        size_t t = need_bucket_num(k);
+        while (t!=0 && entry_i_!=(size_t)-1 && (CharT*)entry_array_[entry_i_]!= NULL)
         {
-          entry_i_ = 0;
-          p_ = (CharT*)entry_array_[entry_i_] -1;
+          entry_i_ --;
+          t--;
+        }
+        
+        // tuch the end of entry array
+        if (entry_i_==(size_t)-1 || (CharT*)entry_array_[entry_i_]== NULL)
+        {
+          entry_i_++;
+          p_ = (CharT*)(entry_array_[entry_i_]-1);
           return *this;
         }
-
-        entry_i_ -= k/BUCKET_LENGTH+1;
-        p_ = entry_array_[entry_i_] + (BUCKET_LENGTH - k%BUCKET_LENGTH)-1;
-      }else
+        
+        p_ = (CharT*)entry_array_[entry_i_] + (BUCKET_LENGTH - k%BUCKET_LENGTH);
+      }
+      else
       {
         p_ -= gap;
+
+        assert(p_>=(CharT*)entry_array_[entry_i_]);
       }
       
       return *this;
@@ -462,11 +632,27 @@ public:
     // SQueue.
     reverse_iterator& operator--()
     {
-      p_++;
-      if ((CharT*)(entry_array_[entry_i_]+BUCKET_LENGTH) < p_)
+      if (p_==(CharT*)(entry_array_[entry_i_]+BUCKET_LENGTH))
+        return *this;
+
+      // tuch the end of bucket
+      if (p_==(CharT*)(entry_array_[entry_i_]+BUCKET_LENGTH-1))
       {
         entry_i_++;
+        // tuch the end of entry array
+        if ((CharT*)entry_array_[entry_i_]== NULL)
+        {
+          entry_i_--;
+          p_ = (CharT*)(entry_array_[entry_i_]+BUCKET_LENGTH);
+          return *this;
+        }
+
         p_ = (CharT*)entry_array_[entry_i_];
+        
+      }
+      else
+      {
+        p_++;
       }
       
       return(*this);
@@ -476,11 +662,27 @@ public:
     {
       reverse_iterator tmp(*this);
 
-      p_++;
-      if ((CharT*)(entry_array_[entry_i_]+BUCKET_LENGTH) < p_)
+      if (p_==(CharT*)(entry_array_[entry_i_]+BUCKET_LENGTH))
+        return tmp;
+
+      // tuch the end of bucket
+      if (p_==(CharT*)(entry_array_[entry_i_]+BUCKET_LENGTH-1))
       {
         entry_i_++;
+        // tuch the end of entry array
+        if ((CharT*)entry_array_[entry_i_]== NULL)
+        {
+          entry_i_--;
+          p_ = (CharT*)(entry_array_[entry_i_]+BUCKET_LENGTH);
+          return tmp;
+        }
+
         p_ = (CharT*)entry_array_[entry_i_];
+        
+      }
+      else
+      {
+        p_++;
       }
 
       return(tmp);
@@ -490,17 +692,27 @@ public:
     // SQueue.
     reverse_iterator& operator++()
     {
-      p_--;
-      if ((CharT*)(entry_array_[entry_i_]) > p_)
+      if (p_==(CharT*)(entry_array_[entry_i_]-1))
+        return *this;
+
+       // tuch the end of bucket
+      if (p_==(CharT*)(entry_array_[entry_i_]))
       {
         entry_i_--;
-        if (entry_i_ == (size_t)-1)
+        // tuch the end of entry array
+        if (entry_i_==(size_t)-1 || (CharT*)entry_array_[entry_i_]== NULL)
         {
-          entry_i_ = 0;
-          p_ = (CharT*)entry_array_[entry_i_] -1;
+          entry_i_++;
+          p_ = (CharT*)(entry_array_[entry_i_]-1);
+          return *this;
         }
-        else
-          p_ = (CharT*)entry_array_[entry_i_] + BUCKET_LENGTH -1;
+
+        p_ = (CharT*)entry_array_[entry_i_] + BUCKET_LENGTH-1;
+        
+      }
+      else
+      {
+        p_--;
       }
 
       return(*this);
@@ -509,17 +721,27 @@ public:
     reverse_iterator operator++(int)
     {
       reverse_iterator tmp(*this);
-      p_--;
-      if ((CharT*)(entry_array_[entry_i_]) > p_)
+      if (p_==(CharT*)(entry_array_[entry_i_]-1))
+        return tmp;
+
+       // tuch the end of bucket
+      if (p_==(CharT*)(entry_array_[entry_i_]))
       {
         entry_i_--;
-        if (entry_i_ == (size_t)-1)
+        // tuch the end of entry array
+        if (entry_i_==(size_t)-1 || (CharT*)entry_array_[entry_i_]== NULL)
         {
-          entry_i_ = 0;
-          p_ = (CharT*)entry_array_[entry_i_] -1;
+          entry_i_++;
+          p_ = (CharT*)(entry_array_[entry_i_]-1);
+          return tmp;
         }
-        else
-          p_ = (CharT*)entry_array_[entry_i_] + BUCKET_LENGTH -1;
+
+        p_ = (CharT*)entry_array_[entry_i_] + BUCKET_LENGTH-1;
+        
+      }
+      else
+      {
+        p_--;
       }
 
       return(tmp);
@@ -541,11 +763,11 @@ public:
       return(*p_);
     }
 
-    uint64_t operator + (const reverse_iterator& other) const
+    uint64_t operator - (const reverse_iterator& other) const
     {
       uint64_t r = 0;
       if (entry_i_ != other.entry_i_)
-        r += (entry_i_ - other.entry_i_)*BUCKET_LENGTH;
+        r += (other.entry_i - entry_i_ )*BUCKET_LENGTH;
 
       r += p_ - entry_array_[entry_i_];
       r -= other.p_ - other.entry_array_[other.entry_i_];
@@ -554,12 +776,30 @@ public:
 
     reverse_iterator& operator - (const int& gap)
     {
+      if (p_==(CharT*)(entry_array_[entry_i_]+BUCKET_LENGTH))
+        return *this;
+
       int k = gap - (BUCKET_LENGTH-(uint64_t)(p_ - (CharT*)entry_array_[entry_i_])-1);
       if (k > 0)
       {
-        entry_i_ += k/BUCKET_LENGTH+1;
-        p_ = (CharT*)entry_array_[entry_i_] + k%BUCKET_LENGTH-1;
-      }else
+        size_t t = need_bucket_num(k);
+        while (t!=0 && (CharT*)entry_array_[entry_i_]!= NULL)
+        {
+          entry_i_ ++;
+          t--;
+        }
+        
+        // tuch the end of entry array
+        if ((CharT*)entry_array_[entry_i_]== NULL)
+        {
+          entry_i_--;
+          p_ = (CharT*)(entry_array_[entry_i_]+BUCKET_LENGTH);
+          return *this;
+        }
+        
+        p_ = (CharT*)entry_array_[entry_i_] + (k%BUCKET_LENGTH==0?BUCKET_LENGTH:k%BUCKET_LENGTH )-1;
+      }
+      else
       {
         p_ += gap;
       }
@@ -569,19 +809,30 @@ public:
 
     reverse_iterator& operator + (const int& gap)
     {
-      int k = gap - (p_ - entry_array_[entry_i_]+1);
-      if (k>0 )
+      if (p_==(CharT*)(entry_array_[entry_i_]-1))
+        return *this;
+
+      int k = gap - (uint64_t)(p_ - (CharT*)entry_array_[entry_i_]);
+      if (k > 0)
       {
-        if (entry_i_ < k/BUCKET_LENGTH+1)
+        size_t t = obj_->need_bucket_num(k);
+        while (t!=0 && entry_i_!=(size_t)-1 && (CharT*)entry_array_[entry_i_]!= NULL)
         {
-          entry_i_ = 0;
-          p_ = (CharT*)entry_array_[entry_i_] -1;
+          entry_i_ --;
+          t--;
+        }
+        
+        // tuch the end of entry array
+        if (entry_i_==(size_t)-1 || (CharT*)entry_array_[entry_i_]== NULL)
+        {
+          entry_i_++;
+          p_ = (CharT*)(entry_array_[entry_i_]-1);
           return *this;
         }
         
-        entry_i_ -= k/BUCKET_LENGTH+1;
-        p_ = entry_array_[entry_i_] + (BUCKET_LENGTH - k%BUCKET_LENGTH)-1;
-      }else
+        p_ = (CharT*)entry_array_[entry_i_] + (BUCKET_LENGTH - k%BUCKET_LENGTH);
+      }
+      else
       {
         p_ -= gap;
       }
@@ -652,11 +903,27 @@ public:
     // SQueue.
     const_reverse_iterator& operator--()
     {
-      p_++;
-      if ((CharT*)(entry_array_[entry_i_]+BUCKET_LENGTH) < p_)
+      if (p_==(CharT*)(entry_array_[entry_i_]+BUCKET_LENGTH))
+        return *this;
+
+      // tuch the end of bucket
+      if (p_==(CharT*)(entry_array_[entry_i_]+BUCKET_LENGTH-1))
       {
         entry_i_++;
+        // tuch the end of entry array
+        if ((CharT*)entry_array_[entry_i_]== NULL)
+        {
+          entry_i_--;
+          p_ = (CharT*)(entry_array_[entry_i_]+BUCKET_LENGTH);
+          return *this;
+        }
+
         p_ = (CharT*)entry_array_[entry_i_];
+        
+      }
+      else
+      {
+        p_++;
       }
       
       return(*this);
@@ -666,11 +933,27 @@ public:
     {
       const_reverse_iterator tmp(*this);
 
-      p_++;
-      if ((CharT*)(entry_array_[entry_i_]+BUCKET_LENGTH) < p_)
+      if (p_==(CharT*)(entry_array_[entry_i_]+BUCKET_LENGTH))
+        return tmp;
+
+      // tuch the end of bucket
+      if (p_==(CharT*)(entry_array_[entry_i_]+BUCKET_LENGTH-1))
       {
         entry_i_++;
+        // tuch the end of entry array
+        if ((CharT*)entry_array_[entry_i_]== NULL)
+        {
+          entry_i_--;
+          p_ = (CharT*)(entry_array_[entry_i_]+BUCKET_LENGTH);
+          return tmp;
+        }
+
         p_ = (CharT*)entry_array_[entry_i_];
+        
+      }
+      else
+      {
+        p_++;
       }
 
       return(tmp);
@@ -680,17 +963,27 @@ public:
     // SQueue.
     const_reverse_iterator& operator++()
     {
-      p_--;
-      if ((CharT*)(entry_array_[entry_i_]) > p_)
+      if (p_==(CharT*)(entry_array_[entry_i_]-1))
+        return *this;
+
+       // tuch the end of bucket
+      if (p_==(CharT*)(entry_array_[entry_i_]))
       {
         entry_i_--;
-        if (entry_i_ == (size_t)-1)
+        // tuch the end of entry array
+        if (entry_i_==(size_t)-1 || (CharT*)entry_array_[entry_i_]== NULL)
         {
-          entry_i_ = 0;
-          p_ = (CharT*)entry_array_[entry_i_] -1;
+          entry_i_++;
+          p_ = (CharT*)(entry_array_[entry_i_]-1);
+          return *this;
         }
-        else
-          p_ = (CharT*)entry_array_[entry_i_] + BUCKET_LENGTH -1;
+
+        p_ = (CharT*)entry_array_[entry_i_] + BUCKET_LENGTH-1;
+        
+      }
+      else
+      {
+        p_--;
       }
 
       return(*this);
@@ -699,17 +992,27 @@ public:
     const_reverse_iterator operator++(int)
     {
       const_reverse_iterator tmp(*this);
-      p_--;
-      if ((CharT*)(entry_array_[entry_i_]) > p_)
+      if (p_==(CharT*)(entry_array_[entry_i_]-1))
+        return tmp;
+
+       // tuch the end of bucket
+      if (p_==(CharT*)(entry_array_[entry_i_]))
       {
         entry_i_--;
-        if (entry_i_ == (size_t)-1)
+        // tuch the end of entry array
+        if (entry_i_==(size_t)-1 || (CharT*)entry_array_[entry_i_]== NULL)
         {
-          entry_i_ = 0;
-          p_ = (CharT*)entry_array_[entry_i_] -1;
+          entry_i_++;
+          p_ = (CharT*)(entry_array_[entry_i_]-1);
+          return tmp;
         }
-        else
-          p_ = (CharT*)entry_array_[entry_i_] + BUCKET_LENGTH -1;
+
+        p_ = (CharT*)entry_array_[entry_i_] + BUCKET_LENGTH-1;
+        
+      }
+      else
+      {
+        p_--;
       }
 
       return(tmp);
@@ -723,11 +1026,11 @@ public:
       return(*p_);
     }
 
-    uint64_t operator + (const const_reverse_iterator& other) const
+    uint64_t operator - (const const_reverse_iterator& other) const
     {
       uint64_t r = 0;
       if (entry_i_ != other.entry_i_)
-        r += (entry_i_ - other.entry_i_)*BUCKET_LENGTH;
+        r += (other.entry_i_ - entry_i_ )*BUCKET_LENGTH;
 
       r += p_ - entry_array_[entry_i_];
       r -= other.p_ - other.entry_array_[other.entry_i_];
@@ -736,12 +1039,30 @@ public:
 
     const_reverse_iterator& operator - (const int& gap) 
     {
+      if (p_==(CharT*)(entry_array_[entry_i_]+BUCKET_LENGTH))
+        return *this;
+
       int k = gap - (BUCKET_LENGTH-(uint64_t)(p_ - (CharT*)entry_array_[entry_i_])-1);
       if (k > 0)
       {
-        entry_i_ += k/BUCKET_LENGTH+1;
-        p_ = ((CharT*)entry_array_[entry_i_] + k%BUCKET_LENGTH-1);
-      }else
+        size_t t = k/BUCKET_LENGTH  + (k%BUCKET_LENGTH==0? 0: 1);
+        while (t!=0 && (CharT*)entry_array_[entry_i_]!= NULL)
+        {
+          entry_i_ ++;
+          t--;
+        }
+        
+        // tuch the end of entry array
+        if ((CharT*)entry_array_[entry_i_]== NULL)
+        {
+          entry_i_--;
+          p_ = (CharT*)(entry_array_[entry_i_]+BUCKET_LENGTH);
+          return *this;
+        }
+        
+        p_ = (CharT*)entry_array_[entry_i_] + (k%BUCKET_LENGTH==0?BUCKET_LENGTH:k%BUCKET_LENGTH )-1;
+      }
+      else
       {
         p_ += gap;
       }
@@ -751,19 +1072,30 @@ public:
 
     const_reverse_iterator& operator + (const int& gap) 
     {
-      int k = gap - (p_ - entry_array_[entry_i_]+1);
-      if (k>0 )
+      if (p_==(CharT*)(entry_array_[entry_i_]-1))
+        return *this;
+
+      int k = gap - (uint64_t)(p_ - (CharT*)entry_array_[entry_i_]);
+      if (k > 0)
       {
-        if (entry_i_ < k/BUCKET_LENGTH+1)
+        size_t t = k/BUCKET_LENGTH + (k%BUCKET_LENGTH==0? 0: 1);
+        while (t!=0 && entry_i_!=(size_t)-1 && (CharT*)entry_array_[entry_i_]!= NULL)
         {
-          entry_i_ = 0;
-          p_ = (CharT*)entry_array_[entry_i_] -1;
+          entry_i_ --;
+          t--;
+        }
+        
+        // tuch the end of entry array
+        if (entry_i_==(size_t)-1 || (CharT*)entry_array_[entry_i_]== NULL)
+        {
+          entry_i_++;
+          p_ = (CharT*)(entry_array_[entry_i_]-1);
           return *this;
         }
         
-        entry_i_ -= k/BUCKET_LENGTH+1;
-        p_ = entry_array_[entry_i_] + (BUCKET_LENGTH - k%BUCKET_LENGTH)-1;
-      }else
+        p_ = (CharT*)entry_array_[entry_i_] + (BUCKET_LENGTH - k%BUCKET_LENGTH);
+      }
+      else
       {
         p_ -= gap;
       }
@@ -801,7 +1133,12 @@ protected:
   { 
     if (!COPY_ON_WRITE)
     {
-      if (p_!=NULL) hlfree(p_);
+      if (p_!=NULL)
+      {
+        hlfree(p_);
+        p_ = NULL;
+      }
+      
       return ;
     }
 
@@ -876,7 +1213,7 @@ protected:
     p_ = p;
     start_i_ = st;
     entry_size_ = es;
-    max_size_ = (entry_size_-2)*BUCKET_LENGTH/sizeof(CharT);
+    max_size_ = init_max_size();
     
     clear_reference(); 
   }
@@ -906,6 +1243,9 @@ protected:
 
   inline size_t char_index_in_bucket(size_t i)const
   {
+    if (i==(size_t)-1)
+      return 0;
+    
     return (start_i_ + i)%BUCKET_LENGTH;
   }
   
@@ -951,6 +1291,11 @@ protected:
   {
     return (uint64_t*)(p_ + sizeof(ReferT));
   }
+
+  inline size_t need_bucket_num(size_t k) const
+  {
+    return k/BUCKET_LENGTH + (k%BUCKET_LENGTH==0? 0: 1);
+  }
   
   inline size_t need_entry_bytes(size_t size)const
   {
@@ -960,7 +1305,7 @@ protected:
   inline size_t need_entry_size(size_t length)const
   {
     size_t es = (length + start_i_);
-    return (es%BUCKET_LENGTH==0? es/BUCKET_LENGTH : es/BUCKET_LENGTH+1);
+    return need_bucket_num(es);
   }
 
   inline void set_entry(size_t i, CharT* p)
@@ -980,8 +1325,10 @@ protected:
 
   size_t init_entry(size_t length, char** pp)
   {
-    size_t es = length*sizeof(CharT);
-    es = (es%BUCKET_LENGTH==0? es/BUCKET_LENGTH : es/BUCKET_LENGTH+1) + 2;
+    if (length==0 || length==(size_t)-1)
+      length = 1;
+    
+    size_t es = need_bucket_num(length)+2;
     
     *pp = malloc_char(need_entry_bytes(es));
     *(uint64_t*)(*pp + sizeof(ReferT) + 0*sizeof(CharT*)) = 0;
@@ -994,14 +1341,21 @@ protected:
     return es;
   }
 
+  size_t init_max_size() const
+  {
+    return (entry_size_-2)*BUCKET_LENGTH;
+  }
+  
+
   void extend_entry(size_t t, bool back=true)
   {
     p_ = (char*)hlrealloc(p_, need_entry_bytes(entry_size_+t));
-    entry_size_ += t;
+    
     if (back)
     {
-      for (size_t i=entry_size_-1; i>entry_size_-1-t; i--)
-        set_entry(i, NULL);
+      for (size_t i=0; i<t; i++)
+        set_entry(entry_size_+i, NULL);
+      entry_size_ += t;
     }
     else
     {
@@ -1014,6 +1368,7 @@ protected:
       
       for (size_t i=0; i<t; i++)
         entry[i]= 0;
+      entry_size_ += t;
     }
     
   }
@@ -1033,7 +1388,7 @@ protected:
         if (get_entry(end_entry_index()+i+1)==NULL)
         {
           set_entry(end_entry_index()+i+1, malloc_CharT());
-          max_size_++;
+          max_size_ += BUCKET_LENGTH;
         }
       }
     }
@@ -1048,7 +1403,7 @@ protected:
         if (get_entry(s-i)==NULL)
         {
           set_entry(s-i, malloc_CharT());
-          max_size_++;
+          max_size_ += BUCKET_LENGTH;
         }
       }
     }
@@ -1060,7 +1415,8 @@ public:
     entry_size_ = init_entry(1, &p_);
     start_i_ = BUCKET_LENGTH;
     length_ = 0;
-    max_size_ = BUCKET_LENGTH/sizeof(CharT);
+    max_size_ = init_max_size();
+    clear_reference();
   }
 
   deque_string ( const SelfT& str )
@@ -1190,12 +1546,18 @@ public:
 
   const_iterator end() const
   {
+    if (length_==0)
+      return begin();
+    
     return const_iterator(get_const_entry_array(), end_entry_index(),
                           get_const_entry(end_entry_index())+char_index_in_bucket(length_-1))+1;
   }
 
   iterator end()
   {
+    if (length_==0)
+      return begin();
+    
     return iterator(this, get_entry_array(), end_entry_index(),
                           get_entry(end_entry_index())+char_index_in_bucket(length_-1))+1;
   }
@@ -1214,14 +1576,20 @@ public:
 
   reverse_iterator rend()
   {
+    if (length_==0)
+      return rbegin();
+    
     return reverse_iterator(this, get_entry_array(), start_entry_index(),
-                          get_entry(start_entry_index())+start_i_%BUCKET_LENGTH)-1;
+                          get_entry(start_entry_index())+start_i_%BUCKET_LENGTH)+1;
   }
 
   const_reverse_iterator rend() const
   {
+    if (length_==0)
+      return rbegin();
+    
     return const_reverse_iterator(get_const_entry_array(), start_entry_index(),
-                          get_const_entry(start_entry_index())+start_i_%BUCKET_LENGTH)-1;
+                          get_const_entry(start_entry_index())+start_i_%BUCKET_LENGTH)+1;
   }
 
 
@@ -1275,7 +1643,7 @@ public:
       derefer();
       start_i_ = st;
       entry_size_ = es;
-      max_size_ = (entry_size_-2)*BUCKET_LENGTH;
+      max_size_ = init_max_size();
       length_ = n;
       p_ = p;
       clear_reference();
@@ -1285,7 +1653,20 @@ public:
     if (n > max_size_-start_i_%BUCKET_LENGTH)
     {
       size_t t = n - max_size_-start_i_%BUCKET_LENGTH;
-      add_buckets(t/BUCKET_LENGTH + (t%BUCKET_LENGTH==0? 0: 1));
+      add_buckets(need_bucket_num(t));
+    }
+    else if (n < max_size_-start_i_%BUCKET_LENGTH)
+    {
+      size_t t = get_entry_index(n);
+      for (size_t i=t+1; i<entry_size_; i++)
+      {
+        if (get_entry(i)!=NULL)
+        {
+          hlfree(get_entry(i));
+          set_entry(i, NULL);
+          max_size_ -= BUCKET_LENGTH;
+        }
+      }
     }
 
     iterator it = end();
@@ -1326,7 +1707,7 @@ public:
       derefer();
       start_i_ = st;
       entry_size_ = es;
-      max_size_ = (entry_size_-2)*BUCKET_LENGTH;
+      max_size_ = init_max_size();
       length_ = n;
       p_ = p;
       clear_reference();
@@ -1336,8 +1717,22 @@ public:
     if (n > max_size_-start_i_%BUCKET_LENGTH)
     {
       size_t t = n - max_size_-start_i_%BUCKET_LENGTH;
-      add_buckets(t/BUCKET_LENGTH + (t%BUCKET_LENGTH==0? 0: 1));
+      add_buckets(need_bucket_num(t));
     }
+    else if (n < max_size_-start_i_%BUCKET_LENGTH)
+    {
+      size_t t = get_entry_index(n);
+      for (size_t i=t+1; i<entry_size_; i++)
+      {
+        if (get_entry(i)!=NULL)
+        {
+          hlfree(get_entry(i));
+          set_entry(i, NULL);
+          max_size_ -= BUCKET_LENGTH;
+        }
+      }
+    }
+    
 
     length_ = n;
     
@@ -1423,6 +1818,9 @@ public:
       return *this;
 
     assign_self();
+
+    if (p_==NULL)
+      return assign(str);
     
     if (char_index_in_bucket(length_-1)+1+str.length()>BUCKET_LENGTH)
       add_buckets((char_index_in_bucket(length_-1)+ 1 + str.length())/BUCKET_LENGTH);
@@ -1448,6 +1846,12 @@ public:
       return *this;
     
     assign_self();
+
+    if (p_==NULL)
+    {
+      return assign(s, n);
+    }
+    
     if (char_index_in_bucket(length_-1)+1+n>BUCKET_LENGTH)
       add_buckets((char_index_in_bucket(length_-1)+1+n)/BUCKET_LENGTH);
 
@@ -1474,6 +1878,12 @@ public:
       return *this;
     
     assign_self();
+    if (p_==NULL)
+    {
+      assign(n, c);
+      return *this;
+    }
+    
     if (char_index_in_bucket(length_-1)+1+n>BUCKET_LENGTH)
       add_buckets((char_index_in_bucket(length_-1)+1+n)/BUCKET_LENGTH);
 
@@ -1483,7 +1893,7 @@ public:
 
     length_ += n;
     clear_reference();
-
+    
     return *this;
   }
 
@@ -1512,8 +1922,13 @@ public:
 
   SelfT& assign ( const SelfT& str )
   {
-    derefer();
+    if (p_!=NULL && str.begin() == begin()
+        && length_ == str.length()
+        && compare(str)==0)
+      return *this;
     
+    derefer();
+      
     if (COPY_ON_WRITE)
     {
       p_ = str.p_;  
@@ -1532,10 +1947,10 @@ public:
       start_i_ = BUCKET_LENGTH;
 
       const_iterator j=str.begin();
-      for (iterator i=begin();j!=str.end()&& i!=end();j++, i++)
+      for (iterator i=begin();j!=str.end();j++, i++)
         *i = *j;
         
-      max_size_ = (entry_size_-2)*BUCKET_LENGTH;
+      max_size_ = init_max_size();
       length_ = str.length_;
             
       clear_reference();
@@ -1553,9 +1968,9 @@ public:
     
     if (n == npos)
         length_ = str.length_ - pos;
-      else
+    else
         length_ = n;
-    
+
     if (COPY_ON_WRITE)
     {
       p_ = str.p_;
@@ -1574,7 +1989,7 @@ public:
       for (iterator i=begin();j<str.end();j++, i++)
         *i = *j;
         
-      max_size_ = (entry_size_-2)*BUCKET_LENGTH;
+      max_size_ = init_max_size();
             
       clear_reference();
     }
@@ -1590,10 +2005,10 @@ public:
     start_i_ = BUCKET_LENGTH;
     length_ = n;
     
-    for (iterator i=begin();n!=(size_t)-1; s++, n--, i++)
+    for (iterator i=begin();n!=0; s++, n--, i++)
       *i = *s;
         
-    max_size_ = (entry_size_-2)*BUCKET_LENGTH;
+    max_size_ = init_max_size();
             
     clear_reference();
       
@@ -1615,10 +2030,10 @@ public:
     start_i_ = BUCKET_LENGTH;
     length_ = n;
     
-    for (iterator i=begin();n!=(size_t)-1;n--, i++)
+    for (iterator i=begin();n!=0;n--, i++)
       *i = c;
-        
-    max_size_ = (entry_size_-2)*BUCKET_LENGTH;
+
+    max_size_ = init_max_size();
             
     clear_reference();
     
@@ -1637,7 +2052,7 @@ public:
     for (iterator i=begin(); j!=v.end();j++, i++)
       *i = *j;
         
-    max_size_ = (entry_size_-2)*BUCKET_LENGTH;
+    max_size_ = init_max_size();
             
     clear_reference();
 
@@ -1656,7 +2071,7 @@ public:
     for (iterator i=begin(); j!=str.end();j++, i++)
       *i = *j;
         
-    max_size_ = (entry_size_-2)*BUCKET_LENGTH;
+    max_size_ = init_max_size();
             
     clear_reference();
 
@@ -1667,6 +2082,7 @@ public:
   SelfT& assign ( InputIterator first, InputIterator last )
   {
     derefer();
+    
     InputIterator i=first;
     if (i!=last)
     {
@@ -1742,6 +2158,7 @@ public:
   {
     uint64_t i = p - begin();
     assign_self();
+    
     SelfT s;
     s.assign(first, last);
     
@@ -1795,7 +2212,97 @@ public:
     return iterator(begin()+i);
   }
   
+protected:
+  SelfT& replace_ ( size_t pos1, size_t n1, SelfT str )
+  {        
+    int r = BUCKET_LENGTH- char_index_in_bucket(pos1);
+    if (r < (int)str.length())
+      r += (str.length()-r)%BUCKET_LENGTH;
+    else r = str.length();
+    
+    size_t n = BUCKET_LENGTH- char_index_in_bucket(pos1);
+    if (n < n1)
+      n += (n1-n)%BUCKET_LENGTH;
+    else n = n1;
 
+    r -= n;
+
+    if (r>0)
+    {
+      size_t y = need_bucket_num(r-(BUCKET_LENGTH - char_index_in_bucket(length_-1)-1));
+      add_buckets(y);
+
+      // move
+      size_t pos = length_-1;
+      for (iterator i=end()-1, j=end()-1+r; pos>=pos1+n1;pos--,i--,j--)
+      {
+        *j = *i;
+      }
+      
+    }
+    else
+    {
+      //move
+      for (iterator i=begin()+pos1+n1, j=begin()+(pos1+n1+r); i<end();j++, i++)
+        *j = *i;
+    }
+    
+    length_ += r;
+
+    // add buckets
+    if (str.length()>n1 && str.length() + char_index_in_bucket(pos1) - n1 >= 2*BUCKET_LENGTH)
+    {      
+      size_t k = (str.length() + char_index_in_bucket(pos1)-n1)/BUCKET_LENGTH-1;
+      size_t m = get_entry_index(pos1);
+
+      if (end_entry_index()+k>=entry_size_)
+      {
+        extend_entry(k);
+      }
+      
+      uint64_t* entry = get_entry_array();
+      for (size_t i=end_entry_index()+k; i-k>m; i--)
+        entry[i] = entry[i-k];
+
+      for (size_t i=0; i<k; i++)
+        entry[m+1+i] = (uint64_t)malloc_CharT();
+      
+      length_ += k*BUCKET_LENGTH;
+      max_size_ += k;
+    }
+
+    //delete bucket
+    if (str.length()<n1 && n1 + char_index_in_bucket(pos1) - str.length()>=2*BUCKET_LENGTH)
+    {
+      size_t k = (n1+ char_index_in_bucket(pos1)-str.length())/BUCKET_LENGTH;
+      size_t m = get_entry_index(pos1);
+      std::cout<<k<<std::endl;
+      
+      uint64_t* entry = get_entry_array();
+      for (size_t i=0; i>k; i++)
+        entry[i+m+1]=0;
+      
+      for (size_t i=m+1; i+k<=end_entry_index(); i++)
+        entry[i] = entry[i + k];
+
+      for (size_t i=end_entry_index()-k+1; i<=end_entry_index(); i++)
+        entry[i] = 0;
+      
+      length_ -= k*BUCKET_LENGTH;
+      max_size_ -= k;
+    }
+    
+    
+    const_iterator j=str.begin();
+    for (iterator i=begin()+pos1;j!=str.end();i++,j++ )
+      *i = *j;
+
+    clear_reference();
+    
+    return *this;
+  }
+
+public:
   SelfT& replace ( size_t pos1, size_t n1, const SelfT& str )
   {
     if (str.length() == 0)
@@ -1847,7 +2354,7 @@ public:
       derefer();
 
       entry_size_ = es;
-      max_size_ = (entry_size_-2)*BUCKET_LENGTH;
+      max_size_ = init_max_size();
       length_ = new_len;
       start_i_ = st;
       p_ = p;
@@ -1858,62 +2365,8 @@ public:
     
     if(p_ == NULL)
       return assign(str);
-    
-    int r = BUCKET_LENGTH- char_index_in_bucket(pos1);
-    if (r < (int)str.length())
-      r += (str.length()-r)%BUCKET_LENGTH;
-    else r = str.length();
-    
-    size_t n = BUCKET_LENGTH- char_index_in_bucket(pos1);
-    if (n < n1)
-      n += (n1-n)%BUCKET_LENGTH;
-    else n = n1;
 
-    r -= n;
-
-    if (r>0)
-    {
-      size_t y = (char_index_in_bucket(length_-1)+1+ r)/BUCKET_LENGTH;
-      add_buckets(y);
-
-      // move
-      size_t pos = length_-1;
-      for (iterator i=end()-1, j=end()-1+r; pos>pos1;pos--,i--,j--)
-        *j = *i;
-    }
-    else
-    {
-      //move
-      for (iterator i=begin()+pos1+n1, j=begin()+pos1+n1+r; j<end();j++, i++)
-        *j = *i;
-    }
-    
-    length_ += r;
-    std::cout<<r<<*this<<length_<<std::endl;
-
-    // add buckets
-    if (str.length()+char_index_in_bucket(pos1)+1-n1>2*BUCKET_LENGTH)
-    {      
-      size_t k = (str.length()+char_index_in_bucket(pos1)+1-n1)/BUCKET_LENGTH-1;
-      size_t m = get_entry_index(pos1);
-      uint64_t* entry = get_entry_array();
-      for (size_t i=end_entry_index()+k; i-k>m; i--)
-        entry[i] = entry[i-k];
-
-      for (size_t i=0; i<k; i++)
-        entry[m+1+i] = (uint64_t)malloc_CharT();
-      
-      length_ += k*BUCKET_LENGTH;
-      max_size_ += k;
-    }
-
-    const_iterator j=str.begin();
-    for (iterator i=begin()+pos1+1;j!=str.end();i++,j++ )
-      *i = *j;
-
-    clear_reference();
-    
-    return *this;
+    return replace_(pos1, n1, str);
   }
   
   SelfT& replace ( iterator i1, iterator i2, const SelfT& str )
@@ -2139,7 +2592,7 @@ public:
   int compare ( const CharT* s ) const
   {
     size_t len = getLen(s);
-
+    
     const_iterator i=begin();
     size_t j=0;
     for (; i<end() && j<len; j++, i++)
