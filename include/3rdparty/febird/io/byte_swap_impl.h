@@ -74,7 +74,7 @@ inline unsigned long long byte_swap(unsigned long long i)
 	j += (i <<  8)&0x000000FF00000000LL;
 	j += (i >>  8)&0x00000000FF000000LL;
 	j += (i >> 24)&0x0000000000FF0000LL;
-	j += (i >> 40)&0x000000000000FF00;
+	j += (i >> 40)&0x000000000000FF00LL;
 	j += (i >> 56);
 	return j;
 }
