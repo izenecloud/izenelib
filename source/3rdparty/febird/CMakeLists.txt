@@ -7,7 +7,7 @@ include_directories (
 		)
 # This section build the libraries
 set(CPP "${FEBIRD_SOURCE}")
-set( CXXFLAGS "-Wall -O3 -ext" )
+set( CXXFLAGS "-Wall -O3" )
 
 set ( LIBRARY_OUTPUT_PATH ${izenelib_SOURCE_DIR}/lib ) 
 
