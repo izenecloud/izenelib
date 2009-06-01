@@ -49,4 +49,7 @@
 
 #endif // __cplusplus
 
+typedef long long __int64;
+typedef unsigned long long __uint64;
+
 #endif // __febird_config_h__
