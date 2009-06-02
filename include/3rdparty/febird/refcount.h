@@ -275,38 +275,6 @@ template<class T, class U> febird_ptr<T> dynamic_pointer_cast(febird_ptr<U> cons
     return dynamic_cast<T *>(p.get());
 }
 
-// operator<<
-
-#if defined(__GNUC__) &&  (__GNUC__ < 3)
-
-template<class Y> std::ostream & operator<< (std::ostream & os, febird_ptr<Y> const & p)
-{
-    os << p.get();
-    return os;
-}
-
-#else
-
-// in STLport's no-iostreams mode no iostream symbols can be used
-#ifndef _STLP_NO_IOSTREAMS
-
-# if defined(BOOST_MSVC) && BOOST_WORKAROUND(BOOST_MSVC, < 1300 && __SGI_STL_PORT)
-// MSVC6 has problems finding std::basic_ostream through the using declaration in namespace _STL
-using std::basic_ostream;
-template<class E, class T, class Y> basic_ostream<E, T> & operator<< (basic_ostream<E, T> & os, febird_ptr<Y> const & p)
-# else
-template<class E, class T, class Y> std::basic_ostream<E, T> & operator<< (std::basic_ostream<E, T> & os, febird_ptr<Y> const & p)
-# endif 
-{
-    os << p.get();
-    return os;
-}
-
-#endif // _STLP_NO_IOSTREAMS
-
-#endif // __GNUC__ < 3
-
-
 } // name space febird
 
 #endif // refcount_h__

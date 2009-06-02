@@ -29,17 +29,17 @@ FEBIRD_DLL_EXPORT void throw_OutOfSpace(const char* func, size_t want, size_t av
 //!       +--AutoGrownMemIO
 
 /**
- @brief 脳卯脫脨脨搂碌脛MemIO
+ @brief 最有效的MemIO
  
- 脰禄脫脙脪禄赂枚脰赂脮毛卤拢麓忙碌卤脟掳脦禄脰脙拢卢脙禄脫脨路露脦搂录矛虏茅拢卢脰禄脫娄赂脙脭脷脥锚脠芦驴脡脭陇虏芒碌脛脟茅驴枚脧脗脢鹿脫脙脮芒赂枚脌脿
+ 只用一个指针保存当前位置，没有范围检查，只应该在完全可预测的情况下使用这个类
 
  @note
-  -# 脠莽鹿没脦脼路篓脭陇虏芒脢脟路帽禄谩脭陆陆莽拢卢陆没脰鹿脢鹿脫脙赂脙脌脿
+  -# 如果无法预测是否会越界，禁止使用该类
  */
 class FEBIRD_DLL_EXPORT MinMemIO
 {
 public:
-	typedef boost::mpl::false_ is_seekable; //!< 虏禄脛脺 seek
+	typedef boost::mpl::false_ is_seekable; //!< 不能 seek
 
 	void set(void* FEBIRD_RESTRICT vptr) { m_pos = (unsigned char*)vptr; }
 
@@ -101,10 +101,10 @@ protected:
 };
 
 /**
- @brief Mem Stream 虏脵脳梅脣霉脨猫碌脛脳卯脨隆录炉潞脧
+ @brief Mem Stream 操作所需的最小集合
   
-  脮芒赂枚脌脿碌脛鲁脽麓莽路脟鲁拢脨隆拢卢脭脷录芦露脣脟茅驴枚脧脗脨搂脗脢路脟鲁拢赂脽拢卢脭脷脢鹿脫脙脥芒虏驴脤谩鹿漏碌脛禄潞鲁氓脢卤拢卢脮芒赂枚脌脿脢脟脳卯录脩碌脛脩隆脭帽
-  脮芒赂枚脌脿驴脡脪脭驴陆卤麓
+  这个类的尺寸非常小，在极端情况下效率非常高，在使用外部提供的缓冲时，这个类是最佳的选择
+  这个类可以拷贝
  */
 class FEBIRD_DLL_EXPORT MemIO : public MinMemIO
 {
@@ -147,8 +147,8 @@ public:
 	byte*  end() const throw() { return m_end; }
 
 	/**
-	 @brief 脧貌脟掳脤酶鹿媒 @a diff 赂枚脳脰陆脷
-	 @a 驴脡脪脭脢脟赂潞脢媒拢卢卤铆脢戮脧貌潞贸脤酶脭戮
+	 @brief 向前跳过 @a diff 个字节
+	 @a 可以是负数，表示向后跳跃
 	 */
 	void skip(ptrdiff_t diff)
 	{
@@ -189,7 +189,7 @@ class FEBIRD_DLL_EXPORT AutoGrownMemIO;
 class FEBIRD_DLL_EXPORT SeekableMemIO : public MemIO
 {
 public:
-	typedef boost::mpl::true_ is_seekable; //!< 驴脡脪脭 seek
+	typedef boost::mpl::true_ is_seekable; //!< 可以 seek
 
 	SeekableMemIO() { m_pos = m_beg = m_end = 0; }
 	SeekableMemIO(void* buf, size_t size) { set(buf, size); }
@@ -238,11 +238,11 @@ private:
 };
 
 /**
- @brief AutoGrownMemIO 驴脡脪脭鹿脺脌铆脳脭录潞碌脛 buffer
+ @brief AutoGrownMemIO 可以管理自己的 buffer
 
  @note
-  - 脠莽鹿没脰禄脨猫脪陋 Eofmark, 脢鹿脫脙 MemIO 戮脥驴脡脪脭脕脣
-  - 脠莽鹿没禄鹿脨猫脪陋 seekable, 脢鹿脫脙 SeekableMemIO
+  - 如果只需要 Eofmark, 使用 MemIO 就可以了
+  - 如果还需要 seekable, 使用 SeekableMemIO
  */
 //template<bool Use_c_malloc>
 class FEBIRD_DLL_EXPORT AutoGrownMemIO : public SeekableMemIO
@@ -334,11 +334,11 @@ private:
 //////////////////////////////////////////////////////////////////////////
 
 /**
- * @brief 露脕脠隆 length 鲁陇碌脛脢媒戮脻碌陆 data
+ * @brief 读取 length 长的数据到 data
  * 
- * 脮芒赂枚潞炉脢媒禄鹿脢脟脰碌碌脙 inline 碌脛拢卢驴脡脪脭虏脦驴录脠莽脧脗脢脰鹿陇碌脛禄茫卤脿麓煤脗毛拢潞
+ * 这个函数还是值得 inline 的，可以参考如下手工的汇编代码：
  *
- * inlined in caller, 脢隆脗脭脕脣录脛麓忙脝梅卤拢麓忙潞脥禄脴赂麓脰赂脕卯拢卢脢碌录脢脟茅驴枚脧脗脪虏脫脨驴脡脛脺虏禄脫脙卤拢麓忙潞脥禄脰赂麓
+ * inlined in caller, 省略了寄存器保存和回复指令，实际情况下也有可能不用保存和恢复
  *   mov eax, m_end
  *   sub eax, m_pos
  *   mov ecx, length
@@ -360,7 +360,7 @@ private:
  *   push data
  *   push this
  *   call MemIO::read
- *   add  esp, 12 ; 脠莽鹿没脢脟 stdcall, 脭貌脙禄脫脨脮芒脤玫脫茂戮盲
+ *   add  esp, 12 ; 如果是 stdcall, 则没有这条语句
  */
 inline size_t MemIO::read(void* FEBIRD_RESTRICT data, size_t length) FEBIRD_RESTRICT throw()
 {
@@ -420,10 +420,7 @@ inline byte MemIO::readByte() FEBIRD_RESTRICT throw(EndOfFileException)
 	if (m_pos < m_end)
 		return *m_pos++;
 	else
-	{
-		throw_EndOfFile(BOOST_CURRENT_FUNCTION, 1);
-		return -1;
-	}
+		throw_EndOfFile(BOOST_CURRENT_FUNCTION, 1);return 0;
 }
 
 #ifdef _MSC_VER

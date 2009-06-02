@@ -7,6 +7,7 @@
 #endif
 
 #include <stdio.h>
+#include "../refcount.h"
 #include "IStream.h"
 #include "IOException.h"
 
@@ -29,7 +30,7 @@ public:
 	static int lastError();
 };
 
-class FEBIRD_DLL_EXPORT SocketStream : public IDuplexStream
+class FEBIRD_DLL_EXPORT SocketStream : public RefCounter, public IDuplexStream
 {
 	DECLARE_NONE_COPYABLE_CLASS(SocketStream)
 public:

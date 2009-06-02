@@ -7,12 +7,13 @@
 #endif
 
 #include "../stdtypes.h"
+#include "../refcount.h"
 #include "IOException.h"
 #include "IStream.h"
 
 namespace febird {
 
-class FEBIRD_DLL_EXPORT ZlibStreamBase
+class FEBIRD_DLL_EXPORT ZlibStreamBase : public RefCounter
 {
 protected:
 	void* m_fp;

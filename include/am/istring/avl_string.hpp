@@ -1,5 +1,5 @@
-#ifndef VECTOR_STRING_HPP
-#define VECTOR_STRING_HPP
+#ifndef AVL_STRING_HPP
+#define AVL_STRING_HPP
 
 #include <hlmalloc.h>
 #include <types.h>
@@ -18,19 +18,179 @@ NS_IZENELIB_AM_BEGIN
 template <
   class CHAR_TYPE = char,
   int COPY_ON_WRITE = 1,
-  uint8_t APPEND_RATE = 50
+  uint64_t BUCKET_BYTES = 64
   >
-class vector_string
-{
+class avl_string
+{  
 public:
   typedef CHAR_TYPE value_type;
   typedef CHAR_TYPE CharT;
   typedef uint16_t  ReferT;
-  typedef vector_string<CHAR_TYPE, COPY_ON_WRITE, APPEND_RATE> SelfT;
+  typedef vector_string<CHAR_TYPE, COPY_ON_WRITE, IS_BALANCED, BUCKET_BYTES> SelfT;
   typedef std::size_t size_t;
+
+  enum 
+    {
+      BUCKET_LENGTH = BUCKET_BYTES/sizeof(CharT)
+    };
+
   
   static const size_t npos;
+protected:
 
+  struct LEEF_
+  {
+    char bucket_[BUCKET_BYTES+sizeof(ReferT)+sizeof(LEEF_*)];
+
+    inline LEEF_()
+    {
+      *(ReferT*)(bucket_ + BUCKET_BYTES) = 1;
+      *(LEEF_*)(bucket_ + BUCKET_BYTES + sizeof(ReferT)) = NULL;
+    }
+    
+    inline CharT& operator [] (size_t i)
+    {
+      assert(i<BUCKET_LENGTH);
+      return *((CharT*)bucket_ + i);
+    }
+
+    inline size_t length()const
+    {
+      size_t i=0;
+      for (;i<BUCKET_LENGTH; i++)
+        if (*((CharT*)bucket_ + i)=='\0')
+          return i;
+
+      assert(false);
+    }
+
+    inline void refer()
+    {
+      *(ReferT*)(bucket_ + BUCKET_BYTES) += 1;
+    }
+
+    inline bool is_refered()
+    {
+      if (*(ReferT*)(bucket_ + BUCKET_BYTES)>1)
+        return true;
+      return false;
+    }
+
+    inline void derefer()
+    {
+      if (*(ReferT*)(bucket_ + BUCKET_BYTES) != 0)
+        *(ReferT*)(bucket_ + BUCKET_BYTES) -= 1;
+    }
+
+    LEEF_* next()
+    {
+      return *(LEEF_**)(bucket_ + BUCKET_BYTES + sizeof(ReferT));
+    }
+
+    LEEF_** next_addr()
+    {
+      return (LEEF_**)(bucket_ + BUCKET_BYTES + sizeof(ReferT));
+    }
+    
+    void set_next(LEEF_* lf)
+    {
+      *(LEEF**)(bucket_ + BUCKET_BYTES + sizeof(ReferT)) = lf;
+    }
+    
+    void clear_reference()
+    {
+      *(ReferT*)(bucket_ + BUCKET_BYTES) = 1;
+    }    
+    
+  }
+    ;
+    
+  struct NODE_
+  {
+    size_t left_len_;
+    uint8_t ldepth_;
+    uint8_t rdepth__;
+    uint64_t lptr_;
+    uint64_t rptr_;
+    NODE_* pptr_;
+
+    inline NODE_()
+    {
+      left_len_ = 0;
+      ldepth_ = rdepth_ = 0;
+      lptr_ = rptr_ = 0;
+      pptr_ = 0;
+    }
+    
+    inline void set_right(NODE_* n)
+    {
+      rptr_ = (uint64_t)n;
+    }
+
+    inline void set_right(LEEF_* n)
+    {
+      rptr_ = (uint64_t)n;
+      is_bottom_ = true;
+    }
+
+    inline void set_left(NODE_* n)
+    {
+      rptr_ = (uint64_t)n;
+    }
+
+    inline void set_left(LEEF_* n)
+    {
+      rptr_ = (uint64_t)n;
+      is_bottom_ = true;
+    }
+
+    inline NODE_* get_right_node()
+    {
+      return (NODE_*)rptr_;
+    }
+
+    inline NODE_* get_left_node()
+    {
+      return (NODE_*)lptr_;
+    }
+
+    inline LEEF_* get_right_leef()
+    {
+      return (LEEF_*)rptr_;
+    }
+
+    inline LEEF_* get_left_leef()
+    {
+      return (LEEF_*)lptr_;
+    }
+
+    inline void inc_ldepth()
+    {
+      ldepth_++;
+    }
+
+    inline void inc_rdepth()
+    {
+      rdepth_++;
+    }
+
+    inline void dec_ldepth()
+    {
+      if (ldepth_!=0)
+        ldepth_--;
+    }
+
+    inline void dec_rdepth()
+    {
+      if (rdepth_!=0)
+        rdepth_--;
+    }
+    
+    
+  }
+    ;
+
+public:
   class const_iterator;
   
   class iterator :
@@ -477,107 +637,85 @@ public:
 
   
 protected:
-  char* p_;
-  CharT* str_;
-  bool is_attached_;
+  NODE_* root_;
+  LEEF_* head_;
   size_t length_;
-  size_t max_size_;
-
-  static const float append_rate_;
 
   inline bool refer()
   {
     if (!COPY_ON_WRITE)
       return false;
+
     //lock
-    if (is_attached_)
-      return true;
-    
-    if (p_!=NULL)
-      (*(ReferT*)p_)++;
+    LEEF_* lf = head_;
+    while (lf !=NULL)
+    {
+      lf->refer();
+      lf = lf->next();
+    }
 
     return true;
   }
-  
-  void derefer()
-  { 
+
+  void derefer(NODE_* n)
+  {
+    if (n == NULL)
+      return;
+
+    if (n->ldepth_>1 && n->get_left_node()!=NULL)
+      derefer(n->get_left_node());
+
+    if (n->rdepth_>1 && n->get_right_node()!=NULL)
+      derefer(n->get_right_node());
+
+    hlfree(n);
+  }
+
+  void derefer(LEEF_* n)
+  {
+    if (n == NULL)
+      return;
+
     if (!COPY_ON_WRITE)
     {
-      if (p_!=NULL){
-        hlfree(p_);
-        p_ = NULL;
-      }
-      
-      return ;
-    }
-
-    //lock
-    if (is_attached_)
-    {
-      is_attached_ =false;
+      derefer(n->next());
+      hlfree(n);
       return;
     }
 
-    if (p_!=NULL)
-      if (*(ReferT*)p_ > 0)
-      (*(ReferT*)p_)--;
+    //lock
+    derefer(n->next());
 
-    if (p_!=NULL)
-      if (*(ReferT*)p_== 0)
-      {
-        //std::cout<<"derefer\n";
-        hlfree(p_);
-        p_ = NULL;
-      }
+    n->derefer();
+    if (n->is_refered())
+      return;
     
+    hlfree(n);
   }
 
-  inline void clear_reference()
+  void derefer()
+  {
+    derefer(root_);
+    derefer(head_);
+    return ;    
+  }
+
+  void clear_reference(LEEF_* lf)
+  {
+    if (lf == NULL)
+      return;
+
+    clear_reference(lf->next());
+    lf->clear_reference();
+  }
+  
+  void clear_reference()
   {     
     if (!COPY_ON_WRITE)
       return ;
 
     //lock
-    if (is_attached_)
-      return;
-    
-    if (p_!=NULL)
-      (*(ReferT*)p_) = 1;
-  }
-
-  inline bool is_refered() const
-  {
-    if (!COPY_ON_WRITE)
-      return false;
-    
-    //lock
-    if (is_attached_)
-      return true;
-
-    if (p_ == NULL)
-      return false;
-    
-    if (*(ReferT*)p_ > 1)
-      return true;
-
-    return false;
-  }
-   
-  void assign_self()
-  {
-    if (!is_refered())
-      return;
-
-    char* p = (char*)hlmalloc(get_total_size(length_));
-    memcpy(p + sizeof (ReferT), str_, capacity());
-    str_ = (CharT*)(p+sizeof (ReferT));
-    max_size_ = length_+1;
-    str_[length_] = '\0';
-    
-    derefer();
-    p_ = p;
-    is_attached_ = false;
-    clear_reference(); 
+    clear_reference(head_);
   }
 
   inline size_t getLen(const CharT* s) const
@@ -593,114 +731,158 @@ protected:
     return i;
   }
 
-  inline size_t get_total_size(size_t str_len)
+  void string_up(const NODE_* n, LEEF_** last_lf)
   {
-    return (str_len+1)*sizeof(CharT) + sizeof(ReferT);
+    if (n == NULL)
+      return;
+    
+    if (n->ldepth_==1)
+    {
+      *last_lf = (LEEF_*)n->lptr_;
+      last_lf = ((LEEF_*)n->lptr_)->next_addr();
+    }
+    else
+      string_up((NODE_*)n->lptr_, last_lf);
+
+    if (n->rdepth_ ==1)
+    {
+      *last_lf = (LEEF_*)n->rptr_;
+      last_lf = ((LEEF_*)n->rptr_)->next_addr();
+    }
+    else
+      string_up((NODE_*)n->rptr_, last_lf);
+    
+  }
+  
+  void duplicate(NODE_** n1/*new one*/, const NODE_& n2)
+  {
+    *n1 = (NODE_*)hlmalloc(sizeof(NODE_));
+    *n1 = n2;
+
+    if (n2.is_bottom_)
+    {
+      if (COPY_ON_WRITE)
+      {
+        if (n2.get_right_leef()!=NULL)
+          n2.get_right_leef()->refer();
+        if (n2.get_left_leef()!=NULL)
+          n2.get_left_leef()->refer();
+        
+        return;
+      }
+      
+      if (n2.get_left_leef()!= NULL)
+      {
+        (*n1)->set_left((LEEF_*)hlmalloc(sizeof(LEEF_)));
+        (*n1)->get_left_leef()->clear_reference();
+        (*n1)->get_left_leef()->set_next(NULL);
+      }
+      
+      if (n2.get_right_leef()!= NULL)
+      {
+        (*n1)->set_right((LEEF_*)hlmalloc(sizeof(LEEF_)));
+        (*n1)->get_right_leef()->clear_reference();
+        (*n1)->get_right_leef()->set_next(NULL);
+      }
+    }
+
+    if ((NODE_*)n2.lptr_!=NULL)
+      duplicate(&((NODE_*)(*n1)->lptr_), *(NODE_*)n2.lptr_);
+    if ((NODE_*)n2.rptr_!=NULL)
+      duplicate(&((NODE_*)(*n1)->rptr_), *(NODE_*)n2.rptr_);
+  }
+  
+  void duplicate_self(NODE_** root, LEEF_** head)
+  {
+    duplicate(root, root_);
+    if (!COPY_ON_WRITE)
+      string_up(*root, head);
+    else
+      *head = head_;
   }
   
 public:
-  explicit vector_string()
+  explicit avl_string()
   {
-    p_ = NULL;
-    str_ = NULL;
-    is_attached_ = false;
     length_ = 0;
-    max_size_ = 0;
+    root_ = (NODE_*)hlmalloc(sizeof(NODE_));
+    *root_ = NODE_();
+    root_->add_rdepth();
+    root_->add_ldepth();
+    LEEF_* lf = (LEEF_*)hlmalloc(sizeof(LEEF_));
+    *lf = LEEF_();
+    root_->set_right(lf);
   }
 
   vector_string ( const SelfT& str )
   //    :p_(NULL), is_attached_(false),str_(NULL),length_(0),max_size_(0)
-  {    
-    p_ = NULL;
-    str_ = NULL;
-    is_attached_ = false;
+  {
     length_ = 0;
-    max_size_ = 0;
+    root_ =NULL;
+    head_ = NULL;
     assign(str);
   }
   
   vector_string ( const SelfT& str, size_t pos, size_t n = npos )
   {
-        
-    p_ = NULL;
-    str_ = NULL;
-    is_attached_ = false;
     length_ = 0;
-    max_size_ = 0;
+    root_ =NULL;
+    head_ = NULL;
     assign(str, pos, n);
   }
   
   vector_string ( const CharT * s, size_t n )
-  {    
-    p_ = NULL;
-    str_ = NULL;
-    is_attached_ = false;
+  {
     length_ = 0;
-    max_size_ = 0;
+    root_ =NULL;
+    head_ = NULL;
     assign(s, n);
   }
   
   vector_string ( const CharT * s )
-  {    
-    p_ = NULL;
-    str_ = NULL;
-    is_attached_ = false;
+  {
     length_ = 0;
-    max_size_ = 0;
+    root_ =NULL;
+    head_ = NULL;
     assign(s);
   }
   
   vector_string ( size_t n, CharT c )
-  {    
-    p_ = NULL;
-    str_ = NULL;
-    is_attached_ = false;
+  {
     length_ = 0;
-    max_size_ = 0;
+    root_ =NULL;
+    head_ = NULL;
     assign(n, c);
   }
 
   vector_string (const std::vector<CharT>& v)
-  {    
-    p_ = NULL;
-    str_ = NULL;
-    is_attached_ = false;
+  {
     length_ = 0;
-    max_size_ = 0;
+    root_ =NULL;
+    head_ = NULL;
     assign(v);
   }
 
   vector_string (const std::string& str)
-  {    
-    p_ = NULL;
-    str_ = NULL;
-    is_attached_ = false;
+  {
     length_ = 0;
-    max_size_ = 0;
+    root_ =NULL;
+    head_ = NULL;
     assign(str);
   }
   
 
   template<class InputIterator> vector_string (InputIterator begin, InputIterator end)
-  {    
-    p_ = NULL;
-    str_ = NULL;
-    is_attached_ = false;
+  {
     length_ = 0;
-    max_size_ = 0;
+    root_ =NULL;
+    head_ = NULL;
     assign(begin(), end);
   }
 
   virtual ~vector_string()
   {
     derefer();
-  }
-
-  ReferT getReferCnt()
-  {
-    if (p_ != NULL)
-      return *(ReferT*)p_;
-    return 0;
   }
   
   SelfT& operator= ( const SelfT& str )
@@ -1118,33 +1300,10 @@ public:
 
   SelfT& assign ( const SelfT& str )
   {
-    //std::cout<<getReferCnt()<<std::endl;
     derefer();
-    if (COPY_ON_WRITE)
-    {
-      p_ = str.p_;
-      
-      str_ = str.str_;
-      length_ = str.length_;
-      is_attached_ = str.is_attached_;
-      max_size_ = str.max_size_;
-      refer();
-      
-      assert(length_<=max_size_);
-    }
-    else
-    {
-      p_ = (char*)hlmalloc(get_total_size(str.length()));
-      str_ = (CharT*)(p_ + sizeof (ReferT));
-      length_ = str.length_;
-      max_size_ = length_+1;
-      memcpy(str_, str.str_, str.size());
-      str_[length_] = '\0';
 
-      is_attached_ = false;
-      clear_reference();
-    }
-
+    str.duplicate_self(&root_, &head_);
+  
     return *this;
   }
   
@@ -1188,21 +1347,9 @@ public:
   SelfT& assign ( const CharT* s, size_t n )
   {
     derefer();
+
+    avl_string();
     
-    p_ = (char*)hlmalloc(get_total_size(n));
-    str_ = (CharT*)(p_+sizeof (ReferT));
-
-    for(size_t i=0; i<n; i++)
-      str_[i] = s[i];
-
-    length_ = n;
-
-    is_attached_ = false;
-    max_size_ = length_ +1 ;
-    str_[length_] = '\0';
-
-    clear_reference();
-
     return *this;
   }
 
@@ -1883,13 +2030,6 @@ template <
   uint8_t APPEND_RATE
   >
 const size_t vector_string<CHAR_TYPE ,COPY_ON_WRITE, APPEND_RATE>::npos = -1;
-
-
-template <
-  class CHAR_TYPE ,int COPY_ON_WRITE, uint8_t APPEND_RATE
-  >
-const float vector_string<CHAR_TYPE ,COPY_ON_WRITE, APPEND_RATE>::append_rate_ = (float)APPEND_RATE/100.+1.;
-
 
 NS_IZENELIB_AM_END
 #endif

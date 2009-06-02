@@ -35,7 +35,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 /*****************************************************************************
 written by
-   Yunhong Gu, last updated 05/05/2009
+   Yunhong Gu, last updated 05/29/2009
 *****************************************************************************/
 
 
@@ -254,9 +254,9 @@ void CPacket::pack(const int& pkttype, void* lparam, void* rparam, const int& si
 
    case 65535: //0x7FFF - Reserved for user defined control packets
       // for extended control packet
-      // "lparam" contains the extneded type information for bit 4 - 15
+      // "lparam" contains the extended type information for bit 16 - 31
       // "rparam" is the control information
-      m_nHeader[0] |= (*(int32_t *)lparam) << 16;
+      m_nHeader[0] |= *(int32_t *)lparam;
 
       if (NULL != rparam)
       {

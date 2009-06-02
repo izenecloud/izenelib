@@ -52,7 +52,7 @@ void ZlibStreamBase::dopen(int fd, const char* mode)
 	if (0 == m_fp)
 	{
 		char szbuf[64];
-		sprintf(szbuf, "fd=%d");
+		sprintf(szbuf, "fd=%d", fd);
 		ThrowOpenFileException(szbuf, mode);
 	}
 }
