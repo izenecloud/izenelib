@@ -15,12 +15,12 @@ if (CMAKE_BINARY_DIR STREQUAL CMAKE_SOURCE_DIR)
 endif (CMAKE_BINARY_DIR STREQUAL CMAKE_SOURCE_DIR)
 
 ####################
-# set configuration type (set of compilter options)
+# set build type (set of compiler options)
 #####
 
-if (NOT CMAKE_BUILD_TYPE)
-  set (CMAKE_BUILD_TYPE RelWithDebInfo CACHE string
-    "select one set of predefined compilter options")
+# default build type
+if (NOT CMAKE_BUILD_TYPE) 
+  set (CMAKE_BUILD_TYPE RelWithDebInfo)
 endif (NOT CMAKE_BUILD_TYPE)
 
 if (CMAKE_COMPILER_IS_GNUCXX)
@@ -104,5 +104,3 @@ endif (DOXYGEN_FOUND)
 #####
 
 add_subdirectory (source)
-
-      
