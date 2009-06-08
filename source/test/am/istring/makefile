@@ -15,7 +15,7 @@ OBJS := $(patsubst %.cpp, %.o, $(wildcard *.cpp))
 #./t_main.o
 
 
-all: vstring dstring
+all: vstring dstring bbtstring
 
 
 
@@ -27,6 +27,10 @@ all: vstring dstring
 vstring: t_vstring.o t_master_suite.o
 	$(GPP)  -g -o "vstring"  $^ $(LIBS) 
 	-rm -f t_vstring.o
+
+bbtstring: t_bbtstring.o t_master_suite.o
+	$(GPP)  -g -o "bbtstring"  $^ $(LIBS) 
+	-rm -f t_bbtstring.o
 
 dstring: t_dstring.o t_master_suite.o
 	$(GPP)  -g -o "dstring"  $^ $(LIBS) 

@@ -758,20 +758,131 @@ BOOST_AUTO_TEST_CASE(izene_istring_algorithms_check)
   if (ss.compare("sdfdfgdfgdfg")!=0)
     cout<<"["<<t<<"] ERROR\n";
 
-
-
-
-
-  float e = 6037*12.;
-  float r = 1.0252;
-  float g = 0;
-  for (int i=0; i<10; i++)
-    g = g*r+e;
-  cout<<(g)<<endl;
-  
   cout<<"izene_istring_algorithm_check is done!\n";
 }
 
+
+const size_t size = 1000;
+const size_t bb = size;
+const size_t scale = 100000;
+typedef deque_string<CharT, 1, bb> dequeString;
+const char* title = "deque_string<CharT, 1, ";
+
+BOOST_AUTO_TEST_CASE(izene_istring_push_front_perfomance_check)
+{
+  char* ch = new char[size];
+  for (size_t i=0; i<size; i++)
+    ch[i] = 'a'+rand()%26;
+  
+  dequeString str(ch, size);
+  dequeString s(ch, size);
+
+  clock_t start, finish;
+  start = clock();
+  for (size_t i=0; i<scale; i++)
+      str.push_front(s);
+  
+  finish = clock();
+
+  cout<<title<<bb<<">::push_front["<<size<<"*"<<scale<<"]: "<<(double)(finish - start) / CLOCKS_PER_SEC<<endl;
+  delete ch;
+  // str.display();
+//   cout<<"-----------\n";
+//   s.display();
+}
+
+BOOST_AUTO_TEST_CASE(izene_istring_append_perfomance_check)
+{
+  char* ch = new char[size];
+  for (size_t i=0; i<size; i++)
+    ch[i] = 'a'+rand()%26;
+  
+  dequeString str(ch, size);
+  dequeString s(ch, size);
+
+  clock_t start, finish;
+  start = clock();
+  for (size_t i=0; i<scale; i++)
+    str += s;
+  finish = clock();
+
+  cout<<title<<bb<<">::append["<<size<<"*"<<scale<<"]: "<<(double)(finish - start) / CLOCKS_PER_SEC<<endl;
+  delete ch;
+}
+
+//http://6.cn/plist/261333/9.html
+BOOST_AUTO_TEST_CASE(izene_istring_iterator_perfomance_check)
+{
+  char* ch = new char[size*100];
+  for (size_t i=0; i<size*100; i++)
+    ch[i] = 'a'+rand()%26;
+  
+  dequeString str(ch, size*100);
+
+  clock_t start, finish;
+  start = clock();
+  for (size_t i=0; i<scale; i++)
+    for (dequeString::const_iterator j=str.begin(); j<str.end(1); j++)
+      const char c = *j;
+  
+  finish = clock();
+
+  cout<<title<<bb<<">::iterator["<<size*100<<"*"<<scale<<"]: "<<(double)(finish - start) / CLOCKS_PER_SEC<<endl;
+  
+  start = clock();
+  for (size_t i=0; i<scale; i++)
+    for (size_t j=0; j<size*100; j++)
+      const char c = str[j];
+  finish = clock();
+
+  cout<<title<<bb<<">::operator[] ["<<size*100<<"*"<<scale<<"]: "<<(double)(finish - start) / CLOCKS_PER_SEC<<endl;
+  delete ch;
+}
+
+BOOST_AUTO_TEST_CASE(izene_istring_substr_perfomance_check)
+{  
+  char* ch = new char[scale*100];
+  for (size_t i=0; i<scale*100; i++)
+    ch[i] = 'a'+rand()%26;
+  
+  dequeString str(ch, scale*100);
+
+  clock_t start, finish;
+  start = clock();
+  for (size_t i=0; i<scale; i++)
+    str.substr(i, i+100);
+  finish = clock();
+
+  cout<<title<<bb<<">::substr["<<scale*100<<"*"<<scale<<"]: "<<(double)(finish - start) / CLOCKS_PER_SEC<<endl;
+  delete ch;
+}
+
+BOOST_AUTO_TEST_CASE(izene_istring_insert_perfomance_check)
+{
+  char* ch = new char[size];
+  for (size_t i=0; i<size; i++)
+    ch[i] = 'a'+rand()%26;
+
+  dequeString s(ch, size);
+  dequeString str(ch, size);
+
+  clock_t start, finish;
+  start = clock();
+  for (size_t i=0; i<scale; i++)
+  {
+    str.insert(i, s);
+  }
+  finish = clock();
+
+  cout<<title<<bb<<">::insert["<<size<<"*"<<scale<<"]: "<<(double)(finish - start) / CLOCKS_PER_SEC<<endl;
+  delete ch;
+}
+
+// deque_string<CharT, 1, 1000>::push_front[1000*100000]: 13.6
+// deque_string<CharT, 1, 1000>::append[1000*100000]: 0.53
+// deque_string<CharT, 1, 1000>::iterator[100000*100000]: 26.39
+// deque_string<CharT, 1, 1000>::operator[] [100000*100000]: 26.02
+// deque_string<CharT, 1, 1000>::substr[10000000*100000]: 0
 
 BOOST_AUTO_TEST_SUITE_END()
 

@@ -35,10 +35,8 @@
 #include <boost/test/unit_test.hpp>
 
 #include <iostream>
-#include <am/istring/vector_string.hpp>
-#include <am/istring/deque_string.hpp>
+#include <am/istring/bbt_string.hpp>
 #include <vector>
-#include <string>
 #include <boost/archive/binary_iarchive.hpp>
 #include <boost/archive/binary_oarchive.hpp>
 #include <fstream>
@@ -46,12 +44,15 @@
 using namespace std;
 using namespace izenelib::am;
 
-BOOST_AUTO_TEST_SUITE( t_vstring_suite )
+BOOST_AUTO_TEST_SUITE( t_dstring_suite )
 
 #define SCALE 10000000
 #define MAX_LEN 1024
 
-typedef vector_string<char> istring;
+typedef char CharT;
+const int BUCKET_BYTES = 3;
+const int BUCKET_LENGTH = BUCKET_BYTES/sizeof(CharT)-1;
+typedef bbt_string<CharT, 0, BUCKET_BYTES> istring;
 
 BOOST_AUTO_TEST_CASE(izene_istring_construction_check)
 {
@@ -119,28 +120,35 @@ BOOST_AUTO_TEST_CASE(izene_istring_capacity_check)
 
   t++;
   s.resize(32);
-  if (s.length()!= 32 || s.max_size()!=32)
+  if (s.length()!=32
+      || s.max_size()!=(32/BUCKET_LENGTH + (32%BUCKET_LENGTH==0? 0: 1))*BUCKET_LENGTH)
     cout<<"["<<t<<"] ERROR\n";
-  
+  //cout<<s.length()<<" "<<s.max_size()<<endl;
+
   t++;
   s = is;
   is.resize(10);
-  if (is.capacity()!=11 || is.max_size()!=10)
+  if (is.max_size()!= (10/BUCKET_LENGTH + (10%BUCKET_LENGTH==0? 0: 1))*BUCKET_LENGTH)
     cout<<"["<<t<<"] ERROR\n";
+//   cout<<is.length()<<" "<<is.max_size()<<endl;
+//   is.display();
 
-  
+    
   t++;
   s = is;
-  is.reserve(11);
-  if (is.capacity()!=12 || is.max_size()!=11)
+  is.reserve(64);
+  if (is.capacity()!=(64/BUCKET_LENGTH + (64%BUCKET_LENGTH==0? 0: 1))*BUCKET_LENGTH)
     cout<<"["<<t<<"] ERROR\n";
+  //cout<<is.capacity()<<endl;
 
   t++;
   s = is;
   s.resize(32, 'T');
-  if (s.length()!=32 || s.max_size()!=32)
+  if (s.length()!=32
+      || s.max_size()!= (32/BUCKET_LENGTH + (32%BUCKET_LENGTH==0? 0: 1))*BUCKET_LENGTH)
     cout<<"["<<t<<"] ERROR\n";
-
+  //cout<<s.length()<<" "<<s.max_size()<<endl;
+  
   cout<<"izene_istring_capacity_check is done!\n";
 }
 
@@ -148,6 +156,7 @@ BOOST_AUTO_TEST_CASE(izene_istring_element_access_check)
 {
   istring s("sfdfsfssfssfs");
   istring ss = s;
+  
   int t= 0;
 
   if (ss[2] != 'd')
@@ -178,6 +187,73 @@ BOOST_AUTO_TEST_CASE(izene_istring_element_access_check)
   cout<<"izene_istring_element_access_check is done!\n";
 }
 
+BOOST_AUTO_TEST_CASE(izene_istring_iterator_check)
+{
+  vector<char> vt;
+  vt.push_back('g');
+  vt.push_back('f');
+  vt.push_back('v');
+  vt.push_back('d');
+  vt.push_back('s');
+  vt.push_back('w');
+  
+  istring s;
+  s.assign<vector<char>::iterator >(vt.begin(),vt.end());
+  
+  int t=0;
+  if (s.compare("gfvdsw") != 0)
+    cout<<"["<<t<<"] ERROR\n";
+
+  t++;
+  istring::iterator i = s.begin();
+  i--;
+  i++;
+  // i = i-1;
+  //i = i+1;
+  if (*i!='g')
+    cout<<"["<<t<<"] ERROR\n";
+
+  t++;
+  i =s.end();
+  i--;
+  //i = i -1;
+  if (*i!='w')
+    cout<<"["<<t<<"] ERROR\n";
+
+  t++;
+  i =s.begin();
+  i = i + 3;
+  if (*i!='d')
+    cout<<"["<<t<<"] ERROR\n";
+  
+  t++;
+  s.insert(s.begin(), vt.begin(),vt.end());
+  if (s.compare("ggfvdswfvdsw") != 0)
+    cout<<"["<<t<<"] ERROR\n";
+  
+  // 5
+  t++;
+  s = "dkghk";
+  istring ss;
+  for (istring::reverse_iterator j=s.rbegin(); j<s.rend(); j++)
+  {
+    ss += *j;
+  }  
+  if (ss.compare("khgkd") != 0)
+    cout<<"["<<t<<"] ERROR\n";
+
+  t++;
+  ss = "";
+  for (istring::const_iterator i=s.begin(); i<s.end(); i++)
+  {
+    ss += *i;
+  }
+  if (ss.compare("dkghk") != 0)
+    cout<<"["<<t<<"] ERROR\n";
+  
+  cout<<"izene_istring_iterator_check is done!\n";
+}
+
 BOOST_AUTO_TEST_CASE(izene_istring_modifiers_check)
 {
   istring s("sfdfsfssfssfs");
@@ -199,7 +275,7 @@ BOOST_AUTO_TEST_CASE(izene_istring_modifiers_check)
   ss += 'T';
   if (ss.compare("sfdfsfssfssfsT")!=0)
     cout<<"["<<t<<"] ERROR\n";
-    
+  
   t++;
   s += "kk";
   ss = s;
@@ -213,6 +289,7 @@ BOOST_AUTO_TEST_CASE(izene_istring_modifiers_check)
   if (s.compare("sfdfsfssfssfskkdfsowe")!=0)
     cout<<"["<<t<<"] ERROR\n";
   
+  // 5 
   t++;
   s = ss;
   s.append(4,' ');
@@ -232,6 +309,13 @@ BOOST_AUTO_TEST_CASE(izene_istring_modifiers_check)
   if (s.compare("sfdfsfssfssfskkdfsoA")!=0)
     cout<<"["<<t<<"] ERROR\n";
   
+  t++;
+  s = ss;
+  s.push_front("UUUUUUUU");
+  s.push_front("TTTTTTTT");
+  if (s.compare("TTTTTTTTUUUUUUUUsfdfsfssfssfskkdfs")!=0)
+    cout<<"["<<t<<"] ERROR\n";
+
   t++;
   s = "fdfuiehjka";
   ss = s;
@@ -280,7 +364,7 @@ BOOST_AUTO_TEST_CASE(izene_istring_modifiers_check)
   s.erase(3);
   if (s.compare("fdf")!=0)
     cout<<"["<<t<<"] ERROR\n";
-
+  
   // 15
   t++;
   s = "fdfuiehjka";
@@ -290,11 +374,11 @@ BOOST_AUTO_TEST_CASE(izene_istring_modifiers_check)
   
   t++;
   s = "fdfuiehjka";
-  ss = "jjj";
-  s.replace(3, 3, ss);
-  if (s.compare("fdfjjjhjka")!=0)
+  ss = "jj";
+  s.replace(3, 5, ss);
+  if (s.compare("fdfjjka")!=0)
     cout<<"["<<t<<"] ERROR\n";
-
+  
   t++;
   s = "fdfuiehjka";
   istring sss = s;
@@ -302,7 +386,7 @@ BOOST_AUTO_TEST_CASE(izene_istring_modifiers_check)
   sss.replace(3, 3, ss);
   if (sss.compare("fdfjjjhjka")!=0)
     cout<<"["<<t<<"] ERROR\n";
-
+  
   t++;
   s = "fdfuiehjka";
   ss = s;
@@ -317,18 +401,6 @@ BOOST_AUTO_TEST_CASE(izene_istring_modifiers_check)
   ss = "sss";
   ss.swap(s);
   if (ss.compare("fdfuiehjka")!=0 || s.compare("sss")!=0)
-    cout<<"["<<t<<"] ERROR\n";
-
-  // 20  
-  t++;
-  char* jj = "fdfuiehjka";
-  ss.attach(jj);
-  if (ss.compare("fdfuiehjka")!=0)
-    cout<<"["<<t<<"] ERROR\n";
-  
-  t++;
-  ss.attach(jj, 3);
-  if (ss.compare("fdf")!=0)
     cout<<"["<<t<<"] ERROR\n";
 
   cout<<"izene_istring_modifiers_check is done!\n";
@@ -388,61 +460,16 @@ BOOST_AUTO_TEST_CASE(izene_istring_serialization_check)
   cout<<"izene_istring_serialization_check is done!\n";
 }
 
-BOOST_AUTO_TEST_CASE(izene_istring_iterator_check)
-{
-  vector<char> vt;
-  vt.push_back('g');
-  vt.push_back('f');
-  vt.push_back('v');
-  vt.push_back('d');
-  vt.push_back('s');
-  vt.push_back('w');
-
-  istring s;
-  s.assign<vector<char>::iterator >(vt.begin(),vt.end());
-
-  int t=0;
-  if (s.compare("gfvdsw") != 0)
-    cout<<"["<<t<<"] ERROR\n";
-
-  s.insert(s.begin(), vt.begin(),vt.end());
-  t++;
-  if (s.compare("ggfvdswfvdsw") != 0)
-    cout<<"["<<t<<"] ERROR\n";
-
-  t++;
-  s = "dkghk";
-  istring ss;
-  for (istring::reverse_iterator i=s.rbegin(); i<s.rend(); i++)
-  {
-    ss += *i;
-  }
-  if (ss.compare("khgkd") != 0)
-    cout<<"["<<t<<"] ERROR\n";
-
-  t++;
-  ss = "";
-  for (istring::const_iterator i=s.begin(); i<s.end(); i++)
-  {
-    ss += *i;
-  }
-  if (ss.compare("dkghk") != 0)
-    cout<<"["<<t<<"] ERROR\n";
-  
-  cout<<"izene_istring_iterator_check is done!\n";
-}
-
 BOOST_AUTO_TEST_CASE(izene_istring_algorithms_check)
 {
 
   typedef Algorithm<istring> algo;
   
   int t=0;
-  
   istring s("-11013");
   if (algo::to_integer(s)!= -11013)
     cout<<"["<<t<<"] ERROR\n";
-
+  
   t++;
   s = "11234";
   if (algo::to_integer(s)!= 11234)
@@ -487,7 +514,7 @@ BOOST_AUTO_TEST_CASE(izene_istring_algorithms_check)
   t++;
   if (algo::to_upper(cs).compare("QWERTYUIOP")!=0)
     cout<<"["<<t<<"] ERROR\n";
-
+  
   // 10
   t++;
   s = cs;
@@ -574,7 +601,7 @@ BOOST_AUTO_TEST_CASE(izene_istring_algorithms_check)
   t++;
   if (algo::num_occurrence(s, ss) != 4)
     cout<<"["<<t<<"] ERROR\n";
-
+  
   // 25
   t++;
   ss = "fd";
@@ -671,39 +698,39 @@ BOOST_AUTO_TEST_CASE(izene_istring_algorithms_check)
   algo::cut_delimiter(ss, 3, 'f');
   if (ss.compare("ohd")!=0)
     cout<<"["<<t<<"] ERROR\n";
-
+  
   // 40
   t++;
   ss = "sdfohdifghsdio";
   algo::cut_between_words(ss, "fo", "di");
   if (ss.compare("hdifghs")!=0)
     cout<<"["<<t<<"] ERROR\n";
-
+  
   t++;
   ss = "sdfohdifghsdio";
   algo::cut_between_words(ss, "hs", "di");
   if (ss.compare("")!=0)
     cout<<"["<<t<<"] ERROR\n";
-
+  
   t++;
   ss = "sdfohdi\nfghs\ndio";
   algo::cut_line_after(ss, "\n");
   if (ss.compare("fghs")!=0)
     cout<<"["<<t<<"] ERROR\n";
-
+  
   t++;
   ss = "sdf ohdif\nghs dio\n";
   algo::take_between_marks(ss, ' ', '\n', iv);
   if (iv.size()!=2 || iv[0].compare("ohdif")!=0 || iv[1].compare("dio")!=0)
     cout<<"["<<t<<"] ERROR\n";
-
+  
   t++;
   ss = "sdf\nohdif\nghsdio\n\n";
   algo::take_between_mark(ss,'\n', iv);
   if (iv.size()!=3 || iv[0].compare("ohdif")!=0 || iv[1].compare("ghsdio")!=0
       || iv[2].compare("")!=0)
     cout<<"["<<t<<"] ERROR\n";
-
+  
   // 45
   t++;
   ss = "sdf\nohdif\nghsdio\n\n";
@@ -722,64 +749,76 @@ BOOST_AUTO_TEST_CASE(izene_istring_algorithms_check)
   algo::compact_head(ss);
   if (ss.compare("sdfdfgdfgdfg    ")!=0)
     cout<<"["<<t<<"] ERROR\n";
-
+  
   t++;
   ss = "   sdfdfgdfgdfg    ";
   algo::compact_tail(ss);
   if (ss.compare("   sdfdfgdfgdfg")!=0)
     cout<<"["<<t<<"] ERROR\n";
-
+  
   t++;
   ss = "   sdfdf  gdfgdfg    ";
   algo::compact(ss);
   if (ss.compare("sdfdf  gdfgdfg")!=0)
     cout<<"["<<t<<"] ERROR\n";
-  
+
+  // 50
   t++;
   ss = "   sdfdf  gdfgdfg    ";
   algo::trim(ss);
   if (ss.compare("sdfdfgdfgdfg")!=0)
     cout<<"["<<t<<"] ERROR\n";
-
-
-
-
-
-  float e = 6037*12.;
-  float r = 1.0252;
-  float g = 0;
-  for (int i=0; i<10; i++)
-    g = g*r+e;
-  cout<<(g)<<endl;
   
   cout<<"izene_istring_algorithm_check is done!\n";
 }
 
 const size_t size = 1000;
-const size_t bb = 30;
+const size_t bb = size +1;
 const size_t scale = 100000;
-typedef vector_string<char, 1, bb> vectorString;
-//typedef std::string vectorString;
-const char* title = "vector_string<CharT, 1, ";
-//const char* title = "std::string ";//"vector_string<CharT, 1, ";
+typedef bbt_string<CharT, 1, bb> bbtString;
+
+BOOST_AUTO_TEST_CASE(izene_istring_push_front_perfomance_check)
+{
+  char* ch = new char[size];
+  for (size_t i=0; i<size; i++)
+    ch[i] = 'a'+rand()%26;
+
+  bbtString s(ch, size);
+  bbtString str(ch, size);
+
+  clock_t start, finish;
+  start = clock();
+  for (size_t i=0; i<scale; i++)
+  {
+    str.push_front(s);
+  }
+  finish = clock();
+
+  cout<<"bbt_string<CharT, 1, "<<bb<<">::push_front["<<size<<"*"<<scale<<"]: "<<(double)(finish - start) / CLOCKS_PER_SEC<<endl;
+  delete ch;
+  // str.display();
+//   cout<<"-----------\n";
+//   s.display();
+}
 
 BOOST_AUTO_TEST_CASE(izene_istring_append_perfomance_check)
 {
   char* ch = new char[size];
   for (size_t i=0; i<size; i++)
     ch[i] = 'a'+rand()%26;
-  
-  vectorString str(ch, size);
-  vectorString s(ch, size);
+
+  bbtString s(ch, size);
+  bbtString str(ch, size);
 
   clock_t start, finish;
   start = clock();
   for (size_t i=0; i<scale; i++)
+  {
     str += s;
-  
+  }
   finish = clock();
 
-  cout<<title<<bb<<">::append["<<size<<"*"<<scale<<"]: "<<(double)(finish - start) / CLOCKS_PER_SEC<<" "<<str.length()<<" "<<str.capacity()<<endl;
+  cout<<"bbt_string<CharT, 1, "<<bb<<">::append["<<size<<"*"<<scale<<"]: "<<(double)(finish - start) / CLOCKS_PER_SEC<<endl;
   delete ch;
 }
 
@@ -790,16 +829,16 @@ BOOST_AUTO_TEST_CASE(izene_istring_iterator_perfomance_check)
   for (size_t i=0; i<size*100; i++)
     ch[i] = 'a'+rand()%26;
   
-  vectorString str(ch, size*100);
+  bbtString str(ch, size*100);
 
   clock_t start, finish;
   start = clock();
   for (size_t i=0; i<scale; i++)
-    for (vectorString::const_iterator j=str.begin(); j!=str.end(); j++)
+    for (bbtString::const_iterator j=str.begin(); j!=str.end(); j++)
       const char c = *j;
   finish = clock();
 
-  cout<<title<<bb<<">::iterator["<<size*100<<"*"<<scale<<"]: "<<(double)(finish - start) / CLOCKS_PER_SEC<<endl;
+  cout<<"bbt_string<CharT, 1, "<<bb<<">::iterator["<<size*100<<"*"<<scale<<"]: "<<(double)(finish - start) / CLOCKS_PER_SEC<<endl;
   
   start = clock();
   for (size_t i=0; i<scale; i++)
@@ -807,7 +846,7 @@ BOOST_AUTO_TEST_CASE(izene_istring_iterator_perfomance_check)
       const char c = str[j];
   finish = clock();
 
-  cout<<title<<bb<<">::operator[] ["<<size*100<<"*"<<scale<<"]: "<<(double)(finish - start) / CLOCKS_PER_SEC<<endl;
+  cout<<"bbt_string<CharT, 1, "<<bb<<">::operator[] ["<<size*100<<"*"<<scale<<"]: "<<(double)(finish - start) / CLOCKS_PER_SEC<<endl;
   delete ch;
 }
 
@@ -817,7 +856,7 @@ BOOST_AUTO_TEST_CASE(izene_istring_substr_perfomance_check)
   for (size_t i=0; i<scale*100; i++)
     ch[i] = 'a'+rand()%26;
   
-  vectorString str(ch, scale*100);
+  bbtString str(ch, scale*100);
 
   clock_t start, finish;
   start = clock();
@@ -825,7 +864,7 @@ BOOST_AUTO_TEST_CASE(izene_istring_substr_perfomance_check)
     str.substr(i, i+100);
   finish = clock();
 
-  cout<<title<<bb<<">::substr["<<scale*100<<"*"<<scale<<"]: "<<(double)(finish - start) / CLOCKS_PER_SEC<<endl;
+  cout<<"bbt_string<CharT, 1, "<<bb<<">::substr["<<scale*100<<"*"<<scale<<"]: "<<(double)(finish - start) / CLOCKS_PER_SEC<<endl;
   delete ch;
 }
 
@@ -835,8 +874,8 @@ BOOST_AUTO_TEST_CASE(izene_istring_insert_perfomance_check)
   for (size_t i=0; i<size; i++)
     ch[i] = 'a'+rand()%26;
 
-  vectorString s(ch, size);
-  vectorString str(ch, size);
+  bbtString s(ch, size);
+  bbtString str(ch, size);
 
   clock_t start, finish;
   start = clock();
@@ -846,14 +885,16 @@ BOOST_AUTO_TEST_CASE(izene_istring_insert_perfomance_check)
   }
   finish = clock();
 
-  cout<<title<<bb<<">::insert["<<size<<"*"<<scale<<"]: "<<(double)(finish - start) / CLOCKS_PER_SEC<<endl;
+  cout<<"bbt_string<CharT, 1, "<<bb<<">::insert["<<size<<"*"<<scale<<"]: "<<(double)(finish - start) / CLOCKS_PER_SEC<<endl;
   delete ch;
 }
 
-// vector_string<CharT, 1, 50>::append[1000*100000]: 0.08
-// vector_string<CharT, 1, 50>::iterator[100000*100000]: 0
-// vector_string<CharT, 1, 50>::operator[] [100000*100000]: 13.53
-// vector_string<CharT, 1, 50>::substr[10000000*100000]: 0
+// bbt_string<CharT, 1, 1001>::push_front[1000*100000]: 11.9
+// bbt_string<CharT, 1, 1001>::append[1000*100000]: 0
+// bbt_string<CharT, 1, 1001>::iterator[100000*100000]: 30.55
+// bbt_string<CharT, 1, 1001>::operator[] [100000*100000]: 182.35
+// bbt_string<CharT, 1, 1001>::substr[10000000*100000]: 0.09
+// bbt_string<CharT, 1, 1001>::insert[1000*100000]: 19.79
 
 BOOST_AUTO_TEST_SUITE_END()
 

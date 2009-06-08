@@ -25,14 +25,14 @@ class bbt_string
 public:
   typedef CHAR_TYPE value_type;
   typedef CHAR_TYPE CharT;
-  typedef uint16_t  ReferT;
+  typedef uint32_t  ReferT;
   typedef bbt_string<CHAR_TYPE, COPY_ON_WRITE, BUCKET_BYTES> SelfT;
   typedef std::size_t size_t;
 
   enum 
     {
-      BUCKET_LENGTH = BUCKET_BYTES/sizeof(CharT) -1;
-      BUCKEY_SIZE = BUCKET_BYTES + sizeof(ReferT) + sizeof(void*)
+      BUCKET_LENGTH = BUCKET_BYTES/sizeof(CharT) -1,
+      BUCKET_SIZE = BUCKET_BYTES + sizeof(ReferT)
     };
 
   
@@ -46,12 +46,11 @@ protected:
     inline BUCKET_()
     {
       *(ReferT*)(p_ + BUCKET_BYTES) = 1;
-      *(LEEF_*)(p_ + BUCKET_BYTES + sizeof(ReferT)) = NULL;
     }
     
     inline CharT& operator [] (size_t i)
     {
-      assert(i<BUCKET_LENGTH);
+      assert(i<=BUCKET_LENGTH);
       return *((CharT*)p_ + i);
     }
 
@@ -82,21 +81,17 @@ protected:
       if (*(ReferT*)(p_ + BUCKET_BYTES) != 0)
         *(ReferT*)(p_ + BUCKET_BYTES) -= 1;
     }
-
-    BUCKET_* next()
-    {
-      return *(LEEF_**)(p_ + BUCKET_BYTES + sizeof(ReferT));
-    }
-    
-    void set_next(BUCKET_* lf)
-    {
-      *(BUCKET_**)(p_ + BUCKET_BYTES + sizeof(ReferT)) = lf;
-    }
     
     void clear_reference()
     {
       *(ReferT*)(p_ + BUCKET_BYTES) = 1;
     }    
+
+  friend std::ostream& operator << (std::ostream& os, const BUCKET_& b)
+    {
+      os<<b.p_<<"("<<*(ReferT*)(b.p_ + BUCKET_BYTES)<<")";
+      return os;
+    }
     
   }
     ;
@@ -104,7 +99,7 @@ protected:
   struct INDEX_
   {
     size_t len_;
-    BUKCET_* bptr_;
+    BUCKET_* bptr_;
 
     inline INDEX_()
     {
@@ -132,10 +127,14 @@ protected:
     {
       return len_ != i;
     }
-
     
-  }
-    ;
+  friend std::ostream& operator << (std::ostream& os, const INDEX_& b)
+    {
+      os<<"["<<b.len_<<"]"<<*b.bptr_;
+      return os;
+    }
+    
+  };
   
 public:
   class const_iterator;
@@ -145,52 +144,92 @@ public:
 
   friend class const_iterator;
   public:
-    iterator(SelfT* obj=NULL, CharT* p=NULL) : p_(p), obj_(obj) {}
+    iterator(INDEX_* indice=NULL, size_t ii=0 , size_t bi=0 )
+    {
+      indice_ = indice;
+      ii_ = ii;
+      bi_ = bi;
+    }
+    
     ~iterator() {}
 
     // The assignment and relational operators are straightforward
     iterator& operator = (const iterator& other)
     {
-      p_ = other.p_;
+      ii_ = other.ii_;
+      bi_ = other.bi_;
+      indice_ = other.indice_;
+      
       return(*this);
     }
 
     bool operator==(const iterator& other)const
     {
-      return(p_ == other.p_);
+      return(indice_ == other.indice_ && ii_ == other.ii_ && bi_ == other.bi_ );
     }
 
     bool operator!=(const iterator& other)const
     {
-      return(p_ != other.p_);
+      return(indice_ != other.indice_ || ii_ != other.ii_ || bi_ != other.bi_ );
     }
 
     bool operator < (const iterator& other)const
     {
-      return(p_ < other.p_);
+      return(indice_ == other.indice_ && (ii_ < other.ii_ || ii_==(size_t)-1 && other.ii_!=(size_t)-1)
+        || indice_ == other.indice_ && ii_ == other.ii_ && bi_ < other.bi_ );
     }
     
     bool operator > (const iterator& other)const
     {
-      return(p_ > other.p_);
+      return(indice_ == other.indice_ && (ii_ > other.ii_ || ii_!=(size_t)-1 && other.ii_==(size_t)-1)
+        || indice_ == other.indice_ && ii_ == other.ii_ && bi_ > other.bi_ );
     }
 
     // Update my state such that I refer to the next element in the
     // SQueue.
     iterator& operator++()
     {
-      if (p_ != NULL)
+      if (indice_ == NULL)
+        return(*this);
+
+      if (ii_==(size_t)-1)
       {
-        p_++;
-        
+        ii_ = 0;
+        bi_ = 0;
+        return(*this);
       }
-      return(*this);
+
+      bi_++;
+      if (indice_[ii_].bptr_->p_[bi_]=='\0' || bi_>=BUCKET_LENGTH)
+      {
+        bi_ = 0;
+        ii_++;
+      }
+
+      return *this;
+      
     }
 
     iterator operator++(int)
     {
       iterator tmp(*this);
-      p_++;
+      if (indice_ == NULL)
+        return(*this);
+
+      if (ii_==(size_t)-1)
+      {
+        ii_ = 0;
+        bi_ = 0;
+        return(tmp);
+      }
+
+      bi_++;
+      if (indice_[ii_].bptr_->p_[bi_]=='\0' || bi_>=BUCKET_LENGTH)
+      {
+        bi_ = 0;
+        ii_++;
+      }
+
       return(tmp);
     }
 
@@ -198,18 +237,46 @@ public:
     // SQueue.
     iterator& operator--()
     {
-      if (p_ != NULL)
+      if (indice_ == NULL)
+        return(*this);
+      
+      if (bi_==0)
       {
-        p_--;
+        if (ii_!=(size_t)-1)
+          ii_--;
         
+        if (ii_==(size_t)-1)
+          return(*this);
+        
+        size_t  lastl = ii_==0? 0: indice_[ii_-1].len_;
+        bi_ = indice_[ii_].len_-lastl - 1;
       }
+      else
+        bi_--;
+
       return(*this);
     }
 
     iterator operator--(int)
     {
       iterator tmp(*this);
-      p_--;
+      if (indice_ == NULL)
+        return(*this);
+      
+      if (bi_==0)
+      {
+        if (ii_!=(size_t)-1)
+          ii_--;
+        
+        if (ii_==(size_t)-1)
+          return(*this);
+        
+        size_t  lastl = (ii_==0? 0: indice_[ii_-1].len_);
+        bi_ = indice_[ii_].len_- lastl - 1;
+      }
+      else
+        bi_--;
+
       return(tmp);
     }
 
@@ -218,46 +285,81 @@ public:
     // node directly.
     CharT& operator*()
     {
-      if (obj_->is_refered())
-      {
-        uint64_t i = p_ - obj_->str_;
-        (*obj_).assign_self();
-        p_ = obj_->str_ + i;
-      }
+      assert(indice_[ii_].bptr_!=NULL);
       
-      return(*p_);
+      if (indice_[ii_].bptr_->is_refered())
+      {
+        BUCKET_* bu = SelfT::new_bucket();
+        memcpy(bu, indice_[ii_].bptr_, BUCKET_SIZE);
+        indice_[ii_].bptr_->derefer();
+        indice_[ii_].bptr_ = bu;
+        bu->clear_reference();
+      }
+
+      return indice_[ii_].bptr_->p_[bi_];
     }
     
-    iterator& operator + (size_t i)
+    iterator operator + (size_t i)const
     {
-      p_ += i;
-      return *this;
+      iterator tmp (*this);
+
+      for (;i>0; i--)
+        ++tmp;
+      
+      return tmp;
     }
 
-    iterator& operator - (size_t i)
+    iterator operator - (size_t i)const
     {
-      p_ -= i;
-      return *this;
+      iterator tmp(*this);
+
+      for (;i>0; i--)
+        --tmp;
+      
+      return tmp;
     }
 
-    uint64_t operator - (const CharT* s) const
+    size_t operator - (const iterator& other) const
     {
-      return p_ -s;
+      iterator tmp(other);
+      size_t i = 0;
+
+      if (indice_ != other.indice_)
+        return -1;
+
+      if (*this>other)
+        for (; tmp!=*this; i++)
+          ++tmp;
+      
+      if (*this<other)
+        for (; tmp!=*this; i--)
+          --tmp;      
+      
+      return i;
     }
     
   protected:
-    CharT* p_;
-    SelfT* obj_;
+    size_t bi_;//index in bucket
+    size_t ii_;// indice index
+    INDEX_* indice_;
   };
 
   
   class const_iterator :
     public std::iterator<std::forward_iterator_tag, CharT> {
   public:
-    const_iterator(const CharT* p=NULL) : p_(p) {}
+    const_iterator(const INDEX_* indice=NULL, size_t ii=0 , size_t bi=0 )
+    {
+      indice_ = indice;
+      ii_ = ii;
+      bi_ = bi;
+    }
+
     const_iterator(const iterator& other)
     {
-      p_ = other.p_;
+      ii_ = other.ii_;
+      bi_ = other.bi_;
+      indice_ = other.indice_;
     }
     
     ~const_iterator() {}
@@ -265,53 +367,90 @@ public:
     // The assignment and relational operators are straightforward
     const_iterator& operator=(const const_iterator& other)
     {
-      p_ = other.p_;
+      ii_ = other.ii_;
+      bi_ = other.bi_;
+      indice_ = other.indice_;
+      
       return(*this);
     }
     
     // The assignment and relational operators are straightforward
     const_iterator& operator = (const iterator& other)
     {
-      p_ = other.p_;
+      ii_ = other.ii_;
+      bi_ = other.bi_;
+      indice_ = other.indice_;
+
       return(*this);
     }
 
     bool operator==(const const_iterator& other) const
     {
-      return(p_ == other.p_);
+      return(indice_ == other.indice_ && ii_ == other.ii_ && bi_ == other.bi_ );
     }
 
     bool operator < (const const_iterator& other) const
     {
-      return(p_ < other.p_);
+      return(indice_ == other.indice_ && (ii_ < other.ii_ || ii_==(size_t)-1 && other.ii_!=(size_t)-1)
+        || indice_ == other.indice_ && ii_ == other.ii_ && bi_ < other.bi_ );
     }
     
     bool operator > (const const_iterator& other) const
     {
-      return(p_ > other.p_);
+      return(indice_ == other.indice_ && (ii_ > other.ii_ || ii_!=(size_t)-1 && other.ii_==(size_t)-1)
+        || indice_ == other.indice_ && ii_ == other.ii_ && bi_ > other.bi_ );
     }
 
     bool operator!=(const const_iterator& other) const
     {
-      return(p_ != other.p_);
+      return(indice_ != other.indice_ || ii_ != other.ii_ || bi_ != other.bi_ );
     }
 
     // Update my state such that I refer to the next element in the
     // SQueue.
     const_iterator& operator++()
     {
-      if (p_ != NULL)
+      if (indice_ == NULL)
+        return(*this);
+
+      if (ii_==(size_t)-1)
       {
-        p_++;
-        
+        ii_ = 0;
+        bi_ = 0;
+        return(*this);
       }
-      return(*this);
+
+      bi_++;
+      if ((*indice_[ii_].bptr_)[bi_]=='\0' || bi_>=BUCKET_LENGTH)
+      {
+        bi_ = 0;
+        ii_++;
+      }
+
+      return *this;
     }
 
     const_iterator operator++(int)
     {
       const_iterator tmp(*this);
-      p_++;
+
+      if (indice_ == NULL)
+        return(*this);
+
+      if (ii_==(size_t)-1)
+      {
+        ii_ = 0;
+        bi_ = 0;
+        return(tmp);
+      }
+
+      bi_++;
+      if ((*indice_[ii_].bptr_)[bi_]=='\0' || bi_>=BUCKET_LENGTH)
+      {
+        bi_ = 0;
+        ii_++;
+      }      
+
       return(tmp);
     }
     
@@ -319,18 +458,46 @@ public:
     // SQueue.
     const_iterator& operator--()
     {
-      if (p_ != NULL)
+      if (indice_ == NULL)
+        return(*this);
+      
+      if (bi_==0)
       {
-        p_--;
+        if (ii_!=(size_t)-1)
+          ii_--;
         
+        if (ii_==(size_t)-1)
+          return(*this);
+        
+        size_t  lastl = ii_==0? 0: indice_[ii_-1].len_;
+        bi_ = indice_[ii_].len_-indice_[ii_-1].len_ - 1;
       }
+      else
+        bi_--;
+
       return(*this);
     }
 
     const_iterator operator--(int)
     {
-      const_iterator tmp(*this);
-      p_--;
+      iterator tmp(*this);
+      if (indice_ == NULL)
+        return(*this);
+      
+      if (bi_==0)
+      {
+        if (ii_!=(size_t)-1)
+          ii_--;
+        
+        if (ii_==(size_t)-1)
+          return(*this);
+        
+        size_t  lastl = ii_==0? 0: indice_[ii_-1].len_;
+        bi_ = indice_[ii_].len_-indice_[ii_-1].len_ - 1;
+      }
+      else
+        bi_--;
+
       return(tmp);
     }
 
@@ -339,83 +506,150 @@ public:
     // node directly.
     const CharT& operator*() const
     {
-      return(*p_);
+      assert(indice_[ii_].bptr_ != NULL);
+      
+      return (*indice_[ii_].bptr_)[bi_];
     }
     
-    uint64_t operator - (const CharT* s) const
+    uint64_t operator - (const const_iterator& other) const
     {
-      return p_ -s;
+      const_iterator tmp(other);
+      size_t i = 0;
+
+      if (indice_ != other.indice_)
+        return -1;
+
+      if (*this>other)
+        for (; tmp!=*this; i++)
+          ++tmp;
+      
+      if (*this<other)
+        for (; tmp!=*this; i--)
+          --tmp;      
+      
+      return i;
     }
     
-    iterator& operator + (size_t i)
+    const_iterator operator + (size_t i)const
     {
-      p_ += i;
-      return *this;
+      const_iterator tmp(*this);
+
+      for (;i>0; i--)
+        ++tmp;
+      
+      return tmp;
     }
 
-    iterator& operator - (size_t i)
+    const_iterator operator - (size_t i)const
     {
-      p_ -= i;
-      return *this;
+      const_iterator tmp(*this);
+
+      for (;i>0; i--)
+        --tmp;
+      
+      return tmp;
     }
 
   private:
-    const CharT* p_;
+    size_t bi_;//index in bucket
+    size_t ii_;// indice index
+    const INDEX_* indice_;
   };
 
 
   class const_reverse_iterator;
+
   class reverse_iterator :
     public std::iterator<std::forward_iterator_tag, CharT> {
     
   friend class const_reverse_iterator;
   public:
-    reverse_iterator(SelfT* obj=NULL, CharT* p=NULL) : p_(p), obj_(obj) {}
-    ~reverse_iterator() {}
+    reverse_iterator(INDEX_* indice, size_t ii=0 , size_t bi=0 )      
+    {
+      indice_ = indice;
+      ii_ = ii;
+      bi_ = bi;
+    }
 
+
+    ~reverse_iterator() {}
+    
     // The assignment and relational operators are straightforward
     reverse_iterator& operator=(const reverse_iterator& other)
     {
-      p_ = other.p_;
+      ii_ = other.ii_;
+      bi_ = other.bi_;
+      indice_ = other.indice_;
+      
       return(*this);
     }
 
     bool operator==(const reverse_iterator& other)const
     {
-      return(p_ == other.p_);
+      return(indice_ == other.indice_ && ii_ == other.ii_ && bi_ == other.bi_ );
     }
-
+    
     bool operator!=(const reverse_iterator& other)const
     {
-      return(p_ != other.p_);
+      return(indice_ != other.indice_ || ii_ != other.ii_ || bi_ != other.bi_ );
     }
     
     bool operator > (const reverse_iterator& other)const
     {
-      return(p_ < other.p_);
+      return(indice_ == other.indice_ && (ii_ < other.ii_ || ii_==(size_t)-1 && other.ii_!=(size_t)-1)
+        || indice_ == other.indice_ && ii_ == other.ii_ && bi_ < other.bi_ );
     }
-
+    
     bool operator < (const reverse_iterator& other)const
     {
-      return(p_ > other.p_);
+      return(indice_ == other.indice_ && (ii_ > other.ii_ || ii_!=(size_t)-1 && other.ii_==(size_t)-1)
+        || indice_ == other.indice_ && ii_ == other.ii_ && bi_ > other.bi_ );
     }
 
     // Update my state such that I refer to the next element in the
     // SQueue.
     reverse_iterator& operator++()
     {
-      if (p_ != NULL)
+      if (indice_ == NULL)
+        return(*this);
+      
+      if (bi_==0)
       {
-        p_--;
+        if (ii_!=(size_t)-1)
+          ii_--;
         
+        if (ii_==(size_t)-1)
+          return(*this);
+        
+        size_t  lastl = ii_==0? 0: indice_[ii_-1].len_;
+        bi_ = indice_[ii_].len_-indice_[ii_-1].len_ - 1;
       }
+      else
+        bi_--;
+
       return(*this);
     }
 
     reverse_iterator operator++(int)
     {
       reverse_iterator tmp(*this);
-      p_--;
+      if (indice_ == NULL)
+        return(*this);
+      
+      if (bi_==0)
+      {
+        if (ii_!=(size_t)-1)
+          ii_--;
+        
+        if (ii_==(size_t)-1)
+          return(*this);
+        
+        size_t  lastl = ii_==0? 0: indice_[ii_-1].len_;
+        bi_ = indice_[ii_].len_-lastl - 1;
+      }
+      else
+        bi_--;
+
       return(tmp);
     }
     
@@ -423,18 +657,47 @@ public:
     // SQueue.
     reverse_iterator& operator--()
     {
-      if (p_ != NULL)
+      if (indice_ == NULL)
+        return(*this);
+
+      if (ii_==(size_t)-1)
       {
-        p_++;
-        
+        ii_ = 0;
+        bi_ = 0;
+        return(*this);
       }
+
+      bi_++;
+      if (indice_[ii_].bptr_->p_[bi_]=='\0' || bi_>=BUCKET_LENGTH)
+      {
+        bi_ = 0;
+        ii_++;
+      }
+
       return(*this);
     }
 
     reverse_iterator operator--(int)
     {
       reverse_iterator tmp(*this);
-      p_++;
+
+      if (indice_ == NULL)
+        return(*this);
+
+      if (ii_==(size_t)-1)
+      {
+        ii_ = 0;
+        bi_ = 0;
+        return(tmp);
+      }
+
+      bi_++;
+      if (indice_[ii_].bptr_->p_[bi_]=='\0' || bi_>=BUCKET_LENGTH)
+      {
+        bi_ = 0;
+        ii_++;
+      }
+
       return(tmp);
     }
 
@@ -443,46 +706,82 @@ public:
     // node directly.
     CharT& operator*()
     {
-      if (obj_->is_refered())
+      assert(indice_[ii_].bptr_ != NULL);
+      
+      if (indice_[ii_].bptr_->is_refered())
       {
-        uint64_t i = p_ - obj_->str_;
-        (*obj_).assign_self();
-        p_ = obj_->str_ + i;
+        BUCKET_* bu = new_bucket();
+        memcpy(bu, indice_[ii_].bptr_, BUCKET_SIZE);
+        indice_[ii_].bptr_->derefer();
+        indice_[ii_].bptr_ = bu;
+        bu->clear_reference();
       }
 
-      return *p_;
+      return indice_[ii_].bptr_->p_[bi_];
     }
-        
-    iterator& operator + (size_t i)
+    
+    reverse_iterator operator + (size_t i)const
     {
-      p_ -= i;
+      reverse_iterator tmp(*this);
+
+      for (;i>0; i--)
+        --tmp;
+
       return *this;
     }
 
-    iterator& operator - (size_t i)
+    reverse_iterator operator - (size_t i)const
     {
-      p_ += i;
-      return *this;
+      reverse_iterator tmp(*this);
+
+      for (;i>0; i--)
+        ++tmp;
+      
+      return tmp;
     }
 
-    uint64_t operator - (const CharT* s)
+    size_t operator - (const reverse_iterator& other) const
     {
-      return p_ -s;
+      reverse_iterator tmp(other);
+      size_t i = 0;
+
+      if (indice_ != other.indice_)
+        return -1;
+
+      if (*this>other)
+        for (; tmp!=*this; i++)
+          ++tmp;
+      
+      if (*this<other)
+        for (; tmp!=*this; i--)
+          --tmp;      
+      
+      return i;
     }
 
   private:
-    CharT* p_;
-    SelfT* obj_;
+    size_t bi_;//index in bucket
+    size_t ii_;// indice index
+    INDEX_* indice_;
   };
 
   
   class const_reverse_iterator :
     public std::iterator<std::forward_iterator_tag, CharT> {
   public:
-    const_reverse_iterator(const CharT* p=NULL) : p_(p) {}
+    const_reverse_iterator(const INDEX_* indice, size_t ii=0 , size_t bi=0 )
+    {
+      indice_ = indice;
+      ii_ = ii;
+      bi_ = bi;
+    }
+
+
     const_reverse_iterator(const reverse_iterator& other)
     {
-      p_ = other.p_;
+      ii_ = other.ii_;
+      bi_ = other.bi_;
+      indice_ = other.indice_;
     }
     
     ~const_reverse_iterator() {}
@@ -490,46 +789,78 @@ public:
     // The assignment and relational operators are straightforward
     const_reverse_iterator& operator=(const const_reverse_iterator& other)
     {
-      p_ = other.p_;
+      ii_ = other.ii_;
+      bi_ = other.bi_;
+      indice_ = other.indice_;
       return(*this);
     }
 
     bool operator==(const const_reverse_iterator& other) const
     {
-      return(p_ == other.p_);
+      return(indice_ == other.indice_ && ii_ == other.ii_ && bi_ == other.bi_ );
     }
 
     bool operator!=(const const_reverse_iterator& other) const
     {
-      return(p_ != other.p_);
+      return(indice_ != other.indice_ || ii_ != other.ii_ || bi_ != other.bi_ );
     }
     
     bool operator > (const const_reverse_iterator& other)const
     {
-      return(p_ < other.p_);
+      return(indice_ == other.indice_ && (ii_ < other.ii_ || ii_==(size_t)-1 && other.ii_!=(size_t)-1)
+        || indice_ == other.indice_ && ii_ == other.ii_ && bi_ < other.bi_ );
     }
 
     bool operator < (const const_reverse_iterator& other)const
     {
-      return(p_ > other.p_);
+      return(indice_ == other.indice_ && (ii_ > other.ii_ || ii_!=(size_t)-1 && other.ii_==(size_t)-1)
+        || indice_ == other.indice_ && ii_ == other.ii_ && bi_ > other.bi_ );
     }
 
     // Update my state such that I refer to the next element in the
     // SQueue.
     const_reverse_iterator& operator++()
     {
-      if (p_ != NULL)
+      if (indice_ == NULL)
+        return(*this);
+      
+      if (bi_==0)
       {
-        p_--;
+        if (ii_!=(size_t)-1)
+          ii_--;
         
+        if (ii_==(size_t)-1)
+          return(*this);
+        
+        size_t  lastl = ii_==0? 0: indice_[ii_-1].len_;
+        bi_ = indice_[ii_].len_-indice_[ii_-1].len_ - 1;
       }
+      else
+        bi_--;
+
       return(*this);
     }
 
     const_reverse_iterator operator++(int)
     {
       const_reverse_iterator tmp(*this);
-      p_--;
+      if (indice_ == NULL)
+        return(*this);
+      
+      if (bi_==0)
+      {
+        if (ii_!=(size_t)-1)
+          ii_--;
+        
+        if (ii_==(size_t)-1)
+          return(*this);
+        
+        size_t  lastl = ii_==0? 0: indice_[ii_-1].len_;
+        bi_ = indice_[ii_].len_ - lastl - 1;
+      }
+      else
+        bi_--;
+
       return(tmp);
     }
 
@@ -537,18 +868,46 @@ public:
     // SQueue.
     const_reverse_iterator& operator--()
     {
-      if (p_ != NULL)
+      if (indice_ == NULL)
+        return(*this);
+
+      if (ii_==(size_t)-1)
       {
-        p_++;
-        
+        ii_ = 0;
+        bi_ = 0;
+        return(*this);
       }
+
+      bi_++;
+      if (indice_[ii_].bptr_->p_[bi_]=='\0' || bi_>=BUCKET_LENGTH)
+      {
+        bi_ = 0;
+        ii_++;
+      }
+
       return(*this);
     }
 
     const_reverse_iterator operator--(int)
     {
       const_reverse_iterator tmp(*this);
-      p_++;
+      if (indice_ == NULL)
+        return(*this);
+
+      if (ii_==(size_t)-1)
+      {
+        ii_ = 0;
+        bi_ = 0;
+        return(tmp);
+      }
+
+      bi_++;
+      if (indice_[ii_].bptr_->p_[bi_]=='\0' || bi_>=BUCKET_LENGTH)
+      {
+        bi_ = 0;
+        ii_++;
+      }
+
       return(tmp);
     }
 
@@ -557,124 +916,158 @@ public:
     // node directly.
     const CharT& operator*() const
     {
-      return(*p_);
+      return indice_[ii_].bptr_->p_[bi_];
     }
 
-        
-    iterator& operator + (size_t i)
+    
+    const_reverse_iterator operator + (size_t i)const
     {
-      p_ += i;
+      const_reverse_iterator tmp(*this);
+
+      for (;i>0; i--)
+        --tmp;
+
       return *this;
     }
 
-    iterator& operator - (size_t i)
+    const_reverse_iterator
+    operator - (size_t i)const
     {
-      p_ -= i;
-      return *this;
+      const_reverse_iterator tmp(*this);
+
+      for (;i>0; i--)
+        ++tmp;
+      
+      return tmp;
     }
 
-    uint64_t operator - (const CharT* s)
+    size_t operator - (const const_reverse_iterator& other) const
     {
-      return p_ -s;
+      const_reverse_iterator tmp(other);
+      size_t i = 0;
+
+      if (indice_ != other.indice_)
+        return -1;
+
+      if (*this>other)
+        for (; tmp!=*this; i++)
+          ++tmp;
+      
+      if (*this<other)
+        for (; tmp!=*this; i--)
+          --tmp;      
+      
+      return i;
     }
 
   private:
-    const CharT* p_;
+    size_t bi_;//index in bucket
+    size_t ii_;// indice index
+    const INDEX_* indice_;
   };
 
   
 protected:
-  BUCKET_* head_;
   INDEX_* indice_;
   size_t idx_len_;
   size_t idx_size_;
   size_t length_;
 
-  inline bool refer()
+  inline bool refer_all()
   {
     if (!COPY_ON_WRITE)
       return false;
 
     //lock
-    BUCKET_* b = head_;
-    while (b !=NULL)
+    for (size_t i=0; i<idx_len_; i++)
     {
-      b->refer();
-      b = b->next();
+      indice_[i].bptr_->refer();
     }
-
+    
     return true;
   }
 
-  void derefer()
+  inline bool refer(size_t i)
   {
-    hlfree(indice_);
-    indice_ = NULL;
+    if (!COPY_ON_WRITE)
+      return false;
+
+    //lock
+    assert(i<idx_len_);
+    indice_[i].bptr_->refer();
+    
+    return true;
+  }
+
+  void derefer_all()
+  {
+    for (size_t i=0; i<idx_size_; i++)
+      derefer(i);
+        
     idx_len_ = length_ = 0;
+  }
+
+  void derefer(size_t i)
+  {
+    //lock
+    assert(i<idx_size_);
     
     if (!COPY_ON_WRITE)
     {
-      BUCKET_* b = head_;
-      while (b !=NULL)
-      {
-        BUCKET_* t = b->next();
-        hlfree(b);
-        b = t;
-      }
-
-      head_ = NULL;
+      if (indice_[i].bptr_!=NULL)
+        hlfree(indice_[i].bptr_);
+      indice_[i].bptr_  = NULL;
+      indice_[i].len_ = 0;
       return;
     }
+
+    if (indice_[i].bptr_ == NULL)
+      return;
     
-    BUCKET_* b = head_;
-    BUCKET_* last = NULL;
-    while (b !=NULL)
-    {
-      BUCKET_* t = b->next();
-      //lock
-      b->derefer();
-      if (!b->is_refered())
-      {
-        hlfree(b);
-        if (last != NULL)
-        {
-          last->set_next(NULL);
-          last = NULL;
-        }
-      }
-      else
-        last = b;
-      
-      b = t;
-    }
-
-    head_ = NULL;
-  }
-
-  void clear_reference(BUCKET_* b)
-  {
-    if (b == NULL)
-      return;
-
-    clear_reference(lf->next());
-    lf->clear_reference();
+    if (!indice_[i].bptr_->is_refered())
+      hlfree(indice_[i].bptr_);
+    else
+      indice_[i].bptr_->derefer();
+    
+    indice_[i].bptr_ = NULL;
   }
   
-  void clear_reference()
+  void clear_all_reference()
   {     
     if (!COPY_ON_WRITE)
       return ;
 
-        
-    BUCKET_* b = head_;
-    while (b !=NULL)
+    
+    //lock
+    for (size_t i=0; i<idx_len_; i++)
     {
-      //lock
-      b->clear_reference();
-      b = b->next();
+      indice_[i].bptr_->clear_reference();
     }
 
   }
+  
+  void clear_reference(size_t i)
+  {     
+    if (!COPY_ON_WRITE)
+      return ;
+
+    assert(i<idx_size_);
+    
+    //lock
+    indice_[i].bptr_->clear_reference();
+
+  }
+
+  inline void clear_indice(size_t i, size_t n)
+  {
+    for (size_t j=0;j<n;j++)
+    {
+      indice_[i+j].bptr_ = NULL;
+      indice_[i+j].len_ = 0;
+    }
+
+  }
+  
 
   inline size_t getLen(const CharT* s) const
   {
@@ -689,193 +1082,234 @@ protected:
     return i;
   }
 
-  void duplicate(INDEX_** indice, BUCKET_** bu) const
+  static inline BUCKET_* new_bucket()
+  {
+    BUCKET_* bu = (BUCKET_*)hlmalloc(BUCKET_SIZE);
+    bu->clear_reference();
+    return bu;
+  }
+
+  inline BUCKET_* new_bucket(size_t i)const
+  {
+    assert(i<idx_len_ && indice_[i].bptr_!=NULL);
+    
+    BUCKET_* bu = new_bucket();
+    memcpy(bu, indice_[i].bptr_, BUCKET_SIZE);
+    bu->clear_reference();
+    
+    return bu;
+  }
+  
+  void duplicate(size_t i)
+  {  
+    BUCKET_* bu = new_bucket();
+    memcpy(bu, indice_[i].bptr_, BUCKET_SIZE);
+    bu->clear_reference();
+
+    if (COPY_ON_WRITE)
+      derefer(i);
+    
+    indice_[i].bptr_ = bu;
+  }
+  
+  size_t duplicate(INDEX_** indice) const
   {
     *indice = (INDEX_*)hlmalloc(idx_len_*sizeof(INDEX_));
     memcpy (*indice, indice_, idx_len_*sizeof(INDEX_));
-    if (COPY_ON_WRITE)
+
+    for (size_t i=0; i<idx_len_; i++)
     {
-      *bu = head_;
-      return;
+      if (COPY_ON_WRITE)
+      {
+        (*indice)[i].bptr_->refer();
+        continue;
+      }
+
+      BUCKET_* bu = new_bucket();
+      memcpy(bu, (*indice)[i].bptr_, BUCKET_SIZE);
+      (*indice)[i].bptr_ = bu;
     }
 
-    size_t i = 0;
-    BUCKET_* b1 = head_;
-    
-    if (b1!=NULL)
-    {
-      *bu = (BUCKET_*)hlmalloc(BUCKET_SIZE);
-      memcpy(*bu, b1, BUCKET_SIZE);
-      (*indice)[i].bptr_ = *bu;
-      i++;
-      b1 = b1->next();
-    }
-    
-    BUCKET_* last = *bu;
-    
-    while (b1!=NULL)
-    {
-      BUCKET_* t = (BUCKET_*)hlmalloc(BUCKET_SIZE);
-      memcpy(t, b1, BUCKET_SIZE);
-      (*indice)[i].bptr_ = t;
-      last->set_next(t);
-      last = b1;
-      
-      b1 = b1->next();
-      i++;
-    }
 
-    if (head_!=NULL)
-      last->set_next(NULL);
-    
-    
+    return idx_len_;
   }
   
-  size_t binary_search(size_t i, size_t start, size_t end)
+  size_t duplicate(size_t start, size_t n, INDEX_** indice) const
+  {
+    assert(start + n <= length_);
+    
+    size_t s = binary_search(start, 0, idx_len_-1);
+    // std::cout<<start<<" "<<idx_len_<<" "<<s<<std::endl;
+//     display();
+    
+    size_t e = binary_search(start+n-1, s, idx_len_-1);
+    
+    size_t last_s = s==0? 0: indice_[s-1].len_;
+    *indice = (INDEX_*)hlmalloc((e-s+1)*sizeof(INDEX_));
+
+    // if entire bucket
+    if (start-last_s == 0 && COPY_ON_WRITE)
+    {
+      (*indice)[0].bptr_ = indice_[s].bptr_;
+      if (n >= indice_[s].len_-start)
+        (*indice)[0].bptr_->refer();
+      else
+        (*indice)[0].bptr_ = new_bucket(s);
+    }
+    else
+    {
+      (*indice)[0].bptr_ = new_bucket();
+      memcpy((*indice)[0].bptr_->p_, indice_[s].bptr_->p_ + (start-last_s),
+             BUCKET_SIZE-(start-last_s)*sizeof(CharT));
+      (*indice)[0].bptr_->clear_reference();
+    }
+
+    (*indice)[0].len_ = n>indice_[s].len_-start ? indice_[s].len_-start:n;
+    (*(*indice)[0].bptr_)[(*indice)[0].len_] = '\0';
+    last_s = indice_[s].len_;
+    s++;
+    size_t i=1;
+
+    while (s<=e)
+    {
+      if (COPY_ON_WRITE)
+      {
+        (*indice)[i].bptr_ =  indice_[s].bptr_;
+        if (n-(*indice)[i-1].len_ >= indice_[s].len_-last_s)
+          (*indice)[i].bptr_->refer();
+        else
+          (*indice)[i].bptr_ = new_bucket(s);
+      }
+      else
+      {
+        (*indice)[i].bptr_ = new_bucket();
+        memcpy((*indice)[i].bptr_->p_, indice_[s].bptr_->p_,
+               (indice_[s].len_-last_s)*sizeof(CharT));
+        (*indice)[i].bptr_->clear_reference();
+      }
+
+      (*indice)[i].len_ = (*indice)[i-1].len_ +
+        (n-(*indice)[i-1].len_ > indice_[s].len_-last_s ? indice_[s].len_-last_s:n-(*indice)[i-1].len_);
+      (*indice)[i].bptr_->p_[(*indice)[i].len_-(*indice)[i-1].len_] = '\0';
+      last_s = indice_[s].len_;
+      s++;
+      i++;
+      
+    }
+    
+    return i;
+  }
+    
+  size_t binary_search(size_t i, size_t start, size_t end)const
   {
     if (end == start)
       return end;
 
+    assert(start<end);
+    
     size_t mid = (start+end)/2;
-    if (i+1 > indice[mid])
+    if (i+1 > indice_[mid].len_)
       return binary_search(i, mid+1, end);
-    else if (i+1 == indice[mid])
+    else if (mid==0 || i+1 <= indice_[mid].len_ && i+1 > indice_[mid-1].len_  )
       return mid;
-    else if (i+1 < indice[mid])
+    else if (i+1 < indice_[mid].len_)
       return binary_search(i, start, mid-1);
+
+    return -1;
+  }
+
+  bool is_refered(size_t i)
+  {
+    //lock
+    assert(i<idx_size_);
+    
+    if (!COPY_ON_WRITE)
+      return false;
+
+    if (indice_[i].bptr_==NULL)
+      return false;
+    
+    return indice_[i].bptr_->is_refered();
+    
   }
   
-  size_t duplicate(size_t start, size_t n, INDEX_** indice, BUCKET_** bu) const
-  {
-    assert(start + n < length_);
-    
-    size_t i = binary_search(start, 0, idx_len_-1);
-    size_t last_i = i==0? 0: indice_[i-1].len_;
-    if (i-last_i==0)
-    {
-      *bu = indice_[i].bptr_;
-      *bu->refer();
-    }
-    else
-    {
-      *bu = (BUCKET_*)hlmalloc(BUCKET_SIZE);
-      memcpy(*bu, indice_[i].bptr_->p_ + (i-last_i)*sizeof(CharT), BUCKET_SIZE-(i-last_i)*sizeof(CharT));
-      *bu->clear_reference();
-      *bu->set_next(indice_[i].bptr_->next());
-    }
-    
-    size_t e = binary_search(start+n-1, i, idx_len_-1);
-    *indice = (INDEX_*)hlmalloc((e-i+1)*sizeof(INDEX_));
-    memcpy (*indice, indice_ + i, (e-i+1)*sizeof(INDEX_));
-    (*indice)[0].bptr_ = *bu;
-    BUCKET_* b = *bu->next();
-    size_t ii = 1;
-    i++;
-
-    while (i<=e)
-    {
-      assert(b!=NULL);
-
-      if (COPY_ON_WRITE)
-      {
-        (*indice)[ii].bptr_->refer();
-      }
-      else
-      {
-        BUCKET_* t = (BUCKET_*)hlmalloc(BUCKET_SIZE);
-        memcpy(t, indice_[i].bptr_, BUCKET_SIZE);
-        t->clear_reference();
-        (*indice)[ii].bptr_ = t;
-        (*indice)[ii-1].bptr_->set_next(t);
-      }
-
-      b = b->next();
-      i++;
-      ii++;
-    }
-
-    return e-i+1;
-  }
-
 public:
   explicit bbt_string()
   {
     idx_len_ = length_ = 0;
-    head_ = (BUCKET_*)hlmalloc(sizeof(BUCKET_));
     indice_ = (INDEX_*)hlmalloc(BUCKET_LENGTH*sizeof(INDEX_));
-    memset(indice_, BUCKET_LENGTH*sizeof(INDEX_),0);
+    clear_indice(0, BUCKET_LENGTH);
+    
     idx_size_ = BUCKET_LENGTH;
   }
 
   bbt_string ( const SelfT& str )
-  //    :p_(NULL), is_attached_(false),str_(NULL),length_(0),max_size_(0)
   {
-    length_ = 0;
-    root_ =NULL;
-    head_ = NULL;
+    length_ = idx_len_ = idx_size_ = 0;
+    indice_ =NULL;
+    
     assign(str);
   }
   
   bbt_string ( const SelfT& str, size_t pos, size_t n = npos )
   {
-    length_ = 0;
-    root_ =NULL;
-    head_ = NULL;
+    length_ = idx_len_ = idx_size_ = 0;
+    indice_ =NULL;
     assign(str, pos, n);
   }
   
   bbt_string ( const CharT * s, size_t n )
   {
-    length_ = 0;
-    root_ =NULL;
-    head_ = NULL;
+    length_ = idx_len_ = idx_size_ = 0;
+    indice_ =NULL;
+    
     assign(s, n);
   }
   
   bbt_string ( const CharT * s )
   {
-    length_ = 0;
-    root_ =NULL;
-    head_ = NULL;
+    length_ = idx_len_ = idx_size_ = 0;
+    indice_ =NULL;
+    
     assign(s);
   }
   
   bbt_string ( size_t n, CharT c )
   {
-    length_ = 0;
-    root_ =NULL;
-    head_ = NULL;
+    length_ = idx_len_ = idx_size_ = 0;
+    indice_ =NULL;
+    
     assign(n, c);
   }
 
   bbt_string (const std::vector<CharT>& v)
   {
-    length_ = 0;
-    root_ =NULL;
-    head_ = NULL;
+    length_ = idx_len_ = idx_size_ = 0;
+    indice_ =NULL;
+    
     assign(v);
   }
 
   bbt_string (const std::string& str)
   {
-    length_ = 0;
-    root_ =NULL;
-    head_ = NULL;
+    length_ = idx_len_ = idx_size_ = 0;
+    indice_ =NULL;
+    
     assign(str);
   }
   
 
   template<class InputIterator> bbt_string (InputIterator begin, InputIterator end)
   {
-    length_ = 0;
-    root_ =NULL;
-    head_ = NULL;
+    length_ = idx_len_ = idx_size_ = 0;
+    indice_ =NULL;
+    
     assign(begin(), end);
   }
 
   virtual ~bbt_string()
   {
-    derefer();
+    clear();
   }
   
   SelfT& operator= ( const SelfT& str )
@@ -899,42 +1333,56 @@ public:
 
   const_iterator begin() const
   {
-    return const_iterator(str_);
+    return const_iterator(indice_, 0, 0);
   }
 
   iterator begin()
   {
-    return iterator(this, str_);
+    return iterator(indice_, 0, 0);
   }
 
   const_iterator end() const
   {
-    return const_iterator(str_+length_);
+    if (length_==0)
+      return begin();
+    
+    //return const_iterator(indice_, idx_len_-1, length_-(idx_len_-1==0? 0: indice_[idx_len_-2].len_));
+    return const_iterator(indice_, idx_len_, 0);
   }
 
   iterator end()
   {
-    return iterator(this, str_+length_);
+    if (length_==0)
+      return begin();
+
+    //return iterator(indice_, idx_len_-1, length_-(idx_len_-1==0? 0: indice_[idx_len_-2].len_));
+    return iterator(indice_, idx_len_, 0);
   }
 
   reverse_iterator rbegin()
   {
-    return reverse_iterator(this, str_+length_-1);
+    return reverse_iterator(indice_, idx_len_-1, length_-(idx_len_-1==0? 0: indice_[idx_len_-2].len_)-1);
   }
 
   const_reverse_iterator rbegin() const
   {
-    return const_reverse_iterator(str_+length_-1);
+    return const_reverse_iterator(indice_, idx_len_-1, length_-(idx_len_-1==0? 0: indice_[idx_len_-2].len_)-1);
   }
 
   reverse_iterator rend()
   {
-    return reverse_iterator(this, str_-1);
+    if (length_==0)
+      return rbegin();
+    
+    return reverse_iterator(indice_, -1, 0);
   }
 
   const_reverse_iterator rend() const
   {
-    return const_reverse_iterator(str_-1);
+    if (length_==0)
+      return rbegin();
+    
+    return const_reverse_iterator(indice_, -1, 0);
   }
 
 
@@ -951,6 +1399,11 @@ public:
     return length_;
   }
 
+  size_t indice_length() const
+  {
+    return idx_len_;
+  }
+
   size_t max_size ( ) const
   {
     return idx_len_ * BUCKET_LENGTH;
@@ -958,55 +1411,29 @@ public:
 
   void resize (size_t n, CharT c)
   {
-    if (n == length_ && n == max_size())
+    if (n == length_ )
       return;
-
     
-    idx_len_ = n%BUCKET_LENGTH==0? n/BUCKET_LENGTH: n/BUCKET_LENGTH+1;
-    if (n > idx_size_*BUCKET_LENGTH)
+    if (n < length_)
     {
-      idx_size_ = idx_len_;
-      indice_ = (INDEX_*)hlreallocate(indice_, idx_size_);
+      size_t i = binary_search(n-1, 0, idx_len_-1);
+      size_t il = i==0? 0: indice_[i-1].len_;
+      indice_[i].len_ = n;
+
+      duplicate(i);
+      
+      (*indice_[i].bptr_)[n-il]= '\0';
+      
+      for (size_t j=i+1; j<idx_size_; j++)
+        derefer(j);
+      
+      idx_len_ = i+1;
+      length_ = n;
+      
+      return;
     }
 
-    for (size_t i=0; i<idx_len_; i++)
-    {
-      if (indice_[i].bptr_ != NULL )
-      {
-        if(indice_[i].bptr_->is_refered())
-        {
-          BUCKET_* t= indice_[i].bptr_;
-          indice_[i].bptr_ = (BUCKET_*)hlmalloc(BUCKET_SIZE);
-          memcpy(indice_[i].bptr_, t, BUCKET_SIZE);
-          indice_[i].bptr_->clear_reference();
-          t->derefer();
-        }
-
-        if (i==0 && indice_[i].len_==0
-            || i!=0 && indice_[i-1].len_ == indice_[i].len_)
-        {
-          for (size_t k=0; k<BUCKET_LENGTH; k++)
-            indice_[i].bptr_->p_[i] = c;
-          indice_[i].bptr_->p_[BUCKET_LENGTH] = '\0';
-          indice_[i].len_ = BUCKET_LENGTH + (i==0?0: indice_[i-1].len_);
-          length_ += BUCKET_LENGTH;
-        }
-        
-      }
-      else
-      {
-        indice_[i].bptr_ = (BUCKET_*)hlmalloc(BUCKET_SIZE);
-        indice_[i].bptr_->clear_reference();
-        for (size_t k=0; k<BUCKET_LENGTH; k++)
-            indice_[i].bptr_->p_[i] = c;
-          indice_[i].bptr_->p_[BUCKET_LENGTH] = '\0';
-        indice_[i].len_ = BUCKET_LENGTH + (i!=0? indice_[i].len_: 0);
-        length_ += BUCKET_LENGTH;
-      }
-
-      if (i!=0)
-        indice_[i-1].bptr_->set_next(indice_[i].bptr_);
-    }
+    append(n-length_, c);
   }
 
   void resize ( size_t n )
@@ -1014,59 +1441,63 @@ public:
     if (n == max_size())
       return;
 
-    idx_len_ = n%BUCKET_LENGTH==0? n/BUCKET_LENGTH: n/BUCKET_LENGTH+1;
-    if (n > idx_size_*BUCKET_LENGTH)
-    {
-      idx_size_ = idx_len_;
-      indice_ = (INDEX_*)hlreallocate(indice_, idx_size_);
-    }
-
-    for (size_t i=0; i<idx_len_; i++)
-    {
-      if (indice_[i].bptr_ != NULL )
-      {
-        if(indice_[i].bptr_->is_refered())
-        {
-          BUCKET_* t= indice_[i].bptr_;
-          indice_[i].bptr_ = (BUCKET_*)hlmalloc(BUCKET_SIZE);
-          memcpy(indice_[i].bptr_, t, BUCKET_SIZE);
-          indice_[i].bptr_->clear_reference();
-          t->derefer();
-        }
-      }
-      else
-      {
-        indice_[i].bptr_ = (BUCKET_*)hlmalloc(BUCKET_SIZE);
-        indice_[i].bptr_->clear_reference();
-        indice_[i].len_ = BUCKET_LENGTH + (i!=0? indice_[i].len_: 0);
-      }
-
-      if (i!=0)
-        indice_[i-1].bptr_->set_next(indice_[i].bptr_);
-    }
-
-    length_ = n;
-
+    resize(n, 0);
   }
 
   size_t capacity ( ) const
   {
-    return idx_len_ * sizeof(CharT) * BUCKET_LENGTH;
+    size_t i=0;
+    //std::cout<<idx_len_<<"-"<<idx_size_<<std::endl;
+    
+    for (; i<idx_size_; i++)
+      if (indice_[i].bptr_ == NULL)
+        break;
+    
+    return i * sizeof(CharT) * BUCKET_LENGTH;
   }
 
   void reserve ( size_t res_arg=0 )
   {
     if (res_arg<= capacity())
       return;
+    
+    size_t n = res_arg/sizeof(CharT);
+    n = n/BUCKET_LENGTH + (n%BUCKET_LENGTH==0?0:1)-idx_len_;
 
+    assert(n>0);
+
+    if (idx_len_+n > idx_size_){
+      indice_ = (INDEX_*)hlrealloc(indice_, (idx_len_+n)*sizeof(INDEX_));
+      clear_indice(idx_size_, idx_len_+n-idx_size_);
+      idx_size_ = idx_len_+n;
+    }
+
+    for (size_t i=0; i<n; i++)
+    {
+      if (indice_[idx_len_+i].bptr_!=NULL)
+      {
+        if (is_refered(idx_len_+i))
+          derefer(idx_len_+i);
+      }
+      
+
+      if (indice_[idx_len_+i].bptr_ == NULL)
+        indice_[idx_len_+i].bptr_ = new_bucket();
+      
+      indice_[idx_len_+i].len_ = indice_[idx_len_+i-1].len_;
+    }
+
+    //idx_len_ += n;
   }
 
   void clear()
   {
-    derefer();
-    length_ = max_size_ = 0;
-    str_ = NULL;
-    is_attached_ = false;
+    derefer_all();
+    length_ = idx_len_ = idx_size_ = 0;
+
+    if (indice_!=NULL)
+      hlfree(indice_);
+    indice_ = NULL;
   }
 
   bool empty ( ) const
@@ -1079,28 +1510,49 @@ public:
   const CharT& operator[] ( size_t pos ) const
   {
     assert(pos<length_);
-    return str_[pos];
+
+    size_t t = binary_search(pos, 0, idx_len_-1);
+    size_t l = t==0? 0: indice_[t-1].len_;
+
+    return indice_[t].bptr_->p_[pos-l];
   }
   
   CharT& operator[] ( size_t pos )
   {
     assert(pos<length_);
-    assign_self();
-    return str_[pos];
+    
+    size_t t = binary_search(pos, 0, idx_len_-1);
+    if (is_refered(t))
+      duplicate(t);
+
+    size_t l = t==0? 0: indice_[t-1].len_;
+
+    assert(pos>=l);
+
+    return indice_[t].bptr_->p_[pos-l];
     
   }
 
   const CharT& at ( size_t pos ) const
   {
     assert(pos<length_);
-    return str_[pos];
+
+    size_t t = binary_search(pos, 0, idx_len_-1);
+    size_t l = t==0? 0: indice_[t-1].len_;
+
+    return indice_[t].bptr_->p_[pos-l];
   }
   
   CharT& at ( size_t pos )
   {
     assert(pos<length_);
-    assign_self();
-    return str_[pos];
+    size_t t = binary_search(pos, 0, idx_len_-1);
+    if (is_refered(t))
+      duplicate(t);
+
+    size_t l = t==0? 0: indice_[t-1].len_;
+
+    return indice_[t].bptr_->p_[pos-l];
   }
 
   //******************Modifiers********************
@@ -1123,46 +1575,55 @@ public:
 
   SelfT& append ( const SelfT& str )
   {
-    if (!str.length())
+    if (str.length()==0)
       return *this;
 
-    size_t new_len = (size_t)((length_ + str.length()) * append_rate_);
+//     if (idx_len_>0)
+//     {
+//       size_t ei = indice_[idx_len_-1].len_- (idx_len_>1? indice_[idx_len_-2].len_: 0);
+//       if (ei+str.length() <= BUCKET_LENGTH)
+//       {
+    //if (is_refered(idx_len_-1))
+    //    duplicate(idx_len_-1);
+//         for (const_iterator i=str.begin(); i!= str.end();i++, ei++, length_++)
+//           (*indice_[idx_len_-1].bptr_)[ei] = *i;
+//         (*indice_[idx_len_-1].bptr_)[ei] = '\0';
+//         indice_[idx_len_-1].len_ += str.length();
+//         return *this;
+//       }
+//     }
     
-    if (is_refered())
+    //extend indice
+    if (str.indice_length()+idx_len_>idx_size_)
     {
-      char* p = (char*)hlmalloc(get_total_size(new_len));
-      memcpy(p + sizeof(ReferT), str_, size());
-      str_ = (CharT*)(p+sizeof (ReferT));
-      memcpy(str_ + length_, str.str_, str.size());
-      
-      length_ = length_ + str.length();
-      max_size_ = new_len+1;
-      str_[length_] = '\0';
-      
-      derefer();
-      p_ = p;
-      clear_reference();
-
-      return *this;
+      indice_ = (INDEX_*)hlrealloc(indice_, (str.indice_length()+idx_len_)*sizeof(INDEX_));
+      clear_indice(idx_size_, idx_len_+str.indice_length()-idx_size_);
+      idx_size_ = str.indice_length()+idx_len_;
     }
 
-    if (str.length()+length_+1>max_size_)
+    for (size_t j=idx_len_; j<idx_size_;j++)
+      derefer(j);
+    
+    memcpy(indice_+idx_len_, str.indice_, str.indice_length()*sizeof(INDEX_));
+
+    //copy str into
+    for (size_t i=idx_len_; i<idx_len_+str.indice_length(); i++)
     {
-      if (p_!=NULL)
-        p_  = (char*)hlrealloc(p_, get_total_size(new_len));
+      if (COPY_ON_WRITE)
+      {
+        indice_[i].bptr_->refer();
+      }
       else
-        p_  = (char*)hlmalloc(get_total_size(new_len));
-      
-      str_ = (CharT*)(p_ + sizeof (ReferT));
-      max_size_ = new_len+1;
-    }
-    
-    memcpy(str_ + length_, str.str_, str.size());
-    length_ +=  str.length();
-    str_[length_] = '\0';
-    
-    clear_reference();
+      {
+        duplicate(i);
+      }
 
+      indice_[i].len_ += length_;
+    }
+
+    idx_len_ += str.indice_length();
+    length_ += str.length();
+    
     return *this;
   }
   
@@ -1175,42 +1636,54 @@ public:
   {
     if (n == 0)
       return *this;
-    
-    size_t new_len = (size_t)((length_ + n)* append_rate_);
-    
-    if (is_refered())
+
+    size_t k=0;
+    if (idx_len_>0)
     {
-      char* p = (char*)hlmalloc(get_total_size(new_len));
-      memcpy(p + sizeof(ReferT), str_, size());
-      str_ = (CharT*)(p+sizeof (ReferT));
-      memcpy(str_ + length_, s, n * sizeof (CharT));
+      size_t ei = indice_[idx_len_-1].len_- (idx_len_>1? indice_[idx_len_-2].len_: 0)-1;
+      if (ei+1<BUCKET_LENGTH)
+      {
+        if (is_refered(idx_len_-1))
+          duplicate(idx_len_-1);
+        
+        size_t j=ei+1;
+        for (; j<BUCKET_LENGTH && k<n; j++, k++)
+          (*indice_[idx_len_-1].bptr_)[j] = s[k];
+        indice_[idx_len_-1].len_ += k;
+        (*indice_[idx_len_-1].bptr_)[j] = '\0';
+        length_ += k;
+      }
 
-      length_ = length_ + n;
-      max_size_ = new_len+1;
-      str_[length_] = '\0';
-      
-      derefer();
-      p_ = p;
-      clear_reference();
-
-      return *this;
-    }
-
-    if ( n + length_+1 > max_size_)
-    {
-      if (p_!=NULL)
-        p_  = (char*)hlrealloc(p_, get_total_size(new_len));
-      else
-        p_  = (char*)hlmalloc(get_total_size(new_len));
-      str_ = (CharT*)(p_ + sizeof (ReferT));
-      max_size_ = new_len+1;
+      if (k == n)
+        return *this;
     }
     
-    memcpy(str_ + length_, s, n);
-    length_ += n;
-    str_[length_] = '\0';
-    clear_reference();
+    
+    size_t ex = n/BUCKET_LENGTH + (n%BUCKET_LENGTH==0? 0: 1);
+    //extend indice
+    if (ex+idx_len_>idx_size_)
+    {
+      indice_ = (INDEX_*)hlrealloc(indice_, (ex+idx_len_)*sizeof(INDEX_));
+      clear_indice(idx_size_, ex+idx_len_-idx_size_);
+      idx_size_ = ex+idx_len_;
+    }
+    
+    for (size_t j= idx_len_; k<n; j++, idx_len_++)
+    {
+      if (is_refered(j))
+        derefer(j);
+      if (indice_[j].bptr_==NULL)
+        indice_[j].bptr_ = new_bucket();
 
+
+      size_t t=0;
+      for (; t<BUCKET_LENGTH && k<n; k++,t++, length_++)
+        indice_[j].bptr_->p_[t] = s[k];
+
+      indice_[j].bptr_->p_[t] = '\0';
+      indice_[j].len_ = indice_[j-1].len_ + t;
+    }
+    
     return *this;
     
   }
@@ -1225,45 +1698,53 @@ public:
   {
     if (n==0)
       return *this;
-    
-    size_t new_len = (size_t)((length_ + n)* append_rate_);
-    
-    if (is_refered())
+
+    size_t k=0;
+    if (idx_len_>0)
     {
-      char* p = (char*)hlmalloc(get_total_size(new_len));
-      memcpy(p + sizeof(ReferT), str_, size());
-      str_ = (CharT*)(p+sizeof (ReferT));
-      for (size_t i=0; i<n; i++)
-        str_[length_+i] = c;
+      size_t ei = indice_[idx_len_-1].len_- (idx_len_>1? indice_[idx_len_-2].len_: 0)-1;
+      if (ei+1<BUCKET_LENGTH)
+      {
+        if (is_refered(idx_len_-1))
+          duplicate(idx_len_-1);
 
-      length_ = length_ + n;
-      max_size_ = new_len+1;
-      str_[length_] = '\0';
+        size_t j=ei+1;
+        for (; j<BUCKET_LENGTH && k<n; j++, k++)
+          (*indice_[idx_len_-1].bptr_)[j] = c;
       
-      derefer();
-      p_ = p;
-      clear_reference();
+        indice_[idx_len_-1].len_ += k;
+        (*indice_[idx_len_-1].bptr_)[j] = '\0';
+        length_ += k;
+      }
 
-      return *this;
-    }
-
-    if ( n + length_ > max_size_)
-    {
-      if (p_!=NULL)
-        p_  = (char*)hlrealloc(p_, get_total_size(new_len));
-      else
-        p_  = (char*)hlmalloc(get_total_size(new_len));
-      
-      str_ = (CharT*)(p_ + sizeof (ReferT));
+      if (k == n)
+        return *this;
     }
     
-    for (size_t i=0; i<n; i++)
-        str_[length_+i] = c;
-    
-    length_ += n;
-    max_size_ = new_len+1;
-    str_[length_] = '\0';
-    clear_reference();
+    size_t ex = n/BUCKET_LENGTH + (n%BUCKET_LENGTH==0? 0: 1);
+    //extend indice
+    if (ex+idx_len_>idx_size_)
+    {
+      indice_ = (INDEX_*)hlrealloc(indice_, (ex+idx_len_)*sizeof(INDEX_));
+      clear_indice(idx_size_, ex+idx_len_-idx_size_);
+      idx_size_ = ex+idx_len_;
+    }
+
+    for (size_t j= idx_len_; k<n; j++, idx_len_++)
+    {
+      if (is_refered(j))
+        derefer(j);
+      
+      if (indice_[j].bptr_ == NULL)
+        indice_[j].bptr_ = new_bucket();
+
+      size_t t=0;
+      for (;t<BUCKET_LENGTH && k<n; k++,t++,length_++)
+        (*indice_[j].bptr_)[t] = c;
+
+      (*indice_[j].bptr_)[t] = '\0';
+      indice_[j].len_ = (j>0? indice_[j-1].len_:0) + t;
+    }
 
     return *this;
   }
@@ -1282,13 +1763,49 @@ public:
     append(1, c);
   }
 
+  void push_front(const SelfT& str)
+  {
+    size_t ex = str.indice_length();
+    
+    //extend indice
+    if (ex+idx_len_>idx_size_)
+    {
+      indice_ = (INDEX_*)hlrealloc(indice_, (ex+idx_len_)*sizeof(INDEX_));
+      idx_size_ = ex + idx_len_;
+    }
+
+    //shift indice
+    for (size_t i=idx_len_-1; i!=(size_t)-1; i--)
+    {
+      indice_[i].len_ += str.length();
+      indice_[i+ex] = indice_[i];
+    }
+    idx_len_ += ex;
+
+    memcpy(indice_, str.indice_, str.indice_length()*sizeof(INDEX_));
+
+    for (size_t i=0; i<str.indice_length(); i++)
+    {
+      if (COPY_ON_WRITE)
+      {
+        refer(i);
+        continue;
+      }
+
+      duplicate(i);
+    }
+
+    length_ += str.length();
+  }
+  
   SelfT& assign ( const SelfT& str )
   {
-    derefer();
+    clear();
 
-    str.duplicate(&indice_, &head_);
-    refer();
-  
+    idx_size_ = idx_len_ = str.duplicate(&indice_);
+
+    length_ = str.length();
+      
     return *this;
   }
   
@@ -1297,109 +1814,77 @@ public:
     if (n != npos)
       assert(str.length_ >= pos+n);
 
-    derefer();
+    clear();
     
     if (n == npos)
         length_ = str.length_ - pos;
       else
         length_ = n;
     
-    idx_len_ = idx_size_ = duplicate(pos, length_, &indice_, &head_);
+    idx_len_ = idx_size_ = str.duplicate(pos, length_, &indice_);
     
     return *this;
   }
   
   SelfT& assign ( const CharT* s, size_t n )
   {
-    derefer();
+    clear();
 
-    size_t i=0;
-    size_t j=0;
+    idx_len_ = n/BUCKET_LENGTH + (n%BUCKET_LENGTH==0? 0: 1);
+    idx_size_ = idx_len_ > BUCKET_LENGTH? idx_len_: BUCKET_LENGTH;
     length_ = n;
-
-    head_ = (BUCKET_*)hlmalloc(BUCKET_SIZE);
-    indice_[j].len_ = n>BUCKET_LENGTH? BUCKET_LENGTH:n;
-    memcpy(head_->p_, s, indice_[j].len_*sizeof(CharT) );
-    i+= indice_[j].len_;
-
-    idx_size_ = n/BUCKET_LENGTH+1;
+    
     indice_ = (INDEX_*)hlmalloc(idx_size_*sizeof(INDEX_));
-    indice_[j].bptr_ = head_;
-    head_->p_[i] = '\0';
-    j++;
+    clear_indice(0, idx_size_);
 
-    while (i < n)
+    for (size_t i=0; i<idx_len_; i++)
     {
-      BUCKET_* t = (BUCKET_*)hlmalloc(BUCKET_SIZE);
-      indice_[j].len_ = n-i>BUCKET_LENGTH? BUCKET_LENGTH:n-i;
-      memcpy(t->p_, s+i, indice_[j].len_*sizeof(CharT) );
-      t->p_[indice_[j].len_] = '\0';
-      t->clear_reference();
-      t->set_next(NULL);
+      indice_[i].bptr_ = new_bucket();
+      size_t lastl = i==0?0: indice_[i-1].len_;
+      indice_[i].len_ = (n-lastl > BUCKET_LENGTH? BUCKET_LENGTH: n-lastl) + lastl;
       
-      indice_[j-1].bptr_->set_next(t);
-      indice_[j].bptr_ = t;
-      indice_[j].len_ += indice_[j-1].len_;
-
-      i+= BUCKET_LENGTH;
-      j++;
+      memcpy(indice_[i].bptr_->p_, s+lastl, (indice_[i].len_-lastl)*sizeof(CharT));
+      (*indice_[i].bptr_)[indice_[i].len_ - lastl] = '\0';
     }
-
-    idx_len_ = j;
-
+    
     return *this;
   }
 
   SelfT& assign ( const CharT* s )
   {
     assert (s !=NULL);
-    derefer();
+    derefer_all();
     
     length_ = getLen(s);
 
-    return assign(s, n);
+    return assign(s, length_);
   }
 
   SelfT& assign ( size_t n, CharT c )
   {
-    derefer();
+    derefer_all();
     
-    size_t i=0;
-    size_t j=0;
+    idx_len_ = n/BUCKET_LENGTH + (n%BUCKET_LENGTH==0? 0: 1);
+    idx_size_ = idx_len_ > BUCKET_LENGTH? idx_len_: BUCKET_LENGTH;
     length_ = n;
-
-    head_ = (BUCKET_*)hlmalloc(BUCKET_SIZE);
-    indice_[j].len_ = n>BUCKET_LENGTH? BUCKET_LENGTH:n;
-    for (size_t k=0; k<indice_[j].len_; k++)
-      head_->p_[k] = c;
-    i+= indice_[j].len_;
-
-    idx_size_ = n/BUCKET_LENGTH+1;
+    
     indice_ = (INDEX_*)hlmalloc(idx_size_*sizeof(INDEX_));
-    indice_[j].bptr_ = head_;
-    head_->p_[i] = '\0';
-    j++;
+    memset (indice_, 0, idx_size_*sizeof(INDEX_));
 
-    while (i < n)
+    for (size_t i=0; i<idx_len_; i++)
     {
-      BUCKET_* t = (BUCKET_*)hlmalloc(BUCKET_SIZE);
-      indice_[j].len_ = n-i>BUCKET_LENGTH? BUCKET_LENGTH:n-i;
-      for (size_t k=0; k<indice_[j].len_; k++)
-        t_->p_[k] = c;
-      
-      t->p_[indice_[j].len_] = '\0';
-      t->clear_reference();
-      t->set_next(NULL);
-      
-      indice_[j-1].bptr_->set_next(t);
-      indice_[j].bptr_ = t;
-      indice_[j].len_ += indice_[j-1].len_;
+      indice_[i].bptr_ = new_bucket();
+      indice_[i].len_ = n>BUCKET_LENGTH? BUCKET_LENGTH: n;
+      n -= indice_[i].len_;
 
-      i+= BUCKET_LENGTH;
-      j++;
+      for (size_t j=0; j<indice_[i].len_; j++)
+        (*indice_[i].bptr_)[j] = c;
+      
+      indice_[i].bptr_->p_[indice_[i].len_] = '\0';
+      indice_[i].bptr_->clear_reference();
+      if (i>0)
+        indice_[i].len_ += indice_[i-1].len_;
     }
-
-    idx_len_ = j;
     
     return *this;
   }
@@ -1411,13 +1896,13 @@ public:
 
   SelfT& assign (const std::string& str)
   {
-    return assign(str.data(), str.length())
+    return assign(str.data(), str.length());
   }
   
   template <class InputIterator>
   SelfT& assign ( InputIterator first, InputIterator last )
   {
-    derefer();
+    derefer_all();
     InputIterator i=first;
     if (i!=last)
     {
@@ -1436,51 +1921,99 @@ public:
     if (str.length() == 0)
       return *this;
 
-    size_t new_len = (size_t)((length_ + str.length()) * append_rate_);
-    
-    if (is_refered())
+    if (this == &str)
     {
-      char* p = (char*)hlmalloc(get_total_size(new_len));
-      memcpy(p + sizeof(ReferT), str_, (pos1+1)*sizeof(CharT));
-      memcpy(p + sizeof(ReferT) + (pos1+1)*sizeof(CharT), str.str_, str.size());
-      memcpy(p + sizeof(ReferT) + (pos1+1 + str.length())*sizeof(CharT), str_+pos1+1, length_-pos1-1);
-      str_ = (CharT*)(p+sizeof (ReferT));
-      
+      SelfT s = str;
+      return insert(pos1, s);
+    }
 
-      length_ = length_ + str.length();
-      max_size_ = new_len+1;
-      str_[length_] = '\0';
-      
-      derefer();
-      p_ = p;
-      clear_reference();
+    length_ += str.length();
+    size_t s = binary_search(pos1, 0, idx_len_-1);
+    size_t last_s = (s==0? 0: indice_[s-1].len_);
+    size_t ii = pos1-last_s;
 
+    //within one bucket
+    if (str.length() + indice_[s].len_-last_s<=BUCKET_LENGTH)
+    {
+      //std::cout<<str.length()<<" "<<s<<std::endl;
+      //str.display();
+      
+      if (is_refered(s))
+        duplicate(s);
+      BUCKET_* bu = indice_[s].bptr_;
+      
+      for (size_t i = indice_[s].len_-last_s-1; i>ii; i--)
+        (*bu)[i+str.length()] = (*bu)[i];
+      (*bu)[indice_[s].len_-last_s+str.length()]= '\0';
+      
+      for (size_t i = 0; i<str.length(); i++)
+        (*bu)[ii+1+i] = str[i];
+
+      for (size_t i=s; i<idx_len_; i++)
+        indice_[i].len_ += str.length();
+      
       return *this;
     }
 
-    if (p_ == NULL)
-      return assign(str);
-    
-    if (new_len+1 > max_size_)
+    size_t ex = str.indice_length();
+    BUCKET_* tail = NULL;
+    size_t tt = 0;
+
+    //split bucket
+    if (ii+1 < indice_[s].len_-last_s)
     {
-      max_size_ = new_len+1;
+      ex++;
+      //copy head
+      if (is_refered(s))
+        duplicate(s);
+
+      //copy tail
+      tail = new_bucket();
+      memcpy(tail, indice_[s].bptr_->p_+ii+1, (BUCKET_LENGTH - (ii+1))*sizeof(CharT));
+      tail->clear_reference();
+      tt  = indice_[s].len_ - last_s - ii-1;
+      (*tail)[tt] = '\0';
+
+      (*indice_[s].bptr_)[ii+1] = '\0';
+      indice_[s].len_ = last_s + ii + 1;
     }
 
-    char* pp = (char*)hlmalloc(get_total_size(new_len));
-    
-    memcpy(pp + sizeof(ReferT), str_, (pos1+1)*sizeof(CharT));
-    
-    memcpy(pp + sizeof(ReferT) + (pos1+1)*sizeof(CharT), str.str_, str.size());
-    memcpy(pp + sizeof(ReferT) + (pos1+1)*sizeof(CharT)+str.size(), str_+pos1+1, (length_-pos1-1)*sizeof(CharT));
-    
-    length_ += str.length();
-    hlfree(p_);
-    p_ = pp;
-    str_ = (CharT*)(p_ + sizeof (ReferT));
-    str_[length_] = '\0';
-    is_attached_ = false;
-    clear_reference();
-    
+    last_s = indice_[s].len_;
+
+    //extend indice
+    if (ex + idx_len_>idx_size_)
+    {
+      indice_ = (INDEX_*)hlrealloc(indice_, (ex+idx_len_)*sizeof(INDEX_));
+      idx_size_ = ex + idx_len_;
+    }
+
+    //shift indices
+    for (size_t i = idx_len_-1; i>s; i--)
+      indice_[i+ex] = indice_[i];
+    memcpy(indice_+s+1, str.indice_, str.indice_length()*sizeof(INDEX_));
+
+    //copy str into
+    for (size_t i=s+1; i<s+1+str.indice_length(); i++)
+    {
+      if (COPY_ON_WRITE)
+        indice_[i].bptr_->refer();
+      else
+        duplicate(i);
+      
+      indice_[i].len_ += last_s;
+    }
+
+    idx_len_ += ex;
+
+    if (tail!=NULL)
+    {
+      indice_[s+1+str.indice_length()].bptr_ = tail;
+      indice_[s+1+str.indice_length()].len_ = indice_[s+str.indice_length()].len_ + tt;
+    }
+
+    for (size_t i=s+ex+1; i<idx_len_; i++)
+      indice_[i].len_ += str.length();
+
     return *this;
   }
   
@@ -1511,25 +2044,23 @@ public:
   
   iterator insert ( iterator p, CharT c )
   {
-    uint64_t i = p - str_;
-    assign_self();
+    uint64_t i = p - begin();
     insert(i, 1, c);
-    return iterator(str_+i+1);
+    return iterator(begin()+i+1);
   }
   
   void insert ( iterator p, size_t n, CharT c )
   {
-    uint64_t i = p - str_;
-    assign_self();
+    uint64_t i = p - begin();
+    
     insert(i, n, c);
-    return iterator(str_+i+1);
+    return iterator(begin()+i+1);
   }
   
   template<class InputIterator>
   void insert( iterator p, InputIterator first, InputIterator last )
   {
-    uint64_t i = p - str_;
-    assign_self();
+    uint64_t i = p - begin();
     SelfT s;
     s.assign(first, last);
     
@@ -1538,95 +2069,108 @@ public:
 
   SelfT& erase ( size_t pos = 0, size_t n = npos )
   {
-
-    assign_self();
-    
-    if (p_==NULL)
-        return *this;
-
-    if (pos ==0 && n>= length_)
-    {
-      length_ = 0;
-      str_[0]= '\0';
-      
+    if (pos>=length_ || n==0)
       return *this;
-    }
 
-    assert(pos<length_);
-    if (n >= length_ - pos)
-    {
-      length_ = pos;
-      str_[length_]= '\0';
-      return *this;
-    }
-
-      
-    for (size_t i=0; i<length_-n-pos; i++)
-        str_[pos+i] = str_[pos+n+i];
+    if (n == npos)
+      n = length_ -pos;
 
     length_ -= n;
-    str_[length_]= '\0';
-    clear_reference();
+    size_t i = binary_search(pos, 0, idx_len_-1);
+    size_t e = binary_search(pos+n-1, i, idx_len_-1);
+    size_t il = i==0?0 : indice_[i-1].len_;
+    size_t el = e==0?0 : indice_[e-1].len_;
 
+    if (i == e)
+    {
+      if (is_refered(i))
+        duplicate(i);
+
+      size_t j=pos+n-il;
+      for (; j<indice_[i].len_-il;j++ )
+        (*indice_[i].bptr_)[j-n] = (*indice_[i].bptr_)[j];
+      (*indice_[i].bptr_)[j-n] = '\0';
+
+      for (size_t j=i; j<idx_len_; j++)
+        indice_[j].len_ -= n;
+      
+      return *this;
+    }
+
+    size_t si = pos - il;
+    size_t ei = pos+n-1 - el;
+
+    if (si>0)
+    {
+      if (is_refered(i))
+      {
+        duplicate(i);
+      }
+
+      indice_[i].bptr_->p_[si] = '\0';
+      indice_[i].len_ = il + si;
+      i++;
+    }
+
+    if (ei+1 < indice_[e].len_-el)
+    {
+      if (is_refered(i))
+      {
+        duplicate(i);
+      }
+
+      for (size_t j=ei+1; j<indice_[e].len_-el; j++)
+        (*indice_[e].bptr_)[j-ei-1] = (*indice_[e].bptr_)[j];
+      
+      (*indice_[e].bptr_)[indice_[e].len_-el-ei-1-1] = '\0';
+      
+      e--;
+    }
+
+    for (size_t j=i; j<=e; j++)
+        derefer(j);
+
+    for (size_t j=e+1; j<idx_len_; j++)
+      indice_[j].len_ -= n;
+
+    for (size_t j=e+1; j<idx_len_; j++)
+    {
+      indice_[j - (e-i+1)] = indice_[j];
+      indice_[j].bptr_ = NULL;
+    }
+
+    idx_len_ -= (e-i+1);
+    
     return *this;
   }
   
   iterator erase ( iterator position )
   {
-    uint64_t i = position - str_;
+    size_t i = position - begin();
     erase(i, 1);
-    return iterator(str_+i);
+    return iterator(begin()+i);
   }
   
   iterator erase ( iterator first, iterator last )
   {
-    uint64_t i = first - str_;
-    uint64_t j = last - str_;
+    uint64_t i = first - begin();
+    uint64_t j = last - begin();
     erase(i, j-i);
-    return iterator(str_+i);
+    return iterator(begin()+i);
   }
   
 
   SelfT& replace ( size_t pos1, size_t n1,   const SelfT& str )
   {
-    if (str.length() == 0)
-    {
-      erase(pos1, n1);
-      return *this;
-    }
+    erase(pos1, n1);
 
-    size_t new_len = length_-n1+str.length();
-    
-    if (is_refered())
-    {
-      char* p = (char*)hlmalloc(get_total_size(new_len));
-      memcpy(p + sizeof(ReferT), str_, pos1*sizeof(CharT));
-      memcpy(p + sizeof(ReferT) + pos1*sizeof(CharT), str.str_, str.size());
-      memcpy(p + sizeof(ReferT) + (pos1 + str.length())*sizeof(CharT), str_+pos1+n1, length_-pos1-n1);
-      str_ = (CharT*)(p+sizeof (ReferT));
-      
-
-      length_ = length_ -n1 + str.length();
-      max_size_ = new_len+1;
-      str_[length_]= '\0';
-      
-      derefer();
-      p_ = p;
-      clear_reference();
-
-      return *this;
-    }
-
-    if (p_==NULL)
+    if (str.length()==0)
       return *this;
 
-    memcpy(str_ + pos1, str.str_, str.size());
-    for (size_t i=0; i<length_-n1 -pos1; i++)
-      str_[pos1+str.length() + i] = str_[pos1+n1+i];
-    
-    length_ = new_len;
-    str_[length_]= '\0';
-    clear_reference();
+    if (pos1>1)
+      insert(pos1-1, str);
+    else
+      push_front(str);
     
     return *this;
   }
@@ -1634,8 +2178,8 @@ public:
   SelfT& replace ( iterator i1, iterator i2, const SelfT& str )
   {
     assert(i1<=i2);
-    uint64_t i = i1 - str_;
-    uint64_t j = i2 - str_;
+    uint64_t i = i1 - begin();
+    uint64_t j = i2 - begin();
     return replace(i, j-i+1, str);
   }
 
@@ -1655,8 +2199,8 @@ public:
   SelfT& replace ( iterator i1, iterator i2, const CharT* s, size_t n2 )
   {
     assert(i1<=i2);
-    uint64_t i = i1 - str_;
-    uint64_t j = i2 - str_;
+    uint64_t i = i1 - begin();
+    uint64_t j = i2 - begin();
     return replace(i, j-i+1, s, n2);
   }
   
@@ -1671,8 +2215,8 @@ public:
   SelfT& replace ( iterator i1, iterator i2, const CharT* s )
   {
     assert(i1<=i2);
-    uint64_t i = i1 - str_;
-    uint64_t j = i2 - str_;
+    uint64_t i = i1 - begin();
+    uint64_t j = i2 - begin();
     return replace(i, j-i+1, s);
   }
 
@@ -1685,8 +2229,9 @@ public:
   SelfT& replace ( iterator i1, iterator i2, size_t n2, CharT c )
   {
     assert(i1<=i2);
-    uint64_t i = i1 - str_;
-    uint64_t j = i2 - str_;
+    uint64_t i = i1 - begin();
+    uint64_t j = i2 - begin();
+    
     return replace(i, j-i+1, n2, c);
   }
   
@@ -1695,8 +2240,8 @@ public:
   SelfT& replace ( iterator i1, iterator i2, InputIterator j1, InputIterator j2 )
   {
     assert(i1<=i2);
-    uint64_t i = i1 - str_;
-    uint64_t j = i2 - str_;
+    uint64_t i = i1 - begin();
+    uint64_t j = i2 - begin();
     SelfT s1 = substr(i, j-i+1);
     SelfT s2 = substr(j+1);
     assign(s1);
@@ -1708,10 +2253,37 @@ public:
 
   size_t copy ( CharT* s, size_t n, size_t pos = 0) const
   {
-    size_t len = pos+n>length_? length_-pos : n;
-    memcpy(s, str_+pos, len*sizeof(CharT));
+    if (pos + n >= length_)
+      n = length_-pos;
+    
+    size_t i = binary_search(pos, 0, idx_len_-1);
+    size_t e = binary_search(pos+n-1, i, idx_len_-1);
+    size_t il = i==0?0 : indice_[i-1].len_;
+    size_t si = pos - il;
 
-    return len;
+    if (e == i)
+    {
+      for (size_t j=0; j<n; j++)
+      {
+        s[j] = indice_[i].bptr_->p_[j+si];
+      }
+      
+      return n;
+
+    }
+
+    for (size_t j=i,k=0; j<=e; j++)
+    {
+      size_t t = 0;
+      if (j==i)
+        t = si;
+
+      for (; indice_[i].bptr_->p_[t]!='\0' && k<n; t++,k++)
+          s[k] = indice_[j].bptr_->p_[t];
+      
+    }
+    
+    return n;
   }
 
   void swap ( SelfT& str )
@@ -1720,71 +2292,9 @@ public:
     str = *this;
     *this = s;
   }
-  
-  SelfT& attach(CharT* s)
-  {
-    derefer();
-    if (COPY_ON_WRITE)
-    {
-      is_attached_ = true;
-      max_size_ = length_ = getLen(s);
-      p_ = NULL;
-      str_ = s;
-    }
-    else
-    {
-      max_size_ = length_ = getLen(s);
-      p_ = (char*)hlmalloc(get_total_size(length_));
-      str_ = (CharT*)(p_ + sizeof (ReferT));
-      is_attached_ = false;
-      clear_reference();
-      memcpy(str_, s, length_*sizeof(CharT));
-    }
-
-    return *this;
-  }
-
-  SelfT& attach(CharT* s, size_t n)
-  {    
-    derefer();
-    if (COPY_ON_WRITE)
-    {
-      is_attached_ = true;
-      max_size_ = length_ = n;
-      p_ = NULL;
-      str_ = s;
-    }
-    else
-    {
-      max_size_ = length_ = n;
-      p_ = (char*)hlmalloc(get_total_size(length_));
-      str_ = (CharT*)(p_ + sizeof (ReferT));
-      is_attached_ = false;
-      clear_reference();
-      memcpy(str_, s, length_*sizeof(CharT));      
-    }
-
-    return *this;
-  }
 
   //******************String operations********************
 public:
-  const CharT* c_str ( ) const
-  {
-    assert(length_<=max_size_);
-    
-    if (str_[length_] == '\0')
-      return str_;
-
-    assert(is_refered());
-    assign_self();
-    return str_;
-  }
-
-  const CharT* data() const
-  {
-    return str_;
-  }
 
   size_t find ( const SelfT& str, size_t pos = 0 ) const
   {
@@ -1813,9 +2323,12 @@ public:
   
   size_t find ( CharT c, size_t pos = 0 ) const
   {
-    for (size_t i =pos; i<length_; i++)
-      if (str_[i]==c)
-        return i;
+    size_t r = 0;
+    
+    for (const_iterator i =begin()+pos; i<end(); i++, r++)
+      if (*i==c)
+        return r+pos;
+    
     return -1;
   }
 
@@ -1847,9 +2360,15 @@ public:
   size_t rfind ( CharT c, size_t pos = npos ) const
   {
     assert(pos == npos || pos<length_);
-    for (size_t i = (pos!=npos? pos+1: npos); i!=-1; i--)
-      if (str_[i] == c)
-        return i;
+
+    if (pos == npos)
+      pos = length_ -1;
+    
+    size_t r = pos;
+    for (const_reverse_iterator i =rbegin()+(length_-1-pos); i<rend(); i++, r--)
+      if (*i==c)
+        return r;
+    
     return -1;
   }
 
@@ -1883,18 +2402,20 @@ public:
 
   int compare ( const SelfT& str ) const
   {
-    size_t i=0;
-    for (; i<length_ && i<str.length(); i++)
+    const_iterator i=str.begin();
+    const_iterator j=begin();
+    for (; i!=str.end() && j!=end(); i++,j++)
     {
-      if (str_[i]>str[i])
+      if (*j>*i)
         return 1;
-      if (str_[i]<str[i])
+      if (*j<*i)
         return -1;
     }
 
-    if (i==length_ && i==str.length())
+    if (i==str.end() && j==end())
       return 0;
-    if (i== length_)
+    
+    if (j== end())
       return -1;
 
     return 1;
@@ -1905,11 +2426,14 @@ public:
     size_t len = getLen(s);
     
     size_t i=0;
-    for (; i<length_ && i<len; i++)
+    const_iterator it = begin();
+    
+    for (; it!=end() && i<len; i++, it++)
     {
-      if (str_[i]>s[i])
+      //std::cout<<*it<<"  "<<s[i]<<std::endl;
+      if (*it>s[i])
         return 1;
-      if (str_[i]<s[i])
+      if (*it<s[i])
         return -1;
     }
 
@@ -1938,8 +2462,7 @@ public:
   
   int compare ( size_t pos1, size_t n1, const CharT* s, size_t n2) const
   {
-    SelfT str;
-    str.attach(s, n2);
+    SelfT str(s, n2);
     return substr(*this, pos1, n1).compare(str);
   }
 
@@ -1947,15 +2470,20 @@ public:
   {
     std::vector<CharT> v;
     v.resize(length_);
-    for (size_t i =0; i<length_; i++)
-      v.push_back(str_[i]);
+    for (const_iterator i =begin();i!=end(); i++)
+      v.push_back(*i);
 
     return v;
   }
   
   std::string cast_std_string()
   {
-    return std::string((char*)str_, size());
+    std::string v;
+    v.reserve(length_);
+    for (const_iterator i =begin();i!=end(); i++)
+      v += (*i);
+
+    return v;
 
   }
 
@@ -1968,35 +2496,52 @@ public:
   void save(Archive & ar, const unsigned int version)  const
   {
     ar & length_;
-    ar & max_size_;
-    
-    ar.save_binary(str_, max_size_*sizeof(CharT));
+    ar & idx_len_;
+    ar & idx_size_;
+
+    for (size_t i=0; i<idx_len_; i++)
+    {
+      ar & indice_[i].len_;
+      ar.save_binary(indice_[i].bptr_, BUCKET_SIZE);
+    }
   }
 
   template<class Archive>
   void load(Archive & ar, const unsigned int version)
   {
-    derefer();
+    clear();
     
     ar & length_;
-    ar & max_size_;
+    ar & idx_len_;
+    ar & idx_size_;
+
+    indice_ = (INDEX_*)hlmalloc(idx_size_*sizeof(INDEX_));
+    clear_indice(0, idx_size_);
     
-    p_ = (char*)hlmalloc(get_total_size( max_size_-1));
-    str_ = (CharT*)(p_ + sizeof (ReferT));
-    is_attached_ = false;
-    
-    ar.load_binary(str_, max_size_);
-    clear_reference();
+    for (size_t i=0; i<idx_len_; i++)
+    {
+      ar & indice_[i].len_;
+      indice_[i].bptr_ = new_bucket();
+      ar.load_binary(indice_[i].bptr_, BUCKET_SIZE);
+    }
   }
 
   BOOST_SERIALIZATION_SPLIT_MEMBER()
 
 friend std::ostream& operator << (std::ostream& os, const SelfT& str)
   {
-    for (size_t i =0; i<str.length_; i++)
-      os<<str.str_[i];
+    for (const_iterator i =str.begin(); i!=str.end(); i++)
+      os<<*i;
 
     return os;
+  }
+
+  void display() const
+  {
+    for (size_t i=0; i<idx_len_; i++)
+    {
+      std::cout<<indice_[i]<<std::endl;
+    }
   }
   
 }
@@ -2005,9 +2550,9 @@ friend std::ostream& operator << (std::ostream& os, const SelfT& str)
 template <
   class CHAR_TYPE ,
   int COPY_ON_WRITE,
-  uint8_t APPEND_RATE
+  uint64_t BUCKET_BYTES
   >
-const size_t bbt_string<CHAR_TYPE ,COPY_ON_WRITE, APPEND_RATE>::npos = -1;
+const size_t bbt_string<CHAR_TYPE ,COPY_ON_WRITE, BUCKET_BYTES>::npos = -1;
 
 NS_IZENELIB_AM_END
 #endif

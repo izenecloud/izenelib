@@ -2,8 +2,11 @@ PROJECT(febird)
 
 file(GLOB_RECURSE FEBIRD_SOURCE "io/*.cpp")
 
+find_package (BZip2 REQUIRED)
+
 include_directories ( 
 		${izenelib_SOURCE_DIR}/include/3rdparty/febird/io
+        ${BZIP2_INCLUDE_DIR}
 		)
 # This section build the libraries
 set(CPP "${FEBIRD_SOURCE}")
@@ -18,6 +21,7 @@ SET_TARGET_PROPERTIES(febird_shared
 				COMPILE_FLAGS ${CXXFLAGS} 
 #COMPILE_DEFINITIONS_DEBUG "-g" 
 				)
+TARGET_LINK_LIBRARIES(febird_shared ${BZIP2_LIBRARIES})
 
 SET_TARGET_PROPERTIES(febird_shared PROPERTIES CLEAN_DIRECT_OUTPUT 1)
 
@@ -29,5 +33,6 @@ SET_TARGET_PROPERTIES(febird_static
 #COMPILE_DEFINITIONS_DEBUG "-g" 
 				)
 SET_TARGET_PROPERTIES(febird_static PROPERTIES CLEAN_DIRECT_OUTPUT 1)
+TARGET_LINK_LIBRARIES(febird_static ${BZIP2_LIBRARIES})
 
 

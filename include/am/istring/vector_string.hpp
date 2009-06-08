@@ -44,6 +44,7 @@ public:
     // The assignment and relational operators are straightforward
     iterator& operator = (const iterator& other)
     {
+      obj_ = other.obj_;
       p_ = other.p_;
       return(*this);
     }
@@ -121,16 +122,18 @@ public:
       return(*p_);
     }
     
-    iterator& operator + (size_t i)
+    iterator operator + (size_t i)const
     {
-      p_ += i;
-      return *this;
+      iterator tmp(*this);
+      tmp.p_ += i;
+      return tmp;
     }
 
-    iterator& operator - (size_t i)
+    iterator operator - (size_t i)const
     {
-      p_ -= i;
-      return *this;
+      iterator tmp(*this);
+      tmp.p_ -= i;
+      return tmp;
     }
 
     uint64_t operator - (const CharT* s) const
@@ -235,21 +238,24 @@ public:
       return(*p_);
     }
     
-    uint64_t operator - (const CharT* s) const
+    size_t operator - (const CharT* s) const
     {
       return p_ -s;
     }
     
-    iterator& operator + (size_t i)
+    const_iterator operator + (size_t i)const
     {
-      p_ += i;
-      return *this;
+      const_iterator tmp(*this);
+      tmp.p_ += i;
+      
+      return tmp;
     }
 
-    iterator& operator - (size_t i)
+    const_iterator operator - (size_t i)const
     {
-      p_ -= i;
-      return *this;
+      const_iterator tmp(*this);
+      tmp.p_ -= i;
+      return tmp;
     }
 
   private:
@@ -346,16 +352,20 @@ public:
       return *p_;
     }
         
-    iterator& operator + (size_t i)
+    reverse_iterator operator + (size_t i)
     {
-      p_ -= i;
-      return *this;
+      reverse_iterator tmp(*this);
+      
+      tmp.p_ -= i;
+      
+      return tmp;
     }
 
-    iterator& operator - (size_t i)
+    reverse_iterator operator - (size_t i)
     {
-      p_ += i;
-      return *this;
+      reverse_iterator tmp(*this);
+      tmp.p_ += i;
+      return tmp;
     }
 
     uint64_t operator - (const CharT* s)
@@ -454,16 +464,18 @@ public:
     }
 
         
-    iterator& operator + (size_t i)
+    const_reverse_iterator operator + (size_t i)
     {
-      p_ += i;
-      return *this;
+      const_reverse_iterator tmp(*this);
+      tmp.p_ += i;
+      return tmp;
     }
 
-    iterator& operator - (size_t i)
+    const_reverse_iterator operator - (size_t i)
     {
-      p_ -= i;
-      return *this;
+      const_reverse_iterator tmp(*this);
+      tmp.p_ -= i;
+      return tmp;
     }
 
     uint64_t operator - (const CharT* s)
@@ -1070,8 +1082,9 @@ public:
       for (size_t i=0; i<n; i++)
         str_[length_+i] = c;
 
-      length_ = length_ + n;
+      length_ += n;
       max_size_ = new_len+1;
+      
       str_[length_] = '\0';
       
       derefer();
@@ -1081,7 +1094,7 @@ public:
       return *this;
     }
 
-    if ( n + length_ > max_size_)
+    if ( n + length_+1 > max_size_)
     {
       if (p_!=NULL)
         p_  = (char*)hlrealloc(p_, get_total_size(new_len));
@@ -1089,13 +1102,14 @@ public:
         p_  = (char*)hlmalloc(get_total_size(new_len));
       
       str_ = (CharT*)(p_ + sizeof (ReferT));
+      max_size_ = new_len+1;
     }
     
     for (size_t i=0; i<n; i++)
         str_[length_+i] = c;
     
     length_ += n;
-    max_size_ = new_len+1;
+    
     str_[length_] = '\0';
     clear_reference();
 

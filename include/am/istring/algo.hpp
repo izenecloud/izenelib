@@ -717,19 +717,19 @@ public:
     StringT s;
     s.reserve(str.length());
     
-    size_t i;
+    typename StringT::iterator i;
     int count = 0;
     
-    for (i = 0; i < str.length(); i++)
+    for (i = str.begin(); i < str.end(); i++)
     {
-      if (str[i] == c)
+      if (*i == c)
       {
         if (count > 0);
         else s += c;
         count++;
       }
       else {
-        s += str[i];
+        s += *i;
         count = 0;
       }
     }
