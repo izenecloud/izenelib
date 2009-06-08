@@ -21,20 +21,22 @@ const int archive_flags = archive::no_header | archive::no_codecvt;
 template<typename T> class izene_serialization_boost {
 	size_t size_;
 	izene_streambuf b;
-       ostream ostr;
+	ostream ostr;
 
 public:
-	izene_serialization_boost(const T& dat) :ostr(&b){
+	izene_serialization_boost(const T& dat) :
+		ostr(&b) {
 		{
 			boost::archive::binary_oarchive oa(ostr, archive_flags);
 			oa & dat;
 		}
 		size_ = ((izene_streambuf *)ostr.rdbuf() )->size();
 	}
-	~izene_serialization_boost(){}
+	~izene_serialization_boost() {
+	}
 	void write_image(char * &ptr, size_t& size) {
 		ptr = ((izene_streambuf *)ostr.rdbuf() )->data();
-		
+
 		size = size_;
 	}
 };
@@ -43,10 +45,9 @@ template<typename T> class izene_deserialization_boost {
 	stringbuf b;
 	istream istr;
 public:
-	izene_deserialization_boost(const char* ptr, const size_t size) 
-		:istr(&b) 
-	{
-		istr.rdbuf()->pubsetbuf((char* )ptr,size);
+	izene_deserialization_boost(const char* ptr, const size_t size) :
+		istr(&b) {
+		istr.rdbuf()->pubsetbuf((char* )ptr, size);
 	}
 	void read_image(T& dat) {
 		boost::archive::binary_iarchive ia(istr, archive_flags);

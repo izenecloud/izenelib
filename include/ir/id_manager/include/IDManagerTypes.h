@@ -10,11 +10,13 @@
 
 #include <vector>
 #include <list>
+#include <cstddef>
 #include <am/util/Wrapper.h>
 #include <sdb/SequentialDB.h>
 #include <wiselib/ustring/UString.h>
 #include <am/tokyo_cabinet/tc_hash.h>
 //#include <am/trie/b_trie.hpp>
+using namespace std;
 
 namespace idmanager {
 
@@ -59,7 +61,53 @@ template<typename NameID> struct IDHook {
 
 }
 
+using namespace idmanager;
 
+MAKE_MEMCPY_SERIALIZATION(NameHook<wiselib::UString>);
+
+//for pod types
+MAKE_MEMCPY_TYPE(IDHook<unsigned int> );
+
+NS_IZENELIB_UTIL_BEGIN
+
+
+template<> inline void read_image_memcpy<NameHook<wiselib::UString> >(NameHook<wiselib::UString>& dat, const char* str, const size_t size) {
+	char* p = (char*)str;
+	memcpy(&dat.collId, p, sizeof(unsigned int));
+	p += sizeof(unsigned int);			
+	read_image_memcpy(dat.docName, p, size-sizeof(unsigned int));
+}
+
+template<> inline void write_image_memcpy<NameHook<wiselib::UString> >(const NameHook<wiselib::UString>& dat, char* &str,
+		size_t &size){
+	char* uptr;
+	size_t usz;
+	
+	write_image_memcpy(dat.docName, uptr, usz);
+	
+	size = sizeof(unsigned int) + usz;
+	str = new char[size];	
+	
+	char *p = str;	
+	memcpy(p, &dat.collId, sizeof(unsigned int) );
+	p += sizeof(unsigned int);
+	memcpy(p, uptr, usz);
+	
+	delete uptr;
+	uptr = 0;
+	
+	//test read_image, write_image.
+	/*NameHook<wiselib::UString> dat1;
+	read_image_memcpy(dat1, str, size);
+	assert(dat.compare(dat1) == 0);
+	cout<<dat1.collId<<endl;*/
+	
+}
+
+
+NS_IZENELIB_UTIL_END
+
+/*
 BEGIN_SERIALIZATION
 
 using namespace idmanager;
@@ -106,5 +154,6 @@ template<> inline void write_image<IDHook<unsigned int> >(const IDHook<unsigned 
 }
 
 END_SERIALIZATION
+*/
 
 #endif /*IDMANAGERTYPES_H_*/
