@@ -19,7 +19,7 @@ public:
 	izene_serialization_febird(const T& dat) {
 		oa & dat;
 	}
-	void write_image(char* &ptr, size_t& size) {		
+	void write_image(char* &ptr, unsigned int& size) {		
 		ptr = (char*)oa.getStream()->begin();
 		size = oa.getStream()->tell();
 	}

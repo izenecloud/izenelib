@@ -2,12 +2,12 @@
 #define IZENE_TYPE_TRAITS_H_
 
 #include <types.h>
-
 #include <vector>
 #include <string>
 #include <boost/type_traits.hpp>
 
 using namespace boost;
+
 
 NS_IZENELIB_UTIL_BEGIN
 
