@@ -18,6 +18,7 @@
 #include <algorithm> // std::swap
 
 #include <cstdlib> // malloc, free
+#include <cstring> // memcpy
 
 #include "system_pool.hpp"
 
@@ -106,7 +107,7 @@ public:
 
 	static void* BOOST_MEMORY_CALL allocate(size_t cb, destructor_t fn, LPCSTR szFile, int nLine)
 		{ return _malloc_dbg(cb, _NORMAL_BLOCK, szFile, nLine); }
-	
+
 	static void* BOOST_MEMORY_CALL allocate(size_t cb, int fnZero, LPCSTR szFile, int nLine)
 		{ return _malloc_dbg(cb, _NORMAL_BLOCK, szFile, nLine); }
 
