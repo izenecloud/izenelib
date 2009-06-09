@@ -43,7 +43,7 @@ template<typename KeyType, typename ValueType=NullType, typename LockType=NullLo
 : public AccessMethod<KeyType, ValueType, LockType, Alloc>
 {
 public:
-	typedef sdb_node<KeyType, ValueType, LockType, Alloc> sdb_node;
+	typedef sdb_node_<KeyType, ValueType, LockType, Alloc> sdb_node;
 	typedef DataType<KeyType,ValueType> DataType;
 	typedef std::pair<sdb_node*, size_t> SDBCursor;
 public:
@@ -690,7 +690,7 @@ template<typename KeyType, typename ValueType, typename LockType,
 }
 
 template<typename KeyType, typename ValueType, typename LockType,
-		typename Alloc> sdb_node<KeyType, ValueType, LockType, Alloc>* sdb_btree<
+		typename Alloc> sdb_node_<KeyType, ValueType, LockType, Alloc>* sdb_btree<
 		KeyType, ValueType, LockType, Alloc>::_merge(sdb_node* &parent,
 		size_t objNo) {
 	//cout<<"befor merge...\n";
@@ -1258,7 +1258,7 @@ template<typename KeyType, typename ValueType, typename LockType,
 		_sfh.display();
 #endif
 
-		sdb_node::sdb_node::initialize(_sfh.pageSize, _sfh.maxKeys);;
+		sdb_node::initialize(_sfh.pageSize, _sfh.maxKeys);;
 
 		_sfh.toFile(_dataFile);
 
@@ -1291,7 +1291,7 @@ template<typename KeyType, typename ValueType, typename LockType,
 		_sfh.display();
 #endif
 
-		sdb_node::sdb_node::initialize(_sfh.pageSize, _sfh.maxKeys);;
+		sdb_node::initialize(_sfh.pageSize, _sfh.maxKeys);;
 
 		_root = new sdb_node;
 		_root->fpos = _sfh.rootPos;
