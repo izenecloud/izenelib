@@ -20,6 +20,8 @@
 #include "IDFactoryException.h"
 #include "IDFactoryErrorString.h"
 
+NS_IZENELIB_IR_BEGIN
+
 namespace idmanager {
 
 template <typename NameString, typename NameID,
@@ -241,6 +243,8 @@ template <typename NameString, typename NameID, typename LockType> bool IDFactor
 
 
 }
-// end - namespace sf1v5
+// end - namespace idmanager
+
+NS_IZENELIB_IR_END
 
 #endif // #ifndef _ID_FACTORY_H_

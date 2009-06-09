@@ -32,14 +32,14 @@
 
 #include <boost/test/unit_test.hpp>
 
-#include <CollectionIdManager.h>
-#include <DocIdManager.h>
+#include <ir/id_manager/CollectionIdManager.h>
+#include <ir/id_manager/DocIdManager.h>
 #include <wiselib/ustring/UString.h>
 
 using namespace std;
 using namespace wiselib;
 using namespace boost::unit_test;
-using namespace idmanager;
+using namespace izenelib::ir::idmanager;
 
 /**
  * @brief DocIdManagerFixture is used to test DocIdManager. It loads collection and document names from text file to build termStringLists.

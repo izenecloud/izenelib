@@ -49,12 +49,12 @@
 #include <boost/test/unit_test.hpp>
 #include <wiselib/ustring/UString.h>
 
-#include <IDManager.h>
+#include <ir/id_manager/IDManager.h>
 
 using namespace std;
 using namespace wiselib;
 using namespace boost::unit_test;
-using namespace idmanager;
+using namespace izenelib::ir::idmanager;
 
 /**
  * @brief IDManagerFixture is used to test IDManager. It loads terms from text file to build termStringLists.

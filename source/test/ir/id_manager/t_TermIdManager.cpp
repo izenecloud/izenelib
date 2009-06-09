@@ -22,13 +22,13 @@
 #include <set>
 
 #include <boost/test/unit_test.hpp>
-#include <TermIdManager.h>
+#include <ir/id_manager/TermIdManager.h>
 #include <wiselib/ustring/UString.h>
 
 using namespace std;
 using namespace wiselib;
 using namespace boost::unit_test;
-using namespace idmanager;
+using namespace izenelib::ir::idmanager;
 
 /**
  * @brief TermIdManager<UString, unsigned int>Fixture is used to test TermIdManager<UString, unsigned int>. It loads terms from text file to build termStringLists.

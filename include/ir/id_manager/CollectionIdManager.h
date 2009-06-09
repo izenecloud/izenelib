@@ -14,6 +14,7 @@
 /**
  * @brief a class to generate, serve, and manage all about of the collection id. 
  */
+NS_IZENELIB_IR_BEGIN
 
 namespace idmanager {
 
@@ -101,6 +102,8 @@ template<typename NameString, typename NameID> void CollectionIdManager<
 } // end - displaySDBList()
 
 
-} // end - namespace sf1v5 
+} // end - namespace idmanager 
+
+NS_IZENELIB_IR_END
 
 #endif // _COLLECTION_ID_MANAGER_

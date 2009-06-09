@@ -6,8 +6,9 @@
 #ifndef _ID_FACTORY_ERROR_STRING_H_
 #define _ID_FACTORY_ERROR_STRING_H_
 
-namespace idmanager
-{
+NS_IZENELIB_IR_BEGIN
+
+namespace idmanager{
 
     /// @brief list of the error code of the DocumentFactory
     enum _id_factory_error_code
@@ -32,6 +33,9 @@ namespace idmanager
         "Value is incorrect"
     };
 
-} // end - namespace sf1v5
+} // end - namespace idmanager
+
+NS_IZENELIB_IR_END
+
 #endif
 

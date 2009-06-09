@@ -32,13 +32,13 @@
 #include <boost/test/unit_test.hpp>
 #include <wiselib/ustring/UString.h>
 
-#include <CollectionIdManager.h>
+#include <ir/id_manager/CollectionIdManager.h>
 #include <algorithm>
 
 using namespace std;
 using namespace wiselib;
 using namespace boost::unit_test;
-using namespace idmanager;
+using namespace izenelib::ir::idmanager;
 
 /**
  * @brief CollectionIdManagerFixture is used to test CollectionIdManager. It loads collection names from text file to build termStringLists.

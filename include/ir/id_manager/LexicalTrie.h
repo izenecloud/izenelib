@@ -15,6 +15,8 @@
 
 using namespace std;
 
+NS_IZENELIB_IR_BEGIN
+
 namespace idmanager {
 
 /*
@@ -287,6 +289,8 @@ template<typename NameString> int LexicalTrie<NameString>::num_items() {
 	return numWords_;
 }
 
-} // end - namespace sf1v5 
+} // end - namespace idmanager 
+
+NS_IZENELIB_IR_END
 
 #endif

@@ -10,13 +10,12 @@ CXXFLAGS = -Wall -O3 -g
 endif
 
 TARGET_PATH = .
-WISELIB = /home/wps/workspace/wiselib
-IZENELIB = /home/wps/workspace/izenelib
+WISELIB = ~/CodeBase/wiselib
+IZENELIB =~/CodeBase/izenelib
 
 IDMANAGER_PATH = ../include/
 
 INCLUDE_PATH = \
-			   -I $(IDMANAGER_PATH) \
 			   -I $(WISELIB)/include \
 			   -I $(IZENELIB)/include \
 			   -I $(IZENELIB)/include/3rdparty \

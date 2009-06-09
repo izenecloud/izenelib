@@ -1,5 +1,5 @@
-#include <am_test/am_test.h>
-#include <am_test/am_types.h>
+#include <am/am_test/am_test.h>
+#include <am/am_test/am_types.h>
 #include <wiselib/ustring/UString.h>
 
 using namespace std;
@@ -59,21 +59,22 @@ void run() {
 	cout<<"\n============sdb_btree===============\n"<<endl;
 
 	{
-		cout<<"\nsdb_btree<int, UString>"<<endl;
-		typedef sdb_btree<int, UString> SBTREE_STRING_INT;
-		AmTest<int, UString, SBTREE_STRING_INT, true> am;
-		am.setNum(num);
-		am.setRandom(rnd);
-		run_am_nod(am);
-	}
-
-	{
 		cout<<"\nsdb_btree<ustring, int>"<<endl;
 		typedef sdb_btree<UString, int> SBTREE_STRING_INT;
 		AmTest<UString, int, SBTREE_STRING_INT, true> am;
 		am.setNum(num);
 		am.setRandom(rnd);
 		run_am(am);
+	}
+	
+
+	{
+		cout<<"\nsdb_btree<int, UString>"<<endl;
+		typedef sdb_btree<int, UString> SBTREE_STRING_INT;
+		AmTest<int, UString, SBTREE_STRING_INT, true> am;
+		am.setNum(num);
+		am.setRandom(rnd);
+		run_am_nod(am);
 	}
 
 	cout<<"\n============sdb_hash===============\n"<<endl;

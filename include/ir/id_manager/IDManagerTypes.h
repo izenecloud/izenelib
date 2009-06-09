@@ -11,12 +11,17 @@
 #include <vector>
 #include <list>
 #include <cstddef>
+
+#include <types.h>
 #include <am/util/Wrapper.h>
 #include <sdb/SequentialDB.h>
 #include <wiselib/ustring/UString.h>
 #include <am/tokyo_cabinet/tc_hash.h>
+
 //#include <am/trie/b_trie.hpp>
 using namespace std;
+
+NS_IZENELIB_IR_BEGIN
 
 namespace idmanager {
 
@@ -61,7 +66,9 @@ template<typename NameID> struct IDHook {
 
 }
 
-using namespace idmanager;
+NS_IZENELIB_IR_END
+
+using namespace izenelib::ir::idmanager;
 
 MAKE_MEMCPY_SERIALIZATION(NameHook<wiselib::UString>);
 

@@ -37,6 +37,9 @@
  *  - TODO List
  *      - There's multiple definition linking error while compiling test files. Currently I temporary set the option -Xlinker -zmuldefs to fix them.
  */
+
+NS_IZENELIB_IR_BEGIN
+
 namespace idmanager {
 
 #define MAJOR_VERSION "1"
@@ -254,6 +257,8 @@ return collectionIdManager_.getCollectionNameByCollectionId(collectionId,
 
 typedef _IDManager<> IDManager;
 
-} // end - namespace sf1v5
+} // end - namespace idmanager
+
+NS_IZENELIB_IR_END
 
 #endif // _ID_MANAGER_

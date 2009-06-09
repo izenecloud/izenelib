@@ -1,5 +1,5 @@
-#include <am_test/am_test.h>
-#include <am_test/am_types.h>
+#include <am/am_test/am_test.h>
+#include <am/am_test/am_types.h>
 
 using namespace std;
 

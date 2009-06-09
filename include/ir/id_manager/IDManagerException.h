@@ -1,22 +1,23 @@
-///  @file IDFactoryException.h 
+///  @file IDManagerException.h 
 ///  @date 7/14/2008
 ///  @author QuangNT
 ///
 
-#ifndef _ID_FACTORY_EXCEPTION_H_
-#define _ID_FACTORY_EXCEPTION_H_
+#ifndef _ID_MANAGER_EXCEPTION_H_
+#define _ID_MANAGER_EXCEPTION_H_
 
 #include <iostream>
-#include "IDFactoryErrorString.h"
+#include "IDManagerErrorString.h"
 
-namespace idmanager
-{
+NS_IZENELIB_IR_BEGIN
 
-    /// @brief This file defines a general exception in the Document Factory
-    class IDFactoryException  
+namespace idmanager{
+
+    /// @brief This file defines a general exception in the Document Manager
+    class IDManagerException  
     {
     public:
-        /// creat a new IDFactoryException given error code, file name, and
+        /// creat a new IDManagerException given error code, file name, and
         /// line number where the exception is throw
         /// @param
         /// 	errorNo - error code
@@ -24,36 +25,37 @@ namespace idmanager
         ///		errorLine - Line number where the exception occurs
         /// @param
         ///		fileName - file where the exception occurs
-        IDFactoryException(int errorNo, int errorLine, const std::string& fileName)
+        IDManagerException(int errorNo, int errorLine, const std::string& fileName)
         {
         	errorCodeNo_ = errorNo;
         	line_ = errorLine;
-        	errorString_ = IDFactoryErrorString[errorNo];
+        	errorString_ = IDManagerErrorString[errorNo];
         	exceptionLocation_ = fileName;
         }
 
+
         /// A destructor, destroy variables if it is neccessary
-        virtual ~IDFactoryException(){}
-     
+        virtual ~IDManagerException(){
+        	
+        }
 
         /// print out the exception's description to the file
         /// @param
         ///		outputStream - where the error description is written to
         virtual void output(std::ostream& outputStream = std::cerr)
         {
-             	time_t rawtime;
-             	struct tm * timeinfo;
-             	char timebuffer [80];
+        	time_t rawtime;
+        	struct tm * timeinfo;
+        	char timebuffer [80];
 
-             	time ( &rawtime );
-             	timeinfo = localtime ( &rawtime );
-             	strftime (timebuffer,80,"%Y.%m.%d %H:%M:%S",timeinfo);
+        	time ( &rawtime );
+        	timeinfo = localtime ( &rawtime );
+        	strftime (timebuffer,80,"%Y.%m.%d %H:%M:%S",timeinfo);
 
-             	outputStream << timebuffer << ":" << errorString_;
-             	outputStream << ": Exception occurs at line " << line_ << " in file ";
-             	outputStream <<  exceptionLocation_ << std::endl;
-
-             }
+        	outputStream << timebuffer << ":" << errorString_;
+        	outputStream << ": Exception occurs at line " << line_ << " in file ";
+        	outputStream <<  exceptionLocation_ << std::endl;
+        }
 
         /// get the error code
         /// @return
@@ -77,9 +79,12 @@ namespace idmanager
 
         /// Error string of the exception
         std::string errorString_;
-    };
 
-} // end - namespace sf1v5
+    }; // end - class IDManagerException
 
-#endif // #ifndef _ID_FACTORY_EXCEPTION_H_
+} // end - namespace idmanager
+
+NS_IZENELIB_IR_END
+
+#endif
 
