@@ -62,8 +62,8 @@ typedef std::pair<size_t, CChildPos> KEYPOS;
  */
 
 template<typename KeyType, typename ValueType, typename LockType,
-		typename Alloc> class sdb_node {
-	typedef std::pair<sdb_node*, size_t> NodeKeyLocn;
+		typename Alloc> class sdb_node_ {
+	typedef std::pair<sdb_node_*, size_t> NodeKeyLocn;
 	typedef typename std::vector<KeyType>::iterator KIT;
 public:
 	/**
@@ -73,9 +73,9 @@ public:
 	 * Not that we assume that the node is a leaf,
 	 * and it is not loaded from the disk.	
 	 */
-	sdb_node();
+	sdb_node_();
 
-	~sdb_node() {		
+	~sdb_node_() {		
 		unload();
 	}
 
@@ -85,7 +85,7 @@ public:
 	 *  Load a child node from the disk. This requires that we
 	 *  have the filepos already in place.
 	 */
-	inline sdb_node* loadChild(size_t childNum, FILE* f);
+	inline sdb_node_* loadChild(size_t childNum, FILE* f);
 
 	/**
 	 * \brief delete  all its children and release self memory 
@@ -215,10 +215,10 @@ public:
 	bool isLoaded; //if it is loaded from disk.	
 	int isDirty;
 	size_t childNo; //from 0 to objCount. Default is size_t(-1).
-	sdb_node* parent;
+	sdb_node_* parent;
 
 	std::vector<KeyType> keys;
-	std::vector<sdb_node*> children; //it has objCount+1 childrens.
+	std::vector<sdb_node_*> children; //it has objCount+1 childrens.
 	std::vector<ValueType> values;
 public:
 	static size_t activeNodeNum;//It is used for cache mechanism.
@@ -238,30 +238,30 @@ private:
 
 template<typename KeyType, typename ValueType, typename LockType,
 		typename Alloc> size_t
-		sdb_node< KeyType, ValueType, LockType, Alloc>::activeNodeNum;
+		sdb_node_< KeyType, ValueType, LockType, Alloc>::activeNodeNum;
 
 template<typename KeyType, typename ValueType, typename LockType,
 		typename Alloc> size_t
-		sdb_node< KeyType, ValueType, LockType, Alloc>::_pageSize;
+		sdb_node_< KeyType, ValueType, LockType, Alloc>::_pageSize;
 
 template<typename KeyType, typename ValueType, typename LockType,
 		typename Alloc> size_t
-		sdb_node< KeyType, ValueType, LockType, Alloc>::_maxKeys;
+		sdb_node_< KeyType, ValueType, LockType, Alloc>::_maxKeys;
 
 template<typename KeyType, typename ValueType, typename LockType,
 		typename Alloc> size_t
-		sdb_node< KeyType, ValueType, LockType, Alloc>::_overFlowSize;
+		sdb_node_< KeyType, ValueType, LockType, Alloc>::_overFlowSize;
 
 template<typename KeyType, typename ValueType, typename LockType,
 		typename Alloc> LockType
-		sdb_node< KeyType, ValueType, LockType, Alloc>::_fileLock;
+		sdb_node_< KeyType, ValueType, LockType, Alloc>::_fileLock;
 
 template<typename KeyType, typename ValueType, typename LockType,
-		typename Alloc> CompareFunctor<KeyType> sdb_node< KeyType, ValueType,
+		typename Alloc> CompareFunctor<KeyType> sdb_node_< KeyType, ValueType,
 		LockType, Alloc>::_comp;
 
 template<typename KeyType, typename ValueType, typename LockType,
-		typename Alloc> sdb_node< KeyType, ValueType, LockType, Alloc>::sdb_node() :
+		typename Alloc> sdb_node_< KeyType, ValueType, LockType, Alloc>::sdb_node_() :
 	objCount(0), fpos(-1), isLeaf(true), isLoaded(false), isDirty(1),
 			childNo((size_t)-1) {
 
@@ -275,7 +275,7 @@ template<typename KeyType, typename ValueType, typename LockType,
 
 // Read a node page to initialize this node from the disk
 template<typename KeyType, typename ValueType, typename LockType,
-		typename Alloc> bool sdb_node< KeyType, ValueType, LockType, Alloc>::read(
+		typename Alloc> bool sdb_node_< KeyType, ValueType, LockType, Alloc>::read(
 		FILE* f) {
 
 	//#ifdef DEBUG
@@ -327,7 +327,7 @@ template<typename KeyType, typename ValueType, typename LockType,
 		if ( !isLeaf) {
 			for (size_t i = 0; i <= objCount; i++) {
 				if (children[i] == 0) {
-					children[i] = new sdb_node;
+					children[i] = new sdb_node_;
 				}
 				children[i]->fpos = childAddresses[i];
 				children[i]->childNo = i;
@@ -423,12 +423,12 @@ template<typename KeyType, typename ValueType, typename LockType,
 	isDirty = false;
 
 	//increment avtiveNodeNum 
-	sdb_node::activeNodeNum++;
+	sdb_node_::activeNodeNum++;
 	return true;
 }
 
 template<typename KeyType, typename ValueType, typename LockType,
-		typename Alloc> bool sdb_node< KeyType, ValueType, LockType, Alloc>::write(
+		typename Alloc> bool sdb_node_< KeyType, ValueType, LockType, Alloc>::write(
 		FILE* f) {
 
 	//#ifdef DEBUG
@@ -581,10 +581,10 @@ template<typename KeyType, typename ValueType, typename LockType,
 }
 
 template<typename KeyType, typename ValueType, typename LockType,
-		typename Alloc> sdb_node<KeyType, ValueType,LockType, Alloc>* sdb_node<
+		typename Alloc> sdb_node_<KeyType, ValueType,LockType, Alloc>* sdb_node_<
 		KeyType, ValueType, LockType, Alloc>::loadChild(size_t childNum, FILE* f) {
 
-	sdb_node* child;
+	sdb_node_* child;
 	child = children[childNum];	
 	if (isLeaf || child == 0) {
 		return NULL;
@@ -604,7 +604,7 @@ template<typename KeyType, typename ValueType, typename LockType,
 // Unload a child, which means that we get rid of all
 // children in the children vector.
 template<typename KeyType, typename ValueType, typename LockType,
-		typename Alloc> void sdb_node< KeyType, ValueType, LockType, Alloc>::unload() {
+		typename Alloc> void sdb_node_< KeyType, ValueType, LockType, Alloc>::unload() {
 	if (isLoaded) {
 		if ( !isLeaf) {
 			for (size_t i=0; i<objCount+1; i++) {
@@ -622,14 +622,14 @@ template<typename KeyType, typename ValueType, typename LockType,
 		children.resize(0);
 		isLoaded = false;
 
-		sdb_node::activeNodeNum--;
+		sdb_node_::activeNodeNum--;
 		parent = 0;		
 	}
 }
 
 
 template<typename KeyType, typename ValueType, typename LockType,
-		typename Alloc> void sdb_node< KeyType, ValueType, LockType, Alloc>::unloadself() {
+		typename Alloc> void sdb_node_< KeyType, ValueType, LockType, Alloc>::unloadself() {
 	if (isLoaded) {
 		objCount = 0;
 		keys.resize(0);
@@ -637,13 +637,13 @@ template<typename KeyType, typename ValueType, typename LockType,
 		children.resize(0);
 		isLoaded = false;
 
-		sdb_node::activeNodeNum--;
+		sdb_node_::activeNodeNum--;
 		parent = 0;		
 	}
 }
 
 template<typename KeyType, typename ValueType, typename LockType,
-		typename Alloc> bool sdb_node< KeyType, ValueType, LockType, Alloc>::delFromLeaf(
+		typename Alloc> bool sdb_node_< KeyType, ValueType, LockType, Alloc>::delFromLeaf(
 		size_t objNo) {
 	bool ret = isLeaf;
 	if (ret) {
@@ -667,7 +667,7 @@ template<typename KeyType, typename ValueType, typename LockType,
 // subtree rooted at this node.
 
 template<typename KeyType, typename ValueType, typename LockType,
-		typename Alloc> KEYPOS sdb_node< KeyType, ValueType, LockType, Alloc>::findPos(
+		typename Alloc> KEYPOS sdb_node_< KeyType, ValueType, LockType, Alloc>::findPos(
 		const KeyType& key) {
 
 	KEYPOS ret((size_t)-1, CCP_NONE);

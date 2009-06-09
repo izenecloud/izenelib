@@ -46,7 +46,7 @@ public AccessMethod<KeyType, ValueType, LockType>
 {
 public:
 	//SDBCursor is like db cursor
-	typedef bucket_chain<LockType> bucket_chain;
+	typedef bucket_chain_<LockType> bucket_chain;
 	typedef std::pair<bucket_chain*, char*> SDBCursor;
 	typedef DataType<KeyType,ValueType> DataType;
 public:
