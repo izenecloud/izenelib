@@ -47,6 +47,8 @@ written by
 #else
    #include <windows.h>
 #endif
+#include <stdlib.h>
+#include <string.h>
 #include "udt.h"
 
 
