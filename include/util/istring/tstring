@@ -1,0 +1,14 @@
+#ifndef TSTRING
+#define TSTRING
+
+#include "bbt_string.hpp"
+
+NS_IZENELIB_UTIL_BEGIN
+
+typedef bbt_string<> tstring;
+typedef bbt_string<uint16_t> tustring;
+
+NS_IZENELIB_UTIL_END
+
+
+#endif
