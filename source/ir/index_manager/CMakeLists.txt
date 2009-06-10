@@ -1,0 +1,43 @@
+PROJECT(index_manager)
+
+file(GLOB_RECURSE INDEX_MANAGER_SOURCE RELATIVE "${CMAKE_CURRENT_SOURCE_DIR}"
+	"index/*.cpp"
+	"store/*.cpp"
+	"utility/*.cpp")
+
+FIND_PACKAGE(Wiselib REQUIRED)
+
+
+INCLUDE_DIRECTORIES ( ${izenelib_SOURCE_DIR}/include/ )
+INCLUDE_DIRECTORIES ( ${WISELIB_INCLUDE_DIR})
+
+
+set(CPP "${INDEX_MANAGER_SOURCE}")
+set( CXXFLAGS "-Wall -O3 -DSTANDALONE" )
+#set( CXXFLAGS "-Wall -O3" )
+
+set ( LIBRARY_OUTPUT_PATH ${izenelib_SOURCE_DIR}/lib ) 
+
+ADD_LIBRARY(index_manager_shared SHARED ${CPP})
+SET_TARGET_PROPERTIES(index_manager_shared 
+				PROPERTIES 
+				OUTPUT_NAME "index_manager" 
+				COMPILE_FLAGS ${CXXFLAGS} 
+				COMPILE_DEFINITIONS_DEBUG "-g" 
+				)
+TARGET_LINK_LIBRARIES(index_manager_shared ${WISELIB_LIBRARY})
+SET_TARGET_PROPERTIES(index_manager_shared PROPERTIES CLEAN_DIRECT_OUTPUT 1)
+
+
+
+ADD_LIBRARY(index_manager_static STATIC ${CPP})
+SET_TARGET_PROPERTIES(index_manager_static 
+				PROPERTIES 
+				OUTPUT_NAME "index_manager" 
+				COMPILE_FLAGS ${CXXFLAGS} 
+				COMPILE_DEFINITIONS_DEBUG "-g" 
+				)
+SET_TARGET_PROPERTIES(index_manager_static PROPERTIES CLEAN_DIRECT_OUTPUT 1)
+TARGET_LINK_LIBRARIES(index_manager_static ${WISELIB_LIBRARY})
+
+

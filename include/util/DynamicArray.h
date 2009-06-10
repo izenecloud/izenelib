@@ -1,6 +1,8 @@
 #ifndef DYNAMICARRAY_H
 #define DYNAMICARRAY_H
 
+#include <assert.h>
+
 #include <types.h>
 #include <3rdparty/boost/memory.hpp>
 

@@ -14,6 +14,8 @@ if (CMAKE_BINARY_DIR STREQUAL CMAKE_SOURCE_DIR)
   message (FATAL_ERROR "In source build is not allowed")
 endif (CMAKE_BINARY_DIR STREQUAL CMAKE_SOURCE_DIR)
 
+SET(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake/modules")
+
 ####################
 # set build type (set of compiler options)
 #####
