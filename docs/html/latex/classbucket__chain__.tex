@@ -1,0 +1,160 @@
+\hypertarget{classbucket__chain__}{
+\section{bucket\_\-chain\_\-$<$ LockType $>$ Class Template Reference}
+\label{classbucket__chain__}\index{bucket\_\-chain\_\-@{bucket\_\-chain\_\-}}
+}
+bucket\_\-chain, represents a bucket of our array hash.  
+
+
+{\tt \#include $<$bucket\_\-chain.h$>$}
+
+\subsection*{Public Member Functions}
+\begin{CompactItemize}
+\item 
+\hyperlink{classbucket__chain___3405a155cb7df7c87aa5a0f659b18b9d}{bucket\_\-chain\_\-} (size\_\-t bucketSize)
+\item 
+virtual \hyperlink{classbucket__chain___e75a9fd222a47b2273979e156e9e3308}{$\sim$bucket\_\-chain\_\-} ()
+\item 
+bool \hyperlink{classbucket__chain___f237564af670084175b423af68bc85f0}{write} (FILE $\ast$f)
+\item 
+bool \hyperlink{classbucket__chain___1e08721b9b46d46aaabb41b4adc9e559}{read} (FILE $\ast$f)
+\item 
+\hyperlink{classbucket__chain__}{bucket\_\-chain\_\-} $\ast$ \hyperlink{classbucket__chain___b981d355afb14f9667b6593d8bfed523}{loadNext} (FILE $\ast$f)
+\item 
+void \hyperlink{classbucket__chain___2dccc2c72a6f9b5bda83f627e11124b8}{unload} ()
+\item 
+void \hyperlink{classbucket__chain___ff30da7f833bbe9b05c523d23658bf1e}{display} (std::ostream \&os=std::cout)
+\end{CompactItemize}
+\subsection*{Public Attributes}
+\begin{CompactItemize}
+\item 
+\hypertarget{classbucket__chain___0be070399879e29dfd34317371c44985}{
+char $\ast$ \textbf{str}}
+\label{classbucket__chain___0be070399879e29dfd34317371c44985}
+
+\item 
+\hypertarget{classbucket__chain___8c1b8c3baf448d522a70e9b27ca3fba3}{
+long \textbf{fpos}}
+\label{classbucket__chain___8c1b8c3baf448d522a70e9b27ca3fba3}
+
+\item 
+\hypertarget{classbucket__chain___9193232fe8aa719059a6a080cebd4c63}{
+int \textbf{num}}
+\label{classbucket__chain___9193232fe8aa719059a6a080cebd4c63}
+
+\item 
+\hypertarget{classbucket__chain___43e53c34c1f87561b69cb0cb818f48f1}{
+\hyperlink{classbucket__chain__}{bucket\_\-chain\_\-} $\ast$ \textbf{next}}
+\label{classbucket__chain___43e53c34c1f87561b69cb0cb818f48f1}
+
+\item 
+\hypertarget{classbucket__chain___16a812fdc6108a3017984823a81812e2}{
+bool \textbf{isLoaded}}
+\label{classbucket__chain___16a812fdc6108a3017984823a81812e2}
+
+\item 
+\hypertarget{classbucket__chain___0b2de2bb5fe9a19f865b3c7fa262b74e}{
+bool \textbf{isDirty}}
+\label{classbucket__chain___0b2de2bb5fe9a19f865b3c7fa262b74e}
+
+\item 
+\hypertarget{classbucket__chain___747b1d2f7f76867541769ff602f237c7}{
+long \textbf{nextfpos}}
+\label{classbucket__chain___747b1d2f7f76867541769ff602f237c7}
+
+\item 
+\hypertarget{classbucket__chain___ff131903eb6f2783a9ddb235051cd146}{
+int \textbf{level}}
+\label{classbucket__chain___ff131903eb6f2783a9ddb235051cd146}
+
+\end{CompactItemize}
+\subsection*{Static Public Attributes}
+\begin{CompactItemize}
+\item 
+\hypertarget{classbucket__chain___3377e4155e3ae57148b0a861949fa1d3}{
+static size\_\-t \textbf{activeNum}}
+\label{classbucket__chain___3377e4155e3ae57148b0a861949fa1d3}
+
+\end{CompactItemize}
+
+
+\subsection{Detailed Description}
+\subsubsection*{template$<$typename LockType = NullLock$>$ class bucket\_\-chain\_\-$<$ LockType $>$}
+
+bucket\_\-chain, represents a bucket of our array hash. 
+
+It has fixed size and an pointer to next bucket\_\-chain element. It uses a char$\ast$ member str to store item(binary) sequentially. When full, items will be stored to next bucket\_\-chain element. 
+
+Definition at line 29 of file bucket\_\-chain.h.
+
+\subsection{Constructor \& Destructor Documentation}
+\hypertarget{classbucket__chain___3405a155cb7df7c87aa5a0f659b18b9d}{
+\index{bucket\_\-chain\_\-@{bucket\_\-chain\_\-}!bucket\_\-chain\_\-@{bucket\_\-chain\_\-}}
+\index{bucket\_\-chain\_\-@{bucket\_\-chain\_\-}!bucket_chain_@{bucket\_\-chain\_\-}}
+\subsubsection[{bucket\_\-chain\_\-}]{\setlength{\rightskip}{0pt plus 5cm}template$<$typename LockType  = NullLock$>$ {\bf bucket\_\-chain\_\-}$<$ LockType $>$::{\bf bucket\_\-chain\_\-} (size\_\-t {\em bucketSize})\hspace{0.3cm}{\tt  \mbox{[}inline\mbox{]}}}}
+\label{classbucket__chain___3405a155cb7df7c87aa5a0f659b18b9d}
+
+
+constructor 
+
+Definition at line 52 of file bucket\_\-chain.h.\hypertarget{classbucket__chain___e75a9fd222a47b2273979e156e9e3308}{
+\index{bucket\_\-chain\_\-@{bucket\_\-chain\_\-}!$\sim$bucket\_\-chain\_\-@{$\sim$bucket\_\-chain\_\-}}
+\index{$\sim$bucket\_\-chain\_\-@{$\sim$bucket\_\-chain\_\-}!bucket_chain_@{bucket\_\-chain\_\-}}
+\subsubsection[{$\sim$bucket\_\-chain\_\-}]{\setlength{\rightskip}{0pt plus 5cm}template$<$typename LockType  = NullLock$>$ virtual {\bf bucket\_\-chain\_\-}$<$ LockType $>$::$\sim${\bf bucket\_\-chain\_\-} ()\hspace{0.3cm}{\tt  \mbox{[}inline, virtual\mbox{]}}}}
+\label{classbucket__chain___e75a9fd222a47b2273979e156e9e3308}
+
+
+deconstructor 
+
+Definition at line 69 of file bucket\_\-chain.h.
+
+\subsection{Member Function Documentation}
+\hypertarget{classbucket__chain___ff30da7f833bbe9b05c523d23658bf1e}{
+\index{bucket\_\-chain\_\-@{bucket\_\-chain\_\-}!display@{display}}
+\index{display@{display}!bucket_chain_@{bucket\_\-chain\_\-}}
+\subsubsection[{display}]{\setlength{\rightskip}{0pt plus 5cm}template$<$typename LockType  = NullLock$>$ void {\bf bucket\_\-chain\_\-}$<$ LockType $>$::display (std::ostream \& {\em os} = {\tt std::cout})\hspace{0.3cm}{\tt  \mbox{[}inline\mbox{]}}}}
+\label{classbucket__chain___ff30da7f833bbe9b05c523d23658bf1e}
+
+
+display string\_\-chain info. 
+
+Definition at line 209 of file bucket\_\-chain.h.\hypertarget{classbucket__chain___b981d355afb14f9667b6593d8bfed523}{
+\index{bucket\_\-chain\_\-@{bucket\_\-chain\_\-}!loadNext@{loadNext}}
+\index{loadNext@{loadNext}!bucket_chain_@{bucket\_\-chain\_\-}}
+\subsubsection[{loadNext}]{\setlength{\rightskip}{0pt plus 5cm}template$<$typename LockType  = NullLock$>$ {\bf bucket\_\-chain\_\-}$\ast$ {\bf bucket\_\-chain\_\-}$<$ LockType $>$::loadNext (FILE $\ast$ {\em f})\hspace{0.3cm}{\tt  \mbox{[}inline\mbox{]}}}}
+\label{classbucket__chain___b981d355afb14f9667b6593d8bfed523}
+
+
+load next bucket\_\-chain element. 
+
+Definition at line 179 of file bucket\_\-chain.h.\hypertarget{classbucket__chain___1e08721b9b46d46aaabb41b4adc9e559}{
+\index{bucket\_\-chain\_\-@{bucket\_\-chain\_\-}!read@{read}}
+\index{read@{read}!bucket_chain_@{bucket\_\-chain\_\-}}
+\subsubsection[{read}]{\setlength{\rightskip}{0pt plus 5cm}template$<$typename LockType  = NullLock$>$ bool {\bf bucket\_\-chain\_\-}$<$ LockType $>$::read (FILE $\ast$ {\em f})\hspace{0.3cm}{\tt  \mbox{[}inline\mbox{]}}}}
+\label{classbucket__chain___1e08721b9b46d46aaabb41b4adc9e559}
+
+
+read from disk 
+
+Definition at line 130 of file bucket\_\-chain.h.\hypertarget{classbucket__chain___2dccc2c72a6f9b5bda83f627e11124b8}{
+\index{bucket\_\-chain\_\-@{bucket\_\-chain\_\-}!unload@{unload}}
+\index{unload@{unload}!bucket_chain_@{bucket\_\-chain\_\-}}
+\subsubsection[{unload}]{\setlength{\rightskip}{0pt plus 5cm}template$<$typename LockType  = NullLock$>$ void {\bf bucket\_\-chain\_\-}$<$ LockType $>$::unload ()\hspace{0.3cm}{\tt  \mbox{[}inline\mbox{]}}}}
+\label{classbucket__chain___2dccc2c72a6f9b5bda83f627e11124b8}
+
+
+unload a buck\_\-chain element. It releases most of the memory, and was used to recycle memory when cache is full. 
+
+Definition at line 194 of file bucket\_\-chain.h.\hypertarget{classbucket__chain___f237564af670084175b423af68bc85f0}{
+\index{bucket\_\-chain\_\-@{bucket\_\-chain\_\-}!write@{write}}
+\index{write@{write}!bucket_chain_@{bucket\_\-chain\_\-}}
+\subsubsection[{write}]{\setlength{\rightskip}{0pt plus 5cm}template$<$typename LockType  = NullLock$>$ bool {\bf bucket\_\-chain\_\-}$<$ LockType $>$::write (FILE $\ast$ {\em f})\hspace{0.3cm}{\tt  \mbox{[}inline\mbox{]}}}}
+\label{classbucket__chain___f237564af670084175b423af68bc85f0}
+
+
+write to disk 
+
+Definition at line 82 of file bucket\_\-chain.h.
+
+The documentation for this class was generated from the following file:\begin{CompactItemize}
+\item 
+/home/Kevin/izenelib/include/am/sdb\_\-hash/\hyperlink{bucket__chain_8h}{bucket\_\-chain.h}\end{CompactItemize}

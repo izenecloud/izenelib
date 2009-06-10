@@ -1,0 +1,133 @@
+\hypertarget{classMap}{
+\section{Map$<$ KeyType, ValueType, ENTRY\_\-POW, HASH\_\-FUNCTION, INIT\_\-BUCKET\_\-SIZE $>$ Class Template Reference}
+\label{classMap}\index{Map@{Map}}
+}
+This is an implementation of open addressing and linear probing hash table for integer key.  
+
+
+{\tt \#include $<$map.hpp$>$}
+
+Inheritance diagram for Map$<$ KeyType, ValueType, ENTRY\_\-POW, HASH\_\-FUNCTION, INIT\_\-BUCKET\_\-SIZE $>$::\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[height=2cm]{classMap}
+\end{center}
+\end{figure}
+\subsection*{Classes}
+\begin{CompactItemize}
+\item 
+struct \textbf{ENTRY\_\-}
+\item 
+struct \textbf{KEY\_\-}
+\end{CompactItemize}
+\subsection*{Public Member Functions}
+\begin{CompactItemize}
+\item 
+\hypertarget{classMap_883205035c7253856278a8a85dc525f6}{
+void \textbf{clear} ()}
+\label{classMap_883205035c7253856278a8a85dc525f6}
+
+\item 
+\hypertarget{classMap_2ab48eceb4ba2747c5c7181394cfcd17}{
+bool \textbf{insert} (const DataType \&data)}
+\label{classMap_2ab48eceb4ba2747c5c7181394cfcd17}
+
+\item 
+\hypertarget{classMap_50367cfe4a5599c0e5d2233489288fb1}{
+bool \textbf{update} (const DataType \&dat)}
+\label{classMap_50367cfe4a5599c0e5d2233489288fb1}
+
+\item 
+\hypertarget{classMap_2aaa91a8937a3d449872a9f25eb3cc66}{
+int \textbf{num\_\-items} () const }
+\label{classMap_2aaa91a8937a3d449872a9f25eb3cc66}
+
+\item 
+\hypertarget{classMap_d422f6b43f48273263015fcf8b4e41ec}{
+void \textbf{display} (std::ostream \&os=std::cout)}
+\label{classMap_d422f6b43f48273263015fcf8b4e41ec}
+
+\item 
+\hypertarget{classMap_8af0b9c6da3a1fcdd954a728e9980569}{
+bool \textbf{insert} (const KeyType \&key, const ValueType \&v)}
+\label{classMap_8af0b9c6da3a1fcdd954a728e9980569}
+
+\item 
+\hypertarget{classMap_0d8d0efc901818fa30995ef397d333b4}{
+ValueType $\ast$ \textbf{find} (const KeyType \&key)}
+\label{classMap_0d8d0efc901818fa30995ef397d333b4}
+
+\item 
+\hypertarget{classMap_d22f21ff232a05b4669cae18c1485610}{
+bool \textbf{del} (const KeyType \&key)}
+\label{classMap_d22f21ff232a05b4669cae18c1485610}
+
+\item 
+\hypertarget{classMap_421c8a2d99d8863548d66531376fa6ef}{
+bool \textbf{update} (const KeyType \&key, const ValueType \&v)}
+\label{classMap_421c8a2d99d8863548d66531376fa6ef}
+
+\item 
+\hypertarget{classMap_e15503abce06dbe595275166d7eede94}{
+{\footnotesize template$<$class Archive $>$ }\\void \textbf{save} (Archive \&ar, const unsigned int version) const }
+\label{classMap_e15503abce06dbe595275166d7eede94}
+
+\item 
+\hypertarget{classMap_3f57005e15bc10aaf61d42097c950d91}{
+{\footnotesize template$<$class Archive $>$ }\\void \textbf{load} (Archive \&ar, const unsigned int version)}
+\label{classMap_3f57005e15bc10aaf61d42097c950d91}
+
+\item 
+\hypertarget{classMap_9093e5050c37e510c44ad9c8560617ad}{
+void \textbf{save} (const string \&\hyperlink{classfile}{file}) const }
+\label{classMap_9093e5050c37e510c44ad9c8560617ad}
+
+\item 
+\hypertarget{classMap_23c4353d14b9796736666a9d32957bf2}{
+void \textbf{load} (const string \&\hyperlink{classfile}{file})}
+\label{classMap_23c4353d14b9796736666a9d32957bf2}
+
+\end{CompactItemize}
+\subsection*{Protected Attributes}
+\begin{CompactItemize}
+\item 
+\hypertarget{classMap_aef62b0c834655cb9e086bea2c6f1285}{
+ENTRY\_\- \textbf{entry\_\-}}
+\label{classMap_aef62b0c834655cb9e086bea2c6f1285}
+
+\item 
+\hypertarget{classMap_976274497aa599402a61d4f4d062ca77}{
+vector$<$ ValueType $>$ \textbf{dataVec\_\-}}
+\label{classMap_976274497aa599402a61d4f4d062ca77}
+
+\item 
+\hypertarget{classMap_3bfdca718cd015a3e8ad1970e8e81cde}{
+KeyType \textbf{entry\_\-size\_\-}}
+\label{classMap_3bfdca718cd015a3e8ad1970e8e81cde}
+
+\item 
+\hypertarget{classMap_678a5c672b55c44e84db946081e70664}{
+int \textbf{count\_\-}}
+\label{classMap_678a5c672b55c44e84db946081e70664}
+
+\end{CompactItemize}
+\subsection*{Friends}
+\begin{CompactItemize}
+\item 
+\hypertarget{classMap_c98d07dd8f7b70e16ccb9a01abf56b9c}{
+class \textbf{boost::serialization::access}}
+\label{classMap_c98d07dd8f7b70e16ccb9a01abf56b9c}
+
+\end{CompactItemize}
+
+
+\subsection{Detailed Description}
+\subsubsection*{template$<$class KeyType = uint32\_\-t, class ValueType = uint64\_\-t, size\_\-t ENTRY\_\-POW = 16, class HASH\_\-FUNCTION = simple\_\-hash, int INIT\_\-BUCKET\_\-SIZE = 64$>$ class Map$<$ KeyType, ValueType, ENTRY\_\-POW, HASH\_\-FUNCTION, INIT\_\-BUCKET\_\-SIZE $>$}
+
+This is an implementation of open addressing and linear probing hash table for integer key. 
+
+Definition at line 65 of file map.hpp.
+
+The documentation for this class was generated from the following file:\begin{CompactItemize}
+\item 
+/home/Kevin/izenelib/include/am/map/map.hpp\end{CompactItemize}

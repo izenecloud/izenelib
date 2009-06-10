@@ -1,0 +1,223 @@
+\hypertarget{classBTrie}{
+\section{BTrie$<$ STRING\_\-TYPE, ALPHABET, ALPHABET\_\-SIZE, BUCKET\_\-SIZE, SPLIT\_\-RATIO, ENTRY\_\-SIZE\_\-POW, HASH\_\-FUNCTION, INIT\_\-BUCKET\_\-SIZE, BUCKET\_\-CACHE\_\-LENGTH, BucketCachePolicy, NODE\_\-CACHE\_\-LENGTH, NodeCachePolicy $>$ Class Template Reference}
+\label{classBTrie}\index{BTrie@{BTrie}}
+}
+{\tt \#include $<$b\_\-trie.hpp$>$}
+
+\subsection*{Public Member Functions}
+\begin{CompactItemize}
+\item 
+\hyperlink{classBTrie_3cc0735f4735169d28c2fdc3c052ad7f}{BTrie} (const string \&filename=\char`\"{}\_\-btrie\char`\"{})
+\item 
+void \hyperlink{classBTrie_bfa4a5883b5b6146af18c53a35e85b34}{flush} ()
+\item 
+void \hyperlink{classBTrie_8808c1f6c8b72d7b72b70646ec661837}{load} ()
+\item 
+bool \hyperlink{classBTrie_7cec73d8ae32a6d049f3e801f6ee75f3}{insert} (const STRING\_\-TYPE \&str, uint64\_\-t contentAddr)
+\item 
+void \hyperlink{classBTrie_3e3f5765235c78ab56663a0852c1178d}{splitBucket} (BucketPtr \&b, AlphabetNodePtr \&n, uint64\_\-t diskAddr, uint32\_\-t idx, vector$<$ STRING\_\-TYPE $>$ \&leftStr, vector$<$ uint64\_\-t $>$ \&leftAddr)
+\item 
+bool \hyperlink{classBTrie_8f000cc39b2de657cd7817690437f54d}{del} (const STRING\_\-TYPE \&str)
+\item 
+bool \hyperlink{classBTrie_7557a9c4d0eb728ca0bcbd417d922f17}{update} (const STRING\_\-TYPE \&str, uint64\_\-t contentAddr)
+\item 
+\hypertarget{classBTrie_b9b758f3217a31d8e66dede82b742cda}{
+bool \textbf{findRegExp} (const STRING\_\-TYPE \&regexp, vector$<$ uint32\_\-t $>$ \&ret)}
+\label{classBTrie_b9b758f3217a31d8e66dede82b742cda}
+
+\item 
+\hypertarget{classBTrie_ed05bb9612951db278a752c8a9818ba5}{
+bool \textbf{findRegExp} (const STRING\_\-TYPE \&regexp, vector$<$ item\_\-pair$<$ STRING\_\-TYPE $>$ $>$ \&ret)}
+\label{classBTrie_ed05bb9612951db278a752c8a9818ba5}
+
+\item 
+uint64\_\-t \hyperlink{classBTrie_3c466397db53b56baa0def869f49a1f3}{find} (const STRING\_\-TYPE \&str)
+\item 
+uint32\_\-t \hyperlink{classBTrie_71cd037bb6ec881966cc91264377e35e}{getNodeAmount} () const 
+\item 
+\hypertarget{classBTrie_a31346d8cf5b9ffbf00873b726cb04db}{
+void \textbf{display} (ostream \&os, const STRING\_\-TYPE \&str)}
+\label{classBTrie_a31346d8cf5b9ffbf00873b726cb04db}
+
+\item 
+\hypertarget{classBTrie_6004a5f648926b28e5cd4820756aae45}{
+BucketPtr \textbf{loadBucket} (uint32\_\-t \&memAddr, uint64\_\-t diskAddr)}
+\label{classBTrie_6004a5f648926b28e5cd4820756aae45}
+
+\item 
+\hypertarget{classBTrie_67416e8012c149630658da525533b0c2}{
+BucketPtr \textbf{newBucket} ()}
+\label{classBTrie_67416e8012c149630658da525533b0c2}
+
+\end{CompactItemize}
+\subsection*{Protected Member Functions}
+\begin{CompactItemize}
+\item 
+\hypertarget{classBTrie_8a979fa156b124ba6fa442cc1190ad35}{
+void \textbf{load\_\-} (AlphabetNodePtr \&n)}
+\label{classBTrie_8a979fa156b124ba6fa442cc1190ad35}
+
+\item 
+\hypertarget{classBTrie_d518bfc4264e615479c9afcf0d313954}{
+string \textbf{substr} (const string \&str, size\_\-t pos, size\_\-t len=(size\_\-t)-1)}
+\label{classBTrie_d518bfc4264e615479c9afcf0d313954}
+
+\item 
+\hypertarget{classBTrie_ca2c65640ed76ddd91025bd86b832f97}{
+wiselib::UString \textbf{substr} (const wiselib::UString \&str, size\_\-t pos, size\_\-t len=(size\_\-t)-1)}
+\label{classBTrie_ca2c65640ed76ddd91025bd86b832f97}
+
+\item 
+void \hyperlink{classBTrie_3125cac8b6ba87306a3636bddd0da0f3}{findRegExp\_\-} (uint32\_\-t idx, uint64\_\-t addr, const STRING\_\-TYPE \&regexp, const STRING\_\-TYPE \&sofar, vector$<$ item\_\-pair$<$ STRING\_\-TYPE $>$ $>$ \&ret)
+\end{CompactItemize}
+\subsection*{Protected Attributes}
+\begin{CompactItemize}
+\item 
+\hypertarget{classBTrie_282779241215a40bd6f64c26c4bb6b67}{
+FILE $\ast$ \hyperlink{classBTrie_282779241215a40bd6f64c26c4bb6b67}{nodf\_\-}}
+\label{classBTrie_282779241215a40bd6f64c26c4bb6b67}
+
+\begin{CompactList}\small\item\em Node data \hyperlink{classfile}{file} handler. \item\end{CompactList}\item 
+\hypertarget{classBTrie_790e90901c61010abf817786d0a72af2}{
+FILE $\ast$ \hyperlink{classBTrie_790e90901c61010abf817786d0a72af2}{bukf\_\-}}
+\label{classBTrie_790e90901c61010abf817786d0a72af2}
+
+\begin{CompactList}\small\item\em \hyperlink{classBucket}{Bucket} data \hyperlink{classfile}{file} handler. \item\end{CompactList}\item 
+\hypertarget{classBTrie_121b3b835910ac94754c123e38b9c982}{
+string \hyperlink{classBTrie_121b3b835910ac94754c123e38b9c982}{hashf\_\-}}
+\label{classBTrie_121b3b835910ac94754c123e38b9c982}
+
+\begin{CompactList}\small\item\em Hash table data \hyperlink{classfile}{file} handler. \item\end{CompactList}\item 
+\hypertarget{classBTrie_60b3acb7798110d53ec589d6929ab1ae}{
+BucketCacheType $\ast$ \hyperlink{classBTrie_60b3acb7798110d53ec589d6929ab1ae}{pBucketCache\_\-}}
+\label{classBTrie_60b3acb7798110d53ec589d6929ab1ae}
+
+\begin{CompactList}\small\item\em \hyperlink{classBucket}{Bucket} cache. \item\end{CompactList}\item 
+\hypertarget{classBTrie_a24075704dcb542c7edec0f6b8d7f008}{
+NodeCacheType $\ast$ \hyperlink{classBTrie_a24075704dcb542c7edec0f6b8d7f008}{pNodeCache\_\-}}
+\label{classBTrie_a24075704dcb542c7edec0f6b8d7f008}
+
+\begin{CompactList}\small\item\em Nodes cache. \item\end{CompactList}\item 
+\hypertarget{classBTrie_99d0b0d47787e8b38e610f096d51e054}{
+\hyperlink{classMap}{HashMap} \hyperlink{classBTrie_99d0b0d47787e8b38e610f096d51e054}{hashTable\_\-}}
+\label{classBTrie_99d0b0d47787e8b38e610f096d51e054}
+
+\begin{CompactList}\small\item\em Hash table. \item\end{CompactList}\end{CompactItemize}
+
+
+\subsection{Detailed Description}
+\subsubsection*{template$<$class STRING\_\-TYPE = string, typename STRING\_\-TYPE::value\_\-type $\ast$ ALPHABET = a2z, uint32\_\-t ALPHABET\_\-SIZE = a2z\_\-size, uint32\_\-t BUCKET\_\-SIZE = 8196, uint8\_\-t SPLIT\_\-RATIO = 75, size\_\-t ENTRY\_\-SIZE\_\-POW = 10, class HASH\_\-FUNCTION = simple\_\-hash, int INIT\_\-BUCKET\_\-SIZE = 64, uint64\_\-t BUCKET\_\-CACHE\_\-LENGTH = 10000000000, class BucketCachePolicy = CachePolicyLARU, uint64\_\-t NODE\_\-CACHE\_\-LENGTH = 1000000000, class NodeCachePolicy = CachePolicyLARU$>$ class BTrie$<$ STRING\_\-TYPE, ALPHABET, ALPHABET\_\-SIZE, BUCKET\_\-SIZE, SPLIT\_\-RATIO, ENTRY\_\-SIZE\_\-POW, HASH\_\-FUNCTION, INIT\_\-BUCKET\_\-SIZE, BUCKET\_\-CACHE\_\-LENGTH, BucketCachePolicy, NODE\_\-CACHE\_\-LENGTH, NodeCachePolicy $>$}
+
+B-trie is a kind of multi-way tree. There’re two kinds of nodes in that tree. One is normal node which is an alphabet with pointer actually. We just call them ’Node’. The other is called bucket which stores bunches of strings suffix. The prefix is consumed by nodes. And, I store nodes and bucket in 2 different separate files. The insertion of a strings may involve splitting bucket. 
+
+Definition at line 54 of file b\_\-trie.hpp.
+
+\subsection{Constructor \& Destructor Documentation}
+\hypertarget{classBTrie_3cc0735f4735169d28c2fdc3c052ad7f}{
+\index{BTrie@{BTrie}!BTrie@{BTrie}}
+\index{BTrie@{BTrie}!BTrie@{BTrie}}
+\subsubsection[{BTrie}]{\setlength{\rightskip}{0pt plus 5cm}template$<$class STRING\_\-TYPE  = string, typename STRING\_\-TYPE::value\_\-type $\ast$ ALPHABET = a2z, uint32\_\-t ALPHABET\_\-SIZE = a2z\_\-size, uint32\_\-t BUCKET\_\-SIZE = 8196, uint8\_\-t SPLIT\_\-RATIO = 75, size\_\-t ENTRY\_\-SIZE\_\-POW = 10, class HASH\_\-FUNCTION  = simple\_\-hash, int INIT\_\-BUCKET\_\-SIZE = 64, uint64\_\-t BUCKET\_\-CACHE\_\-LENGTH = 10000000000, class BucketCachePolicy  = CachePolicyLARU, uint64\_\-t NODE\_\-CACHE\_\-LENGTH = 1000000000, class NodeCachePolicy  = CachePolicyLARU$>$ {\bf BTrie}$<$ STRING\_\-TYPE, ALPHABET, ALPHABET\_\-SIZE, BUCKET\_\-SIZE, SPLIT\_\-RATIO, ENTRY\_\-SIZE\_\-POW, HASH\_\-FUNCTION, INIT\_\-BUCKET\_\-SIZE, BUCKET\_\-CACHE\_\-LENGTH, BucketCachePolicy, NODE\_\-CACHE\_\-LENGTH, NodeCachePolicy $>$::{\bf BTrie} (const string \& {\em filename} = {\tt \char`\"{}\_\-btrie\char`\"{}})\hspace{0.3cm}{\tt  \mbox{[}inline\mbox{]}}}}
+\label{classBTrie_3cc0735f4735169d28c2fdc3c052ad7f}
+
+
+\begin{Desc}
+\item[Parameters:]
+\begin{description}
+\item[{\em filename}]Name of \hyperlink{classfile}{file} stores trie data. It will generate 3 files. The suffix of them are '.buk', '.nod', '.has'. They stands for bucket \hyperlink{classfile}{file}, trie node \hyperlink{classfile}{file} and hash table \hyperlink{classfile}{file} respectively. \end{description}
+\end{Desc}
+
+
+Definition at line 69 of file b\_\-trie.hpp.
+
+\subsection{Member Function Documentation}
+\hypertarget{classBTrie_8f000cc39b2de657cd7817690437f54d}{
+\index{BTrie@{BTrie}!del@{del}}
+\index{del@{del}!BTrie@{BTrie}}
+\subsubsection[{del}]{\setlength{\rightskip}{0pt plus 5cm}template$<$class STRING\_\-TYPE  = string, typename STRING\_\-TYPE::value\_\-type $\ast$ ALPHABET = a2z, uint32\_\-t ALPHABET\_\-SIZE = a2z\_\-size, uint32\_\-t BUCKET\_\-SIZE = 8196, uint8\_\-t SPLIT\_\-RATIO = 75, size\_\-t ENTRY\_\-SIZE\_\-POW = 10, class HASH\_\-FUNCTION  = simple\_\-hash, int INIT\_\-BUCKET\_\-SIZE = 64, uint64\_\-t BUCKET\_\-CACHE\_\-LENGTH = 10000000000, class BucketCachePolicy  = CachePolicyLARU, uint64\_\-t NODE\_\-CACHE\_\-LENGTH = 1000000000, class NodeCachePolicy  = CachePolicyLARU$>$ bool {\bf BTrie}$<$ STRING\_\-TYPE, ALPHABET, ALPHABET\_\-SIZE, BUCKET\_\-SIZE, SPLIT\_\-RATIO, ENTRY\_\-SIZE\_\-POW, HASH\_\-FUNCTION, INIT\_\-BUCKET\_\-SIZE, BUCKET\_\-CACHE\_\-LENGTH, BucketCachePolicy, NODE\_\-CACHE\_\-LENGTH, NodeCachePolicy $>$::del (const STRING\_\-TYPE \& {\em str})\hspace{0.3cm}{\tt  \mbox{[}inline\mbox{]}}}}
+\label{classBTrie_8f000cc39b2de657cd7817690437f54d}
+
+
+Delete string in trie. 
+
+Definition at line 449 of file b\_\-trie.hpp.\hypertarget{classBTrie_3c466397db53b56baa0def869f49a1f3}{
+\index{BTrie@{BTrie}!find@{find}}
+\index{find@{find}!BTrie@{BTrie}}
+\subsubsection[{find}]{\setlength{\rightskip}{0pt plus 5cm}template$<$class STRING\_\-TYPE  = string, typename STRING\_\-TYPE::value\_\-type $\ast$ ALPHABET = a2z, uint32\_\-t ALPHABET\_\-SIZE = a2z\_\-size, uint32\_\-t BUCKET\_\-SIZE = 8196, uint8\_\-t SPLIT\_\-RATIO = 75, size\_\-t ENTRY\_\-SIZE\_\-POW = 10, class HASH\_\-FUNCTION  = simple\_\-hash, int INIT\_\-BUCKET\_\-SIZE = 64, uint64\_\-t BUCKET\_\-CACHE\_\-LENGTH = 10000000000, class BucketCachePolicy  = CachePolicyLARU, uint64\_\-t NODE\_\-CACHE\_\-LENGTH = 1000000000, class NodeCachePolicy  = CachePolicyLARU$>$ uint64\_\-t {\bf BTrie}$<$ STRING\_\-TYPE, ALPHABET, ALPHABET\_\-SIZE, BUCKET\_\-SIZE, SPLIT\_\-RATIO, ENTRY\_\-SIZE\_\-POW, HASH\_\-FUNCTION, INIT\_\-BUCKET\_\-SIZE, BUCKET\_\-CACHE\_\-LENGTH, BucketCachePolicy, NODE\_\-CACHE\_\-LENGTH, NodeCachePolicy $>$::find (const STRING\_\-TYPE \& {\em str})\hspace{0.3cm}{\tt  \mbox{[}inline\mbox{]}}}}
+\label{classBTrie_3c466397db53b56baa0def869f49a1f3}
+
+
+Get the content of 'str' 
+
+Definition at line 527 of file b\_\-trie.hpp.\hypertarget{classBTrie_3125cac8b6ba87306a3636bddd0da0f3}{
+\index{BTrie@{BTrie}!findRegExp\_\-@{findRegExp\_\-}}
+\index{findRegExp\_\-@{findRegExp\_\-}!BTrie@{BTrie}}
+\subsubsection[{findRegExp\_\-}]{\setlength{\rightskip}{0pt plus 5cm}template$<$class STRING\_\-TYPE  = string, typename STRING\_\-TYPE::value\_\-type $\ast$ ALPHABET = a2z, uint32\_\-t ALPHABET\_\-SIZE = a2z\_\-size, uint32\_\-t BUCKET\_\-SIZE = 8196, uint8\_\-t SPLIT\_\-RATIO = 75, size\_\-t ENTRY\_\-SIZE\_\-POW = 10, class HASH\_\-FUNCTION  = simple\_\-hash, int INIT\_\-BUCKET\_\-SIZE = 64, uint64\_\-t BUCKET\_\-CACHE\_\-LENGTH = 10000000000, class BucketCachePolicy  = CachePolicyLARU, uint64\_\-t NODE\_\-CACHE\_\-LENGTH = 1000000000, class NodeCachePolicy  = CachePolicyLARU$>$ void {\bf BTrie}$<$ STRING\_\-TYPE, ALPHABET, ALPHABET\_\-SIZE, BUCKET\_\-SIZE, SPLIT\_\-RATIO, ENTRY\_\-SIZE\_\-POW, HASH\_\-FUNCTION, INIT\_\-BUCKET\_\-SIZE, BUCKET\_\-CACHE\_\-LENGTH, BucketCachePolicy, NODE\_\-CACHE\_\-LENGTH, NodeCachePolicy $>$::findRegExp\_\- (uint32\_\-t {\em idx}, \/  uint64\_\-t {\em addr}, \/  const STRING\_\-TYPE \& {\em regexp}, \/  const STRING\_\-TYPE \& {\em sofar}, \/  vector$<$ item\_\-pair$<$ STRING\_\-TYPE $>$ $>$ \& {\em ret})\hspace{0.3cm}{\tt  \mbox{[}inline, protected\mbox{]}}}}
+\label{classBTrie_3125cac8b6ba87306a3636bddd0da0f3}
+
+
+Find regular expression in trie tree. \begin{Desc}
+\item[Parameters:]
+\begin{description}
+\item[{\em regexp}]Regular expression. \item[{\em sofar}]Record the string ahead sofar. \item[{\em ret}]The found results. \end{description}
+\end{Desc}
+
+
+Definition at line 658 of file b\_\-trie.hpp.\hypertarget{classBTrie_bfa4a5883b5b6146af18c53a35e85b34}{
+\index{BTrie@{BTrie}!flush@{flush}}
+\index{flush@{flush}!BTrie@{BTrie}}
+\subsubsection[{flush}]{\setlength{\rightskip}{0pt plus 5cm}template$<$class STRING\_\-TYPE  = string, typename STRING\_\-TYPE::value\_\-type $\ast$ ALPHABET = a2z, uint32\_\-t ALPHABET\_\-SIZE = a2z\_\-size, uint32\_\-t BUCKET\_\-SIZE = 8196, uint8\_\-t SPLIT\_\-RATIO = 75, size\_\-t ENTRY\_\-SIZE\_\-POW = 10, class HASH\_\-FUNCTION  = simple\_\-hash, int INIT\_\-BUCKET\_\-SIZE = 64, uint64\_\-t BUCKET\_\-CACHE\_\-LENGTH = 10000000000, class BucketCachePolicy  = CachePolicyLARU, uint64\_\-t NODE\_\-CACHE\_\-LENGTH = 1000000000, class NodeCachePolicy  = CachePolicyLARU$>$ void {\bf BTrie}$<$ STRING\_\-TYPE, ALPHABET, ALPHABET\_\-SIZE, BUCKET\_\-SIZE, SPLIT\_\-RATIO, ENTRY\_\-SIZE\_\-POW, HASH\_\-FUNCTION, INIT\_\-BUCKET\_\-SIZE, BUCKET\_\-CACHE\_\-LENGTH, BucketCachePolicy, NODE\_\-CACHE\_\-LENGTH, NodeCachePolicy $>$::flush ()\hspace{0.3cm}{\tt  \mbox{[}inline\mbox{]}}}}
+\label{classBTrie_bfa4a5883b5b6146af18c53a35e85b34}
+
+
+Flush trie data onto disk. 
+
+Definition at line 127 of file b\_\-trie.hpp.\hypertarget{classBTrie_71cd037bb6ec881966cc91264377e35e}{
+\index{BTrie@{BTrie}!getNodeAmount@{getNodeAmount}}
+\index{getNodeAmount@{getNodeAmount}!BTrie@{BTrie}}
+\subsubsection[{getNodeAmount}]{\setlength{\rightskip}{0pt plus 5cm}template$<$class STRING\_\-TYPE  = string, typename STRING\_\-TYPE::value\_\-type $\ast$ ALPHABET = a2z, uint32\_\-t ALPHABET\_\-SIZE = a2z\_\-size, uint32\_\-t BUCKET\_\-SIZE = 8196, uint8\_\-t SPLIT\_\-RATIO = 75, size\_\-t ENTRY\_\-SIZE\_\-POW = 10, class HASH\_\-FUNCTION  = simple\_\-hash, int INIT\_\-BUCKET\_\-SIZE = 64, uint64\_\-t BUCKET\_\-CACHE\_\-LENGTH = 10000000000, class BucketCachePolicy  = CachePolicyLARU, uint64\_\-t NODE\_\-CACHE\_\-LENGTH = 1000000000, class NodeCachePolicy  = CachePolicyLARU$>$ uint32\_\-t {\bf BTrie}$<$ STRING\_\-TYPE, ALPHABET, ALPHABET\_\-SIZE, BUCKET\_\-SIZE, SPLIT\_\-RATIO, ENTRY\_\-SIZE\_\-POW, HASH\_\-FUNCTION, INIT\_\-BUCKET\_\-SIZE, BUCKET\_\-CACHE\_\-LENGTH, BucketCachePolicy, NODE\_\-CACHE\_\-LENGTH, NodeCachePolicy $>$::getNodeAmount () const\hspace{0.3cm}{\tt  \mbox{[}inline\mbox{]}}}}
+\label{classBTrie_71cd037bb6ec881966cc91264377e35e}
+
+
+Get thet total amount of nodes. 
+
+Definition at line 598 of file b\_\-trie.hpp.\hypertarget{classBTrie_7cec73d8ae32a6d049f3e801f6ee75f3}{
+\index{BTrie@{BTrie}!insert@{insert}}
+\index{insert@{insert}!BTrie@{BTrie}}
+\subsubsection[{insert}]{\setlength{\rightskip}{0pt plus 5cm}template$<$class STRING\_\-TYPE  = string, typename STRING\_\-TYPE::value\_\-type $\ast$ ALPHABET = a2z, uint32\_\-t ALPHABET\_\-SIZE = a2z\_\-size, uint32\_\-t BUCKET\_\-SIZE = 8196, uint8\_\-t SPLIT\_\-RATIO = 75, size\_\-t ENTRY\_\-SIZE\_\-POW = 10, class HASH\_\-FUNCTION  = simple\_\-hash, int INIT\_\-BUCKET\_\-SIZE = 64, uint64\_\-t BUCKET\_\-CACHE\_\-LENGTH = 10000000000, class BucketCachePolicy  = CachePolicyLARU, uint64\_\-t NODE\_\-CACHE\_\-LENGTH = 1000000000, class NodeCachePolicy  = CachePolicyLARU$>$ bool {\bf BTrie}$<$ STRING\_\-TYPE, ALPHABET, ALPHABET\_\-SIZE, BUCKET\_\-SIZE, SPLIT\_\-RATIO, ENTRY\_\-SIZE\_\-POW, HASH\_\-FUNCTION, INIT\_\-BUCKET\_\-SIZE, BUCKET\_\-CACHE\_\-LENGTH, BucketCachePolicy, NODE\_\-CACHE\_\-LENGTH, NodeCachePolicy $>$::insert (const STRING\_\-TYPE \& {\em str}, \/  uint64\_\-t {\em contentAddr})\hspace{0.3cm}{\tt  \mbox{[}inline\mbox{]}}}}
+\label{classBTrie_7cec73d8ae32a6d049f3e801f6ee75f3}
+
+
+Insert a string and content address pair into trie. 
+
+Definition at line 252 of file b\_\-trie.hpp.\hypertarget{classBTrie_8808c1f6c8b72d7b72b70646ec661837}{
+\index{BTrie@{BTrie}!load@{load}}
+\index{load@{load}!BTrie@{BTrie}}
+\subsubsection[{load}]{\setlength{\rightskip}{0pt plus 5cm}template$<$class STRING\_\-TYPE  = string, typename STRING\_\-TYPE::value\_\-type $\ast$ ALPHABET = a2z, uint32\_\-t ALPHABET\_\-SIZE = a2z\_\-size, uint32\_\-t BUCKET\_\-SIZE = 8196, uint8\_\-t SPLIT\_\-RATIO = 75, size\_\-t ENTRY\_\-SIZE\_\-POW = 10, class HASH\_\-FUNCTION  = simple\_\-hash, int INIT\_\-BUCKET\_\-SIZE = 64, uint64\_\-t BUCKET\_\-CACHE\_\-LENGTH = 10000000000, class BucketCachePolicy  = CachePolicyLARU, uint64\_\-t NODE\_\-CACHE\_\-LENGTH = 1000000000, class NodeCachePolicy  = CachePolicyLARU$>$ void {\bf BTrie}$<$ STRING\_\-TYPE, ALPHABET, ALPHABET\_\-SIZE, BUCKET\_\-SIZE, SPLIT\_\-RATIO, ENTRY\_\-SIZE\_\-POW, HASH\_\-FUNCTION, INIT\_\-BUCKET\_\-SIZE, BUCKET\_\-CACHE\_\-LENGTH, BucketCachePolicy, NODE\_\-CACHE\_\-LENGTH, NodeCachePolicy $>$::load ()\hspace{0.3cm}{\tt  \mbox{[}inline\mbox{]}}}}
+\label{classBTrie_8808c1f6c8b72d7b72b70646ec661837}
+
+
+Load disk data into memory. 
+
+Definition at line 150 of file b\_\-trie.hpp.\hypertarget{classBTrie_3e3f5765235c78ab56663a0852c1178d}{
+\index{BTrie@{BTrie}!splitBucket@{splitBucket}}
+\index{splitBucket@{splitBucket}!BTrie@{BTrie}}
+\subsubsection[{splitBucket}]{\setlength{\rightskip}{0pt plus 5cm}template$<$class STRING\_\-TYPE  = string, typename STRING\_\-TYPE::value\_\-type $\ast$ ALPHABET = a2z, uint32\_\-t ALPHABET\_\-SIZE = a2z\_\-size, uint32\_\-t BUCKET\_\-SIZE = 8196, uint8\_\-t SPLIT\_\-RATIO = 75, size\_\-t ENTRY\_\-SIZE\_\-POW = 10, class HASH\_\-FUNCTION  = simple\_\-hash, int INIT\_\-BUCKET\_\-SIZE = 64, uint64\_\-t BUCKET\_\-CACHE\_\-LENGTH = 10000000000, class BucketCachePolicy  = CachePolicyLARU, uint64\_\-t NODE\_\-CACHE\_\-LENGTH = 1000000000, class NodeCachePolicy  = CachePolicyLARU$>$ void {\bf BTrie}$<$ STRING\_\-TYPE, ALPHABET, ALPHABET\_\-SIZE, BUCKET\_\-SIZE, SPLIT\_\-RATIO, ENTRY\_\-SIZE\_\-POW, HASH\_\-FUNCTION, INIT\_\-BUCKET\_\-SIZE, BUCKET\_\-CACHE\_\-LENGTH, BucketCachePolicy, NODE\_\-CACHE\_\-LENGTH, NodeCachePolicy $>$::splitBucket (BucketPtr \& {\em b}, \/  AlphabetNodePtr \& {\em n}, \/  uint64\_\-t {\em diskAddr}, \/  uint32\_\-t {\em idx}, \/  vector$<$ STRING\_\-TYPE $>$ \& {\em leftStr}, \/  vector$<$ uint64\_\-t $>$ \& {\em leftAddr})\hspace{0.3cm}{\tt  \mbox{[}inline\mbox{]}}}}
+\label{classBTrie_3e3f5765235c78ab56663a0852c1178d}
+
+
+Split bucket indicated by idx of 'n'. 
+
+Definition at line 376 of file b\_\-trie.hpp.\hypertarget{classBTrie_7557a9c4d0eb728ca0bcbd417d922f17}{
+\index{BTrie@{BTrie}!update@{update}}
+\index{update@{update}!BTrie@{BTrie}}
+\subsubsection[{update}]{\setlength{\rightskip}{0pt plus 5cm}template$<$class STRING\_\-TYPE  = string, typename STRING\_\-TYPE::value\_\-type $\ast$ ALPHABET = a2z, uint32\_\-t ALPHABET\_\-SIZE = a2z\_\-size, uint32\_\-t BUCKET\_\-SIZE = 8196, uint8\_\-t SPLIT\_\-RATIO = 75, size\_\-t ENTRY\_\-SIZE\_\-POW = 10, class HASH\_\-FUNCTION  = simple\_\-hash, int INIT\_\-BUCKET\_\-SIZE = 64, uint64\_\-t BUCKET\_\-CACHE\_\-LENGTH = 10000000000, class BucketCachePolicy  = CachePolicyLARU, uint64\_\-t NODE\_\-CACHE\_\-LENGTH = 1000000000, class NodeCachePolicy  = CachePolicyLARU$>$ bool {\bf BTrie}$<$ STRING\_\-TYPE, ALPHABET, ALPHABET\_\-SIZE, BUCKET\_\-SIZE, SPLIT\_\-RATIO, ENTRY\_\-SIZE\_\-POW, HASH\_\-FUNCTION, INIT\_\-BUCKET\_\-SIZE, BUCKET\_\-CACHE\_\-LENGTH, BucketCachePolicy, NODE\_\-CACHE\_\-LENGTH, NodeCachePolicy $>$::update (const STRING\_\-TYPE \& {\em str}, \/  uint64\_\-t {\em contentAddr})\hspace{0.3cm}{\tt  \mbox{[}inline\mbox{]}}}}
+\label{classBTrie_7557a9c4d0eb728ca0bcbd417d922f17}
+
+
+Update string 'str' related content 
+
+Definition at line 457 of file b\_\-trie.hpp.
+
+The documentation for this class was generated from the following file:\begin{CompactItemize}
+\item 
+/home/Kevin/izenelib/include/am/trie/b\_\-trie.hpp\end{CompactItemize}

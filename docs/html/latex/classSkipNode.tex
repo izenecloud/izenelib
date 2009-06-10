@@ -1,0 +1,123 @@
+\hypertarget{classSkipNode}{
+\section{SkipNode$<$ DataType, LockType, Alloc $>$ Class Template Reference}
+\label{classSkipNode}\index{SkipNode@{SkipNode}}
+}
+\hyperlink{classSkipNode}{SkipNode} reprents a node in a SkipList.  
+
+
+{\tt \#include $<$SkipNode.h$>$}
+
+\subsection*{Public Member Functions}
+\begin{CompactItemize}
+\item 
+\hypertarget{classSkipNode_6c98e4822d4b00cddbb01b01d07b5408}{
+\textbf{SkipNode} (const DataType \&theElement=DataType(), int h=0)}
+\label{classSkipNode_6c98e4822d4b00cddbb01b01d07b5408}
+
+\item 
+\hypertarget{classSkipNode_98dbc2bd65c86d186c8a7df78812d7b5}{
+void \textbf{unload} ()}
+\label{classSkipNode_98dbc2bd65c86d186c8a7df78812d7b5}
+
+\item 
+\hypertarget{classSkipNode_3ba2f338d42d5c75101e5488c72e8ee8}{
+bool \textbf{read} (FILE $\ast$f)}
+\label{classSkipNode_3ba2f338d42d5c75101e5488c72e8ee8}
+
+\item 
+\hypertarget{classSkipNode_beb14d9210efcfb491ef2514f7fccb56}{
+bool \textbf{write} (FILE $\ast$f)}
+\label{classSkipNode_beb14d9210efcfb491ef2514f7fccb56}
+
+\item 
+\hypertarget{classSkipNode_ed83502414cf57bc6109df98a44a3e8a}{
+bool \textbf{read} (char $\ast$pBuf)}
+\label{classSkipNode_ed83502414cf57bc6109df98a44a3e8a}
+
+\item 
+\hypertarget{classSkipNode_a6aca290272390e4b8243b5da9352f77}{
+bool \textbf{write} (char $\ast$pBuf)}
+\label{classSkipNode_a6aca290272390e4b8243b5da9352f77}
+
+\item 
+\hypertarget{classSkipNode_21213e3ce0f3aafb584bd1ce63b655ac}{
+\hyperlink{classSkipNode}{SkipNode}$<$ DataType, LockType, Alloc $>$ $\ast$ \textbf{loadRight} (int h, FILE $\ast$f)}
+\label{classSkipNode_21213e3ce0f3aafb584bd1ce63b655ac}
+
+\item 
+\hypertarget{classSkipNode_39f07b4f297bf75ab5e1843e81e32620}{
+void \textbf{display} (std::ostream \&os=std::cout)}
+\label{classSkipNode_39f07b4f297bf75ab5e1843e81e32620}
+
+\end{CompactItemize}
+\subsection*{Static Public Member Functions}
+\begin{CompactItemize}
+\item 
+\hypertarget{classSkipNode_531fa2c8a0a4c89b591fda1919cb5e46}{
+static void \textbf{setDataSize} (size\_\-t maxDataSize, size\_\-t pageSize)}
+\label{classSkipNode_531fa2c8a0a4c89b591fda1919cb5e46}
+
+\end{CompactItemize}
+\subsection*{Public Attributes}
+\begin{CompactItemize}
+\item 
+\hypertarget{classSkipNode_1f7943416a978894a63c81a426e377a8}{
+DataType \textbf{element}}
+\label{classSkipNode_1f7943416a978894a63c81a426e377a8}
+
+\item 
+\hypertarget{classSkipNode_2001a21c391de95f23122ea9fef78a5a}{
+\hyperlink{classSkipNode}{SkipNode} $\ast$ \textbf{right} \mbox{[}MAX\_\-LEVEL\mbox{]}}
+\label{classSkipNode_2001a21c391de95f23122ea9fef78a5a}
+
+\item 
+\hypertarget{classSkipNode_e1984f45084681671f1d36eacadc3112}{
+long \textbf{rfpos} \mbox{[}MAX\_\-LEVEL\mbox{]}}
+\label{classSkipNode_e1984f45084681671f1d36eacadc3112}
+
+\item 
+\hypertarget{classSkipNode_7d5910026ac2e7780f8d3c253b231d89}{
+NodeID \textbf{nid}}
+\label{classSkipNode_7d5910026ac2e7780f8d3c253b231d89}
+
+\item 
+\hypertarget{classSkipNode_e750e71813045988176d69f04c279007}{
+int \textbf{height}}
+\label{classSkipNode_e750e71813045988176d69f04c279007}
+
+\item 
+\hypertarget{classSkipNode_382b26a902567775b5ae60ed9ffaa6e4}{
+bool \textbf{isLoaded}}
+\label{classSkipNode_382b26a902567775b5ae60ed9ffaa6e4}
+
+\item 
+\hypertarget{classSkipNode_dd031af5d776a6bf86e0dc141b1ad245}{
+bool \textbf{isDirty}}
+\label{classSkipNode_dd031af5d776a6bf86e0dc141b1ad245}
+
+\item 
+\hypertarget{classSkipNode_63be36fdc3730fd2bdd6c2e5277dd75e}{
+long \textbf{fpos}}
+\label{classSkipNode_63be36fdc3730fd2bdd6c2e5277dd75e}
+
+\end{CompactItemize}
+\subsection*{Static Public Attributes}
+\begin{CompactItemize}
+\item 
+\hypertarget{classSkipNode_8f59f7b226e4c08f3f6e26c6a2f3edb1}{
+static size\_\-t \textbf{activeNodeNum}}
+\label{classSkipNode_8f59f7b226e4c08f3f6e26c6a2f3edb1}
+
+\end{CompactItemize}
+
+
+\subsection{Detailed Description}
+\subsubsection*{template$<$typename DataType, typename LockType, typename Alloc$>$ class SkipNode$<$ DataType, LockType, Alloc $>$}
+
+\hyperlink{classSkipNode}{SkipNode} reprents a node in a SkipList. 
+
+Definition at line 12 of file SkipNode.h.
+
+The documentation for this class was generated from the following file:\begin{CompactItemize}
+\item 
+/home/Kevin/izenelib/include/am/skip\_\-list\_\-file/SkipNode.h\end{CompactItemize}

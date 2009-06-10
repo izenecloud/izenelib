@@ -1,0 +1,1130 @@
+\hypertarget{classbbt__string}{
+\section{bbt\_\-string$<$ CHAR\_\-TYPE, COPY\_\-ON\_\-WRITE, BUCKET\_\-BYTES $>$ Class Template Reference}
+\label{classbbt__string}\index{bbt\_\-string@{bbt\_\-string}}
+}
+A string structed as blanced binary tree.  
+
+
+{\tt \#include $<$bbt\_\-string.hpp$>$}
+
+\subsection*{Classes}
+\begin{CompactItemize}
+\item 
+struct \textbf{BUCKET\_\-}
+\item 
+class \textbf{const\_\-iterator}
+\item 
+class \textbf{const\_\-reverse\_\-iterator}
+\item 
+struct \textbf{INDEX\_\-}
+\item 
+class \textbf{iterator}
+\item 
+class \textbf{reverse\_\-iterator}
+\end{CompactItemize}
+\subsection*{Public Types}
+\begin{CompactItemize}
+\item 
+enum \{ \textbf{BUCKET\_\-LENGTH} =  BUCKET\_\-BYTES/sizeof(CharT) -1, 
+\textbf{BUCKET\_\-SIZE} =  BUCKET\_\-BYTES + sizeof(ReferT)
+ \}
+\item 
+\hypertarget{classbbt__string_2be9dfbf4aaf66eacfdd0d82a0110890}{
+typedef CHAR\_\-TYPE \textbf{value\_\-type}}
+\label{classbbt__string_2be9dfbf4aaf66eacfdd0d82a0110890}
+
+\item 
+\hypertarget{classbbt__string_00d4b9aaf22751c6f24ba51134913a5d}{
+typedef CHAR\_\-TYPE \textbf{CharT}}
+\label{classbbt__string_00d4b9aaf22751c6f24ba51134913a5d}
+
+\item 
+\hypertarget{classbbt__string_1fd5f49f5cc263307aac18e80b7b2745}{
+typedef uint32\_\-t \textbf{ReferT}}
+\label{classbbt__string_1fd5f49f5cc263307aac18e80b7b2745}
+
+\item 
+\hypertarget{classbbt__string_dc80f1c75343e816704e22349b98f76e}{
+typedef \hyperlink{classbbt__string}{bbt\_\-string}$<$ CHAR\_\-TYPE, COPY\_\-ON\_\-WRITE, BUCKET\_\-BYTES $>$ \textbf{SelfT}}
+\label{classbbt__string_dc80f1c75343e816704e22349b98f76e}
+
+\item 
+\hypertarget{classbbt__string_ee738094d5d75ea3507e65fcbd8cf53e}{
+typedef std::size\_\-t \textbf{size\_\-t}}
+\label{classbbt__string_ee738094d5d75ea3507e65fcbd8cf53e}
+
+\end{CompactItemize}
+\subsection*{Public Member Functions}
+\begin{CompactItemize}
+\item 
+\hyperlink{classbbt__string_23ed2b13db62f8dbc5f6ce67a070cb90}{bbt\_\-string} ()
+\item 
+\hyperlink{classbbt__string_3c06fceec11f85e5b3c8f26c624978d4}{bbt\_\-string} (const \hyperlink{classbbt__string}{SelfT} \&str)
+\item 
+\hyperlink{classbbt__string_77ec72da53ea945e7ede3056319ce609}{bbt\_\-string} (const \hyperlink{classbbt__string}{SelfT} \&str, size\_\-t pos, size\_\-t n=npos)
+\item 
+\hyperlink{classbbt__string_d759c3a610215f7c52ac7a4c9e13aaab}{bbt\_\-string} (const CharT $\ast$s, size\_\-t n)
+\item 
+\hyperlink{classbbt__string_ace6416bbc018cb5fd7e0ebd836d929d}{bbt\_\-string} (const CharT $\ast$s)
+\item 
+\hyperlink{classbbt__string_bd88607f68eba44af1456842d08fb72b}{bbt\_\-string} (size\_\-t n, CharT c)
+\item 
+\hyperlink{classbbt__string_86c2a8194f3ec4902b3410c806baae4c}{bbt\_\-string} (const std::vector$<$ CharT $>$ \&v)
+\item 
+\hyperlink{classbbt__string_496d220047c4dab83664794ea1b754d1}{bbt\_\-string} (const std::string \&str)
+\item 
+{\footnotesize template$<$class InputIterator $>$ }\\\hyperlink{classbbt__string_2e84206283397353a456342f891ef460}{bbt\_\-string} (InputIterator begin, InputIterator end)
+\item 
+\hyperlink{classbbt__string}{SelfT} \& \hyperlink{classbbt__string_127c0d9e38d27260065d2b8a24cb78c1}{operator=} (const \hyperlink{classbbt__string}{SelfT} \&str)
+\item 
+\hypertarget{classbbt__string_3c4377b2ae98671a11ad1b236dfbb0d2}{
+\hyperlink{classbbt__string}{SelfT} \& \textbf{operator=} (const CharT $\ast$s)}
+\label{classbbt__string_3c4377b2ae98671a11ad1b236dfbb0d2}
+
+\item 
+\hypertarget{classbbt__string_fa4a9fba615c8f7c76a606f44285730a}{
+\hyperlink{classbbt__string}{SelfT} \& \textbf{operator=} (CharT c)}
+\label{classbbt__string_fa4a9fba615c8f7c76a606f44285730a}
+
+\item 
+const\_\-iterator \hyperlink{classbbt__string_65dc62558aea86248f43967709e4e012}{begin} () const 
+\item 
+\hypertarget{classbbt__string_44aa1bbc5c8e7af9122220198b239009}{
+iterator \textbf{begin} ()}
+\label{classbbt__string_44aa1bbc5c8e7af9122220198b239009}
+
+\item 
+const\_\-iterator \hyperlink{classbbt__string_0ef119a4b2c850ae106876ab9d276977}{end} () const 
+\item 
+\hypertarget{classbbt__string_7e81c60e19fd6cd31b1ffcf17fc1a97b}{
+iterator \textbf{end} ()}
+\label{classbbt__string_7e81c60e19fd6cd31b1ffcf17fc1a97b}
+
+\item 
+reverse\_\-iterator \hyperlink{classbbt__string_f65ad28bf03b76f6fe2dee8cc866a2e0}{rbegin} ()
+\item 
+\hypertarget{classbbt__string_54ebd122f7be1bd240581301c331926a}{
+const\_\-reverse\_\-iterator \textbf{rbegin} () const }
+\label{classbbt__string_54ebd122f7be1bd240581301c331926a}
+
+\item 
+reverse\_\-iterator \hyperlink{classbbt__string_7f39c0149a22f0d7b9fe1ce776fa2605}{rend} ()
+\item 
+\hypertarget{classbbt__string_a29d243b3cdc853a1846cd34187aecee}{
+const\_\-reverse\_\-iterator \textbf{rend} () const }
+\label{classbbt__string_a29d243b3cdc853a1846cd34187aecee}
+
+\item 
+size\_\-t \hyperlink{classbbt__string_d702780b8d0a6de141d9a02ab0b7b0a0}{size} () const 
+\item 
+size\_\-t \hyperlink{classbbt__string_09ba144b09ca3da53d028a4fd4209c1d}{length} () const 
+\item 
+size\_\-t \hyperlink{classbbt__string_f7d72888ed6e7c1b6f07d515b08b90dd}{indice\_\-length} () const 
+\item 
+size\_\-t \hyperlink{classbbt__string_dad344768ef0b5b3349b37360ddf635c}{max\_\-size} () const 
+\item 
+void \hyperlink{classbbt__string_9a3f14ffd3caa23664570a059f5f7626}{resize} (size\_\-t n, CharT c)
+\item 
+\hypertarget{classbbt__string_549e0c2ff0157f6d4cf6456c9ee04515}{
+void \textbf{resize} (size\_\-t n)}
+\label{classbbt__string_549e0c2ff0157f6d4cf6456c9ee04515}
+
+\item 
+size\_\-t \hyperlink{classbbt__string_43171d8b0097837372a408ec693559e6}{capacity} () const 
+\item 
+void \hyperlink{classbbt__string_2c7fe2805ecfdf1d9ddcd66c4e5c80f1}{reserve} (size\_\-t res\_\-arg=0)
+\item 
+void \hyperlink{classbbt__string_7cf658cb2b605dbc1c808e41f9e65b2d}{clear} ()
+\item 
+bool \hyperlink{classbbt__string_1a6fd2f8eaa83d6f9b33cc01f71af594}{empty} () const 
+\item 
+const CharT \& \hyperlink{classbbt__string_40427f0c3552b431b087c9d4c0684f85}{operator\mbox{[}$\,$\mbox{]}} (size\_\-t pos) const 
+\item 
+\hypertarget{classbbt__string_3516fba9266146eefbf517b1b317c925}{
+CharT \& \textbf{operator\mbox{[}$\,$\mbox{]}} (size\_\-t pos)}
+\label{classbbt__string_3516fba9266146eefbf517b1b317c925}
+
+\item 
+const CharT \& \hyperlink{classbbt__string_96366cce7bcb5045b562135e6bc20444}{at} (size\_\-t pos) const 
+\item 
+\hypertarget{classbbt__string_a8b554c14086660f7efdd082d531897e}{
+CharT \& \textbf{at} (size\_\-t pos)}
+\label{classbbt__string_a8b554c14086660f7efdd082d531897e}
+
+\item 
+\hyperlink{classbbt__string}{SelfT} \& \hyperlink{classbbt__string_0b1409c335c490f060472fe47c90cfd2}{operator+=} (const \hyperlink{classbbt__string}{SelfT} \&str)
+\item 
+\hypertarget{classbbt__string_9b47bcff9c90516e8a0bd9d3d17d2483}{
+\hyperlink{classbbt__string}{SelfT} \& \textbf{operator+=} (const CharT $\ast$s)}
+\label{classbbt__string_9b47bcff9c90516e8a0bd9d3d17d2483}
+
+\item 
+\hypertarget{classbbt__string_2b3c375e032bf7e5eade2ca5a7a301d0}{
+\hyperlink{classbbt__string}{SelfT} \& \textbf{operator+=} (CharT c)}
+\label{classbbt__string_2b3c375e032bf7e5eade2ca5a7a301d0}
+
+\item 
+\hyperlink{classbbt__string}{SelfT} \& \hyperlink{classbbt__string_b180cabdee6b7d393fc4e32230445051}{append} (const \hyperlink{classbbt__string}{SelfT} \&str)
+\item 
+\hyperlink{classbbt__string}{SelfT} \& \hyperlink{classbbt__string_9f1e0deb4ea27ec60dc578bb4d3cb7b8}{append} (const \hyperlink{classbbt__string}{SelfT} \&str, size\_\-t pos, size\_\-t n=npos)
+\item 
+\hyperlink{classbbt__string}{SelfT} \& \hyperlink{classbbt__string_6386d346b67e828d43b66f44037a66b3}{append} (const CharT $\ast$s, size\_\-t n)
+\item 
+\hyperlink{classbbt__string}{SelfT} \& \hyperlink{classbbt__string_a5c997633467454dc7f88198d818a564}{append} (const CharT $\ast$s)
+\item 
+\hyperlink{classbbt__string}{SelfT} \& \hyperlink{classbbt__string_a9fd465e48c33f4f219fc2d0ee41f40e}{append} (size\_\-t n, CharT c)
+\item 
+{\footnotesize template$<$class InputIterator $>$ }\\\hyperlink{classbbt__string}{SelfT} \& \hyperlink{classbbt__string_4ec194b339536af3683b94410c3d492c}{append} (InputIterator first, InputIterator last)
+\item 
+void \hyperlink{classbbt__string_a458692ed9ffa90e7634f36b3944bda2}{push\_\-back} (CharT c)
+\item 
+void \hyperlink{classbbt__string_c4c5765d2a4ea6575342f460e10f70ba}{push\_\-front} (const \hyperlink{classbbt__string}{SelfT} \&str)
+\item 
+\hyperlink{classbbt__string}{SelfT} \& \hyperlink{classbbt__string_a2171144958b01ccef526ec918229697}{assign} (const \hyperlink{classbbt__string}{SelfT} \&str)
+\item 
+\hyperlink{classbbt__string}{SelfT} \& \hyperlink{classbbt__string_9fa5926de65736614641d94c9cba83bf}{assign} (const \hyperlink{classbbt__string}{SelfT} \&str, size\_\-t pos, size\_\-t n)
+\item 
+\hyperlink{classbbt__string}{SelfT} \& \hyperlink{classbbt__string_2f40712bf2f31915bfad61172f224827}{assign} (const CharT $\ast$s, size\_\-t n)
+\item 
+\hyperlink{classbbt__string}{SelfT} \& \hyperlink{classbbt__string_aff6d129e3e7ce9472f4e1a152f8d5fd}{assign} (const CharT $\ast$s)
+\item 
+\hyperlink{classbbt__string}{SelfT} \& \hyperlink{classbbt__string_34dde768fe5e866486424320e052228f}{assign} (size\_\-t n, CharT c)
+\item 
+\hyperlink{classbbt__string}{SelfT} \& \hyperlink{classbbt__string_4e5b4bef27753e3dacc0523ec42f4d7e}{assign} (const std::vector$<$ CharT $>$ \&v)
+\item 
+\hyperlink{classbbt__string}{SelfT} \& \hyperlink{classbbt__string_1d91c8aa0f24df605052b7bd2490bed4}{assign} (const std::string \&str)
+\item 
+{\footnotesize template$<$class InputIterator $>$ }\\\hyperlink{classbbt__string}{SelfT} \& \hyperlink{classbbt__string_fa0f90cc47b7fb7c8d4bf8a5aab3658d}{assign} (InputIterator first, InputIterator last)
+\item 
+\hyperlink{classbbt__string}{SelfT} \& \hyperlink{classbbt__string_259cc9a9e878740d80a1be9d770c8106}{insert} (size\_\-t pos1, const \hyperlink{classbbt__string}{SelfT} \&str)
+\item 
+\hyperlink{classbbt__string}{SelfT} \& \hyperlink{classbbt__string_fe7cd0b9d0f147a22424695cca30e463}{insert} (size\_\-t pos1, const \hyperlink{classbbt__string}{SelfT} \&str, size\_\-t pos2, size\_\-t n)
+\item 
+\hyperlink{classbbt__string}{SelfT} \& \hyperlink{classbbt__string_0912d29c711b1f67e066d6bbf1203adc}{insert} (size\_\-t pos1, const CharT $\ast$s, size\_\-t n)
+\item 
+\hyperlink{classbbt__string}{SelfT} \& \hyperlink{classbbt__string_3f5e4d3bbea5d9d55fe9fcb3185b7919}{insert} (size\_\-t pos1, const CharT $\ast$s)
+\item 
+\hyperlink{classbbt__string}{SelfT} \& \hyperlink{classbbt__string_414570f2f7f3afe8b105805a04f83e76}{insert} (size\_\-t pos1, size\_\-t n, CharT c)
+\item 
+iterator \hyperlink{classbbt__string_5eb3ddd3247398965c17324150398664}{insert} (iterator p, CharT c)
+\item 
+void \hyperlink{classbbt__string_94e32cc061b77d94d5ccdd33375ac649}{insert} (iterator p, size\_\-t n, CharT c)
+\item 
+{\footnotesize template$<$class InputIterator $>$ }\\void \hyperlink{classbbt__string_2720a0dd9a3b40ba8bda86d62a71c3c9}{insert} (iterator p, InputIterator first, InputIterator last)
+\item 
+\hyperlink{classbbt__string}{SelfT} \& \hyperlink{classbbt__string_21d1419fbc55b6276cb15a62b513106d}{erase} (size\_\-t pos=0, size\_\-t n=npos)
+\item 
+iterator \hyperlink{classbbt__string_5eac694c7f6e44c5018993eba8153e33}{erase} (iterator position)
+\item 
+iterator \hyperlink{classbbt__string_095d97e82bab15718a353ab0f9ec3a4f}{erase} (iterator first, iterator last)
+\item 
+\hyperlink{classbbt__string}{SelfT} \& \hyperlink{classbbt__string_e00ce88ee9fb5e57bdd03b293752cd1a}{replace} (size\_\-t pos1, size\_\-t n1, const \hyperlink{classbbt__string}{SelfT} \&str)
+\item 
+\hyperlink{classbbt__string}{SelfT} \& \hyperlink{classbbt__string_51dbd7d4611fe6d60c4238786281d25e}{replace} (iterator i1, iterator i2, const \hyperlink{classbbt__string}{SelfT} \&str)
+\item 
+\hyperlink{classbbt__string}{SelfT} \& \hyperlink{classbbt__string_56380b00db98648281e47a98db7877b9}{replace} (size\_\-t pos1, size\_\-t n1, const \hyperlink{classbbt__string}{SelfT} \&str, size\_\-t pos2, size\_\-t n2)
+\item 
+\hyperlink{classbbt__string}{SelfT} \& \hyperlink{classbbt__string_2855c7c1db09f625b3d0fc7311a61923}{replace} (size\_\-t pos1, size\_\-t n1, const CharT $\ast$s, size\_\-t n2)
+\item 
+\hyperlink{classbbt__string}{SelfT} \& \hyperlink{classbbt__string_1e73d6742c06f347e28afdfc9a9c3a6c}{replace} (iterator i1, iterator i2, const CharT $\ast$s, size\_\-t n2)
+\item 
+\hyperlink{classbbt__string}{SelfT} \& \hyperlink{classbbt__string_1bca4b60b45b77a1c806d63f8d441082}{replace} (size\_\-t pos1, size\_\-t n1, const CharT $\ast$s)
+\item 
+\hyperlink{classbbt__string}{SelfT} \& \hyperlink{classbbt__string_682dfcac635e137557d90c4c2d960c69}{replace} (iterator i1, iterator i2, const CharT $\ast$s)
+\item 
+\hyperlink{classbbt__string}{SelfT} \& \hyperlink{classbbt__string_146596df06229f2f8b4984a44b07d6dc}{replace} (size\_\-t pos1, size\_\-t n1, size\_\-t n2, CharT c)
+\item 
+\hyperlink{classbbt__string}{SelfT} \& \hyperlink{classbbt__string_7125b62da40b819bc3780a759664f668}{replace} (iterator i1, iterator i2, size\_\-t n2, CharT c)
+\item 
+{\footnotesize template$<$class InputIterator $>$ }\\\hyperlink{classbbt__string}{SelfT} \& \hyperlink{classbbt__string_8bf848ea75290e5ddfe4983b71919efb}{replace} (iterator i1, iterator i2, InputIterator j1, InputIterator j2)
+\item 
+size\_\-t \hyperlink{classbbt__string_0873ce9d57fa0817c63678cf42bb6ff6}{copy} (CharT $\ast$s, size\_\-t n, size\_\-t pos=0) const 
+\item 
+void \hyperlink{classbbt__string_04e661fd40f8134bff1b427e08603786}{swap} (\hyperlink{classbbt__string}{SelfT} \&str)
+\item 
+const CharT $\ast$ \hyperlink{classbbt__string_c153fa7ac5477ba7ef44c684cb396c0b}{c\_\-str} () const 
+\item 
+const CharT $\ast$ \hyperlink{classbbt__string_bd225f98ab68e2385b6d3e23bd4719cb}{data} () const 
+\item 
+size\_\-t \hyperlink{classbbt__string_d4e8abb583695fb2be91eaee21827601}{find} (const \hyperlink{classbbt__string}{SelfT} \&str, size\_\-t pos=0) const 
+\item 
+\hypertarget{classbbt__string_ae10cac797e5601d7300af19f0b90407}{
+size\_\-t \textbf{find} (const CharT $\ast$s, size\_\-t pos, size\_\-t n) const }
+\label{classbbt__string_ae10cac797e5601d7300af19f0b90407}
+
+\item 
+\hypertarget{classbbt__string_845e09e0a102277a233106c0b0920703}{
+size\_\-t \textbf{find} (const CharT $\ast$s, size\_\-t pos=0) const }
+\label{classbbt__string_845e09e0a102277a233106c0b0920703}
+
+\item 
+\hypertarget{classbbt__string_a631cb3200714f67f6f9bb8630b3e4c1}{
+size\_\-t \textbf{find} (CharT c, size\_\-t pos=0) const }
+\label{classbbt__string_a631cb3200714f67f6f9bb8630b3e4c1}
+
+\item 
+\hypertarget{classbbt__string_e9266d980b861118c6996014dadaeafe}{
+size\_\-t \textbf{rfind} (const \hyperlink{classbbt__string}{SelfT} \&str, size\_\-t pos=npos) const }
+\label{classbbt__string_e9266d980b861118c6996014dadaeafe}
+
+\item 
+\hypertarget{classbbt__string_d728504c413696593dd1e32563a81e4e}{
+size\_\-t \textbf{rfind} (const char $\ast$s, size\_\-t pos, size\_\-t n) const }
+\label{classbbt__string_d728504c413696593dd1e32563a81e4e}
+
+\item 
+\hypertarget{classbbt__string_59a26cb95fe7902c9698d48c3178edcd}{
+size\_\-t \textbf{rfind} (const CharT $\ast$s, size\_\-t pos=npos) const }
+\label{classbbt__string_59a26cb95fe7902c9698d48c3178edcd}
+
+\item 
+\hypertarget{classbbt__string_d62f1c73b1c760dca1b981d1a7b02a63}{
+size\_\-t \textbf{rfind} (CharT c, size\_\-t pos=npos) const }
+\label{classbbt__string_d62f1c73b1c760dca1b981d1a7b02a63}
+
+\item 
+\hypertarget{classbbt__string_b79ed106ffa94ed529c8697745f8d1f5}{
+\hyperlink{classbbt__string}{SelfT} \textbf{substr} (size\_\-t pos=0, size\_\-t n=npos) const }
+\label{classbbt__string_b79ed106ffa94ed529c8697745f8d1f5}
+
+\item 
+\hypertarget{classbbt__string_578af910a50c78cee9fe2466706585c1}{
+int \textbf{compare} (const \hyperlink{classbbt__string}{SelfT} \&str) const }
+\label{classbbt__string_578af910a50c78cee9fe2466706585c1}
+
+\item 
+\hypertarget{classbbt__string_7462a0602d3d92f1c6890cf103ff9212}{
+int \textbf{compare} (const CharT $\ast$s) const }
+\label{classbbt__string_7462a0602d3d92f1c6890cf103ff9212}
+
+\item 
+\hypertarget{classbbt__string_a7004ab01cd6195d39e85147ea8c5e70}{
+int \textbf{compare} (size\_\-t pos1, size\_\-t n1, const \hyperlink{classbbt__string}{SelfT} \&str) const }
+\label{classbbt__string_a7004ab01cd6195d39e85147ea8c5e70}
+
+\item 
+\hypertarget{classbbt__string_b4dbafa5ee92a4dd63b80a72902dc5bf}{
+int \textbf{compare} (size\_\-t pos1, size\_\-t n1, const CharT $\ast$s) const }
+\label{classbbt__string_b4dbafa5ee92a4dd63b80a72902dc5bf}
+
+\item 
+\hypertarget{classbbt__string_a5e131e7b10e9b328342db4ea84cd06f}{
+int \textbf{compare} (size\_\-t pos1, size\_\-t n1, const \hyperlink{classbbt__string}{SelfT} \&str, size\_\-t pos2, size\_\-t n2) const }
+\label{classbbt__string_a5e131e7b10e9b328342db4ea84cd06f}
+
+\item 
+\hypertarget{classbbt__string_f075976f6dced8212dae05bd93d1bd6f}{
+int \textbf{compare} (size\_\-t pos1, size\_\-t n1, const CharT $\ast$s, size\_\-t n2) const }
+\label{classbbt__string_f075976f6dced8212dae05bd93d1bd6f}
+
+\item 
+\hypertarget{classbbt__string_69eda47adb2a63bd256be0ac4d5c2f9e}{
+std::vector$<$ CharT $>$ \textbf{cast\_\-std\_\-vector} ()}
+\label{classbbt__string_69eda47adb2a63bd256be0ac4d5c2f9e}
+
+\item 
+\hypertarget{classbbt__string_4bc98508bba816f2848e2c134fd31108}{
+std::string \textbf{cast\_\-std\_\-string} ()}
+\label{classbbt__string_4bc98508bba816f2848e2c134fd31108}
+
+\item 
+\hypertarget{classbbt__string_019567bd44964ee65280d4b8a98b1710}{
+{\footnotesize template$<$class Archive $>$ }\\void \textbf{save} (Archive \&ar, const unsigned int version) const }
+\label{classbbt__string_019567bd44964ee65280d4b8a98b1710}
+
+\item 
+\hypertarget{classbbt__string_a532809f67fc37b3dedd99f8ae95caae}{
+{\footnotesize template$<$class Archive $>$ }\\void \textbf{load} (Archive \&ar, const unsigned int version)}
+\label{classbbt__string_a532809f67fc37b3dedd99f8ae95caae}
+
+\item 
+\hypertarget{classbbt__string_fdf5ea87b3d0316efed753ea5ca11f83}{
+void \textbf{display} () const }
+\label{classbbt__string_fdf5ea87b3d0316efed753ea5ca11f83}
+
+\end{CompactItemize}
+\subsection*{Static Public Attributes}
+\begin{CompactItemize}
+\item 
+\hypertarget{classbbt__string_37ee6487025e0088c0741ff4f946b8d1}{
+static const size\_\-t \textbf{npos} = -1}
+\label{classbbt__string_37ee6487025e0088c0741ff4f946b8d1}
+
+\end{CompactItemize}
+\subsection*{Protected Member Functions}
+\begin{CompactItemize}
+\item 
+\hypertarget{classbbt__string_f7c2c97517b7c20277eef1674df243ec}{
+bool \textbf{refer\_\-all} ()}
+\label{classbbt__string_f7c2c97517b7c20277eef1674df243ec}
+
+\item 
+\hypertarget{classbbt__string_13d26f2c0a420af8c2dd0e8816b7d580}{
+bool \textbf{refer} (size\_\-t i)}
+\label{classbbt__string_13d26f2c0a420af8c2dd0e8816b7d580}
+
+\item 
+\hypertarget{classbbt__string_3783c467d4626d8a98276c3c6244fdf3}{
+void \textbf{derefer\_\-all} ()}
+\label{classbbt__string_3783c467d4626d8a98276c3c6244fdf3}
+
+\item 
+\hypertarget{classbbt__string_c176cd583a8923d9eea441e51531aedc}{
+void \textbf{derefer} (size\_\-t i)}
+\label{classbbt__string_c176cd583a8923d9eea441e51531aedc}
+
+\item 
+\hypertarget{classbbt__string_058842ef552babd3da2c6034a78cdf32}{
+void \textbf{clear\_\-all\_\-reference} ()}
+\label{classbbt__string_058842ef552babd3da2c6034a78cdf32}
+
+\item 
+\hypertarget{classbbt__string_f984e7160a01c9264604bb05d7d1d6d1}{
+void \textbf{clear\_\-reference} (size\_\-t i)}
+\label{classbbt__string_f984e7160a01c9264604bb05d7d1d6d1}
+
+\item 
+\hypertarget{classbbt__string_461e10300db61e31743e9c5dad9acc30}{
+void \textbf{clear\_\-indice} (size\_\-t i, size\_\-t n)}
+\label{classbbt__string_461e10300db61e31743e9c5dad9acc30}
+
+\item 
+\hypertarget{classbbt__string_ec3984725d5acba737b35a86c830557c}{
+size\_\-t \textbf{getLen} (const CharT $\ast$s) const }
+\label{classbbt__string_ec3984725d5acba737b35a86c830557c}
+
+\item 
+\hypertarget{classbbt__string_a94c731e1b5f193b902efb470f90b811}{
+BUCKET\_\- $\ast$ \textbf{new\_\-bucket} (size\_\-t i) const }
+\label{classbbt__string_a94c731e1b5f193b902efb470f90b811}
+
+\item 
+\hypertarget{classbbt__string_4f3ee2c9657c4b817b763cd0fed7cdfd}{
+void \textbf{duplicate} (size\_\-t i)}
+\label{classbbt__string_4f3ee2c9657c4b817b763cd0fed7cdfd}
+
+\item 
+\hypertarget{classbbt__string_f97a1811c1ff2df4682db4dea4f34b0a}{
+size\_\-t \textbf{duplicate} (INDEX\_\- $\ast$$\ast$indice) const }
+\label{classbbt__string_f97a1811c1ff2df4682db4dea4f34b0a}
+
+\item 
+\hypertarget{classbbt__string_f6fde6bef4354adfc8e1744e97f686a2}{
+size\_\-t \textbf{duplicate} (size\_\-t start, size\_\-t n, INDEX\_\- $\ast$$\ast$indice) const }
+\label{classbbt__string_f6fde6bef4354adfc8e1744e97f686a2}
+
+\item 
+\hypertarget{classbbt__string_4d1bca27e60258f0f9709e2b67c7ac8c}{
+size\_\-t \textbf{binary\_\-search} (size\_\-t i, size\_\-t start, size\_\-t end) const }
+\label{classbbt__string_4d1bca27e60258f0f9709e2b67c7ac8c}
+
+\item 
+\hypertarget{classbbt__string_badb9ff60544a1a510b813eb73ea28b1}{
+bool \textbf{is\_\-refered} (size\_\-t i)}
+\label{classbbt__string_badb9ff60544a1a510b813eb73ea28b1}
+
+\end{CompactItemize}
+\subsection*{Static Protected Member Functions}
+\begin{CompactItemize}
+\item 
+\hypertarget{classbbt__string_ba4af9958273381c33fd7eb02601ee04}{
+static BUCKET\_\- $\ast$ \textbf{new\_\-bucket} ()}
+\label{classbbt__string_ba4af9958273381c33fd7eb02601ee04}
+
+\end{CompactItemize}
+\subsection*{Protected Attributes}
+\begin{CompactItemize}
+\item 
+\hypertarget{classbbt__string_19e4ed626436244f89f0e3417a537ae0}{
+INDEX\_\- $\ast$ \hyperlink{classbbt__string_19e4ed626436244f89f0e3417a537ae0}{indice\_\-}}
+\label{classbbt__string_19e4ed626436244f89f0e3417a537ae0}
+
+\begin{CompactList}\small\item\em The indice array entry, stores string length ahead, used for find charactor at a certain position. \item\end{CompactList}\item 
+\hypertarget{classbbt__string_a5ecac8bf5090ed033b5c6f35d14ea16}{
+size\_\-t \hyperlink{classbbt__string_a5ecac8bf5090ed033b5c6f35d14ea16}{idx\_\-len\_\-}}
+\label{classbbt__string_a5ecac8bf5090ed033b5c6f35d14ea16}
+
+\begin{CompactList}\small\item\em Length of indice array which is being used. \item\end{CompactList}\item 
+\hypertarget{classbbt__string_725834ca784d8bc2b782e40bd3ddb384}{
+size\_\-t \hyperlink{classbbt__string_725834ca784d8bc2b782e40bd3ddb384}{idx\_\-size\_\-}}
+\label{classbbt__string_725834ca784d8bc2b782e40bd3ddb384}
+
+\begin{CompactList}\small\item\em The size of entire indice array. \item\end{CompactList}\item 
+\hypertarget{classbbt__string_f5e67157a9e7dfebf732abc370f86d65}{
+size\_\-t \textbf{length\_\-}}
+\label{classbbt__string_f5e67157a9e7dfebf732abc370f86d65}
+
+\end{CompactItemize}
+\subsection*{Friends}
+\begin{CompactItemize}
+\item 
+\hypertarget{classbbt__string_c98d07dd8f7b70e16ccb9a01abf56b9c}{
+class \textbf{boost::serialization::access}}
+\label{classbbt__string_c98d07dd8f7b70e16ccb9a01abf56b9c}
+
+\item 
+\hypertarget{classbbt__string_9f77d965eac7a717e9124196d686e094}{
+std::ostream \& \textbf{operator$<$$<$} (std::ostream \&os, const \hyperlink{classbbt__string}{SelfT} \&str)}
+\label{classbbt__string_9f77d965eac7a717e9124196d686e094}
+
+\end{CompactItemize}
+
+
+\subsection{Detailed Description}
+\subsubsection*{template$<$class CHAR\_\-TYPE = char, int COPY\_\-ON\_\-WRITE = 1, uint64\_\-t BUCKET\_\-BYTES = 1024$>$ class bbt\_\-string$<$ CHAR\_\-TYPE, COPY\_\-ON\_\-WRITE, BUCKET\_\-BYTES $>$}
+
+A string structed as blanced binary tree. 
+
+\hyperlink{classbbt__string}{bbt\_\-string} stands for Balanced Binary Tree String. This string adopts bbt structure. It is designed for long string. Compared to other strings, it's the fastest one in a lot of aspects, says, insert, append and push\_\-front, but less memory-saving compared to deque string. It has push\_\-front which vector string and std::string don't have. And it's lack of functions like \hyperlink{classbbt__string_c153fa7ac5477ba7ef44c684cb396c0b}{c\_\-str()}, \hyperlink{classbbt__string_bd225f98ab68e2385b6d3e23bd4719cb}{data()} and attach() since its data structure. If you use unicode, the template parameter CHAR\_\-TYPE should be uint16\_\-t. If you don't want copy-on-write, just set COPY\_\-ON\_\-WRITE 0. BUCKET\_\-BYTES control the size of bucket in tree by bytes, which is as leaf on tree and store charactors. 
+
+Definition at line 37 of file bbt\_\-string.hpp.
+
+\subsection{Constructor \& Destructor Documentation}
+\hypertarget{classbbt__string_23ed2b13db62f8dbc5f6ce67a070cb90}{
+\index{bbt\_\-string@{bbt\_\-string}!bbt\_\-string@{bbt\_\-string}}
+\index{bbt\_\-string@{bbt\_\-string}!bbt_string@{bbt\_\-string}}
+\subsubsection[{bbt\_\-string}]{\setlength{\rightskip}{0pt plus 5cm}template$<$class CHAR\_\-TYPE  = char, int COPY\_\-ON\_\-WRITE = 1, uint64\_\-t BUCKET\_\-BYTES = 1024$>$ {\bf bbt\_\-string}$<$ CHAR\_\-TYPE, COPY\_\-ON\_\-WRITE, BUCKET\_\-BYTES $>$::{\bf bbt\_\-string} ()\hspace{0.3cm}{\tt  \mbox{[}inline, explicit\mbox{]}}}}
+\label{classbbt__string_23ed2b13db62f8dbc5f6ce67a070cb90}
+
+
+Content is initialized to an empty string. 
+
+Definition at line 1254 of file bbt\_\-string.hpp.\hypertarget{classbbt__string_3c06fceec11f85e5b3c8f26c624978d4}{
+\index{bbt\_\-string@{bbt\_\-string}!bbt\_\-string@{bbt\_\-string}}
+\index{bbt\_\-string@{bbt\_\-string}!bbt_string@{bbt\_\-string}}
+\subsubsection[{bbt\_\-string}]{\setlength{\rightskip}{0pt plus 5cm}template$<$class CHAR\_\-TYPE  = char, int COPY\_\-ON\_\-WRITE = 1, uint64\_\-t BUCKET\_\-BYTES = 1024$>$ {\bf bbt\_\-string}$<$ CHAR\_\-TYPE, COPY\_\-ON\_\-WRITE, BUCKET\_\-BYTES $>$::{\bf bbt\_\-string} (const {\bf SelfT} \& {\em str})\hspace{0.3cm}{\tt  \mbox{[}inline\mbox{]}}}}
+\label{classbbt__string_3c06fceec11f85e5b3c8f26c624978d4}
+
+
+Content is initialized to a copy of the string object str. 
+
+Definition at line 1266 of file bbt\_\-string.hpp.\hypertarget{classbbt__string_77ec72da53ea945e7ede3056319ce609}{
+\index{bbt\_\-string@{bbt\_\-string}!bbt\_\-string@{bbt\_\-string}}
+\index{bbt\_\-string@{bbt\_\-string}!bbt_string@{bbt\_\-string}}
+\subsubsection[{bbt\_\-string}]{\setlength{\rightskip}{0pt plus 5cm}template$<$class CHAR\_\-TYPE  = char, int COPY\_\-ON\_\-WRITE = 1, uint64\_\-t BUCKET\_\-BYTES = 1024$>$ {\bf bbt\_\-string}$<$ CHAR\_\-TYPE, COPY\_\-ON\_\-WRITE, BUCKET\_\-BYTES $>$::{\bf bbt\_\-string} (const {\bf SelfT} \& {\em str}, \/  size\_\-t {\em pos}, \/  size\_\-t {\em n} = {\tt npos})\hspace{0.3cm}{\tt  \mbox{[}inline\mbox{]}}}}
+\label{classbbt__string_77ec72da53ea945e7ede3056319ce609}
+
+
+Content is initialized to a copy of a substring of str. The substring is the portion f str that begins at the character position pos and takes up to n characters (it takes less than n if the end of str is reached before). 
+
+Definition at line 1279 of file bbt\_\-string.hpp.\hypertarget{classbbt__string_d759c3a610215f7c52ac7a4c9e13aaab}{
+\index{bbt\_\-string@{bbt\_\-string}!bbt\_\-string@{bbt\_\-string}}
+\index{bbt\_\-string@{bbt\_\-string}!bbt_string@{bbt\_\-string}}
+\subsubsection[{bbt\_\-string}]{\setlength{\rightskip}{0pt plus 5cm}template$<$class CHAR\_\-TYPE  = char, int COPY\_\-ON\_\-WRITE = 1, uint64\_\-t BUCKET\_\-BYTES = 1024$>$ {\bf bbt\_\-string}$<$ CHAR\_\-TYPE, COPY\_\-ON\_\-WRITE, BUCKET\_\-BYTES $>$::{\bf bbt\_\-string} (const CharT $\ast$ {\em s}, \/  size\_\-t {\em n})\hspace{0.3cm}{\tt  \mbox{[}inline\mbox{]}}}}
+\label{classbbt__string_d759c3a610215f7c52ac7a4c9e13aaab}
+
+
+Content is initialized to a copy of the string formed by the first n characters in the array of characters pointed by s. 
+
+Definition at line 1290 of file bbt\_\-string.hpp.\hypertarget{classbbt__string_ace6416bbc018cb5fd7e0ebd836d929d}{
+\index{bbt\_\-string@{bbt\_\-string}!bbt\_\-string@{bbt\_\-string}}
+\index{bbt\_\-string@{bbt\_\-string}!bbt_string@{bbt\_\-string}}
+\subsubsection[{bbt\_\-string}]{\setlength{\rightskip}{0pt plus 5cm}template$<$class CHAR\_\-TYPE  = char, int COPY\_\-ON\_\-WRITE = 1, uint64\_\-t BUCKET\_\-BYTES = 1024$>$ {\bf bbt\_\-string}$<$ CHAR\_\-TYPE, COPY\_\-ON\_\-WRITE, BUCKET\_\-BYTES $>$::{\bf bbt\_\-string} (const CharT $\ast$ {\em s})\hspace{0.3cm}{\tt  \mbox{[}inline\mbox{]}}}}
+\label{classbbt__string_ace6416bbc018cb5fd7e0ebd836d929d}
+
+
+Content is initialized to a copy of the string formed by the null-terminated character sequence (C string) pointed by s. The length of the caracter sequence is determined by the first occurrence of a null character (as determined by traits.length(s)). This version can be used to initialize a string object using a string literal constant. 
+
+Definition at line 1304 of file bbt\_\-string.hpp.\hypertarget{classbbt__string_bd88607f68eba44af1456842d08fb72b}{
+\index{bbt\_\-string@{bbt\_\-string}!bbt\_\-string@{bbt\_\-string}}
+\index{bbt\_\-string@{bbt\_\-string}!bbt_string@{bbt\_\-string}}
+\subsubsection[{bbt\_\-string}]{\setlength{\rightskip}{0pt plus 5cm}template$<$class CHAR\_\-TYPE  = char, int COPY\_\-ON\_\-WRITE = 1, uint64\_\-t BUCKET\_\-BYTES = 1024$>$ {\bf bbt\_\-string}$<$ CHAR\_\-TYPE, COPY\_\-ON\_\-WRITE, BUCKET\_\-BYTES $>$::{\bf bbt\_\-string} (size\_\-t {\em n}, \/  CharT {\em c})\hspace{0.3cm}{\tt  \mbox{[}inline\mbox{]}}}}
+\label{classbbt__string_bd88607f68eba44af1456842d08fb72b}
+
+
+Content is initialized as a string formed by a repetition of character c, n times. 
+
+Definition at line 1315 of file bbt\_\-string.hpp.\hypertarget{classbbt__string_86c2a8194f3ec4902b3410c806baae4c}{
+\index{bbt\_\-string@{bbt\_\-string}!bbt\_\-string@{bbt\_\-string}}
+\index{bbt\_\-string@{bbt\_\-string}!bbt_string@{bbt\_\-string}}
+\subsubsection[{bbt\_\-string}]{\setlength{\rightskip}{0pt plus 5cm}template$<$class CHAR\_\-TYPE  = char, int COPY\_\-ON\_\-WRITE = 1, uint64\_\-t BUCKET\_\-BYTES = 1024$>$ {\bf bbt\_\-string}$<$ CHAR\_\-TYPE, COPY\_\-ON\_\-WRITE, BUCKET\_\-BYTES $>$::{\bf bbt\_\-string} (const std::vector$<$ CharT $>$ \& {\em v})\hspace{0.3cm}{\tt  \mbox{[}inline\mbox{]}}}}
+\label{classbbt__string_86c2a8194f3ec4902b3410c806baae4c}
+
+
+Content is initialized as a string represented by vector 'v'. 
+
+Definition at line 1326 of file bbt\_\-string.hpp.\hypertarget{classbbt__string_496d220047c4dab83664794ea1b754d1}{
+\index{bbt\_\-string@{bbt\_\-string}!bbt\_\-string@{bbt\_\-string}}
+\index{bbt\_\-string@{bbt\_\-string}!bbt_string@{bbt\_\-string}}
+\subsubsection[{bbt\_\-string}]{\setlength{\rightskip}{0pt plus 5cm}template$<$class CHAR\_\-TYPE  = char, int COPY\_\-ON\_\-WRITE = 1, uint64\_\-t BUCKET\_\-BYTES = 1024$>$ {\bf bbt\_\-string}$<$ CHAR\_\-TYPE, COPY\_\-ON\_\-WRITE, BUCKET\_\-BYTES $>$::{\bf bbt\_\-string} (const std::string \& {\em str})\hspace{0.3cm}{\tt  \mbox{[}inline\mbox{]}}}}
+\label{classbbt__string_496d220047c4dab83664794ea1b754d1}
+
+
+Content is initialized as a string represented std::string. 
+
+Definition at line 1337 of file bbt\_\-string.hpp.\hypertarget{classbbt__string_2e84206283397353a456342f891ef460}{
+\index{bbt\_\-string@{bbt\_\-string}!bbt\_\-string@{bbt\_\-string}}
+\index{bbt\_\-string@{bbt\_\-string}!bbt_string@{bbt\_\-string}}
+\subsubsection[{bbt\_\-string}]{\setlength{\rightskip}{0pt plus 5cm}template$<$class CHAR\_\-TYPE  = char, int COPY\_\-ON\_\-WRITE = 1, uint64\_\-t BUCKET\_\-BYTES = 1024$>$ template$<$class InputIterator $>$ {\bf bbt\_\-string}$<$ CHAR\_\-TYPE, COPY\_\-ON\_\-WRITE, BUCKET\_\-BYTES $>$::{\bf bbt\_\-string} (InputIterator {\em begin}, \/  InputIterator {\em end})\hspace{0.3cm}{\tt  \mbox{[}inline\mbox{]}}}}
+\label{classbbt__string_2e84206283397353a456342f891ef460}
+
+
+If InputIterator is an integral type, behaves as the sixth constructor version (the one right above this) by typecasting begin and end to call it:
+
+string(static\_\-cast$<$size\_\-t$>$(begin),static\_\-cast$<$char$>$(end)); In any other case, the parameters are taken as iterators, and the content is initialized with the values of the elements that go from the element referred by iterator begin to the element right before the one referred by iterator end. 
+
+Definition at line 1354 of file bbt\_\-string.hpp.
+
+\subsection{Member Function Documentation}
+\hypertarget{classbbt__string_4ec194b339536af3683b94410c3d492c}{
+\index{bbt\_\-string@{bbt\_\-string}!append@{append}}
+\index{append@{append}!bbt_string@{bbt\_\-string}}
+\subsubsection[{append}]{\setlength{\rightskip}{0pt plus 5cm}template$<$class CHAR\_\-TYPE  = char, int COPY\_\-ON\_\-WRITE = 1, uint64\_\-t BUCKET\_\-BYTES = 1024$>$ template$<$class InputIterator $>$ {\bf SelfT}\& {\bf bbt\_\-string}$<$ CHAR\_\-TYPE, COPY\_\-ON\_\-WRITE, BUCKET\_\-BYTES $>$::append (InputIterator {\em first}, \/  InputIterator {\em last})\hspace{0.3cm}{\tt  \mbox{[}inline\mbox{]}}}}
+\label{classbbt__string_4ec194b339536af3683b94410c3d492c}
+
+
+If InputIterator is an integral type, behaves as the previous member function version, effectively appending a string formed by the repetition first times of the character equivalent to last. In any other case, the parameters are considered iterators and the content is appended by the elements that go from element referred by iterator first to the element right before the one referred by iterator last. 
+
+Definition at line 1935 of file bbt\_\-string.hpp.\hypertarget{classbbt__string_a9fd465e48c33f4f219fc2d0ee41f40e}{
+\index{bbt\_\-string@{bbt\_\-string}!append@{append}}
+\index{append@{append}!bbt_string@{bbt\_\-string}}
+\subsubsection[{append}]{\setlength{\rightskip}{0pt plus 5cm}template$<$class CHAR\_\-TYPE  = char, int COPY\_\-ON\_\-WRITE = 1, uint64\_\-t BUCKET\_\-BYTES = 1024$>$ {\bf SelfT}\& {\bf bbt\_\-string}$<$ CHAR\_\-TYPE, COPY\_\-ON\_\-WRITE, BUCKET\_\-BYTES $>$::append (size\_\-t {\em n}, \/  CharT {\em c})\hspace{0.3cm}{\tt  \mbox{[}inline\mbox{]}}}}
+\label{classbbt__string_a9fd465e48c33f4f219fc2d0ee41f40e}
+
+
+Appends a string formed by the repetition n times of character c. 
+
+Definition at line 1871 of file bbt\_\-string.hpp.\hypertarget{classbbt__string_a5c997633467454dc7f88198d818a564}{
+\index{bbt\_\-string@{bbt\_\-string}!append@{append}}
+\index{append@{append}!bbt_string@{bbt\_\-string}}
+\subsubsection[{append}]{\setlength{\rightskip}{0pt plus 5cm}template$<$class CHAR\_\-TYPE  = char, int COPY\_\-ON\_\-WRITE = 1, uint64\_\-t BUCKET\_\-BYTES = 1024$>$ {\bf SelfT}\& {\bf bbt\_\-string}$<$ CHAR\_\-TYPE, COPY\_\-ON\_\-WRITE, BUCKET\_\-BYTES $>$::append (const CharT $\ast$ {\em s})\hspace{0.3cm}{\tt  \mbox{[}inline\mbox{]}}}}
+\label{classbbt__string_a5c997633467454dc7f88198d818a564}
+
+
+Appends a copy of the string formed by the null-terminated character sequence (C string) pointed by s. The length of this character sequence is determined by the first ocurrence of a null character (as determined by traits.length(s)). 
+
+Definition at line 1862 of file bbt\_\-string.hpp.\hypertarget{classbbt__string_6386d346b67e828d43b66f44037a66b3}{
+\index{bbt\_\-string@{bbt\_\-string}!append@{append}}
+\index{append@{append}!bbt_string@{bbt\_\-string}}
+\subsubsection[{append}]{\setlength{\rightskip}{0pt plus 5cm}template$<$class CHAR\_\-TYPE  = char, int COPY\_\-ON\_\-WRITE = 1, uint64\_\-t BUCKET\_\-BYTES = 1024$>$ {\bf SelfT}\& {\bf bbt\_\-string}$<$ CHAR\_\-TYPE, COPY\_\-ON\_\-WRITE, BUCKET\_\-BYTES $>$::append (const CharT $\ast$ {\em s}, \/  size\_\-t {\em n})\hspace{0.3cm}{\tt  \mbox{[}inline\mbox{]}}}}
+\label{classbbt__string_6386d346b67e828d43b66f44037a66b3}
+
+
+Appends a copy of the string formed by the first n characters in the array of characters pointed by s. 
+
+Definition at line 1800 of file bbt\_\-string.hpp.\hypertarget{classbbt__string_9f1e0deb4ea27ec60dc578bb4d3cb7b8}{
+\index{bbt\_\-string@{bbt\_\-string}!append@{append}}
+\index{append@{append}!bbt_string@{bbt\_\-string}}
+\subsubsection[{append}]{\setlength{\rightskip}{0pt plus 5cm}template$<$class CHAR\_\-TYPE  = char, int COPY\_\-ON\_\-WRITE = 1, uint64\_\-t BUCKET\_\-BYTES = 1024$>$ {\bf SelfT}\& {\bf bbt\_\-string}$<$ CHAR\_\-TYPE, COPY\_\-ON\_\-WRITE, BUCKET\_\-BYTES $>$::append (const {\bf SelfT} \& {\em str}, \/  size\_\-t {\em pos}, \/  size\_\-t {\em n} = {\tt npos})\hspace{0.3cm}{\tt  \mbox{[}inline\mbox{]}}}}
+\label{classbbt__string_9f1e0deb4ea27ec60dc578bb4d3cb7b8}
+
+
+Appends a copy of a substring of str. The substring is the portion of str that begins at the character position pos and takes up to n characters (it takes less than n if the end of string is reached before). 
+
+Definition at line 1792 of file bbt\_\-string.hpp.\hypertarget{classbbt__string_b180cabdee6b7d393fc4e32230445051}{
+\index{bbt\_\-string@{bbt\_\-string}!append@{append}}
+\index{append@{append}!bbt_string@{bbt\_\-string}}
+\subsubsection[{append}]{\setlength{\rightskip}{0pt plus 5cm}template$<$class CHAR\_\-TYPE  = char, int COPY\_\-ON\_\-WRITE = 1, uint64\_\-t BUCKET\_\-BYTES = 1024$>$ {\bf SelfT}\& {\bf bbt\_\-string}$<$ CHAR\_\-TYPE, COPY\_\-ON\_\-WRITE, BUCKET\_\-BYTES $>$::append (const {\bf SelfT} \& {\em str})\hspace{0.3cm}{\tt  \mbox{[}inline\mbox{]}}}}
+\label{classbbt__string_b180cabdee6b7d393fc4e32230445051}
+
+
+Appends a copy of str. 
+
+Definition at line 1733 of file bbt\_\-string.hpp.\hypertarget{classbbt__string_fa0f90cc47b7fb7c8d4bf8a5aab3658d}{
+\index{bbt\_\-string@{bbt\_\-string}!assign@{assign}}
+\index{assign@{assign}!bbt_string@{bbt\_\-string}}
+\subsubsection[{assign}]{\setlength{\rightskip}{0pt plus 5cm}template$<$class CHAR\_\-TYPE  = char, int COPY\_\-ON\_\-WRITE = 1, uint64\_\-t BUCKET\_\-BYTES = 1024$>$ template$<$class InputIterator $>$ {\bf SelfT}\& {\bf bbt\_\-string}$<$ CHAR\_\-TYPE, COPY\_\-ON\_\-WRITE, BUCKET\_\-BYTES $>$::assign (InputIterator {\em first}, \/  InputIterator {\em last})\hspace{0.3cm}{\tt  \mbox{[}inline\mbox{]}}}}
+\label{classbbt__string_fa0f90cc47b7fb7c8d4bf8a5aab3658d}
+
+
+If InputIterator is an integral type, behaves as the previous member function version, effectively setting as the new content a string formed by the repetition first times of the character equivalent to last. In any other case, the content is set to the values of the elements that go from element referred to by iterator first to the element right before the one referred to by iterator last. 
+
+Definition at line 2129 of file bbt\_\-string.hpp.\hypertarget{classbbt__string_1d91c8aa0f24df605052b7bd2490bed4}{
+\index{bbt\_\-string@{bbt\_\-string}!assign@{assign}}
+\index{assign@{assign}!bbt_string@{bbt\_\-string}}
+\subsubsection[{assign}]{\setlength{\rightskip}{0pt plus 5cm}template$<$class CHAR\_\-TYPE  = char, int COPY\_\-ON\_\-WRITE = 1, uint64\_\-t BUCKET\_\-BYTES = 1024$>$ {\bf SelfT}\& {\bf bbt\_\-string}$<$ CHAR\_\-TYPE, COPY\_\-ON\_\-WRITE, BUCKET\_\-BYTES $>$::assign (const std::string \& {\em str})\hspace{0.3cm}{\tt  \mbox{[}inline\mbox{]}}}}
+\label{classbbt__string_1d91c8aa0f24df605052b7bd2490bed4}
+
+
+Set a string formated by std string. 
+
+Definition at line 2115 of file bbt\_\-string.hpp.\hypertarget{classbbt__string_4e5b4bef27753e3dacc0523ec42f4d7e}{
+\index{bbt\_\-string@{bbt\_\-string}!assign@{assign}}
+\index{assign@{assign}!bbt_string@{bbt\_\-string}}
+\subsubsection[{assign}]{\setlength{\rightskip}{0pt plus 5cm}template$<$class CHAR\_\-TYPE  = char, int COPY\_\-ON\_\-WRITE = 1, uint64\_\-t BUCKET\_\-BYTES = 1024$>$ {\bf SelfT}\& {\bf bbt\_\-string}$<$ CHAR\_\-TYPE, COPY\_\-ON\_\-WRITE, BUCKET\_\-BYTES $>$::assign (const std::vector$<$ CharT $>$ \& {\em v})\hspace{0.3cm}{\tt  \mbox{[}inline\mbox{]}}}}
+\label{classbbt__string_4e5b4bef27753e3dacc0523ec42f4d7e}
+
+
+Set a string formated by a char vector. 
+
+Definition at line 2107 of file bbt\_\-string.hpp.\hypertarget{classbbt__string_34dde768fe5e866486424320e052228f}{
+\index{bbt\_\-string@{bbt\_\-string}!assign@{assign}}
+\index{assign@{assign}!bbt_string@{bbt\_\-string}}
+\subsubsection[{assign}]{\setlength{\rightskip}{0pt plus 5cm}template$<$class CHAR\_\-TYPE  = char, int COPY\_\-ON\_\-WRITE = 1, uint64\_\-t BUCKET\_\-BYTES = 1024$>$ {\bf SelfT}\& {\bf bbt\_\-string}$<$ CHAR\_\-TYPE, COPY\_\-ON\_\-WRITE, BUCKET\_\-BYTES $>$::assign (size\_\-t {\em n}, \/  CharT {\em c})\hspace{0.3cm}{\tt  \mbox{[}inline\mbox{]}}}}
+\label{classbbt__string_34dde768fe5e866486424320e052228f}
+
+
+Sets a string formed by a repetition of character c, n times, as the new content. 
+
+Definition at line 2075 of file bbt\_\-string.hpp.\hypertarget{classbbt__string_aff6d129e3e7ce9472f4e1a152f8d5fd}{
+\index{bbt\_\-string@{bbt\_\-string}!assign@{assign}}
+\index{assign@{assign}!bbt_string@{bbt\_\-string}}
+\subsubsection[{assign}]{\setlength{\rightskip}{0pt plus 5cm}template$<$class CHAR\_\-TYPE  = char, int COPY\_\-ON\_\-WRITE = 1, uint64\_\-t BUCKET\_\-BYTES = 1024$>$ {\bf SelfT}\& {\bf bbt\_\-string}$<$ CHAR\_\-TYPE, COPY\_\-ON\_\-WRITE, BUCKET\_\-BYTES $>$::assign (const CharT $\ast$ {\em s})\hspace{0.3cm}{\tt  \mbox{[}inline\mbox{]}}}}
+\label{classbbt__string_aff6d129e3e7ce9472f4e1a152f8d5fd}
+
+
+Sets a copy of the string formed by the null-terminated character sequence (C string) pointed by s as the new content. The length of the caracter sequence is determined by the first ocurrence of a null character (as determined by traits.length(s)). 
+
+Definition at line 2062 of file bbt\_\-string.hpp.\hypertarget{classbbt__string_2f40712bf2f31915bfad61172f224827}{
+\index{bbt\_\-string@{bbt\_\-string}!assign@{assign}}
+\index{assign@{assign}!bbt_string@{bbt\_\-string}}
+\subsubsection[{assign}]{\setlength{\rightskip}{0pt plus 5cm}template$<$class CHAR\_\-TYPE  = char, int COPY\_\-ON\_\-WRITE = 1, uint64\_\-t BUCKET\_\-BYTES = 1024$>$ {\bf SelfT}\& {\bf bbt\_\-string}$<$ CHAR\_\-TYPE, COPY\_\-ON\_\-WRITE, BUCKET\_\-BYTES $>$::assign (const CharT $\ast$ {\em s}, \/  size\_\-t {\em n})\hspace{0.3cm}{\tt  \mbox{[}inline\mbox{]}}}}
+\label{classbbt__string_2f40712bf2f31915bfad61172f224827}
+
+
+Sets as the new content a copy of the string formed by the first n characters of the array pointed by s. 
+
+Definition at line 2032 of file bbt\_\-string.hpp.\hypertarget{classbbt__string_9fa5926de65736614641d94c9cba83bf}{
+\index{bbt\_\-string@{bbt\_\-string}!assign@{assign}}
+\index{assign@{assign}!bbt_string@{bbt\_\-string}}
+\subsubsection[{assign}]{\setlength{\rightskip}{0pt plus 5cm}template$<$class CHAR\_\-TYPE  = char, int COPY\_\-ON\_\-WRITE = 1, uint64\_\-t BUCKET\_\-BYTES = 1024$>$ {\bf SelfT}\& {\bf bbt\_\-string}$<$ CHAR\_\-TYPE, COPY\_\-ON\_\-WRITE, BUCKET\_\-BYTES $>$::assign (const {\bf SelfT} \& {\em str}, \/  size\_\-t {\em pos}, \/  size\_\-t {\em n})\hspace{0.3cm}{\tt  \mbox{[}inline\mbox{]}}}}
+\label{classbbt__string_9fa5926de65736614641d94c9cba83bf}
+
+
+Sets a copy of a substring of str as the new content. The substring is the portion of str that begins at the character position pos and takes up to n characters (it takes less than n if the end of str is reached before). 
+
+Definition at line 2011 of file bbt\_\-string.hpp.\hypertarget{classbbt__string_a2171144958b01ccef526ec918229697}{
+\index{bbt\_\-string@{bbt\_\-string}!assign@{assign}}
+\index{assign@{assign}!bbt_string@{bbt\_\-string}}
+\subsubsection[{assign}]{\setlength{\rightskip}{0pt plus 5cm}template$<$class CHAR\_\-TYPE  = char, int COPY\_\-ON\_\-WRITE = 1, uint64\_\-t BUCKET\_\-BYTES = 1024$>$ {\bf SelfT}\& {\bf bbt\_\-string}$<$ CHAR\_\-TYPE, COPY\_\-ON\_\-WRITE, BUCKET\_\-BYTES $>$::assign (const {\bf SelfT} \& {\em str})\hspace{0.3cm}{\tt  \mbox{[}inline\mbox{]}}}}
+\label{classbbt__string_a2171144958b01ccef526ec918229697}
+
+
+Sets a copy of str as the new content. 
+
+Definition at line 1994 of file bbt\_\-string.hpp.\hypertarget{classbbt__string_96366cce7bcb5045b562135e6bc20444}{
+\index{bbt\_\-string@{bbt\_\-string}!at@{at}}
+\index{at@{at}!bbt_string@{bbt\_\-string}}
+\subsubsection[{at}]{\setlength{\rightskip}{0pt plus 5cm}template$<$class CHAR\_\-TYPE  = char, int COPY\_\-ON\_\-WRITE = 1, uint64\_\-t BUCKET\_\-BYTES = 1024$>$ const CharT\& {\bf bbt\_\-string}$<$ CHAR\_\-TYPE, COPY\_\-ON\_\-WRITE, BUCKET\_\-BYTES $>$::at (size\_\-t {\em pos}) const\hspace{0.3cm}{\tt  \mbox{[}inline\mbox{]}}}}
+\label{classbbt__string_96366cce7bcb5045b562135e6bc20444}
+
+
+Returns the character at position pos in the string. This member function behaves as operator\mbox{[}\mbox{]} , except that at also performs a range check, throwing an assertion. 
+
+Definition at line 1683 of file bbt\_\-string.hpp.\hypertarget{classbbt__string_65dc62558aea86248f43967709e4e012}{
+\index{bbt\_\-string@{bbt\_\-string}!begin@{begin}}
+\index{begin@{begin}!bbt_string@{bbt\_\-string}}
+\subsubsection[{begin}]{\setlength{\rightskip}{0pt plus 5cm}template$<$class CHAR\_\-TYPE  = char, int COPY\_\-ON\_\-WRITE = 1, uint64\_\-t BUCKET\_\-BYTES = 1024$>$ const\_\-iterator {\bf bbt\_\-string}$<$ CHAR\_\-TYPE, COPY\_\-ON\_\-WRITE, BUCKET\_\-BYTES $>$::begin () const\hspace{0.3cm}{\tt  \mbox{[}inline\mbox{]}}}}
+\label{classbbt__string_65dc62558aea86248f43967709e4e012}
+
+
+An iterator to the beginning of the string. The type of this iterator is either string::iterator member type or string::const\_\-iterator member type, which are compiler specific iterator types suitable to iterate through the elements of a string object. 
+
+Definition at line 1397 of file bbt\_\-string.hpp.\hypertarget{classbbt__string_c153fa7ac5477ba7ef44c684cb396c0b}{
+\index{bbt\_\-string@{bbt\_\-string}!c\_\-str@{c\_\-str}}
+\index{c\_\-str@{c\_\-str}!bbt_string@{bbt\_\-string}}
+\subsubsection[{c\_\-str}]{\setlength{\rightskip}{0pt plus 5cm}template$<$class CHAR\_\-TYPE  = char, int COPY\_\-ON\_\-WRITE = 1, uint64\_\-t BUCKET\_\-BYTES = 1024$>$ const CharT$\ast$ {\bf bbt\_\-string}$<$ CHAR\_\-TYPE, COPY\_\-ON\_\-WRITE, BUCKET\_\-BYTES $>$::c\_\-str () const\hspace{0.3cm}{\tt  \mbox{[}inline\mbox{]}}}}
+\label{classbbt__string_c153fa7ac5477ba7ef44c684cb396c0b}
+
+
+Unavailable 
+
+Definition at line 2650 of file bbt\_\-string.hpp.\hypertarget{classbbt__string_43171d8b0097837372a408ec693559e6}{
+\index{bbt\_\-string@{bbt\_\-string}!capacity@{capacity}}
+\index{capacity@{capacity}!bbt_string@{bbt\_\-string}}
+\subsubsection[{capacity}]{\setlength{\rightskip}{0pt plus 5cm}template$<$class CHAR\_\-TYPE  = char, int COPY\_\-ON\_\-WRITE = 1, uint64\_\-t BUCKET\_\-BYTES = 1024$>$ size\_\-t {\bf bbt\_\-string}$<$ CHAR\_\-TYPE, COPY\_\-ON\_\-WRITE, BUCKET\_\-BYTES $>$::capacity () const\hspace{0.3cm}{\tt  \mbox{[}inline\mbox{]}}}}
+\label{classbbt__string_43171d8b0097837372a408ec693559e6}
+
+
+Returns the size of the allocated storage space in the string object. Notice that the capacity is not necessarily equal to the number of characters that conform the content of the string (this can be obtained with members size or length), but the capacity of the allocated space, which is either equal or greater than this content size.
+
+Notice also that this capacity does not suppose a limit to the length of the string. If more space is required to accomodate content in the string object, the capacity is automatically expanded, or can even be explicitly modified by calling member reserve.
+
+The real limit on the size a string object can reach is returned by member max\_\-size. 
+
+Definition at line 1566 of file bbt\_\-string.hpp.\hypertarget{classbbt__string_7cf658cb2b605dbc1c808e41f9e65b2d}{
+\index{bbt\_\-string@{bbt\_\-string}!clear@{clear}}
+\index{clear@{clear}!bbt_string@{bbt\_\-string}}
+\subsubsection[{clear}]{\setlength{\rightskip}{0pt plus 5cm}template$<$class CHAR\_\-TYPE  = char, int COPY\_\-ON\_\-WRITE = 1, uint64\_\-t BUCKET\_\-BYTES = 1024$>$ void {\bf bbt\_\-string}$<$ CHAR\_\-TYPE, COPY\_\-ON\_\-WRITE, BUCKET\_\-BYTES $>$::clear ()\hspace{0.3cm}{\tt  \mbox{[}inline\mbox{]}}}}
+\label{classbbt__string_7cf658cb2b605dbc1c808e41f9e65b2d}
+
+
+The string content is set to an empty string, erasing any previous content and thus leaving its size at 0 characters. 
+
+Definition at line 1624 of file bbt\_\-string.hpp.\hypertarget{classbbt__string_0873ce9d57fa0817c63678cf42bb6ff6}{
+\index{bbt\_\-string@{bbt\_\-string}!copy@{copy}}
+\index{copy@{copy}!bbt_string@{bbt\_\-string}}
+\subsubsection[{copy}]{\setlength{\rightskip}{0pt plus 5cm}template$<$class CHAR\_\-TYPE  = char, int COPY\_\-ON\_\-WRITE = 1, uint64\_\-t BUCKET\_\-BYTES = 1024$>$ size\_\-t {\bf bbt\_\-string}$<$ CHAR\_\-TYPE, COPY\_\-ON\_\-WRITE, BUCKET\_\-BYTES $>$::copy (CharT $\ast$ {\em s}, \/  size\_\-t {\em n}, \/  size\_\-t {\em pos} = {\tt 0}) const\hspace{0.3cm}{\tt  \mbox{[}inline\mbox{]}}}}
+\label{classbbt__string_0873ce9d57fa0817c63678cf42bb6ff6}
+
+
+Copies a sequence of characters from the string content to the array pointed by s. This sequence of characters is made of the characters in the string that start at character position pos and span n characters from there.
+
+The function does not append a null character after the content copied. To retrieve a temporary c-string value from a string object, a specific member function exists: c\_\-str. 
+
+Definition at line 2597 of file bbt\_\-string.hpp.\hypertarget{classbbt__string_bd225f98ab68e2385b6d3e23bd4719cb}{
+\index{bbt\_\-string@{bbt\_\-string}!data@{data}}
+\index{data@{data}!bbt_string@{bbt\_\-string}}
+\subsubsection[{data}]{\setlength{\rightskip}{0pt plus 5cm}template$<$class CHAR\_\-TYPE  = char, int COPY\_\-ON\_\-WRITE = 1, uint64\_\-t BUCKET\_\-BYTES = 1024$>$ const CharT$\ast$ {\bf bbt\_\-string}$<$ CHAR\_\-TYPE, COPY\_\-ON\_\-WRITE, BUCKET\_\-BYTES $>$::data () const\hspace{0.3cm}{\tt  \mbox{[}inline\mbox{]}}}}
+\label{classbbt__string_bd225f98ab68e2385b6d3e23bd4719cb}
+
+
+Unavailable 
+
+Definition at line 2658 of file bbt\_\-string.hpp.\hypertarget{classbbt__string_1a6fd2f8eaa83d6f9b33cc01f71af594}{
+\index{bbt\_\-string@{bbt\_\-string}!empty@{empty}}
+\index{empty@{empty}!bbt_string@{bbt\_\-string}}
+\subsubsection[{empty}]{\setlength{\rightskip}{0pt plus 5cm}template$<$class CHAR\_\-TYPE  = char, int COPY\_\-ON\_\-WRITE = 1, uint64\_\-t BUCKET\_\-BYTES = 1024$>$ bool {\bf bbt\_\-string}$<$ CHAR\_\-TYPE, COPY\_\-ON\_\-WRITE, BUCKET\_\-BYTES $>$::empty () const\hspace{0.3cm}{\tt  \mbox{[}inline\mbox{]}}}}
+\label{classbbt__string_1a6fd2f8eaa83d6f9b33cc01f71af594}
+
+
+Returns whether the string is empty, i.e. whether its size is 0. This function does not modify the content of the string in any way. To clear the content of the string, member clear can be used. 
+
+Definition at line 1639 of file bbt\_\-string.hpp.\hypertarget{classbbt__string_0ef119a4b2c850ae106876ab9d276977}{
+\index{bbt\_\-string@{bbt\_\-string}!end@{end}}
+\index{end@{end}!bbt_string@{bbt\_\-string}}
+\subsubsection[{end}]{\setlength{\rightskip}{0pt plus 5cm}template$<$class CHAR\_\-TYPE  = char, int COPY\_\-ON\_\-WRITE = 1, uint64\_\-t BUCKET\_\-BYTES = 1024$>$ const\_\-iterator {\bf bbt\_\-string}$<$ CHAR\_\-TYPE, COPY\_\-ON\_\-WRITE, BUCKET\_\-BYTES $>$::end () const\hspace{0.3cm}{\tt  \mbox{[}inline\mbox{]}}}}
+\label{classbbt__string_0ef119a4b2c850ae106876ab9d276977}
+
+
+An iterator past the end of the string. The type of this iterator is either string::iterator member type or string::const\_\-iterator member type, which are compiler specific iterator types suitable to iterate through the elements of a string object. 
+
+Definition at line 1413 of file bbt\_\-string.hpp.\hypertarget{classbbt__string_095d97e82bab15718a353ab0f9ec3a4f}{
+\index{bbt\_\-string@{bbt\_\-string}!erase@{erase}}
+\index{erase@{erase}!bbt_string@{bbt\_\-string}}
+\subsubsection[{erase}]{\setlength{\rightskip}{0pt plus 5cm}template$<$class CHAR\_\-TYPE  = char, int COPY\_\-ON\_\-WRITE = 1, uint64\_\-t BUCKET\_\-BYTES = 1024$>$ iterator {\bf bbt\_\-string}$<$ CHAR\_\-TYPE, COPY\_\-ON\_\-WRITE, BUCKET\_\-BYTES $>$::erase (iterator {\em first}, \/  iterator {\em last})\hspace{0.3cm}{\tt  \mbox{[}inline\mbox{]}}}}
+\label{classbbt__string_095d97e82bab15718a353ab0f9ec3a4f}
+
+
+Erases all the characters between first and last. 
+
+Definition at line 2438 of file bbt\_\-string.hpp.\hypertarget{classbbt__string_5eac694c7f6e44c5018993eba8153e33}{
+\index{bbt\_\-string@{bbt\_\-string}!erase@{erase}}
+\index{erase@{erase}!bbt_string@{bbt\_\-string}}
+\subsubsection[{erase}]{\setlength{\rightskip}{0pt plus 5cm}template$<$class CHAR\_\-TYPE  = char, int COPY\_\-ON\_\-WRITE = 1, uint64\_\-t BUCKET\_\-BYTES = 1024$>$ iterator {\bf bbt\_\-string}$<$ CHAR\_\-TYPE, COPY\_\-ON\_\-WRITE, BUCKET\_\-BYTES $>$::erase (iterator {\em position})\hspace{0.3cm}{\tt  \mbox{[}inline\mbox{]}}}}
+\label{classbbt__string_5eac694c7f6e44c5018993eba8153e33}
+
+
+Erases the character referred by the iterator position. Only one character is affected. 
+
+Definition at line 2428 of file bbt\_\-string.hpp.\hypertarget{classbbt__string_21d1419fbc55b6276cb15a62b513106d}{
+\index{bbt\_\-string@{bbt\_\-string}!erase@{erase}}
+\index{erase@{erase}!bbt_string@{bbt\_\-string}}
+\subsubsection[{erase}]{\setlength{\rightskip}{0pt plus 5cm}template$<$class CHAR\_\-TYPE  = char, int COPY\_\-ON\_\-WRITE = 1, uint64\_\-t BUCKET\_\-BYTES = 1024$>$ {\bf SelfT}\& {\bf bbt\_\-string}$<$ CHAR\_\-TYPE, COPY\_\-ON\_\-WRITE, BUCKET\_\-BYTES $>$::erase (size\_\-t {\em pos} = {\tt 0}, \/  size\_\-t {\em n} = {\tt npos})\hspace{0.3cm}{\tt  \mbox{[}inline\mbox{]}}}}
+\label{classbbt__string_21d1419fbc55b6276cb15a62b513106d}
+
+
+Erases a sequence of n characters starting at position pos. Notice that both parameters are optional: with only one argument, the function deletes everything from position pos forwards, and with no arguments, the function deletes the entire string, like member clear. 
+
+Definition at line 2339 of file bbt\_\-string.hpp.\hypertarget{classbbt__string_d4e8abb583695fb2be91eaee21827601}{
+\index{bbt\_\-string@{bbt\_\-string}!find@{find}}
+\index{find@{find}!bbt_string@{bbt\_\-string}}
+\subsubsection[{find}]{\setlength{\rightskip}{0pt plus 5cm}template$<$class CHAR\_\-TYPE  = char, int COPY\_\-ON\_\-WRITE = 1, uint64\_\-t BUCKET\_\-BYTES = 1024$>$ size\_\-t {\bf bbt\_\-string}$<$ CHAR\_\-TYPE, COPY\_\-ON\_\-WRITE, BUCKET\_\-BYTES $>$::find (const {\bf SelfT} \& {\em str}, \/  size\_\-t {\em pos} = {\tt 0}) const\hspace{0.3cm}{\tt  \mbox{[}inline\mbox{]}}}}
+\label{classbbt__string_d4e8abb583695fb2be91eaee21827601}
+
+
+Searches the string for the content specified in either str, s or c, and returns the position of the first occurrence in the string.
+
+When pos is specified the search only includes characters on or after position pos, ignoring any possible occurrences in previous locations. The search algorithm is KMP.
+
+\begin{Desc}
+\item[Parameters:]
+\begin{description}
+\item[{\em str}]string to be searched for in the object. The entire content of str must be matched in some part of the string to be considered a match. \item[{\em s}]Array with a sequence of characters.\end{description}
+\end{Desc}
+In the second member function version, the size of the content to be matched is only determined by parameter n. In the third version, a null-terminated sequence is expected, and its end is determined by the first occurrence of a null character in it.
+
+\begin{Desc}
+\item[Parameters:]
+\begin{description}
+\item[{\em n}]Length of sequence of characters to search for. \item[{\em c}]Individual character to be searched for. \item[{\em pos}]Position of the first character in the string to be taken into consideration for possible matches. A value of 0 means that the entire string is considered. \end{description}
+\end{Desc}
+
+
+Definition at line 2686 of file bbt\_\-string.hpp.\hypertarget{classbbt__string_f7d72888ed6e7c1b6f07d515b08b90dd}{
+\index{bbt\_\-string@{bbt\_\-string}!indice\_\-length@{indice\_\-length}}
+\index{indice\_\-length@{indice\_\-length}!bbt_string@{bbt\_\-string}}
+\subsubsection[{indice\_\-length}]{\setlength{\rightskip}{0pt plus 5cm}template$<$class CHAR\_\-TYPE  = char, int COPY\_\-ON\_\-WRITE = 1, uint64\_\-t BUCKET\_\-BYTES = 1024$>$ size\_\-t {\bf bbt\_\-string}$<$ CHAR\_\-TYPE, COPY\_\-ON\_\-WRITE, BUCKET\_\-BYTES $>$::indice\_\-length () const\hspace{0.3cm}{\tt  \mbox{[}inline\mbox{]}}}}
+\label{classbbt__string_f7d72888ed6e7c1b6f07d515b08b90dd}
+
+
+Return the length of indice 
+
+Definition at line 1494 of file bbt\_\-string.hpp.\hypertarget{classbbt__string_2720a0dd9a3b40ba8bda86d62a71c3c9}{
+\index{bbt\_\-string@{bbt\_\-string}!insert@{insert}}
+\index{insert@{insert}!bbt_string@{bbt\_\-string}}
+\subsubsection[{insert}]{\setlength{\rightskip}{0pt plus 5cm}template$<$class CHAR\_\-TYPE  = char, int COPY\_\-ON\_\-WRITE = 1, uint64\_\-t BUCKET\_\-BYTES = 1024$>$ template$<$class InputIterator $>$ void {\bf bbt\_\-string}$<$ CHAR\_\-TYPE, COPY\_\-ON\_\-WRITE, BUCKET\_\-BYTES $>$::insert (iterator {\em p}, \/  InputIterator {\em first}, \/  InputIterator {\em last})\hspace{0.3cm}{\tt  \mbox{[}inline\mbox{]}}}}
+\label{classbbt__string_2720a0dd9a3b40ba8bda86d62a71c3c9}
+
+
+Inserts at the internal position referred by p the content made up of the characters that go from the element referred by iterator first to the element right before the one referred by iterator last. 
+
+Definition at line 2324 of file bbt\_\-string.hpp.\hypertarget{classbbt__string_94e32cc061b77d94d5ccdd33375ac649}{
+\index{bbt\_\-string@{bbt\_\-string}!insert@{insert}}
+\index{insert@{insert}!bbt_string@{bbt\_\-string}}
+\subsubsection[{insert}]{\setlength{\rightskip}{0pt plus 5cm}template$<$class CHAR\_\-TYPE  = char, int COPY\_\-ON\_\-WRITE = 1, uint64\_\-t BUCKET\_\-BYTES = 1024$>$ void {\bf bbt\_\-string}$<$ CHAR\_\-TYPE, COPY\_\-ON\_\-WRITE, BUCKET\_\-BYTES $>$::insert (iterator {\em p}, \/  size\_\-t {\em n}, \/  CharT {\em c})\hspace{0.3cm}{\tt  \mbox{[}inline\mbox{]}}}}
+\label{classbbt__string_94e32cc061b77d94d5ccdd33375ac649}
+
+
+Inserts a string formed by the repetition of character c, n times, at the position referred by iterator p. 
+
+Definition at line 2310 of file bbt\_\-string.hpp.\hypertarget{classbbt__string_5eb3ddd3247398965c17324150398664}{
+\index{bbt\_\-string@{bbt\_\-string}!insert@{insert}}
+\index{insert@{insert}!bbt_string@{bbt\_\-string}}
+\subsubsection[{insert}]{\setlength{\rightskip}{0pt plus 5cm}template$<$class CHAR\_\-TYPE  = char, int COPY\_\-ON\_\-WRITE = 1, uint64\_\-t BUCKET\_\-BYTES = 1024$>$ iterator {\bf bbt\_\-string}$<$ CHAR\_\-TYPE, COPY\_\-ON\_\-WRITE, BUCKET\_\-BYTES $>$::insert (iterator {\em p}, \/  CharT {\em c})\hspace{0.3cm}{\tt  \mbox{[}inline\mbox{]}}}}
+\label{classbbt__string_5eb3ddd3247398965c17324150398664}
+
+
+Inserts a copy of character c at the position referred by iterator p and returns an iterator referring to this position where it has been inserted. 
+
+Definition at line 2299 of file bbt\_\-string.hpp.\hypertarget{classbbt__string_414570f2f7f3afe8b105805a04f83e76}{
+\index{bbt\_\-string@{bbt\_\-string}!insert@{insert}}
+\index{insert@{insert}!bbt_string@{bbt\_\-string}}
+\subsubsection[{insert}]{\setlength{\rightskip}{0pt plus 5cm}template$<$class CHAR\_\-TYPE  = char, int COPY\_\-ON\_\-WRITE = 1, uint64\_\-t BUCKET\_\-BYTES = 1024$>$ {\bf SelfT}\& {\bf bbt\_\-string}$<$ CHAR\_\-TYPE, COPY\_\-ON\_\-WRITE, BUCKET\_\-BYTES $>$::insert (size\_\-t {\em pos1}, \/  size\_\-t {\em n}, \/  CharT {\em c})\hspace{0.3cm}{\tt  \mbox{[}inline\mbox{]}}}}
+\label{classbbt__string_414570f2f7f3afe8b105805a04f83e76}
+
+
+Inserts a string formed by a repetition of character c, n times, at the character position pos1. 
+
+Definition at line 2288 of file bbt\_\-string.hpp.\hypertarget{classbbt__string_3f5e4d3bbea5d9d55fe9fcb3185b7919}{
+\index{bbt\_\-string@{bbt\_\-string}!insert@{insert}}
+\index{insert@{insert}!bbt_string@{bbt\_\-string}}
+\subsubsection[{insert}]{\setlength{\rightskip}{0pt plus 5cm}template$<$class CHAR\_\-TYPE  = char, int COPY\_\-ON\_\-WRITE = 1, uint64\_\-t BUCKET\_\-BYTES = 1024$>$ {\bf SelfT}\& {\bf bbt\_\-string}$<$ CHAR\_\-TYPE, COPY\_\-ON\_\-WRITE, BUCKET\_\-BYTES $>$::insert (size\_\-t {\em pos1}, \/  const CharT $\ast$ {\em s})\hspace{0.3cm}{\tt  \mbox{[}inline\mbox{]}}}}
+\label{classbbt__string_3f5e4d3bbea5d9d55fe9fcb3185b7919}
+
+
+Inserts at character position pos1, a copy of the string formed by the null-terminated character sequence (C string) pointed by s. The length of this caracter sequence is determined by the first ocurrence of a null character (as determined by traits.length(s)). 
+
+Definition at line 2277 of file bbt\_\-string.hpp.\hypertarget{classbbt__string_0912d29c711b1f67e066d6bbf1203adc}{
+\index{bbt\_\-string@{bbt\_\-string}!insert@{insert}}
+\index{insert@{insert}!bbt_string@{bbt\_\-string}}
+\subsubsection[{insert}]{\setlength{\rightskip}{0pt plus 5cm}template$<$class CHAR\_\-TYPE  = char, int COPY\_\-ON\_\-WRITE = 1, uint64\_\-t BUCKET\_\-BYTES = 1024$>$ {\bf SelfT}\& {\bf bbt\_\-string}$<$ CHAR\_\-TYPE, COPY\_\-ON\_\-WRITE, BUCKET\_\-BYTES $>$::insert (size\_\-t {\em pos1}, \/  const CharT $\ast$ {\em s}, \/  size\_\-t {\em n})\hspace{0.3cm}{\tt  \mbox{[}inline\mbox{]}}}}
+\label{classbbt__string_0912d29c711b1f67e066d6bbf1203adc}
+
+
+Inserts at the character position pos1, a copy of the string formed by the first n characters in the array of characters pointed by s. 
+
+Definition at line 2264 of file bbt\_\-string.hpp.\hypertarget{classbbt__string_fe7cd0b9d0f147a22424695cca30e463}{
+\index{bbt\_\-string@{bbt\_\-string}!insert@{insert}}
+\index{insert@{insert}!bbt_string@{bbt\_\-string}}
+\subsubsection[{insert}]{\setlength{\rightskip}{0pt plus 5cm}template$<$class CHAR\_\-TYPE  = char, int COPY\_\-ON\_\-WRITE = 1, uint64\_\-t BUCKET\_\-BYTES = 1024$>$ {\bf SelfT}\& {\bf bbt\_\-string}$<$ CHAR\_\-TYPE, COPY\_\-ON\_\-WRITE, BUCKET\_\-BYTES $>$::insert (size\_\-t {\em pos1}, \/  const {\bf SelfT} \& {\em str}, \/  size\_\-t {\em pos2}, \/  size\_\-t {\em n})\hspace{0.3cm}{\tt  \mbox{[}inline\mbox{]}}}}
+\label{classbbt__string_fe7cd0b9d0f147a22424695cca30e463}
+
+
+Inserts a copy of a substring of str at character position pos1. The substring is the portion of str that begins at the character position pos2 and takes up to n characters (it takes less than n if the end of str is reached before). 
+
+Definition at line 2255 of file bbt\_\-string.hpp.\hypertarget{classbbt__string_259cc9a9e878740d80a1be9d770c8106}{
+\index{bbt\_\-string@{bbt\_\-string}!insert@{insert}}
+\index{insert@{insert}!bbt_string@{bbt\_\-string}}
+\subsubsection[{insert}]{\setlength{\rightskip}{0pt plus 5cm}template$<$class CHAR\_\-TYPE  = char, int COPY\_\-ON\_\-WRITE = 1, uint64\_\-t BUCKET\_\-BYTES = 1024$>$ {\bf SelfT}\& {\bf bbt\_\-string}$<$ CHAR\_\-TYPE, COPY\_\-ON\_\-WRITE, BUCKET\_\-BYTES $>$::insert (size\_\-t {\em pos1}, \/  const {\bf SelfT} \& {\em str})\hspace{0.3cm}{\tt  \mbox{[}inline\mbox{]}}}}
+\label{classbbt__string_259cc9a9e878740d80a1be9d770c8106}
+
+
+Inserts a copy of the entire string object str at character position pos1. 
+
+Definition at line 2148 of file bbt\_\-string.hpp.\hypertarget{classbbt__string_09ba144b09ca3da53d028a4fd4209c1d}{
+\index{bbt\_\-string@{bbt\_\-string}!length@{length}}
+\index{length@{length}!bbt_string@{bbt\_\-string}}
+\subsubsection[{length}]{\setlength{\rightskip}{0pt plus 5cm}template$<$class CHAR\_\-TYPE  = char, int COPY\_\-ON\_\-WRITE = 1, uint64\_\-t BUCKET\_\-BYTES = 1024$>$ size\_\-t {\bf bbt\_\-string}$<$ CHAR\_\-TYPE, COPY\_\-ON\_\-WRITE, BUCKET\_\-BYTES $>$::length () const\hspace{0.3cm}{\tt  \mbox{[}inline\mbox{]}}}}
+\label{classbbt__string_09ba144b09ca3da53d028a4fd4209c1d}
+
+
+Returns a count of the number of characters in the string. 
+
+Definition at line 1486 of file bbt\_\-string.hpp.\hypertarget{classbbt__string_dad344768ef0b5b3349b37360ddf635c}{
+\index{bbt\_\-string@{bbt\_\-string}!max\_\-size@{max\_\-size}}
+\index{max\_\-size@{max\_\-size}!bbt_string@{bbt\_\-string}}
+\subsubsection[{max\_\-size}]{\setlength{\rightskip}{0pt plus 5cm}template$<$class CHAR\_\-TYPE  = char, int COPY\_\-ON\_\-WRITE = 1, uint64\_\-t BUCKET\_\-BYTES = 1024$>$ size\_\-t {\bf bbt\_\-string}$<$ CHAR\_\-TYPE, COPY\_\-ON\_\-WRITE, BUCKET\_\-BYTES $>$::max\_\-size () const\hspace{0.3cm}{\tt  \mbox{[}inline\mbox{]}}}}
+\label{classbbt__string_dad344768ef0b5b3349b37360ddf635c}
+
+
+The maximum number of characters a string object can have as its content 
+
+Definition at line 1502 of file bbt\_\-string.hpp.\hypertarget{classbbt__string_0b1409c335c490f060472fe47c90cfd2}{
+\index{bbt\_\-string@{bbt\_\-string}!operator+=@{operator+=}}
+\index{operator+=@{operator+=}!bbt_string@{bbt\_\-string}}
+\subsubsection[{operator+=}]{\setlength{\rightskip}{0pt plus 5cm}template$<$class CHAR\_\-TYPE  = char, int COPY\_\-ON\_\-WRITE = 1, uint64\_\-t BUCKET\_\-BYTES = 1024$>$ {\bf SelfT}\& {\bf bbt\_\-string}$<$ CHAR\_\-TYPE, COPY\_\-ON\_\-WRITE, BUCKET\_\-BYTES $>$::operator+= (const {\bf SelfT} \& {\em str})\hspace{0.3cm}{\tt  \mbox{[}inline\mbox{]}}}}
+\label{classbbt__string_0b1409c335c490f060472fe47c90cfd2}
+
+
+Appends a copy of the argument to the string. The new string content is the content existing in the string object before the call followed by the content of the argument.
+
+The append member function provides a similar functionality with additional options. 
+
+Definition at line 1714 of file bbt\_\-string.hpp.\hypertarget{classbbt__string_127c0d9e38d27260065d2b8a24cb78c1}{
+\index{bbt\_\-string@{bbt\_\-string}!operator=@{operator=}}
+\index{operator=@{operator=}!bbt_string@{bbt\_\-string}}
+\subsubsection[{operator=}]{\setlength{\rightskip}{0pt plus 5cm}template$<$class CHAR\_\-TYPE  = char, int COPY\_\-ON\_\-WRITE = 1, uint64\_\-t BUCKET\_\-BYTES = 1024$>$ {\bf SelfT}\& {\bf bbt\_\-string}$<$ CHAR\_\-TYPE, COPY\_\-ON\_\-WRITE, BUCKET\_\-BYTES $>$::operator= (const {\bf SelfT} \& {\em str})\hspace{0.3cm}{\tt  \mbox{[}inline\mbox{]}}}}
+\label{classbbt__string_127c0d9e38d27260065d2b8a24cb78c1}
+
+
+Sets a copy of the argument as the new content for the string object. The previous content is dropped. The assign member function provides a similar functionality with additional options. 
+
+Definition at line 1372 of file bbt\_\-string.hpp.\hypertarget{classbbt__string_40427f0c3552b431b087c9d4c0684f85}{
+\index{bbt\_\-string@{bbt\_\-string}!operator\mbox{[}\mbox{]}@{operator[]}}
+\index{operator\mbox{[}\mbox{]}@{operator[]}!bbt_string@{bbt\_\-string}}
+\subsubsection[{operator[]}]{\setlength{\rightskip}{0pt plus 5cm}template$<$class CHAR\_\-TYPE  = char, int COPY\_\-ON\_\-WRITE = 1, uint64\_\-t BUCKET\_\-BYTES = 1024$>$ const CharT\& {\bf bbt\_\-string}$<$ CHAR\_\-TYPE, COPY\_\-ON\_\-WRITE, BUCKET\_\-BYTES $>$::operator\mbox{[}$\,$\mbox{]} (size\_\-t {\em pos}) const\hspace{0.3cm}{\tt  \mbox{[}inline\mbox{]}}}}
+\label{classbbt__string_40427f0c3552b431b087c9d4c0684f85}
+
+
+Returns a reference the character at position pos in the string. The function actually returns \hyperlink{classbbt__string_bd225f98ab68e2385b6d3e23bd4719cb}{data()}\mbox{[} pos \mbox{]}. The at member function has the same behavior as this operator function, except that at also performs a range check. 
+
+Definition at line 1652 of file bbt\_\-string.hpp.\hypertarget{classbbt__string_a458692ed9ffa90e7634f36b3944bda2}{
+\index{bbt\_\-string@{bbt\_\-string}!push\_\-back@{push\_\-back}}
+\index{push\_\-back@{push\_\-back}!bbt_string@{bbt\_\-string}}
+\subsubsection[{push\_\-back}]{\setlength{\rightskip}{0pt plus 5cm}template$<$class CHAR\_\-TYPE  = char, int COPY\_\-ON\_\-WRITE = 1, uint64\_\-t BUCKET\_\-BYTES = 1024$>$ void {\bf bbt\_\-string}$<$ CHAR\_\-TYPE, COPY\_\-ON\_\-WRITE, BUCKET\_\-BYTES $>$::push\_\-back (CharT {\em c})\hspace{0.3cm}{\tt  \mbox{[}inline\mbox{]}}}}
+\label{classbbt__string_a458692ed9ffa90e7634f36b3944bda2}
+
+
+Appends a single character to the string content, increasing its size by one. To append more than one character at a time, refer to either member append or operator+= . 
+
+Definition at line 1948 of file bbt\_\-string.hpp.\hypertarget{classbbt__string_c4c5765d2a4ea6575342f460e10f70ba}{
+\index{bbt\_\-string@{bbt\_\-string}!push\_\-front@{push\_\-front}}
+\index{push\_\-front@{push\_\-front}!bbt_string@{bbt\_\-string}}
+\subsubsection[{push\_\-front}]{\setlength{\rightskip}{0pt plus 5cm}template$<$class CHAR\_\-TYPE  = char, int COPY\_\-ON\_\-WRITE = 1, uint64\_\-t BUCKET\_\-BYTES = 1024$>$ void {\bf bbt\_\-string}$<$ CHAR\_\-TYPE, COPY\_\-ON\_\-WRITE, BUCKET\_\-BYTES $>$::push\_\-front (const {\bf SelfT} \& {\em str})\hspace{0.3cm}{\tt  \mbox{[}inline\mbox{]}}}}
+\label{classbbt__string_c4c5765d2a4ea6575342f460e10f70ba}
+
+
+Inserts a copy of str at the front, increasing its size by str's length. 
+
+Definition at line 1956 of file bbt\_\-string.hpp.\hypertarget{classbbt__string_f65ad28bf03b76f6fe2dee8cc866a2e0}{
+\index{bbt\_\-string@{bbt\_\-string}!rbegin@{rbegin}}
+\index{rbegin@{rbegin}!bbt_string@{bbt\_\-string}}
+\subsubsection[{rbegin}]{\setlength{\rightskip}{0pt plus 5cm}template$<$class CHAR\_\-TYPE  = char, int COPY\_\-ON\_\-WRITE = 1, uint64\_\-t BUCKET\_\-BYTES = 1024$>$ reverse\_\-iterator {\bf bbt\_\-string}$<$ CHAR\_\-TYPE, COPY\_\-ON\_\-WRITE, BUCKET\_\-BYTES $>$::rbegin ()\hspace{0.3cm}{\tt  \mbox{[}inline\mbox{]}}}}
+\label{classbbt__string_f65ad28bf03b76f6fe2dee8cc866a2e0}
+
+
+A reverse iterator to the reverse beginning of the string (i.e., the last character). The type of this iterator is either string::reverse\_\-iterator member type or string::const\_\-reverse\_\-iterator member type, which are compiler specific iterator types suitable to perform a reverse iteration through the elements of a string object. 
+
+Definition at line 1437 of file bbt\_\-string.hpp.\hypertarget{classbbt__string_7f39c0149a22f0d7b9fe1ce776fa2605}{
+\index{bbt\_\-string@{bbt\_\-string}!rend@{rend}}
+\index{rend@{rend}!bbt_string@{bbt\_\-string}}
+\subsubsection[{rend}]{\setlength{\rightskip}{0pt plus 5cm}template$<$class CHAR\_\-TYPE  = char, int COPY\_\-ON\_\-WRITE = 1, uint64\_\-t BUCKET\_\-BYTES = 1024$>$ reverse\_\-iterator {\bf bbt\_\-string}$<$ CHAR\_\-TYPE, COPY\_\-ON\_\-WRITE, BUCKET\_\-BYTES $>$::rend ()\hspace{0.3cm}{\tt  \mbox{[}inline\mbox{]}}}}
+\label{classbbt__string_7f39c0149a22f0d7b9fe1ce776fa2605}
+
+
+A reverse iterator to the reverse end of the string (i.e., the element right before its first character). The type of this iterator is either string::reverse\_\-iterator member type or string::const\_\-reverse\_\-iterator member type, which are compiler specific iterator types suitable to perform a reverse iteration through the elements of a string object. 
+
+Definition at line 1454 of file bbt\_\-string.hpp.\hypertarget{classbbt__string_8bf848ea75290e5ddfe4983b71919efb}{
+\index{bbt\_\-string@{bbt\_\-string}!replace@{replace}}
+\index{replace@{replace}!bbt_string@{bbt\_\-string}}
+\subsubsection[{replace}]{\setlength{\rightskip}{0pt plus 5cm}template$<$class CHAR\_\-TYPE  = char, int COPY\_\-ON\_\-WRITE = 1, uint64\_\-t BUCKET\_\-BYTES = 1024$>$ template$<$class InputIterator $>$ {\bf SelfT}\& {\bf bbt\_\-string}$<$ CHAR\_\-TYPE, COPY\_\-ON\_\-WRITE, BUCKET\_\-BYTES $>$::replace (iterator {\em i1}, \/  iterator {\em i2}, \/  InputIterator {\em j1}, \/  InputIterator {\em j2})\hspace{0.3cm}{\tt  \mbox{[}inline\mbox{]}}}}
+\label{classbbt__string_8bf848ea75290e5ddfe4983b71919efb}
+
+
+The section is replaced by the content made up of the characters that go from the element referred by iterator j1 to the element right before the one referred by iterator j2. 
+
+Definition at line 2573 of file bbt\_\-string.hpp.\hypertarget{classbbt__string_7125b62da40b819bc3780a759664f668}{
+\index{bbt\_\-string@{bbt\_\-string}!replace@{replace}}
+\index{replace@{replace}!bbt_string@{bbt\_\-string}}
+\subsubsection[{replace}]{\setlength{\rightskip}{0pt plus 5cm}template$<$class CHAR\_\-TYPE  = char, int COPY\_\-ON\_\-WRITE = 1, uint64\_\-t BUCKET\_\-BYTES = 1024$>$ {\bf SelfT}\& {\bf bbt\_\-string}$<$ CHAR\_\-TYPE, COPY\_\-ON\_\-WRITE, BUCKET\_\-BYTES $>$::replace (iterator {\em i1}, \/  iterator {\em i2}, \/  size\_\-t {\em n2}, \/  CharT {\em c})\hspace{0.3cm}{\tt  \mbox{[}inline\mbox{]}}}}
+\label{classbbt__string_7125b62da40b819bc3780a759664f668}
+
+
+The section is replaced by a repetition of character c, n2 times. 
+
+Definition at line 2558 of file bbt\_\-string.hpp.\hypertarget{classbbt__string_146596df06229f2f8b4984a44b07d6dc}{
+\index{bbt\_\-string@{bbt\_\-string}!replace@{replace}}
+\index{replace@{replace}!bbt_string@{bbt\_\-string}}
+\subsubsection[{replace}]{\setlength{\rightskip}{0pt plus 5cm}template$<$class CHAR\_\-TYPE  = char, int COPY\_\-ON\_\-WRITE = 1, uint64\_\-t BUCKET\_\-BYTES = 1024$>$ {\bf SelfT}\& {\bf bbt\_\-string}$<$ CHAR\_\-TYPE, COPY\_\-ON\_\-WRITE, BUCKET\_\-BYTES $>$::replace (size\_\-t {\em pos1}, \/  size\_\-t {\em n1}, \/  size\_\-t {\em n2}, \/  CharT {\em c})\hspace{0.3cm}{\tt  \mbox{[}inline\mbox{]}}}}
+\label{classbbt__string_146596df06229f2f8b4984a44b07d6dc}
+
+
+The section is replaced by a repetition of character c, n2 times. 
+
+Definition at line 2549 of file bbt\_\-string.hpp.\hypertarget{classbbt__string_682dfcac635e137557d90c4c2d960c69}{
+\index{bbt\_\-string@{bbt\_\-string}!replace@{replace}}
+\index{replace@{replace}!bbt_string@{bbt\_\-string}}
+\subsubsection[{replace}]{\setlength{\rightskip}{0pt plus 5cm}template$<$class CHAR\_\-TYPE  = char, int COPY\_\-ON\_\-WRITE = 1, uint64\_\-t BUCKET\_\-BYTES = 1024$>$ {\bf SelfT}\& {\bf bbt\_\-string}$<$ CHAR\_\-TYPE, COPY\_\-ON\_\-WRITE, BUCKET\_\-BYTES $>$::replace (iterator {\em i1}, \/  iterator {\em i2}, \/  const CharT $\ast$ {\em s})\hspace{0.3cm}{\tt  \mbox{[}inline\mbox{]}}}}
+\label{classbbt__string_682dfcac635e137557d90c4c2d960c69}
+
+
+The section is replaced by a copy of the string formed by the null-terminated character sequence (C string) pointed by s. The length of this caracter sequence is determined by the first ocurrence of a null character (as determined by traits.length(s)). 
+
+Definition at line 2538 of file bbt\_\-string.hpp.\hypertarget{classbbt__string_1bca4b60b45b77a1c806d63f8d441082}{
+\index{bbt\_\-string@{bbt\_\-string}!replace@{replace}}
+\index{replace@{replace}!bbt_string@{bbt\_\-string}}
+\subsubsection[{replace}]{\setlength{\rightskip}{0pt plus 5cm}template$<$class CHAR\_\-TYPE  = char, int COPY\_\-ON\_\-WRITE = 1, uint64\_\-t BUCKET\_\-BYTES = 1024$>$ {\bf SelfT}\& {\bf bbt\_\-string}$<$ CHAR\_\-TYPE, COPY\_\-ON\_\-WRITE, BUCKET\_\-BYTES $>$::replace (size\_\-t {\em pos1}, \/  size\_\-t {\em n1}, \/  const CharT $\ast$ {\em s})\hspace{0.3cm}{\tt  \mbox{[}inline\mbox{]}}}}
+\label{classbbt__string_1bca4b60b45b77a1c806d63f8d441082}
+
+
+The section is replaced by a copy of the string formed by the null-terminated character sequence (C string) pointed by s. The length of this caracter sequence is determined by the first ocurrence of a null character (as determined by traits.length(s)). 
+
+Definition at line 2525 of file bbt\_\-string.hpp.\hypertarget{classbbt__string_1e73d6742c06f347e28afdfc9a9c3a6c}{
+\index{bbt\_\-string@{bbt\_\-string}!replace@{replace}}
+\index{replace@{replace}!bbt_string@{bbt\_\-string}}
+\subsubsection[{replace}]{\setlength{\rightskip}{0pt plus 5cm}template$<$class CHAR\_\-TYPE  = char, int COPY\_\-ON\_\-WRITE = 1, uint64\_\-t BUCKET\_\-BYTES = 1024$>$ {\bf SelfT}\& {\bf bbt\_\-string}$<$ CHAR\_\-TYPE, COPY\_\-ON\_\-WRITE, BUCKET\_\-BYTES $>$::replace (iterator {\em i1}, \/  iterator {\em i2}, \/  const CharT $\ast$ {\em s}, \/  size\_\-t {\em n2})\hspace{0.3cm}{\tt  \mbox{[}inline\mbox{]}}}}
+\label{classbbt__string_1e73d6742c06f347e28afdfc9a9c3a6c}
+
+
+The section is replaced by a copy of the string formed by the first n2 characters in the array of characters pointed by s. 
+
+Definition at line 2511 of file bbt\_\-string.hpp.\hypertarget{classbbt__string_2855c7c1db09f625b3d0fc7311a61923}{
+\index{bbt\_\-string@{bbt\_\-string}!replace@{replace}}
+\index{replace@{replace}!bbt_string@{bbt\_\-string}}
+\subsubsection[{replace}]{\setlength{\rightskip}{0pt plus 5cm}template$<$class CHAR\_\-TYPE  = char, int COPY\_\-ON\_\-WRITE = 1, uint64\_\-t BUCKET\_\-BYTES = 1024$>$ {\bf SelfT}\& {\bf bbt\_\-string}$<$ CHAR\_\-TYPE, COPY\_\-ON\_\-WRITE, BUCKET\_\-BYTES $>$::replace (size\_\-t {\em pos1}, \/  size\_\-t {\em n1}, \/  const CharT $\ast$ {\em s}, \/  size\_\-t {\em n2})\hspace{0.3cm}{\tt  \mbox{[}inline\mbox{]}}}}
+\label{classbbt__string_2855c7c1db09f625b3d0fc7311a61923}
+
+
+The section is replaced by a copy of the string formed by the first n2 characters in the array of characters pointed by s. 
+
+Definition at line 2500 of file bbt\_\-string.hpp.\hypertarget{classbbt__string_56380b00db98648281e47a98db7877b9}{
+\index{bbt\_\-string@{bbt\_\-string}!replace@{replace}}
+\index{replace@{replace}!bbt_string@{bbt\_\-string}}
+\subsubsection[{replace}]{\setlength{\rightskip}{0pt plus 5cm}template$<$class CHAR\_\-TYPE  = char, int COPY\_\-ON\_\-WRITE = 1, uint64\_\-t BUCKET\_\-BYTES = 1024$>$ {\bf SelfT}\& {\bf bbt\_\-string}$<$ CHAR\_\-TYPE, COPY\_\-ON\_\-WRITE, BUCKET\_\-BYTES $>$::replace (size\_\-t {\em pos1}, \/  size\_\-t {\em n1}, \/  const {\bf SelfT} \& {\em str}, \/  size\_\-t {\em pos2}, \/  size\_\-t {\em n2})\hspace{0.3cm}{\tt  \mbox{[}inline\mbox{]}}}}
+\label{classbbt__string_56380b00db98648281e47a98db7877b9}
+
+
+The section is replaced by a copy of a substring of str. The substring is the portion of str that begins at the character position pos2 and takes up to n2 characters (it takes less than n2 if the end of the string is reached before). 
+
+Definition at line 2491 of file bbt\_\-string.hpp.\hypertarget{classbbt__string_51dbd7d4611fe6d60c4238786281d25e}{
+\index{bbt\_\-string@{bbt\_\-string}!replace@{replace}}
+\index{replace@{replace}!bbt_string@{bbt\_\-string}}
+\subsubsection[{replace}]{\setlength{\rightskip}{0pt plus 5cm}template$<$class CHAR\_\-TYPE  = char, int COPY\_\-ON\_\-WRITE = 1, uint64\_\-t BUCKET\_\-BYTES = 1024$>$ {\bf SelfT}\& {\bf bbt\_\-string}$<$ CHAR\_\-TYPE, COPY\_\-ON\_\-WRITE, BUCKET\_\-BYTES $>$::replace (iterator {\em i1}, \/  iterator {\em i2}, \/  const {\bf SelfT} \& {\em str})\hspace{0.3cm}{\tt  \mbox{[}inline\mbox{]}}}}
+\label{classbbt__string_51dbd7d4611fe6d60c4238786281d25e}
+
+
+The section is replaced by a copy of the entire string object str. 
+
+Definition at line 2477 of file bbt\_\-string.hpp.\hypertarget{classbbt__string_e00ce88ee9fb5e57bdd03b293752cd1a}{
+\index{bbt\_\-string@{bbt\_\-string}!replace@{replace}}
+\index{replace@{replace}!bbt_string@{bbt\_\-string}}
+\subsubsection[{replace}]{\setlength{\rightskip}{0pt plus 5cm}template$<$class CHAR\_\-TYPE  = char, int COPY\_\-ON\_\-WRITE = 1, uint64\_\-t BUCKET\_\-BYTES = 1024$>$ {\bf SelfT}\& {\bf bbt\_\-string}$<$ CHAR\_\-TYPE, COPY\_\-ON\_\-WRITE, BUCKET\_\-BYTES $>$::replace (size\_\-t {\em pos1}, \/  size\_\-t {\em n1}, \/  const {\bf SelfT} \& {\em str})\hspace{0.3cm}{\tt  \mbox{[}inline\mbox{]}}}}
+\label{classbbt__string_e00ce88ee9fb5e57bdd03b293752cd1a}
+
+
+Replaces a section of the current string by some other content determined by the arguments passed. For the versions with parameters pos1 and n1, the section replaced begins at character position pos1 and spans for n1 characters within the string. For the versions with iterators i1 and i2, the section replaced is the one formed by the elements between iterator i1 and the element right before iterator i2. The arguments passed to the function determine what is the replacement for this section of the string: The section is replaced by a copy of the entire string object str. 
+
+Definition at line 2459 of file bbt\_\-string.hpp.\hypertarget{classbbt__string_2c7fe2805ecfdf1d9ddcd66c4e5c80f1}{
+\index{bbt\_\-string@{bbt\_\-string}!reserve@{reserve}}
+\index{reserve@{reserve}!bbt_string@{bbt\_\-string}}
+\subsubsection[{reserve}]{\setlength{\rightskip}{0pt plus 5cm}template$<$class CHAR\_\-TYPE  = char, int COPY\_\-ON\_\-WRITE = 1, uint64\_\-t BUCKET\_\-BYTES = 1024$>$ void {\bf bbt\_\-string}$<$ CHAR\_\-TYPE, COPY\_\-ON\_\-WRITE, BUCKET\_\-BYTES $>$::reserve (size\_\-t {\em res\_\-arg} = {\tt 0})\hspace{0.3cm}{\tt  \mbox{[}inline\mbox{]}}}}
+\label{classbbt__string_2c7fe2805ecfdf1d9ddcd66c4e5c80f1}
+
+
+Requests that the capacity of the allocated storage space in the string be at least res\_\-arg. This can expand or shrink the size of the storage space in the string, although notice that the resulting capacity after a call to this function is not necessarily equal to res\_\-arg but can be either equal or greater than res\_\-arg, therefore shrinking requests may or may not produce an actual reduction of the allocated space in a particular library implementation. In any case, it never trims the string content (for that purposes, see resize or clear, which modify the content). 
+
+Definition at line 1586 of file bbt\_\-string.hpp.\hypertarget{classbbt__string_9a3f14ffd3caa23664570a059f5f7626}{
+\index{bbt\_\-string@{bbt\_\-string}!resize@{resize}}
+\index{resize@{resize}!bbt_string@{bbt\_\-string}}
+\subsubsection[{resize}]{\setlength{\rightskip}{0pt plus 5cm}template$<$class CHAR\_\-TYPE  = char, int COPY\_\-ON\_\-WRITE = 1, uint64\_\-t BUCKET\_\-BYTES = 1024$>$ void {\bf bbt\_\-string}$<$ CHAR\_\-TYPE, COPY\_\-ON\_\-WRITE, BUCKET\_\-BYTES $>$::resize (size\_\-t {\em n}, \/  CharT {\em c})\hspace{0.3cm}{\tt  \mbox{[}inline\mbox{]}}}}
+\label{classbbt__string_9a3f14ffd3caa23664570a059f5f7626}
+
+
+Resizes the string content to n characters. If n is smaller than the current length of the string, the content is reduced to its first n characters, the rest being dropped. If n is greater than the current length of the string, the content is expanded by appending as many instances of the c character as needed to reach a size of n characters.
+
+The second version, actually calls: resize(n,char()), so when a string is resized to a greater size without passing a second argument, the new character positions are filled with the default value of a char, which is the null character. 
+
+Definition at line 1518 of file bbt\_\-string.hpp.\hypertarget{classbbt__string_d702780b8d0a6de141d9a02ab0b7b0a0}{
+\index{bbt\_\-string@{bbt\_\-string}!size@{size}}
+\index{size@{size}!bbt_string@{bbt\_\-string}}
+\subsubsection[{size}]{\setlength{\rightskip}{0pt plus 5cm}template$<$class CHAR\_\-TYPE  = char, int COPY\_\-ON\_\-WRITE = 1, uint64\_\-t BUCKET\_\-BYTES = 1024$>$ size\_\-t {\bf bbt\_\-string}$<$ CHAR\_\-TYPE, COPY\_\-ON\_\-WRITE, BUCKET\_\-BYTES $>$::size () const\hspace{0.3cm}{\tt  \mbox{[}inline\mbox{]}}}}
+\label{classbbt__string_d702780b8d0a6de141d9a02ab0b7b0a0}
+
+
+Returns a count of the number of bytes in the string. string::length is an alias of string::size, sometimes, returning different value. 
+
+Definition at line 1478 of file bbt\_\-string.hpp.\hypertarget{classbbt__string_04e661fd40f8134bff1b427e08603786}{
+\index{bbt\_\-string@{bbt\_\-string}!swap@{swap}}
+\index{swap@{swap}!bbt_string@{bbt\_\-string}}
+\subsubsection[{swap}]{\setlength{\rightskip}{0pt plus 5cm}template$<$class CHAR\_\-TYPE  = char, int COPY\_\-ON\_\-WRITE = 1, uint64\_\-t BUCKET\_\-BYTES = 1024$>$ void {\bf bbt\_\-string}$<$ CHAR\_\-TYPE, COPY\_\-ON\_\-WRITE, BUCKET\_\-BYTES $>$::swap ({\bf SelfT} \& {\em str})\hspace{0.3cm}{\tt  \mbox{[}inline\mbox{]}}}}
+\label{classbbt__string_04e661fd40f8134bff1b427e08603786}
+
+
+Swaps the contents of the string with those of string object str, such that after the call to this member function, the contents of this string are those which were in str before the call, and the contents of str are those which were in this string. 
+
+Definition at line 2638 of file bbt\_\-string.hpp.
+
+The documentation for this class was generated from the following file:\begin{CompactItemize}
+\item 
+/home/Kevin/izenelib/include/am/istring/bbt\_\-string.hpp\end{CompactItemize}

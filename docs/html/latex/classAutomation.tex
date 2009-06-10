@@ -1,0 +1,98 @@
+\hypertarget{classAutomation}{
+\section{Automation$<$ STRING\_\-TYPE, MULTI\_\-WORDS\_\-WILDCARD, SINGLE\_\-WORD\_\-WILDCARD $>$ Class Template Reference}
+\label{classAutomation}\index{Automation@{Automation}}
+}
+{\tt \#include $<$automation.hpp$>$}
+
+\subsection*{Classes}
+\begin{CompactItemize}
+\item 
+class \textbf{\_\-edge\_\-}
+\item 
+class \textbf{\_\-state\_\-}
+\end{CompactItemize}
+\subsection*{Public Member Functions}
+\begin{CompactItemize}
+\item 
+\hyperlink{classAutomation_eab5e3b7894377708216a3f4f2573a16}{Automation} (const STRING\_\-TYPE \&regex)
+\item 
+bool \hyperlink{classAutomation_b2f969eb8050ed62b16eba9d3e8ffaf6}{match} (const STRING\_\-TYPE \&str)
+\item 
+bool \hyperlink{classAutomation_520bbf0d1765ec51131897bad7579005}{hasWildcard} () const 
+\end{CompactItemize}
+\subsection*{Protected Attributes}
+\begin{CompactItemize}
+\item 
+\hypertarget{classAutomation_3c6c8988c57d1221096921356d7e83eb}{
+\_\-state\_\- $\ast$ \textbf{pStart\_\-}}
+\label{classAutomation_3c6c8988c57d1221096921356d7e83eb}
+
+\item 
+\hypertarget{classAutomation_516783fe1c5111b6d1c6060904c26c39}{
+\_\-state\_\- $\ast$ \textbf{pEnd\_\-}}
+\label{classAutomation_516783fe1c5111b6d1c6060904c26c39}
+
+\item 
+\hypertarget{classAutomation_190d97f4456e688b8fec4b34779c8ff1}{
+vector$<$ \_\-state\_\- $\ast$ $>$ \textbf{pV\_\-}}
+\label{classAutomation_190d97f4456e688b8fec4b34779c8ff1}
+
+\item 
+\hypertarget{classAutomation_5c14e7bcdebf33094482aca10bc0ae73}{
+bool \textbf{has\_\-wildcard\_\-}}
+\label{classAutomation_5c14e7bcdebf33094482aca10bc0ae73}
+
+\end{CompactItemize}
+\subsection*{Friends}
+\begin{CompactItemize}
+\item 
+\hypertarget{classAutomation_4ee8fafddfce3e52f4e01f12969a5b38}{
+ostream \& \textbf{operator$<$$<$} (ostream \&os, const \hyperlink{classAutomation}{Automation}$<$ STRING\_\-TYPE, MULTI\_\-WORDS\_\-WILDCARD, SINGLE\_\-WORD\_\-WILDCARD $>$ \&aut)}
+\label{classAutomation_4ee8fafddfce3e52f4e01f12969a5b38}
+
+\end{CompactItemize}
+
+
+\subsection{Detailed Description}
+\subsubsection*{template$<$class STRING\_\-TYPE = string, typename STRING\_\-TYPE::value\_\-type MULTI\_\-WORDS\_\-WILDCARD = '$\ast$', typename STRING\_\-TYPE::value\_\-type SINGLE\_\-WORD\_\-WILDCARD = '?'$>$ class Automation$<$ STRING\_\-TYPE, MULTI\_\-WORDS\_\-WILDCARD, SINGLE\_\-WORD\_\-WILDCARD $>$}
+
+It generates a automation for wildcard '$\ast$' and '?'. 
+
+Definition at line 19 of file automation.hpp.
+
+\subsection{Constructor \& Destructor Documentation}
+\hypertarget{classAutomation_eab5e3b7894377708216a3f4f2573a16}{
+\index{Automation@{Automation}!Automation@{Automation}}
+\index{Automation@{Automation}!Automation@{Automation}}
+\subsubsection[{Automation}]{\setlength{\rightskip}{0pt plus 5cm}template$<$class STRING\_\-TYPE  = string, typename STRING\_\-TYPE::value\_\-type MULTI\_\-WORDS\_\-WILDCARD = '$\ast$', typename STRING\_\-TYPE::value\_\-type SINGLE\_\-WORD\_\-WILDCARD = '?'$>$ {\bf Automation}$<$ STRING\_\-TYPE, MULTI\_\-WORDS\_\-WILDCARD, SINGLE\_\-WORD\_\-WILDCARD $>$::{\bf Automation} (const STRING\_\-TYPE \& {\em regex})\hspace{0.3cm}{\tt  \mbox{[}inline\mbox{]}}}}
+\label{classAutomation_eab5e3b7894377708216a3f4f2573a16}
+
+
+According the regular express, it builds an automation 
+
+Definition at line 111 of file automation.hpp.
+
+\subsection{Member Function Documentation}
+\hypertarget{classAutomation_520bbf0d1765ec51131897bad7579005}{
+\index{Automation@{Automation}!hasWildcard@{hasWildcard}}
+\index{hasWildcard@{hasWildcard}!Automation@{Automation}}
+\subsubsection[{hasWildcard}]{\setlength{\rightskip}{0pt plus 5cm}template$<$class STRING\_\-TYPE  = string, typename STRING\_\-TYPE::value\_\-type MULTI\_\-WORDS\_\-WILDCARD = '$\ast$', typename STRING\_\-TYPE::value\_\-type SINGLE\_\-WORD\_\-WILDCARD = '?'$>$ bool {\bf Automation}$<$ STRING\_\-TYPE, MULTI\_\-WORDS\_\-WILDCARD, SINGLE\_\-WORD\_\-WILDCARD $>$::hasWildcard () const\hspace{0.3cm}{\tt  \mbox{[}inline\mbox{]}}}}
+\label{classAutomation_520bbf0d1765ec51131897bad7579005}
+
+
+Does the automation have wildcard. 
+
+Definition at line 217 of file automation.hpp.\hypertarget{classAutomation_b2f969eb8050ed62b16eba9d3e8ffaf6}{
+\index{Automation@{Automation}!match@{match}}
+\index{match@{match}!Automation@{Automation}}
+\subsubsection[{match}]{\setlength{\rightskip}{0pt plus 5cm}template$<$class STRING\_\-TYPE  = string, typename STRING\_\-TYPE::value\_\-type MULTI\_\-WORDS\_\-WILDCARD = '$\ast$', typename STRING\_\-TYPE::value\_\-type SINGLE\_\-WORD\_\-WILDCARD = '?'$>$ bool {\bf Automation}$<$ STRING\_\-TYPE, MULTI\_\-WORDS\_\-WILDCARD, SINGLE\_\-WORD\_\-WILDCARD $>$::match (const STRING\_\-TYPE \& {\em str})\hspace{0.3cm}{\tt  \mbox{[}inline\mbox{]}}}}
+\label{classAutomation_b2f969eb8050ed62b16eba9d3e8ffaf6}
+
+
+If the 'str' can go through the automation, it mathes, returns true. 
+
+Definition at line 193 of file automation.hpp.
+
+The documentation for this class was generated from the following file:\begin{CompactItemize}
+\item 
+/home/Kevin/izenelib/include/am/trie/automation.hpp\end{CompactItemize}

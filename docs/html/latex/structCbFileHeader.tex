@@ -1,0 +1,82 @@
+\hypertarget{structCbFileHeader}{
+\section{CbFileHeader Struct Reference}
+\label{structCbFileHeader}\index{CbFileHeader@{CbFileHeader}}
+}
+{\tt \#include $<$sdb\_\-btree\_\-header.h$>$}
+
+\subsection*{Public Member Functions}
+\begin{CompactItemize}
+\item 
+\hypertarget{structCbFileHeader_a2d2ced8667d32f2973239aae63cbd78}{
+void \textbf{display} (std::ostream \&os=std::cout)}
+\label{structCbFileHeader_a2d2ced8667d32f2973239aae63cbd78}
+
+\item 
+\hypertarget{structCbFileHeader_dd698742ead207c746522c7afa1ea05d}{
+bool \textbf{toFile} (FILE $\ast$f)}
+\label{structCbFileHeader_dd698742ead207c746522c7afa1ea05d}
+
+\item 
+\hypertarget{structCbFileHeader_c585ce6ad0d5abbf82355ef42b38230d}{
+bool \textbf{fromFile} (FILE $\ast$f)}
+\label{structCbFileHeader_c585ce6ad0d5abbf82355ef42b38230d}
+
+\end{CompactItemize}
+\subsection*{Public Attributes}
+\begin{CompactItemize}
+\item 
+\hypertarget{structCbFileHeader_f970fdfde77084c5315ab2eba15edd34}{
+int \textbf{magic}}
+\label{structCbFileHeader_f970fdfde77084c5315ab2eba15edd34}
+
+\item 
+\hypertarget{structCbFileHeader_adc85e4078d3d20c5565b6fa7fbdb44f}{
+size\_\-t \textbf{maxKeys}}
+\label{structCbFileHeader_adc85e4078d3d20c5565b6fa7fbdb44f}
+
+\item 
+\hypertarget{structCbFileHeader_2fa43141056327e7de46d90a05f509d5}{
+size\_\-t \textbf{pageSize}}
+\label{structCbFileHeader_2fa43141056327e7de46d90a05f509d5}
+
+\item 
+\hypertarget{structCbFileHeader_a8f04deba2660f6e93df96dd3c9c1773}{
+size\_\-t \textbf{cacheSize}}
+\label{structCbFileHeader_a8f04deba2660f6e93df96dd3c9c1773}
+
+\item 
+\hypertarget{structCbFileHeader_fe3e44b130bdc77790a20ea79d7531d7}{
+size\_\-t \textbf{numItems}}
+\label{structCbFileHeader_fe3e44b130bdc77790a20ea79d7531d7}
+
+\item 
+\hypertarget{structCbFileHeader_65dfa15c6f5d1456a4e327d8f1e95888}{
+long \textbf{rootPos}}
+\label{structCbFileHeader_65dfa15c6f5d1456a4e327d8f1e95888}
+
+\end{CompactItemize}
+\subsection*{Static Public Attributes}
+\begin{CompactItemize}
+\item 
+\hypertarget{structCbFileHeader_b32ba1b645c6b17aa04ee839790515c5}{
+static size\_\-t \textbf{nPages}}
+\label{structCbFileHeader_b32ba1b645c6b17aa04ee839790515c5}
+
+\item 
+\hypertarget{structCbFileHeader_18144c299e50c2025dd1bbed044b61a3}{
+static size\_\-t \textbf{oPages}}
+\label{structCbFileHeader_18144c299e50c2025dd1bbed044b61a3}
+
+\end{CompactItemize}
+
+
+\subsection{Detailed Description}
+brief cc-b$\ast$-tree \hyperlink{classfile}{file} header
+
+$|$----------------$|$ $|$ magic $|$ $|$----------------$|$ $|$ maxKeys $|$ /then the order of the btree is 2$\ast$minDegree-1. $|$----------------$|$ $|$ pageSize $|$ $|$----------------$|$ $|$ cacheSize $|$ $|$----------------$|$ $|$ ..... $|$ $|$----------------$|$ $|$ numItem $|$ $|$----------------$|$ $|$ rootPos $|$ $|$----------------$|$ $|$ nPages $|$ $|$----------------$|$ $|$ oPages $|$ $|$----------------$|$ 
+
+Definition at line 44 of file sdb\_\-btree\_\-header.h.
+
+The documentation for this struct was generated from the following file:\begin{CompactItemize}
+\item 
+/home/Kevin/izenelib/include/am/sdb\_\-btree/\hyperlink{sdb__btree__header_8h}{sdb\_\-btree\_\-header.h}\end{CompactItemize}

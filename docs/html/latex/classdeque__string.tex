@@ -1,0 +1,1284 @@
+\hypertarget{classdeque__string}{
+\section{deque\_\-string$<$ CHAR\_\-TYPE, COPY\_\-ON\_\-WRITE, BUCKET\_\-BYTES $>$ Class Template Reference}
+\label{classdeque__string}\index{deque\_\-string@{deque\_\-string}}
+}
+A string structed as deque.  
+
+
+{\tt \#include $<$deque\_\-string.hpp$>$}
+
+\subsection*{Classes}
+\begin{CompactItemize}
+\item 
+class \textbf{const\_\-iterator}
+\item 
+class \textbf{const\_\-reverse\_\-iterator}
+\item 
+class \textbf{iterator}
+\item 
+class \textbf{reverse\_\-iterator}
+\end{CompactItemize}
+\subsection*{Public Types}
+\begin{CompactItemize}
+\item 
+enum \{ \textbf{BUCKET\_\-LENGTH} =  BUCKET\_\-BYTES/sizeof(CharT)
+ \}
+\item 
+\hypertarget{classdeque__string_bb2a4ca7ca164fa3ce2985cc745dc755}{
+typedef CHAR\_\-TYPE \textbf{value\_\-type}}
+\label{classdeque__string_bb2a4ca7ca164fa3ce2985cc745dc755}
+
+\item 
+\hypertarget{classdeque__string_e1c3a129a6d12a43934ee7da4f349275}{
+typedef CHAR\_\-TYPE \textbf{CharT}}
+\label{classdeque__string_e1c3a129a6d12a43934ee7da4f349275}
+
+\item 
+\hypertarget{classdeque__string_9a731411f00a88c9295b0d5d7036b5af}{
+typedef uint8\_\-t \textbf{ReferT}}
+\label{classdeque__string_9a731411f00a88c9295b0d5d7036b5af}
+
+\item 
+\hypertarget{classdeque__string_8400a22c48eef887be1a207a86ea74f1}{
+typedef \hyperlink{classdeque__string}{deque\_\-string}$<$ CHAR\_\-TYPE, COPY\_\-ON\_\-WRITE, BUCKET\_\-BYTES $>$ \textbf{SelfT}}
+\label{classdeque__string_8400a22c48eef887be1a207a86ea74f1}
+
+\item 
+\hypertarget{classdeque__string_9d136986d9775974e243182bc6efa3f6}{
+typedef std::size\_\-t \textbf{size\_\-t}}
+\label{classdeque__string_9d136986d9775974e243182bc6efa3f6}
+
+\end{CompactItemize}
+\subsection*{Public Member Functions}
+\begin{CompactItemize}
+\item 
+\hyperlink{classdeque__string_58a95023c19819f6bbc152a5a764be24}{deque\_\-string} ()
+\item 
+\hyperlink{classdeque__string_370593eb79336a2b06b0110eb6341807}{deque\_\-string} (const \hyperlink{classdeque__string}{SelfT} \&str)
+\item 
+\hyperlink{classdeque__string_bdf7279246355a4f6f20fa2f977ea581}{deque\_\-string} (const \hyperlink{classdeque__string}{SelfT} \&str, size\_\-t pos, size\_\-t n=\hyperlink{classdeque__string_b2a5692bbdd473486ce93df0cadd2540}{npos})
+\item 
+\hyperlink{classdeque__string_8dc178199327b360d1c7e437ab872421}{deque\_\-string} (const CharT $\ast$s, size\_\-t n)
+\item 
+\hyperlink{classdeque__string_6f787b1cd7c34cc81aa9c9e32e7558ce}{deque\_\-string} (const CharT $\ast$s)
+\item 
+\hyperlink{classdeque__string_f57f53bfcc45461c28703b910b9f2fc4}{deque\_\-string} (size\_\-t n, CharT c)
+\item 
+\hyperlink{classdeque__string_333a103558350fad1dd0083f18c7cdbb}{deque\_\-string} (const std::vector$<$ CharT $>$ \&v)
+\item 
+\hyperlink{classdeque__string_e7bf748ddc74ec3fab236086a9087dce}{deque\_\-string} (const std::string \&str)
+\item 
+{\footnotesize template$<$class InputIterator $>$ }\\\hyperlink{classdeque__string_b76b1f9d84f09742d21593ae38d7e3c2}{deque\_\-string} (InputIterator begin, InputIterator end)
+\item 
+ReferT \hyperlink{classdeque__string_fa855547712290b460b7ea219fa085c0}{getReferCnt} ()
+\item 
+\hyperlink{classdeque__string}{SelfT} \& \hyperlink{classdeque__string_dc6562d086b15033ba12303fbe9bc634}{operator=} (const \hyperlink{classdeque__string}{SelfT} \&str)
+\item 
+\hypertarget{classdeque__string_f91bf6b122d7d9eec3623a5a50229e0f}{
+\hyperlink{classdeque__string}{SelfT} \& \textbf{operator=} (const CharT $\ast$s)}
+\label{classdeque__string_f91bf6b122d7d9eec3623a5a50229e0f}
+
+\item 
+\hypertarget{classdeque__string_1e3e00077693cce55a73b32c8bc09281}{
+\hyperlink{classdeque__string}{SelfT} \& \textbf{operator=} (CharT c)}
+\label{classdeque__string_1e3e00077693cce55a73b32c8bc09281}
+
+\item 
+const\_\-iterator \hyperlink{classdeque__string_e7839d34819def722bdfc95900ac44cf}{begin} () const 
+\item 
+\hypertarget{classdeque__string_f5799afbc3735ad759d4195df919faa7}{
+iterator \textbf{begin} ()}
+\label{classdeque__string_f5799afbc3735ad759d4195df919faa7}
+
+\item 
+const\_\-iterator \hyperlink{classdeque__string_d0bae9f0e26dae5a1a083fb425c5858a}{end} (int i=0) const 
+\item 
+\hypertarget{classdeque__string_8ffd0c5fb8c71dd5fe2bfb0f6cd14a1e}{
+iterator \textbf{end} ()}
+\label{classdeque__string_8ffd0c5fb8c71dd5fe2bfb0f6cd14a1e}
+
+\item 
+reverse\_\-iterator \hyperlink{classdeque__string_372ecdc953661796143d9c7cb4dde563}{rbegin} ()
+\item 
+\hypertarget{classdeque__string_fa93bee5069f7f11e0921c9f4c9eeb7f}{
+const\_\-reverse\_\-iterator \textbf{rbegin} () const }
+\label{classdeque__string_fa93bee5069f7f11e0921c9f4c9eeb7f}
+
+\item 
+reverse\_\-iterator \hyperlink{classdeque__string_6816bb979aae4999ef6076889047be04}{rend} ()
+\item 
+\hypertarget{classdeque__string_0c09230342351f4f46748fd3fb52544f}{
+const\_\-reverse\_\-iterator \textbf{rend} () const }
+\label{classdeque__string_0c09230342351f4f46748fd3fb52544f}
+
+\item 
+size\_\-t \hyperlink{classdeque__string_52cac1c0f0f3f5557773b4f7ce9d53b7}{size} () const 
+\item 
+size\_\-t \hyperlink{classdeque__string_4cc04b6ba64f69b943b7ece1aa1e0f80}{length} () const 
+\item 
+size\_\-t \hyperlink{classdeque__string_c2e1561b8bb76f37f0e0f060fe520982}{max\_\-size} () const 
+\item 
+void \hyperlink{classdeque__string_4a344387975be7a5eebceb58143be0a7}{resize} (size\_\-t n, CharT c)
+\item 
+\hypertarget{classdeque__string_a07cd40867c31d0e28648943c30f5cbf}{
+void \textbf{resize} (size\_\-t n)}
+\label{classdeque__string_a07cd40867c31d0e28648943c30f5cbf}
+
+\item 
+size\_\-t \hyperlink{classdeque__string_37b3b4d907d9f7a5230c23583e88880a}{capacity} () const 
+\item 
+void \hyperlink{classdeque__string_932f3e6441fcbee5538163dd6d621ea6}{reserve} (size\_\-t res\_\-arg=0)
+\item 
+void \hyperlink{classdeque__string_4ee86cce5b0bdf35309bcdf0e1cee4e5}{clear} ()
+\item 
+bool \hyperlink{classdeque__string_9a087a5f4703f941694db606591f373c}{empty} () const 
+\item 
+const CharT \& \hyperlink{classdeque__string_88832ed720e934d637d0b8b9205e29a5}{operator\mbox{[}$\,$\mbox{]}} (size\_\-t pos) const 
+\item 
+\hypertarget{classdeque__string_8ae1e564151c672194b465fd39c89082}{
+CharT \& \textbf{operator\mbox{[}$\,$\mbox{]}} (size\_\-t pos)}
+\label{classdeque__string_8ae1e564151c672194b465fd39c89082}
+
+\item 
+const CharT \& \hyperlink{classdeque__string_54e0631a4ddc10a3213bb32209798f39}{at} (size\_\-t pos) const 
+\item 
+\hypertarget{classdeque__string_8db7a050d7969669651de3ef0081f7f3}{
+CharT \& \textbf{at} (size\_\-t pos)}
+\label{classdeque__string_8db7a050d7969669651de3ef0081f7f3}
+
+\item 
+\hyperlink{classdeque__string}{SelfT} \& \hyperlink{classdeque__string_be047cca197538745a78f73347fbdfb1}{operator+=} (const \hyperlink{classdeque__string}{SelfT} \&str)
+\item 
+\hypertarget{classdeque__string_7b1039a5eedbf0648f16bc59f1348d00}{
+\hyperlink{classdeque__string}{SelfT} \& \textbf{operator+=} (const CharT $\ast$s)}
+\label{classdeque__string_7b1039a5eedbf0648f16bc59f1348d00}
+
+\item 
+\hypertarget{classdeque__string_b70e12292860c87d07f20addad600dd1}{
+\hyperlink{classdeque__string}{SelfT} \& \textbf{operator+=} (CharT c)}
+\label{classdeque__string_b70e12292860c87d07f20addad600dd1}
+
+\item 
+\hyperlink{classdeque__string}{SelfT} \& \hyperlink{classdeque__string_5e906ef1d178767fdf3c0058f5eeed55}{append} (const \hyperlink{classdeque__string}{SelfT} \&str)
+\item 
+\hyperlink{classdeque__string}{SelfT} \& \hyperlink{classdeque__string_126a9388b25ceecb1c4ad3bc4ac4b087}{append} (const \hyperlink{classdeque__string}{SelfT} \&str, size\_\-t pos, size\_\-t n=\hyperlink{classdeque__string_b2a5692bbdd473486ce93df0cadd2540}{npos})
+\item 
+\hyperlink{classdeque__string}{SelfT} \& \hyperlink{classdeque__string_b3efd86d189fba40ab8587cbfb9b22a0}{append} (const CharT $\ast$s, size\_\-t n)
+\item 
+\hyperlink{classdeque__string}{SelfT} \& \hyperlink{classdeque__string_bc602a34e52a44a96690152a296ffb71}{append} (const CharT $\ast$s)
+\item 
+\hyperlink{classdeque__string}{SelfT} \& \hyperlink{classdeque__string_1b25953cd90a749e1381220ba20bb42e}{append} (size\_\-t n, CharT c)
+\item 
+{\footnotesize template$<$class InputIterator $>$ }\\\hyperlink{classdeque__string}{SelfT} \& \hyperlink{classdeque__string_315b9c547074d7ce32814aa011e26b39}{append} (InputIterator first, InputIterator last)
+\item 
+void \hyperlink{classdeque__string_c6bb97ddcf4da6d778782a90dabb1866}{push\_\-back} (CharT c)
+\item 
+\hyperlink{classdeque__string}{SelfT} \& \hyperlink{classdeque__string_466e757d7ca5a6f9680f00b56eb3cd22}{push\_\-front} (const \hyperlink{classdeque__string}{SelfT} \&str)
+\item 
+\hyperlink{classdeque__string}{SelfT} \& \hyperlink{classdeque__string_0c68ec4134f82d210d03599c5ec161e8}{push\_\-front} (CharT c)
+\item 
+\hyperlink{classdeque__string}{SelfT} \& \hyperlink{classdeque__string_93be2245162d2b65148b106e457e24ae}{assign} (const \hyperlink{classdeque__string}{SelfT} \&str)
+\item 
+\hyperlink{classdeque__string}{SelfT} \& \hyperlink{classdeque__string_d40c73d6f33a68ca241440ec530096a8}{assign} (const \hyperlink{classdeque__string}{SelfT} \&str, size\_\-t pos, size\_\-t n)
+\item 
+\hyperlink{classdeque__string}{SelfT} \& \hyperlink{classdeque__string_df1494cee904a87cd5dd927b9bb2a3bf}{assign} (const CharT $\ast$s, size\_\-t n)
+\item 
+\hyperlink{classdeque__string}{SelfT} \& \hyperlink{classdeque__string_6011b5371797b1a7ce8e0f98de3892e2}{assign} (const CharT $\ast$s)
+\item 
+\hyperlink{classdeque__string}{SelfT} \& \hyperlink{classdeque__string_131a536647ad8f6ad580addff43c6fc4}{assign} (size\_\-t n, CharT c)
+\item 
+\hyperlink{classdeque__string}{SelfT} \& \hyperlink{classdeque__string_66230e3dcfe245f877558ffe0fce711a}{assign} (const std::vector$<$ CharT $>$ \&v)
+\item 
+\hyperlink{classdeque__string}{SelfT} \& \hyperlink{classdeque__string_70d8b09a7c215edb6cf46bb75c6a0302}{assign} (const std::string \&str)
+\item 
+{\footnotesize template$<$class InputIterator $>$ }\\\hyperlink{classdeque__string}{SelfT} \& \hyperlink{classdeque__string_c5b8af527d69203338e2450164dbdd8c}{assign} (InputIterator first, InputIterator last)
+\item 
+\hyperlink{classdeque__string}{SelfT} \& \hyperlink{classdeque__string_9a83bbe40adafff72391797edcce5b31}{insert} (size\_\-t pos1, const \hyperlink{classdeque__string}{SelfT} \&str)
+\item 
+\hyperlink{classdeque__string}{SelfT} \& \hyperlink{classdeque__string_c273e9d441667b1ff923864a61ad5be1}{insert} (size\_\-t pos1, const \hyperlink{classdeque__string}{SelfT} \&str, size\_\-t pos2, size\_\-t n)
+\item 
+\hyperlink{classdeque__string}{SelfT} \& \hyperlink{classdeque__string_c547df6a384f56123d3d1a7699ca3d79}{insert} (size\_\-t pos1, const CharT $\ast$s, size\_\-t n)
+\item 
+\hyperlink{classdeque__string}{SelfT} \& \hyperlink{classdeque__string_2b8514eee08029ac4330f119595618b9}{insert} (size\_\-t pos1, const CharT $\ast$s)
+\item 
+\hyperlink{classdeque__string}{SelfT} \& \hyperlink{classdeque__string_f6733b1f605197c2d81b2c5422726b9c}{insert} (size\_\-t pos1, size\_\-t n, CharT c)
+\item 
+iterator \hyperlink{classdeque__string_78045a454b744aec347592e03d1c9afc}{insert} (iterator p, CharT c)
+\item 
+void \hyperlink{classdeque__string_8cac88fe8224395a9df71f1d95c90d4d}{insert} (iterator p, size\_\-t n, char c)
+\item 
+{\footnotesize template$<$class InputIterator $>$ }\\void \hyperlink{classdeque__string_6aba1bf950849ebc4333fc68398e1c57}{insert} (iterator p, InputIterator first, InputIterator last)
+\item 
+\hyperlink{classdeque__string}{SelfT} \& \hyperlink{classdeque__string_2c63c675c2fad7c5c3dd2e602e910d95}{erase} (size\_\-t pos=0, size\_\-t n=\hyperlink{classdeque__string_b2a5692bbdd473486ce93df0cadd2540}{npos})
+\item 
+iterator \hyperlink{classdeque__string_64f3c87f7723580db6d3faa52d61cdbc}{erase} (iterator position)
+\item 
+iterator \hyperlink{classdeque__string_9433d1f64823bcc7f8bced8ab357bf51}{erase} (iterator first, iterator last)
+\item 
+\hyperlink{classdeque__string}{SelfT} \& \hyperlink{classdeque__string_d2e8ac524c0f6ad26297ef056f015688}{replace} (size\_\-t pos1, size\_\-t n1, const \hyperlink{classdeque__string}{SelfT} \&str)
+\item 
+\hyperlink{classdeque__string}{SelfT} \& \hyperlink{classdeque__string_39ecf1ddad7e060513fdc9737ff3893a}{replace} (iterator i1, iterator i2, const \hyperlink{classdeque__string}{SelfT} \&str)
+\item 
+\hyperlink{classdeque__string}{SelfT} \& \hyperlink{classdeque__string_a80041a6c719e9ec64004af372ae17af}{replace} (size\_\-t pos1, size\_\-t n1, const \hyperlink{classdeque__string}{SelfT} \&str, size\_\-t pos2, size\_\-t n2)
+\item 
+\hyperlink{classdeque__string}{SelfT} \& \hyperlink{classdeque__string_2d20e57466d40ab0b5605ca7c296c99f}{replace} (size\_\-t pos1, size\_\-t n1, const char $\ast$s, size\_\-t n2)
+\item 
+\hyperlink{classdeque__string}{SelfT} \& \hyperlink{classdeque__string_c69d24bbf034ed9ed36b29ced416eea4}{replace} (iterator i1, iterator i2, const CharT $\ast$s, size\_\-t n2)
+\item 
+\hyperlink{classdeque__string}{SelfT} \& \hyperlink{classdeque__string_bd1b08c6f2c1c0c77d8a64a56ebe2a09}{replace} (size\_\-t pos1, size\_\-t n1, const CharT $\ast$s)
+\item 
+\hyperlink{classdeque__string}{SelfT} \& \hyperlink{classdeque__string_4ce63da89c419a5a03d1661ac5328f0c}{replace} (iterator i1, iterator i2, const CharT $\ast$s)
+\item 
+\hyperlink{classdeque__string}{SelfT} \& \hyperlink{classdeque__string_25e331d55a7113b19422c129816ff428}{replace} (size\_\-t pos1, size\_\-t n1, size\_\-t n2, CharT c)
+\item 
+\hyperlink{classdeque__string}{SelfT} \& \hyperlink{classdeque__string_798d6054dc0ae68df66899275d199c31}{replace} (iterator i1, iterator i2, size\_\-t n2, CharT c)
+\item 
+{\footnotesize template$<$class InputIterator $>$ }\\\hyperlink{classdeque__string}{SelfT} \& \hyperlink{classdeque__string_ff80cea2a38afc2b7200c8bc4358e5c5}{replace} (iterator i1, iterator i2, InputIterator j1, InputIterator j2)
+\item 
+size\_\-t \hyperlink{classdeque__string_09f252cc4b51eeae6cb8f2f96795123e}{copy} (CharT $\ast$s, size\_\-t n, size\_\-t pos=0) const 
+\item 
+void \hyperlink{classdeque__string_a1c4ef097e5967b11e1b06b13fb4a9bb}{swap} (\hyperlink{classdeque__string}{SelfT} \&str)
+\item 
+const CharT $\ast$ \hyperlink{classdeque__string_45faac2747ddd177516bd5d41542cdd9}{c\_\-str} () const 
+\item 
+const CharT $\ast$ \hyperlink{classdeque__string_43d0a5c5653559cee6bd477fce3f0a2c}{data} () const 
+\item 
+size\_\-t \hyperlink{classdeque__string_2be9ae2c2547e5d4086aa7aabd1de547}{find} (const \hyperlink{classdeque__string}{SelfT} \&str, size\_\-t pos=0) const 
+\item 
+\hypertarget{classdeque__string_13708e7fdd0c56feb3a626fdd6a55083}{
+size\_\-t \textbf{find} (const CharT $\ast$s, size\_\-t pos, size\_\-t n) const }
+\label{classdeque__string_13708e7fdd0c56feb3a626fdd6a55083}
+
+\item 
+\hypertarget{classdeque__string_66bbe69c0934423cc575aee5049ff766}{
+size\_\-t \textbf{find} (const CharT $\ast$s, size\_\-t pos=0) const }
+\label{classdeque__string_66bbe69c0934423cc575aee5049ff766}
+
+\item 
+\hypertarget{classdeque__string_b956cd858acbc860c16074c9c991d996}{
+size\_\-t \textbf{find} (CharT c, size\_\-t pos=0) const }
+\label{classdeque__string_b956cd858acbc860c16074c9c991d996}
+
+\item 
+size\_\-t \hyperlink{classdeque__string_c15ec121d4678cfa6cb4dd69b0b8bc16}{rfind} (const \hyperlink{classdeque__string}{SelfT} \&str, size\_\-t pos=\hyperlink{classdeque__string_b2a5692bbdd473486ce93df0cadd2540}{npos}) const 
+\item 
+\hypertarget{classdeque__string_1ff76cd00bca73f235f2cf00b1c2e25d}{
+size\_\-t \textbf{rfind} (const char $\ast$s, size\_\-t pos, size\_\-t n) const }
+\label{classdeque__string_1ff76cd00bca73f235f2cf00b1c2e25d}
+
+\item 
+\hypertarget{classdeque__string_81fdf7aa8198643c6732f95c921aac67}{
+size\_\-t \textbf{rfind} (const char $\ast$s, size\_\-t pos=\hyperlink{classdeque__string_b2a5692bbdd473486ce93df0cadd2540}{npos}) const }
+\label{classdeque__string_81fdf7aa8198643c6732f95c921aac67}
+
+\item 
+\hypertarget{classdeque__string_3b18a54a5bd730202c4d64d658f58707}{
+size\_\-t \textbf{rfind} (char c, size\_\-t pos=\hyperlink{classdeque__string_b2a5692bbdd473486ce93df0cadd2540}{npos}) const }
+\label{classdeque__string_3b18a54a5bd730202c4d64d658f58707}
+
+\item 
+\hyperlink{classdeque__string}{SelfT} \hyperlink{classdeque__string_83a5b6ab306f888837fd3917acf59f0b}{substr} (size\_\-t pos=0, size\_\-t n=\hyperlink{classdeque__string_b2a5692bbdd473486ce93df0cadd2540}{npos}) const 
+\item 
+int \hyperlink{classdeque__string_703af7d90146d6f0589d5a778e488ebf}{compare} (const \hyperlink{classdeque__string}{SelfT} \&str) const 
+\item 
+\hypertarget{classdeque__string_77ea81c5f1d0b3ce9be883aec9b928c1}{
+int \textbf{compare} (const CharT $\ast$s) const }
+\label{classdeque__string_77ea81c5f1d0b3ce9be883aec9b928c1}
+
+\item 
+\hypertarget{classdeque__string_215c61ad005a25543d096acf1c5f76f7}{
+int \textbf{compare} (size\_\-t pos1, size\_\-t n1, const \hyperlink{classdeque__string}{SelfT} \&str) const }
+\label{classdeque__string_215c61ad005a25543d096acf1c5f76f7}
+
+\item 
+\hypertarget{classdeque__string_da7eb005c8a8fa493d135780a4ac7617}{
+int \textbf{compare} (size\_\-t pos1, size\_\-t n1, const CharT $\ast$s) const }
+\label{classdeque__string_da7eb005c8a8fa493d135780a4ac7617}
+
+\item 
+\hypertarget{classdeque__string_1c963d2ad2feb84a4ceed66ab92f49dd}{
+int \textbf{compare} (size\_\-t pos1, size\_\-t n1, const \hyperlink{classdeque__string}{SelfT} \&str, size\_\-t pos2, size\_\-t n2) const }
+\label{classdeque__string_1c963d2ad2feb84a4ceed66ab92f49dd}
+
+\item 
+\hypertarget{classdeque__string_5dc94c0c3023c5961d4672bb702df22b}{
+int \textbf{compare} (size\_\-t pos1, size\_\-t n1, const CharT $\ast$s, size\_\-t n2) const }
+\label{classdeque__string_5dc94c0c3023c5961d4672bb702df22b}
+
+\item 
+std::vector$<$ CharT $>$ \hyperlink{classdeque__string_bdea4c4f98fb0c2f65a138cdef8d0331}{cast\_\-std\_\-vector} () const 
+\item 
+std::string \hyperlink{classdeque__string_cf24d0ac8c5ec359d3a5732efdd0b98b}{cast\_\-std\_\-string} () const 
+\item 
+\hypertarget{classdeque__string_131c6a969795bc9021a0d2200eb6e932}{
+{\footnotesize template$<$class Archive $>$ }\\void \textbf{save} (Archive \&ar, const unsigned int version) const }
+\label{classdeque__string_131c6a969795bc9021a0d2200eb6e932}
+
+\item 
+\hypertarget{classdeque__string_87d72bf96205aa9ceeb15e4081f9feb6}{
+{\footnotesize template$<$class Archive $>$ }\\void \textbf{load} (Archive \&ar, const unsigned int version)}
+\label{classdeque__string_87d72bf96205aa9ceeb15e4081f9feb6}
+
+\end{CompactItemize}
+\subsection*{Static Public Attributes}
+\begin{CompactItemize}
+\item 
+\hypertarget{classdeque__string_b2a5692bbdd473486ce93df0cadd2540}{
+static const size\_\-t \hyperlink{classdeque__string_b2a5692bbdd473486ce93df0cadd2540}{npos} = -1}
+\label{classdeque__string_b2a5692bbdd473486ce93df0cadd2540}
+
+\begin{CompactList}\small\item\em A static member constant value with the greatest possible value for an element of type size\_\-t. \item\end{CompactList}\end{CompactItemize}
+\subsection*{Protected Member Functions}
+\begin{CompactItemize}
+\item 
+\hypertarget{classdeque__string_11bc7ce3ebb3fc12828c4881c0045787}{
+bool \textbf{refer} ()}
+\label{classdeque__string_11bc7ce3ebb3fc12828c4881c0045787}
+
+\item 
+\hypertarget{classdeque__string_990e1e380a821d7e21d9aa77dc2bb086}{
+void \textbf{derefer} ()}
+\label{classdeque__string_990e1e380a821d7e21d9aa77dc2bb086}
+
+\item 
+\hypertarget{classdeque__string_edd43b4ccd2566df83b68fe92529dc03}{
+void \textbf{clear\_\-reference} ()}
+\label{classdeque__string_edd43b4ccd2566df83b68fe92529dc03}
+
+\item 
+\hypertarget{classdeque__string_53a7dad58bd968cb8f14d2193f76b7d3}{
+bool \textbf{is\_\-refered} () const }
+\label{classdeque__string_53a7dad58bd968cb8f14d2193f76b7d3}
+
+\item 
+\hypertarget{classdeque__string_d2f7587c5f7a25f86198739e15ed3a8e}{
+void \textbf{assign\_\-self} ()}
+\label{classdeque__string_d2f7587c5f7a25f86198739e15ed3a8e}
+
+\item 
+\hypertarget{classdeque__string_c3450eab29fcd26a502dda32da6ab4c5}{
+size\_\-t \textbf{getLen} (const CharT $\ast$s) const }
+\label{classdeque__string_c3450eab29fcd26a502dda32da6ab4c5}
+
+\item 
+\hypertarget{classdeque__string_d8b990aa4bcf75e5145df48385ca15dd}{
+size\_\-t \textbf{start\_\-entry\_\-index} () const }
+\label{classdeque__string_d8b990aa4bcf75e5145df48385ca15dd}
+
+\item 
+\hypertarget{classdeque__string_c6211d2266a6e13c85ded7ec3c2d18d6}{
+size\_\-t \textbf{end\_\-entry\_\-index} () const }
+\label{classdeque__string_c6211d2266a6e13c85ded7ec3c2d18d6}
+
+\item 
+\hypertarget{classdeque__string_01670ff100a023d4b11e8552297e728f}{
+size\_\-t \textbf{char\_\-index\_\-in\_\-bucket} (size\_\-t i) const }
+\label{classdeque__string_01670ff100a023d4b11e8552297e728f}
+
+\item 
+\hypertarget{classdeque__string_1e7a77ee5439a67b0029185079029fab}{
+size\_\-t \textbf{get\_\-entry\_\-index} (size\_\-t char\_\-index) const }
+\label{classdeque__string_1e7a77ee5439a67b0029185079029fab}
+
+\item 
+\hypertarget{classdeque__string_417895022e2d66b2ca86160e4a816449}{
+void \textbf{set\_\-char} (size\_\-t index, CharT c)}
+\label{classdeque__string_417895022e2d66b2ca86160e4a816449}
+
+\item 
+\hypertarget{classdeque__string_0befe97d49e2fea9e6822c03b06f5320}{
+CharT \& \textbf{get\_\-char} (size\_\-t index)}
+\label{classdeque__string_0befe97d49e2fea9e6822c03b06f5320}
+
+\item 
+\hypertarget{classdeque__string_33109737d609410fe6cf12bd1ecf3d8b}{
+const CharT \& \textbf{get\_\-const\_\-char} (size\_\-t index) const }
+\label{classdeque__string_33109737d609410fe6cf12bd1ecf3d8b}
+
+\item 
+\hypertarget{classdeque__string_cf57132cb72e77ced273a190418fabe6}{
+CharT $\ast$ \textbf{get\_\-entry} (size\_\-t i)}
+\label{classdeque__string_cf57132cb72e77ced273a190418fabe6}
+
+\item 
+\hypertarget{classdeque__string_42993f9e27869b796233e28e09bcac74}{
+const CharT $\ast$ \textbf{get\_\-const\_\-entry} (size\_\-t i) const }
+\label{classdeque__string_42993f9e27869b796233e28e09bcac74}
+
+\item 
+\hypertarget{classdeque__string_a0bb8bb5ac55d1d55c3ba10f3d931320}{
+uint64\_\-t $\ast$ \textbf{get\_\-entry\_\-array} ()}
+\label{classdeque__string_a0bb8bb5ac55d1d55c3ba10f3d931320}
+
+\item 
+\hypertarget{classdeque__string_e1ae6b5f35aa106a39c1f5523572ef07}{
+const uint64\_\-t $\ast$ \textbf{get\_\-const\_\-entry\_\-array} () const }
+\label{classdeque__string_e1ae6b5f35aa106a39c1f5523572ef07}
+
+\item 
+\hypertarget{classdeque__string_e6a3701ee0ed154b07eb18cbfd13c463}{
+size\_\-t \textbf{need\_\-bucket\_\-num} (size\_\-t k) const }
+\label{classdeque__string_e6a3701ee0ed154b07eb18cbfd13c463}
+
+\item 
+\hypertarget{classdeque__string_0c286fb4f2c9590764026d620a4ed847}{
+size\_\-t \textbf{need\_\-entry\_\-bytes} (size\_\-t size) const }
+\label{classdeque__string_0c286fb4f2c9590764026d620a4ed847}
+
+\item 
+\hypertarget{classdeque__string_65d10fcddd0820ff314e983e140c44bf}{
+size\_\-t \textbf{need\_\-entry\_\-size} (size\_\-t length) const }
+\label{classdeque__string_65d10fcddd0820ff314e983e140c44bf}
+
+\item 
+\hypertarget{classdeque__string_7ba6a54fa3737cdb0dfc7062a3b282a6}{
+void \textbf{set\_\-entry} (size\_\-t i, CharT $\ast$p)}
+\label{classdeque__string_7ba6a54fa3737cdb0dfc7062a3b282a6}
+
+\item 
+\hypertarget{classdeque__string_5c8eb4fbfe7f7b6435bbaa5736b0fc4a}{
+char $\ast$ \textbf{malloc\_\-char} (uint64\_\-t bytes)}
+\label{classdeque__string_5c8eb4fbfe7f7b6435bbaa5736b0fc4a}
+
+\item 
+\hypertarget{classdeque__string_420ba40857a5c23f1e76959aae920310}{
+CharT $\ast$ \textbf{malloc\_\-CharT} (uint64\_\-t bytes=BUCKET\_\-BYTES)}
+\label{classdeque__string_420ba40857a5c23f1e76959aae920310}
+
+\item 
+\hypertarget{classdeque__string_8770e448987798a03436973f93f3e986}{
+size\_\-t \textbf{init\_\-entry} (size\_\-t length, char $\ast$$\ast$pp)}
+\label{classdeque__string_8770e448987798a03436973f93f3e986}
+
+\item 
+\hypertarget{classdeque__string_69825b493a8263b7be10dee4e5f01deb}{
+size\_\-t \textbf{init\_\-max\_\-size} () const }
+\label{classdeque__string_69825b493a8263b7be10dee4e5f01deb}
+
+\item 
+\hypertarget{classdeque__string_d45388c227fa99b6c378f23b45d0057c}{
+void \textbf{extend\_\-entry} (size\_\-t t, bool back=true)}
+\label{classdeque__string_d45388c227fa99b6c378f23b45d0057c}
+
+\item 
+\hypertarget{classdeque__string_b2959198ac62159050c756e8635f54f2}{
+void \textbf{add\_\-buckets} (size\_\-t t, bool back=true)}
+\label{classdeque__string_b2959198ac62159050c756e8635f54f2}
+
+\item 
+\hypertarget{classdeque__string_2270d650b124459cfa360b51fa996aff}{
+\hyperlink{classdeque__string}{SelfT} \& \textbf{replace\_\-} (size\_\-t pos1, size\_\-t n1, \hyperlink{classdeque__string}{SelfT} str)}
+\label{classdeque__string_2270d650b124459cfa360b51fa996aff}
+
+\end{CompactItemize}
+\subsection*{Protected Attributes}
+\begin{CompactItemize}
+\item 
+\hypertarget{classdeque__string_a417739440e5f04229011e2646fb2ab7}{
+char $\ast$ \hyperlink{classdeque__string_a417739440e5f04229011e2646fb2ab7}{p\_\-}}
+\label{classdeque__string_a417739440e5f04229011e2646fb2ab7}
+
+\begin{CompactList}\small\item\em Starting address of entrice, including entry array and reference counter at the first byte. \item\end{CompactList}\item 
+\hypertarget{classdeque__string_959de8cdf04a77d8ebe553605c89be19}{
+size\_\-t \hyperlink{classdeque__string_959de8cdf04a77d8ebe553605c89be19}{start\_\-i\_\-}}
+\label{classdeque__string_959de8cdf04a77d8ebe553605c89be19}
+
+\begin{CompactList}\small\item\em Globle start position in deque. \item\end{CompactList}\item 
+\hypertarget{classdeque__string_432f16b5916a3b187718b6093d69a6e5}{
+size\_\-t \hyperlink{classdeque__string_432f16b5916a3b187718b6093d69a6e5}{length\_\-}}
+\label{classdeque__string_432f16b5916a3b187718b6093d69a6e5}
+
+\begin{CompactList}\small\item\em String length. \item\end{CompactList}\item 
+\hypertarget{classdeque__string_27d0adddfbe71cd1560ae9b63318f7c1}{
+size\_\-t \hyperlink{classdeque__string_27d0adddfbe71cd1560ae9b63318f7c1}{max\_\-size\_\-}}
+\label{classdeque__string_27d0adddfbe71cd1560ae9b63318f7c1}
+
+\begin{CompactList}\small\item\em The maximum length of chars the buffer can store. \item\end{CompactList}\item 
+\hypertarget{classdeque__string_f50efb6c6e27104e4ac47cf22fb2f2eb}{
+size\_\-t \hyperlink{classdeque__string_f50efb6c6e27104e4ac47cf22fb2f2eb}{entry\_\-size\_\-}}
+\label{classdeque__string_f50efb6c6e27104e4ac47cf22fb2f2eb}
+
+\begin{CompactList}\small\item\em Size of entry. \item\end{CompactList}\item 
+\hypertarget{classdeque__string_9f45c2d49d44d5c202d265f2245a121b}{
+CharT $\ast$$\ast$ \hyperlink{classdeque__string_9f45c2d49d44d5c202d265f2245a121b}{en\_\-array\_\-}}
+\label{classdeque__string_9f45c2d49d44d5c202d265f2245a121b}
+
+\begin{CompactList}\small\item\em The starting position of entry array. \item\end{CompactList}\end{CompactItemize}
+\subsection*{Friends}
+\begin{CompactItemize}
+\item 
+class \hyperlink{classdeque__string_c98d07dd8f7b70e16ccb9a01abf56b9c}{boost::serialization::access}
+\item 
+std::ostream \& \hyperlink{classdeque__string_9f77d965eac7a717e9124196d686e094}{operator$<$$<$} (std::ostream \&os, const \hyperlink{classdeque__string}{SelfT} \&str)
+\end{CompactItemize}
+
+
+\subsection{Detailed Description}
+\subsubsection*{template$<$class CHAR\_\-TYPE = char, int COPY\_\-ON\_\-WRITE = 1, uint32\_\-t BUCKET\_\-BYTES = 1024$>$ class deque\_\-string$<$ CHAR\_\-TYPE, COPY\_\-ON\_\-WRITE, BUCKET\_\-BYTES $>$}
+
+A string structed as deque. 
+
+This string adopts deque structure. It is designed for long string. Compared to bbt string, it's a bit slower, but more memory-saving. It has push\_\-front which vector string and std::string don't have. And it's lack of functions like \hyperlink{classdeque__string_45faac2747ddd177516bd5d41542cdd9}{c\_\-str()}, \hyperlink{classdeque__string_43d0a5c5653559cee6bd477fce3f0a2c}{data()} and attach() since its data structure. If you use unicode, the template parameter CHAR\_\-TYPE should be uint16\_\-t. If you don't want copy-on-write, just set COPY\_\-ON\_\-WRITE 0. BUCKET\_\-BYTES control the size of bucket in deque by bytes. 
+
+Definition at line 35 of file deque\_\-string.hpp.
+
+\subsection{Constructor \& Destructor Documentation}
+\hypertarget{classdeque__string_58a95023c19819f6bbc152a5a764be24}{
+\index{deque\_\-string@{deque\_\-string}!deque\_\-string@{deque\_\-string}}
+\index{deque\_\-string@{deque\_\-string}!deque_string@{deque\_\-string}}
+\subsubsection[{deque\_\-string}]{\setlength{\rightskip}{0pt plus 5cm}template$<$class CHAR\_\-TYPE  = char, int COPY\_\-ON\_\-WRITE = 1, uint32\_\-t BUCKET\_\-BYTES = 1024$>$ {\bf deque\_\-string}$<$ CHAR\_\-TYPE, COPY\_\-ON\_\-WRITE, BUCKET\_\-BYTES $>$::{\bf deque\_\-string} ()\hspace{0.3cm}{\tt  \mbox{[}inline, explicit\mbox{]}}}}
+\label{classdeque__string_58a95023c19819f6bbc152a5a764be24}
+
+
+Content is initialized to an empty string. 
+
+Definition at line 1009 of file deque\_\-string.hpp.\hypertarget{classdeque__string_370593eb79336a2b06b0110eb6341807}{
+\index{deque\_\-string@{deque\_\-string}!deque\_\-string@{deque\_\-string}}
+\index{deque\_\-string@{deque\_\-string}!deque_string@{deque\_\-string}}
+\subsubsection[{deque\_\-string}]{\setlength{\rightskip}{0pt plus 5cm}template$<$class CHAR\_\-TYPE  = char, int COPY\_\-ON\_\-WRITE = 1, uint32\_\-t BUCKET\_\-BYTES = 1024$>$ {\bf deque\_\-string}$<$ CHAR\_\-TYPE, COPY\_\-ON\_\-WRITE, BUCKET\_\-BYTES $>$::{\bf deque\_\-string} (const {\bf SelfT} \& {\em str})\hspace{0.3cm}{\tt  \mbox{[}inline\mbox{]}}}}
+\label{classdeque__string_370593eb79336a2b06b0110eb6341807}
+
+
+Content is initialized to a copy of the string object str. 
+
+Definition at line 1021 of file deque\_\-string.hpp.\hypertarget{classdeque__string_bdf7279246355a4f6f20fa2f977ea581}{
+\index{deque\_\-string@{deque\_\-string}!deque\_\-string@{deque\_\-string}}
+\index{deque\_\-string@{deque\_\-string}!deque_string@{deque\_\-string}}
+\subsubsection[{deque\_\-string}]{\setlength{\rightskip}{0pt plus 5cm}template$<$class CHAR\_\-TYPE  = char, int COPY\_\-ON\_\-WRITE = 1, uint32\_\-t BUCKET\_\-BYTES = 1024$>$ {\bf deque\_\-string}$<$ CHAR\_\-TYPE, COPY\_\-ON\_\-WRITE, BUCKET\_\-BYTES $>$::{\bf deque\_\-string} (const {\bf SelfT} \& {\em str}, \/  size\_\-t {\em pos}, \/  size\_\-t {\em n} = {\tt {\bf npos}})\hspace{0.3cm}{\tt  \mbox{[}inline\mbox{]}}}}
+\label{classdeque__string_bdf7279246355a4f6f20fa2f977ea581}
+
+
+Content is initialized to a copy of a substring of str. The substring is the portion f str that begins at the character position pos and takes up to n characters (it takes less than n if the end of str is reached before). 
+
+Definition at line 1036 of file deque\_\-string.hpp.\hypertarget{classdeque__string_8dc178199327b360d1c7e437ab872421}{
+\index{deque\_\-string@{deque\_\-string}!deque\_\-string@{deque\_\-string}}
+\index{deque\_\-string@{deque\_\-string}!deque_string@{deque\_\-string}}
+\subsubsection[{deque\_\-string}]{\setlength{\rightskip}{0pt plus 5cm}template$<$class CHAR\_\-TYPE  = char, int COPY\_\-ON\_\-WRITE = 1, uint32\_\-t BUCKET\_\-BYTES = 1024$>$ {\bf deque\_\-string}$<$ CHAR\_\-TYPE, COPY\_\-ON\_\-WRITE, BUCKET\_\-BYTES $>$::{\bf deque\_\-string} (const CharT $\ast$ {\em s}, \/  size\_\-t {\em n})\hspace{0.3cm}{\tt  \mbox{[}inline\mbox{]}}}}
+\label{classdeque__string_8dc178199327b360d1c7e437ab872421}
+
+
+Content is initialized to a copy of the string formed by the first n characters in the array of characters pointed by s. 
+
+Definition at line 1051 of file deque\_\-string.hpp.\hypertarget{classdeque__string_6f787b1cd7c34cc81aa9c9e32e7558ce}{
+\index{deque\_\-string@{deque\_\-string}!deque\_\-string@{deque\_\-string}}
+\index{deque\_\-string@{deque\_\-string}!deque_string@{deque\_\-string}}
+\subsubsection[{deque\_\-string}]{\setlength{\rightskip}{0pt plus 5cm}template$<$class CHAR\_\-TYPE  = char, int COPY\_\-ON\_\-WRITE = 1, uint32\_\-t BUCKET\_\-BYTES = 1024$>$ {\bf deque\_\-string}$<$ CHAR\_\-TYPE, COPY\_\-ON\_\-WRITE, BUCKET\_\-BYTES $>$::{\bf deque\_\-string} (const CharT $\ast$ {\em s})\hspace{0.3cm}{\tt  \mbox{[}inline\mbox{]}}}}
+\label{classdeque__string_6f787b1cd7c34cc81aa9c9e32e7558ce}
+
+
+Content is initialized to a copy of the string formed by the null-terminated character sequence (C string) pointed by s. The length of the caracter sequence is determined by the first occurrence of a null character (as determined by traits.length(s)). This version can be used to initialize a string object using a string literal constant. 
+
+Definition at line 1067 of file deque\_\-string.hpp.\hypertarget{classdeque__string_f57f53bfcc45461c28703b910b9f2fc4}{
+\index{deque\_\-string@{deque\_\-string}!deque\_\-string@{deque\_\-string}}
+\index{deque\_\-string@{deque\_\-string}!deque_string@{deque\_\-string}}
+\subsubsection[{deque\_\-string}]{\setlength{\rightskip}{0pt plus 5cm}template$<$class CHAR\_\-TYPE  = char, int COPY\_\-ON\_\-WRITE = 1, uint32\_\-t BUCKET\_\-BYTES = 1024$>$ {\bf deque\_\-string}$<$ CHAR\_\-TYPE, COPY\_\-ON\_\-WRITE, BUCKET\_\-BYTES $>$::{\bf deque\_\-string} (size\_\-t {\em n}, \/  CharT {\em c})\hspace{0.3cm}{\tt  \mbox{[}inline\mbox{]}}}}
+\label{classdeque__string_f57f53bfcc45461c28703b910b9f2fc4}
+
+
+Content is initialized as a string formed by a repetition of character c, n times. 
+
+Definition at line 1080 of file deque\_\-string.hpp.\hypertarget{classdeque__string_333a103558350fad1dd0083f18c7cdbb}{
+\index{deque\_\-string@{deque\_\-string}!deque\_\-string@{deque\_\-string}}
+\index{deque\_\-string@{deque\_\-string}!deque_string@{deque\_\-string}}
+\subsubsection[{deque\_\-string}]{\setlength{\rightskip}{0pt plus 5cm}template$<$class CHAR\_\-TYPE  = char, int COPY\_\-ON\_\-WRITE = 1, uint32\_\-t BUCKET\_\-BYTES = 1024$>$ {\bf deque\_\-string}$<$ CHAR\_\-TYPE, COPY\_\-ON\_\-WRITE, BUCKET\_\-BYTES $>$::{\bf deque\_\-string} (const std::vector$<$ CharT $>$ \& {\em v})\hspace{0.3cm}{\tt  \mbox{[}inline\mbox{]}}}}
+\label{classdeque__string_333a103558350fad1dd0083f18c7cdbb}
+
+
+Content is initialized as a string represented by vector 'v'. 
+
+Definition at line 1093 of file deque\_\-string.hpp.\hypertarget{classdeque__string_e7bf748ddc74ec3fab236086a9087dce}{
+\index{deque\_\-string@{deque\_\-string}!deque\_\-string@{deque\_\-string}}
+\index{deque\_\-string@{deque\_\-string}!deque_string@{deque\_\-string}}
+\subsubsection[{deque\_\-string}]{\setlength{\rightskip}{0pt plus 5cm}template$<$class CHAR\_\-TYPE  = char, int COPY\_\-ON\_\-WRITE = 1, uint32\_\-t BUCKET\_\-BYTES = 1024$>$ {\bf deque\_\-string}$<$ CHAR\_\-TYPE, COPY\_\-ON\_\-WRITE, BUCKET\_\-BYTES $>$::{\bf deque\_\-string} (const std::string \& {\em str})\hspace{0.3cm}{\tt  \mbox{[}inline\mbox{]}}}}
+\label{classdeque__string_e7bf748ddc74ec3fab236086a9087dce}
+
+
+Content is initialized as a string represented std::string. 
+
+Definition at line 1106 of file deque\_\-string.hpp.\hypertarget{classdeque__string_b76b1f9d84f09742d21593ae38d7e3c2}{
+\index{deque\_\-string@{deque\_\-string}!deque\_\-string@{deque\_\-string}}
+\index{deque\_\-string@{deque\_\-string}!deque_string@{deque\_\-string}}
+\subsubsection[{deque\_\-string}]{\setlength{\rightskip}{0pt plus 5cm}template$<$class CHAR\_\-TYPE  = char, int COPY\_\-ON\_\-WRITE = 1, uint32\_\-t BUCKET\_\-BYTES = 1024$>$ template$<$class InputIterator $>$ {\bf deque\_\-string}$<$ CHAR\_\-TYPE, COPY\_\-ON\_\-WRITE, BUCKET\_\-BYTES $>$::{\bf deque\_\-string} (InputIterator {\em begin}, \/  InputIterator {\em end})\hspace{0.3cm}{\tt  \mbox{[}inline\mbox{]}}}}
+\label{classdeque__string_b76b1f9d84f09742d21593ae38d7e3c2}
+
+
+If InputIterator is an integral type, behaves as the sixth constructor version (the one right above this) by typecasting begin and end to call it:
+
+string(static\_\-cast$<$size\_\-t$>$(begin),static\_\-cast$<$char$>$(end)); In any other case, the parameters are taken as iterators, and the content is initialized with the values of the elements that go from the element referred by iterator begin to the element right before the one referred by iterator end. 
+
+Definition at line 1125 of file deque\_\-string.hpp.
+
+\subsection{Member Function Documentation}
+\hypertarget{classdeque__string_315b9c547074d7ce32814aa011e26b39}{
+\index{deque\_\-string@{deque\_\-string}!append@{append}}
+\index{append@{append}!deque_string@{deque\_\-string}}
+\subsubsection[{append}]{\setlength{\rightskip}{0pt plus 5cm}template$<$class CHAR\_\-TYPE  = char, int COPY\_\-ON\_\-WRITE = 1, uint32\_\-t BUCKET\_\-BYTES = 1024$>$ template$<$class InputIterator $>$ {\bf SelfT}\& {\bf deque\_\-string}$<$ CHAR\_\-TYPE, COPY\_\-ON\_\-WRITE, BUCKET\_\-BYTES $>$::append (InputIterator {\em first}, \/  InputIterator {\em last})\hspace{0.3cm}{\tt  \mbox{[}inline\mbox{]}}}}
+\label{classdeque__string_315b9c547074d7ce32814aa011e26b39}
+
+
+If InputIterator is an integral type, behaves as the previous member function version, effectively appending a string formed by the repetition first times of the character equivalent to last. In any other case, the parameters are considered iterators and the content is appended by the elements that go from element referred by iterator first to the element right before the one referred by iterator last. 
+
+Definition at line 1665 of file deque\_\-string.hpp.\hypertarget{classdeque__string_1b25953cd90a749e1381220ba20bb42e}{
+\index{deque\_\-string@{deque\_\-string}!append@{append}}
+\index{append@{append}!deque_string@{deque\_\-string}}
+\subsubsection[{append}]{\setlength{\rightskip}{0pt plus 5cm}template$<$class CHAR\_\-TYPE  = char, int COPY\_\-ON\_\-WRITE = 1, uint32\_\-t BUCKET\_\-BYTES = 1024$>$ {\bf SelfT}\& {\bf deque\_\-string}$<$ CHAR\_\-TYPE, COPY\_\-ON\_\-WRITE, BUCKET\_\-BYTES $>$::append (size\_\-t {\em n}, \/  CharT {\em c})\hspace{0.3cm}{\tt  \mbox{[}inline\mbox{]}}}}
+\label{classdeque__string_1b25953cd90a749e1381220ba20bb42e}
+
+
+Appends a string formed by the repetition n times of character c. 
+
+Definition at line 1631 of file deque\_\-string.hpp.\hypertarget{classdeque__string_bc602a34e52a44a96690152a296ffb71}{
+\index{deque\_\-string@{deque\_\-string}!append@{append}}
+\index{append@{append}!deque_string@{deque\_\-string}}
+\subsubsection[{append}]{\setlength{\rightskip}{0pt plus 5cm}template$<$class CHAR\_\-TYPE  = char, int COPY\_\-ON\_\-WRITE = 1, uint32\_\-t BUCKET\_\-BYTES = 1024$>$ {\bf SelfT}\& {\bf deque\_\-string}$<$ CHAR\_\-TYPE, COPY\_\-ON\_\-WRITE, BUCKET\_\-BYTES $>$::append (const CharT $\ast$ {\em s})\hspace{0.3cm}{\tt  \mbox{[}inline\mbox{]}}}}
+\label{classdeque__string_bc602a34e52a44a96690152a296ffb71}
+
+
+Appends a copy of the string formed by the null-terminated character sequence (C string) pointed by s. The length of this character sequence is determined by the first ocurrence of a null character (as determined by traits.length(s)). 
+
+Definition at line 1622 of file deque\_\-string.hpp.\hypertarget{classdeque__string_b3efd86d189fba40ab8587cbfb9b22a0}{
+\index{deque\_\-string@{deque\_\-string}!append@{append}}
+\index{append@{append}!deque_string@{deque\_\-string}}
+\subsubsection[{append}]{\setlength{\rightskip}{0pt plus 5cm}template$<$class CHAR\_\-TYPE  = char, int COPY\_\-ON\_\-WRITE = 1, uint32\_\-t BUCKET\_\-BYTES = 1024$>$ {\bf SelfT}\& {\bf deque\_\-string}$<$ CHAR\_\-TYPE, COPY\_\-ON\_\-WRITE, BUCKET\_\-BYTES $>$::append (const CharT $\ast$ {\em s}, \/  size\_\-t {\em n})\hspace{0.3cm}{\tt  \mbox{[}inline\mbox{]}}}}
+\label{classdeque__string_b3efd86d189fba40ab8587cbfb9b22a0}
+
+
+Appends a copy of the string formed by the first n characters in the array of characters pointed by s. 
+
+Definition at line 1589 of file deque\_\-string.hpp.\hypertarget{classdeque__string_126a9388b25ceecb1c4ad3bc4ac4b087}{
+\index{deque\_\-string@{deque\_\-string}!append@{append}}
+\index{append@{append}!deque_string@{deque\_\-string}}
+\subsubsection[{append}]{\setlength{\rightskip}{0pt plus 5cm}template$<$class CHAR\_\-TYPE  = char, int COPY\_\-ON\_\-WRITE = 1, uint32\_\-t BUCKET\_\-BYTES = 1024$>$ {\bf SelfT}\& {\bf deque\_\-string}$<$ CHAR\_\-TYPE, COPY\_\-ON\_\-WRITE, BUCKET\_\-BYTES $>$::append (const {\bf SelfT} \& {\em str}, \/  size\_\-t {\em pos}, \/  size\_\-t {\em n} = {\tt {\bf npos}})\hspace{0.3cm}{\tt  \mbox{[}inline\mbox{]}}}}
+\label{classdeque__string_126a9388b25ceecb1c4ad3bc4ac4b087}
+
+
+Appends a copy of a substring of str. The substring is the portion of str that begins at the character position pos and takes up to n characters (it takes less than n if the end of string is reached before). 
+
+Definition at line 1581 of file deque\_\-string.hpp.\hypertarget{classdeque__string_5e906ef1d178767fdf3c0058f5eeed55}{
+\index{deque\_\-string@{deque\_\-string}!append@{append}}
+\index{append@{append}!deque_string@{deque\_\-string}}
+\subsubsection[{append}]{\setlength{\rightskip}{0pt plus 5cm}template$<$class CHAR\_\-TYPE  = char, int COPY\_\-ON\_\-WRITE = 1, uint32\_\-t BUCKET\_\-BYTES = 1024$>$ {\bf SelfT}\& {\bf deque\_\-string}$<$ CHAR\_\-TYPE, COPY\_\-ON\_\-WRITE, BUCKET\_\-BYTES $>$::append (const {\bf SelfT} \& {\em str})\hspace{0.3cm}{\tt  \mbox{[}inline\mbox{]}}}}
+\label{classdeque__string_5e906ef1d178767fdf3c0058f5eeed55}
+
+
+Appends a copy of str. 
+
+Definition at line 1552 of file deque\_\-string.hpp.\hypertarget{classdeque__string_c5b8af527d69203338e2450164dbdd8c}{
+\index{deque\_\-string@{deque\_\-string}!assign@{assign}}
+\index{assign@{assign}!deque_string@{deque\_\-string}}
+\subsubsection[{assign}]{\setlength{\rightskip}{0pt plus 5cm}template$<$class CHAR\_\-TYPE  = char, int COPY\_\-ON\_\-WRITE = 1, uint32\_\-t BUCKET\_\-BYTES = 1024$>$ template$<$class InputIterator $>$ {\bf SelfT}\& {\bf deque\_\-string}$<$ CHAR\_\-TYPE, COPY\_\-ON\_\-WRITE, BUCKET\_\-BYTES $>$::assign (InputIterator {\em first}, \/  InputIterator {\em last})\hspace{0.3cm}{\tt  \mbox{[}inline\mbox{]}}}}
+\label{classdeque__string_c5b8af527d69203338e2450164dbdd8c}
+
+
+If InputIterator is an integral type, behaves as the previous member function version, effectively setting as the new content a string formed by the repetition first times of the character equivalent to last. In any other case, the content is set to the values of the elements that go from element referred to by iterator first to the element right before the one referred to by iterator last. 
+
+Definition at line 1956 of file deque\_\-string.hpp.\hypertarget{classdeque__string_70d8b09a7c215edb6cf46bb75c6a0302}{
+\index{deque\_\-string@{deque\_\-string}!assign@{assign}}
+\index{assign@{assign}!deque_string@{deque\_\-string}}
+\subsubsection[{assign}]{\setlength{\rightskip}{0pt plus 5cm}template$<$class CHAR\_\-TYPE  = char, int COPY\_\-ON\_\-WRITE = 1, uint32\_\-t BUCKET\_\-BYTES = 1024$>$ {\bf SelfT}\& {\bf deque\_\-string}$<$ CHAR\_\-TYPE, COPY\_\-ON\_\-WRITE, BUCKET\_\-BYTES $>$::assign (const std::string \& {\em str})\hspace{0.3cm}{\tt  \mbox{[}inline\mbox{]}}}}
+\label{classdeque__string_70d8b09a7c215edb6cf46bb75c6a0302}
+
+
+Set a string formated by std string. 
+
+Definition at line 1928 of file deque\_\-string.hpp.\hypertarget{classdeque__string_66230e3dcfe245f877558ffe0fce711a}{
+\index{deque\_\-string@{deque\_\-string}!assign@{assign}}
+\index{assign@{assign}!deque_string@{deque\_\-string}}
+\subsubsection[{assign}]{\setlength{\rightskip}{0pt plus 5cm}template$<$class CHAR\_\-TYPE  = char, int COPY\_\-ON\_\-WRITE = 1, uint32\_\-t BUCKET\_\-BYTES = 1024$>$ {\bf SelfT}\& {\bf deque\_\-string}$<$ CHAR\_\-TYPE, COPY\_\-ON\_\-WRITE, BUCKET\_\-BYTES $>$::assign (const std::vector$<$ CharT $>$ \& {\em v})\hspace{0.3cm}{\tt  \mbox{[}inline\mbox{]}}}}
+\label{classdeque__string_66230e3dcfe245f877558ffe0fce711a}
+
+
+Set a string formated by a char vector. 
+
+Definition at line 1906 of file deque\_\-string.hpp.\hypertarget{classdeque__string_131a536647ad8f6ad580addff43c6fc4}{
+\index{deque\_\-string@{deque\_\-string}!assign@{assign}}
+\index{assign@{assign}!deque_string@{deque\_\-string}}
+\subsubsection[{assign}]{\setlength{\rightskip}{0pt plus 5cm}template$<$class CHAR\_\-TYPE  = char, int COPY\_\-ON\_\-WRITE = 1, uint32\_\-t BUCKET\_\-BYTES = 1024$>$ {\bf SelfT}\& {\bf deque\_\-string}$<$ CHAR\_\-TYPE, COPY\_\-ON\_\-WRITE, BUCKET\_\-BYTES $>$::assign (size\_\-t {\em n}, \/  CharT {\em c})\hspace{0.3cm}{\tt  \mbox{[}inline\mbox{]}}}}
+\label{classdeque__string_131a536647ad8f6ad580addff43c6fc4}
+
+
+Sets a string formed by a repetition of character c, n times, as the new content. 
+
+Definition at line 1885 of file deque\_\-string.hpp.\hypertarget{classdeque__string_6011b5371797b1a7ce8e0f98de3892e2}{
+\index{deque\_\-string@{deque\_\-string}!assign@{assign}}
+\index{assign@{assign}!deque_string@{deque\_\-string}}
+\subsubsection[{assign}]{\setlength{\rightskip}{0pt plus 5cm}template$<$class CHAR\_\-TYPE  = char, int COPY\_\-ON\_\-WRITE = 1, uint32\_\-t BUCKET\_\-BYTES = 1024$>$ {\bf SelfT}\& {\bf deque\_\-string}$<$ CHAR\_\-TYPE, COPY\_\-ON\_\-WRITE, BUCKET\_\-BYTES $>$::assign (const CharT $\ast$ {\em s})\hspace{0.3cm}{\tt  \mbox{[}inline\mbox{]}}}}
+\label{classdeque__string_6011b5371797b1a7ce8e0f98de3892e2}
+
+
+Sets a copy of the string formed by the null-terminated character sequence (C string) pointed by s as the new content. The length of the caracter sequence is determined by the first ocurrence of a null character (as determined by traits.length(s)). 
+
+Definition at line 1875 of file deque\_\-string.hpp.\hypertarget{classdeque__string_df1494cee904a87cd5dd927b9bb2a3bf}{
+\index{deque\_\-string@{deque\_\-string}!assign@{assign}}
+\index{assign@{assign}!deque_string@{deque\_\-string}}
+\subsubsection[{assign}]{\setlength{\rightskip}{0pt plus 5cm}template$<$class CHAR\_\-TYPE  = char, int COPY\_\-ON\_\-WRITE = 1, uint32\_\-t BUCKET\_\-BYTES = 1024$>$ {\bf SelfT}\& {\bf deque\_\-string}$<$ CHAR\_\-TYPE, COPY\_\-ON\_\-WRITE, BUCKET\_\-BYTES $>$::assign (const CharT $\ast$ {\em s}, \/  size\_\-t {\em n})\hspace{0.3cm}{\tt  \mbox{[}inline\mbox{]}}}}
+\label{classdeque__string_df1494cee904a87cd5dd927b9bb2a3bf}
+
+
+Sets as the new content a copy of the string formed by the first n characters of the array pointed by s. 
+
+Definition at line 1851 of file deque\_\-string.hpp.\hypertarget{classdeque__string_d40c73d6f33a68ca241440ec530096a8}{
+\index{deque\_\-string@{deque\_\-string}!assign@{assign}}
+\index{assign@{assign}!deque_string@{deque\_\-string}}
+\subsubsection[{assign}]{\setlength{\rightskip}{0pt plus 5cm}template$<$class CHAR\_\-TYPE  = char, int COPY\_\-ON\_\-WRITE = 1, uint32\_\-t BUCKET\_\-BYTES = 1024$>$ {\bf SelfT}\& {\bf deque\_\-string}$<$ CHAR\_\-TYPE, COPY\_\-ON\_\-WRITE, BUCKET\_\-BYTES $>$::assign (const {\bf SelfT} \& {\em str}, \/  size\_\-t {\em pos}, \/  size\_\-t {\em n})\hspace{0.3cm}{\tt  \mbox{[}inline\mbox{]}}}}
+\label{classdeque__string_d40c73d6f33a68ca241440ec530096a8}
+
+
+Sets a copy of a substring of str as the new content. The substring is the portion of str that begins at the character position pos and takes up to n characters (it takes less than n if the end of str is reached before). 
+
+Definition at line 1808 of file deque\_\-string.hpp.\hypertarget{classdeque__string_93be2245162d2b65148b106e457e24ae}{
+\index{deque\_\-string@{deque\_\-string}!assign@{assign}}
+\index{assign@{assign}!deque_string@{deque\_\-string}}
+\subsubsection[{assign}]{\setlength{\rightskip}{0pt plus 5cm}template$<$class CHAR\_\-TYPE  = char, int COPY\_\-ON\_\-WRITE = 1, uint32\_\-t BUCKET\_\-BYTES = 1024$>$ {\bf SelfT}\& {\bf deque\_\-string}$<$ CHAR\_\-TYPE, COPY\_\-ON\_\-WRITE, BUCKET\_\-BYTES $>$::assign (const {\bf SelfT} \& {\em str})\hspace{0.3cm}{\tt  \mbox{[}inline\mbox{]}}}}
+\label{classdeque__string_93be2245162d2b65148b106e457e24ae}
+
+
+Sets a copy of str as the new content. 
+
+Definition at line 1762 of file deque\_\-string.hpp.\hypertarget{classdeque__string_54e0631a4ddc10a3213bb32209798f39}{
+\index{deque\_\-string@{deque\_\-string}!at@{at}}
+\index{at@{at}!deque_string@{deque\_\-string}}
+\subsubsection[{at}]{\setlength{\rightskip}{0pt plus 5cm}template$<$class CHAR\_\-TYPE  = char, int COPY\_\-ON\_\-WRITE = 1, uint32\_\-t BUCKET\_\-BYTES = 1024$>$ const CharT\& {\bf deque\_\-string}$<$ CHAR\_\-TYPE, COPY\_\-ON\_\-WRITE, BUCKET\_\-BYTES $>$::at (size\_\-t {\em pos}) const\hspace{0.3cm}{\tt  \mbox{[}inline\mbox{]}}}}
+\label{classdeque__string_54e0631a4ddc10a3213bb32209798f39}
+
+
+Returns the character at position pos in the string. This member function behaves as operator\mbox{[}\mbox{]} , except that at also performs a range check, throwing an assertion. 
+
+Definition at line 1511 of file deque\_\-string.hpp.\hypertarget{classdeque__string_e7839d34819def722bdfc95900ac44cf}{
+\index{deque\_\-string@{deque\_\-string}!begin@{begin}}
+\index{begin@{begin}!deque_string@{deque\_\-string}}
+\subsubsection[{begin}]{\setlength{\rightskip}{0pt plus 5cm}template$<$class CHAR\_\-TYPE  = char, int COPY\_\-ON\_\-WRITE = 1, uint32\_\-t BUCKET\_\-BYTES = 1024$>$ const\_\-iterator {\bf deque\_\-string}$<$ CHAR\_\-TYPE, COPY\_\-ON\_\-WRITE, BUCKET\_\-BYTES $>$::begin () const\hspace{0.3cm}{\tt  \mbox{[}inline\mbox{]}}}}
+\label{classdeque__string_e7839d34819def722bdfc95900ac44cf}
+
+
+An iterator to the beginning of the string. The type of this iterator is either string::iterator member type or string::const\_\-iterator member type, which are compiler specific iterator types suitable to iterate through the elements of a string object. 
+
+Definition at line 1180 of file deque\_\-string.hpp.\hypertarget{classdeque__string_45faac2747ddd177516bd5d41542cdd9}{
+\index{deque\_\-string@{deque\_\-string}!c\_\-str@{c\_\-str}}
+\index{c\_\-str@{c\_\-str}!deque_string@{deque\_\-string}}
+\subsubsection[{c\_\-str}]{\setlength{\rightskip}{0pt plus 5cm}template$<$class CHAR\_\-TYPE  = char, int COPY\_\-ON\_\-WRITE = 1, uint32\_\-t BUCKET\_\-BYTES = 1024$>$ const CharT$\ast$ {\bf deque\_\-string}$<$ CHAR\_\-TYPE, COPY\_\-ON\_\-WRITE, BUCKET\_\-BYTES $>$::c\_\-str () const\hspace{0.3cm}{\tt  \mbox{[}inline\mbox{]}}}}
+\label{classdeque__string_45faac2747ddd177516bd5d41542cdd9}
+
+
+Unavailable 
+
+Definition at line 2462 of file deque\_\-string.hpp.\hypertarget{classdeque__string_37b3b4d907d9f7a5230c23583e88880a}{
+\index{deque\_\-string@{deque\_\-string}!capacity@{capacity}}
+\index{capacity@{capacity}!deque_string@{deque\_\-string}}
+\subsubsection[{capacity}]{\setlength{\rightskip}{0pt plus 5cm}template$<$class CHAR\_\-TYPE  = char, int COPY\_\-ON\_\-WRITE = 1, uint32\_\-t BUCKET\_\-BYTES = 1024$>$ size\_\-t {\bf deque\_\-string}$<$ CHAR\_\-TYPE, COPY\_\-ON\_\-WRITE, BUCKET\_\-BYTES $>$::capacity () const\hspace{0.3cm}{\tt  \mbox{[}inline\mbox{]}}}}
+\label{classdeque__string_37b3b4d907d9f7a5230c23583e88880a}
+
+
+Returns the size of the allocated storage space in the string object. Notice that the capacity is not necessarily equal to the number of characters that conform the content of the string (this can be obtained with members size or length), but the capacity of the allocated space, which is either equal or greater than this content size.
+
+Notice also that this capacity does not suppose a limit to the length of the string. If more space is required to accomodate content in the string object, the capacity is automatically expanded, or can even be explicitly modified by calling member reserve.
+
+The real limit on the size a string object can reach is returned by member max\_\-size. 
+
+Definition at line 1440 of file deque\_\-string.hpp.\hypertarget{classdeque__string_cf24d0ac8c5ec359d3a5732efdd0b98b}{
+\index{deque\_\-string@{deque\_\-string}!cast\_\-std\_\-string@{cast\_\-std\_\-string}}
+\index{cast\_\-std\_\-string@{cast\_\-std\_\-string}!deque_string@{deque\_\-string}}
+\subsubsection[{cast\_\-std\_\-string}]{\setlength{\rightskip}{0pt plus 5cm}template$<$class CHAR\_\-TYPE  = char, int COPY\_\-ON\_\-WRITE = 1, uint32\_\-t BUCKET\_\-BYTES = 1024$>$ std::string {\bf deque\_\-string}$<$ CHAR\_\-TYPE, COPY\_\-ON\_\-WRITE, BUCKET\_\-BYTES $>$::cast\_\-std\_\-string () const\hspace{0.3cm}{\tt  \mbox{[}inline\mbox{]}}}}
+\label{classdeque__string_cf24d0ac8c5ec359d3a5732efdd0b98b}
+
+
+Turn this string into std::string. 
+
+Definition at line 2745 of file deque\_\-string.hpp.\hypertarget{classdeque__string_bdea4c4f98fb0c2f65a138cdef8d0331}{
+\index{deque\_\-string@{deque\_\-string}!cast\_\-std\_\-vector@{cast\_\-std\_\-vector}}
+\index{cast\_\-std\_\-vector@{cast\_\-std\_\-vector}!deque_string@{deque\_\-string}}
+\subsubsection[{cast\_\-std\_\-vector}]{\setlength{\rightskip}{0pt plus 5cm}template$<$class CHAR\_\-TYPE  = char, int COPY\_\-ON\_\-WRITE = 1, uint32\_\-t BUCKET\_\-BYTES = 1024$>$ std::vector$<$CharT$>$ {\bf deque\_\-string}$<$ CHAR\_\-TYPE, COPY\_\-ON\_\-WRITE, BUCKET\_\-BYTES $>$::cast\_\-std\_\-vector () const\hspace{0.3cm}{\tt  \mbox{[}inline\mbox{]}}}}
+\label{classdeque__string_bdea4c4f98fb0c2f65a138cdef8d0331}
+
+
+Turn this string into a char vector. 
+
+Definition at line 2732 of file deque\_\-string.hpp.\hypertarget{classdeque__string_4ee86cce5b0bdf35309bcdf0e1cee4e5}{
+\index{deque\_\-string@{deque\_\-string}!clear@{clear}}
+\index{clear@{clear}!deque_string@{deque\_\-string}}
+\subsubsection[{clear}]{\setlength{\rightskip}{0pt plus 5cm}template$<$class CHAR\_\-TYPE  = char, int COPY\_\-ON\_\-WRITE = 1, uint32\_\-t BUCKET\_\-BYTES = 1024$>$ void {\bf deque\_\-string}$<$ CHAR\_\-TYPE, COPY\_\-ON\_\-WRITE, BUCKET\_\-BYTES $>$::clear ()\hspace{0.3cm}{\tt  \mbox{[}inline\mbox{]}}}}
+\label{classdeque__string_4ee86cce5b0bdf35309bcdf0e1cee4e5}
+
+
+The string content is set to an empty string, erasing any previous content and thus leaving its size at 0 characters. 
+
+Definition at line 1467 of file deque\_\-string.hpp.\hypertarget{classdeque__string_703af7d90146d6f0589d5a778e488ebf}{
+\index{deque\_\-string@{deque\_\-string}!compare@{compare}}
+\index{compare@{compare}!deque_string@{deque\_\-string}}
+\subsubsection[{compare}]{\setlength{\rightskip}{0pt plus 5cm}template$<$class CHAR\_\-TYPE  = char, int COPY\_\-ON\_\-WRITE = 1, uint32\_\-t BUCKET\_\-BYTES = 1024$>$ int {\bf deque\_\-string}$<$ CHAR\_\-TYPE, COPY\_\-ON\_\-WRITE, BUCKET\_\-BYTES $>$::compare (const {\bf SelfT} \& {\em str}) const\hspace{0.3cm}{\tt  \mbox{[}inline\mbox{]}}}}
+\label{classdeque__string_703af7d90146d6f0589d5a778e488ebf}
+
+
+Compares the content of this object (or a substring of it, known as compared (sub)string) to the content of a comparing string, which is formed according to the arguments passed.
+
+The member function returns 0 if all the characters in the compared contents compare equal, a negative value if the first character that does not match compares to less in the object than in the comparing string, and a positive value in the opposite case.
+
+Notice that for string objects, the result of a character comparison depends only on its character code (i.e., its ASCII code), so the result has some limited alphabetical or numerical ordering meaning.
+
+For other basic\_\-string class instantitations, the comparison depends on the specific traits::compare function, where traits is one of the class template parameters.
+
+\begin{Desc}
+\item[Parameters:]
+\begin{description}
+\item[{\em str}]string object with the content to be used as comparing string. \item[{\em s}]Array with a sequence of characters to be used as comparing string. Except for the last member version, this is a null-terminated character sequence whose length is determined by the first occurrence of a null-character. In the last member version, the length is not determined by any occurrence of null-characters but by parameter n2. \item[{\em pos1}]Position of the beginning of the compared substring, i.e. the first character in the object (in $\ast$this) to be compared against the comparing string. \item[{\em n1}]Length of the compared substring. \item[{\em pos2}]Position of a character in object str which is the beginning of the comparing string. \item[{\em n2}]Length in characters of the comparing string. \end{description}
+\end{Desc}
+
+
+Definition at line 2664 of file deque\_\-string.hpp.\hypertarget{classdeque__string_09f252cc4b51eeae6cb8f2f96795123e}{
+\index{deque\_\-string@{deque\_\-string}!copy@{copy}}
+\index{copy@{copy}!deque_string@{deque\_\-string}}
+\subsubsection[{copy}]{\setlength{\rightskip}{0pt plus 5cm}template$<$class CHAR\_\-TYPE  = char, int COPY\_\-ON\_\-WRITE = 1, uint32\_\-t BUCKET\_\-BYTES = 1024$>$ size\_\-t {\bf deque\_\-string}$<$ CHAR\_\-TYPE, COPY\_\-ON\_\-WRITE, BUCKET\_\-BYTES $>$::copy (CharT $\ast$ {\em s}, \/  size\_\-t {\em n}, \/  size\_\-t {\em pos} = {\tt 0}) const\hspace{0.3cm}{\tt  \mbox{[}inline\mbox{]}}}}
+\label{classdeque__string_09f252cc4b51eeae6cb8f2f96795123e}
+
+
+Copies a sequence of characters from the string content to the array pointed by s. This sequence of characters is made of the characters in the string that start at character position pos and span n characters from there.
+
+The function does not append a null character after the content copied. To retrieve a temporary c-string value from a string object, a specific member function exists: c\_\-str. 
+
+Definition at line 2435 of file deque\_\-string.hpp.\hypertarget{classdeque__string_43d0a5c5653559cee6bd477fce3f0a2c}{
+\index{deque\_\-string@{deque\_\-string}!data@{data}}
+\index{data@{data}!deque_string@{deque\_\-string}}
+\subsubsection[{data}]{\setlength{\rightskip}{0pt plus 5cm}template$<$class CHAR\_\-TYPE  = char, int COPY\_\-ON\_\-WRITE = 1, uint32\_\-t BUCKET\_\-BYTES = 1024$>$ const CharT$\ast$ {\bf deque\_\-string}$<$ CHAR\_\-TYPE, COPY\_\-ON\_\-WRITE, BUCKET\_\-BYTES $>$::data () const\hspace{0.3cm}{\tt  \mbox{[}inline\mbox{]}}}}
+\label{classdeque__string_43d0a5c5653559cee6bd477fce3f0a2c}
+
+
+Unavailable 
+
+Definition at line 2470 of file deque\_\-string.hpp.\hypertarget{classdeque__string_9a087a5f4703f941694db606591f373c}{
+\index{deque\_\-string@{deque\_\-string}!empty@{empty}}
+\index{empty@{empty}!deque_string@{deque\_\-string}}
+\subsubsection[{empty}]{\setlength{\rightskip}{0pt plus 5cm}template$<$class CHAR\_\-TYPE  = char, int COPY\_\-ON\_\-WRITE = 1, uint32\_\-t BUCKET\_\-BYTES = 1024$>$ bool {\bf deque\_\-string}$<$ CHAR\_\-TYPE, COPY\_\-ON\_\-WRITE, BUCKET\_\-BYTES $>$::empty () const\hspace{0.3cm}{\tt  \mbox{[}inline\mbox{]}}}}
+\label{classdeque__string_9a087a5f4703f941694db606591f373c}
+
+
+Returns whether the string is empty, i.e. whether its size is 0. This function does not modify the content of the string in any way. To clear the content of the string, member clear can be used. 
+
+Definition at line 1479 of file deque\_\-string.hpp.\hypertarget{classdeque__string_d0bae9f0e26dae5a1a083fb425c5858a}{
+\index{deque\_\-string@{deque\_\-string}!end@{end}}
+\index{end@{end}!deque_string@{deque\_\-string}}
+\subsubsection[{end}]{\setlength{\rightskip}{0pt plus 5cm}template$<$class CHAR\_\-TYPE  = char, int COPY\_\-ON\_\-WRITE = 1, uint32\_\-t BUCKET\_\-BYTES = 1024$>$ const\_\-iterator {\bf deque\_\-string}$<$ CHAR\_\-TYPE, COPY\_\-ON\_\-WRITE, BUCKET\_\-BYTES $>$::end (int {\em i} = {\tt 0}) const\hspace{0.3cm}{\tt  \mbox{[}inline\mbox{]}}}}
+\label{classdeque__string_d0bae9f0e26dae5a1a083fb425c5858a}
+
+
+An iterator past the end of the string. The type of this iterator is either string::iterator member type or string::const\_\-iterator member type, which are compiler specific iterator types suitable to iterate through the elements of a string object. 
+
+Definition at line 1198 of file deque\_\-string.hpp.\hypertarget{classdeque__string_9433d1f64823bcc7f8bced8ab357bf51}{
+\index{deque\_\-string@{deque\_\-string}!erase@{erase}}
+\index{erase@{erase}!deque_string@{deque\_\-string}}
+\subsubsection[{erase}]{\setlength{\rightskip}{0pt plus 5cm}template$<$class CHAR\_\-TYPE  = char, int COPY\_\-ON\_\-WRITE = 1, uint32\_\-t BUCKET\_\-BYTES = 1024$>$ iterator {\bf deque\_\-string}$<$ CHAR\_\-TYPE, COPY\_\-ON\_\-WRITE, BUCKET\_\-BYTES $>$::erase (iterator {\em first}, \/  iterator {\em last})\hspace{0.3cm}{\tt  \mbox{[}inline\mbox{]}}}}
+\label{classdeque__string_9433d1f64823bcc7f8bced8ab357bf51}
+
+
+Erases all the characters between first and last. 
+
+Definition at line 2131 of file deque\_\-string.hpp.\hypertarget{classdeque__string_64f3c87f7723580db6d3faa52d61cdbc}{
+\index{deque\_\-string@{deque\_\-string}!erase@{erase}}
+\index{erase@{erase}!deque_string@{deque\_\-string}}
+\subsubsection[{erase}]{\setlength{\rightskip}{0pt plus 5cm}template$<$class CHAR\_\-TYPE  = char, int COPY\_\-ON\_\-WRITE = 1, uint32\_\-t BUCKET\_\-BYTES = 1024$>$ iterator {\bf deque\_\-string}$<$ CHAR\_\-TYPE, COPY\_\-ON\_\-WRITE, BUCKET\_\-BYTES $>$::erase (iterator {\em position})\hspace{0.3cm}{\tt  \mbox{[}inline\mbox{]}}}}
+\label{classdeque__string_64f3c87f7723580db6d3faa52d61cdbc}
+
+
+Erases the character referred by the iterator position. Only one character is affected. 
+
+Definition at line 2121 of file deque\_\-string.hpp.\hypertarget{classdeque__string_2c63c675c2fad7c5c3dd2e602e910d95}{
+\index{deque\_\-string@{deque\_\-string}!erase@{erase}}
+\index{erase@{erase}!deque_string@{deque\_\-string}}
+\subsubsection[{erase}]{\setlength{\rightskip}{0pt plus 5cm}template$<$class CHAR\_\-TYPE  = char, int COPY\_\-ON\_\-WRITE = 1, uint32\_\-t BUCKET\_\-BYTES = 1024$>$ {\bf SelfT}\& {\bf deque\_\-string}$<$ CHAR\_\-TYPE, COPY\_\-ON\_\-WRITE, BUCKET\_\-BYTES $>$::erase (size\_\-t {\em pos} = {\tt 0}, \/  size\_\-t {\em n} = {\tt {\bf npos}})\hspace{0.3cm}{\tt  \mbox{[}inline\mbox{]}}}}
+\label{classdeque__string_2c63c675c2fad7c5c3dd2e602e910d95}
+
+
+Erases a sequence of n characters starting at position pos. Notice that both parameters are optional: with only one argument, the function deletes everything from position pos forwards, and with no arguments, the function deletes the entire string, like member clear. 
+
+Definition at line 2085 of file deque\_\-string.hpp.\hypertarget{classdeque__string_2be9ae2c2547e5d4086aa7aabd1de547}{
+\index{deque\_\-string@{deque\_\-string}!find@{find}}
+\index{find@{find}!deque_string@{deque\_\-string}}
+\subsubsection[{find}]{\setlength{\rightskip}{0pt plus 5cm}template$<$class CHAR\_\-TYPE  = char, int COPY\_\-ON\_\-WRITE = 1, uint32\_\-t BUCKET\_\-BYTES = 1024$>$ size\_\-t {\bf deque\_\-string}$<$ CHAR\_\-TYPE, COPY\_\-ON\_\-WRITE, BUCKET\_\-BYTES $>$::find (const {\bf SelfT} \& {\em str}, \/  size\_\-t {\em pos} = {\tt 0}) const\hspace{0.3cm}{\tt  \mbox{[}inline\mbox{]}}}}
+\label{classdeque__string_2be9ae2c2547e5d4086aa7aabd1de547}
+
+
+Searches the string for the content specified in either str, s or c, and returns the position of the first occurrence in the string.
+
+When pos is specified the search only includes characters on or after position pos, ignoring any possible occurrences in previous locations. The search algorithm is KMP.
+
+\begin{Desc}
+\item[Parameters:]
+\begin{description}
+\item[{\em str}]string to be searched for in the object. The entire content of str must be matched in some part of the string to be considered a match. \item[{\em s}]Array with a sequence of characters.\end{description}
+\end{Desc}
+In the second member function version, the size of the content to be matched is only determined by parameter n. In the third version, a null-terminated sequence is expected, and its end is determined by the first occurrence of a null character in it.
+
+\begin{Desc}
+\item[Parameters:]
+\begin{description}
+\item[{\em n}]Length of sequence of characters to search for. \item[{\em c}]Individual character to be searched for. \item[{\em pos}]Position of the first character in the string to be taken into consideration for possible matches. A value of 0 means that the entire string is considered. \end{description}
+\end{Desc}
+
+
+Definition at line 2498 of file deque\_\-string.hpp.\hypertarget{classdeque__string_fa855547712290b460b7ea219fa085c0}{
+\index{deque\_\-string@{deque\_\-string}!getReferCnt@{getReferCnt}}
+\index{getReferCnt@{getReferCnt}!deque_string@{deque\_\-string}}
+\subsubsection[{getReferCnt}]{\setlength{\rightskip}{0pt plus 5cm}template$<$class CHAR\_\-TYPE  = char, int COPY\_\-ON\_\-WRITE = 1, uint32\_\-t BUCKET\_\-BYTES = 1024$>$ ReferT {\bf deque\_\-string}$<$ CHAR\_\-TYPE, COPY\_\-ON\_\-WRITE, BUCKET\_\-BYTES $>$::getReferCnt ()\hspace{0.3cm}{\tt  \mbox{[}inline\mbox{]}}}}
+\label{classdeque__string_fa855547712290b460b7ea219fa085c0}
+
+
+Get reference counter. 
+
+Definition at line 1143 of file deque\_\-string.hpp.\hypertarget{classdeque__string_6aba1bf950849ebc4333fc68398e1c57}{
+\index{deque\_\-string@{deque\_\-string}!insert@{insert}}
+\index{insert@{insert}!deque_string@{deque\_\-string}}
+\subsubsection[{insert}]{\setlength{\rightskip}{0pt plus 5cm}template$<$class CHAR\_\-TYPE  = char, int COPY\_\-ON\_\-WRITE = 1, uint32\_\-t BUCKET\_\-BYTES = 1024$>$ template$<$class InputIterator $>$ void {\bf deque\_\-string}$<$ CHAR\_\-TYPE, COPY\_\-ON\_\-WRITE, BUCKET\_\-BYTES $>$::insert (iterator {\em p}, \/  InputIterator {\em first}, \/  InputIterator {\em last})\hspace{0.3cm}{\tt  \mbox{[}inline\mbox{]}}}}
+\label{classdeque__string_6aba1bf950849ebc4333fc68398e1c57}
+
+
+Inserts at the internal position referred by p the content made up of the characters that go from the element referred by iterator first to the element right before the one referred by iterator last. 
+
+Definition at line 2068 of file deque\_\-string.hpp.\hypertarget{classdeque__string_8cac88fe8224395a9df71f1d95c90d4d}{
+\index{deque\_\-string@{deque\_\-string}!insert@{insert}}
+\index{insert@{insert}!deque_string@{deque\_\-string}}
+\subsubsection[{insert}]{\setlength{\rightskip}{0pt plus 5cm}template$<$class CHAR\_\-TYPE  = char, int COPY\_\-ON\_\-WRITE = 1, uint32\_\-t BUCKET\_\-BYTES = 1024$>$ void {\bf deque\_\-string}$<$ CHAR\_\-TYPE, COPY\_\-ON\_\-WRITE, BUCKET\_\-BYTES $>$::insert (iterator {\em p}, \/  size\_\-t {\em n}, \/  char {\em c})\hspace{0.3cm}{\tt  \mbox{[}inline\mbox{]}}}}
+\label{classdeque__string_8cac88fe8224395a9df71f1d95c90d4d}
+
+
+Inserts a string formed by the repetition of character c, n times, at the position referred by iterator p. 
+
+Definition at line 2054 of file deque\_\-string.hpp.\hypertarget{classdeque__string_78045a454b744aec347592e03d1c9afc}{
+\index{deque\_\-string@{deque\_\-string}!insert@{insert}}
+\index{insert@{insert}!deque_string@{deque\_\-string}}
+\subsubsection[{insert}]{\setlength{\rightskip}{0pt plus 5cm}template$<$class CHAR\_\-TYPE  = char, int COPY\_\-ON\_\-WRITE = 1, uint32\_\-t BUCKET\_\-BYTES = 1024$>$ iterator {\bf deque\_\-string}$<$ CHAR\_\-TYPE, COPY\_\-ON\_\-WRITE, BUCKET\_\-BYTES $>$::insert (iterator {\em p}, \/  CharT {\em c})\hspace{0.3cm}{\tt  \mbox{[}inline\mbox{]}}}}
+\label{classdeque__string_78045a454b744aec347592e03d1c9afc}
+
+
+Inserts a copy of character c at the position referred by iterator p and returns an iterator referring to this position where it has been inserted. 
+
+Definition at line 2042 of file deque\_\-string.hpp.\hypertarget{classdeque__string_f6733b1f605197c2d81b2c5422726b9c}{
+\index{deque\_\-string@{deque\_\-string}!insert@{insert}}
+\index{insert@{insert}!deque_string@{deque\_\-string}}
+\subsubsection[{insert}]{\setlength{\rightskip}{0pt plus 5cm}template$<$class CHAR\_\-TYPE  = char, int COPY\_\-ON\_\-WRITE = 1, uint32\_\-t BUCKET\_\-BYTES = 1024$>$ {\bf SelfT}\& {\bf deque\_\-string}$<$ CHAR\_\-TYPE, COPY\_\-ON\_\-WRITE, BUCKET\_\-BYTES $>$::insert (size\_\-t {\em pos1}, \/  size\_\-t {\em n}, \/  CharT {\em c})\hspace{0.3cm}{\tt  \mbox{[}inline\mbox{]}}}}
+\label{classdeque__string_f6733b1f605197c2d81b2c5422726b9c}
+
+
+Inserts a string formed by a repetition of character c, n times, at the character position pos1. 
+
+Definition at line 2031 of file deque\_\-string.hpp.\hypertarget{classdeque__string_2b8514eee08029ac4330f119595618b9}{
+\index{deque\_\-string@{deque\_\-string}!insert@{insert}}
+\index{insert@{insert}!deque_string@{deque\_\-string}}
+\subsubsection[{insert}]{\setlength{\rightskip}{0pt plus 5cm}template$<$class CHAR\_\-TYPE  = char, int COPY\_\-ON\_\-WRITE = 1, uint32\_\-t BUCKET\_\-BYTES = 1024$>$ {\bf SelfT}\& {\bf deque\_\-string}$<$ CHAR\_\-TYPE, COPY\_\-ON\_\-WRITE, BUCKET\_\-BYTES $>$::insert (size\_\-t {\em pos1}, \/  const CharT $\ast$ {\em s})\hspace{0.3cm}{\tt  \mbox{[}inline\mbox{]}}}}
+\label{classdeque__string_2b8514eee08029ac4330f119595618b9}
+
+
+Inserts at character position pos1, a copy of the string formed by the null-terminated character sequence (C string) pointed by s. The length of this caracter sequence is determined by the first ocurrence of a null character (as determined by traits.length(s)). 
+
+Definition at line 2020 of file deque\_\-string.hpp.\hypertarget{classdeque__string_c547df6a384f56123d3d1a7699ca3d79}{
+\index{deque\_\-string@{deque\_\-string}!insert@{insert}}
+\index{insert@{insert}!deque_string@{deque\_\-string}}
+\subsubsection[{insert}]{\setlength{\rightskip}{0pt plus 5cm}template$<$class CHAR\_\-TYPE  = char, int COPY\_\-ON\_\-WRITE = 1, uint32\_\-t BUCKET\_\-BYTES = 1024$>$ {\bf SelfT}\& {\bf deque\_\-string}$<$ CHAR\_\-TYPE, COPY\_\-ON\_\-WRITE, BUCKET\_\-BYTES $>$::insert (size\_\-t {\em pos1}, \/  const CharT $\ast$ {\em s}, \/  size\_\-t {\em n})\hspace{0.3cm}{\tt  \mbox{[}inline\mbox{]}}}}
+\label{classdeque__string_c547df6a384f56123d3d1a7699ca3d79}
+
+
+Inserts at the character position pos1, a copy of the string formed by the first n characters in the array of characters pointed by s. 
+
+Definition at line 2007 of file deque\_\-string.hpp.\hypertarget{classdeque__string_c273e9d441667b1ff923864a61ad5be1}{
+\index{deque\_\-string@{deque\_\-string}!insert@{insert}}
+\index{insert@{insert}!deque_string@{deque\_\-string}}
+\subsubsection[{insert}]{\setlength{\rightskip}{0pt plus 5cm}template$<$class CHAR\_\-TYPE  = char, int COPY\_\-ON\_\-WRITE = 1, uint32\_\-t BUCKET\_\-BYTES = 1024$>$ {\bf SelfT}\& {\bf deque\_\-string}$<$ CHAR\_\-TYPE, COPY\_\-ON\_\-WRITE, BUCKET\_\-BYTES $>$::insert (size\_\-t {\em pos1}, \/  const {\bf SelfT} \& {\em str}, \/  size\_\-t {\em pos2}, \/  size\_\-t {\em n})\hspace{0.3cm}{\tt  \mbox{[}inline\mbox{]}}}}
+\label{classdeque__string_c273e9d441667b1ff923864a61ad5be1}
+
+
+Inserts a copy of a substring of str at character position pos1. The substring is the portion of str that begins at the character position pos2 and takes up to n characters (it takes less than n if the end of str is reached before). 
+
+Definition at line 1998 of file deque\_\-string.hpp.\hypertarget{classdeque__string_9a83bbe40adafff72391797edcce5b31}{
+\index{deque\_\-string@{deque\_\-string}!insert@{insert}}
+\index{insert@{insert}!deque_string@{deque\_\-string}}
+\subsubsection[{insert}]{\setlength{\rightskip}{0pt plus 5cm}template$<$class CHAR\_\-TYPE  = char, int COPY\_\-ON\_\-WRITE = 1, uint32\_\-t BUCKET\_\-BYTES = 1024$>$ {\bf SelfT}\& {\bf deque\_\-string}$<$ CHAR\_\-TYPE, COPY\_\-ON\_\-WRITE, BUCKET\_\-BYTES $>$::insert (size\_\-t {\em pos1}, \/  const {\bf SelfT} \& {\em str})\hspace{0.3cm}{\tt  \mbox{[}inline\mbox{]}}}}
+\label{classdeque__string_9a83bbe40adafff72391797edcce5b31}
+
+
+Inserts a copy of the entire string object str at character position pos1. 
+
+Definition at line 1976 of file deque\_\-string.hpp.\hypertarget{classdeque__string_4cc04b6ba64f69b943b7ece1aa1e0f80}{
+\index{deque\_\-string@{deque\_\-string}!length@{length}}
+\index{length@{length}!deque_string@{deque\_\-string}}
+\subsubsection[{length}]{\setlength{\rightskip}{0pt plus 5cm}template$<$class CHAR\_\-TYPE  = char, int COPY\_\-ON\_\-WRITE = 1, uint32\_\-t BUCKET\_\-BYTES = 1024$>$ size\_\-t {\bf deque\_\-string}$<$ CHAR\_\-TYPE, COPY\_\-ON\_\-WRITE, BUCKET\_\-BYTES $>$::length () const\hspace{0.3cm}{\tt  \mbox{[}inline\mbox{]}}}}
+\label{classdeque__string_4cc04b6ba64f69b943b7ece1aa1e0f80}
+
+
+Returns a count of the number of characters in the string. 
+
+Definition at line 1275 of file deque\_\-string.hpp.\hypertarget{classdeque__string_c2e1561b8bb76f37f0e0f060fe520982}{
+\index{deque\_\-string@{deque\_\-string}!max\_\-size@{max\_\-size}}
+\index{max\_\-size@{max\_\-size}!deque_string@{deque\_\-string}}
+\subsubsection[{max\_\-size}]{\setlength{\rightskip}{0pt plus 5cm}template$<$class CHAR\_\-TYPE  = char, int COPY\_\-ON\_\-WRITE = 1, uint32\_\-t BUCKET\_\-BYTES = 1024$>$ size\_\-t {\bf deque\_\-string}$<$ CHAR\_\-TYPE, COPY\_\-ON\_\-WRITE, BUCKET\_\-BYTES $>$::max\_\-size () const\hspace{0.3cm}{\tt  \mbox{[}inline\mbox{]}}}}
+\label{classdeque__string_c2e1561b8bb76f37f0e0f060fe520982}
+
+
+The maximum number of characters a string object can have as its content 
+
+Definition at line 1283 of file deque\_\-string.hpp.\hypertarget{classdeque__string_be047cca197538745a78f73347fbdfb1}{
+\index{deque\_\-string@{deque\_\-string}!operator+=@{operator+=}}
+\index{operator+=@{operator+=}!deque_string@{deque\_\-string}}
+\subsubsection[{operator+=}]{\setlength{\rightskip}{0pt plus 5cm}template$<$class CHAR\_\-TYPE  = char, int COPY\_\-ON\_\-WRITE = 1, uint32\_\-t BUCKET\_\-BYTES = 1024$>$ {\bf SelfT}\& {\bf deque\_\-string}$<$ CHAR\_\-TYPE, COPY\_\-ON\_\-WRITE, BUCKET\_\-BYTES $>$::operator+= (const {\bf SelfT} \& {\em str})\hspace{0.3cm}{\tt  \mbox{[}inline\mbox{]}}}}
+\label{classdeque__string_be047cca197538745a78f73347fbdfb1}
+
+
+Appends a copy of the argument to the string. The new string content is the content existing in the string object before the call followed by the content of the argument.
+
+The append member function provides a similar functionality with additional options. 
+
+Definition at line 1533 of file deque\_\-string.hpp.\hypertarget{classdeque__string_dc6562d086b15033ba12303fbe9bc634}{
+\index{deque\_\-string@{deque\_\-string}!operator=@{operator=}}
+\index{operator=@{operator=}!deque_string@{deque\_\-string}}
+\subsubsection[{operator=}]{\setlength{\rightskip}{0pt plus 5cm}template$<$class CHAR\_\-TYPE  = char, int COPY\_\-ON\_\-WRITE = 1, uint32\_\-t BUCKET\_\-BYTES = 1024$>$ {\bf SelfT}\& {\bf deque\_\-string}$<$ CHAR\_\-TYPE, COPY\_\-ON\_\-WRITE, BUCKET\_\-BYTES $>$::operator= (const {\bf SelfT} \& {\em str})\hspace{0.3cm}{\tt  \mbox{[}inline\mbox{]}}}}
+\label{classdeque__string_dc6562d086b15033ba12303fbe9bc634}
+
+
+Sets a copy of the argument as the new content for the string object. The previous content is dropped. The assign member function provides a similar functionality with additional options. 
+
+Definition at line 1155 of file deque\_\-string.hpp.\hypertarget{classdeque__string_88832ed720e934d637d0b8b9205e29a5}{
+\index{deque\_\-string@{deque\_\-string}!operator\mbox{[}\mbox{]}@{operator[]}}
+\index{operator\mbox{[}\mbox{]}@{operator[]}!deque_string@{deque\_\-string}}
+\subsubsection[{operator[]}]{\setlength{\rightskip}{0pt plus 5cm}template$<$class CHAR\_\-TYPE  = char, int COPY\_\-ON\_\-WRITE = 1, uint32\_\-t BUCKET\_\-BYTES = 1024$>$ const CharT\& {\bf deque\_\-string}$<$ CHAR\_\-TYPE, COPY\_\-ON\_\-WRITE, BUCKET\_\-BYTES $>$::operator\mbox{[}$\,$\mbox{]} (size\_\-t {\em pos}) const\hspace{0.3cm}{\tt  \mbox{[}inline\mbox{]}}}}
+\label{classdeque__string_88832ed720e934d637d0b8b9205e29a5}
+
+
+Returns a reference the character at position pos in the string. The function actually returns \hyperlink{classdeque__string_43d0a5c5653559cee6bd477fce3f0a2c}{data()}\mbox{[} pos \mbox{]}. The at member function has the same behavior as this operator function, except that at also performs a range check. 
+
+Definition at line 1492 of file deque\_\-string.hpp.\hypertarget{classdeque__string_c6bb97ddcf4da6d778782a90dabb1866}{
+\index{deque\_\-string@{deque\_\-string}!push\_\-back@{push\_\-back}}
+\index{push\_\-back@{push\_\-back}!deque_string@{deque\_\-string}}
+\subsubsection[{push\_\-back}]{\setlength{\rightskip}{0pt plus 5cm}template$<$class CHAR\_\-TYPE  = char, int COPY\_\-ON\_\-WRITE = 1, uint32\_\-t BUCKET\_\-BYTES = 1024$>$ void {\bf deque\_\-string}$<$ CHAR\_\-TYPE, COPY\_\-ON\_\-WRITE, BUCKET\_\-BYTES $>$::push\_\-back (CharT {\em c})\hspace{0.3cm}{\tt  \mbox{[}inline\mbox{]}}}}
+\label{classdeque__string_c6bb97ddcf4da6d778782a90dabb1866}
+
+
+Appends a single character to the string content, increasing its size by one. To append more than one character at a time, refer to either member append or operator+= . 
+
+Definition at line 1678 of file deque\_\-string.hpp.\hypertarget{classdeque__string_0c68ec4134f82d210d03599c5ec161e8}{
+\index{deque\_\-string@{deque\_\-string}!push\_\-front@{push\_\-front}}
+\index{push\_\-front@{push\_\-front}!deque_string@{deque\_\-string}}
+\subsubsection[{push\_\-front}]{\setlength{\rightskip}{0pt plus 5cm}template$<$class CHAR\_\-TYPE  = char, int COPY\_\-ON\_\-WRITE = 1, uint32\_\-t BUCKET\_\-BYTES = 1024$>$ {\bf SelfT}\& {\bf deque\_\-string}$<$ CHAR\_\-TYPE, COPY\_\-ON\_\-WRITE, BUCKET\_\-BYTES $>$::push\_\-front (CharT {\em c})\hspace{0.3cm}{\tt  \mbox{[}inline\mbox{]}}}}
+\label{classdeque__string_0c68ec4134f82d210d03599c5ec161e8}
+
+
+Inserts a single character ta front of the string content, increasing its size by one. To append more than one character at a time, refer to either member push\_\-front. 
+
+Definition at line 1719 of file deque\_\-string.hpp.\hypertarget{classdeque__string_466e757d7ca5a6f9680f00b56eb3cd22}{
+\index{deque\_\-string@{deque\_\-string}!push\_\-front@{push\_\-front}}
+\index{push\_\-front@{push\_\-front}!deque_string@{deque\_\-string}}
+\subsubsection[{push\_\-front}]{\setlength{\rightskip}{0pt plus 5cm}template$<$class CHAR\_\-TYPE  = char, int COPY\_\-ON\_\-WRITE = 1, uint32\_\-t BUCKET\_\-BYTES = 1024$>$ {\bf SelfT}\& {\bf deque\_\-string}$<$ CHAR\_\-TYPE, COPY\_\-ON\_\-WRITE, BUCKET\_\-BYTES $>$::push\_\-front (const {\bf SelfT} \& {\em str})\hspace{0.3cm}{\tt  \mbox{[}inline\mbox{]}}}}
+\label{classdeque__string_466e757d7ca5a6f9680f00b56eb3cd22}
+
+
+Inserts a copy of str at the front, increasing its size by str's length. 
+
+Definition at line 1686 of file deque\_\-string.hpp.\hypertarget{classdeque__string_372ecdc953661796143d9c7cb4dde563}{
+\index{deque\_\-string@{deque\_\-string}!rbegin@{rbegin}}
+\index{rbegin@{rbegin}!deque_string@{deque\_\-string}}
+\subsubsection[{rbegin}]{\setlength{\rightskip}{0pt plus 5cm}template$<$class CHAR\_\-TYPE  = char, int COPY\_\-ON\_\-WRITE = 1, uint32\_\-t BUCKET\_\-BYTES = 1024$>$ reverse\_\-iterator {\bf deque\_\-string}$<$ CHAR\_\-TYPE, COPY\_\-ON\_\-WRITE, BUCKET\_\-BYTES $>$::rbegin ()\hspace{0.3cm}{\tt  \mbox{[}inline\mbox{]}}}}
+\label{classdeque__string_372ecdc953661796143d9c7cb4dde563}
+
+
+A reverse iterator to the reverse beginning of the string (i.e., the last character). The type of this iterator is either string::reverse\_\-iterator member type or string::const\_\-reverse\_\-iterator member type, which are compiler specific iterator types suitable to perform a reverse iteration through the elements of a string object. 
+
+Definition at line 1222 of file deque\_\-string.hpp.\hypertarget{classdeque__string_6816bb979aae4999ef6076889047be04}{
+\index{deque\_\-string@{deque\_\-string}!rend@{rend}}
+\index{rend@{rend}!deque_string@{deque\_\-string}}
+\subsubsection[{rend}]{\setlength{\rightskip}{0pt plus 5cm}template$<$class CHAR\_\-TYPE  = char, int COPY\_\-ON\_\-WRITE = 1, uint32\_\-t BUCKET\_\-BYTES = 1024$>$ reverse\_\-iterator {\bf deque\_\-string}$<$ CHAR\_\-TYPE, COPY\_\-ON\_\-WRITE, BUCKET\_\-BYTES $>$::rend ()\hspace{0.3cm}{\tt  \mbox{[}inline\mbox{]}}}}
+\label{classdeque__string_6816bb979aae4999ef6076889047be04}
+
+
+A reverse iterator to the reverse end of the string (i.e., the element right before its first character). The type of this iterator is either string::reverse\_\-iterator member type or string::const\_\-reverse\_\-iterator member type, which are compiler specific iterator types suitable to perform a reverse iteration through the elements of a string object. 
+
+Definition at line 1241 of file deque\_\-string.hpp.\hypertarget{classdeque__string_ff80cea2a38afc2b7200c8bc4358e5c5}{
+\index{deque\_\-string@{deque\_\-string}!replace@{replace}}
+\index{replace@{replace}!deque_string@{deque\_\-string}}
+\subsubsection[{replace}]{\setlength{\rightskip}{0pt plus 5cm}template$<$class CHAR\_\-TYPE  = char, int COPY\_\-ON\_\-WRITE = 1, uint32\_\-t BUCKET\_\-BYTES = 1024$>$ template$<$class InputIterator $>$ {\bf SelfT}\& {\bf deque\_\-string}$<$ CHAR\_\-TYPE, COPY\_\-ON\_\-WRITE, BUCKET\_\-BYTES $>$::replace (iterator {\em i1}, \/  iterator {\em i2}, \/  InputIterator {\em j1}, \/  InputIterator {\em j2})\hspace{0.3cm}{\tt  \mbox{[}inline\mbox{]}}}}
+\label{classdeque__string_ff80cea2a38afc2b7200c8bc4358e5c5}
+
+
+The section is replaced by the content made up of the characters that go from the element referred by iterator j1 to the element right before the one referred by iterator j2. 
+
+Definition at line 2411 of file deque\_\-string.hpp.\hypertarget{classdeque__string_798d6054dc0ae68df66899275d199c31}{
+\index{deque\_\-string@{deque\_\-string}!replace@{replace}}
+\index{replace@{replace}!deque_string@{deque\_\-string}}
+\subsubsection[{replace}]{\setlength{\rightskip}{0pt plus 5cm}template$<$class CHAR\_\-TYPE  = char, int COPY\_\-ON\_\-WRITE = 1, uint32\_\-t BUCKET\_\-BYTES = 1024$>$ {\bf SelfT}\& {\bf deque\_\-string}$<$ CHAR\_\-TYPE, COPY\_\-ON\_\-WRITE, BUCKET\_\-BYTES $>$::replace (iterator {\em i1}, \/  iterator {\em i2}, \/  size\_\-t {\em n2}, \/  CharT {\em c})\hspace{0.3cm}{\tt  \mbox{[}inline\mbox{]}}}}
+\label{classdeque__string_798d6054dc0ae68df66899275d199c31}
+
+
+The section is replaced by a repetition of character c, n2 times. 
+
+Definition at line 2397 of file deque\_\-string.hpp.\hypertarget{classdeque__string_25e331d55a7113b19422c129816ff428}{
+\index{deque\_\-string@{deque\_\-string}!replace@{replace}}
+\index{replace@{replace}!deque_string@{deque\_\-string}}
+\subsubsection[{replace}]{\setlength{\rightskip}{0pt plus 5cm}template$<$class CHAR\_\-TYPE  = char, int COPY\_\-ON\_\-WRITE = 1, uint32\_\-t BUCKET\_\-BYTES = 1024$>$ {\bf SelfT}\& {\bf deque\_\-string}$<$ CHAR\_\-TYPE, COPY\_\-ON\_\-WRITE, BUCKET\_\-BYTES $>$::replace (size\_\-t {\em pos1}, \/  size\_\-t {\em n1}, \/  size\_\-t {\em n2}, \/  CharT {\em c})\hspace{0.3cm}{\tt  \mbox{[}inline\mbox{]}}}}
+\label{classdeque__string_25e331d55a7113b19422c129816ff428}
+
+
+The section is replaced by a repetition of character c, n2 times. 
+
+Definition at line 2388 of file deque\_\-string.hpp.\hypertarget{classdeque__string_4ce63da89c419a5a03d1661ac5328f0c}{
+\index{deque\_\-string@{deque\_\-string}!replace@{replace}}
+\index{replace@{replace}!deque_string@{deque\_\-string}}
+\subsubsection[{replace}]{\setlength{\rightskip}{0pt plus 5cm}template$<$class CHAR\_\-TYPE  = char, int COPY\_\-ON\_\-WRITE = 1, uint32\_\-t BUCKET\_\-BYTES = 1024$>$ {\bf SelfT}\& {\bf deque\_\-string}$<$ CHAR\_\-TYPE, COPY\_\-ON\_\-WRITE, BUCKET\_\-BYTES $>$::replace (iterator {\em i1}, \/  iterator {\em i2}, \/  const CharT $\ast$ {\em s})\hspace{0.3cm}{\tt  \mbox{[}inline\mbox{]}}}}
+\label{classdeque__string_4ce63da89c419a5a03d1661ac5328f0c}
+
+
+The section is replaced by a copy of the string formed by the null-terminated character sequence (C string) pointed by s. The length of this caracter sequence is determined by the first ocurrence of a null character (as determined by traits.length(s)). 
+
+Definition at line 2377 of file deque\_\-string.hpp.\hypertarget{classdeque__string_bd1b08c6f2c1c0c77d8a64a56ebe2a09}{
+\index{deque\_\-string@{deque\_\-string}!replace@{replace}}
+\index{replace@{replace}!deque_string@{deque\_\-string}}
+\subsubsection[{replace}]{\setlength{\rightskip}{0pt plus 5cm}template$<$class CHAR\_\-TYPE  = char, int COPY\_\-ON\_\-WRITE = 1, uint32\_\-t BUCKET\_\-BYTES = 1024$>$ {\bf SelfT}\& {\bf deque\_\-string}$<$ CHAR\_\-TYPE, COPY\_\-ON\_\-WRITE, BUCKET\_\-BYTES $>$::replace (size\_\-t {\em pos1}, \/  size\_\-t {\em n1}, \/  const CharT $\ast$ {\em s})\hspace{0.3cm}{\tt  \mbox{[}inline\mbox{]}}}}
+\label{classdeque__string_bd1b08c6f2c1c0c77d8a64a56ebe2a09}
+
+
+The section is replaced by a copy of the string formed by the null-terminated character sequence (C string) pointed by s. The length of this caracter sequence is determined by the first ocurrence of a null character (as determined by traits.length(s)). 
+
+Definition at line 2364 of file deque\_\-string.hpp.\hypertarget{classdeque__string_c69d24bbf034ed9ed36b29ced416eea4}{
+\index{deque\_\-string@{deque\_\-string}!replace@{replace}}
+\index{replace@{replace}!deque_string@{deque\_\-string}}
+\subsubsection[{replace}]{\setlength{\rightskip}{0pt plus 5cm}template$<$class CHAR\_\-TYPE  = char, int COPY\_\-ON\_\-WRITE = 1, uint32\_\-t BUCKET\_\-BYTES = 1024$>$ {\bf SelfT}\& {\bf deque\_\-string}$<$ CHAR\_\-TYPE, COPY\_\-ON\_\-WRITE, BUCKET\_\-BYTES $>$::replace (iterator {\em i1}, \/  iterator {\em i2}, \/  const CharT $\ast$ {\em s}, \/  size\_\-t {\em n2})\hspace{0.3cm}{\tt  \mbox{[}inline\mbox{]}}}}
+\label{classdeque__string_c69d24bbf034ed9ed36b29ced416eea4}
+
+
+The section is replaced by a copy of the string formed by the first n2 characters in the array of characters pointed by s. 
+
+Definition at line 2350 of file deque\_\-string.hpp.\hypertarget{classdeque__string_2d20e57466d40ab0b5605ca7c296c99f}{
+\index{deque\_\-string@{deque\_\-string}!replace@{replace}}
+\index{replace@{replace}!deque_string@{deque\_\-string}}
+\subsubsection[{replace}]{\setlength{\rightskip}{0pt plus 5cm}template$<$class CHAR\_\-TYPE  = char, int COPY\_\-ON\_\-WRITE = 1, uint32\_\-t BUCKET\_\-BYTES = 1024$>$ {\bf SelfT}\& {\bf deque\_\-string}$<$ CHAR\_\-TYPE, COPY\_\-ON\_\-WRITE, BUCKET\_\-BYTES $>$::replace (size\_\-t {\em pos1}, \/  size\_\-t {\em n1}, \/  const char $\ast$ {\em s}, \/  size\_\-t {\em n2})\hspace{0.3cm}{\tt  \mbox{[}inline\mbox{]}}}}
+\label{classdeque__string_2d20e57466d40ab0b5605ca7c296c99f}
+
+
+The section is replaced by a copy of the string formed by the first n2 characters in the array of characters pointed by s. 
+
+Definition at line 2339 of file deque\_\-string.hpp.\hypertarget{classdeque__string_a80041a6c719e9ec64004af372ae17af}{
+\index{deque\_\-string@{deque\_\-string}!replace@{replace}}
+\index{replace@{replace}!deque_string@{deque\_\-string}}
+\subsubsection[{replace}]{\setlength{\rightskip}{0pt plus 5cm}template$<$class CHAR\_\-TYPE  = char, int COPY\_\-ON\_\-WRITE = 1, uint32\_\-t BUCKET\_\-BYTES = 1024$>$ {\bf SelfT}\& {\bf deque\_\-string}$<$ CHAR\_\-TYPE, COPY\_\-ON\_\-WRITE, BUCKET\_\-BYTES $>$::replace (size\_\-t {\em pos1}, \/  size\_\-t {\em n1}, \/  const {\bf SelfT} \& {\em str}, \/  size\_\-t {\em pos2}, \/  size\_\-t {\em n2})\hspace{0.3cm}{\tt  \mbox{[}inline\mbox{]}}}}
+\label{classdeque__string_a80041a6c719e9ec64004af372ae17af}
+
+
+The section is replaced by a copy of a substring of str. The substring is the portion of str that begins at the character position pos2 and takes up to n2 characters (it takes less than n2 if the end of the string is reached before). 
+
+Definition at line 2330 of file deque\_\-string.hpp.\hypertarget{classdeque__string_39ecf1ddad7e060513fdc9737ff3893a}{
+\index{deque\_\-string@{deque\_\-string}!replace@{replace}}
+\index{replace@{replace}!deque_string@{deque\_\-string}}
+\subsubsection[{replace}]{\setlength{\rightskip}{0pt plus 5cm}template$<$class CHAR\_\-TYPE  = char, int COPY\_\-ON\_\-WRITE = 1, uint32\_\-t BUCKET\_\-BYTES = 1024$>$ {\bf SelfT}\& {\bf deque\_\-string}$<$ CHAR\_\-TYPE, COPY\_\-ON\_\-WRITE, BUCKET\_\-BYTES $>$::replace (iterator {\em i1}, \/  iterator {\em i2}, \/  const {\bf SelfT} \& {\em str})\hspace{0.3cm}{\tt  \mbox{[}inline\mbox{]}}}}
+\label{classdeque__string_39ecf1ddad7e060513fdc9737ff3893a}
+
+
+The section is replaced by a copy of the entire string object str. 
+
+Definition at line 2316 of file deque\_\-string.hpp.\hypertarget{classdeque__string_d2e8ac524c0f6ad26297ef056f015688}{
+\index{deque\_\-string@{deque\_\-string}!replace@{replace}}
+\index{replace@{replace}!deque_string@{deque\_\-string}}
+\subsubsection[{replace}]{\setlength{\rightskip}{0pt plus 5cm}template$<$class CHAR\_\-TYPE  = char, int COPY\_\-ON\_\-WRITE = 1, uint32\_\-t BUCKET\_\-BYTES = 1024$>$ {\bf SelfT}\& {\bf deque\_\-string}$<$ CHAR\_\-TYPE, COPY\_\-ON\_\-WRITE, BUCKET\_\-BYTES $>$::replace (size\_\-t {\em pos1}, \/  size\_\-t {\em n1}, \/  const {\bf SelfT} \& {\em str})\hspace{0.3cm}{\tt  \mbox{[}inline\mbox{]}}}}
+\label{classdeque__string_d2e8ac524c0f6ad26297ef056f015688}
+
+
+Replaces a section of the current string by some other content determined by the arguments passed. For the versions with parameters pos1 and n1, the section replaced begins at character position pos1 and spans for n1 characters within the string. For the versions with iterators i1 and i2, the section replaced is the one formed by the elements between iterator i1 and the element right before iterator i2. The arguments passed to the function determine what is the replacement for this section of the string: The section is replaced by a copy of the entire string object str. 
+
+Definition at line 2246 of file deque\_\-string.hpp.\hypertarget{classdeque__string_932f3e6441fcbee5538163dd6d621ea6}{
+\index{deque\_\-string@{deque\_\-string}!reserve@{reserve}}
+\index{reserve@{reserve}!deque_string@{deque\_\-string}}
+\subsubsection[{reserve}]{\setlength{\rightskip}{0pt plus 5cm}template$<$class CHAR\_\-TYPE  = char, int COPY\_\-ON\_\-WRITE = 1, uint32\_\-t BUCKET\_\-BYTES = 1024$>$ void {\bf deque\_\-string}$<$ CHAR\_\-TYPE, COPY\_\-ON\_\-WRITE, BUCKET\_\-BYTES $>$::reserve (size\_\-t {\em res\_\-arg} = {\tt 0})\hspace{0.3cm}{\tt  \mbox{[}inline\mbox{]}}}}
+\label{classdeque__string_932f3e6441fcbee5538163dd6d621ea6}
+
+
+Requests that the capacity of the allocated storage space in the string be at least res\_\-arg. This can expand or shrink the size of the storage space in the string, although notice that the resulting capacity after a call to this function is not necessarily equal to res\_\-arg but can be either equal or greater than res\_\-arg, therefore shrinking requests may or may not produce an actual reduction of the allocated space in a particular library implementation. In any case, it never trims the string content (for that purposes, see resize or clear, which modify the content). 
+
+Definition at line 1453 of file deque\_\-string.hpp.\hypertarget{classdeque__string_4a344387975be7a5eebceb58143be0a7}{
+\index{deque\_\-string@{deque\_\-string}!resize@{resize}}
+\index{resize@{resize}!deque_string@{deque\_\-string}}
+\subsubsection[{resize}]{\setlength{\rightskip}{0pt plus 5cm}template$<$class CHAR\_\-TYPE  = char, int COPY\_\-ON\_\-WRITE = 1, uint32\_\-t BUCKET\_\-BYTES = 1024$>$ void {\bf deque\_\-string}$<$ CHAR\_\-TYPE, COPY\_\-ON\_\-WRITE, BUCKET\_\-BYTES $>$::resize (size\_\-t {\em n}, \/  CharT {\em c})\hspace{0.3cm}{\tt  \mbox{[}inline\mbox{]}}}}
+\label{classdeque__string_4a344387975be7a5eebceb58143be0a7}
+
+
+Resizes the string content to n characters. If n is smaller than the current length of the string, the content is reduced to its first n characters, the rest being dropped. If n is greater than the current length of the string, the content is expanded by appending as many instances of the c character as needed to reach a size of n characters.
+
+The second version, actually calls: resize(n,char()), so when a string is resized to a greater size without passing a second argument, the new character positions are filled with the default value of a char, which is the null character. 
+
+Definition at line 1299 of file deque\_\-string.hpp.\hypertarget{classdeque__string_c15ec121d4678cfa6cb4dd69b0b8bc16}{
+\index{deque\_\-string@{deque\_\-string}!rfind@{rfind}}
+\index{rfind@{rfind}!deque_string@{deque\_\-string}}
+\subsubsection[{rfind}]{\setlength{\rightskip}{0pt plus 5cm}template$<$class CHAR\_\-TYPE  = char, int COPY\_\-ON\_\-WRITE = 1, uint32\_\-t BUCKET\_\-BYTES = 1024$>$ size\_\-t {\bf deque\_\-string}$<$ CHAR\_\-TYPE, COPY\_\-ON\_\-WRITE, BUCKET\_\-BYTES $>$::rfind (const {\bf SelfT} \& {\em str}, \/  size\_\-t {\em pos} = {\tt {\bf npos}}) const\hspace{0.3cm}{\tt  \mbox{[}inline\mbox{]}}}}
+\label{classdeque__string_c15ec121d4678cfa6cb4dd69b0b8bc16}
+
+
+Searches the string for the content specified in either str, s or c, and returns the position of the last occurrence in the string.
+
+When pos is specified, the search only includes characters between the beginning of the string and position pos, ignoring any possible occurrences after pos. Search algorithm is KMP.
+
+\begin{Desc}
+\item[Parameters:]
+\begin{description}
+\item[{\em str}]string to be searched for in the object. The entire content of str must be matched in some part of the string to be considered a match. \item[{\em s}]Array with a sequence of characters.\end{description}
+\end{Desc}
+In the second member function version, the size of the content to be matched is only determined by parameter n. In the third version, a null-terminated sequence is expected, and its end is determined by the first occurrence of a null character in it. \begin{Desc}
+\item[Parameters:]
+\begin{description}
+\item[{\em n}]Length of sequence of characters to search for. \item[{\em c}]Individual character to be searched for. \item[{\em pos}]Position of the last character in the string to be taken into consideration for possible matches. The default value npos indicates that the entire string is searched. \end{description}
+\end{Desc}
+
+
+Definition at line 2553 of file deque\_\-string.hpp.\hypertarget{classdeque__string_52cac1c0f0f3f5557773b4f7ce9d53b7}{
+\index{deque\_\-string@{deque\_\-string}!size@{size}}
+\index{size@{size}!deque_string@{deque\_\-string}}
+\subsubsection[{size}]{\setlength{\rightskip}{0pt plus 5cm}template$<$class CHAR\_\-TYPE  = char, int COPY\_\-ON\_\-WRITE = 1, uint32\_\-t BUCKET\_\-BYTES = 1024$>$ size\_\-t {\bf deque\_\-string}$<$ CHAR\_\-TYPE, COPY\_\-ON\_\-WRITE, BUCKET\_\-BYTES $>$::size () const\hspace{0.3cm}{\tt  \mbox{[}inline\mbox{]}}}}
+\label{classdeque__string_52cac1c0f0f3f5557773b4f7ce9d53b7}
+
+
+Returns a count of the number of bytes in the string. string::length is an alias of string::size, sometimes, returning different value. 
+
+Definition at line 1267 of file deque\_\-string.hpp.\hypertarget{classdeque__string_83a5b6ab306f888837fd3917acf59f0b}{
+\index{deque\_\-string@{deque\_\-string}!substr@{substr}}
+\index{substr@{substr}!deque_string@{deque\_\-string}}
+\subsubsection[{substr}]{\setlength{\rightskip}{0pt plus 5cm}template$<$class CHAR\_\-TYPE  = char, int COPY\_\-ON\_\-WRITE = 1, uint32\_\-t BUCKET\_\-BYTES = 1024$>$ {\bf SelfT} {\bf deque\_\-string}$<$ CHAR\_\-TYPE, COPY\_\-ON\_\-WRITE, BUCKET\_\-BYTES $>$::substr (size\_\-t {\em pos} = {\tt 0}, \/  size\_\-t {\em n} = {\tt {\bf npos}}) const\hspace{0.3cm}{\tt  \mbox{[}inline\mbox{]}}}}
+\label{classdeque__string_83a5b6ab306f888837fd3917acf59f0b}
+
+
+Returns a string object with its contents initialized to a substring of the current object.
+
+This substring is the character sequence that starts at character position pos and has a length of n characters.
+
+\begin{Desc}
+\item[Parameters:]
+\begin{description}
+\item[{\em pos}]Position of a character in the current string object to be used as starting character for the substring. \item[{\em n}]Length of the substring. If this value would make the substring to span past the end of the current string content, only those characters until the end of the string are used. npos is a static member constant value with the greatest possible value for an element of type size\_\-t, therefore, when this value is used, all the characters between pos and the end of the string are used as the initialization substring. \end{description}
+\end{Desc}
+
+
+Definition at line 2628 of file deque\_\-string.hpp.\hypertarget{classdeque__string_a1c4ef097e5967b11e1b06b13fb4a9bb}{
+\index{deque\_\-string@{deque\_\-string}!swap@{swap}}
+\index{swap@{swap}!deque_string@{deque\_\-string}}
+\subsubsection[{swap}]{\setlength{\rightskip}{0pt plus 5cm}template$<$class CHAR\_\-TYPE  = char, int COPY\_\-ON\_\-WRITE = 1, uint32\_\-t BUCKET\_\-BYTES = 1024$>$ void {\bf deque\_\-string}$<$ CHAR\_\-TYPE, COPY\_\-ON\_\-WRITE, BUCKET\_\-BYTES $>$::swap ({\bf SelfT} \& {\em str})\hspace{0.3cm}{\tt  \mbox{[}inline\mbox{]}}}}
+\label{classdeque__string_a1c4ef097e5967b11e1b06b13fb4a9bb}
+
+
+Swaps the contents of the string with those of string object str, such that after the call to this member function, the contents of this string are those which were in str before the call, and the contents of str are those which were in this string. 
+
+Definition at line 2450 of file deque\_\-string.hpp.
+
+\subsection{Friends And Related Function Documentation}
+\hypertarget{classdeque__string_c98d07dd8f7b70e16ccb9a01abf56b9c}{
+\index{deque\_\-string@{deque\_\-string}!boost::serialization::access@{boost::serialization::access}}
+\index{boost::serialization::access@{boost::serialization::access}!deque_string@{deque\_\-string}}
+\subsubsection[{boost::serialization::access}]{\setlength{\rightskip}{0pt plus 5cm}template$<$class CHAR\_\-TYPE  = char, int COPY\_\-ON\_\-WRITE = 1, uint32\_\-t BUCKET\_\-BYTES = 1024$>$ friend class boost::serialization::access\hspace{0.3cm}{\tt  \mbox{[}friend\mbox{]}}}}
+\label{classdeque__string_c98d07dd8f7b70e16ccb9a01abf56b9c}
+
+
+This is the interface for boost::serialization. Make it serializable by boost. 
+
+Definition at line 2761 of file deque\_\-string.hpp.\hypertarget{classdeque__string_9f77d965eac7a717e9124196d686e094}{
+\index{deque\_\-string@{deque\_\-string}!operator$<$$<$@{operator$<$$<$}}
+\index{operator$<$$<$@{operator$<$$<$}!deque_string@{deque\_\-string}}
+\subsubsection[{operator$<$$<$}]{\setlength{\rightskip}{0pt plus 5cm}template$<$class CHAR\_\-TYPE  = char, int COPY\_\-ON\_\-WRITE = 1, uint32\_\-t BUCKET\_\-BYTES = 1024$>$ std::ostream\& operator$<$$<$ (std::ostream \& {\em os}, \/  const {\bf SelfT} \& {\em str})\hspace{0.3cm}{\tt  \mbox{[}friend\mbox{]}}}}
+\label{classdeque__string_9f77d965eac7a717e9124196d686e094}
+
+
+This is for outputing into std::ostream, say, std::cout. 
+
+Definition at line 2820 of file deque\_\-string.hpp.
+
+The documentation for this class was generated from the following file:\begin{CompactItemize}
+\item 
+/home/Kevin/izenelib/include/am/istring/deque\_\-string.hpp\end{CompactItemize}
