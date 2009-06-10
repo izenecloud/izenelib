@@ -36,7 +36,6 @@ public:
 	}
 	void write_image(char * &ptr, size_t& size) {
 		ptr = ((izene_streambuf *)ostr.rdbuf() )->data();
-
 		size = size_;
 	}
 };

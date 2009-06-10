@@ -26,13 +26,13 @@ using namespace std;
  */
 
 template<typename LockType = NullLock>
-class bucket_chain {	
+class bucket_chain_ {	
 	size_t bucketSize_;
 public:
 	char *str;
 	long fpos;
 	int num;
-	bucket_chain* next;
+	bucket_chain_* next;
 	bool isLoaded;
 	bool isDirty;		
 	long nextfpos;	
@@ -49,7 +49,7 @@ public:
 	/**
 	 *  constructor
 	 */
-	bucket_chain(size_t bucketSize) :
+	bucket_chain_(size_t bucketSize) :
 	bucketSize_(bucketSize) {
 		str = NULL;
 		num = 0;
@@ -66,7 +66,7 @@ public:
 	/**	 
 	 *  deconstructor
 	 */
-	virtual ~bucket_chain() {
+	virtual ~bucket_chain_() {
 		/*if( str ){
 			delete str;
 			str = 0;
@@ -162,7 +162,7 @@ public:
 
 		//cout<<"read next fpos="<<nextfpos<<endl;
 		if (nextfpos !=0) {
-			if( !next )next = new bucket_chain(bucketSize_);
+			if( !next )next = new bucket_chain_(bucketSize_);
 			next->fpos = nextfpos;
 		}
 		isLoaded = true;
@@ -176,7 +176,7 @@ public:
 	/**
 	 *    load next bucket_chain element.
 	 */ 
-	bucket_chain* loadNext(FILE* f) {		
+	bucket_chain_* loadNext(FILE* f) {		
 		if (next && !next->isLoaded) {	
 			//cout<<"reading next"<<endl;
 			fileLock_.acquire_write_lock();
@@ -222,9 +222,9 @@ public:
 
 
 template<typename LockType >
-LockType bucket_chain<LockType>::fileLock_;
+LockType bucket_chain_<LockType>::fileLock_;
 
 template<typename LockType>
-size_t bucket_chain<LockType>::activeNum;
+size_t bucket_chain_<LockType>::activeNum;
 
 #endif /*bucket_chain_H_*/

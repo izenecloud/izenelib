@@ -25,7 +25,7 @@ class deque_string
 public:
   typedef CHAR_TYPE value_type;
   typedef CHAR_TYPE CharT;
-  typedef uint32_t  ReferT;
+  typedef uint8_t  ReferT;
   typedef deque_string<CHAR_TYPE, COPY_ON_WRITE, BUCKET_BYTES> SelfT;
   typedef std::size_t size_t;
   enum 
@@ -952,10 +952,12 @@ protected:
 
   void add_buckets(size_t t, bool back=true)
   {
+    //std::cout<<t<<std::endl;
+    
     if (t ==0)
       return;
 
-    t = (size_t)(3*t);
+    //t = (size_t)(3*t);
     
     if (back)
     {
@@ -1262,6 +1264,7 @@ public:
     
     if (n == max_size_)
     {
+      length_ = n;
       return;
     }
 
@@ -1300,7 +1303,7 @@ public:
     }
     else if (n < max_size_-start_i_%BUCKET_LENGTH)
     {
-      size_t t = get_entry_index(n);
+      size_t t = get_entry_index(n-1);
       for (size_t i=t+1; i<entry_size_; i++)
       {
         if (get_entry(i)!=NULL)
@@ -1629,7 +1632,7 @@ public:
 
       const_iterator j=str.begin()+pos;
       size_t g = pos;
-      for (iterator i=begin();g<str.length();g++, j++, i++)
+      for (iterator i=begin();g<length_+pos;g++, j++, i++)
         *i = *j;
         
       max_size_ = init_max_size();
@@ -1872,8 +1875,11 @@ protected:
 
     if (r>0)
     {
-      size_t y = need_bucket_num(r-(BUCKET_LENGTH - char_index_in_bucket(length_-1)-1));
-      add_buckets(y);
+      //std::cout<<r<<" "<<char_index_in_bucket(length_-1)<<std::endl;
+      
+      size_t y = (BUCKET_LENGTH - char_index_in_bucket(length_-1)-1);
+      if ((size_t)r > y)
+        add_buckets(need_bucket_num(r-y));
 
       // move
       size_t pos = length_-1;
@@ -2360,7 +2366,7 @@ public:
 friend std::ostream& operator << (std::ostream& os, const SelfT& str)
   {
     for (const_iterator i =str.begin(); i<str.end(); i++)
-      os<<*i;
+      os<<(char)*i;
 
     return os;
   }

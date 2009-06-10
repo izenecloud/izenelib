@@ -4,7 +4,7 @@
 #include <map>
 
 #include <types.h>
-#include <boost/memory.hpp>
+#include <3rdparty/boost/memory.hpp>
 
 using namespace std;
 using namespace boost::memory;
