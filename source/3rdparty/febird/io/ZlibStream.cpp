@@ -1,5 +1,5 @@
 /* vim: set tabstop=4 : */
-#include "ZlibStream.h"
+#include <febird/io/ZlibStream.h>
 
 #include <assert.h>
 #include <string.h>
@@ -18,7 +18,7 @@
 
 #include <zlib.h>
 
-#include "byte_io_impl.h"
+#include <febird/io/byte_io_impl.h>
 
 namespace febird {
 

@@ -1,5 +1,5 @@
 /* vim: set tabstop=4 : */
-#include "BzipStream.h"
+#include <febird/io/BzipStream.h>
 
 #include <assert.h>
 #include <string.h>
@@ -22,7 +22,7 @@
 
 #include <bzlib.h>
 
-#include "byte_io_impl.h"
+#include <febird/io/byte_io_impl.h>
 
 static const char* strbzerr(int err)
 {

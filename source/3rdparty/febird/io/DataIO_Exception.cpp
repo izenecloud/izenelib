@@ -1,6 +1,6 @@
 /* vim: set tabstop=4 : */
 
-#include "DataIO_Exception.h"
+#include <febird/io/DataIO_Exception.h>
 #include <sstream>
 
 namespace febird {

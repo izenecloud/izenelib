@@ -1,6 +1,6 @@
 /* vim: set tabstop=4 : */
-#include "HexCodingStream.h"
-#include "DataInput.h"
+#include <febird/io/HexCodingStream.h>
+#include <febird/io/DataInput.h>
 #include <sstream>
 
 namespace febird {
@@ -8,7 +8,7 @@ namespace febird {
 // '0' == 0x30
 // 'a' == 0x61
 // 'A' == 0x41
-const unsigned char G_hex_val_hexTab[] = 
+const unsigned char G_hex_val_hexTab[] =
 {
 	0, 1, 2, 3, 4, 5, 6, 7, 8, 9,
 	255, 255, 255, 255, 255, 255,

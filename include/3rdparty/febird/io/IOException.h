@@ -15,8 +15,8 @@ namespace febird {
 class FEBIRD_DLL_EXPORT IOException : public std::exception
 {
 protected:
-	std::string m_message;
 	int m_errCode;
+	std::string m_message;
 public:
 	explicit IOException(const char* szMsg = "febird::IOException");
 	explicit IOException(int errCode, const char* szMsg = "febird::IOException");
