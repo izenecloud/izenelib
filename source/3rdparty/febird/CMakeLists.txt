@@ -2,7 +2,24 @@ IF(BZIP2_FOUND)
 
   SET_PROPERTY(GLOBAL APPEND PROPERTY BUILD_COMPONENTS febird)
 
-  FILE(GLOB_RECURSE febird_SRC "*.cpp")
+  FILE(GLOB_RECURSE febird_SRC
+    io/access_byid.cpp
+    io/BzipStream.cpp
+    io/DataInput.cpp
+    io/DataIO_Exception.cpp
+    io/FileStream.cpp
+    io/HexCodingStream.cpp
+    io/IOException.cpp
+    io/IStream.cpp
+    io/mem_map_stream.cpp
+    io/MemStream.cpp
+    io/OutputStream.cpp
+    io/SocketStream.cpp
+    io/StreamBuffer.cpp
+    io/var_int.cpp
+    io/WinFileStream.cpp
+    io/ZlibStream.cpp
+    )
 
   INCLUDE_DIRECTORIES(${BZIP2_INCLUDE_DIR})
 
