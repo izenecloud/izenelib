@@ -33,7 +33,7 @@
 #include <time.h>
 
 #include <boost/test/unit_test.hpp>
-
+#include <assert.h>
 #include <iostream>
 #include <util/istring/vector_string.hpp>
 #include <util/istring/deque_string.hpp>
@@ -813,6 +813,37 @@ typedef vector_string<CharT, 1, bb> vectorString;
 const char* title = "vector_string<CharT, 1, ";
 //const char* title = "std::string ";//"vector_string<CharT, 1, ";
 
+
+BOOST_AUTO_TEST_CASE(izene_istring_iterator_perfomance_check)
+{
+  CharT* ch = new CharT[size*100];
+  for (size_t i=0; i<size*100; i++)
+    ch[i] = 'a'+rand()%26;
+
+  vectorString str(ch, size*100);
+
+  clock_t start, finish;
+  
+  
+  start = clock();
+  for (size_t i=0; i<scale; i++)
+    for (vectorString::const_iterator j=str.begin(); j!=str.end(); j++)
+      const CharT c = *j;
+  finish = clock();
+
+  cout<<title<<bb<<">::iterator["<<size*100<<"*"<<scale<<"]: "<<(double)(finish - start) / CLOCKS_PER_SEC<<endl;
+  
+  start = clock();
+  for (size_t i=0; i<scale; i++)
+    for (size_t j=0; j<size*100; j++)
+      const CharT c = str[j];
+  finish = clock();
+
+  cout<<title<<bb<<">::operator[] ["<<size*100<<"*"<<scale<<"]: "<<(double)(finish - start) / CLOCKS_PER_SEC<<endl;
+  delete ch;
+}
+
+
 BOOST_AUTO_TEST_CASE(izene_istring_append_perfomance_check)
 {
   CharT* ch = new CharT[size];
@@ -830,33 +861,6 @@ BOOST_AUTO_TEST_CASE(izene_istring_append_perfomance_check)
   finish = clock();
 
   cout<<title<<bb<<">::append["<<size<<"*"<<scale<<"]: "<<(double)(finish - start) / CLOCKS_PER_SEC<<" "<<str.length()<<" "<<str.capacity()<<endl;
-  delete ch;
-}
-
-BOOST_AUTO_TEST_CASE(izene_istring_iterator_perfomance_check)
-{
-  CharT* ch = new CharT[size*100];
-  for (size_t i=0; i<size*100; i++)
-    ch[i] = 'a'+rand()%26;
-
-  vectorString str(ch, size*100);
-
-  clock_t start, finish;
-  start = clock();
-  for (size_t i=0; i<scale; i++)
-    for (vectorString::const_iterator j=str.begin(); j!=str.end(); j++)
-      const CharT c = *j;
-  finish = clock();
-
-  cout<<title<<bb<<">::iterator["<<size*100<<"*"<<scale<<"]: "<<(double)(finish - start) / CLOCKS_PER_SEC<<endl;
-  
-  start = clock();
-  for (size_t i=0; i<scale; i++)
-    for (size_t j=0; j<size*100; j++)
-      const CharT c = str[j];
-  finish = clock();
-
-  cout<<title<<bb<<">::operator[] ["<<size*100<<"*"<<scale<<"]: "<<(double)(finish - start) / CLOCKS_PER_SEC<<endl;
   delete ch;
 }
 

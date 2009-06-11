@@ -1337,6 +1337,10 @@ public:
     return s;
   }
 
+  /**
+   * Text in input is transformed from encode_type into UCS-2 and stored in output.
+   *Generally, this step is ahead of text processing for various encode type text.
+   **/
   static bool read_from_encode(const char* encode_type, const char* input, size_t len, StringT& output)
   {
     output.clear();
@@ -1381,6 +1385,12 @@ public:
     return true;
   }
 
+  /**
+   *Text in input of UCS-2 can be transformed into encode_type and restored into output.
+   *There a new memory block will be applyed for outputing. And the size of the block will be of len.
+   *So, the output should be released by calling release at the later section.
+   *This step is mainly called after text have been processed.
+   **/
   static bool write_to_encode(const char* encode_type, char** output, size_t& len, const StringT& input)
   {
     iconv_t ic = iconv_open(encode_type, "ucs-2");
@@ -1424,7 +1434,6 @@ public:
     hlfree(ibuf_org);
     
     iconv_close(ic);
-
     return true;
   }
 
@@ -1433,6 +1442,9 @@ public:
     hlfree(p);
   }
 
+  /**
+   *Output str in encode_t into os.
+   **/
   static void display(const StringT& str, const char* encode_t="UTF-8", std::ostream& os=std::cout)
   {
     char* buf=NULL;

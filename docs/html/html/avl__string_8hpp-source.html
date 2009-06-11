@@ -48,7 +48,7 @@
 <a name="l00026"></a>00026   <span class="keyword">typedef</span> CHAR_TYPE value_type;
 <a name="l00027"></a>00027   <span class="keyword">typedef</span> CHAR_TYPE CharT;
 <a name="l00028"></a>00028   <span class="keyword">typedef</span> uint16_t  ReferT;
-<a name="l00029"></a>00029   <span class="keyword">typedef</span> <a class="code" href="classvector__string.html" title="A string structed as vector.">vector_string&lt;CHAR_TYPE, COPY_ON_WRITE, IS_BALANCED, BUCKET_BYTES&gt;</a> SelfT;
+<a name="l00029"></a>00029   <span class="keyword">typedef</span> vector_string&lt;CHAR_TYPE, COPY_ON_WRITE, IS_BALANCED, BUCKET_BYTES&gt; SelfT;
 <a name="l00030"></a>00030   <span class="keyword">typedef</span> std::size_t size_t;
 <a name="l00031"></a>00031 
 <a name="l00032"></a>00032   <span class="keyword">enum</span> 
@@ -836,7 +836,7 @@
 <a name="l00814"></a>00814     root_-&gt;set_right(lf);
 <a name="l00815"></a>00815   }
 <a name="l00816"></a>00816 
-<a name="l00817"></a>00817   <a class="code" href="classvector__string.html" title="A string structed as vector.">vector_string</a> ( <span class="keyword">const</span> SelfT&amp; str )
+<a name="l00817"></a>00817   vector_string ( <span class="keyword">const</span> SelfT&amp; str )
 <a name="l00818"></a>00818   <span class="comment">//    :p_(NULL), is_attached_(false),str_(NULL),length_(0),max_size_(0)</span>
 <a name="l00819"></a>00819   {
 <a name="l00820"></a>00820     length_ = 0;
@@ -845,7 +845,7 @@
 <a name="l00823"></a>00823     assign(str);
 <a name="l00824"></a>00824   }
 <a name="l00825"></a>00825   
-<a name="l00826"></a>00826   <a class="code" href="classvector__string.html" title="A string structed as vector.">vector_string</a> ( <span class="keyword">const</span> SelfT&amp; str, <span class="keywordtype">size_t</span> pos, <span class="keywordtype">size_t</span> n = npos )
+<a name="l00826"></a>00826   vector_string ( <span class="keyword">const</span> SelfT&amp; str, <span class="keywordtype">size_t</span> pos, <span class="keywordtype">size_t</span> n = npos )
 <a name="l00827"></a>00827   {
 <a name="l00828"></a>00828     length_ = 0;
 <a name="l00829"></a>00829     root_ =NULL;
@@ -853,7 +853,7 @@
 <a name="l00831"></a>00831     assign(str, pos, n);
 <a name="l00832"></a>00832   }
 <a name="l00833"></a>00833   
-<a name="l00834"></a>00834   <a class="code" href="classvector__string.html" title="A string structed as vector.">vector_string</a> ( <span class="keyword">const</span> CharT * s, <span class="keywordtype">size_t</span> n )
+<a name="l00834"></a>00834   vector_string ( <span class="keyword">const</span> CharT * s, <span class="keywordtype">size_t</span> n )
 <a name="l00835"></a>00835   {
 <a name="l00836"></a>00836     length_ = 0;
 <a name="l00837"></a>00837     root_ =NULL;
@@ -861,7 +861,7 @@
 <a name="l00839"></a>00839     assign(s, n);
 <a name="l00840"></a>00840   }
 <a name="l00841"></a>00841   
-<a name="l00842"></a>00842   <a class="code" href="classvector__string.html" title="A string structed as vector.">vector_string</a> ( <span class="keyword">const</span> CharT * s )
+<a name="l00842"></a>00842   vector_string ( <span class="keyword">const</span> CharT * s )
 <a name="l00843"></a>00843   {
 <a name="l00844"></a>00844     length_ = 0;
 <a name="l00845"></a>00845     root_ =NULL;
@@ -869,7 +869,7 @@
 <a name="l00847"></a>00847     assign(s);
 <a name="l00848"></a>00848   }
 <a name="l00849"></a>00849   
-<a name="l00850"></a>00850   <a class="code" href="classvector__string.html" title="A string structed as vector.">vector_string</a> ( <span class="keywordtype">size_t</span> n, CharT c )
+<a name="l00850"></a>00850   vector_string ( <span class="keywordtype">size_t</span> n, CharT c )
 <a name="l00851"></a>00851   {
 <a name="l00852"></a>00852     length_ = 0;
 <a name="l00853"></a>00853     root_ =NULL;
@@ -877,7 +877,7 @@
 <a name="l00855"></a>00855     assign(n, c);
 <a name="l00856"></a>00856   }
 <a name="l00857"></a>00857 
-<a name="l00858"></a>00858   <a class="code" href="classvector__string.html" title="A string structed as vector.">vector_string</a> (<span class="keyword">const</span> std::vector&lt;CharT&gt;&amp; v)
+<a name="l00858"></a>00858   vector_string (<span class="keyword">const</span> std::vector&lt;CharT&gt;&amp; v)
 <a name="l00859"></a>00859   {
 <a name="l00860"></a>00860     length_ = 0;
 <a name="l00861"></a>00861     root_ =NULL;
@@ -885,7 +885,7 @@
 <a name="l00863"></a>00863     assign(v);
 <a name="l00864"></a>00864   }
 <a name="l00865"></a>00865 
-<a name="l00866"></a>00866   <a class="code" href="classvector__string.html" title="A string structed as vector.">vector_string</a> (<span class="keyword">const</span> std::string&amp; str)
+<a name="l00866"></a>00866   vector_string (<span class="keyword">const</span> std::string&amp; str)
 <a name="l00867"></a>00867   {
 <a name="l00868"></a>00868     length_ = 0;
 <a name="l00869"></a>00869     root_ =NULL;
@@ -894,7 +894,7 @@
 <a name="l00872"></a>00872   }
 <a name="l00873"></a>00873   
 <a name="l00874"></a>00874 
-<a name="l00875"></a>00875   <span class="keyword">template</span>&lt;<span class="keyword">class</span> InputIterator&gt; <a class="code" href="classvector__string.html" title="A string structed as vector.">vector_string</a> (InputIterator begin, InputIterator end)
+<a name="l00875"></a>00875   <span class="keyword">template</span>&lt;<span class="keyword">class</span> InputIterator&gt; vector_string (InputIterator begin, InputIterator end)
 <a name="l00876"></a>00876   {
 <a name="l00877"></a>00877     length_ = 0;
 <a name="l00878"></a>00878     root_ =NULL;
@@ -902,7 +902,7 @@
 <a name="l00880"></a>00880     assign(begin(), end);
 <a name="l00881"></a>00881   }
 <a name="l00882"></a>00882 
-<a name="l00883"></a>00883   <span class="keyword">virtual</span> ~<a class="code" href="classvector__string.html" title="A string structed as vector.">vector_string</a>()
+<a name="l00883"></a>00883   <span class="keyword">virtual</span> ~vector_string()
 <a name="l00884"></a>00884   {
 <a name="l00885"></a>00885     derefer();
 <a name="l00886"></a>00886   }
@@ -1832,7 +1832,7 @@
 <a name="l01810"></a>01810 
 <a name="l01811"></a>01811   <span class="keywordtype">size_t</span> find ( <span class="keyword">const</span> SelfT&amp; str, <span class="keywordtype">size_t</span> pos = 0 )<span class="keyword"> const</span>
 <a name="l01812"></a>01812 <span class="keyword">  </span>{
-<a name="l01813"></a>01813     <span class="keywordtype">size_t</span> i = <a class="code" href="classAlgorithm.html" title="An string algorithm set.">Algorithm&lt;SelfT&gt;::KMP</a>(substr(pos), str);
+<a name="l01813"></a>01813     <span class="keywordtype">size_t</span> i = Algorithm&lt;SelfT&gt;::KMP(substr(pos), str);
 <a name="l01814"></a>01814     <span class="keywordflow">if</span> (i == (<span class="keywordtype">size_t</span>)-1)
 <a name="l01815"></a>01815       <span class="keywordflow">return</span> -1;
 <a name="l01816"></a>01816     
@@ -1867,7 +1867,7 @@
 <a name="l01845"></a>01845 <span class="keyword">  </span>{
 <a name="l01846"></a>01846     assert(pos == npos || pos&lt;length_);
 <a name="l01847"></a>01847     
-<a name="l01848"></a>01848     <span class="keywordflow">return</span> <a class="code" href="classAlgorithm.html" title="An string algorithm set.">Algorithm&lt;SelfT&gt;::rKMP</a>(substr(0, (pos!=npos? pos+1: npos)), str);
+<a name="l01848"></a>01848     <span class="keywordflow">return</span> Algorithm&lt;SelfT&gt;::rKMP(substr(0, (pos!=npos? pos+1: npos)), str);
 <a name="l01849"></a>01849   }
 <a name="l01850"></a>01850   
 <a name="l01851"></a>01851   <span class="keywordtype">size_t</span> rfind ( <span class="keyword">const</span> <span class="keywordtype">char</span>* s, <span class="keywordtype">size_t</span> pos, <span class="keywordtype">size_t</span> n )<span class="keyword"> const</span>
@@ -1876,7 +1876,7 @@
 <a name="l01854"></a>01854     
 <a name="l01855"></a>01855     SelfT ss(s, n);
 <a name="l01856"></a>01856     <span class="comment">//ss.attach(s, n);</span>
-<a name="l01857"></a>01857     <span class="keywordflow">return</span> <a class="code" href="classAlgorithm.html" title="An string algorithm set.">Algorithm&lt;SelfT&gt;::rKMP</a>(substr(0, (pos!=npos? pos+1: npos)), ss);
+<a name="l01857"></a>01857     <span class="keywordflow">return</span> Algorithm&lt;SelfT&gt;::rKMP(substr(0, (pos!=npos? pos+1: npos)), ss);
 <a name="l01858"></a>01858   }
 <a name="l01859"></a>01859   
 <a name="l01860"></a>01860   <span class="keywordtype">size_t</span> rfind ( <span class="keyword">const</span> CharT* s, <span class="keywordtype">size_t</span> pos = npos )<span class="keyword"> const</span>
@@ -1885,7 +1885,7 @@
 <a name="l01863"></a>01863     
 <a name="l01864"></a>01864     SelfT ss(s);
 <a name="l01865"></a>01865     <span class="comment">//ss.attach(s);</span>
-<a name="l01866"></a>01866     <span class="keywordflow">return</span> <a class="code" href="classAlgorithm.html" title="An string algorithm set.">Algorithm&lt;SelfT&gt;::rKMP</a>(substr(0, (pos!=npos? pos+1: npos)), ss);
+<a name="l01866"></a>01866     <span class="keywordflow">return</span> Algorithm&lt;SelfT&gt;::rKMP(substr(0, (pos!=npos? pos+1: npos)), ss);
 <a name="l01867"></a>01867   }
 <a name="l01868"></a>01868   
 <a name="l01869"></a>01869   <span class="keywordtype">size_t</span> rfind ( CharT c, <span class="keywordtype">size_t</span> pos = npos )<span class="keyword"> const</span>
@@ -2051,12 +2051,12 @@
 <a name="l02029"></a>02029   <span class="keywordtype">int</span> COPY_ON_WRITE,
 <a name="l02030"></a>02030   uint8_t APPEND_RATE
 <a name="l02031"></a>02031   &gt;
-<a name="l02032"></a>02032 <span class="keyword">const</span> <span class="keywordtype">size_t</span> <a class="code" href="classvector__string.html" title="A string structed as vector.">vector_string&lt;CHAR_TYPE ,COPY_ON_WRITE, APPEND_RATE&gt;::npos</a> = -1;
+<a name="l02032"></a>02032 <span class="keyword">const</span> <span class="keywordtype">size_t</span> vector_string&lt;CHAR_TYPE ,COPY_ON_WRITE, APPEND_RATE&gt;::npos = -1;
 <a name="l02033"></a>02033 
 <a name="l02034"></a>02034 NS_IZENELIB_AM_END
 <a name="l02035"></a>02035 <span class="preprocessor">#endif</span>
 </pre></div></div>
-<hr size="1"><address style="text-align: right;"><small>Generated on Wed Jun 10 15:35:54 2009 for iZENElib - A great library for text processing by&nbsp;
+<hr size="1"><address style="text-align: right;"><small>Generated on Thu Jun 11 13:16:33 2009 for iZENElib - A great library for text processing by&nbsp;
 <a href="http://www.doxygen.org/index.html">
 <img src="doxygen.png" alt="doxygen" align="middle" border="0"></a> 1.5.7.1 </small></address>
 </body>

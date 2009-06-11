@@ -1662,16 +1662,27 @@ public:
   CharT& operator[] ( size_t pos )
   {
     assert(pos<length_);
-    
+
     size_t t = binary_search(pos, 0, idx_len_-1);
-    if (is_refered(t))
-      duplicate(t);
-
     size_t l = t==0? 0: indice_[t-1].len_;
-
     assert(pos>=l);
+    
+    if (!COPY_ON_WRITE)
+      return (*indice_[t].bptr_)[pos-l];
 
+    bool f = (indice_[t].bptr_!=NULL) && (*(ReferT*)(indice_[t].bptr_->p_ + BUCKET_BYTES)>1);
+    if (f)
+      duplicate(t);
     return (*indice_[t].bptr_)[pos-l];
+    // size_t t = binary_search(pos, 0, idx_len_-1);
+//     if (is_refered(t))
+//       duplicate(t);
+
+//     size_t l = t==0? 0: indice_[t-1].len_;
+
+//     assert(pos>=l);
+
+//     return (*indice_[t].bptr_)[pos-l];
     
   }
 
@@ -1693,13 +1704,26 @@ public:
   CharT& at ( size_t pos )
   {
     assert(pos<length_);
+
     size_t t = binary_search(pos, 0, idx_len_-1);
-    if (is_refered(t))
-      duplicate(t);
-
     size_t l = t==0? 0: indice_[t-1].len_;
+    assert(pos>=l);
+    
+    if (!COPY_ON_WRITE)
+      return (*indice_[t].bptr_)[pos-l];
 
+    bool f = (indice_[t].bptr_!=NULL) && (*(ReferT*)(indice_[t].bptr_->p_ + BUCKET_BYTES)>1);
+    if (f)
+      duplicate(t);
     return (*indice_[t].bptr_)[pos-l];
+//     assert(pos<length_);
+//     size_t t = binary_search(pos, 0, idx_len_-1);
+//     if (is_refered(t))
+//       duplicate(t);
+
+//     size_t l = t==0? 0: indice_[t-1].len_;
+
+//     return (*indice_[t].bptr_)[pos-l];
   }
 
   //******************Modifiers********************

@@ -797,6 +797,35 @@ const size_t scale = 100000;
 typedef deque_string<CharT, 1, bb> dequeString;
 const char* title = "deque_string<CharT, 1, ";
 
+
+BOOST_AUTO_TEST_CASE(izene_istring_iterator_perfomance_check)
+{
+  CharT* ch = new CharT[size*100];
+  for (size_t i=0; i<size*100; i++)
+    ch[i] = 'a'+rand()%26;
+  
+  const dequeString str(ch, size*100);
+
+  clock_t start, finish;
+  start = clock();
+  for (size_t i=0; i<scale; i++)
+    for (dequeString::const_iterator j=str.begin(); j<str.end(1); j++)
+      const char c = *j;
+  
+  finish = clock();
+
+  cout<<title<<bb<<">::iterator["<<size*100<<"*"<<scale<<"]: "<<(double)(finish - start) / CLOCKS_PER_SEC<<endl;
+  
+  start = clock();
+  for (size_t i=0; i<scale; i++)
+    for (size_t j=0; j<size*100; j++)
+      const char c = str[j];
+  finish = clock();
+
+  cout<<title<<bb<<">::operator[] ["<<size*100<<"*"<<scale<<"]: "<<(double)(finish - start) / CLOCKS_PER_SEC<<endl;
+  delete ch;
+}
+
 BOOST_AUTO_TEST_CASE(izene_istring_push_front_perfomance_check)
 {
   CharT* ch = new CharT[size];
@@ -836,35 +865,6 @@ BOOST_AUTO_TEST_CASE(izene_istring_append_perfomance_check)
   finish = clock();
 
   cout<<title<<bb<<">::append["<<size<<"*"<<scale<<"]: "<<(double)(finish - start) / CLOCKS_PER_SEC<<endl;
-  delete ch;
-}
-
-//http://6.cn/plist/261333/9.html
-BOOST_AUTO_TEST_CASE(izene_istring_iterator_perfomance_check)
-{
-  CharT* ch = new CharT[size*100];
-  for (size_t i=0; i<size*100; i++)
-    ch[i] = 'a'+rand()%26;
-  
-  const dequeString str(ch, size*100);
-
-  clock_t start, finish;
-  start = clock();
-  for (size_t i=0; i<scale; i++)
-    for (dequeString::const_iterator j=str.begin(); j<str.end(1); j++)
-      const char c = *j;
-  
-  finish = clock();
-
-  cout<<title<<bb<<">::iterator["<<size*100<<"*"<<scale<<"]: "<<(double)(finish - start) / CLOCKS_PER_SEC<<endl;
-  
-  start = clock();
-  for (size_t i=0; i<scale; i++)
-    for (size_t j=0; j<size*100; j++)
-      const char c = str[j];
-  finish = clock();
-
-  cout<<title<<bb<<">::operator[] ["<<size*100<<"*"<<scale<<"]: "<<(double)(finish - start) / CLOCKS_PER_SEC<<endl;
   delete ch;
 }
 

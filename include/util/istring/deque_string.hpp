@@ -1497,10 +1497,17 @@ public:
   
   CharT& operator[] ( size_t pos )
   {
-    assert(pos<length_);
-    assign_self();
-    return get_char(pos);
+    //assert(pos<length_);
+    //assign_self();
+    //return get_char(pos);
+    if (!COPY_ON_WRITE)
+      return get_char(pos);
+
+    bool f = *(ReferT*)p_ > 1;
+    if (f)
+      assign_self();
     
+    return get_char(pos);
   }
 
   /**
@@ -1516,9 +1523,17 @@ public:
   
   CharT& at ( size_t pos )
   {
-    assert(pos<length_);
-    assign_self();
+    if (!COPY_ON_WRITE)
+      return get_char(pos);
+
+    bool f = *(ReferT*)p_ > 1;
+    if (f)
+      assign_self();
+    
     return get_char(pos);
+    // assert(pos<length_);
+//     assign_self();
+    //return get_char(pos);
   }
 
   //******************Modifiers********************

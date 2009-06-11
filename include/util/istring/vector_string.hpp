@@ -497,9 +497,9 @@ public:
 
   
 protected:
+  bool is_attached_;//!< The buffer of string is attached or not.
   char* p_; //!< A pointer pointing to string's buffer including reference counter at the first byte.
   CharT* str_;//!< The start position of buffer storing chars.
-  bool is_attached_;//!< The buffer of string is attached or not.
   size_t length_;//!< String length.
   size_t max_size_;//!< The maximum length of chars the buffer can store.
 
@@ -583,8 +583,9 @@ protected:
     return false;
   }
    
-  void assign_self()
+  inline void assign_self()
   {
+    
     if (!is_refered())
       return;
 
@@ -1060,20 +1061,41 @@ public:
    *The at member function has the same behavior as this operator function,
    *except that at also performs a range check.
    **/
+  
+  CharT& operator[] ( size_t pos )
+  {
+    //assert(pos < max_size_);
+
+    if (!COPY_ON_WRITE)
+      return str_[pos];
+    
+    //lock
+    bool f = *(ReferT*)p_ > 1 || is_attached_;
+    
+    if (f)
+    {
+      char* p = (char*)hlmalloc(get_total_size(length_));
+      memcpy(p + sizeof (ReferT), str_, capacity());
+      str_ = (CharT*)(p+sizeof (ReferT));
+      max_size_ = length_+1;
+      str_[length_] = '\0';
+    
+      derefer();
+      p_ = p;
+      is_attached_ = false;
+      clear_reference(); 
+    }
+
+    return str_[pos];
+    
+  }
+
   const CharT& operator[] ( size_t pos ) const
   {
     assert(pos<max_size_);
     return str_[pos];
   }
   
-  CharT& operator[] ( size_t pos )
-  {
-    assert(pos<max_size_);
-    assign_self();
-    return str_[pos];
-    
-  }
-
   /**
    *Returns the character at position pos in the string.
    *This member function behaves as operator[] , except that at also performs
@@ -1085,11 +1107,33 @@ public:
     return str_[pos];
   }
   
-  CharT& at ( size_t pos )
+  CharT& at (size_t pos)
   {
-    assert(pos<length_);
-    assign_self();
+    if (!COPY_ON_WRITE)
+      return str_[pos];
+    
+    //lock
+    bool f = *(ReferT*)p_ > 1 || is_attached_;
+    
+    if (f)
+    {
+      char* p = (char*)hlmalloc(get_total_size(length_));
+      memcpy(p + sizeof (ReferT), str_, capacity());
+      str_ = (CharT*)(p+sizeof (ReferT));
+      max_size_ = length_+1;
+      str_[length_] = '\0';
+    
+      derefer();
+      p_ = p;
+      is_attached_ = false;
+      clear_reference(); 
+    }
+
     return str_[pos];
+    
+    // assert(pos<length_);
+//     assign_self();
+//     return str_[pos];
   }
 
   //******************Modifiers********************
