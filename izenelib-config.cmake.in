@@ -1,0 +1,61 @@
+#
+# FIND_PACKAGE(izenelib [version] [EXACT] [QUIET]
+#              [[REQUIRED|COMPONENTS] [components...]])
+#
+# Available Components:
+#
+# - boost_memory
+# - febird
+# - udt
+# - udt3
+# - sdb_btree
+# - procmeminfo
+# 
+# If izenelib was not found, try to add the izenelib install prefix
+# path to cmake cache variable CMAKE_PREFIX_PATH or environment
+# variable with the same name.
+#
+# Following variables are defined:
+# 
+#   izenelib_FOUND             - izenelib was found
+#   izenelib_VERSION           - version
+#   izenelib_INCLUDE_DIRS      - header dirs
+#   izenelib_<component>_FOUND - <component> was found
+#
+# To link a library, just append its component name, the the targets
+# <component>_static and <component>_shared were imported so that can
+# be used in the project directly. E.g.
+#
+#   FIND_PACKAGE(izenelib COMPONENTS udt febird)
+#
+# defines variables:
+#
+#   udt_FOUND    - udt component was found
+#   febird_FOUND - febird component was found
+#
+# and import targets:
+#   udt_static    - udt static library
+#   udt_shared    - udt shared library
+#   febird_static - febird static library
+#   febird_shared - febird shared library
+#
+# The targets can be used like:
+#   TARGET_LINK_LIBRARIES(target udt_static febird_static)
+#
+GET_FILENAME_COMPONENT(_dir "${izenelib_CONFIG}" PATH)
+GET_FILENAME_COMPONENT(_version_dir "${_dir}" PATH)
+GET_FILENAME_COMPONENT(_top "${_version_dir}" PATH)
+
+SET(izenelib_INCLUDE_DIRS "${_version_dir}/include")
+SET(izenelib_VERSION "@izenelib_VERSION@")
+SET(izenelib_FOUND TRUE)
+
+FOREACH(COMPONENT ${izenelib_FIND_COMPONENTS})
+  IF (EXISTS "${_dir}/${COMPONENT}.cmake")
+    INCLUDE("${_dir}/${COMPONENT}.cmake")
+    SET(izenelib_${COMPONENT}_FOUND TRUE)
+  ELSEIF (EXISTS "${_dir}/${COMPONENT}.cmake")
+    SET(izenelib_${COMPONENT}_FOUND FALSE)
+    SET(izenelib_FOUND FALSE)
+  ENDIF (EXISTS "${_dir}/${COMPONENT}.cmake")
+ENDFOREACH(COMPONENT ${izenelib_FIND_COMPONENTS})

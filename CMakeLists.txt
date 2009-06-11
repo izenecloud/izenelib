@@ -104,15 +104,15 @@ SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS}" CACHE STRING
 ##################################################
 # Project Info
 #####
-SET(IZENELIB_VERSION_MAJOR 1)
-SET(IZENELIB_VERSION_MINOR 0)
-SET(IZENELIB_VERSION_PATCH 0)
-SET(IZENELIB_VERSION "${IZENELIB_VERSION_MAJOR}.${IZENELIB_VERSION_MINOR}.${IZENELIB_VERSION_PATCH}")
-SET(IZENELIB_PACKAGE "izenelib")
-SET(IZENELIB_VERSION_STRING "${IZENELIB_PACKAGE} ${IZENELIB_VERSION}")
+SET(izenelib_VERSION_MAJOR 1)
+SET(izenelib_VERSION_MINOR 0)
+SET(izenelib_VERSION_PATCH 0)
+SET(izenelib_VERSION "${izenelib_VERSION_MAJOR}.${izenelib_VERSION_MINOR}.${izenelib_VERSION_PATCH}")
+SET(izenelib_PACKAGE "izenelib")
+SET(izenelib_VERSION_STRING "${izenelib_PACKAGE} ${izenelib_VERSION}")
 
 # prefix of bin include and static lib
-SET(VERSION_INSTALL_PREFIX "izenelib-${IZENELIB_VERSION}")
+SET(VERSION_INSTALL_PREFIX "izenelib-${izenelib_VERSION}")
 
 ##################################################
 # Check Dependencies
@@ -131,6 +131,18 @@ INSTALL(
   PATTERN "*/3rdparty" EXCLUDE
   PATTERN "*.h"
   )
+
+##################################################
+# Config File
+#####
+CONFIGURE_FILE(
+  "${CMAKE_CURRENT_SOURCE_DIR}/izenelib-config.cmake.in"
+  "${CMAKE_BINARY_DIR}/izenelib-config.cmake"
+  ESCAPE_QUOTES @ONLY)
+CONFIGURE_FILE(
+  "${CMAKE_CURRENT_SOURCE_DIR}/izenelib-config-version.cmake.in"
+  "${CMAKE_BINARY_DIR}/izenelib-config-version.cmake"
+  ESCAPE_QUOTES @ONLY)
 
 ##################################################
 # Sub Directories
@@ -209,4 +221,8 @@ IF(VERBOSE)
   MESSAGE(STATUS "========================================")
 
 ENDIF(VERBOSE)
-  
+
+GET_FILENAME_COMPONENT(_absFile "include" ABSOLUTE)
+MESSAGE(${_absFile})
+GET_FILENAME_COMPONENT(_abs_PATH ${_absFile} PATH)
+MESSAGE(${_abs_PATH})
