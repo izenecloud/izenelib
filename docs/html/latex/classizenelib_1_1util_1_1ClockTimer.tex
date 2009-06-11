@@ -1,0 +1,54 @@
+\hypertarget{classizenelib_1_1util_1_1ClockTimer}{
+\section{izenelib::util::ClockTimer Class Reference}
+\label{classizenelib_1_1util_1_1ClockTimer}\index{izenelib::util::ClockTimer@{izenelib::util::ClockTimer}}
+}
+A timer object similar to {\tt boost::timer} but measures total elapsed time instead of CPU time.  
+
+
+{\tt \#include $<$ClockTimer.h$>$}
+
+\subsection*{Public Member Functions}
+\begin{CompactItemize}
+\item 
+\hypertarget{classizenelib_1_1util_1_1ClockTimer_ff3d08663a3282764bfb90ec07ad10b9}{
+\hyperlink{classizenelib_1_1util_1_1ClockTimer_ff3d08663a3282764bfb90ec07ad10b9}{ClockTimer} ()}
+\label{classizenelib_1_1util_1_1ClockTimer_ff3d08663a3282764bfb90ec07ad10b9}
+
+\begin{CompactList}\small\item\em remembers start time during construction \item\end{CompactList}\item 
+\hypertarget{classizenelib_1_1util_1_1ClockTimer_ddde8c29b63355934ceeeeba417c5b4c}{
+void \hyperlink{classizenelib_1_1util_1_1ClockTimer_ddde8c29b63355934ceeeeba417c5b4c}{restart} ()}
+\label{classizenelib_1_1util_1_1ClockTimer_ddde8c29b63355934ceeeeba417c5b4c}
+
+\begin{CompactList}\small\item\em resets start time to current time. \item\end{CompactList}\item 
+double \hyperlink{classizenelib_1_1util_1_1ClockTimer_bdbd2f2fa3057fdec1144b9660043478}{elapsed} () const 
+\begin{CompactList}\small\item\em returns elapsed seconds since remembered start time. \item\end{CompactList}\end{CompactItemize}
+
+
+\subsection{Detailed Description}
+A timer object similar to {\tt boost::timer} but measures total elapsed time instead of CPU time. 
+
+This class measures wall clock rather than CPU time. Make your environment clean because other processes can occupy the CPU, and the time is still counted.
+
+If CPU time measurement is intended, please use {\tt boost::timer} in \hyperlink{classfile}{file} \char`\"{}boost/timer.hpp\char`\"{} 
+
+Definition at line 33 of file ClockTimer.h.
+
+\subsection{Member Function Documentation}
+\hypertarget{classizenelib_1_1util_1_1ClockTimer_bdbd2f2fa3057fdec1144b9660043478}{
+\index{izenelib::util::ClockTimer@{izenelib::util::ClockTimer}!elapsed@{elapsed}}
+\index{elapsed@{elapsed}!izenelib::util::ClockTimer@{izenelib::util::ClockTimer}}
+\subsubsection[{elapsed}]{\setlength{\rightskip}{0pt plus 5cm}double izenelib::util::ClockTimer::elapsed () const\hspace{0.3cm}{\tt  \mbox{[}inline\mbox{]}}}}
+\label{classizenelib_1_1util_1_1ClockTimer_bdbd2f2fa3057fdec1144b9660043478}
+
+
+returns elapsed seconds since remembered start time. 
+
+\begin{Desc}
+\item[Returns:]elapsed time in seconds, some platform can returns fraction representing more precise time. \end{Desc}
+
+
+Definition at line 57 of file ClockTimer.h.
+
+The documentation for this class was generated from the following file:\begin{CompactItemize}
+\item 
+/home/Kevin/izenelib/include/util/\hyperlink{ClockTimer_8h}{ClockTimer.h}\end{CompactItemize}

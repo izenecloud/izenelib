@@ -233,17 +233,14 @@ static void&nbsp;</td><td class="memItemRight" valign="bottom"><b>write_to_file<
 <tr><td class="memItemLeft" nowrap align="right" valign="top"><a class="anchor" name="fa3287000daf77817025b444b951af77"></a><!-- doxytag: member="Algorithm::generate_random_string" ref="fa3287000daf77817025b444b951af77" args="(size_t size)" -->
 static StringT&nbsp;</td><td class="memItemRight" valign="bottom"><b>generate_random_string</b> (size_t size)</td></tr>
 
-<tr><td class="memItemLeft" nowrap align="right" valign="top"><a class="anchor" name="f51c5e010fd029995daabff0ba2dd224"></a><!-- doxytag: member="Algorithm::read_from_encode" ref="f51c5e010fd029995daabff0ba2dd224" args="(const char *encode_type, const char *input, size_t len, StringT &amp;output)" -->
-static bool&nbsp;</td><td class="memItemRight" valign="bottom"><b>read_from_encode</b> (const char *encode_type, const char *input, size_t len, StringT &amp;output)</td></tr>
+<tr><td class="memItemLeft" nowrap align="right" valign="top">static bool&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classAlgorithm.html#f51c5e010fd029995daabff0ba2dd224">read_from_encode</a> (const char *encode_type, const char *input, size_t len, StringT &amp;output)</td></tr>
 
-<tr><td class="memItemLeft" nowrap align="right" valign="top"><a class="anchor" name="71b0e9191bc505859f1b6d4d50cb9a16"></a><!-- doxytag: member="Algorithm::write_to_encode" ref="71b0e9191bc505859f1b6d4d50cb9a16" args="(const char *encode_type, char **output, size_t &amp;len, const StringT &amp;input)" -->
-static bool&nbsp;</td><td class="memItemRight" valign="bottom"><b>write_to_encode</b> (const char *encode_type, char **output, size_t &amp;len, const StringT &amp;input)</td></tr>
+<tr><td class="memItemLeft" nowrap align="right" valign="top">static bool&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classAlgorithm.html#71b0e9191bc505859f1b6d4d50cb9a16">write_to_encode</a> (const char *encode_type, char **output, size_t &amp;len, const StringT &amp;input)</td></tr>
 
 <tr><td class="memItemLeft" nowrap align="right" valign="top"><a class="anchor" name="2089d52191fd52e7cf0d6574ad72212b"></a><!-- doxytag: member="Algorithm::release" ref="2089d52191fd52e7cf0d6574ad72212b" args="(char *p)" -->
 static void&nbsp;</td><td class="memItemRight" valign="bottom"><b>release</b> (char *p)</td></tr>
 
-<tr><td class="memItemLeft" nowrap align="right" valign="top"><a class="anchor" name="1bda1a6c7890a94c5b5e3a687965bfe4"></a><!-- doxytag: member="Algorithm::display" ref="1bda1a6c7890a94c5b5e3a687965bfe4" args="(const StringT &amp;str, const char *encode_t=&quot;UTF&#45;8&quot;, std::ostream &amp;os=std::cout)" -->
-static void&nbsp;</td><td class="memItemRight" valign="bottom"><b>display</b> (const StringT &amp;str, const char *encode_t=&quot;UTF-8&quot;, std::ostream &amp;os=std::cout)</td></tr>
+<tr><td class="memItemLeft" nowrap align="right" valign="top">static void&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classAlgorithm.html#1bda1a6c7890a94c5b5e3a687965bfe4">display</a> (const StringT &amp;str, const char *encode_t=&quot;UTF-8&quot;, std::ostream &amp;os=std::cout)</td></tr>
 
 </table>
 <hr><a name="_details"></a><h2>Detailed Description</h2>
@@ -340,6 +337,45 @@ string retrieval method.
 <p>
 string retrieval method. Returns the string from start to right before the delimiter character. Does not affect the receiver itself. 
 <p>Definition at line <a class="el" href="algo_8hpp-source.html#l00902">902</a> of file <a class="el" href="algo_8hpp-source.html">algo.hpp</a>.</p>
+
+</div>
+</div><p>
+<a class="anchor" name="1bda1a6c7890a94c5b5e3a687965bfe4"></a><!-- doxytag: member="Algorithm::display" ref="1bda1a6c7890a94c5b5e3a687965bfe4" args="(const StringT &amp;str, const char *encode_t=&quot;UTF&#45;8&quot;, std::ostream &amp;os=std::cout)" -->
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;class StringT  = std::string, class IS_NUMERIC  = is_numeric&lt;typename StringT::value_type&gt;, class IS_ALPHABET  = is_alphabet&lt;typename StringT::value_type&gt;&gt; </div>
+      <table class="memname">
+        <tr>
+          <td class="memname">static void <a class="el" href="classAlgorithm.html">Algorithm</a>&lt; StringT, IS_NUMERIC, IS_ALPHABET &gt;::display           </td>
+          <td>(</td>
+          <td class="paramtype">const StringT &amp;&nbsp;</td>
+          <td class="paramname"> <em>str</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const char *&nbsp;</td>
+          <td class="paramname"> <em>encode_t</em> = <code>&quot;UTF-8&quot;</code>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">std::ostream &amp;&nbsp;</td>
+          <td class="paramname"> <em>os</em> = <code>std::cout</code></td><td>&nbsp;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td><td><code> [inline, static]</code></td>
+        </tr>
+      </table>
+</div>
+<div class="memdoc">
+
+<p>
+Output str in encode_t into os. 
+<p>Definition at line <a class="el" href="algo_8hpp-source.html#l01448">1448</a> of file <a class="el" href="algo_8hpp-source.html">algo.hpp</a>.</p>
 
 </div>
 </div><p>
@@ -467,6 +503,51 @@ Read all the names of the files in the specified directory.
 <p>
 Read all the names of the files in the specified directory. If there are any errors such as no such directory, it just returns leaving the reference argument unchanged. It discards '.' and '..' files. 
 <p>Definition at line <a class="el" href="algo_8hpp-source.html#l01310">1310</a> of file <a class="el" href="algo_8hpp-source.html">algo.hpp</a>.</p>
+
+</div>
+</div><p>
+<a class="anchor" name="f51c5e010fd029995daabff0ba2dd224"></a><!-- doxytag: member="Algorithm::read_from_encode" ref="f51c5e010fd029995daabff0ba2dd224" args="(const char *encode_type, const char *input, size_t len, StringT &amp;output)" -->
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;class StringT  = std::string, class IS_NUMERIC  = is_numeric&lt;typename StringT::value_type&gt;, class IS_ALPHABET  = is_alphabet&lt;typename StringT::value_type&gt;&gt; </div>
+      <table class="memname">
+        <tr>
+          <td class="memname">static bool <a class="el" href="classAlgorithm.html">Algorithm</a>&lt; StringT, IS_NUMERIC, IS_ALPHABET &gt;::read_from_encode           </td>
+          <td>(</td>
+          <td class="paramtype">const char *&nbsp;</td>
+          <td class="paramname"> <em>encode_type</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const char *&nbsp;</td>
+          <td class="paramname"> <em>input</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">size_t&nbsp;</td>
+          <td class="paramname"> <em>len</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">StringT &amp;&nbsp;</td>
+          <td class="paramname"> <em>output</em></td><td>&nbsp;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td><td><code> [inline, static]</code></td>
+        </tr>
+      </table>
+</div>
+<div class="memdoc">
+
+<p>
+Text in input is transformed from encode_type into UCS-2 and stored in output. Generally, this step is ahead of text processing for various encode type text. 
+<p>Definition at line <a class="el" href="algo_8hpp-source.html#l01344">1344</a> of file <a class="el" href="algo_8hpp-source.html">algo.hpp</a>.</p>
 
 </div>
 </div><p>
@@ -649,10 +730,55 @@ Change all the lower case to upper caes in the _text. It forces const char* to c
 
 </div>
 </div><p>
-<hr>The documentation for this class was generated from the following file:<ul>
-<li>/home/Kevin/izenelib/include/am/istring/<a class="el" href="algo_8hpp-source.html">algo.hpp</a></ul>
+<a class="anchor" name="71b0e9191bc505859f1b6d4d50cb9a16"></a><!-- doxytag: member="Algorithm::write_to_encode" ref="71b0e9191bc505859f1b6d4d50cb9a16" args="(const char *encode_type, char **output, size_t &amp;len, const StringT &amp;input)" -->
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;class StringT  = std::string, class IS_NUMERIC  = is_numeric&lt;typename StringT::value_type&gt;, class IS_ALPHABET  = is_alphabet&lt;typename StringT::value_type&gt;&gt; </div>
+      <table class="memname">
+        <tr>
+          <td class="memname">static bool <a class="el" href="classAlgorithm.html">Algorithm</a>&lt; StringT, IS_NUMERIC, IS_ALPHABET &gt;::write_to_encode           </td>
+          <td>(</td>
+          <td class="paramtype">const char *&nbsp;</td>
+          <td class="paramname"> <em>encode_type</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">char **&nbsp;</td>
+          <td class="paramname"> <em>output</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">size_t &amp;&nbsp;</td>
+          <td class="paramname"> <em>len</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const StringT &amp;&nbsp;</td>
+          <td class="paramname"> <em>input</em></td><td>&nbsp;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td><td><code> [inline, static]</code></td>
+        </tr>
+      </table>
 </div>
-<hr size="1"><address style="text-align: right;"><small>Generated on Wed Jun 10 15:35:55 2009 for iZENElib - A great library for text processing by&nbsp;
+<div class="memdoc">
+
+<p>
+Text in input of UCS-2 can be transformed into encode_type and restored into output. There a new memory block will be applyed for outputing. And the size of the block will be of len. So, the output should be released by calling release at the later section. This step is mainly called after text have been processed. 
+<p>Definition at line <a class="el" href="algo_8hpp-source.html#l01394">1394</a> of file <a class="el" href="algo_8hpp-source.html">algo.hpp</a>.</p>
+
+</div>
+</div><p>
+<hr>The documentation for this class was generated from the following file:<ul>
+<li>/home/Kevin/izenelib/include/util/istring/<a class="el" href="algo_8hpp-source.html">algo.hpp</a></ul>
+</div>
+<hr size="1"><address style="text-align: right;"><small>Generated on Thu Jun 11 14:12:33 2009 for iZENElib - A great library for text processing by&nbsp;
 <a href="http://www.doxygen.org/index.html">
 <img src="doxygen.png" alt="doxygen" align="middle" border="0"></a> 1.5.7.1 </small></address>
 </body>

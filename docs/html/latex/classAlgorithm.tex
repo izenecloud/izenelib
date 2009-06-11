@@ -297,25 +297,16 @@ static StringT \textbf{generate\_\-random\_\-string} (size\_\-t size)}
 \label{classAlgorithm_fa3287000daf77817025b444b951af77}
 
 \item 
-\hypertarget{classAlgorithm_f51c5e010fd029995daabff0ba2dd224}{
-static bool \textbf{read\_\-from\_\-encode} (const char $\ast$encode\_\-type, const char $\ast$input, size\_\-t len, StringT \&output)}
-\label{classAlgorithm_f51c5e010fd029995daabff0ba2dd224}
-
+static bool \hyperlink{classAlgorithm_f51c5e010fd029995daabff0ba2dd224}{read\_\-from\_\-encode} (const char $\ast$encode\_\-type, const char $\ast$input, size\_\-t len, StringT \&output)
 \item 
-\hypertarget{classAlgorithm_71b0e9191bc505859f1b6d4d50cb9a16}{
-static bool \textbf{write\_\-to\_\-encode} (const char $\ast$encode\_\-type, char $\ast$$\ast$output, size\_\-t \&len, const StringT \&input)}
-\label{classAlgorithm_71b0e9191bc505859f1b6d4d50cb9a16}
-
+static bool \hyperlink{classAlgorithm_71b0e9191bc505859f1b6d4d50cb9a16}{write\_\-to\_\-encode} (const char $\ast$encode\_\-type, char $\ast$$\ast$output, size\_\-t \&len, const StringT \&input)
 \item 
 \hypertarget{classAlgorithm_2089d52191fd52e7cf0d6574ad72212b}{
 static void \textbf{release} (char $\ast$p)}
 \label{classAlgorithm_2089d52191fd52e7cf0d6574ad72212b}
 
 \item 
-\hypertarget{classAlgorithm_1bda1a6c7890a94c5b5e3a687965bfe4}{
-static void \textbf{display} (const StringT \&str, const char $\ast$encode\_\-t=\char`\"{}UTF-8\char`\"{}, std::ostream \&os=std::cout)}
-\label{classAlgorithm_1bda1a6c7890a94c5b5e3a687965bfe4}
-
+static void \hyperlink{classAlgorithm_1bda1a6c7890a94c5b5e3a687965bfe4}{display} (const StringT \&str, const char $\ast$encode\_\-t=\char`\"{}UTF-8\char`\"{}, std::ostream \&os=std::cout)
 \end{CompactItemize}
 
 
@@ -351,7 +342,16 @@ string retrieval method.
 
 string retrieval method. Returns the string from start to right before the delimiter character. Does not affect the receiver itself. 
 
-Definition at line 902 of file algo.hpp.\hypertarget{classAlgorithm_9f7fcee0cfbabce55c5a9cabb1868f29}{
+Definition at line 902 of file algo.hpp.\hypertarget{classAlgorithm_1bda1a6c7890a94c5b5e3a687965bfe4}{
+\index{Algorithm@{Algorithm}!display@{display}}
+\index{display@{display}!Algorithm@{Algorithm}}
+\subsubsection[{display}]{\setlength{\rightskip}{0pt plus 5cm}template$<$class StringT  = std::string, class IS\_\-NUMERIC  = is\_\-numeric$<$typename StringT::value\_\-type$>$, class IS\_\-ALPHABET  = is\_\-alphabet$<$typename StringT::value\_\-type$>$$>$ static void {\bf Algorithm}$<$ StringT, IS\_\-NUMERIC, IS\_\-ALPHABET $>$::display (const StringT \& {\em str}, \/  const char $\ast$ {\em encode\_\-t} = {\tt \char`\"{}UTF-8\char`\"{}}, \/  std::ostream \& {\em os} = {\tt std::cout})\hspace{0.3cm}{\tt  \mbox{[}inline, static\mbox{]}}}}
+\label{classAlgorithm_1bda1a6c7890a94c5b5e3a687965bfe4}
+
+
+Output str in encode\_\-t into os. 
+
+Definition at line 1448 of file algo.hpp.\hypertarget{classAlgorithm_9f7fcee0cfbabce55c5a9cabb1868f29}{
 \index{Algorithm@{Algorithm}!KMP@{KMP}}
 \index{KMP@{KMP}!Algorithm@{Algorithm}}
 \subsubsection[{KMP}]{\setlength{\rightskip}{0pt plus 5cm}template$<$class StringT  = std::string, class IS\_\-NUMERIC  = is\_\-numeric$<$typename StringT::value\_\-type$>$, class IS\_\-ALPHABET  = is\_\-alphabet$<$typename StringT::value\_\-type$>$$>$ static uint64\_\-t {\bf Algorithm}$<$ StringT, IS\_\-NUMERIC, IS\_\-ALPHABET $>$::KMP (const StringT \& {\em text}, \/  const StringT \& {\em pattern}, \/  StrCompMode {\em caseChk} = {\tt SM\_\-SENSITIVE})\hspace{0.3cm}{\tt  \mbox{[}inline, static\mbox{]}}}}
@@ -382,7 +382,16 @@ Read all the names of the files in the specified directory.
 
 Read all the names of the files in the specified directory. If there are any errors such as no such directory, it just returns leaving the reference argument unchanged. It discards '.' and '..' files. 
 
-Definition at line 1310 of file algo.hpp.\hypertarget{classAlgorithm_114fe02302e735017ae2277a1b173e96}{
+Definition at line 1310 of file algo.hpp.\hypertarget{classAlgorithm_f51c5e010fd029995daabff0ba2dd224}{
+\index{Algorithm@{Algorithm}!read\_\-from\_\-encode@{read\_\-from\_\-encode}}
+\index{read\_\-from\_\-encode@{read\_\-from\_\-encode}!Algorithm@{Algorithm}}
+\subsubsection[{read\_\-from\_\-encode}]{\setlength{\rightskip}{0pt plus 5cm}template$<$class StringT  = std::string, class IS\_\-NUMERIC  = is\_\-numeric$<$typename StringT::value\_\-type$>$, class IS\_\-ALPHABET  = is\_\-alphabet$<$typename StringT::value\_\-type$>$$>$ static bool {\bf Algorithm}$<$ StringT, IS\_\-NUMERIC, IS\_\-ALPHABET $>$::read\_\-from\_\-encode (const char $\ast$ {\em encode\_\-type}, \/  const char $\ast$ {\em input}, \/  size\_\-t {\em len}, \/  StringT \& {\em output})\hspace{0.3cm}{\tt  \mbox{[}inline, static\mbox{]}}}}
+\label{classAlgorithm_f51c5e010fd029995daabff0ba2dd224}
+
+
+Text in input is transformed from encode\_\-type into UCS-2 and stored in output. Generally, this step is ahead of text processing for various encode type text. 
+
+Definition at line 1344 of file algo.hpp.\hypertarget{classAlgorithm_114fe02302e735017ae2277a1b173e96}{
 \index{Algorithm@{Algorithm}!remove\_\-duplicate\_\-chars@{remove\_\-duplicate\_\-chars}}
 \index{remove\_\-duplicate\_\-chars@{remove\_\-duplicate\_\-chars}!Algorithm@{Algorithm}}
 \subsubsection[{remove\_\-duplicate\_\-chars}]{\setlength{\rightskip}{0pt plus 5cm}template$<$class StringT  = std::string, class IS\_\-NUMERIC  = is\_\-numeric$<$typename StringT::value\_\-type$>$, class IS\_\-ALPHABET  = is\_\-alphabet$<$typename StringT::value\_\-type$>$$>$ static void {\bf Algorithm}$<$ StringT, IS\_\-NUMERIC, IS\_\-ALPHABET $>$::remove\_\-duplicate\_\-chars (StringT \& {\em str}, \/  CharT {\em c})\hspace{0.3cm}{\tt  \mbox{[}inline, static\mbox{]}}}}
@@ -435,8 +444,17 @@ Change all the lower case to upper caes in the \_\-text.
 
 Change all the lower case to upper caes in the \_\-text. It forces const char$\ast$ to char$\ast$. Do more research on std::string 
 
-Definition at line 401 of file algo.hpp.
+Definition at line 401 of file algo.hpp.\hypertarget{classAlgorithm_71b0e9191bc505859f1b6d4d50cb9a16}{
+\index{Algorithm@{Algorithm}!write\_\-to\_\-encode@{write\_\-to\_\-encode}}
+\index{write\_\-to\_\-encode@{write\_\-to\_\-encode}!Algorithm@{Algorithm}}
+\subsubsection[{write\_\-to\_\-encode}]{\setlength{\rightskip}{0pt plus 5cm}template$<$class StringT  = std::string, class IS\_\-NUMERIC  = is\_\-numeric$<$typename StringT::value\_\-type$>$, class IS\_\-ALPHABET  = is\_\-alphabet$<$typename StringT::value\_\-type$>$$>$ static bool {\bf Algorithm}$<$ StringT, IS\_\-NUMERIC, IS\_\-ALPHABET $>$::write\_\-to\_\-encode (const char $\ast$ {\em encode\_\-type}, \/  char $\ast$$\ast$ {\em output}, \/  size\_\-t \& {\em len}, \/  const StringT \& {\em input})\hspace{0.3cm}{\tt  \mbox{[}inline, static\mbox{]}}}}
+\label{classAlgorithm_71b0e9191bc505859f1b6d4d50cb9a16}
+
+
+Text in input of UCS-2 can be transformed into encode\_\-type and restored into output. There a new memory block will be applyed for outputing. And the size of the block will be of len. So, the output should be released by calling release at the later section. This step is mainly called after text have been processed. 
+
+Definition at line 1394 of file algo.hpp.
 
 The documentation for this class was generated from the following file:\begin{CompactItemize}
 \item 
-/home/Kevin/izenelib/include/am/istring/algo.hpp\end{CompactItemize}
+/home/Kevin/izenelib/include/util/istring/algo.hpp\end{CompactItemize}
