@@ -34,8 +34,8 @@ written by
 *****************************************************************************/
 
 #include <cmath>
-#include "common.h"
-#include "window.h"
+#include <udt3/common.h>
+#include <udt3/window.h>
 
 
 CACKWindow::CACKWindow():

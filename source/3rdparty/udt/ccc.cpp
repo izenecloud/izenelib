@@ -39,8 +39,8 @@ written by
 *****************************************************************************/
 
 
-#include "core.h"
-#include "ccc.h"
+#include <udt/core.h>
+#include <udt/ccc.h>
 #include <cmath>
 #include <cstring>
 

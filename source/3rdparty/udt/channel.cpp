@@ -53,8 +53,8 @@ written by
       #include <wspiapi.h>
    #endif
 #endif
-#include "channel.h"
-#include "packet.h"
+#include <udt/channel.h>
+#include <udt/packet.h>
 
 #ifdef WIN32
    #define socklen_t int
@@ -285,7 +285,7 @@ int CChannel::sendto(const sockaddr* addr, CPacket& packet) const
 int CChannel::recvfrom(sockaddr* addr, CPacket& packet) const
 {
    #ifndef WIN32
-      msghdr mh;   
+      msghdr mh;
       mh.msg_name = addr;
       mh.msg_namelen = (AF_INET == m_iIPversion) ? sizeof(sockaddr_in) : sizeof(sockaddr_in6);
       mh.msg_iov = packet.m_PacketVector;

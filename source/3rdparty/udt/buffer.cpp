@@ -40,7 +40,7 @@ written by
 
 #include <cstring>
 #include <cmath>
-#include "buffer.h"
+#include <udt/buffer.h>
 
 using namespace std;
 
@@ -372,7 +372,7 @@ int CRcvBuffer::addData(CUnit* unit, int offset)
 
    if (NULL != m_pUnit[pos])
       return -1;
-   
+
    m_pUnit[pos] = unit;
 
    unit->m_iFlag = 1;

@@ -41,8 +41,8 @@ written by
    #include <winsock2.h>
    #include <ws2tcpip.h>
 #endif
-#include "api.h"
-#include "core.h"
+#include <udt3/api.h>
+#include <udt3/core.h>
 
 using namespace std;
 
@@ -632,7 +632,7 @@ int CUDTUnited::connect(const UDTSOCKET u, const sockaddr* name, const int& name
 int CUDTUnited::close(const UDTSOCKET u)
 {
    CUDTSocket* s = locate(u);
-   
+
    if (NULL == s)
       throw CUDTException(5, 4, 0);
 
