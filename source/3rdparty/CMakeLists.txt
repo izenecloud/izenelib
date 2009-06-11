@@ -1,4 +1,4 @@
-add_subdirectory(boost)
-add_subdirectory(febird)
-add_subdirectory(udt)
-add_subdirectory(udt3)
+ADD_SUBDIRECTORY(boost)
+ADD_SUBDIRECTORY(febird)
+# ADD_SUBDIRECTORY(udt)
+# ADD_SUBDIRECTORY(udt3)
