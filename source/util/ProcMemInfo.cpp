@@ -1,4 +1,4 @@
-#include "ProcMemInfo.h"
+#include <util/ProcMemInfo.h>
 
 NS_IZENELIB_UTIL_BEGIN
 
@@ -70,9 +70,9 @@ void ProcMemInfo::getStatFile(const string path, string & buffer)
 
 
 void ProcMemInfo::readProcStatus(
-        const string & buffer, 
-        unsigned long & virtualMem, 
-        unsigned long & realMem, 
+        const string & buffer,
+        unsigned long & virtualMem,
+        unsigned long & realMem,
         unsigned long & procMaxMem
         )
 {
