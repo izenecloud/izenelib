@@ -56,7 +56,7 @@ void IndexBarrelWriter::addDocument(IndexerDocument* pDoc)
     pDoc->getDocId(uniqueID);
     CollectionIndexer* pCollectionIndexer = collectionIndexMap[uniqueID.colId];
     if (NULL == pCollectionIndexer)
-        SF1V5_THROW(ERROR_OUTOFRANGE,"IndexBarrelWriter::IndexerDocument(): collection id does not belong to the range");
+        SF1V5_THROW(ERROR_OUTOFRANGE,"IndexBarrelWriter::addDocument(): collection id does not belong to the range");
     pCollectionIndexer->addDocument(pDoc);
 }
 

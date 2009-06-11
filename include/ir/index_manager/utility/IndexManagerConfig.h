@@ -15,7 +15,7 @@ namespace indexmanager{
  * @brief   IndexManagerConfig Holds the configuration data of IndexManager and provides interfaces for the IndexManager
  *          to retrieve the data.
  */
-class IndexManagerConfig 
+class IndexManagerConfig
 {
 
 private:
@@ -32,6 +32,18 @@ private:
                 maxIndexTerms_(0),
                 cacheDocs_(0)
         {}
+    private:
+        friend class boost::serialization::access;
+
+        template <typename Archive>
+        void serialize( Archive & ar, const unsigned int version )
+        {
+            ar & indexLocation_;
+            ar & accessMode_;
+            ar & memory_;
+            ar & maxIndexTerms_;
+            ar & cacheDocs_;
+        }
 
 
     public:
@@ -70,6 +82,16 @@ private:
      */
     class _mergestrategy
     {
+
+    private:
+        friend class boost::serialization::access;
+
+        template <typename Archive>
+        void serialize( Archive & ar, const unsigned int version )
+        {
+            ar & strategy_;
+            ar & param_;
+        }
     public:
         /**
          * @brie    the merge method of index.
@@ -77,10 +99,10 @@ private:
          * It could be "OPT" or "DBT", OPT means all the postings exist in only one barrel,
          * it could provide higher search performance while much lower indexing performance,"DBT" is default
          */
-        std::string	strategy_;
+        std::string strategy_;
 
         /// @brief  param of merge method
-        std::string	param_;
+        std::string param_;
     };
 
     /**
@@ -88,9 +110,18 @@ private:
      */
     class _storestrategy
     {
+
+    private:
+        friend class boost::serialization::access;
+
+        template <typename Archive>
+        void serialize( Archive & ar, const unsigned int version )
+        {
+            ar & param_;
+        }
     public:
         /// @brief  whether the indexes are stored in file or memory
-        std::string	param_;
+        std::string param_;
     };
 
     /**
@@ -98,6 +129,17 @@ private:
      */
     class _distributestrategy
     {
+
+    private:
+        friend class boost::serialization::access;
+
+        template <typename Archive>
+        void serialize( Archive & ar, const unsigned int version )
+        {
+            ar & distribute_;
+            ar & listenport_;
+            ar & param_;
+        }
     public:
         /**
          * @brief   The working mode of Indexer.
@@ -126,6 +168,16 @@ private:
      */
     class _advance
     {
+    private:
+        friend class boost::serialization::access;
+
+        template <typename Archive>
+        void serialize( Archive & ar, const unsigned int version )
+        {
+            ar & MMS_;
+            ar & uptightAlloc_;
+        }
+
     public:
         /**
          * @brief   Memory Management Strategy
@@ -139,11 +191,21 @@ private:
 
         class _uptightAlloc
         {
+
         public:
             _uptightAlloc() :
                     memSize_(0),
                     chunkSize_(0)
             {}
+        private:
+            friend class boost::serialization::access;
+
+            template <typename Archive>
+            void serialize( Archive & ar, const unsigned int version )
+            {
+                ar & memSize_;
+                ar & chunkSize_;
+            }
 
         public:
             /**
@@ -202,14 +264,31 @@ public:
         return true;
     }
 
-    const std::map<std::string, IndexerCollectionMeta> & getCollectionMetaNameMap() const 
-    { 
-        return collectionMetaNameMap_; 
+    const std::map<std::string, IndexerCollectionMeta> & getCollectionMetaNameMap() const
+    {
+        return collectionMetaNameMap_;
     }
 
-    void setCollectionMetaNameMap( const std::map<std::string, IndexerCollectionMeta> & map ) 
-    { 
-        collectionMetaNameMap_ = map; 
+    void setCollectionMetaNameMap( const std::map<std::string, IndexerCollectionMeta> & map )
+    {
+        collectionMetaNameMap_ = map;
+    }
+
+private:
+    //----------------------------	PRIVATE SERIALIZTAION FUNCTION	----------------------------
+
+    friend class boost::serialization::access;
+
+    template <typename Archive>
+    void serialize( Archive & ar, const unsigned int version )
+    {
+        ar & indexStrategy_;
+        ar & mergeStrategy_;
+        ar & storeStrategy_;
+        ar & advance_;
+        ar & distributeStrategy_;
+        ar & logLevel_;
+        ar & collectionMetaNameMap_;
     }
 
 public:

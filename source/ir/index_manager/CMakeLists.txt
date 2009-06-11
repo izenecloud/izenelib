@@ -13,8 +13,7 @@ INCLUDE_DIRECTORIES ( ${WISELIB_INCLUDE_DIR})
 
 
 set(CPP "${INDEX_MANAGER_SOURCE}")
-set( CXXFLAGS "-Wall -O3 -DSTANDALONE" )
-#set( CXXFLAGS "-Wall -O3" )
+set( CXXFLAGS "-Wall -O3" )
 
 set ( LIBRARY_OUTPUT_PATH ${izenelib_SOURCE_DIR}/lib ) 
 

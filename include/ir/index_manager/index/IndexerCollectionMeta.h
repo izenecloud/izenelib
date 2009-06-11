@@ -46,9 +46,10 @@ public:
     }
 
 
-    bool addPropertyConfig( const IndexerPropertyConfig & property )
+    void addPropertyConfig( const IndexerPropertyConfig & property )
     {
-        return schema_.insert( property ).second;
+        schema_.insert( property );
+        initDocumentSchema();///bad smell here
     }
 
 
@@ -57,6 +58,19 @@ public:
         schema_ = schema;
     }
 
+    void initDocumentSchema()
+    {
+        unsigned int property_id = 0;
+        std::set<IndexerPropertyConfig> schema;
+        for(std::set<IndexerPropertyConfig>::iterator iter = schema_.begin(); iter != schema_.end(); ++iter)
+        {
+            IndexerPropertyConfig propertyConfig = *iter;
+            propertyConfig.setPropertyId(property_id++);
+            schema.insert(propertyConfig);
+        }
+        schema_.clear();
+        schema_ = schema;
+    }
 
     const std::set<IndexerPropertyConfig> & getDocumentSchema() const
     {

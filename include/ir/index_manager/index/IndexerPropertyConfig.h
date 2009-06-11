@@ -63,8 +63,7 @@ public:
         return forward_;
     }
 
-    std::string toString()
-
+    std::string toString() const
     {
         std::stringstream sStream;
         sStream << "[IndexerPropertyConfig] @id=" << propertyId_

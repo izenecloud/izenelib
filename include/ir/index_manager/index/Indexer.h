@@ -8,7 +8,7 @@
 #ifndef INDEXER_H
 #define INDEXER_H
 
-#include <ir/index_manager/adaptor/IndexManagerConfig.h>
+#include <ir/index_manager/utility/IndexManagerConfig.h>
 #include <ir/index_manager/adaptor/DocumentManagerClient.h>
 
 #include <ir/index_manager/index/CommonItem.h>
