@@ -29,13 +29,13 @@ ENDIF(NOT CMAKE_INSTALL_PREFIX)
 # Copy it to your install dir or change the variable
 # EXTRA_CMAKE_MODULES_DIRS.
 #
-IF(IS_DIRECTORY "${CMAKE_INSTALL_PREFIX}/cmake/modules")
-  SET(EXTRA_CMAKE_MODULES_DIRS ${EXTRA_CMAKE_MODULES_DIRS} "${CMAKE_INSTALL_PREFIX}/cmake/modules")
-ENDIF(IS_DIRECTORY "${CMAKE_INSTALL_PREFIX}/cmake/modules")
+IF(IS_DIRECTORY "${CMAKE_INSTALL_PREFIX}/cmake")
+  SET(EXTRA_CMAKE_MODULES_DIRS ${EXTRA_CMAKE_MODULES_DIRS} "${CMAKE_INSTALL_PREFIX}/cmake")
+ENDIF(IS_DIRECTORY "${CMAKE_INSTALL_PREFIX}/cmake")
 IF(NOT EXTRA_CMAKE_MODULES_DIRS)
   MESSAGE(FATAL_ERROR
     "Cannot find EXTRA_CMAKE_MODULES_DIRS.
-You should clone it from izenesoft.com:/git/cmake.git. Then set EXTRA_CMAKE_MODULES_DIRS (-DEXTRA_CMAKE_MODULES_DIRS=/path/to/cmake/modules) to path of subdirectory moduels in your cloned repository. You also can copy the cloned cmake directory to ${CMAKE_INSTALL_PREFIX}")
+Please clone it from izenesoft.com:/git/cmake.git. Then set EXTRA_CMAKE_MODULES_DIRS (-DEXTRA_CMAKE_MODULES_DIRS=/path/to/cmake) to path of the cloned repository. You also can copy the cloned cmake directory to ${CMAKE_INSTALL_PREFIX}")
 ENDIF(NOT EXTRA_CMAKE_MODULES_DIRS)
 SET(CMAKE_MODULE_PATH ${EXTRA_CMAKE_MODULES_DIRS})
 
@@ -111,11 +111,26 @@ SET(IZENELIB_VERSION "${IZENELIB_VERSION_MAJOR}.${IZENELIB_VERSION_MINOR}.${IZEN
 SET(IZENELIB_PACKAGE "izenelib")
 SET(IZENELIB_VERSION_STRING "${IZENELIB_PACKAGE} ${IZENELIB_VERSION}")
 
+# prefix of bin include and static lib
+SET(VERSION_INSTALL_PREFIX "izenelib-${IZENELIB_VERSION}")
+
 ##################################################
 # Check Dependencies
 ####
 INCLUDE(SetPkgConfigPath)
 INCLUDE(ConfigureChecks.cmake)
+
+##################################################
+# Install Headers
+#####
+
+INSTALL(
+  DIRECTORY include/
+  DESTINATION "${VERSION_INSTALL_PREFIX}/include"
+  FILES_MATCHING
+  PATTERN "*/3rdparty" EXCLUDE
+  PATTERN "*.h"
+  )
 
 ##################################################
 # Sub Directories
@@ -129,14 +144,11 @@ INCLUDE_DIRECTORIES("${CMAKE_SOURCE_DIR}/include/3rdparty")
 SET_PROPERTY(GLOBAL PROPERTY BUILD_COMPONENTS)
 SET_PROPERTY(GLOBAL PROPERTY NON_BUILD_COMPONENTS)
 
-# prefix of bin include and static lib
-SET(VERSION_INSTALL_PREFIX "izenelib-${IZENELIB_VERSION}")
-
 # third party libraries
 ADD_SUBDIRECTORY(source/3rdparty 3rdparty)
 
-# # AM libraries
-# ADD_SUBDIRECTORY(source/am am)
+# AM libraries
+ADD_SUBDIRECTORY(source/am am)
 
 # IR libraries
 ADD_SUBDIRECTORY(source/ir ir)
@@ -153,47 +165,48 @@ GET_PROPERTY(NON_BUILD_COMPONENTS GLOBAL PROPERTY NON_BUILD_COMPONENTS)
 ##################################################
 # Messages
 #####
-IF(NOT VERBOSE)
-  RETURN()
-ENDIF(NOT VERBOSE)
-  
-MESSAGE(STATUS "========================================")
-MESSAGE(STATUS "CMAKE_BUILD_TYPE: ${CMAKE_BUILD_TYPE}")
-STRING(TOUPPER "${CMAKE_BUILD_TYPE}" CMAKE_BUILD_TYPE_UPPER)
-MESSAGE(STATUS "  corresponding flags: ${CMAKE_CXX_FLAGS_${CMAKE_BUILD_TYPE_UPPER}}")
-MESSAGE(STATUS "CMAKE_CXX_FLAGS: ${CMAKE_CXX_FLAGS}")
-MESSAGE(STATUS "----------------------------------------")
-IF(Boost_FOUND)
-  MESSAGE(STATUS "BOOST:")
-  MESSAGE(STATUS "  header: ${Boost_INCLUDE_DIR}")
-  MESSAGE(STATUS "  version: ${Boost_MAJOR_VERSION}.${Boost_MINOR_VERSION}.${Boost_SUBMINOR_VERSION}")
-ELSE(Boost_FOUND)
-  MESSAGE(STATUS "BOOST: not found")
-ENDIF(Boost_FOUND)
-IF(BZIP2_FOUND)
-  MESSAGE(STATUS "BZIP2:")
-  MESSAGE(STATUS "  header: ${BZIP2_INCLUDE_DIR}")
-  MESSAGE(STATUS "  libs: ${BZIP2_LIBRARIES}")
-ELSE(BZIP2_FOUND)
-  MESSAGE(STATUS "BZIP2: not found")  
-ENDIF(BZIP2_FOUND)    
-IF(TokyoCabinet_FOUND)
-  MESSAGE(STATUS "Tokyo Cabinet:")
-  MESSAGE(STATUS "  header: ${TokyoCabinet_INCLUDE_DIR}")
-  MESSAGE(STATUS "  libs: ${TokyoCabinet_LIBRARY}")
-  MESSAGE(STATUS "  version: ${TokyoCabinet_VERSION}")
-ELSE(TokyoCabinet_FOUND)
-  MESSAGE(STATUS "TokyoCabinet: not found")
-ENDIF(TokyoCabinet_FOUND)
-MESSAGE(STATUS "----------------------------------------")
-MESSAGE(STATUS "COMPONENTS BUILD:")
-FOREACH(c ${BUILD_COMPONENTS})
-  MESSAGE(STATUS "  ${c}")
-ENDFOREACH(c ${BUILD_COMPONENTS})
-IF(NON_BUILD_COMPONENTS)
-  MESSAGE(STATUS "COMPONENTS NOT BUILD:")
-  FOREACH(c ${NON_BUILD_COMPONENTS})
+IF(VERBOSE)
+
+  MESSAGE(STATUS "========================================")
+  MESSAGE(STATUS "CMAKE_BUILD_TYPE: ${CMAKE_BUILD_TYPE}")
+  STRING(TOUPPER "${CMAKE_BUILD_TYPE}" CMAKE_BUILD_TYPE_UPPER)
+  MESSAGE(STATUS "  corresponding flags: ${CMAKE_CXX_FLAGS_${CMAKE_BUILD_TYPE_UPPER}}")
+  MESSAGE(STATUS "CMAKE_CXX_FLAGS: ${CMAKE_CXX_FLAGS}")
+  MESSAGE(STATUS "----------------------------------------")
+  IF(Boost_FOUND)
+    MESSAGE(STATUS "BOOST:")
+    MESSAGE(STATUS "  header: ${Boost_INCLUDE_DIR}")
+    MESSAGE(STATUS "  version: ${Boost_MAJOR_VERSION}.${Boost_MINOR_VERSION}.${Boost_SUBMINOR_VERSION}")
+  ELSE(Boost_FOUND)
+    MESSAGE(STATUS "BOOST: not found")
+  ENDIF(Boost_FOUND)
+  IF(BZIP2_FOUND)
+    MESSAGE(STATUS "BZIP2:")
+    MESSAGE(STATUS "  header: ${BZIP2_INCLUDE_DIR}")
+    MESSAGE(STATUS "  libs: ${BZIP2_LIBRARIES}")
+  ELSE(BZIP2_FOUND)
+    MESSAGE(STATUS "BZIP2: not found")  
+  ENDIF(BZIP2_FOUND)    
+  IF(TokyoCabinet_FOUND)
+    MESSAGE(STATUS "Tokyo Cabinet:")
+    MESSAGE(STATUS "  header: ${TokyoCabinet_INCLUDE_DIR}")
+    MESSAGE(STATUS "  libs: ${TokyoCabinet_LIBRARY}")
+    MESSAGE(STATUS "  version: ${TokyoCabinet_VERSION}")
+  ELSE(TokyoCabinet_FOUND)
+    MESSAGE(STATUS "TokyoCabinet: not found")
+  ENDIF(TokyoCabinet_FOUND)
+  MESSAGE(STATUS "----------------------------------------")
+  MESSAGE(STATUS "COMPONENTS BUILD:")
+  FOREACH(c ${BUILD_COMPONENTS})
     MESSAGE(STATUS "  ${c}")
-  ENDFOREACH(c ${NON_BUILD_COMPONENTS})
-ENDIF(NON_BUILD_COMPONENTS)
-MESSAGE(STATUS "========================================")
+  ENDFOREACH(c ${BUILD_COMPONENTS})
+  IF(NON_BUILD_COMPONENTS)
+    MESSAGE(STATUS "COMPONENTS NOT BUILD:")
+    FOREACH(c ${NON_BUILD_COMPONENTS})
+      MESSAGE(STATUS "  ${c}")
+    ENDFOREACH(c ${NON_BUILD_COMPONENTS})
+  ENDIF(NON_BUILD_COMPONENTS)
+  MESSAGE(STATUS "========================================")
+
+ENDIF(VERBOSE)
+  
