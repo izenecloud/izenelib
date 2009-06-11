@@ -3,6 +3,10 @@
 
 #include "vector_string.hpp"
 
+/**
+*
+**/
+
 NS_IZENELIB_UTIL_BEGIN
 
 typedef vector_string<> istring;
