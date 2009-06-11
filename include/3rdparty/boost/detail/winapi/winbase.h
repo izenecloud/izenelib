@@ -66,7 +66,11 @@
 #endif
 
 #ifndef BOOST_DETAIL_WINAPI_ATOMIC_ATOMIC_BUILTINS_HPP
+#ifdef __APPLE__
+#include "atomic/darwin.hpp"
+#else 
 #include "atomic/atomic_builtins.hpp"
+#endif
 #endif
 
 #endif
