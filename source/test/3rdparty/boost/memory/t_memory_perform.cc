@@ -1,5 +1,5 @@
-#include <3rdparty/boost/memory.hpp>
-#include <3rdparty/boost/detail/performance_counter.hpp>
+#include <boost/memory.hpp>
+#include <boost/detail/performance_counter.hpp>
 
 #if defined(__GNUG__)
 #include <ext/mt_allocator.h>
@@ -47,7 +47,7 @@ public:
 		typedef __gnu_cxx::__mt_alloc<Type> allocator_type;
 		typedef __gnu_cxx::__pool_base::_Tune tune_type;
 		//tune_type tune(16, 5120, 32, 5120, 20, 10, false);
-		
+
 		int i;
 		NS_BOOST_DETAIL::performance_counter counter;
 		{
@@ -161,20 +161,20 @@ public:
 		int i;
 		const int Count = 16;
 		const int PerAlloc = Total / NAlloc;
-		
+
 		m_acc.start();
 		log.trace("\n===== boost::auto_alloc(%d) =====\n", PerAlloc);
 		for (i = 0; i < Count; ++i)
 			doAutoAlloc(log, NAlloc, PerAlloc);
 		m_acc.trace_avg(log);
 
-        
+
 		m_acc.start();
 		log.trace("\n===== NewDelete(%d) =====\n", PerAlloc);
 		for (i = 0; i < Count; ++i)
 			doNewDelete(log, NAlloc, PerAlloc);
 		m_acc.trace_avg(log);
-        
+
 		m_acc.start();
 		log.trace("\n===== TLS boost::scoped_alloc(%d) =====\n", PerAlloc);
 		for (i = 0; i < Count; ++i)
@@ -209,11 +209,11 @@ public:
 #endif
 
 	}
-	
+
 	void testComparison(LogT& log)
 	{
 		NS_BOOST_DETAIL::null_log nullLog;
-		
+
 		doAutoAlloc(nullLog, 1, Total);
 		doTlsScopedAlloc(nullLog, 1, Total);
 

@@ -8,7 +8,7 @@
 #include <deque>
 #include <cstdio>
 
-#include <3rdparty/boost/memory.hpp>
+#include <boost/memory.hpp>
 
 using namespace std;
 using boost::stl_allocator;
@@ -21,7 +21,7 @@ void testAutoAlloc()
 	int* intArray = BOOST_NEW_ARRAY(alloc, int, 100);
 	int* intBuf = BOOST_ALLOC(alloc, int);
 	int* intArrayBuf = BOOST_ALLOC_ARRAY(alloc, int, 100);
-	
+
 	boost::auto_alloc* subAlloc = BOOST_NEW(alloc, boost::auto_alloc);
 	int* e = BOOST_NEW(*subAlloc, int);
 }
@@ -30,13 +30,13 @@ void testScopedAlloc()
 {
 	NS_BOOST_MEMORY::block_pool recycle;
 	boost::scoped_alloc alloc(recycle);
-	
+
 	int* intObj = BOOST_NEW(alloc, int);
 	int* intObjWithArg = BOOST_NEW(alloc, int)(10);
 	int* intArray = BOOST_NEW_ARRAY(alloc, int, 100);
 	int* intBuf = BOOST_ALLOC(alloc, int);
 	int* intArrayBuf = BOOST_ALLOC_ARRAY(alloc, int, 100);
-	
+
 	boost::scoped_alloc* suballoc = BOOST_NEW(alloc, boost::scoped_alloc)(alloc);
 	int* e = BOOST_NEW(*suballoc, int);
 }
@@ -45,13 +45,13 @@ void testTlsScopedAlloc()
 {
 	boost::scoped_alloc alloc;
 	// same as: boost::scoped_alloc(boost::tls_block_pool::instance());
-	
+
 	int* intObj = BOOST_NEW(alloc, int);
 	int* intObjWithArg = BOOST_NEW(alloc, int)(10);
 	int* intArray = BOOST_NEW_ARRAY(alloc, int, 100);
 	int* intBuf = BOOST_ALLOC(alloc, int);
 	int* intArrayBuf = BOOST_ALLOC_ARRAY(alloc, int, 100);
-	
+
 	boost::scoped_alloc* suballoc = BOOST_NEW(alloc, boost::scoped_alloc);
 	int* e = BOOST_NEW(*suballoc, int);
 }
@@ -113,7 +113,7 @@ int main()
 {
 	testStlContainers();
 	simpleExamples();
-    
+
     return 0;
 }
 
