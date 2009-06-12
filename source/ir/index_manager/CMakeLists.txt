@@ -17,6 +17,8 @@ set( CXXFLAGS "-Wall -O3" )
 
 set ( LIBRARY_OUTPUT_PATH ${izenelib_SOURCE_DIR}/lib ) 
 
+LINK_DIRECTORIES( ${izenelib_SOURCE_DIR}/lib   $usr/local/lib ) 
+    
 ADD_LIBRARY(index_manager_shared SHARED ${CPP})
 SET_TARGET_PROPERTIES(index_manager_shared 
 				PROPERTIES 
@@ -24,7 +26,11 @@ SET_TARGET_PROPERTIES(index_manager_shared
 				COMPILE_FLAGS ${CXXFLAGS} 
 				COMPILE_DEFINITIONS_DEBUG "-g" 
 				)
-TARGET_LINK_LIBRARIES(index_manager_shared ${WISELIB_LIBRARY})
+TARGET_LINK_LIBRARIES(index_manager_shared ${WISELIB_LIBRARY}  
+										sdb_btree
+										udt
+#										udt3
+										)
 SET_TARGET_PROPERTIES(index_manager_shared PROPERTIES CLEAN_DIRECT_OUTPUT 1)
 
 
@@ -37,6 +43,10 @@ SET_TARGET_PROPERTIES(index_manager_static
 				COMPILE_DEFINITIONS_DEBUG "-g" 
 				)
 SET_TARGET_PROPERTIES(index_manager_static PROPERTIES CLEAN_DIRECT_OUTPUT 1)
-TARGET_LINK_LIBRARIES(index_manager_static ${WISELIB_LIBRARY})
+TARGET_LINK_LIBRARIES(index_manager_static ${WISELIB_LIBRARY}
+										sdb_btree
+										udt
+#										udt3
+										)
 
 

@@ -4,7 +4,6 @@
 #include <assert.h>
 
 #include <types.h>
-#include <3rdparty/boost/memory.hpp>
 
 NS_IZENELIB_UTIL_BEGIN
 
@@ -130,9 +129,6 @@ private:
     int32_t	blkBase_;
     int32_t	numBlks_;
     size_t maxLength_;
-    //boost::auto_alloc alloc_;
-    NS_BOOST_MEMORY::block_pool recycle_;
-    boost::scoped_alloc alloc_;
 };
 //////////////////////////////////////////////////////////////////////////
 //
@@ -142,10 +138,8 @@ DynamicArray<ElemT,NullValue>::DynamicArray(void)
         ,blkBase_(0)
         ,numBlks_(1)
         ,maxLength_(DYNARRAY_DEFAULTBLKSIZE)
-        ,alloc_(recycle_)
 {
     blocks_ = new ElemT*[numBlks_];
-    //blocks_ = BOOST_NEW_ARRAY(alloc_, ElemT*,numBlks_);
     blocks_[0] = NULL;
 }
 
@@ -155,10 +149,8 @@ DynamicArray<ElemT,NullValue>::DynamicArray(int32_t blksize)
         ,blkBase_(0)
         ,numBlks_(1)
         ,maxLength_(blksize)
-        ,alloc_(recycle_)
 {
     blocks_ = new ElemT*[numBlks_];
-    //blocks_ = BOOST_NEW_ARRAY(alloc_, ElemT*,numBlks_);
     blocks_[0] = NULL;
 }
 template<class ElemT,class NullValue>
@@ -166,25 +158,21 @@ DynamicArray<ElemT,NullValue>::DynamicArray(size_t initSize,int32_t blksize)
         :blkSize_(blksize)
         ,blkBase_(0)
         ,maxLength_(initSize)
-        ,alloc_(recycle_)
 {
     numBlks_ = (int32_t)((initSize + blksize - 1)/blksize);
     blocks_ = new ElemT*[numBlks_];
-    //blocks_ = BOOST_NEW_ARRAY(alloc_, ElemT*,numBlks_);
     
     memset(blocks_,0,numBlks_*sizeof(ElemT*));
 }
 
 template<class ElemT,class NullValue>
 DynamicArray<ElemT,NullValue>::DynamicArray(const DynamicArray& src)
-        :alloc_(recycle_)
 {
     blkSize_ = src.blkSize_;
     blkBase_ = src.blkBase_;
     numBlks_ = src.numBlks_;
     maxLength_ = src.maxLength_;
     blocks_ = new ElemT*[numBlks_];
-    //blocks_ = BOOST_NEW_ARRAY(alloc_, ElemT*,numBlks_);
     memcpy(blocks_,src.blocks_,numBlks_*sizeof(ElemT*));
     for (int32_t i = 0;i<numBlks_;i++)
     {
@@ -249,11 +237,10 @@ void DynamicArray<ElemT,NullValue>::grow(size_t newLen)
     int32_t numBlks = (int32_t)((newLen + blkSize_ - 1)/blkSize_);
 
     ElemT** tmpBlks = new ElemT*[numBlks];
-    //ElemT** tmpBlks = BOOST_NEW_ARRAY(alloc_, ElemT*,numBlks_);
 	
     memset(tmpBlks,0,numBlks*sizeof(ElemT*));
     memcpy(tmpBlks,blocks_,numBlks_*sizeof(ElemT*));
-    delete[] blocks_;
+    //delete[] blocks_;
     blocks_ = tmpBlks;
     numBlks_ = numBlks;
     maxLength_ = newLen;
@@ -264,7 +251,6 @@ void DynamicArray<ElemT,NullValue>::allocBlock(int32_t blk)
 {
     assert(blk<numBlks_);
     blocks_[blk] = new ElemT[blkSize_];
-    //blocks_[blk] = BOOST_NEW_ARRAY(alloc_, ElemT, blkSize_);
 
     for (int32_t i = 0;i<blkSize_;i++)
     {
