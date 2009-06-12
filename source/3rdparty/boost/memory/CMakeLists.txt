@@ -18,7 +18,11 @@ SET_TARGET_PROPERTIES(boost_memory_static PROPERTIES
 INSTALL(TARGETS boost_memory_static boost_memory_shared
   EXPORT boost_memory
   ARCHIVE DESTINATION ${VERSION_INSTALL_PREFIX}/lib
-  LIBRARY DESTINATION shared)
+  LIBRARY DESTINATION shared
+  COMPONENT "boost_memory"
+  )
 
 INSTALL(EXPORT boost_memory
-  DESTINATION ${VERSION_INSTALL_PREFIX}/cmake)
+  DESTINATION ${VERSION_INSTALL_PREFIX}/cmake
+  COMPONENT "boost_memory"
+  )

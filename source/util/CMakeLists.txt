@@ -25,9 +25,13 @@ ELSE(WIN32)
   INSTALL(TARGETS procmeminfo_static procmeminfo_shared
     EXPORT procmeminfo
     ARCHIVE DESTINATION ${VERSION_INSTALL_PREFIX}/lib
-    LIBRARY DESTINATION shared)
+    LIBRARY DESTINATION shared
+    COMPONENT "procmeminfo"
+    )
 
   INSTALL(EXPORT procmeminfo
-    DESTINATION ${VERSION_INSTALL_PREFIX}/cmake)
+    DESTINATION ${VERSION_INSTALL_PREFIX}/cmake
+    COMPONENT "procmeminfo"
+    )
 
 ENDIF(WIN32)
