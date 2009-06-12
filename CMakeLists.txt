@@ -179,6 +179,7 @@ SET_PROPERTY(GLOBAL PROPERTY BUILD_COMPONENTS)
 SET_PROPERTY(GLOBAL PROPERTY NON_BUILD_COMPONENTS)
 
 # third party libraries
+# put it first, they may be referred in other components
 ADD_SUBDIRECTORY(source/3rdparty 3rdparty)
 
 # AM libraries
