@@ -2,7 +2,7 @@
 #define DYNAMICARRAY_H
 
 #include <types.h>
-#include <3rdparty/boost/memory.hpp>
+#include <boost/memory.hpp>
 
 NS_IZENELIB_UTIL_BEGIN
 
@@ -162,7 +162,7 @@ DynamicArray<ElemT,NullValue>::DynamicArray(size_t initSize,int32_t blksize)
     numBlks_ = (int32_t)((initSize + blksize - 1)/blksize);
     //blocks_ = new ElemT*[numBlks_];
     blocks_ = BOOST_NEW(alloc_, ElemT*);
-    
+
     memset(blocks_,0,numBlks_*sizeof(ElemT*));
 }
 
