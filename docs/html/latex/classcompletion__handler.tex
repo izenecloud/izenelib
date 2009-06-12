@@ -1,0 +1,44 @@
+\hypertarget{classcompletion__handler}{
+\section{completion\_\-handler Class Reference}
+\label{classcompletion__handler}\index{completion\_\-handler@{completion\_\-handler}}
+}
+Completion handler class (Loki-style).  
+
+
+{\tt \#include $<$completion\_\-handler.h$>$}
+
+\subsection*{Public Member Functions}
+\begin{CompactItemize}
+\item 
+\hypertarget{classcompletion__handler_63b1275782e8d0a5b320e5938b09766c}{
+\textbf{completion\_\-handler} (const \hyperlink{classcompletion__handler}{completion\_\-handler} \&obj)}
+\label{classcompletion__handler_63b1275782e8d0a5b320e5938b09766c}
+
+\item 
+\hypertarget{classcompletion__handler_6b1cfd19f13814d73ea385ff0376ebe4}{
+\hyperlink{classcompletion__handler}{completion\_\-handler} \& \textbf{operator=} (const \hyperlink{classcompletion__handler}{completion\_\-handler} \&obj)}
+\label{classcompletion__handler_6b1cfd19f13814d73ea385ff0376ebe4}
+
+\item 
+\hypertarget{classcompletion__handler_cdcb747d587cfc02306d0f6447c4abed}{
+void \textbf{operator()} (\hyperlink{classrequest}{request} $\ast$req)}
+\label{classcompletion__handler_cdcb747d587cfc02306d0f6447c4abed}
+
+\item 
+\hypertarget{classcompletion__handler_198d05cf82bec9e1ba16828def28d3c5}{
+{\footnotesize template$<$typename handler\_\-type $>$ }\\\textbf{completion\_\-handler} (const handler\_\-type \&handler\_\-\_\-)}
+\label{classcompletion__handler_198d05cf82bec9e1ba16828def28d3c5}
+
+\end{CompactItemize}
+
+
+\subsection{Detailed Description}
+Completion handler class (Loki-style). 
+
+In some situations one needs to execute some actions after completion of an I/O \hyperlink{classrequest}{request}. In these cases one can use an I/O completion handler - a function object that can be passed as a parameter to asynchronous I/O calls {\tt \href{file::aread}{\tt file::aread}} and {\tt \href{file::awrite}{\tt file::awrite}} . For an example of use see \hyperlink{}{mng/test\_\-mng.cpp } 
+
+Definition at line 38 of file completion\_\-handler.h.
+
+The documentation for this class was generated from the following file:\begin{CompactItemize}
+\item 
+/home/Kevin/izenelib/include/am/blockmanager/completion\_\-handler.h\end{CompactItemize}

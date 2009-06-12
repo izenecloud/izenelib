@@ -1,0 +1,460 @@
+\hypertarget{classAlgorithm}{
+\section{Algorithm$<$ StringT, IS\_\-NUMERIC, IS\_\-ALPHABET $>$ Class Template Reference}
+\label{classAlgorithm}\index{Algorithm@{Algorithm}}
+}
+An string algorithm set.  
+
+
+{\tt \#include $<$algo.hpp$>$}
+
+\subsection*{Public Types}
+\begin{CompactItemize}
+\item 
+enum \textbf{StrCompMode} \{ \textbf{SM\_\-SENSITIVE}, 
+\textbf{SM\_\-IGNORE}
+ \}
+\end{CompactItemize}
+\subsection*{Static Public Member Functions}
+\begin{CompactItemize}
+\item 
+\hypertarget{classAlgorithm_cf32909208409a7e9a44870688efd919}{
+static void \textbf{get\_\-nextval} (const StringT \&s, uint64\_\-t next\mbox{[}$\,$\mbox{]}, StrCompMode caseChk=SM\_\-SENSITIVE)}
+\label{classAlgorithm_cf32909208409a7e9a44870688efd919}
+
+\item 
+static uint64\_\-t \hyperlink{classAlgorithm_9f7fcee0cfbabce55c5a9cabb1868f29}{KMP} (const StringT \&text, const StringT \&pattern, StrCompMode caseChk=SM\_\-SENSITIVE)
+\item 
+\hypertarget{classAlgorithm_207eb5ca98c395ebe066a44bf1a2d04f}{
+static void \textbf{rget\_\-nextval} (const StringT \&s, uint64\_\-t next\mbox{[}$\,$\mbox{]}, StrCompMode caseChk=SM\_\-SENSITIVE)}
+\label{classAlgorithm_207eb5ca98c395ebe066a44bf1a2d04f}
+
+\item 
+static uint64\_\-t \hyperlink{classAlgorithm_a3e24e19980c0dd29c80f9feff6e5191}{rKMP} (const StringT \&text, const StringT \&pattern, StrCompMode caseChk=SM\_\-SENSITIVE)
+\item 
+\hypertarget{classAlgorithm_8460fd980d7167c1b4a915204cc7df07}{
+static int \textbf{to\_\-integer} (const StringT \&str)}
+\label{classAlgorithm_8460fd980d7167c1b4a915204cc7df07}
+
+\item 
+\hypertarget{classAlgorithm_509971d56fef622fb2a932282b6e49ee}{
+static long \textbf{to\_\-long} (const StringT \&str)}
+\label{classAlgorithm_509971d56fef622fb2a932282b6e49ee}
+
+\item 
+\hypertarget{classAlgorithm_f782d0117e525f350cbc2a6b9766737a}{
+static unsigned long \textbf{to\_\-ulong} (const StringT \&str)}
+\label{classAlgorithm_f782d0117e525f350cbc2a6b9766737a}
+
+\item 
+\hypertarget{classAlgorithm_c702274e3932a6a3cc897fa8295c9d2f}{
+static float \textbf{to\_\-float} (const StringT \&str)}
+\label{classAlgorithm_c702274e3932a6a3cc897fa8295c9d2f}
+
+\item 
+\hypertarget{classAlgorithm_67299838db627baf19ef206e7f614e61}{
+static void \textbf{to\_\-lower} (StringT \&str)}
+\label{classAlgorithm_67299838db627baf19ef206e7f614e61}
+
+\item 
+static void \hyperlink{classAlgorithm_42e06428b21a425ac2da8d60313ab9a9}{to\_\-upper} (StringT \&str)
+\begin{CompactList}\small\item\em Change all the lower case to upper caes in the \_\-text. \item\end{CompactList}\item 
+static StringT \hyperlink{classAlgorithm_617415dba55cc4533e4776760178032b}{to\_\-lower} (const StringT \&str)
+\begin{CompactList}\small\item\em Change all the upper case to lower case in the \_\-text. \item\end{CompactList}\item 
+\hypertarget{classAlgorithm_98f7e6214b85d3d3ee160561e09cd5e5}{
+static StringT \textbf{to\_\-upper} (const StringT \&str)}
+\label{classAlgorithm_98f7e6214b85d3d3ee160561e09cd5e5}
+
+\item 
+\hypertarget{classAlgorithm_444f53fac69e2f1e91b9b300177d2b4f}{
+static bool \textbf{equal\_\-ignore\_\-case} (const StringT \&str1, const StringT \&str2)}
+\label{classAlgorithm_444f53fac69e2f1e91b9b300177d2b4f}
+
+\item 
+\hypertarget{classAlgorithm_21544fc764f56bf9af2e131b115fbd47}{
+static bool \hyperlink{classAlgorithm_21544fc764f56bf9af2e131b115fbd47}{equal\_\-ignore\_\-case\_\-space} (const StringT \&str1, const StringT \&str2)}
+\label{classAlgorithm_21544fc764f56bf9af2e131b115fbd47}
+
+\begin{CompactList}\small\item\em Compare two string after cutting head and tail spaces out. \item\end{CompactList}\item 
+\hypertarget{classAlgorithm_34bcaa8f2331a16cf2abc6f37a277215}{
+static size\_\-t \textbf{find} (const StringT \&str1, const StringT \&str2, size\_\-t pos1=0, StrCompMode caseChk=SM\_\-IGNORE)}
+\label{classAlgorithm_34bcaa8f2331a16cf2abc6f37a277215}
+
+\item 
+\hypertarget{classAlgorithm_00d3a1589a173329d9a39b407e237e1f}{
+static size\_\-t \textbf{rfind} (const StringT \&str1, const StringT \&str2, size\_\-t pos1=StringT::npos, StrCompMode caseChk=SM\_\-IGNORE)}
+\label{classAlgorithm_00d3a1589a173329d9a39b407e237e1f}
+
+\item 
+\hypertarget{classAlgorithm_30a1876eb0482460a056c3f0d2e560a6}{
+static size\_\-t \hyperlink{classAlgorithm_30a1876eb0482460a056c3f0d2e560a6}{multi\_\-find} (const StringT \&str1, const StringT \&str2, std::vector$<$ size\_\-t $>$ \&indices, size\_\-t pos1=0, StrCompMode caseChk=SM\_\-IGNORE)}
+\label{classAlgorithm_30a1876eb0482460a056c3f0d2e560a6}
+
+\begin{CompactList}\small\item\em : Returns the number of keywords found. returnIndices contains the offsets for the keywords. If there is no such keyword, it sets the offset to -1. \item\end{CompactList}\item 
+\hypertarget{classAlgorithm_0d3d43dee9f6ba430a78ccff3420f5d3}{
+static bool \hyperlink{classAlgorithm_0d3d43dee9f6ba430a78ccff3420f5d3}{start\_\-with} (const StringT \&str1, const StringT \&str2, size\_\-t pos1=0, StrCompMode caseChk=SM\_\-IGNORE)}
+\label{classAlgorithm_0d3d43dee9f6ba430a78ccff3420f5d3}
+
+\begin{CompactList}\small\item\em Returns true if the string starts with the given key in the position pos. \item\end{CompactList}\item 
+\hypertarget{classAlgorithm_0f8e9305957158041cc5a845e2989e06}{
+static bool \textbf{end\_\-with} (const StringT \&str1, const StringT \&str2, size\_\-t pos1=StringT::npos, StrCompMode caseChk=SM\_\-IGNORE)}
+\label{classAlgorithm_0f8e9305957158041cc5a845e2989e06}
+
+\item 
+\hypertarget{classAlgorithm_0ad0b8ced47c0e8a1f4f3b4917c83735}{
+static size\_\-t \hyperlink{classAlgorithm_0ad0b8ced47c0e8a1f4f3b4917c83735}{num\_\-occurrence} (const StringT \&str1, const StringT \&str2, size\_\-t pos1=0, StrCompMode caseChk=SM\_\-IGNORE)}
+\label{classAlgorithm_0ad0b8ced47c0e8a1f4f3b4917c83735}
+
+\begin{CompactList}\small\item\em Returns the number of occurrences for a given pattern in the string. \item\end{CompactList}\item 
+\hypertarget{classAlgorithm_f1b3631037e8c4beb03f85e05ac27595}{
+static void \hyperlink{classAlgorithm_f1b3631037e8c4beb03f85e05ac27595}{frequency\_\-counter} (const StringT \&str, const std::vector$<$ StringT $>$ \&patterns, std::vector$<$ size\_\-t $>$ \&freq, StrCompMode caseChk=SM\_\-IGNORE)}
+\label{classAlgorithm_f1b3631037e8c4beb03f85e05ac27595}
+
+\begin{CompactList}\small\item\em Returns the counter array (reference argument) each array element representing the number of occurrences of the keyword in the patterns array. \item\end{CompactList}\item 
+\hypertarget{classAlgorithm_667249353d6a2af69417b4320f407dcd}{
+static size\_\-t \hyperlink{classAlgorithm_667249353d6a2af69417b4320f407dcd}{substitute\_\-char} (CharT from, CharT to, StringT \&str, size\_\-t pos=0, StrCompMode caseChk=SM\_\-IGNORE)}
+\label{classAlgorithm_667249353d6a2af69417b4320f407dcd}
+
+\begin{CompactList}\small\item\em Substitute to character for from. \item\end{CompactList}\item 
+\hypertarget{classAlgorithm_f35d710c0f73e1e20271697a1898fafc}{
+static StringT \textbf{substitute\_\-char} (CharT from, CharT to, const StringT \&str, size\_\-t pos=0, StrCompMode caseChk=SM\_\-IGNORE)}
+\label{classAlgorithm_f35d710c0f73e1e20271697a1898fafc}
+
+\item 
+static size\_\-t \hyperlink{classAlgorithm_0a6aaf09e6d9d4214b5d6c86938006fb}{multi\_\-substitute\_\-string} (const StringT \&from, const StringT \&to, StringT \&str, size\_\-t pos=0, StrCompMode caseChk=SM\_\-IGNORE)
+\begin{CompactList}\small\item\em Substitute the to string for from. \item\end{CompactList}\item 
+\hypertarget{classAlgorithm_6044d3ee43757fc67b0cbb91984514b0}{
+static StringT \textbf{multi\_\-substitute\_\-string} (const StringT \&from, const StringT \&to, const StringT \&str, size\_\-t pos=0, StrCompMode caseChk=SM\_\-IGNORE)}
+\label{classAlgorithm_6044d3ee43757fc67b0cbb91984514b0}
+
+\item 
+static StringT \hyperlink{classAlgorithm_658530c0e10cee77d1c94801efc28b1d}{substitute\_\-string} (const StringT \&from, const StringT \&to, const StringT \&str, size\_\-t pos=0, StrCompMode caseChk=SM\_\-IGNORE)
+\begin{CompactList}\small\item\em Substitute the to string for from. \item\end{CompactList}\item 
+\hypertarget{classAlgorithm_00d9f2c7bb54335f75c048bc2e8fa223}{
+static void \textbf{substitute\_\-string} (const StringT \&from, const StringT \&to, StringT \&str, size\_\-t pos=0, StrCompMode caseChk=SM\_\-IGNORE)}
+\label{classAlgorithm_00d9f2c7bb54335f75c048bc2e8fa223}
+
+\item 
+\hypertarget{classAlgorithm_5b347e21063884df4bf75518e0614f00}{
+static size\_\-t \textbf{remove\_\-newlines} (StringT \&str)}
+\label{classAlgorithm_5b347e21063884df4bf75518e0614f00}
+
+\item 
+\hypertarget{classAlgorithm_1a74a400e5ca203f88bf788fc7963dcc}{
+static StringT \textbf{remove\_\-newlines} (const StringT \&str)}
+\label{classAlgorithm_1a74a400e5ca203f88bf788fc7963dcc}
+
+\item 
+static void \hyperlink{classAlgorithm_114fe02302e735017ae2277a1b173e96}{remove\_\-duplicate\_\-chars} (StringT \&str, CharT c)
+\begin{CompactList}\small\item\em Replace all the occurrences of the given characters with spaces. \item\end{CompactList}\item 
+\hypertarget{classAlgorithm_fe5e209fc1275c48aee815e1fdb7dc3b}{
+static StringT \textbf{remove\_\-duplicate\_\-chars} (const StringT \&str, CharT c)}
+\label{classAlgorithm_fe5e209fc1275c48aee815e1fdb7dc3b}
+
+\item 
+\hypertarget{classAlgorithm_9a7e5575ed6a557db7f4ac09d249a6de}{
+static void \textbf{remove\_\-multi\_\-whitespace} (StringT \&str)}
+\label{classAlgorithm_9a7e5575ed6a557db7f4ac09d249a6de}
+
+\item 
+\hypertarget{classAlgorithm_1780cd9a31bd71d8d53d555f7c3f5762}{
+static StringT \textbf{remove\_\-multi\_\-whitespace} (const StringT \&str)}
+\label{classAlgorithm_1780cd9a31bd71d8d53d555f7c3f5762}
+
+\item 
+\hypertarget{classAlgorithm_0bf91d2a040a351606db364cf9ebfbf3}{
+static void \hyperlink{classAlgorithm_0bf91d2a040a351606db364cf9ebfbf3}{make\_\-tokens\_\-with\_\-delimiter} (const StringT \&str, const StringT \&delimiter, std::vector$<$ StringT $>$ \&tokens)}
+\label{classAlgorithm_0bf91d2a040a351606db364cf9ebfbf3}
+
+\begin{CompactList}\small\item\em : Returns an array of strings, including delimiters, each containing tokens separated by the delimiter argument. \item\end{CompactList}\item 
+\hypertarget{classAlgorithm_3085971e7207d71572b7385420a55417}{
+static StringT \textbf{cut\_\-range} (const StringT \&str, size\_\-t start, size\_\-t end)}
+\label{classAlgorithm_3085971e7207d71572b7385420a55417}
+
+\item 
+\hypertarget{classAlgorithm_57600dafff96cfd5475f19cb12a94466}{
+static void \textbf{cut\_\-range} (StringT \&str, size\_\-t start, size\_\-t end)}
+\label{classAlgorithm_57600dafff96cfd5475f19cb12a94466}
+
+\item 
+static StringT \hyperlink{classAlgorithm_70e04500b28f3c0b0b8cc75532aa4eee}{cut\_\-delimiter} (const StringT \&str, size\_\-t start, CharT delimiter)
+\begin{CompactList}\small\item\em string retrieval method. \item\end{CompactList}\item 
+\hypertarget{classAlgorithm_8a5671eea2d1c824a20804ef9ae81d0d}{
+static void \textbf{cut\_\-delimiter} (StringT \&str, size\_\-t start, CharT delimiter)}
+\label{classAlgorithm_8a5671eea2d1c824a20804ef9ae81d0d}
+
+\item 
+static StringT \hyperlink{classAlgorithm_5e4035b8afe3b04f371314b4e6840798}{cut\_\-between\_\-words} (const StringT \&str, const StringT \&p1, const StringT \&p2, StrCompMode caseChk=SM\_\-SENSITIVE)
+\begin{CompactList}\small\item\em Cut between the specified two patterns. \item\end{CompactList}\item 
+\hypertarget{classAlgorithm_f2bb23f6875f069568da85e78062296c}{
+static void \textbf{cut\_\-between\_\-words} (StringT \&str, const StringT \&p1, const StringT \&p2, StrCompMode caseChk=SM\_\-SENSITIVE)}
+\label{classAlgorithm_f2bb23f6875f069568da85e78062296c}
+
+\item 
+\hypertarget{classAlgorithm_0838d9b4f348935e22b12563f0b32176}{
+static StringT \textbf{cut\_\-word\_\-after} (const StringT \&str, const StringT \&tag, StrCompMode caseChk=SM\_\-IGNORE)}
+\label{classAlgorithm_0838d9b4f348935e22b12563f0b32176}
+
+\item 
+\hypertarget{classAlgorithm_4ec6d907ba268d826af8aaeba026c914}{
+static void \textbf{cut\_\-word\_\-after} (StringT \&str, const StringT \&tag, StrCompMode caseChk=SM\_\-IGNORE)}
+\label{classAlgorithm_4ec6d907ba268d826af8aaeba026c914}
+
+\item 
+\hypertarget{classAlgorithm_a054d95e87397ed7023256ec1e766e4a}{
+static StringT \textbf{cut\_\-line\_\-after} (const StringT \&str, const StringT \&tag, StrCompMode caseChk=SM\_\-IGNORE)}
+\label{classAlgorithm_a054d95e87397ed7023256ec1e766e4a}
+
+\item 
+\hypertarget{classAlgorithm_ad27aa1fdeee7b587caeb7ea1fd0efd6}{
+static void \textbf{cut\_\-line\_\-after} (StringT \&str, const StringT \&tag, StrCompMode caseChk=SM\_\-IGNORE)}
+\label{classAlgorithm_ad27aa1fdeee7b587caeb7ea1fd0efd6}
+
+\item 
+\hypertarget{classAlgorithm_608f3b14b1fc1f2da645f17ec11246f4}{
+static void \hyperlink{classAlgorithm_608f3b14b1fc1f2da645f17ec11246f4}{take\_\-between\_\-marks} (const StringT \&str, CharT beg, CharT end, std::vector$<$ StringT $>$ \&arrayOfstrings)}
+\label{classAlgorithm_608f3b14b1fc1f2da645f17ec11246f4}
+
+\begin{CompactList}\small\item\em : Returns n DynamicArray of StringTs of which elements contain the words between the marks. It doesn't contain the marks itself. \item\end{CompactList}\item 
+\hypertarget{classAlgorithm_e5fb413e10c74a15ad845d55033532ee}{
+static void \hyperlink{classAlgorithm_e5fb413e10c74a15ad845d55033532ee}{take\_\-between\_\-mark} (const StringT \&str, CharT mark, std::vector$<$ StringT $>$ \&arrayOfstrings)}
+\label{classAlgorithm_e5fb413e10c74a15ad845d55033532ee}
+
+\begin{CompactList}\small\item\em : Returns n DynamicArray of strings of which elements contain the words between the marks. It doesn't contain the marks itself. \item\end{CompactList}\item 
+\hypertarget{classAlgorithm_cb7b68dc4465cc781c42c92859807cab}{
+static StringT \hyperlink{classAlgorithm_cb7b68dc4465cc781c42c92859807cab}{reverse\_\-cut\_\-rear\_\-with} (const StringT \&str, CharT tag, bool includeTag=false, StrCompMode caseChk=SM\_\-IGNORE)}
+\label{classAlgorithm_cb7b68dc4465cc781c42c92859807cab}
+
+\begin{CompactList}\small\item\em Returns the rear part that begins with the tag, including the tag depending on the option. \item\end{CompactList}\item 
+\hypertarget{classAlgorithm_822b25f8be062758f30ae2a466c9ba9a}{
+static void \textbf{reverse\_\-cut\_\-rear\_\-with} (StringT \&str, CharT tag, bool includeTag=false, StrCompMode caseChk=SM\_\-IGNORE)}
+\label{classAlgorithm_822b25f8be062758f30ae2a466c9ba9a}
+
+\item 
+\hypertarget{classAlgorithm_410bae390e6e6bcf16578718e2ac5aae}{
+static StringT \textbf{reverse\_\-cut\_\-front\_\-with} (const StringT \&str, CharT tag, bool includeTag=false, StrCompMode caseChk=SM\_\-IGNORE)}
+\label{classAlgorithm_410bae390e6e6bcf16578718e2ac5aae}
+
+\item 
+\hypertarget{classAlgorithm_6fb647cfad98ebf7d9ea6fb15c1a99ae}{
+static void \textbf{reverse\_\-cut\_\-front\_\-with} (StringT \&str, CharT tag, bool includeTag=false, StrCompMode caseChk=SM\_\-IGNORE)}
+\label{classAlgorithm_6fb647cfad98ebf7d9ea6fb15c1a99ae}
+
+\item 
+\hypertarget{classAlgorithm_408ada0c548f1efe5437092a030ad3a8}{
+static StringT \textbf{compact\_\-head} (const StringT \&str)}
+\label{classAlgorithm_408ada0c548f1efe5437092a030ad3a8}
+
+\item 
+\hypertarget{classAlgorithm_cecd9de0fd80290980dd73ab23517844}{
+static void \hyperlink{classAlgorithm_cecd9de0fd80290980dd73ab23517844}{compact\_\-head} (StringT \&str)}
+\label{classAlgorithm_cecd9de0fd80290980dd73ab23517844}
+
+\begin{CompactList}\small\item\em Cut trailing spaces in the tail. \item\end{CompactList}\item 
+\hypertarget{classAlgorithm_5e6276cd46260bf390528f3912f45219}{
+static StringT \textbf{compact\_\-tail} (const StringT \&str)}
+\label{classAlgorithm_5e6276cd46260bf390528f3912f45219}
+
+\item 
+\hypertarget{classAlgorithm_e53ee74a9acd0c38f05e9165b0793b12}{
+static void \textbf{compact\_\-tail} (StringT \&str)}
+\label{classAlgorithm_e53ee74a9acd0c38f05e9165b0793b12}
+
+\item 
+\hypertarget{classAlgorithm_25e7102a43f8619c1bb4267fc73b2336}{
+static StringT \textbf{compact} (const StringT \&str)}
+\label{classAlgorithm_25e7102a43f8619c1bb4267fc73b2336}
+
+\item 
+\hypertarget{classAlgorithm_e270ae897f5dda1b8e2d007913f777bd}{
+static void \textbf{compact} (StringT \&str)}
+\label{classAlgorithm_e270ae897f5dda1b8e2d007913f777bd}
+
+\item 
+\hypertarget{classAlgorithm_de1ad223dfbe083fef46669426ccf599}{
+static StringT \textbf{trim} (const StringT \&str)}
+\label{classAlgorithm_de1ad223dfbe083fef46669426ccf599}
+
+\item 
+\hypertarget{classAlgorithm_bde58525e896a9335411f68393f87d10}{
+static void \textbf{trim} (StringT \&str)}
+\label{classAlgorithm_bde58525e896a9335411f68393f87d10}
+
+\item 
+\hypertarget{classAlgorithm_c4fed76db6affd3bfa4217b1bf57744e}{
+static void \textbf{read\_\-from\_\-file} (const char $\ast$filename, std::vector$<$ StringT $>$ \&lines, CharT line='$\backslash$n')}
+\label{classAlgorithm_c4fed76db6affd3bfa4217b1bf57744e}
+
+\item 
+\hypertarget{classAlgorithm_a2b2c0788b3dbb1521eae8685478aa2e}{
+static void \textbf{write\_\-to\_\-file} (const char $\ast$filename, const std::vector$<$ StringT $>$ \&lines)}
+\label{classAlgorithm_a2b2c0788b3dbb1521eae8685478aa2e}
+
+\item 
+static void \hyperlink{classAlgorithm_7f3d9af1b1567546161c773696660c5f}{read\_\-filenames} (const StringT \&dir, std::vector$<$ StringT $>$ \&files)
+\begin{CompactList}\small\item\em Read all the names of the files in the specified directory. \item\end{CompactList}\item 
+\hypertarget{classAlgorithm_fa3287000daf77817025b444b951af77}{
+static StringT \textbf{generate\_\-random\_\-string} (size\_\-t size)}
+\label{classAlgorithm_fa3287000daf77817025b444b951af77}
+
+\item 
+static bool \hyperlink{classAlgorithm_f51c5e010fd029995daabff0ba2dd224}{read\_\-from\_\-encode} (const char $\ast$encode\_\-type, const char $\ast$input, size\_\-t len, StringT \&output)
+\item 
+static bool \hyperlink{classAlgorithm_71b0e9191bc505859f1b6d4d50cb9a16}{write\_\-to\_\-encode} (const char $\ast$encode\_\-type, char $\ast$$\ast$output, size\_\-t \&len, const StringT \&input)
+\item 
+\hypertarget{classAlgorithm_2089d52191fd52e7cf0d6574ad72212b}{
+static void \textbf{release} (char $\ast$p)}
+\label{classAlgorithm_2089d52191fd52e7cf0d6574ad72212b}
+
+\item 
+static void \hyperlink{classAlgorithm_1bda1a6c7890a94c5b5e3a687965bfe4}{display} (const StringT \&str, const char $\ast$encode\_\-t=\char`\"{}UTF-8\char`\"{}, std::ostream \&os=std::cout)
+\end{CompactItemize}
+
+
+\subsection{Detailed Description}
+\subsubsection*{template$<$class StringT = std::string, class IS\_\-NUMERIC = is\_\-numeric$<$typename StringT::value\_\-type$>$, class IS\_\-ALPHABET = is\_\-alphabet$<$typename StringT::value\_\-type$>$$>$ class Algorithm$<$ StringT, IS\_\-NUMERIC, IS\_\-ALPHABET $>$}
+
+An string algorithm set. 
+
+It is an algorithm set about string. Temlate parameter StringT indicates the string type. IS\_\-NUMERIC indicates a class about deciding if it is a numeric. IS\_\-ALPHABET is a class to judge about charactors in alphabet. 
+
+Definition at line 132 of file algo.hpp.
+
+\subsection{Member Function Documentation}
+\hypertarget{classAlgorithm_5e4035b8afe3b04f371314b4e6840798}{
+\index{Algorithm@{Algorithm}!cut\_\-between\_\-words@{cut\_\-between\_\-words}}
+\index{cut\_\-between\_\-words@{cut\_\-between\_\-words}!Algorithm@{Algorithm}}
+\subsubsection[{cut\_\-between\_\-words}]{\setlength{\rightskip}{0pt plus 5cm}template$<$class StringT  = std::string, class IS\_\-NUMERIC  = is\_\-numeric$<$typename StringT::value\_\-type$>$, class IS\_\-ALPHABET  = is\_\-alphabet$<$typename StringT::value\_\-type$>$$>$ static StringT {\bf Algorithm}$<$ StringT, IS\_\-NUMERIC, IS\_\-ALPHABET $>$::cut\_\-between\_\-words (const StringT \& {\em str}, \/  const StringT \& {\em p1}, \/  const StringT \& {\em p2}, \/  StrCompMode {\em caseChk} = {\tt SM\_\-SENSITIVE})\hspace{0.3cm}{\tt  \mbox{[}inline, static\mbox{]}}}}
+\label{classAlgorithm_5e4035b8afe3b04f371314b4e6840798}
+
+
+Cut between the specified two patterns. 
+
+Cut between the specified two patterns. The return values starts with the first pattern and ends with the second one. 
+
+Definition at line 943 of file algo.hpp.\hypertarget{classAlgorithm_70e04500b28f3c0b0b8cc75532aa4eee}{
+\index{Algorithm@{Algorithm}!cut\_\-delimiter@{cut\_\-delimiter}}
+\index{cut\_\-delimiter@{cut\_\-delimiter}!Algorithm@{Algorithm}}
+\subsubsection[{cut\_\-delimiter}]{\setlength{\rightskip}{0pt plus 5cm}template$<$class StringT  = std::string, class IS\_\-NUMERIC  = is\_\-numeric$<$typename StringT::value\_\-type$>$, class IS\_\-ALPHABET  = is\_\-alphabet$<$typename StringT::value\_\-type$>$$>$ static StringT {\bf Algorithm}$<$ StringT, IS\_\-NUMERIC, IS\_\-ALPHABET $>$::cut\_\-delimiter (const StringT \& {\em str}, \/  size\_\-t {\em start}, \/  CharT {\em delimiter})\hspace{0.3cm}{\tt  \mbox{[}inline, static\mbox{]}}}}
+\label{classAlgorithm_70e04500b28f3c0b0b8cc75532aa4eee}
+
+
+string retrieval method. 
+
+string retrieval method. Returns the string from start to right before the delimiter character. Does not affect the receiver itself. 
+
+Definition at line 902 of file algo.hpp.\hypertarget{classAlgorithm_1bda1a6c7890a94c5b5e3a687965bfe4}{
+\index{Algorithm@{Algorithm}!display@{display}}
+\index{display@{display}!Algorithm@{Algorithm}}
+\subsubsection[{display}]{\setlength{\rightskip}{0pt plus 5cm}template$<$class StringT  = std::string, class IS\_\-NUMERIC  = is\_\-numeric$<$typename StringT::value\_\-type$>$, class IS\_\-ALPHABET  = is\_\-alphabet$<$typename StringT::value\_\-type$>$$>$ static void {\bf Algorithm}$<$ StringT, IS\_\-NUMERIC, IS\_\-ALPHABET $>$::display (const StringT \& {\em str}, \/  const char $\ast$ {\em encode\_\-t} = {\tt \char`\"{}UTF-8\char`\"{}}, \/  std::ostream \& {\em os} = {\tt std::cout})\hspace{0.3cm}{\tt  \mbox{[}inline, static\mbox{]}}}}
+\label{classAlgorithm_1bda1a6c7890a94c5b5e3a687965bfe4}
+
+
+Output str in encode\_\-t into os. 
+
+Definition at line 1448 of file algo.hpp.\hypertarget{classAlgorithm_9f7fcee0cfbabce55c5a9cabb1868f29}{
+\index{Algorithm@{Algorithm}!KMP@{KMP}}
+\index{KMP@{KMP}!Algorithm@{Algorithm}}
+\subsubsection[{KMP}]{\setlength{\rightskip}{0pt plus 5cm}template$<$class StringT  = std::string, class IS\_\-NUMERIC  = is\_\-numeric$<$typename StringT::value\_\-type$>$, class IS\_\-ALPHABET  = is\_\-alphabet$<$typename StringT::value\_\-type$>$$>$ static uint64\_\-t {\bf Algorithm}$<$ StringT, IS\_\-NUMERIC, IS\_\-ALPHABET $>$::KMP (const StringT \& {\em text}, \/  const StringT \& {\em pattern}, \/  StrCompMode {\em caseChk} = {\tt SM\_\-SENSITIVE})\hspace{0.3cm}{\tt  \mbox{[}inline, static\mbox{]}}}}
+\label{classAlgorithm_9f7fcee0cfbabce55c5a9cabb1868f29}
+
+
+KMP, an string maching algorithm. caseChk could be SM\_\-SENSITIVE or SM\_\-IGNORE. Return the index of the first instance of pattern started from 0. 
+
+Definition at line 171 of file algo.hpp.\hypertarget{classAlgorithm_0a6aaf09e6d9d4214b5d6c86938006fb}{
+\index{Algorithm@{Algorithm}!multi\_\-substitute\_\-string@{multi\_\-substitute\_\-string}}
+\index{multi\_\-substitute\_\-string@{multi\_\-substitute\_\-string}!Algorithm@{Algorithm}}
+\subsubsection[{multi\_\-substitute\_\-string}]{\setlength{\rightskip}{0pt plus 5cm}template$<$class StringT  = std::string, class IS\_\-NUMERIC  = is\_\-numeric$<$typename StringT::value\_\-type$>$, class IS\_\-ALPHABET  = is\_\-alphabet$<$typename StringT::value\_\-type$>$$>$ static size\_\-t {\bf Algorithm}$<$ StringT, IS\_\-NUMERIC, IS\_\-ALPHABET $>$::multi\_\-substitute\_\-string (const StringT \& {\em from}, \/  const StringT \& {\em to}, \/  StringT \& {\em str}, \/  size\_\-t {\em pos} = {\tt 0}, \/  StrCompMode {\em caseChk} = {\tt SM\_\-IGNORE})\hspace{0.3cm}{\tt  \mbox{[}inline, static\mbox{]}}}}
+\label{classAlgorithm_0a6aaf09e6d9d4214b5d6c86938006fb}
+
+
+Substitute the to string for from. 
+
+Substitute the to string for from. Beware that it will substitute as many times as necessary. Returns the resulting string. 
+
+Definition at line 694 of file algo.hpp.\hypertarget{classAlgorithm_7f3d9af1b1567546161c773696660c5f}{
+\index{Algorithm@{Algorithm}!read\_\-filenames@{read\_\-filenames}}
+\index{read\_\-filenames@{read\_\-filenames}!Algorithm@{Algorithm}}
+\subsubsection[{read\_\-filenames}]{\setlength{\rightskip}{0pt plus 5cm}template$<$class StringT  = std::string, class IS\_\-NUMERIC  = is\_\-numeric$<$typename StringT::value\_\-type$>$, class IS\_\-ALPHABET  = is\_\-alphabet$<$typename StringT::value\_\-type$>$$>$ static void {\bf Algorithm}$<$ StringT, IS\_\-NUMERIC, IS\_\-ALPHABET $>$::read\_\-filenames (const StringT \& {\em dir}, \/  std::vector$<$ StringT $>$ \& {\em files})\hspace{0.3cm}{\tt  \mbox{[}inline, static\mbox{]}}}}
+\label{classAlgorithm_7f3d9af1b1567546161c773696660c5f}
+
+
+Read all the names of the files in the specified directory. 
+
+Read all the names of the files in the specified directory. If there are any errors such as no such directory, it just returns leaving the reference argument unchanged. It discards '.' and '..' files. 
+
+Definition at line 1310 of file algo.hpp.\hypertarget{classAlgorithm_f51c5e010fd029995daabff0ba2dd224}{
+\index{Algorithm@{Algorithm}!read\_\-from\_\-encode@{read\_\-from\_\-encode}}
+\index{read\_\-from\_\-encode@{read\_\-from\_\-encode}!Algorithm@{Algorithm}}
+\subsubsection[{read\_\-from\_\-encode}]{\setlength{\rightskip}{0pt plus 5cm}template$<$class StringT  = std::string, class IS\_\-NUMERIC  = is\_\-numeric$<$typename StringT::value\_\-type$>$, class IS\_\-ALPHABET  = is\_\-alphabet$<$typename StringT::value\_\-type$>$$>$ static bool {\bf Algorithm}$<$ StringT, IS\_\-NUMERIC, IS\_\-ALPHABET $>$::read\_\-from\_\-encode (const char $\ast$ {\em encode\_\-type}, \/  const char $\ast$ {\em input}, \/  size\_\-t {\em len}, \/  StringT \& {\em output})\hspace{0.3cm}{\tt  \mbox{[}inline, static\mbox{]}}}}
+\label{classAlgorithm_f51c5e010fd029995daabff0ba2dd224}
+
+
+Text in input is transformed from encode\_\-type into UCS-2 and stored in output. Generally, this step is ahead of text processing for various encode type text. 
+
+Definition at line 1344 of file algo.hpp.\hypertarget{classAlgorithm_114fe02302e735017ae2277a1b173e96}{
+\index{Algorithm@{Algorithm}!remove\_\-duplicate\_\-chars@{remove\_\-duplicate\_\-chars}}
+\index{remove\_\-duplicate\_\-chars@{remove\_\-duplicate\_\-chars}!Algorithm@{Algorithm}}
+\subsubsection[{remove\_\-duplicate\_\-chars}]{\setlength{\rightskip}{0pt plus 5cm}template$<$class StringT  = std::string, class IS\_\-NUMERIC  = is\_\-numeric$<$typename StringT::value\_\-type$>$, class IS\_\-ALPHABET  = is\_\-alphabet$<$typename StringT::value\_\-type$>$$>$ static void {\bf Algorithm}$<$ StringT, IS\_\-NUMERIC, IS\_\-ALPHABET $>$::remove\_\-duplicate\_\-chars (StringT \& {\em str}, \/  CharT {\em c})\hspace{0.3cm}{\tt  \mbox{[}inline, static\mbox{]}}}}
+\label{classAlgorithm_114fe02302e735017ae2277a1b173e96}
+
+
+Replace all the occurrences of the given characters with spaces. 
+
+Replace all the occurrences of the given characters with spaces. 
+
+Definition at line 809 of file algo.hpp.\hypertarget{classAlgorithm_a3e24e19980c0dd29c80f9feff6e5191}{
+\index{Algorithm@{Algorithm}!rKMP@{rKMP}}
+\index{rKMP@{rKMP}!Algorithm@{Algorithm}}
+\subsubsection[{rKMP}]{\setlength{\rightskip}{0pt plus 5cm}template$<$class StringT  = std::string, class IS\_\-NUMERIC  = is\_\-numeric$<$typename StringT::value\_\-type$>$, class IS\_\-ALPHABET  = is\_\-alphabet$<$typename StringT::value\_\-type$>$$>$ static uint64\_\-t {\bf Algorithm}$<$ StringT, IS\_\-NUMERIC, IS\_\-ALPHABET $>$::rKMP (const StringT \& {\em text}, \/  const StringT \& {\em pattern}, \/  StrCompMode {\em caseChk} = {\tt SM\_\-SENSITIVE})\hspace{0.3cm}{\tt  \mbox{[}inline, static\mbox{]}}}}
+\label{classAlgorithm_a3e24e19980c0dd29c80f9feff6e5191}
+
+
+KMP, an string maching algorithm. caseChk could be SM\_\-SENSITIVE or SM\_\-IGNORE. It searches from back. Return the index of the first instance of pattern started from 0. 
+
+Definition at line 254 of file algo.hpp.\hypertarget{classAlgorithm_658530c0e10cee77d1c94801efc28b1d}{
+\index{Algorithm@{Algorithm}!substitute\_\-string@{substitute\_\-string}}
+\index{substitute\_\-string@{substitute\_\-string}!Algorithm@{Algorithm}}
+\subsubsection[{substitute\_\-string}]{\setlength{\rightskip}{0pt plus 5cm}template$<$class StringT  = std::string, class IS\_\-NUMERIC  = is\_\-numeric$<$typename StringT::value\_\-type$>$, class IS\_\-ALPHABET  = is\_\-alphabet$<$typename StringT::value\_\-type$>$$>$ static StringT {\bf Algorithm}$<$ StringT, IS\_\-NUMERIC, IS\_\-ALPHABET $>$::substitute\_\-string (const StringT \& {\em from}, \/  const StringT \& {\em to}, \/  const StringT \& {\em str}, \/  size\_\-t {\em pos} = {\tt 0}, \/  StrCompMode {\em caseChk} = {\tt SM\_\-IGNORE})\hspace{0.3cm}{\tt  \mbox{[}inline, static\mbox{]}}}}
+\label{classAlgorithm_658530c0e10cee77d1c94801efc28b1d}
+
+
+Substitute the to string for from. 
+
+Substitute the to string for from. Beware that it will substitute only one time! Returns the resulting string. Aborts if there is no 'from' string. 
+
+Definition at line 752 of file algo.hpp.\hypertarget{classAlgorithm_617415dba55cc4533e4776760178032b}{
+\index{Algorithm@{Algorithm}!to\_\-lower@{to\_\-lower}}
+\index{to\_\-lower@{to\_\-lower}!Algorithm@{Algorithm}}
+\subsubsection[{to\_\-lower}]{\setlength{\rightskip}{0pt plus 5cm}template$<$class StringT  = std::string, class IS\_\-NUMERIC  = is\_\-numeric$<$typename StringT::value\_\-type$>$, class IS\_\-ALPHABET  = is\_\-alphabet$<$typename StringT::value\_\-type$>$$>$ static StringT {\bf Algorithm}$<$ StringT, IS\_\-NUMERIC, IS\_\-ALPHABET $>$::to\_\-lower (const StringT \& {\em str})\hspace{0.3cm}{\tt  \mbox{[}inline, static\mbox{]}}}}
+\label{classAlgorithm_617415dba55cc4533e4776760178032b}
+
+
+Change all the upper case to lower case in the \_\-text. 
+
+Change all the upper case to lower case in the \_\-text. It forces const char$\ast$ to char$\ast$. Do more research on std::string 
+
+Definition at line 416 of file algo.hpp.\hypertarget{classAlgorithm_42e06428b21a425ac2da8d60313ab9a9}{
+\index{Algorithm@{Algorithm}!to\_\-upper@{to\_\-upper}}
+\index{to\_\-upper@{to\_\-upper}!Algorithm@{Algorithm}}
+\subsubsection[{to\_\-upper}]{\setlength{\rightskip}{0pt plus 5cm}template$<$class StringT  = std::string, class IS\_\-NUMERIC  = is\_\-numeric$<$typename StringT::value\_\-type$>$, class IS\_\-ALPHABET  = is\_\-alphabet$<$typename StringT::value\_\-type$>$$>$ static void {\bf Algorithm}$<$ StringT, IS\_\-NUMERIC, IS\_\-ALPHABET $>$::to\_\-upper (StringT \& {\em str})\hspace{0.3cm}{\tt  \mbox{[}inline, static\mbox{]}}}}
+\label{classAlgorithm_42e06428b21a425ac2da8d60313ab9a9}
+
+
+Change all the lower case to upper caes in the \_\-text. 
+
+Change all the lower case to upper caes in the \_\-text. It forces const char$\ast$ to char$\ast$. Do more research on std::string 
+
+Definition at line 401 of file algo.hpp.\hypertarget{classAlgorithm_71b0e9191bc505859f1b6d4d50cb9a16}{
+\index{Algorithm@{Algorithm}!write\_\-to\_\-encode@{write\_\-to\_\-encode}}
+\index{write\_\-to\_\-encode@{write\_\-to\_\-encode}!Algorithm@{Algorithm}}
+\subsubsection[{write\_\-to\_\-encode}]{\setlength{\rightskip}{0pt plus 5cm}template$<$class StringT  = std::string, class IS\_\-NUMERIC  = is\_\-numeric$<$typename StringT::value\_\-type$>$, class IS\_\-ALPHABET  = is\_\-alphabet$<$typename StringT::value\_\-type$>$$>$ static bool {\bf Algorithm}$<$ StringT, IS\_\-NUMERIC, IS\_\-ALPHABET $>$::write\_\-to\_\-encode (const char $\ast$ {\em encode\_\-type}, \/  char $\ast$$\ast$ {\em output}, \/  size\_\-t \& {\em len}, \/  const StringT \& {\em input})\hspace{0.3cm}{\tt  \mbox{[}inline, static\mbox{]}}}}
+\label{classAlgorithm_71b0e9191bc505859f1b6d4d50cb9a16}
+
+
+Text in input of UCS-2 can be transformed into encode\_\-type and restored into output. There a new memory block will be applyed for outputing. And the size of the block will be of len. So, the output should be released by calling release at the later section. This step is mainly called after text have been processed. 
+
+Definition at line 1394 of file algo.hpp.
+
+The documentation for this class was generated from the following file:\begin{CompactItemize}
+\item 
+/home/Kevin/izenelib/include/util/istring/algo.hpp\end{CompactItemize}

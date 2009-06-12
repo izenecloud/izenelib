@@ -1,0 +1,73 @@
+\hypertarget{classAlphabetGenerator}{
+\section{AlphabetGenerator$<$ ENCODE\_\-TYPE $>$ Class Template Reference}
+\label{classAlphabetGenerator}\index{AlphabetGenerator@{AlphabetGenerator}}
+}
+It is to generate alphabet in an unsigned short array.  
+
+
+{\tt \#include $<$alphabet.hpp$>$}
+
+\subsection*{Public Member Functions}
+\begin{CompactItemize}
+\item 
+\hypertarget{classAlphabetGenerator_5a3ad903e6f32bc0d6a4c4d6e2141409}{
+\textbf{AlphabetGenerator} (const string \&alp)}
+\label{classAlphabetGenerator_5a3ad903e6f32bc0d6a4c4d6e2141409}
+
+\end{CompactItemize}
+\subsection*{Protected Member Functions}
+\begin{CompactItemize}
+\item 
+void \hyperlink{classAlphabetGenerator_043cc2c724f3a9bbb6bc2e2fa08eb9e0}{sort} ()
+\end{CompactItemize}
+\subsection*{Protected Attributes}
+\begin{CompactItemize}
+\item 
+\hypertarget{classAlphabetGenerator_0db8d367924101a625df65847f309c91}{
+UString $\ast$ \textbf{pUstr\_\-}}
+\label{classAlphabetGenerator_0db8d367924101a625df65847f309c91}
+
+\end{CompactItemize}
+\subsection*{Friends}
+\begin{CompactItemize}
+\item 
+ostream \& \hyperlink{classAlphabetGenerator_31333380ab17eefe3011a767aafbcbbb}{operator$<$$<$} (ostream \&os, const \hyperlink{classAlphabetGenerator}{AlphabetGenerator} \&alp)
+\end{CompactItemize}
+
+
+\subsection{Detailed Description}
+\subsubsection*{template$<$UString::EncodingType ENCODE\_\-TYPE$>$ class AlphabetGenerator$<$ ENCODE\_\-TYPE $>$}
+
+It is to generate alphabet in an unsigned short array. 
+
+Take english charactors for example. The input string is 'abcdefghijklmnopqrstuvwxyz'. Then, it will print an sorted unsigned short array for the input in console. 
+
+Definition at line 22 of file alphabet.hpp.
+
+\subsection{Member Function Documentation}
+\hypertarget{classAlphabetGenerator_043cc2c724f3a9bbb6bc2e2fa08eb9e0}{
+\index{AlphabetGenerator@{AlphabetGenerator}!sort@{sort}}
+\index{sort@{sort}!AlphabetGenerator@{AlphabetGenerator}}
+\subsubsection[{sort}]{\setlength{\rightskip}{0pt plus 5cm}template$<$UString::EncodingType ENCODE\_\-TYPE$>$ void {\bf AlphabetGenerator}$<$ ENCODE\_\-TYPE $>$::sort ()\hspace{0.3cm}{\tt  \mbox{[}inline, protected\mbox{]}}}}
+\label{classAlphabetGenerator_043cc2c724f3a9bbb6bc2e2fa08eb9e0}
+
+
+It sorts the alphabet in increasing order. 
+
+Definition at line 60 of file alphabet.hpp.
+
+\subsection{Friends And Related Function Documentation}
+\hypertarget{classAlphabetGenerator_31333380ab17eefe3011a767aafbcbbb}{
+\index{AlphabetGenerator@{AlphabetGenerator}!operator$<$$<$@{operator$<$$<$}}
+\index{operator$<$$<$@{operator$<$$<$}!AlphabetGenerator@{AlphabetGenerator}}
+\subsubsection[{operator$<$$<$}]{\setlength{\rightskip}{0pt plus 5cm}template$<$UString::EncodingType ENCODE\_\-TYPE$>$ ostream\& operator$<$$<$ (ostream \& {\em os}, \/  const {\bf AlphabetGenerator}$<$ ENCODE\_\-TYPE $>$ \& {\em alp})\hspace{0.3cm}{\tt  \mbox{[}friend\mbox{]}}}}
+\label{classAlphabetGenerator_31333380ab17eefe3011a767aafbcbbb}
+
+
+It prints the sorted alphabet in console 
+
+Definition at line 39 of file alphabet.hpp.
+
+The documentation for this class was generated from the following file:\begin{CompactItemize}
+\item 
+/home/Kevin/izenelib/include/am/trie/alphabet.hpp\end{CompactItemize}

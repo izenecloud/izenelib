@@ -1,0 +1,108 @@
+\hypertarget{classutil_1_1DbObj}{
+\section{util::DbObj Class Reference}
+\label{classutil_1_1DbObj}\index{util::DbObj@{util::DbObj}}
+}
+It represents the sort of objects we deal with in the BtreeFile. This is analogous to a DBT in the Berkeley DB package.  
+
+
+{\tt \#include $<$DbObj.h$>$}
+
+Inheritance diagram for util::DbObj::\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[height=2cm]{classutil_1_1DbObj}
+\end{center}
+\end{figure}
+\subsection*{Public Member Functions}
+\begin{CompactItemize}
+\item 
+\hypertarget{classutil_1_1DbObj_46bd24be85b68ed873f666fbd7ce7c1a}{
+\hyperlink{classutil_1_1DbObj_46bd24be85b68ed873f666fbd7ce7c1a}{DbObj} (void)}
+\label{classutil_1_1DbObj_46bd24be85b68ed873f666fbd7ce7c1a}
+
+\begin{CompactList}\small\item\em Default constructor. \item\end{CompactList}\item 
+\hypertarget{classutil_1_1DbObj_2e027cc833635b3605019a700d89204e}{
+\hyperlink{classutil_1_1DbObj_2e027cc833635b3605019a700d89204e}{DbObj} (void $\ast$pd, size\_\-t sz)}
+\label{classutil_1_1DbObj_2e027cc833635b3605019a700d89204e}
+
+\begin{CompactList}\small\item\em Constructor taking a pointer and a size. Make a copy of the \_\-data. \item\end{CompactList}\item 
+\hypertarget{classutil_1_1DbObj_720ec59f22fb852f5c3ba05eafd929bb}{
+\hyperlink{classutil_1_1DbObj_720ec59f22fb852f5c3ba05eafd929bb}{DbObj} (const std::string \&s)}
+\label{classutil_1_1DbObj_720ec59f22fb852f5c3ba05eafd929bb}
+
+\begin{CompactList}\small\item\em Constructor taking a std::string reference. \item\end{CompactList}\item 
+\hypertarget{classutil_1_1DbObj_040ba9bb33234312d548d872abb0f2d5}{
+\hyperlink{classutil_1_1DbObj_040ba9bb33234312d548d872abb0f2d5}{DbObj} (const char $\ast$ps, size\_\-t sz=0)}
+\label{classutil_1_1DbObj_040ba9bb33234312d548d872abb0f2d5}
+
+\begin{CompactList}\small\item\em Constructor taking a (possibly) null terminated string. \item\end{CompactList}\item 
+\hypertarget{classutil_1_1DbObj_62f11587e8f18e0651899a705a81cb57}{
+\hyperlink{classutil_1_1DbObj_62f11587e8f18e0651899a705a81cb57}{DbObj} (unsigned long ul)}
+\label{classutil_1_1DbObj_62f11587e8f18e0651899a705a81cb57}
+
+\begin{CompactList}\small\item\em Constructor taking a 32-bit unsigned int. \item\end{CompactList}\item 
+\hypertarget{classutil_1_1DbObj_6e0111e212b37df66882bdb72e9c8c6c}{
+\hyperlink{classutil_1_1DbObj_6e0111e212b37df66882bdb72e9c8c6c}{DbObj} (long l)}
+\label{classutil_1_1DbObj_6e0111e212b37df66882bdb72e9c8c6c}
+
+\begin{CompactList}\small\item\em Constructor taking a 32-bit int. \item\end{CompactList}\item 
+\hypertarget{classutil_1_1DbObj_457d23bfb694740c2218bd5040e35447}{
+\hyperlink{classutil_1_1DbObj_457d23bfb694740c2218bd5040e35447}{DbObj} (unsigned short us)}
+\label{classutil_1_1DbObj_457d23bfb694740c2218bd5040e35447}
+
+\begin{CompactList}\small\item\em Constructor taking a 16-bit unsigned int. \item\end{CompactList}\item 
+\hypertarget{classutil_1_1DbObj_bf2739aefeef09b66ff61afc3e265c80}{
+\hyperlink{classutil_1_1DbObj_bf2739aefeef09b66ff61afc3e265c80}{DbObj} (short s)}
+\label{classutil_1_1DbObj_bf2739aefeef09b66ff61afc3e265c80}
+
+\begin{CompactList}\small\item\em Constructor taking a 16-bit int. \item\end{CompactList}\item 
+\hypertarget{classutil_1_1DbObj_7b47bfe0c0e78e0f422ea07e2610fe14}{
+\hyperlink{classutil_1_1DbObj_7b47bfe0c0e78e0f422ea07e2610fe14}{DbObj} (\hyperlink{classutil_1_1DbObj}{DbObj} \&obj)}
+\label{classutil_1_1DbObj_7b47bfe0c0e78e0f422ea07e2610fe14}
+
+\begin{CompactList}\small\item\em Copy constructor. Call the assignment operator. \item\end{CompactList}\item 
+\hypertarget{classutil_1_1DbObj_19e815572aa7cfd9e46f28d5773249d4}{
+\hyperlink{classutil_1_1DbObj_19e815572aa7cfd9e46f28d5773249d4}{$\sim$DbObj} ()}
+\label{classutil_1_1DbObj_19e815572aa7cfd9e46f28d5773249d4}
+
+\begin{CompactList}\small\item\em Destructor. Delete the pointer if the size is non-zero. \item\end{CompactList}\item 
+\hypertarget{classutil_1_1DbObj_c31df94831fa0bd0fe3985dc7b75a537}{
+\hyperlink{classutil_1_1DbObj}{DbObj} \& \hyperlink{classutil_1_1DbObj_c31df94831fa0bd0fe3985dc7b75a537}{operator=} (\hyperlink{classutil_1_1DbObj}{DbObj} \&obj)}
+\label{classutil_1_1DbObj_c31df94831fa0bd0fe3985dc7b75a537}
+
+\begin{CompactList}\small\item\em Assignment operator. Make a copy of the other object. \item\end{CompactList}\item 
+\hypertarget{classutil_1_1DbObj_73bd7141e5cbb5dd8541a499d05b491f}{
+bool \textbf{operator$<$=} (\hyperlink{classutil_1_1DbObj}{DbObj} \&obj)}
+\label{classutil_1_1DbObj_73bd7141e5cbb5dd8541a499d05b491f}
+
+\item 
+\hypertarget{classutil_1_1DbObj_259462777be63c2c7f7aa17b57cd6294}{
+const void $\ast$ \textbf{getData} () const }
+\label{classutil_1_1DbObj_259462777be63c2c7f7aa17b57cd6294}
+
+\item 
+\hypertarget{classutil_1_1DbObj_46671534c7545b9a908838e82b7ec266}{
+size\_\-t \textbf{getSize} () const }
+\label{classutil_1_1DbObj_46671534c7545b9a908838e82b7ec266}
+
+\item 
+\hypertarget{classutil_1_1DbObj_1c4f5599227873c8116b4ceed4f17999}{
+void \textbf{setData} (const void $\ast$pd, size\_\-t sz)}
+\label{classutil_1_1DbObj_1c4f5599227873c8116b4ceed4f17999}
+
+\item 
+\hypertarget{classutil_1_1DbObj_b37c5a97bac8d4ba8a2ea3d8c3f02db9}{
+void \textbf{display} ()}
+\label{classutil_1_1DbObj_b37c5a97bac8d4ba8a2ea3d8c3f02db9}
+
+\end{CompactItemize}
+
+
+\subsection{Detailed Description}
+It represents the sort of objects we deal with in the BtreeFile. This is analogous to a DBT in the Berkeley DB package. 
+
+Definition at line 39 of file DbObj.h.
+
+The documentation for this class was generated from the following file:\begin{CompactItemize}
+\item 
+/home/Kevin/izenelib/include/am/util/DbObj.h\end{CompactItemize}

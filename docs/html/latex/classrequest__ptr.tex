@@ -1,0 +1,59 @@
+\hypertarget{classrequest__ptr}{
+\section{request\_\-ptr Class Reference}
+\label{classrequest__ptr}\index{request\_\-ptr@{request\_\-ptr}}
+}
+A smart wrapper for {\tt \hyperlink{classrequest}{request}} pointer.  
+
+
+{\tt \#include $<$iobase.h$>$}
+
+\subsection*{Public Member Functions}
+\begin{CompactItemize}
+\item 
+\hypertarget{group__iolayer_ge78ff55c792061dae60eebda7b08615a}{
+\hyperlink{group__iolayer_ge78ff55c792061dae60eebda7b08615a}{request\_\-ptr} (\hyperlink{classrequest}{request} $\ast$ptr\_\-=NULL)}
+\label{group__iolayer_ge78ff55c792061dae60eebda7b08615a}
+
+\begin{CompactList}\small\item\em Constructs an {\tt \hyperlink{classrequest__ptr}{request\_\-ptr}} from {\tt \hyperlink{classrequest}{request}} pointer. \item\end{CompactList}\item 
+\hypertarget{group__iolayer_gfbd62f3bb0fe9378ffe9defd6be764dc}{
+\hyperlink{group__iolayer_gfbd62f3bb0fe9378ffe9defd6be764dc}{request\_\-ptr} (const \hyperlink{classrequest__ptr}{request\_\-ptr} \&p)}
+\label{group__iolayer_gfbd62f3bb0fe9378ffe9defd6be764dc}
+
+\begin{CompactList}\small\item\em Constructs an {\tt \hyperlink{classrequest__ptr}{request\_\-ptr}} from a {\tt \hyperlink{classrequest__ptr}{request\_\-ptr}} object. \item\end{CompactList}\item 
+\hypertarget{group__iolayer_g3dd322205e1e61403b2d14874a543ab4}{
+\hyperlink{group__iolayer_g3dd322205e1e61403b2d14874a543ab4}{$\sim$request\_\-ptr} ()}
+\label{group__iolayer_g3dd322205e1e61403b2d14874a543ab4}
+
+\begin{CompactList}\small\item\em Destructor. \item\end{CompactList}\item 
+\hyperlink{classrequest__ptr}{request\_\-ptr} \& \hyperlink{group__iolayer_g1f361f479f69ffb179ec4b54615aa1b5}{operator=} (const \hyperlink{classrequest__ptr}{request\_\-ptr} \&p)
+\begin{CompactList}\small\item\em Assignment operator from {\tt \hyperlink{classrequest__ptr}{request\_\-ptr}} object. \item\end{CompactList}\item 
+\hyperlink{classrequest__ptr}{request\_\-ptr} \& \hyperlink{group__iolayer_gfef634a7f244626b88ccfb71f93060e8}{operator=} (\hyperlink{classrequest}{request} $\ast$p)
+\begin{CompactList}\small\item\em Assignment operator from {\tt \hyperlink{classrequest}{request}} pointer. \item\end{CompactList}\item 
+\hyperlink{classrequest}{request} \& \hyperlink{group__iolayer_g15bd551f80acd18f2d0e3a1aade2b40c}{operator$\ast$} () const 
+\begin{CompactList}\small\item\em \char`\"{}Star\char`\"{} operator \item\end{CompactList}\item 
+\hyperlink{classrequest}{request} $\ast$ \hyperlink{group__iolayer_g9ccc7167eaa30948950571a094b9c902}{operator $\rightarrow$ } () const 
+\begin{CompactList}\small\item\em \char`\"{}Arrow\char`\"{} operator \item\end{CompactList}\item 
+\hyperlink{classrequest}{request} $\ast$ \hyperlink{group__iolayer_g30490f3d014bae40a66022640fb34153}{get} () const 
+\begin{CompactList}\small\item\em Access to owned {\tt \hyperlink{classrequest}{request}} object (synonym for {\tt \hyperlink{group__iolayer_g9ccc7167eaa30948950571a094b9c902}{operator $\rightarrow$ ()}} ). \item\end{CompactList}\item 
+\hypertarget{group__iolayer_g848a2fc2a409c2d22bd8a91dd22aebba}{
+bool \hyperlink{group__iolayer_g848a2fc2a409c2d22bd8a91dd22aebba}{valid} () const }
+\label{group__iolayer_g848a2fc2a409c2d22bd8a91dd22aebba}
+
+\begin{CompactList}\small\item\em Returns true if object is initialized. \item\end{CompactList}\item 
+\hypertarget{group__iolayer_g41b7141c1c672fac687ab81ce5438017}{
+bool \hyperlink{group__iolayer_g41b7141c1c672fac687ab81ce5438017}{empty} () const }
+\label{group__iolayer_g41b7141c1c672fac687ab81ce5438017}
+
+\begin{CompactList}\small\item\em Returns true if object is not initialized. \item\end{CompactList}\end{CompactItemize}
+
+
+\subsection{Detailed Description}
+A smart wrapper for {\tt \hyperlink{classrequest}{request}} pointer. 
+
+Implemented as reference counting smart pointer. 
+
+Definition at line 326 of file iobase.h.
+
+The documentation for this class was generated from the following file:\begin{CompactItemize}
+\item 
+/home/Kevin/izenelib/include/am/blockmanager/iobase.h\end{CompactItemize}

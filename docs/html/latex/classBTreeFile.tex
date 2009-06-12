@@ -1,0 +1,307 @@
+\hypertarget{classBTreeFile}{
+\section{BTreeFile$<$ KeyType, ValueType, LockType, Alloc $>$ Class Template Reference}
+\label{classBTreeFile}\index{BTreeFile@{BTreeFile}}
+}
+\hyperlink{classfile}{file} version of B tree.  
+
+
+{\tt \#include $<$BTreeFile.h$>$}
+
+Inheritance diagram for BTreeFile$<$ KeyType, ValueType, LockType, Alloc $>$::\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[height=2cm]{classBTreeFile}
+\end{center}
+\end{figure}
+\subsection*{Classes}
+\begin{CompactItemize}
+\item 
+struct \textbf{SFileHeader}
+\begin{CompactList}\small\item\em it provides the basical information of the btree. \item\end{CompactList}\end{CompactItemize}
+\subsection*{Public Types}
+\begin{CompactItemize}
+\item 
+\hypertarget{classBTreeFile_134b19172aabde32c62243dbdc152a56}{
+typedef DataType$<$ KeyType, ValueType $>$ \textbf{DataType}}
+\label{classBTreeFile_134b19172aabde32c62243dbdc152a56}
+
+\item 
+\hypertarget{classBTreeFile_4e78d31a7e1d1ef621448d762c6d693a}{
+typedef intrusive\_\-ptr$<$ BTreeNode$<$ KeyType, DataType, LockType, Alloc $>$ $>$ \textbf{BTreeNodePtr}}
+\label{classBTreeFile_4e78d31a7e1d1ef621448d762c6d693a}
+
+\item 
+\hypertarget{classBTreeFile_73a488e58ea39521604de5a3df286716}{
+typedef std::vector$<$ BTreeNodePtr $>$ \textbf{BTreeNodeVECTOR}}
+\label{classBTreeFile_73a488e58ea39521604de5a3df286716}
+
+\item 
+\hypertarget{classBTreeFile_ff079237e9726291f48f7429bc97a3ad}{
+typedef std::vector$<$ BTreeNodePtr $>$::iterator \textbf{BnPtrIter}}
+\label{classBTreeFile_ff079237e9726291f48f7429bc97a3ad}
+
+\item 
+\hypertarget{classBTreeFile_c84b666e8b3083625a71371825583863}{
+typedef std::pair$<$ BTreeNodePtr, size\_\-t $>$ \textbf{SDBCursor}}
+\label{classBTreeFile_c84b666e8b3083625a71371825583863}
+
+\item 
+\hypertarget{classBTreeFile_50d1379e8f22b810c4c53c34072db39c}{
+typedef intrusive\_\-ptr$<$ PtrObj$<$ DataType, LockType, Alloc $>$ $>$ \textbf{DataTypePtr}}
+\label{classBTreeFile_50d1379e8f22b810c4c53c34072db39c}
+
+\item 
+\hypertarget{classBTreeFile_ee29e8d1f6bb9700d852eb1fa914491b}{
+typedef std::vector$<$ DataTypePtr $>$ \textbf{DataTypeVECTOR}}
+\label{classBTreeFile_ee29e8d1f6bb9700d852eb1fa914491b}
+
+\item 
+\hypertarget{classBTreeFile_1cefa5c1f36a97524f0be807a7882813}{
+typedef std::vector$<$ BTreeNodePtr $>$::iterator \textbf{BIT}}
+\label{classBTreeFile_1cefa5c1f36a97524f0be807a7882813}
+
+\item 
+\hypertarget{classBTreeFile_8fc5e3e778b95fc3313ab4680c2e895c}{
+typedef std::vector$<$ DataTypePtr $>$::iterator \textbf{DIT}}
+\label{classBTreeFile_8fc5e3e778b95fc3313ab4680c2e895c}
+
+\end{CompactItemize}
+\subsection*{Public Member Functions}
+\begin{CompactItemize}
+\item 
+\hyperlink{classBTreeFile_5609875a43e3c7e70229ac4215aafaff}{BTreeFile} (const std::string \&fileName=\char`\"{}sequentialdb.dat\char`\"{})
+\begin{CompactList}\small\item\em constructor \item\end{CompactList}\item 
+void \hyperlink{classBTreeFile_76116d6e74ebdd94b641e60466454da5}{setDegree} (int degree)
+\item 
+void \hyperlink{classBTreeFile_b158c5e0ae96fd9cfb74813f984c1117}{setPageSize} (size\_\-t maxDataSize)
+\begin{CompactList}\small\item\em set tha pageSize. \item\end{CompactList}\item 
+\hypertarget{classBTreeFile_caec90f215e9695158269c82364d735b}{
+void \hyperlink{classBTreeFile_caec90f215e9695158269c82364d735b}{setOverFlowPageSize} (size\_\-t overFlowSize)}
+\label{classBTreeFile_caec90f215e9695158269c82364d735b}
+
+\begin{CompactList}\small\item\em set size for overflow page. \item\end{CompactList}\item 
+void \hyperlink{classBTreeFile_5a758e56495e400540e2829601e06de7}{setCacheSize} (size\_\-t sz)
+\item 
+\hypertarget{classBTreeFile_77fbd3babf6b5c990022c23569bb8495}{
+std::string \hyperlink{classBTreeFile_77fbd3babf6b5c990022c23569bb8495}{getFileName} () const }
+\label{classBTreeFile_77fbd3babf6b5c990022c23569bb8495}
+
+\begin{CompactList}\small\item\em return the \hyperlink{classfile}{file} name of the SequentialDB \item\end{CompactList}\item 
+bool \hyperlink{classBTreeFile_dbbf4c18dcccd9f9d231a5d546ff4fe6}{open} ()
+\begin{CompactList}\small\item\em open the database. \item\end{CompactList}\item 
+bool \hyperlink{classBTreeFile_1602f96ee8ffe4db45f563b7eaef1a17}{close} ()
+\begin{CompactList}\small\item\em close the database. \item\end{CompactList}\item 
+\hypertarget{classBTreeFile_e0579ea1ac46a4179aa641d61c7ac890}{
+bool \hyperlink{classBTreeFile_e0579ea1ac46a4179aa641d61c7ac890}{del} (const KeyType \&key)}
+\label{classBTreeFile_e0579ea1ac46a4179aa641d61c7ac890}
+
+\begin{CompactList}\small\item\em del an item from the database \item\end{CompactList}\item 
+\hypertarget{classBTreeFile_499c91e3aacf1d7037dcf16321fb8f5f}{
+bool \hyperlink{classBTreeFile_499c91e3aacf1d7037dcf16321fb8f5f}{insert} (const DataType \&rec)}
+\label{classBTreeFile_499c91e3aacf1d7037dcf16321fb8f5f}
+
+\begin{CompactList}\small\item\em insert an item. \item\end{CompactList}\item 
+\hypertarget{classBTreeFile_013fd27ea98d9b7a91a82adebfa81c63}{
+bool \hyperlink{classBTreeFile_013fd27ea98d9b7a91a82adebfa81c63}{insert} (const KeyType \&key, const ValueType \&value)}
+\label{classBTreeFile_013fd27ea98d9b7a91a82adebfa81c63}
+
+\begin{CompactList}\small\item\em insert an item. \item\end{CompactList}\item 
+\hypertarget{classBTreeFile_4ac312ccea4a625f22067e72300bb46d}{
+ValueType $\ast$ \hyperlink{classBTreeFile_4ac312ccea4a625f22067e72300bb46d}{find} (const KeyType \&key)}
+\label{classBTreeFile_4ac312ccea4a625f22067e72300bb46d}
+
+\begin{CompactList}\small\item\em find an item given a key. \item\end{CompactList}\item 
+\hypertarget{classBTreeFile_60b7d0a808434cf7e6133597564068c7}{
+bool \textbf{get} (const KeyType \&key, ValueType \&value)}
+\label{classBTreeFile_60b7d0a808434cf7e6133597564068c7}
+
+\item 
+\hypertarget{classBTreeFile_9ea7b759915249cdc8d4b1ed22f445f9}{
+const ValueType $\ast$ \textbf{find} (const KeyType \&key) const }
+\label{classBTreeFile_9ea7b759915249cdc8d4b1ed22f445f9}
+
+\item 
+\hypertarget{classBTreeFile_c0133f9c22ff22f0bb9c64aded50161d}{
+bool \hyperlink{classBTreeFile_c0133f9c22ff22f0bb9c64aded50161d}{update} (const KeyType \&key, const ValueType \&val)}
+\label{classBTreeFile_c0133f9c22ff22f0bb9c64aded50161d}
+
+\begin{CompactList}\small\item\em updata an item with given key, if it not exist, insert it directly. \item\end{CompactList}\item 
+\hypertarget{classBTreeFile_65845fcc4fd01a769dcf74ac35e233f1}{
+bool \hyperlink{classBTreeFile_65845fcc4fd01a769dcf74ac35e233f1}{update} (const DataType \&rec)}
+\label{classBTreeFile_65845fcc4fd01a769dcf74ac35e233f1}
+
+\begin{CompactList}\small\item\em updata an item with given key, if it not exist, insert it directly. \item\end{CompactList}\item 
+\hypertarget{classBTreeFile_86b258ecee50f2c59e8483750e32aec6}{
+int \hyperlink{classBTreeFile_86b258ecee50f2c59e8483750e32aec6}{num\_\-items} ()}
+\label{classBTreeFile_86b258ecee50f2c59e8483750e32aec6}
+
+\begin{CompactList}\small\item\em get the number of the items. \item\end{CompactList}\item 
+\hypertarget{classBTreeFile_b2ec25ed3809699f44bb5a723e53e94e}{
+bool \hyperlink{classBTreeFile_b2ec25ed3809699f44bb5a723e53e94e}{get} (const KeyType \&key, DataType \&rec)}
+\label{classBTreeFile_b2ec25ed3809699f44bb5a723e53e94e}
+
+\begin{CompactList}\small\item\em get an item by its key. \item\end{CompactList}\item 
+\hypertarget{classBTreeFile_45d39b668e269770ff9402628067a973}{
+bool \hyperlink{classBTreeFile_45d39b668e269770ff9402628067a973}{get} (const SDBCursor \&locn, DataType \&rec)}
+\label{classBTreeFile_45d39b668e269770ff9402628067a973}
+
+\begin{CompactList}\small\item\em get an item from given Locn. $\ast$ \item\end{CompactList}\item 
+\hypertarget{classBTreeFile_1771c662eafbb8d90d945659dcdc9ffd}{
+bool \hyperlink{classBTreeFile_1771c662eafbb8d90d945659dcdc9ffd}{get} (const SDBCursor \&locn, KeyType \&key, ValueType \&value)}
+\label{classBTreeFile_1771c662eafbb8d90d945659dcdc9ffd}
+
+\begin{CompactList}\small\item\em get an item from given Locn. $\ast$ \item\end{CompactList}\item 
+\hypertarget{classBTreeFile_b375e1166dd179b0e6f54c2daff7ae91}{
+SDBCursor \hyperlink{classBTreeFile_b375e1166dd179b0e6f54c2daff7ae91}{get\_\-first\_\-locn} ()}
+\label{classBTreeFile_b375e1166dd179b0e6f54c2daff7ae91}
+
+\begin{CompactList}\small\item\em get the cursor of the first item. \item\end{CompactList}\item 
+\hypertarget{classBTreeFile_dbd89f1e470008e7a008b22a99c9e0b5}{
+bool \hyperlink{classBTreeFile_dbd89f1e470008e7a008b22a99c9e0b5}{seq} (SDBCursor \&locn, DataType \&rec, ESeqDirection sdir=ESD\_\-FORWARD)}
+\label{classBTreeFile_dbd89f1e470008e7a008b22a99c9e0b5}
+
+\begin{CompactList}\small\item\em get the next or prev item. \item\end{CompactList}\item 
+\hypertarget{classBTreeFile_0fb8cd6989e717ddefcd9514657c708b}{
+KeyType \hyperlink{classBTreeFile_0fb8cd6989e717ddefcd9514657c708b}{getNext} (const KeyType \&key)}
+\label{classBTreeFile_0fb8cd6989e717ddefcd9514657c708b}
+
+\begin{CompactList}\small\item\em given a key, get next key \item\end{CompactList}\item 
+\hypertarget{classBTreeFile_5b2991be9d5c88ae1b269572e6ee2747}{
+KeyType \hyperlink{classBTreeFile_5b2991be9d5c88ae1b269572e6ee2747}{getPrev} (const KeyType \&key)}
+\label{classBTreeFile_5b2991be9d5c88ae1b269572e6ee2747}
+
+\begin{CompactList}\small\item\em given a key, get next key \item\end{CompactList}\item 
+\hypertarget{classBTreeFile_23afa194f796512b34c002af01dc25a8}{
+void \hyperlink{classBTreeFile_23afa194f796512b34c002af01dc25a8}{flush} ()}
+\label{classBTreeFile_23afa194f796512b34c002af01dc25a8}
+
+\begin{CompactList}\small\item\em write all the items in memory to \hyperlink{classfile}{file}. \item\end{CompactList}\item 
+\hypertarget{classBTreeFile_3efffc668457bd1d85a08bef461731b9}{
+void \hyperlink{classBTreeFile_3efffc668457bd1d85a08bef461731b9}{commit} ()}
+\label{classBTreeFile_3efffc668457bd1d85a08bef461731b9}
+
+\begin{CompactList}\small\item\em write back the dirypages \item\end{CompactList}\item 
+void \hyperlink{classBTreeFile_005fb40d2dbb29e75ef0a0a7a4faa71d}{display} (std::ostream \&os=std::cout, bool onlyheader=true)
+\item 
+KeyType \hyperlink{classBTreeFile_05829fd2f39c24fe36b5a3a395437de9}{getNearest} (const KeyType \&key)
+\item 
+\hypertarget{classBTreeFile_8fca5f21802218f0a654e1c70e51d193}{
+SDBCursor \hyperlink{classBTreeFile_8fca5f21802218f0a654e1c70e51d193}{search} (const KeyType \&key)}
+\label{classBTreeFile_8fca5f21802218f0a654e1c70e51d193}
+
+\begin{CompactList}\small\item\em External method that searches for elements that match the given key. \item\end{CompactList}\item 
+\hypertarget{classBTreeFile_f175ce31694ff970ef09e90a29358770}{
+bool \textbf{search} (const KeyType \&key, SDBCursor \&locn)}
+\label{classBTreeFile_f175ce31694ff970ef09e90a29358770}
+
+\end{CompactItemize}
+
+
+\subsection{Detailed Description}
+\subsubsection*{template$<$typename KeyType, typename ValueType = NullType, typename LockType = NullLock, typename Alloc = std::allocator$<$DataType$<$KeyType,ValueType$>$ $>$$>$ class BTreeFile$<$ KeyType, ValueType, LockType, Alloc $>$}
+
+\hyperlink{classfile}{file} version of B tree. 
+
+$|$----------------$|$ $|$ magic $|$ $|$----------------$|$ $|$ minDegree $|$ /then the order of the btree is 2$\ast$minDegree-1. $|$----------------$|$ $|$ pageSize $|$ $|$----------------$|$ $|$ cacheSize $|$ $|$----------------$|$ $|$ ..... $|$ $|$----------------$|$ $|$ numItem $|$ $|$----------------$|$ $|$ rootPos $|$ $|$----------------$|$ 
+
+Definition at line 46 of file BTreeFile.h.
+
+\subsection{Constructor \& Destructor Documentation}
+\hypertarget{classBTreeFile_5609875a43e3c7e70229ac4215aafaff}{
+\index{BTreeFile@{BTreeFile}!BTreeFile@{BTreeFile}}
+\index{BTreeFile@{BTreeFile}!BTreeFile@{BTreeFile}}
+\subsubsection[{BTreeFile}]{\setlength{\rightskip}{0pt plus 5cm}template$<$typename KeyType , typename ValueType , typename LockType , typename Alloc $>$ {\bf BTreeFile}$<$ KeyType, ValueType, LockType, Alloc $>$::{\bf BTreeFile} (const std::string \& {\em fileName} = {\tt \char`\"{}sequentialdb.dat\char`\"{}})\hspace{0.3cm}{\tt  \mbox{[}inline\mbox{]}}}}
+\label{classBTreeFile_5609875a43e3c7e70229ac4215aafaff}
+
+
+constructor 
+
+\begin{Desc}
+\item[Parameters:]
+\begin{description}
+\item[{\em minDegree,default}]is 2, i.e the order is 3. \end{description}
+\end{Desc}
+
+
+Definition at line 714 of file BTreeFile.h.
+
+\subsection{Member Function Documentation}
+\hypertarget{classBTreeFile_1602f96ee8ffe4db45f563b7eaef1a17}{
+\index{BTreeFile@{BTreeFile}!close@{close}}
+\index{close@{close}!BTreeFile@{BTreeFile}}
+\subsubsection[{close}]{\setlength{\rightskip}{0pt plus 5cm}template$<$typename KeyType , typename ValueType  = NullType, typename LockType  = NullLock, typename Alloc  = std::allocator$<$DataType$<$KeyType,ValueType$>$ $>$$>$ bool {\bf BTreeFile}$<$ KeyType, ValueType, LockType, Alloc $>$::close ()\hspace{0.3cm}{\tt  \mbox{[}inline\mbox{]}}}}
+\label{classBTreeFile_1602f96ee8ffe4db45f563b7eaef1a17}
+
+
+close the database. 
+
+if we don't call it, it will be automately called in deconstructor 
+
+Definition at line 131 of file BTreeFile.h.\hypertarget{classBTreeFile_005fb40d2dbb29e75ef0a0a7a4faa71d}{
+\index{BTreeFile@{BTreeFile}!display@{display}}
+\index{display@{display}!BTreeFile@{BTreeFile}}
+\subsubsection[{display}]{\setlength{\rightskip}{0pt plus 5cm}template$<$typename KeyType , typename ValueType  = NullType, typename LockType  = NullLock, typename Alloc  = std::allocator$<$DataType$<$KeyType,ValueType$>$ $>$$>$ void {\bf BTreeFile}$<$ KeyType, ValueType, LockType, Alloc $>$::display (std::ostream \& {\em os} = {\tt std::cout}, \/  bool {\em onlyheader} = {\tt true})\hspace{0.3cm}{\tt  \mbox{[}inline\mbox{]}}}}
+\label{classBTreeFile_005fb40d2dbb29e75ef0a0a7a4faa71d}
+
+
+for debug. print the shape of the B tree. 
+
+Definition at line 320 of file BTreeFile.h.\hypertarget{classBTreeFile_05829fd2f39c24fe36b5a3a395437de9}{
+\index{BTreeFile@{BTreeFile}!getNearest@{getNearest}}
+\index{getNearest@{getNearest}!BTreeFile@{BTreeFile}}
+\subsubsection[{getNearest}]{\setlength{\rightskip}{0pt plus 5cm}template$<$typename KeyType , typename ValueType  = NullType, typename LockType  = NullLock, typename Alloc  = std::allocator$<$DataType$<$KeyType,ValueType$>$ $>$$>$ KeyType {\bf BTreeFile}$<$ KeyType, ValueType, LockType, Alloc $>$::getNearest (const KeyType \& {\em key})\hspace{0.3cm}{\tt  \mbox{[}inline\mbox{]}}}}
+\label{classBTreeFile_05829fd2f39c24fe36b5a3a395437de9}
+
+
+if the input key exists, just return itself, otherwise return the smallest existing key that bigger than it. 
+
+Definition at line 329 of file BTreeFile.h.\hypertarget{classBTreeFile_dbbf4c18dcccd9f9d231a5d546ff4fe6}{
+\index{BTreeFile@{BTreeFile}!open@{open}}
+\index{open@{open}!BTreeFile@{BTreeFile}}
+\subsubsection[{open}]{\setlength{\rightskip}{0pt plus 5cm}template$<$typename KeyType , typename ValueType , typename LockType , typename Alloc $>$ bool {\bf BTreeFile}$<$ KeyType, ValueType, LockType, Alloc $>$::open ()\hspace{0.3cm}{\tt  \mbox{[}inline\mbox{]}}}}
+\label{classBTreeFile_dbbf4c18dcccd9f9d231a5d546ff4fe6}
+
+
+open the database. 
+
+Everytime we use the database, we mush open it first. 
+
+Definition at line 1178 of file BTreeFile.h.\hypertarget{classBTreeFile_5a758e56495e400540e2829601e06de7}{
+\index{BTreeFile@{BTreeFile}!setCacheSize@{setCacheSize}}
+\index{setCacheSize@{setCacheSize}!BTreeFile@{BTreeFile}}
+\subsubsection[{setCacheSize}]{\setlength{\rightskip}{0pt plus 5cm}template$<$typename KeyType , typename ValueType  = NullType, typename LockType  = NullLock, typename Alloc  = std::allocator$<$DataType$<$KeyType,ValueType$>$ $>$$>$ void {\bf BTreeFile}$<$ KeyType, ValueType, LockType, Alloc $>$::setCacheSize (size\_\-t {\em sz})\hspace{0.3cm}{\tt  \mbox{[}inline\mbox{]}}}}
+\label{classBTreeFile_5a758e56495e400540e2829601e06de7}
+
+
+We would peroidically flush the memory items, according to the cache Size. 
+
+Definition at line 108 of file BTreeFile.h.\hypertarget{classBTreeFile_76116d6e74ebdd94b641e60466454da5}{
+\index{BTreeFile@{BTreeFile}!setDegree@{setDegree}}
+\index{setDegree@{setDegree}!BTreeFile@{BTreeFile}}
+\subsubsection[{setDegree}]{\setlength{\rightskip}{0pt plus 5cm}template$<$typename KeyType , typename ValueType  = NullType, typename LockType  = NullLock, typename Alloc  = std::allocator$<$DataType$<$KeyType,ValueType$>$ $>$$>$ void {\bf BTreeFile}$<$ KeyType, ValueType, LockType, Alloc $>$::setDegree (int {\em degree})\hspace{0.3cm}{\tt  \mbox{[}inline\mbox{]}}}}
+\label{classBTreeFile_76116d6e74ebdd94b641e60466454da5}
+
+
+set the degree 
+
+Definition at line 71 of file BTreeFile.h.\hypertarget{classBTreeFile_b158c5e0ae96fd9cfb74813f984c1117}{
+\index{BTreeFile@{BTreeFile}!setPageSize@{setPageSize}}
+\index{setPageSize@{setPageSize}!BTreeFile@{BTreeFile}}
+\subsubsection[{setPageSize}]{\setlength{\rightskip}{0pt plus 5cm}template$<$typename KeyType , typename ValueType  = NullType, typename LockType  = NullLock, typename Alloc  = std::allocator$<$DataType$<$KeyType,ValueType$>$ $>$$>$ void {\bf BTreeFile}$<$ KeyType, ValueType, LockType, Alloc $>$::setPageSize (size\_\-t {\em maxDataSize})\hspace{0.3cm}{\tt  \mbox{[}inline\mbox{]}}}}
+\label{classBTreeFile_b158c5e0ae96fd9cfb74813f984c1117}
+
+
+set tha pageSize. 
+
+\begin{Desc}
+\item[Parameters:]
+\begin{description}
+\item[{\em maxDataSize}]if the size of DataType(binary) exceeds maxDataSize, overflowing accur. if we can predict it first, we can reduce the \hyperlink{classfile}{file} space. \end{description}
+\end{Desc}
+
+
+Definition at line 81 of file BTreeFile.h.
+
+The documentation for this class was generated from the following file:\begin{CompactItemize}
+\item 
+/home/Kevin/izenelib/include/am/btree/BTreeFile.h\end{CompactItemize}

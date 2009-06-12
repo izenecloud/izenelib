@@ -1,0 +1,306 @@
+\hypertarget{classtc__hash}{
+\section{tc\_\-hash$<$ KeyType, ValueType, LockType $>$ Class Template Reference}
+\label{classtc__hash}\index{tc\_\-hash@{tc\_\-hash}}
+}
+wrap tokyo/cabinet for CacheDB and SDB.  
+
+
+{\tt \#include $<$tc\_\-hash.h$>$}
+
+Inheritance diagram for tc\_\-hash$<$ KeyType, ValueType, LockType $>$::\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[height=2cm]{classtc__hash}
+\end{center}
+\end{figure}
+\subsection*{Public Types}
+\begin{CompactItemize}
+\item 
+\hypertarget{classtc__hash_372762dbf429e556715eb2893f395ac4}{
+typedef KeyType \textbf{SDBCursor}}
+\label{classtc__hash_372762dbf429e556715eb2893f395ac4}
+
+\item 
+\hypertarget{classtc__hash_f7211ed16f32c7b57b6ba567ae141eed}{
+typedef DataType$<$ KeyType, ValueType $>$ \textbf{DataType}}
+\label{classtc__hash_f7211ed16f32c7b57b6ba567ae141eed}
+
+\end{CompactItemize}
+\subsection*{Public Member Functions}
+\begin{CompactItemize}
+\item 
+\hyperlink{classtc__hash_f65eca712c3a612bb1ce1defa865659f}{tc\_\-hash} (const string \&fileName=\char`\"{}tc\_\-hash.dat\char`\"{})
+\item 
+virtual \hyperlink{classtc__hash_1f9a677246db4a5a14be9fb7a5b3547b}{$\sim$tc\_\-hash} ()
+\item 
+void \hyperlink{classtc__hash_95514cd1ac7f01332038973d0c8db323}{setCacheSize} (size\_\-t cacheSize)
+\item 
+\hypertarget{classtc__hash_2061749cebcb6e13d1ed08b807b9f2f4}{
+std::string \hyperlink{classtc__hash_2061749cebcb6e13d1ed08b807b9f2f4}{getFileName} () const }
+\label{classtc__hash_2061749cebcb6e13d1ed08b807b9f2f4}
+
+\begin{CompactList}\small\item\em return the \hyperlink{classfile}{file} name of the SequentialDB \item\end{CompactList}\item 
+bool \hyperlink{classtc__hash_dec46db22458aace6d4c384d0136f73a}{insert} (const DataType \&dat)
+\item 
+bool \hyperlink{classtc__hash_a0f14b10040effe879ba2deb5c0a961b}{insert} (const KeyType \&key, const ValueType \&value)
+\item 
+ValueType $\ast$ \hyperlink{classtc__hash_f6288e85c3973f121c25a39c0cab55ec}{find} (const KeyType \&key)
+\item 
+\hypertarget{classtc__hash_89cb493b5270be235141cd5131806e10}{
+bool \textbf{get} (const KeyType \&key, ValueType \&value)}
+\label{classtc__hash_89cb493b5270be235141cd5131806e10}
+
+\item 
+bool \hyperlink{classtc__hash_ace3bd9142e9e66ca01aa0de990d145e}{del} (const KeyType \&key)
+\item 
+bool \hyperlink{classtc__hash_d9f9b4ea4cf3424ca2112bb1ba9293f2}{update} (const DataType \&dat)
+\item 
+bool \hyperlink{classtc__hash_2aa23c6cb581dae26a9bf2f98e313f00}{update} (const KeyType \&key, const ValueType \&value)
+\item 
+SDBCursor \hyperlink{classtc__hash_996ea5e3297bcbce4c6a7a0ca8e17d21}{search} (const KeyType \&key)
+\item 
+bool \hyperlink{classtc__hash_57246a88334c225644111bbf0a127e8e}{search} (const KeyType \&key, SDBCursor \&locn)
+\item 
+SDBCursor \hyperlink{classtc__hash_3c7efb056e568de793b82a30c66f9640}{get\_\-first\_\-locn} ()
+\item 
+\hypertarget{classtc__hash_e8d97949604477ba8f6b59ce3d3e976f}{
+bool \textbf{get} (const SDBCursor \&locn, KeyType \&key, ValueType \&value)}
+\label{classtc__hash_e8d97949604477ba8f6b59ce3d3e976f}
+
+\item 
+bool \hyperlink{classtc__hash_43f0d4a9a0ceda515d782000b81928c3}{get} (const SDBCursor \&locn, DataType \&rec)
+\item 
+bool \hyperlink{classtc__hash_25d62cc64ce4c777c279101dca5aa846}{seq} (SDBCursor \&locn, DataType \&rec, ESeqDirection sdir=ESD\_\-FORWARD)
+\begin{CompactList}\small\item\em sequential access method \item\end{CompactList}\item 
+int \hyperlink{classtc__hash_51837772025d390b3a9b1c87ec15309d}{num\_\-items} ()
+\item 
+bool \hyperlink{classtc__hash_782627d77d2ef0bab952c38992c5c743}{open} ()
+\item 
+bool \hyperlink{classtc__hash_8153ff6485a0382fac5b5a20c0cc9033}{close} ()
+\item 
+void \hyperlink{classtc__hash_83474cdc095650dfea677f3b65aaa032}{commit} ()
+\item 
+void \hyperlink{classtc__hash_3ffb4206aed13ea94ff623cc46d971da}{flush} ()
+\item 
+void \hyperlink{classtc__hash_b29bf2580a2dc3b10497ea920bf98f00}{display} (std::ostream \&os=std::cout)
+\item 
+TCHDB $\ast$ \hyperlink{classtc__hash_ab77b561b8897ccdca73515233493f7a}{getHandle} ()
+\end{CompactItemize}
+
+
+\subsection{Detailed Description}
+\subsubsection*{template$<$typename KeyType, typename ValueType, typename LockType = NullLock$>$ class tc\_\-hash$<$ KeyType, ValueType, LockType $>$}
+
+wrap tokyo/cabinet for CacheDB and SDB. 
+
+Definition at line 22 of file tc\_\-hash.h.
+
+\subsection{Constructor \& Destructor Documentation}
+\hypertarget{classtc__hash_f65eca712c3a612bb1ce1defa865659f}{
+\index{tc\_\-hash@{tc\_\-hash}!tc\_\-hash@{tc\_\-hash}}
+\index{tc\_\-hash@{tc\_\-hash}!tc_hash@{tc\_\-hash}}
+\subsubsection[{tc\_\-hash}]{\setlength{\rightskip}{0pt plus 5cm}template$<$typename KeyType , typename ValueType , typename LockType  = NullLock$>$ {\bf tc\_\-hash}$<$ KeyType, ValueType, LockType $>$::{\bf tc\_\-hash} (const string \& {\em fileName} = {\tt \char`\"{}tc\_\-hash$<$~KeyType,~ValueType,~LockType~$>$.dat\char`\"{}})\hspace{0.3cm}{\tt  \mbox{[}inline\mbox{]}}}}
+\label{classtc__hash_f65eca712c3a612bb1ce1defa865659f}
+
+
+constructor 
+
+Definition at line 32 of file tc\_\-hash.h.\hypertarget{classtc__hash_1f9a677246db4a5a14be9fb7a5b3547b}{
+\index{tc\_\-hash@{tc\_\-hash}!$\sim$tc\_\-hash@{$\sim$tc\_\-hash}}
+\index{$\sim$tc\_\-hash@{$\sim$tc\_\-hash}!tc_hash@{tc\_\-hash}}
+\subsubsection[{$\sim$tc\_\-hash}]{\setlength{\rightskip}{0pt plus 5cm}template$<$typename KeyType , typename ValueType , typename LockType  = NullLock$>$ virtual {\bf tc\_\-hash}$<$ KeyType, ValueType, LockType $>$::$\sim${\bf tc\_\-hash} ()\hspace{0.3cm}{\tt  \mbox{[}inline, virtual\mbox{]}}}}
+\label{classtc__hash_1f9a677246db4a5a14be9fb7a5b3547b}
+
+
+deconstructor, \hyperlink{classtc__hash_8153ff6485a0382fac5b5a20c0cc9033}{close()} will also be called here. 
+
+Definition at line 38 of file tc\_\-hash.h.
+
+\subsection{Member Function Documentation}
+\hypertarget{classtc__hash_8153ff6485a0382fac5b5a20c0cc9033}{
+\index{tc\_\-hash@{tc\_\-hash}!close@{close}}
+\index{close@{close}!tc_hash@{tc\_\-hash}}
+\subsubsection[{close}]{\setlength{\rightskip}{0pt plus 5cm}template$<$typename KeyType , typename ValueType , typename LockType  = NullLock$>$ bool {\bf tc\_\-hash}$<$ KeyType, ValueType, LockType $>$::close ()\hspace{0.3cm}{\tt  \mbox{[}inline\mbox{]}}}}
+\label{classtc__hash_8153ff6485a0382fac5b5a20c0cc9033}
+
+
+db should be closed after open, and it will automatically called in deconstuctor. 
+
+Definition at line 274 of file tc\_\-hash.h.\hypertarget{classtc__hash_83474cdc095650dfea677f3b65aaa032}{
+\index{tc\_\-hash@{tc\_\-hash}!commit@{commit}}
+\index{commit@{commit}!tc_hash@{tc\_\-hash}}
+\subsubsection[{commit}]{\setlength{\rightskip}{0pt plus 5cm}template$<$typename KeyType , typename ValueType , typename LockType  = NullLock$>$ void {\bf tc\_\-hash}$<$ KeyType, ValueType, LockType $>$::commit ()\hspace{0.3cm}{\tt  \mbox{[}inline\mbox{]}}}}
+\label{classtc__hash_83474cdc095650dfea677f3b65aaa032}
+
+
+write the dirty buckets to disk, not release the memory 
+
+Definition at line 284 of file tc\_\-hash.h.\hypertarget{classtc__hash_ace3bd9142e9e66ca01aa0de990d145e}{
+\index{tc\_\-hash@{tc\_\-hash}!del@{del}}
+\index{del@{del}!tc_hash@{tc\_\-hash}}
+\subsubsection[{del}]{\setlength{\rightskip}{0pt plus 5cm}template$<$typename KeyType , typename ValueType , typename LockType  = NullLock$>$ bool {\bf tc\_\-hash}$<$ KeyType, ValueType, LockType $>$::del (const KeyType \& {\em key})\hspace{0.3cm}{\tt  \mbox{[}inline\mbox{]}}}}
+\label{classtc__hash_ace3bd9142e9e66ca01aa0de990d145e}
+
+
+delete an item 
+
+Definition at line 126 of file tc\_\-hash.h.\hypertarget{classtc__hash_b29bf2580a2dc3b10497ea920bf98f00}{
+\index{tc\_\-hash@{tc\_\-hash}!display@{display}}
+\index{display@{display}!tc_hash@{tc\_\-hash}}
+\subsubsection[{display}]{\setlength{\rightskip}{0pt plus 5cm}template$<$typename KeyType , typename ValueType , typename LockType  = NullLock$>$ void {\bf tc\_\-hash}$<$ KeyType, ValueType, LockType $>$::display (std::ostream \& {\em os} = {\tt std::cout})\hspace{0.3cm}{\tt  \mbox{[}inline\mbox{]}}}}
+\label{classtc__hash_b29bf2580a2dc3b10497ea920bf98f00}
+
+
+display the info of \hyperlink{classtc__hash}{tc\_\-hash} 
+
+Definition at line 297 of file tc\_\-hash.h.\hypertarget{classtc__hash_f6288e85c3973f121c25a39c0cab55ec}{
+\index{tc\_\-hash@{tc\_\-hash}!find@{find}}
+\index{find@{find}!tc_hash@{tc\_\-hash}}
+\subsubsection[{find}]{\setlength{\rightskip}{0pt plus 5cm}template$<$typename KeyType , typename ValueType , typename LockType  = NullLock$>$ ValueType$\ast$ {\bf tc\_\-hash}$<$ KeyType, ValueType, LockType $>$::find (const KeyType \& {\em key})\hspace{0.3cm}{\tt  \mbox{[}inline\mbox{]}}}}
+\label{classtc__hash_f6288e85c3973f121c25a39c0cab55ec}
+
+
+find an item, return pointer to the value. Note that, there will be memory leak if not delete the value 
+
+Definition at line 86 of file tc\_\-hash.h.\hypertarget{classtc__hash_3ffb4206aed13ea94ff623cc46d971da}{
+\index{tc\_\-hash@{tc\_\-hash}!flush@{flush}}
+\index{flush@{flush}!tc_hash@{tc\_\-hash}}
+\subsubsection[{flush}]{\setlength{\rightskip}{0pt plus 5cm}template$<$typename KeyType , typename ValueType , typename LockType  = NullLock$>$ void {\bf tc\_\-hash}$<$ KeyType, ValueType, LockType $>$::flush ()\hspace{0.3cm}{\tt  \mbox{[}inline\mbox{]}}}}
+\label{classtc__hash_3ffb4206aed13ea94ff623cc46d971da}
+
+
+Write the dirty buckets to disk and also free up most of the memory. Note that, for efficieny, entry\_\-\mbox{[}\mbox{]} is not freed up. 
+
+Definition at line 291 of file tc\_\-hash.h.\hypertarget{classtc__hash_43f0d4a9a0ceda515d782000b81928c3}{
+\index{tc\_\-hash@{tc\_\-hash}!get@{get}}
+\index{get@{get}!tc_hash@{tc\_\-hash}}
+\subsubsection[{get}]{\setlength{\rightskip}{0pt plus 5cm}template$<$typename KeyType , typename ValueType , typename LockType  = NullLock$>$ bool {\bf tc\_\-hash}$<$ KeyType, ValueType, LockType $>$::get (const SDBCursor \& {\em locn}, \/  DataType \& {\em rec})\hspace{0.3cm}{\tt  \mbox{[}inline\mbox{]}}}}
+\label{classtc__hash_43f0d4a9a0ceda515d782000b81928c3}
+
+
+get an item from given SDBCursor 
+
+Definition at line 214 of file tc\_\-hash.h.\hypertarget{classtc__hash_3c7efb056e568de793b82a30c66f9640}{
+\index{tc\_\-hash@{tc\_\-hash}!get\_\-first\_\-locn@{get\_\-first\_\-locn}}
+\index{get\_\-first\_\-locn@{get\_\-first\_\-locn}!tc_hash@{tc\_\-hash}}
+\subsubsection[{get\_\-first\_\-locn}]{\setlength{\rightskip}{0pt plus 5cm}template$<$typename KeyType , typename ValueType , typename LockType  = NullLock$>$ SDBCursor {\bf tc\_\-hash}$<$ KeyType, ValueType, LockType $>$::get\_\-first\_\-locn ()\hspace{0.3cm}{\tt  \mbox{[}inline\mbox{]}}}}
+\label{classtc__hash_3c7efb056e568de793b82a30c66f9640}
+
+
+get the SDBCursor of first item in the first not empty bucket. 
+
+Definition at line 193 of file tc\_\-hash.h.\hypertarget{classtc__hash_ab77b561b8897ccdca73515233493f7a}{
+\index{tc\_\-hash@{tc\_\-hash}!getHandle@{getHandle}}
+\index{getHandle@{getHandle}!tc_hash@{tc\_\-hash}}
+\subsubsection[{getHandle}]{\setlength{\rightskip}{0pt plus 5cm}template$<$typename KeyType , typename ValueType , typename LockType  = NullLock$>$ TCHDB$\ast$ {\bf tc\_\-hash}$<$ KeyType, ValueType, LockType $>$::getHandle ()\hspace{0.3cm}{\tt  \mbox{[}inline\mbox{]}}}}
+\label{classtc__hash_ab77b561b8897ccdca73515233493f7a}
+
+
+We can directly process hdb\_\- by this handle. 
+
+Definition at line 303 of file tc\_\-hash.h.\hypertarget{classtc__hash_a0f14b10040effe879ba2deb5c0a961b}{
+\index{tc\_\-hash@{tc\_\-hash}!insert@{insert}}
+\index{insert@{insert}!tc_hash@{tc\_\-hash}}
+\subsubsection[{insert}]{\setlength{\rightskip}{0pt plus 5cm}template$<$typename KeyType , typename ValueType , typename LockType  = NullLock$>$ bool {\bf tc\_\-hash}$<$ KeyType, ValueType, LockType $>$::insert (const KeyType \& {\em key}, \/  const ValueType \& {\em value})\hspace{0.3cm}{\tt  \mbox{[}inline\mbox{]}}}}
+\label{classtc__hash_a0f14b10040effe879ba2deb5c0a961b}
+
+
+insert an item in key/value pair 
+
+Definition at line 68 of file tc\_\-hash.h.\hypertarget{classtc__hash_dec46db22458aace6d4c384d0136f73a}{
+\index{tc\_\-hash@{tc\_\-hash}!insert@{insert}}
+\index{insert@{insert}!tc_hash@{tc\_\-hash}}
+\subsubsection[{insert}]{\setlength{\rightskip}{0pt plus 5cm}template$<$typename KeyType , typename ValueType , typename LockType  = NullLock$>$ bool {\bf tc\_\-hash}$<$ KeyType, ValueType, LockType $>$::insert (const DataType \& {\em dat})\hspace{0.3cm}{\tt  \mbox{[}inline\mbox{]}}}}
+\label{classtc__hash_dec46db22458aace6d4c384d0136f73a}
+
+
+insert an item of DataType 
+
+Definition at line 61 of file tc\_\-hash.h.\hypertarget{classtc__hash_51837772025d390b3a9b1c87ec15309d}{
+\index{tc\_\-hash@{tc\_\-hash}!num\_\-items@{num\_\-items}}
+\index{num\_\-items@{num\_\-items}!tc_hash@{tc\_\-hash}}
+\subsubsection[{num\_\-items}]{\setlength{\rightskip}{0pt plus 5cm}template$<$typename KeyType , typename ValueType , typename LockType  = NullLock$>$ int {\bf tc\_\-hash}$<$ KeyType, ValueType, LockType $>$::num\_\-items ()\hspace{0.3cm}{\tt  \mbox{[}inline\mbox{]}}}}
+\label{classtc__hash_51837772025d390b3a9b1c87ec15309d}
+
+
+get the num of items 
+
+Definition at line 259 of file tc\_\-hash.h.\hypertarget{classtc__hash_782627d77d2ef0bab952c38992c5c743}{
+\index{tc\_\-hash@{tc\_\-hash}!open@{open}}
+\index{open@{open}!tc_hash@{tc\_\-hash}}
+\subsubsection[{open}]{\setlength{\rightskip}{0pt plus 5cm}template$<$typename KeyType , typename ValueType , typename LockType  = NullLock$>$ bool {\bf tc\_\-hash}$<$ KeyType, ValueType, LockType $>$::open ()\hspace{0.3cm}{\tt  \mbox{[}inline\mbox{]}}}}
+\label{classtc__hash_782627d77d2ef0bab952c38992c5c743}
+
+
+db must be opened to be used. 
+
+Definition at line 267 of file tc\_\-hash.h.\hypertarget{classtc__hash_57246a88334c225644111bbf0a127e8e}{
+\index{tc\_\-hash@{tc\_\-hash}!search@{search}}
+\index{search@{search}!tc_hash@{tc\_\-hash}}
+\subsubsection[{search}]{\setlength{\rightskip}{0pt plus 5cm}template$<$typename KeyType , typename ValueType , typename LockType  = NullLock$>$ bool {\bf tc\_\-hash}$<$ KeyType, ValueType, LockType $>$::search (const KeyType \& {\em key}, \/  SDBCursor \& {\em locn})\hspace{0.3cm}{\tt  \mbox{[}inline\mbox{]}}}}
+\label{classtc__hash_57246a88334c225644111bbf0a127e8e}
+
+
+another search function, flushCache\_\-() will be called at the beginning, 
+
+Definition at line 180 of file tc\_\-hash.h.\hypertarget{classtc__hash_996ea5e3297bcbce4c6a7a0ca8e17d21}{
+\index{tc\_\-hash@{tc\_\-hash}!search@{search}}
+\index{search@{search}!tc_hash@{tc\_\-hash}}
+\subsubsection[{search}]{\setlength{\rightskip}{0pt plus 5cm}template$<$typename KeyType , typename ValueType , typename LockType  = NullLock$>$ SDBCursor {\bf tc\_\-hash}$<$ KeyType, ValueType, LockType $>$::search (const KeyType \& {\em key})\hspace{0.3cm}{\tt  \mbox{[}inline\mbox{]}}}}
+\label{classtc__hash_996ea5e3297bcbce4c6a7a0ca8e17d21}
+
+
+search an item
+
+\begin{Desc}
+\item[Returns:]SDBCursor \end{Desc}
+
+
+Definition at line 166 of file tc\_\-hash.h.\hypertarget{classtc__hash_25d62cc64ce4c777c279101dca5aa846}{
+\index{tc\_\-hash@{tc\_\-hash}!seq@{seq}}
+\index{seq@{seq}!tc_hash@{tc\_\-hash}}
+\subsubsection[{seq}]{\setlength{\rightskip}{0pt plus 5cm}template$<$typename KeyType , typename ValueType , typename LockType  = NullLock$>$ bool {\bf tc\_\-hash}$<$ KeyType, ValueType, LockType $>$::seq (SDBCursor \& {\em locn}, \/  DataType \& {\em rec}, \/  ESeqDirection {\em sdir} = {\tt ESD\_\-FORWARD})\hspace{0.3cm}{\tt  \mbox{[}inline\mbox{]}}}}
+\label{classtc__hash_25d62cc64ce4c777c279101dca5aa846}
+
+
+sequential access method 
+
+\begin{Desc}
+\item[Parameters:]
+\begin{description}
+\item[{\em locn}]is the current SDBCursor, and will replaced next SDBCursor when route finished. \item[{\em rec}]is the item in SDBCursor locn. \item[{\em sdir}]is sequential access direction, for hash is unordered, we only implement forward case. \end{description}
+\end{Desc}
+
+
+Definition at line 226 of file tc\_\-hash.h.\hypertarget{classtc__hash_95514cd1ac7f01332038973d0c8db323}{
+\index{tc\_\-hash@{tc\_\-hash}!setCacheSize@{setCacheSize}}
+\index{setCacheSize@{setCacheSize}!tc_hash@{tc\_\-hash}}
+\subsubsection[{setCacheSize}]{\setlength{\rightskip}{0pt plus 5cm}template$<$typename KeyType , typename ValueType , typename LockType  = NullLock$>$ void {\bf tc\_\-hash}$<$ KeyType, ValueType, LockType $>$::setCacheSize (size\_\-t {\em cacheSize})\hspace{0.3cm}{\tt  \mbox{[}inline\mbox{]}}}}
+\label{classtc__hash_95514cd1ac7f01332038973d0c8db323}
+
+
+set cache size, if not called use default size 100000 
+
+Definition at line 46 of file tc\_\-hash.h.\hypertarget{classtc__hash_2aa23c6cb581dae26a9bf2f98e313f00}{
+\index{tc\_\-hash@{tc\_\-hash}!update@{update}}
+\index{update@{update}!tc_hash@{tc\_\-hash}}
+\subsubsection[{update}]{\setlength{\rightskip}{0pt plus 5cm}template$<$typename KeyType , typename ValueType , typename LockType  = NullLock$>$ bool {\bf tc\_\-hash}$<$ KeyType, ValueType, LockType $>$::update (const KeyType \& {\em key}, \/  const ValueType \& {\em value})\hspace{0.3cm}{\tt  \mbox{[}inline\mbox{]}}}}
+\label{classtc__hash_2aa23c6cb581dae26a9bf2f98e313f00}
+
+
+update an item by key/value pair 
+
+Definition at line 147 of file tc\_\-hash.h.\hypertarget{classtc__hash_d9f9b4ea4cf3424ca2112bb1ba9293f2}{
+\index{tc\_\-hash@{tc\_\-hash}!update@{update}}
+\index{update@{update}!tc_hash@{tc\_\-hash}}
+\subsubsection[{update}]{\setlength{\rightskip}{0pt plus 5cm}template$<$typename KeyType , typename ValueType , typename LockType  = NullLock$>$ bool {\bf tc\_\-hash}$<$ KeyType, ValueType, LockType $>$::update (const DataType \& {\em dat})\hspace{0.3cm}{\tt  \mbox{[}inline\mbox{]}}}}
+\label{classtc__hash_d9f9b4ea4cf3424ca2112bb1ba9293f2}
+
+
+update an item through DataType data 
+
+Definition at line 139 of file tc\_\-hash.h.
+
+The documentation for this class was generated from the following file:\begin{CompactItemize}
+\item 
+/home/Kevin/izenelib/include/am/tokyo\_\-cabinet/\hyperlink{tc__hash_8h}{tc\_\-hash.h}\end{CompactItemize}

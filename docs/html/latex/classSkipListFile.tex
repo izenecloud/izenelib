@@ -1,0 +1,334 @@
+\hypertarget{classSkipListFile}{
+\section{SkipListFile$<$ KeyType, ValueType, LockType, Alloc $>$ Class Template Reference}
+\label{classSkipListFile}\index{SkipListFile@{SkipListFile}}
+}
+The definition and implementation of the SkipList.  
+
+
+{\tt \#include $<$SkipListFile.h$>$}
+
+Inheritance diagram for SkipListFile$<$ KeyType, ValueType, LockType, Alloc $>$::\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[height=2cm]{classSkipListFile}
+\end{center}
+\end{figure}
+\subsection*{Public Types}
+\begin{CompactItemize}
+\item 
+\hypertarget{classSkipListFile_bd531a90961483899addb340a9486c57}{
+typedef DataType$<$ KeyType, ValueType $>$ \textbf{DataType}}
+\label{classSkipListFile_bd531a90961483899addb340a9486c57}
+
+\item 
+\hypertarget{classSkipListFile_13f97d1caf0f235e7df3b946d60b42cf}{
+typedef \hyperlink{classSkipNode}{SkipNode}$<$ DataType, LockType, Alloc $>$ \textbf{SkipNode}}
+\label{classSkipListFile_13f97d1caf0f235e7df3b946d60b42cf}
+
+\item 
+\hypertarget{classSkipListFile_a6dafe425889dee183978a3e512e8fec}{
+typedef \hyperlink{classSkipNode}{SkipNode} $\ast$ \textbf{SDBCursor}}
+\label{classSkipListFile_a6dafe425889dee183978a3e512e8fec}
+
+\end{CompactItemize}
+\subsection*{Public Member Functions}
+\begin{CompactItemize}
+\item 
+\hyperlink{classSkipListFile_7be7790d5ea16f3261db01afb62b55e1}{SkipListFile} (const std::string \&fileName)
+\item 
+virtual \hyperlink{classSkipListFile_d233c08a7814bff2e1e535de1414f799}{$\sim$SkipListFile} ()
+\begin{CompactList}\small\item\em Destructor. \item\end{CompactList}\item 
+void \hyperlink{classSkipListFile_b8a6cbf9fb0386dd4eb965b2aad18f53}{setPageSize} (size\_\-t maxDataSize)
+\item 
+\hypertarget{classSkipListFile_940d6fda21e881c4fed93dc91a44ba97}{
+void \textbf{setDegree} (int degree)}
+\label{classSkipListFile_940d6fda21e881c4fed93dc91a44ba97}
+
+\item 
+\hypertarget{classSkipListFile_4cb6941e68b83ee403da711596320f19}{
+std::string \hyperlink{classSkipListFile_4cb6941e68b83ee403da711596320f19}{getFileName} () const }
+\label{classSkipListFile_4cb6941e68b83ee403da711596320f19}
+
+\begin{CompactList}\small\item\em return the \hyperlink{classfile}{file} name of the SequentialDB \item\end{CompactList}\item 
+void \hyperlink{classSkipListFile_33f3d7ea02a004d7fdedffe582f2ea72}{setCacheSize} (size\_\-t sz)
+\item 
+ValueType $\ast$ \hyperlink{classSkipListFile_d5991f6c784169c5cf582d9700eb7d78}{find} (const KeyType \&x)
+\begin{CompactList}\small\item\em Find item x in the tree. \item\end{CompactList}\item 
+\hypertarget{classSkipListFile_02c3a0a04f7dfa5951d79bf31c6a68a1}{
+bool \hyperlink{classSkipListFile_02c3a0a04f7dfa5951d79bf31c6a68a1}{update} (const KeyType \&key, const ValueType \&val)}
+\label{classSkipListFile_02c3a0a04f7dfa5951d79bf31c6a68a1}
+
+\begin{CompactList}\small\item\em updata an item with given key, if it not exist, insert it directly. \item\end{CompactList}\item 
+\hypertarget{classSkipListFile_ddf44609488c1a813b398ea39d521e0a}{
+bool \hyperlink{classSkipListFile_ddf44609488c1a813b398ea39d521e0a}{update} (const DataType \&rec)}
+\label{classSkipListFile_ddf44609488c1a813b398ea39d521e0a}
+
+\begin{CompactList}\small\item\em updata an item with given key, if it not exist, insert it directly. \item\end{CompactList}\item 
+int \hyperlink{classSkipListFile_c6c8ae57ca3914f78eb96251c1bdd9bc}{num\_\-items} () const 
+\item 
+bool \hyperlink{classSkipListFile_92adc503de42daa3192010f295c0570b}{insert} (const KeyType \&key, const ValueType \&value)
+\item 
+bool \hyperlink{classSkipListFile_8a284db41397e361e0f520521d6c8c1e}{insert} (const DataType \&x)
+\begin{CompactList}\small\item\em Insert item x into the SkipList. \item\end{CompactList}\item 
+\hypertarget{classSkipListFile_9db068a9162ac3f5f3c73e73b084bd58}{
+bool \hyperlink{classSkipListFile_9db068a9162ac3f5f3c73e73b084bd58}{insert1} (const DataType \&x)}
+\label{classSkipListFile_9db068a9162ac3f5f3c73e73b084bd58}
+
+\begin{CompactList}\small\item\em Insert item x into the SkipList. \item\end{CompactList}\item 
+bool \hyperlink{classSkipListFile_67061b1d6b1bda62005b93ca30686076}{del} (const KeyType \&x)
+\item 
+\hyperlink{classSkipNode}{SDBCursor} \hyperlink{classSkipListFile_b125e379a9640879f05386bb17ede4e2}{search} (const KeyType \&key)
+\item 
+bool \hyperlink{classSkipListFile_81d3a3d64e98032992514e3dff8b394d}{search} (const KeyType \&key, \hyperlink{classSkipNode}{SDBCursor} \&locn)
+\item 
+\hypertarget{classSkipListFile_a2d9e0f639fd99c0aa1f0155221058fc}{
+bool \textbf{get} (const KeyType \&key, ValueType \&value)}
+\label{classSkipListFile_a2d9e0f639fd99c0aa1f0155221058fc}
+
+\item 
+const KeyType $\ast$ \hyperlink{classSkipListFile_f754d414aa41d527e0544a5aae83e9a3}{find\_\-min} () const 
+\begin{CompactList}\small\item\em Find the smallest item in the tree. \item\end{CompactList}\item 
+const KeyType $\ast$ \hyperlink{classSkipListFile_4400eb10cd0d694545abd633cb4fb3cd}{find\_\-max} () const 
+\begin{CompactList}\small\item\em Find the largest item in the tree. \item\end{CompactList}\item 
+\hypertarget{classSkipListFile_46b7badb6567b5749c16ae70844bf4ad}{
+KeyType \hyperlink{classSkipListFile_46b7badb6567b5749c16ae70844bf4ad}{getNext} (const KeyType \&key)}
+\label{classSkipListFile_46b7badb6567b5749c16ae70844bf4ad}
+
+\begin{CompactList}\small\item\em given a key, get next key \item\end{CompactList}\item 
+\hypertarget{classSkipListFile_fde29489c5295f1f93f5153b26675050}{
+KeyType \hyperlink{classSkipListFile_fde29489c5295f1f93f5153b26675050}{getPrev} (const KeyType \&key)}
+\label{classSkipListFile_fde29489c5295f1f93f5153b26675050}
+
+\begin{CompactList}\small\item\em given a key, get next key \item\end{CompactList}\item 
+KeyType \hyperlink{classSkipListFile_44473481714fc1218112bb1b45550883}{getNearest} (const KeyType \&key)
+\item 
+\hyperlink{classSkipNode}{SDBCursor} \hyperlink{classSkipListFile_e1d5f4ce7d23b2f22768ed2b5e4efc78}{get\_\-first\_\-locn} ()
+\item 
+\hypertarget{classSkipListFile_e82b1f10a23fa5f48166002463138d26}{
+bool \hyperlink{classSkipListFile_e82b1f10a23fa5f48166002463138d26}{seq} (\hyperlink{classSkipNode}{SDBCursor} \&locn, DataType \&rec, ESeqDirection sdir=ESD\_\-FORWARD)}
+\label{classSkipListFile_e82b1f10a23fa5f48166002463138d26}
+
+\begin{CompactList}\small\item\em get the next or prev item. \item\end{CompactList}\item 
+\hypertarget{classSkipListFile_af201857648c64edb8b91cadd16f70c4}{
+\hyperlink{classSkipNode}{SkipNode} $\ast$ \textbf{firstNode} ()}
+\label{classSkipListFile_af201857648c64edb8b91cadd16f70c4}
+
+\item 
+void \hyperlink{classSkipListFile_409e58415e91f6b4cbe9381fae50dc70}{commit} ()
+\item 
+void \hyperlink{classSkipListFile_7f6eb737975a52483087a649ecced807}{flush} ()
+\item 
+void \hyperlink{classSkipListFile_e794422745a92d67462d68c1b138bcc4}{display} (std::ostream \&os=std::cout)
+\item 
+bool \hyperlink{classSkipListFile_e9cd69cc2e8fd96c0c1c03ebb84b2853}{open} ()
+\item 
+bool \hyperlink{classSkipListFile_751dd7b2ee40cfb04a952131a3dec53d}{close} ()
+\end{CompactItemize}
+
+
+\subsection{Detailed Description}
+\subsubsection*{template$<$typename KeyType, typename ValueType = NullType, typename LockType = NullLock, typename Alloc = std::allocator$<$DataType$<$KeyType,ValueType$>$ $>$$>$ class SkipListFile$<$ KeyType, ValueType, LockType, Alloc $>$}
+
+The definition and implementation of the SkipList. 
+
+Definition at line 28 of file SkipListFile.h.
+
+\subsection{Constructor \& Destructor Documentation}
+\hypertarget{classSkipListFile_7be7790d5ea16f3261db01afb62b55e1}{
+\index{SkipListFile@{SkipListFile}!SkipListFile@{SkipListFile}}
+\index{SkipListFile@{SkipListFile}!SkipListFile@{SkipListFile}}
+\subsubsection[{SkipListFile}]{\setlength{\rightskip}{0pt plus 5cm}template$<$typename KeyType , typename ValueType  = NullType, typename LockType  = NullLock, typename Alloc  = std::allocator$<$DataType$<$KeyType,ValueType$>$ $>$$>$ {\bf SkipListFile}$<$ KeyType, ValueType, LockType, Alloc $>$::{\bf SkipListFile} (const std::string \& {\em fileName})}}
+\label{classSkipListFile_7be7790d5ea16f3261db01afb62b55e1}
+
+
+constructor \hypertarget{classSkipListFile_d233c08a7814bff2e1e535de1414f799}{
+\index{SkipListFile@{SkipListFile}!$\sim$SkipListFile@{$\sim$SkipListFile}}
+\index{$\sim$SkipListFile@{$\sim$SkipListFile}!SkipListFile@{SkipListFile}}
+\subsubsection[{$\sim$SkipListFile}]{\setlength{\rightskip}{0pt plus 5cm}template$<$typename KeyType , typename ValueType , typename LockType , typename Alloc $>$ {\bf SkipListFile}$<$ KeyType, ValueType, LockType, Alloc $>$::$\sim${\bf SkipListFile} ()\hspace{0.3cm}{\tt  \mbox{[}inline, virtual\mbox{]}}}}
+\label{classSkipListFile_d233c08a7814bff2e1e535de1414f799}
+
+
+Destructor. 
+
+deconstructor 
+
+Definition at line 599 of file SkipListFile.h.
+
+\subsection{Member Function Documentation}
+\hypertarget{classSkipListFile_751dd7b2ee40cfb04a952131a3dec53d}{
+\index{SkipListFile@{SkipListFile}!close@{close}}
+\index{close@{close}!SkipListFile@{SkipListFile}}
+\subsubsection[{close}]{\setlength{\rightskip}{0pt plus 5cm}template$<$typename KeyType , typename ValueType  = NullType, typename LockType  = NullLock, typename Alloc  = std::allocator$<$DataType$<$KeyType,ValueType$>$ $>$$>$ bool {\bf SkipListFile}$<$ KeyType, ValueType, LockType, Alloc $>$::close ()\hspace{0.3cm}{\tt  \mbox{[}inline\mbox{]}}}}
+\label{classSkipListFile_751dd7b2ee40cfb04a952131a3dec53d}
+
+
+After use, it must be closed, and it will be automatically called in deconstrutor 
+
+Definition at line 382 of file SkipListFile.h.\hypertarget{classSkipListFile_409e58415e91f6b4cbe9381fae50dc70}{
+\index{SkipListFile@{SkipListFile}!commit@{commit}}
+\index{commit@{commit}!SkipListFile@{SkipListFile}}
+\subsubsection[{commit}]{\setlength{\rightskip}{0pt plus 5cm}template$<$typename KeyType , typename ValueType  = NullType, typename LockType  = NullLock, typename Alloc  = std::allocator$<$DataType$<$KeyType,ValueType$>$ $>$$>$ void {\bf SkipListFile}$<$ KeyType, ValueType, LockType, Alloc $>$::commit ()\hspace{0.3cm}{\tt  \mbox{[}inline\mbox{]}}}}
+\label{classSkipListFile_409e58415e91f6b4cbe9381fae50dc70}
+
+
+write the dirypage back 
+
+Definition at line 267 of file SkipListFile.h.\hypertarget{classSkipListFile_67061b1d6b1bda62005b93ca30686076}{
+\index{SkipListFile@{SkipListFile}!del@{del}}
+\index{del@{del}!SkipListFile@{SkipListFile}}
+\subsubsection[{del}]{\setlength{\rightskip}{0pt plus 5cm}template$<$typename KeyType , typename ValueType , typename LockType , typename Alloc $>$ bool {\bf SkipListFile}$<$ KeyType, ValueType, LockType, Alloc $>$::del (const KeyType \& {\em x})\hspace{0.3cm}{\tt  \mbox{[}inline\mbox{]}}}}
+\label{classSkipListFile_67061b1d6b1bda62005b93ca30686076}
+
+
+delete an item given a key, if not deleted return false 
+
+Definition at line 731 of file SkipListFile.h.\hypertarget{classSkipListFile_e794422745a92d67462d68c1b138bcc4}{
+\index{SkipListFile@{SkipListFile}!display@{display}}
+\index{display@{display}!SkipListFile@{SkipListFile}}
+\subsubsection[{display}]{\setlength{\rightskip}{0pt plus 5cm}template$<$typename KeyType , typename ValueType  = NullType, typename LockType  = NullLock, typename Alloc  = std::allocator$<$DataType$<$KeyType,ValueType$>$ $>$$>$ void {\bf SkipListFile}$<$ KeyType, ValueType, LockType, Alloc $>$::display (std::ostream \& {\em os} = {\tt std::cout})\hspace{0.3cm}{\tt  \mbox{[}inline\mbox{]}}}}
+\label{classSkipListFile_e794422745a92d67462d68c1b138bcc4}
+
+
+display the info of skiplist 
+
+Definition at line 303 of file SkipListFile.h.\hypertarget{classSkipListFile_d5991f6c784169c5cf582d9700eb7d78}{
+\index{SkipListFile@{SkipListFile}!find@{find}}
+\index{find@{find}!SkipListFile@{SkipListFile}}
+\subsubsection[{find}]{\setlength{\rightskip}{0pt plus 5cm}template$<$typename KeyType , typename ValueType , typename LockType , typename Alloc $>$ ValueType $\ast$ {\bf SkipListFile}$<$ KeyType, ValueType, LockType, Alloc $>$::find (const KeyType \& {\em key})\hspace{0.3cm}{\tt  \mbox{[}inline\mbox{]}}}}
+\label{classSkipListFile_d5991f6c784169c5cf582d9700eb7d78}
+
+
+Find item x in the tree. 
+
+find an item, return pointer to the value. Note that, there will be memory leak if not delete the value
+
+Return the matching item or m\_\-infinity if not found. 
+
+Definition at line 570 of file SkipListFile.h.\hypertarget{classSkipListFile_4400eb10cd0d694545abd633cb4fb3cd}{
+\index{SkipListFile@{SkipListFile}!find\_\-max@{find\_\-max}}
+\index{find\_\-max@{find\_\-max}!SkipListFile@{SkipListFile}}
+\subsubsection[{find\_\-max}]{\setlength{\rightskip}{0pt plus 5cm}template$<$typename KeyType , typename ValueType , typename LockType , typename Alloc $>$ const KeyType $\ast$ {\bf SkipListFile}$<$ KeyType, ValueType, LockType, Alloc $>$::find\_\-max () const\hspace{0.3cm}{\tt  \mbox{[}inline\mbox{]}}}}
+\label{classSkipListFile_4400eb10cd0d694545abd633cb4fb3cd}
+
+
+Find the largest item in the tree. 
+
+Return the largest item or m\_\-infinity if empty. 
+
+Definition at line 789 of file SkipListFile.h.\hypertarget{classSkipListFile_f754d414aa41d527e0544a5aae83e9a3}{
+\index{SkipListFile@{SkipListFile}!find\_\-min@{find\_\-min}}
+\index{find\_\-min@{find\_\-min}!SkipListFile@{SkipListFile}}
+\subsubsection[{find\_\-min}]{\setlength{\rightskip}{0pt plus 5cm}template$<$typename KeyType , typename ValueType , typename LockType , typename Alloc $>$ const KeyType $\ast$ {\bf SkipListFile}$<$ KeyType, ValueType, LockType, Alloc $>$::find\_\-min () const\hspace{0.3cm}{\tt  \mbox{[}inline\mbox{]}}}}
+\label{classSkipListFile_f754d414aa41d527e0544a5aae83e9a3}
+
+
+Find the smallest item in the tree. 
+
+Return smallest item or m\_\-infinity if empty. 
+
+Definition at line 773 of file SkipListFile.h.\hypertarget{classSkipListFile_7f6eb737975a52483087a649ecced807}{
+\index{SkipListFile@{SkipListFile}!flush@{flush}}
+\index{flush@{flush}!SkipListFile@{SkipListFile}}
+\subsubsection[{flush}]{\setlength{\rightskip}{0pt plus 5cm}template$<$typename KeyType , typename ValueType  = NullType, typename LockType  = NullLock, typename Alloc  = std::allocator$<$DataType$<$KeyType,ValueType$>$ $>$$>$ void {\bf SkipListFile}$<$ KeyType, ValueType, LockType, Alloc $>$::flush ()\hspace{0.3cm}{\tt  \mbox{[}inline\mbox{]}}}}
+\label{classSkipListFile_7f6eb737975a52483087a649ecced807}
+
+
+Beside committment, it also releases the memory 
+
+Definition at line 290 of file SkipListFile.h.\hypertarget{classSkipListFile_e1d5f4ce7d23b2f22768ed2b5e4efc78}{
+\index{SkipListFile@{SkipListFile}!get\_\-first\_\-locn@{get\_\-first\_\-locn}}
+\index{get\_\-first\_\-locn@{get\_\-first\_\-locn}!SkipListFile@{SkipListFile}}
+\subsubsection[{get\_\-first\_\-locn}]{\setlength{\rightskip}{0pt plus 5cm}template$<$typename KeyType , typename ValueType  = NullType, typename LockType  = NullLock, typename Alloc  = std::allocator$<$DataType$<$KeyType,ValueType$>$ $>$$>$ {\bf SDBCursor} {\bf SkipListFile}$<$ KeyType, ValueType, LockType, Alloc $>$::get\_\-first\_\-locn ()\hspace{0.3cm}{\tt  \mbox{[}inline\mbox{]}}}}
+\label{classSkipListFile_e1d5f4ce7d23b2f22768ed2b5e4efc78}
+
+
+get the SDBCursor of first key 
+
+Definition at line 233 of file SkipListFile.h.\hypertarget{classSkipListFile_44473481714fc1218112bb1b45550883}{
+\index{SkipListFile@{SkipListFile}!getNearest@{getNearest}}
+\index{getNearest@{getNearest}!SkipListFile@{SkipListFile}}
+\subsubsection[{getNearest}]{\setlength{\rightskip}{0pt plus 5cm}template$<$typename KeyType , typename ValueType  = NullType, typename LockType  = NullLock, typename Alloc  = std::allocator$<$DataType$<$KeyType,ValueType$>$ $>$$>$ KeyType {\bf SkipListFile}$<$ KeyType, ValueType, LockType, Alloc $>$::getNearest (const KeyType \& {\em key})\hspace{0.3cm}{\tt  \mbox{[}inline\mbox{]}}}}
+\label{classSkipListFile_44473481714fc1218112bb1b45550883}
+
+
+if the input key exists, just return itself, otherwise return the smallest existing key that bigger than it. 
+
+Definition at line 204 of file SkipListFile.h.\hypertarget{classSkipListFile_8a284db41397e361e0f520521d6c8c1e}{
+\index{SkipListFile@{SkipListFile}!insert@{insert}}
+\index{insert@{insert}!SkipListFile@{SkipListFile}}
+\subsubsection[{insert}]{\setlength{\rightskip}{0pt plus 5cm}template$<$typename KeyType , typename ValueType , typename LockType , typename Alloc $>$ bool {\bf SkipListFile}$<$ KeyType, ValueType, LockType, Alloc $>$::insert (const DataType \& {\em x})\hspace{0.3cm}{\tt  \mbox{[}inline\mbox{]}}}}
+\label{classSkipListFile_8a284db41397e361e0f520521d6c8c1e}
+
+
+Insert item x into the SkipList. 
+
+insert a dataType item 
+
+Definition at line 667 of file SkipListFile.h.\hypertarget{classSkipListFile_92adc503de42daa3192010f295c0570b}{
+\index{SkipListFile@{SkipListFile}!insert@{insert}}
+\index{insert@{insert}!SkipListFile@{SkipListFile}}
+\subsubsection[{insert}]{\setlength{\rightskip}{0pt plus 5cm}template$<$typename KeyType , typename ValueType  = NullType, typename LockType  = NullLock, typename Alloc  = std::allocator$<$DataType$<$KeyType,ValueType$>$ $>$$>$ bool {\bf SkipListFile}$<$ KeyType, ValueType, LockType, Alloc $>$::insert (const KeyType \& {\em key}, \/  const ValueType \& {\em value})\hspace{0.3cm}{\tt  \mbox{[}inline\mbox{]}}}}
+\label{classSkipListFile_92adc503de42daa3192010f295c0570b}
+
+
+insert a key/value pair 
+
+Definition at line 112 of file SkipListFile.h.\hypertarget{classSkipListFile_c6c8ae57ca3914f78eb96251c1bdd9bc}{
+\index{SkipListFile@{SkipListFile}!num\_\-items@{num\_\-items}}
+\index{num\_\-items@{num\_\-items}!SkipListFile@{SkipListFile}}
+\subsubsection[{num\_\-items}]{\setlength{\rightskip}{0pt plus 5cm}template$<$typename KeyType , typename ValueType  = NullType, typename LockType  = NullLock, typename Alloc  = std::allocator$<$DataType$<$KeyType,ValueType$>$ $>$$>$ int {\bf SkipListFile}$<$ KeyType, ValueType, LockType, Alloc $>$::num\_\-items () const\hspace{0.3cm}{\tt  \mbox{[}inline\mbox{]}}}}
+\label{classSkipListFile_c6c8ae57ca3914f78eb96251c1bdd9bc}
+
+
+get the number of the items 
+
+Definition at line 105 of file SkipListFile.h.\hypertarget{classSkipListFile_e9cd69cc2e8fd96c0c1c03ebb84b2853}{
+\index{SkipListFile@{SkipListFile}!open@{open}}
+\index{open@{open}!SkipListFile@{SkipListFile}}
+\subsubsection[{open}]{\setlength{\rightskip}{0pt plus 5cm}template$<$typename KeyType , typename ValueType  = NullType, typename LockType  = NullLock, typename Alloc  = std::allocator$<$DataType$<$KeyType,ValueType$>$ $>$$>$ bool {\bf SkipListFile}$<$ KeyType, ValueType, LockType, Alloc $>$::open ()\hspace{0.3cm}{\tt  \mbox{[}inline\mbox{]}}}}
+\label{classSkipListFile_e9cd69cc2e8fd96c0c1c03ebb84b2853}
+
+
+SDB/skiplist must be opened for use 
+
+Definition at line 310 of file SkipListFile.h.\hypertarget{classSkipListFile_81d3a3d64e98032992514e3dff8b394d}{
+\index{SkipListFile@{SkipListFile}!search@{search}}
+\index{search@{search}!SkipListFile@{SkipListFile}}
+\subsubsection[{search}]{\setlength{\rightskip}{0pt plus 5cm}template$<$typename KeyType , typename ValueType  = NullType, typename LockType  = NullLock, typename Alloc  = std::allocator$<$DataType$<$KeyType,ValueType$>$ $>$$>$ bool {\bf SkipListFile}$<$ KeyType, ValueType, LockType, Alloc $>$::search (const KeyType \& {\em key}, \/  {\bf SDBCursor} \& {\em locn})\hspace{0.3cm}{\tt  \mbox{[}inline\mbox{]}}}}
+\label{classSkipListFile_81d3a3d64e98032992514e3dff8b394d}
+
+
+search an item, SDBCursor is like database cursor. 
+
+Definition at line 143 of file SkipListFile.h.\hypertarget{classSkipListFile_b125e379a9640879f05386bb17ede4e2}{
+\index{SkipListFile@{SkipListFile}!search@{search}}
+\index{search@{search}!SkipListFile@{SkipListFile}}
+\subsubsection[{search}]{\setlength{\rightskip}{0pt plus 5cm}template$<$typename KeyType , typename ValueType  = NullType, typename LockType  = NullLock, typename Alloc  = std::allocator$<$DataType$<$KeyType,ValueType$>$ $>$$>$ {\bf SDBCursor} {\bf SkipListFile}$<$ KeyType, ValueType, LockType, Alloc $>$::search (const KeyType \& {\em key})\hspace{0.3cm}{\tt  \mbox{[}inline\mbox{]}}}}
+\label{classSkipListFile_b125e379a9640879f05386bb17ede4e2}
+
+
+search an item by key 
+
+Definition at line 133 of file SkipListFile.h.\hypertarget{classSkipListFile_33f3d7ea02a004d7fdedffe582f2ea72}{
+\index{SkipListFile@{SkipListFile}!setCacheSize@{setCacheSize}}
+\index{setCacheSize@{setCacheSize}!SkipListFile@{SkipListFile}}
+\subsubsection[{setCacheSize}]{\setlength{\rightskip}{0pt plus 5cm}template$<$typename KeyType , typename ValueType  = NullType, typename LockType  = NullLock, typename Alloc  = std::allocator$<$DataType$<$KeyType,ValueType$>$ $>$$>$ void {\bf SkipListFile}$<$ KeyType, ValueType, LockType, Alloc $>$::setCacheSize (size\_\-t {\em sz})\hspace{0.3cm}{\tt  \mbox{[}inline\mbox{]}}}}
+\label{classSkipListFile_33f3d7ea02a004d7fdedffe582f2ea72}
+
+
+We would peroidically flush the memory items, according to the cache Size. 
+
+Definition at line 69 of file SkipListFile.h.\hypertarget{classSkipListFile_b8a6cbf9fb0386dd4eb965b2aad18f53}{
+\index{SkipListFile@{SkipListFile}!setPageSize@{setPageSize}}
+\index{setPageSize@{setPageSize}!SkipListFile@{SkipListFile}}
+\subsubsection[{setPageSize}]{\setlength{\rightskip}{0pt plus 5cm}template$<$typename KeyType , typename ValueType  = NullType, typename LockType  = NullLock, typename Alloc  = std::allocator$<$DataType$<$KeyType,ValueType$>$ $>$$>$ void {\bf SkipListFile}$<$ KeyType, ValueType, LockType, Alloc $>$::setPageSize (size\_\-t {\em maxDataSize})\hspace{0.3cm}{\tt  \mbox{[}inline\mbox{]}}}}
+\label{classSkipListFile_b8a6cbf9fb0386dd4eb965b2aad18f53}
+
+
+set the page size by maxDataSize 
+
+Definition at line 48 of file SkipListFile.h.
+
+The documentation for this class was generated from the following file:\begin{CompactItemize}
+\item 
+/home/Kevin/izenelib/include/am/skip\_\-list\_\-file/\hyperlink{SkipListFile_8h}{SkipListFile.h}\end{CompactItemize}
