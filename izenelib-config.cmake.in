@@ -20,6 +20,8 @@
 #   izenelib_FOUND             - izenelib was found
 #   izenelib_VERSION           - version
 #   izenelib_INCLUDE_DIRS      - header dirs
+#   izenelib_STATIC_LIBRARIES  - all static libraries for components listed
+#   izenelib_SHARED_LIBRARIES  - all shared libraries for components listed
 #   izenelib_<component>_FOUND - <component> was found
 #
 # To link a library, just append its component name, the the targets
@@ -55,11 +57,15 @@ GET_FILENAME_COMPONENT(_top "${_version_dir}" PATH)
 SET(izenelib_INCLUDE_DIRS "${_version_dir}/include")
 SET(izenelib_VERSION "@PROJECT_VERSION@")
 SET(izenelib_FOUND TRUE)
+SET(izenelib_STATIC_LIBRARIES)
+SET(izenelib_SHARED_LIBRARIES)
 
 FOREACH(COMPONENT ${izenelib_FIND_COMPONENTS})
   IF(EXISTS "${_dir}/${COMPONENT}.cmake")
     INCLUDE("${_dir}/${COMPONENT}.cmake")
     SET(izenelib_${COMPONENT}_FOUND TRUE)
+    LIST(APPEND izenelib_STATIC_LIBRARIES ${COMPONENT}_static)
+    LIST(APPEND izenelib_SHARED_LIBRARIES ${COMPONENT}_shared)
     FIND_PACKAGE_MESSAGE("izenelib ${COMPONENT}"
       "izenelib ${COMPONENT} found: ${_dir}/${COMPONENT}.cmake"
       "${_dir}/${COMPONENT}.cmake"
