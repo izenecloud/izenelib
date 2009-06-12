@@ -19,10 +19,11 @@ FIND_PACKAGE(Boost 1.35.0 COMPONENTS unit_test_framework)
 find_package(Boost 1.35.0 REQUIRED)
 
 ##################################################
-# bzip2
+# bzip2 & zlib
 #####
 
 FIND_PACKAGE(BZip2)
+FIND_PACKAGE(ZLIB)
 
 ##################################################
 # Tokoyo Cabnet
