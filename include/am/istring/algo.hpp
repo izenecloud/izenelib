@@ -13,6 +13,7 @@
 #include <fstream>
 #include <sys/types.h>
 #include <math.h>
+#include <iconv.h>
 
 class is_alphabet
 {
@@ -556,7 +557,7 @@ public:
 
     return true;
   }
-
+  
   static size_t num_occurrence(const StringT& str1, const StringT& str2,
                                 size_t pos1 = 0, StrCompMode caseChk=SM_IGNORE) 
   {
@@ -630,7 +631,9 @@ public:
     for (typename std::vector<size_t>::iterator i=v.begin(); i!=v.end(); i++)
     {
       assert(last<str.length());
+      //std::cout<<str.substr(last, *i-last)<<last<<" "<<*i-last<<"\n";
       StringT ssss = str.substr(last, *i-last);
+      //std::cout<<"jjjjjjjjjjjjj\n";
       s += ssss;
       s += to;
       last = *i+from.length();
@@ -810,13 +813,13 @@ public:
       i++;
       if (start + i >= str.length())
       {
-        str = "";
+        str.clear();
         return;
       }
     }
 
     if (i==start){
-      str = "";
+      str.clear();
       return ;
     }
     
@@ -838,20 +841,20 @@ public:
     size_t i = find(str, p1, 0, caseChk);
     if (i==(size_t)-1)
     {
-      str = "";
+      str.clear();
       return;
     }
     
     size_t j = rfind(str, p2, StringT::npos, caseChk);
     if (j==(size_t)-1)
     {
-      str = "";
+      str.clear();
       return ;
     }
     
     if (i+p1.length()>=j)
     {
-      str = "";
+      str.clear();
       return ;
     }
     
@@ -875,7 +878,7 @@ public:
       
       if (i == str.length())
       {
-        str = "";
+        str.clear();
         return ;
       }
       
@@ -887,7 +890,7 @@ public:
       return;
     }
     
-    str = "";
+    str.clear();
   }
 
   static StringT cut_line_after(const StringT& str, const StringT& tag, StrCompMode caseChk=SM_IGNORE) 
@@ -905,7 +908,7 @@ public:
       size_t i = index + tag.length();
       if (i == str.length())
       {
-        str = "";
+        str.clear();
         return;
       }
 
@@ -916,7 +919,7 @@ public:
       return;
     }
     
-    str = "";
+    str.clear();
   }
 
     /**
@@ -959,7 +962,7 @@ public:
         size_t finalIndex = index - step;
         while (finalIndex >=arrayOfstrings.size())
         {
-          arrayOfstrings.push_back("");
+          arrayOfstrings.push_back(StringT());
         }
         
         arrayOfstrings[finalIndex] += temp;
@@ -1019,7 +1022,7 @@ public:
       
     }
 
-    str = "";
+    str.clear();
   }
 
   static StringT reverse_cut_front_with(const StringT& str, CharT tag,
@@ -1047,7 +1050,7 @@ public:
       return;
     }
 
-    str = "";
+    str.clear();
   }
 
   static StringT compact_head(const StringT& str)
@@ -1132,25 +1135,43 @@ public:
     str = trim(s);
   }
 
-  static void read_from_file(const StringT& filename, std::vector<StringT>& lines, CharT line='\n')
+  static void read_from_file(const char* filename, std::vector<StringT>& lines, CharT line='\n')
   {
-    std::ifstream file (filename.c_str(), std::ios::in|std::ios::binary|std::ios::ate);
-    boost::archive::binary_iarchive ia(file);
-    StringT s;
-    ia >> s;
+    std::ifstream file (filename, std::ios::in|std::ios::binary|std::ios::ate);
+    // get length of file:
+    file.seekg (0, std::ios::end);
+    std::size_t length = file.tellg();
+    file.seekg (0, std::ios::beg);
 
+    // allocate memory:
+    char* buffer = (char*)hlmalloc(length);
+
+    // read data as a block:
+    file.read (buffer,length);
+    file.close();
+
+    StringT s((CharT* )buffer, length/sizeof(CharT));
+    hlfree(buffer);
+    
     make_tokens_with_delimiter(s, line, lines);
   }
 
-  static void write_to_file(const StringT& filename, const std::vector<StringT>& lines)
+  static void write_to_file(const char* filename, const std::vector<StringT>& lines)
   {
-    std::ofstream file(filename.as_const_char(), std::ios::out|std::ios::binary);
-    boost::archive::binary_oarchive oa(file);
+    std::ofstream of(filename, std::ios::out|std::ios::binary);
 
     for (size_t i=0; i<lines.size(); i++)
-      oa<<lines[i]<<"\n";
+    {
+      for (typename StringT::const_iterator j = lines[i].begin(); j!=lines[i].end();j++)
+      {
+        CharT ch = *j;
+        of.write((char*)&ch, sizeof(CharT));
+      }
+      CharT ch = '\n';
+      of.write((char*)&ch, sizeof(CharT));
+    }
 
-    file.close();
+    of.close();
   }
 
     /**
@@ -1192,7 +1213,115 @@ public:
 
     return s;
   }
-  
+
+  static bool read_from_encode(const char* encode_type, const char* input, size_t len, StringT& output)
+  {
+    output.clear();
+    
+    iconv_t ic = iconv_open("ucs-2", encode_type);
+    if (ic == (iconv_t)(-1))
+      return false;
+
+    size_t ilen = 0;
+    size_t olen = 0;
+    ilen = len;
+    olen = ilen * 4;
+    
+    char *ibuf = const_cast<char *>(input);
+    
+    char *obuf_org = (char*)hlmalloc(olen);
+    char *obuf = obuf_org;
+    std::fill(obuf, obuf + olen, 0);
+    
+    size_t olen_org = olen;
+    iconv(ic, 0, &ilen, 0, &olen);  // reset iconv state
+    
+    while (ilen != 0) {
+      if (iconv(ic, &ibuf, &ilen, &obuf, &olen)
+          == (size_t) -1) {
+        //std::cout<<"oo"<<ilen<<std::endl;
+        ibuf++;
+        ilen++;
+        //hlfree(obuf_org);
+        //iconv_close(ic);
+        //return false;
+      }
+      //std::cout<<"uu"<<ilen<<std::endl;
+    }
+
+    output.assign((CharT*)obuf_org, (olen_org - olen)/sizeof(CharT));
+
+    hlfree(obuf_org);
+    
+    iconv_close(ic);
+    
+    return true;
+  }
+
+  static bool write_to_encode(const char* encode_type, char** output, size_t& len, const StringT& input)
+  {
+    iconv_t ic = iconv_open(encode_type, "ucs-2");
+    
+    if (ic == (iconv_t)(-1))
+      return false;
+    
+    size_t ilen = 0;
+    size_t olen = 0;
+    ilen = input.size();
+    olen = ilen * 4+1;
+    char *ibuf = (char*)hlmalloc(ilen);
+    char *ibuf_org = ibuf;
+
+    input.copy((CharT*)ibuf, input.length());
+
+    *output = (char*)hlmalloc(olen);
+    char *obuf_org = *output;
+    char *obuf = obuf_org;
+    std::fill(obuf, obuf + olen, 0);
+    
+    size_t olen_org = olen;
+    iconv(ic, 0, &ilen, 0, &olen);  // reset iconv state
+    while (ilen != 0) {
+      if (iconv(ic, &ibuf, &ilen, &obuf, &olen)
+          == (size_t) -1) {
+        //std::cout<<"jj"<<ilen<<std::endl;
+        ibuf++;
+        ilen++;
+        //len =  olen_org - olen;
+        //hlfree(ibuf_org);
+        //iconv_close(ic);
+
+        //return false;
+      }
+      //std::cout<<"yy"<<ilen<<std::endl;
+    }
+
+    len =  olen_org - olen;
+    
+    hlfree(ibuf_org);
+    
+    iconv_close(ic);
+
+    return true;
+  }
+
+  static void release(char* p)
+  {
+    hlfree(p);
+  }
+
+  static void display(const StringT& str, const char* encode_t="UTF-8", std::ostream& os=std::cout)
+  {
+    char* buf=NULL;
+    size_t len = 0;
+
+    if (!write_to_encode(encode_t, &buf, len, str))      
+      return;
+    //buf[len-1] = '\0';
+    
+    os<<buf<<std::endl;
+    release(buf);
+  }
   
 
 }

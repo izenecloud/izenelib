@@ -25,7 +25,7 @@ class vector_string
 public:
   typedef CHAR_TYPE value_type;
   typedef CHAR_TYPE CharT;
-  typedef uint16_t  ReferT;
+  typedef unsigned char  ReferT;
   typedef vector_string<CHAR_TYPE, COPY_ON_WRITE, APPEND_RATE> SelfT;
   typedef std::size_t size_t;
   
@@ -592,7 +592,7 @@ protected:
     clear_reference(); 
   }
 
-  inline size_t getLen(const CharT* s) const
+  static inline size_t getLen(const CharT* s)
   {
     CharT e = '\0';
     size_t i = 0;
@@ -840,6 +840,7 @@ public:
     
     if (n == max_size_)
     {
+      length_ = n;
       return;
     }
 
@@ -924,13 +925,13 @@ public:
 public:
   const CharT& operator[] ( size_t pos ) const
   {
-    assert(pos<length_);
+    assert(pos<max_size_);
     return str_[pos];
   }
   
   CharT& operator[] ( size_t pos )
   {
-    assert(pos<length_);
+    assert(pos<max_size_);
     assign_self();
     return str_[pos];
     
@@ -972,7 +973,7 @@ public:
     if (!str.length())
       return *this;
 
-    size_t new_len = (size_t)((length_ + str.length()) * append_rate_);
+    size_t new_len = max_size_-length_<str.length()+1? (size_t)((length_ + str.length()) * append_rate_): max_size_-1;
     
     if (is_refered())
     {
@@ -991,7 +992,7 @@ public:
 
       return *this;
     }
-
+    
     if (str.length()+length_+1>max_size_)
     {
       if (p_!=NULL)
@@ -1052,7 +1053,7 @@ public:
       max_size_ = new_len+1;
     }
     
-    memcpy(str_ + length_, s, n);
+    memcpy(str_ + length_, s, n*sizeof(CharT));
     length_ += n;
     str_[length_] = '\0';
     clear_reference();
@@ -1202,6 +1203,8 @@ public:
   SelfT& assign ( const CharT* s, size_t n )
   {
     derefer();
+    if (n==0)
+      return *this;
     
     p_ = (char*)hlmalloc(get_total_size(n));
     str_ = (CharT*)(p_+sizeof (ReferT));
@@ -1229,6 +1232,8 @@ public:
     //std::cout<<"++"<<getReferCnt()<<std::endl;
     
     length_ = getLen(s);
+    if (length_==0)
+      return *this;
 
     p_ = (char*)hlmalloc(get_total_size(length_));
     str_ = (CharT*)(p_+sizeof (ReferT));
@@ -1332,7 +1337,7 @@ public:
       char* p = (char*)hlmalloc(get_total_size(new_len));
       memcpy(p + sizeof(ReferT), str_, (pos1+1)*sizeof(CharT));
       memcpy(p + sizeof(ReferT) + (pos1+1)*sizeof(CharT), str.str_, str.size());
-      memcpy(p + sizeof(ReferT) + (pos1+1 + str.length())*sizeof(CharT), str_+pos1+1, length_-pos1-1);
+      memcpy(p + sizeof(ReferT) + (pos1+1 + str.length())*sizeof(CharT), str_+pos1+1, (length_-pos1-1)*sizeof(CharT));
       str_ = (CharT*)(p+sizeof (ReferT));
       
 
@@ -1491,7 +1496,7 @@ public:
       char* p = (char*)hlmalloc(get_total_size(new_len));
       memcpy(p + sizeof(ReferT), str_, pos1*sizeof(CharT));
       memcpy(p + sizeof(ReferT) + pos1*sizeof(CharT), str.str_, str.size());
-      memcpy(p + sizeof(ReferT) + (pos1 + str.length())*sizeof(CharT), str_+pos1+n1, length_-pos1-n1);
+      memcpy(p + sizeof(ReferT) + (pos1 + str.length())*sizeof(CharT), str_+pos1+n1, (length_-pos1-n1)*sizeof(CharT));
       str_ = (CharT*)(p+sizeof (ReferT));
       
 
@@ -1874,7 +1879,7 @@ public:
     str_ = (CharT*)(p_ + sizeof (ReferT));
     is_attached_ = false;
     
-    ar.load_binary(str_, max_size_);
+    ar.load_binary(str_, max_size_*sizeof(CharT));
     clear_reference();
   }
 
@@ -1883,7 +1888,7 @@ public:
 friend std::ostream& operator << (std::ostream& os, const SelfT& str)
   {
     for (size_t i =0; i<str.length_; i++)
-      os<<str.str_[i];
+      os<<(char)str.str_[i];
 
     return os;
   }
