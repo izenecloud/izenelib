@@ -16,7 +16,12 @@ SET(Boost_ADDITIONAL_VERSIONS 1.39 1.39.0 1.38 1.38.0 1.37 1.37.0)
 # used in unit testcases
 FIND_PACKAGE(Boost 1.35.0 COMPONENTS unit_test_framework)
 # require header only libraries >= 1.35
-find_package(Boost 1.35.0 REQUIRED)
+FIND_PACKAGE(Boost 1.35.0 REQUIRED)
+
+##################################################
+# Threads
+#####
+FIND_PACKAGE(Threads)
 
 ##################################################
 # bzip2 & zlib
