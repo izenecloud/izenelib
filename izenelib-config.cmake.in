@@ -44,7 +44,8 @@
 #
 INCLUDE(FindPackageMessage)
 FIND_PACKAGE_MESSAGE("izenelib"
-  "izenelib found: ${CMAKE_CURRENT_LIST_FILE}"
+  "izenelib found: ${CMAKE_CURRENT_LIST_FILE}
+Some izenelib header only libraries depend on boost, tokyo cabinet, pthread. If you use such libraries, please also add the include directories and link their libraries."
   "${CMAKE_CURRENT_LIST_FILE}"
   )
 GET_FILENAME_COMPONENT(_dir "${CMAKE_CURRENT_LIST_FILE}" PATH)
