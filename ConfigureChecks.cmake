@@ -4,6 +4,27 @@
 INCLUDE(CheckIncludeFile)
 
 ##################################################
+# Int Types
+#####
+CHECK_INCLUDE_FILE(inttypes.h HAVE_INTTYPES_H)
+CHECK_INCLUDE_FILE(stdint.h HAVE_STDINT_H)
+CHECK_INCLUDE_FILE(sys/types.h HAVE_SYS_TYPES_H)
+CHECK_INCLUDE_FILE(stddef.h HAVE_STDDEF_H)
+
+##################################################
+# Doxygen
+#####
+FIND_PACKAGE(Doxygen)
+IF(DOXYGEN_DOT_EXECUTABLE)
+  OPTION(USE_DOT "use dot in doxygen?" FLASE)
+ENDIF(DOXYGEN_DOT_EXECUTABLE)
+
+SET(USE_DOT_YESNO NO)
+IF(USE_DOT)
+  SET(USE_DOT_YESNO YES)
+ENDIF(USE_DOT)
+
+##################################################
 # Boost
 #####
 
@@ -34,25 +55,3 @@ FIND_PACKAGE(ZLIB)
 # Tokoyo Cabnet
 #####
 FIND_PACKAGE(TokyoCabinet 1.4.24)
-
-##################################################
-# Int Types
-#####
-###########
-CHECK_INCLUDE_FILE(inttypes.h HAVE_INTTYPES_H)
-CHECK_INCLUDE_FILE(stdint.h HAVE_STDINT_H)
-CHECK_INCLUDE_FILE(sys/types.h HAVE_SYS_TYPES_H)
-CHECK_INCLUDE_FILE(stddef.h HAVE_STDDEF_H)
-
-##################################################
-# Doxygen
-#####
-FIND_PACKAGE(Doxygen)
-IF(DOXYGEN_DOT_EXECUTABLE)
-  OPTION(USE_DOT "use dot in doxygen?" FLASE)
-ENDIF(DOXYGEN_DOT_EXECUTABLE)
-
-SET(USE_DOT_YESNO NO)
-IF(USE_DOT)
-  SET(USE_DOT_YESNO YES)
-ENDIF(USE_DOT)
