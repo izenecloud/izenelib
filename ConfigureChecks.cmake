@@ -11,7 +11,7 @@ INCLUDE(CheckIncludeFile)
 # set BOOST_ROOT to select a boost installation
 
 # This is required to enable the new version
-SET(Boost_ADDITIONAL_VERSIONS 1.37 1.37.0 1.38 1.38.0 1.39 1.39.0)
+SET(Boost_ADDITIONAL_VERSIONS 1.39 1.39.0 1.38 1.38.0 1.37 1.37.0)
 # find unit_test_framework in boost >= 1.35, it's optional and only
 # used in unit testcases
 FIND_PACKAGE(Boost 1.35.0 COMPONENTS unit_test_framework)
