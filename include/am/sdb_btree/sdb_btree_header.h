@@ -8,8 +8,10 @@
 #ifndef SDB_BTREE_HEADER_H_
 #define SDB_BTREE_HEADER_H_
 
-#include <iostream>
 #include "../../types.h"
+
+#include <stdio.h>
+#include <iostream>
 
 using namespace std;
 
