@@ -6,7 +6,7 @@ ADD_LIBRARY(sdb_btree_shared SHARED ${sdb_btree_SRC})
 SET_TARGET_PROPERTIES(sdb_btree_shared PROPERTIES
   OUTPUT_NAME "sdb_btree"
   CLEAN_DIRECT_OUTPUT 1
-  VERSION ${IZENELIB_VERSION}
+  VERSION ${PROJECT_VERSION}
   )
 
 ADD_LIBRARY(sdb_btree_static STATIC ${sdb_btree_SRC})

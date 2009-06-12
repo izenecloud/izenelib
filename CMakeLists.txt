@@ -104,15 +104,15 @@ SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS}" CACHE STRING
 ##################################################
 # Project Info
 #####
-SET(izenelib_VERSION_MAJOR 1)
-SET(izenelib_VERSION_MINOR 0)
-SET(izenelib_VERSION_PATCH 0)
-SET(izenelib_VERSION "${izenelib_VERSION_MAJOR}.${izenelib_VERSION_MINOR}.${izenelib_VERSION_PATCH}")
-SET(izenelib_PACKAGE "izenelib")
-SET(izenelib_VERSION_STRING "${izenelib_PACKAGE} ${izenelib_VERSION}")
+SET(PROJECT_VERSION_MAJOR 1)
+SET(PROJECT_VERSION_MINOR 0)
+SET(PROJECT_VERSION_PATCH 0)
+SET(PROJECT_VERSION "${PROJECT_VERSION_MAJOR}.${PROJECT_VERSION_MINOR}.${PROJECT_VERSION_PATCH}")
+SET(PROJECT_PACKAGE "izenelib")
+SET(PROJECT_VERSION_STRING "${PROJECT_PACKAGE} ${PROJECT_VERSION}")
 
-# prefix of bin include and static lib
-SET(VERSION_INSTALL_PREFIX "izenelib-${izenelib_VERSION}")
+# tagged prefi
+SET(VERSION_INSTALL_PREFIX "${PROJECT_PACKAGE}-${PROJECT_VERSION}")
 
 ##################################################
 # Check Dependencies

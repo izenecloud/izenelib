@@ -47,7 +47,7 @@ GET_FILENAME_COMPONENT(_version_dir "${_dir}" PATH)
 GET_FILENAME_COMPONENT(_top "${_version_dir}" PATH)
 
 SET(izenelib_INCLUDE_DIRS "${_version_dir}/include")
-SET(izenelib_VERSION "@izenelib_VERSION@")
+SET(izenelib_VERSION "@PROJECT_VERSION@")
 SET(izenelib_FOUND TRUE)
 
 FOREACH(COMPONENT ${izenelib_FIND_COMPONENTS})

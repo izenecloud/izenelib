@@ -6,7 +6,7 @@ ADD_LIBRARY(boost_memory_shared SHARED ${boost_memory_SRC})
 SET_TARGET_PROPERTIES(boost_memory_shared PROPERTIES
   OUTPUT_NAME "boost_memory"
   CLEAN_DIRECT_OUTPUT 1
-  VERSION ${IZENELIB_VERSION}
+  VERSION ${PROJECT_VERSION}
   )
 
 ADD_LIBRARY(boost_memory_static STATIC ${boost_memory_SRC})

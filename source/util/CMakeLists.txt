@@ -13,7 +13,7 @@ ELSE(WIN32)
   SET_TARGET_PROPERTIES(procmeminfo_shared PROPERTIES
     OUTPUT_NAME "procmeminfo"
     CLEAN_DIRECT_OUTPUT 1
-    VERSION ${IZENELIB_VERSION}
+    VERSION ${PROJECT_VERSION}
     )
 
   ADD_LIBRARY(procmeminfo_static STATIC ${procmeminfo_SRC})
