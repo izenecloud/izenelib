@@ -44,8 +44,15 @@ IF (CMAKE_BINARY_DIR STREQUAL CMAKE_SOURCE_DIR)
   MESSAGE(FATAL_ERROR "In source build is not allowed")
 ENDIF (CMAKE_BINARY_DIR STREQUAL CMAKE_SOURCE_DIR)
 
+##################################################
+# Project and some options
+#####
 PROJECT(IZENELIB)
 OPTION(VERBOSE "print detailed configure messages" ON)
+OPTION(ENABLE_TEST "build test applications?" ON)
+IF(ENABLE_TEST)
+  ENABLE_TESTING()
+ENDIF(ENABLE_TEST)
 
 ##################################################
 # BUILD TYPE & OPTIONS
@@ -129,6 +136,7 @@ INCLUDE(ConfigureChecks.cmake)
 INSTALL(
   DIRECTORY include/
   DESTINATION "${VERSION_INSTALL_PREFIX}/include"
+  COMPONENT "header_only"
   FILES_MATCHING
   PATTERN "*/3rdparty" EXCLUDE
   PATTERN "*.h"
@@ -136,6 +144,7 @@ INSTALL(
 INSTALL(
   DIRECTORY include/3rdparty/
   DESTINATION "${VERSION_INSTALL_PREFIX}/include"
+  COMPONENT "header_only"
   FILES_MATCHING
   PATTERN "*.h"
   )
@@ -154,7 +163,9 @@ CONFIGURE_FILE(
 INSTALL(FILES
   "${CMAKE_BINARY_DIR}/${PROJECT_PACKAGE}-config.cmake"
   "${CMAKE_BINARY_DIR}/${PROJECT_PACKAGE}-config-version.cmake"
-  DESTINATION "${VERSION_INSTALL_PREFIX}/cmake")
+  DESTINATION "${VERSION_INSTALL_PREFIX}/cmake"
+  COMPONENT "package-config"
+)
 
 ##################################################
 # Sub Directories
@@ -164,7 +175,6 @@ INSTALL(FILES
 INCLUDE_DIRECTORIES("${CMAKE_SOURCE_DIR}/include")
 INCLUDE_DIRECTORIES("${CMAKE_SOURCE_DIR}/include/3rdparty")
 
-# log components
 SET_PROPERTY(GLOBAL PROPERTY BUILD_COMPONENTS)
 SET_PROPERTY(GLOBAL PROPERTY NON_BUILD_COMPONENTS)
 
@@ -181,7 +191,9 @@ ADD_SUBDIRECTORY(source/ir ir)
 ADD_SUBDIRECTORY(source/util util)
 
 # Test cases and applications
-# ADD_SUBDIRECTORY(source/test test)
+IF(ENABLE_TEST)
+  ADD_SUBDIRECTORY(source/test test)
+ENDIF(ENABLE_TEST)
 
 GET_PROPERTY(BUILD_COMPONENTS GLOBAL PROPERTY BUILD_COMPONENTS)
 GET_PROPERTY(NON_BUILD_COMPONENTS GLOBAL PROPERTY NON_BUILD_COMPONENTS)
@@ -197,6 +209,7 @@ IF(VERBOSE)
   MESSAGE(STATUS "  corresponding flags: ${CMAKE_CXX_FLAGS_${CMAKE_BUILD_TYPE_UPPER}}")
   MESSAGE(STATUS "CMAKE_CXX_FLAGS: ${CMAKE_CXX_FLAGS}")
   MESSAGE(STATUS "----------------------------------------")
+
   IF(Boost_FOUND)
     MESSAGE(STATUS "BOOST:")
     MESSAGE(STATUS "  header: ${Boost_INCLUDE_DIR}")
@@ -204,13 +217,29 @@ IF(VERBOSE)
   ELSE(Boost_FOUND)
     MESSAGE(STATUS "BOOST: not found")
   ENDIF(Boost_FOUND)
+
   IF(BZIP2_FOUND)
     MESSAGE(STATUS "BZIP2:")
     MESSAGE(STATUS "  header: ${BZIP2_INCLUDE_DIR}")
     MESSAGE(STATUS "  libs: ${BZIP2_LIBRARIES}")
   ELSE(BZIP2_FOUND)
     MESSAGE(STATUS "BZIP2: not found")  
-  ENDIF(BZIP2_FOUND)    
+  ENDIF(BZIP2_FOUND)
+
+  IF(ZLIB_FOUND)
+    MESSAGE(STATUS "ZLIB:")
+    MESSAGE(STATUS "  header: ${ZLIB_INCLUDE_DIR}")
+    MESSAGE(STATUS "  libs: ${ZLIB_LIBRARIES}")
+  ELSE(ZLIB_FOUND)
+    MESSAGE(STATUS "ZLIB: not found")  
+  ENDIF(ZLIB_FOUND)
+
+  IF(Threads_FOUND)
+    MESSAGE(STATUS "Threads Library: ${CMAKE_THREAD_LIBS_INIT}")
+  ELSE(Threads_FOUND)
+    MESSAGE(STATUS "Threads Library: none")
+  ENDIF(Threads_FOUND)
+
   IF(TokyoCabinet_FOUND)
     MESSAGE(STATUS "Tokyo Cabinet:")
     MESSAGE(STATUS "  header: ${TokyoCabinet_INCLUDE_DIR}")
@@ -219,6 +248,7 @@ IF(VERBOSE)
   ELSE(TokyoCabinet_FOUND)
     MESSAGE(STATUS "TokyoCabinet: not found")
   ENDIF(TokyoCabinet_FOUND)
+
   MESSAGE(STATUS "----------------------------------------")
   MESSAGE(STATUS "COMPONENTS BUILD:")
   FOREACH(c ${BUILD_COMPONENTS})
@@ -233,8 +263,3 @@ IF(VERBOSE)
   MESSAGE(STATUS "========================================")
 
 ENDIF(VERBOSE)
-
-GET_FILENAME_COMPONENT(_absFile "include" ABSOLUTE)
-MESSAGE(${_absFile})
-GET_FILENAME_COMPONENT(_abs_PATH ${_absFile} PATH)
-MESSAGE(${_abs_PATH})
