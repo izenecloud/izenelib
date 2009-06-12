@@ -240,7 +240,7 @@ void DynamicArray<ElemT,NullValue>::grow(size_t newLen)
 	
     memset(tmpBlks,0,numBlks*sizeof(ElemT*));
     memcpy(tmpBlks,blocks_,numBlks_*sizeof(ElemT*));
-    //delete[] blocks_;
+    delete[] blocks_;
     blocks_ = tmpBlks;
     numBlks_ = numBlks;
     maxLength_ = newLen;
