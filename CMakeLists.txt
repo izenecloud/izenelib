@@ -124,6 +124,8 @@ INCLUDE(ConfigureChecks.cmake)
 # Install Headers
 #####
 
+# trailing / is required, otherwise dectory name is appended to
+# install directory.
 INSTALL(
   DIRECTORY include/
   DESTINATION "${VERSION_INSTALL_PREFIX}/include"
@@ -131,18 +133,28 @@ INSTALL(
   PATTERN "*/3rdparty" EXCLUDE
   PATTERN "*.h"
   )
+INSTALL(
+  DIRECTORY include/3rdparty/
+  DESTINATION "${VERSION_INSTALL_PREFIX}/include"
+  FILES_MATCHING
+  PATTERN "*.h"
+  )
 
 ##################################################
 # Config File
 #####
 CONFIGURE_FILE(
-  "${CMAKE_CURRENT_SOURCE_DIR}/izenelib-config.cmake.in"
-  "${CMAKE_BINARY_DIR}/izenelib-config.cmake"
+  "${CMAKE_CURRENT_SOURCE_DIR}/${PROJECT_PACKAGE}-config.cmake.in"
+  "${CMAKE_BINARY_DIR}/${PROJECT_PACKAGE}-config.cmake"
   ESCAPE_QUOTES @ONLY)
 CONFIGURE_FILE(
-  "${CMAKE_CURRENT_SOURCE_DIR}/izenelib-config-version.cmake.in"
-  "${CMAKE_BINARY_DIR}/izenelib-config-version.cmake"
+  "${CMAKE_CURRENT_SOURCE_DIR}/${PROJECT_PACKAGE}-config-version.cmake.in"
+  "${CMAKE_BINARY_DIR}/${PROJECT_PACKAGE}-config-version.cmake"
   ESCAPE_QUOTES @ONLY)
+INSTALL(FILES
+  "${CMAKE_BINARY_DIR}/${PROJECT_PACKAGE}-config.cmake"
+  "${CMAKE_BINARY_DIR}/${PROJECT_PACKAGE}-config-version.cmake"
+  DESTINATION "${VERSION_INSTALL_PREFIX}/cmake")
 
 ##################################################
 # Sub Directories
