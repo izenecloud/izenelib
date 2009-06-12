@@ -42,7 +42,12 @@
 # The targets can be used like:
 #   TARGET_LINK_LIBRARIES(target udt_static febird_static)
 #
-GET_FILENAME_COMPONENT(_dir "${izenelib_CONFIG}" PATH)
+INCLUDE(FindPackageMessage)
+FIND_PACKAGE_MESSAGE("izenelib"
+  "izenelib found: ${CMAKE_CURRENT_LIST_FILE}"
+  "${CMAKE_CURRENT_LIST_FILE}"
+  )
+GET_FILENAME_COMPONENT(_dir "${CMAKE_CURRENT_LIST_FILE}" PATH)
 GET_FILENAME_COMPONENT(_version_dir "${_dir}" PATH)
 GET_FILENAME_COMPONENT(_top "${_version_dir}" PATH)
 
@@ -51,11 +56,20 @@ SET(izenelib_VERSION "@PROJECT_VERSION@")
 SET(izenelib_FOUND TRUE)
 
 FOREACH(COMPONENT ${izenelib_FIND_COMPONENTS})
-  IF (EXISTS "${_dir}/${COMPONENT}.cmake")
+  IF(EXISTS "${_dir}/${COMPONENT}.cmake")
     INCLUDE("${_dir}/${COMPONENT}.cmake")
     SET(izenelib_${COMPONENT}_FOUND TRUE)
-  ELSEIF (EXISTS "${_dir}/${COMPONENT}.cmake")
+    FIND_PACKAGE_MESSAGE("izenelib ${COMPONENT}"
+      "izenelib ${COMPONENT} found: ${_dir}/${COMPONENT}.cmake"
+      "${_dir}/${COMPONENT}.cmake"
+      )
+  ELSE(EXISTS "${_dir}/${COMPONENT}.cmake")
     SET(izenelib_${COMPONENT}_FOUND FALSE)
     SET(izenelib_FOUND FALSE)
-  ENDIF (EXISTS "${_dir}/${COMPONENT}.cmake")
+    IF(izenelib_FIND_REQUIRED)
+      MESSAGE(FATAL_ERROR "find izenelib ${COMPONENT}: failed")
+    ELSEIF(NOT izenelib_FIND_QUIETLY)
+      MESSAGE(STATUS "find izenelib ${COMPONENT}: failed")
+    ENDIF(izenelib_FIND_REQUIRED)
+  ENDIF(EXISTS "${_dir}/${COMPONENT}.cmake")
 ENDFOREACH(COMPONENT ${izenelib_FIND_COMPONENTS})
