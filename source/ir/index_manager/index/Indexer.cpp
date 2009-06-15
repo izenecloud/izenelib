@@ -623,10 +623,12 @@ bool Indexer::getDocsByTermInProperties(termid_t termID, collectionid_t colID, v
                 item.setDocID(pPositions->doc());
                 vector<loc_t>* positions = new vector<loc_t>;
                 loc_t pos = pPositions->nextPosition();
+                loc_t subpos = pPositions->nextPosition();
                 while (pos != BAD_POSITION)
                 {
                     positions->push_back(pos);
                     pos = pPositions->nextPosition();
+                    subpos = pPositions->nextPosition();
                 }
                 item.addProperty(properties[0], positions);
                 commonSet.push_back(item);

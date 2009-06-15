@@ -43,7 +43,7 @@ void ForwardIndexWriter::addProperty(fieldid_t fid, boost::shared_ptr<LAInput> l
             pForwardIndex = new ForwardIndex;
             (*forwardIndexArray_)[iter->termId_] = pForwardIndex;
         }
-        pForwardIndex->push_back(make_pair(iter->wordOffset_, iter->wordOffset_+iter->byteOffset_));
+        pForwardIndex->push_back(make_pair(iter->wordOffset_, iter->byteOffset_));
     }
 
     size_t nNumTerms = forwardIndexArray_->length();

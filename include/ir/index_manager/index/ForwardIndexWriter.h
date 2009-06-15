@@ -18,10 +18,7 @@ NS_IZENELIB_IR_BEGIN
 
 namespace indexmanager{
 
-typedef unsigned int StartOffset;
-typedef unsigned int EndOffset;
-
-typedef std::deque<std::pair<StartOffset, EndOffset> > ForwardIndex;
+typedef std::deque<std::pair<unsigned int, unsigned int> > ForwardIndex;
 typedef DynamicArray<ForwardIndex*, Const_NullValue<ForwardIndex*> > DynForwardIndexArray;
 
 class ForwardIndexWriter{

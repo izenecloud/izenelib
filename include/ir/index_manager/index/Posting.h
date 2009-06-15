@@ -285,7 +285,7 @@ public:
      * @param docid the identifier of document
      * @param location the location of term
      */
-    void addLocation(docid_t docid, loc_t location);
+    void addLocation(docid_t docid, loc_t location, loc_t sublocation);
 
     /**
      * Is there any chunk?

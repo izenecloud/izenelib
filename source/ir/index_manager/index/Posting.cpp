@@ -318,7 +318,7 @@ void InMemoryPosting::updateDF(docid_t docid)
     }
 }
 
-void InMemoryPosting::addLocation(docid_t docid, loc_t location)
+void InMemoryPosting::addLocation(docid_t docid, loc_t location, loc_t sublocation)
 {
     if (docid == nLastDocID)
     {
@@ -330,8 +330,15 @@ void InMemoryPosting::addLocation(docid_t docid, loc_t location)
             pLocList->addChunk(newChunk(newSize));
             pLocList->addPosting(location - nLastLoc);///d-gap encoding
         }
+        if (!pLocList->addPosting(sublocation))
+        {
+            ///chunk is exhausted
+            int32_t newSize = getNextChunkSize(pLocList->nTotalSize, InMemoryPosting::ALLOCSTRATEGY);
+            pLocList->addChunk(newChunk(newSize));
+            pLocList->addPosting(sublocation);///d-gap encoding
+        }
         nCurTermFreq++;
-        nLastLoc = location;
+        nLastLoc = location+sublocation;
     }
     else///first see it
     {
@@ -364,13 +371,20 @@ void InMemoryPosting::addLocation(docid_t docid, loc_t location)
             pLocList->addPosting(location);
         }
 
+        if (!pLocList->addPosting(sublocation))
+        {
+            ///chunk is exhausted
+            int32_t newSize = getNextChunkSize(pLocList->nTotalSize,InMemoryPosting::ALLOCSTRATEGY);
+            pLocList->addChunk(newChunk(newSize));
+            pLocList->addPosting(sublocation);
+        }
+
         nCTF += nCurTermFreq;
         nCurTermFreq = 1;
 
         nLastDocID = docid;
 
-        ///save the last location in order to enable d-gap encoding
-        nLastLoc = location;
+        nLastLoc = location+sublocation;
 
         nDF++;
     }

@@ -35,7 +35,7 @@ void FieldIndexer::addField(docid_t docid, boost::shared_ptr<LAInput> laInput)
             curPosting = new InMemoryPosting(pMemCache_);
             array_[iter->termId_] = curPosting;
         }
-        curPosting->addLocation(docid, iter->wordOffset_);
+        curPosting->addLocation(docid, iter->wordOffset_, iter->byteOffset_);
         curPosting->updateDF(docid);
     }
 }
@@ -61,11 +61,13 @@ void FieldIndexer::removeField(docid_t docid, boost::shared_ptr<LAInput> laInput
             {
                 decompressed_docid = pTermPositions->doc();
                 loc_t pos = pTermPositions->nextPosition();
+                loc_t subpos = pTermPositions->nextPosition();
                 while (pos != BAD_POSITION)
                 {
                     if (decompressed_docid != docid)
-                        newPosting->addLocation(decompressed_docid, pos );
+                        newPosting->addLocation(decompressed_docid, pos, subpos);
                     pos = pTermPositions->nextPosition();
+                    subpos = pTermPositions->nextPosition();
                 }
                 newPosting->updateDF(decompressed_docid);
             }

@@ -172,10 +172,12 @@ bool CollectionIndexer::removeDocumentInField(docid_t docid, FieldInfo* pFieldIn
                     continue;
                 }
                 loc_t pos = pTermPositions->nextPosition();
+                loc_t subpos = pTermPositions->nextPosition();
                 while (pos != BAD_POSITION)
                 {
-                    newPosting->addLocation(decompressed_docid, pos );
+                    newPosting->addLocation(decompressed_docid, pos, subpos);
                     pos = pTermPositions->nextPosition();
+                    subpos = pTermPositions->nextPosition();
                 }
                 newPosting->updateDF(decompressed_docid);
             }

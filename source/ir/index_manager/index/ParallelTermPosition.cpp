@@ -105,10 +105,12 @@ void ParallelTermPosition::getPositions(string& property, vector<loc_t>* positio
 {
     TermPositions* pPositions =  termPositionMap_[property];
     loc_t pos = pPositions->nextPosition();
+    loc_t subpos = pPositions->nextPosition();
     while (pos != BAD_POSITION)
     {
         positions->push_back(pos);
         pos = pPositions->nextPosition();
+        subpos = pPositions->nextPosition();
     }
 }
 
