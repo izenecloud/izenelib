@@ -4,7 +4,6 @@
 #include <ir/index_manager/index/DBTIndexMerger.h>
 #include <ir/index_manager/index/OptimizeMerger.h>
 #include <ir/index_manager/index/IndexBarrelWriter.h>
-#include <ir/index_manager/index/ForwardIndex.h>
 #include <ir/index_manager/index/IndexerPropertyConfig.h>
 
 using namespace std;

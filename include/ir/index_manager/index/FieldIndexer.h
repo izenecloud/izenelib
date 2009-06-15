@@ -12,7 +12,6 @@
 #include <ir/index_manager/index/OutputDescriptor.h>
 #include <ir/index_manager/index/Posting.h>
 #include <ir/index_manager/index/LAInput.h>
-#include <ir/index_manager/index/ForwardIndex.h>
 
 #include <util/DynamicArray.h>
 

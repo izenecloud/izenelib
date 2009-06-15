@@ -35,7 +35,7 @@ void FieldIndexer::addField(docid_t docid, boost::shared_ptr<LAInput> laInput)
             curPosting = new InMemoryPosting(pMemCache_);
             array_[iter->termId_] = curPosting;
         }
-        curPosting->addLocation(docid, iter->startOffset_);
+        curPosting->addLocation(docid, iter->wordOffset_);
         curPosting->updateDF(docid);
     }
 }

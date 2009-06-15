@@ -4,6 +4,7 @@ using namespace izenelib::ir::indexmanager;
 
 ForwardIndexWriter::ForwardIndexWriter(Directory* pDirectory)
     :pDirectory_(pDirectory)
+    ,forwardIndexArray_(NULL)
 {
     pDOCOutput_ = pDirectory_->createOutput("forward.doc", "r+");
     pFDIOutput_ = pDirectory_->createOutput("forward.fdi", "a+");
@@ -14,6 +15,9 @@ ForwardIndexWriter::ForwardIndexWriter(Directory* pDirectory)
 ForwardIndexWriter::~ForwardIndexWriter()
 {
     close();
+
+    if(forwardIndexArray_)
+        delete forwardIndexArray_;
 }
 
 void ForwardIndexWriter::addDocument(docid_t docID)
@@ -22,38 +26,57 @@ void ForwardIndexWriter::addDocument(docid_t docID)
     pDOCOutput_->writeLong(pFDIOutput_->getFilePointer());
 }
 
-void ForwardIndexWriter::addField(fieldid_t fid, ForwardIndex& forwardIndex)
+void ForwardIndexWriter::addProperty(fieldid_t fid, boost::shared_ptr<LAInput> laInput)
 {
-    pFDIOutput_->writeVInt(0);
     pFDIOutput_->writeVInt(fid);
     pFDIOutput_->writeVLong(pVOCOutput_->getFilePointer());
 
-    TermArray& termIdList = forwardIndex.getTermIdArray();
+    if(!forwardIndexArray_)
+        forwardIndexArray_ = new DynForwardIndexArray;
 
-    size_t nNumTerms = forwardIndex.getNumTerms();
+   ForwardIndex* pForwardIndex = NULL;
+    for(LAInput::iterator iter = laInput->begin(); iter != laInput->end(); ++iter)
+    {
+        pForwardIndex = (ForwardIndex*)(*forwardIndexArray_)[iter->termId_];
+        if (pForwardIndex == NULL)
+        {
+            pForwardIndex = new ForwardIndex;
+            (*forwardIndexArray_)[iter->termId_] = pForwardIndex;
+        }
+        pForwardIndex->push_back(make_pair(iter->wordOffset_, iter->wordOffset_+iter->byteOffset_));
+    }
+
+    size_t nNumTerms = forwardIndexArray_->length();
 
     pVOCOutput_->writeVInt(nNumTerms);
 
     unsigned int termId, lastTerm = 0;
 
-    TermArray::array_iterator iter = termIdList.elements();
+    DynForwardIndexArray::array_iterator iter = forwardIndexArray_->elements();
     while(iter.next())
     {
-        termid_t termId = (termid_t)iter.element();
+        termId = (termid_t)iter.position();
         pVOCOutput_->writeVInt(termId - lastTerm);
         lastTerm = termId;
         pVOCOutput_->writeVInt(pPOSOutput_->getFilePointer());
-        std::deque<std::pair<WordOffset, CharOffset> >* termOffsetList = forwardIndex.getTermOffsetListByTermId(termId);
-        int numPosition = termOffsetList->size();
+        pForwardIndex = iter.element();
+        int numPosition = pForwardIndex->size();
         unsigned int offset, lastOffset = 0;
         for (int j = 0; j < numPosition; j++)
         {
-            offset = (*termOffsetList)[j].first;
+            ///start offset
+            offset = (*pForwardIndex)[j].first;
+            pPOSOutput_->writeVInt(offset - lastOffset);
+            lastOffset = offset;
+            ///end offset
+            offset = (*pForwardIndex)[j].second;
             pPOSOutput_->writeVInt(offset - lastOffset);
             lastOffset = offset;
         }
+        delete pForwardIndex;
     }
 
+    forwardIndexArray_->reset();
 }
 
 void ForwardIndexWriter::close()

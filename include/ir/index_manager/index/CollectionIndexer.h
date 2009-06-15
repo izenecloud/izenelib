@@ -22,6 +22,7 @@
 #include <ir/index_manager/index/OutputDescriptor.h>
 #include <ir/index_manager/index/BTreeIndex.h>
 #include <ir/index_manager/index/LAInput.h>
+#include <ir/index_manager/index/ForwardIndexWriter.h>
 
 NS_IZENELIB_IR_BEGIN
 
@@ -44,6 +45,8 @@ public:
 
     void setFieldIndexers();
 
+    void setForwardIndexWriter(ForwardIndexWriter* pForwardIndexWriter){pForwardIndexWriter_ = pForwardIndexWriter;}
+
     void addDocument(IndexerDocument* pDoc);
 
     bool deleteDocument(IndexerDocument* pDoc,string barrelName, Directory* pDirectory, OutputDescriptor* desc, bool inMemory);
@@ -56,22 +59,24 @@ public:
 
     FieldIndexer* getFieldIndexer(const char* field);
 
-    FieldsInfo* getFieldsInfo() { return pFieldsInfo;}
+    FieldsInfo* getFieldsInfo() { return pFieldsInfo_;}
 
 private:
 
     bool removeDocumentInField(docid_t docid, FieldInfo* pFieldInfo, boost::shared_ptr<LAInput> laInput, string barrelName, Directory* pDirectory, OutputDescriptor* desc);
 
 private:
-    collectionid_t colID;
+    collectionid_t colID_;
 
-    MemCache* pMemCache;
+    MemCache* pMemCache_;
 
-    map<string, boost::shared_ptr<FieldIndexer> > fieldIndexerMap;
+    map<string, boost::shared_ptr<FieldIndexer> > fieldIndexerMap_;
 
-    FieldsInfo* pFieldsInfo;
+    FieldsInfo* pFieldsInfo_;
 
-    Indexer* pIndexer;
+    Indexer* pIndexer_;
+
+    ForwardIndexWriter* pForwardIndexWriter_;
 };
 
 }

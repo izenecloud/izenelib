@@ -18,6 +18,7 @@
 #include <ir/index_manager/index/CollectionInfo.h>
 #include <ir/index_manager/index/InMemoryIndexBarrelReader.h>
 #include <ir/index_manager/index/BTreeIndex.h>
+#include <ir/index_manager/index/ForwardIndexWriter.h>
 
 #include <map>
 
@@ -143,6 +144,8 @@ private:
     collectionid_t currentColID;
 
     Directory* pDirectory;
+
+    ForwardIndexWriter* pForwardIndexWriter_;
 
     friend class InMemoryIndexBarrelReader;
     friend class IndexWriter;

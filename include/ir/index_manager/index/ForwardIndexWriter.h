@@ -2,16 +2,27 @@
 #define FORWARDINDEXWRITER_H
 
 #include <ir/index_manager/index/IndexerDocument.h>
-#include <ir/index_manager/index/ForwardIndex.h>
+#include <ir/index_manager/index/LAInput.h>
 
 
 #include <ir/index_manager/store/Directory.h>
 #include <ir/index_manager/store/IndexOutput.h>
 
+#include <util/DynamicArray.h>
+
+#include <deque>
+
+using namespace izenelib::util;
 
 NS_IZENELIB_IR_BEGIN
 
 namespace indexmanager{
+
+typedef unsigned int StartOffset;
+typedef unsigned int EndOffset;
+
+typedef std::deque<std::pair<StartOffset, EndOffset> > ForwardIndex;
+typedef DynamicArray<ForwardIndex*, Const_NullValue<ForwardIndex*> > DynForwardIndexArray;
 
 class ForwardIndexWriter{
 public:
@@ -22,7 +33,7 @@ public:
 public:
     void addDocument(docid_t docID);
 
-    void addField(fieldid_t fid, ForwardIndex& forwardIndex);
+    void addProperty(fieldid_t fid, boost::shared_ptr<LAInput> laInput);
 	
     void close();
 
@@ -36,6 +47,8 @@ private:
     IndexOutput* pVOCOutput_;
 
     IndexOutput* pPOSOutput_;
+
+    DynForwardIndexArray* forwardIndexArray_;
 };
 
 }

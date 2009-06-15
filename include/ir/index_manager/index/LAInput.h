@@ -10,12 +10,12 @@ namespace indexmanager{
 class LAInputUnit
 {
 public:
-	LAInputUnit():termId_(0),startOffset_(0),endOffset_(0){}
+	LAInputUnit():termId_(0),wordOffset_(0),byteOffset_(0){}
 	~LAInputUnit(){}
 public:
 	unsigned int termId_;
-	unsigned int startOffset_;
-	unsigned int endOffset_;
+	unsigned int wordOffset_;
+	unsigned int byteOffset_;
 };
 
 typedef std::deque<LAInputUnit> LAInput;

@@ -16,19 +16,23 @@ FSIndexOutput::FSIndexOutput(const char* filename, const string& mode)
     if (mode.compare("w+b") == 0)
         fileHandle_ = fopen(filename, "w+b");
     else if(mode.compare("r+") == 0)
+    {
         fileHandle_ = fopen(filename, "r+");
+        if(fileHandle_ == NULL)
+            fileHandle_ = fopen(filename, "a+");
+    }
     else if(mode.compare("a+") == 0)
         fileHandle_ = fopen(filename, "a+");
     else
         SF1V5_THROW(ERROR_FILEIO,"Open file error: " + filename_);
-
-    setbuf(fileHandle_,NULL);
 
     if (fileHandle_ == NULL)
     {
         perror("error when opening file");
         SF1V5_THROW(ERROR_FILEIO,"Open file error: " + filename_);
     }
+
+    setbuf(fileHandle_,NULL);
 }
 
 FSIndexOutput::FSIndexOutput(const char* filename, size_t buffsize, const string& mode)
@@ -44,13 +48,13 @@ FSIndexOutput::FSIndexOutput(const char* filename, size_t buffsize, const string
     else
         SF1V5_THROW(ERROR_FILEIO,"Open file error: " + filename_);
 
-    setbuf(fileHandle_,NULL);
-
     if (fileHandle_ == NULL)
     {
         perror("error when opening file");
         SF1V5_THROW(ERROR_FILEIO,"Open file error: " + filename_);
     }
+
+    setbuf(fileHandle_,NULL);
 }
 
 FSIndexOutput::~FSIndexOutput(void)

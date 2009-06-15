@@ -12,6 +12,7 @@ IndexBarrelWriter::IndexBarrelWriter(Indexer* pIndex,MemCache* pCache,const char
 {
     pCollectionsInfo = new CollectionsInfo();
     pDirectory = pIndexer->getDirectory();
+    pForwardIndexWriter_ = new ForwardIndexWriter(pDirectory);
 }
 
 IndexBarrelWriter::~IndexBarrelWriter(void)
@@ -28,6 +29,7 @@ IndexBarrelWriter::~IndexBarrelWriter(void)
     {
         delete iter->second;
     }
+    delete pForwardIndexWriter_;
     collectionIndexMap.clear();
 }
 
@@ -142,6 +144,7 @@ void IndexBarrelWriter::setCollectionsMeta(const std::map<std::string, IndexerCo
         pCollectionIndexer = new CollectionIndexer(colID, pMemCache, pIndexer);
         pCollectionIndexer->setSchema((iter->second));
         pCollectionIndexer->setFieldIndexers();
+        pCollectionIndexer->setForwardIndexWriter(pForwardIndexWriter_);
         collectionIndexMap.insert(make_pair(colID,pCollectionIndexer));
         pCollectionInfo = new CollectionInfo(colID, pCollectionIndexer->getFieldsInfo());
         pCollectionsInfo->addCollection(pCollectionInfo);

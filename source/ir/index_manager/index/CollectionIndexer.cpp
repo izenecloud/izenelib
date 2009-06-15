@@ -22,37 +22,39 @@ using namespace wiselib;
 using namespace izenelib::ir::indexmanager;
 
 CollectionIndexer::CollectionIndexer(collectionid_t id,MemCache* pCache,Indexer* pIndexer)
-        :colID(id)
-        ,pMemCache(pCache)
-        ,pIndexer(pIndexer)
+        :colID_(id)
+        ,pMemCache_(pCache)
+        ,pIndexer_(pIndexer)
+        ,pForwardIndexWriter_(NULL)
 {
-    pFieldsInfo = new FieldsInfo();
+    pFieldsInfo_ = new FieldsInfo();
 }
 
 CollectionIndexer::~CollectionIndexer()
 {
-    delete pFieldsInfo;
-    pMemCache = NULL;
-    pIndexer = NULL;
+    delete pFieldsInfo_;
+    pMemCache_ = NULL;
+    pIndexer_ = NULL;
+    pForwardIndexWriter_ = NULL;
 }
 
 void CollectionIndexer::setSchema(const IndexerCollectionMeta& schema)
 {
-    pFieldsInfo->setSchema(schema);
+    pFieldsInfo_->setSchema(schema);
 }
 
 void CollectionIndexer::setFieldIndexers()
 {
-    pFieldsInfo->startIterator();
+    pFieldsInfo_->startIterator();
     FieldInfo* pFieldInfo = NULL;
-    while (pFieldsInfo->hasNext())
+    while (pFieldsInfo_->hasNext())
     {
-        pFieldInfo = pFieldsInfo->next();
+        pFieldInfo = pFieldsInfo_->next();
         if (pFieldInfo->isIndexed()&&pFieldInfo->isForward())
         {
-            FieldIndexer* pFieldIndexer = new FieldIndexer(pMemCache);
+            FieldIndexer* pFieldIndexer = new FieldIndexer(pMemCache_);
             pFieldIndexer->setField(pFieldInfo->getName());
-            fieldIndexerMap.insert(make_pair(pFieldInfo->getName(),pFieldIndexer));
+            fieldIndexerMap_.insert(make_pair(pFieldInfo->getName(),pFieldIndexer));
         }
     }
 }
@@ -64,21 +66,23 @@ void CollectionIndexer::addDocument(IndexerDocument* pDoc)
 
     map<IndexerPropertyConfig, IndexerDocumentPropertyType> propertyValueList;
     pDoc->getPropertyList(propertyValueList);
+    pForwardIndexWriter_->addDocument(uniqueID.docId);
 
     for (map<IndexerPropertyConfig, IndexerDocumentPropertyType>::iterator iter = propertyValueList.begin(); iter != propertyValueList.end(); ++iter)
     {
         if (! iter->first.isForward())
         {
-            pIndexer->getBTreeIndexer()->add(uniqueID.colId, iter->first.getPropertyId(), boost::get<PropertyType>(iter->second), uniqueID.docId);
+            pIndexer_->getBTreeIndexer()->add(uniqueID.colId, iter->first.getPropertyId(), boost::get<PropertyType>(iter->second), uniqueID.docId);
         }
         else
         {
-            map<string, boost::shared_ptr<FieldIndexer> >::iterator it = fieldIndexerMap.find(iter->first.getName());
-            if (it == fieldIndexerMap.end())
+            map<string, boost::shared_ptr<FieldIndexer> >::iterator it = fieldIndexerMap_.find(iter->first.getName());
+            if (it == fieldIndexerMap_.end())
                 // This field is not indexed.
                 continue;
             boost::shared_ptr<LAInput> laInput = boost::get<boost::shared_ptr<LAInput> >(iter->second);
             it->second->addField(uniqueID.docId, laInput);
+            pForwardIndexWriter_->addProperty(iter->first.getPropertyId(), laInput);
             continue;
         }
 
@@ -118,7 +122,7 @@ bool CollectionIndexer::deleteDocument(IndexerDocument* pDoc,string barrelName, 
 
             if (inMemory)
             {
-                map<string, boost::shared_ptr<FieldIndexer> >::iterator it = fieldIndexerMap.find(iter->first.getName());
+                map<string, boost::shared_ptr<FieldIndexer> >::iterator it = fieldIndexerMap_.find(iter->first.getName());
                 it->second->removeField(uniqueID.docId, laInput);
             }
             else
@@ -156,7 +160,7 @@ bool CollectionIndexer::removeDocumentInField(docid_t docid, FieldInfo* pFieldIn
         if (pTermReader->seek(&term))
         {
             TermInfo* pTermInfo = pTermReader->termInfo(&term);
-            InMemoryPosting*	newPosting = new InMemoryPosting(pMemCache);
+            InMemoryPosting* newPosting = new InMemoryPosting(pMemCache_);
 
             TermPositions* pTermPositions = pTermReader->termPositions();
             while (pTermPositions->next())
@@ -253,7 +257,7 @@ void CollectionIndexer::write(OutputDescriptor* desc)
     fileoffset_t vocOffset;
 
     FieldIndexer* pFieldIndexer;
-    for (map<string, boost::shared_ptr<FieldIndexer> >::iterator iter = fieldIndexerMap.begin(); iter != fieldIndexerMap.end(); ++iter)
+    for (map<string, boost::shared_ptr<FieldIndexer> >::iterator iter = fieldIndexerMap_.begin(); iter != fieldIndexerMap_.end(); ++iter)
     {
         pFieldIndexer = iter->second.get();
         if (pFieldIndexer == NULL)
@@ -262,26 +266,26 @@ void CollectionIndexer::write(OutputDescriptor* desc)
         dfiOff1 = pDOutput->getFilePointer();
         ptiOff1 = pPOutput->getFilePointer();
 
-        fieldid_t fid = pIndexer->getPropertyIDByName(colID, iter->first);
+        fieldid_t fid = pIndexer_->getPropertyIDByName(colID_, iter->first);
 
-        pFieldsInfo->setDistinctNumTerms(fid,pFieldIndexer->distinctNumTerms());///set distinct term numbers
+        pFieldsInfo_->setDistinctNumTerms(fid,pFieldIndexer->distinctNumTerms());///set distinct term numbers
 
         vocOffset = pFieldIndexer->write(desc);///write field index data
 
-        pFieldsInfo->setFieldOffset(fid,vocOffset);///set offset of vocabulary descriptor
+        pFieldsInfo_->setFieldOffset(fid,vocOffset);///set offset of vocabulary descriptor
 
         vocOff2 = pVocOutput->getFilePointer();
         dfiOff2 = pDOutput->getFilePointer();
         ptiOff2 = pPOutput->getFilePointer();
 
-        pFieldsInfo->getField(fid)->setLength(vocOff2-vocOff1,dfiOff2-dfiOff1,ptiOff2-ptiOff1);
+        pFieldsInfo_->getField(fid)->setLength(vocOff2-vocOff1,dfiOff2-dfiOff1,ptiOff2-ptiOff1);
     }
 }
 
 
 void CollectionIndexer::reset()
 {
-    for (map<string, boost::shared_ptr<FieldIndexer> >::iterator iter = fieldIndexerMap.begin(); iter != fieldIndexerMap.end(); ++iter)
+    for (map<string, boost::shared_ptr<FieldIndexer> >::iterator iter = fieldIndexerMap_.begin(); iter != fieldIndexerMap_.end(); ++iter)
     {
         iter->second->reset();
     }
@@ -290,7 +294,7 @@ void CollectionIndexer::reset()
 FieldIndexer* CollectionIndexer::getFieldIndexer(const char* field)
 {
     string fieldstr(field);
-    FieldIndexer* fieldIndexer = fieldIndexerMap[fieldstr].get();
+    FieldIndexer* fieldIndexer = fieldIndexerMap_[fieldstr].get();
     return fieldIndexer;
 }
 
