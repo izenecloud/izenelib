@@ -18,6 +18,7 @@ FieldMerger::FieldMerger()
         ,lastTerm(0)
         ,lastPOffset(0)
         ,beginOfVoc(0)
+        ,nMergedTerms(0)
 {
     memset(cachedTermInfos,0,NUM_CACHEDTERMINFO*sizeof(MergeTermInfo*));
 }
@@ -29,6 +30,11 @@ FieldMerger::FieldMerger(Directory* pDirectory)
         ,nNumTermCached(0)
         ,ppFieldInfos(NULL)
         ,nNumInfos(0)
+        ,termCount(0)
+        ,lastTerm(0)
+        ,lastPOffset(0)
+        ,beginOfVoc(0)
+        ,nMergedTerms(0)
 {
     memset(cachedTermInfos,0,NUM_CACHEDTERMINFO*sizeof(MergeTermInfo*));
 }
@@ -83,7 +89,10 @@ void FieldMerger::addField(BarrelInfo* pBarrelInfo,FieldInfo* pFieldInfo)
 fileoffset_t FieldMerger::merge(OutputDescriptor* pOutputDescriptor)
 {
     if (initQueue() == false)///initialize merge queue
-        return 0;
+        //return 0; 
+        //When collection is empty in a barrel, it still needs to write some information.
+        return endMerge(pOutputDescriptor);
+
 
     pPostingMerger->setOutputDescriptor(pOutputDescriptor);
 

@@ -14,6 +14,7 @@ FieldsInfo::FieldsInfo()
 FieldsInfo::FieldsInfo(const FieldsInfo& src)
         :fdInfosIterator(0)
 {
+    colId = src.colId;
     nNumFieldInfo = src.nNumFieldInfo;
     ppFieldsInfo = new FieldInfo*[nNumFieldInfo];
     for (int32_t i = 0;i<nNumFieldInfo;i++)

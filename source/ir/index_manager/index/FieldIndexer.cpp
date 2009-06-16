@@ -94,6 +94,7 @@ void FieldIndexer::reset()
             pPosting->reset();		///clear posting data
         }
     }
+    array_.reset();
 }
 
 fileoffset_t FieldIndexer::write(OutputDescriptor* pWriterDesc)

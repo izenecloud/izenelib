@@ -418,8 +418,8 @@ int Indexer::insertCollection(collectionid_t colID)
     //pIndexWriter_->flushDocuments();
     pIndexWriter_->close();
     pBarrelsInfo_->write(getDirectory());
-    pBarrelsInfo_->clear();
-    pBarrelsInfo_->read(pDirectory_);		
+    delete pIndexWriter_;
+    pIndexWriter_ = new IndexWriter(this);
 
     pIndexReader_->setDirty(true);
 
