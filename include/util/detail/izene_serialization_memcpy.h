@@ -121,10 +121,13 @@ public:
 
 	}
 	void read_image(std::vector<T>& dat) {
-		if (size_ >0) {
+		if (size_ > 0) {
 			dat.resize(size_/sizeof(T));
 			memcpy(&dat[0], ptr_, size_);
+		}else{
+			dat.clear();
 		}
+		
 	}
 };
 

@@ -22,8 +22,8 @@ using namespace std;
 using namespace __gnu_cxx;
 using namespace boost;
 
-namespace izenelib{
-namespace cache{
+namespace izenelib {
+namespace cache {
 
 /**
  * 	\brief  CacheDB,  file-based data structure for storage. 
@@ -43,8 +43,8 @@ namespace cache{
  *				    No threa dsafe. 	 
  */
 
-template <class KeyType, class ValueType, class ReplacementPolicy, class MCache,
-		class DataHash, class LockType =NullLock> class CacheDB {
+template <class KeyType, class ValueType, class ReplacementPolicy,
+		class MCache, class DataHash, class LockType =NullLock> class CacheDB {
 
 	typedef izenelib::am::DataType<KeyType,ValueType> DataType;
 public:
@@ -58,7 +58,7 @@ public:
 	CacheDB(unsigned int cacheSize, const char* fileName) :
 		mCache_(cacheSize), dataHash_(fileName) {
 		dataHash_.open();
-		
+
 	}
 
 	void setCacheSize(unsigned int cacheSize) {
@@ -73,8 +73,22 @@ public:
 	void insertValue(const DataType& value); // insert an new item into CacheDB
 	void insertValue(const KeyType& key, const ValueType& value) // insert an new item into CacheDB
 	{
-		insertValue( DataType(key, value) );
+		insertValue(DataType(key, value) );
 	}
+
+	void updateValue(const DataType& dat) {
+		lock.acquire_write_lock();
+		if ( dataHash_.update(dat) ) {
+			mCache_.updateValue(dat);
+		}
+		lock.release_write_lock();
+	}
+
+	void updateValue(const KeyType& key, const ValueType& value) // insert an new item into CacheDB
+	{
+		updateValue( DataType(key, value) );
+	}
+
 	bool hasKey(const KeyType& key);
 	int numItems();
 
@@ -121,9 +135,9 @@ private:
  *
  *	@return TRUE if found, otherwise return faulse
  */
-template <class KeyType, class ValueType, class ReplacementPolicy, class MCache,
-		class DataHash, class LockType> bool CacheDB<KeyType, ValueType,
-		ReplacementPolicy, MCache, DataHash, LockType>::getValue(
+template <class KeyType, class ValueType, class ReplacementPolicy,
+		class MCache, class DataHash, class LockType> bool CacheDB<KeyType,
+		ValueType, ReplacementPolicy, MCache, DataHash, LockType>::getValue(
 		const KeyType& key, ValueType& value) {
 	lock.acquire_write_lock();
 	if (mCache_.getValue(key, value) ) {
@@ -148,9 +162,9 @@ template <class KeyType, class ValueType, class ReplacementPolicy, class MCache,
  *   \brief insert an new item into CacheDB
  */
 
-template <class KeyType, class ValueType, class ReplacementPolicy, class MCache,
-		class DataHash, class LockType> void CacheDB<KeyType, ValueType,
-		ReplacementPolicy, MCache, DataHash, LockType>::insertValue(
+template <class KeyType, class ValueType, class ReplacementPolicy,
+		class MCache, class DataHash, class LockType> void CacheDB<KeyType,
+		ValueType, ReplacementPolicy, MCache, DataHash, LockType>::insertValue(
 		const DataType& dat) {
 	lock.acquire_write_lock();
 	if (dataHash_.insert(dat) ) {
@@ -163,9 +177,9 @@ template <class KeyType, class ValueType, class ReplacementPolicy, class MCache,
  * 	\brief not insert even if not found
  * 	
  */
-template <class KeyType, class ValueType, class ReplacementPolicy, class MCache,
-		class DataHash, class LockType> bool CacheDB<KeyType, ValueType,
-		ReplacementPolicy, MCache, DataHash, LockType>::getValueNoInsert(
+template <class KeyType, class ValueType, class ReplacementPolicy,
+		class MCache, class DataHash, class LockType> bool CacheDB<KeyType,
+		ValueType, ReplacementPolicy, MCache, DataHash, LockType>::getValueNoInsert(
 		const KeyType& key, ValueType& value) {
 	return getValue(key, value);
 }
@@ -175,9 +189,9 @@ template <class KeyType, class ValueType, class ReplacementPolicy, class MCache,
  * 
  *         @return TRUE if hits, othewise reture False and insert into the new item.	
  */
-template <class KeyType, class ValueType, class ReplacementPolicy, class MCache,
-		class DataHash, class LockType> bool CacheDB<KeyType, ValueType,
-		ReplacementPolicy, MCache, DataHash, LockType>::getValueWithInsert(
+template <class KeyType, class ValueType, class ReplacementPolicy,
+		class MCache, class DataHash, class LockType> bool CacheDB<KeyType,
+		ValueType, ReplacementPolicy, MCache, DataHash, LockType>::getValueWithInsert(
 		const KeyType& key, ValueType& value) {
 
 	if (getValue(key, value) )
@@ -193,9 +207,9 @@ template <class KeyType, class ValueType, class ReplacementPolicy, class MCache,
  *  	\brief delete an item from CacheDB.
  */
 
-template <class KeyType, class ValueType, class ReplacementPolicy, class MCache,
-		class DataHash, class LockType> bool CacheDB<KeyType, ValueType,
-		ReplacementPolicy, MCache, DataHash, LockType>::del(
+template <class KeyType, class ValueType, class ReplacementPolicy,
+		class MCache, class DataHash, class LockType> bool CacheDB<KeyType,
+		ValueType, ReplacementPolicy, MCache, DataHash, LockType>::del(
 		const KeyType& key) {
 	lock.acquire_write_lock();
 	if (dataHash_.del(key) ) {
@@ -212,9 +226,9 @@ template <class KeyType, class ValueType, class ReplacementPolicy, class MCache,
  *	\brief to determine if an item exists in CacheDB.    
  * 
  */
-template <class KeyType, class ValueType, class ReplacementPolicy, class MCache,
-		class DataHash, class LockType> bool CacheDB<KeyType, ValueType,
-		ReplacementPolicy, MCache, DataHash, LockType>::hasKey(
+template <class KeyType, class ValueType, class ReplacementPolicy,
+		class MCache, class DataHash, class LockType> bool CacheDB<KeyType,
+		ValueType, ReplacementPolicy, MCache, DataHash, LockType>::hasKey(
 		const KeyType& key) {
 	lock.acquire_read_lock();
 	bool is = mCache_.hasKey(key) || (dataHash_.find(key) != NULL);
@@ -228,9 +242,9 @@ template <class KeyType, class ValueType, class ReplacementPolicy, class MCache,
  * 	\brief get the number of the items in tha CacheDB. 
  *
  */
-template <class KeyType, class ValueType, class ReplacementPolicy, class MCache,
-		class DataHash, class LockType> int CacheDB<KeyType, ValueType,
-		ReplacementPolicy, MCache, DataHash, LockType>::numItems() {
+template <class KeyType, class ValueType, class ReplacementPolicy,
+		class MCache, class DataHash, class LockType> int CacheDB<KeyType,
+		ValueType, ReplacementPolicy, MCache, DataHash, LockType>::numItems() {
 	lock.acquire_read_lock();
 	int num = dataHash_.num_items();
 	lock.release_read_lock();
@@ -241,9 +255,9 @@ template <class KeyType, class ValueType, class ReplacementPolicy, class MCache,
 /**
  *	\brief It displays the number of items in memory Cache.
  */
-template <class KeyType, class ValueType, class ReplacementPolicy, class MCache,
-		class DataHash, class LockType> void CacheDB<KeyType, ValueType,
-		ReplacementPolicy, MCache, DataHash, LockType>::displayHash() {
+template <class KeyType, class ValueType, class ReplacementPolicy,
+		class MCache, class DataHash, class LockType> void CacheDB<KeyType,
+		ValueType, ReplacementPolicy, MCache, DataHash, LockType>::displayHash() {
 	mCache_.displayHash();
 	cout<<"dataHash: numItems ="<< numItems()<<endl;
 }
@@ -252,11 +266,11 @@ template <class KeyType, class ValueType, class ReplacementPolicy, class MCache,
  *  	\brief Flush(delete) the item in the cache that need to be updated.
  * 	
  */
-template <class KeyType, class ValueType, class ReplacementPolicy, class MCache,
-		class DataHash, class LockType> void CacheDB<KeyType, ValueType,
-		ReplacementPolicy, MCache, DataHash, LockType>::flush(
+template <class KeyType, class ValueType, class ReplacementPolicy,
+		class MCache, class DataHash, class LockType> void CacheDB<KeyType,
+		ValueType, ReplacementPolicy, MCache, DataHash, LockType>::flush(
 		const KeyType& key) {
-	mCache_.flush(key);	
+	mCache_.flush(key);
 }
 
 /**
@@ -264,10 +278,10 @@ template <class KeyType, class ValueType, class ReplacementPolicy, class MCache,
  * 	
  */
 /*template <class KeyType, class DataType, class ReplacementPolicy, class MCache,
-		class DataHash, class LockType> void CacheDB<KeyType, DataType,
-		ReplacementPolicy, MCache, DataHash, LockType>::flush() {
-	mCache_.flush();
-}*/
+ class DataHash, class LockType> void CacheDB<KeyType, DataType,
+ ReplacementPolicy, MCache, DataHash, LockType>::flush() {
+ mCache_.flush();
+ }*/
 
 /**
  *	\brief it saves the most frequent item in memory to file. 
@@ -293,4 +307,3 @@ template <class KeyType, class DataType, class ReplacementPolicy, class MCache,
 }
 }
 #endif //CacheDB
-
