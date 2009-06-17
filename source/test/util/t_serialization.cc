@@ -203,6 +203,10 @@ int main() {
 	test_serialization_boost(vint);
 	test_serialization_boost(vstr);
 	test_serialization(so);
+	
+	test_serialization(vstr);
+	test_serialization_boost(vstr);
+	test_serialization_febird(vstr);	
 
 	/*	test1();
 	 test2();
