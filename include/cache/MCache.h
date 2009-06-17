@@ -240,6 +240,8 @@ template <class KeyType, class ValueType, class ReplacementPolicy, class Hash,
 		Hash, LockType>::getValue(const KeyType& key, ValueType& value) {
 	lock.acquire_write_lock();
 	nTotal_++;
+	ValueType* pd = hash_.find(key);
+	if(pd)value  = *pd;
 	if (cacheContainer_.find(key) ) {	
 		cacheContainer_.replace(key); //Update the corresponding  CacheInfo.
 		nHit_++;
