@@ -4,6 +4,7 @@
 #include <ir/index_manager/index/OptimizeMerger.h>
 #include <ir/index_manager/index/ParallelTermPosition.h>
 #include <ir/index_manager/index/Posting.h>
+#include <ir/index_manager/index/ForwardIndexReader.h>
 #include <ir/index_manager/store/FSDirectory.h>
 #include <ir/index_manager/store/RemoteDirectory.h>
 #include <ir/index_manager/store/UDTFSAgent.h>
@@ -648,52 +649,13 @@ bool Indexer::getDocsByTermInProperties(termid_t termID, collectionid_t colID, v
     return true;
 }
 
-bool Indexer::getWordOffsetListOfQueryByDocumentProperty (const vector<termid_t>& queryTermIdList,  collectionid_t colId,  docid_t docId, string propertyName, vector<vector<loc_t> >& wordOffsetListOfQuery )
+bool Indexer::getWordOffsetListOfQueryByDocumentProperty (const vector<termid_t>& queryTermIdList,  collectionid_t colId,  docid_t docId, string propertyName, vector<vector<pair<unsigned int, unsigned int> > >& wordOffsetListOfQuery )
 {
-    TermReader* pTermReader = pIndexReader_->getTermReader(colId);
-    if (NULL == pTermReader)
-        return false;
-    size_t numTerms = queryTermIdList.size();
-    wordOffsetListOfQuery.reserve(numTerms);
-    bool found = false;
-    for(size_t i = 0; i < numTerms; i++)
-    {
-        Term term(propertyName.c_str(), queryTermIdList[i]);
-        vector<loc_t> positions;
-        wordOffsetListOfQuery.push_back(positions);
-
-        if (pTermReader->seek(&term))
-        {
-            TermPositions* pPositions = pTermReader->termPositions();
-	
-            while (pPositions->next())
-            {
-                if(pPositions->doc() == docId)
-                {
-                    found = true;
-                    loc_t pos = pPositions->nextPosition();
-                    while (pos != BAD_POSITION)
-                    {
-                        wordOffsetListOfQuery[i].push_back(pos);
-                        pos = pPositions->nextPosition();
-                    }
-                    break;
-                }
-		 else		
-                    continue;
-            }
-	
-            delete pPositions;
-        }
-        else
-        {
-            cout<<"seek error"<<endl;
-            delete pTermReader;
-            return false;
-        }
-    }
-    delete pTermReader;
-    return found;
+    fieldid_t fid = getPropertyIDByName(colId,propertyName);
+    ForwardIndexReader* pForwardIndexReader = pIndexReader_->getForwardIndexReader();
+    bool ret = pForwardIndexReader->getTermOffsetList(queryTermIdList, docId, fid, wordOffsetListOfQuery);
+    delete pForwardIndexReader;
+    return ret;
 }
 
 bool Indexer::getTermFrequencyInCollectionByTermId( const vector<termid_t>& termIdList, const unsigned int collectionId, const vector<string>& propertyList, vector<unsigned int>& termFrequencyList )

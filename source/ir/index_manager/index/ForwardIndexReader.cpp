@@ -3,11 +3,12 @@
 using namespace izenelib::ir::indexmanager;
 
 ForwardIndexReader::ForwardIndexReader(Directory* pDirectory)
+    :pDirectory_(pDirectory)
 {
     pDOCInput_ = pDirectory->openInput("forward.doc");
     pFDIInput_ = pDirectory->openInput("forward.fdi");
     pVOCInput_ = pDirectory->openInput("forward.voc");
-    pPOSIInput_ = pDirectory->openInput("forward.pos");
+    pPOSInput_ = pDirectory->openInput("forward.pos");
 }
 
 ForwardIndexReader::~ForwardIndexReader()
@@ -15,10 +16,15 @@ ForwardIndexReader::~ForwardIndexReader()
     delete pDOCInput_;
     delete pFDIInput_;
     delete pVOCInput_;
-    delete pPOSIInput_;
+    delete pPOSInput_;
 }
 
-bool ForwardIndexReader::getTermOffsetList(unsigned int termId, docid_t docId, fieldid_t fid, std::vector<std::pair<unsigned int, unsigned int> >& offsetList)
+ForwardIndexReader* ForwardIndexReader::clone()
+{
+    return new ForwardIndexReader(pDirectory_);
+}
+
+inline bool ForwardIndexReader::locateTermPosByDoc(docid_t docId, fieldid_t fid)
 {
     pDOCInput_->seek(docId*sizeof(fileoffset_t));
     fileoffset_t fdiOff = pDOCInput_->readLong();
@@ -33,12 +39,127 @@ bool ForwardIndexReader::getTermOffsetList(unsigned int termId, docid_t docId, f
         if(f == fid)
         {
             vocOff = pFDIInput_->readVLong();		//<FieldPositions(VInt64)>
-                break;
+            break;
         }
         else 
             pFDIInput_->readVLong();				//skip
-     }
-
+    }
+    if(vocOff == -1)
+        return false;
+    pVOCInput_->seek(vocOff);
+    return true;
 }
 
+bool ForwardIndexReader::getTermOffset(unsigned int termId, docid_t docId, fieldid_t fid, std::vector<std::pair<unsigned int, unsigned int> >& offsetList)
+{
+    if(!locateTermPosByDoc(docId,fid))
+        return false;
+
+    size_t nNumTerms = pVOCInput_->readVInt();
+    unsigned int tid = 0;
+    fileoffset_t posOff = -1;
+    for(size_t i = 0; i < nNumTerms; i++)
+    {
+        tid += pVOCInput_->readVInt();
+        if(tid == termId)
+        {
+            posOff = pVOCInput_->readVLong();
+            break;
+        }
+        else
+            pVOCInput_->readVLong();			//skip
+    }
+    if(posOff == -1)
+        return false;
+    pPOSInput_->seek(posOff);
+    size_t nNumPosition = pPOSInput_->readVInt();
+    offsetList.resize(nNumPosition);
+    unsigned int pos = 0;
+    for(size_t i = 0; i < nNumPosition; i++)
+    {
+        pos += pPOSInput_->readVInt();
+        unsigned int pos1 = pos;
+        pos += pPOSInput_->readVInt();
+        unsigned int pos2 = pos;
+        offsetList.push_back(make_pair(pos1,pos2));
+    }
+    return true;
+}
+
+inline void ForwardIndexReader::retrieve_voc_by_doc(VocInfoMap & vocInfo)
+{
+    size_t nNumTerms = pVOCInput_->readVInt();
+    unsigned int tid = 0;
+    fileoffset_t posOff = -1;
+    for(size_t i = 0; i < nNumTerms; i++)
+    {
+        tid += pVOCInput_->readVInt();
+        posOff = pVOCInput_->readVLong();
+        vocInfo.insert(rde::pair<unsigned int, fileoffset_t>(tid,posOff));
+    }
+}
+
+bool ForwardIndexReader::getTermOffsetList(const std::vector<unsigned int>& termIds, docid_t docId, fieldid_t fid, std::vector<std::vector<std::pair<unsigned int, unsigned int> > >& offsetList)
+{
+    if(!locateTermPosByDoc(docId,fid))
+        return false;
+
+    VocInfoMap vocInfo;
+    retrieve_voc_by_doc(vocInfo);
+
+    VocInfoMap::iterator vocInfoIterator = vocInfo.end();
+    offsetList.reserve(termIds.size());
+    for(std::vector<unsigned int>::const_iterator iter = termIds.begin(); iter != termIds.end(); ++iter)
+    {
+        std::vector<std::pair<unsigned int, unsigned int> > offset;
+        offsetList.push_back(offset);
+
+        vocInfoIterator = vocInfo.find(*iter);
+
+        if(vocInfoIterator == vocInfo.end())
+            continue;
+        pPOSInput_->seek(vocInfoIterator->second);
+        std::vector<std::vector<std::pair<unsigned int, unsigned int> > >::reverse_iterator offsetListIterator = offsetList.rbegin();
+
+        size_t nNumPosition = pPOSInput_->readVInt();
+        offsetListIterator->reserve(nNumPosition);
+        unsigned int pos = 0;
+        for(size_t i = 0; i < nNumPosition; i++)
+        {
+            pos += pPOSInput_->readVInt();
+            unsigned int pos1 = pos;
+            pos += pPOSInput_->readVInt();
+            unsigned int pos2 = pos;
+            offsetListIterator->push_back(make_pair(pos1,pos2));
+        }
+    }
+    return true;
+}
+
+bool ForwardIndexReader::getForwardIndexByDoc(docid_t docId, fieldid_t fid, ForwardIndex& forwardIndex)
+{
+    if(!locateTermPosByDoc(docId,fid))
+        return false;
+    
+    VocInfoMap vocInfo;
+    retrieve_voc_by_doc(vocInfo);
+
+    for(VocInfoMap::iterator iter = vocInfo.begin(); iter != vocInfo.end(); ++iter)
+    {
+        pPOSInput_->seek(iter->second);
+        size_t nNumPosition = pPOSInput_->readVInt();
+        ForwardIndexOffset* pForwardIndexOffset = new ForwardIndexOffset;
+        unsigned int pos = 0;
+        for(size_t i = 0; i < nNumPosition; i++)
+        {
+            pos += pPOSInput_->readVInt();
+            unsigned int pos1 = pos;
+            pos += pPOSInput_->readVInt();
+            unsigned int pos2 = pos;
+            pForwardIndexOffset->push_back(make_pair(pos1,pos2));
+        }
+        forwardIndex[iter->first] = pForwardIndexOffset;
+    }
+    return true;
+}
 

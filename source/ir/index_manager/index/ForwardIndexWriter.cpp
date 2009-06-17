@@ -4,7 +4,7 @@ using namespace izenelib::ir::indexmanager;
 
 ForwardIndexWriter::ForwardIndexWriter(Directory* pDirectory)
     :pDirectory_(pDirectory)
-    ,forwardIndexArray_(NULL)
+    ,forwardIndex_(NULL)
 {
     pDOCOutput_ = pDirectory_->createOutput("forward.doc", "r+");
     pFDIOutput_ = pDirectory_->createOutput("forward.fdi", "a+");
@@ -16,8 +16,8 @@ ForwardIndexWriter::~ForwardIndexWriter()
 {
     close();
 
-    if(forwardIndexArray_)
-        delete forwardIndexArray_;
+    if(forwardIndex_)
+        delete forwardIndex_;
 }
 
 void ForwardIndexWriter::addDocument(docid_t docID)
@@ -31,52 +31,53 @@ void ForwardIndexWriter::addProperty(fieldid_t fid, boost::shared_ptr<LAInput> l
     pFDIOutput_->writeVInt(fid);
     pFDIOutput_->writeVLong(pVOCOutput_->getFilePointer());
 
-    if(!forwardIndexArray_)
-        forwardIndexArray_ = new DynForwardIndexArray;
+    if(!forwardIndex_)
+        forwardIndex_ = new ForwardIndex;
 
-   ForwardIndex* pForwardIndex = NULL;
+   ForwardIndexOffset* pForwardIndexOffset = NULL;
     for(LAInput::iterator iter = laInput->begin(); iter != laInput->end(); ++iter)
     {
-        pForwardIndex = (ForwardIndex*)(*forwardIndexArray_)[iter->termId_];
-        if (pForwardIndex == NULL)
+        pForwardIndexOffset = (ForwardIndexOffset*)(*forwardIndex_)[iter->termId_];
+        if (pForwardIndexOffset == NULL)
         {
-            pForwardIndex = new ForwardIndex;
-            (*forwardIndexArray_)[iter->termId_] = pForwardIndex;
+            pForwardIndexOffset = new ForwardIndexOffset;
+            (*forwardIndex_)[iter->termId_] = pForwardIndexOffset;
         }
-        pForwardIndex->push_back(make_pair(iter->wordOffset_, iter->byteOffset_));
+        pForwardIndexOffset->push_back(make_pair(iter->wordOffset_, iter->byteOffset_));
     }
 
-    size_t nNumTerms = forwardIndexArray_->length();
+    size_t nNumTerms = forwardIndex_->length();
 
     pVOCOutput_->writeVInt(nNumTerms);
 
     unsigned int termId, lastTerm = 0;
 
-    DynForwardIndexArray::array_iterator iter = forwardIndexArray_->elements();
+    ForwardIndex::array_iterator iter = forwardIndex_->elements();
     while(iter.next())
     {
         termId = (termid_t)iter.position();
         pVOCOutput_->writeVInt(termId - lastTerm);
         lastTerm = termId;
-        pVOCOutput_->writeVInt(pPOSOutput_->getFilePointer());
-        pForwardIndex = iter.element();
-        int numPosition = pForwardIndex->size();
+        pVOCOutput_->writeVLong(pPOSOutput_->getFilePointer());
+        pForwardIndexOffset = iter.element();
+        int numPosition = pForwardIndexOffset->size();
+        pPOSOutput_->writeVInt(numPosition);	
         unsigned int offset, lastOffset = 0;
         for (int j = 0; j < numPosition; j++)
         {
             ///start offset
-            offset = (*pForwardIndex)[j].first;
+            offset = (*pForwardIndexOffset)[j].first;
             pPOSOutput_->writeVInt(offset - lastOffset);
             lastOffset = offset;
             ///end offset
-            offset = (*pForwardIndex)[j].second;
+            offset = (*pForwardIndexOffset)[j].second;
             pPOSOutput_->writeVInt(offset - lastOffset);
             lastOffset = offset;
         }
-        delete pForwardIndex;
+        delete pForwardIndexOffset;
     }
 
-    forwardIndexArray_->reset();
+    forwardIndex_->reset();
 }
 
 void ForwardIndexWriter::close()

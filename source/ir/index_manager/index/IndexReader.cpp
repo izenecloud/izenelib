@@ -7,50 +7,53 @@
 using namespace izenelib::ir::indexmanager;
 
 IndexReader::IndexReader(Indexer* pIndex)
-        :pIndexer(pIndex)
-        ,pBarrelsInfo(NULL)
-        ,pBarrelReader(NULL)
-        ,dirty(false)
+        :pIndexer_(pIndex)
+        ,pBarrelsInfo_(NULL)
+        ,pBarrelReader_(NULL)
+        ,pForwardIndexReader_(NULL)
+        ,dirty_(false)
 {
-    pBarrelsInfo = pIndexer->getBarrelsInfo();
+    pBarrelsInfo_ = pIndexer_->getBarrelsInfo();
 }
 
 IndexReader::~IndexReader(void)
 {
-    if (pBarrelReader)
+    if (pBarrelReader_)
     {
-        delete pBarrelReader;
-        pBarrelReader = NULL;
+        delete pBarrelReader_;
+        pBarrelReader_ = NULL;
     }
+    if(pForwardIndexReader_)
+        delete pForwardIndexReader_;
 }
 
 void IndexReader::createBarrelReader()
 {
-    if (pBarrelReader)
-        delete pBarrelReader;
-    int32_t bc = pBarrelsInfo->getBarrelCount();
-    BarrelInfo* pLastBarrel = pBarrelsInfo->getLastBarrel();
+    if (pBarrelReader_)
+        delete pBarrelReader_;
+    int32_t bc = pBarrelsInfo_->getBarrelCount();
+    BarrelInfo* pLastBarrel = pBarrelsInfo_->getLastBarrel();
     if ( (bc > 0) && pLastBarrel)
     {
         if (pLastBarrel->getDocCount() <= 0)///skip empty barrel
             bc--;
-        pLastBarrel = (*pBarrelsInfo)[bc - 1];
+        pLastBarrel = (*pBarrelsInfo_)[bc - 1];
     }
 
     if (bc == 1)
     {
         if (pLastBarrel && pLastBarrel->getWriter())
-            pBarrelReader = pLastBarrel->getWriter()->inMemoryReader();
+            pBarrelReader_ = pLastBarrel->getWriter()->inMemoryReader();
         else
-            pBarrelReader = new SingleIndexBarrelReader(pIndexer,pLastBarrel);
+            pBarrelReader_ = new SingleIndexBarrelReader(pIndexer_,pLastBarrel);
     }
     else if (bc > 1)
     {
-        pBarrelReader = new MultiIndexBarrelReader(pIndexer,pBarrelsInfo);
+        pBarrelReader_ = new MultiIndexBarrelReader(pIndexer_,pBarrelsInfo_);
     }
     else
         SF1V5_THROW(ERROR_INDEX_COLLAPSE,"the index barrel number is 0.");
-    pIndexer->setDirty(false);///clear dirty flag
+    pIndexer_->setDirty(false);///clear dirty_ flag
 
 }
 
@@ -58,35 +61,43 @@ TermReader* IndexReader::getTermReader(collectionid_t colID)
 {
     boost::mutex::scoped_lock lock(this->mutex_);
 
-    if (dirty)
+    if (dirty_)
     {
         //collection has been removed, need to rebuild the barrel reader
-        if (pBarrelReader == NULL)
+        if (pBarrelReader_ == NULL)
         {
             createBarrelReader();
         }
         else
         {
-            delete pBarrelReader;
-            pBarrelReader = NULL;
+            delete pBarrelReader_;
+            pBarrelReader_ = NULL;
         }
-        dirty = false;
+        dirty_ = false;
     }
 
-    if (pBarrelReader == NULL)
+    if (pBarrelReader_ == NULL)
     {
         createBarrelReader();
     }
-    TermReader* pTermReader = pBarrelReader->termReader(colID);
+    TermReader* pTermReader = pBarrelReader_->termReader(colID);
     if (pTermReader)
         return pTermReader->clone();
     else
         return NULL;
 }
 
+ForwardIndexReader* IndexReader::getForwardIndexReader()
+{
+    if(!pForwardIndexReader_)
+        pForwardIndexReader_ = new ForwardIndexReader(pIndexer_->getDirectory());
+
+    return pForwardIndexReader_->clone();
+}
+
 count_t IndexReader::maxDoc()
 {
-    return pBarrelsInfo->getDocCount();
+    return pBarrelsInfo_->getDocCount();
 }
 
 freq_t IndexReader::docFreq(collectionid_t colID, Term* term)

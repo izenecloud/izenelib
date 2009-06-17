@@ -3,23 +3,16 @@
 
 #include <ir/index_manager/index/IndexerDocument.h>
 #include <ir/index_manager/index/LAInput.h>
-
+#include <ir/index_manager/index/ForwardIndex.h>
 
 #include <ir/index_manager/store/Directory.h>
 #include <ir/index_manager/store/IndexOutput.h>
 
-#include <util/DynamicArray.h>
-
 #include <deque>
-
-using namespace izenelib::util;
 
 NS_IZENELIB_IR_BEGIN
 
 namespace indexmanager{
-
-typedef std::deque<std::pair<unsigned int, unsigned int> > ForwardIndex;
-typedef DynamicArray<ForwardIndex*, Const_NullValue<ForwardIndex*> > DynForwardIndexArray;
 
 class ForwardIndexWriter{
 public:
@@ -45,7 +38,7 @@ private:
 
     IndexOutput* pPOSOutput_;
 
-    DynForwardIndexArray* forwardIndexArray_;
+    ForwardIndex* forwardIndex_;
 };
 
 }

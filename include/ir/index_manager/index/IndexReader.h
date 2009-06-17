@@ -15,6 +15,7 @@
 #include <ir/index_manager/index/TermInfo.h>
 #include <ir/index_manager/index/BarrelInfo.h>
 #include <ir/index_manager/index/CollectionInfo.h>
+#include <ir/index_manager/index/ForwardIndexReader.h>
 
 NS_IZENELIB_IR_BEGIN
 
@@ -42,32 +43,31 @@ public:
 
     BarrelsInfo* getBarrelsInfo();
 
-    void setDirty(bool bDirty)
+    void setDirty(bool dirty)
     {
-        dirty = bDirty;
+        dirty_ = dirty;
     }
 
     static int64_t lastModified(Directory* pDirectory);
-    /**
-     * get internal term reader
-     * @return term reader, internal object
-     */
+
     TermReader* getTermReader(collectionid_t colID);
+
+    ForwardIndexReader* getForwardIndexReader();
+
 private:
-    /**
-     * create barrel reader
-     */
     void createBarrelReader();
 
 private:
 
-    Indexer* pIndexer; ///reference to index object
+    Indexer* pIndexer_; ///reference to index object
 
-    BarrelsInfo* pBarrelsInfo; ///reference to Index's pBarrelsInfo
+    BarrelsInfo* pBarrelsInfo_; ///reference to Index's pBarrelsInfo
 
-    IndexBarrelReader* pBarrelReader; ///barrel reader
+    IndexBarrelReader* pBarrelReader_; ///barrel reader
 
-    bool dirty;
+    ForwardIndexReader* pForwardIndexReader_;
+
+    bool dirty_;
 
     mutable boost::mutex mutex_;
 
@@ -75,7 +75,7 @@ private:
 };
 inline BarrelsInfo* IndexReader::getBarrelsInfo()
 {
-    return pBarrelsInfo;
+    return pBarrelsInfo_;
 }
 
 }
