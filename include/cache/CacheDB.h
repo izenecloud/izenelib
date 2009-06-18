@@ -124,7 +124,8 @@ public:
 	void resetStartingTime() {
 		mCache_.resetStartingTime();
 	}
-private:
+
+protected:
 	MCache mCache_;
 	DataHash dataHash_;
 	LockType lock;//use threadsafe only when dataHash_ is not threadSafe.	
