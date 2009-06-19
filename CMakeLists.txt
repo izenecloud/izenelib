@@ -144,14 +144,6 @@ INSTALL(
   DESTINATION "${VERSION_INSTALL_PREFIX}/include"
   COMPONENT "header_only"
   FILES_MATCHING
-  PATTERN "*/3rdparty" EXCLUDE
-  PATTERN "*.h"
-  )
-INSTALL(
-  DIRECTORY include/3rdparty/
-  DESTINATION "${VERSION_INSTALL_PREFIX}/include"
-  COMPONENT "header_only"
-  FILES_MATCHING
   PATTERN "*.h"
   )
 
