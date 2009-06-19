@@ -14,48 +14,56 @@ find_package( Boost 1.36.0 COMPONENTS serialization filesystem system thread)
 
 
 INCLUDE_DIRECTORIES(${Boost_INCLUDE_DIRS})
-INCLUDE_DIRECTORIES ( ${izenelib_SOURCE_DIR}/include/ )
 INCLUDE_DIRECTORIES ( ${WISELIB_INCLUDE_DIR})
 
 
-set(CPP "${INDEX_MANAGER_SOURCE}")
 set( CXXFLAGS "-Wall -O3 -fPIC -DUDT3" )
 
-set ( LIBRARY_OUTPUT_PATH ${izenelib_SOURCE_DIR}/lib ) 
 
-LINK_DIRECTORIES( ${izenelib_SOURCE_DIR}/lib   $usr/local/lib ) 
-    
-ADD_LIBRARY(index_manager_shared SHARED ${CPP})
-SET_TARGET_PROPERTIES(index_manager_shared 
-				PROPERTIES 
-				OUTPUT_NAME "index_manager" 
-				COMPILE_FLAGS ${CXXFLAGS} 
-				COMPILE_DEFINITIONS_DEBUG "-g" 
-				)
+SET_PROPERTY(GLOBAL APPEND PROPERTY BUILD_COMPONENTS index_manager)
+
+SET(index_manager_SRC "${INDEX_MANAGER_SOURCE}")
+
+ADD_LIBRARY(index_manager_shared SHARED ${index_manager_SRC})
+SET_TARGET_PROPERTIES(index_manager_shared PROPERTIES
+  OUTPUT_NAME "index_manager"
+  COMPILE_FLAGS ${CXXFLAGS} 
+  CLEAN_DIRECT_OUTPUT 1
+  VERSION ${PROJECT_VERSION}
+  )
 TARGET_LINK_LIBRARIES(index_manager_shared ${WISELIB_LIBRARY}  
-										sdb_btree
-#										udt
-										streamflow
-										udt3
+										${sdb_btree_shared}
+#										${udt_shared}
+										${streamflow_shared}
+										${udt3_shared}
 										)
-SET_TARGET_PROPERTIES(index_manager_shared PROPERTIES CLEAN_DIRECT_OUTPUT 1)
 
+  
 
-
-ADD_LIBRARY(index_manager_static STATIC ${CPP})
-SET_TARGET_PROPERTIES(index_manager_static 
-				PROPERTIES 
-				OUTPUT_NAME "index_manager" 
-				COMPILE_FLAGS ${CXXFLAGS} 
-				COMPILE_DEFINITIONS_DEBUG "-g" 
-				)
-SET_TARGET_PROPERTIES(index_manager_static PROPERTIES CLEAN_DIRECT_OUTPUT 1)
+ADD_LIBRARY(index_manager_static STATIC ${index_manager_SRC})
+SET_TARGET_PROPERTIES(index_manager_static PROPERTIES
+  OUTPUT_NAME "index_manager"
+  COMPILE_FLAGS ${CXXFLAGS} 
+  CLEAN_DIRECT_OUTPUT 1
+  )
 TARGET_LINK_LIBRARIES(index_manager_static ${WISELIB_LIBRARY}
 										${Boost_LIBRARIES}
-										sdb_btree
-#										udt
-										streamflow
-										udt3
+										${sdb_btree_static}
+#										${udt_static}
+										${streamflow_static}
+										${udt3_static}
 										)
+
+INSTALL(TARGETS index_manager_static index_manager_shared
+  EXPORT index_manager
+  ARCHIVE DESTINATION ${VERSION_INSTALL_PREFIX}/lib
+  LIBRARY DESTINATION shared
+  COMPONENT "index_manager"
+  )
+
+INSTALL(EXPORT index_manager
+  DESTINATION ${VERSION_INSTALL_PREFIX}/cmake
+  COMPONENT "index_manager"
+  )
 
 

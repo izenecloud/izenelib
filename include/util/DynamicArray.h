@@ -247,7 +247,6 @@ void DynamicArray<ElemT,NullValue>::grow(size_t newLen)
 template<class ElemT,class NullValue>
 void DynamicArray<ElemT,NullValue>::allocBlock(int32_t blk)
 {
-    assert(blk<numBlks_);
     blocks_[blk] = new ElemT[blkSize_];
 
     for (int32_t i = 0;i<blkSize_;i++)
