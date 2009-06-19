@@ -143,8 +143,6 @@ INSTALL(
   DIRECTORY include/
   DESTINATION "${VERSION_INSTALL_PREFIX}/include"
   COMPONENT "header_only"
-  FILES_MATCHING
-  PATTERN "*.h"
   )
 
 ##################################################
