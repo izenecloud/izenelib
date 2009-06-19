@@ -9,29 +9,11 @@ ELSE(WIN32)
 
   SET(procmeminfo_SRC ProcMemInfo.cpp)
 
-  ADD_LIBRARY(procmeminfo_shared SHARED ${procmeminfo_SRC})
-  SET_TARGET_PROPERTIES(procmeminfo_shared PROPERTIES
-    OUTPUT_NAME "procmeminfo"
-    CLEAN_DIRECT_OUTPUT 1
-    VERSION ${PROJECT_VERSION}
-    )
-
-  ADD_LIBRARY(procmeminfo_static STATIC ${procmeminfo_SRC})
-  SET_TARGET_PROPERTIES(procmeminfo_static PROPERTIES
-    OUTPUT_NAME "procmeminfo"
-    CLEAN_DIRECT_OUTPUT 1
-    )
-
-  INSTALL(TARGETS procmeminfo_static procmeminfo_shared
-    EXPORT procmeminfo
-    ARCHIVE DESTINATION ${VERSION_INSTALL_PREFIX}/lib
-    LIBRARY DESTINATION shared
-    COMPONENT "procmeminfo"
-    )
-
-  INSTALL(EXPORT procmeminfo
-    DESTINATION ${VERSION_INSTALL_PREFIX}/cmake
-    COMPONENT "procmeminfo"
+  INCLUDE(MacroAddComponent)
+  MACRO_ADD_COMPONENT(procmeminfo
+    "${VERSION_INSTALL_PREFIX}"
+    "${PROJECT_VERSION}"
+    ${procmeminfo_SRC}
     )
 
 ENDIF(WIN32)
