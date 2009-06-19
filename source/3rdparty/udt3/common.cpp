@@ -45,7 +45,7 @@ written by
    #include <ws2tcpip.h>
 #endif
 #include <cmath>
-#include "common.h"
+#include <udt3/common.h>
 
 
 #ifdef WIN32
@@ -93,7 +93,7 @@ void CTimer::rdtsc(uint64_t &x)
       // on Windows
       /*
          unsigned int a, b;
-         __asm 
+         __asm
          {
             rdtsc
             mov a, eax
@@ -359,7 +359,7 @@ const char* CUDTException::getErrorMessage()
 
       case 5:
         strcpy(m_pcMsg, "Operation not supported");
- 
+
         switch (m_iMinor)
         {
         case 1:

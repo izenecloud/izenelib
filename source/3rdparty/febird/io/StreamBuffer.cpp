@@ -1,9 +1,9 @@
 /* vim: set tabstop=4 : */
 #include <sstream>
 #include <stdexcept>
-#include "StreamBuffer.h"
-#include "IStreamWrapper.h"
-#include "FileStream.h"
+#include <febird/io/StreamBuffer.h>
+#include <febird/io/IStreamWrapper.h>
+#include <febird/io/FileStream.h>
 
 namespace febird {
 
@@ -78,7 +78,7 @@ void IOBufferBase::set_bufeof(size_t eofpos)
 //
 //
 //! @return retval is 0, or in range[min_length, max_length]
-size_t InputBuffer::read_min_max(void* FEBIRD_RESTRICT vbuf, size_t min_length, size_t max_length) FEBIRD_RESTRICT 
+size_t InputBuffer::read_min_max(void* FEBIRD_RESTRICT vbuf, size_t min_length, size_t max_length) FEBIRD_RESTRICT
 {
 	assert(min_length <= max_length);
 
@@ -98,19 +98,19 @@ size_t InputBuffer::read_min_max(void* FEBIRD_RESTRICT vbuf, size_t min_length, 
 	return total;
 }
 
-size_t InputBuffer::fill_and_read(void* FEBIRD_RESTRICT vbuf, size_t length) FEBIRD_RESTRICT 
+size_t InputBuffer::fill_and_read(void* FEBIRD_RESTRICT vbuf, size_t length) FEBIRD_RESTRICT
 {
 	return do_fill_and_read(vbuf, length);
 }
 
 // this function should not inline
-size_t InputBuffer::do_fill_and_read(void* FEBIRD_RESTRICT vbuf, size_t length) FEBIRD_RESTRICT 
+size_t InputBuffer::do_fill_and_read(void* FEBIRD_RESTRICT vbuf, size_t length) FEBIRD_RESTRICT
 {
 //	assert(length != 0);
 //	assert(m_cur + length > m_end);
 
 	// (0 == length && m_cur == m_end) means prefetch only
-	assert(0 == length && m_cur == m_end || m_cur + length > m_end);
+	assert((0 == length && m_cur == m_end) || m_cur + length > m_end);
 
 	if (0 == m_is)
 	{
@@ -167,7 +167,7 @@ size_t InputBuffer::do_fill_and_read(void* FEBIRD_RESTRICT vbuf, size_t length) 
 }
 
 // this function should not inline
-void InputBuffer::fill_and_ensureRead(void* FEBIRD_RESTRICT vbuf, size_t length) FEBIRD_RESTRICT 
+void InputBuffer::fill_and_ensureRead(void* FEBIRD_RESTRICT vbuf, size_t length) FEBIRD_RESTRICT
 {
 	size_t n = do_fill_and_read(vbuf, length);
 	if (n != length)
@@ -180,7 +180,7 @@ void InputBuffer::fill_and_ensureRead(void* FEBIRD_RESTRICT vbuf, size_t length)
 }
 
 // this function should not inline
-byte InputBuffer::fill_and_read_byte() FEBIRD_RESTRICT 
+byte InputBuffer::fill_and_read_byte() FEBIRD_RESTRICT
 {
 	byte b;
 	if (do_fill_and_read(&b, 1))
@@ -189,7 +189,7 @@ byte InputBuffer::fill_and_read_byte() FEBIRD_RESTRICT
 		throw EndOfFileException(BOOST_CURRENT_FUNCTION);
 }
 
-int InputBuffer::fill_and_get_byte() FEBIRD_RESTRICT 
+int InputBuffer::fill_and_get_byte() FEBIRD_RESTRICT
 {
 	byte b;
 	if (do_fill_and_read(&b, 1))
@@ -329,13 +329,13 @@ void OutputBufferBase<BaseClass>::flush()
 
 // this function should not inline
 template<class BaseClass>
-size_t OutputBufferBase<BaseClass>::flush_and_write(const void* FEBIRD_RESTRICT vbuf, size_t length) FEBIRD_RESTRICT 
+size_t OutputBufferBase<BaseClass>::flush_and_write(const void* FEBIRD_RESTRICT vbuf, size_t length) FEBIRD_RESTRICT
 {
 	return do_flush_and_write(vbuf, length);
 }
 
 template<class BaseClass>
-size_t OutputBufferBase<BaseClass>::do_flush_and_write(const void* FEBIRD_RESTRICT vbuf, size_t length) FEBIRD_RESTRICT 
+size_t OutputBufferBase<BaseClass>::do_flush_and_write(const void* FEBIRD_RESTRICT vbuf, size_t length) FEBIRD_RESTRICT
 {
 	assert(length != 0);
 	assert(m_cur + length > m_end);
@@ -370,7 +370,7 @@ size_t OutputBufferBase<BaseClass>::do_flush_and_write(const void* FEBIRD_RESTRI
 	m_cur = m_end; // must set as m_end before flush
 	flush_buffer();
 
-	memcpy(m_beg, (byte*)vbuf+n, length-n); 
+	memcpy(m_beg, (byte*)vbuf+n, length-n);
 	m_cur = m_beg + (length-n);
 
 	return length;
@@ -378,7 +378,7 @@ size_t OutputBufferBase<BaseClass>::do_flush_and_write(const void* FEBIRD_RESTRI
 
 // this function should not inline
 template<class BaseClass>
-void OutputBufferBase<BaseClass>::flush_and_ensureWrite(const void* FEBIRD_RESTRICT vbuf, size_t length)FEBIRD_RESTRICT 
+void OutputBufferBase<BaseClass>::flush_and_ensureWrite(const void* FEBIRD_RESTRICT vbuf, size_t length)FEBIRD_RESTRICT
 {
 	size_t n = do_flush_and_write(vbuf, length);
 	if (n != length)
@@ -392,7 +392,7 @@ void OutputBufferBase<BaseClass>::flush_and_ensureWrite(const void* FEBIRD_RESTR
 
 // this function should not inline
 template<class BaseClass>
-void OutputBufferBase<BaseClass>::flush_and_write_byte(byte b)FEBIRD_RESTRICT 
+void OutputBufferBase<BaseClass>::flush_and_write_byte(byte b)FEBIRD_RESTRICT
 {
 	assert(m_cur == m_end);
 	do_flush_and_write(&b, 1);
@@ -602,7 +602,7 @@ SeekableBuffer::~SeekableBuffer()
 	m_cur = m_end = m_beg;
 }
 
-size_t SeekableBuffer::do_fill_and_read(void* FEBIRD_RESTRICT vbuf, size_t length)FEBIRD_RESTRICT 
+size_t SeekableBuffer::do_fill_and_read(void* FEBIRD_RESTRICT vbuf, size_t length)FEBIRD_RESTRICT
 {
 	invalidate_buffer();
 	length = super::do_fill_and_read(vbuf, length);
@@ -610,7 +610,7 @@ size_t SeekableBuffer::do_fill_and_read(void* FEBIRD_RESTRICT vbuf, size_t lengt
 	return length;
 }
 
-size_t SeekableBuffer::do_flush_and_write(const void* FEBIRD_RESTRICT vbuf, size_t length)FEBIRD_RESTRICT 
+size_t SeekableBuffer::do_flush_and_write(const void* FEBIRD_RESTRICT vbuf, size_t length)FEBIRD_RESTRICT
 {
 	invalidate_buffer();
 	length = super::do_flush_and_write(vbuf, length);
@@ -719,10 +719,10 @@ public:
 
 	void seek(stream_position_t pos);
 	void seek(stream_offset_t offset, int origin);
-	stream_position_t tell();	
+	stream_position_t tell();
 	size_t read(void* vbuf, size_t length);
 	size_t write(const void* vbuf, size_t length);
-	void flush();   	
+	void flush();
 };
 
 void AutoGrownMemIOStub::seek(stream_position_t newPos)

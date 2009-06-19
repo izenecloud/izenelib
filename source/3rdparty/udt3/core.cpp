@@ -50,7 +50,7 @@ written by
    #include <ws2tcpip.h>
 #endif
 #include <cmath>
-#include "core.h"
+#include <udt3/core.h>
 
 using namespace std;
 
@@ -338,13 +338,13 @@ void CUDT::setOpt(UDTOpt optName, const void* optval, const int&)
 
       break;
 
-   case UDT_SNDTIMEO: 
-      m_iSndTimeOut = *(int*)optval; 
-      break; 
+   case UDT_SNDTIMEO:
+      m_iSndTimeOut = *(int*)optval;
+      break;
 
-   case UDT_RCVTIMEO: 
-      m_iRcvTimeOut = *(int*)optval; 
-      break; 
+   case UDT_RCVTIMEO:
+      m_iRcvTimeOut = *(int*)optval;
+      break;
 
    default:
       throw CUDTException(5, 0, 0);
@@ -432,15 +432,15 @@ void CUDT::getOpt(UDTOpt optName, void* optval, int& optlen)
       optlen = sizeof(bool);
       break;
 
-   case UDT_SNDTIMEO: 
-      *(int*)optval = m_iSndTimeOut; 
-      optlen = sizeof(int); 
-      break; 
-    
-   case UDT_RCVTIMEO: 
-      *(int*)optval = m_iRcvTimeOut; 
-      optlen = sizeof(int); 
-      break; 
+   case UDT_SNDTIMEO:
+      *(int*)optval = m_iSndTimeOut;
+      optlen = sizeof(int);
+      break;
+
+   case UDT_RCVTIMEO:
+      *(int*)optval = m_iRcvTimeOut;
+      optlen = sizeof(int);
+      break;
 
    default:
       throw CUDTException(5, 0, 0);
@@ -462,7 +462,7 @@ void CUDT::open(const sockaddr* addr)
    m_iPayloadSize = m_iPktSize - CPacket::m_iPktHdrSize;
    m_iISN = 0;
    m_iPeerISN = 0;
- 
+
    m_bLoss = false;
    gettimeofday(&m_LastSYNTime, 0);
 
@@ -706,7 +706,7 @@ void CUDT::connect(const sockaddr* serv_addr)
    delete [] reqdata;
 
    if (1002 == res->m_iReqType)
-   {	
+   {
       // connection request rejected
       delete [] resdata;
       throw CUDTException(1, 2, 0);
@@ -810,7 +810,7 @@ void CUDT::connect(const sockaddr* peer, CHandShake* hs)
    memcpy(&ci, hs, sizeof(CHandShake));
    initpkt.pack(0, NULL, &ci, sizeof(CHandShake));
 
-   // Uses the smaller MSS between the peers        
+   // Uses the smaller MSS between the peers
    if (ci.m_iMSS > m_iMSS)
       ci.m_iMSS = m_iMSS;
    else
@@ -842,7 +842,7 @@ void CUDT::connect(const sockaddr* peer, CHandShake* hs)
 
    // Save the negotiated configurations.
    memcpy(hs, &ci, sizeof(CHandShake));
-  
+
    m_iPktSize = m_iMSS - 28;
    m_iPayloadSize = m_iPktSize - CPacket::m_iPktHdrSize;
 
@@ -1397,12 +1397,12 @@ DWORD WINAPI CUDT::rcvHandler(LPVOID recver)
       {
          // Haven't receive any information from the peer, is it dead?!
          // timeout: at least 16 expirations and must be greater than 3 seconds and be less than 30 seconds
-         if (((self->m_iEXPCount > 16) && 
+         if (((self->m_iEXPCount > 16) &&
              (self->m_iEXPCount * ((self->m_iEXPCount - 1) * (self->m_iRTT + 4 * self->m_iRTTVar) / 2 + self->m_iSYNInterval) > 3000000))
              || (self->m_iEXPCount * ((self->m_iEXPCount - 1) * (self->m_iRTT + 4 * self->m_iRTTVar) / 2 + self->m_iSYNInterval) > 30000000))
          {
             //
-            // Connection is broken. 
+            // Connection is broken.
             // UDT does not signal any information about this instead of to stop quietly.
             // Apllication will detect this when it calls any UDT methods next time.
             //
@@ -1630,7 +1630,7 @@ void CUDT::sendCtrl(const int& pkttype, void* lparam, void* rparam, const int& s
          *m_pChannel << ctrlpkt;
 
          ++ m_iSentACK;
-               
+
          break;
       }
 
@@ -1646,7 +1646,7 @@ void CUDT::sendCtrl(const int& pkttype, void* lparam, void* rparam, const int& s
 
          if (m_pRcvBuffer->ackData(acksize * m_iPayloadSize - m_pIrrPktList->currErrorSize(m_iRcvLastAck)) && m_bSynRecving)
          {
-            //singal an blocking overlapped IO. 
+            //singal an blocking overlapped IO.
             #ifndef WIN32
                pthread_mutex_lock(&m_OverlappedRecvLock);
                pthread_cond_signal(&m_OverlappedRecvCond);
@@ -1801,7 +1801,7 @@ void CUDT::sendCtrl(const int& pkttype, void* lparam, void* rparam, const int& s
    case 1: //001 - Keep-alive
       ctrlpkt.pack(1);
       *m_pChannel << ctrlpkt;
-      
+
       break;
 
    case 0: //000 - Handshake
@@ -2242,20 +2242,20 @@ int CUDT::send(char* data, const int& len, int* overlapped, const UDT_MEM_ROUTIN
          // wait here during a blocking sending
          #ifndef WIN32
             pthread_mutex_lock(&m_SendBlockLock);
-            if (m_iSndTimeOut < 0) 
-            { 
+            if (m_iSndTimeOut < 0)
+            {
                while (!m_bBroken && m_bConnected && (m_iSndQueueLimit < m_pSndBuffer->getCurrBufSize()))
                   pthread_cond_wait(&m_SendBlockCond, &m_SendBlockLock);
             }
             else
             {
-               timeval currtime; 
-               timespec locktime; 
-    
-               gettimeofday(&currtime, 0); 
-               locktime.tv_sec = currtime.tv_sec + ((int64_t)m_iSndTimeOut * 1000 + currtime.tv_usec) / 1000000; 
-               locktime.tv_nsec = ((int64_t)m_iSndTimeOut * 1000 + currtime.tv_usec) % 1000000 * 1000; 
-    
+               timeval currtime;
+               timespec locktime;
+
+               gettimeofday(&currtime, 0);
+               locktime.tv_sec = currtime.tv_sec + ((int64_t)m_iSndTimeOut * 1000 + currtime.tv_usec) / 1000000;
+               locktime.tv_nsec = ((int64_t)m_iSndTimeOut * 1000 + currtime.tv_usec) % 1000000 * 1000;
+
                pthread_cond_timedwait(&m_SendBlockCond, &m_SendBlockLock, &locktime);
             }
             pthread_mutex_unlock(&m_SendBlockLock);
@@ -2265,8 +2265,8 @@ int CUDT::send(char* data, const int& len, int* overlapped, const UDT_MEM_ROUTIN
                while (!m_bBroken && m_bConnected && (m_iSndQueueLimit < m_pSndBuffer->getCurrBufSize()))
                   WaitForSingleObject(m_SendBlockCond, INFINITE);
             }
-            else 
-               WaitForSingleObject(m_SendBlockCond, DWORD(m_iSndTimeOut)); 
+            else
+               WaitForSingleObject(m_SendBlockCond, DWORD(m_iSndTimeOut));
          #endif
 
          // check the connection status
@@ -2275,8 +2275,8 @@ int CUDT::send(char* data, const int& len, int* overlapped, const UDT_MEM_ROUTIN
       }
    }
 
-   if ((m_iSndTimeOut >= 0) && (m_iSndQueueLimit < m_pSndBuffer->getCurrBufSize())) 
-      return 0; 
+   if ((m_iSndTimeOut >= 0) && (m_iSndQueueLimit < m_pSndBuffer->getCurrBufSize()))
+      return 0;
 
    char* buf;
    int handle = 0;
@@ -2322,7 +2322,7 @@ int CUDT::send(char* data, const int& len, int* overlapped, const UDT_MEM_ROUTIN
       SetEvent(m_WindowCond);
    #endif
 
-   // UDT either sends nothing or sends all 
+   // UDT either sends nothing or sends all
    return len;
 }
 
@@ -2352,21 +2352,21 @@ int CUDT::recv(char* data, const int& len, int* overlapped, UDT_MEM_ROUTINE func
       {
          #ifndef WIN32
             pthread_mutex_lock(&m_RecvDataLock);
-            if (m_iRcvTimeOut < 0) 
-            { 
+            if (m_iRcvTimeOut < 0)
+            {
                while (!m_bBroken && (0 == m_pRcvBuffer->getRcvDataSize()))
                   pthread_cond_wait(&m_RecvDataCond, &m_RecvDataLock);
             }
             else
             {
-               timeval currtime; 
-               timespec locktime; 
-    
-               gettimeofday(&currtime, 0); 
-               locktime.tv_sec = currtime.tv_sec + ((int64_t)m_iRcvTimeOut * 1000 + currtime.tv_usec) / 1000000; 
-               locktime.tv_nsec = ((int64_t)m_iRcvTimeOut * 1000 + currtime.tv_usec) % 1000000 * 1000; 
-    
-               pthread_cond_timedwait(&m_RecvDataCond, &m_RecvDataLock, &locktime); 
+               timeval currtime;
+               timespec locktime;
+
+               gettimeofday(&currtime, 0);
+               locktime.tv_sec = currtime.tv_sec + ((int64_t)m_iRcvTimeOut * 1000 + currtime.tv_usec) / 1000000;
+               locktime.tv_nsec = ((int64_t)m_iRcvTimeOut * 1000 + currtime.tv_usec) % 1000000 * 1000;
+
+               pthread_cond_timedwait(&m_RecvDataCond, &m_RecvDataLock, &locktime);
             }
             pthread_mutex_unlock(&m_RecvDataLock);
          #else
@@ -2568,7 +2568,7 @@ int CUDT::sendmsg(const char* data, const int& len, const int& msttl, const bool
       SetEvent(m_WindowCond);
    #endif
 
-   return len;   
+   return len;
 }
 
 int CUDT::recvmsg(char* data, const int& len)
@@ -2808,7 +2808,7 @@ int64_t CUDT::recvfile(ofstream& ofs, const int64_t& offset, const int64_t& size
       throw CUDTException(3, 2, 0);
    }
 
-   // "recvfile" is always blocking.   
+   // "recvfile" is always blocking.
    bool syn = m_bSynRecving;
    m_bSynRecving = true;
 

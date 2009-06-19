@@ -13,7 +13,7 @@ static string inputFile = "input.txt";
 
 typedef map<int, int>::iterator IT;
 
-#if 1
+#if 0
 
 namespace izenelib {
 namespace am {
@@ -112,7 +112,7 @@ template<> inline void write_image<vector<int> >(const vector<int>& dat,
 }
 #endif
 
-#if 1	
+#if 0
 template<> inline void read_image<vector<int> >(vector<int>& dat,
 		const DbObjPtr& ptr) {
 	stringstream istr((char*)ptr->getData());
@@ -139,11 +139,11 @@ template<> inline void write_image<vector<int> >(const vector<int>& dat,
 	//}
 	//cout<<"text: "<<ostr.str().size()<<endl;
 	//cout<<"binary: "<<ostr1.str().size()<<endl;
-	//make sure oa is deconstructed to avoid stream_error exception.	
+	//make sure oa is deconstructed to avoid stream_error exception.
 	ptr->setData(ostr.str().c_str(), ostr.str().size());
 }
 
-#endif			
+#endif
 
 }
 }

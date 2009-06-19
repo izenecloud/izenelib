@@ -39,7 +39,7 @@ written by
 
 #include <cstring>
 #include <cmath>
-#include "buffer.h"
+#include <udt3/buffer.h>
 
 
 CSndBuffer::CSndBuffer(const int& mss):
@@ -90,8 +90,8 @@ void CSndBuffer::addBuffer(const char* data, const int& len, const int& handle, 
 
    if (NULL == m_pBlock)
    {
-      // Insert a block to the empty list   
-  
+      // Insert a block to the empty list
+
       m_pBlock = new Block;
       m_pBlock->m_pcData = const_cast<char *>(data);
       m_pBlock->m_iLength = len;
@@ -165,7 +165,7 @@ int CSndBuffer::readData(char** data, const int& len, int32_t& msgno)
       return len;
    }
 
-   // Not enough data to read. 
+   // Not enough data to read.
    // Read an irregular packet and move the current sending block pointer to the next block
    int readlen = m_pCurrSendBlk->m_iLength - m_iCurrSendPnt;
    *data = m_pCurrSendBlk->m_pcData + m_iCurrSendPnt;
@@ -291,7 +291,7 @@ bool CSndBuffer::getOverlappedResult(const int& handle, int& progress)
          progress = m_iCurrAckPnt;
          return false;
       }
-      else 
+      else
       {
          if (((m_pLastBlock->m_iHandle < m_pCurrAckBlk->m_iHandle) && (handle < m_pCurrAckBlk->m_iHandle) && (m_pLastBlock->m_iHandle <= handle))
             || ((m_pLastBlock->m_iHandle > m_pCurrAckBlk->m_iHandle) && ((handle < m_pCurrAckBlk->m_iHandle) || (m_pLastBlock->m_iHandle <= handle))))
@@ -523,7 +523,7 @@ void CRcvBuffer::moveData(int offset, const int& len)
                memcpy(m_pcUserBuf + m_iUserBufSize - len, m_pcData + m_iLastAckPos, reallen);
          }
 
-         offset = 0; 
+         offset = 0;
       }
       else if (m_iUserBufAck + offset < m_iUserBufSize)
       {
@@ -1044,7 +1044,7 @@ int CRcvBuffer::readMsg(char* data, const int& len)
             break;
       }
    }
-   else 
+   else
       ptr = m_iPtrRecentACK;
 
    // release the invalid message items

@@ -1,5 +1,5 @@
 /* vim: set tabstop=4 : */
-#include "IOException.h"
+#include <febird/io/IOException.h>
 
 #include <sstream>
 #include <string.h>

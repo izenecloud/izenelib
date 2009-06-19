@@ -2,79 +2,81 @@
  * @file sdb_btree_header.h
  * @brief The header file of CbFileHeader.
  * This file defines class CbFileHeader.
- * 
+ *
  */
 
 #ifndef SDB_BTREE_HEADER_H_
 #define SDB_BTREE_HEADER_H_
 
-#include <iostream>
 #include "../../types.h"
+
+#include <stdio.h>
+#include <iostream>
 
 using namespace std;
 
 NS_IZENELIB_AM_BEGIN
 
 /**
- *  brief cc-b*-tree file header
- * 
- * 
-    @FileHeader
- * 
- *     |----------------|
- *     |   magic        |  
- *     |----------------| 
- * 	   |   maxKeys      | /then the order of the btree is 2*minDegree-1.
- *     |----------------|
- *     |   pageSize     |
- *	   |----------------| 
- *     |   cacheSize    |
- *     |----------------|
- *     |    .....       |
- *     |----------------|
- *     |   numItem      |   
- *     |----------------|      
- *     |   rootPos      |  
- *     |----------------|
- *     |   nPages       |
- *     |----------------| 
- *     |   oPages       |
- *     |----------------|
+ *	brief cc-b*-tree file header
+ *
+ *
+	@FileHeader
+ *
+ *	   |----------------|
+ *	   |   magic		|
+ *	   |----------------|
+ *	   |   maxKeys		| /then the order of the btree is 2*minDegree-1.
+ *	   |----------------|
+ *	   |   pageSize		|
+ *	   |----------------|
+ *	   |   cacheSize	|
+ *	   |----------------|
+ *	   |	.....		|
+ *	   |----------------|
+ *	   |   numItem		|
+ *	   |----------------|
+ *	   |   rootPos		|
+ *	   |----------------|
+ *	   |   nPages		|
+ *	   |----------------|
+ *	   |   oPages		|
+ *	   |----------------|
  */
 struct CbFileHeader {
-		int magic;  //set it as 0x061561, check consistence.			
-		size_t maxKeys; //a node at mostly hold maxKeys items. 
-		size_t pageSize;	
-		size_t cacheSize;	
-		size_t numItems;		
-		long rootPos;		
+		int magic;	//set it as 0x061561, check consistence.
+		size_t maxKeys; //a node at mostly hold maxKeys items.
+		size_t pageSize;
+		size_t cacheSize;
+		size_t numItems;
+		long rootPos;
 
-		static size_t nPages; 
+		static size_t nPages;
 		static size_t oPages;
-		
+
 		CbFileHeader()
 		{
 			magic = 0x061561;
 			maxKeys = 24;
-			pageSize = 1024;	
-			cacheSize = 1000000;			
+			pageSize = 1024;
+			cacheSize = 1000000;
 			numItems = 0;
 			rootPos = sizeof(CbFileHeader)+sizeof(size_t);
-			
-			CbFileHeader::nPages = 0;	
+
+			CbFileHeader::nPages = 0;
 			CbFileHeader::oPages = 0;
 		}
 
 		void display(std::ostream& os = std::cout) {
-			os<<"magic: "<<magic<<endl;	
+			os<<"magic: "<<magic<<endl;
 			os<<"maxKeys: "<<maxKeys<<endl;
-			os<<"pageSize: "<<pageSize<<endl;			
+			os<<"pageSize: "<<pageSize<<endl;
 			os<<"cacheSize: "<<cacheSize<<endl;
-			os<<"numItem: "<<numItems<<endl;				
+			os<<"numItem: "<<numItems<<endl;
 			os<<"rootPos: "<<rootPos<<endl;
-			
+
 			os<<"node Pages: "<<nPages<<endl;
-			os<<"overflow Pages: "<<oPages<<endl;	
+			os<<"overflow Pages: "<<oPages<<endl;
 			os<<endl;
 			os<<"file size: "<<pageSize*(nPages+oPages)+sizeof(CbFileHeader)+2*sizeof(size_t)<<"bytes"<<endl;
 			if(nPages != 0)
@@ -82,16 +84,16 @@ struct CbFileHeader {
 				os<<"average items number in a btree ndoe: "<<double(numItems)/double(nPages)<<endl;
 				os<<"average overflow page for a node: "<<double(oPages)/double(nPages)<<endl;
 			}
-			
+
 		}
 
 		bool toFile(FILE* f)
 		{
 			if ( 0 != fseek(f, 0, SEEK_SET) )
 				return false;
-			fwrite(this, sizeof(CbFileHeader), 1, f);		
-			fwrite(&nPages, sizeof(size_t), 1, f);	
-			fwrite(&oPages, sizeof(size_t), 1, f);	
+			fwrite(this, sizeof(CbFileHeader), 1, f);
+			fwrite(&nPages, sizeof(size_t), 1, f);
+			fwrite(&oPages, sizeof(size_t), 1, f);
 			return true;
 		}
 
@@ -99,9 +101,13 @@ struct CbFileHeader {
 		{
 			if ( 0 != fseek(f, 0, SEEK_SET) )
 				return false;
-			fread(this, sizeof(CbFileHeader), 1, f);
-			fread(&nPages, sizeof(size_t), 1, f);
-			fread(&oPages, sizeof(size_t), 1, f);
+			if ( 1 != fread(this, sizeof(CbFileHeader), 1, f) )
+				return false;
+			if ( 1 != fread(&nPages, sizeof(size_t), 1, f) )
+				return false;
+			if ( 1 != fread(&oPages, sizeof(size_t), 1, f) )
+				return false;
+
 			return true;
 		}
 	};

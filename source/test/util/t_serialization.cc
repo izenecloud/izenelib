@@ -207,6 +207,9 @@ int main() {
 	test_serialization(vstr);
 	test_serialization_boost(vstr);
 	test_serialization_febird(vstr);	
+	
+	vector<int> va;
+	test_serialization(va);
 
 	/*	test1();
 	 test2();

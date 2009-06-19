@@ -1,5 +1,5 @@
 /* vim: set tabstop=4 : */
-#include "FileStream.h"
+#include <febird/io/FileStream.h>
 
 #include <assert.h>
 #include <string.h>
@@ -17,7 +17,7 @@
 #	include <sys/types.h>
 #	include <fcntl.h>
 #	include <errno.h>
-#   include "byte_io_impl.h"
+#   include <febird/io/byte_io_impl.h>
 
 namespace febird {
 
@@ -66,7 +66,7 @@ void FileStream::dopen(int fd, const char* mode) throw()
 	if (0 == m_fp)
 	{
 		char szbuf[64];
-		sprintf(szbuf, "fd=%d");
+		sprintf(szbuf, "fd=%d", fd);
 		ThrowOpenFileException(szbuf, mode);
 	}
 }
@@ -80,7 +80,6 @@ void FileStream::attach(::FILE* fp) throw()
 FILE* FileStream::detach() throw()
 {
 	assert(m_fp);
-	FILE* temp = m_fp;
 	m_fp = 0;
 	return m_fp;
 }

@@ -48,8 +48,8 @@ written by
    #include <unistd.h>
 #endif
 #include <cstring>
-#include "api.h"
-#include "core.h"
+#include <udt/api.h>
+#include <udt/core.h>
 
 using namespace std;
 
@@ -464,7 +464,7 @@ CUDTSocket::UDTSTATUS CUDTUnited::getStatus(const UDTSOCKET u)
    if (i->second->m_pUDT->m_bBroken)
       return CUDTSocket::BROKEN;
 
-   return i->second->m_Status;   
+   return i->second->m_Status;
 }
 
 int CUDTUnited::bind(const UDTSOCKET u, const sockaddr* name, const int& namelen)
@@ -737,7 +737,7 @@ int CUDTUnited::close(const UDTSOCKET u)
 {
    CUDTSocket* s = locate(u);
 
-   // silently drop a request to close an invalid ID, rather than return error   
+   // silently drop a request to close an invalid ID, rather than return error
    if (NULL == s)
       return 0;
 

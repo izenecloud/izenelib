@@ -77,6 +77,25 @@ public:
 		insertValue( DataType(key, value) );
 	}
 	
+	void updateValue(const DataType& dat) // insert an new item into MCache
+	{
+		lock.acquire_write_lock();
+		KeyType key = dat.get_key();
+		if (hash_.update(dat) ) {
+			if (cacheContainer_.find(key)) {
+				cacheContainer_.replace(key);
+			} else {
+				cacheContainer_.firstInsert(key); //Insert the corresponding CacheInfo into KeyInfoMap_.        
+			}
+		} 
+		lock.release_write_lock();
+		
+	}	
+	void updateValue(const KeyType& key, const ValueType& value) // insert an new item into MCache
+	{
+		updateValue( DataType(key, value) );
+	}
+	
 	bool getValueNoInsert(const KeyType& key, ValueType& value); //  not insert even if not found.		
 	bool getValueWithInsert(const KeyType& key, ValueType& value); //  insert if not found.	
 	bool hasKey(const KeyType& key);
@@ -221,6 +240,8 @@ template <class KeyType, class ValueType, class ReplacementPolicy, class Hash,
 		Hash, LockType>::getValue(const KeyType& key, ValueType& value) {
 	lock.acquire_write_lock();
 	nTotal_++;
+	ValueType* pd = hash_.find(key);
+	if(pd)value  = *pd;
 	if (cacheContainer_.find(key) ) {	
 		cacheContainer_.replace(key); //Update the corresponding  CacheInfo.
 		nHit_++;

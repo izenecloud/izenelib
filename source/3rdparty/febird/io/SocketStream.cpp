@@ -1,5 +1,5 @@
 /* vim: set tabstop=4 : */
-#include "SocketStream.h"
+#include <febird/io/SocketStream.h>
 
 #if defined(_WIN32) || defined(WIN32) || defined(_WIN64) || defined(WIN64)
 //º”»Îwinsockø‚
@@ -96,7 +96,7 @@ size_t SocketStream::read(void* data, size_t length)
 size_t SocketStream::write(const void* data, size_t length)
 {
 	int  n = ::send(socket, (const char*)data, (int)length, 0);
-	if (0 == n || -1 == n && !waitfor_again())
+	if (0 == n || (-1 == n && !waitfor_again()))
 	{
 		std::ostringstream oss;
 		oss << "send packet error, socket=" << socket

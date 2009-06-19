@@ -1,8 +1,6 @@
 #ifndef DYNAMICARRAY_H
 #define DYNAMICARRAY_H
 
-#include <assert.h>
-
 #include <types.h>
 
 NS_IZENELIB_UTIL_BEGIN
@@ -332,4 +330,3 @@ inline int32_t DynamicArray<ElemT,NullValue>::offset(size_t order)
 NS_IZENELIB_UTIL_END
 
 #endif
-
