@@ -19,6 +19,11 @@ IF(BZIP2_FOUND AND ZLIB_FOUND)
     io/var_int.cpp
     io/WinFileStream.cpp
     io/ZlibStream.cpp
+    rpc/client.cpp
+    rpc/MessageInputStream.cpp
+    rpc/rpc_basic.cpp
+    rpc/server.cpp
+    rpc/server_io.cpp
     )
 
   INCLUDE_DIRECTORIES(${BZIP2_INCLUDE_DIR} ${ZLIB_INCLUDE_DIR})
