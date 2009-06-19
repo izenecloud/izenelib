@@ -79,6 +79,10 @@ public:
 	{
 		return memHash_.del(key);
 	}
+	
+	bool update(const DataType& data){
+		return memHash_.update(data);		
+	}
 
 	/**
 	 *	\brief get the total number of item in the Cache.

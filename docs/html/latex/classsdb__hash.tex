@@ -1,0 +1,369 @@
+\hypertarget{classsdb__hash}{
+\section{sdb\_\-hash$<$ KeyType, ValueType, LockType $>$ Class Template Reference}
+\label{classsdb__hash}\index{sdb\_\-hash@{sdb\_\-hash}}
+}
+\hyperlink{classfile}{file} version of array hash using Cache-Conscious Collision Resolution.  
+
+
+{\tt \#include $<$sdb\_\-hash.h$>$}
+
+Inheritance diagram for sdb\_\-hash$<$ KeyType, ValueType, LockType $>$::\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[height=2cm]{classsdb__hash}
+\end{center}
+\end{figure}
+\subsection*{Public Types}
+\begin{CompactItemize}
+\item 
+\hypertarget{classsdb__hash_5968365ee85645ab1b3cdf20a080b96c}{
+typedef \hyperlink{classbucket__chain__}{bucket\_\-chain\_\-}$<$ LockType $>$ \textbf{bucket\_\-chain}}
+\label{classsdb__hash_5968365ee85645ab1b3cdf20a080b96c}
+
+\item 
+\hypertarget{classsdb__hash_99cf7f90f1aabe92eb592ab73cc34eeb}{
+typedef std::pair$<$ \hyperlink{classbucket__chain__}{bucket\_\-chain} $\ast$, char $\ast$ $>$ \textbf{SDBCursor}}
+\label{classsdb__hash_99cf7f90f1aabe92eb592ab73cc34eeb}
+
+\item 
+\hypertarget{classsdb__hash_2af15a87cb82b406d6a79631a2f03431}{
+typedef DataType$<$ KeyType, ValueType $>$ \textbf{DataType}}
+\label{classsdb__hash_2af15a87cb82b406d6a79631a2f03431}
+
+\end{CompactItemize}
+\subsection*{Public Member Functions}
+\begin{CompactItemize}
+\item 
+\hyperlink{classsdb__hash_02cd69cf8f60ae7f8661b1499d49c453}{sdb\_\-hash} (const string \&fileName=\char`\"{}sdb\_\-hash.dat\char`\"{})
+\item 
+virtual \hyperlink{classsdb__hash_607bf8eee5de43ee297a5e7ef7c0f56d}{$\sim$sdb\_\-hash} ()
+\item 
+void \hyperlink{classsdb__hash_e56dbe504c8ae570e59a0571f8099b19}{setBucketSize} (size\_\-t bucketSize)
+\begin{CompactList}\small\item\em set bucket size of fileHeader \item\end{CompactList}\item 
+void \hyperlink{classsdb__hash_50342daffbd37c85755e4f00f11fdf95}{setDegree} (size\_\-t dpow)
+\item 
+void \hyperlink{classsdb__hash_f6a720d37fabe2b8a8e8bfcd161c2663}{setCacheSize} (size\_\-t cacheSize)
+\item 
+\hypertarget{classsdb__hash_18d959e4e8bd201f362b8262f6e37716}{
+std::string \hyperlink{classsdb__hash_18d959e4e8bd201f362b8262f6e37716}{getFileName} () const }
+\label{classsdb__hash_18d959e4e8bd201f362b8262f6e37716}
+
+\begin{CompactList}\small\item\em return the \hyperlink{classfile}{file} name of the SequentialDB \item\end{CompactList}\item 
+bool \hyperlink{classsdb__hash_17c82560d424f1d3519e0b4788fd8ef2}{insert} (const DataType \&dat)
+\item 
+bool \hyperlink{classsdb__hash_4cd4dcd9d599a843b63d7dda5275131f}{insert} (const KeyType \&key, const ValueType \&value)
+\item 
+ValueType $\ast$ \hyperlink{classsdb__hash_9f39e15dd1c45b2b78b508df26c69568}{find} (const KeyType \&key)
+\item 
+\hypertarget{classsdb__hash_bd27b5d38ef142e6f2a89733a1213a64}{
+bool \textbf{get} (const KeyType \&key, ValueType \&value)}
+\label{classsdb__hash_bd27b5d38ef142e6f2a89733a1213a64}
+
+\item 
+bool \hyperlink{classsdb__hash_a6ada730f03769b29c7c2e71d97fcd14}{del} (const KeyType \&key)
+\item 
+bool \hyperlink{classsdb__hash_01a9c2ad383dac61d5e6ff3e20841689}{update} (const DataType \&dat)
+\item 
+bool \hyperlink{classsdb__hash_d89de45c4ed1d5937fd22745e2a61f20}{update} (const KeyType \&key, const ValueType \&value)
+\item 
+SDBCursor \hyperlink{classsdb__hash_3594271208cb8aa10beca9f9f16fddd6}{search} (const KeyType \&key)
+\item 
+bool \hyperlink{classsdb__hash_c229c71b533a2d90941568e6449801db}{search} (const KeyType \&key, SDBCursor \&locn)
+\item 
+SDBCursor \hyperlink{classsdb__hash_18aa637624e610e99727e368f750cef5}{get\_\-first\_\-locn} ()
+\item 
+\hypertarget{classsdb__hash_08c49219bfad42f63c2c86f4b180959a}{
+bool \textbf{get} (const SDBCursor \&locn, KeyType \&key, ValueType \&value)}
+\label{classsdb__hash_08c49219bfad42f63c2c86f4b180959a}
+
+\item 
+bool \hyperlink{classsdb__hash_7e501588a5161276baff02c6812aa147}{get} (const SDBCursor \&locn, DataType \&rec)
+\item 
+bool \hyperlink{classsdb__hash_08fcfc39a846687aa28ecfa4f919f3bc}{seq} (SDBCursor \&locn, DataType \&rec, ESeqDirection sdir=ESD\_\-FORWARD)
+\begin{CompactList}\small\item\em sequential access method \item\end{CompactList}\item 
+int \hyperlink{classsdb__hash_0abd12e832bafd55d622f67497df47f9}{num\_\-items} ()
+\item 
+bool \hyperlink{classsdb__hash_323877d8e6fb88a7ac89ff7b361dfa5c}{open} ()
+\item 
+bool \hyperlink{classsdb__hash_2ebf3f46da2bfa6249badf1d1af352f2}{close} ()
+\item 
+void \hyperlink{classsdb__hash_23b1c9a395291fbe24416d2e1c24d364}{commit} ()
+\item 
+void \hyperlink{classsdb__hash_6b9f4c1147c4702b863095a324b81cfb}{flush} ()
+\item 
+void \hyperlink{classsdb__hash_327527c4f96ea2115450d3b2d0d2ca0d}{display} (std::ostream \&os=std::cout, bool onlyheader=true)
+\item 
+double \hyperlink{classsdb__hash_23fdd1400cd2c1e7f922b16a8a372924}{loadFactor} ()
+\begin{CompactList}\small\item\em It displays how much space has been wasted in percentage after deleting or updates. \item\end{CompactList}\end{CompactItemize}
+\subsection*{Protected Types}
+\begin{CompactItemize}
+\item 
+\hypertarget{classsdb__hash_df4db8b80f27271108713daee250bd2f}{
+typedef multimap$<$ int, \hyperlink{classbucket__chain__}{bucket\_\-chain} $\ast$, greater$<$ int $>$ $>$::iterator \textbf{CacheIter}}
+\label{classsdb__hash_df4db8b80f27271108713daee250bd2f}
+
+\end{CompactItemize}
+\subsection*{Protected Attributes}
+\begin{CompactItemize}
+\item 
+\hypertarget{classsdb__hash_176b3804e4064ce796ee50c00c1cef68}{
+\hyperlink{classbucket__chain__}{bucket\_\-chain} $\ast$$\ast$ \textbf{entry\_\-}}
+\label{classsdb__hash_176b3804e4064ce796ee50c00c1cef68}
+
+\item 
+\hypertarget{classsdb__hash_2d79c743b5b5001f7fabefe183d1ee87}{
+long $\ast$ \textbf{bucketAddr}}
+\label{classsdb__hash_2d79c743b5b5001f7fabefe183d1ee87}
+
+\item 
+\hypertarget{classsdb__hash_a9ff81bc12174dab813aa25b1ffb83fc}{
+multimap$<$ int, \hyperlink{classbucket__chain__}{bucket\_\-chain} $\ast$, greater$<$ int $>$ $>$ \textbf{sh\_\-cache\_\-}}
+\label{classsdb__hash_a9ff81bc12174dab813aa25b1ffb83fc}
+
+\end{CompactItemize}
+
+
+\subsection{Detailed Description}
+\subsubsection*{template$<$typename KeyType, typename ValueType, typename LockType = NullLock$>$ class sdb\_\-hash$<$ KeyType, ValueType, LockType $>$}
+
+\hyperlink{classfile}{file} version of array hash using Cache-Conscious Collision Resolution. 
+
+\hyperlink{classsdb__hash}{sdb\_\-hash} is built on array hash using Cache-Conscious Collision Resolution.
+
+For \hyperlink{classfile}{file} version, there is a little different, each bucket is now a bucket\_\-chain, and each bucket\_\-chain hash fixed size. 
+
+Definition at line 44 of file sdb\_\-hash.h.
+
+\subsection{Constructor \& Destructor Documentation}
+\hypertarget{classsdb__hash_02cd69cf8f60ae7f8661b1499d49c453}{
+\index{sdb\_\-hash@{sdb\_\-hash}!sdb\_\-hash@{sdb\_\-hash}}
+\index{sdb\_\-hash@{sdb\_\-hash}!sdb_hash@{sdb\_\-hash}}
+\subsubsection[{sdb\_\-hash}]{\setlength{\rightskip}{0pt plus 5cm}template$<$typename KeyType , typename ValueType , typename LockType  = NullLock$>$ {\bf sdb\_\-hash}$<$ KeyType, ValueType, LockType $>$::{\bf sdb\_\-hash} (const string \& {\em fileName} = {\tt \char`\"{}sdb\_\-hash$<$~KeyType,~ValueType,~LockType~$>$.dat\char`\"{}})\hspace{0.3cm}{\tt  \mbox{[}inline\mbox{]}}}}
+\label{classsdb__hash_02cd69cf8f60ae7f8661b1499d49c453}
+
+
+constructor 
+
+Definition at line 56 of file sdb\_\-hash.h.\hypertarget{classsdb__hash_607bf8eee5de43ee297a5e7ef7c0f56d}{
+\index{sdb\_\-hash@{sdb\_\-hash}!$\sim$sdb\_\-hash@{$\sim$sdb\_\-hash}}
+\index{$\sim$sdb\_\-hash@{$\sim$sdb\_\-hash}!sdb_hash@{sdb\_\-hash}}
+\subsubsection[{$\sim$sdb\_\-hash}]{\setlength{\rightskip}{0pt plus 5cm}template$<$typename KeyType , typename ValueType , typename LockType  = NullLock$>$ virtual {\bf sdb\_\-hash}$<$ KeyType, ValueType, LockType $>$::$\sim${\bf sdb\_\-hash} ()\hspace{0.3cm}{\tt  \mbox{[}inline, virtual\mbox{]}}}}
+\label{classsdb__hash_607bf8eee5de43ee297a5e7ef7c0f56d}
+
+
+deconstructor, \hyperlink{classsdb__hash_2ebf3f46da2bfa6249badf1d1af352f2}{close()} will also be called here. 
+
+Definition at line 66 of file sdb\_\-hash.h.
+
+\subsection{Member Function Documentation}
+\hypertarget{classsdb__hash_2ebf3f46da2bfa6249badf1d1af352f2}{
+\index{sdb\_\-hash@{sdb\_\-hash}!close@{close}}
+\index{close@{close}!sdb_hash@{sdb\_\-hash}}
+\subsubsection[{close}]{\setlength{\rightskip}{0pt plus 5cm}template$<$typename KeyType , typename ValueType , typename LockType  = NullLock$>$ bool {\bf sdb\_\-hash}$<$ KeyType, ValueType, LockType $>$::close ()\hspace{0.3cm}{\tt  \mbox{[}inline\mbox{]}}}}
+\label{classsdb__hash_2ebf3f46da2bfa6249badf1d1af352f2}
+
+
+db should be closed after open, and it will automatically called in deconstuctor. 
+
+Definition at line 632 of file sdb\_\-hash.h.\hypertarget{classsdb__hash_23b1c9a395291fbe24416d2e1c24d364}{
+\index{sdb\_\-hash@{sdb\_\-hash}!commit@{commit}}
+\index{commit@{commit}!sdb_hash@{sdb\_\-hash}}
+\subsubsection[{commit}]{\setlength{\rightskip}{0pt plus 5cm}template$<$typename KeyType , typename ValueType , typename LockType  = NullLock$>$ void {\bf sdb\_\-hash}$<$ KeyType, ValueType, LockType $>$::commit ()\hspace{0.3cm}{\tt  \mbox{[}inline\mbox{]}}}}
+\label{classsdb__hash_23b1c9a395291fbe24416d2e1c24d364}
+
+
+write the dirty buckets to disk, not release the memory 
+
+Definition at line 659 of file sdb\_\-hash.h.\hypertarget{classsdb__hash_a6ada730f03769b29c7c2e71d97fcd14}{
+\index{sdb\_\-hash@{sdb\_\-hash}!del@{del}}
+\index{del@{del}!sdb_hash@{sdb\_\-hash}}
+\subsubsection[{del}]{\setlength{\rightskip}{0pt plus 5cm}template$<$typename KeyType , typename ValueType , typename LockType  = NullLock$>$ bool {\bf sdb\_\-hash}$<$ KeyType, ValueType, LockType $>$::del (const KeyType \& {\em key})\hspace{0.3cm}{\tt  \mbox{[}inline\mbox{]}}}}
+\label{classsdb__hash_a6ada730f03769b29c7c2e71d97fcd14}
+
+
+delete an item 
+
+Definition at line 236 of file sdb\_\-hash.h.\hypertarget{classsdb__hash_327527c4f96ea2115450d3b2d0d2ca0d}{
+\index{sdb\_\-hash@{sdb\_\-hash}!display@{display}}
+\index{display@{display}!sdb_hash@{sdb\_\-hash}}
+\subsubsection[{display}]{\setlength{\rightskip}{0pt plus 5cm}template$<$typename KeyType , typename ValueType , typename LockType  = NullLock$>$ void {\bf sdb\_\-hash}$<$ KeyType, ValueType, LockType $>$::display (std::ostream \& {\em os} = {\tt std::cout}, \/  bool {\em onlyheader} = {\tt true})\hspace{0.3cm}{\tt  \mbox{[}inline\mbox{]}}}}
+\label{classsdb__hash_327527c4f96ea2115450d3b2d0d2ca0d}
+
+
+display the info of \hyperlink{classsdb__hash}{sdb\_\-hash} 
+
+Definition at line 702 of file sdb\_\-hash.h.\hypertarget{classsdb__hash_9f39e15dd1c45b2b78b508df26c69568}{
+\index{sdb\_\-hash@{sdb\_\-hash}!find@{find}}
+\index{find@{find}!sdb_hash@{sdb\_\-hash}}
+\subsubsection[{find}]{\setlength{\rightskip}{0pt plus 5cm}template$<$typename KeyType , typename ValueType , typename LockType  = NullLock$>$ ValueType$\ast$ {\bf sdb\_\-hash}$<$ KeyType, ValueType, LockType $>$::find (const KeyType \& {\em key})\hspace{0.3cm}{\tt  \mbox{[}inline\mbox{]}}}}
+\label{classsdb__hash_9f39e15dd1c45b2b78b508df26c69568}
+
+
+find an item, return pointer to the value. Note that, there will be memory leak if not delete the value 
+
+Definition at line 194 of file sdb\_\-hash.h.\hypertarget{classsdb__hash_6b9f4c1147c4702b863095a324b81cfb}{
+\index{sdb\_\-hash@{sdb\_\-hash}!flush@{flush}}
+\index{flush@{flush}!sdb_hash@{sdb\_\-hash}}
+\subsubsection[{flush}]{\setlength{\rightskip}{0pt plus 5cm}template$<$typename KeyType , typename ValueType , typename LockType  = NullLock$>$ void {\bf sdb\_\-hash}$<$ KeyType, ValueType, LockType $>$::flush ()\hspace{0.3cm}{\tt  \mbox{[}inline\mbox{]}}}}
+\label{classsdb__hash_6b9f4c1147c4702b863095a324b81cfb}
+
+
+Write the dirty buckets to disk and also free up most of the memory. Note that, for efficieny, entry\_\-\mbox{[}\mbox{]} is not freed up. 
+
+Definition at line 681 of file sdb\_\-hash.h.\hypertarget{classsdb__hash_7e501588a5161276baff02c6812aa147}{
+\index{sdb\_\-hash@{sdb\_\-hash}!get@{get}}
+\index{get@{get}!sdb_hash@{sdb\_\-hash}}
+\subsubsection[{get}]{\setlength{\rightskip}{0pt plus 5cm}template$<$typename KeyType , typename ValueType , typename LockType  = NullLock$>$ bool {\bf sdb\_\-hash}$<$ KeyType, ValueType, LockType $>$::get (const SDBCursor \& {\em locn}, \/  DataType \& {\em rec})\hspace{0.3cm}{\tt  \mbox{[}inline\mbox{]}}}}
+\label{classsdb__hash_7e501588a5161276baff02c6812aa147}
+
+
+get an item from given SDBCursor 
+
+Definition at line 427 of file sdb\_\-hash.h.\hypertarget{classsdb__hash_18aa637624e610e99727e368f750cef5}{
+\index{sdb\_\-hash@{sdb\_\-hash}!get\_\-first\_\-locn@{get\_\-first\_\-locn}}
+\index{get\_\-first\_\-locn@{get\_\-first\_\-locn}!sdb_hash@{sdb\_\-hash}}
+\subsubsection[{get\_\-first\_\-locn}]{\setlength{\rightskip}{0pt plus 5cm}template$<$typename KeyType , typename ValueType , typename LockType  = NullLock$>$ SDBCursor {\bf sdb\_\-hash}$<$ KeyType, ValueType, LockType $>$::get\_\-first\_\-locn ()\hspace{0.3cm}{\tt  \mbox{[}inline\mbox{]}}}}
+\label{classsdb__hash_18aa637624e610e99727e368f750cef5}
+
+
+get the SDBCursor of first item in the first not empty bucket. 
+
+Definition at line 399 of file sdb\_\-hash.h.\hypertarget{classsdb__hash_4cd4dcd9d599a843b63d7dda5275131f}{
+\index{sdb\_\-hash@{sdb\_\-hash}!insert@{insert}}
+\index{insert@{insert}!sdb_hash@{sdb\_\-hash}}
+\subsubsection[{insert}]{\setlength{\rightskip}{0pt plus 5cm}template$<$typename KeyType , typename ValueType , typename LockType  = NullLock$>$ bool {\bf sdb\_\-hash}$<$ KeyType, ValueType, LockType $>$::insert (const KeyType \& {\em key}, \/  const ValueType \& {\em value})\hspace{0.3cm}{\tt  \mbox{[}inline\mbox{]}}}}
+\label{classsdb__hash_4cd4dcd9d599a843b63d7dda5275131f}
+
+
+insert an item in key/value pair 
+
+Definition at line 125 of file sdb\_\-hash.h.\hypertarget{classsdb__hash_17c82560d424f1d3519e0b4788fd8ef2}{
+\index{sdb\_\-hash@{sdb\_\-hash}!insert@{insert}}
+\index{insert@{insert}!sdb_hash@{sdb\_\-hash}}
+\subsubsection[{insert}]{\setlength{\rightskip}{0pt plus 5cm}template$<$typename KeyType , typename ValueType , typename LockType  = NullLock$>$ bool {\bf sdb\_\-hash}$<$ KeyType, ValueType, LockType $>$::insert (const DataType \& {\em dat})\hspace{0.3cm}{\tt  \mbox{[}inline\mbox{]}}}}
+\label{classsdb__hash_17c82560d424f1d3519e0b4788fd8ef2}
+
+
+insert an item of DataType 
+
+Definition at line 118 of file sdb\_\-hash.h.\hypertarget{classsdb__hash_23fdd1400cd2c1e7f922b16a8a372924}{
+\index{sdb\_\-hash@{sdb\_\-hash}!loadFactor@{loadFactor}}
+\index{loadFactor@{loadFactor}!sdb_hash@{sdb\_\-hash}}
+\subsubsection[{loadFactor}]{\setlength{\rightskip}{0pt plus 5cm}template$<$typename KeyType , typename ValueType , typename LockType  = NullLock$>$ double {\bf sdb\_\-hash}$<$ KeyType, ValueType, LockType $>$::loadFactor ()\hspace{0.3cm}{\tt  \mbox{[}inline\mbox{]}}}}
+\label{classsdb__hash_23fdd1400cd2c1e7f922b16a8a372924}
+
+
+It displays how much space has been wasted in percentage after deleting or updates. 
+
+when an item is deleted, we don't release its space in disk but set a flag that it have been deleted. And it will lead to low efficiency. Maybe we should dump it to another files when loadFactor are low. 
+
+Definition at line 728 of file sdb\_\-hash.h.\hypertarget{classsdb__hash_0abd12e832bafd55d622f67497df47f9}{
+\index{sdb\_\-hash@{sdb\_\-hash}!num\_\-items@{num\_\-items}}
+\index{num\_\-items@{num\_\-items}!sdb_hash@{sdb\_\-hash}}
+\subsubsection[{num\_\-items}]{\setlength{\rightskip}{0pt plus 5cm}template$<$typename KeyType , typename ValueType , typename LockType  = NullLock$>$ int {\bf sdb\_\-hash}$<$ KeyType, ValueType, LockType $>$::num\_\-items ()\hspace{0.3cm}{\tt  \mbox{[}inline\mbox{]}}}}
+\label{classsdb__hash_0abd12e832bafd55d622f67497df47f9}
+
+
+get the num of items 
+
+Definition at line 559 of file sdb\_\-hash.h.\hypertarget{classsdb__hash_323877d8e6fb88a7ac89ff7b361dfa5c}{
+\index{sdb\_\-hash@{sdb\_\-hash}!open@{open}}
+\index{open@{open}!sdb_hash@{sdb\_\-hash}}
+\subsubsection[{open}]{\setlength{\rightskip}{0pt plus 5cm}template$<$typename KeyType , typename ValueType , typename LockType  = NullLock$>$ bool {\bf sdb\_\-hash}$<$ KeyType, ValueType, LockType $>$::open ()\hspace{0.3cm}{\tt  \mbox{[}inline\mbox{]}}}}
+\label{classsdb__hash_323877d8e6fb88a7ac89ff7b361dfa5c}
+
+
+db must be opened to be used. 
+
+Definition at line 567 of file sdb\_\-hash.h.\hypertarget{classsdb__hash_c229c71b533a2d90941568e6449801db}{
+\index{sdb\_\-hash@{sdb\_\-hash}!search@{search}}
+\index{search@{search}!sdb_hash@{sdb\_\-hash}}
+\subsubsection[{search}]{\setlength{\rightskip}{0pt plus 5cm}template$<$typename KeyType , typename ValueType , typename LockType  = NullLock$>$ bool {\bf sdb\_\-hash}$<$ KeyType, ValueType, LockType $>$::search (const KeyType \& {\em key}, \/  SDBCursor \& {\em locn})\hspace{0.3cm}{\tt  \mbox{[}inline\mbox{]}}}}
+\label{classsdb__hash_c229c71b533a2d90941568e6449801db}
+
+
+another search function, flushCache\_\-() will be called at the beginning, 
+
+Definition at line 331 of file sdb\_\-hash.h.\hypertarget{classsdb__hash_3594271208cb8aa10beca9f9f16fddd6}{
+\index{sdb\_\-hash@{sdb\_\-hash}!search@{search}}
+\index{search@{search}!sdb_hash@{sdb\_\-hash}}
+\subsubsection[{search}]{\setlength{\rightskip}{0pt plus 5cm}template$<$typename KeyType , typename ValueType , typename LockType  = NullLock$>$ SDBCursor {\bf sdb\_\-hash}$<$ KeyType, ValueType, LockType $>$::search (const KeyType \& {\em key})\hspace{0.3cm}{\tt  \mbox{[}inline\mbox{]}}}}
+\label{classsdb__hash_3594271208cb8aa10beca9f9f16fddd6}
+
+
+search an item
+
+\begin{Desc}
+\item[Returns:]SDBCursor \end{Desc}
+
+
+Definition at line 320 of file sdb\_\-hash.h.\hypertarget{classsdb__hash_08fcfc39a846687aa28ecfa4f919f3bc}{
+\index{sdb\_\-hash@{sdb\_\-hash}!seq@{seq}}
+\index{seq@{seq}!sdb_hash@{sdb\_\-hash}}
+\subsubsection[{seq}]{\setlength{\rightskip}{0pt plus 5cm}template$<$typename KeyType , typename ValueType , typename LockType  = NullLock$>$ bool {\bf sdb\_\-hash}$<$ KeyType, ValueType, LockType $>$::seq (SDBCursor \& {\em locn}, \/  DataType \& {\em rec}, \/  ESeqDirection {\em sdir} = {\tt ESD\_\-FORWARD})\hspace{0.3cm}{\tt  \mbox{[}inline\mbox{]}}}}
+\label{classsdb__hash_08fcfc39a846687aa28ecfa4f919f3bc}
+
+
+sequential access method 
+
+\begin{Desc}
+\item[Parameters:]
+\begin{description}
+\item[{\em locn}]is the current SDBCursor, and will replaced next SDBCursor when route finished. \item[{\em rec}]is the item in SDBCursor locn. \item[{\em sdir}]is sequential access direction, for hash is unordered, we only implement forward case. \end{description}
+\end{Desc}
+
+
+Definition at line 470 of file sdb\_\-hash.h.\hypertarget{classsdb__hash_e56dbe504c8ae570e59a0571f8099b19}{
+\index{sdb\_\-hash@{sdb\_\-hash}!setBucketSize@{setBucketSize}}
+\index{setBucketSize@{setBucketSize}!sdb_hash@{sdb\_\-hash}}
+\subsubsection[{setBucketSize}]{\setlength{\rightskip}{0pt plus 5cm}template$<$typename KeyType , typename ValueType , typename LockType  = NullLock$>$ void {\bf sdb\_\-hash}$<$ KeyType, ValueType, LockType $>$::setBucketSize (size\_\-t {\em bucketSize})\hspace{0.3cm}{\tt  \mbox{[}inline\mbox{]}}}}
+\label{classsdb__hash_e56dbe504c8ae570e59a0571f8099b19}
+
+
+set bucket size of fileHeader 
+
+if not called use default size 8192 
+
+Definition at line 75 of file sdb\_\-hash.h.\hypertarget{classsdb__hash_f6a720d37fabe2b8a8e8bfcd161c2663}{
+\index{sdb\_\-hash@{sdb\_\-hash}!setCacheSize@{setCacheSize}}
+\index{setCacheSize@{setCacheSize}!sdb_hash@{sdb\_\-hash}}
+\subsubsection[{setCacheSize}]{\setlength{\rightskip}{0pt plus 5cm}template$<$typename KeyType , typename ValueType , typename LockType  = NullLock$>$ void {\bf sdb\_\-hash}$<$ KeyType, ValueType, LockType $>$::setCacheSize (size\_\-t {\em cacheSize})\hspace{0.3cm}{\tt  \mbox{[}inline\mbox{]}}}}
+\label{classsdb__hash_f6a720d37fabe2b8a8e8bfcd161c2663}
+
+
+set cache size, if not called use default size 100000 
+
+Definition at line 101 of file sdb\_\-hash.h.\hypertarget{classsdb__hash_50342daffbd37c85755e4f00f11fdf95}{
+\index{sdb\_\-hash@{sdb\_\-hash}!setDegree@{setDegree}}
+\index{setDegree@{setDegree}!sdb_hash@{sdb\_\-hash}}
+\subsubsection[{setDegree}]{\setlength{\rightskip}{0pt plus 5cm}template$<$typename KeyType , typename ValueType , typename LockType  = NullLock$>$ void {\bf sdb\_\-hash}$<$ KeyType, ValueType, LockType $>$::setDegree (size\_\-t {\em dpow})\hspace{0.3cm}{\tt  \mbox{[}inline\mbox{]}}}}
+\label{classsdb__hash_50342daffbd37c85755e4f00f11fdf95}
+
+
+set directory size if fileHeader
+
+if not called use default size 4096 
+
+Definition at line 90 of file sdb\_\-hash.h.\hypertarget{classsdb__hash_d89de45c4ed1d5937fd22745e2a61f20}{
+\index{sdb\_\-hash@{sdb\_\-hash}!update@{update}}
+\index{update@{update}!sdb_hash@{sdb\_\-hash}}
+\subsubsection[{update}]{\setlength{\rightskip}{0pt plus 5cm}template$<$typename KeyType , typename ValueType , typename LockType  = NullLock$>$ bool {\bf sdb\_\-hash}$<$ KeyType, ValueType, LockType $>$::update (const KeyType \& {\em key}, \/  const ValueType \& {\em value})\hspace{0.3cm}{\tt  \mbox{[}inline\mbox{]}}}}
+\label{classsdb__hash_d89de45c4ed1d5937fd22745e2a61f20}
+
+
+update an item by key/value pair 
+
+Definition at line 275 of file sdb\_\-hash.h.\hypertarget{classsdb__hash_01a9c2ad383dac61d5e6ff3e20841689}{
+\index{sdb\_\-hash@{sdb\_\-hash}!update@{update}}
+\index{update@{update}!sdb_hash@{sdb\_\-hash}}
+\subsubsection[{update}]{\setlength{\rightskip}{0pt plus 5cm}template$<$typename KeyType , typename ValueType , typename LockType  = NullLock$>$ bool {\bf sdb\_\-hash}$<$ KeyType, ValueType, LockType $>$::update (const DataType \& {\em dat})\hspace{0.3cm}{\tt  \mbox{[}inline\mbox{]}}}}
+\label{classsdb__hash_01a9c2ad383dac61d5e6ff3e20841689}
+
+
+update an item through DataType data 
+
+Definition at line 267 of file sdb\_\-hash.h.
+
+The documentation for this class was generated from the following file:\begin{CompactItemize}
+\item 
+/home/Kevin/izenelib/include/am/sdb\_\-hash/\hyperlink{sdb__hash_8h}{sdb\_\-hash.h}\end{CompactItemize}

@@ -1,0 +1,628 @@
+\hypertarget{group__mnglayer}{
+\section{Block management layer}
+\label{group__mnglayer}\index{Block management layer@{Block management layer}}
+}
+\subsection*{Classes}
+\begin{CompactItemize}
+\item 
+struct \hyperlink{structBID}{BID$<$ SIZE $>$}
+\begin{CompactList}\small\item\em Block identifier class. \item\end{CompactList}\item 
+struct \hyperlink{structBID_3_010_01_4}{BID$<$ 0 $>$}
+\begin{CompactList}\small\item\em Specialization of block identifier class (\hyperlink{structBID}{BID}) for variable size block size. \item\end{CompactList}\item 
+class \textbf{filler\_\-struct\_\-\_\-$<$ bytes $>$}
+\item 
+class \textbf{filler\_\-struct\_\-\_\-$<$ 0 $>$}
+\item 
+class \hyperlink{classelement__block}{element\_\-block$<$ T, Size\_\- $>$}
+\begin{CompactList}\small\item\em Contains data elements for {\tt \hyperlink{classtyped__block}{typed\_\-block}} , not intended for direct use. \item\end{CompactList}\item 
+class \hyperlink{classblock__w__bids}{block\_\-w\_\-bids$<$ T, Size\_\-, RawSize\_\-, NBids\_\- $>$}
+\begin{CompactList}\small\item\em Contains \hyperlink{structBID}{BID} references for {\tt \hyperlink{classtyped__block}{typed\_\-block}} , not intended for direct use. \item\end{CompactList}\item 
+class \textbf{block\_\-w\_\-bids$<$ T, Size\_\-, RawSize\_\-, 0 $>$}
+\item 
+class \hyperlink{classblock__w__info}{block\_\-w\_\-info$<$ T\_\-, RawSize\_\-, NBids\_\-, InfoType\_\- $>$}
+\begin{CompactList}\small\item\em Contains per block information for {\tt \hyperlink{classtyped__block}{typed\_\-block}} , not intended for direct use. \item\end{CompactList}\item 
+class \textbf{block\_\-w\_\-info$<$ T\_\-, RawSize\_\-, NBids\_\-, void $>$}
+\item 
+class \hyperlink{classtyped__block}{typed\_\-block$<$ RawSize\_\-, T\_\-, NRef\_\-, InfoType\_\- $>$}
+\begin{CompactList}\small\item\em Block containing elements of fixed length. \item\end{CompactList}\item 
+class \textbf{BIDArray$<$ BLK\_\-SIZE $>$}
+\item 
+class \textbf{DiskAllocator}
+\item 
+struct \textbf{DiskAllocator::FirstFit}
+\item 
+struct \textbf{DiskAllocator::OffCmp}
+\item 
+class \hyperlink{classblock__manager}{block\_\-manager}
+\begin{CompactList}\small\item\em Block manager class. \item\end{CompactList}\end{CompactItemize}
+\subsection*{Defines}
+\begin{CompactItemize}
+\item 
+\hypertarget{group__mnglayer_g24dae4b7fb37cad43ac1395c30b432bb}{
+\#define \textbf{DEFAULT\_\-BLOCK\_\-SIZE}(type)~(2 $\ast$ 1024 $\ast$ 1024)}
+\label{group__mnglayer_g24dae4b7fb37cad43ac1395c30b432bb}
+
+\end{CompactItemize}
+\subsection*{Typedefs}
+\begin{CompactItemize}
+\item 
+\hypertarget{group__mnglayer_gf4b942e8fd7f45f98e878658dd9d5eb3}{
+typedef T \textbf{element\_\-block::value\_\-type}}
+\label{group__mnglayer_gf4b942e8fd7f45f98e878658dd9d5eb3}
+
+\item 
+\hypertarget{group__mnglayer_g440dde951fbd48acb83efcb7eb146fb7}{
+typedef T \& \textbf{element\_\-block::reference}}
+\label{group__mnglayer_g440dde951fbd48acb83efcb7eb146fb7}
+
+\item 
+\hypertarget{group__mnglayer_gf5d43971860fb25f4cd591fe678bfc41}{
+typedef const T \& \textbf{element\_\-block::const\_\-reference}}
+\label{group__mnglayer_gf5d43971860fb25f4cd591fe678bfc41}
+
+\item 
+\hypertarget{group__mnglayer_g0a2a1c6bc4bdad79df97c4fea68524b8}{
+typedef type $\ast$ \textbf{element\_\-block::pointer}}
+\label{group__mnglayer_g0a2a1c6bc4bdad79df97c4fea68524b8}
+
+\item 
+\hypertarget{group__mnglayer_gc468b1fa2d879f091debc2d9fe0b329e}{
+typedef pointer \textbf{element\_\-block::iterator}}
+\label{group__mnglayer_gc468b1fa2d879f091debc2d9fe0b329e}
+
+\item 
+\hypertarget{group__mnglayer_g0e51dca212a92bf8fe8f0ab48d93e915}{
+typedef const type $\ast$ \textbf{element\_\-block::const\_\-iterator}}
+\label{group__mnglayer_g0e51dca212a92bf8fe8f0ab48d93e915}
+
+\item 
+\hypertarget{group__mnglayer_g3418b30447bfa7129dabe6682e1df1a7}{
+typedef \hyperlink{structBID}{BID}$<$ raw\_\-size $>$ \textbf{block\_\-w\_\-bids::bid\_\-type}}
+\label{group__mnglayer_g3418b30447bfa7129dabe6682e1df1a7}
+
+\item 
+\hypertarget{group__mnglayer_g6dfb1d3d8bff999ef94b07018d641552}{
+typedef \hyperlink{structBID}{BID}$<$ raw\_\-size $>$ \textbf{block\_\-w\_\-bids$<$ T, Size\_\-, RawSize\_\-, 0 $>$::bid\_\-type}}
+\label{group__mnglayer_g6dfb1d3d8bff999ef94b07018d641552}
+
+\item 
+\hypertarget{group__mnglayer_g7f42e0c3e742cf3733e0d5592d54ab58}{
+typedef T\_\- \textbf{typed\_\-block::value\_\-type}}
+\label{group__mnglayer_g7f42e0c3e742cf3733e0d5592d54ab58}
+
+\item 
+\hypertarget{group__mnglayer_g521aff2a3700245029372deb0be2b287}{
+typedef T\_\- \& \textbf{typed\_\-block::reference}}
+\label{group__mnglayer_g521aff2a3700245029372deb0be2b287}
+
+\item 
+\hypertarget{group__mnglayer_g34e897ac51826913281aaf4b10465659}{
+typedef const T\_\- \& \textbf{typed\_\-block::const\_\-reference}}
+\label{group__mnglayer_g34e897ac51826913281aaf4b10465659}
+
+\item 
+\hypertarget{group__mnglayer_gbc7c8a98ff603c8087eb1fd8974ea270}{
+typedef type $\ast$ \textbf{typed\_\-block::pointer}}
+\label{group__mnglayer_gbc7c8a98ff603c8087eb1fd8974ea270}
+
+\item 
+\hypertarget{group__mnglayer_g75bd38227d7b7e5b772911ab87d0e7bc}{
+typedef pointer \textbf{typed\_\-block::iterator}}
+\label{group__mnglayer_g75bd38227d7b7e5b772911ab87d0e7bc}
+
+\item 
+\hypertarget{group__mnglayer_g7cbb990a4e44249df63a9e878aec6338}{
+typedef type const $\ast$ \textbf{typed\_\-block::const\_\-iterator}}
+\label{group__mnglayer_g7cbb990a4e44249df63a9e878aec6338}
+
+\item 
+\hypertarget{group__mnglayer_gae0703379ce10cdd001a53c8983bbdf5}{
+typedef \hyperlink{structBID}{BID}$<$ RawSize\_\- $>$ \textbf{typed\_\-block::bid\_\-type}}
+\label{group__mnglayer_gae0703379ce10cdd001a53c8983bbdf5}
+
+\item 
+\hypertarget{group__mnglayer_g3a47a283737239beb0f14acc9f7ba0e8}{
+typedef \hyperlink{structBID}{BID}$<$ BLK\_\-SIZE $>$ \& \textbf{BIDArray::reference}}
+\label{group__mnglayer_g3a47a283737239beb0f14acc9f7ba0e8}
+
+\item 
+\hypertarget{group__mnglayer_g8db66544ca4882b873e2c8e7cbc39155}{
+typedef \hyperlink{structBID}{BID}$<$ BLK\_\-SIZE $>$ $\ast$ \textbf{BIDArray::iterator}}
+\label{group__mnglayer_g8db66544ca4882b873e2c8e7cbc39155}
+
+\item 
+\hypertarget{group__mnglayer_g4dadf075f31927a829a2c877b924170b}{
+typedef const \hyperlink{structBID}{BID}$<$ BLK\_\-SIZE $>$ $\ast$ \textbf{BIDArray::const\_\-iterator}}
+\label{group__mnglayer_g4dadf075f31927a829a2c877b924170b}
+
+\item 
+\hypertarget{group__mnglayer_g3b319db3ec1e563341cd5e30eab3f0ab}{
+typedef std::map$<$ int64\_\-t, int64\_\-t $>$ \textbf{DiskAllocator::sortseq}}
+\label{group__mnglayer_g3b319db3ec1e563341cd5e30eab3f0ab}
+
+\end{CompactItemize}
+\subsection*{Enumerations}
+\begin{CompactItemize}
+\item 
+enum \{ \hyperlink{group__mnglayer_ggd7fa741aa0ccf5fb9b7b0085669864d3955b5433f4e53a6b37036545e6af766f}{BID$<$ 0 $>$::t\_\-size} =  0
+ \}
+\item 
+enum \{ \hyperlink{group__mnglayer_gg2c6c9f26f6ba7bd45841bb125b90e04f5fdb4b66f1c64a4b69f23756713341f2}{element\_\-block::size} =  Size\_\-
+ \}
+\item 
+enum \{ \hyperlink{group__mnglayer_gg64e9c147e936f85096c89f816d71695c79551ce6ebb37de68c336bcae6d9c201}{block\_\-w\_\-info::size} =  ((RawSize\_\- - sizeof(BID$<$RawSize\_\-$>$) $\ast$ NBids\_\- - sizeof(InfoType\_\-)) / sizeof(T\_\-))
+ \}
+\item 
+enum \{ \textbf{size} =  ((RawSize\_\- - sizeof(BID$<$RawSize\_\-$>$) $\ast$ NBids\_\-) / sizeof(T\_\-))
+ \}
+\item 
+enum \{ \textbf{has\_\-filler} =  (RawSize\_\- != sizeof(block\_\-w\_\-info$<$T\_\-, RawSize\_\-, NRef\_\-, InfoType\_\-$>$))
+ \}
+\item 
+enum \{ \par
+\hyperlink{group__mnglayer_gg43854e49708cf32d97e65d727593833c53f1c9c4e116e026d8096110c42f27ea}{typed\_\-block::raw\_\-size} =  RawSize\_\-, 
+\hyperlink{group__mnglayer_gg43854e49708cf32d97e65d727593833c8e272a078e257c8700b765dc85bf53a2}{typed\_\-block::size} =  block\_\-w\_\-info$<$T\_\-, 
+\textbf{RawSize\_\-}, 
+\textbf{NRef\_\-}, 
+\par
+\hyperlink{group__mnglayer_gg43854e49708cf32d97e65d727593833c8e272a078e257c8700b765dc85bf53a2}{typed\_\-block::size} =  block\_\-w\_\-info$<$T\_\-
+ \}
+\end{CompactItemize}
+\subsection*{Functions}
+\begin{CompactItemize}
+\item 
+\hypertarget{group__mnglayer_gdbb5760c51c6719d6b6ab13d2b3c38dd}{
+bool \textbf{BID::valid} () const }
+\label{group__mnglayer_gdbb5760c51c6719d6b6ab13d2b3c38dd}
+
+\item 
+\hypertarget{group__mnglayer_gb0dde5f54bfe601660d1b116098d2ed3}{
+\textbf{BID::BID} (\hyperlink{classfile}{file} $\ast$s, int64\_\-t o)}
+\label{group__mnglayer_gb0dde5f54bfe601660d1b116098d2ed3}
+
+\item 
+\hypertarget{group__mnglayer_g2ae908ccd9bca9712449a3d45b95ec7b}{
+\textbf{BID::BID} (const \hyperlink{structBID}{BID} \&obj)}
+\label{group__mnglayer_g2ae908ccd9bca9712449a3d45b95ec7b}
+
+\item 
+\hypertarget{group__mnglayer_gf485b70a6f5e3ff226342ca5c621b2f9}{
+{\footnotesize template$<$unsigned BlockSize$>$ }\\\textbf{BID::BID} (const \hyperlink{structBID}{BID}$<$ BlockSize $>$ \&obj)}
+\label{group__mnglayer_gf485b70a6f5e3ff226342ca5c621b2f9}
+
+\item 
+\hypertarget{group__mnglayer_g0bcd10c5f95291a7e112c6d37382c6b2}{
+\textbf{BID$<$ 0 $>$::BID} (\hyperlink{classfile}{file} $\ast$f, int64\_\-t o, unsigned s)}
+\label{group__mnglayer_g0bcd10c5f95291a7e112c6d37382c6b2}
+
+\item 
+\hypertarget{group__mnglayer_gdd9f3b28293eff6ecb6ed431e4c1973e}{
+bool \textbf{BID$<$ 0 $>$::valid} () const }
+\label{group__mnglayer_gdd9f3b28293eff6ecb6ed431e4c1973e}
+
+\item 
+\hypertarget{group__mnglayer_g04ce0e59d0985d3c82673a230db2ddd1}{
+{\footnotesize template$<$unsigned blk\_\-sz$>$ }\\bool \textbf{operator==} (const \hyperlink{structBID}{BID}$<$ blk\_\-sz $>$ \&a, const \hyperlink{structBID}{BID}$<$ blk\_\-sz $>$ \&b)}
+\label{group__mnglayer_g04ce0e59d0985d3c82673a230db2ddd1}
+
+\item 
+\hypertarget{group__mnglayer_g0850a80a46763a370570069323eae3e7}{
+{\footnotesize template$<$unsigned blk\_\-sz$>$ }\\bool \textbf{operator!=} (const \hyperlink{structBID}{BID}$<$ blk\_\-sz $>$ \&a, const \hyperlink{structBID}{BID}$<$ blk\_\-sz $>$ \&b)}
+\label{group__mnglayer_g0850a80a46763a370570069323eae3e7}
+
+\item 
+\hypertarget{group__mnglayer_ga8c145a25d05384fd7ef06c00d185257}{
+{\footnotesize template$<$unsigned blk\_\-sz$>$ }\\std::ostream \& \textbf{operator$<$$<$} (std::ostream \&s, const \hyperlink{structBID}{BID}$<$ blk\_\-sz $>$ \&bid)}
+\label{group__mnglayer_ga8c145a25d05384fd7ef06c00d185257}
+
+\item 
+\hypertarget{group__mnglayer_gb90a755bf03c0113dd37014f6f8dc53d}{
+reference \hyperlink{group__mnglayer_gb90a755bf03c0113dd37014f6f8dc53d}{element\_\-block::operator\mbox{[}$\,$\mbox{]}} (int i)}
+\label{group__mnglayer_gb90a755bf03c0113dd37014f6f8dc53d}
+
+\begin{CompactList}\small\item\em An operator to access elements in the block. \item\end{CompactList}\item 
+\hypertarget{group__mnglayer_gcae10d17bbcc8af7c10ef052283aa7e9}{
+iterator \hyperlink{group__mnglayer_gcae10d17bbcc8af7c10ef052283aa7e9}{element\_\-block::begin} ()}
+\label{group__mnglayer_gcae10d17bbcc8af7c10ef052283aa7e9}
+
+\begin{CompactList}\small\item\em Returns {\tt iterator} pointing to the first element. \item\end{CompactList}\item 
+\hypertarget{group__mnglayer_gd5a7afcaa6b7c4762e831c43648fb5af}{
+const\_\-iterator \hyperlink{group__mnglayer_gd5a7afcaa6b7c4762e831c43648fb5af}{element\_\-block::begin} () const }
+\label{group__mnglayer_gd5a7afcaa6b7c4762e831c43648fb5af}
+
+\begin{CompactList}\small\item\em Returns {\tt const\_\-iterator} pointing to the first element. \item\end{CompactList}\item 
+\hypertarget{group__mnglayer_gbc98bc4725bb92fc30627633816097ef}{
+const\_\-iterator \hyperlink{group__mnglayer_gbc98bc4725bb92fc30627633816097ef}{element\_\-block::cbegin} () const }
+\label{group__mnglayer_gbc98bc4725bb92fc30627633816097ef}
+
+\begin{CompactList}\small\item\em Returns {\tt const\_\-iterator} pointing to the first element. \item\end{CompactList}\item 
+\hypertarget{group__mnglayer_g1b89fe04df5d14b3e1cf536298331413}{
+iterator \hyperlink{group__mnglayer_g1b89fe04df5d14b3e1cf536298331413}{element\_\-block::end} ()}
+\label{group__mnglayer_g1b89fe04df5d14b3e1cf536298331413}
+
+\begin{CompactList}\small\item\em Returns {\tt iterator} pointing to the end element. \item\end{CompactList}\item 
+\hypertarget{group__mnglayer_g75cecec83bf923364d5144e53d10a1ff}{
+const\_\-iterator \hyperlink{group__mnglayer_g75cecec83bf923364d5144e53d10a1ff}{element\_\-block::end} () const }
+\label{group__mnglayer_g75cecec83bf923364d5144e53d10a1ff}
+
+\begin{CompactList}\small\item\em Returns {\tt const\_\-iterator} pointing to the end element. \item\end{CompactList}\item 
+\hypertarget{group__mnglayer_g792762a9693c0dcc3ff53d316fa8d9d9}{
+const\_\-iterator \hyperlink{group__mnglayer_g792762a9693c0dcc3ff53d316fa8d9d9}{element\_\-block::cend} () const }
+\label{group__mnglayer_g792762a9693c0dcc3ff53d316fa8d9d9}
+
+\begin{CompactList}\small\item\em Returns {\tt const\_\-iterator} pointing to the end element. \item\end{CompactList}\item 
+\hypertarget{group__mnglayer_gf8ec031f551ea91964414679972173fd}{
+bid\_\-type \& \hyperlink{group__mnglayer_gf8ec031f551ea91964414679972173fd}{block\_\-w\_\-bids::operator()} (int i)}
+\label{group__mnglayer_gf8ec031f551ea91964414679972173fd}
+
+\begin{CompactList}\small\item\em An operator to access bid references. \item\end{CompactList}\item 
+\hypertarget{group__mnglayer_g8d476a01db346b846c34d297941ff6f0}{
+{\footnotesize template$<$size\_\-t ALIGNMENT$>$ }\\void $\ast$ \textbf{aligned\_\-alloc} (size\_\-t size, size\_\-t meta\_\-info\_\-size=0)}
+\label{group__mnglayer_g8d476a01db346b846c34d297941ff6f0}
+
+\item 
+\hypertarget{group__mnglayer_gb777ff7ae3e0a622f8b8f6cf04c37d33}{
+{\footnotesize template$<$size\_\-t ALIGNMENT$>$ }\\void \textbf{aligned\_\-dealloc} (void $\ast$ptr)}
+\label{group__mnglayer_gb777ff7ae3e0a622f8b8f6cf04c37d33}
+
+\item 
+\hyperlink{classrequest__ptr}{request\_\-ptr} \hyperlink{group__mnglayer_gc9c8caa89ae04a3b8dc3d1793eda61b0}{typed\_\-block::write} (const \hyperlink{structBID}{BID}$<$ raw\_\-size $>$ \&bid, \hyperlink{classcompletion__handler}{completion\_\-handler} on\_\-cmpl=\hyperlink{structdefault__completion__handler}{default\_\-completion\_\-handler}())
+\begin{CompactList}\small\item\em Writes block to the disk(s) ! \item\end{CompactList}\item 
+\hyperlink{classrequest__ptr}{request\_\-ptr} \hyperlink{group__mnglayer_ge5f58b3358b383d44832ce0fbef7e015}{typed\_\-block::read} (const \hyperlink{structBID}{BID}$<$ raw\_\-size $>$ \&bid, \hyperlink{classcompletion__handler}{completion\_\-handler} on\_\-cmpl=\hyperlink{structdefault__completion__handler}{default\_\-completion\_\-handler}())
+\begin{CompactList}\small\item\em Reads block from the disk(s) ! \item\end{CompactList}\item 
+\hypertarget{group__mnglayer_gfb2c22d3b5ab3c33b98bc3fd71b4b940}{
+static void $\ast$ \textbf{typed\_\-block::operator new\mbox{[}$\,$\mbox{]}} (size\_\-t bytes)}
+\label{group__mnglayer_gfb2c22d3b5ab3c33b98bc3fd71b4b940}
+
+\item 
+\hypertarget{group__mnglayer_gf322e446d29d36fe3e8687bff69bbd21}{
+static void $\ast$ \textbf{typed\_\-block::operator new} (size\_\-t bytes)}
+\label{group__mnglayer_gf322e446d29d36fe3e8687bff69bbd21}
+
+\item 
+\hypertarget{group__mnglayer_g46a01a83f3954057c367a23a1e4f0e02}{
+static void $\ast$ \textbf{typed\_\-block::operator new} (size\_\-t, void $\ast$ptr)}
+\label{group__mnglayer_g46a01a83f3954057c367a23a1e4f0e02}
+
+\item 
+\hypertarget{group__mnglayer_g8c64f56092ff568bad31293b1ccdab53}{
+static void \textbf{typed\_\-block::operator delete\mbox{[}$\,$\mbox{]}} (void $\ast$ptr)}
+\label{group__mnglayer_g8c64f56092ff568bad31293b1ccdab53}
+
+\item 
+\hypertarget{group__mnglayer_g6c881aecb0a7b2e3c306c3d47e846140}{
+static void \textbf{typed\_\-block::operator delete} (void $\ast$ptr)}
+\label{group__mnglayer_g6c881aecb0a7b2e3c306c3d47e846140}
+
+\item 
+\hypertarget{group__mnglayer_gcaec0a5f3e2d6ff44e1d7fa30ff602b5}{
+static void \textbf{typed\_\-block::operator delete} (void $\ast$, void $\ast$)}
+\label{group__mnglayer_gcaec0a5f3e2d6ff44e1d7fa30ff602b5}
+
+\item 
+\hypertarget{group__mnglayer_gd0be75ac7ac1aee77eac786943989f35}{
+iterator \textbf{BIDArray::begin} ()}
+\label{group__mnglayer_gd0be75ac7ac1aee77eac786943989f35}
+
+\item 
+\hypertarget{group__mnglayer_g37415deef92aeff02a1d5f09feb83549}{
+iterator \textbf{BIDArray::end} ()}
+\label{group__mnglayer_g37415deef92aeff02a1d5f09feb83549}
+
+\item 
+\hypertarget{group__mnglayer_g95efb3da196f2be6f40c683e46200b7a}{
+\textbf{BIDArray::BIDArray} (unsigned\_\-type size)}
+\label{group__mnglayer_g95efb3da196f2be6f40c683e46200b7a}
+
+\item 
+\hypertarget{group__mnglayer_g48f9347c6cc69bea869720181c9a4752}{
+unsigned\_\-type \textbf{BIDArray::size} () const }
+\label{group__mnglayer_g48f9347c6cc69bea869720181c9a4752}
+
+\item 
+\hypertarget{group__mnglayer_g70d97a7a58384f90e5aa23b406d637d4}{
+reference \textbf{BIDArray::operator\mbox{[}$\,$\mbox{]}} (int\_\-type i)}
+\label{group__mnglayer_g70d97a7a58384f90e5aa23b406d637d4}
+
+\item 
+\hypertarget{group__mnglayer_g2475ec3e07ee2ac98cc584578a4f2807}{
+void \textbf{BIDArray::resize} (unsigned\_\-type newsize)}
+\label{group__mnglayer_g2475ec3e07ee2ac98cc584578a4f2807}
+
+\item 
+\hypertarget{group__mnglayer_geb9c480bba4d1e8dd8d33e79e905cb78}{
+void \textbf{DiskAllocator::dump} ()}
+\label{group__mnglayer_geb9c480bba4d1e8dd8d33e79e905cb78}
+
+\item 
+\hypertarget{group__mnglayer_gc9eea25bdfd7455c592bf7080594d8e6}{
+void \textbf{DiskAllocator::check\_\-corruption} (int64\_\-t region\_\-pos, int64\_\-t region\_\-size, sortseq::iterator pred, sortseq::iterator succ)}
+\label{group__mnglayer_gc9eea25bdfd7455c592bf7080594d8e6}
+
+\item 
+\hypertarget{group__mnglayer_gb4c3a46fa5f537cce92ed9562dbd4d80}{
+\textbf{DiskAllocator::DiskAllocator} (int64\_\-t disk\_\-size)}
+\label{group__mnglayer_gb4c3a46fa5f537cce92ed9562dbd4d80}
+
+\item 
+\hypertarget{group__mnglayer_gaa40d0bf9d8159e985487e915f158c12}{
+int64\_\-t \textbf{DiskAllocator::get\_\-free\_\-bytes} () const }
+\label{group__mnglayer_gaa40d0bf9d8159e985487e915f158c12}
+
+\item 
+\hypertarget{group__mnglayer_g72de01b131f6350dc7fc04b797cd1742}{
+int64\_\-t \textbf{DiskAllocator::get\_\-used\_\-bytes} () const }
+\label{group__mnglayer_g72de01b131f6350dc7fc04b797cd1742}
+
+\item 
+\hypertarget{group__mnglayer_g640a908464c64439b160cde5b66ae369}{
+int64\_\-t \textbf{DiskAllocator::get\_\-total\_\-bytes} () const }
+\label{group__mnglayer_g640a908464c64439b160cde5b66ae369}
+
+\item 
+\hypertarget{group__mnglayer_g4b4f515090ff0eddafed8ca261e233d0}{
+{\footnotesize template$<$unsigned BLK\_\-SIZE$>$ }\\int64\_\-t \textbf{DiskAllocator::new\_\-blocks} (BIDArray$<$ BLK\_\-SIZE $>$ \&bids)}
+\label{group__mnglayer_g4b4f515090ff0eddafed8ca261e233d0}
+
+\item 
+\hypertarget{group__mnglayer_g1bb810305ba9a4ee9700290b36de77d4}{
+{\footnotesize template$<$unsigned BLK\_\-SIZE$>$ }\\int64\_\-t \textbf{DiskAllocator::new\_\-blocks} (\hyperlink{structBID}{BID}$<$ BLK\_\-SIZE $>$ $\ast$begin, \hyperlink{structBID}{BID}$<$ BLK\_\-SIZE $>$ $\ast$end)}
+\label{group__mnglayer_g1bb810305ba9a4ee9700290b36de77d4}
+
+\item 
+\hypertarget{group__mnglayer_g0b7382450b2ff72620831ae491118038}{
+{\footnotesize template$<$unsigned BLK\_\-SIZE$>$ }\\void \textbf{DiskAllocator::delete\_\-block} (const \hyperlink{structBID}{BID}$<$ BLK\_\-SIZE $>$ \&bid)}
+\label{group__mnglayer_g0b7382450b2ff72620831ae491118038}
+
+\item 
+\hypertarget{group__mnglayer_g36a3a4625156d5b9d17b91ce7e1e1874}{
+{\footnotesize template$<$class BIDType , class BIDIteratorClass $>$ }\\void \textbf{block\_\-manager::new\_\-blocks\_\-int} (const unsigned\_\-type nblocks, BIDIteratorClass out)}
+\label{group__mnglayer_g36a3a4625156d5b9d17b91ce7e1e1874}
+
+\item 
+\hypertarget{group__mnglayer_g9d954d295ff1cb73cffd1075e58d6ab5}{
+void \textbf{block\_\-manager::init} (const char $\ast$path, int64\_\-t disk\_\-size=1000 $\ast$1024 $\ast$1024)}
+\label{group__mnglayer_g9d954d295ff1cb73cffd1075e58d6ab5}
+
+\item 
+{\footnotesize template$<$class BIDIteratorClass $>$ }\\void \hyperlink{group__mnglayer_gb012fd7abe2b4b529b9f6b339aff4232}{block\_\-manager::new\_\-blocks} (BIDIteratorClass bidbegin, BIDIteratorClass bidend)
+\begin{CompactList}\small\item\em Allocates new blocks. \item\end{CompactList}\item 
+{\footnotesize template$<$class BlockType , class BIDIteratorClass $>$ }\\void \hyperlink{group__mnglayer_ge77531e60b365f05da213ba7d8b17c9a}{block\_\-manager::new\_\-blocks} (const unsigned\_\-type nblocks, BIDIteratorClass out)
+\item 
+{\footnotesize template$<$class BIDIteratorClass $>$ }\\void \hyperlink{group__mnglayer_g0a41492a2faef107fb3c5a7c1ce5ee2d}{block\_\-manager::delete\_\-blocks} (const BIDIteratorClass \&bidbegin, const BIDIteratorClass \&bidend)
+\begin{CompactList}\small\item\em Deallocates blocks. \item\end{CompactList}\item 
+{\footnotesize template$<$unsigned BLK\_\-SIZE$>$ }\\void \hyperlink{group__mnglayer_g021e2ef7f3d56eb6dda56958ff5e0739}{block\_\-manager::delete\_\-block} (const \hyperlink{structBID}{BID}$<$ BLK\_\-SIZE $>$ \&bid)
+\begin{CompactList}\small\item\em Deallocates a block. \item\end{CompactList}\item 
+\hypertarget{group__mnglayer_g7f79d73b67f9353279c7da98450bb2da}{
+{\footnotesize template$<$class BIDType , class OutputIterator $>$ }\\void \textbf{block\_\-manager::new\_\-blocks\_\-int} (const unsigned\_\-type nblocks, OutputIterator out)}
+\label{group__mnglayer_g7f79d73b67f9353279c7da98450bb2da}
+
+\item 
+\hypertarget{group__mnglayer_gb141f255591ea232174c110922490f3b}{
+{\footnotesize template$<$class BlockType , class OutputIterator $>$ }\\void \textbf{block\_\-manager::new\_\-blocks} (const unsigned\_\-type nblocks, OutputIterator out)}
+\label{group__mnglayer_gb141f255591ea232174c110922490f3b}
+
+\end{CompactItemize}
+\subsection*{Variables}
+\begin{CompactItemize}
+\item 
+\hypertarget{group__mnglayer_g3d4299dcb48a35d580cd2190645c62ac}{
+\hyperlink{classfile}{file} $\ast$ \hyperlink{group__mnglayer_g3d4299dcb48a35d580cd2190645c62ac}{BID::storage}}
+\label{group__mnglayer_g3d4299dcb48a35d580cd2190645c62ac}
+
+\begin{CompactList}\small\item\em pointer to the \hyperlink{classfile}{file} of the block \item\end{CompactList}\item 
+\hypertarget{group__mnglayer_gaed8ae4d4226e9d51644054bd322f6fe}{
+int64\_\-t \hyperlink{group__mnglayer_gaed8ae4d4226e9d51644054bd322f6fe}{BID::offset}}
+\label{group__mnglayer_gaed8ae4d4226e9d51644054bd322f6fe}
+
+\begin{CompactList}\small\item\em offset within the \hyperlink{classfile}{file} of the block \item\end{CompactList}\item 
+\hypertarget{group__mnglayer_gea6d48c5b1d781f69b9fac42bec0b501}{
+int64\_\-t \hyperlink{group__mnglayer_gea6d48c5b1d781f69b9fac42bec0b501}{BID$<$ 0 $>$::offset}}
+\label{group__mnglayer_gea6d48c5b1d781f69b9fac42bec0b501}
+
+\begin{CompactList}\small\item\em offset within the \hyperlink{classfile}{file} of the block \item\end{CompactList}\item 
+\hypertarget{group__mnglayer_g4f09efa680216eded682e6fed12d985c}{
+unsigned \hyperlink{group__mnglayer_g4f09efa680216eded682e6fed12d985c}{BID$<$ 0 $>$::size}}
+\label{group__mnglayer_g4f09efa680216eded682e6fed12d985c}
+
+\begin{CompactList}\small\item\em size of the block in bytes \item\end{CompactList}\item 
+\hypertarget{group__mnglayer_g3c39c144c1d556157c908950f62cf168}{
+T \hyperlink{group__mnglayer_g3c39c144c1d556157c908950f62cf168}{element\_\-block::elem} \mbox{[}size\mbox{]}}
+\label{group__mnglayer_g3c39c144c1d556157c908950f62cf168}
+
+\begin{CompactList}\small\item\em Array of elements of type T. \item\end{CompactList}\item 
+\hypertarget{group__mnglayer_g4809f5f95e04ae33cec5ea5a5edd5db3}{
+bid\_\-type \hyperlink{group__mnglayer_g4809f5f95e04ae33cec5ea5a5edd5db3}{block\_\-w\_\-bids::ref} \mbox{[}nbids\mbox{]}}
+\label{group__mnglayer_g4809f5f95e04ae33cec5ea5a5edd5db3}
+
+\begin{CompactList}\small\item\em Array of \hyperlink{structBID}{BID} references. \item\end{CompactList}\item 
+\hypertarget{group__mnglayer_gbd86ea875a9e866a9c9d7c9d66dc16d0}{
+info\_\-type \hyperlink{group__mnglayer_gbd86ea875a9e866a9c9d7c9d66dc16d0}{block\_\-w\_\-info::info}}
+\label{group__mnglayer_gbd86ea875a9e866a9c9d7c9d66dc16d0}
+
+\begin{CompactList}\small\item\em Per block information element. \item\end{CompactList}\item 
+\hypertarget{group__mnglayer_g9607f31fe990a204cdda84cfac6f083e}{
+\hyperlink{structBID}{BID}$<$ BLK\_\-SIZE $>$ $\ast$ \textbf{BIDArray::array}}
+\label{group__mnglayer_g9607f31fe990a204cdda84cfac6f083e}
+
+\item 
+\hypertarget{group__mnglayer_g4aadf2f84f5172108dcf884523c44849}{
+sortseq \textbf{DiskAllocator::free\_\-space}}
+\label{group__mnglayer_g4aadf2f84f5172108dcf884523c44849}
+
+\item 
+\hypertarget{group__mnglayer_g0258cc36d71c630b7f1a72a4ef516859}{
+int64\_\-t \textbf{DiskAllocator::free\_\-bytes}}
+\label{group__mnglayer_g0258cc36d71c630b7f1a72a4ef516859}
+
+\item 
+\hypertarget{group__mnglayer_g883066b2cc83ba616cf087e94e399617}{
+int64\_\-t \textbf{DiskAllocator::disk\_\-bytes}}
+\label{group__mnglayer_g883066b2cc83ba616cf087e94e399617}
+
+\end{CompactItemize}
+
+
+\subsection{Detailed Description}
+Group of classes which help controlling external memory space, managing disks, and allocating and deallocating blocks of external storage 
+
+\subsection{Enumeration Type Documentation}
+\hypertarget{group__mnglayer_gd7fa741aa0ccf5fb9b7b0085669864d3}{
+\subsubsection[{"@2}]{\setlength{\rightskip}{0pt plus 5cm}anonymous enum\hspace{0.3cm}{\tt  \mbox{[}inherited\mbox{]}}}}
+\label{group__mnglayer_gd7fa741aa0ccf5fb9b7b0085669864d3}
+
+
+\begin{Desc}
+\item[Enumerator: ]\par
+\begin{description}
+\index{t\_\-size@{t\_\-size}!mnglayer@{mnglayer}}\index{mnglayer@{mnglayer}!t\_\-size@{t\_\-size}}\item[{\em 
+\hypertarget{group__mnglayer_ggd7fa741aa0ccf5fb9b7b0085669864d3955b5433f4e53a6b37036545e6af766f}{
+t\_\-size}
+\label{group__mnglayer_ggd7fa741aa0ccf5fb9b7b0085669864d3955b5433f4e53a6b37036545e6af766f}
+}]Blocks size, given by the parameter. \end{description}
+\end{Desc}
+
+
+
+Definition at line 71 of file main.h.\hypertarget{group__mnglayer_g2c6c9f26f6ba7bd45841bb125b90e04f}{
+\subsubsection[{"@3}]{\setlength{\rightskip}{0pt plus 5cm}template$<$class T , unsigned Size\_\-$>$ anonymous enum\hspace{0.3cm}{\tt  \mbox{[}inherited\mbox{]}}}}
+\label{group__mnglayer_g2c6c9f26f6ba7bd45841bb125b90e04f}
+
+
+\begin{Desc}
+\item[Enumerator: ]\par
+\begin{description}
+\index{size@{size}!mnglayer@{mnglayer}}\index{mnglayer@{mnglayer}!size@{size}}\item[{\em 
+\hypertarget{group__mnglayer_gg2c6c9f26f6ba7bd45841bb125b90e04f5fdb4b66f1c64a4b69f23756713341f2}{
+size}
+\label{group__mnglayer_gg2c6c9f26f6ba7bd45841bb125b90e04f5fdb4b66f1c64a4b69f23756713341f2}
+}]number of elements in the block \end{description}
+\end{Desc}
+
+
+
+Definition at line 138 of file main.h.\hypertarget{group__mnglayer_g43854e49708cf32d97e65d727593833c}{
+\subsubsection[{"@9}]{\setlength{\rightskip}{0pt plus 5cm}template$<$unsigned RawSize\_\-, class T\_\- , unsigned NRef\_\- = 0, class InfoType\_\-  = void$>$ anonymous enum\hspace{0.3cm}{\tt  \mbox{[}inherited\mbox{]}}}}
+\label{group__mnglayer_g43854e49708cf32d97e65d727593833c}
+
+
+\begin{Desc}
+\item[Enumerator: ]\par
+\begin{description}
+\index{raw\_\-size@{raw\_\-size}!mnglayer@{mnglayer}}\index{mnglayer@{mnglayer}!raw\_\-size@{raw\_\-size}}\item[{\em 
+\hypertarget{group__mnglayer_gg43854e49708cf32d97e65d727593833c53f1c9c4e116e026d8096110c42f27ea}{
+raw\_\-size}
+\label{group__mnglayer_gg43854e49708cf32d97e65d727593833c53f1c9c4e116e026d8096110c42f27ea}
+}]size of block in bytes \index{size@{size}!mnglayer@{mnglayer}}\index{mnglayer@{mnglayer}!size@{size}}\item[{\em 
+\hypertarget{group__mnglayer_gg43854e49708cf32d97e65d727593833c8e272a078e257c8700b765dc85bf53a2}{
+size}
+\label{group__mnglayer_gg43854e49708cf32d97e65d727593833c8e272a078e257c8700b765dc85bf53a2}
+}]number of elements in block \index{size@{size}!mnglayer@{mnglayer}}\index{mnglayer@{mnglayer}!size@{size}}\item[{\em 
+\hypertarget{group__mnglayer_gg43854e49708cf32d97e65d727593833c8e272a078e257c8700b765dc85bf53a2}{
+size}
+\label{group__mnglayer_gg43854e49708cf32d97e65d727593833c8e272a078e257c8700b765dc85bf53a2}
+}]number of elements in block \end{description}
+\end{Desc}
+
+
+
+Definition at line 309 of file main.h.
+
+\subsection{Function Documentation}
+\hypertarget{group__mnglayer_g021e2ef7f3d56eb6dda56958ff5e0739}{
+\index{mnglayer@{mnglayer}!delete\_\-block@{delete\_\-block}}
+\index{delete\_\-block@{delete\_\-block}!mnglayer@{mnglayer}}
+\subsubsection[{delete\_\-block}]{\setlength{\rightskip}{0pt plus 5cm}template$<$unsigned BLK\_\-SIZE$>$ void block\_\-manager::delete\_\-block (const {\bf BID}$<$ BLK\_\-SIZE $>$ \& {\em bid})\hspace{0.3cm}{\tt  \mbox{[}inline, inherited\mbox{]}}}}
+\label{group__mnglayer_g021e2ef7f3d56eb6dda56958ff5e0739}
+
+
+Deallocates a block. 
+
+\begin{Desc}
+\item[Parameters:]
+\begin{description}
+\item[{\em bid}]block identifier \end{description}
+\end{Desc}
+
+
+Definition at line 842 of file main.h.\hypertarget{group__mnglayer_g0a41492a2faef107fb3c5a7c1ce5ee2d}{
+\index{mnglayer@{mnglayer}!delete\_\-blocks@{delete\_\-blocks}}
+\index{delete\_\-blocks@{delete\_\-blocks}!mnglayer@{mnglayer}}
+\subsubsection[{delete\_\-blocks}]{\setlength{\rightskip}{0pt plus 5cm}template$<$class BIDIteratorClass $>$ void block\_\-manager::delete\_\-blocks (const BIDIteratorClass \& {\em bidbegin}, \/  const BIDIteratorClass \& {\em bidend})\hspace{0.3cm}{\tt  \mbox{[}inline, inherited\mbox{]}}}}
+\label{group__mnglayer_g0a41492a2faef107fb3c5a7c1ce5ee2d}
+
+
+Deallocates blocks. 
+
+Deallocates blocks in the range \mbox{[} {\bf bidbegin}, {\bf bidend}) \begin{Desc}
+\item[Parameters:]
+\begin{description}
+\item[{\em bidbegin}]iterator object of {\bf bid\_\-iterator} concept \item[{\em bidend}]iterator object of {\bf bid\_\-iterator} concept \end{description}
+\end{Desc}
+
+
+Definition at line 850 of file main.h.\hypertarget{group__mnglayer_ge77531e60b365f05da213ba7d8b17c9a}{
+\index{mnglayer@{mnglayer}!new\_\-blocks@{new\_\-blocks}}
+\index{new\_\-blocks@{new\_\-blocks}!mnglayer@{mnglayer}}
+\subsubsection[{new\_\-blocks}]{\setlength{\rightskip}{0pt plus 5cm}template$<$class BlockType , class BIDIteratorClass $>$ void block\_\-manager::new\_\-blocks (const unsigned\_\-type {\em nblocks}, \/  BIDIteratorClass {\em out})\hspace{0.3cm}{\tt  \mbox{[}inline, inherited\mbox{]}}}}
+\label{group__mnglayer_ge77531e60b365f05da213ba7d8b17c9a}
+
+
+Allocates new blocks according to the strategy given by {\bf functor} and stores block identifiers to the output iterator {\bf out} \begin{Desc}
+\item[Parameters:]
+\begin{description}
+\item[{\em nblocks}]the number of blocks to allocate \item[{\em functor}]object of model of {\bf allocation\_\-strategy} concept \item[{\em out}]iterator object of OutputIterator concept\end{description}
+\end{Desc}
+The {\tt BlockType} template parameter defines the type of block to allocate \hypertarget{group__mnglayer_gb012fd7abe2b4b529b9f6b339aff4232}{
+\index{mnglayer@{mnglayer}!new\_\-blocks@{new\_\-blocks}}
+\index{new\_\-blocks@{new\_\-blocks}!mnglayer@{mnglayer}}
+\subsubsection[{new\_\-blocks}]{\setlength{\rightskip}{0pt plus 5cm}template$<$class BIDIteratorClass $>$ void block\_\-manager::new\_\-blocks (BIDIteratorClass {\em bidbegin}, \/  BIDIteratorClass {\em bidend})\hspace{0.3cm}{\tt  \mbox{[}inline, inherited\mbox{]}}}}
+\label{group__mnglayer_gb012fd7abe2b4b529b9f6b339aff4232}
+
+
+Allocates new blocks. 
+
+Allocates new blocks according to the strategy given by {\bf functor} and stores block identifiers to the range \mbox{[} {\bf bidbegin}, {\bf bidend}) \begin{Desc}
+\item[Parameters:]
+\begin{description}
+\item[{\em functor}]object of model of {\bf allocation\_\-strategy} concept \item[{\em bidbegin}]bidirectional \hyperlink{structBID}{BID} iterator object \item[{\em bidend}]bidirectional \hyperlink{structBID}{BID} iterator object \end{description}
+\end{Desc}
+
+
+Definition at line 824 of file main.h.\hypertarget{group__mnglayer_ge5f58b3358b383d44832ce0fbef7e015}{
+\index{mnglayer@{mnglayer}!read@{read}}
+\index{read@{read}!mnglayer@{mnglayer}}
+\subsubsection[{read}]{\setlength{\rightskip}{0pt plus 5cm}template$<$unsigned RawSize\_\-, class T\_\- , unsigned NRef\_\- = 0, class InfoType\_\-  = void$>$ {\bf request\_\-ptr} {\bf typed\_\-block}$<$ RawSize\_\-, T\_\-, NRef\_\-, InfoType\_\- $>$::read (const {\bf BID}$<$ raw\_\-size $>$ \& {\em bid}, \/  {\bf completion\_\-handler} {\em on\_\-cmpl} = {\tt {\bf default\_\-completion\_\-handler}()})\hspace{0.3cm}{\tt  \mbox{[}inline, inherited\mbox{]}}}}
+\label{group__mnglayer_ge5f58b3358b383d44832ce0fbef7e015}
+
+
+Reads block from the disk(s) ! 
+
+\begin{Desc}
+\item[Parameters:]
+\begin{description}
+\item[{\em bid}]block identifier, points the file(disk) and position ! \item[{\em on\_\-cmpl}]completion handler ! \end{description}
+\end{Desc}
+\begin{Desc}
+\item[Returns:]{\tt pointer\_\-ptr} object to track status I/O operation after the call \end{Desc}
+
+
+Definition at line 331 of file main.h.\hypertarget{group__mnglayer_gc9c8caa89ae04a3b8dc3d1793eda61b0}{
+\index{mnglayer@{mnglayer}!write@{write}}
+\index{write@{write}!mnglayer@{mnglayer}}
+\subsubsection[{write}]{\setlength{\rightskip}{0pt plus 5cm}template$<$unsigned RawSize\_\-, class T\_\- , unsigned NRef\_\- = 0, class InfoType\_\-  = void$>$ {\bf request\_\-ptr} {\bf typed\_\-block}$<$ RawSize\_\-, T\_\-, NRef\_\-, InfoType\_\- $>$::write (const {\bf BID}$<$ raw\_\-size $>$ \& {\em bid}, \/  {\bf completion\_\-handler} {\em on\_\-cmpl} = {\tt {\bf default\_\-completion\_\-handler}()})\hspace{0.3cm}{\tt  \mbox{[}inline, inherited\mbox{]}}}}
+\label{group__mnglayer_gc9c8caa89ae04a3b8dc3d1793eda61b0}
+
+
+Writes block to the disk(s) ! 
+
+\begin{Desc}
+\item[Parameters:]
+\begin{description}
+\item[{\em bid}]block identifier, points the file(disk) and position ! \item[{\em on\_\-cmpl}]completion handler ! \end{description}
+\end{Desc}
+\begin{Desc}
+\item[Returns:]{\tt pointer\_\-ptr} object to track status I/O operation after the call \end{Desc}
+
+
+Definition at line 320 of file main.h.

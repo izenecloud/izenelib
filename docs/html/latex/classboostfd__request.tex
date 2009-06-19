@@ -1,0 +1,97 @@
+\hypertarget{classboostfd__request}{
+\section{boostfd\_\-request Class Reference}
+\label{classboostfd__request}\index{boostfd\_\-request@{boostfd\_\-request}}
+}
+Implementation based on boost::iostreams::file\_\-decriptor.  
+
+
+{\tt \#include $<$iobase.h$>$}
+
+Inheritance diagram for boostfd\_\-request::\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[height=2cm]{classboostfd__request}
+\end{center}
+\end{figure}
+\subsection*{Public Member Functions}
+\begin{CompactItemize}
+\item 
+\hypertarget{group__iolayer_g6e561d1080c80655590c5685f746174f}{
+void \hyperlink{group__iolayer_g6e561d1080c80655590c5685f746174f}{wait} ()}
+\label{group__iolayer_g6e561d1080c80655590c5685f746174f}
+
+\begin{CompactList}\small\item\em Suspends calling thread until completion of the \hyperlink{classrequest}{request}. \item\end{CompactList}\item 
+bool \hyperlink{group__iolayer_g3ec494e77ffa0621380e54cdc4cda657}{poll} ()
+\begin{CompactList}\small\item\em Polls the status of the \hyperlink{classrequest}{request}. \item\end{CompactList}\end{CompactItemize}
+\subsection*{Protected Types}
+\begin{CompactItemize}
+\item 
+enum \{ \textbf{OP} =  0, 
+\textbf{DONE} =  1, 
+\textbf{READY2DIE} =  2
+ \}
+\end{CompactItemize}
+\subsection*{Protected Member Functions}
+\begin{CompactItemize}
+\item 
+\hypertarget{group__iolayer_gfa21a04d9716110f605b9739aad2281c}{
+\textbf{boostfd\_\-request} (boostfd\_\-file $\ast$f, void $\ast$buf, int64\_\-t off, size\_\-t b, request\_\-type t, \hyperlink{classcompletion__handler}{completion\_\-handler} on\_\-cmpl)}
+\label{group__iolayer_gfa21a04d9716110f605b9739aad2281c}
+
+\item 
+\hypertarget{group__iolayer_ga8f9033492c4dc7596ef77c56fff15d6}{
+bool \textbf{add\_\-waiter} (onoff\_\-switch $\ast$sw)}
+\label{group__iolayer_ga8f9033492c4dc7596ef77c56fff15d6}
+
+\item 
+\hypertarget{group__iolayer_g1e8576c3e916fbac0ea8c28551c9c4ab}{
+void \textbf{delete\_\-waiter} (onoff\_\-switch $\ast$sw)}
+\label{group__iolayer_g1e8576c3e916fbac0ea8c28551c9c4ab}
+
+\item 
+\hypertarget{group__iolayer_gf0a44abb0c368e4c859eb8abf48a52d2}{
+int \textbf{nwaiters} ()}
+\label{group__iolayer_gf0a44abb0c368e4c859eb8abf48a52d2}
+
+\item 
+\hypertarget{group__iolayer_g91d7f4fb290408511cb6d8c9f5156d87}{
+void \textbf{serve} ()}
+\label{group__iolayer_g91d7f4fb290408511cb6d8c9f5156d87}
+
+\end{CompactItemize}
+\subsection*{Protected Attributes}
+\begin{CompactItemize}
+\item 
+\hypertarget{group__iolayer_g68db8fb13fe5bdb92c44af64db4b8e23}{
+state \textbf{\_\-state}}
+\label{group__iolayer_g68db8fb13fe5bdb92c44af64db4b8e23}
+
+\item 
+\hypertarget{group__iolayer_gc709fb7a7f61caa12ad0036e1d1ee8e8}{
+boost::mutex \textbf{waiters\_\-mutex}}
+\label{group__iolayer_gc709fb7a7f61caa12ad0036e1d1ee8e8}
+
+\item 
+\hypertarget{group__iolayer_g8ea60a2547e82af4ca15f3314a552d2c}{
+std::set$<$ onoff\_\-switch $\ast$ $>$ \textbf{waiters}}
+\label{group__iolayer_g8ea60a2547e82af4ca15f3314a552d2c}
+
+\end{CompactItemize}
+\subsection*{Friends}
+\begin{CompactItemize}
+\item 
+\hypertarget{classboostfd__request_6f659a8c47e4333d9d49f1e05c8d9a45}{
+class \textbf{boostfd\_\-file}}
+\label{classboostfd__request_6f659a8c47e4333d9d49f1e05c8d9a45}
+
+\end{CompactItemize}
+
+
+\subsection{Detailed Description}
+Implementation based on boost::iostreams::file\_\-decriptor. 
+
+Definition at line 804 of file iobase.h.
+
+The documentation for this class was generated from the following file:\begin{CompactItemize}
+\item 
+/home/Kevin/izenelib/include/am/blockmanager/iobase.h\end{CompactItemize}

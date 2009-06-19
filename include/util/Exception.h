@@ -9,16 +9,13 @@
 #include <string>
 #include <iostream>
 
-using namespace std;
-using namespace boost;
-
 
 NS_IZENELIB_UTIL_BEGIN
 
-typedef string badparamname_info_type;
-typedef string badparamvalue_info_type;
-typedef string functionname_info_type;
-typedef string returncode_info_type;
+typedef std::string badparamname_info_type;
+typedef std::string badparamvalue_info_type;
+typedef std::string functionname_info_type;
+typedef std::string returncode_info_type;
 
 typedef boost::error_info<struct tag_badparamname, badparamname_info_type> badparamname_info;
 typedef boost::error_info<struct tag_badparamvalue, badparamvalue_info_type> badparamvalue_info;
@@ -46,19 +43,16 @@ public:
         ERROR_OUTOFRANGE,
         NUM_ERRORS
     };
-    IZENELIBException(ExceptionCode code, string d="") throw()
-    {
-        string ss = s_errorStrings[code];
-        detail = ss+":"+d;
-    }
-    IZENELIBException(string d="") throw():detail(d) {}
+    IZENELIBException(ExceptionCode code, std::string d=""):detail(d) throw(){}
+
+    IZENELIBException(std::string d="") throw():detail(d) {}
 
     ~IZENELIBException() throw() {}
 
 public:
     virtual const char* what() const throw ()
     {
-        string ret="";
+        std::string ret="";
 
         if (getDetail().compare("")!=0)
             ret += "\n" + getDetail();
@@ -76,29 +70,13 @@ public:
         return ret.c_str();
     }
 
-    string getDetail() const throw()
+    std::string& getDetail() const throw()
     {
         return detail;
     }
 
 protected:
-    string detail;
-
-    static const char* s_errorStrings[NUM_ERRORS];
-};
-
-const char* IZENELIBException::s_errorStrings[NUM_ERRORS] =
-{
-    "Unknown error",			//UNKNOWN_ERROR
-    "Generic error",			//GENERIC_ERROR
-    "Missing parameter",		//MISSING_PARAMETER_ERROR
-    "Bad parameter",			//BAD_PARAMETER_ERROR
-    "File I/O error",			//FILEIO_ERROR
-    "Rumtime error",			//RUNTIME_ERROR
-    "Out of memory",			//OUTOFMEM_ERROR
-    "Illegal argument",			//ILLEGALARGUMENT_ERROR
-    "Unsupported operation",		//UNSUPPORTED_ERROR
-    "Out of range",			//OUTOFRANG_ERROR
+    std::string detail;
 };
 
 

@@ -1,0 +1,71 @@
+\hypertarget{classblock__manager}{
+\section{block\_\-manager Class Reference}
+\label{classblock__manager}\index{block\_\-manager@{block\_\-manager}}
+}
+Block manager class.  
+
+
+{\tt \#include $<$main.h$>$}
+
+Inheritance diagram for block\_\-manager::\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[height=2cm]{classblock__manager}
+\end{center}
+\end{figure}
+\subsection*{Public Member Functions}
+\begin{CompactItemize}
+\item 
+\hypertarget{group__mnglayer_g9d954d295ff1cb73cffd1075e58d6ab5}{
+void \textbf{init} (const char $\ast$path, int64\_\-t disk\_\-size=1000 $\ast$1024 $\ast$1024)}
+\label{group__mnglayer_g9d954d295ff1cb73cffd1075e58d6ab5}
+
+\item 
+{\footnotesize template$<$class BIDIteratorClass $>$ }\\void \hyperlink{group__mnglayer_gb012fd7abe2b4b529b9f6b339aff4232}{new\_\-blocks} (BIDIteratorClass bidbegin, BIDIteratorClass bidend)
+\begin{CompactList}\small\item\em Allocates new blocks. \item\end{CompactList}\item 
+{\footnotesize template$<$class BlockType , class BIDIteratorClass $>$ }\\void \hyperlink{group__mnglayer_ge77531e60b365f05da213ba7d8b17c9a}{new\_\-blocks} (const unsigned\_\-type nblocks, BIDIteratorClass out)
+\item 
+{\footnotesize template$<$class BIDIteratorClass $>$ }\\void \hyperlink{group__mnglayer_g0a41492a2faef107fb3c5a7c1ce5ee2d}{delete\_\-blocks} (const BIDIteratorClass \&bidbegin, const BIDIteratorClass \&bidend)
+\begin{CompactList}\small\item\em Deallocates blocks. \item\end{CompactList}\item 
+{\footnotesize template$<$unsigned BLK\_\-SIZE$>$ }\\void \hyperlink{group__mnglayer_g021e2ef7f3d56eb6dda56958ff5e0739}{delete\_\-block} (const \hyperlink{structBID}{BID}$<$ BLK\_\-SIZE $>$ \&bid)
+\begin{CompactList}\small\item\em Deallocates a block. \item\end{CompactList}\item 
+\hypertarget{group__mnglayer_g7f79d73b67f9353279c7da98450bb2da}{
+{\footnotesize template$<$class BIDType , class OutputIterator $>$ }\\void \textbf{new\_\-blocks\_\-int} (const unsigned\_\-type nblocks, OutputIterator out)}
+\label{group__mnglayer_g7f79d73b67f9353279c7da98450bb2da}
+
+\item 
+\hypertarget{group__mnglayer_gb141f255591ea232174c110922490f3b}{
+{\footnotesize template$<$class BlockType , class OutputIterator $>$ }\\void \textbf{new\_\-blocks} (const unsigned\_\-type nblocks, OutputIterator out)}
+\label{group__mnglayer_gb141f255591ea232174c110922490f3b}
+
+\end{CompactItemize}
+\subsection*{Protected Member Functions}
+\begin{CompactItemize}
+\item 
+\hypertarget{group__mnglayer_g36a3a4625156d5b9d17b91ce7e1e1874}{
+{\footnotesize template$<$class BIDType , class BIDIteratorClass $>$ }\\void \textbf{new\_\-blocks\_\-int} (const unsigned\_\-type nblocks, BIDIteratorClass out)}
+\label{group__mnglayer_g36a3a4625156d5b9d17b91ce7e1e1874}
+
+\end{CompactItemize}
+\subsection*{Friends}
+\begin{CompactItemize}
+\item 
+\hypertarget{classblock__manager_00478610313143f139a21c4b7b4f1093}{
+class \textbf{singleton$<$ block\_\-manager $>$}}
+\label{classblock__manager_00478610313143f139a21c4b7b4f1093}
+
+\end{CompactItemize}
+
+
+\subsection{Detailed Description}
+Block manager class. 
+
+Manages allocation and deallocation of blocks in multiple/single disk setting \begin{Desc}
+\item[Remarks:]is a singleton \end{Desc}
+
+
+Definition at line 718 of file main.h.
+
+The documentation for this class was generated from the following file:\begin{CompactItemize}
+\item 
+/home/Kevin/izenelib/include/am/blockmanager/main.h\end{CompactItemize}

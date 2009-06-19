@@ -2,7 +2,7 @@ IF(BZIP2_FOUND AND ZLIB_FOUND)
 
   SET_PROPERTY(GLOBAL APPEND PROPERTY BUILD_COMPONENTS febird)
 
-  FILE(GLOB_RECURSE febird_SRC
+  SET(febird_SRC
     io/access_byid.cpp
     io/BzipStream.cpp
     io/DataInput.cpp

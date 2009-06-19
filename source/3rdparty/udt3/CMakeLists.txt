@@ -40,7 +40,7 @@ IF(Threads_FOUND)
 
   SET_PROPERTY(GLOBAL APPEND PROPERTY BUILD_COMPONENTS udt3)
 
-  FILE(GLOB_RECURSE udt3_SRC
+  SET(udt3_SRC
     api.cpp
     buffer.cpp
     ccc.cpp

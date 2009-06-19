@@ -1,0 +1,67 @@
+\hypertarget{classHashFunction}{
+\section{HashFunction$<$ KeyType $>$ Class Template Reference}
+\label{classHashFunction}\index{HashFunction@{HashFunction}}
+}
+The wrapper for all kinds of hashing functions.  
+
+
+{\tt \#include $<$hashFunction.h$>$}
+
+\subsection*{Static Public Member Functions}
+\begin{CompactItemize}
+\item 
+\hypertarget{classHashFunction_69a7f964113756f07da48c130896de7d}{
+static ub8 \textbf{hashFN64} (const KeyType \&key, ub8 seed=DEFAULT\_\-SEED\_\-VALUE)}
+\label{classHashFunction_69a7f964113756f07da48c130896de7d}
+
+\item 
+\hypertarget{classHashFunction_e082dc6a9b0efdf714a09e5ac3ab382f}{
+static ub8 \textbf{generateHash64} (const KeyType \&key)}
+\label{classHashFunction_e082dc6a9b0efdf714a09e5ac3ab382f}
+
+\item 
+\hypertarget{classHashFunction_f7aab699cf1b78dcfe3b176546db55c7}{
+static ub4 \textbf{generateHash32} (const KeyType \&key)}
+\label{classHashFunction_f7aab699cf1b78dcfe3b176546db55c7}
+
+\item 
+\hypertarget{classHashFunction_d5eb3f58ca701ad6434d5fe6bade5c4a}{
+static ub4 \textbf{convert\_\-key} (const KeyType \&key)}
+\label{classHashFunction_d5eb3f58ca701ad6434d5fe6bade5c4a}
+
+\item 
+\hypertarget{classHashFunction_2a4beede28570f97dbc73acce3c67ae6}{
+static ub4 \textbf{djb2} (const KeyType \&key)}
+\label{classHashFunction_2a4beede28570f97dbc73acce3c67ae6}
+
+\item 
+\hypertarget{classHashFunction_9c9a10aee49141a2bc5d373693eecc4c}{
+static ub4 \textbf{sdbm} (const KeyType \&key)}
+\label{classHashFunction_9c9a10aee49141a2bc5d373693eecc4c}
+
+\end{CompactItemize}
+\subsection*{Static Public Attributes}
+\begin{CompactItemize}
+\item 
+\hypertarget{classHashFunction_e5a9723ac9cb838a4a04f8190249cd7b}{
+static const int \textbf{PRIME} = 1048583}
+\label{classHashFunction_e5a9723ac9cb838a4a04f8190249cd7b}
+
+\item 
+\hypertarget{classHashFunction_90a5fb5ed6ef8b7b93b6766f19f0d8ed}{
+static const ub8 \textbf{DEFAULT\_\-SEED\_\-VALUE} = 0x9e3779b97f4a7c13LL}
+\label{classHashFunction_90a5fb5ed6ef8b7b93b6766f19f0d8ed}
+
+\end{CompactItemize}
+
+
+\subsection{Detailed Description}
+\subsubsection*{template$<$class KeyType$>$ class HashFunction$<$ KeyType $>$}
+
+The wrapper for all kinds of hashing functions. 
+
+Definition at line 54 of file hashFunction.h.
+
+The documentation for this class was generated from the following file:\begin{CompactItemize}
+\item 
+/home/Kevin/izenelib/include/util/hashFunction.h\end{CompactItemize}

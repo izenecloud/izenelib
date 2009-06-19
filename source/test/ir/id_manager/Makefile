@@ -10,8 +10,8 @@ CXXFLAGS = -Wall -O3 -g
 endif
 
 TARGET_PATH = .
-WISELIB = ~/CodeBase/wiselib
-IZENELIB =~/CodeBase/izenelib
+WISELIB = ~/workspace/wiselib
+IZENELIB =~/workspace/izenelib
 
 IDMANAGER_PATH = ../include/
 

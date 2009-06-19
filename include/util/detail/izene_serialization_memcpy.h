@@ -6,42 +6,39 @@
 NS_IZENELIB_UTIL_BEGIN
 
 /*
-template<typename T, bool primitive=true > class izene_serialization_memcpy {
-	const T& dat_;
-public:
-	izene_serialization_memcpy(const T& dat) :
-	dat_(dat) {
+ template<typename T, bool primitive=true > class izene_serialization_memcpy {
+ const T& dat_;
+ public:
+ izene_serialization_memcpy(const T& dat) :
+ dat_(dat) {
 
-	}
-	void write_image(char* &ptr, size_t& size) {
-		ptr = (char*)&dat_;
-		size = sizeof(dat_);
-	}
-};
+ }
+ void write_image(char* &ptr, size_t& size) {
+ ptr = (char*)&dat_;
+ size = sizeof(dat_);
+ }
+ };
 
-template<typename T,  bool primitive=true > class izene_deserialization_memcpy {
-	const char* &ptr_;
-	const size_t& size_;
-public:
-	izene_deserialization_memcpy(const char* ptr, const size_t size) :
-		ptr_(ptr), size_(size) {
+ template<typename T,  bool primitive=true > class izene_deserialization_memcpy {
+ const char* &ptr_;
+ const size_t& size_;
+ public:
+ izene_deserialization_memcpy(const char* ptr, const size_t size) :
+ ptr_(ptr), size_(size) {
 
-	}
-	void read_image(T& dat) {
-		memcpy(&dat, ptr_, sizeof(dat));
-	}
-};*/
-
-template<typename T>
-inline void write_image_memcpy(const T& dat, char* &str, size_t& size);	
-
+ }
+ void read_image(T& dat) {
+ memcpy(&dat, ptr_, sizeof(dat));
+ }
+ };*/
 
 template<typename T>
-inline void read_image_memcpy(T& dat, const char* str, const size_t size);
+inline void write_image_memcpy(const T& dat, char* &str, size_t& size);
 
+template<typename T> inline void read_image_memcpy(T& dat, const char* str,
+		const size_t size);
 
-template<typename T>
-class izene_serialization_memcpy {	
+template<typename T> class izene_serialization_memcpy {
 	char* ptr_;
 	size_t size_;
 public:
@@ -49,8 +46,9 @@ public:
 		write_image_memcpy<T>(dat, ptr_, size_);
 
 	}
-	~izene_serialization_memcpy(){
-		if(ptr_)delete ptr_;
+	~izene_serialization_memcpy() {
+		if (ptr_)
+			delete ptr_;
 		ptr_ = 0;
 	}
 	void write_image(char* &ptr, size_t& size) {
@@ -60,16 +58,15 @@ public:
 };
 
 template<typename T> class izene_deserialization_memcpy {
-    T dat_;
+	T dat_;
 public:
-	izene_deserialization_memcpy(const char* ptr, const size_t size){
+	izene_deserialization_memcpy(const char* ptr, const size_t size) {
 		read_image_memcpy<T>(dat_, ptr, size);
 	}
 	void read_image(T& dat) {
 		dat = dat_;
 	}
 };
-
 
 template<> class izene_serialization_memcpy<std::string> {
 	const std::string& dat_;
@@ -105,8 +102,13 @@ public:
 
 	}
 	void write_image(char* &ptr, size_t& size) {
-		ptr = (char*)&dat_[0];
-		size = dat_.size()*sizeof(T);
+		if (dat_.size() == 0) {
+			ptr = (char*)&dat_;
+			size = 0;
+		} else {
+			ptr = (char*)&dat_[0];
+			size = dat_.size()*sizeof(T);
+		}
 	}
 };
 
@@ -119,8 +121,13 @@ public:
 
 	}
 	void read_image(std::vector<T>& dat) {
-		dat.resize(size_/sizeof(T));
-		memcpy(&dat[0], ptr_, size_);
+		if (size_ > 0) {
+			dat.resize(size_/sizeof(T));
+			memcpy(&dat[0], ptr_, size_);
+		}else{
+			dat.clear();
+		}
+		
 	}
 };
 
@@ -148,7 +155,7 @@ public:
 NS_IZENELIB_UTIL_END
 
 /*
-#define MAKE_MEMCPY(TYPE) \
+ #define MAKE_MEMCPY(TYPE) \
 namespace izenelib {namespace util{ \
 template<> \
 inline void write_image_memcpy<TYPE>(const TYPE& dat, char* &str, size_t& size){ \
@@ -190,7 +197,6 @@ public: \
 } \
 }
 
-
 #define MAKE_MEMCPY(TYPE) \
 namespace izenelib{namespace util{ \
 template<> \
@@ -214,8 +220,8 @@ public: \
 }; \
 } \
 }
-	
-MAKE_MEMCPY(bool) 
+
+MAKE_MEMCPY(bool)
 
 MAKE_MEMCPY(char)
 
@@ -223,21 +229,21 @@ MAKE_MEMCPY(unsigned char)
 
 MAKE_MEMCPY(wchar_t)
 
-MAKE_MEMCPY(short) 	
+MAKE_MEMCPY(short)
 
-MAKE_MEMCPY(unsigned short) 
+MAKE_MEMCPY(unsigned short)
 
-MAKE_MEMCPY(int) 	
+MAKE_MEMCPY(int)
 
-MAKE_MEMCPY(unsigned int) 
+MAKE_MEMCPY(unsigned int)
 
-MAKE_MEMCPY(long) 	
+MAKE_MEMCPY(long)
 
 MAKE_MEMCPY(unsigned long)
 
 #if LONGLONG_EXISTS
- MAKE_MEMCPY(signed long long) 
- MAKE_MEMCPY(unsigned long long)
+MAKE_MEMCPY(signed long long)
+MAKE_MEMCPY(unsigned long long)
 #endif 
 
 MAKE_MEMCPY(float)
@@ -245,6 +251,5 @@ MAKE_MEMCPY(float)
 MAKE_MEMCPY(double)
 
 MAKE_MEMCPY(long double)
-
 
 #endif /*IZENE_SERIALIZATION_MEMCPY_H_*/
