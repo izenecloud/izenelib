@@ -53,19 +53,9 @@ IF(Threads_FOUND)
     window.cpp
     )
 
-  ADD_LIBRARY(udt_shared SHARED ${udt_SRC})
-  SET_TARGET_PROPERTIES(udt_shared PROPERTIES
-    OUTPUT_NAME "udt"
-    CLEAN_DIRECT_OUTPUT 1
-    VERSION ${PROJECT_VERSION}
-    )
+  INCLUDE(MacroAddComponent)
+  MACRO_ADD_COMPONENT(udt "${VERSION_INSTALL_PREFIX}" "${PROJECT_VERSION}" ${udt_SRC})
   TARGET_LINK_LIBRARIES(udt_shared ${CMAKE_THREAD_LIBS_INIT})
-
-  ADD_LIBRARY(udt_static STATIC ${udt_SRC})
-  SET_TARGET_PROPERTIES(udt_static PROPERTIES
-    OUTPUT_NAME "udt"
-    CLEAN_DIRECT_OUTPUT 1
-    )
   TARGET_LINK_LIBRARIES(udt_static ${CMAKE_THREAD_LIBS_INIT})
 
   # we know the warnings, it's ok to alias void* as char*
@@ -77,18 +67,6 @@ IF(Threads_FOUND)
       COMPILE_FLAGS "-Wno-strict-aliasing"
       )
   ENDIF(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_COMPILER_IS_GNUC)
-
-  INSTALL(TARGETS udt_static udt_shared
-    EXPORT udt
-    ARCHIVE DESTINATION ${VERSION_INSTALL_PREFIX}/lib
-    LIBRARY DESTINATION shared
-    COMPONENT "udt"
-    )
-
-  INSTALL(EXPORT udt
-    DESTINATION ${VERSION_INSTALL_PREFIX}/cmake
-    COMPONENT "udt"
-    )
 
 ELSE(Threads_FOUND)
 

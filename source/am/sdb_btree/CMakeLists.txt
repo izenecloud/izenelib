@@ -7,30 +7,8 @@ IF(HAVE_SYS_STAT_H)
 
   SET(sdb_btree_SRC sdb_btree_header.cpp)
 
-  ADD_LIBRARY(sdb_btree_shared SHARED ${sdb_btree_SRC})
-  SET_TARGET_PROPERTIES(sdb_btree_shared PROPERTIES
-    OUTPUT_NAME "sdb_btree"
-    CLEAN_DIRECT_OUTPUT 1
-    VERSION ${PROJECT_VERSION}
-    )
-
-  ADD_LIBRARY(sdb_btree_static STATIC ${sdb_btree_SRC})
-  SET_TARGET_PROPERTIES(sdb_btree_static PROPERTIES
-    OUTPUT_NAME "sdb_btree"
-    CLEAN_DIRECT_OUTPUT 1
-    )
-
-  INSTALL(TARGETS sdb_btree_static sdb_btree_shared
-    EXPORT sdb_btree
-    ARCHIVE DESTINATION ${VERSION_INSTALL_PREFIX}/lib
-    LIBRARY DESTINATION shared
-    COMPONENT "sdb_btree"
-    )
-
-  INSTALL(EXPORT sdb_btree
-    DESTINATION ${VERSION_INSTALL_PREFIX}/cmake
-    COMPONENT "sdb_btree"
-    )
+  INCLUDE(MacroAddComponent)
+  MACRO_ADD_COMPONENT(sdb_btree "${VERSION_INSTALL_PREFIX}" "${PROJECT_VERSION}" ${sdb_btree_SRC})
 
 ELSE(HAVE_SYS_STAT_H)
 
