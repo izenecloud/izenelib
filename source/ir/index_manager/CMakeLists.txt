@@ -19,7 +19,7 @@ INCLUDE_DIRECTORIES ( ${WISELIB_INCLUDE_DIR})
 
 
 set(CPP "${INDEX_MANAGER_SOURCE}")
-set( CXXFLAGS "-Wall -O3 -fPIC" )
+set( CXXFLAGS "-Wall -O3 -fPIC -DUDT3" )
 
 set ( LIBRARY_OUTPUT_PATH ${izenelib_SOURCE_DIR}/lib ) 
 
@@ -34,9 +34,9 @@ SET_TARGET_PROPERTIES(index_manager_shared
 				)
 TARGET_LINK_LIBRARIES(index_manager_shared ${WISELIB_LIBRARY}  
 										sdb_btree
-										udt
+#										udt
 										streamflow
-#										udt3
+										udt3
 										)
 SET_TARGET_PROPERTIES(index_manager_shared PROPERTIES CLEAN_DIRECT_OUTPUT 1)
 
@@ -53,9 +53,9 @@ SET_TARGET_PROPERTIES(index_manager_static PROPERTIES CLEAN_DIRECT_OUTPUT 1)
 TARGET_LINK_LIBRARIES(index_manager_static ${WISELIB_LIBRARY}
 										${Boost_LIBRARIES}
 										sdb_btree
-										udt
+#										udt
 										streamflow
-#										udt3
+										udt3
 										)
 
 

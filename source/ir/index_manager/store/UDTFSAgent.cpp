@@ -178,6 +178,10 @@ void UDTFSAgent::agentHandler(UDTSOCKET recver)
                 isBarrel = true;
                 path = home_ + "/" + "barrels.tmp";
             }
+            else if(filename.find("forward")!=string::npos)
+            {
+                path = home_ + "/" + filename;
+            }
             else
             {
                 size_t p = filename.rfind('.');
