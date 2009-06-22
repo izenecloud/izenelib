@@ -174,6 +174,8 @@ INCLUDE_DIRECTORIES("${CMAKE_SOURCE_DIR}/include/3rdparty")
 SET_PROPERTY(GLOBAL PROPERTY BUILD_COMPONENTS)
 SET_PROPERTY(GLOBAL PROPERTY NON_BUILD_COMPONENTS)
 
+SET(LIBRARY_OUTPUT_PATH "${CMAKE_SOURCE_DIR}/lib")
+
 # third party libraries
 # put it first, they may be referred in other components
 ADD_SUBDIRECTORY(source/3rdparty 3rdparty)
