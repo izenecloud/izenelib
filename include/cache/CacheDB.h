@@ -147,11 +147,14 @@ template <class KeyType, class ValueType, class ReplacementPolicy,
 	} else {
 		ValueType* p;
 		p = dataHash_.find(key);
-		if (p) {
+		if (p) 
+		{
 			value = *p;
 			delete p;
 			p = 0;
 			mCache_.insertValue(key, value);
+			lock.release_write_lock();
+			return true;
 		}
 		lock.release_write_lock();
 		return FALSE;
