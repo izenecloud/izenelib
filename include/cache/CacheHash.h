@@ -192,9 +192,7 @@ public:
 
 	bool update(const DataType& data){
 	     return memHash_.update(data) 
-		  && (
-		  (fileHash_.num_items()+1 > hashSize_*(1-ratio_)) 
-		  || fileHash_.update(data) );
+		  &&  fileHash_.update(data) ;
 		};
 		
 	bool update(const KeyType& key, const ValueType& value)

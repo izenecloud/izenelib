@@ -8,7 +8,6 @@
 #include <cache/MFCache.h>
 #include <cache/CacheDB.h>
 
-
 using namespace std;
 using namespace izenelib::cache;
 
@@ -25,7 +24,7 @@ typedef string Key;
 typedef izenelib::am::NullType Value;
 
 //Storage policy.
-typedef  izenelib::am::LinearHashTable<Key, Value, NullLock> extHash;
+typedef izenelib::am::LinearHashTable<Key, Value, NullLock> extHash;
 //typedef ExtendibleHash<Key, Value, NullLock> extHash;
 typedef izenelib::am::cccr_hash<Key, Value> linHash;
 
@@ -75,6 +74,9 @@ template<typename T> void run(T& cm) {
 	cout<<"Testing getValue()"<<endl;
 	run_getValue(cm);
 
+	cout<<"Testing updateValue()"<<endl;
+	run_updateValue(cm);
+
 	cout<<"Testing insertValue()"<<endl;
 	run_insertValue(cm);
 
@@ -90,7 +92,7 @@ template<typename T> void run_getValueWithInsert(T& cm) {
 	//		ofstream outf("unique.out");		
 	sum =0;
 	hit =0;
-	clock_t  t1 = clock();
+	clock_t t1 = clock();
 	ifstream inf(inputFile.c_str());
 	string ystr;
 	Value val;
@@ -114,7 +116,7 @@ template<typename T> void run_getValueWithInsert(T& cm) {
 	cout<<"MCache with "<<"CacheSize="<<cacheSize<<endl;
 	cout<<"Hit ratio: "<<hit<<" / "<<sum<<endl;
 	cout<<"eclipse:"<< double(clock()- t1)/CLOCKS_PER_SEC<<endl;
-	
+
 	unsigned long rlimit = 0, vm = 0, rss = 0;
 
 	ProcMemInfo::getProcMemInfo(vm, rss, rlimit);
@@ -145,6 +147,39 @@ template<typename T> void run_insertValue(T& cm) {
 		cm.insertValue(ystr);
 		if (trace) {
 			cout<< "getValueWithInsert: value="<<ystr<<endl;
+			//cm.printKeyInfoMap();
+			cout<< "MCache numItem = "<<cm.numItems()<<endl;
+			cm.displayHash();
+		}
+	}
+
+	//cout<<"Memory usage: " <<cm.getMemSizeOfValue()<<" bytes"<<endl;
+	cout<<"MCache with "<<"CacheSize="<<cacheSize<<endl;
+	cout<<"Hit ratio: "<<hit<<" / "<<sum<<endl;
+	cout<<"eclipse:"<< double(clock()- t1)/CLOCKS_PER_SEC<<endl;
+
+	double hitRatio, workload;
+	cm.getEfficiency(hitRatio, workload);
+	cout<<"\nTesting GetEfficency:"<<endl;
+	//cout<<"HitRatio: "<<hitRatio<<endl;
+	cout<<"workload: "<<workload<<endl;
+	cm.resetStartingTime();
+
+}
+
+// test getValueWithInsert();
+template<typename T> void run_updateValue(T& cm) {
+	//		ofstream outf("unique.out");		
+	sum =0;
+	hit =0;
+	start = time(0);
+	clock_t t1= clock();
+	ifstream inf(inputFile.c_str());
+	string ystr;
+	while (inf>>ystr) {
+		cm.updateValue(ystr);
+		if (trace) {
+			cout<< "update: value="<<ystr<<endl;
 			//cm.printKeyInfoMap();
 			cout<< "MCache numItem = "<<cm.numItems()<<endl;
 			cm.displayHash();
