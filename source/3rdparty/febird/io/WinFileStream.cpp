@@ -13,7 +13,7 @@
 #endif
 
 #include <assert.h>
-#include "WinFileStream.h"
+#include <febird/io/WinFileStream.h>
 
 namespace febird {
 
@@ -51,7 +51,7 @@ WinFileStream::WinFileStream(
 		DWORD dwFlagsAndAttributes,
 		HANDLE hTemplateFile)
 {
-	if (!open(szFile, dwDesiredAccess, dwShareMode, lpSecurityAttributes, 
+	if (!open(szFile, dwDesiredAccess, dwShareMode, lpSecurityAttributes,
 				dwCreationDisposition, dwFlagsAndAttributes, hTemplateFile))
 	{
 		throw OpenFileException(szFile, ErrorText(GetLastError()).c_str());

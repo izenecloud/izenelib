@@ -5,9 +5,9 @@
 #include <sstream>
 #include <stdexcept>
 
-#include "mem_map_stream.h"
-#include "IOException.h"
-#include "IStream.h"
+#include <febird/io/mem_map_stream.h>
+#include <febird/io/IOException.h>
+#include <febird/io/IStream.h>
 
 namespace febird {
 
@@ -31,7 +31,7 @@ static void write_error_msg(std::ostringstream& oss)
 
 #else
 	char szbuf[256];
-	int  errCode = errno;
+	int	 errCode = errno;
 	strerror_r(errCode, szbuf, 256);
 	oss << "error[code=" << errCode << ", message=" << szbuf << "]";
 #endif
@@ -74,7 +74,7 @@ MMS_MapData::~MMS_MapData()
 MemMapStream::MemMapStream(stream_position_t new_file_size, const std::string& fpath, int mode)
 {
 	init();
-   	open(new_file_size, fpath, mode);
+	open(new_file_size, fpath, mode);
 }
 
 MemMapStream::MemMapStream()
@@ -101,7 +101,7 @@ void MemMapStream::init()
 	m_hFile = INVALID_HANDLE_VALUE;
 	m_hMap = 0;
 	SYSTEM_INFO si;
-	GetSystemInfo(&si); 
+	GetSystemInfo(&si);
 	m_page_size = si.dwPageSize;
 	m_AllocationGranularity = si.dwAllocationGranularity;
 #else
@@ -129,8 +129,8 @@ void MemMapStream::clone(const MemMapStream& source)
 		FALSE,
 		DUPLICATE_SAME_ACCESS
 		);
-    if (m_hFile == INVALID_HANDLE_VALUE)
-        cleanup_and_throw("failed on calling DuplicateHandle");
+	if (m_hFile == INVALID_HANDLE_VALUE)
+		cleanup_and_throw("failed on calling DuplicateHandle");
 	m_hMap = 0;
 #else
 	m_hFile = ::dup(source.m_hFile);
@@ -172,16 +172,16 @@ void* MemMapStream::map(stream_position_t fpos, size_t size, int mode)
 			cleanup_and_throw("failed CreateFileMapping");
 	}
 	void* base =
-        ::MapViewOfFileEx( m_hMap,
+		::MapViewOfFileEx( m_hMap,
 						   (mode & O_RDWR) ? FILE_MAP_WRITE : FILE_MAP_READ,
-                           (DWORD) (fpos >> 32),
-                           (DWORD) (fpos & 0xffffffff),
-                           size,
+						   (DWORD) (fpos >> 32),
+						   (DWORD) (fpos & 0xffffffff),
+						   size,
 						   (LPVOID) 0
 						   );
 	if (0 == base)
 		throw IOException(error_info(m_fpath, "failed MapViewOfFileEx").c_str());
-    return base;
+	return base;
 }
 
 void MemMapStream::unmap(void* base, size_t size)
@@ -191,30 +191,30 @@ void MemMapStream::unmap(void* base, size_t size)
 
 void MemMapStream::open(stream_position_t new_file_size, const std::string& fpath, int mode)
 {
-    using namespace std;
+	using namespace std;
 
-    if (is_open())
-        throw IOException("file already open");
+	if (is_open())
+		throw IOException("file already open");
 
 	init(new_file_size, fpath, mode);
 
 	bool readonly = !(m_mode & O_RDWR);
-    m_hFile = ::CreateFileA(fpath.c_str(),
-                       readonly ? GENERIC_READ : GENERIC_READ|GENERIC_WRITE,
-                       FILE_SHARE_READ,
-                       NULL,
-                       (m_mode & O_CREAT) ? 
-                           OPEN_ALWAYS : 
-                           OPEN_EXISTING,
-                       readonly ?
-                           FILE_ATTRIBUTE_READONLY :
-                           FILE_ATTRIBUTE_TEMPORARY,
-                       NULL);
+	m_hFile = ::CreateFileA(fpath.c_str(),
+					   readonly ? GENERIC_READ : GENERIC_READ|GENERIC_WRITE,
+					   FILE_SHARE_READ,
+					   NULL,
+					   (m_mode & O_CREAT) ?
+						   OPEN_ALWAYS :
+						   OPEN_EXISTING,
+					   readonly ?
+						   FILE_ATTRIBUTE_READONLY :
+						   FILE_ATTRIBUTE_TEMPORARY,
+					   NULL);
 
-    if (m_hFile == INVALID_HANDLE_VALUE)
-        cleanup_and_throw("failed opening file");
+	if (m_hFile == INVALID_HANDLE_VALUE)
+		cleanup_and_throw("failed opening file");
 
-    if (m_mode & O_TRUNC)
+	if (m_mode & O_TRUNC)
 		set_fsize(new_file_size);
 
 	m_file_size = get_fsize();
@@ -224,46 +224,46 @@ void MemMapStream::open(stream_position_t new_file_size, const std::string& fpat
 
 stream_position_t MemMapStream::get_fsize()
 {
-    typedef BOOL (WINAPI *func)(HANDLE, PLARGE_INTEGER);
-    HMODULE hmod = ::GetModuleHandleA("kernel32.dll");
-    func fp_get_size =
-        reinterpret_cast<func>(::GetProcAddress(hmod, "GetFileSizeEx"));
+	typedef BOOL (WINAPI *func)(HANDLE, PLARGE_INTEGER);
+	HMODULE hmod = ::GetModuleHandleA("kernel32.dll");
+	func fp_get_size =
+		reinterpret_cast<func>(::GetProcAddress(hmod, "GetFileSizeEx"));
 
-    if (fp_get_size) {
-        LARGE_INTEGER info;
-        if (fp_get_size(m_hFile, &info)) {
-            boost::uintmax_t fsize =
-                ( (static_cast<boost::intmax_t>(info.HighPart) << 32) |
-                  info.LowPart );
-            return fsize;
-        } else {
-            cleanup_and_throw("failed getting file size");
-        }
-    } else {
-        DWORD hi;
-        DWORD low;
-        if ( (low = ::GetFileSize(m_hFile, &hi))
-                 !=
-             INVALID_FILE_SIZE )
-        {
-            boost::uintmax_t fsize =
-                (static_cast<boost::intmax_t>(hi) << 32) | low;
-            return fsize;
-        } else {
-            cleanup_and_throw("failed getting file size");
-        }
-    }
+	if (fp_get_size) {
+		LARGE_INTEGER info;
+		if (fp_get_size(m_hFile, &info)) {
+			boost::uintmax_t fsize =
+				( (static_cast<boost::intmax_t>(info.HighPart) << 32) |
+				  info.LowPart );
+			return fsize;
+		} else {
+			cleanup_and_throw("failed getting file size");
+		}
+	} else {
+		DWORD hi;
+		DWORD low;
+		if ( (low = ::GetFileSize(m_hFile, &hi))
+				 !=
+			 INVALID_FILE_SIZE )
+		{
+			boost::uintmax_t fsize =
+				(static_cast<boost::intmax_t>(hi) << 32) | low;
+			return fsize;
+		} else {
+			cleanup_and_throw("failed getting file size");
+		}
+	}
 	assert(0); // would not goes here...
 	return 0;  // trim warning..
 }
 
 void MemMapStream::set_fsize(stream_position_t fsize)
 {
-    LONG sizehigh = LONG(fsize >> 32);
-    LONG sizelow = LONG(fsize & 0xffffffff);
-    ::SetFilePointer(m_hFile, sizelow, &sizehigh, FILE_BEGIN);
-    if (::GetLastError() != NO_ERROR || !::SetEndOfFile(m_hFile))
-        cleanup_and_throw("failed setting file size");
+	LONG sizehigh = LONG(fsize >> 32);
+	LONG sizelow = LONG(fsize & 0xffffffff);
+	::SetFilePointer(m_hFile, sizelow, &sizehigh, FILE_BEGIN);
+	if (::GetLastError() != NO_ERROR || !::SetEndOfFile(m_hFile))
+		cleanup_and_throw("failed setting file size");
 	m_file_size = fsize;
 }
 
@@ -292,13 +292,13 @@ bool MemMapStream::remap_impl(stream_position_t fpos, size_t map_size)
 		if (NULL == m_hMap)
 			cleanup_and_throw("failed CreateFileMapping");
 	}
-    m_beg = (unsigned char*)
-        ::MapViewOfFileEx( m_hMap,
-                           readonly ? FILE_MAP_READ : FILE_MAP_WRITE,
-                           (DWORD) (fpos >> 32),
-                           (DWORD) (fpos & 0xffffffff),
-                           map_size != size_t(-1L) ? map_size : 0, (LPVOID) 0 );
-    return 0 != m_beg;
+	m_beg = (unsigned char*)
+		::MapViewOfFileEx( m_hMap,
+						   readonly ? FILE_MAP_READ : FILE_MAP_WRITE,
+						   (DWORD) (fpos >> 32),
+						   (DWORD) (fpos & 0xffffffff),
+						   map_size != size_t(-1L) ? map_size : 0, (LPVOID) 0 );
+	return 0 != m_beg;
 }
 
 bool MemMapStream::is_open() const throw()
@@ -318,14 +318,14 @@ void* MemMapStream::map(stream_position_t fpos, size_t size, int mode)
 //	int flags = (mode & O_RDWR) ? MAP_SHARED : MAP_PRIVATE;
 	int flags = MAP_SHARED;
 	void* base = ::mmap(NULL, size,
-                         (mode & O_RDWR) ? (PROT_READ | PROT_WRITE) : PROT_READ,
-                         flags,
-                         m_hFile, fpos);
+						 (mode & O_RDWR) ? (PROT_READ | PROT_WRITE) : PROT_READ,
+						 flags,
+						 m_hFile, fpos);
 	if (MAP_FAILED == base)
 	{
 		throw IOException(error_info(m_fpath, "failed mmap").c_str());
 	}
-    return base;
+	return base;
 }
 
 void MemMapStream::unmap(void* base, size_t size)
@@ -337,21 +337,21 @@ void MemMapStream::unmap(void* base, size_t size)
 
 void MemMapStream::open(stream_position_t new_file_size, const std::string& fpath, int mode)
 {
-    using namespace std;
+	using namespace std;
 
 	mode |= O_LARGEFILE;
 
 	init(new_file_size, fpath, mode);
 
-    if (is_open())
-        throw IOException("file already open");
+	if (is_open())
+		throw IOException("file already open");
 
-    m_hFile = ::open(fpath.c_str(), mode, S_IRWXU);
-    if (-1 == m_hFile)
-        cleanup_and_throw("failed opening file");
+	m_hFile = ::open(fpath.c_str(), mode, S_IRWXU);
+	if (-1 == m_hFile)
+		cleanup_and_throw("failed opening file");
 	assert(-1 != m_hFile);
 
-    if (m_mode & O_TRUNC)
+	if (m_mode & O_TRUNC)
 		set_fsize(new_file_size);
 
 	m_file_size = get_fsize();
@@ -360,12 +360,16 @@ void MemMapStream::open(stream_position_t new_file_size, const std::string& fpat
 
 stream_position_t MemMapStream::get_fsize()
 {
-    struct stat info;
-    bool success = ::fstat(m_hFile, &info) != -1;
-    if (success)
+	struct stat info;
+	bool success = ::fstat(m_hFile, &info) != -1;
+	if (success)
 		return info.st_size;
 	else
-        cleanup_and_throw("failed getting file size");
+	{
+		cleanup_and_throw("failed getting file size");
+		// never go here
+		return info.st_size;
+	}
 }
 
 void MemMapStream::set_fsize(stream_position_t fsize)
@@ -374,7 +378,7 @@ void MemMapStream::set_fsize(stream_position_t fsize)
 	{
 		std::ostringstream oss;
 		oss << "failed ftruncate(" << fsize << "), old_fsize=" << m_file_size;
-        cleanup_and_throw(oss.str().c_str());
+		cleanup_and_throw(oss.str().c_str());
 	}
 	m_file_size = fsize;
 }
@@ -393,11 +397,11 @@ bool MemMapStream::remap_impl(stream_position_t fpos, size_t map_size)
 	}
 //	int flags = m_mode & O_RDWR ? MAP_SHARED : MAP_PRIVATE;
 	int flags = MAP_SHARED;
-    m_beg = (unsigned char*)::mmap(NULL, map_size,
-                         m_mode & O_RDWR ? (PROT_READ | PROT_WRITE) : PROT_READ,
-                         flags,
-                         m_hFile, fpos);
-    return (m_beg != MAP_FAILED);
+	m_beg = (unsigned char*)::mmap(NULL, map_size,
+						 m_mode & O_RDWR ? (PROT_READ | PROT_WRITE) : PROT_READ,
+						 flags,
+						 m_hFile, fpos);
+	return (m_beg != MAP_FAILED);
 }
 
 bool MemMapStream::is_open() const throw()
@@ -408,8 +412,8 @@ bool MemMapStream::is_open() const throw()
 #endif
 
 /**
- @brief 
-  
+ @brief
+
  @note:
   - aligned_fpos must align at m_AllocationGranularity
   - unaligned_size 可以不按 m_page_size 对齐
@@ -480,12 +484,12 @@ void MemMapStream::cleanup_and_throw(const char* msg)
 {
 #if defined(_WIN32) || defined(WIN32) || defined(_WIN64) || defined(WIN64)
 	if (m_hMap != NULL)
-        ::CloseHandle(m_hMap);
-    if (m_hFile != INVALID_HANDLE_VALUE)
-        ::CloseHandle(m_hFile);
+		::CloseHandle(m_hMap);
+	if (m_hFile != INVALID_HANDLE_VALUE)
+		::CloseHandle(m_hFile);
 #else
-    if (-1 != m_hFile)
-        ::close(m_hFile);
+	if (-1 != m_hFile)
+		::close(m_hFile);
 #endif
 
 	init();
@@ -495,7 +499,7 @@ void MemMapStream::cleanup_and_throw(const char* msg)
 
 void MemMapStream::close()
 {
-    bool error = false;
+	bool error = false;
 
 #if defined(_WIN32) || defined(WIN32) || defined(_WIN64) || defined(WIN64)
 	if (m_beg)
@@ -503,7 +507,7 @@ void MemMapStream::close()
 	if (m_hMap != NULL)
 		error = !::CloseHandle(m_hMap) || error;
 	if (m_hFile != INVALID_HANDLE_VALUE)
-	    error = !::CloseHandle(m_hFile) || error;
+		error = !::CloseHandle(m_hFile) || error;
 #else
 	if (m_beg)
 		error = ::munmap(m_beg, align_up(m_end-m_beg, m_page_size)) != 0 || error;
@@ -513,11 +517,11 @@ void MemMapStream::close()
 
 	init();
 
-    if (error)
+	if (error)
 	{
 		std::ostringstream oss;
 		oss << "file=\"" << m_fpath << "\"" << ", error closing mapped file";
-        throw IOException(oss.str().c_str());
+		throw IOException(oss.str().c_str());
 	}
 }
 
@@ -711,7 +715,7 @@ int MemMapStream::BinCompare(MemMapStream& y)
 		for (; pos + m_best_block_size <= m_file_size; pos += m_best_block_size)
 		{
 			MMS_MapRegion rx(*this, pos, m_best_block_size, O_RDONLY);
-			MMS_MapRegion ry(y,     pos, m_best_block_size, O_RDONLY);
+			MMS_MapRegion ry(y,		pos, m_best_block_size, O_RDONLY);
 			int ret = ::memcmp(rx.base(), ry.base(), m_best_block_size);
 			if (0 != ret) return ret;
 		}
@@ -719,7 +723,7 @@ int MemMapStream::BinCompare(MemMapStream& y)
 			return 0;
 		size_t n = m_file_size - pos;
 		MMS_MapRegion rx(*this, pos, n, O_RDONLY);
-		MMS_MapRegion ry(y,     pos, n, O_RDONLY);
+		MMS_MapRegion ry(y,		pos, n, O_RDONLY);
 		int ret = ::memcmp(rx.base(), ry.base(), n);
 		return ret;
 	}
@@ -747,8 +751,8 @@ int MemMapStream::BinCompare(MemMapStream& y)
 //////////////////////////////////////////////////////////////////////////
 // std::string MemMapStream::errmsg() const throw()
 // {
-// 	IOException excep(m_errno, "MemMapStream");
-// 	return excep.what();
+//	IOException excep(m_errno, "MemMapStream");
+//	return excep.what();
 // }
 
 

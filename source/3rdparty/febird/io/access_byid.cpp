@@ -1,5 +1,5 @@
 /* vim: set tabstop=4 : */
-#include "access_byid.h"
+#include <febird/io/access_byid.h>
 #include <algorithm>
 #include <sstream>
 #include <stdexcept>
@@ -18,7 +18,7 @@ namespace febird {
 
 	void id_generator::chain(long newHead)
 	{
-		for (long i = newHead; i != id_list.size()-1; ++i)
+		for (long i = newHead; i != static_cast<long>(id_list.size()-1); ++i)
 			id_list[i] = i + 1; // id_list[i] link to id_list[i+1]
 		id_list.back() = 0; // set 0 as tail
 	}
@@ -68,7 +68,7 @@ namespace febird {
 			free_subscript.push_back(h);
 		std::sort(free_subscript.begin(), free_subscript.end());
 		free_subscript.push_back(id_list.size());
-		for (long i = 0; i != free_subscript.size()-1; ++i)
+		for (long i = 0; i != static_cast<long>(free_subscript.size()-1); ++i)
 		{
 			long d1 = free_subscript[i+0]+1;
 			long d2 = free_subscript[i+1];
@@ -98,7 +98,7 @@ void access_byid<void*>::destroy()
 {
 	std::vector<uintptr_t> used_id;
 	get_used_id(used_id);
-	for (long i = 0; i != used_id.size(); ++i)
+	for (long i = 0; i != static_cast<long>(used_id.size()); ++i)
 	{
 		void* x = (void*)this->get_val(used_id[i]);
 		on_destroy(x);
@@ -148,13 +148,13 @@ void AccessByNameID<void*>::destroy()
 	std::map<std::string, void*>::iterator iter = m_byname.begin();
 	for (long i = 0; iter != m_byname.end(); ++iter)
 		bynamep[i++] = (uintptr_t)iter->second;
-	for (long i = 0; i != used_id.size(); ++i)
+	for (long i = 0; i != static_cast<long>(used_id.size()); ++i)
 		used_id[i] = m_byid.get_val(used_id[i]);
 	std::sort(used_id.begin(), used_id.end());
 	std::sort(bynamep.begin(), bynamep.end());
 	long n = std::set_union(used_id.begin(), used_id.end(), bynamep.begin(), bynamep.end(), used_id.begin()) - used_id.begin();
-	assert(used_id.size() == n);
-	for (long i = 0; i != used_id.size(); ++i)
+	assert(static_cast<long>(used_id.size()) == n);
+	for (long i = 0; i != static_cast<long>(used_id.size()); ++i)
 	{
 		on_destroy((void*)used_id[i]);
 	}

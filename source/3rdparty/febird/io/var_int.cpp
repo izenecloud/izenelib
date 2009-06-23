@@ -1,5 +1,5 @@
 /* vim: set tabstop=4 : */
-#include "var_int.h"
+#include <febird/io/var_int.h>
 #include <assert.h>
 #include <stdexcept>
 
@@ -100,7 +100,7 @@ unsigned char* save_var_int64(unsigned char* buf, int64_t x) { return save_var_u
 
 /**
  @brief reverse get var_uint32_t
-  
+
  @note
    - if first var_int has read, *cur == buf-1
    - the sequence must all stored var_int, if not, the dilimeter byte's high bit must be 0
@@ -131,7 +131,7 @@ uint32_t reverse_get_var_uint32(const unsigned char* buf, unsigned char const **
 
 /**
  @brief reverse get var_int32_t
-  
+
  @note if first var_int has read, *cur == buf-1
  */
 int32_t reverse_get_var_int32(const unsigned char* buf, unsigned char const ** cur)
@@ -153,7 +153,7 @@ int16_t reverse_get_var_int16(const unsigned char* buf, unsigned char const ** c
 #if !defined(BOOST_NO_INT64_T)
 /**
  @brief reverse get var_uint64_t
-  
+
  @note if first var_int has read, *cur == buf-1
  */
 uint64_t reverse_get_var_uint64(const unsigned char* buf, unsigned char const ** cur)
@@ -184,7 +184,7 @@ uint64_t reverse_get_var_uint64(const unsigned char* buf, unsigned char const **
 
 /**
  @brief reverse get var_int64_t
-  
+
  @note if first var_int has read, *cur == buf-1
  */
 int64_t reverse_get_var_int64(const unsigned char* buf, unsigned char const ** cur)

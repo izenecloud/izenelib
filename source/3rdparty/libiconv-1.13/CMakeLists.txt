@@ -1,33 +1,56 @@
-PROJECT(iconv)
+IF(ENABLE_LIBICONV)
 
-file(GLOB_RECURSE ICONV_SOURCE "*.c")
+  IF(WIN32)
+    SET(libiconv_DEFINITIONS "-DWIN32")
+    IF(MINGW)
+      SET(libiconv_DEFINITIONS "${libiconv_DEFINITIONS} -D__MINGW__")
+    ENDIF(MINGW)
+  ELSEIF(CMAKE_SYSTEM_NAME STREQUAL "UNIX")
+    SET(libiconv_DEFINITIONS "-DUNIX")
+  ELSEIF(CMAKE_SYSTEM_NAME STREQUAL "LINUX")
+    SET(libiconv_DEFINITIONS "-DLINUX")
+  ELSE(WIN32)
+    SET(libiconv_DEFINITIONS)
+  ENDIF(WIN32)
 
-include_directories ( 
-		${izenelib_SOURCE_DIR}/include/3rdparty/libiconv-1.13/include/
-		)
-# This section build the libraries
-set(CPP "${ICONV_SOURCE}")
+  IF(CMAKE_SYSTEM_PROCESSOR MATCHES "i[0-9]?86")
+    SET(libiconv_DEFINITIONS "${libiconv_DEFINITIONS} -DIA32")
+  ELSEIF(CMAKE_SYSTEM_PROCESSOR MATCHES "x86_64")
+    SET(libiconv_DEFINITIONS "${libiconv_DEFINITIONS} -DAMD64")
+  ELSEIF(CMAKE_SYSTEM_PROCESSOR MATCHES "powerpc")
+    SET(libiconv_DEFINITIONS "${libiconv_DEFINITIONS} -mcpu=powerpc")
+  ELSEIF(CMAKE_SYSTEM_PROCESSOR MATCHES "sparc")
+    SET(libiconv_DEFINITIONS "${libiconv_DEFINITIONS} -mcpu=sparc")
+  ENDIF(CMAKE_SYSTEM_PROCESSOR MATCHES "i[0-9]?86")
 
-set( CXXFLAGS "-fPIC -Wall -finline-functions -O3 -DIA32 -DLINUX -DNO_BUSY_WAITING" )
-        
-set ( LIBRARY_OUTPUT_PATH ${izenelib_SOURCE_DIR}/lib ) 
+  MESSAGE(STATUS "libiconv_DEFINITIONS=${libiconv_DEFINITIONS}")
+  ADD_DEFINITIONS("${libiconv_DEFINITIONS}")
 
-ADD_LIBRARY(iconv_shared SHARED ${CPP})
-SET_TARGET_PROPERTIES(iconv_shared 
-				PROPERTIES 
-				OUTPUT_NAME "iconv" 
-				COMPILE_FLAGS ${CXXFLAGS} 
-#COMPILE_DEFINITIONS_DEBUG "-g" 
-				)
-SET_TARGET_PROPERTIES(iconv_shared PROPERTIES CLEAN_DIRECT_OUTPUT 1)
+  SET_PROPERTY(GLOBAL APPEND PROPERTY BUILD_COMPONENTS libiconv)
 
-ADD_LIBRARY(iconv_static STATIC ${CPP})
-SET_TARGET_PROPERTIES(iconv_static 
-				PROPERTIES 
-				OUTPUT_NAME "iconv" 
-				COMPILE_FLAGS ${CXXFLAGS} 
-#COMPILE_DEFINITIONS_DEBUG "-g" 
-				)
-SET_TARGET_PROPERTIES(iconv_static PROPERTIES CLEAN_DIRECT_OUTPUT 1)
+  SET(libiconv_SRC
+    iconv.c
+    localcharset.c
+    relocatable.c)
 
+  INCLUDE_DIRECTORIES(${CMAKE_SOURCE_DIR}/include/3rdparty/libiconv-1.13)
 
+  ADD_LIBRARY(libiconv_shared SHARED ${libiconv_SRC})
+  SET_TARGET_PROPERTIES(libiconv_shared PROPERTIES
+    OUTPUT_NAME "iconv"
+    CLEAN_DIRECT_OUTPUT 1
+    VERSION ${PROJECT_VERSION}
+    )
+
+  ADD_LIBRARY(libiconv_static STATIC ${libiconv_SRC})
+  SET_TARGET_PROPERTIES(libiconv_static PROPERTIES
+    OUTPUT_NAME "iconv"
+    CLEAN_DIRECT_OUTPUT 1
+    )
+
+ELSE(ENABLE_LIBICONV)
+
+  SET_PROPERTY(GLOBAL APPEND PROPERTY NON_BUILD_COMPONENTS libiconv)
+  MESSAGE(STATUS "! WARNING: Because mirgrated libiconv is not portable, it is disabled by default, use -DENABLE_LIBICONV=1 to enable it")
+
+ENDIF(ENABLE_LIBICONV)

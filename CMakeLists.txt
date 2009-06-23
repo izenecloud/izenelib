@@ -1,109 +1,267 @@
-project (izenelib)
+CMAKE_MINIMUM_REQUIRED(VERSION 2.6)
 
-cmake_minimum_required (VERSION 2.6)
+##################################################
+# !!! IMPORTANT
+# Must at the beginning of the file and before PROJECT.
+# 
+# Set default install prefix for user, use following order to select
+# the value:
+#
+# 1) Specified in cmake -DCMAKE_INSTALL_PREFIX=/your/prefix
+# 2) Evironement variable MY_INSTALL_PREFIX
+# 3) Try $HOME/myroot
+#
+# User also can change CMAKE_INSTALL_PREFIX in cache
+#####
+IF(NOT CMAKE_INSTALL_PREFIX)
+  IF(IS_DIRECTORY "$ENV{MY_INSTALL_PREFIX}")
+    SET(CMAKE_INSTALL_PREFIX "$ENV{MY_INSTALL_PREFIX}" CACHE STRING "Install path prefix, prepended onto install directories.")
+  ELSEIF(IS_DIRECTORY "$ENV{HOME}/myroot")
+    SET(CMAKE_INSTALL_PREFIX "$ENV{HOME}/myroot" CACHE STRING "Install path prefix, prepended onto install directories.")
+  ENDIF(IS_DIRECTORY "$ENV{MY_INSTALL_PREFIX}")
+ENDIF(NOT CMAKE_INSTALL_PREFIX)
 
-set (IZENELIB_VERSION_MAJOR 1)
-set (IZENELIB_VERSION_MINOR 0)
-set (IZENELIB_VERSION_PATCH 0)
-set (IZENELIB_VERSION "${IZENELIB_VERSION_MAJOR}.${IZENELIB_VERSION_MINOR}.${IZENELIB_VERSION_PATCH}")
-set (IZENELIB_PACKAGE "izenelib")
-set (IZENELIB_VERSION_STRING "${IZENELIB_PACKAGE} ${IZENELIB_VERSION}")
+##################################################
+# Find extra cmake modules dirs
+#
+# You can clone all modules from izenesoft.com:/git/cmake.git.
+# 
+# Copy it to your install dir or change the variable
+# EXTRA_CMAKE_MODULES_DIRS.
+#
+IF(IS_DIRECTORY "${CMAKE_INSTALL_PREFIX}/cmake")
+  SET(EXTRA_CMAKE_MODULES_DIRS ${EXTRA_CMAKE_MODULES_DIRS} "${CMAKE_INSTALL_PREFIX}/cmake")
+ENDIF(IS_DIRECTORY "${CMAKE_INSTALL_PREFIX}/cmake")
+IF(NOT EXTRA_CMAKE_MODULES_DIRS)
+  MESSAGE(FATAL_ERROR
+    "Cannot find EXTRA_CMAKE_MODULES_DIRS.
+Please clone it from izenesoft.com:/git/cmake.git. Then set EXTRA_CMAKE_MODULES_DIRS (-DEXTRA_CMAKE_MODULES_DIRS=/path/to/cmake) to path of the cloned repository. You also can copy the cloned cmake directory to ${CMAKE_INSTALL_PREFIX}")
+ENDIF(NOT EXTRA_CMAKE_MODULES_DIRS)
+SET(CMAKE_MODULE_PATH ${EXTRA_CMAKE_MODULES_DIRS})
 
 INCLUDE_DIRECTORIES(/usr/local/boost-1_36/include)
 LINK_DIRECTORIES(/usr/local/boost-1_36/lib)
 
 # force out-of-source build
-if (CMAKE_BINARY_DIR STREQUAL CMAKE_SOURCE_DIR)
-  message (FATAL_ERROR "In source build is not allowed")
-endif (CMAKE_BINARY_DIR STREQUAL CMAKE_SOURCE_DIR)
+IF (CMAKE_BINARY_DIR STREQUAL CMAKE_SOURCE_DIR)
+  MESSAGE(FATAL_ERROR "In source build is not allowed")
+ENDIF (CMAKE_BINARY_DIR STREQUAL CMAKE_SOURCE_DIR)
 
-####################
-# set build type (set of compiler options)
+##################################################
+# Project and some options
+#####
+PROJECT(IZENELIB)
+OPTION(VERBOSE "print detailed configure messages" ON)
+OPTION(ENABLE_TEST "build test applications?" ON)
+IF(ENABLE_TEST)
+  ENABLE_TESTING()
+ENDIF(ENABLE_TEST)
+
+##################################################
+# BUILD TYPE & OPTIONS
+#
+# Put this section just under PROJECT
 #####
 
-# default build type
-if (NOT CMAKE_BUILD_TYPE) 
-  set (CMAKE_BUILD_TYPE RelWithDebInfo)
-endif (NOT CMAKE_BUILD_TYPE)
+# Use BUILD_FLAGS_HAS_BEEN_CUSTOMIZED as guard.
+# 
+# The options are only customized in first run. User can edit cache to
+# set their own options. If it's required to customized these in cmake
+# command line options, please also add
+# "-DBUILD_FLAGS_HAS_BEEN_CUSTOMIZED".
+IF (NOT BUILD_FLAGS_HAS_BEEN_CUSTOMIZED)
 
-if (CMAKE_COMPILER_IS_GNUCXX)
-  set (CMAKE_CONFIGURATION_TYPES ${CMAKE_CONFIGURATION_TYPES} "Debugfull" "Profile")
+  # Set available types for build tool suppoting it, such as VS
+  IF (NOT CMAKE_CONFIGURATION_TYPES)
+    SET(CMAKE_CONFIGURATION_TYPES RelWithDebInfo Release MinSizeRel Debug)
+  ENDIF (NOT CMAKE_CONFIGURATION_TYPES)
 
-  # Select flags.
-  set (CMAKE_CXX_FLAGS_RELWITHDEBINFO "-O2 -g")
-  set (CMAKE_CXX_FLAGS_RELEASE        "-O3 -DNDEBUG")
-  set (CMAKE_CXX_FLAGS_DEBUG          "-g -O2 -fno-reorder-blocks -fno-schedule-insns -fno-inline")
-  set (CMAKE_CXX_FLAGS_DEBUGFULL      "-g3 -fno-inline" CACHE STRING "Debugfull build type")
-  set (CMAKE_CXX_FLAGS_PROFILE        "-g3 -fno-inline -ftest-coverage -fprofile-arcs" CACHE STRING "Profile build type")
+  # Add two build type
+  SET(CMAKE_CONFIGURATION_TYPES ${CMAKE_CONFIGURATION_TYPES} "Debugfull" "Profile" CACHE STRING "avalable build types" FORCE)
 
-  mark_as_advanced (CMAKE_CXX_FLAGS_DEBUGFULL CMAKE_CXX_FLAGS_PROFILE)
-endif (CMAKE_COMPILER_IS_GNUCXX)
+  # Customize For GNU/GCC
+  IF (CMAKE_COMPILER_IS_GNUCXX)
 
-####################
-# wanning wall
+    # Customize options for the build types
+    SET(CMAKE_CXX_FLAGS_RELWITHDEBINFO "-O2 -g" CACHE STRING "Flags used by the compiler during Release with Debug Info builds." FORCE)
+    SET(CMAKE_CXX_FLAGS_RELEASE          "-O3 -DNDEBUG" CACHE STRING "Flags used by the compiler during release builds" FORCE)
+    SET(CMAKE_CXX_FLAGS_MINSIZEREL       "-Os -DNDEBUG" CACHE STRING "Flags used by the compiler during release minsize builds." FORCE)
+    SET(CMAKE_CXX_FLAGS_DEBUG            "-g -O2 -fno-reorder-blocks -fno-schedule-insns -fno-inline" CACHE STRING "Flags used by the compiler during debug builds." FORCE)
+    SET(CMAKE_CXX_FLAGS_DEBUGFULL        "-g3 -fno-inline" CACHE STRING "Debugfull build type" FORCE)
+    SET(CMAKE_CXX_FLAGS_PROFILE          "-g3 -fno-inline -ftest-coverage -fprofile-arcs" CACHE STRING "Profile build type" FORCE)
+
+  ENDIF (CMAKE_COMPILER_IS_GNUCXX)
+
+  SET(BUILD_FLAGS_HAS_BEEN_CUSTOMIZED yes CACHE INTERNEL "build falgs has been customized?")
+  MARK_AS_ADVANCED(CMAKE_CONFIGURATION_TYPES CMAKE_CXX_FLAGS_DEBUGFULL CMAKE_CXX_FLAGS_PROFILE)
+
+ENDIF (NOT BUILD_FLAGS_HAS_BEEN_CUSTOMIZED)
+SET(CMAKE_C_FLAGS_RELWITHDEBINFO "${CMAKE_CXX_FLAGS_RELWITHDEBINFO}")
+SET(CMAKE_C_FLAGS_RELEASE        "${CMAKE_CXX_FLAGS_RELEASE}")
+SET(CMAKE_C_FLAGS_MINSIZEREL     "${CMAKE_CXX_FLAGS_MINSIZEREL}")
+SET(CMAKE_C_FLAGS_DEBUG          "${CMAKE_CXX_FLAGS_DEBUG}")
+SET(CMAKE_C_FLAGS_DEBUGFULL      "${CMAKE_CXX_FLAGS_DEBUGFULL}")
+SET(CMAKE_C_FLAGS_PROFILE        "${CMAKE_CXX_FLAGS_PROFILE}")
+
+# Set default build type
+IF(NOT CMAKE_BUILD_TYPE)
+  SET(CMAKE_BUILD_TYPE RelWithDebInfo)
+ENDIF(NOT CMAKE_BUILD_TYPE)
+SET(CMAKE_BUILD_TYPE "${CMAKE_BUILD_TYPE}" CACHE STRING
+    "Choose the type of build, options are: None(CMAKE_CXX_FLAGS or CMAKE_C_FLAGS used) Debug Release RelWithDebInfo MinSizeRel Debugfull Profile." FORCE)
+
+INCLUDE(SetCompilerWarningAll)
+# Write to cache
+SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}" CACHE STRING
+  "Flags used by the compiler during all build types." FORCE)
+SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS}" CACHE STRING
+  "Flags used by the compiler during all build types." FORCE)
+
+##################################################
+# Project Info
+#####
+SET(PROJECT_VERSION_MAJOR 1)
+SET(PROJECT_VERSION_MINOR 0)
+SET(PROJECT_VERSION_PATCH 0)
+SET(PROJECT_VERSION "${PROJECT_VERSION_MAJOR}.${PROJECT_VERSION_MINOR}.${PROJECT_VERSION_PATCH}")
+SET(PROJECT_PACKAGE "izenelib")
+SET(PROJECT_VERSION_STRING "${PROJECT_PACKAGE} ${PROJECT_VERSION}")
+
+# tagged prefix
+SET(VERSION_INSTALL_PREFIX "${PROJECT_PACKAGE}-${PROJECT_VERSION}")
+
+##################################################
+# Check Dependencies
+####
+INCLUDE(SetPkgConfigPath)
+INCLUDE(ConfigureChecks.cmake)
+
+##################################################
+# Install Headers
 #####
 
-if (CMAKE_BUILD_TOOL MATCHES "(msdev|devenv|nmake)")
-  # Use the highest warning level for visual studio.
-  set (CMAKE_CXX_WARNING_LEVEL 4)
-  if (CMAKE_CXX_FLAGS MATCHES "/W[0-4]")
-    string (REGEX REPLACE "/W[0-4]" "/W4"
-      CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}")
-  else (CMAKE_CXX_FLAGS MATCHES "/W[0-4]")
-    set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /W4")
-  endif (CMAKE_CXX_FLAGS MATCHES "/W[0-4]")
-elseif (CMAKE_COMPILER_IS_GNUCXX)
-  # use -Wall for gcc
-  set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall")
-else (CMAKE_BUILD_TOOL MATCHES "(msdev|devenv|nmake)")
-  message (STATUS "Unknown build tool, cannot set warning flags for your")
-endif (CMAKE_BUILD_TOOL MATCHES "(msdev|devenv|nmake)")
+# trailing / is required, otherwise dectory name is appended to
+# install directory.
+INSTALL(
+  DIRECTORY include/
+  DESTINATION "${VERSION_INSTALL_PREFIX}/include"
+  COMPONENT "header_only"
+  )
 
-####################
-# libraries
+##################################################
+# Config File
 #####
-
-# set BOOST_ROOT to select a boost installation
-set (Boost_ADDITIONAL_VERSIONS 1.37 1.37.0 1.38 1.38.0 1.39 1.39.0)
-# find libraries
-find_package (Boost 1.35.0 COMPONENTS unit_test_framework)
-# require header only libraries
-find_package (Boost 1.35.0 REQUIRED)
-
-####################
-# utilites
-#####
-
-find_package (Doxygen)
-if (DOXYGEN_DOT_EXECUTABLE)
-  option (USE_DOT "use dot in doxygen?" FLASE)
-endif (DOXYGEN_DOT_EXECUTABLE)
-
-set (USE_DOT_YESNO NO)
-if (USE_DOT)
-  set (USE_DOT_YESNO YES)
-endif (USE_DOT)
-
-####################
-# Doxygen Docs
-#####
-configure_file (
-  "${CMAKE_SOURCE_DIR}/source/doxygen.cf.in"
-  "${CMAKE_BINARY_DIR}/doxygen.cf"
+CONFIGURE_FILE(
+  "${CMAKE_CURRENT_SOURCE_DIR}/${PROJECT_PACKAGE}-config.cmake.in"
+  "${CMAKE_BINARY_DIR}/${PROJECT_PACKAGE}-config.cmake"
   ESCAPE_QUOTES @ONLY)
+CONFIGURE_FILE(
+  "${CMAKE_CURRENT_SOURCE_DIR}/${PROJECT_PACKAGE}-config-version.cmake.in"
+  "${CMAKE_BINARY_DIR}/${PROJECT_PACKAGE}-config-version.cmake"
+  ESCAPE_QUOTES @ONLY)
+INSTALL(FILES
+  "${CMAKE_BINARY_DIR}/${PROJECT_PACKAGE}-config.cmake"
+  "${CMAKE_BINARY_DIR}/${PROJECT_PACKAGE}-config-version.cmake"
+  DESTINATION "${VERSION_INSTALL_PREFIX}/cmake"
+  COMPONENT "package-config"
+)
 
-if (DOXYGEN_FOUND)
-  add_custom_target (docs ${DOXYGEN_EXECUTABLE} "doxygen.cf")
-  add_custom_target (package_docs
-    "tar" "-C" "docs" "-czf" "izenelib-${CLUSTERING_FRAMEWORK_VERSION}.tar.gz" "izenelib-doc"
-    COMMAND "cp" "clustering-framework-${CLUSTERING_FRAMEWORK_VERSION}.tar.gz" "${CMAKE_SOURCE_DIR}/docs/html"
-    DEPENDS docs
-    )
-  set_directory_properties (PROPERTIES ADDITIONAL_MAKE_CLEAN_FILES docs)
-endif (DOXYGEN_FOUND)
-
-####################
-# sub dirs
+##################################################
+# Sub Directories
 #####
 
-add_subdirectory (source)
+# all headers
+INCLUDE_DIRECTORIES("${CMAKE_SOURCE_DIR}/include")
+INCLUDE_DIRECTORIES("${CMAKE_SOURCE_DIR}/include/3rdparty")
+
+SET_PROPERTY(GLOBAL PROPERTY BUILD_COMPONENTS)
+SET_PROPERTY(GLOBAL PROPERTY NON_BUILD_COMPONENTS)
+
+SET(LIBRARY_OUTPUT_PATH "${CMAKE_SOURCE_DIR}/lib")
+
+# third party libraries
+# put it first, they may be referred in other components
+ADD_SUBDIRECTORY(source/3rdparty 3rdparty)
+
+# AM libraries
+ADD_SUBDIRECTORY(source/am am)
+
+# IR libraries
+ADD_SUBDIRECTORY(source/ir ir)
+
+# Util libraries
+ADD_SUBDIRECTORY(source/util util)
+
+# Test cases and applications
+IF(ENABLE_TEST)
+  ADD_SUBDIRECTORY(source/test test)
+ENDIF(ENABLE_TEST)
+
+GET_PROPERTY(BUILD_COMPONENTS GLOBAL PROPERTY BUILD_COMPONENTS)
+GET_PROPERTY(NON_BUILD_COMPONENTS GLOBAL PROPERTY NON_BUILD_COMPONENTS)
+
+##################################################
+# Messages
+#####
+IF(VERBOSE)
+
+  MESSAGE(STATUS "========================================")
+  MESSAGE(STATUS "CMAKE_BUILD_TYPE: ${CMAKE_BUILD_TYPE}")
+  STRING(TOUPPER "${CMAKE_BUILD_TYPE}" CMAKE_BUILD_TYPE_UPPER)
+  MESSAGE(STATUS "  corresponding flags: ${CMAKE_CXX_FLAGS_${CMAKE_BUILD_TYPE_UPPER}}")
+  MESSAGE(STATUS "CMAKE_CXX_FLAGS: ${CMAKE_CXX_FLAGS}")
+  MESSAGE(STATUS "----------------------------------------")
+
+  IF(Boost_FOUND)
+    MESSAGE(STATUS "BOOST:")
+    MESSAGE(STATUS "  header: ${Boost_INCLUDE_DIR}")
+    MESSAGE(STATUS "  version: ${Boost_MAJOR_VERSION}.${Boost_MINOR_VERSION}.${Boost_SUBMINOR_VERSION}")
+  ELSE(Boost_FOUND)
+    MESSAGE(STATUS "BOOST: not found")
+  ENDIF(Boost_FOUND)
+
+  IF(BZIP2_FOUND)
+    MESSAGE(STATUS "BZIP2:")
+    MESSAGE(STATUS "  header: ${BZIP2_INCLUDE_DIR}")
+    MESSAGE(STATUS "  libs: ${BZIP2_LIBRARIES}")
+  ELSE(BZIP2_FOUND)
+    MESSAGE(STATUS "BZIP2: not found")  
+  ENDIF(BZIP2_FOUND)
+
+  IF(ZLIB_FOUND)
+    MESSAGE(STATUS "ZLIB:")
+    MESSAGE(STATUS "  header: ${ZLIB_INCLUDE_DIR}")
+    MESSAGE(STATUS "  libs: ${ZLIB_LIBRARIES}")
+  ELSE(ZLIB_FOUND)
+    MESSAGE(STATUS "ZLIB: not found")  
+  ENDIF(ZLIB_FOUND)
+
+  IF(Threads_FOUND)
+    MESSAGE(STATUS "Threads Library: ${CMAKE_THREAD_LIBS_INIT}")
+  ELSE(Threads_FOUND)
+    MESSAGE(STATUS "Threads Library: none")
+  ENDIF(Threads_FOUND)
+
+  IF(TokyoCabinet_FOUND)
+    MESSAGE(STATUS "Tokyo Cabinet:")
+    MESSAGE(STATUS "  header: ${TokyoCabinet_INCLUDE_DIR}")
+    MESSAGE(STATUS "  libs: ${TokyoCabinet_LIBRARY}")
+    MESSAGE(STATUS "  version: ${TokyoCabinet_VERSION}")
+  ELSE(TokyoCabinet_FOUND)
+    MESSAGE(STATUS "TokyoCabinet: not found")
+  ENDIF(TokyoCabinet_FOUND)
+
+  MESSAGE(STATUS "----------------------------------------")
+  MESSAGE(STATUS "COMPONENTS BUILD:")
+  FOREACH(c ${BUILD_COMPONENTS})
+    MESSAGE(STATUS "  ${c}")
+  ENDFOREACH(c ${BUILD_COMPONENTS})
+  IF(NON_BUILD_COMPONENTS)
+    MESSAGE(STATUS "COMPONENTS NOT BUILD:")
+    FOREACH(c ${NON_BUILD_COMPONENTS})
+      MESSAGE(STATUS "  ${c}")
+    ENDFOREACH(c ${NON_BUILD_COMPONENTS})
+  ENDIF(NON_BUILD_COMPONENTS)
+  MESSAGE(STATUS "========================================")
+
+ENDIF(VERBOSE)

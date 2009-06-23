@@ -34,8 +34,8 @@ written by
 *****************************************************************************/
 
 
-#include "core.h"
-#include "ccc.h"
+#include <udt3/core.h>
+#include <udt3/ccc.h>
 
 
 CCC::CCC():

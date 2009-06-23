@@ -1,5 +1,5 @@
 /* vim: set tabstop=4 : */
-#include "MemStream.h"
+#include <febird/io/MemStream.h>
 #include <sstream>
 #include <stdexcept>
 #include <typeinfo>
@@ -144,7 +144,7 @@ void AutoGrownMemIO::swap(AutoGrownMemIO& that)
 
 /**
  @brief 改变 buffer 尺寸
-  
+
   不改变 buffer 中的已存内容，不改变 pos
 
  @note must m_pos <= newsize
@@ -187,7 +187,7 @@ void AutoGrownMemIO::resize(size_t newsize)
 
 /**
  @brief 释放原先的空间并重新分配
-  
+
   相当于按新尺寸重新构造一个新 AutoGrownMemIO
   不需要把旧内容拷贝到新地址
  */
@@ -230,7 +230,7 @@ void AutoGrownMemIO::init(size_t newsize)
 	m_end = m_beg + newsize;
 }
 
-void AutoGrownMemIO::growAndWrite(const void* FEBIRD_RESTRICT data, size_t length)FEBIRD_RESTRICT 
+void AutoGrownMemIO::growAndWrite(const void* FEBIRD_RESTRICT data, size_t length)FEBIRD_RESTRICT
 {
 	using namespace std;
 	size_t nSize = size();
@@ -240,7 +240,7 @@ void AutoGrownMemIO::growAndWrite(const void* FEBIRD_RESTRICT data, size_t lengt
 	m_pos += length;
 }
 
-void AutoGrownMemIO::growAndWriteByte(byte b)FEBIRD_RESTRICT 
+void AutoGrownMemIO::growAndWriteByte(byte b)FEBIRD_RESTRICT
 {
 	using namespace std;
 	resize(max(2u * size(), (size_t)64u));

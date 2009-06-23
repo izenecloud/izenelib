@@ -1,6 +1,1 @@
-
-
-add_subdirectory( sdb_btree )
-
-
-      
+ADD_SUBDIRECTORY(sdb_btree)

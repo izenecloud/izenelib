@@ -53,8 +53,8 @@ written by
    #include <winsock2.h>
    #include <ws2tcpip.h>
 #endif
-#include "channel.h"
-#include "packet.h"
+#include <udt3/channel.h>
+#include <udt3/packet.h>
 
 
 #ifdef WIN32

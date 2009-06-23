@@ -1,5 +1,5 @@
 /* vim: set tabstop=4 : */
-#include "IStream.h"
+#include <febird/io/IStream.h>
 
 namespace febird {
 

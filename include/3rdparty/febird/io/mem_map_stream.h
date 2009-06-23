@@ -23,11 +23,11 @@
 #	include <sys/types.h>
 #	include <sys/stat.h>
 #	include <fcntl.h>
-#   include <windows.h>
+#	include <windows.h>
 #else
 #	include <sys/types.h>
 #	include <sys/stat.h>
-#   include <sys/mman.h>
+#	include <sys/mman.h>
 #	include <unistd.h>
 #	include <fcntl.h>
 #	include <errno.h>
@@ -56,7 +56,7 @@ public:
 	void close();
 
 	bool eof() const throw();
-	int  getByte();
+	int	 getByte();
 	byte readByte();
 	void writeByte(byte b);
 
@@ -105,8 +105,8 @@ public:
 
 	const std::string& fpath() const { return m_fpath; }
 
-// 	int errcode() const throw() { return m_errno; }
-// 	std::string errmsg() const throw();
+//	int errcode() const throw() { return m_errno; }
+//	std::string errmsg() const throw();
 
 	int file_handle() const { return (int)m_hFile; }
 
@@ -131,8 +131,8 @@ protected:
 	int m_hFile;
 #endif
 
-	int  m_mode;
-//	int  m_errno;
+	int	 m_mode;
+//	int	 m_errno;
 
 	stream_position_t m_file_size;
 	stream_position_t m_file_pos;
@@ -158,7 +158,7 @@ protected:
 	void remap_and_ensureRead(void* buf, size_t size);
 	void remap_and_ensureWrite(const void* buf, size_t size);
 
-	int  remap_and_getByte();
+	int	 remap_and_getByte();
 	byte remap_and_readByte();
 	void remap_and_writeByte(unsigned char b);
 
@@ -301,10 +301,10 @@ class MMS_MapRegion
 {
 	DECLARE_NONE_COPYABLE_CLASS(MMS_MapRegion)
 
+	MemMapStream*	  m_mms;
 	stream_position_t m_fpos;
-	size_t            m_size;
-	MemMapStream*     m_mms;
-	unsigned char*    m_base;
+	size_t			  m_size;
+	unsigned char*	  m_base;
 
 public:
 	MMS_MapRegion(MemMapStream& mms, stream_position_t fpos, size_t size)
@@ -323,8 +323,8 @@ public:
 	}
 
 	stream_position_t fpos() const { return m_fpos; }
-	size_t            size() const { return m_size; }
-	unsigned char*    base() const { return m_base; }
+	size_t			  size() const { return m_size; }
+	unsigned char*	  base() const { return m_base; }
 
 	bool cover(stream_position_t pos, size_t length) const
 	{
@@ -345,11 +345,11 @@ class FEBIRD_DLL_EXPORT MMS_MapData
 {
 	DECLARE_NONE_COPYABLE_CLASS(MMS_MapData)
 
+	MemMapStream*	  m_mms;
+	unsigned char*	  m_base_ptr;
 	stream_position_t m_base_pos;
-	size_t            m_offset;
-	size_t            m_size;
-	MemMapStream*     m_mms;
-	unsigned char*    m_base_ptr;
+	size_t			  m_offset;
+	size_t			  m_size;
 
 public:
 	MMS_MapData(MemMapStream& mms, stream_position_t fpos, size_t size);
@@ -363,9 +363,9 @@ public:
 	void swap(MMS_MapData& y)
 	{
 		std::swap(m_base_pos, y.m_base_pos);
-		std::swap(m_offset  , y.m_offset);
-		std::swap(m_size    , y.m_size);
-		std::swap(m_mms     , y.m_mms);
+		std::swap(m_offset	, y.m_offset);
+		std::swap(m_size	, y.m_size);
+		std::swap(m_mms		, y.m_mms);
 		std::swap(m_base_ptr, y.m_base_ptr);
 	}
 };

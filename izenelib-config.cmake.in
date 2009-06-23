@@ -1,0 +1,87 @@
+#
+# FIND_PACKAGE(izenelib [version] [EXACT] [QUIET]
+#              [[REQUIRED|COMPONENTS] [components...]])
+#
+# Available Components:
+#
+# - boost_memory
+# - febird
+# - udt
+# - udt3
+# - sdb_btree
+# - procmeminfo
+# 
+# If izenelib was not found, try to add the izenelib install prefix
+# path to cmake cache variable CMAKE_PREFIX_PATH or environment
+# variable with the same name.
+#
+# Following variables are defined:
+# 
+#   izenelib_FOUND             - izenelib was found
+#   izenelib_VERSION           - version
+#   izenelib_INCLUDE_DIRS      - header dirs
+#   izenelib_STATIC_LIBRARIES  - all static libraries for components listed
+#   izenelib_SHARED_LIBRARIES  - all shared libraries for components listed
+#   izenelib_<component>_FOUND - <component> was found
+#
+# The 3rdparty headers muse be used starting with 3rdparty, such as
+# <3rdparty/udt/udt.h>.
+#
+# To link a library, just append its component name, the the targets
+# <component>_static and <component>_shared were imported so that can
+# be used in the project directly. E.g.
+#
+#   FIND_PACKAGE(izenelib COMPONENTS udt febird)
+#
+# defines variables:
+#
+#   udt_FOUND    - udt component was found
+#   febird_FOUND - febird component was found
+#
+# and import targets:
+#   udt_static    - udt static library
+#   udt_shared    - udt shared library
+#   febird_static - febird static library
+#   febird_shared - febird shared library
+#
+# The targets can be used like:
+#   TARGET_LINK_LIBRARIES(target udt_static febird_static)
+#
+INCLUDE(FindPackageMessage)
+FIND_PACKAGE_MESSAGE("izenelib"
+  "izenelib found: ${CMAKE_CURRENT_LIST_FILE}
+Some izenelib header only libraries depend on boost, tokyo cabinet, pthread. If you use such libraries, please also add the include directories and link their libraries."
+  "${CMAKE_CURRENT_LIST_FILE}"
+  )
+GET_FILENAME_COMPONENT(_dir "${CMAKE_CURRENT_LIST_FILE}" PATH)
+GET_FILENAME_COMPONENT(_version_dir "${_dir}" PATH)
+GET_FILENAME_COMPONENT(_top "${_version_dir}" PATH)
+
+SET(izenelib_INCLUDE_DIRS "${_version_dir}/include")
+SET(izenelib_VERSION "@PROJECT_VERSION@")
+SET(izenelib_FOUND TRUE)
+SET(izenelib_STATIC_LIBRARIES)
+SET(izenelib_SHARED_LIBRARIES)
+
+FOREACH(COMPONENT ${izenelib_FIND_COMPONENTS})
+  IF(EXISTS "${_dir}/${COMPONENT}.cmake")
+    INCLUDE("${_dir}/${COMPONENT}.cmake")
+    SET(izenelib_${COMPONENT}_FOUND TRUE)
+    SET(izenelib_${COMPONENT}_STATIC_LIBRARIES ${COMPONENT}_static)
+    SET(izenelib_${COMPONENT}_SHARED_LIBRARIES ${COMPONENT}_shared)
+    LIST(APPEND izenelib_STATIC_LIBRARIES ${COMPONENT}_static)
+    LIST(APPEND izenelib_SHARED_LIBRARIES ${COMPONENT}_shared)
+    FIND_PACKAGE_MESSAGE("izenelib ${COMPONENT}"
+      "izenelib ${COMPONENT} found: ${_dir}/${COMPONENT}.cmake"
+      "${_dir}/${COMPONENT}.cmake"
+      )
+  ELSE(EXISTS "${_dir}/${COMPONENT}.cmake")
+    SET(izenelib_${COMPONENT}_FOUND FALSE)
+    SET(izenelib_FOUND FALSE)
+    IF(izenelib_FIND_REQUIRED)
+      MESSAGE(FATAL_ERROR "find izenelib ${COMPONENT}: failed")
+    ELSEIF(NOT izenelib_FIND_QUIETLY)
+      MESSAGE(STATUS "find izenelib ${COMPONENT}: failed")
+    ENDIF(izenelib_FIND_REQUIRED)
+  ENDIF(EXISTS "${_dir}/${COMPONENT}.cmake")
+ENDFOREACH(COMPONENT ${izenelib_FIND_COMPONENTS})
