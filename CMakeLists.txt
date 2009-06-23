@@ -9,6 +9,9 @@ set (IZENELIB_VERSION "${IZENELIB_VERSION_MAJOR}.${IZENELIB_VERSION_MINOR}.${IZE
 set (IZENELIB_PACKAGE "izenelib")
 set (IZENELIB_VERSION_STRING "${IZENELIB_PACKAGE} ${IZENELIB_VERSION}")
 
+INCLUDE_DIRECTORIES(/usr/local/boost-1_36/include)
+LINK_DIRECTORIES(/usr/local/boost-1_36/lib)
+
 # force out-of-source build
 if (CMAKE_BINARY_DIR STREQUAL CMAKE_SOURCE_DIR)
   message (FATAL_ERROR "In source build is not allowed")

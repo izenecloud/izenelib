@@ -70,7 +70,24 @@ public:
 		cacheSize_ = cacheSize;
 		hash_.setHashSize(cacheSize_);
 	}
-
+	void updateValue(const DataType& dat) // insert an new item into MCache
+	{
+		lock.acquire_write_lock();
+		KeyType key = dat.get_key();
+		if (hash_.update() {
+		    if (hasKey(key)) {
+				replace_(key);
+			} else {
+				firstInsert_(dat); //Insert the corresponding CacheInfo into KeyInfoMap_.        
+			}
+		} 
+		lock.release_write_lock();
+		
+	}	
+	void updateValue(const KeyType& key, const ValueType& value) // insert an new item into MCache
+	{
+		updateValue( DataType(key, value) );
+	}
 	bool getValue(const KeyType& key, ValueType& value); // may insert upon no cache depending on the policies
 	void insertValue(const DataType& value); // insert an new item into MCache
 	void insertValue(const KeyType& key, const ValueType& value)

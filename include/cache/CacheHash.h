@@ -190,6 +190,19 @@ public:
 	bool insert(const DataType& data);
 	bool del(const KeyType& key);
 
+	bool update(const DataType& data){
+	     return memHash_.update(data) 
+		  && (
+		  (fileHash_.num_items()+1 > hashSize_*(1-ratio_)) 
+		  || fileHash_.update(data) );
+		};
+		
+	bool update(const KeyType& key, const ValueType& value)
+	{
+		return update( DataType(key,value) );
+	}
+
+
 	/**
 	 *	\brief get the total number of item in the Cache.
 	 */
