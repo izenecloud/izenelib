@@ -7,17 +7,17 @@ using namespace wiselib;
 
 using namespace izenelib::ir::indexmanager;
 
-BTreeIndex<IndexKeyType<int> >* BTreeIndexer::pBTreeIntIndexer_;
+BTreeIndex<IndexKeyType<int> >* BTreeIndexer::pBTreeIntIndexer_ = NULL;
 
-BTreeIndex<IndexKeyType<unsigned int> >* BTreeIndexer::pBTreeUIntIndexer_;
+BTreeIndex<IndexKeyType<unsigned int> >* BTreeIndexer::pBTreeUIntIndexer_  = NULL;
 
-BTreeIndex<IndexKeyType<float> >* BTreeIndexer::pBTreeFloatIndexer_;
+BTreeIndex<IndexKeyType<float> >* BTreeIndexer::pBTreeFloatIndexer_  = NULL;
 
-BTreeIndex<IndexKeyType<double> >* BTreeIndexer::pBTreeDoubleIndexer_;
+BTreeIndex<IndexKeyType<double> >* BTreeIndexer::pBTreeDoubleIndexer_  = NULL;
 
-BTreeIndex<IndexKeyType<wiselib::UString> >* BTreeIndexer::pBTreeUStrIndexer_;
+BTreeIndex<IndexKeyType<wiselib::UString> >* BTreeIndexer::pBTreeUStrIndexer_  = NULL;
 
-izenelib::sdb::IndexSDB<USuffix, wiselib::UString>* BTreeIndexer::pBTreeUStrSuffixIndexer_;
+izenelib::sdb::IndexSDB<USuffix, wiselib::UString>* BTreeIndexer::pBTreeUStrSuffixIndexer_  = NULL;
 
 BTreeIndexer::BTreeIndexer(string location, int degree, size_t cacheSize, size_t maxDataSize)
 {
@@ -57,16 +57,18 @@ BTreeIndexer::~BTreeIndexer()
 {
     flush();
 
-    delete pBTreeIntIndexer_;
-    delete pBTreeUIntIndexer_;
-    delete pBTreeFloatIndexer_;
-    delete pBTreeDoubleIndexer_;
-    delete pBTreeUStrIndexer_;
-    delete pBTreeUStrSuffixIndexer_;
+    if(pBTreeIntIndexer_) delete pBTreeIntIndexer_;
+    if(pBTreeUIntIndexer_) delete pBTreeUIntIndexer_;
+    if(pBTreeFloatIndexer_) delete pBTreeFloatIndexer_;
+    if(pBTreeDoubleIndexer_) delete pBTreeDoubleIndexer_;
+    if(pBTreeUStrIndexer_) delete pBTreeUStrIndexer_;
+    if(pBTreeUStrSuffixIndexer_) delete pBTreeUStrSuffixIndexer_;
 }
 
 void BTreeIndexer::add(collectionid_t colID, fieldid_t fid, PropertyType& value, docid_t docid)
 {
+	cout<<"add "<<docid<<endl;
+
     izenelib::util::boost_variant_visit(boost::bind(add_visitor(), colID, fid, _1, docid), value);
 }
 
@@ -203,12 +205,11 @@ void BTreeIndexer::getValueSubString(collectionid_t colID, fieldid_t fid, Proper
 
 void BTreeIndexer::flush()
 {
-    pBTreeIntIndexer_->commit();
-    pBTreeUIntIndexer_->commit();
-    pBTreeFloatIndexer_->commit();
-    pBTreeDoubleIndexer_->commit();
-    pBTreeUStrIndexer_->commit();
-    pBTreeUStrSuffixIndexer_->commit();
+    if(pBTreeIntIndexer_) pBTreeIntIndexer_->commit();
+    if(pBTreeUIntIndexer_) pBTreeUIntIndexer_->commit();
+    if(pBTreeFloatIndexer_) pBTreeFloatIndexer_->commit();
+    if(pBTreeDoubleIndexer_) pBTreeDoubleIndexer_->commit();
+    if(pBTreeUStrIndexer_) pBTreeUStrIndexer_->commit();
+    if(pBTreeUStrSuffixIndexer_) pBTreeUStrSuffixIndexer_->commit();
 }
-
 

@@ -17,6 +17,8 @@
 
 namespace febird {
 
+using namespace boost;
+
 template<class DataIO>
 struct variant_save_visitor : boost::static_visitor<> {
     variant_save_visitor(DataIO& ar) :

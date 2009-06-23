@@ -25,6 +25,7 @@
 #include <boost/bind.hpp>
 #include <functional>
 
+
 #include <algorithm>
 #include <string>
 
@@ -174,17 +175,27 @@ bool BTreeIndex<KeyType>::remove(const KeyType& key, docid_t docID)
 
 }
 
+class BTreeIndexerInterface
+{
+public:
+    virtual ~BTreeIndexerInterface() {};
+
+    virtual void add(collectionid_t colID, fieldid_t fid, PropertyType& value, docid_t docid) = 0;
+
+    virtual void remove(collectionid_t colID, fieldid_t fid, PropertyType& value, docid_t docid) = 0;
+};
+
+
 /**
 * BTreeIndexer
 * @brief BTreeIndexer is a wrapper which takes charges of managing all b-tree handlers.
 */
-
-class BTreeIndexer
+class BTreeIndexer:public BTreeIndexerInterface
 {
 public:
     BTreeIndexer(string location, int degree, size_t cacheSize, size_t maxDataSize);
 
-    ~BTreeIndexer();
+    virtual ~BTreeIndexer();
 public:
     void add(collectionid_t colID, fieldid_t fid, PropertyType& value, docid_t docid);
 
@@ -417,7 +428,6 @@ public:
         BTreeIndexer::getIndexer<T>()->getValueGreatEqual(key, docids);
     }
 };
-
 
 }
 

@@ -10,6 +10,8 @@
 #include <ir/index_manager/store/UDTFSAgent.h>
 #include <ir/index_manager/store/RAMDirectory.h>
 #include <ir/index_manager/utility/StringUtils.h>
+#include <ir/index_manager/index/BTreeIndexerClient.h>
+#include <ir/index_manager/index/BTreeIndexerServer.h>
 
 #ifdef SF1_TIME_CHECK
 #include <wiselib/profiler/ProfilerGroup.h>
@@ -44,6 +46,8 @@ Indexer::Indexer( ManagerType managerType)
         ,pConfigurationManager_(NULL)
         ,pDocumentManager_(NULL)
         ,pBTreeIndexer_(NULL)
+        ,pBTreeIndexerClient_(NULL)
+        ,pBTreeIndexerServer_(NULL)
         ,pAgent_(NULL)
 {
     version_ = "Index Manager - ver. alpha ";
@@ -70,6 +74,11 @@ Indexer::~Indexer()
         delete pAgent_;
         pAgent_ = NULL;
     }
+
+    if(pBTreeIndexerClient_)
+        delete pBTreeIndexerClient_;
+    if(pBTreeIndexerServer_)
+        delete pBTreeIndexerServer_;
 }
 
 const std::map<std::string, IndexerCollectionMeta>& Indexer::getCollectionsMeta()
@@ -171,9 +180,12 @@ void Indexer::initIndexManager()
 
     if(managerType_ == MANAGER_TYPE_DATAPROCESS)
     {
-        vector<string> nodes = split(pConfigurationManager_->distributeStrategy_.param_,"|");
+        vector<string> nodes = split(pConfigurationManager_->distributeStrategy_.iplist_,"|");
         for(vector<string>::iterator iter = nodes.begin(); iter != nodes.end(); ++iter)
-            add_index_process_node((*iter),atoi(pConfigurationManager_->distributeStrategy_.listenport_.c_str()));
+            add_index_process_node((*iter),pConfigurationManager_->distributeStrategy_.batchport_,
+            pConfigurationManager_->distributeStrategy_.rpcport_.c_str());
+
+        pBTreeIndexerClient_ = new BTreeIndexerClient;
         initialize_connection(index_process_address_.front(), true);
         pDirectory_ = new RemoteDirectory();
         pBarrelsInfo_ = new BarrelsInfo();
@@ -190,14 +202,20 @@ void Indexer::initIndexManager()
         }
 
         openDirectory();
+
+        pBTreeIndexer_ = new BTreeIndexer(pConfigurationManager_->indexStrategy_.indexLocation_, degree, cacheSize, maxDataSize);
+        pBTreeIndexerServer_ = new BTreeIndexerServer(pConfigurationManager_->distributeStrategy_.rpcport_, pBTreeIndexer_);
+
     }
     pIndexWriter_ = new IndexWriter(this);
     pIndexReader_ = new IndexReader(this);
-    pBTreeIndexer_ = new BTreeIndexer(pConfigurationManager_->indexStrategy_.indexLocation_, degree, cacheSize, maxDataSize);
 
     if(managerType_ == MANAGER_TYPE_INDEXPROCESS)
     {
-        pAgent_ = new UDTFSAgent(pConfigurationManager_->distributeStrategy_.listenport_, this);
+        boost::thread rpcServerThread(boost::bind(&BTreeIndexerServer::run, pBTreeIndexerServer_));
+        rpcServerThread.detach();
+
+        pAgent_ = new UDTFSAgent(pConfigurationManager_->distributeStrategy_.batchport_, this);
         boost::thread agentThread(boost::bind(&UDTFSAgent::run, pAgent_));
         agentThread.join();
     }
@@ -275,13 +293,13 @@ void Indexer::openDirectory()
     }
 }
 
-void Indexer::add_index_process_node(string ip, int port)
+void Indexer::add_index_process_node(string ip, string batchport, string rpcport)
 {
     assert(managerType_ == MANAGER_TYPE_DATAPROCESS);
-    index_process_address_.push_back(make_pair(ip,port));
+    index_process_address_.push_back(make_pair(ip,make_pair(batchport,rpcport)));
 }
 
-std::pair<string, int>& Indexer::get_curr_index_process()
+pair<string,pair<string, string> >& Indexer::get_curr_index_process()
 {
     return index_process_address_.front();
 }
@@ -290,15 +308,24 @@ bool Indexer::change_curr_index_process()
 {
     assert(managerType_ == MANAGER_TYPE_DATAPROCESS);
 		
-    pair<string, int> node = index_process_address_.front();
+    pair<string,pair<string, string> > node = index_process_address_.front();
     index_process_address_.pop_front();
     index_process_address_.push_back(node);
     destroy_connection(node);
     initialize_connection(index_process_address_.front());
+
     return true;
 }
 
-bool Indexer::destroy_connection(pair<string, int>& node)
+BTreeIndexerInterface* Indexer::getBTreeIndexer()
+{
+    if(managerType_ == MANAGER_TYPE_DATAPROCESS)
+        return pBTreeIndexerClient_;
+    else
+        return pBTreeIndexer_;
+}
+
+bool Indexer::destroy_connection(pair<string,pair<string, string> >& node)
 {
     assert(managerType_ == MANAGER_TYPE_DATAPROCESS);
 
@@ -306,11 +333,11 @@ bool Indexer::destroy_connection(pair<string, int>& node)
     return true;
 }
 
-bool Indexer::initialize_connection(pair<string,int>& node, bool wait)
+bool Indexer::initialize_connection(pair<string,pair<string, string> >& node, bool wait)
 {
     assert(managerType_ == MANAGER_TYPE_DATAPROCESS);
 
-    UDTFile::init(node.first, node.second);
+    UDTFile::init(node.first, atoi(node.second.first.c_str()));
 
     if(wait)
     {
@@ -328,6 +355,9 @@ bool Indexer::initialize_connection(pair<string,int>& node, bool wait)
     else
         if(UDTFSError::OK != UDTFile::try_connect())
             return false;
+
+    pBTreeIndexerClient_->switchServer(node.first, node.second.second);
+
     return true;
 }
 

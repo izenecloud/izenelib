@@ -56,7 +56,8 @@ const static int32_t ACCESS_APPEND = 0x20;   /// will append index data do exist
 
 class BarrelsInfo;
 class UDTFSAgent;
-
+class BTreeIndexerClient;
+class BTreeIndexerServer;
 /**
 *The interface class of IndexManager component in SF1v5.0
  * @brief It is the interface component of the IndexManager.
@@ -392,15 +393,15 @@ public:
         return managerType_;
     }
 
-    void add_index_process_node(string ip, int port);
+    void add_index_process_node(string ip, string batchport, string rpcport);
 
-    std::pair<string, int>& get_curr_index_process();
+    pair<string,pair<string, string> >& get_curr_index_process();
 
     bool change_curr_index_process();
 
-    bool destroy_connection(pair<string, int>& node);
+    bool destroy_connection(pair<string,pair<string, string> >& node);
 
-    bool initialize_connection(pair<string,int>& node, bool wait=false);
+    bool initialize_connection(pair<string,pair<string, string> >& node, bool wait=false);
 
     const std::string& getVersionString() const
     {
@@ -432,10 +433,7 @@ public:
         return pIndexWriter_;
     }
 
-    BTreeIndexer* getBTreeIndexer()
-    {
-        return pBTreeIndexer_;
-    }
+    BTreeIndexerInterface* getBTreeIndexer();
 
     fieldid_t getPropertyIDByName(collectionid_t colID, string property);
 
@@ -471,9 +469,13 @@ private:
 
     BTreeIndexer* pBTreeIndexer_;
 
+    BTreeIndexerClient* pBTreeIndexerClient_;
+
+    BTreeIndexerServer* pBTreeIndexerServer_;
+
     std::map<collectionid_t, std::map<string, fieldid_t> > property_name_id_map_;
 
-    std::deque<pair<string, int> > index_process_address_;
+    std::deque<pair<string, pair<string, string> > > index_process_address_;
 
     UDTFSAgent* pAgent_;
 

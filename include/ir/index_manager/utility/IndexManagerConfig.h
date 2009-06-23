@@ -136,9 +136,9 @@ private:
         template <typename Archive>
         void serialize( Archive & ar, const unsigned int version )
         {
-            ar & distribute_;
-            ar & listenport_;
-            ar & param_;
+            ar & rpcport_;
+            ar & batchport_;
+            ar & iplist_;
         }
     public:
         /**
@@ -146,12 +146,12 @@ private:
          * @details
          * It could be "local", which means it works locally, "distribute", which means the indexer works distributedly
          */
-        std::string distribute_;
+        std::string rpcport_;
 
         /**
          * @brief   The listenport number for indexprocess
          */
-        std::string listenport_;
+        std::string batchport_;
 
         /**
          * @brief   The parameter setting for distribute strategy
@@ -159,7 +159,7 @@ private:
          *  the indexerprocess list, with format of:
          * "IP1|IP2|..."
          */
-        std::string param_;
+        std::string iplist_;
     };
 
 
