@@ -37,7 +37,7 @@ public:
 	template<class T> client_object_input& operator>>(T& x)
 	{
 		// do nothing...
-		typename T::SFINAE_ro_self_t* for_check = 0;
+		//typename T::SFINAE_ro_self_t* for_check = 0;
 // 		var_uint32_t objid;
 // 		*p >> objid;
 // 		if (x.getID() == 0)
@@ -94,7 +94,7 @@ public:
 	template<class T> client_object_output& operator<<(const T* x) { return *this << *x; }
 	template<class T> client_object_output& operator<<(const T& x)
 	{
-		typename T::SFINAE_ro_self_t* for_check = 0;
+		//typename T::SFINAE_ro_self_t* for_check = 0;
 		*p << var_uint32_t(x.getID());
 		return *this;
 	}

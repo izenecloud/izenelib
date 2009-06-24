@@ -1,8 +1,10 @@
+#include <ir/index_manager/index/BTreeIndexerServerStub.h>
 #include <ir/index_manager/index/BTreeIndexerServer.h>
 #include <iostream>
 
 using namespace std;
 using namespace izenelib::ir::indexmanager;
+using namespace izenelib::ir::indexmanager::server;
 
 BTreeIndexerStubImpl::BTreeIndexerStubImpl(BTreeIndexer* pBTreeIndexer)
     :pBTreeIndexer_(pBTreeIndexer)
@@ -14,7 +16,7 @@ rpc_ret_t BTreeIndexerStubImpl::add(collectionid_t colID, fieldid_t fid, Propert
     return 0;
 }
 
-BTreeIndexerServer::BTreeIndexerServer(string port, BTreeIndexer* pBTreeIndexer)
+BTreeIndexerServerImpl::BTreeIndexerServerImpl(string port, BTreeIndexer* pBTreeIndexer)
     :pBTreeIndexer_(pBTreeIndexer)
 {
     try{
@@ -33,17 +35,27 @@ BTreeIndexerServer::BTreeIndexerServer(string port, BTreeIndexer* pBTreeIndexer)
     }
 }
 
-BTreeIndexerServer::~BTreeIndexerServer()
+BTreeIndexerServerImpl::~BTreeIndexerServerImpl()
 {
     delete acceptor_;
     delete server_;
+}
+
+BTreeIndexerServer::BTreeIndexerServer(string port, BTreeIndexer* pBTreeIndexer)
+{
+    pImpl_ = new BTreeIndexerServerImpl(port, pBTreeIndexer);
+}
+
+BTreeIndexerServer::~BTreeIndexerServer()
+{
+    delete pImpl_;
 }
 
 
 void BTreeIndexerServer::run()
 {
     try{
-        server_->start();
+        pImpl_->server_->start();
     }catch (const std::exception& exp)
     {
         cout<<exp.what()<<endl;

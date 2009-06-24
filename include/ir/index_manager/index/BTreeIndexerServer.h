@@ -1,36 +1,13 @@
 #ifndef BTREEINDEXERSERVER_H
 #define BTREEINDEXERSERVER_H
 
-#include <3rdparty/febird/io/boostvariant.h>
-#include <3rdparty/febird/io/SocketStream.h>
-#include <3rdparty/febird/rpc/server.h>
-
 #include <ir/index_manager/index/BTreeIndex.h>
-
-using namespace febird;
-using namespace febird::rpc;
 
 NS_IZENELIB_IR_BEGIN
 
 namespace indexmanager{
 
-namespace server{
-BEGIN_RPC_INTERFACE(BTreeIndexerStub, GlobaleScope)
-    RPC_ADD_MF(add)
-END_RPC_ADD_MF()
-    RPC_DECLARE_MF(add, (collectionid_t colID, fieldid_t fid, PropertyType& value, docid_t docid))
-END_RPC_INTERFACE()
-}
-
-class BTreeIndexerStubImpl:public izenelib::ir::indexmanager::server::BTreeIndexerStub
-{
-public:
-    BTreeIndexerStubImpl(BTreeIndexer* pBTreeIndexer);
-
-    rpc_ret_t add(collectionid_t colID, fieldid_t fid, PropertyType& value, docid_t docid);
-private:
-    BTreeIndexer* pBTreeIndexer_;
-};
+class BTreeIndexerServerImpl;
 
 class BTreeIndexerServer
 {
@@ -42,18 +19,16 @@ public:
     void run();
 
 private:
-    SocketAcceptor* acceptor_;
-
-    rpc_server<PortableDataInput, PortableDataOutput> * server_;
-
-    BTreeIndexer* pBTreeIndexer_;
+    ///we have to provide a class BTreeIndexerServerImpl because there exists macro definition confliction
+    ///in febird/rpc/client.h and febird/rpc/server.h. Febird is reasonable because the general rpc based 
+    ///application would have separated instances, however index-manager is going to be built into a single
+    ///library which could serve for both client and server.
+    BTreeIndexerServerImpl* pImpl_;
 };
-
 
 }
 
 NS_IZENELIB_IR_END
-
 
 #endif
 
