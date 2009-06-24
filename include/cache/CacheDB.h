@@ -124,7 +124,11 @@ public:
 	void resetStartingTime() {
 		mCache_.resetStartingTime();
 	}
-
+    
+	void sync(){
+	  dataHash_.commit();
+	}
+  
 protected:
 	MCache mCache_;
 	DataHash dataHash_;
