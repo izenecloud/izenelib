@@ -19,6 +19,6 @@ PROJECT (hello)
 
 FIND_PACKAGE(izenelib 1.0.0 REQUIRED COMPONENTS febird)
 INCLUDE_DIRECTORIES(${izenelib_INCLUDE_DIRS})
-TARGET_LINK_LIBRARIES(hello febird_shared)
 
 ADD_EXECUTABLE(hello hello.cpp)
+TARGET_LINK_LIBRARIES(hello febird_shared)

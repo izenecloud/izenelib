@@ -77,7 +77,7 @@ public:
 		insertValue( DataType(key, value) );
 	}
 	
-	void updateValue(const DataType& dat) // insert an new item into MCache
+	bool updateValue(const DataType& dat) // insert an new item into MCache
 	{
 		lock.acquire_write_lock();
 		KeyType key = dat.get_key();
@@ -88,12 +88,13 @@ public:
 				cacheContainer_.firstInsert(key); //Insert the corresponding CacheInfo into KeyInfoMap_.        
 			}
 		} 
+		return true;
 		lock.release_write_lock();
 		
 	}	
-	void updateValue(const KeyType& key, const ValueType& value) // insert an new item into MCache
+	bool updateValue(const KeyType& key, const ValueType& value) // insert an new item into MCache
 	{
-		updateValue( DataType(key, value) );
+		return updateValue( DataType(key, value) );
 	}
 	
 	bool getValueNoInsert(const KeyType& key, ValueType& value); //  not insert even if not found.		
@@ -268,7 +269,8 @@ template <class KeyType, class ValueType, class ReplacementPolicy, class Hash,
 		Hash, LockType>::insertValue(const DataType& dat) {
 	lock.acquire_write_lock();
 	KeyType key = dat.get_key();
-	if (hash_.insert(dat) ) {
+	if( hasKey(key) )return;
+	if ( hash_.insert(dat) ) {
 		if (cacheContainer_.find(key)) {
 			cacheContainer_.replace(key);
 		} else {
@@ -332,7 +334,7 @@ template <class KeyType, class ValueType, class ReplacementPolicy, class Hash,
 		class LockType> bool MCache<KeyType, ValueType, ReplacementPolicy,
 		Hash, LockType>::hasKey(const KeyType& key) {
 	lock.acquire_read_lock();
-	bool isFound = cacheContainer_.find(key);
+	bool isFound = cacheContainer_.find(key) || hash_.find(key);
 	lock.release_read_lock();
 	return (isFound );
 }

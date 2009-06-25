@@ -31,6 +31,7 @@ size_t ENTRY_POW = 17
 public:
 	cccr_hash()
 	{
+	    entry_ = new char*[ENTRY_SIZE];
 		for(size_t i=0; i<ENTRY_SIZE; i++)
 		{
 			entry_[i] = NULL;
@@ -45,6 +46,7 @@ public:
 			if (entry_[i]!=NULL) delete entry_[i];
 			entry_[i] = NULL;
 		}
+		delete entry_;
 	}
 
 	bool insert(const DataType& data) {
@@ -426,7 +428,7 @@ public:
 	 }*/
 
 protected:
-	char* entry_[ENTRY_SIZE];
+	char** entry_;
 	vector<ValueType> dataVec_;
 	int count_;
 };

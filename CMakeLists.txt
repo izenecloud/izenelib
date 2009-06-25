@@ -39,6 +39,9 @@ Please clone it from izenesoft.com:/git/cmake.git. Then set EXTRA_CMAKE_MODULES_
 ENDIF(NOT EXTRA_CMAKE_MODULES_DIRS)
 SET(CMAKE_MODULE_PATH ${EXTRA_CMAKE_MODULES_DIRS})
 
+INCLUDE_DIRECTORIES(/usr/local/boost-1_36/include)
+LINK_DIRECTORIES(/usr/local/boost-1_36/lib)
+
 # force out-of-source build
 IF (CMAKE_BINARY_DIR STREQUAL CMAKE_SOURCE_DIR)
   MESSAGE(FATAL_ERROR "In source build is not allowed")
@@ -124,7 +127,7 @@ SET(PROJECT_VERSION "${PROJECT_VERSION_MAJOR}.${PROJECT_VERSION_MINOR}.${PROJECT
 SET(PROJECT_PACKAGE "izenelib")
 SET(PROJECT_VERSION_STRING "${PROJECT_PACKAGE} ${PROJECT_VERSION}")
 
-# tagged prefi
+# tagged prefix
 SET(VERSION_INSTALL_PREFIX "${PROJECT_PACKAGE}-${PROJECT_VERSION}")
 
 ##################################################
@@ -173,6 +176,8 @@ INCLUDE_DIRECTORIES("${CMAKE_SOURCE_DIR}/include/3rdparty")
 
 SET_PROPERTY(GLOBAL PROPERTY BUILD_COMPONENTS)
 SET_PROPERTY(GLOBAL PROPERTY NON_BUILD_COMPONENTS)
+
+SET(LIBRARY_OUTPUT_PATH "${CMAKE_SOURCE_DIR}/lib")
 
 # third party libraries
 # put it first, they may be referred in other components
