@@ -25,7 +25,7 @@ public:
 
     void addProperty(fieldid_t fid, boost::shared_ptr<LAInput> laInput);
 	
-    void close();
+    void flush();
 
 private:
     Directory* pDirectory_;

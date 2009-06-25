@@ -42,7 +42,11 @@ FSIndexOutput::FSIndexOutput(const char* filename, size_t buffsize, const string
     if (mode.compare("w+b") == 0)
         fileHandle_ = fopen(filename, "w+b");
     else if(mode.compare("r+") == 0)
+    {
         fileHandle_ = fopen(filename, "r+");
+        if(fileHandle_ == NULL)
+            fileHandle_ = fopen(filename, "a+");
+    }
     else if(mode.compare("a+") == 0)
         fileHandle_ = fopen(filename, "a+");
     else

@@ -47,6 +47,11 @@ public:
          return new UDTFSIndexOutput(name.c_str(), 1024*1024, mode);
     }
 
+    IndexOutput* createOutput(const string& name, size_t buffersize, const string& mode = "w+b")
+    {
+        return new UDTFSIndexOutput(name.c_str(), buffersize, mode);
+    }
+
     void close(){ }
 };
 

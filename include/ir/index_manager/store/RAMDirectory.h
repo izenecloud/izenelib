@@ -139,6 +139,8 @@ public:
 
     IndexOutput* createOutput(const string& name, const string& mode);
 
+    IndexOutput* createOutput(const string& name, size_t buffersize, const string& mode = "w+b");	
+
     void close();
 
 private:

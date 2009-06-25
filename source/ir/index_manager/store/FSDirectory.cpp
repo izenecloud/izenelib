@@ -228,6 +228,12 @@ IndexOutput* FSDirectory::createOutput(const string& name, const string& mode)
     return new FSIndexOutput(fullpath.c_str(), mode);
 }
 
+IndexOutput* FSDirectory::createOutput(const string& name, size_t buffersize, const string& mode)
+{
+    string fullpath = directory + "/" + name;
+    return new FSIndexOutput(fullpath.c_str(), buffersize, mode);
+}
+
 void FSDirectory::close()
 {
     //boost::mutex::scoped_lock lock(this->mutex_);

@@ -118,6 +118,7 @@ void IndexBarrelWriter::writeCache()
         pCollectionsInfo->write(fdiOutput);
         fdiOutput->flush();
         delete fdiOutput;
+        pForwardIndexWriter_->flush();
     }
     catch (const FileIOException& e)
     {

@@ -48,6 +48,8 @@ public:
 
     virtual IndexOutput* createOutput(const string& name, const string& mode = "w+b") = 0;
 
+    virtual IndexOutput* createOutput(const string& name, size_t buffersize, const string& mode = "w+b") = 0;
+
     virtual void close() = 0;
 };
 

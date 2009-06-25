@@ -297,6 +297,26 @@ IndexOutput* RAMDirectory::createOutput(const string& name, const string& mode)
     return ret;
 }
 
+IndexOutput* RAMDirectory::createOutput(const string& name, size_t buffersize, const string& mode)
+{
+    //TODO:LOCK IT
+    map<string,RAMFile*>::iterator iter = files.find(name);
+
+    if (iter != files.end())
+    {
+        RAMFile* rf = iter->second;
+        delete rf;
+        files.erase(iter);
+    }
+
+    RAMFile* file = new RAMFile();
+    files[name] = file;
+
+    RAMIndexOutput* ret = new RAMIndexOutput(file);
+    return ret;
+}
+
+
 void RAMDirectory::close()
 {
     //TODO:lock it

@@ -6,15 +6,23 @@ ForwardIndexWriter::ForwardIndexWriter(Directory* pDirectory)
     :pDirectory_(pDirectory)
     ,forwardIndex_(NULL)
 {
-    pDOCOutput_ = pDirectory_->createOutput("forward.doc", "r+");
-    pFDIOutput_ = pDirectory_->createOutput("forward.fdi", "a+");
-    pVOCOutput_ = pDirectory_->createOutput("forward.voc", "a+");
-    pPOSOutput_ = pDirectory_->createOutput("forward.pos", "a+");
+    size_t buffersize = 1024*1024*10;
+    pDOCOutput_ = pDirectory_->createOutput("forward.doc", buffersize, "r+");
+    pFDIOutput_ = pDirectory_->createOutput("forward.fdi", buffersize, "a+");
+    pVOCOutput_ = pDirectory_->createOutput("forward.voc", buffersize, "a+");
+    pPOSOutput_ = pDirectory_->createOutput("forward.pos", buffersize, "a+");
 }
 
 ForwardIndexWriter::~ForwardIndexWriter()
 {
-    close();
+    if(pDOCOutput_)
+        delete pDOCOutput_;
+    if(pFDIOutput_)
+        delete pFDIOutput_;
+    if(pVOCOutput_)
+        delete pVOCOutput_;
+    if(pPOSOutput_)
+        delete pPOSOutput_;
 
     if(forwardIndex_)
         delete forwardIndex_;
@@ -46,20 +54,19 @@ void ForwardIndexWriter::addProperty(fieldid_t fid, boost::shared_ptr<LAInput> l
         pForwardIndexOffset->push_back(make_pair(iter->wordOffset_, iter->byteOffset_));
     }
 
-    size_t nNumTerms = forwardIndex_->length();
+    size_t nNumTerms = forwardIndex_->size();
 
     pVOCOutput_->writeVInt(nNumTerms);
 
     unsigned int termId, lastTerm = 0;
 
-    ForwardIndex::array_iterator iter = forwardIndex_->elements();
-    while(iter.next())
+    for(ForwardIndex::iterator iter = forwardIndex_->begin(); iter != forwardIndex_->end(); ++iter)
     {
-        termId = (termid_t)iter.position();
+        termId = iter->first;
         pVOCOutput_->writeVInt(termId - lastTerm);
         lastTerm = termId;
         pVOCOutput_->writeVLong(pPOSOutput_->getFilePointer());
-        pForwardIndexOffset = iter.element();
+        pForwardIndexOffset = iter->second;
         int numPosition = pForwardIndexOffset->size();
         pPOSOutput_->writeVInt(numPosition);	
         unsigned int offset, lastOffset = 0;
@@ -74,22 +81,19 @@ void ForwardIndexWriter::addProperty(fieldid_t fid, boost::shared_ptr<LAInput> l
             pPOSOutput_->writeVInt(offset - lastOffset);
             lastOffset = offset;
         }
+		
         delete pForwardIndexOffset;
     }
 
-    forwardIndex_->reset();
+    forwardIndex_->clear();
 }
 
-void ForwardIndexWriter::close()
+void ForwardIndexWriter::flush()
 {
-    if(pDOCOutput_)
-        delete pDOCOutput_;
-    if(pFDIOutput_)
-        delete pFDIOutput_;
-    if(pVOCOutput_)
-        delete pVOCOutput_;
-    if(pPOSOutput_)
-        delete pPOSOutput_;
+    pDOCOutput_->flush();
+    pFDIOutput_->flush();
+    pVOCOutput_->flush();
+    pPOSOutput_->flush();
 }
 
 
