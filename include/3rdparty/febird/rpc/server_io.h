@@ -29,7 +29,7 @@ template<class Input>  class server_object_input
 	template<class T, class U>
 	void load(T*& x, AccessByNameID<boost::intrusive_ptr<U> >* byid)
 	{
-		typename T::SFINAE_ro_self_t* for_check = 0;
+		//typename T::SFINAE_ro_self_t* for_check = 0;
 		var_uint32_t objid;
 		*p >> objid;
 		std::string err;
@@ -88,7 +88,7 @@ template<class Output> class server_object_output
 	void save(T* x, AccessByNameID<boost::intrusive_ptr<U> >* byid, const char* szBaseName)
 	{
 		// do nothing...
-		typename T::SFINAE_ro_self_t* for_check = 0;
+		//typename T::SFINAE_ro_self_t* for_check = 0;
 
 // 		var_uint32_t objid(x->getID());
 // 		if (!byid->is_valid(objid.t))

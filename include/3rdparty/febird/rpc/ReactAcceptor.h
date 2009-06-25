@@ -56,6 +56,9 @@ public:
 	{
 
 	}
+
+	virtual ~Session(){}
+	
 	virtual Request* decode();
 };
 

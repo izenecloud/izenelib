@@ -135,7 +135,7 @@ bool rpc_server_base::addto_factroy(ClassMeta* meta, SessionScope* scopeTag)
 
 void rpc_server_base::gen_stubs(ClassMeta* meta)
 {
-	for (int i = 0; i != meta->stubs.size(); ++i)
+	for (unsigned int i = 0; i != meta->stubs.size(); ++i)
 	{
 		server_stub_i* s = meta->stubs[i], *s2;
 		s->m_id = m_stubTable.add_ptr(s, s->m_name, &s2);

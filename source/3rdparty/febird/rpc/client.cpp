@@ -182,13 +182,13 @@ void rpc_client_base::create_1(SessionScope& x, const std::string& instanceName)
 void rpc_client_base::create_0(GlobaleScope& x)
 {
 	var_uint32_t proxyID;
-	rpc_ret_t ret = this->createGlobaleObject(&proxyID, x.getClassName());
+	this->createGlobaleObject(&proxyID, x.getClassName());
 	x.setID(proxyID.t);
 }
 void rpc_client_base::create_0(SessionScope& x)
 {
 	var_uint32_t proxyID;
-	rpc_ret_t ret = this->createSessionObject(&proxyID,x.getClassName());
+	this->createSessionObject(&proxyID,x.getClassName());
 	x.setID(proxyID.t);
 }
 

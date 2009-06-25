@@ -169,7 +169,7 @@ class client_stub_ref<rpc_ret_t (ThisType::*)(BOOST_PP_ENUM_PARAMS(ArgCount, Arg
 	client_stub_i* m_meta;
 
 public:
-	client_stub_ref() : m_meta(0), m_self(0), on_return(0) {}
+	client_stub_ref() : on_return(0), m_self(0), m_meta(0) {}
 
 	template<class ThisDerived>
 	void set_async_callback(void (ThisDerived::*pf)(const client_packet_base&
