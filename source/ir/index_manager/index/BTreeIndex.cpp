@@ -67,8 +67,6 @@ BTreeIndexer::~BTreeIndexer()
 
 void BTreeIndexer::add(collectionid_t colID, fieldid_t fid, PropertyType& value, docid_t docid)
 {
-	cout<<"add "<<docid<<endl;
-
     izenelib::util::boost_variant_visit(boost::bind(add_visitor(), colID, fid, _1, docid), value);
 }
 

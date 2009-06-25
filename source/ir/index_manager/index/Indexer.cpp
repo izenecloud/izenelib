@@ -204,7 +204,6 @@ void Indexer::initIndexManager()
         openDirectory();
 
         pBTreeIndexer_ = new BTreeIndexer(pConfigurationManager_->indexStrategy_.indexLocation_, degree, cacheSize, maxDataSize);
-        pBTreeIndexerServer_ = new BTreeIndexerServer(pConfigurationManager_->distributeStrategy_.rpcport_, pBTreeIndexer_);
 
     }
     pIndexWriter_ = new IndexWriter(this);
@@ -212,6 +211,8 @@ void Indexer::initIndexManager()
 
     if(managerType_ == MANAGER_TYPE_INDEXPROCESS)
     {
+        pBTreeIndexerServer_ = new BTreeIndexerServer(pConfigurationManager_->distributeStrategy_.rpcport_, pBTreeIndexer_);
+    
         boost::thread rpcServerThread(boost::bind(&BTreeIndexerServer::run, pBTreeIndexerServer_));
         rpcServerThread.detach();
 
