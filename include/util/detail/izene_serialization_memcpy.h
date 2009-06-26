@@ -82,8 +82,8 @@ public:
 };
 
 template<> class izene_deserialization_memcpy<std::string> {
-	const char* &ptr_;
-	const size_t &size_;
+	const char* ptr_;
+	const size_t size_;
 public:
 	izene_deserialization_memcpy(const char* ptr, const size_t size) :
 		ptr_(ptr), size_(size) {
@@ -113,8 +113,8 @@ public:
 };
 
 template<typename T> class izene_deserialization_memcpy< std::vector<T> > {
-	const char* &ptr_;
-	const size_t& size_;
+	const char* ptr_;
+	const size_t size_;
 public:
 	izene_deserialization_memcpy(const char* ptr, const size_t size) :
 		ptr_(ptr), size_(size) {
@@ -186,8 +186,8 @@ izene_serialization_memcpy(const TYPE& dat):dat_(dat) {} \
 	} \
 }; \
 template<> class izene_deserialization_memcpy<TYPE> { \
-    const char* &ptr_; \
-    const size_t &size_; \
+    const char* ptr_; \
+    const size_t size_; \
 public: \
     izene_deserialization_memcpy(const char* ptr, const size_t size):ptr_(ptr),size_(size){}\
 	void read_image(TYPE& dat) { \
@@ -210,8 +210,8 @@ izene_serialization_memcpy(const TYPE& dat):dat_(dat) {} \
 	} \
 }; \
 template<> class izene_deserialization_memcpy<TYPE> { \
-    const char* &ptr_; \
-    const size_t &size_; \
+    const char* ptr_; \
+    const size_t size_; \
 public: \
     izene_deserialization_memcpy(const char* ptr, const size_t size):ptr_(ptr),size_(size){}\
 	void read_image(TYPE& dat) { \
