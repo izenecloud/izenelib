@@ -16,11 +16,15 @@ SDB_BTREE1_OBJ := t_sdb_btree1.o
 
 SDB_BTREE2_OBJ := t_sdb_btree2.o
 
+TEST_OBJ := t_sdb_unit.o
 
-all:  t_sdb_btree  t_sdb_btree1 #t_sdb_btree2
+all: t_sdb_unit  t_sdb_btree  t_sdb_btree1 #t_sdb_btree2
 
 .cpp.o:
 	$(GPP) $(CC_OPTIONS) $(INC_PATH)  $< 
+
+t_sdb_unit:  $(TEST_OBJ)
+	$(GPP) $(TEST_OBJ) $(LIBS)  -o $@ -pg  
 
 t_sdb_btree:  $(SDB_BTREE_OBJ)
 	$(GPP) $(SDB_BTREE_OBJ) $(LIBS)  -o $@ -pg		
