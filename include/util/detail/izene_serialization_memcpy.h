@@ -82,15 +82,18 @@ public:
 };
 
 template<> class izene_deserialization_memcpy<std::string> {
-	const char* &ptr_;
-	const size_t &size_;
-public:
-	izene_deserialization_memcpy(const char* ptr, const size_t size) :
-		ptr_(ptr), size_(size) {
+	// const size_t &size_;
+	// const char* &ptr_;
+	const size_t size_; // Modified @ Liang Mei
+	const char* ptr_;
 
-	}
+public:
+	
+	izene_deserialization_memcpy(const char * ptr, const size_t size) :
+		size_(size), ptr_(ptr) {}
+
 	void read_image(std::string& dat) {
-		dat = std::string(ptr_);
+		dat = std::string(ptr_, size_);
 	}
 };
 
