@@ -8,8 +8,6 @@
 #include <cache/MFCache.h>
 #include <cache/CacheDB.h>
 
-
-
 using namespace std;
 //using namespace ylib;
 using namespace izenelib::cache;
@@ -82,6 +80,9 @@ template<typename T> void run(T& cm) {
 
 	cout<<"Testing insertValue()"<<endl;
 	run_insertValue(cm);
+
+	cout<<"Testing updateValue()"<<endl;
+	run_updateValue(cm);
 
 	//cout<<"Testing update"<<endl;
 	//run_Update(cm);
@@ -180,6 +181,32 @@ template<typename T> void run_getValue(T& cm) {
 			hit++;
 		if (trace) {
 			cout<< "getValue: value="<<ystr<<endl;
+			//cm.printKeyInfoMap();
+			cout<< "MCache numItem = "<<cm.numItems()<<endl;
+			cm.displayHash();
+		}
+	}
+	//cout<<"Memory usage: " <<cm.getMemSizeOfValue()<<" bytes"<<endl;
+	cout<<"MCache with "<<"CacheSize="<<cacheSize<<endl;
+	cout<<"Hit ratio: "<<hit<<" / "<<sum<<endl;
+	cout<<"eclipse:"<<time(0)- start<<endl;
+	cout<< "MCache numItem = "<<cm.numItems()<<endl;
+
+}
+
+template<typename T> void run_updateValue(T& cm) {
+	sum =0;
+	hit =0;
+	start = time(0);
+	ifstream inf(inputFile.c_str());
+	string ystr;
+	Value val;
+	while (inf>>ystr) {
+		sum++;
+		if (cm.updateValue(ystr, val))
+			hit++;
+		if (trace) {
+			cout<< "updateValue: key="<<ystr<<endl;
 			//cm.printKeyInfoMap();
 			cout<< "MCache numItem = "<<cm.numItems()<<endl;
 			cm.displayHash();

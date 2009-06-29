@@ -39,6 +39,9 @@ Please clone it from izenesoft.com:/git/cmake.git. Then set EXTRA_CMAKE_MODULES_
 ENDIF(NOT EXTRA_CMAKE_MODULES_DIRS)
 SET(CMAKE_MODULE_PATH ${EXTRA_CMAKE_MODULES_DIRS})
 
+INCLUDE_DIRECTORIES(/usr/local/boost-1_36/include)
+LINK_DIRECTORIES(/usr/local/boost-1_36/lib)
+
 # force out-of-source build
 IF (CMAKE_BINARY_DIR STREQUAL CMAKE_SOURCE_DIR)
   MESSAGE(FATAL_ERROR "In source build is not allowed")
@@ -117,11 +120,8 @@ SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS}" CACHE STRING
 ##################################################
 # Project Info
 #####
-SET(PROJECT_VERSION_MAJOR 1)
-SET(PROJECT_VERSION_MINOR 0)
-SET(PROJECT_VERSION_PATCH 0)
+INCLUDE(ProjectVersion.cmake)
 SET(PROJECT_VERSION "${PROJECT_VERSION_MAJOR}.${PROJECT_VERSION_MINOR}.${PROJECT_VERSION_PATCH}")
-SET(PROJECT_PACKAGE "izenelib")
 SET(PROJECT_VERSION_STRING "${PROJECT_PACKAGE} ${PROJECT_VERSION}")
 
 # tagged prefix
@@ -149,11 +149,11 @@ INSTALL(
 # Config File
 #####
 CONFIGURE_FILE(
-  "${CMAKE_CURRENT_SOURCE_DIR}/${PROJECT_PACKAGE}-config.cmake.in"
+  "${CMAKE_CURRENT_SOURCE_DIR}/package-config.cmake.in"
   "${CMAKE_BINARY_DIR}/${PROJECT_PACKAGE}-config.cmake"
   ESCAPE_QUOTES @ONLY)
 CONFIGURE_FILE(
-  "${CMAKE_CURRENT_SOURCE_DIR}/${PROJECT_PACKAGE}-config-version.cmake.in"
+  "${CMAKE_CURRENT_SOURCE_DIR}/package-config-version.cmake.in"
   "${CMAKE_BINARY_DIR}/${PROJECT_PACKAGE}-config-version.cmake"
   ESCAPE_QUOTES @ONLY)
 INSTALL(FILES
