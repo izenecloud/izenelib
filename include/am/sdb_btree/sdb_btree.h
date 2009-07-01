@@ -1239,7 +1239,7 @@ template<typename KeyType, typename ValueType, typename LockType,
 
 	struct stat statbuf;
 	bool creating = stat(_fileName.c_str(), &statbuf);
-
+	
 	_dataFile = fopen(_fileName.c_str(), creating ? "w+b" : "r+b");
 	if (0 == _dataFile) {
 #ifdef DEBUG		

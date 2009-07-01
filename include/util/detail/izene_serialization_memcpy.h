@@ -91,7 +91,7 @@ public:
 
 	}
 	void read_image(std::string& dat) {
-		dat = std::string(ptr_);
+		dat = std::string(ptr_, size_);
 	}
 };
 

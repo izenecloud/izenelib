@@ -402,10 +402,9 @@ template<typename KeyType, typename ValueType, typename LockType,
 		
 			//ptr1.reset(new DbObj(vBuf, vsize));
 			//read_image(values[i], ptr1);
-			
 			izene_deserialization<ValueType> izd1(p, vsize);
 			izd1.read_image( values[i] );
-			
+
 			p += vsize;		
 			
 			//delete[] vBuf;
@@ -517,8 +516,6 @@ template<typename KeyType, typename ValueType, typename LockType,
 		izene_serialization<ValueType> izs1( values[i] );
 		izs.write_image(ptr, ksize);
 		izs1.write_image(ptr1, vsize);
-		
-		
 		
 		size_t esize = 2*sizeof(size_t)+ksize+vsize;
 
