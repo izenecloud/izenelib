@@ -402,10 +402,9 @@ template<typename KeyType, typename ValueType, typename LockType,
 		
 			//ptr1.reset(new DbObj(vBuf, vsize));
 			//read_image(values[i], ptr1);
-			
 			izene_deserialization<ValueType> izd1(p, vsize);
 			izd1.read_image( values[i] );
-			
+
 			p += vsize;		
 			
 			//delete[] vBuf;
@@ -518,21 +517,21 @@ template<typename KeyType, typename ValueType, typename LockType,
 		izs.write_image(ptr, ksize);
 		izs1.write_image(ptr1, vsize);
 		
-		
-		
 		size_t esize = 2*sizeof(size_t)+ksize+vsize;
 
 		//when overflowing occurs, append the overflow buf
 		if (tsz+esize+sizeof(size_t) > _pageSize) {
 			size_t endflag = 0;
-			memcpy(p, &endflag, sizeof(size_t));
-			char *temp = new char[(np+1)*_pageSize];
+			memcpy(p, &endflag, sizeof(size_t));			
+			
+			int incr_np = ( tsz+esize+sizeof(size_t)-1)/_pageSize + 1;
+			char *temp = new char[(np+incr_np)*_pageSize];
 			memcpy(temp, pBuf, np*_pageSize);
 			delete pBuf;
 			pBuf = temp;
 			p = pBuf+np*_pageSize;
 			tsz = 0;
-			++np;
+			np+=incr_np;
 		}
 		memcpy(p, &ksize, sizeof(size_t));
 		p += sizeof(size_t);

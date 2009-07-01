@@ -1,6 +1,6 @@
 #include <ctime>
 #include <am/sdb_hash/sdb_hash.h>
-#include <am_test/am_test.h>
+#include <am/am_test/am_test.h>
 
 int rnd = 0;
 

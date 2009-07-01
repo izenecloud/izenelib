@@ -8,7 +8,7 @@
 #define HashFunction_h 1
 #include <stdlib.h>
 #include "../am/util/DbObj.h"
-#include "../am/util/Wrapper.h"
+//#include "../am/util/Wrapper.h"
 #include "izene_serialization.h"
 
 NS_IZENELIB_UTIL_BEGIN
@@ -222,11 +222,13 @@ public:
 template<typename KeyType> inline ub4 sdb_hashing(const KeyType& key) {
 	using namespace izenelib::am::util;
 
-	DbObjPtr ptr(new DbObj);
-	write_image(key, ptr);
+	char* ptr = 0;
+	size_t ksize;
+	izene_serialization<KeyType> izs(key);
+	izs.write_image(ptr, ksize);
 	uint32_t convkey = 0;
-	const char* str = (const char*)ptr->getData();
-	for (size_t i = 0; i < ptr->getSize(); i++)
+	char* str = ptr;
+	for (size_t i = 0; i < ksize; i++)
 		convkey = 37*convkey + (uint8_t)*str++;
 	return convkey;
 }
@@ -234,11 +236,14 @@ template<typename KeyType> inline ub4 sdb_hashing(const KeyType& key) {
 template<class T> struct HashFunctor {
 	size_t operator()(const T& key) const {
 		using namespace izenelib::am::util;
-		DbObjPtr ptr(new DbObj);
-		write_image(key, ptr);
+		char* ptr = 0;
+		size_t ksize;
+		izene_serialization<T> izs(key);
+		izs.write_image(ptr, ksize);
+		
+		char* str = ptr;
 		uint32_t convkey = 0;
-		const char* str = (const char*)ptr->getData();
-		for (size_t i = 0; i < ptr->getSize(); i++)
+		for (size_t i = 0; i < ksize; i++)
 			convkey = 37*convkey + (uint8_t)*str++;
 		return convkey;
 	}
@@ -253,9 +258,9 @@ inline uint32_t sdb_hash_fun(const void* kbuf, const size_t ksize) {
 }
 
 template<typename KeyType> inline ub4 izene_hashing(const KeyType& key) {
-	char* ptr = 0;			
-	size_t ksize;			
-	izene_serialization<KeyType> izs(key);				
+	char* ptr = 0;
+	size_t ksize;
+	izene_serialization<KeyType> izs(key);
 	izs.write_image(ptr, ksize);
 
 	uint32_t convkey = 0;
@@ -266,10 +271,9 @@ template<typename KeyType> inline ub4 izene_hashing(const KeyType& key) {
 
 template<class T> struct izene_HashFunctor {
 	size_t operator()(const T& key) const {
-	    return izene_hashing( key );
+		return izene_hashing(key);
 	}
 };
-
 
 NS_IZENELIB_UTIL_END
 #endif

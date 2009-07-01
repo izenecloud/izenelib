@@ -159,13 +159,22 @@ struct SOBJ {
 	int a;
 	int b;
 	int c;
-	bool operator ==(const SOBJ& other) {
+	bool operator ==(const SOBJ& other)const {
 		return a == other.a && b == other.b && c == other.c;
 	}
+        
+        template<class Archive> void serialize(Archive & ar,
+                        const unsigned int version) {
+                ar & a;
+                ar & b;
+                ar & c;
+        }
+
 };
 
 MAKE_MEMCPY_TYPE(SOBJ);
 
+//MAKE_MEMCPY_SERIALIZATION(vector<SOBJ> );
 //MAKE_MEMCPY_SERIALIZATION(SOBJ)
 
 MAKE_FEBIRD_SERIALIZATION( vector<string> )
@@ -210,6 +219,30 @@ int main() {
 	
 	vector<int> va;
 	test_serialization(va);
+        vector<SOBJ> vsobj;
+        vsobj.push_back(so);
+        vsobj.push_back(so);
+        test_serialization(vsobj);
+        string shit("[NONE]SENSITIVE");
+        test_serialization(shit); 
+        
+        {     
+        
+  vector< vector<int> > vvint;
+  vector<int> a;
+  a.push_back(1);
+  a.push_back(2);
+  vector<int> b;
+  a.push_back(3);
+  vvint.push_back(a);
+  vvint.push_back(b);
+  
+  test_serialization(vvint);
+  test_serialization_boost(vvint);
+  test_serialization_febird(vvint);
+  
+        }
+        
 
 	/*	test1();
 	 test2();
