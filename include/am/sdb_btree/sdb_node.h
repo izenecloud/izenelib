@@ -525,14 +525,16 @@ template<typename KeyType, typename ValueType, typename LockType,
 		//when overflowing occurs, append the overflow buf
 		if (tsz+esize+sizeof(size_t) > _pageSize) {
 			size_t endflag = 0;
-			memcpy(p, &endflag, sizeof(size_t));
-			char *temp = new char[(np+1)*_pageSize];
+			memcpy(p, &endflag, sizeof(size_t));			
+			
+			int incr_np = ( tsz+esize+sizeof(size_t)-1)/_pageSize + 1;
+			char *temp = new char[(np+incr_np)*_pageSize];
 			memcpy(temp, pBuf, np*_pageSize);
 			delete pBuf;
 			pBuf = temp;
 			p = pBuf+np*_pageSize;
 			tsz = 0;
-			++np;
+			np+=incr_np;
 		}
 		memcpy(p, &ksize, sizeof(size_t));
 		p += sizeof(size_t);

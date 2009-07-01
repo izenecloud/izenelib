@@ -35,6 +35,33 @@ void ReportUsage(void) {
 			<<"\nUSAGE:./test [-T <trace_option>] [-loop <num>][-n <num>] [-rnd <1|0>] <input_file>\n\n";
 }
 
+
+void run1()
+{
+
+	{
+		cout<<"\nsdb_btree<int, UString>"<<endl;
+		typedef sdb_btree<int, UString> SBTREE_STRING_INT;
+		AmTest<int, UString, SBTREE_STRING_INT, true> am;
+		am.setNum(num);
+		am.setRandom(rnd);
+		run_am_nod(am);
+	}
+
+	cout<<"\n============sdb_hash===============\n"<<endl;
+
+	{
+		cout<<"\nsdb_hash<ustring, int>"<<endl;
+		typedef sdb_hash<UString, int> SBTREE_STRING_INT;
+		AmTest<UString, int, SBTREE_STRING_INT, true> am;
+		am.setNum(num);
+		am.setRandom(rnd);
+		run_am(am);
+	}
+
+
+}
+
 void run() {
 	cout<<"\n============tc_hash===============\n"<<endl;
 
@@ -205,7 +232,7 @@ int main(int argc, char *argv[]) {
 		}
 	}
 	try {
-		run();
+		run1();
 	}
 
 	catch(bad_alloc)
