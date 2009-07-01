@@ -8,8 +8,6 @@
 
 #include <ir/index_manager/store/IndexOutput.h>
 
-#include <wiselib/ustring/UString.h>
-
 #include <boost/variant.hpp>
 #include <boost/shared_ptr.hpp>
 
