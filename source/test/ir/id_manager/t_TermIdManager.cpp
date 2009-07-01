@@ -217,7 +217,8 @@ BOOST_AUTO_TEST_CASE( TestCase1 )
 
 
     for(i = 0; i < termUStringList1_.size(); i++) 
-        termIdManager.getTermIdByTermString( termUStringList1_[i], termIdList1_[i] );
+      termIdManager.getTermIdByTermString( termUStringList1_[i], termIdList1_[i] );
+    
 
     for(i = 0; i < termUStringList2_.size(); i++) 
         termIdManager.getTermIdByTermString( termUStringList2_[i], termIdList2_[i] );
