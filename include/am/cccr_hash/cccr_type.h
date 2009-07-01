@@ -6,7 +6,7 @@
 #include <am/concept/DataType.h>
 
 #include <am/util/DbObj.h>
-#include <am/util/Wrapper.h>
+//#include <am/util/Wrapper.h>
 #include <am/util/SdbUtil.h>
 #include <am/util/Serialization.h>
 

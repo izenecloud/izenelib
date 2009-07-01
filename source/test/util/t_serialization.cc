@@ -226,6 +226,23 @@ int main() {
         string shit("[NONE]SENSITIVE");
         test_serialization(shit); 
         
+        {     
+        
+  vector< vector<int> > vvint;
+  vector<int> a;
+  a.push_back(1);
+  a.push_back(2);
+  vector<int> b;
+  a.push_back(3);
+  vvint.push_back(a);
+  vvint.push_back(b);
+  
+  test_serialization(vvint);
+  test_serialization_boost(vvint);
+  test_serialization_febird(vvint);
+  
+        }
+        
 
 	/*	test1();
 	 test2();

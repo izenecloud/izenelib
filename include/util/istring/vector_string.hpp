@@ -519,7 +519,7 @@ protected:
     return true;
   }
   
-  void derefer()
+  inline void derefer()
   { 
     if (!COPY_ON_WRITE)
     {
@@ -623,7 +623,7 @@ public:
   /**
    * Content is initialized to an empty string.
    **/
-  explicit vector_string()
+  inline explicit vector_string()
   {
     p_ = NULL;
     str_ = NULL;
@@ -751,7 +751,7 @@ public:
     assign(begin(), end);
   }
 
-  virtual ~vector_string()
+  inline virtual ~vector_string()
   {
     derefer();
   }
@@ -771,17 +771,17 @@ public:
    *The previous content is dropped.
    *The assign member function provides a similar functionality with additional options.
    **/
-  SelfT& operator= ( const SelfT& str )
+  inline SelfT& operator= ( const SelfT& str )
   {
     return this->assign(str);
   }
 
-  SelfT& operator= ( const CharT* s )
+  inline SelfT& operator= ( const CharT* s )
   {
     return this->assign(s);
   }
 
-  SelfT& operator= ( CharT c )
+  inline SelfT& operator= ( CharT c )
   {
     this->assign(1, c);
     return *this;
@@ -796,12 +796,12 @@ public:
    *string::const_iterator member type, which are compiler specific iterator
    *types suitable to iterate through the elements of a string object.
    **/
-  const_iterator begin() const
+  inline const_iterator begin() const
   {
     return const_iterator(str_);
   }
 
-  iterator begin()
+  inline iterator begin()
   {
     return iterator(this, str_);
   }
@@ -812,12 +812,12 @@ public:
    *or string::const_iterator member type, which are compiler specific iterator
    *types suitable to iterate through the elements of a string object.
    **/
-  const_iterator end() const
+  inline const_iterator end() const
   {
     return const_iterator(str_+length_);
   }
 
-  iterator end()
+  inline iterator end()
   {
     return iterator(this, str_+length_);
   }
@@ -828,12 +828,12 @@ public:
    *string::const_reverse_iterator member type, which are compiler specific iterator types
    *suitable to perform a reverse iteration through the elements of a string object.
    **/
-  reverse_iterator rbegin()
+  inline reverse_iterator rbegin()
   {
     return reverse_iterator(this, str_+length_-1);
   }
 
-  const_reverse_iterator rbegin() const
+  inline const_reverse_iterator rbegin() const
   {
     return const_reverse_iterator(str_+length_-1);
   }
@@ -845,12 +845,12 @@ public:
    *string::const_reverse_iterator member type, which are compiler specific iterator
    *types suitable to perform a reverse iteration through the elements of a string object.
    **/
-  reverse_iterator rend()
+  inline reverse_iterator rend()
   {
     return reverse_iterator(this, str_-1);
   }
 
-  const_reverse_iterator rend() const
+  inline const_reverse_iterator rend() const
   {
     return const_reverse_iterator(str_-1);
   }
@@ -863,7 +863,7 @@ public:
    *Returns a count of the number of bytes in the string.
    *string::length is an alias of string::size, sometimes, returning different value.
    **/
-  size_t size() const
+  inline size_t size() const
   {
     return length_ * sizeof(CharT);
   }
@@ -871,7 +871,7 @@ public:
   /**
    *Returns a count of the number of characters in the string.
    **/
-  size_t length() const
+  inline size_t length() const
   {
     return length_;
   }
@@ -879,7 +879,7 @@ public:
   /**
    *The maximum number of characters a string object can have as its content
    **/
-  size_t max_size ( ) const
+  inline size_t max_size ( ) const
   {
     return (max_size_);
   }
@@ -986,7 +986,7 @@ public:
    *
    *The real limit on the size a string object can reach is returned by member max_size.
    **/
-  size_t capacity ( ) const
+  inline size_t capacity ( ) const
   {
     return max_size_ * sizeof(CharT);
   }
@@ -1035,7 +1035,7 @@ public:
    *The string content is set to an empty string, erasing any previous content
    *and thus leaving its size at 0 characters.
    **/
-  void clear()
+  inline void clear()
   {
     derefer();
     length_ = max_size_ = 0;
@@ -1048,7 +1048,7 @@ public:
    *This function does not modify the content of the string in any way.
    *To clear the content of the string, member clear can be used.
    **/
-  bool empty ( ) const
+  inline bool empty ( ) const
   {
     return (length_==0);
   }
@@ -1090,7 +1090,7 @@ public:
     
   }
 
-  const CharT& operator[] ( size_t pos ) const
+  inline const CharT& operator[] ( size_t pos ) const
   {
     assert(pos<max_size_);
     return str_[pos];
@@ -1101,7 +1101,7 @@ public:
    *This member function behaves as operator[] , except that at also performs
    *a range check, throwing an assertion.
    **/
-  const CharT& at ( size_t pos ) const
+  inline const CharT& at ( size_t pos ) const
   {
     assert(pos<length_);
     return str_[pos];
@@ -1145,18 +1145,18 @@ public:
    *
    *The append member function provides a similar functionality with additional options.
    **/
-  SelfT& operator+= ( const SelfT& str )
+  inline SelfT& operator+= ( const SelfT& str )
   {
     return append(str);
   }
   
-  SelfT& operator+= ( const CharT* s )
+  inline SelfT& operator+= ( const CharT* s )
   {
     size_t len = getLen(s);
     return append(s, len);
   }
   
-  SelfT& operator+= ( CharT c )
+  inline SelfT& operator+= ( CharT c )
   {
     return append(1, c);
   }
@@ -1214,7 +1214,7 @@ public:
    *that begins at the character position pos and takes up to n characters
    *(it takes less than n if the end of string is reached before).
    **/
-  SelfT& append ( const SelfT& str, size_t pos, size_t n=npos )
+  inline SelfT& append ( const SelfT& str, size_t pos, size_t n=npos )
   {
     return append(str.substr(pos, n));
   }
@@ -1272,7 +1272,7 @@ public:
    *is determined by the first ocurrence of a null character (as determined
    *by traits.length(s)).
    **/
-  SelfT& append ( const CharT* s )
+  inline SelfT& append ( const CharT* s )
   {
     size_t len = getLen(s);
     return append(s, len);
@@ -1352,7 +1352,7 @@ public:
    *To append more than one character at a time, refer to either member
    *append or operator+= .
    **/
-  void push_back ( CharT c )
+  inline void push_back ( CharT c )
   {
     append(1, c);
   }
@@ -1650,7 +1650,7 @@ public:
    *position pos2 and takes up to n characters (it takes less than n 
    *if the end of str is reached before).
    **/  
-  SelfT& insert ( size_t pos1, const SelfT& str, size_t pos2, size_t n )
+  inline SelfT& insert ( size_t pos1, const SelfT& str, size_t pos2, size_t n )
   {
     return insert(pos1, str.substr(pos2, n));
   }
@@ -1659,7 +1659,7 @@ public:
    *Inserts at the character position pos1, a copy of the string formed
    *by the first n characters in the array of characters pointed by s.
    **/
-  SelfT& insert ( size_t pos1, const CharT* s, size_t n)
+  inline SelfT& insert ( size_t pos1, const CharT* s, size_t n)
   {
     SelfT ss(s, n);
     //ss.attach(s, n);
@@ -1672,7 +1672,7 @@ public:
    *The length of this caracter sequence is determined by the first 
    *ocurrence of a null character (as determined by traits.length(s)).
    **/
-  SelfT& insert ( size_t pos1, const CharT* s )
+  inline SelfT& insert ( size_t pos1, const CharT* s )
   {
     SelfT ss(s);
     //ss.attach(s);
@@ -1683,7 +1683,7 @@ public:
    *Inserts a string formed by a repetition of character c, n times,
    *at the character position pos1.
    **/
-  SelfT& insert ( size_t pos1, size_t n, CharT c )
+  inline SelfT& insert ( size_t pos1, size_t n, CharT c )
   {
     SelfT ss(n, c);
     return insert(pos1, ss);
@@ -1694,7 +1694,7 @@ public:
    *p and returns an iterator referring to this position where it has 
    *been inserted.
    **/
-  iterator insert ( iterator p, CharT c )
+  inline iterator insert ( iterator p, CharT c )
   {
     uint64_t i = p - str_;
     assign_self();
@@ -1706,7 +1706,7 @@ public:
    *Inserts a string formed by the repetition of character c, n times,
    *at the position referred by iterator p.
    **/  
-  void insert ( iterator p, size_t n, CharT c )
+  inline void insert ( iterator p, size_t n, CharT c )
   {
     uint64_t i = p - str_;
     assign_self();
@@ -1720,7 +1720,7 @@ public:
    *first to the element right before the one referred by iterator last.
    **/
   template<class InputIterator>
-  void insert( iterator p, InputIterator first, InputIterator last )
+  inline void insert( iterator p, InputIterator first, InputIterator last )
   {
     uint64_t i = p - str_;
     assign_self();
@@ -1775,7 +1775,7 @@ public:
    *Erases the character referred by the iterator position. 
    *Only one character is affected.
    **/  
-  iterator erase ( iterator position )
+  inline iterator erase ( iterator position )
   {
     uint64_t i = position - str_;
     erase(i, 1);
@@ -1785,7 +1785,7 @@ public:
   /**
    *Erases all the characters between first and last.
    **/
-  iterator erase ( iterator first, iterator last )
+  inline iterator erase ( iterator first, iterator last )
   {
     uint64_t i = first - str_;
     uint64_t j = last - str_;
@@ -1853,7 +1853,7 @@ public:
   /**
    *The section is replaced by a copy of the entire string object str.
    **/  
-  SelfT& replace ( iterator i1, iterator i2, const SelfT& str )
+  inline SelfT& replace ( iterator i1, iterator i2, const SelfT& str )
   {
     assert(i1<=i2);
     uint64_t i = i1 - str_;
@@ -1867,7 +1867,7 @@ public:
    *takes up to n2 characters (it takes less than n2 if the end of the 
    *string is reached before).
    **/
-  SelfT& replace ( size_t pos1, size_t n1, const SelfT& str, size_t pos2, size_t n2 )
+  inline SelfT& replace ( size_t pos1, size_t n1, const SelfT& str, size_t pos2, size_t n2 )
   {
     return replace(pos1, n1, str.substr(pos2, n2));
   }
@@ -1876,7 +1876,7 @@ public:
   * The section is replaced by a copy of the string formed by the first
   *n2 characters in the array of characters pointed by s.
    **/
-  SelfT& replace ( size_t pos1, size_t n1,   const char* s, size_t n2 )
+  inline SelfT& replace ( size_t pos1, size_t n1,   const char* s, size_t n2 )
   {
     SelfT ss(s, n2);
     //ss.attach(s, n2);
@@ -1887,7 +1887,7 @@ public:
   * The section is replaced by a copy of the string formed by the first
   *n2 characters in the array of characters pointed by s.
    **/
-  SelfT& replace ( iterator i1, iterator i2, const CharT* s, size_t n2 )
+  inline SelfT& replace ( iterator i1, iterator i2, const CharT* s, size_t n2 )
   {
     assert(i1<=i2);
     uint64_t i = i1 - str_;
@@ -1901,7 +1901,7 @@ public:
    *length of this caracter sequence is determined by the first ocurrence 
    *of a null character (as determined by traits.length(s)).
    **/
-  SelfT& replace ( size_t pos1, size_t n1,   const CharT* s )
+  inline SelfT& replace ( size_t pos1, size_t n1,   const CharT* s )
   {
     SelfT ss(s);
     //ss.attach(s);
@@ -1914,7 +1914,7 @@ public:
    *length of this caracter sequence is determined by the first ocurrence 
    *of a null character (as determined by traits.length(s)).
    **/
-  SelfT& replace ( iterator i1, iterator i2, const CharT* s )
+  inline SelfT& replace ( iterator i1, iterator i2, const CharT* s )
   {
     assert(i1<=i2);
     uint64_t i = i1 - str_;
@@ -1925,7 +1925,7 @@ public:
   /**
    *The section is replaced by a repetition of character c, n2 times.
    **/
-  SelfT& replace ( size_t pos1, size_t n1,   size_t n2, CharT c )
+  inline SelfT& replace ( size_t pos1, size_t n1,   size_t n2, CharT c )
   {
     SelfT ss(n2, c);
     return replace(pos1, n1, ss);
@@ -1934,7 +1934,7 @@ public:
   /**
    *The section is replaced by a repetition of character c, n2 times.
    **/
-  SelfT& replace ( iterator i1, iterator i2, size_t n2, CharT c )
+  inline SelfT& replace ( iterator i1, iterator i2, size_t n2, CharT c )
   {
     assert(i1<=i2);
     uint64_t i = i1 - str_;
@@ -1948,7 +1948,7 @@ public:
    *right before the one referred by iterator j2.
    **/
   template<class InputIterator>
-  SelfT& replace ( iterator i1, iterator i2, InputIterator j1, InputIterator j2 )
+  inline SelfT& replace ( iterator i1, iterator i2, InputIterator j1, InputIterator j2 )
   {
     assert(i1<=i2);
     uint64_t i = i1 - str_;
@@ -1972,7 +1972,7 @@ public:
    *To retrieve a temporary c-string value from a string object, a specific 
    *member function exists: c_str.
    **/
-  size_t copy ( CharT* s, size_t n, size_t pos = 0) const
+  inline size_t copy ( CharT* s, size_t n, size_t pos = 0) const
   {
     size_t len = pos+n>length_? length_-pos : n;
     memcpy(s, str_+pos, len*sizeof(CharT));
@@ -1986,7 +1986,7 @@ public:
    *this string are those which were in str before the call, and the contents
    *of str are those which were in this string. 
    **/
-  void swap ( SelfT& str )
+  inline void swap ( SelfT& str )
   {
     SelfT s = str;
     str = *this;
@@ -2067,7 +2067,7 @@ public:
    *unchanged until the next call to a non-constant member function 
    *of the string object.
    **/
-  const CharT* c_str ( ) const
+  inline const CharT* c_str ( ) const
   {
     assert(length_<=max_size_);
     
@@ -2091,7 +2091,7 @@ public:
    *are guaranteed to remain unchanged only until the next call 
    *to a non-constant member function of the string object.
    **/
-  const CharT* data() const
+  inline const CharT* data() const
   {
     return str_;
   }
@@ -2119,7 +2119,7 @@ public:
    *consideration for possible matches. A value of 0 means that the entire 
    *string is considered. 
    **/
-  size_t find ( const SelfT& str, size_t pos = 0 ) const
+  inline size_t find ( const SelfT& str, size_t pos = 0 ) const
   {
     size_t i = Algorithm<SelfT>::KMP(substr(pos), str);
     if (i == (size_t)-1)
@@ -2128,7 +2128,7 @@ public:
     return pos + i;
   }
   
-  size_t find ( const CharT* s, size_t pos, size_t n ) const
+  inline size_t find ( const CharT* s, size_t pos, size_t n ) const
   {
     SelfT ss(s, n);
     //ss.attach(s, n);
@@ -2136,7 +2136,7 @@ public:
     return find(ss, pos);
   }
   
-  size_t find ( const CharT* s, size_t pos = 0 ) const
+  inline size_t find ( const CharT* s, size_t pos = 0 ) const
   {
     SelfT ss(s);
     //ss.attach(s);
@@ -2174,14 +2174,14 @@ public:
    *consideration for possible matches. The default value npos indicates that
    *the entire string is searched.
   **/
-  size_t rfind ( const SelfT& str, size_t pos = npos ) const
+  inline size_t rfind ( const SelfT& str, size_t pos = npos ) const
   {
     assert(pos == npos || pos<length_);
     
     return Algorithm<SelfT>::rKMP(substr(0, (pos!=npos? pos+1: npos)), str);
   }
   
-  size_t rfind ( const char* s, size_t pos, size_t n ) const
+  inline size_t rfind ( const char* s, size_t pos, size_t n ) const
   {
     assert(pos == npos || pos<length_);
     
@@ -2190,7 +2190,7 @@ public:
     return Algorithm<SelfT>::rKMP(substr(0, (pos!=npos? pos+1: npos)), ss);
   }
   
-  size_t rfind ( const CharT* s, size_t pos = npos ) const
+  inline size_t rfind ( const CharT* s, size_t pos = npos ) const
   {
     assert(pos == npos || pos<length_);
     
@@ -2247,7 +2247,7 @@ public:
    *an element of type size_t, therefore, when this value is used, all the 
    *characters between pos and the end of the string are used as the initialization substring. 
    **/
-  SelfT substr ( size_t pos = 0, size_t n = npos ) const
+  inline SelfT substr ( size_t pos = 0, size_t n = npos ) const
   {
     return SelfT(*this, pos, n);
   }
@@ -2323,22 +2323,22 @@ public:
     return 1;
   }
   
-  int compare ( size_t pos1, size_t n1, const SelfT& str ) const
+  inline int compare ( size_t pos1, size_t n1, const SelfT& str ) const
   {
     return substr(*this, pos1, n1).compare(str);
   }
   
-  int compare ( size_t pos1, size_t n1, const CharT* s) const
+  inline int compare ( size_t pos1, size_t n1, const CharT* s) const
   {
     return substr(*this, pos1, n1).compare(s);
   }
   
-  int compare ( size_t pos1, size_t n1, const SelfT& str, size_t pos2, size_t n2 ) const
+  inline int compare ( size_t pos1, size_t n1, const SelfT& str, size_t pos2, size_t n2 ) const
   {
     return substr(*this, pos1, n1).compare(str.substr(pos2, n2));
   }
   
-  int compare ( size_t pos1, size_t n1, const CharT* s, size_t n2) const
+  inline int compare ( size_t pos1, size_t n1, const CharT* s, size_t n2) const
   {
     SelfT str;
     str.attach(s, n2);
@@ -2361,7 +2361,7 @@ public:
   /**
    *Turn this string into std::string.
    **/
-  std::string cast_std_string()
+  inline std::string cast_std_string()
   {
     return std::string((char*)str_, size());
 
