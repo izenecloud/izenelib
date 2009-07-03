@@ -75,7 +75,7 @@ public:
 	 */
 	sdb_node_();
 
-	~sdb_node_() {		
+	~sdb_node_() {
 		unload();
 	}
 
@@ -196,8 +196,10 @@ public:
 			//keys[i]->display();
 			//os<<keys[i];
 			size_t pfos=0;
-			if( parent) pfos = parent->fpos;
-			os<<"("<<fpos<<" parent="<<pfos<<" isLeaf="<<isLeaf<<" childNo="<<childNo<<" objCount="<<objCount<<")"<<endl;
+			if (parent)
+				pfos = parent->fpos;
+			os<<"("<<fpos<<" parent="<<pfos<<" isLeaf="<<isLeaf<<" childNo="
+					<<childNo<<" objCount="<<objCount<<")"<<endl;
 			//os<<"("<<isDirty<<" "<<parent<<" "<<this<<")";	
 			os<<endl;
 		}
@@ -344,7 +346,10 @@ template<typename KeyType, typename ValueType, typename LockType,
 	p += sizeof(size_t);
 
 	char *povfl=0;
-	size_t np = 0;
+	//size_t np = 0;
+	//size_t next_page_off = 0;
+	
+	bool first_ovfl = true;
 
 	//cout<<" read overFlowAddress="<<_overflowAddress<<endl;
 
@@ -352,15 +357,18 @@ template<typename KeyType, typename ValueType, typename LockType,
 	for (size_t i = 0; i < objCount; i++) {
 		//cout<<" read data idx="<<i<<endl;
 		size_t ksize, vsize;
-		
+
 		//DbObjPtr ptr, ptr1;	
 
 		memcpy(&ksize, p, sizeof(size_t));
 
-		//cout<<"ksize"<<ksize<<endl;	
+		//cout<<"ksize"<<ksize<<endl;
 
 		//read from overflow page
 		if (ksize == 0) {
+			assert( first_ovfl );
+			if(first_ovfl)
+				first_ovfl =false;			
 			if ( !povfl) {
 				//cout<<"read overflowaddress="<<_overflowAddress<<" | "<<_overflowPageCount<<endl;
 
@@ -372,44 +380,28 @@ template<typename KeyType, typename ValueType, typename LockType,
 					return false;
 				}
 			}
-			p = povfl + np*_pageSize;
-			++np;
-			memcpy(&ksize, p, sizeof(size_t));
+			//p = povfl + np*_pageSize;
+			p= povfl;
+			memcpy(&ksize, p, sizeof(size_t));		
 			assert(ksize != 0);
+			//is_incr_page = true;
 		}
-		p += sizeof(size_t);	
-		
-		//byte* kBuf = new byte[ksize];
-		//memcpy(kBuf, p, ksize);		
-		
-		//ptr.reset(new DbObj(kBuf, ksize));
-		//read_image(keys[i], ptr);
+		p += sizeof(size_t);
+
 		izene_deserialization<KeyType> izd(p, ksize);
-		izd.read_image( keys[i] );
-		
-		//delete[] kBuf;
-		//kBuf = 0;
-		
+		izd.read_image(keys[i]);	
 		p += ksize;
 
 		memcpy(&vsize, p, sizeof(size_t));
 		p += sizeof(size_t);
 
 		//if value is of NULLType, the vsize is 0
-		if (vsize != 0) {
-			//byte* vBuf = new byte[vsize];
-			//memcpy(vBuf, p, vsize);
-		
-			//ptr1.reset(new DbObj(vBuf, vsize));
-			//read_image(values[i], ptr1);
+		if (vsize != 0) {		
 			izene_deserialization<ValueType> izd1(p, vsize);
-			izd1.read_image( values[i] );
-
-			p += vsize;		
-			
-			//delete[] vBuf;
-			//vBuf = 0;
+			izd1.read_image(values[i]);
+			p += vsize;	
 		}
+
 	}
 
 	if (povfl) {
@@ -500,38 +492,67 @@ template<typename KeyType, typename ValueType, typename LockType,
 	assert(tsz+sizeof(size_t) <= _pageSize);
 	size_t np =1;
 
-	for (size_t i=0; i<objCount; i++) {
-		//cout<<"write key ="<<keys[i]<<endl;
-		/*DbObjPtr ptr, ptr1;
-		ptr.reset(new DbObj);
-		ptr1.reset(new DbObj);
-		write_image(keys[i], ptr);
-		write_image(values[i], ptr1);
-		size_t ksize = ptr->getSize();
-		size_t vsize = ptr1->getSize();*/
-		
+	bool first_ovfl = true;
+	for (size_t i=0; i<objCount; i++) {	
+		//cout<<"idx = "<<i<<endl;
+
 		char *ptr, *ptr1;
 		size_t ksize, vsize;
-		izene_serialization<KeyType> izs( keys[i] );
-		izene_serialization<ValueType> izs1( values[i] );
+		izene_serialization<KeyType> izs(keys[i]);
+		izene_serialization<ValueType> izs1(values[i]);
 		izs.write_image(ptr, ksize);
 		izs1.write_image(ptr1, vsize);
-		
-		size_t esize = 2*sizeof(size_t)+ksize+vsize;
+
+		size_t esize = 2*sizeof(size_t)+ksize+vsize;	
 
 		//when overflowing occurs, append the overflow buf
-		if (tsz+esize+sizeof(size_t) > _pageSize) {
-			size_t endflag = 0;
-			memcpy(p, &endflag, sizeof(size_t));			
+		if (tsz+esize+sizeof(size_t) > np*_pageSize) {			
+			//size_t endflag = 0;
+			//memcpy(p, &endflag, sizeof(size_t));
 			
-			int incr_np = ( tsz+esize+sizeof(size_t)-1)/_pageSize + 1;
-			char *temp = new char[(np+incr_np)*_pageSize];
-			memcpy(temp, pBuf, np*_pageSize);
-			delete pBuf;
+			//tsz += sizeof(size_t);
+			
+			assert( size_t(p - pBuf) < np*_pageSize);
+			if (first_ovfl) {
+				tsz = _pageSize;
+				first_ovfl = false;
+			}			
+			//int incr_np = (tsz+esize+sizeof(size_t)-1 )/_pageSize+1;			
+			np = (tsz+esize+sizeof(size_t)-1 )/_pageSize+1;
+
+			/*if(first_ovfl) {
+			 incr_np =(esize+sizeof(size_t)-1)/_pageSize + 1;
+			 first_ovfl = false;			   
+			 }
+			 else
+			 incr_np = (tsz+esize+sizeof(size_t)-1 )/_pageSize+1;*/
+
+			char *temp = new char[np*_pageSize];
+			//cout<<"alloc page num: "<<np<<endl;
+			memset(temp, 0, np*_pageSize);
+			memcpy(temp, pBuf, tsz);		
+			delete [] pBuf;
+			pBuf = 0;
 			pBuf = temp;
-			p = pBuf+np*_pageSize;
-			tsz = 0;
-			np+=incr_np;
+
+			p = pBuf+tsz;
+			
+			//cout<<"incr_np: "<< incr_np <<endl;
+
+			/*	size_t endflag = 0;
+			 memcpy(p, &endflag, sizeof(size_t));			
+			 
+			 int incr_np = ( tsz+esize+sizeof(size_t)-1)/_pageSize;
+			 cout<<"incr_np: "<< incr_np <<endl;
+			 //int incr_np = 1;
+			 char *temp = new char[(np+incr_np)*_pageSize];
+			 memset(temp, 0, (np+incr_np)*_pageSize );
+			 memcpy(temp, pBuf, np*_pageSize);
+			 delete pBuf;
+			 pBuf = temp;
+			 p = pBuf+np*_pageSize;
+			 tsz = 0;
+			 np+=incr_np;*/
 		}
 		memcpy(p, &ksize, sizeof(size_t));
 		p += sizeof(size_t);
@@ -542,10 +563,11 @@ template<typename KeyType, typename ValueType, typename LockType,
 		memcpy(p, ptr1, vsize);
 		p += vsize;
 
-		tsz += esize;
+		tsz += esize;	
 	}
 
 	//cout<<"tsz="<<tsz<<endl;
+
 	//no overflow
 	if (np <= 1) {
 		if (1 != fwrite(pBuf, _pageSize, 1, f) ) {
@@ -556,7 +578,7 @@ template<typename KeyType, typename ValueType, typename LockType,
 		//cout<<"writing overflow!!!!"<<endl;
 		if (_overflowAddress <0 || _overflowPageCount < np-1) {
 			_overflowAddress = sizeof(CbFileHeader)+2*sizeof(size_t)+_pageSize
-					*(CbFileHeader::nPages+CbFileHeader::oPages);			
+					*(CbFileHeader::nPages+CbFileHeader::oPages);
 			CbFileHeader::oPages += (np-1);
 		}
 		_overflowPageCount = np-1;
@@ -572,7 +594,7 @@ template<typename KeyType, typename ValueType, typename LockType,
 				return false;
 			}
 		}
-	}
+	}	
 	delete []pBuf;
 	pBuf = 0;
 	isDirty = false;
@@ -584,7 +606,7 @@ template<typename KeyType, typename ValueType, typename LockType,
 		KeyType, ValueType, LockType, Alloc>::loadChild(size_t childNum, FILE* f) {
 
 	sdb_node_* child;
-	child = children[childNum];	
+	child = children[childNum];
 	if (isLeaf || child == 0) {
 		return NULL;
 		//assert(0);
@@ -596,7 +618,7 @@ template<typename KeyType, typename ValueType, typename LockType,
 		child->read(f);
 		_fileLock.release_write_lock();
 	}
-	
+
 	return child;
 }
 
@@ -607,7 +629,7 @@ template<typename KeyType, typename ValueType, typename LockType,
 	if (isLoaded) {
 		if ( !isLeaf) {
 			for (size_t i=0; i<objCount+1; i++) {
-				if (children[i]) {			
+				if (children[i]) {
 					children[i]->unload();
 					if (children[i])
 						delete children[i];
@@ -622,10 +644,9 @@ template<typename KeyType, typename ValueType, typename LockType,
 		isLoaded = false;
 
 		sdb_node_::activeNodeNum--;
-		parent = 0;		
+		parent = 0;
 	}
 }
-
 
 template<typename KeyType, typename ValueType, typename LockType,
 		typename Alloc> void sdb_node_< KeyType, ValueType, LockType, Alloc>::unloadself() {
@@ -637,7 +658,7 @@ template<typename KeyType, typename ValueType, typename LockType,
 		isLoaded = false;
 
 		sdb_node_::activeNodeNum--;
-		parent = 0;		
+		parent = 0;
 	}
 }
 
@@ -646,7 +667,7 @@ template<typename KeyType, typename ValueType, typename LockType,
 		size_t objNo) {
 	bool ret = isLeaf;
 	if (ret) {
-		for (size_t i = objNo + 1; i < objCount; i++) {			
+		for (size_t i = objNo + 1; i < objCount; i++) {
 			keys[i-1] = keys[i];
 			values[i-1] = values[i];
 		}
@@ -672,7 +693,7 @@ template<typename KeyType, typename ValueType, typename LockType,
 	KEYPOS ret((size_t)-1, CCP_NONE);
 	KIT kit = keys.begin();
 	size_t i = 0;
-	while (i<objCount && kit < keys.end()) {	
+	while (i<objCount && kit < keys.end()) {
 		int compVal = _comp(key, *kit);
 		if (compVal == 0) {
 			return KEYPOS(i, CCP_INTHIS);

@@ -37,7 +37,7 @@ obj9 = t_IndexSDB1.o
 obj10 = t_btree2.o
 
 
-all:  t_sdb t_btree2 t_nsdb t_IndexSDB t_IndexSDB1 t_mul_sdb  t_btree_str \
+all:  t_overflow_btree  t_sdb t_btree2 t_nsdb t_IndexSDB t_IndexSDB1 t_mul_sdb  t_btree_str \
       t_btree1 t_mul_sdb  t_nsdb t_overflow_btree 
 
 t_sdb: $(obj)
