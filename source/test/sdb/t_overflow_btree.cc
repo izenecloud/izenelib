@@ -13,7 +13,7 @@ static string inputFile = "test.txt";
 static int degree = 2;
 static size_t cacheSize = 1000000;
 //static size_t dataSize = 50;
-static size_t pageSize = 1024;
+static size_t pageSize = 512;
 typedef SequentialDB<Key, NullType, NullLock> SDB;
 
 bool trace = 0;
@@ -59,7 +59,7 @@ template<typename T> void run_insert(T& cm) {
 	while (inf>>ystr) {
 		//cout<<"input ="<<ystr<<endl;	
 
-		for (int i=0; i<5; i++) {
+		for (int i=0; i<6; i++) {
 			ystr = ystr + ystr;
 		}
 		DataType<YString> dat(ystr);
@@ -204,7 +204,7 @@ int main(int argc, char *argv[]) {
 			break;
 		}
 	}
-	try
+//	try
 	{
 		SDB sdb(indexFile);
 
@@ -219,7 +219,7 @@ int main(int argc, char *argv[]) {
 	/*	catch(SDBException& e)
 	 {
 	 cout<<e.what()<<endl;
-	 }*/
+	 }
 	catch(bad_alloc)
 	{
 		cout<<"Memory allocation error!"<<endl;
@@ -231,6 +231,6 @@ int main(int argc, char *argv[]) {
 	catch(...)
 	{
 		cout<<"OTHER ERROR HAPPENED!"<<endl;
-	}
+	}*/
 
 }
