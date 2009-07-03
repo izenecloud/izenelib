@@ -42,7 +42,7 @@ ENDIF(IS_DIRECTORY "${CMAKE_SOURCE_DIR}/cmake")
 IF(NOT EXTRA_CMAKE_MODULES_DIRS)
   MESSAGE(FATAL_ERROR
     "Cannot find EXTRA_CMAKE_MODULES_DIRS.
-Please clone it from izenesoft.com:/git/cmake.git. Then set EXTRA_CMAKE_MODULES_DIRS (-DEXTRA_CMAKE_MODULES_DIRS=/path/to/cmake) to path of the cloned repository. You also can copy the cloned cmake directory to ${CMAKE_INSTALL_PREFIX}")
+Please clone it from izenesoft.com:/git/cmake.git. Then set EXTRA_CMAKE_MODULES_DIRS (-DEXTRA_CMAKE_MODULES_DIRS=/path/to/cmake)to path of the cloned repository. You also can copy the cloned cmakedirectory to ${CMAKE_INSTALL_PREFIX} or ${CMAKE_SOURCE_DIR}")
 ENDIF(NOT EXTRA_CMAKE_MODULES_DIRS)
 SET(CMAKE_MODULE_PATH ${EXTRA_CMAKE_MODULES_DIRS})
 
