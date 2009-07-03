@@ -78,7 +78,7 @@ public:
 	}
 	void write_image(char* &ptr, size_t& size) {
 		ptr = (char*)dat_.c_str();
-		size = dat_.size()+1;
+		size = dat_.size();
 	}
 };
 

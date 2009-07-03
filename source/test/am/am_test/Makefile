@@ -23,7 +23,7 @@ am_ylib_obj = t_am_ylib.o
 test_obj = test_ustring.o
 t_cccr_hash_obj = t_cccr_hash.o
 
-all: test #t_cccr_hash test t_am t_am_ylib
+all: test t_cccr_hash test t_am t_am_ylib
 
 test: $(test_obj)
 
