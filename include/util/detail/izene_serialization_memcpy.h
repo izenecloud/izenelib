@@ -2,6 +2,7 @@
 #define IZENE_SERIALIZATION_MEMCPY_H_
 
 #include "izene_type_traits.h"
+#include <am/am.h>
 
 NS_IZENELIB_UTIL_BEGIN
 

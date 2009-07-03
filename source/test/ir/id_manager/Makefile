@@ -10,8 +10,8 @@ CXXFLAGS = -Wall -O3 -g
 endif
 
 TARGET_PATH = .
-WISELIB = ~/workspace/wiselib
-IZENELIB =~/workspace/izenelib
+WISELIB = /home/Kevin/wiselib
+IZENELIB = /home/Kevin/izenelib
 
 IDMANAGER_PATH = ../include/
 
@@ -28,7 +28,8 @@ EXT_LIB_PATH = \
 			   -L /usr/local/lib \
 
 EXT_LIB = \
-	      -l wiselib \
+			/usr/local/lib64/libstdc++.so.6.0.10\
+	      /home/Kevin/wiselib/lib/libwiselib.so.0.1.0 \
 		  -l boost_system-gcc41-mt-1_36 \
 		  -l boost_date_time-gcc41-mt-1_36 \
 		  -l boost_serialization-gcc41-mt-1_36 \
@@ -41,7 +42,7 @@ EXT_LIB = \
 		  
 
 
-OBJECTS = $(patsubst %.cpp, %.o, $(wildcard *.cpp))
+OBJECTS = $(patsubst %.cpp, %.o, $(wildcard *.cpp)) 
 
 %.o : %.cpp
 	$(CXX) $(INCLUDE_PATH) $(CXXFLAGS) -c -o $@ $? 
@@ -50,7 +51,7 @@ TARGET = test
 
 all: $(TARGET)
 
-$(TARGET) : $(OBJECTS)
+$(TARGET) : $(OBJECTS) 
 	$(CXX) -o $@ $^  $(EXT_LIB_PATH) $(EXT_LIB) 
 
 clean:

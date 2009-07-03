@@ -13,7 +13,7 @@
 #include <cstddef>
 
 #include <types.h>
-#include <am/util/Wrapper.h>
+//#include <am/util/Wrapper.h>
 #include <sdb/SequentialDB.h>
 #include <wiselib/ustring/UString.h>
 #include <am/tokyo_cabinet/tc_hash.h>
