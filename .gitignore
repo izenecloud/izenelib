@@ -10,4 +10,4 @@ dump
 dump.*
 *.log
 *.gz
-
+/cmake
