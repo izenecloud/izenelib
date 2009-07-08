@@ -44,7 +44,7 @@ void ReportUsage(void) {
 template<typename T> void run(T& cm) {
 	run_insert(cm);
 	run_getValue(cm);
-	//run_del(cm);
+	run_del(cm);
 }
 
 //ofstream  outf("unique.out");
@@ -59,7 +59,7 @@ template<typename T> void run_insert(T& cm) {
 	while (inf>>ystr) {
 		//cout<<"input ="<<ystr<<endl;	
 
-		for (int i=0; i<6; i++) {
+		for (int i=0; i<7; i++) {
 			ystr = ystr + ystr;
 		}
 		DataType<YString> dat(ystr);
@@ -149,9 +149,10 @@ template<typename T> void run_del(T& cm) {
 	ifstream inf(inputFile.c_str());
 	YString ystr;
 	cout<<" here "<<endl;
-	while (inf>>ystr) {
+	int count = 100;
+	while (inf>>ystr && count--) {
 		cout<<"input ystr="<<ystr<<endl;
-		for (int i=0; i<5; i++) {
+		for (int i=0; i<7; i++) {
 			ystr = ystr + ystr;
 		}
 		cout<<ystr<<endl;

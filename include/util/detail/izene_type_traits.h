@@ -56,5 +56,7 @@ NS_IZENELIB_UTIL_END
 
 MAKE_MEMCPY_SERIALIZATION(std::string)
 //MAKE_FEBIRD_SERIALIZATION(std::string)
+
+MAKE_FEBIRD_SERIALIZATION(std::vector<std::vector<unsigned int> > )
 		
 #endif /*IZENE_TYPE_TRAITS_H_*/

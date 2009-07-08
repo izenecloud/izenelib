@@ -196,6 +196,9 @@ ADD_SUBDIRECTORY(source/ir ir)
 # Util libraries
 ADD_SUBDIRECTORY(source/util util)
 
+# IR libraries
+ADD_SUBDIRECTORY(source/net net)
+
 # Test cases and applications
 IF(ENABLE_TEST)
   ADD_SUBDIRECTORY(source/test test)

@@ -40,5 +40,4 @@ public:
 
 NS_IZENELIB_UTIL_END
 
-
 #endif /*IZENE_SERIALIZATION_FEBIRD_H_*/
