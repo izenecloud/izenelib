@@ -1,0 +1,30 @@
+
+/**
+*
+*	@mainpage MessageFramework documentation
+*
+*   Messaging Framework is a communication tool among the managers which are in different process. 
+* 	There are three components to build up the Messaging Framework: MessageClient, MessageServer, 
+*	and, MessageController.
+*
+*	MessageClient requests services of connected manager to the MessageController and gets the 
+*	result from MessageController or from MessageServer. MessageServer registers services, which 
+*	MessageServer can serve, to the MessageController and serves the result of service request from
+*	MessageController or from MessageClient. MessageController processes registration of the 
+*	MessageServer and serves information of available services to the MessageClient. The figure below
+*	is class diagram of the MessageFramework
+*   @htmlonly
+*   <center><img src="Message_Framework_Class_Diagram.jpg" alt="Class Diagram of MessageFramework"></center>
+*   @endhtmlonly
+*	@htmlonly <br /> <br /> @endhtmlonly
+*   For more information, refer documents below.\n
+*   @htmlonly
+*   <a href="../../pdf/messaging-framework/Component%20Specification_MessagingFramework_dohyun_20080623.pdf">Component specification document</a>
+*   @endhtmlonly
+*   \n
+*   @htmlonly
+*   <a href="../../pdf/messaging-framework/Interface%20Design_MessagingFramework_dohyun_080702.pdf">Interface design document</a>
+*   @endhtmlonly
+*   \n
+*/
+

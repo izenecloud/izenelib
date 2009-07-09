@@ -1,6 +1,8 @@
 #include <util/izene_serialization.h>
 #include <am/concept/DataType.h>
 #include <util/ProcMemInfo.h>
+#include <util/hashFunction.h>
+#include <wiselib/ustring/UString.h>
 
 using namespace izenelib::util;
 
@@ -77,19 +79,39 @@ void test_performance() {
 		printf(" elapsed: %lf seconds\n", double(clock()- t1)/CLOCKS_PER_SEC);
 		displayMemInfo();
 	}
+	/*{
+		t1 = clock();
+		for (int i=0; i<1000000; i++) {
+			string str("izenesoft");
+			string str1;
+			izene_serialization_boost2<string> isb(str);
+			char* ptr;
+			size_t sz;
+			isb.write_image(ptr, sz);
+			//cout<<"serialization: "<<(char*)ptr<<" | "<<sz<<endl;
+
+			izene_deserialization_boost2<string> idb(ptr, sz);
+			idb.read_image(str1);
+			//cout<<"deserialization: "<<str1<<endl;
+			assert(str == str1);
+		}
+		printf(" elapsed: %lf seconds\n", double(clock()- t1)/CLOCKS_PER_SEC);
+		displayMemInfo();
+	}*/
+	
 	{
 		t1 = clock();
 		for (int i=0; i<1000000; i++) {
 			string str("izenesoft");
 			string str1;
-			izene_serialization_boost1<string> isb(str);
+			izene_serialization_febird<string> isb(str);
 			char* ptr;
 			size_t sz;
 			isb.write_image(ptr, sz);
 
 			//cout<<"serialization: "<<(char*)ptr<<" | "<<sz<<endl;
 
-			izene_deserialization_boost1<string> idb(ptr, sz);
+			izene_deserialization_febird<string> idb(ptr, sz);
 			idb.read_image(str1);
 			//cout<<"deserialization: "<<str1<<endl;
 			assert(str == str1);
@@ -102,14 +124,14 @@ void test_performance() {
 		for (int i=0; i<1000000; i++) {
 			string str("izenesoft");
 			string str1;
-			izene_serialization_boost2<string> isb(str);
+			izene_serialization_memcpy<string> isb(str);
 			char* ptr;
 			size_t sz;
 			isb.write_image(ptr, sz);
 
 			//cout<<"serialization: "<<(char*)ptr<<" | "<<sz<<endl;
 
-			izene_deserialization_boost2<string> idb(ptr, sz);
+			izene_deserialization_memcpy<string> idb(ptr, sz);
 			idb.read_image(str1);
 			//cout<<"deserialization: "<<str1<<endl;
 			assert(str == str1);
@@ -135,6 +157,7 @@ template<typename T> void test_serialization(T &dat) {
 	idb.read_image(dat1);
 
 	assert(dat1 == dat);
+	assert(izene_hashing(dat1) == izene_hashing(dat) );
 	//cout<<"deserialization: "<<dat1<<endl;
 }
 
@@ -171,6 +194,7 @@ template<typename T> void test_serialization_boost(T &dat) {
 	idb.read_image(dat1);
 
 	assert(dat1 == dat);
+	assert(izene_hashing(dat1) == izene_hashing(dat) );
 	//cout<<"deserialization: "<<dat1<<endl;
 }
 
@@ -315,9 +339,15 @@ int main() {
 		test_serialization(vvint);
 		test_serialization_boost(vvint);
 		test_serialization_febird(vvint);
-
 	}
 
+	wiselib::UString ustr("10K_E", wiselib::UString::CP949);
+
+	test_serialization_boost(ustr);
+	cout<<"!!!"<<endl;
+	test_serialization(ustr);
+	
+	
 	/*	test1();
 	 test2();
 	 test3();*/
