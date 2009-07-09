@@ -7,7 +7,6 @@ IF(HAVE_SYS_STAT_H)
 
   SET(sdb_btree_SRC sdb_btree_header.cpp)
 
-  INCLUDE(MacroAddComponent)
   MACRO_ADD_COMPONENT(sdb_btree "${VERSION_INSTALL_PREFIX}" "${PROJECT_VERSION}" ${sdb_btree_SRC})
 
 ELSE(HAVE_SYS_STAT_H)

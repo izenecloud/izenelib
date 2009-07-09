@@ -9,7 +9,6 @@ ELSE(WIN32)
 
   SET(procmeminfo_SRC ProcMemInfo.cpp)
 
-  INCLUDE(MacroAddComponent)
   MACRO_ADD_COMPONENT(procmeminfo
     "${VERSION_INSTALL_PREFIX}"
     "${PROJECT_VERSION}"
