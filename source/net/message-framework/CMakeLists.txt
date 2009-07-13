@@ -1,13 +1,13 @@
 IF(WIN32)
 
-  SET_PROPERTY(GLOBAL APPEND PROPERTY NON_BUILD_COMPONENTS messageframework)
-  MESSAGE(STATUS "! WARNING: messageframework can only been build in WIN32")
+  SET_PROPERTY(GLOBAL APPEND PROPERTY NON_BUILD_COMPONENTS message_framework)
+  MESSAGE(STATUS "! WARNING: message_framework can only been build in WIN32")
 
 ELSE(WIN32)
 
-  SET_PROPERTY(GLOBAL APPEND PROPERTY BUILD_COMPONENTS messageframework)
+  SET_PROPERTY(GLOBAL APPEND PROPERTY BUILD_COMPONENTS message_framework)
 
-  SET(messageframework_SRC
+  SET(message_framework_SRC
     AsyncConnector.cpp
     AsyncStream.cpp
     MessageAgent.cpp
@@ -25,10 +25,10 @@ ELSE(WIN32)
   )
 
   INCLUDE(MacroAddComponent)
-  MACRO_ADD_COMPONENT(messageframework
+  MACRO_ADD_COMPONENT(message_framework
     "${VERSION_INSTALL_PREFIX}"
     "${PROJECT_VERSION}"
-    "${messageframework_SRC}"
+    "${message_framework_SRC}"
     )
 
 ENDIF(WIN32)

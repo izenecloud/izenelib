@@ -8,6 +8,7 @@
 #include <cache/MLRUCache.h>
 #include <cache/MFCache.h>
 #include <cache/CacheDB.h>
+#include <am/sdb_btree/sdb_btree.h>
 
 using namespace std;
 //using namespace ylib;
@@ -25,14 +26,14 @@ static string indexFile = "index_db.dat";
 
 //Use YString-YString pair for testing. 
 typedef string Key;
-typedef izenelib::am::NullType Value;
+typedef string Value;
 
 typedef izenelib::am::LinearHashTable<Key,Value, NullLock> linHash;
 //typedef izenelib::am::ExtendibleHashTable<Key,Value, NullLock> extHash;
 typedef izenelib::am::cccr_hash<Key, Value> extHash;
 
-typedef izenelib::am::sdb_hash<Key, Value, NullLock> extDataHash;
-typedef izenelib::am::sdb_hash<Key, Value, NullLock> linDataHash;
+typedef izenelib::am::sdb_btree<Key, Value> extDataHash;
+typedef izenelib::am::sdb_btree<Key, Value> linDataHash;
 //typedef LinearHashFile<YString, YString, NullLock> linDataHash;
 
 void ReportUsage(void) {
@@ -74,9 +75,17 @@ void ReportUsage(void) {
 
 //Top-level 
 template<typename T> void run(T& cm) {
+	
+	cout<<"Testing Insert()"<<endl;
+	run_insert(cm);
 
 	cout<<"Testing getValueWithInsert()"<<endl;
 	run_getValueWithInsert(cm);
+	
+	
+	cout<<"Testing upate()"<<endl;
+	run_update(cm);
+	
 
 	cout<<"Testing getValue()"<<endl;
 	run_getValue(cm);
@@ -119,7 +128,7 @@ void run_DataHashTest() {
 	string ystr;
 	Value val;
 	while (inf>>ystr) {
-
+        val = ystr;
 		//cout<<"input "<<ystr<<endl;
 		sum++;
 		if (lh.insert(ystr, val) )
@@ -150,7 +159,8 @@ template<typename T> void run_getValueWithInsert(T& cm) {
 		if (cm.getValueWithInsert(ystr, val))
 			hit++;
 		if (trace) {
-			cout<< "getValueWithInsert: value="<<ystr<<endl;
+			cout<< "getValueWithInsert: key="<<ystr<<endl;
+			cout<<" value="<<val<<endl;
 			//cm.printKeyInfoMap();
 			cout<< "CacheDB numItem = "<<cm.numItems()<<endl;
 			cm.displayHash();
@@ -169,6 +179,68 @@ template<typename T> void run_getValueWithInsert(T& cm) {
 	cm.resetStartingTime();
 
 }
+
+//Top-level 
+template<typename T> void run_insert(T& cm) {
+	clock_t t1 = clock();
+	ifstream inf(inputFile.c_str());
+	string ystr;
+	Value val;
+	while (inf>>ystr) {
+		//cout<<"input "<<ystr<<endl;
+		val = ystr;
+		cm.insertValue(ystr, val);		
+		if (trace) {
+			cout<< "Insert: value="<<ystr<<endl;
+			cout<<" value="<<val<<endl;
+			//cm.printKeyInfoMap();
+			cout<< "CacheDB numItem = "<<cm.numItems()<<endl;
+			cm.displayHash();
+		}
+	}
+
+	cout<<"CacheDB with "<<"CacheSize="<<cacheSize<<endl;
+	cout<<"eclipse:"<< double(clock()- t1)/CLOCKS_PER_SEC<<endl;
+
+	double hitRatio, workload;
+	cm.getEfficiency(hitRatio, workload);
+	cout<<"\nTesting GetEfficency:"<<endl;
+	cout<<"HitRatio: "<<hitRatio<<endl;
+	cout<<"workload: "<<workload<<endl;
+	cm.resetStartingTime();
+
+}
+
+template<typename T> void run_update(T& cm) {
+	clock_t t1 = clock();
+	ifstream inf(inputFile.c_str());
+	string ystr;
+	Value val;
+	while (inf>>ystr) {
+		//cout<<"input "<<ystr<<endl;
+		val = ystr+ystr;
+		cm.updateValue(ystr, val);		
+		if (trace) {
+			cout<< "update: value="<<ystr<<endl;
+			cout<<" value="<<val<<endl;
+			//cm.printKeyInfoMap();
+			cout<< "CacheDB numItem = "<<cm.numItems()<<endl;
+			cm.displayHash();
+		}
+	}
+
+	cout<<"CacheDB with "<<"CacheSize="<<cacheSize<<endl;
+	cout<<"eclipse:"<< double(clock()- t1)/CLOCKS_PER_SEC<<endl;
+
+	double hitRatio, workload;
+	cm.getEfficiency(hitRatio, workload);
+	cout<<"\nTesting GetEfficency:"<<endl;
+	cout<<"HitRatio: "<<hitRatio<<endl;
+	cout<<"workload: "<<workload<<endl;
+	cm.resetStartingTime();
+
+}
+
 
 // test getValueWithInsert();
 template<typename T> void run_del(T& cm) {
@@ -205,7 +277,8 @@ template<typename T> void run_getValue(T& cm) {
 		if (cm.getValue(ystr, val))
 			hit++;
 		if (trace) {
-			cout<< "getValue: value="<<ystr<<endl;
+			cout<< "getValue: key="<<ystr<<endl;
+			cout<<" value="<<val<<endl;
 			//cm.printKeyInfoMap();
 			cout<< "CacheDB numItem = "<<cm.numItems()<<endl;
 			cm.displayHash();

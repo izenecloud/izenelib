@@ -378,7 +378,7 @@ private:
 		cout<<"cache is full..."<<endl;
 		cout<<sdb_node::activeNodeNum<<" vs "<<_sfh.cacheSize <<endl;
 		//display();
-#endif
+#endif	
 
 		queue<sdb_node*> qnode;
 		qnode.push(_root);
@@ -391,14 +391,6 @@ private:
 			qnode.pop();
 			popNum++;
 
-			if (popNode && !popNode->isLeaf) {
-				for(size_t i=0; i<popNode->objCount+1; i++)
-				{
-					if(popNode->children[i] && popNode->children[i]->objCount>0 ) {
-						qnode.push( popNode->children[i] );
-					}
-				}
-			}
 
 			if( popNum >= escapeNum )
 			{
@@ -410,12 +402,27 @@ private:
 				}
 
 				if( popNode->isDirty && quickFlush)
-				_flush(popNode, _dataFile);
+				_flush(popNode, _dataFile);				
 				popNode->unload();
 				
 				//cout<<"unloading....";
 				//cout<<sdb_node::activeNodeNum<<" vs "<<_sfh.cacheSize <<endl;					
 			}
+			
+			if (popNode && !popNode->isLeaf) {
+				for(size_t i=0; i<popNode->objCount+1; i++)
+				{				
+					if( popNode->children[i] &&  popNode->children[i]->objCount>0 &&  popNode->children[i]->objCount<= _sfh.maxKeys) {
+						qnode.push( popNode->children[i] );						
+					}
+					else
+					{
+						//cout<<"corrupted nodes!!!"<<endl;
+					}
+					
+				}
+			}
+			
 
 		}
 #ifdef DEBUG

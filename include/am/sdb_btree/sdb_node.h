@@ -75,7 +75,9 @@ public:
 	 */
 	sdb_node_();
 
-	~sdb_node_() {
+	~sdb_node_() {		
+		childNo = size_t(-1);
+		fpos= -1;
 		unload();
 	}
 
@@ -196,10 +198,10 @@ public:
 			//keys[i]->display();
 			//os<<keys[i];
 			size_t pfos=0;
-			if (parent)
-				pfos = parent->fpos;
+			//if (parent)
+			//	pfos = parent->fpos;
 			os<<"("<<fpos<<" parent="<<pfos<<" isLeaf="<<isLeaf<<" childNo="
-					<<childNo<<" objCount="<<objCount<<")"<<endl;
+					<<childNo<<" objCount="<<objCount<<" isLoaded="<<isLoaded <<")"<<endl;
 			//os<<"("<<isDirty<<" "<<parent<<" "<<this<<")";	
 			os<<endl;
 		}

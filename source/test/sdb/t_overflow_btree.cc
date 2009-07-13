@@ -43,8 +43,8 @@ void ReportUsage(void) {
 
 template<typename T> void run(T& cm) {
 	run_insert(cm);
-	run_getValue(cm);
-	run_del(cm);
+//	run_getValue(cm);
+//	run_del(cm);
 }
 
 //ofstream  outf("unique.out");
@@ -96,7 +96,7 @@ template<typename T> void run_getValue(T& cm) {
 	cm.getValueForward(count, result);
 	cout<<"\ngetvalue forward testing...."<<endl;;
 	for (int i=0; i<count; i++) {
-		//if (trace) 
+		if (trace) 
 		{
 			cout<<result[i].get_key()<<endl;
 		}
