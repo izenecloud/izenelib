@@ -33,7 +33,7 @@ namespace cache{
  *	ThreadSafeLock          :   it can be NullLock or ReadWriteLock, which are defined in ylib/lock.h. If using NullLock, then 
  *				                No threa dsafe. 	 
  */
-template <class KeyType, class ValueType, class Hash,
+template <class KeyType, class ValueType, class Hash=izenelib::am::LinearHashTable<KeyType, ValueType>,
 		class ThreadSafeLock=NullLock> class MLRUCache {
 
 	typedef list<KeyType> CacheInfoList;
@@ -56,7 +56,7 @@ public:
 	/**
 	 *  \brief Constuctor1: default fileName for fileHash of Hash_ is "./index.dat".
 	 */
-	MLRUCache(unsigned int cacheSize) :
+	MLRUCache(unsigned int cacheSize=1000) :
 		hash_(cacheSize, 1.0), startingTime_(time(0)), nTotal_(0), nHit_(0),
 				hitRatio_(0.0), workload_(0.0) {
 		cacheSize_ = cacheSize;

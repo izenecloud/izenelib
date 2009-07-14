@@ -14,15 +14,15 @@ NS_IZENELIB_UTIL_BEGIN
 
 template <typename T>
 struct IsMemcpySerial{
-	enum {yes = is_arithmetic<T>::value 
+	enum {yes = is_arithmetic<T >::value 
 		|| is_empty<T>::value,
 		no= !yes};
 };
 
 template <typename T>
-struct IsMemcpySerial<std::vector<T> >{
-	enum {yes = is_arithmetic<T>::value 
-		|| is_empty<T>::value,		
+struct IsMemcpySerial<std::vector<T > >{
+	enum {yes = is_arithmetic<T >::value 
+		|| is_empty<T >::value,		
 		no= !yes};	
 };
 
@@ -38,7 +38,7 @@ NS_IZENELIB_UTIL_END
 
 #define MAKE_FEBIRD_SERIALIZATION(type) \
 	 namespace izenelib{namespace util{ \
-	 template <>struct IsFebirdSerial<type>{ \
+	 template <>struct IsFebirdSerial<type >{ \
 		enum { yes=1, no=!yes}; \
 		}; \
 		} \
@@ -48,7 +48,7 @@ NS_IZENELIB_UTIL_END
 
 #define MAKE_MEMCPY_SERIALIZATION(type) \
 	namespace izenelib{namespace util{ \
-	template <>struct IsMemcpySerial<type>{ \
+	template <>struct IsMemcpySerial<type >{ \
 		enum { yes=1, no=!yes}; \
 		}; \
 		} \

@@ -95,7 +95,7 @@ public:
 	}
 };
 
-template<typename T> class izene_serialization_memcpy<std::vector<T> > {
+template<typename T> class izene_serialization_memcpy<std::vector<T > > {
 	const std::vector<T>& dat_;
 public:
 	izene_serialization_memcpy(const std::vector<T>& dat) :
@@ -113,7 +113,7 @@ public:
 	}
 };
 
-template<typename T> class izene_deserialization_memcpy< std::vector<T> > {
+template<typename T> class izene_deserialization_memcpy< std::vector<T > > {
 	const char* ptr_;
 	const size_t size_;
 public:
@@ -173,11 +173,11 @@ inline void read_image_memcpy<TYPE>(TYPE& dat, const char* str, const size_t siz
 //MAKE_MEMECPY_TYPE = MAKE_MEMCPY + MAKE_MEMCPY_SERIALIZATION
 #define MAKE_MEMCPY_TYPE(TYPE) \
 namespace izenelib{namespace util{ \
-template <>struct IsMemcpySerial<TYPE>{ \
+template <>struct IsMemcpySerial<TYPE >{ \
 		enum { yes=1, no=!yes}; \
 		}; \
 template<> \
-class izene_serialization_memcpy<TYPE>{ \
+class izene_serialization_memcpy<TYPE >{ \
 	const TYPE& dat_; \
 public: \
 izene_serialization_memcpy(const TYPE& dat):dat_(dat) {} \
@@ -186,7 +186,7 @@ izene_serialization_memcpy(const TYPE& dat):dat_(dat) {} \
 		size = sizeof(dat_); \
 	} \
 }; \
-template<> class izene_deserialization_memcpy<TYPE> { \
+template<> class izene_deserialization_memcpy<TYPE > { \
     const char* ptr_; \
     const size_t size_; \
 public: \
@@ -201,7 +201,7 @@ public: \
 #define MAKE_MEMCPY(TYPE) \
 namespace izenelib{namespace util{ \
 template<> \
-class izene_serialization_memcpy<TYPE>{ \
+class izene_serialization_memcpy<TYPE >{ \
 	const TYPE& dat_; \
 public: \
 izene_serialization_memcpy(const TYPE& dat):dat_(dat) {} \
@@ -210,7 +210,7 @@ izene_serialization_memcpy(const TYPE& dat):dat_(dat) {} \
 		size = sizeof(dat_); \
 	} \
 }; \
-template<> class izene_deserialization_memcpy<TYPE> { \
+template<> class izene_deserialization_memcpy<TYPE > { \
     const char* ptr_; \
     const size_t size_; \
 public: \
