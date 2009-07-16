@@ -127,6 +127,8 @@ template <typename NameString, typename NameID, typename LockType> IDFactory<
 	minID_(initialValue), maxID_(maxValue), newID_(initialValue),
 			sdbName_(sdbName), idFinder_(sdbName_ + "_name.sdb"),
 			nameFinder_(sdbName_ + "_id.sdb") {
+	idFinder_.setDegree(16);	
+	nameFinder_.setDegree(32);
 	idFinder_.open();
 	nameFinder_.open();
 } // end - IDFactory()

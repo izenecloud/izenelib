@@ -165,7 +165,7 @@ template<typename NameString, typename NameID, typename TRIE>bool TermIdManager<
 
 		// Write into startSearchIndexer
 		boost::mutex::scoped_lock lock(termIndexerLock_);
-		starSearchIndexer_.insert(termString, (int64_t)termId);
+		//starSearchIndexer_.insert(termString, (int64_t)termId);
 		return false;
 	}
 

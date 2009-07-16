@@ -62,33 +62,6 @@ public:
 	}
 };
 
-/*
- template<> class izene_serialization<string> {
- const string& dat_;
- public:
- izene_serialization(const string& dat) :
- dat_(dat) {
-
- }
- void write_image(void* &ptr, size_t& size) {
- ptr = (void*)dat_.c_str();
- size = dat_.size()+1;
- }
- };
-
- template<> class izene_deserialization<string> {
- void* &ptr_;
- size_t& size_;
- public:
- izene_deserialization(void* &ptr, size_t& size) :
- ptr_(ptr), size_(size) {
-
- }
- void read_image(string& dat) {
- dat = string((char*)ptr_);
- }
- };
- */
 
 NS_IZENELIB_UTIL_END
 

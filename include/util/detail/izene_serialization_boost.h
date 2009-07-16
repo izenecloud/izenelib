@@ -26,6 +26,7 @@ using namespace std;
 #include <boost/preprocessor/repetition.hpp>
 
 
+//serialization for boost tuple
 namespace boost { namespace serialization {
 
 #define GENERATE_ELEMENT_SERIALIZE(z,which,unused) \

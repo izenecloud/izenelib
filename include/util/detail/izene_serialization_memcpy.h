@@ -127,8 +127,7 @@ public:
 			memcpy(&dat[0], ptr_, size_);
 		}else{
 			dat.clear();
-		}
-		
+		}		
 	}
 };
 
@@ -153,22 +152,90 @@ public:
 	}
 };
 
+template<typename T1, typename T2> class izene_serialization_memcpy<std::pair<T1, T2 > > {
+	const std::pair<T1, T2>& dat_;
+public:
+	izene_serialization_memcpy(const std::pair<T1, T2>& dat) :
+		dat_(dat) {
+
+	}
+	void write_image(char* &ptr, size_t& size) {	
+			ptr = (char*)&dat_;
+			size = sizeof(dat_);		
+	}
+};
+
+template<typename T1, typename T2> class izene_deserialization_memcpy< std::pair<T1, T2 > > {
+	const char* ptr_;
+	const size_t size_;
+public:
+	izene_deserialization_memcpy(const char* ptr, const size_t size) :
+		ptr_(ptr), size_(size) {
+
+	}
+	void read_image(std::pair<T1, T2 >& dat) {	
+		memcpy(&dat, ptr_, size_);
+		
+	}
+};
+
+
+template<typename T1, typename T2> class izene_serialization_memcpy<boost::tuple<T1, T2 > > {
+	const boost::tuple<T1, T2>& dat_;
+public:
+	izene_serialization_memcpy(const boost::tuple<T1, T2>& dat) :
+		dat_(dat) {
+
+	}
+	void write_image(char* &ptr, size_t& size) {
+		ptr = (char*)&dat_;
+		size = sizeof(dat_);	
+	}
+};
+
+template<typename T1, typename T2> class izene_deserialization_memcpy< boost::tuple<T1, T2 > > {
+	const char* ptr_;
+	const size_t size_;
+public:
+	izene_deserialization_memcpy(const char* ptr, const size_t size) :
+		ptr_(ptr), size_(size) {
+
+	}
+	void read_image(boost::tuple<T1, T2 >& dat) {
+		memcpy(&dat, ptr_, size_);
+	}
+};
+
+
+template<typename T1, typename T2, typename T3> class izene_serialization_memcpy<boost::tuple<T1, T2, T3 >  > {
+	const boost::tuple<T1, T2, T3 >& dat_;
+public:
+	izene_serialization_memcpy(const boost::tuple<T1, T2, T3 >& dat) :
+		dat_(dat) {
+
+	}
+	void write_image(char* &ptr, size_t& size) {
+		ptr = (char*)&dat_;
+		size = sizeof(dat_);	
+	}
+};
+
+template<typename T1, typename T2, typename T3> class izene_deserialization_memcpy< boost::tuple<T1, T2, T3 > > {
+	const char* ptr_;
+	const size_t size_;
+public:
+	izene_deserialization_memcpy(const char* ptr, const size_t size) :
+		ptr_(ptr), size_(size) {
+
+	}
+	void read_image(boost::tuple<T1, T2, T3 >& dat) {
+		memcpy(&dat, ptr_, size_);
+	}
+};
+
+
 NS_IZENELIB_UTIL_END
 
-/*
- #define MAKE_MEMCPY(TYPE) \
-namespace izenelib {namespace util{ \
-template<> \
-inline void write_image_memcpy<TYPE>(const TYPE& dat, char* &str, size_t& size){ \
-	str = (char*)&dat; \
-    size = sizeof(dat); \
-} \
-template<> \
-inline void read_image_memcpy<TYPE>(TYPE& dat, const char* str, const size_t size){ \
-	memcpy(&dat, str, size); \
-} \
-} \
-}*/
 
 //MAKE_MEMECPY_TYPE = MAKE_MEMCPY + MAKE_MEMCPY_SERIALIZATION
 #define MAKE_MEMCPY_TYPE(TYPE) \
@@ -252,5 +319,6 @@ MAKE_MEMCPY(float)
 MAKE_MEMCPY(double)
 
 MAKE_MEMCPY(long double)
+
 
 #endif /*IZENE_SERIALIZATION_MEMCPY_H_*/

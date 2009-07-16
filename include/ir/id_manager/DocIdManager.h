@@ -123,6 +123,8 @@ template<typename NameString, typename NameID> DocIdManager<NameString, NameID>:
 	minID_(initialDocIdValue), maxID_(maxDocIdValue),
 			newID_(initialDocIdValue), idFinder_(sdbname+ "_name.sdb"),
 			nameFinder_(sdbname+"_id.sdb") {
+	idFinder_.setDegree(16);
+	nameFinder_.setDegree(32);			
 	idFinder_.open();
 	nameFinder_.open();
 } // end - IDFactory()
