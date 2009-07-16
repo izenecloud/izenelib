@@ -1,6 +1,1 @@
-IF(Boost_FOUND)
-  INCLUDE_DIRECTORIES(${Boost_INCLUDE_DIRS})
-  ADD_SUBDIRECTORY( message-framework )
-ELSE(Boost_FOUND)
-  MESSAGE(STATUS "boost is required in boost")
-ENDIF(Boost_FOUND)
+ADD_SUBDIRECTORY(message-framework)

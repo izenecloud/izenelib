@@ -174,6 +174,9 @@ INSTALL(FILES
 # Sub Directories
 #####
 
+# macros
+INCLUDE(MacroAddComponent)
+
 # all headers
 INCLUDE_DIRECTORIES("${CMAKE_SOURCE_DIR}/include")
 INCLUDE_DIRECTORIES("${CMAKE_SOURCE_DIR}/include/3rdparty")
@@ -196,7 +199,7 @@ ADD_SUBDIRECTORY(source/ir ir)
 # Util libraries
 ADD_SUBDIRECTORY(source/util util)
 
-# IR libraries
+# Network libraries
 ADD_SUBDIRECTORY(source/net net)
 
 # Test cases and applications
