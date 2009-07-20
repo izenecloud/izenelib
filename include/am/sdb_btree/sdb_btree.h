@@ -316,7 +316,7 @@ public:
 	 */
 	void display(std::ostream& os = std::cout, bool onlyheader = true) {
 		_sfh.display(os);
-		os<<"activeNum: "<<sdb_node::activeNodeNum<<endl;
+		os<<"activeNum: "<<_activeNodeNum<<endl;
 		if(!onlyheader && _root)_root->display(os);
 	}
 
@@ -350,9 +350,12 @@ private:
 	izenelib::am::CompareFunctor<KeyType> _comp;
 	std::string _fileName; // name of the database file		
 private:
+	LockType _fileLock;
+	size_t   _activeNodeNum;
+private:	
 
 	void _flushCache(bool quickFlush=false) {
-		if( sdb_node::activeNodeNum> _sfh.cacheSize )
+		if( _activeNodeNum> _sfh.cacheSize )
 		{
 			_flushCacheImpl(quickFlush);
 		}
@@ -360,7 +363,7 @@ private:
 
 	//for seq, reset SDBCursor
 	void _flushCache(SDBCursor locn) {
-		if( sdb_node::activeNodeNum> _sfh.cacheSize )
+		if( _activeNodeNum> _sfh.cacheSize )
 		{
 			KeyType key;
 			ValueType value;
@@ -376,7 +379,7 @@ private:
 		commit();
 #ifdef  DEBUG
 		cout<<"cache is full..."<<endl;
-		cout<<sdb_node::activeNodeNum<<" vs "<<_sfh.cacheSize <<endl;
+		cout<<_activeNodeNum<<" vs "<<_sfh.cacheSize <<endl;
 		//display();
 #endif	
 
@@ -406,7 +409,7 @@ private:
 				popNode->unload();
 				
 				//cout<<"unloading....";
-				//cout<<sdb_node::activeNodeNum<<" vs "<<_sfh.cacheSize <<endl;					
+				//cout<<_activeNodeNum<<" vs "<<_sfh.cacheSize <<endl;					
 			}
 			
 			if (popNode && !popNode->isLeaf) {
@@ -427,7 +430,7 @@ private:
 		}
 #ifdef DEBUG
 		cout<<"stop unload..."<<endl;
-		cout<<sdb_node::activeNodeNum<<" vs "<<_sfh.cacheSize <<endl;
+		cout<<_activeNodeNum<<" vs "<<_sfh.cacheSize <<endl;
 		//display();
 #endif		
 		fflush(_dataFile);
@@ -438,15 +441,15 @@ private:
 
 		sdb_node* newNode;
 
-		newNode = new sdb_node;
+		newNode = new sdb_node(_sfh, _fileLock, _activeNodeNum);
 		newNode->isLoaded = true;
 		newNode->isDirty = true;
 		newNode->fpos = sizeof(CbFileHeader)+2*sizeof(size_t) + _sfh.pageSize
-		*(CbFileHeader::nPages+CbFileHeader::oPages);
+		*(_sfh.nPages+_sfh.oPages);
 
 		//cout<<"allocate idx="<<CbFileHeader::nPages<<" "<<newNode->fpos;
-		CbFileHeader::nPages++;
-		sdb_node::activeNodeNum++;
+		_sfh.nPages++;
+		_activeNodeNum++;
 
 		//pre allocate memory for newNode for efficiency
 		newNode->keys.resize(_sfh.maxKeys);
@@ -511,6 +514,8 @@ template<typename KeyType, typename ValueType, typename LockType,
 	_dataFile = 0;
 	_cacheSize = 0;
 	_isOpen = false;
+	
+	_activeNodeNum = 0;
 
 }
 
@@ -1265,7 +1270,7 @@ template<typename KeyType, typename ValueType, typename LockType,
 		_sfh.display();
 #endif
 
-		sdb_node::initialize(_sfh.pageSize, _sfh.maxKeys);;
+		//sdb_node::initialize(_sfh.pageSize, _sfh.maxKeys);;
 
 		_sfh.toFile(_dataFile);
 
@@ -1298,9 +1303,9 @@ template<typename KeyType, typename ValueType, typename LockType,
 		_sfh.display();
 #endif
 
-		sdb_node::initialize(_sfh.pageSize, _sfh.maxKeys);;
+		//sdb_node::initialize(_sfh.pageSize, _sfh.maxKeys);;
 
-		_root = new sdb_node;
+		_root = new sdb_node(_sfh, _fileLock, _activeNodeNum);
 		_root->fpos = _sfh.rootPos;
 		_root->read(_dataFile);
 		//_root->display();

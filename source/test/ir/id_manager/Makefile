@@ -10,8 +10,8 @@ CXXFLAGS = -Wall -O3 -g
 endif
 
 TARGET_PATH = .
-WISELIB = /home/Kevin/wiselib
-IZENELIB = /home/Kevin/izenelib
+WISELIB = /home/wps/workspace/wiselib
+IZENELIB = /home/wps/workspace/izenelib
 
 IDMANAGER_PATH = ../include/
 
@@ -28,9 +28,8 @@ EXT_LIB_PATH = \
 			   -L /usr/local/lib \
 
 EXT_LIB = \
-			/usr/local/lib64/libstdc++.so.6.0.10\
-	      /home/Kevin/wiselib/lib/libwiselib.so.0.1.0 \
-		  -l boost_system-gcc41-mt-1_36 \
+		  -l wiselib \
+                  -l boost_system-gcc41-mt-1_36 \
 		  -l boost_date_time-gcc41-mt-1_36 \
 		  -l boost_serialization-gcc41-mt-1_36 \
 		  -l boost_program_options-gcc41-mt-1_36 \

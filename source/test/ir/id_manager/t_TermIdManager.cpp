@@ -324,6 +324,8 @@ BOOST_AUTO_TEST_CASE( TestCase3 )
     pattern += starChar;
     idManager.getTermIdListByWildcardPattern(pattern, termIdList1_);
     BOOST_CHECK_EQUAL( termIdList1_.size() , static_cast<unsigned int>(81));
+    
+    idManager.display();
 
     cerr << "OK" << endl;
 
