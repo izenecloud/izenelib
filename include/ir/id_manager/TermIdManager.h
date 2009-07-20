@@ -113,6 +113,10 @@ public:
 	 * @brief a member function to display all the contents of the sequential db. this function is used for debugging. 
 	 */
 	void displaySDBList();
+	
+	void display(){
+		IDFactory<NameString, NameID>::display();		
+	}
 
 	//private:
 
@@ -164,7 +168,7 @@ template<typename NameString, typename NameID, typename TRIE>bool TermIdManager<
 	if (false == getNameIDByNameString(termString, termId) ) {
 
 		// Write into startSearchIndexer
-		boost::mutex::scoped_lock lock(termIndexerLock_);
+		//boost::mutex::scoped_lock lock(termIndexerLock_);
 		//starSearchIndexer_.insert(termString, (int64_t)termId);
 		return false;
 	}

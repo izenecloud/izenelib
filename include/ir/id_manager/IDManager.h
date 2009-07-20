@@ -169,6 +169,12 @@ public:
 	const std::string& getVersionString() const {
 		return version_;
 	}
+	
+	void display(){
+		termIdManager_.display();
+		docIdManager_.display();
+		collectionIdManager_.display();
+	}
 
 private:
 	TermIdManager<NameString, NameID> termIdManager_; ///< Term Id Manager Class

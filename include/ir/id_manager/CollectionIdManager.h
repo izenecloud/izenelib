@@ -66,7 +66,13 @@ public:
 	/**
 	 * @brief a member function to display all the contents of the sequential db. this function is used for debugging. 
 	 */
+	
 	void displaySDBList();
+	
+	void display(){
+		IDFactory<NameString, NameID>::display();
+	}
+	
 }; // end - class CollectionIdManager 
 
 template<typename NameString, typename NameID> CollectionIdManager<NameString,
