@@ -1,4 +1,5 @@
 INCLUDE_DIRECTORIES(${Boost_INCLUDE_DIRS})
+IF(WIN32)
 
 IF(WIN32)
   SET_PROPERTY(GLOBAL APPEND PROPERTY NON_BUILD_COMPONENTS message_framework)
@@ -24,6 +25,7 @@ ELSE(WIN32)
     ThreadPool.cpp
     common.cpp     
 )
+
   INCLUDE(MacroAddComponent)
   MACRO_ADD_COMPONENT(message_framework
     "${VERSION_INSTALL_PREFIX}"
