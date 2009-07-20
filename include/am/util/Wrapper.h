@@ -50,13 +50,14 @@ template<class T> inline void write_image(const T& dat, DbObjPtr& ptr) {
  ptr->setData(dat.c_str(), dat.size()+1);
  }*/
 
+/*
 template<> inline void read_image<string>(string& dat, const DbObjPtr& ptr) {
 	dat = (string)((char*)ptr->getData() );
 }
 
 template<> inline void write_image<string>(const string& dat, DbObjPtr& ptr) {
 	ptr->setData(dat.c_str(), dat.size()+1);
-}
+}*/
 
 /*
  template<> inline void read_image<char* >(char* dat, const DbObjPtr& ptr) {

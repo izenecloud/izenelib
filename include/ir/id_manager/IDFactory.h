@@ -26,8 +26,8 @@ namespace idmanager {
 
 template <typename NameString, typename NameID,
 		typename LockType =izenelib::util::NullLock > class IDFactory {
-	typedef izenelib::sdb::ordered_sdb<NameString, NameID, LockType> IdFinder;
-	typedef izenelib::sdb::ordered_sdb<NameID, NameString, LockType>	NameFinder;
+	typedef izenelib::sdb::unordered_sdb_1<NameString, NameID, LockType> IdFinder;
+	typedef izenelib::sdb::unordered_sdb_1<NameID, NameString, LockType>	NameFinder;
 public:
 
 	/**
@@ -102,6 +102,11 @@ public:
 	 * @return true if insert success, otherwise false
 	 */
 	bool insertNameString(const NameString& nameString, const NameID& nameID);
+	
+	void display(){
+		idFinder_.display();
+		nameFinder_.display();		
+	}
 
 protected:
 

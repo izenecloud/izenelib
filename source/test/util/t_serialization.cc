@@ -61,41 +61,46 @@ void test3() {
 void test_performance() {
 	clock_t t1;
 	{
+		char* ptr;
+				size_t sz;
 		t1 = clock();
 		for (int i=0; i<1000000; i++) {
 			string str("izenesoft");
 			string str1;
 			izene_serialization_boost<string> isb(str);
-			char* ptr;
-			size_t sz;
+		
 			isb.write_image(ptr, sz);
-			//cout<<"serialization: "<<(char*)ptr<<" | "<<sz<<endl;
+
 
 			izene_deserialization_boost<string> idb(ptr, sz);
 			idb.read_image(str1);
 			//cout<<"deserialization: "<<str1<<endl;
 			assert(str == str1);
 		}
-		printf(" elapsed: %lf seconds\n", double(clock()- t1)/CLOCKS_PER_SEC);
+		cout<<"serialization: "<<(char*)ptr<<" | "<<sz<<endl;
+		printf("izene_serialization_boost elapsed: %lf seconds\n", double(clock()- t1)/CLOCKS_PER_SEC);
 		displayMemInfo();
 	}
+	
 	/*{
 		t1 = clock();
+		char* ptr;
+			size_t sz;
 		for (int i=0; i<1000000; i++) {
 			string str("izenesoft");
 			string str1;
-			izene_serialization_boost2<string> isb(str);
-			char* ptr;
-			size_t sz;
+			izene_serialization_boost1<string> isb(str);
+	
 			isb.write_image(ptr, sz);
 			//cout<<"serialization: "<<(char*)ptr<<" | "<<sz<<endl;
 
-			izene_deserialization_boost2<string> idb(ptr, sz);
+			izene_deserialization_boost1<string> idb(ptr, sz);
 			idb.read_image(str1);
 			//cout<<"deserialization: "<<str1<<endl;
 			assert(str == str1);
 		}
-		printf(" elapsed: %lf seconds\n", double(clock()- t1)/CLOCKS_PER_SEC);
+		cout<<"serialization: "<<(char*)ptr<<" | "<<sz<<endl;
+		printf("izene_serialization_boost1 elapsed: %lf seconds\n", double(clock()- t1)/CLOCKS_PER_SEC);
 		displayMemInfo();
 	}*/
 	
@@ -116,7 +121,7 @@ void test_performance() {
 			//cout<<"deserialization: "<<str1<<endl;
 			assert(str == str1);
 		}
-		printf(" elapsed: %lf seconds\n", double(clock()- t1)/CLOCKS_PER_SEC);
+		printf("izene_serialization_febird elapsed: %lf seconds\n", double(clock()- t1)/CLOCKS_PER_SEC);
 		displayMemInfo();
 	}
 	{
@@ -136,7 +141,7 @@ void test_performance() {
 			//cout<<"deserialization: "<<str1<<endl;
 			assert(str == str1);
 		}
-		printf(" elapsed: %lf seconds\n", double(clock()- t1)/CLOCKS_PER_SEC);
+		printf("izene_serialization_memcpy elapsed: %lf seconds\n", double(clock()- t1)/CLOCKS_PER_SEC);
 		displayMemInfo();
 	}
 

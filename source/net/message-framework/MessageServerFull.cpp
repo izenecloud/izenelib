@@ -305,6 +305,7 @@ namespace messageframework
 #ifdef _LOGGING_
 		WriteToLog("log.log", "============= MessageServer::sendResultOfService ===========");		
 #endif	
+		//boost::mutex::scoped_lock resultCacheLock(resultCacheMutex_);
 		messageDispatcher_.sendDataToLowerLayer1(SERVICE_RESULT_MSG, result, requester);
 /*
 		try

@@ -3,7 +3,7 @@ GCC=/usr/bin/gcc
 
 CC_OPTIONS= -O2 -Wall -c -g -pg  -DDEBUG
 
-WISELIB = /home/Kevin/wiselib
+WISELIB = /home/wps/workspace/wiselib
 
 
 INC_PATH=    -I /usr/local/include/  -I  ../../../../../izenelib/include/ -I  ../../../../../ylib/include/\
@@ -14,7 +14,7 @@ INC_PATH=    -I /usr/local/include/  -I  ../../../../../izenelib/include/ -I  ..
 LIBS =    ../../../../../izenelib/lib/libsdb_btree.so   /usr/local/lib/libboost_thread-gcc41-mt.so \
            /usr/local/lib/libtokyocabinet.so   /usr/local/lib/libboost_serialization-gcc41-mt.so   \
            ../../../../../izenelib/lib/libprocmeminfo.a  ../../../../../izenelib/lib/libfebird.a   \
-	$(WISELIB)/lib/libwiselib.so.0.1.0     /usr/local/lib64/libstdc++.so.6.0.10 
+	$(WISELIB)/lib/libwiselib.so #    /usr/local/lib64/libstdc++.so 
 
 
 .cc.o:

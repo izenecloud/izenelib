@@ -148,14 +148,9 @@ template <class KeyType, class ValueType, class ReplacementPolicy,
 	if (mCache_.getValue(key, value) ) {
 		lock.release_write_lock();
 		return TRUE;
-	} else {
-		ValueType* p;
-		p = dataHash_.find(key);
-		if (p) 
+	} else {	
+		if (dataHash_.get(key, value)) 
 		{
-			value = *p;
-			delete p;
-			p = 0;
 			mCache_.insertValue(key, value);
 			lock.release_write_lock();
 			return true;
@@ -175,9 +170,8 @@ template <class KeyType, class ValueType, class ReplacementPolicy,
 		ValueType, ReplacementPolicy, MCache, DataHash, LockType>::insertValue(
 		const DataType& dat) {
 	lock.acquire_write_lock();
-	if (dataHash_.insert(dat) ) {
-		mCache_.insertValue(dat);
-	}
+	dataHash_.insert(dat); 
+	mCache_.insertValue(dat);	
 	lock.release_write_lock();
 }
 

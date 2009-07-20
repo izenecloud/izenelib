@@ -265,6 +265,15 @@ public:
 		lock_.release_read_lock();
 		return ret;
 	}
+	
+	bool seq(SDBCursor& locn, KeyType& key, ValueType& value,  ESeqDirection sdir=ESD_FORWARD) {
+	    DataType dat;
+	    bool ret = seq(locn, dat, sdir);
+	    key = dat.key;
+	    value = dat.value;
+	    return ret;
+	}
+	
 
 	/**
 	 *	\brief It determines if an item exists in SequentialDB.    

@@ -14,8 +14,6 @@
 
 using namespace izenelib::util;
 
-MAKE_FEBIRD_SERIALIZATION(std::vector<std::string>);
-
 namespace messageframework {
 
 template<typename TYPE> inline void mf_deserialize(TYPE& dat,
