@@ -8,7 +8,7 @@
 NS_IZENELIB_IR_BEGIN
 
 template <
-  uint32_t IN_MEM_SIZE = 1000000
+  uint32_t IN_MEM_SIZE = 50000000
   >
 class PrimeGen
 {
@@ -23,7 +23,7 @@ protected:
   FILE* f_;
 
 public:
-  inline PrimeGen(const char* fnm="./prime_num.dat")
+  inline PrimeGen(const char* fnm="./prime_num")
   {
     f_ = fopen(fnm, "r");
     if (f_ == NULL)
@@ -62,14 +62,20 @@ public:
     assert(i_<num_);
     
     if (i_-start_i_ >= IN_MEM_SIZE)
-      load_from(start_i_ + i_);
-    return primes_.at(i_++);
+      load_from(i_);
+
+    uint32_t r = primes_.at(i_- start_i_);
+    ++i_;
+    return r;
   }
 
   inline uint32_t operator [] (uint32_t i)
   {
     if (i<start_i_ || i>=start_i_+IN_MEM_SIZE)
       load_from(i);
+    if (i-start_i_>=primes_.length())
+      return 3;
+    
     return primes_.at(i-start_i_);
   }
   
