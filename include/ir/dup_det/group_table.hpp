@@ -142,6 +142,7 @@ public:
       if (v==NULL)
         continue;
       delete v;
+      doc_hash_[i] = NULL;
     }
 
     for (size_t i=0; i<gids_.length(); i++)
@@ -150,6 +151,69 @@ public:
       if (v==NULL)
         continue;
       delete v;
+      gids_[i] = NULL;
+    }
+  }
+
+  inline void reset(const char* filenm)
+  {
+    fclose(f_);
+    f_ = fopen(filenm, "w+");
+    if (f_ == NULL)
+    {
+      std::cout<<"Can't create file: "<<filenm<<std::endl;
+      return;
+    }
+
+    for (size_t i=0; i<doc_hash_.length(); i++)
+    {
+      Vector32* v = doc_hash_.at(i);
+      if (v==NULL)
+        continue;
+      delete v;
+      doc_hash_[i] = NULL;
+    }
+    doc_hash_.reset();
+
+    for (size_t i=0; i<gids_.length(); i++)
+    {
+      Vector32* v = gids_.at(i);
+      if (v==NULL)
+        continue;
+      delete v;
+      gids_[i] = NULL;
+    }
+    gids_.reset();
+  }
+
+  inline void assign(const SelfT& other)
+  {
+    memcpy(doc_hash_.array(other.doc_hash_.length()),
+           other.doc_hash_.data(), other.doc_hash_.size());
+    
+    memcpy(gids_.array(other.gids_.length()),
+           other.gids_.data(), other.gids_.size());
+    
+    for (size_t i=0; i<doc_hash_.length(); i++)
+    {
+      Vector32* v = doc_hash_.at(i);
+      if (v==NULL)
+        continue;
+      
+      doc_hash_[i] = new Vector32();
+      memcpy(doc_hash_.at(i)->array(v->length()),
+             v->data(), v->size());
+    }
+
+    for (size_t i=0; i<gids_.length(); i++)
+    {
+      Vector32* v = gids_.at(i);
+      if (v==NULL)
+        continue;
+      
+      gids_[i] = new Vector32();
+      memcpy(gids_.at(i)->array(v->length()),
+             v->data(), v->size());
     }
   }
   
@@ -157,7 +221,8 @@ public:
   {
     size_t index = 0;
     fseek(f_, 0, SEEK_SET);
-    fread(&index, sizeof(size_t), 1, f_);
+    if (fread(&index, sizeof(size_t), 1, f_)!=1)
+      return;
     //std::cout<<index<<std::endl;
     
     for (size_t i=0; i<doc_hash_.length(); i++)
@@ -287,7 +352,16 @@ public:
   
   inline const Vector32& find(uint32_t docid)const
   {
-    return *(gids_.at(get_gid(docid)));
+    static Vector32 v;
+    size_t gid = get_gid(docid);
+    if (gid == (size_t)-1)
+      return v;
+
+    Vector32* p = gids_.at(gid);
+    if (p== NULL)
+      return v;
+    
+    return *p;
   }
 
   inline void compact()
@@ -323,7 +397,43 @@ public:
   {
     return gids_.length();
   }
-  
+
+  template<
+    class FpList
+    >
+  void set_docid(const FpList& fp)
+  {
+    for (size_t i=0; i<doc_hash_.length(); i++)
+    {
+      Vector32* v = doc_hash_.at(i);
+      if (v==NULL)
+        continue;
+      delete v;
+      doc_hash_[i] = NULL;
+    }
+
+    for (size_t i=0; i<gids_.length(); ++i)
+    {
+      Vector32* v = gids_.at(i);
+      if (v==NULL)
+        continue;
+
+      for(size_t j=0; j<v->length(); ++j)
+      {
+        (*v)[j] = fp[(*v)[j]];
+        
+        uint32_t h =  (*v)[j]%ENTRY_SIZE;
+        Vector32* p = doc_hash_.at(h);
+        if (p == NULL)
+          doc_hash_[h] = new Vector32();
+        
+        doc_hash_.at(h)->push_back((*v)[j]);
+        doc_hash_.at(h)->push_back(i);
+      }
+    }
+
+    compact();
+  }
   
   /**
    *This is for outputing into std::ostream, say, std::cout.

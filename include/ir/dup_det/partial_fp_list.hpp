@@ -164,7 +164,7 @@ protected:
   
   
 public:
-  explicit PartialFpList(const char* file_name, uint8_t unit_len, size_t doc_num = 0)
+  explicit PartialFpList(const char* file_name, uint8_t unit_len=2, size_t doc_num = 0)
     :file_name_(file_name),doc_num_(doc_num), in_mem_doc_num_(0),start_doc_i_(0),cache_status_(ADD_DOCS),
      ALL_INFO_IN_MEM_LENGTH(CACHE_SIZE*1000000/(FP_LENGTH*sizeof(UNIT_TYPE))),
      UNIT_LEN(unit_len)
@@ -283,7 +283,7 @@ public:
     fwrite(docids_.data(), docids_.size(), 1, fhandlers_[PARTIALS_SIZE]);
     fflush(fhandlers_[PARTIALS_SIZE]);
     
-    std::cout<<docids_.length()<<" "<<docids_.size()<<std::endl;
+    //std::cout<<docids_.length()<<" "<<docids_.size()<<std::endl;
   }
 
   inline size_t doc_num() const
@@ -339,19 +339,22 @@ public:
     in_mem_doc_num_ = 0;
   }
 
-  inline uint32_t operator[] (size_t i)
+  inline uint32_t operator[] (size_t i)const
   {
     assert(i < docids_.length());
     return docids_.at(i);
   }
   
-  void print()
+  void print()const
   {
+    //std::cout<<docids_<<std::endl;
+    
     if (cache_status_ == ADD_DOCS)
     {
       std::cout<<"Adding docs...\n";
       for (size_t i=0; i<in_mem_doc_num_; i++)
       {
+        std::cout<<(*this)[i]<<"# ";//std::cout<<docids_.at(i+start_doc_i_)<<"# ";
         for (uint8_t j=0; j<PARTIALS_SIZE; j++)
           if (fp_ptrs_[j]!= NULL)
           { //std::cout<<(*fp_ptrs_[j]).length()<<" "<<(int)j<<std::endl;
