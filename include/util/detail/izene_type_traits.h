@@ -27,7 +27,6 @@ struct IsMemcpySerial<std::vector<T >  >{
 		no= !yes};	
 };
 
-/*
 
 template < typename T1, typename T2   >
 struct IsMemcpySerial<std::pair<T1, T2>  >
@@ -54,7 +53,7 @@ struct IsMemcpySerial<boost::tuple<T1, T2, T3>  >
 		no= !yes};
 };
 
-*/
+
 
 template <typename T>
 struct IsFebirdSerial{
@@ -85,5 +84,32 @@ NS_IZENELIB_UTIL_END
 
 MAKE_MEMCPY_SERIALIZATION(std::string)
 //MAKE_FEBIRD_SERIALIZATION(std::string)
+
+//////////////////////////////////////////////////////
+
+#include <boost/tuple/tuple.hpp>
+#include <boost/tuple/tuple_comparison.hpp>
+#include <boost/serialization/nvp.hpp>
+#include <boost/preprocessor/repetition.hpp>
+
+
+//serialization for boost tuple
+namespace boost { namespace serialization {
+
+#define GENERATE_ELEMENT_SERIALIZE(z,which,unused) \
+ar & boost::serialization::make_nvp("element",t.get< which >());
+
+#define GENERATE_TUPLE_SERIALIZE(z,nargs,unused) \
+template< typename Archive, BOOST_PP_ENUM_PARAMS(nargs,typename T) > \
+void serialize(Archive & ar, \
+boost::tuple< BOOST_PP_ENUM_PARAMS(nargs,T) > & t, \
+const unsigned int version) \
+{ \
+BOOST_PP_REPEAT_FROM_TO(0,nargs,GENERATE_ELEMENT_SERIALIZE,~) \
+}
+
+BOOST_PP_REPEAT_FROM_TO(1,10,GENERATE_TUPLE_SERIALIZE,~);
+
+}} 
 
 #endif /*IZENE_TYPE_TRAITS_H_*/

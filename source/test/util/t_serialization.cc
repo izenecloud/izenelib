@@ -12,7 +12,6 @@ void displayMemInfo(std::ostream& os = std::cout) {
 	os << "vm: " << vm << "bytes rss: " << rss << "bytes" << endl;
 }
 
-
 void test1() {
 	string str("izenesoft");
 	string str1;
@@ -62,15 +61,14 @@ void test_performance() {
 	clock_t t1;
 	{
 		char* ptr;
-				size_t sz;
+		size_t sz;
 		t1 = clock();
 		for (int i=0; i<1000000; i++) {
 			string str("izenesoft");
 			string str1;
 			izene_serialization_boost<string> isb(str);
-		
-			isb.write_image(ptr, sz);
 
+			isb.write_image(ptr, sz);
 
 			izene_deserialization_boost<string> idb(ptr, sz);
 			idb.read_image(str1);
@@ -81,37 +79,38 @@ void test_performance() {
 		printf("izene_serialization_boost elapsed: %lf seconds\n", double(clock()- t1)/CLOCKS_PER_SEC);
 		displayMemInfo();
 	}
-	
-	/*{
-		t1 = clock();
-		char* ptr;
-			size_t sz;
-		for (int i=0; i<1000000; i++) {
-			string str("izenesoft");
-			string str1;
-			izene_serialization_boost1<string> isb(str);
-	
-			isb.write_image(ptr, sz);
-			//cout<<"serialization: "<<(char*)ptr<<" | "<<sz<<endl;
 
-			izene_deserialization_boost1<string> idb(ptr, sz);
-			idb.read_image(str1);
-			//cout<<"deserialization: "<<str1<<endl;
-			assert(str == str1);
-		}
-		cout<<"serialization: "<<(char*)ptr<<" | "<<sz<<endl;
-		printf("izene_serialization_boost1 elapsed: %lf seconds\n", double(clock()- t1)/CLOCKS_PER_SEC);
-		displayMemInfo();
-	}*/
-	
+	/*{
+	 t1 = clock();
+	 char* ptr;
+	 size_t sz;
+	 for (int i=0; i<1000000; i++) {
+	 string str("izenesoft");
+	 string str1;
+	 izene_serialization_boost1<string> isb(str);
+	 
+	 isb.write_image(ptr, sz);
+	 //cout<<"serialization: "<<(char*)ptr<<" | "<<sz<<endl;
+
+	 izene_deserialization_boost1<string> idb(ptr, sz);
+	 idb.read_image(str1);
+	 //cout<<"deserialization: "<<str1<<endl;
+	 assert(str == str1);
+	 }
+	 cout<<"serialization: "<<(char*)ptr<<" | "<<sz<<endl;
+	 printf("izene_serialization_boost1 elapsed: %lf seconds\n", double(clock()- t1)/CLOCKS_PER_SEC);
+	 displayMemInfo();
+	 }*/
+
 	{
 		t1 = clock();
+		char* ptr;
+		size_t sz;
 		for (int i=0; i<1000000; i++) {
 			string str("izenesoft");
 			string str1;
 			izene_serialization_febird<string> isb(str);
-			char* ptr;
-			size_t sz;
+
 			isb.write_image(ptr, sz);
 
 			//cout<<"serialization: "<<(char*)ptr<<" | "<<sz<<endl;
@@ -121,17 +120,20 @@ void test_performance() {
 			//cout<<"deserialization: "<<str1<<endl;
 			assert(str == str1);
 		}
+		cout<<"serialization: "<<(char*)ptr<<" | "<<sz<<endl;
+
 		printf("izene_serialization_febird elapsed: %lf seconds\n", double(clock()- t1)/CLOCKS_PER_SEC);
 		displayMemInfo();
 	}
 	{
 		t1 = clock();
+		char* ptr;
+		size_t sz;
 		for (int i=0; i<1000000; i++) {
 			string str("izenesoft");
 			string str1;
 			izene_serialization_memcpy<string> isb(str);
-			char* ptr;
-			size_t sz;
+
 			isb.write_image(ptr, sz);
 
 			//cout<<"serialization: "<<(char*)ptr<<" | "<<sz<<endl;
@@ -141,6 +143,8 @@ void test_performance() {
 			//cout<<"deserialization: "<<str1<<endl;
 			assert(str == str1);
 		}
+		cout<<"serialization: "<<(char*)ptr<<" | "<<sz<<endl;
+
 		printf("izene_serialization_memcpy elapsed: %lf seconds\n", double(clock()- t1)/CLOCKS_PER_SEC);
 		displayMemInfo();
 	}
@@ -282,8 +286,7 @@ MAKE_FEBIRD_SERIALIZATION( vector<string> )
 
 int main() {
 	test_performance();
-	
-	
+
 	testobj dat1(100);
 	test_serialization(dat1);
 
@@ -351,8 +354,7 @@ int main() {
 	test_serialization_boost(ustr);
 	cout<<"!!!"<<endl;
 	test_serialization(ustr);
-	
-	
+
 	/*	test1();
 	 test2();
 	 test3();*/

@@ -1,6 +1,7 @@
 #include <string>
 #include <ctime>
 #include <am/util/Wrapper.h>
+#include <util/izene_serialization.h>
 #include <map>
 
 using namespace izenelib::am::util;
@@ -13,7 +14,7 @@ static string inputFile = "input.txt";
 
 typedef map<int, int>::iterator IT;
 
-#if 0
+#if 1
 
 namespace izenelib {
 namespace am {
@@ -270,12 +271,78 @@ void wrapper_test5() {
 	printf("5 elapsed: %lf seconds\n", double(clock()- t1)/CLOCKS_PER_SEC);
 }
 
+void wrapper_test6() {
+	clock_t t1 = clock();
+
+	int cnt = num;
+	while (cnt--) {
+		map<string, int> a;
+		int t = random()%range;
+		for (int i=0; i<t; i++) {
+			char p[10];
+			sprintf(p, "%d", i);
+			string str = p;
+			a[p] = i;
+		}
+	    char* ptr;
+	    size_t size;
+	    izene_serialization_febird<map<string, int> > izs(a);
+	    izs.write_image(ptr, size);
+	    
+	    izene_deserialization_febird<map<string, int> >  izd(ptr, size);
+		map<string, int> b;
+		izd.read_image(b);
+		if (trace) {
+			map<string, int>::iterator it = b.begin();
+			for (; it != b.end(); it++) {
+				cout<<it->first<<" : "<<it->second<<endl;
+			}
+		}
+	}
+
+	printf("6 elapsed: %lf seconds\n", double(clock()- t1)/CLOCKS_PER_SEC);
+
+}
+
+void wrapper_test7() {
+	clock_t t1 = clock();
+
+		int cnt = num;
+		while (cnt--) {
+			map<int, int> a;
+			int t = random()%range;
+			for (int i=0; i<t; i++) {
+				a[i] = i;
+			}
+		    char* ptr;
+		    size_t size;
+		    izene_serialization_febird<map<int, int> >  izs(a);
+		    izs.write_image(ptr, size);
+		    
+		    izene_deserialization_febird<map<int, int> >  izd(ptr, size);
+			map<int, int> b;
+			izd.read_image(b);
+			
+			if (trace) {
+				for (IT it = b.begin(); it != b.end(); it++) {
+					cout<<it->first<<" : "<<it->second<<endl;
+				}
+			}
+		}
+
+		printf("7 elapsed: %lf seconds\n", double(clock()- t1)/CLOCKS_PER_SEC);
+
+}
+
 void run() {
 	wrapper_test1();
 	wrapper_test2();
 	wrapper_test3();
 	wrapper_test4();
 	wrapper_test5();
+	
+	wrapper_test6();
+	wrapper_test7();
 }
 
 void ReportUsage(void) {

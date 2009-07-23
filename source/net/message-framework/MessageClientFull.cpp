@@ -604,7 +604,7 @@ bool MessageClientFull::putServiceRequest(
 					}
 				}
 
-				for( int j = i; j <= i + range; j++ )
+				for(unsigned int j = i; j <= i + range; j++ )
 				{
 					unsigned int minorId = serviceRequestInfos[j]->getMinorId();
 					if( serviceResultTable_[requestId][minorId -1] == NULL ) {

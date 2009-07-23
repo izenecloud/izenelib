@@ -30,8 +30,7 @@ template<typename T> class izene_deserialization_febird {
 	NativeDataInput<MemIO> ia;
 public:
 	izene_deserialization_febird(const char* ptr,  const size_t size) {
-		ia.set((void*)ptr, size);
-		//ia.write(ptr, size);
+		ia.set((void*)ptr, size);		
 	}
 	void read_image(T& dat) {
 		ia & dat;

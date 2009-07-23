@@ -6,33 +6,6 @@
 
 NS_IZENELIB_UTIL_BEGIN
 
-/*
- template<typename T, bool primitive=true > class izene_serialization_memcpy {
- const T& dat_;
- public:
- izene_serialization_memcpy(const T& dat) :
- dat_(dat) {
-
- }
- void write_image(char* &ptr, size_t& size) {
- ptr = (char*)&dat_;
- size = sizeof(dat_);
- }
- };
-
- template<typename T,  bool primitive=true > class izene_deserialization_memcpy {
- const char* &ptr_;
- const size_t& size_;
- public:
- izene_deserialization_memcpy(const char* ptr, const size_t size) :
- ptr_(ptr), size_(size) {
-
- }
- void read_image(T& dat) {
- memcpy(&dat, ptr_, sizeof(dat));
- }
- };*/
-
 template<typename T>
 inline void write_image_memcpy(const T& dat, char* &str, size_t& size);
 
@@ -238,6 +211,7 @@ NS_IZENELIB_UTIL_END
 
 
 //MAKE_MEMECPY_TYPE = MAKE_MEMCPY + MAKE_MEMCPY_SERIALIZATION
+
 #define MAKE_MEMCPY_TYPE(TYPE) \
 namespace izenelib{namespace util{ \
 template <>struct IsMemcpySerial<TYPE >{ \

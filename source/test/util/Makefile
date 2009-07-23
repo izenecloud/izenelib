@@ -8,7 +8,7 @@ LIB_PATH = -lpthread -lrt  /usr/local/lib/libboost_serialization-gcc41-mt.so  -l
 
 CC_OPTIONS= -O3 -Wall -c -g  -fPIC -rdynamic #-DDATA_IO_ALLOW_DEFAULT_SERIALIZE
 
-TARGET =  t_serialization #t_map t_wrapper
+TARGET =  t_serialization  t_wrapper #t_map t_wrapper
 
 .cc.o:
 	$(GPP) $(CC_OPTIONS) ${INC_PATH} $<
