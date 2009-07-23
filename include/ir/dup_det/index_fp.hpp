@@ -424,7 +424,7 @@ public:
     }
 
     group_->compact();
-    group->flush();
+    group_->flush();
     gettimeofday (&tvafter , &tz);
     std::cout<<"\nClustering is over!: "<<((tvafter.tv_sec-tvpre.tv_sec)*1000+(tvafter.tv_usec-tvpre.tv_usec)/1000)/60000.<<std::endl;
     //std::cout<<*group_<<std::endl;
