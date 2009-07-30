@@ -42,6 +42,7 @@ LIB_PATH =  	\
 
 LIB =  		 	-lsf1v5_common \
 				-lmessage_framework \
+				-lfebird \
 				-lla_manager \
 				-ldoc_manager \
 				-lboost_thread-gcc41-mt \

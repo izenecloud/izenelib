@@ -1,5 +1,10 @@
-~AsyncConnector...
-close streams...
-finish shutdown...
-terminate called after throwing an instance of 'boost::exception_detail::clone_impl<boost::exception_detail::error_info_injector<boost::system::system_error> >'
-  what():  Address already in use
+Listen at : 9000
+Accept new connection.
+Remote IP = 127.0.0.1, port = 51928
+Add peer node : 127.0.0.1:51928
+Error while Receiving message header. Connection is closed.
+Error detail End of file
+Remove peer node : 127.0.0.1:51928
+Accept new connection.
+Remote IP = 127.0.0.1, port = 51929
+Add peer node : 127.0.0.1:51929

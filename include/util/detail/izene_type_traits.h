@@ -23,7 +23,7 @@ struct IsMemcpySerial{
 
 template <typename T>
 struct IsMemcpySerial<std::vector<T >  >{
-	enum {yes =IsMemcpySerial<T>::yes,		
+	enum {yes = (is_arithmetic<T >::value || is_empty<T>::value),		
 		no= !yes};	
 };
 
@@ -31,7 +31,8 @@ struct IsMemcpySerial<std::vector<T >  >{
 template < typename T1, typename T2   >
 struct IsMemcpySerial<std::pair<T1, T2>  >
 {
-	enum {yes = IsMemcpySerial<T1>::yes && IsMemcpySerial<T2>::yes,
+	enum {yes = (is_arithmetic<T1 >::value || is_empty<T1>::value)
+		         && (is_arithmetic<T2 >::value || is_empty<T2 >::value),
 		no= !yes};
 };
 
@@ -40,7 +41,8 @@ struct IsMemcpySerial<std::pair<T1, T2>  >
 template < typename T1, typename T2  >
 struct IsMemcpySerial<boost::tuple<T1, T2>  >
 {
-	enum {yes = IsMemcpySerial<T1>::yes && IsMemcpySerial<T2>::yes,
+	enum { yes = (is_arithmetic<T1 >::value || is_empty<T1>::value)
+               && (is_arithmetic<T2 >::value || is_empty<T2 >::value),
 		no= !yes};
 };
 
@@ -49,7 +51,9 @@ struct IsMemcpySerial<boost::tuple<T1, T2>  >
 template < typename T1, typename T2, typename T3  >
 struct IsMemcpySerial<boost::tuple<T1, T2, T3>  >
 {
-	enum {yes = IsMemcpySerial<T1>::yes && IsMemcpySerial<T2>::yes && IsMemcpySerial<T3>::yes,
+	enum {yes = (is_arithmetic<T1 >::value || is_empty<T1>::value)
+                && (is_arithmetic<T2 >::value || is_empty<T2 >::value)
+                && (is_arithmetic<T2 >::value || is_empty<T2 >::value),
 		no= !yes};
 };
 
