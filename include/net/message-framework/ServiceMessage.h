@@ -47,6 +47,8 @@ struct MessageHeader {
  * message, it can be a request or a result.
  */
 class ServiceMessage {
+	
+	friend class ServiceResultCompare;
 public:
 	/**
 	 * @brief The constructor, initialize variables with default values.
@@ -139,7 +141,7 @@ public:
 		}
 	}
 
-	void pushBuffer(char* ptr, unsigned int sz) {
+	/*void pushBuffer(char* ptr, unsigned int sz) {
 		MFBufferPtr dptr(new MFBuffer(ptr, sz));
 		bufferPtrVec.push_back(dptr);
 		//mh.nbuffer = bufferPtrVec.size();
@@ -147,7 +149,7 @@ public:
 		if (mh.nbuffer < bufferPtrVec.size() ) {
 			mh.nbuffer = bufferPtrVec.size();
 		}
-	}
+	}*/
 
 	void pushBuffer(const MFBufferPtr& ptr) {
 		bufferPtrVec.push_back(ptr);
@@ -158,6 +160,8 @@ public:
 		}
 	}
 
+#ifndef USE_MF_LIGHT
+	
 	unsigned int getSerializedSize() const {
 		unsigned int len = 0;
 		len += sizeof(MessageHeader);
@@ -169,7 +173,7 @@ public:
 		}
 		return len;
 
-	}
+	}	
 
 	/*	template <typename Archive> void serialize(Archive & ar,
 	 const unsigned int version) {
@@ -237,6 +241,8 @@ public:
 	}
 
 	BOOST_SERIALIZATION_SPLIT_MEMBER()
+	
+#endif
 
 	void clear()
 	{
@@ -255,10 +261,13 @@ public:
 		//os<<getSerializedSize()<<std::endl;
 		for(unsigned int i=0; i<mh.nbuffer; i++)
 		{
-			//os<<(char*)bufferPtrVec[i]->getData()<<endl;
+			//os<<(char*)bufferPtrVec[i]->getData()<<endl;			
 			if(bufferPtrVec.size() == mh.nbuffer) {
+#ifndef USE_MF_LIGHT
 				if(bufferPtrVec[i])
-				os<<"buffer "<<i<<" : "<<bufferPtrVec[i]->getSize()<<std::endl;
+					os<<"buffer "<<i<<" : "<<bufferPtrVec[i]->getSize()<<std::endl;
+#endif
+				
 			}
 		}
 		os<<"====requester ip======"<<std::endl;
@@ -296,11 +305,30 @@ private:
 	 */
 	//std::vector<boost::shared_ptr<VariantType> > dataList_;	
 };
+
 typedef ServiceMessage ServiceRequestInfo;
 typedef ServiceMessage ServiceResult;
 typedef boost::shared_ptr<ServiceMessage> ServiceRequestInfoPtr;
 typedef boost::shared_ptr<ServiceMessage> ServiceResultPtr;
 typedef boost::shared_ptr<ServiceMessage> ServiceMessagePtr;
+
+class ServiceResultCompare
+{
+public:
+	bool operator()(const ServiceResultPtr& s1, const ServiceResultPtr& s2) const
+	{
+		int o = s1->mh.requestId - s2->mh.requestId;
+		if ( o < 0 )
+			return true;
+		if( o == 0 )
+		{
+			if(s1->mh.minorId < s2->mh.minorId)
+				return true;
+		}
+		return false;
+	}
+};
+
 
 } // end of messageframework
 

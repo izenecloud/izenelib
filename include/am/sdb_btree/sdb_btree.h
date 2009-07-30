@@ -268,6 +268,14 @@ public:
 		return locn;
 	}
 
+	bool seq(SDBCursor& locn, KeyType& key, ValueType& value,  ESeqDirection sdir=ESD_FORWARD){
+		DataType dat;
+		bool ret = seq(locn, dat, sdir);
+		key = dat.get_key();
+		value = dat.get_value();
+		return ret;
+	}
+	
 	/**
 	 * 	\brief get the next or prev item.
 	 * 

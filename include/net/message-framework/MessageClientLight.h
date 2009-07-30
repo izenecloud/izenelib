@@ -6,8 +6,6 @@
 #define _MESSAGE_CLIENT_LIGHT_H_
 
 #include <net/message-framework/MessageControllerLight.h>
-#include <net/message-framework/ServiceInfo.h>
-#include <net/message-framework/ServiceResult.h>
 
 #include <string>
 
@@ -61,7 +59,7 @@ namespace messageframework
              */
             //TODO: why don't we have only ServiceRequestInfo passed as parameter
             bool putServiceRequest(const ServicePermissionInfo& servicePermissionInfo,
-                    ServiceRequestInfo& serviceRequestInfo);
+                    ServiceRequestInfoPtr& serviceRequestInfo);
 
 			/**
 			 * @brief This function puts a set of requests of the same manager to the
@@ -76,7 +74,7 @@ namespace messageframework
 			 * true - if the receiver successfully receives these requests
 			 */
 			bool putServiceRequest(const ServicePermissionInfo& servicePermissionInfo,
-								std::vector<ServiceRequestInfo>& serviceRequestInfos);
+								std::vector<ServiceRequestInfoPtr>& serviceRequestInfos);
 
 
             /**
@@ -92,8 +90,9 @@ namespace messageframework
              * @return
              * false - result is not ready.
              */
-            bool getResultOfService(const ServiceRequestInfo& serviceRequestInfo,
-                    ServiceResult& serviceResult);
+            bool getResultOfService(const ServiceRequestInfoPtr& serviceRequestInfo,
+                    ServiceResultPtr& serviceResult);            
+         
 
 			/**
 			 * @brief This function gets a set of results of the service
@@ -108,8 +107,8 @@ namespace messageframework
 			 * @return
 			 * false - result is not ready.
 			 */
-			bool getResultOfService(const std::vector<ServiceRequestInfo> & serviceRequestInfo,
-							std::vector<ServiceResult> & serviceResults);
+			bool getResultOfService(const std::vector<ServiceRequestInfoPtr> & serviceRequestInfos,
+							std::vector<ServiceResultPtr> & serviceResults);
 
 		protected:
 

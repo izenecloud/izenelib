@@ -1,0 +1,19 @@
+Listen at : 9003
+Connect to localhost:9000
+Connection is established. 
+Remote IP = 127.0.0.1, port = 9000
+Add peer node : 127.0.0.1:9000
+[DocumentProcess]: MF-Server up and ready to go
+Connect to localhost:9000
+Connection is established. 
+Accept new connection, Remote IP = 127.0.0.1, port = 9000, controller connection
+Add peer node : 127.0.0.1:9000
+[DocumentProcess]: MF-Client up and ready to go
+Node: 127.0.0.1:9001 does not exists.
+Connect to 127.0.0.1:9001
+Node: 127.0.0.1:9001 does not exists.
+Connection is established. 
+Accept new connection, Remote IP = 127.0.0.1, port = 9001, server connection
+Add peer node : 127.0.0.1:9001
+[PROFILE] on client la cost 616442 macroseconds
+7063

@@ -5,8 +5,6 @@
 #define _MESSAGE_SERVER_LIGHT_H_
 
 #include <net/message-framework/MessageControllerLight.h>
-#include <net/message-framework/ServiceInfo.h>
-#include <net/message-framework/ServiceRequestInfo.h>
 
 #include <string>
 #include <vector>
@@ -65,7 +63,7 @@ namespace messageframework
              * @return
              *  true - the list is retrieved successfully
              */
-            bool getServiceRequestList(std::vector<ServiceRequestInfo>& requestList);
+            bool getServiceRequestList(std::vector<ServiceRequestInfoPtr>& requestList);
 
             /**
              * @brief This function answers a service request by putting the ServiceResult to the
@@ -77,7 +75,8 @@ namespace messageframework
              * @return
              *  true - the service result has been successfully put to the requester
              */
-            bool putResultOfService(const ServiceRequestInfo& serviceRequestInfo, const ServiceResult& result);
+          //  bool putResultOfService(const ServiceRequestInfo& serviceRequestInfo, const ServiceResult& result);
+            bool putResultOfService(const ServiceResultPtr& result);
 
 
         private:

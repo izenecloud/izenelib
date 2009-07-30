@@ -470,6 +470,16 @@ public:
 	 *   @param sdir is sequential access direction, for hash is unordered, we only implement forward case.
 	 *   
 	 */
+	
+	bool seq(SDBCursor& locn, KeyType& key, ValueType& value,  ESeqDirection sdir=ESD_FORWARD){
+		DataType dat;
+		bool ret = seq(locn, dat, sdir);
+		key = dat.get_key();
+		value = dat.get_value();
+		return ret;
+	}
+	
+	
 	bool seq(SDBCursor& locn, DataType& rec, ESeqDirection sdir=ESD_FORWARD) {
 		flushCache_(locn);
 		if( sdir == ESD_FORWARD ) {

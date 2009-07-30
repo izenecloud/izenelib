@@ -24,6 +24,7 @@ NS_IZENELIB_UTIL_BEGIN
 
 const int archive_flags = archive::no_header | archive::no_codecvt;
 
+/*
 template<typename T> class izene_serialization_boost {
 izene_streambuf buf;
 public:
@@ -49,10 +50,10 @@ void read_image(T& dat) {
 boost::archive::binary_iarchive ia(buf, archive_flags);
 ia & dat;
 }
-};
+};*/
 
 
-/*
+
 template<typename T> class izene_serialization_boost {
 	izenelib::am::util::DbObjPtr ptr_;
 public:
@@ -76,7 +77,7 @@ public:
 	void read_image(T& dat) {
 		izenelib::am::util::read_image<T>(dat, ptr_);
 	}
-};*/
+};
 
 
 

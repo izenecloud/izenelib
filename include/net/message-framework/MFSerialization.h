@@ -16,6 +16,40 @@ using namespace izenelib::util;
 
 namespace messageframework {
 
+#ifdef USE_MF_LIGHT
+
+template<typename TYPE> inline void mf_deserialize(TYPE& dat,
+		const ServiceMessagePtr& sm, int idx=0) {
+
+	MFBufferPtr ptr = sm->getBuffer(idx);
+	dat = boost::any_cast<TYPE>(*ptr);
+
+#ifdef SF1_DEBUG 
+	cout<<"mf_deserialize "<<typeid(TYPE).name()<<endl;
+	cout<<"!!!!--- hash code ----: "<<izenelib::util::izene_hashing(dat)<<endl;
+	sm->display();
+#endif	
+	
+
+}
+
+template<typename TYPE> inline void mf_serialize(const TYPE& dat,
+		ServiceMessagePtr& sm, int idx=0) {
+	
+	MFBufferPtr ptr(new boost::any(dat));
+	sm->setBuffer(idx, ptr);
+	
+#ifdef SF1_DEBUG
+	cout<<"mf_serialize "<<typeid(TYPE).name()<<endl;
+	cout<<"!!!!==>> hash code: "<<izenelib::util::izene_hashing(dat)<<endl;
+	TYPE dat1;
+	mf_deserialize(dat1, sm, idx);
+	cout<<"!!!!<<== hash code: "<<izenelib::util::izene_hashing(dat1)<<endl;
+#endif
+}
+
+#else
+
 template<typename TYPE> inline void mf_deserialize(TYPE& dat,
 		const ServiceMessagePtr& sm, int idx=0) {
 
@@ -52,6 +86,11 @@ template<typename TYPE> inline void mf_serialize(const TYPE& dat,
 	//assert(sizeof(dat1) == sizeof(dat));	
 #endif
 }
+
+#endif
+
+
+#ifndef USE_MF_LIGHT 
 
 const int archive_flags = archive::no_header | archive::no_codecvt;
 
@@ -132,6 +171,8 @@ template<> inline void to_buffer<ServiceMessage>(const ServiceMessage& sm,
 			(void*)pbuf->data(), pbuf->size() )<<endl;
 #endif
 }
+#endif
+
 #endif
 
 }

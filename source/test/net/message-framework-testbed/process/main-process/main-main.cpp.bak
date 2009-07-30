@@ -1,0 +1,221 @@
+/**
+ * @author  MyungHyun Lee (Kent)
+ * @date    2009-01-30
+ */
+
+#include <document-manager/Document.h>
+
+#include <message_framework.h>
+
+#include "ProcessOptions.h"
+#include "MessageAgent.h"
+
+#include <boost/smart_ptr.hpp>
+
+#include <vector>
+
+#include <iostream>
+#include <fstream>
+
+using namespace std;
+using namespace boost;
+using namespace sf1v5_dummy;
+using namespace messageframework;
+
+namespace MainProcess {
+
+//IndexManager        indexMgr_;
+//DocumentManager     docMgr_;
+//LAmanager           lamMgr_;
+MessageClient * client_;
+
+//Document t;
+
+}
+
+MF_AUTO_MAIN(mainProcess) {
+	using namespace MainProcess;
+
+	sf1v5_dummy::ProcessOptions po;
+
+	if ( !po.setMainProcessOptions(argc, argv)) {
+		return 0;
+	}
+
+	MessageFrameworkNode controllerInfo(po.getControllerIp(),
+			po.getControllerPort() );
+
+	client_ = new MessageClient( MF_CLIENT_ARG("MainProcess", controllerInfo) );
+
+	string queryStr;
+
+	//shared_ptr<VariantType> queryString;
+	shared_ptr<vector<string> > termList(new vector<string>);
+
+	//shared_ptr<VariantType > term;
+	shared_ptr<vector<unsigned int> > docIdList(new vector<unsigned int>);
+
+	vector<Document> resultDocList;
+
+	bool ret = true;
+
+	//ifstream inf("wordlist.txt");
+	ifstream inf("test2.txt");
+
+	// while( true )
+	long total_time = 0;
+	long total_stime = 0;
+	long total_rtime = 0;
+
+	ServiceRequestInfoPtr requestToLA(new ServiceRequestInfo);
+	//ServiceResultPtr resultFromLA(new ServiceResult);
+	ServiceResultPtr resultFromLA;
+	requestToLA->setServiceName("parseString");
+
+	ServiceRequestInfoPtr requestToIndex(new ServiceRequestInfo);
+	//ServiceResultPtr resultFromIndex(new ServiceResult);
+	ServiceResultPtr resultFromIndex;
+	requestToIndex->setServiceName("findDocListByTerm");
+
+	//vector<ServiceRequestInfoPtr> docRequests;
+
+	//vector<ServiceResultPtr> docResults;
+
+	ServiceRequestInfoPtr docRequests(new ServiceRequestInfo);
+	ServiceResultPtr docResults;
+	docRequests->setServiceName("getDocument");
+
+	int seqnum = 0;
+
+	boost::shared_ptr<string> term(new string);
+
+	boost::posix_time::ptime begin =
+			boost::posix_time::microsec_clock::local_time();
+
+	sf1v5_dummy::permission_time = 0;
+	sf1v5_dummy::send_time = 0;
+	sf1v5_dummy::recv_time = 0;
+
+	while (inf >> queryStr) {
+		//--- containers ---
+		cout << "Enter Search Query: " << endl;
+		//cin >> queryStr;
+		cout<<queryStr<<endl;
+
+		//        client_->getMessageDispatcher().serialization_time = 0;
+		//        client_->getMessageDispatcher().deserialization_time = 0;
+
+		boost::posix_time::ptime begin =
+				boost::posix_time::microsec_clock::local_time();
+		mf_serialize(queryStr, requestToLA, seqnum);
+		++seqnum;
+	}
+	ret = requestService("parseString", requestToLA, resultFromLA, *client_);
+	if (ret == false) {
+		cerr << "[Main-Process]: ERROR when calling service, \"parseString\" "
+				<< endl;
+		return -1;
+	} else {
+		int idx = 0;
+		for (int i=0; i<resultFromLA->getBufferNum(); i++) {
+			mf_deserialize(*termList, resultFromLA, i);
+			for (size_t i = 0; i < termList->size(); i++) {
+				term.reset(new string((*termList)[i]));
+				mf_serialize(*term, requestToIndex, idx);
+				idx++;
+			}
+		}
+	}
+
+	//cout<<"findoclistByTerm"<<endl;
+	// for the number of terms in a query string
+
+	// 2. Get the list of documents that are searched with the term
+	ret = requestService("findDocListByTerm", requestToIndex, resultFromIndex,
+			*client_);
+
+	if (ret == false) {
+		cout
+				<< "[Main-Process]: ERROR when calling service, \"findDocListByTerm\" "
+				<< endl;
+		return -1;
+	} else {
+		int nbatch = 0;
+		for (int i=0; i<resultFromIndex->getBufferNum(); i++) {
+			mf_deserialize(*docIdList, resultFromIndex, i);
+			if (docIdList->empty() ) {
+				cout
+						<< "\tDEBUG [Main-Process]: no result from \"findDocListByTerm\""
+						<< endl;
+				continue;
+			} else {
+				cout << "\tDEBUG [Main-Process]: docIdList.size(): "
+						<< docIdList->size() << endl;
+				//resultDocList.reserve(docIdList->size()); 
+
+				//requestsToDoc.resize(docIdList->size());					  
+				//ServiceMessagePtr getDocMessage(new ServiceMessage);			    
+				//ServiceMessagePtr resultMessage(new ServiceMessage);
+
+				for (size_t j =0; j<docIdList->size(); j++, nbatch++) {
+					mf_serialize((*docIdList)[j], docRequests, nbatch);
+				}
+				// docRequests.push_back(getDocMessage);
+			}
+		}
+
+		cout<<"batch number: "<<nbatch<<endl;
+		if ( false == requestService("getDocument", docRequests, docResults,
+				*client_) ) {
+			cout<< "[Main-Process]: ERROR when calling service \"getDocument\""
+					<< endl;
+			return -1;
+		} else {
+			for (int k=0; k<docResults->getBufferNum(); k++) {
+				/* for(int m=0; m<docResults[m]->getBufferNum(); m++){
+				 boost::shared_ptr<Document> docPtr(new Document);
+				 mf_deserialize(*docPtr, docResults[k], m);
+				 resultDocList.push_back(*docPtr);  
+				 }*/
+				boost::shared_ptr<Document> docPtr(new Document);
+				mf_deserialize(*docPtr, docResults, k);
+				resultDocList.push_back(*docPtr);
+				cout<<docResults->getBufferNum()<<endl;
+				cout << "[Main-Process]: Done one searching!!: "
+						<< resultDocList.size() << "results" << endl;
+			}
+			resultDocList.clear();
+		}
+
+	}
+	// for the number of terms in a query string
+
+
+	/*cout << "[Main-Process]: Done one searching!!: " << resultDocList.size()
+	 << "results, cost " << used_time << " micro seconds" << endl;
+
+	 cout << "[PROFILE] get permission cost "
+	 << sf1v5_dummy::permission_time << " microseconds" << endl;
+	 cout << "[PROFILE] send message cost " << sf1v5_dummy::send_time
+	 << " microseconds" << endl;
+	 cout << "[PROFILE] recv result cost " << sf1v5_dummy::recv_time
+	 << " microseconds" << endl;*/
+
+	boost::posix_time::ptime end =
+			boost::posix_time::microsec_clock::local_time();
+	total_time += (end-begin).total_microseconds();
+	total_stime += sf1v5_dummy::send_time;
+	total_rtime += sf1v5_dummy::recv_time;
+
+	//while loop. RECEIVING QUERIES
+	cout
+			<< "[Main-Process Total]: Done batch searching!!  (in micro seconds) \n";
+	cout<< " send time: "<<total_stime<<endl;
+	cout<< " recv time: "<<total_rtime<<endl;
+	cout<< " MF time "<<total_stime+total_rtime<<endl;
+	cout<< " no MFtime "<<total_time-total_stime-total_rtime<<endl;
+	cout<< " total time "<<total_time << endl;
+	cout<<" total data sended size "<<AsyncStream::sended_data_size<<endl;
+
+	return 1;
+}

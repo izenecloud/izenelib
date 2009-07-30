@@ -1,4 +1,5 @@
 #include <sdb/SequentialDB.h>
+#include <util/ProcMemInfo.h>
 
 #include  "YString.h"
 
@@ -6,15 +7,22 @@ using namespace std;
 using namespace ylib;
 using namespace izenelib::sdb;
 
-typedef YString Key;
+typedef int Key;
+typedef YString Value;
 
 const char* indexFile = "osdb.dat";
 static string inputFile = "test.txt";
-static int degree = 2;
-static size_t cacheSize = 1000000;
+static int degree = 12;
+static size_t cacheSize = 100000;
 //static size_t dataSize = 50;
-static size_t pageSize = 512;
-typedef SequentialDB<Key, NullType, NullLock> SDB;
+static size_t pageSize = 1024;
+typedef SequentialDB<Key, Value, NullLock> SDB;
+
+void displayMemInfo(std::ostream& os = std::cout) {
+	unsigned long rlimit = 0, vm = 0, rss = 0;
+	ProcMemInfo::getProcMemInfo(vm, rss, rlimit);
+	os << "vm: " << vm << "bytes rss: " << rss << "bytes" << endl;
+}
 
 bool trace = 0;
 
@@ -43,8 +51,8 @@ void ReportUsage(void) {
 
 template<typename T> void run(T& cm) {
 	run_insert(cm);
-//	run_getValue(cm);
-//	run_del(cm);
+	//	run_getValue(cm);
+	//	run_del(cm);
 }
 
 //ofstream  outf("unique.out");
@@ -56,25 +64,32 @@ template<typename T> void run_insert(T& cm) {
 	ifstream inf(inputFile.c_str());
 	YString ystr;
 
+	int cnt = 0;
 	while (inf>>ystr) {
 		//cout<<"input ="<<ystr<<endl;	
+		
+		for (int i=0; i<12; i++) {
+			if (cnt++ % 10000 == 0) {
+				std::cout<<"idx="<<cnt<<std::endl;
+				displayMemInfo();
+				std::cout<<std::endl;
+			}
 
-		for (int i=0; i<7; i++) {
 			ystr = ystr + ystr;
-		}
-		DataType<YString> dat(ystr);
-		sum++;
-		if (cm.getValueWithInsert(ystr.get_key(), dat) ) {
-			hit++;
 
-		} else {
-			//cout<<"input ="<<ystr<<" "<<ystr.get_key()<<endl;	
-			//cout<<"\nnot hit\n";
-			//outf<<ystr<<endl;
+			sum++;
+			if (cm.insertValue(cnt, ystr) ) {
+				hit++;
+
+			} else {
+				//cout<<"input ="<<ystr<<" "<<ystr.get_key()<<endl;	
+				//cout<<"\nnot hit\n";
+				//outf<<ystr<<endl;
+			}
 		}
 		if (trace) {
-			cout<<" After insert: key="<<ystr.get_key()<<endl;
-			cm.display();
+			cout<<" After insert: key="<<cnt<<endl;
+			//cm.display();
 			//cm.display();
 			cout<<"\nnumItem: "<<cm.numItems()<<endl;
 		}
@@ -85,91 +100,91 @@ template<typename T> void run_insert(T& cm) {
 	cout<<"\nnumItem: "<<cm.numItems()<<endl;
 
 }
+/*
+ template<typename T> void run_getValue(T& cm) {
 
-template<typename T> void run_getValue(T& cm) {
+ clock_t t1 = clock();
+ int count = cm.numItems();
 
-	clock_t t1 = clock();
-	int count = cm.numItems();
+ ifstream inf(inputFile.c_str());
+ vector< DataType<YString> > result;
+ cm.getValueForward(count, result);
+ cout<<"\ngetvalue forward testing...."<<endl;;
+ for (int i=0; i<count; i++) {
+ if (trace) 
+ {
+ cout<<result[i].get_key()<<endl;
+ }
+ }
 
-	ifstream inf(inputFile.c_str());
-	vector< DataType<YString> > result;
-	cm.getValueForward(count, result);
-	cout<<"\ngetvalue forward testing...."<<endl;;
-	for (int i=0; i<count; i++) {
-		if (trace) 
-		{
-			cout<<result[i].get_key()<<endl;
-		}
-	}
+ cout<<"-------------"<<endl;
+ result.clear();
+ cm.getValueBackward(count, result);
+ cout<<"\n\nget value backward testing...."<<endl;;
+ for (int i=0; i<count; i++) {
+ //if (trace)
+ {
+ cout<<result[i].get_key()<<endl;
+ }
+ }
 
-	cout<<"-------------"<<endl;
-	result.clear();
-	cm.getValueBackward(count, result);
-	cout<<"\n\nget value backward testing...."<<endl;;
-	for (int i=0; i<count; i++) {
-		//if (trace)
-		{
-			cout<<result[i].get_key()<<endl;
-		}
-	}
+ cout<<"-------------"<<endl;
+ result.clear();
+ cm.getValueBackward(3, result, "kkkk");
+ cout<<"\n\nget value backward testing...."<<endl;;
+ for (unsigned int i=0; i<result.size(); i++) {
+ //if (trace)
+ {
+ cout<<result[i].get_key()<<endl;
+ }
+ }
 
-	cout<<"-------------"<<endl;
-	result.clear();
-	cm.getValueBackward(3, result, "kkkk");
-	cout<<"\n\nget value backward testing...."<<endl;;
-	for (unsigned int i=0; i<result.size(); i++) {
-		//if (trace)
-		{
-			cout<<result[i].get_key()<<endl;
-		}
-	}
+ cout<<"-------------"<<endl;
+ result.clear();
+ cout<<"\n\nget value between testing...."<<endl;;
+ cm.getValueBetween(result, "a", "b");
+ for (unsigned int i=0; i<result.size(); i++) {
+ //if (trace)
+ {
+ cout<<result[i].get_key()<<endl;
+ }
+ }
 
-	cout<<"-------------"<<endl;
-	result.clear();
-	cout<<"\n\nget value between testing...."<<endl;;
-	cm.getValueBetween(result, "a", "b");
-	for (unsigned int i=0; i<result.size(); i++) {
-		//if (trace)
-		{
-			cout<<result[i].get_key()<<endl;
-		}
-	}
+ printf("eclipse: %lf seconds\n", double(clock()- t1)/CLOCKS_PER_SEC);
+ cout<< "finish getValue "<<endl;
+ cm.flush();
 
-	printf("eclipse: %lf seconds\n", double(clock()- t1)/CLOCKS_PER_SEC);
-	cout<< "finish getValue "<<endl;
-	cm.flush();
+ }
 
-}
+ template<typename T> void run_del(T& cm) {
 
-template<typename T> void run_del(T& cm) {
+ clock_t t1 = clock();
+ cout<<"del testing...\n";
 
-	clock_t t1 = clock();
-	cout<<"del testing...\n";
+ ifstream inf(inputFile.c_str());
+ YString ystr;
+ cout<<" here "<<endl;
+ int count = 100;
+ while (inf>>ystr && count--) {
+ cout<<"input ystr="<<ystr<<endl;
+ for (int i=0; i<7; i++) {
+ ystr = ystr + ystr;
+ }
+ cout<<ystr<<endl;
+ cm.del(ystr.get_key() ) ;
+ if (trace) {
+ cout<< "after delete: key="<<ystr.get_key()<<endl;
+ cout<<"\nnumItem: "<<cm.numItems()<<endl;
+ cm.display();
+ }
 
-	ifstream inf(inputFile.c_str());
-	YString ystr;
-	cout<<" here "<<endl;
-	int count = 100;
-	while (inf>>ystr && count--) {
-		cout<<"input ystr="<<ystr<<endl;
-		for (int i=0; i<7; i++) {
-			ystr = ystr + ystr;
-		}
-		cout<<ystr<<endl;
-		cm.del(ystr.get_key() ) ;
-		if (trace) {
-			cout<< "after delete: key="<<ystr.get_key()<<endl;
-			cout<<"\nnumItem: "<<cm.numItems()<<endl;
-			cm.display();
-		}
+ }
+ cm.flush();
+ printf("eclipse: %lf seconds\n", double(clock()- t1)/CLOCKS_PER_SEC);
+ cout<<"\nnumItem: "<<cm.numItems()<<endl;
+ //cm.display1();
 
-	}
-	cm.flush();
-	printf("eclipse: %lf seconds\n", double(clock()- t1)/CLOCKS_PER_SEC);
-	cout<<"\nnumItem: "<<cm.numItems()<<endl;
-	//cm.display1();
-
-}
+ }*/
 
 int main(int argc, char *argv[]) {
 
@@ -205,7 +220,7 @@ int main(int argc, char *argv[]) {
 			break;
 		}
 	}
-//	try
+	//	try
 	{
 		SDB sdb(indexFile);
 
@@ -221,17 +236,17 @@ int main(int argc, char *argv[]) {
 	 {
 	 cout<<e.what()<<endl;
 	 }
-	catch(bad_alloc)
-	{
-		cout<<"Memory allocation error!"<<endl;
-	}
-	catch(ios_base::failure)
-	{
-		cout<<"Reading or writing file error!"<<endl;
-	}
-	catch(...)
-	{
-		cout<<"OTHER ERROR HAPPENED!"<<endl;
-	}*/
+	 catch(bad_alloc)
+	 {
+	 cout<<"Memory allocation error!"<<endl;
+	 }
+	 catch(ios_base::failure)
+	 {
+	 cout<<"Reading or writing file error!"<<endl;
+	 }
+	 catch(...)
+	 {
+	 cout<<"OTHER ERROR HAPPENED!"<<endl;
+	 }*/
 
 }

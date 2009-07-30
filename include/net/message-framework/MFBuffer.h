@@ -2,10 +2,18 @@
 #define MFBUFFER_H_
 
 #include <iostream>
+#include <boost/any.hpp>
+#include <boost/shared_ptr.hpp>
 
 using namespace std;
 
 namespace messageframework{
+
+
+#ifdef USE_MF_LIGHT
+    typedef boost::any MFBuffer;
+	typedef boost::shared_ptr<boost::any> MFBufferPtr;
+#else
 
 class MFBuffer
 {
@@ -120,7 +128,8 @@ public:
 	size_t size;
 };
 
-typedef boost::shared_ptr<MFBuffer> MFBufferPtr;
+	typedef boost::shared_ptr<MFBuffer> MFBufferPtr;
+#endif 
 
 }
 
