@@ -36,6 +36,9 @@
 
 #include <ir/index_manager/utility/Exception.h>
 
+#include <wiselib/ustring/UString.h>
+typedef wiselib::UString String;
+
 NS_IZENELIB_IR_BEGIN
 
 namespace indexmanager{

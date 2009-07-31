@@ -1,10 +1,11 @@
 #ifndef INDEXERDOCUMENT_H
 #define INDEXERDOCUMENT_H
 
+#include <ir/index_manager/utility/system.h>
+
 #include <ir/index_manager/index/IndexerPropertyConfig.h>
 #include <ir/index_manager/index/LAInput.h>
 
-#include <wiselib/ustring/UString.h>
 #include <util/BoostVariantUtil.h>
 
 #include <boost/variant.hpp>
@@ -22,7 +23,7 @@ NS_IZENELIB_IR_BEGIN
 
 namespace indexmanager{
 
-typedef boost::variant<int,unsigned int, float, double, wiselib::UString> PropertyType;
+typedef boost::variant<int,unsigned int, float, double, String> PropertyType;
 typedef boost::variant<PropertyType, boost::shared_ptr<LAInput> > IndexerDocumentPropertyType;
 
 struct DocId

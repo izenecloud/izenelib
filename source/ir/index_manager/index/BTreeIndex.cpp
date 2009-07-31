@@ -15,9 +15,9 @@ BTreeIndex<IndexKeyType<float> >* BTreeIndexer::pBTreeFloatIndexer_  = NULL;
 
 BTreeIndex<IndexKeyType<double> >* BTreeIndexer::pBTreeDoubleIndexer_  = NULL;
 
-BTreeIndex<IndexKeyType<wiselib::UString> >* BTreeIndexer::pBTreeUStrIndexer_  = NULL;
+BTreeIndex<IndexKeyType<String> >* BTreeIndexer::pBTreeUStrIndexer_  = NULL;
 
-izenelib::sdb::IndexSDB<USuffix, wiselib::UString>* BTreeIndexer::pBTreeUStrSuffixIndexer_  = NULL;
+izenelib::sdb::IndexSDB<USuffix, String>* BTreeIndexer::pBTreeUStrSuffixIndexer_  = NULL;
 
 BTreeIndexer::BTreeIndexer(string location, int degree, size_t cacheSize, size_t maxDataSize)
 {
@@ -43,7 +43,7 @@ BTreeIndexer::BTreeIndexer(string location, int degree, size_t cacheSize, size_t
 
     path.clear();
     path = location+"/ustr.bti";
-    pBTreeUStrIndexer_ = new BTreeIndex<IndexKeyType<wiselib::UString> >(path);
+    pBTreeUStrIndexer_ = new BTreeIndex<IndexKeyType<String> >(path);
     pBTreeUStrIndexer_->initialize(maxDataSize/10, degree, maxDataSize, cacheSize);
 
     path.clear();
@@ -151,7 +151,7 @@ void BTreeIndexer::getValueStart(collectionid_t colID, fieldid_t fid, PropertyTy
 {
     try
     {
-        IndexKeyType<wiselib::UString> key(colID,fid,boost::get<wiselib::UString>(value));
+        IndexKeyType<String> key(colID,fid,boost::get<String>(value));
         pBTreeUStrIndexer_->getValuePrefix(key,docs);
     }catch (...)
     {
@@ -163,12 +163,12 @@ void BTreeIndexer::getValueEnd(collectionid_t colID, fieldid_t fid, PropertyType
 {
     try
     {
-	vector<wiselib::UString> vkey;
-	pBTreeUStrSuffixIndexer_->getValue(boost::get<wiselib::UString>(value), vkey);
+	vector<String> vkey;
+	pBTreeUStrSuffixIndexer_->getValue(boost::get<String>(value), vkey);
 	
-	vector<IndexKeyType<wiselib::UString> > keys;
+	vector<IndexKeyType<String> > keys;
 	for (size_t i=0; i<vkey.size(); i++)
-		keys.push_back(IndexKeyType<wiselib::UString>(colID, fid, vkey[i]) );
+		keys.push_back(IndexKeyType<String>(colID, fid, vkey[i]) );
 	
 	pBTreeUStrIndexer_->getValueIn(keys, docs);
 
@@ -184,12 +184,12 @@ void BTreeIndexer::getValueSubString(collectionid_t colID, fieldid_t fid, Proper
 {
     try
     {
-	vector<wiselib::UString> vkey;
-	pBTreeUStrSuffixIndexer_->getValuePrefix(boost::get<wiselib::UString>(value), vkey);
+	vector<String> vkey;
+	pBTreeUStrSuffixIndexer_->getValuePrefix(boost::get<String>(value), vkey);
 	
-	vector<IndexKeyType<wiselib::UString> > keys;
+	vector<IndexKeyType<String> > keys;
 	for (size_t i=0; i<vkey.size(); i++)
-		keys.push_back(IndexKeyType<wiselib::UString>(colID, fid, vkey[i]) );
+		keys.push_back(IndexKeyType<String>(colID, fid, vkey[i]) );
 	
 	pBTreeUStrIndexer_->getValueIn(keys, docs);
 

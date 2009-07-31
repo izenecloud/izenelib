@@ -5,7 +5,17 @@ file(GLOB_RECURSE INDEX_MANAGER_SOURCE RELATIVE "${CMAKE_CURRENT_SOURCE_DIR}"
 	"store/*.cpp"
 	"utility/*.cpp")
 
-FIND_PACKAGE(Wiselib REQUIRED)
+IF(NOT WISELIB_INCLUDE_DIR)
+  MESSAGE(FATAL_ERROR
+    "Cannot find WISELIB_INCLUDE_DIR.
+Please set WISELIB_INCLUDE_DIR (-DWISELIB_INCLUDE_DIR=/path/to/wiselib)to path of the cloned repository. ")
+ENDIF(NOT WISELIB_INCLUDE_DIR)
+
+IF(IS_DIRECTORY "${WISELIB_INCLUDE_DIR}/include")
+  SET(WISELIB_INCLUDE_DIR ${WISELIB_INCLUDE_DIR} "${WISELIB_INCLUDE_DIR}/include")
+ENDIF(IS_DIRECTORY "${WISELIB_INCLUDE_DIR}/include")
+
+
 FIND_PACKAGE(Boost REQUIRED)
 
 set(Boost_USE_STATIC_LIBS   ON)
@@ -31,8 +41,7 @@ SET_TARGET_PROPERTIES(index_manager_shared PROPERTIES
   CLEAN_DIRECT_OUTPUT 1
   VERSION ${PROJECT_VERSION}
   )
-TARGET_LINK_LIBRARIES(index_manager_shared ${WISELIB_LIBRARY}  
-										${sdb_btree_shared}
+TARGET_LINK_LIBRARIES(index_manager_shared  ${sdb_btree_shared}
 #										${udt_shared}
 										${streamflow_shared}
 										${udt3_shared}
@@ -46,8 +55,7 @@ SET_TARGET_PROPERTIES(index_manager_static PROPERTIES
   COMPILE_FLAGS ${CXXFLAGS} 
   CLEAN_DIRECT_OUTPUT 1
   )
-TARGET_LINK_LIBRARIES(index_manager_static ${WISELIB_LIBRARY}
-										${Boost_LIBRARIES}
+TARGET_LINK_LIBRARIES(index_manager_static  ${Boost_LIBRARIES}
 										${sdb_btree_static}
 #										${udt_static}
 										${streamflow_static}

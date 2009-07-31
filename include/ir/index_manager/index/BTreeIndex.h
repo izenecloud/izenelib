@@ -8,11 +8,8 @@
 #ifndef BTREEINDEX_H
 #define BTREEINDEX_H
 
-#include <ir/index_manager/utility/system.h>
-
 #include <ir/index_manager/index/IndexerDocument.h>
 
-#include <wiselib/ustring/UString.h>
 #include <sdb/SequentialDB.h>
 #include <sdb/IndexSDB.h>
 #include <util/BoostVariantUtil.h>
@@ -72,7 +69,7 @@ struct IndexKeyType
             if (fid != other.fid)
                 return false;
             else{
-                wiselib::UString str;
+                String str;
                 other.value.substr(str, 0, value.size());
                 if (str == value)
                     return true;
@@ -106,11 +103,11 @@ private:
 
 struct USuffix
 {
-    wiselib::UString suf;
+    String suf;
 
     USuffix(){}
 
-    USuffix(wiselib::UString& other) :suf(other) {}
+    USuffix(String& other) :suf(other) {}
     template<class Archive> void serialize(Archive & ar,const unsigned int version)
     {
         ar & suf;
@@ -121,7 +118,7 @@ struct USuffix
     }
     bool isPrefix(const USuffix& other) const
     {
-        wiselib::UString str;
+        String str;
         other.suf.substr(str, 0, suf.size());
         if (str == suf)
             return true;
@@ -255,9 +252,9 @@ private:
 
     static BTreeIndex<IndexKeyType<double> >* pBTreeDoubleIndexer_;
 
-    static BTreeIndex<IndexKeyType<wiselib::UString> >* pBTreeUStrIndexer_;
+    static BTreeIndex<IndexKeyType<String> >* pBTreeUStrIndexer_;
 
-    static izenelib::sdb::IndexSDB<USuffix, wiselib::UString>* pBTreeUStrSuffixIndexer_;
+    static izenelib::sdb::IndexSDB<USuffix, String>* pBTreeUStrSuffixIndexer_;
 
 };
 
@@ -299,9 +296,9 @@ struct BTreeIndexer::BTreeIndexerFactory<double>
 };
 
 template<>
-struct BTreeIndexer::BTreeIndexerFactory<wiselib::UString>
+struct BTreeIndexer::BTreeIndexerFactory<String>
 {
-	static BTreeIndex<IndexKeyType<wiselib::UString> >* get()
+	static BTreeIndex<IndexKeyType<String> >* get()
 	{
 		return BTreeIndexer::pBTreeUStrIndexer_;
 	};
@@ -332,12 +329,12 @@ private:
 };
 
 template<>
-struct add_visitor::__operator<wiselib::UString>
+struct add_visitor::__operator<String>
 {
-    static void apply(collectionid_t& colid, fieldid_t& fid, wiselib::UString& v, docid_t& docid)
+    static void apply(collectionid_t& colid, fieldid_t& fid, String& v, docid_t& docid)
     {
-        IndexKeyType<wiselib::UString> key(colid, fid, v);
-        BTreeIndexer::getIndexer<wiselib::UString>()->add(key, docid);
+        IndexKeyType<String> key(colid, fid, v);
+        BTreeIndexer::getIndexer<String>()->add(key, docid);
 #ifdef INDEX_USE_STAR_SEARCH
         size_t pos = 0;
         for (; pos<v.length(); pos++)
