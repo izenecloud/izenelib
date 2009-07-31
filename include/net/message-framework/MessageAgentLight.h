@@ -16,9 +16,7 @@ namespace messageframework
      */
     extern long permission_time;
     extern long send_time;
-    extern long recv_time;
-    
-    typedef MessageClientLight MessageClient;
+    extern long recv_time; 
 
     /**
      * @brief Get the service permission info of a given service name
@@ -26,7 +24,7 @@ namespace messageframework
      */
 	bool getServicePermissionInfo( const std::string& serviceName,
 		ServicePermissionInfo& servicePermissionInfo,
-		MessageClient& client) throw (std::runtime_error);
+		MessageClientLight& client) throw (std::runtime_error);
 
     /**
      * @brief Process one request at a time.
@@ -35,17 +33,17 @@ namespace messageframework
     // added @by MyungHyun Lee - Feb 11, 2009
     bool requestService(const std::string &                     name,
             ServiceRequestInfoPtr                              parameter,
-            MessageClient &                                 client) throw (std::runtime_error);
+            MessageClientLight &                                 client) throw (std::runtime_error);
 
 
     bool requestService(const std::string &                     name,
             ServiceRequestInfoPtr                             parameter,
             ServiceResultPtr &                                 result,
-            MessageClient &                                 client) throw (std::runtime_error);
+            MessageClientLight &                                 client) throw (std::runtime_error);
 
-    void runMessageClient(ServiceRequestInfoPtr&               serviceRequestInfo,
+    void runMessageClientLight(ServiceRequestInfoPtr&               serviceRequestInfo,
             ServiceResultPtr&                                  serviceResult,
-            MessageClient&                                  client) throw (std::runtime_error);
+            MessageClientLight&                                  client) throw (std::runtime_error);
 
     /**
      * @brief This set of functions act in a way of "batch processing".
@@ -54,12 +52,12 @@ namespace messageframework
      */
     bool requestService(const std::string& serviceName,
 		std::vector<ServiceRequestInfoPtr>& serviceRequestInfos,
-		MessageClient& client ) throw (std::runtime_error);
+		MessageClientLight& client ) throw (std::runtime_error);
 
     bool requestService(const std::string& serviceName,
 		std::vector<ServiceRequestInfoPtr>& serviceRequestInfos,
 		std::vector<ServiceResultPtr>& serviceResults,
-		MessageClient& client ) throw (std::runtime_error);
+		MessageClientLight& client ) throw (std::runtime_error);
 }
 
 #endif

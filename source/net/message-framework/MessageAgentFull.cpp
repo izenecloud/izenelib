@@ -38,7 +38,7 @@ namespace messageframework
 
 	bool getServicePermissionInfo( const std::string& serviceName,
 		ServicePermissionInfo& servicePermissionInfo,
-		MessageClient& client) throw (std::runtime_error)
+		MessageClientFull& client) throw (std::runtime_error)
 	{
         try
         {
@@ -78,7 +78,7 @@ namespace messageframework
      */
     bool requestService(const string&                           name,
                         ServiceRequestInfoPtr                  parameter,
-                        MessageClient&                      client) throw (std::runtime_error)
+                        MessageClientFull&                      client) throw (std::runtime_error)
     {
         ServiceResultPtr     serviceResult(new ServiceResult);        // no result is returned. just a dummy to match parameters
 
@@ -94,7 +94,7 @@ namespace messageframework
 
         try
         {
-            runMessageClient(parameter, serviceResult, client);
+            runMessageClientFull(parameter, serviceResult, client);
         }
         catch( std::runtime_error & e )
         {
@@ -114,7 +114,7 @@ namespace messageframework
     bool requestService(const std::string &                     name,
             ServiceRequestInfoPtr                              parameter,
             ServiceResultPtr &                                 result,
-            MessageClient &                                 client) throw (std::runtime_error)
+            MessageClientFull &                                 client) throw (std::runtime_error)
     {
         //result->clear();
 
@@ -130,7 +130,7 @@ namespace messageframework
 
         try
         {
-            runMessageClient(parameter, result, client);
+            runMessageClientFull(parameter, result, client);
         }
         catch( std::runtime_error & e )
         {
@@ -146,9 +146,9 @@ namespace messageframework
         return true;
     }
 
-    void runMessageClient(ServiceRequestInfoPtr&   serviceRequestInfo,
+    void runMessageClientFull(ServiceRequestInfoPtr&   serviceRequestInfo,
                           ServiceResultPtr&        serviceResult,
-                          MessageClient&        client) throw (std::runtime_error)
+                          MessageClientFull&        client) throw (std::runtime_error)
     {
         std::string serviceName = serviceRequestInfo->getServiceName();
         ServicePermissionInfo   servicePermissionInfo;
@@ -190,7 +190,7 @@ namespace messageframework
      */
     bool requestService(const std::string& serviceName,
 		std::vector<ServiceRequestInfoPtr>& serviceRequestInfos,
-		MessageClient& client ) throw (std::runtime_error)
+		MessageClientFull& client ) throw (std::runtime_error)
 	{
         ServicePermissionInfo   servicePermissionInfo;
 
@@ -220,7 +220,7 @@ namespace messageframework
     bool requestService(const std::string& serviceName,
 		std::vector<ServiceRequestInfoPtr>& serviceRequestInfos,
 		std::vector<ServiceResultPtr>& serviceResults,
-		MessageClient& client ) throw (std::runtime_error)
+		MessageClientFull& client ) throw (std::runtime_error)
 	{
         ServicePermissionInfo   servicePermissionInfo;
 
