@@ -1,7 +1,5 @@
 INCLUDE_DIRECTORIES(${Boost_INCLUDE_DIRS})
 IF(WIN32)
-
-IF(WIN32)
   SET_PROPERTY(GLOBAL APPEND PROPERTY NON_BUILD_COMPONENTS message_framework)
   MESSAGE(STATUS "! WARNING: message_framework can only been build in WIN32")
 
@@ -12,18 +10,23 @@ ELSE(WIN32)
   SET(message_framework_SRC
     AsyncConnector.cpp
     AsyncStream.cpp
-    MessageAgent.cpp
+    MessageAgentFull.cpp
     MessageClientFull.cpp
     MessageControllerFull.cpp
+    MessageServerFull.cpp
     MessageDispatcher.cpp
     MessageFrameworkException.cpp
-    MessageFrameworkNode.cpp
-    MessageServerFull.cpp
+    MessageFrameworkNode.cpp 
     ServiceInfo.cpp
     ServicePermissionInfo.cpp
     ServiceRegistrationMessage.cpp
     ThreadPool.cpp
     common.cpp     
+    
+    MessageClientLight.cpp
+    MessageControllerLight.cpp
+    MessageServerLight.cpp
+    MessageAgentLight.cpp
 )
 
   INCLUDE(MacroAddComponent)

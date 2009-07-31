@@ -43,7 +43,6 @@ namespace messageframework
 #include <net/message-framework/MessageServerFull.h>
 #include <net/message-framework/MessageControllerFull.h>
 #include <net/message-framework/MessageFrameworkConfiguration.h>
-
 #include <net/message-framework/MessageAgent.h>
 
 

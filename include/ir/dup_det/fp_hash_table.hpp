@@ -276,17 +276,17 @@ public:
 
   inline const uint64_t* find(size_t docid)
   {
-    static uint32_t total = 0;
-    ++total;
-    static uint32_t lose = 0;
+//     static uint32_t total = 0;
+//     static uint32_t lose = 0;
+//     ++total;
     
     size_t i = docid%ENTRY_SIZE;
     if (entry_.at(i)==NULL)
       return NULL;
 
     Vector32* p  = entry_.at(i);
-    if (total!=0 && total%1000000==0)
-      std::cout<<"cache lost rate: "<<(double)lose/total<<"\n";
+//     if (total!=0 && total%100000==0)
+//        std::cout<<"cache miss rate: "<<(double)lose/total<<"\n";
     
     for (i = 0; i<p->length(); i++)
     {
@@ -295,7 +295,7 @@ public:
         size_t k = p->at(i);
         if (k>=keys_.length() ||keys_.at(k)!=docid)
         {
-          ++lose;
+          // ++lose;
           k = (*p)[i] = cache_switch(docid);
           //std::cout<<"----------\n";
         }

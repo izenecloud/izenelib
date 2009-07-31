@@ -18,7 +18,7 @@ namespace messageframework
     extern long send_time;
     extern long recv_time;
     
-   // typedef MessageClientFull MessageClientFull;
+   // typedef MessageClient MessageClient;
 
     /**
      * @brief Get the service permission info of a given service name
@@ -26,7 +26,7 @@ namespace messageframework
      */
 	bool getServicePermissionInfo( const std::string& serviceName,
 		ServicePermissionInfo& servicePermissionInfo,
-		MessageClientFull& client) throw (std::runtime_error);
+		MessageClient& client) throw (std::runtime_error);
 
     /**
      * @brief Process one request at a time.
@@ -35,17 +35,17 @@ namespace messageframework
     // added @by MyungHyun Lee - Feb 11, 2009
     bool requestService(const std::string &                     name,
             ServiceRequestInfoPtr                              parameter,
-            MessageClientFull &                                 client) throw (std::runtime_error);
+            MessageClient &                                 client) throw (std::runtime_error);
 
 
     bool requestService(const std::string &                     name,
             ServiceRequestInfoPtr                             parameter,
             ServiceResultPtr &                                 result,
-            MessageClientFull &                                 client) throw (std::runtime_error);
+            MessageClient &                                 client) throw (std::runtime_error);
 
-    void runMessageClientFull(ServiceRequestInfoPtr&               serviceRequestInfo,
+    void runMessageClient(ServiceRequestInfoPtr&               serviceRequestInfo,
             ServiceResultPtr&                                  serviceResult,
-            MessageClientFull&                                  client) throw (std::runtime_error);
+            MessageClient&                                  client) throw (std::runtime_error);
 
     /**
      * @brief This set of functions act in a way of "batch processing".
@@ -54,12 +54,12 @@ namespace messageframework
      */
     bool requestService(const std::string& serviceName,
 		std::vector<ServiceRequestInfoPtr>& serviceRequestInfos,
-		MessageClientFull& client ) throw (std::runtime_error);
+		MessageClient& client ) throw (std::runtime_error);
 
     bool requestService(const std::string& serviceName,
 		std::vector<ServiceRequestInfoPtr>& serviceRequestInfos,
 		std::vector<ServiceResultPtr>& serviceResults,
-		MessageClientFull& client ) throw (std::runtime_error);
+		MessageClient& client ) throw (std::runtime_error);
 }
 
 #endif

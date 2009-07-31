@@ -13,8 +13,7 @@
 
 #include <net/message-framework/ServiceInfo.h>
 #include <net/message-framework/ServicePermissionInfo.h>
-#include <net/message-framework/ServiceRequestInfo.h>
-#include <net/message-framework/ServiceResult.h>
+#include <net/message-framework/ServiceMessage.h>
 
 #ifdef SF1_TIME_CHECK
 #include <profiler/Profiler.h>
@@ -98,22 +97,24 @@ namespace messageframework
                     ServicePermissionInfo & servicePermissionInfo );
 
             bool addServiceRequest( const MessageFrameworkNode & serverInfo,
-				const boost::shared_ptr<ServiceRequestInfo> & requestInfo );
+				const ServiceRequestInfoPtr & requestInfo );
 
 			bool addServiceRequests( const MessageFrameworkNode & server,
-				const std::vector<boost::shared_ptr<ServiceRequestInfo> > & requestInfos );
+				const std::vector<ServiceRequestInfoPtr > & requestInfos );
 
             bool getRequestListByServer( const MessageFrameworkNode & server,
-				std::vector<ServiceRequestInfo> & requestList );
+				std::vector<ServiceRequestInfoPtr> & requestList );
 
-            bool addResultOfService( const ServiceRequestInfo & serviceRequest,
-				const ServiceResult & serviceResult );
+            bool addResultOfService( const ServiceRequestInfoPtr & serviceRequest,
+				const ServiceResultPtr & serviceResult );
+            
+            bool addResultOfService( const ServiceResultPtr & serviceResult );
 
             bool getResultByRequestId( const unsigned int requestId,
-				ServiceResult & result );
+				ServiceResultPtr & result );
 
 			bool getResultsByRequestIds( const std::vector<unsigned int> & requestIds,
-			std::vector<ServiceResult> & results );
+			std::vector<ServiceResultPtr> & results );
 
 			int applyForClientId();
 
@@ -149,7 +150,7 @@ namespace messageframework
              * @details
              * <servername> mapped to <service requests for that server>
              */
-            std::map<std::size_t, boost::shared_ptr<std::vector<boost::shared_ptr<ServiceRequestInfo> > > >
+            std::map<std::size_t, boost::shared_ptr<std::vector<ServiceRequestInfoPtr > > >
 				serverServiceRequestQueueMap_;
             std::map<std::size_t, boost::shared_ptr<boost::mutex> >
 				serverServiceRequestQueueMutexMap_;
@@ -160,7 +161,7 @@ namespace messageframework
 			/**
 			 * @brief
 			 */
-			boost::array< boost::shared_ptr<std::map<unsigned int, ServiceResult> >,
+			boost::array< boost::shared_ptr<std::map<unsigned int, ServiceResultPtr> >,
 				MF_LIGHT_CLIENT_NUMBER > serviceIdResultMaps_;
 			boost::array< boost::shared_ptr<boost::mutex>,
 				MF_LIGHT_CLIENT_NUMBER > serviceIdResultMutexs_;

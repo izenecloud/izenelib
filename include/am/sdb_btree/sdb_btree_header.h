@@ -51,20 +51,20 @@ struct CbFileHeader {
 		size_t numItems;
 		long rootPos;
 
-		static size_t nPages;
-		static size_t oPages;
+	    size_t nPages;
+		size_t oPages;
 
 		CbFileHeader()
 		{
 			magic = 0x061561;
 			maxKeys = 24;
 			pageSize = 1024;
-			cacheSize = 200000;
+			cacheSize = 100000;
 			numItems = 0;
 			rootPos = sizeof(CbFileHeader)+sizeof(size_t);
 
-			CbFileHeader::nPages = 0;
-			CbFileHeader::oPages = 0;
+			nPages = 0;
+			oPages = 0;
 		}
 
 		void display(std::ostream& os = std::cout) {

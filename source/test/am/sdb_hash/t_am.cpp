@@ -2,7 +2,7 @@
 #include <am/sdb_hash/sdb_hash.h>
 #include <am/am_test/am_test.h>
 
-int rnd = 0;
+int rnd = 1;
 
 using namespace izenelib::am_test;
 using namespace izenelib::am;

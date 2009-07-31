@@ -194,10 +194,16 @@ public:
   {
   }
 
-  inline IntegerDynArray(const std::vector<INTEGER_TYPE>& v)
+  inline explicit IntegerDynArray(const std::vector<INTEGER_TYPE>& v)
     :p_(NULL), array_(NULL), length_(0), max_size_(0)
   {
     assign(v);
+  }
+
+  inline IntegerDynArray(const char* p, size_t len)
+    :p_(NULL), array_(NULL), length_(0), max_size_(0)
+  {
+    assign(p, len);
   }
 
   inline IntegerDynArray(const SelfT& other)
@@ -230,11 +236,24 @@ public:
     new_one(v.size());
     memcpy(array_, v.data(), sizeof(INTEGER_TYPE)*v.size());
   }
+  
+  inline void assign(const char* p, size_t len)
+  {
+    if (!len)
+    {
+      clear();
+      return;
+    }
+
+    derefer();
+    
+    new_one(len/sizeof(INTEGER_TYPE));
+    memcpy(array_, p, len);
+  }
 
   inline void assign(const SelfT& other)
   {
-    if (array_ == other.array_)
-      return ;
+    assert(this!=&other);
     
     if (other.length()==0)
     {
@@ -294,8 +313,9 @@ public:
 
     if (max_size_ < length_+other.size())
       enlarge(length_+other.size());
-
+    
     memcpy(&array_[length_], other.data(), other.size()*sizeof(INTEGER_TYPE));
+    
     length_ += other.size();
     
     return *this;

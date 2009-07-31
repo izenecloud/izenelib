@@ -73,7 +73,7 @@ public:
 	 * Not that we assume that the node is a leaf,
 	 * and it is not loaded from the disk.	
 	 */
-	sdb_node_();
+	sdb_node_(CbFileHeader& fileHeader,  LockType&  fileLock, size_t& activeNum);
 
 	~sdb_node_() {		
 		childNo = size_t(-1);
@@ -155,14 +155,6 @@ public:
 		isDirty = is;
 	}
 
-	/**
-	 *   \brief set static member before instancelize any object.
-	 */
-	static void initialize(size_t pageSize, size_t maxKeys) {
-		_pageSize = pageSize;
-		_overFlowSize = pageSize;
-		_maxKeys = maxKeys;
-	}
 
 	/**
 	 * 	\brief print the shape of  tree.
@@ -225,13 +217,15 @@ public:
 	std::vector<sdb_node_*> children; //it has objCount+1 childrens.
 	std::vector<ValueType> values;
 public:
-	static size_t activeNodeNum;//It is used for cache mechanism.
+	// size_t activeNodeNum;//It is used for cache mechanism.
 
 private:
-	static size_t _maxKeys;
-	static size_t _pageSize;
-	static size_t _overFlowSize; //_oveFlowPagSize is the same as _pageSize
-	static LockType _fileLock; //inclusive lock for I/O
+	 CbFileHeader& _fh;
+	 size_t& _maxKeys;
+	 size_t& _pageSize;
+	 size_t& _overFlowSize;
+	 LockType &_fileLock; //inclusive lock for I/O	 
+	 size_t &activeNodeNum;
 	static izenelib::am::CompareFunctor<KeyType> _comp;
 private:
 	//when overflowing occured, we will allocate serverall sequential
@@ -240,6 +234,7 @@ private:
 	size_t _overflowPageCount;
 };
 
+/*
 template<typename KeyType, typename ValueType, typename LockType,
 		typename Alloc> size_t
 		sdb_node_< KeyType, ValueType, LockType, Alloc>::activeNodeNum;
@@ -258,23 +253,23 @@ template<typename KeyType, typename ValueType, typename LockType,
 
 template<typename KeyType, typename ValueType, typename LockType,
 		typename Alloc> LockType
-		sdb_node_< KeyType, ValueType, LockType, Alloc>::_fileLock;
+		sdb_node_< KeyType, ValueType, LockType, Alloc>::_fileLock;*/
+
 
 template<typename KeyType, typename ValueType, typename LockType,
 		typename Alloc> CompareFunctor<KeyType> sdb_node_< KeyType, ValueType,
 		LockType, Alloc>::_comp;
 
 template<typename KeyType, typename ValueType, typename LockType,
-		typename Alloc> sdb_node_< KeyType, ValueType, LockType, Alloc>::sdb_node_() :
-	objCount(0), fpos(-1), isLeaf(true), isLoaded(false), isDirty(1),
-			childNo((size_t)-1) {
-
+		typename Alloc> sdb_node_< KeyType, ValueType, LockType, Alloc>::	sdb_node_(CbFileHeader& fileHeader, LockType& fileLock, size_t& activeNum ):
+	objCount(0), fpos(-1), isLeaf(true), isLoaded(false), isDirty(1), childNo((size_t)-1), _fh(fileHeader), _maxKeys(_fh.maxKeys), _pageSize(_fh.pageSize),
+	_overFlowSize(_fh.pageSize),  _fileLock(fileLock), activeNodeNum(activeNum)
+ { 
 	_overflowAddress = -1;
 	_overflowPageCount = 0;
-
+	
 	//activeNodeNum++;
 	//cout<<"activeNodeNum: "<<activeNodeNum<<endl;
-
 }
 
 // Read a node page to initialize this node from the disk
@@ -294,16 +289,18 @@ template<typename KeyType, typename ValueType, typename LockType,
 	//cout<<"read from fpos "<<fpos<<endl;
 
 	// get to the right location
-	if (0 != fseek(f, fpos, SEEK_SET)) {
+	if (0 != fseek(f, fpos, SEEK_SET)) {		
 		return false;
 	}
 
-	keys.resize(_maxKeys);
-	values.resize(_maxKeys);
-	children.resize(_maxKeys+1);
+	keys.resize(_fh.maxKeys);
+	values.resize(_fh.maxKeys);
+	children.resize(_fh.maxKeys+1);
 
 	char *pBuf = new char[_pageSize];
 	if (1 != fread(pBuf, _pageSize, 1, f)) {
+		if(pBuf)delete pBuf;
+		pBuf = 0;
 		return false;
 	}
 
@@ -331,7 +328,7 @@ template<typename KeyType, typename ValueType, typename LockType,
 		if ( !isLeaf) {
 			for (size_t i = 0; i <= objCount; i++) {
 				if (children[i] == 0) {
-					children[i] = new sdb_node_;
+					children[i] = new sdb_node_(_fh, _fileLock, activeNodeNum );
 				}
 				children[i]->fpos = childAddresses[i];
 				children[i]->childNo = i;
@@ -376,9 +373,13 @@ template<typename KeyType, typename ValueType, typename LockType,
 
 				povfl = new char[_pageSize*_overflowPageCount];
 				if (0 != fseek(f, _overflowAddress, SEEK_SET)) {
+					if(pBuf)delete pBuf;
+					delete povfl;
 					return false;
 				}
 				if (1 != fread(povfl, _pageSize*_overflowPageCount, 1, f)) {
+					if(pBuf)delete pBuf;
+					delete povfl;
 					return false;
 				}
 			}
@@ -416,7 +417,7 @@ template<typename KeyType, typename ValueType, typename LockType,
 	isDirty = false;
 
 	//increment avtiveNodeNum 
-	sdb_node_::activeNodeNum++;
+	++activeNodeNum;
 	return true;
 }
 
@@ -579,9 +580,8 @@ template<typename KeyType, typename ValueType, typename LockType,
 		//oveflow		
 		//cout<<"writing overflow!!!!"<<endl;
 		if (_overflowAddress <0 || _overflowPageCount < np-1) {
-			_overflowAddress = sizeof(CbFileHeader)+2*sizeof(size_t)+_pageSize
-					*(CbFileHeader::nPages+CbFileHeader::oPages);
-			CbFileHeader::oPages += (np-1);
+			_overflowAddress = sizeof(CbFileHeader)+2*sizeof(size_t)+_pageSize*(_fh.nPages+_fh.oPages);
+			_fh.oPages += (np-1);
 		}
 		_overflowPageCount = np-1;
 		memcpy(pBuf+ovfloff, &_overflowAddress, sizeof(long));
@@ -645,7 +645,7 @@ template<typename KeyType, typename ValueType, typename LockType,
 		children.resize(0);
 		isLoaded = false;
 
-		sdb_node_::activeNodeNum--;
+		--activeNodeNum;
 		parent = 0;
 	}
 }
@@ -659,7 +659,7 @@ template<typename KeyType, typename ValueType, typename LockType,
 		children.resize(0);
 		isLoaded = false;
 
-		sdb_node_::activeNodeNum--;
+		--activeNodeNum;
 		parent = 0;
 	}
 }

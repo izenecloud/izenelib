@@ -25,8 +25,8 @@ namespace idmanager {
 	template<typename NameString, typename NameID> class DocIdManager {
 		typedef NameHook<NameString> NameHook;
 		typedef IDHook<NameID> IDHook;
-		typedef izenelib::sdb::unordered_sdb_1<NameHook, NameID> IdFinder;
-		typedef izenelib::sdb::unordered_sdb_1<IDHook, NameString> NameFinder;
+		typedef izenelib::sdb::ordered_sdb<NameHook, NameID> IdFinder;
+		typedef izenelib::sdb::ordered_sdb<IDHook, NameString> NameFinder;
 
 	public:
 

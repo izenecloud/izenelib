@@ -422,6 +422,7 @@ BOOST_AUTO_TEST_CASE( TestCase3 )
     idManager.getTermIdListByWildcardPattern(pattern, termIdList1_);
     BOOST_CHECK_EQUAL( termIdList1_.size() , static_cast<unsigned int>(81));
 
+    idManager.display();
     cerr << "OK" << endl;
 
 } // end - BOOST_AUTO_TEST_CASE( TestCase3 )
@@ -770,6 +771,9 @@ BOOST_AUTO_TEST_CASE( TestCase9 )
     
 	// Clear data of this test case
 	remove("IDManagerData.dat");
+	
+	
+	
 
     cerr << "OK" << endl;
 

@@ -41,16 +41,17 @@ public:
 	//It indicates how many active bucket_chains in memory.
 	//It increases when allocateBlock() called, or reading from disk,
 	//and decreases when unload() called. 
-	static size_t activeNum;
+	//static size_t activeNum;
 private:	
-	static LockType fileLock_;
+	//static LockType fileLock_;
+	LockType& fileLock_;
 
 public:
 	/**
 	 *  constructor
 	 */
-	bucket_chain_(size_t bucketSize) :
-	bucketSize_(bucketSize) {
+	bucket_chain_(size_t bucketSize, LockType& fileLock) :
+	bucketSize_(bucketSize), fileLock_(fileLock) {
 		str = NULL;
 		num = 0;
 		next = 0;
@@ -72,8 +73,7 @@ public:
 			str = 0;
 		}*/			
 		unload();
-		isLoaded = false;
-		//--activeNum;
+		isLoaded = false;		
 	}
 
 	/**
@@ -162,13 +162,13 @@ public:
 
 		//cout<<"read next fpos="<<nextfpos<<endl;
 		if (nextfpos !=0) {
-			if( !next )next = new bucket_chain_(bucketSize_);
+			if( !next )next = new bucket_chain_(bucketSize_, fileLock_);
 			next->fpos = nextfpos;
 		}
 		isLoaded = true;
 		isDirty = false;		
 				
-		++activeNum;
+		//++activeNum;
 		
 		return true;
 	}
@@ -176,11 +176,13 @@ public:
 	/**
 	 *    load next bucket_chain element.
 	 */ 
-	bucket_chain_* loadNext(FILE* f) {		
+	bucket_chain_* loadNext(FILE* f, bool& loaded) {
+		loaded = false;
 		if (next && !next->isLoaded) {	
 			//cout<<"reading next"<<endl;
 			fileLock_.acquire_write_lock();
 			next->read(f);	
+			loaded = true;
 			fileLock_.release_write_lock();
 		}		
 		if( next )next->level = level+1;
@@ -191,13 +193,16 @@ public:
 	 *   unload a buck_chain element.
 	 *   It releases most of the memory, and was used to recycle memory when cache is full. 
 	 */
-	void unload(){			
+	bool unload(){			
 		if(str){
 			delete str;
 			str = 0;			
-			--activeNum;			
+			//--activeNum;
+			isLoaded = false;
+			return true;
 		}	
 		isLoaded = false;
+		return false;	
 		
 		//cout<<"unload fpos="<<fpos<<endl;
 		//cout<<"activeNode: "<<activeNum<<endl;
@@ -220,11 +225,5 @@ public:
 	}
 };
 
-
-template<typename LockType >
-LockType bucket_chain_<LockType>::fileLock_;
-
-template<typename LockType>
-size_t bucket_chain_<LockType>::activeNum;
 
 #endif /*bucket_chain_H_*/

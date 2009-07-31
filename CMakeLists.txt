@@ -95,8 +95,8 @@ IF (NOT BUILD_FLAGS_HAS_BEEN_CUSTOMIZED)
     SET(CMAKE_CXX_FLAGS_MINSIZEREL       "-Os -DNDEBUG" CACHE STRING "Flags used by the compiler during release minsize builds." FORCE)
     SET(CMAKE_CXX_FLAGS_DEBUG            "-g -O2 -fno-reorder-blocks -fno-schedule-insns -fno-inline" CACHE STRING "Flags used by the compiler during debug builds." FORCE)
     SET(CMAKE_CXX_FLAGS_DEBUGFULL        "-g3 -fno-inline" CACHE STRING "Debugfull build type" FORCE)
-    SET(CMAKE_CXX_FLAGS_PROFILE          "-g3 -fno-inline -ftest-coverage -fprofile-arcs" CACHE STRING "Profile build type" FORCE)
-
+    SET(CMAKE_CXX_FLAGS_PROFILE          "-g3 -fno-inline -ftest-coverage -fprofile-arcs" CACHE STRING "Profile build type" FORCE)  
+    
   ENDIF (CMAKE_COMPILER_IS_GNUCXX)
 
   SET(BUILD_FLAGS_HAS_BEEN_CUSTOMIZED yes CACHE INTERNEL "build falgs has been customized?")

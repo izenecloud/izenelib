@@ -25,8 +25,8 @@ struct ShFileHeader {
 		magic = 0x061561;
 		bucketSize = 2048;
 		//directorySize =8192*8;
-		dpow = 15;
-		cacheSize = 100000;
+		dpow = 16;
+		cacheSize = 10000000;
 		numItems = 0;
 		nBlock = 0;
 	}

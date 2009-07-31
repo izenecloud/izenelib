@@ -26,8 +26,8 @@ namespace idmanager {
 
 template <typename NameString, typename NameID,
 		typename LockType =izenelib::util::NullLock > class IDFactory {
-	typedef izenelib::sdb::unordered_sdb_1<NameString, NameID, LockType> IdFinder;
-	typedef izenelib::sdb::unordered_sdb_1<NameID, NameString, LockType>	NameFinder;
+	typedef izenelib::sdb::ordered_sdb<NameString, NameID, LockType> IdFinder;
+	typedef izenelib::sdb::ordered_sdb<NameID, NameString, LockType>	NameFinder;
 public:
 
 	/**
@@ -131,7 +131,7 @@ template <typename NameString, typename NameID, typename LockType> IDFactory<
 		NameID& initialValue, NameID& maxValue) :
 	minID_(initialValue), maxID_(maxValue), newID_(initialValue),
 			sdbName_(sdbName), idFinder_(sdbName_ + "_name.sdb"),
-			nameFinder_(sdbName_ + "_id.sdb") {
+			nameFinder_(sdbName_ + "_id.sdb") {	
 	idFinder_.open();
 	nameFinder_.open();
 } // end - IDFactory()
