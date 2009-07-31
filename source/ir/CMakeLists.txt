@@ -1,1 +1,3 @@
-# EMPTY #
+
+add_subdirectory( index_manager )
+

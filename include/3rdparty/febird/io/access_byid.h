@@ -104,6 +104,7 @@ protected:
 	std::map<std::string, void*> m_byname;
 	virtual void on_destroy(void* vp);
 public:
+	virtual ~AccessByNameID() {}	
 	long add_ptr(void* x, const std::string& name, void** existed);	
 	long add_ptr(void* x) { return m_byid.add_ptr(x); }
 	void* get_byid(long id) const {	return m_byid.get_ptr(id); }
@@ -194,7 +195,7 @@ public:
 	{
 		return (T*)AccessByNameID<void*>::get_byname(name);
 	}
-	~AccessByNameID() { destroy(); }
+	virtual ~AccessByNameID() { destroy(); }
 };
 
 } // namespace febird

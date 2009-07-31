@@ -35,7 +35,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 /*****************************************************************************
 written by
-   Yunhong Gu, last updated 05/21/2009
+   Yunhong Gu, last updated 06/11/2009
 *****************************************************************************/
 
 #ifndef WIN32
@@ -469,6 +469,7 @@ void CUDT::open()
    m_ullACKInt = m_ullSYNInt;
    m_ullNAKInt = (m_iRTT + 4 * m_iRTTVar) * m_ullCPUFrequency;
    m_ullEXPInt = (m_iRTT + 4 * m_iRTTVar) * m_ullCPUFrequency + m_ullSYNInt;
+   m_ullMinEXPInt = 100000 * m_ullCPUFrequency;
 
    CTimer::rdtsc(m_ullNextACKTime);
    m_ullNextACKTime += m_ullSYNInt;
@@ -580,7 +581,6 @@ void CUDT::connect(const sockaddr* serv_addr)
             // a data packet or a keep-alive packet comes, which means the peer side is already connected
             // in this situation, a previously recorded response (tmp) will be used
             memcpy(resdata, tmp, sizeof(CHandShake));
-            delete [] tmp;
             memcpy(m_piSelfIP, res->m_piPeerIP, 16);
             break;
          }
@@ -630,6 +630,7 @@ void CUDT::connect(const sockaddr* serv_addr)
       }
    }
 
+   delete [] tmp;
    delete [] reqdata;
 
    if (e.getErrorCode() == 0)
