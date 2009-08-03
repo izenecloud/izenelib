@@ -20,11 +20,11 @@ string  getMemInfo() {
 	unsigned long pre_rss = rss;
 	
 	ProcMemInfo::getProcMemInfo(vm, rss, rlimit);
-	ss << "Current vm: " << vm << "bytes rss: " << rss << "bytes.  " ;
+	ss << "Current vm: " << vm << " bytes; rss: " << rss << " bytes.  " ;
 	if(vm > pre_vm )
-		ss << "Increased vm: " << vm - pre_vm << "bytes rss: " << rss - pre_rss << "bytes" << endl;
+		ss << "Increased vm: " << vm - pre_vm << " bytes; rss: " << rss - pre_rss << " bytes." << endl;
 	else 
-		ss << "Decreased vm: " <<  pre_vm - vm << "bytes rss: " << pre_rss -rss  << "bytes" << endl;
+		ss << "Decreased vm: " <<  pre_vm - vm << " bytes; rss: " << pre_rss -rss  << " bytes." << endl;
 	
 	return ss.str();
 }
