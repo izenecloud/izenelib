@@ -48,7 +48,7 @@ public:
 	//SDBCursor is like db cursor
 	typedef bucket_chain_<LockType> bucket_chain;
 	typedef std::pair<bucket_chain*, char*> SDBCursor;
-	typedef DataType<KeyType,ValueType> DataType;
+	//typedef DataType<KeyType,ValueType> DataType;
 public:
 	/**
 	 *   constructor
@@ -118,7 +118,7 @@ public:
 	/**
 	 *  insert an item of DataType 
 	 */
-	bool insert(const DataType& dat) {
+	bool insert(const DataType<KeyType,ValueType>& dat) {
 		return insert(dat.get_key(), dat.get_value() );
 	}
 
@@ -267,7 +267,7 @@ public:
 	/**
 	 *  update  an item through DataType data
 	 */
-	bool update(const DataType& dat)
+	bool update(const DataType<KeyType,ValueType>& dat)
 	{
 		return update( dat.get_key(), dat.get_value() );
 	}
@@ -416,7 +416,7 @@ public:
 
 	bool get(const SDBCursor& locn, KeyType& key, ValueType& value)
 	{
-		DataType dat;
+		DataType<KeyType,ValueType> dat;
 		bool ret =get(locn, dat);
 		if(ret) {
 			key = dat.get_key();
@@ -427,7 +427,7 @@ public:
 	/**
 	 *  get an item from given SDBCursor
 	 */
-	bool get(const SDBCursor& locn, DataType& rec) {
+	bool get(const SDBCursor& locn, DataType<KeyType,ValueType>& rec) {
 
 		bucket_chain* sa = locn.first;
 		char* p = locn.second;
@@ -472,7 +472,7 @@ public:
 	 */
 	
 	bool seq(SDBCursor& locn, KeyType& key, ValueType& value,  ESeqDirection sdir=ESD_FORWARD){
-		DataType dat;
+		DataType<KeyType,ValueType> dat;
 		bool ret = seq(locn, dat, sdir);
 		key = dat.get_key();
 		value = dat.get_value();
@@ -480,7 +480,7 @@ public:
 	}
 	
 	
-	bool seq(SDBCursor& locn, DataType& rec, ESeqDirection sdir=ESD_FORWARD) {
+	bool seq(SDBCursor& locn, DataType<KeyType,ValueType>& rec, ESeqDirection sdir=ESD_FORWARD) {
 		flushCache_(locn);
 		if( sdir == ESD_FORWARD ) {
 			bucket_chain* sa = locn.first;
