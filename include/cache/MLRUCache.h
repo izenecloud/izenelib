@@ -51,7 +51,7 @@ template <class KeyType, class ValueType, class Hash=izenelib::am::LinearHashTab
 	typedef izenelib::am::LinearHashTable<KeyType, CachedData, NullLock> linHash;	
 	//typedef izenelib::am::CCCR_StrHashTable<KeyType, CachedData, 8192*16> cccrHash;
 	typedef izenelib::am::cccr_hash<KeyType, CachedData> cccrHash;
-	typedef izenelib::am::DataType<KeyType,ValueType> DataType;
+	//typedef izenelib::am::DataType<KeyType,ValueType> DataType;
 public:
 	/**
 	 *  \brief Constuctor1: default fileName for fileHash of Hash_ is "./index.dat".
@@ -70,7 +70,7 @@ public:
 		cacheSize_ = cacheSize;
 		hash_.setHashSize(cacheSize_);
 	}
-	bool updateValue(const DataType& dat) // insert an new item into MCache
+	bool updateValue(const DataType<KeyType,ValueType>& dat) // insert an new item into MCache
 	{
 		lock.acquire_write_lock();
 		KeyType key = dat.get_key();
@@ -88,13 +88,13 @@ public:
 	}	
 	bool updateValue(const KeyType& key, const ValueType& value) // insert an new item into MCache
 	{
-		return updateValue( DataType(key, value) );
+		return updateValue( DataType<KeyType,ValueType>(key, value) );
 	}
 	bool getValue(const KeyType& key, ValueType& value); // may insert upon no cache depending on the policies
-	void insertValue(const DataType& value); // insert an new item into MCache
+	void insertValue(const DataType<KeyType,ValueType>& value); // insert an new item into MCache
 	void insertValue(const KeyType& key, const ValueType& value)
 	{
-		insertValue( DataType(key, value) );
+		insertValue( DataType<KeyType,ValueType>(key, value) );
 	}
 	bool getValueNoInsert(const KeyType& key, ValueType& value); //  not insert even if not found.		
 	bool getValueWithInsert(const KeyType& key, ValueType& value); //  insert if not found.	
@@ -195,7 +195,7 @@ private:
 		}
 
 	}
-	inline void firstInsert_(const DataType& dat) {
+	inline void firstInsert_(const DataType<KeyType,ValueType>& dat) {
 		KeyType key = dat.get_key();
 		if (hash_.find(key) ) {
 			assert(false);
@@ -245,7 +245,7 @@ template <class KeyType, class ValueType, class Hash, class ThreadSafeLock> bool
 
 template <class KeyType, class ValueType, class Hash, class ThreadSafeLock> void MLRUCache<
 		KeyType, ValueType, Hash, ThreadSafeLock>::insertValue(
-		const DataType& dat) {
+		const DataType<KeyType,ValueType>& dat) {
 	lock.acquire_write_lock();
 	KeyType key = dat.get_key();
 	if (hash_.find(key) ) {

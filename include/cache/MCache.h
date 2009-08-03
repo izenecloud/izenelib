@@ -49,7 +49,7 @@ template <class KeyType, class ValueType, class ReplacementPolicy, class Hash,
 	typedef typename hash_map<KeyType, CacheInfo<KeyType>, HashFun<KeyType> > ::iterator
 			HIT;
 	LockType lock;
-	typedef izenelib::am::DataType<KeyType,ValueType> DataType;
+	//typedef izenelib::am::DataType<KeyType,ValueType> DataType;
 public:
 	/**
 	 *  \brief Constuctor1: default fileName for fileHash of Hash_ is "./index.dat".
@@ -70,14 +70,14 @@ public:
 	}
 
 	bool getValue(const KeyType& key, ValueType& value); // may insert upon no cache depending on the policies
-	void insertValue(const DataType& value); // insert an new item into MCache
+	void insertValue(const DataType<KeyType,ValueType>& value); // insert an new item into MCache
 
 	void insertValue(const KeyType& key, const ValueType& value) // insert an new item into MCache
 	{
-		insertValue( DataType(key, value) );
+		insertValue( DataType<KeyType,ValueType>(key, value) );
 	}
 	
-	bool updateValue(const DataType& dat) // insert an new item into MCache
+	bool updateValue(const DataType<KeyType,ValueType>& dat) // insert an new item into MCache
 	{
 		lock.acquire_write_lock();
 		KeyType key = dat.get_key();
@@ -94,7 +94,7 @@ public:
 	}	
 	bool updateValue(const KeyType& key, const ValueType& value) // insert an new item into MCache
 	{
-		return updateValue( DataType(key, value) );
+		return updateValue( DataType<KeyType,ValueType>(key, value) );
 	}
 	
 	bool getValueNoInsert(const KeyType& key, ValueType& value); //  not insert even if not found.		
@@ -186,7 +186,7 @@ public:
 	template<class Archive> void save(Archive & ar,
 			const unsigned int version = 0) {
 
-		/*DataType dat;
+		/*DataType<KeyType,ValueType> dat;
 		 int num = numItems();
 		 ar & num;
 		 for (MIT it=cacheContainer_.begin(); it != cacheContainer_.end(); it++) {
@@ -205,7 +205,7 @@ public:
 		 ar & num;
 
 		 for (int i=0; i<num; i++) {
-		 DataType dat;
+		 DataType<KeyType,ValueType> dat;
 		 ar & dat;
 		 insertValue(dat);
 		 }*/
@@ -266,7 +266,7 @@ template <class KeyType, class ValueType, class ReplacementPolicy, class Hash,
 
 template <class KeyType, class ValueType, class ReplacementPolicy, class Hash,
 		class LockType> void MCache<KeyType, ValueType, ReplacementPolicy,
-		Hash, LockType>::insertValue(const DataType& dat) {
+		Hash, LockType>::insertValue(const DataType<KeyType,ValueType>& dat) {
 	lock.acquire_write_lock();
 	KeyType key = dat.get_key();
 	if( hasKey(key) )return;

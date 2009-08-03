@@ -18,6 +18,7 @@
 #include <util/ProcMemInfo.h>
 
 using namespace izenelib::util;
+using namespace izenelib::am;
 
 
 //#include <types.h>

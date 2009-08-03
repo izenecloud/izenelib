@@ -45,7 +45,7 @@ public:
 	typedef hash_map<KeyType, CacheInfo<KeyType>, HashFun<KeyType> > CmHashMap;
 	typedef typename map<CacheInfo<KeyType>, bool, ReplacementPolicy  > :: iterator MIT;
 	typedef typename hash_map<KeyType, CacheInfo<KeyType>, HashFun<KeyType> > ::iterator HIT;	
-	typedef izenelib::am::DataType<KeyType,ValueType> DataType;
+	//typedef izenelib::am::DataType<KeyType,ValueType> DataType;
 public:	
 /**
 *	\brief It determines if an item exits in CacheContainer. 

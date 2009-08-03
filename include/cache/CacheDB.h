@@ -46,7 +46,7 @@ namespace cache {
 template <class KeyType, class ValueType, class ReplacementPolicy,
 		class MCache, class DataHash, class LockType =NullLock> class CacheDB {
 
-	typedef izenelib::am::DataType<KeyType,ValueType> DataType;
+	//typedef izenelib::am::DataType<KeyType,ValueType> DataType;
 public:
 	/**
 	 *  \brief Constuctor1: default fileName for dataHash is "./index.dat".
@@ -70,13 +70,13 @@ public:
 
 	bool del(const KeyType& key); // if no data return false, else successful delete.	
 	bool getValue(const KeyType& key, ValueType& value); // may insert upon no cache depending on the policies
-	void insertValue(const DataType& value); // insert an new item into CacheDB
+	void insertValue(const DataType<KeyType,ValueType>& value); // insert an new item into CacheDB
 	void insertValue(const KeyType& key, const ValueType& value) // insert an new item into CacheDB
 	{
-		insertValue(DataType(key, value) );
+		insertValue(DataType<KeyType,ValueType>(key, value) );
 	}
 
-	void updateValue(const DataType& dat) {
+	void updateValue(const DataType<KeyType,ValueType>& dat) {
 		lock.acquire_write_lock();
 		if ( dataHash_.update(dat) ) {
 			mCache_.updateValue(dat);
@@ -86,7 +86,7 @@ public:
 
 	void updateValue(const KeyType& key, const ValueType& value) // insert an new item into CacheDB
 	{
-		updateValue( DataType(key, value) );
+		updateValue( DataType<KeyType,ValueType>(key, value) );
 	}
 
 	bool hasKey(const KeyType& key);
@@ -168,7 +168,7 @@ template <class KeyType, class ValueType, class ReplacementPolicy,
 template <class KeyType, class ValueType, class ReplacementPolicy,
 		class MCache, class DataHash, class LockType> void CacheDB<KeyType,
 		ValueType, ReplacementPolicy, MCache, DataHash, LockType>::insertValue(
-		const DataType& dat) {
+		const DataType<KeyType,ValueType>& dat) {
 	lock.acquire_write_lock();
 	dataHash_.insert(dat); 
 	mCache_.insertValue(dat);	
@@ -289,8 +289,8 @@ template <class KeyType, class ValueType, class ReplacementPolicy,
  *	\brief it saves the most frequent item in memory to file. 
  *
  */
-template <class KeyType, class DataType, class ReplacementPolicy, class MCache,
-		class DataHash, class LockType> void CacheDB<KeyType, DataType,
+template <class KeyType, class ValueType, class ReplacementPolicy, class MCache,
+		class DataHash, class LockType> void CacheDB<KeyType, ValueType,
 		ReplacementPolicy, MCache, DataHash, LockType>::dump() {
 	//to be implemented
 }
@@ -299,8 +299,8 @@ template <class KeyType, class DataType, class ReplacementPolicy, class MCache,
  *	\brief it deletes all the items in memory. 
  *
  */
-template <class KeyType, class DataType, class ReplacementPolicy, class MCache,
-		class DataHash, class LockType> void CacheDB<KeyType, DataType,
+template <class KeyType, class ValueType, class ReplacementPolicy, class MCache,
+		class DataHash, class LockType> void CacheDB<KeyType, ValueType,
 		ReplacementPolicy, MCache, DataHash, LockType>::clear() {
 	dataHash_.flush();
 	mCache_.clear();

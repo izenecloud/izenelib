@@ -52,7 +52,7 @@ template <class KeyType, class ValueType, class ReplacementPolicy,
 			HIT;
 
 	LockType lock;
-	typedef izenelib::am::DataType<KeyType,ValueType> DataType;
+	//typedef izenelib::am::DataType<KeyType,ValueType> DataType;
 public:
 	/**
 	 *  \brief Constuctor1: default fileName for fileHash of Hash_ is "./index.dat".
@@ -108,9 +108,9 @@ public:
 	bool getValue(const KeyType& key, ValueType& value); // may insert upon no cache depending on the policies
 	void insertValue(const KeyType& key, const ValueType& value) // insert an new item into MFCache
 	{
-		insertValue( DataType(key, value) );
+		insertValue( DataType<KeyType,ValueType>(key, value) );
 	}
-	void insertValue(const DataType& dat);
+	void insertValue(const DataType<KeyType,ValueType>& dat);
 	
 	bool getValueNoInsert(const KeyType& key, ValueType& value); //  not insert even if not found.		
 	bool getValueWithInsert(const KeyType& key, ValueType& value); //  insert if not found.	
@@ -341,7 +341,7 @@ template <class KeyType, class ValueType, class ReplacementPolicy,
 template <class KeyType, class ValueType, class ReplacementPolicy,
 		class FirstHash, class SecondHash, class LockType> void MFCache<
 		KeyType, ValueType, ReplacementPolicy, FirstHash, SecondHash,
-		LockType>::insertValue(const DataType& dat) {
+		LockType>::insertValue(const DataType<KeyType,ValueType>& dat) {
 	lock.acquire_write_lock();
 	KeyType key = dat.get_key();//value should have get_key() method.							
 	if (hash_.insert(dat) ) {

@@ -22,7 +22,7 @@ namespace cache{
  * Note that FirstHash and SecondHash should have the same interface as CacheHash.
  */
 template <class KeyType, class ValueType, class Hash> class CacheHash {
-	typedef izenelib::am::DataType<KeyType,ValueType> DataType;
+	//typedef izenelib::am::DataType<KeyType,ValueType> DataType;
 public:
 	/**
 	 *	\brief default constructor. 
@@ -64,7 +64,7 @@ public:
 	{
 		return memHash_.insert(key, value);
 	}
-	bool insert(const DataType& data)
+	bool insert(const DataType<KeyType,ValueType>& data)
 	{
 		if( memHash_.num_items() <(int) hashSize_ )
 			return memHash_.insert(data);
@@ -80,7 +80,7 @@ public:
 		return memHash_.del(key);
 	}
 	
-	bool update(const DataType& data){
+	bool update(const DataType<KeyType,ValueType>& data){
 		return memHash_.update(data);		
 	}
 
@@ -123,7 +123,7 @@ private:
  * Note that FirstHash and SecondHash should have the same interface as CacheHash.
  */
 template <class KeyType, class ValueType, class FirstHash, class SecondHash> class CacheExtHash {
-	typedef izenelib::am::DataType<KeyType,ValueType> DataType;
+	//typedef izenelib::am::DataType<KeyType,ValueType> DataType;
 public:
 	/**
 	 *	\brief default constructor. 
@@ -185,19 +185,19 @@ public:
 	ValueType* find(const KeyType& key);
 	bool insert(const KeyType& key, const ValueType& value)
 	{
-		return insert( DataType(key,value) );
+		return insert( DataType<KeyType,ValueType>(key,value) );
 	}
-	bool insert(const DataType& data);
+	bool insert(const DataType<KeyType,ValueType>& data);
 	bool del(const KeyType& key);
 
-	bool update(const DataType& data){
+	bool update(const DataType<KeyType,ValueType>& data){
 	     return memHash_.update(data) 
 		  &&  fileHash_.update(data) ;
 		};
 		
 	bool update(const KeyType& key, const ValueType& value)
 	{
-		return update( DataType(key,value) );
+		return update( DataType<KeyType,ValueType>(key,value) );
 	}
 
 
@@ -308,7 +308,7 @@ template <class KeyType, class ValueType, class FirstHash, class SecondHash> FOU
  */
 
 template <class KeyType, class ValueType, class FirstHash, class SecondHash> bool CacheExtHash<
-		KeyType, ValueType, FirstHash, SecondHash>::insert(const DataType& data) {
+		KeyType, ValueType, FirstHash, SecondHash>::insert(const DataType<KeyType,ValueType>& data) {
 	
 #if 0
 	cout<<"Before CacheExtHash insert: "<<memHash_.num_items()<<"  "
