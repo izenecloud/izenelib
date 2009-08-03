@@ -44,7 +44,7 @@ template< typename KeyType, typename ValueType, typename LockType =NullLock> cla
 	public AccessMethod<KeyType, ValueType, LockType> {
 public:
 	//typedef std::pair<bucket_chain*, char*> SDBCursor;
-	typedef DataType<KeyType,ValueType> DataType;
+	//typedef DataType<KeyType,ValueType> DataType;
 
 public:
 	/**
@@ -80,7 +80,7 @@ public:
 	/**
 	 *  insert an item of DataType 
 	 */
-	bool insert(const DataType& dat) {
+	bool insert(const DataType<KeyType,ValueType> & dat) {
 		return insert(dat.get_key(), dat.get_value() );
 	}
 
@@ -159,7 +159,7 @@ public:
 	/**
 	 *  update  an item through DataType data
 	 */
-	bool update(const DataType& dat) {
+	bool update(const DataType<KeyType,ValueType> & dat) {
 		return update(dat.get_key(), dat.get_value() );
 	}
 

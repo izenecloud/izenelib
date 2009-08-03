@@ -24,7 +24,7 @@ public AccessMethod<KeyType, ValueType, LockType>
 {
 public:
 	typedef KeyType SDBCursor;
-	typedef DataType<KeyType,ValueType> DataType;
+	//typedef DataType<KeyType,ValueType> DataType;
 public:
 	/**
 	 *   constructor
@@ -58,7 +58,7 @@ public:
 	/**
 	 *  insert an item of DataType 
 	 */
-	bool insert(const DataType& dat) {
+	bool insert(const DataType<KeyType,ValueType> & dat) {
 		return insert(dat.get_key(), dat.get_value() );
 	}
 
@@ -136,7 +136,7 @@ public:
 	/**
 	 *  update  an item through DataType data
 	 */
-	bool update(const DataType& dat)
+	bool update(const DataType<KeyType,ValueType> & dat)
 	{
 		return update( dat.get_key(), dat.get_value() );
 	}
@@ -211,7 +211,7 @@ public:
 	/**
 	 *  get an item from given SDBCursor
 	 */
-	bool get(const SDBCursor& locn, DataType& rec) {
+	bool get(const SDBCursor& locn, DataType<KeyType,ValueType> & rec) {
 		return get(locn, rec.get_key(), rec.get_value() );
 	}
 
@@ -223,7 +223,7 @@ public:
 	 *   @param sdir is sequential access direction, for hash is unordered, we only implement forward case.
 	 *   
 	 */
-	bool seq(SDBCursor& locn, DataType& rec, ESeqDirection sdir=ESD_FORWARD) {
+	bool seq(SDBCursor& locn, DataType<KeyType,ValueType> & rec, ESeqDirection sdir=ESD_FORWARD) {
 				
 		char* ptr;
 		size_t ksize;
