@@ -13,7 +13,7 @@
 #include <ir/index_manager/index/Posting.h>
 #include <ir/index_manager/index/LAInput.h>
 
-#include <util/DynamicArray.h>
+#include <3rdparty/am/rde_hashmap/hash_map.h>
 
 #include <boost/thread.hpp>
 #include <string>
@@ -24,7 +24,8 @@ using namespace izenelib::util;
 NS_IZENELIB_IR_BEGIN
 
 namespace indexmanager{
-typedef DynamicArray<InMemoryPosting*,Const_NullValue<InMemoryPosting*> > DynPostingArray;
+//Since TermID is got from hashfunc, DynamicArray is not suitable to be used as the container.
+typedef rde::hash_map<unsigned int, InMemoryPosting* > InMemoryPostingMap;
 
 class TermReader;
 /**
@@ -49,7 +50,7 @@ public:
 
     void reset();
 
-    uint64_t distinctNumTerms() {return array_.length();}
+    uint64_t distinctNumTerms() {return postingMap_.size();}
 
     fileoffset_t write(OutputDescriptor* pWriterDesc);
 
@@ -61,7 +62,7 @@ public:
 
     boost::mutex& getLock() { return mutex_;}
 private:
-    DynPostingArray array_;
+    InMemoryPostingMap postingMap_;
 
     std::string field;
 

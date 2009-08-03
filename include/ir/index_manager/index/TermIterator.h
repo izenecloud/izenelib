@@ -207,7 +207,8 @@ protected:
     Term* pCurTerm;         ///current term in this iterator
     TermInfo* pCurTermInfo;      ///current term info in this iterator
     InMemoryPosting* pCurTermPosting;   ///current term's posting in this iterator
-    DynPostingArray::array_iterator   aIterator;      ///iterator for terms
+    InMemoryPostingMap::iterator postingIterator;
+    InMemoryPostingMap::iterator postingIteratorEnd;
 };
 
 }

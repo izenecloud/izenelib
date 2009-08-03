@@ -12,12 +12,9 @@ FieldIndexer::FieldIndexer(MemCache* pCache):pMemCache_(pCache),vocFilePointer_(
 
 FieldIndexer::~FieldIndexer()
 {
-    DynPostingArray::array_iterator aiter = array_.elements();
-    InMemoryPosting* pPosting;
-    while (aiter.next())
+    for(InMemoryPostingMap::iterator iter = postingMap_.begin(); iter !=postingMap_.end(); ++iter)
     {
-        pPosting = aiter.element();
-        delete pPosting;		///clear posting data
+        delete iter->second;
     }
 
     pMemCache_ = NULL;
@@ -29,11 +26,11 @@ void FieldIndexer::addField(docid_t docid, boost::shared_ptr<LAInput> laInput)
 
     for(LAInput::iterator iter = laInput->begin(); iter != laInput->end(); ++iter)
     {
-        curPosting = (InMemoryPosting*)array_[iter->termId_];
+        curPosting = (InMemoryPosting*)postingMap_[iter->termId_];
         if (curPosting == NULL)
         {
             curPosting = new InMemoryPosting(pMemCache_);
-            array_[iter->termId_] = curPosting;
+            postingMap_[iter->termId_] = curPosting;
         }
         curPosting->addLocation(docid, iter->wordOffset_, iter->byteOffset_);
         curPosting->updateDF(docid);
@@ -72,9 +69,9 @@ void FieldIndexer::removeField(docid_t docid, boost::shared_ptr<LAInput> laInput
                 newPosting->updateDF(decompressed_docid);
             }
 
-            InMemoryPosting* curPosting =  (InMemoryPosting*)array_[termId];
+            InMemoryPosting* curPosting =  (InMemoryPosting*)postingMap_[termId];
             delete curPosting;
-            array_[termId] = newPosting;
+            postingMap_[termId] = newPosting;
         }
     }
 
@@ -84,17 +81,16 @@ void FieldIndexer::removeField(docid_t docid, boost::shared_ptr<LAInput> laInput
 
 void FieldIndexer::reset()
 {
-    DynPostingArray::array_iterator aiter = array_.elements();
     InMemoryPosting* pPosting;
-    while (aiter.next())
+    for(InMemoryPostingMap::iterator iter = postingMap_.begin(); iter !=postingMap_.end(); ++iter)
     {
-        pPosting = aiter.element();
+        pPosting = iter->second;
         if (!pPosting->hasNoChunk())
         {
             pPosting->reset();		///clear posting data
         }
     }
-    array_.reset();
+    postingMap_.clear();
 }
 
 fileoffset_t FieldIndexer::write(OutputDescriptor* pWriterDesc)
@@ -111,13 +107,12 @@ fileoffset_t FieldIndexer::write(OutputDescriptor* pWriterDesc)
     InMemoryPosting* pPosting;
     fileoffset_t vocOffset = pVocWriter->getFilePointer();
 
-    DynPostingArray::array_iterator aiter = array_.elements();
-    while (aiter.next())
+    for(InMemoryPostingMap::iterator iter = postingMap_.begin(); iter !=postingMap_.end(); ++iter)
     {
-        pPosting = aiter.element();
+        pPosting = iter->second;
         if (!pPosting->hasNoChunk())
         {
-            tid = (termid_t)aiter.position();
+            tid = iter->first;
             pVocWriter->writeInt(tid - lastDocID);			///write term id
 
             pVocWriter->writeInt(pPosting->docFreq());		///write df
@@ -133,6 +128,7 @@ fileoffset_t FieldIndexer::write(OutputDescriptor* pWriterDesc)
             termCount++;
         }
     }
+
 
     fileoffset_t vocDescOffset = pVocWriter->getFilePointer();
     int64_t vocLength = vocDescOffset - vocOffset;
