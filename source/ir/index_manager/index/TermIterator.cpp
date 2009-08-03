@@ -136,7 +136,8 @@ InMemoryTermIterator::InMemoryTermIterator(InMemoryTermReader* pTermReader)
         ,pCurTerm(NULL)
         ,pCurTermInfo(NULL)
         ,pCurTermPosting(NULL)
-        ,aIterator(pTermReader->pIndexer->array_.elements())
+        ,postingIterator(pTermReader->pIndexer->postingMap_.begin())
+        ,postingIteratorEnd(pTermReader->pIndexer->postingMap_.end())
 {
 }
 
@@ -157,22 +158,23 @@ InMemoryTermIterator::~InMemoryTermIterator(void)
 
 bool InMemoryTermIterator::next()
 {
-    bool bret = aIterator.next();
-    if (bret)
+    postingIterator = postingIterator++;
+
+    if(postingIterator != postingIteratorEnd)
     {
-        pCurTermPosting = aIterator.element();
+        pCurTermPosting = postingIterator->second;
         while (pCurTermPosting->hasNoChunk())
         {
-            bret = aIterator.next();
-            if (bret)
-                pCurTermPosting = aIterator.element();
+            postingIterator = postingIterator++;
+            if(postingIterator != postingIteratorEnd)
+                pCurTermPosting = postingIterator->second;
             else return false;
         }
         //TODO
         if (pCurTerm == NULL)
-            pCurTerm = new Term(pTermReader->sField.c_str(),(termid_t)aIterator.position());
-        else pCurTerm->setValue(aIterator.position());
-        pCurTermPosting = aIterator.element();
+            pCurTerm = new Term(pTermReader->sField.c_str(),postingIterator->first);
+        else pCurTerm->setValue(postingIterator->first);
+        pCurTermPosting = postingIterator->second;
         if (pCurTermInfo == NULL)
             pCurTermInfo = new TermInfo(pCurTermPosting->docFreq(),-1);
         else

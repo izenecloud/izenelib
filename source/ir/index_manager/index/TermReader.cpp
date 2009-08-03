@@ -315,7 +315,7 @@ TermInfo* InMemoryTermReader::termInfo(Term* term)
     termid_t tid = term->getValue();
     if (tid < 0)
         return NULL;
-    pCurPosting = pIndexer->array_.getAt(tid);
+    pCurPosting = pIndexer->postingMap_[tid];
     if (!pCurPosting || (pCurPosting->hasNoChunk() == true))
         return NULL;
     if (!pTermInfo)
