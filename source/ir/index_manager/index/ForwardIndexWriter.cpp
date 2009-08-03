@@ -4,7 +4,6 @@ using namespace izenelib::ir::indexmanager;
 
 ForwardIndexWriter::ForwardIndexWriter(Directory* pDirectory)
     :pDirectory_(pDirectory)
-    ,forwardIndex_(NULL)
 {
     size_t buffersize = 1024*1024*10;
     pDOCOutput_ = pDirectory_->createOutput("forward.doc", buffersize, "r+");
@@ -23,9 +22,6 @@ ForwardIndexWriter::~ForwardIndexWriter()
         delete pVOCOutput_;
     if(pPOSOutput_)
         delete pPOSOutput_;
-
-    if(forwardIndex_)
-        delete forwardIndex_;
 }
 
 void ForwardIndexWriter::addDocument(docid_t docID)
@@ -39,10 +35,9 @@ void ForwardIndexWriter::addProperty(fieldid_t fid, boost::shared_ptr<LAInput> l
     pFDIOutput_->writeVInt(fid);
     pFDIOutput_->writeVLong(pVOCOutput_->getFilePointer());
 
-    if(!forwardIndex_)
-        forwardIndex_ = new ForwardIndex;
+    forwardIndex_.reset(new ForwardIndex);
 
-   ForwardIndexOffset* pForwardIndexOffset = NULL;
+    ForwardIndexOffset* pForwardIndexOffset = NULL;
     for(LAInput::iterator iter = laInput->begin(); iter != laInput->end(); ++iter)
     {
         pForwardIndexOffset = (ForwardIndexOffset*)(*forwardIndex_)[iter->termId_];
@@ -82,10 +77,49 @@ void ForwardIndexWriter::addProperty(fieldid_t fid, boost::shared_ptr<LAInput> l
             lastOffset = offset;
         }
 		
-        delete pForwardIndexOffset;
+        //delete pForwardIndexOffset;
     }
 
-    forwardIndex_->clear();
+    //forwardIndex_->clear();
+}
+
+
+void ForwardIndexWriter::addProperty(fieldid_t fid, boost::shared_ptr<ForwardIndex> forwardIndex)
+{
+    pFDIOutput_->writeVInt(fid);
+    pFDIOutput_->writeVLong(pVOCOutput_->getFilePointer());
+
+    size_t nNumTerms = forwardIndex->size();
+
+    pVOCOutput_->writeVInt(nNumTerms);
+
+    unsigned int termId, lastTerm = 0;
+    ForwardIndexOffset* pForwardIndexOffset = NULL;
+
+    for(ForwardIndex::iterator iter = forwardIndex->begin(); iter != forwardIndex->end(); ++iter)
+    {
+        termId = iter->first;
+        pVOCOutput_->writeVInt(termId - lastTerm);
+        lastTerm = termId;
+        pVOCOutput_->writeVLong(pPOSOutput_->getFilePointer());
+        pForwardIndexOffset = iter->second;
+        int numPosition = pForwardIndexOffset->size();
+        pPOSOutput_->writeVInt(numPosition);	
+        unsigned int offset, lastOffset = 0;
+        for (int j = 0; j < numPosition; j++)
+        {
+            ///start offset
+            offset = (*pForwardIndexOffset)[j].first;
+            pPOSOutput_->writeVInt(offset - lastOffset);
+            lastOffset = offset;
+            ///end offset
+            offset = (*pForwardIndexOffset)[j].second;
+            pPOSOutput_->writeVInt(offset - lastOffset);
+            lastOffset = offset;
+        }
+		
+    }
+
 }
 
 void ForwardIndexWriter::flush()

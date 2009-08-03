@@ -37,6 +37,26 @@ void FieldIndexer::addField(docid_t docid, boost::shared_ptr<LAInput> laInput)
     }
 }
 
+void FieldIndexer::addField(docid_t docid, boost::shared_ptr<ForwardIndex> forwardindex)
+{
+    InMemoryPosting* curPosting;
+
+    for(ForwardIndex::iterator iter = forwardindex->begin(); iter != forwardindex->end(); ++iter)
+    {
+        curPosting = (InMemoryPosting*)postingMap_[iter->first];
+        if (curPosting == NULL)
+        {
+            curPosting = new InMemoryPosting(pMemCache_);
+            postingMap_[iter->first] = curPosting;
+        }
+
+        ForwardIndexOffset::iterator	endit = iter->second->end();
+        for(ForwardIndexOffset::iterator it = iter->second->begin(); it != endit; ++it)
+            curPosting->addLocation(docid, it->first, it->second);
+        curPosting->updateDF(docid);
+    }
+}
+
 void FieldIndexer::removeField(docid_t docid, boost::shared_ptr<LAInput> laInput)
 {
     docid_t decompressed_docid;

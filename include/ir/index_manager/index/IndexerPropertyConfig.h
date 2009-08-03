@@ -19,7 +19,8 @@ public:
     IndexerPropertyConfig()
             :propertyId_(0),
             index_(false),
-            forward_(false)
+            forward_(false),
+            laInput_(false)
     { }
 
 public:
@@ -61,6 +62,11 @@ public:
     bool isForward() const
     {
         return forward_;
+    }
+
+    bool isLAInput() const
+    {
+        return laInput_;
     }
 
     std::string toString() const
@@ -105,6 +111,11 @@ protected:
     bool index_;
 
     bool forward_;
+
+    ///This field is for compatabile with SF1
+    ///IndexManager permits two kinds of inputs:LAInput, or ForwardIndex
+    ///The latter means the forwardindex of a document is generated outside IndexManager.
+    bool laInput_;
 };
 
 

@@ -9,6 +9,7 @@
 #include <ir/index_manager/store/IndexOutput.h>
 
 #include <deque>
+#include <boost/shared_ptr.hpp>
 
 NS_IZENELIB_IR_BEGIN
 
@@ -24,6 +25,8 @@ public:
     void addDocument(docid_t docID);
 
     void addProperty(fieldid_t fid, boost::shared_ptr<LAInput> laInput);
+
+    void addProperty(fieldid_t fid, boost::shared_ptr<ForwardIndex> forwardIndex);
 	
     void flush();
 
@@ -38,7 +41,7 @@ private:
 
     IndexOutput* pPOSOutput_;
 
-    ForwardIndex* forwardIndex_;
+    boost::shared_ptr<ForwardIndex> forwardIndex_;
 };
 
 }

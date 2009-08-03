@@ -5,6 +5,7 @@
 
 #include <ir/index_manager/index/IndexerPropertyConfig.h>
 #include <ir/index_manager/index/LAInput.h>
+#include <ir/index_manager/index/ForwardIndex.h>
 
 #include <util/BoostVariantUtil.h>
 
@@ -24,7 +25,7 @@ NS_IZENELIB_IR_BEGIN
 namespace indexmanager{
 
 typedef boost::variant<int,unsigned int, float, double, String> PropertyType;
-typedef boost::variant<PropertyType, boost::shared_ptr<LAInput> > IndexerDocumentPropertyType;
+typedef boost::variant<PropertyType, boost::shared_ptr<LAInput>, boost::shared_ptr<ForwardIndex> > IndexerDocumentPropertyType;
 
 struct DocId
 {
@@ -63,8 +64,8 @@ public:
     bool insertProperty(const IndexerPropertyConfig& config, T& property)
     {
         IndexerDocumentPropertyType p =property;
-        pair<std::map<IndexerPropertyConfig, IndexerDocumentPropertyType>::iterator, bool> ret 
-			= propertyList_.insert(make_pair(config, p));
+        std::pair<std::map<IndexerPropertyConfig, IndexerDocumentPropertyType>::iterator, bool> ret 
+			= propertyList_.insert(std::make_pair(config, p));
         if(ret.second)
         {
             termIterator_ = ret.first;
