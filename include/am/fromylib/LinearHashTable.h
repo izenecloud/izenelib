@@ -88,14 +88,14 @@ private:
  */
 template <typename KeyType, typename ValueType, typename LockType=NullLock > class LinearHashTable :
 	 public AccessMethod<KeyType, ValueType, LockType> {
-	typedef DataType<KeyType, ValueType> DataType;
+	//typedef DataType<KeyType, ValueType> DataType;
 
 	int p; // next bucket to be split
 	int maxp; // upper bound on p during this expansion
 	int keycount; // number of records in the table
 	int currentsize; // current number of buckets
 	double minloadfctr, maxloadfctr; // lower and upper bound on the load factor
-	Segment<DataType>* directory[IZENE_DIRECTORY_SIZE];
+	Segment<DataType<KeyType,ValueType> >* directory[IZENE_DIRECTORY_SIZE];
 	LockType lock; // for thread-safe
 
 protected:
@@ -129,22 +129,22 @@ public:
 		return (const ValueType*)((LinearHashTable *)this)->find(key);
 	}
 
-	bool insert(const DataType& elem); // standard insert.
+	bool insert(const DataType<KeyType,ValueType> & elem); // standard insert.
 	bool insert(const KeyType& key, const ValueType& value) {
-		return insert(DataType(key, value) );
+		return insert(DataType<KeyType,ValueType> (key, value) );
 	}
 
 	/**
 	 *  \brief updata an item with given key, if it not exist, insert it directly. 
 	 */
 	//bool update(const KeyType& key, const ValueType& val) {
-	//	return update(DataType(key, val) );
+	//	return update(DataType<KeyType,ValueType> (key, val) );
 	//}
 
 	/**
 	 *  \brief updata an item with given key, if it not exist, insert it directly. 
 	 */
-	//bool update(const DataType& rec) {
+	//bool update(const DataType<KeyType,ValueType> & rec) {
 	//	return true;
 	//}
 
@@ -162,7 +162,7 @@ public:
 					continue;
 				if (!directory[i]->seg[j])
 					continue;
-				LHTElem<DataType>* elem = directory[i]->seg[j]; // first on chain
+				LHTElem<DataType<KeyType,ValueType> >* elem = directory[i]->seg[j]; // first on chain
 				while (elem != NULL) {
 					++d;
 					ar & elem->data;
@@ -178,7 +178,7 @@ public:
 		ar & n;
 
 		for (int i =0; i<n; i++) {
-			DataType dat;
+			DataType<KeyType,ValueType>  dat;
 			ar & dat;
 			insert(dat);
 		}
@@ -193,7 +193,7 @@ public:
 					continue;
 				if (!directory[i]->seg[j])
 					continue;
-				LHTElem<DataType>* elem = directory[i]->seg[j]; // first on chain
+				LHTElem<DataType<KeyType,ValueType> >* elem = directory[i]->seg[j]; // first on chain
 				while (elem != NULL) {
 					++d;
 					am.insert(elem->data);
@@ -229,7 +229,7 @@ template <typename KeyType, typename ValueType, typename LockType> void LinearHa
 	currentsize = IZENE_SEGMENT_SIZE;
 	minloadfctr = IZENE_MIN_LOAD_FACTOR;
 	maxloadfctr = IZENE_MAX_LOAD_FACTOR;
-	directory[0] = new Segment<DataType>();
+	directory[0] = new Segment<DataType<KeyType,ValueType> >();
 
 	for (int i = 1; i < IZENE_DIRECTORY_SIZE; i++)
 		directory[i] = NULL;
@@ -291,9 +291,9 @@ template <typename KeyType, typename ValueType, typename LockType> int LinearHas
 template <typename KeyType, typename ValueType, typename LockType> void LinearHashTable<
 		KeyType, ValueType, LockType>::expand_table() {
 	int newaddress, oldsegmentindex, newsegmentindex;
-	Segment<DataType>* oldsegment, *newsegment;
-	LHTElem<DataType>* current, *previous; // for scanning down the old chain
-	LHTElem<DataType>* lastofnew; // points to the last DataType of the new chain
+	Segment<DataType<KeyType,ValueType> >* oldsegment, *newsegment;
+	LHTElem<DataType<KeyType,ValueType> >* current, *previous; // for scanning down the old chain
+	LHTElem<DataType<KeyType,ValueType> >* lastofnew; // points to the last DataType of the new chain
 
 	// reached maximum size of address space? if so, just continue the chaining.
 	if (maxp + p < IZENE_DIRECTORY_SIZE * IZENE_SEGMENT_SIZE) {
@@ -305,7 +305,7 @@ template <typename KeyType, typename ValueType, typename LockType> void LinearHa
 		newaddress = maxp + p;
 		newsegmentindex = newaddress % IZENE_SEGMENT_SIZE;
 		if (newsegmentindex == 0)
-			directory[newaddress / IZENE_SEGMENT_SIZE] = new Segment<DataType>();
+			directory[newaddress / IZENE_SEGMENT_SIZE] = new Segment<DataType<KeyType,ValueType> >();
 		newsegment = directory[newaddress / IZENE_SEGMENT_SIZE];
 
 		// adjust the state variables
@@ -352,8 +352,8 @@ template <typename KeyType, typename ValueType, typename LockType> void LinearHa
 template <typename KeyType, typename ValueType, typename LockType> void LinearHashTable<
 		KeyType, ValueType, LockType>::contract_table() {
 	int oldsegmentindex, newsegmentindex;
-	Segment<DataType> *oldsegment, *newsegment;
-	LHTElem<DataType> *current, *previous; // for scanning down the new/current chain
+	Segment<DataType<KeyType,ValueType> > *oldsegment, *newsegment;
+	LHTElem<DataType<KeyType,ValueType> > *current, *previous; // for scanning down the new/current chain
 
 	// Is the table contractable or has more than one segment
 	if (currentsize > IZENE_SEGMENT_SIZE) { // there is a bucket to shrink.
@@ -404,7 +404,7 @@ template <typename KeyType, typename ValueType, typename LockType> ValueType* Li
 	// first requests the read lock
 	lock.acquire_read_lock();
 	int address = hash(key);
-	LHTElem<DataType>* elem =
+	LHTElem<DataType<KeyType,ValueType> >* elem =
 			directory[address/IZENE_SEGMENT_SIZE]->seg[address % IZENE_SEGMENT_SIZE]; // first on chain
 	while (elem != NULL) {
 		if (key == elem->data.get_key()) {// found!
@@ -424,7 +424,7 @@ template <typename KeyType, typename ValueType, typename LockType> ValueType* Li
  * Inserts an DataType (takes a pointer).
  */
 template <typename KeyType, typename ValueType, typename LockType> bool LinearHashTable<
-		KeyType, ValueType, LockType>::insert(const DataType& elem) {
+		KeyType, ValueType, LockType>::insert(const DataType<KeyType,ValueType> & elem) {
 	// first requests the write lock
 	lock.acquire_write_lock();
 	if (maxloadfctr * currentsize <= keycount)
@@ -432,11 +432,11 @@ template <typename KeyType, typename ValueType, typename LockType> bool LinearHa
 
 	const KeyType& key = elem.get_key();
 	int address = hash(key);
-	Segment<DataType>* currentSegment = directory[address/IZENE_SEGMENT_SIZE];
+	Segment<DataType<KeyType,ValueType> >* currentSegment = directory[address/IZENE_SEGMENT_SIZE];
 	int segIndex = address % IZENE_SEGMENT_SIZE;
-	LHTElem<DataType>* e = currentSegment->seg[segIndex]; // first on chain
+	LHTElem<DataType<KeyType,ValueType> >* e = currentSegment->seg[segIndex]; // first on chain
 	if (e == NULL)
-		currentSegment->seg[segIndex] = new LHTElem<DataType>(elem);
+		currentSegment->seg[segIndex] = new LHTElem<DataType<KeyType,ValueType> >(elem);
 	else {
 		while (e->next != NULL) {
 			if (e->data.get_key() == key) {// duplicate data
@@ -451,7 +451,7 @@ template <typename KeyType, typename ValueType, typename LockType> bool LinearHa
 			lock.release_write_lock();
 			return false;
 		}
-		e->next = new LHTElem<DataType>(elem);
+		e->next = new LHTElem<DataType<KeyType,ValueType> >(elem);
 	}
 
 	keycount++; // increment key count by one.
@@ -475,9 +475,9 @@ template <typename KeyType, typename ValueType, typename LockType> bool LinearHa
 		contract_table();
 
 	int address = hash(key);
-	LHTElem<DataType>* elem =
+	LHTElem<DataType<KeyType,ValueType> >* elem =
 			directory[address/IZENE_SEGMENT_SIZE]->seg[address % IZENE_SEGMENT_SIZE]; // first on chain
-	LHTElem<DataType>* prev = elem;
+	LHTElem<DataType<KeyType,ValueType> >* prev = elem;
 
 	while (elem != NULL) {
 		if (key == elem->data.get_key()) { // found!

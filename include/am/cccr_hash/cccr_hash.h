@@ -27,7 +27,7 @@ size_t ENTRY_POW = 17
 	enum {ENTRY_SIZE = (2<<ENTRY_POW)};
 	enum {ENTRY_MASK = ENTRY_SIZE-1};
 	enum {EXPAND = PAGE_EXPANDING};
-	typedef DataType<KeyType,ValueType> DataType;
+	//typedef DataType<KeyType,ValueType> DataType;
 public:
 	cccr_hash()
 	{
@@ -49,11 +49,11 @@ public:
 		delete entry_;
 	}
 
-	bool insert(const DataType& data) {
+	bool insert(const DataType<KeyType,ValueType> & data) {
 		return insert(data.get_key(), data.get_value());
 	}
 
-	bool update(const DataType& dat) {
+	bool update(const DataType<KeyType,ValueType> & dat) {
 		return update(dat.get_key(), dat.get_value());
 	}
 
