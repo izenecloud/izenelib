@@ -12,6 +12,7 @@
 #include <ir/index_manager/index/OutputDescriptor.h>
 #include <ir/index_manager/index/Posting.h>
 #include <ir/index_manager/index/LAInput.h>
+#include <ir/index_manager/index/ForwardIndex.h>
 
 #include <3rdparty/am/rde_hashmap/hash_map.h>
 
@@ -45,6 +46,8 @@ public:
      void setField(const char* strfield) { field = strfield;}
 
     void addField(docid_t docid, boost::shared_ptr<LAInput> laInput);
+
+    void addField(docid_t docid, boost::shared_ptr<ForwardIndex> forwardindex);
 
     void removeField(docid_t docid, boost::shared_ptr<LAInput> laInput);
 

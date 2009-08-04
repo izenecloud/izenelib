@@ -78,9 +78,18 @@ void CollectionIndexer::addDocument(IndexerDocument* pDoc)
             if (it == fieldIndexerMap_.end())
                 // This field is not indexed.
                 continue;
-            boost::shared_ptr<LAInput> laInput = boost::get<boost::shared_ptr<LAInput> >(iter->second);
-            it->second->addField(uniqueID.docId, laInput);
-            pForwardIndexWriter_->addProperty(iter->first.getPropertyId(), laInput);
+            if(! iter->first.isLAInput())
+            {
+                boost::shared_ptr<ForwardIndex> forwardIndex = boost::get<boost::shared_ptr<ForwardIndex> >(iter->second);
+                it->second->addField(uniqueID.docId, forwardIndex);
+                pForwardIndexWriter_->addProperty(iter->first.getPropertyId(), forwardIndex);
+            }
+            else
+            {
+                boost::shared_ptr<LAInput> laInput = boost::get<boost::shared_ptr<LAInput> >(iter->second);
+                it->second->addField(uniqueID.docId, laInput);
+                pForwardIndexWriter_->addProperty(iter->first.getPropertyId(), laInput);
+            }
             continue;
         }
 
