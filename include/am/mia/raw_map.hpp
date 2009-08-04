@@ -7,7 +7,7 @@
 #include <assert.h>
 #include <iostream>
 #include <stdio.h>
-#include "int_hash_table.hpp"
+//#include "int_hash_table.hpp"
 
 NS_IZENELIB_AM_BEGIN
 
@@ -372,7 +372,7 @@ public:
   typedef uint32_t size_t;
   typedef StringVector<size_t> str_vector;
   typedef IntVector<size_t>    int_vector;
-  typedef IntHashTable<1000000, size_t>  HashTable;
+  //typedef IntHashTable<1000000, size_t>  HashTable;
   
 protected:
   uint8_t* str_buf_;
@@ -384,7 +384,7 @@ protected:
   size_t count_;
   FILE*  f_str_;
   FILE*  f_pos_;
-  HashTable* ht_;
+  //HashTable* ht_;
 
   inline bool str_cache_full(size_t s)
   {
@@ -478,9 +478,9 @@ public:
       return;
     }
 
-    s = filenm;
-    s += ".has";
-    ht_ = new HashTable(s.c_str());
+//     s = filenm;
+//     s += ".has";
+//     ht_ = new HashTable(s.c_str());
   }
 
   inline ~RawMap()
@@ -490,7 +490,7 @@ public:
     if (int_buf_ != NULL)
       free(int_buf_);
 
-    delete ht_;
+    //delete ht_;
   }
 
   inline void ready4Append()
@@ -575,7 +575,7 @@ public:
     if (str_cache_full(s+sizeof(uint32_t)+sizeof(size_t)))
       str_flush();
 
-    ht_->insert(docid, str_start_addr_+str_cache_pos_, int_start_addr_+int_cache_pos_*sizeof(size_t));
+    //ht_->insert(docid, str_start_addr_+str_cache_pos_, int_start_addr_+int_cache_pos_*sizeof(size_t));
     
     *(int_buf_+int_cache_pos_) = strs.size();
     ++int_cache_pos_;
@@ -616,7 +616,7 @@ public:
   {
     str_flush();
     int_flush();
-    ht_->flush();
+    //ht_->flush();
   }
 
   inline uint32_t next4DupD(str_vector& v)
@@ -633,49 +633,49 @@ public:
     return docid;
   }
 
-  inline bool get4DupD(uint32_t docid, str_vector& v)
-  {
-    size_t addr1;
-    size_t addr2;
-    if (!ht_->find(docid, addr1, addr2))
-      return false;
+//   inline bool get4DupD(uint32_t docid, str_vector& v)
+//   {
+//     size_t addr1;
+//     size_t addr2;
+//     if (!ht_->find(docid, addr1, addr2))
+//       return false;
     
-    fseek(f_str_, addr1, SEEK_SET);
-    assert(fread(str_buf_, sizeof(uint32_t)+sizeof(size_t), 1, f_str_)==1);
-    size_t s = *(size_t*)(str_buf_+sizeof(uint32_t));
+//     fseek(f_str_, addr1, SEEK_SET);
+//     assert(fread(str_buf_, sizeof(uint32_t)+sizeof(size_t), 1, f_str_)==1);
+//     size_t s = *(size_t*)(str_buf_+sizeof(uint32_t));
 
     
-    assert(fread(str_buf_+sizeof(uint32_t)+sizeof(size_t), s, 1, f_str_)==1);
-    v.attach((const char*)(str_buf_+sizeof(uint32_t)));
+//     assert(fread(str_buf_+sizeof(uint32_t)+sizeof(size_t), s, 1, f_str_)==1);
+//     v.attach((const char*)(str_buf_+sizeof(uint32_t)));
 
-    return true;
-  }
+//     return true;
+//   }
 
-  inline bool get4Tg(uint32_t docid, str_vector& v1, int_vector& v2)
-  {
-    size_t addr1;
-    size_t addr2;
+//   inline bool get4Tg(uint32_t docid, str_vector& v1, int_vector& v2)
+//   {
+//     size_t addr1;
+//     size_t addr2;
     
-    if (!ht_->find(docid, addr1, addr2))
-      return false;
+//     if (!ht_->find(docid, addr1, addr2))
+//       return false;
     
-    fseek(f_str_, addr1, SEEK_SET);
-    assert(fread(str_buf_, sizeof(uint32_t)+sizeof(size_t), 1, f_str_)==1);
-    size_t s = *(size_t*)(str_buf_+sizeof(uint32_t));
+//     fseek(f_str_, addr1, SEEK_SET);
+//     assert(fread(str_buf_, sizeof(uint32_t)+sizeof(size_t), 1, f_str_)==1);
+//     size_t s = *(size_t*)(str_buf_+sizeof(uint32_t));
     
-    assert(fread(str_buf_+sizeof(uint32_t)+sizeof(size_t), s, 1, f_str_)==1);
-    v1.attach((const char*)(str_buf_+sizeof(uint32_t)));
+//     assert(fread(str_buf_+sizeof(uint32_t)+sizeof(size_t), s, 1, f_str_)==1);
+//     v1.attach((const char*)(str_buf_+sizeof(uint32_t)));
 
     
-    fseek(f_pos_, addr2, SEEK_SET);
-    assert(fread(int_buf_, sizeof(size_t), 1, f_pos_)==1);
-    size_t t = *int_buf_;
+//     fseek(f_pos_, addr2, SEEK_SET);
+//     assert(fread(int_buf_, sizeof(size_t), 1, f_pos_)==1);
+//     size_t t = *int_buf_;
     
-    assert(fread(int_buf_+1, t*sizeof(size_t), 1, f_pos_)==1);
-    v2.attach((const size_t*)int_buf_);
+//     assert(fread(int_buf_+1, t*sizeof(size_t), 1, f_pos_)==1);
+//     v2.attach((const size_t*)int_buf_);
     
-    return true;
-  }
+//     return true;
+//   }
 
   inline uint32_t next4Tg(str_vector& strs, int_vector& ints)
   {
