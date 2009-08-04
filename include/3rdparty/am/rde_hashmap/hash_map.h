@@ -9,7 +9,7 @@
 #include "pair.h"
 namespace rde
 {
-typedef unsigned long	hash_value_t;
+typedef uint64_t	hash_value_t;
 
 // Default implementations, just casts to hash_value.
 template<typename T>
