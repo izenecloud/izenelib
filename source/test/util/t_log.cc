@@ -1,10 +1,12 @@
 // how to see all log info.
 
 
-// GLOG_logtostderr=1 ./t_log 
+//$ GLOG_logtostderr=1 ./t_log 
 // default log files 
 
 //To use glog, just include this 
+
+#define SF1_TIME_CHECK 1
 #include <util/izene_log.h>
 
 #include <iomanip>
@@ -12,6 +14,7 @@
 
 using namespace std;
 using namespace izenelib::util;
+
 
 //severity levels (in increasing order of severity):
 //INFO, WARNING, ERROR, and FATAL. Use this way:
@@ -65,8 +68,7 @@ void TestLogging() {
 //for vebose log
 void TestLogging_verbose() {
 
-	cout<<"\n===================TestLogging_verbose======================"
-			<<endl;
+	cout<<"\n===================TestLogging_verbose======================"<<endl;
 
 	VLOG(1) << "I'm printed when you run the program with --v=1 or higher";
 	VLOG(2) << "I'm printed when you run the program with --v=2 or higher";
@@ -120,6 +122,45 @@ void TestLogging_memory() {
 }
 
 
+void profile_unit1()
+{
+	CREATE_SCOPED_PROFILER(profiling_pid1, "profiling_process",
+			"profiling: profile_unit1()");	
+	int sum = 0;
+	for(int i=0; i<10000; i++)
+		sum += i;	
+	
+}
+
+
+void profile_unit2()
+{
+	CREATE_SCOPED_PROFILER(profiling_pid2, "profiling_process",
+			"profiling: profile_unit2()");	
+	
+	int sum = 0;
+	for(int i=0; i<100000; i++)
+		sum += i;
+	
+}
+
+void TestLogging_profiling() {
+	cout<<"\n===================TestLogging_profiling======================"<<endl;
+	
+	int i=0;
+	for(; i<1000000; i++){
+		if ( i% 3==0 )
+			profile_unit1();
+		if ( i% 5==0 )
+			profile_unit2();
+		
+		LOG_EVERY_N(INFO, 200000) << getProfilingInfo();		
+	}
+	LOG(ERROR) << getProfilingInfo();
+	
+}
+
+
 int main(int argc, char* argv[]) {
 	// Initialize Google's logging library.
 	google::InitGoogleLogging(argv[0]);
@@ -127,5 +168,9 @@ int main(int argc, char* argv[]) {
 	TestLogging_verbose();
 	TestLogging_debug();
 	TestLogging_memory();
+	TestLogging_profiling();
+	
+	//REPORT_PROFILE_TO_FILE("prof.out");
+	
 }
 

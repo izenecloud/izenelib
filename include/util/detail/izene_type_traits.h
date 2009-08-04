@@ -16,8 +16,8 @@ NS_IZENELIB_UTIL_BEGIN
 
 template <typename T>
 struct IsMemcpySerial{
-	enum {yes = is_arithmetic<T >::value 
-		|| is_empty<T>::value || is_array<T>::value,
+	enum {yes = (is_arithmetic<T >::value 
+		|| is_empty<T>::value ),
 		no= !yes};
 };
 
