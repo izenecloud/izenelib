@@ -11,7 +11,7 @@ INC_PATH=    -I /usr/local/include/  -I  ../../../../../izenelib/include/ -I  ..
              -I $(WISELIB)/include
 
 
-LIBS =    ../../../../../izenelib/lib/libsdb_btree.so   /usr/local/lib/libboost_thread-gcc41-mt.so \
+LIBS =      /usr/local/lib/libboost_thread-gcc41-mt.so \
            /usr/local/lib/libtokyocabinet.so   /usr/local/lib/libboost_serialization-gcc41-mt.so   \
            ../../../../../izenelib/lib/libprocmeminfo.a  ../../../../../izenelib/lib/libfebird.a   \
 	$(WISELIB)/lib/libwiselib.so #    /usr/local/lib64/libstdc++.so 

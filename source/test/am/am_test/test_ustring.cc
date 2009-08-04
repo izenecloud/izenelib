@@ -234,7 +234,10 @@ int main(int argc, char *argv[]) {
 		}
 	}
 	try {
-		run1();
+               izenelib::am::sdb_hash<std::string,float> unigram_("unigram");
+                unigram_.open();
+	//	run1();
+        //       run();
 	}
 
 	catch(bad_alloc)

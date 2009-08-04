@@ -5,9 +5,9 @@
 #include <febird/io/SocketStream.h>
 
 /**
- @brief ╠╬╣ь╫с©з╣зр╩╢н╣Всцт╤Ёл╤тоС╣д╥╫╥╗й╠ё╛тз rpc server ио╢╢╫╗т╤Ёл╤тоС
+ @brief О©╫О©╫О©╫ь╫с©з╣О©╫р╩О©╫н╣О©╫О©╫О©╫т╤О©╫л╤О©╫О©╫О©╫д╥О©╫О©╫О©╫й╠О©╫О©╫О©╫О©╫ rpc server О©╫о╢О©╫О©╫О©╫т╤О©╫л╤О©╫О©╫О©╫
 
-  remote_object ╬мйгр╩╦Ж idё╛в╢л╛ж╩тз rpc server ио╠ёЁж
+  remote_object О©╫О©╫О©╫О©╫р╩О©╫О©╫ idО©╫О©╫в╢л╛ж╩О©╫О©╫ rpc server О©╫о╠О©╫О©╫О©╫
  */
 
 namespace febird { namespace rpc {

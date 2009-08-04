@@ -8,7 +8,7 @@
 
 #define SF1_TIME_CHECK 1
 #include <util/izene_log.h>
-
+#include <nvwa/debug_new.h>
 #include <iomanip>
 #include <string>
 
@@ -117,7 +117,8 @@ void TestLogging_memory() {
 	LOG(ERROR) << getMemInfo();
 	char *p = new char[100*1024*1024];
 	LOG(ERROR) << getMemInfo();
-	delete p;
+	delete [] p;
+	p =0;
 	LOG(ERROR) << getMemInfo();	
 }
 
@@ -126,6 +127,7 @@ void profile_unit1()
 {
 	CREATE_SCOPED_PROFILER(profiling_pid1, "profiling_process",
 			"profiling: profile_unit1()");	
+	
 	int sum = 0;
 	for(int i=0; i<10000; i++)
 		sum += i;	
@@ -161,6 +163,18 @@ void TestLogging_profiling() {
 }
 
 
+
+
+void TestLogging_memleakage() {
+	cout<<"\n===================TestLogging_memleakage======================"<<endl;
+	
+     int *p = new int[1000];
+    // delete [] p;
+    //  p = 0;
+	
+}
+
+
 int main(int argc, char* argv[]) {
 	// Initialize Google's logging library.
 	google::InitGoogleLogging(argv[0]);
@@ -168,7 +182,10 @@ int main(int argc, char* argv[]) {
 	TestLogging_verbose();
 	TestLogging_debug();
 	TestLogging_memory();
-	TestLogging_profiling();
+//	TestLogging_profiling();
+	TestLogging_memleakage();
+	
+	char *p = new char[100];
 	
 	//REPORT_PROFILE_TO_FILE("prof.out");
 	

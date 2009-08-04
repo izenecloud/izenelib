@@ -1,11 +1,11 @@
-GPP=/usr/bin/g++  -DDEBUG
+GPP=/usr/bin/g++  -DDEBUG  -D_DEBUG
 
 IZENELIB = ../../../include
 WISELIB = /home/wps/workspace/wiselib
 
 INC_PATH = -I $(IZENELIB) -I $(IZENELIB)/3rdparty  -I /usr/local/include/boost-1_36 -I /home/wps/workspace/wiselib/include -I /usr/local/include/  -I $(WISELIB)/include 
 
-LIB_PATH = -lpthread -lrt  /usr/local/lib/libboost_serialization-gcc41-mt.so  -luuid ../../../lib/libfebird.a ../../../lib/libprocmeminfo.a -lglog 	-L$(WISELIB)/lib -lwiselib 
+LIB_PATH = -lpthread -lrt  /usr/local/lib/libboost_serialization-gcc41-mt.so  -luuid ../../../lib/libfebird.a ../../../lib/libnvwa.a ../../../lib/libprocmeminfo.a -lglog 	-L$(WISELIB)/lib -lwiselib 
 
 CC_OPTIONS= -O3 -Wall -c -g  -fPIC -rdynamic #-DDATA_IO_ALLOW_DEFAULT_SERIALIZE
 
