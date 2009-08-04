@@ -28,6 +28,7 @@
 /// -# Tested all the interfaces by using correct and incorrect test sets.
 //#include <util/log.h
 #include <am/mia/raw_map.hpp>
+#include <am/mia/status.h>
 #include <string>
 #include <time.h>
 #include <math.h>
@@ -72,6 +73,55 @@ void rand_doc(vector<string>& strs, size_t max=100)
     strs.push_back(s);
   }
   
+}
+
+BOOST_AUTO_TEST_CASE(mining_status_check)
+{
+  MiningStatus status;
+  
+  BOOST_CHECK(!status.get_raw_map());
+  status.set_raw_map();
+  BOOST_CHECK(status.get_raw_map());
+  status.reset_raw_map();
+  BOOST_CHECK(!status.get_raw_map());
+  status.set_raw_map();
+  
+  BOOST_CHECK(!status.get_forward_index());
+  status.set_forward_index();
+  BOOST_CHECK(status.get_forward_index());
+  status.reset_forward_index();
+  BOOST_CHECK(!status.get_forward_index());
+  status.set_forward_index();
+  
+  BOOST_CHECK(!status.get_dupd());
+  status.set_dupd();
+  BOOST_CHECK(status.get_dupd());
+  status.reset_dupd();
+  BOOST_CHECK(!status.get_dupd());
+  status.set_dupd();
+  
+  BOOST_CHECK(!status.get_tg());
+  status.set_tg();
+  BOOST_CHECK(status.get_tg());
+  status.reset_tg();
+  BOOST_CHECK(!status.get_tg());
+  status.set_tg();
+  
+  BOOST_CHECK(!status.get_qr());
+  status.set_qr();
+  BOOST_CHECK(status.get_qr());
+  status.reset_qr();
+  BOOST_CHECK(!status.get_qr());
+  status.set_qr();
+  
+  BOOST_CHECK(!status.get_sim());
+  status.set_sim();
+  BOOST_CHECK(status.get_sim());
+  status.reset_sim();
+  BOOST_CHECK(!status.get_sim());
+  status.set_sim();
+
+  cout<<"MiningStatus check is done!\n";
 }
 
 BOOST_AUTO_TEST_CASE(raw_map_check )
@@ -148,31 +198,31 @@ BOOST_AUTO_TEST_CASE(raw_map_check )
   gettimeofday (&tvafter , &tz);
   cout<<"\nAccess Raw map("<<rmp.doc_num()<<") by TG: "<<((tvafter.tv_sec-tvpre.tv_sec)*1000+(tvafter.tv_usec-tvpre.tv_usec)/1000)/60000.<<std::endl;
 
-  gettimeofday (&tvpre , &tz);
-  rmp.ready4FetchByTg();
-  for (size_t i = 0; i<SIZE; i++)
-  {
-    Rmp::str_vector v1;
-    Rmp::int_vector v2;
+//   gettimeofday (&tvpre , &tz);
+//   rmp.ready4FetchByTg();
+//   for (size_t i = 0; i<SIZE; i++)
+//   {
+//     Rmp::str_vector v1;
+//     Rmp::int_vector v2;
 
-    rmp.get4Tg(i, v1, v2);
+//     rmp.get4Tg(i, v1, v2);
     
-    BOOST_CHECK( v1.length() == v2.size());
+//     BOOST_CHECK( v1.length() == v2.size());
     
-    vector<string>::iterator k = vv[i].begin();
-    for (Rmp::str_vector::const_iterator j=v1.begin(); j!=v1.end(); ++j, ++k)
-    {
-      string s(*j);
-      BOOST_CHECK(*j==*k);
-    }
+//     vector<string>::iterator k = vv[i].begin();
+//     for (Rmp::str_vector::const_iterator j=v1.begin(); j!=v1.end(); ++j, ++k)
+//     {
+//       string s(*j);
+//       BOOST_CHECK(*j==*k);
+//     }
 
-    size_t g = 0;
-    for (Rmp::int_vector::const_iterator j=v2.begin(); j!=v2.end(); ++j, ++g)
-      BOOST_CHECK(*j == g);
+//     size_t g = 0;
+//     for (Rmp::int_vector::const_iterator j=v2.begin(); j!=v2.end(); ++j, ++g)
+//       BOOST_CHECK(*j == g);
     
-  }
-  gettimeofday (&tvafter , &tz);
-  cout<<"\nSearch in Raw map("<<rmp.doc_num()<<") by TG: "<<((tvafter.tv_sec-tvpre.tv_sec)*1000+(tvafter.tv_usec-tvpre.tv_usec)/1000)/60000.<<std::endl;
+//   }
+//   gettimeofday (&tvafter , &tz);
+//   cout<<"\nSearch in Raw map("<<rmp.doc_num()<<") by TG: "<<((tvafter.tv_sec-tvpre.tv_sec)*1000+(tvafter.tv_usec-tvpre.tv_usec)/1000)/60000.<<std::endl;
   
 }
 

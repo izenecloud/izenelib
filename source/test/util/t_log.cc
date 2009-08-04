@@ -1,7 +1,7 @@
 // how to see all log info.
 
 
-// GLOG_logtostderr=1 ./t_log 
+//$ GLOG_logtostderr=1 ./t_log 
 // default log files 
 
 //To use glog, just include this 
@@ -14,8 +14,6 @@
 
 using namespace std;
 using namespace izenelib::util;
-
-
 
 
 //severity levels (in increasing order of severity):
@@ -70,8 +68,7 @@ void TestLogging() {
 //for vebose log
 void TestLogging_verbose() {
 
-	cout<<"\n===================TestLogging_verbose======================"
-			<<endl;
+	cout<<"\n===================TestLogging_verbose======================"<<endl;
 
 	VLOG(1) << "I'm printed when you run the program with --v=1 or higher";
 	VLOG(2) << "I'm printed when you run the program with --v=2 or higher";
@@ -173,7 +170,7 @@ int main(int argc, char* argv[]) {
 	TestLogging_memory();
 	TestLogging_profiling();
 	
-	REPORT_PROFILE_TO_FILE("prof.out");
+	//REPORT_PROFILE_TO_FILE("prof.out");
 	
 }
 
