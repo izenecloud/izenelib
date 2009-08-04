@@ -23,6 +23,13 @@ public:
             laInput_(false)
     { }
 
+    IndexerPropertyConfig(unsigned int propertyid, string propertyname, bool index, bool forward)
+		:propertyId_(propertyid),
+		,propertyId_(propertyname)
+		index_(index),
+		forward_(forward)
+    { }
+
 public:
     void setPropertyId( uint32_t id )
     {
