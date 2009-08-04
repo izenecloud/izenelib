@@ -13,7 +13,7 @@ void ProcMemInfo::getProcMemInfo(unsigned long & virtualMem, unsigned long & rea
         getStatFile(temp, buffer);
         readProcStatus(buffer, virtualMem, realMem, procMaxMem);
 
-        realMem = realMem << 2;    //each page is 4bytes, so multiply by 4
+        realMem = realMem << 12;    //each page is 4K, so multiply by 4
     }
     catch (ios_base::failure e)
     {
@@ -33,7 +33,7 @@ void ProcMemInfo::getProcMemInfo(pid_t pid, unsigned long & virtualMem, unsigned
         getStatFile(temp, buffer);
         readProcStatus(buffer, virtualMem, realMem, procMaxMem);
 
-        realMem = realMem << 2;    //each page is 4bytes, so multiply by 4
+        realMem = realMem << 12;    //each page is 4K, so multiply by 4
     }
     catch (ios_base::failure e)
     {
