@@ -38,6 +38,24 @@ public:
             termOffsetList.push_back(std::make_pair(iter->first, iter->second));
         return true;
     }
+
+    bool insertTermOffset(unsigned int termId,
+                                    pair<unsigned int, unsigned int>& termOffset)
+    {
+        ForwardIndex::iterator it = find(termId);
+        if(it != end())
+        {
+            (*it).second->push_back(termOffset);
+        }
+        else
+        {
+            ForwardIndexOffset* pForwardIndexOffset = new ForwardIndexOffset;
+            pForwardIndexOffset->push_back(termOffset);
+            (*this)[termId] = pForwardIndexOffset;
+        }
+        return true;
+    }
+
 	
 };
 
