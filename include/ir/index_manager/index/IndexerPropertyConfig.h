@@ -23,7 +23,7 @@ public:
             laInput_(false)
     { }
 
-    IndexerPropertyConfig(unsigned int propertyid, string propertyname, bool index, bool forward)
+    IndexerPropertyConfig(unsigned int propertyid, std::string propertyname, bool index, bool forward)
 		:propertyId_(propertyid)
 		,propertyName_(propertyname)
 		,index_(index)
