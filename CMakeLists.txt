@@ -222,6 +222,13 @@ IF(VERBOSE)
   MESSAGE(STATUS "CMAKE_CXX_FLAGS: ${CMAKE_CXX_FLAGS}")
   MESSAGE(STATUS "----------------------------------------")
 
+  IF(wiselib_FOUND)
+    MESSAGE(STATUS "wiselib:")
+    MESSAGE(STATUS "  header: ${wiselib_INCLUDE_DIRS}")
+  ELSE(wiselib_FOUND)
+    MESSAGE(STATUS "wiselib: not found")
+  ENDIF(wiselib_FOUND)
+
   IF(Boost_FOUND)
     MESSAGE(STATUS "BOOST:")
     MESSAGE(STATUS "  header: ${Boost_INCLUDE_DIR}")

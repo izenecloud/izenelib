@@ -54,3 +54,26 @@ FIND_PACKAGE(ZLIB)
 # Tokoyo Cabnet
 #####
 FIND_PACKAGE(TokyoCabinet 1.4.24)
+
+##################################################
+# wiselib
+#####
+SET(wiselib_FOUND FALSE)
+IF(IS_DIRECTORY "$ENV{WISELIB}"
+    AND IS_DIRECTORY "$ENV{WISELIB}/include"
+    AND IS_DIRECTORY "$ENV{WISELIB}/lib")
+  SET(wiselib_FOUND TRUE)
+  SET(wiselib_INCLUDE_DIRS "$ENV{WISELIB}/include")
+  SET(wiselib_LIBRARY_DIRS "$ENV{WISELIB}/lib")
+ENDIF(IS_DIRECTORY "$ENV{WISELIB}"
+  AND IS_DIRECTORY "$ENV{WISELIB}/include"
+  AND IS_DIRECTORY "$ENV{WISELIB}/lib")
+IF(NOT wiselib_FOUND)
+  MESSAGE(FATAL_ERROR "cannot found wiselib, please set env variable WISELIB")
+ENDIF(NOT wiselib_FOUND)
+
+##################################################
+# Other common libraries
+#####
+FIND_LIBRARY(DL_LIBRARIES NAMES dl)
+FIND_LIBRARY(M_LIBRARIES NAMES m)
