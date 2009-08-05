@@ -1,14 +1,19 @@
 #ifndef FORWARDINDEX_H
 #define FORWARDINDEX_H
 
+#include <types.h>
 #include <3rdparty/am/rde_hashmap/hash_map.h>
 
 #include <deque>
+#include <vector>
+using namespace std;
 
 NS_IZENELIB_IR_BEGIN
 
 namespace indexmanager{
 
+typedef unsigned int WordOffset;
+typedef unsigned int CharOffset;
 typedef std::deque<std::pair<unsigned int, unsigned int> > ForwardIndexOffset;
 
 class ForwardIndex : public rde::hash_map<unsigned int, ForwardIndexOffset* >
@@ -30,12 +35,14 @@ public:
     }
 
     bool getTermOffsetListByTermId(unsigned int termId, 
-				std::vector<std::pair<unsigned int, unsigned int> >& termOffsetList)
+				std::vector<std::pair<unsigned int, unsigned int> >& termOffsetList) const
     {
-        ForwardIndexOffset* pForwardIndexOffset = (ForwardIndexOffset*)(*this)[termId];
-        termOffsetList.resize(pForwardIndexOffset->size());
-        for(ForwardIndexOffset::iterator iter = pForwardIndexOffset->begin(); iter != pForwardIndexOffset->end(); ++iter)
-            termOffsetList.push_back(std::make_pair(iter->first, iter->second));
+        ForwardIndex::const_iterator iter = find(termId);
+        if(iter == end())
+            return false;
+        termOffsetList.resize(iter->second->size());
+        for(ForwardIndexOffset::iterator it = iter->second->begin(); it != iter->second->end(); ++it)
+            termOffsetList.push_back(std::make_pair(it->first, it->second));
         return true;
     }
 
