@@ -1,14 +1,16 @@
-// how to see all log info.
+/**
+    how to see all log info.
 
-
-//$ GLOG_logtostderr=1 ./t_log 
-// default log files 
+	$ GLOG_logtostderr=1 ./t_log 
+    
+ */
 
 //To use glog, just include this 
 
 #define SF1_TIME_CHECK 1
 #include <util/izene_log.h>
 #include <nvwa/debug_new.h>
+
 #include <iomanip>
 #include <string>
 
@@ -182,10 +184,8 @@ int main(int argc, char* argv[]) {
 	TestLogging_verbose();
 	TestLogging_debug();
 	TestLogging_memory();
-//	TestLogging_profiling();
+	TestLogging_profiling();
 	TestLogging_memleakage();
-	
-	char *p = new char[100];
 	
 	//REPORT_PROFILE_TO_FILE("prof.out");
 	

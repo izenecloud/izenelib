@@ -452,6 +452,7 @@ template<typename KeyType, typename ValueType, typename LockType,
 	lock_.acquire_read_lock();
 	bool ret = container_.get(key, val);
 	if (ret) {
+		lock_.release_read_lock();
 		return true;
 	}
 	lock_.release_read_lock();
