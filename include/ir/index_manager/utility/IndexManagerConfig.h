@@ -288,7 +288,7 @@ private:
         ar & advance_;
         ar & distributeStrategy_;
         ar & logLevel_;
-        ar & collectionMetaNameMap_;
+        //ar & collectionMetaNameMap_;
     }
 
 public:
