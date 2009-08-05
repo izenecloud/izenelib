@@ -12,8 +12,8 @@ using namespace wiselib;
 using namespace std;
 
 /** * @class get_input gen_input.cc
- *  @brief Genarate random words with random k for sEdit-Distance. 
- * 
+ *  @brief Genarate random words with random k for sEdit-Distance.
+ *
  **/
 template<
   class STRING_TYPE
@@ -29,7 +29,7 @@ class get_input
   {
     of <<str;
   }
-  
+
 public:
   /**
    *This is a static function to generate random query into 'filename' file.
@@ -46,44 +46,44 @@ public:
     {
       std::cout<<"Can't open the output file! Please check the file name: "<<filename<<std::endl;
       return 0;
-      
+
     }
     STRING_TYPE str;//("", ENCODE_TYPE);
     STRING_TYPE line;//("\n", ENCODE_TYPE);
     line += (typename STRING_TYPE::value_type)'\n';
-    
+
     for (unsigned long i = 0; i<size; i++)
     {
       unsigned long charCount = rand()%maxChars;
       while (charCount == 0)
         charCount = rand()%maxChars;
-      
+
       for (unsigned long j=0; j<charCount; j++)
       {
         str += a2z[rand()%a2z_size];
       }
 
       str += (typename STRING_TYPE::value_type)'\n';
-      
+
     }
 
     //str.displayStringValue(ENCODE_TYPE, of);
     input(str, of);
-    
-    
+
+
     //of.write(str.c_str(), str.size());
     of.close();
 
     return true;
-    
+
   }
-  
+
 };
 
-  
+
 int main (int argc,char **argv)
 {
-  
+
   if (argc ==1)
   {
     std::cout<<"\nUsage: ./gen-input <size> <max chars of one word>\n";
@@ -91,37 +91,37 @@ int main (int argc,char **argv)
   }
 
   *argv++;
-  
+
 
   std::stringstream ss(std::stringstream::in | std::stringstream::out);
   ss<<*argv;
-  
+
   unsigned long size=0;
   unsigned long maxChars = 0;
   argv++;
-  
+
   ss>>size;
   ss.clear();
   ss <<*argv;
   ss >> maxChars;
 
   typedef string string_type;
-  
+
   if (size ==0)
   {
     get_input<string_type>::doit();
   }
-  
+
   else
   {
     if (maxChars==0)
       get_input<string_type>::doit(size);
     else
       get_input<string_type>::doit(size, maxChars);
-    
+
   }
-  
-  
-  
-  
+
+
+
+
 }
