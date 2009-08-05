@@ -12,7 +12,6 @@
 //#include <boost/archive/text_iarchive.hpp>
 //#include <boost/archive/text_oarchive.hpp>
 
-
 using namespace std;
 //extern int debug_count;
 
@@ -37,18 +36,18 @@ template<
   //------------bucket property-------------
   uint32_t BUCKET_SIZE = 8196,//byte
   uint8_t SPLIT_RATIO = 75,
-  
+
   //--------------hash table-------------
   size_t ENTRY_SIZE_POW= 10,//2^10
   class HASH_FUNCTION = simple_hash,
   int INIT_BUCKET_SIZE=64,
-  
+
   //----------bucket cache---------
-  uint64_t BUCKET_CACHE_LENGTH = 10000000000,//bytes, it must be larger than 2 bucket size
+  uint64_t BUCKET_CACHE_LENGTH = 256*1024*1024,//bytes, it must be larger than 2 bucket size
   class BucketCachePolicy= CachePolicyLARU,
-  
+
   //----------node cache-----------
-  uint64_t NODE_CACHE_LENGTH = 1000000000,//bytes, it must be larger than 3 node size.
+  uint64_t NODE_CACHE_LENGTH = 64*1024*1024,//bytes, it must be larger than 3 node size.
   class NodeCachePolicy = CachePolicyLARU
   >
 class BTrie
@@ -73,9 +72,9 @@ public:
     string nstr = filename + ".nod";
     hashf_ = filename + ".has";
     //valuePoolFileName_ = filename + ".val";
-    
+
     bool isload = false;
-    
+
     nodf_ = fopen(nstr.c_str(), "r+");
     if (nodf_ == NULL)
     {
@@ -103,7 +102,7 @@ public:
 //     {
 //       hashf_ = fopen(hstr.c_str(), "w+");
 //     }
-    
+
     if (isload)
     {
       load();
@@ -116,6 +115,8 @@ public:
       delete pNodeCache_;
     if ( pBucketCache_ != NULL)
       delete pBucketCache_;
+    fclose(nodf_);
+    fclose(bukf_);
 
     //for (vector<UString*>::iterator i=strPool_.begin(); i!=strPool_.end(); i++)
     //delete *i;
@@ -129,12 +130,12 @@ public:
     pBucketCache_->flush();
     pNodeCache_ ->flush();
     hashTable_.save(hashf_);
-    
+
 //     ofstream of(valuePoolFileName.c_str());
 //     oarchive oa(of);
 //     size_t size = dataVec_.size();
 //     oa << size;
-    
+
 //     for(typename vector<ValueType>::iterator i =dataVec_.begin(); i!=dataVec_.end(); i++)
 //     {
 //       oa<<(*i);
@@ -152,13 +153,13 @@ public:
     //cout<<"loading ... \n";
     uint64_t addr = 1;
     uint32_t memAddr = 0;
-    
+
     AlphabetNodePtr n = pNodeCache_->getNodeByMemAddr(memAddr, addr);//root node address is 1 in disk and 0 in cache
     load_(n);
-    
+
     hashTable_.load(hashf_);
 
-          
+
 //       ifstream ifs(valuePoolFileName_.c_str());
 //       iarchive ia(ifs);
 //       size_t size;
@@ -171,7 +172,7 @@ public:
 //         //cout<<v;
 //         dataVec_.push_back(v);
 //       }
-        
+
 //       ifs.close();
   }
 
@@ -190,19 +191,19 @@ protected:
         n->setMemAddr(i, lastMem);
         continue;
       }
-      
+
       lastAddr = diskAddr;
-      
+
       if (diskAddr == (uint64_t)-1)
         continue;
-      
+
       if (diskAddr%2==0)
       {
         if (pBucketCache_->isFull())
         {
           continue;
         }
-        
+
         pBucketCache_->getNodeByMemAddrForLoading(memAddr, diskAddr);
         n->setMemAddr(i, memAddr);
         lastMem = memAddr;
@@ -213,17 +214,17 @@ protected:
       {
         continue;
       }
-      
-      
+
+
       AlphabetNodePtr n1 = pNodeCache_->getNodeByMemAddr(memAddr, diskAddr);
       n->setMemAddr(i, memAddr);
       lastMem = memAddr;
-      
+
       load_(n1);
     }
-    
+
   }
-  
+
   string substr(const string& str, size_t pos, size_t len = (size_t)-1)
   {
     if (len != (size_t)-1)
@@ -255,21 +256,22 @@ public:
     {
       return false;
     }
-    
+
     STRING_TYPE* pStr = new STRING_TYPE(str);
-    
+
     AlphabetNodePtr n_1 ;
-    
+
     uint64_t addr = 1;
     uint32_t memAddr = 0;
-    
+
     AlphabetNodePtr n = pNodeCache_->getNodeByMemAddr(memAddr, addr);//root node address is 1 in disk and 0 in cache
-        
+
     for (; pStr->length()>1; )
     {
       if (n.isNull())
       {
         //throw exception
+        delete pStr;
         return false;
       }
 
@@ -282,35 +284,35 @@ public:
       {
         // new bucket, then add rest string into bucket, return.
         //cout<<"new bucket, then add rest string into bucket, return.\n";
-        
+
         BucketPtr b = newBucket();
-    
+
         b->addString(pStr, contentAddr);
         uint64_t addr =b->add2disk();
         n->setAllDiskAddr( addr);
         n->setAllMemAddr(b.getIndex());
-    
+
         return true;
       }
 
-      
+
       if (diskAddr%2==0)
       {
         //load bucket
-        
+
         //cout<<diskAddr<<" load bucket;\n";
-            
+
         BucketPtr b = loadBucket(memAddr, diskAddr);
         pBucketCache_->lockNode(memAddr);
 
         //b->display(cout);
-        
+
         n->setMemAddr(idx, memAddr);
-    
+
         size_t len = pStr->length();
         b->addString(pStr, contentAddr);
         //cout<<diskAddr<<" added string!;\n";
-        
+
         //cout<<*pBucket_;
         if (b->isFull())
         {
@@ -324,24 +326,23 @@ public:
 
           typename vector<STRING_TYPE>::iterator k=leftStr.begin();
           vector<uint64_t>::iterator v=leftAddr.begin();
-          //delete pStr;
           for (; k!=leftStr.end()&& v!=leftAddr.end(); v++,k++)
           {
             STRING_TYPE tmp = prefix;
             tmp += (*k);
-          
+
             string ss(tmp.c_str(), tmp.size());
             //tmp.convertString(ss, UString::UTF_8);
             //ss += '\0';
             //cout<<ss.size()<<"hash table\n";
             hashTable_.insert(ss, *v);
           }
-          
+
             //cout<<"splitted...\n";
         }
 
         //n->display(cout);
-        
+
         pBucketCache_->unlockNode(memAddr);
         pNodeCache_->unlockNode(n.getIndex());
         return true;
@@ -349,7 +350,7 @@ public:
 
       //cout<<"**********\n";
       n_1 = pNodeCache_->getNodeByMemAddr(memAddr, diskAddr);
-      
+
       if (!n_1.isNull())
       {
         n->setMemAddr(idx, memAddr);
@@ -357,11 +358,12 @@ public:
       pNodeCache_->unlockNode(n.getIndex());
 
       n = n_1;
-      
+
       *pStr = substr(*pStr ,1);
     }
 
-    
+    delete pStr;
+
     string ss(str.c_str(), str.size());
     //ss += '\0';
     //delete pStr;
@@ -379,7 +381,7 @@ public:
     charT up = b->getUpBound();
     charT low = b->getLowBound();
     //cout<<up<<" "<<low<<"  "<<b->getStrGroupAmount()<<" 8888888888\n";
-    
+
     if (b->getStrGroupAmount()==1 && up!=low)
     {
       //if only have one string group
@@ -389,13 +391,13 @@ public:
       {
         charT beforeSplitPoint = ALPHABET[n->getIndexOf(splitPoint)-1];
         BucketPtr b1 =  pBucketCache_->newNode();
-        
+
         b1->setUpBound(up);
         b1->setLowBound(beforeSplitPoint);
         n->setDiskAddr(up, beforeSplitPoint, b1->add2disk());
         n->setMemAddr(up, beforeSplitPoint, b1.getIndex());
       }
-      
+
       if (splitPoint != low)
       {
         charT afterSplitPoint = ALPHABET[n->getIndexOf(splitPoint)+1];
@@ -410,25 +412,25 @@ public:
       b->setLowBound(splitPoint);
       up = low = splitPoint;
     }
-    
+
     BucketPtr bu = pBucketCache_->newNode();
     //cout<<"splitting!\n";
     charT splitPoint = b->split(bu.pN_, leftStr, leftAddr);
     //cout<<"splitting point: "<<splitPoint<<endl;
     uint64_t newBktAddr =  bu->add2disk();
-    
+
     if (up == low)
     {
       //cout<<pNodeCache_->getCount();
       //cout<<"pBucket_->isPure() \n";
-      
+
       AlphabetNodePtr newNode = pNodeCache_->newNode();
       newNode->setDiskAddr(ALPHABET[0], splitPoint, diskAddr);
       newNode->setDiskAddr(bu->getUpBound(), ALPHABET[ALPHABET_SIZE-1], newBktAddr);
-      
+
       newNode->setMemAddr(ALPHABET[0], splitPoint, b.getIndex());
       newNode->setMemAddr(bu->getUpBound(), ALPHABET[ALPHABET_SIZE-1], bu.getIndex());
-      
+
       n->setDiskAddr(idx, newNode->add2disk());
       n->setMemAddr(idx, newNode.getIndex());
     }
@@ -472,7 +474,7 @@ public:
         //throw exception
         return false;
       }
-      
+
       if (addr%2==0)
       {
         //load bucket
@@ -480,20 +482,20 @@ public:
 
         //UString tmp;
         //str.subString(tmp, i-1);
-        
+
         b->updateContent(substr(str, i-1),contentAddr);
         return b->update2disk();
       }
-      
+
       AlphabetNodePtr n = pNodeCache_->getNodeByMemAddr(idx, addr);
-      
+
       if (n_1!=NULL)
       {
         n_1->setMemAddr(idx_1, idx);
       }
       idx_1 = idx;
       n_1 = n;
-      
+
       uint32_t ch = n->getIndexOf(str[i]);
       idx = n->getMemAddr(ch);
       addr = n->getDiskAddr(ch);
@@ -512,35 +514,35 @@ public:
 
     return ret.size()!=0;
   }
-  
+
   bool findRegExp(const STRING_TYPE& regexp,  vector<item_pair<STRING_TYPE> >& ret)
   {
     STRING_TYPE sofar;
     findRegExp_(0,1, regexp, sofar, ret);
     return ret.size()!=0;
   }
-  
-    
+
+
   /**
    *Get the content of 'str'
    **/
   uint64_t find(const STRING_TYPE& str)
   {
-    
+
     if (pNodeCache_==NULL)
     {
       return false;
     }
 
-    
+
     uint64_t addr = 1;
     uint32_t rootIdx = 0;
-    
+
     AlphabetNodePtr n = pNodeCache_->getNodeByMemAddr(rootIdx, addr);//root node address is 1 in disk and 0 in cache
     for (size_t i=0; i<str.length()-1; i++)
     {
       //cout<<str[i]<<"====>\n";
-      
+
       if (n.isNull())
       {
         //throw exception
@@ -560,7 +562,7 @@ public:
         return (uint64_t)-1;
       }
 
-      
+
       if (diskAddr%2==0)
       {
         //load bucket
@@ -574,7 +576,7 @@ public:
         pNodeCache_->unlockNode(n.getIndex());
         return b->getContentBy(substr(str, i));
       }
-      
+
       AlphabetNodePtr n1 = pNodeCache_->getNodeByMemAddr(memAddr, diskAddr);
       n->setMemAddr(idx, memAddr);
       pNodeCache_->unlockNode(n.getIndex());
@@ -583,12 +585,12 @@ public:
 
     string ss(str.c_str(), str.size());
     //cout<<"find from hashtable\n";
-    
+
     //str.convertString(ss, UString::UTF_8);
     uint64_t* t = hashTable_.find(ss);
     if (t ==NULL)
       return -1;
-    
+
     return *t;
   }
 
@@ -605,7 +607,7 @@ public:
     uint32_t root = 0;
     AlphabetNodePtr n = pNodeCache_->getNodeByMemAddr(root, 1);
     //n->display(os);
-    
+
     for (size_t i=0; i<str.length()-1; i++)
     {
       os<<endl<<"=========>>>> "<<str[i]<<endl;
@@ -624,7 +626,7 @@ public:
         b->display(cout);
         return;
       }
-      
+
       n = pNodeCache_->getNodeByMemAddr(memAddr, diskAddr);
     }
 
@@ -633,7 +635,7 @@ public:
       os<<"Found!"<<endl;
     else
       os<<"Not Found!\n";
-    
+
   }
 
   BucketPtr loadBucket(uint32_t& memAddr, uint64_t diskAddr)
@@ -644,11 +646,11 @@ public:
   BucketPtr newBucket()
   {
     return pBucketCache_->newNode();
-    
+
   }
 
 protected:
-    
+
   /**
    *Find regular expression in trie tree.
    *@param regexp Regular expression.
@@ -657,7 +659,7 @@ protected:
    **/
   void findRegExp_(uint32_t idx, uint64_t addr, const STRING_TYPE& regexp, const STRING_TYPE& sofar,  vector<item_pair<STRING_TYPE> >& ret)
   {
-     
+
     if (pNodeCache_==NULL)
     {
       return ;
@@ -671,23 +673,23 @@ protected:
       //ret.push_back(ad);
       return;
     }
-    
-    
+
+
     AlphabetNodePtr n = pNodeCache_->getNodeByMemAddr(idx, addr);//root node address is 1 in disk and 0 in cache
     pNodeCache_->lockNode(n.getIndex());
-          
+
     if (n.isNull())
     {
       //throw exception
       cout<<"Eception 1\n";
       return ;
     }
-      
+
     STRING_TYPE sub = substr(regexp , 1);
     //regexp.subString(sub, 1);
     uint64_t last_addr = -1;
     uint32_t last_mem = -1;
-    
+
     switch (regexp[0])
     {
     case '*':
@@ -696,15 +698,15 @@ protected:
         STRING_TYPE sf = sofar;
         sf += ALPHABET[i];
         uint64_t diskAddr = n->getDiskAddr(i);
-        
+
         if (diskAddr == last_addr)
         {
           n->setMemAddr(i, last_mem);
           continue;
         }
-        
+
         last_addr = diskAddr;
-        
+
         uint32_t memAddr = n->getMemAddr(i);
         if (diskAddr == (uint64_t)-1)
           continue;
@@ -717,23 +719,23 @@ protected:
           //regexp.displayStringValue(ENCODE_TYPE, cout);
 
           //cout<<endl;
-          
+
           n->setMemAddr(i, memAddr);
           last_mem = memAddr;
 
           continue;
         }
-          
+
         findRegExp_(memAddr, diskAddr, regexp, sf, ret);
 
       }
-        
+
       findRegExp_(idx, addr, sub, sofar, ret);
       pNodeCache_->unlockNode(n.getIndex());
       break;
 
     case '?':
-      
+
       last_addr =  -1;
       for (uint32_t i=0; i<ALPHABET_SIZE; i++)
       {
@@ -741,15 +743,15 @@ protected:
         sf += ALPHABET[i];
         uint64_t diskAddr = n->getDiskAddr(i);
         uint32_t memAddr = n->getMemAddr(i);
-        
+
         if (diskAddr == last_addr)
         {
           n->setMemAddr(i, last_mem);
           continue;
         }
-        
+
         last_addr = diskAddr;
-        
+
         if (diskAddr == (uint64_t)-1)
           continue;
 
@@ -757,13 +759,13 @@ protected:
         {
           //load bucket
           BucketPtr b = pBucketCache_->getNodeByMemAddr(memAddr, diskAddr);
-        
+
           b->findRegExp(regexp, sf, ret);
           n->setMemAddr(i, memAddr);
           last_mem = memAddr;
           continue;
         }
-          
+
         findRegExp_(memAddr, diskAddr, sub, sf, ret);
       }
       findRegExp_(idx, addr, sub, sofar, ret);
@@ -772,13 +774,13 @@ protected:
       break;
 
     default:
-          
+
       idx = n->getIndexOf(regexp[0]);
       uint64_t diskAddr = n->getDiskAddr(idx);
       uint32_t memAddr = n->getMemAddr(idx);
       STRING_TYPE sf = sofar;
       sf += regexp[0];
-      
+
       if (diskAddr == (uint64_t)-1)
       {
         //throw exception
@@ -786,7 +788,7 @@ protected:
         return ;
       }
 
-      
+
       if (diskAddr%2==0)
       {
         //load bucket
@@ -797,18 +799,18 @@ protected:
         //b->display(cout);
         return b->findRegExp(regexp, sf, ret);
       }
-      
+
       findRegExp_(memAddr, diskAddr, sub, sf, ret);
       pNodeCache_->unlockNode(n.getIndex());
       break;
-      
-    }    
+
+    }
   }
 
 // friend ostream& operator << ( ostream& os, const SelfType& node)
 //   {
 //   }
-  
+
 protected:
   FILE* nodf_;//!<Node data file handler.
   FILE* bukf_;//!<Bucket data file handler.

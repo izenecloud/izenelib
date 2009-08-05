@@ -1,4 +1,5 @@
-/// @file   t_b_trie.cpp
+/// @file   example_builder.cc
+///
 /// @brief  A test unit for checking b_trie's funcationality and memory usage.
 /// @author Wei Cao
 /// @date   2000-08-04
@@ -15,8 +16,6 @@
 #include <iostream>
 #include <signal.h>
 
-#include <boost/test/unit_test.hpp>
-
 #include <am/trie/b_trie.hpp>
 #include <am/trie/alphabet.hpp>
 #include <am/map/map.hpp>
@@ -32,8 +31,6 @@ using namespace std;
 
 #define SIZE 27
 #define ENCODE_TYPE UString::UTF_8//EUC_KR//GB2312//
-
-BOOST_AUTO_TEST_SUITE( b_trie_suite )
 
 typedef string string_type;
 
@@ -123,12 +120,7 @@ void readDict(const string& dict, vector<string_type>& v)
 }
 
 
-
-/**
- *This is for testing the correction of insertion and querying of Ustring version B-trie.
- *
- **/
-BOOST_AUTO_TEST_CASE(B_trie_regex_check )
+int main(int argc, char** argv)
 {
   clock_t start, finish;
 
@@ -197,70 +189,4 @@ BOOST_AUTO_TEST_CASE(B_trie_regex_check )
 
 	cout<<"\n=================== Memory Report after clean ======================"<<endl;
 	LOG(ERROR) << getMemInfo();
-
-
-  //------------------------------------------------------------------------------
-
-//   //trie.display(cout, "far");
-//   //BTrie<ENCODE_TYPE> trie("./test");
-//   start = clock();
-//   uint64_t diskAdd = 1;
-//   uint32_t memAdd = 0;
-//   vector<item_pair<string_type> > ip;
-//   //*1M77N?fH*C3lJt
-//   //cout<<trie.query(string_type("GIdku3vr_C5jIUtVQHXNf5pPWRn3uiJa", ENCODE_TYPE))<<endl;
-//
-//   trie.findRegExp(string_type("*u3vr_C5jIUtVQHXNf?pPW*iJa", ENCODE_TYPE), ip);//(memAdd, diskAdd, , string_type(), ip);
-//   for (vector<item_pair<string_type> >::iterator i = ip.begin(); i!= ip.end(); i++)
-//   {
-//     (*i).str_.displayStringValue(ENCODE_TYPE, cout);
-//     cout<<"===>"<<(*i).addr_<<endl;
-//   }
-//
-//
-//
-//   finish = clock();
-//   printf( "\nIt takes %f seconds to find!\n", (double)(finish - start)/CLOCKS_PER_SEC);
-//
-//   BTrie<wiselib::string_type> trie("./test");
-//     ifstream inf("./dict1.txt");
-//     string str;
-//     unsigned int id = 0;
-//     while (inf>>str)
-//     {
-//         string_type ustr(str,string_type::UTF_8);
-//         trie.insert(ustr,2);
-//         //cout<<str;
-//
-//         str.clear();
-//     }
-// 	trie.flush();
-
-  //------------------------------------------------------------------------------
-  {
-    BTrie<string_type> trie1("./test");
-
-    cout << "begin search" << endl;
-    start = clock();
-    for(int i=0; i<10000; i++)
-    {
-      vector<item_pair<string_type> > ip;
-      string_type pattern = init("xacbhhki", (string_type*)0);
-      trie1.findRegExp(pattern, ip);
-
-  //    for (vector<item_pair<string_type> >::iterator i = ip.begin(); i!= ip.end(); i++)
-  //    {
-  //        //(*i).str_.displayStringValue(string_type::UTF_8, cout);
-  //        //cout<<"===>"<<(*i)<<endl;
-  //    }
-    }
-    finish = clock();
-    cout << "end 10000 searches cost " << (double)(finish-start) / CLOCKS_PER_SEC << "second" << endl;
-  }
-
-	cout<<"\n=================== Memory Report after searching b-trie ======================"<<endl;
-	LOG(ERROR) << getMemInfo();
-
 }
-
-BOOST_AUTO_TEST_SUITE_END()

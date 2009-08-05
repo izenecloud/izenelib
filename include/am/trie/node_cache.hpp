@@ -43,34 +43,34 @@ protected:
       pNode_ = NULL;
       locked_ = false;
     }
-    
-    
+
+
   }
     ;
-#define CACHE_SIZE (CACHE_LENGTH/(sizeof(struct _cache_node_)+NodeType::SIZE_)) 
-  
-  
+#define CACHE_SIZE (CACHE_LENGTH/(sizeof(struct _cache_node_)+NodeType::SIZE_))
+
+
 public:
   typedef NodeCache <STRING_TYPE, CACHE_LENGTH, CacheType, ALPHABET, ALPHABET_SIZE> SelfType;
-  
+
   class nodePtr
   {
   public:
     nodePtr()
-    {      
+    {
       pN_ = NULL;
       pC_ = NULL;
       idx_ = (uint32_t)-1;
 
     }
-    
+
     nodePtr(struct _cache_node_& n, uint32_t idx)
     {
       pN_ = n.pNode_;
       pC_ = &n.cacheInfo_;
       idx_ = idx;
     }
-    
+
     NodeType* operator ->()
     {
       pC_->visit();
@@ -86,7 +86,7 @@ public:
 
       pN_ = NULL;
     }
-    
+
     uint32_t getIndex() const
     {
       return idx_;
@@ -96,7 +96,7 @@ public:
     {
       return pN_==NULL;
     }
-    
+
   protected:
     NodeType* pN_;
     CacheType* pC_;
@@ -111,18 +111,19 @@ public:
   NodeCache(FILE* f, uint64_t rootAddr)
     :f_(f),rootAddr_(rootAddr),count_(0)
   {
-    //cout<<NodeType::SIZE_ <<"///////"<<CACHE_SIZE<<endl;
     nodes  = new struct _cache_node_ [CACHE_SIZE];
   }
 
   ~NodeCache()
   {
     for (uint32_t i=0; i<CACHE_SIZE; i++)
+    {
       if (nodes[i].pNode_ != NULL)
       {
         delete nodes[i].pNode_;
         nodes[i].pNode_ = NULL;
       }
+    }
     delete [] nodes;
   }
 
@@ -134,12 +135,12 @@ public:
     vector<uint32_t> indexes;
     indexes.push_back(0);
 
-    
+
     NodeType* t = new NodeType(f_);
     t->load(rootAddr_);
     nodes[count_] = _cache_node_(t);
     count_++;
-      
+
     while (indexes.size()>0)
     {
       load_(indexes);
@@ -147,37 +148,37 @@ public:
 
     return count_;
   }
-  
+
   void load_(vector<uint32_t>& indexes)
   {
     uint32_t idx = indexes.front();
     indexes.erase(indexes.begin());
-    
+
     NodeType* n = nodes[idx].pNode_ ;
     nodes[idx] =  _cache_node_(n);
-    
+
     for (uint32_t i=0; i<n->getSize();i++)
     {
       if (n->getDiskAddr(i)==(uint64_t)-1)
         continue;
-      
+
       if (n->getDiskAddr(i)%2==0)
         continue;
-      
+
       NodeType* t = new NodeType(f_);
       t->load(n->getDiskAddr(i));
       nodes[count_] = _cache_node_(t);
-      
+
       indexes.push_back(count_);
       n->setMemAddr(i, count_);
-      
+
       count_++;
       if (count_>=CACHE_SIZE)
       {
         indexes.clear();
         return;
       }
-      
+
     }
   }
 
@@ -193,13 +194,13 @@ public:
         delete nodes[i].pNode_;
         nodes[i].pNode_ = NULL;
       }
-      
+
     }
     count_ = 0;
-    
+
     return load();
   }
-  
+
 
 friend ostream& operator << ( ostream& os, const SelfType& node)
   {
@@ -213,10 +214,10 @@ friend ostream& operator << ( ostream& os, const SelfType& node)
     }
 
     return os;
-    
+
   }
 
-  
+
   /**
    *Find out the switched one.
    **/
@@ -227,17 +228,17 @@ friend ostream& operator << ( ostream& os, const SelfType& node)
       minIdx++;
     if (minIdx==count_)
       cout<<"All locked up, Why?\n";
-    
+
     for (uint32_t i=count_-1; i>0; i--)
     {
       if (nodes[i].pNode_==NULL)
         return i;
-      
+
       if (!nodes[i].locked_ && nodes[i].cacheInfo_.compare(nodes[minIdx].cacheInfo_)<0)
       {
         minIdx = i;
       }
-      
+
     }
 
     return minIdx;
@@ -274,12 +275,12 @@ friend ostream& operator << ( ostream& os, const SelfType& node)
   {
     if (diskAddr%2==0)
       return nodePtr();
-    
+
     if (memAddr>=count_ && memAddr!=(uint32_t)-1 && count_!=0)
     {
       return nodePtr();
     }
-    
+
     if (memAddr!=(uint32_t)-1)
     {
       NodeType* t = nodes[memAddr].pNode_;
@@ -288,29 +289,29 @@ friend ostream& operator << ( ostream& os, const SelfType& node)
     }
 
     if (count_<CACHE_SIZE)
-    {      
+    {
       NodeType* t = new NodeType(f_);
       t->load(diskAddr);
       nodes[count_] = _cache_node_(t);
-      
+
       memAddr = count_;
-      
+
       count_++;
       return nodePtr(nodes[memAddr], memAddr);
     }
 
     memAddr = findSwitchOut();
-    //cout<<"\nswitch out-: "<<memAddr<<endl;
+    // cout<<"\nswitch out-: "<<memAddr<<endl;
     kickOutNodes(memAddr);
-    
-    
+
+
     NodeType* t = new NodeType(f_);
     t->load(diskAddr);
     nodes[memAddr] = _cache_node_(t);
     return nodePtr(nodes[memAddr], memAddr);
   }
 
-  
+
   /**
    *Get a new node in cache which is stroed in position 'diskAddr'.
    **/
@@ -326,10 +327,10 @@ friend ostream& operator << ( ostream& os, const SelfType& node)
       return p;
     }
 
-    
+
     uint32_t ret = findSwitchOut();
     kickOutNodes(ret);
-    
+
     NodeType* t = new NodeType(f_);
     t->load(diskAddr);
     nodes[ret] = _cache_node_(t);
@@ -344,7 +345,7 @@ friend ostream& operator << ( ostream& os, const SelfType& node)
   nodePtr newNode()
   {
     //cout<<"newNode "<<CACHE_SIZE<<endl;
-    
+
     if (count_<CACHE_SIZE)
     {
       NodeType* t = new NodeType(f_);
@@ -354,11 +355,11 @@ friend ostream& operator << ( ostream& os, const SelfType& node)
       return p;
     }
 
-    
+
     uint32_t ret = findSwitchOut();
     //cout<<"\nswitch out: "<<ret<<endl;
     kickOutNodes(ret);
-    
+
     NodeType* t = new NodeType(f_);
     nodes[ret] = _cache_node_(t);
     nodePtr p(nodes[ret], ret);
@@ -374,7 +375,7 @@ friend ostream& operator << ( ostream& os, const SelfType& node)
   {
     // cout<<"KickOutNodes(): ";
 //     cout<<count_<<"  "<<CACHE_SIZE<<"  "<<memAddr<<endl;
-    
+
     if (memAddr==(uint32_t)-1 || nodes[memAddr].pNode_ == NULL)
       return (uint64_t)-1;
 
@@ -391,12 +392,12 @@ friend ostream& operator << ( ostream& os, const SelfType& node)
         last_disk = d;
         continue;
       }
-      
+
 
       last_disk = d;
       if (m==memAddr)
         cout<<i<<" kick out sub nodes: "<<m<<"  "<<d<<endl;
-      
+
       kickOutNodes(m);
       //nodes[memAddr].pNode_->setDiskAddr(i, 2);
       //nodes[memAddr].pNode_->setDiskAddr(i, kickOutNodes(m));
@@ -408,7 +409,7 @@ friend ostream& operator << ( ostream& os, const SelfType& node)
     nodes[memAddr]=  _cache_node_();
 
     return ret;
-    
+
   }
 
   /**
@@ -423,7 +424,7 @@ friend ostream& operator << ( ostream& os, const SelfType& node)
     fflush(f_);
   }
 
-  
+
   bool isFull()
   {
     return count_>=CACHE_SIZE;
@@ -434,7 +435,7 @@ protected:
   uint32_t rootAddr_;//!<Trie tree root node disk address
   uint32_t count_;//!< Node count
   struct _cache_node_* nodes;//!<Nods are stored in this array.
-  
+
 }
   ;
 

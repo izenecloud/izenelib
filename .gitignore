@@ -12,3 +12,4 @@ dump.*
 *.gz
 /cmake
 help
+*.save
