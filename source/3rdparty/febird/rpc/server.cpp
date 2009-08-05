@@ -68,7 +68,7 @@ void session_base::start()
 
 void session_base::run()
 {
-#if BOOST_VERSION > 103301
+#if BOOST_VERSION > 103800
 	boost::this_thread::at_thread_exit(boost::bind(&rpc_server_base::removeSession, m_owner, this));
 #endif
 	try {
