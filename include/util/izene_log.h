@@ -33,10 +33,16 @@ string  getMemInfo() {
 	
 	ProcMemInfo::getProcMemInfo(vm, rss, rlimit);
 	ss << "Current vm(virtual memory): " << vm << " bytes; \t rss(Resident Set Size): " << rss << " bytes. " ;
-	if(vm > pre_vm )
-		ss << "\t ++++ vm: " << vm-pre_vm << " bytes; \t rss: " << rss-pre_rss << " bytes." << endl;
+	if(vm >= pre_vm )
+		ss << "\t ++++ vm: " << vm - pre_vm << " bytes;"				
 	else 
-		ss << "\t ---- vm: " <<  pre_vm-vm << " bytes; \t rss: " << pre_rss-rss  << " bytes." << endl;
+		ss << "\t ---- vm: " <<  pre_vm - vm << " bytes;"
+		
+	if( rss >= pre_vss )
+		ss <<" \t ++++ rss: " << rss - pre_rss  << " bytes.";
+	else
+		ss <<" \t ---- rss: " << pre_rss - rss  << " bytes.";
+	ss <<endl;	
 	
 	return ss.str();
 }
