@@ -209,14 +209,14 @@ public:
 					// Try matching 0 characters
 
 					NameString newPattern;
-					pattern.substr(newPattern, 1);
+					newPattern = pattern.substr(1);
 					this->findRegExp(results, newPattern, soFar);
 					break;
 				}
 				//case '?':
 				case 63: {
 					NameString newPattern;
-					pattern.substr(newPattern, 1);
+					newPattern = pattern.substr(1);
 
 					// Try matching no character
 					this->findRegExp(results, newPattern, soFar);
@@ -239,7 +239,7 @@ public:
 					NameString newSoFar(soFar);
 					newSoFar += pair->letter_;
 					NameString newPattern;
-					pattern.substr(newPattern, 1);
+					newPattern = pattern.substr(1);
 
 					pair->trie_->findRegExp(results, newPattern, newSoFar);
 				} else {
