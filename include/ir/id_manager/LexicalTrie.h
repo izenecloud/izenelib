@@ -1,6 +1,6 @@
 /**
  * @file	LexicalTrie.h
- * @brief	Header file of LexicalTrie Class 
+ * @brief	Header file of LexicalTrie Class
  * @author	Yingfeng Zhang
  * @date    2009-02-02
  * @details
@@ -160,7 +160,7 @@ public:
 
 			LetterTriePair * pair = findLetterPair(word[0]);
 			NameString subWord;
-			subword = word.substr(1);
+			subWord = word.substr(1);
 
 			if (pair) {
 				// pair exists so update it...
@@ -289,7 +289,7 @@ template<typename NameString> int LexicalTrie<NameString>::num_items() {
 	return numWords_;
 }
 
-} // end - namespace idmanager 
+} // end - namespace idmanager
 
 NS_IZENELIB_IR_END
 
