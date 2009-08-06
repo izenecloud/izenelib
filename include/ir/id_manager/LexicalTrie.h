@@ -160,7 +160,7 @@ public:
 
 			LetterTriePair * pair = findLetterPair(word[0]);
 			NameString subWord;
-			word.substr(subWord, 1);
+			subword = word.substr(1);
 
 			if (pair) {
 				// pair exists so update it...

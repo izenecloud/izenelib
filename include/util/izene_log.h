@@ -5,7 +5,10 @@
 
 
 #include <glog/logging.h>
-#include <wiselib/profiler/ProfilerGroup.h>
+
+#ifdef SF1_TIME_CHECK
+	#include <wiselib/profiler/ProfilerGroup.h>
+#endif
 
 #include "ProcMemInfo.h"
 #include <sstream>
@@ -34,11 +37,11 @@ string  getMemInfo() {
 	ProcMemInfo::getProcMemInfo(vm, rss, rlimit);
 	ss << "Current vm(virtual memory): " << vm << " bytes; \t rss(Resident Set Size): " << rss << " bytes. " ;
 	if(vm >= pre_vm )
-		ss << "\t ++++ vm: " << vm - pre_vm << " bytes;"				
+		ss << "\t ++++ vm: " << vm - pre_vm << " bytes;";				
 	else 
-		ss << "\t ---- vm: " <<  pre_vm - vm << " bytes;"
+		ss << "\t ---- vm: " <<  pre_vm - vm << " bytes;";
 		
-	if( rss >= pre_vss )
+	if( rss >= pre_rss )
 		ss <<" \t ++++ rss: " << rss - pre_rss  << " bytes.";
 	else
 		ss <<" \t ---- rss: " << pre_rss - rss  << " bytes.";
