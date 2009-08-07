@@ -606,6 +606,60 @@ bool Indexer::getDocsByTermsInProperties(vector<termid_t> termIDs, collectionid_
     return ret;
 }
 
+///To be optimized: Using TermDocFreqs instead of TermPositions
+bool Indexer::getDocsByTermInProperties(termid_t termID, collectionid_t colID, vector<string> properties, vector<docid_t>& docIds)
+{
+    if (properties.size() > 1)
+    {
+        ParallelTermPosition parallelTermPosition(colID, pIndexReader_,properties);
+        if (!parallelTermPosition.isValid())
+            return false;
+        if (parallelTermPosition.seek(termID))
+        {
+            vector<string> currProperties;
+            docid_t currDocID;
+            while (parallelTermPosition.next(currProperties,currDocID))
+            {
+                docIds.push_back(currDocID);
+                currProperties.clear();
+            }
+        }
+        else
+        {
+            cout<<"seek error"<<endl;
+            return false;
+        }
+    }
+    else
+    {
+        TermReader* pTermReader = pIndexReader_->getTermReader(colID);
+        if (NULL == pTermReader)
+            return false;
+
+        Term term(properties[0].c_str(), termID);
+        if (pTermReader->seek(&term))
+        {
+            TermPositions* pPositions = pTermReader->termPositions();
+
+            while (pPositions->next())
+            {
+                docIds.push_back(pPositions->doc());
+            }
+
+            delete pPositions;
+        }
+        else
+        {
+            cout<<"seek error"<<endl;
+            delete pTermReader;
+            return false;
+        }
+        delete pTermReader;
+    }
+
+    return true;
+}
+
 bool Indexer::getDocsByTermInProperties(termid_t termID, collectionid_t colID, vector<string> properties, vector<CommonItem>& commonSet)
 {
     if (properties.size() > 1)
