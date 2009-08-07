@@ -1,4 +1,4 @@
-CXX = g++ 
+CXX = g++-4.1
 
 ######################################################
 # if $(COMPILE_FLAGS) is given by upper makefile 
@@ -10,8 +10,8 @@ CXXFLAGS = -Wall -O3 -g
 endif
 
 TARGET_PATH = .
-WISELIB = /home/wps/workspace/wiselib
-IZENELIB = /home/wps/workspace/izenelib
+WISELIB = /home/wei/dev/wiselib
+IZENELIB = /home/wei/dev/izenelib
 
 IDMANAGER_PATH = ../include/
 
@@ -19,7 +19,7 @@ INCLUDE_PATH = \
 			   -I $(WISELIB)/include \
 			   -I $(IZENELIB)/include \
 			   -I $(IZENELIB)/include/3rdparty \
-			   -I /usr/local/include/boost-1_36 \
+			   -I /usr/local/include/boost-1_39 \
 
 		  
 EXT_LIB_PATH = \
@@ -28,16 +28,16 @@ EXT_LIB_PATH = \
 			   -L /usr/local/lib \
 
 EXT_LIB = \
-		  -l wiselib \
-                  -l boost_system-gcc41-mt-1_36 \
-		  -l boost_date_time-gcc41-mt-1_36 \
-		  -l boost_serialization-gcc41-mt-1_36 \
-		  -l boost_program_options-gcc41-mt-1_36 \
-		  -l boost_thread-gcc41-mt-1_36 \
-		  -l boost_unit_test_framework-gcc41-mt-1_36 \
+                  -l wiselib \
+                  -l boost_system-gcc41-mt-1_39 \
+		  -l boost_date_time-gcc41-mt-1_39 \
+		  -l boost_serialization-gcc41-mt-1_39 \
+		  -l boost_program_options-gcc41-mt-1_39 \
+		  -l boost_thread-gcc41-mt-1_39 \
+		  -l boost_unit_test_framework-gcc41-mt-1_39 \
 		  -l boost_memory \
 		  -l tokyocabinet \
-		  -l sdb_btree \
+#		  -l sdb_btree \
 		  
 
 

@@ -9,11 +9,8 @@
 #ifndef bucket_chain_H_
 #define bucket_chain_H_
 
-
-#include <cstdlib>
-#include <cstddef>
-#include <fstream>
-#include <iostream>
+#include "sdb_hash_types.h"
+#include "sdb_hash_header.h"
 
 using namespace std;
 /**
