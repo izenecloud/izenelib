@@ -50,7 +50,7 @@ inline bool ForwardIndexReader::locateTermPosByDoc(docid_t docId, fieldid_t fid)
     return true;
 }
 
-bool ForwardIndexReader::getTermOffset(unsigned int termId, docid_t docId, fieldid_t fid, std::vector<std::pair<unsigned int, unsigned int> >& offsetList)
+bool ForwardIndexReader::getTermOffset(unsigned int termId, docid_t docId, fieldid_t fid, std::deque<std::pair<unsigned int, unsigned int> >& offsetList)
 {
     if(!locateTermPosByDoc(docId,fid))
         return false;
@@ -99,7 +99,7 @@ inline void ForwardIndexReader::retrieve_voc_by_doc(VocInfoMap & vocInfo)
     }
 }
 
-bool ForwardIndexReader::getTermOffsetList(const std::vector<unsigned int>& termIds, docid_t docId, fieldid_t fid, std::vector<std::vector<std::pair<unsigned int, unsigned int> > >& offsetList)
+bool ForwardIndexReader::getTermOffsetList(const std::vector<unsigned int>& termIds, docid_t docId, fieldid_t fid, std::deque<std::deque<std::pair<unsigned int, unsigned int> > >& offsetList)
 {
     if(!locateTermPosByDoc(docId,fid))
         return false;
@@ -108,10 +108,9 @@ bool ForwardIndexReader::getTermOffsetList(const std::vector<unsigned int>& term
     retrieve_voc_by_doc(vocInfo);
 
     VocInfoMap::iterator vocInfoIterator = vocInfo.end();
-    offsetList.reserve(termIds.size());
     for(std::vector<unsigned int>::const_iterator iter = termIds.begin(); iter != termIds.end(); ++iter)
     {
-        std::vector<std::pair<unsigned int, unsigned int> > offset;
+        std::deque<std::pair<unsigned int, unsigned int> > offset;
         offsetList.push_back(offset);
 
         vocInfoIterator = vocInfo.find(*iter);
@@ -119,10 +118,9 @@ bool ForwardIndexReader::getTermOffsetList(const std::vector<unsigned int>& term
         if(vocInfoIterator == vocInfo.end())
             continue;
         pPOSInput_->seek(vocInfoIterator->second);
-        std::vector<std::vector<std::pair<unsigned int, unsigned int> > >::reverse_iterator offsetListIterator = offsetList.rbegin();
+        std::deque<std::deque<std::pair<unsigned int, unsigned int> > >::reverse_iterator offsetListIterator = offsetList.rbegin();
 
         size_t nNumPosition = pPOSInput_->readVInt();
-        offsetListIterator->reserve(nNumPosition);
         unsigned int pos = 0;
         for(size_t i = 0; i < nNumPosition; i++)
         {

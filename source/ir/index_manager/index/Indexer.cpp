@@ -680,7 +680,7 @@ bool Indexer::getDocsByTermInProperties(termid_t termID, collectionid_t colID, v
     return true;
 }
 
-bool Indexer::getWordOffsetListOfQueryByDocumentProperty (const vector<termid_t>& queryTermIdList,  collectionid_t colId,  docid_t docId, string propertyName, vector<vector<pair<unsigned int, unsigned int> > >& wordOffsetListOfQuery )
+bool Indexer::getWordOffsetListOfQueryByDocumentProperty (const vector<termid_t>& queryTermIdList,  collectionid_t colId,  docid_t docId, string propertyName, deque<deque<pair<unsigned int, unsigned int> > >& wordOffsetListOfQuery )
 {
     fieldid_t fid = getPropertyIDByName(colId,propertyName);
     ForwardIndexReader* pForwardIndexReader = pIndexReader_->getForwardIndexReader();
