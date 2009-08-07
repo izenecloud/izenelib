@@ -34,7 +34,7 @@ IndexerFactory indexerFactory;
 
 #define MAJOR_VERSION "1"
 #define MINOR_VERSION "0"
-#define PATCH_VERSION "20081128" // update date
+#define PATCH_VERSION "20090801" // update date
 
 Indexer::Indexer( ManagerType managerType)
         :managerType_(managerType)
@@ -688,6 +688,16 @@ bool Indexer::getWordOffsetListOfQueryByDocumentProperty (const vector<termid_t>
     delete pForwardIndexReader;
     return ret;
 }
+
+bool Indexer::getForwardIndexByDocumentProperty(collectionid_t colId, docid_t docId, string propertyName, ForwardIndex& forwardIndex)
+{
+    fieldid_t fid = getPropertyIDByName(colId,propertyName);
+    ForwardIndexReader* pForwardIndexReader = pIndexReader_->getForwardIndexReader();
+    bool ret = pForwardIndexReader->getForwardIndexByDoc(docId, fid, forwardIndex);
+    delete pForwardIndexReader;
+    return ret;
+}
+
 
 bool Indexer::getTermFrequencyInCollectionByTermId( const vector<termid_t>& termIdList, const unsigned int collectionId, const vector<string>& propertyList, vector<unsigned int>& termFrequencyList )
 {

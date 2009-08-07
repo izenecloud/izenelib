@@ -17,7 +17,6 @@
 #include <ir/index_manager/index/BTreeIndex.h>
 #include <ir/index_manager/index/IndexingProgressStatus.h>
 #include <ir/index_manager/index/IndexerDocument.h>
-
 #include <ir/index_manager/store/Directory.h>
 
 #include <boost/noncopyable.hpp>
@@ -202,6 +201,9 @@ public:
     *       0: fail to complete the operation
     *
     */
+    bool getForwardIndexByDocumentProperty(collectionid_t colId, docid_t docId, string propertyName, ForwardIndex& forwardIndex);	
+
+    
     bool getTermFrequencyInCollectionByTermId ( const std::vector<termid_t>& termIdList, const unsigned int collectionId, const std::vector<std::string>& propertyList, std::vector<unsigned int>& termFrequencyList );
     /**
     * @brief   This function gets a map of Document Frequency according to property and term id
