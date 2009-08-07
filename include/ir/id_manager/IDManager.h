@@ -5,11 +5,12 @@
  * @date    2008-06-05
  * @details
  *
- *================
- * Using SDB/hash
+ * ==============
  *
- * @Peisheng Wang
+ * Using SDB/hash
+ * @author Peisheng Wang
  * @date 2009-04-16
+ *
  */
 
 #ifndef _ID_MANAGER_
@@ -18,6 +19,8 @@
 #include "IDManagerTypes.h"
 #include "DocIdManager.h"
 #include "TermIdManager.h"
+#include "SequentialIDFactory.h"
+#include "HashIDFactory.h"
 
 /**
  * @brief a class to manage all kinds of operations about ID.
@@ -33,7 +36,8 @@
  * vocabulary storage. IDManager use UString class for the Key value.
  *
  *  - TODO List
- *      - There's multiple definition linking error while compiling test files. Currently I temporary set the option -Xlinker -zmuldefs to fix them.
+ *      - There's multiple definition linking error while compiling test files.
+ *        Currently I temporary set the option -Xlinker -zmuldefs to fix them.
  */
 
 NS_IZENELIB_IR_BEGIN
@@ -45,10 +49,19 @@ namespace idmanager {
 #define PATCH_VERSION "20081203"
 
 
-template<typename NameString=wiselib::UString, typename NameID=unsigned int> class _IDManager {
+template<typename NameString    = wiselib::UString,
+         typename NameID        = unsigned int>
+class _IDManager {
+
+    typedef HashIDFactory<NameString, NameID, HashFunction<NameString>::generateHash32 > TermIDFactory;
+    typedef SequentialIDFactory<NameString, NameID> DocIDFactory;
+
 public:
-	_IDManager(const string& sdbname = "idm") :
-		termIdManager_(sdbname + "_tid"), docIdManager_(sdbname + "_did") {
+	_IDManager(const string& sdbname = "idm")
+	:
+		termIdManager_(sdbname + "_tid"),
+		docIdManager_(sdbname + "_did")
+    {
 		version_ = "ID Manager - ver. alpha ";
 		version_ += MAJOR_VERSION;
 		version_ += ".";
@@ -116,26 +129,22 @@ public:
 	/**
 	 * @brief a member function to get document ID from the vocabulary which matches to the given document name.
 	 *
-	 * @param collectionId	a collection identifier which includes the document inside.
 	 * @param docName		a unique string of the document which is used to distinguish between documents.
 	 * @param docId    	    a document identifier which matches to the document name.
 	 * @return true  : 	    Document name exists in the dictionary.
 	 * @return false : 	    Document name does not exist in the dictionary.
 	 */
-	bool getDocIdByDocName(NameID collectionId, const NameString& docName,
-			NameID& docId);
+	bool getDocIdByDocName(const NameString& docName, NameID& docId);
 
 	/**
 	 * @brief a member function to get a name of the document by its ID.
 	 *
-	 * @param collectionId	a collection identifier which includes the document inside.
 	 * @param docId		    a document identifier.
 	 * @param docName	   	a unique string of the document which matches to the document ID.
 	 * @return true  : 	    Given document name exists in the dictionary.
 	 * @return false : 	    Given document name does not exist in the dictionary.
 	 */
-	bool getDocNameByDocId(NameID collectionId, NameID docId,
-			NameString& docName);
+	bool getDocNameByDocId(NameID docId, NameString& docName);
 
 	/**
 	 * @brief retrieve version string of id-manager
@@ -151,8 +160,8 @@ public:
 	}
 
 private:
-	TermIdManager<NameString, NameID> termIdManager_; ///< Term Id Manager Class
-	DocIdManager<NameString, NameID> docIdManager_; ///< Document Id Manager Class
+	TermIdManager<NameString, NameID, TermIDFactory> termIdManager_; ///< Term Id Manager Class
+	DocIdManager<NameString, NameID, DocIDFactory> docIdManager_; ///< Document Id Manager Class
 	std::string version_; ///< version of id-manager
 
 }; // end - class _IDManager
@@ -200,15 +209,13 @@ return termIdManager_.getTermStringListByTermIdList(termIdList, termStringList);
  *                                                 Document Related Interfaces
  *****************************************************************************/
 template<typename NameString, typename NameID> bool _IDManager<NameString,
-	NameID>::getDocIdByDocName(NameID collectionId, const NameString& docName,
-	NameID& docId) {
-return docIdManager_.getDocIdByDocName(collectionId, docName, docId);
+	NameID>::getDocIdByDocName(const NameString& docName, NameID& docId) {
+return docIdManager_.getDocIdByDocName(docName, docId);
 } // end - getDocIdByDocName()
 
 template<typename NameString, typename NameID> bool _IDManager<NameString,
-	NameID>::getDocNameByDocId(NameID collectionId, NameID docId,
-	NameString& docName) {
-return docIdManager_.getDocNameByDocId(collectionId, docId, docName);
+	NameID>::getDocNameByDocId(NameID docId, NameString& docName) {
+return docIdManager_.getDocNameByDocId(docId, docName);
 } // end - getDocNameByDocId()
 
 typedef _IDManager<> IDManager;

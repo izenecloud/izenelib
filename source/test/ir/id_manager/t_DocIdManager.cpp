@@ -33,6 +33,7 @@
 #include <boost/test/unit_test.hpp>
 
 #include <ir/id_manager/DocIdManager.h>
+#include <ir/id_manager/SequentialIDFactory.h>
 #include <wiselib/ustring/UString.h>
 
 using namespace std;
@@ -160,38 +161,6 @@ public:
 
 }; // end - class DocIdManagerFixture
 
-
-/**
- * @brief Check function which checks if all the doc ids are corretly generated.
- */
-
-inline bool isDocIdListCorrect(unsigned int collectionIdNum, unsigned int docIdNum,
-    const vector<UString>& docNameList,DocIdManager<UString, unsigned int>& docIdManager)
-{
-    UString compare;
-
-    for(unsigned int i = 1; i <= collectionIdNum; i++)
-    {
-        for(unsigned int j = 1; j <= docIdNum; j++)
-        {
-            // Check if the id is in the DocIdManager with getting document name according to the id.
-            if ( docIdManager.getDocNameByDocId(i, j, compare) == false )
-                return false;
-
-            // Check if the document name from docIdManager is the same as the original one.
-            if ( docNameList[ (i - 1)*235 + (j - 1)] != compare )
-                return false;
-        } // end - for
-
-    } // end - for
-
-    return true;
-
-} // end - isIdListCorrect()
-
-
-
-
 /**********************************************************
  *
  *          Start point of t_DocIdManager suite - 1
@@ -220,23 +189,22 @@ BOOST_AUTO_TEST_CASE( TestCase1 )
     cerr << endl;
     cerr << "[ DocIdManager ] Test Case 1 : Simple Document Id Manager check ..............";
 
-    DocIdManager<UString, unsigned int> docIdManager("docid1");
+    DocIdManager<UString, unsigned int,
+        SequentialIDFactory<UString, unsigned int> > docIdManager("docid1");
 
     string insertString("Test DocIdManager");
     UString insertUString(insertString, UString::CP949);
     UString resultUString;
 
-    unsigned int collectionId = 1; // Collection id 1 is used for inserting one document name.
-
     unsigned int id = 0;
 
     // Insert 1 terms into document id manager by using getDocIdByDocName() interface.
     // While inserting, check if the return value is false.
-    BOOST_CHECK_EQUAL( docIdManager.getDocIdByDocName(collectionId, insertUString, id ) , false );
+    BOOST_CHECK_EQUAL( docIdManager.getDocIdByDocName(insertUString, id ) , false );
     // Check if the ustring is correctly inserted using getDocNameByDocId() interface.
-    BOOST_CHECK_EQUAL( docIdManager.getDocNameByDocId(collectionId, id, resultUString ) , true );
+    BOOST_CHECK_EQUAL( docIdManager.getDocNameByDocId(id, resultUString ) , true );
     // Check again if the id is found in the document indexer using getDocIdByDocName() interface.
-    BOOST_CHECK_EQUAL( docIdManager.getDocIdByDocName(collectionId, insertUString, id ) , true );
+    BOOST_CHECK_EQUAL( docIdManager.getDocIdByDocName(insertUString, id ) , true );
 
     // Check if the resultUString is the same as insertUString.
     BOOST_CHECK ( insertUString == resultUString );
