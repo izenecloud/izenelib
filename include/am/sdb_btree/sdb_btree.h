@@ -390,8 +390,13 @@ private:
 		cout<<_activeNodeNum<<" vs "<<_sfh.cacheSize <<endl;
 		//display();
 #endif	
+		
+		for(size_t i=0; i<_root->objCount+1; i++)
+		{	
+			_root->children[i]->unload();		
+		}	
 
-		queue<sdb_node*> qnode;
+		/*queue<sdb_node*> qnode;
 		qnode.push(_root);
 
 		size_t popNum = 0;
@@ -420,7 +425,7 @@ private:
 				//cout<<_activeNodeNum<<" vs "<<_sfh.cacheSize <<endl;					
 			}
 			
-			if (popNode && !popNode->isLeaf) {
+			if (popNode && popNode->isLoaded && !popNode->isLeaf) {
 				for(size_t i=0; i<popNode->objCount+1; i++)
 				{				
 					if( popNode->children[i] &&  popNode->children[i]->objCount>0 &&  popNode->children[i]->objCount<= _sfh.maxKeys) {
@@ -435,13 +440,13 @@ private:
 			}
 			
 
-		}
+		}*/
 #ifdef DEBUG
 		cout<<"stop unload..."<<endl;
 		cout<<_activeNodeNum<<" vs "<<_sfh.cacheSize <<endl;
 		//display();
 #endif		
-		fflush(_dataFile);
+		fflush(_dataFile);	
 
 	}
 

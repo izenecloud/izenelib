@@ -1,7 +1,7 @@
 GPP=/usr/bin/g++
 GCC=/usr/bin/gcc 
 
-CC_OPTIONS= -O2 -Wall -c -g -pg  -DDEBUG
+CC_OPTIONS= -O3 -Wall -c -g -DDEBUG
 
 WISELIB = /home/wps/workspace/wiselib
 
@@ -14,7 +14,7 @@ INC_PATH=    -I /usr/local/include/  -I  ../../../../../izenelib/include/ -I  ..
 LIBS =      /usr/local/lib/libboost_thread-gcc41-mt.so \
            /usr/local/lib/libtokyocabinet.so   /usr/local/lib/libboost_serialization-gcc41-mt.so   \
            ../../../../../izenelib/lib/libprocmeminfo.a  ../../../../../izenelib/lib/libfebird.a   \
-	$(WISELIB)/lib/libwiselib.so #    /usr/local/lib64/libstdc++.so 
+	$(WISELIB)/lib/libwiselib.so -lglog #    /usr/local/lib64/libstdc++.so 
 
 
 .cc.o:
@@ -25,8 +25,9 @@ am_obj =    t_am.o
 am_ylib_obj = t_am_ylib.o 
 test_obj = test_ustring.o 
 t_cccr_hash_obj = t_cccr_hash.o 
+t_am_sf_obj = t_am_sf.o
 
-all: test t_cccr_hash test t_am t_am_ylib
+all: t_am_sf  #test t_cccr_hash test t_am t_am_ylib
 
 test: $(test_obj)
 
@@ -44,6 +45,10 @@ t_am: $(am_obj)
 t_am_ylib: $(am_ylib_obj)
 
 	$(GPP) $(am_ylib_obj) $(LIBS)  -o $@ -pg
+	
+t_am_sf: $(t_am_sf_obj)
+
+	$(GPP) $(t_am_sf_obj) $(LIBS)  -o $@ -pg
 
 clean:
 	-rm -f *.o  *.dat t_am t_am_ylib
