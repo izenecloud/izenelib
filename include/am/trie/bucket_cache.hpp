@@ -45,33 +45,31 @@ protected:
       pNode_ = NULL;
       locked_ = false;
     }
-    
-    
-  }
-    ;
-#define CACHE_SIZE (CACHE_LENGTH/(sizeof(struct _cache_node_)+NodeType::SIZE_)) 
-  
-  
+  };
+
+#define CACHE_SIZE (CACHE_LENGTH/(sizeof(struct _cache_node_)+NodeType::SIZE_))
+
+
 public:
   typedef BucketCache <STRING_TYPE, CACHE_LENGTH,BUCKET_SIZE, SPLIT_RATIO, CacheType, ALPHABET, ALPHABET_SIZE> SelfType;
-  
+
   class nodePtr
   {
   public:
     nodePtr()
-    {      
+    {
       pN_ = NULL;
       pC_ = NULL;
       idx_ = (uint32_t)-1;
     }
-    
+
     nodePtr(struct _cache_node_& n, uint32_t idx)
     {
       pN_ = n.pNode_;
       pC_ = &n.cacheInfo_;
       idx_ = idx;
     }
-    
+
     NodeType* operator ->()
     {
       pC_->visit();
@@ -87,7 +85,7 @@ public:
 
       pN_ = NULL;
     }
-    
+
     uint32_t getIndex() const
     {
       return idx_;
@@ -97,7 +95,7 @@ public:
     {
       return pN_==NULL;
     }
-    
+
 
     NodeType* pN_;
   protected:
@@ -105,30 +103,31 @@ public:
     uint32_t idx_;
   }
     ;
-  
+
   BucketCache(FILE* f)
     :f_(f),count_(0)
   {
-    //cout<<NodeType::SIZE_ <<"////"<<(CACHE_LENGTH)<<"///"<<CACHE_SIZE<<endl;
     nodes  = new struct _cache_node_[CACHE_SIZE];
   }
 
   ~BucketCache()
   {
     for (uint32_t i=0; i<CACHE_SIZE; i++)
+    {
       if (nodes[i].pNode_ != NULL)
       {
         delete nodes[i].pNode_;
         nodes[i].pNode_ = NULL;
       }
-    delete nodes;
+    }
+    delete[] nodes;
   }
-  
+
   uint32_t load()
   {
     return count_;
   }
-  
+
   uint32_t reload()
   {
     for(uint32_t i=0; i<CACHE_SIZE; i++)
@@ -138,13 +137,13 @@ public:
         delete nodes[i].pNode_;
         nodes[i].pNode_ = NULL;
       }
-      
+      delete[] nodes;
     }
     count_ = 0;
-    
+
     return load();
   }
-  
+
 
 friend ostream& operator << ( ostream& os, const SelfType& node)
   {
@@ -158,7 +157,7 @@ friend ostream& operator << ( ostream& os, const SelfType& node)
     }
 
     return os;
-    
+
   }
 
   /**
@@ -171,22 +170,22 @@ friend ostream& operator << ( ostream& os, const SelfType& node)
       minIdx++;
     if (minIdx==count_)
       cout<<"All bucket locked up, Why?\n";
-    
+
     for (uint32_t i=minIdx+1; i<count_; i++)
     {
       if (nodes[i].pNode_==NULL)
         return i;
-      
+
       if ((!nodes[i].locked_) && nodes[i].cacheInfo_.compare(nodes[minIdx].cacheInfo_)<0)
       {
         minIdx = i;
       }
-      
+
     }
 
     //if (minIdx == 0)
     // LDBG_<<"Bucket cache is full. Can't find one to switch out";
-    
+
     return minIdx;
   }
 
@@ -210,17 +209,17 @@ friend ostream& operator << ( ostream& os, const SelfType& node)
     }
 
     return -1;
-    
+
   }
 
   /**
    *Load bucket of specific disk address into memory when the program loads data.
    **/
   nodePtr getNodeByMemAddrForLoading(uint32_t& memAddr, uint64_t diskAddr)
-  {    
+  {
     if (diskAddr%2==1)
       return nodePtr();
-    
+
     if (memAddr>=count_ && memAddr!=(uint32_t)-1&&count_!=0)
       return nodePtr();
 
@@ -232,15 +231,15 @@ friend ostream& operator << ( ostream& os, const SelfType& node)
         return nodePtr(nodes[memAddr], memAddr);
       }
     }
-    
+
     if (count_<CACHE_SIZE)
     {
       NodeType* t = new NodeType(f_);
       t->load(diskAddr);
       nodes[count_] = _cache_node_(t);
-      
+
       memAddr = count_;
-      
+
       count_++;
       return nodePtr(nodes[memAddr], memAddr);
     }
@@ -250,8 +249,8 @@ friend ostream& operator << ( ostream& os, const SelfType& node)
     memAddr = findSwitchOut();
     cout<<"\nswitch out-: "<<memAddr<<endl;
     kickOutNodes(memAddr);
-    
-    
+
+
     NodeType* t = new NodeType(f_);
     t->load(diskAddr);
     nodes[memAddr] = _cache_node_(t);
@@ -262,10 +261,10 @@ friend ostream& operator << ( ostream& os, const SelfType& node)
    *Load bucket of specific disk address into memory.
    **/
   nodePtr getNodeByMemAddr(uint32_t& memAddr, uint64_t diskAddr)
-  {    
+  {
     if (diskAddr%2==1)
       return nodePtr();
-    
+
     if (memAddr>=count_ && memAddr!=(uint32_t)-1&&count_!=0)
       return nodePtr();
 
@@ -284,15 +283,15 @@ friend ostream& operator << ( ostream& os, const SelfType& node)
       memAddr = i;
       return nodePtr(nodes[i], memAddr);
     }
-    
+
     if (count_<CACHE_SIZE)
     {
       NodeType* t = new NodeType(f_);
       t->load(diskAddr);
       nodes[count_] = _cache_node_(t);
-      
+
       memAddr = count_;
-      
+
       count_++;
       return nodePtr(nodes[memAddr], memAddr);
     }
@@ -302,8 +301,8 @@ friend ostream& operator << ( ostream& os, const SelfType& node)
     memAddr = findSwitchOut();
     //cout<<"\nswitch out-: "<<memAddr<<endl;
     kickOutNodes(memAddr);
-    
-    
+
+
     NodeType* t = new NodeType(f_);
     t->load(diskAddr);
     nodes[memAddr] = _cache_node_(t);
@@ -341,10 +340,10 @@ friend ostream& operator << ( ostream& os, const SelfType& node)
       return p;
     }
 
-    
+
     uint32_t ret = findSwitchOut();
     kickOutNodes(ret);
-    
+
     NodeType* t = new NodeType(f_);
     t->load(diskAddr);
     nodes[ret] = _cache_node_(t);
@@ -368,11 +367,11 @@ friend ostream& operator << ( ostream& os, const SelfType& node)
 
     //cout<<"-------\n";
     uint32_t ret = findSwitchOut();
-    
+
     kickOutNodes(ret);
 
     NodeType* t = new NodeType(f_);
-    
+
     nodes[ret] = _cache_node_(t);
     nodePtr p(nodes[ret], ret);
     return p;
@@ -385,7 +384,7 @@ friend ostream& operator << ( ostream& os, const SelfType& node)
   uint64_t kickOutNodes(uint32_t memAddr)
   {
     //cout<<"Kick out bucket: "<<memAddr<<" "<<count_;
-    
+
     if (memAddr==(uint32_t)-1 || nodes[memAddr].pNode_ == NULL)
       return (uint64_t)-1;
 
@@ -414,12 +413,12 @@ friend ostream& operator << ( ostream& os, const SelfType& node)
   {
     return count_ >= CACHE_SIZE;
   }
-  
+
 protected:
   FILE* f_;//!<File handler of bucket data file.
   uint32_t count_;//!<Node count
   struct _cache_node_* nodes;//!<Nods are stored in this array.
-  
+
 }
   ;
 

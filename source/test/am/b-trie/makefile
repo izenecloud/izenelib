@@ -1,22 +1,20 @@
-GPP :=g++
+GPP :=g++-4.1
 
 GCC :=/usr/bin/gcc
 
-CC_OPTIONS :=  -O3 -g -rdynamic -Wall -c -fmessage-length=0 
+CC_OPTIONS :=  -g -rdynamic -Wall -c -fmessage-length=0 
 
 
-LIBS := /usr/local/lib/libboost_unit_test_framework-gcc41-mt-1_37.so /usr/local/lib/libboost_system-gcc41-mt-1_37.so /usr/local/lib/libboost_serialization-gcc41-mt.so
-#lboost_unit_test_framework-gcc41-mt /usr/local/lib/libboost_serialization-gcc41-mt-1_37.so /usr/local/lib/libboost_system-gcc41-mt-1_37.so /usr/local/lib/libboost_iostreams-gcc41-mt-1_37.so
-INC_PATH := -I  /usr/local/include/boost-1_37/ -I ../../../../include/ -I ../../../../include/3rdparty/ -I /home/Kevin/wiselib/include/
-
+LIBS :=   /usr/local/lib/libboost_system-gcc41-mt-1_39.so /usr/local/lib/libboost_serialization-gcc41-mt.so /usr/local/lib/libglog.a ../../../../lib/libprocmeminfo.a
+INC_PATH := -I  /usr/local/include/boost-1_39/ -I ../../../../include/ -I ../../../../include/3rdparty/ -I /home/wei/dev/wiselib/include/
 
 OBJS := $(patsubst %.cpp, %.o, $(wildcard *.cpp))
-#./t_main.o
+
+all: amlib
 
 
-all: amlib get-input
-
-
+.cpp.o:
+	$(GPP) $(CC_OPTIONS) $(INC_PATH)  -o"./$@" "$<"
 
 .cpp.o:
 	$(GPP) $(CC_OPTIONS) $(INC_PATH)  -o"./$@" "$<"
@@ -26,12 +24,18 @@ all: amlib get-input
 
 
 amlib: $(OBJS)
-	$(GPP)  -g -o "b-trie"  $^ $(LIBS) 
+	$(GPP)  -g -o "b-trie"  $^ $(LIBS) /usr/local/lib/libboost_unit_test_framework-gcc41-mt-1_39.so
 
-get-input: gen_input.o
+get-input: gen_input.o 
 	$(GPP)  -g -o "get-input"  $^ $(LIBS)
-	-rm -f gen_input.o
-	-rm -f $(OBJS)
+
+example: example_searcher.o example_builder.o
+	$(GPP)  -g -o "searcher"  example_searcher.o $(LIBS)
+	$(GPP)  -g -o "builder"  example_builder.o $(LIBS)
+
 
 clean:
 	-rm -f $(OBJS)
+	-rm -f example_searcher.o
+	-rm -f example_builder.o
+	-rm -f gen_input.o

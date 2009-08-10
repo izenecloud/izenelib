@@ -17,17 +17,17 @@
  *      - Check if the given document name is correctly inserted into the docIndexer by using
  *        getDocNameByDocId() interface.
  *\n
- *  -# Test Case 5 : Insert 100 collection names by using collectionIdManager and insert 235 
- *                   documents by using collectionIdManager & docIdManager. Check if the 
+ *  -# Test Case 5 : Insert 100 collection names by using collectionIdManager and insert 235
+ *                   documents by using collectionIdManager & docIdManager. Check if the
  *                   insertion is correct.
- *      - Insert 100 collection names into collectionIdManager. While inserting, get the 
+ *      - Insert 100 collection names into collectionIdManager. While inserting, get the
  *        collection ids for each name.
  *      - Using collection Ids, insert 235 documents for each collection.
  *      - Check all the terms are correctly inserted into collectionIdManager and docIdManager.
  *\n
  *  -# Test Case 6 : Simple CollectionIdManager<UString, unsigned int><UString, unsigned int> check.
- *      - Inset one collection name to the empty collectionIndexer using 
- *        getCollectionIdByCollectionName() interface. And check if the return value is false 
+ *      - Inset one collection name to the empty collectionIndexer using
+ *        getCollectionIdByCollectionName() interface. And check if the return value is false
  *        which means the collection name is not in the collectionIndexer. Also check if the
  *        return value of getCollectionNameByCollectionId() is false/true before and after
  *        using getCollectionIdByCollectionName() interface.
@@ -39,8 +39,8 @@
  *                   correct data.
  *      - Insert 2400 collection names using getCollectionIdByCollectionName(). Store
  *        CollectionIdList
- *      - Check if the collection name (which is gotten by using 
- *        getCollectionNameByCollectionId() with its id from collectionIndexer) is the same as 
+ *      - Check if the collection name (which is gotten by using
+ *        getCollectionNameByCollectionId() with its id from collectionIndexer) is the same as
  *        the original one.
  */
 #include <fstream>
@@ -184,9 +184,9 @@ public:
 inline bool isIdListCorrect(const vector<unsigned int>& termIdList,const vector<UString>& termStringList, IDManager& idManager)
 {
     UString compare;
-    
+
     // Check if the id is correctly generated using getTermStringByTermId().
-    for(unsigned int i = 0; i < termIdList.size(); i++) 
+    for(unsigned int i = 0; i < termIdList.size(); i++)
     {
 
         // Check if the id is in the termIdManager with getting termstring according to the id.
@@ -194,7 +194,7 @@ inline bool isIdListCorrect(const vector<unsigned int>& termIdList,const vector<
             return false;
 
         // Check if the term string from termIdManager is the same as the original one.
-        if ( termStringList[i] != compare ) 
+        if ( termStringList[i] != compare )
             return false;
 
     } // end - for
@@ -202,64 +202,6 @@ inline bool isIdListCorrect(const vector<unsigned int>& termIdList,const vector<
     return true;
 
 } // end - isIdListCorrect()
-
-
-/**
- * @brief Check function which checks if all the collection ids are corretly generated.
- */
-
-inline bool isCollectionIdListCorrect(const vector<unsigned int>& collectionIdList,const vector<UString>& collectionNameList, IDManager& idManager)
-{
-    UString compare;
-    
-    // Check if the id is correctly generated using getCollectionNameByCollectionId().
-    for(unsigned int i = 0; i < collectionIdList.size(); i++) 
-    {
-
-        // Check if the id is in the CollectionIdManager<UString, unsigned int><UString, unsigned int> with getting collection name according to the id.
-        if ( idManager.getCollectionNameByCollectionId(collectionIdList[i], compare) == false )
-            return false;
-
-        // Check if the collection name from collectionIdManager is the same as the original one.
-        if ( collectionNameList[i] != compare ) 
-            return false;
-
-    } // end - for
-
-    return true;
-
-} // end - isCollectionIdListCorrect()
-
-/**
- * @brief Check function which checks if all the doc ids are corretly generated.
- */
-
-inline bool isDocIdListCorrect(unsigned int collectionIdNum, unsigned int docIdNum, const vector<UString>& docNameList, IDManager& IDManager)
-{
-    UString compare;
-
-    for(unsigned int i = 1; i <= collectionIdNum; i++)
-    {
-        for(unsigned int j = 1; j <= docIdNum; j++)
-        {
-            // Check if the id is in the DocIdManager with getting document name according to the id.
-            if ( IDManager.getDocNameByDocId(i, j, compare) == false )
-                return false;
-
-            // Check if the document name from docIdManager is the same as the original one.
-            if ( docNameList[ (i - 1)*235 + (j - 1)] != compare ) 
-                return false;
-        } // end - for
-        
-    } // end - for
-
-    return true;
-
-} // end - isIdListCorrect()
-
-
-
-
 
 /**********************************************************
  *
@@ -270,7 +212,7 @@ inline bool isDocIdListCorrect(unsigned int collectionIdNum, unsigned int docIdN
 BOOST_FIXTURE_TEST_SUITE( t_IDManager, IDManagerFixture )
 
 /**
- * @brief Test Case 1 : Get ids of 100 & 2400 terms using getTermIdByTermString() Interfaces. 
+ * @brief Test Case 1 : Get ids of 100 & 2400 terms using getTermIdByTermString() Interfaces.
  *                      After checking the ids of them, get strings of 100 & 2400 ids using getTermStringByTermId() Interfaces.\n
  *
  * @details
@@ -284,7 +226,7 @@ BOOST_AUTO_TEST_CASE( TestCase1 )
 	remove("IDManagerData.dat");
 
     cerr << endl;
-    cerr << "[ IDManager ] Test Case 1 : Check getTermIdByTermString() ................"; 
+    cerr << "[ IDManager ] Test Case 1 : Check getTermIdByTermString() ................";
 
     // remove previous index file
     // remove(TermIdManager::TERM_ID_MANAGER_INDEX_FILE.c_str());
@@ -293,7 +235,7 @@ BOOST_AUTO_TEST_CASE( TestCase1 )
     IDManager idManager("idm1");
     unsigned int i;
     UString compare;
-    
+
     // termUStringList1_ (100 terms) and termUStringList2_ (2500 terms) are already generated.
 
 
@@ -302,10 +244,10 @@ BOOST_AUTO_TEST_CASE( TestCase1 )
 
     termIdList2_.resize(termUStringList2_.size());
 
-    for(i = 0; i < termUStringList1_.size(); i++) 
+    for(i = 0; i < termUStringList1_.size(); i++)
         idManager.getTermIdByTermString( termUStringList1_[i], termIdList1_[i] );
 
-    for(i = 0; i < termUStringList2_.size(); i++) 
+    for(i = 0; i < termUStringList2_.size(); i++)
         idManager.getTermIdByTermString( termUStringList2_[i], termIdList2_[i] );
 
     // Check if the id is correctly generated using getTermStringByTermId().
@@ -322,7 +264,7 @@ BOOST_AUTO_TEST_CASE( TestCase1 )
 //*/
 
 /**
- * @brief Test Case 2 : Get ids of 100 & 2400 terms using getTermIdListByTermStringList() Interfaces. 
+ * @brief Test Case 2 : Get ids of 100 & 2400 terms using getTermIdListByTermStringList() Interfaces.
  *                      After checking the ids of them, get strings of 100 & 2400 ids. \n
  * @details
  *  - Get 100 & 2400 terms. termUStringList1_ and termUStringList2_ contains terms.
@@ -358,7 +300,7 @@ BOOST_AUTO_TEST_CASE( TestCase2 )
 	remove("IDManagerData.dat");
     cerr << "OK"<< endl;
 
-} // end - BOOST_AUTO_TEST_CASE( TestCase2 ) 
+} // end - BOOST_AUTO_TEST_CASE( TestCase2 )
 //*/
 
 /**
@@ -382,7 +324,7 @@ BOOST_AUTO_TEST_CASE( TestCase3 )
     IDManager idManager("idm3");
     UString compare;
 
-    // Build term index dictionary using getTermIdListByTermStringList() Interface.    
+    // Build term index dictionary using getTermIdListByTermStringList() Interface.
     termIdList1_.resize(termUStringList1_.size());
     termIdList2_.resize(termUStringList2_.size());
     idManager.getTermIdListByTermStringList( termUStringList1_, termIdList1_ );
@@ -402,7 +344,7 @@ BOOST_AUTO_TEST_CASE( TestCase3 )
     pattern = patternCheck;
     pattern += starChar;
     idManager.getTermIdListByWildcardPattern(pattern, termIdList1_);
-    BOOST_CHECK_EQUAL( termIdList1_.size() , static_cast<unsigned int>(35) ); 
+    BOOST_CHECK_EQUAL( termIdList1_.size() , static_cast<unsigned int>(35) );
 
     // ---------------------------------------------- pattern = "*ad"
     pattern.clear();
@@ -411,7 +353,7 @@ BOOST_AUTO_TEST_CASE( TestCase3 )
     pattern += patternCheck;
 
     idManager.getTermIdListByWildcardPattern(pattern, termIdList1_);
-    BOOST_CHECK_EQUAL( termIdList1_.size() , static_cast<unsigned int>(4) ); 
+    BOOST_CHECK_EQUAL( termIdList1_.size() , static_cast<unsigned int>(4) );
 
     // ---------------------------------------------- pattern = "*ad*"
     pattern.clear();
@@ -454,18 +396,16 @@ BOOST_AUTO_TEST_CASE( TestCase4 )
     UString insertUString(insertString, UString::CP949);
     UString resultUString;
 
-    unsigned int collectionId = 1; // Collection id 1 is used for inserting one document name.
-
     unsigned int id = 0;
 
     // Insert 1 terms into document id manager by using getDocIdByDocName() interface.
     // While inserting, check if the return value is false.
-    BOOST_CHECK_EQUAL( idManager.getDocIdByDocName(collectionId, insertUString, id ) , false );
+    BOOST_CHECK_EQUAL( idManager.getDocIdByDocName(insertUString, id ) , false );
     // Check if the ustring is correctly inserted using getDocNameByDocId() interface.
-    BOOST_CHECK_EQUAL( idManager.getDocNameByDocId(collectionId, id, resultUString ) , true );
+    BOOST_CHECK_EQUAL( idManager.getDocNameByDocId(id, resultUString ) , true );
 
     // Check again if the id is found in the document indexer using getDocIdByDocName() interface.
-    BOOST_CHECK_EQUAL( idManager.getDocIdByDocName(collectionId, insertUString, id ) , true );
+    BOOST_CHECK_EQUAL( idManager.getDocIdByDocName(insertUString, id ) , true );
 
 
     // Check if the resultUString is the same as insertUString.
@@ -476,161 +416,6 @@ BOOST_AUTO_TEST_CASE( TestCase4 )
     cerr << "OK" << endl;
 
 } // end - BOOST_AUTO_TEST_CASE( TestCase4 )
-
-/**
- * @brief Test Case 5 : Insert 100 collection names by using collectionIdManager and insert 235 
- *                      documents by using collectionIdManager & docIdManager. Check if the 
- *                      insertion is correct.
- * @details
- *
- *  -# Insert 100 collection names into collectionIdManager. While inserting, get the 
- *     collection ids for each name.
- *  -# Using collection Ids, insert 235 documents for each 10 collections.
- *  -# Check all the terms are correctly inserted into collectionIdManager and docIdManager.
- */
-BOOST_AUTO_TEST_CASE( TestCase5 )
-{
-	// Clear data of previous test case
-	remove("IDManagerData.dat");
-    cerr << "[ IDManager ] Test Case 5 : collectionIdManager and docIdManager check ...";
-
-    // remove previous index file
-    // remove(DocIdManager::DOC_ID_MANAGER_INDEX_FILE.c_str());
-    // remove( CollectionIdManager<UString, unsigned int><UString, unsigned int>::COLLECTION_ID_MANAGER_INDEX_FILE.c_str() );
-
-
-    unsigned int i;
-    unsigned int collectionId;
-    IDManager idManager("idm5");
-
-
-    // Get ids for each collection names using getCollectionIdByCollectionName().
-    termIdList1_.resize(termUStringList1_.size());
-    termIdList2_.resize(termUStringList2_.size());
-
-    // Insert 100 collection names.
-    for(i = 0; i < termUStringList1_.size(); i++) 
-        idManager.getCollectionIdByCollectionName( termUStringList1_[i], termIdList1_[i] );
-
-    // Insert 235 documents for each 10 collections.
-    collectionId = 0;
-    for(i = 0; i < termUStringList2_.size(); i++) 
-    {
-        if ( (i % 235) == 0 )
-            collectionId++;
-        BOOST_CHECK_EQUAL( idManager.getDocIdByDocName( collectionId, termUStringList2_[i], termIdList2_[i] ) , false );
-    } // end - for
-
-    // Check all the collection names are correctly inserted into collectionIdManager. 
-    BOOST_CHECK_EQUAL( isCollectionIdListCorrect( termIdList1_, termUStringList1_, idManager ) , true );
-
-    // Check all the document names are correctly inserted into docIdManager. 
-    BOOST_CHECK_EQUAL( isDocIdListCorrect( 1 , 235, termUStringList2_, idManager ) , true ); 
-
-	// Clear data of this test case
-	remove("IDManagerData.dat");
-    cerr << "OK" << endl;
-
-} // end - BOOST_AUTO_TEST_CASE( TestCase5 ) 
-//*/
-
-/**
- * @brief  Test Case 6 : Simple CollectionIdManager<UString, unsigned int> check.
- * @details
- *      - Inset one collection name to the empty collectionIndexer_ using 
- *        getCollectionIdByCollectionName() interface. And check if the return value is false 
- *        which means the collection name is not in the collectionIndexer. Also check if the
- *        return value of getCollectionNameByCollectionId() is true after using
- *        getCollectionIdByCollectionName() interface.
- *      - Process getCollectionIdByCollectionName() using the same name as one at the previous
- *        test. Check if the return value is true which means the collection name is in the
- *        termIndexer
- */
-BOOST_AUTO_TEST_CASE( TestCase6 )
-{
-	// Clear data of previous test case
-	remove("IDManagerData.dat");
-    cerr << "[ IDManager ] Test Case 6 : Simple Collection Id Manager check ...........";
-
-    // remove previous index file
-    // remove(CollectionIdManager<UString, unsigned int>::COLLECTION_ID_MANAGER_INDEX_FILE.c_str());
-
-
-
-    IDManager idManager("idm6");
-
-    string insertString("Test CollectionIdManager<UString, unsigned int>");
-    UString insertUString(insertString, UString::CP949);
-    UString resultUString;
-
-    unsigned int id = 0;
-
-    // Insert 1 terms into collection id manager using getCollectionIdByCollectionName() interface.
-    // While inserting, check if the return value is false.
-    BOOST_CHECK_EQUAL( idManager.getCollectionIdByCollectionName( insertUString, id ) , false );
-
-    // Check if the ustring is correctly inserted using getCollectionNameByCollectionId() interface.
-    BOOST_CHECK_EQUAL( idManager.getCollectionNameByCollectionId( id , resultUString ) , true );
-
-    // Check again if the id is found in the collection indexer using getCollectionIdByCollectionName() interface.
-    BOOST_CHECK_EQUAL( idManager.getCollectionIdByCollectionName( insertUString, id ) , true );
-
-
-    // Check if the resultUString is the same as insertUString.
-    BOOST_CHECK ( insertUString == resultUString );
-
-	// Clear data of this test case
-	remove("IDManagerData.dat");
-    cerr << "OK" << endl;
-
-} // end - BOOST_AUTO_TEST_CASE( TestCase6 )
-//*/
-
-/**
- * @brief Test Case 7 : Insert 2450 collection names and check if the collectionIndexer_ contains
- *                      correct data.
- * @details
- *      - Insert 2400 collection names using getCollectionIdByCollectionName(). Store
- *        CollectionIdList
- *      - Check if the collection name (which is gotten by using 
- *        getCollectionNameByCollectionId() with its id from collectionIndexer) is the same as 
- *        the original one.
- */
-BOOST_AUTO_TEST_CASE( TestCase7 )
-{
-	// Clear data of previous test case
-	remove("IDManagerData.dat");
-    cerr << "[ IDManager ] Test Case 7 : 2450 collection name insertion checking ......";
-
-    // remove previous index file
-    // remove(CollectionIdManager<UString, unsigned int>::COLLECTION_ID_MANAGER_INDEX_FILE.c_str());
-
-
-    unsigned int i;
-
-    IDManager idManager("idm7");
-
-    // termUStringList1_ (100 terms) and termUStringList2_ (2500 terms) are already generated.
-
-    // Get ids for each collection names using getCollectionIdByCollectionName().
-    termIdList1_.resize(termUStringList1_.size());
-    termIdList2_.resize(termUStringList2_.size());
-
-    for(i = 0; i < termUStringList1_.size(); i++) 
-        idManager.getCollectionIdByCollectionName( termUStringList1_[i], termIdList1_[i] );
-
-    for(i = 0; i < termUStringList2_.size(); i++) 
-        idManager.getCollectionIdByCollectionName( termUStringList2_[i], termIdList2_[i] );
-    
-    // Check if the id is correctly generated using getCollectionNameByCollectionId().
-    BOOST_CHECK_EQUAL( isCollectionIdListCorrect( termIdList1_, termUStringList1_, idManager ) , true );
-    BOOST_CHECK_EQUAL( isCollectionIdListCorrect( termIdList2_, termUStringList2_, idManager ) , true );
-    cerr << "OK" << endl;
-
-	// Clear data of this test case
-	remove("IDManagerData.dat");
-} // end - BOOST_AUTO_TEST_CASE( TestCase7 ) 
-//*/
 
 
 /**
@@ -672,7 +457,7 @@ BOOST_AUTO_TEST_CASE( TestCase8 )
     docIdList.resize(termUStringList2_.size());
     collectionIdList.resize(termUStringList2_.size());
 
-    for(i = 0; i < termUStringList2_.size(); i++) 
+    for(i = 0; i < termUStringList2_.size(); i++)
 	{
         idManager_Store.getTermIdByTermString(termUStringList2_[i], termIdList[i]);
         idManager_Store.getDocIdByDocName(collectionId, termUStringList2_[i], docIdList[i]);
@@ -691,7 +476,7 @@ BOOST_AUTO_TEST_CASE( TestCase8 )
 
     cerr << "==================================================================== 3" << endl;
 
-    for(i = 0; i < termUStringList2_.size(); i++) 
+    for(i = 0; i < termUStringList2_.size(); i++)
 	{
 		// check if the IDs are changed
         idManager_Load->getTermIdByTermString(termUStringList2_[i], testId);
@@ -703,81 +488,81 @@ BOOST_AUTO_TEST_CASE( TestCase8 )
 	}
     cerr << "==================================================================== 2" << endl;
 	delete idManager_Load;
-    
+
 	remove("test.dat");
 	// Clear data of this test case
 	// remove("IDManagerData.dat");
 
     cerr << "OK" << endl;
 
-} // end - BOOST_AUTO_TEST_CASE( TestCase8 ) 
+} // end - BOOST_AUTO_TEST_CASE( TestCase8 )
 //*/
 
-
-/**
- * @brief Test Case 9 : Automatically load data of IDManager from a file
- * @details
- *      - Insert 2350 collection names, document names, and term strings into IDManager
- *      - Load data from defalt file IDManagerData.dat, make sure that the IDs are not changed
- */
-BOOST_AUTO_TEST_CASE( TestCase9 )
-{
-	// File IDManagerData.dat is defalt file name of IDManager.
-	// IDManager automatically stores its data in IDManagerData.dat
-	// Clear data of previous test case
-	// remove("IDManagerData.dat");
-
-    cerr << "[ IDManager ] Test Case 9 : test read/write from/to file ......";
-
-    // remove previous index file
-    // remove(CollectionIdManager<UString, unsigned int>::COLLECTION_ID_MANAGER_INDEX_FILE.c_str());
-
-
-    unsigned int i;
-	unsigned int collectionId = 1;
-    IDManager idManager_Store;
-    IDManager* idManager_Load;
-    std::vector<unsigned int> termIdList;
-    std::vector<unsigned int> docIdList;
-    std::vector<unsigned int> collectionIdList;
-    unsigned int testId;
-
-    // termUStringList1_ (100 terms) and termUStringList2_ (2500 terms) are already generated.
-
-    // Get ids for each collection names using getCollectionIdByCollectionName().
-    termIdList.resize(termUStringList2_.size());
-    docIdList.resize(termUStringList2_.size());
-    collectionIdList.resize(termUStringList2_.size());
-    for(i = 0; i < termUStringList2_.size(); i++) 
-	{
-        idManager_Store.getTermIdByTermString(termUStringList2_[i], termIdList[i]);
-        idManager_Store.getDocIdByDocName(collectionId, termUStringList2_[i], docIdList[i]);
-        idManager_Store.getCollectionIdByCollectionName( termUStringList2_[i], collectionIdList[i] );
-	}
-
-	// load data from IDManagerData.dat
-	idManager_Load = new IDManager();
-    for(i = 0; i < termUStringList2_.size(); i++) 
-	{
-		// check if the IDs are changed
-        idManager_Load->getTermIdByTermString(termUStringList2_[i], testId);
-		BOOST_CHECK_EQUAL(termIdList[i], testId);
-        idManager_Load->getDocIdByDocName(collectionId, termUStringList2_[i], testId);
-		BOOST_CHECK_EQUAL(docIdList[i], testId);
-        idManager_Load->getCollectionIdByCollectionName( termUStringList2_[i], testId);
-		BOOST_CHECK_EQUAL(collectionIdList[i], testId);
-	}
-	delete idManager_Load;
-    
-	// Clear data of this test case
-	remove("IDManagerData.dat");
-	
-	
-	
-
-    cerr << "OK" << endl;
-
-} // end - BOOST_AUTO_TEST_CASE( TestCase9 ) 
-//*/
+//
+///**
+// * @brief Test Case 9 : Automatically load data of IDManager from a file
+// * @details
+// *      - Insert 2350 collection names, document names, and term strings into IDManager
+// *      - Load data from defalt file IDManagerData.dat, make sure that the IDs are not changed
+// */
+//BOOST_AUTO_TEST_CASE( TestCase9 )
+//{
+//	// File IDManagerData.dat is defalt file name of IDManager.
+//	// IDManager automatically stores its data in IDManagerData.dat
+//	// Clear data of previous test case
+//	// remove("IDManagerData.dat");
+//
+//    cerr << "[ IDManager ] Test Case 9 : test read/write from/to file ......";
+//
+//    // remove previous index file
+//    // remove(CollectionIdManager<UString, unsigned int>::COLLECTION_ID_MANAGER_INDEX_FILE.c_str());
+//
+//
+//    unsigned int i;
+//	unsigned int collectionId = 1;
+//    IDManager idManager_Store;
+//    IDManager* idManager_Load;
+//    std::vector<unsigned int> termIdList;
+//    std::vector<unsigned int> docIdList;
+//    std::vector<unsigned int> collectionIdList;
+//    unsigned int testId;
+//
+//    // termUStringList1_ (100 terms) and termUStringList2_ (2500 terms) are already generated.
+//
+//    // Get ids for each collection names using getCollectionIdByCollectionName().
+//    termIdList.resize(termUStringList2_.size());
+//    docIdList.resize(termUStringList2_.size());
+//    collectionIdList.resize(termUStringList2_.size());
+//    for(i = 0; i < termUStringList2_.size(); i++)
+//	{
+//        idManager_Store.getTermIdByTermString(termUStringList2_[i], termIdList[i]);
+//        idManager_Store.getDocIdByDocName(collectionId, termUStringList2_[i], docIdList[i]);
+//        idManager_Store.getCollectionIdByCollectionName( termUStringList2_[i], collectionIdList[i] );
+//	}
+//
+//	// load data from IDManagerData.dat
+//	idManager_Load = new IDManager();
+//    for(i = 0; i < termUStringList2_.size(); i++)
+//	{
+//		// check if the IDs are changed
+//        idManager_Load->getTermIdByTermString(termUStringList2_[i], testId);
+//		BOOST_CHECK_EQUAL(termIdList[i], testId);
+//        idManager_Load->getDocIdByDocName(collectionId, termUStringList2_[i], testId);
+//		BOOST_CHECK_EQUAL(docIdList[i], testId);
+//        idManager_Load->getCollectionIdByCollectionName( termUStringList2_[i], testId);
+//		BOOST_CHECK_EQUAL(collectionIdList[i], testId);
+//	}
+//	delete idManager_Load;
+//
+//	// Clear data of this test case
+//	remove("IDManagerData.dat");
+//
+//
+//
+//
+//    cerr << "OK" << endl;
+//
+//} // end - BOOST_AUTO_TEST_CASE( TestCase9 )
+////*/
 
 BOOST_AUTO_TEST_SUITE_END()

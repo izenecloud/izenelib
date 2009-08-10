@@ -34,7 +34,7 @@ IndexerFactory indexerFactory;
 
 #define MAJOR_VERSION "1"
 #define MINOR_VERSION "0"
-#define PATCH_VERSION "20081128" // update date
+#define PATCH_VERSION "20090801" // update date
 
 Indexer::Indexer( ManagerType managerType)
         :managerType_(managerType)
@@ -606,6 +606,60 @@ bool Indexer::getDocsByTermsInProperties(vector<termid_t> termIDs, collectionid_
     return ret;
 }
 
+///To be optimized: Using TermDocFreqs instead of TermPositions
+bool Indexer::getDocsByTermInProperties(termid_t termID, collectionid_t colID, vector<string> properties, vector<docid_t>& docIds)
+{
+    if (properties.size() > 1)
+    {
+        ParallelTermPosition parallelTermPosition(colID, pIndexReader_,properties);
+        if (!parallelTermPosition.isValid())
+            return false;
+        if (parallelTermPosition.seek(termID))
+        {
+            vector<string> currProperties;
+            docid_t currDocID;
+            while (parallelTermPosition.next(currProperties,currDocID))
+            {
+                docIds.push_back(currDocID);
+                currProperties.clear();
+            }
+        }
+        else
+        {
+            cout<<"seek error"<<endl;
+            return false;
+        }
+    }
+    else
+    {
+        TermReader* pTermReader = pIndexReader_->getTermReader(colID);
+        if (NULL == pTermReader)
+            return false;
+
+        Term term(properties[0].c_str(), termID);
+        if (pTermReader->seek(&term))
+        {
+            TermPositions* pPositions = pTermReader->termPositions();
+
+            while (pPositions->next())
+            {
+                docIds.push_back(pPositions->doc());
+            }
+
+            delete pPositions;
+        }
+        else
+        {
+            cout<<"seek error"<<endl;
+            delete pTermReader;
+            return false;
+        }
+        delete pTermReader;
+    }
+
+    return true;
+}
+
 bool Indexer::getDocsByTermInProperties(termid_t termID, collectionid_t colID, vector<string> properties, vector<CommonItem>& commonSet)
 {
     if (properties.size() > 1)
@@ -680,7 +734,7 @@ bool Indexer::getDocsByTermInProperties(termid_t termID, collectionid_t colID, v
     return true;
 }
 
-bool Indexer::getWordOffsetListOfQueryByDocumentProperty (const vector<termid_t>& queryTermIdList,  collectionid_t colId,  docid_t docId, string propertyName, vector<vector<pair<unsigned int, unsigned int> > >& wordOffsetListOfQuery )
+bool Indexer::getWordOffsetListOfQueryByDocumentProperty (const vector<termid_t>& queryTermIdList,  collectionid_t colId,  docid_t docId, string propertyName, deque<deque<pair<unsigned int, unsigned int> > >& wordOffsetListOfQuery )
 {
     fieldid_t fid = getPropertyIDByName(colId,propertyName);
     ForwardIndexReader* pForwardIndexReader = pIndexReader_->getForwardIndexReader();
@@ -688,6 +742,16 @@ bool Indexer::getWordOffsetListOfQueryByDocumentProperty (const vector<termid_t>
     delete pForwardIndexReader;
     return ret;
 }
+
+bool Indexer::getForwardIndexByDocumentProperty(collectionid_t colId, docid_t docId, string propertyName, ForwardIndex& forwardIndex)
+{
+    fieldid_t fid = getPropertyIDByName(colId,propertyName);
+    ForwardIndexReader* pForwardIndexReader = pIndexReader_->getForwardIndexReader();
+    bool ret = pForwardIndexReader->getForwardIndexByDoc(docId, fid, forwardIndex);
+    delete pForwardIndexReader;
+    return ret;
+}
+
 
 bool Indexer::getTermFrequencyInCollectionByTermId( const vector<termid_t>& termIdList, const unsigned int collectionId, const vector<string>& propertyList, vector<unsigned int>& termFrequencyList )
 {

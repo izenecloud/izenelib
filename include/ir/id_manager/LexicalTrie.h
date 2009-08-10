@@ -1,6 +1,6 @@
 /**
  * @file	LexicalTrie.h
- * @brief	Header file of LexicalTrie Class 
+ * @brief	Header file of LexicalTrie Class
  * @author	Yingfeng Zhang
  * @date    2009-02-02
  * @details
@@ -160,7 +160,7 @@ public:
 
 			LetterTriePair * pair = findLetterPair(word[0]);
 			NameString subWord;
-			word.substr(subWord, 1);
+			subWord = word.substr(1);
 
 			if (pair) {
 				// pair exists so update it...
@@ -209,14 +209,14 @@ public:
 					// Try matching 0 characters
 
 					NameString newPattern;
-					pattern.substr(newPattern, 1);
+					newPattern = pattern.substr(1);
 					this->findRegExp(results, newPattern, soFar);
 					break;
 				}
 				//case '?':
 				case 63: {
 					NameString newPattern;
-					pattern.substr(newPattern, 1);
+					newPattern = pattern.substr(1);
 
 					// Try matching no character
 					this->findRegExp(results, newPattern, soFar);
@@ -239,7 +239,7 @@ public:
 					NameString newSoFar(soFar);
 					newSoFar += pair->letter_;
 					NameString newPattern;
-					pattern.substr(newPattern, 1);
+					newPattern = pattern.substr(1);
 
 					pair->trie_->findRegExp(results, newPattern, newSoFar);
 				} else {
@@ -289,7 +289,7 @@ template<typename NameString> int LexicalTrie<NameString>::num_items() {
 	return numWords_;
 }
 
-} // end - namespace idmanager 
+} // end - namespace idmanager
 
 NS_IZENELIB_IR_END
 

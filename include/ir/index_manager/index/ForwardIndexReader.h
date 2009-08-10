@@ -26,9 +26,9 @@ public:
 public:
     ForwardIndexReader* clone();
 
-    bool getTermOffset(unsigned int termId, docid_t docId, fieldid_t fid, std::vector<std::pair<unsigned int, unsigned int> >& offsetList);
+    bool getTermOffset(unsigned int termId, docid_t docId, fieldid_t fid, std::deque<std::pair<unsigned int, unsigned int> >& offsetList);
 
-    bool getTermOffsetList(const std::vector<unsigned int>& termIds, docid_t docId, fieldid_t fid, std::vector<std::vector<std::pair<unsigned int, unsigned int> > >& offsetList);
+    bool getTermOffsetList(const std::vector<unsigned int>& termIds, docid_t docId, fieldid_t fid, std::deque<std::deque<std::pair<unsigned int, unsigned int> > >& offsetList);
 
     bool getForwardIndexByDoc(docid_t docId, fieldid_t fid, ForwardIndex& forwardIndex);	
 

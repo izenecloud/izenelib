@@ -699,7 +699,7 @@ public:
 		for (size_t i=0; i<directorySize_; i++) {
 			if(entry_[i]) {
 				bucket_chain* sc = entry_[i]->next;
-				bucket_chain* sa;
+				bucket_chain* sa = 0;
 				while ( sc ) {
 					sa = sc->next;
 					if( sc) {
@@ -719,7 +719,7 @@ public:
 	void display(std::ostream& os = std::cout, bool onlyheader = true) {
 		sfh_.display(os);
 		os<<"activeNum: "<<activeNum_<<endl;
-		os<<"loadFactor: "<<loadFactor()<<endl;
+		//os<<"loadFactor: "<<loadFactor()<<endl;
 
 		if( !onlyheader ) {
 			for (size_t i=0; i<directorySize_; i++) {
@@ -841,8 +841,11 @@ private:
 #ifdef DEBUG
 		cout<<"cache is full..."<<endl;
 		cout<<activeNum_<<" vs "<<sfh_.cacheSize <<endl;
-		display();
+		//display();
 #endif 
+		//flush();
+		//return ;
+		
 		if( !quickFlush )commit();
 		for(size_t i=0; i<directorySize_; i++) {
 			bucket_chain* sc = entry_[i];
@@ -861,11 +864,11 @@ private:
 		{
 
 			//display cache
-			/*cout<<"(level: "<<it->second->level;
-			 cout<<"  val:  "<<it->second;
-			 cout<<"  fpos: "<<it->second->fpos;	
-			 cout<<"  num: "<<it->second->num;		
-			 cout<<" )-> ";*/
+			//cout<<"(level: "<<it->second->level;
+			// cout<<"  val:  "<<it->second;
+			 //cout<<"  fpos: "<<it->second->fpos;	
+			 //cout<<"  num: "<<it->second->num;		
+			 //cout<<" )-> ";
 
 			if(quickFlush)
 			it->second->write(dataFile_);
@@ -875,15 +878,15 @@ private:
 				fflush(dataFile_);
 				sh_cache_.clear();
 
-				cout<<" !!!! "<<activeNum_<<" vs "<<sfh_.cacheSize <<endl;
-				display();
+				//cout<<" !!!! "<<activeNum_<<" vs "<<sfh_.cacheSize <<endl;
+				//display();
 
 				return;
 			}
 		}
 		fflush(dataFile_);
 		sh_cache_.clear();
-
+		
 		cout<<" !!!! "<<activeNum_<<" vs "<<sfh_.cacheSize <<endl;
 		display();	
 

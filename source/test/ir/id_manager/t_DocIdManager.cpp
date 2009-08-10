@@ -1,7 +1,7 @@
 /**
  * w
  * @file    t_DocIdManager.cpp
- * @brief   A Test unit of DocIdManager. 
+ * @brief   A Test unit of DocIdManager.
  * @author  Do Hyun Yun
  * @date    2008-08-16
  * @details
@@ -15,16 +15,16 @@
  *      - Check if the given document name is correctly inserted into the docIndexer by using
  *        getDocNameByDocId() interface.
  *\n
- *  -# Test Case 2 : Insert 100 collection names by using collectionIdManager and insert 235 
- *                   documents by using collectionIdManager & docIdManager. Check if the 
+ *  -# Test Case 2 : Insert 100 collection names by using collectionIdManager and insert 235
+ *                   documents by using collectionIdManager & docIdManager. Check if the
  *                   insertion is correct.
- *      - Insert 100 collection names into collectionIdManager. While inserting, get the 
+ *      - Insert 100 collection names into collectionIdManager. While inserting, get the
  *        collection ids for each name.
  *      - Using collection Ids, insert 235 documents for each collection.
  *      - Check all the terms are correctly inserted into collectionIdManager and docIdManager.
  *\n
- *  -# Test Case 3 : Recovery Test. It checks if DocIdManager can reload the previous index data when it restarts, 
- *      - Use the index data from test case 2 (Test case 2 remove index file of previous test). 
+ *  -# Test Case 3 : Recovery Test. It checks if DocIdManager can reload the previous index data when it restarts,
+ *      - Use the index data from test case 2 (Test case 2 remove index file of previous test).
  *      - Check if the doc id and doc name is equal to the ones of test case 2.\n\n
  */
 #include <fstream>
@@ -32,8 +32,8 @@
 
 #include <boost/test/unit_test.hpp>
 
-#include <ir/id_manager/CollectionIdManager.h>
 #include <ir/id_manager/DocIdManager.h>
+#include <ir/id_manager/SequentialIDFactory.h>
 #include <wiselib/ustring/UString.h>
 
 using namespace std;
@@ -161,63 +161,6 @@ public:
 
 }; // end - class DocIdManagerFixture
 
-
-/**
- * @brief Check function which checks if all the collection ids are corretly generated.
- */
-
-inline bool isCollectionIdListCorrect(const vector<unsigned int>& collectionIdList,const vector<UString>& collectionNameList, CollectionIdManager<UString, unsigned int>& collectionIdManager)
-{
-    UString compare;
-    
-    // Check if the id is correctly generated using getCollectionNameByCollectionId().
-    for(unsigned int i = 0; i < collectionIdList.size(); i++) 
-    {
-
-        // Check if the id is in the CollectionIdManager<UString, unsigned int> with getting collection name according to the id.
-        if ( collectionIdManager.getCollectionNameByCollectionId(collectionIdList[i], compare) == false )
-            return false;
-
-        // Check if the collection name from collectionIdManager is the same as the original one.
-        if ( collectionNameList[i] != compare ) 
-            return false;
-
-    } // end - for
-
-    return true;
-
-} // end - isIdListCorrect()
-
-/**
- * @brief Check function which checks if all the doc ids are corretly generated.
- */
-
-inline bool isDocIdListCorrect(unsigned int collectionIdNum, unsigned int docIdNum, const vector<UString>& docNameList, DocIdManager<UString, unsigned int>& docIdManager)
-{
-    UString compare;
-
-    for(unsigned int i = 1; i <= collectionIdNum; i++)
-    {
-        for(unsigned int j = 1; j <= docIdNum; j++)
-        {
-            // Check if the id is in the DocIdManager with getting document name according to the id.
-            if ( docIdManager.getDocNameByDocId(i, j, compare) == false )
-                return false;
-
-            // Check if the document name from docIdManager is the same as the original one.
-            if ( docNameList[ (i - 1)*235 + (j - 1)] != compare ) 
-                return false;
-        } // end - for
-        
-    } // end - for
-
-    return true;
-
-} // end - isIdListCorrect()
-
-
-
-
 /**********************************************************
  *
  *          Start point of t_DocIdManager suite - 1
@@ -244,25 +187,24 @@ BOOST_AUTO_TEST_CASE( TestCase1 )
     // remove(CollectionIdManager<UString, unsigned int>::COLLECTION_ID_MANAGER_INDEX_FILE.c_str());
 
     cerr << endl;
-    cerr << "[ DocIdManager ] Test Case 1 : Simple Document Id Manager check .............."; 
-    
-    DocIdManager<UString, unsigned int> docIdManager("docid1");
+    cerr << "[ DocIdManager ] Test Case 1 : Simple Document Id Manager check ..............";
+
+    DocIdManager<UString, unsigned int,
+        SequentialIDFactory<UString, unsigned int> > docIdManager("docid1");
 
     string insertString("Test DocIdManager");
     UString insertUString(insertString, UString::CP949);
     UString resultUString;
 
-    unsigned int collectionId = 1; // Collection id 1 is used for inserting one document name.
-
     unsigned int id = 0;
 
     // Insert 1 terms into document id manager by using getDocIdByDocName() interface.
     // While inserting, check if the return value is false.
-    BOOST_CHECK_EQUAL( docIdManager.getDocIdByDocName(collectionId, insertUString, id ) , false );   
+    BOOST_CHECK_EQUAL( docIdManager.getDocIdByDocName(insertUString, id ) , false );
     // Check if the ustring is correctly inserted using getDocNameByDocId() interface.
-    BOOST_CHECK_EQUAL( docIdManager.getDocNameByDocId(collectionId, id, resultUString ) , true );
+    BOOST_CHECK_EQUAL( docIdManager.getDocNameByDocId(id, resultUString ) , true );
     // Check again if the id is found in the document indexer using getDocIdByDocName() interface.
-    BOOST_CHECK_EQUAL( docIdManager.getDocIdByDocName(collectionId, insertUString, id ) , true );  
+    BOOST_CHECK_EQUAL( docIdManager.getDocIdByDocName(insertUString, id ) , true );
 
     // Check if the resultUString is the same as insertUString.
     BOOST_CHECK ( insertUString == resultUString );
@@ -271,110 +213,6 @@ BOOST_AUTO_TEST_CASE( TestCase1 )
 
 
 } // end - BOOST_AUTO_TEST_CASE( TestCase1 )
-
-/**
- * @brief Test Case 2 : Insert 100 collection names by using collectionIdManager and insert 235 
- *                      documents by using collectionIdManager & docIdManager. Check if the 
- *                      insertion is correct.
- * @details
- *
- *  -# Insert 100 collection names into collectionIdManager. While inserting, get the 
- *     collection ids for each name.
- *  -# Using collection Ids, insert 235 documents for each 10 collections.
- *  -# Check all the terms are correctly inserted into collectionIdManager and docIdManager.
- */
-
-BOOST_AUTO_TEST_CASE( TestCase2 )
-{
-    // remove previous index file
-    // remove(DocIdManager::DOC_ID_MANAGER_INDEX_FILE.c_str());
-    // remove( CollectionIdManager<UString, unsigned int>::COLLECTION_ID_MANAGER_INDEX_FILE.c_str() );
-
-    cerr << "[ DocIdManager ] Test Case 2 : collectionIdManager and docIdManager check ....";
-
-    unsigned int i;
-    unsigned int collectionId;
-    CollectionIdManager<UString, unsigned int> collectionIdManager("colid_d");   
-    DocIdManager<UString, unsigned int> docIdManager("docid2");
-
-
-    // Get ids for each collection names using getCollectionIdByCollectionName().
-    termIdList1_.resize(termUStringList1_.size());
-    termIdList2_.resize(termUStringList2_.size());
-
-    // Insert 100 collection names.
-    for(i = 0; i < termUStringList1_.size(); i++) 
-        collectionIdManager.getCollectionIdByCollectionName( termUStringList1_[i], termIdList1_[i] );
-
-    // Insert 235 documents for each 10 collections.
-    collectionId = 0;
-    for(i = 0; i < termUStringList2_.size(); i++) 
-    {
-        if ( (i % 235) == 0 )
-            collectionId++;
-        BOOST_CHECK_EQUAL( docIdManager.getDocIdByDocName( collectionId, termUStringList2_[i], termIdList2_[i] ) , false );
-    } // end - for
-
-    // Check all the collection names are correctly inserted into collectionIdManager. 
-    BOOST_CHECK_EQUAL( isCollectionIdListCorrect( termIdList1_, termUStringList1_, collectionIdManager ) , true );
-
-    // Check all the document names are correctly inserted into docIdManager. 
-    BOOST_CHECK_EQUAL( isDocIdListCorrect( 1, 235, termUStringList2_, docIdManager ) , true ); 
-
-    cerr << "OK" << endl;
-
-
-} // end - BOOST_AUTO_TEST_CASE( TestCase2 ) 
-//*/
-
-
-/**
- * @brief Test Case 3 : Recovery Test. It checks if DocIdManager can reload the previous index data when it restarts, 
- *
- * @details
- *  -# Use the index data from test case 2 (Test case 2 remove index file of previous test).
- *  -# Check if the doc id and doc name is equal to the ones of test case 2.
- * /
-
-BOOST_AUTO_TEST_CASE( TestCase3 )
-{
-
-    cerr << "[ DocIdManager ] Test Case 3 : recovery check ................................";
-
-    unsigned int i;
-    unsigned int collectionId;
-    CollectionIdManager<UString, unsigned int><UString, unsigned int> collectionIdManager;
-    DocIdManager        docIdManager;
-
-    // Get ids for each collection names using getCollectionIdByCollectionName().
-    termIdList1_.resize(termUStringList1_.size());
-    termIdList2_.resize(termUStringList2_.size());
-
-
-    // Check if the collection id is already in the CollectionIdManager<UString, unsigned int>.
-    for(i = 0; i < termUStringList1_.size(); i++) 
-        BOOST_CHECK_EQUAL( collectionIdManager.getCollectionIdByCollectionName( termUStringList1_[i], termIdList1_[i] ) , true );
-
-    // Check if the document id is already in the DocIdManager.
-    collectionId = 0;
-    for(i = 0; i < termUStringList2_.size(); i++) 
-    {
-        if ( (i % 235) == 0 )
-            collectionId++;
-        BOOST_CHECK_EQUAL( docIdManager.getDocIdByDocName( collectionId, termUStringList2_[i], termIdList2_[i] ) , true );
-    } // end - for
-
-    // Check all the collection names are correctly inserted into collectionIdManager. 
-    BOOST_CHECK_EQUAL( isCollectionIdListCorrect( termIdList1_, termUStringList1_, collectionIdManager ) , true );
-
-    // Check all the document names are correctly inserted into docIdManager. 
-    BOOST_CHECK_EQUAL( isDocIdListCorrect( 10 , 235, termUStringList2_, docIdManager ) , true ); 
-
-    cerr << "OK" << endl;
-
-
-} // end - BOOST_AUTO_TEST_CASE( TestCase3 ) 
-//*/
 
 
 BOOST_AUTO_TEST_SUITE_END()

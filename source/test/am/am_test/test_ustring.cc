@@ -14,7 +14,7 @@ static bool rnd = 0;
 static int loop = 1;
 static bool trace = 0;
 
-MAKE_FEBIRD_SERIALIZATION(UString)
+//MAKE_FEBIRD_SERIALIZATION(UString)
 
 namespace izenelib {
 namespace am_test {

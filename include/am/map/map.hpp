@@ -21,6 +21,9 @@
 #include <istream>
 #include <iostream>
 
+#ifdef _DEBUG
+#include "debug_new.h"
+#endif
 
 using namespace std;
 
@@ -40,9 +43,9 @@ public:
   static uint32_t getValue(const unsigned int& key, size_t x=0)
   {
     return key;
-    
+
   }
-  
+
 }
   ;
 
@@ -67,13 +70,13 @@ class Map : public AccessMethod<KeyType, ValueType>
   enum {ENTRY_SIZE = (2<<ENTRY_POW)};
   enum {ENTRY_MASK = ENTRY_SIZE-1};
   enum {ENTRY_GROW = 5};
-  
+
   typedef DataType<KeyType,ValueType> DataType;
   typedef Map<KeyType, ValueType, ENTRY_POW, HASH_FUNCTION> SelfType;
 
   typedef boost::archive::binary_iarchive iarchive;
   typedef boost::archive::binary_oarchive oarchive;
-  
+
   struct KEY_
   {
     KeyType k_;
@@ -96,40 +99,39 @@ class Map : public AccessMethod<KeyType, ValueType>
     {
       return k_==k;
     }
-    
+
   };
-  
+
   struct ENTRY_
   {
     KEY_* pK_;
     size_t*  pIdx_;
   };
-  
+
 public:
   Map():entry_size_(ENTRY_SIZE)
   {
-    entry_.pK_ = new KEY_[entry_size_];    
-    entry_.pIdx_ = new size_t[entry_size_];
+    entry_.pK_ = (KEY_*) malloc( entry_size_ * sizeof(KEY_) );
+    entry_.pIdx_ = (size_t*) malloc( entry_size_ * sizeof(size_t) );
     count_ = 0;
   }
 
   ~Map()
   {
-    delete entry_.pK_;
+    free(entry_.pK_);
+    free(entry_.pIdx_);
     count_ = 0;
-    delete entry_.pIdx_;
     dataVec_.clear();
   }
 
   void clear()
   {
-    delete entry_.pK_;
-    delete entry_.pIdx_;
+    free(entry_.pK_);
+    free(entry_.pIdx_);
     count_ = 0;
-    
     dataVec_.clear();
   }
-    
+
   bool insert(const DataType& data) {
     return insert(data.get_key(), data.get_value());
   }
@@ -155,17 +157,17 @@ public:
     {
       if (entry_.pK_[idx] == key)
         return false;
-      
+
       idx ++;
     }
 
     if (idx == entry_size_)
     {
       entry_.pK_ = (KEY_*)realloc(entry_.pK_, (entry_size_+ENTRY_GROW)*sizeof(KEY_));
-      
+
       for (KeyType i=0; i<ENTRY_GROW; i++)
         entry_.pK_[entry_size_+i] = (KeyType)-1;
-      
+
       entry_.pIdx_ =  (size_t*)realloc((void*)entry_.pIdx_, (entry_size_+ENTRY_GROW)*sizeof(size_t));
 
       entry_size_ += ENTRY_GROW;
@@ -175,19 +177,19 @@ public:
     entry_.pIdx_[idx] = dataVec_.size();
     dataVec_.push_back(v);
     count_++;
-    
+
     return true;
   }
 
   ValueType* find(const KeyType& key)
-  {    
+  {
     KeyType idx = key & ENTRY_MASK;
 
     while (idx<entry_size_)
     {
       if (entry_.pK_[idx] == (KeyType)-1)
         return NULL;
-      
+
       if (entry_.pK_[idx] == key)
       {
         return &dataVec_[entry_.pIdx_[idx]];
@@ -201,14 +203,14 @@ public:
 
   bool del(const KeyType& key)
   {
-    
+
     KeyType idx = key & ENTRY_MASK;
 
     while (idx<entry_size_)
     {
       if (entry_.pK_[idx] == (KeyType)-1)
         return false;
-      
+
       if (entry_.pK_[idx] == key)
       {
         entry_.pK_[idx] = (KeyType)-1;
@@ -230,17 +232,17 @@ public:
     {
       if (entry_.pK_[idx] == (KeyType)-1)
         return false;
-      
+
       if (entry_.pK_[idx] == key)
       {
         entry_.pIdx_[idx] = dataVec_.size();
         dataVec_.push_back(v);
         return true;
       }
-      
+
       idx ++;
     }
-    
+
     return true;
   }
 
@@ -255,19 +257,19 @@ friend class boost::serialization::access;
     ar & dataVec_;
   }
 
-    
+
   template<class Archive>
   void load(Archive & ar, const unsigned int version)
   {
     clear();
-    
+
     ar & entry_size_;
-    entry_.pK_ = new KEY_[entry_size_];    
-    entry_.pIdx_ = new size_t[entry_size_];
-    
+    entry_.pK_ = (KEY_*)malloc(entry_size_*sizeof(KEY_));
+    entry_.pIdx_ = (size_t*)malloc(entry_size_*sizeof(size_t));
+
     ar.load_binary(entry_.pK_, entry_size_*sizeof(KEY_));
     ar.load_binary(entry_.pIdx_, entry_size_*sizeof(size_t));
-    
+
     ar & count_;
     ar & dataVec_;
   }
@@ -281,7 +283,7 @@ friend class boost::serialization::access;
     oa<<*this;
     of.close();
   }
-  
+
   void load(const string& file)
   {
     ifstream of(file.c_str());
@@ -295,7 +297,7 @@ protected:
   vector<ValueType> dataVec_;
   KeyType entry_size_;
   int count_;
-    
+
 };
 
 //*****************************************************************************
@@ -334,7 +336,7 @@ class Map<string, ValueType, ENTRY_POW, HASH_FUNCTION, INIT_BUCKET_SIZE>
 
   typedef boost::archive::binary_iarchive iarchive;
   typedef boost::archive::binary_oarchive oarchive;
-  
+
 public:
   Map()
   {
@@ -347,27 +349,27 @@ public:
 
   ~Map()
   {
-    
+
     for(size_t i=0; i<ENTRY_SIZE; i++)
     {
-      if (entry_[i]!=NULL) delete entry_[i];
+      if (entry_[i]!=NULL) delete[] entry_[i];
       entry_[i] = NULL;
     }
-    
+
   }
 
   void clear()
   {
-      
+
     for(size_t i=0; i<ENTRY_SIZE; i++)
     {
-      if (entry_[i]!=NULL) delete entry_[i];
+      if (entry_[i]!=NULL) delete[] entry_[i];
       entry_[i] = NULL;
     }
     dataVec_.clear();
     count_ = 0;
   }
-    
+
   bool insert(const DataType& data) {
     return insert(data.get_key(), data.get_value());
   }
@@ -421,7 +423,7 @@ public:
     uint32_t idx = HASH_FUNCTION::getValue(str.c_str(),ksize) & ENTRY_MASK;
 
     uint64_t value = dataVec_.size();
-    
+
     dataVec_.push_back(v);
 
     char* pBkt = entry_[idx];
@@ -475,7 +477,7 @@ public:
       //content_len += str.length()+sizeof(uint32_t);
       pBkt = new char[bs];
       memcpy(pBkt, entry_[idx], *(uint32_t*)(entry_[idx]) );
-      delete entry_[idx];
+      delete[] entry_[idx];
       entry_[idx] = pBkt;
     }
 
@@ -497,9 +499,9 @@ public:
   ValueType* find(const string& str)
   {
     size_t ksize = str.length();
-    
+
     uint32_t idx = HASH_FUNCTION::getValue(str.c_str(),ksize) & ENTRY_MASK;
-		
+
     char* pBkt = entry_[idx];
     if (pBkt == NULL)
       return NULL;
@@ -545,9 +547,9 @@ public:
   bool del(const string& str)
   {
     size_t ksize = str.length();
-    
+
     uint32_t idx = HASH_FUNCTION::getValue(str.c_str(),ksize) & ENTRY_MASK;
-		
+
     char* pBkt = entry_[idx];
     if (pBkt ==NULL)
       return -1;
@@ -592,7 +594,7 @@ public:
   {
     size_t ksize = str.length();
     uint32_t idx = HASH_FUNCTION::getValue(str.c_str(),ksize) & ENTRY_MASK;
-		
+
     char* pBkt = entry_[idx];
 
     if (pBkt ==NULL)
@@ -643,27 +645,27 @@ friend class boost::serialization::access;
   void save(Archive & ar, const unsigned int version)  const
   {
     ar & good_entries_;
-      
+
     for (uint64_t i=0; i<good_entries_.size();i++)
     {
       char* pBkt = entry_[good_entries_[i]];
-      
+
       uint32_t bs = *(uint32_t*)(pBkt);
 
       ar & bs;
       ar.save_binary(pBkt, bs);
     }
-      
+
     ar & count_ & dataVec_;
   }
 
-    
+
   template<class Archive>
   void load(Archive & ar, const unsigned int version)
   {
 
     ar & good_entries_;
-      
+
     for (uint64_t i=0; i<good_entries_.size();i++)
     {
       uint32_t bs;
@@ -671,24 +673,24 @@ friend class boost::serialization::access;
 
       entry_[good_entries_[i]] = new char[bs];
       ar.load_binary(entry_[good_entries_[i]], bs);
-        
+
     }
-      
+
     ar & count_  & dataVec_;
   }
 
   BOOST_SERIALIZATION_SPLIT_MEMBER()
 
-  
+
   void save(const string& file)  const
   {
     ofstream of(file.c_str(), ios_base::out|ios_base::trunc);
-    
+
     oarchive oa(of);
     oa<<*this;
     of.close();
   }
-  
+
   void load(const string& file)
   {
     ifstream of(file.c_str());
@@ -702,7 +704,7 @@ protected:
   vector<ValueType> dataVec_;
   vector<uint64_t> good_entries_;
   int count_;
-    
+
 };
 
 

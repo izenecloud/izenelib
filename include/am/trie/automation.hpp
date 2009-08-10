@@ -19,9 +19,9 @@ template<
 class Automation
 {
   typedef typename STRING_TYPE::value_type charT;
-  
+
   class _state_ ;
-  
+
 
   class _edge_
   {
@@ -50,8 +50,8 @@ class Automation
       os<<"<"<<eg.ch_<<">==>"<<eg.p_<<endl;
       return os;
     }
-    
-    
+
+
   protected:
     _state_* p_;
     charT ch_;
@@ -84,12 +84,12 @@ class Automation
     {
       edges_.push_back(eg);
     }
-    
+
 
   friend ostream& operator << ( ostream& os, const _state_& st)
     {
       os<<"state: "<<&st<<endl;
-      
+
       for (typename vector<_edge_>::const_iterator i=st.edges_.begin(); i!=st.edges_.end(); i++)
       {
         os<<(*i);
@@ -99,11 +99,11 @@ class Automation
 
       return os;
     }
-    
+
   }
     ;
-  
-  
+
+
 public:
   /**
    *According the regular express, it builds an automation
@@ -115,22 +115,22 @@ public:
     _state_* pThisState = new _state_();
     pV_.push_back(pThisState);
     has_wildcard_ = false;
-    
+
     pStart_ = pThisState;
     pEnd_ = NULL;
-    
+
     for (size_t i=0; i<regex.length(); i++)
     {
       _state_* pNextState = new _state_();
       pV_.push_back(pNextState);
-              
+
       if (i == regex.length()-1)
         pEnd_ = pNextState;
-      
+
       if (regex[i]==MULTI_WORDS_WILDCARD)
       {
         has_wildcard_ = true;
-        
+
         if (i == regex.length()-1)
         {
           pThisState->insertEdge(MULTI_WORDS_WILDCARD, pThisState);
@@ -138,15 +138,15 @@ public:
           back = pThisState;
           break;
         }
-        
+
         pThisState->insertEdge(regex[i+1], pNextState);
         back_edge = _edge_(regex[i+1], pNextState);
-          
+
         pThisState->insertEdge(MULTI_WORDS_WILDCARD, pThisState);
         back = pThisState;
         pThisState = pNextState;
         i++;
-          
+
         continue;
       }
 
@@ -157,7 +157,7 @@ public:
         pThisState->insertEdge(back_edge);
         pThisState->insertEdge(MULTI_WORDS_WILDCARD, back);
       }
-      
+
 
       pThisState = pNextState;
     }
@@ -183,25 +183,25 @@ friend ostream& operator << ( ostream& os, const Automation<STRING_TYPE, MULTI_W
   {
     for (typename vector<_state_*>::const_iterator i=aut.pV_.begin(); i!=aut.pV_.end(); i++)
       os<< *(*i);
-    
+
     return os;
   }
-  
+
   /**
    *If the 'str' can go through the automation, it mathes, returns true.
    **/
   bool match(const STRING_TYPE& str)
   {
     _state_* next = pStart_;
-    
+
     for (size_t i=0; i<str.length(); i++)
     {
       //cout<<endl<<str[i]<<endl;
       next = next->nextState(str[i]);
-      
+
       if (next == NULL)
         return false;
-      
+
       //cout<<next;
     }
 
@@ -210,7 +210,7 @@ friend ostream& operator << ( ostream& os, const Automation<STRING_TYPE, MULTI_W
 
     return false;
   }
-  
+
   /**
    *Does the automation have wildcard.
    **/
@@ -218,14 +218,14 @@ friend ostream& operator << ( ostream& os, const Automation<STRING_TYPE, MULTI_W
   {
     return has_wildcard_;
   }
-  
+
 
 protected:
   _state_* pStart_;
   _state_* pEnd_;
   vector<_state_*> pV_;
   bool has_wildcard_;
-  
+
 }
   ;
 
