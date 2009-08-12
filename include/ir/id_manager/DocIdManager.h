@@ -91,13 +91,13 @@ namespace idmanager {
     :
         idFactory_(sdbname)
     {
-	} // end - IDFactory()
+    } // end - IDFactory()
 
 
 	template<typename NameString, typename NameID, typename IDFactory>
 	DocIdManager<NameString, NameID, IDFactory>::~DocIdManager()
 	{
-	} // end - ~DocIdManager()
+    } // end - ~DocIdManager()
 
 	template<typename NameString, typename NameID, typename IDFactory>
 	bool DocIdManager<NameString, NameID, IDFactory>::getDocIdByDocName(
@@ -105,7 +105,7 @@ namespace idmanager {
         NameID& docId)
     {
         return idFactory_.getNameIDByNameString(docName, docId);
-	} // end - getDocIdByDocName()
+    } // end - getDocIdByDocName()
 
 	template<typename NameString, typename NameID, typename IDFactory>
 	bool DocIdManager<NameString, NameID, IDFactory>::getDocNameByDocId(
@@ -113,13 +113,13 @@ namespace idmanager {
         NameString& docName)
     {
         return idFactory_.getNameStringByNameID(docId, docName);
-	} // end - getDocNameByDocId()
+    } // end - getDocNameByDocId()
 
 	template<typename NameString, typename NameID, typename IDFactory>
 	void DocIdManager<NameString, NameID, IDFactory>::display()
 	{
 		idFactory_.display();
-	} // end - display()
+    } // end - display()
 
 } // end - namespace idmanager
 

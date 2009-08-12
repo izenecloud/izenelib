@@ -37,7 +37,7 @@ template <typename  NameString  = std::string,
           typename  LockType    = izenelib::util::NullLock>
 class HashIDFactory
 {
-	typedef izenelib::sdb::ordered_sdb<NameID, NameString, LockType> NameFinder;
+	typedef izenelib::sdb::unordered_sdb<NameID, NameString, LockType> NameFinder;
 
 public:
 
@@ -49,8 +49,6 @@ public:
 	 * @param maxValue      maximum value of id.
 	 */
 	HashIDFactory(const string& sdbName);
-
-	HashIDFactory(const HashIDFactory<NameString, NameID, HashFunc, LockType>& idFactory);
 
 	virtual ~HashIDFactory();
 
@@ -115,15 +113,6 @@ HashIDFactory<NameString, NameID, HashFunc, LockType>::HashIDFactory(
     nameFinder_(sdbName_ + "_id.sdb")
 {
 	nameFinder_.open();
-} // end - SequentialIDFactory()
-
-
-template <typename NameString, typename NameID,
-    NameID (*HashFunc)(const NameString&), typename LockType>
-HashIDFactory<NameString, NameID, HashFunc, LockType>::HashIDFactory(
-        const HashIDFactory<NameString, NameID,
-            HashFunc, LockType>& idFactory)
-{
 } // end - SequentialIDFactory()
 
 template <typename NameString, typename NameID,

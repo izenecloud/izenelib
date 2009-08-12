@@ -38,8 +38,8 @@ template <
           typename  LockType    = izenelib::util::NullLock>
 class SequentialIDFactory
 {
-	typedef izenelib::sdb::ordered_sdb<NameString, NameID, LockType> IdFinder;
-	typedef izenelib::sdb::ordered_sdb<NameID, NameString, LockType> NameFinder;
+	typedef izenelib::sdb::unordered_sdb<NameString, NameID, LockType> IdFinder;
+	typedef izenelib::sdb::unordered_sdb<NameID, NameString, LockType> NameFinder;
 public:
 
 	/**
@@ -50,9 +50,6 @@ public:
 	 * @param maxValue      maximum value of id.
 	 */
 	SequentialIDFactory(const string& sdbName);
-
-	SequentialIDFactory(const SequentialIDFactory< NameString, NameID,
-        MinIDValue, MaxIDValue, LockType>& idFactory);
 
 	virtual ~SequentialIDFactory();
 
@@ -128,20 +125,6 @@ SequentialIDFactory<NameString, NameID,
 {
 	idFinder_.open();
 	nameFinder_.open();
-} // end - SequentialIDFactory()
-
-
-template <typename NameString, typename NameID,
-    NameID MinValueID, NameID MaxValueID, typename LockType>
-SequentialIDFactory<NameString, NameID,
-    MinValueID, MaxValueID, LockType>::SequentialIDFactory(
-        const SequentialIDFactory<NameString, NameID,
-            MinValueID, MaxValueID, LockType>& idFactory)
-:
-	minID_(idFactory.minID_),
-    maxID_(idFactory.maxID_),
-    newID_(idFactory.newID_)
-{
 } // end - SequentialIDFactory()
 
 template <typename NameString, typename NameID,

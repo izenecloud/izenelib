@@ -171,7 +171,7 @@ inline bool isIdListCorrect(const vector<unsigned int>& termIdList,const vector<
             return false;
 
         // Check if the term string from termIdManager is the same as the original one.
-        if ( termStringList[i] != compare )
+        else if ( termStringList[i] != compare )
             return false;
 
     } // end - for
@@ -219,6 +219,7 @@ BOOST_AUTO_TEST_CASE( TestCase1 )
     termIdList2_.resize(termUStringList2_.size());
 
 
+    std::cerr << std::endl;
     for(i = 0; i < termUStringList1_.size(); i++)
       termIdManager.getTermIdByTermString( termUStringList1_[i], termIdList1_[i] );
 

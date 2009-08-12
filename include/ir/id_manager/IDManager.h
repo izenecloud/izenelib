@@ -21,6 +21,7 @@
 #include "TermIdManager.h"
 #include "SequentialIDFactory.h"
 #include "HashIDFactory.h"
+#include "HashFunctionTraits.h"
 
 /**
  * @brief a class to manage all kinds of operations about ID.
@@ -53,7 +54,7 @@ template<typename NameString    = wiselib::UString,
          typename NameID        = unsigned int>
 class _IDManager {
 
-    typedef HashIDFactory<NameString, NameID, HashFunction<NameString>::generateHash32 > TermIDFactory;
+    typedef HashIDFactory<NameString, NameID, HashFunctionTraits<NameID>::hash > TermIDFactory;
     typedef SequentialIDFactory<NameString, NameID> DocIDFactory;
 
 public:
