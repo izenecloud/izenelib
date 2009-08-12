@@ -125,6 +125,20 @@ SequentialIDFactory<NameString, NameID,
 {
 	idFinder_.open();
 	nameFinder_.open();
+
+    // reset newID_
+	if(nameFinder_.numItems() > 0)
+	{
+	    NameID maxKey = MinValueID;
+	    NameID k;
+	    NameString v;
+        typename NameFinder::SDBCursor locn = nameFinder_.get_first_Locn();
+        while (nameFinder_.seq(locn, k, v) ) {
+            if(maxKey < k)
+                maxKey = k;
+        }
+        newID_ = maxKey + 1;
+	}
 } // end - SequentialIDFactory()
 
 template <typename NameString, typename NameID,

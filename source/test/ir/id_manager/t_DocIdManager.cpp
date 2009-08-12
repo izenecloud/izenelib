@@ -215,4 +215,46 @@ BOOST_AUTO_TEST_CASE( TestCase1 )
 } // end - BOOST_AUTO_TEST_CASE( TestCase1 )
 
 
+
+BOOST_AUTO_TEST_CASE( TestCase2 )
+{
+    // remove previous index file
+    // remove(DocIdManager::DOC_ID_MANAGER_INDEX_FILE.c_str());
+    // remove(CollectionIdManager<UString, unsigned int>::COLLECTION_ID_MANAGER_INDEX_FILE.c_str());
+
+    cerr << endl;
+    cerr << "[ DocIdManager ] Test Case 2 : check ID generation continuity ..............";
+
+    unsigned int lastID;
+
+    {
+        DocIdManager<UString, unsigned int,
+            SequentialIDFactory<UString, unsigned int> > docIdManager("docid2");
+
+        unsigned int id = 0;
+        docIdManager.getDocIdByDocName(UString("term1", UString::CP949), id);
+
+        lastID = id;
+    }
+
+    {
+        DocIdManager<UString, unsigned int,
+            SequentialIDFactory<UString, unsigned int> > docIdManager("docid2");
+
+        unsigned int id = 0;
+        docIdManager.getDocIdByDocName(UString("term1", UString::CP949), id);
+        BOOST_CHECK(id == lastID);
+
+        docIdManager.getDocIdByDocName(UString("term2", UString::CP949), id);
+        BOOST_CHECK(id == lastID+1);
+    }
+
+    cerr << "OK" << endl;
+
+
+} // end - BOOST_AUTO_TEST_CASE( TestCase1 )
+
+
+
+
 BOOST_AUTO_TEST_SUITE_END()
