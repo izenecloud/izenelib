@@ -6,6 +6,8 @@
 #ifndef _ID_FACTORY_ERROR_STRING_H_
 #define _ID_FACTORY_ERROR_STRING_H_
 
+#include <types.h>
+
 NS_IZENELIB_IR_BEGIN
 
 namespace idmanager{

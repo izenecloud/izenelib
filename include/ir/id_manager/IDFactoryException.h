@@ -1,4 +1,4 @@
-///  @file IDFactoryException.h 
+///  @file IDFactoryException.h
 ///  @date 7/14/2008
 ///  @author QuangNT
 ///
@@ -7,6 +7,9 @@
 #define _ID_FACTORY_EXCEPTION_H_
 
 #include <iostream>
+
+#include <types.h>
+
 #include "IDFactoryErrorString.h"
 
 NS_IZENELIB_IR_BEGIN
@@ -14,7 +17,7 @@ NS_IZENELIB_IR_BEGIN
 namespace idmanager{
 
     /// @brief This file defines a general exception in the Document Factory
-    class IDFactoryException  
+    class IDFactoryException
     {
     public:
         /// creat a new IDFactoryException given error code, file name, and
@@ -35,7 +38,7 @@ namespace idmanager{
 
         /// A destructor, destroy variables if it is neccessary
         virtual ~IDFactoryException(){}
-     
+
 
         /// print out the exception's description to the file
         /// @param
@@ -67,7 +70,7 @@ namespace idmanager{
         virtual const std::string& getString()const {return errorString_;}
 
     protected:
-        /// file where the exception occurs	
+        /// file where the exception occurs
         std::string exceptionLocation_;
 
         /// line number where the exception occurs

@@ -11,17 +11,29 @@
  * @author Peisheng Wang
  * @date 2009-04-16
  *
+ * ==============
+ *
+ * Refactor to a policy-based design to make IDManager as flexible as possible
+ * @author Wei Cao
+ * @date 2009-08-07
+ *
+ * ==============
  */
 
 #ifndef _ID_MANAGER_
 #define _ID_MANAGER_
 
-#include "IDManagerTypes.h"
+#include <types.h>
+
+#include <wiselib/ustring/UString.h>
+
 #include "DocIdManager.h"
 #include "TermIdManager.h"
-#include "SequentialIDFactory.h"
-#include "HashIDFactory.h"
-#include "HashFunctionTraits.h"
+#include "IDGenerator.h"
+#include "IDStorage.h"
+
+#include "LexicalTrie.h"
+#include "EmptyRegExp.h"
 
 /**
  * @brief a class to manage all kinds of operations about ID.
@@ -49,19 +61,25 @@ namespace idmanager {
 #define MINOR_VERSION "0"
 #define PATCH_VERSION "20081203"
 
+/**
+ * @brief Combination of both TermIdManager and DocIdManager.
+ */
 
-template<typename NameString    = wiselib::UString,
-         typename NameID        = unsigned int>
-class _IDManager {
-
-    typedef HashIDFactory<NameString, NameID, HashFunctionTraits<NameID>::hash > TermIDFactory;
-    typedef SequentialIDFactory<NameString, NameID> DocIDFactory;
+template<typename NameString,
+         typename NameID,
+         typename TermIDGenerator = HashIDGenerator<NameString, NameID>,
+         typename TermIDStorage = SDBIDStorage<NameString, NameID>,
+         typename RegExp       = LexicalTrie<NameString>,
+         typename DocIDGenerator = UniqueIDGenerator<NameString, NameID>,
+         typename DocIDStorage = SDBIDStorage<NameString, NameID> >
+class _IDManager
+{
 
 public:
-	_IDManager(const string& sdbname = "idm")
+	_IDManager(const string& storageName = "idm")
 	:
-		termIdManager_(sdbname + "_tid"),
-		docIdManager_(sdbname + "_did")
+		termIdManager_(storageName + "_tid"),
+		docIdManager_(storageName + "_did")
     {
 		version_ = "ID Manager - ver. alpha ";
 		version_ += MAJOR_VERSION;
@@ -91,8 +109,7 @@ public:
 	 * @return true  :		One or more terms exist in the dictionary.
 	 * @return false :		No term exists in the dictionary.
 	 */
-	bool getTermIdListByTermStringList(
-			const std::vector<NameString>& termStringList,
+	bool getTermIdListByTermStringList( const std::vector<NameString>& termStringList,
 			std::vector<NameID>& termIdList);
 
 	/**
@@ -161,65 +178,200 @@ public:
 	}
 
 private:
-	TermIdManager<NameString, NameID, TermIDFactory> termIdManager_; ///< Term Id Manager Class
-	DocIdManager<NameString, NameID, DocIDFactory> docIdManager_; ///< Document Id Manager Class
+	TermIdManager<NameString, NameID,
+        TermIDGenerator, TermIDStorage,
+        RegExp> termIdManager_; ///< Term Id Manager Class
+	DocIdManager<NameString, NameID,
+        DocIDGenerator, DocIDStorage> docIdManager_; ///< Document Id Manager Class
 	std::string version_; ///< version of id-manager
 
 }; // end - class _IDManager
 
 
-template<typename NameString, typename NameID>
-_IDManager<NameString, NameID>::~_IDManager() {
-
+template<typename NameString, typename NameID,
+         typename TermIDGenerator, typename TermIDStorage, typename RegExp,
+         typename DocIDGenerator, typename DocIDStorage >
+_IDManager<NameString, NameID, TermIDGenerator, TermIDStorage, RegExp,
+    DocIDGenerator, DocIDStorage>::~_IDManager()
+{
 } // end - ~_IDManager()
 
 /*****************************************************************************
  *                                                     Term Related Interfaces
  *****************************************************************************/
 
-template<typename NameString, typename NameID> bool _IDManager<NameString,
-	NameID>::getTermIdByTermString(const NameString& termString, NameID& termId) {
-return termIdManager_.getTermIdByTermString(termString, termId);
+template<typename NameString, typename NameID,
+         typename TermIDGenerator, typename TermIDStorage, typename RegExp,
+         typename DocIDGenerator, typename DocIDStorage >
+bool _IDManager<NameString, NameID, TermIDGenerator, TermIDStorage, RegExp,
+                DocIDGenerator, DocIDStorage>::
+getTermIdByTermString(const NameString& termString, NameID& termId)
+{
+    return termIdManager_.getTermIdByTermString(termString, termId);
 } // end - getTermIdByTermString()
 
-template<typename NameString, typename NameID> bool _IDManager<NameString,
-	NameID>::getTermIdListByTermStringList(
-	const std::vector<NameString>& termStringList, std::vector<NameID>& termIdList) {
-return termIdManager_.getTermIdListByTermStringList(termStringList, termIdList);
+template<typename NameString, typename NameID,
+         typename TermIDGenerator, typename TermIDStorage, typename RegExp,
+         typename DocIDGenerator, typename DocIDStorage >
+bool _IDManager<NameString, NameID, TermIDGenerator, TermIDStorage, RegExp,
+                DocIDGenerator, DocIDStorage>::
+getTermIdListByTermStringList(
+    const std::vector<NameString>& termStringList,
+    std::vector<NameID>& termIdList)
+{
+    return termIdManager_.getTermIdListByTermStringList(termStringList, termIdList);
 } // end - getTermIdListByTermStringList()
 
-template<typename NameString, typename NameID> bool _IDManager<NameString,
-	NameID>::getTermIdListByWildcardPattern(const NameString& wildcardString,
-	std::vector<NameID>& termIdList) {
-return termIdManager_.getTermIdListByWildcardPattern(wildcardString, termIdList);
+template<typename NameString, typename NameID,
+         typename TermIDGenerator, typename TermIDStorage, typename RegExp,
+         typename DocIDGenerator, typename DocIDStorage >
+bool _IDManager<NameString, NameID, TermIDGenerator, TermIDStorage, RegExp,
+                DocIDGenerator, DocIDStorage>::
+getTermIdListByWildcardPattern(
+    const NameString& wildcardString,
+    std::vector<NameID>& termIdList)
+{
+    return termIdManager_.getTermIdListByWildcardPattern(wildcardString, termIdList);
 } // end - getTermIdListByWildcardString()
 
-template<typename NameString, typename NameID> bool _IDManager<NameString,
-	NameID>::getTermStringByTermId(NameID termId, NameString& termString) {
+template<typename NameString, typename NameID,
+         typename TermIDGenerator, typename TermIDStorage, typename RegExp,
+         typename DocIDGenerator, typename DocIDStorage >
+bool _IDManager<NameString, NameID, TermIDGenerator, TermIDStorage, RegExp,
+    DocIDGenerator, DocIDStorage>::getTermStringByTermId(NameID termId, NameString& termString) {
 return termIdManager_.getTermStringByTermId(termId, termString);
 } // end - getTermStringByTermId()
 
-template<typename NameString, typename NameID> bool _IDManager<NameString,
-	NameID>::getTermStringListByTermIdList(
-	const std::vector<NameID>& termIdList, std::vector<NameString>& termStringList) {
-return termIdManager_.getTermStringListByTermIdList(termIdList, termStringList);
+template<typename NameString, typename NameID,
+         typename TermIDGenerator, typename TermIDStorage, typename RegExp,
+         typename DocIDGenerator, typename DocIDStorage >
+bool _IDManager<NameString, NameID, TermIDGenerator, TermIDStorage, RegExp,
+                DocIDGenerator, DocIDStorage>::
+getTermStringListByTermIdList(
+	const std::vector<NameID>& termIdList,
+	std::vector<NameString>& termStringList)
+{
+    return termIdManager_.getTermStringListByTermIdList(termIdList, termStringList);
 } // end - getTermStringListByTermIdList()
 
 
 /*****************************************************************************
  *                                                 Document Related Interfaces
  *****************************************************************************/
-template<typename NameString, typename NameID> bool _IDManager<NameString,
-	NameID>::getDocIdByDocName(const NameString& docName, NameID& docId) {
-return docIdManager_.getDocIdByDocName(docName, docId);
+template<typename NameString, typename NameID,
+         typename TermIDGenerator, typename TermIDStorage, typename RegExp,
+         typename DocIDGenerator, typename DocIDStorage >
+bool _IDManager<NameString, NameID, TermIDGenerator, TermIDStorage, RegExp,
+                DocIDGenerator, DocIDStorage>::
+getDocIdByDocName(const NameString& docName, NameID& docId)
+{
+    return docIdManager_.getDocIdByDocName(docName, docId);
 } // end - getDocIdByDocName()
 
-template<typename NameString, typename NameID> bool _IDManager<NameString,
-	NameID>::getDocNameByDocId(NameID docId, NameString& docName) {
-return docIdManager_.getDocNameByDocId(docId, docName);
+template<typename NameString, typename NameID,
+         typename TermIDGenerator, typename TermIDStorage, typename RegExp,
+         typename DocIDGenerator, typename DocIDStorage >
+bool _IDManager<NameString, NameID, TermIDGenerator, TermIDStorage, RegExp,
+                DocIDGenerator, DocIDStorage>::
+getDocNameByDocId(NameID docId, NameString& docName)
+{
+    return docIdManager_.getDocNameByDocId(docId, docName);
 } // end - getDocNameByDocId()
 
-typedef _IDManager<> IDManager;
+/*****************************************************************************
+ *                      Public Interfaces For Users With Different Requirements
+ *****************************************************************************/
+
+/**
+ * VERY IMPORTANT NOTE!!!
+ *
+ * IDManagerDebug means, getTermStringByTermId() and getTermStringListByTermIdList()
+ * interface are available, this is especially helpful for those poor guys to convert
+ * the meaningless IDs back to strings which is easy to understand for human beings
+ * when debug their codes. However, the cost is, an additional SDB should be used
+ * for saving all TermID->Term mappings, introducing both computation and storage cost.
+ *
+ * Some one may be not comfortable to the cost of the above feature, so I also prepare
+ * the IDManagerRelease interfaces for these brave guys, in which getTermStringByTermId()
+ * and getTermStringListByTermIdList() are disabled, and TermID->Term mappings are simply
+ * neglected and lost.
+ *
+ * You may also want another intermediate solution, e.g. just record TermID->Term pairs
+ * in a disk file, process it elsewhere later. It's easy to implement so in current
+ * template-based code, have a look at SDBIDStorage and EmptyIDStorage first, write
+ * some IDStorage policy, say, LogIDStorage and pass it into _IDManager, then typedef your
+ * IDManagerLog here, enjoy it!
+ */
+
+/**
+ * This version of IDManager supports getTermStringByTermId() and
+ * getTermStringListByTermIdList() interface, generated ID are 32bits unsigned integer.
+ */
+typedef _IDManager<wiselib::UString, uint32_t> IDManagerDebug32;
+
+/**
+ * This version of IDManager doesn't support getTermStringByTermId() and
+ * getTermStringListByTermIdList() interface, generated ID are 32bits unsigned integer.
+ */
+typedef _IDManager<wiselib::UString, uint32_t,
+                   HashIDGenerator<wiselib::UString, uint32_t>,
+                   EmptyIDStorage<wiselib::UString, uint32_t>,
+                   LexicalTrie<wiselib::UString>,
+                   UniqueIDGenerator<wiselib::UString, uint32_t>,
+                   SDBIDStorage<wiselib::UString, uint32_t> > IDManagerRelease32;
+
+/**
+ * This version of IDManager supports getTermStringByTermId() and
+ * getTermStringListByTermIdList() interface, generated ID are 64bits unsigned integer.
+ */
+typedef _IDManager<wiselib::UString, uint64_t> IDManagerDebug64;
+
+/**
+ * This version of IDManager doesn't support getTermStringByTermId() and
+ * getTermStringListByTermIdList() interface, generated ID are 64bits unsigned integer.
+ */
+typedef _IDManager<wiselib::UString, uint64_t,
+                   HashIDGenerator<wiselib::UString, uint64_t>,
+                   EmptyIDStorage<wiselib::UString, uint64_t>,
+                   LexicalTrie<wiselib::UString>,
+                   UniqueIDGenerator<wiselib::UString, uint64_t>,
+                   SDBIDStorage<wiselib::UString, uint64_t> > IDManagerRelease64;
+
+/**
+ * This version of IDManager is provided for I-classifier, which requires TermID to be
+ * uique for different terms, besides it doesn't need generate doc id.
+ *
+ */
+typedef _IDManager<wiselib::UString, uint32_t,
+                   UniqueIDGenerator<wiselib::UString, uint32_t>,
+                   SDBIDStorage<wiselib::UString, uint32_t>,
+                   EmptyRegExp<wiselib::UString>,
+                   EmptyIDGenerator<wiselib::UString, uint32_t>,
+                   EmptyIDStorage<wiselib::UString, uint32_t> > IDManagerIClassifer;
+
+/**
+ * This version of IDManager is provided for MIA, which only wants TermID genrated by
+ * hash and doesn't permit generating any file.
+ */
+typedef _IDManager<wiselib::UString, uint32_t,
+                   HashIDGenerator<wiselib::UString, uint32_t>,
+                   EmptyIDStorage<wiselib::UString, uint32_t>,
+                   EmptyRegExp<wiselib::UString>,
+                   EmptyIDGenerator<wiselib::UString, uint32_t>,
+                   EmptyIDStorage<wiselib::UString, uint32_t> > IDManagerMIA;
+/**
+ * The default IDManager is IDManagerDebug32, If you want to use a different version,
+ * write code like following:
+
+    #include <ir/id_manager/IDManager.h>
+
+    #define REPLACE_DEFAULT_IDMANAGER
+    typedef IDManagerRelease64 IDManager;
+
+ */
+#ifndef REPLACE_DEFAULT_IDMANAGER
+typedef IDManagerDebug32 IDManager;
+#endif
 
 } // end - namespace idmanager
 

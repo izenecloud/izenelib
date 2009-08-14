@@ -24,13 +24,18 @@
 #include <boost/test/unit_test.hpp>
 #include <wiselib/ustring/UString.h>
 
-#include <ir/id_manager/HashIDFactory.h>
 #include <ir/id_manager/TermIdManager.h>
+#include <ir/id_manager/IDGenerator.h>
+#include <ir/id_manager/IDStorage.h>
+#include <ir/id_manager/IDFactory.h>
 
 using namespace std;
 using namespace wiselib;
 using namespace boost::unit_test;
 using namespace izenelib::ir::idmanager;
+
+
+typedef TermIdManager<UString, unsigned int> TestTermIdManager;
 
 /**
  * @brief TermIdManager<UString, unsigned int>Fixture is used to test TermIdManager<UString, unsigned int>. It loads terms from text file to build termStringLists.
@@ -104,8 +109,10 @@ public:
 	 * @param
 	 * 	termIdList2 - list 2 of term ids
 	 */
-	bool generateTermLists(vector<UString>& termUStringList1, vector<unsigned int>& termIdList1,
-            vector<UString>& termUStringList2, vector<unsigned int>& termIdList2)
+	bool generateTermLists(vector<UString>& termUStringList1,
+                           vector<unsigned int>& termIdList1,
+                           vector<UString>& termUStringList2,
+                           vector<unsigned int>& termIdList2)
     {
         vector<string> termStringList1;
         vector<string> termStringList2;
@@ -157,8 +164,9 @@ public:
  * @brief Check function which ckecks if all the ids are corretly generated.
  */
 
-inline bool isIdListCorrect(const vector<unsigned int>& termIdList,const vector<UString>& termStringList,
-    TermIdManager<UString, unsigned int, HashIDFactory<UString, unsigned int> >& termIdManager)
+inline bool isIdListCorrect(const vector<unsigned int>& termIdList,
+                            const vector<UString>& termStringList,
+                            TestTermIdManager& termIdManager)
 {
     UString compare;
 
@@ -207,7 +215,7 @@ BOOST_AUTO_TEST_CASE( TestCase1 )
     //remove(TermIdManager<UString, unsigned int>::TERM_ID_MANAGER_INDEX_FILE.c_str());
 
 
-    TermIdManager<UString, unsigned int, HashIDFactory<UString, unsigned int> > termIdManager("tid1");
+    TestTermIdManager termIdManager("tid1");
     unsigned int i;
     UString compare;
 
@@ -254,7 +262,7 @@ BOOST_AUTO_TEST_CASE( TestCase2 )
     // remove previous index file
     //remove(TermIdManager<UString, unsigned int>::TERM_ID_MANAGER_INDEX_FILE.c_str());
 
-    TermIdManager<UString, unsigned int, HashIDFactory<UString, unsigned int> > termIdManager("tid2");
+    TestTermIdManager termIdManager("tid2");
 
     // termUStringList1_ (100 terms) and termUStringList2_ (2500 terms) are already generated.
     // Get ds for each terms using getTermIdListByTermStringList().
@@ -286,7 +294,7 @@ BOOST_AUTO_TEST_CASE( TestCase3 )
     // remove previous index file
     // remove(TermIdManager<UString, unsigned int>::TERM_ID_MANAGER_INDEX_FILE.c_str());
 
-    TermIdManager<UString, unsigned int, HashIDFactory<UString, unsigned int> > idManager("tid3");
+    TestTermIdManager idManager("tid3");
     UString compare;
 
     // Build term index dictionary using getTermIdListByTermStringList() Interface.
@@ -351,7 +359,7 @@ BOOST_AUTO_TEST_CASE( TestCase4 )
 
     cerr << "[ TermIdManager<UString, unsigned int> ] Test Case 4 : Check variable length and duplicate terms ....";
 
-    TermIdManager<UString, unsigned int, HashIDFactory<UString, unsigned int> > termIdManager("tid4");
+    TestTermIdManager termIdManager("tid4");
     vector<UString> termUStringList;
     vector<unsigned int> termIdList1;
     vector<unsigned int> termIdList2;
@@ -408,7 +416,7 @@ BOOST_AUTO_TEST_CASE(TermIndexer_With_Korean_Characters )
 {
     cerr << "[ TermIdManager<UString, unsigned int> ] Test Case 5 : Check TermIdManager<UString, unsigned int> with Korean Terms ....";
 
-    TermIdManager<UString, unsigned int, HashIDFactory<UString, unsigned int> > termIdManager("tid5");
+    TestTermIdManager termIdManager("tid5");
     vector<unsigned int> termIdList;
 	set<string> uniqueStringList;
 	set<string> uniqueStringList2;

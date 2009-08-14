@@ -12,7 +12,7 @@
  *
  * ==============
  *
- * Refactor
+ * Refactor to a policy-based design to make IDManager as flexible as possible
  * @author Wei Cao
  * @date 2009-08-07
  *
@@ -22,9 +22,13 @@
 #ifndef _DOC_ID_MANAGER_
 #define _DOC_ID_MANAGER_
 
-#include "IDManagerTypes.h"
-#include "IDFactoryException.h"
+#include <types.h>
+
+#include "IDGenerator.h"
+#include "IDStorage.h"
+#include "IDFactory.h"
 #include "IDFactoryErrorString.h"
+#include "IDFactoryException.h"
 
 /**
  * @brief a class to generate, serve, and manage all about of the document id.
@@ -35,8 +39,11 @@ namespace idmanager {
 
     template<typename NameString,
              typename NameID,
-             typename IDFactory>
+             typename IDGenerator   = UniqueIDGenerator<NameString, NameID>,
+             typename IDStorage     = SDBIDStorage<NameString, NameID> >
     class DocIdManager {
+
+        typedef IDFactory<NameString, NameID, IDGenerator, IDStorage> DocIDFactory;
 
     public:
 
@@ -46,7 +53,7 @@ namespace idmanager {
 		 * @details
 		 *  - Initialize IDFactory
 		 */
-		DocIdManager(const string& sdbname="docid_manager");
+		DocIdManager(const string& storageName="docid_manager");
 
 		~DocIdManager();
 
@@ -80,43 +87,43 @@ namespace idmanager {
 
 	private:
 
-        IDFactory idFactory_;
+        DocIDFactory idFactory_;
 
 	}; // end - class DocIdManager
 
 
-	template<typename NameString, typename NameID, typename IDFactory>
-	DocIdManager<NameString, NameID, IDFactory>::DocIdManager(
-        const string& sdbname)
+	template<typename NameString, typename NameID, typename IDGenerator, typename IDStorage>
+	DocIdManager<NameString, NameID, IDGenerator, IDStorage>::DocIdManager(
+        const string& storageName)
     :
-        idFactory_(sdbname)
+        idFactory_(storageName)
     {
     } // end - IDFactory()
 
 
-	template<typename NameString, typename NameID, typename IDFactory>
-	DocIdManager<NameString, NameID, IDFactory>::~DocIdManager()
+	template<typename NameString, typename NameID, typename IDGenerator, typename IDStorage>
+	DocIdManager<NameString, NameID, IDGenerator, IDStorage>::~DocIdManager()
 	{
     } // end - ~DocIdManager()
 
-	template<typename NameString, typename NameID, typename IDFactory>
-	bool DocIdManager<NameString, NameID, IDFactory>::getDocIdByDocName(
+	template<typename NameString, typename NameID, typename IDGenerator, typename IDStorage>
+	bool DocIdManager<NameString, NameID, IDGenerator, IDStorage>::getDocIdByDocName(
         const NameString& docName,
         NameID& docId)
     {
         return idFactory_.getNameIDByNameString(docName, docId);
     } // end - getDocIdByDocName()
 
-	template<typename NameString, typename NameID, typename IDFactory>
-	bool DocIdManager<NameString, NameID, IDFactory>::getDocNameByDocId(
+	template<typename NameString, typename NameID, typename IDGenerator, typename IDStorage>
+	bool DocIdManager<NameString, NameID, IDGenerator, IDStorage>::getDocNameByDocId(
         NameID docId,
         NameString& docName)
     {
         return idFactory_.getNameStringByNameID(docId, docName);
     } // end - getDocNameByDocId()
 
-	template<typename NameString, typename NameID, typename IDFactory>
-	void DocIdManager<NameString, NameID, IDFactory>::display()
+	template<typename NameString, typename NameID, typename IDGenerator, typename IDStorage>
+	void DocIdManager<NameString, NameID, IDGenerator, IDStorage>::display()
 	{
 		idFactory_.display();
     } // end - display()
