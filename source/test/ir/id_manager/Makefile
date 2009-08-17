@@ -35,6 +35,7 @@ EXT_LIB = \
 		  -l boost_thread-gcc41-mt-1_39 \
 		  -l boost_unit_test_framework-gcc41-mt-1_39 \
 		  -l tokyocabinet \
+		  -l procmeminfo  \
 
 
 OBJECTS = $(patsubst %.cpp, %.o, $(wildcard *.cpp)) 
@@ -50,4 +51,4 @@ $(TARGET) : $(OBJECTS)
 	$(CXX) -o $@ $^  $(EXT_LIB_PATH) $(EXT_LIB) 
 
 clean:
-	rm -rf *.o $(TARGET) *.sdb 
+	rm -rf *.o $(TARGET) *.sdb *.has *.buk *.nod

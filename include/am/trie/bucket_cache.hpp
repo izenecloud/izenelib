@@ -15,13 +15,13 @@ using namespace std;
  *@class BucketCache
  **/
 template<
-  class STRING_TYPE = string,
-  uint64_t CACHE_LENGTH = 100000000,//bytes
-  uint32_t BUCKET_SIZE = 8192,//byte
-  uint8_t SPLIT_RATIO = 75,
-  class CacheType = CachePolicyLARU,
-  typename STRING_TYPE::value_type* ALPHABET = a2z,
-  uint32_t ALPHABET_SIZE = a2z_size
+  class STRING_TYPE,
+  uint64_t CACHE_LENGTH,//bytes
+  uint32_t BUCKET_SIZE,//byte
+  uint8_t SPLIT_RATIO,
+  class CacheType,
+  typename STRING_TYPE::value_type* ALPHABET,
+  uint32_t ALPHABET_SIZE
   >
 class BucketCache
 {

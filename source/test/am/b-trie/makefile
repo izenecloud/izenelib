@@ -26,8 +26,11 @@ all: amlib
 amlib: $(OBJS)
 	$(GPP)  -g -o "b-trie"  $^ $(LIBS) /usr/local/lib/libboost_unit_test_framework-gcc41-mt-1_39.so
 
-get-input: gen_input.o 
-	$(GPP)  -g -o "get-input"  $^ $(LIBS)
+gen_input: gen_input.o 
+	$(GPP)  -g -o "gen_input"  $^ $(LIBS)
+
+gen_alphabet: gen_alphabet.o 
+	$(GPP)  -g -o "gen_alphabet"  $^ $(LIBS)
 
 example: example_searcher.o example_builder.o
 	$(GPP)  -g -o "searcher"  example_searcher.o $(LIBS)
@@ -36,6 +39,5 @@ example: example_searcher.o example_builder.o
 
 clean:
 	-rm -f $(OBJS)
-	-rm -f example_searcher.o
-	-rm -f example_builder.o
-	-rm -f gen_input.o
+	-rm -f *.o *.buk *.nod *.has
+	-rm -f builder searcher gen_input gen_alphabet b-trie
