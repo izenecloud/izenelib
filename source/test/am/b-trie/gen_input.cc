@@ -2,7 +2,7 @@
 #include <fstream>
 #include <iostream>
 #include <sstream>
-#include <am/trie/alphabet.hpp>
+#include <am/trie/alphabet_en.hpp>
 #include <am/linear_hash_table/linearHashTable.hpp>
 #include <wiselib/ustring/UString.h>
 
@@ -60,7 +60,7 @@ public:
 
       for (unsigned long j=0; j<charCount; j++)
       {
-        str += a2z[rand()%a2z_size];
+        str += en[rand()%en_size];
       }
 
       str += (typename STRING_TYPE::value_type)'\n';

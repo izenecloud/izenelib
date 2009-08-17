@@ -45,7 +45,7 @@ template<typename NameString,
          typename NameID,
          typename IDGenerator   = HashIDGenerator<NameString, NameID>,
          typename IDStorage     = SDBIDStorage<NameString, NameID>,
-         typename RegExp        = EmptyRegExp<NameString, NameID> >
+         typename RegExp        = EmptyRegExp<NameString> >
 class TermIdManager
 {
     typedef IDFactory<NameString, NameID, IDGenerator, IDStorage> TermIDFactory;
@@ -189,7 +189,6 @@ bool TermIdManager<NameString, NameID, IDGenerator, IDStorage, RegExp>::
 	if (false == idFactory_.getNameIDByNameString(termString, termId) ) {
 		// Write into startSearchIndexer
 		boost::mutex::scoped_lock lock(termIndexerLock_);
-//		std::cout << "insert " << termString << "," << termId << std::endl;
 		starSearchIndexer_.insert(termString, (int64_t)termId);
 		return false;
 	}

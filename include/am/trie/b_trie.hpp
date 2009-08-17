@@ -1,22 +1,21 @@
-#ifndef B_TRIE_HPP
-#define B_TRIE_HPP
+#ifndef STATIC_B_TRIE_HPP
+#define STATIC_B_TRIE_HPP
+
+#include <string>
+#include <stdio.h>
+
+#include <wiselib/ustring/UString.h>
+
+#include <am/map/map.hpp>
 
 #include "alphabet_node.hpp"
 #include "bucket.hpp"
-#include "node_cache.hpp"
 #include "bucket_cache.hpp"
-#include <string>
-#include <stdio.h>
-#include <am/map/map.hpp>
-#include <wiselib/ustring/UString.h>
-//#include <boost/archive/text_iarchive.hpp>
-//#include <boost/archive/text_oarchive.hpp>
+#include "node_cache.hpp"
+#include "alphabet_cjk.h"
+//#include "alphabet_en.h"
 
 using namespace std;
-//extern int debug_count;
-
-//typedef boost::archive::text_iarchive iarchive;
-//typedef boost::archive::text_oarchive oarchive;
 
 NS_IZENELIB_AM_BEGIN
 /**
@@ -29,9 +28,9 @@ NS_IZENELIB_AM_BEGIN
  *a strings may involve splitting bucket.
  **/
 template<
-  class STRING_TYPE = string,
-  typename STRING_TYPE::value_type* ALPHABET = a2z,
-  uint32_t ALPHABET_SIZE = a2z_size,
+  typename STRING_TYPE = wiselib::UString,
+  typename STRING_TYPE::value_type* ALPHABET = cjk,
+  uint32_t ALPHABET_SIZE = cjk_size,
 
   //------------bucket property-------------
   uint32_t BUCKET_SIZE = 8196,//byte
@@ -39,23 +38,29 @@ template<
 
   //--------------hash table-------------
   size_t ENTRY_SIZE_POW= 10,//2^10
-  class HASH_FUNCTION = simple_hash,
+  typename HASH_FUNCTION = simple_hash,
   int INIT_BUCKET_SIZE=64,
 
   //----------bucket cache---------
-  uint64_t BUCKET_CACHE_LENGTH = 100*1024,//bytes, it must be larger than 2 bucket size
-  class BucketCachePolicy= CachePolicyLARU,
+  uint64_t BUCKET_CACHE_LENGTH = 64*1024*1024,//bytes, it must be larger than 2 bucket size
+  typename BucketCachePolicy= CachePolicyLARU,
 
   //----------node cache-----------
-  uint64_t NODE_CACHE_LENGTH = 1*1024,//bytes, it must be larger than 3 node size.
-  class NodeCachePolicy = CachePolicyLARU
+  uint64_t NODE_CACHE_LENGTH = 128*1024*1024,//bytes, it must be larger than 3 node size.
+  typename NodeCachePolicy = CachePolicyLARU
   >
 class BTrie
 {
-  typedef BTrie<STRING_TYPE,  ALPHABET, ALPHABET_SIZE, BUCKET_SIZE, SPLIT_RATIO, ENTRY_SIZE_POW, HASH_FUNCTION,INIT_BUCKET_SIZE, BUCKET_CACHE_LENGTH, BucketCachePolicy, NODE_CACHE_LENGTH, NodeCachePolicy> SelfType;
+  typedef BTrie<STRING_TYPE, ALPHABET, ALPHABET_SIZE,
+                      BUCKET_SIZE, SPLIT_RATIO, ENTRY_SIZE_POW, HASH_FUNCTION,
+                      INIT_BUCKET_SIZE, BUCKET_CACHE_LENGTH, BucketCachePolicy,
+                      NODE_CACHE_LENGTH, NodeCachePolicy>
+          SelfType;
   typedef Bucket<STRING_TYPE, BUCKET_SIZE, SPLIT_RATIO, ALPHABET, ALPHABET_SIZE> BucketType;
   typedef NodeCache<STRING_TYPE, NODE_CACHE_LENGTH, NodeCachePolicy, ALPHABET, ALPHABET_SIZE> NodeCacheType;
-  typedef BucketCache<STRING_TYPE, BUCKET_CACHE_LENGTH, BUCKET_SIZE, SPLIT_RATIO, BucketCachePolicy, ALPHABET, ALPHABET_SIZE> BucketCacheType;
+  typedef BucketCache<STRING_TYPE, BUCKET_CACHE_LENGTH, BUCKET_SIZE, SPLIT_RATIO, BucketCachePolicy,
+                      ALPHABET, ALPHABET_SIZE>
+          BucketCacheType;
   typedef typename NodeCacheType::nodePtr AlphabetNodePtr;
   typedef typename BucketCacheType::nodePtr BucketPtr;
   typedef Map<string, uint64_t, ENTRY_SIZE_POW, HASH_FUNCTION, INIT_BUCKET_SIZE> HashMap;
@@ -89,19 +94,12 @@ public:
       isload = true;
     }
 
-    //////////////
     bukf_ = fopen(bstr.c_str(), "r+");
     if (bukf_ == NULL)
     {
       bukf_ = fopen(bstr.c_str(), "w+");
     }
     pBucketCache_ =  new BucketCacheType(bukf_ );
-
-//     hashf_ = fopen(hstr.c_str(), "r+");
-//     if (hashf_ == NULL)
-//     {
-//       hashf_ = fopen(hstr.c_str(), "w+");
-//     }
 
     if (isload)
     {
@@ -111,6 +109,8 @@ public:
 
   ~BTrie()
   {
+    flush();
+
     if (pNodeCache_!= NULL)
       delete pNodeCache_;
     if ( pBucketCache_ != NULL)
@@ -331,7 +331,7 @@ public:
             STRING_TYPE tmp = prefix;
             tmp += (*k);
 
-            string ss(tmp.c_str(), tmp.size());
+            string ss((char*)tmp.c_str(), tmp.size());
             //tmp.convertString(ss, UString::UTF_8);
             //ss += '\0';
             //cout<<ss.size()<<"hash table\n";
@@ -364,7 +364,7 @@ public:
 
     delete pStr;
 
-    string ss(str.c_str(), str.size());
+    string ss((char*)str.c_str(), str.size());
     //ss += '\0';
     //delete pStr;
     //str.convertString(ss, UString::UTF_8);
@@ -501,7 +501,8 @@ public:
       addr = n->getDiskAddr(ch);
     }
 
-    return hashTable_.update(str, contentAddr);
+    string ss((char*)str.c_str(), str.size());
+    return hashTable_.update(ss, contentAddr);
   }
 
   bool findRegExp(const STRING_TYPE& regexp,  vector<uint32_t>& ret)
@@ -583,7 +584,7 @@ public:
       n = n1;
     }
 
-    string ss(str.c_str(), str.size());
+    string ss((char*)str.c_str(), str.size());
     //cout<<"find from hashtable\n";
 
     //str.convertString(ss, UString::UTF_8);
@@ -631,7 +632,8 @@ public:
     }
 
     os<<"\nThen, search hash table!";
-    if(hashTable_.find(str)!= (uint64_t)-1)
+    string ss((char*)str.c_str(), str.size());
+    if(hashTable_.find(ss)!= (uint64_t)-1)
       os<<"Found!"<<endl;
     else
       os<<"Not Found!\n";
@@ -667,7 +669,7 @@ protected:
 
     if (regexp.empty())
     {
-      string ss(sofar.c_str(), sofar.size());
+      string ss((char*)sofar.c_str(), sofar.size());
       uint64_t ad = *(hashTable_.find(ss));
       ret.push_back(item_pair<STRING_TYPE>(sofar, ad));
       //ret.push_back(ad);
@@ -807,10 +809,6 @@ protected:
     }
   }
 
-// friend ostream& operator << ( ostream& os, const SelfType& node)
-//   {
-//   }
-
 protected:
   FILE* nodf_;//!<Node data file handler.
   FILE* bukf_;//!<Bucket data file handler.
@@ -820,8 +818,9 @@ protected:
   HashMap hashTable_;//!<Hash table
   //  string valuePoolFileName_;
   //vector<ValueType> valuePool_;
-}
-  ;
+};
+
+typedef BTrie<> BTrie_CJK;
 
 NS_IZENELIB_AM_END
 #endif
