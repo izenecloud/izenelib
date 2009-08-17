@@ -16,13 +16,14 @@
 #include <map>
 #include <string>
 #include <vector>
+#include <deque>
 #include <algorithm>
 
 NS_IZENELIB_IR_BEGIN
 
 namespace indexmanager{
 
-typedef boost::shared_ptr<std::vector<loc_t> > PositionPtr;
+typedef boost::shared_ptr<std::deque<loc_t> > PositionPtr;
 
 class CommonItem
 {
@@ -32,16 +33,13 @@ public:
     CommonItem(const CommonItem& clone)
     {
         docid = clone.docid;
-        // Added by TuanQuang Nguyen, 14 Oct 2008
-        // Copy collection id
-        collectionid = clone.collectionid;
+//        collectionid = clone.collectionid;
+        tfMap = clone.tfMap;
         commonItemProperty = clone.commonItemProperty;
     }
 
     ~CommonItem() {}
 public:
-    // Added by TuanQuang Nguyen, 14 Oct, 2008
-    // Add function setCollectionID
     void setCollectionID(collectionid_t colid_)
     {
         collectionid = colid_;
@@ -51,31 +49,22 @@ public:
     {
         docid = docid_;
     }
-    void addProperty(std::string property, std::vector<loc_t>*positions)
+
+    void addProperty(std::string property, std::deque<loc_t>*positions, freq_t tf)
     {
         if (commonItemProperty.find(property) == commonItemProperty.end())
+        {
             commonItemProperty.insert(make_pair(property, positions));
+            tfMap.insert(make_pair(property, tf));
+        }
         else
         {
             commonItemProperty.erase(property);
             commonItemProperty.insert(make_pair(property, positions));
+            tfMap.insert(make_pair(property, tf));
         }
     }
 
-    inline void merge(CommonItem& src)
-    {
-        assert(docid == src.docid);
-        for (std::map<std::string,PositionPtr>::iterator iter = commonItemProperty.begin();
-                iter != commonItemProperty.end(); ++iter)
-        {
-            std::map<std::string,PositionPtr>::iterator srcIter = src.commonItemProperty.find(iter->first);
-            if (srcIter != src.commonItemProperty.end())
-            {
-                iter->second->resize(iter->second->size()+srcIter->second->size());
-                copy_backward (srcIter->second->begin(), srcIter->second->end(), iter->second->end() );
-            }
-        }
-    }
 
     friend class boost::serialization::access;
     template<class Archive>
@@ -92,10 +81,11 @@ public:
 public:
     docid_t docid;
 
-    // TuanQuang Nguyen, 14 Oct, 2008: Add collectionid member variable
     collectionid_t collectionid;
 
-    std::map<std::string,PositionPtr> commonItemProperty;
+    std::map<std::string,freq_t> tfMap;
+
+    std::map<std::string,PositionPtr > commonItemProperty;
 };
 
 }

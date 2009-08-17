@@ -32,7 +32,7 @@ void FieldIndexer::addField(docid_t docid, boost::shared_ptr<LAInput> laInput)
             curPosting = new InMemoryPosting(pMemCache_);
             postingMap_[iter->termId_] = curPosting;
         }
-        curPosting->addLocation(docid, iter->wordOffset_, iter->byteOffset_);
+        curPosting->addLocation(docid, laInput->size(), iter->wordOffset_, iter->byteOffset_);
         curPosting->updateDF(docid);
     }
 }
@@ -51,8 +51,9 @@ void FieldIndexer::addField(docid_t docid, boost::shared_ptr<ForwardIndex> forwa
         }
 
         ForwardIndexOffset::iterator	endit = iter->second->end();
+        freq_t docLength = iter->second->size();
         for(ForwardIndexOffset::iterator it = iter->second->begin(); it != endit; ++it)
-            curPosting->addLocation(docid, it->first, it->second);
+            curPosting->addLocation(docid, docLength, it->first, it->second);
         curPosting->updateDF(docid);
     }
 }
@@ -64,6 +65,8 @@ void FieldIndexer::removeField(docid_t docid, boost::shared_ptr<LAInput> laInput
     InMemoryPosting* newPosting;
 
     InMemoryTermReader* pTermReader = new InMemoryTermReader(getField(),this);
+
+    freq_t docLength;	
 
     for(LAInput::iterator iter = laInput->begin(); iter != laInput->end(); ++iter)
     {
@@ -77,12 +80,13 @@ void FieldIndexer::removeField(docid_t docid, boost::shared_ptr<LAInput> laInput
             while (pTermPositions->next())
             {
                 decompressed_docid = pTermPositions->doc();
+                docLength = pTermPositions->docLength();
                 loc_t pos = pTermPositions->nextPosition();
                 loc_t subpos = pTermPositions->nextPosition();
                 while (pos != BAD_POSITION)
                 {
                     if (decompressed_docid != docid)
-                        newPosting->addLocation(decompressed_docid, pos, subpos);
+                        newPosting->addLocation(decompressed_docid, docLength, pos, subpos);
                     pos = pTermPositions->nextPosition();
                     subpos = pTermPositions->nextPosition();
                 }

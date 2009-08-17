@@ -101,7 +101,7 @@ bool ParallelTermPosition::next(vector<string>& properties, docid_t& docid)
     return true;
 }
 
-void ParallelTermPosition::getPositions(string& property, vector<loc_t>* positions)
+void ParallelTermPosition::getPositions(string& property, deque<loc_t>* positions, freq_t tf)
 {
     TermPositions* pPositions =  termPositionMap_[property];
     loc_t pos = pPositions->nextPosition();
@@ -112,5 +112,6 @@ void ParallelTermPosition::getPositions(string& property, vector<loc_t>* positio
         pos = pPositions->nextPosition();
         subpos = pPositions->nextPosition();
     }
+    tf = pPositions->freq();
 }
 

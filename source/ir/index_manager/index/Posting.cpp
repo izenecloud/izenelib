@@ -318,7 +318,7 @@ void InMemoryPosting::updateDF(docid_t docid)
     }
 }
 
-void InMemoryPosting::addLocation(docid_t docid, loc_t location, loc_t sublocation)
+void InMemoryPosting::addLocation(docid_t docid, freq_t doclength, loc_t location, loc_t sublocation)
 {
     if (docid == nLastDocID)
     {
@@ -345,6 +345,14 @@ void InMemoryPosting::addLocation(docid_t docid, loc_t location, loc_t sublocati
         if (nCurTermFreq > 0)///write previous document's term freq
         {
             if (!pDocFreqList->addPosting(nCurTermFreq))
+            {
+                ///chunk is exhausted
+                int32_t newSize = getNextChunkSize(pDocFreqList->nTotalSize,InMemoryPosting::ALLOCSTRATEGY);
+                pDocFreqList->addChunk(newChunk(newSize));
+                pDocFreqList->addPosting(nCurTermFreq);
+            }
+            /// doc length info, which is required by Ranking
+            if (!pDocFreqList->addPosting(doclength))
             {
                 ///chunk is exhausted
                 int32_t newSize = getNextChunkSize(pDocFreqList->nTotalSize,InMemoryPosting::ALLOCSTRATEGY);

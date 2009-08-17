@@ -43,7 +43,7 @@ public:
     /**
     * Retrieve the position information of a certain Field
     */
-    void getPositions(string& property, vector<loc_t>* positions);
+    void getPositions(string& property, deque<loc_t>* positions, freq_t tf);
 
     bool isValid()
     {

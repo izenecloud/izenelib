@@ -285,7 +285,7 @@ public:
      * @param docid the identifier of document
      * @param location the location of term
      */
-    void addLocation(docid_t docid, loc_t location, loc_t sublocation);
+    void addLocation(docid_t docid, freq_t doclength, loc_t location, loc_t sublocation);
 
     /**
      * Is there any chunk?
@@ -396,7 +396,7 @@ protected:
 protected:
     MemCache* pMemCache;	/// memory cache
     count_t nDF;			///document frequency of this field
-    count_t nTDF;			///document frequency of this document
+    count_t nTDF;			///term frequency of this document
     docid_t nLastDocID;	///current added doc id
     docid_t nYetAnotherLastDocID; ///last doc id served for nTDF;
     loc_t nLastLoc; 		///current added location

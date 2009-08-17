@@ -79,6 +79,11 @@ count_t TermDocFreqs::freq()
     return pPostingBuffer[nFreqStart + nCurrentPosting];
 }
 
+freq_t TermDocFreqs::docLength()
+{
+    return pPostingBuffer[nFreqStart + sizeof(count_t) + nCurrentPosting];
+}
+
 bool TermDocFreqs::next()
 {
     nCurrentPosting ++;

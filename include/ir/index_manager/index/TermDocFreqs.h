@@ -33,44 +33,25 @@ public:
 
     virtual ~TermDocFreqs();
 public:
-    /**
-     * get document frequency
-     * @return frequency
-     */
     freq_t	docFreq();
-    /**
-     * get collection's total term frequency
-     * @return CTF value
-     */
+
     int64_t	getCTF();
-    /**
-     * move to the next documents block
-     * @param docs documents block
-     * @param freqs term frequency block
-     * @return number of documents in the block
-     */
+
     count_t next(docid_t*& docs, count_t*& freqs);
-    /**
-     * move to the next document
-     */
+
     bool next();
-    /**
-     * get document id
-     * @return document id
-     */
+
     docid_t doc();
-    /**
-     * get term frequency in this document
-     */
+
     count_t freq();
+
+    freq_t docLength();
 
     void close();
 
 protected:
 
     virtual bool decode();
-
-    int32_t bsearch(docid_t docs[],int32_t start,int32_t end,docid_t key,docid_t& keyFound);
 
     /** create buffer for decoding */
     void createBuffer();
@@ -98,45 +79,6 @@ protected:
 
     static const size_t DEFAULT_BUFFERSIZE = 32768;
 };
-////////////////////////////////////////////////////////////////////////////////
-//
-inline int32_t TermDocFreqs::bsearch(docid_t docs[],int32_t start,int32_t end,docid_t key,docid_t& keyFound)
-{
-    int32_t k;
-    int32_t nk = end;
-    keyFound = docs[end];
-    while (start<=end)
-    {
-        k = (start + end)/2;
-        if (key == docs[k])
-        {
-            keyFound = key;
-            return k;
-        }
-        if (key < docs[k])
-        {
-            end = k - 1;
-            if (k >= start)
-            {
-                keyFound = docs[k];
-                nk =k;
-            }
-        }
-        else
-        {
-            start = k + 1;
-            if (start <= end)
-            {
-                if (docs[start] > key)
-                {
-                    keyFound = docs[start];
-                    nk = start;
-                }
-            }
-        }
-    }
-    return nk;
-}
 
 }
 

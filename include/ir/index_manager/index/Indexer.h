@@ -67,7 +67,7 @@ public:
 
     Indexer(ManagerType managerType = MANAGER_TYPE_LOCAL);
 
-    ~Indexer();
+    virtual ~Indexer();
 public:
     /**
     * @brief   This function inserts a document of a document collection.
@@ -157,23 +157,8 @@ public:
     *       0: fail to complete the operation
     *
     */
-    bool getDocsByTermInProperties(termid_t termID, collectionid_t colID, std::vector<std::string> properties, std::vector<docid_t>& docIds);
-    bool getDocsByTermInProperties(termid_t termID, collectionid_t colID, std::vector<std::string> properties, std::vector<CommonItem>& commonSet);
-    /**
-    * @brief   This function gets a commonSet that is a list of commonItem. A commonItem is a part of a document. A commonItem consists of a list of properties and
-    *  positions of the terms in each property.
-    *
-    *  @param termIDs: term identifiers
-    *  @param colID:     document collection identifier
-    *  @param properties: list of property name
-    *  @param commonSet: list of commonItem.A commonItem is a part of document. It consists of a list of   commonItemProperty. A commonItemProperty
-    *      is the document property the input  term   occurs.   The commonItemProperty contains the term positions in the property.
-    *
-    *  @return  1: operation completed successfully
-    *       0: fail to complete the operation
-    *
-    */
-    bool getDocsByTermsInProperties(std::vector<termid_t> termIDs, collectionid_t colID, std::vector<std::string> properties, std::vector<CommonItem>& commonSet);
+    bool getDocsByTermInProperties(termid_t termID, collectionid_t colID, std::vector<std::string> properties, std::deque<docid_t>& docIds);
+    bool getDocsByTermInProperties(termid_t termID, collectionid_t colID, std::vector<std::string> properties, std::deque<CommonItem>& commonSet);
     /**
     * @brief   This function gets a word offset list given a sequence of query terms
     *  positions of the terms in each property.
