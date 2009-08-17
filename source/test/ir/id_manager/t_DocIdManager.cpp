@@ -33,13 +33,17 @@
 #include <boost/test/unit_test.hpp>
 
 #include <ir/id_manager/DocIdManager.h>
-#include <ir/id_manager/SequentialIDFactory.h>
+#include <ir/id_manager/IDGenerator.h>
+#include <ir/id_manager/IDStorage.h>
+#include <ir/id_manager/IDFactory.h>
 #include <wiselib/ustring/UString.h>
 
 using namespace std;
 using namespace wiselib;
 using namespace boost::unit_test;
 using namespace izenelib::ir::idmanager;
+
+typedef DocIdManager<UString, unsigned int> TestDocIdManager;
 
 /**
  * @brief DocIdManagerFixture is used to test DocIdManager. It loads collection and document names from text file to build termStringLists.
@@ -189,8 +193,7 @@ BOOST_AUTO_TEST_CASE( TestCase1 )
     cerr << endl;
     cerr << "[ DocIdManager ] Test Case 1 : Simple Document Id Manager check ..............";
 
-    DocIdManager<UString, unsigned int,
-        SequentialIDFactory<UString, unsigned int> > docIdManager("docid1");
+    TestDocIdManager docIdManager("docid1");
 
     string insertString("Test DocIdManager");
     UString insertUString(insertString, UString::CP949);
@@ -228,8 +231,7 @@ BOOST_AUTO_TEST_CASE( TestCase2 )
     unsigned int lastID;
 
     {
-        DocIdManager<UString, unsigned int,
-            SequentialIDFactory<UString, unsigned int> > docIdManager("docid2");
+        TestDocIdManager docIdManager("docid2");
 
         unsigned int id = 0;
         docIdManager.getDocIdByDocName(UString("term1", UString::CP949), id);
@@ -238,8 +240,7 @@ BOOST_AUTO_TEST_CASE( TestCase2 )
     }
 
     {
-        DocIdManager<UString, unsigned int,
-            SequentialIDFactory<UString, unsigned int> > docIdManager("docid2");
+        TestDocIdManager docIdManager("docid2");
 
         unsigned int id = 0;
         docIdManager.getDocIdByDocName(UString("term1", UString::CP949), id);

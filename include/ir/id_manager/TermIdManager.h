@@ -12,7 +12,7 @@
  *
  * ==============
  *
- * Refactor
+ * Refactor to a policy-based design to make IDManager as flexible as possible
  * @author Wei Cao
  * @date 2009-08-07
  *
@@ -21,6 +21,13 @@
 
 #ifndef _TERM_ID_MANAGER_
 #define _TERM_ID_MANAGER_
+
+
+#include "IDGenerator.h"
+#include "IDStorage.h"
+#include "IDFactory.h"
+#include "IDFactoryErrorString.h"
+#include "IDFactoryException.h"
 
 #include "LexicalTrie.h"
 
@@ -34,17 +41,20 @@ namespace idmanager
 
 template<typename NameString,
          typename NameID,
-         typename IDFactory,
-         typename TRIE          = LexicalTrie<NameString> >
+         typename IDGenerator   = HashIDGenerator<NameString, NameID>,
+         typename IDStorage     = SDBIDStorage<NameString, NameID>,
+         typename RegExp        = LexicalTrie<NameString> >
          // typename TRIE       = izenelib::am::BTrie<NameString> >
 class TermIdManager
 {
+    typedef IDFactory<NameString, NameID, IDGenerator, IDStorage> TermIDFactory;
+
 public:
 
 	/**
 	 * @brief Constructor of TermIdManager having term ids within a given range
 	 */
-	TermIdManager(const string& sdbname = "termid_manager");
+	TermIdManager(const string& storageName = "termid_manager");
 
 	/**
 	 * @brief A Destructor.
@@ -130,7 +140,7 @@ private:
 	/**
 	 * @brief ID generator
 	 */
-	IDFactory idFactory_;
+	TermIDFactory idFactory_;
 
 	/**
 	 * @brief This lock allows exclusive access to termsQueueForStarSearchIndex_
@@ -141,34 +151,40 @@ private:
 	 * @brief Star search indexer
 	 */
 
-	TRIE starSearchIndexer_;
+	RegExp starSearchIndexer_;
 
 }; // end - class TermIdManager
 
 template<typename NameString, typename NameID,
-         typename IDFactory, typename TRIE>
-TermIdManager<NameString, NameID, IDFactory, TRIE>::TermIdManager(
-    const string& sdbname)
+         typename IDGenerator, typename IDStorage,
+         typename RegExp>
+TermIdManager<NameString, NameID, IDGenerator, IDStorage, RegExp>::
+    TermIdManager(const string& storageName)
 :
-	idFactory_(sdbname)
+	idFactory_(storageName)
 {
 } // end - TermIdManager()
 
 template<typename NameString, typename NameID,
-         typename IDFactory, typename TRIE>
-TermIdManager<NameString, NameID, IDFactory, TRIE>::~TermIdManager() {
+         typename IDGenerator, typename IDStorage,
+         typename RegExp>
+TermIdManager<NameString, NameID, IDGenerator, IDStorage, RegExp>::
+    ~TermIdManager()
+{
 } // end - ~TermIdManager()
 
 template<typename NameString, typename NameID,
-         typename IDFactory, typename TRIE>
-bool TermIdManager<NameString, NameID, IDFactory, TRIE>::getTermIdByTermString(
+         typename IDGenerator, typename IDStorage,
+         typename RegExp>
+bool TermIdManager<NameString, NameID, IDGenerator, IDStorage, RegExp>::
+    getTermIdByTermString(
 		const NameString& termString,
 		NameID& termId)
 {
 	// If given term string is not in the dictionary,
 	// insertion into File and starSearchInsertion is needed.
 	// If the return value of getNameIdByNameString is false,
-	// termId contains new id of/home/wei/dev/izenelib/include/ir/id_manager/TermIdManager.h:166: error: ISO C++ forbids declaration of ‘getTermIdByTermString’ with no type
+	// termId contains new id of
 	if (false == idFactory_.getNameIDByNameString(termString, termId) ) {
 		// Write into startSearchIndexer
 		boost::mutex::scoped_lock lock(termIndexerLock_);
@@ -180,23 +196,29 @@ bool TermIdManager<NameString, NameID, IDFactory, TRIE>::getTermIdByTermString(
 
 
 template<typename NameString, typename NameID,
-         typename IDFactory, typename TRIE>
-bool TermIdManager<NameString, NameID, IDFactory, TRIE>::getTermStringByTermId(NameID termId,
+         typename IDGenerator, typename IDStorage,
+         typename RegExp>
+bool TermIdManager<NameString, NameID, IDGenerator, IDStorage, RegExp>::
+    getTermStringByTermId(NameID termId,
 		NameString& termString) {
 	return idFactory_.getNameStringByNameID(termId, termString);
 } // end - getTermStringByTermId()
 
 template<typename NameString, typename NameID,
-         typename IDFactory, typename TRIE>
-bool TermIdManager<NameString, NameID, IDFactory, TRIE>::getTermIdListByWildcardPattern(
+         typename IDGenerator, typename IDStorage,
+         typename RegExp>
+bool TermIdManager<NameString, NameID, IDGenerator, IDStorage, RegExp>::
+    getTermIdListByWildcardPattern(
 		const NameString& wildcardPattern, std::vector<NameID>& termIdList) {
 	boost::mutex::scoped_lock indexLock(termIndexerLock_);
 	return starSearchIndexer_.findRegExp(wildcardPattern, termIdList);
 }
 
 template<typename NameString, typename NameID,
-         typename IDFactory, typename TRIE>
-bool TermIdManager<NameString, NameID, IDFactory, TRIE>::getTermIdListByTermStringList(
+         typename IDGenerator, typename IDStorage,
+         typename RegExp>
+bool TermIdManager<NameString, NameID, IDGenerator, IDStorage, RegExp>::
+    getTermIdListByTermStringList(
 		const std::vector<NameString>& termStringList,
 		std::vector<NameID>& termIdList)
 {
@@ -218,10 +240,12 @@ bool TermIdManager<NameString, NameID, IDFactory, TRIE>::getTermIdListByTermStri
 } // end - getTermIdListByTermStringList()
 
 template<typename NameString, typename NameID,
-         typename IDFactory, typename TRIE>
-bool TermIdManager<NameString, NameID, IDFactory, TRIE>::getTermStringListByTermIdList(
-    const std::vector<NameID>& termIdList,
-	std::vector<NameString>& termStringList)
+         typename IDGenerator, typename IDStorage,
+         typename RegExp>
+bool TermIdManager<NameString, NameID, IDGenerator, IDStorage, RegExp>::
+    getTermStringListByTermIdList(
+        const std::vector<NameID>& termIdList,
+        std::vector<NameString>& termStringList)
 {
 	bool ret;
 	bool isAllTermFound = true;
@@ -241,8 +265,10 @@ bool TermIdManager<NameString, NameID, IDFactory, TRIE>::getTermStringListByTerm
 
 
 template<typename NameString, typename NameID,
-         typename IDFactory, typename TRIE>
-void TermIdManager<NameString, NameID, IDFactory, TRIE>::display()
+         typename IDGenerator, typename IDStorage,
+         typename RegExp>
+void TermIdManager<NameString, NameID, IDGenerator, IDStorage, RegExp>::
+    display()
 {
     idFactory_.display();
 } // end - display()

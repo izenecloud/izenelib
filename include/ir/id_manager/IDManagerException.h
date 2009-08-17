@@ -1,4 +1,4 @@
-///  @file IDManagerException.h 
+///  @file IDManagerException.h
 ///  @date 7/14/2008
 ///  @author QuangNT
 ///
@@ -7,6 +7,9 @@
 #define _ID_MANAGER_EXCEPTION_H_
 
 #include <iostream>
+
+#include <types.h>
+
 #include "IDManagerErrorString.h"
 
 NS_IZENELIB_IR_BEGIN
@@ -14,7 +17,7 @@ NS_IZENELIB_IR_BEGIN
 namespace idmanager{
 
     /// @brief This file defines a general exception in the Document Manager
-    class IDManagerException  
+    class IDManagerException
     {
     public:
         /// creat a new IDManagerException given error code, file name, and
@@ -36,7 +39,7 @@ namespace idmanager{
 
         /// A destructor, destroy variables if it is neccessary
         virtual ~IDManagerException(){
-        	
+
         }
 
         /// print out the exception's description to the file
@@ -68,7 +71,7 @@ namespace idmanager{
         virtual const std::string& getString()const {return errorString_;}
 
     protected:
-        /// file where the exception occurs	
+        /// file where the exception occurs
         std::string exceptionLocation_;
 
         /// line number where the exception occurs

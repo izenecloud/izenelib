@@ -4,6 +4,9 @@
  *          with the appropriate definition will allow one to use either version of Message Framework with little change in the code.
  * @author  MyungHyun Lee(Kent) and Nguyen, Tuan-Quang
  * @date    2008-11-27
+ * @details
+ *  - Log
+ *      - 2009.08.14 Commented MessageAgent.h by Dohyun Yun.
  */
 
 #ifndef _MESSAGE_FRAMEWORK_H_
@@ -43,15 +46,13 @@ namespace messageframework
 #include <net/message-framework/MessageServerFull.h>
 #include <net/message-framework/MessageControllerFull.h>
 #include <net/message-framework/MessageFrameworkConfiguration.h>
-#include <net/message-framework/MessageAgent.h>
-
+//#include <net/message-framework/MessageAgent.h> 
 
 namespace messageframework {
 
 typedef MessageClientFull MessageClient;
 typedef MessageServerFull MessageServer;
 typedef MessageControllerFull MessageController;
-
 }
 
 #define MF_AUTO_MAIN( method_name )                                         \

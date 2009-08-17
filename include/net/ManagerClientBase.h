@@ -3,11 +3,14 @@
 #define _MANAGER_CLIENT_BASE_H_
 
 #include <net/message_framework.h>
+#include <net/message-framework/MessageAgent.h>
+
 #include <util/log.h>
 
 #include <cache/MLRUCache.h>
 
 using namespace izenelib::cache;
+using namespace messageframework;
 
 
 #define CLIENT_REQUEST_IMPL_0_1(servicename, MessageClient, result) \
@@ -218,5 +221,3 @@ using namespace izenelib::cache;
 
 
 #endif // _MANAGER_CLIENT_BASE_H_
-
-    
