@@ -93,9 +93,13 @@ namespace messageframework
 		 * @return
 		 * false - the MessageController is busy
 		 */
-		bool getPermissionOfService(const std::string& serviceName,
-							ServicePermissionInfo& servicePermissionInfo);
-
+		
+		//bool getPermissionOfService(const std::string& serviceName,
+		//					ServicePermissionInfo& servicePermissionInfo);
+		
+		bool getHostsOfService(const std::string& serviceName,
+				std::map<std::string, MessageFrameworkNode>& servers);
+		
 		/**
 		 * @brief This function puts the request of the manager to the MessageClientFull.
 		 * The MessageClientFull will sends the request to either MessageController or
@@ -108,8 +112,8 @@ namespace messageframework
 		 * @return
 		 * true - if the receiver successfully receives the request
 		 */
-		bool putServiceRequest(const ServicePermissionInfo& servicePermissionInfo,
-							ServiceRequestInfoPtr& serviceRequestInfo);
+		bool putServiceRequest(const MessageFrameworkNode& server,
+							ServiceRequestInfoPtr& serviceRequestInfo, bool withResult = true);
 
 		/**
 		 * @brief This function puts a set of requests of the same manager to the
@@ -123,8 +127,8 @@ namespace messageframework
 		 * @return
 		 * true - if the receiver successfully receives these requests
 		 */
-		bool putServiceRequest(const ServicePermissionInfo& servicePermissionInfo,
-							std::vector<ServiceRequestInfoPtr>& serviceRequestInfos);
+		bool putServiceRequest(const MessageFrameworkNode& server,
+							std::vector<ServiceRequestInfoPtr>& serviceRequestInfos, bool withResult = true);
 
 		/**
 		 * @brief This function gets a result of the service that have been requested.
@@ -275,6 +279,8 @@ namespace messageframework
 		friend class AsyncConnector;
 
 	private:
+		bool checkAgentInfo_(ServicePermissionInfo& permissionInfo);
+		
 		/**
 		 * @brief The request list, it contains the result of the service if the result
 		 * has come

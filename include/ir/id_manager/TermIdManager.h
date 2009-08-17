@@ -1,52 +1,64 @@
 /**
  * @file	TermIdManager.h
- * @brief	Header file of Term ID Manager Class 
+ * @brief	Header file of Term ID Manager Class
  * @author	Do Hyun Yun
  * @date    2008-11-18
  * @details
- * ============== * 
- * 
+ * ==============
+ *
  * Using SDB/hash
- *  
- * @Peisheng Wang
+ * @author Peisheng Wang
  * @date 2009-04-16
- * 
- * log
+ *
+ * ==============
+ *
+ * Refactor to a policy-based design to make IDManager as flexible as possible
+ * @author Wei Cao
+ * @date 2009-08-07
+ *
+ * ==============
  */
 
-#ifndef _TERM_ID_MANAGER_ 
+#ifndef _TERM_ID_MANAGER_
 #define _TERM_ID_MANAGER_
 
+
+#include "IDGenerator.h"
+#include "IDStorage.h"
 #include "IDFactory.h"
+#include "IDFactoryErrorString.h"
+#include "IDFactoryException.h"
+
+#include <am/trie/b_trie.hpp>
 #include "LexicalTrie.h"
+#include "EmptyRegExp.h"
 
 /**
- * @brief a class to generate, serve, and manage all about of the term id. 
+ * @brief a class to generate, serve, and manage all about of the term id.
  */
 NS_IZENELIB_IR_BEGIN
 
-namespace idmanager {
+namespace idmanager
+{
 
-
-template<typename NameString, typename NameID,
-		typename TRIE = LexicalTrie<NameString> > class TermIdManager :
-		//typename TRIE = izenelib::am::BTrie<NameString> > class TermIdManager :
-	protected IDFactory<NameString, NameID> {
+template<typename NameString,
+         typename NameID,
+         typename IDGenerator   = HashIDGenerator<NameString, NameID>,
+         typename IDStorage     = SDBIDStorage<NameString, NameID>,
+         typename RegExp        = EmptyRegExp<NameString, NameID> >
+class TermIdManager
+{
+    typedef IDFactory<NameString, NameID, IDGenerator, IDStorage> TermIDFactory;
 
 public:
 
 	/**
 	 * @brief Constructor of TermIdManager having term ids within a given range
-	 * @param initialTermIdValue the initial value of term id
-	 * @param maxTermIdValue the maximum value of term id
 	 */
-	TermIdManager(const string& sdbname = "termid_manager",
-			NameID initialTermIdValue = 1, NameID maxTermIdValue = -2);
+	TermIdManager(const string& storageName = "termid_manager");
 
 	/**
 	 * @brief A Destructor.
-	 *
-	 * @details
 	 */
 	~TermIdManager();
 
@@ -80,7 +92,7 @@ public:
 	 * @param wildcardPattern   a string of wildcard pattern which contains '*';
 	 * @param termIdList        a list of term IDs which is the result of WildcardSearchManager.
 	 * @return true  :          Given wildcard pattern is matched at least once in the dictionary.
-	 * @return false :          Given wildcard pattern is not matched in the dictionary. 
+	 * @return false :          Given wildcard pattern is not matched in the dictionary.
 	 */
 	bool getTermIdListByWildcardPattern(const NameString& wildcardPattern,
 			std::vector<NameID>& termIdList);
@@ -88,10 +100,10 @@ public:
 	/**
 	 * @brief a member function to offer a set of search result of term id list. If one or more term strings are not matched in the dictionary, 0 will be contained for each unmatched termIdList.
 	 *
-	 * @param termStringList    a string list 
+	 * @param termStringList    a string list
 	 * @param termIdList        a list of term IDs which is the result of searching
 	 * @return true  :          all the term strings in given list are matched in the dictionary.
-	 * @return false :          one or more term strings are not matched in the dictionary. 
+	 * @return false :          one or more term strings are not matched in the dictionary.
 	 */
 	bool getTermIdListByTermStringList(
 			const std::vector<NameString>& termStringList,
@@ -110,30 +122,26 @@ public:
 			std::vector<NameString>& termStringList);
 
 	/**
-	 * @brief a member function to display all the contents of the sequential db. this function is used for debugging. 
+	 * @brief a member function to display all the contents of the sequential db.
+	 *        this function is used for debugging.
 	 */
-	void displaySDBList();
-	
-	void display(){
-		IDFactory<NameString, NameID>::display();		
-	}
-
-	//private:
-
-	//friend class IDManager<NameString, NameID>;
-
+	void display();
 private:
 
+//	/**
+//	 * @brief This thread is used only for updating star search index
+//	 */
+//	boost::thread* starSearchUpdateThread_;
+//
+//	/**
+//	 * @brief This variable signale a event when there is a new term
+//	 */
+//	boost::condition_variable newTermEvent_;
+
 	/**
-	 * @brief This thread is used only for updating star search index
+	 * @brief ID generator
 	 */
-	boost::thread* starSearchUpdateThread_;
-
-	///**
-	// * @brief This variable signale a event when there is a new term
-	// */
-	//boost::condition_variable newTermEvent_;
-
+	TermIDFactory idFactory_;
 
 	/**
 	 * @brief This lock allows exclusive access to termsQueueForStarSearchIndex_
@@ -141,83 +149,131 @@ private:
 	boost::mutex termIndexerLock_;
 
 	/**
-	 * @brief star search indexer
+	 * @brief Star search indexer
 	 */
 
-	TRIE starSearchIndexer_;
+	RegExp starSearchIndexer_;
 
-}; // end - class TermIdManager 
+}; // end - class TermIdManager
 
-template<typename NameString, typename NameID, typename TRIE> TermIdManager<
-		NameString, NameID, TRIE>::TermIdManager(const string& sdbname,
-		NameID initialValue, NameID maxValue) :
-	IDFactory<NameString, NameID>(sdbname, initialValue, maxValue) {
-
+template<typename NameString, typename NameID,
+         typename IDGenerator, typename IDStorage,
+         typename RegExp>
+TermIdManager<NameString, NameID, IDGenerator, IDStorage, RegExp>::
+    TermIdManager(const string& storageName)
+:
+	idFactory_(storageName)
+{
 } // end - TermIdManager()
 
-template<typename NameString, typename NameID, typename TRIE> TermIdManager<
-		NameString, NameID, TRIE>::~TermIdManager() {
+template<typename NameString, typename NameID,
+         typename IDGenerator, typename IDStorage,
+         typename RegExp>
+TermIdManager<NameString, NameID, IDGenerator, IDStorage, RegExp>::
+    ~TermIdManager()
+{
 } // end - ~TermIdManager()
 
-
-template<typename NameString, typename NameID, typename TRIE>bool TermIdManager<
-		NameString, NameID, TRIE>::getTermIdByTermString(
-		const NameString& termString, NameID& termId) {
-	// If given term string is not in the dictionary, insertion into File and starSearchInsertion is needed.
-	// If the return value of getNameIdByNameString is false, termId contains new id of the dictionary.
-	if (false == getNameIDByNameString(termString, termId) ) {
-
+template<typename NameString, typename NameID,
+         typename IDGenerator, typename IDStorage,
+         typename RegExp>
+bool TermIdManager<NameString, NameID, IDGenerator, IDStorage, RegExp>::
+    getTermIdByTermString(
+		const NameString& termString,
+		NameID& termId)
+{
+	// If given term string is not in the dictionary,
+	// insertion into File and starSearchInsertion is needed.
+	// If the return value of getNameIdByNameString is false,
+	// termId contains new id of
+	if (false == idFactory_.getNameIDByNameString(termString, termId) ) {
 		// Write into startSearchIndexer
-		//boost::mutex::scoped_lock lock(termIndexerLock_);
-		//starSearchIndexer_.insert(termString, (int64_t)termId);
+		boost::mutex::scoped_lock lock(termIndexerLock_);
+//		std::cout << "insert " << termString << "," << termId << std::endl;
+		starSearchIndexer_.insert(termString, (int64_t)termId);
 		return false;
 	}
-
 	return true;
 } // end - getTermIdByTermString()
 
 
-template<typename NameString, typename NameID, typename TRIE> bool TermIdManager<
-		NameString, NameID, TRIE>::getTermStringByTermId(NameID termId,
+template<typename NameString, typename NameID,
+         typename IDGenerator, typename IDStorage,
+         typename RegExp>
+bool TermIdManager<NameString, NameID, IDGenerator, IDStorage, RegExp>::
+    getTermStringByTermId(NameID termId,
 		NameString& termString) {
-	return getNameStringByNameID(termId, termString);
+	return idFactory_.getNameStringByNameID(termId, termString);
 } // end - getTermStringByTermId()
 
-
-template<typename NameString, typename NameID, typename TRIE>bool TermIdManager<
-		NameString, NameID, TRIE>::getTermIdListByWildcardPattern(
+template<typename NameString, typename NameID,
+         typename IDGenerator, typename IDStorage,
+         typename RegExp>
+bool TermIdManager<NameString, NameID, IDGenerator, IDStorage, RegExp>::
+    getTermIdListByWildcardPattern(
 		const NameString& wildcardPattern, std::vector<NameID>& termIdList) {
-	boost::mutex::scoped_lock indexLock(termIndexerLock_);	
+	boost::mutex::scoped_lock indexLock(termIndexerLock_);
 	return starSearchIndexer_.findRegExp(wildcardPattern, termIdList);
-
 }
 
-template<typename NameString, typename NameID, typename TRIE>bool TermIdManager<
-		NameString, NameID, TRIE>::getTermIdListByTermStringList(
+template<typename NameString, typename NameID,
+         typename IDGenerator, typename IDStorage,
+         typename RegExp>
+bool TermIdManager<NameString, NameID, IDGenerator, IDStorage, RegExp>::
+    getTermIdListByTermStringList(
 		const std::vector<NameString>& termStringList,
-		std::vector<NameID>& termIdList) {
-	bool newTermAppear = true; // false if new term is added to the vocabulary
+		std::vector<NameID>& termIdList)
+{
+	bool ret;
+	bool isAllIDFound = true;
+	size_t sizeOfTermStringList = termStringList.size();
 
-	termIdList.resize(termStringList.size());
-	// process each string in the list
-	for (size_t i = 0; i < termStringList.size(); i++) {
-		if (false == getTermIdByTermString(termStringList[i], termIdList[i]))
-			newTermAppear = false;
-	}
-	return newTermAppear;
+	// clear termIDList
+	termIdList.clear();
+	termIdList.resize(sizeOfTermStringList);
+
+	for (size_t i = 0; i < sizeOfTermStringList; i++) {
+		ret = getTermIdByTermString(termStringList[i], termIdList[i]);
+		if (ret == false)
+			isAllIDFound = false;
+	} // end - for
+
+	return isAllIDFound;
 } // end - getTermIdListByTermStringList()
 
-template<typename NameString, typename NameID, typename TRIE>bool TermIdManager<
-		NameString, NameID, TRIE>::getTermStringListByTermIdList(
-		const std::vector<NameID>& termIdList,
-		std::vector<NameString>& termStringList) {
-	return getNameStringListByNameIDList(termIdList, termStringList);
+template<typename NameString, typename NameID,
+         typename IDGenerator, typename IDStorage,
+         typename RegExp>
+bool TermIdManager<NameString, NameID, IDGenerator, IDStorage, RegExp>::
+    getTermStringListByTermIdList(
+        const std::vector<NameID>& termIdList,
+        std::vector<NameString>& termStringList)
+{
+	bool ret;
+	bool isAllTermFound = true;
+	size_t sizeOfTermIdList = termIdList.size();
+
+	// clear nameStringList
+    termStringList.clear();
+	termStringList.resize(sizeOfTermIdList);
+
+	for (size_t i = 0; i < sizeOfTermIdList; i++) {
+		ret = idFactory_.getNameStringByNameID(termIdList[i], termStringList[i]);
+		if (ret == false)
+			isAllTermFound = false;
+	} // end - for
+	return isAllTermFound;
 } // end - getTermStringListByTermIdList()
 
 
-template<typename NameString, typename NameID, typename TRIE> void TermIdManager<
-		NameString, NameID, TRIE>::displaySDBList() {
-} // end - displaySDBList()
+template<typename NameString, typename NameID,
+         typename IDGenerator, typename IDStorage,
+         typename RegExp>
+void TermIdManager<NameString, NameID, IDGenerator, IDStorage, RegExp>::
+    display()
+{
+    idFactory_.display();
+} // end - display()
 
 
 }

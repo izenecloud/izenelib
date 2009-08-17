@@ -43,7 +43,7 @@ NS_IZENELIB_AM_BEGIN
 
 template< typename KeyType, typename ValueType, typename LockType =NullLock> class sdb_hash :
 public AccessMethod<KeyType, ValueType, LockType>
-{	
+{
 public:
 	//SDBCursor is like db cursor
 	typedef bucket_chain_<LockType> bucket_chain;
@@ -138,14 +138,14 @@ public:
 			izene_serialization<KeyType> izs(key);
 			izene_serialization<ValueType> izs1(value);
 			izs.write_image(ptr, ksize);
-			izs1.write_image(ptr1, vsize);	
-			
+			izs1.write_image(ptr1, vsize);
+
 			bucket_chain* sa = locn.first;
 			char* p = locn.second;
 
 			//entry_[idx] is even NULL.
 			if(locn.first == NULL) {
-				uint32_t idx = sdb_hashing::hash_fun(ptr, ksize) & dmask_;				;
+				uint32_t idx = sdb_hashing::hash_fun(ptr, ksize) & dmask_;;
 
 				if (bucketAddr[idx] == 0) {
 					entry_[idx] = allocateBlock_();
@@ -165,8 +165,8 @@ public:
 					if (sa->next == 0) {
 						sa->isDirty = true;
 						sa->next = allocateBlock_();
-					}				
-					sa = loadNext_( sa );					
+					}
+					sa = loadNext_( sa );
 					p = sa->str;
 				}
 			}
@@ -343,7 +343,7 @@ public:
 		izene_serialization<KeyType> izs(key);
 		izs.write_image(ptr, ksize);
 
-		uint32_t idx = sdb_hashing::hash_fun(ptr, ksize) & dmask_;		
+		uint32_t idx = sdb_hashing::hash_fun(ptr, ksize) & dmask_;
 		locn.first = entry_[idx];
 
 		if (entry_[idx] == NULL) {
@@ -470,16 +470,15 @@ public:
 	 *   @param sdir is sequential access direction, for hash is unordered, we only implement forward case.
 	 *   
 	 */
-	
-	bool seq(SDBCursor& locn, KeyType& key, ValueType& value,  ESeqDirection sdir=ESD_FORWARD){
+
+	bool seq(SDBCursor& locn, KeyType& key, ValueType& value, ESeqDirection sdir=ESD_FORWARD) {
 		DataType<KeyType,ValueType> dat;
 		bool ret = seq(locn, dat, sdir);
 		key = dat.get_key();
 		value = dat.get_value();
 		return ret;
 	}
-	
-	
+
 	bool seq(SDBCursor& locn, DataType<KeyType,ValueType>& rec, ESeqDirection sdir=ESD_FORWARD) {
 		flushCache_(locn);
 		if( sdir == ESD_FORWARD ) {
@@ -612,7 +611,7 @@ public:
 					return false;
 				}
 				if(cacheSize_ != 0)
-					sfh_.cacheSize = cacheSize_;
+				sfh_.cacheSize = cacheSize_;
 #ifdef DEBUG
 				cout<<"open exist...\n"<<endl;
 				sfh_.display();
@@ -629,7 +628,7 @@ public:
 								directorySize_, dataFile_))
 				return false;
 				for (size_t i=0; i<directorySize_; i++) {
-					if (bucketAddr[i] != 0) {						
+					if (bucketAddr[i] != 0) {
 						entry_[i] = new bucket_chain(sfh_.bucketSize, fileLock_);
 						entry_[i]->fpos = bucketAddr[i];
 						entry_[i]->read(dataFile_);
@@ -699,12 +698,12 @@ public:
 		for (size_t i=0; i<directorySize_; i++) {
 			if(entry_[i]) {
 				bucket_chain* sc = entry_[i]->next;
-				bucket_chain* sa;
+				bucket_chain* sa = 0;
 				while ( sc ) {
 					sa = sc->next;
 					if( sc) {
 						if(sc->unload())
-							--activeNum_;
+						--activeNum_;
 						//delete sc;
 						//sc = 0;
 					}
@@ -719,7 +718,7 @@ public:
 	void display(std::ostream& os = std::cout, bool onlyheader = true) {
 		sfh_.display(os);
 		os<<"activeNum: "<<activeNum_<<endl;
-		os<<"loadFactor: "<<loadFactor()<<endl;
+		//os<<"loadFactor: "<<loadFactor()<<endl;
 
 		if( !onlyheader ) {
 			for (size_t i=0; i<directorySize_; i++) {
@@ -773,7 +772,7 @@ private:
 	string fileName_;
 	FILE* dataFile_;
 	bool isOpen_;
-	
+
 	unsigned int activeNum_;
 	LockType fileLock_;
 private:
@@ -795,17 +794,17 @@ private:
 
 		newBlock->fpos = sizeof(ShFileHeader) + sizeof(long)*directorySize_ + sfh_.bucketSize*sfh_.nBlock;
 		sfh_.nBlock++;
-		
+
 		activeNum_++;
 
 		return newBlock;
 	}
-	
+
 	bucket_chain* loadNext_(bucket_chain* current ) {
 		bool loaded = false;
 		bucket_chain* next = current->loadNext(dataFile_, loaded);
 		if(loaded)activeNum_++;
-		return next;	 	
+		return next;
 	}
 
 	/**
@@ -814,24 +813,46 @@ private:
 	 */
 	void flushCache_(bool quickFlush = false)
 	{
+		static unsigned int count;
+		++count;
 
-		//cout<<activeNum_<<" vs "<<sfh_.cacheSize <<endl;
-		if( activeNum_> sfh_.cacheSize )
-		{
-			flushCacheImpl_(quickFlush);			
-		}		
+		if( (count & 0xffff) == 0 ) {
+
+			unsigned long vm = 0, rss;
+			unsigned long rlimit;
+			ProcMemInfo::getProcMemInfo(vm, rss, rlimit);
+
+			//if( _activeNodeNum> _sfh.cacheSize/1024 )
+			if(rss> sfh_.cacheSize*sfh_.bucketSize )
+			{
+				flushCacheImpl_(quickFlush);
+			}
+
+			//cout<<activeNum_<<" vs "<<sfh_.cacheSize <<endl;
+			//if( activeNum_> sfh_.cacheSize )
+			//{
+			//	flushCacheImpl_(quickFlush);			
+			//}	
+		}
 	}
 
 	void flushCache_(SDBCursor &locn)
 	{
+		static unsigned int count;
+		++count;
+
 		//cout<<activeNum_<<" vs "<<sfh_.cacheSize <<endl;
-		if( activeNum_> sfh_.cacheSize )
+		unsigned long vm = 0, rss;
+		unsigned long rlimit;
+		ProcMemInfo::getProcMemInfo(vm, rss, rlimit);
+
+		if( rss> sfh_.cacheSize )
 		{
 			KeyType key;
 			ValueType value;
 			get(locn, key, value);
 			flushCacheImpl_();
-			search(key, locn);			
+			search(key, locn);
 		}
 
 	}
@@ -841,8 +862,11 @@ private:
 #ifdef DEBUG
 		cout<<"cache is full..."<<endl;
 		cout<<activeNum_<<" vs "<<sfh_.cacheSize <<endl;
-		display();
+		//display();
 #endif 
+		//flush();
+		//return ;
+
 		if( !quickFlush )commit();
 		for(size_t i=0; i<directorySize_; i++) {
 			bucket_chain* sc = entry_[i];
@@ -861,22 +885,22 @@ private:
 		{
 
 			//display cache
-			/*cout<<"(level: "<<it->second->level;
-			 cout<<"  val:  "<<it->second;
-			 cout<<"  fpos: "<<it->second->fpos;	
-			 cout<<"  num: "<<it->second->num;		
-			 cout<<" )-> ";*/
+			//cout<<"(level: "<<it->second->level;
+			// cout<<"  val:  "<<it->second;
+			//cout<<"  fpos: "<<it->second->fpos;	
+			//cout<<"  num: "<<it->second->num;		
+			//cout<<" )-> ";
 
 			if(quickFlush)
 			it->second->write(dataFile_);
 			if( it->second->unload() )
-				--activeNum_;
+			--activeNum_;
 			if( activeNum_ < max(sfh_.cacheSize/2, directorySize_) ) {
 				fflush(dataFile_);
 				sh_cache_.clear();
 
-				cout<<" !!!! "<<activeNum_<<" vs "<<sfh_.cacheSize <<endl;
-				display();
+				//cout<<" !!!! "<<activeNum_<<" vs "<<sfh_.cacheSize <<endl;
+				//display();
 
 				return;
 			}
@@ -884,9 +908,8 @@ private:
 		fflush(dataFile_);
 		sh_cache_.clear();
 
-		cout<<" !!!! "<<activeNum_<<" vs "<<sfh_.cacheSize <<endl;
-		display();	
-
+		//cout<<" !!!! "<<activeNum_<<" vs "<<sfh_.cacheSize <<endl;
+		//display();
 	}
 
 };

@@ -45,7 +45,7 @@ template<
 		typename KeyType,
 		typename ValueType,
 		typename LockType =NullLock,
-		typename AmType=sdb_hash<KeyType, unsigned int, LockType> 
+		typename AmType=sdb_btree<KeyType, unsigned int, LockType> 
 > class sdb_storage :public AccessMethod<KeyType, ValueType, LockType>
 {
 public:

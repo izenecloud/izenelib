@@ -22,13 +22,20 @@
 #include <set>
 
 #include <boost/test/unit_test.hpp>
-#include <ir/id_manager/TermIdManager.h>
 #include <wiselib/ustring/UString.h>
+
+#include <ir/id_manager/TermIdManager.h>
+#include <ir/id_manager/IDGenerator.h>
+#include <ir/id_manager/IDStorage.h>
+#include <ir/id_manager/IDFactory.h>
 
 using namespace std;
 using namespace wiselib;
 using namespace boost::unit_test;
 using namespace izenelib::ir::idmanager;
+
+
+typedef TermIdManager<UString, unsigned int> TestTermIdManager;
 
 /**
  * @brief TermIdManager<UString, unsigned int>Fixture is used to test TermIdManager<UString, unsigned int>. It loads terms from text file to build termStringLists.
@@ -102,8 +109,10 @@ public:
 	 * @param
 	 * 	termIdList2 - list 2 of term ids
 	 */
-	bool generateTermLists(vector<UString>& termUStringList1, vector<unsigned int>& termIdList1,
-            vector<UString>& termUStringList2, vector<unsigned int>& termIdList2)
+	bool generateTermLists(vector<UString>& termUStringList1,
+                           vector<unsigned int>& termIdList1,
+                           vector<UString>& termUStringList2,
+                           vector<unsigned int>& termIdList2)
     {
         vector<string> termStringList1;
         vector<string> termStringList2;
@@ -155,12 +164,14 @@ public:
  * @brief Check function which ckecks if all the ids are corretly generated.
  */
 
-inline bool isIdListCorrect(const vector<unsigned int>& termIdList,const vector<UString>& termStringList, TermIdManager<UString, unsigned int>& termIdManager)
+inline bool isIdListCorrect(const vector<unsigned int>& termIdList,
+                            const vector<UString>& termStringList,
+                            TestTermIdManager& termIdManager)
 {
     UString compare;
-    
+
     // Check if the id is correctly generated using getTermStringByTermId().
-    for(unsigned int i = 0; i < termIdList.size(); i++) 
+    for(unsigned int i = 0; i < termIdList.size(); i++)
     {
 
         // Check if the id is in the termIdManager with getting termstring according to the id.
@@ -168,7 +179,7 @@ inline bool isIdListCorrect(const vector<unsigned int>& termIdList,const vector<
             return false;
 
         // Check if the term string from termIdManager is the same as the original one.
-        if ( termStringList[i] != compare ) 
+        else if ( termStringList[i] != compare )
             return false;
 
     } // end - for
@@ -187,7 +198,7 @@ BOOST_FIXTURE_TEST_SUITE( t_TermIdManager, TermIdManagerFixture )
 
 
 /**
- * @brief Test Case 1 : Get ids of 100 & 2400 terms using getTermIdByTermString() Interfaces. 
+ * @brief Test Case 1 : Get ids of 100 & 2400 terms using getTermIdByTermString() Interfaces.
  *                      After checking the ids of them, get strings of 100 & 2400 ids using getTermStringByTermId() Interfaces.\n
  *
  * @details
@@ -199,15 +210,15 @@ BOOST_AUTO_TEST_CASE( TestCase1 )
 {
     cerr << endl;
     cerr << "[ TermIdManager<UString, unsigned int> ] Test Case 1 : Check getTermIdByTermString() ................";
-    
+
     // remove previous index file
     //remove(TermIdManager<UString, unsigned int>::TERM_ID_MANAGER_INDEX_FILE.c_str());
 
 
-    TermIdManager<UString, unsigned int> termIdManager("tid1");
+    TestTermIdManager termIdManager("tid1");
     unsigned int i;
     UString compare;
-    
+
     // termUStringList1_ (100 terms) and termUStringList2_ (2500 terms) are already generated.
 
     // Get ids for each terms using getTermIdByTermString().
@@ -216,11 +227,12 @@ BOOST_AUTO_TEST_CASE( TestCase1 )
     termIdList2_.resize(termUStringList2_.size());
 
 
-    for(i = 0; i < termUStringList1_.size(); i++) 
+    std::cerr << std::endl;
+    for(i = 0; i < termUStringList1_.size(); i++)
       termIdManager.getTermIdByTermString( termUStringList1_[i], termIdList1_[i] );
-    
 
-    for(i = 0; i < termUStringList2_.size(); i++) 
+
+    for(i = 0; i < termUStringList2_.size(); i++)
         termIdManager.getTermIdByTermString( termUStringList2_[i], termIdList2_[i] );
 
     // Check if the id is correctly generated using getTermStringByTermId().
@@ -236,7 +248,7 @@ BOOST_AUTO_TEST_CASE( TestCase1 )
 //*/
 
 /**
- * @brief Test Case 2 : Get ids of 100 & 2400 terms using getTermIdListByTermStringList() Interfaces. 
+ * @brief Test Case 2 : Get ids of 100 & 2400 terms using getTermIdListByTermStringList() Interfaces.
  *                      After checking the ids of them, get strings of 100 & 2400 ids. \n
  * @details
  *  - Get 100 & 2400 terms. termUStringList1_ and termUStringList2_ contains terms.
@@ -250,7 +262,7 @@ BOOST_AUTO_TEST_CASE( TestCase2 )
     // remove previous index file
     //remove(TermIdManager<UString, unsigned int>::TERM_ID_MANAGER_INDEX_FILE.c_str());
 
-    TermIdManager<UString, unsigned int> termIdManager("tid2");
+    TestTermIdManager termIdManager("tid2");
 
     // termUStringList1_ (100 terms) and termUStringList2_ (2500 terms) are already generated.
     // Get ds for each terms using getTermIdListByTermStringList().
@@ -263,7 +275,7 @@ BOOST_AUTO_TEST_CASE( TestCase2 )
 
     cerr << "OK" << endl;
 
-} // end - BOOST_AUTO_TEST_CASE( TestCase2 ) 
+} // end - BOOST_AUTO_TEST_CASE( TestCase2 )
 //*/
 
 /**
@@ -282,10 +294,10 @@ BOOST_AUTO_TEST_CASE( TestCase3 )
     // remove previous index file
     // remove(TermIdManager<UString, unsigned int>::TERM_ID_MANAGER_INDEX_FILE.c_str());
 
-    TermIdManager<UString, unsigned int> idManager("tid3");
+    TestTermIdManager idManager("tid3");
     UString compare;
 
-    // Build term index dictionary using getTermIdListByTermStringList() Interface.    
+    // Build term index dictionary using getTermIdListByTermStringList() Interface.
     termIdList1_.resize(termUStringList1_.size());
     termIdList2_.resize(termUStringList2_.size());
     idManager.getTermIdListByTermStringList( termUStringList1_, termIdList1_ );
@@ -305,7 +317,7 @@ BOOST_AUTO_TEST_CASE( TestCase3 )
     pattern = patternCheck;
     pattern += starChar;
     idManager.getTermIdListByWildcardPattern(pattern, termIdList1_);
-    BOOST_CHECK_EQUAL( termIdList1_.size() , static_cast<unsigned int>(35) ); 
+    BOOST_CHECK_EQUAL( termIdList1_.size() , static_cast<unsigned int>(35) );
 
     // ---------------------------------------------- pattern = "*ad"
     pattern.clear();
@@ -314,7 +326,7 @@ BOOST_AUTO_TEST_CASE( TestCase3 )
     pattern += patternCheck;
 
     idManager.getTermIdListByWildcardPattern(pattern, termIdList1_);
-    BOOST_CHECK_EQUAL( termIdList1_.size() , static_cast<unsigned int>(4) ); 
+    BOOST_CHECK_EQUAL( termIdList1_.size() , static_cast<unsigned int>(4) );
 
     // ---------------------------------------------- pattern = "*ad*"
     pattern.clear();
@@ -324,7 +336,7 @@ BOOST_AUTO_TEST_CASE( TestCase3 )
     pattern += starChar;
     idManager.getTermIdListByWildcardPattern(pattern, termIdList1_);
     BOOST_CHECK_EQUAL( termIdList1_.size() , static_cast<unsigned int>(81));
-    
+
     idManager.display();
 
     cerr << "OK" << endl;
@@ -333,9 +345,9 @@ BOOST_AUTO_TEST_CASE( TestCase3 )
 //*/
 
 /**
- * @brief Test Case 6 : Variable lenght & duplicated term Test 
+ * @brief Test Case 6 : Variable lenght & duplicated term Test
  *
- * @details 
+ * @details
  * Read random.txt file which contains random & duplicated terms.
  * Insert termList into TermIdManager<UString, unsigned int> using getTermIdListbyTermStringList. Store idlist in termIdList1_.
  * get termIdList twice and insert result into termIdList2_
@@ -347,7 +359,7 @@ BOOST_AUTO_TEST_CASE( TestCase4 )
 
     cerr << "[ TermIdManager<UString, unsigned int> ] Test Case 4 : Check variable length and duplicate terms ....";
 
-    TermIdManager<UString, unsigned int> termIdManager("tid4");
+    TestTermIdManager termIdManager("tid4");
     vector<UString> termUStringList;
     vector<unsigned int> termIdList1;
     vector<unsigned int> termIdList2;
@@ -375,7 +387,7 @@ BOOST_AUTO_TEST_CASE( TestCase4 )
         termUString.assign(termList[i], UString::CP949);
         termUStringList.push_back(termUString);
     } // end - for
-    
+
 
     termIdManager.getTermIdListByTermStringList( termUStringList, termIdList1 );
 
@@ -404,7 +416,7 @@ BOOST_AUTO_TEST_CASE(TermIndexer_With_Korean_Characters )
 {
     cerr << "[ TermIdManager<UString, unsigned int> ] Test Case 5 : Check TermIdManager<UString, unsigned int> with Korean Terms ....";
 
-    TermIdManager<UString, unsigned int> termIdManager("tid5");
+    TestTermIdManager termIdManager("tid5");
     vector<unsigned int> termIdList;
 	set<string> uniqueStringList;
 	set<string> uniqueStringList2;
@@ -415,7 +427,7 @@ BOOST_AUTO_TEST_CASE(TermIndexer_With_Korean_Characters )
     string inputString;
     vector<UString> inputStringList;
 
-    while( fpin.good() ) 
+    while( fpin.good() )
     {
 
         fpin >> inputString;
@@ -427,7 +439,7 @@ BOOST_AUTO_TEST_CASE(TermIndexer_With_Korean_Characters )
         {
             termIdManager.getTermIdListByTermStringList(inputStringList, termIdList);
             inputStringList.clear();
-        } // end - else if 
+        } // end - else if
         else
         {
             UString inputUString(inputString, UString::CP949);

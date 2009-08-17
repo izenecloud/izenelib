@@ -175,7 +175,7 @@ public:
 	}
 
 	static ub8 generateHash64 (const KeyType& key) {
-		const char *token = key.c_str();
+		const char *token = (const char *) key.c_str();
 		const unsigned int len = key.size();
 		ub8 id = 0L;
 		ub8 id1, id2;
@@ -187,7 +187,7 @@ public:
 	}
 
 	static ub4 generateHash32 (const KeyType& key) {
-		const char *token = key.c_str();
+		const char *token = (const char *) key.c_str();
 		const unsigned int len = key.size();
 
 		return calcHash (token, len, init_pattern_1);
@@ -240,7 +240,7 @@ template<class T> struct HashFunctor {
 		size_t ksize;
 		izene_serialization<T> izs(key);
 		izs.write_image(ptr, ksize);
-		
+
 		char* str = ptr;
 		uint32_t convkey = 0;
 		for (size_t i = 0; i < ksize; i++)

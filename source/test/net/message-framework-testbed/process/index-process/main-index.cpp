@@ -54,23 +54,23 @@ void initMFServer() {
 
 void initServiceList(vector<ServiceInfo> & serviceList) {
 	ServiceInfo serviceInfo;
-	vector<ServiceParameterType> params;
+	//vector<ServiceParameterType> params;
 
 	serviceInfo.setServer(po.getControllerIp(), po.getControllerPort() );
-	serviceInfo.setPermissionFlag(SERVE_AT_SERVER);
+	//serviceInfo.setPermissionFlag(SERVE_AT_SERVER);
 
 	serviceInfo.setServiceName("addDocument");
-	params.clear();
-	params.push_back(CUSTOM_TYPE);
-	serviceInfo.setParameterList(params);
-	serviceInfo.setServiceResultFlag(SERVICE_WITHOUT_RESULT); // this service does not have any result
+	//params.clear();
+	//params.push_back(CUSTOM_TYPE);
+	//serviceInfo.setParameterList(params);
+	//serviceInfo.setServiceResultFlag(SERVICE_WITHOUT_RESULT); // this service does not have any result
 	serviceList.push_back(serviceInfo);
 
 	serviceInfo.setServiceName("findDocListByTerm");
-	params.clear();
-	params.push_back(STRING_TYPE);
-	serviceInfo.setParameterList(params);
-	serviceInfo.setServiceResultFlag(SERVICE_WITH_RESULT); // this service does not have any result
+	//params.clear();
+	//params.push_back(STRING_TYPE);
+	//serviceInfo.setParameterList(params);
+	//serviceInfo.setServiceResultFlag(SERVICE_WITH_RESULT); // this service does not have any result
 	serviceList.push_back(serviceInfo);
 }
 
@@ -80,6 +80,8 @@ int registerServiceList(const vector<ServiceInfo> & serviceList) {
 	int failCnt = 0;
 	bool ret = false;
 
+
+	server_->setAgentInfo("index");
 	for (i = 0; i < serviceList.size(); i++) {
 		while ( !(ret = server_->registerService(serviceList[i]) ) && nTimeout
 				< 100) {

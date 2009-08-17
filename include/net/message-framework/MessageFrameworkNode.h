@@ -11,6 +11,7 @@
 #include <string>
 #include <net/message-framework/MessageFrameworkErrorString.h>
 #include <net/message-framework/MessageFrameworkException.h>
+#include <boost/shared_ptr.hpp>
 
 namespace messageframework
 {
@@ -49,7 +50,11 @@ namespace messageframework
 		/**
 		 * @brief Destructor of the node
 		 */
-		~MessageFrameworkNode(){}
+		~MessageFrameworkNode(){
+			//display();
+			//std::cout<<" ~MessageFrameworkNode"<<std::endl;
+		}
+		
 
 		/**
  		 * @brief clear data
@@ -71,6 +76,10 @@ namespace messageframework
          * @brief   By using boost::hash the function returns the hash key value using the member variables 
          */
         std::size_t hash() const;
+        
+        void display(std::ostream& os=std::cout) const {
+        	os<<nodeName_<<" : ("<<nodeIP_<<" : "<<nodePort_<<")"<<std::endl;        	
+        }
 
 	public:
 
@@ -89,6 +98,10 @@ namespace messageframework
 		 */
 		std::string nodeName_;
 	};
+	
+	 inline std::ostream& operator<<(std::ostream& s, const MessageFrameworkNode& c)
+	  {c.display(s); return s;}
+
 
 	/**
  	 * @brief This class is used by std containers such as std::map to define the weak order
@@ -119,7 +132,12 @@ namespace messageframework
 			return false;
 		}
 	};
+	
+	typedef boost::shared_ptr<MessageFrameworkNode> MessageFrameworkNodePtr;
 }// end of messageframework
+
+
+
 
 
 // @by MyungHyun - 2009-01-09

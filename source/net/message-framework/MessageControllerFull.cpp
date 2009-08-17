@@ -4,7 +4,6 @@
 /// @author TuanQuang Nguyen
 ///
 
-
 /**************** Include module header files *******************/
 // #include <BasicMessage.h>
 #include <net/message-framework/MessageControllerFull.h>
@@ -14,6 +13,7 @@
 #include <net/message-framework/ServiceRegistrationMessage.h>
 #include <net/message-framework/ServiceRegistrationReplyMessage.h>
 #include <net/message-framework/ClientIdReplyMessage.h>
+#include <net/message-framework/ServicePermissionInfo.h>
 
 /**************** Include boost header files *******************/
 #include <boost/bind.hpp>
@@ -46,7 +46,7 @@ MessageControllerFull::MessageControllerFull(const std::string& controllerName,
 	// timeout is 1 second
 	timeOutMilliSecond_ = 1000;
 
-	serviceResultReply_ = false;
+	//serviceResultReply_ = false;
 
 	// start from 1, so 0 is a invalid client id
 	nxtClientId_ = 1;
@@ -80,32 +80,41 @@ void MessageControllerFull::processServiceRegistrationRequest(void) {
 #endif
 			while(!serviceRegistrationRequestQueue_.empty())
 			{
-				std::pair<ServiceInfo, MessageFrameworkNode> request =
+				std::pair<ServiceRegistrationMessage, MessageFrameworkNode> request =
 				serviceRegistrationRequestQueue_.front();
 				serviceRegistrationRequestQueue_.pop();
 				serviceRegistrationRequestQueueLock.unlock();
 
 				{
 					// check if the sevice has been registered
+					string serviceName = request.first.getServiceInfo().getServiceName();
+					MessageFrameworkNode server = request.first.getServiceInfo().getServer();
 					boost::mutex::scoped_lock availableServiceListLock(availableServiceListMutex_);
-					boost::unordered_map<std::string, ServiceInfo>::iterator it;
-					it = availableServiceList_.find(request.first.get_key());
-					if(it != availableServiceList_.end())
+					
+					std::cout<<"ServiceRegistrationRequest: "<<serviceName<<std::endl;
+					if( availableServiceList_.find(serviceName) != availableServiceList_.end() )
 					{
 #ifdef SF1_DEBUG
 						std::cout << "[Controller:" << getName();
-						std::cout << "] ServiceInfo " << request.first.get_key() << " already exists.";
+						std::cout << "] ServiceInfo " << request.first.getServiceName() << " already exists.";
 						std::cout << "New data overwrites old data." << std::endl;
-#endif
-						availableServiceList_.erase(it);
+	#endif
+						
+						availableServiceList_[serviceName].setServer(request.first.getAgentInfo(), server);
+					} else
+					{
+						ServicePermissionInfo permissionInfo;
+						permissionInfo.setServiceName(serviceName);						
+						permissionInfo.setServer(request.first.getAgentInfo(), server);
+						availableServiceList_[serviceName] = permissionInfo;
 					}
-					availableServiceList_.insert(
-							std::pair<std::string, ServiceInfo>(request.first.get_key(), request.first));
+					
+					//availableServiceList_[serviceName].display();
+					sendServiceRegistrationResult(request.second, request.first.getServiceInfo(), true);
 				}
 
-				sendServiceRegistrationResult(request.second, request.first, true);
 #ifdef SF1_DEBUG
-				std::cout << "[Controller:" << getName() << "] ServiceInfo [" << request.first.get_key();
+				std::cout << "[Controller:" << getName() << "] ServiceInfo [" << request.first.getServiceName();
 				std::cout << ", " << request.first.getServer().nodeIP_ << ":";
 				std::cout << request.first.getServer().nodePort_ << "] is successfully registerd." << std::endl;
 #endif
@@ -159,34 +168,37 @@ void MessageControllerFull::processServicePermissionRequest(void) {
 				servicePermissionRequestQueue_.pop();
 
 				permissionRequestQueueLock.unlock();
-
-				// retrieve registered services
-				if(getServiceInfo(requestItem.first,
-								serviceInfo))
-				{
+				
+				if( availableServiceList_.find(requestItem.first) != availableServiceList_.end() )
+				{				
+					sendPermissionOfServiceResult(requestItem.second, availableServiceList_[requestItem.first] );
 					// to improve performance, direct connection to
 					// server is always made
-					serviceInfo.setPermissionFlag(SERVE_AT_SERVER);
+					//serviceInfo.setPermissionFlag(SERVE_AT_SERVER);
 					// serviceInfo.setServer(ipAddress_, servicePort_);
 
 				} else
-				{
-					serviceInfo.setServiceName(requestItem.first);
-					serviceInfo.setPermissionFlag(UNKNOWN_PERMISSION_FLAG);
+				{		
+					ServicePermissionInfo permission;
+					permission.setServiceName(requestItem.first);
+					//serviceInfo.setPermissionFlag(UNKNOWN_PERMISSION_FLAG);
 #ifdef SF1_DEBUG
 					std::cout << " [Controller:" << getName();
 					std::cout << "] Service " << requestItem.first;
 					std::cout << " is not listed." << std::endl;
 #endif
+					sendPermissionOfServiceResult(requestItem.second, permission );
 				}
 
-				ServicePermissionInfo permission;
-				permission.setServiceName(serviceInfo.getServiceName());
-				permission.setPermissionFlag(serviceInfo.getPermissionFlag());
-				permission.setServer(serviceInfo.getServer());
-				permission.setServiceResultFlag( serviceInfo.getServiceResultFlag() ); // @by MyungHyun - 2009-01-28
+			
+				//ServicePermissionInfo permission;
+				//permission.setServiceName(serviceInfo.getServiceName());
+				//permission.setPermissionFlag(serviceInfo.getPermissionFlag());
+				//permission.setServer(serviceInfo.getServer());
+				//permission.setServiceResultFlag( serviceInfo.getServiceResultFlag() ); // @by MyungHyun - 2009-01-28
 				// send permission message to client
-				sendPermissionOfServiceResult(requestItem.second, permission);
+				
+				
 #ifdef SF1_DEBUG
 				std::cout << "[Controller:" << getName();
 				std::cout << "] Permission of " << requestItem.first;
@@ -219,7 +231,7 @@ void MessageControllerFull::processServicePermissionRequest(void) {
  serviceName - the service name
  serviceInfo - the information of service
  ******************************************************************************/
-bool MessageControllerFull::getServiceInfo(const std::string& serviceName,
+/*bool MessageControllerFull::getServiceInfo(const std::string& serviceName,
 		ServiceInfo& serviceInfo) {
 	boost::unordered_map<std::string, ServiceInfo>::iterator it;
 	it = availableServiceList_.find(serviceName);
@@ -229,7 +241,7 @@ bool MessageControllerFull::getServiceInfo(const std::string& serviceName,
 	}
 
 	return false;
-}
+}*/
 
 /******************************************************************************
  Description: When a new request of get client id comes, this function is called
@@ -439,15 +451,14 @@ void MessageControllerFull::receivePermissionOfServiceRequest(
  serviceInfo - data to add
  ******************************************************************************/
 void MessageControllerFull::receiveServiceRegistrationRequest(const MessageFrameworkNode& localEndPoint,
-const ServiceInfo& serviceInfo)
+const ServiceRegistrationMessage& registMessage)
 {
 	try
 	{
 		{
 			boost::mutex::scoped_lock lock(serviceRegistrationRequestQueueMutex_);
 			serviceRegistrationRequestQueue_.push(
-			std::pair<ServiceInfo, MessageFrameworkNode>(serviceInfo, localEndPoint));
-			//serviceInfo.display();
+			std::pair<ServiceRegistrationMessage, MessageFrameworkNode>(registMessage, localEndPoint));
 		}
 		newRegistrationEvent_.notify_all();
 	}
@@ -621,11 +632,9 @@ bool success)
  */
 void MessageControllerFull::sendPermissionOfServiceResult(const MessageFrameworkNode& requester,
 const ServicePermissionInfo & permission)
-{
-	PermissionOfServiceMessage message(permission);
-
+{		
 	messageDispatcher_.sendDataToLowerLayer(PERMISSION_OF_SERVICE_REPLY_MSG,
-	message, requester);
+	permission, requester);
 }
 
 /**

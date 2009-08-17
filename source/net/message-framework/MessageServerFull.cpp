@@ -19,9 +19,6 @@
 
 /**************** Include boost header files *******************/
 
-
-#define  _LOGGING_
-
 namespace messageframework
 {
 
@@ -47,7 +44,7 @@ namespace messageframework
 		server_.nodePort_ = serverPort;
 		server_.nodeIP_ = getLocalHostIp(io_service_);
 
-		availableServiceList_.clear();
+		//availableServiceList_.clear();
 
 		serviceRegistrationServer_ = controllerInfo;
 		connector_.listen(serverPort);
@@ -94,7 +91,7 @@ namespace messageframework
 	Description: This function register a service of the current MessageServerFull. It will
 	submit the registration information of the service to the MessageController.
 	*********************************************************************************/
-	bool MessageServerFull::registerService(const std::string& serviceName,
+/*	bool MessageServerFull::registerService_(const std::string& serviceName,
 					const std::vector<ServiceParameterType>& parameterList,
 					const PermissionFlag& permissionFlag,
                     const ServiceResultFlag serviceResultFlag )
@@ -116,8 +113,13 @@ namespace messageframework
 				return true;
 			}
 
-			sendServiceRegistrationRequest(serviceName, parameterList,
-				permissionFlag, serviceResultFlag);
+			ServiceRegistrationMessage message;
+			//sendServiceRegistrationRequest(serviceName, parameterList,
+			//	permissionFlag, serviceResultFlag);
+			message.setServiceInfo();
+			message.setServer(server_);
+			message.setRequester(ownerManager_);
+			messageDispatcher_.sendDataToLowerLayer(SERVICE_REGISTRATION_REQUEST_MSG, message, controllerNode_);
 
 			boost::system_time const timeout = boost::get_system_time() +
 				boost::posix_time::milliseconds(timeOutMilliSecond_);
@@ -179,17 +181,97 @@ namespace messageframework
 		}
 
 		return false;
-	}
+	}*/
 
 
     bool MessageServerFull::registerService( const ServiceInfo & serviceInfo )
-    {
-        return registerService(
-			serviceInfo.getServiceName(),
-			serviceInfo.getParameterList(),
-			serviceInfo.getPermissionFlag(),
-			serviceInfo.getServiceResultFlag()
-		);
+    {        
+		try
+		{			
+			std::map<std::string, ServiceInfo>::iterator it;
+
+			// connection has not been established
+			if(!connectionEstablished_)
+				return false;
+
+			// Check if the service has been registered
+			std::string serviceName = serviceInfo.getServiceName() ;
+			it = availableServiceList_.find(serviceName);
+			if(it != availableServiceList_.end())
+			{
+				// service has been registered
+				return true;
+			}
+
+			ServiceRegistrationMessage message;
+			//sendServiceRegistrationRequest(serviceName, parameterList,
+			//	permissionFlag, serviceResultFlag);
+			message.setAgentInfo(agentInfo_);
+			message.setServiceInfo(serviceInfo);
+			
+			sendServiceRegistrationRequest(message);
+
+			boost::system_time const timeout = boost::get_system_time() +
+				boost::posix_time::milliseconds(timeOutMilliSecond_);
+			boost::mutex::scoped_lock lock(serviceRegistrationReplyMutex_);
+			// Modified by Wei Cao, 2009-02-20
+			// To slove the problem of service registration timeout
+			// Remove serviceRegistrationWaitingQueue_
+			// When wake up from a condition variable, you should check whether
+			// the condition fulfills, if not, go on waiting.
+			while(serviceRegistrationResult_.find(serviceName) ==
+				serviceRegistrationResult_.end())
+			{
+				if(!serviceRegistrationReplyAccessor_.timed_wait(lock, timeout))
+				{
+  #ifdef SF1_DEBUG
+					std::cout << "[Server: " << getName() << "]Timed out!!! Connection is going to be closed." << std::endl;
+  #endif
+					return false;
+				}
+			}
+
+			std::map<std::string, bool>::const_iterator iter =
+				serviceRegistrationResult_.find(serviceName);
+			
+			if(iter != serviceRegistrationResult_.end())
+			{
+				//serviceInfo.setServiceName(serviceName);
+				//serviceInfo.setParameterList(parameterList);
+				//serviceInfo.setPermissionFlag(permissionFlag);
+                //serviceInfo.setServiceResultFlag( serviceResultFlag );
+
+				// The service has been successfully registered, the service
+				// is added to the available service list
+				availableServiceList_.insert(std::pair<std::string, ServiceInfo>(serviceName, serviceInfo));
+				serviceRegistrationResult_.erase(serviceName);
+#ifdef SF1_DEBUG
+				std::cout << "[Server: " << getName() << "] Service " << serviceName;
+				std::cout << " is successfully registered."<< std::endl;
+#endif
+#ifdef _LOGGING_
+				WriteToLog("log.log", "successfully registered.");
+#endif
+				return true;
+			}
+
+			// it's strange to reach here
+			throw MessageFrameworkException(SF1_MSGFRK_UNKNOWN_ERROR, __LINE__, __FILE__);
+		}
+		catch(MessageFrameworkException& e)
+		{
+			e.output(std::cerr);
+		}
+		catch(boost::system::error_code& e)
+		{
+			std::cerr << e << std::endl;
+		}
+		catch(std::exception& e)
+		{
+			std::cerr << "Exception: " << e.what() << std::endl;
+		}
+
+		return false;
     }
 
 	/*********************************************************************************
@@ -305,7 +387,7 @@ namespace messageframework
 #ifdef _LOGGING_
 		WriteToLog("log.log", "============= MessageServer::sendResultOfService ===========");		
 #endif	
-		//boost::mutex::scoped_lock resultCacheLock(resultCacheMutex_);
+		//boost::mutex::scoped_lock resultCacheLock(resultCacheMutex_);	
 		messageDispatcher_.sendDataToLowerLayer1(SERVICE_RESULT_MSG, result, requester);
 /*
 		try
@@ -402,7 +484,7 @@ namespace messageframework
 			std::cout << "[Server: " << getName() << "] Receive request to retrieve result of service ";
 			std::cout << requestInfo->getServiceName();
 			std::cout << "[requestId = " << requestInfo->getRequestId() << "]"  << std::endl;
-			requestInfo->display();
+			//requestInfo->display();
 #endif
 		try
 		{
@@ -473,15 +555,10 @@ namespace messageframework
 	 *	permissionFlag - this flags tell how to serve the service (through Message Controller or
 	 *				directly at MessageServerFull)
 	 */
-	void MessageServerFull::sendServiceRegistrationRequest(const std::string& serviceName,
-				const std::vector<ServiceParameterType>& parameterList,
-				const PermissionFlag& permissionFlag,
-                const ServiceResultFlag serviceResultFlag )
-	{
-		ServiceRegistrationMessage message(serviceName, parameterList, permissionFlag, serviceResultFlag);
+	void MessageServerFull::sendServiceRegistrationRequest(ServiceRegistrationMessage& message)
+	{		
 		message.setServer(server_);
 		message.setRequester(ownerManager_);
-
 		messageDispatcher_.sendDataToLowerLayer(SERVICE_REGISTRATION_REQUEST_MSG, message, controllerNode_);
 	}
 

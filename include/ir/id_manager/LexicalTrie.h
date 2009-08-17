@@ -13,6 +13,8 @@
 #include <set>
 #include <vector>
 
+#include <types.h>
+
 using namespace std;
 
 NS_IZENELIB_IR_BEGIN

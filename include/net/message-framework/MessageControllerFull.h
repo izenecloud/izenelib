@@ -14,7 +14,7 @@
 #include <net/message-framework/ServicePermissionInfo.h>
 //#include <message-framework/ServiceResult.h>
 //#include <message-framework/ServiceRequestInfo.h>
-#include <net/message-framework/PermissionOfServiceMessage.h>
+//#include <net/message-framework/PermissionOfServiceMessage.h>
 #include <net/message-framework/ServiceRegistrationMessage.h>
 #include <net/message-framework/ServiceResultServer.h>
 #include <net/message-framework/ServiceResultRequester.h>
@@ -110,9 +110,9 @@ protected:
 	 * @param
 	 * serviceInfo - the information of service
 	 */
-	bool
-			getServiceInfo(const std::string& serviceName,
-					ServiceInfo& serviceInfo);
+	//bool
+	//		getServiceInfo(const std::string& serviceName,
+	//				ServiceInfo& serviceInfo);
 
 	/**
 	 * @brief This function forward the request to the server and
@@ -131,7 +131,7 @@ protected:
 	 */
 	void receiveServiceRegistrationRequest(
 			const MessageFrameworkNode& localEndPoint,
-			const ServiceInfo& serviceInfo);
+			const ServiceRegistrationMessage& serviceInfo);
 
 	/**
 	 * @brief This function replies to a registration request from ServiceRegistrationRequester. It
@@ -170,7 +170,7 @@ protected:
 	 * @param permission the permission
 	 */
 	void sendPermissionOfServiceResult(const MessageFrameworkNode& requester,
-			const ServicePermissionInfo & permission);
+			const ServicePermissionInfo& permission);
 
 	/************ End of Interfaces of Permission Server ****************/
 
@@ -287,7 +287,7 @@ private:
 	/**
 	 * @brief the queue of waiting service registration requests.
 	 */
-	std::queue<std::pair<ServiceInfo, MessageFrameworkNode> >
+	std::queue<std::pair<ServiceRegistrationMessage, MessageFrameworkNode> >
 			serviceRegistrationRequestQueue_;
 
 	/**
@@ -321,7 +321,8 @@ private:
 	/**
 	 * @brief the list of availabe service
 	 */
-	boost::unordered_map<std::string, ServiceInfo> availableServiceList_;
+	//boost::unordered_map<std::string, ServiceInfo> availableServiceList_;
+	boost::unordered_map<std::string, ServicePermissionInfo> availableServiceList_;
 
 	/**
 	 * @brief mutex to allow exclusively access to availableServiceList_
@@ -331,19 +332,19 @@ private:
 	/**
 	 * @brief the queue of waiting service requests
 	 */
-	std::queue<std::pair<MessageFrameworkNode, ServiceRequestInfoPtr> >
-			serviceRequestQueue_;
+	//std::queue<std::pair<MessageFrameworkNode, ServiceRequestInfoPtr> >
+	//		serviceRequestQueue_;
 
 	/**
 	 * @brief the mutex to allow exclusive access to serviceRequestQueue_
 	 */
-	boost::mutex serviceRequestQueueMutex_;
+	//boost::mutex serviceRequestQueueMutex_;
 
 	/**
 	 * @brief this variable is used as a signal to a new service request
 	 * It is signalized when a new request comes.
 	 */
-	boost::condition_variable newServiceRequestEvent_;
+	//boost::condition_variable newServiceRequestEvent_;
 
 	/**
 	 * @brief Listening port to serve service result
@@ -365,38 +366,38 @@ private:
 	 * @brief This variable store all requests that have been sent to server but have not
 	 * been received the result
 	 */
-	std::map<unsigned int, MessageFrameworkNode> waitingForResultMessageQueue_;
+	//std::map<unsigned int, MessageFrameworkNode> waitingForResultMessageQueue_;
 
 	/**
 	 * @brief This mutext allows exclusive access to waitingForResultMessageQueue_
 	 */
-	boost::mutex waitingForResultMessageQueueMutex_;
+	//boost::mutex waitingForResultMessageQueueMutex_;
 
 	/**
 	 * @brief This variable is used to notify if the result of service has been
 	 * successfully sent.
 	 */
-	bool serviceResultReply_;
+	//bool serviceResultReply_;
 
 	/**
 	 * @brief This mutex is used to allow exclusively access to  serviceResultReply_
 	 */
-	boost::mutex serviceResultReplyMutex_;
+	//boost::mutex serviceResultReplyMutex_;
 
 	/**
 	 * @brief This queue contains results of requested services
 	 */
-	std::queue<std::pair<MessageFrameworkNode, ServiceResultPtr> > resultQueue_;
+	//std::queue<std::pair<MessageFrameworkNode, ServiceResultPtr> > resultQueue_;
 
 	/**
 	 * @brief This mutex is used to allow exclusive access to resultQueue_
 	 */
-	boost::mutex resultQueueMutex_;
+	//boost::mutex resultQueueMutex_;
 
 	/**
 	 * @brief This event is signalized when new result of service arrives
 	 */
-	boost::condition_variable newServiceResultEvent_;
+	//boost::condition_variable newServiceResultEvent_;
 
 	/**
 	 * @brief This variables receives data from peer and sends data to the peer

@@ -28,17 +28,13 @@ EXT_LIB_PATH = \
 			   -L /usr/local/lib \
 
 EXT_LIB = \
-                  -l wiselib \
                   -l boost_system-gcc41-mt-1_39 \
 		  -l boost_date_time-gcc41-mt-1_39 \
 		  -l boost_serialization-gcc41-mt-1_39 \
 		  -l boost_program_options-gcc41-mt-1_39 \
 		  -l boost_thread-gcc41-mt-1_39 \
 		  -l boost_unit_test_framework-gcc41-mt-1_39 \
-		  -l boost_memory \
 		  -l tokyocabinet \
-#		  -l sdb_btree \
-		  
 
 
 OBJECTS = $(patsubst %.cpp, %.o, $(wildcard *.cpp)) 

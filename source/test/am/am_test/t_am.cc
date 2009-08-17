@@ -9,9 +9,46 @@ using namespace izenelib::am_test;
 static string inputFile = "test.txt";
 static string indexFile = "index.dat";
 static int num = 1000000;
-static bool rnd = 0;
+static bool rnd = 1;
 static int loop = 1;
 static bool trace = 0;
+
+
+struct MyKeyType{
+	unsigned int did;
+	unsigned int tid1;
+	unsigned int tid2;
+	
+	inline int compare(const MyKeyType& other) const {
+		if (did != other.did) {
+			return (did - other.did);
+		} else if (tid1 != other.tid1) {
+			return (tid1 - other.tid1);
+		} else {
+			return (tid2 - other.tid2);
+		}
+
+	}
+	
+};
+
+
+namespace izenelib {
+namespace am_test {
+
+template<> inline UString generateData<UString>(const int a, int num, bool rand) {
+	string::value_type p[10];
+	int b;
+	if (rand)
+		b = myrand()%(num+1);
+	else
+		b = a;
+	sprintf(p, "%08d", b);
+	return UString(p, UString::UTF_8);
+}
+}
+}
+
 
 void ReportUsage(void) {
 	cout

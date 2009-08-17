@@ -9,6 +9,7 @@
 //#include <am/util/Wrapper.h>
 #include <am/util/SdbUtil.h>
 #include <util/izene_serialization.h>
+#include <util/ProcMemInfo.h>
 
 //#include <boost/memory.hpp>
 //#include <boost/static_assert.hpp>

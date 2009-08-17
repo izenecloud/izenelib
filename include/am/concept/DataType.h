@@ -129,8 +129,10 @@ public:
 	}
 private:
 	int _compare(const KeyType& key1, const KeyType& key2,
-			const boost::mpl::true_*) const {
-		return key1 - key2;
+			const boost::mpl::true_*) const {	
+		if(key1 > key2) return 1;
+		else if(key1 <key2 )return -1;		
+		else return 0;
 	}
 
 	int _compare(const KeyType& key1, const KeyType& key2,

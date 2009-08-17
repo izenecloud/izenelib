@@ -75,9 +75,7 @@ public:
 	 */
 	sdb_node_(CbFileHeader& fileHeader,  LockType&  fileLock, size_t& activeNum);
 
-	~sdb_node_() {		
-		childNo = size_t(-1);
-		fpos= -1;
+	~sdb_node_() {				
 		unload();
 	}
 
@@ -188,7 +186,7 @@ public:
 				os<<"----|";
 			}
 			//keys[i]->display();
-			//os<<keys[i];
+			//os<<keys[i]<<"->"<<values[i];
 			size_t pfos=0;
 			//if (parent)
 			//	pfos = parent->fpos;
@@ -226,7 +224,7 @@ private:
 	 size_t& _overFlowSize;
 	 LockType &_fileLock; //inclusive lock for I/O	 
 	 size_t &activeNodeNum;
-	static izenelib::am::CompareFunctor<KeyType> _comp;
+	 static izenelib::am::CompareFunctor<KeyType> _comp;
 private:
 	//when overflowing occured, we will allocate serverall sequential
 	//overflow page at the end of file.
@@ -633,9 +631,10 @@ template<typename KeyType, typename ValueType, typename LockType,
 			for (size_t i=0; i<objCount+1; i++) {
 				if (children[i]) {
 					children[i]->unload();
-					if (children[i])
+					if (children[i]){
 						delete children[i];
-					children[i] = 0;
+						children[i] = 0;
+					}
 				}
 			}
 		}

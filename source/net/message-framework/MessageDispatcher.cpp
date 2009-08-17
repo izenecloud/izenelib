@@ -10,7 +10,9 @@
 #include <net/message-framework/MessageType.h>
 #include <net/message-framework/ServiceRegistrationMessage.h>
 #include <net/message-framework/ServiceRegistrationReplyMessage.h>
-#include <net/message-framework/PermissionOfServiceMessage.h>
+//#include <net/message-framework/PermissionOfServiceMessage.h>
+
+#include <net/message-framework/ServicePermissionInfo.h>
 #include <net/message-framework/ServiceMessage.h>
 #include <net/message-framework/ClientIdRequestMessage.h>
 #include <net/message-framework/ClientIdReplyMessage.h>
@@ -134,8 +136,10 @@ void MessageDispatcher::sendDataToUpperLayer_impl(
 #endif
 	ServiceRegistrationMessage registrationMsg;
 	ServiceRegistrationReplyMessage registrationReplyMessage;
-	PermissionRequestMessage permissionRequestMessage;
-	PermissionOfServiceMessage permissionOfServiceMessage;
+	//PermissionRequestMessage permissionRequestMessage;
+	std::string permissionRequestMessage;
+	//PermissionOfServiceMessage permissionOfServiceMessage;
+	ServicePermissionInfo permissionOfServiceMessage;
 	ClientIdRequestMessage clientIdRequestMessage;
 	ClientIdReplyMessage clientIdReplyMessage;
 	ServiceMessagePtr serviceMessage(new ServiceMessage);
@@ -149,7 +153,7 @@ void MessageDispatcher::sendDataToUpperLayer_impl(
 		//archive >> registrationMsg;
 		from_buffer(registrationMsg, buffer);
 		registrationServer_->receiveServiceRegistrationRequest(source,
-				registrationMsg.getServiceInfo());
+				registrationMsg);
 		break;
 
 	case SERVICE_REGISTRATION_REPLY_MSG:
@@ -184,15 +188,15 @@ void MessageDispatcher::sendDataToUpperLayer_impl(
 
 	case PERMISSION_OF_SERVICE_REQUEST_MSG:
 		//archive >> permissionRequestMessage;
-			from_buffer(permissionRequestMessage, buffer);
+		from_buffer(permissionRequestMessage, buffer);
 		permissionServer_->receivePermissionOfServiceRequest(source,
-				permissionRequestMessage.getServiceName());
+				permissionRequestMessage);
 		break;
 
 	case PERMISSION_OF_SERVICE_REPLY_MSG:
 		//archive >> permissionOfServiceMessage;
 		from_buffer(permissionOfServiceMessage, buffer);
-		permissionRequester_->receivePermissionOfServiceResult(permissionOfServiceMessage.getServicePermissionInfo());
+		permissionRequester_->receivePermissionOfServiceResult(permissionOfServiceMessage);		
 		break;
 
 	case CLIENT_ID_REQUEST_MSG:

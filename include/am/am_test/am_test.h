@@ -57,6 +57,14 @@ template<> inline int generateData<int>(const int a, int num, bool rand) {
 		return a;
 }
 
+template<> inline float generateData<float>(const int a, int num, bool rand) {
+	if (rand)
+		return float(myrand())/(num+1);
+	else
+		return a;
+}
+
+
 template<> inline vector<int> generateData<vector<int> >(const int a, int num,
 		bool rand) {
 	vector<int> vret;
@@ -105,7 +113,7 @@ public:
 	}
 
 	void run_insert(bool mem=true) {
-		clock_t t1 = clock();	
+		clock_t t1 = clock();
 		timer.restart();
 		int hit = 0;
 		int sum = 0;
@@ -120,10 +128,17 @@ public:
 			if (am_.insert(generateData<KeyType>(i, num_, rand_), generateData<
 					ValueType>(i, num_, rand_) ) )
 				hit++;
+
+			if (i % 1000000 == 0) {
+				cout<<"idx="<<i<<endl;
+				displayMemInfo();
+			}
 		}
 		if (mem) {
-			printf("insert elapsed 0 ( by clock(), cpu ) : %lf seconds\n", double(clock()- t1)/CLOCKS_PER_SEC);
-			printf("insert elapsed 1 ( actually ): %lf seconds\n", timer.elapsed() );
+			printf("insert elapsed 0 ( by clock(), cpu ) : %lf seconds\n",
+					double(clock()- t1)/CLOCKS_PER_SEC);
+			printf("insert elapsed 1 ( actually ): %lf seconds\n",
+					timer.elapsed() );
 			printf("insert success ratio: %d /%d\n", hit, sum);
 			displayMemInfo();
 		}
@@ -159,11 +174,16 @@ public:
 				cout<<"find key="<<generateData<KeyType>(i, num_, rand_)<<endl;
 			}
 #endif			
-			ValueType *pv = am_.find(generateData<KeyType>(i, num_, rand_) );
-			if (pv) {
-				hit++;
+			ValueType pv;
+			bool ret = am_.get(generateData<KeyType>(i, num_, rand_), pv);
+			if (ret) {
+				hit++;				
 			} else {
 				//cout<<"Unfound idx="<<i<<endl;
+			}
+			if (i % 1000000 == 0) {
+				cout<<"idx="<<i<<endl;
+				displayMemInfo();
 			}
 		}
 		if (mem) {

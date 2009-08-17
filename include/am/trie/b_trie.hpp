@@ -43,11 +43,11 @@ template<
   int INIT_BUCKET_SIZE=64,
 
   //----------bucket cache---------
-  uint64_t BUCKET_CACHE_LENGTH = 256*1024*1024,//bytes, it must be larger than 2 bucket size
+  uint64_t BUCKET_CACHE_LENGTH = 100*1024,//bytes, it must be larger than 2 bucket size
   class BucketCachePolicy= CachePolicyLARU,
 
   //----------node cache-----------
-  uint64_t NODE_CACHE_LENGTH = 64*1024*1024,//bytes, it must be larger than 3 node size.
+  uint64_t NODE_CACHE_LENGTH = 1*1024,//bytes, it must be larger than 3 node size.
   class NodeCachePolicy = CachePolicyLARU
   >
 class BTrie
