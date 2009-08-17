@@ -499,7 +499,9 @@ int32_t InMemoryPosting::decodeNext(uint32_t* pPosting,int32_t length)
     }
 
     uint32_t* pDoc = pPosting;
-    uint32_t* pFreq = pPosting + (length >> 1);
+    //uint32_t* pFreq = pPosting + (length >> 1);
+    uint32_t* pFreq = pPosting + (length/3);
+    uint32_t* pDocLen = pPosting + (length*2/3);
 
     int32_t left = nDF - pDS->decodedDocCount;
     if (left <= 0)
@@ -523,6 +525,8 @@ int32_t InMemoryPosting::decodeNext(uint32_t* pPosting,int32_t length)
         ISCHUNKOVER_D();
 
         *pFreq++ = CompressedPostingList::decodePosting32(pDChunk);
+
+        *pDocLen++ = CompressedPostingList::decodePosting32(pDChunk);
 
         count++;
     }
@@ -700,7 +704,9 @@ int32_t OnDiskPosting::decodeNext(uint32_t* pPosting,int32_t length)
     if (left <= 0)
         return -1;
     uint32_t* pDoc = pPosting;
-    uint32_t* pFreq = pPosting + (length>>1);
+    //uint32_t* pFreq = pPosting + (length>>1);
+    uint32_t* pFreq = pPosting + (length/3);
+    uint32_t* pDocLen = pPosting + (length*2/3);
 
     if (length > left*2)
         length = left*2;
@@ -716,6 +722,7 @@ int32_t OnDiskPosting::decodeNext(uint32_t* pPosting,int32_t length)
 
         *pDoc++ = did;
         *pFreq++ = pDPostingInput->readVInt();
+        *pDocLen++ = pDPostingInput->readVInt();
 
         count++;
     }

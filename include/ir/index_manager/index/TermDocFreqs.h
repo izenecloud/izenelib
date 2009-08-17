@@ -67,6 +67,8 @@ protected:
 
     size_t nFreqStart;
 
+    size_t nDocLenStart;
+
     int32_t nTotalDecodedCount;	///size of decoded postings
 
     int32_t nCurDecodedCount;
@@ -77,7 +79,7 @@ protected:
 
     InputDescriptor* pInputDescriptor;
 
-    static const size_t DEFAULT_BUFFERSIZE = 32768;
+    static const size_t DEFAULT_BUFFERSIZE = 49152;
 };
 
 }

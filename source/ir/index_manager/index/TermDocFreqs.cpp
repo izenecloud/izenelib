@@ -11,6 +11,7 @@ TermDocFreqs::TermDocFreqs(void)
         ,pPostingBuffer(0)
         ,nBufferSize(0)
         ,nFreqStart(0)
+        ,nDocLenStart(0)
         ,nTotalDecodedCount(0)
         ,nCurDecodedCount(0)
         ,nCurrentPosting(-1)
@@ -23,6 +24,7 @@ TermDocFreqs::TermDocFreqs(TermReader* pReader, InputDescriptor* pInputDescripto
         :pPostingBuffer(NULL)
         ,nBufferSize(0)
         ,nFreqStart(0)
+        ,nDocLenStart(0)
         ,nTotalDecodedCount(0)
         ,nCurDecodedCount(0)
         ,nCurrentPosting(-1)
@@ -39,6 +41,7 @@ TermDocFreqs::TermDocFreqs(TermReader* pReader, Posting* pposting, TermInfo& ti)
         ,pPostingBuffer(NULL)
         ,nBufferSize(0)
         ,nFreqStart(0)
+        ,nDocLenStart(0)
         ,nTotalDecodedCount(0)
         ,nCurDecodedCount(0)
         ,nCurrentPosting(-1)
@@ -81,7 +84,7 @@ count_t TermDocFreqs::freq()
 
 freq_t TermDocFreqs::docLength()
 {
-    return pPostingBuffer[nFreqStart + sizeof(count_t) + nCurrentPosting];
+    return pPostingBuffer[nDocLenStart + nCurrentPosting];
 }
 
 bool TermDocFreqs::next()
@@ -148,7 +151,8 @@ void TermDocFreqs::createBuffer()
     if (pPostingBuffer == NULL)
     {
         nBufferSize = bufSize;
-        nFreqStart = nBufferSize/2;
+        nFreqStart = nBufferSize/3;
+        nDocLenStart = nBufferSize*2/3;
         pPostingBuffer = new uint32_t[nBufferSize];
     }
 }
