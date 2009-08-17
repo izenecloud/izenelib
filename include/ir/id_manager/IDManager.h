@@ -27,6 +27,8 @@
 
 #include <wiselib/ustring/UString.h>
 
+#include <am/trie/b_trie.hpp>
+
 #include "DocIdManager.h"
 #include "TermIdManager.h"
 #include "IDGenerator.h"
@@ -69,7 +71,7 @@ template<typename NameString,
          typename NameID,
          typename TermIDGenerator = HashIDGenerator<NameString, NameID>,
          typename TermIDStorage = SDBIDStorage<NameString, NameID>,
-         typename RegExp       = LexicalTrie<NameString>,
+         typename RegExp       = BTrie_CJK,
          typename DocIDGenerator = UniqueIDGenerator<NameString, NameID>,
          typename DocIDStorage = SDBIDStorage<NameString, NameID> >
 class _IDManager
@@ -316,7 +318,7 @@ typedef _IDManager<wiselib::UString, uint32_t> IDManagerDebug32;
 typedef _IDManager<wiselib::UString, uint32_t,
                    HashIDGenerator<wiselib::UString, uint32_t>,
                    EmptyIDStorage<wiselib::UString, uint32_t>,
-                   LexicalTrie<wiselib::UString>,
+                   BTrie_CJK,
                    UniqueIDGenerator<wiselib::UString, uint32_t>,
                    SDBIDStorage<wiselib::UString, uint32_t> > IDManagerRelease32;
 
@@ -333,7 +335,7 @@ typedef _IDManager<wiselib::UString, uint64_t> IDManagerDebug64;
 typedef _IDManager<wiselib::UString, uint64_t,
                    HashIDGenerator<wiselib::UString, uint64_t>,
                    EmptyIDStorage<wiselib::UString, uint64_t>,
-                   LexicalTrie<wiselib::UString>,
+                   BTrie_CJK,
                    UniqueIDGenerator<wiselib::UString, uint64_t>,
                    SDBIDStorage<wiselib::UString, uint64_t> > IDManagerRelease64;
 
