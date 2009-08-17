@@ -53,15 +53,15 @@ void initMFServer() {
 
 void initServiceList(vector<ServiceInfo> & serviceList) {
 	ServiceInfo serviceInfo;
-	vector<ServiceParameterType> params;
+	//vector<ServiceParameterType> params;
 
 	serviceInfo.setServer(po.getControllerIp(), po.getControllerPort() );
-	serviceInfo.setPermissionFlag(SERVE_AT_SERVER);
+	//serviceInfo.setPermissionFlag(SERVE_AT_SERVER);
 
 	serviceInfo.setServiceName("parseString");
-	params.clear();
-	params.push_back(STRING_TYPE);
-	serviceInfo.setParameterList(params);
+	//params.clear();
+	//params.push_back(STRING_TYPE);
+	//serviceInfo.setParameterList(params);
 	serviceList.push_back(serviceInfo);
 }
 
@@ -71,6 +71,7 @@ int registerServiceList(const vector<ServiceInfo> & serviceList) {
 	int failCnt = 0;
 	bool ret = false;
 
+	server_->setAgentInfo("col1");
 	for (i = 0; i < serviceList.size(); i++) {
 		while ( !(ret = server_->registerService(serviceList[i]) ) && nTimeout
 				< 100) {
@@ -99,10 +100,10 @@ void parseString(LAManager& laMgr, ServiceMessagePtr &sm)
 				mf_deserialize(str, sm, i);	
 				//cout<<"Input: "<<str<<endl;
 				laMgr.parseString(str, termList);	
-				//cout<<"Output: "<<endl;
+				// cout<<"Output: "<<endl;
 				//for(int j=0; j<termList.size();j++){
 				//	cout<<termList[j]<<endl;
-				//	}
+				//}
 				mf_serialize(termList, sm, i);  
         	}
 }
@@ -134,16 +135,17 @@ int laServerMain() {
 
 		posix_time::ptime begin = posix_time::microsec_clock::local_time();
 
-	//	cerr << "\t[LAPROCES]: requestList.size= : " << requestList.size()
-	//			<< endl;
+		//cerr << "\t[LAPROCES]: requestList.size= : " << requestList.size()
+		//		<< endl;
 
 		for (unsigned int i = 0; i < requestList.size(); i++) {
 			//serviceResult->clear();
 
+			//requestList[i]->display();
 			if (requestList[i]->getServiceName() == "parseString") {
 				//shared_ptr<string> str( new string );
 				//shared_ptr<vector<string> > termList( new vector<string>() );
-				parseString(laMgr_, requestList[i]);
+				parseString(laMgr_, requestList[i]);			
 				server_->putResultOfService(requestList[i]);
 				
 				/*string str;

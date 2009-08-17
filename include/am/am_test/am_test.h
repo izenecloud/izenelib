@@ -177,8 +177,7 @@ public:
 			ValueType pv;
 			bool ret = am_.get(generateData<KeyType>(i, num_, rand_), pv);
 			if (ret) {
-				hit++;
-				//cout<<"idx i="<<i<<"; pv="<<pv<<endl;
+				hit++;				
 			} else {
 				//cout<<"Unfound idx="<<i<<endl;
 			}

@@ -268,14 +268,14 @@ public:
 		return locn;
 	}
 
-	bool seq(SDBCursor& locn, KeyType& key, ValueType& value,  ESeqDirection sdir=ESD_FORWARD){
+	bool seq(SDBCursor& locn, KeyType& key, ValueType& value, ESeqDirection sdir=ESD_FORWARD) {
 		DataType<KeyType,ValueType> dat;
 		bool ret = seq(locn, dat, sdir);
 		key = dat.get_key();
 		value = dat.get_value();
 		return ret;
 	}
-	
+
 	/**
 	 * 	\brief get the next or prev item.
 	 * 
@@ -359,13 +359,24 @@ private:
 	std::string _fileName; // name of the database file		
 private:
 	LockType _fileLock;
-	size_t   _activeNodeNum;
-private:	
+	size_t _activeNodeNum;
+private:
 
 	void _flushCache(bool quickFlush=false) {
-		if( _activeNodeNum> _sfh.cacheSize )
-		{
-			_flushCacheImpl(quickFlush);
+		static unsigned int count;
+		++count;
+	
+		if( (count & 0xffff) == 0 ) {
+
+			unsigned long vm = 0, rss;
+			unsigned long rlimit;
+			ProcMemInfo::getProcMemInfo(vm, rss, rlimit);
+
+			//if( _activeNodeNum> _sfh.cacheSize/1024 )
+			if(rss> _sfh.cacheSize*_sfh.pageSize )
+			{
+				_flushCacheImpl(quickFlush);
+			}
 		}
 	}
 
@@ -390,13 +401,14 @@ private:
 		cout<<_activeNodeNum<<" vs "<<_sfh.cacheSize <<endl;
 		//display();
 #endif	
-		
-		for(size_t i=0; i<_root->objCount+1; i++)
-		{	
-			_root->children[i]->unload();		
-		}	
 
-		/*queue<sdb_node*> qnode;
+		for(size_t i=0; i<_root->objCount+1; i++)
+		 {
+			_root->children[i]->unload();
+		 }
+		return;
+
+	/*	queue<sdb_node*> qnode;
 		qnode.push(_root);
 
 		size_t popNum = 0;
@@ -406,7 +418,6 @@ private:
 			sdb_node* popNode = qnode.front();
 			qnode.pop();
 			popNum++;
-
 
 			if( popNum >= escapeNum )
 			{
@@ -418,35 +429,35 @@ private:
 				}
 
 				if( popNode->isDirty && quickFlush)
-				_flush(popNode, _dataFile);				
-				popNode->unload();
+				_flush(popNode, _dataFile);
 				
+				popNode->unload();
 				//cout<<"unloading....";
 				//cout<<_activeNodeNum<<" vs "<<_sfh.cacheSize <<endl;					
 			}
-			
+
 			if (popNode && popNode->isLoaded && !popNode->isLeaf) {
 				for(size_t i=0; i<popNode->objCount+1; i++)
-				{				
-					if( popNode->children[i] &&  popNode->children[i]->objCount>0 &&  popNode->children[i]->objCount<= _sfh.maxKeys) {
-						qnode.push( popNode->children[i] );						
+				{
+					if( popNode->children[i] ) {
+						qnode.push( popNode->children[i] );
 					}
 					else
 					{
 						//cout<<"corrupted nodes!!!"<<endl;
 					}
-					
+
 				}
 			}
-			
 
 		}*/
+		
 #ifdef DEBUG
 		cout<<"stop unload..."<<endl;
 		cout<<_activeNodeNum<<" vs "<<_sfh.cacheSize <<endl;
 		//display();
 #endif		
-		fflush(_dataFile);	
+		fflush(_dataFile);
 
 	}
 
@@ -527,7 +538,7 @@ template<typename KeyType, typename ValueType, typename LockType,
 	_dataFile = 0;
 	_cacheSize = 0;
 	_isOpen = false;
-	
+
 	_activeNodeNum = 0;
 
 }
@@ -1264,7 +1275,7 @@ template<typename KeyType, typename ValueType, typename LockType,
 
 	struct stat statbuf;
 	bool creating = stat(_fileName.c_str(), &statbuf);
-	
+
 	_dataFile = fopen(_fileName.c_str(), creating ? "w+b" : "r+b");
 	if (0 == _dataFile) {
 #ifdef DEBUG		
@@ -1371,7 +1382,7 @@ template<typename KeyType, typename ValueType, typename LockType,
 			>= locn.first->objCount) {
 		return false;
 	}
-	rec = DataType<KeyType,ValueType>(locn.first->keys[locn.second],
+	rec = DataType<KeyType, ValueType>(locn.first->keys[locn.second],
 			locn.first->values[locn.second]);
 	return true;
 }
@@ -1434,7 +1445,7 @@ template<typename KeyType, typename ValueType, typename LockType,
 		if ((sdb_node*)node == 0) {
 			return false;
 		}
-		rec = DataType<KeyType,ValueType>(node->keys[0], node->values[0]);
+		rec = DataType<KeyType, ValueType>(node->keys[0], node->values[0]);
 		locn.first = node;
 		locn.second = 0;
 		return true;
@@ -1448,7 +1459,8 @@ template<typename KeyType, typename ValueType, typename LockType,
 	if (node->isLeaf) {
 		// didn't visit the last node last time.
 		if (lastPos < node->objCount - 1) {
-			rec = DataType<KeyType,ValueType>(node->keys[lastPos + 1], node->values[lastPos + 1]);
+			rec = DataType<KeyType, ValueType>(node->keys[lastPos + 1],
+					node->values[lastPos + 1]);
 			locn.second = lastPos + 1;
 			return true;
 		}
@@ -1465,7 +1477,7 @@ template<typename KeyType, typename ValueType, typename LockType,
 		if ((sdb_node*)node == 0) {
 			return false;
 		}
-		rec = DataType<KeyType,ValueType>(node->keys[0], node->values[0]);
+		rec = DataType<KeyType, ValueType>(node->keys[0], node->values[0]);
 		locn.first = node;
 		locn.second = 0;
 		return true;
@@ -1484,7 +1496,8 @@ template<typename KeyType, typename ValueType, typename LockType,
 			locn.first = node;
 			locn.second = childNo;
 			ret = true;
-			rec = DataType<KeyType,ValueType>(node->keys[childNo], node->values[childNo]);
+			rec = DataType<KeyType, ValueType>(node->keys[childNo],
+					node->values[childNo]);
 		}
 	}
 	return ret;
@@ -1521,7 +1534,8 @@ template<typename KeyType, typename ValueType, typename LockType,
 
 		if (locn.second == size_t(-1) )
 			return false;
-		rec = DataType<KeyType,ValueType>(node->keys[locn.second], node->values[locn.second]);
+		rec = DataType<KeyType, ValueType>(node->keys[locn.second],
+				node->values[locn.second]);
 		return true;
 	}
 
@@ -1534,7 +1548,8 @@ template<typename KeyType, typename ValueType, typename LockType,
 		// didn't visit the last node last time.
 		if (lastPos> 0) {
 			locn.second = lastPos - 1;
-			rec = DataType<KeyType,ValueType>(node->keys[locn.second], node->values[locn.second]);
+			rec = DataType<KeyType, ValueType>(node->keys[locn.second],
+					node->values[locn.second]);
 			return true;
 		}
 		goUp = (lastPos == 0);
@@ -1554,7 +1569,8 @@ template<typename KeyType, typename ValueType, typename LockType,
 		locn.first = node;
 		locn.second = node->objCount - 1;
 		//rec = *(node->elements[locn.second]->pdat);
-		rec = DataType<KeyType,ValueType>(node->keys[locn.second], node->values[locn.second]);
+		rec = DataType<KeyType, ValueType>(node->keys[locn.second],
+				node->values[locn.second]);
 		return true;
 	}
 
@@ -1571,7 +1587,8 @@ template<typename KeyType, typename ValueType, typename LockType,
 		if ((sdb_node*)node != 0) {
 			locn.first = node;
 			locn.second = childNo - 1;
-			rec = DataType<KeyType,ValueType>(node->keys[locn.second], node->values[locn.second]);
+			rec = DataType<KeyType, ValueType>(node->keys[locn.second],
+					node->values[locn.second]);
 			ret = true;
 		}
 	}

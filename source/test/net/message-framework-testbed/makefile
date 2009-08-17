@@ -1,4 +1,4 @@
-export COMPILE_FLAGS = -Wall -O2
+export COMPILE_FLAGS = -Wall -O2 # -DSF1_DEBUG  -D_LOGGING_
 
 
 

@@ -186,7 +186,7 @@ public:
 				os<<"----|";
 			}
 			//keys[i]->display();
-			//os<<keys[i];
+			//os<<keys[i]<<"->"<<values[i];
 			size_t pfos=0;
 			//if (parent)
 			//	pfos = parent->fpos;

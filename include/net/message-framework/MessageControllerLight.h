@@ -14,6 +14,7 @@
 #include <net/message-framework/ServiceInfo.h>
 #include <net/message-framework/ServicePermissionInfo.h>
 #include <net/message-framework/ServiceMessage.h>
+#include <net/message-framework/ServiceRegistrationMessage.h>
 
 #ifdef SF1_TIME_CHECK
 #include <profiler/Profiler.h>
@@ -91,7 +92,7 @@ namespace messageframework
 
         protected:
 
-            bool addServiceRegistrationRequest( const ServiceInfo & service );
+            bool addServiceRegistrationRequest( const ServiceRegistrationMessage & message );
 
             bool getServicePermission( const std::string & serviceName,
                     ServicePermissionInfo & servicePermissionInfo );
@@ -141,7 +142,7 @@ namespace messageframework
              * @details
              * <service name> mapped to <ServiceInfo>
              */
-            boost::unordered_map<std::string, ServiceInfo> availableServiceList_;
+            boost::unordered_map<std::string, ServicePermissionInfo> availableServiceList_;
             boost::mutex availableServiceListMutex_;
 
             /**

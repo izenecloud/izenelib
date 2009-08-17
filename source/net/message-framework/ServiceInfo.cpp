@@ -19,19 +19,19 @@ namespace messageframework
 		{
 			server_.nodeIP_ = "";
 			server_.nodePort_ = 0;
-			serviceName_.clear();
-			parameterList_.clear();
-			permissionFlag_ = UNKNOWN_PERMISSION_FLAG;
-            serviceResultFlag_ = SERVICE_WITH_RESULT;
+			//serviceName_.clear();
+			//parameterList_.clear();
+			//permissionFlag_ = UNKNOWN_PERMISSION_FLAG;
+            //erviceResultFlag_ = SERVICE_WITH_RESULT;
 		}
 
 		ServiceInfo::ServiceInfo(const ServiceInfo& inputService)
 		{
 			server_ = inputService.getServer();	
 			serviceName_ = inputService.getServiceName();
-			inputService.getParameterList(parameterList_);
-			permissionFlag_ = inputService.getPermissionFlag();
-            serviceResultFlag_ = inputService.getServiceResultFlag();
+			//inputService.getParameterList(parameterList_);
+			//permissionFlag_ = inputService.getPermissionFlag();
+            //serviceResultFlag_ = inputService.getServiceResultFlag();
 		}
 
 		/**
@@ -46,10 +46,10 @@ namespace messageframework
 		void ServiceInfo::clear()
 		{
 			server_.clear();
-			serviceName_.clear();
-			parameterList_.clear();
-			permissionFlag_ = UNKNOWN_PERMISSION_FLAG;
-            serviceResultFlag_ = SERVICE_WITH_RESULT;
+			//serviceName_.clear();
+			//parameterList_.clear();
+			//permissionFlag_ = UNKNOWN_PERMISSION_FLAG;
+            //serviceResultFlag_ = SERVICE_WITH_RESULT;
 		}
 
         /* @by MyungHyun - 2009-01-28
@@ -99,20 +99,20 @@ namespace messageframework
 		 * @param
 		 * flagValue - the new permission flag value
 		 */
-		void ServiceInfo::setPermissionFlag(PermissionFlag flagValue)
-		{
-			permissionFlag_ = flagValue;
-		}
+		//void ServiceInfo::setPermissionFlag(PermissionFlag flagValue)
+		//{
+		//	permissionFlag_ = flagValue;
+		//}
 
 
 		/**
 		 * @brief Get permission flag
 		 * @return the permission flag value
 		 */
-		const PermissionFlag& ServiceInfo::getPermissionFlag() const
-		{
-			return permissionFlag_;
-		}
+		//const PermissionFlag& ServiceInfo::getPermissionFlag() const
+		//{
+		//	return permissionFlag_;
+		//}
 
 		/**
 		 * @brief Set service name
@@ -139,24 +139,24 @@ namespace messageframework
 		 * @param
 		 * parameterList - the new list of parameters
 		 */
-		void ServiceInfo::setParameterList(const std::vector<ServiceParameterType>& parameterList)
-		{
-			parameterList_.clear();
-			for(size_t i = 0; i < parameterList.size(); i++)
-				parameterList_.push_back(parameterList[i]);
-		}
+		//void ServiceInfo::setParameterList(const std::vector<ServiceParameterType>& parameterList)
+		//{
+		//	parameterList_.clear();
+		//	for(size_t i = 0; i < parameterList.size(); i++)
+		//		parameterList_.push_back(parameterList[i]);
+		//}
 
 		/**
 		 * @brief get the list of parameters of the service
 		 * @param
 		 * parameterList - the list of parameters
 		 */
-		void ServiceInfo::getParameterList(std::vector<ServiceParameterType>& parameterList) const
-		{
-			parameterList.clear();
-			for(size_t i = 0; i < parameterList_.size(); i++)
-				parameterList.push_back(parameterList_[i]);
-		}
+		//void ServiceInfo::getParameterList(std::vector<ServiceParameterType>& parameterList) const
+		//{
+			//parameterList.clear();
+			//for(size_t i = 0; i < parameterList_.size(); i++)
+			//	parameterList.push_back(parameterList_[i]);
+		//}
 
 		/**
 		 * @brief retrieve the key value (i.e., service name) of the service
@@ -164,10 +164,10 @@ namespace messageframework
 		 * @return
 		 * key value (i.e., service name) of the service
 		 */
-		const std::string& ServiceInfo::get_key() const
-		{
-			return serviceName_;
-		}
+		//const std::string& ServiceInfo::get_key() const
+		//{
+		//	return serviceName_;
+		//}
 
 }// end of messageframework
 

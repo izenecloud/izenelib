@@ -9,57 +9,37 @@
 using namespace std;
 using namespace boost;
 
-namespace messageframework
-{
-#ifdef SF1_TIME_CHECK
-    sf1lib::Profiler messageframework::MessageControllerLight::contextSwitchProf;
-    sf1lib::Profiler::Profile messageframework::MessageControllerLight::addRequestCS( "add request context switch *", contextSwitchProf );
-    sf1lib::Profiler::Profile messageframework::MessageControllerLight::getRequestCS( "get request context switch *", contextSwitchProf );
-    sf1lib::Profiler::Profile messageframework::MessageControllerLight::resultCS( "result context switch *", contextSwitchProf );
-    sf1lib::Profiler::Profile messageframework::MessageControllerLight::getPermM( ">> get permission", contextSwitchProf );
-    sf1lib::Profiler::Profile messageframework::MessageControllerLight::addReqM( ">> add request", contextSwitchProf );
-    sf1lib::Profiler::Profile messageframework::MessageControllerLight::processReqM( ">> process request", contextSwitchProf );
-    sf1lib::Profiler::Profile messageframework::MessageControllerLight::getReqM( ">> get request", contextSwitchProf );
-    sf1lib::Profiler::Profile messageframework::MessageControllerLight::addResultM( ">> add result", contextSwitchProf );
-    sf1lib::Profiler::Profile messageframework::MessageControllerLight::getResultM( ">> get result", contextSwitchProf );
-#endif
+namespace messageframework {
 
-    void MessageControllerLight::processServiceRegistrationRequest()
-    {
-        boost::mutex::scoped_lock lock( processDummyMutex_ );
-        processDummyCond_.wait( lock );
-    }
+void MessageControllerLight::processServiceRegistrationRequest() {
+	boost::mutex::scoped_lock lock(processDummyMutex_);
+	processDummyCond_.wait(lock);
+}
 
-    void MessageControllerLight::processServicePermissionRequest()
-    {
-        boost::mutex::scoped_lock lock( processDummyMutex_ );
-        processDummyCond_.wait( lock );
-    }
+void MessageControllerLight::processServicePermissionRequest() {
+	boost::mutex::scoped_lock lock(processDummyMutex_);
+	processDummyCond_.wait(lock);
+}
 
-    void MessageControllerLight::processServiceResultFromServer()
-    {
-        boost::mutex::scoped_lock lock( processDummyMutex_ );
-        processDummyCond_.wait( lock );
-    }
+void MessageControllerLight::processServiceResultFromServer() {
+	boost::mutex::scoped_lock lock(processDummyMutex_);
+	processDummyCond_.wait(lock);
+}
 
-    void MessageControllerLight::processServiceRequestFromClient()
-    {
-        boost::mutex::scoped_lock lock( processDummyMutex_ );
-        processDummyCond_.wait( lock );
-    }
+void MessageControllerLight::processServiceRequestFromClient() {
+	boost::mutex::scoped_lock lock(processDummyMutex_);
+	processDummyCond_.wait(lock);
+}
 
-    int MessageControllerLight::applyForClientId()
-    {
-		{
-			boost::mutex::scoped_lock lock(nxtClientIdMutex_);
-			if(nxtClientId_ == MF_LIGHT_MAX_CLIENT_ID)
-			{
-				std::cout << "Error: Max Client ID reached" << std::endl;
-				return 0;
-			}
+int MessageControllerLight::applyForClientId() {
+	{
+		boost::mutex::scoped_lock lock(nxtClientIdMutex_);
+		if (nxtClientId_ == MF_LIGHT_MAX_CLIENT_ID) {
+			std::cout << "Error: Max Client ID reached" << std::endl;
+			return 0;
+		}
 
-			serviceIdResultMaps_[nxtClientId_] =
-				boost::shared_ptr<std::map<unsigned int, ServiceResultPtr>  >
+		serviceIdResultMaps_[nxtClientId_] = boost::shared_ptr<std::map<unsigned int, ServiceResultPtr>  >
 					(new std::map<unsigned int, ServiceResultPtr>);
 			serviceIdResultMutexs_[nxtClientId_] =
 				boost::shared_ptr<boost::mutex>(new boost::mutex());
@@ -73,19 +53,25 @@ namespace messageframework
 		}
     }
 
-    bool MessageControllerLight::addServiceRegistrationRequest( const ServiceInfo & serviceInfo )
+    bool MessageControllerLight::addServiceRegistrationRequest( const ServiceRegistrationMessage & message )
     {
 		{
+			const MessageFrameworkNode& server = message.getServer();
 			boost::mutex::scoped_lock lock( availableServiceListMutex_ );
-            if( availableServiceList_.find( serviceInfo.getServiceName() ) != availableServiceList_.end() )
+			std::string serviceName = message.getServiceName();
+            if( availableServiceList_.find( serviceName ) != availableServiceList_.end() )
             {
-				std::cout << "CONTROLLER:  service exists " << serviceInfo.getServiceName() << std::endl;
+            	availableServiceList_[serviceName].setServer(message.getAgentInfo(), server);
+				std::cout << "CONTROLLER:  service exists " << message.getServiceName() << std::endl;
                 return false;
             }
-			availableServiceList_.insert( pair<string, ServiceInfo>(serviceInfo.getServiceName(), serviceInfo) );
+            ServicePermissionInfo permissionInfo;
+            permissionInfo.setServiceName(serviceName);						
+            permissionInfo.setServer(message.getAgentInfo(), server);
+			availableServiceList_[serviceName] = permissionInfo;
 		}
         //=== registering request queue for server ===
-        const MessageFrameworkNode & server = serviceInfo.getServer();
+        const MessageFrameworkNode & server = message.getServer();
         {
 			boost::mutex::scoped_lock lock_map( serverServiceRequestQueueMapMutex_ );
 			boost::shared_ptr<vector<shared_ptr<ServiceRequestInfo> > >
@@ -99,7 +85,9 @@ namespace messageframework
 			serverServiceRequestQueueMutexMap_[server.hash()] = serverServiceRequestQueueMutex;
 			serverServiceRequestQueueCondMap_[server.hash()] = serverServiceRequestQueueCond;
         }
-        return true;
+        return true;     
+       
+        
     }
 
 
@@ -111,16 +99,19 @@ namespace messageframework
 		getPermM.begin();
 #endif
         boost::mutex::scoped_lock lock( availableServiceListMutex_ );
-        boost::unordered_map<std::string, ServiceInfo>::iterator it;
+        boost::unordered_map<std::string, ServicePermissionInfo>::iterator it;
 
         if( (it = availableServiceList_.find( serviceName )) != availableServiceList_.end())
         {
-            servicePermissionInfo.clear();
+            //servicePermissionInfo.clear();
 
-            servicePermissionInfo.setServiceName( (it->second).getServiceName() );
-            servicePermissionInfo.setPermissionFlag( (it->second).getPermissionFlag() );
-            servicePermissionInfo.setServer( (it->second).getServer() );
-            servicePermissionInfo.setServiceResultFlag( (it->second).getServiceResultFlag() );
+            //servicePermissionInfo.setServiceName( (it->second).getServiceName() );
+           // servicePermissionInfo.setPermissionFlag( (it->second).getPermissionFlag() );
+           // servicePermissionInfo.setServer( (it->second).getServer() );
+          //  servicePermissionInfo.setServiceResultFlag( (it->second).getServiceResultFlag() );
+            
+            servicePermissionInfo = availableServiceList_[serviceName];
+            
 #ifdef SF1_TIME_CHECK
             getPermM.end();
 #endif
@@ -131,7 +122,7 @@ namespace messageframework
 			std::cout << "CONTROLLER:\t  service does *NOT* exists: " << serviceName << endl;
             servicePermissionInfo.clear();
             servicePermissionInfo.setServiceName( serviceName );
-            servicePermissionInfo.setPermissionFlag( UNKNOWN_PERMISSION_FLAG );
+           // servicePermissionInfo.setPermissionFlag( UNKNOWN_PERMISSION_FLAG );
             return false;
         }
     }
@@ -476,7 +467,7 @@ namespace messageframework
     void MessageControllerLight::printAvailServiceList()
     {
         using namespace std;
-        boost::unordered_map<std::string, ServiceInfo>::iterator it;
+        boost::unordered_map<std::string, ServicePermissionInfo>::iterator it;
         for( it = availableServiceList_.begin(); it != availableServiceList_.end(); it++ )
         {
             cout << "service name: " << it->first << endl;

@@ -3,9 +3,10 @@
 
 #include <net/message-framework/MessageServerLight.h>
 
+
 namespace messageframework
 {
-    bool MessageServerLight::registerService( 
+  /*  bool MessageServerLight::registerService( 
             const std::string & serviceName,
             const std::vector<messageframework::ServiceParameterType> & parameterTypeList, 
             const messageframework::PermissionFlag & permissionFlag,
@@ -28,16 +29,15 @@ namespace messageframework
             //cout << "SERVER:\t " << serviceInfo.getServer().nodeName_ << endl;
         }
         return controller_.addServiceRegistrationRequest( serviceInfo );
-    }
+    }*/
 
     bool MessageServerLight::registerService( const ServiceInfo & serviceInfo )
     {
-        registerService( 
-                serviceInfo.getServiceName(), 
-                serviceInfo.getParameterList(),
-                serviceInfo.getPermissionFlag(),
-                serviceInfo.getServiceResultFlag()
-                );
+		ServiceRegistrationMessage message;
+		message.setAgentInfo(agentInfo_);
+		message.setServiceInfo(serviceInfo);
+		
+    	return controller_.addServiceRegistrationRequest( message );
     }
 
 

@@ -103,6 +103,7 @@ template<typename DataType> inline void from_buffer(DataType&sm,
 #ifdef SF1_DEBUG 
 	cout<<"!!! from_buffer "<<typeid(DataType).name()<<endl;
 	cout<<"!!!  buffsize="<<pbuf->size()<<endl;
+	cout<<"!!!! <<== hash code: "<<izenelib::util::izene_hashing(sm )<<endl;
 #endif
 
 }
@@ -117,6 +118,8 @@ template<typename DataType> inline void to_buffer(const DataType&sm,
 #ifdef SF1_DEBUG 
 	cout<<"!!! to_buffer "<<typeid(DataType).name()<<endl;
 	cout<<"!!!  buffsize="<<pbuf->size()<<endl;
+	
+	cout<<"!!!!==>> hash code: "<<izenelib::util::izene_hashing(sm )<<endl;	
 #endif
 
 }

@@ -184,7 +184,7 @@ MF_AUTO_MAIN( mainProcess )
 					mf_deserialize(*docPtr, resultsFromDoc, i);
 					resultDocList->push_back(*docPtr);
 				}
-					resultDocList->clear();
+					//resultDocList->clear();
             }
 
         } // for the number of terms in a query string

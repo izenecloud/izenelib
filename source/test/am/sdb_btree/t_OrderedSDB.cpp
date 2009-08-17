@@ -6,13 +6,13 @@
 
 #include <sdb/SequentialDB.h>
 #include <util/hashFunction.h>
-#include <wiselib/ustring/UString.h>
+//#include <wiselib/ustring/UString.h>
 
 
 using namespace std;
 using namespace wiselib;
 using namespace boost::unit_test;
-
+//typedef std::string UString;
 namespace TestData
 {
 
@@ -70,27 +70,37 @@ namespace TestData
 
 }
 
-BOOST_AUTO_TEST_SUITE( t_SDB)
+//BOOST_AUTO_TEST_SUITE( t_SDB)
 
-BOOST_AUTO_TEST_CASE( TestCase1 )
+//
+//BOOST_AUTO_TEST_CASE( TestCase1 )
+int main()
 {
     vector<unsigned int> keys;
     vector<UString> values;
-    izenelib::sdb::ordered_sdb<unsigned int, UString, izenelib::util::NullLock> sdb("SDB1.sdb");
-    sdb.open();
+    vector<string> values1;
+  //  izenelib::sdb::ordered_sdb<unsigned int, UString, izenelib::util::NullLock> sdb("SDB1.sdb");
+    sdb_btree<unsigned int, string>  btree("1.sdb#");  
+    btree.open();
+  //  sdb.open();
+    TestData::loadTermList("./test-data/100WordList.txt", values1);
     TestData::generateTermLists(values);
     keys.resize(values.size());
-    for(int i=0; i<values.size(); i++)
+    for(unsigned int i=0; i<values.size(); i++)
     {
         keys[i] = HashFunction<UString>::generateHash32(values[i]);
-        sdb.insertValue(keys[i], values[i]);
+        //sdb.insertValue(keys[i], values[i]);
+        btree.insert(keys[i], values1[i]); 
+
     }
-    for(int i=0; i<keys.size(); i++)
+    btree.display(cout, false);
+    for(unsigned int i=0; i<keys.size(); i++)
     {
-        UString v;
-        if( false == sdb.getValue(keys[i], v) )
+        string v;    
+        if( false == btree.get(keys[i], v) )
             cerr << "find sdb err " << i << " th term: " << values[i] << " , ID" << keys[i] << std::endl;
     }
+    return 1;
 }
 
-BOOST_AUTO_TEST_SUITE_END()
+//BOOST_AUTO_TEST_SUITE_END()

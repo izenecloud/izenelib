@@ -9,7 +9,7 @@
 #define _SERVICE_REGISTRATION_SERVER_H_
 
 #include <net/message-framework/MessageFrameworkNode.h>
-#include <net/message-framework/ServiceInfo.h>
+#include <net/message-framework/ServiceRegistrationMessage.h>
 
 namespace messageframework
 {
@@ -28,7 +28,7 @@ public:
  	 * @param localEndPoint the end point that connects to the ServiceRegistrationRequester
  	 * @param serviceInfo the service information to register
  	 */
-	virtual void receiveServiceRegistrationRequest(const MessageFrameworkNode& localEndPoint, const ServiceInfo& serviceInfo)= 0;
+	virtual void receiveServiceRegistrationRequest(const MessageFrameworkNode& localEndPoint, const ServiceRegistrationMessage& registMessage)= 0;
 
 	/**
  	 * @brief This function replies to a registration request from ServiceRegistrationRequester. It

@@ -15,9 +15,9 @@ namespace messageframework
 	 */
 	ServiceRegistrationMessage::ServiceRegistrationMessage()
 	{
-		registered_ = false;
-		serviceInfo_.clear();
-		requester_.clear();
+		//registered_ = false;
+		//serviceInfo_.clear();
+		//requester_.clear();
 	}
 
 	/**
@@ -31,18 +31,18 @@ namespace messageframework
 	 * @param
 	 * permissionFlag - the permission flag
 						 */
-	ServiceRegistrationMessage::ServiceRegistrationMessage(const std::string& serviceName,
+	/*ServiceRegistrationMessage::ServiceRegistrationMessage(const std::string& serviceName,
 				const std::vector<ServiceParameterType> parameterList,
 				PermissionFlag permissionFlag,
                 ServiceResultFlag serviceResultFlag )
 	{
 		registered_ = false;
-		serviceInfo_.setPermissionFlag(permissionFlag);
+		//serviceInfo_.setPermissionFlag(permissionFlag);
 		serviceInfo_.setServiceName(serviceName);
-		serviceInfo_.setParameterList(parameterList);
-        serviceInfo_.setServiceResultFlag( serviceResultFlag );
+		//serviceInfo_.setParameterList(parameterList);
+        //serviceInfo_.setServiceResultFlag( serviceResultFlag );
 		requester_.clear();
-	}
+	}*/
 
 	void ServiceRegistrationMessage::setRequester(const std::string& requester)
 	{
@@ -65,7 +65,8 @@ namespace messageframework
 	 * @return
 	 * reference to the ServiceInfo
 	 */
-	const ServiceInfo& ServiceRegistrationMessage::getServiceInfo(){return serviceInfo_;}
+	//const ServiceInfo& ServiceRegistrationMessage::getServiceInfo() const
+	//{return serviceInfo_;}
 
 }// end of namespace messageframework
 

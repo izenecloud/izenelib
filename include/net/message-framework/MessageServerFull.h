@@ -70,10 +70,16 @@ namespace messageframework
 		 * @return
 		 *	true - the service has been successfully registered.
 		 */
-		bool registerService(const std::string& serviceName,
+		
+		void setAgentInfo(const  string& agentInfo)
+		{
+			agentInfo_ = agentInfo;
+		}
+		
+		/*bool registerService_(const std::string& serviceName,
                          const std::vector<ServiceParameterType>& parameterList,
                          const PermissionFlag& permissionFlag,
-                         const ServiceResultFlag serviceResultFlag = SERVICE_WITH_RESULT );
+                         const ServiceResultFlag serviceResultFlag = SERVICE_WITH_RESULT );*/
 
 		/**
 		 * @brief   This function register a service of the current MessageServerFull. It will
@@ -129,10 +135,13 @@ namespace messageframework
 		 *	permissionFlag - this flags tell how to serve the service (through Message Controller or
 		 *				directly at MessageServerFull)
 		 */
-		void sendServiceRegistrationRequest(const std::string& serviceName,
+		
+		void sendServiceRegistrationRequest(ServiceRegistrationMessage& registMessage) ;
+		
+		/*void sendServiceRegistrationRequest(const std::string& serviceName,
 				const std::vector<ServiceParameterType>& parameterList,
 				const PermissionFlag& permissionFlag,
-        const ServiceResultFlag serviceResultFlag = SERVICE_WITH_RESULT);
+        const ServiceResultFlag serviceResultFlag = SERVICE_WITH_RESULT);*/
 
 		/**
  		 * @brief This function set the reply of the recent request of service registration
@@ -299,6 +308,8 @@ namespace messageframework
 
 		clock_t tick1, tick2;
 		struct timeval val1, val2;
+		
+		string agentInfo_;
 	};
 	//typedef boost::shard_ptr<MessageServerFull> MessageServerFullPtr;
 	

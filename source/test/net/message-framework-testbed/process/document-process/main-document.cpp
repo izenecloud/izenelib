@@ -97,6 +97,7 @@ namespace DocumentProcess
 		resultsFromLA.resize( 2*docList.size() );
 		for( int i=0; i<docList.size(); i++ )
 		{
+			//cout<<"idx: "<<i<<endl;
 			// make parsing title request
 			requestsToLA[2*i].reset(new ServiceRequestInfo);			
 			requestsToLA[2*i]->setServiceName("parseString");
@@ -118,10 +119,9 @@ namespace DocumentProcess
 			//requestsToLA[2*i+1].appendParameter(temp);
 			mf_serialize(docList[i].getContent(), requestsToLA[2*i+1]);	
 			
-			// requestsToLA[2*i+1]->display();
+			//requestsToLA[2*i+1]->display();
 			//cout<<"GetContent:: "<<docList[i].getContent()<<endl;			
 		}
-
 		// batch process all parsing requests
 		posix_time::ptime before = posix_time::microsec_clock::local_time();
 		if( false == requestService("parseString", requestsToLA, resultsFromLA, *client_) )
@@ -212,15 +212,15 @@ namespace DocumentProcess
 	void initServiceList( vector<ServiceInfo> & serviceList )
 	{
 		ServiceInfo                     serviceInfo;
-		vector<ServiceParameterType>    params;
+		//vector<ServiceParameterType>    params;
 
 		serviceInfo.setServer( po.getControllerIp(), po.getControllerPort() );
-		serviceInfo.setPermissionFlag( SERVE_AT_SERVER );
+		//serviceInfo.setPermissionFlag( SERVE_AT_SERVER );
 
 		serviceInfo.setServiceName( "getDocument" );
-		params.clear();
-		params.push_back( UNSIGNED_INT_TYPE );
-		serviceInfo.setParameterList( params );
+		//params.clear();
+		//params.push_back( UNSIGNED_INT_TYPE );
+		//serviceInfo.setParameterList( params );
 		serviceList.push_back( serviceInfo );
 	}
 
@@ -231,6 +231,8 @@ namespace DocumentProcess
 		int failCnt = 0;
 		bool ret = false;
 
+
+		server_->setAgentInfo("col1");
 		for( i = 0; i < serviceList.size(); i++ )
 		{
 			while( !(ret = server_->registerService(serviceList[i]) ) && nTimeout < 100 )

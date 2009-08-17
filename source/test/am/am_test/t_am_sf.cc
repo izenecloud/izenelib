@@ -83,8 +83,8 @@ template<> inline MyKeyType generateData<MyKeyType>(const int a, int num,
 		b = a;
 	MyKeyType key;
 	key.did = b;
-	key.tid1 = myrand()%5;
-	key.tid2 = myrand()%5;
+	key.tid1 = myrand()%100;
+	key.tid2 = myrand()%100;
 	return key;
 }
 
@@ -112,6 +112,7 @@ void ReportUsage(void) {
 			<<"\nUSAGE:./t_am [-T <trace_option>] [-loop <num>][-n <num>] [-rnd <1|0>] <input_file>\n\n";
 }
 
+/*
 void test1() {
 	izenelib::util::ClockTimer timer;
 	displayMemInfo();
@@ -127,7 +128,7 @@ void test1() {
 		am.run_find();
 	}
 	printf("insert elapsed 1 ( actually ): %lf seconds\n", timer.elapsed() );
-	/*	displayMemInfo();
+	displayMemInfo();
 	 {
 	 cout<<"\nsdb_hash<MyKeyType, BigString >"<<endl;
 	 typedef sdb_hash<MyKeyType, BigString> CCCR_STRING_INT;
@@ -138,8 +139,8 @@ void test1() {
 	 am.run_insert();
 	 am.setRandom(true);
 	 am.run_find();
-	 }*/
-	/*displayMemInfo();
+	 }
+	displayMemInfo();
 	{
 		cout<<"\ntc_btree<MyKeyType, BigString >"<<endl;
 		typedef tc_btree<MyKeyType, BigString> CCCR_STRING_INT;
@@ -164,7 +165,7 @@ void test1() {
 		am.setRandom(true);
 		am.run_find();
 	}
-	printf("insert elapsed 1 ( actually ): %lf seconds\n", timer.elapsed() );*/
+	printf("insert elapsed 1 ( actually ): %lf seconds\n", timer.elapsed() );
 	displayMemInfo();
 	{
 		cout<<"\nsdb_storage<MyKeyType, BigString >"<<endl;
@@ -180,7 +181,7 @@ void test1() {
 	printf("insert elapsed 1 ( actually ): %lf seconds\n", timer.elapsed() );
 	displayMemInfo();
 
-}
+}*/
 
 void test() {
 
@@ -196,7 +197,7 @@ void test() {
 	 am.setRandom(true);
 	 am.run_find();
 	 }
-	 
+	*/ 
 	 displayMemInfo();	
 	 {
 	 cout<<"\nsdb_hash<MyKeyType, MyValueType >"<<endl;
@@ -209,7 +210,7 @@ void test() {
 	 am.setRandom(true);
 	 am.run_find();
 	 }
-	 displayMemInfo();*/
+	 displayMemInfo();
 	
 	izenelib::util::ClockTimer timer;
 
@@ -226,7 +227,7 @@ void test() {
 	 am.run_find();
 	 }
 	 printf("\nelapsed 1 ( actually ): %lf seconds\n", timer.elapsed() );
-	 displayMemInfo();
+/*	 displayMemInfo();
 	 {
 		 cout<<"\nsdb_btree<string, MyValueType >"<<endl;
 		 typedef sdb_btree<string, MyValueType > CCCR_STRING_INT;
@@ -239,7 +240,7 @@ void test() {
 		 am.run_find();
 	 }
 	 printf("\nelapsed 1 ( actually ): %lf seconds\n", timer.elapsed() );
-	 displayMemInfo();
+/*	 displayMemInfo();
 	 {
 	 cout<<"\nsdb_hash<MyKeyType, MyValueType >"<<endl;
 	 typedef sdb_hash<MyKeyType, MyValueType > CCCR_STRING_INT;
@@ -265,7 +266,7 @@ void test() {
 		 am.run_find();
 	 }
 	 printf("\nelapsed 1 ( actually ): %lf seconds\n", timer.elapsed() );
-	 displayMemInfo();
+	 displayMemInfo();*/
 
 }
 

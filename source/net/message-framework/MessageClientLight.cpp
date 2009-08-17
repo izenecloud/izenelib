@@ -45,28 +45,34 @@ namespace messageframework
 		return ret;
 	}
 
-    bool MessageClientLight::getPermissionOfService(const std::string& serviceName,
+  /*  bool MessageClientLight::getPermissionOfService(const std::string& serviceName,
             ServicePermissionInfo& servicePermissionInfo)
     {
         return controller_.getServicePermission( serviceName, servicePermissionInfo );
-    }
+    }*/
+	
+	bool MessageClientLight::getHostsOfService(const std::string& serviceName,
+			std::map<std::string, MessageFrameworkNode>& servers) {	
+		ServicePermissionInfo servicePermissionInfo;
+		controller_.getServicePermission( serviceName, servicePermissionInfo );
+		servers = servicePermissionInfo.getServerMap();	
+		return true;
+	}
+	
 
-    bool MessageClientLight::putServiceRequest(const ServicePermissionInfo& servicePermissionInfo,
+    bool MessageClientLight::putServiceRequest(const MessageFrameworkNode& server,
             ServiceRequestInfoPtr& serviceRequestInfo)
     {
     	unsigned int requestId = generateRequestId();
         serviceRequestInfo->setRequestId( requestId );
-        //serviceRequestInfo->setServiceResultFlag( servicePermissionInfo.getServiceResultFlag() );
-        const MessageFrameworkNode & server = servicePermissionInfo.getServer();       
-
+        //serviceRequestInfo->setServiceResultFlag( servicePermissionInfo.getServiceResultFlag() );     
         return controller_.addServiceRequest( server, serviceRequestInfo );
     }
 
 	bool MessageClientLight::putServiceRequest(
-				const ServicePermissionInfo& servicePermissionInfo,
+			const MessageFrameworkNode& server,
 				std::vector<ServiceRequestInfoPtr>& serviceRequestInfos)
-	{
-		const MessageFrameworkNode & server = servicePermissionInfo.getServer();
+	{	
 		for(unsigned int i=0; i<serviceRequestInfos.size(); i++){
 			unsigned int requestId = generateRequestId();
 			serviceRequestInfos[i]->setRequestId( requestId );		
@@ -87,7 +93,7 @@ namespace messageframework
 			return true;   
         std::vector<unsigned int> requestIds;
         requestIds.reserve(serviceResults.size() );
-		for(int i=0; i<serviceRequests.size(); i++)
+		for(unsigned int i=0; i<serviceRequests.size(); i++)
 			requestIds.push_back( serviceRequests[i]->getRequestId() );
 		
 		return controller_.getResultsByRequestIds(requestIds, serviceResults );

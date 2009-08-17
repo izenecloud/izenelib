@@ -103,13 +103,32 @@ public:
 	}
 
 	/**
-	 * @brief Set the service name
+	 * @brief get the service name
 	 * @return
 	 * The service name
 	 */
 	const std::string& getServiceName() const {
 		return serviceName;
 	}
+	
+	/**
+	 * @brief Set the agentInfo
+	 * @param
+	 * serviceName - the service name
+	 */
+	void setAgentInfo(const std::string& agentInfo) {
+		agentInfo_ = agentInfo;		
+	}
+
+	/**
+	 * @brief get the agent Info
+	 * @return
+	 * The service name
+	 */
+	const std::string& getAgentInfo() const {
+		return agentInfo_;
+	}
+	
 
 	unsigned int getBufferNum() const {
 		assert(mh.nbuffer == bufferPtrVec.size());
@@ -297,7 +316,8 @@ public:
 	//int status_;	
 
 private:
-
+     
+	std::string agentInfo_;
 	MessageFrameworkNode requester_;
 
 	/**
