@@ -23,6 +23,8 @@
 #include <boost/thread.hpp>
 #include <boost/shared_ptr.hpp>
 
+#include <3rdparty/am/rde_hashmap/hash_map.h>
+
 #include <ext/hash_map>
 //#include <boost/unordered_map.hpp>
 #include <boost/serialization/hash_map.hpp>
@@ -41,10 +43,6 @@ enum ManagerType
     MANAGER_TYPE_DATAPROCESS, /// Deployed with Data Process
     MANAGER_TYPE_INDEXPROCESS /// Deployed as the Index Process
 };
-
-typedef __gnu_cxx::hash_map    <unsigned int,float> ID_FREQ_MAP_T;
-//typedef boost::unordered_map	  <unsigned int,float>			ID_FREQ_MAP_T;
-typedef std::map<std::string, ID_FREQ_MAP_T > DocumentFrequencyInProperties;
 
 typedef int32_t ACCESS_MODE;
 
@@ -191,19 +189,6 @@ public:
 
     
     bool getTermFrequencyInCollectionByTermId ( const std::vector<termid_t>& termIdList, const unsigned int collectionId, const std::vector<std::string>& propertyList, std::vector<unsigned int>& termFrequencyList );
-    /**
-    * @brief   This function gets a map of Document Frequency according to property and term id
-    *
-    * @param termIdList: list of term Ids.
-    * @param collectionId: id of the collection.
-    * @param propertyList: list of properties.
-    *
-    *  @return  1: operation completed successfully
-    *       0: fail to complete the operation
-    *
-    */
-    //bool getDocumentFrequencyListByTermIdList(const vector<termid_t>& termIdList, const unsigned int collectionId, const vector<string>&  propertyList, vector<unsigned int>& documentFrequencyList);
-    bool getDocumentFrequencyInPropertiesByTermIdList(const std::vector<termid_t>& termIdList, const unsigned int collectionId, const std::vector<std::string>&  propertyList, DocumentFrequencyInProperties& documentFrequencyList);
 
     /**
     * @brief   This function retrieves a list of document identifiers by property value. The property value of each document in the list is equal to the input value.

@@ -754,32 +754,6 @@ bool Indexer::getTermFrequencyInCollectionByTermId( const vector<termid_t>& term
 }
 
 
-bool Indexer::getDocumentFrequencyInPropertiesByTermIdList(const vector<termid_t>& termIdList, const unsigned int collectionId, const vector<string>&  propertyList, DocumentFrequencyInProperties& documentFrequencyList) // Modified by Dohyun Yun
-{
-    TermReader* pTermReader = pIndexReader_->getTermReader(collectionId);
-    size_t propertySize = propertyList.size();
-    size_t termSize = termIdList.size();
-    for (size_t i = 0; i < propertySize; i++)
-    {
-        ID_FREQ_MAP_T dfMap;
-        string property = propertyList[i];
-        for (size_t j = 0; j < termSize; j++)
-        {
-            termid_t termId = termIdList[j];
-            Term term(property.c_str(), termId);
-            if (pTermReader->seek(&term))
-            {
-                float df=(float)pTermReader->docFreq(&term);
-                dfMap.insert(make_pair(termId, df));
-            }
-        }
-        documentFrequencyList.insert(make_pair(property,dfMap));
-    }
-    delete pTermReader;
-
-    return true;
-}
-
 bool Indexer::getDocsByPropertyValue(collectionid_t colID, string property, PropertyType value, vector<docid_t>&docs)
 {
     fieldid_t fid = getPropertyIDByName(colID,property);

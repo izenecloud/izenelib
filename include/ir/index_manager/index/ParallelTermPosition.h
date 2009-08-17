@@ -11,6 +11,9 @@
 #include <ir/index_manager/index/IndexReader.h>
 #include <ir/index_manager/index/TermPositions.h>
 
+//#include <3rdparty/am/rde_hashmap/hash_map.h>
+#include <boost/unordered_map.hpp>
+
 #include <string>
 #include <map>
 
@@ -18,6 +21,11 @@
 NS_IZENELIB_IR_BEGIN
 
 namespace indexmanager{
+typedef boost::unordered_map <unsigned int,float> ID_FREQ_MAP_T;
+//typedef rde::hash_map <unsigned int,float> ID_FREQ_MAP_T;
+typedef std::map<std::string, ID_FREQ_MAP_T > DocumentFrequencyInProperties;
+typedef std::map<std::string, ID_FREQ_MAP_T > CollectionTermFrequencyInProperties;
+
 /**
 *  If there exist multi fields to be indexed in the inverted files, adopting this class can iterate indexes of multi fields parallelly,
 *  which can output the results much more fast, or else each time we add an element in CommonItem, there has to be a search process
@@ -44,6 +52,8 @@ public:
     * Retrieve the position information of a certain Field
     */
     void getPositions(string& property, deque<loc_t>* positions, freq_t tf);
+
+    void get_df_and_ctf(termid_t termID, DocumentFrequencyInProperties& dfmap, CollectionTermFrequencyInProperties& ctfmap);
 
     bool isValid()
     {
