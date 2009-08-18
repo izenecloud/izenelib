@@ -410,14 +410,14 @@ public:
 
     fieldid_t getPropertyIDByName(collectionid_t colID, string property);
 
-private:
+protected:
     void initIndexManager();
 
     void openDirectory();
 
     void close();
 
-private:
+protected:
     ManagerType managerType_;
 
     Directory* pDirectory_;

@@ -101,7 +101,7 @@ bool ParallelTermPosition::next(vector<string>& properties, docid_t& docid)
     return true;
 }
 
-void ParallelTermPosition::getPositions(string& property, boost::shared_ptr<std::deque<unsigned int> >& positions, freq_t tf)
+void ParallelTermPosition::getPositions(string& property, boost::shared_ptr<std::deque<unsigned int> >& positions, freq_t& tf, freq_t& doclen)
 {
     TermPositions* pPositions =  termPositionMap_[property];
     loc_t pos = pPositions->nextPosition();
@@ -113,6 +113,7 @@ void ParallelTermPosition::getPositions(string& property, boost::shared_ptr<std:
         subpos = pPositions->nextPosition();
     }
     tf = pPositions->freq();
+    doclen = pPositions->docLength();
 }
 
 void ParallelTermPosition::get_df_and_ctf(termid_t termID, DocumentFrequencyInProperties& dfmap, CollectionTermFrequencyInProperties& ctfmap)

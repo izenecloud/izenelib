@@ -52,7 +52,7 @@ public:
     /**
     * Retrieve the position information of a certain Field
     */
-    void getPositions(string& property, boost::shared_ptr<std::deque<unsigned int> >& positions, freq_t tf);
+    void getPositions(string& property, boost::shared_ptr<std::deque<unsigned int> >& positions, freq_t& tf, freq_t& doclen);
 
     void get_df_and_ctf(termid_t termID, DocumentFrequencyInProperties& dfmap, CollectionTermFrequencyInProperties& ctfmap);
 

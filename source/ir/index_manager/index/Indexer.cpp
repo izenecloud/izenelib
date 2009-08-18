@@ -650,8 +650,8 @@ bool Indexer::getDocsByTermInProperties(termid_t termID, collectionid_t colID, v
                 for (vector<string>::iterator iter = currProperties.begin(); iter != currProperties.end(); ++iter)
                 {
                     boost::shared_ptr<std::deque<unsigned int> > positions(new std::deque<unsigned int>);
-                    freq_t tf = 0;
-                    parallelTermPosition.getPositions((*iter), positions, tf);
+                    freq_t tf,doclen = 0;
+                    parallelTermPosition.getPositions((*iter), positions, tf, doclen);
                     item.addProperty((*iter), positions, tf);
                 }
                 commonSet.push_back(item);
