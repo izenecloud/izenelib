@@ -23,10 +23,10 @@ ELSE(WIN32)
     ThreadPool.cpp
     common.cpp     
     
-    MessageClientLight.cpp
-    MessageControllerLight.cpp
-    MessageServerLight.cpp
-    MessageAgentLight.cpp
+  #  MessageClientLight.cpp
+  #  MessageControllerLight.cpp
+  #  MessageServerLight.cpp
+  #  MessageAgentLight.cpp
 )
 
   INCLUDE(MacroAddComponent)
