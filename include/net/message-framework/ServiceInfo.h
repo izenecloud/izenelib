@@ -87,7 +87,8 @@ public:
 	void display(std::ostream &os=std::cout) const {
 		os<<"ServiceInfo: ";
 		os<<serviceName_<<std::endl;
-		os<<server_.nodeName_<<std::endl;
+		os<<server_.nodeIP_<<std::endl;
+		os<<server_.nodePort_<<std::endl;
 	}
 
 private:

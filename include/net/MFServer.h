@@ -40,6 +40,10 @@ public:
 		serviceHandle_ = serviceHandle;		
 	}
 	
+	void setAgentInfo(const string& agentInfo){
+		messageServer_->setAgentInfo(agentInfo);
+	}
+	
 	bool run(void);
 private:
 
@@ -78,8 +82,7 @@ controllerInfo_(controllerIP, controllerPort)
 	string serverName = std::string(typeid(MessageServer).name() ) ;
 	
 	messageServer_.reset( new MessageServer(
-			MF_SERVER_ARG (serverName, serverPort, controllerInfo_) )  );	
-	cout<<"!!!!!"<<endl;
+			MF_SERVER_ARG (serverName, serverPort, controllerInfo_) )  );
 }
 
 template< typename ServiceHandle, typename MapType > bool MFServer<
@@ -89,15 +92,13 @@ template< typename ServiceHandle, typename MapType > bool MFServer<
     wiselib::thread_pool::ThreadObject* threadObject = NULL;
     WorkerThread<ServiceHandle>* workerObject = NULL;
     try
-    { 
-    	cout<<"!!!!!"<<endl;
-    	if( registerServiceList() )
+    {     
+    	if( !registerServiceList() )
     		return false;  
     	assert(serviceHandle_ != NULL);
-        // main loop
+        // main loop    	
         vector< ServiceRequestInfoPtr > requests;
-        LOG(INFO) << " Starting service..." << endl;
-        cout<< " Starting service..." << endl;
+        LOG(INFO) << " Starting service..." << endl;       
         while( true )
         {        
         	// receive service request
@@ -177,21 +178,19 @@ template<  typename ServiceHandle, typename MapType > bool MFServer<
 	typename MapType::iterator iter = serviceList_.begin();
 			for ( ; iter != serviceList_.end(); iter++ )
 			{
-				int tryCount = 10;			
-				while ( !messageServer_->registerService ( ServiceInfo(iter->first) )
-				        && tryCount > 0 )
-				{	
-					DLOG(ERROR)<< "Register Service : service = " << iter->first
+				int tryCount = 10;					
+				while ( ! messageServer_->registerService( ServiceInfo(iter->first) )  )				       
+				{						
+					LOG(ERROR)<< "Register Service : service = " << iter->first
 					<< ", tryCount = " << tryCount<<". Waiting for controller ....." << std::endl;	
 					usleep ( 10000 ); // 10ms
-					tryCount--;
+					tryCount--;					
 				} // end - while()
 
 				if ( tryCount == 0 )
 					return false;
 
-			} // end - for
-
+			} // end - for		
 			return true;
 
 }

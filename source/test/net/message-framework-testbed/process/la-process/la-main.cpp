@@ -192,6 +192,7 @@ MF_AUTO_MAIN(laProcess) {
 	lash->setLAManager(laMgr_);
 	
 	laServer.setServiceHandle(lash);
+	laServer.setAgentInfo("la");
 	
 	laServer.run();
 	// client_ = new MessageClient( MF_CLIENT_ARG( "DocumentProcess_Server", controllerNode ) );
