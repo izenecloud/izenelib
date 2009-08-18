@@ -50,7 +50,7 @@ namespace febird {
 template<class Output, class T>
 void DataIO_saveObject(Output& output, const T& x)
 {
-#ifdef DATA_IO_ALLOW_DEFAULT_SERIALIZE
+#if 1//DATA_IO_ALLOW_DEFAULT_SERIALIZE
 	output.ensureWrite(&x, sizeof(x));
 #else
 	x.MustDefineCustomSave(output);

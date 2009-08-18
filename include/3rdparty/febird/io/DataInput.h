@@ -51,7 +51,7 @@ namespace febird {
 template<class Input, class Class>
 void DataIO_loadObject(Input& input, Class& x)
 {
-#ifdef DATA_IO_ALLOW_DEFAULT_SERIALIZE
+#if 1//DATA_IO_ALLOW_DEFAULT_SERIALIZE
 	input.ensureRead(&x, sizeof(Class));
 #else
 	x.MustDefineCustomLoad(input);
