@@ -1,0 +1,10 @@
+#ifndef _DICTNODE_TABLE_H_
+#define _DICTNODE_TABLE_H_
+
+NS_IZENELIB_AM_BEGIN
+
+
+
+NS_IZENELIB_AM_END
+
+#endif
