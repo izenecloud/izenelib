@@ -49,6 +49,8 @@ LIB =  		 	\
 				-lboost_system-gcc41-mt \
 				-lboost_serialization-gcc41-mt \
 				-lboost_program_options-gcc41-mt \
+				-lglog \
+				-lprocmeminfo \
 
 
 OBJECTS = $(patsubst %.cpp, %.o, $(wildcard *.cpp))

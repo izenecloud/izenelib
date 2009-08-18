@@ -5,7 +5,7 @@
 
 #include <ProcessOptions.h>
 
-#include <message_framework.h>
+#include <net/message_framework.h>
 #include <IndexManager.h>
 
 #include <boost/smart_ptr.hpp>

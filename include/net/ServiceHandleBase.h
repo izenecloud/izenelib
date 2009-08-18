@@ -3,6 +3,26 @@
 
 #include <net/message_framework.h>
 
+namespace messageframework{
+
+class ServiceHandlerBase
+{
+    public:
+        /**
+         * @brief Contruct IDServiceHandler with default values
+         */
+    	//ServiceHandlerBase(const MessageFrameworkNodePtr& controllerInfo){
+    	//	controllerInfo_ = controllerInfo;
+    	//}
+        void no_callback(ServiceRequestInfoPtr& request){        
+        	    LOG(ERROR) << "Could not found callback function: service name=" << request->getServiceName().c_str() << endl;
+        }
+    //private:
+    	//MessageFrameworkNodePtr controllerInfo_;
+};
+
+}
+
 #define SERVICE_HANDLE_0_1(request, server, FUNCTION, TYPE1) \
 unsigned int n = request->getBufferNum(); \
 if( n==0 ) n = 1; \

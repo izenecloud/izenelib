@@ -5,7 +5,7 @@
 
 #include <document-manager/Document.h>
 
-#include <message_framework.h>
+#include <net/message_framework.h>
 
 #include "ProcessOptions.h"
 

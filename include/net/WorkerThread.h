@@ -10,38 +10,37 @@
 #ifndef _WORKER_THREAD_H_
 #define _WORKER_THREAD_H_
 
-#include "ServiceItem.h"
-//#include "ServiceHandler.h"
-
 #include <net/message_framework.h>
+#include <net/ServiceItem.h>
 #include <wiselib/thread-pool/ThreadObject.h>
 
+namespace messageframework{
 
 /// @brief This class is a work thread of all the manager.
 /// And each work thread servers only one request.
 template <typename ServiceHandler>
 class WorkerThread : public wiselib::thread_pool::ThreadObject
 {
+	typedef typename boost::shared_ptr<ServiceHandler> ServiceHandlerPtr;
     private:
         /// @brief the pointer of index service handler object.
-        ServiceHandler* serviceHandlerPtr_;
+    	ServiceHandlerPtr serviceHandlerPtr_;
 
         /// @brief the information of request which worker thread should deal with.
         ServiceRequestInfoPtr requestInfo_;
 
         /// @brief the pointer of message server which transfer the result data.
-        MessageServer* messageServerPtr_;
+        MessageServerPtr messageServerPtr_;
 
         /// @brief service item which contains service information.
         ServiceItem<ServiceHandler> serviceItem_;
 
     public:
-        WorkerThread(void)
-            : serviceHandlerPtr_(NULL), messageServerPtr_(NULL)
+        WorkerThread(void)            
         {}
 
         /// @brief an interface which sets the service handler object.
-        void setServiceHandler( ServiceHandler* handler )
+        void setServiceHandler( ServiceHandlerPtr handler )
         {
             serviceHandlerPtr_ = handler;
         } 
@@ -53,13 +52,13 @@ class WorkerThread : public wiselib::thread_pool::ThreadObject
         }
 
         /// @brief an interface which sets the service item object.
-        void setServiceItem( const ServiceItem<ServiceHandler> & serviceItem )
+        void setServiceItem( const ServiceItem<ServiceHandler>& serviceItem )
         {
             serviceItem_ = serviceItem;
         }
 
         /// @brief an interface which sets the message server object.
-        void setMessageServer( MessageServer* messageServer )
+        void setMessageServer(const MessageServerPtr messageServer )
         {
             messageServerPtr_ = messageServer;
         }
@@ -68,17 +67,17 @@ class WorkerThread : public wiselib::thread_pool::ThreadObject
         void start(void);
 }; // end - class WorkerThread
 
+
 template <typename ServiceHandler>
 void WorkerThread<ServiceHandler>::start(void)
 {
     try
-    {
-        if( !(serviceHandlerPtr_->*(serviceItem_.callback_))(*messageServerPtr_, requestInfo_) )
+    {  
+    	if( !( serviceHandlerPtr_.get()->*(serviceItem_.callback_))(*messageServerPtr_, requestInfo_) )
         {
-#ifdef SF1_DEBUG
-            std::cout << "Error while processing service : " << requestInfo_.getServiceName() << std::endl;
-#endif 
-        }
+
+            DLOG(ERROR) << "Error while processing service : " << requestInfo_->getServiceName() << std::endl; 
+        }  
     }
     catch(...)
     {
@@ -87,6 +86,7 @@ void WorkerThread<ServiceHandler>::start(void)
 } 
 
 
+}
 
 
 #endif  //_WORKER_THREAD_H_

@@ -4,7 +4,8 @@
  */
 
 #include <ProcessOptions.h>
-#include <message_framework.h>
+#include <net/message_framework.h>
+#include <net/MFServer.h>
 #include <LAManager.h>
 
 #include <boost/smart_ptr.hpp>
@@ -16,6 +17,7 @@
 
 #include <iostream>
 #include "boost/date_time/posix_time/posix_time.hpp"
+#include "LaServiceHandle.h"
 
 using namespace std;
 using namespace boost;
@@ -24,15 +26,11 @@ using namespace messageframework;
 
 namespace LaProcess {
 
-LAManager laMgr_;
-MessageClient * client_;
-MessageServer * server_;
-sf1v5_dummy::ProcessOptions po;
 
 //void initMFClient();
-void initMFServer();
-void initServiceList();
-int registerServiceList();
+//void initMFServer();
+//void initServiceList();
+//int registerServiceList();
 
 /*
  void initMFClient()
@@ -41,7 +39,7 @@ int registerServiceList();
  MessageFrameworkNode controllerNode( po.getControllerIp(), po.getControllerPort() );
  client_ = new MessageClient( MF_CLIENT_ARG( "DocumentProcess_Server", controllerNode ) );
  }
- */
+ 
 
 void initMFServer() {
 	MessageFrameworkNode controllerNode(po.getControllerIp(),
@@ -51,6 +49,7 @@ void initMFServer() {
 	cout << "[LAProcess]: MF up and ready to go" << endl;
 }
 
+/*
 void initServiceList(vector<ServiceInfo> & serviceList) {
 	ServiceInfo serviceInfo;
 	//vector<ServiceParameterType> params;
@@ -146,30 +145,8 @@ int laServerMain() {
 				//shared_ptr<string> str( new string );
 				//shared_ptr<vector<string> > termList( new vector<string>() );
 				parseString(laMgr_, requestList[i]);			
-				server_->putResultOfService(requestList[i]);
-				
-				/*string str;
-				vector<string> termList;
+				server_->putResultOfService(requestList[i]);		
 
-				//paramList = requestList[i].getParameterList();
-				//paramList[0]->getData( str );		
-				//requestList[i]->display();
-				mf_deserialize(str, requestList[i]);
-				//{
-				//	cerr << "\t[LAPROCES]: INPUT: " << str << endl;
-				//}
-
-				laMgr_.parseString(str, termList);
-				serviceResult = requestList[i];
-				mf_serialize(termList, serviceResult);
-				{
-					//cerr << "\t[LAPROCES]: OUTPUT: " << endl;
-					//for (unsigned int i=0; i < termList.size(); i++) {
-					//	cout << (termList)[i] << endl;
-					//}
-				}
-				//shared_ptr<VariantType> resultData( new VariantType(termList) );
-				//serviceResult.appendServiceData( resultData );*/
 			}
 
 			//serviceResults.push_back(serviceResult);
@@ -183,23 +160,52 @@ int laServerMain() {
 
 		std::cout << "[PROFILE] la_time total " << la_time << std::endl;
 	}
-}
+}*/
 }
 
 MF_AUTO_MAIN(laProcess) {
 	using namespace LaProcess;
+	
+	LAManagerPtr  laMgr_(new LAManager);
+	sf1v5_dummy::ProcessOptions po;
 
 	if ( !po.setLaProcessOptions(argc, argv)) {
 		return 0;
 	}
+	
+	//MessageFrameworkNodePtr  mfnode(new  MessageFrameworkNode(controllerNode( po.getControllerIp(), po.getControllerPort() ) );
+	
+	MFServer<LAServiceHandle> laServer(4, po.getHostPort(), po.getControllerIp(), po.getControllerPort() );
+	
+	boost::unordered_map<std::string, ServiceItem<LAServiceHandle> > serviceList;	
+	{
+				ServiceItem<LAServiceHandle> item;
+				item.callback_ = &LAServiceHandle::parseString;
+				serviceList[ "parseString" ] = item;
+	}
+	
+	laServer.createServiceList(serviceList);
+	cout << "[LAProcess]: MF up and ready to go" << endl;
+	
+	
+	boost::shared_ptr<LAServiceHandle> lash( new LAServiceHandle);
+	lash->setLAManager(laMgr_);
+	
+	laServer.setServiceHandle(lash);
+	
+	laServer.run();
+	// client_ = new MessageClient( MF_CLIENT_ARG( "DocumentProcess_Server", controllerNode ) );
 
-	initMFServer();
+		
+	//initMFServer();
 	//initMFClient();
 
 
-	laServerMain();
+	//laServerMain();
 	//boost::thread serverThread( &laServerMain );
 	//serverThread.join();
 
 	return 1;
 }
+
+

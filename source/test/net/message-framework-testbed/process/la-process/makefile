@@ -48,7 +48,10 @@ LIB =  		 	-lsf1v5_common \
 				-lboost_thread-gcc41-mt \
 				-lboost_system-gcc41-mt \
 				-lboost_serialization-gcc41-mt \
-				-lboost_program_options-gcc41-mt
+				-lboost_program_options-gcc41-mt \
+				-lglog \
+				-lprocmeminfo \
+				-lwiselib
 
 
 OBJECTS = $(patsubst %.cpp, %.o, $(wildcard *.cpp))
