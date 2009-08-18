@@ -2,6 +2,7 @@
 #define _LEAFNODE_TABLE_H_
 
 #include <am/concept/DataType.h>
+#include <am/util/DbObj.h>
 #include <sdb/SequentialDB.h>
 
 NS_IZENELIB_AM_BEGIN
