@@ -6,8 +6,8 @@
  *   
  */
 
-#ifndef _MFSERVER_H_
-#define _MFSERVER_H_
+#ifndef _MFCLIENT_H_
+#define _MFCLIENT_H_
  
 namespace messageframework{ 
  

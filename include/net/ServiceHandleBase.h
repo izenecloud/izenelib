@@ -7,18 +7,10 @@ namespace messageframework{
 
 class ServiceHandlerBase
 {
-    public:
-        /**
-         * @brief Contruct IDServiceHandler with default values
-         */
-    	//ServiceHandlerBase(const MessageFrameworkNodePtr& controllerInfo){
-    	//	controllerInfo_ = controllerInfo;
-    	//}
-        void no_callback(ServiceRequestInfoPtr& request){        
+    public:    
+    void no_callback(ServiceRequestInfoPtr& request){        
         	    LOG(ERROR) << "Could not found callback function: service name=" << request->getServiceName().c_str() << endl;
-        }
-    //private:
-    	//MessageFrameworkNodePtr controllerInfo_;
+    }   
 };
 
 }
