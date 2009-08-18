@@ -101,7 +101,7 @@ bool ParallelTermPosition::next(vector<string>& properties, docid_t& docid)
     return true;
 }
 
-void ParallelTermPosition::getPositions(string& property, deque<loc_t>* positions, freq_t tf)
+void ParallelTermPosition::getPositions(string& property, boost::shared_ptr<std::deque<unsigned int> >& positions, freq_t tf)
 {
     TermPositions* pPositions =  termPositionMap_[property];
     loc_t pos = pPositions->nextPosition();

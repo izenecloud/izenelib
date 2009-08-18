@@ -50,7 +50,7 @@ public:
         docid = docid_;
     }
 
-    void addProperty(std::string property, std::deque<loc_t>*positions, freq_t tf)
+    void addProperty(std::string property, PositionPtr positions, freq_t tf)
     {
         if (commonItemProperty.find(property) == commonItemProperty.end())
         {
