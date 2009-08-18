@@ -15,7 +15,7 @@ using namespace wiselib;
 using namespace std;
 
 template <
-  class STRING_TYPE = string
+  class STRING_TYPE
   >
 struct item_pair
 {
@@ -35,11 +35,11 @@ struct item_pair
  * B-trie has two typess of nodes, alphabet node and bucket. Bucket stores string and value pair in increasing sequencial order.
  **/
 template<
-  class STRING_TYPE = string,
-  uint32_t BUCKET_SIZE = 8192,//byte
-  uint8_t SPLIT_RATIO = 75,
-  typename STRING_TYPE::value_type* ALPHABET = a2z,
-  uint32_t ALPHABET_SIZE = a2z_size
+  class STRING_TYPE,
+  uint32_t BUCKET_SIZE,//byte
+  uint8_t SPLIT_RATIO,
+  typename STRING_TYPE::value_type* ALPHABET,
+  uint32_t ALPHABET_SIZE
   >
 class Bucket
 {

@@ -29,7 +29,9 @@
 #include "IDFactoryErrorString.h"
 #include "IDFactoryException.h"
 
+#include <am/trie/b_trie.hpp>
 #include "LexicalTrie.h"
+#include "EmptyRegExp.h"
 
 /**
  * @brief a class to generate, serve, and manage all about of the term id.
@@ -43,8 +45,7 @@ template<typename NameString,
          typename NameID,
          typename IDGenerator   = HashIDGenerator<NameString, NameID>,
          typename IDStorage     = SDBIDStorage<NameString, NameID>,
-         typename RegExp        = LexicalTrie<NameString> >
-         // typename TRIE       = izenelib::am::BTrie<NameString> >
+         typename RegExp        = EmptyRegExp<NameString> >
 class TermIdManager
 {
     typedef IDFactory<NameString, NameID, IDGenerator, IDStorage> TermIDFactory;
@@ -231,7 +232,7 @@ bool TermIdManager<NameString, NameID, IDGenerator, IDStorage, RegExp>::
 	termIdList.resize(sizeOfTermStringList);
 
 	for (size_t i = 0; i < sizeOfTermStringList; i++) {
-		ret = idFactory_.getNameIDByNameString(termStringList[i], termIdList[i]);
+		ret = getTermIdByTermString(termStringList[i], termIdList[i]);
 		if (ret == false)
 			isAllIDFound = false;
 	} // end - for

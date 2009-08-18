@@ -148,6 +148,8 @@ bool CollectionIndexer::removeDocumentInField(docid_t docid, FieldInfo* pFieldIn
 
     docid_t decompressed_docid;
 
+    freq_t doclength;
+
     DiskTermReader* pTermReader = new DiskTermReader();
 
     ///open on-disk index barrel
@@ -178,11 +180,12 @@ bool CollectionIndexer::removeDocumentInField(docid_t docid, FieldInfo* pFieldIn
                     ret = true;
                     continue;
                 }
+                doclength = pTermPositions->docLength();
                 loc_t pos = pTermPositions->nextPosition();
                 loc_t subpos = pTermPositions->nextPosition();
                 while (pos != BAD_POSITION)
                 {
-                    newPosting->addLocation(decompressed_docid, pos, subpos);
+                    newPosting->addLocation(decompressed_docid, doclength, pos, subpos);
                     pos = pTermPositions->nextPosition();
                     subpos = pTermPositions->nextPosition();
                 }

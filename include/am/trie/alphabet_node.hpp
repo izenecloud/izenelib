@@ -16,9 +16,9 @@ NS_IZENELIB_AM_BEGIN
  *B-tire has two types of node, alphabet node and bucket. This is for laphabet node.
  **/
 template<
-  class CHAR_T = char,
-  CHAR_T* ALPHABET = a2z,
-  uint32_t ALPHABET_SIZE = a2z_size
+  class CHAR_T,
+  CHAR_T* ALPHABET,
+  uint32_t ALPHABET_SIZE
   >
 class AlphabetNode
 {
@@ -232,7 +232,6 @@ friend ostream& operator << ( ostream& os, const SelfType& node)
       LDBG_<<"Can't find '"<<ch<<ALPHABET[0]<<ALPHABET[ALPHABET_SIZE-1]<<"' in alphabet";
       return -1;
     }
-
 
     if(ALPHABET[0] == 'a' && ALPHABET[ALPHABET_SIZE-1]=='z')
     {

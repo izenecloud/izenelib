@@ -101,7 +101,7 @@ bool ParallelTermPosition::next(vector<string>& properties, docid_t& docid)
     return true;
 }
 
-void ParallelTermPosition::getPositions(string& property, vector<loc_t>* positions)
+void ParallelTermPosition::getPositions(string& property, deque<loc_t>* positions, freq_t tf)
 {
     TermPositions* pPositions =  termPositionMap_[property];
     loc_t pos = pPositions->nextPosition();
@@ -112,5 +112,17 @@ void ParallelTermPosition::getPositions(string& property, vector<loc_t>* positio
         pos = pPositions->nextPosition();
         subpos = pPositions->nextPosition();
     }
+    tf = pPositions->freq();
 }
 
+void ParallelTermPosition::get_df_and_ctf(termid_t termID, DocumentFrequencyInProperties& dfmap, CollectionTermFrequencyInProperties& ctfmap)
+{
+    for (map<string, TermPositions*>::iterator iter = termPositionMap_.begin(); iter != termPositionMap_.end(); ++iter)
+    {
+        DocumentFrequencyInProperties::iterator df_iter = dfmap.insert(std::make_pair(iter->first, ID_FREQ_MAP_T())).first;
+        df_iter->second.insert(make_pair(termID, (float)iter->second->docFreq()));
+			
+        CollectionTermFrequencyInProperties::iterator ctf_iter = ctfmap.insert(std::make_pair(iter->first, ID_FREQ_MAP_T())).first;
+        ctf_iter->second.insert(make_pair(termID, (float)iter->second->getCTF()));
+    }
+}

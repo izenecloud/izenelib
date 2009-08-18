@@ -318,7 +318,7 @@ void InMemoryPosting::updateDF(docid_t docid)
     }
 }
 
-void InMemoryPosting::addLocation(docid_t docid, loc_t location, loc_t sublocation)
+void InMemoryPosting::addLocation(docid_t docid, freq_t doclength, loc_t location, loc_t sublocation)
 {
     if (docid == nLastDocID)
     {
@@ -345,6 +345,14 @@ void InMemoryPosting::addLocation(docid_t docid, loc_t location, loc_t sublocati
         if (nCurTermFreq > 0)///write previous document's term freq
         {
             if (!pDocFreqList->addPosting(nCurTermFreq))
+            {
+                ///chunk is exhausted
+                int32_t newSize = getNextChunkSize(pDocFreqList->nTotalSize,InMemoryPosting::ALLOCSTRATEGY);
+                pDocFreqList->addChunk(newChunk(newSize));
+                pDocFreqList->addPosting(nCurTermFreq);
+            }
+            /// doc length info, which is required by Ranking
+            if (!pDocFreqList->addPosting(doclength))
             {
                 ///chunk is exhausted
                 int32_t newSize = getNextChunkSize(pDocFreqList->nTotalSize,InMemoryPosting::ALLOCSTRATEGY);
@@ -491,7 +499,9 @@ int32_t InMemoryPosting::decodeNext(uint32_t* pPosting,int32_t length)
     }
 
     uint32_t* pDoc = pPosting;
-    uint32_t* pFreq = pPosting + (length >> 1);
+    //uint32_t* pFreq = pPosting + (length >> 1);
+    uint32_t* pFreq = pPosting + (length/3);
+    uint32_t* pDocLen = pPosting + (length*2/3);
 
     int32_t left = nDF - pDS->decodedDocCount;
     if (left <= 0)
@@ -515,6 +525,8 @@ int32_t InMemoryPosting::decodeNext(uint32_t* pPosting,int32_t length)
         ISCHUNKOVER_D();
 
         *pFreq++ = CompressedPostingList::decodePosting32(pDChunk);
+
+        *pDocLen++ = CompressedPostingList::decodePosting32(pDChunk);
 
         count++;
     }
@@ -692,7 +704,9 @@ int32_t OnDiskPosting::decodeNext(uint32_t* pPosting,int32_t length)
     if (left <= 0)
         return -1;
     uint32_t* pDoc = pPosting;
-    uint32_t* pFreq = pPosting + (length>>1);
+    //uint32_t* pFreq = pPosting + (length>>1);
+    uint32_t* pFreq = pPosting + (length/3);
+    uint32_t* pDocLen = pPosting + (length*2/3);
 
     if (length > left*2)
         length = left*2;
@@ -708,6 +722,7 @@ int32_t OnDiskPosting::decodeNext(uint32_t* pPosting,int32_t length)
 
         *pDoc++ = did;
         *pFreq++ = pDPostingInput->readVInt();
+        *pDocLen++ = pDPostingInput->readVInt();
 
         count++;
     }

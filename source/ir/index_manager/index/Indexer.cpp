@@ -576,38 +576,9 @@ bool Indexer::getIndexingProgressbyCollectionId(collectionid_t colID, IndexingPr
     currentProgress = *pStatus;
     return true;
 }
-bool CommonItemCompare (const CommonItem& a, const CommonItem& b)
-{
-    return (a.docid < b.docid);
-}
-
-bool Indexer::getDocsByTermsInProperties(vector<termid_t> termIDs, collectionid_t colID, vector<string> properties, vector<CommonItem>& commonSet)
-{
-    size_t num_terms = termIDs.size();
-    bool ret = false;
-    for (size_t i = 0; i < num_terms; i++)
-        ret |= getDocsByTermInProperties(termIDs[i], colID, properties, commonSet);
-
-    sort(commonSet.begin(),commonSet.end(),CommonItemCompare);
-    vector<CommonItem>::iterator last;
-    vector<CommonItem>::iterator iter = last = commonSet.begin();
-    ++iter;
-    for (;iter != commonSet.end(); ++iter)
-    {
-        if (last->docid == iter->docid)
-        {
-            last->merge(*iter);
-            commonSet.erase(iter);
-            iter = last;
-        }
-        else
-            last = iter;
-    }
-    return ret;
-}
 
 ///To be optimized: Using TermDocFreqs instead of TermPositions
-bool Indexer::getDocsByTermInProperties(termid_t termID, collectionid_t colID, vector<string> properties, vector<docid_t>& docIds)
+bool Indexer::getDocsByTermInProperties(termid_t termID, collectionid_t colID, vector<string> properties, deque<docid_t>& docIds)
 {
     if (properties.size() > 1)
     {
@@ -626,7 +597,7 @@ bool Indexer::getDocsByTermInProperties(termid_t termID, collectionid_t colID, v
         }
         else
         {
-            cout<<"seek error"<<endl;
+            cout<<"can not find term"<<endl;
             return false;
         }
     }
@@ -650,7 +621,7 @@ bool Indexer::getDocsByTermInProperties(termid_t termID, collectionid_t colID, v
         }
         else
         {
-            cout<<"seek error"<<endl;
+            cout<<"can not find term"<<endl;
             delete pTermReader;
             return false;
         }
@@ -660,7 +631,7 @@ bool Indexer::getDocsByTermInProperties(termid_t termID, collectionid_t colID, v
     return true;
 }
 
-bool Indexer::getDocsByTermInProperties(termid_t termID, collectionid_t colID, vector<string> properties, vector<CommonItem>& commonSet)
+bool Indexer::getDocsByTermInProperties(termid_t termID, collectionid_t colID, vector<string> properties, deque<CommonItem>& commonSet)
 {
     if (properties.size() > 1)
     {
@@ -678,9 +649,10 @@ bool Indexer::getDocsByTermInProperties(termid_t termID, collectionid_t colID, v
                 item.setCollectionID(colID);
                 for (vector<string>::iterator iter = currProperties.begin(); iter != currProperties.end(); ++iter)
                 {
-                    vector<loc_t>* positions = new vector<loc_t>;
-                    parallelTermPosition.getPositions((*iter), positions);
-                    item.addProperty((*iter), positions);
+                    deque<loc_t>* positions = new deque<loc_t>;
+                    freq_t tf = 0;
+                    parallelTermPosition.getPositions((*iter), positions, tf);
+                    item.addProperty((*iter), positions, tf);
                 }
                 commonSet.push_back(item);
                 currProperties.clear();
@@ -688,7 +660,7 @@ bool Indexer::getDocsByTermInProperties(termid_t termID, collectionid_t colID, v
         }
         else
         {
-            cout<<"seek error"<<endl;
+            cout<<"can not find term"<<endl;
             return false;
         }
     }
@@ -707,7 +679,7 @@ bool Indexer::getDocsByTermInProperties(termid_t termID, collectionid_t colID, v
             {
                 CommonItem item;
                 item.setDocID(pPositions->doc());
-                vector<loc_t>* positions = new vector<loc_t>;
+                deque<loc_t>* positions = new deque<loc_t>;
                 loc_t pos = pPositions->nextPosition();
                 loc_t subpos = pPositions->nextPosition();
                 while (pos != BAD_POSITION)
@@ -716,7 +688,7 @@ bool Indexer::getDocsByTermInProperties(termid_t termID, collectionid_t colID, v
                     pos = pPositions->nextPosition();
                     subpos = pPositions->nextPosition();
                 }
-                item.addProperty(properties[0], positions);
+                item.addProperty(properties[0], positions, pPositions->freq());
                 commonSet.push_back(item);
             }
 
@@ -724,7 +696,7 @@ bool Indexer::getDocsByTermInProperties(termid_t termID, collectionid_t colID, v
         }
         else
         {
-            cout<<"seek error"<<endl;
+            cout<<"can not find term"<<endl;
             delete pTermReader;
             return false;
         }
@@ -781,32 +753,6 @@ bool Indexer::getTermFrequencyInCollectionByTermId( const vector<termid_t>& term
     return true;
 }
 
-
-bool Indexer::getDocumentFrequencyInPropertiesByTermIdList(const vector<termid_t>& termIdList, const unsigned int collectionId, const vector<string>&  propertyList, DocumentFrequencyInProperties& documentFrequencyList) // Modified by Dohyun Yun
-{
-    TermReader* pTermReader = pIndexReader_->getTermReader(collectionId);
-    size_t propertySize = propertyList.size();
-    size_t termSize = termIdList.size();
-    for (size_t i = 0; i < propertySize; i++)
-    {
-        ID_FREQ_MAP_T dfMap;
-        string property = propertyList[i];
-        for (size_t j = 0; j < termSize; j++)
-        {
-            termid_t termId = termIdList[j];
-            Term term(property.c_str(), termId);
-            if (pTermReader->seek(&term))
-            {
-                float df=(float)pTermReader->docFreq(&term);
-                dfMap.insert(make_pair(termId, df));
-            }
-        }
-        documentFrequencyList.insert(make_pair(property,dfMap));
-    }
-    delete pTermReader;
-
-    return true;
-}
 
 bool Indexer::getDocsByPropertyValue(collectionid_t colID, string property, PropertyType value, vector<docid_t>&docs)
 {

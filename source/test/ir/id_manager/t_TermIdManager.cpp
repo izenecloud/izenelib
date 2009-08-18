@@ -35,7 +35,10 @@ using namespace boost::unit_test;
 using namespace izenelib::ir::idmanager;
 
 
-typedef TermIdManager<UString, unsigned int> TestTermIdManager;
+typedef TermIdManager<UString, unsigned int,
+                    HashIDGenerator<UString, unsigned int>,
+                    SDBIDStorage<UString, unsigned int>,
+                    BTrie_CJK> TestTermIdManager;
 
 /**
  * @brief TermIdManager<UString, unsigned int>Fixture is used to test TermIdManager<UString, unsigned int>. It loads terms from text file to build termStringLists.
@@ -127,13 +130,11 @@ public:
         // convert term list of strings into term list of UStrings
         termUStringList1.resize(termStringList1.size());
         for(i = 0; i < termStringList1.size(); i++)
-            termUStringList1[i].assign(termStringList1[i], UString::CP949);
+            termUStringList1[i].assign(termStringList1[i], UString::UTF_8);
 
         termUStringList2.resize(termStringList2.size());
         for(i = 0; i < termStringList2.size(); i++)
-            termUStringList2[i].assign(termStringList2[i], UString::CP949);
-
-
+            termUStringList2[i].assign(termStringList2[i], UString::UTF_8);
 
         // generate termId  for each term in the lists
         // generate termId  for each term in the list1
@@ -307,9 +308,9 @@ BOOST_AUTO_TEST_CASE( TestCase3 )
     termIdList1_.clear();
 
     std::string patternSource("ad");
-    UString patternCheck(patternSource, UString::CP949);
+    UString patternCheck(patternSource, UString::UTF_8);
     patternSource = "*";
-    UString starChar(patternSource, UString::CP949);
+    UString starChar(patternSource, UString::UTF_8);
     UString pattern;
 
     // ---------------------------------------------- pattern = "ad*"
