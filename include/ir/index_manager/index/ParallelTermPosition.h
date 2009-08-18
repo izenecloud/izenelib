@@ -13,6 +13,7 @@
 
 //#include <3rdparty/am/rde_hashmap/hash_map.h>
 #include <boost/unordered_map.hpp>
+#include <boost/shared_ptr.hpp>
 
 #include <string>
 #include <map>
@@ -51,7 +52,7 @@ public:
     /**
     * Retrieve the position information of a certain Field
     */
-    void getPositions(string& property, deque<loc_t>* positions, freq_t tf);
+    void getPositions(string& property, boost::shared_ptr<std::deque<unsigned int> >& positions, freq_t& tf, freq_t& doclen);
 
     void get_df_and_ctf(termid_t termID, DocumentFrequencyInProperties& dfmap, CollectionTermFrequencyInProperties& ctfmap);
 

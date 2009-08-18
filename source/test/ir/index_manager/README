@@ -1,0 +1,7 @@
+The files under this directory show how IndexManager is used, but they can not be compiled directly
+because IndexManager can not work without LA.
+t_Indexer shows the whole process from parsing data in XML(which is charged by ScdParser) to index building.
+t_agent is the server when IndexManager is configured to flush index remotedly, in that case, t_agent serves as the server, and t_Indexer servers as the client
+
+An example configuration file is shown in sf1-index-manager.xml, and it is read by XmlConfigParser
+
