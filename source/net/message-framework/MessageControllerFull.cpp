@@ -2,6 +2,7 @@
 /// @file MessageControllerFull.cpp
 /// @date 8/5/2008
 /// @author TuanQuang Nguyen
+/// 
 ///
 
 /**************** Include module header files *******************/
@@ -189,15 +190,6 @@ void MessageControllerFull::processServicePermissionRequest(void) {
 #endif
 					sendPermissionOfServiceResult(requestItem.second, permission );
 				}
-
-			
-				//ServicePermissionInfo permission;
-				//permission.setServiceName(serviceInfo.getServiceName());
-				//permission.setPermissionFlag(serviceInfo.getPermissionFlag());
-				//permission.setServer(serviceInfo.getServer());
-				//permission.setServiceResultFlag( serviceInfo.getServiceResultFlag() ); // @by MyungHyun - 2009-01-28
-				// send permission message to client
-				
 				
 #ifdef SF1_DEBUG
 				std::cout << "[Controller:" << getName();
@@ -223,25 +215,6 @@ void MessageControllerFull::processServicePermissionRequest(void) {
 	}
 
 }
-
-/******************************************************************************
- Description: This function retrieves information of a service. It returns false
- if the service is not found.
- Input:
- serviceName - the service name
- serviceInfo - the information of service
- ******************************************************************************/
-/*bool MessageControllerFull::getServiceInfo(const std::string& serviceName,
-		ServiceInfo& serviceInfo) {
-	boost::unordered_map<std::string, ServiceInfo>::iterator it;
-	it = availableServiceList_.find(serviceName);
-	if (it!=availableServiceList_.end()) {
-		serviceInfo = (it->second);
-		return true;
-	}
-
-	return false;
-}*/
 
 /******************************************************************************
  Description: When a new request of get client id comes, this function is called
@@ -290,159 +263,6 @@ void MessageControllerFull::receivePermissionOfServiceRequest(
 	newPermissionRequestEvent_.notify_all();
 }
 
-/******************************************************************************
- Description: This function requests a result of service. It sends a request
- message to the server.
- ******************************************************************************/
-/*void MessageControllerFull::forwardServiceRequest(const ServiceRequestInfo& requestInfo)
- {
- try
- {
- unsigned int requestId = requestInfo.getRequestId();
- std::string serviceName = requestInfo.getServiceName();
-
- ServiceInfo serviceInfo;
- if(!getServiceInfo(serviceName, serviceInfo))
- throw MessageFrameworkException(SF1_MSGFRK_UNKNOWN_ERROR, __LINE__, __FILE__);
-
- // forward request to server
- sendServiceRequest(requestId, serviceName,
- requestInfo.getParameterList(),
- serviceInfo.getServer());
-
- #ifdef SF1_DEBUG
- std::cout << "[Controller:" << getName();
- std::cout << "] Successfully send service request [Id = " << requestId;
- std::cout << "]  " << serviceName << " to " << serviceInfo.getServer().nodeName_ << std::endl;
- #endif
- }
- catch(MessageFrameworkException& e)
- {
- e.output(std::cerr);
- }
- catch (boost::system::error_code& e)
- {
- std::cerr << "Exception: " << e << std::endl;
- }
- catch (std::exception& e)
- {
- std::cerr << "Exception: "<< e.what() << std::endl;
- }
-
- }*/
-
-/******************************************************************************
- Description: This function processes all waiting service requests from MessageClient.
- It will deliver these messages MessageServers.
- ******************************************************************************/
-/*	void MessageControllerFull::processServiceRequestFromClient(void)
- {
- try
- {
- std::pair<MessageFrameworkNode, ServiceRequestInfo> requestItem;
-
- boost::mutex::scoped_lock serviceRequestQueueLock(serviceRequestQueueMutex_);
- while(true)
- {
- // Waiting for newServiceRequestEvent_
- // It is waken up if controller receives a service request
- // from client
- newServiceRequestEvent_.wait(serviceRequestQueueLock);
- #ifdef _LOGGING_
- WriteToLog("log.log", "============= processServiceRequestFromClient ===========");
- #endif
- while(serviceRequestQueue_.size() > 0)
- {
- requestItem = serviceRequestQueue_.front();
- serviceRequestQueue_.pop();
- serviceRequestQueueLock.unlock();
-
- {
- // Put the request into  waitingForResultMessageQueue_.
- // The controller waits for results from MessageServer
- boost::mutex::scoped_lock waitingForResultMessageQueueLock(
- waitingForResultMessageQueueMutex_);
- waitingForResultMessageQueue_.insert(
- std::pair<unsigned int, MessageFrameworkNode>(
- requestItem.second.getRequestId(),
- requestItem.first));
- }
- // send the request to server
- forwardServiceRequest(requestItem.second);
-
- serviceRequestQueueLock.lock();
- }// end of while(totalRequest > 0 || !serviceRequestQueue_.empty())
- }// end of while(true)
- }
- catch(MessageFrameworkException& e)
- {
- e.output(std::cerr);
- }
- catch (boost::system::error_code& e)
- {
- std::cerr << "Exception: " << e << std::endl;
- }
- catch (std::exception& e)
- {
- std::cerr << "Exception: "<< e.what() << std::endl;
- }
- }*/
-
-/******************************************************************************
- Description: This function processes all the coming results from MessageServer.
- It will deliver the results to the MessageClient.
- ******************************************************************************/
-/*void MessageControllerFull::processServiceResultFromServer(void)
- {
- try
- {
- // now , add the result to the result queue
- std::pair<MessageFrameworkNode, ServiceResult> resultItem;
- ServiceRequestInfo request;
-
- boost::mutex::scoped_lock resultQueueLock(resultQueueMutex_);
- while(true)
- {
- // waiting for newResultEvent_
- // It is waken up if controller receives a service result
- // from server
- newServiceResultEvent_.wait(resultQueueLock);
- #ifdef _LOGGING_
- WriteToLog("log.log", "============= processServiceResultFromServer ===========");
- #endif
- while(resultQueue_.size() > 0)
- {
- resultItem = resultQueue_.front();
- resultQueue_.pop();
- resultQueueLock.unlock();
-
- // send result to the client
- request.setRequestId(resultItem.second.getRequestId());
- sendResultOfService(resultItem.first, request, resultItem.second);
- #ifdef SF1_DEBUG
- std::cout << "[Controller:" << getName();
- std::cout << "] Successfully forward result of request " << resultItem.second.getRequestId() << std::endl;
- #endif
-
- resultQueueLock.lock();
- }
- }
- }
- catch(MessageFrameworkException& e)
- {
- e.output(std::cerr);
- }
- catch (boost::system::error_code& e)
- {
- std::cerr << "Exception: " << e << std::endl;
- }
- catch (std::exception& e)
- {
- std::cerr << "Exception: "<< e.what() << std::endl;
- }
-
-
- }*/
 
 /******************************************************************************
  Description: This function inserts a ServiceInfo to the serviceRegistrationRequestQueue_.
@@ -472,145 +292,6 @@ const ServiceRegistrationMessage& registMessage)
 	}
 
 }
-
-/**
- * @brief This function sends request to the ServiceResultServer
- * @param
- * requestId - the id of service request
- * @param
- * serviceName - the service name
- * @param
- * data - the data of the service request
- * @param
- * server - the server that will receive data
- */
-/*	void MessageControllerFull::sendServiceRequest(unsigned requestId,
- const std::string& serviceName,
- const std::vector<boost::shared_ptr<VariantType> >& data,
- const MessageFrameworkNode& server)
- {
- ServiceInfo serviceInfo;
- if(!getServiceInfo(serviceName, serviceInfo))
- throw MessageFrameworkException(SF1_MSGFRK_DATA_NOT_FOUND, __LINE__, __FILE__);
-
- // construct the request message
- ServiceMessage message;
- message.setRequestId(requestId);
- message.setServiceName(serviceName);
- for(size_t i = 0; i < data.size(); i++)
- {
- message.appendData(data[i]);
- }
-
- // send to network layer, the network layer then sends data to ServiceResultServer
- messageDispatcher_.sendDataToLowerLayer(SERVICE_REQUEST_MSG, message, server);
- }*/
-
-/******************************************************************************
- Description: This function updates result of a requested service.
- It puts the result in the result queue.
- requestId - id of the request
- serviceName - the name of service
- data - result of the service
- ******************************************************************************/
-/*	void MessageControllerFull::receiveResultOfService(unsigned int requestId,
- const std::string& serviceName,
- const std::vector<boost::shared_ptr<VariantType> >& data)
- {
- try
- {
- boost::mutex::scoped_lock waitingForResultMessageQueueLock(waitingForResultMessageQueueMutex_);
- std::map<unsigned int, MessageFrameworkNode >::iterator iter;
- iter = waitingForResultMessageQueue_.find(requestId);
- if(iter == waitingForResultMessageQueue_.end())
- throw MessageFrameworkException(SF1_MSGFRK_DATA_NOT_FOUND, __LINE__, __FILE__);
-
- ServiceResult serviceResult;
- serviceResult.setRequestId(requestId);
- serviceResult.setServiceName(serviceName);
- for(size_t i = 0; i < data.size(); i++)
- serviceResult.appendServiceData(data[i]);
-
- // put the result in the result queue. The result queue will be processed in
- // processResultFromServer(...)
- boost::mutex::scoped_lock resultQueueLock(resultQueueMutex_);
- resultQueue_.push(std::pair<MessageFrameworkNode, ServiceResult>(iter->second, serviceResult));
- resultQueueLock.unlock();
-
- // This request does not needs to wait for result
- waitingForResultMessageQueue_.erase(requestId);
- waitingForResultMessageQueueLock.unlock();
-
- // notify a new result event
- newServiceResultEvent_.notify_all();
- }
- catch(MessageFrameworkException& e)
- {
- e.output(std::cerr);
- }
- catch (boost::system::error_code& e)
- {
- std::cerr << e << std::endl;
- }
- catch (std::exception& e)
- {
- std::cerr << "Exception: "<< e.what() << std::endl;
- }
- }*/
-
-/**
- * @brief This function put the request for a service result in the waiting list.
- */
-/*void MessageControllerFull::receiveServiceRequest(const MessageFrameworkNode& requester,
- unsigned int requestId,
- const std::string& serviceName,
- const std::vector<boost::shared_ptr<VariantType> >& data)
- {
-
- // get information of server
- if(availableServiceList_.find(serviceName) == availableServiceList_.end())
- throw MessageFrameworkException(SF1_MSGFRK_UNKNOWN_ERROR, __LINE__, __FILE__);
- #ifdef SF1_DEBUG
- std::cout << "[Controller:" << getName();
- std::cout << "] Receive service request of service " << serviceName;
- std::cout << " from " << requester.nodeName_ << std::endl;
- #endif
-
- // construct the request using input parameter
- ServiceRequestInfo requestInfo;
- requestInfo.setRequestId(requestId);
- requestInfo.setServiceName(serviceName);
- for(size_t i = 0; i < data.size(); i++)
- requestInfo.appendParameter(data[i]);
-
- // add the the serviceRequestQueue_
- boost::mutex::scoped_lock serviceRequestQueueLock(serviceRequestQueueMutex_);
- serviceRequestQueue_.push(std::pair<MessageFrameworkNode, ServiceRequestInfo>(requester, requestInfo));
- serviceRequestQueueLock.unlock();
-
- // Notify that new request is coming, newServiceRequestEvent_ makes the
- // MessageControllerFull sends the request to the server
- newServiceRequestEvent_.notify_all();
-
- }
- */
-/**
- * This function replies to a request from ServiceResultRequester. I will sends
- * ServiceResult to the ServiceResultRequester.
- */
-/*	void MessageControllerFull::sendResultOfService(const MessageFrameworkNode& requester,
- const ServiceRequestInfo& requestInfo,
- const ServiceResult& result)
- {
- ServiceMessage message;
-
- message.setRequestId(requestInfo.getRequestId());
- message.setServiceName(result.getServiceName());
- for(size_t i = 0; i < result.getServiceResult().size(); i++)
- message.appendData(result.getServiceResult()[i]);
-
- messageDispatcher_.sendDataToLowerLayer(SERVICE_RESULT_MSG, message, requester);
- }*/
 
 /**
  * @brief This function replies to a registration request from ServiceRegistrationRequester. It

@@ -9,8 +9,8 @@
 #define _DUMMY_LA_MANAGER_H_
 
 #include <vector>
-
 #include <string>
+#include <boost/shared_ptr.hpp>
 
 namespace sf1v5_dummy {
 /**
@@ -29,6 +29,10 @@ public:
 	void parseString(const std::string & text,
 			std::vector<std::string> & termList);
 };
+
+typedef boost::shared_ptr<LAManager> LAManagerPtr;
 }
+
+
 
 #endif  //_DUMMY_LA_MANAGER_H_

@@ -12,6 +12,8 @@
 #ifndef _MESSAGE_FRAMEWORK_H_
 #define _MESSAGE_FRAMEWORK_H_
 
+#include <util/izene_log.h>
+
 //---------------  IF USING MESSAGE FRAMEWORK FULL  -----------------
 #ifdef USE_MF_LIGHT
 
@@ -19,12 +21,16 @@
 #include <net/message-framework/MessageServerLight.h>
 #include <net/message-framework/MessageControllerLight.h>
 #include <net/message-framework/MFSerialization.h>
+#include <net/message-framework/MessageAgentLight.h> 
 
 namespace messageframework
 {
 	typedef MessageClientLight MessageClient;
 	typedef MessageServerLight MessageServer;
 	typedef MessageControllerLight MessageController;
+	typedef boost::shared_ptr<MessageClient> MessageClientPtr;
+	typedef boost::shared_ptr<MessageServer> MessageServerPtr;
+	typedef boost::shared_ptr<MessageController> MessageControllerPtr;
 }
 #define MF_AUTO_MAIN( method_name )         \
     int method_name( int argc, char * argv[])
@@ -46,13 +52,16 @@ namespace messageframework
 #include <net/message-framework/MessageServerFull.h>
 #include <net/message-framework/MessageControllerFull.h>
 #include <net/message-framework/MessageFrameworkConfiguration.h>
-//#include <net/message-framework/MessageAgent.h> 
+#include <net/message-framework/MessageAgentFull.h> 
 
 namespace messageframework {
 
 typedef MessageClientFull MessageClient;
 typedef MessageServerFull MessageServer;
 typedef MessageControllerFull MessageController;
+typedef boost::shared_ptr<MessageClient> MessageClientPtr;
+typedef boost::shared_ptr<MessageServer> MessageServerPtr;
+typedef boost::shared_ptr<MessageController> MessageControllerPtr;
 }
 
 #define MF_AUTO_MAIN( method_name )                                         \

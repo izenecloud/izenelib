@@ -3,6 +3,18 @@
 
 #include <net/message_framework.h>
 
+namespace messageframework{
+
+class ServiceHandlerBase
+{
+    public:    
+    void no_callback(ServiceRequestInfoPtr& request){        
+        	    LOG(ERROR) << "Could not found callback function: service name=" << request->getServiceName().c_str() << endl;
+    }   
+};
+
+}
+
 #define SERVICE_HANDLE_0_1(request, server, FUNCTION, TYPE1) \
 unsigned int n = request->getBufferNum(); \
 if( n==0 ) n = 1; \

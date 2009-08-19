@@ -6,7 +6,7 @@
 #include "ScdParser.h"
 
 #include <ProcessOptions.h>
-#include <message_framework.h>
+#include <net/message_framework.h>
 #include <DocumentManager.h>
 
 #include <boost/smart_ptr.hpp>

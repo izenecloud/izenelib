@@ -19,19 +19,19 @@ namespace messageframework
 		{
 			server_.nodeIP_ = "";
 			server_.nodePort_ = 0;
-			//serviceName_.clear();
-			//parameterList_.clear();
-			//permissionFlag_ = UNKNOWN_PERMISSION_FLAG;
-            //erviceResultFlag_ = SERVICE_WITH_RESULT;
+		}
+		
+		ServiceInfo::ServiceInfo(const std::string& serviceName)
+		{
+					server_.nodeIP_ = "";
+					server_.nodePort_ = 0;
+					serviceName_ = serviceName;
 		}
 
 		ServiceInfo::ServiceInfo(const ServiceInfo& inputService)
 		{
 			server_ = inputService.getServer();	
-			serviceName_ = inputService.getServiceName();
-			//inputService.getParameterList(parameterList_);
-			//permissionFlag_ = inputService.getPermissionFlag();
-            //serviceResultFlag_ = inputService.getServiceResultFlag();
+			serviceName_ = inputService.getServiceName();		
 		}
 
 		/**
@@ -45,27 +45,10 @@ namespace messageframework
  		 */
 		void ServiceInfo::clear()
 		{
-			server_.clear();
-			//serviceName_.clear();
-			//parameterList_.clear();
-			//permissionFlag_ = UNKNOWN_PERMISSION_FLAG;
-            //serviceResultFlag_ = SERVICE_WITH_RESULT;
+			server_.clear();			
 		}
 
-        /* @by MyungHyun - 2009-01-28
-		ServiceInfo& ServiceInfo::operator=(const ServiceInfo& serviceInfo)
-		{
-			serviceName_ = serviceInfo.getServiceName();
-			permissionFlag_ = serviceInfo.getPermissionFlag();
-			serviceInfo.getParameterList(parameterList_);
-			server_ = serviceInfo.getServer();
-            serviceResultFlag_ = serviceInfo.getServiceResultFlag();
-
-			return *this;
-		}
-        */
-
-		/**
+   		/**
 		 * @brief Set server information
 		 * @param
 		 * serverIP - the IP of the server
@@ -93,27 +76,7 @@ namespace messageframework
 		{
 			return server_;
 		}
-
-		/**
-		 * @brief Set permission flag
-		 * @param
-		 * flagValue - the new permission flag value
-		 */
-		//void ServiceInfo::setPermissionFlag(PermissionFlag flagValue)
-		//{
-		//	permissionFlag_ = flagValue;
-		//}
-
-
-		/**
-		 * @brief Get permission flag
-		 * @return the permission flag value
-		 */
-		//const PermissionFlag& ServiceInfo::getPermissionFlag() const
-		//{
-		//	return permissionFlag_;
-		//}
-
+		
 		/**
 		 * @brief Set service name
 		 * @param
@@ -133,41 +96,6 @@ namespace messageframework
 		{
 			return serviceName_;
 		}
-
-		/**
-		 * @brief set the list of input parameters of the service
-		 * @param
-		 * parameterList - the new list of parameters
-		 */
-		//void ServiceInfo::setParameterList(const std::vector<ServiceParameterType>& parameterList)
-		//{
-		//	parameterList_.clear();
-		//	for(size_t i = 0; i < parameterList.size(); i++)
-		//		parameterList_.push_back(parameterList[i]);
-		//}
-
-		/**
-		 * @brief get the list of parameters of the service
-		 * @param
-		 * parameterList - the list of parameters
-		 */
-		//void ServiceInfo::getParameterList(std::vector<ServiceParameterType>& parameterList) const
-		//{
-			//parameterList.clear();
-			//for(size_t i = 0; i < parameterList_.size(); i++)
-			//	parameterList.push_back(parameterList_[i]);
-		//}
-
-		/**
-		 * @brief retrieve the key value (i.e., service name) of the service
-		 * This function is used by LinearHashTable
-		 * @return
-		 * key value (i.e., service name) of the service
-		 */
-		//const std::string& ServiceInfo::get_key() const
-		//{
-		//	return serviceName_;
-		//}
 
 }// end of messageframework
 

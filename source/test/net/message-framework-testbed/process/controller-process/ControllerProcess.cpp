@@ -23,7 +23,7 @@
 /**************** Include module header files *******************/
 // #include "MessageController.h"
 // #include "MessageFrameworkConfiguration.h"
-#include <message_framework.h>
+#include <net/message_framework.h>
 #include <ProcessOptions.h>
 
 /**************** Include sf1lib header files *******************/

@@ -99,8 +99,6 @@ DataIO_IsDump_TypeTrue1(char)
 DataIO_IsDump_TypeTrue1(signed char)
 DataIO_IsDump_TypeTrue1(unsigned char)
 
-DataIO_IsDump_TypeTrue1(bool)
-
 DataIO_IsDump_TypeTrue1(short)
 DataIO_IsDump_TypeTrue1(unsigned short)
 DataIO_IsDump_TypeTrue1(int)
