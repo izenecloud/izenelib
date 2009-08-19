@@ -91,7 +91,7 @@ template<typename T> void random_insert_test(T& tb) {
 template<typename T> void random_search_test(T& tb) {
 
 	clock_t start, finish;
-	ValueType * v;
+	ValueType v;
 	start = clock();
 	int c, b;
 	c=b=0;
@@ -103,8 +103,8 @@ template<typename T> void random_search_test(T& tb) {
 		char p[20];
 		sprintf(p, "%08d", k);
 		string str = p;
-		v = tb.find(p);
-		if (v) {
+		bool ret = tb.get(p , v);
+		if (ret) {
 			if (trace) {
 				cout<<str<<" found"<<endl;
 				tb.display();
@@ -127,7 +127,7 @@ template<typename T> void random_search_test(T& tb) {
 template<typename T> void search_test(T& tb) {
 
 	clock_t start, finish;
-	ValueType* v;
+	ValueType v;
 	start = clock();
 	int c, b;
 	c=b=0;
@@ -139,8 +139,8 @@ template<typename T> void search_test(T& tb) {
 		char p[20];
 		sprintf(p, "%08d", i);
 		string str = p;
-		v = tb.find(str);
-		if (v) {
+		bool ret = tb.get(str, v);
+		if (ret) {
 			if (trace) {
 				cout<<str<<" found"<<endl;
 				tb.display();
@@ -240,21 +240,36 @@ template<typename T> void seq_test(T& tb) {
 
 }
 
+template<typename T> void dump_test(T& tb) {
+
+	clock_t start, finish;
+	start = clock();
+    tb.dump("sdb.dat.bak");    
+	finish = clock();
+	printf("\nIt takes %f seconds for dump! \n",
+			(double)(finish - start) / CLOCKS_PER_SEC);
+
+}
+
+
 template<typename T> void run(T& tb) {
 	//search_test(tb);
 	if (rnd) {
 		random_insert_test(tb);
 		random_search_test(tb);
 		seq_test(tb);
+		dump_test(tb);
 	   //random_delete_test(tb);
 		//search_test(tb);
 	} else {
-		 insert_test(tb);
+		 insert_test(tb);		 
 		 search_test(tb);
-		 seq_test(tb);
-		 delete_test(tb);
-		 search_test(tb);
+		 seq_test(tb);	
+		 dump_test(tb);
+		// delete_test(tb);
+		// search_test(tb);
 	}
+
 }
 
 void ReportUsage(void) {
