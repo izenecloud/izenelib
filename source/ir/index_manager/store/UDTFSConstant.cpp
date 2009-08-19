@@ -1,4 +1,5 @@
 #include <ir/index_manager/store/UDTFSConstant.h>
+#include <string.h>
 
 using namespace std;
 using namespace izenelib::ir::indexmanager;
