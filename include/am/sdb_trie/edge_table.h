@@ -2,6 +2,7 @@
 #define _EDGE_TABLE_H_
 
 #include <sdb/SequentialDB.h>
+#include "traits.h"
 
 NS_IZENELIB_AM_BEGIN
 
@@ -14,14 +15,18 @@ class EdgeTableKeyType
 {
     typedef EdgeTableKeyType<CharType, NodeIDType> ThisType;
 
-    EdgeTable(CharType c, NodeIDType p)
+public:
+
+    EdgeTableKeyType(){}
+
+    EdgeTableKeyType(const CharType c, const NodeIDType p)
     :   ch(c), parentNID(p) {}
 
-    int compare(const ThisType& other)
+    int compare(const ThisType& other) const
     {
-        if( parentID < other.parentNID )
+        if( parentNID < other.parentNID )
             return -1;
-        if( parentID > other.parentNID )
+        if( parentNID > other.parentNID )
             return 1;
         if( ch < other.ch )
             return -1;
@@ -30,13 +35,18 @@ class EdgeTableKeyType
         return 0;
     }
 
+    template<class Archive> void serialize(Archive& ar,
+        const unsigned int version)
+    {
+        ar&ch;
+        ar&parentNID;
+    }
+
 public:
 
     CharType ch;
     NodeIDType parentNID;
 };
-
-MAKE_MEMCPY_TYPE(EdgeTableKeyType)
 
 /**
  * Maintain all edges' information in a Trie data structure with the form of
@@ -88,7 +98,7 @@ public:
      */
     bool put(const CharType ch, const NodeIDType parentNID, NodeIDType& childNID)
     {
-        EdgeTableKeyType key(ch,parentNID);
+        KeyType key(ch,parentNID);
 
         // if NID is found, just return
         if(db_.getValue(key, childNID))
@@ -114,7 +124,7 @@ public:
      */
     bool get(const CharType ch, const NodeIDType parentNID, NodeIDType& childNID)
     {
-        EdgeTableKeyType key(ch,parentNID);
+        KeyType key(ch,parentNID);
 
         if(db_.getValue(key, childNID))
             return true;
@@ -132,5 +142,27 @@ private:
 };
 
 NS_IZENELIB_AM_END
+
+#define DECLARE_MEMCPY(type1, type2) \
+typedef izenelib::am::EdgeTableKeyType<type1,type2> EdgeTableKey_##type1##_##type2; \
+MAKE_MEMCPY_TYPE(EdgeTableKey_##type1##_##type2);
+
+DECLARE_MEMCPY(int8_t, uint32_t)
+DECLARE_MEMCPY(uint8_t, uint32_t)
+DECLARE_MEMCPY(int16_t, uint32_t)
+DECLARE_MEMCPY(uint16_t, uint32_t)
+DECLARE_MEMCPY(int32_t, uint32_t)
+DECLARE_MEMCPY(uint32_t, uint32_t)
+DECLARE_MEMCPY(int64_t, uint32_t)
+DECLARE_MEMCPY(uint64_t, uint32_t)
+
+DECLARE_MEMCPY(int8_t, uint64_t)
+DECLARE_MEMCPY(uint8_t, uint64_t)
+DECLARE_MEMCPY(int16_t, uint64_t)
+DECLARE_MEMCPY(uint16_t, uint64_t)
+DECLARE_MEMCPY(int32_t, uint64_t)
+DECLARE_MEMCPY(uint32_t, uint64_t)
+DECLARE_MEMCPY(int64_t, uint64_t)
+DECLARE_MEMCPY(uint64_t, uint64_t)
 
 #endif

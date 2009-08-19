@@ -20,8 +20,6 @@ INCLUDE_PATH = \
 			   -I $(IZENELIB)/include \
 			   -I $(IZENELIB)/include/3rdparty \
 			   -I /usr/local/include/boost-1_39 \
-			   -I /home/wei/dev/sf1-revolution/source/core/include \
-			   -I /home/wei/dev/la-manager/include \
 
 		  
 EXT_LIB_PATH = \
@@ -38,8 +36,6 @@ EXT_LIB = \
 		  -l boost_unit_test_framework-gcc41-mt-1_39 \
 		  -l tokyocabinet \
 		  -l procmeminfo  \
-		  -l btrie \
-
 
 OBJECTS = $(patsubst %.cpp, %.o, $(wildcard *.cpp)) 
 

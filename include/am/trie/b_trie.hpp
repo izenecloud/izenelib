@@ -12,8 +12,6 @@
 #include "bucket.hpp"
 #include "bucket_cache.hpp"
 #include "node_cache.hpp"
-#include "alphabet_cjk.h"
-//#include "alphabet_en.h"
 
 using namespace std;
 
@@ -28,9 +26,9 @@ NS_IZENELIB_AM_BEGIN
  *a strings may involve splitting bucket.
  **/
 template<
-  typename STRING_TYPE = wiselib::UString,
-  typename STRING_TYPE::value_type* ALPHABET = cjk,
-  uint32_t ALPHABET_SIZE = cjk_size,
+  typename STRING_TYPE,
+  typename STRING_TYPE::value_type* ALPHABET,
+  uint32_t ALPHABET_SIZE,
 
   //------------bucket property-------------
   uint32_t BUCKET_SIZE = 8196,//byte
@@ -39,7 +37,7 @@ template<
   //--------------hash table-------------
   size_t ENTRY_SIZE_POW= 10,//2^10
   typename HASH_FUNCTION = simple_hash,
-  int INIT_BUCKET_SIZE=64,
+  int INIT_BTRIE_BUCKET_SIZE=64,
 
   //----------bucket cache---------
   uint64_t BUCKET_CACHE_LENGTH = 64*1024*1024,//bytes, it must be larger than 2 bucket size
@@ -53,7 +51,7 @@ class BTrie
 {
   typedef BTrie<STRING_TYPE, ALPHABET, ALPHABET_SIZE,
                       BUCKET_SIZE, SPLIT_RATIO, ENTRY_SIZE_POW, HASH_FUNCTION,
-                      INIT_BUCKET_SIZE, BUCKET_CACHE_LENGTH, BucketCachePolicy,
+                      INIT_BTRIE_BUCKET_SIZE, BUCKET_CACHE_LENGTH, BucketCachePolicy,
                       NODE_CACHE_LENGTH, NodeCachePolicy>
           SelfType;
   typedef Bucket<STRING_TYPE, BUCKET_SIZE, SPLIT_RATIO, ALPHABET, ALPHABET_SIZE> BucketType;
@@ -63,7 +61,7 @@ class BTrie
           BucketCacheType;
   typedef typename NodeCacheType::nodePtr AlphabetNodePtr;
   typedef typename BucketCacheType::nodePtr BucketPtr;
-  typedef Map<string, uint64_t, ENTRY_SIZE_POW, HASH_FUNCTION, INIT_BUCKET_SIZE> HashMap;
+  typedef Map<string, uint64_t, ENTRY_SIZE_POW, HASH_FUNCTION, INIT_BTRIE_BUCKET_SIZE> HashMap;
   typedef typename STRING_TYPE::value_type charT;
 public:
   /**
@@ -820,7 +818,15 @@ protected:
   //vector<ValueType> valuePool_;
 };
 
-typedef BTrie<> BTrie_CJK;
+const unsigned int en_size = 26;
+extern char en[en_size];
+
+typedef BTrie<std::string, en, en_size> BTrie_En;
+
+const unsigned int cjk_size = 41040;
+extern unsigned short cjk[cjk_size];
+
+typedef BTrie<wiselib::UString, cjk, cjk_size> BTrie_CJK;
 
 NS_IZENELIB_AM_END
 #endif

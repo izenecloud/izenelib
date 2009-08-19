@@ -6,6 +6,7 @@
 
 #include "edge_table.h"
 #include "leafnode_table.h"
+#include "traits.h"
 
 NS_IZENELIB_AM_BEGIN
 
@@ -22,9 +23,9 @@ public:
 
     SDBTrie(const std::string name)
     :   triename_(name),
-        leafnodeTable_(triename_),
-        edgeTable_(name),
-        numWords(0)
+        leafnodeTable_(triename_+"_leafnodetable"),
+        edgeTable_(triename_ + "_edgetable"),
+        numWords_(0)
     {
     }
 
@@ -33,8 +34,8 @@ public:
     void insert(const std::vector<CharType>& word, const UserDataType id)
     {
         bool add = false;
-        NodeIDType parentNID = NodeIDTraits::RootValue;
-        for( int i=0; i<word.size()-1; i++ )
+        NodeIDType parentNID = NodeIDTraits<NodeIDType>::RootValue;
+        for( size_t i=0; i<word.size()-1; i++ )
         {
             NodeIDType childNID;
             edgeTable_.put(word[i], parentNID, childNID);
@@ -50,13 +51,13 @@ public:
         }
 
         if(add)
-            numWords ++;
+            numWords_ ++;
     }
 
     bool find(const std::vector<CharType>& word, UserDataType& id)
     {
-        NodeIDType parentNID = NodeIDTraits::RootValue;
-        for( int i=0; i<word.size(); i++ )
+        NodeIDType parentNID = NodeIDTraits<NodeIDType>::RootValue;
+        for( size_t i=0; i<word.size(); i++ )
         {
             NodeIDType childNID;
             if( false == edgeTable_.get(word[i], parentNID, childNID) )
@@ -97,19 +98,19 @@ template <typename StringType,
           typename LockType = izenelib::util::NullLock>
 class SDBTrie2
 {
-    typedef StringType::value_type CharT;
-    typedef SDBTrie<CharT, UserDataType, NodeIDType, LockType> SDBTrieType;
+    typedef typename StringType::value_type CharType;
+    typedef SDBTrie<CharType, UserDataType, NodeIDType, LockType> SDBTrieType;
 
 public:
 
     SDBTrie2(const std::string name)
-    :   trie_(trie) {}
+    :   trie_(name) {}
 
     virtual ~SDBTrie2(){}
 
     void insert(const StringType& word, const UserDataType id)
     {
-        CharT* chArray = (CharT*)word.c_str();
+        CharType* chArray = (CharType*)word.c_str();
         size_t chCount = word.length();
         std::vector<CharType> chVector(chArray, chArray+chCount);
         trie_.insert(chVector, id);
@@ -117,7 +118,7 @@ public:
 
     bool find(const StringType& word, UserDataType& id)
     {
-        CharT* chArray = (CharT*)word.c_str();
+        CharType* chArray = (CharType*)word.c_str();
         size_t chCount = word.length();
         std::vector<CharType> chVector(chArray, chArray+chCount);
         return trie_.find(chVector, id);
@@ -125,8 +126,8 @@ public:
 
     bool findRegExp(const StringType& exp, std::vector<UserDataType> & results)
     {
-        CharT* chArray = (CharT*)exp.c_str();
-        size_t chCount = word.length();
+        CharType* chArray = (CharType*)exp.c_str();
+        size_t chCount = exp.length();
         std::vector<CharType> chVector(chArray, chArray+chCount);
         return trie_.findRegExp(chVector, results);
     }

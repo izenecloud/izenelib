@@ -38,7 +38,7 @@ using namespace izenelib::ir::idmanager;
 typedef TermIdManager<UString, unsigned int,
                     HashIDGenerator<UString, unsigned int>,
                     SDBIDStorage<UString, unsigned int>,
-                    BTrie_CJK> TestTermIdManager;
+                    izenelib::am::BTrie_CJK> TestTermIdManager;
 
 /**
  * @brief TermIdManager<UString, unsigned int>Fixture is used to test TermIdManager<UString, unsigned int>. It loads terms from text file to build termStringLists.

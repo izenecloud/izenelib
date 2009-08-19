@@ -5,6 +5,8 @@
 #include <ir/index_manager/store/cc.h>
 #endif
 
+#include <string.h>
+
 using namespace boost::filesystem;
 using namespace izenelib::ir::indexmanager;
 

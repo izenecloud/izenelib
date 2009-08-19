@@ -72,11 +72,10 @@ BOOST_AUTO_TEST_CASE(BTrie_CH_simple)
       TEST_TRIE_FIND(UString("你阿好",UString::UTF_8), -1);
 
       /** test BTrie_CH::findRegExp() */
-//      TEST_TRIE_FINDREGEXP("wo?ld", 1);
       TEST_TRIE_FINDREGEXP(UString("*文件",UString::UTF_8), 2);
-      TEST_TRIE_FINDREGEXP(UString("文*件",UString::UTF_8), 2);
-      TEST_TRIE_FINDREGEXP(UString("文件*",UString::UTF_8), 2);
-      TEST_TRIE_FINDREGEXP(UString("trie*",UString::UTF_8), 2);
+      TEST_TRIE_FINDREGEXP(UString("文*件",UString::UTF_8), 1);
+      TEST_TRIE_FINDREGEXP(UString("文件*",UString::UTF_8), 1);
+      TEST_TRIE_FINDREGEXP(UString("trie*",UString::UTF_8), 1);
       }
 
     remove("test_btrie_ch.buk");

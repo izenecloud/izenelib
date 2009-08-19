@@ -5,6 +5,8 @@
 #include <boost/any.hpp>
 #include <boost/shared_ptr.hpp>
 
+#include <string.h>
+
 using namespace std;
 
 namespace messageframework{

@@ -1,0 +1,18 @@
+IF(WIN32)
+
+  SET_PROPERTY(GLOBAL APPEND PROPERTY NON_BUILD_COMPONENTS btrie)
+  MESSAGE(STATUS "! WARNING: btrie can only been build in WIN32")
+
+ELSE(WIN32)
+
+  SET_PROPERTY(GLOBAL APPEND PROPERTY BUILD_COMPONENTS btrie)
+
+  SET(btrie_SRC alphabet_en.cpp alphabet_cjk.cpp)
+
+  MACRO_ADD_COMPONENT(btrie
+    "${VERSION_INSTALL_PREFIX}"
+    "${PROJECT_VERSION}"
+    ${btrie_SRC}
+    )
+
+ENDIF(WIN32)
