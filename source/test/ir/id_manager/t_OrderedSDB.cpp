@@ -80,12 +80,12 @@ BOOST_AUTO_TEST_CASE( TestCase1 )
     sdb.open();
     TestData::generateTermLists(values);
     keys.resize(values.size());
-    for(int i=0; i<values.size(); i++)
+    for(size_t i=0; i<values.size(); i++)
     {
         keys[i] = HashFunction<UString>::generateHash32(values[i]);
         sdb.insertValue(keys[i], values[i]);
     }
-    for(int i=0; i<keys.size(); i++)
+    for(size_t i=0; i<keys.size(); i++)
     {
         UString v;
         if( false == sdb.getValue(keys[i], v) )

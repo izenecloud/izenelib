@@ -5,7 +5,7 @@ GCC :=/usr/bin/gcc
 CC_OPTIONS :=  -g -rdynamic -Wall -c -fmessage-length=0 
 
 
-LIBS :=   /usr/local/lib/libboost_system-gcc41-mt-1_39.so /usr/local/lib/libboost_serialization-gcc41-mt.so /usr/local/lib/libglog.a ../../../../lib/libprocmeminfo.a
+LIBS :=   /usr/local/lib/libboost_system-gcc41-mt-1_39.so /usr/local/lib/libboost_serialization-gcc41-mt.so /usr/local/lib/libglog.a ../../../../lib/libprocmeminfo.a ../../../../lib/libbtrie.a
 INC_PATH := -I  /usr/local/include/boost-1_39/ -I ../../../../include/ -I ../../../../include/3rdparty/ -I /home/wei/dev/wiselib/include/
 
 OBJS := $(patsubst %.cpp, %.o, $(wildcard *.cpp))
