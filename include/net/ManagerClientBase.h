@@ -158,7 +158,7 @@ using namespace messageframework;
 	mf_serialize(param3, req, 2); \
 	mf_serialize(param4, req, 3); \
     if ( requestService(servicename, req, res, MessageClient) ) \
-    { \     
+    { \
 	  	  mf_deserialize(result1, res, 0); \
 	  	  mf_deserialize(result2, res, 1); \
 	  	  return true; \
