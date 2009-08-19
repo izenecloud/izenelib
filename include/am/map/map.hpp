@@ -63,7 +63,7 @@ template<
   class ValueType = uint64_t,
   size_t ENTRY_POW = 16,
   class HASH_FUNCTION = simple_hash,
-  int INIT_BUCKET_SIZE=64
+  int INIT_MAP_BUCKET_SIZE=64
   >
 class Map : public AccessMethod<KeyType, ValueType>
 {
@@ -322,9 +322,9 @@ template<
   class ValueType,
   size_t ENTRY_POW,
   class HASH_FUNCTION,
-  int INIT_BUCKET_SIZE
+  int INIT_MAP_BUCKET_SIZE
   >
-class Map<string, ValueType, ENTRY_POW, HASH_FUNCTION, INIT_BUCKET_SIZE>
+class Map<string, ValueType, ENTRY_POW, HASH_FUNCTION, INIT_MAP_BUCKET_SIZE>
   : public AccessMethod<string, ValueType>
 {
   enum {ENTRY_SIZE = (2<<ENTRY_POW)};
@@ -430,7 +430,7 @@ public:
 
     if (pBkt == NULL)
     {
-      entry_[idx] = pBkt = new char[INIT_BUCKET_SIZE];
+      entry_[idx] = pBkt = new char[INIT_MAP_BUCKET_SIZE];
       *(uint32_t*)(pBkt) = 64;
       *((uint32_t*)(pBkt)+1) = 2*sizeof(uint32_t);
       good_entries_.push_back(idx);
@@ -473,7 +473,7 @@ public:
 
     if (bs-content_len<ksize+sizeof(size_t)+sizeof(uint64_t))
     {
-      bs += EXPAND ==PAGE_EXPANDING? INIT_BUCKET_SIZE: ksize+sizeof(size_t)+sizeof(uint64_t);
+      bs += EXPAND ==PAGE_EXPANDING? INIT_MAP_BUCKET_SIZE: ksize+sizeof(size_t)+sizeof(uint64_t);
       //content_len += str.length()+sizeof(uint32_t);
       pBkt = new char[bs];
       memcpy(pBkt, entry_[idx], *(uint32_t*)(entry_[idx]) );

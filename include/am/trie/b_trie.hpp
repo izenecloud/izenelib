@@ -37,7 +37,7 @@ template<
   //--------------hash table-------------
   size_t ENTRY_SIZE_POW= 10,//2^10
   typename HASH_FUNCTION = simple_hash,
-  int INIT_BUCKET_SIZE=64,
+  int INIT_BTRIE_BUCKET_SIZE=64,
 
   //----------bucket cache---------
   uint64_t BUCKET_CACHE_LENGTH = 64*1024*1024,//bytes, it must be larger than 2 bucket size
@@ -51,7 +51,7 @@ class BTrie
 {
   typedef BTrie<STRING_TYPE, ALPHABET, ALPHABET_SIZE,
                       BUCKET_SIZE, SPLIT_RATIO, ENTRY_SIZE_POW, HASH_FUNCTION,
-                      INIT_BUCKET_SIZE, BUCKET_CACHE_LENGTH, BucketCachePolicy,
+                      INIT_BTRIE_BUCKET_SIZE, BUCKET_CACHE_LENGTH, BucketCachePolicy,
                       NODE_CACHE_LENGTH, NodeCachePolicy>
           SelfType;
   typedef Bucket<STRING_TYPE, BUCKET_SIZE, SPLIT_RATIO, ALPHABET, ALPHABET_SIZE> BucketType;
@@ -61,7 +61,7 @@ class BTrie
           BucketCacheType;
   typedef typename NodeCacheType::nodePtr AlphabetNodePtr;
   typedef typename BucketCacheType::nodePtr BucketPtr;
-  typedef Map<string, uint64_t, ENTRY_SIZE_POW, HASH_FUNCTION, INIT_BUCKET_SIZE> HashMap;
+  typedef Map<string, uint64_t, ENTRY_SIZE_POW, HASH_FUNCTION, INIT_BTRIE_BUCKET_SIZE> HashMap;
   typedef typename STRING_TYPE::value_type charT;
 public:
   /**
