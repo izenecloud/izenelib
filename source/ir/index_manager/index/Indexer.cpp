@@ -294,6 +294,16 @@ void Indexer::openDirectory()
     }
 }
 
+std::string Indexer::getBasePath()
+{
+    string path = pConfigurationManager_->indexStrategy_.indexLocation_;
+    if (path[path.length()-1] != '/' )
+    {
+        path += "/";
+    }
+    return path;
+}
+
 void Indexer::add_index_process_node(string ip, string batchport, string rpcport)
 {
     assert(managerType_ == MANAGER_TYPE_DATAPROCESS);

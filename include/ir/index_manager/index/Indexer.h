@@ -410,6 +410,8 @@ public:
 
     fieldid_t getPropertyIDByName(collectionid_t colID, string property);
 
+    std::string getBasePath();
+
 protected:
     void initIndexManager();
 
