@@ -152,6 +152,11 @@ public:
 	 */
 	bool open();
 
+	bool is_open()
+	{
+		return _isOpen;
+	}
+
 	/**
 	 * 	 \brief close the database. 
 	 * 
@@ -171,6 +176,34 @@ public:
 			_dataFile = 0;
 		}
 		return true;
+	}
+
+	bool dump(sdb_btree& other) {
+		if( !other.is_open() )
+		{
+			if( !other.open() )
+			return false;
+		}
+		SDBCursor locn = get_first_locn();
+		KeyType key;
+		ValueType value;
+		if( get(locn, key, value) ) {
+			if( !other.insert(key, value) )
+			return false;
+		}
+		while( seq(locn, key, value) ) {
+			if( !other.insert(key, value) )
+			return false;;
+		}
+		return true;
+	}
+
+	bool dump(const string& fileName)
+	{
+		sdb_btree other(fileName);
+		if( !other.open() )
+		return false;
+		return dump( other );
 	}
 
 	/**
@@ -365,7 +398,7 @@ private:
 	void _flushCache(bool quickFlush=false) {
 		static unsigned int count;
 		++count;
-	
+
 		if( (count & 0xffff) == 0 ) {
 
 			unsigned long vm = 0, rss;
@@ -382,14 +415,33 @@ private:
 
 	//for seq, reset SDBCursor
 	void _flushCache(SDBCursor locn) {
-		if( _activeNodeNum> _sfh.cacheSize )
-		{
-			KeyType key;
-			ValueType value;
-			get(locn, key, value);
-			_flushCacheImpl();
-			search(key, locn);
+		static unsigned int count;
+		++count;
+
+		if( (count & 0xffff) == 0 ) {
+
+			unsigned long vm = 0, rss;
+			unsigned long rlimit;
+			ProcMemInfo::getProcMemInfo(vm, rss, rlimit);
+
+			//if( _activeNodeNum> _sfh.cacheSize/1024 )
+			if(rss> _sfh.cacheSize*_sfh.pageSize )
+			{
+				KeyType key;
+				ValueType value;
+				get(locn, key, value);
+				_flushCacheImpl();
+				search(key, locn);
+			}
 		}
+		/*if( _activeNodeNum> _sfh.cacheSize )
+		 {
+		 KeyType key;
+		 ValueType value;
+		 get(locn, key, value);
+		 _flushCacheImpl();
+		 search(key, locn);
+		 }*/
 	}
 
 	void _flushCacheImpl(bool quickFlush=false) {
@@ -402,17 +454,17 @@ private:
 		//display();
 #endif	
 
-		for(size_t i=0; i<_root->objCount+1; i++)
+		 /*for(size_t i=0; i<_root->objCount+1; i++)
 		 {
-			_root->children[i]->unload();
+		 _root->children[i]->unload();
 		 }
-		return;
+		 return;*/
 
-	/*	queue<sdb_node*> qnode;
+		queue<sdb_node*> qnode;
 		qnode.push(_root);
 
 		size_t popNum = 0;
-		size_t escapeNum = _sfh.cacheSize>>1;
+		size_t escapeNum = _activeNodeNum>>1;
 		sdb_node* interval = NULL;
 		while ( !qnode.empty() ) {
 			sdb_node* popNode = qnode.front();
@@ -430,7 +482,7 @@ private:
 
 				if( popNode->isDirty && quickFlush)
 				_flush(popNode, _dataFile);
-				
+
 				popNode->unload();
 				//cout<<"unloading....";
 				//cout<<_activeNodeNum<<" vs "<<_sfh.cacheSize <<endl;					
@@ -450,8 +502,8 @@ private:
 				}
 			}
 
-		}*/
-		
+		}
+
 #ifdef DEBUG
 		cout<<"stop unload..."<<endl;
 		cout<<_activeNodeNum<<" vs "<<_sfh.cacheSize <<endl;
@@ -1271,6 +1323,10 @@ template<typename KeyType, typename ValueType, typename LockType,
 // memory.
 template<typename KeyType, typename ValueType, typename LockType,
 		typename Alloc> bool sdb_btree< KeyType, ValueType, LockType, Alloc>::open() {
+
+	if (_isOpen)
+		return false;
+
 	// We're creating if the file doesn't exist.
 
 	struct stat statbuf;
