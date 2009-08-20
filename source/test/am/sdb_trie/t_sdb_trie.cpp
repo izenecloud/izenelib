@@ -14,16 +14,11 @@
 
 #include <am/sdb_trie/sdb_trie.h>
 
-#include <wiselib/ustring/UString.h>
 
 using namespace std;
-using namespace wiselib;
 using namespace izenelib::am;
 
 BOOST_AUTO_TEST_SUITE( sdb_trie_suite )
-
-#define testNumbers 10
-static string testWords[testNumbers]= {"hello", "world", "this", "is", "a", "test", "for", "english", "b", "trie"};
 
 #define TEST_TRIE_FIND(str, id) \
 { \
@@ -36,52 +31,96 @@ static string testWords[testNumbers]= {"hello", "world", "this", "is", "a", "tes
     BOOST_CHECK_EQUAL(result, id); \
 }
 
-//#define TEST_TRIE_FINDREGEXP(str, count) \
-//{ \
-//  vector<item_pair<UString> > result; \
-//  trie.findRegExp(str, result); \
-//  BOOST_CHECK_EQUAL((unsigned int)result.size(), (unsigned int)(count) ); \
-//}
+#define TEST_TRIE_PREFIX_ITERATE(str, idList, idListNum) \
+{ \
+  vector<int> result;\
+  bool suc;\
+  suc = trie.prefixIterate(str,result); \
+  if(suc == false) \
+    BOOST_CHECK_EQUAL(0, idListNum); \
+  else\
+  { \
+    BOOST_CHECK_EQUAL(result.size(), (size_t)idListNum);\
+    for(size_t kkk=0; kkk<idListNum; kkk++) \
+      BOOST_CHECK_EQUAL(result[kkk], idList[kkk]); \
+  }\
+}
 
-/**
- *This is for testing the correction of insertion and querying of Ustring version B-trie.
- *
- **/
-BOOST_AUTO_TEST_CASE(SDBTrie_ustring)
+BOOST_AUTO_TEST_CASE(SDBTrie_find)
 {
-    remove("test_sdbtrie_ustring*.sdb");
+    remove("sdbtrie_insert*.sdb");
 
     {
-      SDBTrie2<UString,int> trie("./sdbtrie_ustring");
-
-      int id = 1;
-      for (int i=0; i<testNumbers; i++,id++)
-        trie.insert(UString(testWords[i],UString::UTF_8),id);
+      SDBTrie2<string,int> trie("./sdbtrie_insert");
+      trie.insert("apple",1);
+      trie.insert("blue",2);
+      trie.insert("at",3);
+      trie.insert("destination",4);
+      trie.insert("earth",5);
+      trie.insert("art",6);
+      trie.insert("desk",7);
     }
 
     {
-      SDBTrie2<UString,int> trie("./sdbtrie_ustring");
+      SDBTrie2<string,int> trie("./sdbtrie_insert");
+      BOOST_CHECK_EQUAL(trie.num_items(),  (size_t)7);
 
-      /** test BTrie_En::find() */
-      TEST_TRIE_FIND(UString("hello",UString::UTF_8), 1);
-      TEST_TRIE_FIND(UString("trie",UString::UTF_8), 10);
-      TEST_TRIE_FIND(UString("english",UString::UTF_8), 8);
-      TEST_TRIE_FIND(UString("a",UString::UTF_8), 5);
-      TEST_TRIE_FIND(UString("triee",UString::UTF_8), -1);
-      TEST_TRIE_FIND(UString("woeld",UString::UTF_8), -1);
+      TEST_TRIE_FIND("apple", 1);
+      TEST_TRIE_FIND("blue", 2);
+      TEST_TRIE_FIND("at", 3);
+      TEST_TRIE_FIND("destination", 4);
+      TEST_TRIE_FIND("earth", 5);
+      TEST_TRIE_FIND("art", 6);
+      TEST_TRIE_FIND("desk", 7);
 
-//      /** test BTrie_En::findRegExp() */
-//      TEST_TRIE_FINDREGEXP(UString("wo?ld",UString::UTF_8), 1);
-//      TEST_TRIE_FINDREGEXP(UString("h?llo",UString::UTF_8), 1);
-//      TEST_TRIE_FINDREGEXP(UString("wo*ld",UString::UTF_8), 1);
-//      TEST_TRIE_FINDREGEXP(UString("wo?d",UString::UTF_8), 0);
-//      TEST_TRIE_FINDREGEXP(UString("wo*d",UString::UTF_8), 1);
-//      TEST_TRIE_FINDREGEXP(UString("*l*",UString::UTF_8), 3);
-//      TEST_TRIE_FINDREGEXP(UString("t*",UString::UTF_8), 3);
-//      TEST_TRIE_FINDREGEXP(UString("*is",UString::UTF_8), 2);
+      TEST_TRIE_FIND("appl", -1);
+      TEST_TRIE_FIND("ap", -1);
+      TEST_TRIE_FIND("a", -1);
+      TEST_TRIE_FIND("d", -1);
+      TEST_TRIE_FIND("des", -1);
+      TEST_TRIE_FIND("c", -1);
+      TEST_TRIE_FIND("bluee", -1);
     }
 
-    remove("test_sdbtrie_ustring*.sdb");
+    remove("sdbtrie_insert*.sdb");
+}
+
+
+BOOST_AUTO_TEST_CASE(SDBTrie_prefixIterate)
+{
+    remove("sdbtrie_prefix*.sdb");
+
+    {
+      SDBTrie2<string,int> trie("./sdbtrie_prefix");
+      trie.insert("apple",1);
+      trie.insert("blue",2);
+      trie.insert("at",3);
+      trie.insert("destination",4);
+      trie.insert("earth",5);
+      trie.insert("art",6);
+      trie.insert("desk",7);
+    }
+
+    {
+      SDBTrie2<string,int> trie("./sdbtrie_prefix");
+      BOOST_CHECK_EQUAL(trie.num_items(),  (size_t)7);
+
+      int idList1[3] = {1,6,3};
+      TEST_TRIE_PREFIX_ITERATE("a", idList1, 3);
+      int idList2[7] = {1,6,3,2,7,4,5};
+      TEST_TRIE_PREFIX_ITERATE("", idList2, 7);
+      int idList3[2] = {7,4};
+      TEST_TRIE_PREFIX_ITERATE("des", idList3, 2);
+      int idList4[1] = {2};
+      TEST_TRIE_PREFIX_ITERATE("blue", idList4, 1);
+      int idList5[0] = {};
+      TEST_TRIE_PREFIX_ITERATE("eartha", idList5, 0);
+      TEST_TRIE_PREFIX_ITERATE("appe", idList5, 0);
+      TEST_TRIE_PREFIX_ITERATE("f", idList5, 0);
+      TEST_TRIE_PREFIX_ITERATE("esk", idList5, 0);
+    }
+
+    remove("sdbtrie_prefix*.sdb");
 }
 
 BOOST_AUTO_TEST_SUITE_END()

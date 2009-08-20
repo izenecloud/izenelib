@@ -47,6 +47,14 @@ public:
     }
 
     /**
+     * Update user data in a LeafNodeTable, insert if NID doesnot exist.
+     */
+    void update( const NodeIDType nid, const UserDataType& data)
+    {
+        db_.updateValue(nid, data);
+    }
+
+    /**
      * Retrieve the user data stored in some leaf node by given NID.
      * @return true     successfully
      *         false    given NID does not exist
@@ -54,6 +62,14 @@ public:
     bool get( const NodeIDType nid, UserDataType& data)
     {
         return db_.getValue(nid, data);
+    }
+
+    /**
+     * @return number of user input strings
+     */
+    unsigned int num_items()
+    {
+        return db_.numItems();
     }
 
 private:
