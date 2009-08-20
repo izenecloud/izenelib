@@ -136,7 +136,7 @@ public:
 	bool getValue(const KeyType& key, DataType<KeyType,ValueType> & data) {
 		ValueType val;
 		if (getValue(key, val) ) {
-			data = DataType<KeyType,ValueType> (key, val);
+			data = DataType<KeyType, ValueType>(key, val);
 			return true;
 		}
 		return false;
@@ -159,13 +159,14 @@ public:
 	 *   \brief insert an new item into SequentialDB
 	 */
 	bool insertValue(const KeyType& key, const ValueType& value) {
-		return insertValue(DataType<KeyType,ValueType> (key, value) );
+		return insertValue(DataType<KeyType, ValueType>(key, value) );
 	}
 
 	/**
 	 *  \brief if not found, insert them
 	 */
-	bool getValueWithInsert(const KeyType& key, DataType<KeyType,ValueType> & data) {
+	bool getValueWithInsert(const KeyType& key,
+			DataType<KeyType,ValueType> & data) {
 		if (getValue(key, data) )
 			return true;
 		else {
@@ -190,7 +191,16 @@ public:
 	 * 
 	 */
 	bool update(const KeyType& key, const ValueType& value) {
-		return update(DataType<KeyType,ValueType> (key, value) );
+		return update(DataType<KeyType, ValueType>(key, value) );
+	}
+
+	bool dump(SequentialDB& other) {
+		ContainerType &otherContainer = other.getContainer();
+		return container_.dump(otherContainer);	
+	}
+
+	bool dump(const string& fileName) {
+		return container_.dump(fileName);
 	}
 
 	/**
@@ -259,21 +269,22 @@ public:
 	 *  \locn when locn is default value, it will start with firt element when sdri=ESD_FORWARD
 	 *   and start with last element when sdir = ESD_BACKWARD
 	 */
-	bool seq(SDBCursor& locn, DataType<KeyType,ValueType> & rec, ESeqDirection sdir=ESD_FORWARD) {
+	bool seq(SDBCursor& locn, DataType<KeyType,ValueType> & rec,
+			ESeqDirection sdir=ESD_FORWARD) {
 		lock_.acquire_read_lock();
 		bool ret = container_.seq(locn, rec, sdir);
 		lock_.release_read_lock();
 		return ret;
 	}
-	
-	bool seq(SDBCursor& locn, KeyType& key, ValueType& value,  ESeqDirection sdir=ESD_FORWARD) {
-	    DataType<KeyType,ValueType>  dat;
-	    bool ret = seq(locn, dat, sdir);
-	    key = dat.key;
-	    value = dat.value;
-	    return ret;
+
+	bool seq(SDBCursor& locn, KeyType& key, ValueType& value,
+			ESeqDirection sdir=ESD_FORWARD) {
+		DataType<KeyType,ValueType> dat;
+		bool ret = seq(locn, dat, sdir);
+		key = dat.key;
+		value = dat.value;
+		return ret;
 	}
-	
 
 	/**
 	 *	\brief It determines if an item exists in SequentialDB.    
@@ -312,7 +323,7 @@ public:
 	 */
 	KeyType getNext(const KeyType& key) {
 		SDBCursor locn;
-		DataType<KeyType,ValueType>  dat;
+		DataType<KeyType,ValueType> dat;
 		KeyType rk;
 		lock_.acquire_read_lock();
 		if (container_.search(key, locn) ) {
@@ -334,7 +345,7 @@ public:
 	 */
 	KeyType getPrev(const KeyType& key) {
 		SDBCursor locn;
-		DataType<KeyType,ValueType>  dat;
+		DataType<KeyType,ValueType> dat;
 		KeyType rk;
 		lock_.acquire_read_lock();
 		container_.search(key, locn);
@@ -355,7 +366,7 @@ public:
 		SDBCursor locn;
 		lock_.acquire_read_lock();
 		container_.search(key, locn);
-		DataType<KeyType,ValueType>  dat;
+		DataType<KeyType,ValueType> dat;
 		container_.get(locn, dat);
 		KeyType rk = dat.get_key();
 		lock_.release_read_lock();
@@ -370,8 +381,8 @@ public:
 	 *  @param result read the items to result.	
 	 *	@return TRUE if all get the items, otherwise return faulse
 	 */
-	bool getValueForward(const int count, vector<DataType<KeyType,ValueType> >& result,
-			const KeyType& key);
+	bool getValueForward(const int count,
+			vector<DataType<KeyType,ValueType> >& result, const KeyType& key);
 	/**
 	 *   \brief It reads count items from SequentialD  start with the first key.
 	 */
@@ -389,8 +400,8 @@ public:
 	 *	@return TRUE if all get the items, otherwise return false
 	 */
 
-	bool getValueBackward(const int count, vector<DataType<KeyType,ValueType> >& result,
-			const KeyType& key);
+	bool getValueBackward(const int count,
+			vector<DataType<KeyType,ValueType> >& result, const KeyType& key);
 
 	/**
 	 *   \brief It reads count items from SequentialDB backward from the last key.
@@ -405,17 +416,18 @@ public:
 	 * 
 	 */
 
-	bool getValueBetween(vector<DataType<KeyType,ValueType> >& result, const KeyType& lowKey,
-			const KeyType& highKey);
+	bool getValueBetween(vector<DataType<KeyType,ValueType> >& result,
+			const KeyType& lowKey, const KeyType& highKey);
 
 	/**
 	 *  \brief get all the values with prefix equal to given key.
 	 * 
 	 */
-	void getValuePrefix(const KeyType& key, vector<DataType<KeyType,ValueType> >& result) {
+	void getValuePrefix(const KeyType& key,
+			vector<DataType<KeyType,ValueType> >& result) {
 		SDBCursor locn;
 		search(key, locn);
-		DataType<KeyType,ValueType>  dat;
+		DataType<KeyType,ValueType> dat;
 		lock_.acquire_read_lock();
 		while (key.isPrefix(dat.get_key()) && container_.seq(locn, dat,
 				ESD_FORWARD) ) {
@@ -427,7 +439,7 @@ public:
 	void getValuePrefix(const KeyType& key, vector<KeyType>& result) {
 		SDBCursor locn;
 		search(key, locn);
-		DataType<KeyType,ValueType>  dat;
+		DataType<KeyType,ValueType> dat;
 		get(locn, dat);
 		lock_.acquire_read_lock();
 		while (key.isPrefix(dat.get_key()) && container_.seq(locn, dat,
@@ -480,7 +492,8 @@ template<typename KeyType, typename ValueType, typename LockType,
 
 template<typename KeyType, typename ValueType, typename LockType,
 		typename ContainerType, typename Alloc> bool SequentialDB< KeyType,
-		ValueType, LockType, ContainerType, Alloc>::update(const DataType<KeyType,ValueType> & data) {
+		ValueType, LockType, ContainerType, Alloc>::update(
+		const DataType<KeyType,ValueType> & data) {
 	lock_.acquire_write_lock();
 	bool ret = container_.update(data);
 	lock_.release_write_lock();
@@ -511,9 +524,10 @@ template<typename KeyType, typename ValueType, typename LockType,
 template<typename KeyType, typename ValueType, typename LockType,
 		typename ContainerType, typename Alloc> bool SequentialDB< KeyType,
 		ValueType, LockType, ContainerType, Alloc>::getValueForward(
-		const int count, vector<DataType<KeyType,ValueType> >& result, const KeyType& key) {
+		const int count, vector<DataType<KeyType,ValueType> >& result,
+		const KeyType& key) {
 
-	DataType<KeyType,ValueType>  rec;
+	DataType<KeyType,ValueType> rec;
 	int i =0;
 	SDBCursor locn;
 	lock_.acquire_read_lock();
@@ -539,8 +553,9 @@ template<typename KeyType, typename ValueType, typename LockType,
 template<typename KeyType, typename ValueType, typename LockType,
 		typename ContainerType, typename Alloc> bool SequentialDB< KeyType,
 		ValueType, LockType, ContainerType, Alloc>::getValueBackward(
-		const int count, vector<DataType<KeyType,ValueType> >& result, const KeyType& key) {
-	DataType<KeyType,ValueType>  rec;
+		const int count, vector<DataType<KeyType,ValueType> >& result,
+		const KeyType& key) {
+	DataType<KeyType,ValueType> rec;
 	int i=0;
 	SDBCursor locn;
 	KeyType temp = getPrev(key);
@@ -577,7 +592,8 @@ template<typename KeyType, typename ValueType, typename LockType,
 template<typename KeyType, typename ValueType, typename LockType,
 		typename ContainerType, typename Alloc> bool SequentialDB< KeyType,
 		ValueType, LockType, ContainerType, Alloc>::getValueBetween(
-		vector<DataType<KeyType,ValueType> >& result, const KeyType& lowKey, const KeyType& highKey) {
+		vector<DataType<KeyType,ValueType> >& result, const KeyType& lowKey,
+		const KeyType& highKey) {
 	if (lowKey.compare(highKey)> 0) {
 		return false;
 	}

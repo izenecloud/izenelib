@@ -275,21 +275,15 @@ public:
 	/**
 	 *  \brief get an item from given Locn.	 * 
 	 */
-	bool get(const SDBCursor& locn, DataType<KeyType,ValueType>& rec);
+	bool get(const SDBCursor& locn, DataType<KeyType,ValueType>& rec){
+		return get(locn, rec.key, rec.value);
+	}
 
 	/**
 	 *  \brief get an item from given Locn.	 * 
 	 */
-	bool get(const SDBCursor& locn, KeyType& key, ValueType& value)
-	{
-		DataType<KeyType,ValueType> dat;
-		bool ret =get(locn, dat);
-		if(ret) {
-			key = dat.get_key();
-			value = dat.get_value();
-		}
-		return ret;
-	}
+	bool get(const SDBCursor& locn, KeyType& key, ValueType& value);
+
 	/**
 	 *  \brief get the cursor of the first item.
 	 * 
@@ -301,13 +295,8 @@ public:
 		return locn;
 	}
 
-	bool seq(SDBCursor& locn, KeyType& key, ValueType& value, ESeqDirection sdir=ESD_FORWARD) {
-		DataType<KeyType,ValueType> dat;
-		bool ret = seq(locn, dat, sdir);
-		key = dat.get_key();
-		value = dat.get_value();
-		return ret;
-	}
+	bool seq(SDBCursor& locn, KeyType& key, ValueType& value, ESeqDirection sdir=ESD_FORWARD);
+	
 
 	/**
 	 * 	\brief get the next or prev item.
@@ -317,7 +306,9 @@ public:
 	 */
 	bool
 	seq(SDBCursor& locn, DataType<KeyType,ValueType>& rec,
-			ESeqDirection sdir = ESD_FORWARD);
+			ESeqDirection sdir = ESD_FORWARD){
+		return seq(locn, rec.key, rec.value, sdir);		
+	}
 
 	/**
 	 * 	\brief write all the items in memory to file.
@@ -414,13 +405,13 @@ private:
 	}
 
 	//for seq, reset SDBCursor
-	void _flushCache(SDBCursor locn) {
+	void _flushCache(SDBCursor& locn) {
 		static unsigned int count;
 		++count;
 
 		if( (count & 0xffff) == 0 ) {
 
-			unsigned long vm = 0, rss;
+			unsigned long vm = 0, rss=0;
 			unsigned long rlimit;
 			ProcMemInfo::getProcMemInfo(vm, rss, rlimit);
 
@@ -434,7 +425,8 @@ private:
 				search(key, locn);
 			}
 		}
-		/*if( _activeNodeNum> _sfh.cacheSize )
+		/*
+		 if( _activeNodeNum> _sfh.cacheSize )
 		 {
 		 KeyType key;
 		 ValueType value;
@@ -454,11 +446,11 @@ private:
 		//display();
 #endif	
 
-		 /*for(size_t i=0; i<_root->objCount+1; i++)
-		 {
-		 _root->children[i]->unload();
-		 }
-		 return;*/
+		/*for(size_t i=0; i<_root->objCount+1; i++)
+		{
+			_root->children[i]->unload();
+		}
+		return;*/
 
 		queue<sdb_node*> qnode;
 		qnode.push(_root);
@@ -539,8 +531,8 @@ private:
 	void _split3Leaf(sdb_node* parent, size_t childNum);
 	sdb_node* _merge(sdb_node* &parent, size_t objNo);
 
-	bool _seqNext(SDBCursor& locn, DataType<KeyType,ValueType>& rec);
-	bool _seqPrev(SDBCursor& locn, DataType<KeyType,ValueType>& rec);
+	bool _seqNext(SDBCursor& locn, KeyType& key, ValueType& value);
+	bool _seqPrev(SDBCursor& locn, KeyType& key, ValueType& value);
 	void _flush(sdb_node* node, FILE* f);
 	bool _delete(sdb_node* node, const KeyType& key);
 
@@ -1433,13 +1425,16 @@ template<typename KeyType, typename ValueType, typename LockType,
 // given its location.
 template<typename KeyType, typename ValueType, typename LockType,
 		typename Alloc> bool sdb_btree< KeyType, ValueType, LockType, Alloc>::get(
-		const SDBCursor& locn, DataType<KeyType,ValueType>& rec) {
+		const SDBCursor& locn,KeyType& key, ValueType& value) {
 	if ((sdb_node*)locn.first == 0 || locn.second == (size_t)-1 || locn.second
 			>= locn.first->objCount) {
 		return false;
 	}
-	rec = DataType<KeyType, ValueType>(locn.first->keys[locn.second],
-			locn.first->values[locn.second]);
+	key = locn.first->keys[locn.second];
+	value = locn.first->values[locn.second];
+	
+	//rec = DataType<KeyType, ValueType>(locn.first->keys[locn.second],
+	//		locn.first->values[locn.second]);
 	return true;
 }
 
@@ -1462,7 +1457,7 @@ template<typename KeyType, typename ValueType, typename LockType,
 // The direction can be either forward or backward.
 template<typename KeyType, typename ValueType, typename LockType,
 		typename Alloc> bool sdb_btree< KeyType, ValueType, LockType, Alloc>::seq(
-		SDBCursor& locn, DataType<KeyType,ValueType>& rec, ESeqDirection sdir) {
+		SDBCursor& locn, KeyType& key, ValueType& value, ESeqDirection sdir) {
 	if (_sfh.numItems <=0) {
 		return false;
 	}
@@ -1470,9 +1465,9 @@ template<typename KeyType, typename ValueType, typename LockType,
 	_flushCache(locn);
 	switch (sdir) {
 	case ESD_FORWARD:
-		return _seqNext(locn, rec);
+		return _seqNext(locn, key, value);
 	case ESD_BACKWARD:
-		return _seqPrev(locn, rec);
+		return _seqPrev(locn, key, value);
 	}
 
 	return false;
@@ -1482,7 +1477,7 @@ template<typename KeyType, typename ValueType, typename LockType,
 // the subsequent item in rec.
 template<typename KeyType, typename ValueType, typename LockType,
 		typename Alloc> bool sdb_btree< KeyType, ValueType, LockType, Alloc>::_seqNext(
-		SDBCursor& locn, DataType<KeyType,ValueType>& rec) {
+		SDBCursor& locn, KeyType& key, ValueType& value) {
 	// Set up a couple of convenience values
 	bool ret = false;
 	sdb_node* node = locn.first;
@@ -1501,7 +1496,9 @@ template<typename KeyType, typename ValueType, typename LockType,
 		if ((sdb_node*)node == 0) {
 			return false;
 		}
-		rec = DataType<KeyType, ValueType>(node->keys[0], node->values[0]);
+		//rec = DataType<KeyType, ValueType>(node->keys[0], node->values[0]);
+		key = node->keys[0];
+		value = node->values[0];
 		locn.first = node;
 		locn.second = 0;
 		return true;
@@ -1515,8 +1512,10 @@ template<typename KeyType, typename ValueType, typename LockType,
 	if (node->isLeaf) {
 		// didn't visit the last node last time.
 		if (lastPos < node->objCount - 1) {
-			rec = DataType<KeyType, ValueType>(node->keys[lastPos + 1],
-					node->values[lastPos + 1]);
+			//rec = DataType<KeyType, ValueType>(node->keys[lastPos + 1],
+			//		node->values[lastPos + 1]);	
+			key = node->keys[lastPos + 1];
+			value = node->values[lastPos + 1];
 			locn.second = lastPos + 1;
 			return true;
 		}
@@ -1533,7 +1532,9 @@ template<typename KeyType, typename ValueType, typename LockType,
 		if ((sdb_node*)node == 0) {
 			return false;
 		}
-		rec = DataType<KeyType, ValueType>(node->keys[0], node->values[0]);
+		//rec = DataType<KeyType, ValueType>(node->keys[0], node->values[0]);
+		key = node->keys[0];
+		value = node->values[0];
 		locn.first = node;
 		locn.second = 0;
 		return true;
@@ -1552,8 +1553,10 @@ template<typename KeyType, typename ValueType, typename LockType,
 			locn.first = node;
 			locn.second = childNo;
 			ret = true;
-			rec = DataType<KeyType, ValueType>(node->keys[childNo],
-					node->values[childNo]);
+			key = node->keys[childNo];
+			value = node->values[childNo];
+			//rec = DataType<KeyType, ValueType>(node->keys[childNo],
+			//		node->values[childNo]);
 		}
 	}
 	return ret;
@@ -1563,7 +1566,7 @@ template<typename KeyType, typename ValueType, typename LockType,
 // the item in rec.
 template<typename KeyType, typename ValueType, typename LockType,
 		typename Alloc> bool sdb_btree< KeyType, ValueType, LockType, Alloc>::_seqPrev(
-		SDBCursor& locn, DataType<KeyType,ValueType>& rec) {
+		SDBCursor& locn, KeyType& key, ValueType& value) {
 	// Set up a couple of convenience values
 
 	bool ret = false;
@@ -1590,8 +1593,10 @@ template<typename KeyType, typename ValueType, typename LockType,
 
 		if (locn.second == size_t(-1) )
 			return false;
-		rec = DataType<KeyType, ValueType>(node->keys[locn.second],
-				node->values[locn.second]);
+		key = node->keys[locn.second];
+		value = node->values[locn.second];
+		//rec = DataType<KeyType, ValueType>(node->keys[locn.second],
+		//		node->values[locn.second]);
 		return true;
 	}
 
@@ -1604,8 +1609,10 @@ template<typename KeyType, typename ValueType, typename LockType,
 		// didn't visit the last node last time.
 		if (lastPos> 0) {
 			locn.second = lastPos - 1;
-			rec = DataType<KeyType, ValueType>(node->keys[locn.second],
-					node->values[locn.second]);
+			key = node->keys[locn.second];
+			value = node->values[locn.second];
+			//rec = DataType<KeyType, ValueType>(node->keys[locn.second],
+			//		node->values[locn.second]);
 			return true;
 		}
 		goUp = (lastPos == 0);
@@ -1625,8 +1632,10 @@ template<typename KeyType, typename ValueType, typename LockType,
 		locn.first = node;
 		locn.second = node->objCount - 1;
 		//rec = *(node->elements[locn.second]->pdat);
-		rec = DataType<KeyType, ValueType>(node->keys[locn.second],
-				node->values[locn.second]);
+		key = node->keys[locn.second];
+		value = node->values[locn.second];
+		//rec = DataType<KeyType, ValueType>(node->keys[locn.second],
+		//		node->values[locn.second]);
 		return true;
 	}
 
@@ -1643,8 +1652,10 @@ template<typename KeyType, typename ValueType, typename LockType,
 		if ((sdb_node*)node != 0) {
 			locn.first = node;
 			locn.second = childNo - 1;
-			rec = DataType<KeyType, ValueType>(node->keys[locn.second],
-					node->values[locn.second]);
+			key = node->keys[locn.second];
+			value = node->values[locn.second];
+			//rec = DataType<KeyType, ValueType>(node->keys[locn.second],
+			//		node->values[locn.second]);
 			ret = true;
 		}
 	}

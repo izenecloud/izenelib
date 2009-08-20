@@ -5,7 +5,7 @@ GCC :=/usr/bin/gcc
 CC_OPTIONS :=  -O2 -g -Wall -c  -fmessage-length=0 -DDEBUG -pg
 
 LIBS =     /usr/local/lib/libboost_thread-gcc41-mt.so  /usr/local/lib/libboost_unit_test_framework-gcc41-mt.so \
-	   /usr/local/lib/libboost_serialization-gcc41-mt.so  -L ../../../../lib -lprocmeminfo
+	   /usr/local/lib/libboost_serialization-gcc41-mt.so  -L ../../../../lib -lprocmeminfo -lglog  ../../../../lib/libizene_log.a
 INC_PATH := -I /home/wps/workspace/wiselib/include -I  /usr/local/include/boost-1_35/ -I ../../../../include/ -I ../../../../include/3rdparty/
 
 
