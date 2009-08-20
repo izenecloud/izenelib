@@ -41,7 +41,8 @@ enum ManagerType
 {
     MANAGER_TYPE_LOCAL,       /// Deployed in a single machine
     MANAGER_TYPE_DATAPROCESS, /// Deployed with Data Process
-    MANAGER_TYPE_INDEXPROCESS /// Deployed as the Index Process
+    MANAGER_TYPE_INDEXPROCESS, /// Deployed as the Index Process
+    MANAGER_TYPE_FORWARDREADER_AND_MERGER ///Only read forwardindex and merge it if necessary
 };
 
 typedef int32_t ACCESS_MODE;
@@ -397,7 +398,7 @@ public:
         return pDirectory_;
     }
 
-    void setDirectory(Directory* pDir);
+    void setBasePath(std::string basePath);
 
     void setDirty(bool bDirty);
 

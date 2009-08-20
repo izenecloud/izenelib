@@ -294,6 +294,18 @@ void Indexer::openDirectory()
     }
 }
 
+void Indexer::setBasePath(std::string basePath)
+{
+    if(managerType_ != MANAGER_TYPE_FORWARDREADER_AND_MERGER)
+        return;
+    if (pDirectory_)
+        pDirectory_->close();
+    pDirectory_ = FSDirectory::getDirectory(basePath,(ACCESS_APPEND & ACCESS_CREATE));
+
+    pIndexReader_ = new IndexReader(this);
+    pIndexWriter_ = new IndexWriter(this);
+}
+
 std::string Indexer::getBasePath()
 {
     string path = pConfigurationManager_->indexStrategy_.indexLocation_;
@@ -416,12 +428,6 @@ void Indexer::setDirty(bool bDirty)
     dirty_ = bDirty;
 }
 
-void Indexer::setDirectory(Directory* pDir)
-{
-    if (pDirectory_)
-        pDirectory_->close();
-    pDirectory_ = pDir;
-}
 
 int Indexer::insertCollection(collectionid_t colID)
 {
