@@ -21,7 +21,7 @@ NS_IZENELIB_AM_BEGIN
 
 /**
  * 	\brief file version of cc-b*-btree
- * 
+ *
  *   A B*-tree is a tree data structure used in the HFS and Reiser4 file systems,
  *  which requires non-root nodes to be at least 2/3 full instead of 1/2. To maintain
  *  this, instead of immediately splitting up a node when it gets full, its keys are
@@ -29,14 +29,14 @@ NS_IZENELIB_AM_BEGIN
  *  are split into three. Now SDBv1.0’s disk space is large than BerkeleyDB when
  *  storing the same data set. There is a perspective that, B*-tree can save more
  *  disk space than normal btree.
- * 
+ *
  *  For implementation convience and maintainess, we only apply this delay splitting
  *  at leaves nodes.
- * 
- *  Merging will occur when two sibling nodes' objCount both less than maxKeys/3/ 
- * 
- *   
- * 
+ *
+ *  Merging will occur when two sibling nodes' objCount both less than maxKeys/3/
+ *
+ *
+ *
  */
 
 template<typename KeyType, typename ValueType=NullType, typename LockType=NullLock, typename Alloc=std::allocator<DataType<KeyType,ValueType> > >class sdb_btree
@@ -49,7 +49,7 @@ public:
 public:
 	/**
 	 * \brief constructor
-	 * 
+	 *
 	 * \param fileName is the name for data file if fileName ends with '#', we set b-tree mode to
 	 *  not delay split.
 	 */
@@ -57,15 +57,15 @@ public:
 	virtual ~sdb_btree();
 
 	/**
-	 * 
+	 *
 	 *  \brief set mod
-	 * 
+	 *
 	 *  \param delaySplit, if true, the btree is cc-b*-btee, otherwise is normal cc-b-tree.
-	 *  
-	 *  For ascending insertion, cc-b-tree is much faster than cc-b*-btree, while cc-b*-btree 
+	 *
+	 *  For ascending insertion, cc-b-tree is much faster than cc-b*-btree, while cc-b*-btree
 	 *  uses less disk space and find faster than cc-b-btree.
-	 *  
-	 * 
+	 *
+	 *
 	 */
 	void setBtreeMode(bool delaySplit)
 	{
@@ -73,11 +73,11 @@ public:
 	}
 	/**
 	 *  \brief set the MaxKeys
-	 * 
+	 *
 	 *  Note that it must be at least 6.
 	 *  It can only be called before open. And it doesn't work when open an existing dat file,
 	 *  _sfh.maxKeys will be read from file.
-	 * 
+	 *
 	 */
 	void setMaxKeys(size_t maxkeys) {
 		assert( _isOpen == false );
@@ -91,7 +91,7 @@ public:
 
 	/**
 	 *   \brief set maxKeys for fileHeader
-	 * 
+	 *
 	 *   maxKeys is 2*degree
 	 *   Note that it must be at least 6
 	 *   It can only be called  before opened.And it doesn't work when open an existing dat file,
@@ -113,11 +113,11 @@ public:
 	 *
 	 *   It can only be called before open.And it doesn't work when open an existing dat file,
 	 *  _sfh.pageSize will be read from file.
-	 * 
+	 *
 	 *   It should set the pageSize according the maxKeys and max inserting data size.
 	 *   When pageSize is too small, overflowing will occur and cause efficiency to decline.
 	 *   When pageSize is too large, it will waste disk space.
-	 *    
+	 *
 	 */
 	void setPageSize(size_t pageSize) {
 		assert( _isOpen == false );
@@ -126,11 +126,11 @@ public:
 
 	/**
 	 *  \brief set Cache Size.
-	 * 
-	 *  Cache Size is the active node number in memory.When cache is full, 
+	 *
+	 *  Cache Size is the active node number in memory.When cache is full,
 	 *  some nodes will be released.
-	 * 
-	 * 	We would peroidically flush the memory items, according to the cache Size. 
+	 *
+	 * 	We would peroidically flush the memory items, according to the cache Size.
 	 */
 
 	void setCacheSize(size_t sz) {
@@ -146,9 +146,9 @@ public:
 	}
 
 	/**
-	 * 	 \brief open the database. 
-	 * 
-	 *   Everytime  we use the database, we mush open it first.  
+	 * 	 \brief open the database.
+	 *
+	 *   Everytime  we use the database, we mush open it first.
 	 */
 	bool open();
 
@@ -158,13 +158,13 @@ public:
 	}
 
 	/**
-	 * 	 \brief close the database. 
-	 * 
-	 *    if we don't call it, it will be automately called in deconstructor 	 
+	 * 	 \brief close the database.
+	 *
+	 *    if we don't call it, it will be automately called in deconstructor
 	 */
 	bool close() {
 		flush();
-		//note that _root can be  NULL, if there is no items.		
+		//note that _root can be  NULL, if there is no items.
 		if (_root) {
 			_root->unload();
 			delete _root;
@@ -208,7 +208,7 @@ public:
 
 	/**
 	 * 	 \brief del an item from the database
-	 * 
+	 *
 	 */
 	bool del(const KeyType& key);
 	/**
@@ -252,12 +252,12 @@ public:
 	}
 
 	/**
-	 *  \brief updata an item with given key, if it not exist, insert it directly. 
+	 *  \brief updata an item with given key, if it not exist, insert it directly.
 	 */
 	bool update(const KeyType& key, const ValueType& val);
 
 	/**
-	 *  \brief updata an item with given key, if it not exist, insert it directly. 
+	 *  \brief updata an item with given key, if it not exist, insert it directly.
 	 */
 	bool update(const DataType<KeyType,ValueType>& rec)
 	{
@@ -265,7 +265,7 @@ public:
 	}
 
 	/**
-	 * 	
+	 *
 	 * \brief get the number of the items.
 	 */
 	int num_items() {
@@ -273,20 +273,20 @@ public:
 	}
 
 	/**
-	 *  \brief get an item from given Locn.	 * 
+	 *  \brief get an item from given Locn.	 *
 	 */
 	bool get(const SDBCursor& locn, DataType<KeyType,ValueType>& rec){
 		return get(locn, rec.key, rec.value);
 	}
 
 	/**
-	 *  \brief get an item from given Locn.	 * 
+	 *  \brief get an item from given Locn.	 *
 	 */
 	bool get(const SDBCursor& locn, KeyType& key, ValueType& value);
 
 	/**
 	 *  \brief get the cursor of the first item.
-	 * 
+	 *
 	 */
 	SDBCursor get_first_locn()
 	{
@@ -300,7 +300,7 @@ public:
 
 	/**
 	 * 	\brief get the next or prev item.
-	 * 
+	 *
 	 *  \locn when locn is default value, it will start with firt element when sdri=ESD_FORWARD
 	 *   and start with last element when sdir = ESD_BACKWARD
 	 */
@@ -353,7 +353,7 @@ public:
 	}
 
 	/**
-	 * 
+	 *
 	 *  \brief Get the DB cursor of given key
 	 *
 	 */
@@ -364,10 +364,10 @@ public:
 	}
 	/**
 	 *   \brief get the cursor for given key
-	 *   
+	 *
 	 *   @param locn is cursor of key.
-	 *   @return true if key exists otherwise false. 
-	 * 
+	 *   @return true if key exists otherwise false.
+	 *
 	 */
 	bool search(const KeyType& key, SDBCursor& locn);
 private:
@@ -380,7 +380,7 @@ private:
 	bool _isOpen;
 
 	izenelib::am::CompareFunctor<KeyType> _comp;
-	std::string _fileName; // name of the database file		
+	std::string _fileName; // name of the database file
 private:
 	LockType _fileLock;
 	size_t _activeNodeNum;
@@ -444,7 +444,7 @@ private:
 		cout<<"cache is full..."<<endl;
 		cout<<_activeNodeNum<<" vs "<<_sfh.cacheSize <<endl;
 		//display();
-#endif	
+#endif
 
 		/*for(size_t i=0; i<_root->objCount+1; i++)
 		{
@@ -477,7 +477,7 @@ private:
 
 				popNode->unload();
 				//cout<<"unloading....";
-				//cout<<_activeNodeNum<<" vs "<<_sfh.cacheSize <<endl;					
+				//cout<<_activeNodeNum<<" vs "<<_sfh.cacheSize <<endl;
 			}
 
 			if (popNode && popNode->isLoaded && !popNode->isLeaf) {
@@ -500,7 +500,7 @@ private:
 		cout<<"stop unload..."<<endl;
 		cout<<_activeNodeNum<<" vs "<<_sfh.cacheSize <<endl;
 		//display();
-#endif		
+#endif
 		fflush(_dataFile);
 
 	}
@@ -624,8 +624,26 @@ template<typename KeyType, typename ValueType, typename LockType,
 		if (!temp->isLeaf) {
 			temp = temp->loadChild(low, _dataFile);
 		} else {
-			locn.first = temp;
-			locn.second = low;
+
+                locn.first = temp;
+			    locn.second = low;
+
+                //cout<<temp<<endl;
+			    //temp->display();
+			    //cout<<"\n~~~~"<<low << endl;
+
+                if(low >= (int)temp->objCount){
+                    locn.second = low - 1;
+                    KeyType k;
+                    ValueType v;
+                    //assert( get(locn, k, v) );
+                    //cout<< "######" << locn.first <<"," << locn.second <<"\t";
+                    if( false == seq(locn, k, v) )
+                        ++ locn.second;
+                    //cout<< locn.first <<"," << locn.second <<endl;
+
+                }
+
 			break;
 		}
 	}
@@ -672,7 +690,7 @@ template<typename KeyType, typename ValueType, typename LockType,
 	parent->setCount(parent->objCount + 1);
 	for (i = parent->objCount; i> childNum + 1; i--) {
 		parent->children[i] = parent->children[i - 1];
-		//if(parent->children[i]) 
+		//if(parent->children[i])
 		parent->children[i]->childNo = i;
 	}
 	parent->children[childNum + 1] = newChild;
@@ -792,7 +810,7 @@ template<typename KeyType, typename ValueType, typename LockType,
 			c2->loadChild(i, _dataFile);
 			c1->children[newPos] = c2->children[i];
 			c1->children[newPos]->childNo = newPos;
-			c1->children[newPos]->parent = c1;//wps add it!				
+			c1->children[newPos]->parent = c1;//wps add it!
 		}
 	}
 
@@ -819,7 +837,7 @@ template<typename KeyType, typename ValueType, typename LockType,
 
 	// Note that c2 will be release. The node will be deallocated
 	// and the node's location on
-	// disk will become inaccessible. 
+	// disk will become inaccessible.
 
 	c2->unloadself();
 	delete c2;
@@ -895,7 +913,7 @@ template<typename KeyType, typename ValueType, typename LockType,
 			sdb_node* child = node->loadChild(low, _dataFile);
 
 			//If the child node is full , we will insert into its adjacent nodes, and if bothe are
-			//are full, we will split the two node to three nodes.			
+			//are full, we will split the two node to three nodes.
 			if (child->objCount >= _sfh.maxKeys) {
 				if ( !child->isLeaf || !_isDelaySplit) {
 					_split(node, low, child);
@@ -936,7 +954,7 @@ template<typename KeyType, typename ValueType, typename LockType,
 
 							}
 
-							//case: insert the item into the new child.							
+							//case: insert the item into the new child.
 							node->keys[low] = child->keys[child->objCount-1];
 							node->values[low]
 									= child->values[child->objCount-1];
@@ -1075,7 +1093,7 @@ template<typename KeyType, typename ValueType, typename LockType,
 	// saying whether the object at op.first is an exact
 	// match (true) or if the object is in a child of the
 	// current node (false). If op.first is -1, the object
-	// is neither in this node, or a child node.	
+	// is neither in this node, or a child node.
 
 	sdb_node* node = nd;
 	KeyType key = k;
@@ -1127,7 +1145,7 @@ template<typename KeyType, typename ValueType, typename LockType,
 					node->keys[op.first] = locn.first->keys[locn.second];
 					node->values[op.first] = locn.first->values[locn.second];
 
-					//now node is dirty					
+					//now node is dirty
 					node->setDirty(1);
 					//_dirtyPages.push_back(node);
 
@@ -1326,7 +1344,7 @@ template<typename KeyType, typename ValueType, typename LockType,
 
 	_dataFile = fopen(_fileName.c_str(), creating ? "w+b" : "r+b");
 	if (0 == _dataFile) {
-#ifdef DEBUG		
+#ifdef DEBUG
 		cout <<"SDB Error: open file failed, check if dat directory exists"
 		<<endl;
 #endif
@@ -1671,7 +1689,7 @@ template<typename KeyType, typename ValueType, typename LockType,
 
 	//write back the fileHead and dirtypage
 	commit();
-	// Unload each of the root's childrent. 
+	// Unload each of the root's childrent.
 	if (_root && !_root->isLeaf) {
 		for (size_t i = 0; i < _root->objCount+1; i++) {
 			sdb_node* pChild = _root->children[i];

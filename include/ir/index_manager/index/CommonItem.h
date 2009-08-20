@@ -23,7 +23,7 @@ NS_IZENELIB_IR_BEGIN
 
 namespace indexmanager{
 
-typedef boost::shared_ptr<std::deque<loc_t> > PositionPtr;
+typedef boost::shared_ptr<std::deque<loc_t> > MyPositionPtr;
 
 class CommonItem
 {
@@ -50,7 +50,7 @@ public:
         docid = docid_;
     }
 
-    void addProperty(std::string property, PositionPtr positions, freq_t tf)
+    void addProperty(std::string property, MyPositionPtr positions, freq_t tf)
     {
         if (commonItemProperty.find(property) == commonItemProperty.end())
         {
@@ -85,7 +85,7 @@ public:
 
     std::map<std::string,freq_t> tfMap;
 
-    std::map<std::string,PositionPtr > commonItemProperty;
+    std::map<std::string,MyPositionPtr > commonItemProperty;
 };
 
 }

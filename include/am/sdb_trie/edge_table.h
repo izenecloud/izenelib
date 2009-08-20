@@ -1,6 +1,8 @@
 #ifndef _EDGE_TABLE_H_
 #define _EDGE_TABLE_H_
 
+#include <iostream>
+#include <am/concept/DataType.h>
 #include <sdb/SequentialDB.h>
 #include "traits.h"
 
@@ -42,6 +44,12 @@ public:
         ar&parentNID;
     }
 
+    friend ostream& operator << ( ostream& os, const ThisType& key)
+    {
+        os << "<" << key.parentNID << "," << key.ch << ">";
+        return os;
+    }
+
 public:
 
     CharType ch;
@@ -73,6 +81,7 @@ class EdgeTable
 {
     typedef EdgeTableKeyType<CharType, NodeIDType> KeyType;
     typedef NodeIDType ValueType;
+    typedef DataType<KeyType, ValueType> EdgeTableDataType;
     typedef izenelib::sdb::ordered_sdb<KeyType, ValueType , LockType> DBType;
 
 public:
@@ -129,6 +138,45 @@ public:
         if(db_.getValue(key, childNID))
             return true;
         return false;
+    }
+
+    /**
+     * Iterate all child nodes for a given parent node, inside a given depth.
+     * @param   parentNID       NID of parent node
+     *          childNIDList    a NID list of all child nodes
+     *          depth           a positive value controls how many layers be retrieved,
+     *                          set to 0 will return nothing,
+     *                          while set to -1 (default) means no limit at all.
+     */
+    void iterate(const NodeIDType parentNID,
+        std::vector<NodeIDType>& childNIDList,
+        const int depth = -1 )
+    {
+        if(depth == 0) return;
+        KeyType minKey(CharTraits<CharType>::MinValue, parentNID );
+        KeyType maxKey(CharTraits<CharType>::MaxValue, parentNID );
+
+        std::vector<EdgeTableDataType> result;
+        db_.getValueBetween(result, minKey, maxKey);
+
+        for(size_t i = 0; i <result.size(); i++ )
+        {
+            childNIDList.push_back(result[i].value);
+            iterate(result[i].value, childNIDList, depth-1);
+        }
+    }
+
+    /**
+     * @return number of nodes
+     */
+    unsigned int num_items()
+    {
+        return db_.numItems();
+    }
+
+    void display()
+    {
+        db_.display();
     }
 
 private:

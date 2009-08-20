@@ -54,6 +54,8 @@ public:
     */
     void getPositions(string& property, boost::shared_ptr<std::deque<unsigned int> >& positions, freq_t& tf, freq_t& doclen);
 
+    void getPositions(string& property, boost::shared_ptr<std::deque< std::pair<unsigned int,unsigned int> > >& positions, freq_t& tf, freq_t& doclen);
+
     void get_df_and_ctf(termid_t termID, DocumentFrequencyInProperties& dfmap, CollectionTermFrequencyInProperties& ctfmap);
 
     bool isValid()

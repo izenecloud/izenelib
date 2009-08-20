@@ -27,18 +27,18 @@ namespace sdb {
 /**
  *
  * 	\brief  SequentialDB,  file-based DB
- *	
- *	 It is persistent that it stores all the key-value pairs in file. Plus, 
+ *
+ *	 It is persistent that it stores all the key-value pairs in file. Plus,
  *   it supports random acess and sequentail acess and query.
- * 
+ *
  *   It can use btree, hash, tc_hash and all kindes of access methods as underlying data strucure
- * 		
  *
- *  KeyType and DataType  :  the type of what we want to cache.				  
- *	LockType        	  :  it can be NullLock or ReadWriteLock. If using NullLock, then 
- *				                No threadsafe. 	 
  *
- * 
+ *  KeyType and DataType  :  the type of what we want to cache.
+ *	LockType        	  :  it can be NullLock or ReadWriteLock. If using NullLock, then
+ *				                No threadsafe.
+ *
+ *
  */
 template<
 		typename KeyType =string,
@@ -52,11 +52,11 @@ public:
 public:
 	/**
 	 *  \brief constructor1, the default fileName is "SeqentialDB.dat"
-	 * 
+	 *
 	 *  @fileName filename of db data file. For SDB/btree, if its file name ends with '#', eg
 	 *   'sdb.dat#', it means cc-b-tree, otherwise its cc-b*-btree. cc-b*-btree perform better in
 	 *  reading and use less disk space, but perform much worse for ascending access.
-	 * 	 
+	 *
 	 */
 	SequentialDB(const string& fileName = "SequentialDB.dat") :
 		container_(fileName) {
@@ -64,19 +64,19 @@ public:
 
 	//=============for sdb/btree======================
 	/**
-	 *  
-	 *  \brief set degree for btree.  
+	 *
+	 *  \brief set degree for btree.
 	 *  @degree, mostly degree from 8~16 is preffered, but for ascending inserting,
-	 *  big degree(even, 32, 64) can perform better.  
-	 * 
+	 *  big degree(even, 32, 64) can perform better.
+	 *
 	 */
 	void setDegree(int degree) {
 		container_.setDegree(degree);
 	}
 
-	/** 	
-	 *  \brief set page size for both sdb/hash and sdb/btree	  
-	 * 
+	/**
+	 *  \brief set page size for both sdb/hash and sdb/btree
+	 *
 	 */
 
 	void setPageSize(size_t pageSize) {
@@ -88,7 +88,7 @@ public:
 	//==============for sdb/hash ======================
 	/**
 	 *  \brief set directorySize only for sdb/hash
-	 * 
+	 *
 	 *   if not called, default is 65536.
 	 */
 
@@ -98,7 +98,7 @@ public:
 	/**
 	 *  \brief set bucketSize only for sdb/hash
 	 *  if not called, default is 1024.
-	 * 
+	 *
 	 */
 	void setBucketSize(size_t bucketSize) {
 		container_.setBucketSize(bucketSize);
@@ -106,8 +106,8 @@ public:
 
 	//=================================================
 	/**
-	 * 	\brief set the cache size. 
-	 * 
+	 * 	\brief set the cache size.
+	 *
 	 */
 	void setCacheSize(size_t sz) {
 		container_.setCacheSize(sz);
@@ -122,7 +122,7 @@ public:
 	}
 	/**
 	 *  \brief close the db
-	 * 
+	 *
 	 */
 	bool close() {
 		return container_.close();
@@ -182,13 +182,13 @@ public:
 
 	/**
 	 * \brief update an item with given key, if it not exist, insert it directly.
-	 * 
+	 *
 	 */
 	bool update(const DataType<KeyType,ValueType> & data);
 
 	/**
 	 * \brief update an item with given key, if it not exist, insert it directly.
-	 * 
+	 *
 	 */
 	bool update(const KeyType& key, const ValueType& value) {
 		return update(DataType<KeyType, ValueType>(key, value) );
@@ -205,7 +205,7 @@ public:
 
 	/**
 	 *  \brief write the dirtypage to the disk.
-	 * 
+	 *
 	 */
 	void commit() {
 		lock_.acquire_write_lock();
@@ -219,10 +219,10 @@ public:
 
 	/**
 	 *   \brief get the cursor for given key
-	 *   
+	 *
 	 *   @param locn is cursor of key.
-	 *   @return true if key exists otherwise false. 
-	 * 
+	 *   @return true if key exists otherwise false.
+	 *
 	 */
 	bool search(const KeyType& key, SDBCursor& locn) {
 		lock_.acquire_read_lock();
@@ -233,9 +233,9 @@ public:
 
 	/**
 	 *   \brief get the cursor for given key
-	 *   
-	 *   @return locn is cursor of key if key exist, otherwise return default value.			 *  
-	 * 
+	 *
+	 *   @return locn is cursor of key if key exist, otherwise return default value.			 *
+	 *
 	 */
 	SDBCursor search(const KeyType& key) {
 		SDBCursor locn;
@@ -244,7 +244,7 @@ public:
 	}
 
 	/**
-	 *  \brief get the item of given Locn.	 * 
+	 *  \brief get the item of given Locn.	 *
 	 */
 	bool get(const SDBCursor& locn, KeyType& key, ValueType& value) {
 		lock_.acquire_read_lock();
@@ -254,7 +254,7 @@ public:
 	}
 
 	/**
-	 *  \brief get an item of given Locn.	 * 
+	 *  \brief get an item of given Locn.	 *
 	 */
 	bool get(const SDBCursor& locn, DataType<KeyType,ValueType> & dat) {
 		lock_.acquire_read_lock();
@@ -265,7 +265,7 @@ public:
 
 	/**
 	 * 	\brief get the next or prev item.
-	 * 
+	 *
 	 *  \locn when locn is default value, it will start with firt element when sdri=ESD_FORWARD
 	 *   and start with last element when sdir = ESD_BACKWARD
 	 */
@@ -277,6 +277,7 @@ public:
 		return ret;
 	}
 
+
 	bool seq(SDBCursor& locn, KeyType& key, ValueType& value,
 			ESeqDirection sdir=ESD_FORWARD) {
 		DataType<KeyType,ValueType> dat;
@@ -284,17 +285,16 @@ public:
 		key = dat.key;
 		value = dat.value;
 		return ret;
-	}
 
 	/**
-	 *	\brief It determines if an item exists in SequentialDB.    
-	 * 
+	 *	\brief It determines if an item exists in SequentialDB.
+	 *
 	 */
 	bool hasKey(const KeyType& key);
 
-	/** 
-	 * 	
-	 *    \brief It gets the number of the items in  SequentialDB. 
+	/**
+	 *
+	 *    \brief It gets the number of the items in  SequentialDB.
 	 *
 	 */
 	int numItems();
@@ -303,7 +303,7 @@ public:
 	 */
 	void display(std::ostream& os = std::cout) {
 		lock_.acquire_read_lock();
-		container_.display(os);
+		container_.display(os,false);
 		lock_.release_read_lock();
 	}
 	/**
@@ -316,7 +316,7 @@ public:
 	}
 
 	/// Note that,  getnext, getPrev, getNearest, getValueForwar,getValueBackWard, getValuePrefix, getValueBetween
-	/// only for BTree	
+	/// only for BTree
 
 	/**
 	 *   \brief get the  next key
@@ -359,8 +359,8 @@ public:
 
 	/**
 	 *  if input key exists, get the key itself, otherwise get the smallest
-	 *  key that bigger than input key. 
-	 *   
+	 *  key that bigger than input key.
+	 *
 	 */
 	KeyType getNearest(const KeyType& key) {
 		SDBCursor locn;
@@ -377,8 +377,8 @@ public:
 	 *  \brief It reads count items from SequentialD  start with key foward.
 	 *
 	 * 	@param key starting index, if it is "", it reads from the minKey.
-	 * 	@param count the number of the keys read, if there is not enough items, stop early.  
-	 *  @param result read the items to result.	
+	 * 	@param count the number of the keys read, if there is not enough items, stop early.
+	 *  @param result read the items to result.
 	 *	@return TRUE if all get the items, otherwise return faulse
 	 */
 	bool getValueForward(const int count,
@@ -395,8 +395,8 @@ public:
 	 *  \brief It reads count items from SequentialD  start with key backfoward.
 	 *
 	 * 	@param key starting index, if it it is "" , it reads from the maxkey.
-	 * 	@param count the number of the keys read, if there is not enough items, stop early.  
-	 *  @param result read the items to result.	
+	 * 	@param count the number of the keys read, if there is not enough items, stop early.
+	 *  @param result read the items to result.
 	 *	@return TRUE if all get the items, otherwise return false
 	 */
 
@@ -411,9 +411,9 @@ public:
 		return getValueBackward(count, result, key);
 	}
 
-	/**	
+	/**
 	 * 	\brief get value with key between lowKey and highkey, including value with lowkey and highKey.
-	 * 
+	 *
 	 */
 
 	bool getValueBetween(vector<DataType<KeyType,ValueType> >& result,
@@ -421,7 +421,7 @@ public:
 
 	/**
 	 *  \brief get all the values with prefix equal to given key.
-	 * 
+	 *
 	 */
 	void getValuePrefix(const KeyType& key,
 			vector<DataType<KeyType,ValueType> >& result) {
@@ -603,7 +603,10 @@ template<typename KeyType, typename ValueType, typename LockType,
 	lock_.acquire_read_lock();
 	container_.search(lowKey, locn);
 	if (container_.get(locn, rec)) {
-		result.push_back(rec);
+	    if (rec.get_key().compare(highKey) <= 0) {
+            result.push_back(rec);
+	    } else
+            return true;
 	}
 
 	//if lowKey not exist in database, it starts from the lowest key.
