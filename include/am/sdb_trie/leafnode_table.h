@@ -51,7 +51,7 @@ public:
      */
     void update( const NodeIDType nid, const UserDataType& data)
     {
-        db_.updateValue(nid, data);
+        db_.update(nid, data);
     }
 
     /**

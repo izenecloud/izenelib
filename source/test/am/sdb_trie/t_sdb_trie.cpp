@@ -46,6 +46,37 @@ BOOST_AUTO_TEST_SUITE( sdb_trie_suite )
   }\
 }
 
+BOOST_AUTO_TEST_CASE(SDBTrie_update)
+{
+    remove("sdbtrie_update*.sdb");
+
+    {
+      SDBTrie2<string,int> trie("./sdbtrie_update");
+      trie.insert("apple",1);
+    }
+
+    {
+      SDBTrie2<string,int> trie("./sdbtrie_update");
+      BOOST_CHECK_EQUAL(trie.num_items(),  (size_t)1);
+      TEST_TRIE_FIND("apple", 1);
+    }
+
+    {
+      SDBTrie2<string,int> trie("./sdbtrie_update");
+      trie.update("apple",2);
+    }
+
+    {
+      SDBTrie2<string,int> trie("./sdbtrie_update");
+      BOOST_CHECK_EQUAL(trie.num_items(),  (size_t)1);
+      TEST_TRIE_FIND("apple", 2);
+    }
+
+    remove("sdbtrie_update*.sdb");
+}
+
+
+
 BOOST_AUTO_TEST_CASE(SDBTrie_find)
 {
     remove("sdbtrie_insert*.sdb");
