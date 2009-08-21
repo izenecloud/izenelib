@@ -17,20 +17,20 @@ class SDBTrie
     /**
      * Maintain all leaf node's information in a Trie data structure with the form
      * of database table.
-     * In Trie's graph representation, @see EdgeTable, each leaf node contains a
+     * In Trie's graph representation, @see EdgeTable, each data node contains a
      * input string user has inserted into trie.
-     * Leaf Node Table contains <NodeID, UserData> pairs for all leaf nodes,
+     * Data Node Table contains <NodeID, UserData> pairs for all data nodes,
      * UserData is the data user inserted into trie together with an input string,
      * the default type is NullType.
      */
-    typedef One2OneMappingTable<NodeIDType, UserDataType, LockType> LeafNodeTableType;
+    typedef One2OneMappingTable<NodeIDType, UserDataType, LockType> DataNodeTableType;
 
 public:
 
     SDBTrie(const std::string name)
     :   triename_(name),
         trieImpl_(triename_),
-        leafnodeTable_(triename_ + ".leafnode.table")
+        datanodeTable_(triename_ + ".leafnode.table")
     {
     }
 
@@ -40,14 +40,14 @@ public:
     {
         NodeIDType nid = NodeIDTraits<NodeIDType>::RootValue;
         trieImpl_.insert(word, nid);
-        leafnodeTable_.put(nid, userData);
+        datanodeTable_.put(nid, userData);
     }
 
     inline void update(const std::vector<CharType>& word, const UserDataType userData)
     {
         NodeIDType nid = NodeIDTraits<NodeIDType>::RootValue;
         trieImpl_.insert(word, nid);
-        leafnodeTable_.update(nid, userData);
+        datanodeTable_.update(nid, userData);
     }
 
     inline bool find(const std::vector<CharType>& word, UserDataType& userData)
@@ -55,9 +55,7 @@ public:
         NodeIDType nid = NodeIDTraits<NodeIDType>::RootValue;
         if( !trieImpl_.find(word, nid) )
             return false;
-        if( !leafnodeTable_.get(nid, userData) )
-            return false;
-        return true;
+        return datanodeTable_.get(nid, userData);
     }
 
     inline bool prefixIterate(const std::vector<CharType>& prefix,
@@ -70,7 +68,7 @@ public:
         UserDataType tmp;
         for( size_t i = 0; i < nidList.size(); i++ )
         {
-            if(leafnodeTable_.get(nidList[i], tmp))
+            if(datanodeTable_.get(nidList[i], tmp))
                 userDataList.push_back(tmp);
         }
         return true;
@@ -80,7 +78,7 @@ public:
 	 *
 	 * @return The number of words.
 	 */
-    inline unsigned int num_items() { return leafnodeTable_.num_items(); }
+    inline unsigned int num_items() { return datanodeTable_.num_items(); }
 
     inline void display() { trieImpl_.display(); }
 
@@ -92,7 +90,7 @@ private:
 
     SDBTrieImpl<CharType, UserDataType, NodeIDType, LockType> trieImpl_;
 
-    LeafNodeTableType leafnodeTable_;
+    DataNodeTableType datanodeTable_;
 
 };
 
