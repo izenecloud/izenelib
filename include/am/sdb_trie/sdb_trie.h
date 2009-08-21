@@ -4,9 +4,7 @@
 #include <string>
 #include <wiselib/ustring/UString.h>
 
-#include "edge_table.h"
-#include "leafnode_table.h"
-#include "traits.h"
+#include "sdb_trie_impl.h"
 
 NS_IZENELIB_AM_BEGIN
 
@@ -16,118 +14,49 @@ template <typename CharType,
           typename LockType = izenelib::util::NullLock>
 class SDBTrie
 {
-    typedef LeafNodeTable<NodeIDType, UserDataType, LockType> LeafNodeTableType;
-    typedef EdgeTable<CharType, NodeIDType, LockType> EdgeTableType;
 
 public:
 
     SDBTrie(const std::string name)
     :   triename_(name),
-        edgeTable_(triename_ + ".edge.table"),
-        leafnodeTable_(triename_ + ".leafnode.table")
+        trieImpl_(triename_)
     {
     }
 
     virtual ~SDBTrie(){}
 
-    void insert(const std::vector<CharType>& word, const UserDataType userData)
+    inline void insert(const std::vector<CharType>& word, const UserDataType userData)
     {
-        NodeIDType parentNID = NodeIDTraits<NodeIDType>::RootValue;
-        for( size_t i=0; i<word.size()-1; i++ )
-        {
-            NodeIDType childNID;
-            edgeTable_.put(word[i], parentNID, childNID);
-            parentNID = childNID;
-        }
-        NodeIDType leafNID;
-        if( edgeTable_.put(word[word.size()-1], parentNID, leafNID) )
-        {
-            if( false == leafnodeTable_.put(leafNID, userData) )
-                throw std::runtime_error("SDBTrie insert err: incoherence between \
-                    EdgeTable and LeafNodeTable");
-        }
+        NodeIDType nid;
+        trieImpl_.insert(word, userData, nid);
     }
 
-    void update(const std::vector<CharType>& word, const UserDataType userData)
+    inline void update(const std::vector<CharType>& word, const UserDataType userData)
     {
-        NodeIDType parentNID = NodeIDTraits<NodeIDType>::RootValue;
-        for( size_t i=0; i<word.size()-1; i++ )
-        {
-            NodeIDType childNID;
-            edgeTable_.put(word[i], parentNID, childNID);
-            parentNID = childNID;
-        }
-        NodeIDType leafNID;
-        if( edgeTable_.put(word[word.size()-1], parentNID, leafNID) )
-        {
-            if( false == leafnodeTable_.put(leafNID, userData) )
-                throw std::runtime_error("SDBTrie update err: incoherence between \
-                    EdgeTable and LeafNodeTable");
-        }
-        else
-        {
-            leafnodeTable_.update(leafNID, userData);
-        }
+        NodeIDType nid;
+        trieImpl_.update(word, userData, nid);
     }
 
-    bool find(const std::vector<CharType>& word, UserDataType& userData)
+    inline bool find(const std::vector<CharType>& word, UserDataType& userData)
     {
-        NodeIDType parentNID = NodeIDTraits<NodeIDType>::RootValue;
-        for( size_t i=0; i<word.size(); i++ )
-        {
-            NodeIDType childNID;
-            if( false == edgeTable_.get(word[i], parentNID, childNID) )
-                return false;
-            parentNID = childNID;
-        }
-        if( false == leafnodeTable_.get(parentNID, userData) )
-            return false;
-        return true;
+        NodeIDType nid;
+        return trieImpl_.find(word, userData, nid);
     }
 
-    /**
-     *
-     */
-    bool prefixIterate(const std::vector<CharType>& prefix,
+    inline bool prefixIterate(const std::vector<CharType>& prefix,
         std::vector<UserDataType>& userDataList)
     {
-        NodeIDType parentNID = NodeIDTraits<NodeIDType>::RootValue;
-        for( size_t i=0; i<prefix.size(); i++ )
-        {
-            NodeIDType childNID;
-            if( false == edgeTable_.get(prefix[i], parentNID, childNID) )
-                return false;
-            parentNID = childNID;
-        }
-
-        UserDataType userdata;
-        if(leafnodeTable_.get(parentNID, userdata))
-            userDataList.push_back(userdata);
-
-        std::vector<NodeIDType> childNIDList;
-        edgeTable_.iterate(parentNID, childNIDList) ;
-        for( size_t i = 0; i < childNIDList.size(); i++ )
-        {
-            if(leafnodeTable_.get(childNIDList[i], userdata))
-                userDataList.push_back(userdata);
-        }
-
-        return true;
+        std::vector<NodeIDType> nidList;
+        return trieImpl_.prefixIterate(prefix, userDataList, nidList);
     }
 
 	/** Returns the number of words in the trie.
 	 *
 	 * @return The number of words.
 	 */
-    unsigned int num_items()
-    {
-        return leafnodeTable_.num_items();
-    }
+    inline unsigned int num_items() { return trieImpl_.num_items(); }
 
-    void display()
-    {
-        edgeTable_.display();
-    }
+    inline void display() { trieImpl_.display(); }
 
 protected:
 
@@ -135,9 +64,7 @@ private:
 
     std::string triename_;
 
-    EdgeTableType edgeTable_;
-
-    LeafNodeTableType leafnodeTable_;
+    SDBTrieImpl<CharType, UserDataType, NodeIDType, LockType> trieImpl_;
 
 };
 
@@ -157,7 +84,7 @@ public:
 
     virtual ~SDBTrie2(){}
 
-    void insert(const StringType& word, const UserDataType userData)
+    inline void insert(const StringType& word, const UserDataType userData)
     {
         CharType* chArray = (CharType*)word.c_str();
         size_t chCount = word.length();
@@ -165,7 +92,7 @@ public:
         trie_.insert(chVector, userData);
     }
 
-    void update(const StringType& word, const UserDataType userData)
+    inline void update(const StringType& word, const UserDataType userData)
     {
         CharType* chArray = (CharType*)word.c_str();
         size_t chCount = word.length();
@@ -173,7 +100,7 @@ public:
         trie_.update(chVector, userData);
     }
 
-    bool find(const StringType& word, UserDataType& userData)
+    inline bool find(const StringType& word, UserDataType& userData)
     {
         CharType* chArray = (CharType*)word.c_str();
         size_t chCount = word.length();
@@ -181,7 +108,7 @@ public:
         return trie_.find(chVector, userData);
     }
 
-    bool prefixIterate(const StringType& prefix,
+    inline bool prefixIterate(const StringType& prefix,
         std::vector<UserDataType>& userDataList)
     {
         CharType* chArray = (CharType*)prefix.c_str();
@@ -190,9 +117,9 @@ public:
         return trie_.prefixIterate(chVector, userDataList);
     }
 
-    unsigned int num_items() { return trie_.num_items(); }
+    inline unsigned int num_items() { return trie_.num_items(); }
 
-    void display() { trie_.display(); }
+    inline void display() { trie_.display(); }
 
 
 private:
