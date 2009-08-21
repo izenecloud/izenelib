@@ -259,6 +259,10 @@ public:
 	int num_items() {
 		return tchdbrnum(hdb_);
 	}
+	
+	void display(){
+		
+	}
 
 public:
 	/**

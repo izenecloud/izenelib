@@ -285,6 +285,7 @@ public:
 		key = dat.key;
 		value = dat.value;
 		return ret;
+	}
 
 	/**
 	 *	\brief It determines if an item exists in SequentialDB.
@@ -303,7 +304,7 @@ public:
 	 */
 	void display(std::ostream& os = std::cout) {
 		lock_.acquire_read_lock();
-		container_.display(os,false);
+		container_.display(os);
 		lock_.release_read_lock();
 	}
 	/**
