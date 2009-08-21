@@ -4,6 +4,7 @@
 //#include <time.h>
 
 #include <am/sdb_btree/sdb_btree.h>
+#include <util/izene_log.h>
 
 using namespace std;
 using namespace izenelib::am;
@@ -41,6 +42,7 @@ template<typename T> void insert_test(T& tb) {
 			cout<<"numItem: "<<tb.num_items()<<"a"<<endl;
 			tb.display();
 		}
+		DLOG_EVERY_N(INFO, 100000) << getMemInfo();
 		//cout<<"\nafte insert ...\n";		
 	}
 	cout<<"mumItem: "<<tb.num_items()<<endl;
@@ -74,6 +76,7 @@ template<typename T> void random_insert_test(T& tb) {
 			cout<<"numItem: "<<tb.num_items()<<endl<<endl;
 			tb.display();
 		}
+		DLOG_EVERY_N(INFO, 100000) << getMemInfo();
 		//cout<<"\nafte insert ...\n";		
 	}
 	cout<<"mumItem: "<<tb.num_items()<<endl;
@@ -112,6 +115,7 @@ template<typename T> void random_search_test(T& tb) {
 			c++;
 		} else
 			b++;
+		DLOG_EVERY_N(INFO, 100000) << getMemInfo();
 	}
 	if (trace)
 		tb.display();
@@ -148,6 +152,7 @@ template<typename T> void search_test(T& tb) {
 			c++;
 		} else
 			b++;
+		DLOG_EVERY_N(INFO, 100000) << getMemInfo();
 	}
 	if (trace)
 		tb.display();
@@ -231,6 +236,8 @@ template<typename T> void seq_test(T& tb) {
 		a++;
 		if (trace)
 			cout<<dat.key<<endl;
+		DLOG_EVERY_N(INFO, 100000) << getMemInfo();
+		LOG_IF(INFO, (a > 5000000 ) )<<"!!!!!!!! " <<dat.key<<endl;
 	}
 
 	tb.flush();
@@ -255,10 +262,10 @@ template<typename T> void dump_test(T& tb) {
 template<typename T> void run(T& tb) {
 	//search_test(tb);
 	if (rnd) {
-		random_insert_test(tb);
-		random_search_test(tb);
+		//random_insert_test(tb);
+		//random_search_test(tb);
 		seq_test(tb);
-		dump_test(tb);
+		//dump_test(tb);
 	   //random_delete_test(tb);
 		//search_test(tb);
 	} else {

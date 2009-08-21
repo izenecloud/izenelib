@@ -186,7 +186,8 @@ public:
 				os<<"----|";
 			}
 			//keys[i]->display();
-			os<<keys[i]<<"->"<<values[i];
+			//os<<keys[i]<<"->"<<values[i];
+			//os<<keys[i];
 			size_t pfos=0;
 			//if (parent)
 			//	pfos = parent->fpos;
@@ -231,27 +232,6 @@ private:
 	long _overflowAddress;
 	size_t _overflowPageCount;
 };
-
-/*
-template<typename KeyType, typename ValueType, typename LockType,
-		typename Alloc> size_t
-		sdb_node_< KeyType, ValueType, LockType, Alloc>::activeNodeNum;
-
-template<typename KeyType, typename ValueType, typename LockType,
-		typename Alloc> size_t
-		sdb_node_< KeyType, ValueType, LockType, Alloc>::_pageSize;
-
-template<typename KeyType, typename ValueType, typename LockType,
-		typename Alloc> size_t
-		sdb_node_< KeyType, ValueType, LockType, Alloc>::_maxKeys;
-
-template<typename KeyType, typename ValueType, typename LockType,
-		typename Alloc> size_t
-		sdb_node_< KeyType, ValueType, LockType, Alloc>::_overFlowSize;
-
-template<typename KeyType, typename ValueType, typename LockType,
-		typename Alloc> LockType
-		sdb_node_< KeyType, ValueType, LockType, Alloc>::_fileLock;*/
 
 
 template<typename KeyType, typename ValueType, typename LockType,
@@ -641,7 +621,7 @@ template<typename KeyType, typename ValueType, typename LockType,
 		objCount = 0;
 		keys.resize(0);
 		values.resize(0);
-		children.resize(0);
+		children.resize(0);		
 		isLoaded = false;
 
 		--activeNodeNum;

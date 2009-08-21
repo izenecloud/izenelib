@@ -69,6 +69,10 @@ public:
 		if(dataFile_)
 		close();
 	}
+
+	bool is_open() {
+		return isOpen_;
+	}
 	/**
 	 *  \brief set bucket size of fileHeader
 	 * 
@@ -312,7 +316,32 @@ public:
 			}
 			return true;
 		}
+	}
 
+	bool dump(sdb_hash& other) {
+		if (!is_open() )
+		open();
+		if( !other.is_open() )
+		{
+			if( !other.open() )
+			return false;
+		}
+		SDBCursor locn = get_first_locn();
+		KeyType key;
+		ValueType value;
+		while( seq(locn, key, value) ) {
+			if( !other.insert(key, value) )
+			return false;;
+		}
+		return true;
+	}
+
+	bool dump(const string& fileName)
+	{
+		sdb_hash other(fileName);
+		if( !other.open() )
+		return false;
+		return dump( other );
 	}
 
 	/**
@@ -577,6 +606,8 @@ public:
 	 *   db must be opened to be used.
 	 */
 	bool open() {
+
+		if(isOpen_) return true;
 		struct stat statbuf;
 		bool creating = stat(fileName_.c_str(), &statbuf);
 
@@ -813,6 +844,7 @@ private:
 	 */
 	void flushCache_(bool quickFlush = false)
 	{
+#ifdef SINGLE_SDB
 		static unsigned int count;
 		++count;
 
@@ -834,10 +866,17 @@ private:
 			//	flushCacheImpl_(quickFlush);			
 			//}	
 		}
+#else
+		if( activeNum_> sfh_.cacheSize)
+		{
+			flushCacheImpl_(quickFlush);
+		}
+#endif
 	}
 
 	void flushCache_(SDBCursor &locn)
 	{
+#ifdef 	SINGLE_SDB	
 		static unsigned int count;
 		++count;
 
@@ -846,7 +885,7 @@ private:
 		unsigned long rlimit;
 		ProcMemInfo::getProcMemInfo(vm, rss, rlimit);
 
-		if( rss> sfh_.cacheSize )
+		if(rss> sfh_.cacheSize*sfh_.bucketSize )
 		{
 			KeyType key;
 			ValueType value;
@@ -854,6 +893,16 @@ private:
 			flushCacheImpl_();
 			search(key, locn);
 		}
+#else
+		if( activeNum_> sfh_.cacheSize)
+		{
+			KeyType key;
+			ValueType value;
+			get(locn, key, value);
+			flushCacheImpl_();
+			search(key, locn);
+		}
+#endif
 
 	}
 
