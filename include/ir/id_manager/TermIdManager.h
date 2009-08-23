@@ -188,8 +188,8 @@ bool TermIdManager<NameString, NameID, IDGenerator, IDStorage, RegExp>::
 	// termId contains new id of
 	if (false == idFactory_.getNameIDByNameString(termString, termId) ) {
 		// Write into startSearchIndexer
-		boost::mutex::scoped_lock lock(termIndexerLock_);
-		starSearchIndexer_.insert(termString, (int64_t)termId);
+		//boost::mutex::scoped_lock lock(termIndexerLock_);
+		//starSearchIndexer_.insert(termString, (int64_t)termId);
 		return false;
 	}
 	return true;
