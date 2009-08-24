@@ -37,11 +37,11 @@ class deque_visitor : public boost::static_visitor<void>
 {
 public:
     template<typename T>
-    void operator()(T&v, LAInputUnit u)
+    void operator()(T&v, LAInputUnit& u)
     {
     }
 
-    void operator()(boost::shared_ptr<LAInput>& v, LAInputUnit u)
+    void operator()(boost::shared_ptr<LAInput>& v, LAInputUnit& u)
     {
         v->push_back(u);
     }
@@ -61,9 +61,9 @@ public:
     void getDocId(DocId& docId){ docId.docId = docId_; docId.colId = colId_;}
 
     template<typename T>
-    bool insertProperty(const IndexerPropertyConfig& config, T property)
+    bool insertProperty(const IndexerPropertyConfig& config, T& property)
     {
-        IndexerDocumentPropertyType p =property;
+        IndexerDocumentPropertyType p(property);
         std::pair<std::map<IndexerPropertyConfig, IndexerDocumentPropertyType>::iterator, bool> ret 
 			= propertyList_.insert(std::make_pair(config, p));
         if(ret.second)
