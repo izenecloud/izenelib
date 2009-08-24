@@ -19,6 +19,7 @@ class HashTrie
 #define NODE_ENTRY_SIZE_TABLE_SIZE 4
 
   typedef DocList<> doc_list_t;
+  typedef TermHashTable TrieNode;
 
   TermHashTable *root_;
   TermHashTable* buf_node_;
@@ -434,6 +435,11 @@ public:
     fflush(f_);
     root_ = NULL;
     node_num_ = 0;
+  }
+
+  const TermHashTable* get_root()const
+  {
+    return root_;
   }
   
 }
