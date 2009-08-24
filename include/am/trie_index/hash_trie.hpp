@@ -19,6 +19,7 @@ class HashTrie
 #define NODE_ENTRY_SIZE_TABLE_SIZE 4
 
   typedef DocList<> doc_list_t;
+  typedef TermHashTable TrieNode;
 
   TermHashTable *root_;
   TermHashTable* buf_node_;
