@@ -2,6 +2,7 @@
 #define HASH_TRIE
 
 #include "term_hash_table1.hpp"
+#include "doc_list.hpp"
 #include <vector>
 #include <string>
 #include <math.h>
@@ -17,9 +18,12 @@ class HashTrie
 {
 #define NODE_ENTRY_SIZE_TABLE_SIZE 4
 
+  typedef DocList<> doc_list_t;
+
   TermHashTable *root_;
   TermHashTable* buf_node_;
   FILE* f_;
+  FILE* doc_f_;
   uint32_t node_entry_size_[NODE_ENTRY_SIZE_TABLE_SIZE];
   uint32_t node_num_;
   
@@ -36,6 +40,11 @@ class HashTrie
         if (i == terms.size()-1)//the last one
         {
           //add doc id
+          if (t.get_doc_list() == (uint64_t)-1)
+            t.set_doc_list((uint64_t)(new doc_list_t(docid)));
+          else
+            ((doc_list_t*)t.get_doc_list())->append(docid);
+
           continue;
         }
         
@@ -49,6 +58,11 @@ class HashTrie
       if (i == terms.size()-1)//the last one
       {
         //add doc id
+        if (t.get_doc_list() == (uint64_t)-1)
+          t.set_doc_list((uint64_t)(new doc_list_t(docid)));
+        else
+          ((doc_list_t*)t.get_doc_list())->append(docid);
+
         continue;
       }
       
@@ -118,6 +132,14 @@ class HashTrie
       save_((TermHashTable*)((*i).get_child()));
       (*i).set_child(pos);
       (*i).set_loaded(0);
+
+      uint64_t list = (*i).get_doc_list();
+      if (list !=(uint64_t)-1)
+      {
+        (*i).set_doc_list(ftell(doc_f_));
+        //std::cout<<ftell(doc_f_)<<std::endl;
+        ((doc_list_t*)list)->save(doc_f_);
+      }
     }
 
     if (f)
@@ -147,9 +169,14 @@ class HashTrie
       load_(tht, child);
       (*i).set_child((uint64_t)tht);
       (*i).set_loaded(1);
+
+      if ((*i).get_doc_list() == (uint64_t)-1)
+        continue;
+      
+      doc_list_t* list = new doc_list_t(doc_f_,(*i).get_doc_list());
+      (*i).set_doc_list((uint64_t)list);
     }
   }
-
   
   inline void load()
   {
@@ -166,6 +193,43 @@ class HashTrie
     //std::cout<<"node num loaded: "<<node_num_<<std::endl;
   }
 
+  void get_docs_(uint64_t tb, bool loaded, doc_list_t** list)
+  {
+    if (tb == (uint64_t)-1)
+        return;
+
+    TermHashTable* node = NULL;
+    if (loaded)
+      node = (TermHashTable* )tb;
+    else
+    {
+      node = buf_node_;
+      node->load(f_, tb);
+    }
+    
+
+    std::vector<uint64_t> children;
+    std::vector<bool> loads;
+    
+    for (TermHashTable::const_iterator i=node->begin(); i!=node->end(); ++i)
+    {
+      children.push_back((*i).get_child());
+      loads.push_back((*i).get_loaded());
+      
+      if ((*i).get_doc_list() == (uint64_t)-1)
+        continue;
+      
+      if (*list == NULL)
+        *list = new doc_list_t(*(doc_list_t*)(*i).get_doc_list());
+      else
+        (*list)->append(*(doc_list_t*)(*i).get_doc_list());
+    }
+
+    std::vector<bool>::const_iterator j=loads.begin();
+    for (std::vector<uint64_t>::const_iterator i=children.begin(); i!=children.end(); ++i, ++j)
+      get_docs_(*i,*j, list);
+  }
+  
   
 public:
   HashTrie(const char* nm)
@@ -198,6 +262,20 @@ public:
       std::cout<<"Can't create file: "<<nm<<std::endl;
       return;
     }
+
+    std::string str = nm;
+    str += ".doc";
+    doc_f_ = fopen(str.c_str(), "r+");
+    if (doc_f_ == NULL)
+    {
+      doc_f_ = fopen(str.c_str(), "w+");
+    }
+    
+    if (doc_f_ == NULL)
+    {
+      std::cout<<"Can't create file: "<<str<<std::endl;
+      return;
+    }
   }
 
   ~HashTrie()
@@ -208,7 +286,7 @@ public:
     node_num_ = 0;
     release_(root_);
     assert(nn == node_num_);
-    //std::cout<<"deleting value pool!\n";
+    //std::cout<<"deleting buf_node_!\n";
     delete buf_node_;
   }
 
@@ -305,6 +383,47 @@ public:
     }
 
     return true;
+  }
+
+  bool get_docs(const std::vector<uint64_t>& terms, std::vector<uint32_t>& docs)
+  {
+    docs.clear();
+    doc_list_t* list = NULL;
+    
+    TermHashTable* node = root_;
+    for (std::size_t i=0; i<terms.size(); ++i)
+    {
+      Term t( node->find(terms[i]));
+      if (t.is_null())
+        return false;
+
+      if (i == terms.size()-1)//last one
+      {
+        if (t.get_doc_list()!= (uint64_t)-1)
+        {
+          list = new doc_list_t(*(doc_list_t*)t.get_doc_list());
+        }
+        
+        get_docs_(t.get_child(), t.get_loaded(), &list);
+        
+        if (list == NULL)
+          docs.clear();
+        else
+          list->assign(docs);
+        
+        return true;
+      }
+      
+      if (t.get_loaded())
+      {
+        node = (TermHashTable* )t.get_child();
+        continue;
+      }
+      node = buf_node_;
+      node->load(f_, t.get_child());
+    }
+    
+    return false;
   }
 
   inline void save()

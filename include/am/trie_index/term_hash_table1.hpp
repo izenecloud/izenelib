@@ -160,7 +160,7 @@ public:
   
 friend std::ostream& operator << (std::ostream& os, const Term& t)
   {
-    os<<"<"<<GET_ID(t.buf_)<<" "<<GET_FREQ(t.buf_)<<" "<<GET_LOADED(t.buf_)<<" "<<GET_CHILD(t.buf_)<<" "<<GET_DOC_LIST(t.buf_)<<">";
+    os<<"<"<<GET_ID(t.buf_)<<" "<<GET_FREQ(t.buf_)<<" "<<(int)GET_LOADED(t.buf_)<<" "<<GET_CHILD(t.buf_)<<" "<<GET_DOC_LIST(t.buf_)<<">";
     
     return os;
   }
@@ -457,6 +457,9 @@ public:
 
   inline ~TermHashTable()
   {
+    if (entry_ == NULL)
+      return;
+    
     release();
     free(entry_);
   }
@@ -599,6 +602,7 @@ public:
 
   uint32_t load(FILE* f, uint64_t addr=0)
   {
+    //std::cout<<"load...\n";
     release();
     
     uint64_t s = 0;
