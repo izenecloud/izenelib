@@ -29,6 +29,7 @@
 //#include <util/log.h
 #include <am/trie_index/term_hash_table1.hpp>
 #include <am/trie_index/hash_trie1.hpp>
+#include <am/trie_index/doc_list.hpp>
 #include <util/hashFunction.h>
 #include <string>
 #include <time.h>
@@ -49,8 +50,70 @@ using namespace izenelib::util;
 using namespace std;
 using namespace boost::unit_test;
 
-BOOST_AUTO_TEST_CASE(term_hash_table_check)
+BOOST_AUTO_TEST_CASE(doc_list_check)
 {
+  {
+    FILE* f = fopen("./tt", "w+");
+    DocList<> list(0);
+  
+    for (uint32_t i=1; i<1000000; ++i)
+    {
+      list.append(i);
+    }
+  
+    cout<<"1M 32bit integers takes "<<list.size()<<" bytes.\n";
+    list.compact();
+    cout<<"After compacting, it's "<<list.size()<<" bytes.\n";
+
+    for (uint32_t i=0; i<1000000; ++i)
+    {
+      if (list[i]!=i)
+      {
+        cout<<"DocList ERROR: "<<i<<endl;
+        BOOST_CHECK(false);
+        break;
+      }
+    }
+    
+    list.save(f);
+    fclose(f);
+  }
+
+  {
+    FILE* f = fopen("./tt", "r+");
+    DocList<> list(1000000);
+  
+    for (uint32_t i=1; i<100; ++i)
+    {
+      list.append(1000000+i);
+    }
+
+    DocList<> list1(f, 0);
+    
+    for (uint32_t i=0; i<1000000; ++i)
+    {
+      if (list1[i]!=i)
+      {
+        cout<<"DocList ERROR: "<<i<<endl;
+        BOOST_CHECK(false);
+        break;
+      }
+    }
+    
+    list1.append(list);
+    
+    for (uint32_t i=0; i<1000000+100; ++i)
+    {
+      if (list1[i]!=i)
+      {
+        cout<<"DocList ERROR: "<<list1[i]<<" "<<i<<endl;
+        BOOST_CHECK(false);
+        break;
+      }
+    }
+
+  }
+  
 }
 
 BOOST_AUTO_TEST_CASE(term_hash_table_check)
@@ -140,36 +203,50 @@ BOOST_AUTO_TEST_CASE(hash_trie_check)
   struct timezone tz;
 
   remove ("./tt");
-  remove ("./tt.val");
+  remove ("./tt.doc");
   
   vector<uint64_t> vs;
 
   {
     HashTrie<> ht("./tt");
     vs.push_back(1);vs.push_back(2);vs.push_back(3);vs.push_back(4);
-    ht.insert(vs, 3);
+    ht.insert(vs, 1);
     vs.clear();
   
     vs.push_back(5);vs.push_back(2);vs.push_back(3);vs.push_back(4);vs.push_back(6);
-    ht.insert(vs, 3);
+    ht.insert(vs, 1);
     vs.clear();
 
     vs.push_back(7);vs.push_back(2);vs.push_back(8);vs.push_back(9);vs.push_back(10);
     vs.push_back(11);vs.push_back(12);vs.push_back(13);
-    ht.insert(vs, 3);
+    ht.insert(vs, 2);
     vs.clear();
 
     vs.push_back(14);vs.push_back(15);vs.push_back(13);
     ht.insert(vs, 3);
     vs.clear();
 
+    vector<uint32_t> docs;
+    vs.push_back(2);
+    BOOST_CHECK(ht.get_freq(vs)==3);
+    ht.get_docs(vs, docs);
+    BOOST_CHECK(docs.size()==2);
+    BOOST_CHECK(docs[0]==1);
+    BOOST_CHECK(docs[1]==2);
+    vs.clear();
+    
     ht.save();
   }
   {
-    HashTrie<> ht("./tt");    
+    HashTrie<> ht("./tt");
+    vector<uint32_t> docs;
   
     vs.push_back(2);
     BOOST_CHECK(ht.get_freq(vs)==3);
+    ht.get_docs(vs, docs);
+    BOOST_CHECK(docs.size()==2);
+    BOOST_CHECK(docs[0]==1);
+    BOOST_CHECK(docs[1]==2);
     vs.clear();
 
     vs.push_back(4);
@@ -241,6 +318,7 @@ BOOST_AUTO_TEST_CASE(hash_trie_check)
 
     HashTrie<> ht("./tt");
 
+    uint32_t docid = 0;
     gettimeofday (&tvpre , &tz);
     for (size_t i=0; i<vs.size()-10; i+=10)
     {
@@ -252,7 +330,10 @@ BOOST_AUTO_TEST_CASE(hash_trie_check)
       }
       //cout<<endl;
 
-      ht.insert(terms, 3);
+      if (i%(100*10)==0)
+        ++docid;
+
+      ht.insert(terms, docid);
     }
     gettimeofday (&tvafter , &tz);
     cout<<"\nInsert into trie ("<<vs.size()<<"): "<<((tvafter.tv_sec-tvpre.tv_sec)*1000+(tvafter.tv_usec-tvpre.tv_usec)/1000)/1000.<<std::endl;
@@ -264,10 +345,10 @@ BOOST_AUTO_TEST_CASE(hash_trie_check)
     getchar();
   }
   // {
-//     cout<<"--------------\n";
-//     HashTrie<> ht("./tt");
-//     getchar();    
-//   }
+  //     cout<<"--------------\n";
+  //     HashTrie<> ht("./tt");
+  //     getchar();    
+  //   }
   getchar();
 }
 
