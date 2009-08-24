@@ -63,6 +63,13 @@ template<typename T> void run(T& cm) {
 	//run_del(cm);
 }
 
+
+template<typename T> void run1(T& cm) {
+	run_insert1(cm);
+	//run_getValue(cm);
+	//run_del(cm);
+}
+
 //ofstream  outf("unique.out");
 
 template<typename T> void run_insert(T& cm) {
@@ -76,8 +83,43 @@ template<typename T> void run_insert(T& cm) {
 	while (inf>>ystr) {
 		//cout<<"input ="<<ystr<<" "<<ystr.get_key()<<endl;		
 		sum++;
-		MyDataType dat(ystr);
-		if (cm.getValueWithInsert(ystr, dat) ) {
+		NullType dat;
+		if (cm.insertValue(ystr, dat) ) {
+			hit++;
+
+		} else {
+			//cout<<"input ="<<ystr<<" "<<ystr.get_key()<<endl;	
+			//cout<<"\nnot hit\n";
+			//outf<<ystr<<endl;
+		}
+		if (trace) {
+			cout<<" After insert: key="<<ystr<<endl;
+			cm.display();
+			//cm.display();
+			cout<<"\nnumItem: "<<cm.numItems()<<endl;
+		}
+	}
+	cm.flush();
+	printf("eclipse: %lf seconds\n", double(clock()- t1)/CLOCKS_PER_SEC);
+	//printf("eclipse: %ld seconds\n", time(0)- start);
+	cout<<"\nnumItem: "<<cm.numItems()<<endl;
+
+}
+
+
+template<typename T> void run_insert1(T& cm) {
+	int sum =0;
+	int hit =0;
+	clock_t t1 = clock();
+
+	ifstream inf(inputFile.c_str());
+	string ystr;
+
+	while (inf>>ystr) {
+		//cout<<"input ="<<ystr<<" "<<ystr.get_key()<<endl;		
+		sum++;
+		NullType dat;
+		if (cm.insertValue(boost::tuple<string, int>(ystr, sum), dat) ) {
 			hit++;
 
 		} else {
@@ -100,68 +142,68 @@ template<typename T> void run_insert(T& cm) {
 }
 
 /*
-template<typename T> void run_getValue(T& cm) {
+ template<typename T> void run_getValue(T& cm) {
 
-	clock_t t1 = clock();
-	int count = cm.numItems();
+ clock_t t1 = clock();
+ int count = cm.numItems();
 
-	ifstream inf(inputFile.c_str());
-	vector<MyDataType> result;
-	cm.getValueForward(count, result, "");
-	cout<<"\ngetvalue forward testing...."<<endl;;
-	for (int i=0; i<count; i++) {
-		if (trace) {
-			cout<<result[i].get_key()<<endl;
-		}
-	}
+ ifstream inf(inputFile.c_str());
+ vector<MyDataType> result;
+ cm.getValueForward(count, result, "");
+ cout<<"\ngetvalue forward testing...."<<endl;;
+ for (int i=0; i<count; i++) {
+ if (trace) {
+ cout<<result[i].get_key()<<endl;
+ }
+ }
 
-	cout<<"-------------"<<endl;
-	result.clear();
-	cm.getValueBackward(count, result, "");
-	cout<<"\n\nget value backward testing...."<<endl;;
-	for (int i=0; i<count; i++) {
-		if (trace) {
-			cout<<result[i]<<endl;
-		}
-	}
+ cout<<"-------------"<<endl;
+ result.clear();
+ cm.getValueBackward(count, result, "");
+ cout<<"\n\nget value backward testing...."<<endl;;
+ for (int i=0; i<count; i++) {
+ if (trace) {
+ cout<<result[i]<<endl;
+ }
+ }
 
-	cout<<"-------------"<<endl;
-	result.clear();
-	cm.getValueBackward(3, result, "kkkk");
-	cout<<"\n\nget value backward testing...."<<endl;;
-	for (int i=0; i<3; i++) {
-		if (trace) {
-			cout<<result[i]<<endl;
-		}
-	}
+ cout<<"-------------"<<endl;
+ result.clear();
+ cm.getValueBackward(3, result, "kkkk");
+ cout<<"\n\nget value backward testing...."<<endl;;
+ for (int i=0; i<3; i++) {
+ if (trace) {
+ cout<<result[i]<<endl;
+ }
+ }
 
-	printf("eclipse: %lf seconds\n", double(clock()- t1)/CLOCKS_PER_SEC);
-	cout<< "finish getValue "<<endl;
+ printf("eclipse: %lf seconds\n", double(clock()- t1)/CLOCKS_PER_SEC);
+ cout<< "finish getValue "<<endl;
 
-}
+ }
 
-template<typename T> void run_del(T& cm) {
+ template<typename T> void run_del(T& cm) {
 
-	clock_t t1 = clock();
+ clock_t t1 = clock();
 
-	ifstream inf(inputFile.c_str());
-	string ystr;
-	while (inf>>ystr) {
-		cm.del(ystr) ;
-		if (trace) {
-			cout<< "after delete: key="<<ystr.get_key()<<endl;
-			cout<<"\nnumItem: "<<cm.numItems()<<endl;
-			cm.display();
-		}
+ ifstream inf(inputFile.c_str());
+ string ystr;
+ while (inf>>ystr) {
+ cm.del(ystr) ;
+ if (trace) {
+ cout<< "after delete: key="<<ystr.get_key()<<endl;
+ cout<<"\nnumItem: "<<cm.numItems()<<endl;
+ cm.display();
+ }
 
-	}
-	cm.flush();
-	printf("eclipse: %lf seconds\n", double(clock()- t1)/CLOCKS_PER_SEC);
-	cout<<"\nnumItem: "<<cm.numItems()<<endl;
-	//cm.display1();
+ }
+ cm.flush();
+ printf("eclipse: %lf seconds\n", double(clock()- t1)/CLOCKS_PER_SEC);
+ cout<<"\nnumItem: "<<cm.numItems()<<endl;
+ //cm.display1();
 
-}
-*/
+ }
+ */
 
 int main(int argc, char *argv[]) {
 
@@ -199,12 +241,23 @@ int main(int argc, char *argv[]) {
 	}
 	try
 	{
-		SDB sdb(indexFile);
-		sdb.setDegree(degree);
-		sdb.setPageSize(pageSize);
-		sdb.setCacheSize(cacheSize);
-		sdb.open();
-		run(sdb);
+		{
+			SDB sdb(indexFile);
+			sdb.setDegree(degree);
+			sdb.setPageSize(pageSize);
+			sdb.setCacheSize(cacheSize);
+			sdb.open();
+			run(sdb);
+		}
+		
+		{
+            SequentialDB<boost::tuple<string, int>  >sdb( string("compound_")+indexFile );
+			sdb.setDegree(degree);
+			sdb.setPageSize(pageSize);
+			sdb.setCacheSize(cacheSize);
+			sdb.open();
+			run1(sdb);
+		}
 
 	}
 	catch(bad_alloc)

@@ -251,7 +251,7 @@ template<typename T> void dump_test(T& tb) {
 
 	clock_t start, finish;
 	start = clock();
-    tb.dump("sdb.dat.bak");    
+    tb.dump2f("sdb.dat.bak");    
 	finish = clock();
 	printf("\nIt takes %f seconds for dump! \n",
 			(double)(finish - start) / CLOCKS_PER_SEC);
@@ -262,10 +262,10 @@ template<typename T> void dump_test(T& tb) {
 template<typename T> void run(T& tb) {
 	//search_test(tb);
 	if (rnd) {
-		//random_insert_test(tb);
-		//random_search_test(tb);
+		random_insert_test(tb);
+		random_search_test(tb);
 		seq_test(tb);
-		//dump_test(tb);
+		dump_test(tb);
 	   //random_delete_test(tb);
 		//search_test(tb);
 	} else {
