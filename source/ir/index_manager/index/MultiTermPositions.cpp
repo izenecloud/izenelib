@@ -89,7 +89,6 @@ freq_t MultiTermPositions::docFreq()
 
 freq_t MultiTermPositions::docLength()
 {
-cout<<"MultiTermPositions "<<this<<endl;
     list<BarrelTermPositionsEntry*>::iterator iter = termPositionsList.begin();
     return (*iter)->termPositions->docLength();
 }
