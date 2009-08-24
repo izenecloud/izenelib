@@ -296,7 +296,7 @@ bool MessageClientFull::getHostsOfService(const std::string& serviceName,
 			if( servicePermissionInfo.getServerMap().empty() )
 			{
 				acceptedPermissionList_.erase(serviceName);
-				LOG(ERROR) << "[Client:" << getName();
+				LOG(ERROR) << "[Client:" << getName()
 				 << "] Service " << serviceName << " is not listed in Message Controller." << std::endl;
 
 				 LOG(ERROR) << "getPermissionOfService returns false(service is not available at MessageController)"<<std::endl;
