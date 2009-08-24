@@ -435,6 +435,11 @@ public:
     root_ = NULL;
     node_num_ = 0;
   }
+
+  const TermHashTable* get_root()const
+  {
+    return root_;
+  }
   
 }
 ;
