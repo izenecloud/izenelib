@@ -386,13 +386,15 @@ private:
 	size_t _activeNodeNum;
 private:
 	unsigned long _initRss;
+	unsigned int _flushCount;
 
 	void _flushCache(bool quickFlush=false) {
 #ifndef MUL_SDB
-		static unsigned int count;
-		++count;
+		//static unsigned int count;
+		//++count;
+		++_flushCount;
 
-		if( (count & 0xffff) == 0 ) {
+		if( (_flushCount & 0xffff) == 0 ) {
 			unsigned long vm = 0, rss=0;
 			unsigned long rlimit;
 			ProcMemInfo::getProcMemInfo(vm, rss, rlimit);
@@ -416,10 +418,10 @@ private:
 	void _flushCache(SDBCursor& locn) {
 
 #ifndef MUL_SDB		
-		static unsigned int count;
-		++count;
+		//static unsigned int count;
+		++_flushCount;
 
-		if( (count & 0xffff) == 0 ) {
+		if( (_flushCount & 0xffff) == 0 ) {
 			unsigned long vm = 0, rss=0;
 			unsigned long rlimit;
 			ProcMemInfo::getProcMemInfo(vm, rss, rlimit);
@@ -600,6 +602,7 @@ template<typename KeyType, typename ValueType, typename LockType,
 		unsigned long rlimit;
 		ProcMemInfo::getProcMemInfo(vm, _initRss, rlimit);
 	}
+	_flushCount = 0;
 
 }
 
