@@ -27,8 +27,8 @@
 /// \n
 /// -# Tested all the interfaces by using correct and incorrect test sets.
 //#include <util/log.h
-#include <am/trie_index/term_hash_table.hpp>
-#include <am/trie_index/hash_trie.hpp>
+#include <am/trie_index/term_hash_table1.hpp>
+#include <am/trie_index/hash_trie1.hpp>
 #include <util/hashFunction.h>
 #include <string>
 #include <time.h>

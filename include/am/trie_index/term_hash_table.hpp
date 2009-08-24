@@ -2,32 +2,43 @@
 #define TERM_HASH_TABLE
 
 #include<types.h>
-#include <ostream>
-#include <assert.h>
-#include <stdio.h>
+#include<stdlib.h>
+#include<stdio.h>
 #include <iostream>
-//#include <hashfunction.h>
+#include <assert.h>
 
 NS_IZENELIB_AM_BEGIN
 
 
 /**
-   len(1)|value(8)|term\0|....
+   len(1)|freq(4)|loaded(1)|child(8)|doc_list(8)|term\0|....
  **/
 class Term
 {
 public:
-  typedef uint8_t len_t;
+  typedef uint32_t freq_t;
+  typedef uint64_t termid_t;
 
 private:
   char* buf_;
 
-  struct TERM_HEAD
+public:
+  struct TERM
   {
-    len_t len_;
-    len_t value_[8];
+    char id[sizeof(termid_t)];
+    char   freq[sizeof(freq_t)];
+    char loaded;
+    char child[8];
+    char doc_list[8];
   }
     ;
+protected:
+  
+#define GET_ID(buf) (*(termid_t*)((TERM*)(buf))->id)
+#define GET_FREQ(buf) (*(freq_t*)((TERM*)(buf))->freq)
+#define GET_LOADED(buf) (((TERM*)(buf))->loaded)
+#define GET_CHILD(buf) (*(uint64_t*)((TERM*)(buf))->child)
+#define GET_DOC_LIST(buf) (*(uint64_t*)((TERM*)(buf))->doc_list)
 
 public:
   inline explicit Term(char* buf)
@@ -35,71 +46,103 @@ public:
   {
   }
 
-  Term(const char* str, len_t len/*'\0' excluded*/, char* buf, uint64_t value)
+  Term(termid_t id,  char* buf, uint64_t child = -1, uint64_t doc_list = -1)
   {
     buf_ = buf;
-    ((TERM_HEAD*)buf_)->len_ = ++len;
-    *(uint64_t*)((TERM_HEAD*)buf_)->value_ = value;
-
-    buf = buf_+sizeof(struct TERM_HEAD);
-    for (len_t i = 0; i<len;++i,++buf)
-      *buf = str[i];
-
-    *buf = '\0';
-
-    //std::cout<<"--"<<*this<<std::endl;
+    GET_ID(buf_) = id;
+    GET_FREQ(buf_) = 1;
+    GET_LOADED(buf_) = 0;
+    GET_CHILD(buf_) = child;
+    GET_DOC_LIST(buf_) = doc_list;
+    
   }
 
-  static inline uint32_t need_size(uint8_t s)
+  static inline uint32_t need_size()
   {
-    return sizeof(struct TERM_HEAD)+s+1;
+    return sizeof(struct TERM);
   }
   
-
-  inline len_t length()const
+  static inline uint32_t size()
   {
-    return ((TERM_HEAD*)buf_)->len_-1;
+    return sizeof(struct TERM);
+  }
+  
+  inline freq_t frequency()const
+  {
+    return GET_FREQ(buf_);
   }
 
-  inline uint32_t size()const
+  inline bool get_loaded()const
   {
-    return ((TERM_HEAD*)buf_)->len_ + sizeof(struct TERM_HEAD);
+    return GET_LOADED(buf_);
   }
 
-  inline uint64_t value()const
+  inline uint64_t get_child()const
   {
-    return *(uint64_t*)((TERM_HEAD*)buf_)->value_;
+    return GET_CHILD(buf_);
   }
 
-  inline const char* term() const
+  inline uint64_t get_doc_list()const
   {
-    return buf_+sizeof(struct TERM_HEAD);
+    return GET_DOC_LIST(buf_);
+  }
+
+  inline termid_t get_id() const
+  {
+    return GET_ID(buf_);
   }
 
   inline char* next() const
   {
-    return buf_ + sizeof(struct TERM_HEAD)+ ((TERM_HEAD*)buf_)->len_;
+    return buf_+sizeof(struct TERM);
+  }
+  
+  bool operator == (const Term& term)
+  {
+    return get_id() == term.get_id();
   }
 
+  bool operator == (const char* str)
+  {
+    return get_id() == GET_ID(str);
+  }
+  
+  inline void add_freq()
+  {
+    GET_FREQ(buf_)++;
+  }
+
+  inline uint32_t get_freq()const
+  {
+    return GET_FREQ(buf_);
+  }
+
+  inline void set_loaded(bool b)
+  {
+    GET_LOADED(buf_) = b;
+  }
+  
+  inline void set_child(uint64_t child)
+  {
+    GET_CHILD(buf_) = child;
+  }
+
+  inline void set_doc_list(uint64_t list)
+  {
+    GET_DOC_LIST(buf_) = list;
+  }
+
+  
   /**
      If it's not equal, return next term, if it is, return current term.
    **/
-  inline bool is_equal(const char* str, len_t len, char** t)
+  inline bool is_equal(uint64_t id, char** t)
   {
-    if (((TERM_HEAD*)buf_)->len_-1!=len)
+    if (get_id()!=id)
     {
       *t = next();
       return false;
     }
-
-    char* buf = buf_ + sizeof(struct TERM_HEAD);
-    
-    for (len_t i=0; i<len; ++i, ++buf)
-      if (*buf != str[i])
-      {
-        *t = (buf+len-i+1);
-        return false;
-      }
 
     *t = (buf_);
     return true;
@@ -109,180 +152,151 @@ public:
   {
     return buf_!=other.buf_;
   }
+
+  inline bool is_null()const
+  {
+    return buf_==NULL;
+  }
   
 friend std::ostream& operator << (std::ostream& os, const Term& t)
   {
-    os<<t.buf_+sizeof(struct Term::TERM_HEAD );
+    os<<"<"<<GET_ID(t.buf_)<<" "<<GET_FREQ(t.buf_)<<" "<<(int)GET_LOADED(t.buf_)<<" "<<GET_CHILD(t.buf_)<<" "<<GET_DOC_LIST(t.buf_)<<">";
+    
     return os;
   }
-  
-//   inline void add_freq()
-//   {
-//     *(freq_t*)(buf_+sizeof(len_t)) += 1;
-//   }
 
-//   inline void set_child(uint64_t child)
-//   {
-//     *(uint64_t*)(buf_+sizeof(len_t)+sizeof(freq_t)+1) = child;
-//   }
-
-//   inline void set_doc_list(uint64_t list)
-//   {
-//     *(uint64_t*)(buf_+sizeof(len_t)+sizeof(freq_t)+1+sizeof(uint64_t)) = list;
-//   }
-  
   
 }  ;
 
 
 /**
-   max_size(4)|size(4)|index(4)|count(4)|Term...
+   max_size(4)|size(4)|Term...
    max_size is the size of the entire buffer ;
  **/
 class Row
 {
   struct ROW_HEAD
   {
-    uint32_t max_size_;
-    uint32_t size_;
-    uint32_t index_;
-    uint32_t count_;
+    uint32_t max_size;
+    uint32_t size;
   }
     ;
-  
-  char* buf_;
-  bool  const_buf_;
 
+  char* buf_;
+
+#define GET_MAX_SIZE(buf) (((ROW_HEAD*)(buf))->max_size)
+#define GET_SIZE(buf) (((ROW_HEAD*)(buf))->size)
 public:
-  typedef uint8_t len_t;
   
-  inline Row(uint32_t size, uint32_t index)
+  inline Row(Term::termid_t id)
   {
-    size = Term::need_size(size) + sizeof(struct ROW_HEAD)+1;
-    buf_ = (char*)malloc(size);
-    const_buf_ = false;
-    ROW_HEAD * h = (ROW_HEAD*)buf_;
-    h->max_size_ = size;
-    h->size_ = 4*sizeof(uint32_t);
-    h->index_ = index;
-    h->count_ = 0;
+    buf_ = (char*)malloc(sizeof (struct ROW_HEAD) + sizeof(struct Term::TERM));
+    GET_MAX_SIZE(buf_) = sizeof (struct ROW_HEAD)+sizeof(struct Term::TERM);
+    GET_SIZE(buf_) = sizeof (struct ROW_HEAD)+sizeof(struct Term::TERM);
+    Term(id, buf_+sizeof(struct ROW_HEAD));
   }
 
+  
   inline Row(FILE* f)
   {
     uint32_t size = 0;
     assert(fread(&size, sizeof(uint32_t), 1, f)==1);
     buf_ = (char*)malloc(size);
-    ((ROW_HEAD*)buf_)->size_ = size;
+    GET_MAX_SIZE(buf_) = size;
     assert(fread(buf_+sizeof(uint32_t), size-sizeof(uint32_t), 1, f)==1);
-    const_buf_ = false;
-  }
-  
-  inline Row(char* buf)
-  {
-    buf_ = buf;
-    const_buf_ = true;
   }
 
   inline ~Row()
   {
-    if (!const_buf_)
-      free(buf_);
+    free(buf_);
   }
 
+  inline uint32_t max_size()const
+  {
+    return GET_MAX_SIZE(buf_);
+  }
+
+  inline uint32_t size() const
+  {
+    return GET_SIZE(buf_);
+  }
+
+  inline uint32_t count()const
+  {
+    return (GET_SIZE(buf_) - sizeof (struct ROW_HEAD))/sizeof(struct Term::TERM);
+  }
+  
+  inline char* append_term(const Term::termid_t id)
+  {
+    while (max_size()-size()<= Term::need_size())
+    {
+      buf_ = (char*)realloc(buf_, 2*size());
+      GET_MAX_SIZE(buf_) = 2*size();
+    }
+
+    char* r = buf_+size();
+    Term t(id, r);
+    GET_SIZE(buf_) = t.size();//add size
+
+    return r;
+  }
+  
+  char* find(Term::termid_t id)
+  {
+    char* p = buf_ + sizeof(struct ROW_HEAD);
+    uint32_t num = count();
+    
+    for (uint32_t i=0; i<num; ++i)
+    {
+      Term t(p);
+      if (t.is_equal(id, &p))
+        return p;
+    }
+
+    return NULL;
+  }
+
+  char* add_term(const Term::termid_t id, bool& is_new)
+  {
+    is_new = false;
+    
+    char* p = buf_+sizeof(struct ROW_HEAD);
+    uint32_t num = count();
+    for (uint32_t i=0; i<num; ++i)
+    {
+      Term t(p);
+      if (t.get_id() == id)
+      {
+        t.add_freq();
+        return p;
+      }
+      p = t.next();
+    }
+    
+    while (max_size()-size()<= Term::need_size())
+    {
+      buf_ = (char*)realloc(buf_, 2*size());
+      GET_MAX_SIZE(buf_) = 2*size();
+    }
+
+    p = buf_+size();
+    Term t(id, p);
+    GET_SIZE(buf_) += t.size();//add size
+    
+    is_new = true;
+
+    return p;
+    
+  }
+  
   inline const char* get_buf()const
   {
     return buf_;
   }
 
-  inline Term begin()const
+  inline char*  begin()const
   {
-    return Term(buf_ + sizeof(struct ROW_HEAD));
-  }
-  
-  inline uint32_t max_size()const
-  {
-    return ((ROW_HEAD*)buf_)->max_size_;
-  }
-
-  inline uint32_t size() const
-  {
-    return ((ROW_HEAD*)buf_)->size_;
-  }
-
-  inline uint32_t count()const
-  {
-    return ((ROW_HEAD*)buf_)->count_;
-  }
-
-  inline void set_index(uint32_t i)
-  {
-    ((ROW_HEAD*)buf_)->index_ = i;
-  }
-
-  inline uint32_t index()const
-  {
-    return ((ROW_HEAD*)buf_)->index_;
-  }
-  
-  inline void append_term(const char* str, len_t len, uint64_t value)
-  {
-    while (max_size()-size()<= Term::need_size(len))
-    {
-      buf_ = (char*)realloc(buf_, 2*size());
-      ((ROW_HEAD*)buf_)->max_size_ = 2*size();
-    }
-
-    char* r = buf_ + size();
-    Term t(str, len, r, value);
-    ((ROW_HEAD*)buf_)->size_ += t.size();
-    ((ROW_HEAD*)buf_)->count_++;
-  }
-
-  uint64_t add_term(const char* str, len_t len, uint64_t value)
-  {
-    char* p = buf_ + sizeof(struct ROW_HEAD);
-    uint32_t num = count();
-    
-    for (uint32_t i=0; i<num; ++i)
-    {
-      Term t(p);
-      if (t.is_equal(str, len, &p))
-        return t.value();
-    }
-
-    while (max_size()-size()<= Term::need_size(len))
-    {
-      uint32_t g = p - buf_;
-      buf_ = (char*)realloc(buf_, 2*size());
-      ((ROW_HEAD*)buf_)->max_size_ = 2*size();
-      p = buf_ + g;
-    }
-    
-    Term t = Term(str, len, p, value);
-
-    ((ROW_HEAD*)buf_)->size_ += t.size();
-    ((ROW_HEAD*)buf_)->count_++;
-
-    //std::cout<<"=="<<*this<<std::endl;
-
-    return value;
-    
-  }
-
-  uint64_t find(const char* str, len_t len)
-  {
-    char* p = buf_ + sizeof(struct ROW_HEAD);
-    uint32_t num = count();
-    
-    for (uint32_t i=0; i<num; ++i)
-    {
-      Term t(p);
-      if (t.is_equal(str, len, &p))
-        return t.value();
-    }
-
-    return -1;
+    return (buf_ + sizeof(struct ROW_HEAD));
   }
 
   inline void compact()
@@ -292,24 +306,21 @@ public:
       return;
 
     buf_ = (char*)realloc(buf_, s);
-    ((ROW_HEAD*)buf_)->max_size_ = s;
+    GET_MAX_SIZE(buf_) = s;
   }
 
-  inline uint64_t save(FILE* f)
+  inline uint32_t save(FILE* f)
   {
-    uint32_t s = ((ROW_HEAD*)buf_)->max_size_;
-    ((ROW_HEAD*)buf_)->max_size_ = ((ROW_HEAD*)buf_)->size_;
-    
-    assert(fwrite(buf_, ((ROW_HEAD*)buf_)->size_, 1, f)==1);
-    ((ROW_HEAD*)buf_)->max_size_ = s;
-
-    return ((ROW_HEAD*)buf_)->size_;
+    uint32_t s = GET_MAX_SIZE(buf_);
+    GET_MAX_SIZE(buf_) = size();
+    assert(fwrite(buf_, size(), 1, f)==1);
+    GET_MAX_SIZE(buf_) = s;
+    return size();
   }
-  
 
 friend std::ostream& operator << (std::ostream& os, const Row& row)
   {
-    os<<"\nmax_size:"<<row.max_size()<<"|size:"<<row.size()<<"|index:"<<row.index()<<"|count:"<<row.count()<<"\n----------\n";
+    os<<"\nmax_size:"<<row.max_size()<<"|size:"<<row.size()<<"|count:"<<row.count()<<"\n----------\n";
 
     Term t(row.buf_+sizeof(struct Row::ROW_HEAD));
     
@@ -334,7 +345,6 @@ class TermHashTable
   uint32_t entry_size_;
 
   typedef TermHashTable SelfT;
-  typedef uint8_t len_t;
 
 public:
   class const_iterator
@@ -347,7 +357,7 @@ public:
   public:
     const_iterator(const Row** entry, uint32_t entry_size, uint32_t entry_num)
       : entry_(entry), entry_size_ (entry_size), entry_num_(entry_num),
-        t_(entry_num< entry_size? entry_[entry_num_]->begin(): Term(0))
+        t_(entry_num< entry_size? Term(entry_[entry_num_]->begin()): Term(0))
     {
     }
 
@@ -357,7 +367,7 @@ public:
     {
     }
 
-    const Term& operator *()const
+    Term& operator *()
     {
       return t_;
     }
@@ -371,7 +381,7 @@ public:
         for (++entry_num_; entry_num_<entry_size_; ++entry_num_)
           if (entry_[entry_num_]!=NULL)
           {
-            t_ = entry_[entry_num_]->begin();
+            t_ = Term(entry_[entry_num_]->begin());
             return *this;
           }
         
@@ -447,6 +457,9 @@ public:
 
   inline ~TermHashTable()
   {
+    if (entry_ == NULL)
+      return;
+    
     release();
     free(entry_);
   }
@@ -476,39 +489,35 @@ public:
     return s;
   }
   
-  uint64_t insert(const char* str, len_t len, uint64_t value)
+  char* insert(Term::termid_t id, bool& is_new)
   {
-    register uint32_t convkey = 0;
-    register const char* s = str;
+    is_new = false;
     
-    for (register uint8_t i = 0; i<len; i++)
-      convkey = 37*convkey + *s++;
-    convkey %= entry_size_;
+    uint32_t convkey = id%entry_size_;
 
     if (entry_[convkey] == NULL)
-      entry_[convkey] = new Row(len, convkey);
+    {
+      entry_[convkey] = new Row(id);
+      is_new = true;
+      ++num_;
+      return entry_[convkey]->begin();
+    }
 
-    
-    uint64_t r = entry_[convkey]->add_term(str,len, value);
-    if (r == value)
+    char* r = entry_[convkey]->add_term(id, is_new);
+    if (is_new)
       ++num_;
     
     return r;
   }
 
-  uint64_t find(const char* str, len_t len)
+  char* find(Term::termid_t id)
   {
-    register uint32_t convkey = 0;
-    register const char* s = str;
-    
-    for (register uint8_t i = 0; i<len; i++)
-      convkey = 37*convkey + *s++;
-    convkey %= entry_size_;
+    uint32_t convkey = id%entry_size_;
 
     if (entry_[convkey] == NULL)
-      return -1;
+      return NULL;
 
-    return entry_[convkey]->find(str, len);
+    return entry_[convkey]->find(id);
 
   }
   
@@ -540,6 +549,7 @@ public:
       if (entry_[i]!= NULL)
       {
         ++entry_num;
+        assert(fwrite(&i, sizeof(uint32_t),1, f)==1);
         s += entry_[i]->save(f);
       }
 
@@ -553,51 +563,53 @@ public:
     fseek(f, pos2, SEEK_SET);
   }
 
-  char* load(char* buf, uint32_t buf_size, FILE* f, uint64_t addr=0)
-  {
-    release();
-    uint64_t s = 0;
+//   char* load(char* buf, uint32_t buf_size, FILE* f, uint64_t addr=0)
+//   {
+//     release();
+//     uint64_t s = 0;
 
-    fseek(f, addr, SEEK_SET);
-    assert(fread(&s, sizeof(uint64_t),1, f)==1);
-    if (s > buf_size)
-      return NULL;
+//     fseek(f, addr, SEEK_SET);
+//     assert(fread(&s, sizeof(uint64_t),1, f)==1);
+//     if (s > buf_size)
+//       return NULL;
 
-    uint32_t es = 0;
-    //entry number
-    assert(fread(&es, sizeof(uint32_t),1, f)==1);
-    assert(fread(&es, sizeof(uint32_t),1, f)==1);
+//     uint32_t es = 0;
+//     //entry number
+//     assert(fread(&es, sizeof(uint32_t),1, f)==1);
+//     assert(fread(&es, sizeof(uint32_t),1, f)==1);
 
-    if (entry_==NULL || es != entry_size_)
-    {
-      entry_size_ = es;
-      entry_ = (Row**)malloc(entry_size_*sizeof(Row*));//entry_ = new Row*[entry_size_];
-      for (uint32_t i=0;i<entry_size_; ++i)
-        entry_[i] = NULL;
-    }
+//     if (entry_==NULL || es != entry_size_)
+//     {
+//       entry_size_ = es;
+//       entry_ = (Row**)malloc(entry_size_*sizeof(Row*));//entry_ = new Row*[entry_size_];
+//       for (uint32_t i=0;i<entry_size_; ++i)
+//         entry_[i] = NULL;
+//     }
     
-    assert(fread(&num_, sizeof(uint32_t),1, f)==1);
-    assert(fread(buf, s, 1, f)==1);
+//     assert(fread(&num_, sizeof(uint32_t),1, f)==1);
+//     assert(fread(buf, s, 1, f)==1);
 
-    uint64_t size = 0;
-    while (size<s)
-    {
-      Row* row = new Row(buf+size);
-      entry_[row->index()] = row;
-      size += row->size();
-    }
+//     uint64_t size = 0;
+//     while (size<s)
+//     {
+//       Row* row = new Row(buf+size);
+//       entry_[row->index()] = row;
+//       size += row->size();
+//     }
 
-    return buf;
-  }
+//     return buf;
+//   }
 
   uint32_t load(FILE* f, uint64_t addr=0)
   {
+    //std::cout<<"load...\n";
     release();
     
     uint64_t s = 0;
     uint32_t entry_num = 0;
 
     fseek(f, addr+sizeof(uint64_t), SEEK_SET);
+    
     assert(fread(&entry_num, sizeof(uint32_t),1, f)==1);
     //entry size
     assert(fread(&s, sizeof(uint32_t),1, f)==1);
@@ -616,8 +628,10 @@ public:
     assert(fread(&num_, sizeof(uint32_t),1, f)==1);
     for (uint32_t i=0; i<entry_num; ++i)
     {
+      uint32_t e = 0;
+      assert(fread(&e, sizeof(uint32_t),1, f)==1);
       Row* row = new Row(f);
-      entry_[row->index()] = row;
+      entry_[e] = row;
       size += row->size();
     }
     
@@ -629,6 +643,7 @@ friend std::ostream& operator << (std::ostream& os, const SelfT& tb)
     for (uint32_t i=0; i<tb.entry_size_; ++i)
       if (tb.entry_[i]!= NULL)
       {
+        os<<i<<" ########\n";
         os<<(*tb.entry_[i]);
       }
     return os;
@@ -637,206 +652,6 @@ friend std::ostream& operator << (std::ostream& os, const SelfT& tb)
 }
   ;
 
-template <
-  uint32_t CACHE_SIZE = 10 //MB
-  >
-class TermPropertyVector
-{
-  struct PROPERTY
-  {
-    char freq_[4];
-    char loaded_;
-    char child_[8];
-    char doc_list_[8];
-
-#define GET_FREQ(buf) (*(uint32_t*)((PROPERTY*)(buf))->freq_)
-#define GET_LOADED(buf) (((PROPERTY*)(buf))->loaded_)
-#define GET_CHILD(buf) (*(uint64_t*)((PROPERTY*)(buf))->child_)
-#define GET_DOC_LIST(buf) (*(uint64_t*)((PROPERTY*)(buf))->doc_list_)
-  }
-    ;
-
-  char* buf_;
-  uint64_t num_;
-  uint64_t start_addr_;
-  uint64_t p_;
-  bool     changed_;
-  FILE* f_;
-
-  inline bool is_in_mem(uint64_t addr)
-  {
-    return addr>=start_addr_ && addr+sizeof(struct PROPERTY) <= start_addr_+p_;
-  }
-
-  inline void load_from(uint64_t addr)
-  {
-    //std::cout<<p_<<" "<<addr<<" "<<start_addr_<<" load...\n";
-    if (changed_)
-      flush();
-    
-    fseek(f_, addr, SEEK_SET);
-    fread(buf_, CACHE_SIZE*1000000, 1, f_);
-    start_addr_ = addr;
-
-    p_ = CACHE_SIZE*1000000;
-    if (num_*sizeof(struct PROPERTY)+sizeof(uint64_t) - start_addr_ < p_)
-      p_ = num_*sizeof(struct PROPERTY)+sizeof(uint64_t) - start_addr_;
-    
-    changed_ = false;
-  }
-
-  inline void flush()
-  {
-    std::cout<<"flush...\n";
-    fseek(f_, 0, SEEK_SET);
-    assert(fwrite(&num_, sizeof(uint64_t), 1, f_)==1);
-    
-    fseek(f_, start_addr_, SEEK_SET);
-    assert(fwrite(buf_, p_, 1, f_)==1);
-    fflush(f_);
-    start_addr_ += p_;
-    p_ = 0;
-    changed_ = false;
-  }
-  
-public:
-  inline TermPropertyVector(const char* nm)
-  {
-    buf_ = (char*)malloc(CACHE_SIZE*1000000);
-    start_addr_ = p_ = num_ = 0;
-    changed_ = false;
-
-    f_ = fopen(nm, "r+");
-    if (f_ == NULL)
-    {
-      f_ = fopen(nm, "w+");
-      assert(fwrite(&num_, sizeof(uint64_t), 1, f_)==1);
-    }
-    else
-    {
-      assert(fread(&num_, sizeof(uint64_t), 1, f_)==1);
-      load_from(sizeof(uint64_t));
-    }
-    
-    if (f_ == NULL)
-    {
-      std::cout<<"Can't create file: "<<nm<<std::endl;
-      return;
-    }
-
-    start_addr_ = sizeof(uint64_t);
-  }
-
-  inline ~TermPropertyVector()
-  {
-    if (changed_)
-      flush();
-    fclose(f_);
-    free(buf_);
-  }
-
-  inline uint32_t get_freq(uint64_t addr) 
-  {
-    if (!is_in_mem(addr))
-      load_from(addr);
-
-    return GET_FREQ(buf_+addr-start_addr_);
-  }
-
-  inline uint8_t get_loaded(uint64_t addr) 
-  {
-    if (!is_in_mem(addr))
-      load_from(addr);
-
-    return GET_LOADED(buf_+addr-start_addr_);
-  }
-
-  inline uint64_t get_child(uint64_t addr) 
-  {
-    if (!is_in_mem(addr))
-      load_from(addr);
-
-    return GET_CHILD(buf_+addr-start_addr_);
-  }
-
-  inline uint64_t get_doc_list(uint64_t addr) 
-  {
-    if (!is_in_mem(addr))
-      load_from(addr);
-
-    return GET_DOC_LIST(buf_+addr-start_addr_);
-  }
-
-  inline void add_freq(uint64_t addr) 
-  {
-    if (!is_in_mem(addr))
-      load_from(addr);
-
-    GET_FREQ(buf_+addr-start_addr_)++;
-    changed_ = true;
-  }
-
-  inline void set_loaded(uint64_t addr, uint8_t loaded) 
-  {
-    if (!is_in_mem(addr))
-      load_from(addr);
-
-    GET_LOADED(buf_+addr-start_addr_) = loaded;
-    changed_ = true;
-  }
-
-  inline void set_child(uint64_t addr, uint64_t child) 
-  {
-    if (!is_in_mem(addr))
-      load_from(addr);
-
-    GET_CHILD(buf_+addr-start_addr_) = child;
-    changed_ = true;
-  }
-
-  inline void set_doc_list(uint64_t addr, uint64_t list) 
-  {
-    if (!is_in_mem(addr))
-      load_from(addr);
-
-    GET_DOC_LIST(buf_+addr-start_addr_) = list;
-    changed_ = true;
-  }
-
-  inline uint64_t touch_append()const
-  {
-    return num_*sizeof(struct PROPERTY)+sizeof(uint64_t);
-  }
-  
-  inline uint64_t append(uint32_t freq = 0, uint8_t loaded=0, uint64_t child=-1, uint64_t doc_list=-1)
-  {
-    if (p_ + sizeof(struct PROPERTY)>=CACHE_SIZE*1000000 && changed_)
-      flush();
-    
-    GET_FREQ(buf_+p_) = freq;
-    GET_CHILD(buf_+p_) = child;
-    GET_DOC_LIST(buf_+p_) = doc_list;
-    GET_LOADED(buf_+p_) = loaded;
-
-    changed_ = true;
-    p_ += sizeof(struct PROPERTY);
-    num_++;
-
-    return start_addr_ + p_ - sizeof(struct PROPERTY);
-  }
-
-  inline uint64_t get_num()const
-  {
-    return num_;
-  }
-
-  inline uint64_t size()const
-  {
-    return num_*sizeof(struct PROPERTY)+sizeof(uint64_t);
-  }
-  
-}
-  ;
 NS_IZENELIB_AM_END
 
 #endif
