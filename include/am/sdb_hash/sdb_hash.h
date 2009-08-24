@@ -60,6 +60,12 @@ public:
 		isOpen_ = false;
 		activeNum_ = 0;
 		cacheSize_ = 0;
+
+		{
+			unsigned long vm = 0;
+			unsigned long rlimit;
+			ProcMemInfo::getProcMemInfo(vm, initRss_, rlimit);
+		}
 	}
 
 	/**
@@ -318,7 +324,8 @@ public:
 		}
 	}
 
-	bool dump(sdb_hash& other) {
+	template<typename AM>
+	bool dump(AM& other) {
 		if (!is_open() )
 		open();
 		if( !other.is_open() )
@@ -336,7 +343,7 @@ public:
 		return true;
 	}
 
-	bool dump(const string& fileName)
+	bool dump2f(const string& fileName)
 	{
 		sdb_hash other(fileName);
 		if( !other.open() )
@@ -742,6 +749,12 @@ public:
 				}
 			}
 		}
+
+		{
+			unsigned long vm = 0;
+			unsigned long rlimit;
+			ProcMemInfo::getProcMemInfo(vm, initRss_, rlimit);
+		}
 	}
 	/**
 	 *  display the info of sdb_hash
@@ -810,6 +823,8 @@ private:
 	size_t directorySize_;
 	size_t dmask_;
 	size_t cacheSize_;
+	
+	unsigned long initRss_;
 
 	/**
 	 *   Allocate an bucket_chain element 
@@ -844,7 +859,7 @@ private:
 	 */
 	void flushCache_(bool quickFlush = false)
 	{
-#ifdef SINGLE_SDB
+#ifndef MUL_SDB
 		static unsigned int count;
 		++count;
 
@@ -855,7 +870,7 @@ private:
 			ProcMemInfo::getProcMemInfo(vm, rss, rlimit);
 
 			//if( _activeNodeNum> _sfh.cacheSize/1024 )
-			if(rss> sfh_.cacheSize*sfh_.bucketSize )
+			if(rss - initRss_> sfh_.cacheSize*sfh_.bucketSize )
 			{
 				flushCacheImpl_(quickFlush);
 			}
@@ -876,7 +891,7 @@ private:
 
 	void flushCache_(SDBCursor &locn)
 	{
-#ifdef 	SINGLE_SDB	
+#ifndef 	MUL_SDB	
 		static unsigned int count;
 		++count;
 
@@ -885,7 +900,7 @@ private:
 		unsigned long rlimit;
 		ProcMemInfo::getProcMemInfo(vm, rss, rlimit);
 
-		if(rss> sfh_.cacheSize*sfh_.bucketSize )
+		if(rss - initRss_> sfh_.cacheSize * sfh_.bucketSize )
 		{
 			KeyType key;
 			ValueType value;

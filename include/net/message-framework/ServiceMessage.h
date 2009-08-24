@@ -159,6 +159,12 @@ public:
 			bufferPtrVec[idx] = ptr;
 		}
 	}
+	
+	void setBuffer(const std::vector<MFBufferPtr>& buffers) {
+		bufferPtrVec = buffers;	
+		mh.nbuffer = buffers.size();
+	}
+	
 
 	/*void pushBuffer(char* ptr, unsigned int sz) {
 		MFBufferPtr dptr(new MFBuffer(ptr, sz));
