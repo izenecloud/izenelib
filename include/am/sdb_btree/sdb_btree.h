@@ -389,7 +389,7 @@ private:
 	unsigned int _flushCount;
 
 	void _flushCache(bool quickFlush=false) {
-#ifndef MUL_SDB
+#ifdef MUL_SDB
 		//static unsigned int count;
 		//++count;
 		++_flushCount;
@@ -417,7 +417,7 @@ private:
 	//for seq, reset SDBCursor
 	void _flushCache(SDBCursor& locn) {
 
-#ifndef MUL_SDB		
+#ifdef MUL_SDB		
 		//static unsigned int count;
 		++_flushCount;
 

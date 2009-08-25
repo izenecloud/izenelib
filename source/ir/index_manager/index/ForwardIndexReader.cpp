@@ -74,13 +74,13 @@ bool ForwardIndexReader::getTermOffset(unsigned int termId, docid_t docId, field
     pPOSInput_->seek(posOff);
     size_t nNumPosition = pPOSInput_->readVInt();
     offsetList.resize(nNumPosition);
-    unsigned int pos = 0;
+    unsigned int pos = 0, charpos = 0;
     for(size_t i = 0; i < nNumPosition; i++)
     {
         pos += pPOSInput_->readVInt();
         unsigned int pos1 = pos;
-        pos += pPOSInput_->readVInt();
-        unsigned int pos2 = pos;
+        charpos += pPOSInput_->readVInt();
+        unsigned int pos2 = charpos;
         offsetList.push_back(make_pair(pos1,pos2));
     }
     return true;
@@ -121,13 +121,13 @@ bool ForwardIndexReader::getTermOffsetList(const std::vector<unsigned int>& term
         std::deque<std::deque<std::pair<unsigned int, unsigned int> > >::reverse_iterator offsetListIterator = offsetList.rbegin();
 
         size_t nNumPosition = pPOSInput_->readVInt();
-        unsigned int pos = 0;
+        unsigned int pos = 0, charpos = 0;
         for(size_t i = 0; i < nNumPosition; i++)
         {
             pos += pPOSInput_->readVInt();
             unsigned int pos1 = pos;
-            pos += pPOSInput_->readVInt();
-            unsigned int pos2 = pos;
+            charpos += pPOSInput_->readVInt();
+            unsigned int pos2 = charpos;
             offsetListIterator->push_back(make_pair(pos1,pos2));
         }
     }
@@ -147,13 +147,13 @@ bool ForwardIndexReader::getForwardIndexByDoc(docid_t docId, fieldid_t fid, Forw
         pPOSInput_->seek(iter->second);
         size_t nNumPosition = pPOSInput_->readVInt();
         ForwardIndexOffset* pForwardIndexOffset = new ForwardIndexOffset;
-        unsigned int pos = 0;
+        unsigned int pos = 0, charpos = 0;
         for(size_t i = 0; i < nNumPosition; i++)
         {
             pos += pPOSInput_->readVInt();
             unsigned int pos1 = pos;
-            pos += pPOSInput_->readVInt();
-            unsigned int pos2 = pos;
+            charpos += pPOSInput_->readVInt();
+            unsigned int pos2 = charpos;
             pForwardIndexOffset->push_back(make_pair(pos1,pos2));
         }
         forwardIndex[iter->first] = pForwardIndexOffset;

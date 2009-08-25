@@ -14,7 +14,7 @@ template <typename CharType,
           typename LockType = izenelib::util::NullLock>
 class SDBSuffixTrieImpl
 {
-    typedef One2OneMappingTable<NodeIDType, NullType, LockType> WordTableType;
+    typedef One2OneMappingTable<NodeIDType, NullType, LockType> IsWordTableType;
 
     typedef One2ManyMappingTable<NodeIDType, NodeIDType, LockType> Suffix2WordTableType;
 
@@ -23,8 +23,8 @@ public:
     SDBSuffixTrieImpl(const std::string name)
     :   triename_(name),
         trieImpl_(triename_),
-        wordTable_(triename_ + ".word.table"),
-        suffix2wordTable_(triename_ + "suffix2word.table")
+        iswordTable_(triename_ + ".isword2.table"),
+        suffix2wordTable_(triename_ + ".suffix2word.table")
     {
     }
 
@@ -33,23 +33,19 @@ public:
     inline void insert(const std::vector<CharType>& word,
                        NodeIDType& nid)
     {
-        NodeIDType prevNID;
-        NodeIDType rootNID;
-        for(int i=0, len=word.size();
+        NodeIDType rootNID = NodeIDTraits<NodeIDType>::RootValue;
+        for(size_t i=0, len=word.size();
             i<word.size();
             i++, len--)
         {
-            NodeIDType currNID;
+            NodeIDType currNID = NodeIDTraits<NodeIDType>::RootValue;
             trieImpl_.insert(word, i, len, currNID);
 
             if(i == 0) {
                 nid = rootNID = currNID;
-                NullType null;
-                wordTable_.put(rootNID, null);
-            } else {
-                suffix2wordTable_.put(currNID, rootNID);
+                iswordTable_.put(rootNID);
             }
-            prevNID = currNID;
+            suffix2wordTable_.put(currNID, rootNID);
         }
     }
 
@@ -59,8 +55,7 @@ public:
         NodeIDType suffixNID;
         if(!trieImpl_.find(word, suffixNID))
             return false;
-        NullType null;
-        if(!wordTable_.get(suffixNID, null))
+        if(!iswordTable_.get(suffixNID))
             return false;
         nid = suffixNID;
         return true;
@@ -73,34 +68,43 @@ public:
         if( !trieImpl_.prefixIterate(prefix, suffixNIDs) )
             return false;
 
+        size_t t1 = nidList.size();
         for(size_t i =0; i<suffixNIDs.size(); i++)
         {
-            NullType null;
-            if(wordTable_.get(suffixNIDs[i], null))
+            if(iswordTable_.get(suffixNIDs[i]))
                 nidList.push_back(suffixNIDs[i]);
         }
-        return true;
+        size_t t2 = nidList.size();
+        if(t2>t1) return true;
+        return false;
     }
 
     inline bool suffixIterate(const std::vector<CharType>& suffix,
                               std::vector<NodeIDType>& nidList)
     {
+        if(suffix.size() == 0)
+            return prefixIterate(suffix, nidList);
+
         NodeIDType nid;
         if(!trieImpl_.find(suffix, nid))
             return false;
 
+        size_t t1 = nidList.size();
         suffix2wordTable_.get(nid, nidList);
-        return true;
+        size_t t2 = nidList.size();
+        if(t2>t1) return true;
+        return false;
     }
 
     inline bool substringIterate(const std::vector<CharType>& substring,
                               std::vector<NodeIDType>& nidList)
     {
         std::vector<NodeIDType> suffixNIDs;
-        trieImpl_.prefixIterate(substring, suffixNIDs);
+        if(!trieImpl_.prefixIterate(substring, suffixNIDs))
+            return false;
 
-        UserDataType tmp;
         std::vector<NodeIDType> wordNIDs;
+        size_t t1 = nidList.size();
         for(size_t i = 0; i<suffixNIDs.size(); i++)
         {
             wordNIDs.clear();
@@ -108,10 +112,13 @@ public:
 
             for(size_t j = 0; j< wordNIDs.size(); j++)
             {
-                if(std::find(nidList.begin(),nidList.end(),wordNIDs[i]) == nidList.end())
-                    nidList.push_back(wordNIDs[i]);
+               if(std::find(nidList.begin(),nidList.end(),wordNIDs[j]) == nidList.end())
+                    nidList.push_back(wordNIDs[j]);
             }
         }
+        size_t t2 = nidList.size();
+        if(t2>t1) return true;
+        return false;
     }
 
 private:
@@ -120,7 +127,7 @@ private:
 
     SDBTrieImpl<CharType, UserDataType, NodeIDType, LockType> trieImpl_;
 
-    WordTableType wordTable_;
+    IsWordTableType iswordTable_;
 
     Suffix2WordTableType suffix2wordTable_;
 

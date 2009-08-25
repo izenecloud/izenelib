@@ -84,6 +84,13 @@ freq_t MultiTermDocs::docFreq()
     }
     return df;
 }
+
+freq_t MultiTermDocs::docLength()
+{
+    list<BarrelTermDocsEntry*>::iterator iter = barrelTermDocs.begin();
+    return (*iter)->termDocs->docLength();
+}
+
 int64_t MultiTermDocs::getCTF()
 {
     BarrelTermDocsEntry* pEntry;

@@ -23,11 +23,20 @@ public:
             laInput_(false)
     { }
 
+    IndexerPropertyConfig(const IndexerPropertyConfig& other)
+            :propertyId_(other.propertyId_),
+             propertyName_(other.propertyName_),
+             index_(other.index_),
+             forward_(other.forward_),
+             laInput_(other.laInput_)
+    {}
+
     IndexerPropertyConfig(unsigned int propertyid, std::string propertyname, bool index, bool forward)
 		:propertyId_(propertyid)
 		,propertyName_(propertyname)
 		,index_(index)
 		,forward_(forward)
+		,laInput_(false)
     { }
 
 public:
@@ -69,6 +78,11 @@ public:
     bool isForward() const
     {
         return forward_;
+    }
+
+    void setIsLAInput( bool isLAInput)
+    {
+        laInput_ = isLAInput;
     }
 
     bool isLAInput() const

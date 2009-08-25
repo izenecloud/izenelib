@@ -428,159 +428,43 @@ void Indexer::setDirty(bool bDirty)
     dirty_ = bDirty;
 }
 
-
-int Indexer::insertCollection(collectionid_t colID)
+int Indexer::insertDocument(IndexerDocument* pDoc)
 {
-    IndexingProgressStatus* pStatus;
-
-    std::vector<unsigned int> docIdList;
-    bool ret = false;
-    izenelib::util::boost_variant_visit(boost::bind(document_manager_visitor(), _1, colID, docIdList,ret), *pDocumentManager_);
-
-
-    if (indexProgressStatusMap_.find(colID) == indexProgressStatusMap_.end())
-    {
-        pStatus = new IndexingProgressStatus();
-        pStatus->totalDocumentCount = docIdList.size();
-        pStatus->indexedCount = 0;
-        pStatus->timeElapsed = 0.0;
-        pStatus->waitTime = (double)-1;
-        indexProgressStatusMap_.insert(make_pair(colID,pStatus));
-    }
-    else
-        pStatus = indexProgressStatusMap_[colID];
-
-    boost::timer t;
-    IndexerDocument* pDoc = NULL;
-
-    for (size_t i = 0; i < docIdList.size(); i++)
-    {
-        izenelib::util::boost_variant_visit(boost::bind(document_manager_visitor(), _1, colID, docIdList[i], pDoc), *pDocumentManager_);
-
-        pIndexWriter_->addDocument(pDoc);
-
-        pStatus->indexedCount++;
-        pStatus->timeElapsed = t.elapsed();
-    }
-
-    //pIndexWriter_->flushDocuments();
-    pIndexWriter_->close();
-    pBarrelsInfo_->write(getDirectory());
-    delete pIndexWriter_;
-    pIndexWriter_ = new IndexWriter(this);
-
+    pIndexWriter_->indexDocument(pDoc);
     pIndexReader_->setDirty(true);
+    return 1;
+}
 
+int Indexer::updateDocument(IndexerDocument* pDoc)
+{
+    removeDocument(pDoc);
+    insertDocument(pDoc);
+    return 1;
+}
+
+int Indexer::removeDocument(IndexerDocument* pDoc)
+{
+    pIndexWriter_->deleteDocument(pDoc);
+    pIndexReader_->setDirty(true);
     return 1;
 }
 
 int Indexer::removeCollection(collectionid_t colID)
 {
     count_t count = 0;
-    izenelib::util::boost_variant_visit(boost::bind(document_manager_visitor(), _1, colID, count), *pDocumentManager_);
+//    izenelib::util::boost_variant_visit(boost::bind(document_manager_visitor(), _1, colID, count), *pDocumentManager_);
     pIndexWriter_->removeCollection(colID,count);
     pIndexReader_->setDirty(true);
     return 1;
 }
 
-int Indexer::insertDocuments(collectionid_t colID, vector<docid_t> docIdList)
+void Indexer::flush()
 {
-#ifdef SF1_TIME_CHECK
-    static wiselib::Profiler::Profile proGetDocumentByDocId("Indexer::insertDocuments=>DocumentProcess::getDocumentByDocId", wiselib::ProfilerGroup::instance().profilerInstance("IndexProcess") );
-#endif
-
-    IndexingProgressStatus* pStatus;
-
-    if (indexProgressStatusMap_.find(colID) == indexProgressStatusMap_.end())
-    {
-        pStatus = new IndexingProgressStatus();
-        count_t count = 0;
-        izenelib::util::boost_variant_visit(boost::bind(document_manager_visitor(), _1, colID, count), *pDocumentManager_);
-        pStatus->totalDocumentCount = count;
-        pStatus->indexedCount = 0;
-        pStatus->timeElapsed = 0.0;
-        pStatus->waitTime = (double)-1;
-        indexProgressStatusMap_.insert(make_pair(colID,pStatus));
-    }
-    else
-        pStatus = indexProgressStatusMap_[colID];
-
-    boost::timer t;
-
-    size_t docCount = docIdList.size();
-    for (size_t i = 0; i < docCount; i++)
-    {
-#ifdef SF1_TIME_CHECK
-        proGetDocumentByDocId.begin();
-#endif
-
-        IndexerDocument* pDoc = NULL;
-        izenelib::util::boost_variant_visit(boost::bind(document_manager_visitor(), _1, colID, docIdList[i], pDoc), *pDocumentManager_);
-
-#ifdef SF1_TIME_CHECK
-        proGetDocumentByDocId.end();
-#endif
-
-        pIndexWriter_->addDocument(pDoc);
-
-        pStatus->indexedCount++;
-        pStatus->timeElapsed = t.elapsed();
-    }
-
-
-    pIndexWriter_->flushDocuments();
+    pIndexWriter_->close();
+    pBarrelsInfo_->write(getDirectory());
+    delete pIndexWriter_;
+    pIndexWriter_ = new IndexWriter(this);
     pIndexReader_->setDirty(true);
-
-    return 1;
-}
-
-
-int Indexer::insertDocument(IndexerDocument& document)
-{
-    pIndexWriter_->indexDocument(&document);
-
-    pIndexReader_->setDirty(true);
-    return 1;
-}
-
-int Indexer::insertDocument(collectionid_t colID, docid_t docID)
-{
-    IndexerDocument* pDoc = NULL;
-    izenelib::util::boost_variant_visit(boost::bind(document_manager_visitor(), _1, colID, docID, pDoc), *pDocumentManager_);
-
-    pIndexWriter_->addDocument(pDoc);
-
-    pIndexWriter_->flushDocuments();
-    pIndexReader_->setDirty(true);
-
-    return 1;
-}
-
-int Indexer::updateDocument(collectionid_t colID, docid_t docID)
-{
-    removeDocument(colID, docID);
-    insertDocument(colID, docID);
-    return 1;
-}
-
-int Indexer::removeDocument(collectionid_t colID, docid_t docID)
-{
-    IndexerDocument* pDoc = NULL;
-    izenelib::util::boost_variant_visit(boost::bind(document_manager_visitor(), _1, colID, docID, pDoc,0), *pDocumentManager_);
-    
-    pIndexWriter_->deleteDocument(pDoc);
-    delete pDoc;
-    return 1;
-}
-
-int Indexer::removeDocuments(collectionid_t colID, vector<docid_t> docIdList)
-{
-    size_t docCount = docIdList.size();
-    for (size_t i = 0; i < docCount; i++)
-    {
-        removeDocument(colID, docIdList[i]);
-    }
-    return 1;
 }
 
 bool Indexer::getIndexingProgressbyCollectionId(collectionid_t colID, IndexingProgressStatus& currentProgress)

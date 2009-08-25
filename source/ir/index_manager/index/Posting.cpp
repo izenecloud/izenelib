@@ -152,6 +152,7 @@ InMemoryPosting::InMemoryPosting(MemCache* pCache)
         ,nLastDocID(BAD_DOCID)
         ,nYetAnotherLastDocID(BAD_DOCID)
         ,nLastLoc(BAD_DOCID)
+        ,nLastCharLoc(BAD_DOCID)
         ,nCurTermFreq(0)
         ,nCTF(0)
         ,pDS(NULL)
@@ -172,6 +173,7 @@ InMemoryPosting::InMemoryPosting()
         ,nLastDocID(BAD_DOCID)
         ,nYetAnotherLastDocID(BAD_DOCID)
         ,nLastLoc(BAD_DOCID)
+        ,nLastCharLoc(BAD_DOCID)
         ,nCurTermFreq(0)
         ,nCTF(0)
         ,pDS(NULL)
@@ -258,6 +260,7 @@ void InMemoryPosting::reset()
     nLastDocID = BAD_DOCID;
     nYetAnotherLastDocID = BAD_DOCID;
     nLastLoc = 0;
+    nLastCharLoc = 0;
     nDF = 0;
     nTDF = 0;
     nCurTermFreq = 0;
@@ -287,6 +290,7 @@ Posting* InMemoryPosting::clone()
     pClone->nLastDocID = nLastDocID;
     pClone->nYetAnotherLastDocID = nYetAnotherLastDocID;
     pClone->nLastLoc = nLastLoc;
+    pClone->nLastCharLoc = nLastCharLoc;
     return pClone;
 }
 
@@ -318,7 +322,7 @@ void InMemoryPosting::updateDF(docid_t docid)
     }
 }
 
-void InMemoryPosting::addLocation(docid_t docid, freq_t doclength, loc_t location, loc_t sublocation)
+void InMemoryPosting::addLocation(docid_t docid, freq_t doclength, loc_t location, loc_t charlocation)
 {
     if (docid == nLastDocID)
     {
@@ -330,15 +334,16 @@ void InMemoryPosting::addLocation(docid_t docid, freq_t doclength, loc_t locatio
             pLocList->addChunk(newChunk(newSize));
             pLocList->addPosting(location - nLastLoc);///d-gap encoding
         }
-        if (!pLocList->addPosting(sublocation))
+        if (!pLocList->addPosting(charlocation))
         {
             ///chunk is exhausted
             int32_t newSize = getNextChunkSize(pLocList->nTotalSize, InMemoryPosting::ALLOCSTRATEGY);
             pLocList->addChunk(newChunk(newSize));
-            pLocList->addPosting(sublocation);///d-gap encoding
+            pLocList->addPosting(charlocation);///d-gap encoding
         }
         nCurTermFreq++;
-        nLastLoc = location+sublocation;
+        nLastLoc = location;
+        nLastCharLoc = charlocation;
     }
     else///first see it
     {
@@ -379,12 +384,12 @@ void InMemoryPosting::addLocation(docid_t docid, freq_t doclength, loc_t locatio
             pLocList->addPosting(location);
         }
 
-        if (!pLocList->addPosting(sublocation))
+        if (!pLocList->addPosting(charlocation))
         {
             ///chunk is exhausted
             int32_t newSize = getNextChunkSize(pLocList->nTotalSize,InMemoryPosting::ALLOCSTRATEGY);
             pLocList->addChunk(newChunk(newSize));
-            pLocList->addPosting(sublocation);
+            pLocList->addPosting(charlocation);
         }
 
         nCTF += nCurTermFreq;
@@ -392,7 +397,8 @@ void InMemoryPosting::addLocation(docid_t docid, freq_t doclength, loc_t locatio
 
         nLastDocID = docid;
 
-        nLastLoc = location+sublocation;
+        nLastLoc = location;
+        nLastCharLoc = charlocation;
 
         nDF++;
     }

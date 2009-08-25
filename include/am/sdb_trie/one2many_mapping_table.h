@@ -39,7 +39,7 @@ public:
      * @return true     successfully
      *         false    key exists already
      */
-    bool put( const KeyType k, const ValueType& v)
+    bool put( const KeyType& k, const ValueType& v)
     {
         NullType null;
         return db_.insertValue(CompoundKeyType(k,v),null);
@@ -50,15 +50,14 @@ public:
      * @return true     successfully
      *         false    given key does not exist
      */
-    bool get( const KeyType k, std::vector<ValueType>& v)
+    bool get( const KeyType& k, std::vector<ValueType>& v)
     {
-        NullType null;
         CompoundKeyType minKey(k, NumericTraits<ValueType>::MinValue);
         CompoundKeyType maxKey(k, NumericTraits<ValueType>::MaxValue);
 
         std::vector<CompoundDataType> result;
         db_.getValueBetween(result, minKey, maxKey);
-        if(result == 0)
+        if(result.size() == 0)
             return false;
 
         v.reserve(result.size());

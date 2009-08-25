@@ -55,6 +55,11 @@ public:
     {
         return TermDocFreqs::docFreq();
     };
+
+    virtual freq_t docLength()
+    {
+        return TermDocFreqs::docLength();
+    }
     /**
      * get collection's total term frequency
      * @return CTF value
