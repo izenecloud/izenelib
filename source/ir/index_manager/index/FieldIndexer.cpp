@@ -26,12 +26,15 @@ void FieldIndexer::addField(docid_t docid, boost::shared_ptr<LAInput> laInput)
 
     for(LAInput::iterator iter = laInput->begin(); iter != laInput->end(); ++iter)
     {
-        curPosting = (InMemoryPosting*)postingMap_[iter->termId_];
-        if (curPosting == NULL)
+        InMemoryPostingMap::iterator postingIter = postingMap_.find(iter->first);
+        if(postingIter == postingMap_.end())
         {
             curPosting = new InMemoryPosting(pMemCache_);
-            postingMap_[iter->termId_] = curPosting;
+            postingMap_[iter->first] = curPosting;
         }
+        else
+            curPosting = postingIter->second;
+
         curPosting->addLocation(docid, laInput->size(), iter->wordOffset_, iter->byteOffset_);
         curPosting->updateDF(docid);
     }
