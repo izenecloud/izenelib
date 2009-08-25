@@ -21,7 +21,9 @@ ELSE(WIN32)
     ServicePermissionInfo.cpp
     ServiceRegistrationMessage.cpp
     ThreadPool.cpp
-    common.cpp     
+    common.cpp   
+    
+    MFClient.cpp  
     
   #  MessageClientLight.cpp
   #  MessageControllerLight.cpp

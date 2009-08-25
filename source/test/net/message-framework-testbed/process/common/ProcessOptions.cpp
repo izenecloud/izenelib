@@ -7,52 +7,48 @@ using namespace boost;
 
 namespace po = boost::program_options;
 
-namespace sf1v5_dummy
-{
+namespace sf1v5_dummy {
 
-    ProcessOptions::ProcessOptions()
-        :
-            controllerDescription_("Controller Options"),
-            configurationProcessDescription_("Configuration Process Options"),
-            idProcessDescription_("ID Process Options"),
-            logProcessDescription_("Log Process Options"),
-            laProcessDescription_("LA Process Options"),
-            indexProcessDescription_("Index Process Options"),
-            documentProcessDescription_("Document Process Options"),
-            mainLightProcessDescription_("Main Process(MF-light) Options"),
-            fullDescription_("Options")
-    {
-        po::options_description base;
-        po::options_description hostPort;
-        po::options_description controllerIpPort;
-        po::options_description configFile;
-        po::options_description scdParsing;
+ProcessOptions::ProcessOptions() :
+	controllerDescription_("Controller Options"),
+			configurationProcessDescription_("Configuration Process Options"),
+			idProcessDescription_("ID Process Options"),
+			logProcessDescription_("Log Process Options"),
+			laProcessDescription_("LA Process Options"),
+			indexProcessDescription_("Index Process Options"),
+			documentProcessDescription_("Document Process Options"),
+			mainLightProcessDescription_("Main Process(MF-light) Options"),
+			fullDescription_("Options") {
+	po::options_description base;
+	po::options_description hostPort;
+	po::options_description controllerIpPort;
+	po::options_description configFile;
+	po::options_description scdParsing;
+	po::options_description agentInfo;
 
-        base.add_options()
-            ("help", "Display help message");
+	base.add_options() ("help", "Display help message");
 
-        hostPort.add_options()
-            ("host-port,H", po::value<unsigned int>(), "Port number of the host");
+	hostPort.add_options() ("host-port,H", po::value<unsigned int>(), "Port number of the host");
 
-        controllerIpPort.add_options()
-            ("controller-ip,I", po::value<string>(), "IP address of the controller")
-            ("controller-port,P", po::value<unsigned int>(), "Port number of the controller");
+	agentInfo.add_options()	("agent-info,A", po::value<string>(), "agentInfo (collecion name)");
 
-        configFile.add_options()
-            ("config-file,F", po::value<string>(), "Path to the configuration file");
+	controllerIpPort.add_options()
+	("controller-ip,I", po::value<string>(), "IP address of the controller")
+	("controller-port,P", po::value<unsigned int>(), "Port number of the controller");
 
-        scdParsing.add_options()
-            ("collection-name,C", po::value<string>(), "The name of the SCD document collection")
-            ("SCD-file,S", po::value<string>(), "File(s) that contain the documents")
-            ("number-of-docs,N", po::value<unsigned int >(), "Number of Documents that DocumentManager will process");
+	configFile.add_options()
+	("config-file,F", po::value<string>(), "Path to the configuration file");
 
+	scdParsing.add_options()
+	("collection-name,C", po::value<string>(), "The name of the SCD document collection")
+	("SCD-file,S", po::value<string>(), "File(s) that contain the documents")
+	("number-of-docs,N", po::value<unsigned int>(), "Number of Documents that DocumentManager will process");
 
+	controllerDescription_.add_options()
+	("help", "Display help message")
+	("controller-port,P", po::value<unsigned int>(), "Port number of the controller");
 
-        controllerDescription_.add_options()
-            ("help", "Display help message")
-            ("controller-port,P", po::value<unsigned int>(), "Port number of the controller");
-
-        configurationProcessDescription_.add(base).add( hostPort ).add( controllerIpPort ).add( configFile );
+	configurationProcessDescription_.add(base).add( hostPort ).add(controllerIpPort ).add( configFile );
 
         idProcessDescription_.add(base).add( hostPort ).add( controllerIpPort );
 
@@ -60,7 +56,7 @@ namespace sf1v5_dummy
 
         laProcessDescription_.add(base).add( hostPort ).add( controllerIpPort );
 
-        indexProcessDescription_.add(base).add( hostPort ).add( controllerIpPort );
+        indexProcessDescription_.add(base).add( hostPort ).add( controllerIpPort ).add( agentInfo ) ;
 
         documentProcessDescription_.add(base).add( hostPort ).add( controllerIpPort ).add( scdParsing );
 
@@ -68,7 +64,7 @@ namespace sf1v5_dummy
 
         mainProcessDescription_.add(base).add( hostPort ).add( controllerIpPort );
 
-        fullDescription_.add(base).add( hostPort ).add( controllerIpPort ).add( configFile ).add( scdParsing );
+        fullDescription_.add(base).add( hostPort ).add( controllerIpPort ).add( configFile ).add( scdParsing ).add(agentInfo);
     }
 
 
@@ -83,6 +79,11 @@ namespace sf1v5_dummy
         {
             controllerIp_ = variableMap_["controller-ip"].as<string>();
         }
+        
+        if( variableMap_.count("agent-info") )
+        {
+            agentInfo_ = variableMap_["agent-info"].as<string>();
+        }        
 
         if( variableMap_.count("controller-port") )
         {
@@ -115,7 +116,6 @@ namespace sf1v5_dummy
 
     bool ProcessOptions::setControllerOptions( int argc, char * argv[] )
     {
-
         po::store( po::parse_command_line(argc, argv, fullDescription_), variableMap_ );
         po::notify(variableMap_);
 
@@ -213,10 +213,9 @@ namespace sf1v5_dummy
         po::store( po::parse_command_line(argc, argv, fullDescription_), variableMap_ );
         po::notify(variableMap_);
 
-
-        if( variableMap_.empty() || variableMap_.count("help") || (variableMap_.size() != 3 ) )
+        if( variableMap_.empty() || variableMap_.count("help") || (variableMap_.size() != 4 ) )
         {
-            cout << "Usage:  IndexProcess <settings (-H, -I, -P)>" << endl;
+            cout << "Usage:  IndexProcess <settings (-H, -I, -P, -A)>" << endl;
             cout << indexProcessDescription_;
             return false;
         }

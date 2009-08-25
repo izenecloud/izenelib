@@ -48,7 +48,8 @@ void initMFServer() {
 	MessageFrameworkNode controllerNode(po.getControllerIp(),
 			po.getControllerPort() );
 	server_ = new MessageServer( MF_SERVER_ARG( "IndexProcess_Server", po.getHostPort(), controllerNode ) );
-
+	cout<<"!!!! Index server for agentInfo: "<<po.getAgentInfo()<<endl;
+    server_->setAgentInfo( po.getAgentInfo() );
 	cout << "[IndexProcess]: MF up and ready to go" << endl;
 }
 
@@ -80,8 +81,6 @@ int registerServiceList(const vector<ServiceInfo> & serviceList) {
 	int failCnt = 0;
 	bool ret = false;
 
-
-	server_->setAgentInfo("index");
 	for (i = 0; i < serviceList.size(); i++) {
 		while ( !(ret = server_->registerService(serviceList[i]) ) && nTimeout
 				< 100) {
@@ -237,7 +236,7 @@ int indexServerMain() {
 MF_AUTO_MAIN(indexProcess) {
 	using namespace IndexProcess;
 
-	if ( !po.setLaProcessOptions(argc, argv)) {
+	if ( !po.setIndexProcessOptions(argc, argv)) {
 		return 0;
 	}
 
