@@ -13,7 +13,7 @@ NS_IZENELIB_AM_BEGIN
  * such as LeafNodeTable.
  */
 template <typename KeyType,
-          typename ValueType,
+          typename ValueType = NullType,
           typename LockType = izenelib::util::NullLock>
 class One2OneMappingTable
 {
@@ -35,7 +35,7 @@ public:
      * @return true     successfully
      *         false    key exists already
      */
-    bool put( const KeyType k, const ValueType& v)
+    bool put( const KeyType& k, const ValueType& v)
     {
         return db_.insertValue(k,v);
     }
@@ -43,7 +43,7 @@ public:
     /**
      * Update value in SDB for a given key, insert if key doesnot exist.
      */
-    void update( const KeyType k, const ValueType& v)
+    void update( const KeyType& k, const ValueType& v)
     {
         db_.update(k, v);
     }
@@ -53,7 +53,7 @@ public:
      * @return true     successfully
      *         false    given key does not exist
      */
-    bool get( const KeyType k, ValueType& v)
+    bool get( const KeyType& k, ValueType& v)
     {
         return db_.getValue(k, v);
     }
@@ -64,6 +64,32 @@ public:
     unsigned int num_items()
     {
         return db_.numItems();
+    }
+
+    /******************************************************************
+     * Following APIs are valid only when ValueType is NullType
+     ******************************************************************/
+
+    /**
+     * Store a key into SDB.
+     * @return true     successfully
+     *         false    key exists already
+     */
+    bool put( const KeyType& k)
+    {
+        NullType null;
+        return db_.insertValue(k,null);
+    }
+
+    /**
+     * To see if a key exists in SDB.
+     * @return true     successfully
+     *         false    given key does not exist
+     */
+    bool get( const KeyType& k)
+    {
+        NullType null;
+        return db_.getValue(k, null);
     }
 
 private:
