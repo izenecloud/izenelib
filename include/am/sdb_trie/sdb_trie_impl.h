@@ -18,14 +18,14 @@ class SDBTrieImpl
 
     typedef EdgeTable<CharType, NodeIDType, LockType> EdgeTableType;
 
-    typedef One2OneMappingTable<NodeIDType, NullType> NodeTypeTableType;
+    typedef One2OneMappingTable<NodeIDType, NullType> IsWordTableType;
 
 public:
 
     SDBTrieImpl(const std::string name)
     :   triename_(name),
         edgeTable_(triename_ + ".edge.table"),
-        nodetypeTable_(triename_ + ".nodetype.table")
+        iswordTable_(triename_ + ".isword.table")
     {
     }
 
@@ -52,8 +52,7 @@ public:
             parentNID = childNID;
         }
         edgeTable_.put(word[endPos], parentNID, nid);
-        NullType null;
-        nodetypeTable_.put(nid, null);
+        iswordTable_.put(nid);
     }
 
     inline bool find(const std::vector<CharType>& word,
@@ -62,28 +61,15 @@ public:
         return find(word, 0, word.size(), nid);
     }
 
-
     inline bool find(const std::vector<CharType>& word,
                      const size_t startPos, const size_t len,
                      NodeIDType& nid)
     {
-        if(len == 0) return false;
+        if ( !find_path(word, startPos, len, nid) )
+            return false;
 
-        const size_t endPos = startPos + len -1;
-        NodeIDType parentNID = NodeIDTraits<NodeIDType>::RootValue;
-        for( size_t i=startPos; i<=endPos; i++ )
-        {
-            NodeIDType childNID;
-            if( !edgeTable_.get(word[i], parentNID, childNID) )
-                return false;
-            parentNID = childNID;
-        }
-        nid = parentNID;
-
-        NullType null;
-        if(nodetypeTable_.get(nid, null))
+        if(iswordTable_.get(nid))
             return true;
-
         return false;
     }
 
@@ -93,28 +79,21 @@ public:
         return prefixIterate(prefix, 0, prefix.size(), nidList);
     }
 
-
     inline bool prefixIterate(const std::vector<CharType>& prefix,
         const size_t startPos, const size_t len,
         std::vector<NodeIDType>& nidList)
     {
         NodeIDType parentNID = NodeIDTraits<NodeIDType>::RootValue;
-        for( size_t i=startPos; i<startPos + len; i++ )
-        {
-            NodeIDType childNID;
-            if( !edgeTable_.get(prefix[i], parentNID, childNID) )
-                return false;
-            parentNID = childNID;
-        }
+        if( !find_path(prefix, startPos, len, parentNID) )
+            return false;
 
         std::vector<NodeIDType> tmp;
         tmp.push_back(parentNID);
         edgeTable_.iterate(parentNID, tmp);
 
-        NullType null;
         for(size_t i=0; i<tmp.size(); i++)
         {
-            if(nodetypeTable_.get(tmp[i], null))
+            if(iswordTable_.get(tmp[i]))
                 nidList.push_back(tmp[i]);
         }
 
@@ -128,13 +107,42 @@ public:
 
 protected:
 
+    inline bool find_path(const std::vector<CharType>& word,
+                     NodeIDType& nid)
+    {
+        return find_path(word, 0, word.size(), nid);
+    }
+
+    inline bool find_path(const std::vector<CharType>& word,
+                     const size_t startPos, const size_t len,
+                     NodeIDType& nid)
+    {
+        NodeIDType parentNID = NodeIDTraits<NodeIDType>::RootValue;
+        if(len == 0)
+        {
+            nid = parentNID;
+            return true;
+        }
+
+        const size_t endPos = startPos + len -1;
+        for( size_t i=startPos; i<=endPos; i++ )
+        {
+            NodeIDType childNID;
+            if( !edgeTable_.get(word[i], parentNID, childNID) )
+                return false;
+            parentNID = childNID;
+        }
+        nid = parentNID;
+        return true;
+    }
+
 private:
 
     std::string triename_;
 
     EdgeTableType edgeTable_;
 
-    NodeTypeTableType nodetypeTable_;
+    IsWordTableType iswordTable_;
 
 };
 

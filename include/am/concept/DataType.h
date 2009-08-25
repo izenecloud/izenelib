@@ -32,7 +32,7 @@ struct KeyTypeConcept
 struct NullType {
 	//empty serialize function.
 	template<class Archive> void serialize(Archive& ar,
-			const unsigned int version) {		
+			const unsigned int version) {
 	}
 
 };
@@ -63,6 +63,15 @@ public:
 	const ValueType& get_value() const {
 		return value;
 	}
+
+    KeyType& get_key() {
+		return key;
+	}
+
+	ValueType& get_value() {
+		return value;
+	}
+
 private:
 	int _compare(const DataType& other, const boost::mpl::true_*) const {
 		return key-other.key;
@@ -105,6 +114,12 @@ public:
 	const NullType& get_value() const {
 		return value;
 	}
+    KeyType& get_key() {
+		return key;
+	}
+	NullType& get_value() {
+		return value;
+	}
 
 private:
 	int _compare(const DataType& other, const boost::mpl::true_*) const {
@@ -122,8 +137,8 @@ public:
 };
 
 
-	
-template<typename T>	
+
+template<typename T>
 struct has_compare_operator{
 	enum{ value = boost::is_arithmetic<T>::value };
 };
@@ -166,15 +181,15 @@ template<class KeyType> class CompareFunctor :
 
 {
 public:
-	int operator()(const KeyType& key1, const KeyType& key2) const {		
+	int operator()(const KeyType& key1, const KeyType& key2) const {
 		return _compare(key1, key2, indidator<has_compare_operator<KeyType>::value >()
 				 );
 	}
 private:
 	int _compare(const KeyType& key1, const KeyType& key2,
-			indidator<1>) const {	
+			indidator<1>) const {
 		if(key1 > key2) return 1;
-		else if(key1 <key2 )return -1;		
+		else if(key1 <key2 )return -1;
 		else return 0;
 	}
 

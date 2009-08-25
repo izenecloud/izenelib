@@ -1,4 +1,4 @@
-**
+/**
 * @brief Defines the MFClient class
 * @author Peisheng Wang
 *
@@ -12,8 +12,8 @@
 #ifndef _MFCLIENT_H_
 #define _MFCLIENT_H_
 
-#include <message_framework.h>
-#include <MFClientBase.h>
+#include <net/message_framework.h>
+#include <net/MFClientBase.h>
 
 namespace messageframework {
 
@@ -28,13 +28,13 @@ namespace messageframework {
 			client_ = client;
 		}
 
-		void getAgentInfo(const string& serviceName, std::vector<std::string>& agentInfos);
+		bool getAgentInfo(const string& serviceName, std::vector<std::string>& agentInfos);
 
-		void displayAgentInfo(std::ostream& os = cout);
+		void displayAgentInfo(const std::string& serviceName, std::ostream& os=std::cout) const;
 
 	protected:
 		bool getHostsOfService(const std::string& serviceName, std::map<std::string, MessageFrameworkNode>& servers){
-			return client_.getHostsOfService(serviceName, servers);
+			return client_->getHostsOfService(serviceName, servers);
 		}
 		/**
 		 *   requst with no result with agentInfo(collectionname)
@@ -47,7 +47,7 @@ namespace messageframework {
 		 */
 		bool requestService(const std::vector<std::string>& agentInfos, const std::string& serviceName,
 				const ServiceRequestInfoPtr& serviceRequestInfo,
-				std::vector<serviceResultPtr>& result
+				std::vector<ServiceResultPtr>& results
 		);
 
 		/**
@@ -61,7 +61,7 @@ namespace messageframework {
 		 */
 		bool requestService( const std::string& serviceName,
 				const ServiceRequestInfoPtr& serviceRequestInfo,
-				const std::vector<serviceResultPtr>& result
+				std::vector<ServiceResultPtr>& results
 		);		
 
 		/**
@@ -75,15 +75,14 @@ namespace messageframework {
 		 */
 		bool requestService(const std::string&agentInfo, const std::string& serviceName,
 				const ServiceRequestInfoPtr& serviceRequestInfo,
-				serviceResultPtr& result
+				ServiceResultPtr& result
 		);
-
-	private:
-		bool requestOne_(const MessageFrameNode& server, const ServiceRequestInfoPtr& request);
-		bool requestOne_(const MessageFrameNode& server, const ServiceRequestInfoPtr& request, ServiceResultPtr& result);
-
-	private:
+		
 		MessageClientPtr client_;
+
+	private:
+		bool requestOne_(const MessageFrameworkNode& server, const ServiceRequestInfoPtr& request);
+		bool requestOne_(const MessageFrameworkNode& server, const ServiceRequestInfoPtr& request, ServiceResultPtr& result);
 
 	};
 

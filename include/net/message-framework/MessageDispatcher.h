@@ -142,7 +142,6 @@ public:
 					&MessageDispatcher::sendDataToLowerLayer_impl<DataType>,
 					this, messageType, data, destination );
 					threadPool_->executeTask(task);
-
 				}
 				else
 				return sendDataToLowerLayer_impl<DataType>(messageType, data,destination);
@@ -194,10 +193,7 @@ private:
 	{
 
 		boost::posix_time::ptime before = boost::posix_time::microsec_clock::local_time();
-#ifdef _LOGGING_
-      WriteToLog("log.log", typeid(DataType).name() );
-		WriteToLog("log.log",  "sendDataToLowerLayer_impl...");
-#endif
+        LOG(INFO)<< typeid(DataType).name() << "sendDataToLowerLayer_impl...";
 
 		boost::shared_ptr<izenelib::util::izene_streambuf> archive_stream(
 				new izenelib::util::izene_streambuf());
@@ -209,13 +205,11 @@ private:
 
 		// retrieve stream that is binded to destination
 		AsyncStream& stream = getStreamByNode(destination);
-#ifdef _LOGGING_
-		WriteToLog("log.log", " data..." );   
-		WriteToLog("log.log", (const char*)archive_stream->data());		
-#endif
+	  
+		DLOG(INFO)<<(const char*)archive_stream->data();		
+
 		// forward data to network layer, the data will be sent
 		// to destination
-		//cout<<"dbg Sended size: "<<archive_stream->size()<<endl;
 		stream.sendMessage(messageType, archive_stream);
 		return true;
 
