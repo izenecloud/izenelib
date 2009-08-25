@@ -9,7 +9,7 @@
 NS_IZENELIB_AM_BEGIN
 
 template <typename CharType,
-          typename UserDataType = NullType,
+          typename UserDataType,
           typename NodeIDType = uint64_t,
           typename LockType = izenelib::util::NullLock>
 class SDBTrie
@@ -19,18 +19,17 @@ class SDBTrie
      * of database table.
      * In Trie's graph representation, @see EdgeTable, each data node contains a
      * input string user has inserted into trie.
-     * Data Node Table contains <NodeID, UserData> pairs for all data nodes,
-     * UserData is the data user inserted into trie together with an input string,
-     * the default type is NullType.
+     * User Data Table contains <NodeID, UserData> pairs for all leaf nodes,
+     * UserData is the data user inserted into trie together with an input string.
      */
-    typedef One2OneMappingTable<NodeIDType, UserDataType, LockType> DataNodeTableType;
+    typedef One2OneMappingTable<NodeIDType, UserDataType, LockType> UserDataTableType;
 
 public:
 
     SDBTrie(const std::string name)
     :   triename_(name),
         trieImpl_(triename_),
-        datanodeTable_(triename_ + ".leafnode.table")
+        userdataTable_(triename_ + ".userdata.table")
     {
     }
 
@@ -40,14 +39,14 @@ public:
     {
         NodeIDType nid = NodeIDTraits<NodeIDType>::RootValue;
         trieImpl_.insert(word, nid);
-        datanodeTable_.put(nid, userData);
+        userdataTable_.put(nid, userData);
     }
 
     inline void update(const std::vector<CharType>& word, const UserDataType userData)
     {
         NodeIDType nid = NodeIDTraits<NodeIDType>::RootValue;
         trieImpl_.insert(word, nid);
-        datanodeTable_.update(nid, userData);
+        userdataTable_.update(nid, userData);
     }
 
     inline bool find(const std::vector<CharType>& word, UserDataType& userData)
@@ -55,7 +54,8 @@ public:
         NodeIDType nid = NodeIDTraits<NodeIDType>::RootValue;
         if( !trieImpl_.find(word, nid) )
             return false;
-        return datanodeTable_.get(nid, userData);
+        userdataTable_.get(nid, userData);
+        return true;
     }
 
     inline bool prefixIterate(const std::vector<CharType>& prefix,
@@ -68,8 +68,8 @@ public:
         UserDataType tmp;
         for( size_t i = 0; i < nidList.size(); i++ )
         {
-            if(datanodeTable_.get(nidList[i], tmp))
-                userDataList.push_back(tmp);
+            userdataTable_.get(nidList[i], tmp);
+            userDataList.push_back(tmp);
         }
         return true;
     }
@@ -78,7 +78,7 @@ public:
 	 *
 	 * @return The number of words.
 	 */
-    inline unsigned int num_items() { return datanodeTable_.num_items(); }
+    inline unsigned int num_items() { return userdataTable_.num_items(); }
 
     inline void display() { trieImpl_.display(); }
 
@@ -90,8 +90,7 @@ private:
 
     SDBTrieImpl<CharType, UserDataType, NodeIDType, LockType> trieImpl_;
 
-    DataNodeTableType datanodeTable_;
-
+    UserDataTableType userdataTable_;
 };
 
 template <typename StringType,

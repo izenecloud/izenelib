@@ -65,7 +65,7 @@ MessageDispatcher::~MessageDispatcher() {
  */
 void MessageDispatcher::addPeerNode(const MessageFrameworkNode& peerNode,
 		AsyncStream* bindedStream) {
-	std::cout << "Add peer node : " << peerNode.nodeIP_ << ":"
+	LOG(INFO) << "Add peer node : " << peerNode.nodeIP_ << ":"
 			<< peerNode.nodePort_ << std::endl;
 	boost::mutex::scoped_lock lock(availablePeerNodesMutex_);
 	availablePeerNodes_.insert(pair<MessageFrameworkNode, AsyncStream*>(
@@ -76,7 +76,7 @@ void MessageDispatcher::addPeerNode(const MessageFrameworkNode& peerNode,
  * Remove a a peer node from the available peer lis
  */
 void MessageDispatcher::removePeerNode(const MessageFrameworkNode& peerNode) {
-	std::cout << "Remove peer node : " << peerNode.nodeIP_ << ":"
+	LOG(INFO) << "Remove peer node : " << peerNode.nodeIP_ << ":"
 			<< peerNode.nodePort_ << std::endl;
 	boost::mutex::scoped_lock lock(availablePeerNodesMutex_);
 	availablePeerNodes_.erase(peerNode);
@@ -91,7 +91,7 @@ bool MessageDispatcher::isExist(const MessageFrameworkNode& node) {
 		return true;
 	}
 
-	std::cout << "Node: " << node.nodeIP_ << ":" << node.nodePort_
+	LOG(ERROR) << "Node: " << node.nodeIP_ << ":" << node.nodePort_
 			<< " does not exists." << std::endl;
 	return false;
 }
@@ -102,7 +102,7 @@ AsyncStream& MessageDispatcher::getStreamByNode(const MessageFrameworkNode& node
 			iter;
 	iter = availablePeerNodes_.find(node);
 	if (iter == availablePeerNodes_.end()) {
-		std::cout << "getStreamByNode fails. Node: " << node.nodeIP_ << ":"
+		LOG(ERROR) << "getStreamByNode fails. Node: " << node.nodeIP_ << ":"
 				<< node.nodePort_ << " does not exist." << std::endl;
 		throw MessageFrameworkException(SF1_MSGFRK_DATA_NOT_FOUND, __LINE__, __FILE__);
 	}
@@ -131,26 +131,19 @@ void MessageDispatcher::sendDataToUpperLayer_impl(
 		boost::shared_ptr<izenelib::util::izene_streambuf>& buffer) {
 	boost::posix_time::ptime before =
 			boost::posix_time::microsec_clock::local_time();
-#ifdef _LOGGING_
-	WriteToLog("log.log", " sendDataToUpperLayer ..." );
-#endif
+	
+	LOG(INFO)<< " sendDataToUpperLayer ..." ;
 	ServiceRegistrationMessage registrationMsg;
 	ServiceRegistrationReplyMessage registrationReplyMessage;
-	//PermissionRequestMessage permissionRequestMessage;
 	std::string permissionRequestMessage;
-	//PermissionOfServiceMessage permissionOfServiceMessage;
 	ServicePermissionInfo permissionOfServiceMessage;
 	ClientIdRequestMessage clientIdRequestMessage;
 	ClientIdReplyMessage clientIdReplyMessage;
 	ServiceMessagePtr serviceMessage(new ServiceMessage);
-	//boost::archive::binary_iarchive archive(*buffer);
 
-	//cout<<"Debug: MessageDispatcher::sendDataToUpperLayer_impl messageType="
-	//		<<messageType<<endl;
 	switch (messageType) {
 	case SERVICE_REGISTRATION_REQUEST_MSG:
-		// forward this message to RegistrationRequester
-		//archive >> registrationMsg;
+		// forward this message to RegistrationRequester	
 		from_buffer(registrationMsg, buffer);
 		registrationServer_->receiveServiceRegistrationRequest(source,
 				registrationMsg);
@@ -165,29 +158,17 @@ void MessageDispatcher::sendDataToUpperLayer_impl(
 				registrationReplyMessage.getStatus());
 		break;
 
-	case SERVICE_REQUEST_MSG:
-		//archive >> *serviceMessage;       
-		//cout<<"???? SERVICE_REQUEST_MSG"<<endl;
-		from_buffer(*serviceMessage, buffer);
-	//	boost::posix_time::ptime after =
-	//			boost::posix_time::microsec_clock::local_time();
-	//	deserialization_time += (after-before).total_microseconds();
+	case SERVICE_REQUEST_MSG:	
+		from_buffer(*serviceMessage, buffer);	
 		resultServer_->receiveServiceRequest(source, serviceMessage);
 		break;
 
-	case SERVICE_RESULT_MSG:
-		//archive >> *serviceMessage;
-		//cout<<"???? SERVICE_RESULT_MSG"<<endl;
+	case SERVICE_RESULT_MSG:		
 		from_buffer(*serviceMessage, buffer);
-		//from_buffer(serviceMessage, buffer);
-	//	boost::posix_time::ptime after =
-	//			boost::posix_time::microsec_clock::local_time();
-	//	deserialization_time += (after-before).total_microseconds();
 		resultRequester_->receiveResultOfService(serviceMessage);
 		break;
 
-	case PERMISSION_OF_SERVICE_REQUEST_MSG:
-		//archive >> permissionRequestMessage;
+	case PERMISSION_OF_SERVICE_REQUEST_MSG:	
 		from_buffer(permissionRequestMessage, buffer);
 		permissionServer_->receivePermissionOfServiceRequest(source,
 				permissionRequestMessage);

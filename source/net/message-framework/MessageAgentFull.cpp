@@ -153,7 +153,7 @@ void runMessageClientFull(ServiceRequestInfoPtr& serviceRequestInfo,
 
 			std::map<std::string, MessageFrameworkNode>::const_iterator cit = agentInfoMap.begin();
 			
-			cit->second.display();
+			//cit->second.display();
 
 			for(; cit != agentInfoMap.end(); cit++) {
 				//before = posix_time::microsec_clock::local_time();
@@ -192,7 +192,7 @@ void runMessageClientFull(ServiceRequestInfoPtr& serviceRequestInfo,
 		std::string serviceName = serviceRequestInfo->getServiceName();
 		std::map<std::string, MessageFrameworkNode> agentInfoMap;
 		if( client.getHostsOfService(serviceName, agentInfoMap) ) {
-
+			assert(agentInfoMap.size() == 1);
 			std::map<std::string, MessageFrameworkNode>::const_iterator cit = agentInfoMap.begin();
 			for(; cit != agentInfoMap.end(); cit++) {
 				//before = posix_time::microsec_clock::local_time();
@@ -240,6 +240,7 @@ bool requestService(const std::string& serviceName,
 		std::map<std::string, MessageFrameworkNode> agentInfoMap;
 		client.getHostsOfService(serviceName, agentInfoMap);
 		std::map<std::string, MessageFrameworkNode>::const_iterator cit = agentInfoMap.begin();
+		assert(agentInfoMap.size() == 1);
 		for(; cit != agentInfoMap.end(); cit++) {
 			//before = posix_time::microsec_clock::local_time();
 			if( false == client.putServiceRequest(cit->second, serviceRequestInfos, false) )
@@ -274,6 +275,7 @@ bool requestService(const std::string& serviceName,
 		std::map<std::string, MessageFrameworkNode> agentInfoMap;
 				client.getHostsOfService(serviceName, agentInfoMap);				
 				std::map<std::string, MessageFrameworkNode>::const_iterator cit = agentInfoMap.begin();
+		assert(agentInfoMap.size() == 1);
 		for(; cit != agentInfoMap.end(); cit++) {
 			//before = posix_time::microsec_clock::local_time();
 			if( false == client.putServiceRequest(cit->second, serviceRequestInfos) )

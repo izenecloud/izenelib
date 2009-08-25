@@ -18,7 +18,6 @@
 #include <net/message-framework/AsyncConnector.h>
 #include <net/message-framework/ClientIdRequester.h>
 #include <net/message-framework/Semaphore.h>
-#include <util/izene_log.h>
 
 
 /**************** Include boost header files *******************/

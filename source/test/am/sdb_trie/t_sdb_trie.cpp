@@ -20,6 +20,15 @@ using namespace izenelib::am;
 
 BOOST_AUTO_TEST_SUITE( sdb_trie_suite )
 
+#define CLEAN_SDB_FILE(test) \
+{ \
+    std::string testname = test;\
+    remove( ("sdbtrie_" + testname + ".edge.table.sdb").c_str() ); \
+    remove( ("sdbtrie_" + testname + ".isword.table.sdb").c_str() ); \
+    remove( ("sdbtrie_" + testname + ".userdata.table.sdb").c_str() ); \
+}
+
+
 #define TEST_TRIE_FIND(str, id) \
 { \
   int result;\
@@ -48,7 +57,7 @@ BOOST_AUTO_TEST_SUITE( sdb_trie_suite )
 
 BOOST_AUTO_TEST_CASE(SDBTrie_update)
 {
-    remove("sdbtrie_update*.sdb");
+    CLEAN_SDB_FILE("update");
 
     {
       SDBTrie2<string,int> trie("./sdbtrie_update");
@@ -72,17 +81,18 @@ BOOST_AUTO_TEST_CASE(SDBTrie_update)
       TEST_TRIE_FIND("apple", 2);
     }
 
-    remove("sdbtrie_update*.sdb");
+    CLEAN_SDB_FILE("update");
+
 }
 
 
 
 BOOST_AUTO_TEST_CASE(SDBTrie_find)
 {
-    remove("sdbtrie_insert*.sdb");
+    CLEAN_SDB_FILE("find");
 
     {
-      SDBTrie2<string,int> trie("./sdbtrie_insert");
+      SDBTrie2<string,int> trie("./sdbtrie_find");
       trie.insert("apple",1);
       trie.insert("blue",2);
       trie.insert("at",3);
@@ -93,7 +103,7 @@ BOOST_AUTO_TEST_CASE(SDBTrie_find)
     }
 
     {
-      SDBTrie2<string,int> trie("./sdbtrie_insert");
+      SDBTrie2<string,int> trie("./sdbtrie_find");
       BOOST_CHECK_EQUAL(trie.num_items(),  (size_t)7);
 
       TEST_TRIE_FIND("apple", 1);
@@ -113,13 +123,13 @@ BOOST_AUTO_TEST_CASE(SDBTrie_find)
       TEST_TRIE_FIND("bluee", -1);
     }
 
-    remove("sdbtrie_insert*.sdb");
+    CLEAN_SDB_FILE("find");
 }
 
 
 BOOST_AUTO_TEST_CASE(SDBTrie_prefixIterate)
 {
-    remove("sdbtrie_prefix*.sdb");
+    CLEAN_SDB_FILE("prefix");
 
     {
       SDBTrie2<string,int> trie("./sdbtrie_prefix");
@@ -151,7 +161,7 @@ BOOST_AUTO_TEST_CASE(SDBTrie_prefixIterate)
       TEST_TRIE_PREFIX_ITERATE("esk", idList5, 0);
     }
 
-    remove("sdbtrie_prefix*.sdb");
+    CLEAN_SDB_FILE("prefix");
 }
 
 BOOST_AUTO_TEST_SUITE_END()

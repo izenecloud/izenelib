@@ -18,247 +18,230 @@
 #include <string>
 #include <vector>
 
-namespace sf1v5_dummy
-{
+namespace sf1v5_dummy {
 
-    /**
-     * @brief   Parses sf1v5 process' options and provides interfaces for accessing the values.
-     */
-    class ProcessOptions
-    {
-        public:
+/**
+ * @brief   Parses sf1v5 process' options and provides interfaces for accessing the values.
+ */
+class ProcessOptions {
+public:
 
-            /**
-             * @brief   sets up option descriptions for all processes
-             */
-            ProcessOptions();
+	/**
+	 * @brief   sets up option descriptions for all processes
+	 */
+	ProcessOptions();
 
+	/**
+	 * @brief   Displays the appropriate help message for controller. 
+	 *          Checks if there are options, and calls setProcessOptions() to parse and set option values.
+	 */
+	bool setControllerOptions(int argc, char * argv[]);
 
+	/**
+	 * @brief   Displays the appropriate help message for ConfigurationProcess. 
+	 *          Checks if there are options, and calls setProcessOptions() to parse and set option values.
+	 */
+	bool setConfigProcessOptions(int argc, char * argv[]);
 
-            /**
-             * @brief   Displays the appropriate help message for controller. 
-             *          Checks if there are options, and calls setProcessOptions() to parse and set option values.
-             */
-            bool setControllerOptions( int argc, char * argv[] );
+	/**
+	 * @brief   Displays the appropriate help message for IdProcess. 
+	 *          Checks if there are options, and calls setProcessOptions() to parse and set option values.
+	 */
+	bool setIdProcessOptions(int argc, char * argv[]);
 
-            /**
-             * @brief   Displays the appropriate help message for ConfigurationProcess. 
-             *          Checks if there are options, and calls setProcessOptions() to parse and set option values.
-             */
-            bool setConfigProcessOptions( int argc, char * argv[] );
+	/**
+	 * @brief   Displays the appropriate help message for LogProcess. 
+	 *          Checks if there are options, and calls setProcessOptions() to parse and set option values.
+	 */
+	bool setLogProcessOptions(int argc, char * argv[]);
 
-            /**
-             * @brief   Displays the appropriate help message for IdProcess. 
-             *          Checks if there are options, and calls setProcessOptions() to parse and set option values.
-             */
-            bool setIdProcessOptions( int argc, char * argv[] );
+	/**
+	 * @brief   Displays the appropriate help message for LAProcess. 
+	 *          Checks if there are options, and calls setProcessOptions() to parse and set option values.
+	 */
+	bool setLaProcessOptions(int argc, char * argv[]);
 
-            /**
-             * @brief   Displays the appropriate help message for LogProcess. 
-             *          Checks if there are options, and calls setProcessOptions() to parse and set option values.
-             */
-            bool setLogProcessOptions( int argc, char * argv[] );
+	/**
+	 * @brief   Displays the appropriate help message for IndexProcess. 
+	 *          Checks if there are options, and calls setProcessOptions() to parse and set option values.
+	 */
+	bool setIndexProcessOptions(int argc, char * argv[]);
 
-            /**
-             * @brief   Displays the appropriate help message for LAProcess. 
-             *          Checks if there are options, and calls setProcessOptions() to parse and set option values.
-             */
-            bool setLaProcessOptions( int argc, char * argv[] );
+	/**
+	 * @brief   Displays the appropriate help message for DocumentProcess. 
+	 *          Checks if there are options, and calls setProcessOptions() to parse and set option values.
+	 */
+	bool setDocumentProcessOptions(int argc, char * argv[]);
 
-            /**
-             * @brief   Displays the appropriate help message for IndexProcess. 
-             *          Checks if there are options, and calls setProcessOptions() to parse and set option values.
-             */
-            bool setIndexProcessOptions( int argc, char * argv[] );
+	/**
+	 * @brief   Displays the appropriate help message for main function of sf1v5 using MF-light . 
+	 *          Checks if there are options, and calls setProcessOptions() to parse and set option values.
+	 *  TODO: need to change name
+	 */
+	bool setMainLightProcessOptions(int argc, char * argv[]);
 
-            /**
-             * @brief   Displays the appropriate help message for DocumentProcess. 
-             *          Checks if there are options, and calls setProcessOptions() to parse and set option values.
-             */
-            bool setDocumentProcessOptions( int argc, char * argv[] );
+	/**
+	 * @brief   Displays the appropriate help message for MainProcess. 
+	 *          Checks if there are options, and calls setProcessOptions() to parse and set option values.
+	 */
+	bool setMainProcessOptions(int argc, char * argv[]);
 
-            /**
-             * @brief   Displays the appropriate help message for main function of sf1v5 using MF-light . 
-             *          Checks if there are options, and calls setProcessOptions() to parse and set option values.
-             *  TODO: need to change name
-             */
-            bool setMainLightProcessOptions( int argc, char * argv[] );
+	/**
+	 * @brief   Displays the appropriate help message for all the options. 
+	 *          Checks if there are options, and calls setProcessOptions() to parse and set option values.
+	 */
+	bool setAllOptions(int argc, char * argv[]);
 
-            /**
-             * @brief   Displays the appropriate help message for MainProcess. 
-             *          Checks if there are options, and calls setProcessOptions() to parse and set option values.
-             */
-            bool setMainProcessOptions( int argc, char * argv[] );
+	unsigned int getNumberOfOptions() {
+		return variableMap_.size();
+	}
 
-            /**
-             * @brief   Displays the appropriate help message for all the options. 
-             *          Checks if there are options, and calls setProcessOptions() to parse and set option values.
-             */
-            bool setAllOptions( int argc, char * argv[] );
+	/**
+	 * @brief   Gets the port number of the current host.
+	 * @return  The port number
+	 */
+	unsigned int getHostPort() {
+		return hostPort_;
+	}
 
+	/**
+	 * @brief   Gets the IP address of the controller.
+	 * @return  The IP address
+	 */
+	std::string getControllerIp() {
+		return controllerIp_;
+	}
 
+	/**
+	 * @brief   Gets the port number of the controller.
+	 * @return  The port number
+	 */
+	unsigned int getControllerPort() {
+		return controllerPort_;
+	}
 
-            unsigned int getNumberOfOptions()
-            {
-                return variableMap_.size();
-            }
+	/**
+	 * @brief   Gets the location of the configuration file
+	 * @return  The configuration file path
+	 */
+	std::string getConfigFileName() {
+		return configFileName_;
+	}
 
+	/**
+	 * @brief   Gets a Collection name.
+	 * @return  A Collection name.
+	 */
+	std::string getCollectionName() {
+		return collectionName_;
+	}
 
+	/**
+	 * @brief   Gets a number of SCD files in DocumentManager.
+	 * @return  SCD files name
+	 */
+	std::string getScdFileName() {
+		return scdFileName_;
+	}
 
-            /**
-             * @brief   Gets the port number of the current host.
-             * @return  The port number
-             */
-            unsigned int getHostPort()
-            {
-                return hostPort_;
-            }
+	/**
+	 * @brief   Gets a number of documents to process in DocumentManager.
+	 * @return  number of documents to process
+	 */
+	unsigned int getNumberOfDocuments() {
+		return documentCount_;
+	}
 
-            /**
-             * @brief   Gets the IP address of the controller.
-             * @return  The IP address
-             */
-            std::string getControllerIp()
-            {
-                return controllerIp_;
-            }
+	std::string getAgentInfo() {
+		return agentInfo_;
+	}
 
-            /**
-             * @brief   Gets the port number of the controller.
-             * @return  The port number
-             */
-            unsigned int getControllerPort()
-            {
-                return controllerPort_;
-            }
+private:
 
-            /**
-             * @brief   Gets the location of the configuration file
-             * @return  The configuration file path
-             */
-            std::string getConfigFileName()
-            {
-                return configFileName_;
-            }
+	//Process all the options possible for the processes in sf1v5
+	void setProcessOptions();
 
-            /**
-             * @brief   Gets a Collection name.
-             * @return  A Collection name.
-             */
-            std::string getCollectionName()
-            {
-                return collectionName_;
-            }
+	/// @brief  Stores the option values
+	boost::program_options::variables_map variableMap_;
 
-            /**
-             * @brief   Gets a number of SCD files in DocumentManager.
-             * @return  SCD files name
-             */
-            std::string getScdFileName()
-            {
-                return scdFileName_;
-            }
+	/**
+	 * @brief   Description of the process options for controller.
+	 */
+	boost::program_options::options_description controllerDescription_;
 
-            /**
-             * @brief   Gets a number of documents to process in DocumentManager.
-             * @return  number of documents to process
-             */
-            unsigned int getNumberOfDocuments()
-            {
-                return documentCount_;
-            }
+	/**
+	 * @brief   Description of the process options for ConfigurationProcess.
+	 */
+	boost::program_options::options_description
+			configurationProcessDescription_;
 
+	/**
+	 * @brief   Description of the process options for IdProcess.
+	 */
+	boost::program_options::options_description idProcessDescription_;
 
+	/**
+	 * @brief   Description of the process options for LogProcess.
+	 */
+	boost::program_options::options_description logProcessDescription_;
 
-        private:
+	/**
+	 * @brief   Description of the process options for LAProcess.
+	 */
+	boost::program_options::options_description laProcessDescription_;
 
-            //Process all the options possible for the processes in sf1v5
-            void setProcessOptions();
+	/**
+	 * @brief   Description of the process options for IndexProcess.
+	 */
+	boost::program_options::options_description indexProcessDescription_;
 
+	/**
+	 * @brief   Description of the process options for DocumentProcess.
+	 */
+	boost::program_options::options_description documentProcessDescription_;
 
+	/**
+	 * @brief   Description of the process options for Main using MF-light.
+	 */
+	//TODO: RENAME
+	boost::program_options::options_description mainLightProcessDescription_;
 
-            /// @brief  Stores the option values
-            boost::program_options::variables_map variableMap_;
+	/**
+	 * @brief   Description of Main process options
+	 */
+	boost::program_options::options_description mainProcessDescription_;
 
+	/**
+	 * @brief   Description of the process options for all the processes.
+	 */
+	boost::program_options::options_description fullDescription_;
 
-            /**
-             * @brief   Description of the process options for controller.
-             */
-            boost::program_options::options_description controllerDescription_;
+	/// @brief  The port number of the current host
+	unsigned int hostPort_;
 
-            /**
-             * @brief   Description of the process options for ConfigurationProcess.
-             */
-            boost::program_options::options_description configurationProcessDescription_;
+	/// @brief  The ip address of the controller
+	std::string controllerIp_;
 
-            /**
-             * @brief   Description of the process options for IdProcess.
-             */
-            boost::program_options::options_description idProcessDescription_;
+	/// @brief  The port number of the controller
+	unsigned int controllerPort_;
 
-            /**
-             * @brief   Description of the process options for LogProcess.
-             */
-            boost::program_options::options_description logProcessDescription_;
+	/// @brief  The file name (path) of the configuration file
+	std::string configFileName_;
 
-            /**
-             * @brief   Description of the process options for LAProcess.
-             */
-            boost::program_options::options_description laProcessDescription_;
+	/// @brief  The name of the Collection of the documents to be processed by DocumentManager
+	std::string collectionName_;
 
-            /**
-             * @brief   Description of the process options for IndexProcess.
-             */
-            boost::program_options::options_description indexProcessDescription_;
+	/// @brief  The name of the SCD file that cotains the documents
+	std::string scdFileName_;
 
-            /**
-             * @brief   Description of the process options for DocumentProcess.
-             */
-            boost::program_options::options_description documentProcessDescription_;
+	/// @brief  The number of documents that DocumentManager will process from the SCD file
+	unsigned int documentCount_;
 
-            /**
-             * @brief   Description of the process options for Main using MF-light.
-             */
-            //TODO: RENAME
-            boost::program_options::options_description mainLightProcessDescription_;
+	std::string agentInfo_;
 
-            /**
-             * @brief   Description of Main process options
-             */
-            boost::program_options::options_description mainProcessDescription_;
+};
 
-            /**
-             * @brief   Description of the process options for all the processes.
-             */
-            boost::program_options::options_description fullDescription_;
-
-
-
-            /// @brief  The port number of the current host
-            unsigned int                hostPort_;
-
-            /// @brief  The ip address of the controller
-            std::string                 controllerIp_;
-
-            /// @brief  The port number of the controller
-            unsigned int                controllerPort_;
-
-            /// @brief  The file name (path) of the configuration file
-            std::string                 configFileName_;
-
-            /// @brief  The name of the Collection of the documents to be processed by DocumentManager
-            std::string                 collectionName_;
-
-            /// @brief  The name of the SCD file that cotains the documents
-            std::string                 scdFileName_;
-
-            /// @brief  The number of documents that DocumentManager will process from the SCD file
-            unsigned int                documentCount_;
-
-    };
-
-}   //namespace
+} //namespace
 
 
 #endif  //_SF1V5_PROCESS_OPTIONS_H_
-
