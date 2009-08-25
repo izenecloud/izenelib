@@ -178,7 +178,8 @@ public:
 		return true;
 	}
 
-	bool dump(sdb_btree& other) {
+	template<typename AM>
+	bool dump(AM& other) {
 		if( !other.is_open() )
 		{
 			if( !other.open() )
@@ -198,7 +199,7 @@ public:
 		return true;
 	}
 
-	bool dump(const string& fileName)
+	bool dump2f(const string& fileName)
 	{
 		sdb_btree other(fileName);
 		if( !other.open() )
@@ -384,20 +385,22 @@ private:
 	LockType _fileLock;
 	size_t _activeNodeNum;
 private:
+	unsigned long _initRss;
+	unsigned int _flushCount;
 
 	void _flushCache(bool quickFlush=false) {
-#ifdef SINGLE_SDB
-		static unsigned int count;
-		++count;
+#ifdef MUL_SDB
+		//static unsigned int count;
+		//++count;
+		++_flushCount;
 
-		if( (count & 0xffff) == 0 ) {
-
-			unsigned long vm = 0, rss;
+		if( (_flushCount & 0xffff) == 0 ) {
+			unsigned long vm = 0, rss=0;
 			unsigned long rlimit;
 			ProcMemInfo::getProcMemInfo(vm, rss, rlimit);
-
+			
 			//if( _activeNodeNum> _sfh.cacheSize/1024 )
-			if(rss> _sfh.cacheSize*_sfh.pageSize )
+			if(rss - _initRss> _sfh.cacheSize*_sfh.pageSize )
 			{
 				_flushCacheImpl(quickFlush);
 			}
@@ -408,23 +411,23 @@ private:
 			_flushCacheImpl(quickFlush);
 		}
 #endif
-		
+
 	}
 
 	//for seq, reset SDBCursor
 	void _flushCache(SDBCursor& locn) {
-#ifdef SINGLE_SDB		
-		static unsigned int count;
-		++count;
 
-		if( (count & 0xffff) == 0 ) {
+#ifdef MUL_SDB		
+		//static unsigned int count;
+		++_flushCount;
 
+		if( (_flushCount & 0xffff) == 0 ) {
 			unsigned long vm = 0, rss=0;
 			unsigned long rlimit;
 			ProcMemInfo::getProcMemInfo(vm, rss, rlimit);
 
 			//if( _activeNodeNum> _sfh.cacheSize/1024 )
-			if(rss> _sfh.cacheSize*_sfh.pageSize )
+			if(rss - _initRss> _sfh.cacheSize*_sfh.pageSize )
 			{
 				KeyType key;
 				ValueType value;
@@ -434,14 +437,14 @@ private:
 			}
 		}
 #else
-		 if( _activeNodeNum> _sfh.cacheSize )
-		 {
-		 KeyType key;
-		 ValueType value;
-		 get(locn, key, value);
-		 _flushCacheImpl();
-		 search(key, locn);
-		 }
+		if( _activeNodeNum> _sfh.cacheSize )
+		{
+			KeyType key;
+			ValueType value;
+			get(locn, key, value);
+			_flushCacheImpl();
+			search(key, locn);
+		}
 #endif		 
 	}
 
@@ -455,62 +458,62 @@ private:
 		//display();
 #endif
 
-		/*for(size_t i=0; i<_root->objCount+1; i++)
-		 {
-		 _root->children[i]->unload();
-		 }
-		 return;*/
-
-		queue<sdb_node*> qnode;
-		qnode.push(_root);
-
-		size_t popNum = 0;
-		size_t escapeNum = _activeNodeNum>>1;
-		sdb_node* interval = NULL;
-		while ( !qnode.empty() ) {
-			sdb_node* popNode = qnode.front();
-			qnode.pop();
-			popNum++;
-
-			if( popNum >= escapeNum )
-			{
-				if( popNode == interval )
-				break;
-
-				if( interval == NULL && !popNode->isLeaf ) {
-					interval = popNode->children[0];
-				}
-
-				if( popNode->isDirty && quickFlush)
-				_flush(popNode, _dataFile);
-
-				popNode->unload();
-				//cout<<"unloading....";
-				//cout<<_activeNodeNum<<" vs "<<_sfh.cacheSize <<endl;
-			}
-
-			if (popNode && popNode->isLoaded && !popNode->isLeaf) {
-				for(size_t i=0; i<popNode->objCount+1; i++)
-				{
-					if( popNode->children[i] ) {
-						qnode.push( popNode->children[i] );
-					}
-					else
-					{
-						//cout<<"corrupted nodes!!!"<<endl;
-					}
-
-				}
-			}
-
+		for(size_t i=0; i<_root->objCount+1; i++)
+		{
+			_root->children[i]->unload();
 		}
+		return;
+		/*
+		 queue<sdb_node*> qnode;
+		 qnode.push(_root);
 
-#ifdef DEBUG
-		cout<<"stop unload..."<<endl;
-		cout<<_activeNodeNum<<" vs "<<_sfh.cacheSize <<endl;
-		//display();
-#endif
-		fflush(_dataFile);
+		 size_t popNum = 0;
+		 size_t escapeNum = _activeNodeNum>>1;
+		 sdb_node* interval = NULL;
+		 while ( !qnode.empty() ) {
+		 sdb_node* popNode = qnode.front();
+		 qnode.pop();
+		 popNum++;
+
+		 if( popNum >= escapeNum )
+		 {
+		 if( popNode == interval )
+		 break;
+
+		 if( interval == NULL && !popNode->isLeaf ) {
+		 interval = popNode->children[0];
+		 }
+
+		 if( popNode->isDirty && quickFlush)
+		 _flush(popNode, _dataFile);
+
+		 popNode->unload();
+		 //cout<<"unloading....";
+		 //cout<<_activeNodeNum<<" vs "<<_sfh.cacheSize <<endl;
+		 }
+
+		 if (popNode && popNode->isLoaded && !popNode->isLeaf) {
+		 for(size_t i=0; i<popNode->objCount+1; i++)
+		 {
+		 if( popNode->children[i] ) {
+		 qnode.push( popNode->children[i] );
+		 }
+		 else
+		 {
+		 //cout<<"corrupted nodes!!!"<<endl;
+		 }
+
+		 }
+		 }
+
+		 }
+
+		 #ifdef DEBUG
+		 cout<<"stop unload..."<<endl;
+		 cout<<_activeNodeNum<<" vs "<<_sfh.cacheSize <<endl;
+		 //display();
+		 #endif
+		 fflush(_dataFile);*/
 
 	}
 
@@ -593,6 +596,13 @@ template<typename KeyType, typename ValueType, typename LockType,
 	_isOpen = false;
 
 	_activeNodeNum = 0;
+
+	{
+		unsigned long vm = 0;
+		unsigned long rlimit;
+		ProcMemInfo::getProcMemInfo(vm, _initRss, rlimit);
+	}
+	_flushCount = 0;
 
 }
 
@@ -1706,6 +1716,12 @@ template<typename KeyType, typename ValueType, typename LockType,
 				_root->children[i]->unload();
 			}
 		}
+	}
+
+	{
+		unsigned long vm = 0;
+		unsigned long rlimit;
+		ProcMemInfo::getProcMemInfo(vm, _initRss, rlimit);
 	}
 }
 

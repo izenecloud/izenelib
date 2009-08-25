@@ -63,7 +63,7 @@ public:
     template<typename T>
     bool insertProperty(const IndexerPropertyConfig& config, T& property)
     {
-        IndexerDocumentPropertyType p =property;
+        IndexerDocumentPropertyType p(property);
         std::pair<std::map<IndexerPropertyConfig, IndexerDocumentPropertyType>::iterator, bool> ret 
 			= propertyList_.insert(std::make_pair(config, p));
         if(ret.second)

@@ -226,15 +226,16 @@ bool MessageClientFull::checkAgentInfo_(ServicePermissionInfo& permissionInfo) {
 	std::map<std::string, MessageFrameworkNode>::const_iterator it =
 			agentInfoMap.begin();
 	
-	//check it every 1024 times.
-	//if ( !(count & 1023) and !prepareConnection(it->second) )
-	if ( !prepareConnection(it->second) )
-	{
-		std::cout<<"ServicePermissionInfo:"<<it->first<<" -> server:"
+	
+	for(; it != agentInfoMap.end(); it++){
+		if ( !prepareConnection(it->second) )
+		{
+			LOG(ERROR)<<"ServicePermissionInfo:"<<it->first<<" -> server:"
 				<<it->second<<"failed";
-		permissionInfo.removeServer(it->first);
-		return false;
+			permissionInfo.removeServer(it->first);			
+		}
 	}
+	if( it != agentInfoMap.end() )return false;
 	return true;
 
 }
@@ -279,12 +280,9 @@ bool MessageClientFull::getHostsOfService(const std::string& serviceName,
 		{
 			if(!newPermisionOfServiceEvent_.timed_wait(acceptedPermissionLock, timeout))
 			{
-				std::cout << "[Client:" << getName();
-				std::cout << "] Timeout!!! Cannot receive permission of Service: " << serviceName << std::endl;
-
-#ifdef _LOGGING_
-				WriteToLog("log.log", "getPermissionOfService returns false (timeout)");
-#endif
+				LOG(ERROR) << "[Client:" << getName()
+				 << "] Timeout!!! Cannot receive permission of Service: " << serviceName << std::endl;
+				LOG(ERROR) <<"getPermissionOfService returns false (timeout)";
 				return false;
 			}
 		}
@@ -298,12 +296,11 @@ bool MessageClientFull::getHostsOfService(const std::string& serviceName,
 			if( servicePermissionInfo.getServerMap().empty() )
 			{
 				acceptedPermissionList_.erase(serviceName);
-				std::cout << "[Client:" << getName();
-				std::cout << "] Service " << serviceName << " is not listed in Message Controller." << std::endl;
+				LOG(ERROR) << "[Client:" << getName()
+				 << "] Service " << serviceName << " is not listed in Message Controller." << std::endl;
 
-#ifdef _LOGGING_
-				WriteToLog("log.log", "getPermissionOfService returns false(service is not available at MessageController)");
-#endif
+				 LOG(ERROR) << "getPermissionOfService returns false(service is not available at MessageController)"<<std::endl;
+
 				// service is not available at MessageController
 				return false;
 			}
@@ -314,17 +311,7 @@ bool MessageClientFull::getHostsOfService(const std::string& serviceName,
 
 			servicePermissionInfo.getServerMap(servers);
 
-			//				// make connection in advanced
-			//				if(!messageDispatcher_.isExist(servicePermissionInfo.getServer()))
-			//				{
-			//					// if connection to sever has not been established, connect to the server;
-			//					asyncConnector_.connect(servicePermissionInfo.getServer().nodeIP_,
-			//						servicePermissionInfo.getServer().nodePort_);
-			//				}
-
-#ifdef _LOGGING_
-			WriteToLog("log.log", "getPermissionOfService returns true(newly received)");
-#endif
+			LOG(INFO) << "getPermissionOfService returns true(newly received)";
 			return true;
 		}
 

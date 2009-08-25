@@ -89,7 +89,7 @@ public:
 	}
 	int num_items() {
 		return am_.num_items();
-	}
+	}	
 };
 
 template<typename KeyType, typename ValueType, typename AM> class AMOBJ<

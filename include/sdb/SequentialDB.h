@@ -166,11 +166,11 @@ public:
 	 *  \brief if not found, insert them
 	 */
 	bool getValueWithInsert(const KeyType& key,
-			DataType<KeyType,ValueType> & data) {
-		if (getValue(key, data) )
+			ValueType& value) {
+		if (getValue(key, value) )
 			return true;
 		else {
-			insertValue(data);
+			insertValue(key, value);
 			//container_.flush();
 			return false;
 		}
@@ -456,6 +456,7 @@ public:
 private:
 	ContainerType container_;
 	LockType lock_; // for multithread access.
+	izenelib::am::CompareFunctor<KeyType> comp_;
 };
 
 template<typename KeyType, typename ValueType, typename LockType,
@@ -595,7 +596,7 @@ template<typename KeyType, typename ValueType, typename LockType,
 		ValueType, LockType, ContainerType, Alloc>::getValueBetween(
 		vector<DataType<KeyType,ValueType> >& result, const KeyType& lowKey,
 		const KeyType& highKey) {
-	if (lowKey.compare(highKey)> 0) {
+	if (comp_(lowKey, highKey)> 0) {
 		return false;
 	}
 	SDBCursor locn;
@@ -604,7 +605,7 @@ template<typename KeyType, typename ValueType, typename LockType,
 	lock_.acquire_read_lock();
 	container_.search(lowKey, locn);
 	if (container_.get(locn, rec)) {
-	    if (rec.get_key().compare(highKey) <= 0) {
+	    if ( comp_(rec.get_key(), highKey) <= 0 ) {
             result.push_back(rec);
 	    } else
             return true;
@@ -614,7 +615,7 @@ template<typename KeyType, typename ValueType, typename LockType,
 	//container_.search(newLowKey, locn);
 	do {
 		if (container_.seq(locn, rec, ESD_FORWARD) ) {
-			if (rec.get_key().compare(highKey) <= 0) {
+			if ( comp_(rec.get_key(), highKey) <= 0 ) {
 				result.push_back(rec);
 			} else {
 				break;

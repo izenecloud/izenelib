@@ -9,6 +9,9 @@
 #include <boost/concept/assert.hpp>
 #include <functional>
 #include <iostream>
+#include <boost/tuple/tuple.hpp>
+#include <boost/tuple/tuple_comparison.hpp>
+
 using namespace std;
 
 #include <types.h>
@@ -118,25 +121,65 @@ public:
 	NullType value;
 };
 
+
+	
+template<typename T>	
+struct has_compare_operator{
+	enum{ value = boost::is_arithmetic<T>::value };
+};
+
+
+template < typename T1, typename T2  >
+struct has_compare_operator<std::pair<T1, T2>  >
+{
+	enum {value = 1 };
+};
+
+
+template < typename T1, typename T2  >
+struct has_compare_operator<boost::tuple<T1, T2>  >
+{
+	enum {value = 1};
+};
+
+
+
+template < typename T1, typename T2, typename T3  >
+struct has_compare_operator<boost::tuple<T1, T2, T3>  >
+{
+	enum {value = 1};
+};
+
+
+template < typename T1, typename T2, typename T3, typename T4  >
+struct has_compare_operator<boost::tuple<T1, T2, T3, T4>  >
+{
+	enum {value = 1};
+};
+
+template<int >
+struct indidator{};
+
+
 template<class KeyType> class CompareFunctor :
 	public binary_function<KeyType, KeyType, int>
 
 {
 public:
-	int operator()(const KeyType& key1, const KeyType& key2) const {
-		return _compare(key1, key2,
-				static_cast<boost::is_arithmetic<KeyType>*>(0));
+	int operator()(const KeyType& key1, const KeyType& key2) const {		
+		return _compare(key1, key2, indidator<has_compare_operator<KeyType>::value >()
+				 );
 	}
 private:
 	int _compare(const KeyType& key1, const KeyType& key2,
-			const boost::mpl::true_*) const {	
+			indidator<1>) const {	
 		if(key1 > key2) return 1;
 		else if(key1 <key2 )return -1;		
 		else return 0;
 	}
 
 	int _compare(const KeyType& key1, const KeyType& key2,
-			const boost::mpl::false_*) const {
+			indidator<0>) const {
 		BOOST_CONCEPT_ASSERT((KeyTypeConcept<KeyType>));
 		return key1.compare(key2);
 	}

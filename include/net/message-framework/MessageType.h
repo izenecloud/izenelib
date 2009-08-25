@@ -1,6 +1,8 @@
 #ifndef _MESSAGE_TYPE_H_
 #define _MESSAGE_TYPE_H_
 
+#include <util/izene_log.h>
+
 namespace messageframework
 {
 	enum MessageType
