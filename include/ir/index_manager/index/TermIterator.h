@@ -11,6 +11,8 @@
 #include <ir/index_manager/index/Term.h>
 #include <ir/index_manager/index/FieldIndexer.h>
 
+#include <3rdparty/am/rde_hashmap/hash_map.h>
+
 NS_IZENELIB_IR_BEGIN
 
 namespace indexmanager{
@@ -85,6 +87,8 @@ protected:
 class InputDescriptor;
 ///DiskTermIterator
 class DiskTermReader;
+typedef rde::hash_map<termid_t, TermInfo > TERM_TABLE;
+
 /**
 * Iterate terms from index barrel files(*.voc)
 */
@@ -146,6 +150,7 @@ private:
     Posting* pCurTermPosting;   ///current term's posting in this iterator
     InputDescriptor* pInputDescriptor;
     int32_t nCurPos;         ///current position in this iterator
+    TERM_TABLE::iterator currTermIter;
 };
 
 class InMemoryTermReader;

@@ -20,6 +20,7 @@
 #include <ir/index_manager/store/Directory.h>
 
 
+
 NS_IZENELIB_IR_BEGIN
 
 namespace indexmanager{
@@ -84,11 +85,14 @@ protected:
     friend class InMemoryTermReader;
 };
 
+
+/*
 struct TERM_TABLE
 {
     termid_t tid;
     TermInfo ti;
 };
+*/
 /**
 * Internal class of DiskTermReader
 * We use this class because there would exist concurrent read, without this class,

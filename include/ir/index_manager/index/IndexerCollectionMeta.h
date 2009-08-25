@@ -53,7 +53,7 @@ public:
     }
 
 
-    void setDocumentSchema( const std::set<IndexerPropertyConfig> & schema )
+    void setDocumentSchema( const std::set<IndexerPropertyConfig, IndexerPropertyConfigComp> & schema )
     {
         schema_ = schema;
     }
@@ -61,8 +61,8 @@ public:
     void initDocumentSchema()
     {
         unsigned int property_id = 0;
-        std::set<IndexerPropertyConfig> schema;
-        for(std::set<IndexerPropertyConfig>::iterator iter = schema_.begin(); iter != schema_.end(); ++iter)
+        std::set<IndexerPropertyConfig, IndexerPropertyConfigComp> schema;
+        for(std::set<IndexerPropertyConfig, IndexerPropertyConfigComp>::iterator iter = schema_.begin(); iter != schema_.end(); ++iter)
         {
             IndexerPropertyConfig propertyConfig = *iter;
             propertyConfig.setPropertyId(property_id++);
@@ -72,7 +72,7 @@ public:
         schema_ = schema;
     }
 
-    const std::set<IndexerPropertyConfig> & getDocumentSchema() const
+    const std::set<IndexerPropertyConfig, IndexerPropertyConfigComp> & getDocumentSchema() const
     {
         return schema_;
     }
@@ -88,7 +88,7 @@ protected:
     std::string encoding_;
 
     /// @brief	The DocumentSchemaConfig of this Collection
-    std::set<IndexerPropertyConfig> schema_;
+    std::set<IndexerPropertyConfig, IndexerPropertyConfigComp> schema_;
 
 };
 

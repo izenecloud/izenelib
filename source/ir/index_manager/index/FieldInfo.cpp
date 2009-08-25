@@ -34,9 +34,9 @@ void FieldsInfo::setSchema(const IndexerCollectionMeta& collectionMeta)
     clear();
 
     nNumFieldInfo = 0;
-    std::set<IndexerPropertyConfig> schema = collectionMeta.getDocumentSchema();
+    std::set<IndexerPropertyConfig, IndexerPropertyConfigComp> schema = collectionMeta.getDocumentSchema();
 
-    for(std::set<IndexerPropertyConfig>::const_iterator it = schema.begin(); it != schema.end(); it++ )
+    for(std::set<IndexerPropertyConfig, IndexerPropertyConfigComp>::const_iterator it = schema.begin(); it != schema.end(); it++ )
 	if (it->getPropertyId() != BAD_PROPERTY_ID)
            nNumFieldInfo++;
 
@@ -44,7 +44,7 @@ void FieldsInfo::setSchema(const IndexerCollectionMeta& collectionMeta)
     memset(ppFieldsInfo,0,nNumFieldInfo*sizeof(FieldInfo*));
 
     int32_t n = 0;
-    for(std::set<IndexerPropertyConfig>::const_iterator it = schema.begin(); it != schema.end(); it++ )
+    for(std::set<IndexerPropertyConfig, IndexerPropertyConfigComp>::const_iterator it = schema.begin(); it != schema.end(); it++ )
     {
 	if (it->getPropertyId() != BAD_PROPERTY_ID)
 	{

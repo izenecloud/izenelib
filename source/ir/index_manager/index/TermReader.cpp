@@ -79,19 +79,21 @@ void TermReaderImpl::open(Directory* pDirectory,const char* barrelname,FieldInfo
     nTermCount = (int32_t)pVocInput->readLong(); ///get total term count
     ///end read vocabulary descriptor
     pVocInput->seek(voffset - nVocLength);///seek to begin of vocabulary data
-
-    pTermTable = new TERM_TABLE[nTermCount];
+    pTermTable = new TERM_TABLE;//[nTermCount];
     freq_t		df = 0;
     fileoffset_t	dfiP = 0;
     termid_t		tid = 0;
     ///read term table
     for (int32_t i = 0;i < nTermCount;i++)
     {
-        tid += pVocInput->readInt();
-        pTermTable[i].tid = tid;
+        tid = pVocInput->readInt();
+        //pTermTable[i].tid = tid;
         df = pVocInput->readInt();
-        dfiP += pVocInput->readLong();
-        pTermTable[i].ti.set(df,dfiP);
+        dfiP = pVocInput->readLong();
+        //pTermTable[i].ti.set(df,dfiP);
+        TermInfo ti;
+        ti.set(df,dfiP);
+        (*pTermTable)[tid] = ti;
     }
     delete pVocInput;
 
@@ -111,7 +113,8 @@ void TermReaderImpl::close()
 
     if (pTermTable)
     {
-        delete[] pTermTable;
+        //delete[] pTermTable;
+        delete pTermTable;
         pTermTable = NULL;
         nTermCount = 0;
     }
@@ -167,6 +170,10 @@ TermIterator* DiskTermReader::termIterator(const char* field)
 void TermReaderImpl::updateTermInfo(Term* term, count_t docFreq, fileoffset_t offset)
 {
     termid_t tid = term->getValue();
+
+    TERM_TABLE::iterator termTableIter = pTermTable->find(tid);
+    termTableIter->second.set(docFreq, offset);
+/*
     int32_t start = 0,end = nTermCount - 1;
     int32_t mid = (start + end)/2;
     while (start <= end)
@@ -186,7 +193,7 @@ void TermReaderImpl::updateTermInfo(Term* term, count_t docFreq, fileoffset_t of
             start = mid + 1;
         }
     }
-
+*/
 }
 
 void DiskTermReader::updateTermInfo(Term* term, count_t docFreq, fileoffset_t offset)
@@ -200,6 +207,13 @@ TermInfo* TermReaderImpl::termInfo(Term* term)
         return NULL;
 
     termid_t tid = term->getValue();
+
+    TERM_TABLE::iterator termTableIter = pTermTable->find(tid);
+    if(termTableIter != pTermTable->end())
+        return &(termTableIter->second);
+    else
+        return NULL;
+/*	
     int32_t start = 0,end = nTermCount - 1;
     int32_t mid = (start + end)/2;
     while (start <= end)
@@ -219,6 +233,7 @@ TermInfo* TermReaderImpl::termInfo(Term* term)
         }
     }
     return NULL;
+*/	
 }
 
 TermInfo* DiskTermReader::termInfo(Term* term)

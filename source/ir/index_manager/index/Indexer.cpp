@@ -234,9 +234,9 @@ void Indexer::set_property_name_id_map(const std::map<std::string, IndexerCollec
 
         std::map<std::string, fieldid_t> propertyMap;
 
-        std::set<IndexerPropertyConfig> documentSchema = (iter->second).getDocumentSchema();
+        std::set<IndexerPropertyConfig, IndexerPropertyConfigComp> documentSchema = (iter->second).getDocumentSchema();
 		
-        for(std::set<IndexerPropertyConfig>::const_iterator it = documentSchema.begin(); it != documentSchema.end(); it++ )
+        for(std::set<IndexerPropertyConfig, IndexerPropertyConfigComp>::const_iterator it = documentSchema.begin(); it != documentSchema.end(); it++ )
         {
             if (it->getPropertyId() != BAD_PROPERTY_ID)
             {

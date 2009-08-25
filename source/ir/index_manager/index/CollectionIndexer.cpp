@@ -232,22 +232,27 @@ bool CollectionIndexer::removeDocumentInField(docid_t docid, FieldInfo* pFieldIn
         fileoffset_t voffset = pVocInput->getFilePointer();
 
         int64_t nVocLength = pVocInput->readLong();
-        int32_t nTermCount = (int32_t)pVocInput->readLong(); ///get total term count
+        pVocInput->readLong(); ///get total term count
 
         IndexOutput* pVocWriter = desc->getVocOutput();
         pVocWriter->seek(voffset - nVocLength);///seek to begin of vocabulary data
 
         TERM_TABLE* pTermTable = pTermReader->getTermTable();
 
-        termid_t lastDocID = 0;
         fileoffset_t lastPOffset = 0;
-        for (int i = 0; i < nTermCount; i++)
+        for(TERM_TABLE::iterator termTableIter = pTermTable->begin(); termTableIter!= pTermTable->end(); ++termTableIter)
+        //for (int i = 0; i < nTermCount; i++)
         {
-            pVocWriter->writeInt(pTermTable[i].tid-lastDocID); 				///write term id
+         /*
+            pVocWriter->writeInt(pTermTable[i].tid); 				///write term id
             pVocWriter->writeInt(pTermTable[i].ti.docFreq()); 					///write df
             pVocWriter->writeLong(pTermTable[i].ti.docPointer() - lastPOffset);	///write postingpointer
-            lastDocID = pTermTable[i].tid;
             lastPOffset = pTermTable[i].ti.docPointer();
+            */
+            pVocWriter->writeInt(termTableIter->first); 				///write term id
+            pVocWriter->writeInt(termTableIter->second.docFreq()); 					///write df
+            pVocWriter->writeLong(termTableIter->second.docPointer());	///write postingpointer
+            lastPOffset = termTableIter->second.docPointer();
         }
         pVocWriter->flush();
     }

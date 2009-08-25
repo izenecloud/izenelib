@@ -139,7 +139,13 @@ protected:
     bool laInput_;
 };
 
-
+struct IndexerPropertyConfigComp
+{
+    bool operator()(const IndexerPropertyConfig & lhs, const IndexerPropertyConfig & rhs) const
+    {
+        return ( lhs.getName() < rhs.getName() );
+    }
+};
 
 }
 

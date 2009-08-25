@@ -43,12 +43,14 @@ void FieldIndexer::addField(docid_t docid, boost::shared_ptr<ForwardIndex> forwa
 
     for(ForwardIndex::iterator iter = forwardindex->begin(); iter != forwardindex->end(); ++iter)
     {
-        curPosting = (InMemoryPosting*)postingMap_[iter->first];
-        if (curPosting == NULL)
+        InMemoryPostingMap::iterator postingIter = postingMap_.find(iter->first);
+        if(postingIter == postingMap_.end())
         {
             curPosting = new InMemoryPosting(pMemCache_);
             postingMap_[iter->first] = curPosting;
         }
+        else
+            curPosting = postingIter->second;
 
         ForwardIndexOffset::iterator	endit = iter->second->end();
         freq_t docLength = iter->second->size();
@@ -125,8 +127,7 @@ fileoffset_t FieldIndexer::write(OutputDescriptor* pWriterDesc)
 
     fileoffset_t poffset;
     termid_t tid;
-    fileoffset_t lastPOffset = 0;
-    termid_t lastDocID = 0;
+    termid_t lastTermId = 0;
     int32_t termCount = 0;
     InMemoryPosting* pPosting;
     fileoffset_t vocOffset = pVocWriter->getFilePointer();
@@ -137,22 +138,21 @@ fileoffset_t FieldIndexer::write(OutputDescriptor* pWriterDesc)
         if (!pPosting->hasNoChunk())
         {
             tid = iter->first;
-            pVocWriter->writeInt(tid - lastDocID);			///write term id
+            pVocWriter->writeInt(tid);			///write term id
 
             pVocWriter->writeInt(pPosting->docFreq());		///write df
 
             poffset = pPosting->write(pWriterDesc);		///write posting data
 
-            pVocWriter->writeLong(poffset - lastPOffset);	///write offset of posting descriptor
+            //pVocWriter->writeLong(poffset - lastPOffset);	///write offset of posting descriptor
+            pVocWriter->writeLong(poffset);	///write offset of posting descriptor
             pPosting->reset();								///clear posting data
 
-            lastDocID = tid;
-            lastPOffset = poffset;
+            lastTermId = tid;
 
             termCount++;
         }
     }
-
 
     fileoffset_t vocDescOffset = pVocWriter->getFilePointer();
     int64_t vocLength = vocDescOffset - vocOffset;

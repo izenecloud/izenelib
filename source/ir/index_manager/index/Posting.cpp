@@ -334,12 +334,12 @@ void InMemoryPosting::addLocation(docid_t docid, freq_t doclength, loc_t locatio
             pLocList->addChunk(newChunk(newSize));
             pLocList->addPosting(location - nLastLoc);///d-gap encoding
         }
-        if (!pLocList->addPosting(charlocation))
+        if (!pLocList->addPosting(charlocation - nLastCharLoc))
         {
             ///chunk is exhausted
             int32_t newSize = getNextChunkSize(pLocList->nTotalSize, InMemoryPosting::ALLOCSTRATEGY);
             pLocList->addChunk(newChunk(newSize));
-            pLocList->addPosting(charlocation);///d-gap encoding
+            pLocList->addPosting(charlocation - nLastCharLoc);///d-gap encoding
         }
         nCurTermFreq++;
         nLastLoc = location;
@@ -362,7 +362,7 @@ void InMemoryPosting::addLocation(docid_t docid, freq_t doclength, loc_t locatio
                 ///chunk is exhausted
                 int32_t newSize = getNextChunkSize(pDocFreqList->nTotalSize,InMemoryPosting::ALLOCSTRATEGY);
                 pDocFreqList->addChunk(newChunk(newSize));
-                pDocFreqList->addPosting(nCurTermFreq);
+                pDocFreqList->addPosting(doclength);
             }
         }
         else if (nLastDocID == BAD_DOCID)///first see it
@@ -383,7 +383,6 @@ void InMemoryPosting::addLocation(docid_t docid, freq_t doclength, loc_t locatio
             pLocList->addChunk(newChunk(newSize));
             pLocList->addPosting(location);
         }
-
         if (!pLocList->addPosting(charlocation))
         {
             ///chunk is exhausted
@@ -619,6 +618,7 @@ void InMemoryPosting::decodeNextPositions(uint32_t* pPosting,uint32_t* pFreqs,in
 void InMemoryPosting::resetPosition()
 {
     pDS->lastDecodedPos = 0;
+
 }
 //////////////////////////////////////////////////////////////////////////
 ///OnDiskPosting
@@ -793,6 +793,7 @@ void OnDiskPosting::decodeNextPositions(uint32_t* pPosting,uint32_t* pFreqs,int3
 void OnDiskPosting::resetPosition()
 {
     ds.lastDecodedPos = 0;
+
 }
 
 void OnDiskPosting::reset()
