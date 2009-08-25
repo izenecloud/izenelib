@@ -64,7 +64,7 @@ void ForwardIndexWriter::addProperty(fieldid_t fid, boost::shared_ptr<LAInput> l
         pForwardIndexOffset = iter->second;
         int numPosition = pForwardIndexOffset->size();
         pPOSOutput_->writeVInt(numPosition);	
-        unsigned int offset, lastOffset = 0;
+        unsigned int offset, lastOffset = 0, lastCharOffset = 0;
         for (int j = 0; j < numPosition; j++)
         {
             ///start offset
@@ -73,8 +73,8 @@ void ForwardIndexWriter::addProperty(fieldid_t fid, boost::shared_ptr<LAInput> l
             lastOffset = offset;
             ///end offset
             offset = (*pForwardIndexOffset)[j].second;
-            pPOSOutput_->writeVInt(offset - lastOffset);
-            lastOffset = offset;
+            pPOSOutput_->writeVInt(offset - lastCharOffset);
+            lastCharOffset = offset;
         }
 		
         //delete pForwardIndexOffset;
@@ -105,7 +105,7 @@ void ForwardIndexWriter::addProperty(fieldid_t fid, boost::shared_ptr<ForwardInd
         pForwardIndexOffset = iter->second;
         int numPosition = pForwardIndexOffset->size();
         pPOSOutput_->writeVInt(numPosition);	
-        unsigned int offset, lastOffset = 0;
+        unsigned int offset, lastOffset = 0, lastCharOffset = 0;
         for (int j = 0; j < numPosition; j++)
         {
             ///start offset
@@ -114,12 +114,11 @@ void ForwardIndexWriter::addProperty(fieldid_t fid, boost::shared_ptr<ForwardInd
             lastOffset = offset;
             ///end offset
             offset = (*pForwardIndexOffset)[j].second;
-            pPOSOutput_->writeVInt(offset - lastOffset);
-            lastOffset = offset;
+            pPOSOutput_->writeVInt(offset - lastCharOffset);
+            lastCharOffset = offset;
         }
 		
     }
-
 }
 
 void ForwardIndexWriter::flush()

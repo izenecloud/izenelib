@@ -105,12 +105,12 @@ void ParallelTermPosition::getPositions(string& property, boost::shared_ptr<std:
 {
     TermPositions* pPositions =  termPositionMap_[property];
     loc_t pos = pPositions->nextPosition();
-    loc_t subpos = pPositions->nextPosition();
+    loc_t charpos = pPositions->nextPosition();
     while (pos != BAD_POSITION)
     {
         positions->push_back(pos);
         pos = pPositions->nextPosition();
-        subpos = pPositions->nextPosition();
+        charpos = pPositions->nextPosition();
     }
     tf = pPositions->freq();
     doclen = pPositions->docLength();
@@ -121,12 +121,12 @@ void ParallelTermPosition::getPositions(string& property, boost::shared_ptr<std:
 {
     TermPositions* pPositions =  termPositionMap_[property];
     loc_t pos = pPositions->nextPosition();
-    loc_t subpos = pPositions->nextPosition();
+    loc_t charpos = pPositions->nextPosition();
     while (pos != BAD_POSITION)
     {
-        positions->push_back(make_pair(pos,subpos));
+        positions->push_back(make_pair(pos,charpos));
         pos = pPositions->nextPosition();
-        subpos = pPositions->nextPosition();
+        charpos = pPositions->nextPosition();
     }
     tf = pPositions->freq();
     doclen = pPositions->docLength();
