@@ -12,6 +12,8 @@
 #include "bucket.hpp"
 #include "bucket_cache.hpp"
 #include "node_cache.hpp"
+#include "alphabet_en.hpp"
+#include "alphabet_cjk.hpp"
 
 using namespace std;
 
@@ -275,6 +277,8 @@ public:
 
       pNodeCache_->lockNode(n.getIndex());
       uint32_t idx = n->getIndexOf((*pStr)[0]);
+      if(idx == -1)
+        std::cout << "err1"<<endl;
       uint64_t diskAddr = n->getDiskAddr(idx);
       memAddr = n->getMemAddr(idx);
 
@@ -378,13 +382,13 @@ public:
   {
     charT up = b->getUpBound();
     charT low = b->getLowBound();
-    //cout<<up<<" "<<low<<"  "<<b->getStrGroupAmount()<<" 8888888888\n";
+//    cout<<up<<" "<<low<<"  "<<b->getStrGroupAmount()<<" 8888888888\n";
 
     if (b->getStrGroupAmount()==1 && up!=low)
     {
       //if only have one string group
       charT splitPoint = b->getGroupChar(0);
-      //cout<<splitPoint<<"  00000000000\n";
+//      cout<<splitPoint<<"  00000000000\n";
       if (up!=splitPoint)
       {
         charT beforeSplitPoint = ALPHABET[n->getIndexOf(splitPoint)-1];
@@ -412,9 +416,53 @@ public:
     }
 
     BucketPtr bu = pBucketCache_->newNode();
-    //cout<<"splitting!\n";
+//    cout<<"splitting!\n";
     charT splitPoint = b->split(bu.pN_, leftStr, leftAddr);
-    //cout<<"splitting point: "<<splitPoint<<endl;
+
+    AlphabetNodePtr parent = n;
+    while(splitPoint == -1 && b->getStrGroupAmount()==1)
+    {
+      AlphabetNodePtr newNode = pNodeCache_->newNode();
+//      std::cout << "insert middle alphabet node" << std::endl;
+      newNode->setDiskAddr(ALPHABET[0], ALPHABET[ALPHABET_SIZE-1], diskAddr);
+      newNode->setMemAddr(ALPHABET[0], ALPHABET[ALPHABET_SIZE-1], b.getIndex());
+
+      charT sp = b->getGroupChar(0);
+      if (ALPHABET[0]!=sp)
+      {
+        charT bsp = ALPHABET[n->getIndexOf(sp)-1];
+        BucketPtr b1 =  pBucketCache_->newNode();
+
+        b1->setUpBound(ALPHABET[0]);
+        b1->setLowBound(bsp);
+        n->setDiskAddr(ALPHABET[0], bsp, b1->add2disk());
+        n->setMemAddr(ALPHABET[0], bsp, b1.getIndex());
+      }
+
+      if (ALPHABET[ALPHABET_SIZE-1] != sp)
+      {
+        charT asp = ALPHABET[n->getIndexOf(sp)+1];
+        BucketPtr b2  = pBucketCache_->newNode();
+
+        b2->setUpBound(asp);
+        b2->setLowBound(ALPHABET[ALPHABET_SIZE-1]);
+        n->setDiskAddr(asp, ALPHABET[ALPHABET_SIZE-1], b2->add2disk());
+        n->setMemAddr(asp, ALPHABET[ALPHABET_SIZE-1], b2.getIndex());
+      }
+      b->setUpBound(sp);
+      b->setLowBound(sp);
+
+      parent->setDiskAddr(idx, newNode->add2disk());
+      parent->setMemAddr(idx, newNode.getIndex());
+      parent = newNode;
+      splitPoint = b->split(bu.pN_, leftStr, leftAddr);
+//      cout<<"splitting point: "<<splitPoint<<endl;
+    }
+
+    if(splitPoint == -1)
+        throw std::runtime_error("bad splitPoint");
+
+
     uint64_t newBktAddr =  bu->add2disk();
 
     if (up == low)
@@ -423,22 +471,24 @@ public:
       //cout<<"pBucket_->isPure() \n";
 
       AlphabetNodePtr newNode = pNodeCache_->newNode();
+//      std::cout << hex << (int)ALPHABET[0] << "," << (int)ALPHABET[ALPHABET_SIZE-1] << dec << "," << ALPHABET_SIZE << std::endl;
+//      std::cout << hex << (int)splitPoint << "," << (int)bu->getUpBound() << std::endl;
       newNode->setDiskAddr(ALPHABET[0], splitPoint, diskAddr);
       newNode->setDiskAddr(bu->getUpBound(), ALPHABET[ALPHABET_SIZE-1], newBktAddr);
 
       newNode->setMemAddr(ALPHABET[0], splitPoint, b.getIndex());
       newNode->setMemAddr(bu->getUpBound(), ALPHABET[ALPHABET_SIZE-1], bu.getIndex());
 
-      n->setDiskAddr(idx, newNode->add2disk());
-      n->setMemAddr(idx, newNode.getIndex());
+      parent->setDiskAddr(idx, newNode->add2disk());
+      parent->setMemAddr(idx, newNode.getIndex());
     }
     else
     {
       //cout<<"pBucket_ is not Pure\n";
-      n->setDiskAddr(up, splitPoint, diskAddr);
-      n->setMemAddr(up, splitPoint, b.getIndex());
-      n->setDiskAddr(bu->getUpBound(), low, newBktAddr);
-      n->setMemAddr(bu->getUpBound(), low, bu.getIndex());
+      parent->setDiskAddr(up, splitPoint, diskAddr);
+      parent->setMemAddr(up, splitPoint, b.getIndex());
+      parent->setDiskAddr(bu->getUpBound(), low, newBktAddr);
+      parent->setMemAddr(bu->getUpBound(), low, bu.getIndex());
     }
 
   }
@@ -818,13 +868,7 @@ protected:
   //vector<ValueType> valuePool_;
 };
 
-const unsigned int en_size = 26;
-extern char en[en_size];
-
 typedef BTrie<std::string, en, en_size> BTrie_En;
-
-const unsigned int cjk_size = 41040;
-extern unsigned short cjk[cjk_size];
 
 typedef BTrie<wiselib::UString, cjk, cjk_size> BTrie_CJK;
 

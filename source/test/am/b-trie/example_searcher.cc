@@ -50,15 +50,9 @@ int main(int argc, char** argv)
   // Initialize Google's logging library.
   google::InitGoogleLogging("b_trie");
 
-	cout<<"\n=================== Memory Report initial ======================"<<endl;
-	LOG(ERROR) << getMemInfo();
-
   //------------------------------------------------------------------------------
   {
-    BTrie<string_type> trie1("./test");
-
-    cout<<"\n=================== Memory Report After load ======================"<<endl;
-    LOG(ERROR) << getMemInfo();
+    BTrie_En trie1("./test");
 
 //    while(true)
     {
@@ -93,8 +87,6 @@ int main(int argc, char** argv)
           << (double)(finish-start) / CLOCKS_PER_SEC << " second" << endl;
       }
 
-      cout<<"\n=================== Memory Report after searching b-trie ======================"<<endl;
-      LOG(ERROR) << getMemInfo() << endl;
     }
   }
 

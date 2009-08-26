@@ -18,6 +18,7 @@
 
 #include <am/trie/b_trie.hpp>
 #include <am/trie/alphabet.hpp>
+#include <am/trie/alphabet_en.hpp>
 #include <am/map/map.hpp>
 
 #include <wiselib/ustring/UString.h>
@@ -41,7 +42,7 @@ void checkInput(const string_type& u)
 
   for (size_t i=0; i<u.length(); i++)
   {
-    if (AlphabetNode<string_type::value_type>::getIndexOf(u[i])>=a2z_size)
+    if (AlphabetNode<string_type::value_type,en,en_size>::getIndexOf(u[i])>=en_size)
     {
       cout<<"Not exist in alphabet: "<<u[i]<<"   ";
       //u.displayStringValue(ENCODE_TYPE, cout);
@@ -127,9 +128,6 @@ int main(int argc, char** argv)
   // Initialize Google's logging library.
   google::InitGoogleLogging("b_trie");
 
-	cout<<"\n=================== Memory Report initial ======================"<<endl;
-	LOG(ERROR) << getMemInfo();
-
   remove("./test.buk");
   remove("./test.nod");
   remove("./test.has");
@@ -150,11 +148,8 @@ int main(int argc, char** argv)
 
   //------------------------------------------------------------------------------
 
-	cout<<"\n=================== Memory Report before building b-trie ======================"<<endl;
-	LOG(ERROR) << getMemInfo();
-
   {
-    BTrie<string_type> trie("./test");
+    BTrie_En trie("./test");
 
     start = clock();
     int id = 1;
@@ -162,7 +157,6 @@ int main(int argc, char** argv)
     {
   //    (*i).displayStringValue(ENCODE_TYPE);
   //    cout<<*(*i)<<endl;
-
       trie.insert(*(*i),id);
 
   //    if (t!=trie.find(*(*i)))
@@ -177,8 +171,6 @@ int main(int argc, char** argv)
     printf( "\nIt takes %f seconds to insert %d random data!\n", (double)(finish - start) / CLOCKS_PER_SEC, vp.size());
     cout<<"Node amount: "<<trie.getNodeAmount()<<endl;
 
-    cout<<"\n=================== Memory Report after building b-trie ======================"<<endl;
-    LOG(ERROR) << getMemInfo();
   }
 
   for (vector<string_type*>::iterator i=vp.begin(); i!=vp.end();i++)
@@ -187,6 +179,4 @@ int main(int argc, char** argv)
   }
   vp.clear();
 
-	cout<<"\n=================== Memory Report after clean ======================"<<endl;
-	LOG(ERROR) << getMemInfo();
 }

@@ -2,7 +2,7 @@ GPP :=g++-4.1
 
 GCC :=/usr/bin/gcc
 
-CC_OPTIONS :=  -g -rdynamic -Wall -c -fmessage-length=0 
+CC_OPTIONS :=  -g -rdynamic -Wall -c 
 
 
 LIBS :=   /usr/local/lib/libboost_system-gcc41-mt-1_39.so /usr/local/lib/libboost_serialization-gcc41-mt.so /usr/local/lib/libglog.a ../../../../lib/libprocmeminfo.a ../../../../lib/libbtrie.a
