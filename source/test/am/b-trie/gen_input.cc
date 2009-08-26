@@ -10,6 +10,7 @@
 
 using namespace wiselib;
 using namespace std;
+using namespace izenelib::am;
 
 /** * @class get_input gen_input.cc
  *  @brief Genarate random words with random k for sEdit-Distance.
