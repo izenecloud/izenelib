@@ -322,7 +322,7 @@ private:
         static void apply(collectionid_t& colid, fieldid_t& fid, T& v, docid_t& docid)
         {
             IndexKeyType<T> key(colid, fid, v);
-            BTreeIndexer::getIndexer<T>()->add_nodup(key, docid);
+            BTreeIndexer::getIndexer<T>()->add(key, docid);
         }
     };
 
@@ -334,7 +334,7 @@ struct add_visitor::__operator<String>
     static void apply(collectionid_t& colid, fieldid_t& fid, String& v, docid_t& docid)
     {
         IndexKeyType<String> key(colid, fid, v);
-        BTreeIndexer::getIndexer<String>()->add_nodup(key, docid);
+        BTreeIndexer::getIndexer<String>()->add(key, docid);
 #ifdef INDEX_USE_STAR_SEARCH
         size_t pos = 0;
         for (; pos<v.length(); pos++)
