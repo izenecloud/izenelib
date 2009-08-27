@@ -748,9 +748,9 @@ int32_t OnDiskPosting::decodeNext(uint32_t* pPosting,int32_t length)
     uint32_t* pFreq = pPosting + (length/3);
     uint32_t* pDocLen = pPosting + (length*2/3);
 
-    if (length > left*2)
-        length = left*2;
-    left = (length>>1);
+    if (length > left*3)
+        length = left*3;
+    left = (length/3);//(length>>1);
 
     IndexInput* pDPostingInput = getInputDescriptor()->getDPostingInput();
 
@@ -832,9 +832,6 @@ void OnDiskPosting::decodeNextPositions(uint32_t* pPosting,uint32_t* pFreqs,int3
                 *pPos = charloc;
                 pPos++;
             }
-
-        if(loc>30000)   
-          cout<<"charloc!! "<<loc<<endl;
 
             nCurDecoded+=2;
         }

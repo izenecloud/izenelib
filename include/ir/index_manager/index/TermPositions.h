@@ -201,7 +201,7 @@ inline bool TermPositions::decodePositions()
     nCurrentPPostingWithinDoc_ = 0;
 
     int32_t nNeedDecode = nPPostingCountWithinDoc_ - nTotalDecodedPCountWithinDoc_;
-    if ((size_t)nNeedDecode > (nTotalDecodedPCount_ - nCurrentPPosting_))
+    if ((size_t)nNeedDecode > (nTotalDecodedPCount_ - nCurrentPPosting_)*2)
         nNeedDecode = (int32_t)(nTotalDecodedPCount_ - nCurrentPPosting_);
 
     nCurDecodedPCountWithinDoc_ = nNeedDecode;

@@ -56,9 +56,11 @@ void FieldIndexer::addField(docid_t docid, boost::shared_ptr<ForwardIndex> forwa
             curPosting = postingIter->second;
 
         ForwardIndexOffset::iterator	endit = iter->second->end();
-        freq_t docLength = iter->second->size();
+		if(425521494 == iter->first)
+		cout<<"tf "<<iter->second->size()<<" doc id "<<docid<<endl;	
+		
         for(ForwardIndexOffset::iterator it = iter->second->begin(); it != endit; ++it)
-            curPosting->addLocation(docid, docLength, it->first, it->second);
+            curPosting->addLocation(docid, forwardindex->docLength_, it->first, it->second);
         curPosting->updateDF(docid);
     }
 }
