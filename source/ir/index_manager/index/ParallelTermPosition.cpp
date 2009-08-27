@@ -59,11 +59,12 @@ bool ParallelTermPosition::next(vector<string>& properties, docid_t& docid)
             if (!local_hasNext)
             {
                 flagMap_[iter->first] = false;
+                currDocMap_[iter->first]= 0xFFFFFFFF;	///Add by Yingfeng 2009.08.27
                 continue;
             }
             docid_t curr_docid = pPosition->doc();
-
             currDocMap_[iter->first] = curr_docid;
+            iter->second = true;
             if (curr_docid < minDocID)
                 minDocID = curr_docid;
         }
@@ -85,6 +86,7 @@ bool ParallelTermPosition::next(vector<string>& properties, docid_t& docid)
     }
 
     docid = minDocID;
+	cout<<"docid!!! "<<docid<<endl;
 
     for (map<string, docid_t>::iterator iter = currDocMap_.begin(); iter != currDocMap_.end(); ++iter)
     {
@@ -122,6 +124,7 @@ void ParallelTermPosition::getPositions(string& property, boost::shared_ptr<std:
     TermPositions* pPositions =  termPositionMap_[property];
     loc_t pos = pPositions->nextPosition();
     loc_t charpos = pPositions->nextPosition();
+	
     while (pos != BAD_POSITION)
     {
         positions->push_back(make_pair(pos,charpos));

@@ -756,10 +756,10 @@ int32_t OnDiskPosting::decodeNext(uint32_t* pPosting,int32_t length)
 
     int32_t count = 0;
     docid_t did = ds.lastDecodedDocID;
+
     while (count < left)
     {
         did += pDPostingInput->readVInt();
-
         *pDoc++ = did;
         *pFreq++ = pDPostingInput->readVInt();
         *pDocLen++ = pDPostingInput->readVInt();
