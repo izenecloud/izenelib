@@ -15,28 +15,28 @@ template <>
 class NodeIDTraits<int32_t>
 {
 public:
-  enum{MinValue = 1, MaxValue = INT_MAX, RootValue = 0};
+  enum{RootValue = 1, EmptyValue = 2, MinValue = 3, MaxValue = INT_MAX};
 };
 
 template <>
 class NodeIDTraits<uint32_t>
 {
 public:
-  enum{MinValue = 1, MaxValue = UINT_MAX, RootValue = 0};
+  enum{RootValue = 1, EmptyValue = 2, MinValue = 3, MaxValue = UINT_MAX};
 };
 
 template <>
 class NodeIDTraits<int64_t>
 {
 public:
-  enum{MinValue = 1, MaxValue = LONG_MAX, RootValue = 0};
+  enum{RootValue = 1, EmptyValue = 2, MinValue = 3, MaxValue = LONG_MAX};
 };
 
 template <>
 class NodeIDTraits<uint64_t>
 {
 public:
-  enum{MinValue = 1, MaxValue = ULONG_MAX, RootValue = 0};
+  enum{RootValue = 1, EmptyValue = 2, MinValue = 3, MaxValue = ULONG_MAX};
 };
 
 /**
