@@ -13,6 +13,8 @@ public:
 
 	EmptyRegExp(){}
 
+	EmptyRegExp(const std::string&){}
+
 	~EmptyRegExp(){}
 
 	void open(){}
