@@ -411,10 +411,10 @@ template<typename KeyType, typename ValueType, typename LockType,
 	// If it is not loaded, it measn that we haven't been changed it ,
 	// so we can say that the flush was successful.
 	if (!isDirty) {
-		return true;
+		return false;
 	}
 	if (!isLoaded) {
-		return true;
+		return false;
 	}
 	if (!f) {
 		return false;

@@ -83,6 +83,10 @@ public:
 	bool get(const KeyType& key, ValueType& value)
 	{
 		return am_.get(key, value);
+	}		
+	bool update(const KeyType& key, const ValueType& value)
+	{
+		return am_.update(key, value);
 	}	
 	ValueType* find(const KeyType& key) {
 		return am_.find(key);
@@ -124,7 +128,11 @@ public:
 	bool get(const KeyType& key, ValueType& value)
 	{
 		return am_.get(key, value);
-	}	
+	}
+	bool update(const KeyType& key, const ValueType& value)
+	{
+			return am_.update(key, value);
+	}
 	ValueType* find(const KeyType& key) {
 		return am_.find(key);
 	}

@@ -175,6 +175,15 @@ public:
 		//LDBG_<<str;
 
 	}
+	
+	bool get(const KeyType&key, ValueType& value){
+		ValueType* pv= find(key);
+		if( pv){
+			value = *find(key);
+			return true;
+		}
+		return false;
+	}
 
 	ValueType* find(const KeyType& key)
 	{

@@ -198,7 +198,7 @@ void test() {
 	 am.run_find();
 	 }
 	*/ 
-	 displayMemInfo();	
+	/* displayMemInfo();	
 	 {
 	 cout<<"\nsdb_hash<MyKeyType, MyValueType >"<<endl;
 	 typedef sdb_hash<MyKeyType, MyValueType > CCCR_STRING_INT;
@@ -210,7 +210,7 @@ void test() {
 	 am.setRandom(true);
 	 am.run_find();
 	 }
-	 displayMemInfo();
+	 displayMemInfo();*/
 	
 	izenelib::util::ClockTimer timer;
 
@@ -220,7 +220,7 @@ void test() {
 	 typedef sdb_btree<MyKeyType, MyValueType > CCCR_STRING_INT;
 	 AmTest<MyKeyType, MyValueType, CCCR_STRING_INT, true> am;
 	 am.setTrace(trace);
-	 am.setRandom(false);
+	 am.setRandom(true);
 	 am.setNum(num);
 	 am.run_insert();
 	 am.setRandom(true);

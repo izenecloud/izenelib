@@ -57,9 +57,9 @@ struct CbFileHeader {
 		CbFileHeader()
 		{
 			magic = 0x061561;
-			maxKeys = 24;
-			pageSize = 1024;
-			cacheSize = 300*1024;
+			maxKeys = 100;
+			pageSize = 4096;
+			cacheSize = 100*1024;
 			numItems = 0;
 			rootPos = sizeof(CbFileHeader)+sizeof(size_t);
 

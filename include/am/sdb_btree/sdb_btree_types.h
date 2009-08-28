@@ -18,6 +18,12 @@ using namespace izenelib::am::util;
 
 NS_IZENELIB_AM_BEGIN
 
+/*
+const bool unloadbyRss = false;
+const bool unloadAll = true;
+const bool orderedCommit = true;
+const bool quickFlush = false;
+*/
 
 NS_IZENELIB_AM_END
 

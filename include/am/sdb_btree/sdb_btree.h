@@ -9,12 +9,15 @@
 #define sdb_btree_H_
 
 #include "sdb_node.h"
+#include "sdb_btree_types.h"
 #include <iostream>
 #include <sys/stat.h>
 #include <fstream>
 #include <queue>
+#include <map>
 
 #include <am/concept/DataType.h>
+#include <util/ClockTimer.h>
 using namespace std;
 
 NS_IZENELIB_AM_BEGIN
@@ -39,12 +42,17 @@ NS_IZENELIB_AM_BEGIN
  *
  */
 
-template<typename KeyType, typename ValueType=NullType, typename LockType=NullLock, typename Alloc=std::allocator<DataType<KeyType,ValueType> > >class sdb_btree
+template<typename KeyType,typename ValueType=NullType,typename LockType=NullLock,
+typename Alloc=std::allocator<DataType<KeyType,ValueType> >
+>class sdb_btree
 : public AccessMethod<KeyType, ValueType, LockType, Alloc>
-{
+{	
+	enum{unloadbyRss = false};
+	enum{unloadAll = true};
+	enum{orderedCommit =true};
+	enum{quickFlush = false};
 public:
 	typedef sdb_node_<KeyType, ValueType, LockType, Alloc> sdb_node;
-	//typedef DataType<KeyType,ValueType> DataType;
 	typedef std::pair<sdb_node*, size_t> SDBCursor;
 public:
 	/**
@@ -333,13 +341,6 @@ public:
 		//write back the fileHead later, for overflow may occur when
 		//flushing.
 		_sfh.toFile(_dataFile);
-
-		/*while( !_dirtyPages.empty() )
-		 {
-		 sdb_node* ptr = _dirtyPages.back();
-		 _dirtyPages.pop_back();
-		 ptr->write(_dataFile);
-		 }*/
 		fflush(_dataFile);
 	}
 
@@ -349,6 +350,7 @@ public:
 	void display(std::ostream& os = std::cout, bool onlyheader = true) {
 		_sfh.display(os);
 		os<<"activeNum: "<<_activeNodeNum<<endl;
+		os<<"dirtyPageNum: "<<_dirtyPageNum<<endl;
 		if(!onlyheader && _root)_root->display(os);
 	}
 
@@ -384,50 +386,71 @@ private:
 private:
 	LockType _fileLock;
 	size_t _activeNodeNum;
+	size_t _dirtyPageNum;
+	
 private:
 	unsigned long _initRss;
 	unsigned int _flushCount;
+	
+    inline void _setDirty(sdb_node* node){  
+    	if( !node->isDirty )    		
+    		++_dirtyPageNum;
+    	node->setDirty(true);
+    }
+	
+	
+	void _flushCache() {
+		if( unloadbyRss ) {
+			//static unsigned int count;
+			//++count;
+			++_flushCount;
 
-	void _flushCache(bool quickFlush=false) {
-#ifdef MUL_SDB
-		//static unsigned int count;
-		//++count;
-		++_flushCount;
+			if( (_flushCount & 0xffff) == 0 ) {
+				unsigned long vm = 0, rss=0;
+				unsigned long rlimit;
+				ProcMemInfo::getProcMemInfo(vm, rss, rlimit);
 
-		if( (_flushCount & 0xffff) == 0 ) {
-			unsigned long vm = 0, rss=0;
-			unsigned long rlimit;
-			ProcMemInfo::getProcMemInfo(vm, rss, rlimit);
-			
-			//if( _activeNodeNum> _sfh.cacheSize/1024 )
-			if(rss - _initRss> _sfh.cacheSize*_sfh.pageSize )
+				//if( _activeNodeNum> _sfh.cacheSize/1024 )
+				if(rss - _initRss> _sfh.cacheSize*_sfh.pageSize )
+				{
+					_flushCacheImpl(quickFlush);
+				}
+			}
+		}
+		else {
+			if( _activeNodeNum> _sfh.cacheSize )
 			{
 				_flushCacheImpl(quickFlush);
 			}
 		}
-#else
-		if( _activeNodeNum> _sfh.cacheSize )
-		{
-			_flushCacheImpl(quickFlush);
-		}
-#endif
 
 	}
 
 	//for seq, reset SDBCursor
 	void _flushCache(SDBCursor& locn) {
 
-#ifdef MUL_SDB		
-		//static unsigned int count;
-		++_flushCount;
+		if( unloadbyRss ) {
+			//static unsigned int count;
+			++_flushCount;
 
-		if( (_flushCount & 0xffff) == 0 ) {
-			unsigned long vm = 0, rss=0;
-			unsigned long rlimit;
-			ProcMemInfo::getProcMemInfo(vm, rss, rlimit);
+			if( (_flushCount & 0xffff) == 0 ) {
+				unsigned long vm = 0, rss=0;
+				unsigned long rlimit;
+				ProcMemInfo::getProcMemInfo(vm, rss, rlimit);
 
-			//if( _activeNodeNum> _sfh.cacheSize/1024 )
-			if(rss - _initRss> _sfh.cacheSize*_sfh.pageSize )
+				//if( _activeNodeNum> _sfh.cacheSize/1024 )
+				if(rss - _initRss> _sfh.cacheSize*_sfh.pageSize )
+				{
+					KeyType key;
+					ValueType value;
+					get(locn, key, value);
+					_flushCacheImpl();
+					search(key, locn);
+				}
+			}
+		}
+		else {
+			if( _activeNodeNum> _sfh.cacheSize )
 			{
 				KeyType key;
 				ValueType value;
@@ -436,84 +459,88 @@ private:
 				search(key, locn);
 			}
 		}
-#else
-		if( _activeNodeNum> _sfh.cacheSize )
-		{
-			KeyType key;
-			ValueType value;
-			get(locn, key, value);
-			_flushCacheImpl();
-			search(key, locn);
-		}
-#endif		 
 	}
 
 	void _flushCacheImpl(bool quickFlush=false) {
 
-		if( !quickFlush )
-		commit();
 #ifdef  DEBUG
-		cout<<"cache is full..."<<endl;
-		cout<<_activeNodeNum<<" vs "<<_sfh.cacheSize <<endl;
+		cout<<"\n\ncache is full..."<<endl;
+		cout<<"activeNum: "<<_activeNodeNum<<endl;
+		cout<<"dirtyPageNum: "<<_dirtyPageNum<<endl;
 		//display();
 #endif
+		izenelib::util::ClockTimer timer;
+		if( !quickFlush )
+		commit();
 
-		for(size_t i=0; i<_root->objCount+1; i++)
-		{
-			_root->children[i]->unload();
+		printf("commit elapsed 1 ( actually ): %lf seconds\n",
+				timer.elapsed() );
+
+
+		if(unloadAll) {
+
+			for(size_t i=0; i<_root->objCount+1; i++)
+			{
+				_root->children[i]->unload();
+			}
+#ifdef DEBUG
+			cout<<"\n\nstop unload..."<<endl;
+			cout<<_activeNodeNum<<" vs "<<_sfh.cacheSize <<endl;
+			cout<<"dirtyPageNum: "<<_dirtyPageNum<<endl;
+#endif
+			return;
 		}
-		return;
-		/*
-		 queue<sdb_node*> qnode;
-		 qnode.push(_root);
+		else {
 
-		 size_t popNum = 0;
-		 size_t escapeNum = _activeNodeNum>>1;
-		 sdb_node* interval = NULL;
-		 while ( !qnode.empty() ) {
-		 sdb_node* popNode = qnode.front();
-		 qnode.pop();
-		 popNum++;
+			queue<sdb_node*> qnode;
+			qnode.push(_root);
 
-		 if( popNum >= escapeNum )
-		 {
-		 if( popNode == interval )
-		 break;
+			size_t popNum = 0;
+			size_t escapeNum = _activeNodeNum>>1;
+			sdb_node* interval = NULL;
+			while ( !qnode.empty() ) {
+				sdb_node* popNode = qnode.front();
+				qnode.pop();
+				popNum++;
 
-		 if( interval == NULL && !popNode->isLeaf ) {
-		 interval = popNode->children[0];
-		 }
+				if( popNum >= escapeNum )
+				{
+					if( popNode == interval )
+					break;
 
-		 if( popNode->isDirty && quickFlush)
-		 _flush(popNode, _dataFile);
+					if( interval == NULL && !popNode->isLeaf ) {
+						interval = popNode->children[0];
+					}
 
-		 popNode->unload();
-		 //cout<<"unloading....";
-		 //cout<<_activeNodeNum<<" vs "<<_sfh.cacheSize <<endl;
-		 }
+					if( popNode->isDirty && quickFlush)
+					_flush(popNode, _dataFile);
 
-		 if (popNode && popNode->isLoaded && !popNode->isLeaf) {
-		 for(size_t i=0; i<popNode->objCount+1; i++)
-		 {
-		 if( popNode->children[i] ) {
-		 qnode.push( popNode->children[i] );
-		 }
-		 else
-		 {
-		 //cout<<"corrupted nodes!!!"<<endl;
-		 }
+					popNode->unload();					
+				}
 
-		 }
-		 }
+				if (popNode && popNode->isLoaded && !popNode->isLeaf) {
+					for(size_t i=0; i<popNode->objCount+1; i++)
+					{
+						if( popNode->children[i] ) {
+							qnode.push( popNode->children[i] );
+						}
+						else
+						{
+							//cout<<"corrupted nodes!!!"<<endl;
+						}
 
-		 }
+					}
+				}
 
-		 #ifdef DEBUG
-		 cout<<"stop unload..."<<endl;
-		 cout<<_activeNodeNum<<" vs "<<_sfh.cacheSize <<endl;
-		 //display();
-		 #endif
-		 fflush(_dataFile);*/
+			}
+
+#ifdef DEBUG
+			cout<<"stop unload..."<<endl;
+			cout<<_activeNodeNum<<" vs "<<_sfh.cacheSize <<endl;
+			//display();
+#endif
+			fflush(_dataFile);
+		}
 
 	}
 
@@ -528,8 +555,9 @@ private:
 		*(_sfh.nPages+_sfh.oPages);
 
 		//cout<<"allocate idx="<<CbFileHeader::nPages<<" "<<newNode->fpos;
-		_sfh.nPages++;
-		_activeNodeNum++;
+		++_sfh.nPages;
+		++_dirtyPageNum;
+		++_activeNodeNum;
 
 		//pre allocate memory for newNode for efficiency
 		newNode->keys.resize(_sfh.maxKeys);
@@ -596,7 +624,9 @@ template<typename KeyType, typename ValueType, typename LockType,
 	_isOpen = false;
 
 	_activeNodeNum = 0;
+	_dirtyPageNum = 0;
 
+	if( unloadbyRss )
 	{
 		unsigned long vm = 0;
 		unsigned long rlimit;
@@ -647,19 +677,12 @@ template<typename KeyType, typename ValueType, typename LockType,
 			locn.first = temp;
 			locn.second = low;
 
-			//cout<<temp<<endl;
-			//temp->display();
-			//cout<<"\n~~~~"<<low << endl;
-
 			if (low >= (int)temp->objCount) {
 				locn.second = low - 1;
 				KeyType k;
 				ValueType v;
-				//assert( get(locn, k, v) );
-				//cout<< "######" << locn.first <<"," << locn.second <<"\t";
 				if ( false == seq(locn, k, v) )
 					++locn.second;
-				//cout<< locn.first <<"," << locn.second <<endl;
 
 			}
 
@@ -722,17 +745,12 @@ template<typename KeyType, typename ValueType, typename LockType,
 	}
 	parent->keys[childNum] = savekey;
 	parent->values[childNum] = savevalue;
-	child->setDirty(1);
-	newChild->setDirty(1);
-	parent->setDirty(1);
-
-	//cout<<"after split !!!!"<<endl;
-	//display();
-
-	//_dirtyPages.push_back(child);
-	//_dirtyPages.push_back(newChild);
-	//_dirtyPages.push_back(parent);
-
+	_setDirty(child);
+	_setDirty(newChild);
+	_setDirty(parent);
+	//child->setDirty(1);
+	//newChild->setDirty(1);
+	//parent->setDirty(1);
 }
 //split two full leaf nodes into tree 2/3 ful nodes.
 template<typename KeyType, typename ValueType, typename LockType,
@@ -800,18 +818,21 @@ template<typename KeyType, typename ValueType, typename LockType,
 	parent->children[childNum+2] = child2;
 	child2->childNo = childNum+2;
 
-	child1->setDirty(1);
-	child2->setDirty(1);
-	newChild->setDirty(1);
-	parent->setDirty(1);
+	_setDirty(child1);
+	_setDirty(child2);
+	_setDirty(newChild);
+	_setDirty(parent);
+	
+	//child1->setDirty(1);
+	//child2->setDirty(1);
+	//newChild->setDirty(1);
+	//parent->setDirty(1);
 }
 
 template<typename KeyType, typename ValueType, typename LockType,
 		typename Alloc> sdb_node_<KeyType, ValueType, LockType, Alloc>* sdb_btree<
 		KeyType, ValueType, LockType, Alloc>::_merge(sdb_node* &parent,
 		size_t objNo) {
-	//cout<<"befor merge...\n";
-	//display();
 
 	size_t i = 0;
 	sdb_node* c1 = parent->loadChild(objNo, _dataFile);
@@ -862,8 +883,10 @@ template<typename KeyType, typename ValueType, typename LockType,
 	delete c2;
 	c2 = 0;
 
-	c1->setDirty(1);
-	parent->setDirty(_dataFile);
+	_setDirty(c1);
+	_setDirty(parent);
+	//c1->setDirty(1);
+	//parent->setDirty(1);
 
 	// Return a pointer to the new child.
 	return c1;
@@ -912,13 +935,13 @@ template<typename KeyType, typename ValueType, typename LockType,
 		if (node->isLeaf) {
 			node->setCount(node->objCount + 1);
 			for (; (int)i> low; i--) {
-				//cout<<node->keys[i-1]<<endl;
 				node->keys[i] = node->keys[i-1];
 				node->values[i] = node->values[i-1];
 			}
 			node->keys[low] = key;
 			node->values[low] = value;
-			node->setDirty(1);
+			_setDirty(node);
+			//node->setDirty(1);
 
 			++_sfh.numItems;
 			return true;
@@ -961,8 +984,10 @@ template<typename KeyType, typename ValueType, typename LockType,
 							}
 							adjNode->keys[0] = node->keys[low];
 							adjNode->values[0] = node->values[low];
-							adjNode->setDirty(true);
-							node->setDirty(true);
+							_setDirty(adjNode);
+							_setDirty(node);
+							//adjNode->setDirty(true);
+							//node->setDirty(true);
 
 							//case: all of the keys in child are less than inserting keys.
 							if (_comp(child->keys[child->objCount-1], key)<0) {
@@ -977,7 +1002,8 @@ template<typename KeyType, typename ValueType, typename LockType,
 							node->keys[low] = child->keys[child->objCount-1];
 							node->values[low]
 									= child->values[child->objCount-1];
-							child->setDirty(true);
+							//child->setDirty(true);
+							_setDirty(child);
 							child->setCount(child->objCount-1);
 							node = child;
 
@@ -1000,8 +1026,10 @@ template<typename KeyType, typename ValueType, typename LockType,
 									= node->keys[low-1];
 							adjNode->values[adjNode->objCount-1]
 									= node->values[low-1];
-							adjNode->setDirty(true);
-							node->setDirty(true);
+							_setDirty(adjNode);
+							_setDirty(node);
+							//adjNode->setDirty(true);
+							//node->setDirty(true);
 							//case: all of the keys in child are bigger than inserting keys.
 							if (_comp(key, child->keys[0])< 0) {
 								node->keys[low-1] = key;
@@ -1015,7 +1043,8 @@ template<typename KeyType, typename ValueType, typename LockType,
 							//insert key into child, child's firt item is already put to its parent
 							size_t j=1;
 							bool ret=true;
-							child->setDirty(true);
+							//child->setDirty(true);
+							_setDirty(child);
 							for (; j<child->objCount; j++) {
 								//inserting key exists, mark it
 								if (_comp(child->keys[j], key) == 0) {
@@ -1045,7 +1074,7 @@ template<typename KeyType, typename ValueType, typename LockType,
 					}
 
 					//case: both nodes are full
-					if ( (size_t)splitNum >0) {
+					if ( (size_t)splitNum>0) {
 						splitNum = splitNum -1;
 					}
 					_split3Leaf(node, splitNum);
@@ -1080,20 +1109,49 @@ template<typename KeyType, typename ValueType, typename LockType,
 	if (!f) {
 		return;
 	}
-	queue<sdb_node*> qnode;
-	qnode.push(node);
-	while (!qnode.empty()) {
-		sdb_node* popNode = qnode.front();
-		if (popNode && popNode->isLoaded) {
-			popNode->write(f);
-		}
-		qnode.pop();
-		if (popNode && !popNode->isLeaf) {
-			for (size_t i=0; i<popNode->objCount+1; i++) {
-				if (popNode->children[i])
-					qnode.push(popNode->children[i]);
-			}
 
+	if (orderedCommit) {
+		typedef map<long, sdb_node*> COMMIT_MAP;
+		typedef typename COMMIT_MAP::iterator CMIT;
+		COMMIT_MAP toBeWrited;
+		queue<sdb_node*> qnode;
+		qnode.push(node);
+		while (!qnode.empty() ) {
+			sdb_node* popNode = qnode.front();
+			if (popNode->isLoaded && popNode-> isDirty)
+				toBeWrited.insert(make_pair(popNode->fpos, popNode) );
+			qnode.pop();
+			if (popNode && !popNode->isLeaf) {
+				for (size_t i=0; i<popNode->objCount+1; i++) {
+					if (popNode->children[i])
+						qnode.push(popNode->children[i]);
+				}
+			}
+		}
+
+		CMIT it = toBeWrited.begin();
+		for (; it != toBeWrited.end(); it++) {
+			if ( it->second->write(f) )
+				--_dirtyPageNum; 
+		}
+
+	} else {
+
+		queue<sdb_node*> qnode;
+		qnode.push(node);
+		while (!qnode.empty()) {
+			sdb_node* popNode = qnode.front();
+			if (popNode && popNode->isLoaded) {
+				if( popNode->write(f) )
+					--_dirtyPageNum; 
+			}
+			qnode.pop();
+			if (popNode && !popNode->isLeaf) {
+				for (size_t i=0; i<popNode->objCount+1; i++) {
+					if (popNode->children[i])
+						qnode.push(popNode->children[i]);
+				}
+			}
 		}
 
 	}
@@ -1129,7 +1187,8 @@ template<typename KeyType, typename ValueType, typename LockType,
 				node->delFromLeaf(op.first);
 
 				//now node is dirty
-				node->setDirty(1);
+				//node->setDirty(1);
+				_setDirty(node);
 				//_dirtyPages.push_back(node);
 				ret = true;
 			}
@@ -1146,7 +1205,8 @@ template<typename KeyType, typename ValueType, typename LockType,
 					node->values[op.first] = locn.first->values[locn.second];
 
 					//now node is dirty
-					node->setDirty(1);
+					//node->setDirty(1);
+					_setDirty(node);
 					//_dirtyPages.push_back(node);
 
 					node = childNode;
@@ -1165,7 +1225,8 @@ template<typename KeyType, typename ValueType, typename LockType,
 					node->values[op.first] = locn.first->values[locn.second];
 
 					//now node is dirty
-					node->setDirty(1);
+					_setDirty(node);
+					//node->setDirty(1);
 					//_dirtyPages.push_back(node);
 
 					node = childNode;
@@ -1268,8 +1329,10 @@ template<typename KeyType, typename ValueType, typename LockType,
 						assert(leftSib->objCount >= _minDegree-1);
 
 						//now node is dirty
-						leftSib->setDirty(1);
-						node->setDirty(1);
+						_setDirty(leftSib);
+						_setDirty(node);
+						//leftSib->setDirty(1);
+						//node->setDirty(1);
 						//_dirtyPages.push_back(leftSib);
 						//_dirtyPages.push_back(node);
 					}
@@ -1318,17 +1381,16 @@ template<typename KeyType, typename ValueType, typename LockType,
 						assert(rightSib->objCount >= _minDegree-1);
 
 						//now node is dirty
-						rightSib->setDirty(true);
-						node->setDirty(1);
-						//_dirtyPages.push_back(rightSib);
-						//_dirtyPages.push_back(node);
+						_setDirty(rightSib);
+						_setDirty(node);
+						//rightSib->setDirty(true);
+						//node->setDirty(1);					
 					}
 					node = childNode;
 
-					node->setDirty(true);
-					//_dirtyPages.push_back(node);
-					goto L0;
-					//ret = _delete(childNode, key);
+					_setDirty(node);
+					//node->setDirty(true);				
+					goto L0;				
 				}
 
 				// Case 3b: All siblings have _minDegree - 1 keys
@@ -1337,8 +1399,7 @@ template<typename KeyType, typename ValueType, typename LockType,
 					assert(node->children[op.first+1]->objCount == _minDegree-1);
 					sdb_node* mergedChild = _merge(node, op.first);
 					node = mergedChild;
-					goto L0;
-					//ret = _delete(mergedChild, key);
+					goto L0;					
 				}
 			}
 		}
@@ -1412,12 +1473,9 @@ template<typename KeyType, typename ValueType, typename LockType,
 		_sfh.display();
 #endif
 
-		//sdb_node::initialize(_sfh.pageSize, _sfh.maxKeys);;
-
 		_root = new sdb_node(_sfh, _fileLock, _activeNodeNum);
 		_root->fpos = _sfh.rootPos;
-		_root->read(_dataFile);
-		//_root->display();
+		_root->read(_dataFile);	
 		ret = true;
 
 	}
@@ -1454,7 +1512,7 @@ template<typename KeyType, typename ValueType, typename LockType,
 	ret = _delete(_root, key);
 
 	if (ret)
-		_sfh.numItems--;
+		--_sfh.numItems;
 	return ret;
 }
 
@@ -1469,9 +1527,6 @@ template<typename KeyType, typename ValueType, typename LockType,
 	}
 	key = locn.first->keys[locn.second];
 	value = locn.first->values[locn.second];
-
-	//rec = DataType<KeyType, ValueType>(locn.first->keys[locn.second],
-	//		locn.first->values[locn.second]);
 	return true;
 }
 
@@ -1481,7 +1536,8 @@ template<typename KeyType, typename ValueType, typename LockType,
 	SDBCursor locn(NULL, (size_t)-1);
 	if (search(key, locn) ) {
 		locn.first->values[locn.second] = value;
-		locn.first->setDirty(true);
+		//locn.first->setDirty(true);
+		_setDirty(locn.first);
 		return true;
 	} else {
 		return insert(key, value);
@@ -1532,8 +1588,7 @@ template<typename KeyType, typename ValueType, typename LockType,
 		}
 		if ((sdb_node*)node == 0) {
 			return false;
-		}
-		//rec = DataType<KeyType, ValueType>(node->keys[0], node->values[0]);
+		}		
 		key = node->keys[0];
 		value = node->values[0];
 		locn.first = node;
@@ -1548,9 +1603,7 @@ template<typename KeyType, typename ValueType, typename LockType,
 	// going back up the tree.
 	if (node->isLeaf) {
 		// didn't visit the last node last time.
-		if (lastPos < node->objCount - 1) {
-			//rec = DataType<KeyType, ValueType>(node->keys[lastPos + 1],
-			//		node->values[lastPos + 1]);	
+		if (lastPos < node->objCount - 1) {	
 			key = node->keys[lastPos + 1];
 			value = node->values[lastPos + 1];
 			locn.second = lastPos + 1;
@@ -1568,8 +1621,7 @@ template<typename KeyType, typename ValueType, typename LockType,
 		}
 		if ((sdb_node*)node == 0) {
 			return false;
-		}
-		//rec = DataType<KeyType, ValueType>(node->keys[0], node->values[0]);
+		}	
 		key = node->keys[0];
 		value = node->values[0];
 		locn.first = node;
@@ -1591,9 +1643,7 @@ template<typename KeyType, typename ValueType, typename LockType,
 			locn.second = childNo;
 			ret = true;
 			key = node->keys[childNo];
-			value = node->values[childNo];
-			//rec = DataType<KeyType, ValueType>(node->keys[childNo],
-			//		node->values[childNo]);
+			value = node->values[childNo];	
 		}
 	}
 	return ret;
@@ -1631,9 +1681,7 @@ template<typename KeyType, typename ValueType, typename LockType,
 		if (locn.second == size_t(-1) )
 			return false;
 		key = node->keys[locn.second];
-		value = node->values[locn.second];
-		//rec = DataType<KeyType, ValueType>(node->keys[locn.second],
-		//		node->values[locn.second]);
+		value = node->values[locn.second];	
 		return true;
 	}
 
@@ -1668,11 +1716,8 @@ template<typename KeyType, typename ValueType, typename LockType,
 		}
 		locn.first = node;
 		locn.second = node->objCount - 1;
-		//rec = *(node->elements[locn.second]->pdat);
 		key = node->keys[locn.second];
 		value = node->values[locn.second];
-		//rec = DataType<KeyType, ValueType>(node->keys[locn.second],
-		//		node->values[locn.second]);
 		return true;
 	}
 
@@ -1691,8 +1736,6 @@ template<typename KeyType, typename ValueType, typename LockType,
 			locn.second = childNo - 1;
 			key = node->keys[locn.second];
 			value = node->values[locn.second];
-			//rec = DataType<KeyType, ValueType>(node->keys[locn.second],
-			//		node->values[locn.second]);
 			ret = true;
 		}
 	}
@@ -1718,6 +1761,7 @@ template<typename KeyType, typename ValueType, typename LockType,
 		}
 	}
 
+	if( unloadbyRss )
 	{
 		unsigned long vm = 0;
 		unsigned long rlimit;
