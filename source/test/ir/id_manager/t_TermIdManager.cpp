@@ -29,6 +29,8 @@
 #include <ir/id_manager/IDStorage.h>
 #include <ir/id_manager/IDFactory.h>
 
+#include <am/sdb_trie/sdb_trie.hpp>
+
 using namespace std;
 using namespace wiselib;
 using namespace boost::unit_test;
@@ -38,7 +40,7 @@ using namespace izenelib::ir::idmanager;
 typedef TermIdManager<UString, unsigned int,
                     HashIDGenerator<UString, unsigned int>,
                     SDBIDStorage<UString, unsigned int>,
-                    izenelib::am::BTrie_CJK> TestTermIdManager;
+                    izenelib::am::SDBTrie2<UString, unsigned int> > TestTermIdManager;
 
 /**
  * @brief TermIdManager<UString, unsigned int>Fixture is used to test TermIdManager<UString, unsigned int>. It loads terms from text file to build termStringLists.

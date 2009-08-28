@@ -21,7 +21,7 @@ using namespace izenelib::am;
 #define INNER_TRACE 0
 #endif
 
-#ifndef INNER_TRACE	
+#ifndef INNER_TRACE
 #define INNER_TRACE 0
 #endif
 
@@ -91,12 +91,11 @@ template<typename KeyType, typename ValueType, typename AM, bool open=false> cla
 	int num_;
 	int loop_;
 	bool trace_;
-	AMOBJ<KeyType, ValueType, AM, open> am_;
+	AMOBJ<KeyType, ValueType, AM, open>* am_;
 	izenelib::util::ClockTimer timer;
 public:
 	AmTest() :
 		rand_(true), num_(1000000), loop_(1), trace_(false) {
-
 	}
 
 	void setNum(int num) {
@@ -115,6 +114,7 @@ public:
 	void run_insert(bool mem=true) {
 		clock_t t1 = clock();
 		timer.restart();
+	    am_ = new AMOBJ<KeyType, ValueType, AM, open>();
 		int hit = 0;
 		int sum = 0;
 		for (int i =0; i<num_; i++) {
@@ -123,13 +123,15 @@ public:
 			if (trace_) {
 				cout<<"Insert key="<<generateData<KeyType>(i, num_, rand_)<<endl;
 			}
-			am_.display();
-#endif			
-			if (am_.insert(generateData<KeyType>(i, num_, rand_), generateData<
-					ValueType>(i, num_, rand_) ) )
+			am_->display();
+#endif
+            KeyType key = generateData<KeyType>(i, num_, rand_);
+            ValueType value = generateData<ValueType>(i, num_, rand_);
+			if (am_->insert(key,value) )
 				hit++;
 
-			if (i % 1000000 == 0) {
+//            cout<<"idx="<<i<<","<<key<<","<<value<<endl;
+			if (i % 100000 == 0) {
 				cout<<"idx="<<i<<endl;
 				displayMemInfo();
 			}
@@ -140,44 +142,50 @@ public:
 			printf("insert elapsed 1 ( actually ): %lf seconds\n",
 					timer.elapsed() );
 			printf("insert success ratio: %d /%d\n", hit, sum);
-			displayMemInfo();
+            displayMemInfo();
 		}
+		delete am_;
+
 	}
 
 	//when KeyType is YString, for ylib
 	void run_insert_ylib(bool mem=true) {
 		clock_t t1 = clock();
 		timer.restart();
+        am_ = new AMOBJ<KeyType, ValueType, AM, open>();
 		for (int i =0; i<num_; i++) {
 			if (trace_) {
-#if INNER_TRACE						
+#if INNER_TRACE
 				cout<<"Insert key="<<generateData<KeyType>(i, num_, rand_)<<endl;
-#endif			
+#endif
 			}
-			am_.insert(generateData<KeyType>(i, num_, rand_) );
+			am_->insert(generateData<KeyType>(i, num_, rand_) );
 		}
 		if (mem) {
 			printf("insert elapsed: %lf seconds\n", double(clock()- t1)/CLOCKS_PER_SEC);
 			displayMemInfo();
 		}
+		delete am_;
+
 	}
 
 	void run_find(bool mem=true) {
 		clock_t t1 = clock();
 		timer.restart();
+        am_ = new AMOBJ<KeyType, ValueType, AM, open>();
 		int hit = 0;
 		int sum = 0;
 		for (int i =0; i<num_; i++) {
 			sum++;
-#if INNER_TRACE			
+#if INNER_TRACE
 			if (trace_) {
 				cout<<"find key="<<generateData<KeyType>(i, num_, rand_)<<endl;
 			}
-#endif			
+#endif
 			ValueType pv;
-			bool ret = am_.get(generateData<KeyType>(i, num_, rand_), pv);
+			bool ret = am_->get(generateData<KeyType>(i, num_, rand_), pv);
 			if (ret) {
-				hit++;				
+				hit++;
 			} else {
 				//cout<<"Unfound idx="<<i<<endl;
 			}
@@ -192,22 +200,25 @@ public:
 			printf("find hit ratio: %d /%d\n", hit, sum);
 			displayMemInfo();
 		}
+		delete am_;
+
 	}
 
 	void run_del(bool mem=true) {
 		clock_t t1 = clock();
 		timer.restart();
+        am_ = new AMOBJ<KeyType, ValueType, AM, open>();
 		int hit = 0;
 		int sum = 0;
 		for (int i =0; i<num_; i++) {
 			sum++;
 
-#if INNER_TRACE			
+#if INNER_TRACE
 			if (trace_) {
 				cout<<"del key="<<generateData<KeyType>(i, num_, rand_)<<endl;
 			}
-#endif 			
-			if (am_.del(generateData<KeyType>(i, num_, rand_) ))
+#endif
+			if (am_->del(generateData<KeyType>(i, num_, rand_) ))
 				hit++;
 		}
 		if (mem) {
@@ -216,20 +227,27 @@ public:
 			printf("del success ratio: %d /%d\n", hit, sum);
 			displayMemInfo();
 		}
+		delete am_;
+
 	}
 
 	void run_seq(bool mem=true) {
 		clock_t t1 = clock();
-		//todo		
+		//todo
 		if (mem)
 			displayMemInfo();
 	}
 	void display(std::ostream& os = std::cout) {
-		am_.display(os);
+        am_ = new AMOBJ<KeyType, ValueType, AM, open>();
+		am_->display(os);
+		delete am_;
 	}
 
 	int num_items() {
-		return am_.num_items();
+        am_ = new AMOBJ<KeyType, ValueType, AM, open>();
+		int num = am_->num_items();
+		delete am_;
+		return num;
 	}
 
 };

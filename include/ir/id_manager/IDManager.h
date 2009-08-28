@@ -28,6 +28,7 @@
 #include <wiselib/ustring/UString.h>
 
 #include <am/trie/b_trie.hpp>
+#include <am/sdb_trie/sdb_trie.hpp>
 
 #include "DocIdManager.h"
 #include "TermIdManager.h"
@@ -310,13 +311,13 @@ getDocNameByDocId(NameID docId, NameString& docName)
  * This version of IDManager supports getTermStringByTermId() and
  * getTermStringListByTermIdList() interface, generated ID are 32bits unsigned integer.
  */
-typedef _IDManager<wiselib::UString, uint32_t, BTrie_CJK> IDManagerDebug32;
+typedef _IDManager<wiselib::UString, uint32_t, SDBTrie2<wiselib::UString, uint32_t> > IDManagerDebug32;
 
 /**
  * This version of IDManager doesn't support getTermStringByTermId() and
  * getTermStringListByTermIdList() interface, generated ID are 32bits unsigned integer.
  */
-typedef _IDManager<wiselib::UString, uint32_t, BTrie_CJK,
+typedef _IDManager<wiselib::UString, uint32_t, SDBTrie2<wiselib::UString, uint32_t>,
                    HashIDGenerator<wiselib::UString, uint32_t>,
                    EmptyIDStorage<wiselib::UString, uint32_t>,
                    UniqueIDGenerator<wiselib::UString, uint32_t>,
@@ -326,13 +327,13 @@ typedef _IDManager<wiselib::UString, uint32_t, BTrie_CJK,
  * This version of IDManager supports getTermStringByTermId() and
  * getTermStringListByTermIdList() interface, generated ID are 64bits unsigned integer.
  */
-typedef _IDManager<wiselib::UString, uint64_t, BTrie_CJK> IDManagerDebug64;
+typedef _IDManager<wiselib::UString, uint64_t, SDBTrie2<wiselib::UString, uint32_t> > IDManagerDebug64;
 
 /**
  * This version of IDManager doesn't support getTermStringByTermId() and
  * getTermStringListByTermIdList() interface, generated ID are 64bits unsigned integer.
  */
-typedef _IDManager<wiselib::UString, uint64_t, BTrie_CJK,
+typedef _IDManager<wiselib::UString, uint64_t, SDBTrie2<wiselib::UString, uint32_t>,
                    HashIDGenerator<wiselib::UString, uint64_t>,
                    EmptyIDStorage<wiselib::UString, uint64_t>,
                    UniqueIDGenerator<wiselib::UString, uint64_t>,
