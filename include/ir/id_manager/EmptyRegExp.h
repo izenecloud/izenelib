@@ -15,6 +15,10 @@ public:
 
 	~EmptyRegExp(){}
 
+	void open(){}
+
+	void close(){}
+
 	void insert(const NameString & word, const unsigned int id){}
 
 	int num_items(){return 0;}
