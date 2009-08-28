@@ -29,8 +29,6 @@
 #include "IDFactoryErrorString.h"
 #include "IDFactoryException.h"
 
-#include <am/trie/b_trie.hpp>
-#include "LexicalTrie.h"
 #include "EmptyRegExp.h"
 
 /**
@@ -162,8 +160,10 @@ template<typename NameString, typename NameID,
 TermIdManager<NameString, NameID, IDGenerator, IDStorage, RegExp>::
     TermIdManager(const string& storageName)
 :
-	idFactory_(storageName)
+	idFactory_(storageName),
+	starSearchIndexer_(storageName)
 {
+    starSearchIndexer_.open();
 } // end - TermIdManager()
 
 template<typename NameString, typename NameID,
@@ -172,6 +172,7 @@ template<typename NameString, typename NameID,
 TermIdManager<NameString, NameID, IDGenerator, IDStorage, RegExp>::
     ~TermIdManager()
 {
+    starSearchIndexer_.close();
 } // end - ~TermIdManager()
 
 template<typename NameString, typename NameID,
@@ -188,8 +189,8 @@ bool TermIdManager<NameString, NameID, IDGenerator, IDStorage, RegExp>::
 	// termId contains new id of
 	if (false == idFactory_.getNameIDByNameString(termString, termId) ) {
 		// Write into startSearchIndexer
-		//boost::mutex::scoped_lock lock(termIndexerLock_);
-		//starSearchIndexer_.insert(termString, (int64_t)termId);
+		boost::mutex::scoped_lock lock(termIndexerLock_);
+		starSearchIndexer_.insert(termString, (int64_t)termId);
 		return false;
 	}
 	return true;

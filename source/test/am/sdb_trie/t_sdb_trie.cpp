@@ -42,7 +42,7 @@ BOOST_AUTO_TEST_SUITE( sdb_trie_suite )
 { \
   vector<int> result;\
   bool suc;\
-  suc = trie.searchRegexp(str,result); \
+  suc = trie.findRegExp(str,result); \
   if(suc == false) \
     BOOST_CHECK_EQUAL(0, idListNum); \
   else\

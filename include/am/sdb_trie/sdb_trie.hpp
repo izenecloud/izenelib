@@ -44,7 +44,7 @@ public:
 
     SDBTrie(const std::string& dbname)
     :   dbname_(dbname),
-        db_(dbname_ + ".sdb")
+        db_(dbname_ + ".sdbtrie.sdb")
     {
         numItems_ = 0;
         nextNID_ = NodeIDTraits<NodeIDType>::MaxValue;
@@ -151,8 +151,8 @@ public:
         if(key.size() == 0) return false;
 
         NodeIDType parent = NodeIDTraits<NodeIDType>::RootValue;
-        bool keyExist;
-        UserDataType previousValue;
+        bool keyExist = false;
+        UserDataType previousValue = UserDataType();
         for( size_t i=0; i<key.size(); i++ )
         {
             NodeIDType tmp = NodeIDType();
@@ -170,11 +170,11 @@ public:
         throw std::runtime_error("unsupported AM function, use get() instead");
     }
 
-    bool searchRegexp(const std::vector<CharType>& regexp,
+    bool findRegExp(const std::vector<CharType>& regexp,
         std::vector<UserDataType>& valueList)
     {
         ValueType root(NodeIDTraits<NodeIDType>::RootValue, UserDataType(), false);
-        searchRegexp_(regexp, 0, root, valueList);
+        findRegExp_(regexp, 0, root, valueList);
         return valueList.size() ? true : false;
     }
 
@@ -267,7 +267,7 @@ protected:
         return true;
     }
 
-    void searchRegexp_(const std::vector<CharType>& regexp,
+    void findRegExp_(const std::vector<CharType>& regexp,
         const size_t& startPos, const ValueType& node,
         std::vector<UserDataType>& valueList)
     {
@@ -290,9 +290,9 @@ protected:
                 db_.getValueBetween(result, minKey, maxKey);
 
                 for(size_t i = 0; i <result.size(); i++ )
-                    searchRegexp_(regexp, startPos, result[i].value, valueList);
+                    findRegExp_(regexp, startPos, result[i].value, valueList);
 
-                searchRegexp_(regexp, startPos+1, node, valueList);
+                findRegExp_(regexp, startPos+1, node, valueList);
                 break;
             }
             case 63:    //"?"
@@ -304,7 +304,7 @@ protected:
                 db_.getValueBetween(result, minKey, maxKey);
 
                 for(size_t i = 0; i <result.size(); i++ )
-                    searchRegexp_(regexp, startPos+1, result[i].value, valueList);
+                    findRegExp_(regexp, startPos+1, result[i].value, valueList);
                 break;
             }
             default:
@@ -312,7 +312,7 @@ protected:
                 KeyType key(nid, regexp[startPos]);
                 ValueType nxtNode = ValueType();
                 if( db_.getValue(key, nxtNode) )
-                    searchRegexp_(regexp, startPos+1, nxtNode, valueList);
+                    findRegExp_(regexp, startPos+1, nxtNode, valueList);
                 break;
             }
         }
@@ -399,13 +399,13 @@ public:
         return new UserDataType(value);
     }
 
-    bool searchRegexp(const StringType& regexp,
+    bool findRegExp(const StringType& regexp,
         std::vector<UserDataType>& valueList)
     {
         CharType* chArray = (CharType*)regexp.c_str();
         size_t chCount = regexp.length();
         std::vector<CharType> chVector(chArray, chArray+chCount);
-        return trie_.searchRegexp(chVector, valueList);
+        return trie_.findRegExp(chVector, valueList);
     }
 
     unsigned int num_items() { return trie_.num_items(); }

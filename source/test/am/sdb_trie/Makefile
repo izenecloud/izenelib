@@ -6,7 +6,7 @@ CXX = g++-4.1
 ifneq ($(COMPILE_FLAGS),)
 CXXFLAGS += $(COMPILE_FLAGS) 
 else
-CXXFLAGS = -Wall -O3 -g
+CXXFLAGS = -Wall -O3 -g -DDEBUG
 endif
 
 TARGET_PATH = .
