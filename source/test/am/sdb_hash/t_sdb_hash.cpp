@@ -12,8 +12,8 @@ const char* indexFile = "sdb.dat";
 static string inputFile = "test.txt";
 static size_t bucketSize = 1024;
 //static size_t directorySize = 8192;
-static size_t degree = 16;
-static size_t cacheSize = 1000000;
+static size_t degree = 18;
+static size_t cacheSize = 500000;
 static int num = 1000000;
 
 static bool trace = 1;

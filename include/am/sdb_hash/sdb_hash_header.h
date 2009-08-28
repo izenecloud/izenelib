@@ -23,10 +23,10 @@ struct ShFileHeader {
 	ShFileHeader()
 	{
 		magic = 0x061561;
-		bucketSize = 2048;
+		bucketSize = 1024;
 		//directorySize =8192*8;
-		dpow = 16;
-		cacheSize = 150000;
+		dpow = 20;
+		cacheSize = 1<<(dpow-2);
 		numItems = 0;
 		nBlock = 0;
 	}
@@ -44,7 +44,7 @@ struct ShFileHeader {
 		os<<"file size: "<<nBlock*bucketSize+sizeof(ShFileHeader)<<"bytes"<<endl;
 		if(nBlock != 0) {
 			os<<"average items number in bucket: "<<double(numItems)/double(nBlock)<<endl;		
-			os<<"average length of bucket chain: "<< double(nBlock)/double(2<<dpow)<<endl;
+			os<<"average length of bucket chain: "<< double(nBlock)/double(1<<dpow)<<endl;
 		}
 	}
 

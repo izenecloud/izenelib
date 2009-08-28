@@ -7,7 +7,7 @@ int rnd = 1;
 using namespace izenelib::am_test;
 using namespace izenelib::am;
 
-static int num = 1000000;
+static int num = 100000000;
 
 
 int main()

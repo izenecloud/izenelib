@@ -78,11 +78,11 @@ public:
 	 */
 	bool write(FILE* f) {
 		if (!isDirty) {
-			return true;
+			return false;
 		}
 
 		if (!isLoaded) {
-			return true;
+			return false;
 		}
 
 		if (!f) {

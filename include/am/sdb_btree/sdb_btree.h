@@ -393,9 +393,10 @@ private:
 	unsigned int _flushCount;
 	
     inline void _setDirty(sdb_node* node){  
-    	if( !node->isDirty )    		
+    	if( !node->isDirty )    {		
     		++_dirtyPageNum;
-    	node->setDirty(true);
+    		node->setDirty(true);
+    	}
     }
 	
 	
@@ -475,7 +476,6 @@ private:
 
 		printf("commit elapsed 1 ( actually ): %lf seconds\n",
 				timer.elapsed() );
-
 
 		if(unloadAll) {
 

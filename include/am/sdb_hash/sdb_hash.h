@@ -14,10 +14,12 @@
 #define SDB_HASH_H
 
 #include <string>
+#include <queue>
 #include <map>
 #include <iostream>
 #include <types.h>
 #include <sys/stat.h>
+#include <util/ClockTimer.h>
 
 //#include <util/log.h>
 #include <stdio.h>
@@ -44,11 +46,14 @@ NS_IZENELIB_AM_BEGIN
 template< typename KeyType, typename ValueType, typename LockType =NullLock> class sdb_hash :
 public AccessMethod<KeyType, ValueType, LockType>
 {
+	enum {unloadByRss = false};
+	enum {unloadAll = true};
+	enum {orderedCommit =true};
+	enum {quickFlush = false};
 public:
 	//SDBCursor is like db cursor
 	typedef bucket_chain_<LockType> bucket_chain;
 	typedef std::pair<bucket_chain*, char*> SDBCursor;
-	//typedef DataType<KeyType,ValueType> DataType;
 public:
 	/**
 	 *   constructor
@@ -59,8 +64,10 @@ public:
 		dataFile_ = 0;
 		isOpen_ = false;
 		activeNum_ = 0;
+		dirtyPageNum_ = 0;
 		cacheSize_ = 0;
 
+		if(unloadByRss)
 		{
 			unsigned long vm = 0;
 			unsigned long rlimit;
@@ -90,6 +97,15 @@ public:
 	}
 
 	/**
+	 *  \brief set bucket size of fileHeader
+	 * 
+	 *   if not called use default size 8192
+	 */
+	void setPageSize(size_t pageSize) {
+		setBucketSize( pageSize );
+	}
+
+	/**
 	 *  set directory size if fileHeader
 	 * 
 	 *  if not called use default size 4096
@@ -114,8 +130,8 @@ public:
 	{
 		sfh_.cacheSize = cacheSize;
 		cacheSize_ = cacheSize;
-		if(sfh_.cacheSize < directorySize_)
-		sfh_.cacheSize = directorySize_;
+		//if(sfh_.cacheSize < directorySize_)
+		//sfh_.cacheSize = directorySize_;
 	}
 
 	/**
@@ -173,7 +189,8 @@ public:
 				//add an extra size_t to indicate if reach the end of  bucket_chain.
 				if ( size_t(p - sa->str)> sfh_.bucketSize-gap-sizeof(size_t) ) {
 					if (sa->next == 0) {
-						sa->isDirty = true;
+						//sa->isDirty = true;
+						setDirty_(sa);
 						sa->next = allocateBlock_();
 					}
 					sa = loadNext_( sa );
@@ -192,7 +209,8 @@ public:
 
 			assert( size_t (p-sa->str) + sizeof(long) + sizeof(int) <= sfh_.bucketSize);
 
-			sa->isDirty = true;
+			//sa->isDirty = true;
+			setDirty_(sa);
 			sa->num++;
 			++sfh_.numItems;
 			return true;
@@ -267,7 +285,8 @@ public:
 			 memcpy(p-2*sizeof(size_t), &ksz, sizeof(size_t) );
 			 memcpy(p-sizeof(size_t), &vsz, sizeof(size_t) );*/
 
-			locn.first->isDirty = true;
+			//locn.first->isDirty = true;
+			setDirty_(locn.first);
 			--sfh_.numItems;
 			return true;
 		}
@@ -309,13 +328,15 @@ public:
 			p += sizeof(size_t);
 			if(vsz == vsize)
 			{
-				sa->isDirty = true;
+				//sa->isDirty = true;
+				setDirty_(sa);
 				memcpy(p+ksz, ptr1, vsz);
 				return true;
 			}
 			else
 			{
-				sa->isDirty = true;
+				//sa->isDirty = true;
+				setDirty_(sa);
 				//delete it first!
 				memset(p, 0xff, ksize);
 				return insert(key, value);
@@ -387,6 +408,12 @@ public:
 		} else {
 			int i = 0;
 			bucket_chain* sa = entry_[idx];
+
+			if( !sa->isLoaded ) {
+				entry_[idx]->read(dataFile_);
+				++activeNum_;
+			}
+
 			char* p = sa->str;
 
 			while ( sa ) {
@@ -507,15 +534,12 @@ public:
 	 *   
 	 */
 
-	bool seq(SDBCursor& locn, KeyType& key, ValueType& value, ESeqDirection sdir=ESD_FORWARD) {
-		DataType<KeyType,ValueType> dat;
-		bool ret = seq(locn, dat, sdir);
-		key = dat.get_key();
-		value = dat.get_value();
-		return ret;
+	bool seq(SDBCursor& locn, DataType<KeyType,ValueType>& rec, ESeqDirection sdir=ESD_FORWARD)
+	{
+		return seq(locn, rec.key, rec.value, sdir);
 	}
 
-	bool seq(SDBCursor& locn, DataType<KeyType,ValueType>& rec, ESeqDirection sdir=ESD_FORWARD) {
+	bool seq(SDBCursor& locn, KeyType& key, ValueType& val, ESeqDirection sdir=ESD_FORWARD) {
 		flushCache_(locn);
 		if( sdir == ESD_FORWARD ) {
 			bucket_chain* sa = locn.first;
@@ -525,11 +549,8 @@ public:
 			if(p == NULL)return false;
 
 			size_t ksize, vsize;
-			//DbObjPtr ptr, ptr1;	
 			char* ptr;
 			size_t poff;
-			KeyType key;
-			ValueType val;
 
 			while(true) {
 
@@ -586,8 +607,8 @@ public:
 				if( isContinue )continue;
 
 				//cout<<"!!!! seq "<<key<<endl;
-				rec.key = key;
-				rec.value = val;
+				//rec.key = key;
+				//rec.value = val;
 				locn.first = sa;
 				locn.second = p;
 
@@ -665,12 +686,13 @@ public:
 				if (directorySize_ != fread(bucketAddr, sizeof(long),
 								directorySize_, dataFile_))
 				return false;
+
 				for (size_t i=0; i<directorySize_; i++) {
 					if (bucketAddr[i] != 0) {
 						entry_[i] = new bucket_chain(sfh_.bucketSize, fileLock_);
 						entry_[i]->fpos = bucketAddr[i];
-						entry_[i]->read(dataFile_);
-						activeNum_++;
+						//entry_[i]->read(dataFile_);
+						//activeNum_++;
 					}
 				}
 				ret = true;
@@ -685,19 +707,19 @@ public:
 	bool close()
 	{
 		flush();
-		for (size_t i=0; i<directorySize_; i++)
-		{
-			while(entry_[i])
-			{
-				bucket_chain* sc = entry_[i]->next;
-				delete entry_[i];
-				entry_[i] = 0;
-				entry_[i] = sc;
-			}
+		/*	for (size_t i=0; i<directorySize_; i++)
+		 {
+		 while(entry_[i])
+		 {
+		 bucket_chain* sc = entry_[i]->next;
+		 delete entry_[i];
+		 entry_[i] = 0;
+		 entry_[i] = sc;
+		 }
 
-		}
-		delete [] entry_;
-		entry_ = 0;
+		 }
+		 delete [] entry_;
+		 entry_ = 0;*/
 
 		delete [] bucketAddr;
 		bucketAddr = 0;
@@ -714,14 +736,42 @@ public:
 		if (directorySize_ != fwrite(bucketAddr, sizeof(long),
 						directorySize_, dataFile_) )
 		return;
-		for (size_t i=0; i<directorySize_; i++) {
-			bucket_chain* sc = entry_[i];
-			while (sc) {
-				if ( sc->write(dataFile_) ) {
-					sc = sc->next;
-				} else {
-					//sc->display();
-					assert(0);
+		if (orderedCommit) {
+			typedef map<long, bucket_chain*> COMMIT_MAP;
+			typedef typename COMMIT_MAP::iterator CMIT;
+			COMMIT_MAP toBeWrited;
+			queue<bucket_chain*> qnode;
+			for (size_t i=0; i<directorySize_; i++) {
+				qnode.push( entry_[i]);
+			}
+			while (!qnode.empty() ) {
+				bucket_chain* popNode = qnode.front();
+				if ( popNode && popNode->isLoaded && popNode-> isDirty)
+				toBeWrited.insert(make_pair(popNode->fpos, popNode) );
+				qnode.pop();
+				if (popNode && popNode->next ) {
+					qnode.push( popNode->next );
+				}
+			}
+
+			CMIT it = toBeWrited.begin();
+			for (; it != toBeWrited.end(); it++) {
+				if ( it->second->write( dataFile_ ) )
+				--dirtyPageNum_;
+			}
+
+		}
+		else {
+
+			for (size_t i=0; i<directorySize_; i++) {
+				bucket_chain* sc = entry_[i];
+				while (sc) {
+					if ( sc->write(dataFile_) ) {
+						sc = sc->next;
+					} else {
+						//sc->display();
+						assert(0);
+					}
 				}
 			}
 		}
@@ -732,15 +782,32 @@ public:
 	 *   Note that, for efficieny, entry_[] is not freed up.
 	 */
 	void flush() {
+#ifdef DEBUG
+		izenelib::util::ClockTimer timer;
+#endif
 		commit();
+#ifdef DEBUG
+		printf("commit elapsed 1 ( actually ): %lf seconds\n",
+				timer.elapsed() );
+#endif		
+		unload_();
+		if (unloadByRss) {
+			unsigned long vm = 0;
+			unsigned long rlimit;
+			ProcMemInfo::getProcMemInfo(vm, initRss_, rlimit);
+		}
+	}
+
+	void unload_() {
 		for (size_t i=0; i<directorySize_; i++) {
-			if(entry_[i]) {
-				bucket_chain* sc = entry_[i]->next;
+			if (entry_[i]) {
+				//bucket_chain* sc = entry_[i]->next;
+				bucket_chain* sc = entry_[i];
 				bucket_chain* sa = 0;
-				while ( sc ) {
+				while (sc) {
 					sa = sc->next;
-					if( sc) {
-						if(sc->unload())
+					if (sc) {
+						if (sc->unload())
 						--activeNum_;
 						//delete sc;
 						//sc = 0;
@@ -750,11 +817,6 @@ public:
 			}
 		}
 
-		{
-			unsigned long vm = 0;
-			unsigned long rlimit;
-			ProcMemInfo::getProcMemInfo(vm, initRss_, rlimit);
-		}
 	}
 	/**
 	 *  display the info of sdb_hash
@@ -762,9 +824,10 @@ public:
 	void display(std::ostream& os = std::cout, bool onlyheader = true) {
 		sfh_.display(os);
 		os<<"activeNum: "<<activeNum_<<endl;
+		os<<"dirtyPageNum "<<dirtyPageNum_<<endl;
 		//os<<"loadFactor: "<<loadFactor()<<endl;
 
-		if( !onlyheader ) {
+		if ( !onlyheader) {
 			for (size_t i=0; i<directorySize_; i++) {
 				os<<"["<<i<<"]: ";
 				if (entry_[i])
@@ -785,8 +848,7 @@ public:
 	 * 	  to another files when loadFactor are low.
 	 * 
 	 */
-	double loadFactor()
-	{
+	double loadFactor() {
 		int nslot = 0;
 		for (size_t i=0; i<directorySize_; i++) {
 			bucket_chain* sc = entry_[i];
@@ -795,7 +857,8 @@ public:
 				sc = loadNext_(sc);
 			}
 		}
-		if(nslot == 0 )return 0.0;
+		if (nslot == 0)
+		return 0.0;
 		else
 		return double(sfh_.numItems)/nslot;
 
@@ -818,14 +881,22 @@ private:
 	bool isOpen_;
 
 	unsigned int activeNum_;
+	unsigned int dirtyPageNum_;
 	LockType fileLock_;
 private:
 	size_t directorySize_;
 	size_t dmask_;
 	size_t cacheSize_;
-	
-	unsigned long initRss_;
 
+	unsigned long initRss_;
+	unsigned int flushCount_;
+
+	void setDirty_(bucket_chain* bucket) {
+		if( !bucket->isDirty ) {
+			++dirtyPageNum_;
+			bucket->isDirty = true;
+		}
+	}
 	/**
 	 *   Allocate an bucket_chain element 
 	 */
@@ -838,18 +909,21 @@ private:
 		newBlock->isLoaded = true;
 		newBlock->isDirty = true;
 
-		newBlock->fpos = sizeof(ShFileHeader) + sizeof(long)*directorySize_ + sfh_.bucketSize*sfh_.nBlock;
-		sfh_.nBlock++;
+		newBlock->fpos = sizeof(ShFileHeader) + sizeof(long)*directorySize_
+		+ sfh_.bucketSize*sfh_.nBlock;
 
-		activeNum_++;
+		++sfh_.nBlock;
+		++activeNum_;
+		++dirtyPageNum_;
 
 		return newBlock;
 	}
 
-	bucket_chain* loadNext_(bucket_chain* current ) {
+	bucket_chain* loadNext_(bucket_chain* current) {
 		bool loaded = false;
 		bucket_chain* next = current->loadNext(dataFile_, loaded);
-		if(loaded)activeNum_++;
+		if (loaded)
+		activeNum_++;
 		return next;
 	}
 
@@ -857,116 +931,124 @@ private:
 	 *  when cache is full, it was called to reduce memory usage.
 	 * 
 	 */
-	void flushCache_(bool quickFlush = false)
-	{
-#ifndef MUL_SDB
-		static unsigned int count;
-		++count;
+	void flushCache_() {
+		if (unloadByRss) {
+			++flushCount_;
 
-		if( (count & 0xffff) == 0 ) {
+			if ( (flushCount_ & 0xffff) == 0) {
 
-			unsigned long vm = 0, rss;
-			unsigned long rlimit;
-			ProcMemInfo::getProcMemInfo(vm, rss, rlimit);
+				unsigned long vm = 0, rss;
+				unsigned long rlimit;
+				ProcMemInfo::getProcMemInfo(vm, rss, rlimit);
 
-			//if( _activeNodeNum> _sfh.cacheSize/1024 )
-			if(rss - initRss_> sfh_.cacheSize*sfh_.bucketSize )
-			{
-				flushCacheImpl_(quickFlush);
+				//if( _activeNodeNum> _sfh.cacheSize/1024 )
+				if (rss - initRss_> sfh_.cacheSize*sfh_.bucketSize) {
+#ifdef DEBUG
+					cout<<"\n!!! memory occupied: "<<rss<<" bytes"<<endl;
+#endif
+					flushCacheImpl_();
+#ifdef DEBUG
+					ProcMemInfo::getProcMemInfo(vm, rss, rlimit);
+					cout<<"\n!!! after unload.  Memory occupied: "<<rss<<" bytes"<<endl;
+#endif
+				}
+
+				//cout<<activeNum_<<" vs "<<sfh_.cacheSize <<endl;
+				//if( activeNum_> sfh_.cacheSize )
+				//{
+				//	flushCacheImpl_(quickFlush);			
+				//}	
 			}
-
-			//cout<<activeNum_<<" vs "<<sfh_.cacheSize <<endl;
-			//if( activeNum_> sfh_.cacheSize )
-			//{
-			//	flushCacheImpl_(quickFlush);			
-			//}	
+		} else {
+			if (activeNum_> sfh_.cacheSize) {
+				flushCacheImpl_();
+			}
 		}
-#else
-		if( activeNum_> sfh_.cacheSize)
-		{
-			flushCacheImpl_(quickFlush);
-		}
-#endif
 	}
 
-	void flushCache_(SDBCursor &locn)
-	{
-#ifndef 	MUL_SDB	
-		static unsigned int count;
-		++count;
+	void flushCache_(SDBCursor &locn) {
+		if (unloadByRss) {
+			++flushCount_;
+			if ( (flushCount_ & 0xffff) == 0) {
+				unsigned long vm = 0, rss;
+				unsigned long rlimit;
+				ProcMemInfo::getProcMemInfo(vm, rss, rlimit);
 
-		//cout<<activeNum_<<" vs "<<sfh_.cacheSize <<endl;
-		unsigned long vm = 0, rss;
-		unsigned long rlimit;
-		ProcMemInfo::getProcMemInfo(vm, rss, rlimit);
-
-		if(rss - initRss_> sfh_.cacheSize * sfh_.bucketSize )
-		{
-			KeyType key;
-			ValueType value;
-			get(locn, key, value);
-			flushCacheImpl_();
-			search(key, locn);
+				if (rss - initRss_> sfh_.cacheSize * sfh_.bucketSize) {
+					KeyType key;
+					ValueType value;
+					get(locn, key, value);
+					flushCacheImpl_();
+					search(key, locn);
+				}
+			}
+		} else {
+			if (activeNum_> sfh_.cacheSize) {
+				KeyType key;
+				ValueType value;
+				get(locn, key, value);
+				flushCacheImpl_();
+				search(key, locn);
+			}
 		}
-#else
-		if( activeNum_> sfh_.cacheSize)
-		{
-			KeyType key;
-			ValueType value;
-			get(locn, key, value);
-			flushCacheImpl_();
-			search(key, locn);
-		}
-#endif
 
 	}
 
-	void flushCacheImpl_(bool quickFlush = false)
-	{
+	void flushCacheImpl_() {
 #ifdef DEBUG
 		cout<<"cache is full..."<<endl;
+		sfh_.display();
 		cout<<activeNum_<<" vs "<<sfh_.cacheSize <<endl;
-		//display();
+		cout<<"dirtyPageNum: "<<dirtyPageNum_<<endl;
 #endif 
-		//flush();
-		//return ;
 
-		if( !quickFlush )commit();
-		for(size_t i=0; i<directorySize_; i++) {
-			bucket_chain* sc = entry_[i];
-			while( sc ) {
-				//if(  sc->level>0 && (size_t)sc->level > sfh_.cacheSize/sfh_.directorySize/2 - 1 )
-				if( sc->level>0 )
-				{
-					if(sc->isLoaded)
-					sh_cache_.insert(make_pair(sc->level, sc ));
+		if (unloadAll) {
+			flush();
+#ifdef DEBUG
+			cout<<"\n====================================\n"<<endl;
+			cout<<"cache is full..."<<endl;
+			sfh_.display();
+			cout<<activeNum_<<" vs "<<sfh_.cacheSize <<endl;
+			cout<<"dirtyPageNum: "<<dirtyPageNum_<<endl;			
+#endif
+			return;
+		} else {
+			if( !quickFlush)
+			commit();
+			for (size_t i=0; i<directorySize_; i++) {
+				bucket_chain* sc = entry_[i];
+				while (sc) {
+					//if(  sc->level>0 && (size_t)sc->level > sfh_.cacheSize/sfh_.directorySize/2 - 1 )
+					if (sc->level>0) {
+						if (sc->isLoaded)
+						sh_cache_.insert(make_pair(sc->level, sc));
+					}
+					sc = sc->next;
 				}
-				sc = sc->next;
 			}
-		}
-		//cout<<sh_cache_.size()<<endl;				
-		for(CacheIter it = sh_cache_.begin(); it != sh_cache_.end(); it++ )
-		{
+			//cout<<sh_cache_.size()<<endl;				
+			for (CacheIter it = sh_cache_.begin(); it != sh_cache_.end(); it++) {
 
-			//display cache
-			//cout<<"(level: "<<it->second->level;
-			// cout<<"  val:  "<<it->second;
-			//cout<<"  fpos: "<<it->second->fpos;	
-			//cout<<"  num: "<<it->second->num;		
-			//cout<<" )-> ";
+				//display cache
+				//cout<<"(level: "<<it->second->level;
+				// cout<<"  val:  "<<it->second;
+				//cout<<"  fpos: "<<it->second->fpos;	
+				//cout<<"  num: "<<it->second->num;		
+				//cout<<" )-> ";
 
-			if(quickFlush)
-			it->second->write(dataFile_);
-			if( it->second->unload() )
-			--activeNum_;
-			if( activeNum_ < max(sfh_.cacheSize/2, directorySize_) ) {
-				fflush(dataFile_);
-				sh_cache_.clear();
+				if (quickFlush)
+				it->second->write(dataFile_);
+				if (it->second->unload() )
+				--activeNum_;
+				if (activeNum_ < max(sfh_.cacheSize/2, directorySize_) ) {
+					fflush(dataFile_);
+					sh_cache_.clear();
 
-				//cout<<" !!!! "<<activeNum_<<" vs "<<sfh_.cacheSize <<endl;
-				//display();
+					//cout<<" !!!! "<<activeNum_<<" vs "<<sfh_.cacheSize <<endl;
+					//display();
 
-				return;
+					return;
+				}
 			}
 		}
 		fflush(dataFile_);
