@@ -15,6 +15,10 @@ typename LockType=NullLock, typename Alloc=std::allocator<DataType<KeyType,Value
 class AccessMethod
 {
 public:
+    typedef KeyType key_type;
+    typedef ValueType value_type;
+    typedef DataType<KeyType, ValueType> data_type;
+
 	virtual bool insert(const KeyType& key, const ValueType& value){
 		DataType<KeyType,ValueType> data(key, value);
     	return insert(data);
@@ -40,6 +44,10 @@ template<typename KeyType, typename LockType, typename Alloc >
 class AccessMethod<KeyType, NullType, LockType, Alloc>
 {
 public:
+    typedef KeyType key_type;
+    typedef NullType value_type;
+    typedef DataType<KeyType> data_type;
+
 	virtual bool insert(const KeyType& key, const NullType val=NullType()){
 		DataType<KeyType> data(key);
     	return insert(data);
@@ -65,6 +73,10 @@ public:
 template<typename KeyType, typename ValueType, typename AM, bool open=false> class AMOBJ {
 	AM am_;
 public:
+    typedef KeyType key_type;
+    typedef ValueType value_type;
+    typedef DataType<KeyType, ValueType> data_type;
+
 	AMOBJ() :
 		am_() {
 	}
@@ -79,10 +91,10 @@ public:
 	}
 	bool del(const KeyType& key) {
 		return am_.del(key);
-	}	
+	}
 	bool get(const KeyType& key, ValueType& value)
 	{
-		return am_.get(key, value);
+ 		return am_.get(key, value);
 	}		
 	bool update(const KeyType& key, const ValueType& value)
 	{
@@ -93,7 +105,7 @@ public:
 	}
 	int num_items() {
 		return am_.num_items();
-	}	
+	}
 };
 
 template<typename KeyType, typename ValueType, typename AM> class AMOBJ<
@@ -106,6 +118,11 @@ template<typename KeyType, typename ValueType, typename AM> class AMOBJ<
 		return p;
 	}
 public:
+
+    typedef KeyType key_type;
+    typedef ValueType value_type;
+    typedef DataType<KeyType, ValueType> data_type;
+
 	AMOBJ() :
 		am_( getStr() ) {
 		am_.open();

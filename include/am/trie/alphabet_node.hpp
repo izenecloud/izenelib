@@ -7,6 +7,9 @@
 #include "alphabet.hpp"
 #include <util/log.h>
 
+#include <execinfo.h>
+#include <stdlib.h>
+
 using namespace std;
 
 NS_IZENELIB_AM_BEGIN
@@ -229,7 +232,8 @@ friend ostream& operator << ( ostream& os, const SelfType& node)
   {
     if (ch<ALPHABET[0] || ch>ALPHABET[ALPHABET_SIZE-1])
     {
-      LDBG_<<"Can't find '"<<ch<<ALPHABET[0]<<ALPHABET[ALPHABET_SIZE-1]<<"' in alphabet";
+      LDBG_<<"Can't find '0x"<<hex<< (int)ch<<dec<<"' in alphabet, which is out of range ["
+        <<ALPHABET[0]<<","<<ALPHABET[ALPHABET_SIZE-1]<<"]"<<endl;
       return -1;
     }
 

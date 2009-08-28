@@ -64,24 +64,29 @@ void CollectionIndexer::addDocument(IndexerDocument* pDoc)
 
     map<IndexerPropertyConfig, IndexerDocumentPropertyType> propertyValueList;
     pDoc->getPropertyList(propertyValueList);
-    pForwardIndexWriter_->addDocument(uniqueID.docId);
 
+    pForwardIndexWriter_->addDocument(uniqueID.docId);
     for (map<IndexerPropertyConfig, IndexerDocumentPropertyType>::iterator iter = propertyValueList.begin(); iter != propertyValueList.end(); ++iter)
     {
-        if (! iter->first.isForward())
+        if(!iter->first.isIndex())
+            continue;
+        if (!iter->first.isForward())
         {
             pIndexer_->getBTreeIndexer()->add(uniqueID.colId, iter->first.getPropertyId(), boost::get<PropertyType>(iter->second), uniqueID.docId);
         }
         else
         {
             map<string, boost::shared_ptr<FieldIndexer> >::iterator it = fieldIndexerMap_.find(iter->first.getName());
+			
             if (it == fieldIndexerMap_.end())
                 // This field is not indexed.
                 continue;
             if(! iter->first.isLAInput())
             {
                 boost::shared_ptr<ForwardIndex> forwardIndex = boost::get<boost::shared_ptr<ForwardIndex> >(iter->second);
+
                 it->second->addField(uniqueID.docId, forwardIndex);
+				
                 pForwardIndexWriter_->addProperty(iter->first.getPropertyId(), forwardIndex);
             }
             else
@@ -232,22 +237,27 @@ bool CollectionIndexer::removeDocumentInField(docid_t docid, FieldInfo* pFieldIn
         fileoffset_t voffset = pVocInput->getFilePointer();
 
         int64_t nVocLength = pVocInput->readLong();
-        int32_t nTermCount = (int32_t)pVocInput->readLong(); ///get total term count
+        pVocInput->readLong(); ///get total term count
 
         IndexOutput* pVocWriter = desc->getVocOutput();
         pVocWriter->seek(voffset - nVocLength);///seek to begin of vocabulary data
 
         TERM_TABLE* pTermTable = pTermReader->getTermTable();
 
-        termid_t lastDocID = 0;
         fileoffset_t lastPOffset = 0;
-        for (int i = 0; i < nTermCount; i++)
+        for(TERM_TABLE::iterator termTableIter = pTermTable->begin(); termTableIter!= pTermTable->end(); ++termTableIter)
+        //for (int i = 0; i < nTermCount; i++)
         {
-            pVocWriter->writeInt(pTermTable[i].tid-lastDocID); 				///write term id
+         /*
+            pVocWriter->writeInt(pTermTable[i].tid); 				///write term id
             pVocWriter->writeInt(pTermTable[i].ti.docFreq()); 					///write df
             pVocWriter->writeLong(pTermTable[i].ti.docPointer() - lastPOffset);	///write postingpointer
-            lastDocID = pTermTable[i].tid;
             lastPOffset = pTermTable[i].ti.docPointer();
+            */
+            pVocWriter->writeInt(termTableIter->first); 				///write term id
+            pVocWriter->writeInt(termTableIter->second.docFreq()); 					///write df
+            pVocWriter->writeLong(termTableIter->second.docPointer());	///write postingpointer
+            lastPOffset = termTableIter->second.docPointer();
         }
         pVocWriter->flush();
     }

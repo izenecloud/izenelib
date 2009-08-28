@@ -818,6 +818,16 @@ friend ostream& operator << ( ostream& os, const SelfType& node)
 
     if (isPure())
     {
+//      std::cout << "pure" << std::endl;
+//
+//      for (str_group_it i=pBucket_->strGroup_.begin(); i!=pBucket_->strGroup_.end();i++)
+//      {
+//        for (str_ptr_it j=(*i).strPtrs_.begin(); j!=(*i).strPtrs_.end();j++)
+//        {
+//            std::cout << (*i).firstChar_ << (*(*j).p_) << std::endl;
+//        }
+//      }
+
       struct _bucket_* t = pBucket_;
       pBucket_ = new struct _bucket_(ALPHABET[0], ALPHABET[ALPHABET_SIZE-1]);
 
@@ -851,7 +861,7 @@ friend ostream& operator << ( ostream& os, const SelfType& node)
     if (pBucket_->strGroup_.size()==1)
     {
       //throw exception
-      //cout<<"\n-------------------Split error!--------------------";
+//      cout<<"\n-------------------Split error!--------------------";
       return (charT)-1;
     }
 

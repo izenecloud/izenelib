@@ -76,7 +76,7 @@ bool TermPositions::next()
 
     if (TermDocFreqs::next())
     {
-        nPPostingCountWithinDoc_ = freq();
+        nPPostingCountWithinDoc_ = freq()*2;//*2 because the offset of a document is a pair
         nTotalDecodedPCountWithinDoc_ = 0;
         nCurDecodedPCountWithinDoc_ = 0;
         nCurrentPPostingWithinDoc_ = 0;

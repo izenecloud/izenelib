@@ -63,7 +63,8 @@ public:
         return true;
     }
 
-	
+public:
+    unsigned int docLength_;
 };
 
 }

@@ -252,7 +252,8 @@ public:
         int32_t decodedDocCount;
         PostingChunk* decodingPChunk;
         int32_t decodingPChunkPos;
-        loc_t lastDecodedPos; 		///the latest decode
+        loc_t lastDecodedPos; 		///the latest decoded offset
+        loc_t lastDecodedCharPos;        ///the latest decoded char offset
         int32_t decodedPosCount;
     };
 public:
@@ -401,6 +402,7 @@ protected:
     docid_t nYetAnotherLastDocID; ///last doc id served for nTDF;
     loc_t nLastLoc; 		///current added word offset
     loc_t nLastCharLoc;  ///current added char offset
+    count_t nLastDocLen; ///current added doc length
     count_t nCurTermFreq; ///current term freq
     int32_t nCTF; 			///Collection's total term frequency
     DecodeState* pDS;			///decoding state
@@ -427,6 +429,7 @@ class OnDiskPosting:public Posting
         docid_t lastDecodedDocID;		///the latest decoded doc id
         int32_t decodedDocCount;		///decoded doc count
         loc_t lastDecodedPos; 		///the latest decoded position posting
+        loc_t lastDecodedCharPos; 	///the latest decoded char position posting
         int32_t decodedPosCount;		///decoded position posting count
     };
 public:
