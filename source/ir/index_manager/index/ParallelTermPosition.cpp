@@ -86,7 +86,6 @@ bool ParallelTermPosition::next(vector<string>& properties, docid_t& docid)
     }
 
     docid = minDocID;
-	cout<<"docid!!! "<<docid<<endl;
 
     for (map<string, docid_t>::iterator iter = currDocMap_.begin(); iter != currDocMap_.end(); ++iter)
     {

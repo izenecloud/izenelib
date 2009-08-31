@@ -428,9 +428,16 @@ void Indexer::setDirty(bool bDirty)
     dirty_ = bDirty;
 }
 
-int Indexer::insertDocument(IndexerDocument* pDoc)
+int Indexer::insertDocumentWithNoBatch(IndexerDocument* pDoc)
 {
     pIndexWriter_->indexDocument(pDoc);
+    pIndexReader_->setDirty(true);
+    return 1;
+}
+
+int Indexer::insertDocument(IndexerDocument* pDoc)
+{
+    pIndexWriter_->addDocument(pDoc);
     pIndexReader_->setDirty(true);
     return 1;
 }

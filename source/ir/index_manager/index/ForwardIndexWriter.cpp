@@ -51,16 +51,15 @@ void ForwardIndexWriter::addProperty(fieldid_t fid, boost::shared_ptr<LAInput> l
 
     size_t nNumTerms = forwardIndex_->size();
 
-    pVOCOutput_->writeVInt(nNumTerms);
+    pVOCOutput_->writeInt(nNumTerms);
 
-    unsigned int termId, lastTerm = 0;
+    unsigned int termId = 0;
 
     for(ForwardIndex::iterator iter = forwardIndex_->begin(); iter != forwardIndex_->end(); ++iter)
     {
         termId = iter->first;
-        pVOCOutput_->writeVInt(termId - lastTerm);
-        lastTerm = termId;
-        pVOCOutput_->writeVLong(pPOSOutput_->getFilePointer());
+        pVOCOutput_->writeInt(termId);
+        pVOCOutput_->writeLong(pPOSOutput_->getFilePointer());
         pForwardIndexOffset = iter->second;
         int numPosition = pForwardIndexOffset->size();
         pPOSOutput_->writeVInt(numPosition);	
@@ -91,17 +90,16 @@ void ForwardIndexWriter::addProperty(fieldid_t fid, boost::shared_ptr<ForwardInd
 
     size_t nNumTerms = forwardIndex->size();
 
-    pVOCOutput_->writeVInt(nNumTerms);
+    pVOCOutput_->writeInt(nNumTerms);
 
-    unsigned int termId, lastTerm = 0;
+    unsigned int termId = 0;
     ForwardIndexOffset* pForwardIndexOffset = NULL;
 
     for(ForwardIndex::iterator iter = forwardIndex->begin(); iter != forwardIndex->end(); ++iter)
     {
         termId = iter->first;
-        pVOCOutput_->writeVInt(termId - lastTerm);
-        lastTerm = termId;
-        pVOCOutput_->writeVLong(pPOSOutput_->getFilePointer());
+        pVOCOutput_->writeInt(termId);
+        pVOCOutput_->writeLong(pPOSOutput_->getFilePointer());
         pForwardIndexOffset = iter->second;
         int numPosition = pForwardIndexOffset->size();
         pPOSOutput_->writeVInt(numPosition);	

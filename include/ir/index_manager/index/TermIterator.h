@@ -149,8 +149,8 @@ private:
     TermInfo* pCurTermInfo;      ///current term info in this iterator
     Posting* pCurTermPosting;   ///current term's posting in this iterator
     InputDescriptor* pInputDescriptor;
-    int32_t nCurPos;         ///current position in this iterator
     TERM_TABLE::iterator currTermIter;
+    TERM_TABLE::iterator termIterEnd;	
 };
 
 class InMemoryTermReader;

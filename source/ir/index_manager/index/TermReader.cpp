@@ -80,9 +80,9 @@ void TermReaderImpl::open(Directory* pDirectory,const char* barrelname,FieldInfo
     ///end read vocabulary descriptor
     pVocInput->seek(voffset - nVocLength);///seek to begin of vocabulary data
     pTermTable = new TERM_TABLE;//[nTermCount];
-    freq_t		df = 0;
-    fileoffset_t	dfiP = 0;
-    termid_t		tid = 0;
+    freq_t df = 0;
+    fileoffset_t dfiP = 0;
+    termid_t tid = 0;
     ///read term table
     for (int32_t i = 0;i < nTermCount;i++)
     {
