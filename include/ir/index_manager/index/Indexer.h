@@ -68,6 +68,7 @@ public:
 
     virtual ~Indexer();
 public:
+    int insertDocumentWithNoBatch(IndexerDocument* pDoc);
 
     int insertDocument(IndexerDocument* pDoc);
 
