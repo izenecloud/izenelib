@@ -13,7 +13,13 @@ public:
 
 	EmptyRegExp(){}
 
+	EmptyRegExp(const std::string&){}
+
 	~EmptyRegExp(){}
+
+	void open(){}
+
+	void close(){}
 
 	void insert(const NameString & word, const unsigned int id){}
 

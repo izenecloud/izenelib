@@ -34,8 +34,8 @@ DiskTermIterator::DiskTermIterator(DiskTermReader* termReader)
         ,pCurTermInfo(NULL)
         ,pCurTermPosting(NULL)
         ,pInputDescriptor(NULL)
-        ,nCurPos(-1)
         ,currTermIter(termReader->getTermReaderImpl()->pTermTable->begin())
+        ,termIterEnd(termReader->getTermReaderImpl()->pTermTable->end())
 {
 }
 
@@ -61,20 +61,14 @@ DiskTermIterator::~DiskTermIterator(void)
 
 bool DiskTermIterator::next()
 {
-    if (pTermReader->getTermReaderImpl()->nTermCount > nCurPos+1)
+    if(currTermIter != termIterEnd)
     {
-/*    
-        if (pCurTerm == NULL)
-            pCurTerm = new Term(pTermReader->getFieldInfo()->getName(),pTermReader->getTermReaderImpl()->pTermTable[++nCurPos].tid);
-        else pCurTerm->setValue(pTermReader->getTermReaderImpl()->pTermTable[++nCurPos].tid);
-        pCurTermInfo = &(pTermReader->getTermReaderImpl()->pTermTable[nCurPos].ti);
-*/		
         if (pCurTerm == NULL)
             pCurTerm = new Term(pTermReader->getFieldInfo()->getName(),currTermIter->first);
         else pCurTerm->setValue(currTermIter->first);
+
         pCurTermInfo = &(currTermIter->second);
         ++currTermIter;
-        ++nCurPos;
         return true;
     }
     else return false;
@@ -82,14 +76,6 @@ bool DiskTermIterator::next()
 
 bool DiskTermIterator::skipTo(const Term* target)
 {
-    /*bool ret = termIterator.skipTo((target)->getValue());
-    if(ret)
-    {
-        if(pCurTerm == NULL)
-            pCurTerm = new Term(field.c_str(),termIterator.term());
-        else pCurTerm->setValue(termIterator.term());
-    }*/
-    ///TODO:
     return false;
 }
 const Term* DiskTermIterator::term()
@@ -167,18 +153,19 @@ InMemoryTermIterator::~InMemoryTermIterator(void)
 
 bool InMemoryTermIterator::next()
 {
-    postingIterator = postingIterator++;
+    postingIterator++;
 
     if(postingIterator != postingIteratorEnd)
     {
         pCurTermPosting = postingIterator->second;
         while (pCurTermPosting->hasNoChunk())
         {
-            postingIterator = postingIterator++;
+            postingIterator++;
             if(postingIterator != postingIteratorEnd)
                 pCurTermPosting = postingIterator->second;
             else return false;
         }
+
         //TODO
         if (pCurTerm == NULL)
             pCurTerm = new Term(pTermReader->sField.c_str(),postingIterator->first);
@@ -195,14 +182,6 @@ bool InMemoryTermIterator::next()
 
 bool InMemoryTermIterator::skipTo(const Term* target)
 {
-    /*bool ret = termIterator.skipTo(target->getValue());
-    if(ret)
-    {
-    if(pCurTerm == NULL)
-    pCurTerm = new Term(field.c_str(),termIterator.term());
-    else pCurTerm->setValue(termIterator.term());
-    }*/
-    ///TODO:
     return false;
 }
 const Term* InMemoryTermIterator::term()
