@@ -265,12 +265,13 @@ void FieldMerger::flushTermInfo(OutputDescriptor* pOutputDescriptor,MergeTermInf
     for (int32_t i = 0;i < numTermInfos;i++)
     {
         tid = ppTermInfo[i]->getTerm()->getValue();
-        pVocOutput->writeInt(tid - lastTerm);
+        //pVocOutput->writeInt(tid - lastTerm);
+        pVocOutput->writeInt(tid);
         pVocOutput->writeInt(ppTermInfo[i]->getTermInfo()->docFreq());
         poffset = ppTermInfo[i]->getTermInfo()->docPointer();
-        pVocOutput->writeLong(poffset - lastPOffset);
-        lastTerm = tid;
-        lastPOffset = poffset;
+        pVocOutput->writeLong(poffset);
+        //lastTerm = tid;
+        //lastPOffset = poffset;
         termCount++;
     }
 
