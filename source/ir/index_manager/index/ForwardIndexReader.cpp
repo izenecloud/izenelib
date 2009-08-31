@@ -55,19 +55,19 @@ bool ForwardIndexReader::getTermOffset(unsigned int termId, docid_t docId, field
     if(!locateTermPosByDoc(docId,fid))
         return false;
 
-    size_t nNumTerms = pVOCInput_->readVInt();
+    size_t nNumTerms = pVOCInput_->readInt();
     unsigned int tid = 0;
     fileoffset_t posOff = -1;
     for(size_t i = 0; i < nNumTerms; i++)
     {
-        tid += pVOCInput_->readVInt();
+        tid = pVOCInput_->readInt();
         if(tid == termId)
         {
-            posOff = pVOCInput_->readVLong();
+            posOff = pVOCInput_->readLong();
             break;
         }
         else
-            pVOCInput_->readVLong();			//skip
+            pVOCInput_->readLong();			//skip
     }
     if(posOff == -1)
         return false;
@@ -88,13 +88,13 @@ bool ForwardIndexReader::getTermOffset(unsigned int termId, docid_t docId, field
 
 inline void ForwardIndexReader::retrieve_voc_by_doc(VocInfoMap & vocInfo)
 {
-    size_t nNumTerms = pVOCInput_->readVInt();
+    size_t nNumTerms = pVOCInput_->readInt();
     unsigned int tid = 0;
     fileoffset_t posOff = -1;
     for(size_t i = 0; i < nNumTerms; i++)
     {
-        tid += pVOCInput_->readVInt();
-        posOff = pVOCInput_->readVLong();
+        tid = pVOCInput_->readInt();
+        posOff = pVOCInput_->readLong();
         vocInfo.insert(rde::pair<unsigned int, fileoffset_t>(tid,posOff));
     }
 }
