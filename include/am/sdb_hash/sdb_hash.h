@@ -469,6 +469,10 @@ public:
 		{
 			if( entry_[i] )
 			{
+				if (!entry_[i]->isLoaded ) {
+					entry_[i]->read(dataFile_);
+					++activeNum_;
+				}
 				locn.first = entry_[i];
 				locn.second = entry_[i]->str;
 				break;
@@ -594,6 +598,11 @@ public:
 							if( idx >= directorySize_-1 )
 							break;
 							//return false;
+						}
+
+						if (entry_[idx] && !entry_[idx]->isLoaded ) {
+							entry_[idx]->read(dataFile_);
+							++activeNum_;
 						}
 
 						//get next bucket;
@@ -1009,7 +1018,7 @@ private:
 			cout<<"cache is full..."<<endl;
 			sfh_.display();
 			cout<<activeNum_<<" vs "<<sfh_.cacheSize <<endl;
-			cout<<"dirtyPageNum: "<<dirtyPageNum_<<endl;			
+			cout<<"dirtyPageNum: "<<dirtyPageNum_<<endl;
 #endif
 			return;
 		} else {
