@@ -1,8 +1,8 @@
 /**
  * @file tc_hash.h
  * @brief wrapp tokyo cabinet's hash for SDB, CacheDB
- * @author peisheng wang 
- * 
+ * @author peisheng wang
+ *
  *
  * This file defines class tc_hash.
  */
@@ -15,8 +15,8 @@ NS_IZENELIB_AM_BEGIN
 
 /**
  *  \brief wrap tokyo/cabinet for CacheDB and SDB.
- * 
- *   
+ *
+ *
  */
 
 template< typename KeyType, typename ValueType, typename LockType =NullLock> class tc_hash :
@@ -56,7 +56,7 @@ public:
 	}
 
 	/**
-	 *  insert an item of DataType 
+	 *  insert an item of DataType
 	 */
 	bool insert(const DataType<KeyType,ValueType> & dat) {
 		return insert(dat.get_key(), dat.get_value() );
@@ -81,7 +81,7 @@ public:
 
 	/**
 	 *  find an item, return pointer to the value.
-	 *  Note that, there will be memory leak if not delete the value 
+	 *  Note that, there will be memory leak if not delete the value
 	 */
 	ValueType* find(const KeyType & key) {
 		char* ptr;
@@ -153,14 +153,14 @@ public:
 		izene_serialization<ValueType> izs1(value);
 		izs.write_image(ptr, ksize);
 		izs1.write_image(ptr1, vsize);
-		
+
 		return tchdbput(hdb_, ptr, ksize, ptr1, vsize);
 
 	}
 
 	/**
 	 *  search an item
-	 * 
+	 *
 	 *   @return SDBCursor
 	 */
 	SDBCursor search(const KeyType& key)
@@ -174,7 +174,7 @@ public:
 
 	/**
 	 *    another search function, flushCache_() will be called at the beginning,
-	 * 
+	 *
 	 */
 
 	bool search(const KeyType&key, SDBCursor& locn)
@@ -192,8 +192,7 @@ public:
 
 	SDBCursor get_first_locn()
 	{
-		SDBCursor cur;
-		return cur;
+		return SDBCursor();
 	}
 
 	bool get(const SDBCursor& locn, KeyType& key, ValueType& value)
@@ -217,19 +216,19 @@ public:
 
 	/**
 	 *   \brief sequential access method
-	 * 
-	 *   @param locn is the current SDBCursor, and will replaced next SDBCursor when route finished. 
+	 *
+	 *   @param locn is the current SDBCursor, and will replaced next SDBCursor when route finished.
 	 *   @param rec is the item in SDBCursor locn.
 	 *   @param sdir is sequential access direction, for hash is unordered, we only implement forward case.
-	 *   
+	 *
 	 */
 	bool seq(SDBCursor& locn, DataType<KeyType,ValueType> & rec, ESeqDirection sdir=ESD_FORWARD) {
-				
+
 		char* ptr;
 		size_t ksize;
 		izene_serialization<KeyType> izs(locn);
-		izs.write_image(ptr, ksize);		
-		
+		izs.write_image(ptr, ksize);
+
 		ValueType* pv;
 		pv = find(locn);
 		if( pv )
@@ -245,19 +244,19 @@ public:
 		void *buf;
 		buf = tchdbgetnext(hdb_, ptr, ksize, &sp);
 		if(buf != NULL)
-		{			
+		{
 			izene_deserialization<KeyType> izd((char*)buf, (size_t)sp);
 			izd.read_image(locn);
 			return true;
 		}
 		return false;
 	}
-	
+
 	bool iterInit()
 	{
 		return tchdbiterinit(hdb_);
 	}
-	
+
 	bool iterNext(KeyType& key, ValueType& value)
 	{
 		TCXSTR* ptcKey = tcxstrnew();
@@ -286,13 +285,13 @@ public:
 	}
 
 	/**
-	 *   get the num of items 
+	 *   get the num of items
 	 */
 	int num_items() {
 		return tchdbrnum(hdb_);
 	}
-	
-	
+
+
 public:
 	/**
 	 *   db must be opened to be used.
@@ -312,7 +311,7 @@ public:
 
 	/**
 	 *  write the dirty buckets to disk, not release the memory
-	 *  
+	 *
 	 */
 	void commit() {
 		tchdbsync(hdb_);
