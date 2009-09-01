@@ -30,6 +30,7 @@
 #include <am/trie_index/term_hash_table.hpp>
 #include <am/trie_index/hash_trie.hpp>
 #include <am/trie_index/doc_list.hpp>
+#include <am/trie_index/trie_indexer.hpp>
 #include <util/hashFunction.h>
 #include <string>
 #include <time.h>
@@ -172,6 +173,22 @@ BOOST_AUTO_TEST_CASE(term_hash_table_check)
     gettimeofday (&tvafter , &tz);
     cout<<"\nSearch in dynamic term hash table("<<tb.term_num()<<"): "<<((tvafter.tv_sec-tvpre.tv_sec)*1000+(tvafter.tv_usec-tvpre.tv_usec)/1000)/1000.<<std::endl;
 
+    cout<<"Checking file pos of iterator ....";
+    uint64_t id = 0;
+    uint32_t k = 0;
+    for (TermHashTable::const_iterator i=tb.begin(); i!=tb.end(); ++i, ++k)
+    {
+      fseek(f, i.file_pos(),SEEK_SET);
+      assert(fread(&id, sizeof(uint64_t), 1, f)==1);
+      Term t(*i);
+      if (t.get_id()!=id)
+      {
+        cerr<<"ERROR("<<k<<"): "<<t.get_id()<<" "<<id<<endl;
+        return ;
+      }
+    }
+    cout<<"    ....[OK]\n";
+    
     //     char* buf = (char*)malloc(30000000);
     //     if (tb.load(buf, 30000000, f)==NULL)
     //     {
@@ -199,14 +216,12 @@ BOOST_AUTO_TEST_CASE(term_hash_table_check)
 
 BOOST_AUTO_TEST_CASE(hash_trie_check)
 {
-  struct timeval tvafter,tvpre;
-  struct timezone tz;
-
   remove ("./tt");
   remove ("./tt.doc");
   
   vector<uint64_t> vs;
 
+  cout<<"Checking trie tree ....";
   {
     HashTrie<> ht("./tt");
     vs.push_back(1);vs.push_back(2);vs.push_back(3);vs.push_back(4);
@@ -234,12 +249,25 @@ BOOST_AUTO_TEST_CASE(hash_trie_check)
     BOOST_CHECK(docs[0]==1);
     BOOST_CHECK(docs[1]==2);
     vs.clear();
-    
+      
+    vs.push_back(13);
+    docs.clear();
+    ht.get_docs(vs, docs);
+    BOOST_CHECK(docs.size()==2);
+    BOOST_CHECK(docs[0]==2);
+    BOOST_CHECK(docs[1]==3);
+    vs.clear();
+
     ht.save();
   }
   {
     HashTrie<> ht("./tt");
     vector<uint32_t> docs;
+
+    TermHashTable tt = *ht.get_root();
+    HashTrie<> ht1("./tt", false);
+    const TermHashTable* p = ht1.read_node(sizeof(uint32_t));
+    BOOST_CHECK(tt == *p);
   
     vs.push_back(2);
     BOOST_CHECK(ht.get_freq(vs)==3);
@@ -247,6 +275,14 @@ BOOST_AUTO_TEST_CASE(hash_trie_check)
     BOOST_CHECK(docs.size()==2);
     BOOST_CHECK(docs[0]==1);
     BOOST_CHECK(docs[1]==2);
+    vs.clear();
+  
+    vs.push_back(13);
+    docs.clear();
+    ht.get_docs(vs, docs);
+    BOOST_CHECK(docs.size()==2);
+    BOOST_CHECK(docs[0]==2);
+    BOOST_CHECK(docs[1]==3);
     vs.clear();
 
     vs.push_back(4);
@@ -307,16 +343,174 @@ BOOST_AUTO_TEST_CASE(hash_trie_check)
     BOOST_CHECK(t==1);
     vs.clear();
   }
+  cout<<"    ....[OK]\n";
+  
 
-  remove ("./tt.val");
-  remove ("./tt");
+  system("./rm.sh");
+  //   {
+  //struct timeval tvafter,tvpre;
+  //struct timezone tz;
+  //     const uint32_t SIZE = 1000000;
+  //     for (uint64_t i=0; i<SIZE; ++i)
+  //       vs.push_back(rand()%80000);
+  //     cout<<"Data is ready!\n";
+
+  //     HashTrie<> ht("./tt");
+
+  //     uint32_t docid = 0;
+  //     gettimeofday (&tvpre , &tz);
+  //     for (size_t i=0; i<vs.size()-10; i+=10)
+  //     {
+  //       vector<uint64_t> terms;
+  //       for (size_t j=i; j<i+10; ++j)
+  //       {
+  //         //cout<<vs[j]<<" ";
+  //         terms.push_back(vs[j]);
+  //       }
+  //       //cout<<endl;
+
+  //       if (i%(100*10)==0)
+  //         ++docid;
+
+  //       ht.insert(terms, docid);
+  //     }
+  //     gettimeofday (&tvafter , &tz);
+  //     cout<<"\nInsert into trie ("<<vs.size()<<"): "<<((tvafter.tv_sec-tvpre.tv_sec)*1000+(tvafter.tv_usec-tvpre.tv_usec)/1000)/1000.<<std::endl;
+  //     cout<<"After insert, node num: "<<ht.node_num()<<endl;
+    
+  //     cout<<"Total size: "<<ht.size()<<endl;
+  //     cout<<"After tranverse, node num: "<<ht.node_num()<<endl;
+  //     //ht.save();
+  //     getchar();
+  //   }
+  //   // {
+  //   //     cout<<"--------------\n";
+  //   //     HashTrie<> ht("./tt");
+  //   //     getchar();    
+  //   //   }
+  //   getchar();
+}
+
+BOOST_AUTO_TEST_CASE(trie_indexer_check)
+{
+  cout<< "Trie indexer checking ....";
+  struct timeval tvafter,tvpre;
+  struct timezone tz;
+
+  system("./rm.sh");
+  
+  vector<uint64_t> vs;
+
+  
+  TrieIndexer<2> indexer("./tt");
+
+  vs.push_back(7);vs.push_back(2);vs.push_back(8);vs.push_back(9);vs.push_back(10);
+  vs.push_back(11);vs.push_back(12);vs.push_back(13);
+  indexer.insert(vs, 1);
+  vs.clear();
+  
+  vs.push_back(14);vs.push_back(15);vs.push_back(13);
+  indexer.insert(vs, 1);
+  vs.clear();
+  
+  vs.push_back(1);vs.push_back(2);vs.push_back(3);vs.push_back(4);
+  indexer.insert(vs, 2);
+  vs.clear();
+  
+  vs.push_back(5);vs.push_back(2);vs.push_back(3);vs.push_back(4);vs.push_back(6);
+  indexer.insert(vs, 3);
+  vs.clear();
+
+  vs.push_back(3);vs.push_back(5);vs.push_back(3);vs.push_back(7);vs.push_back(6);
+  indexer.insert(vs, 3);
+  vs.clear();
+
+  vs.push_back(5);vs.push_back(7);vs.push_back(7);vs.push_back(5);vs.push_back(6);
+  indexer.insert(vs, 4);
+  vs.clear();
+
+  vs.push_back(15);vs.push_back(17);vs.push_back(17);vs.push_back(15);vs.push_back(13);
+  indexer.insert(vs, 5);
+  vs.clear();
+
+  BOOST_CHECK(indexer.doc_num() == 5 );
+
+  //cout<<"\nStart merging.............\n";
+  indexer.merge();
+  indexer.load();
+ 
+  vs.push_back(7);
+  //std::cout<<indexer.get_freq(vs)<<" MMMMMMMMMM\n";
+  BOOST_CHECK(indexer.get_freq(vs)==4);
+  vs.clear();
+
+  vs.push_back(2);
+  //std::cout<<indexer.get_freq(vs)<<" MMMMMMMMMM\n";
+  BOOST_CHECK(indexer.get_freq(vs)==3);
+  vs.clear();
+
+  vs.push_back(5);
+  //std::cout<<indexer.get_freq(vs)<<" MMMMMMMMMM\n";
+  BOOST_CHECK(indexer.get_freq(vs)==4);
+  vs.clear();
+
+  vs.push_back(2);
+  vs.push_back(3);
+  //std::cout<<indexer.get_freq(vs)<<" MMMMMMMMMM\n";
+  BOOST_CHECK(indexer.get_freq(vs)==2);
+  vs.clear();
+
+  vs.push_back(5);vs.push_back(2);vs.push_back(3);vs.push_back(4);
+  vs.push_back(6);
+  BOOST_CHECK(indexer.get_freq(vs)==1);
+  vs.clear();
+
+  
+  vector<uint64_t> suffix;
+  vector<uint32_t> counts;
+  vs.push_back(15);
+  indexer.get_suffix(vs, suffix, counts);
+  BOOST_CHECK(suffix.size()==2);
+  BOOST_CHECK(counts.size()==2);
+  for (size_t i=0; i<suffix.size();++i)
+  {
+    if (suffix[i] == 13)
+    {
+      BOOST_CHECK(counts[i]==2);
+    }    
+    else if(suffix[i]==17)
+    {
+      BOOST_CHECK(counts[i]==1);
+    }
+    else
+      BOOST_CHECK(false);
+  }
+  vs.clear();
+
+  vs.push_back(2);vs.push_back(3);
+  indexer.get_suffix(vs, suffix, counts);
+  BOOST_CHECK(suffix.size()==1);
+  BOOST_CHECK(counts.size()==1);
+  for (size_t i=0; i<suffix.size();++i)
+  {
+    if (suffix[i]==4)
+    {
+      BOOST_CHECK(counts[i]==2);
+    }
+    else
+      BOOST_CHECK(false);
+  }
+  vs.clear();
+
+  cout<<"    ....[OK]\n";
+
   {
     const uint32_t SIZE = 5000000;
     for (uint64_t i=0; i<SIZE; ++i)
       vs.push_back(rand()%80000);
     cout<<"Data is ready!\n";
 
-    HashTrie<> ht("./tt");
+    TrieIndexer<> ht("./tt");
 
     uint32_t docid = 0;
     gettimeofday (&tvpre , &tz);
@@ -330,26 +524,31 @@ BOOST_AUTO_TEST_CASE(hash_trie_check)
       }
       //cout<<endl;
 
-      if (i%(100*10)==0)
+      if (i%(100)==0)
         ++docid;
 
       ht.insert(terms, docid);
     }
     gettimeofday (&tvafter , &tz);
     cout<<"\nInsert into trie ("<<vs.size()<<"): "<<((tvafter.tv_sec-tvpre.tv_sec)*1000+(tvafter.tv_usec-tvpre.tv_usec)/1000)/1000.<<std::endl;
-    cout<<"After insert, node num: "<<ht.node_num()<<endl;
-    
-    cout<<"Total size: "<<ht.size()<<endl;
-    cout<<"After tranverse, node num: "<<ht.node_num()<<endl;
-    //ht.save();
+    cout<<"Starting merging...\n";
+
     getchar();
+
+    gettimeofday (&tvpre , &tz);
+    ht.merge();
+    gettimeofday (&tvafter , &tz);
+    cout<<"\nMerge all trie : "<<((tvafter.tv_sec-tvpre.tv_sec)*1000+(tvafter.tv_usec-tvpre.tv_usec)/1000)/1000.<<std::endl;
+    
+    cout<<"Node num: "<<ht.node_num()<<endl;
+    //ht.save();
   }
   // {
   //     cout<<"--------------\n";
   //     HashTrie<> ht("./tt");
   //     getchar();    
   //   }
-  getchar();
+    getchar();
 }
 
 BOOST_AUTO_TEST_SUITE_END()

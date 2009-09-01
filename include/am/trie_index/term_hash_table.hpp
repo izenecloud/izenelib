@@ -57,6 +57,21 @@ public:
     
   }
 
+  bool is_same(const Term& other)
+  {
+//     std::cout<<get_id()<<" "<<other.get_id()<<std::endl;
+//     std::cout<<get_child()<<" "<<other.get_child()<<std::endl;
+//     std::cout<<frequency()<<" "<<other.frequency()<<std::endl;
+//     std::cout<<get_doc_list()<<" "<<other.get_doc_list()<<std::endl;
+//     std::cout<<"ooooooooooooooooo\n";
+    
+    if (get_id()!=other.get_id()
+        ||get_loaded()==other.get_loaded() && get_child()!=other.get_child()
+        ||frequency() !=other.frequency())
+      return false;
+    return true;
+  }
+  
   static inline uint32_t need_size()
   {
     return sizeof(struct TERM);
@@ -115,6 +130,11 @@ public:
   inline uint32_t get_freq()const
   {
     return GET_FREQ(buf_);
+  }
+
+  inline void set_freq(uint32_t freq)const
+  {
+    GET_FREQ(buf_) = freq;
   }
 
   inline void set_loaded(bool b)
@@ -195,7 +215,6 @@ public:
     GET_SIZE(buf_) = sizeof (struct ROW_HEAD)+sizeof(struct Term::TERM);
     Term(id, buf_+sizeof(struct ROW_HEAD));
   }
-
   
   inline Row(FILE* f)
   {
@@ -203,9 +222,31 @@ public:
     assert(fread(&size, sizeof(uint32_t), 1, f)==1);
     buf_ = (char*)malloc(size);
     GET_MAX_SIZE(buf_) = size;
+    
     assert(fread(buf_+sizeof(uint32_t), size-sizeof(uint32_t), 1, f)==1);
   }
 
+  inline Row(const Row& row)
+  {
+    uint32_t s = row.size();
+    buf_ = (char*)malloc(s);
+    memcpy(buf_, row.buf_, s);
+    GET_MAX_SIZE(buf_) = s;
+  }
+
+  bool operator == (const Row& other)const
+  {
+    if (count()!= other.count())
+      return false;
+
+    uint32_t c = count();
+    for (uint32_t i=0; i<c; ++i)
+      if (!Term((*this)[i]).is_same(Term(other[i])) )
+        return false;
+    
+    return true;
+  }
+  
   inline ~Row()
   {
     free(buf_);
@@ -219,6 +260,11 @@ public:
   inline uint32_t size() const
   {
     return GET_SIZE(buf_);
+  }
+
+  inline static uint32_t head_size()
+  {
+    return sizeof (struct ROW_HEAD);
   }
 
   inline uint32_t count()const
@@ -318,6 +364,12 @@ public:
     return size();
   }
 
+  char* operator [] (uint32_t i)const
+  {
+    assert(i<count());
+    return begin()+i*sizeof(struct Term::TERM);
+  }
+  
 friend std::ostream& operator << (std::ostream& os, const Row& row)
   {
     os<<"\nmax_size:"<<row.max_size()<<"|size:"<<row.size()<<"|count:"<<row.count()<<"\n----------\n";
@@ -350,20 +402,23 @@ public:
   class const_iterator
   {
     const Row**    entry_;
+    uint32_t file_pos_;
     const uint32_t entry_size_;
     uint32_t entry_num_;
     Term t_;
 
   public:
     const_iterator(const Row** entry, uint32_t entry_size, uint32_t entry_num)
-      : entry_(entry), entry_size_ (entry_size), entry_num_(entry_num),
+      : entry_(entry), file_pos_(sizeof(uint32_t)*3 + sizeof(uint64_t)+sizeof(uint32_t)+Row::head_size()),
+        entry_size_ (entry_size), entry_num_(entry_num),
         t_(entry_num< entry_size? Term(entry_[entry_num_]->begin()): Term(0))
     {
     }
 
     
     const_iterator(const const_iterator& other)
-      : entry_(other.entry_), entry_size_ (other.entry_size_), entry_num_(other.entry_num_), t_(other.t_)
+      : entry_(other.entry_), file_pos_(other.file_pos_), entry_size_ (other.entry_size_),
+        entry_num_(other.entry_num_), t_(other.t_)
     {
     }
 
@@ -382,6 +437,7 @@ public:
           if (entry_[entry_num_]!=NULL)
           {
             t_ = Term(entry_[entry_num_]->begin());
+            file_pos_ += sizeof(Term::TERM) + sizeof(uint32_t) + Row::head_size();
             return *this;
           }
         
@@ -390,10 +446,16 @@ public:
       }
 
       t_ = Term(p);
+      file_pos_ += sizeof(Term::TERM);
       
       return(*this);
     }
 
+    inline uint32_t file_pos()const
+    {
+      return file_pos_;
+    }
+    
 //     const_iterator operator++(int)
 //     {
 //       const_iterator tmp(*this);
@@ -435,8 +497,7 @@ public:
   const_iterator end()
   {
     return const_iterator((const Row**)entry_, entry_size_, entry_size_);
-  }
-  
+  } 
     
   inline TermHashTable(uint32_t entry_size)
   {
@@ -455,6 +516,66 @@ public:
     entry_ = NULL;
   }
 
+  TermHashTable(const SelfT& other)
+  {
+    num_ = other.term_num();
+    entry_size_ = 0;
+    entry_ = NULL;
+    
+    if (other.entry_size_ != entry_size_ )
+    {
+      entry_size_ = other.entry_size_;
+      if (entry_ != NULL)
+        delete entry_;
+      entry_ = (Row**)malloc(entry_size_*sizeof(Row*));//entry_ = new Row*[entry_size_];
+      for (uint32_t i=0;i<entry_size_; ++i)
+        entry_[i] = NULL;
+    }
+    
+    for (uint32_t i=0; i<entry_size_; ++i)
+    {
+      if (other.entry_[i]==NULL)
+      {
+        entry_[i] = NULL;
+        continue;
+      }
+      
+      Row* row = new Row(*other.entry_[i]);
+      entry_[i] = row;
+    }
+
+  }
+
+  SelfT& operator = (const SelfT& other)
+  {
+    num_ = other.term_num();
+    
+    if (other.entry_size_ != entry_size_ )
+    {
+      entry_size_ = other.entry_size_;
+      if (entry_ != NULL)
+        delete entry_;
+      entry_ = (Row**)malloc(entry_size_*sizeof(Row*));//entry_ = new Row*[entry_size_];
+      for (uint32_t i=0;i<entry_size_; ++i)
+        entry_[i] = NULL;
+    }
+    
+    for (uint32_t i=0; i<entry_size_; ++i)
+    {
+      if (other.entry_[i]==NULL)
+      {
+        entry_[i] = NULL;
+        continue;
+      }
+      
+      Row* row = new Row(*other.entry_[i]);
+      entry_[i] = row;
+    }
+
+    return *this;
+
+  }
+  
   inline ~TermHashTable()
   {
     if (entry_ == NULL)
@@ -462,6 +583,27 @@ public:
     
     release();
     free(entry_);
+  }
+
+  bool operator == (const SelfT& other)
+  {
+    if (other.entry_size_ != entry_size_ )
+      return false;
+
+    for (uint32_t i=0; i<entry_size_; ++i)
+    {
+      if (other.entry_[i]!=entry_[i])
+        if (other.entry_[i]==NULL || entry_[i]==NULL)
+          return false;
+
+      if (other.entry_[i]==NULL)
+        continue;
+      
+      if (!(*other.entry_[i] == *entry_[i]) )
+        return false;
+    }
+
+    return true;
   }
   
   inline void release()
@@ -533,9 +675,9 @@ public:
     return num_;
   }
   
-  void save(FILE* f)
+  uint64_t save(FILE* f)
   {
-    uint64_t s = 0;
+    uint64_t s = sizeof(uint32_t)*3 + sizeof(uint64_t);
     uint32_t entry_num = 0;
     
     long int pos1 = ftell(f);
@@ -561,8 +703,27 @@ public:
     //std::cout<<s<<std::endl;
 
     fseek(f, pos2, SEEK_SET);
+    //std::cout<<"sssss "<<pos1<<"-"<<ftell(f)<<std::endl;
+
+    return s;
   }
 
+  uint64_t touch_save(FILE* f) const
+  {
+    uint64_t s = sizeof(uint32_t)*3 + sizeof(uint64_t);
+
+    for (uint32_t i=0; i<entry_size_; ++i)
+      if (entry_[i]!= NULL)
+        s += entry_[i]->size() + sizeof(uint32_t);
+
+    fseek(f, s, SEEK_CUR);
+    
+    //std::cout<<ftell(f)<<std::endl;
+    
+    return s;
+
+  }
+  
 //   char* load(char* buf, uint32_t buf_size, FILE* f, uint64_t addr=0)
 //   {
 //     release();
@@ -602,7 +763,7 @@ public:
 
   uint32_t load(FILE* f, uint64_t addr=0)
   {
-    //std::cout<<"load...\n";
+    //std::cout<<addr<<"-";
     release();
     
     uint64_t s = 0;
@@ -634,7 +795,8 @@ public:
       entry_[e] = row;
       size += row->size();
     }
-    
+
+    //std::cout<<ftell(f)<<" load...\n";
     return size;
   }
 

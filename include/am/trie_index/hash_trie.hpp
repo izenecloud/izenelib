@@ -19,7 +19,6 @@ class HashTrie
 #define NODE_ENTRY_SIZE_TABLE_SIZE 4
 
   typedef DocList<> doc_list_t;
-  typedef TermHashTable TrieNode;
 
   TermHashTable *root_;
   TermHashTable* buf_node_;
@@ -119,37 +118,35 @@ class HashTrie
   void save_(TermHashTable* tb)
   {
     uint64_t pos1 = ftell(f_);
-    tb->save(f_);
-
-    bool f = false;
+    tb->touch_save(f_);
+    //fseek(f_, pos1 + tb->save_size(), SEEK_SET);
+    //std::cout<<ftell(f_)<<std::endl;
+    
     for (TermHashTable::const_iterator i=tb->begin();i!=tb->end();++i)
     {
-      if (!(*i).get_loaded() || (*i).get_child()==(uint64_t)-1)
-        continue;
-
-      f = true;
-      uint64_t pos = ftell(f_);
+      if((*i).get_child() != (uint64_t)-1 && (*i).get_loaded())
+      {
+        uint64_t pos = ftell(f_);
+        save_((TermHashTable*)((*i).get_child()));
+        (*i).set_child(pos);
+      }
       
-      save_((TermHashTable*)((*i).get_child()));
-      (*i).set_child(pos);
       (*i).set_loaded(0);
-
+      
       uint64_t list = (*i).get_doc_list();
+      //std::cout<<(*i).get_id()<<" "<<(uint64_t)list<<std::endl;
+
       if (list !=(uint64_t)-1)
       {
         (*i).set_doc_list(ftell(doc_f_));
-        //std::cout<<ftell(doc_f_)<<std::endl;
         ((doc_list_t*)list)->save(doc_f_);
       }
     }
 
-    if (f)
-    {
-      uint64_t pos2 = ftell(f_);
-      fseek(f_, pos1, SEEK_SET);
-      tb->save(f_);
-      fseek(f_, pos2, SEEK_SET);
-    }
+    uint64_t pos2 = ftell(f_);
+    fseek(f_, pos1, SEEK_SET);
+    tb->save(f_);
+    fseek(f_, pos2, SEEK_SET);
     
     delete tb;
   }
@@ -162,14 +159,14 @@ class HashTrie
     {
       uint64_t child = (*i).get_child();
 
-      if ((*i).get_loaded() || (*i).get_child()==(uint64_t)-1)
-        continue;
-
-      TermHashTable* tht = new TermHashTable();
-      ++node_num_;
-      load_(tht, child);
-      (*i).set_child((uint64_t)tht);
-      (*i).set_loaded(1);
+      if (!(*i).get_loaded() && (*i).get_child()!=(uint64_t)-1)
+      {
+        TermHashTable* tht = new TermHashTable();
+        ++node_num_;
+        load_(tht, child);
+        (*i).set_child((uint64_t)tht);
+        (*i).set_loaded(1);
+      }
 
       if ((*i).get_doc_list() == (uint64_t)-1)
         continue;
@@ -190,8 +187,9 @@ class HashTrie
     
     root_ = new TermHashTable(ENTRY_SIZE);
     load_(root_, ftell(f_));
+
+    //std::cout<<"node num loaded: "<<node_num_<<" "<<nn<<std::endl;
     assert(node_num_ == nn);
-    //std::cout<<"node num loaded: "<<node_num_<<std::endl;
   }
 
   void get_docs_(uint64_t tb, bool loaded, doc_list_t** list)
@@ -233,7 +231,9 @@ class HashTrie
   
   
 public:
-  HashTrie(const char* nm)
+  typedef TermHashTable node_t;
+  
+  HashTrie(const char* nm, bool load_all=true)
   {
     node_entry_size_[0] = ENTRY_SIZE;
     for (uint32_t i=1; i<NODE_ENTRY_SIZE_TABLE_SIZE; ++i)
@@ -246,24 +246,8 @@ public:
     
     buf_node_ = new TermHashTable();
     
-    node_num_ = 1;
-
-    f_ = fopen(nm, "r+");
-    if (f_ == NULL)
-    {
-      f_ = fopen(nm, "w+");
-      assert(fwrite(&node_num_, sizeof(uint32_t), 1, f_)==1);
-      root_ = new TermHashTable(ENTRY_SIZE);
-    }
-    else
-      load();
-    
-    if (f_ == NULL)
-    {
-      std::cout<<"Can't create file: "<<nm<<std::endl;
-      return;
-    }
-
+    node_num_ = 0;
+            
     std::string str = nm;
     str += ".doc";
     doc_f_ = fopen(str.c_str(), "r+");
@@ -277,15 +261,40 @@ public:
       std::cout<<"Can't create file: "<<str<<std::endl;
       return;
     }
+
+    f_ = fopen(nm, "r+");
+    if (f_ == NULL)
+    {
+      f_ = fopen(nm, "w+");
+      assert(fwrite(&node_num_, sizeof(uint32_t), 1, f_)==1);
+      root_ = new TermHashTable(ENTRY_SIZE);
+      node_num_ = 1;
+    }
+    else
+      if (load_all)
+        load();
+      else
+        root_ = NULL;
+    
+    if (f_ == NULL)
+    {
+      std::cout<<"Can't create file: "<<nm<<std::endl;
+      return;
+    }
   }
 
   ~HashTrie()
   {
     //std::cout<<"deleting trie!\n";
     fclose(f_);
+    fclose(doc_f_);
+    
     uint32_t nn = node_num_;
     node_num_ = 0;
     release_(root_);
+
+    //std::cout<<nn<<" "<<node_num_<<std::endl;
+    
     assert(nn == node_num_);
     //std::cout<<"deleting buf_node_!\n";
     delete buf_node_;
@@ -302,7 +311,6 @@ public:
     {
       insert_(terms, i, docid);
     }
-
     //std::cout<<*root_<<std::endl;
   }
 
@@ -430,9 +438,14 @@ public:
   inline void save()
   {
     fseek(f_, 0, SEEK_SET);
+    
     assert(fwrite(&node_num_, sizeof(uint32_t), 1, f_)==1);
-    save_(root_);
+    if (root_!=NULL)
+      save_(root_);
+    
     fflush(f_);
+    fflush(doc_f_);
+    
     root_ = NULL;
     node_num_ = 0;
   }
@@ -441,10 +454,55 @@ public:
   {
     return root_;
   }
+
+  TermHashTable* read_node(uint64_t addr)
+  {
+    buf_node_->load(f_, addr);
+    return buf_node_;
+  }
+
+  const TermHashTable*  partial_load(uint64_t addr)
+  {
+    release_(root_);
+    node_num_ = 0;
+    root_ = NULL;
+    
+    if (addr == (uint64_t)-1)
+      return NULL;
+    
+    root_ = new TermHashTable();
+    node_num_ = 1;
+    load_(root_, addr);
+    return root_;
+  }
+
+  void partial_save(FILE* other_tree, FILE* other_doc/*, uint64_t addr = 0*/)
+  {
+    if (root_ == NULL)
+      return;
+    
+    FILE* f = f_;
+    FILE* doc_f = doc_f_;
+
+    f_ = other_tree;
+    doc_f_ = other_doc;
+    
+    //fseek(f_, addr, SEEK_SET);
+    save_(root_);
+    fflush(f_);
+    fflush(doc_f_);
+    root_ = NULL;
+    node_num_ = 0;
+
+    f_ = f;
+    doc_f_ = doc_f;
+  }
   
 }
 ;
+
 NS_IZENELIB_AM_END
+
 #endif
 
 /**

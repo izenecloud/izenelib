@@ -179,6 +179,16 @@ public:
 		return tcbdbput(bdb_, ptr, ksize, ptr1, vsize);
 
 	}
+	
+	bool iterInit()
+	{
+		return false;
+	}
+	
+	bool iterNext(KeyType& key, ValueType& value)
+	{
+		return false;
+	}
 
 	/**
 	 *  search an item
