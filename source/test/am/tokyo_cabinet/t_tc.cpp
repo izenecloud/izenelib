@@ -21,12 +21,12 @@ static bool trace = 1;
 static bool rnd = 0;
 
 typedef string KeyType;
-typedef NullType ValueType;
-typedef izenelib::am::DataType<KeyType, NullType> DataType;
-typedef izenelib::am::DataType<KeyType, NullType> myDataType;
+typedef int ValueType;
+typedef izenelib::am::DataType<KeyType, ValueType> DataType;
+typedef izenelib::am::DataType<KeyType, ValueType> myDataType;
 
-typedef izenelib::am::tc_hash<KeyType, NullType> TC_HASH;
-typedef izenelib::am::tc_btree<KeyType, NullType> TC_BTREE;
+typedef izenelib::am::tc_hash<KeyType, ValueType> TC_HASH;
+typedef izenelib::am::tc_btree<KeyType, ValueType> TC_BTREE;
 
 template<typename T> void insert_test(T& tb) {
 	clock_t start, finish;
@@ -39,7 +39,8 @@ template<typename T> void insert_test(T& tb) {
 		sprintf(p, "%08d", i);
 		string str = p;
 		//tb.insert(i, str);
-		tb.insert(str);
+                   
+		tb.insert(str,i);
 		if (trace) {
 			cout<<"numItem: "<<tb.num_items()<<endl<<endl;
 			//tb.display();
@@ -72,7 +73,7 @@ template<typename T> void random_insert_test(T& tb) {
 		sprintf(p, "%08d", k);
 		string str = p;
 		//tb.insert(rand()%num, str);
-		tb.insert(str);
+		tb.insert(str,i);
 		if (trace) {
 			cout<<"numItem: "<<tb.num_items()<<endl<<endl;
 			tb.display();
@@ -145,8 +146,8 @@ template<typename T> void search_test(T& tb) {
 		v = tb.find(str);
 		if (v) {
 			if (trace) {
-				cout<<str<<" found"<<endl;
-				tb.display();
+				cout<<str<<" found, value: "<<*v<<endl;
+				//tb.display();
 			}
 			c++;
 		} else
@@ -245,17 +246,43 @@ template<typename T> void seq_test(T& tb) {
 
 }
 
+template<typename T> 
+void iter_test(T& tb) {
+
+	clock_t start, finish;
+
+	start = clock();
+	tb.iterInit();
+	cout<<"iter inited"<<endl;
+	KeyType key;
+	ValueType value;
+	int a=0;
+	while (tb.iterNext(key, value) ) {
+		a++;
+		cout<<"ITER: "<<key<<"\t"<<value<<endl;
+	}
+
+	tb.flush();
+	finish = clock();
+	printf("\nIt takes %f seconds to sequential Access %d  data! \n",
+			(double)(finish - start) / CLOCKS_PER_SEC, a);
+
+}
+
+
 template<typename T> void run(T& tb) {
 	//search_test(tb);
 	if (rnd) {
 		random_insert_test(tb);
 		search_test(tb);
+		iter_test(tb);
 	//	seq_test(tb);
 	//	random_delete_test(tb);
 	//	search_test(tb);
 	} else {
 		insert_test(tb);
 		search_test(tb);
+		iter_test(tb);
 	//	seq_test(tb);
 	//	delete_test(tb);
 	//	search_test(tb);
@@ -294,7 +321,7 @@ int main(int argc, char *argv[]) {
 	while (*argv != NULL) {
 		string str;
 		str = *argv++;
-		//cout<< str<<endl;
+		cout<< str<<endl;
 
 		if (str[0] == '-') {
 			str = str.substr(1, str.length());
@@ -322,13 +349,13 @@ int main(int argc, char *argv[]) {
 	try
 	{
 		if(typeStr.compare("hash") == 0) {
-			TC_HASH tb(indexFile);
+			TC_HASH tb(inputFile);
 			tb.open();
 			run(tb);
 		}
 		else
 		{
-			TC_BTREE tb(indexFile);
+			TC_BTREE tb(inputFile);
 			tb.open();
 			run(tb);
 		}

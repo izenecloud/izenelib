@@ -252,6 +252,38 @@ public:
 		}
 		return false;
 	}
+	
+	bool iterInit()
+	{
+		return tchdbiterinit(hdb_);
+	}
+	
+	bool iterNext(KeyType& key, ValueType& value)
+	{
+		TCXSTR* ptcKey = tcxstrnew();
+		TCXSTR* ptcValue = tcxstrnew();
+
+		bool b = tchdbiternext3(hdb_, ptcKey, ptcValue);
+		if(!b) return false;
+		char* cpKey = (char*)tcxstrptr(ptcKey);
+		char* cpValue = (char*)tcxstrptr(ptcValue);
+// 		std::cout<<"II"<<std::endl;
+		izene_deserialization<KeyType> izdk(cpKey, tcxstrsize(ptcKey));
+		izdk.read_image(key);
+// 		std::cout<<"II"<<std::endl;
+		izene_deserialization<ValueType> izdv(cpValue, tcxstrsize(ptcValue));
+		izdv.read_image(value);
+// 		std::cout<<"II"<<std::endl;
+// 		free(cpKey);
+// 		std::cout<<"II"<<std::endl;
+// 		free(cpValue);
+// 		std::cout<<"II"<<std::endl;
+		tcxstrdel(ptcKey);
+// 		std::cout<<"II"<<std::endl;
+		tcxstrdel(ptcValue);
+// 		std::cout<<"II"<<std::endl;
+		return true;
+	}
 
 	/**
 	 *   get the num of items 
@@ -260,10 +292,7 @@ public:
 		return tchdbrnum(hdb_);
 	}
 	
-	void display(){
-		
-	}
-
+	
 public:
 	/**
 	 *   db must be opened to be used.
