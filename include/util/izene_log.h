@@ -3,12 +3,8 @@
 
 #define GOOGLE_STRIP_LOG 1    // this must go before the #include!
 
-
 #include <glog/logging.h>
-
-#ifdef SF1_TIME_CHECK
-	#include <wiselib/profiler/ProfilerGroup.h>
-#endif
+#include <wiselib/profiler/ProfilerGroup.h>
 
 #include "ProcMemInfo.h"
 #include <sstream>
