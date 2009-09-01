@@ -10,9 +10,11 @@ ELSE(WIN32)
   SET(procmeminfo_SRC ProcMemInfo.cpp)
   SET(izene_log_SRC izene_log.cpp)
 
+  # Add include directories by Dohyun Yun 2009.09.01
   INCLUDE_DIRECTORIES(
-    ${wiselib_INCLUDE_DIRS}
-    )
+	  ${Boost_INCLUDE_DIRS}
+	  ${wiselib_INCLUDE_DIRS}
+	  )
 
   MACRO_ADD_COMPONENT(procmeminfo
     "${VERSION_INSTALL_PREFIX}"
