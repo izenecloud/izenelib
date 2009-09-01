@@ -472,6 +472,7 @@ void Indexer::flush()
     delete pIndexWriter_;
     pIndexWriter_ = new IndexWriter(this);
     pIndexReader_->setDirty(true);
+    pBTreeIndexer_->flush();
 }
 
 bool Indexer::getIndexingProgressbyCollectionId(collectionid_t colID, IndexingProgressStatus& currentProgress)
