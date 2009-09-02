@@ -11,9 +11,9 @@ using namespace izenelib::am;
 
 const char* indexFile = "sdb.dat";
 static string inputFile = "test.txt";
-static size_t bucketSize = 1024;
+static size_t bucketSize = 512;
 //static size_t directorySize = 8192;
-static size_t degree = 18;
+static size_t degree = 16;
 static size_t cacheSize = 500000;
 static int num = 1000000;
 
@@ -27,6 +27,34 @@ typedef izenelib::am::DataType<KeyType, ValueType> DataType;
 typedef izenelib::am::DataType<KeyType, ValueType> myDataType;
 //typedef izenelib::am::sdb_hash<KeyType, ValueType> SDB_HASH;
 typedef izenelib::am::sdb_fixedhash<KeyType, ValueType> SDB_HASH;
+
+
+template<typename T> void validate_test(T& tb) {
+	
+	assert(tb.insert(1, 3) == true);
+	assert(tb.insert(2, 7) == true);
+	assert(tb.insert(3, 9) == true);
+	
+	int val=0.0;
+	tb.get(1, val);
+	cout<<val<<endl;
+	assert(val == 3);
+	tb.get(2,val);
+	cout<<val<<endl;
+	assert(val == 7);
+	assert(tb.get(4,val) == false);
+	
+	tb.update(1, 5);
+	tb.get(1, val);
+	cout<<val;
+	assert(val == 5);
+	
+	tb.del(2);
+	assert(tb.get(2,val) == false);	
+
+
+}
+
 
 
 template<typename T> void insert_test(T& tb) {
@@ -259,7 +287,7 @@ template<typename T> void run(T& tb) {
 		insert_test(tb);
 		search_test(tb);
 		seq_test(tb);
-		delete_test(tb);
+		//delete_test(tb);
 	}else{
 	seq_test(tb);
 	}
@@ -329,6 +357,12 @@ int main(int argc, char *argv[]) {
 	}
 	try
 	{
+		//{
+		//izenelib::am::sdb_fixedhash<int, int>  t1("test.dat");
+		//t1.open();
+		//validate_test(t1);
+		//}
+		
 		SDB_HASH tb(indexFile);
 		//tb.setDirectorySize(directorySize);
 		tb.setDegree(degree);

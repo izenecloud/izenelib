@@ -167,13 +167,7 @@ public:
 			
 			size_t ksize = sizeof(key);
 			size_t vsize =sizeof(value);
-			
-			//izene_serialization<KeyType> izs(key);
-			//izene_serialization<ValueType> izs1(value);
-			//izs.write_image(ptr, ksize);
-			//izs1.write_image(ptr1, vsize);
-			
-			
+	
 			assert(ksize == sfh_.keySize);
 			assert(vsize == sfh_.valueSize);
 
@@ -195,9 +189,7 @@ public:
 			else
 			{
 				assert(locn.second != NULL);
-				//size_t gap = sizeof(long)+sizeof(int)+ksize+vsize+2*sizeof(size_t);
-				//size_t gap = sizeof(long)+sizeof(int)+ksize+vsize;
-
+				
 				//add an extra size_t to indicate if reach the end of  bucket_chain.
 				if ( size_t(p - sa->str) > sfh_.bucketSize-bucketGap ) {
 					if (sa->next == 0) {
@@ -208,13 +200,7 @@ public:
 					sa = loadNext_( sa );
 					p = sa->str;
 				}
-			}
-
-			//memcpy(p, &ksize, sizeof(size_t));
-			//p += sizeof(size_t);
-			//memcpy(p, &vsize, sizeof(size_t));
-			//p += sizeof(size_t);
-			
+			}			
 			memcpy(p, ptr, ksize);
 			p += ksize;
 			memcpy(p, ptr1, vsize);
@@ -241,17 +227,9 @@ public:
 		if( !search(key, locn) )
 		return NULL;
 		else {
-			char *p = locn.second;
-			//size_t ksz, vsz;
-			//memcpy(&ksz, p, sizeof(size_t));
-			//p += sizeof(size_t);
-			//memcpy(&vsz, p, sizeof(size_t));
-			//p += sizeof(size_t);
-
-			ValueType *val = new ValueType;
-			//izene_deserialization<ValueType> isd(p+sfh_.keySize, sfh_.valueSize);
-			//isd.read_image(*val);
-			memcpy(val, p+sfh_.keySize, sfh_.valueSize);
+			char *p = locn.second;		
+			ValueType *val = new ValueType;		
+			memcpy(&val, p+sfh_.keySize, sfh_.valueSize);
 			return val;
 		}
 	}
@@ -262,16 +240,10 @@ public:
 		if( !search(key, locn) )
 		return false;
 		else {
-			char *p = locn.second;
-			//size_t ksz, vsz;
-			//memcpy(&ksz, p, sizeof(size_t));
-			//p += sizeof(size_t);
-			//memcpy(&vsz, p, sizeof(size_t));
-			//p += sizeof(size_t);
-
-			//izene_deserialization<ValueType> isd(p+sfh_.keySize, sfh_.valueSize);
-			//isd.read_image(value);
-			memcpy(&value, p+sfh_.keySize, sfh_.valueSize);
+			char *p = locn.second;			
+			KeyType key;
+			memcpy(&key, p, sfh_.keySize);		
+			memcpy(&value, p+sfh_.keySize, sfh_.valueSize);			
 			return true;
 		}
 	}
@@ -286,24 +258,9 @@ public:
 		return false;
 		else
 		{
-			char *p = locn.second;
-			//size_t ksz, vsz;
-			//memcpy(&ksz, p, sizeof(size_t));
-			//p += sizeof(size_t);
-			//memcpy(&vsz, p, sizeof(size_t));
-			//p += sizeof(size_t);
-			//memset(p, 0xff, ksz);
-			
-			size_t leftSize = sfh_.bucketSize-bucketGap-(p-locn.first->str);
-			
+			char *p = locn.second;	
+			size_t leftSize = sfh_.bucketSize-bucketGap-(p-locn.first->str);			
 			memcpy(p, p+sfh_.keySize+sfh_.valueSize, leftSize);
-
-			//this is much slower.
-			/*vsz += ksz+1;
-			 ksz = -1;
-			 memcpy(p-2*sizeof(size_t), &ksz, sizeof(size_t) );
-			 memcpy(p-sizeof(size_t), &vsz, sizeof(size_t) );*/
-
 			//locn.first->isDirty = true;
 			setDirty_(locn.first);
 			--locn.first->num;
@@ -330,39 +287,18 @@ public:
 		return insert(key, value);
 		else
 		{
-			//char* ptr;
-			char* ptr1 = (char*)&value;
-			//size_t ksize;
-			size_t vsize = sizeof(value);
-			//izene_serialization<KeyType> izs(key);
-			//izene_serialization<ValueType> izs1(value);
-			//izs.write_image(ptr, ksize);
-			//izs1.write_image(ptr1, vsize);
+			
+			char* ptr1 = (char*)&value;	
+			size_t vsize = sizeof(value);	
 			
 			assert(vsize == sfh_.valueSize);
-
 			bucket_chain* sa = locn.first;
-			char *p = locn.second;
-			//size_t ksz, vsz;
-			//memcpy(&ksz, p, sizeof(size_t));
-			//p += sizeof(size_t);
-			//memcpy(&vsz, p, sizeof(size_t));
-			//p += sizeof(size_t);
-			//if(vsz == vsize)
+			char *p = locn.second;			
 			{
-				//sa->isDirty = true;
 				setDirty_(sa);
 				memcpy(p+sfh_.keySize, ptr1, vsize);
 				return true;
-			}
-			//else
-			//{
-				//sa->isDirty = true;
-				//setDirty_(sa);
-				//delete it first!
-				//memset(p, 0xff, ksize);
-				//return insert(key, value);
-			//}
+			}			
 			return true;
 		}
 	}
@@ -379,7 +315,7 @@ public:
 		SDBCursor locn = get_first_locn();
 		KeyType key;
 		ValueType value;
-		while( seq(locn, key, value) ) {
+		while( seq(locn, key, value) ) {			
 			if( !other.insert(key, value) )
 			return false;;
 		}
@@ -418,15 +354,11 @@ public:
 		locn.second = NULL;
 
 		char* ptr= (char*)&key;
-		size_t ksize = sizeof(key);
-		//izene_serialization<KeyType> izs(key);
-		//izs.write_image(ptr, ksize);
+		size_t ksize = sizeof(key);		
 		assert( ksize == sfh_.keySize);
 
 		uint32_t idx = sdb_hashing::hash_fun(ptr, ksize) & dmask_;
 		locn.first = entry_[idx];
-		
-		//cout<<"idx"<<idx<<endl;
 
 		if (entry_[idx] == NULL) {
 			return false;
@@ -442,38 +374,21 @@ public:
 			char* p = sa->str;
 
 			while ( sa ) {
-				locn.first = sa;
-				//cout<<"search level: "<<sa->level<<endl;
+				locn.first = sa;				
 				p = sa->str;
 				//if( !p )return false;
-				for (i=0; i<sa->num; i++) {
-					//size_t ksz, vsz;
-					//memcpy(&ksz, p, sizeof(size_t));
-					//p += sizeof(size_t);
-					//memcpy(&vsz, p, sizeof(size_t));
-					//p += sizeof(size_t);
-
-					//cout<<ksz<<endl;
-					//cout<<vsz<<endl;
-
-					//if (ksz != ksize) {
-					//	p += ksz + vsz;
-					//	continue;
-					//}
+				for (i=0; i<sa->num; i++) {				
 
 					char *pd = ptr;
 					size_t j=0;
-					for (; j<ksize; j++) {
-						//cout<<pd[j]<<" vs "<<p[j]<<endl;
+					for (; j<ksize; j++) {						
 						if (pd[j] != p[j]) {
 							break;
 						}
 					}
 
-					if (j == ksize) {
-						//locn.second = p-2*sizeof(size_t);
-						locn.second = p;
-						//cout<<key<<" found"<<endl;
+					if (j == ksize) {					
+						locn.second = p;						
 						return true;
 					}
 					p += ksize + sfh_.valueSize;
@@ -523,24 +438,11 @@ public:
 
 		if(sa == NULL)return false;
 		if(p == NULL)return false;
-
-		//size_t ksize, vsize;
-		//DbObjPtr ptr, ptr1;
-		//char* ptr, ptr1;
-
-		//memcpy(&ksize, p, sizeof(size_t));
-		//p += sizeof(size_t);
-		//memcpy(&vsize, p, sizeof(size_t));
-		//p += sizeof(size_t);
-
-		//izene_deserialization<KeyType> izs(p, sfh_.keySize);
-		//izs.read_image(key);
+	
 		memcpy(&key, p, sfh_.keySize);
 		p += sfh_.keySize;
 
-		memcpy(&val, p, sfh_.valueSize);
-		//izene_deserialization<ValueType> izs1(p, sfh_.valueSize);
-		//izs1.read_image(val);
+		memcpy(&val, p, sfh_.valueSize);		
 		p += sfh_.valueSize;		
 
 		return true;
@@ -575,24 +477,7 @@ public:
 			size_t poff;
 
 			while(true) {
-
-				//memcpy(&ksize, p, sizeof(size_t));
-				//p += sizeof(size_t);
-				//memcpy(&vsize, p, sizeof(size_t));
-				//p += sizeof(size_t);
-
-				//bool isContinue = false;
-				//to determine if encountered item is deleted.
-				//char *a = new char[ksize];
-				//memset(a, 0xff, ksize);
-				//if(memcmp(p, a, ksize) == 0) {
-				//	delete a;
-				//	a = 0;
-				//	isContinue = true;
-				//}
-				//delete a;
-				//a = 0;
-
+			
 				ptr = p;
 				poff = sfh_.keySize;
 				//izene_deserialization<KeyType> izd(p, sfh_.keySize);
@@ -636,11 +521,6 @@ public:
 					}
 				}
 
-				//if( isContinue )continue;
-
-				//cout<<"!!!! seq "<<key<<endl;
-				//rec.key = key;
-				//rec.value = val;
 				locn.first = sa;
 				locn.second = p;
 
@@ -739,20 +619,7 @@ public:
 	bool close()
 	{
 		flush();
-		/*	for (size_t i=0; i<directorySize_; i++)
-		 {
-		 while(entry_[i])
-		 {
-		 bucket_chain* sc = entry_[i]->next;
-		 delete entry_[i];
-		 entry_[i] = 0;
-		 entry_[i] = sc;
-		 }
-
-		 }
-		 delete [] entry_;
-		 entry_ = 0;*/
-
+		
 		delete [] bucketAddr;
 		bucketAddr = 0;
 		fclose(dataFile_);
@@ -984,12 +851,7 @@ private:
 					cout<<"\n!!! after unload.  Memory occupied: "<<rss<<" bytes"<<endl;
 #endif
 				}
-
-				//cout<<activeNum_<<" vs "<<sfh_.cacheSize <<endl;
-				//if( activeNum_> sfh_.cacheSize )
-				//{
-				//	flushCacheImpl_(quickFlush);			
-				//}	
+		
 			}
 		} else {
 			if (activeNum_> sfh_.cacheSize) {
@@ -1076,9 +938,7 @@ private:
 	                fflush(dataFile_);
 	            sh_cache_.clear();
 			}
-	//		cout<<"stop activePageNum"<<activeNum_<<",dirtyPageNum: "<<dirtyPageNum_<<std::endl;
-			//cout<<" !!!! "<<activeNum_<<" vs "<<sfh_.cacheSize <<endl;
-			//display();
+	
 		}
 
 };

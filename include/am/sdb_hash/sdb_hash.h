@@ -357,8 +357,8 @@ public:
 		}
 		SDBCursor locn = get_first_locn();
 		KeyType key;
-		ValueType value;
-		while( seq(locn, key, value) ) {			
+		ValueType value;	
+		while( seq(locn, key, value) ) {				
 			if( !other.insert(key, value) )
 			return false;;
 		}

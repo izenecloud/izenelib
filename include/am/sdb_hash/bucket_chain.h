@@ -98,14 +98,6 @@ public:
 		}
 		//cout<<"write num="<<num<<endl;
 		
-		if (next)
-		nextfpos = next->fpos;
-
-		//cout<<"write nextfpos = "<< nextfpos<<endl;
-		if (1 != fwrite(&nextfpos, sizeof(long), 1, f) ) {
-			return false;
-		}
-
 		size_t blockSize = bucketSize_ - sizeof(int) - sizeof(long);
 			
 		if (1 != fwrite(str, blockSize, 1, f) ) {
@@ -114,6 +106,13 @@ public:
 
 		//long nextfpos = 0;
 
+		if (next)
+		nextfpos = next->fpos;
+
+		//cout<<"write nextfpos = "<< nextfpos<<endl;
+		if (1 != fwrite(&nextfpos, sizeof(long), 1, f) ) {
+			return false;
+		}
 
 		isDirty = false;
 		isLoaded = true;
@@ -138,15 +137,7 @@ public:
 			return false;
 		}
 		
-		if (1 != fread(&nextfpos, sizeof(long), 1, f) ) {
-			return false;
-		}
 
-		//cout<<"read next fpos="<<nextfpos<<endl;
-		if (nextfpos !=0) {
-			if( !next )next = new bucket_chain_(bucketSize_, fileLock_);
-			next->fpos = nextfpos;
-		}
 		
 		//cout<<"read num="<<num<<endl;
 		size_t blockSize = bucketSize_ - sizeof(int) - sizeof(long);
@@ -163,6 +154,16 @@ public:
 		}
 
 		//long nextfpos = 0;
+		
+		if (1 != fread(&nextfpos, sizeof(long), 1, f) ) {
+			return false;
+		}
+
+		//cout<<"read next fpos="<<nextfpos<<endl;
+		if (nextfpos !=0) {
+			if( !next )next = new bucket_chain_(bucketSize_, fileLock_);
+			next->fpos = nextfpos;
+		}
 
 
 		isLoaded = true;
