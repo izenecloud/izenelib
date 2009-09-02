@@ -357,10 +357,16 @@ public:
 		}
 		SDBCursor locn = get_first_locn();
 		KeyType key;
-		ValueType value;	
-		while( seq(locn, key, value) ) {				
-			if( !other.insert(key, value) )
-			return false;;
+		ValueType value;
+		if( get(locn, key, value) ) {
+			other.insert(key, value);
+			//if( !other.insert(key, value) )
+			//return false;
+		}
+		while( seq(locn, key, value) ) {
+			other.insert(key, value);
+			//if( !other.insert(key, value) )
+			//return false;;
 		}
 		return true;
 	}
@@ -578,12 +584,12 @@ public:
 
 				ptr = p;
 				poff = ksize;
-				izene_deserialization<KeyType> izd(p, ksize);
-				izd.read_image(key);
+				//izene_deserialization<KeyType> izd(p, ksize);
+				//izd.read_image(key);
 				p += ksize;
 
-				izene_deserialization<ValueType> izd1(p, vsize);
-				izd1.read_image(val);
+				//izene_deserialization<ValueType> izd1(p, vsize);
+				//izd1.read_image(val);
 				p += vsize;
 
 				memcpy(&ksize, p, sizeof(size_t));
@@ -621,6 +627,7 @@ public:
 				//rec.value = val;
 				locn.first = sa;
 				locn.second = p;
+				get(locn, key, val);
 
 				return true;
 
@@ -1011,9 +1018,9 @@ private:
 		cout<<activeNum_<<" vs "<<sfh_.cacheSize <<endl;
 		cout<<"dirtyPageNum: "<<dirtyPageNum_<<endl;
 #endif
-//		cout<<"begin activePageNum"<<activeNum_<<",dirtyPageNum: "<<dirtyPageNum_<<std::endl;
+		//		cout<<"begin activePageNum"<<activeNum_<<",dirtyPageNum: "<<dirtyPageNum_<<std::endl;
 
-        bool commitCondition = dirtyPageNum_ >= (activeNum_ * 0.5);
+		bool commitCondition = dirtyPageNum_ >= (activeNum_ * 0.5);
 
 		if (unloadAll) {
 			flush();
@@ -1028,33 +1035,33 @@ private:
 		} else {
 
 			if( delayFlush && commitCondition)
-                commit();
+			commit();
 			for (size_t i=0; i<directorySize_; i++) {
 				bucket_chain* sc = entry_[i];
 				while (sc) {
-                    if (sc->isLoaded && !sc->isDirty)
+					if (sc->isLoaded && !sc->isDirty)
 					sh_cache_.insert(make_pair(sc->level, sc));
 					sc = sc->next;
 				}
 			}
 
 			for (CacheIter it = sh_cache_.begin(); it != sh_cache_.end(); it++) {
-//				if (quickFlush)
-//                    it->second->write(dataFile_);
+				//				if (quickFlush)
+				//                    it->second->write(dataFile_);
 				if ( it->second->unload() )
-                    --activeNum_;
-//				if (quickFlush && activeNum_ < max(sfh_.cacheSize/2, directorySize_) ) {
-//					fflush(dataFile_);
-//					sh_cache_.clear();
-//					return;
-//				}
+				--activeNum_;
+				//				if (quickFlush && activeNum_ < max(sfh_.cacheSize/2, directorySize_) ) {
+				//					fflush(dataFile_);
+				//					sh_cache_.clear();
+				//					return;
+				//				}
 			}
 
-            if(delayFlush && commitCondition)
-                fflush(dataFile_);
-            sh_cache_.clear();
+			if(delayFlush && commitCondition)
+			fflush(dataFile_);
+			sh_cache_.clear();
 		}
-//		cout<<"stop activePageNum"<<activeNum_<<",dirtyPageNum: "<<dirtyPageNum_<<std::endl;
+		//		cout<<"stop activePageNum"<<activeNum_<<",dirtyPageNum: "<<dirtyPageNum_<<std::endl;
 		//cout<<" !!!! "<<activeNum_<<" vs "<<sfh_.cacheSize <<endl;
 		//display();
 	}

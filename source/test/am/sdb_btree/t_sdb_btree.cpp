@@ -232,14 +232,20 @@ template<typename T> void seq_test(T& tb) {
 	locn = tb.get_first_locn();
 	myDataType dat;
 	int a=0;
+	if(tb.get(locn, dat) ){
+		cout<<" start from "<<dat.key<<endl;
+		a++;
+	}
 	while (tb.seq(locn, dat) ) {
+		//cout<<dat.key<<endl;
 		a++;
 		if (trace)
 			cout<<dat.key<<endl;
 		DLOG_EVERY_N(INFO, 100000) << getMemInfo();
 		LOG_IF(INFO, (a > 5000000 ) )<<"!!!!!!!! " <<dat.key<<endl;
 	}
-
+	cout<<"end at "<<dat.key<<endl;
+	//cout<<dat.key<<endl;
 	tb.flush();
 	finish = clock();
 	printf("\nIt takes %f seconds to sequential Access %d random data! \n",
