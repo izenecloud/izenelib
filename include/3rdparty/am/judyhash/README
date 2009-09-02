@@ -1,0 +1,156 @@
+OVERVIEW
+==========
+
+The judyhash project http://judyhash.sourceforge.net
+provides several hash map (and set)
+based on Judy array (http://judy.sourceforge.net).
+All these maps and sets are implemented using C++ programming language
+and have an API similar to that of SGI STL's hash_map
+(or std::unordered_map) and STL library.
+Sources are available for download from here
+http://sourceforge.net/projects/judyhash
+
+ALGORITHMS AND COMPLEXITY
+==========
+
+In traditional hash tables http://en.wikipedia.org/wiki/Hash_table
+linear array is used for mapping
+a hash value to an element, most often by making modulo operation
+where divisor is the hash table size.
+Traditional hash tables has two main problems.
+The first one is hash table resizing, i.e. increasing it when there
+are too many elements and decreasing when only a few has table cells
+are actually used. The second problem is collisions.
+
+Instead of linear array, judyhash classes
+use a JudyL set of functions from Judy library (See url below).
+JudyL implements a high-performance map from an integer type to a pointer type
+(actually a map from Word_t to Word_t which is capable
+to store both int and void *).
+As a result we have:
+1) some overhead for mapping a hash value to an element (actually
+chain of elements) (JudyL is slower than 'pointer[index]');
+2) hash value in a range [0..2^32-1] (the default on 32/64 platforms) and
+therefore <b>very rare</b> collisions;
+3) dynamic resizing of hash table, i.e. memory is allocated (and freed)
+as soon as it is needed (or unneeded anymore).
+
+In case of collisions judy_map_{l,m} and judy_set_{l,m} classes use
+a chaining technique to resolve the collision, i.e. external storage is
+used for storing conflicting elements.  judy_{set,map}_l classes use
+list, while judy_{set,map}_m use map (or set),
+this is why judy_{set,map}_m classes require Less predicate in
+addition to Equal.
+
+judy_map_kdcell is actually a C++ STL-like wrapper for JudyL functions
+and therefore both key and data should be of integer or pointer type.
+
+judy_set_cell is actually a C++ STL-like wrapper for Judy1 functions
+and therefore the type of key should be integer or pointer.
+
+TTX: ;-)
+
+           |         |          |                           |
+           | SGI's   |judy_map_l|judy_map_m                 |judy_map_kdcell
+           | hash_map|judy_set_l|judy_set_m                 |judy_set_cell
+---------------------------------------------------------------------------
+insert()   | O(N)    | O(N)     |O(log(N))                  | O(1)
+find()     |         |          |                           |
+erase()    |         |          |                           |
+           |         |          |                           |
+worst      |         |          |                           |
+case       |         |          |                           |
+---------------------------------------------------------------------------
+insert()   | O(1)    | O(1)     | O(1)                      | O(1)
+find()     |         |          |                           |
+erase()    |         |          |                           |
+           |         |          |                           |
+average    |         |          |                           |
+case       |         |          |                           |
+---------------------------------------------------------------------------
+key type   | any     | any      | any                       |integer
+           |         |          |                           |or
+           |         |          |                           |pointer
+---------------------------------------------------------------------------
+data type  | any     | any      | any                       |integer
+           |         |          |                           |or
+           |         |          |                           |pointer
+---------------------------------------------------------------------------
+erase()    | no      | yes      | yes                       | yes
+frees      |         |          |                           |
+memory     |         |          |                           |
+---------------------------------------------------------------------------
+smooth     | no      | yes      | yes                       | yes
+resizing   |         |          |                           |
+---------------------------------------------------------------------------
+limitations| -       | 0==1&(maxint_t)m_alloc.allocate(1)   |
+
+
+CLASS NAMES and HEADERS
+=======================
+
+judyhash project provides the following classes
+
+a) judy_set_l    A set similar to std::set
+b) judy_set_m    Similar to judy_set_l but uses a bit different algorithm
+c) judy_set_cell A set of of keys of integer type or pointer types
+                   (sizeof which is less of equal than JudyL's Word_t)
+d) judy_map_l    Associative array similar to std::map
+                   and SGI STL's std::hash_map
+e) judy_map_m    Similar to judy_map_l but with a bit different algorithm
+f) judy_map_cell Associative array. Both key and data are of integer or
+                   of pointer type.
+
+header files:
+judy_map.h        - all classes for associative arrays,
+judy_set.h        - all classes for sets,
+judy_map_kdcell.h - judy_map_kdcell class only,
+judy_map_l.h      - judy_map_l class only,
+judy_map_m.h      - judy_map_m class only,
+judy_set_cell.h   - judy_set_cell class only,
+judy_set_l.h      - judy_set_l class only,
+judy_set_m.h      - judy_set_m class only.
+
+Neither of judy_xxx_yyy are thread-safe.
+
+INSTALL
+==========
+
+NOTE! BSD make program is required, not GNU make!!!
+Under Linux you can probably find it under the name 'pmake'.
+
+There is nothing to be built for installing
+this library, only C++ header files are installed by
+
+'make install'
+
+Of course, you can install all header files manually,
+they are in src_lib directory.
+
+You can also test judyhash library.
+For this, edit manually Makefile.config file for your preferences
+and then run
+
+'make test'
+
+Note that some libraries should be properly installed
+(and configured in Makefile.config) for this to work.
+
+BENCHMARKING
+==========
+
+Benchmarks for dual-core Pentium 4(tm) 3Ghz (g++ v3.4.4, Debian/Linux )
+are available here http://judyhash.sourceforge.net/benchmarks
+
+To obtain new benchmarks, edit Makefile.bench, and then run
+'make bench'
+
+CONCLUSION
+==========
+- An associative array of type (integer -> pointer) is one of
+   the most important data structure that ever exists ;-)
+
+AUTHOR
+==========
+Written by Aleksey Cheusov <vle@gmx.net> 
+Bug reports and suggestions are welcomed.

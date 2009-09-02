@@ -197,12 +197,14 @@ public:
 		KeyType key;
 		ValueType value;
 		if( get(locn, key, value) ) {
-			if( !other.insert(key, value) )
-			return false;
+			other.insert(key, value);
+			//if( !other.insert(key, value) )
+			//return false;
 		}
 		while( seq(locn, key, value) ) {
-			if( !other.insert(key, value) )
-			return false;;
+			other.insert(key, value);
+			//if( !other.insert(key, value) )
+			//return false;;
 		}
 		return true;
 	}
@@ -1573,7 +1575,11 @@ template<typename KeyType, typename ValueType, typename LockType,
 		typename Alloc> bool sdb_btree< KeyType, ValueType, LockType, Alloc>::_seqNext(
 		SDBCursor& locn, KeyType& key, ValueType& value) {
 	// Set up a couple of convenience values
+	
 	bool ret = false;
+	//if( !get(locn, key, value) )	
+	//	return false;
+	
 	sdb_node* node = locn.first;
 	size_t lastPos = locn.second;
 	bool goUp = false; // indicates whether or not we've exhausted a node.
@@ -1656,6 +1662,9 @@ template<typename KeyType, typename ValueType, typename LockType,
 		typename Alloc> bool sdb_btree< KeyType, ValueType, LockType, Alloc>::_seqPrev(
 		SDBCursor& locn, KeyType& key, ValueType& value) {
 	// Set up a couple of convenience values
+	
+	if( !get(locn, key, value) )
+			return false;
 
 	bool ret = false;
 	sdb_node* node = locn.first;
@@ -1681,8 +1690,8 @@ template<typename KeyType, typename ValueType, typename LockType,
 
 		if (locn.second == size_t(-1) )
 			return false;
-		key = node->keys[locn.second];
-		value = node->values[locn.second];	
+		//key = node->keys[locn.second];
+		//value = node->values[locn.second];	
 		return true;
 	}
 
@@ -1695,8 +1704,8 @@ template<typename KeyType, typename ValueType, typename LockType,
 		// didn't visit the last node last time.
 		if (lastPos> 0) {
 			locn.second = lastPos - 1;
-			key = node->keys[locn.second];
-			value = node->values[locn.second];
+			//key = node->keys[locn.second];
+			//value = node->values[locn.second];
 			//rec = DataType<KeyType, ValueType>(node->keys[locn.second],
 			//		node->values[locn.second]);
 			return true;
@@ -1717,8 +1726,8 @@ template<typename KeyType, typename ValueType, typename LockType,
 		}
 		locn.first = node;
 		locn.second = node->objCount - 1;
-		key = node->keys[locn.second];
-		value = node->values[locn.second];
+		//key = node->keys[locn.second];
+		//value = node->values[locn.second];
 		return true;
 	}
 
@@ -1735,8 +1744,8 @@ template<typename KeyType, typename ValueType, typename LockType,
 		if ((sdb_node*)node != 0) {
 			locn.first = node;
 			locn.second = childNo - 1;
-			key = node->keys[locn.second];
-			value = node->values[locn.second];
+			//key = node->keys[locn.second];
+			//value = node->values[locn.second];
 			ret = true;
 		}
 	}

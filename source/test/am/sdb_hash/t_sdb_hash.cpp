@@ -269,12 +269,16 @@ template<typename T> void seq_test(T& tb) {
 	locn = tb.get_first_locn();
 	myDataType dat;
 	int a=0;
+	if(tb.get(locn, dat) ){
+		cout<<" start from "<<dat.key<<endl;
+		a++;
+	}
 	while (tb.seq(locn, dat) ) {
 		a++;
 		if (trace)
 			cout<<dat.key<<endl;
 	}
-
+    cout<<"end at "<<dat.key<<endl;
 	tb.flush();
 	finish = clock();
 	printf("\nIt takes %f seconds to sequential Access %d  data! \n",
