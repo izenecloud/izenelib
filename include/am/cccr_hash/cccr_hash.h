@@ -184,6 +184,7 @@ public:
 		}
 		return false;
 	}
+	
 
 	ValueType* find(const KeyType& key)
 	{

@@ -10,7 +10,7 @@
 #define bucket_chain_H_
 
 #include "sdb_hash_types.h"
-#include "sdb_hash_header.h"
+//#include "sdb_hash_header.h"
 
 using namespace std;
 /**
@@ -97,6 +97,14 @@ public:
 			return false;
 		}
 		//cout<<"write num="<<num<<endl;
+		
+		if (next)
+		nextfpos = next->fpos;
+
+		//cout<<"write nextfpos = "<< nextfpos<<endl;
+		if (1 != fwrite(&nextfpos, sizeof(long), 1, f) ) {
+			return false;
+		}
 
 		size_t blockSize = bucketSize_ - sizeof(int) - sizeof(long);
 			
@@ -106,13 +114,6 @@ public:
 
 		//long nextfpos = 0;
 
-		if (next)
-		nextfpos = next->fpos;
-
-		//cout<<"write nextfpos = "<< nextfpos<<endl;
-		if (1 != fwrite(&nextfpos, sizeof(long), 1, f) ) {
-			return false;
-		}
 
 		isDirty = false;
 		isLoaded = true;
@@ -137,22 +138,6 @@ public:
 			return false;
 		}
 		
-		//cout<<"read num="<<num<<endl;
-		size_t blockSize = bucketSize_ - sizeof(int) - sizeof(long);
-		
-		if ( !str )
-		{
-			str = new char[blockSize];		
-     	    memset(str, 0, blockSize);
-		}
- 
-		//cout<<"read blocksize="<<blockSize<<endl;
-		if (1 != fread(str, blockSize, 1, f) ) {
-			return false;
-		}
-
-		//long nextfpos = 0;
-
 		if (1 != fread(&nextfpos, sizeof(long), 1, f) ) {
 			return false;
 		}
@@ -162,6 +147,24 @@ public:
 			if( !next )next = new bucket_chain_(bucketSize_, fileLock_);
 			next->fpos = nextfpos;
 		}
+		
+		//cout<<"read num="<<num<<endl;
+		size_t blockSize = bucketSize_ - sizeof(int) - sizeof(long);
+		
+		if ( !str )
+		{
+			str = new char[blockSize];		
+     	   // memset(str, 0, blockSize);
+		}
+ 
+		//cout<<"read blocksize="<<blockSize<<endl;
+		if (1 != fread(str, blockSize, 1, f) ) {
+			return false;
+		}
+
+		//long nextfpos = 0;
+
+
 		isLoaded = true;
 		isDirty = false;		
 				
