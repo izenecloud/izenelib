@@ -1,12 +1,12 @@
 /**
  * @file sdb_hash.h
  * @brief The header file of sdb_hash.
- * @author peisheng wang 
- * 
+ * @author peisheng wang
+ *
  * @history
  * ==========================
  * 1. 2009-02-16 first version.
- * 
+ *
  *
  * This file defines class sdb_hash.
  */
@@ -34,21 +34,22 @@ NS_IZENELIB_AM_BEGIN
 
 /**
  *  \brief  file version of array hash using Cache-Conscious Collision Resolution.
- * 
+ *
  *  sdb_hash is built on array hash using Cache-Conscious Collision Resolution.
- * 
+ *
  *  For file version, there is a little different, each bucket is now a bucket_chain, and each bucket_chain
  *  hash fixed size.
- *   
- * 
+ *
+ *
  */
 
 template< typename KeyType, typename ValueType, typename LockType =NullLock> class sdb_hash :
 public AccessMethod<KeyType, ValueType, LockType>
 {
 	enum {unloadByRss = false};
-	enum {unloadAll = true};
+	enum {unloadAll = false};
 	enum {orderedCommit =true};
+	enum {delayFlush = true};
 	enum {quickFlush = false};
 public:
 	//SDBCursor is like db cursor
@@ -88,7 +89,7 @@ public:
 	}
 	/**
 	 *  \brief set bucket size of fileHeader
-	 * 
+	 *
 	 *   if not called use default size 8192
 	 */
 	void setBucketSize(size_t bucketSize) {
@@ -98,7 +99,7 @@ public:
 
 	/**
 	 *  \brief set bucket size of fileHeader
-	 * 
+	 *
 	 *   if not called use default size 8192
 	 */
 	void setPageSize(size_t pageSize) {
@@ -107,7 +108,7 @@ public:
 
 	/**
 	 *  set directory size if fileHeader
-	 * 
+	 *
 	 *  if not called use default size 4096
 	 */
 	/*void setDirectorySize(size_t dirSize) {
@@ -142,7 +143,7 @@ public:
 	}
 
 	/**
-	 *  insert an item of DataType 
+	 *  insert an item of DataType
 	 */
 	bool insert(const DataType<KeyType,ValueType>& dat) {
 		return insert(dat.get_key(), dat.get_value() );
@@ -220,7 +221,7 @@ public:
 
 	/**
 	 *  find an item, return pointer to the value.
-	 *  Note that, there will be memory leak if not delete the value 
+	 *  Note that, there will be memory leak if not delete the value
 	 */
 	ValueType* find(const KeyType & key) {
 
@@ -376,7 +377,7 @@ public:
 
 	/**
 	 *  search an item
-	 * 
+	 *
 	 *   @return SDBCursor
 	 */
 	SDBCursor search(const KeyType& key)
@@ -388,7 +389,7 @@ public:
 
 	/**
 	 *    another search function, flushCache_() will be called at the beginning,
-	 * 
+	 *
 	 */
 	bool search(const KeyType &key, SDBCursor &locn)
 	{
@@ -533,11 +534,11 @@ public:
 
 	/**
 	 *   \brief sequential access method
-	 * 
-	 *   @param locn is the current SDBCursor, and will replaced next SDBCursor when route finished. 
+	 *
+	 *   @param locn is the current SDBCursor, and will replaced next SDBCursor when route finished.
 	 *   @param rec is the item in SDBCursor locn.
 	 *   @param sdir is sequential access direction, for hash is unordered, we only implement forward case.
-	 *   
+	 *
 	 */
 
 	bool seq(SDBCursor& locn, DataType<KeyType,ValueType>& rec, ESeqDirection sdir=ESD_FORWARD)
@@ -634,7 +635,7 @@ public:
 	}
 
 	/**
-	 *   get the num of items 
+	 *   get the num of items
 	 */
 	int num_items() {
 		return sfh_.numItems;
@@ -658,7 +659,7 @@ public:
 		bool ret = false;
 		if (creating) {
 
-			// We're creating if the file doesn't exist.			
+			// We're creating if the file doesn't exist.
 #ifdef DEBUG
 			cout<<"creating...\n"<<endl;
 			sfh_.display();
@@ -740,7 +741,7 @@ public:
 	}
 	/**
 	 *  write the dirty buckets to disk, not release the memory
-	 *  
+	 *
 	 */
 	void commit() {
 		sfh_.toFile(dataFile_);
@@ -800,7 +801,7 @@ public:
 #ifdef DEBUG
 		printf("commit elapsed 1 ( actually ): %lf seconds\n",
 				timer.elapsed() );
-#endif		
+#endif
 		unload_();
 		if (unloadByRss) {
 			unsigned long vm = 0;
@@ -849,15 +850,15 @@ public:
 
 	}
 
-	/**	 
-	 * 
-	 *    \brief It displays how much space has been wasted in percentage after deleting or updates.   
-	 *           
-	 *  
+	/**
+	 *
+	 *    \brief It displays how much space has been wasted in percentage after deleting or updates.
+	 *
+	 *
 	 *    when an item is deleted, we don't release its space in disk but set a flag that
-	 *    it have been deleted. And it will lead to low efficiency. Maybe we should dump it 
+	 *    it have been deleted. And it will lead to low efficiency. Maybe we should dump it
 	 * 	  to another files when loadFactor are low.
-	 * 
+	 *
 	 */
 	double loadFactor() {
 		int nslot = 0;
@@ -909,7 +910,7 @@ private:
 		}
 	}
 	/**
-	 *   Allocate an bucket_chain element 
+	 *   Allocate an bucket_chain element
 	 */
 	bucket_chain* allocateBlock_() {
 		//cout<<"allocateBlock idx="<<sfh_.nBlock<<endl;
@@ -940,7 +941,7 @@ private:
 
 	/**
 	 *  when cache is full, it was called to reduce memory usage.
-	 * 
+	 *
 	 */
 	void flushCache_() {
 		if (unloadByRss) {
@@ -967,8 +968,8 @@ private:
 				//cout<<activeNum_<<" vs "<<sfh_.cacheSize <<endl;
 				//if( activeNum_> sfh_.cacheSize )
 				//{
-				//	flushCacheImpl_(quickFlush);			
-				//}	
+				//	flushCacheImpl_(quickFlush);
+				//}
 			}
 		} else {
 			if (activeNum_> sfh_.cacheSize) {
@@ -1011,7 +1012,10 @@ private:
 		sfh_.display();
 		cout<<activeNum_<<" vs "<<sfh_.cacheSize <<endl;
 		cout<<"dirtyPageNum: "<<dirtyPageNum_<<endl;
-#endif 
+#endif
+//		cout<<"begin activePageNum"<<activeNum_<<",dirtyPageNum: "<<dirtyPageNum_<<std::endl;
+
+        bool commitCondition = dirtyPageNum_ >= (activeNum_ * 0.5);
 
 		if (unloadAll) {
 			flush();
@@ -1024,47 +1028,35 @@ private:
 #endif
 			return;
 		} else {
-			if( !quickFlush)
-			commit();
+
+			if( delayFlush && commitCondition)
+                commit();
 			for (size_t i=0; i<directorySize_; i++) {
 				bucket_chain* sc = entry_[i];
 				while (sc) {
-					//if(  sc->level>0 && (size_t)sc->level > sfh_.cacheSize/sfh_.directorySize/2 - 1 )
-					if (sc->level>0) {
-						if (sc->isLoaded)
-						sh_cache_.insert(make_pair(sc->level, sc));
-					}
+                    if (sc->isLoaded && !sc->isDirty)
+					sh_cache_.insert(make_pair(sc->level, sc));
 					sc = sc->next;
 				}
 			}
-			//cout<<sh_cache_.size()<<endl;				
+
 			for (CacheIter it = sh_cache_.begin(); it != sh_cache_.end(); it++) {
-
-				//display cache
-				//cout<<"(level: "<<it->second->level;
-				// cout<<"  val:  "<<it->second;
-				//cout<<"  fpos: "<<it->second->fpos;	
-				//cout<<"  num: "<<it->second->num;		
-				//cout<<" )-> ";
-
-				if (quickFlush)
-				it->second->write(dataFile_);
-				if (it->second->unload() )
-				--activeNum_;
-				if (activeNum_ < max(sfh_.cacheSize/2, directorySize_) ) {
-					fflush(dataFile_);
-					sh_cache_.clear();
-
-					//cout<<" !!!! "<<activeNum_<<" vs "<<sfh_.cacheSize <<endl;
-					//display();
-
-					return;
-				}
+//				if (quickFlush)
+//                    it->second->write(dataFile_);
+				if ( it->second->unload() )
+                    --activeNum_;
+//				if (quickFlush && activeNum_ < max(sfh_.cacheSize/2, directorySize_) ) {
+//					fflush(dataFile_);
+//					sh_cache_.clear();
+//					return;
+//				}
 			}
-		}
-		fflush(dataFile_);
-		sh_cache_.clear();
 
+            if(delayFlush && commitCondition)
+                fflush(dataFile_);
+            sh_cache_.clear();
+		}
+//		cout<<"stop activePageNum"<<activeNum_<<",dirtyPageNum: "<<dirtyPageNum_<<std::endl;
 		//cout<<" !!!! "<<activeNum_<<" vs "<<sfh_.cacheSize <<endl;
 		//display();
 	}

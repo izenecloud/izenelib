@@ -197,14 +197,13 @@ public:
 
 	bool get(const SDBCursor& locn, KeyType& key, ValueType& value)
 	{
-		ValueType* pv = find(locn);
-		if( pv )
-		{
-			key = locn;
-			value = *pv;
-			return true;
-		}
-		return false;
+        if (get(locn, value))
+        {
+            key = locn;
+            return true;
+        }
+
+        return false;
 	}
 
 	/**
