@@ -19,7 +19,7 @@ TEST_OBJ := t_sdb_unit.o
 
 BUG_OBJ := t_OrderedSDB.o #t_master_suite.o
 
-all:  t_sdb_btree #t_bug  t_sdb_unit  t_sdb_btree  t_sdb_btree1 t_sdb_btree2
+all: t_sdb_btree2  t_sdb_btree #t_bug  t_sdb_unit  t_sdb_btree  t_sdb_btree1 t_sdb_btree2
 
 .cpp.o:
 	$(GPP) $(CC_OPTIONS) $(INC_PATH)  $< 

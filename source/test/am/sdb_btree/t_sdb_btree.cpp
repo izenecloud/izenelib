@@ -4,6 +4,7 @@
 //#include <time.h>
 
 #include <am/sdb_btree/sdb_btree.h>
+#include <am/sdb_btree/sdb_fixedbtree.h>
 #include <util/izene_log.h>
 
 using namespace std;
@@ -25,6 +26,7 @@ typedef NullType ValueType;
 typedef izenelib::am::DataType<KeyType, NullType> DataType;
 typedef izenelib::am::DataType<KeyType, NullType> myDataType;
 typedef izenelib::am::sdb_btree<KeyType, NullType> SDB_BTREE;
+//typedef izenelib::am::sdb_fixedbtree<KeyType, NullType> SDB_BTREE;
 
 template<typename T> void insert_test(T& tb) {
 	clock_t start, finish;
