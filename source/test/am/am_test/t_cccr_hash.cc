@@ -46,6 +46,16 @@ void test (){
 		run_am(am);
 	}
 
+         {
+		cout<<"\n cccr_hash<unsigned int, int>"<<endl;
+		typedef cccr_hash<unsigned int, int> CCCR_INT_STRING;
+		AmTest<unsigned int, int, CCCR_INT_STRING> am;
+		am.setRandom(rnd);
+		am.setNum(num);
+		am.setTrace(trace);
+		run_am(am);
+	}
+
 	{
 		cout<<"\n cccr_hash<string, int>"<<endl;
 		typedef cccr_hash<string, int> CCCR_INT_STRING;

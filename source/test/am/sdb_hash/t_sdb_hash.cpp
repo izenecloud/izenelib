@@ -4,6 +4,7 @@
 //#include <time.h>
 
 #include <am/sdb_hash/sdb_hash.h>
+#include <am/sdb_hash/sdb_fixedhash.h>
 
 using namespace std;
 using namespace izenelib::am;
@@ -20,11 +21,12 @@ static bool trace = 1;
 static bool rnd = 0;
 static bool ins = 1;
 
-typedef string KeyType;
-typedef NullType ValueType;
-typedef izenelib::am::DataType<KeyType, NullType> DataType;
-typedef izenelib::am::DataType<KeyType, NullType> myDataType;
-typedef izenelib::am::sdb_hash<KeyType, NullType> SDB_HASH;
+typedef int KeyType;
+typedef float ValueType;
+typedef izenelib::am::DataType<KeyType, ValueType> DataType;
+typedef izenelib::am::DataType<KeyType, ValueType> myDataType;
+//typedef izenelib::am::sdb_hash<KeyType, ValueType> SDB_HASH;
+typedef izenelib::am::sdb_fixedhash<KeyType, ValueType> SDB_HASH;
 
 
 template<typename T> void insert_test(T& tb) {
@@ -34,11 +36,9 @@ template<typename T> void insert_test(T& tb) {
 		if (trace) {
 			cout<<"insert key="<<i<<endl;
 		}
-		char p[20];
-		sprintf(p, "%08d", i);
-		string str = p;
+		ValueType val = 0.001;
 		//tb.insert(i, str);
-		tb.insert(str);
+		tb.insert(i, val);
 		if (trace) {
 			cout<<"numItem: "<<tb.num_items()<<endl<<endl;
 			//tb.display();
@@ -59,6 +59,7 @@ template<typename T> void insert_test(T& tb) {
 
 }
 
+/*
 template<typename T> void random_insert_test(T& tb) {
 	clock_t start, finish;
 	start = clock();
@@ -128,11 +129,12 @@ template<typename T> void random_search_test(T& tb) {
 
 	//  tb.display(std::cout)
 }
+*/
 
 template<typename T> void search_test(T& tb) {
 
 	clock_t start, finish;
-	ValueType* v;
+	ValueType v;
 	start = clock();
 	int c, b;
 	c=b=0;
@@ -141,15 +143,13 @@ template<typename T> void search_test(T& tb) {
 	for (int i=0; i<num; i++) {
 		if (trace)
 			cout<<"finding "<<i<<endl;
-		char p[20];
-		sprintf(p, "%08d", i);
-		string str = p;
-		v = tb.find(str);
-		if (v) {
-			delete v;
-			v = 0;
+		//char p[20];
+		//sprintf(p, "%08d", i);
+		//string str = p;
+		bool ret = tb.get(i, v);
+		if (ret) {			
 			if (trace) {
-				cout<<str<<" found"<<endl;
+				cout<<i<<" found"<<endl;
 				tb.display();
 			}
 			c++;
@@ -174,13 +174,13 @@ template<typename T> void delete_test(T& tb) {
 	c=b=0;
 
 	start = clock();
-	for (int i=0; i<num; i++) {
+	for (int i=0; i<num/2; i++) {
 		if (trace)
 			cout<<"del "<<i<<endl;
-		char p[20];
-		sprintf(p, "%08d", i);
-		string str = p;
-		if (tb.del(str) != 0)
+		//char p[20];
+		//sprintf(p, "%08d", i);
+		//string str = p;
+		if (tb.del(i) != 0)
 			c++;
 		else
 			b++;
@@ -197,6 +197,7 @@ template<typename T> void delete_test(T& tb) {
 
 }
 
+/*
 template<typename T> void random_delete_test(T& tb) {
 
 	clock_t start, finish;
@@ -226,8 +227,12 @@ template<typename T> void random_delete_test(T& tb) {
 			"\nIt takes %f seconds to delete %d  data! %d data found, %d data lost!\n",
 			(double)(finish - start) / CLOCKS_PER_SEC, num/2, c, b);
 
-}
+}*/
+
+
 template<typename T> void seq_test(T& tb) {
+	
+	//tb.display(cout, false);
 
 	clock_t start, finish;
 
@@ -250,17 +255,13 @@ template<typename T> void seq_test(T& tb) {
 }
 
 template<typename T> void run(T& tb) {
-	//search_test(tb);
-	if (rnd) {
-		random_insert_test(tb);
-		//random_search_test(tb);
-		seq_test(tb);
-		//random_delete_test(tb);
-	} else {
+	if( rnd  == 0){
 		insert_test(tb);
-		//search_test(tb);
+		search_test(tb);
 		seq_test(tb);
-		//delete_test(tb);
+		delete_test(tb);
+	}else{
+	seq_test(tb);
 	}
 
 	/*delete_test(tb);
