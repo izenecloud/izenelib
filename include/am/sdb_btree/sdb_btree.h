@@ -473,10 +473,11 @@ private:
 		izenelib::util::ClockTimer timer;
 		if( !quickFlush )
 		commit();
-
+		
+#ifdef DEBUG
 		printf("commit elapsed 1 ( actually ): %lf seconds\n",
 				timer.elapsed() );
-
+#endif
 		if(unloadAll) {
 
 			for(size_t i=0; i<_root->objCount+1; i++)

@@ -9,6 +9,7 @@
 #define SEQUENTIALDB_H_
 
 #include <am/sdb_hash/sdb_hash.h>
+#include <am/sdb_hash/sdb_fixedhash.h>
 #include <am/sdb_btree/sdb_btree.h>
 #include <am/tokyo_cabinet/tc_hash.h>
 
@@ -49,6 +50,9 @@ template<
 public:
 	//typedef DataType<KeyType, ValueType> DataType;
 	typedef typename ContainerType::SDBCursor SDBCursor;
+	typedef KeyType SDBKeyType;
+	typedef ValueType SDBValueType;
+
 public:
 	/**
 	 *  \brief constructor1, the default fileName is "SeqentialDB.dat"
@@ -196,7 +200,7 @@ public:
 
 	bool dump(SequentialDB& other) {
 		ContainerType &otherContainer = other.getContainer();
-		return container_.dump(otherContainer);	
+		return container_.dump(otherContainer);
 	}
 
 	bool dump(const string& fileName) {
@@ -628,6 +632,17 @@ template<typename KeyType, typename ValueType, typename LockType,
 	lock_.release_read_lock();
 	return true;
 }
+
+template< typename KeyType =string, typename ValueType=NullType,
+		typename LockType =NullLock > class unordered_sdb_fixed :
+	public SequentialDB<KeyType, ValueType, LockType, sdb_fixedhash<KeyType, ValueType, LockType> > {
+public:
+	unordered_sdb_fixed(const string& sdbname) :
+		SequentialDB<KeyType, ValueType, LockType,
+				sdb_fixedhash<KeyType, ValueType, LockType> >(sdbname) {
+
+	}
+};
 
 template< typename KeyType =string, typename ValueType=NullType,
 		typename LockType =NullLock > class unordered_sdb_1 :

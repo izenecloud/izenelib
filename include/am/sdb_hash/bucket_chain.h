@@ -10,7 +10,7 @@
 #define bucket_chain_H_
 
 #include "sdb_hash_types.h"
-#include "sdb_hash_header.h"
+//#include "sdb_hash_header.h"
 
 using namespace std;
 /**
@@ -97,7 +97,7 @@ public:
 			return false;
 		}
 		//cout<<"write num="<<num<<endl;
-
+		
 		size_t blockSize = bucketSize_ - sizeof(int) - sizeof(long);
 			
 		if (1 != fwrite(str, blockSize, 1, f) ) {
@@ -137,13 +137,15 @@ public:
 			return false;
 		}
 		
+
+		
 		//cout<<"read num="<<num<<endl;
 		size_t blockSize = bucketSize_ - sizeof(int) - sizeof(long);
 		
 		if ( !str )
 		{
 			str = new char[blockSize];		
-     	    memset(str, 0, blockSize);
+     	   // memset(str, 0, blockSize);
 		}
  
 		//cout<<"read blocksize="<<blockSize<<endl;
@@ -152,7 +154,7 @@ public:
 		}
 
 		//long nextfpos = 0;
-
+		
 		if (1 != fread(&nextfpos, sizeof(long), 1, f) ) {
 			return false;
 		}
@@ -162,6 +164,8 @@ public:
 			if( !next )next = new bucket_chain_(bucketSize_, fileLock_);
 			next->fpos = nextfpos;
 		}
+
+
 		isLoaded = true;
 		isDirty = false;		
 				
