@@ -11,6 +11,8 @@
 
 #include "tc_types.h"
 
+#include <boost/optional.hpp>
+
 NS_IZENELIB_AM_BEGIN
 
 /**
@@ -23,8 +25,8 @@ template< typename KeyType, typename ValueType, typename LockType =NullLock> cla
 public AccessMethod<KeyType, ValueType, LockType>
 {
 public:
-	typedef KeyType SDBCursor;
-	//typedef DataType<KeyType,ValueType> DataType;
+	typedef boost::optional<KeyType> SDBCursor;
+
 public:
 	/**
 	 *   constructor
@@ -192,14 +194,44 @@ public:
 
 	SDBCursor get_first_locn()
 	{
-		return SDBCursor();
+        return SDBCursor();
 	}
 
 	bool get(const SDBCursor& locn, KeyType& key, ValueType& value)
 	{
-        if (get(locn, value))
+        char* ptr = 0;
+        size_t ksize = 0;
+        if (locn)
         {
-            key = locn;
+            izene_serialization<KeyType> izs(locn.get());
+            izs.write_image(ptr, ksize);
+        }
+
+        const char* value_buff = 0;
+        int value_size = 0;
+        int ret_key_size = 0;
+        char* ret_key_buff = tchdbgetnext3(
+            hdb_,               // handler
+            ptr, ksize,         // key
+            &ret_key_size,      // returned key size
+            &value_buff, &value_size // returned value
+        );
+
+        if (ret_key_buff)
+        {
+            izene_deserialization<KeyType> izd_key(
+                ret_key_buff,
+                static_cast<size_t>(ret_key_size)
+            );
+            izd_key.read_image(key);
+
+            izene_deserialization<ValueType> izd_value(
+                value_buff,
+                static_cast<size_t>(value_size)
+            );
+            izd_value.read_image(value);
+
+            tcfree(ret_key_buff);
             return true;
         }
 
@@ -221,34 +253,16 @@ public:
 	 *   @param sdir is sequential access direction, for hash is unordered, we only implement forward case.
 	 *
 	 */
-	bool seq(SDBCursor& locn, DataType<KeyType,ValueType> & rec, ESeqDirection sdir=ESD_FORWARD) {
-
-		char* ptr;
-		size_t ksize;
-		izene_serialization<KeyType> izs(locn);
-		izs.write_image(ptr, ksize);
-
-		ValueType* pv;
-		pv = find(locn);
-		if( pv )
-		{
-			rec.key = locn;
-			rec.value = *pv;
-		}
-		else
-		{
-			ptr = NULL;
-		}
-		int sp;
-		void *buf;
-		buf = tchdbgetnext(hdb_, ptr, ksize, &sp);
-		if(buf != NULL)
-		{
-			izene_deserialization<KeyType> izd((char*)buf, (size_t)sp);
-			izd.read_image(locn);
-			return true;
-		}
-		return false;
+	bool seq(SDBCursor& locn, DataType<KeyType,ValueType> & rec) {
+        if (get(locn, rec))
+        {
+            locn = rec.get_key();
+            return true;
+        }
+        else
+        {
+            return false;
+        }
 	}
 
 	bool iterInit()
