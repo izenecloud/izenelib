@@ -9,7 +9,7 @@
 NS_IZENELIB_AM_BEGIN
 
 template <
-  uint32_t DOC_NUM_PER_TRIE = 10000
+  uint32_t DOC_NUM_PER_TRIE = 45000//150000
   >
 class TrieIndexer
 {
@@ -172,6 +172,9 @@ class TrieIndexer
   }
 
 public:
+
+  typedef trie_t::node_t node_t;
+  
   inline TrieIndexer(const char* nm)
     :fname_(nm), doc_num_(0), trie_num_(0), cur_trie_(NULL)
   {
@@ -198,28 +201,33 @@ public:
       std::string nm = fname_ + buf;
       cur_trie_ = new trie_t(nm.c_str());
       ++trie_num_;
-    }
-    
-    if (doc_num_%DOC_NUM_PER_TRIE == 0 && doc_num_!=0)
-    {
-      cur_trie_->save();
-      delete cur_trie_;
 
-      char buf[6];
-      sprintf(buf, "_%d", trie_num_);
-      std::string nm = fname_ + buf;
-      cur_trie_ = new trie_t(nm.c_str());
-      ++trie_num_;
-      //tries_.push_back(cur_trie_);
-    }
-    
-    cur_trie_->insert(terms, docid);
-    
-    if (last_docid != docid)
-    {
       ++doc_num_;
       last_docid = docid;
     }
+    
+    if (last_docid != docid)
+    {
+      if (doc_num_%DOC_NUM_PER_TRIE == 0)
+      {
+        //std::cout<<doc_num_<<" "<<docid<<std::endl;
+        cur_trie_->save();
+        delete cur_trie_;
+
+        char buf[6];
+        sprintf(buf, "_%d", trie_num_);
+        std::string nm = fname_ + buf;
+        cur_trie_ = new trie_t(nm.c_str());
+        ++trie_num_;
+        //tries_.push_back(cur_trie_);
+      }
+      
+      ++doc_num_;
+      last_docid = docid;
+
+    }
+        
+    cur_trie_->insert(terms, docid);
   }
 
   inline uint32_t doc_num()const
@@ -235,6 +243,8 @@ public:
       delete cur_trie_;
       cur_trie_ = NULL;
     }
+    if (trie_num_ == 1)
+      return;
     
     trie_t* big = new trie_t((fname_+"_0").c_str(), false);
     static char buf[6];
@@ -294,6 +304,30 @@ public:
     cur_trie_ = new trie_t((fname_+"_0").c_str());
   }
 
+  uint64_t load_sub_tree(Term& t, trie_t** tree)
+  {
+    *tree = NULL;
+    
+    if (t.get_loaded() || t.get_child() == (uint64_t)-1)
+      return;
+
+    *tree = new trie_t((fname_+"_0").c_str(), false);
+
+    t.set_loaded(1);
+    uint64_t r = t.get_child();
+    t.set_child((*tree)->partial_load(t.get_child()));
+  }
+
+  void release_sub_tree(Term& t, trie_t** tree, uint64_t child)
+  {
+    if (!t.get_loaded() || t.get_child() == (uint64_t)-1 || *tree == NULL)
+      return;
+
+    delete *tree;
+    t.set_loaded(0);
+    t.set_child(child);
+  }
+  
   
   inline uint32_t node_num()const
   {

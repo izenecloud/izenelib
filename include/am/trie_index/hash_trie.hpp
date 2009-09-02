@@ -101,13 +101,13 @@ class HashTrie
 
   void release_(TermHashTable* tb)
   {
-    if (tb == NULL)
+    if (tb == NULL || (uint64_t)tb == (uint64_t)-1)
       return;
     
     for (TermHashTable::const_iterator i=tb->begin();i!=tb->end();++i)
     {
-      if (!(*i).get_loaded() || (*i).get_child()==(uint64_t)-1)
-        continue;
+      if ((*i).get_doc_list()!=(uint64_t)-1)
+        delete (doc_list_t*)(*i).get_doc_list();
       release_((TermHashTable*)((*i).get_child()));
     }
 
@@ -140,6 +140,7 @@ class HashTrie
       {
         (*i).set_doc_list(ftell(doc_f_));
         ((doc_list_t*)list)->save(doc_f_);
+        delete (doc_list_t*)list;
       }
     }
 
