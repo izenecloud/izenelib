@@ -361,6 +361,17 @@ public:
     GET_MAX_SIZE(buf_) = size();
     assert(fwrite(buf_, size(), 1, f)==1);
     GET_MAX_SIZE(buf_) = s;
+    
+    return size();
+  }
+
+  inline uint32_t save(char* buf)
+  {
+    uint32_t s = GET_MAX_SIZE(buf_);
+    GET_MAX_SIZE(buf_) = size();
+    memcpy(buf, buf_, size());
+    GET_MAX_SIZE(buf_) = s;
+    
     return size();
   }
 
@@ -679,34 +690,77 @@ public:
   {
     uint64_t s = sizeof(uint32_t)*3 + sizeof(uint64_t);
     uint32_t entry_num = 0;
-    
-    long int pos1 = ftell(f);
-    
-    assert(fwrite(&s, sizeof(uint64_t),1, f)==1);
-    assert(fwrite(&entry_num, sizeof(uint32_t),1, f)==1);
-    assert(fwrite(&entry_size_, sizeof(uint32_t),1, f)==1);
-    assert(fwrite(&num_, sizeof(uint32_t),1, f)==1);
-    
+
     for (uint32_t i=0; i<entry_size_; ++i)
       if (entry_[i]!= NULL)
       {
         ++entry_num;
-        assert(fwrite(&i, sizeof(uint32_t),1, f)==1);
-        s += entry_[i]->save(f);
+        s += entry_[i]->size() + sizeof(uint32_t);
       }
 
-    long int pos2 = ftell(f);
+    char* buf = (char*)malloc(s);
+    char* p = buf;
+
+    *(uint64_t*)p = s;
+    p += sizeof(uint64_t);
     
-    fseek(f, pos1, SEEK_SET);
-    assert(fwrite(&s, sizeof(uint64_t),1, f)==1);
-    assert(fwrite(&entry_num, sizeof(uint32_t),1, f)==1);
-    //std::cout<<s<<std::endl;
+    *(uint32_t*)p = entry_num;
+    p += sizeof(uint32_t);
 
-    fseek(f, pos2, SEEK_SET);
-    //std::cout<<"sssss "<<pos1<<"-"<<ftell(f)<<std::endl;
+    *(uint32_t*)p = entry_size_;
+    p += sizeof(uint32_t);
+    
+    *(uint32_t*)p = num_;
+    p += sizeof(uint32_t);
+        
+    for (uint32_t i=0; i<entry_size_; ++i)
+      if (entry_[i]!= NULL)
+      {
+        *(uint32_t*)p = i;
+        p += sizeof(uint32_t);
+        p += entry_[i]->save(p);
+      }
+    
 
+    
+    assert(fwrite(buf, s, 1, f)==1);
+    free(buf);
+    
     return s;
   }
+    
+//   uint64_t save(FILE* f)
+//   {
+//     uint64_t s = sizeof(uint32_t)*3 + sizeof(uint64_t);
+//     uint32_t entry_num = 0;
+    
+//     long int pos1 = ftell(f);
+    
+//     assert(fwrite(&s, sizeof(uint64_t),1, f)==1);
+//     assert(fwrite(&entry_num, sizeof(uint32_t),1, f)==1);
+//     assert(fwrite(&entry_size_, sizeof(uint32_t),1, f)==1);
+//     assert(fwrite(&num_, sizeof(uint32_t),1, f)==1);
+    
+//     for (uint32_t i=0; i<entry_size_; ++i)
+//       if (entry_[i]!= NULL)
+//       {
+//         ++entry_num;
+//         assert(fwrite(&i, sizeof(uint32_t),1, f)==1);
+//         s += entry_[i]->save(f);
+//       }
+
+//     long int pos2 = ftell(f);
+    
+//     fseek(f, pos1, SEEK_SET);
+//     assert(fwrite(&s, sizeof(uint64_t),1, f)==1);
+//     assert(fwrite(&entry_num, sizeof(uint32_t),1, f)==1);
+//     //std::cout<<s<<std::endl;
+
+//     fseek(f, pos2, SEEK_SET);
+//     //std::cout<<"sssss "<<pos1<<"-"<<ftell(f)<<std::endl;
+
+//     return s;
+//   }
 
   uint64_t touch_save(FILE* f) const
   {
