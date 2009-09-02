@@ -358,9 +358,7 @@ public:
 		SDBCursor locn = get_first_locn();
 		KeyType key;
 		ValueType value;
-		while( seq(locn, key, value) ) {
-			cout<<key<<endl;
-			cout<<value<<endl;
+		while( seq(locn, key, value) ) {			
 			if( !other.insert(key, value) )
 			return false;;
 		}
