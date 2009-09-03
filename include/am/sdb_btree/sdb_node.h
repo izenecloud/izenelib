@@ -527,11 +527,10 @@ template<typename KeyType, typename ValueType, typename LockType, bool fixed,
 		char *ptr, *ptr1;
 		size_t ksize, vsize;
 		size_t esize;
+		izene_serialization<KeyType> izs(keys[i]);
+		izene_serialization<ValueType> izs1(values[i]);
 
-		if ( !fixed) {
-			
-			izene_serialization<KeyType> izs(keys[i]);
-			izene_serialization<ValueType> izs1(values[i]);
+		if ( !fixed) {	
 			izs.write_image(ptr, ksize);
 			izs1.write_image(ptr1, vsize);
 			esize = 2*sizeof(size_t)+ksize+vsize;

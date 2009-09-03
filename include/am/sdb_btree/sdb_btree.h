@@ -312,6 +312,16 @@ public:
 		return SDBCursor(node, node->objCount);
 	}
 	
+	bool seq(SDBCursor& locn, KeyType& key, ValueType& value, ESeqDirection sdir=ESD_FORWARD)
+	{
+	    bool ret = seq(locn);
+	    get(locn, key, value);
+	    return ret;
+	}
+	bool seq(SDBCursor& locn, DataType<KeyType, ValueType>& dat, ESeqDirection sdir=ESD_FORWARD)
+    {
+		return seq(locn, dat.key, dat.value, sdir);
+    }
 
 	bool seq(SDBCursor& locn, ESeqDirection sdir=ESD_FORWARD);
 
