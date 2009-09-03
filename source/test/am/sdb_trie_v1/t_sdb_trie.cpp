@@ -40,6 +40,34 @@ BOOST_AUTO_TEST_SUITE( sdb_trie_suite )
     BOOST_CHECK_EQUAL(result, id); \
 }
 
+
+#define TEST_TRIE_FIND_PREFIX(str, idList, idListNum) \
+{ \
+  vector<int> result;\
+  bool suc;\
+  suc = trie.findPrefix(str,result); \
+  if(suc == false) \
+    BOOST_CHECK_EQUAL(0, idListNum); \
+  else\
+  { \
+    BOOST_CHECK_EQUAL(result.size(), (size_t)idListNum);\
+    if(idListNum == result.size()) \
+      for(size_t kkk=0; kkk<idListNum; kkk++) \
+        BOOST_CHECK_EQUAL(result[kkk], idList[kkk]); \
+    else { \
+      std::cout << "should be ";\
+      if(idListNum == 0) std::cout << "null";\
+      for(size_t kkk = 0; kkk<idListNum; kkk++) \
+        std::cout << idList[kkk] << " "; \
+      std::cout << std::endl << "but is "; \
+      if(result.size() == 0) std::cout << "null";\
+      for(size_t kkk = 0; kkk<result.size(); kkk++) \
+        std::cout << result[kkk] << " "; \
+      std::cout << std::endl; \
+    }\
+  }\
+}
+
 #define TEST_TRIE_SEARCH_REGEXP(str, idList, idListNum) \
 { \
   vector<int> result;\
@@ -131,11 +159,75 @@ BOOST_AUTO_TEST_CASE(SDBTrie_find)
       TEST_TRIE_FIND("des", -1);
       TEST_TRIE_FIND("c", -1);
       TEST_TRIE_FIND("bluee", -1);
+
     }
 
     CLEAN_SDB_FILE("find");
 }
 
+
+
+BOOST_AUTO_TEST_CASE(SDBTrie_findPrefix)
+{
+    CLEAN_SDB_FILE("findprefix");
+
+    {
+      SDBTrie2<string,int> trie("./sdbtrie_findprefix");
+      trie.openForWrite();
+      trie.insert("apple",1);
+      trie.insert("blue",2);
+      trie.insert("at",3);
+      trie.insert("destination",4);
+      trie.insert("earth",5);
+      trie.insert("art",6);
+      trie.insert("desk",7);
+      trie.optimize();
+    }
+
+    {
+      SDBTrie2<string,int> trie("./sdbtrie_findprefix");
+      trie.openForRead();
+      BOOST_CHECK_EQUAL(trie.num_items(),  (size_t)7);
+
+      int idList1[3] = {1,6,3};
+      TEST_TRIE_FIND_PREFIX("a", idList1, 3);
+      int idList2[7] = {1,6,3,2,7,4,5};
+      TEST_TRIE_FIND_PREFIX("", idList2, 7);
+      int idList3[2] = {7,4};
+      TEST_TRIE_FIND_PREFIX("des", idList3, 2);
+      int idList4[1] = {2};
+      TEST_TRIE_FIND_PREFIX("blue", idList4, 1);
+      int idList5[0] = {};
+      TEST_TRIE_FIND_PREFIX("eartha", idList5, 0);
+      TEST_TRIE_FIND_PREFIX("appe", idList5, 0);
+      TEST_TRIE_FIND_PREFIX("f", idList5, 0);
+
+      {
+          vector<string> results;
+          trie.findPrefix("a", results);
+          BOOST_CHECK_EQUAL(results.size(), (size_t)3);
+          if(results.size() == 3)
+          {
+            BOOST_CHECK_EQUAL(results[0].c_str(), "apple");
+            BOOST_CHECK_EQUAL(results[1].c_str(), "at");
+            BOOST_CHECK_EQUAL(results[2].c_str(), "art");
+          }
+      }
+
+      {
+          vector<string> results;
+          trie.findPrefix("dst", results);
+          BOOST_CHECK_EQUAL(results.size(), (size_t)2);
+          if(results.size() == 2)
+          {
+            BOOST_CHECK_EQUAL(results[0].c_str(), "desk");
+            BOOST_CHECK_EQUAL(results[1].c_str(), "destination");
+          }
+      }
+    }
+
+    CLEAN_SDB_FILE("findprefix");
+}
 
 BOOST_AUTO_TEST_CASE(SDBTrie_searchregexp)
 {
