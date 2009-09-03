@@ -52,9 +52,6 @@ public AccessMethod<KeyType, ValueType, LockType>
 	enum {delayFlush = true};
 	enum {quickFlush = false};
 public:
-	enum {BucketGap = fixed ? sizeof(KeyType)+sizeof(ValueType)+sizeof(long)+sizeof(int) :
-		sizeof(KeyType)+sizeof(ValueType) + sizeof(long)+sizeof(int) +3*sizeof(size_t)
-	};
 
 	//SDBCursor is like db cursor
 	typedef bucket_chain_<LockType> bucket_chain;
@@ -78,6 +75,21 @@ public:
 			unsigned long rlimit;
 			ProcMemInfo::getProcMemInfo(vm, initRss_, rlimit);
 		}
+		ksize_ = vsize_ = 0;
+		if(fixed) {
+			char* ptr = 0;
+			char* ptr1 = 0;
+			KeyType key;
+			ValueType val;
+			izene_serialization<KeyType> izs(key );
+			izene_serialization<ValueType> izs1( val );
+			izs.write_image(ptr, ksize_);
+			izs1.write_image(ptr1, vsize_);
+		}
+
+		BucketGap = fixed ? ksize_+vsize_+sizeof(long)+sizeof(int) :
+		ksize_+vsize_ + sizeof(long)+sizeof(int) +3*sizeof(size_t);
+
 	}
 
 	/**
@@ -165,20 +177,22 @@ public:
 			char* ptr = 0;
 			char* ptr1 = 0;
 			size_t ksize;
-			size_t vsize;			
+			size_t vsize;
 			izene_serialization<KeyType> izs(key);
 			izene_serialization<ValueType> izs1(value);
+			izs.write_image(ptr, ksize);
+			izs1.write_image(ptr1, vsize);
 
-			if(! fixed ) {			
-				izs.write_image(ptr, ksize);
-				izs1.write_image(ptr1, vsize);
+			/*if(! fixed ) {			
+			 izs.write_image(ptr, ksize);
+			 izs1.write_image(ptr1, vsize);
 
-			} else {
-				ptr = (char*)&key;
-				ptr1 = (char*)&value;
-				ksize = sizeof(key);
-				vsize =sizeof(value);
-			}
+			 } else {
+			 ptr = (char*)&key;
+			 ptr1 = (char*)&value;
+			 ksize = sizeof(key);
+			 vsize =sizeof(value);
+			 }*/
 
 			bucket_chain* sa = locn.first;
 			char* p = locn.second;
@@ -258,12 +272,11 @@ public:
 				memcpy(&vsz, p, sizeof(size_t));
 				p += sizeof(size_t);
 
-				
 				izene_deserialization<ValueType> isd(p+ksz, vsz);
 				isd.read_image(*pval);
 			}
 			else {
-				memcpy(pval, p+sizeof(KeyType), sizeof(ValueType));
+				memcpy(pval, p+ksize_, vsize_);
 			}
 			return pval;
 		}
@@ -286,7 +299,7 @@ public:
 				izene_deserialization<ValueType> isd(p+ksz, vsz);
 				isd.read_image(value);
 			} else {
-				memcpy(&value, p+sizeof(KeyType), sizeof(ValueType));
+				memcpy(&value, p+ksize_, vsize_);
 			}
 			return true;
 		}
@@ -319,7 +332,7 @@ public:
 				 memcpy(p-sizeof(size_t), &vsz, sizeof(size_t) );*/
 			} else {
 				size_t leftSize = sfh_.bucketSize-BucketGap-(p-locn.first->str);
-				memcpy(p, p+sizeof(KeyType)+sizeof(ValueType), leftSize);
+				memcpy(p, p+ksize_+vsize_, leftSize);
 				--locn.first->num;
 			}
 
@@ -348,15 +361,16 @@ public:
 		return insert(key, value);
 		else
 		{
+			char* ptr;
+			char* ptr1;
+			size_t ksize;
+			size_t vsize;
+			izene_serialization<KeyType> izs(key);
+			izene_serialization<ValueType> izs1(value);
+			izs.write_image(ptr, ksize);
+			izs1.write_image(ptr1, vsize);
+
 			if( !fixed ) {
-				char* ptr;
-				char* ptr1;
-				size_t ksize;
-				size_t vsize;
-				izene_serialization<KeyType> izs(key);
-				izene_serialization<ValueType> izs1(value);
-				izs.write_image(ptr, ksize);
-				izs1.write_image(ptr1, vsize);
 
 				bucket_chain* sa = locn.first;
 				char *p = locn.second;
@@ -381,14 +395,14 @@ public:
 					return insert(key, value);
 				}
 			} else {
-				char* ptr1 = (char*)&value;
-				size_t vsize = sizeof(value);
+				//char* ptr1 = (char*)&value;
+				//size_t vsize = sizeof(value);
 
 				bucket_chain* sa = locn.first;
 				char *p = locn.second;
 				{
 					setDirty_(sa);
-					memcpy(p+sizeof(KeyType), ptr1, vsize);
+					memcpy(p+ksize, ptr1, vsize);
 					return true;
 				}
 			}
@@ -409,11 +423,11 @@ public:
 		SDBCursor locn = get_first_locn();
 		KeyType key;
 		ValueType value;
-		while(get(locn, key, value)){
+		while(get(locn, key, value)) {
 			other.insert(key, value);
 			if( !seq(locn) )
-				break;
-		}		
+			break;
+		}
 		return true;
 	}
 
@@ -451,13 +465,14 @@ public:
 		char* ptr=0;
 		size_t ksize;
 		izene_serialization<KeyType> izs(key);
+		izs.write_image(ptr, ksize);
 
-		if( !fixed) {			
-			izs.write_image(ptr, ksize);}
-		else {
-			 ptr= (char*)&key;
-			 ksize = sizeof(KeyType);
-		}
+		/*if( !fixed) {
+		 izs.write_image(ptr, ksize);}
+		 else {
+		 ptr= (char*)&key;
+		 ksize = ksize_;
+		 }*/
 
 		uint32_t idx = sdb_hashing::hash_fun(ptr, ksize) & dmask_;
 		locn.first = entry_[idx];
@@ -468,7 +483,7 @@ public:
 			int i = 0;
 			bucket_chain* sa = entry_[idx];
 
-			load_( sa );			
+			load_( sa );
 
 			char* p = sa->str;
 
@@ -520,7 +535,7 @@ public:
 							locn.second = p;
 							return true;
 						}
-						p += ksize + sizeof(ValueType);
+						p += ksize_ + vsize_;
 					}
 				}
 				sa = loadNext_(sa);
@@ -541,9 +556,9 @@ public:
 			if( entry_[i] )
 			{
 				/*if (!entry_[i]->isLoaded ) {
-					entry_[i]->read(dataFile_);
-					++activeNum_;
-				}*/
+				 entry_[i]->read(dataFile_);
+				 ++activeNum_;
+				 }*/
 				load_( entry_[i] );
 				locn.first = entry_[i];
 				locn.second = entry_[i]->str;
@@ -585,11 +600,11 @@ public:
 			p += vsize;
 
 		} else {
-			memcpy(&key, p, sizeof(KeyType) );
-			p += sizeof(KeyType);
+			memcpy(&key, p, ksize_ );
+			p += ksize_;
 
-			memcpy(&val, p, sizeof(ValueType) );
-			p += sizeof(ValueType);
+			memcpy(&val, p, vsize_ );
+			p += vsize_;
 		}
 
 		return true;
@@ -603,17 +618,17 @@ public:
 	 *   @param sdir is sequential access direction, for hash is unordered, we only implement forward case.
 	 *
 	 */
-	
+
 	bool seq(SDBCursor& locn, KeyType& key, ValueType& value, ESeqDirection sdir=ESD_FORWARD)
 	{
-	    bool ret = seq(locn);
-	    get(locn, key, value);
-	    return ret;
+		bool ret = seq(locn);
+		get(locn, key, value);
+		return ret;
 	}
 	bool seq(SDBCursor& locn, DataType<KeyType, ValueType>& dat, ESeqDirection sdir=ESD_FORWARD)
-    {
+	{
 		return seq(locn, dat.key, dat.value, sdir);
-    }
+	}
 	bool seq(SDBCursor& locn, ESeqDirection sdir=ESD_FORWARD) {
 		flushCache_(locn);
 		if( sdir == ESD_FORWARD ) {
@@ -650,7 +665,7 @@ public:
 					a = 0;
 
 					ptr = p;
-					poff = ksize;			
+					poff = ksize;
 					p += ksize;
 					p += vsize;
 
@@ -665,9 +680,9 @@ public:
 							uint32_t idx = sdb_hashing::hash_fun(ptr, poff) & dmask_;
 							while( !entry_[++idx] ) {
 								if( idx >= directorySize_-1 )
-								break;								
+								break;
 							}
-							load_(entry_[idx]);	
+							load_(entry_[idx]);
 
 							//get next bucket;
 							sa = entry_[idx];
@@ -681,11 +696,14 @@ public:
 
 				} else {
 					ptr = p;
-					poff = sizeof(KeyType);	
-					p += sizeof(KeyType);					
-					p += sizeof(ValueType);
+					/*poff = ksize_;
+					 p += ksize_;
+					 p += vsize_;*/
+					poff = ksize_;
+					p += ksize_;
+					p += vsize_;
 
-					if( (unsigned int)(p-locn.first->str) >= (unsigned int)(locn.first->num)*(sizeof(KeyType) + sizeof(ValueType)) )
+					if( (unsigned int)(p-locn.first->str) >= (unsigned int)(locn.first->num)*(ksize_ + vsize_) )
 					{
 						sa = loadNext_(sa);
 						if( sa ) {
@@ -696,10 +714,10 @@ public:
 							uint32_t idx = sdb_hashing::hash_fun(ptr, poff) & dmask_;
 							while( !entry_[++idx] ) {
 								if( idx >= directorySize_-1 )
-								break;								
+								break;
 							}
 
-							load_(entry_[idx]);						
+							load_(entry_[idx]);
 
 							//get next bucket;
 							sa = entry_[idx];
@@ -709,10 +727,10 @@ public:
 						}
 					}
 				}
-			
+
 				locn.first = sa;
 				locn.second = p;
-				return true;				
+				return true;
 			}
 		} else
 		{
@@ -973,6 +991,10 @@ private:
 	size_t directorySize_;
 	size_t dmask_;
 	size_t cacheSize_;
+
+	size_t ksize_;
+	size_t vsize_;
+	size_t BucketGap;
 
 	unsigned long initRss_;
 	unsigned int flushCount_;
