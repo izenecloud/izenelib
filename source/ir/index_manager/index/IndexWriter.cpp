@@ -75,13 +75,15 @@ void IndexWriter::destroyCache()
 
 void IndexWriter::createMerger()
 {
-    if (!strcasecmp(pIndexer_->getIndexManagerConfig()->mergeStrategy_.strategy_.c_str(),"DBT"))
+    if (!strcasecmp(pIndexer_->getIndexManagerConfig()->mergeStrategy_.strategy_.c_str(),"online"))
+    {
         pIndexMerger_ = new DBTIndexMerger(pIndexer_->getDirectory());
-    else if (!strcasecmp(pIndexer_->getIndexManagerConfig()->mergeStrategy_.strategy_.c_str(),"OPT"))
-        pIndexMerger_ = new OptimizeMerger(pIndexer_->getDirectory());
-
-    pIndexMerger_->setParam(pIndexer_->getIndexManagerConfig()->mergeStrategy_.param_.c_str());
-
+        pIndexMerger_->setParam(pIndexer_->getIndexManagerConfig()->mergeStrategy_.param_.c_str());
+    }
+    else if (!strcasecmp(pIndexer_->getIndexManagerConfig()->mergeStrategy_.strategy_.c_str(),"offline"))
+        pIndexMerger_ = NULL;
+    else
+        SF1V5_THROW(ERROR_FILEIO,"Configuration values for index merging strategy have not been set" );
 }
 
 void IndexWriter::mergeIndex(IndexMerger* pMerger)
@@ -191,24 +193,10 @@ void IndexWriter::mergeAndWriteCachedIndex2()
 
 void IndexWriter::justWriteCachedIndex()
 {
-///TODO
-    BarrelInfo* pLastBarrel = pBarrelsInfo_->getLastBarrel();
-    pLastBarrel->setBaseDocID(baseDocIDMap_);
-
-    pIndexBarrelWriter_->close();
-
-    pLastBarrel->setWriter(NULL);
-    pBarrelsInfo_->addBarrel(pBarrelsInfo_->newBarrel().c_str(),0);
-    pCurBarrelInfo_ = pBarrelsInfo_->getLastBarrel();
-    pCurBarrelInfo_->setWriter(pIndexBarrelWriter_);
-    pCurDocCount_ = &(pCurBarrelInfo_->nNumDocs);
-    *pCurDocCount_ = 0;
-/*	
     pBarrelsInfo_->write(pIndexer_->getDirectory());
     pCurBarrelInfo_ = pBarrelsInfo_->getLastBarrel();
     pCurDocCount_ = &(pCurBarrelInfo_->nNumDocs);
     *pCurDocCount_ = 0;
-*/	
 }
 
 void IndexWriter::addDocument(IndexerDocument* pDoc)

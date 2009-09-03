@@ -106,14 +106,6 @@ public:
 
     bool getDocsByPropertyValueSubString(collectionid_t colID, std::string property, PropertyType value, std::vector<docid_t>&docList);
 
-
-#ifdef SF1_TIME_CHECK
-    /**
-     * @brief   Notifies the Document process to print out its  time check results
-     */
-    void printDocumentProcessTimeCheck();
-#endif
-
 public:
     void setIndexManagerConfig(IndexManagerConfig* pConfigManager,const std::map<std::string, uint32_t>& collectionIdMapping);
 
