@@ -165,11 +165,11 @@ public:
 			char* ptr = 0;
 			char* ptr1 = 0;
 			size_t ksize;
-			size_t vsize;
+			size_t vsize;			
+			izene_serialization<KeyType> izs(key);
+			izene_serialization<ValueType> izs1(value);
 
-			if(! fixed ) {
-				izene_serialization<KeyType> izs(key);
-				izene_serialization<ValueType> izs1(value);
+			if(! fixed ) {			
 				izs.write_image(ptr, ksize);
 				izs1.write_image(ptr1, vsize);
 
@@ -450,9 +450,9 @@ public:
 
 		char* ptr=0;
 		size_t ksize;
+		izene_serialization<KeyType> izs(key);
 
-		if( !fixed) {
-			izene_serialization<KeyType> izs(key);
+		if( !fixed) {			
 			izs.write_image(ptr, ksize);}
 		else {
 			 ptr= (char*)&key;
@@ -603,7 +603,17 @@ public:
 	 *   @param sdir is sequential access direction, for hash is unordered, we only implement forward case.
 	 *
 	 */
-
+	
+	bool seq(SDBCursor& locn, KeyType& key, ValueType& value, ESeqDirection sdir=ESD_FORWARD)
+	{
+	    bool ret = seq(locn);
+	    get(locn, key, value);
+	    return ret;
+	}
+	bool seq(SDBCursor& locn, DataType<KeyType, ValueType>& dat, ESeqDirection sdir=ESD_FORWARD)
+    {
+		return seq(locn, dat.key, dat.value, sdir);
+    }
 	bool seq(SDBCursor& locn, ESeqDirection sdir=ESD_FORWARD) {
 		flushCache_(locn);
 		if( sdir == ESD_FORWARD ) {
