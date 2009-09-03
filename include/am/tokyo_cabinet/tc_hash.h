@@ -194,48 +194,48 @@ public:
 
 	SDBCursor get_first_locn()
 	{
-        return SDBCursor();
+		return SDBCursor();
 	}
 
 	bool get(const SDBCursor& locn, KeyType& key, ValueType& value)
 	{
-        char* ptr = 0;
-        size_t ksize = 0;
-        if (locn)
-        {
-            izene_serialization<KeyType> izs(locn.get());
-            izs.write_image(ptr, ksize);
-        }
+		char* ptr = 0;
+		size_t ksize = 0;
+		if (locn)
+		{
+			izene_serialization<KeyType> izs(locn.get());
+			izs.write_image(ptr, ksize);
+		}
 
-        const char* value_buff = 0;
-        int value_size = 0;
-        int ret_key_size = 0;
-        char* ret_key_buff = tchdbgetnext3(
-            hdb_,               // handler
-            ptr, ksize,         // key
-            &ret_key_size,      // returned key size
-            &value_buff, &value_size // returned value
-        );
+		const char* value_buff = 0;
+		int value_size = 0;
+		int ret_key_size = 0;
+		char* ret_key_buff = tchdbgetnext3(
+				hdb_, // handler
+				ptr, ksize, // key
+				&ret_key_size, // returned key size
+				&value_buff, &value_size // returned value
+		);
 
-        if (ret_key_buff)
-        {
-            izene_deserialization<KeyType> izd_key(
-                ret_key_buff,
-                static_cast<size_t>(ret_key_size)
-            );
-            izd_key.read_image(key);
+		if (ret_key_buff)
+		{
+			izene_deserialization<KeyType> izd_key(
+					ret_key_buff,
+					static_cast<size_t>(ret_key_size)
+			);
+			izd_key.read_image(key);
 
-            izene_deserialization<ValueType> izd_value(
-                value_buff,
-                static_cast<size_t>(value_size)
-            );
-            izd_value.read_image(value);
+			izene_deserialization<ValueType> izd_value(
+					value_buff,
+					static_cast<size_t>(value_size)
+			);
+			izd_value.read_image(value);
 
-            tcfree(ret_key_buff);
-            return true;
-        }
+			tcfree(ret_key_buff);
+			return true;
+		}
 
-        return false;
+		return false;
 	}
 
 	/**
@@ -253,16 +253,22 @@ public:
 	 *   @param sdir is sequential access direction, for hash is unordered, we only implement forward case.
 	 *
 	 */
-	bool seq(SDBCursor& locn, DataType<KeyType,ValueType> & rec) {
-        if (get(locn, rec))
-        {
-            locn = rec.get_key();
-            return true;
-        }
-        else
-        {
-            return false;
-        }
+	bool seq(SDBCursor& locn, ESeqDirection sdir = ESD_FORWARD) {
+		if( sdir == ESD_FORWARD) {
+			DataType<KeyType,ValueType> rec;
+			if (get(locn, rec))
+			{
+				locn = rec.get_key();
+				return true;
+			}
+			else
+			{
+				return false;
+			}
+		} else {
+			assert( false);
+			return false;
+		}
 	}
 
 	bool iterInit()
@@ -279,21 +285,14 @@ public:
 		if(!b) return false;
 		char* cpKey = (char*)tcxstrptr(ptcKey);
 		char* cpValue = (char*)tcxstrptr(ptcValue);
-// 		std::cout<<"II"<<std::endl;
+
 		izene_deserialization<KeyType> izdk(cpKey, tcxstrsize(ptcKey));
 		izdk.read_image(key);
-// 		std::cout<<"II"<<std::endl;
 		izene_deserialization<ValueType> izdv(cpValue, tcxstrsize(ptcValue));
 		izdv.read_image(value);
-// 		std::cout<<"II"<<std::endl;
-// 		free(cpKey);
-// 		std::cout<<"II"<<std::endl;
-// 		free(cpValue);
-// 		std::cout<<"II"<<std::endl;
 		tcxstrdel(ptcKey);
-// 		std::cout<<"II"<<std::endl;
 		tcxstrdel(ptcValue);
-// 		std::cout<<"II"<<std::endl;
+
 		return true;
 	}
 
@@ -303,7 +302,6 @@ public:
 	int num_items() {
 		return tchdbrnum(hdb_);
 	}
-
 
 public:
 	/**

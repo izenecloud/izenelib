@@ -234,13 +234,11 @@ template<typename T> void seq_test(T& tb) {
 	locn = tb.get_first_locn();
 	myDataType dat;
 	int a=0;
-	if(tb.get(locn, dat) ){
-		cout<<" start from "<<dat.key<<endl;
-		a++;
-	}
-	while (tb.seq(locn, dat) ) {
+	while (tb.get(locn, dat) ) {
 		//cout<<dat.key<<endl;
 		a++;
+		if( !tb.seq(locn) );
+			//break;
 		if (trace)
 			cout<<dat.key<<endl;
 		DLOG_EVERY_N(INFO, 100000) << getMemInfo();

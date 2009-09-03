@@ -28,34 +28,30 @@ typedef izenelib::am::DataType<KeyType, ValueType> myDataType;
 //typedef izenelib::am::sdb_hash<KeyType, ValueType> SDB_HASH;
 typedef izenelib::am::sdb_fixedhash<KeyType, ValueType> SDB_HASH;
 
-
 template<typename T> void validate_test(T& tb) {
-	
+
 	assert(tb.insert(1, 3) == true);
 	assert(tb.insert(2, 7) == true);
 	assert(tb.insert(3, 9) == true);
-	
+
 	int val=0.0;
 	tb.get(1, val);
 	cout<<val<<endl;
 	assert(val == 3);
-	tb.get(2,val);
+	tb.get(2, val);
 	cout<<val<<endl;
 	assert(val == 7);
-	assert(tb.get(4,val) == false);
-	
+	assert(tb.get(4, val) == false);
+
 	tb.update(1, 5);
 	tb.get(1, val);
 	cout<<val;
 	assert(val == 5);
-	
-	tb.del(2);
-	assert(tb.get(2,val) == false);	
 
+	tb.del(2);
+	assert(tb.get(2, val) == false);
 
 }
-
-
 
 template<typename T> void insert_test(T& tb) {
 	clock_t start, finish;
@@ -88,76 +84,76 @@ template<typename T> void insert_test(T& tb) {
 }
 
 /*
-template<typename T> void random_insert_test(T& tb) {
-	clock_t start, finish;
-	start = clock();
-	for (int i=0; i<num; i++) {
-		int k = rand()%num;
-		if (trace) {
-			cout<<"insert key="<<k<<endl;
-		}
-		char p[20];
-		sprintf(p, "%08d", k);
-		string str = p;
-		//tb.insert(rand()%num, str);
-		tb.insert(str);
-		if (trace) {
-			cout<<"numItem: "<<tb.num_items()<<endl<<endl;
-			tb.display();
-		}
-		//cout<<"\nafte insert ...\n";		
-	}
-	cout<<"mumItem: "<<tb.num_items()<<endl;
-	printf("\nIt takes %f seconds before flush()\n", (double)(clock() - start)
-			/CLOCKS_PER_SEC);
-	if (trace)
-		tb.display();
-	tb.flush();
-	finish = clock();
-	printf("\nIt takes %f seconds to insert %d  data!\n", (double)(finish
-			- start) / CLOCKS_PER_SEC, num);
+ template<typename T> void random_insert_test(T& tb) {
+ clock_t start, finish;
+ start = clock();
+ for (int i=0; i<num; i++) {
+ int k = rand()%num;
+ if (trace) {
+ cout<<"insert key="<<k<<endl;
+ }
+ char p[20];
+ sprintf(p, "%08d", k);
+ string str = p;
+ //tb.insert(rand()%num, str);
+ tb.insert(str);
+ if (trace) {
+ cout<<"numItem: "<<tb.num_items()<<endl<<endl;
+ tb.display();
+ }
+ //cout<<"\nafte insert ...\n";		
+ }
+ cout<<"mumItem: "<<tb.num_items()<<endl;
+ printf("\nIt takes %f seconds before flush()\n", (double)(clock() - start)
+ /CLOCKS_PER_SEC);
+ if (trace)
+ tb.display();
+ tb.flush();
+ finish = clock();
+ printf("\nIt takes %f seconds to insert %d  data!\n", (double)(finish
+ - start) / CLOCKS_PER_SEC, num);
 
-}
+ }
 
-template<typename T> void random_search_test(T& tb) {
+ template<typename T> void random_search_test(T& tb) {
 
-	clock_t start, finish;
-	ValueType * v;
-	start = clock();
-	int c, b;
-	c=b=0;
-	for (int i=0; i<num; i++) {
-		int k = rand()%num;
-		if (trace)
-			cout<<"finding "<<k<<endl;
+ clock_t start, finish;
+ ValueType * v;
+ start = clock();
+ int c, b;
+ c=b=0;
+ for (int i=0; i<num; i++) {
+ int k = rand()%num;
+ if (trace)
+ cout<<"finding "<<k<<endl;
 
-		char p[20];
-		sprintf(p, "%08d", k);
-		string str = p;
-		v = tb.find(p);
-		if (v) {
-			delete v;
-			v = 0;
-			if (trace) {
-				cout<<str<<" found"<<endl;
-				tb.display();
-			}
-			c++;
-		} else
-			b++;
+ char p[20];
+ sprintf(p, "%08d", k);
+ string str = p;
+ v = tb.find(p);
+ if (v) {
+ delete v;
+ v = 0;
+ if (trace) {
+ cout<<str<<" found"<<endl;
+ tb.display();
+ }
+ c++;
+ } else
+ b++;
 
-	}
-	if (trace)
-		tb.display();
-	tb.flush();
-	finish = clock();
-	printf(
-			"\nIt takes %f seconds to random find %d data! %d data found, %d data lost!\n",
-			(double)(finish - start) / CLOCKS_PER_SEC, num, c, b);
+ }
+ if (trace)
+ tb.display();
+ tb.flush();
+ finish = clock();
+ printf(
+ "\nIt takes %f seconds to random find %d data! %d data found, %d data lost!\n",
+ (double)(finish - start) / CLOCKS_PER_SEC, num, c, b);
 
-	//  tb.display(std::cout)
-}
-*/
+ //  tb.display(std::cout)
+ }
+ */
 
 template<typename T> void search_test(T& tb) {
 
@@ -175,7 +171,7 @@ template<typename T> void search_test(T& tb) {
 		//sprintf(p, "%08d", i);
 		//string str = p;
 		bool ret = tb.get(i, v);
-		if (ret) {			
+		if (ret) {
 			if (trace) {
 				cout<<i<<" found"<<endl;
 				tb.display();
@@ -226,40 +222,39 @@ template<typename T> void delete_test(T& tb) {
 }
 
 /*
-template<typename T> void random_delete_test(T& tb) {
+ template<typename T> void random_delete_test(T& tb) {
 
-	clock_t start, finish;
-	int c, b;
-	c=b=0;
+ clock_t start, finish;
+ int c, b;
+ c=b=0;
 
-	start = clock();
-	for (int i=0; i<num; i++) {
-		int k = rand()%num;
-		if (trace)
-			cout<<"del "<<k<<endl;
-		char p[20];
-		sprintf(p, "%08d", k);
-		string str = p;
-		if (tb.del(str) != 0)
-			c++;
-		else
-			b++;
-		if (trace) {
-			cout<<"numItem: "<<tb.num_items()<<endl;
-			tb.display();
-		}
-	}
-	tb.flush();
-	finish = clock();
-	printf(
-			"\nIt takes %f seconds to delete %d  data! %d data found, %d data lost!\n",
-			(double)(finish - start) / CLOCKS_PER_SEC, num/2, c, b);
+ start = clock();
+ for (int i=0; i<num; i++) {
+ int k = rand()%num;
+ if (trace)
+ cout<<"del "<<k<<endl;
+ char p[20];
+ sprintf(p, "%08d", k);
+ string str = p;
+ if (tb.del(str) != 0)
+ c++;
+ else
+ b++;
+ if (trace) {
+ cout<<"numItem: "<<tb.num_items()<<endl;
+ tb.display();
+ }
+ }
+ tb.flush();
+ finish = clock();
+ printf(
+ "\nIt takes %f seconds to delete %d  data! %d data found, %d data lost!\n",
+ (double)(finish - start) / CLOCKS_PER_SEC, num/2, c, b);
 
-}*/
-
+ }*/
 
 template<typename T> void seq_test(T& tb) {
-	
+
 	//tb.display(cout, false);
 
 	clock_t start, finish;
@@ -269,16 +264,13 @@ template<typename T> void seq_test(T& tb) {
 	locn = tb.get_first_locn();
 	myDataType dat;
 	int a=0;
-	if(tb.get(locn, dat) ){
-		cout<<" start from "<<dat.key<<endl;
+	while ( tb.get(locn, dat) ) {
 		a++;
-	}
-	while ( tb.seq(locn, dat) ) {
-		a++;
+		tb.seq(locn);
 		if (trace)
 			cout<<dat.key<<endl;
 	}
-    cout<<"end at "<<dat.key<<endl;
+	cout<<"end at "<<dat.key<<endl;
 	tb.flush();
 	finish = clock();
 	printf("\nIt takes %f seconds to sequential Access %d  data! \n",
@@ -287,13 +279,13 @@ template<typename T> void seq_test(T& tb) {
 }
 
 template<typename T> void run(T& tb) {
-	if( rnd  == 0){
+	if (rnd == 0) {
 		insert_test(tb);
 		search_test(tb);
 		seq_test(tb);
 		//delete_test(tb);
-	}else{
-	seq_test(tb);
+	} else {
+		seq_test(tb);
 	}
 
 	/*delete_test(tb);
@@ -366,7 +358,7 @@ int main(int argc, char *argv[]) {
 		//t1.open();
 		//validate_test(t1);
 		//}
-		
+
 		SDB_HASH tb(indexFile);
 		//tb.setDirectorySize(directorySize);
 		tb.setDegree(degree);

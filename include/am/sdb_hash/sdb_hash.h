@@ -409,16 +409,11 @@ public:
 		SDBCursor locn = get_first_locn();
 		KeyType key;
 		ValueType value;
-		if( get(locn, key, value) ) {
+		while(get(locn, key, value)){
 			other.insert(key, value);
-			//if( !other.insert(key, value) )
-			//return false;
-		}
-		while( seq(locn, key, value) ) {
-			other.insert(key, value);
-			//if( !other.insert(key, value) )
-			//return false;;
-		}
+			if( !seq(locn) )
+				break;
+		}		
 		return true;
 	}
 
@@ -605,17 +600,11 @@ public:
 	 *   \brief sequential access method
 	 *
 	 *   @param locn is the current SDBCursor, and will replaced next SDBCursor when route finished.
-	 *   @param rec is the item in SDBCursor locn.
 	 *   @param sdir is sequential access direction, for hash is unordered, we only implement forward case.
 	 *
 	 */
 
-	bool seq(SDBCursor& locn, DataType<KeyType,ValueType>& rec, ESeqDirection sdir=ESD_FORWARD)
-	{
-		return seq(locn, rec.key, rec.value, sdir);
-	}
-
-	bool seq(SDBCursor& locn, KeyType& key, ValueType& val, ESeqDirection sdir=ESD_FORWARD) {
+	bool seq(SDBCursor& locn, ESeqDirection sdir=ESD_FORWARD) {
 		flushCache_(locn);
 		if( sdir == ESD_FORWARD ) {
 			bucket_chain* sa = locn.first;
@@ -651,13 +640,8 @@ public:
 					a = 0;
 
 					ptr = p;
-					poff = ksize;
-					//izene_deserialization<KeyType> izd(p, ksize);
-					//izd.read_image(key);
+					poff = ksize;			
 					p += ksize;
-
-					//izene_deserialization<ValueType> izd1(p, vsize);
-					//izd1.read_image(val);
 					p += vsize;
 
 					memcpy(&ksize, p, sizeof(size_t));
@@ -671,15 +655,9 @@ public:
 							uint32_t idx = sdb_hashing::hash_fun(ptr, poff) & dmask_;
 							while( !entry_[++idx] ) {
 								if( idx >= directorySize_-1 )
-								break;
-								//return false;
+								break;								
 							}
-
-							load_(entry_[idx]);		
-							/*if (entry_[idx] && !entry_[idx]->isLoaded ) {
-								entry_[idx]->read(dataFile_);
-								++activeNum_;
-							}*/
+							load_(entry_[idx]);	
 
 							//get next bucket;
 							sa = entry_[idx];
@@ -693,11 +671,8 @@ public:
 
 				} else {
 					ptr = p;
-					poff = sizeof(KeyType);
-					memcpy(&key, p, sizeof(KeyType));
-
-					p += sizeof(KeyType);
-					memcpy(&val, p, sizeof(ValueType));
+					poff = sizeof(KeyType);	
+					p += sizeof(KeyType);					
 					p += sizeof(ValueType);
 
 					if( (unsigned int)(p-locn.first->str) >= (unsigned int)(locn.first->num)*(sizeof(KeyType) + sizeof(ValueType)) )
@@ -711,8 +686,7 @@ public:
 							uint32_t idx = sdb_hashing::hash_fun(ptr, poff) & dmask_;
 							while( !entry_[++idx] ) {
 								if( idx >= directorySize_-1 )
-								break;
-								//return false;
+								break;								
 							}
 
 							load_(entry_[idx]);						
@@ -725,13 +699,10 @@ public:
 						}
 					}
 				}
-
-				//cout<<"!!!! seq "<<key<<endl;
-				//rec.key = key;
-				//rec.value = val;
+			
 				locn.first = sa;
 				locn.second = p;
-				return get(locn, key, val);
+				return true;				
 			}
 		} else
 		{

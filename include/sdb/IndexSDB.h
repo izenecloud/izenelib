@@ -156,12 +156,12 @@ public:
 		SDBCursor locn;
 		_sdb.search(ikey, locn);
 		myDataType rec;
-		while (_sdb.seq(locn, rec, ESD_FORWARD) ) {
-			vector<ElementType> vdat = rec.get_value();
-			//rec.key.display();
-			for (size_t i=0; i<vdat.size(); i++)
-				result.push_back(vdat[i]);
-			//getValue(rec.get_key() );
+		while (_sdb.seq(locn, ESD_FORWARD) ) {
+			if (_sdb.get(locn, rec)) {
+				vector<ElementType> vdat = rec.get_value();
+				for (size_t i=0; i<vdat.size(); i++)
+					result.push_back(vdat[i]);
+			}
 		}
 	}
 	void getValueGreatEqual(const KeyType& key, vector<ElementType>& result) {
@@ -175,11 +175,13 @@ public:
 		SDBCursor locn;
 		_sdb.search(ikey, locn);
 		myDataType rec;
-		while (_sdb.seq(locn, rec, ESD_BACKWARD) ) {
-			vector<ElementType> vdat = rec.get_value();
-			//rec.key.display();
-			for (size_t i=0; i<vdat.size(); i++)
-				result.push_back(vdat[i]);
+		while (_sdb.seq(locn, ESD_BACKWARD) ) {
+			if (_sdb.get(locn, rec) ) {
+				vector<ElementType> vdat = rec.get_value();
+				//rec.key.display();
+				for (size_t i=0; i<vdat.size(); i++)
+					result.push_back(vdat[i]);
+			}
 		}
 
 	}
@@ -206,10 +208,11 @@ public:
 				}
 			}
 			//}
-			if (_sdb.seq(locn, idat, ESD_FORWARD) )
-				temp = idat.get_key();
-			else
-				break;
+			if (_sdb.seq(locn, ESD_FORWARD) )
+				if (_sdb.get(locn, idat))
+					temp = idat.get_key();
+				else
+					break;
 		}
 	}
 

@@ -169,8 +169,7 @@ public:
 	/**
 	 *  \brief if not found, insert them
 	 */
-	bool getValueWithInsert(const KeyType& key,
-			ValueType& value) {
+	bool getValueWithInsert(const KeyType& key, ValueType& value) {
 		if (getValue(key, value) )
 			return true;
 		else {
@@ -222,6 +221,16 @@ public:
 	}
 
 	/**
+	 * 	\brief get the next or prev item.
+	 *
+	 *  \locn when locn is default value, it will start with firt element when sdri=ESD_FORWARD
+	 *   and start with last element when sdir = ESD_BACKWARD
+	 */
+	bool seq(SDBCursor& locn, ESeqDirection sdir = ESD_FORWARD) {
+		return container_.seq(locn, sdir);
+	}
+
+	/**
 	 *   \brief get the cursor for given key
 	 *
 	 *   @param locn is cursor of key.
@@ -268,30 +277,6 @@ public:
 	}
 
 	/**
-	 * 	\brief get the next or prev item.
-	 *
-	 *  \locn when locn is default value, it will start with firt element when sdri=ESD_FORWARD
-	 *   and start with last element when sdir = ESD_BACKWARD
-	 */
-	bool seq(SDBCursor& locn, DataType<KeyType,ValueType> & rec,
-			ESeqDirection sdir=ESD_FORWARD) {
-		lock_.acquire_read_lock();
-		bool ret = container_.seq(locn, rec, sdir);
-		lock_.release_read_lock();
-		return ret;
-	}
-
-
-	bool seq(SDBCursor& locn, KeyType& key, ValueType& value,
-			ESeqDirection sdir=ESD_FORWARD) {
-		DataType<KeyType,ValueType> dat;
-		bool ret = seq(locn, dat, sdir);
-		key = dat.key;
-		value = dat.value;
-		return ret;
-	}
-
-	/**
 	 *	\brief It determines if an item exists in SequentialDB.
 	 *
 	 */
@@ -332,11 +317,11 @@ public:
 		KeyType rk;
 		lock_.acquire_read_lock();
 		if (container_.search(key, locn) ) {
-			if (container_.seq(locn, dat, ESD_FORWARD) ) {
-				rk = dat.get_key();
+			if (container_.seq(locn, ESD_FORWARD) ) {
+				get(locn, dat);
 			}
 			lock_.release_read_lock();
-			return rk;
+			return dat.key;
 		} else {
 			container_.get(locn, dat);
 			rk = dat.get_key();
@@ -354,7 +339,7 @@ public:
 		KeyType rk;
 		lock_.acquire_read_lock();
 		container_.search(key, locn);
-		if (container_.seq(locn, dat, ESD_BACKWARD) ) {
+		if (container_.seq(locn, ESD_BACKWARD) ) {
 			container_.get(locn, dat);
 			rk = dat.get_key();
 		}
@@ -434,9 +419,9 @@ public:
 		search(key, locn);
 		DataType<KeyType,ValueType> dat;
 		lock_.acquire_read_lock();
-		while (key.isPrefix(dat.get_key()) && container_.seq(locn, dat,
-				ESD_FORWARD) ) {
-			result.push_back(dat);
+		while (key.isPrefix(dat.get_key()) && container_.seq(locn, ESD_FORWARD) ) {
+			if (get(locn, dat) )
+				result.push_back(dat);
 		}
 		lock_.release_read_lock();
 	}
@@ -447,9 +432,9 @@ public:
 		DataType<KeyType,ValueType> dat;
 		get(locn, dat);
 		lock_.acquire_read_lock();
-		while (key.isPrefix(dat.get_key()) && container_.seq(locn, dat,
-				ESD_FORWARD) ) {
-			result.push_back(dat.get_key());
+		while (key.isPrefix(dat.get_key()) && container_.seq(locn, ESD_FORWARD) ) {
+			if (get(locn, dat))
+				result.push_back(dat.get_key());
 		}
 		lock_.release_read_lock();
 	}
@@ -543,9 +528,10 @@ template<typename KeyType, typename ValueType, typename LockType,
 		i++;
 	}
 	for (; i<count; i++) {
-		if (container_.seq(locn, rec) ) {
+		if (container_.seq(locn) ) {
 			//locn.first->display();
-			result.push_back(rec);
+			if (get(locn, rec) )
+				result.push_back(rec);
 		} else {
 			lock_.release_read_lock();
 			return false;
@@ -583,8 +569,9 @@ template<typename KeyType, typename ValueType, typename LockType,
 		}
 	}
 	for (; i<count; i++) {
-		if (container_.seq(locn, rec, ESD_BACKWARD) ) {
-			result.push_back(rec);
+		if (container_.seq(locn, ESD_BACKWARD) ) {
+			if (get(locn, rec))
+				result.push_back(rec);
 		} else {
 			lock_.release_read_lock();
 			return false;
@@ -609,20 +596,22 @@ template<typename KeyType, typename ValueType, typename LockType,
 	lock_.acquire_read_lock();
 	container_.search(lowKey, locn);
 	if (container_.get(locn, rec)) {
-	    if ( comp_(rec.get_key(), highKey) <= 0 ) {
-            result.push_back(rec);
-	    } else
-            return true;
+		if (comp_(rec.get_key(), highKey) <= 0) {
+			result.push_back(rec);
+		} else
+			return true;
 	}
 
 	//if lowKey not exist in database, it starts from the lowest key.
 	//container_.search(newLowKey, locn);
 	do {
-		if (container_.seq(locn, rec, ESD_FORWARD) ) {
-			if ( comp_(rec.get_key(), highKey) <= 0 ) {
-				result.push_back(rec);
-			} else {
-				break;
+		if (container_.seq(locn, ESD_FORWARD) ) {
+			if (get(locn, rec) ) {
+				if (comp_(rec.get_key(), highKey) <= 0) {
+					result.push_back(rec);
+				} else {
+					break;
+				}
 			}
 		} else {
 			lock_.release_read_lock();
