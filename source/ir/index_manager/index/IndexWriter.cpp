@@ -146,16 +146,13 @@ void IndexWriter::mergeAndWriteCachedIndex()
     *pCurDocCount_ = 0;
 }
 
-void IndexWriter::close()
+void IndexWriter::flush()
 {
-    if (!pIndexBarrelWriter_)
-        return;
     flushDocuments();
     BarrelInfo* pLastBarrel = pBarrelsInfo_->getLastBarrel();
     if (pLastBarrel == NULL)
         return;
     pLastBarrel->setBaseDocID(baseDocIDMap_);
-
     if (pIndexBarrelWriter_->cacheEmpty() == false)///memory index has not been written to database yet.
     {
         pIndexBarrelWriter_->close();
@@ -164,6 +161,14 @@ void IndexWriter::close()
     }
     pIndexer_->setDirty(true);
     pLastBarrel->setWriter(NULL);
+    pBarrelsInfo_->write(pIndexer_->getDirectory());
+}
+
+void IndexWriter::close()
+{
+    if (!pIndexBarrelWriter_)
+        return;
+    flush();
 }
 
 void IndexWriter::mergeAndWriteCachedIndex2()

@@ -395,8 +395,6 @@ void Indexer::close()
     }
     if (pBarrelsInfo_)
     {
-        if (dirty_)
-            pBarrelsInfo_->write(getDirectory());
         delete pBarrelsInfo_;
         pBarrelsInfo_ = NULL;
     }
@@ -459,10 +457,7 @@ int Indexer::removeCollection(collectionid_t colID)
 
 void Indexer::flush()
 {
-    pIndexWriter_->close();
-    pBarrelsInfo_->write(getDirectory());
-    delete pIndexWriter_;
-    pIndexWriter_ = new IndexWriter(this);
+    pIndexWriter_->flush();
     pIndexReader_->setDirty(true);
     pBTreeIndexer_->flush();
 }
