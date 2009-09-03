@@ -8,86 +8,18 @@
 #ifndef TERMREADER_H
 #define TERMREADER_H
 
-#include <string>
-
-#include <ir/index_manager/utility/system.h>
-#include <ir/index_manager/index/Term.h>
-#include <ir/index_manager/index/TermDocFreqs.h>
-#include <ir/index_manager/index/TermPositions.h>
-#include <ir/index_manager/index/TermInfo.h>
+#include <ir/index_manager/index/AbsTermReader.h>
 #include <ir/index_manager/index/TermIterator.h>
-#include <ir/index_manager/index/FieldInfo.h>
-#include <ir/index_manager/store/Directory.h>
 
 #include <3rdparty/am/rde_hashmap/hash_map.h>
+
+#include <string>
 
 
 NS_IZENELIB_IR_BEGIN
 
 namespace indexmanager{
-class TermIterator;
-class TermDocFreqs;
-class TermPositions;
 typedef rde::hash_map<termid_t, TermInfo > TERM_TABLE;
-
-/**
-* Base class of InMemoryTermReader and DiskTermReader
-*/
-class TermReader
-{
-public:
-    TermReader(void);
-    TermReader(FieldInfo* pFieldInfo_);
-    virtual ~TermReader(void);
-public:
-    /**
-    * open a index barrel
-    */
-    virtual void open(Directory* pDirectory,const char* barrelname,FieldInfo* pFieldInfo);
-
-    virtual TermIterator* termIterator(const char* field) = 0;
-    /**
-    * find the term in the vocabulary,return false if not found
-    */
-    virtual bool seek(Term* pTerm) = 0;
-
-    virtual TermDocFreqs*	termDocFreqs() = 0;
-
-    virtual TermPositions*	termPositions() = 0;
-
-    virtual freq_t docFreq(Term* term) = 0;
-
-    virtual void close() = 0;
-    /**
-     * clone the term reader
-     * @return term reader, MUST be deleted by caller.
-     */
-    virtual TermReader*	clone() = 0;
-
-protected:
-    virtual TermInfo* termInfo(Term* term)
-    {
-        return NULL;
-    };
-public:
-    FieldInfo* getFieldInfo()
-    {
-        return pFieldInfo;
-    }
-
-    void setFieldInfo(FieldInfo* pFieldInfo)
-    {
-        this->pFieldInfo = pFieldInfo;
-    }
-protected:
-    FieldInfo* pFieldInfo;	///reference to field info
-
-    friend class TermDocFreqs;
-    friend class MultiFieldTermReader;
-    friend class IndexReader;
-    friend class InMemoryTermReader;
-};
-
 
 /*
 struct TERM_TABLE

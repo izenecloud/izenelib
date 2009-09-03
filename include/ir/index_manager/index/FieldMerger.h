@@ -10,11 +10,11 @@
 #include <ir/index_manager/index/FieldInfo.h>
 #include <ir/index_manager/index/BarrelInfo.h>
 #include <ir/index_manager/index/Term.h>
-#include <ir/index_manager/index/TermIterator.h>
+#include <ir/index_manager/index/AbsTermIterator.h>
 #include <ir/index_manager/store/Directory.h>
 #include <ir/index_manager/utility/PriorityQueue.h>
 #include <ir/index_manager/index/PostingMerger.h>
-#include <ir/index_manager/index/TermReader.h>
+#include <ir/index_manager/index/AbsTermReader.h>
 
 #include <string>
 #include <vector>

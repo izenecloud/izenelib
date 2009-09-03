@@ -9,25 +9,17 @@
 #define INDEXER_H
 
 #include <ir/index_manager/utility/IndexManagerConfig.h>
-#include <ir/index_manager/adaptor/DocumentManagerClient.h>
 
 #include <ir/index_manager/index/CommonItem.h>
 #include <ir/index_manager/index/IndexWriter.h>
 #include <ir/index_manager/index/IndexReader.h>
 #include <ir/index_manager/index/BTreeIndex.h>
-#include <ir/index_manager/index/IndexingProgressStatus.h>
 #include <ir/index_manager/index/IndexerDocument.h>
 #include <ir/index_manager/store/Directory.h>
 
 #include <boost/noncopyable.hpp>
 #include <boost/thread.hpp>
 #include <boost/shared_ptr.hpp>
-
-#include <3rdparty/am/rde_hashmap/hash_map.h>
-
-#include <ext/hash_map>
-//#include <boost/unordered_map.hpp>
-#include <boost/serialization/hash_map.hpp>
 
 #include <map>
 #include <deque>
@@ -80,8 +72,6 @@ public:
 
     void flush();
     
-    bool getIndexingProgressbyCollectionId(collectionid_t colID, IndexingProgressStatus& currentProgress);
-
     bool getDocsByTermInProperties(termid_t termID, collectionid_t colID, std::vector<std::string> properties, std::deque<docid_t>& docIds);
 
     bool getDocsByTermInProperties(termid_t termID, collectionid_t colID, std::vector<std::string> properties, std::deque<CommonItem>& commonSet);
@@ -130,11 +120,6 @@ public:
     IndexManagerConfig* getIndexManagerConfig()
     {
         return pConfigurationManager_;
-    }
-
-    void setDocumentManagerClient(DocumentManagerClientType* pDocumentManager)
-    {
-        pDocumentManager_ = pDocumentManager;
     }
 
     ManagerType getIndexerType()
@@ -211,10 +196,6 @@ protected:
     IndexReader* pIndexReader_;
 
     IndexManagerConfig* pConfigurationManager_;
-
-    DocumentManagerClientType* pDocumentManager_;
-
-    std::map<collectionid_t, IndexingProgressStatus *> indexProgressStatusMap_;
 
     boost::mutex mutex_;
 

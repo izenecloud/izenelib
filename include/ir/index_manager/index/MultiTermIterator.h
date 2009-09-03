@@ -7,7 +7,7 @@
 #ifndef MULTITERMITERATOR_H
 #define MULTITERMITERATOR_H
 
-#include <ir/index_manager/index/TermIterator.h>
+#include <ir/index_manager/index/AbsTermIterator.h>
 #include <ir/index_manager/utility/Logger.h>
 #include <ir/index_manager/utility/PriorityQueue.h>
 #include <vector>

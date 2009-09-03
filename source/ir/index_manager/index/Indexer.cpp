@@ -44,7 +44,6 @@ Indexer::Indexer( ManagerType managerType)
         ,pIndexWriter_(NULL)
         ,pIndexReader_(NULL)
         ,pConfigurationManager_(NULL)
-        ,pDocumentManager_(NULL)
         ,pBTreeIndexer_(NULL)
         ,pBTreeIndexerClient_(NULL)
         ,pBTreeIndexerServer_(NULL)
@@ -65,9 +64,6 @@ Indexer::~Indexer()
     if (pConfigurationManager_) 
         delete pConfigurationManager_;
     pConfigurationManager_ = NULL;
-
-    if (pDocumentManager_)
-        delete pDocumentManager_;
 
     if(pAgent_)
     {
@@ -416,10 +412,6 @@ void Indexer::close()
         delete pBTreeIndexer_;
         pBTreeIndexer_ = NULL;
     }
-    for (map<collectionid_t, IndexingProgressStatus*>::iterator iter = indexProgressStatusMap_.begin();
-            iter != indexProgressStatusMap_.end(); ++iter)
-        delete iter->second;
-
 }
 
 
@@ -473,16 +465,6 @@ void Indexer::flush()
     pIndexWriter_ = new IndexWriter(this);
     pIndexReader_->setDirty(true);
     pBTreeIndexer_->flush();
-}
-
-bool Indexer::getIndexingProgressbyCollectionId(collectionid_t colID, IndexingProgressStatus& currentProgress)
-{
-    IndexingProgressStatus* pStatus = indexProgressStatusMap_[colID];
-    if (!pStatus)
-        return false;
-    pStatus->waitTime = (pStatus->timeElapsed / pStatus->indexedCount)*(pStatus->totalDocumentCount - pStatus->indexedCount);
-    currentProgress = *pStatus;
-    return true;
 }
 
 ///To be optimized: Using TermDocFreqs instead of TermPositions
@@ -754,15 +736,5 @@ void Indexer::optimizeIndex()
 
     pIndexWriter_->mergeIndex(pIndexMerger);
 }
-
-
-#ifdef SF1_TIME_CHECK
-// @by MyungHyun Lee (Kent) - Feb 6, 2009
-void Indexer::printDocumentProcessTimeCheck()
-{
-    wiselib::ProfilerGroup::instance().profilerInstance("IndexProcess").print("time.indexprocess");
-    pDocumentManager_->printDocumentProcessTime();
-}
-#endif
 
 
