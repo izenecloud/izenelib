@@ -153,9 +153,11 @@ template<typename T> void run_seq(T& cm) {
 	locn = cm.get_first_Locn();
 	MyDataType dat;
 	int a=0;
-	while (cm.seq(locn, dat) ) {
+	while (cm.get(locn, dat) ) {
 		a++;
 		result.push_back(dat);
+		if( cm.seq(locn) )
+			break;
 		if (trace)
 			cout<<dat.key<<endl;
 	}
@@ -252,7 +254,7 @@ int main(int argc, char *argv[]) {
 			sdb1.open();
 			run(sdb1);
 		}
-		else if(container == SKIPLIST) {
+		/*else if(container == SKIPLIST) {
 			SDB_SL sdb2(indexFile);
 			sdb2.setPageSize(50);
 			sdb2.setCacheSize(cacheSize);
@@ -264,7 +266,7 @@ int main(int argc, char *argv[]) {
 			sdb3.setDegree(degree);
 			sdb3.open();
 			run(sdb3);
-		}
+		}*/
 		else if(container == TCHASH) {
 			SDB_TCHASH sdb(indexFile);
 			sdb.open();

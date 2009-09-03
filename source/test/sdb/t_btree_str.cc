@@ -54,30 +54,32 @@ template<typename T> void run_insert(T& cm) {
 }
 
 bool isPrefix(string a, string b) {
-	return (b.substr(0, a.size()) == a  );
+	return (b.substr(0, a.size()) == a );
 }
 
 template<typename T> void run_getPrefix(T& cm) {
 	string str;
 	while (1) {
 		cin>>str;
-		string key ;
-		key = cm.getNearest(str);	
+		string key;
+		key = cm.getNearest(str);
 		bool yes = true;
 		SequentialDB<string>::SDBCursor cur;
 		cm.search(key, cur);
 		DataType<string> dat;
-		while ( ! isPrefix(key, str) ) {
-		   //key = cm.getPrev(key);	
-		   cm.seq(cur, dat, ESD_BACKWARD);
-		   key = dat.get_key();
-		   if( key[0] != str[0]){
-			   yes = false;
-			   break;
-		   }
-		}		
-        if(yes)
-        	cout<<key<<endl;
+		while ( !isPrefix(key, str) ) {
+			//key = cm.getPrev(key);	
+			cm.seq(cur, ESD_BACKWARD);
+			if (cm.get(cur, dat)) {
+				key = dat.get_key();
+				if (key[0] != str[0]) {
+					yes = false;
+					break;
+				}
+			}
+		}
+		if (yes)
+			cout<<key<<endl;
 		if (str.compare("exit") == 0)
 			break;
 	}

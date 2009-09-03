@@ -42,17 +42,17 @@ NS_IZENELIB_AM_BEGIN
  *
  */
 
-template<typename KeyType,typename ValueType=NullType,typename LockType=NullLock,
+template<typename KeyType,typename ValueType=NullType,typename LockType=NullLock, bool fixed = false,
 typename Alloc=std::allocator<DataType<KeyType,ValueType> >
 >class sdb_btree
 : public AccessMethod<KeyType, ValueType, LockType, Alloc>
-{	
-	enum{unloadbyRss = false};
-	enum{unloadAll = true};
-	enum{orderedCommit =true};
-	enum{quickFlush = false};
+{
+	enum {unloadbyRss = false};
+	enum {unloadAll = true};
+	enum {orderedCommit =true};
+	enum {quickFlush = false};
 public:
-	typedef sdb_node_<KeyType, ValueType, LockType, Alloc> sdb_node;
+	typedef sdb_node_<KeyType, ValueType, LockType, fixed, Alloc> sdb_node;
 	typedef std::pair<sdb_node*, size_t> SDBCursor;
 public:
 	/**
@@ -61,7 +61,7 @@ public:
 	 * \param fileName is the name for data file if fileName ends with '#', we set b-tree mode to
 	 *  not delay split.
 	 */
-	sdb_btree(const std::string& fileName = "sequentialdb.dat#");
+	sdb_btree(const std::string& fileName = "sdb_btree.dat#");
 	virtual ~sdb_btree();
 
 	/**
@@ -188,6 +188,8 @@ public:
 
 	template<typename AM>
 	bool dump(AM& other) {
+		if (!is_open() )
+		open();
 		if( !other.is_open() )
 		{
 			if( !other.open() )
@@ -196,13 +198,10 @@ public:
 		SDBCursor locn = get_first_locn();
 		KeyType key;
 		ValueType value;
-		if( get(locn, key, value) ) {
-			if( !other.insert(key, value) )
-			return false;
-		}
-		while( seq(locn, key, value) ) {
-			if( !other.insert(key, value) )
-			return false;;
+		while(get(locn, key, value)) {
+			other.insert(key, value);
+			if( !seq(locn) )
+				break;
 		}
 		return true;
 	}
@@ -303,8 +302,20 @@ public:
 		search(KeyType(), locn);
 		return locn;
 	}
+	
+	SDBCursor get_last_locn()
+	{
+		sdb_node* node = _root;
+		while( !node->isLeaf ){
+			node = node->loadChild(node->objCount,_dataFile);
+		}		
+		return SDBCursor(node, node->objCount);
+	}
+	
 
-	bool seq(SDBCursor& locn, KeyType& key, ValueType& value, ESeqDirection sdir=ESD_FORWARD);
+	bool seq(SDBCursor& locn, ESeqDirection sdir=ESD_FORWARD);
+
+	//bool seq(SDBCursor& locn, KeyType& key, ValueType& value, ESeqDirection sdir=ESD_FORWARD);
 
 	/**
 	 * 	\brief get the next or prev item.
@@ -312,11 +323,11 @@ public:
 	 *  \locn when locn is default value, it will start with firt element when sdri=ESD_FORWARD
 	 *   and start with last element when sdir = ESD_BACKWARD
 	 */
-	bool
-	seq(SDBCursor& locn, DataType<KeyType,ValueType>& rec,
-			ESeqDirection sdir = ESD_FORWARD) {
-		return seq(locn, rec.key, rec.value, sdir);
-	}
+	//bool
+	//seq(SDBCursor& locn, DataType<KeyType,ValueType>& rec,
+	//		ESeqDirection sdir = ESD_FORWARD) {
+	//	return seq(locn, rec.key, rec.value, sdir);
+	//}
 
 	/**
 	 * 	\brief write all the items in memory to file.
@@ -387,19 +398,18 @@ private:
 	LockType _fileLock;
 	size_t _activeNodeNum;
 	size_t _dirtyPageNum;
-	
+
 private:
 	unsigned long _initRss;
 	unsigned int _flushCount;
-	
-    inline void _setDirty(sdb_node* node){  
-    	if( !node->isDirty )    {		
-    		++_dirtyPageNum;
-    		node->setDirty(true);
-    	}
-    }
-	
-	
+
+	inline void _setDirty(sdb_node* node) {
+		if( !node->isDirty ) {
+			++_dirtyPageNum;
+			node->setDirty(true);
+		}
+	}
+
 	void _flushCache() {
 		if( unloadbyRss ) {
 			//static unsigned int count;
@@ -473,7 +483,7 @@ private:
 		izenelib::util::ClockTimer timer;
 		if( !quickFlush )
 		commit();
-		
+
 #ifdef DEBUG
 		printf("commit elapsed 1 ( actually ): %lf seconds\n",
 				timer.elapsed() );
@@ -516,7 +526,7 @@ private:
 					if( popNode->isDirty && quickFlush)
 					_flush(popNode, _dataFile);
 
-					popNode->unload();					
+					popNode->unload();
 				}
 
 				if (popNode && popNode->isLoaded && !popNode->isLeaf) {
@@ -572,8 +582,8 @@ private:
 	void _split3Leaf(sdb_node* parent, size_t childNum);
 	sdb_node* _merge(sdb_node* &parent, size_t objNo);
 
-	bool _seqNext(SDBCursor& locn, KeyType& key, ValueType& value);
-	bool _seqPrev(SDBCursor& locn, KeyType& key, ValueType& value);
+	bool _seqNext(SDBCursor& locn);
+	bool _seqPrev(SDBCursor& locn);
 	void _flush(sdb_node* node, FILE* f);
 	bool _delete(sdb_node* node, const KeyType& key);
 
@@ -608,8 +618,8 @@ private:
 };
 
 // The constructor simply sets up the different data members
-template<typename KeyType, typename ValueType, typename LockType,
-		typename Alloc> sdb_btree< KeyType, ValueType, LockType, Alloc>::sdb_btree(
+template<typename KeyType, typename ValueType, typename LockType, bool fixed,
+		typename Alloc> sdb_btree< KeyType, ValueType, LockType, fixed, Alloc>::sdb_btree(
 		const std::string& fileName) {
 	_root = 0;
 	_isDelaySplit = true;
@@ -627,8 +637,7 @@ template<typename KeyType, typename ValueType, typename LockType,
 	_activeNodeNum = 0;
 	_dirtyPageNum = 0;
 
-	if( unloadbyRss )
-	{
+	if (unloadbyRss) {
 		unsigned long vm = 0;
 		unsigned long rlimit;
 		ProcMemInfo::getProcMemInfo(vm, _initRss, rlimit);
@@ -637,14 +646,14 @@ template<typename KeyType, typename ValueType, typename LockType,
 
 }
 
-template<typename KeyType, typename ValueType, typename LockType,
-		typename Alloc> sdb_btree< KeyType, ValueType, LockType, Alloc>::~sdb_btree() {
+template<typename KeyType, typename ValueType, typename LockType, bool fixed,
+		typename Alloc> sdb_btree< KeyType, ValueType, LockType, fixed, Alloc>::~sdb_btree() {
 	close();
 }
 
-template<typename KeyType, typename ValueType, typename LockType,
-		typename Alloc> bool sdb_btree< KeyType, ValueType, LockType, Alloc>::search(
-		const KeyType& key, SDBCursor& locn) {
+template<typename KeyType, typename ValueType, typename LockType, bool fixed,
+		typename Alloc> bool sdb_btree< KeyType, ValueType, LockType, fixed,
+		Alloc>::search(const KeyType& key, SDBCursor& locn) {
 	//do Flush, when cache is full
 	_flushCache();
 
@@ -679,10 +688,8 @@ template<typename KeyType, typename ValueType, typename LockType,
 			locn.second = low;
 
 			if (low >= (int)temp->objCount) {
-				locn.second = low - 1;
-				KeyType k;
-				ValueType v;
-				if ( false == seq(locn, k, v) )
+				locn.second = low - 1;				
+				if ( false == seq(locn) )
 					++locn.second;
 
 			}
@@ -696,9 +703,9 @@ template<typename KeyType, typename ValueType, typename LockType,
 // Splits a child node, creating a new node. The median value from the
 // full child is moved into the *non-full* parent. The keys above the
 // median are moved from the full child to the new child.
-template<typename KeyType, typename ValueType, typename LockType,
-		typename Alloc> void sdb_btree< KeyType, ValueType, LockType, Alloc>::_split(
-		sdb_node* parent, size_t childNum, sdb_node* child) {
+template<typename KeyType, typename ValueType, typename LockType, bool fixed,
+		typename Alloc> void sdb_btree< KeyType, ValueType, LockType, fixed,
+		Alloc>::_split(sdb_node* parent, size_t childNum, sdb_node* child) {
 
 	//display();
 	size_t i = 0;
@@ -754,9 +761,9 @@ template<typename KeyType, typename ValueType, typename LockType,
 	//parent->setDirty(1);
 }
 //split two full leaf nodes into tree 2/3 ful nodes.
-template<typename KeyType, typename ValueType, typename LockType,
-		typename Alloc> void sdb_btree< KeyType, ValueType, LockType, Alloc>::_split3Leaf(
-		sdb_node* parent, size_t childNum) {
+template<typename KeyType, typename ValueType, typename LockType, bool fixed,
+		typename Alloc> void sdb_btree< KeyType, ValueType, LockType, fixed,
+		Alloc>::_split3Leaf(sdb_node* parent, size_t childNum) {
 
 	size_t i = 0;
 	size_t count1 = (_sfh.maxKeys<<1)/3;
@@ -823,16 +830,16 @@ template<typename KeyType, typename ValueType, typename LockType,
 	_setDirty(child2);
 	_setDirty(newChild);
 	_setDirty(parent);
-	
+
 	//child1->setDirty(1);
 	//child2->setDirty(1);
 	//newChild->setDirty(1);
 	//parent->setDirty(1);
 }
 
-template<typename KeyType, typename ValueType, typename LockType,
-		typename Alloc> sdb_node_<KeyType, ValueType, LockType, Alloc>* sdb_btree<
-		KeyType, ValueType, LockType, Alloc>::_merge(sdb_node* &parent,
+template<typename KeyType, typename ValueType, typename LockType, bool fixed,
+		typename Alloc> sdb_node_<KeyType, ValueType, LockType, fixed, Alloc>* sdb_btree<
+		KeyType, ValueType, LockType, fixed, Alloc>::_merge(sdb_node* &parent,
 		size_t objNo) {
 
 	size_t i = 0;
@@ -893,9 +900,9 @@ template<typename KeyType, typename ValueType, typename LockType,
 	return c1;
 }
 
-template<typename KeyType, typename ValueType, typename LockType,
-		typename Alloc> bool sdb_btree< KeyType, ValueType, LockType, Alloc>::insert(
-		const KeyType& key, const ValueType& value) {
+template<typename KeyType, typename ValueType, typename LockType, bool fixed,
+		typename Alloc> bool sdb_btree< KeyType, ValueType, LockType, fixed,
+		Alloc>::insert(const KeyType& key, const ValueType& value) {
 	_flushCache();
 	if (_root->objCount >= _sfh.maxKeys) {
 		// Growing the tree happens by creating a new
@@ -1102,9 +1109,9 @@ template<typename KeyType, typename ValueType, typename LockType,
 }
 
 // Write all nodes in the tree to the file given.
-template<typename KeyType, typename ValueType, typename LockType,
-		typename Alloc> void sdb_btree< KeyType, ValueType, LockType, Alloc>::_flush(
-		sdb_node* node, FILE* f) {
+template<typename KeyType, typename ValueType, typename LockType, bool fixed,
+		typename Alloc> void sdb_btree< KeyType, ValueType, LockType, fixed,
+		Alloc>::_flush(sdb_node* node, FILE* f) {
 
 	// Bug out if the file is not valid
 	if (!f) {
@@ -1132,8 +1139,8 @@ template<typename KeyType, typename ValueType, typename LockType,
 
 		CMIT it = toBeWrited.begin();
 		for (; it != toBeWrited.end(); it++) {
-			if ( it->second->write(f) )
-				--_dirtyPageNum; 
+			if (it->second->write(f) )
+				--_dirtyPageNum;
 		}
 
 	} else {
@@ -1143,8 +1150,8 @@ template<typename KeyType, typename ValueType, typename LockType,
 		while (!qnode.empty()) {
 			sdb_node* popNode = qnode.front();
 			if (popNode && popNode->isLoaded) {
-				if( popNode->write(f) )
-					--_dirtyPageNum; 
+				if (popNode->write(f) )
+					--_dirtyPageNum;
 			}
 			qnode.pop();
 			if (popNode && !popNode->isLeaf) {
@@ -1161,9 +1168,9 @@ template<typename KeyType, typename ValueType, typename LockType,
 
 // Internal delete function, used once we've identified the
 // location of the node from which a key is to be deleted.
-template<typename KeyType, typename ValueType, typename LockType,
-		typename Alloc> bool sdb_btree< KeyType, ValueType, LockType, Alloc>::_delete(
-		sdb_node* nd, const KeyType& k) {
+template<typename KeyType, typename ValueType, typename LockType, bool fixed,
+		typename Alloc> bool sdb_btree< KeyType, ValueType, LockType, fixed,
+		Alloc>::_delete(sdb_node* nd, const KeyType& k) {
 	bool ret = false;
 
 	// Find the object position. op will have the position
@@ -1391,7 +1398,7 @@ template<typename KeyType, typename ValueType, typename LockType,
 
 					_setDirty(node);
 					//node->setDirty(true);				
-					goto L0;				
+					goto L0;
 				}
 
 				// Case 3b: All siblings have _minDegree - 1 keys
@@ -1400,7 +1407,7 @@ template<typename KeyType, typename ValueType, typename LockType,
 					assert(node->children[op.first+1]->objCount == _minDegree-1);
 					sdb_node* mergedChild = _merge(node, op.first);
 					node = mergedChild;
-					goto L0;					
+					goto L0;
 				}
 			}
 		}
@@ -1412,8 +1419,9 @@ template<typename KeyType, typename ValueType, typename LockType,
 // and see if it exists. If it doesn't exist, start a database
 // from scratch. If it does exist, load the root node into
 // memory.
-template<typename KeyType, typename ValueType, typename LockType,
-		typename Alloc> bool sdb_btree< KeyType, ValueType, LockType, Alloc>::open() {
+template<typename KeyType, typename ValueType, typename LockType, bool fixed,
+		typename Alloc> bool sdb_btree< KeyType, ValueType, LockType, fixed,
+		Alloc>::open() {
 
 	if (_isOpen)
 		return false;
@@ -1476,7 +1484,7 @@ template<typename KeyType, typename ValueType, typename LockType,
 
 		_root = new sdb_node(_sfh, _fileLock, _activeNodeNum);
 		_root->fpos = _sfh.rootPos;
-		_root->read(_dataFile);	
+		_root->read(_dataFile);
 		ret = true;
 
 	}
@@ -1485,9 +1493,9 @@ template<typename KeyType, typename ValueType, typename LockType,
 }
 
 // This is the external delete function.
-template<typename KeyType, typename ValueType, typename LockType,
-		typename Alloc> bool sdb_btree< KeyType, ValueType, LockType, Alloc>::del(
-		const KeyType& key) {
+template<typename KeyType, typename ValueType, typename LockType, bool fixed,
+		typename Alloc> bool sdb_btree< KeyType, ValueType, LockType, fixed,
+		Alloc>::del(const KeyType& key) {
 
 	_flushCache();
 	// Determine if the root node is empty.
@@ -1519,9 +1527,9 @@ template<typename KeyType, typename ValueType, typename LockType,
 
 // This method retrieves a record from the database
 // given its location.
-template<typename KeyType, typename ValueType, typename LockType,
-		typename Alloc> bool sdb_btree< KeyType, ValueType, LockType, Alloc>::get(
-		const SDBCursor& locn, KeyType& key, ValueType& value) {
+template<typename KeyType, typename ValueType, typename LockType, bool fixed,
+		typename Alloc> bool sdb_btree< KeyType, ValueType, LockType, fixed,
+		Alloc>::get(const SDBCursor& locn, KeyType& key, ValueType& value) {
 	if ((sdb_node*)locn.first == 0 || locn.second == (size_t)-1 || locn.second
 			>= locn.first->objCount) {
 		return false;
@@ -1531,9 +1539,9 @@ template<typename KeyType, typename ValueType, typename LockType,
 	return true;
 }
 
-template<typename KeyType, typename ValueType, typename LockType,
-		typename Alloc> bool sdb_btree< KeyType, ValueType, LockType, Alloc>::update(
-		const KeyType& key, const ValueType& value) {
+template<typename KeyType, typename ValueType, typename LockType, bool fixed,
+		typename Alloc> bool sdb_btree< KeyType, ValueType, LockType, fixed,
+		Alloc>::update(const KeyType& key, const ValueType& value) {
 	SDBCursor locn(NULL, (size_t)-1);
 	if (search(key, locn) ) {
 		locn.first->values[locn.second] = value;
@@ -1549,9 +1557,9 @@ template<typename KeyType, typename ValueType, typename LockType,
 // This method finds the record following the one at the
 // location given as locn, and copies the record into rec.
 // The direction can be either forward or backward.
-template<typename KeyType, typename ValueType, typename LockType,
-		typename Alloc> bool sdb_btree< KeyType, ValueType, LockType, Alloc>::seq(
-		SDBCursor& locn, KeyType& key, ValueType& value, ESeqDirection sdir) {
+template<typename KeyType, typename ValueType, typename LockType, bool fixed,
+		typename Alloc> bool sdb_btree< KeyType, ValueType, LockType, fixed,
+		Alloc>::seq(SDBCursor& locn, ESeqDirection sdir) {
 	if (_sfh.numItems <=0) {
 		return false;
 	}
@@ -1559,9 +1567,9 @@ template<typename KeyType, typename ValueType, typename LockType,
 	_flushCache(locn);
 	switch (sdir) {
 	case ESD_FORWARD:
-		return _seqNext(locn, key, value);
+		return _seqNext(locn);
 	case ESD_BACKWARD:
-		return _seqPrev(locn, key, value);
+		return _seqPrev(locn);
 	}
 
 	return false;
@@ -1569,11 +1577,15 @@ template<typename KeyType, typename ValueType, typename LockType,
 
 // Find the next item in the database given a location. Return
 // the subsequent item in rec.
-template<typename KeyType, typename ValueType, typename LockType,
-		typename Alloc> bool sdb_btree< KeyType, ValueType, LockType, Alloc>::_seqNext(
-		SDBCursor& locn, KeyType& key, ValueType& value) {
+template<typename KeyType, typename ValueType, typename LockType, bool fixed,
+		typename Alloc> bool sdb_btree< KeyType, ValueType, LockType, fixed,
+		Alloc>::_seqNext(SDBCursor& locn) {
 	// Set up a couple of convenience values
+
 	bool ret = false;
+	//if( !get(locn, key, value) )	
+	//	return false;
+
 	sdb_node* node = locn.first;
 	size_t lastPos = locn.second;
 	bool goUp = false; // indicates whether or not we've exhausted a node.
@@ -1590,8 +1602,6 @@ template<typename KeyType, typename ValueType, typename LockType,
 		if ((sdb_node*)node == 0) {
 			return false;
 		}		
-		key = node->keys[0];
-		value = node->values[0];
 		locn.first = node;
 		locn.second = 0;
 		return true;
@@ -1604,9 +1614,7 @@ template<typename KeyType, typename ValueType, typename LockType,
 	// going back up the tree.
 	if (node->isLeaf) {
 		// didn't visit the last node last time.
-		if (lastPos < node->objCount - 1) {	
-			key = node->keys[lastPos + 1];
-			value = node->values[lastPos + 1];
+		if (lastPos < node->objCount - 1) {			
 			locn.second = lastPos + 1;
 			return true;
 		}
@@ -1622,9 +1630,7 @@ template<typename KeyType, typename ValueType, typename LockType,
 		}
 		if ((sdb_node*)node == 0) {
 			return false;
-		}	
-		key = node->keys[0];
-		value = node->values[0];
+		}		
 		locn.first = node;
 		locn.second = 0;
 		return true;
@@ -1642,21 +1648,20 @@ template<typename KeyType, typename ValueType, typename LockType,
 		if ((sdb_node*)node != 0) {
 			locn.first = node;
 			locn.second = childNo;
-			ret = true;
-			key = node->keys[childNo];
-			value = node->values[childNo];	
+			return true;			
 		}
 	}
+	//reach the last locn
+	++locn.second;
 	return ret;
 }
 
 // Find the previous item in the database given a location. Return
 // the item in rec.
-template<typename KeyType, typename ValueType, typename LockType,
-		typename Alloc> bool sdb_btree< KeyType, ValueType, LockType, Alloc>::_seqPrev(
-		SDBCursor& locn, KeyType& key, ValueType& value) {
+template<typename KeyType, typename ValueType, typename LockType, bool fixed,
+		typename Alloc> bool sdb_btree< KeyType, ValueType, LockType, fixed,
+		Alloc>::_seqPrev(SDBCursor& locn) {
 	// Set up a couple of convenience values
-
 	bool ret = false;
 	sdb_node* node = locn.first;
 	size_t lastPos = locn.second;
@@ -1680,9 +1685,7 @@ template<typename KeyType, typename ValueType, typename LockType,
 		locn.second = node->objCount - 1;
 
 		if (locn.second == size_t(-1) )
-			return false;
-		key = node->keys[locn.second];
-		value = node->values[locn.second];	
+			return false;	
 		return true;
 	}
 
@@ -1694,11 +1697,7 @@ template<typename KeyType, typename ValueType, typename LockType,
 	if (node->isLeaf) {
 		// didn't visit the last node last time.
 		if (lastPos> 0) {
-			locn.second = lastPos - 1;
-			key = node->keys[locn.second];
-			value = node->values[locn.second];
-			//rec = DataType<KeyType, ValueType>(node->keys[locn.second],
-			//		node->values[locn.second]);
+			locn.second = lastPos - 1;	
 			return true;
 		}
 		goUp = (lastPos == 0);
@@ -1716,9 +1715,7 @@ template<typename KeyType, typename ValueType, typename LockType,
 			return false;
 		}
 		locn.first = node;
-		locn.second = node->objCount - 1;
-		key = node->keys[locn.second];
-		value = node->values[locn.second];
+		locn.second = node->objCount - 1;	
 		return true;
 	}
 
@@ -1734,12 +1731,12 @@ template<typename KeyType, typename ValueType, typename LockType,
 		}
 		if ((sdb_node*)node != 0) {
 			locn.first = node;
-			locn.second = childNo - 1;
-			key = node->keys[locn.second];
-			value = node->values[locn.second];
-			ret = true;
+			locn.second = childNo - 1;			
+			return true;
 		}
 	}
+	//reach the fist locn
+	--locn.second = -1;
 	return ret;
 }
 
@@ -1747,8 +1744,9 @@ template<typename KeyType, typename ValueType, typename LockType,
 // then unloads the root node' children. So not only do we commit
 // everything to file, we also free up most memory previously
 // allocated.
-template<typename KeyType, typename ValueType, typename LockType,
-		typename Alloc> void sdb_btree< KeyType, ValueType, LockType, Alloc>::flush() {
+template<typename KeyType, typename ValueType, typename LockType, bool fixed,
+		typename Alloc> void sdb_btree< KeyType, ValueType, LockType, fixed,
+		Alloc>::flush() {
 
 	//write back the fileHead and dirtypage
 	commit();
@@ -1762,8 +1760,7 @@ template<typename KeyType, typename ValueType, typename LockType,
 		}
 	}
 
-	if( unloadbyRss )
-	{
+	if (unloadbyRss) {
 		unsigned long vm = 0;
 		unsigned long rlimit;
 		ProcMemInfo::getProcMemInfo(vm, _initRss, rlimit);

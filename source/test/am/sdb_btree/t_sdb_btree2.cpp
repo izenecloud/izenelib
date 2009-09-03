@@ -3,7 +3,7 @@
 #include <ctime>
 //#include <time.h>
 
-#include <am/sdb_btree/sdb_btree.h>
+#include <am/sdb_btree/sdb_fixedbtree.h>
 #include "MakeKey.h"
 
 using namespace std;
@@ -24,7 +24,7 @@ typedef MakeKey KeyType;
 typedef NullType ValueType;
 typedef izenelib::am::DataType<KeyType, NullType> DataType;
 typedef izenelib::am::DataType<KeyType, NullType> myDataType;
-typedef izenelib::am::sdb_btree<KeyType, NullType> SDB_BTREE;
+typedef izenelib::am::sdb_fixedbtree<KeyType, NullType> SDB_BTREE;
 
 template<typename T> void insert_test(T& tb) {
 	clock_t start, finish;
@@ -255,10 +255,10 @@ template<typename T> void run(T& tb) {
 		//search_test(tb);
 	} else {
 		insert_test(tb);
-		// search_test(tb);
-		// seq_test(tb);
-		// delete_test(tb);
-		// search_test(tb);
+		//search_test(tb);
+	    //seq_test(tb);
+	    //delete_test(tb);
+		//search_test(tb);
 	}
 }
 

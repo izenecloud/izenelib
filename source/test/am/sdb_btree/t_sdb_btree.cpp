@@ -4,6 +4,7 @@
 //#include <time.h>
 
 #include <am/sdb_btree/sdb_btree.h>
+#include <am/sdb_btree/sdb_fixedbtree.h>
 #include <util/izene_log.h>
 
 using namespace std;
@@ -25,6 +26,7 @@ typedef NullType ValueType;
 typedef izenelib::am::DataType<KeyType, NullType> DataType;
 typedef izenelib::am::DataType<KeyType, NullType> myDataType;
 typedef izenelib::am::sdb_btree<KeyType, NullType> SDB_BTREE;
+//typedef izenelib::am::sdb_fixedbtree<KeyType, NullType> SDB_BTREE;
 
 template<typename T> void insert_test(T& tb) {
 	clock_t start, finish;
@@ -232,14 +234,18 @@ template<typename T> void seq_test(T& tb) {
 	locn = tb.get_first_locn();
 	myDataType dat;
 	int a=0;
-	while (tb.seq(locn, dat) ) {
+	while (tb.get(locn, dat) ) {
+		//cout<<dat.key<<endl;
 		a++;
+		if( !tb.seq(locn) );
+			//break;
 		if (trace)
 			cout<<dat.key<<endl;
 		DLOG_EVERY_N(INFO, 100000) << getMemInfo();
 		LOG_IF(INFO, (a > 5000000 ) )<<"!!!!!!!! " <<dat.key<<endl;
 	}
-
+	cout<<"end at "<<dat.key<<endl;
+	//cout<<dat.key<<endl;
 	tb.flush();
 	finish = clock();
 	printf("\nIt takes %f seconds to sequential Access %d random data! \n",
