@@ -285,7 +285,6 @@ void OrderPreservingTermReaderImpl::open(Directory* pDirectory,const char* barre
     ///begin read vocabulary descriptor
     nVocLength = pVocInput->readLong();
     nTermCount = (int32_t)pVocInput->readLong(); ///get total term count
-    cout<<"nTermCount "<<nTermCount<<endl;
     ///end read vocabulary descriptor
     pVocInput->seek(voffset - nVocLength);///seek to begin of vocabulary data
     pTermTable = new ORDERED_TERM_TABLE;//[nTermCount];
@@ -293,11 +292,9 @@ void OrderPreservingTermReaderImpl::open(Directory* pDirectory,const char* barre
     fileoffset_t dfiP = 0;
     termid_t tid = 0;
     ///read term table
-    cout<<"terms for "<<barrelname<<endl;
     for (int32_t i = 0;i < nTermCount;i++)
     {
         tid = pVocInput->readInt();
-	cout<<tid<<endl;
         //pTermTable[i].tid = tid;
         df = pVocInput->readInt();
         dfiP = pVocInput->readLong();

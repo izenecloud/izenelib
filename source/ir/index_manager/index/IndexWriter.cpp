@@ -191,6 +191,7 @@ void IndexWriter::mergeAndWriteCachedIndex2()
 
 void IndexWriter::justWriteCachedIndex()
 {
+///TODO
     BarrelInfo* pLastBarrel = pBarrelsInfo_->getLastBarrel();
     pLastBarrel->setBaseDocID(baseDocIDMap_);
 
@@ -225,11 +226,11 @@ void IndexWriter::indexDocument(IndexerDocument* pDoc)
         createBarrelWriter();
     if (pIndexBarrelWriter_->cacheFull())
     {
-         //if(pIndexer_->getIndexerType() == MANAGER_TYPE_DATAPROCESS)
+         if(pIndexer_->getIndexerType() == MANAGER_TYPE_DATAPROCESS)
             justWriteCachedIndex();
-        //else
+        else
             ///merge index
-            //mergeAndWriteCachedIndex2();
+            mergeAndWriteCachedIndex2();
         baseDocIDMap_.clear();
         DocId uniqueID;
         pDoc->getDocId(uniqueID);

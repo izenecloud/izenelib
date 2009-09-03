@@ -142,7 +142,6 @@ void PostingMerger::mergeWith(OnDiskPosting* pOnDiskPosting)
         pDOutput->write(pDInput,writeSize);
 
     chunkDesc.length += (pDOutput->getFilePointer() - oldDOff);
-	cout<<"pposting "<<pOnDiskPosting->nPPostingLength<<endl;
 
     ///write position posting
     pPOutput->write(pPInput,pOnDiskPosting->nPPostingLength);
@@ -184,19 +183,6 @@ fileoffset_t PostingMerger::endMerge()
     pDOutput->writeVLong(chunkDesc.length);	///<ChunkLength(VInt64)>
     pDOutput->writeVInt(chunkDesc.lastdocid);	///<LastDocID(VInt32)>
     ///end write posting descriptor
-	cout<<"dposting "<<postingDesc.length<<endl;
-
-
-    int realLength = 0;
-    realLength+= pDOutput->getVLongLength(postingDesc.length);///<PostingLength(VInt64)>
-    realLength+= pDOutput->getVIntLength(postingDesc.df); 						///<DF(VInt32)>
-    realLength+= pDOutput->getVIntLength(postingDesc.tdf);						///<TDF(VInt32)>
-    realLength+= pDOutput->getVLongLength(postingDesc.tdf);						///<CTF(VInt64)>
-    realLength+= pDOutput->getVLongLength(postingDesc.ctf);						///<PositionPointer(VInt64)>
-    realLength+= pDOutput->getVIntLength(1); 							///<ChunkCount(VInt32)>
-    realLength+= pDOutput->getVLongLength(chunkDesc.length);///<ChunkLength(VInt64)>
-    realLength+= pDOutput->getVIntLength(chunkDesc.lastdocid);					///<LastDocID(VInt32)>
-    cout<<"reallength "<<realLength<<endl;
 
     return postingoffset;
 }
