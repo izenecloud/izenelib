@@ -1,23 +1,23 @@
-#include <ir/index_manager/index/OptimizeMerger.h>
+#include <ir/index_manager/index/OfflineIndexMerger.h>
 
 using namespace izenelib::ir::indexmanager;
 
-OptimizeMerger::OptimizeMerger(Directory* pSrDirectory, unsigned int numBarrels)
+OfflineIndexMerger::OfflineIndexMerger(Directory* pSrDirectory, unsigned int numBarrels)
         :IndexMerger(pSrDirectory)
 {
     string s = "_mid_0_";
     pMergeBarrel_ = new MergeBarrel(s.c_str(),numBarrels+5);
 }
 
-OptimizeMerger::~OptimizeMerger(void)
+OfflineIndexMerger::~OfflineIndexMerger(void)
 {
     delete pMergeBarrel_;
 }
-void OptimizeMerger::addBarrel(MergeBarrelEntry* pEntry)
+void OfflineIndexMerger::addBarrel(MergeBarrelEntry* pEntry)
 {
     pMergeBarrel_->put(pEntry);
 }
-void OptimizeMerger::endMerge()
+void OfflineIndexMerger::endMerge()
 {
     mergeBarrel(pMergeBarrel_);
 }

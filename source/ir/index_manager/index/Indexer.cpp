@@ -1,7 +1,7 @@
 #include <ir/index_manager/index/Indexer.h>
 #include <ir/index_manager/index/TermReader.h>
 #include <ir/index_manager/index/IndexMerger.h>
-#include <ir/index_manager/index/OptimizeMerger.h>
+#include <ir/index_manager/index/OfflineIndexMerger.h>
 #include <ir/index_manager/index/ParallelTermPosition.h>
 #include <ir/index_manager/index/Posting.h>
 #include <ir/index_manager/index/ForwardIndexReader.h>
@@ -725,7 +725,7 @@ bool Indexer::getDocsByPropertyValueSubString(collectionid_t colID, string prope
 
 void Indexer::optimizeIndex()
 {
-    IndexMerger* pIndexMerger = new OptimizeMerger(pDirectory_, pBarrelsInfo_->getBarrelCount());
+    IndexMerger* pIndexMerger = new OfflineIndexMerger(pDirectory_, pBarrelsInfo_->getBarrelCount());
 
     pIndexMerger->setParam(pConfigurationManager_->mergeStrategy_.param_.c_str());
 

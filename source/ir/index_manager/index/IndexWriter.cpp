@@ -1,8 +1,8 @@
 #include <ir/index_manager/index/IndexWriter.h>
 #include <ir/index_manager/index/Indexer.h>
 #include <ir/index_manager/index/IndexMerger.h>
-#include <ir/index_manager/index/DBTIndexMerger.h>
-#include <ir/index_manager/index/OptimizeMerger.h>
+#include <ir/index_manager/index/OnlineIndexMerger.h>
+#include <ir/index_manager/index/OfflineIndexMerger.h>
 #include <ir/index_manager/index/IndexBarrelWriter.h>
 #include <ir/index_manager/index/IndexerPropertyConfig.h>
 
@@ -77,7 +77,7 @@ void IndexWriter::createMerger()
 {
     if (!strcasecmp(pIndexer_->getIndexManagerConfig()->mergeStrategy_.strategy_.c_str(),"online"))
     {
-        pIndexMerger_ = new DBTIndexMerger(pIndexer_->getDirectory());
+        pIndexMerger_ = new OnlineIndexMerger(pIndexer_->getDirectory());
         pIndexMerger_->setParam(pIndexer_->getIndexManagerConfig()->mergeStrategy_.param_.c_str());
     }
     else if (!strcasecmp(pIndexer_->getIndexManagerConfig()->mergeStrategy_.strategy_.c_str(),"offline"))
@@ -198,6 +198,8 @@ void IndexWriter::mergeAndWriteCachedIndex2()
 
 void IndexWriter::justWriteCachedIndex()
 {
+///Used for MANAGER_TYPE_DATAPROCESS
+///It does not update barrel info, only flush indices to barrel "_0"
     pBarrelsInfo_->write(pIndexer_->getDirectory());
     pCurBarrelInfo_ = pBarrelsInfo_->getLastBarrel();
     pCurDocCount_ = &(pCurBarrelInfo_->nNumDocs);

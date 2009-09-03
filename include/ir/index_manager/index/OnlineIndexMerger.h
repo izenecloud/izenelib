@@ -1,10 +1,10 @@
 /**
-* @file        DBTIndexMergerr.h
+* @file        OnlineIndexMergerr.h
 * @version     SF1 v5.0
 * @brief DBT index merge algorithm
 */
-#ifndef DBTINDEXMERGER_H
-#define DBTINDEXMERGER_H
+#ifndef OnlineIndexMerger_H
+#define OnlineIndexMerger_H
 
 #include <ir/index_manager/index/IndexMerger.h>
 #include <ir/index_manager/utility/StringUtils.h>
@@ -16,7 +16,7 @@ namespace indexmanager{
 /**
 * The class has implemented the DBT index merge algorithm
 */
-class DBTIndexMerger :	public IndexMerger
+class OnlineIndexMerger :	public IndexMerger
 {
 public:
     class DBTLayer
@@ -62,15 +62,15 @@ public:
 
         int32_t nLevelSize;			///size of level
 
-        friend class DBTIndexMerger;
+        friend class OnlineIndexMerger;
     };
 
 public:
-    DBTIndexMerger(Directory* pSrcDirectory);
+    OnlineIndexMerger(Directory* pSrcDirectory);
 
-    DBTIndexMerger(Directory* pSrcDirectory,char* buffer,size_t bufsize);
+    OnlineIndexMerger(Directory* pSrcDirectory,char* buffer,size_t bufsize);
 
-    virtual ~DBTIndexMerger(void);
+    virtual ~OnlineIndexMerger(void);
 public:
     /**
      * add new index barrel to merge,derived classes implement it,and could apply some merge strategies.

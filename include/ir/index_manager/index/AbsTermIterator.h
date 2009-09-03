@@ -23,6 +23,7 @@ class TermIterator
 {
 public:
     TermIterator(void);
+
     virtual ~TermIterator(void);
 public:
     /**
@@ -30,13 +31,6 @@ public:
      * @return false if to the end,otherwise true
      */
     virtual bool next() = 0;
-
-    /**
-     * move to the first term which equal to or bigger than target
-     * @param target the target term
-     * @return true if exist,otherwise false
-     */
-    virtual bool skipTo(const Term* target) = 0;
 
     /**
      * get current term ,only valid after calling {@link #next()} or {@link #skipTo()} and returning true.
@@ -56,20 +50,12 @@ public:
      */
     virtual Posting* termPosting() = 0;
 
-    /**
-     * get doc freq of current term,only valid after calling {@link #next()} or {@link #skipTo()} and returning true
-     */
-    virtual freq_t docFreq() = 0;
-public:
-    /**
-     * set buffer for iterator
-     * @param pBuffer buffer, only keep the pointer, caller response for destroying.
-     * @param bufSize size of buffer
-     * @return actual size used
-     */
     virtual size_t   setBuffer(char* pBuffer,size_t bufSize);
+
 protected:
+
     char* pBuffer;      ///buffer for iterator
+
     size_t nBuffSize;   ///size of buffer
 };
 

@@ -40,13 +40,6 @@ public:
     bool next();
 
     /**
-     * move to the first term which equal to or bigger than target
-     * @param target the target term
-     * @return true if exist,otherwise false
-     */
-    bool skipTo(const Term* target);
-
-    /**
      * get current term ,only valid after calling {@link #next()} or {@link #skipTo()} and returning true.
      * @return term,internal object
      */
@@ -63,12 +56,6 @@ public:
      * @return term's posting,internal object
      */
     Posting* termPosting();
-
-    /**
-     * get doc freq of current term,only valid after calling {@link #next()} or {@link #skipTo()} and returning true
-     * @return term's doc freq
-     */
-    freq_t docFreq();
 
     /**
      * set buffer for iterator
@@ -104,13 +91,6 @@ public:
     bool next();
 
     /**
-     * move to the first term which equal to or bigger than target
-     * @param target the target term
-     * @return true if exist,otherwise false
-     */
-    bool skipTo(const Term* target);
-
-    /**
      * get current term ,only valid after calling {@link #next()} or {@link #skipTo()} and returning true.
      * @return term,internal object
      */
@@ -127,12 +107,6 @@ public:
      * @return term's posting,internal object
      */
     Posting* termPosting();
-
-    /**
-     * get doc freq of current term,only valid after calling {@link #next()} or {@link #skipTo()} and returning true
-     * @return term's doc freq
-     */
-    freq_t docFreq();
 
     /**
      * set buffer for iterator

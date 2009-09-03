@@ -1,10 +1,10 @@
-#include <ir/index_manager/index/DBTIndexMerger.h>
+#include <ir/index_manager/index/OnlineIndexMerger.h>
 #include <ir/index_manager/utility/ParamParser.h>
 
 
 using namespace izenelib::ir::indexmanager;
 
-DBTIndexMerger::DBTIndexMerger(Directory* pSrDirectory)
+OnlineIndexMerger::OnlineIndexMerger(Directory* pSrDirectory)
         :IndexMerger(pSrDirectory)
         ,nM(3)
         ,nS(1)
@@ -13,7 +13,7 @@ DBTIndexMerger::DBTIndexMerger(Directory* pSrDirectory)
 {
 }
 
-DBTIndexMerger::DBTIndexMerger(Directory* pSrDirectory,char* buffer,size_t bufsize)
+OnlineIndexMerger::OnlineIndexMerger(Directory* pSrDirectory,char* buffer,size_t bufsize)
         :IndexMerger(pSrDirectory,buffer,bufsize)
         ,nM(3)
         ,nS(1)
@@ -22,12 +22,12 @@ DBTIndexMerger::DBTIndexMerger(Directory* pSrDirectory,char* buffer,size_t bufsi
 {
 }
 
-DBTIndexMerger::~DBTIndexMerger()
+OnlineIndexMerger::~OnlineIndexMerger()
 {
     endMerge();
 }
 
-void DBTIndexMerger::addBarrel(MergeBarrelEntry* pEntry)
+void OnlineIndexMerger::addBarrel(MergeBarrelEntry* pEntry)
 {
     if (nS > 0)
     {
@@ -54,7 +54,7 @@ void DBTIndexMerger::addBarrel(MergeBarrelEntry* pEntry)
     }
 }
 
-void DBTIndexMerger::endMerge()
+void OnlineIndexMerger::endMerge()
 {
     map<int32_t,DBTLayer*>::iterator iter = nodesMap.begin();
     while (iter != nodesMap.end())
@@ -64,7 +64,7 @@ void DBTIndexMerger::endMerge()
     }
     nodesMap.clear();
 }
-void DBTIndexMerger::setParam(const char* pszParam)
+void OnlineIndexMerger::setParam(const char* pszParam)
 {
     ParamParser parser;
     if (parser.parse(pszParam,";"))
@@ -74,7 +74,7 @@ void DBTIndexMerger::setParam(const char* pszParam)
         parser.getParam("c",nC);
     }
 }
-void DBTIndexMerger::triggerMerge(DBTLayer* pLevel,int32_t nLevel)
+void OnlineIndexMerger::triggerMerge(DBTLayer* pLevel,int32_t nLevel)
 {
     DBTLayer* pLevel1 = pLevel;
     int32_t nL = this->getLevel(pLevel->nLevelSize,nM);
@@ -114,7 +114,7 @@ void DBTIndexMerger::triggerMerge(DBTLayer* pLevel,int32_t nLevel)
         nCurLevelSize = 1;
     }
 }
-int32_t DBTIndexMerger::getLevel(int64_t nLevelSize,int32_t m)
+int32_t OnlineIndexMerger::getLevel(int64_t nLevelSize,int32_t m)
 {
     if (nLevelSize <= 0)
         return 0;
