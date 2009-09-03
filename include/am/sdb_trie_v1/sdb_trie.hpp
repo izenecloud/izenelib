@@ -228,6 +228,49 @@ public:
     }
 
     /**
+     * @brief Get a list of values whose keys begin with the same prefix.
+     * @return true at leaset one result found.
+     *         false nothing found.
+     */
+    bool findPrefix(const std::vector<CharType>& prefix,
+        std::vector<UserDataType>& valueList)
+    {
+        NodeIDType nid = NodeIDTraits<NodeIDType>::RootValue;
+        for( size_t i=0; i<prefix.size(); i++ )
+        {
+            NodeIDType tmp = NodeIDType();
+            if( !getEdge2(prefix[i], nid, tmp) )
+                return false;
+            nid = tmp;
+        }
+        valueList.clear();
+        findPrefix_(nid, valueList);
+        return valueList.size() ? true : false;
+    }
+
+    /**
+     * @brief Get a list of keys which begin with the same prefix.
+     * @return true at leaset one result found.
+     *         false nothing found.
+     */
+    bool findPrefix(const std::vector<CharType>& prefix,
+        std::vector<std::vector<CharType> >& keyList)
+    {
+        NodeIDType nid = NodeIDTraits<NodeIDType>::RootValue;
+        for( size_t i=0; i<prefix.size(); i++ )
+        {
+            NodeIDType tmp = NodeIDType();
+            if( !getEdge2(prefix[i], nid, tmp) )
+                return false;
+            nid = tmp;
+        }
+        keyList.clear();
+        std::vector<CharType> begin = prefix;
+        findPrefix_(nid, begin, keyList);
+        return keyList.size() ? true : false;
+    }
+
+    /**
      * @brief Get a list of values whose keys match the wildcard query. Only "*" and
      * "?" are supported currently, legal input looks like "ea?th", "her*", or "*ear?h".
      * @return true at leaset one result found.
@@ -236,6 +279,7 @@ public:
     bool findRegExp(const std::vector<CharType>& regexp,
         std::vector<UserDataType>& valueList)
     {
+        valueList.clear();
         findRegExp_(regexp, 0, NodeIDTraits<NodeIDType>::RootValue, valueList);
         return valueList.size() ? true : false;
     }
@@ -359,6 +403,45 @@ protected:
         return dataTable_.getValue(nid, userData);
     }
 
+    void findPrefix_( const NodeIDType& nid,
+        std::vector<UserDataType>& valueList)
+    {
+        UserDataType tmp = UserDataType();
+        if(getData(nid, tmp))
+            valueList.push_back(tmp);
+
+        EdgeTableKeyType minKey(nid, NumericTraits<CharType>::MinValue);
+        EdgeTableKeyType maxKey(nid, NumericTraits<CharType>::MaxValue);
+
+        std::vector<EdgeTableRecordType> result;
+        optEdgeTable_.getValueBetween(result, minKey, maxKey);
+
+        for(size_t i = 0; i <result.size(); i++ )
+            findPrefix_(result[i].value, valueList);
+    }
+
+    void findPrefix_( const NodeIDType& nid,
+        std::vector<CharType>& prefix,
+        std::vector<std::vector<CharType> >& keyList)
+    {
+        UserDataType tmp = UserDataType();
+        if(getData(nid, tmp))
+            keyList.push_back(prefix);
+
+        EdgeTableKeyType minKey(nid, NumericTraits<CharType>::MinValue);
+        EdgeTableKeyType maxKey(nid, NumericTraits<CharType>::MaxValue);
+
+        std::vector<EdgeTableRecordType> result;
+        optEdgeTable_.getValueBetween(result, minKey, maxKey);
+
+        for(size_t i = 0; i <result.size(); i++ )
+        {
+            prefix.push_back(result[i].key.key2);
+            findPrefix_(result[i].value, prefix, keyList);
+            prefix.pop_back();
+        }
+    }
+
     void findRegExp_(const std::vector<CharType>& regexp,
         const size_t& startPos, const NodeIDType& nid,
         std::vector<UserDataType>& valueList)
@@ -426,7 +509,9 @@ private:
 
 };
 
-
+/**
+ * @see SDBTrie
+ */
 template <typename StringType,
           typename UserDataType = NullType,
           typename NodeIDType = uint64_t,
@@ -493,6 +578,34 @@ public:
         if(!get(key, value))
             return NULL;
         return new UserDataType(value);
+    }
+
+    bool findPrefix(const StringType& prefix,
+        std::vector<UserDataType>& valueList)
+    {
+        CharType* chArray = (CharType*)prefix.c_str();
+        size_t chCount = prefix.length();
+        std::vector<CharType> chVector(chArray, chArray+chCount);
+        return trie_.findPrefix(chVector, valueList);
+    }
+
+    bool findPrefix(const StringType& prefix,
+        std::vector<StringType>& keyList)
+    {
+        CharType* chArray = (CharType*)prefix.c_str();
+        size_t chCount = prefix.length();
+        std::vector<CharType> chVector(chArray, chArray+chCount);
+
+        std::vector< std::vector<CharType> > resultList;
+        if( false == trie_.findPrefix(chVector, resultList) )
+            return false;
+
+        for(size_t i = 0; i< resultList.size(); i++ )
+        {
+            StringType tmp(resultList[i].begin(), resultList[i].end);
+            keyList.push_back(tmp);
+        }
+        return true;
     }
 
     bool findRegExp(const StringType& regexp,
