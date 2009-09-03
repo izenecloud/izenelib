@@ -725,7 +725,7 @@ bool Indexer::getDocsByPropertyValueSubString(collectionid_t colID, string prope
 
 void Indexer::optimizeIndex()
 {
-    IndexMerger* pIndexMerger = new OptimizeMerger(pDirectory_);
+    IndexMerger* pIndexMerger = new OptimizeMerger(pDirectory_, pBarrelsInfo_->getBarrelCount());
 
     pIndexMerger->setParam(pConfigurationManager_->mergeStrategy_.param_.c_str());
 

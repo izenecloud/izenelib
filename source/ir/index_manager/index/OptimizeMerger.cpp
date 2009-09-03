@@ -2,11 +2,11 @@
 
 using namespace izenelib::ir::indexmanager;
 
-OptimizeMerger::OptimizeMerger(Directory* pSrDirectory)
+OptimizeMerger::OptimizeMerger(Directory* pSrDirectory, unsigned int numBarrels)
         :IndexMerger(pSrDirectory)
 {
     string s = "_mid_0_";
-    pMergeBarrel_ = new MergeBarrel(s.c_str(),100);
+    pMergeBarrel_ = new MergeBarrel(s.c_str(),numBarrels+5);
 }
 
 OptimizeMerger::~OptimizeMerger(void)

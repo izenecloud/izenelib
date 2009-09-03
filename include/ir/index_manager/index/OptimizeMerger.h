@@ -18,7 +18,7 @@ namespace indexmanager{
 class OptimizeMerger : public IndexMerger
 {
 public:
-    OptimizeMerger(Directory* pSrcDirectory);
+    OptimizeMerger(Directory* pSrcDirectory, unsigned int numBarrels);
     virtual ~OptimizeMerger(void);
 public:
     void addBarrel(MergeBarrelEntry* pEntry);
