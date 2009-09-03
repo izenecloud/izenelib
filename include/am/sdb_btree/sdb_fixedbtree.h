@@ -10,7 +10,7 @@ class sdb_fixedbtree
 : public sdb_btree<KeyType, ValueType, LockType, true>
 {
 public:
-	sdb_fixedbtree(const std::string& fileName = "sequentialdb.dat#")
+	sdb_fixedbtree(const std::string& fileName = "sdb_fixedbtree.dat#")
 	:sdb_btree<KeyType, ValueType, LockType, true>(fileName){
 		
 	}

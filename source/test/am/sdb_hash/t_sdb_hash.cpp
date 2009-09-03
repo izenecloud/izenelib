@@ -273,7 +273,7 @@ template<typename T> void seq_test(T& tb) {
 		cout<<" start from "<<dat.key<<endl;
 		a++;
 	}
-	while (tb.seq(locn, dat) ) {
+	while ( tb.seq(locn, dat) ) {
 		a++;
 		if (trace)
 			cout<<dat.key<<endl;

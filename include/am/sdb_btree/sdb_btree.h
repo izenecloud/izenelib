@@ -61,7 +61,7 @@ public:
 	 * \param fileName is the name for data file if fileName ends with '#', we set b-tree mode to
 	 *  not delay split.
 	 */
-	sdb_btree(const std::string& fileName = "sequentialdb.dat#");
+	sdb_btree(const std::string& fileName = "sdb_btree.dat#");
 	virtual ~sdb_btree();
 
 	/**
