@@ -191,11 +191,23 @@ void IndexWriter::mergeAndWriteCachedIndex2()
 
 void IndexWriter::justWriteCachedIndex()
 {
+    BarrelInfo* pLastBarrel = pBarrelsInfo_->getLastBarrel();
+    pLastBarrel->setBaseDocID(baseDocIDMap_);
+
     pIndexBarrelWriter_->close();
+
+    pLastBarrel->setWriter(NULL);
+    pBarrelsInfo_->addBarrel(pBarrelsInfo_->newBarrel().c_str(),0);
+    pCurBarrelInfo_ = pBarrelsInfo_->getLastBarrel();
+    pCurBarrelInfo_->setWriter(pIndexBarrelWriter_);
+    pCurDocCount_ = &(pCurBarrelInfo_->nNumDocs);
+    *pCurDocCount_ = 0;
+/*	
     pBarrelsInfo_->write(pIndexer_->getDirectory());
     pCurBarrelInfo_ = pBarrelsInfo_->getLastBarrel();
     pCurDocCount_ = &(pCurBarrelInfo_->nNumDocs);
     *pCurDocCount_ = 0;
+*/	
 }
 
 void IndexWriter::addDocument(IndexerDocument* pDoc)
@@ -213,11 +225,11 @@ void IndexWriter::indexDocument(IndexerDocument* pDoc)
         createBarrelWriter();
     if (pIndexBarrelWriter_->cacheFull())
     {
-         if(pIndexer_->getIndexerType() == MANAGER_TYPE_DATAPROCESS)
+         //if(pIndexer_->getIndexerType() == MANAGER_TYPE_DATAPROCESS)
             justWriteCachedIndex();
-        else
+        //else
             ///merge index
-            mergeAndWriteCachedIndex2();
+            //mergeAndWriteCachedIndex2();
         baseDocIDMap_.clear();
         DocId uniqueID;
         pDoc->getDocId(uniqueID);

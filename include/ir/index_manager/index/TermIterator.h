@@ -10,15 +10,15 @@
 #include <ir/index_manager/utility/system.h>
 #include <ir/index_manager/index/Term.h>
 #include <ir/index_manager/index/FieldIndexer.h>
+#include <ir/index_manager/index/TermInfo.h>
 
-#include <3rdparty/am/rde_hashmap/hash_map.h>
+#include <3rdparty/am/stx/btree_map>
 
 NS_IZENELIB_IR_BEGIN
 
 namespace indexmanager{
 
 class Posting;
-class TermInfo;
 /**
 * TermIterator is used to iterate terms, if necessary, it could provide the posting relevant to the term iterated.
 * It is the base class of InMemoryTermIterator and DiskTermIterator.
@@ -85,9 +85,8 @@ protected:
 
 
 class InputDescriptor;
-///DiskTermIterator
 class DiskTermReader;
-typedef rde::hash_map<termid_t, TermInfo > TERM_TABLE;
+typedef stx::btree_map<termid_t, TermInfo > ORDERED_TERM_TABLE;
 
 /**
 * Iterate terms from index barrel files(*.voc)
@@ -149,8 +148,8 @@ private:
     TermInfo* pCurTermInfo;      ///current term info in this iterator
     Posting* pCurTermPosting;   ///current term's posting in this iterator
     InputDescriptor* pInputDescriptor;
-    TERM_TABLE::iterator currTermIter;
-    TERM_TABLE::iterator termIterEnd;	
+    ORDERED_TERM_TABLE::iterator currTermIter;
+    ORDERED_TERM_TABLE::iterator termIterEnd;	
 };
 
 class InMemoryTermReader;

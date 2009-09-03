@@ -66,7 +66,7 @@ bool DiskTermIterator::next()
         if (pCurTerm == NULL)
             pCurTerm = new Term(pTermReader->getFieldInfo()->getName(),currTermIter->first);
         else pCurTerm->setValue(currTermIter->first);
-
+cout<<"iterate term "<<currTermIter->first<<endl;
         pCurTermInfo = &(currTermIter->second);
         ++currTermIter;
         return true;

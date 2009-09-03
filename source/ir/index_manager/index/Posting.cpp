@@ -450,7 +450,18 @@ void InMemoryPosting::writeDescriptor(IndexOutput* pDOutput,fileoffset_t poffset
     pDOutput->writeVInt(1); 							///<ChunkCount(VInt32)>
     ///begin write chunk descriptor
     pDOutput->writeVLong(pDocFreqList->getRealSize());///<ChunkLength(VInt64)>
+    cout<<"dposting "<<pDocFreqList->getRealSize()<<endl;
     pDOutput->writeVInt(nLastDocID);					///<LastDocID(VInt32)>
+    int realLength = 0;
+    realLength+= pDOutput->getVLongLength(pDocFreqList->getRealSize());///<PostingLength(VInt64)>
+    realLength+= pDOutput->getVIntLength(nDF); 						///<DF(VInt32)>
+    realLength+= pDOutput->getVIntLength(nTDF);						///<TDF(VInt32)>
+    realLength+= pDOutput->getVLongLength(nCTF);						///<CTF(VInt64)>
+    realLength+= pDOutput->getVLongLength(poffset);						///<PositionPointer(VInt64)>
+    realLength+= pDOutput->getVIntLength(1); 							///<ChunkCount(VInt32)>
+    realLength+= pDOutput->getVLongLength(pDocFreqList->getRealSize());///<ChunkLength(VInt64)>
+    realLength+= pDOutput->getVIntLength(nLastDocID);					///<LastDocID(VInt32)>
+    cout<<"reallength "<<realLength<<endl;
     ///end write posting descriptor
 }
 
@@ -708,7 +719,7 @@ void OnDiskPosting::reset(fileoffset_t newOffset)
     postingDesc.tdf = CompressedPostingList::decodePosting32(u);		///<TDF(VInt32)>
     postingDesc.ctf = CompressedPostingList::decodePosting64(u);		///<CTF(VInt64)>
     postingDesc.poffset = CompressedPostingList::decodePosting64(u);	///PositionPointer(VInt64)
-
+//cout<<"dposting "<<postingDesc.length<<endl;
     CompressedPostingList::decodePosting32(u);///<ChunkCount(VInt32)>
     ///read first chunk descriptor of posting list <ChunkDescriptor>
     chunkDesc.length = CompressedPostingList::decodePosting64(u);	///<ChunkLength(VInt64)>
