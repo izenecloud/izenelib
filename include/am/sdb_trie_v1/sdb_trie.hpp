@@ -39,7 +39,7 @@ class SDBTrie : public AccessMethod<std::vector<CharType>, UserDataType>
     typedef CompoundKey<NodeIDType, CharType> EdgeTableKeyType;
     typedef NodeIDType EdgeTableValueType;
     typedef DataType<EdgeTableKeyType, EdgeTableValueType> EdgeTableRecordType;
-    typedef izenelib::sdb::unordered_sdb<EdgeTableKeyType, EdgeTableValueType , LockType> EdgeTableType;
+    typedef izenelib::sdb::unordered_sdb_fixed<EdgeTableKeyType, EdgeTableValueType , LockType> EdgeTableType;
     typedef izenelib::sdb::ordered_sdb<EdgeTableKeyType, EdgeTableValueType , LockType> OptEdgeTableType;
     typedef Conv_Sdb_Hash2Btree<EdgeTableType, OptEdgeTableType> EdgeTableConverter;
 
@@ -602,7 +602,7 @@ public:
 
         for(size_t i = 0; i< resultList.size(); i++ )
         {
-            StringType tmp(resultList[i].begin(), resultList[i].end);
+            StringType tmp(resultList[i].begin(), resultList[i].end() );
             keyList.push_back(tmp);
         }
         return true;

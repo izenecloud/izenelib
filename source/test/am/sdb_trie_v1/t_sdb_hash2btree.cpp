@@ -32,7 +32,7 @@ BOOST_AUTO_TEST_CASE(conv_sdb_hash2btree_test)
     Sdb1 sdb1("conv_sdb_hash2btree_test.hash.sdb");
     sdb1.open();
     for(int i =0; i<100; i++ )
-        sdb1.insertValue(i,i);
+        BOOST_CHECK_EQUAL( sdb1.insertValue(i,i), true);
     sdb1.flush();
 
     Sdb2 sdb2("conv_sdb_hash2btree_test.btree.sdb");
@@ -45,7 +45,7 @@ BOOST_AUTO_TEST_CASE(conv_sdb_hash2btree_test)
     for(int i=0; i<100; i++ )
     {
         int r;
-        sdb2.getValue(i, r);
+        BOOST_CHECK_EQUAL( sdb2.getValue(i, r), true );
         BOOST_CHECK_EQUAL(r, i);
     }
 

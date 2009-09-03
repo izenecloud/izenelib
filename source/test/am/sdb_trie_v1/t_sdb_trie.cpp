@@ -159,6 +159,7 @@ BOOST_AUTO_TEST_CASE(SDBTrie_find)
       TEST_TRIE_FIND("des", -1);
       TEST_TRIE_FIND("c", -1);
       TEST_TRIE_FIND("bluee", -1);
+
     }
 
     CLEAN_SDB_FILE("find");
@@ -200,6 +201,29 @@ BOOST_AUTO_TEST_CASE(SDBTrie_findPrefix)
       TEST_TRIE_FIND_PREFIX("eartha", idList5, 0);
       TEST_TRIE_FIND_PREFIX("appe", idList5, 0);
       TEST_TRIE_FIND_PREFIX("f", idList5, 0);
+
+      {
+          vector<string> results;
+          trie.findPrefix("a", results);
+          BOOST_CHECK_EQUAL(results.size(), (size_t)3);
+          if(results.size() == 3)
+          {
+            BOOST_CHECK_EQUAL(results[0].c_str(), "apple");
+            BOOST_CHECK_EQUAL(results[1].c_str(), "at");
+            BOOST_CHECK_EQUAL(results[2].c_str(), "art");
+          }
+      }
+
+      {
+          vector<string> results;
+          trie.findPrefix("dst", results);
+          BOOST_CHECK_EQUAL(results.size(), (size_t)2);
+          if(results.size() == 2)
+          {
+            BOOST_CHECK_EQUAL(results[0].c_str(), "desk");
+            BOOST_CHECK_EQUAL(results[1].c_str(), "destination");
+          }
+      }
     }
 
     CLEAN_SDB_FILE("findprefix");
