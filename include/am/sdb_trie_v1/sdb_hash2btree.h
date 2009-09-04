@@ -34,26 +34,20 @@ void startThread()
 
 void mapStage()
 {
-    std::cout << "before map" << std::endl;
     FILE* f = fopen(fin_.c_str(), "w+");
     if(f==NULL)
         std::cerr << "bad file " << fin_ << std::endl;
-        std::cout <<"0";
     size_t itemNum = src_sdb_.numItems();
     fwrite(&itemNum, sizeof(size_t), 1, f);
-        std::cout <<"1";
     unsigned short itemSize = sizeof(KeyType) + sizeof(ValueType);
-        std::cout <<"2";
     typename UnorderedSdbType::SDBCursor locn = src_sdb_.get_first_Locn();
-        std::cout <<"3";
     KeyType k = KeyType();
     ValueType v = ValueType();
     while( src_sdb_.get(locn, k, v) ) {
-        std::cout <<"4";
         fwrite(&itemSize, sizeof(unsigned short), 1, f);
         fwrite(&k, sizeof(KeyType), 1, f);
         fwrite(&v, sizeof(ValueType), 1, f);
-        src_sdb_.seq(locn, k, v);
+        src_sdb_.seq(locn);
     }
 //    while( src_sdb_.seq(locn, k, v) ) {
 //        std::cout <<"4";
@@ -64,7 +58,6 @@ void mapStage()
 
     fflush(f);
     fclose(f);
-    std::cout << "after map" << std::endl;
     return;
 }
 
