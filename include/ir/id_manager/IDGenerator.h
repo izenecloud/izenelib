@@ -13,6 +13,7 @@
 #include <types.h>
 
 #include <util/hashFunction.h>
+#include <util/ThreadModel.h>
 #include <sdb/SequentialDB.h>
 
 #include "IDFactoryException.h"
@@ -44,6 +45,8 @@ public:
         return false;
 	}
 
+	void close(){}
+
 	void display(){}
 
 }; // end - template SequentialIDFactory
@@ -74,6 +77,8 @@ public:
         return false;
 	}
 
+	void close(){}
+
 	void display(){}
 
 }; // end - template SequentialIDFactory
@@ -82,9 +87,9 @@ public:
 template <
           typename  NameString,
           typename  NameID,
+          typename  LockType    = izenelib::util::NullLock,
           NameID    MinIDValue  = NameIDTraits<NameID>::MinValue,
-          NameID    MaxIDValue  = NameIDTraits<NameID>::MaxValue,
-          typename  LockType    = izenelib::util::NullLock>
+          NameID    MaxIDValue  = NameIDTraits<NameID>::MaxValue>
 class UniqueIDGenerator
 {
 	typedef izenelib::sdb::ordered_sdb<NameString, NameID, LockType> IdFinder;
@@ -109,6 +114,11 @@ public:
 	 */
 	inline bool conv(const NameString& nameString, NameID& nameID);
 
+	void close()
+	{
+	    idFinder_.close();
+	}
+
 	void display()
 	{
 		idFinder_.display();
@@ -121,13 +131,15 @@ protected:
 	NameID newID_; ///< An ID for new name.
 	string sdbName_;
 
+	LockType mutex_;
+
 	IdFinder idFinder_; ///< an indexer which gives ids according to the name.
 }; // end - template SequentialIDFactory
 
 template <typename NameString, typename NameID,
-    NameID MinValueID, NameID MaxValueID, typename LockType>
+    typename LockType, NameID MinValueID, NameID MaxValueID>
 UniqueIDGenerator<NameString, NameID,
-    MinValueID, MaxValueID, LockType>::UniqueIDGenerator(
+    LockType, MinValueID, MaxValueID>::UniqueIDGenerator(
         const string& sdbName)
 :
 	minID_(MinValueID),
@@ -144,30 +156,34 @@ UniqueIDGenerator<NameString, NameID,
 	    NameID maxValue = MinValueID;
         NameString k; NameID v;
         typename IdFinder::SDBCursor locn = idFinder_.get_first_Locn();
-        while (idFinder_.seq(locn, k, v) ) {
+        while (idFinder_.get(locn, k, v) ) {
             if(maxValue < v)
                 maxValue = v;
+            idFinder_.seq(locn);
         }
         newID_ = maxValue + 1;
 	}
 } // end - SequentialIDFactory()
 
 template <typename NameString, typename NameID,
-    NameID MinValueID, NameID MaxValueID, typename LockType>
+    typename LockType, NameID MinValueID, NameID MaxValueID>
 UniqueIDGenerator<NameString, NameID,
-    MinValueID, MaxValueID, LockType>::~UniqueIDGenerator()
+    LockType, MinValueID, MaxValueID>::~UniqueIDGenerator()
 {
 } // end - ~SequentialIDFactory()
 
 template <typename NameString, typename NameID,
-    NameID MinValueID, NameID MaxValueID, typename LockType>
+    typename LockType, NameID MinValueID, NameID MaxValueID>
 inline bool UniqueIDGenerator<NameString, NameID,
-    MinValueID, MaxValueID, LockType>::conv(
+    LockType, MinValueID, MaxValueID>::conv(
         const NameString& nameString,
         NameID& nameID)
 {
+    mutex_.acquire_write_lock();
+
 	// If name string is found, return the id.
 	if (idFinder_.getValue(nameString, nameID) ) {
+	    mutex_.release_write_lock();
 		return true;
 	} // end - if
 
@@ -177,10 +193,13 @@ inline bool UniqueIDGenerator<NameString, NameID,
 
 	// check correctness of input nameID
 	if (newID_> maxID_)
+	{
+	    mutex_.release_write_lock();
 		throw IDFactoryException(SF1_ID_FACTORY_OUT_OF_BOUND, __LINE__, __FILE__);
+	}
 
 	idFinder_.insertValue(nameString, nameID);
-
+    mutex_.release_write_lock();
 	return false;
 } // end - getNameIDByNameString()
 

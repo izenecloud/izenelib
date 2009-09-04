@@ -50,30 +50,18 @@ class SDBTrie : public AccessMethod<std::vector<CharType>, UserDataType>
 public:
 
     SDBTrie(const std::string& dbname)
-    :   dbname_(dbname),
+    :   closed_(true), dbname_(dbname),
         edgeTable_(dbname_ + ".sdbtrie.edgetable.sdb"),
         optEdgeTable_(dbname_ + ".sdbtrie.optedgetable.sdb"),
         dataTable_(dbname_ + ".sdbtrie.datatable.sdb")
     {
-        std::cout << "size of EdgeTableKey is " << sizeof(EdgeTableKeyType) << "!!!!!!!!!!!!!!!!!!!!" << std::endl;
-        optEdgeTable_.setDegree(32);
-        optEdgeTable_.setPageSize(2048);
-
-        dataTable_.setDegree(32);
-        dataTable_.setPageSize(1024);
-
-        edgeTable_.setDegree(16);
-        edgeTable_.setBucketSize(512);
-
         nextNID_ = NodeIDTraits<NodeIDType>::MaxValue;
     }
 
     virtual ~SDBTrie()
     {
-        close();
-        if(!read_) edgeTable_.close();
-        optEdgeTable_.close();
-        dataTable_.close();
+        if(!closed_)
+            close();
     }
 
     /**
@@ -82,13 +70,25 @@ public:
      */
     void openForRead()
     {
-        read_ = true;
+        if(closed_)
+        {
+            read_ = true;
+            closed_ = false;
 
-        optEdgeTable_.setCacheSize(128*1024);
-        optEdgeTable_.open();
+            optEdgeTable_.setDegree(32);
+            optEdgeTable_.setPageSize(2048);
 
-        dataTable_.setCacheSize(64*1024);
-        dataTable_.open();
+            dataTable_.setDegree(32);
+            dataTable_.setPageSize(1024);
+
+            optEdgeTable_.setCacheSize(128*1024);
+            optEdgeTable_.open();
+
+            dataTable_.setCacheSize(64*1024);
+            dataTable_.open();
+
+        } else if( !read_ )
+            throw std::runtime_error("close before open read mode");
     }
 
     /**
@@ -97,18 +97,32 @@ public:
      */
     void openForWrite()
     {
-        read_ = false;
+        if(closed_)
+        {
+            read_ = false;
+            closed_ = false;
 
-        edgeTable_.setCacheSize(256*1024);
-        edgeTable_.open();
+            optEdgeTable_.setDegree(32);
+            optEdgeTable_.setPageSize(2048);
 
-        optEdgeTable_.setCacheSize(32*1024);
-        optEdgeTable_.open();
+            dataTable_.setDegree(32);
+            dataTable_.setPageSize(1024);
 
-        dataTable_.setCacheSize(64*1024);
-        dataTable_.open();
+            edgeTable_.setDegree(16);
+            edgeTable_.setBucketSize(512);
 
-        nextNID_ = edgeTable_.numItems() + NodeIDTraits<NodeIDType>::MinValue;
+            edgeTable_.setCacheSize(256*1024);
+            edgeTable_.open();
+
+            optEdgeTable_.setCacheSize(32*1024);
+            optEdgeTable_.open();
+
+            dataTable_.setCacheSize(64*1024);
+            dataTable_.open();
+
+            nextNID_ = edgeTable_.numItems() + NodeIDTraits<NodeIDType>::MinValue;
+        } else if(read_)
+            throw std::runtime_error("close before open write mode");
     }
 
 
@@ -117,6 +131,10 @@ public:
      */
     void close()
     {
+        closed_ = true;
+        if(!read_) edgeTable_.close();
+        optEdgeTable_.close();
+        dataTable_.close();
     }
 
     /**
@@ -494,6 +512,8 @@ protected:
     }
 
 private:
+
+    bool closed_;
 
     bool read_;
 

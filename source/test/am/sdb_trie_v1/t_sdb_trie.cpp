@@ -12,10 +12,12 @@
 
 #include <boost/test/unit_test.hpp>
 
+#include <wiselib/ustring/UString.h>
 #include <am/sdb_trie_v1/sdb_trie.hpp>
 
 
 using namespace std;
+using namespace wiselib;
 using namespace izenelib::am;
 
 BOOST_AUTO_TEST_SUITE( sdb_trie_suite )
@@ -209,14 +211,14 @@ BOOST_AUTO_TEST_CASE(SDBTrie_findPrefix)
           if(results.size() == 3)
           {
             BOOST_CHECK_EQUAL(results[0].c_str(), "apple");
-            BOOST_CHECK_EQUAL(results[1].c_str(), "at");
-            BOOST_CHECK_EQUAL(results[2].c_str(), "art");
+            BOOST_CHECK_EQUAL(results[1].c_str(), "art");
+            BOOST_CHECK_EQUAL(results[2].c_str(), "at");
           }
       }
 
       {
           vector<string> results;
-          trie.findPrefix("dst", results);
+          trie.findPrefix("des", results);
           BOOST_CHECK_EQUAL(results.size(), (size_t)2);
           if(results.size() == 2)
           {
@@ -283,6 +285,44 @@ BOOST_AUTO_TEST_CASE(SDBTrie_searchregexp)
     }
 
     CLEAN_SDB_FILE("searchregexp");
+}
+
+
+BOOST_AUTO_TEST_CASE(SDBTrie_UString)
+{
+    CLEAN_SDB_FILE("ustring");
+
+    {
+      SDBTrie2<UString,int> trie("./sdbtrie_ustring");
+      trie.openForWrite();
+
+      UString word("apple",UString::CP949);
+      char* p= (char*)word.c_str();
+      UString ww = (UString::value_type*)p;
+      trie.insert(ww, 1);
+
+      trie.optimize();
+    }
+
+    {
+      SDBTrie2<UString,int> trie("./sdbtrie_ustring");
+      trie.openForRead();
+      BOOST_CHECK_EQUAL(trie.num_items(),  (size_t)1);
+
+      TEST_TRIE_FIND(UString("apple",UString::CP949), 1);
+
+      int idList[1] = {1};
+
+      TEST_TRIE_SEARCH_REGEXP(UString("app*",UString::CP949), idList, 1);
+
+      UString word("app*",UString::CP949);
+      char* p= (char*)word.c_str();
+      UString ww = (UString::value_type*)p;
+      TEST_TRIE_SEARCH_REGEXP(ww, idList, 1);
+    }
+
+    CLEAN_SDB_FILE("ustring");
+
 }
 
 BOOST_AUTO_TEST_SUITE_END()

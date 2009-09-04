@@ -1,11 +1,10 @@
 #ifndef INDEX_FP_HPP
 #define INDEX_FP_HPP
 
-
-#include <types.h>
-#include <ir/dup_det/integer_dyn_array.hpp>
-#include <string>
 #include <ir/dup_det/partial_fp_list.hpp>
+#include <ir/dup_det/integer_dyn_array.hpp>
+#include <types.h>
+#include <string>
 #include <ir/dup_det/hash_table.hpp>
 #include <ir/dup_det/hash_group.hpp>
 #include <ir/dup_det/fp_hash_table.hpp>
@@ -17,9 +16,9 @@ NS_IZENELIB_IR_BEGIN
 
 template <
   uint8_t  FP_HASH_NUM = 1,
-  class    UNIT_TYPE = uint64_t,
+  typename    UNIT_TYPE = uint64_t,
   uint8_t  FP_LENGTH = 6,
-  uint32_t CACHE_SIZE = 600,//MB
+  uint32_t CACHE_SIZE = 600,
   uint32_t ENTRY_SIZE = 1000000
   >
 class FpIndex
@@ -48,11 +47,11 @@ protected:
   static Prime* prime_;
   
 
-  inline bool border_compare(const uint64_t* p1, const uint64_t* p2, uint8_t threshold = 2)
+  inline bool broder_compare(const uint64_t* p1, const uint64_t* p2, uint8_t threshold = 2)
   {
     //std::cout<<"\nborder_compare: ";
     uint8_t r = 0;
-    for (uint8_t i=0; i<FP_LENGTH; i++)
+    for (uint8_t i=0; i<FP_LENGTH/(sizeof(uint64_t)/sizeof(UNIT_TYPE)); i++)
     {
       //std::cout<<p1[i]<<"-"<<p2[i]<<" ";
       
@@ -63,6 +62,25 @@ protected:
         return false;
     }
     //std::cout<<std::endl;
+    
+    return true;
+  }
+
+  inline bool charick_compare(const uint64_t* p1, const uint64_t* p2, uint8_t threshold = 12)
+  {
+    uint32_t count = 0;
+    for (uint32_t i=0; i<FP_LENGTH; ++i)
+    {
+      uint64_t k = p1[i]^p2[i];
+      while(k)
+      {
+        k &= (k-1);
+        ++count;
+      }
+
+      if (count>=threshold)
+        return false;
+    }
     
     return true;
   }
@@ -209,7 +227,8 @@ public:
   
   inline void add_doc(size_t docid, const Vector64& fp)
   {
-    fp_list_->add_doc(docid, fp);
+    fp_list_->add_doc(docid,
+                      izenelib::am::IntegerDynArray<UNIT_TYPE>((const char*)fp.data(), fp.size()));
     
     docid = fp_list_->doc_num()-1;
     
@@ -337,7 +356,7 @@ public:
       fp_list_->ready_for_uniform_access(i);
       for (size_t j=0; j<fp_list_->doc_num();j++)
       {
-        uint64_t v = 0;
+        UNIT_TYPE v = 0;
         for (uint8_t k=0; k<UNIT_LEN_; k++)
           v  = 37*v + fp_list_->get_fp(i, j, k);
     
@@ -351,7 +370,7 @@ public:
     delete fp_list_;fp_list_=NULL;//fp_list_->free();
 
     gettimeofday (&tvafter , &tz);
-    std::cout<<"\nPre-clustering is over!(1.4GB): "<<((tvafter.tv_sec-tvpre.tv_sec)*1000+(tvafter.tv_usec-tvpre.tv_usec)/1000)/60000.<<std::endl;
+    std::cout<<"\nPre-clustering is over!(1.4GB): "<<((tvafter.tv_sec-tvpre.tv_sec)*1000+(tvafter.tv_usec-tvpre.tv_usec)/1000)/60000.<<" min\n";
 
     //----------------------------------------
     
@@ -366,11 +385,14 @@ public:
         fp_hash_ptrs_[i] = new FpHashT(ss.c_str());
       fp_hash_ptrs_[i]->ready_for_find();
     }
-
+    
     Vector32 prime(doc_num);
-    for (size_t i=0; i<doc_num-1; i++)
-      prime.add_tail(prime_->next());
-    prime.add_tail(3);
+    for (size_t i=0; i<doc_num; i++)
+    {
+      prime.add_tail(prime_->next());//std::cout<<prime[i]<<std::endl;
+    }
+    
+    //prime.add_tail(3);
 
     gettimeofday (&tvpre , &tz);
     std::cout<<"Start clustering...\n";
@@ -380,6 +402,8 @@ public:
       for (uint8_t k=0; k<FP_LENGTH/UNIT_LEN_; k++)
       {
         const Vector32& v = (*(ht_ptrs_[k]))[i];
+        //std::cout<<v<<std::endl;
+        
         assert(v.at(0)<=i);
         
         if (v.at(0)!= i)
@@ -406,27 +430,30 @@ public:
             prime[docid1] *= (*prime_)[docid2];
             prime[docid2] *= (*prime_)[docid1];
             
-            const uint64_t* p2 = fp_hash_ptrs_[docid2%FP_HASH_NUM]->find(docid2/FP_HASH_NUM);
-            if (p1!=NULL && p2!=NULL && border_compare(p1,p2))
+            const uint64_t* p2 = fp_hash_ptrs_[docid2%FP_HASH_NUM]->find(docid2/FP_HASH_NUM);            
+            
+            if (p1!=NULL && p2!=NULL && broder_compare(p1,p2))
+            {
               group_->add_doc(docid1, docid2);
-            //std::cout<<docid1<<" "<<docid2<<std::endl;
+            }
           }
+          
           if (f)
             --dealed;
         }
-      }
+       }
 
       if (dealed%10000==0)
       {
         gettimeofday (&tvafter , &tz);
-        std::cout<<(double)dealed/doc_num*100.<<"%: "<<((tvafter.tv_sec-tvpre.tv_sec)*1000+(tvafter.tv_usec-tvpre.tv_usec)/1000)/60000.<<std::endl;
+        //std::cout<<(double)dealed/doc_num*100.<<"%: "<<((tvafter.tv_sec-tvpre.tv_sec)*1000+(tvafter.tv_usec-tvpre.tv_usec)/1000)/60000.<<" min\n";
       }
     }
 
     group_->compact();
     group_->flush();
     gettimeofday (&tvafter , &tz);
-    std::cout<<"\nClustering is over!: "<<((tvafter.tv_sec-tvpre.tv_sec)*1000+(tvafter.tv_usec-tvpre.tv_usec)/1000)/60000.<<std::endl;
+    std::cout<<"\nClustering is over!: "<<((tvafter.tv_sec-tvpre.tv_sec)*1000+(tvafter.tv_usec-tvpre.tv_usec)/1000)/60000.<<" min\n";
     //std::cout<<*group_<<std::endl;
 
     switch_docid_in_group();

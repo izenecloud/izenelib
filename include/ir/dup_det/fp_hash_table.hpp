@@ -1,15 +1,15 @@
 #ifndef FP_HASH_TABLE_HPP
 #define FP_HASH_TABLE_HPP
 
-#include <types.h>
 #include <ir/dup_det/integer_dyn_array.hpp>
+#include <types.h>
 #include <string>
 
 NS_IZENELIB_IR_BEGIN
 
 template <
-  uint32_t CACHE_SIZE = 600,//MB
-  uint8_t  FP_LENGTH = 48,//bytes
+  uint32_t CACHE_SIZE = 600,
+  uint8_t  FP_LENGTH = 48,
   uint32_t ENTRY_SIZE = 1000000
   >
 class FpHashTable

@@ -79,6 +79,11 @@ namespace idmanager {
 		 */
 		bool getDocNameByDocId(NameID docId, NameString& docName);
 
+		void close()
+		{
+		    idFactory_.close();
+		}
+
 		/**
 		 * @brief a member function to display all the contents of the sequential db.
 		 *          this function is provided for debugging purpose.
