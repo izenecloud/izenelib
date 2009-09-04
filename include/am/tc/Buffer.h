@@ -1,11 +1,12 @@
-#ifndef AM_TOKYO_CABINET_BUFFER_H
-#define AM_TOKYO_CABINET_BUFFER_H
+#ifndef AM_TC_BUFFER_H
+#define AM_TC_BUFFER_H
 /**
- * @file am/tokyo_cabinet/Buffer.h
+ * @file am/tc/Buffer.h
  * @author Ian Yang
- * @date Created <2009-09-02 13:09:26>
- * @date Updated <2009-09-04 14:57:08>
- * @brief Wrapper of the returned buffer from tokyo cabinet
+ * @date Created <2009-09-04 14:05:33>
+ * @date Updated <2009-09-04 14:07:53>
+ * @brief Wrapper of the memory buffer. A deleter can be specified to delegate
+ * the destruction work to Buffer.
  */
 
 #include <cstdlib>
@@ -39,9 +40,7 @@ public:
     {}
 
     explicit Buffer(size_type size)
-    : data_(static_cast<char*>(std::malloc(size)))
-    , size_(size)
-    , deleter_(&std::free)
+    : data_(std::malloc(size)), size_(size), deleter_(&std::free)
     {
         if (!data_)
         {
@@ -50,9 +49,7 @@ public:
     }
 
     Buffer(const Buffer& rhs)
-    : data_(static_cast<char*>(std::malloc(rhs.size_)))
-    , size_(rhs.size_)
-    , deleter_(&std::free)
+    : data_(std::malloc(rhs.size_)), size_(rhs.size_), deleter_(&std::free)
     {
         if (!data_)
         {
@@ -73,7 +70,7 @@ public:
         }
     }
 
-    void attach(char* data,
+    void attach(void* data,
                 size_type size,
                 deleter_type deleter = 0)
     {
@@ -124,7 +121,7 @@ public:
     {
         return data_[i];
     }
-    const_reference operator[](size_type i) const
+    const_reference operator[](size_type i)
     {
         return data_[i];
     }
@@ -214,4 +211,4 @@ private:
 
 }}} // namespace izenelib::am::tc
 
-#endif // AM_TOKYO_CABINET_BUFFER_H
+#endif // AM_TC_BUFFER_H
