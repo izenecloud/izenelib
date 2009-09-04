@@ -600,6 +600,13 @@ public:
     return buf_node_;
   }
 
+  doc_list_t* get_doc_list(uint64_t addr)const
+  {
+    if (addr == (uint64_t)-1)
+      return NULL;
+    return new doc_list_t(doc_f_, addr);
+  }
+  
   const TermHashTable*  partial_load(uint64_t addr)
   {
     release_(root_);

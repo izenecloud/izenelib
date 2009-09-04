@@ -47,7 +47,7 @@ protected:
   uint32_t last_docid_;
   //  std::vector<trie_t*> tries_;
 
-  void merge_nodes(node_t* a, node_t* b, node_t& c)
+  void merge_nodes(node_t* a, node_t* b, node_t& c, const trie_t& ta, const trie_t& tb, FILE* doc_f)
   {
     c = *b;
     bool is_new = false;
@@ -65,18 +65,33 @@ protected:
         //merge doc list
       }
 
-//       //merge doc list
-//       if(t.get_doc_list() == (uint64_t)-1)
-//           continue;
-      
-//       if(added.get_doc_list() == (uint64_t)-1)
-//       {
-//         added.set_doc_list((uint64_t)(new doc_list_t(*(doc_list_t*)t.get_doc_list())));
-//         continue;
-//       }
+      //merge doc list
+      doc_list_t* lista = ta.get_doc_list(t.get_doc_list());
+      doc_list_t* listb = tb.get_doc_list(added.get_doc_list());
 
-//       ((doc_list_t*)added.get_doc_list())->append(*(doc_list_t*)t.get_doc_list());
+      if (lista == NULL && listb==NULL)
+        continue;
+
+      added.set_doc_list(ftell(doc_f));
       
+      if (lista == NULL)
+      {
+        listb->save(doc_f);
+        delete listb;
+        continue;
+      }
+
+      if (listb == NULL)
+      {
+        lista->save(doc_f);
+        delete lista;
+        continue;
+      }
+
+      lista->append(*listb);
+      lista->save(doc_f);
+      delete lista;
+      delete listb;
     }
   }
 
@@ -162,7 +177,7 @@ protected:
       //std::cout<<"kkkkkkkkkkkkk\n";
       
       //merge frequency to mergee
-      merge_nodes(nodeA, nodeB, obj);
+      merge_nodes(nodeA, nodeB, obj, a, b, doc_f);
 
       uint64_t node_pos = -1;//ftell(f);
       
