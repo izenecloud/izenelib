@@ -2,7 +2,8 @@
 #include <fstream>
 #include <iostream>
 #include <sstream>
-
+#include <types.h>
+#include <assert.h>
 
 /** * @class get_input gen_input.cc
  *  @brief Genarate random words with random k for Edit-Distance. 
@@ -18,39 +19,24 @@ public:
    *@param filename The output file name. Default value is './input'.
    *
    **/
-  static bool doit(unsigned long size=1000000, unsigned long maxChars=30, const std::string& filename="./input")
+  static bool doit(uint32_t size=1000000000, uint32_t maxChars=80000, const std::string& filename="./input")
   {
-    std::ofstream of;
-    of.open (filename.c_str(), std::ofstream::out);
-    if (of.fail())
+    FILE* f = fopen (filename.c_str(), "w+");
+    if (f == NULL)
     {
       std::cout<<"Can't open the output file! Please check the file name: "<<filename<<std::endl;
       return 0;
       
     }
-    std::string str;
     
     for (unsigned long i = 0; i<size; i++)
     {
-      unsigned long charCount = rand()%maxChars;
-      while (charCount == 0)
-        charCount = rand()%maxChars;
-      
-      for (int j=0; j<charCount; j++)
-      {
-        std::string s("a");
-        s[0] += rand()%26;
-        
-        str.append(s);  
-      }
+      uint64_t charCount = rand()%maxChars;
 
-      str.append("\n");
-      
+      assert(fwrite(&charCount, sizeof(uint64_t),1, f)==1);
     }
 
-    of.write(str.c_str(), str.length());
-    of.close();
-
+    fclose(f);
     return true;
     
   }

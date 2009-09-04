@@ -14,7 +14,7 @@ OBJS := $(patsubst %.cpp, %.o, $(wildcard *.cpp))
 #./t_main.o
 
 
-all: get-input izenelib
+all: get-input tg izenelib
 
 
 
@@ -26,6 +26,10 @@ all: get-input izenelib
 get-input: gen_input.o
 	$(GPP)  -g -o "get-input"  $^ 
 	-rm -f gen_input.o
+
+tg: tg_algo.o
+	$(GPP)  -g -o "tg-algo"  $^ 
+	-rm -f tg_algo.o
 
 izenelib: $(OBJS)
 	$(GPP)  -g -o "trie-indexer"  $^ $(LIBS) 

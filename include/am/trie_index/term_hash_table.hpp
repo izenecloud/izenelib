@@ -9,6 +9,7 @@
 
 NS_IZENELIB_AM_BEGIN
 
+class TermHashTable;
 
 /**
    len(1)|freq(4)|loaded(1)|child(8)|doc_list(8)|term\0|....
@@ -97,6 +98,11 @@ public:
     return GET_CHILD(buf_);
   }
 
+  inline bool has_child()const
+  {
+    return GET_CHILD(buf_) != (uint64_t)-1;
+  }
+
   inline uint64_t get_doc_list()const
   {
     return GET_DOC_LIST(buf_);
@@ -177,7 +183,23 @@ public:
   {
     return buf_==NULL;
   }
-  
+
+  template<typename T>
+  typename T::const_iterator begin(T t = TermHashTable())
+  {
+    assert(GET_CHILD(buf_)!=(uint64_t)-1);
+
+    return ((T*)GET_CHILD(buf_))->begin();
+  }
+
+  template<typename T>
+  typename T::const_iterator end(T t = TermHashTable())
+  {
+    assert(GET_CHILD(buf_)!=(uint64_t)-1);
+
+    return ((T*)GET_CHILD(buf_))->end();
+  } 
+
 friend std::ostream& operator << (std::ostream& os, const Term& t)
   {
     os<<"<"<<GET_ID(t.buf_)<<" "<<GET_FREQ(t.buf_)<<" "<<(int)GET_LOADED(t.buf_)<<" "<<GET_CHILD(t.buf_)<<" "<<GET_DOC_LIST(t.buf_)<<">";
@@ -414,7 +436,7 @@ public:
   {
     const Row**    entry_;
     uint32_t file_pos_;
-    const uint32_t entry_size_;
+    uint32_t entry_size_;
     uint32_t entry_num_;
     Term t_;
 
@@ -433,6 +455,17 @@ public:
     {
     }
 
+    const_iterator& operator = (const const_iterator& other)
+    {
+      entry_ = other.entry_;
+      file_pos_ = other.file_pos_;
+      entry_size_  = other.entry_size_;
+      entry_num_ = other.entry_num_;
+      t_ = other.t_;
+
+      return *this;
+    }
+    
     Term& operator *()
     {
       return t_;
