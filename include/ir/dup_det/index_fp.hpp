@@ -47,7 +47,7 @@ protected:
   static Prime* prime_;
   
 
-  inline bool broder_compare(const uint64_t* p1, const uint64_t* p2, uint8_t threshold = 2)
+  inline bool broder_compare(const uint64_t* p1, const uint64_t* p2, uint8_t threshold = 1)
   {
     //std::cout<<"\nborder_compare: ";
     uint8_t r = 0;
@@ -55,15 +55,15 @@ protected:
     {
       //std::cout<<p1[i]<<"-"<<p2[i]<<" ";
       
-      if (p1[i]!=p2[i])
+      if (p1[i]==p2[i])
         ++r;
       
-      if (r>threshold)
-        return false;
+      if (r>=threshold)
+        return true;
     }
     //std::cout<<std::endl;
     
-    return true;
+    return false;
   }
 
   inline bool charick_compare(const uint64_t* p1, const uint64_t* p2, uint8_t threshold = 12)
