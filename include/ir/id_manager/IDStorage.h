@@ -56,6 +56,10 @@ public:
 	 */
 	bool get(const NameID& nameID, NameString& nameString);
 
+	void close()
+	{
+	    nameFinder_.close();
+	}
 
 	void display()
 	{
@@ -125,6 +129,8 @@ public:
 	{
 	    return false;
 	}
+
+	void close(){}
 
 	void display(){}
 }; // end - template EmptyIDStorage

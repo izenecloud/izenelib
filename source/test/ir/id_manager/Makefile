@@ -54,4 +54,4 @@ $(TARGET) : $(OBJECTS)
 	$(CXX) -o $@ $^  $(EXT_LIB_PATH) $(EXT_LIB) 
 
 clean:
-	rm -rf *.o $(TARGET) *.sdb *.has *.buk *.nod
+	rm -rf *.o $(TARGET) *.sdb *.rawid *.rawtext

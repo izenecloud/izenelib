@@ -330,6 +330,9 @@ BOOST_AUTO_TEST_CASE( TestCase3 )
     idManager.getTermIdListByTermStringList( termUStringList1_, termIdList1_ );
     idManager.getTermIdListByTermStringList( termUStringList2_, termIdList2_ );
 
+    idManager.startWildcardProcess();
+    idManager.joinWildcardProcess();
+
     // Get term id list using getTermIdListByWildcardPattern() Interface with pattern string "ate".
     termIdList1_.clear();
 
@@ -363,9 +366,6 @@ BOOST_AUTO_TEST_CASE( TestCase3 )
     pattern += starChar;
     idManager.getTermIdListByWildcardPattern(pattern, termIdList1_);
     BOOST_CHECK_EQUAL( termIdList1_.size() , static_cast<unsigned int>(81));
-
-    idManager.display();
-    cerr << "OK" << endl;
 
 } // end - BOOST_AUTO_TEST_CASE( TestCase3 )
 
@@ -411,6 +411,8 @@ BOOST_AUTO_TEST_CASE( TestCase4 )
     // Check if the resultUString is the same as insertUString.
     BOOST_CHECK ( insertUString == resultUString );
 
+    idManager.close();
+
 	// Clear data of this test case
 	remove("IDManagerData.dat");
     cerr << "OK" << endl;
@@ -418,85 +420,85 @@ BOOST_AUTO_TEST_CASE( TestCase4 )
 } // end - BOOST_AUTO_TEST_CASE( TestCase4 )
 
 
-/**
- * @brief Test Case 8 : test read/write interfaces of IDManager
- * @details
- *      - Insert 2350 collection names, document names, and term strings into IDManager
- *      - Store data of IDManager in test.data.
- *      - Load data from test.dat, make sure that the IDs are not changed
- * /
-
-BOOST_AUTO_TEST_CASE( TestCase8 )
-{
-	// Clear data of previous test case
-	remove("test.dat");
-	// File IDManagerData.dat is defalt file name of IDManager.
-	// IDManager automatically stores its data in IDManagerData.dat
-	// Clear data of previous test
-	remove("IDManagerData.dat");
-
-    cerr << "[ IDManager ] Test Case 8 : test read/write from/to file ......";
-
-    // remove previous index file
-    // remove(CollectionIdManager<UString, unsigned int>::COLLECTION_ID_MANAGER_INDEX_FILE.c_str());
-
-
-    unsigned int i;
-	unsigned int collectionId = 1;
-    IDManager idManager_Store;
-    IDManager* idManager_Load;
-    std::vector<unsigned int> termIdList;
-    std::vector<unsigned int> docIdList;
-    std::vector<unsigned int> collectionIdList;
-    unsigned int testId;
-
-    // termUStringList1_ (100 terms) and termUStringList2_ (2500 terms) are already generated.
-
-    // Get ids for each collection names using getCollectionIdByCollectionName().
-    termIdList.resize(termUStringList2_.size());
-    docIdList.resize(termUStringList2_.size());
-    collectionIdList.resize(termUStringList2_.size());
-
-    for(i = 0; i < termUStringList2_.size(); i++)
-	{
-        idManager_Store.getTermIdByTermString(termUStringList2_[i], termIdList[i]);
-        idManager_Store.getDocIdByDocName(collectionId, termUStringList2_[i], docIdList[i]);
-        idManager_Store.getCollectionIdByCollectionName( termUStringList2_[i], collectionIdList[i] );
-	}
-
-	// store data in test.dat
-	idManager_Store.write("test.dat");
-	remove("IDManagerData.dat");
-
-    cerr << "==================================================================== 1" << endl;
-
-	// load data from test.dat
-	idManager_Load = new IDManager();
-	idManager_Load->read("test.dat");
-
-    cerr << "==================================================================== 3" << endl;
-
-    for(i = 0; i < termUStringList2_.size(); i++)
-	{
-		// check if the IDs are changed
-        idManager_Load->getTermIdByTermString(termUStringList2_[i], testId);
-		BOOST_CHECK_EQUAL(termIdList[i], testId);
-        idManager_Load->getDocIdByDocName(collectionId, termUStringList2_[i], testId);
-		BOOST_CHECK_EQUAL(docIdList[i], testId);
-        idManager_Load->getCollectionIdByCollectionName( termUStringList2_[i], testId);
-		BOOST_CHECK_EQUAL(collectionIdList[i], testId);
-	}
-    cerr << "==================================================================== 2" << endl;
-	delete idManager_Load;
-
-	remove("test.dat");
-	// Clear data of this test case
-	// remove("IDManagerData.dat");
-
-    cerr << "OK" << endl;
-
-} // end - BOOST_AUTO_TEST_CASE( TestCase8 )
-//*/
+///**
+// * @brief Test Case 8 : test read/write interfaces of IDManager
+// * @details
+// *      - Insert 2350 collection names, document names, and term strings into IDManager
+// *      - Store data of IDManager in test.data.
+// *      - Load data from test.dat, make sure that the IDs are not changed
+// * /
+//
+//BOOST_AUTO_TEST_CASE( TestCase8 )
+//{
+//	// Clear data of previous test case
+//	remove("test.dat");
+//	// File IDManagerData.dat is defalt file name of IDManager.
+//	// IDManager automatically stores its data in IDManagerData.dat
+//	// Clear data of previous test
+//	remove("IDManagerData.dat");
+//
+//    cerr << "[ IDManager ] Test Case 8 : test read/write from/to file ......";
+//
+//    // remove previous index file
+//    // remove(CollectionIdManager<UString, unsigned int>::COLLECTION_ID_MANAGER_INDEX_FILE.c_str());
+//
+//
+//    unsigned int i;
+//	unsigned int collectionId = 1;
+//    IDManager idManager_Store;
+//    IDManager* idManager_Load;
+//    std::vector<unsigned int> termIdList;
+//    std::vector<unsigned int> docIdList;
+//    std::vector<unsigned int> collectionIdList;
+//    unsigned int testId;
+//
+//    // termUStringList1_ (100 terms) and termUStringList2_ (2500 terms) are already generated.
+//
+//    // Get ids for each collection names using getCollectionIdByCollectionName().
+//    termIdList.resize(termUStringList2_.size());
+//    docIdList.resize(termUStringList2_.size());
+//    collectionIdList.resize(termUStringList2_.size());
+//
+//    for(i = 0; i < termUStringList2_.size(); i++)
+//	{
+//        idManager_Store.getTermIdByTermString(termUStringList2_[i], termIdList[i]);
+//        idManager_Store.getDocIdByDocName(collectionId, termUStringList2_[i], docIdList[i]);
+//        idManager_Store.getCollectionIdByCollectionName( termUStringList2_[i], collectionIdList[i] );
+//	}
+//
+//	// store data in test.dat
+//	idManager_Store.write("test.dat");
+//	remove("IDManagerData.dat");
+//
+//    cerr << "==================================================================== 1" << endl;
+//
+//	// load data from test.dat
+//	idManager_Load = new IDManager();
+//	idManager_Load->read("test.dat");
+//
+//    cerr << "==================================================================== 3" << endl;
+//
+//    for(i = 0; i < termUStringList2_.size(); i++)
+//	{
+//		// check if the IDs are changed
+//        idManager_Load->getTermIdByTermString(termUStringList2_[i], testId);
+//		BOOST_CHECK_EQUAL(termIdList[i], testId);
+//        idManager_Load->getDocIdByDocName(collectionId, termUStringList2_[i], testId);
+//		BOOST_CHECK_EQUAL(docIdList[i], testId);
+//        idManager_Load->getCollectionIdByCollectionName( termUStringList2_[i], testId);
+//		BOOST_CHECK_EQUAL(collectionIdList[i], testId);
+//	}
+//    cerr << "==================================================================== 2" << endl;
+//	delete idManager_Load;
+//
+//	remove("test.dat");
+//	// Clear data of this test case
+//	// remove("IDManagerData.dat");
+//
+//    cerr << "OK" << endl;
+//
+//} // end - BOOST_AUTO_TEST_CASE( TestCase8 )
+////*/
 
 //
 ///**
