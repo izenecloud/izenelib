@@ -45,6 +45,8 @@ public:
         return false;
 	}
 
+	void close(){}
+
 	void display(){}
 
 }; // end - template SequentialIDFactory
@@ -74,6 +76,8 @@ public:
         nameID = HashFunc(nameString);
         return false;
 	}
+
+	void close(){}
 
 	void display(){}
 
@@ -109,6 +113,11 @@ public:
 	 * @return false otherwise
 	 */
 	inline bool conv(const NameString& nameString, NameID& nameID);
+
+	void close()
+	{
+	    idFinder_.close();
+	}
 
 	void display()
 	{

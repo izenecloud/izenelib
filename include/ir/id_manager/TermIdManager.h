@@ -154,6 +154,10 @@ public:
         return isAllTermFound;
     }
 
+    void close()
+	{
+	    idFactory_.close();
+	}
 
 	/**
 	 * @brief a member function to display all the contents of the sequential db.

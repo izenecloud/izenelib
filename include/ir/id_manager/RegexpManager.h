@@ -125,7 +125,8 @@ public:
     RegexpManager(const std::string& storageName)
         : storageName_(storageName),
           rawTextFileName_(storageName_ + ".rawtext"),
-          rawIdFileName_(storageName_ + ".rawid")
+          rawIdFileName_(storageName_ + ".rawid"),
+          handler_(NULL), worker_(NULL)
     {
         // here if statement could be optimized at compile time,
         // so it doesn't effect the perforamnce.
@@ -138,22 +139,12 @@ public:
             rawIdFile_.open(rawIdFileName_.c_str(), std::ofstream::out|std::ofstream::app|std::ofstream::binary );
             if(rawIdFile_.fail())
                 std::cerr << "bad file " << rawIdFileName_ << std::endl;
-
-            handlerInitialized_ = false;
         }
     }
 
     ~RegexpManager()
     {
-        // here if statement could be optimized at compile time,
-        // so it doesn't effect the perforamnce.
-        if( ! IsEmpty<RegExpHandler>::value )
-        {
-            if(handlerInitialized_) {
-                handler_->close();
-                delete handler_;
-            }
-        }
+        close();
     }
 
 	void insert(const NameString & word, const NameID & id)
@@ -182,10 +173,8 @@ public:
         // so it doesn't effect the perforamnce.
         if( ! IsEmpty<RegExpHandler>::value )
         {
-            if(handlerInitialized_)
-            {
+            if(handler_)
                 return handler_->findRegExp(exp, results);
-            }
 
             filelock_.acquire_write_lock();
             rawTextFile_.flush();
@@ -205,7 +194,7 @@ public:
         // so it doesn't effect the perforamnce.
         if( ! IsEmpty<RegExpHandler>::value )
         {
-            if(handlerInitialized_ || worker_) return;
+            if(worker_) return;
 
             filelock_.acquire_write_lock();
             // Close write pipes
@@ -226,12 +215,11 @@ public:
         // so it doesn't effect the perforamnce.
         if( ! IsEmpty<RegExpHandler>::value )
         {
-            if(handlerInitialized_) return;
+            if(worker_==NULL) return;
 
             worker_->join();
             delete worker_;
-
-            handlerInitialized_ =true;
+            worker_ = NULL;
 
             filelock_.acquire_write_lock();
             // Reopen write pipes
@@ -242,6 +230,37 @@ public:
             if(rawIdFile_.fail())
                 std::cerr << "bad file " << rawIdFileName_ << std::endl;
             filelock_.release_write_lock();
+        }
+    }
+
+    void close()
+    {
+        // here if statement could be optimized at compile time,
+        // so it doesn't effect the perforamnce.
+        if( ! IsEmpty<RegExpHandler>::value )
+        {
+
+            filelock_.acquire_write_lock();
+            // Close write pipes
+            rawTextFile_.flush();
+            rawTextFile_.close();
+
+            rawIdFile_.flush();
+            rawIdFile_.close();
+            filelock_.release_write_lock();
+
+            if(handler_) {
+                handler_->close();
+                delete handler_;
+                handler_ = NULL;
+                handlerInitialized_ = false;
+            }
+
+            if(worker_) {
+                worker_->join();
+                delete worker_;
+                worker_ = NULL;
+            }
         }
     }
 
@@ -262,6 +281,12 @@ protected:
                 std::cout<<"Can't open raw files "<< rawTextFileName_
                     << " and " << rawIdFileName_ << std::endl;
                 return;
+            }
+
+            if(handler_) {
+                handler_->close();
+                delete handler_;
+                handler_ = NULL;
             }
 
             {

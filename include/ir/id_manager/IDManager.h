@@ -203,6 +203,16 @@ public:
         regexpManager_.joinThread();
     }
 
+    /**
+     * @brief Close all resources.
+     */
+    void close()
+    {
+        termIdManager_.close();
+        docIdManager_.close();
+        regexpManager_.close();
+    }
+
 	/**
 	 * @brief retrieve version string of id-manager
 	 * @return version string of id-manager
