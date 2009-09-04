@@ -29,8 +29,6 @@
 #include "IDFactoryErrorString.h"
 #include "IDFactoryException.h"
 
-#include "EmptyRegExp.h"
-
 /**
  * @brief a class to generate, serve, and manage all about of the term id.
  */
@@ -42,8 +40,7 @@ namespace idmanager
 template<typename NameString,
          typename NameID,
          typename IDGenerator   = HashIDGenerator<NameString, NameID>,
-         typename IDStorage     = SDBIDStorage<NameString, NameID>,
-         typename RegExp        = EmptyRegExp<NameString> >
+         typename IDStorage     = SDBIDStorage<NameString, NameID> >
 class TermIdManager
 {
     typedef IDFactory<NameString, NameID, IDGenerator, IDStorage> TermIDFactory;
@@ -53,12 +50,13 @@ public:
 	/**
 	 * @brief Constructor of TermIdManager having term ids within a given range
 	 */
-	TermIdManager(const string& storageName = "termid_manager");
+	TermIdManager(const string& storageName = "termid_manager")
+	:   idFactory_(storageName) {}
 
 	/**
 	 * @brief A Destructor.
 	 */
-	~TermIdManager();
+	~TermIdManager() {}
 
 public:
 
@@ -71,7 +69,21 @@ public:
 	 * @return true     : The term ID is in dictionary.
 	 * @return false    : There is no matched term ID in dictionary. New term Id generation and Insertion processes are done.
 	 */
-	bool getTermIdByTermString(const NameString& termString, NameID& termId);
+    template<typename RegexpManager>
+	bool getTermIdByTermString(const NameString& termString, NameID& termId, RegexpManager& starSearcher)
+    {
+        // If given term string is not in the dictionary,
+        // insertion into File and starSearchInsertion is needed.
+        // If the return value of getNameIdByNameString is false,
+        // termId contains new id of
+        if (false == idFactory_.getNameIDByNameString(termString, termId) ) {
+            // Write into startSearchIndexer
+            starSearcher.insert(termString, termId);
+            return false;
+        }
+        return true;
+    }
+
 
 	/**
 	 * @brief a member function to offer a term string according to the ID.
@@ -81,19 +93,10 @@ public:
 	 * @return true  :  Given id exists in the dictionary.
 	 * @return false :	Given id does not exist in the dictionary.
 	 */
-	bool getTermStringByTermId(NameID termId, NameString& termString);
-
-	/**
-	 * TODO : NYI (not yet implemented)
-	 * @brief a member function to offer a result set of wildcard search with WildcardSearchManager.
-	 *
-	 * @param wildcardPattern   a string of wildcard pattern which contains '*';
-	 * @param termIdList        a list of term IDs which is the result of WildcardSearchManager.
-	 * @return true  :          Given wildcard pattern is matched at least once in the dictionary.
-	 * @return false :          Given wildcard pattern is not matched in the dictionary.
-	 */
-	bool getTermIdListByWildcardPattern(const NameString& wildcardPattern,
-			std::vector<NameID>& termIdList);
+	bool getTermStringByTermId(NameID termId, NameString& termString)
+    {
+        return idFactory_.getNameStringByNameID(termId, termString);
+    }
 
 	/**
 	 * @brief a member function to offer a set of search result of term id list. If one or more term strings are not matched in the dictionary, 0 will be contained for each unmatched termIdList.
@@ -103,10 +106,26 @@ public:
 	 * @return true  :          all the term strings in given list are matched in the dictionary.
 	 * @return false :          one or more term strings are not matched in the dictionary.
 	 */
-	bool getTermIdListByTermStringList(
-			const std::vector<NameString>& termStringList,
-			std::vector<NameID>& termIdList);
+    template<typename RegexpManager>
+	bool getTermIdListByTermStringList( const std::vector<NameString>& termStringList,
+			std::vector<NameID>& termIdList, RegexpManager& starSearcher)
+    {
+        bool ret;
+        bool isAllIDFound = true;
+        size_t sizeOfTermStringList = termStringList.size();
 
+        // clear termIDList
+        termIdList.clear();
+        termIdList.resize(sizeOfTermStringList);
+
+        for (size_t i = 0; i < sizeOfTermStringList; i++) {
+            ret = getTermIdByTermString(termStringList[i], termIdList[i], starSearcher);
+            if (ret == false)
+                isAllIDFound = false;
+        } // end - for
+
+        return isAllIDFound;
+    }
 	/**
 	 * @brief a memeber function to offer a list of term string by term id list. If one or more ids are not matched in the dictionary, 0 will be contained for each unmatched termIdList.
 	 *
@@ -117,164 +136,43 @@ public:
 	 * @return false    :       one or more term ids are not matched in the dictionary.
 	 */
 	bool getTermStringListByTermIdList(const std::vector<NameID>& termIdList,
-			std::vector<NameString>& termStringList);
+			std::vector<NameString>& termStringList)
+    {
+        bool ret;
+        bool isAllTermFound = true;
+        size_t sizeOfTermIdList = termIdList.size();
+
+        // clear nameStringList
+        termStringList.clear();
+        termStringList.resize(sizeOfTermIdList);
+
+        for (size_t i = 0; i < sizeOfTermIdList; i++) {
+            ret = idFactory_.getNameStringByNameID(termIdList[i], termStringList[i]);
+            if (ret == false)
+                isAllTermFound = false;
+        } // end - for
+        return isAllTermFound;
+    }
+
 
 	/**
 	 * @brief a member function to display all the contents of the sequential db.
 	 *        this function is used for debugging.
 	 */
-	void display();
-private:
+	void display()
+    {
+        idFactory_.display();
+    }
 
-//	/**
-//	 * @brief This thread is used only for updating star search index
-//	 */
-//	boost::thread* starSearchUpdateThread_;
-//
-//	/**
-//	 * @brief This variable signale a event when there is a new term
-//	 */
-//	boost::condition_variable newTermEvent_;
+
+private:
 
 	/**
 	 * @brief ID generator
 	 */
 	TermIDFactory idFactory_;
 
-	/**
-	 * @brief This lock allows exclusive access to termsQueueForStarSearchIndex_
-	 */
-	boost::mutex termIndexerLock_;
-
-	/**
-	 * @brief Star search indexer
-	 */
-
-	RegExp starSearchIndexer_;
-
 }; // end - class TermIdManager
-
-template<typename NameString, typename NameID,
-         typename IDGenerator, typename IDStorage,
-         typename RegExp>
-TermIdManager<NameString, NameID, IDGenerator, IDStorage, RegExp>::
-    TermIdManager(const string& storageName)
-:
-	idFactory_(storageName),
-	starSearchIndexer_(storageName)
-{
-    starSearchIndexer_.open();
-} // end - TermIdManager()
-
-template<typename NameString, typename NameID,
-         typename IDGenerator, typename IDStorage,
-         typename RegExp>
-TermIdManager<NameString, NameID, IDGenerator, IDStorage, RegExp>::
-    ~TermIdManager()
-{
-    starSearchIndexer_.close();
-} // end - ~TermIdManager()
-
-template<typename NameString, typename NameID,
-         typename IDGenerator, typename IDStorage,
-         typename RegExp>
-bool TermIdManager<NameString, NameID, IDGenerator, IDStorage, RegExp>::
-    getTermIdByTermString(
-		const NameString& termString,
-		NameID& termId)
-{
-	// If given term string is not in the dictionary,
-	// insertion into File and starSearchInsertion is needed.
-	// If the return value of getNameIdByNameString is false,
-	// termId contains new id of
-	if (false == idFactory_.getNameIDByNameString(termString, termId) ) {
-		// Write into startSearchIndexer
-		boost::mutex::scoped_lock lock(termIndexerLock_);
-		starSearchIndexer_.insert(termString, (int64_t)termId);
-		return false;
-	}
-	return true;
-} // end - getTermIdByTermString()
-
-
-template<typename NameString, typename NameID,
-         typename IDGenerator, typename IDStorage,
-         typename RegExp>
-bool TermIdManager<NameString, NameID, IDGenerator, IDStorage, RegExp>::
-    getTermStringByTermId(NameID termId,
-		NameString& termString) {
-	return idFactory_.getNameStringByNameID(termId, termString);
-} // end - getTermStringByTermId()
-
-template<typename NameString, typename NameID,
-         typename IDGenerator, typename IDStorage,
-         typename RegExp>
-bool TermIdManager<NameString, NameID, IDGenerator, IDStorage, RegExp>::
-    getTermIdListByWildcardPattern(
-		const NameString& wildcardPattern, std::vector<NameID>& termIdList) {
-	boost::mutex::scoped_lock indexLock(termIndexerLock_);
-	return starSearchIndexer_.findRegExp(wildcardPattern, termIdList);
-}
-
-template<typename NameString, typename NameID,
-         typename IDGenerator, typename IDStorage,
-         typename RegExp>
-bool TermIdManager<NameString, NameID, IDGenerator, IDStorage, RegExp>::
-    getTermIdListByTermStringList(
-		const std::vector<NameString>& termStringList,
-		std::vector<NameID>& termIdList)
-{
-	bool ret;
-	bool isAllIDFound = true;
-	size_t sizeOfTermStringList = termStringList.size();
-
-	// clear termIDList
-	termIdList.clear();
-	termIdList.resize(sizeOfTermStringList);
-
-	for (size_t i = 0; i < sizeOfTermStringList; i++) {
-		ret = getTermIdByTermString(termStringList[i], termIdList[i]);
-		if (ret == false)
-			isAllIDFound = false;
-	} // end - for
-
-	return isAllIDFound;
-} // end - getTermIdListByTermStringList()
-
-template<typename NameString, typename NameID,
-         typename IDGenerator, typename IDStorage,
-         typename RegExp>
-bool TermIdManager<NameString, NameID, IDGenerator, IDStorage, RegExp>::
-    getTermStringListByTermIdList(
-        const std::vector<NameID>& termIdList,
-        std::vector<NameString>& termStringList)
-{
-	bool ret;
-	bool isAllTermFound = true;
-	size_t sizeOfTermIdList = termIdList.size();
-
-	// clear nameStringList
-    termStringList.clear();
-	termStringList.resize(sizeOfTermIdList);
-
-	for (size_t i = 0; i < sizeOfTermIdList; i++) {
-		ret = idFactory_.getNameStringByNameID(termIdList[i], termStringList[i]);
-		if (ret == false)
-			isAllTermFound = false;
-	} // end - for
-	return isAllTermFound;
-} // end - getTermStringListByTermIdList()
-
-
-template<typename NameString, typename NameID,
-         typename IDGenerator, typename IDStorage,
-         typename RegExp>
-void TermIdManager<NameString, NameID, IDGenerator, IDStorage, RegExp>::
-    display()
-{
-    idFactory_.display();
-} // end - display()
-
 
 }
 // end - namespace idmanager

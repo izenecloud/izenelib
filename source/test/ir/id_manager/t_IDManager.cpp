@@ -330,6 +330,9 @@ BOOST_AUTO_TEST_CASE( TestCase3 )
     idManager.getTermIdListByTermStringList( termUStringList1_, termIdList1_ );
     idManager.getTermIdListByTermStringList( termUStringList2_, termIdList2_ );
 
+    idManager.startWildcardProcess();
+    idManager.joinWildcardProcess();
+
     // Get term id list using getTermIdListByWildcardPattern() Interface with pattern string "ate".
     termIdList1_.clear();
 
@@ -363,9 +366,6 @@ BOOST_AUTO_TEST_CASE( TestCase3 )
     pattern += starChar;
     idManager.getTermIdListByWildcardPattern(pattern, termIdList1_);
     BOOST_CHECK_EQUAL( termIdList1_.size() , static_cast<unsigned int>(81));
-
-    idManager.display();
-    cerr << "OK" << endl;
 
 } // end - BOOST_AUTO_TEST_CASE( TestCase3 )
 
