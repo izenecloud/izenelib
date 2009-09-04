@@ -1,17 +1,17 @@
 #ifndef PARTIAL_FP_LIST_HPP
 #define PARTIAL_FP_LIST_HPP
 
-#include <types.h>
-#include <ir/dup_det/integer_dyn_array.hpp>
+
 #include <string>
 #include <cstdio>
+#include <ir/dup_det/integer_dyn_array.hpp>
 
 NS_IZENELIB_IR_BEGIN
 
-template <
-  class    UNIT_TYPE = uint64_t,
+template<
+  typename UNIT_TYPE = uint64_t,
   uint8_t  FP_LENGTH = 6,
-  uint64_t CACHE_SIZE = 600 //MB
+  uint64_t CACHE_SIZE = 600
   >
 class PartialFpList
 {
@@ -224,6 +224,8 @@ public:
   
   size_t add_doc(uint32_t docid, const FpVector& fp)
   {
+    //std::cout<<"*** "<<fp<<std::endl;
+    
     set_cache_status(ADD_DOCS);
     
     if (cache_full())
@@ -232,7 +234,7 @@ public:
       in_mem_doc_num_ = 0;
       start_doc_i_ = doc_num_;
     }
-
+    
     assert(FP_LENGTH == fp.length());
     docids_.push_back(docid);
     
