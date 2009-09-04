@@ -6,7 +6,6 @@
 #include <am/concept/DataType.h>
 #include <sdb/SequentialDB.h>
 #include "compoundkey.h"
-#include "compoundvalue.h"
 #include "sdb_hash2btree.h"
 #include "traits.h"
 
@@ -40,13 +39,13 @@ class SDBTrie : public AccessMethod<std::vector<CharType>, UserDataType>
     typedef NodeIDType EdgeTableValueType;
     typedef DataType<EdgeTableKeyType, EdgeTableValueType> EdgeTableRecordType;
     typedef izenelib::sdb::unordered_sdb_fixed<EdgeTableKeyType, EdgeTableValueType , LockType> EdgeTableType;
-    typedef izenelib::sdb::ordered_sdb<EdgeTableKeyType, EdgeTableValueType , LockType> OptEdgeTableType;
+    typedef izenelib::sdb::ordered_sdb_fixed<EdgeTableKeyType, EdgeTableValueType , LockType> OptEdgeTableType;
     typedef Conv_Sdb_Hash2Btree<EdgeTableType, OptEdgeTableType> EdgeTableConverter;
 
     typedef NodeIDType DataTableKeyType;
     typedef UserDataType DataTableValueType;
     typedef DataType<DataTableKeyType, DataTableValueType> DataTableRecordType;
-    typedef izenelib::sdb::ordered_sdb<DataTableKeyType, DataTableValueType , LockType> DataTableType;
+    typedef izenelib::sdb::ordered_sdb_fixed<DataTableKeyType, DataTableValueType , LockType> DataTableType;
 
 public:
 
@@ -56,11 +55,12 @@ public:
         optEdgeTable_(dbname_ + ".sdbtrie.optedgetable.sdb"),
         dataTable_(dbname_ + ".sdbtrie.datatable.sdb")
     {
-        optEdgeTable_.setDegree(24);
+        std::cout << "size of EdgeTableKey is " << sizeof(EdgeTableKeyType) << "!!!!!!!!!!!!!!!!!!!!" << std::endl;
+        optEdgeTable_.setDegree(32);
         optEdgeTable_.setPageSize(2048);
 
-        dataTable_.setDegree(24);
-        dataTable_.setPageSize(2048);
+        dataTable_.setDegree(32);
+        dataTable_.setPageSize(1024);
 
         edgeTable_.setDegree(16);
         edgeTable_.setBucketSize(512);
@@ -87,7 +87,7 @@ public:
         optEdgeTable_.setCacheSize(128*1024);
         optEdgeTable_.open();
 
-        dataTable_.setCacheSize(32*1024);
+        dataTable_.setCacheSize(64*1024);
         dataTable_.open();
     }
 
@@ -105,7 +105,7 @@ public:
         optEdgeTable_.setCacheSize(32*1024);
         optEdgeTable_.open();
 
-        dataTable_.setCacheSize(32*1024);
+        dataTable_.setCacheSize(64*1024);
         dataTable_.open();
 
         nextNID_ = edgeTable_.numItems() + NodeIDTraits<NodeIDType>::MinValue;
