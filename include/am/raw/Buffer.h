@@ -4,7 +4,7 @@
  * @file am/raw/Buffer.h
  * @author Ian Yang
  * @date Created <2009-09-04 14:05:33>
- * @date Updated <2009-09-05 23:46:01>
+ * @date Updated <2009-09-06 01:02:39>
  * @brief Wrapper of the memory buffer. A deleter can be specified to delegate
  * the destruction work to Buffer.
  */
@@ -231,7 +231,7 @@ private:
         if (i >= size())
         {
             throw std::out_of_range(
-                "tc::Buffer: index out of range"
+                "raw::Buffer: index out of range"
             );
         }
     }
