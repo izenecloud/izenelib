@@ -1,0 +1,356 @@
+#include <boost/test/unit_test.hpp>
+
+#include <am/raw/Buffer.h>
+
+#include <iostream>
+
+using namespace boost::unit_test;
+using namespace izenelib::am::raw;
+
+namespace { // anonymous
+struct Fixture
+{
+    Fixture()
+    {
+        deleterCounter = 0;
+    }
+
+    static void testDeleter(void* p)
+    {
+        ++deleterCounter;
+    }
+
+    static unsigned deleterCounter;
+};
+unsigned Fixture::deleterCounter = 0;
+} // end of anonymous namespace
+
+BOOST_FIXTURE_TEST_SUITE(izenelib_am_raw_Buffer_test, Fixture)
+
+BOOST_AUTO_TEST_CASE(DefaultConstructor_test)
+{
+    Buffer buf;
+    BOOST_CHECK(buf.empty());
+}
+
+BOOST_AUTO_TEST_CASE(SizeConstructor_test)
+{
+    Buffer buf(100);
+    BOOST_CHECK(!buf.empty());
+    BOOST_CHECK(buf.size() == 100);
+}
+
+BOOST_AUTO_TEST_CASE(AttachConstroctor_test)
+{
+    char str[] = "123";
+    Buffer buf(str, 3);
+
+    BOOST_CHECK(buf.size() == 3);
+    BOOST_CHECK(buf[0] == '1');
+    BOOST_CHECK(buf[1] == '2');
+    BOOST_CHECK(buf[2] == '3');
+}
+
+BOOST_AUTO_TEST_CASE(Attach_test)
+{
+    Buffer buf;
+    char str[] = "123";
+
+    buf.attach(str, 3);
+
+    BOOST_CHECK(buf.size() == 3);
+    BOOST_CHECK(buf[0] == '1');
+    BOOST_CHECK(buf[1] == '2');
+    BOOST_CHECK(buf[2] == '3');
+}
+
+BOOST_AUTO_TEST_CASE(Deleter_test)
+{
+    char str[] = "123";
+
+    {
+        Buffer buf;
+        buf.attach(str, 3, testDeleter);
+    }
+
+    BOOST_CHECK_EQUAL(deleterCounter, 1);
+}
+
+BOOST_AUTO_TEST_CASE(CopyConstructor_test)
+{
+    char str[] = "123";
+
+    Buffer a(str, 3);
+
+    Buffer b(a);
+
+    BOOST_CHECK(b.data() != a.data());
+    BOOST_CHECK(b.size() == 3);
+    BOOST_CHECK(b[0] == '1');
+    BOOST_CHECK(b[1] == '2');
+    BOOST_CHECK(b[2] == '3');
+}
+
+
+BOOST_AUTO_TEST_CASE(CopyConstructorNotCopyDeleter_test)
+{
+    {
+        char str[] = "123";
+        Buffer a(str, 3, testDeleter);
+        Buffer b(a);
+    }
+
+    BOOST_CHECK(deleterCounter == 1);
+}
+
+BOOST_AUTO_TEST_CASE(Assignment_test)
+{
+    char str[] = "123";
+
+    Buffer a(str, 3);
+
+    Buffer b;
+
+    b = a;
+
+    BOOST_CHECK(b.data() != a.data());
+    BOOST_CHECK(b.size() == 3);
+    BOOST_CHECK(b[0] == '1');
+    BOOST_CHECK(b[1] == '2');
+    BOOST_CHECK(b[2] == '3');
+}
+
+BOOST_AUTO_TEST_CASE(AssignmentNotCopyDeleter_test)
+{
+    {
+        char str[] = "123";
+        Buffer a(str, 3, testDeleter);
+        Buffer b;
+        b = a;
+    }
+
+    BOOST_CHECK_EQUAL(deleterCounter, 1);
+}
+
+BOOST_AUTO_TEST_CASE(AssignmentSelf_test)
+{
+    {
+        char str[] = "123";
+        Buffer a(str, 3, testDeleter);
+        a = a;
+
+        BOOST_CHECK(a.data() == str);
+        BOOST_CHECK(a.size() == 3);
+        BOOST_CHECK(a[0] == '1');
+        BOOST_CHECK(a[1] == '2');
+        BOOST_CHECK(a[2] == '3');
+    }
+
+    BOOST_CHECK_EQUAL(deleterCounter, 1);
+}
+
+BOOST_AUTO_TEST_CASE(AssignmentDestructFirst_test)
+{
+    char str[] = "123";
+    Buffer a(str, 3, testDeleter);
+    Buffer b;
+    a = b;
+
+    BOOST_CHECK(a.empty());
+
+    BOOST_CHECK_EQUAL(deleterCounter, 1);
+}
+
+BOOST_AUTO_TEST_CASE(Swap_test)
+{
+    {
+        char str[] = "123";
+        Buffer a(str, 3, testDeleter);
+        Buffer b;
+        a.swap(b);
+        BOOST_CHECK_EQUAL(deleterCounter, 0);
+
+        BOOST_ASSERT(a.empty());
+        BOOST_ASSERT(b.size() == 3);
+        BOOST_ASSERT(b[0] == '1');
+        BOOST_ASSERT(b[1] == '2');
+        BOOST_ASSERT(b[2] == '3');
+        BOOST_ASSERT(b.data() == str);
+    }
+
+    BOOST_CHECK_EQUAL(deleterCounter, 1);
+}
+
+BOOST_AUTO_TEST_CASE(EmptyIterator_test)
+{
+    Buffer buf;
+    BOOST_ASSERT(buf.begin() == buf.end());
+}
+
+BOOST_AUTO_TEST_CASE(EmptyReverseIterator_test)
+{
+    Buffer buf;
+    BOOST_ASSERT(buf.rbegin() == buf.rend());
+}
+
+BOOST_AUTO_TEST_CASE(EmptyConstIterator_test)
+{
+    const Buffer buf;
+    BOOST_ASSERT(buf.begin() == buf.end());
+}
+
+BOOST_AUTO_TEST_CASE(EmptyConstReverseIterator_test)
+{
+    const Buffer buf;
+    BOOST_ASSERT(buf.rbegin() == buf.rend());
+}
+
+BOOST_AUTO_TEST_CASE(Iterator_test)
+{
+    char str[] = "123";
+    Buffer buf(str, 3);
+
+    BOOST_ASSERT(buf.begin() != buf.end());
+    Buffer::iterator i = buf.begin();
+    BOOST_ASSERT(*i++ == '1');
+    BOOST_ASSERT(i != buf.end());
+    BOOST_ASSERT(*i++ == '2');
+    BOOST_ASSERT(i != buf.end());
+    BOOST_ASSERT(*i++ == '3');
+    BOOST_ASSERT(i == buf.end());
+}
+
+BOOST_AUTO_TEST_CASE(ConstIterator_test)
+{
+    char str[] = "123";
+    const Buffer buf(str, 3);
+
+    BOOST_ASSERT(buf.begin() != buf.end());
+    Buffer::const_iterator i = buf.begin();
+    BOOST_ASSERT(*i++ == '1');
+    BOOST_ASSERT(i != buf.end());
+    BOOST_ASSERT(*i++ == '2');
+    BOOST_ASSERT(i != buf.end());
+    BOOST_ASSERT(*i++ == '3');
+    BOOST_ASSERT(i == buf.end());
+}
+
+BOOST_AUTO_TEST_CASE(ReverseIterator_test)
+{
+    char str[] = "123";
+    Buffer buf(str, 3);
+
+    BOOST_ASSERT(buf.rbegin() != buf.rend());
+    Buffer::reverse_iterator i = buf.rbegin();
+    BOOST_ASSERT(*i++ == '3');
+    BOOST_ASSERT(i != buf.rend());
+    BOOST_ASSERT(*i++ == '2');
+    BOOST_ASSERT(i != buf.rend());
+    BOOST_ASSERT(*i++ == '1');
+    BOOST_ASSERT(i == buf.rend());
+}
+
+BOOST_AUTO_TEST_CASE(ConstReverseIterator_test)
+{
+    char str[] = "123";
+    const Buffer buf(str, 3);
+
+    BOOST_ASSERT(buf.rbegin() != buf.rend());
+    Buffer::const_reverse_iterator i = buf.rbegin();
+    BOOST_ASSERT(*i++ == '3');
+    BOOST_ASSERT(i != buf.rend());
+    BOOST_ASSERT(*i++ == '2');
+    BOOST_ASSERT(i != buf.rend());
+    BOOST_ASSERT(*i++ == '1');
+    BOOST_ASSERT(i == buf.rend());
+}
+
+BOOST_AUTO_TEST_CASE(FrontRead_test)
+{
+    char str[] = "123";
+    const Buffer buf(str, 3);
+
+    BOOST_ASSERT(buf.front() == '1');
+}
+
+BOOST_AUTO_TEST_CASE(FrontWrite_test)
+{
+    char str[] = "123";
+    Buffer buf(str, 3);
+
+    buf.front() = '0';
+
+    BOOST_ASSERT(str[0] == '0');
+}
+
+BOOST_AUTO_TEST_CASE(BackRead_test)
+{
+    char str[] = "123";
+    const Buffer buf(str, 3);
+
+    BOOST_ASSERT(buf.back() == '3');
+}
+
+BOOST_AUTO_TEST_CASE(BackWrite_test)
+{
+    char str[] = "123";
+    Buffer buf(str, 3);
+
+    buf.back() = '0';
+
+    BOOST_ASSERT(str[2] == '0');
+}
+
+BOOST_AUTO_TEST_CASE(IndexWrite_test)
+{
+    char str[] = "123";
+    Buffer buf(str, 3);
+
+    buf[0] = 'a';
+    buf[1] = 'b';
+    buf[2] = 'c';
+
+    BOOST_ASSERT(str[0] == 'a');
+    BOOST_ASSERT(str[1] == 'b');
+    BOOST_ASSERT(str[2] == 'c');
+}
+
+BOOST_AUTO_TEST_CASE(AtRead_test)
+{
+    char str[] = "123";
+    Buffer buf(str, 3);
+
+    BOOST_ASSERT(buf.at(0) == '1');
+    BOOST_ASSERT(buf.at(1) == '2');
+    BOOST_ASSERT(buf.at(2) == '3');
+}
+
+BOOST_AUTO_TEST_CASE(AtWrite_test)
+{
+    char str[] = "123";
+    Buffer buf(str, 3);
+
+    buf.at(0) = 'a';
+    buf.at(1) = 'b';
+    buf.at(2) = 'c';
+
+    BOOST_ASSERT(str[0] == 'a');
+    BOOST_ASSERT(str[1] == 'b');
+    BOOST_ASSERT(str[2] == 'c');
+}
+
+BOOST_AUTO_TEST_CASE(EmptyAtRangeCheck_test)
+{
+    Buffer b;
+    BOOST_CHECK_THROW(b.at(1), std::out_of_range);
+}
+
+BOOST_AUTO_TEST_CASE(AtRangeCheck_test)
+{
+    char str[] = "123";
+    Buffer b(str, 3);
+    BOOST_CHECK_THROW(b.at(3), std::out_of_range);
+    BOOST_CHECK_NO_THROW(b[2]);
+}
+
+BOOST_AUTO_TEST_SUITE_END()

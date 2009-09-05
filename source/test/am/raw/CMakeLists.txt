@@ -1,0 +1,21 @@
+FIND_PACKAGE(Boost 1.35.0 REQUIRED COMPONENTS unit_test_framework)
+
+IF (Boost_FOUND AND Boost_UNIT_TEST_FRAMEWORK_FOUND)
+  INCLUDE_DIRECTORIES(${Boost_INCLUDE_DIRS})
+
+  SET(t_raw_SRC
+    Runner.cpp
+    Buffer.cpp
+    )
+  ADD_EXECUTABLE(t_raw ${t_raw_SRC})
+  TARGET_LINK_LIBRARIES(t_raw
+    ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY}
+    )
+
+  SET_TARGET_PROPERTIES(t_raw PROPERTIES
+    COMPILE_FLAGS "-include ${FileTestHelper}"
+    RUNTIME_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/testbin
+    )
+
+  ADD_TEST(raw ${CMAKE_SOURCE_DIR}/testbin/t_raw)
+ENDIF (Boost_FOUND AND Boost_UNIT_TEST_FRAMEWORK_FOUND)

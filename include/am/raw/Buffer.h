@@ -1,23 +1,23 @@
-#ifndef AM_TC_BUFFER_H
-#define AM_TC_BUFFER_H
+#ifndef AM_RAW_BUFFER_H
+#define AM_RAW_BUFFER_H
 /**
- * @file am/tc/Buffer.h
+ * @file am/raw/Buffer.h
  * @author Ian Yang
  * @date Created <2009-09-04 14:05:33>
- * @date Updated <2009-09-04 14:07:53>
+ * @date Updated <2009-09-05 23:46:01>
  * @brief Wrapper of the memory buffer. A deleter can be specified to delegate
  * the destruction work to Buffer.
  */
 
-#include <cstdlib>
-#include <cstring>
 #include <stdexcept>
+#include <cstring>
+#include <cstdlib>
 
 #include <boost/iterator/reverse_iterator.hpp>
 
 namespace izenelib {
 namespace am {
-namespace tc {
+namespace raw {
 
 class Buffer
 {
@@ -40,7 +40,22 @@ public:
     {}
 
     explicit Buffer(size_type size)
-    : data_(std::malloc(size)), size_(size), deleter_(&std::free)
+    : data_(static_cast<char*>(std::malloc(size)))
+    , size_(size)
+    , deleter_(&std::free)
+    {
+        if (!data_)
+        {
+            size_ = 0;
+        }
+    }
+
+    Buffer(char* data,
+           size_type size,
+           deleter_type deleter = 0)
+    : data_(data)
+    , size_(size)
+    , deleter_(deleter)
     {
         if (!data_)
         {
@@ -49,18 +64,37 @@ public:
     }
 
     Buffer(const Buffer& rhs)
-    : data_(std::malloc(rhs.size_)), size_(rhs.size_), deleter_(&std::free)
+    : data_(0)
+    , size_(0)
+    , deleter_(0)
     {
-        if (!data_)
+        if (rhs.data_ && rhs.size_ > 0)
         {
-            size_ = 0;
-            return;
+            data_ = static_cast<char*>(std::malloc(rhs.size_));
+            if (data_)
+            {
+                size_ = rhs.size_;
+                deleter_ = &std::free;
+                std::memcpy(data_, rhs.data_, size_);
+            }
         }
-
-        std::memcpy(data_, rhs.data_, size_);
     }
 
-    Buffer& operator=(const Buffer& rhs);
+    Buffer& operator=(const Buffer& rhs)
+    {
+        if (this != &rhs)
+        {
+            if (data_ == rhs.data_)
+            {
+                deleter_ = 0;
+            }
+
+            Buffer tmp(rhs);
+            swap(tmp);
+        }
+
+        return *this;
+    }
 
     ~Buffer()
     {
@@ -70,13 +104,13 @@ public:
         }
     }
 
-    void attach(void* data,
+    void attach(char* data,
                 size_type size,
                 deleter_type deleter = 0)
     {
-        if (data_ != data && deleter)
+        if (data_ != data && deleter_)
         {
-            (*deleter)(data_);
+            (*deleter_)(data_);
         }
 
         data_ = data;
@@ -121,7 +155,7 @@ public:
     {
         return data_[i];
     }
-    const_reference operator[](size_type i)
+    const_reference operator[](size_type i) const
     {
         return data_[i];
     }
@@ -207,8 +241,6 @@ private:
     deleter_type deleter_;
 };
 
+}}} // namespace izenelib::am::raw
 
-
-}}} // namespace izenelib::am::tc
-
-#endif // AM_TC_BUFFER_H
+#endif // AM_RAW_BUFFER_H

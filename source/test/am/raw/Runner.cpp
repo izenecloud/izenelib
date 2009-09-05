@@ -7,7 +7,7 @@
 bool initRunner()
 {
     using namespace ::boost::unit_test;
-    framework::master_test_suite().p_name.value = "Similarity Detection";
+    framework::master_test_suite().p_name.value = "am::raw";
 
     return true;
 }
