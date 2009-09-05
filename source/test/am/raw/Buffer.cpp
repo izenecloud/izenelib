@@ -350,7 +350,7 @@ BOOST_AUTO_TEST_CASE(AtRangeCheck_test)
     char str[] = "123";
     Buffer b(str, 3);
     BOOST_CHECK_THROW(b.at(3), std::out_of_range);
-    BOOST_CHECK_NO_THROW(b[2]);
+    BOOST_CHECK_NO_THROW(b.at(2));
 }
 
 BOOST_AUTO_TEST_SUITE_END()
