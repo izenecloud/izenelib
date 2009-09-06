@@ -1,19 +1,27 @@
-#ifndef AM_TOKYO_CABINET_RAW_HASH_H
-#define AM_TOKYO_CABINET_RAW_HASH_H
+#ifndef AM_TC_RAW_HASH_H
+#define AM_TC_RAW_HASH_H
 /**
- * @file am/tokyo_cabinet/RawHash.h
+ * @file am/tc/raw/Hash.h
  * @author Ian Yang
  * @date Created <2009-09-02 14:11:06>
- * @date Updated <2009-09-02 17:41:08>
+ * @date Updated <2009-09-06 22:07:24>
  * @brief Raw AM wrapper of tokyo cabinet hash database, which only can store
- * izenelib::am::tc::Buffer
+ * izenelib::am::raw::Buffer
  */
+#include <am/concept/DataType.h>
+#include <am/raw/Buffer.h>
+
+#include <tcutil.h>
+#include <tchdb.h>
 
 namespace izenelib {
 namespace am {
 namespace tc {
+namespace raw {
 
-class RawHash
+using izenelib::am::raw::Buffer;
+
+class Hash
     : boost::noncopyable
 {
 public:
@@ -33,13 +41,13 @@ public:
 
     enum { DEFAULT_OPEN_MODE = WRITER | CREAT };
 
-    explicit RawHash(const std::string& file)
+    explicit Hash(const std::string& file = "")
     : hdb_(::tchdbnew()), isOpened_(false), file_(file)
     {
         checkHandle_(hdb_);
     }
 
-    ~RawHash()
+    ~Hash()
     {
         close();
         if (hdb_)
@@ -54,23 +62,23 @@ public:
 
     bool setmutex()
     {
-        return checkHandle_() && ::tchdbsetmutex(hdb_);
+        return checkHandle_(hdb_) && ::tchdbsetmutex(hdb_);
     }
     bool setcache(int32_t rcnum)
     {
-        return checkHandle_() && ::tchdbsetcache(hdb_, rcnum);
+        return checkHandle_(hdb_) && ::tchdbsetcache(hdb_, rcnum);
     }
     bool tune(int64_t bnum, int8_t apow, int8_t fpow, uint8_t opts)
     {
-        return checkHandle_() && ::tchdbtune(hdb_, bnum, apow, fpow, opts);
+        return checkHandle_(hdb_) && ::tchdbtune(hdb_, bnum, apow, fpow, opts);
     }
     bool setxmsiz(int64_t xmsiz)
     {
-        return checkHandle_() && ::tchdbsetxmsiz(hdb_, xmsiz);
+        return checkHandle_(hdb_) && ::tchdbsetxmsiz(hdb_, xmsiz);
     }
     bool setdfunit(int32_t dfunit)
     {
-        return checkHandle_() && ::tchdbsetdfunit(hdb_, dfunit);
+        return checkHandle_(hdb_) && ::tchdbsetdfunit(hdb_, dfunit);
     }
     //@}
 
@@ -83,7 +91,8 @@ public:
     {
         close(); // close first if opened
 
-        if (checkHandle_() && ::tchdbopen(hdb_, file_.c_str(), mode))
+        if (checkHandle_(hdb_) && !file_.empty() &&
+            ::tchdbopen(hdb_, file_.c_str(), mode))
         {
             isOpened_ = true;
         }
@@ -106,7 +115,7 @@ public:
 
     bool flush()
     {
-        return checkHandle_() && ::tchdbsync(hdb_);
+        return checkHandle_(hdb_) && isOpened() && ::tchdbsync(hdb_);
     }
 
     size_t size() const
@@ -130,7 +139,7 @@ public:
      */
     bool insert(const Buffer& key, const Buffer& value)
     {
-        return checkHandle_() && ::tchdbputkeep(
+        return checkHandle_(hdb_) && isOpened() && ::tchdbputkeep(
             hdb_,
             key.data(), key.size(),
             value.data(), value.size()
@@ -160,10 +169,10 @@ public:
      */
     bool update(const Buffer& key, const Buffer& value)
     {
-        return checkHandle_() && ::tchdbput(
+        return checkHandle_(hdb_) && isOpened() && ::tchdbput(
             hdb_,
             key.data(), key.size(),
-            value.data(0), value.data(0)
+            value.data(), value.size()
         );
     }
     /**
@@ -182,10 +191,10 @@ public:
 	{
         void* buffer;
         int size;
-        if (checkHandle_() &&
+        if (checkHandle_(hdb_) && isOpened() &&
             (buffer = ::tchdbget(hdb_, key.data(), key.size(), &size)))
         {
-            value.attach(buffer,
+            value.attach(static_cast<char*>(buffer),
                          static_cast<std::size_t>(size),
                          &::tcfree);
 
@@ -195,27 +204,25 @@ public:
         return false;
 	}
 
-
-
     bool exist(const Buffer& key) const
     {
-        return checkHandle_() &&
+        return checkHandle_(hdb_) && isOpened() &&
             (-1 != ::tchdbvsiz(hdb_, key.data(), key.size()));
     }
 
     bool del(const Buffer& key)
     {
-        return checkHandle_() &&
+        return checkHandle_(hdb_) && isOpened() &&
             ::tchdbout(hdb_, key.data(), key.size());
     }
 
     const char* errorMessage() const
     {
-        errorMessage(errorCode());
+        return errorMessage(errorCode());
     }
     static const char* errorMessage(int code)
     {
-        ::tchdberrmsg(code);
+        return ::tchdberrmsg(code);
     }
     int errorCode() const
     {
@@ -236,11 +243,11 @@ private:
         return h;
     }
 
-    bool isOpened_;
     ::TCHDB* hdb_;
+    bool isOpened_;
     std::string file_;
 };
 
-}}} // namespace izenelib::am::tc
+}}}} // namespace izenelib::am::tc::raw
 
-#endif // AM_TOKYO_CABINET_RAW_HASH_H
+#endif // AM_TC_RAW_HASH_H

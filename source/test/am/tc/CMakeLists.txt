@@ -7,6 +7,7 @@ IF (Boost_FOUND AND Boost_UNIT_TEST_FRAMEWORK_FOUND AND TokyoCabinet_FOUND)
   SET(t_tc_SRC
     Runner.cpp
     String.cpp
+    raw/Db.cpp
     )
   ADD_EXECUTABLE(t_tc ${t_tc_SRC})
   TARGET_LINK_LIBRARIES(t_tc
