@@ -4,7 +4,7 @@
  * @file am/tc/raw/Hash.h
  * @author Ian Yang
  * @date Created <2009-09-02 14:11:06>
- * @date Updated <2009-09-06 22:07:24>
+ * @date Updated <2009-09-06 23:41:33>
  * @brief Raw AM wrapper of tokyo cabinet hash database, which only can store
  * izenelib::am::raw::Buffer
  */
@@ -28,6 +28,7 @@ public:
     typedef Buffer key_type;
     typedef Buffer value_type;
     typedef DataType<Buffer, Buffer> data_type;
+    typedef int size_type;
 
     enum {
         READER = ::HDBOREADER,
@@ -118,7 +119,7 @@ public:
         return checkHandle_(hdb_) && isOpened() && ::tchdbsync(hdb_);
     }
 
-    size_t size() const
+    size_type size() const
     {
         return hdb_ ? ::tchdbrnum(hdb_) : 0;
     }
@@ -187,7 +188,7 @@ public:
         return update(data.get_key(), data.get_value());
     }
 
-	bool get(const Buffer& key, Buffer& value)
+	bool get(const Buffer& key, Buffer& value) const
 	{
         void* buffer;
         int size;
@@ -220,7 +221,7 @@ public:
     {
         return errorMessage(errorCode());
     }
-    static const char* errorMessage(int code)
+    static inline const char* errorMessage(int code)
     {
         return ::tchdberrmsg(code);
     }

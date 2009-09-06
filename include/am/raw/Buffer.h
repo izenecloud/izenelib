@@ -4,7 +4,7 @@
  * @file am/raw/Buffer.h
  * @author Ian Yang
  * @date Created <2009-09-04 14:05:33>
- * @date Updated <2009-09-06 22:38:58>
+ * @date Updated <2009-09-06 23:18:06>
  * @brief Wrapper of the memory buffer. A deleter can be specified to delegate
  * the destruction work to Buffer.
  */
@@ -15,13 +15,16 @@
 
 #include <boost/iterator/reverse_iterator.hpp>
 
+// #include <util/izene_serialization.h>
+
+namespace izenelib {
+namespace util {
+template <typename T> class izene_serialization;
+}} // namespace izenelib::util
+
 namespace izenelib {
 namespace am {
 namespace raw {
-
-namespace detail {
-struct BufferAccessor;
-} // namespace detail
 
 class Buffer
 {
@@ -264,22 +267,13 @@ private:
     size_type size_;
     deleter_type deleter_;
 
-    friend class detail::BufferAccessor;
+    template<typename T>
+    friend void write_image(
+        izenelib::util::izene_serialization<T>& izs,
+        Buffer& buf
+    );
 };
 
-namespace detail {
-struct BufferAccessor
-{
-    inline static char*& dataRef(Buffer& buf)
-    {
-        return buf.data_;
-    }
-    inline static Buffer::size_type sizeRef(Buffer& buf)
-    {
-        return buf.size_;
-    }
-};
-} // namespace detail
 }}} // namespace izenelib::am::raw
 
 #endif // AM_RAW_BUFFER_H
