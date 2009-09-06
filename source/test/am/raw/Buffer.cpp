@@ -64,6 +64,57 @@ BOOST_AUTO_TEST_CASE(Attach_test)
     BOOST_CHECK(buf[2] == '3');
 }
 
+BOOST_AUTO_TEST_CASE(AttachDestructFirst_test)
+{
+    char str[] = "123";
+    Buffer a(str, 3, testDeleter);
+
+    char str2[] = "456";
+    a.attach(str2, 3);
+    BOOST_CHECK(deleterCounter == 1);
+}
+
+BOOST_AUTO_TEST_CASE(AttachSameNotDestruct_test)
+{
+    char str[] = "123";
+    Buffer a(str, 3, testDeleter);
+
+    a.attach(str, 3);
+    BOOST_CHECK(deleterCounter == 0);
+}
+
+BOOST_AUTO_TEST_CASE(CopyAttach_test)
+{
+    Buffer buf;
+    char str[] = "123";
+
+    buf.copyAttach(str, 3);
+
+    BOOST_CHECK(buf.data() != str);
+    BOOST_CHECK(buf.size() == 3);
+    BOOST_CHECK(buf[0] == '1');
+    BOOST_CHECK(buf[1] == '2');
+    BOOST_CHECK(buf[2] == '3');
+}
+
+BOOST_AUTO_TEST_CASE(CopyAttachDestructFirst_test)
+{
+    char str[] = "123";
+    Buffer a(str, 3, testDeleter);
+
+    a.copyAttach("456", 3);
+    BOOST_CHECK(deleterCounter == 1);
+}
+
+BOOST_AUTO_TEST_CASE(CopyAttachSameNotDestruct_test)
+{
+    char str[] = "123";
+    Buffer a(str, 3, testDeleter);
+
+    a.copyAttach(str, 3);
+    BOOST_CHECK(deleterCounter == 0);
+}
+
 BOOST_AUTO_TEST_CASE(Deleter_test)
 {
     char str[] = "123";

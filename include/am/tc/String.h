@@ -4,7 +4,7 @@
  * @file am/tc/String.h
  * @author Ian Yang
  * @date Created <2009-09-06 00:15:24>
- * @date Updated <2009-09-06 01:44:48>
+ * @date Updated <2009-09-06 22:27:46>
  * @brief Tokyocabinet extensible string wrapper
  */
 #include <algorithm>
@@ -19,7 +19,7 @@ namespace am {
 namespace tc {
 
 namespace detail {
-struct StringHandle;
+struct StringAccessor;
 }
 
 class String
@@ -220,7 +220,7 @@ public:
 
 private:
     ::TCXSTR* handle_;
-    friend struct detail::StringHandle;
+    friend struct detail::StringAccessor;
 };
 
 inline String operator+(const String& a, const String& b)
@@ -257,13 +257,13 @@ inline bool operator!=(const String& a, const String& b)
 }
 
 namespace detail {
-struct StringHandle
+struct StringAccessor
 {
-    static ::TCXSTR* get(String& str)
+    inline static ::TCXSTR* get(String& str)
     {
         return str.handle_;
     }
-    static const ::TCXSTR* get(const String& str)
+    inline static const ::TCXSTR* get(const String& str)
     {
         return str.handle_;
     }
