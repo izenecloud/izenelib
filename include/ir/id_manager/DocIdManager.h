@@ -79,6 +79,11 @@ namespace idmanager {
 		 */
 		bool getDocNameByDocId(NameID docId, NameString& docName);
 
+		void flush()
+		{
+		    idFactory_.flush();
+		}
+
 		void close()
 		{
 		    idFactory_.close();

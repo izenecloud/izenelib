@@ -189,6 +189,7 @@ BOOST_AUTO_TEST_CASE( TestCase4 )
     // Check if the resultUString is the same as insertUString.
     BOOST_CHECK ( insertUString == resultUString );
 
+    idManager.flush();
     idManager.close();
 
 	// Clear data of this test case

@@ -45,6 +45,8 @@ public:
         return false;
 	}
 
+	void flush(){}
+
 	void close(){}
 
 	void display(){}
@@ -76,6 +78,8 @@ public:
         nameID = HashFunc(nameString);
         return false;
 	}
+
+	void flush(){}
 
 	void close(){}
 
@@ -113,6 +117,11 @@ public:
 	 * @return false otherwise
 	 */
 	inline bool conv(const NameString& nameString, NameID& nameID);
+
+	void flush()
+	{
+	    idFinder_.flush();
+	}
 
 	void close()
 	{
