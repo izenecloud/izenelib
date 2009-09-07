@@ -7,7 +7,7 @@
 bool initRunner()
 {
     using namespace ::boost::unit_test;
-    framework::master_test_suite().p_name.value = "am::tc";
+    framework::master_test_suite().p_name.value = "am";
 
     return true;
 }
