@@ -91,12 +91,11 @@ IF (NOT BUILD_FLAGS_HAS_BEEN_CUSTOMIZED)
 
     # Customize options for the build types
     SET(CMAKE_CXX_FLAGS_RELWITHDEBINFO "-O2 -g" CACHE STRING "Flags used by the compiler during Release with Debug Info builds." FORCE)
-    SET(CMAKE_CXX_FLAGS_RELEASE          "-O3 -DNDEBUG" CACHE STRING "Flags used by the compiler during release builds" FORCE)
-    SET(CMAKE_CXX_FLAGS_MINSIZEREL       "-Os -DNDEBUG" CACHE STRING "Flags used by the compiler during release minsize builds." FORCE)
-    SET(CMAKE_CXX_FLAGS_DEBUG            "-g -O2 -fno-reorder-blocks -fno-schedule-insns -fno-inline" CACHE STRING "Flags used by the compiler during debug builds." FORCE)
-    SET(CMAKE_CXX_FLAGS_DEBUGFULL        "-g3 -fno-inline" CACHE STRING "Debugfull build type" FORCE)
-    SET(CMAKE_CXX_FLAGS_PROFILE          "-g3 -fno-inline -ftest-coverage -fprofile-arcs" CACHE STRING "Profile build type" FORCE)  
-    
+    SET(CMAKE_CXX_FLAGS_RELEASE        "-O3 -DNDEBUG" CACHE STRING "Flags used by the compiler during release builds" FORCE)
+    SET(CMAKE_CXX_FLAGS_MINSIZEREL     "-Os -DNDEBUG" CACHE STRING "Flags used by the compiler during release minsize builds." FORCE)
+    SET(CMAKE_CXX_FLAGS_DEBUG          "-g -O2 -fno-reorder-blocks -fno-schedule-insns -fno-inline" CACHE STRING "Flags used by the compiler during debug builds." FORCE)
+    SET(CMAKE_CXX_FLAGS_DEBUGFULL      "-g3 -fno-inline" CACHE STRING "Debugfull build type" FORCE)
+    SET(CMAKE_CXX_FLAGS_PROFILE        "-g -O0 -fno-inline -ftest-coverage -fprofile-arcs" CACHE STRING "Profile build type" FORCE)
   ENDIF (CMAKE_COMPILER_IS_GNUCXX)
 
   SET(BUILD_FLAGS_HAS_BEEN_CUSTOMIZED yes CACHE INTERNEL "build falgs has been customized?")
@@ -188,19 +187,19 @@ SET(LIBRARY_OUTPUT_PATH "${CMAKE_SOURCE_DIR}/lib")
 
 # third party libraries
 # put it first, they may be referred in other components
-ADD_SUBDIRECTORY(source/3rdparty 3rdparty)
+# ADD_SUBDIRECTORY(source/3rdparty 3rdparty)
 
 # AM libraries
 ADD_SUBDIRECTORY(source/am am)
 
 # IR libraries
-ADD_SUBDIRECTORY(source/ir ir)
+# ADD_SUBDIRECTORY(source/ir ir)
 
 # Util libraries
-ADD_SUBDIRECTORY(source/util util)
+# ADD_SUBDIRECTORY(source/util util)
 
 # Network libraries
-ADD_SUBDIRECTORY(source/net net)
+# ADD_SUBDIRECTORY(source/net net)
 
 # Test cases and applications
 IF(ENABLE_TEST)
@@ -254,12 +253,20 @@ IF(VERBOSE)
 
   IF(TokyoCabinet_FOUND)
     MESSAGE(STATUS "Tokyo Cabinet:")
-    MESSAGE(STATUS "  header: ${TokyoCabinet_INCLUDE_DIR}")
-    MESSAGE(STATUS "  libs: ${TokyoCabinet_LIBRARY}")
+    MESSAGE(STATUS "  header: ${TokyoCabinet_INCLUDE_DIRS}")
+    MESSAGE(STATUS "  libs: ${TokyoCabinet_LIBRARIES}")
     MESSAGE(STATUS "  version: ${TokyoCabinet_VERSION}")
   ELSE(TokyoCabinet_FOUND)
     MESSAGE(STATUS "TokyoCabinet: not found")
   ENDIF(TokyoCabinet_FOUND)
+
+  IF(Glog_FOUND)
+    MESSAGE(STATUS "Google Glog:")
+    MESSAGE(STATUS "  header: ${Glog_INCLUDE_DIRS}")
+    MESSAGE(STATUS "  libs: ${Glog_LIBRARIES}")
+  ELSE(Glog_FOUND)
+    MESSAGE(STATUS "Google Glog: not found")
+  ENDIF(Glog_FOUND)
 
   MESSAGE(STATUS "----------------------------------------")
   MESSAGE(STATUS "COMPONENTS BUILD:")

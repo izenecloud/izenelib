@@ -56,6 +56,11 @@ FIND_PACKAGE(ZLIB)
 FIND_PACKAGE(TokyoCabinet 1.4.24)
 
 ##################################################
+# Glog
+#####
+FIND_PACKAGE(Glog)
+
+##################################################
 # wiselib
 #####
 SET(wiselib_FOUND FALSE)
