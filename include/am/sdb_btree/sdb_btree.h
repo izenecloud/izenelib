@@ -486,7 +486,7 @@ private:
 		}
 	}
 
-	void _flushCacheImpl1(bool quickFlush=false) {
+	void _flushCacheImpl(bool quickFlush=false) {
 
 #ifdef  DEBUG
 		cout<<"\n\ncache is full..."<<endl;
@@ -570,135 +570,6 @@ private:
 
 	}
 
-	void _flushCacheImpl(bool quickFlush=false) {
-#ifdef  DEBUG
-		cout<<"\n\ncache is full..."<<endl;
-		cout<<"activeNum: "<<_activeNodeNum<<endl;
-		cout<<"dirtyPageNum: "<<_dirtyPageNum<<endl;
-		//display();
-		izenelib::util::ClockTimer timer;
-#endif
-
-		if( _dirtyPageNum> _activeNodeNum *0.9 || _dirtyPageNum > _sfh.cacheSize || _activeNodeNum > 1.5*_sfh.cacheSize) {
-			cout<<"\n!!!!!! start to commit~"<<endl;
-			commit();
-			typedef typename map<long, sdb_node*>::iterator ITER;
-			ITER it = _nodeCache.begin();
-			for(; it != _nodeCache.end(); it++){
-				if(it->second){
-					if(it->second->isDirty &&  it->second->write(_dataFile) )
-						--_dirtyPageNum;						
-					it->second->unloadself();
-					}
-			}
-			_nodeCache.clear();
-			for(size_t i=0; i<_root->objCount+1; i++)
-			{
-				if(_root->children[i])_root->children[i]->unload();
-			}
-#ifdef DEBUG
-			cout<<"\n\nstop unload..."<<endl;
-			cout<<_activeNodeNum<<" vs "<<_sfh.cacheSize <<endl;
-			cout<<"dirtyPageNum: "<<_dirtyPageNum<<endl;
-			//assert(_activeNodeNum  == 1);
-#endif
-#ifdef DEBUG
-			printf("commit elapsed 1 ( actually ): %lf seconds\n",
-					timer.elapsed() );
-#endif
-			return;
-		}
-
-#ifdef DEBUG
-		//printf("commit elapsed 1 ( actually ): %lf seconds\n",
-		//		timer.elapsed() );
-#endif
-		//if(unloadAll)
-		{
-
-			queue<sdb_node*> qnode;
-
-			for(size_t i=0; i<_root->objCount+1; i++)
-			{
-				if( _root->children[i] )
-				qnode.push( _root->children[i] );
-			}
-
-			//size_t popNum = 0;
-			//size_t escapeNum = _activeNodeNum>>1;
-
-			while ( !qnode.empty() ) {
-				sdb_node* popNode = qnode.front();
-				qnode.pop();
-				
-				if (popNode && popNode->isLoaded && !popNode->isLeaf) {
-					for(size_t i=0; i<popNode->objCount+1; i++)
-					{
-						if( popNode->children[i]) {
-							qnode.push( popNode->children[i] );		
-							if( popNode->children[i]->isDirty )
-								_nodeCache.insert(make_pair(popNode->children[i]->fpos, popNode->children[i]) );
-						}
-					}
-				}
-				if( popNode && !popNode->isDirty )
-					popNode->unloadself();					
-			}
-			//else
-			{
-
-				/*	queue<sdb_node*> qnode;
-				 qnode.push(_root);
-
-				 size_t popNum = 0;
-				 size_t escapeNum = _activeNodeNum>>1;
-				 sdb_node* interval = NULL;
-				 while ( !qnode.empty() ) {
-				 sdb_node* popNode = qnode.front();
-				 qnode.pop();
-				 popNum++;
-
-				 if( popNum >= escapeNum )
-				 {
-				 if( popNode == interval )
-				 break;
-
-				 if( interval == NULL && !popNode->isLeaf ) {
-				 interval = popNode->children[0];
-				 }
-
-				 if( popNode->isDirty && quickFlush)
-				 _flush(popNode, _dataFile);
-
-				 popNode->unload();
-				 }
-
-				 if (popNode && popNode->isLoaded && !popNode->isLeaf) {
-				 for(size_t i=0; i<popNode->objCount+1; i++)
-				 {
-				 if( popNode->children[i] ) {
-				 qnode.push( popNode->children[i] );
-				 }
-				 else
-				 {
-				 //cout<<"corrupted nodes!!!"<<endl;
-				 }
-
-				 }
-				 }*/
-
-			}
-
-#ifdef DEBUG
-			cout<<"!!! not commit  stop unload..."<<endl;
-			cout<<_activeNodeNum<<" vs "<<_sfh.cacheSize <<endl;
-			cout<<"dirtyPageNum: "<<_dirtyPageNum<<endl;
-			//display();
-#endif
-			fflush(_dataFile);
-		}
-
-	}
 
 	sdb_node* _allocateNode() {
 
@@ -725,16 +596,13 @@ private:
 
 	sdb_node* _loadChild(sdb_node* parent, size_t childNum) {
 		assert(parent && parent->isLoaded && !parent->isLeaf && parent->children[childNum] );
-		
-		if( parent->children[childNum]->isLoaded )
-			return parent->children[childNum];
 		sdb_node* node = _nodeCache[parent->children[childNum]->fpos];
 		if( !node )
 		{
 			return parent->loadChild(childNum, _dataFile);
 		}
 		if( node && !node->isLoaded ) {
-			//assert(false);
+			assert(false);
 			node->read(_dataFile);
 		}
 		return node;
