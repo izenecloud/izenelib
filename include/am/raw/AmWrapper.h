@@ -4,12 +4,14 @@
  * @file am/raw/AmWrapper.h
  * @author Ian Yang
  * @date Created <2009-09-06 22:50:37>
- * @date Updated <2009-09-07 10:05:04>
+ * @date Updated <2009-09-07 10:56:27>
  * @brief Integrate raw am and serialization framework
  */
 
 #include "Buffer.h"
 #include "WriteImage.h"
+
+#include <am/concept/DataType.h>
 
 namespace izenelib {
 namespace am {
@@ -33,16 +35,22 @@ struct AmWrapperAccess
 } // namespace detail
 
 
-template<typename Derived>
+template<
+    typename Derived,
+    typename RawAm,
+    typename KeyType,
+    typename ValueType,
+    typename SizeType = typename RawAm::size_type
+>
 class AmWrapper
 {
 public:
-    typedef typename Derived::key_type key_type;
-    typedef typename Derived::value_type value_type;
-    typedef typename Derived::data_type data_type;
-    typedef typename Derived::size_type size_type;
+    typedef RawAm raw_am_type;
 
-    typedef typename Derived::raw_am_type raw_am_type;
+    typedef KeyType key_type;
+    typedef ValueType value_type;
+    typedef DataType<KeyType, ValueType> data_type;
+    typedef SizeType size_type;
 
     bool open()
     {

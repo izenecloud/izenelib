@@ -4,7 +4,7 @@
  * @file am/tc/Hash.h
  * @author Ian Yang
  * @date Created <2009-09-06 23:37:24>
- * @date Updated <2009-09-06 23:46:25>
+ * @date Updated <2009-09-07 10:56:18>
  * @brief TokyoCabinet Hash DB wrapper
  */
 
@@ -18,7 +18,10 @@ namespace tc {
 
 template<typename KeyType, typename ValueType>
 class Hash
-    : public izenelib::am::raw::AmWrapper<Hash<KeyType, ValueType> >
+    : public izenelib::am::raw::AmWrapper<Hash<KeyType, ValueType>,
+                                          raw::Hash,
+                                          KeyType,
+                                          ValueType>
 {
 public:
     typedef KeyType key_type;

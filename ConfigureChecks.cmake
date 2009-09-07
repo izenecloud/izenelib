@@ -56,6 +56,11 @@ FIND_PACKAGE(ZLIB)
 FIND_PACKAGE(TokyoCabinet 1.4.24)
 
 ##################################################
+# Glog
+#####
+FIND_PACKAGE(Glog)
+
+##################################################
 # wiselib
 #####
 SET(wiselib_FOUND FALSE)
@@ -69,7 +74,7 @@ ENDIF(IS_DIRECTORY "$ENV{WISELIB}"
   AND IS_DIRECTORY "$ENV{WISELIB}/include"
   AND IS_DIRECTORY "$ENV{WISELIB}/lib")
 IF(NOT wiselib_FOUND)
-#  MESSAGE(FATAL_ERROR "cannot found wiselib, please set env variable WISELIB")
+  MESSAGE(FATAL_ERROR "cannot found wiselib, please set env variable WISELIB")
 ENDIF(NOT wiselib_FOUND)
 
 ##################################################
