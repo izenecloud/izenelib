@@ -4,7 +4,7 @@
  * @file am/tc/raw/Hash.h
  * @author Ian Yang
  * @date Created <2009-09-02 14:11:06>
- * @date Updated <2009-09-06 23:41:33>
+ * @date Updated <2009-09-07 10:04:28>
  * @brief Raw AM wrapper of tokyo cabinet hash database, which only can store
  * izenelib::am::raw::Buffer
  */
@@ -113,6 +113,13 @@ public:
     {
         return isOpened_;
     }
+    /**
+     * @deprecated
+     */
+    bool is_open() const
+    {
+        return isOpened_;
+    }
 
     bool flush()
     {
@@ -122,6 +129,13 @@ public:
     size_type size() const
     {
         return hdb_ ? ::tchdbrnum(hdb_) : 0;
+    }
+    /**
+     * @deprecated
+     */
+    size_type num_items() const
+    {
+        return size();
     }
     bool empty() const
     {
