@@ -237,7 +237,7 @@ public:
 		return seq(locn, dat.key, dat.value, sdir);
     }
 
-	
+
 	bool seq(SDBCursor& locn, ESeqDirection sdir = ESD_FORWARD) {
 		return container_.seq(locn, sdir);
 	}
@@ -663,6 +663,17 @@ public:
 	unordered_sdb(const string& sdbname) :
 		SequentialDB<KeyType, ValueType, LockType,
 				sdb_hash<KeyType, ValueType, LockType> >(sdbname) {
+
+	}
+};
+
+template< typename KeyType =string, typename ValueType=NullType,
+		typename LockType =NullLock > class ordered_sdb_fixed :
+	public SequentialDB<KeyType, ValueType, LockType, sdb_btree<KeyType, ValueType, LockType, true> > {
+public:
+	ordered_sdb_fixed(const string& sdbname) :
+		SequentialDB<KeyType, ValueType, LockType,
+				sdb_btree<KeyType, ValueType, LockType, true> >(sdbname) {
 
 	}
 };
