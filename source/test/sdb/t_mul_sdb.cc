@@ -313,11 +313,11 @@ template<typename T> void run1(T& cm) {
 		sprintf(fileName, "../db/dat/wordlist_%d.dat", 6);
 		threads.create_thread(run_thread3<T>(cm, fileName) );
 
-		sprintf(fileName, "../db/dat/wordlist_%d.dat", 10);
-		threads.create_thread(run_thread6<T>(cm, fileName) );
+		//sprintf(fileName, "../db/dat/wordlist_%d.dat", 10);
+		//threads.create_thread(run_thread6<T>(cm, fileName) );
 
 		//sprintf(fileName, "../db/dat/wordlist_%d.dat", 11);
-		//threads.create_thread(run_thread7<T>(cm, fileName) );
+		//threads.create_thread(run_thread7<T>(cm, fileName) );*/
 
 	}
 	threads.join_all();
@@ -404,8 +404,8 @@ int main(int argc, char *argv[]) {
 	//cm3.close();
 
 	cm4.open();	
-	run1(cm4);
 	run(cm4);
+	run1(cm4);
 	cm4.close();
 
 
