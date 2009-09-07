@@ -4,7 +4,7 @@
  * @file am/tc/raw/Hash.h
  * @author Ian Yang
  * @date Created <2009-09-02 14:11:06>
- * @date Updated <2009-09-07 10:04:28>
+ * @date Updated <2009-09-07 14:45:25>
  * @brief Raw AM wrapper of tokyo cabinet hash database, which only can store
  * izenelib::am::raw::Buffer
  */
@@ -13,6 +13,8 @@
 
 #include <tcutil.h>
 #include <tchdb.h>
+
+#include <am/tc/String.h>
 
 namespace izenelib {
 namespace am {
@@ -230,6 +232,163 @@ public:
         return checkHandle_(hdb_) && isOpened() &&
             ::tchdbout(hdb_, key.data(), key.size());
     }
+
+    //@{
+    //@brief tc special functions
+
+    bool appendUpdate(const Buffer& key, const Buffer& value)
+    {
+        return checkHandle_(hdb_) && isOpened() &&
+            ::tchdbputcat(
+                hdb_,
+                key.data(), key.size(),
+                value.data(), value.size()
+            );
+    }
+
+    bool updateAsync(const Buffer& key, const Buffer& value)
+    {
+        return checkHandle_(hdb_) && isOpened() &&
+            ::tchdbputasync(
+                hdb_,
+                key.data(), key.size(),
+                value.data(), value.size()
+            );
+    }
+
+    bool iterInit()
+    {
+        return checkHandle_(hdb_) && isOpened() &&
+            ::tchdbiterinit(hdb_);
+    }
+    /**
+     * @brief initialize iterator to the corresponding \a key.
+     * @return \c true if success. \c false if failed or cannot find the key.
+     */
+    bool iterInit(Buffer& key)
+    {
+        return checkHandle_(hdb_) && isOpened() &&
+            ::tchdbiterinit2(hdb_, key.data(), key.size());
+    }
+    bool iterNext(Buffer& key)
+    {
+        if (checkHandle_(hdb_) && isOpened())
+        {
+            int size = 0;
+            void* result = ::tchdbiternext(hdb_, &size);
+            if (result)
+            {
+                key.attach(static_cast<char*>(result),
+                           static_cast<std::size_t>(size),
+                           &::tcfree);
+                return true;
+            }
+        }
+
+        return false;
+    }
+    bool iterNext(Buffer& key, Buffer& value)
+    {
+        if (! (checkHandle_(hdb_) && isOpened()))
+        {
+            return false;
+        }
+
+        String tmpKey;
+        String tmpValue;
+		if (::tchdbiternext3(hdb_,
+                             detail::StringAccessor::handle(tmpKey),
+                             detail::StringAccessor::handle(tmpValue)))
+        {
+            tmpKey.toBuffer(key);
+            tmpValue.toBuffer(value);
+
+            return true;
+        }
+
+        return false;
+    }
+    bool iterNext(data_type& data)
+    {
+        return iterNext(data.get_key(), data.get_value());
+    }
+
+    bool getFirst(Buffer& key)
+    {
+        Buffer empty;
+        if (getNext(empty))
+        {
+            key.swap(empty);
+            return true;
+        }
+
+        return false;
+    }
+    bool getFirst(Buffer& key, Buffer& value)
+    {
+        Buffer empty;
+        if (getNext(empty, value))
+        {
+            key.swap(empty);
+            return true;
+        }
+
+        return false;
+    }
+
+    bool getNext(Buffer& key)
+    {
+        if (! (checkHandle_(hdb_) && isOpened()))
+        {
+            return false;
+        }
+
+        int size = 0;
+        void* keyBuf = ::tchdbgetnext(hdb_, key.data(), key.size(), &size);
+        if (keyBuf)
+        {
+            key.attach(static_cast<char*>(keyBuf),
+                       static_cast<std::size_t>(size),
+                       &::tcfree);
+            return true;
+        }
+
+        return false;
+    }
+    bool getNext(Buffer& key, Buffer& value)
+    {
+
+        if (! (checkHandle_(hdb_) && isOpened()))
+        {
+            return false;
+        }
+
+        int keySize = 0;
+        int valueSize = 0;
+        const char* valueBuf = 0;
+
+        char* keyBuf = ::tchdbgetnext3(
+            hdb_,
+            key.data(), key.size(),
+            &keySize,
+            &valueBuf, &valueSize
+        );
+
+        if (keyBuf && valueBuf)
+        {
+            key.attach(static_cast<char*>(keyBuf),
+                       static_cast<std::size_t>(keySize),
+                       &::tcfree);
+            value.copyAttach(static_cast<const char*>(valueBuf),
+                             static_cast<std::size_t>(valueSize));
+
+            return true;
+        }
+
+        return false;
+    }
+
+    //@}
 
     const char* errorMessage() const
     {
