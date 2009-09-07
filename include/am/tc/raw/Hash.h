@@ -4,7 +4,7 @@
  * @file am/tc/raw/Hash.h
  * @author Ian Yang
  * @date Created <2009-09-02 14:11:06>
- * @date Updated <2009-09-07 14:45:25>
+ * @date Updated <2009-09-07 16:18:53>
  * @brief Raw AM wrapper of tokyo cabinet hash database, which only can store
  * izenelib::am::raw::Buffer
  */
@@ -234,27 +234,7 @@ public:
     }
 
     //@{
-    //@brief tc special functions
-
-    bool appendUpdate(const Buffer& key, const Buffer& value)
-    {
-        return checkHandle_(hdb_) && isOpened() &&
-            ::tchdbputcat(
-                hdb_,
-                key.data(), key.size(),
-                value.data(), value.size()
-            );
-    }
-
-    bool updateAsync(const Buffer& key, const Buffer& value)
-    {
-        return checkHandle_(hdb_) && isOpened() &&
-            ::tchdbputasync(
-                hdb_,
-                key.data(), key.size(),
-                value.data(), value.size()
-            );
-    }
+    //@brief iteration
 
     bool iterInit()
     {
@@ -265,7 +245,7 @@ public:
      * @brief initialize iterator to the corresponding \a key.
      * @return \c true if success. \c false if failed or cannot find the key.
      */
-    bool iterInit(Buffer& key)
+    bool iterInit(const Buffer& key)
     {
         return checkHandle_(hdb_) && isOpened() &&
             ::tchdbiterinit2(hdb_, key.data(), key.size());
@@ -335,7 +315,10 @@ public:
 
         return false;
     }
-
+    bool getFirst(data_type& data)
+    {
+        return getFirst(data.get_key(), data.get_value());
+    }
     bool getNext(Buffer& key)
     {
         if (! (checkHandle_(hdb_) && isOpened()))
@@ -386,6 +369,35 @@ public:
         }
 
         return false;
+    }
+    bool getNext(data_type& data)
+    {
+        return getNext(data.get_key(), data.get_value());
+    }
+
+    //@}
+
+    //@{
+    //@brief tc special functions
+
+    bool appendUpdate(const Buffer& key, const Buffer& value)
+    {
+        return checkHandle_(hdb_) && isOpened() &&
+            ::tchdbputcat(
+                hdb_,
+                key.data(), key.size(),
+                value.data(), value.size()
+            );
+    }
+
+    bool updateAsync(const Buffer& key, const Buffer& value)
+    {
+        return checkHandle_(hdb_) && isOpened() &&
+            ::tchdbputasync(
+                hdb_,
+                key.data(), key.size(),
+                value.data(), value.size()
+            );
     }
 
     //@}

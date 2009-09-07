@@ -16,6 +16,7 @@ IF (Boost_FOUND AND Boost_UNIT_TEST_FRAMEWORK_FOUND AND Boost_SERIALIZATION_FOUN
       raw/Buffer.cpp
 
       tc/String.cpp
+      tc/Iter.cpp
       tc/raw/Db.cpp
       tc/raw/Iter.cpp
       )

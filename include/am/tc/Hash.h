@@ -4,7 +4,7 @@
  * @file am/tc/Hash.h
  * @author Ian Yang
  * @date Created <2009-09-06 23:37:24>
- * @date Updated <2009-09-07 10:56:18>
+ * @date Updated <2009-09-07 16:33:38>
  * @brief TokyoCabinet Hash DB wrapper
  */
 
@@ -72,6 +72,161 @@ public:
     {
         return hash_.setdfunit(dfunit);
     }
+    //@}
+
+    //@{
+    //@brief tc special functions
+
+    bool iterInit()
+    {
+        return hash_.iterInit();
+    }
+    bool iterInit(const KeyType& key)
+    {
+        izenelib::am::raw::Buffer keyBuffer;
+        izenelib::util::izene_serialization<key_type> izsKey(key);
+        write_image(izsKey, keyBuffer);
+
+        return hash_.iterInit(keyBuffer);
+    }
+    bool iterNext(KeyType& key)
+    {
+        izenelib::am::raw::Buffer keyBuffer;
+        izenelib::util::izene_serialization<KeyType> izsKey(key);
+        write_image(izsKey, keyBuffer);
+
+        if (hash_.iterNext(keyBuffer))
+        {
+            izenelib::util::izene_deserialization<KeyType> izdKey(
+                keyBuffer.data(), keyBuffer.size()
+            );
+            izdKey.read_image(key);
+
+            return true;
+        }
+
+        return false;
+    }
+    bool iterNext(KeyType& key, ValueType& value)
+    {
+        izenelib::am::raw::Buffer keyBuffer;
+        izenelib::util::izene_serialization<KeyType> izsKey(key);
+        write_image(izsKey, keyBuffer);
+        izenelib::am::raw::Buffer valueBuffer;
+
+        if (hash_.iterNext(keyBuffer, valueBuffer))
+        {
+            izenelib::util::izene_deserialization<KeyType> izdKey(
+                keyBuffer.data(), keyBuffer.size()
+            );
+            izdKey.read_image(key);
+
+            izenelib::util::izene_deserialization<ValueType> izdValue(
+                valueBuffer.data(), valueBuffer.size()
+            );
+            izdValue.read_image(value);
+
+            return true;
+        }
+
+        return false;
+    }
+    bool iterNext(data_type& data)
+    {
+        return iterNext(data.get_key(), data.get_value());
+    }
+
+    bool getFirst(KeyType& key)
+    {
+        izenelib::am::raw::Buffer keyBuffer;
+
+        if (hash_.getFirst(keyBuffer))
+        {
+            izenelib::util::izene_deserialization<KeyType> izdKey(
+                keyBuffer.data(), keyBuffer.size()
+            );
+            izdKey.read_image(key);
+
+            return true;
+        }
+
+        return false;
+    }
+    bool getFirst(KeyType& key, ValueType& value)
+    {
+        izenelib::am::raw::Buffer keyBuffer;
+        izenelib::am::raw::Buffer valueBuffer;
+
+        if (hash_.getFirst(keyBuffer, valueBuffer))
+        {
+            izenelib::util::izene_deserialization<KeyType> izdKey(
+                keyBuffer.data(), keyBuffer.size()
+            );
+            izdKey.read_image(key);
+
+            izenelib::util::izene_deserialization<ValueType> izdValue(
+                valueBuffer.data(), valueBuffer.size()
+            );
+            izdValue.read_image(value);
+
+            return true;
+        }
+
+        return false;
+    }
+    bool getFirst(data_type& data)
+    {
+        return getFirst(data.get_key(), data.get_value());
+    }
+
+    bool getNext(KeyType& key)
+    {
+        izenelib::am::raw::Buffer keyBuffer;
+        izenelib::util::izene_serialization<KeyType> izsKey(key);
+        write_image(izsKey, keyBuffer);
+
+        if (hash_.getNext(keyBuffer))
+        {
+            izenelib::util::izene_deserialization<KeyType> izdKey(
+                keyBuffer.data(), keyBuffer.size()
+            );
+            izdKey.read_image(key);
+
+            return true;
+        }
+
+        return false;
+    }
+    bool getNext(KeyType& key, ValueType& value)
+    {
+        izenelib::am::raw::Buffer keyBuffer;
+        izenelib::util::izene_serialization<KeyType> izsKey(key);
+        write_image(izsKey, keyBuffer);
+
+        izenelib::am::raw::Buffer valueBuffer;
+
+        if (hash_.getNext(keyBuffer, valueBuffer))
+        {
+            izenelib::util::izene_deserialization<KeyType> izdKey(
+                keyBuffer.data(), keyBuffer.size()
+            );
+            izdKey.read_image(key);
+
+            izenelib::util::izene_deserialization<ValueType> izdValue(
+                valueBuffer.data(), valueBuffer.size()
+            );
+            izdValue.read_image(value);
+
+            return true;
+        }
+
+        return false;
+    }
+    bool getNext(data_type& data)
+    {
+        return getNext(data.get_key(), data.get_value());
+    }
+
     //@}
 
     const char* errorMessage() const

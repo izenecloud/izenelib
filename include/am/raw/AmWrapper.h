@@ -4,7 +4,7 @@
  * @file am/raw/AmWrapper.h
  * @author Ian Yang
  * @date Created <2009-09-06 22:50:37>
- * @date Updated <2009-09-07 10:56:27>
+ * @date Updated <2009-09-07 16:16:20>
  * @brief Integrate raw am and serialization framework
  */
 
