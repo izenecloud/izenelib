@@ -1,7 +1,7 @@
 #ifndef MULTITERMSEARCHER_H
 #define MULTITERMSEARCHER_H
 
-#include <ir/index_manager/index/TermReader.h>
+#include <ir/index_manager/index/AbsTermReader.h>
 #include <ir/index_manager/index/BarrelInfo.h>
 
 #include <map>

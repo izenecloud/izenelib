@@ -172,6 +172,18 @@ uint8_t IndexOutput::getVIntLength(int32_t i)
     return l;
 }
 
+uint8_t IndexOutput::getVLongLength(int64_t i)
+{
+    uint8_t l = 1;
+    uint32_t ui = i;
+    while ((ui & ~0x7F) != 0)
+    {
+        l++;
+        ui >>= 7; //doing unsigned shift
+    }
+    return l;
+}
+
 void IndexOutput::setBuffer(char* buf,size_t bufSize)
 {
     if (bufferStart!=0 || bufferPosition != 0)
