@@ -1,3 +1,8 @@
+/**
+ * @author Wei Cao
+ * @date 2009-09-05
+ */
+
 #ifndef _REGEXP_MANAGER_
 #define _REGEXP_MANAGER_
 
@@ -20,18 +25,13 @@ namespace idmanager {
 /**
   * There are three kinds of regexp handlers selectable:
   * - Empty : if selected, nothing will RegexpManager do.
-  * - All in memory version: based on LexicalTrie
-  * - Disk version: based on SDBTrie
+  * - All in memory version: based on LexicalTrie, every thing is kept in memory.
+  * - Disk version: based on SDBTrie, data is swapped between memory and disk.
   */
 template<typename NameString, typename NameID>
-class EmptyRegExpHandler
+class BasicRegExpHandler
 {
-
 public:
-
-	EmptyRegExpHandler(const std::string&){}
-
-	~EmptyRegExpHandler(){}
 
 	void openForRead() {}
 
@@ -47,28 +47,32 @@ public:
 
 	int num_items(){return 0;}
 
+	void display(){}
+};
+
+/**
+ *@brief nothing will be done for any operation.
+ */
+template<typename NameString, typename NameID>
+class EmptyRegExpHandler : public BasicRegExpHandler<NameString, NameID>
+{
+public:
+
+	EmptyRegExpHandler(const std::string&){}
+
 	void display(){std::cout << "This is a EmptyRegExpHandler instance" << std::endl; }
 
 }; // end - class EmptyRegExpHandler
 
+/**
+ *@brief based on LexicalTrie, every thing is kept in memory.
+ */
 template<typename NameString, typename NameID>
-class MemoryRegExpHandler {
-
+class MemoryRegExpHandler : public BasicRegExpHandler<NameString, NameID>
+{
 public:
 
-	MemoryRegExpHandler(const std::string&)
-	:   trie_()
-    {}
-
-	~MemoryRegExpHandler(){}
-
-	void openForRead() {}
-
-	void openForWrite(){}
-
-	void optimize(){}
-
-	void close(){}
+	MemoryRegExpHandler(const std::string&){}
 
 	void insert(const NameString & word, const NameID id){ trie_.insert(word, id); }
 
@@ -83,17 +87,15 @@ private:
     LexicalTrie<NameString, NameID> trie_;
 }; // end - class MemoryRegExpHandler
 
-
+/**
+ *@brief based on SDBTrie, data is swapped between memory and disk.
+ */
 template<typename NameString, typename NameID>
-class DiskRegExpHandler {
-
+class DiskRegExpHandler : public BasicRegExpHandler<NameString, NameID>
+{
 public:
-
 	DiskRegExpHandler(const std::string& name)
-	:   trie_(name)
-    {}
-
-	~DiskRegExpHandler(){}
+	:   trie_(name) {}
 
 	void openForRead() { trie_.openForRead(); }
 
@@ -118,7 +120,7 @@ private:
 
 
 /**
- * @brief A meta function to return boolean value for class type RgeExpHandler.
+ * @brief A meta function to test if given class is an instantiation of template EmptyRegExpHandler.
  * @return true it's a EmptyRegExpHandler
  *         false otherwise
  */
@@ -132,6 +134,23 @@ class IsEmpty<EmptyRegExpHandler<N,I> > {
 public:
     static const bool value = true;
 };
+
+/**
+ * @brief A meta function to test if given class is an instantiation of template MemoryRegExpHandler.
+ * @return true it's a MemoryRegExpHandler
+ *         false otherwise
+ */
+template <typename RegExpHandler>
+class IsMemory {
+public:
+    static const bool value = false;
+};
+template <typename N,typename I>
+class IsMemory<MemoryRegExpHandler<N,I> > {
+public:
+    static const bool value = true;
+};
+
 
 /**
  * @brief Manager to handler regexp searches.
@@ -310,37 +329,39 @@ protected:
             if(handler_) {
                 handler_->close();
                 delete handler_;
-                handler_ = NULL;
-            }
-
-            {
-                // write in Trie
-                RegExpHandler handler(storageName_);
-                handler.openForWrite();
-                int skip = handler.num_items();
-
-                int line = 0;
-                std::string buffer;
-                NameString key;
-                NameID id;
-                while(getline(tin, buffer))
-                {
-                    // skip records already in Trie
-                    if( line >= skip )
-                    {
-                        key = (CharType*)buffer.c_str();
-                        iin.read((char*)&id, sizeof(NameID));
-                        handler.insert(key, id);
-                    }
-                    line++;
-                }
-
-                handler.optimize();
-                handler.close();
             }
 
             handler_ = new RegExpHandler(storageName_);
-            handler_->openForRead();
+            // write in Trie
+            handler_->openForWrite();
+            int skip = handler_->num_items();
+
+            int line = 0;
+            std::string buffer;
+            NameString key;
+            NameID id;
+            while(getline(tin, buffer))
+            {
+                // skip records already in Trie
+                if( line >= skip )
+                {
+                    key = (CharType*)buffer.c_str();
+                    iin.read((char*)&id, sizeof(NameID));
+                    handler_->insert(key, id);
+                }
+                line++;
+            }
+            handler_->optimize();
+
+            // if this is a disk version regexp handler
+            // build a trie and flush it into disk
+            if(false == IsMemory<RegExpHandler>::value)
+            {
+                handler_->close();
+                delete handler_;
+                handler_ = new RegExpHandler(storageName_);
+                handler_->openForRead();
+            }
         }
     }
 
