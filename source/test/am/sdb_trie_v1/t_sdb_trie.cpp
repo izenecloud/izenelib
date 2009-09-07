@@ -226,6 +226,24 @@ BOOST_AUTO_TEST_CASE(SDBTrie_findPrefix)
             BOOST_CHECK_EQUAL(results[1].c_str(), "destination");
           }
       }
+
+      {
+          vector<string> keys;
+          vector<int> values;
+          trie.findPrefix("des", keys, values);
+          BOOST_CHECK_EQUAL(keys.size(), (size_t)2);
+          BOOST_CHECK_EQUAL(values.size(), (size_t)2);
+          if(keys.size() == 2)
+          {
+            BOOST_CHECK_EQUAL(keys[0].c_str(), "desk");
+            BOOST_CHECK_EQUAL(keys[1].c_str(), "destination");
+          }
+          if(values.size() == 2)
+          {
+            BOOST_CHECK_EQUAL(values[0], 7);
+            BOOST_CHECK_EQUAL(values[1], 4);
+          }
+      }
     }
 
     CLEAN_SDB_FILE("findprefix");

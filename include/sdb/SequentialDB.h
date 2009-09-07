@@ -44,8 +44,8 @@ namespace sdb {
 template<
 		typename KeyType =string,
 		typename ValueType=NullType,
-		typename LockType =NullLock,
-		typename ContainerType=izenelib::am::sdb_btree<KeyType, ValueType, LockType>,
+		typename LockType =NullLock,		
+		typename ContainerType=izenelib::am::sdb_btree<KeyType, ValueType, LockType>,		
 		typename Alloc=std::allocator<DataType<KeyType,ValueType> > > class SequentialDB {
 public:
 	//typedef DataType<KeyType, ValueType> DataType;
@@ -330,7 +330,7 @@ public:
 		lock_.acquire_read_lock();
 		if (container_.search(key, locn) ) {
 			if (container_.seq(locn, ESD_FORWARD) ) {
-				get(locn, dat);
+				container_.get(locn, dat);
 			}
 			lock_.release_read_lock();
 			return dat.key;
@@ -432,7 +432,7 @@ public:
 		DataType<KeyType,ValueType> dat;
 		lock_.acquire_read_lock();
 		while (key.isPrefix(dat.get_key()) && container_.seq(locn, ESD_FORWARD) ) {
-			if (get(locn, dat) )
+			if (container_.get(locn, dat) )
 				result.push_back(dat);
 		}
 		lock_.release_read_lock();
@@ -445,7 +445,7 @@ public:
 		get(locn, dat);
 		lock_.acquire_read_lock();
 		while (key.isPrefix(dat.get_key()) && container_.seq(locn, ESD_FORWARD) ) {
-			if (get(locn, dat))
+			if (container_.get(locn, dat))
 				result.push_back(dat.get_key());
 		}
 		lock_.release_read_lock();
@@ -542,7 +542,7 @@ template<typename KeyType, typename ValueType, typename LockType,
 	for (; i<count; i++) {
 		if (container_.seq(locn) ) {
 			//locn.first->display();
-			if (get(locn, rec) )
+			if (container_.get(locn, rec) )
 				result.push_back(rec);
 		} else {
 			lock_.release_read_lock();

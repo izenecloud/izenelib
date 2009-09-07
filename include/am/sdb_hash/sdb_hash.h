@@ -565,8 +565,7 @@ public:
 			}
 		}
 		KeyType key;
-		ValueType value;
-		int idx=0;
+		ValueType value;		
 		while( !get(locn, key, value) ) {		
 			seq(locn);
 		}
@@ -655,8 +654,8 @@ public:
 			if(sa == NULL)return false;
 			if(p == NULL)return false;
 
-			char* ptr;
-			size_t poff;
+			char* ptr = 0 ;
+			size_t poff = 0;
 	
 			while(true) {
 
