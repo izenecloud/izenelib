@@ -56,6 +56,11 @@ public:
 	 */
 	bool get(const NameID& nameID, NameString& nameString);
 
+	void flush()
+	{
+	    nameFinder_.flush();
+	}
+
 	void close()
 	{
 	    nameFinder_.close();
@@ -129,6 +134,8 @@ public:
 	{
 	    return false;
 	}
+
+	void flush(){}
 
 	void close(){}
 

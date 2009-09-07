@@ -39,6 +39,8 @@ public:
 
 	void optimize(){}
 
+	void flush(){}
+
 	void close(){}
 
 	void insert(const NameString & word, const NameID id){ }
@@ -102,6 +104,8 @@ public:
 	void openForWrite(){ trie_.openForWrite(); }
 
 	void optimize(){ trie_.optimize(); }
+
+	void flush(){ trie_.flush(); }
 
 	void close(){ trie_.close(); }
 
@@ -273,6 +277,22 @@ public:
             if(rawIdFile_.fail())
                 std::cerr << "bad file " << rawIdFileName_ << std::endl;
             filelock_.release_write_lock();
+        }
+    }
+
+    void flush()
+    {
+        // here if statement could be optimized at compile time,
+        // so it doesn't effect the perforamnce.
+        if( ! IsEmpty<RegExpHandler>::value )
+        {
+            filelock_.acquire_write_lock();
+            rawTextFile_.flush();
+            rawIdFile_.flush();
+            filelock_.release_write_lock();
+
+            if(handler_)
+                handler_->flush();
         }
     }
 

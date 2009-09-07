@@ -323,7 +323,10 @@ public:
 				p += sizeof(size_t);
 				memcpy(&vsz, p, sizeof(size_t));
 				p += sizeof(size_t);
-				memset(p, 0xff, ksz);
+				//memset(p, 0xff, ksz);
+				size_t leftSize = sfh_.bucketSize-(2*sizeof(size_t)+ksz+vsz)-(p-locn.first->str);
+				memcpy(p-2*sizeof(size_t), p+ksz+vsz, leftSize);
+				--locn.first->num;
 
 				//this is much slower.
 				/*vsz += ksz+1;
@@ -555,15 +558,16 @@ public:
 		{
 			if( entry_[i] )
 			{
-				/*if (!entry_[i]->isLoaded ) {
-				 entry_[i]->read(dataFile_);
-				 ++activeNum_;
-				 }*/
 				load_( entry_[i] );
 				locn.first = entry_[i];
 				locn.second = entry_[i]->str;
 				break;
 			}
+		}
+		KeyType key;
+		ValueType value;		
+		while( !get(locn, key, value) ) {		
+			seq(locn);
 		}
 		return locn;
 	}
@@ -583,6 +587,7 @@ public:
 
 		if(sa == NULL)return false;
 		if(p == NULL)return false;
+		if(sa->num == 0)return false;
 
 		if( !fixed ) {
 			size_t ksize, vsize;
@@ -629,6 +634,17 @@ public:
 	{
 		return seq(locn, dat.key, dat.value, sdir);
 	}
+
+	bool isEmptyBucket_(bucket_chain* entry, bucket_chain* &sa) {
+		sa = entry;
+		load_(sa);
+		while(sa && sa->num <= 0) {
+			sa = loadNext_(sa);
+		}
+		return sa == NULL;
+
+	}
+
 	bool seq(SDBCursor& locn, util::ESeqDirection sdir=util::ESD_FORWARD) {
 		flushCache_(locn);
 		if( sdir == util::ESD_FORWARD ) {
@@ -638,61 +654,48 @@ public:
 			if(sa == NULL)return false;
 			if(p == NULL)return false;
 
-			char* ptr;
-			size_t poff;
-
+			char* ptr = 0 ;
+			size_t poff = 0;
+	
 			while(true) {
 
 				if(!fixed) {
 
-					size_t ksize, vsize;
+					size_t ksize = 0, vsize;
 
-					memcpy(&ksize, p, sizeof(size_t));
-					p += sizeof(size_t);
-					memcpy(&vsize, p, sizeof(size_t));
-					p += sizeof(size_t);
+					if( sa->num != 0) {
+						memcpy(&ksize, p, sizeof(size_t));
+						p += sizeof(size_t);
+						memcpy(&vsize, p, sizeof(size_t));
+						p += sizeof(size_t);
 
-					bool isContinue = false;
-					//to determine if encountered item is deleted.
-					char *a = new char[ksize];
-					memset(a, 0xff, ksize);
-					if(memcmp(p, a, ksize) == 0) {
-						delete a;
-						a = 0;
-						isContinue = true;
+						ptr = p;
+						poff = ksize;
+						p += ksize;
+						p += vsize;
+						memcpy(&ksize, p, sizeof(size_t));
 					}
-					delete a;
-					a = 0;
-
-					ptr = p;
-					poff = ksize;
-					p += ksize;
-					p += vsize;
-
-					memcpy(&ksize, p, sizeof(size_t));
 					if( ksize == 0 ) {
 						sa = loadNext_(sa);
+						while( sa && sa->num <= 0) {
+							sa = loadNext_(sa);
+						}
 						if( sa ) {
 							p = sa->str;
 						}
 						else
-						{
-							uint32_t idx = sdb_hashing::hash_fun(ptr, poff) & dmask_;
-							while( !entry_[++idx] ) {
+						{						
+							uint32_t idx = sdb_hashing::hash_fun(ptr, poff) & dmask_;							
+							while( isEmptyBucket_( entry_[++idx], sa ) ) {								
 								if( idx >= directorySize_-1 )
 								break;
 							}
-							load_(entry_[idx]);
 
-							//get next bucket;
-							sa = entry_[idx];
 							if( sa ) p = sa->str;
 							else
 							p = NULL;
 						}
-					}
-
-					if( isContinue )continue;
+					}				
 
 				} else {
 					ptr = p;
@@ -706,22 +709,24 @@ public:
 					if( (unsigned int)(p-locn.first->str) >= (unsigned int)(locn.first->num)*(ksize_ + vsize_) )
 					{
 						sa = loadNext_(sa);
+						while( sa && sa->num <= 0) {						
+							sa = loadNext_(sa);
+						}
 						if( sa ) {
 							p = sa->str;
 						}
 						else
 						{
 							uint32_t idx = sdb_hashing::hash_fun(ptr, poff) & dmask_;
-							while( !entry_[++idx] ) {
+							while( isEmptyBucket_( entry_[++idx], sa ) ) {								
 								if( idx >= directorySize_-1 )
 								break;
 							}
-
-							load_(entry_[idx]);
-
+							
 							//get next bucket;
-							sa = entry_[idx];
-							if( sa ) p = sa->str;
+							//sa = entry_[idx];							
+							if( sa )
+								p = sa->str;				
 							else
 							p = NULL;
 						}
