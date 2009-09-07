@@ -57,10 +57,8 @@ public:
     */
     bool removeCollection(collectionid_t colID, count_t docCount);
 
-    bool isCacheFull()
-    {
-        return nNumCacheUsed_ >= nNumCachedDocs_;
-    }
+    bool isCacheFull() { return nNumCacheUsed_ >= nNumCachedDocs_; }
+	
     /**
     * @brief when the memory cache of IndexWriter is full, then index all the cached index. Call this function directly will force to index all the cached docuement objects.
     */
@@ -70,8 +68,9 @@ public:
     */
     void mergeIndex(IndexMerger* pIndexMerger);
 
-    void close();
+    void flush();
 
+    void close();
 
 private:
     void setupCache();

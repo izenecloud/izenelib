@@ -29,7 +29,8 @@ namespace idmanager {
  * indicates the addition of that vector. At tree nodes, a boolean flag
  * indicates if the word up to that point is in fact contained in the trie.
  */
-template<typename NameString> class LexicalTrie {
+template<typename NameString, typename NameID>
+class LexicalTrie {
 	typedef typename NameString::value_type charType;
 public:
 
@@ -45,7 +46,7 @@ public:
 	 * Parameters:
 	 *  word - Word to add.
 	 */
-	void insert(const NameString & word, const unsigned int id);
+	void insert(const NameString & word, const NameID & id);
 
 	/** Returns the number of words in the trie.
 	 *
@@ -69,7 +70,7 @@ public:
 	 *  exp - The regular expression.
 	 *  results - The set to store results in.
 	 */
-	bool findRegExp(const NameString& exp, std::vector<unsigned int> & results);
+	bool findRegExp(const NameString& exp, std::vector<NameID> & results);
 
 	struct TrieNode; // forward declaration
 
@@ -125,7 +126,7 @@ public:
 	{
 		bool isWord_; // do the letters up to here form a word?
 
-		unsigned int id_;
+		NameID id_;
 
 		std::vector<LetterTriePair> letters_; // children
 
@@ -145,7 +146,7 @@ public:
 
 		// Add this word (recursive)
 		// Return true if actually added
-		bool insert(const NameString & word, const unsigned int id)
+		bool insert(const NameString & word, const NameID &  id)
 		{
 			// recursive base case:
 			if (word.length()== 0) {
@@ -187,7 +188,7 @@ public:
 		}
 
 		// Find all regex matches (recursive)
-		inline void findRegExp(std::vector<unsigned int> & results,
+		inline void findRegExp(std::vector<NameID> & results,
 				const NameString & pattern,
 				const NameString & soFar)
 		{
@@ -266,28 +267,33 @@ public:
 
 }; // end - class LexicalTrie
 
-template<typename NameString> LexicalTrie<NameString>::LexicalTrie() {
+template<typename NameString, typename NameID>
+LexicalTrie<NameString, NameID>::LexicalTrie() {
 	root_ = new TrieNode();
 	numWords_ = 0;
 }
 
-template<typename NameString> LexicalTrie<NameString>::~LexicalTrie() {
+template<typename NameString, typename NameID>
+LexicalTrie<NameString, NameID>::~LexicalTrie() {
 	delete root_;
 }
-template<typename NameString> void LexicalTrie<NameString>::insert(
-		const NameString & word, const unsigned int id) {
+template<typename NameString, typename NameID>
+void LexicalTrie<NameString, NameID>::insert(
+		const NameString & word, const NameID & id) {
 	bool added = root_->insert(word,id);
 	if (added)
 	numWords_++;
 
 }
-template<typename NameString> bool LexicalTrie<NameString>::findRegExp(
-		const NameString & exp, std::vector<unsigned int> & results) {
+template<typename NameString, typename NameID>
+bool LexicalTrie<NameString, NameID>::findRegExp(
+		const NameString & exp, std::vector<NameID> & results) {
 	NameString sofar;
 	root_->findRegExp(results, exp, sofar);
 	return results.size()>0 ? true : false;
 }
-template<typename NameString> int LexicalTrie<NameString>::num_items() {
+template<typename NameString, typename NameID>
+int LexicalTrie<NameString, NameID>::num_items() {
 	return numWords_;
 }
 

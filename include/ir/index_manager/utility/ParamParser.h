@@ -13,7 +13,7 @@
 NS_IZENELIB_IR_BEGIN
 
 namespace indexmanager{
-///Helper class for DBTIndexMerger's param parsing
+///Helper class for OnlineIndexMerger's param parsing
 class ParamParser
 {
 public:

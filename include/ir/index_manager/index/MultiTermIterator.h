@@ -7,7 +7,7 @@
 #ifndef MULTITERMITERATOR_H
 #define MULTITERMITERATOR_H
 
-#include <ir/index_manager/index/TermIterator.h>
+#include <ir/index_manager/index/AbsTermIterator.h>
 #include <ir/index_manager/utility/Logger.h>
 #include <ir/index_manager/utility/PriorityQueue.h>
 #include <vector>
@@ -72,12 +72,6 @@ public:
      */
     bool next();
 
-    /**
-     * move to the first term which equal to or bigger than target
-     * @param target the target term
-     * @return true if exist,otherwise false
-     */
-    bool skipTo(const Term* target);
 
     /**
      * get current term ,only valid after calling {@link #next()} or {@link #skipTo()} and returning true.
@@ -97,10 +91,6 @@ public:
      */
     Posting* termPosting();
 
-    /**
-     * get doc freq of current term,only valid after calling {@link #next()} or {@link #skipTo()} and returning true
-     */
-    freq_t docFreq();
 
     /**
      * add term iterator

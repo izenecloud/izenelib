@@ -63,11 +63,9 @@ bool MultiTermIterator::next()
     }
 
     pTerm = top->term->clone();
-    docFreq_ = 0;
 
     while (top != NULL && pTerm->compare(top->term) == 0)
     {
-        docFreq_ += top->termIterator->docFreq();
         if (top->next())
         {
             itersQueue->adjustTop();
@@ -78,19 +76,11 @@ bool MultiTermIterator::next()
     return true;
 }
 
-bool MultiTermIterator::skipTo(const Term* target)
-{
-    return false;
-}
 const Term* MultiTermIterator::term()
 {
     return pTerm;
 }
 
-freq_t MultiTermIterator::docFreq()
-{
-    return docFreq_;
-}
 const TermInfo* MultiTermIterator::termInfo()
 {
     return NULL;

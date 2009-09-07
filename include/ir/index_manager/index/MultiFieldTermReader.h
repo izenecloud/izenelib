@@ -11,7 +11,7 @@
 #include <ir/index_manager/utility/system.h>
 #include <ir/index_manager/store/Directory.h>
 #include <ir/index_manager/index/FieldInfo.h>
-#include <ir/index_manager/index/TermReader.h>
+#include <ir/index_manager/index/AbsTermReader.h>
 #include <ir/index_manager/index/Term.h>
 #include <map>
 

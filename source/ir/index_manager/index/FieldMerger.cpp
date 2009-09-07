@@ -222,11 +222,11 @@ bool FieldMerger::initQueue()
         else
         {
             ///on-disk index barrel
-            pTermReader = new DiskTermReader();
+            pTermReader = new DiskTermReader(DiskTermReader::ORDERPRESERVING);
             ///open on-disk index barrel
             pTermReader->open(pDirectory,pEntry->pBarrelInfo->getName().c_str(),pEntry->pFieldInfo);
         }
-        pMI = new FieldMergeInfo(order,pEntry->pBarrelInfo,pTermReader);
+        pMI = new FieldMergeInfo(order,pEntry->pFieldInfo->getColID(),pEntry->pBarrelInfo,pTermReader);
         if (nSubBufSize > 0)
         {
             nSubBufUsed = pMI->pIterator->setBuffer(buffer + nTotalUsed,nCurBufferSize);

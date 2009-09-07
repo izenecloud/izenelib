@@ -10,11 +10,11 @@
 #include <ir/index_manager/index/FieldInfo.h>
 #include <ir/index_manager/index/BarrelInfo.h>
 #include <ir/index_manager/index/Term.h>
-#include <ir/index_manager/index/TermIterator.h>
+#include <ir/index_manager/index/AbsTermIterator.h>
 #include <ir/index_manager/store/Directory.h>
 #include <ir/index_manager/utility/PriorityQueue.h>
 #include <ir/index_manager/index/PostingMerger.h>
-#include <ir/index_manager/index/TermReader.h>
+#include <ir/index_manager/index/AbsTermReader.h>
 
 #include <string>
 #include <vector>
@@ -63,13 +63,14 @@ public:
 class FieldMergeInfo
 {
 public:
-    FieldMergeInfo(int32_t nOrder_,BarrelInfo* pBarrelInfo_,TermReader* pTermReader_)
+    FieldMergeInfo(int32_t nOrder_, collectionid_t currColId, BarrelInfo* pBarrelInfo_,TermReader* pTermReader_)
             :nOrder(nOrder_)
             ,pBarrelInfo(pBarrelInfo_)
             ,pCurTerm(NULL)
             ,pTermReader(pTermReader_)
     {
         pIterator = pTermReader->termIterator(NULL);
+        baseDocId = pBarrelInfo->baseDocIDMap[currColId];;
     }
     ~FieldMergeInfo()
     {
@@ -89,12 +90,14 @@ public:
         }
         return false;
     }
+	
 public:
     int32_t nOrder;			///order of barrel
     BarrelInfo* pBarrelInfo;		///reference to barrel info
     Term* pCurTerm;		///current term
     TermReader* pTermReader;
     TermIterator* pIterator;		///term iterator
+    docid_t baseDocId;
 
     friend class FieldMergeQueue;
     friend class FieldMerger;
@@ -119,7 +122,12 @@ private:
     bool lessThan(FieldMergeInfo* a, FieldMergeInfo* b)
     {
         int32_t ret = a->pCurTerm->compare(b->pCurTerm);
-        return (ret < 0);
+        if(ret == 0)
+        {
+            return a->baseDocId < b->baseDocId;
+        }
+        else
+            return (ret < 0);
     }
 };
 

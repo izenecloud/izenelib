@@ -625,13 +625,13 @@ public:
 	 *
 	 */
 
-	bool seq(SDBCursor& locn, KeyType& key, ValueType& value, ESeqDirection sdir=ESD_FORWARD)
+	bool seq(SDBCursor& locn, KeyType& key, ValueType& value, util::ESeqDirection sdir=util::ESD_FORWARD)
 	{
 		bool ret = seq(locn);
 		get(locn, key, value);
 		return ret;
 	}
-	bool seq(SDBCursor& locn, DataType<KeyType, ValueType>& dat, ESeqDirection sdir=ESD_FORWARD)
+	bool seq(SDBCursor& locn, DataType<KeyType, ValueType>& dat, util::ESeqDirection sdir=util::ESD_FORWARD)
 	{
 		return seq(locn, dat.key, dat.value, sdir);
 	}
@@ -645,10 +645,10 @@ public:
 		return sa == NULL;
 
 	}
-	bool seq(SDBCursor& locn, ESeqDirection sdir=ESD_FORWARD) {
 
+	bool seq(SDBCursor& locn, util::ESeqDirection sdir=util::ESD_FORWARD) {
 		flushCache_(locn);
-		if( sdir == ESD_FORWARD ) {
+		if( sdir == util::ESD_FORWARD ) {
 			bucket_chain* sa = locn.first;
 			char* p = locn.second;
 

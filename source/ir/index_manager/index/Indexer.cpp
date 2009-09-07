@@ -1,7 +1,7 @@
 #include <ir/index_manager/index/Indexer.h>
 #include <ir/index_manager/index/TermReader.h>
 #include <ir/index_manager/index/IndexMerger.h>
-#include <ir/index_manager/index/OptimizeMerger.h>
+#include <ir/index_manager/index/OfflineIndexMerger.h>
 #include <ir/index_manager/index/ParallelTermPosition.h>
 #include <ir/index_manager/index/Posting.h>
 #include <ir/index_manager/index/ForwardIndexReader.h>
@@ -44,7 +44,6 @@ Indexer::Indexer( ManagerType managerType)
         ,pIndexWriter_(NULL)
         ,pIndexReader_(NULL)
         ,pConfigurationManager_(NULL)
-        ,pDocumentManager_(NULL)
         ,pBTreeIndexer_(NULL)
         ,pBTreeIndexerClient_(NULL)
         ,pBTreeIndexerServer_(NULL)
@@ -65,9 +64,6 @@ Indexer::~Indexer()
     if (pConfigurationManager_) 
         delete pConfigurationManager_;
     pConfigurationManager_ = NULL;
-
-    if (pDocumentManager_)
-        delete pDocumentManager_;
 
     if(pAgent_)
     {
@@ -399,8 +395,6 @@ void Indexer::close()
     }
     if (pBarrelsInfo_)
     {
-        if (dirty_)
-            pBarrelsInfo_->write(getDirectory());
         delete pBarrelsInfo_;
         pBarrelsInfo_ = NULL;
     }
@@ -416,10 +410,6 @@ void Indexer::close()
         delete pBTreeIndexer_;
         pBTreeIndexer_ = NULL;
     }
-    for (map<collectionid_t, IndexingProgressStatus*>::iterator iter = indexProgressStatusMap_.begin();
-            iter != indexProgressStatusMap_.end(); ++iter)
-        delete iter->second;
-
 }
 
 
@@ -467,22 +457,9 @@ int Indexer::removeCollection(collectionid_t colID)
 
 void Indexer::flush()
 {
-    pIndexWriter_->close();
-    pBarrelsInfo_->write(getDirectory());
-    delete pIndexWriter_;
-    pIndexWriter_ = new IndexWriter(this);
+    pIndexWriter_->flush();
     pIndexReader_->setDirty(true);
     pBTreeIndexer_->flush();
-}
-
-bool Indexer::getIndexingProgressbyCollectionId(collectionid_t colID, IndexingProgressStatus& currentProgress)
-{
-    IndexingProgressStatus* pStatus = indexProgressStatusMap_[colID];
-    if (!pStatus)
-        return false;
-    pStatus->waitTime = (pStatus->timeElapsed / pStatus->indexedCount)*(pStatus->totalDocumentCount - pStatus->indexedCount);
-    currentProgress = *pStatus;
-    return true;
 }
 
 ///To be optimized: Using TermDocFreqs instead of TermPositions
@@ -748,21 +725,11 @@ bool Indexer::getDocsByPropertyValueSubString(collectionid_t colID, string prope
 
 void Indexer::optimizeIndex()
 {
-    IndexMerger* pIndexMerger = new OptimizeMerger(pDirectory_);
+    IndexMerger* pIndexMerger = new OfflineIndexMerger(pDirectory_, pBarrelsInfo_->getBarrelCount());
 
     pIndexMerger->setParam(pConfigurationManager_->mergeStrategy_.param_.c_str());
 
     pIndexWriter_->mergeIndex(pIndexMerger);
 }
-
-
-#ifdef SF1_TIME_CHECK
-// @by MyungHyun Lee (Kent) - Feb 6, 2009
-void Indexer::printDocumentProcessTimeCheck()
-{
-    wiselib::ProfilerGroup::instance().profilerInstance("IndexProcess").print("time.indexprocess");
-    pDocumentManager_->printDocumentProcessTime();
-}
-#endif
 
 

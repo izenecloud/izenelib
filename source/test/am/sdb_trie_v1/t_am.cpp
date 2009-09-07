@@ -95,84 +95,85 @@ void displayMemInfo(std::ostream& os = std::cout) {
 	os << "vm: " << vm << "bytes rss: " << rss << "bytes" << endl;
 }
 
-//
-//BOOST_AUTO_TEST_CASE(SDBTrie_am)
-//{
-//    std::cout << std::endl << "Performance Test for SDBTrie" << std::endl;
-//
-//    vector<string_type> vstr;
-//    readDict("./input", vstr);
-//
-//    displayMemInfo();
-//
-//    clock_t start, finish;
-//
-//    {
-//        SDBTrie2<std::string, uint32_t> sdbTrie("SDBTrie_am");
-//        sdbTrie.openForWrite();
-//        start = clock();
-//        uint32_t id = 0;
-//        for (vector<string_type>::iterator i=vstr.begin(); i!=vstr.end();i++, id++)
-//        {
-//            if(id%100000 == 0) {
-//                std::cout << "insert" << id << std::endl;
-//                displayMemInfo();
-//            }
-//            sdbTrie.insert(*i, id);
-//        }
-//        sdbTrie.optimize();
-//        finish = clock();
-//        printf( "\nIt takes %f seconds to insert %d random data!\n", (double)(finish - start) / CLOCKS_PER_SEC, vstr.size());
-//    }
-//
-//    {
-//        SDBTrie2<std::string, uint32_t> sdbTrie("SDBTrie_am");
-//        sdbTrie.openForRead();
-////        start = clock();
-////        uint32_t id;
-////        for (vector<string_type>::iterator i=vstr.begin(); i!=vstr.end();i++)
-////        {
-////            if( false == sdbTrie.get(*i, id) )
-////                std::cerr << "error " << *i << std::endl;
-////        }
-////        finish = clock();
-////        printf( "\nIt takes %f seconds to find %d random data!\n", (double)(finish - start) / CLOCKS_PER_SEC, vstr.size());
-//
-//
-//        std::vector<uint32_t> results;
-//
-//        start = clock();
-//        sdbTrie.findRegExp("*abcd", results);
-//        finish = clock();
-//        printf( "\nIt takes %f seconds to find %d *abcd!\n", (double)(finish - start) / CLOCKS_PER_SEC, results.size());
-//    displayMemInfo();
-//
-//        start = clock();
-//        sdbTrie.findRegExp("a*bcd", results);
-//        finish = clock();
-//        printf( "\nIt takes %f seconds to find %d a*bcd!\n", (double)(finish - start) / CLOCKS_PER_SEC, results.size());
-//
-//        start = clock();
-//        sdbTrie.findRegExp("ab*cd", results);
-//        finish = clock();
-//        printf( "\nIt takes %f seconds to find %d ab*cd!\n", (double)(finish - start) / CLOCKS_PER_SEC, results.size());
-//
-//        start = clock();
-//        sdbTrie.findRegExp("abc*d", results);
-//        finish = clock();
-//        printf( "\nIt takes %f seconds to find %d abc*d!\n", (double)(finish - start) / CLOCKS_PER_SEC, results.size());
-//
-//        start = clock();
-//        sdbTrie.findRegExp("abcd*", results);
-//        finish = clock();
-//        printf( "\nIt takes %f seconds to find %d abc*d!\n", (double)(finish - start) / CLOCKS_PER_SEC, results.size());
-//
-//        start = clock();
-//        sdbTrie.findRegExp("gqnkhw?pa", results);
-//        finish = clock();
-//        printf( "\nIt takes %f seconds to find %d gqnkhw?pa!\n", (double)(finish - start) / CLOCKS_PER_SEC, results.size());
-//    }
-//}
+
+BOOST_AUTO_TEST_CASE(SDBTrie_am)
+{
+    std::cout << std::endl << "Performance Test for SDBTrie" << std::endl;
+
+    vector<string_type> vstr;
+    readDict("./input", vstr);
+
+    displayMemInfo();
+
+    clock_t start, finish;
+
+    {
+        SDBTrie2<std::string, uint32_t> sdbTrie("SDBTrie_am");
+        sdbTrie.openForWrite();
+        start = clock();
+        uint32_t id = 0;
+        for (vector<string_type>::iterator i=vstr.begin(); i!=vstr.end();i++, id++)
+        {
+            if(id%100000 == 0) {
+                std::cout << "insert" << id << std::endl;
+                displayMemInfo();
+            }
+            sdbTrie.insert(*i, id);
+        }
+        sdbTrie.optimize();
+        finish = clock();
+        printf( "\nIt takes %f seconds to insert %d random data!\n", (double)(finish - start) / CLOCKS_PER_SEC, vstr.size());
+    }
+
+    {
+
+        SDBTrie2<std::string, uint32_t> sdbTrie("SDBTrie_am");
+        sdbTrie.openForRead();
+        start = clock();
+        uint32_t id;
+        for (vector<string_type>::iterator i=vstr.begin(); i!=vstr.end();i++)
+        {
+            if( false == sdbTrie.get(*i, id) )
+                std::cerr << "error " << *i << std::endl;
+        }
+        finish = clock();
+        printf( "\nIt takes %f seconds to find %d random data!\n", (double)(finish - start) / CLOCKS_PER_SEC, vstr.size());
+
+
+        std::vector<uint32_t> results;
+
+        start = clock();
+        sdbTrie.findRegExp("*abcd", results);
+        finish = clock();
+        printf( "\nIt takes %f seconds to find %d *abcd!\n", (double)(finish - start) / CLOCKS_PER_SEC, results.size());
+        displayMemInfo();
+
+        start = clock();
+        sdbTrie.findRegExp("a*bcd", results);
+        finish = clock();
+        printf( "\nIt takes %f seconds to find %d a*bcd!\n", (double)(finish - start) / CLOCKS_PER_SEC, results.size());
+
+        start = clock();
+        sdbTrie.findRegExp("ab*cd", results);
+        finish = clock();
+        printf( "\nIt takes %f seconds to find %d ab*cd!\n", (double)(finish - start) / CLOCKS_PER_SEC, results.size());
+
+        start = clock();
+        sdbTrie.findRegExp("abc*d", results);
+        finish = clock();
+        printf( "\nIt takes %f seconds to find %d abc*d!\n", (double)(finish - start) / CLOCKS_PER_SEC, results.size());
+
+        start = clock();
+        sdbTrie.findRegExp("abcd*", results);
+        finish = clock();
+        printf( "\nIt takes %f seconds to find %d abc*d!\n", (double)(finish - start) / CLOCKS_PER_SEC, results.size());
+
+        start = clock();
+        sdbTrie.findRegExp("gqnkhw?pa", results);
+        finish = clock();
+        printf( "\nIt takes %f seconds to find %d gqnkhw?pa!\n", (double)(finish - start) / CLOCKS_PER_SEC, results.size());
+    }
+}
 
 //BOOST_AUTO_TEST_CASE(SdbBtree_am)
 //{

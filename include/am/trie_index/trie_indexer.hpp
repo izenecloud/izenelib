@@ -9,10 +9,19 @@
 NS_IZENELIB_AM_BEGIN
 
 template <
-  uint32_t DOC_NUM_PER_TRIE = 45000//150000
+  uint32_t DOC_NUM_PER_TRIE = 50000,//150000
+  //hash trie
+  uint32_t NODE_SIZE_RATE = 25, // it indicate the reducing rate of hash table entries number for different levels in trie.
+  uint32_t LOAD_DEGREE = 1,
+  uint32_t ENTRY_SIZE = 1000000
   >
 class TrieIndexer
 {
+public:
+  typedef HashTrie<NODE_SIZE_RATE, LOAD_DEGREE, ENTRY_SIZE> trie_t;
+  typedef typename trie_t::node_t node_t;
+  typedef typename trie_t::doc_list_t doc_list_t;
+protected:
   struct CONFLICT_NODE
   {
     uint64_t addr1;
@@ -28,7 +37,6 @@ class TrieIndexer
   }
     ;
   
-  typedef HashTrie<> trie_t;
   typedef std::vector<struct CONFLICT_NODE> conflict_q_t;
 
   std::string fname_;
@@ -36,9 +44,10 @@ class TrieIndexer
   uint32_t trie_num_;
   trie_t* cur_trie_;
   conflict_q_t cq_;
+  uint32_t last_docid_;
   //  std::vector<trie_t*> tries_;
 
-  void merge_nodes(trie_t::node_t* a, trie_t::node_t* b, trie_t::node_t& c)
+  void merge_nodes(node_t* a, node_t* b, node_t& c, const trie_t& ta, const trie_t& tb, FILE* doc_f)
   {
     c = *b;
     bool is_new = false;
@@ -49,24 +58,48 @@ class TrieIndexer
       if (!is_new)
       {
         added.set_freq(t.get_freq()+added.get_freq()-1);
-        //merge doc list
       }
       else
       {
         added.set_freq(t.get_freq());
         //merge doc list
       }
+
+      //merge doc list
+      doc_list_t* lista = ta.get_doc_list(t.get_doc_list());
+      doc_list_t* listb = tb.get_doc_list(added.get_doc_list());
+
+      if (lista == NULL && listb==NULL)
+        continue;
+
+      added.set_doc_list(ftell(doc_f));
+      
+      if (lista == NULL)
+      {
+        listb->save(doc_f);
+        delete listb;
+        continue;
+      }
+
+      if (listb == NULL)
+      {
+        lista->save(doc_f);
+        delete lista;
+        continue;
+      }
+
+      lista->append(*listb);
+      lista->save(doc_f);
+      delete lista;
+      delete listb;
     }
   }
 
-  uint32_t save_node(FILE* f, FILE* doc_f, uint64_t addr, trie_t::node_t* nodeA, trie_t::node_t* nodeB,
-                     trie_t::node_t* obj, trie_t& a, trie_t& b)
+  uint32_t save_node(FILE* f, FILE* doc_f, uint64_t& addr, node_t* nodeA, node_t* nodeB,
+                     node_t* obj, trie_t& a, trie_t& b)
   {
-    fseek(f, addr, SEEK_SET);
-    obj->touch_save(f);
-    
-    //uint64_t start = ftell(f);// the start position of mergee's unconflicting sub nodes.
     uint32_t node_num = 1;
+    uint32_t cqs = cq_.size();
     
     for (TermHashTable::const_iterator i=obj->begin(); i!=obj->end(); ++i)
     {
@@ -79,25 +112,22 @@ class TrieIndexer
       {
         //std::cout<<"LLLLLL "<<ta.get_child()<<" "<<tb.get_child()<<" "<<i.file_pos()+addr<<std::endl;
         //add to conflict queue
-        cq_.push_back(CONFLICT_NODE(ta.get_child(), tb.get_child(), i.file_pos()+addr+13));
+        cq_.push_back(CONFLICT_NODE(ta.get_child(), tb.get_child(), i.file_pos()+13));
         continue;
       }
 
       //save children
       if (!ta.is_null() && ta.get_child() !=(uint64_t)-1)
       {
-        //std::cout<<"kkkkkkkkk\n";
-        //std::cout<<ta.get_child()<<std::endl;
-
+        //std::cout<<"tt "<<ta.get_child()<<std::endl;
         //load its sub tree for resaving
         a.partial_load(ta.get_child());
+        //std::cout<<"ttttttt\n";
         
         node_num += a.node_num();
-
-        (*i).set_child(ftell(f));
-        //std::cout<<"child: "<<(*i).get_child()<<" "<<(*i).get_loaded()<<std::endl;
+        
           //save its sub tree
-        a.partial_save(f, doc_f);
+        (*i).set_child(a.partial_save(f, doc_f));
       }
 
       if (!tb.is_null() && tb.get_child() !=(uint64_t)-1)
@@ -109,20 +139,17 @@ class TrieIndexer
         //std::cout<<"uuuuuuuuu\n";
         
         node_num += b.node_num();
-
-        (*i).set_child(ftell(f));
-          
-        //std::cout<<"child: "<<(*i).get_child()<<" "<<(*i).get_loaded()<<std::endl;
+        
           //save its sub tree
-        b.partial_save(f, doc_f);
+        (*i).set_child(b.partial_save(f, doc_f));
       }
     }
 
     //save the mergee
-    uint64_t pos = ftell(f);
-    fseek(f, addr, SEEK_SET);
+    addr = ftell(f);
     obj->save(f);
-    fseek(f, pos, SEEK_SET);
+    for (uint32_t i=cqs; i<cq_.size(); ++i)
+      cq_[i].obj_addr += addr;
 
     return node_num;
   }
@@ -135,48 +162,54 @@ class TrieIndexer
 
     assert(f!=NULL);
     assert(doc_f!=NULL);
-    fseek(f, sizeof(uint32_t), SEEK_SET);
+    fseek(f, sizeof(uint32_t)+sizeof(uint64_t), SEEK_SET);
 
     uint32_t node_num = 0;
+    uint64_t root_addr = -1;
     for (uint32_t i=0; i<cq_.size();++i )
     {
-      trie_t::node_t obj;
+      node_t obj;
       
-      trie_t::node_t* nodeA = a.read_node(cq_[i].addr1);
-      trie_t::node_t* nodeB = b.read_node(cq_[i].addr2);
+      //std::cout<<cq_[i].addr1<<" ----------\n";
+      node_t* nodeA = a.read_node(cq_[i].addr1);
+      //std::cout<<cq_[i].addr2<<" ===========\n";
+      node_t* nodeB = b.read_node(cq_[i].addr2);
+      //std::cout<<"kkkkkkkkkkkkk\n";
       
       //merge frequency to mergee
-      merge_nodes(nodeA, nodeB, obj);
+      merge_nodes(nodeA, nodeB, obj, a, b, doc_f);
 
-      uint64_t node_pos = ftell(f);
+      uint64_t node_pos = -1;//ftell(f);
       
       //save unconflict sub tree and add conflicting ones to queue
       node_num +=save_node(f, doc_f, node_pos, nodeA, nodeB, &obj, a, b);
       
-      if (cq_[i].obj_addr != (uint32_t)-1)
+      if (cq_[i].obj_addr == (uint64_t)-1)
       {
-        //set parent
-        uint64_t pos = ftell(f);
-        //std::cout<<node_pos<<" hhhhhhh\n";
-        fseek(f, cq_[i].obj_addr, SEEK_SET);
-        assert(fwrite(&node_pos, sizeof(uint64_t), 1, f)==1);
-        fseek(f, pos, SEEK_SET);
+        root_addr = node_pos;
+        continue;
       }
+      //set parent
+      uint64_t pos = ftell(f);
+      //std::cout<<node_pos<<" hhhhhhh\n";
+      fseek(f, cq_[i].obj_addr, SEEK_SET);
+      assert(fwrite(&node_pos, sizeof(uint64_t), 1, f)==1);
+      fseek(f, pos, SEEK_SET);
     }
 
+    //std::cout<<"root_addr: "<<root_addr<<std::endl;
     fseek(f, 0, SEEK_SET);
     assert(fwrite(&node_num, sizeof(uint32_t), 1, f) == 1);
+    assert(fwrite(&root_addr, sizeof(uint64_t), 1, f) == 1);
     
     fclose(f);
     fclose(doc_f);
   }
 
 public:
-
-  typedef trie_t::node_t node_t;
   
   inline TrieIndexer(const char* nm)
-    :fname_(nm), doc_num_(0), trie_num_(0), cur_trie_(NULL)
+    :fname_(nm), doc_num_(0), trie_num_(0), cur_trie_(NULL), last_docid_(-1)
   {
   }
 
@@ -192,8 +225,6 @@ public:
 
   void insert(const std::vector<uint64_t>& terms, uint32_t docid)
   {
-    static uint32_t last_docid = -1;
-
     if (cur_trie_ == NULL)
     {
       char buf[6];
@@ -203,10 +234,10 @@ public:
       ++trie_num_;
 
       ++doc_num_;
-      last_docid = docid;
+      last_docid_ = docid;
     }
     
-    if (last_docid != docid)
+    if (last_docid_ != docid)
     {
       if (doc_num_%DOC_NUM_PER_TRIE == 0)
       {
@@ -223,7 +254,7 @@ public:
       }
       
       ++doc_num_;
-      last_docid = docid;
+      last_docid_ = docid;
 
     }
         
@@ -256,15 +287,16 @@ public:
       sprintf(buf, "_%d", i);
       std::string nm = fname_ + buf;
       trie_t* small = new trie_t(nm.c_str(), false);
-      
+
+      //std::cout<<"HHHH "<<big->get_root_pos()<<"=="<<small->get_root_pos()<<std::endl;
       //initiate conflict queue with root nodes of both tree
-      cq_.push_back(CONFLICT_NODE(sizeof(uint32_t), sizeof(uint32_t), -1));
+      cq_.push_back(CONFLICT_NODE(big->get_root_pos(), small->get_root_pos(), -1));
 
       merge_tree(*big, *small);
       
       delete big;
       delete small;
-
+      
       //remove ith files
       remove(nm.c_str());
       remove((nm+".doc").c_str());
@@ -304,21 +336,46 @@ public:
     cur_trie_ = new trie_t((fname_+"_0").c_str());
   }
 
-  uint64_t load_sub_tree(Term& t, trie_t** tree)
+  void ratio_load()
+  {
+    if (cur_trie_ != NULL)
+    {
+      cur_trie_->save();
+      delete cur_trie_;
+    }
+
+    cur_trie_ = new trie_t((fname_+"_0").c_str(), false);
+    cur_trie_->ratio_load(80);
+  }
+
+  void ratio_release()
+  {
+    if (cur_trie_ != NULL)
+    {
+      cur_trie_->ratio_release();
+      delete cur_trie_;
+      cur_trie_  = NULL;
+    }
+  }
+  
+  
+  uint64_t load_sub_tree(Term t, trie_t** tree)
   {
     *tree = NULL;
     
     if (t.get_loaded() || t.get_child() == (uint64_t)-1)
-      return;
+      return -1;
 
     *tree = new trie_t((fname_+"_0").c_str(), false);
 
     t.set_loaded(1);
     uint64_t r = t.get_child();
-    t.set_child((*tree)->partial_load(t.get_child()));
+    t.set_child((uint64_t)(*tree)->partial_load(t.get_child()));
+
+    return r;
   }
 
-  void release_sub_tree(Term& t, trie_t** tree, uint64_t child)
+  void release_sub_tree(Term t, trie_t** tree, uint64_t child)
   {
     if (!t.get_loaded() || t.get_child() == (uint64_t)-1 || *tree == NULL)
       return;
@@ -354,6 +411,22 @@ public:
     return cur_trie_->get_docs(terms, docs);
   }
 
+  inline TermHashTable* get_root()
+  {
+    return cur_trie_->get_root();
+  }
+  
+  inline TermHashTable* load_root()
+  {
+    if (cur_trie_ != NULL)
+    {
+      delete cur_trie_;
+    }
+
+    cur_trie_ = new trie_t((fname_+"_0").c_str(), false);
+    return cur_trie_->get_root();
+  }
+  
 };
 
 NS_IZENELIB_AM_END

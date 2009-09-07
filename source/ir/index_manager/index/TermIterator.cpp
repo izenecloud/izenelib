@@ -74,10 +74,6 @@ bool DiskTermIterator::next()
     else return false;
 }
 
-bool DiskTermIterator::skipTo(const Term* target)
-{
-    return false;
-}
 const Term* DiskTermIterator::term()
 {
     return pCurTerm;
@@ -103,10 +99,6 @@ Posting* DiskTermIterator::termPosting()
         ((OnDiskPosting*)pCurTermPosting)->reset(pCurTermInfo->docPointer());///reset to a new posting
     }
     return pCurTermPosting;
-}
-freq_t DiskTermIterator::docFreq()
-{
-    return pCurTermInfo->docFreq();
 }
 
 size_t DiskTermIterator::setBuffer(char* pBuffer,size_t bufSize)
@@ -180,10 +172,6 @@ bool InMemoryTermIterator::next()
     else return false;
 }
 
-bool InMemoryTermIterator::skipTo(const Term* target)
-{
-    return false;
-}
 const Term* InMemoryTermIterator::term()
 {
     return pCurTerm;
@@ -195,12 +183,6 @@ const TermInfo* InMemoryTermIterator::termInfo()
 Posting* InMemoryTermIterator::termPosting()
 {
     return pCurTermPosting;
-}
-freq_t InMemoryTermIterator::docFreq()
-{
-    if (!pCurTermInfo)
-        return 0;
-    return pCurTermInfo->docFreq();
 }
 size_t InMemoryTermIterator::setBuffer(char* pBuffer,size_t bufSize)
 {

@@ -1,8 +1,8 @@
 #include <ir/index_manager/index/IndexWriter.h>
 #include <ir/index_manager/index/Indexer.h>
 #include <ir/index_manager/index/IndexMerger.h>
-#include <ir/index_manager/index/DBTIndexMerger.h>
-#include <ir/index_manager/index/OptimizeMerger.h>
+#include <ir/index_manager/index/OnlineIndexMerger.h>
+#include <ir/index_manager/index/OfflineIndexMerger.h>
 #include <ir/index_manager/index/IndexBarrelWriter.h>
 #include <ir/index_manager/index/IndexerPropertyConfig.h>
 
@@ -75,13 +75,15 @@ void IndexWriter::destroyCache()
 
 void IndexWriter::createMerger()
 {
-    if (!strcasecmp(pIndexer_->getIndexManagerConfig()->mergeStrategy_.strategy_.c_str(),"DBT"))
-        pIndexMerger_ = new DBTIndexMerger(pIndexer_->getDirectory());
-    else if (!strcasecmp(pIndexer_->getIndexManagerConfig()->mergeStrategy_.strategy_.c_str(),"OPT"))
-        pIndexMerger_ = new OptimizeMerger(pIndexer_->getDirectory());
-
-    pIndexMerger_->setParam(pIndexer_->getIndexManagerConfig()->mergeStrategy_.param_.c_str());
-
+    if (!strcasecmp(pIndexer_->getIndexManagerConfig()->mergeStrategy_.strategy_.c_str(),"online"))
+    {
+        pIndexMerger_ = new OnlineIndexMerger(pIndexer_->getDirectory());
+        pIndexMerger_->setParam(pIndexer_->getIndexManagerConfig()->mergeStrategy_.param_.c_str());
+    }
+    else if (!strcasecmp(pIndexer_->getIndexManagerConfig()->mergeStrategy_.strategy_.c_str(),"offline"))
+        pIndexMerger_ = NULL;
+    else
+        SF1V5_THROW(ERROR_FILEIO,"Configuration values for index merging strategy have not been set" );
 }
 
 void IndexWriter::mergeIndex(IndexMerger* pMerger)
@@ -144,16 +146,13 @@ void IndexWriter::mergeAndWriteCachedIndex()
     *pCurDocCount_ = 0;
 }
 
-void IndexWriter::close()
+void IndexWriter::flush()
 {
-    if (!pIndexBarrelWriter_)
-        return;
     flushDocuments();
     BarrelInfo* pLastBarrel = pBarrelsInfo_->getLastBarrel();
     if (pLastBarrel == NULL)
         return;
     pLastBarrel->setBaseDocID(baseDocIDMap_);
-
     if (pIndexBarrelWriter_->cacheEmpty() == false)///memory index has not been written to database yet.
     {
         pIndexBarrelWriter_->close();
@@ -162,6 +161,14 @@ void IndexWriter::close()
     }
     pIndexer_->setDirty(true);
     pLastBarrel->setWriter(NULL);
+    pBarrelsInfo_->write(pIndexer_->getDirectory());
+}
+
+void IndexWriter::close()
+{
+    if (!pIndexBarrelWriter_)
+        return;
+    flush();
 }
 
 void IndexWriter::mergeAndWriteCachedIndex2()
@@ -171,17 +178,18 @@ void IndexWriter::mergeAndWriteCachedIndex2()
     BarrelInfo* pLastBarrel = pBarrelsInfo_->getLastBarrel();
     pLastBarrel->setBaseDocID(baseDocIDMap_);
 
-    if (pIndexMerger_)
-        pIndexMerger_->addToMerge(pBarrelsInfo_,pBarrelsInfo_->getLastBarrel());
-
     if (pIndexBarrelWriter_->cacheEmpty() == false)///memory index has not been written to database yet.
     {
         pIndexBarrelWriter_->close();
+        pLastBarrel->setWriter(NULL);
+
+        if (pIndexMerger_)
+            pIndexMerger_->addToMerge(pBarrelsInfo_,pBarrelsInfo_->getLastBarrel());
+		
         if (pIndexMerger_)
             pIndexMerger_->transferToDisk(pIndexBarrelWriter_->barrelName.c_str());
     }
 
-    pLastBarrel->setWriter(NULL);
     pBarrelsInfo_->addBarrel(pBarrelsInfo_->newBarrel().c_str(),0);
     pCurBarrelInfo_ = pBarrelsInfo_->getLastBarrel();
     pCurBarrelInfo_->setWriter(pIndexBarrelWriter_);
@@ -191,7 +199,8 @@ void IndexWriter::mergeAndWriteCachedIndex2()
 
 void IndexWriter::justWriteCachedIndex()
 {
-    pIndexBarrelWriter_->close();
+///Used for MANAGER_TYPE_DATAPROCESS
+///It does not update barrel info, only flush indices to barrel "_0"
     pBarrelsInfo_->write(pIndexer_->getDirectory());
     pCurBarrelInfo_ = pBarrelsInfo_->getLastBarrel();
     pCurDocCount_ = &(pCurBarrelInfo_->nNumDocs);

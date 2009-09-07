@@ -11,15 +11,17 @@
 NS_IZENELIB_AM_BEGIN
 
 template<
-  uint32_t ENTRY_SIZE = 1000000,
-  uint32_t NODE_SIZE_RATE = 10 // it indicate the reducing rate of hash table entries number for different levels in trie.
+  uint32_t NODE_SIZE_RATE = 25, // it indicate the reducing rate of hash table entries number for different levels in trie.
+  uint32_t LOAD_DEGREE = 1,
+  uint32_t ENTRY_SIZE = 1000000
   >
 class HashTrie
 {
 #define NODE_ENTRY_SIZE_TABLE_SIZE 4
-
+public:
   typedef DocList<> doc_list_t;
-
+  
+protected:
   TermHashTable *root_;
   TermHashTable* buf_node_;
   FILE* f_;
@@ -115,26 +117,32 @@ class HashTrie
     ++node_num_;
   }
 
-  void save_(TermHashTable* tb)
+  void ratio_release_(TermHashTable* tb)
   {
-    uint64_t pos1 = ftell(f_);
-    tb->touch_save(f_);
-    //fseek(f_, pos1 + tb->save_size(), SEEK_SET);
-    //std::cout<<ftell(f_)<<std::endl;
+    if (tb == NULL || (uint64_t)tb == (uint64_t)-1)
+      return;
     
+    for (TermHashTable::const_iterator i=tb->begin();i!=tb->end();++i)
+    {
+      if ((*i).get_loaded())
+        ratio_release_((TermHashTable*)((*i).get_child()));
+    }
+
+    delete tb;
+  }
+
+  uint64_t save_(TermHashTable* tb)
+  {
     for (TermHashTable::const_iterator i=tb->begin();i!=tb->end();++i)
     {
       if((*i).get_child() != (uint64_t)-1 && (*i).get_loaded())
       {
-        uint64_t pos = ftell(f_);
-        save_((TermHashTable*)((*i).get_child()));
-        (*i).set_child(pos);
+        (*i).set_child(save_((TermHashTable*)((*i).get_child())));
       }
       
       (*i).set_loaded(0);
       
       uint64_t list = (*i).get_doc_list();
-      //std::cout<<(*i).get_id()<<" "<<(uint64_t)list<<std::endl;
 
       if (list !=(uint64_t)-1)
       {
@@ -144,12 +152,12 @@ class HashTrie
       }
     }
 
-    uint64_t pos2 = ftell(f_);
-    fseek(f_, pos1, SEEK_SET);
+    uint64_t r = ftell(f_);
     tb->save(f_);
-    fseek(f_, pos2, SEEK_SET);
     
     delete tb;
+
+    return r;
   }
   
   void load_(TermHashTable* tb, uint64_t addr)
@@ -180,20 +188,23 @@ class HashTrie
   inline void load()
   {
     uint32_t nn = 0;
+    uint64_t root_addr = -1;
+    
     node_num_ = 1;
     
     fseek(f_, 0, SEEK_SET);
     
     assert(fread(&nn, sizeof(uint32_t), 1, f_)==1);
+    assert(fread(&root_addr, sizeof(uint64_t), 1, f_)==1);
     
     root_ = new TermHashTable(ENTRY_SIZE);
-    load_(root_, ftell(f_));
+    load_(root_, root_addr);
 
     //std::cout<<"node num loaded: "<<node_num_<<" "<<nn<<std::endl;
     assert(node_num_ == nn);
   }
 
-  void get_docs_(uint64_t tb, bool loaded, doc_list_t** list)
+  void get_docs_(uint64_t tb, bool loaded, doc_list_t** list, bool doc_loaded=true)
   {
     if (tb == (uint64_t)-1)
         return;
@@ -215,21 +226,119 @@ class HashTrie
     {
       children.push_back((*i).get_child());
       loads.push_back((*i).get_loaded());
-      
+
       if ((*i).get_doc_list() == (uint64_t)-1)
         continue;
       
       if (*list == NULL)
-        *list = new doc_list_t(*(doc_list_t*)(*i).get_doc_list());
+        *list = doc_loaded ? new doc_list_t(*(doc_list_t*)(*i).get_doc_list()):new doc_list_t(doc_f_, (*i).get_doc_list());
       else
-        (*list)->append(*(doc_list_t*)(*i).get_doc_list());
+        (*list)->append((doc_loaded ? *(doc_list_t*)(*i).get_doc_list(): doc_list_t(doc_f_, (*i).get_doc_list())));
     }
 
     std::vector<bool>::const_iterator j=loads.begin();
     for (std::vector<uint64_t>::const_iterator i=children.begin(); i!=children.end(); ++i, ++j)
-      get_docs_(*i,*j, list);
+      get_docs_(*i,*j, list, doc_loaded);
   }
-  
+
+  std::size_t partition_(std::vector<Term>& array, std::size_t left, std::size_t right, std::size_t pivotIndex)
+  {
+    Term pivotValue = array[pivotIndex];
+    
+    Term temp = array[right]; // Move pivot to end
+    array[right] =  array[pivotIndex];
+    array[pivotIndex] = temp;
+    
+    std::size_t storeIndex = left;
+
+    for(std::size_t i = left; i< right; ++i)
+    {
+      if (array[i].get_freq() >= pivotValue.get_freq() )
+      {
+        temp = array[i]; // Move pivot to end
+        array[i] = array[storeIndex];
+        array[storeIndex] = temp;
+        
+        ++storeIndex;
+      }
+    }
+
+    temp = array[right]; // Move pivot to end
+    array[right] =  array[storeIndex];
+    array[storeIndex] = temp;
+
+    return storeIndex;
+  }
+
+  void quicksort_(std::vector<Term>& array, std::size_t left, std::size_t right)
+  {
+    if( right > left)
+    {
+      std::size_t pivotIndex = left;
+      std::size_t pivotNewIndex = partition_(array, left, right, pivotIndex);
+
+      if (pivotNewIndex != 0)
+        quicksort_(array, left, pivotNewIndex - 1);
+      quicksort_(array, pivotNewIndex + 1, right);
+    }
+  }
+
+  void quick_sort_terms_(std::vector<Term>& array)
+  {
+    if (array.size()==0)
+      return;
+    
+    quicksort_(array, 0, array.size()-1);
+  }
+
+  void ratio_load_(TermHashTable* tb, uint64_t addr, uint32_t rank)
+  {
+    tb->load(f_, addr);
+
+    if (rank == 0)
+      return;
+
+    std::vector<Term> vt;
+    for (TermHashTable::const_iterator i=tb->begin();i!=tb->end();++i)
+      if ((*i).get_child()!=(uint64_t)-1)
+        vt.push_back(Term(*i));
+
+    node_num_ += vt.size();
+
+    // for (std::size_t i=0; i<vt.size(); ++i)
+//     {
+//       std::cout<<vt[i].get_freq()<<" ";
+//     }
+//     std::cout<<std::endl;
+
+    quick_sort_terms_(vt);
+
+    // std::cout<<std::endl;
+//     for (std::size_t i=0; i<vt.size(); ++i)
+//     {
+//       std::cout<<vt[i]<<" ";
+//     }
+//     std::cout<<std::endl;
+
+    std::size_t s = (std::size_t)(vt.size()*rank/100.+0.5);
+
+    rank = rank>>LOAD_DEGREE;
+    
+    for (std::size_t i=0; i<s; ++i)
+    {
+      //std::cout<<s<<"-"<<vt[i].get_id()<<" ";
+      uint64_t child = vt[i].get_child();
+      if (vt[i].get_loaded())
+        continue;
+
+      TermHashTable* tht = new TermHashTable();
+      vt[i].set_child((uint64_t)tht);
+      vt[i].set_loaded(1);
+      ratio_load_(tht, child, rank);
+    }
+    //std::cout<<std::endl;
+  }
+
   
 public:
   typedef TermHashTable node_t;
@@ -327,7 +436,10 @@ public:
   
   uint32_t get_freq(const std::vector<uint64_t>& terms)
   {
+    assert(root_ != NULL);
+    
     TermHashTable* node = root_;
+    
     for (std::size_t i=0; i<terms.size(); ++i)
     {
       Term t(node->find(terms[i]));
@@ -354,6 +466,8 @@ public:
 
   bool get_suffix(const std::vector<uint64_t>& terms, std::vector<uint64_t>& suffixs, std::vector<uint32_t>& counts)
   {
+    assert(root_ != NULL);
+
     suffixs.clear();
     counts.clear();
     
@@ -395,7 +509,7 @@ public:
     return true;
   }
 
-  bool get_docs(const std::vector<uint64_t>& terms, std::vector<uint32_t>& docs)
+  bool get_docs(const std::vector<uint64_t>& terms, std::vector<uint32_t>& docs, bool loaded = true)
   {
     docs.clear();
     doc_list_t* list = NULL;
@@ -411,15 +525,18 @@ public:
       {
         if (t.get_doc_list()!= (uint64_t)-1)
         {
-          list = new doc_list_t(*(doc_list_t*)t.get_doc_list());
+          list = loaded? new doc_list_t(*(doc_list_t*)t.get_doc_list()): new doc_list_t(doc_f_, t.get_doc_list());
         }
         
-        get_docs_(t.get_child(), t.get_loaded(), &list);
+        get_docs_(t.get_child(), t.get_loaded(), &list, loaded);
         
         if (list == NULL)
           docs.clear();
         else
+        {
           list->assign(docs);
+          delete list;
+        }
         
         return true;
       }
@@ -438,11 +555,16 @@ public:
 
   inline void save()
   {
+    uint64_t root_addr = -1;
     fseek(f_, 0, SEEK_SET);
     
     assert(fwrite(&node_num_, sizeof(uint32_t), 1, f_)==1);
+    assert(fwrite(&root_addr, sizeof(uint64_t), 1, f_)==1);
     if (root_!=NULL)
-      save_(root_);
+      root_addr = save_(root_);
+
+    fseek(f_, sizeof(uint32_t), SEEK_SET);
+    assert(fwrite(&root_addr, sizeof(uint64_t), 1, f_)==1);
     
     fflush(f_);
     fflush(doc_f_);
@@ -451,9 +573,25 @@ public:
     node_num_ = 0;
   }
 
-  const TermHashTable* get_root()const
+  TermHashTable* get_root()
   {
+    if (root_ == NULL)
+    {
+      root_ = read_node(get_root_pos());
+    }
+    
     return root_;
+  }
+
+  const uint64_t get_root_pos()const
+  {
+    uint64_t root_addr = -1;
+        
+    fseek(f_, sizeof(uint32_t), SEEK_SET);
+    
+    assert(fread(&root_addr, sizeof(uint64_t), 1, f_)==1);
+
+    return root_addr;
   }
 
   TermHashTable* read_node(uint64_t addr)
@@ -462,6 +600,13 @@ public:
     return buf_node_;
   }
 
+  doc_list_t* get_doc_list(uint64_t addr)const
+  {
+    if (addr == (uint64_t)-1)
+      return NULL;
+    return new doc_list_t(doc_f_, addr);
+  }
+  
   const TermHashTable*  partial_load(uint64_t addr)
   {
     release_(root_);
@@ -477,26 +622,45 @@ public:
     return root_;
   }
 
-  void partial_save(FILE* other_tree, FILE* other_doc/*, uint64_t addr = 0*/)
+  uint64_t partial_save(FILE* other_tree, FILE* other_doc/*, uint64_t addr = 0*/)
   {
     if (root_ == NULL)
-      return;
+      return -1;
     
     FILE* f = f_;
     FILE* doc_f = doc_f_;
+    uint64_t r = -1;
 
     f_ = other_tree;
     doc_f_ = other_doc;
     
     //fseek(f_, addr, SEEK_SET);
-    save_(root_);
-    fflush(f_);
-    fflush(doc_f_);
+    r = save_(root_);
+    //fflush(f_);
+    //fflush(doc_f_);
     root_ = NULL;
     node_num_ = 0;
 
     f_ = f;
     doc_f_ = doc_f;
+
+    return r;
+  }
+
+  void ratio_load(uint32_t ratio = 90)
+  {
+    release_(root_);
+    
+    root_ = new TermHashTable();
+    node_num_ = 1;
+    ratio_load_(root_, get_root_pos(), ratio);
+  }
+
+  void ratio_release()
+  {
+    ratio_release_(root_);
+    root_ = NULL;
+    node_num_ = 0;
   }
   
 }
