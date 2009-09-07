@@ -71,7 +71,7 @@ BOOST_AUTO_TEST_CASE(AttachDestructFirst_test)
 
     char str2[] = "456";
     a.attach(str2, 3);
-    BOOST_CHECK(deleterCounter == 1);
+    BOOST_CHECK(deleterCounter == 1U);
 }
 
 BOOST_AUTO_TEST_CASE(AttachSameNotDestruct_test)
@@ -80,7 +80,7 @@ BOOST_AUTO_TEST_CASE(AttachSameNotDestruct_test)
     Buffer a(str, 3, testDeleter);
 
     a.attach(str, 3);
-    BOOST_CHECK(deleterCounter == 0);
+    BOOST_CHECK(deleterCounter == 0U);
 }
 
 BOOST_AUTO_TEST_CASE(CopyAttach_test)
@@ -124,7 +124,7 @@ BOOST_AUTO_TEST_CASE(Deleter_test)
         buf.attach(str, 3, testDeleter);
     }
 
-    BOOST_CHECK_EQUAL(deleterCounter, 1);
+    BOOST_CHECK_EQUAL(deleterCounter, 1U);
 }
 
 BOOST_AUTO_TEST_CASE(CopyConstructor_test)
@@ -180,7 +180,7 @@ BOOST_AUTO_TEST_CASE(AssignmentNotCopyDeleter_test)
         b = a;
     }
 
-    BOOST_CHECK_EQUAL(deleterCounter, 1);
+    BOOST_CHECK_EQUAL(deleterCounter, 1U);
 }
 
 BOOST_AUTO_TEST_CASE(AssignmentSelf_test)
@@ -197,7 +197,7 @@ BOOST_AUTO_TEST_CASE(AssignmentSelf_test)
         BOOST_CHECK(a[2] == '3');
     }
 
-    BOOST_CHECK_EQUAL(deleterCounter, 1);
+    BOOST_CHECK_EQUAL(deleterCounter, 1U);
 }
 
 BOOST_AUTO_TEST_CASE(AssignmentDestructFirst_test)
@@ -209,7 +209,7 @@ BOOST_AUTO_TEST_CASE(AssignmentDestructFirst_test)
 
     BOOST_CHECK(a.empty());
 
-    BOOST_CHECK_EQUAL(deleterCounter, 1);
+    BOOST_CHECK_EQUAL(deleterCounter, 1U);
 }
 
 BOOST_AUTO_TEST_CASE(Swap_test)
@@ -219,7 +219,7 @@ BOOST_AUTO_TEST_CASE(Swap_test)
         Buffer a(str, 3, testDeleter);
         Buffer b;
         a.swap(b);
-        BOOST_CHECK_EQUAL(deleterCounter, 0);
+        BOOST_CHECK_EQUAL(deleterCounter, 0U);
 
         BOOST_ASSERT(a.empty());
         BOOST_ASSERT(b.size() == 3);
@@ -229,7 +229,7 @@ BOOST_AUTO_TEST_CASE(Swap_test)
         BOOST_ASSERT(b.data() == str);
     }
 
-    BOOST_CHECK_EQUAL(deleterCounter, 1);
+    BOOST_CHECK_EQUAL(deleterCounter, 1U);
 }
 
 BOOST_AUTO_TEST_CASE(EmptyIterator_test)
