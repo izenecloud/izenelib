@@ -262,4 +262,16 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(Three_GetNext_test, T, test_types)
     BOOST_CHECK(fetchedData == data);
 }
 
+BOOST_AUTO_TEST_CASE_TEMPLATE(InitNotExisted_test, T, test_types)
+{
+    std::remove(DIR_PREFIX "InitNotExisted_test");
+    T h(DIR_PREFIX "InitNotExisted_test");
+    BOOST_CHECK(h.open());
+
+    fill3(h);
+    h.iterInit();
+
+    BOOST_CHECK(!h.iterInit("notexisted"));
+}
+
 BOOST_AUTO_TEST_SUITE_END() // tc_Iter_test
