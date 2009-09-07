@@ -24,11 +24,11 @@ using namespace izenelib::am;
 
 typedef boost::mpl::list<
     tc::Hash<int, std::string>
-    // , sdb_hash<int, std::string>
-    // , sdb_btree<int, std::string>
-    // , BTreeFile<int, std::string>
-    // , cccr_hash<int, std::string>
-    , sdb_storage<int, std::string>
+    , sdb_hash<int, std::string>
+    , sdb_btree<int, std::string>
+    , BTreeFile<int, std::string>
+    //, cccr_hash<int, std::string>
+    //, sdb_storage<int, std::string>
     //, SkipListFile<int, std::string>
     //, DynamicPerfectHash<int, std::string>
     //, LinearHashTable<int, std::string>

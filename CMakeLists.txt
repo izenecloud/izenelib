@@ -187,19 +187,19 @@ SET(LIBRARY_OUTPUT_PATH "${CMAKE_SOURCE_DIR}/lib")
 
 # third party libraries
 # put it first, they may be referred in other components
-# ADD_SUBDIRECTORY(source/3rdparty 3rdparty)
+ADD_SUBDIRECTORY(source/3rdparty 3rdparty)
 
 # AM libraries
 ADD_SUBDIRECTORY(source/am am)
 
 # IR libraries
-# ADD_SUBDIRECTORY(source/ir ir)
+ADD_SUBDIRECTORY(source/ir ir)
 
 # Util libraries
-# ADD_SUBDIRECTORY(source/util util)
+ADD_SUBDIRECTORY(source/util util)
 
 # Network libraries
-# ADD_SUBDIRECTORY(source/net net)
+ADD_SUBDIRECTORY(source/net net)
 
 # Test cases and applications
 IF(ENABLE_TEST)
