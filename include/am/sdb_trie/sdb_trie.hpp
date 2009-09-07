@@ -1,12 +1,12 @@
-#ifndef _EDGE_TABLE_H_
-#define _EDGE_TABLE_H_
+#ifndef _SDB_TRIE_H_
+#define _SDB_TRIE_H_
 
 #include <iostream>
 
 #include <am/concept/DataType.h>
 #include <sdb/SequentialDB.h>
 #include "compoundkey.h"
-#include "compoundvalue.h"
+#include "sdb_hash2btree.h"
 #include "traits.h"
 
 NS_IZENELIB_AM_BEGIN
@@ -35,160 +35,288 @@ template <typename CharType,
           typename LockType = izenelib::util::NullLock>
 class SDBTrie : public AccessMethod<std::vector<CharType>, UserDataType>
 {
-    typedef CompoundKey<NodeIDType, CharType> KeyType;
-    typedef CompoundValue<NodeIDType, UserDataType> ValueType;
-    typedef DataType<KeyType, ValueType> RecordType;
-    typedef izenelib::sdb::ordered_sdb<KeyType, ValueType , LockType> DBType;
+    typedef CompoundKey<NodeIDType, CharType> EdgeTableKeyType;
+    typedef NodeIDType EdgeTableValueType;
+    typedef DataType<EdgeTableKeyType, EdgeTableValueType> EdgeTableRecordType;
+    typedef izenelib::sdb::unordered_sdb_fixed<EdgeTableKeyType, EdgeTableValueType , LockType> EdgeTableType;
+    typedef izenelib::sdb::ordered_sdb_fixed<EdgeTableKeyType, EdgeTableValueType , LockType> OptEdgeTableType;
+    typedef Conv_Sdb_Hash2Btree<EdgeTableType, OptEdgeTableType> EdgeTableConverter;
+
+    typedef NodeIDType DataTableKeyType;
+    typedef UserDataType DataTableValueType;
+    typedef DataType<DataTableKeyType, DataTableValueType> DataTableRecordType;
+    typedef izenelib::sdb::ordered_sdb_fixed<DataTableKeyType, DataTableValueType , LockType> DataTableType;
 
 public:
 
     SDBTrie(const std::string& dbname)
-    :   dbname_(dbname),
-        db_(dbname_ + ".sdbtrie.sdb")
+    :   closed_(true), dbname_(dbname),
+        edgeTable_(dbname_ + ".sdbtrie.edgetable.sdb"),
+        optEdgeTable_(dbname_ + ".sdbtrie.optedgetable.sdb"),
+        dataTable_(dbname_ + ".sdbtrie.datatable.sdb")
     {
-        numItems_ = 0;
         nextNID_ = NodeIDTraits<NodeIDType>::MaxValue;
-
-        db_.setDegree(90);
-        db_.setCacheSize(16*1024);
-        db_.setPageSize(8192);
     }
 
     virtual ~SDBTrie()
     {
-        close();
-        db_.close();
+        if(!closed_)
+            close();
     }
 
-    void config(int degree, int cacheSize, int pageSize)
+    /**
+     * @brief Open all db files, maps them to memory. Call it
+     *        after config() and before any insert() or find() operations.
+     */
+    void openForRead()
     {
-        db_.setDegree(degree);
-        db_.setCacheSize(cacheSize);
-        db_.setPageSize(pageSize);
+        if(closed_)
+        {
+            read_ = true;
+            closed_ = false;
+
+            optEdgeTable_.setDegree(32);
+            optEdgeTable_.setPageSize(2048);
+
+            dataTable_.setDegree(32);
+            dataTable_.setPageSize(1024);
+
+            optEdgeTable_.setCacheSize(128*1024);
+            optEdgeTable_.open();
+
+            dataTable_.setCacheSize(64*1024);
+            dataTable_.open();
+
+        } else if( !read_ )
+            throw std::runtime_error("close before open read mode");
     }
 
-    void open()
+    /**
+     * @brief Open all db files, maps them to memory. Call it
+     *        after config() and before any insert() or find() operations.
+     */
+    void openForWrite()
     {
-        db_.open();
-        KeyType key(NodeIDTraits<NodeIDType>::EmptyValue,
-            NumericTraits<CharType>::MinValue);
-        ValueType value;
-        if( db_.getValue(key, value) )
-            numItems_ = (int)value.value1;
-        nextNID_ = db_.numItems() + NodeIDTraits<NodeIDType>::MinValue;
+        if(closed_)
+        {
+            read_ = false;
+            closed_ = false;
+
+            optEdgeTable_.setDegree(32);
+            optEdgeTable_.setPageSize(2048);
+
+            dataTable_.setDegree(32);
+            dataTable_.setPageSize(1024);
+
+            edgeTable_.setDegree(16);
+            edgeTable_.setBucketSize(512);
+
+            edgeTable_.setCacheSize(256*1024);
+            edgeTable_.open();
+
+            optEdgeTable_.setCacheSize(32*1024);
+            optEdgeTable_.open();
+
+            dataTable_.setCacheSize(64*1024);
+            dataTable_.open();
+
+            nextNID_ = edgeTable_.numItems() + NodeIDTraits<NodeIDType>::MinValue;
+        } else if(read_)
+            throw std::runtime_error("close before open write mode");
     }
 
+
+    /**
+     * @brief Write back informations back to db.
+     */
     void close()
     {
-        KeyType key(NodeIDTraits<NodeIDType>::EmptyValue,
-            NumericTraits<CharType>::MinValue);
-        ValueType value(numItems_, false, UserDataType());
-        db_.update(key, value);
+        closed_ = true;
+        if(!read_) edgeTable_.close();
+        optEdgeTable_.close();
+        dataTable_.close();
     }
 
+    /**
+     * @brief Optimize read performance, e.g. get() and findPrefix()
+     */
+    void optimize()
+    {
+        if(read_) return;
+
+        EdgeTableConverter converter(edgeTable_,
+            optEdgeTable_, dbname_ + ".sdbtrie");
+        converter.startThread();
+        converter.joinThread();
+
+        edgeTable_.flush();
+        optEdgeTable_.flush();
+    }
+
+    /**
+     * @brief Insert key value pairs into Trie.
+     * @return false if key exists already or key is empty
+     *         true  success
+     */
     bool insert(const std::vector<CharType>& key, const UserDataType& value)
     {
-        if(key.size() == 0) return false;
+        if(read_ || key.size() == 0) return false;
 
-        NodeIDType parent = NodeIDTraits<NodeIDType>::RootValue;
-        for( size_t i=0; i< key.size()-1; i++ )
+        NodeIDType nid = NodeIDTraits<NodeIDType>::RootValue;
+        for( size_t i=0; i< key.size(); i++ )
         {
             NodeIDType tmp = NodeIDType();
-            addEdge(key[i], parent, tmp);
-            parent = tmp;
+            addEdge(key[i], nid, tmp);
+            nid = tmp;
         }
-
-        NodeIDType nid;
-        bool keyExist = false;
-        UserDataType previousValue;
-        if( getEdge(key[key.size()-1], parent, nid, keyExist, previousValue)
-            && keyExist)
-            return false;
-
-        numItems_++;
-        addEdge(key[key.size()-1], parent, nid);
-        setEdgeProperty(key[key.size()-1], parent, true, value);
-        return true;
+        return putData(nid, value);
     }
 
+    /**
+     * @brief Insert key value pairs into Trie.
+     * @return false if key exists already or key is empty
+     *         true  success
+     */
     bool insert(const DataType<std::vector<CharType>, UserDataType>& data)
     {
         return insert(data.key, data.value);
     }
 
+    /**
+     * @brief Update value for a given key, if key doesn't exist, do insertion instead.
+     * @return false if key is empty
+     *         true  otherwise
+     */
     bool update(const std::vector<CharType>& key, const UserDataType& value)
     {
-        if(key.size() == 0) return false;
+        if(read_ || key.size() == 0) return false;
 
-        NodeIDType parent = NodeIDTraits<NodeIDType>::RootValue;
-        for( size_t i=0; i< key.size()-1; i++ )
+        NodeIDType nid = NodeIDTraits<NodeIDType>::RootValue;
+        for( size_t i=0; i< key.size(); i++ )
         {
             NodeIDType tmp = NodeIDType();
-            addEdge(key[i], parent, tmp);
-            parent = tmp;
+            addEdge(key[i], nid, tmp);
+            nid = tmp;
         }
-
-        NodeIDType nid;
-        bool keyExist = true;
-        UserDataType previousValue;
-        if( !getEdge(key[key.size()-1], parent, nid, keyExist, previousValue)
-            || !keyExist)
-            numItems_++;
-
-        addEdge(key[key.size()-1], parent, nid);
-        if( false == setEdgeProperty(key[key.size()-1], parent, true, value) )
-            std::cout << "update error" << std::endl;
+        updateData(nid, value);
         return true;
     }
 
+    /**
+     * @brief Update value for a given key, if key doesn't exist, do insertion instead.
+     * @return false if key is empty
+     *         true  otherwise
+     */
     bool update(const DataType<std::vector<CharType>, UserDataType>& data)
     {
         return update(data.key, data.value);
     }
 
+    /**
+     * @brief Get value for a given key.
+     * @return false if key doesn't exist
+     *         true otherwise
+     */
     bool get(const std::vector<CharType>& key, UserDataType& value)
     {
         if(key.size() == 0) return false;
 
-        NodeIDType parent = NodeIDTraits<NodeIDType>::RootValue;
-        bool keyExist = false;
-        UserDataType previousValue = UserDataType();
+        NodeIDType nid = NodeIDTraits<NodeIDType>::RootValue;
         for( size_t i=0; i<key.size(); i++ )
         {
             NodeIDType tmp = NodeIDType();
-            if( !getEdge(key[i], parent, tmp, keyExist, previousValue) )
+            if( !getEdge2(key[i], nid, tmp) )
                 return false;
-            parent = tmp;
+            nid = tmp;
         }
-        if(!keyExist) return false;
-        value = previousValue;
+        UserDataType tmp;
+        if(! getData(nid,tmp) )
+            return false;
+        value = tmp;
         return true;
     }
 
+    /**
+     * @brief Have the interface just to be correspondent with am. Use get() instead.
+     * @return NULL always
+     */
     UserDataType* find(const std::vector<CharType>& key)
     {
         throw std::runtime_error("unsupported AM function, use get() instead");
     }
 
-    bool findRegExp(const std::vector<CharType>& regexp,
+    /**
+     * @brief Get a list of values whose keys begin with the same prefix.
+     * @return true at leaset one result found.
+     *         false nothing found.
+     */
+    bool findPrefix(const std::vector<CharType>& prefix,
         std::vector<UserDataType>& valueList)
     {
-        ValueType root(NodeIDTraits<NodeIDType>::RootValue, UserDataType(), false);
-        findRegExp_(regexp, 0, root, valueList);
+        NodeIDType nid = NodeIDTraits<NodeIDType>::RootValue;
+        for( size_t i=0; i<prefix.size(); i++ )
+        {
+            NodeIDType tmp = NodeIDType();
+            if( !getEdge2(prefix[i], nid, tmp) )
+                return false;
+            nid = tmp;
+        }
+        valueList.clear();
+        findPrefix_(nid, valueList);
         return valueList.size() ? true : false;
     }
 
     /**
-     * @return number of nodes
+     * @brief Get a list of keys which begin with the same prefix.
+     * @return true at leaset one result found.
+     *         false nothing found.
+     */
+    bool findPrefix(const std::vector<CharType>& prefix,
+        std::vector<std::vector<CharType> >& keyList)
+    {
+        NodeIDType nid = NodeIDTraits<NodeIDType>::RootValue;
+        for( size_t i=0; i<prefix.size(); i++ )
+        {
+            NodeIDType tmp = NodeIDType();
+            if( !getEdge2(prefix[i], nid, tmp) )
+                return false;
+            nid = tmp;
+        }
+        keyList.clear();
+        std::vector<CharType> begin = prefix;
+        findPrefix_(nid, begin, keyList);
+        return keyList.size() ? true : false;
+    }
+
+    /**
+     * @brief Get a list of values whose keys match the wildcard query. Only "*" and
+     * "?" are supported currently, legal input looks like "ea?th", "her*", or "*ear?h".
+     * @return true at leaset one result found.
+     *         false nothing found.
+     */
+    bool findRegExp(const std::vector<CharType>& regexp,
+        std::vector<UserDataType>& valueList)
+    {
+        valueList.clear();
+        findRegExp_(regexp, 0, NodeIDTraits<NodeIDType>::RootValue, valueList);
+        return valueList.size() ? true : false;
+    }
+
+    /**
+     * @return number of key value pairs inserted.
      */
     unsigned int num_items()
     {
-        return numItems_;
+        return dataTable_.numItems();
     }
 
+    /**
+     * @brief Display debug information.
+     */
     void display()
     {
-        db_.display();
+        edgeTable_.display();
+        dataTable_.display();
     }
 
 protected:
@@ -204,41 +332,18 @@ protected:
      */
     bool addEdge(const CharType ch, const NodeIDType parentNID, NodeIDType& childNID)
     {
-        KeyType compoundKey(parentNID, ch);
-        ValueType compoundValue;
+        EdgeTableKeyType etKey(parentNID, ch);
 
         // if NID is found, just return
-        if(db_.getValue(compoundKey, compoundValue))
-        {
-            childNID = compoundValue.value1;
+        if(edgeTable_.getValue(etKey, childNID))
             return false;
-        }
 
         childNID = nextNID_;
         ++nextNID_;
         if(nextNID_ > NodeIDTraits<NodeIDType>::MaxValue)
             throw std::runtime_error("NID allocation out of range");
 
-        compoundValue.value1 = childNID;
-        compoundValue.tag = false;
-        compoundValue.value2 = UserDataType();
-        db_.insertValue(compoundKey, compoundValue);
-        return true;
-    }
-
-    bool setEdgeProperty(const CharType ch, const NodeIDType parentNID,
-        const bool& keyExist, const UserDataType& data)
-    {
-        KeyType compoundKey(parentNID, ch);
-        ValueType compoundValue;
-
-        // Return false if edge doesn't exist
-        if(!db_.getValue(compoundKey, compoundValue))
-            return false;
-
-        compoundValue.tag = keyExist;
-        compoundValue.value2 = data;
-        db_.update(compoundKey, compoundValue);
+        edgeTable_.insertValue(etKey, childNID);
         return true;
     }
 
@@ -251,57 +356,145 @@ protected:
      * @return  true    if successfully
      *          false   if child does not exist yet
      */
-    bool getEdge(const CharType& ch, const NodeIDType& parentNID,
-        NodeIDType& childNID, bool& keyExist, UserDataType& data)
+    bool getEdge(const CharType& ch, const NodeIDType& parentNID, NodeIDType& childNID)
     {
-        KeyType compoundKey(parentNID, ch);
-        ValueType compoundValue;
+        EdgeTableKeyType etKey(parentNID, ch);
+        NodeIDType value = NodeIDType();
 
         // Return false if edge doesn't exist
-        if(!db_.getValue(compoundKey, compoundValue))
+        if(!edgeTable_.getValue(etKey, value))
             return false;
 
-        childNID = compoundValue.value1;
-        keyExist = compoundValue.tag;
-        data = compoundValue.value2;
+        childNID = value;
         return true;
     }
 
-    void findRegExp_(const std::vector<CharType>& regexp,
-        const size_t& startPos, const ValueType& node,
+    /**
+     * Given the NID of parent node and the edge's character property,
+     * find the child node's NID.
+     * The difference with getEdge is, it looks up edge info from OptEdgeTable.
+     *
+     * @param   ch          edge's character property
+     *          parentNID   NID of parent node
+     *          childNID    NID of child node
+     * @return  true    if successfully
+     *          false   if child does not exist yet
+     */
+    bool getEdge2(const CharType& ch, const NodeIDType& parentNID, NodeIDType& childNID)
+    {
+        EdgeTableKeyType etKey(parentNID, ch);
+        NodeIDType value = NodeIDType();
+
+        // Return false if edge doesn't exist
+        if(!optEdgeTable_.getValue(etKey, value))
+            return false;
+
+        childNID = value;
+        return true;
+    }
+
+    /**
+     * Store key's nid and userdata into SDB.
+     * @return true     successfully
+     *         false    key exists already
+     */
+    bool putData( const NodeIDType& nid, const UserDataType& userData)
+    {
+        return dataTable_.insertValue(nid,userData);
+    }
+
+    /**
+     * Update userdata in SDB for a given key, insert if key doesnot exist.
+     */
+    void updateData( const NodeIDType& nid, const UserDataType& userData)
+    {
+        dataTable_.update(nid, userData);
+    }
+
+    /**
+     * Retrieve userdata stored in SDB by given key.
+     * @return true     successfully
+     *         false    given key does not exist
+     */
+    bool getData( const NodeIDType& nid, UserDataType& userData)
+    {
+        return dataTable_.getValue(nid, userData);
+    }
+
+    void findPrefix_( const NodeIDType& nid,
         std::vector<UserDataType>& valueList)
     {
-        if(startPos == regexp.size() && node.tag )
+        UserDataType tmp = UserDataType();
+        if(getData(nid, tmp))
+            valueList.push_back(tmp);
+
+        EdgeTableKeyType minKey(nid, NumericTraits<CharType>::MinValue);
+        EdgeTableKeyType maxKey(nid, NumericTraits<CharType>::MaxValue);
+
+        std::vector<EdgeTableRecordType> result;
+        optEdgeTable_.getValueBetween(result, minKey, maxKey);
+
+        for(size_t i = 0; i <result.size(); i++ )
+            findPrefix_(result[i].value, valueList);
+    }
+
+    void findPrefix_( const NodeIDType& nid,
+        std::vector<CharType>& prefix,
+        std::vector<std::vector<CharType> >& keyList)
+    {
+        UserDataType tmp = UserDataType();
+        if(getData(nid, tmp))
+            keyList.push_back(prefix);
+
+        EdgeTableKeyType minKey(nid, NumericTraits<CharType>::MinValue);
+        EdgeTableKeyType maxKey(nid, NumericTraits<CharType>::MaxValue);
+
+        std::vector<EdgeTableRecordType> result;
+        optEdgeTable_.getValueBetween(result, minKey, maxKey);
+
+        for(size_t i = 0; i <result.size(); i++ )
         {
-            valueList.push_back(node.value2);
+            prefix.push_back(result[i].key.key2);
+            findPrefix_(result[i].value, prefix, keyList);
+            prefix.pop_back();
+        }
+    }
+
+    void findRegExp_(const std::vector<CharType>& regexp,
+        const size_t& startPos, const NodeIDType& nid,
+        std::vector<UserDataType>& valueList)
+    {
+        if(startPos == regexp.size())
+        {
+            UserDataType tmp = UserDataType();
+            if(getData(nid, tmp))
+                valueList.push_back(tmp);
             return;
         }
-
-        NodeIDType nid = node.value1;
 
         switch( regexp[startPos] )
         {
             case 42:    //"*"
             {
-                KeyType minKey(nid, NumericTraits<CharType>::MinValue);
-                KeyType maxKey(nid, NumericTraits<CharType>::MaxValue);
+                EdgeTableKeyType minKey(nid, NumericTraits<CharType>::MinValue);
+                EdgeTableKeyType maxKey(nid, NumericTraits<CharType>::MaxValue);
 
-                std::vector<RecordType> result;
-                db_.getValueBetween(result, minKey, maxKey);
+                std::vector<EdgeTableRecordType> result;
+                optEdgeTable_.getValueBetween(result, minKey, maxKey);
 
                 for(size_t i = 0; i <result.size(); i++ )
                     findRegExp_(regexp, startPos, result[i].value, valueList);
 
-                findRegExp_(regexp, startPos+1, node, valueList);
+                findRegExp_(regexp, startPos+1, nid, valueList);
                 break;
             }
             case 63:    //"?"
             {
-                KeyType minKey(nid, NumericTraits<CharType>::MinValue);
-                KeyType maxKey(nid, NumericTraits<CharType>::MaxValue);
+                EdgeTableKeyType minKey(nid, NumericTraits<CharType>::MinValue);
+                EdgeTableKeyType maxKey(nid, NumericTraits<CharType>::MaxValue);
 
-                std::vector<RecordType> result;
-                db_.getValueBetween(result, minKey, maxKey);
+                std::vector<EdgeTableRecordType> result;
+                optEdgeTable_.getValueBetween(result, minKey, maxKey);
 
                 for(size_t i = 0; i <result.size(); i++ )
                     findRegExp_(regexp, startPos+1, result[i].value, valueList);
@@ -309,29 +502,36 @@ protected:
             }
             default:
             {
-                KeyType key(nid, regexp[startPos]);
-                ValueType nxtNode = ValueType();
-                if( db_.getValue(key, nxtNode) )
+                EdgeTableKeyType key(nid, regexp[startPos]);
+                NodeIDType nxtNode = NodeIDType();
+                if( optEdgeTable_.getValue(key, nxtNode) )
                     findRegExp_(regexp, startPos+1, nxtNode, valueList);
                 break;
             }
         }
-
     }
 
 private:
 
+    bool closed_;
+
+    bool read_;
+
     std::string dbname_;
 
-    DBType db_;
+    EdgeTableType edgeTable_;
 
-    int numItems_;
+    OptEdgeTableType optEdgeTable_;
+
+    DataTableType dataTable_;
 
     NodeIDType nextNID_;
 
 };
 
-
+/**
+ * @see SDBTrie
+ */
 template <typename StringType,
           typename UserDataType = NullType,
           typename NodeIDType = uint64_t,
@@ -348,14 +548,15 @@ public:
 
     virtual ~SDBTrie2(){}
 
-    void config(int degree, int cacheSize, int pageSize)
-    {
-        trie_.config(degree, cacheSize, pageSize);
-    }
+//    void config(int degree, int cacheSize, int pageSize)
+//    {
+//        trie_.config(degree, cacheSize, pageSize);
+//    }
 
-    void open(){ trie_.open(); }
-
+    void openForRead(){ trie_.openForRead(); }
+    void openForWrite(){ trie_.openForWrite(); }
     void close(){ trie_.close(); }
+    void optimize(){ trie_.optimize(); }
 
     bool insert(const StringType& key, const UserDataType& value)
     {
@@ -397,6 +598,34 @@ public:
         if(!get(key, value))
             return NULL;
         return new UserDataType(value);
+    }
+
+    bool findPrefix(const StringType& prefix,
+        std::vector<UserDataType>& valueList)
+    {
+        CharType* chArray = (CharType*)prefix.c_str();
+        size_t chCount = prefix.length();
+        std::vector<CharType> chVector(chArray, chArray+chCount);
+        return trie_.findPrefix(chVector, valueList);
+    }
+
+    bool findPrefix(const StringType& prefix,
+        std::vector<StringType>& keyList)
+    {
+        CharType* chArray = (CharType*)prefix.c_str();
+        size_t chCount = prefix.length();
+        std::vector<CharType> chVector(chArray, chArray+chCount);
+
+        std::vector< std::vector<CharType> > resultList;
+        if( false == trie_.findPrefix(chVector, resultList) )
+            return false;
+
+        for(size_t i = 0; i< resultList.size(); i++ )
+        {
+            StringType tmp(resultList[i].begin(), resultList[i].end() );
+            keyList.push_back(tmp);
+        }
+        return true;
     }
 
     bool findRegExp(const StringType& regexp,
