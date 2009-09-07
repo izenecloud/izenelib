@@ -1,17 +1,17 @@
 /**
- * @file sdb_hash.h
- * @brief The header file of sdb_hash.
- * @author peisheng wang
- *
+ * @file sdb_fixedhash.h
+ * @brief The header file of sdb_fixedhash.
+ * @author peisheng wang 
+ * 
  * @history
  * ==========================
  * 1. 2009-02-16 first version.
+ * 
  *
- *
- * This file defines class sdb_hash.
+ * This file defines class sdb_fixedhash.
  */
-#ifndef SDB_HASH_H
-#define SDB_HASH_H
+#ifndef sdb_fixedhash_H
+#define sdb_fixedhash_H
 
 #include <string>
 #include <queue>
@@ -25,7 +25,7 @@
 #include <stdio.h>
 
 #include "sdb_hash_types.h"
-#include "sdb_hash_header.h"
+#include "sdb_fixedhash_header.h"
 #include "bucket_chain.h"
 
 using namespace std;
@@ -34,25 +34,25 @@ NS_IZENELIB_AM_BEGIN
 
 /**
  *  \brief  file version of array hash using Cache-Conscious Collision Resolution.
- *
- *  sdb_hash is built on array hash using Cache-Conscious Collision Resolution.
- *
+ * 
+ *  sdb_fixedhash is built on array hash using Cache-Conscious Collision Resolution.
+ * 
  *  For file version, there is a little different, each bucket is now a bucket_chain, and each bucket_chain
  *  hash fixed size.
- *
- *
+ *   
+ * 
  */
 
-template< typename KeyType, typename ValueType, typename LockType =NullLock, bool fixed=false> class sdb_hash :
+template< typename KeyType, typename ValueType, typename LockType =NullLock, bool fixed=false> class sdb_fixedhash :
 public AccessMethod<KeyType, ValueType, LockType>
 {
 	enum {unloadByRss = false};
-	enum {unloadAll = false};
+	enum {unloadAll = true};
 	enum {orderedCommit =true};
 	enum {delayFlush = true};
 	enum {quickFlush = false};
+	enum {bucketGap = sizeof(KeyType)+sizeof(ValueType)+sizeof(long)+sizeof(int) };
 public:
-
 	//SDBCursor is like db cursor
 	typedef bucket_chain_<LockType> bucket_chain;
 	typedef std::pair<bucket_chain*, char*> SDBCursor;
@@ -60,7 +60,7 @@ public:
 	/**
 	 *   constructor
 	 */
-	sdb_hash(const string& fileName = "sdb_hash.dat"):sfh_(), fileName_(fileName) {
+	sdb_fixedhash(const string& fileName = "sdb_fixedhash.dat"):sfh_(), fileName_(fileName) {
 		directorySize_ = (1<<sfh_.dpow);
 		dmask_ = directorySize_ - 1;
 		dataFile_ = 0;
@@ -68,6 +68,9 @@ public:
 		activeNum_ = 0;
 		dirtyPageNum_ = 0;
 		cacheSize_ = 0;
+		
+		sfh_.keySize = sizeof(KeyType);
+		sfh_.valueSize = sizeof(ValueType);
 
 		if(unloadByRss)
 		{
@@ -75,27 +78,12 @@ public:
 			unsigned long rlimit;
 			ProcMemInfo::getProcMemInfo(vm, initRss_, rlimit);
 		}
-		ksize_ = vsize_ = 0;
-		if(fixed) {
-			char* ptr = 0;
-			char* ptr1 = 0;
-			KeyType key;
-			ValueType val;
-			izene_serialization<KeyType> izs(key );
-			izene_serialization<ValueType> izs1( val );
-			izs.write_image(ptr, ksize_);
-			izs1.write_image(ptr1, vsize_);
-		}
-
-		BucketGap = fixed ? ksize_+vsize_+sizeof(long)+sizeof(int) :
-		ksize_+vsize_ + sizeof(long)+sizeof(int) +3*sizeof(size_t);
-
 	}
 
 	/**
 	 *   deconstructor, close() will also be called here.
 	 */
-	virtual ~sdb_hash() {
+	virtual ~sdb_fixedhash() {
 		if(dataFile_)
 		close();
 	}
@@ -105,7 +93,7 @@ public:
 	}
 	/**
 	 *  \brief set bucket size of fileHeader
-	 *
+	 * 
 	 *   if not called use default size 8192
 	 */
 	void setBucketSize(size_t bucketSize) {
@@ -115,7 +103,7 @@ public:
 
 	/**
 	 *  \brief set bucket size of fileHeader
-	 *
+	 * 
 	 *   if not called use default size 8192
 	 */
 	void setPageSize(size_t pageSize) {
@@ -124,7 +112,7 @@ public:
 
 	/**
 	 *  set directory size if fileHeader
-	 *
+	 * 
 	 *  if not called use default size 4096
 	 */
 	/*void setDirectorySize(size_t dirSize) {
@@ -159,7 +147,7 @@ public:
 	}
 
 	/**
-	 *  insert an item of DataType
+	 *  insert an item of DataType 
 	 */
 	bool insert(const DataType<KeyType,ValueType>& dat) {
 		return insert(dat.get_key(), dat.get_value() );
@@ -174,25 +162,14 @@ public:
 		if( search(key, locn) )
 		return false;
 		else {
-			char* ptr = 0;
-			char* ptr1 = 0;
-			size_t ksize;
-			size_t vsize;
-			izene_serialization<KeyType> izs(key);
-			izene_serialization<ValueType> izs1(value);
-			izs.write_image(ptr, ksize);
-			izs1.write_image(ptr1, vsize);
-
-			/*if(! fixed ) {			
-			 izs.write_image(ptr, ksize);
-			 izs1.write_image(ptr1, vsize);
-
-			 } else {
-			 ptr = (char*)&key;
-			 ptr1 = (char*)&value;
-			 ksize = sizeof(key);
-			 vsize =sizeof(value);
-			 }*/
+			char* ptr = (char*)&key;
+			char* ptr1 = (char*)&value;
+			
+			size_t ksize = sizeof(key);
+			size_t vsize =sizeof(value);
+	
+			assert(ksize == sfh_.keySize);
+			assert(vsize == sfh_.valueSize);
 
 			bucket_chain* sa = locn.first;
 			char* p = locn.second;
@@ -212,10 +189,9 @@ public:
 			else
 			{
 				assert(locn.second != NULL);
-				//size_t gap = sizeof(long)+sizeof(int)+ksize+vsize+2*sizeof(size_t);
-
+				
 				//add an extra size_t to indicate if reach the end of  bucket_chain.
-				if ( size_t(p - sa->str)> sfh_.bucketSize-BucketGap ) {
+				if ( size_t(p - sa->str) > sfh_.bucketSize-bucketGap ) {
 					if (sa->next == 0) {
 						//sa->isDirty = true;
 						setDirty_(sa);
@@ -224,25 +200,14 @@ public:
 					sa = loadNext_( sa );
 					p = sa->str;
 				}
-			}
+			}			
+			memcpy(p, ptr, ksize);
+			p += ksize;
+			memcpy(p, ptr1, vsize);
+			p += vsize;
 
-			if( !fixed ) {
-				memcpy(p, &ksize, sizeof(size_t));
-				p += sizeof(size_t);
-				memcpy(p, &vsize, sizeof(size_t));
-				p += sizeof(size_t);
-				memcpy(p, ptr, ksize);
-				p += ksize;
-				memcpy(p, ptr1, vsize);
-				p += vsize;
-			} else
-			{
-				memcpy(p, ptr, ksize);
-				p += ksize;
-				memcpy(p, ptr1, vsize);
-				p += vsize;
-			}
 			assert( size_t (p-sa->str) + sizeof(long) + sizeof(int) <= sfh_.bucketSize);
+
 			//sa->isDirty = true;
 			setDirty_(sa);
 			++sa->num;
@@ -254,7 +219,7 @@ public:
 
 	/**
 	 *  find an item, return pointer to the value.
-	 *  Note that, there will be memory leak if not delete the value
+	 *  Note that, there will be memory leak if not delete the value 
 	 */
 	ValueType* find(const KeyType & key) {
 
@@ -262,23 +227,10 @@ public:
 		if( !search(key, locn) )
 		return NULL;
 		else {
-			char *p = locn.second;
-			size_t ksz, vsz;
-			ValueType *pval = new ValueType;
-
-			if(!fixed) {
-				memcpy(&ksz, p, sizeof(size_t));
-				p += sizeof(size_t);
-				memcpy(&vsz, p, sizeof(size_t));
-				p += sizeof(size_t);
-
-				izene_deserialization<ValueType> isd(p+ksz, vsz);
-				isd.read_image(*pval);
-			}
-			else {
-				memcpy(pval, p+ksize_, vsize_);
-			}
-			return pval;
+			char *p = locn.second;		
+			ValueType *val = new ValueType;		
+			memcpy(&val, p+sfh_.keySize, sfh_.valueSize);
+			return val;
 		}
 	}
 
@@ -288,19 +240,9 @@ public:
 		if( !search(key, locn) )
 		return false;
 		else {
-			char *p = locn.second;
-			if( !fixed ) {
-				size_t ksz, vsz;
-				memcpy(&ksz, p, sizeof(size_t));
-				p += sizeof(size_t);
-				memcpy(&vsz, p, sizeof(size_t));
-				p += sizeof(size_t);
-
-				izene_deserialization<ValueType> isd(p+ksz, vsz);
-				isd.read_image(value);
-			} else {
-				memcpy(&value, p+ksize_, vsize_);
-			}
+			char *p = locn.second;		
+			
+			memcpy(&value, p+sfh_.keySize, sfh_.valueSize);			
 			return true;
 		}
 	}
@@ -315,32 +257,12 @@ public:
 		return false;
 		else
 		{
-			char *p = locn.second;
-			if(!fixed) {
-
-				size_t ksz, vsz;
-				memcpy(&ksz, p, sizeof(size_t));
-				p += sizeof(size_t);
-				memcpy(&vsz, p, sizeof(size_t));
-				p += sizeof(size_t);
-				//memset(p, 0xff, ksz);
-				size_t leftSize = sfh_.bucketSize-(2*sizeof(size_t)+ksz+vsz)-(p-locn.first->str);
-				memcpy(p-2*sizeof(size_t), p+ksz+vsz, leftSize);
-				--locn.first->num;
-
-				//this is much slower.
-				/*vsz += ksz+1;
-				 ksz = -1;
-				 memcpy(p-2*sizeof(size_t), &ksz, sizeof(size_t) );
-				 memcpy(p-sizeof(size_t), &vsz, sizeof(size_t) );*/
-			} else {
-				size_t leftSize = sfh_.bucketSize-BucketGap-(p-locn.first->str);
-				memcpy(p, p+ksize_+vsize_, leftSize);
-				--locn.first->num;
-			}
-
+			char *p = locn.second;	
+			size_t leftSize = sfh_.bucketSize-bucketGap-(p-locn.first->str);			
+			memcpy(p, p+sfh_.keySize+sfh_.valueSize, leftSize);
 			//locn.first->isDirty = true;
 			setDirty_(locn.first);
+			--locn.first->num;
 			--sfh_.numItems;
 			return true;
 		}
@@ -364,52 +286,18 @@ public:
 		return insert(key, value);
 		else
 		{
-			char* ptr;
-			char* ptr1;
-			size_t ksize;
-			size_t vsize;
-			izene_serialization<KeyType> izs(key);
-			izene_serialization<ValueType> izs1(value);
-			izs.write_image(ptr, ksize);
-			izs1.write_image(ptr1, vsize);
-
-			if( !fixed ) {
-
-				bucket_chain* sa = locn.first;
-				char *p = locn.second;
-				size_t ksz, vsz;
-				memcpy(&ksz, p, sizeof(size_t));
-				p += sizeof(size_t);
-				memcpy(&vsz, p, sizeof(size_t));
-				p += sizeof(size_t);
-				if(vsz == vsize)
-				{
-					//sa->isDirty = true;
-					setDirty_(sa);
-					memcpy(p+ksz, ptr1, vsz);
-					return true;
-				}
-				else
-				{
-					//sa->isDirty = true;
-					setDirty_(sa);
-					//delete it first!
-					memset(p, 0xff, ksize);
-					return insert(key, value);
-				}
-			} else {
-				//char* ptr1 = (char*)&value;
-				//size_t vsize = sizeof(value);
-
-				bucket_chain* sa = locn.first;
-				char *p = locn.second;
-				{
-					setDirty_(sa);
-					memcpy(p+ksize, ptr1, vsize);
-					return true;
-				}
-			}
-
+			
+			char* ptr1 = (char*)&value;	
+			size_t vsize = sizeof(value);	
+			
+			assert(vsize == sfh_.valueSize);
+			bucket_chain* sa = locn.first;
+			char *p = locn.second;			
+			{
+				setDirty_(sa);
+				memcpy(p+sfh_.keySize, ptr1, vsize);
+				return true;
+			}			
 			return true;
 		}
 	}
@@ -426,17 +314,16 @@ public:
 		SDBCursor locn = get_first_locn();
 		KeyType key;
 		ValueType value;
-		while(get(locn, key, value)) {
-			other.insert(key, value);
-			if( !seq(locn) )
-			break;
+		while( seq(locn, key, value) ) {			
+			if( !other.insert(key, value) )
+			return false;;
 		}
 		return true;
 	}
 
 	bool dump2f(const string& fileName)
 	{
-		sdb_hash other(fileName);
+		sdb_fixedhash other(fileName);
 		if( !other.open() )
 		return false;
 		return dump( other );
@@ -444,7 +331,7 @@ public:
 
 	/**
 	 *  search an item
-	 *
+	 * 
 	 *   @return SDBCursor
 	 */
 	SDBCursor search(const KeyType& key)
@@ -456,7 +343,7 @@ public:
 
 	/**
 	 *    another search function, flushCache_() will be called at the beginning,
-	 *
+	 * 
 	 */
 	bool search(const KeyType &key, SDBCursor &locn)
 	{
@@ -465,17 +352,9 @@ public:
 		locn.first = NULL;
 		locn.second = NULL;
 
-		char* ptr=0;
-		size_t ksize;
-		izene_serialization<KeyType> izs(key);
-		izs.write_image(ptr, ksize);
-
-		/*if( !fixed) {
-		 izs.write_image(ptr, ksize);}
-		 else {
-		 ptr= (char*)&key;
-		 ksize = ksize_;
-		 }*/
+		char* ptr= (char*)&key;
+		size_t ksize = sizeof(key);		
+		assert( ksize == sfh_.keySize);
 
 		uint32_t idx = sdb_hashing::hash_fun(ptr, ksize) & dmask_;
 		locn.first = entry_[idx];
@@ -486,60 +365,32 @@ public:
 			int i = 0;
 			bucket_chain* sa = entry_[idx];
 
-			load_( sa );
+			if( !sa->isLoaded ) {
+				entry_[idx]->read(dataFile_);
+				++activeNum_;
+			}
 
 			char* p = sa->str;
 
 			while ( sa ) {
-				locn.first = sa;
-				//cout<<"search level: "<<sa->level<<endl;
+				locn.first = sa;				
 				p = sa->str;
 				//if( !p )return false;
+				for (i=0; i<sa->num; i++) {				
 
-				for (i=0; i<sa->num; i++)
-				{
 					char *pd = ptr;
 					size_t j=0;
-					if (!fixed ) {
-						size_t ksz, vsz;
-						memcpy(&ksz, p, sizeof(size_t));
-						p += sizeof(size_t);
-						memcpy(&vsz, p, sizeof(size_t));
-						p += sizeof(size_t);
-
-						//cout<<ksz<<endl;
-						//cout<<vsz<<endl;
-
-						if (ksz != ksize) {
-							p += ksz + vsz;
-							continue;
+					for (; j<ksize; j++) {						
+						if (pd[j] != p[j]) {
+							break;
 						}
-
-						for (; j<ksz; j++) {
-							//cout<<pd[j]<<" vs "<<p[j]<<endl;
-							if (pd[j] != p[j]) {
-								break;
-							}
-						}
-
-						if (j == ksz) {
-							locn.second = p-2*sizeof(size_t);
-							//cout<<key<<" found"<<endl;
-							return true;
-						}
-						p += ksz + vsz;
-					} else {
-						for (; j<ksize; j++) {
-							if (pd[j] != p[j]) {
-								break;
-							}
-						}
-						if (j == ksize) {
-							locn.second = p;
-							return true;
-						}
-						p += ksize_ + vsize_;
 					}
+
+					if (j == ksize) {					
+						locn.second = p;						
+						return true;
+					}
+					p += ksize + sfh_.valueSize;
 				}
 				sa = loadNext_(sa);
 			}
@@ -558,28 +409,26 @@ public:
 		{
 			if( entry_[i] )
 			{
-				load_( entry_[i] );
+				if (!entry_[i]->isLoaded ) {
+					entry_[i]->read(dataFile_);
+					++activeNum_;
+				}
 				locn.first = entry_[i];
 				locn.second = entry_[i]->str;
 				break;
 			}
 		}
-		KeyType key;
-		ValueType value;
-		int idx=0;
-		while( !get(locn, key, value) ) {		
-			seq(locn);
-		}
 		return locn;
 	}
+
 
 	/**
 	 *  get an item from given SDBCursor
 	 */
-	bool get(const SDBCursor& locn, DataType<KeyType,ValueType>& rec) {
+	bool get(const SDBCursor& locn, DataType<KeyType,ValueType>& rec){
 		return get(locn, rec.key, rec.value);
 	}
-
+	
 	bool get(const SDBCursor& locn, KeyType& key, ValueType& val)
 	{
 
@@ -588,30 +437,12 @@ public:
 
 		if(sa == NULL)return false;
 		if(p == NULL)return false;
-		if(sa->num == 0)return false;
+	
+		memcpy(&key, p, sfh_.keySize);
+		p += sfh_.keySize;
 
-		if( !fixed ) {
-			size_t ksize, vsize;
-			memcpy(&ksize, p, sizeof(size_t));
-			p += sizeof(size_t);
-			memcpy(&vsize, p, sizeof(size_t));
-			p += sizeof(size_t);
-
-			izene_deserialization<KeyType> izs(p, ksize);
-			izs.read_image(key);
-			p += ksize;
-
-			izene_deserialization<ValueType> izs1(p, vsize);
-			izs1.read_image(val);
-			p += vsize;
-
-		} else {
-			memcpy(&key, p, ksize_ );
-			p += ksize_;
-
-			memcpy(&val, p, vsize_ );
-			p += vsize_;
-		}
+		memcpy(&val, p, sfh_.valueSize);		
+		p += sfh_.valueSize;		
 
 		return true;
 
@@ -619,34 +450,19 @@ public:
 
 	/**
 	 *   \brief sequential access method
-	 *
-	 *   @param locn is the current SDBCursor, and will replaced next SDBCursor when route finished.
+	 * 
+	 *   @param locn is the current SDBCursor, and will replaced next SDBCursor when route finished. 
+	 *   @param rec is the item in SDBCursor locn.
 	 *   @param sdir is sequential access direction, for hash is unordered, we only implement forward case.
-	 *
+	 *   
 	 */
 
-	bool seq(SDBCursor& locn, KeyType& key, ValueType& value, ESeqDirection sdir=ESD_FORWARD)
+	bool seq(SDBCursor& locn, DataType<KeyType,ValueType>& rec, ESeqDirection sdir=ESD_FORWARD)
 	{
-		bool ret = seq(locn);
-		get(locn, key, value);
-		return ret;
-	}
-	bool seq(SDBCursor& locn, DataType<KeyType, ValueType>& dat, ESeqDirection sdir=ESD_FORWARD)
-	{
-		return seq(locn, dat.key, dat.value, sdir);
+		return seq(locn, rec.key, rec.value, sdir);
 	}
 
-	bool isEmptyBucket_(bucket_chain* entry, bucket_chain* &sa) {
-		sa = entry;
-		load_(sa);
-		while(sa && sa->num <= 0) {
-			sa = loadNext_(sa);
-		}
-		return sa == NULL;
-
-	}
-	bool seq(SDBCursor& locn, ESeqDirection sdir=ESD_FORWARD) {
-
+	bool seq(SDBCursor& locn, KeyType& key, ValueType& val, ESeqDirection sdir=ESD_FORWARD) {
 		flushCache_(locn);
 		if( sdir == ESD_FORWARD ) {
 			bucket_chain* sa = locn.first;
@@ -655,88 +471,60 @@ public:
 			if(sa == NULL)return false;
 			if(p == NULL)return false;
 
+			//size_t ksize, vsize;
 			char* ptr;
 			size_t poff;
-	
+
 			while(true) {
+			
+				ptr = p;
+				poff = sfh_.keySize;
+				//izene_deserialization<KeyType> izd(p, sfh_.keySize);
+				//izd.read_image(key);
+				memcpy(&key, p, sfh_.keySize);
+				
+				p += sfh_.keySize;
 
-				if(!fixed) {
+				//izene_deserialization<ValueType> izd1(p, sfh_.valueSize);
+				//izd1.read_image(val);
+				memcpy(&val, p, sfh_.valueSize);
+				p += sfh_.valueSize;
 
-					size_t ksize = 0, vsize;
-
-					if( sa->num != 0) {
-						memcpy(&ksize, p, sizeof(size_t));
-						p += sizeof(size_t);
-						memcpy(&vsize, p, sizeof(size_t));
-						p += sizeof(size_t);
-
-						ptr = p;
-						poff = ksize;
-						p += ksize;
-						p += vsize;
-						memcpy(&ksize, p, sizeof(size_t));
+				//memcpy(&ksize, p, sizeof(size_t));				
+				if( (unsigned int)(p-locn.first->str) >= (unsigned int)(locn.first->num)*(sfh_.keySize + sfh_.valueSize)  )
+				//if( ksize == 0 ) 
+				{
+					sa = loadNext_(sa);
+					if( sa ) {
+						p = sa->str;
 					}
-					if( ksize == 0 ) {
-						sa = loadNext_(sa);
-						while( sa && sa->num <= 0) {
-							sa = loadNext_(sa);
-						}
-						if( sa ) {
-							p = sa->str;
-						}
-						else
-						{						
-							uint32_t idx = sdb_hashing::hash_fun(ptr, poff) & dmask_;							
-							while( isEmptyBucket_( entry_[++idx], sa ) ) {								
-								if( idx >= directorySize_-1 )
-								break;
-							}
-
-							if( sa ) p = sa->str;
-							else
-							p = NULL;
-						}
-					}				
-
-				} else {
-					ptr = p;
-					/*poff = ksize_;
-					 p += ksize_;
-					 p += vsize_;*/
-					poff = ksize_;
-					p += ksize_;
-					p += vsize_;
-
-					if( (unsigned int)(p-locn.first->str) >= (unsigned int)(locn.first->num)*(ksize_ + vsize_) )
+					else
 					{
-						sa = loadNext_(sa);
-						while( sa && sa->num <= 0) {						
-							sa = loadNext_(sa);
+						uint32_t idx = sdb_hashing::hash_fun(ptr, poff) & dmask_;
+						while( !entry_[++idx] ) {
+							if( idx >= directorySize_-1 )
+							break;
+							//return false;
 						}
-						if( sa ) {
-							p = sa->str;
+
+						if (entry_[idx] && !entry_[idx]->isLoaded ) {
+							entry_[idx]->read(dataFile_);
+							++activeNum_;
 						}
+
+						//get next bucket;
+						sa = entry_[idx];
+						if( sa ) p = sa->str;
 						else
-						{
-							uint32_t idx = sdb_hashing::hash_fun(ptr, poff) & dmask_;
-							while( isEmptyBucket_( entry_[++idx], sa ) ) {								
-								if( idx >= directorySize_-1 )
-								break;
-							}
-							
-							//get next bucket;
-							//sa = entry_[idx];							
-							if( sa )
-								p = sa->str;				
-							else
-							p = NULL;
-						}
+						p = NULL;
 					}
 				}
 
 				locn.first = sa;
 				locn.second = p;
+
 				return true;
+
 			}
 		} else
 		{
@@ -746,7 +534,7 @@ public:
 	}
 
 	/**
-	 *   get the num of items
+	 *   get the num of items 
 	 */
 	int num_items() {
 		return sfh_.numItems;
@@ -770,7 +558,7 @@ public:
 		bool ret = false;
 		if (creating) {
 
-			// We're creating if the file doesn't exist.
+			// We're creating if the file doesn't exist.			
 #ifdef DEBUG
 			cout<<"creating...\n"<<endl;
 			sfh_.display();
@@ -830,7 +618,7 @@ public:
 	bool close()
 	{
 		flush();
-
+		
 		delete [] bucketAddr;
 		bucketAddr = 0;
 		fclose(dataFile_);
@@ -839,7 +627,7 @@ public:
 	}
 	/**
 	 *  write the dirty buckets to disk, not release the memory
-	 *
+	 *  
 	 */
 	void commit() {
 		sfh_.toFile(dataFile_);
@@ -899,7 +687,7 @@ public:
 #ifdef DEBUG
 		printf("commit elapsed 1 ( actually ): %lf seconds\n",
 				timer.elapsed() );
-#endif
+#endif		
 		unload_();
 		if (unloadByRss) {
 			unsigned long vm = 0;
@@ -929,7 +717,7 @@ public:
 
 	}
 	/**
-	 *  display the info of sdb_hash
+	 *  display the info of sdb_fixedhash
 	 */
 	void display(std::ostream& os = std::cout, bool onlyheader = true) {
 		sfh_.display(os);
@@ -948,15 +736,15 @@ public:
 
 	}
 
-	/**
-	 *
-	 *    \brief It displays how much space has been wasted in percentage after deleting or updates.
-	 *
-	 *
+	/**	 
+	 * 
+	 *    \brief It displays how much space has been wasted in percentage after deleting or updates.   
+	 *           
+	 *  
 	 *    when an item is deleted, we don't release its space in disk but set a flag that
-	 *    it have been deleted. And it will lead to low efficiency. Maybe we should dump it
+	 *    it have been deleted. And it will lead to low efficiency. Maybe we should dump it 
 	 * 	  to another files when loadFactor are low.
-	 *
+	 * 
 	 */
 	double loadFactor() {
 		int nslot = 0;
@@ -985,7 +773,7 @@ protected:
 	typedef typename multimap<int, bucket_chain*, greater<int> >::iterator CacheIter;
 
 private:
-	ShFileHeader sfh_;
+	SfhFileHeader sfh_;
 	string fileName_;
 	FILE* dataFile_;
 	bool isOpen_;
@@ -998,10 +786,6 @@ private:
 	size_t dmask_;
 	size_t cacheSize_;
 
-	size_t ksize_;
-	size_t vsize_;
-	size_t BucketGap;
-
 	unsigned long initRss_;
 	unsigned int flushCount_;
 
@@ -1011,18 +795,8 @@ private:
 			bucket->isDirty = true;
 		}
 	}
-
-	bool load_(bucket_chain* bucket) {
-		if (bucket && !bucket->isLoaded ) {
-			++activeNum_;
-			return bucket->read(dataFile_);
-
-		}
-		return false;
-
-	}
 	/**
-	 *   Allocate an bucket_chain element
+	 *   Allocate an bucket_chain element 
 	 */
 	bucket_chain* allocateBlock_() {
 		//cout<<"allocateBlock idx="<<sfh_.nBlock<<endl;
@@ -1033,7 +807,7 @@ private:
 		newBlock->isLoaded = true;
 		newBlock->isDirty = true;
 
-		newBlock->fpos = sizeof(ShFileHeader) + sizeof(long)*directorySize_
+		newBlock->fpos = sizeof(SfhFileHeader) + sizeof(long)*directorySize_
 		+ sfh_.bucketSize*sfh_.nBlock;
 
 		++sfh_.nBlock;
@@ -1047,13 +821,13 @@ private:
 		bool loaded = false;
 		bucket_chain* next = current->loadNext(dataFile_, loaded);
 		if (loaded)
-		activeNum_++;
+		++activeNum_;
 		return next;
 	}
 
 	/**
 	 *  when cache is full, it was called to reduce memory usage.
-	 *
+	 * 
 	 */
 	void flushCache_() {
 		if (unloadByRss) {
@@ -1076,12 +850,7 @@ private:
 					cout<<"\n!!! after unload.  Memory occupied: "<<rss<<" bytes"<<endl;
 #endif
 				}
-
-				//cout<<activeNum_<<" vs "<<sfh_.cacheSize <<endl;
-				//if( activeNum_> sfh_.cacheSize )
-				//{
-				//	flushCacheImpl_(quickFlush);
-				//}
+		
 			}
 		} else {
 			if (activeNum_> sfh_.cacheSize) {
@@ -1119,59 +888,57 @@ private:
 	}
 
 	void flushCacheImpl_() {
-#ifdef DEBUG
-		cout<<"cache is full..."<<endl;
-		sfh_.display();
-		cout<<activeNum_<<" vs "<<sfh_.cacheSize <<endl;
-		cout<<"dirtyPageNum: "<<dirtyPageNum_<<endl;
-#endif
-		//		cout<<"begin activePageNum"<<activeNum_<<",dirtyPageNum: "<<dirtyPageNum_<<std::endl;
-
-		bool commitCondition = dirtyPageNum_ >= (activeNum_ * 0.5);
-
-		if (unloadAll) {
-			flush();
-#ifdef DEBUG
-			cout<<"\n====================================\n"<<endl;
+	#ifdef DEBUG
 			cout<<"cache is full..."<<endl;
 			sfh_.display();
 			cout<<activeNum_<<" vs "<<sfh_.cacheSize <<endl;
 			cout<<"dirtyPageNum: "<<dirtyPageNum_<<endl;
-#endif
-			return;
-		} else {
+	#endif
+	//		cout<<"begin activePageNum"<<activeNum_<<",dirtyPageNum: "<<dirtyPageNum_<<std::endl;
 
-			if( delayFlush && commitCondition)
-			commit();
-			for (size_t i=0; i<directorySize_; i++) {
-				bucket_chain* sc = entry_[i];
-				while (sc) {
-					if (sc->isLoaded && !sc->isDirty)
-					sh_cache_.insert(make_pair(sc->level, sc));
-					sc = sc->next;
+	        bool commitCondition = dirtyPageNum_ >= (activeNum_ * 0.5);
+
+			if (unloadAll) {
+				flush();
+	#ifdef DEBUG
+				cout<<"\n====================================\n"<<endl;
+				cout<<"cache is full..."<<endl;
+				sfh_.display();
+				cout<<activeNum_<<" vs "<<sfh_.cacheSize <<endl;
+				cout<<"dirtyPageNum: "<<dirtyPageNum_<<endl;
+	#endif
+				return;
+			} else {
+
+				if( delayFlush && commitCondition)
+	                commit();
+				for (size_t i=0; i<directorySize_; i++) {
+					bucket_chain* sc = entry_[i];
+					while (sc) {
+	                    if (sc->isLoaded && !sc->isDirty)
+						sh_cache_.insert(make_pair(sc->level, sc));
+						sc = sc->next;
+					}
 				}
-			}
 
-			for (CacheIter it = sh_cache_.begin(); it != sh_cache_.end(); it++) {
-				//				if (quickFlush)
-				//                    it->second->write(dataFile_);
-				if ( it->second->unload() )
-				--activeNum_;
-				//				if (quickFlush && activeNum_ < max(sfh_.cacheSize/2, directorySize_) ) {
-				//					fflush(dataFile_);
-				//					sh_cache_.clear();
-				//					return;
-				//				}
-			}
+				for (CacheIter it = sh_cache_.begin(); it != sh_cache_.end(); it++) {
+	//				if (quickFlush)
+	//                    it->second->write(dataFile_);
+					if ( it->second->unload() )
+	                    --activeNum_;
+	//				if (quickFlush && activeNum_ < max(sfh_.cacheSize/2, directorySize_) ) {
+	//					fflush(dataFile_);
+	//					sh_cache_.clear();
+	//					return;
+	//				}
+				}
 
-			if(delayFlush && commitCondition)
-			fflush(dataFile_);
-			sh_cache_.clear();
+	            if(delayFlush && commitCondition)
+	                fflush(dataFile_);
+	            sh_cache_.clear();
+			}
+	
 		}
-		//		cout<<"stop activePageNum"<<activeNum_<<",dirtyPageNum: "<<dirtyPageNum_<<std::endl;
-		//cout<<" !!!! "<<activeNum_<<" vs "<<sfh_.cacheSize <<endl;
-		//display();
-	}
 
 };
 

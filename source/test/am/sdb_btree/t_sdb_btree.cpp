@@ -29,6 +29,7 @@ typedef izenelib::am::sdb_btree<KeyType, NullType> SDB_BTREE;
 //typedef izenelib::am::sdb_fixedbtree<KeyType, NullType> SDB_BTREE;
 
 template<typename T> void insert_test(T& tb) {
+	izenelib::util::ClockTimer timer;
 	clock_t start, finish;
 	start = clock();
 	for (int i=0; i<num; i++) {
@@ -44,7 +45,7 @@ template<typename T> void insert_test(T& tb) {
 			cout<<"numItem: "<<tb.num_items()<<"a"<<endl;
 			tb.display();
 		}
-		DLOG_EVERY_N(INFO, 100000) << getMemInfo();
+		DLOG_EVERY_N(INFO, 1000000) << getMemInfo();
 		//cout<<"\nafte insert ...\n";		
 	}
 	cout<<"mumItem: "<<tb.num_items()<<endl;
@@ -58,10 +59,13 @@ template<typename T> void insert_test(T& tb) {
 	finish = clock();
 	printf("\nIt takes %f seconds to insert %d  data!\n", (double)(finish
 			- start) / CLOCKS_PER_SEC, num);
+	printf("commit elapsed 1 ( actually ): %lf seconds\n",
+					timer.elapsed() );
 
 }
 
 template<typename T> void random_insert_test(T& tb) {
+	izenelib::util::ClockTimer timer;
 	clock_t start, finish;
 	start = clock();
 	for (int i=0; i<num; i++) {
@@ -78,7 +82,7 @@ template<typename T> void random_insert_test(T& tb) {
 			cout<<"numItem: "<<tb.num_items()<<endl<<endl;
 			tb.display();
 		}
-		DLOG_EVERY_N(INFO, 100000) << getMemInfo();
+		DLOG_EVERY_N(INFO, 1000000) << getMemInfo();
 		//cout<<"\nafte insert ...\n";		
 	}
 	cout<<"mumItem: "<<tb.num_items()<<endl;
@@ -90,6 +94,8 @@ template<typename T> void random_insert_test(T& tb) {
 	finish = clock();
 	printf("\nIt takes %f seconds to insert %d  data!\n", (double)(finish
 			- start) / CLOCKS_PER_SEC, num);
+	printf("commit elapsed 1 ( actually ): %lf seconds\n",
+					timer.elapsed() );
 
 }
 
@@ -117,7 +123,7 @@ template<typename T> void random_search_test(T& tb) {
 			c++;
 		} else
 			b++;
-		DLOG_EVERY_N(INFO, 100000) << getMemInfo();
+		DLOG_EVERY_N(INFO, 1000000) << getMemInfo();
 	}
 	if (trace)
 		tb.display();
@@ -241,8 +247,8 @@ template<typename T> void seq_test(T& tb) {
 			//break;
 		if (trace)
 			cout<<dat.key<<endl;
-		DLOG_EVERY_N(INFO, 100000) << getMemInfo();
-		LOG_IF(INFO, (a > 5000000 ) )<<"!!!!!!!! " <<dat.key<<endl;
+		DLOG_EVERY_N(INFO, 1000000) << getMemInfo();
+		//LOG_IF(INFO, (a > 5000000 ) )<<"!!!!!!!! " <<dat.key<<endl;
 	}
 	cout<<"end at "<<dat.key<<endl;
 	//cout<<dat.key<<endl;
@@ -269,9 +275,9 @@ template<typename T> void run(T& tb) {
 	//search_test(tb);
 	if (rnd) {
 		random_insert_test(tb);
-		random_search_test(tb);
-		seq_test(tb);
-		dump_test(tb);
+		//random_search_test(tb);
+		//seq_test(tb);
+		//dump_test(tb);
 	   //random_delete_test(tb);
 		//search_test(tb);
 	} else {
