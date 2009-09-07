@@ -23,8 +23,32 @@ namespace idmanager {
   * - All in memory version: based on LexicalTrie
   * - Disk version: based on SDBTrie
   */
+template<typename NameString, typename NameID>
 class EmptyRegExpHandler
 {
+
+public:
+
+	EmptyRegExpHandler(const std::string&){}
+
+	~EmptyRegExpHandler(){}
+
+	void openForRead() {}
+
+	void openForWrite(){}
+
+	void optimize(){}
+
+	void close(){}
+
+	void insert(const NameString & word, const NameID id){ }
+
+	bool findRegExp(const NameString& exp, std::vector<NameID> & results){ return false;}
+
+	int num_items(){return 0;}
+
+	void display(){std::cout << "This is a EmptyRegExpHandler instance" << std::endl; }
+
 }; // end - class EmptyRegExpHandler
 
 template<typename NameString, typename NameID>
@@ -38,13 +62,13 @@ public:
 
 	~MemoryRegExpHandler(){}
 
-	void openForRead() { trie_.open(); }
+	void openForRead() {}
 
-	void openForWrite(){ trie_.open(); }
+	void openForWrite(){}
 
 	void optimize(){}
 
-	void close(){ trie_.close(); }
+	void close(){}
 
 	void insert(const NameString & word, const NameID id){ trie_.insert(word, id); }
 
@@ -103,8 +127,8 @@ class IsEmpty {
 public:
     static const bool value = false;
 };
-template <>
-class IsEmpty<EmptyRegExpHandler> {
+template <typename N,typename I>
+class IsEmpty<EmptyRegExpHandler<N,I> > {
 public:
     static const bool value = true;
 };
