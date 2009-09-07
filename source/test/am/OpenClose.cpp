@@ -25,7 +25,7 @@ typedef boost::mpl::list<
     //, SkipListFile<int, std::string>
 > test_types;
 
-BOOST_AUTO_TEST_SUITE(izenelib_am_OpenClose_test)
+BOOST_AUTO_TEST_SUITE(OpenClose_test)
 
 BOOST_AUTO_TEST_CASE_TEMPLATE(DefaultConstructor_test, T, test_types)
 {

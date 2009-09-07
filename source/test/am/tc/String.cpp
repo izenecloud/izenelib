@@ -8,7 +8,7 @@
 using namespace boost::unit_test;
 using namespace izenelib::am::tc;
 
-BOOST_AUTO_TEST_SUITE(izenelib_am_tc_String_test)
+BOOST_AUTO_TEST_SUITE(tc_String_test)
 
 BOOST_AUTO_TEST_CASE(DefaultConstructor_test)
 {
