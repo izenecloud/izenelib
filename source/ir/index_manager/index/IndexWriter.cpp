@@ -178,17 +178,18 @@ void IndexWriter::mergeAndWriteCachedIndex2()
     BarrelInfo* pLastBarrel = pBarrelsInfo_->getLastBarrel();
     pLastBarrel->setBaseDocID(baseDocIDMap_);
 
-    if (pIndexMerger_)
-        pIndexMerger_->addToMerge(pBarrelsInfo_,pBarrelsInfo_->getLastBarrel());
-
     if (pIndexBarrelWriter_->cacheEmpty() == false)///memory index has not been written to database yet.
     {
         pIndexBarrelWriter_->close();
+        pLastBarrel->setWriter(NULL);
+
+        if (pIndexMerger_)
+            pIndexMerger_->addToMerge(pBarrelsInfo_,pBarrelsInfo_->getLastBarrel());
+		
         if (pIndexMerger_)
             pIndexMerger_->transferToDisk(pIndexBarrelWriter_->barrelName.c_str());
     }
 
-    pLastBarrel->setWriter(NULL);
     pBarrelsInfo_->addBarrel(pBarrelsInfo_->newBarrel().c_str(),0);
     pCurBarrelInfo_ = pBarrelsInfo_->getLastBarrel();
     pCurBarrelInfo_->setWriter(pIndexBarrelWriter_);
