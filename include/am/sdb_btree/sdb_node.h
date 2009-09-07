@@ -674,30 +674,25 @@ template<typename KeyType, typename ValueType, typename LockType, bool fixed,
 template<typename KeyType, typename ValueType, typename LockType, bool fixed,
 		typename Alloc> void sdb_node_< KeyType, ValueType, LockType, fixed,
 		Alloc>::unload() {
-	//if (isLoaded)
-	{
+	if (isLoaded) {
 		if ( !isLeaf) {
 			for (size_t i=0; i<objCount+1; i++) {
 				if (children[i]) {
 					children[i]->unload();
-					//if (children[i]) {
-					////	delete children[i];
-					//	children[i] = 0;
-					//}
+					if (children[i]) {
+						delete children[i];
+						children[i] = 0;
+					}
 				}
 			}
 		}
-		if (isLoaded){
-		//objCount = 0;
+		objCount = 0;
 		keys.resize(0);
 		values.resize(0);
-		//children.resize(0);
+		children.resize(0);
 		isLoaded = false;
-		--activeNodeNum;
-		}
 
-		//if (isLoaded)
-			
+		--activeNodeNum;
 		parent = 0;
 	}
 }
@@ -705,17 +700,15 @@ template<typename KeyType, typename ValueType, typename LockType, bool fixed,
 template<typename KeyType, typename ValueType, typename LockType, bool fixed,
 		typename Alloc> void sdb_node_< KeyType, ValueType, LockType, fixed,
 		Alloc>::unloadself() {
-	if (isLoaded)
-	{
-		//objCount = 0;
+	if (isLoaded) {
+		objCount = 0;
 		keys.resize(0);
 		values.resize(0);
-		//children.resize(0);
+		children.resize(0);
 		isLoaded = false;
 
-		//if (isLoaded)
-			--activeNodeNum;
-		//parent = 0;
+		--activeNodeNum;
+		parent = 0;
 	}
 }
 
