@@ -204,6 +204,16 @@ public:
     }
 
     /**
+     * @brief Flush all cached data to disk
+     */
+    void flush()
+    {
+        termIdManager_.flush();
+        docIdManager_.flush();
+        regexpManager_.flush();
+    }
+
+    /**
      * @brief Close all resources.
      */
     void close()
@@ -324,17 +334,17 @@ typedef _IDManager<wiselib::UString, uint32_t,
                    EmptyIDGenerator<wiselib::UString, uint32_t>,
                    EmptyIDStorage<wiselib::UString, uint32_t> > IDManagerMIA;
 /**
- * The default IDManager is IDManagerDebug32, If you want to use a different version,
+ * The default IDManager is IDManagerRelease32, If you want to use a different version,
  * write code like following:
 
     #include <ir/id_manager/IDManager.h>
 
     #define REPLACE_DEFAULT_IDMANAGER
-    typedef IDManagerRelease64 IDManager;
+    typedef IDManagerDebug64 IDManager;
 
  */
 #ifndef REPLACE_DEFAULT_IDMANAGER
-typedef IDManagerDebug32 IDManager;
+typedef IDManagerRelease32 IDManager;
 #endif
 
 } // end - namespace idmanager

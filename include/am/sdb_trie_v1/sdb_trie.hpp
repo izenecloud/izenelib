@@ -125,6 +125,12 @@ public:
             throw std::runtime_error("close before open write mode");
     }
 
+    void flush()
+    {
+        if(!read_) edgeTable_.flush();
+        optEdgeTable_.flush();
+        dataTable_.flush();
+    }
 
     /**
      * @brief Write back informations back to db.
@@ -555,6 +561,7 @@ public:
 
     void openForRead(){ trie_.openForRead(); }
     void openForWrite(){ trie_.openForWrite(); }
+    void flush(){ trie_.flush(); }
     void close(){ trie_.close(); }
     void optimize(){ trie_.optimize(); }
 

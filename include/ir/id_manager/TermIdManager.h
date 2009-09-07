@@ -154,6 +154,11 @@ public:
         return isAllTermFound;
     }
 
+    void flush()
+	{
+	    idFactory_.flush();
+	}
+
     void close()
 	{
 	    idFactory_.close();

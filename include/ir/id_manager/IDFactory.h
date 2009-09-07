@@ -72,6 +72,12 @@ public:
 	 */
 	inline bool getNameStringByNameID(const NameID& nameID, NameString& nameString);
 
+	void flush()
+	{
+	    idGenerator_.flush();
+	    idStorage_.flush();
+	}
+
 	void close()
 	{
 	    idGenerator_.close();
