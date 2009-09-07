@@ -16,6 +16,7 @@ IF(wiselib_FOUND AND Boost_FOUND)
 
   INCLUDE_DIRECTORIES(
     ${Boost_INCLUDE_DIRS}
+    ${CMAKE_SOURCE_DIR}/include/3rdparty/am
     ${wiselib_INCLUDE_DIRS}
     )
 

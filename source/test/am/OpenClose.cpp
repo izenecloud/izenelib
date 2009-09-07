@@ -1,0 +1,67 @@
+#include <boost/test/unit_test.hpp>
+#include <boost/test/test_case_template.hpp>
+#include <boost/mpl/list.hpp>
+
+#include <am/tc/Hash.h>
+#include <am/sdb_hash/sdb_hash.h>
+#include <am/sdb_btree/sdb_btree.h>
+#include <am/sdb_storage/sdb_storage.h>
+
+#include <am/dynamic_perfect_hash/dynamic_perfect_hash.hpp>
+#include <am/btree/BTreeFile.h>
+// #include <am/skip_list_file/SkipListFile.h>
+
+#include "TestDir.h"
+#define DIR_PREFIX TEST_TMP_DIR "/am_OpenClose_"
+
+using namespace izenelib::am;
+
+typedef boost::mpl::list<
+    tc::Hash<int, std::string>
+    //, sdb_hash<int, std::string>
+    //, sdb_btree<int, std::string>
+    //, sdb_storage<int, std::string>
+    //, BTreeFile<int, std::string>
+    //, SkipListFile<int, std::string>
+> test_types;
+
+BOOST_AUTO_TEST_SUITE(OpenClose_test)
+
+BOOST_AUTO_TEST_CASE_TEMPLATE(DefaultConstructor_test, T, test_types)
+{
+    T h;
+    BOOST_CHECK(!h.is_open());
+}
+
+BOOST_AUTO_TEST_CASE_TEMPLATE(Open_test, T, test_types)
+{
+    std::remove(DIR_PREFIX "Open_test");
+    T h(DIR_PREFIX "Open_test");
+    bool opened;
+    BOOST_WARN(opened = h.open());
+
+    if (opened)
+    {
+        BOOST_CHECK(h.is_open());
+    }
+}
+
+BOOST_AUTO_TEST_CASE_TEMPLATE(Close_test, T, test_types)
+{
+    std::remove(DIR_PREFIX "Close_test");
+    T h(DIR_PREFIX "Close_test");
+    BOOST_WARN(h.open());
+
+    h.close();
+    BOOST_CHECK(!h.is_open());
+}
+
+BOOST_AUTO_TEST_CASE_TEMPLATE(CloseWithoutOpen_test, T, test_types)
+{
+    std::remove(DIR_PREFIX "CloseWithoutOpen_test");
+    T h(DIR_PREFIX "CloseWithoutOpen_test");
+    h.close();
+    BOOST_CHECK(!h.is_open());
+}
+
+BOOST_AUTO_TEST_SUITE_END()

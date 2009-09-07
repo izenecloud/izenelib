@@ -8,83 +8,18 @@
 #ifndef TERMREADER_H
 #define TERMREADER_H
 
-#include <string>
-
-#include <ir/index_manager/utility/system.h>
-#include <ir/index_manager/index/Term.h>
-#include <ir/index_manager/index/TermDocFreqs.h>
-#include <ir/index_manager/index/TermPositions.h>
-#include <ir/index_manager/index/TermInfo.h>
+#include <ir/index_manager/index/AbsTermReader.h>
 #include <ir/index_manager/index/TermIterator.h>
-#include <ir/index_manager/index/FieldInfo.h>
-#include <ir/index_manager/store/Directory.h>
 
+#include <3rdparty/am/rde_hashmap/hash_map.h>
+
+#include <string>
 
 
 NS_IZENELIB_IR_BEGIN
 
 namespace indexmanager{
-class TermIterator;
-class TermDocFreqs;
-class TermPositions;
-/**
-* Base class of InMemoryTermReader and DiskTermReader
-*/
-class TermReader
-{
-public:
-    TermReader(void);
-    TermReader(FieldInfo* pFieldInfo_);
-    virtual ~TermReader(void);
-public:
-    /**
-    * open a index barrel
-    */
-    virtual void open(Directory* pDirectory,const char* barrelname,FieldInfo* pFieldInfo);
-
-    virtual TermIterator* termIterator(const char* field) = 0;
-    /**
-    * find the term in the vocabulary,return false if not found
-    */
-    virtual bool seek(Term* pTerm) = 0;
-
-    virtual TermDocFreqs*	termDocFreqs() = 0;
-
-    virtual TermPositions*	termPositions() = 0;
-
-    virtual freq_t docFreq(Term* term) = 0;
-
-    virtual void close() = 0;
-    /**
-     * clone the term reader
-     * @return term reader, MUST be deleted by caller.
-     */
-    virtual TermReader*	clone() = 0;
-
-protected:
-    virtual TermInfo* termInfo(Term* term)
-    {
-        return NULL;
-    };
-public:
-    FieldInfo* getFieldInfo()
-    {
-        return pFieldInfo;
-    }
-
-    void setFieldInfo(FieldInfo* pFieldInfo)
-    {
-        this->pFieldInfo = pFieldInfo;
-    }
-protected:
-    FieldInfo* pFieldInfo;	///reference to field info
-
-    friend class TermDocFreqs;
-    friend class MultiFieldTermReader;
-    friend class IndexReader;
-    friend class InMemoryTermReader;
-};
-
+typedef rde::hash_map<termid_t, TermInfo > TERM_TABLE;
 
 /*
 struct TERM_TABLE
@@ -106,13 +41,6 @@ public:
 
     ~TermReaderImpl();
 public:
-
-    /**
-     * open a index barrel
-     * @param pDirectory index storage
-     * @param barrelname index barrel name
-     * @param pFieldInfo field information
-     */
     void open(Directory* pDirectory,const char* barrelname,FieldInfo* pFieldInfo);
 
     bool seek(Term* pTerm);
@@ -135,87 +63,79 @@ public:
     int64_t nVocLength;
 };
 
+
+class OrderPreservingTermReaderImpl
+{
+public:
+    OrderPreservingTermReaderImpl(FieldInfo* pFieldInfo_);
+
+    ~OrderPreservingTermReaderImpl();
+public:
+
+    void open(Directory* pDirectory,const char* barrelname,FieldInfo* pFieldInfo);
+
+    bool seek(Term* pTerm);
+
+    void close() ;
+
+public:
+    FieldInfo* pFieldInfo;
+
+    ORDERED_TERM_TABLE* pTermTable;
+
+    InputDescriptor* pInputDescriptor;
+
+    int32_t nTermCount;
+
+    int64_t nVocLength;
+};
+
 class DiskTermReader:public TermReader
 {
 public:
-    DiskTermReader();
+    enum DiskTermReaderMode { UNORDERED,  ORDERPRESERVING }; 
+
+    DiskTermReader(DiskTermReaderMode mode = UNORDERED);
 
     DiskTermReader(TermReaderImpl* pTermReaderImpl);
 
     virtual ~DiskTermReader(void);
 public:
-    /**
-     * open a index barrel
-     * @param pDirectory index storage
-     * @param barrelname index barrel name
-     * @param pFieldInfo field information
-     */
     void open(Directory* pDirectory,const char* barrelname,FieldInfo* pFieldInfo);
 
-
-
-    /**
-     * get the term iterator
-     * @param field field name
-     * @return term iterator, MUST be deleted by caller
-     */
     TermIterator* termIterator(const char* field);
-
 
     bool seek(Term* pTerm);
 
+    TERM_TABLE* getTermTable() { return pTermReaderImpl->pTermTable; }
 
-    TERM_TABLE* getTermTable()
-    {
-        return pTermReaderImpl->pTermTable;
-    }
-
-    /**
-     * get term's document postings,must be called after calling {@link seek()} success
-     * @return return document postings,need to be deleted outside
-     */
     TermDocFreqs* termDocFreqs();
 
-    /**
-     * get term's position postings,must be called after calling {@link seek()} success
-     * @return return position postings,need to be deleted outside
-     */
     TermPositions* termPositions();
 
-    /**
-     * get document frequency of a term
-     * @return document frequency
-     */
     freq_t docFreq(Term* term);
 
 
-    /**
-     * close term reader
-     */
     void close() ;
 
-    /**
-     * clone the term reader
-     * @return term reader, MUST be deleted by caller.
-     */
     TermReader* clone() ;
 
     void updateTermInfo(Term* term, count_t docFreq, fileoffset_t offset);
 
-    TermReaderImpl* getTermReaderImpl()
+    OrderPreservingTermReaderImpl* getTermReaderImpl()
     {
-        return pTermReaderImpl;
+        return pOrderedTermReaderImpl;
     }
 
 protected:
-    /**
-     * get term information of a term
-     * @return term information
-     */
     TermInfo* termInfo(Term* term);
 
 protected:
+    DiskTermReaderMode termReaderMode;	
+
     TermReaderImpl* pTermReaderImpl;
+
+    OrderPreservingTermReaderImpl* pOrderedTermReaderImpl;
 
     TermInfo* pCurTermInfo;
 

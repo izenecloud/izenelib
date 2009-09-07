@@ -6,7 +6,7 @@ CXX = g++-4.1
 ifneq ($(COMPILE_FLAGS),)
 CXXFLAGS += $(COMPILE_FLAGS) 
 else
-CXXFLAGS = -Wall -O3 -g -DDEBUG
+CXXFLAGS = -Wall -O3 -g 
 endif
 
 TARGET_PATH = .
@@ -36,6 +36,7 @@ EXT_LIB = \
 		  -l boost_unit_test_framework-gcc41-mt-1_39 \
 		  -l tokyocabinet \
 		  -l procmeminfo  \
+		  -l btrie  \
 
 OBJECTS = $(patsubst %.cpp, %.o, $(wildcard *.cpp)) 
 
@@ -48,6 +49,9 @@ all: $(TARGET)
 
 $(TARGET) : $(OBJECTS) 
 	$(CXX) -o $@ $^  $(EXT_LIB_PATH) $(EXT_LIB) 
+
+gen_input:
+	$(CXX) -o gen_input gen_input.cc $(INCLUDE_PATH) $(CXXFLAGS) $(EXT_LIB_PATH) $(EXT_LIB) 
 
 clean:
 	rm -rf *.o $(TARGET) *.sdb *.dat

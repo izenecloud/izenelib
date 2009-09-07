@@ -48,6 +48,8 @@ public:
 
     uint8_t getVIntLength(int32_t i);
 
+    uint8_t getVLongLength(int64_t i);
+
     void setBuffer(char* buf,size_t bufSize);
 
     int64_t getFilePointer();

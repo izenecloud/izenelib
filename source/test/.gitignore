@@ -1,2 +1,3 @@
+TestDataDir.h
 *.txt
 !CMakeLists.txt

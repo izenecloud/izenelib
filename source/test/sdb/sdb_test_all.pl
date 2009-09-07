@@ -26,7 +26,7 @@ system("./t_sdb -db btree -index sdb_cc_btree.dat  ../db/wordlist.txt");
 
 #system("./t_nsdb -index nsdb.dat -T 0");
 
-system("./t_overflow_btree -index osdb.dat ../db/wordlist.txt");
+system("./t_overflow_btree -index osdb.dat ../db/test2.txt");
 
 system("./t_btree1 -T 0 -index btree1.dat ../db/wordlist.txt");
 

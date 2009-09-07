@@ -125,6 +125,12 @@ public:
             throw std::runtime_error("close before open write mode");
     }
 
+    void flush()
+    {
+        if(!read_) edgeTable_.flush();
+        optEdgeTable_.flush();
+        dataTable_.flush();
+    }
 
     /**
      * @brief Write back informations back to db.
@@ -246,6 +252,28 @@ public:
     }
 
     /**
+     * @brief Get a list of keys which begin with the same prefix.
+     * @return true at leaset one result found.
+     *         false nothing found.
+     */
+    bool findPrefix(const std::vector<CharType>& prefix,
+        std::vector<std::vector<CharType> >& keyList)
+    {
+        NodeIDType nid = NodeIDTraits<NodeIDType>::RootValue;
+        for( size_t i=0; i<prefix.size(); i++ )
+        {
+            NodeIDType tmp = NodeIDType();
+            if( !getEdge2(prefix[i], nid, tmp) )
+                return false;
+            nid = tmp;
+        }
+        keyList.clear();
+        std::vector<CharType> begin = prefix;
+        findPrefix_(nid, begin, keyList);
+        return keyList.size() ? true : false;
+    }
+
+    /**
      * @brief Get a list of values whose keys begin with the same prefix.
      * @return true at leaset one result found.
      *         false nothing found.
@@ -272,7 +300,8 @@ public:
      *         false nothing found.
      */
     bool findPrefix(const std::vector<CharType>& prefix,
-        std::vector<std::vector<CharType> >& keyList)
+        std::vector<std::vector<CharType> >& keyList,
+        std::vector<UserDataType>& valueList)
     {
         NodeIDType nid = NodeIDTraits<NodeIDType>::RootValue;
         for( size_t i=0; i<prefix.size(); i++ )
@@ -284,7 +313,7 @@ public:
         }
         keyList.clear();
         std::vector<CharType> begin = prefix;
-        findPrefix_(nid, begin, keyList);
+        findPrefix_(nid, begin, keyList, valueList);
         return keyList.size() ? true : false;
     }
 
@@ -422,6 +451,28 @@ protected:
     }
 
     void findPrefix_( const NodeIDType& nid,
+        std::vector<CharType>& prefix,
+        std::vector<std::vector<CharType> >& keyList)
+    {
+        UserDataType tmp = UserDataType();
+        if(getData(nid, tmp))
+            keyList.push_back(prefix);
+
+        EdgeTableKeyType minKey(nid, NumericTraits<CharType>::MinValue);
+        EdgeTableKeyType maxKey(nid, NumericTraits<CharType>::MaxValue);
+
+        std::vector<EdgeTableRecordType> result;
+        optEdgeTable_.getValueBetween(result, minKey, maxKey);
+
+        for(size_t i = 0; i <result.size(); i++ )
+        {
+            prefix.push_back(result[i].key.key2);
+            findPrefix_(result[i].value, prefix, keyList);
+            prefix.pop_back();
+        }
+    }
+
+    void findPrefix_( const NodeIDType& nid,
         std::vector<UserDataType>& valueList)
     {
         UserDataType tmp = UserDataType();
@@ -440,11 +491,15 @@ protected:
 
     void findPrefix_( const NodeIDType& nid,
         std::vector<CharType>& prefix,
-        std::vector<std::vector<CharType> >& keyList)
+        std::vector<std::vector<CharType> >& keyList,
+        std::vector<UserDataType>& valueList)
     {
         UserDataType tmp = UserDataType();
         if(getData(nid, tmp))
+        {
             keyList.push_back(prefix);
+            valueList.push_back(tmp);
+        }
 
         EdgeTableKeyType minKey(nid, NumericTraits<CharType>::MinValue);
         EdgeTableKeyType maxKey(nid, NumericTraits<CharType>::MaxValue);
@@ -455,7 +510,7 @@ protected:
         for(size_t i = 0; i <result.size(); i++ )
         {
             prefix.push_back(result[i].key.key2);
-            findPrefix_(result[i].value, prefix, keyList);
+            findPrefix_(result[i].value, prefix, keyList, valueList);
             prefix.pop_back();
         }
     }
@@ -555,6 +610,7 @@ public:
 
     void openForRead(){ trie_.openForRead(); }
     void openForWrite(){ trie_.openForWrite(); }
+    void flush(){ trie_.flush(); }
     void close(){ trie_.close(); }
     void optimize(){ trie_.optimize(); }
 
@@ -618,6 +674,26 @@ public:
 
         std::vector< std::vector<CharType> > resultList;
         if( false == trie_.findPrefix(chVector, resultList) )
+            return false;
+
+        for(size_t i = 0; i< resultList.size(); i++ )
+        {
+            StringType tmp(resultList[i].begin(), resultList[i].end() );
+            keyList.push_back(tmp);
+        }
+        return true;
+    }
+
+    bool findPrefix(const StringType& prefix,
+        std::vector<StringType>& keyList,
+        std::vector<UserDataType>& valueList)
+    {
+        CharType* chArray = (CharType*)prefix.c_str();
+        size_t chCount = prefix.length();
+        std::vector<CharType> chVector(chArray, chArray+chCount);
+
+        std::vector< std::vector<CharType> > resultList;
+        if( false == trie_.findPrefix(chVector, resultList, valueList) )
             return false;
 
         for(size_t i = 0; i< resultList.size(); i++ )
