@@ -4,7 +4,7 @@
  * @file am/raw/AmWrapper.h
  * @author Ian Yang
  * @date Created <2009-09-06 22:50:37>
- * @date Updated <2009-09-07 16:16:20>
+ * @date Updated <2009-09-08 13:08:52>
  * @brief Integrate raw am and serialization framework
  */
 
@@ -68,6 +68,10 @@ public:
     {
         return rawAm().open(file, mode);
     }
+    std::string getFileName() const
+    {
+        return rawAm().getFileName();
+    }
     void close()
     {
         rawAm().close();
@@ -101,6 +105,10 @@ public:
     bool empty() const
     {
         return rawAm().empty();
+    }
+    bool clear()
+    {
+        return rawAm().clear();
     }
     bool insert(const key_type& key, const value_type& value)
     {

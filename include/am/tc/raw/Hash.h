@@ -4,7 +4,7 @@
  * @file am/tc/raw/Hash.h
  * @author Ian Yang
  * @date Created <2009-09-02 14:11:06>
- * @date Updated <2009-09-08 11:07:22>
+ * @date Updated <2009-09-08 13:08:21>
  * @brief Raw AM wrapper of tokyo cabinet hash database, which only can store
  * izenelib::am::raw::Buffer
  */
@@ -33,8 +33,8 @@ public:
     typedef DataType<Buffer, Buffer> data_type;
     typedef int size_type;
 
-    typedef IterNextRange<self_type> internal_range_type;
-    typedef GetNextRange<self_type> range_type;
+    typedef IterNextRange<Hash> internal_range_type;
+    typedef GetNextRange<Hash> range_type;
 
     enum {
         READER = ::HDBOREADER,
@@ -106,6 +106,10 @@ public:
 
         return isOpened_;
     }
+    std::string getFileName() const
+    {
+        return file_;
+    }
     void close()
     {
         if (hdb_ && isOpened_)
@@ -146,6 +150,10 @@ public:
     bool empty() const
     {
         return size() == 0;
+    }
+    bool clear()
+    {
+        return checkHandle_(hdb_) && isOpened() && ::tchdbvanish(hdb_);
     }
 
     /**

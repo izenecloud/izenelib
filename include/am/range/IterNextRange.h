@@ -4,7 +4,7 @@
  * @file am/range/IterNextRange.h
  * @author Ian Yang
  * @date Created <2009-09-08 10:58:49>
- * @date Updated <2009-09-08 11:05:31>
+ * @date Updated <2009-09-08 11:11:05>
  */
 
 #include <boost/assert.hpp>
@@ -20,11 +20,11 @@ public:
     typedef typename AM::key_type key_type;
     typedef typename AM::value_type value_type;
 
-    InternalCursorRange()
+    IterNextRange()
     : am_(0), data_()
     {}
 
-    explicit InternalCursorRange(AM& am)
+    explicit IterNextRange(AM& am)
     : am_(&am), data_()
     {
         if (! (am_->iterInit() && am_->iterNext(data_)))
