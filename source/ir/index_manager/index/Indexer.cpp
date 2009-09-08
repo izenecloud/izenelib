@@ -36,7 +36,7 @@ IndexerFactory indexerFactory;
 #define MINOR_VERSION "0"
 #define PATCH_VERSION "20090801" // update date
 
-Indexer::Indexer( ManagerType managerType, bool indexingForward)
+Indexer::Indexer( bool indexingForward, ManagerType managerType)
         :managerType_(managerType)
         ,indexingForward_(indexingForward)
         ,pDirectory_(NULL)
