@@ -4,13 +4,15 @@
  * @file am/tc/Hash.h
  * @author Ian Yang
  * @date Created <2009-09-06 23:37:24>
- * @date Updated <2009-09-07 16:33:38>
+ * @date Updated <2009-09-08 11:06:20>
  * @brief TokyoCabinet Hash DB wrapper
  */
 
 #include "raw/Hash.h"
 
 #include <am/raw/AmWrapper.h>
+#include <am/range/IterNextRange.h>
+#include <am/range/GetNextRange.h>
 
 namespace izenelib {
 namespace am {
@@ -23,6 +25,8 @@ class Hash
                                           KeyType,
                                           ValueType>
 {
+    typedef Hash<KeyType, ValueType> self_type;
+
 public:
     typedef KeyType key_type;
     typedef ValueType value_type;
@@ -30,6 +34,9 @@ public:
     typedef typename raw::Hash::size_type size_type;
 
     typedef raw::Hash raw_am_type;
+
+    typedef IterNextRange<self_type> internal_range_type;
+    typedef GetNextRange<self_type> range_type;
 
     enum {
         READER = raw::Hash::READER,
@@ -136,7 +143,7 @@ public:
         return iterNext(data.get_key(), data.get_value());
     }
 
-    bool getFirst(KeyType& key)
+    bool getFirst(KeyType& key) const
     {
         izenelib::am::raw::Buffer keyBuffer;
 
@@ -152,7 +159,7 @@ public:
 
         return false;
     }
-    bool getFirst(KeyType& key, ValueType& value)
+    bool getFirst(KeyType& key, ValueType& value) const
     {
         izenelib::am::raw::Buffer keyBuffer;
         izenelib::am::raw::Buffer valueBuffer;
@@ -174,12 +181,12 @@ public:
 
         return false;
     }
-    bool getFirst(data_type& data)
+    bool getFirst(data_type& data) const
     {
         return getFirst(data.get_key(), data.get_value());
     }
 
-    bool getNext(KeyType& key)
+    bool getNext(KeyType& key) const
     {
         izenelib::am::raw::Buffer keyBuffer;
         izenelib::util::izene_serialization<KeyType> izsKey(key);
@@ -197,7 +204,7 @@ public:
 
         return false;
     }
-    bool getNext(KeyType& key, ValueType& value)
+    bool getNext(KeyType& key, ValueType& value) const
     {
         izenelib::am::raw::Buffer keyBuffer;
         izenelib::util::izene_serialization<KeyType> izsKey(key);
@@ -222,12 +229,21 @@ public:
 
         return false;
     }
-    bool getNext(data_type& data)
+    bool getNext(data_type& data) const
     {
         return getNext(data.get_key(), data.get_value());
     }
 
     //@}
+
+    void all(range_type& range)
+    {
+        range.attach(*this);
+    }
+    void internalAll(internal_range_type& range)
+    {
+        range.attach(*this);
+    }
 
     const char* errorMessage() const
     {

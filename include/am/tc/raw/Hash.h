@@ -4,17 +4,18 @@
  * @file am/tc/raw/Hash.h
  * @author Ian Yang
  * @date Created <2009-09-02 14:11:06>
- * @date Updated <2009-09-07 16:18:53>
+ * @date Updated <2009-09-08 11:07:22>
  * @brief Raw AM wrapper of tokyo cabinet hash database, which only can store
  * izenelib::am::raw::Buffer
  */
 #include <am/concept/DataType.h>
 #include <am/raw/Buffer.h>
+#include <am/tc/String.h>
+#include <am/range/IterNextRange.h>
+#include <am/range/GetNextRange.h>
 
 #include <tcutil.h>
 #include <tchdb.h>
-
-#include <am/tc/String.h>
 
 namespace izenelib {
 namespace am {
@@ -31,6 +32,9 @@ public:
     typedef Buffer value_type;
     typedef DataType<Buffer, Buffer> data_type;
     typedef int size_type;
+
+    typedef IterNextRange<self_type> internal_range_type;
+    typedef GetNextRange<self_type> range_type;
 
     enum {
         READER = ::HDBOREADER,
@@ -293,7 +297,7 @@ public:
         return iterNext(data.get_key(), data.get_value());
     }
 
-    bool getFirst(Buffer& key)
+    bool getFirst(Buffer& key) const
     {
         Buffer empty;
         if (getNext(empty))
@@ -304,7 +308,7 @@ public:
 
         return false;
     }
-    bool getFirst(Buffer& key, Buffer& value)
+    bool getFirst(Buffer& key, Buffer& value) const
     {
         Buffer empty;
         if (getNext(empty, value))
@@ -315,11 +319,11 @@ public:
 
         return false;
     }
-    bool getFirst(data_type& data)
+    bool getFirst(data_type& data) const
     {
         return getFirst(data.get_key(), data.get_value());
     }
-    bool getNext(Buffer& key)
+    bool getNext(Buffer& key) const
     {
         if (! (checkHandle_(hdb_) && isOpened()))
         {
@@ -338,7 +342,7 @@ public:
 
         return false;
     }
-    bool getNext(Buffer& key, Buffer& value)
+    bool getNext(Buffer& key, Buffer& value) const
     {
 
         if (! (checkHandle_(hdb_) && isOpened()))
@@ -370,12 +374,21 @@ public:
 
         return false;
     }
-    bool getNext(data_type& data)
+    bool getNext(data_type& data) const
     {
         return getNext(data.get_key(), data.get_value());
     }
 
     //@}
+
+    void all(range_type& range)
+    {
+        range.attach(*this);
+    }
+    void internalAll(internal_range_type& range)
+    {
+        range.attach(*this);
+    }
 
     //@{
     //@brief tc special functions
