@@ -36,8 +36,9 @@ IndexerFactory indexerFactory;
 #define MINOR_VERSION "0"
 #define PATCH_VERSION "20090801" // update date
 
-Indexer::Indexer( ManagerType managerType)
+Indexer::Indexer( ManagerType managerType, bool indexingForward)
         :managerType_(managerType)
+        ,indexingForward_(indexingForward)
         ,pDirectory_(NULL)
         ,dirty_(false)
         ,pBarrelsInfo_(NULL)
@@ -174,7 +175,7 @@ void Indexer::initIndexManager()
     InMemoryPosting::ALLOCSTRATEGY.k = k;
     InMemoryPosting::ALLOCSTRATEGY.l = l;
 
-    if(managerType_ == MANAGER_TYPE_DATAPROCESS)
+    if(managerType_ == MANAGER_TYPE_CLIENTPROCESS)
     {
         vector<string> nodes = split(pConfigurationManager_->distributeStrategy_.iplist_,"|");
         for(vector<string>::iterator iter = nodes.begin(); iter != nodes.end(); ++iter)
@@ -205,7 +206,7 @@ void Indexer::initIndexManager()
     pIndexWriter_ = new IndexWriter(this);
     pIndexReader_ = new IndexReader(this);
 
-    if(managerType_ == MANAGER_TYPE_INDEXPROCESS)
+    if(managerType_ == MANAGER_TYPE_SERVERPROCESS)
     {
         pBTreeIndexerServer_ = new BTreeIndexerServer(pConfigurationManager_->distributeStrategy_.rpcport_, pBTreeIndexer_);
     
@@ -314,7 +315,7 @@ std::string Indexer::getBasePath()
 
 void Indexer::add_index_process_node(string ip, string batchport, string rpcport)
 {
-    assert(managerType_ == MANAGER_TYPE_DATAPROCESS);
+    assert(managerType_ == MANAGER_TYPE_CLIENTPROCESS);
     index_process_address_.push_back(make_pair(ip,make_pair(batchport,rpcport)));
 }
 
@@ -325,7 +326,7 @@ pair<string,pair<string, string> >& Indexer::get_curr_index_process()
 
 bool Indexer::change_curr_index_process()
 {
-    assert(managerType_ == MANAGER_TYPE_DATAPROCESS);
+    assert(managerType_ == MANAGER_TYPE_CLIENTPROCESS);
 		
     pair<string,pair<string, string> > node = index_process_address_.front();
     index_process_address_.pop_front();
@@ -338,7 +339,7 @@ bool Indexer::change_curr_index_process()
 
 BTreeIndexerInterface* Indexer::getBTreeIndexer()
 {
-    if(managerType_ == MANAGER_TYPE_DATAPROCESS)
+    if(managerType_ == MANAGER_TYPE_CLIENTPROCESS)
         return pBTreeIndexerClient_;
     else
         return pBTreeIndexer_;
@@ -346,7 +347,7 @@ BTreeIndexerInterface* Indexer::getBTreeIndexer()
 
 bool Indexer::destroy_connection(pair<string,pair<string, string> >& node)
 {
-    assert(managerType_ == MANAGER_TYPE_DATAPROCESS);
+    assert(managerType_ == MANAGER_TYPE_CLIENTPROCESS);
 
     UDTFile::destroy();
     return true;
@@ -354,7 +355,7 @@ bool Indexer::destroy_connection(pair<string,pair<string, string> >& node)
 
 bool Indexer::initialize_connection(pair<string,pair<string, string> >& node, bool wait)
 {
-    assert(managerType_ == MANAGER_TYPE_DATAPROCESS);
+    assert(managerType_ == MANAGER_TYPE_CLIENTPROCESS);
 
     UDTFile::init(node.first, atoi(node.second.first.c_str()));
 
@@ -593,6 +594,7 @@ bool Indexer::getDocsByTermInProperties(termid_t termID, collectionid_t colID, v
 
 bool Indexer::getWordOffsetListOfQueryByDocumentProperty (const vector<termid_t>& queryTermIdList,  collectionid_t colId,  docid_t docId, string propertyName, deque<deque<pair<unsigned int, unsigned int> > >& wordOffsetListOfQuery )
 {
+    assert(indexingForward_ == true);
     fieldid_t fid = getPropertyIDByName(colId,propertyName);
     ForwardIndexReader* pForwardIndexReader = pIndexReader_->getForwardIndexReader();
     bool ret = pForwardIndexReader->getTermOffsetList(queryTermIdList, docId, fid, wordOffsetListOfQuery);
@@ -602,6 +604,7 @@ bool Indexer::getWordOffsetListOfQueryByDocumentProperty (const vector<termid_t>
 
 bool Indexer::getForwardIndexByDocumentProperty(collectionid_t colId, docid_t docId, string propertyName, ForwardIndex& forwardIndex)
 {
+    assert(indexingForward_ == true);
     fieldid_t fid = getPropertyIDByName(colId,propertyName);
     ForwardIndexReader* pForwardIndexReader = pIndexReader_->getForwardIndexReader();
     bool ret = pForwardIndexReader->getForwardIndexByDoc(docId, fid, forwardIndex);

@@ -32,8 +32,8 @@ namespace indexmanager{
 enum ManagerType
 {
     MANAGER_TYPE_LOCAL,       /// Deployed in a single machine
-    MANAGER_TYPE_DATAPROCESS, /// Deployed with Data Process
-    MANAGER_TYPE_INDEXPROCESS, /// Deployed as the Index Process
+    MANAGER_TYPE_CLIENTPROCESS, /// Deployed as the client indexer
+    MANAGER_TYPE_SERVERPROCESS, /// Deployed as the server indexer
     MANAGER_TYPE_FORWARDREADER_AND_MERGER ///Only read forwardindex and merge it if necessary
 };
 
@@ -56,7 +56,7 @@ class Indexer: private boost::noncopyable
 {
 public:
 
-    Indexer(ManagerType managerType = MANAGER_TYPE_LOCAL);
+    Indexer(bool indexingForward = false, ManagerType managerType = MANAGER_TYPE_LOCAL);
 
     virtual ~Indexer();
 public:
@@ -175,6 +175,8 @@ protected:
 protected:
     ManagerType managerType_;
 
+    bool indexingForward_;
+
     Directory* pDirectory_;
 
     ACCESS_MODE accessMode_;
@@ -206,6 +208,8 @@ protected:
     friend class IndexWriter;
 
     friend class IndexReader;
+
+    friend class IndexBarrelWriter;	
 
     friend class IndexBarrelReader;
 
