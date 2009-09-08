@@ -5,7 +5,7 @@ CC_OPTIONS= -O3 -Wall -c -g -pg  -DDEBUG
 
 
 INC_PATH=    -I /usr/local/include/  -I  ../../../../izenelib/include/ -I  ../../../../ylib/include/ \
-             -I ../../../../izenelib/include/3rdparty/ -I /usr/local/include/boost-1_36  
+   -I /home/wps/workspace/wiselib/include      -I ../../../../izenelib/include/3rdparty/ -I /usr/local/include/boost-1_36  
 
 
 LIBS =      /usr/local/lib/libboost_thread-gcc41-mt.so \

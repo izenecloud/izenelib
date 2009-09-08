@@ -87,8 +87,7 @@ public:
 			izs1.write_image(ptr1, vsize_);
 		}
 
-		BucketGap = fixed ? ksize_+vsize_+sizeof(long)+sizeof(int) :
-		ksize_+vsize_ + sizeof(long)+sizeof(int) +3*sizeof(size_t);
+	
 
 	}
 
@@ -212,8 +211,13 @@ public:
 			else
 			{
 				assert(locn.second != NULL);
-				//size_t gap = sizeof(long)+sizeof(int)+ksize+vsize+2*sizeof(size_t);
-
+				
+				if(fixed){
+					BucketGap =  ksize_+vsize_ + sizeof(long)+sizeof(int)+sizeof(size_t);
+				}else{
+					BucketGap =  ksize+vsize + sizeof(long)+sizeof(int) +3*sizeof(size_t);
+				}
+			
 				//add an extra size_t to indicate if reach the end of  bucket_chain.
 				if ( size_t(p - sa->str)> sfh_.bucketSize-BucketGap ) {
 					if (sa->next == 0) {
