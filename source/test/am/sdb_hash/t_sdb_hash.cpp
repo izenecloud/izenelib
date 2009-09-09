@@ -5,9 +5,11 @@
 
 #include <am/sdb_hash/sdb_hash.h>
 #include <am/sdb_hash/sdb_fixedhash.h>
+#include <am/am_test/am_test.h>
 
 using namespace std;
 using namespace izenelib::am;
+using namespace izenelib::am_test;
 
 const char* indexFile = "sdb.dat";
 static string inputFile = "test.txt";
@@ -53,6 +55,18 @@ template<typename T> void validate_test(T& tb) {
 
 }
 
+template<typename T> void open_test(T& tb) {
+
+  tb.open();
+  insert_test(tb);
+  tb.close();
+  tb.open();
+  insert_test(tb);
+  tb.close();
+  tb.open();
+}
+
+
 template<typename T> void insert_test(T& tb) {
 	clock_t start, finish;
 	start = clock();
@@ -66,7 +80,13 @@ template<typename T> void insert_test(T& tb) {
 		if (trace) {
 			cout<<"numItem: "<<tb.num_items()<<endl<<endl;
 			//tb.display();
+		}		
+		if(i  > 0 && i % 1000000 == 0){
+			displayMemInfo();
+			tb.flush();
+			displayMemInfo();
 		}
+			
 		//cout<<"\nafte insert ...\n";		
 	}
 	cout<<"mumItem: "<<tb.num_items()<<endl;
@@ -75,12 +95,12 @@ template<typename T> void insert_test(T& tb) {
 	if (trace)
 		tb.display();
 	tb.flush();
+	displayMemInfo();
 	if (trace)
 		tb.display();
 	finish = clock();
 	printf("\nIt takes %f seconds to insert %d  data!\n", (double)(finish
-			- start) / CLOCKS_PER_SEC, num);
-
+			- start) / CLOCKS_PER_SEC, num);   
 }
 
 /*
@@ -366,6 +386,8 @@ int main(int argc, char *argv[]) {
 		tb.setBucketSize(bucketSize);
 		tb.setCacheSize(cacheSize);
 		tb.open();
+		
+		//open_test(tb);
 		run(tb);
 
 	}

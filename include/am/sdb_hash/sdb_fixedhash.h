@@ -24,9 +24,7 @@
 //#include <util/log.h>
 #include <stdio.h>
 
-#include "sdb_hash_types.h"
-#include "sdb_fixedhash_header.h"
-#include "bucket_chain.h"
+#include "sdb_hash.h"
 
 using namespace std;
 
