@@ -16,7 +16,9 @@ IF (Boost_FOUND AND Boost_UNIT_TEST_FRAMEWORK_FOUND AND Boost_SERIALIZATION_FOUN
       raw/Buffer.cpp
 
       tc/String.cpp
+      tc/Iter.cpp
       tc/raw/Db.cpp
+      tc/raw/Iter.cpp
       )
 
     ADD_EXECUTABLE(t_am ${t_am_SRC})
@@ -32,7 +34,7 @@ IF (Boost_FOUND AND Boost_UNIT_TEST_FRAMEWORK_FOUND AND Boost_SERIALIZATION_FOUN
       RUNTIME_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/testbin
       )
 
-    ADD_TEST(am ${CMAKE_SOURCE_DIR}/testbin/t_am)
+    ADD_TEST(am "${CMAKE_SOURCE_DIR}/testbin/t_am")
   ENDIF (TokyoCabinet_FOUND AND Glog_FOUND)
 
 ENDIF (Boost_FOUND AND Boost_UNIT_TEST_FRAMEWORK_FOUND AND Boost_SERIALIZATION_FOUND)

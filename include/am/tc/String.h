@@ -4,7 +4,7 @@
  * @file am/tc/String.h
  * @author Ian Yang
  * @date Created <2009-09-06 00:15:24>
- * @date Updated <2009-09-06 22:27:46>
+ * @date Updated <2009-09-07 14:20:01>
  * @brief Tokyocabinet extensible string wrapper
  */
 #include <algorithm>
@@ -13,6 +13,8 @@
 #include <boost/iterator/reverse_iterator.hpp>
 
 #include <tcutil.h>
+
+#include <am/raw/Buffer.h>
 
 namespace izenelib {
 namespace am {
@@ -218,6 +220,25 @@ public:
         );
     }
 
+    /**
+     * @brief transfers string internal buffer to @a buf, this string becomes
+     * empty.
+     * @post this->empty()
+     */
+    bool toBuffer(raw::Buffer& buf)
+    {
+        size_type s = size();
+        void* data = ::tcxstrtomalloc(handle_);
+        if (data)
+        {
+            buf.attach(static_cast<char*>(data), s, &::tcfree);
+        }
+        handle_ = ::tcxstrnew();
+        BOOST_ASSERT(handle_);
+
+        return data != 0;
+    }
+
 private:
     ::TCXSTR* handle_;
     friend struct detail::StringAccessor;
@@ -259,11 +280,11 @@ inline bool operator!=(const String& a, const String& b)
 namespace detail {
 struct StringAccessor
 {
-    inline static ::TCXSTR* get(String& str)
+    inline static ::TCXSTR* handle(String& str)
     {
         return str.handle_;
     }
-    inline static const ::TCXSTR* get(const String& str)
+    inline static const ::TCXSTR* handle(const String& str)
     {
         return str.handle_;
     }

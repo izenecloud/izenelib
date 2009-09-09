@@ -62,7 +62,7 @@ boost::shared_ptr<cccr_hash<int, std::string> > create(const std::string&)
 
 } // namespace {anonymous}
 
-BOOST_AUTO_TEST_SUITE(izenelib_am_IntString_test)
+BOOST_AUTO_TEST_SUITE(IntString_test)
 
 BOOST_AUTO_TEST_CASE_TEMPLATE(NewIsEmpty_test, T, test_types)
 {

@@ -32,6 +32,7 @@ public:
 	 *   constructor
 	 */
 	tc_hash(const string& fileName = "tc_hash.dat"): fileName_(fileName) {
+		hdb_ = tchdbnew();
 	}
 
 	/**
@@ -320,7 +321,7 @@ public:
 	 *   db must be opened to be used.
 	 */
 	bool open() {
-		hdb_ = tchdbnew();
+		
 		return tchdbopen(hdb_, fileName_.c_str(), HDBOCREAT | HDBOWRITER);
 	}
 	/**

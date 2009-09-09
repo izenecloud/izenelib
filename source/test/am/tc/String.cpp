@@ -8,7 +8,7 @@
 using namespace boost::unit_test;
 using namespace izenelib::am::tc;
 
-BOOST_AUTO_TEST_SUITE(izenelib_am_tc_String_test)
+BOOST_AUTO_TEST_SUITE(tc_String_test)
 
 BOOST_AUTO_TEST_CASE(DefaultConstructor_test)
 {
@@ -93,36 +93,36 @@ BOOST_AUTO_TEST_CASE(Swap_test)
     String b;
     a.swap(b);
 
-    BOOST_ASSERT(a.empty());
-    BOOST_ASSERT(b.size() == 3);
-    BOOST_ASSERT(b[0] == '1');
-    BOOST_ASSERT(b[1] == '2');
-    BOOST_ASSERT(b[2] == '3');
-    BOOST_ASSERT(remember == b.data());
+    BOOST_CHECK(a.empty());
+    BOOST_CHECK(b.size() == 3);
+    BOOST_CHECK(b[0] == '1');
+    BOOST_CHECK(b[1] == '2');
+    BOOST_CHECK(b[2] == '3');
+    BOOST_CHECK(remember == b.data());
 }
 
 BOOST_AUTO_TEST_CASE(EmptyIterator_test)
 {
     String str;
-    BOOST_ASSERT(str.begin() == str.end());
+    BOOST_CHECK(str.begin() == str.end());
 }
 
 BOOST_AUTO_TEST_CASE(EmptyReverseIterator_test)
 {
     String str;
-    BOOST_ASSERT(str.rbegin() == str.rend());
+    BOOST_CHECK(str.rbegin() == str.rend());
 }
 
 BOOST_AUTO_TEST_CASE(EmptyConstIterator_test)
 {
     const String str;
-    BOOST_ASSERT(str.begin() == str.end());
+    BOOST_CHECK(str.begin() == str.end());
 }
 
 BOOST_AUTO_TEST_CASE(EmptyConstReverseIterator_test)
 {
     const String str;
-    BOOST_ASSERT(str.rbegin() == str.rend());
+    BOOST_CHECK(str.rbegin() == str.rend());
 }
 
 BOOST_AUTO_TEST_CASE(Iterator_test)
@@ -130,14 +130,14 @@ BOOST_AUTO_TEST_CASE(Iterator_test)
     char s[] = "123";
     String str(s);
 
-    BOOST_ASSERT(str.begin() != str.end());
+    BOOST_CHECK(str.begin() != str.end());
     String::iterator i = str.begin();
-    BOOST_ASSERT(*i++ == '1');
-    BOOST_ASSERT(i != str.end());
-    BOOST_ASSERT(*i++ == '2');
-    BOOST_ASSERT(i != str.end());
-    BOOST_ASSERT(*i++ == '3');
-    BOOST_ASSERT(i == str.end());
+    BOOST_CHECK(*i++ == '1');
+    BOOST_CHECK(i != str.end());
+    BOOST_CHECK(*i++ == '2');
+    BOOST_CHECK(i != str.end());
+    BOOST_CHECK(*i++ == '3');
+    BOOST_CHECK(i == str.end());
 }
 
 BOOST_AUTO_TEST_CASE(ConstIterator_test)
@@ -145,14 +145,14 @@ BOOST_AUTO_TEST_CASE(ConstIterator_test)
     char s[] = "123";
     const String str(s);
 
-    BOOST_ASSERT(str.begin() != str.end());
+    BOOST_CHECK(str.begin() != str.end());
     String::const_iterator i = str.begin();
-    BOOST_ASSERT(*i++ == '1');
-    BOOST_ASSERT(i != str.end());
-    BOOST_ASSERT(*i++ == '2');
-    BOOST_ASSERT(i != str.end());
-    BOOST_ASSERT(*i++ == '3');
-    BOOST_ASSERT(i == str.end());
+    BOOST_CHECK(*i++ == '1');
+    BOOST_CHECK(i != str.end());
+    BOOST_CHECK(*i++ == '2');
+    BOOST_CHECK(i != str.end());
+    BOOST_CHECK(*i++ == '3');
+    BOOST_CHECK(i == str.end());
 }
 
 BOOST_AUTO_TEST_CASE(ReverseIterator_test)
@@ -160,14 +160,14 @@ BOOST_AUTO_TEST_CASE(ReverseIterator_test)
     char s[] = "123";
     String str(s);
 
-    BOOST_ASSERT(str.rbegin() != str.rend());
+    BOOST_CHECK(str.rbegin() != str.rend());
     String::reverse_iterator i = str.rbegin();
-    BOOST_ASSERT(*i++ == '3');
-    BOOST_ASSERT(i != str.rend());
-    BOOST_ASSERT(*i++ == '2');
-    BOOST_ASSERT(i != str.rend());
-    BOOST_ASSERT(*i++ == '1');
-    BOOST_ASSERT(i == str.rend());
+    BOOST_CHECK(*i++ == '3');
+    BOOST_CHECK(i != str.rend());
+    BOOST_CHECK(*i++ == '2');
+    BOOST_CHECK(i != str.rend());
+    BOOST_CHECK(*i++ == '1');
+    BOOST_CHECK(i == str.rend());
 }
 
 BOOST_AUTO_TEST_CASE(ConstReverseIterator_test)
@@ -175,14 +175,14 @@ BOOST_AUTO_TEST_CASE(ConstReverseIterator_test)
     char s[] = "123";
     const String str(s);
 
-    BOOST_ASSERT(str.rbegin() != str.rend());
+    BOOST_CHECK(str.rbegin() != str.rend());
     String::const_reverse_iterator i = str.rbegin();
-    BOOST_ASSERT(*i++ == '3');
-    BOOST_ASSERT(i != str.rend());
-    BOOST_ASSERT(*i++ == '2');
-    BOOST_ASSERT(i != str.rend());
-    BOOST_ASSERT(*i++ == '1');
-    BOOST_ASSERT(i == str.rend());
+    BOOST_CHECK(*i++ == '3');
+    BOOST_CHECK(i != str.rend());
+    BOOST_CHECK(*i++ == '2');
+    BOOST_CHECK(i != str.rend());
+    BOOST_CHECK(*i++ == '1');
+    BOOST_CHECK(i == str.rend());
 }
 
 BOOST_AUTO_TEST_CASE(AtRead_test)
@@ -190,9 +190,9 @@ BOOST_AUTO_TEST_CASE(AtRead_test)
     char s[] = "123";
     String str(s);
 
-    BOOST_ASSERT(str.at(0) == '1');
-    BOOST_ASSERT(str.at(1) == '2');
-    BOOST_ASSERT(str.at(2) == '3');
+    BOOST_CHECK(str.at(0) == '1');
+    BOOST_CHECK(str.at(1) == '2');
+    BOOST_CHECK(str.at(2) == '3');
 }
 
 BOOST_AUTO_TEST_CASE(EmptyAtRangeCheck_test)
@@ -219,9 +219,9 @@ BOOST_AUTO_TEST_CASE(AppendString_test)
 
     str1.append(str2);
 
-    BOOST_ASSERT(str1.size() == 6);
-    BOOST_ASSERT(std::equal(str1.begin(), str1.begin() + 3, s1));
-    BOOST_ASSERT(std::equal(str1.begin() + 3, str1.end(), s2));
+    BOOST_CHECK(str1.size() == 6);
+    BOOST_CHECK(std::equal(str1.begin(), str1.begin() + 3, s1));
+    BOOST_CHECK(std::equal(str1.begin() + 3, str1.end(), s2));
 }
 
 BOOST_AUTO_TEST_CASE(AppendCStr_test)
@@ -233,9 +233,9 @@ BOOST_AUTO_TEST_CASE(AppendCStr_test)
 
     str1.append(s2);
 
-    BOOST_ASSERT(str1.size() == 6);
-    BOOST_ASSERT(std::equal(str1.begin(), str1.begin() + 3, s1));
-    BOOST_ASSERT(std::equal(str1.begin() + 3, str1.end(), s2));
+    BOOST_CHECK(str1.size() == 6);
+    BOOST_CHECK(std::equal(str1.begin(), str1.begin() + 3, s1));
+    BOOST_CHECK(std::equal(str1.begin() + 3, str1.end(), s2));
 }
 
 BOOST_AUTO_TEST_CASE(AppendCStrSize_test)
@@ -247,9 +247,9 @@ BOOST_AUTO_TEST_CASE(AppendCStrSize_test)
 
     str1.append(s2, 2);
 
-    BOOST_ASSERT(str1.size() == 5);
-    BOOST_ASSERT(std::equal(str1.begin(), str1.begin() + 3, s1));
-    BOOST_ASSERT(std::equal(str1.begin() + 3, str1.end(), s2));
+    BOOST_CHECK(str1.size() == 5);
+    BOOST_CHECK(std::equal(str1.begin(), str1.begin() + 3, s1));
+    BOOST_CHECK(std::equal(str1.begin() + 3, str1.end(), s2));
 }
 
 BOOST_AUTO_TEST_CASE(StringPlusString_test)
@@ -262,9 +262,9 @@ BOOST_AUTO_TEST_CASE(StringPlusString_test)
 
     String str = str1 + str2;
 
-    BOOST_ASSERT(str.size() == 6);
-    BOOST_ASSERT(std::equal(str.begin(), str.begin() + 3, s1));
-    BOOST_ASSERT(std::equal(str.begin() + 3, str.end(), s2));
+    BOOST_CHECK(str.size() == 6);
+    BOOST_CHECK(std::equal(str.begin(), str.begin() + 3, s1));
+    BOOST_CHECK(std::equal(str.begin() + 3, str.end(), s2));
 }
 
 BOOST_AUTO_TEST_CASE(StringPlusCStr_test)
@@ -276,9 +276,9 @@ BOOST_AUTO_TEST_CASE(StringPlusCStr_test)
 
     String str = str1 + s2;
 
-    BOOST_ASSERT(str.size() == 6);
-    BOOST_ASSERT(std::equal(str.begin(), str.begin() + 3, s1));
-    BOOST_ASSERT(std::equal(str.begin() + 3, str.end(), s2));
+    BOOST_CHECK(str.size() == 6);
+    BOOST_CHECK(std::equal(str.begin(), str.begin() + 3, s1));
+    BOOST_CHECK(std::equal(str.begin() + 3, str.end(), s2));
 }
 
 BOOST_AUTO_TEST_CASE(CStrPlusString_test)
@@ -290,9 +290,9 @@ BOOST_AUTO_TEST_CASE(CStrPlusString_test)
 
     String str = s1 + str2;
 
-    BOOST_ASSERT(str.size() == 6);
-    BOOST_ASSERT(std::equal(str.begin(), str.begin() + 3, s1));
-    BOOST_ASSERT(std::equal(str.begin() + 3, str.end(), s2));
+    BOOST_CHECK(str.size() == 6);
+    BOOST_CHECK(std::equal(str.begin(), str.begin() + 3, s1));
+    BOOST_CHECK(std::equal(str.begin() + 3, str.end(), s2));
 }
 
 BOOST_AUTO_TEST_CASE(Equal_test)
@@ -303,7 +303,7 @@ BOOST_AUTO_TEST_CASE(Equal_test)
     String str1(s1);
     String str2(s2);
 
-    BOOST_ASSERT(str1 == str2);
+    BOOST_CHECK(str1 == str2);
 }
 
 BOOST_AUTO_TEST_CASE(Unequal_test)
@@ -314,7 +314,7 @@ BOOST_AUTO_TEST_CASE(Unequal_test)
     String str1(s1);
     String str2(s2);
 
-    BOOST_ASSERT(str1 != str2);
+    BOOST_CHECK(str1 != str2);
 }
 
 BOOST_AUTO_TEST_CASE(Less_test)
@@ -322,7 +322,7 @@ BOOST_AUTO_TEST_CASE(Less_test)
     String str1("123");
     String str2("133");
 
-    BOOST_ASSERT(str1 < str2);
+    BOOST_CHECK(str1 < str2);
 }
 
 BOOST_AUTO_TEST_CASE(ShorterIsLess_test)
@@ -330,7 +330,7 @@ BOOST_AUTO_TEST_CASE(ShorterIsLess_test)
     String str1("123");
     String str2("1234");
 
-    BOOST_ASSERT(str1 < str2);
+    BOOST_CHECK(str1 < str2);
 }
 
 BOOST_AUTO_TEST_CASE(EqualIsNotLess_test)
@@ -338,7 +338,7 @@ BOOST_AUTO_TEST_CASE(EqualIsNotLess_test)
     String str1("123");
     String str2("123");
 
-    BOOST_ASSERT(!(str1 < str2));
+    BOOST_CHECK(!(str1 < str2));
 }
 
 BOOST_AUTO_TEST_CASE(LargerIsNotLess_test)
@@ -346,7 +346,21 @@ BOOST_AUTO_TEST_CASE(LargerIsNotLess_test)
     String str1("133");
     String str2("123");
 
-    BOOST_ASSERT(!(str1 < str2));
+    BOOST_CHECK(!(str1 < str2));
 }
+
+BOOST_AUTO_TEST_CASE(ToBuffer_test)
+{
+    String str("123");
+    izenelib::am::raw::Buffer buf;
+    str.toBuffer(buf);
+
+    BOOST_CHECK(str.empty());
+    BOOST_CHECK(buf.size() == 3);
+    BOOST_CHECK(buf[0] == '1');
+    BOOST_CHECK(buf[1] == '2');
+    BOOST_CHECK(buf[2] == '3');
+}
+
 
 BOOST_AUTO_TEST_SUITE_END()

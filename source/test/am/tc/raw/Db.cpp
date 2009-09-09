@@ -14,7 +14,7 @@ using namespace izenelib::am::tc::raw;
 
 typedef boost::mpl::list<Hash> test_types;
 
-BOOST_AUTO_TEST_SUITE(izenelib_am_tc_raw_Db_test)
+BOOST_AUTO_TEST_SUITE(tc_raw_Db_test)
 
 BOOST_AUTO_TEST_CASE_TEMPLATE(DefaultConstructor_test, T, test_types)
 {
@@ -369,4 +369,4 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(Del1In2, T, test_types)
     }
 }
 
-BOOST_AUTO_TEST_SUITE_END() // izenelib_am_tc_raw_Db_test
+BOOST_AUTO_TEST_SUITE_END() // tc_raw_Db_test

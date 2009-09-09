@@ -510,7 +510,7 @@ protected:
         for(size_t i = 0; i <result.size(); i++ )
         {
             prefix.push_back(result[i].key.key2);
-            findPrefix_(result[i].value, prefix, keyList);
+            findPrefix_(result[i].value, prefix, keyList, valueList);
             prefix.pop_back();
         }
     }
@@ -674,6 +674,26 @@ public:
 
         std::vector< std::vector<CharType> > resultList;
         if( false == trie_.findPrefix(chVector, resultList) )
+            return false;
+
+        for(size_t i = 0; i< resultList.size(); i++ )
+        {
+            StringType tmp(resultList[i].begin(), resultList[i].end() );
+            keyList.push_back(tmp);
+        }
+        return true;
+    }
+
+    bool findPrefix(const StringType& prefix,
+        std::vector<StringType>& keyList,
+        std::vector<UserDataType>& valueList)
+    {
+        CharType* chArray = (CharType*)prefix.c_str();
+        size_t chCount = prefix.length();
+        std::vector<CharType> chVector(chArray, chArray+chCount);
+
+        std::vector< std::vector<CharType> > resultList;
+        if( false == trie_.findPrefix(chVector, resultList, valueList) )
             return false;
 
         for(size_t i = 0; i< resultList.size(); i++ )
