@@ -1,6 +1,7 @@
 INCLUDE_DIRECTORIES(
   ${Boost_INCLUDE_DIRS}  
   ${wiselib_INCLUDE_DIRS}
+  ${Glog_INCLUDE_DIRS}
 )
 
 IF(WIN32)
