@@ -84,7 +84,10 @@ public:
 			izene_serialization<KeyType> izs(key );
 			izene_serialization<ValueType> izs1( val );
 			izs.write_image(ptr, ksize_);
-			izs1.write_image(ptr1, vsize_);
+			izs1.write_image(ptr1, vsize_);			
+			BucketGap = ksize_+vsize_ + sizeof(long)+sizeof(int)+sizeof(size_t);
+							
+
 		}
 
 	}
@@ -739,7 +742,7 @@ public:
 						else
 						{
 							uint32_t idx = sdb_hashing::hash_fun(ptr, poff) & dmask_;
-							while( isEmptyBucket_(+idx, sa ) ) {
+							while( isEmptyBucket_(++idx, sa ) ) {
 								if( idx >= directorySize_-1 )
 								break;
 							}
