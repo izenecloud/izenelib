@@ -50,7 +50,6 @@ typename Alloc=std::allocator<DataType<KeyType,ValueType> >
 	enum {unloadbyRss = false};
 	enum {unloadAll = true};
 	enum {orderedCommit =true};
-	enum {delayCommit = true};
 	enum {quickFlush = false};
 public:
 	typedef sdb_node_<KeyType, ValueType, LockType, fixed, Alloc> sdb_node;
@@ -202,7 +201,7 @@ public:
 		while(get(locn, key, value)) {
 			other.insert(key, value);
 			if( !seq(locn) )
-			break;
+				break;
 		}
 		return true;
 	}
@@ -303,27 +302,26 @@ public:
 		search(KeyType(), locn);
 		return locn;
 	}
-
+	
 	SDBCursor get_last_locn()
 	{
 		sdb_node* node = _root;
-		while( !node->isLeaf ) {
-			//node = node->loadChild(node->objCount,_dataFile);
-			node = _loadChild(node, node->objCount);
-		}
+		while( !node->isLeaf ){
+			node = node->loadChild(node->objCount,_dataFile);
+		}		
 		return SDBCursor(node, node->objCount);
 	}
-
+	
 	bool seq(SDBCursor& locn, KeyType& key, ValueType& value, ESeqDirection sdir=ESD_FORWARD)
 	{
-		bool ret = seq(locn);
-		get(locn, key, value);
-		return ret;
+	    bool ret = seq(locn);
+	    get(locn, key, value);
+	    return ret;
 	}
 	bool seq(SDBCursor& locn, DataType<KeyType, ValueType>& dat, ESeqDirection sdir=ESD_FORWARD)
-	{
+    {
 		return seq(locn, dat.key, dat.value, sdir);
-	}
+    }
 
 	bool seq(SDBCursor& locn, ESeqDirection sdir=ESD_FORWARD);
 
@@ -415,8 +413,6 @@ private:
 	unsigned long _initRss;
 	unsigned int _flushCount;
 
-	map<long, sdb_node*> _nodeCache;
-
 	inline void _setDirty(sdb_node* node) {
 		if( !node->isDirty ) {
 			++_dirtyPageNum;
@@ -493,9 +489,8 @@ private:
 		cout<<"activeNum: "<<_activeNodeNum<<endl;
 		cout<<"dirtyPageNum: "<<_dirtyPageNum<<endl;
 		//display();
-		izenelib::util::ClockTimer timer;
 #endif
-
+		izenelib::util::ClockTimer timer;
 		if( !quickFlush )
 		commit();
 
@@ -570,7 +565,6 @@ private:
 
 	}
 
-
 	sdb_node* _allocateNode() {
 
 		sdb_node* newNode;
@@ -594,21 +588,6 @@ private:
 		return newNode;
 	}
 
-	sdb_node* _loadChild(sdb_node* parent, size_t childNum) {
-		assert(parent && parent->isLoaded && !parent->isLeaf && parent->children[childNum] );
-		sdb_node* node = _nodeCache[parent->children[childNum]->fpos];
-		if( !node )
-		{
-			return parent->loadChild(childNum, _dataFile);
-		}
-		if( node && !node->isLoaded ) {
-			assert(false);
-			node->read(_dataFile);
-		}
-		return node;
-
-	}
-
 	void _split(sdb_node* parent, size_t childNum, sdb_node* child);
 	void _split3Leaf(sdb_node* parent, size_t childNum);
 	sdb_node* _merge(sdb_node* &parent, size_t objNo);
@@ -625,8 +604,7 @@ private:
 		SDBCursor ret(NULL, (size_t)-1);
 		sdb_node* child = node;
 		while (!child->isLeaf) {
-			//child = child->loadChild(child->objCount, _dataFile);
-			child = _loadChild(child, child->objCount);
+			child = child->loadChild(child->objCount, _dataFile);
 		}
 		ret.first = child;
 		ret.second = child->objCount - 1;
@@ -640,8 +618,7 @@ private:
 		SDBCursor ret(NULL, (size_t)-1);
 		sdb_node* child = node;
 		while (!child->isLeaf) {
-			//child = child->loadChild(0, _dataFile);
-			child = _loadChild(child, 0);
+			child = child->loadChild(0, _dataFile);
 		}
 		ret.first = child;
 		ret.second = 0;
@@ -714,14 +691,14 @@ template<typename KeyType, typename ValueType, typename LockType, bool fixed,
 		}
 
 		if (!temp->isLeaf) {
-			//temp = temp->loadChild(low, _dataFile);
-			temp =_loadChild(temp, low);
+			temp = temp->loadChild(low, _dataFile);
 		} else {
+
 			locn.first = temp;
 			locn.second = low;
 
 			if (low >= (int)temp->objCount) {
-				locn.second = low - 1;
+				locn.second = low - 1;				
 				if ( false == seq(locn) )
 					++locn.second;
 
@@ -803,8 +780,8 @@ template<typename KeyType, typename ValueType, typename LockType, bool fixed,
 	size_t count2 = _sfh.maxKeys - _sfh.maxKeys/3-1;
 	size_t count3 = (_sfh.maxKeys<<1) -1 -count1 -count2;
 
-	sdb_node* child1 = _loadChild(parent, childNum);
-	sdb_node* child2 = _loadChild(parent, childNum+1);
+	sdb_node* child1 = parent->loadChild(childNum, _dataFile);
+	sdb_node* child2 = parent->loadChild(childNum+1, _dataFile);
 
 	sdb_node* newChild = _allocateNode();
 	newChild->isLeaf =true;
@@ -876,10 +853,8 @@ template<typename KeyType, typename ValueType, typename LockType, bool fixed,
 		size_t objNo) {
 
 	size_t i = 0;
-	//sdb_node* c1 = parent->loadChild(objNo, _dataFile);
-	//sdb_node* c2 = parent->loadChild(objNo+1, _dataFile);
-	sdb_node* c1 = _loadChild(parent, objNo);
-	sdb_node* c2 = _loadChild(parent, objNo+1);
+	sdb_node* c1 = parent->loadChild(objNo, _dataFile);
+	sdb_node* c2 = parent->loadChild(objNo+1, _dataFile);
 	size_t _minDegree = _sfh.maxKeys/3;
 
 	for (i = 0; i < _minDegree - 1; i++) {
@@ -890,8 +865,7 @@ template<typename KeyType, typename ValueType, typename LockType, bool fixed,
 	if (!c2->isLeaf) {
 		for (i = 0; i < _minDegree; i++) {
 			size_t newPos = _minDegree + i;
-			//c2->loadChild(i, _dataFile);
-			_loadChild(c2, i);
+			c2->loadChild(i, _dataFile);
 			c1->children[newPos] = c2->children[i];
 			c1->children[newPos]->childNo = newPos;
 			c1->children[newPos]->parent = c1;//wps add it!
@@ -909,8 +883,7 @@ template<typename KeyType, typename ValueType, typename LockType, bool fixed,
 	for (i = objNo + 1; i < parent->objCount; i++) {
 		parent->keys[i-1] = parent->keys[i];
 		parent->values[i-1] = parent->values[i];
-		//parent->loadChild(i+1, _dataFile);
-		_loadChild(parent, i+1);
+		parent->loadChild(i+1, _dataFile);
 		parent->children[i] = parent->children[i + 1];
 		parent->children[i]->childNo = i;
 	}
@@ -997,8 +970,7 @@ template<typename KeyType, typename ValueType, typename LockType, bool fixed,
 		// the location to insert the value ...
 		else {
 			// Load the child into which the value will be inserted.
-			//sdb_node* child = node->loadChild(low, _dataFile);
-			sdb_node* child = _loadChild(node, low);
+			sdb_node* child = node->loadChild(low, _dataFile);
 
 			//If the child node is full , we will insert into its adjacent nodes, and if bothe are
 			//are full, we will split the two node to three nodes.
@@ -1011,14 +983,12 @@ template<typename KeyType, typename ValueType, typename LockType, bool fixed,
 					if (compVal> 0) {
 						++low;
 					}
-					//child = node->loadChild(low, _dataFile);
-					child = _loadChild(node, low);
+					child = node->loadChild(low, _dataFile);
 				} else {
 					sdb_node* adjNode;
 					int splitNum = low;
 					if ((size_t)low < node->objCount) {
-						//adjNode = node->loadChild(low+1, _dataFile);
-						adjNode = _loadChild(node, low+1);
+						adjNode = node->loadChild(low+1, _dataFile);
 						if (adjNode->objCount < _sfh.maxKeys) {
 
 							//case: child's last key equal inserting key
@@ -1061,8 +1031,7 @@ template<typename KeyType, typename ValueType, typename LockType, bool fixed,
 
 					//case: the right sibling is full or no right sibling
 					if (low>0) {
-						//adjNode = node->loadChild(low-1, _dataFile);
-						adjNode = _loadChild(node, low-1);
+						adjNode = node->loadChild(low-1, _dataFile);
 						//case: left sibling is no full
 						if (adjNode->objCount < _sfh.maxKeys) {
 							//cacheL child's first key equal inserting key,do nothing
@@ -1133,14 +1102,11 @@ template<typename KeyType, typename ValueType, typename LockType, bool fixed,
 					if (_comp(node->keys[splitNum+1], key) == 0)
 						return false;
 					if (_comp(key, node->keys[splitNum]) < 0) {
-						//child = node->loadChild(splitNum, _dataFile);
-						child = _loadChild(node, splitNum);
+						child = node->loadChild(splitNum, _dataFile);
 					} else if (_comp(key, node->keys[splitNum+1]) <0) {
-						//child=node->loadChild(splitNum+1, _dataFile);
-						child = _loadChild(node, splitNum+1);
+						child=node->loadChild(splitNum+1, _dataFile);
 					} else {
-						//child=node->loadChild(splitNum+2, _dataFile);
-						child = _loadChild(node, splitNum+2);
+						child=node->loadChild(splitNum+2, _dataFile);
 					}
 				}
 			}
@@ -1247,13 +1213,10 @@ template<typename KeyType, typename ValueType, typename LockType, bool fixed,
 			// Case 2: Exact match on internal leaf.
 			else {
 				// Case 2a: prior child has enough elements to pull one out.
-				//node->loadChild(op.first, _dataFile);
-				_loadChild(node, op.first);
-				//node->loadChild(op.first+1, _dataFile);
-				_loadChild(node, op.first+1);
+				node->loadChild(op.first, _dataFile);
+				node->loadChild(op.first+1, _dataFile);
 				if (node->children[op.first]->objCount >= _minDegree) {
-					//sdb_node* childNode = node->loadChild(op.first, _dataFile);
-					sdb_node* childNode = _loadChild(node, op.first);
+					sdb_node* childNode = node->loadChild(op.first, _dataFile);
 					SDBCursor locn = _findPred(childNode);
 
 					node->keys[op.first] = locn.first->keys[locn.second];
@@ -1272,9 +1235,8 @@ template<typename KeyType, typename ValueType, typename LockType, bool fixed,
 
 				// Case 2b: successor child has enough elements to pull one out.
 				else if (node->children[op.first + 1]->objCount >= _minDegree) {
-					//sdb_node* childNode = node->loadChild(op.first + 1,
-					//		_dataFile);
-					sdb_node* childNode = _loadChild(node, op.first+1);
+					sdb_node* childNode = node->loadChild(op.first + 1,
+							_dataFile);
 					SDBCursor locn = _findSucc(childNode);
 
 					node->keys[op.first] = locn.first->keys[locn.second];
@@ -1312,16 +1274,12 @@ template<typename KeyType, typename ValueType, typename LockType, bool fixed,
 			// has enough elements. If so, we just recurse into
 			// that child.
 
-			//node->loadChild(op.first, _dataFile);
-			_loadChild(node, op.first);
-			if (op.first+1<=node->objCount) {
-				//node->loadChild(op.first+1, _dataFile);
-				_loadChild(node, op.first+1);
-			}
+			node->loadChild(op.first, _dataFile);
+			if (op.first+1<=node->objCount)
+				node->loadChild(op.first+1, _dataFile);
 			size_t keyChildPos = (op.second == CCP_INLEFT) ? op.first
 					: op.first + 1;
-			//sdb_node* childNode = node->loadChild(keyChildPos, _dataFile);
-			sdb_node* childNode = _loadChild(node, keyChildPos);
+			sdb_node* childNode = node->loadChild(keyChildPos, _dataFile);
 			if (childNode->objCount >= _minDegree) {
 				node = childNode;
 				goto L0;
@@ -1334,13 +1292,11 @@ template<typename KeyType, typename ValueType, typename LockType, bool fixed,
 				size_t leftCount = 0;
 				size_t rightCount = 0;
 				if (keyChildPos> 0) {
-					//leftSib = node->loadChild(keyChildPos - 1, _dataFile);
-					leftSib = _loadChild(node, keyChildPos - 1);
+					leftSib = node->loadChild(keyChildPos - 1, _dataFile);
 					leftCount = leftSib->objCount;
 				}
 				if (keyChildPos < node->objCount) {
-					//rightSib = node->loadChild(keyChildPos + 1, _dataFile);
-					rightSib = _loadChild(node, keyChildPos + 1);
+					rightSib = node->loadChild(keyChildPos + 1, _dataFile);
 					rightCount = rightSib->objCount;
 				}
 
@@ -1651,12 +1607,11 @@ template<typename KeyType, typename ValueType, typename LockType, bool fixed,
 	if ((sdb_node*)node == 0) {
 		node = _root;
 		while ((sdb_node*)node != 0 && !node->isLeaf) {
-			//node = node->loadChild(0, _dataFile);
-			node = _loadChild(node, 0);
+			node = node->loadChild(0, _dataFile);
 		}
 		if ((sdb_node*)node == 0) {
 			return false;
-		}
+		}		
 		locn.first = node;
 		locn.second = 0;
 		return true;
@@ -1669,7 +1624,7 @@ template<typename KeyType, typename ValueType, typename LockType, bool fixed,
 	// going back up the tree.
 	if (node->isLeaf) {
 		// didn't visit the last node last time.
-		if (lastPos < node->objCount - 1) {
+		if (lastPos < node->objCount - 1) {			
 			locn.second = lastPos + 1;
 			return true;
 		}
@@ -1679,15 +1634,13 @@ template<typename KeyType, typename ValueType, typename LockType, bool fixed,
 	// Not a leaf, therefore need to worry about traversing
 	// into child nodes.
 	else {
-		//node = node->loadChild(lastPos + 1, _dataFile);//_cacheInsert(node);
-		node =_loadChild(node, lastPos + 1);//_cacheInsert(node);
+		node = node->loadChild(lastPos + 1, _dataFile);//_cacheInsert(node);
 		while ((sdb_node*)node != 0 && !node->isLeaf) {
-			//node = node->loadChild(0, _dataFile);
-			node = _loadChild(node, 0);
+			node = node->loadChild(0, _dataFile);
 		}
 		if ((sdb_node*)node == 0) {
 			return false;
-		}
+		}		
 		locn.first = node;
 		locn.second = 0;
 		return true;
@@ -1705,7 +1658,7 @@ template<typename KeyType, typename ValueType, typename LockType, bool fixed,
 		if ((sdb_node*)node != 0) {
 			locn.first = node;
 			locn.second = childNo;
-			return true;
+			return true;			
 		}
 	}
 	//reach the last locn
@@ -1733,8 +1686,7 @@ template<typename KeyType, typename ValueType, typename LockType, bool fixed,
 	if ((sdb_node*)node == 0) {
 		node = _root;
 		while ((sdb_node*)node != 0 && !node->isLeaf) {
-			//node = node->loadChild(node->objCount, _dataFile);
-			node = _loadChild(node, node->objCount);
+			node = node->loadChild(node->objCount, _dataFile);
 		}
 		if ((sdb_node*)node == 0) {
 			return false;
@@ -1743,7 +1695,7 @@ template<typename KeyType, typename ValueType, typename LockType, bool fixed,
 		locn.second = node->objCount - 1;
 
 		if (locn.second == size_t(-1) )
-			return false;
+			return false;	
 		return true;
 	}
 
@@ -1755,7 +1707,7 @@ template<typename KeyType, typename ValueType, typename LockType, bool fixed,
 	if (node->isLeaf) {
 		// didn't visit the last node last time.
 		if (lastPos> 0) {
-			locn.second = lastPos - 1;
+			locn.second = lastPos - 1;	
 			return true;
 		}
 		goUp = (lastPos == 0);
@@ -1764,18 +1716,16 @@ template<typename KeyType, typename ValueType, typename LockType, bool fixed,
 	// Not a leaf, therefore need to worry about traversing
 	// into child nodes.
 	else {
-		//node = node->loadChild(lastPos, _dataFile);
-		node = _loadChild(node, lastPos);
+		node = node->loadChild(lastPos, _dataFile);
 		while ((sdb_node*)node != 0 && !node->isLeaf) {
-			//node = node->loadChild(node->objCount, _dataFile);
-			node = _loadChild(node, node->objCount);
+			node = node->loadChild(node->objCount, _dataFile);
 		}
 		if ((sdb_node*)node == 0) {
 
 			return false;
 		}
 		locn.first = node;
-		locn.second = node->objCount - 1;
+		locn.second = node->objCount - 1;	
 		return true;
 	}
 
@@ -1791,7 +1741,7 @@ template<typename KeyType, typename ValueType, typename LockType, bool fixed,
 		}
 		if ((sdb_node*)node != 0) {
 			locn.first = node;
-			locn.second = childNo - 1;
+			locn.second = childNo - 1;			
 			return true;
 		}
 	}

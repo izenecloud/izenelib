@@ -65,7 +65,8 @@ void CollectionIndexer::addDocument(IndexerDocument* pDoc)
     map<IndexerPropertyConfig, IndexerDocumentPropertyType> propertyValueList;
     pDoc->getPropertyList(propertyValueList);
 
-    pForwardIndexWriter_->addDocument(uniqueID.docId);
+    if(pForwardIndexWriter_)
+        pForwardIndexWriter_->addDocument(uniqueID.docId);
     for (map<IndexerPropertyConfig, IndexerDocumentPropertyType>::iterator iter = propertyValueList.begin(); iter != propertyValueList.end(); ++iter)
     {
         if(!iter->first.isIndex())
@@ -86,14 +87,16 @@ void CollectionIndexer::addDocument(IndexerDocument* pDoc)
                 boost::shared_ptr<ForwardIndex> forwardIndex = boost::get<boost::shared_ptr<ForwardIndex> >(iter->second);
 
                 it->second->addField(uniqueID.docId, forwardIndex);
-				
-                pForwardIndexWriter_->addProperty(iter->first.getPropertyId(), forwardIndex);
+
+                if(pForwardIndexWriter_)
+                    pForwardIndexWriter_->addProperty(iter->first.getPropertyId(), forwardIndex);
             }
             else
             {
                 boost::shared_ptr<LAInput> laInput = boost::get<boost::shared_ptr<LAInput> >(iter->second);
                 it->second->addField(uniqueID.docId, laInput);
-                pForwardIndexWriter_->addProperty(iter->first.getPropertyId(), laInput);
+                if(pForwardIndexWriter_)
+                    pForwardIndexWriter_->addProperty(iter->first.getPropertyId(), laInput);
             }
             continue;
         }

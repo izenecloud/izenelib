@@ -199,7 +199,7 @@ void IndexWriter::mergeAndWriteCachedIndex2()
 
 void IndexWriter::justWriteCachedIndex()
 {
-///Used for MANAGER_TYPE_DATAPROCESS
+///Used for MANAGER_TYPE_CLIENTPROCESS
 ///It does not update barrel info, only flush indices to barrel "_0"
     pBarrelsInfo_->write(pIndexer_->getDirectory());
     pCurBarrelInfo_ = pBarrelsInfo_->getLastBarrel();
@@ -222,7 +222,7 @@ void IndexWriter::indexDocument(IndexerDocument* pDoc)
         createBarrelWriter();
     if (pIndexBarrelWriter_->cacheFull())
     {
-         if(pIndexer_->getIndexerType() == MANAGER_TYPE_DATAPROCESS)
+         if(pIndexer_->getIndexerType() == MANAGER_TYPE_CLIENTPROCESS)
             justWriteCachedIndex();
         else
             ///merge index
