@@ -857,6 +857,8 @@ public:
 
 		delete [] bucketAddr;
 		bucketAddr = 0;
+		delete [] entry_;
+		entry_ = 0;
 		fclose(dataFile_);
 		dataFile_ = 0;
 		return true;

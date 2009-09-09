@@ -301,10 +301,10 @@ template<typename T> void seq_test(T& tb) {
 template<typename T> void run(T& tb) {
 	if (rnd == 0) {
 		insert_test(tb);
-		search_test(tb);
-		seq_test(tb);
-		delete_test(tb);
-		seq_test(tb);
+//	search_test(tb);
+//		seq_test(tb);
+//		delete_test(tb);
+//		seq_test(tb);
 	} else {
 		seq_test(tb);
 	}
