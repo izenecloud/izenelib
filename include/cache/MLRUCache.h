@@ -47,21 +47,28 @@ template <class KeyType, class ValueType, class Hash=izenelib::am::LinearHashTab
 		//}
 	};
 	typedef _CachedData<ValueType> CachedData;
-	//typedef ExtendibleHash<KeyType, CachedData, NullLock> extHash;
-	typedef izenelib::am::LinearHashTable<KeyType, CachedData, NullLock> linHash;	
-	//typedef izenelib::am::CCCR_StrHashTable<KeyType, CachedData, 8192*16> cccrHash;
-	typedef izenelib::am::cccr_hash<KeyType, CachedData> cccrHash;
-	//typedef izenelib::am::DataType<KeyType,ValueType> DataType;
+    //typedef ExtendibleHash<KeyType, CachedData, NullLock> extHash;
+    typedef izenelib::am::LinearHashTable<KeyType, CachedData, NullLock> linHash;	
+    //typedef izenelib::am::CCCR_StrHashTable<KeyType, CachedData, 8192*16> cccrHash;
+    typedef izenelib::am::cccr_hash<KeyType, CachedData> cccrHash;
+    //typedef izenelib::am::DataType<KeyType,ValueType> DataType;
+    
 public:
-	/**
-	 *  \brief Constuctor1: default fileName for fileHash of Hash_ is "./index.dat".
-	 */
-	MLRUCache(unsigned int cacheSize=1000) :
-		hash_(cacheSize, 1.0), startingTime_(time(0)), nTotal_(0), nHit_(0),
-				hitRatio_(0.0), workload_(0.0) {
-		cacheSize_ = cacheSize;
-		//	isArchive_ = 0;
-	} //CacheExtHash with ratio = 1.0.
+    /**
+     *  \brief Constuctor1: default fileName for fileHash of Hash_ is "./index.dat".
+     */
+    MLRUCache(unsigned int cacheSize=1000) :
+        hash_(cacheSize, 1.0), startingTime_(time(0)), nTotal_(0), nHit_(0), hitRatio_(0.0), workload_(0.0) 
+            {
+                cacheSize_ = cacheSize;
+                //	isArchive_ = 0;
+            } //CacheExtHash with ratio = 1.0.
+
+    MLRUCache(const MLRUCache& obj) :
+        hash_(obj.hash_), startingTime_(obj.startingTime_), nTotal_(obj.nTotal_), nHit_(obj.nHit_),
+        hitRatio_(obj.hitRatio_), workload_(obj.workload_), cacheSize_( obj.cacheSize_ )
+        {
+        }
 
 	unsigned int getCacheSize() {
 		return cacheSize_;
@@ -212,7 +219,8 @@ private:
 	
 
 	void evict_();//evict the oldest items.		
-};
+
+}; // end - class MLRUCache
 
 /**
  *  	\brief Get an item from MCache

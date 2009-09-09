@@ -72,7 +72,7 @@ int main(int argc, char** argv)
     IndexManagerConfig indexManagerConfig = parser.getIndexManagerConfig();
     collectionIdMapping.insert(pair<string, uint32_t>("coll1", 1));
 
-    Indexer indexer(MANAGER_TYPE_INDEXPROCESS);
+    Indexer indexer(MANAGER_TYPE_SERVERPROCESS);
     display(indexManagerConfig);
     indexer.setIndexManagerConfig(&indexManagerConfig, collectionIdMapping);
 
