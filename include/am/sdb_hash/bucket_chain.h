@@ -70,6 +70,10 @@ public:
 			str = 0;
 		}*/			
 		unload();
+		if(next){
+			delete next;
+			next = 0;
+		}
 		isLoaded = false;		
 	}
 

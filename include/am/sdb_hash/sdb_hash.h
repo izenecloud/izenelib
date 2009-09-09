@@ -87,9 +87,6 @@ public:
 			izs1.write_image(ptr1, vsize_);
 		}
 
-		BucketGap = fixed ? ksize_+vsize_+sizeof(long)+sizeof(int) :
-		ksize_+vsize_ + sizeof(long)+sizeof(int) +3*sizeof(size_t);
-
 	}
 
 	/**
@@ -212,7 +209,8 @@ public:
 			else
 			{
 				assert(locn.second != NULL);
-				//size_t gap = sizeof(long)+sizeof(int)+ksize+vsize+2*sizeof(size_t);
+				BucketGap = fixed? ksize_+vsize_ + sizeof(long)+sizeof(int)+sizeof(size_t):
+				ksize+vsize + sizeof(long)+sizeof(int) +3*sizeof(size_t);
 
 				//add an extra size_t to indicate if reach the end of  bucket_chain.
 				if ( size_t(p - sa->str)> sfh_.bucketSize-BucketGap ) {
@@ -480,6 +478,14 @@ public:
 		uint32_t idx = sdb_hashing::hash_fun(ptr, ksize) & dmask_;
 		locn.first = entry_[idx];
 
+		if( !entry_[idx] )
+		{
+			if( bucketAddr[idx] != 0 ) {
+				entry_[idx] = new bucket_chain(sfh_.bucketSize, fileLock_);
+				entry_[idx] ->fpos = bucketAddr[idx];
+			}
+		}
+
 		if (entry_[idx] == NULL) {
 			return false;
 		} else {
@@ -556,6 +562,13 @@ public:
 		SDBCursor locn;
 		for(size_t i=0; i<directorySize_; i++)
 		{
+			if( !entry_[i] )
+			{
+				if( bucketAddr[i] != 0 ) {
+					entry_[i] = new bucket_chain(sfh_.bucketSize, fileLock_);
+					entry_[i] ->fpos = bucketAddr[i];
+				}
+			}
 			if( entry_[i] )
 			{
 				load_( entry_[i] );
@@ -565,8 +578,8 @@ public:
 			}
 		}
 		KeyType key;
-		ValueType value;		
-		while( !get(locn, key, value) ) {		
+		ValueType value;
+		while( !get(locn, key, value) ) {
 			seq(locn);
 		}
 		return locn;
@@ -635,8 +648,15 @@ public:
 		return seq(locn, dat.key, dat.value, sdir);
 	}
 
-	bool isEmptyBucket_(bucket_chain* entry, bucket_chain* &sa) {
-		sa = entry;
+	bool isEmptyBucket_(uint32_t idx, bucket_chain* &sa) {
+		if( !entry_[idx] )
+		{
+			if( bucketAddr[idx] != 0 ) {
+				entry_[idx] = new bucket_chain(sfh_.bucketSize, fileLock_);
+				entry_[idx] ->fpos = bucketAddr[idx];
+			}
+		}
+		sa = entry_[idx];
 		load_(sa);
 		while(sa && sa->num <= 0) {
 			sa = loadNext_(sa);
@@ -654,9 +674,9 @@ public:
 			if(sa == NULL)return false;
 			if(p == NULL)return false;
 
-			char* ptr = 0 ;
+			char* ptr = 0;
 			size_t poff = 0;
-	
+
 			while(true) {
 
 				if(!fixed) {
@@ -684,9 +704,10 @@ public:
 							p = sa->str;
 						}
 						else
-						{						
-							uint32_t idx = sdb_hashing::hash_fun(ptr, poff) & dmask_;							
-							while( isEmptyBucket_( entry_[++idx], sa ) ) {								
+						{
+							uint32_t idx = sdb_hashing::hash_fun(ptr, poff) & dmask_;
+
+							while( isEmptyBucket_(++idx, sa ) ) {
 								if( idx >= directorySize_-1 )
 								break;
 							}
@@ -695,7 +716,7 @@ public:
 							else
 							p = NULL;
 						}
-					}				
+					}
 
 				} else {
 					ptr = p;
@@ -709,7 +730,7 @@ public:
 					if( (unsigned int)(p-locn.first->str) >= (unsigned int)(locn.first->num)*(ksize_ + vsize_) )
 					{
 						sa = loadNext_(sa);
-						while( sa && sa->num <= 0) {						
+						while( sa && sa->num <= 0) {
 							sa = loadNext_(sa);
 						}
 						if( sa ) {
@@ -718,15 +739,15 @@ public:
 						else
 						{
 							uint32_t idx = sdb_hashing::hash_fun(ptr, poff) & dmask_;
-							while( isEmptyBucket_( entry_[++idx], sa ) ) {								
+							while( isEmptyBucket_(+idx, sa ) ) {
 								if( idx >= directorySize_-1 )
 								break;
 							}
-							
+
 							//get next bucket;
 							//sa = entry_[idx];							
 							if( sa )
-								p = sa->str;				
+							p = sa->str;
 							else
 							p = NULL;
 						}
@@ -828,6 +849,7 @@ public:
 	 */
 	bool close()
 	{
+		isOpen_ = false;
 		flush();
 
 		delete [] bucketAddr;
@@ -910,21 +932,11 @@ public:
 	void unload_() {
 		for (size_t i=0; i<directorySize_; i++) {
 			if (entry_[i]) {
-				//bucket_chain* sc = entry_[i]->next;
-				bucket_chain* sc = entry_[i];
-				bucket_chain* sa = 0;
-				while (sc) {
-					sa = sc->next;
-					if (sc) {
-						if (sc->unload())
-						--activeNum_;
-						//delete sc;
-						//sc = 0;
-					}
-					sc = sa;
-				}
+				delete entry_[i];
+				entry_[i] = 0;				
 			}
 		}
+		activeNum_ = 0;
 
 	}
 	/**

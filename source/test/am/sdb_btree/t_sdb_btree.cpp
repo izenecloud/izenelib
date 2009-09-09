@@ -271,6 +271,19 @@ template<typename T> void dump_test(T& tb) {
 }
 
 
+template<typename T> void open_test(T& tb) {
+
+  tb.open();
+  insert_test(tb);
+  tb.close();
+  tb.open();
+  insert_test(tb);
+  tb.close();
+  tb.open();
+  tb.close();
+}
+
+
 template<typename T> void run(T& tb) {
 	//search_test(tb);
 	if (rnd) {
@@ -354,7 +367,9 @@ int main(int argc, char *argv[]) {
 		tb.setMaxKeys(maxKeys);
 		tb.setPageSize(pageSize);
 		tb.setCacheSize(cacheSize);
-		tb.open();
+		open_test(tb);
+		
+		tb.open();		
 		run(tb);
 
 	}

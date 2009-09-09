@@ -12,6 +12,7 @@
 #include <am/sdb_hash/sdb_fixedhash.h>
 #include <am/sdb_btree/sdb_btree.h>
 #include <am/tokyo_cabinet/tc_hash.h>
+#include <am/sdb_storage/sdb_storage.h>
 
 /*#ifdef EXTERNAL_TOKYO_CABINET
  #include <am/tokyo_cabinet/tc_hash.h>
@@ -44,8 +45,8 @@ namespace sdb {
 template<
 		typename KeyType =string,
 		typename ValueType=NullType,
-		typename LockType =NullLock,		
-		typename ContainerType=izenelib::am::sdb_btree<KeyType, ValueType, LockType>,		
+		typename LockType =NullLock,
+		typename ContainerType=izenelib::am::sdb_btree<KeyType, ValueType, LockType>,
 		typename Alloc=std::allocator<DataType<KeyType,ValueType> > > class SequentialDB {
 public:
 	//typedef DataType<KeyType, ValueType> DataType;
@@ -226,17 +227,16 @@ public:
 	 *  \locn when locn is default value, it will start with firt element when sdri=ESD_FORWARD
 	 *   and start with last element when sdir = ESD_BACKWARD
 	 */
-	bool seq(SDBCursor& locn, KeyType& key, ValueType& value, ESeqDirection sdir=ESD_FORWARD)
-	{
-	    bool ret = seq(locn);
-	    get(locn, key, value);
-	    return ret;
+	bool seq(SDBCursor& locn, KeyType& key, ValueType& value,
+			ESeqDirection sdir=ESD_FORWARD) {
+		bool ret = seq(locn);
+		get(locn, key, value);
+		return ret;
 	}
-	bool seq(SDBCursor& locn, DataType<KeyType, ValueType>& dat, ESeqDirection sdir=ESD_FORWARD)
-    {
+	bool seq(SDBCursor& locn, DataType<KeyType, ValueType>& dat,
+			ESeqDirection sdir=ESD_FORWARD) {
 		return seq(locn, dat.key, dat.value, sdir);
-    }
-
+	}
 
 	bool seq(SDBCursor& locn, ESeqDirection sdir = ESD_FORWARD) {
 		return container_.seq(locn, sdir);
@@ -657,6 +657,17 @@ public:
 };
 
 template< typename KeyType =string, typename ValueType=NullType,
+		typename LockType =NullLock > class unordered_sdb_tc :
+	public SequentialDB<KeyType, ValueType, LockType, tc_hash<KeyType, ValueType, LockType> > {
+public:
+	unordered_sdb_tc(const string& sdbname) :
+		SequentialDB<KeyType, ValueType, LockType,
+				tc_hash<KeyType, ValueType, LockType> >(sdbname) {
+
+	}
+};
+
+template< typename KeyType =string, typename ValueType=NullType,
 		typename LockType =NullLock > class unordered_sdb :
 	public SequentialDB<KeyType, ValueType, LockType, sdb_hash<KeyType, ValueType, LockType> > {
 public:
@@ -685,6 +696,29 @@ public:
 	ordered_sdb(const string& sdbname) :
 		SequentialDB<KeyType, ValueType, LockType,
 				sdb_btree<KeyType, ValueType, LockType> >(sdbname) {
+
+	}
+};
+
+template< typename KeyType =string, typename ValueType=NullType,
+		typename LockType =NullLock > class ordered_sdb_storage :
+	public SequentialDB<KeyType, ValueType, LockType, sdb_storage<KeyType, ValueType, LockType> > {
+public:
+	ordered_sdb_storage(const string& sdbname) :
+		SequentialDB<KeyType, ValueType, LockType,
+				sdb_storage<KeyType, ValueType, LockType> >(sdbname) {
+
+	}
+};
+
+template< typename KeyType =string, typename ValueType=NullType,
+		typename LockType =NullLock > class unordered_sdb_storage :
+	public SequentialDB<KeyType, ValueType, LockType, sdb_storage<KeyType, ValueType, LockType,
+		sdb_hash<KeyType, unsigned, NullLock> > > {
+public:
+	unordered_sdb_storage(const string& sdbname) :
+		SequentialDB<KeyType, ValueType, LockType,
+				sdb_storage<KeyType, ValueType, LockType> >(sdbname) {
 
 	}
 };

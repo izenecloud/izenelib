@@ -238,6 +238,11 @@ public:
 	 *   @param sdir is sequential access direction, for hash is unordered, we only implement forward case.
 	 *   
 	 */
+	bool seq(SDBCursor& locn, ESeqDirection sdir=ESD_FORWARD)
+	{	
+		return keyHash_.seq(locn,  sdir);
+	}
+	
 	bool seq(SDBCursor& locn, KeyType& key, ESeqDirection sdir=ESD_FORWARD)
 	{
 		unsigned int npos;
@@ -387,7 +392,7 @@ private:
 		return true;
 	}
 
-	inline bool readValue_(unsigned npos, ValueType& val) {
+	inline bool readValue_(unsigned int npos, ValueType& val) {
 		if ( 0 != fseek(dataFile_, npos*ssh_.pageSize+sizeof(SsHeader), SEEK_SET) )
 		return false;
 

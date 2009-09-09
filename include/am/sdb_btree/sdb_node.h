@@ -402,7 +402,7 @@ template<typename KeyType, typename ValueType, typename LockType, bool fixed,
 			size_t esize = objCount*(sizeof(KeyType) + sizeof(ValueType));
 			if (tsz + esize > _pageSize ) {				
 				if ( !povfl) {
-					cout<<"read overflowaddress="<<_overflowAddress<<" | "<<_overflowPageCount<<endl;
+					//cout<<"read overflowaddress="<<_overflowAddress<<" | "<<_overflowPageCount<<endl;
 
 					povfl = new char[_pageSize*_overflowPageCount];
 					if (0 != fseek(f, _overflowAddress, SEEK_SET)) {
