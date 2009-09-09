@@ -27,8 +27,8 @@ typedef int KeyType;
 typedef float ValueType;
 typedef izenelib::am::DataType<KeyType, ValueType> DataType;
 typedef izenelib::am::DataType<KeyType, ValueType> myDataType;
-typedef izenelib::am::sdb_hash<KeyType, ValueType> SDB_HASH;
-//typedef izenelib::am::sdb_fixedhash<KeyType, ValueType> SDB_HASH;
+//typedef izenelib::am::sdb_hash<KeyType, ValueType> SDB_HASH;
+typedef izenelib::am::sdb_fixedhash<KeyType, ValueType> SDB_HASH;
 
 template<typename T> void validate_test(T& tb) {
 
