@@ -12,6 +12,8 @@
 // #include <am/btree/BTreeFile.h>
 // #include <am/skip_list_file/SkipListFile.h>
 
+#include <cstdio>
+
 #include "TestDir.h"
 #define DIR_PREFIX TEST_TMP_DIR "/am_OpenClose_"
 

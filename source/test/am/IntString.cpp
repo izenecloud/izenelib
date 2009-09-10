@@ -17,6 +17,7 @@
 // #include <am/skip_list/skip_list.hpp>
 
 #include <string>
+#include <cstdio>
 
 #include "TestDir.h"
 #define DIR_PREFIX TEST_TMP_DIR "/am_IntString_"
