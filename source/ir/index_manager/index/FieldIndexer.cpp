@@ -154,7 +154,9 @@ fileoffset_t FieldIndexer::write(OutputDescriptor* pWriterDesc)
 
             termCount++;
         }
+        delete pPosting;
     }
+    postingMap_.clear();
 
     fileoffset_t vocDescOffset = pVocWriter->getFilePointer();
     int64_t vocLength = vocDescOffset - vocOffset;
