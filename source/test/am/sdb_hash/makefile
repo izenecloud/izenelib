@@ -19,7 +19,7 @@ AM_OBJ := t_am.o
 AM_OBJ1 := t_am1.o
  
 
-all: t_am  t_sh  t_sdb_hash t_am1
+all:  t_sh  t_sdb_hash t_am1
 
 .cpp.o:
 	$(GPP) $(CC_OPTIONS) $(INC_PATH)  $< 

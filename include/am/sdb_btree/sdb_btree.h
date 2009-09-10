@@ -171,6 +171,7 @@ public:
 	 *    if we don't call it, it will be automately called in deconstructor
 	 */
 	bool close() {
+		_isOpen = false;
 		flush();
 		//note that _root can be  NULL, if there is no items.
 		if (_root) {
