@@ -262,6 +262,44 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(Three_GetNext_test, T, test_types)
     BOOST_CHECK(fetchedData == data);
 }
 
+BOOST_AUTO_TEST_CASE_TEMPLATE(Three_Range_test, T, test_types)
+{
+    std::remove(DIR_PREFIX "Three_Range_test");
+    T h(DIR_PREFIX "Three_Range_test");
+    BOOST_CHECK(h.open());
+
+    fill3(h);
+
+    std::map<std::string, std::string> fetchedData;
+
+    typename T::range_type range;
+    for (h.all(range); !range.empty(); range.popFront())
+    {
+        fetchedData[range.frontKey()] = range.frontValue();
+    }
+
+    BOOST_CHECK(fetchedData == data);
+}
+
+BOOST_AUTO_TEST_CASE_TEMPLATE(Three_InternalRange_test, T, test_types)
+{
+    std::remove(DIR_PREFIX "Three_InternalRange_test");
+    T h(DIR_PREFIX "Three_InternalRange_test");
+    BOOST_CHECK(h.open());
+
+    fill3(h);
+
+    std::map<std::string, std::string> fetchedData;
+
+    typename T::internal_range_type range;
+    for (h.internalAll(range); !range.empty(); range.popFront())
+    {
+        fetchedData[range.frontKey()] = range.frontValue();
+    }
+
+    BOOST_CHECK(fetchedData == data);
+}
+
 BOOST_AUTO_TEST_CASE_TEMPLATE(InitNotExisted_test, T, test_types)
 {
     std::remove(DIR_PREFIX "InitNotExisted_test");
