@@ -8,7 +8,7 @@
 #include <am/sdb_hash/sdb_hash.h>
 #include <am/sdb_btree/sdb_btree.h>
 #include <am/sdb_storage/sdb_storage.h>
-#include <am/btree/BTreeFile.h>
+// #include <am/btree/BTreeFile.h>
 // #include <am/skip_list_file/SkipListFile.h>
 #include <am/cccr_hash/cccr_hash.h>
 // #include <am/dynamic_perfect_hash/dynamic_perfect_hash.hpp>
@@ -25,11 +25,11 @@ using namespace izenelib::am;
 
 typedef boost::mpl::list<
     tc::Hash<int, std::string>
-    // , tc::BTree<int, std::string>
+    , tc::BTree<int, std::string>
     , tc::BTree<int, std::string, tc::BTreeLessCmp<int> >
     , sdb_hash<int, std::string>
     , sdb_btree<int, std::string>
-    , BTreeFile<int, std::string>
+    //, BTreeFile<int, std::string>
     //, cccr_hash<int, std::string>
     //, sdb_storage<int, std::string>
     //, SkipListFile<int, std::string>
