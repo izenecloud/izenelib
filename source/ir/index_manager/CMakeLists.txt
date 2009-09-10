@@ -18,6 +18,7 @@ IF(wiselib_FOUND AND Boost_FOUND)
     ${Boost_INCLUDE_DIRS}
     ${CMAKE_SOURCE_DIR}/include/3rdparty/am
     ${wiselib_INCLUDE_DIRS}
+	${Glog_INCLUDE_DIRS}
     )
 
   ADD_DEFINITIONS("-fPIC -DUDT3")
