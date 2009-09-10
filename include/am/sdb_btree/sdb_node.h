@@ -678,7 +678,7 @@ template<typename KeyType, typename ValueType, typename LockType, bool fixed,
 		if ( !isLeaf) {
 			for (size_t i=0; i<objCount+1; i++) {
 				if (children[i]) {
-					children[i]->unload();
+					//children[i]->unload();
 					if (children[i]) {
 						delete children[i];
 						children[i] = 0;
