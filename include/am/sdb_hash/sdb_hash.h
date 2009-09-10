@@ -84,7 +84,7 @@ public:
 			izene_serialization<KeyType> izs(key );
 			izene_serialization<ValueType> izs1( val );
 			izs.write_image(ptr, ksize_);
-			izs1.write_image(ptr1, vsize_);			
+			izs1.write_image(ptr1, vsize_);	
 			BucketGap = ksize_+vsize_ + sizeof(long)+sizeof(int)+sizeof(size_t);
 							
 
@@ -212,8 +212,8 @@ public:
 			else
 			{
 				assert(locn.second != NULL);
-				BucketGap = fixed? ksize_+vsize_ + sizeof(long)+sizeof(int)+sizeof(size_t):
-				ksize+vsize + sizeof(long)+sizeof(int) +3*sizeof(size_t);
+				if( !fixed )
+					BucketGap =	ksize+vsize + sizeof(long)+sizeof(int) +3*sizeof(size_t);
 
 				//add an extra size_t to indicate if reach the end of  bucket_chain.
 				if ( size_t(p - sa->str)> sfh_.bucketSize-BucketGap ) {
@@ -277,7 +277,9 @@ public:
 				isd.read_image(*pval);
 			}
 			else {
-				memcpy(pval, p+ksize_, vsize_);
+				//memcpy(pval, p+ksize_, vsize_);
+				izene_deserialization<ValueType> isd(p+ksize_, vsize_);
+				isd.read_image(*pval);
 			}
 			return pval;
 		}
@@ -300,7 +302,9 @@ public:
 				izene_deserialization<ValueType> isd(p+ksz, vsz);
 				isd.read_image(value);
 			} else {
-				memcpy(&value, p+ksize_, vsize_);
+				izene_deserialization<ValueType> isd(p+ksize_, vsize_);
+				isd.read_image(value);
+				//memcpy(&value, p+ksize_, vsize_);
 			}
 			return true;
 		}
@@ -621,10 +625,14 @@ public:
 			p += vsize;
 
 		} else {
-			memcpy(&key, p, ksize_ );
+			//memcpy(&key, p, ksize_ );
+			izene_deserialization<KeyType> izs(p, ksize_);
+			izs.read_image(key);
 			p += ksize_;
 
-			memcpy(&val, p, vsize_ );
+			//memcpy(&val, p, vsize_ );
+			izene_deserialization<ValueType> izs1(p, vsize_);
+			izs1.read_image(val);
 			p += vsize_;
 		}
 

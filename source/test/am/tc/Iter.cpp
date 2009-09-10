@@ -281,18 +281,18 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(Three_Range_test, T, test_types)
     BOOST_CHECK(fetchedData == data);
 }
 
-BOOST_AUTO_TEST_CASE_TEMPLATE(Three_InternalRange_test, T, test_types)
+BOOST_AUTO_TEST_CASE_TEMPLATE(Three_ExclusiveRange_test, T, test_types)
 {
-    std::remove(DIR_PREFIX "Three_InternalRange_test");
-    T h(DIR_PREFIX "Three_InternalRange_test");
+    std::remove(DIR_PREFIX "Three_ExclusiveRange_test");
+    T h(DIR_PREFIX "Three_ExclusiveRange_test");
     BOOST_CHECK(h.open());
 
     fill3(h);
 
     std::map<std::string, std::string> fetchedData;
 
-    typename T::internal_range_type range;
-    for (h.internalAll(range); !range.empty(); range.popFront())
+    typename T::exclusive_range_type range;
+    for (h.exclusiveAll(range); !range.empty(); range.popFront())
     {
         fetchedData[range.frontKey()] = range.frontValue();
     }

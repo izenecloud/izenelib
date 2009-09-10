@@ -4,7 +4,7 @@
  * @file am/tc/Hash.h
  * @author Ian Yang
  * @date Created <2009-09-06 23:37:24>
- * @date Updated <2009-09-08 11:06:20>
+ * @date Updated <2009-09-10 10:37:58>
  * @brief TokyoCabinet Hash DB wrapper
  */
 
@@ -35,7 +35,7 @@ public:
 
     typedef raw::Hash raw_am_type;
 
-    typedef IterNextRange<self_type> internal_range_type;
+    typedef IterNextRange<self_type> exclusive_range_type;
     typedef GetNextRange<self_type> range_type;
 
     enum {
@@ -240,7 +240,7 @@ public:
     {
         range.attach(*this);
     }
-    void internalAll(internal_range_type& range)
+    void exclusiveAll(exclusive_range_type& range)
     {
         range.attach(*this);
     }

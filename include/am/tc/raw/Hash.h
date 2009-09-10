@@ -4,7 +4,7 @@
  * @file am/tc/raw/Hash.h
  * @author Ian Yang
  * @date Created <2009-09-02 14:11:06>
- * @date Updated <2009-09-08 13:08:21>
+ * @date Updated <2009-09-10 10:37:42>
  * @brief Raw AM wrapper of tokyo cabinet hash database, which only can store
  * izenelib::am::raw::Buffer
  */
@@ -33,7 +33,7 @@ public:
     typedef DataType<Buffer, Buffer> data_type;
     typedef int size_type;
 
-    typedef IterNextRange<Hash> internal_range_type;
+    typedef IterNextRange<Hash> exclusive_range_type;
     typedef GetNextRange<Hash> range_type;
 
     enum {
@@ -393,7 +393,7 @@ public:
     {
         range.attach(*this);
     }
-    void internalAll(internal_range_type& range)
+    void exclusiveAll(exclusive_range_type& range)
     {
         range.attach(*this);
     }
