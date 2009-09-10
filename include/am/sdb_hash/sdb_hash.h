@@ -84,9 +84,9 @@ public:
 			izene_serialization<KeyType> izs(key );
 			izene_serialization<ValueType> izs1( val );
 			izs.write_image(ptr, ksize_);
-			izs1.write_image(ptr1, vsize_);	
+			izs1.write_image(ptr1, vsize_);
 			BucketGap = ksize_+vsize_ + sizeof(long)+sizeof(int)+sizeof(size_t);
-							
+
 
 		}
 
@@ -183,7 +183,7 @@ public:
 			izs.write_image(ptr, ksize);
 			izs1.write_image(ptr1, vsize);
 
-			/*if(! fixed ) {			
+			/*if(! fixed ) {
 			 izs.write_image(ptr, ksize);
 			 izs1.write_image(ptr1, vsize);
 
@@ -601,7 +601,6 @@ public:
 
 	bool get(const SDBCursor& locn, KeyType& key, ValueType& val)
 	{
-
 		bucket_chain* sa = locn.first;
 		char* p = locn.second;
 
@@ -660,6 +659,12 @@ public:
 	}
 
 	bool isEmptyBucket_(uint32_t idx, bucket_chain* &sa) {
+	    if(idx >= directorySize_)
+	    {
+            sa = NULL;
+            return false;
+	    }
+
 		if( !entry_[idx] )
 		{
 			if( bucketAddr[idx] != 0 ) {
@@ -719,8 +724,9 @@ public:
 							uint32_t idx = sdb_hashing::hash_fun(ptr, poff) & dmask_;
 
 							while( isEmptyBucket_(++idx, sa ) ) {
-								if( idx >= directorySize_-1 )
-								break;
+								if( idx >= directorySize_ -1) {
+								    break;
+								}
 							}
 
 							if( sa ) p = sa->str;
@@ -751,12 +757,13 @@ public:
 						{
 							uint32_t idx = sdb_hashing::hash_fun(ptr, poff) & dmask_;
 							while( isEmptyBucket_(++idx, sa ) ) {
-								if( idx >= directorySize_-1 )
-								break;
+								if( idx >= directorySize_ -1) {
+								    break;
+								}
 							}
 
 							//get next bucket;
-							//sa = entry_[idx];							
+							//sa = entry_[idx];
 							if( sa )
 							p = sa->str;
 							else
@@ -946,7 +953,7 @@ public:
 		for (size_t i=0; i<directorySize_; i++) {
 			if (entry_[i]) {
 				delete entry_[i];
-				entry_[i] = 0;				
+				entry_[i] = 0;
 			}
 		}
 		activeNum_ = 0;
