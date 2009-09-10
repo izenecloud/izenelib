@@ -5,6 +5,7 @@
 #include <cstdio>
 
 #include <am/tc/raw/Hash.h>
+#include <am/tc/raw/BTree.h>
 
 #include "TestDir.h"
 #define DIR_PREFIX TEST_TMP_DIR "/am_tc_raw_Db_"
@@ -12,7 +13,7 @@
 using namespace boost::unit_test;
 using namespace izenelib::am::tc::raw;
 
-typedef boost::mpl::list<Hash> test_types;
+typedef boost::mpl::list<Hash, BTree> test_types;
 
 BOOST_AUTO_TEST_SUITE(tc_raw_Db_test)
 
@@ -102,6 +103,7 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(InsertGet_test, T, test_types)
 
 BOOST_AUTO_TEST_CASE_TEMPLATE(GetFromEmtpy_test, T, test_types)
 {
+    std::remove(DIR_PREFIX "GetFromEmtpy_test");
     T h(DIR_PREFIX "GetFromEmtpy_test");
     BOOST_CHECK(h.open());
 
@@ -232,6 +234,7 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(Exist_test, T, test_types)
 
 BOOST_AUTO_TEST_CASE_TEMPLATE(EmptyNotExist_test, T, test_types)
 {
+    std::remove(DIR_PREFIX "EmptyNotExist_test");
     T h(DIR_PREFIX "EmptyNotExist_test");
     BOOST_CHECK(h.open());
 
