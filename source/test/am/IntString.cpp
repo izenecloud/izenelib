@@ -4,6 +4,7 @@
 #include <boost/shared_ptr.hpp>
 
 #include <am/tc/Hash.h>
+#include <am/tc/BTree.h>
 #include <am/sdb_hash/sdb_hash.h>
 #include <am/sdb_btree/sdb_btree.h>
 #include <am/sdb_storage/sdb_storage.h>
@@ -24,6 +25,8 @@ using namespace izenelib::am;
 
 typedef boost::mpl::list<
     tc::Hash<int, std::string>
+    // , tc::BTree<int, std::string>
+    , tc::BTree<int, std::string, tc::BTreeLessCmp<int> >
     , sdb_hash<int, std::string>
     , sdb_btree<int, std::string>
     , BTreeFile<int, std::string>
