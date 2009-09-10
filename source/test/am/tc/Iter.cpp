@@ -5,6 +5,7 @@
 #include <am/tc/Hash.h>
 
 #include <string>
+#include <cstdio>
 
 #include "TestDir.h"
 #define DIR_PREFIX TEST_TMP_DIR "/am_tc_Iter_"
