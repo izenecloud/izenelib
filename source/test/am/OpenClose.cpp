@@ -9,8 +9,10 @@
 #include <am/sdb_storage/sdb_storage.h>
 
 #include <am/dynamic_perfect_hash/dynamic_perfect_hash.hpp>
-#include <am/btree/BTreeFile.h>
+// #include <am/btree/BTreeFile.h>
 // #include <am/skip_list_file/SkipListFile.h>
+
+#include <cstdio>
 
 #include "TestDir.h"
 #define DIR_PREFIX TEST_TMP_DIR "/am_OpenClose_"

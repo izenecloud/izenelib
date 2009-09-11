@@ -100,17 +100,19 @@ public:
 			memcpy(&dat[0], ptr_, size_);
 		}else{
 			dat.clear();
-		}		
+		}
 	}
 };
 
 template<> class izene_serialization_memcpy<izenelib::am::NullType> {
+    const char* ptr_;
 public:
-	izene_serialization_memcpy(const izenelib::am::NullType& dat) {
+	izene_serialization_memcpy(const izenelib::am::NullType& dat)
+        : ptr_(reinterpret_cast<const char*>(&dat)) {
 
 	}
 	void write_image(char* &ptr, size_t& size) {
-		ptr = 0;
+		ptr = const_cast<char*>(ptr_);
 		size = 0;
 	}
 };
@@ -132,9 +134,9 @@ public:
 		dat_(dat) {
 
 	}
-	void write_image(char* &ptr, size_t& size) {	
+	void write_image(char* &ptr, size_t& size) {
 			ptr = (char*)&dat_;
-			size = sizeof(dat_);		
+			size = sizeof(dat_);
 	}
 };
 
@@ -146,9 +148,9 @@ public:
 		ptr_(ptr), size_(size) {
 
 	}
-	void read_image(std::pair<T1, T2 >& dat) {	
+	void read_image(std::pair<T1, T2 >& dat) {
 		memcpy(&dat, ptr_, size_);
-		
+
 	}
 };
 
@@ -162,7 +164,7 @@ public:
 	}
 	void write_image(char* &ptr, size_t& size) {
 		ptr = (char*)&dat_;
-		size = sizeof(dat_);	
+		size = sizeof(dat_);
 	}
 };
 
@@ -189,7 +191,7 @@ public:
 	}
 	void write_image(char* &ptr, size_t& size) {
 		ptr = (char*)&dat_;
-		size = sizeof(dat_);	
+		size = sizeof(dat_);
 	}
 };
 
@@ -286,7 +288,7 @@ MAKE_MEMCPY(unsigned long)
 #if LONGLONG_EXISTS
 MAKE_MEMCPY(signed long long)
 MAKE_MEMCPY(unsigned long long)
-#endif 
+#endif
 
 MAKE_MEMCPY(float)
 

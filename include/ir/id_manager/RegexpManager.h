@@ -365,9 +365,12 @@ protected:
                 // skip records already in Trie
                 if( line >= skip )
                 {
-                    key = buffer;
-                    iin.read((char*)&id, sizeof(NameID));
-                    handler_->insert(key, id);
+                    if(buffer.size() > 0)
+                    {
+                        key = buffer;
+                        iin.read((char*)&id, sizeof(NameID));
+                        handler_->insert(key, id);
+                    }
                 }
                 line++;
             }

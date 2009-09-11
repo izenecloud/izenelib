@@ -616,6 +616,8 @@ public:
 
     bool insert(const StringType& key, const UserDataType& value)
     {
+        if(0 == key.length())
+            return false;
         CharType* chArray = (CharType*)key.c_str();
         size_t chCount = key.length();
         std::vector<CharType> chVector(chArray, chArray+chCount);

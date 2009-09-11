@@ -11,6 +11,7 @@ IF (Boost_FOUND AND Boost_UNIT_TEST_FRAMEWORK_FOUND AND Boost_SERIALIZATION_FOUN
       Runner.cpp
       
       IntString.cpp
+      IntNull.cpp
       OpenClose.cpp
 
       raw/Buffer.cpp

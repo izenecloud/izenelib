@@ -34,6 +34,7 @@ void startThread()
 
 void mapStage()
 {
+    std::cerr << "map begin" << std::endl;
     FILE* f = fopen(fin_.c_str(), "w+");
     if(f==NULL)
         std::cerr << "bad file " << fin_ << std::endl;
@@ -49,13 +50,7 @@ void mapStage()
         fwrite(&v, sizeof(ValueType), 1, f);
         src_sdb_.seq(locn);
     }
-//    while( src_sdb_.seq(locn, k, v) ) {
-//        std::cout <<"4";
-//        fwrite(&itemSize, sizeof(unsigned short), 1, f);
-//        fwrite(&k, sizeof(KeyType), 1, f);
-//        fwrite(&v, sizeof(ValueType), 1, f);
-//    }
-
+    std::cerr << "map stop" << std::endl;
     fflush(f);
     fclose(f);
     return;
@@ -63,6 +58,7 @@ void mapStage()
 
 void reduceStage1()
 {
+    std::cerr << "reduce1 start" << std::endl;
     AlphaSort<> alpha;
 
     alpha.addInputFile(fin_);
@@ -76,10 +72,13 @@ void reduceStage1()
         (double)(finish - start) / CLOCKS_PER_SEC <<
         " seconds" << std::endl;
 #endif
+    std::cerr << "reduce1 stop" << std::endl;
 }
 
 void reduceStage2()
 {
+    std::cerr << "reduce2 start" << std::endl;
+
     FILE* f = fopen(fout_.c_str(), "r");
     if(f==NULL)
         std::cerr << "bad file " << fout_ << std::endl;
@@ -111,11 +110,13 @@ void reduceStage2()
         dst_sdb_.insertValue(k, v);
     }
     fclose(f);
+    std::cerr << "reduce2 stop" << std::endl;
     return;
 }
 
 bool joinThread()
 {
+    std::cerr << "join" << std::endl;
     mapStage();
 
     reduceStage1();

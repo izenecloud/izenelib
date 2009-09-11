@@ -11,7 +11,7 @@ using namespace izenelib::am;
 using namespace izenelib::sdb;
 
 typedef unordered_sdb_fixed<int, int> Sdb1;
-typedef ordered_sdb<int, int> Sdb2;
+typedef ordered_sdb_fixed<int, int> Sdb2;
 
 // pseudo random number generator
 inline int myrand(void) {
@@ -27,6 +27,7 @@ void displayMemInfo(std::ostream& os = std::cout) {
 
 BOOST_AUTO_TEST_SUITE( sdb_trie_suite )
 
+#if 0
 BOOST_AUTO_TEST_CASE(conv_sdb_hash2btree_test)
 {
     Sdb1 sdb1("conv_sdb_hash2btree_test.hash.sdb");
@@ -52,8 +53,9 @@ BOOST_AUTO_TEST_CASE(conv_sdb_hash2btree_test)
     remove("conv_sdb_hash2btree_test.hash.sdb");
     remove("conv_sdb_hash2btree_test.btree.sdb");
 }
+#endif
 
-//#define TEST_BENCH
+#define TEST_BENCH
 
 #ifdef TEST_BENCH
 BOOST_AUTO_TEST_CASE(conv_sdb_hash2btree_bench)
@@ -74,11 +76,24 @@ BOOST_AUTO_TEST_CASE(conv_sdb_hash2btree_bench)
         }
         sdb1.flush();
 
+        std::cerr << "1";
+
         Sdb2 sdb2("conv_sdb_hash2btree_bench.btree.sdb");
+
+        std::cerr << "2";
         sdb2.setPageSize(2048);
+
+        std::cerr << "2";
         sdb2.setCacheSize(16*1024);
+
+        std::cerr << "2";
         sdb2.setDegree(24);
+
+        std::cerr << "2";
         sdb2.open();
+
+        std::cerr << "2";
+
         Conv_Sdb_Hash2Btree<Sdb1, Sdb2> converter(sdb1, sdb2, "conv_sdb_hash2btree_bench");
 
         std::cout << "begin convert" << std::endl;
@@ -87,27 +102,8 @@ BOOST_AUTO_TEST_CASE(conv_sdb_hash2btree_bench)
         std::cout << "finish convert" << std::endl;
 
         BOOST_CHECK_EQUAL(sdb2.numItems(), 5000000);
-        remove("conv_sdb_hash2btree_bench.hash.sdb");
-        remove("conv_sdb_hash2btree_bench.btree.sdb");
-    }
-
-    {
-        Sdb2 sdb2("conv_sdb_hash2btree_bench.btree.example.sdb");
-        sdb2.setPageSize(2048);
-        sdb2.setCacheSize(128*1024);
-        sdb2.setDegree(24);
-        sdb2.open();
-        for(int i =0; i<5000000; i++ )
-        {
-            if(i%1000000 == 0) {
-                std::cout << "insert " << i << " elements" << std::endl;
-                displayMemInfo();
-            }
-            sdb2.insertValue(myrand(),i);
-        }
-
-        BOOST_CHECK_EQUAL(sdb2.numItems(), 5000000);
-        remove("conv_sdb_hash2btree_bench.btree.example.sdb");
+//        remove("conv_sdb_hash2btree_bench.hash.sdb");
+//        remove("conv_sdb_hash2btree_bench.btree.sdb");
     }
 }
 #endif

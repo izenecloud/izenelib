@@ -4,7 +4,7 @@
  * @file am/tc/BTree.h
  * @author Ian Yang
  * @date Created <2009-09-06 23:37:24>
- * @date Updated <2009-09-10 13:08:18>
+ * @date Updated <2009-09-10 20:50:44>
  * @brief TokyoCabinet BTree DB wrapper
  */
 
@@ -68,7 +68,7 @@ template<typename KeyType,
          typename ValueType,
          typename Comp=BTreeLexicalCmp >
 class BTree
-    : public izenelib::am::raw::AmWrapper<BTree<KeyType, ValueType>,
+    : public izenelib::am::raw::AmWrapper<BTree<KeyType, ValueType, Comp>,
                                           raw::BTree,
                                           KeyType,
                                           ValueType>
@@ -100,7 +100,8 @@ public:
     {
         if (!boost::is_same<Comp, BTreeLexicalCmp>::value)
         {
-            hash_.setcmpfunc(&self_type::compare, static_cast<void*>(this));
+            hash_.setcmpfunc(&self_type::compare,
+                             static_cast<void*>(&comp_));
         }
     }
 
@@ -148,8 +149,8 @@ public:
                        const char* dataB, int sizeB,
                        void* p)
     {
-        self_type* pHash = static_cast<self_type*>(p);
-        return pHash->comp_.compare(dataA, sizeA, dataB, sizeB);
+        Comp* pHash = static_cast<Comp*>(p);
+        return pHash->compare(dataA, sizeA, dataB, sizeB);
     }
 
 private:

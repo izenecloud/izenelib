@@ -16,28 +16,27 @@
 // #include <am/map/map.hpp>
 // #include <am/skip_list/skip_list.hpp>
 
-#include <string>
 #include <cstdio>
 
 #include "TestDir.h"
-#define DIR_PREFIX TEST_TMP_DIR "/am_IntString_"
+#define DIR_PREFIX TEST_TMP_DIR "/am_IntNull_"
 
 using namespace izenelib::am;
 
 typedef boost::mpl::list<
-    tc::Hash<int, std::string>
-    , tc::BTree<int, std::string>
-    , tc::BTree<int, std::string, tc::BTreeLessCmp<int> >
-    , sdb_hash<int, std::string>
-    , sdb_btree<int, std::string>
-    //, BTreeFile<int, std::string>
-    //, cccr_hash<int, std::string>
-    //, sdb_storage<int, std::string>
-    //, SkipListFile<int, std::string>
-    //, DynamicPerfectHash<int, std::string>
-    //, LinearHashTable<int, std::string>
-    //, Map<int, std::string>
-    //, SkipList<std::string, int>
+    tc::Hash<int, NullType>
+    , tc::BTree<int, NullType>
+    , tc::BTree<int, NullType, tc::BTreeLessCmp<int> >
+    , sdb_hash<int, NullType>
+    , sdb_btree<int, NullType>
+    //, BTreeFile<int, NullType>
+    //, cccr_hash<int, NullType>
+    //, sdb_storage<int, NullType>
+    //, SkipListFile<int, NullType>
+    //, DynamicPerfectHash<int, NullType>
+    //, LinearHashTable<int, NullType>
+    //, Map<int, NullType>
+    //, SkipList<NullType, int>
 > test_types;
 
 namespace { // {anonymous}
@@ -64,9 +63,17 @@ boost::shared_ptr<cccr_hash<int, std::string> > create(const std::string&)
     return result;
 }
 
+struct NullFixture
+{
+    NullFixture()
+    : null()
+    {}
+
+    NullType null;
+};
 } // namespace {anonymous}
 
-BOOST_AUTO_TEST_SUITE(IntString_test)
+BOOST_FIXTURE_TEST_SUITE(IntString_test, NullFixture)
 
 BOOST_AUTO_TEST_CASE_TEMPLATE(NewIsEmpty_test, T, test_types)
 {
@@ -79,39 +86,31 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(InsertGet_test, T, test_types)
 {
     boost::shared_ptr<T> h = create<T>("InsertGet_test");
 
-    BOOST_CHECK(h->insert(1, "value1"));
-
-    std::string value;
-    BOOST_CHECK(h->get(1, value));
-    BOOST_CHECK(value == "value1");
+    BOOST_CHECK(h->insert(1, null));
+    BOOST_CHECK(h->get(1, null));
 }
 
 BOOST_AUTO_TEST_CASE_TEMPLATE(GetFromEmtpy_test, T, test_types)
 {
     boost::shared_ptr<T> h = create<T>("GetFromEmtpy_test");
 
-    std::string value;
-    BOOST_CHECK(!(h->get(1, value)));
-    BOOST_CHECK(value.empty());
+    BOOST_CHECK(!(h->get(1, null)));
 }
 
 BOOST_AUTO_TEST_CASE_TEMPLATE(GetNotExisted_test, T, test_types)
 {
     boost::shared_ptr<T> h = create<T>("GetNotExisted_test");
 
-    BOOST_CHECK(h->insert(1, "value"));
-
-    std::string value;
-    BOOST_CHECK(!h->get(2, value));
-    BOOST_CHECK(value.empty());
+    BOOST_CHECK(h->insert(1, null));
+    BOOST_CHECK(!h->get(2, null));
 }
 
 BOOST_AUTO_TEST_CASE_TEMPLATE(InsertExisted_test, T, test_types)
 {
     boost::shared_ptr<T> h = create<T>("InsertExisted_test");
 
-    BOOST_CHECK(h->insert(1, "value1"));
-    BOOST_CHECK(!h->insert(1, "value2"));
+    BOOST_CHECK(h->insert(1, null));
+    BOOST_CHECK(!h->insert(1, null));
 }
 
 BOOST_AUTO_TEST_CASE_TEMPLATE(InsertAndSize_test, T, test_types)
@@ -119,17 +118,17 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(InsertAndSize_test, T, test_types)
     boost::shared_ptr<T> h = create<T>("InsertAndSize_test");
 
     {
-        BOOST_CHECK(h->insert(1, "value1"));
+        BOOST_CHECK(h->insert(1, null));
         BOOST_CHECK(h->num_items() == 1);
     }
 
     {
-        BOOST_CHECK(h->insert(2, "value2"));
+        BOOST_CHECK(h->insert(2, null));
         BOOST_CHECK(h->num_items() == 2);
     }
 
     {
-        BOOST_CHECK(h->insert(3, "value3"));
+        BOOST_CHECK(h->insert(3, null));
         BOOST_CHECK(h->num_items() == 3);
     }
 }
@@ -138,7 +137,7 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(UpdateAsInsert_test, T, test_types)
 {
     boost::shared_ptr<T> h = create<T>("UpdateAsInsert_test");
 
-    BOOST_CHECK(h->update(1, "value1"));
+    BOOST_CHECK(h->update(1, null));
     BOOST_CHECK(h->num_items() == 1);
 }
 
@@ -146,88 +145,59 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(Update_test, T, test_types)
 {
     boost::shared_ptr<T> h = create<T>("Update_test");
 
-    {
-        BOOST_CHECK(h->insert(1, "value1"));
-    }
-
-    {
-        BOOST_CHECK(h->update(1, "value2"));
-        BOOST_CHECK(h->num_items() == 1);
-    }
-
-    {
-        std::string value;
-        BOOST_CHECK(h->get(1, value));
-        BOOST_CHECK(value == "value2");
-    }
+    BOOST_CHECK(h->insert(1, null));
+    BOOST_CHECK(h->update(1, null));
+    BOOST_CHECK(h->num_items() == 1);
+    BOOST_CHECK(h->get(1, null));
 }
 
 BOOST_AUTO_TEST_CASE_TEMPLATE(Del_test, T, test_types)
 {
     boost::shared_ptr<T> h = create<T>("Del_test");
 
-    {
-        BOOST_CHECK(h->insert(1, "value1"));
-        BOOST_CHECK(h->num_items() == 1);
-    }
-
-    {
-        BOOST_CHECK(h->del(1));
-        BOOST_CHECK(h->num_items() == 0);
-        std::string value;
-        BOOST_CHECK(!h->get(1, value));
-    }
+    BOOST_CHECK(h->insert(1, null));
+    BOOST_CHECK(h->num_items() == 1);
+    BOOST_CHECK(h->del(1));
+    BOOST_CHECK(h->num_items() == 0);
+    BOOST_CHECK(!h->get(1, null));
 }
 
 BOOST_AUTO_TEST_CASE_TEMPLATE(DelNotExisted_test, T, test_types)
 {
     boost::shared_ptr<T> h = create<T>("DelNotExisted_test");
 
-    {
-        BOOST_CHECK(h->insert(1, "value1"));
-        BOOST_CHECK(h->num_items() == 1);
-    }
-
-    {
-        h->del(2);
-        BOOST_CHECK(h->num_items() == 1);
-        std::string value;
-        BOOST_CHECK(h->get(1, value));
-        BOOST_CHECK(value == "value1");
-    }
+    BOOST_CHECK(h->insert(1, null));
+    BOOST_CHECK(h->num_items() == 1);
+    h->del(2);
+    BOOST_CHECK(h->num_items() == 1);
+    BOOST_CHECK(h->get(1, null));
 }
 
 BOOST_AUTO_TEST_CASE_TEMPLATE(Update1In2, T, test_types)
 {
     boost::shared_ptr<T> h = create<T>("Update1In2_test");
 
-    BOOST_CHECK(h->insert(1, "value1"));
-    BOOST_CHECK(h->insert(2, "value2"));
-
-    BOOST_CHECK(h->update(1, "value3"));
+    BOOST_CHECK(h->insert(1, null));
+    BOOST_CHECK(h->insert(2, null));
+    BOOST_CHECK(h->update(1, null));
 
     BOOST_CHECK(h->num_items() == 2);
-    std::string value;
-    h->get(1, value);
-    BOOST_CHECK(value == "value3");
-    h->get(2, value);
-    BOOST_CHECK(value == "value2");
+    h->get(1, null);
+    h->get(2, null);
 }
 
 BOOST_AUTO_TEST_CASE_TEMPLATE(Del1In2, T, test_types)
 {
     boost::shared_ptr<T> h = create<T>("Del1In2_test");
 
-    BOOST_CHECK(h->insert(1, "value1"));
-    BOOST_CHECK(h->insert(2, "value2"));
+    BOOST_CHECK(h->insert(1, null));
+    BOOST_CHECK(h->insert(2, null));
 
     h->del(1);
 
     BOOST_CHECK(h->num_items() == 1);
-    std::string value;
-    BOOST_CHECK(!h->get(1, value));
-    h->get(2, value);
-    BOOST_CHECK(value == "value2");
+    BOOST_CHECK(!h->get(1, null));
+    BOOST_CHECK(h->get(2, null));
 }
 
 BOOST_AUTO_TEST_SUITE_END()
