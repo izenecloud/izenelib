@@ -108,8 +108,8 @@ public:
 	void displayCacheInfos(std::ostream& os=cout) {
 		ScopedReadLock<ThreadSafeLock> lock(lock_);
 		LIT it = cacheContainer_.begin();
-		for(; it != cacheContainer_.end(); it++){
-			os<<"("<<it->first<<", "<<it->second<<")->";
+		for (; it != cacheContainer_.end(); it++) {
+			//os<<"("<<it->first<<", "<<it->second<<")->";
 			//os<<*it<<" -> ";
 		}
 		os<<std::endl;
@@ -255,6 +255,26 @@ template < class KeyType, class ValueType, class ThreadSafeLock,
 	}
 
 }
+
+template< typename KeyType =string, typename ValueType=NullType,
+		typename LockType =NullLock > class ILRUCache :
+	public IzeneCache<KeyType, ValueType, LockType, RDE_HASH, LRU> {
+public:
+	ILRUCache(size_t cacheSize) :
+		IzeneCache<KeyType, ValueType, LockType, RDE_HASH, LRU >(cacheSize) {
+
+	}
+};
+
+template< typename KeyType =string, typename ValueType=NullType,
+		typename LockType =NullLock > class ILFUCache :
+	public IzeneCache<KeyType, ValueType, LockType, RDE_HASH, LFU> {
+public:
+	ILFUCache(size_t cacheSize) :
+		IzeneCache<KeyType, ValueType, LockType, RDE_HASH, LFU >(cacheSize) {
+
+	}
+};
 
 }
 }
