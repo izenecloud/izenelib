@@ -52,8 +52,7 @@ public:
 	ValueType* find(const KeyType& key) {
 		IT it = map_.find(key);
 		if (it != map_.end()) {
-			//return new ValueType(it->second);
-			return new ValueType;
+			return &(it->second);	
 		} else {
 			return NULL;
 		}

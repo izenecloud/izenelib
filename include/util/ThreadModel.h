@@ -66,7 +66,32 @@ public:
 		rwMutex_.unlock();
 		return 0;
 	}
+};
 
+template<class LockType>
+class ScopedReadLock
+{
+	LockType& lock_;
+public:
+	ScopedReadLock( LockType& lock):lock_(lock) {
+		lock_.acquire_read_lock();
+	}
+	~ScopedReadLock() {
+		lock_.release_read_lock();
+	}
+};
+
+template<class LockType>
+class ScopedWriteLock
+{
+	LockType& lock_;
+public:
+	ScopedWriteLock( LockType& lock):lock_(lock) {
+		lock_.acquire_write_lock();
+	}
+	~ScopedWriteLock() {
+		lock_.release_write_lock();
+	}
 };
 
 NS_IZENELIB_UTIL_END

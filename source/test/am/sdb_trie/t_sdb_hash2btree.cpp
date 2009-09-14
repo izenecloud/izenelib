@@ -10,7 +10,7 @@ using namespace std;
 using namespace izenelib::am;
 using namespace izenelib::sdb;
 
-typedef unordered_sdb_fixed<int, int> Sdb1;
+typedef unordered_sdb<int, int> Sdb1;
 typedef ordered_sdb<int, int> Sdb2;
 
 // pseudo random number generator
@@ -27,6 +27,9 @@ void displayMemInfo(std::ostream& os = std::cout) {
 
 BOOST_AUTO_TEST_SUITE( sdb_trie_suite )
 
+#define TEST_BENCH
+
+#ifndef TEST_BENCH
 BOOST_AUTO_TEST_CASE(conv_sdb_hash2btree_test)
 {
     Sdb1 sdb1("conv_sdb_hash2btree_test.hash.sdb");
@@ -53,9 +56,9 @@ BOOST_AUTO_TEST_CASE(conv_sdb_hash2btree_test)
     remove("conv_sdb_hash2btree_test.btree.sdb");
 }
 
-//#define TEST_BENCH
 
-#ifdef TEST_BENCH
+#else
+
 BOOST_AUTO_TEST_CASE(conv_sdb_hash2btree_bench)
 {
     {

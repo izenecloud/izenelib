@@ -24,9 +24,12 @@ typedef string Key;
 typedef izenelib::am::NullType Value;
 
 //Storage policy.
-typedef izenelib::am::LinearHashTable<Key, Value, NullLock> extHash;
+//typedef izenelib::am::LinearHashTable<Key, Value, NullLock> extHash;
 //typedef ExtendibleHash<Key, Value, NullLock> extHash;
 typedef izenelib::am::cccr_hash<Key, Value> linHash;
+
+typedef izenelib::am::rde_hash<Key, Value> extHash;
+
 
 void ReportUsage(void) {
 	cout

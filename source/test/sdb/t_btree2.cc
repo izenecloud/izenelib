@@ -3,9 +3,10 @@
 using namespace std;
 using namespace izenelib::sdb;
 
-typedef unsigned int Key;
-typedef map<int, int> Value;
-typedef DataType<Key,Value>  MyDataType;
+typedef int Key;
+typedef int Value;
+//typedef map<int, int> Value;
+typedef DataType<Key,Value> MyDataType;
 
 const char* indexFile = "test_sdb.dat";
 static string inputFile = "test.txt";
@@ -15,28 +16,29 @@ static size_t pageSize = 1024;
 
 typedef SequentialDB<Key, Value, ReadWriteLock> SDB;
 
+typedef ordered_sdb<Key, Value, ReadWriteLock> SDB1;
+
+typedef ordered_sdb_fixed<Key, Value, ReadWriteLock> SDB2;
 
 bool trace = 0;
 
-
 /*
-namespace izenelib {
-namespace am {
-namespace util {
+ namespace izenelib {
+ namespace am {
+ namespace util {
 
-template<> inline void read_image<MyDataType>(MyDataType& dat, const DbObjPtr& ptr) {
-	dat.key = (YString)((char*)ptr->getData() );
-}
+ template<> inline void read_image<MyDataType>(MyDataType& dat, const DbObjPtr& ptr) {
+ dat.key = (YString)((char*)ptr->getData() );
+ }
 
-template<> inline void write_image<MyDataType>(const MyDataType& dat, DbObjPtr& ptr) {
-	Key key = dat.get_key();
-	ptr->setData(key.c_str(), key.size()+1);
-}
+ template<> inline void write_image<MyDataType>(const MyDataType& dat, DbObjPtr& ptr) {
+ Key key = dat.get_key();
+ ptr->setData(key.c_str(), key.size()+1);
+ }
 
-}
-}
-}*/
-
+ }
+ }
+ }*/
 
 void ReportUsage(void) {
 	cout
@@ -68,23 +70,22 @@ template<typename T> void run(T& cm) {
 }
 
 //ofstream  outf("unique.out");
-template<typename T> void run_insert(T& cm) {
+/*
+template<typename T> void run_insert1(T& cm) {
 	int sum =0;
 	int hit =0;
 	clock_t t1 = clock();
 
 	ifstream inf(inputFile.c_str());
 	string ystr;
-	
-	
+
 	while (inf>>ystr) {
 		//cout<<"input ="<<ystr<<" "<<ystr.get_key()<<endl;		
-		sum++;	
+		sum++;
 		Value val;
 		int b=random()%100;
-		for(int a=0; a<b; a++)
-		{
-			val.insert(make_pair(a, b));			
+		for (int a=0; a<b; a++) {
+			val.insert(make_pair(a, b));
 		}
 		if (cm.insertValue(b, val) ) {
 			hit++;
@@ -106,72 +107,108 @@ template<typename T> void run_insert(T& cm) {
 	//printf("eclipse: %ld seconds\n", time(0)- start);
 	cout<<"\nnumItem: "<<cm.numItems()<<endl;
 
-}
+}*/
 
+template<typename T> void run_insert(T& cm) {
+	int sum =0;
+	int hit =0;
+	clock_t t1 = clock();
+
+	ifstream inf(inputFile.c_str());
+	string ystr;
+
+	int num = 1000000;
+	int i=0;
+	while (i++ < num) {
+		//cout<<"input ="<<ystr<<" "<<ystr.get_key()<<endl;		
+		sum++;
+		Value val;
+
+		if (cm.insertValue(i, i) ) {
+			hit++;
+
+		} else {
+			//cout<<"input ="<<ystr<<" "<<ystr.get_key()<<endl;	
+			//cout<<"\nnot hit\n";
+			//outf<<ystr<<endl;
+		}
+		if (trace) {
+			cout<<" After insert: key="<<ystr<<endl;
+			cm.display();
+			//cm.display();
+			cout<<"\nnumItem: "<<cm.numItems()<<endl;
+		}
+	}
+	cm.commit();
+	printf("eclipse: %lf seconds\n", double(clock()- t1)/CLOCKS_PER_SEC);
+	//printf("eclipse: %ld seconds\n", time(0)- start);
+	cout<<"\nnumItem: "<<cm.numItems()<<endl;
+
+}
 
 /*
 
-template<typename T> void run_getValue(T& cm) {
+ template<typename T> void run_getValue(T& cm) {
 
-	clock_t t1 = clock();
-	int count = cm.numItems();
+ clock_t t1 = clock();
+ int count = cm.numItems();
 
-	ifstream inf(inputFile.c_str());
-	vector<MyDataType> result;
-	cm.getValueForward(count, result, "");
-	cout<<"\ngetvalue forward testing...."<<endl;;
-	for (int i=0; i<count; i++) {
-		if (trace) {
-			cout<<result[i].get_key()<<endl;
-		}
-	}
+ ifstream inf(inputFile.c_str());
+ vector<MyDataType> result;
+ cm.getValueForward(count, result, "");
+ cout<<"\ngetvalue forward testing...."<<endl;;
+ for (int i=0; i<count; i++) {
+ if (trace) {
+ cout<<result[i].get_key()<<endl;
+ }
+ }
 
-	/*	cout<<"-------------"<<endl;
-	 result.clear();
-	 cm.getValueBackward(count, result, "");
-	 cout<<"\n\nget value backward testing...."<<endl;;
-	 for (int i=0; i<count; i++) {
-	 if (trace) {
-	 cout<<result[i]<<endl;
-	 }
-	 }
+ /*	cout<<"-------------"<<endl;
+ result.clear();
+ cm.getValueBackward(count, result, "");
+ cout<<"\n\nget value backward testing...."<<endl;;
+ for (int i=0; i<count; i++) {
+ if (trace) {
+ cout<<result[i]<<endl;
+ }
+ }
 
-	 cout<<"-------------"<<endl;
-	 result.clear();
-	 cm.getValueBackward(3, result, "kkkk");
-	 cout<<"\n\nget value backward testing...."<<endl;;
-	 for (int i=0; i<3; i++) {
-	 if (trace) {
-	 cout<<result[i]<<endl;
-	 }
-	 }*
+ cout<<"-------------"<<endl;
+ result.clear();
+ cm.getValueBackward(3, result, "kkkk");
+ cout<<"\n\nget value backward testing...."<<endl;;
+ for (int i=0; i<3; i++) {
+ if (trace) {
+ cout<<result[i]<<endl;
+ }
+ }*
 
-	printf("eclipse: %lf seconds\n", double(clock()- t1)/CLOCKS_PER_SEC);
-	cout<< "finish getValue "<<endl;
+ printf("eclipse: %lf seconds\n", double(clock()- t1)/CLOCKS_PER_SEC);
+ cout<< "finish getValue "<<endl;
 
-}
+ }
 
-template<typename T> void run_del(T& cm) {
+ template<typename T> void run_del(T& cm) {
 
-	clock_t t1 = clock();
+ clock_t t1 = clock();
 
-	ifstream inf(inputFile.c_str());
-	YString ystr;	
-	while (inf>>ystr) {
-		cm.del( ystr  ) ;
-		if (trace) {
-			cout<< "after delete: key="<<ystr.get_key()<<endl;
-			cout<<"\nnumItem: "<<cm.numItems()<<endl;
-			cm.display();
-		}
+ ifstream inf(inputFile.c_str());
+ YString ystr;	
+ while (inf>>ystr) {
+ cm.del( ystr  ) ;
+ if (trace) {
+ cout<< "after delete: key="<<ystr.get_key()<<endl;
+ cout<<"\nnumItem: "<<cm.numItems()<<endl;
+ cm.display();
+ }
 
-	}
-	cm.flush();
-	printf("eclipse: %lf seconds\n", double(clock()- t1)/CLOCKS_PER_SEC);
-	cout<<"\nnumItem: "<<cm.numItems()<<endl;
-	//cm.display1();
+ }
+ cm.flush();
+ printf("eclipse: %lf seconds\n", double(clock()- t1)/CLOCKS_PER_SEC);
+ cout<<"\nnumItem: "<<cm.numItems()<<endl;
+ //cm.display1();
 
-}*/
+ }*/
 
 int main(int argc, char *argv[]) {
 
@@ -196,7 +233,7 @@ int main(int argc, char *argv[]) {
 				cacheSize = atoi(*argv++);
 			} else if (str == "page") {
 				pageSize = atoi(*argv++);
-			}else if (str == "index") {
+			} else if (str == "index") {
 				indexFile = *argv++;
 			} else {
 				cout<<"Input parameters error\n";
@@ -209,12 +246,32 @@ int main(int argc, char *argv[]) {
 	}
 	try
 	{
-		SDB sdb(indexFile);
-		sdb.setDegree(degree);
-		sdb.setPageSize(pageSize);
-		sdb.setCacheSize(cacheSize);
-		sdb.open();
-		run(sdb);
+		{
+			SDB sdb(indexFile);
+			sdb.setDegree(degree);
+			sdb.setPageSize(pageSize);
+			sdb.setCacheSize(cacheSize);
+			sdb.open();
+			run(sdb);
+		}
+
+		{
+			SDB1 sdb(indexFile+string("1"));
+			sdb.setDegree(degree);
+			sdb.setPageSize(pageSize);
+			sdb.setCacheSize(cacheSize);
+			sdb.open();
+			run(sdb);
+		}
+
+		{
+			SDB2 sdb(indexFile+string("2"));
+			sdb.setDegree(degree);
+			sdb.setPageSize(pageSize);
+			sdb.setCacheSize(cacheSize);
+			sdb.open();
+			run(sdb);
+		}
 
 	}
 	catch(bad_alloc)

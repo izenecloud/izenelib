@@ -51,6 +51,7 @@ template <class KeyType, class ValueType, class Hash=izenelib::am::LinearHashTab
     typedef izenelib::am::LinearHashTable<KeyType, CachedData, NullLock> linHash;	
     //typedef izenelib::am::CCCR_StrHashTable<KeyType, CachedData, 8192*16> cccrHash;
     typedef izenelib::am::cccr_hash<KeyType, CachedData> cccrHash;
+    typedef izenelib::am::rde_hash<KeyType, CachedData> rdeHash;
     //typedef izenelib::am::DataType<KeyType,ValueType> DataType;
     
 public:
@@ -170,7 +171,9 @@ public:
 private:
 
 	//CacheExtHash<KeyType, CachedData, cccrHash, cccrHash> hash_; // Use hash for Storage
-	CacheExtHash<KeyType, CachedData, linHash, linHash> hash_; // Use hash for Storage
+	//CacheExtHash<KeyType, CachedData, linHash, linHash> hash_; // Use hash for Storage
+	CacheExtHash<KeyType, CachedData, rdeHash, rdeHash> hash_; // Use hash for Storage
+	
 	CacheInfoList cacheContainer_;
 	unsigned int cacheSize_; // Capacity of Cache	
 
@@ -203,10 +206,8 @@ private:
 
 	}
 	inline void firstInsert_(const DataType<KeyType,ValueType>& dat) {
-		KeyType key = dat.get_key();
-		if (hash_.find(key) ) {
-			assert(false);
-		}
+		KeyType key = dat.get_key();		
+		assert(hash_.find(key)  == false);	
 		cacheContainer_.push_back(key);
 		LIT lit = cacheContainer_.end();
 		--lit;

@@ -12,10 +12,16 @@ namespace rde
 {
 
 // Default implementations, just casts to hash_value.
-template<>
-hash_value_t extract_int_key_value<std::string>(const std::string& t)
+template<typename T>
+hash_value_t extract_int_key_value(const T& t)
 {
     return izenelib::util::izene_hashing(t);
+}
+
+template<>
+hash_value_t extract_int_key_value<int>(const int& t)
+{
+    return int(t);
 }
 
 }
@@ -62,11 +68,10 @@ public:
 		return map_.size();
 	}
 	
-	ValueType* find(const KeyType& key) {
+	ValueType* find(const KeyType& key){
 		IT it = map_.find(key);
 		if (it != map_.end()) {
-			//return new ValueType(it->second);
-			return new ValueType;
+			return &(it->second);			
 		} else {
 			return NULL;
 		}

@@ -4,8 +4,6 @@
 #include <util/ProcMemInfo.h>
 #include <util/hashFunction.h>
 #include <vector>
-#include <map>
-#include <ext/hash_map>
 #include <boost/shared_ptr.hpp>
 #include <am/am.h>
 #include <util/ClockTimer.h>
@@ -64,7 +62,6 @@ template<> inline float generateData<float>(const int a, int num, bool rand) {
 		return a;
 }
 
-
 template<> inline vector<int> generateData<vector<int> >(const int a, int num,
 		bool rand) {
 	vector<int> vret;
@@ -96,6 +93,16 @@ template<typename KeyType, typename ValueType, typename AM, bool open=false> cla
 public:
 	AmTest() :
 		rand_(true), num_(1000000), loop_(1), trace_(false) {
+		if ( !open)
+			am_ = new AMOBJ<KeyType, ValueType, AM, open>();
+	}
+	~AmTest() {
+		if ( !open) {
+			if (am_) {
+				delete am_;
+				am_ = 0;
+			}
+		}
 	}
 
 	void setNum(int num) {
@@ -114,7 +121,8 @@ public:
 	void run_insert(bool mem=true) {
 		clock_t t1 = clock();
 		timer.restart();
-	    am_ = new AMOBJ<KeyType, ValueType, AM, open>();
+		if (open)
+			am_ = new AMOBJ<KeyType, ValueType, AM, open>();
 		int hit = 0;
 		int sum = 0;
 		for (int i =0; i<num_; i++) {
@@ -125,13 +133,13 @@ public:
 			}
 			am_->display();
 #endif
-            KeyType key = generateData<KeyType>(i, num_, rand_);
-            ValueType value = generateData<ValueType>(i, num_, rand_);
-			if (am_->insert(key,value) )
+			KeyType key = generateData<KeyType>(i, num_, rand_);
+			ValueType value = generateData<ValueType>(i, num_, rand_);
+			if (am_->insert(key, value) )
 				hit++;
 
-//            cout<<"idx="<<i<<","<<key<<","<<value<<endl;
-			if (i % 100000 == 0) {
+			//            cout<<"idx="<<i<<","<<key<<","<<value<<endl;
+			if (i % 1000000 == 0) {
 				cout<<"idx="<<i<<endl;
 				displayMemInfo();
 			}
@@ -142,9 +150,10 @@ public:
 			printf("insert elapsed 1 ( actually ): %lf seconds\n",
 					timer.elapsed() );
 			printf("insert success ratio: %d /%d\n", hit, sum);
-            displayMemInfo();
+			displayMemInfo();
 		}
-		delete am_;
+		if (open)
+			delete am_;
 
 	}
 
@@ -152,7 +161,8 @@ public:
 	void run_insert_ylib(bool mem=true) {
 		clock_t t1 = clock();
 		timer.restart();
-        am_ = new AMOBJ<KeyType, ValueType, AM, open>();
+		if (open)
+			am_ = new AMOBJ<KeyType, ValueType, AM, open>();
 		for (int i =0; i<num_; i++) {
 			if (trace_) {
 #if INNER_TRACE
@@ -165,14 +175,16 @@ public:
 			printf("insert elapsed: %lf seconds\n", double(clock()- t1)/CLOCKS_PER_SEC);
 			displayMemInfo();
 		}
-		delete am_;
+		if (open)
+			delete am_;
 
 	}
 
 	void run_find(bool mem=true) {
 		clock_t t1 = clock();
 		timer.restart();
-        am_ = new AMOBJ<KeyType, ValueType, AM, open>();
+		if (open)
+			am_ = new AMOBJ<KeyType, ValueType, AM, open>();
 		int hit = 0;
 		int sum = 0;
 		for (int i =0; i<num_; i++) {
@@ -197,17 +209,19 @@ public:
 		if (mem) {
 			printf("find elapsed 0: %lf seconds\n", double(clock()- t1)/CLOCKS_PER_SEC);
 			printf("find elapsed 1: %lf seconds\n", timer.elapsed() );
-			printf("find hit ratio: %d /%d\n", hit, sum);
+			printf("find success ratio: %d /%d\n", hit, sum);
 			displayMemInfo();
 		}
-		delete am_;
+		if (open)
+			delete am_;
 
 	}
 
 	void run_del(bool mem=true) {
 		clock_t t1 = clock();
 		timer.restart();
-        am_ = new AMOBJ<KeyType, ValueType, AM, open>();
+		if (open)
+			am_ = new AMOBJ<KeyType, ValueType, AM, open>();
 		int hit = 0;
 		int sum = 0;
 		for (int i =0; i<num_; i++) {
@@ -227,7 +241,8 @@ public:
 			printf("del success ratio: %d /%d\n", hit, sum);
 			displayMemInfo();
 		}
-		delete am_;
+		if (open)
+			delete am_;
 
 	}
 
@@ -238,15 +253,19 @@ public:
 			displayMemInfo();
 	}
 	void display(std::ostream& os = std::cout) {
-        am_ = new AMOBJ<KeyType, ValueType, AM, open>();
+		if (open)
+			am_ = new AMOBJ<KeyType, ValueType, AM, open>();
 		am_->display(os);
-		delete am_;
+		if (open)
+			delete am_;
 	}
 
 	int num_items() {
-        am_ = new AMOBJ<KeyType, ValueType, AM, open>();
+		if (open)
+			am_ = new AMOBJ<KeyType, ValueType, AM, open>();
 		int num = am_->num_items();
-		delete am_;
+		if (open)
+			delete am_;
 		return num;
 	}
 
@@ -287,63 +306,6 @@ template<typename T> void run_loop(unsigned int loop) {
 	printf("insert elapsed 1: %lf seconds\n", timer.elapsed() );
 	displayMemInfo();
 }
-
-template <typename KeyType, typename ValueType> class wrapped_map {
-	std::map<KeyType, ValueType> map_;
-	typedef typename std::map<KeyType, ValueType>::iterator IT;
-	typedef pair<IT, bool> PAIR;
-public:
-	bool insert(const KeyType& key, const ValueType& value) {
-		PAIR ret = map_.insert(make_pair<KeyType, ValueType>(key, value) );
-		return ret.second;
-	}
-	ValueType* find(const KeyType& key) {
-		IT it = map_.find(key);
-		if (it !=map_.end()) {
-			return new ValueType(it->second);
-		} else {
-			return NULL;
-		}
-
-	}
-	bool del(const KeyType& key) {
-		size_t ret = map_.erase(key);
-		return ret;
-	}
-	int num_items() {
-		return map_.size();
-	}
-
-};
-
-template <typename KeyType, typename ValueType> class wrapped_hash_map {
-	hash_map<KeyType, ValueType, izenelib::util::HashFunctor<KeyType> >
-			hash_map_;
-	typedef typename hash_map<KeyType, ValueType, izenelib::util::HashFunctor<KeyType> >::iterator
-			IT;
-	typedef pair<IT, bool> PAIR;
-public:
-	bool insert(const KeyType& key, const ValueType& value) {
-		PAIR ret = hash_map_.insert(make_pair(key, value) );
-		return ret.second;
-	}
-	ValueType* find(const KeyType& key) {
-		IT it = hash_map_.find(key);
-		if (it !=hash_map_.end()) {
-			//return new ValueType(it->second);
-			return new ValueType;
-		} else {
-			return NULL;
-		}
-	}
-	bool del(const KeyType& key) {
-		size_t ret = hash_map_.erase(key);
-		return ret;
-	}
-	int num_items() {
-		return hash_map_.size();
-	}
-};
 
 }
 }

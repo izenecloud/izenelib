@@ -49,11 +49,10 @@ public:
 		return hash_map_.size();
 	}
 	
-	ValueType* find(const KeyType& key) {
+	ValueType* find(const KeyType& key)  {
 		IT it = hash_map_.find(key);
 		if (it !=hash_map_.end()) {
-			//return new ValueType(it->second);
-			return new ValueType;
+			return &(it->second);			
 		} else {
 			return NULL;
 		}

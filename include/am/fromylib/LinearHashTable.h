@@ -133,6 +133,8 @@ public:
 	bool insert(const KeyType& key, const ValueType& value) {
 		return insert(DataType<KeyType,ValueType> (key, value) );
 	}
+	
+	bool get(const KeyType& key, ValueType& val);
 
 	/**
 	 *  \brief updata an item with given key, if it not exist, insert it directly. 
@@ -418,6 +420,19 @@ template <typename KeyType, typename ValueType, typename LockType> ValueType* Li
 	lock.release_read_lock();
 	// not found
 	return NULL;
+}
+
+
+
+template <typename KeyType, typename ValueType, typename LockType> bool LinearHashTable<
+		KeyType, ValueType, LockType>::get(const KeyType& key, ValueType& val) {
+        ValueType* pv = find(key);
+        if( pv != NULL ){
+        	val = *pv;
+        	return true;
+        }
+        return false;
+        	
 }
 
 /**

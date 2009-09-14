@@ -1,4 +1,4 @@
-CXX = g++-4.1
+CXX = g++
 
 ######################################################
 # if $(COMPILE_FLAGS) is given by upper makefile 
@@ -6,12 +6,12 @@ CXX = g++-4.1
 ifneq ($(COMPILE_FLAGS),)
 CXXFLAGS += $(COMPILE_FLAGS) 
 else
-CXXFLAGS = -Wall -O3 -g 
+CXXFLAGS = -Wall -O3 -g -DDEBUG 
 endif
 
 TARGET_PATH = .
-WISELIB = /home/wei/dev/wiselib
-IZENELIB = /home/wei/dev/izenelib
+WISELIB = /home/wps/workspace/wiselib
+IZENELIB = /home/wps/workspace/izenelib
 
 IDMANAGER_PATH = ../include/
 
@@ -19,7 +19,7 @@ INCLUDE_PATH = \
 			   -I $(WISELIB)/include \
 			   -I $(IZENELIB)/include \
 			   -I $(IZENELIB)/include/3rdparty \
-			   -I /usr/local/include/boost-1_39 \
+			   -I /usr/local/include/boost-1_38 \
 
 		  
 EXT_LIB_PATH = \
@@ -28,12 +28,12 @@ EXT_LIB_PATH = \
 			   -L /usr/local/lib \
 
 EXT_LIB = \
-                  -l boost_system-gcc41-mt-1_39 \
-		  -l boost_date_time-gcc41-mt-1_39 \
-		  -l boost_serialization-gcc41-mt-1_39 \
-		  -l boost_program_options-gcc41-mt-1_39 \
-		  -l boost_thread-gcc41-mt-1_39 \
-		  -l boost_unit_test_framework-gcc41-mt-1_39 \
+                  -l boost_system-gcc41-mt \
+		  -l boost_date_time-gcc41-mt \
+		  -l boost_serialization-gcc41-mt \
+		  -l boost_program_options-gcc41-mt \
+		  -l boost_thread-gcc41-mt \
+		  -l boost_unit_test_framework-gcc41-mt \
 		  -l tokyocabinet \
 		  -l procmeminfo  \
 		  -l btrie  \
@@ -54,4 +54,4 @@ gen_input:
 	$(CXX) -o gen_input gen_input.cc $(INCLUDE_PATH) $(CXXFLAGS) $(EXT_LIB_PATH) $(EXT_LIB) 
 
 clean:
-	rm -rf *.o $(TARGET) *.sdb *.dat
+	rm -rf *.o $(TARGET) *.sdb *.dat *tmpi

@@ -7,7 +7,14 @@ CC_OPTIONS= -O3 -Wall -c -g -pg  -DDEBUG
 INC_PATH=  -I  ../../../../izenelib/include/  -I /usr/local/include/boost-1_36 \
              -I  ../../../../ylib/include/   -I ../../../../izenelib/include/3rdparty/
 
-LIBS =  ../../../../izenelib/lib/libprocmeminfo.a  /usr/local/lib/libboost_thread-gcc41-mt.so  ../../../../ylib/lib/libylib.a   /usr/local/lib/libboost_serialization-gcc41-mt.so  
+LIBS =  ../../../../izenelib/lib/libprocmeminfo.a  /usr/local/lib/libboost_thread-gcc41-mt.so  -lboost_unit_test_framework-gcc41-mt ../../../../ylib/lib/libylib.a   /usr/local/lib/libboost_serialization-gcc41-mt.so  
+
+
+OBJS := $(patsubst %.cpp, %.o, $(wildcard *.cpp))
+
+
+.cpp.o:
+	$(GPP) $(CC_OPTIONS) $(INC_PATH)  -o"./$@" "$<"
 
 .cc.o:
 
@@ -32,7 +39,11 @@ t_mul_cc_obj = t_mul_cc.o
 
 
 all: t_MLRUCache t_mfserialize  t_MFCache  t_CacheDB \
-	t_MCache t_MLRUCache t_mfserialize t_mserialize # t_mul_cache t_mul_cc
+	t_MCache t_MLRUCache t_mfserialize t_mserialize  t_mul_cache t_mul_cc
+
+
+test: $(OBJS)
+	$(GPP)  -g -o "test"  $^ $(LIBS)	
 
 
 t_mfserialize: $(TMF_SR_obj)
@@ -88,7 +99,7 @@ t_sdb: $(obj)
 	$(GPP) $(obj) $(LIBS) -o  ../build/$@ -pg
 
 	
-test: $(obj1)
+test1: $(obj1)
 
 	$(GPP) $(obj1) $(LIBS) -o ../build/$@  -pg
 	
