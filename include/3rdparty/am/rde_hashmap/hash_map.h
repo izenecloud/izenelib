@@ -9,12 +9,13 @@
 #include "pair.h"
 #include <util/hashFunction.h>
 
+
 namespace rde
 {
 typedef uint64_t	hash_value_t;
 
 // Default implementations, just casts to hash_value.
-template<typename T>
+template<typename T> inline
 hash_value_t extract_int_key_value(const T& t)
 {
     return izenelib::util::izene_hashing(t);

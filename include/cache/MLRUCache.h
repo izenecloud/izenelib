@@ -33,7 +33,7 @@ namespace cache{
  *	ThreadSafeLock          :   it can be NullLock or ReadWriteLock, which are defined in ylib/lock.h. If using NullLock, then 
  *				                No threa dsafe. 	 
  */
-template <class KeyType, class ValueType, class Hash=izenelib::am::LinearHashTable<KeyType, ValueType>,
+template <class KeyType, class ValueType, class Hash=izenelib::am::rde_hash<KeyType, ValueType>,
 		class ThreadSafeLock=NullLock> class MLRUCache {
 
 	typedef list<KeyType> CacheInfoList;

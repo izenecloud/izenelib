@@ -9,6 +9,26 @@
 #include <am/3rdparty/rde_hash.h>
 #include <am/3rdparty/stx_btree.h>
 
+#include <wiselib/ustring/UString.h>
+namespace rde{
+
+/*
+template<> 
+inline  hash_value_t extract_int_key_value<wiselib::UString>(const wiselib::UString& t){
+	uint64_t convkey = 0;
+	
+	char* p = (char*)t.c_str();
+	wiselib::UString::size_t length = t.length();	
+	size_t size = length*sizeof(wiselib::UString::value_type);
+	for (size_t i = 0; i < size; i++)
+		convkey = 37*convkey + (uint8_t)*p++;
+	return convkey;
+}
+*/
+
+}
+
+
 using namespace std;
 using namespace izenelib::am;
 using namespace izenelib::cache;
@@ -21,7 +41,7 @@ typedef ILRUCache<KeyType, ValueType> MyCache;
 static string inputFile("../db/test2.txt");
 static string inputFile1("../db/wordlist_PLU.txt");
 static bool trace = true;
-static size_t cacheSize = 2000;
+static size_t cacheSize = 2500;
 
 BOOST_AUTO_TEST_SUITE( izene_cache_suite )
 
@@ -192,7 +212,7 @@ BOOST_AUTO_TEST_CASE(izene_cache_performance_test)
 {
 	trace = 0;
 	{
-		izenelib::cache::IzeneCache<KeyType, ValueType, NullLock, RDE_HASH> cm(cacheSize*10);
+		izenelib::cache::IzeneCache<KeyType, ValueType, NullLock, RDE_HASH, LRU> cm(cacheSize*10);
 
 		int sum =0;
 		int hit =0;
@@ -229,7 +249,7 @@ BOOST_AUTO_TEST_CASE(izene_cache_performance_test)
 	}
 
 	{
-		izenelib::cache::IzeneCache<KeyType, ValueType, NullLock, LINEAR_HASH> cm(cacheSize*10);
+		izenelib::cache::IzeneCache<KeyType, ValueType, NullLock, LINEAR_HASH, LRU> cm(cacheSize*10);
 
 		int sum =0;
 		int hit =0;
@@ -265,7 +285,7 @@ BOOST_AUTO_TEST_CASE(izene_cache_performance_test)
 
 	}
 
-	{
+	/*{
 		izenelib::cache::IzeneCache<KeyType, ValueType, NullLock, STX_BTREE> cm(cacheSize*10);
 
 		int sum =0;
@@ -300,9 +320,9 @@ BOOST_AUTO_TEST_CASE(izene_cache_performance_test)
 		//cout<<"memory usage: "<<cm.getMemSizeOfValue()<<"bytes"<<endl;	
 		cout << "vm: " << vm << "bytes rss: " << rss << "bytes" << endl;
 
-	}
+	}*/
 
-	{
+/*	{
 		izenelib::cache::IzeneCache<KeyType, ValueType, NullLock, CCCR_HASH> cm(cacheSize*10);
 
 		int sum =0;
@@ -337,7 +357,238 @@ BOOST_AUTO_TEST_CASE(izene_cache_performance_test)
 		//cout<<"memory usage: "<<cm.getMemSizeOfValue()<<"bytes"<<endl;	
 		cout << "vm: " << vm << "bytes rss: " << rss << "bytes" << endl;
 
-	}
+	}*/
+	
+	trace = 0;
+		{
+			izenelib::cache::IzeneCache<wiselib::UString, ValueType, NullLock, RDE_HASH, LRU> cm(cacheSize*10);
+
+			int sum =0;
+			int hit =0;
+			clock_t t1 = clock();
+			ifstream inf(inputFile1.c_str());
+			wiselib::UString ystr;
+			string str;
+			ValueType val = 0;
+			while (inf>>str) {
+				sum++;
+				val++;
+				ystr = wiselib::UString(str, wiselib::UString::CP949);
+				if (cm.getValueWithInsert(ystr, val))
+				hit++;
+				else {
+					//	outf<<ystr<<endl;
+				}
+				if (trace) {
+					cout<< "get: key="<<str<<"->"<<val<<endl;
+					cout<< "izeneCache (UString->int) numItem = "<<cm.numItems()<<endl;
+					cm.displayHash();
+					cout<<endl;
+				}
+			}
+
+			cout<<"RDE_HASH(UString->int) with "<<"CacheSize="<<cacheSize*10<<endl;
+			cout<<"Hit ratio: "<<hit<<" / "<<sum<<endl;
+			cout<<"eclipse:"<< double(clock()- t1)/CLOCKS_PER_SEC<<endl;
+			unsigned long rlimit = 0, vm = 0, rss = 0;
+
+			ProcMemInfo::getProcMemInfo(vm, rss, rlimit);
+
+			//cout<<"memory usage: "<<cm.getMemSizeOfValue()<<"bytes"<<endl;	
+			cout << "vm: " << vm << "bytes rss: " << rss << "bytes" << endl;
+
+		}
+		
+	cout<<"\n=================LFU==================="<<endl;	
+		trace = 0;
+			{
+				izenelib::cache::IzeneCache<KeyType, ValueType, NullLock, RDE_HASH, LFU> cm(cacheSize*2);
+
+				int sum =0;
+				int hit =0;
+				clock_t t1 = clock();
+				ifstream inf(inputFile1.c_str());
+				string ystr;
+				ValueType val = 0;
+				while (inf>>ystr) {
+					sum++;
+					val++;
+					if (cm.getValueWithInsert(ystr, val))
+					hit++;
+					else {
+						//	outf<<ystr<<endl;
+					}
+					if (trace) {
+						cout<< "get: key="<<ystr<<"->"<<val<<endl;
+						cout<< "MCache numItem = "<<cm.numItems()<<endl;
+						cm.displayHash();
+						cout<<endl;
+					}
+				}
+
+				cout<<"RDE_HASH with "<<"CacheSize="<<cacheSize*2<<endl;
+				cout<<"Hit ratio: "<<hit<<" / "<<sum<<endl;
+				cout<<"eclipse:"<< double(clock()- t1)/CLOCKS_PER_SEC<<endl;
+				unsigned long rlimit = 0, vm = 0, rss = 0;
+
+				ProcMemInfo::getProcMemInfo(vm, rss, rlimit);
+
+				//cout<<"memory usage: "<<cm.getMemSizeOfValue()<<"bytes"<<endl;	
+				cout << "vm: " << vm << "bytes rss: " << rss << "bytes" << endl;
+
+			}
+
+			{
+				izenelib::cache::IzeneCache<KeyType, ValueType, NullLock, LINEAR_HASH, LFU> cm(cacheSize*2);
+
+				int sum =0;
+				int hit =0;
+				clock_t t1 = clock();
+				ifstream inf(inputFile1.c_str());
+				string ystr;
+				ValueType val = 0;
+				while (inf>>ystr) {
+					sum++;
+					val++;
+					if (cm.getValueWithInsert(ystr, val))
+					hit++;
+					else {
+						//	outf<<ystr<<endl;
+					}
+					if (trace) {
+						cout<< "get: key="<<ystr<<"->"<<val<<endl;
+						cout<< "MCache numItem = "<<cm.numItems()<<endl;
+						cm.displayHash();
+						cout<<endl;
+					}
+				}
+
+				cout<<"LINEAR_HASH with "<<"CacheSize="<<cacheSize<<endl;
+				cout<<"Hit ratio: "<<hit<<" / "<<sum<<endl;
+				cout<<"eclipse:"<< double(clock()- t1)/CLOCKS_PER_SEC<<endl;
+				unsigned long rlimit = 0, vm = 0, rss = 0;
+
+				ProcMemInfo::getProcMemInfo(vm, rss, rlimit);
+
+				//cout<<"memory usage: "<<cm.getMemSizeOfValue()<<"bytes"<<endl;	
+				cout << "vm: " << vm << "bytes rss: " << rss << "bytes" << endl;
+
+			}
+
+			/*{
+				izenelib::cache::IzeneCache<KeyType, ValueType, NullLock, STX_BTREE> cm(cacheSize*2);
+
+				int sum =0;
+				int hit =0;
+				clock_t t1 = clock();
+				ifstream inf(inputFile1.c_str());
+				string ystr;
+				ValueType val = 0;
+				while (inf>>ystr) {
+					sum++;
+					val++;
+					if (cm.getValueWithInsert(ystr, val))
+					hit++;
+					else {
+						//	outf<<ystr<<endl;
+					}
+					if (trace) {
+						cout<< "get: "<<ystr<<" -> "<<val<<endl;
+						cout<< "MCache numItem = "<<cm.numItems()<<endl;
+						cm.displayHash();
+						cout<<endl;
+					}
+				}
+
+				cout<<"STX_BTREE with "<<"CacheSize="<<cacheSize<<endl;
+				cout<<"Hit ratio: "<<hit<<" / "<<sum<<endl;
+				cout<<"eclipse:"<< double(clock()- t1)/CLOCKS_PER_SEC<<endl;
+				unsigned long rlimit = 0, vm = 0, rss = 0;
+
+				ProcMemInfo::getProcMemInfo(vm, rss, rlimit);
+
+				//cout<<"memory usage: "<<cm.getMemSizeOfValue()<<"bytes"<<endl;	
+				cout << "vm: " << vm << "bytes rss: " << rss << "bytes" << endl;
+
+			}*/
+
+		/*	{
+				izenelib::cache::IzeneCache<KeyType, ValueType, NullLock, CCCR_HASH> cm(cacheSize*2);
+
+				int sum =0;
+				int hit =0;
+				clock_t t1 = clock();
+				ifstream inf(inputFile1.c_str());
+				string ystr;
+				ValueType val = 0;
+				while (inf>>ystr) {
+					sum++;
+					val++;
+					if (cm.getValueWithInsert(ystr, val))
+					hit++;
+					else {
+						//	outf<<ystr<<endl;
+					}
+					if (trace) {
+						cout<< "get: key="<<ystr<<"->"<<val<<endl;
+						cout<< "MCache numItem = "<<cm.numItems()<<endl;
+						cm.displayHash();
+						cout<<endl;
+					}
+				}
+
+				cout<<"CCCR_HASH with "<<"CacheSize="<<cacheSize<<endl;
+				cout<<"Hit ratio: "<<hit<<" / "<<sum<<endl;
+				cout<<"eclipse:"<< double(clock()- t1)/CLOCKS_PER_SEC<<endl;
+				unsigned long rlimit = 0, vm = 0, rss = 0;
+
+				ProcMemInfo::getProcMemInfo(vm, rss, rlimit);
+
+				//cout<<"memory usage: "<<cm.getMemSizeOfValue()<<"bytes"<<endl;	
+				cout << "vm: " << vm << "bytes rss: " << rss << "bytes" << endl;
+
+			}*/
+			
+			trace = 0;
+				{
+					izenelib::cache::IzeneCache<wiselib::UString, ValueType, NullLock, RDE_HASH, LFU> cm(cacheSize*2);
+
+					int sum =0;
+					int hit =0;
+					clock_t t1 = clock();
+					ifstream inf(inputFile1.c_str());
+					wiselib::UString ystr;
+					string str;
+					ValueType val = 0;
+					while (inf>>str) {
+						sum++;
+						val++;
+						ystr = wiselib::UString(str, wiselib::UString::CP949);
+						if (cm.getValueWithInsert(ystr, val))
+						hit++;
+						else {
+							//	outf<<ystr<<endl;
+						}
+						if (trace) {
+							cout<< "get: key="<<str<<"->"<<val<<endl;
+							cout<< "izeneCache (UString->int) numItem = "<<cm.numItems()<<endl;
+							cm.displayHash();
+							cout<<endl;
+						}
+					}
+
+					cout<<"RDE_HASH(UString->int) with "<<"CacheSize="<<cacheSize*2<<endl;
+					cout<<"Hit ratio: "<<hit<<" / "<<sum<<endl;
+					cout<<"eclipse:"<< double(clock()- t1)/CLOCKS_PER_SEC<<endl;
+					unsigned long rlimit = 0, vm = 0, rss = 0;
+
+					ProcMemInfo::getProcMemInfo(vm, rss, rlimit);
+
+					//cout<<"memory usage: "<<cm.getMemSizeOfValue()<<"bytes"<<endl;	
+					cout << "vm: " << vm << "bytes rss: " << rss << "bytes" << endl;
+
+				}
+	
 
 }
 

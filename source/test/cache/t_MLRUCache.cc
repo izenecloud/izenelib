@@ -18,7 +18,7 @@ static unsigned int cacheSize = 1000;
 enum {EXT=0,LIN};
 static int hash1 = 1;
 static int nReplace = 0;
-enum {LRU=0,LFU, SLRU};
+enum {LRU1=0,LFU1, SLRU1};
 static string inputFile;
 
 typedef string Key;
@@ -326,11 +326,11 @@ int main(int argc, char *argv[]) {
 			} else if (str == "replace") {
 				string m = *argv++;
 				if (m == "lru")
-					nReplace = LRU;
+					nReplace = LRU1;
 				else if (m == "slru")
-					nReplace = SLRU;
+					nReplace = SLRU1;
 				else if (m == "lfu")
-					nReplace = LFU;
+					nReplace = LFU1;
 				else {
 				}// use default lru.				
 			} else {
