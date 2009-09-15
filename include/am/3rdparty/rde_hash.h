@@ -12,17 +12,7 @@ namespace rde
 {
 
 // Default implementations, just casts to hash_value.
-template<typename T>
-hash_value_t extract_int_key_value(const T& t)
-{
-    return izenelib::util::izene_hashing(t);
-}
 
-template<>
-hash_value_t extract_int_key_value<int>(const int& t)
-{
-    return int(t);
-}
 
 }
 
