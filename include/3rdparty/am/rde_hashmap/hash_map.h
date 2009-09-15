@@ -20,7 +20,7 @@ hash_value_t extract_int_key_value(const T& t)
     return izenelib::util::izene_hashing(t);
 }
 
-template<>
+template<> inline
 hash_value_t extract_int_key_value<int>(const int& t)
 {
     return int(t);
