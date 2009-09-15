@@ -18,8 +18,6 @@ typedef int ValueType;
 //typedef izenelib::cache::IzeneCache<KeyType, ValueType, NullLock, RDE_HASH, LFU> MyCache;
 typedef ILRUCache<KeyType, ValueType> MyCache;
 
-
-
 static string inputFile("../db/test2.txt");
 static string inputFile1("../db/wordlist_PLU.txt");
 static bool trace = true;
@@ -221,6 +219,12 @@ BOOST_AUTO_TEST_CASE(izene_cache_performance_test)
 		cout<<"RDE_HASH with "<<"CacheSize="<<cacheSize*10<<endl;
 		cout<<"Hit ratio: "<<hit<<" / "<<sum<<endl;
 		cout<<"eclipse:"<< double(clock()- t1)/CLOCKS_PER_SEC<<endl;
+		unsigned long rlimit = 0, vm = 0, rss = 0;
+
+		ProcMemInfo::getProcMemInfo(vm, rss, rlimit);
+
+		//cout<<"memory usage: "<<cm.getMemSizeOfValue()<<"bytes"<<endl;	
+		cout << "vm: " << vm << "bytes rss: " << rss << "bytes" << endl;
 
 	}
 
@@ -252,6 +256,12 @@ BOOST_AUTO_TEST_CASE(izene_cache_performance_test)
 		cout<<"LINEAR_HASH with "<<"CacheSize="<<cacheSize<<endl;
 		cout<<"Hit ratio: "<<hit<<" / "<<sum<<endl;
 		cout<<"eclipse:"<< double(clock()- t1)/CLOCKS_PER_SEC<<endl;
+		unsigned long rlimit = 0, vm = 0, rss = 0;
+
+		ProcMemInfo::getProcMemInfo(vm, rss, rlimit);
+
+		//cout<<"memory usage: "<<cm.getMemSizeOfValue()<<"bytes"<<endl;	
+		cout << "vm: " << vm << "bytes rss: " << rss << "bytes" << endl;
 
 	}
 
@@ -283,9 +293,14 @@ BOOST_AUTO_TEST_CASE(izene_cache_performance_test)
 		cout<<"STX_BTREE with "<<"CacheSize="<<cacheSize<<endl;
 		cout<<"Hit ratio: "<<hit<<" / "<<sum<<endl;
 		cout<<"eclipse:"<< double(clock()- t1)/CLOCKS_PER_SEC<<endl;
+		unsigned long rlimit = 0, vm = 0, rss = 0;
+
+		ProcMemInfo::getProcMemInfo(vm, rss, rlimit);
+
+		//cout<<"memory usage: "<<cm.getMemSizeOfValue()<<"bytes"<<endl;	
+		cout << "vm: " << vm << "bytes rss: " << rss << "bytes" << endl;
 
 	}
-	
 
 	{
 		izenelib::cache::IzeneCache<KeyType, ValueType, NullLock, CCCR_HASH> cm(cacheSize*10);
@@ -315,6 +330,12 @@ BOOST_AUTO_TEST_CASE(izene_cache_performance_test)
 		cout<<"CCCR_HASH with "<<"CacheSize="<<cacheSize<<endl;
 		cout<<"Hit ratio: "<<hit<<" / "<<sum<<endl;
 		cout<<"eclipse:"<< double(clock()- t1)/CLOCKS_PER_SEC<<endl;
+		unsigned long rlimit = 0, vm = 0, rss = 0;
+
+		ProcMemInfo::getProcMemInfo(vm, rss, rlimit);
+
+		//cout<<"memory usage: "<<cm.getMemSizeOfValue()<<"bytes"<<endl;	
+		cout << "vm: " << vm << "bytes rss: " << rss << "bytes" << endl;
 
 	}
 

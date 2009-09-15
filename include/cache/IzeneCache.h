@@ -36,7 +36,7 @@ namespace cache {
  */
 
 template < class KeyType, class ValueType, class ThreadSafeLock=NullLock,
-		HASH_TYPE hash_type= RDE_HASH, REPLACEMENT_TYPE policy= LFU > class IzeneCache {
+		HASH_TYPE hash_type= RDE_HASH, REPLACEMENT_TYPE policy= LRU > class IzeneCache {
 	typedef IzeneCacheTrait<KeyType, ValueType, hash_type, policy>
 			IzeneCacheType;
 	typedef typename IzeneCacheContainerTrait<KeyType, ValueType, policy, hash_type>::LIT
