@@ -473,12 +473,18 @@ bool Indexer::getDocsByTermInProperties(termid_t termID, collectionid_t colID, v
             return false;
         if (parallelTermPosition.seek(termID))
         {
+/*        
             vector<string> currProperties;
             docid_t currDocID;
             while (parallelTermPosition.next(currProperties,currDocID))
             {
                 docIds.push_back(currDocID);
                 currProperties.clear();
+            }
+*/
+            while(parallelTermPosition.next())
+            {
+                docIds.push_back(parallelTermPosition.doc());
             }
         }
         else
@@ -526,6 +532,7 @@ bool Indexer::getDocsByTermInProperties(termid_t termID, collectionid_t colID, v
             return false;
         if (parallelTermPosition.seek(termID))
         {
+/*        
             vector<string> currProperties;
             docid_t currDocID;
             while (parallelTermPosition.next(currProperties,currDocID))
@@ -543,6 +550,18 @@ bool Indexer::getDocsByTermInProperties(termid_t termID, collectionid_t colID, v
                 commonSet.push_back(item);
                 currProperties.clear();
             }
+*/
+            while(parallelTermPosition.next())
+            {
+                CommonItem item;
+                item.setDocID(parallelTermPosition.doc());
+                item.setCollectionID(colID);
+                std::map<string, PropertyItem> result;
+                parallelTermPosition.getPositions(result);
+                item.add(result);
+                commonSet.push_back(item);
+            }
+            
         }
         else
         {

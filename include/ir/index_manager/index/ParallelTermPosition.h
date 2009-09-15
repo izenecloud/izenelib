@@ -10,6 +10,8 @@
 #include <ir/index_manager/index/AbsTermReader.h>
 #include <ir/index_manager/index/IndexReader.h>
 #include <ir/index_manager/index/TermPositions.h>
+#include <ir/index_manager/index/CommonItem.h>
+#include <ir/index_manager/utility/PriorityQueue.h>
 
 //#include <3rdparty/am/rde_hashmap/hash_map.h>
 #include <boost/unordered_map.hpp>
@@ -17,7 +19,7 @@
 
 #include <string>
 #include <map>
-
+#include <vector>
 
 NS_IZENELIB_IR_BEGIN
 
@@ -34,27 +36,80 @@ typedef std::map<std::string, ID_FREQ_MAP_T > CollectionTermFrequencyInPropertie
 */
 class ParallelTermPosition
 {
+    class TermPositionEntry
+    {
+    public:
+        TermPositionEntry(string property)
+            :property(property)
+            ,pTermReader(NULL)
+            ,pPositions(NULL)
+        {}
+
+        ~TermPositionEntry()
+        {
+            if(pPositions)
+                delete pPositions;
+            if(pTermReader)
+                delete pTermReader;
+        }
+
+        bool next()
+        {
+            if(pPositions == NULL)
+                return false;
+            return pPositions->next();
+        }
+
+	void setCurrent(bool bCurrent){current = bCurrent;}
+	
+	bool isCurrent(){return current;}
+
+    public:
+        std::string property;
+        TermReader* pTermReader;
+        TermPositions* pPositions;
+        bool current;
+    };
+
+    class TermPositionQueue : public PriorityQueue<ParallelTermPosition::TermPositionEntry*>
+    {
+    public:
+        TermPositionQueue(size_t size)
+        {
+            initialize(size,false);
+        }
+    protected:
+        bool lessThan(ParallelTermPosition::TermPositionEntry* o1, ParallelTermPosition::TermPositionEntry* o2)
+        {
+            return (o1->pPositions->doc() < o2->pPositions->doc());
+        }
+    };
+
+
 public:
     ParallelTermPosition(collectionid_t colID, IndexReader* pIndexReader, vector<string>& properties);
 
     ~ParallelTermPosition();
 public:
-    /**
-    * Where the term exist in all of the fields that have been indexed.
-    */
     bool seek(termid_t termID);
-    /**
-    * Index iterator
-    * @param properties: Fields list that the returned docid exists
-    * @param docid: Next docid to be returned
-    */
-    bool next(vector<string>& properties, docid_t& docid);
-    /**
-    * Retrieve the position information of a certain Field
-    */
-    void getPositions(string& property, boost::shared_ptr<std::deque<unsigned int> >& positions, freq_t& tf, freq_t& doclen);
 
-    void getPositions(string& property, boost::shared_ptr<std::deque< std::pair<unsigned int,unsigned int> > >& positions, freq_t& tf, freq_t& doclen);
+    docid_t doc(){return currDoc_;}
+
+    count_t maxdf();
+
+    count_t ctf();	
+
+    count_t tf(){return currTf_;}
+
+    //bool next(vector<string>& properties, docid_t& docid);
+    bool next();
+
+    //void getPositions(string& property, boost::shared_ptr<std::deque<unsigned int> >& positions, freq_t& tf, freq_t& doclen);
+    void getPositions(std::map<string, PropertyItem>& result);
+
+    void getPositions(std::map<string, PropertyItem2>& result);
+
+    //void getPositions(string& property, boost::shared_ptr<std::deque< std::pair<unsigned int,unsigned int> > >& positions, freq_t& tf, freq_t& doclen);
 
     void get_df_and_ctf(termid_t termID, DocumentFrequencyInProperties& dfmap, CollectionTermFrequencyInProperties& ctfmap);
 
@@ -64,12 +119,23 @@ public:
     }
 
 private:
+    void initQueue();
+	
+private:
     collectionid_t colID_;
 
     IndexReader* pIndexReader_;
 
     vector<string> properties_;
 
+    ParallelTermPosition::TermPositionQueue* positionsQueue_;
+
+    std::vector<ParallelTermPosition::TermPositionEntry*> positions_;
+
+    docid_t currDoc_;
+
+    size_t currTf_;
+/*
     map<string, TermReader*> termReaderMap_;
 
     map<string, TermPositions*> termPositionMap_;
@@ -77,6 +143,7 @@ private:
     map<string, bool> flagMap_;
 
     map<string, docid_t> currDocMap_;
+*/
 };
 }
 
