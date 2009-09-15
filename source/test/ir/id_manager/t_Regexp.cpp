@@ -131,20 +131,25 @@ BOOST_AUTO_TEST_CASE( MemoryRegexpHandler )
 
 BOOST_AUTO_TEST_CASE( DiskRegexpHandler )
 {
+    {
+        IDManagerDiskRegexpHandler idManager("regexp3");
+
+        // Build term index dictionary using getTermIdListByTermStringList() Interface.
+        termIdList1_.resize(termUStringList1_.size());
+        termIdList2_.resize(termUStringList2_.size());
+        idManager.getTermIdListByTermStringList( termUStringList1_, termIdList1_ );
+        idManager.getTermIdListByTermStringList( termUStringList2_, termIdList2_ );
+
+        idManager.startWildcardProcess();
+        idManager.joinWildcardProcess();
+
+        // Get term id list using getTermIdListByWildcardPattern() Interface with pattern string "ate".
+        termIdList1_.clear();
+        termIdList2_.clear();
+    }
+
     IDManagerDiskRegexpHandler idManager("regexp3");
     UString compare;
-
-    // Build term index dictionary using getTermIdListByTermStringList() Interface.
-    termIdList1_.resize(termUStringList1_.size());
-    termIdList2_.resize(termUStringList2_.size());
-    idManager.getTermIdListByTermStringList( termUStringList1_, termIdList1_ );
-    idManager.getTermIdListByTermStringList( termUStringList2_, termIdList2_ );
-
-    idManager.startWildcardProcess();
-    idManager.joinWildcardProcess();
-
-    // Get term id list using getTermIdListByWildcardPattern() Interface with pattern string "ate".
-    termIdList1_.clear();
 
     std::string patternSource("ad");
     UString patternCheck(patternSource, UString::CP949);
