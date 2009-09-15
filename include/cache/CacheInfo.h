@@ -31,9 +31,9 @@ struct CacheInfo
 	KeyType key;
 	size_t 	docSize;
 	bool isHit; // for SLRU
-	clock_t LastAccessTime;
-	clock_t FirstAccessTime;
-	clock_t TimeToLive;  //reserved for further use.
+	unsigned int LastAccessTime;
+	unsigned int FirstAccessTime;
+	unsigned int TimeToLive;  //reserved for further use.
 	unsigned int iCount;
 	
 	template<class Archive> void serialize(Archive & ar,
@@ -69,8 +69,8 @@ struct lruCmp
 	bool operator() (const CacheInfo<KeyType> &lhs, const CacheInfo<KeyType> &rhs) const
 	{
 		return (lhs.LastAccessTime < rhs.LastAccessTime) 
-			|| ( (lhs.iCount < rhs.iCount) && (lhs.LastAccessTime == rhs.LastAccessTime) )
-			|| ( (lhs.iCount == rhs.iCount) && (lhs.LastAccessTime == rhs.LastAccessTime) && (lhs.key < rhs.key) );
+			|| (  (lhs.LastAccessTime == rhs.LastAccessTime) && (lhs.iCount < rhs.iCount) )
+			|| (  (lhs.LastAccessTime == rhs.LastAccessTime) && (lhs.iCount == rhs.iCount) && (lhs.key < rhs.key) );
 	}
 };
 

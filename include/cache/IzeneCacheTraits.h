@@ -136,7 +136,7 @@ template<class KeyType, class ValueType, class ContainerType,
 
 	enum {firstFit = false};
 	enum {lastFit = false};
-	enum {randFit = true};
+	enum {randFit = false};
 
 	typedef typename IzeneCacheReplaceTrait<KeyType, ValueType, LFU>::LIT LIT;
 	typedef typename IzeneCacheReplaceTrait<KeyType, ValueType, LFU>::CachedDataType
@@ -151,11 +151,12 @@ template<class KeyType, class ValueType, class ContainerType,
 		++lit->second;
 
 		int freq = lit->second;
+		
 		int a=0;
 		int count =rand() & 0x0f;
 		while (lit->second <= freq && lit != cacheContainer_.end() ) {
 			++lit;
-			if (true && lit->second == freq)
+			if (firstFit && lit->second == freq)
 				break;
 			if (randFit && lit->second == freq) {
 				++a;

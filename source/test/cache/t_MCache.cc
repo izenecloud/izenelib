@@ -7,26 +7,27 @@
 #include <cache/MLRUCache.h>
 #include <cache/MFCache.h>
 #include <cache/CacheDB.h>
+#include <cache/IzeneCache.h>
 
 using namespace std;
-using namespace izenelib::cache;
+//using namespace izenelib::cache;
 
 static bool trace = 0; //trace option
-static unsigned int cacheSize = 1000;
+static unsigned int cacheSize = 5000;
 enum {EXT=0,LIN};
-static int hash1 = 1;
-static int nReplace = 0;
+static int hash1 = 0;
+static int nReplace = 1;
 enum {LRU=0,LFU, SLRU};
 static string inputFile;
 
 //Use YString-YString pair for testing. 
 typedef string Key;
-typedef izenelib::am::NullType Value;
+typedef int Value;
 
 //Storage policy.
-//typedef izenelib::am::LinearHashTable<Key, Value, NullLock> extHash;
+typedef izenelib::am::LinearHashTable<Key, Value, NullLock> linHash;
 //typedef ExtendibleHash<Key, Value, NullLock> extHash;
-typedef izenelib::am::cccr_hash<Key, Value> linHash;
+//typedef izenelib::am::cccr_hash<Key, Value> linHash;
 
 typedef izenelib::am::rde_hash<Key, Value> extHash;
 
@@ -66,7 +67,7 @@ template<typename T> void run(T& cm) {
 	cout<<"Testing getValueWithInsert()"<<endl;
 	run_getValueWithInsert(cm);
 
-	cout<<"CacheSize*2 Testing getValueWithInsert()"<<endl;
+	/*cout<<"CacheSize*2 Testing getValueWithInsert()"<<endl;
 	cm.setCacheSize(cacheSize*2);
 	run_getValueWithInsert(cm);
 
@@ -87,7 +88,7 @@ template<typename T> void run(T& cm) {
 	run_Update(cm);
 
 	cout<<"Testing flush(key)"<<endl;
-	run_flush(cm);
+	run_flush(cm);*/
 }
 
 // test getValueWithInsert();
@@ -99,9 +100,10 @@ template<typename T> void run_getValueWithInsert(T& cm) {
 	ifstream inf(inputFile.c_str());
 	string ystr;
 	Value val;
-	while (inf>>ystr) {
-		sum++;
 
+	while (inf>>ystr ) {
+		sum++;
+        val++;
 		if (cm.getValueWithInsert(ystr, val))
 			hit++;
 		else {
@@ -146,8 +148,10 @@ template<typename T> void run_insertValue(T& cm) {
 	clock_t t1= clock();
 	ifstream inf(inputFile.c_str());
 	string ystr;
+	Value val;
 	while (inf>>ystr) {
-		cm.insertValue(ystr);
+		val++;
+		cm.insertValue(ystr, val);
 		if (trace) {
 			cout<< "getValueWithInsert: value="<<ystr<<endl;
 			//cm.printKeyInfoMap();
@@ -179,8 +183,10 @@ template<typename T> void run_updateValue(T& cm) {
 	clock_t t1= clock();
 	ifstream inf(inputFile.c_str());
 	string ystr;
+	Value val;
 	while (inf>>ystr) {
-		cm.updateValue(ystr);
+		val +=2;
+		cm.updateValue(ystr, val);
 		if (trace) {
 			cout<< "update: value="<<ystr<<endl;
 			//cm.printKeyInfoMap();
@@ -236,8 +242,10 @@ template<typename T> void run_Update(T& cm) {
 	clock_t t1= clock();
 	ifstream inf(inputFile.c_str());
 	string ystr;
+	Value val;
 	while (inf>>ystr) {
 		sum++;
+		val++;
 		//cout<<"TimeToLive: "<<cm.getCacheInfo(ystr.get_key()).TimeToLive<<endl;					
 		cm.setTimeToLive(ystr, 1);
 		if (0) {
@@ -355,16 +363,20 @@ int main(int argc, char *argv[]) {
 
 	try
 	{
+		{	
+			izenelib::cache::ILFUCache<Key,Value> cm(cacheSize);
+			run(cm);
+		}
 
 		if(nReplace == LRU)
 		{
 			if(hash1 == EXT)
 			{
-				MCache<Key, Value, lruCmp<Key>, extHash, NullLock> cm(cacheSize);run(cm);
+				izenelib::cache::MCache<Key, Value, izenelib::cache::lruCmp<Key>, extHash, NullLock> cm(cacheSize);run(cm);
 			}
 			else
 			{
-				MCache<Key, Value, lruCmp<Key>, linHash, NullLock> cm(cacheSize);run(cm);
+				izenelib::cache::MCache<Key, Value, izenelib::cache::lruCmp<Key>, linHash, NullLock> cm(cacheSize);run(cm);
 			}
 
 		}
@@ -372,11 +384,11 @@ int main(int argc, char *argv[]) {
 		{
 			if(hash1 == EXT)
 			{
-				MCache<Key, Value, lfuCmp<Key>, extHash, NullLock> cm(cacheSize);run(cm);
+				izenelib::cache::MCache<Key, Value, izenelib::cache::lfuCmp<Key>, extHash, NullLock> cm(cacheSize);run(cm);
 			}
 			else
 			{
-				MCache<Key, Value, lfuCmp<Key>, linHash, NullLock> cm(cacheSize);run(cm);
+				izenelib::cache::MCache<Key, Value, izenelib::cache::lfuCmp<Key>, linHash, NullLock> cm(cacheSize);run(cm);
 			}
 
 		}
@@ -385,11 +397,11 @@ int main(int argc, char *argv[]) {
 
 			if(hash1 == EXT)
 			{
-				MCache<Key, Value, slruCmp<Key>, extHash, NullLock> cm(cacheSize);run(cm);
+				izenelib::cache::MCache<Key, Value, izenelib::cache::slruCmp<Key>, extHash, NullLock> cm(cacheSize);run(cm);
 			}
 			else
 			{
-				MCache<Key, Value, slruCmp<Key>, linHash, NullLock> cm(cacheSize);run(cm);
+				izenelib::cache::MCache<Key, Value, izenelib::cache::slruCmp<Key>, linHash, NullLock> cm(cacheSize);run(cm);
 			}
 
 		}

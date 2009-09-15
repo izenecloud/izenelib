@@ -7,25 +7,6 @@
 #include <am/am.h>
 #include <am/concept/DataType.h>
 
-
-/*
-#include <wiselib/ustring/UString.h>
-namespace rde{
-
-template<> inline
-hash_value_t extract_int_key_value<wiselib::UString>(const wiselib::UString& t){
-	char* p = (char*)t.str_;
-	wiselib::UString::size_t length = t.length();
-	uint64_t convkey = 0;
-	size_t size = length*sizeof(wiselib::UString::value_type);
-	for (size_t i = 0; i < size; i++)
-		convkey = 37*convkey + (uint8_t)*p++;
-	return convkey;
-}
-
-}
-*/
-
 NS_IZENELIB_AM_BEGIN
 
 template <

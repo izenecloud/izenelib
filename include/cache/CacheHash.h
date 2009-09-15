@@ -54,7 +54,10 @@ public:
 		hashSize_ = hashSize;
 	}
 	
- 
+    bool hasKey(const KeyType& key){
+    	return memHash_.hasKey(key);
+    }
+	
 	ValueType* find(const KeyType& key)
 	{
 		return memHash_.find(key);
@@ -66,7 +69,10 @@ public:
 		
 	bool insert(const KeyType& key, const ValueType& value)
 	{
-		return memHash_.insert(key, value);
+		if( memHash_.num_items() <(int) hashSize_ )
+			return memHash_.insert(key, value);
+		else
+			return false;
 	}
 	bool insert(const DataType<KeyType,ValueType>& data)
 	{

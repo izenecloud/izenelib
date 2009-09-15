@@ -21,7 +21,7 @@ static int hash1 = 0;
 static int hash2 = 1;
 enum {EXT=0,LIN};
 static int nReplace = 0;
-enum {LRU=0,LFU, SLRU};
+enum {LRU1=0,LFU1, SLRU1};
 static string inputFile;
 static string indexFile = "testing-data/mfcache_index.dat";
 
@@ -324,11 +324,11 @@ int main(int argc, char *argv[]) {
 			} else if (str == "replace") {
 				string m = *argv++;
 				if (m == "lru")
-					nReplace = LRU;
+					nReplace = LRU1;
 				else if (m == "slru")
-					nReplace = SLRU;
+					nReplace = SLRU1;
 				else if (m == "lfu")
-					nReplace = LFU;
+					nReplace = LFU1;
 				else {
 				}// use default lru.				
 			} else if (str == "index") {
@@ -348,7 +348,7 @@ int main(int argc, char *argv[]) {
 	try
 	{
 
-		if(nReplace == LRU)
+		if(nReplace == LRU1)
 		{
 			if(hash1 == EXT)
 			{
@@ -374,7 +374,7 @@ int main(int argc, char *argv[]) {
 			}
 
 		}
-		else if(nReplace == LFU)
+		else if(nReplace == LFU1)
 		{
 			if(hash1 == EXT)
 			{
@@ -400,7 +400,7 @@ int main(int argc, char *argv[]) {
 			}
 
 		}
-		else if(nReplace == SLRU)
+		else if(nReplace == SLRU1)
 		{
 
 			if(hash1 == EXT)
