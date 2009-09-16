@@ -25,9 +25,8 @@ using namespace std;
 using namespace __gnu_cxx;
 using namespace boost;
 
-
-namespace izenelib{
-namespace cache{
+namespace izenelib {
+namespace cache {
 /**
  * 	\brief A basics Cache, only resides in memory. 
  *
@@ -74,9 +73,9 @@ public:
 
 	void insertValue(const KeyType& key, const ValueType& value) // insert an new item into MCache
 	{
-		insertValue( DataType<KeyType,ValueType>(key, value) );
+		insertValue(DataType<KeyType, ValueType>(key, value) );
 	}
-	
+
 	bool updateValue(const DataType<KeyType,ValueType>& dat) // insert an new item into MCache
 	{
 		lock.acquire_write_lock();
@@ -87,16 +86,16 @@ public:
 			} else {
 				cacheContainer_.firstInsert(key); //Insert the corresponding CacheInfo into KeyInfoMap_.        
 			}
-		} 
+		}
 		return true;
 		lock.release_write_lock();
-		
-	}	
+
+	}
 	bool updateValue(const KeyType& key, const ValueType& value) // insert an new item into MCache
 	{
-		return updateValue( DataType<KeyType,ValueType>(key, value) );
+		return updateValue(DataType<KeyType, ValueType>(key, value) );
 	}
-	
+
 	bool getValueNoInsert(const KeyType& key, ValueType& value); //  not insert even if not found.		
 	bool getValueWithInsert(const KeyType& key, ValueType& value); //  insert if not found.	
 	bool hasKey(const KeyType& key);
@@ -116,7 +115,7 @@ public:
 	 *  	\brief It sets the TimeToLive of one item in Cache, can be used to indicate the item is out of date.
 	 *	
 	 */
-	void setTimeToLive(const KeyType &key, time_t lifeTime) {
+	void setTimeToLive(const KeyType &key, unsigned int lifeTime) {
 		lock.acquire_write_lock();
 		cacheContainer_.setTimeToLive(key, lifeTime);
 		lock.release_write_lock();
@@ -242,18 +241,21 @@ template <class KeyType, class ValueType, class ReplacementPolicy, class Hash,
 	lock.acquire_write_lock();
 	nTotal_++;
 	ValueType* pd = hash_.find(key);
-	if(pd)value  = *pd;
-	if (cacheContainer_.find(key) ) {	
+	if (pd)
+		value = *pd;
+	if (cacheContainer_.find(key) ) {
 		cacheContainer_.replace(key); //Update the corresponding  CacheInfo.
 		nHit_++;
 		lock.release_write_lock();
 		return TRUE;
-	} else if (isArchive_ && hash_.find(key) ) {
-		cacheContainer_.firstInsert(key); //Update the corresponding  CacheInfo.
-		nHit_++;
-		lock.release_write_lock();
-		return TRUE;
-	} else {
+	}
+	else if (isArchive_ && hash_.find(key) ) {
+	 cacheContainer_.firstInsert(key); //Update the corresponding  CacheInfo.
+	 nHit_++;
+	 lock.release_write_lock();
+	 return TRUE;
+	} 
+	else {
 		lock.release_write_lock();
 		return FALSE;
 	}
@@ -268,21 +270,24 @@ template <class KeyType, class ValueType, class ReplacementPolicy, class Hash,
 		class LockType> void MCache<KeyType, ValueType, ReplacementPolicy,
 		Hash, LockType>::insertValue(const DataType<KeyType,ValueType>& dat) {
 	lock.acquire_write_lock();
-	KeyType key = dat.get_key();
-	if( hasKey(key) )return;
-	if ( hash_.insert(dat) ) {
-		if (cacheContainer_.find(key)) {
+	KeyType key = dat.get_key();	
+	if (hasKey(key) )
+		return;
+	if (hash_.insert(dat) ) {		
+		if (cacheContainer_.find(key)) {			
 			cacheContainer_.replace(key);
-		} else {
+		} else {			
 			cacheContainer_.firstInsert(key); //Insert the corresponding CacheInfo into KeyInfoMap_.        
 		}
 	} else //Insert failed, i.e. CacheHash is full.
-	{
+	{		
 		evict(1); //evict the oldest item.					
 		if (hash_.insert(dat) ) //Insert into the hash_.
 		{
 			cacheContainer_.firstInsert(key); //Insert the corresponding CacheInfo into KeyInfoMap_.					
 
+		}else{
+			//assert(false);
 		}
 	}
 	lock.release_write_lock();
@@ -294,8 +299,7 @@ template <class KeyType, class ValueType, class ReplacementPolicy, class Hash,
  */
 template <class KeyType, class ValueType, class ReplacementPolicy, class Hash,
 		class LockType> bool MCache<KeyType, ValueType, ReplacementPolicy,
-		Hash, LockType>::getValueNoInsert(const KeyType& key,
-		ValueType& value) {
+		Hash, LockType>::getValueNoInsert(const KeyType& key, ValueType& value) {
 	return getValue(key, value);
 }
 
@@ -306,16 +310,7 @@ template <class KeyType, class ValueType, class ReplacementPolicy, class Hash,
  */
 template <class KeyType, class ValueType, class ReplacementPolicy, class Hash,
 		class LockType> bool MCache<KeyType, ValueType, ReplacementPolicy,
-		Hash, LockType>::getValueWithInsert(const KeyType& key,
-		ValueType& value) {
-
-#if 0	//for debug
-	if ( (hash_.find(key) == NULL) ^ (it == CacheInfoHash_.end() ) )
-	{
-		cout<<"Error, unconsistence between CacheInfo and CacheHash"<<endl;
-		exit(1);
-	}
-#endif
+		Hash, LockType>::getValueWithInsert(const KeyType& key, ValueType& value) {
 
 	if (getValue(key, value) )
 		return TRUE;
@@ -344,8 +339,8 @@ template <class KeyType, class ValueType, class ReplacementPolicy, class Hash,
  *
  */
 template <class KeyType, class DataType, class ReplacementPolicy, class Hash,
-		class LockType> int MCache<KeyType, DataType, ReplacementPolicy,
-		Hash, LockType>::numItems() {
+		class LockType> int MCache<KeyType, DataType, ReplacementPolicy, Hash,
+		LockType>::numItems() {
 	lock.acquire_read_lock();
 	int num = hash_.numItems();
 	lock.release_read_lock();
@@ -356,10 +351,11 @@ template <class KeyType, class DataType, class ReplacementPolicy, class Hash,
  *	\brief Display the number of items in memory hash and file hash.
  */
 template <class KeyType, class DataType, class ReplacementPolicy, class Hash,
-		class LockType> void MCache<KeyType, DataType, ReplacementPolicy,
-		Hash, LockType>::displayHash() {
+		class LockType> void MCache<KeyType, DataType, ReplacementPolicy, Hash,
+		LockType>::displayHash() {
 	lock.acquire_read_lock();
-	cout<<"MCache: numItems="<<hash_.numItems()<<endl;
+	cout<<"MCache_hash numItems:"<<hash_.numItems()<<endl;
+	cacheContainer_.display();
 	lock.release_read_lock();
 }
 
@@ -368,8 +364,8 @@ template <class KeyType, class DataType, class ReplacementPolicy, class Hash,
  *
  */
 template <class KeyType, class DataType, class ReplacementPolicy, class Hash,
-		class LockType> void MCache<KeyType, DataType, ReplacementPolicy,
-		Hash, LockType>::printKeyInfoMap() {
+		class LockType> void MCache<KeyType, DataType, ReplacementPolicy, Hash,
+		LockType>::printKeyInfoMap() {
 	lock.acquire_read_lock();
 	cacheContainer_.printKeyInfoMap();
 	lock.release_read_lock();
@@ -380,15 +376,15 @@ template <class KeyType, class DataType, class ReplacementPolicy, class Hash,
  *
  */
 template <class KeyType, class DataType, class ReplacementPolicy, class Hash,
-		class LockType> void MCache<KeyType, DataType, ReplacementPolicy,
-		Hash, LockType>::evict(unsigned int num) {
+		class LockType> void MCache<KeyType, DataType, ReplacementPolicy, Hash,
+		LockType>::evict(unsigned int num) {
 	MIT it = cacheContainer_.begin();
 	while (it != cacheContainer_.end() && num>0) {
 		//cout<<it->first.key<<endl; 	
 		MIT it1 = it; //reserverd iterator it, or cacheContainer_.del(key) would delete it also
 		it = cacheContainer_.next(it);
 		if (hash_.del(it1->first.key) ) //Remove an item from the cache. 		 		
-		{
+		{		
 			cacheContainer_.del(it1->first.key); //Update the corresponding  CacheInfo.	
 			num--;
 		} else {
@@ -403,8 +399,8 @@ template <class KeyType, class DataType, class ReplacementPolicy, class Hash,
  * 	
  */
 template <class KeyType, class DataType, class ReplacementPolicy, class Hash,
-		class LockType> void MCache<KeyType, DataType, ReplacementPolicy,
-		Hash, LockType>::flush(const KeyType& key) {
+		class LockType> void MCache<KeyType, DataType, ReplacementPolicy, Hash,
+		LockType>::flush(const KeyType& key) {
 	lock.acquire_write_lock();
 	if (hash_.del(key))
 		cacheContainer_.del(key);
@@ -417,8 +413,8 @@ template <class KeyType, class DataType, class ReplacementPolicy, class Hash,
  */
 
 template <class KeyType, class DataType, class ReplacementPolicy, class Hash,
-		class LockType> void MCache<KeyType, DataType, ReplacementPolicy,
-		Hash, LockType>::flush() {
+		class LockType> void MCache<KeyType, DataType, ReplacementPolicy, Hash,
+		LockType>::flush() {
 	lock.acquire_write_lock();
 	UpdateKeyInfoMap();
 	MIT it = cacheContainer_.begin();
@@ -438,8 +434,8 @@ template <class KeyType, class DataType, class ReplacementPolicy, class Hash,
  */
 
 template <class KeyType, class DataType, class ReplacementPolicy, class Hash,
-		class LockType> void MCache<KeyType, DataType, ReplacementPolicy,
-		Hash, LockType>::clear() {
+		class LockType> void MCache<KeyType, DataType, ReplacementPolicy, Hash,
+		LockType>::clear() {
 	lock.acquire_write_lock();
 	UpdateKeyInfoMap();
 	MIT it = cacheContainer_.begin();

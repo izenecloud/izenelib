@@ -120,7 +120,7 @@ public:
 	bool getValueWithInsert(const KeyType& key, ValueType& value); //  insert if not found.	
 	bool hasKey(const KeyType& key) {
 		ScopedReadLock<ThreadSafeLock> lock(lock_);
-		return cache_.hasKey();
+		return cache_.hasKey(key);
 	}
 
 	bool del(const KeyType& key) {
