@@ -186,6 +186,12 @@ public:
             rawIdFile_.open(rawIdFileName_.c_str(), std::ofstream::out|std::ofstream::app|std::ofstream::binary );
             if(rawIdFile_.fail())
                 std::cerr << "bad file " << rawIdFileName_ << std::endl;
+
+            if(false == IsMemory<RegExpHandler>::value)
+            {
+                handler_ = new RegExpHandler(storageName_);
+                handler_->openForRead();
+            }
         }
     }
 

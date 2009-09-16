@@ -54,15 +54,25 @@ public:
 		hashSize_ = hashSize;
 	}
 	
-
+    bool hasKey(const KeyType& key){
+    	return memHash_.hasKey(key);
+    }
+	
 	ValueType* find(const KeyType& key)
 	{
 		return memHash_.find(key);
 	}
+	
+	bool get(const KeyType& key, ValueType& val){
+		return memHash_.get(key, val);
+	}
 		
 	bool insert(const KeyType& key, const ValueType& value)
 	{
-		return memHash_.insert(key, value);
+		if( memHash_.num_items() <(int) hashSize_ )
+			return memHash_.insert(key, value);
+		else
+			return false;
 	}
 	bool insert(const DataType<KeyType,ValueType>& data)
 	{
@@ -87,13 +97,13 @@ public:
 	/**
 	 *	\brief get the total number of item in the Cache.
 	 */
-	int numItems(){
+	int numItems() {
 		return memHash_.num_items();
 	}
 	/**
 	 *   	\brief  display the num of items in first hash and second hash.
 	 */
-	void displayHash() const {
+	void displayHash()  {
 		cout<<"Hash: numItem = "<< memHash_.num_items();
 			
 	}
@@ -183,6 +193,11 @@ public:
 	}
 
 	ValueType* find(const KeyType& key);
+	
+	bool getValue(const KeyType& key, ValueType& val){
+		if( ! memHash_.get(key, val) )
+			return fileHash_.get(key, val) ;
+	}
 	bool insert(const KeyType& key, const ValueType& value)
 	{
 		return insert( DataType<KeyType,ValueType>(key,value) );

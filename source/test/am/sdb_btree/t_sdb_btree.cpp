@@ -26,7 +26,7 @@ typedef NullType ValueType;
 typedef izenelib::am::DataType<KeyType, NullType> DataType;
 typedef izenelib::am::DataType<KeyType, NullType> myDataType;
 typedef izenelib::am::sdb_btree<KeyType, NullType> SDB_BTREE;
-//typedef izenelib::am::sdb_fixedbtree<KeyType, NullType> SDB_BTREE;
+
 
 template<typename T> void insert_test(T& tb) {
 	izenelib::util::ClockTimer timer;

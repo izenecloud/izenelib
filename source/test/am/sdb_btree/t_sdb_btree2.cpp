@@ -256,8 +256,8 @@ template<typename T> void run(T& tb) {
 	} else {
 		insert_test(tb);
 		//search_test(tb);
-	    //seq_test(tb);
-	    //delete_test(tb);
+		//seq_test(tb);
+		//delete_test(tb);
 		//search_test(tb);
 	}
 }
@@ -321,12 +321,19 @@ int main(int argc, char *argv[]) {
 	}
 	try
 	{
-		SDB_BTREE tb(indexFile);
-		tb.setMaxKeys(maxKeys);
-		tb.setPageSize(pageSize);
-		tb.setCacheSize(cacheSize);
-		tb.open();
-		run(tb);
+		SDB_BTREE* tb = new SDB_BTREE(indexFile);
+		tb->setMaxKeys(maxKeys);
+		tb->setPageSize(pageSize);
+		tb->setCacheSize(cacheSize);
+		tb->open();
+		run(*tb);
+
+		/*SDB_BTREE tb(indexFile);
+		 tb.setMaxKeys(maxKeys);
+		 tb.setPageSize(pageSize);
+		 tb.setCacheSize(cacheSize);
+		 tb.open();
+		 run(tb);*/
 
 	}
 	catch(bad_alloc)

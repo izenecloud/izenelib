@@ -8,6 +8,7 @@
 #define COMMON_ITEM_H_
 
 #include <ir/index_manager/utility/system.h>
+#include <ir/index_manager/index/PropertyItem.h>
 
 #include <boost/archive/text_oarchive.hpp>
 #include <boost/archive/text_iarchive.hpp>
@@ -24,6 +25,7 @@ NS_IZENELIB_IR_BEGIN
 namespace indexmanager{
 
 typedef boost::shared_ptr<std::deque<loc_t> > MyPositionPtr;
+
 
 class CommonItem
 {
@@ -66,12 +68,13 @@ public:
     }
 
 
-    friend class boost::serialization::access;
-    template<class Archive>
-    void serialize(Archive & ar, const unsigned int version)
+    void add(std::map<string, PropertyItem>& result)
     {
-        ar & docid;
-        ar & commonItemProperty;
+        for(std::map<string, PropertyItem>::iterator iter = result.begin(); iter != result.end(); ++iter)
+        {
+            commonItemProperty[iter->first] = iter->second.positions;
+            tfMap[iter->first] = iter->second.tf;
+        }
     }
 
     bool operator == (const CommonItem &other) const

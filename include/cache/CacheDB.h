@@ -7,6 +7,7 @@
 
 #ifndef CacheDB_H
 #define CacheDB_H
+#include "IzeneCache.h"
 
 #include "CacheInfo.h"
 #include "cm_basics.h"
@@ -44,7 +45,9 @@ namespace cache {
  */
 
 template <class KeyType, class ValueType, class ReplacementPolicy,
-		class MCache, class DataHash, class LockType =NullLock> class CacheDB {
+		class MCache = ILRUCache<KeyType, ValueType>
+		, class DataHash =izenelib::am::sdb_hash<KeyType, ValueType>
+		, class LockType =NullLock> class CacheDB {
 
 	//typedef izenelib::am::DataType<KeyType,ValueType> DataType;
 public:

@@ -43,12 +43,17 @@ void mapStage()
     typename UnorderedSdbType::SDBCursor locn = src_sdb_.get_first_Locn();
     KeyType k = KeyType();
     ValueType v = ValueType();
+    int num = 0;
     while( src_sdb_.get(locn, k, v) ) {
+    	++num;
+    	//cout<<"!!!!!!!dbg val: "<<k<<"->"<<v<<endl;
         fwrite(&itemSize, sizeof(unsigned short), 1, f);
         fwrite(&k, sizeof(KeyType), 1, f);
         fwrite(&v, sizeof(ValueType), 1, f);
         src_sdb_.seq(locn);
     }
+    
+    cout<<"!!!! here num="<<num<<endl;
 //    while( src_sdb_.seq(locn, k, v) ) {
 //        std::cout <<"4";
 //        fwrite(&itemSize, sizeof(unsigned short), 1, f);
@@ -108,7 +113,8 @@ void reduceStage2()
 #endif
         fread(&k, sizeof(KeyType), 1, f);
         fread(&v, sizeof(ValueType), 1, f);
-        dst_sdb_.insertValue(k, v);
+        if( ! dst_sdb_.insertValue(k, v) )
+        	cout<<"insert failed: "<<k<<"- > "<<v<<endl;
     }
     fclose(f);
     return;
@@ -117,10 +123,16 @@ void reduceStage2()
 bool joinThread()
 {
     mapStage();
+    
+    cout<<"~~~~~"<<endl;
 
     reduceStage1();
+    
+    cout<<"!!!!"<<endl;
 
     reduceStage2();
+    
+    cout<<"????"<<endl;
 
     std::remove(fin_.c_str());
     std::remove(fout_.c_str());

@@ -47,6 +47,10 @@ public:
 	typedef typename hash_map<KeyType, CacheInfo<KeyType>, HashFun<KeyType> > ::iterator HIT;	
 	//typedef izenelib::am::DataType<KeyType,ValueType> DataType;
 public:	
+	CacheContainer(){
+		seqNo_ = 0;
+	}
+	
 /**
 *	\brief It determines if an item exits in CacheContainer. 
 */	
@@ -85,6 +89,11 @@ public:
 	{
 		return CacheInfoHash_.size();
 	}
+	
+	void display(){
+		cout<<"CacheInfoHash size:"<<CacheInfoHash_.size()<<endl;
+		cout<<"keyInfoMap_ size:"<<keyInfoMap_.size()<<endl;
+	}
 
 	void setTimeToLive(const KeyType &key, time_t lifeTime);
 	CacheInfo<KeyType>& getCacheInfo(const KeyType& key){return CacheInfoHash_[key];}
@@ -102,7 +111,8 @@ public:
         
 private:	
 	CmHashMap CacheInfoHash_;	//Map key to the corresponding CacheInfo.
-	CacheInfoKeyMap keyInfoMap_;	//Container of CacheInfo.			
+	CacheInfoKeyMap keyInfoMap_;	//Container of CacheInfo.	
+	unsigned int  seqNo_;
 };
 
 /**
@@ -139,7 +149,7 @@ void  CacheContainer<KeyType, ValueType ,ReplacementPolicy>:: replace(const KeyT
 	newCacheInfo.key = key;	
 	//newCacheInfo.docSize= oldCacheInfo.docSize;
 	newCacheInfo.FirstAccessTime = oldCacheInfo.FirstAccessTime;
-	newCacheInfo.LastAccessTime = clock()+1; //for debug, not add 1 actually.
+	newCacheInfo.LastAccessTime = ++seqNo_; //for debug, not add 1 actually.
 	newCacheInfo.TimeToLive = oldCacheInfo.TimeToLive;
 	newCacheInfo.iCount = oldCacheInfo.iCount + 1;	
 	
@@ -159,7 +169,7 @@ void  CacheContainer<KeyType, ValueType ,ReplacementPolicy>:: firstInsert(const 
 	newCacheInfo.key = key;	
 	//newCacheInfo.docSize = size of(hash_[key]);
 	newCacheInfo.isHit = 0;
-	newCacheInfo.FirstAccessTime = newCacheInfo.LastAccessTime = clock();
+	newCacheInfo.FirstAccessTime = newCacheInfo.LastAccessTime = ++seqNo_;
 	newCacheInfo.TimeToLive = LIFE_TIME;
 	newCacheInfo.iCount = 1;
 
@@ -204,17 +214,16 @@ void  CacheContainer<KeyType, ValueType ,ReplacementPolicy>:: UpdateKeyInfoMap()
 	MIT it = keyInfoMap_.begin();
 	while( it != keyInfoMap_.end() )
 	{
-		MIT it1 = it;
+	   MIT it1 = it;
 		it++;
 		KeyType key = it1->first.key;
-		time_t TimeToLive = CacheInfoHash_[key].TimeToLive;
-		clock_t FirstAccessTime = it1->first.FirstAccessTime;
-		clock_t LastAccessTime = it1->first.LastAccessTime;
-		clock_t Now = clock();
-
+		unsigned int TimeToLive = CacheInfoHash_[key].TimeToLive;
+		unsigned int FirstAccessTime = it1->first.FirstAccessTime;
+		unsigned int LastAccessTime = it1->first.LastAccessTime;
+		
 		//Diffenent rule to detemine a item is out of date can be implemented here.  
 		
-		if( (Now + LastAccessTime - 2*FirstAccessTime)*CLOCKS_PER_SEC > TimeToLive*2 )
+		if( (LastAccessTime - FirstAccessTime) > TimeToLive )
 		    keyInfoMap_[CacheInfoHash_[key]] = 1;
 		else
 		{

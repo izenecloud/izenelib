@@ -13,6 +13,9 @@
 //#include <am/trie/b_trie.hpp>
 #include <am/cccr_hash/cccr_hash.h>
 
+#include <am/sdb_hash/sdb_fixedhash.h>
+#include <am/sdb_btree/sdb_fixedbtree.h>
+
 
 #endif /*AM_TYPES_H_*/
 

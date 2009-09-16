@@ -15,6 +15,11 @@
 //#include <am/cccr_string_hash_table/cccr_str_hash_table.hpp>
 #include <am/sdb_hash/sdb_hash.h>
 #include <am/cccr_hash/cccr_hash.h>
+#include <am/3rdparty/ext_hash_map.h>
+#include <am/3rdparty/stl_map.h>
+#include <am/3rdparty/rde_hash.h>
+#include <am/3rdparty/stx_btree.h>
+
 #include <util/ProcMemInfo.h>
 
 using namespace izenelib::util;

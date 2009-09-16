@@ -25,6 +25,8 @@ public:
 	}
 
 	virtual bool insert(const DataType<KeyType,ValueType>& data) = 0;
+	
+	virtual bool get(const KeyType&key, ValueType& value) = 0;
 
 	virtual bool update(const KeyType& key, const ValueType& value){
 		DataType<KeyType,ValueType> data(key, value);
@@ -33,7 +35,7 @@ public:
 
 	virtual bool update(const DataType<KeyType,ValueType>& data){return false;}
 
-	virtual ValueType* find(const KeyType& key) = 0;
+	virtual ValueType* find(const KeyType& key) {return NULL;};
 
 	virtual bool del(const KeyType& key){return false;}
 
@@ -54,6 +56,8 @@ public:
 	}
 
 	virtual bool insert(const DataType<KeyType>& data) = 0;
+	
+	virtual bool get(const KeyType&key, value_type& value) = 0;
 
 	virtual bool update(const KeyType& key){
 		DataType<KeyType> data(key);
@@ -62,8 +66,10 @@ public:
 
 	virtual bool update(const DataType<KeyType>& data) {return false;}
 
-
 	virtual bool del(const KeyType& key){return false;}
+	
+	virtual value_type* find(const KeyType& key) {return NULL;};
+
 
 	virtual ~AccessMethod() {};
 };
