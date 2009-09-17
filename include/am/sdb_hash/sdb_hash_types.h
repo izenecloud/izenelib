@@ -28,7 +28,7 @@ using namespace izenelib::am::util;
 
 NS_IZENELIB_AM_BEGIN
 
-uint32_t rotate(uint32_t a) {
+inline uint32_t rotate(uint32_t a) {
 
 	a = (a+0x7ed55d16) + (a<<12);
 	a = (a^0xc761c23c) ^ (a>>19);
