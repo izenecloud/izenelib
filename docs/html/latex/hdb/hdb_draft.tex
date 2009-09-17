@@ -28,8 +28,8 @@
 \maketitle
 
 \begin{abstract}
-The SequentialDB data structure is not suitable for large number of random insertions, however many applications rely on such kind of behavior, for example, SDBTrie and offline algorithms in MIA.
-Experiment result and a further analysis show, the problem of SequentialDB can be due to inefficient random disk reads and writes during random insertion.
+The SequentialDB data structure is not suitable for large number of random insertions, however many applications rely on such kind of behavior, such as SDBTrie and offline algorithms in MIA.
+Experiment result and a further analysis show that, the problem of SequentialDB can be due to the inefficient random disk reads and writes during random insertion.
 So the HugeDB is proposed to replace SequentialDB in such kind of environment. Two major techniques have been raised here to eliminate both random disk reads and random disk writes.
 One is merge-based incremental growth, which may cause find operations slow down a little if db partitions are unmerged.
 The other is modification tag method, at the cost of adding a meta field in each record to store modification type.
@@ -52,10 +52,10 @@ However, the price worth the gain on IO in applications mentioned above.
 \section{Introduction}
 From now on, for simplity, \emph{sdb} always stands for SequentialDB, while \emph{hdb} is short for HugeDB.
 
-There are two types of sdb, sdb\_hash and sdb\_btree, keys in sdb\_hash are unordered while has order in sdb\_btree, so an advantage of btree over hash is btree could be used for range search.
-The items in a range of $[x,y]$ can be found by searching for x in the tree, then performing an inorder traversal in the tree from x to y.
+There are two types of sdb, sdb\_hash and sdb\_btree, keys in sdb\_hash are unordered while has order in sdb\_btree, so an advantage of btree over hash is that btree could be used for range search.
+The items in a range of $[x,y]$ can be found by searching for x in the tree, then performing an in-order traversal in the tree from x to y.
 Although both suffers from rapid performance degradation when db gets large, I focus on sdb\_btree, since it's worse and more representive.
-Following table shows, given plenty of memory (1G), how insertion time increase, they are measured between inserting every 1,000,000 $<int, int>$ records into a sdb\_btree continously.
+The following table shows, given plenty of memory (1G), how insertion time increase, they are measured between inserting every 1,000,000 $<int, int>$ records into a sdb\_btree continously.
 
 \begin{table}[H]\centering
 \begin{tabular}[t]{c|p{8cm}}
@@ -86,19 +86,19 @@ Following table shows, given plenty of memory (1G), how insertion time increase,
 There are two sharp points in the table:
 \begin{enumerate}
 \item The first point is at 22,000,000, before that, all records are kept in memory cache, so insertion speed is rather fast, less than 1.25 second.
-But at the point, memory cache becomes full, sdb\_btree begins continously flushing dirty nodes to disk and loading newly accessed nodes into memory, insertion speed decreases to 19.9 seconds immediately.
+But at this point, memory cache becomes full, sdb\_btree begins continously flushing dirty nodes to disk and loading newly accessed nodes into memory, insertion speed decreases to 19.9 seconds immediately.
 \item The second point is at 43,000,000, sdb file's size increase to 2.4G at this point, occupying nearly all 2G physical memory on my machine. The operating system cannot cache the whole file in memory any more,
-so the OS begins swapping file pages between memory and disk after that point, which causes insertion speed slows down for 4 times immediately.
+so the OS begins swapping file pages between memory and disk after that point, which causes insertion speed slow down for 4 times immediately.
 \end{enumerate}
-Above experiment shows, speed of random insertions in sdb\_btree degrades too rapidly. Imagine, 22,000,000 times of insertion can finish in 1 minute, twice of that, 44,000,000 times of insertions cost nearly 1 hour.
-Even we assume the speed won't get slow any more, inserting 100,000,000 times will be more than 1 day. I doubt any user can be satisfied with the performance.
+Above experiment shows, speed of random insertions in sdb\_btree degrades too rapidly. Imagine that, 22,000,000 times of insertion can be finished in 1 minute, twice of that, 44,000,000 times of insertions cost nearly 1 hour.
+Even we assume the speed won't get slow any more, inserting 100,000,000 times will be more than 1 day. I doubt that any user can be satisfied with the performance.
 
 What's wrong with sdb\_btree? Is it badly implemented or with poor design? Not really, sdb\_btree is just a variant of the classical banlanced multiway B\_tree. 
 In classical btree, when a node overflows during in an insertion, it splits into two half-full nodes, and if the splitting causes the parent node to overflow, the parent node splits, and so on.
 Splittings can thus propagate up to the root, which is how the tree grows in height. Sdb\_btree adopts some ideas from B*\_tree, splitting is postponed when a node overflows,
 by ``sharing'' the node's data with one of its adjacent siblings, the node needs to be split only if the sibling is also full;
-when that happens, the node splits into two, and its data and those of its full sibling are evenly redistrbuted, making each of the three nodes about 2/3 full.
-This optimization over classical B\_tree reduces the number of times new nodes must be created and thus increase the storage utilization.
+when that happens, the node splits into two, its data and those of its full sibling are evenly redistrbuted, making each of the three nodes about 2/3 full.
+This optimization over classical B\_tree reduces the number of times new nodes must be created, and thus increase the storage utilization.
 Another technique sdb\_btree used is called ``peseundo deletion'', Rather than erasing a record from node's page, 
 a user's delete operation just masks the record as invalid and leaves the actual removal to a future insertion operation.
 
@@ -107,19 +107,19 @@ However, sdb\_btree is still not enough for large number of random insertions. T
 \item In B\_tree, every node can be modified during insertion, new record is appended to non-full node and force full node to be splitted,
 so every block in the sdb file is possible to be modified during random insertions, causing inefficient random seeks and writes.
 Since the number of dirty nodes flushed out at a time is fixed, the larger sdb file is, sparser those writes will be (here, sparse means how big the gap is between each node's position on disk),
-disk seeks will cost more time and time spent on B\_tree flush operation will be longer. This is the reason why insertion cost keeps increasing with scale of sdb in experiment.
-\item Before each insertion, we must search B\_tree to find the right location to insert, if nodes are not in memory, it's loaded from disk file to memory first, this introduces additional random reads.
-When sdb file is small, operating system could cache the whole file in file cache, and copying a node from OS's file cache to B\_tree's node buffer is fast, so developper may not even notice this activity exists.
-But when sdb file grows larger than size of physical memory, (for example, at 44,000,000, the second sharp point in above table), cost of random reads full play.
+disk seeks will cost more time, and time spent on B\_tree flush operation will be longer. This is the reason why insertion cost keeps increasing at scale of sdb in experiment.
+\item Before each insertion, we must search B\_tree to find the right location to insert, if nodes are not in memory, they're loaded from disk file to memory first, this introduces additional random reads.
+When sdb file is small, operating system could cache the whole file in file cache, and copying a node from OS's file cache to B\_tree's node buffer is fast, so developper may not even notice the existing of such activity.
+But when sdb file grows larger than the size of physical memory, (for example, at 44,000,000, the second sharp point in above table), cost of random reads full play.
 \end{enumerate}
 
 OK, since we realize the problem of sdb\_btree, how do we prevent random reads and writes during random insertions? Or in other words, shall we convert series of random reads/writes into large sequential read/write?
-which would be orders of magnitude faster than former. In section 2, a merge-based incremetal growth method is adopted to archieve this goal.
+Which would be orders of magnitude faster than former. In section 2, a merge-based incremetal growth method is adopted to archieve this goal.
 While in section 3, a modification tag method is proposed to eliminate random reads during insertion/updation/deletion.
 
 \section{Merge-based incremental growth}
 
-Merge technique is well-known for incremental update inverted index. For example, Lucene's indexing bases on two basic algorithms:
+Merging technique is well-known for incremental update inverted index. For example, Lucene's indexing bases on two basic algorithms:
 \begin{enumerate}
 \item Make an index for a single document.
 \item Merge a set of indices.
@@ -148,7 +148,7 @@ Such a merge techinque avoids frequent random modifications to inverted index fi
 It reads records sequentially from all input index files, merge records in memory, and output results also in large sequential write. Hence it's not so slow even when inputs are too large to fit in physical memory.
 So the technique can be adopted to solve our problem, merge sdb\_btree on disk from time to time so as to create huge sdb\_btree incrementally.
 
-Let us describle it detailedly. There are two basic algorithms:
+Let us describle it in detail. There are two basic algorithms:
 \begin{enumerate}
 \item Keep an sdb\_btree in memory as cache, new records are always inserted into it. Save it as an on-disk sdb\_btree when cache gets full, after that clean the cache.
 \item Merge on-disk sdb\_btree from time to time.
@@ -158,7 +158,7 @@ In this way, we can eliminate all random writes, right? Because in algorithm 1 a
 And in algorithm 2 merge process only has large sequential reads and writes.
 
 One short coming for this solution is, when in a state there are multiple unmerged sdb\_btree structures on disk, we have to search all of them to find value of an given key, hence speed for find operation is affected.
-In order to applied for those ``insert-all-find-all-time'' applictions, an optimize() method is provided in hdb, which will force merge all sdb\_btree, both in-memory one and on-disk ones, together to be a single sdb.
+In order to apply for those ``insert-all-find-all-time'' applictions, an optimize() method is provided in hdb, which will force merge all sdb\_btree, both in-memory one and on-disk ones, together to be a single sdb.
 
 \section{Modification tag}
 
@@ -168,7 +168,7 @@ Now in this section, the task is to eliminate these random reads.
 
 The premise to slove the problem is, don't try to find whether key exists and its location for new arrival record. The logic is easy to understand, if you search for its location or existance, random read is inevitable.
 
-With this limitation in mind, I proposed a modification tag method. In which, each record is saved together with a tag indicating modification type to show how what operation is relevant with the record, e.g, insert, update or delete.
+With this limitation in mind, I proposed a modification tag method. In which, each record is saved together with a tag indicating modification type to show what operation is relevant with the record, e.g, insert, update or delete.
 So each record in hdb looks like a triple: $<$key0, value0, INSERT$>$, $<$key1, value1, INSERT$>$, $\dots$ , $<$key0, $value0'$, UPDATE$>$, $<$key1, null, DELETE$>$.
 
 I define four types of tag, INSERT, UPDATE, DELETE to support three basic operations, and an additional one called DELTA for applications that only want to increase orignal value in hdb by some $\Delta$.
