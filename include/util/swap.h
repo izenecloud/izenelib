@@ -4,7 +4,7 @@
  * @file util/swap.h
  * @author Ian Yang
  * @date Created <2009-09-08 17:52:25>
- * @date Updated <2009-09-10 13:14:38>
+ * @date Updated <2009-09-16 17:16:37>
  * @brief use swap to replace copy when the right we indeed just need "move"
  */
 
@@ -22,7 +22,7 @@ namespace util {
  * @post value == T(), value has be swapped with a default constructed T
  */
 template<typename C, typename T>
-void SwapBack(C& container, T& value)
+void swapBack(C& container, T& value)
 {
     container.resize(container.size() + 1);
 
