@@ -288,7 +288,7 @@ public:
 		if (creating) {
 			// We're creating if the file doesn't exist.
 			DLOG(INFO)<<"creating...\n"<<endl;
-			ssh_.display( DLOG(INFO) );
+			ssh_.display( LOG(INFO) );
 			ssh_.toFile(dataFile_);
 			ret = true;
 		} else {
@@ -300,7 +300,7 @@ public:
 					return false;
 				}
 				DLOG(INFO)<<"open exist...\n"<<endl;
-				ssh_.display( DLOG(INFO) );
+				ssh_.display( LOG(INFO) );
 
 			}
 		}

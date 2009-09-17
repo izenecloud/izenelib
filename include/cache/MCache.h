@@ -41,7 +41,8 @@ namespace cache {
  */
 
 //static ofstream loggerFile1("./mcache_logger");
-template <class KeyType, class ValueType, class ReplacementPolicy, class Hash,
+template <class KeyType, class ValueType, class ReplacementPolicy, 
+        class Hash = izenelib::am::rde_hash<KeyType, ValueType>,
 		class LockType =NullLock> class MCache {
 	typedef typename map<CacheInfo<KeyType>, bool, ReplacementPolicy> :: iterator
 			MIT;
