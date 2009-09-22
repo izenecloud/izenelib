@@ -64,7 +64,9 @@ public:
 	 *
 	 */
 	SequentialDB(const string& fileName = "SequentialDB.dat") :
-		container_(fileName) {
+        sdbname_(fileName),
+		container_(fileName)
+    {
 	}
 
 	//=============for sdb/btree======================
@@ -454,7 +456,12 @@ public:
 	ContainerType& getContainer() {
 		return container_;
 	}
+
+	const std::string& getName() {
+        return sdbname_;
+	}
 private:
+    std::string sdbname_;
 	ContainerType container_;
 	LockType lock_; // for multithread access.
 	izenelib::am::CompareFunctor<KeyType> comp_;
