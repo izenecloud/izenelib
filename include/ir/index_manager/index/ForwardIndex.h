@@ -46,20 +46,6 @@ public:
         return true;
     }
 
-    bool getCharOffsetListByTermId(unsigned int termId, 
-				std::vector<unsigned int>& termOffsetList) const
-    {
-        ForwardIndex::const_iterator iter = find(termId);
-        if(iter == end())
-            return false;
-        termOffsetList.reserve(iter->second->size());   //@deepesh change resize to reserve 
-        for(ForwardIndexOffset::iterator it = iter->second->begin(); it != iter->second->end(); ++it)
-            termOffsetList.push_back(it->second);
-        return true;
-    }
-
-
-
     bool insertTermOffset(unsigned int termId,
                                     pair<unsigned int, unsigned int>& termOffset)
     {
