@@ -606,6 +606,7 @@ template<typename KeyType, typename ValueType, typename LockType,
 		ValueType, LockType, ContainerType, Alloc>::getValueBetween(
 		vector<DataType<KeyType,ValueType> >& result, const KeyType& lowKey,
 		const KeyType& highKey) {
+    bool ret = false;
 	if (comp_(lowKey, highKey)> 0) {
 		return false;
 	}
@@ -617,8 +618,9 @@ template<typename KeyType, typename ValueType, typename LockType,
 	if (container_.get(locn, rec)) {
 		if (comp_(rec.get_key(), highKey) <= 0) {
 			result.push_back(rec);
+			ret = true;
 		} else
-			return true;
+			return ret;
 	}
 
 	//if lowKey not exist in database, it starts from the lowest key.
@@ -628,17 +630,18 @@ template<typename KeyType, typename ValueType, typename LockType,
 			if (get(locn, rec) ) {
 				if (comp_(rec.get_key(), highKey) <= 0) {
 					result.push_back(rec);
+					ret = true;
 				} else {
 					break;
 				}
 			}
 		} else {
 			lock_.release_read_lock();
-			return false;
+			return ret;
 		}
 	} while (true);
 	lock_.release_read_lock();
-	return true;
+	return ret;
 }
 
 template< typename KeyType =string, typename ValueType=NullType,
