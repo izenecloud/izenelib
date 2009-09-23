@@ -251,9 +251,9 @@ protected:
  
     swap_(&array[pivotIndex], &array[right]);
     
-    for(i = left; i <=right; i++)
+    for(i = left; i <right; i++)
     {
-      if(array[i] < pivotValue)
+      if(array[i] <= pivotValue)
       {
         swap_(&array[i], &array[index]);
         index += 1;
@@ -270,6 +270,7 @@ protected:
   void quickSort_(VALUE_TYPE* array, uint32_t left, uint32_t right)
   {
     assert(left < right);
+
     assert(right < length_);
     
     if(right-left<=1)
@@ -494,13 +495,15 @@ public:
     return true;
   }
   
-  inline void push_back(VALUE_TYPE t)
+  inline size_t push_back(VALUE_TYPE t)
   {
     if (is_refered())
       assign_self();
     
     size_t n = find_pos_2insert(t);
-    insert(n, t);    
+    insert(n, t);
+    
+    return n+1;
   }
 
   void push_back(const SelfT& other, size_t n = 0)
@@ -731,6 +734,74 @@ public:
     quickSort_(ARRAY(p_), 0, length_-1);
   }  
 
+//   void merge_sort()
+//   {
+//     if (length_<=1 || AUTO_SORT)
+//       return;
+
+//     if (is_refered())
+//       assign_self();
+
+//     const uint32_t SIZE = 1000000;
+//     if (length_/SIZE <=2)
+//       return quickSort_(ARRAY(p_), 0, length_-1);
+
+//     const uint32_t LEN = length_%SIZE==0? length_/SIZE: length_/SIZE+1;
+//     uint32_t* index = (uint32_t*)malloc(sizeof(uint32_t)*LEN);
+//     for (uint32_t i=0; i<LEN; ++i)
+//       index[i] = 0;
+    
+//     size_t i=0;
+//     for (; i<length_; i+=SIZE)
+//       quickSort_(ARRAY(p_), i, ((i+SIZE-1)>length_-1? length_-1: (i+SIZE-1)));;
+
+//     char* p = (char*)malloc(length_*sizeof(VALUE_TYPE)+sizeof(ReferT));
+//     i = 0;
+//     uint32_t finished = 0;
+
+//     while (finished != LEN)
+//     {
+//       uint32_t mini = 0;
+//       VALUE_TYPE min;
+
+//       uint32_t j = 0;
+//       for (; j<LEN; ++j)
+//         if (index[j]<SIZE)
+//         {
+//           mini = j;
+//           min = *(ARRAY(p_)+j*SIZE+index[j]);
+//           ++j;
+//           break;
+//         }
+
+//       for (; j<LEN; ++j)
+//       {
+//         if (index[j]>=SIZE)
+//           continue;
+
+//         if (min > *(ARRAY(p_)+j*SIZE+index[j]))
+//         {
+//           min = *(ARRAY(p_)+j*SIZE+index[j]);
+//           mini = j;
+//         }
+//       }
+
+//       *(ARRAY(p)+i) = min;
+//       ++i;
+
+//       assert(index[mini]<SIZE);
+//       ++index[mini];
+//       if (index[mini]==SIZE)
+//         ++finished;
+//     }
+
+//     free(p_);
+//     p_ = p;
+//     clean_reference();
+
+//     free(index);
+//   }
+  
   
   /**
    *This is for outputing into std::ostream, say, std::cout.
@@ -738,7 +809,7 @@ public:
 friend std::ostream& operator << (std::ostream& os, const SelfT& v)
   {
     for (size_t i =0; i<v.length_; i++)
-      ;//os<<ARRAY(v.p_)[i]<<" ";
+      os<<ARRAY(v.p_)[i]<<" ";
 
     return os;
   }

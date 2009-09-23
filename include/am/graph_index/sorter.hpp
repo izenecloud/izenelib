@@ -1,6 +1,7 @@
 #ifndef SORTER_HPP
 #define SORTER_HPP
 
+#include<fstream>
 #include<types.h>
 //#include <am/external_sort/alpha_sort.hpp>
 #include <am/graph_index/dyn_array.hpp>
@@ -17,6 +18,7 @@ struct ADDR_STRUCT
 {
   char integer[4];
   char addr[8];
+  char len[2];
 
   uint32_t& INTEGER_()
   {
@@ -28,6 +30,11 @@ struct ADDR_STRUCT
     return *(uint64_t*)addr;
   }
 
+  uint16_t& LEN_()
+  {
+    return *(uint16_t*)len;
+  }
+
   uint32_t INTEGER()const
   {
     return *(uint32_t*)integer;
@@ -37,35 +44,45 @@ struct ADDR_STRUCT
   {
     return *(uint64_t*)addr;
   }
+
+  uint16_t LEN()const
+  {
+    return *(uint16_t*)len;
+  }
   
-  inline ADDR_STRUCT(uint32_t i, uint64_t j)
+  inline ADDR_STRUCT(uint32_t i, uint64_t j, uint16_t k)
   {
     INTEGER_() = i;
     ADDR_() = j;
+    LEN_() = k;
   }
   
   inline ADDR_STRUCT(uint32_t i)
   {
     INTEGER_() = i;
     ADDR_() = 0;
+    LEN_() = 0;
   }
   
   inline ADDR_STRUCT()
   {
     INTEGER_() = 0;
     ADDR_() = -1;
+    LEN_() = 0;
   }
   
   inline ADDR_STRUCT(const ADDR_STRUCT& other)
   {
     INTEGER_() = other.INTEGER();
     ADDR_() = other.ADDR();
+    LEN_() = other.LEN();
   }
 
   inline ADDR_STRUCT& operator = (const ADDR_STRUCT& other)
   {
     INTEGER_() = other.INTEGER();
     ADDR_() = other.ADDR();
+    LEN_() = other.LEN();
     return *this;
   }
 
@@ -109,7 +126,7 @@ struct ADDR_STRUCT
    **/
 friend std::ostream& operator << (std::ostream& os, const ADDR_STRUCT& v)
   {
-    os<<"<"<<v.INTEGER()<<","<<v.ADDR()<<">";
+    os<<"<"<<v.INTEGER()<<","<<v.ADDR()<<","<<v.LEN()<<">";
 
     return os;
   }
@@ -195,44 +212,63 @@ private:
 
   void output_()
   {
-    const uint32_t SIZE = 2000000000;
+    const uint32_t SIZE = 1000000000;
     char* buf = (char*)malloc(SIZE);
           
     FILE* f = fopen((filenm_+".out").c_str(), "w+");
     assert(fwrite(&num_, sizeof(uint64_t), 1, f)==1);
 
     f_ = fopen(filenm_.c_str(), "r");
-    fread(buf, SIZE, 1, f_);
-          
+    fseek(f_, 0, SEEK_END);
+    uint64_t fs = ftell(f_);
     
+
     char record[4048];
-
-    buckets_[BUCKET_NUM]->ready4fetch();
-    for (uint64_t i=0; i<buckets_[BUCKET_NUM]->num(); ++i)
+    uint32_t t = fs%SIZE==0?fs/SIZE:fs/SIZE+1;
+    for (uint32_t k= 0; k<t; ++k)
     {
-      ADDR_STRUCT addr = buckets_[BUCKET_NUM]->next();
-
-      uint16_t len;
-      if (addr.ADDR()+sizeof(uint16_t)<SIZE)
+      fseek(f_, SIZE*k, SEEK_SET);
+      
+      fread(buf, SIZE, 1, f_);
+      
+      uint64_t start = k*SIZE;
+      uint64_t end = fs>(k+1)*SIZE? (k+1)*SIZE: fs;
+      
+      fseek(f, sizeof(uint64_t), SEEK_SET);
+      buckets_[BUCKET_NUM]->ready4fetch();
+      for (uint64_t i=0; i<buckets_[BUCKET_NUM]->num(); ++i)
       {
-        len = *(uint16_t*)(buf+addr.ADDR());
-        if (len + addr.ADDR()+sizeof(uint16_t)<=SIZE)
+        ADDR_STRUCT addr = buckets_[BUCKET_NUM]->next();
+        //std::cout<<addr<<std::endl;
+
+        if (addr.ADDR() < start || addr.ADDR() >= end)
         {
-          assert(fwrite(buf+addr.ADDR(), len+sizeof(uint16_t), 1, f)==1);
+          fseek(f, addr.LEN()+sizeof(uint16_t), SEEK_CUR);
           continue;
         }
+
+        //data is in the middle of two buffer
+        if (addr.ADDR()+sizeof(uint16_t)+addr.LEN()>end)
+        {
+          fseek(f_, addr.ADDR()+sizeof(uint16_t), SEEK_SET);
+
+          assert(addr.LEN()+sizeof(uint16_t)<=4048);
+          *(uint16_t*)record = addr.LEN();
+          assert(fread(record+sizeof(uint16_t), addr.LEN(), 1, f_)==1);
+
+          assert(*(uint32_t*)(record+sizeof(uint16_t)) == addr.INTEGER());
+            
+          assert(fwrite(record, addr.LEN()+sizeof(uint16_t), 1, f)==1);
+          continue;
+        }
+
+        assert(*(uint16_t*)(buf+addr.ADDR()-start) == addr.LEN());
+        assert(*(uint32_t*)(buf+addr.ADDR()-start+sizeof(uint16_t)) == addr.INTEGER());
+        
+        assert(fwrite(buf+addr.ADDR()-start, addr.LEN()+sizeof(uint16_t), 1, f)==1);
+
       }
-      
-      
-      fseek(f_, addr.ADDR(), SEEK_SET);
-      assert(fread(&len, sizeof(uint16_t), 1, f_)==1);
-      assert(len<=4048);
-      assert(fread(record, len, 1, f_)==1);
-
-      assert(fwrite(&len, sizeof(uint16_t), 1, f)==1);
-      assert(fwrite(record, len, 1, f)==1);
     }
-
     
     fclose(f);
     fclose(f_);
@@ -288,14 +324,17 @@ public:
   }
   
   void add_terms(const terms_t& terms, uint32_t docid)
-  {    
+  {
+    // if (terms.length()<2)
+//       return;
+    
     for (typename terms_t::size_t i=0; i<terms.length(); ++i)
     {
       uint16_t s = (terms.length()-i)*sizeof(TERM_TYPE)+sizeof(uint32_t);
       if (is_mem_full_(s+sizeof(uint16_t)))
         flush_();
 
-      buckets_[num_%BUCKET_NUM]->push_back(ADDR_STRUCT(terms.at(i), ftell(f_)+p_));
+      buckets_[num_%BUCKET_NUM]->push_back(ADDR_STRUCT(terms.at(i), ftell(f_)+p_, s));
       
       *(uint16_t*)(buf_+p_) = s;
       p_ += sizeof(uint16_t);      
@@ -310,6 +349,7 @@ public:
 
   void flush()
   {
+    std::cout<<"Amount: "<<num_<<std::endl;
     std::cout<<"sorter is flushing...";
     flush_();
     fseek(f_, 0, SEEK_SET);
@@ -330,7 +370,6 @@ public:
 
   void sort()
   {
-    std::cout<<"Amount: "<<num_<<std::endl;
     free(buf_);
     buf_= NULL;
 
@@ -354,7 +393,8 @@ public:
     buckets_[BUCKET_NUM]->ready4add();
 
     uint32_t last = 0;
-    
+
+    //std::ofstream of("bucket_in.txt");
     while (1)
     {
       last = sort_(firsts);
@@ -364,7 +404,8 @@ public:
         break;
       
       buckets_[BUCKET_NUM]->push_back(firsts[last]);
-
+      //of<<firsts[last].INTEGER()<<" "<<firsts[last].ADDR()<<std::endl;
+      
       if (index[last]>=buckets_[last]->num())
       {
         firsts[last] = -1;
@@ -372,11 +413,13 @@ public:
       }
 
       firsts[last] = buckets_[last]->next();
-        ++index[last];
+      ++index[last];
       // std::cout<<firsts[last]<<"--"<<last;
 //       std::cout<<std::endl;
     }
 
+    //std::cout<<buckets_[BUCKET_NUM]->num()<<" ++\n";
+    
     for (uint32_t i=0; i<BUCKET_NUM; ++i)
     {
       assert(firsts[i]==(TERM_TYPE)-1);
