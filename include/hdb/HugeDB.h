@@ -12,98 +12,20 @@
 #include <cstdlib>
 #include <string>
 #include <vector>
-#include <fstream>
 
 #include <boost/lexical_cast.hpp>
-#include <boost/archive/xml_oarchive.hpp>
-#include <boost/archive/xml_iarchive.hpp>
-#include <boost/serialization/nvp.hpp>
 
 #include <am/concept/DataType.h>
 #include <am/sdb_btree/sdb_btree.h>
 
 #include <sdb/SequentialDB.h>
 
-using namespace izenelib::sdb;
+#include "HDBCursor.h"
+#include "HDBHeader.h"
 
 namespace izenelib {
 
 namespace hdb {
-
-/**
- * @brief Hdb header
- */
-struct HugeDBHeader {
-
-    /**
-     * Number of sdbs.
-     */
-    size_t slicesNum;
-
-    /**
-     * Level of each sdb.
-     */
-    std::vector<int> slicesLevel;
-
-    /**
-     * Size of each sdb.
-     */
-    std::vector<size_t> deletions;
-
-    HugeDBHeader(const std::string& path)
-        : path_(path)
-	{
-	    ifstream ifs(path_.c_str());
-        if( !ifs ) {
-            slicesNum = 0;
-            return;
-        }
-
-        ifs.seekg(0, ifstream::end);
-        if( 0 == ifs.tellg()) {
-            slicesNum = 0;
-        } else {
-            ifs.seekg(0, fstream::beg);
-            boost::archive::xml_iarchive xml(ifs);
-            xml >> boost::serialization::make_nvp("PartitionNumber", slicesNum);
-            xml >> boost::serialization::make_nvp("PartitionLevel", slicesLevel);
-            xml >> boost::serialization::make_nvp("Deletions", deletions);
-        }
-        ifs.close();
-    }
-
-    ~HugeDBHeader()
-    {
-        flush();
-    }
-
-    void flush()
-    {
-        ofstream ofs(path_.c_str());
-        boost::archive::xml_oarchive xml(ofs);
-        xml << boost::serialization::make_nvp("PartitionNumber", slicesNum);
-        xml << boost::serialization::make_nvp("PartitionLevel", slicesLevel);
-        xml << boost::serialization::make_nvp("Deletions", deletions);
-        ofs.flush();
-    }
-
-	void display(std::ostream& os = std::cout)
-	{
-		os << "Number of partitions " << slicesNum << std::endl;
-		if(slicesNum != 0) {
-            os << "Partitions:";
-            for(size_t i= 0; i<slicesNum; i++)
-                os << " " << "[L" << slicesLevel[i] << "]"
-                    << deletions[i] << "deletions";
-		}
-	}
-
-private:
-
-    std::string path_;
-
-};
-
 
 template<typename SdbType, typename Comparator>
 static void merge_btree( SdbType* src1, SdbType* src2, SdbType* dst, size_t& dels, const Comparator& comp);
@@ -131,12 +53,9 @@ template< typename KeyType,
           typename Alloc=std::allocator<DataType<KeyType, std::pair<char, ValueType> > > >
 class HugeDB {
 
-    enum Tag{
-        INSERT = 'I',
-        UPDATE = 'U',
-        DELETE = 'R', // Remove
-        DELTA = 'D',
-    };
+protected:
+
+    typedef HugeDB<KeyType, ValueType, LockType, ContainerType, Alloc> ThisType;
 
     typedef std::pair<char, ValueType> TagType;
 
@@ -152,13 +71,19 @@ class HugeDB {
 
 public:
 
+    typedef HDBCursor_<ThisType> HDBCursor;
+
+    friend class HDBCursor_<ThisType>;
+
     HugeDB(const std::string &hdbName)
         : hdbName_(hdbName),
           isOpen_(false), isSync_(true),
           headerPath_(hdbName_ + ".hdb.header.xml"),
           header_(headerPath_),
           cachedRecordsNumber_(2000000),
-          mergeFactor_(2)
+          mergeFactor_(2),
+          pageSize_(8*1024),
+          degree_(128)
     {
         header_.display();
         for(size_t i = 0; i<header_.slicesNum; i++)
@@ -209,6 +134,14 @@ public:
         }
         mergeFactor_ = mergeFactor;
     }
+
+	void setPageSize(size_t pageSize) {
+		pageSize_ = pageSize;
+	}
+
+	void setDegree(int degree) {
+		degree_ = degree;
+	}
 
     void open()
     {
@@ -406,8 +339,8 @@ public:
 
             std::string dstname = leftName + "+";
             SdbInfo* dst = new SdbInfo(dstname);
-            dst->sdb.setPageSize(8*1024);
-            dst->sdb.setDegree(128);
+            dst->sdb.setPageSize(pageSize_);
+            dst->sdb.setDegree(degree_);
             dst->sdb.setCacheSize(8*1024);
             dst->sdb.open();
 
@@ -447,6 +380,162 @@ public:
             Call ScalableDB::optimize() before numItems()\n");
     }
 
+	HDBCursor get_first_Locn() {
+	    HDBCursor cursor(*this);
+	    return cursor;
+	}
+
+	bool seq(HDBCursor& cursor, ESeqDirection sdir = ESD_FORWARD) {
+	    if(sdir == ESD_FORWARD ) {
+            while( cursor.next() ) {
+                if(cursor.getTag().first != DELETE)
+                    return true;
+            }
+            return false;
+	    } else {
+            while( cursor.prev() ) {
+                if(cursor.getTag().first != DELETE)
+                    return true;
+            }
+            return false;
+	    }
+	}
+
+	bool seq(HDBCursor& cursor, KeyType& key, ValueType& value,
+			ESeqDirection sdir=ESD_FORWARD) {
+        if( seq(cursor, sdir) ) {
+            get(cursor, key, value);
+            return true;
+        }
+        return false;
+	}
+
+	bool seq(HDBCursor& cursor, DataType<KeyType, ValueType>& dat,
+			ESeqDirection sdir=ESD_FORWARD) {
+        return seq(cursor, dat.key, dat.value, sdir);
+	}
+
+	bool search(const KeyType& key, HDBCursor& cursor,
+            ESeqDirection sdir = ESD_FORWARD) {
+	    bool suc = cursor.seek(key);
+	    if(suc && cursor.getKey() == key) {
+            if(cursor.getTag().first != DELETE)
+                return true;
+            seq(cursor, sdir);
+            return false;
+	    }
+        if(sdir == ESD_BACKWARD)
+            seq(cursor, ESD_BACKWARD);
+        return false;
+	}
+
+	HDBCursor search(const KeyType& key, ESeqDirection sdir = ESD_FORWARD) {
+	    HDBCursor cursor(*this);
+	    search(key, cursor, sdir);
+	    return cursor;
+	}
+
+	bool get(const HDBCursor& cursor, KeyType& key, ValueType& value) {
+	    if(cursor.getTag().first != DELETE) {
+            key = cursor.getKey();
+            value = cursor.getTag().second;
+            return true;
+	    }
+	    return false;
+	}
+
+	bool get(const HDBCursor& cursor, DataType<KeyType,ValueType> & dat) {
+	    return get(cursor, dat.key, dat.value);
+	}
+
+	bool getNext(const KeyType& key, KeyType& nxtKey) {
+	    KeyType tmpk;
+	    TagType tmpt;
+	    HDBCursor cursor;
+	    if( search(key, cursor, ESD_FORWARD) ) {
+	        if( seq(cursor, ESD_FORWARD) ) {
+                get(cursor, tmpk, tmpt);
+                nxtKey = tmpk;
+                return true;
+	        }
+	        return false;
+	    } else {
+	        get(cursor, tmpk, tmpt);
+	        nxtKey = tmpk;
+	        return true;
+	    }
+	}
+
+	KeyType getPrev(const KeyType& key) {
+        throw std::runtime_error("Unimplemented\n");
+	}
+
+	KeyType getNearest(const KeyType& key) {
+        throw std::runtime_error("Unimplemented\n");
+	}
+
+	bool getValueForward(const int count,
+            vector<DataType<KeyType,ValueType> >& result, const KeyType& key) {
+        result.clear();
+
+        HDBCursor cursor(*this);
+        search(key, cursor, ESD_FORWARD);
+        KeyType tmpk;
+        ValueType tmpv;
+        for( int i=0; i<count; i++ ) {
+            if(!get(cursor, tmpk, tmpv))
+                return false;
+            result.push_back(DataType<KeyType, ValueType>(tmpk, tmpv));
+            seq(cursor, ESD_FORWARD);
+        }
+        return true;
+    }
+
+	bool getValueForward(int count, vector<DataType<KeyType,ValueType> >& result) {
+        KeyType key;
+        return getValueForward(count, result, key);
+	}
+
+	bool getValueBackward(const int count,
+			vector<DataType<KeyType,ValueType> >& result, const KeyType& key) {
+        result.clear();
+
+        HDBCursor cursor(*this);
+        search(key, cursor, ESD_BACKWARD);
+        KeyType tmpk;
+        ValueType tmpv;
+        for( int i=0; i<count; i++ ) {
+            if(!get(cursor, tmpk, tmpv))
+                return false;
+            result.push_back(DataType<KeyType, ValueType>(tmpk, tmpv));
+            seq(cursor, ESD_BACKWARD);
+        }
+        return true;
+    }
+
+	bool getValueBackward(int count, vector<DataType<KeyType,ValueType> >& result) {
+        KeyType key;
+	    return getValueBackward(count, result, key);
+	}
+
+	bool getValueBetween(vector<DataType<KeyType,ValueType> >& result,
+			const KeyType& lowKey, const KeyType& highKey) {
+        result.clear();
+
+        HDBCursor cursor(*this);
+        search(lowKey, cursor, ESD_FORWARD);
+        KeyType tmpk;
+        ValueType tmpv;
+        while(true) {
+            if(!get(cursor, tmpk, tmpv)) break;
+            if(comp_(tmpk, highKey) > 0) break;
+            result.push_back(DataType<KeyType, ValueType>(tmpk, tmpv));
+            seq(cursor, ESD_FORWARD);
+        }
+        if(result.size() > 0) return true;
+        return false;
+    }
+
 protected:
 
     inline void tryMerge()
@@ -483,8 +572,8 @@ protected:
 
         std::string dstname = input[0]->getName() + "+";
         SdbInfo* dst = new SdbInfo(dstname);
-        dst->sdb.setPageSize(8*1024);
-        dst->sdb.setDegree(128);
+        dst->sdb.setPageSize(pageSize_);
+        dst->sdb.setDegree(degree_);
         dst->sdb.setCacheSize(8*1024);
         dst->sdb.open();
 
@@ -509,8 +598,8 @@ protected:
         std::string name = getSdbName(sdbList_.size());
         SdbInfo* ramsdb = new SdbInfo(name);
         // upper limit
-        ramsdb->sdb.setPageSize(8*1024);
-        ramsdb->sdb.setDegree(128);
+        ramsdb->sdb.setPageSize(pageSize_);
+        ramsdb->sdb.setDegree(degree_);
         ramsdb->sdb.setCacheSize( (size_t)-1 );
         ramsdb->sdb.open();
         sdbList_.push_back(ramsdb);
@@ -549,6 +638,10 @@ private:
 
     size_t mergeFactor_;
 
+    size_t pageSize_;
+
+    size_t degree_;
+
     std::vector<SdbInfo*> sdbList_;
 
 	CompareFunctor<KeyType> comp_;
@@ -567,13 +660,6 @@ static void merge_btree( SdbType* src1, SdbType* src2, SdbType* dst, size_t& del
 template<typename SdbType, typename Comparator>
 static void merge_btree( SdbType** src, int n , SdbType* dst, size_t& dels, const Comparator& comp)
 {
-    enum Tag{
-        INSERT = 'I',
-        UPDATE = 'U',
-        DELETE = 'R', // Remove
-        DELTA = 'D',
-    };
-
     typedef typename SdbType::SDBCursor SdbCursor;
     typedef typename SdbType::SDBKeyType KeyType;
     typedef typename SdbType::SDBValueType TagType;
