@@ -1,4 +1,4 @@
-CXX = g++
+CXX = g++-4.1
 
 ######################################################
 # if $(COMPILE_FLAGS) is given by upper makefile 
@@ -6,12 +6,12 @@ CXX = g++
 ifneq ($(COMPILE_FLAGS),)
 CXXFLAGS += $(COMPILE_FLAGS) 
 else
-CXXFLAGS = -Wall -O3 -g -DDEBUG 
+CXXFLAGS = -Wall -O3 -g 
 endif
 
 TARGET_PATH = .
-WISELIB = /home/wps/workspace/wiselib
-IZENELIB = /home/wps/workspace/izenelib
+WISELIB = /home/wei/dev/wiselib
+IZENELIB = /home/wei/dev/izenelib
 
 IDMANAGER_PATH = ../include/
 
@@ -19,7 +19,7 @@ INCLUDE_PATH = \
 			   -I $(WISELIB)/include \
 			   -I $(IZENELIB)/include \
 			   -I $(IZENELIB)/include/3rdparty \
-			   -I /usr/local/include/boost-1_38 \
+			   -I /usr/local/include/boost-1_39 \
 
 		  
 EXT_LIB_PATH = \

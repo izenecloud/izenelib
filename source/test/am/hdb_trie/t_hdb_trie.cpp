@@ -13,24 +13,14 @@
 #include <boost/test/unit_test.hpp>
 
 #include <wiselib/ustring/UString.h>
-#include <am/sdb_trie/sdb_trie.hpp>
+#include <am/hdb_trie/hdb_trie.hpp>
 
 
 using namespace std;
 using namespace wiselib;
 using namespace izenelib::am;
 
-BOOST_AUTO_TEST_SUITE( sdb_trie_suite )
-/*
-
-#define CLEAN_SDB_FILE(test) \
-{ \
-    std::string testname = test;\
-    remove( ("sdbtrie_" + testname + ".sdbtrie.edgetable.sdb").c_str() ); \
-    remove( ("sdbtrie_" + testname + ".sdbtrie.optedgetable.sdb").c_str() ); \
-    remove( ("sdbtrie_" + testname + ".sdbtrie.datatable.sdb").c_str() ); \
-}
-
+BOOST_AUTO_TEST_SUITE( hdb_trie_suite )
 
 #define TEST_TRIE_FIND(str, id) \
 { \
@@ -98,12 +88,10 @@ BOOST_AUTO_TEST_SUITE( sdb_trie_suite )
   }\
 }
 
-BOOST_AUTO_TEST_CASE(SDBTrie_update)
+BOOST_AUTO_TEST_CASE(HDBTrie_update)
 {
-    CLEAN_SDB_FILE("update");
-
     {
-      SDBTrie2<string,int> trie("./sdbtrie_update");
+      HDBTrie2<string,int> trie("./hdbtrie_update");
       trie.openForWrite();
       trie.insert("apple",1);
       BOOST_CHECK_EQUAL(trie.num_items(),  (size_t)1);
@@ -113,24 +101,20 @@ BOOST_AUTO_TEST_CASE(SDBTrie_update)
     }
 
     {
-      SDBTrie2<string,int> trie("./sdbtrie_update");
+      HDBTrie2<string,int> trie("./hdbtrie_update");
       trie.openForRead();
       BOOST_CHECK_EQUAL(trie.num_items(),  (size_t)1);
       TEST_TRIE_FIND("apple", 2);
     }
 
-    CLEAN_SDB_FILE("update");
-
 }
 
 
 
-BOOST_AUTO_TEST_CASE(SDBTrie_find)
+BOOST_AUTO_TEST_CASE(HDBTrie_find)
 {
-    CLEAN_SDB_FILE("find");
-
     {
-      SDBTrie2<string,int> trie("./sdbtrie_find");
+      HDBTrie2<string,int> trie("./hdbtrie_find");
       trie.openForWrite();
       trie.insert("apple",1);
       trie.insert("blue",2);
@@ -143,7 +127,7 @@ BOOST_AUTO_TEST_CASE(SDBTrie_find)
     }
 
     {
-      SDBTrie2<string,int> trie("./sdbtrie_find");
+      HDBTrie2<string,int> trie("./hdbtrie_find");
       trie.openForRead();
       BOOST_CHECK_EQUAL(trie.num_items(),  (size_t)7);
 
@@ -164,18 +148,14 @@ BOOST_AUTO_TEST_CASE(SDBTrie_find)
       TEST_TRIE_FIND("bluee", -1);
 
     }
-
-    CLEAN_SDB_FILE("find");
 }
 
 
 
-BOOST_AUTO_TEST_CASE(SDBTrie_findPrefix)
+BOOST_AUTO_TEST_CASE(HDBTrie_findPrefix)
 {
-    CLEAN_SDB_FILE("findprefix");
-
     {
-      SDBTrie2<string,int> trie("./sdbtrie_findprefix");
+      HDBTrie2<string,int> trie("./hdbtrie_findprefix");
       trie.openForWrite();
       trie.insert("apple",1);
       trie.insert("blue",2);
@@ -188,9 +168,11 @@ BOOST_AUTO_TEST_CASE(SDBTrie_findPrefix)
     }
 
     {
-      SDBTrie2<string,int> trie("./sdbtrie_findprefix");
+      HDBTrie2<string,int> trie("./hdbtrie_findprefix");
       trie.openForRead();
       BOOST_CHECK_EQUAL(trie.num_items(),  (size_t)7);
+
+      TEST_TRIE_FIND("art", 6);
 
       int idList1[3] = {1,6,3};
       TEST_TRIE_FIND_PREFIX("a", idList1, 3);
@@ -227,17 +209,31 @@ BOOST_AUTO_TEST_CASE(SDBTrie_findPrefix)
             BOOST_CHECK_EQUAL(results[1].c_str(), "destination");
           }
       }
-    }
 
-    CLEAN_SDB_FILE("findprefix");
+      {
+          vector<string> keys;
+          vector<int> values;
+          trie.findPrefix("des", keys, values);
+          BOOST_CHECK_EQUAL(keys.size(), (size_t)2);
+          BOOST_CHECK_EQUAL(values.size(), (size_t)2);
+          if(keys.size() == 2)
+          {
+            BOOST_CHECK_EQUAL(keys[0].c_str(), "desk");
+            BOOST_CHECK_EQUAL(keys[1].c_str(), "destination");
+          }
+          if(values.size() == 2)
+          {
+            BOOST_CHECK_EQUAL(values[0], 7);
+            BOOST_CHECK_EQUAL(values[1], 4);
+          }
+      }
+    }
 }
 
-BOOST_AUTO_TEST_CASE(SDBTrie_searchregexp)
+BOOST_AUTO_TEST_CASE(HDBTrie_searchregexp)
 {
-    CLEAN_SDB_FILE("searchregexp");
-
     {
-      SDBTrie2<string,int> trie("./sdbtrie_searchregexp");
+      HDBTrie2<string,int> trie("./hdbtrie_searchregexp");
       trie.openForWrite();
       trie.insert("apple",1);
       trie.insert("blue",2);
@@ -250,7 +246,7 @@ BOOST_AUTO_TEST_CASE(SDBTrie_searchregexp)
     }
 
     {
-      SDBTrie2<string,int> trie("./sdbtrie_searchregexp");
+      HDBTrie2<string,int> trie("./hdbtrie_searchregexp");
       trie.openForRead();
       BOOST_CHECK_EQUAL(trie.num_items(),  (size_t)7);
 
@@ -284,17 +280,13 @@ BOOST_AUTO_TEST_CASE(SDBTrie_searchregexp)
       TEST_TRIE_SEARCH_REGEXP("ear?th", idList13, 0);
 
     }
-
-    CLEAN_SDB_FILE("searchregexp");
 }
 
 
-BOOST_AUTO_TEST_CASE(SDBTrie_UString)
+BOOST_AUTO_TEST_CASE(HDBTrie_UString)
 {
-    CLEAN_SDB_FILE("ustring");
-
     {
-      SDBTrie2<UString,int> trie("./sdbtrie_ustring");
+      HDBTrie2<UString,int> trie("./hdbtrie_ustring");
       trie.openForWrite();
 
       UString word("apple",UString::CP949);
@@ -306,7 +298,7 @@ BOOST_AUTO_TEST_CASE(SDBTrie_UString)
     }
 
     {
-      SDBTrie2<UString,int> trie("./sdbtrie_ustring");
+      HDBTrie2<UString,int> trie("./hdbtrie_ustring");
       trie.openForRead();
       BOOST_CHECK_EQUAL(trie.num_items(),  (size_t)1);
 
@@ -321,9 +313,6 @@ BOOST_AUTO_TEST_CASE(SDBTrie_UString)
       UString ww = (UString::value_type*)p;
       TEST_TRIE_SEARCH_REGEXP(ww, idList, 1);
     }
-
-    CLEAN_SDB_FILE("ustring");
-
 }
-*/
+
 BOOST_AUTO_TEST_SUITE_END()
