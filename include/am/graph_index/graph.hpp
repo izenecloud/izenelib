@@ -590,7 +590,7 @@ class Graph
     
     if (loads_.at(nid))
     {
-      edges_t* edges = nodes_.at(nid);
+      sorted_edges_t* edges = nodes_.at(nid);
       
       for (typename edges_t::size_t i =0; i<edges->length(); ++i)
         get_docs_(edges->at(i).NID(), docs);
@@ -599,7 +599,7 @@ class Graph
       return;
     }
 
-    if (nodes_.at(nid) == (edges_t*)-1)
+    if (nodes_.at(nid) == (sorted_edges_t*)-1)
     {
       doclist += docs;
       return;
@@ -954,7 +954,7 @@ public:
     }
   }
 
-  void get_doc_list(const std::vector<uint32_t>& terms, std::vector<uint32_t>& docids)const
+  void get_doc_list(const std::vector<uint32_t>& terms, std::vector<uint32_t>& docids)
   {
     docids.clear();
 
@@ -984,7 +984,7 @@ public:
     
     if (loads_.at(next))
     {
-      edges_t* edges = nodes_.at(next);
+      sorted_edges_t* edges = nodes_.at(next);
       
       for (typename edges_t::size_t i =0; i<edges->length(); ++i)
         get_docs_(edges->at(i).NID(), docs);
@@ -996,7 +996,7 @@ public:
       return;
     }
 
-    if (nodes_.at(next) == (edges_t*)-1)
+    if (nodes_.at(next) == (sorted_edges_t*)-1)
     {
       docids.reserve(docs.length());
       for (typename array32_t::size_t i=0; i<docs.length(); ++i)

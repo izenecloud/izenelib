@@ -3,7 +3,7 @@
 
 #include<fstream>
 #include<types.h>
-//#include <am/external_sort/alpha_sort.hpp>
+#include <am/external_sort/alpha_sort.hpp>
 #include <am/graph_index/dyn_array.hpp>
 #include "addr_bucket.hpp"
 #include<string>
@@ -373,6 +373,11 @@ public:
     free(buf_);
     buf_= NULL;
 
+//     AlphaSort<uint32_t, false> alpha;
+//     alpha.addInputFile(filenm_.c_str());
+//     alpha.sort((filenm_+".out").c_str());
+//     return;
+
     for (uint32_t i=0; i<BUCKET_NUM; ++i)
       buckets_[i]->ready4fetch();
     
@@ -435,30 +440,6 @@ public:
 
     buckets_[BUCKET_NUM]->dump();
     delete buckets_[BUCKET_NUM];
-
-//     buckets_[BUCKET_NUM]->ready4fetch();
-
-//     //std::cout<<num_<<" "<<buckets_[BUCKET_NUM]->num()<<std::endl;
-    
-//     assert(num_== buckets_[BUCKET_NUM]->num());
-
-//     uint32_t gap = num_/100;
-//     uint32_t i=0;
-//     uint32_t outs = num_%gap==0? num_/gap: num_/gap+1;
-//     boost::thread* thrds[outs];
-//     for (;i<num_; i+=gap)
-//     {
-//       thrds[i/gap] = new boost::thread(boost::bind(&self_t::output, this, i, gap)); 
-//     }
-
-//     if (num_%gap!=0)
-//       thrds[outs-1] = new boost::thread(boost::bind(&self_t::output, this, num_-num_%gap, gap));
-
-//     for (uint32_t i=0; i<outs; ++i)
-//     {
-//       thrds[i]->join();
-//       delete thrds[i];
-//     }
 
   }
 
