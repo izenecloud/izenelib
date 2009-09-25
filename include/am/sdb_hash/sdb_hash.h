@@ -100,6 +100,16 @@ public:
 		close();
 	}
 
+	void setDataSize(const KeyType& key, const ValueType& val){
+		char* ptr = 0;
+		char* ptr1 = 0;		
+		izene_serialization<KeyType> izs(key );
+		izene_serialization<ValueType> izs1( val );
+		izs.write_image(ptr, ksize_);
+		izs1.write_image(ptr1, vsize_);
+		BucketGap = ksize_+vsize_ + sizeof(long)+sizeof(int)+sizeof(size_t);
+	}
+	
 	bool is_open() {
 		return isOpen_;
 	}
