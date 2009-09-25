@@ -48,11 +48,11 @@ class HDBCursor_ {
 public:
 
     HDBCursor_(HdbType& hdb, size_t start, size_t len)
-    : hdb_(hdb),start_(start), len_(len)
+    : hdb_(hdb),start_(start),end_(start+len)
     {
-        cursorList_.reserve(sdbNum());
-        for(size_t i = 0; i<sdbNum(); i++ )
-            cursorList_.push_back( sdb(i).get_first_Locn() );
+        cursorList_.resize(hdb.sdbList_.size());
+        for(size_t i = start_; i< end_; i++ )
+            cursorList_[i] = ( sdb(i).get_first_Locn() );
         key_ = KeyType();
         tag_.first = DELETE;
         lastDirection_ = ESD_FORWARD;
@@ -60,11 +60,11 @@ public:
     }
 
     HDBCursor_(HdbType& hdb)
-    : hdb_(hdb),start_(0), len_(hdb.sdbList_.size())
+    : hdb_(hdb),start_(0), end_(hdb.sdbList_.size())
     {
-        cursorList_.reserve(sdbNum());
-        for(size_t i = 0; i<sdbNum(); i++ )
-            cursorList_.push_back( sdb(i).get_first_Locn() );
+        cursorList_.resize(hdb.sdbList_.size());
+        for(size_t i = 0; i< hdb.sdbList_.size(); i++ )
+            cursorList_[i] = sdb(i).get_first_Locn();
         key_ = KeyType();
         tag_ = TagType(DELETE, ValueType());
         lastDirection_ = ESD_FORWARD;
@@ -72,7 +72,7 @@ public:
     }
 
     HDBCursor_(const ThisType& hc)
-        : hdb_(hc.hdb_), start_(hc.start_), len_(hc.len_),
+        : hdb_(hc.hdb_), start_(hc.start_), end_(hc.end_),
           key_(hc.key_), tag_(hc.tag_),
           cursorList_(hc.cursorList_),
           lastDirection_(hc.lastDirection_),
@@ -82,7 +82,7 @@ public:
     {
         hdb_ = hc.hdb_;
         start_ = hc.start_;
-        len_ = hc.len_;
+        end_ = hc.end_;
         key_ = hc.key_;
         tag_ = hc.tag_;
         cursorList_ = hc.cursorList_;
@@ -94,7 +94,7 @@ public:
     bool prev() {
         if(lastDirection_ == ESD_FORWARD) {
             lastDirection_ = ESD_BACKWARD;
-            for(size_t i=0; i<sdbNum(); i++)
+            for(size_t i= start_; i<end_; i++)
                 sdb(i).seq(cursorList_[i], ESD_BACKWARD);
             if(!toEnd_) seq<ESD_BACKWARD>();
         }
@@ -104,7 +104,7 @@ public:
     bool next() {
         if(lastDirection_ == ESD_BACKWARD) {
             lastDirection_ = ESD_FORWARD;
-            for(size_t i=0; i<sdbNum(); i++)
+            for(size_t i=start_; i<end_; i++)
                 sdb(i).seq(cursorList_[i], ESD_FORWARD);
             if(!toEnd_) seq<ESD_FORWARD>();
         }
@@ -114,9 +114,8 @@ public:
     bool seek(const KeyType& target)
     {
         lastDirection_ = ESD_FORWARD;
-        for(size_t i=0; i<sdbNum(); i++) {
+        for(size_t i=start_; i<end_; i++)
             sdb(i).search(target, cursorList_[i]);
-        }
         return seq<ESD_FORWARD>();
     }
 
@@ -136,7 +135,7 @@ protected:
         // pass 1: find the least key
         KeyType tmpk = KeyType();
         TagType tmpt = TagType();
-        for(size_t i=0; i<sdbNum(); i++) {
+        for(size_t i=start_; i<end_; i++) {
             if( !sdb(i).get(cursorList_[i], tmpk, tmpt) ) continue;
 
             if(idx == -1U) {
@@ -186,7 +185,7 @@ protected:
             bool hasUpdate = false;
             bool hasDelta = false;
             // pass 2: process all duplicated keys, safe starting from idx
-            for(size_t i=idx; i<sdbNum(); i++) {
+            for(size_t i=idx; i<end_; i++) {
                 if( !sdb(i).get(cursorList_[i], tmpk, tmpt) ) continue;
                 if( hdb_.comp_(tmpk, hitKey) == 0) {
                     switch(tmpt.first)
@@ -240,8 +239,6 @@ protected:
         }
     }
 
-    inline size_t sdbNum() { return len_; }
-
     inline SdbType& sdb(size_t idx) {
         return hdb_.sdbList_[idx]->sdb;
     }
@@ -256,7 +253,7 @@ private:
 
     size_t start_;
 
-    size_t len_;
+    size_t end_;
 
     KeyType key_;
 

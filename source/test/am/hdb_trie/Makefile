@@ -54,4 +54,7 @@ gen_input:
 	$(CXX) -o gen_input gen_input.cc $(INCLUDE_PATH) $(CXXFLAGS) $(EXT_LIB_PATH) $(EXT_LIB) 
 
 clean:
-	rm -rf *.o $(TARGET) *.sdb *.dat *tmpi
+	rm -rf *.o $(TARGET) hdbtrie_*
+
+cleanup:
+	rm -rf hdbtrie_*

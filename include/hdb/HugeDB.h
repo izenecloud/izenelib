@@ -27,13 +27,6 @@ namespace izenelib {
 
 namespace hdb {
 
-template<typename SdbType, typename Comparator>
-static void merge_btree( SdbType* src1, SdbType* src2, SdbType* dst, size_t& dels, const Comparator& comp);
-
-template<typename SdbType, typename Comparator>
-static void merge_btree( SdbType** src, int n , SdbType* dst, size_t& dels, const Comparator& comp);
-
-
 /**
  * @brief
  * SequentialDB, is fast for sequential accesses, however not good at random
@@ -108,6 +101,10 @@ public:
         }
     }
 
+    /*************************************************
+     *               Set Parameters
+     *************************************************/
+
     /**
      * @brief Set CacheRecordsNumber to N.
      * It means you will cache at most N records in memory.
@@ -145,6 +142,10 @@ public:
 		degree_ = degree;
 	}
 
+    /*************************************************
+     *               Open/Close/Flush
+     *************************************************/
+
     void open()
     {
         if(sdbList_.size() == 0)
@@ -177,6 +178,10 @@ public:
             sdbList_[i]->sdb.flush();
         isSync_ = true;
     }
+
+    /*************************************************
+     *               HDB Access Methods
+     *************************************************/
 
 	/**
 	 * @brief Insert value for a given key into sdb, do not modify anything if key exists.
@@ -313,76 +318,9 @@ public:
         return found;
 	}
 
-    /**
-     * @brief Merge all pieces of small sdbs in this ScalableDB into a larger one.
-     * This is usually called after all writings and before reading to improve searching
-     * efficiency. Of course, you can search without calling this function, after all,
-     * it is just a optimization.
-     */
-	void optimize()
-	{
-#ifdef VERBOSE_HDB
-	    std::cout << "optimize ScalableDB, merge " << sdbList_.size() << " small sdbs together" << std::endl;
-#endif
-        if(sdbList_.size() < 2) return;
-
-        int finalLevel = sdbList_[0]->level + 1;
-
-        SdbInfo* right = sdbList_.back();
-        std::string rightName = right->sdb.getName();
-        right->sdb.setCacheSize(8*1024);
-        sdbList_.pop_back();
-
-        while(sdbList_.size() > 0)
-        {
-            // 2nd db
-            SdbInfo* left = sdbList_.back();
-            std::string leftName = left->sdb.getName();
-            left->sdb.setCacheSize(8*1024);
-            sdbList_.pop_back();
-
-            std::string dstname = leftName + "+";
-            SdbInfo* dst = new SdbInfo(dstname);
-            dst->sdb.setPageSize(pageSize_);
-            dst->sdb.setDegree(degree_);
-            dst->sdb.setCacheSize(8*1024);
-            dst->sdb.open();
-
-            merge_btree<SdbType>(&(left->sdb), &(right->sdb), &(dst->sdb), dst->deletions, comp_);
-
-            left->sdb.close();
-            delete left;
-            std::remove(leftName.c_str());
-
-            right->sdb.close();
-            delete right;
-            std::remove(rightName.c_str());
-
-            right = dst;
-            rightName = dstname;
-        }
-
-        right->level = finalLevel;
-        sdbList_.push_back(right);
-
-        isSync_ = true;
-	}
-
-    void display(std::ostream& os = std::cout)
-    {
-        header_.display(os);
-        for(size_t i = 0; i<sdbList_.size(); i++)
-            sdbList_[i]->sdb.display(os);
-    }
-
-    size_t numItems()
-    {
-        if(sdbList_.size() == 1)
-            return (sdbList_[0]->sdb.numItems() - sdbList_[0]->deletions);
-        flush();
-        throw std::runtime_error("\nThere are unmerged sdb files, \
-            Call ScalableDB::optimize() before numItems()\n");
-    }
+    /*************************************************
+     *               Iterator
+     *************************************************/
 
 	HDBCursor get_first_Locn() {
 	    HDBCursor cursor(*this);
@@ -456,6 +394,10 @@ public:
 	bool get(const HDBCursor& cursor, DataType<KeyType,ValueType> & dat) {
 	    return get(cursor, dat.key, dat.value);
 	}
+
+    /*************************************************
+     *                Range Search
+     *************************************************/
 
 	bool getNext(const KeyType& key, KeyType& nxtKey) {
 	    KeyType tmpk = KeyType();
@@ -553,6 +495,69 @@ public:
         return false;
     }
 
+    /*************************************************
+     *               Misc utilities
+     *************************************************/
+    /**
+     * @brief Merge all pieces of small sdbs in this ScalableDB into a larger one.
+     * This is usually called after all writings and before reading to improve searching
+     * efficiency. Of course, you can search without calling this function, after all,
+     * it is just a optimization.
+     */
+	void optimize()
+	{
+#ifdef VERBOSE_HDB
+	    std::cout << "optimize ScalableDB, merge " << sdbList_.size() << " small sdbs together" << std::endl;
+#endif
+        if(sdbList_.size() < 2) return;
+
+        std::string dstName = sdbList_[0]->sdb.getName() + "+";
+        int dstLevel = sdbList_[0]->level + 1;
+
+        SdbInfo* dst = new SdbInfo(dstName);
+        dst->sdb.setPageSize(pageSize_);
+        dst->sdb.setDegree(degree_);
+        dst->sdb.setCacheSize(8*1024);
+        dst->sdb.open();
+
+        HDBCursor cursor(*this);
+        while( cursor.next() ) {
+            if(cursor.getTag().first != DELETE)
+                dst->sdb.insertValue(cursor.getKey(), cursor.getTag());
+        }
+        dst->sdb.flush();
+
+        for(size_t i = 0; i< sdbList_.size(); i++ ) {
+            std::string n = sdbList_[i]->sdb.getName();
+            sdbList_[i]->sdb.close();
+            delete sdbList_[i];
+            std::remove(n.c_str());
+        }
+        sdbList_.clear();
+
+        dst->level = dstLevel;
+        dst->deletions = 0;
+        sdbList_.push_back(dst);
+
+        isSync_ = true;
+	}
+
+    void display(std::ostream& os = std::cout)
+    {
+        header_.display(os);
+        for(size_t i = 0; i<sdbList_.size(); i++)
+            sdbList_[i]->sdb.display(os);
+    }
+
+    size_t numItems()
+    {
+        if(sdbList_.size() == 1)
+            return (sdbList_[0]->sdb.numItems() - sdbList_[0]->deletions);
+        flush();
+        throw std::runtime_error("\nThere are unmerged sdb files, \
+            Call ScalableDB::optimize() before numItems()\n");
+    }
+
 protected:
 
     inline void tryMerge()
@@ -574,28 +579,35 @@ protected:
             for(size_t i = 1; i < mergeFactor_; i++)
                 if(sdbList_[sdbList_.size()-1-i]->level !=
                     sdbList_.back()->level) return;
-            doMergeDiskSdb();
+            mergeDiskSdb();
         }
     }
 
-    inline void doMergeDiskSdb()
+    inline void mergeDiskSdb()
     {
-        SdbType** input = new SdbType*[mergeFactor_];
-        for(size_t i=0; i<mergeFactor_; i++) {
-            SdbInfo* info = sdbList_[sdbList_.size() - mergeFactor_ + i];
-            info->sdb.setCacheSize(8*1024);
-            input[i] = &(info->sdb);
-        }
+#ifdef VERBOSE_HDB
+    std::cout << "merge btree ";
+    for(size_t i=0; i<mergeFactor_; i++)
+        std::cout << sdbList_[sdbList_.size()-mergeFactor_+i]->sdb.getName()
+            << "(" << sdbList_[sdbList_.size()-mergeFactor_+i]->sdb.numItems() << ") ";
+    std::cout << "...\n";
+#endif
+        std::string dstName = sdbList_[sdbList_.size()-mergeFactor_]->sdb.getName() + "+";
+        int dstLevel = sdbList_[sdbList_.size()-mergeFactor_]->level + 1;
 
-        std::string dstname = input[0]->getName() + "+";
-        SdbInfo* dst = new SdbInfo(dstname);
+        SdbInfo* dst = new SdbInfo(dstName);
         dst->sdb.setPageSize(pageSize_);
         dst->sdb.setDegree(degree_);
         dst->sdb.setCacheSize(8*1024);
         dst->sdb.open();
 
-        dst->level = sdbList_.back()->level + 1;
-        merge_btree(input, mergeFactor_, &(dst->sdb), dst->deletions, comp_);
+        size_t deletions = 0;
+        HDBCursor cursor(*this, sdbList_.size()-mergeFactor_, mergeFactor_);
+        while( cursor.next() ) {
+            if(cursor.getTag().first == DELETE)
+                deletions ++;
+            dst->sdb.insertValue(cursor.getKey(), cursor.getTag());
+        }
 
         for(size_t i=0; i<mergeFactor_; i++) {
             SdbInfo* last = sdbList_.back();
@@ -606,9 +618,13 @@ protected:
             delete last;
             std::remove(fn.c_str());
         }
+        dst->level = dstLevel;
+        dst->deletions = deletions;
         sdbList_.push_back(dst);
+#ifdef VERBOSE_HDB
+    std::cout << " into " << dst->sdb.getName() << "(" << dst->sdb.numItems() << ")" << std::endl;
+#endif
     }
-
 
     inline void createRamSdb()
     {
@@ -666,162 +682,6 @@ private:
 	CompareFunctor<KeyType> comp_;
 };
 
-template<typename SdbType, typename Comparator>
-static void merge_btree( SdbType* src1, SdbType* src2, SdbType* dst, size_t& dels, const Comparator& comp)
-{
-    SdbType* input[2];
-    input[0] = src1;
-    input[1] = src2;
-
-    merge_btree(input, 2, dst, dels, comp);
-}
-
-template<typename SdbType, typename Comparator>
-static void merge_btree( SdbType** src, int n , SdbType* dst, size_t& dels, const Comparator& comp)
-{
-    typedef typename SdbType::SDBCursor SdbCursor;
-    typedef typename SdbType::SDBKeyType KeyType;
-    typedef typename SdbType::SDBValueType TagType;
-    typedef typename TagType::second_type ValueType;
-
-#ifdef VERBOSE_HDB
-    std::cout << "merge btree ";
-    for(int i=0; i<n; i++)
-        std::cout << src[i]->getName() << "(" << src[i]->numItems() << ") ";
-    std::cout << "...\n";
-#endif
-
-    dels = 0;
-
-    // intialize all cursors
-    SdbCursor* locn = new SdbCursor[n];
-    KeyType* key = new KeyType[n];
-    TagType* tag = new TagType[n];
-    bool* nonEmpty = new bool[n];
-    int nonEmptySdbNumber = 0;
-    for(int i=0; i<n; i++)
-    {
-        locn[i] = src[i]->get_first_Locn();
-        key[i] = KeyType();
-        tag[i] = TagType();
-        if( (nonEmpty[i] = src[i]->get(locn[i], key[i], tag[i])) )
-            nonEmptySdbNumber++;
-    }
-
-    while(nonEmptySdbNumber > 1)
-    {
-        int idx = -1;
-        KeyType leastKey = KeyType();
-        bool hasDuplicatedKey = false;
-        // pass 1: find the least key
-        for(int i=0; i<n; i++) {
-            if(!nonEmpty[i]) continue;
-            if(idx == -1) {
-                idx = i;
-                leastKey = key[i];
-                hasDuplicatedKey = false;
-            } else {
-                int lt = comp(key[i], leastKey);
-                if( lt < 0 ) {
-                    idx = i;
-                    leastKey = key[i];
-                    hasDuplicatedKey = false;
-                } else if( lt == 0 ) {
-                    hasDuplicatedKey = true;
-                }
-            }
-        }
-
-        // simple case
-        if(!hasDuplicatedKey) {
-            dst->insertValue(leastKey, tag[idx]);
-            if(tag[idx].first == DELETE)
-                dels ++;
-            src[idx]->seq(locn[idx]);
-            if( !(nonEmpty[idx] = src[idx]->get(locn[idx], key[idx], tag[idx])) )
-                nonEmptySdbNumber --;
-        } else {
-
-            ValueType accumulator = ValueType();
-            bool hasInsert = false;
-            bool hasUpdate = false;
-            bool hasDelta = false;
-            // pass 2: process all duplicated keys, safe starting from idx
-            for(int i=idx; i<n; i++) {
-                if(!nonEmpty[i]) continue;
-                if(comp(key[i], leastKey) == 0) {
-                    switch(tag[i].first)
-                    {
-                        case INSERT:
-                            if(!hasInsert && !hasUpdate && !hasDelta) {
-                                accumulator = tag[i].second;
-                                hasInsert = true;
-                            }
-                            break;
-                        case UPDATE:
-                            accumulator = tag[i].second;
-                            hasUpdate = true;
-                            break;
-                        case DELTA:
-                            // insert() is forbidden used together with delta
-                            if(hasInsert)
-                                throw std::runtime_error("Warning: In hdb, use insert() together with delta() is not recommended, \
-                                    which causes bad performance, try update() instead.");
-
-                            accumulator += tag[i].second;
-                            hasDelta = true;
-                            break;
-                        case DELETE:
-                            accumulator = ValueType();
-                            hasInsert = false;
-                            hasUpdate = false;
-                            hasDelta = false;
-                            break;
-                        default:
-                            throw std::runtime_error("unrecognized tag format in hdb");
-                    }
-                    src[i]->seq(locn[i]);
-                    if( !(nonEmpty[i] = src[i]->get(locn[i], key[i], tag[i]) ) )
-                        nonEmptySdbNumber --;
-                }
-            }
-            if(hasUpdate)
-                dst->insertValue(leastKey, TagType(UPDATE, accumulator));
-            else if(hasDelta)
-                dst->insertValue(leastKey, TagType(DELTA, accumulator));
-            else if(hasInsert)
-                dst->insertValue(leastKey, TagType(INSERT, accumulator));
-            else {
-                dst->insertValue(leastKey, TagType(DELETE, ValueType()));
-                dels++;
-            }
-        }
-    }
-
-    for(int i=0; i<n; i++) {
-        if(nonEmpty[i]) {
-            while(src[i]->get(locn[i], key[i], tag[i])) {
-                dst->insertValue(key[i], tag[i]);
-                if(tag[i].first == DELETE)
-                    dels ++;
-                src[i]->seq(locn[i]);
-            }
-            break;
-        }
-    }
-
-    delete[] locn;
-    delete[] key;
-    delete[] tag;
-    delete[] nonEmpty;
-
-    dst->flush();
-
-#ifdef VERBOSE_HDB
-    std::cout << " into " << dst->getName() << "(" << dst->numItems() << ")" << std::endl;
-#endif
-}
-
 template< typename KeyType, typename ValueType,
 		typename LockType =NullLock > class ordered_hdb :
 	public HugeDB<KeyType, ValueType, LockType,
@@ -847,7 +707,6 @@ public:
 
 	}
 };
-
 
 }
 

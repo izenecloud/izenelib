@@ -1,6 +1,6 @@
 CXX=g++-4.1
 
-CXXFLAGS = -O3 -Wall -c -g 
+CXXFLAGS = -O3 -Wall -c -g -DVERBOSE_HDB
 
 
 INC_PATH=	-I /usr/local/include/ \

@@ -92,17 +92,16 @@ BOOST_AUTO_TEST_CASE(HDBTrie_update)
 {
     {
       HDBTrie2<string,int> trie("./hdbtrie_update");
-      trie.openForWrite();
+      trie.open();
       trie.insert("apple",1);
       BOOST_CHECK_EQUAL(trie.num_items(),  (size_t)1);
       trie.update("apple",2);
-      trie.optimize();
       BOOST_CHECK_EQUAL(trie.num_items(),  (size_t)1);
     }
 
     {
       HDBTrie2<string,int> trie("./hdbtrie_update");
-      trie.openForRead();
+      trie.open();
       BOOST_CHECK_EQUAL(trie.num_items(),  (size_t)1);
       TEST_TRIE_FIND("apple", 2);
     }
@@ -115,7 +114,7 @@ BOOST_AUTO_TEST_CASE(HDBTrie_find)
 {
     {
       HDBTrie2<string,int> trie("./hdbtrie_find");
-      trie.openForWrite();
+      trie.open();
       trie.insert("apple",1);
       trie.insert("blue",2);
       trie.insert("at",3);
@@ -123,12 +122,11 @@ BOOST_AUTO_TEST_CASE(HDBTrie_find)
       trie.insert("earth",5);
       trie.insert("art",6);
       trie.insert("desk",7);
-      trie.optimize();
     }
 
     {
       HDBTrie2<string,int> trie("./hdbtrie_find");
-      trie.openForRead();
+      trie.open();
       BOOST_CHECK_EQUAL(trie.num_items(),  (size_t)7);
 
       TEST_TRIE_FIND("apple", 1);
@@ -156,7 +154,7 @@ BOOST_AUTO_TEST_CASE(HDBTrie_findPrefix)
 {
     {
       HDBTrie2<string,int> trie("./hdbtrie_findprefix");
-      trie.openForWrite();
+      trie.open();
       trie.insert("apple",1);
       trie.insert("blue",2);
       trie.insert("at",3);
@@ -164,12 +162,11 @@ BOOST_AUTO_TEST_CASE(HDBTrie_findPrefix)
       trie.insert("earth",5);
       trie.insert("art",6);
       trie.insert("desk",7);
-      trie.optimize();
     }
 
     {
       HDBTrie2<string,int> trie("./hdbtrie_findprefix");
-      trie.openForRead();
+      trie.open();
       BOOST_CHECK_EQUAL(trie.num_items(),  (size_t)7);
 
       TEST_TRIE_FIND("art", 6);
@@ -234,7 +231,7 @@ BOOST_AUTO_TEST_CASE(HDBTrie_searchregexp)
 {
     {
       HDBTrie2<string,int> trie("./hdbtrie_searchregexp");
-      trie.openForWrite();
+      trie.open();
       trie.insert("apple",1);
       trie.insert("blue",2);
       trie.insert("at",3);
@@ -242,12 +239,11 @@ BOOST_AUTO_TEST_CASE(HDBTrie_searchregexp)
       trie.insert("earth",5);
       trie.insert("art",6);
       trie.insert("desk",7);
-      trie.optimize();
     }
 
     {
       HDBTrie2<string,int> trie("./hdbtrie_searchregexp");
-      trie.openForRead();
+      trie.open();
       BOOST_CHECK_EQUAL(trie.num_items(),  (size_t)7);
 
       int idList1[3] = {1,6,3};
@@ -287,19 +283,17 @@ BOOST_AUTO_TEST_CASE(HDBTrie_UString)
 {
     {
       HDBTrie2<UString,int> trie("./hdbtrie_ustring");
-      trie.openForWrite();
+      trie.open();
 
       UString word("apple",UString::CP949);
       char* p= (char*)word.c_str();
       UString ww = (UString::value_type*)p;
       trie.insert(ww, 1);
-
-      trie.optimize();
     }
 
     {
       HDBTrie2<UString,int> trie("./hdbtrie_ustring");
-      trie.openForRead();
+      trie.open();
       BOOST_CHECK_EQUAL(trie.num_items(),  (size_t)1);
 
       TEST_TRIE_FIND(UString("apple",UString::CP949), 1);
