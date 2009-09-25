@@ -55,6 +55,8 @@ public:
             cursorList_.push_back( sdb(i).get_first_Locn() );
         key_ = KeyType();
         tag_.first = DELETE;
+        lastDirection_ = ESD_FORWARD;
+        toEnd_ = false;
     }
 
     HDBCursor_(HdbType& hdb)
@@ -65,12 +67,16 @@ public:
             cursorList_.push_back( sdb(i).get_first_Locn() );
         key_ = KeyType();
         tag_ = TagType(DELETE, ValueType());
+        lastDirection_ = ESD_FORWARD;
+        toEnd_ = false;
     }
 
     HDBCursor_(const ThisType& hc)
         : hdb_(hc.hdb_), start_(hc.start_), len_(hc.len_),
           key_(hc.key_), tag_(hc.tag_),
-          cursorList_(hc.cursorList_) { }
+          cursorList_(hc.cursorList_),
+          lastDirection_(hc.lastDirection_),
+          toEnd_(hc.toEnd_) { }
 
     const HDBCursor_& operator = (const ThisType& hc)
     {
@@ -80,19 +86,38 @@ public:
         key_ = hc.key_;
         tag_ = hc.tag_;
         cursorList_ = hc.cursorList_;
+        lastDirection_ = hc.lastDirection_;
+        toEnd_ = hc.toEnd_;
         return *this;
     }
 
-    bool prev() { return seq<ESD_BACKWARD>(); }
+    bool prev() {
+        if(lastDirection_ == ESD_FORWARD) {
+            lastDirection_ = ESD_BACKWARD;
+            for(size_t i=0; i<sdbNum(); i++)
+                sdb(i).seq(cursorList_[i], ESD_BACKWARD);
+            if(!toEnd_) seq<ESD_BACKWARD>();
+        }
+        return seq<ESD_BACKWARD>();
+    }
 
-    bool next() { return seq<ESD_FORWARD>(); }
+    bool next() {
+        if(lastDirection_ == ESD_BACKWARD) {
+            lastDirection_ = ESD_FORWARD;
+            for(size_t i=0; i<sdbNum(); i++)
+                sdb(i).seq(cursorList_[i], ESD_FORWARD);
+            if(!toEnd_) seq<ESD_FORWARD>();
+        }
+        return seq<ESD_FORWARD>();
+    }
 
     bool seek(const KeyType& target)
     {
+        lastDirection_ = ESD_FORWARD;
         for(size_t i=0; i<sdbNum(); i++) {
             sdb(i).search(target, cursorList_[i]);
         }
-        return next();
+        return seq<ESD_FORWARD>();
     }
 
     inline const KeyType& getKey() const { return key_; }
@@ -145,6 +170,7 @@ protected:
             if(idx == -1U)  {
                 key_ = KeyType();
                 tag_ = TagType(DELETE, ValueType());
+                toEnd_ = true;
                 return false;
             }
             sdb(idx).get(cursorList_[idx], key_, tag_);
@@ -152,6 +178,7 @@ protected:
                 sdb(idx).seq(cursorList_[idx], ESD_FORWARD);
             else
                 sdb(idx).seq(cursorList_[idx], ESD_BACKWARD);
+            toEnd_ = false;
             return true;
         } else {
             ValueType accumulator = ValueType();
@@ -208,6 +235,7 @@ protected:
                 tag_ = TagType(INSERT, accumulator);
             else
                 tag_ = TagType(DELETE, ValueType());
+            toEnd_ = false;
             return true;
         }
     }
@@ -235,6 +263,10 @@ private:
     TagType tag_;
 
     std::vector<SDBCursor> cursorList_;
+
+    ESeqDirection lastDirection_;
+
+    bool toEnd_;
 };
 
 }

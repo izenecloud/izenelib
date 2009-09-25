@@ -85,7 +85,9 @@ public:
           pageSize_(8*1024),
           degree_(128)
     {
+#ifdef VERBOSE_HDB
         header_.display();
+#endif
         for(size_t i = 0; i<header_.slicesNum; i++)
         {
             SdbInfo* sdbi = new SdbInfo(getSdbName(i,header_.slicesLevel[i]));
@@ -319,7 +321,9 @@ public:
      */
 	void optimize()
 	{
+#ifdef VERBOSE_HDB
 	    std::cout << "optimize ScalableDB, merge " << sdbList_.size() << " small sdbs together" << std::endl;
+#endif
         if(sdbList_.size() < 2) return;
 
         int finalLevel = sdbList_[0]->level + 1;
@@ -382,6 +386,11 @@ public:
 
 	HDBCursor get_first_Locn() {
 	    HDBCursor cursor(*this);
+	    /*
+	     * to keep the same semantics with sdb
+	     * that is, get() after get_first_Locn is legal
+	     */
+	    seq(cursor, ESD_FORWARD);
 	    return cursor;
 	}
 
@@ -466,12 +475,22 @@ public:
 	    }
 	}
 
-	KeyType getPrev(const KeyType& key) {
-        throw std::runtime_error("Unimplemented\n");
-	}
-
-	KeyType getNearest(const KeyType& key) {
-        throw std::runtime_error("Unimplemented\n");
+	bool getPrev(const KeyType& key, KeyType& prevKey) {
+	    KeyType tmpk;
+	    TagType tmpt;
+	    HDBCursor cursor;
+	    if( search(key, cursor, ESD_BACKWARD) ) {
+	        if( seq(cursor, ESD_BACKWARD) ) {
+                get(cursor, tmpk, tmpt);
+                prevKey = tmpk;
+                return true;
+	        }
+	        return false;
+	    } else {
+	        get(cursor, tmpk, tmpt);
+	        prevKey = tmpk;
+	        return true;
+	    }
 	}
 
 	bool getValueForward(const int count,
@@ -603,7 +622,9 @@ protected:
         ramsdb->sdb.setCacheSize( (size_t)-1 );
         ramsdb->sdb.open();
         sdbList_.push_back(ramsdb);
+#ifdef VERBOSE_HDB
         std::cout << "create ram sdb " << name << std::endl;
+#endif
     }
 
     inline void flushRamSdb()
@@ -665,10 +686,12 @@ static void merge_btree( SdbType** src, int n , SdbType* dst, size_t& dels, cons
     typedef typename SdbType::SDBValueType TagType;
     typedef typename TagType::second_type ValueType;
 
+#ifdef VERBOSE_HDB
     std::cout << "merge btree ";
     for(int i=0; i<n; i++)
         std::cout << src[i]->getName() << "(" << src[i]->numItems() << ") ";
     std::cout << "...\n";
+#endif
 
     dels = 0;
 
@@ -720,9 +743,6 @@ static void merge_btree( SdbType** src, int n , SdbType* dst, size_t& dels, cons
             if( !(nonEmpty[idx] = src[idx]->get(locn[idx], key[idx], tag[idx])) )
                 nonEmptySdbNumber --;
         } else {
-#ifdef DEBUG
-            std::cout << "detect duplicate key" << std::endl;
-#endif
 
             ValueType accumulator = ValueType();
             bool hasInsert = false;
@@ -798,7 +818,10 @@ static void merge_btree( SdbType** src, int n , SdbType* dst, size_t& dels, cons
     delete[] nonEmpty;
 
     dst->flush();
+
+#ifdef VERBOSE_HDB
     std::cout << " into " << dst->getName() << "(" << dst->numItems() << ")" << std::endl;
+#endif
 }
 
 template< typename KeyType, typename ValueType,

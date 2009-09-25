@@ -36,7 +36,7 @@ $(TARGET) : $(OBJECTS)
 	$(CXX) -o $@ $^ $(LIB_PATH) $(LIBS) 
 
 clean:
-	-rm -f *.o  *.dat *.sdb $(TARGET) \
+	-rm -f *.o  t_hdb_* $(TARGET) \
 
 cleanup:
-	-rm -f *.dat
+	-rm -f t_hdb_*
