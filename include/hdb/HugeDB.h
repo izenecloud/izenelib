@@ -458,39 +458,37 @@ public:
 	}
 
 	bool getNext(const KeyType& key, KeyType& nxtKey) {
-	    KeyType tmpk;
-	    TagType tmpt;
-	    HDBCursor cursor;
+	    KeyType tmpk = KeyType();
+	    ValueType tmpv = ValueType();
+	    HDBCursor cursor(*this);
 	    if( search(key, cursor, ESD_FORWARD) ) {
 	        if( seq(cursor, ESD_FORWARD) ) {
-                get(cursor, tmpk, tmpt);
+                get(cursor, tmpk, tmpv);
                 nxtKey = tmpk;
                 return true;
 	        }
-	        return false;
-	    } else {
-	        get(cursor, tmpk, tmpt);
+	    } else if( get(cursor, tmpk, tmpv) ) {
 	        nxtKey = tmpk;
 	        return true;
 	    }
+	    return false;
 	}
 
 	bool getPrev(const KeyType& key, KeyType& prevKey) {
-	    KeyType tmpk;
-	    TagType tmpt;
-	    HDBCursor cursor;
+	    KeyType tmpk = KeyType();
+	    ValueType tmpv = ValueType();
+	    HDBCursor cursor(*this);
 	    if( search(key, cursor, ESD_BACKWARD) ) {
 	        if( seq(cursor, ESD_BACKWARD) ) {
-                get(cursor, tmpk, tmpt);
+                get(cursor, tmpk, tmpv);
                 prevKey = tmpk;
                 return true;
 	        }
-	        return false;
-	    } else {
-	        get(cursor, tmpk, tmpt);
+	    } else if( get(cursor, tmpk, tmpv) ) {
 	        prevKey = tmpk;
 	        return true;
 	    }
+        return false;
 	}
 
 	bool getValueForward(const int count,

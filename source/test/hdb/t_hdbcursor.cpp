@@ -252,6 +252,48 @@ BOOST_AUTO_TEST_CASE(hdb_search_backward)
 }
 
 
+BOOST_AUTO_TEST_CASE(hdb_getNext)
+{
+    std::cout << "Test getNext" << std::endl;
+    HDBType hdb("t_hdb_getnext");
+    hdb.setMergeFactor(2);
+    hdb.setCachedRecordsNumber(100U);
+    hdb.open();
+    for(int i=0; i<1000; i++)
+        hdb.insertValue(i, 7*i);
+
+    int nxtKey;
+    BOOST_CHECK_EQUAL(hdb.getNext(-1, nxtKey), true);
+    BOOST_CHECK_EQUAL(nxtKey, 0);
+    for(int i=0; i<999;i++) {
+        BOOST_CHECK_EQUAL(hdb.getNext(i, nxtKey), true);
+        BOOST_CHECK_EQUAL(nxtKey, i+1);
+    }
+    BOOST_CHECK_EQUAL(hdb.getNext(999, nxtKey), false);
+    BOOST_CHECK_EQUAL(hdb.getNext(1000, nxtKey), false);
+}
+
+BOOST_AUTO_TEST_CASE(hdb_getPrev)
+{
+    std::cout << "Test getPrev" << std::endl;
+    HDBType hdb("t_hdb_getprev");
+    hdb.setMergeFactor(2);
+    hdb.setCachedRecordsNumber(100U);
+    hdb.open();
+    for(int i=0; i<1000; i++)
+        hdb.insertValue(i, 7*i);
+
+    int prevKey;
+    BOOST_CHECK_EQUAL(hdb.getPrev(1000, prevKey), true);
+    BOOST_CHECK_EQUAL(prevKey, 999);
+    for(int i=1; i<1000;i++) {
+        BOOST_CHECK_EQUAL(hdb.getPrev(i, prevKey), true);
+        BOOST_CHECK_EQUAL(prevKey, i-1);
+    }
+    BOOST_CHECK_EQUAL(hdb.getPrev(-1, prevKey), false);
+    BOOST_CHECK_EQUAL(hdb.getPrev(0, prevKey), false);
+}
+
 BOOST_AUTO_TEST_CASE(hdb_getvalueforward)
 {
     std::cout << "Test getvalueforward" << std::endl;
