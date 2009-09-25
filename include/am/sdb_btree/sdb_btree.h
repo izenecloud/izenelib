@@ -700,9 +700,7 @@ template<typename KeyType, typename ValueType, typename LockType, bool fixed,
 
 			if (low >= (int)temp->objCount) {
 				locn.second = low - 1;
-				if ( false == seq(locn) )
-					++locn.second;
-
+				seq(locn);
 			}
 
 			break;
