@@ -215,6 +215,13 @@ public:
     {
         return heap_[_pos+1];
     }
+
+
+    void setDel(bool bDel)
+    {
+        bDelete_ = bDel;
+    }
+
 };
 
 
