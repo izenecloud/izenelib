@@ -40,7 +40,7 @@ public:
         ForwardIndex::const_iterator iter = find(termId);
         if(iter == end())
             return false;
-        termOffsetList.resize(iter->second->size());
+        termOffsetList.reserve(iter->second->size());    
         for(ForwardIndexOffset::iterator it = iter->second->begin(); it != iter->second->end(); ++it)
             termOffsetList.push_back(std::make_pair(it->first, it->second));
         return true;

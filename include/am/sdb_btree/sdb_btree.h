@@ -303,16 +303,16 @@ public:
 		search(KeyType(), locn);
 		return locn;
 	}
-	
+
 	SDBCursor get_last_locn()
 	{
 		sdb_node* node = _root;
 		while( !node->isLeaf ){
 			node = node->loadChild(node->objCount,_dataFile);
-		}		
+		}
 		return SDBCursor(node, node->objCount);
 	}
-	
+
 	bool seq(SDBCursor& locn, KeyType& key, ValueType& value, ESeqDirection sdir=ESD_FORWARD)
 	{
 	    bool ret = seq(locn);
@@ -699,11 +699,9 @@ template<typename KeyType, typename ValueType, typename LockType, bool fixed,
 			locn.second = low;
 
 			if (low >= (int)temp->objCount) {
-				locn.second = low - 1;				
-				if ( false == seq(locn) )
-					++locn.second;
-			}
-			break;
+                                locn.second = low - 1;
+				seq(locn);
+                                break;
 		}
 	}
 	return false;
@@ -1401,12 +1399,12 @@ template<typename KeyType, typename ValueType, typename LockType, bool fixed,
 						_setDirty(rightSib);
 						_setDirty(node);
 						//rightSib->setDirty(true);
-						//node->setDirty(1);					
+						//node->setDirty(1);
 					}
 					node = childNode;
 
 					_setDirty(node);
-					//node->setDirty(true);				
+					//node->setDirty(true);
 					goto L0;
 				}
 
@@ -1592,7 +1590,7 @@ template<typename KeyType, typename ValueType, typename LockType, bool fixed,
 	// Set up a couple of convenience values
 
 	bool ret = false;
-	//if( !get(locn, key, value) )	
+	//if( !get(locn, key, value) )
 	//	return false;
 
 	sdb_node* node = locn.first;
@@ -1610,7 +1608,13 @@ template<typename KeyType, typename ValueType, typename LockType, bool fixed,
 		}
 		if ((sdb_node*)node == 0) {
 			return false;
-		}		
+		}
+
+		// pre-fetch all nested keys
+        sdb_node* parent=node->parent;
+        for(unsigned int i=1; i<=parent->objCount; i++)
+            parent->loadChild(i, _dataFile);
+
 		locn.first = node;
 		locn.second = 0;
 		return true;
@@ -1623,7 +1627,7 @@ template<typename KeyType, typename ValueType, typename LockType, bool fixed,
 	// going back up the tree.
 	if (node->isLeaf) {
 		// didn't visit the last node last time.
-		if (lastPos < node->objCount - 1) {			
+		if (lastPos < node->objCount - 1) {
 			locn.second = lastPos + 1;
 			return true;
 		}
@@ -1639,7 +1643,13 @@ template<typename KeyType, typename ValueType, typename LockType, bool fixed,
 		}
 		if ((sdb_node*)node == 0) {
 			return false;
-		}		
+		}
+
+		// pre-fetch all nested keys
+        sdb_node* parent=node->parent;
+        for(unsigned int i=1; i<=parent->objCount; i++)
+            parent->loadChild(i, _dataFile);
+
 		locn.first = node;
 		locn.second = 0;
 		return true;
@@ -1657,7 +1667,7 @@ template<typename KeyType, typename ValueType, typename LockType, bool fixed,
 		if ((sdb_node*)node != 0) {
 			locn.first = node;
 			locn.second = childNo;
-			return true;			
+			return true;
 		}
 	}
 	//reach the last locn
@@ -1694,7 +1704,7 @@ template<typename KeyType, typename ValueType, typename LockType, bool fixed,
 		locn.second = node->objCount - 1;
 
 		if (locn.second == size_t(-1) )
-			return false;	
+			return false;
 		return true;
 	}
 
@@ -1706,7 +1716,7 @@ template<typename KeyType, typename ValueType, typename LockType, bool fixed,
 	if (node->isLeaf) {
 		// didn't visit the last node last time.
 		if (lastPos> 0) {
-			locn.second = lastPos - 1;	
+			locn.second = lastPos - 1;
 			return true;
 		}
 		goUp = (lastPos == 0);
@@ -1724,7 +1734,7 @@ template<typename KeyType, typename ValueType, typename LockType, bool fixed,
 			return false;
 		}
 		locn.first = node;
-		locn.second = node->objCount - 1;	
+		locn.second = node->objCount - 1;
 		return true;
 	}
 
@@ -1740,7 +1750,7 @@ template<typename KeyType, typename ValueType, typename LockType, bool fixed,
 		}
 		if ((sdb_node*)node != 0) {
 			locn.first = node;
-			locn.second = childNo - 1;			
+			locn.second = childNo - 1;
 			return true;
 		}
 	}

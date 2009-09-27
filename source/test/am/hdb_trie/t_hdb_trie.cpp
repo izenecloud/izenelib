@@ -13,24 +13,14 @@
 #include <boost/test/unit_test.hpp>
 
 #include <wiselib/ustring/UString.h>
-#include <am/sdb_trie/sdb_trie.hpp>
+#include <am/hdb_trie/hdb_trie.hpp>
 
 
 using namespace std;
 using namespace wiselib;
 using namespace izenelib::am;
 
-BOOST_AUTO_TEST_SUITE( sdb_trie_suite )
-/*
-
-#define CLEAN_SDB_FILE(test) \
-{ \
-    std::string testname = test;\
-    remove( ("sdbtrie_" + testname + ".sdbtrie.edgetable.sdb").c_str() ); \
-    remove( ("sdbtrie_" + testname + ".sdbtrie.optedgetable.sdb").c_str() ); \
-    remove( ("sdbtrie_" + testname + ".sdbtrie.datatable.sdb").c_str() ); \
-}
-
+BOOST_AUTO_TEST_SUITE( hdb_trie_suite )
 
 #define TEST_TRIE_FIND(str, id) \
 { \
@@ -98,40 +88,33 @@ BOOST_AUTO_TEST_SUITE( sdb_trie_suite )
   }\
 }
 
-BOOST_AUTO_TEST_CASE(SDBTrie_update)
+BOOST_AUTO_TEST_CASE(HDBTrie_update)
 {
-    CLEAN_SDB_FILE("update");
-
     {
-      SDBTrie2<string,int> trie("./sdbtrie_update");
-      trie.openForWrite();
+      HDBTrie2<string,int> trie("./hdbtrie_update");
+      trie.open();
       trie.insert("apple",1);
       BOOST_CHECK_EQUAL(trie.num_items(),  (size_t)1);
       trie.update("apple",2);
-      trie.optimize();
       BOOST_CHECK_EQUAL(trie.num_items(),  (size_t)1);
     }
 
     {
-      SDBTrie2<string,int> trie("./sdbtrie_update");
-      trie.openForRead();
+      HDBTrie2<string,int> trie("./hdbtrie_update");
+      trie.open();
       BOOST_CHECK_EQUAL(trie.num_items(),  (size_t)1);
       TEST_TRIE_FIND("apple", 2);
     }
-
-    CLEAN_SDB_FILE("update");
 
 }
 
 
 
-BOOST_AUTO_TEST_CASE(SDBTrie_find)
+BOOST_AUTO_TEST_CASE(HDBTrie_find)
 {
-    CLEAN_SDB_FILE("find");
-
     {
-      SDBTrie2<string,int> trie("./sdbtrie_find");
-      trie.openForWrite();
+      HDBTrie2<string,int> trie("./hdbtrie_find");
+      trie.open();
       trie.insert("apple",1);
       trie.insert("blue",2);
       trie.insert("at",3);
@@ -139,12 +122,11 @@ BOOST_AUTO_TEST_CASE(SDBTrie_find)
       trie.insert("earth",5);
       trie.insert("art",6);
       trie.insert("desk",7);
-      trie.optimize();
     }
 
     {
-      SDBTrie2<string,int> trie("./sdbtrie_find");
-      trie.openForRead();
+      HDBTrie2<string,int> trie("./hdbtrie_find");
+      trie.open();
       BOOST_CHECK_EQUAL(trie.num_items(),  (size_t)7);
 
       TEST_TRIE_FIND("apple", 1);
@@ -164,19 +146,15 @@ BOOST_AUTO_TEST_CASE(SDBTrie_find)
       TEST_TRIE_FIND("bluee", -1);
 
     }
-
-    CLEAN_SDB_FILE("find");
 }
 
 
 
-BOOST_AUTO_TEST_CASE(SDBTrie_findPrefix)
+BOOST_AUTO_TEST_CASE(HDBTrie_findPrefix)
 {
-    CLEAN_SDB_FILE("findprefix");
-
     {
-      SDBTrie2<string,int> trie("./sdbtrie_findprefix");
-      trie.openForWrite();
+      HDBTrie2<string,int> trie("./hdbtrie_findprefix");
+      trie.open();
       trie.insert("apple",1);
       trie.insert("blue",2);
       trie.insert("at",3);
@@ -184,13 +162,14 @@ BOOST_AUTO_TEST_CASE(SDBTrie_findPrefix)
       trie.insert("earth",5);
       trie.insert("art",6);
       trie.insert("desk",7);
-      trie.optimize();
     }
 
     {
-      SDBTrie2<string,int> trie("./sdbtrie_findprefix");
-      trie.openForRead();
+      HDBTrie2<string,int> trie("./hdbtrie_findprefix");
+      trie.open();
       BOOST_CHECK_EQUAL(trie.num_items(),  (size_t)7);
+
+      TEST_TRIE_FIND("art", 6);
 
       int idList1[3] = {1,6,3};
       TEST_TRIE_FIND_PREFIX("a", idList1, 3);
@@ -227,18 +206,32 @@ BOOST_AUTO_TEST_CASE(SDBTrie_findPrefix)
             BOOST_CHECK_EQUAL(results[1].c_str(), "destination");
           }
       }
-    }
 
-    CLEAN_SDB_FILE("findprefix");
+      {
+          vector<string> keys;
+          vector<int> values;
+          trie.findPrefix("des", keys, values);
+          BOOST_CHECK_EQUAL(keys.size(), (size_t)2);
+          BOOST_CHECK_EQUAL(values.size(), (size_t)2);
+          if(keys.size() == 2)
+          {
+            BOOST_CHECK_EQUAL(keys[0].c_str(), "desk");
+            BOOST_CHECK_EQUAL(keys[1].c_str(), "destination");
+          }
+          if(values.size() == 2)
+          {
+            BOOST_CHECK_EQUAL(values[0], 7);
+            BOOST_CHECK_EQUAL(values[1], 4);
+          }
+      }
+    }
 }
 
-BOOST_AUTO_TEST_CASE(SDBTrie_searchregexp)
+BOOST_AUTO_TEST_CASE(HDBTrie_searchregexp)
 {
-    CLEAN_SDB_FILE("searchregexp");
-
     {
-      SDBTrie2<string,int> trie("./sdbtrie_searchregexp");
-      trie.openForWrite();
+      HDBTrie2<string,int> trie("./hdbtrie_searchregexp");
+      trie.open();
       trie.insert("apple",1);
       trie.insert("blue",2);
       trie.insert("at",3);
@@ -246,12 +239,11 @@ BOOST_AUTO_TEST_CASE(SDBTrie_searchregexp)
       trie.insert("earth",5);
       trie.insert("art",6);
       trie.insert("desk",7);
-      trie.optimize();
     }
 
     {
-      SDBTrie2<string,int> trie("./sdbtrie_searchregexp");
-      trie.openForRead();
+      HDBTrie2<string,int> trie("./hdbtrie_searchregexp");
+      trie.open();
       BOOST_CHECK_EQUAL(trie.num_items(),  (size_t)7);
 
       int idList1[3] = {1,6,3};
@@ -284,30 +276,24 @@ BOOST_AUTO_TEST_CASE(SDBTrie_searchregexp)
       TEST_TRIE_SEARCH_REGEXP("ear?th", idList13, 0);
 
     }
-
-    CLEAN_SDB_FILE("searchregexp");
 }
 
 
-BOOST_AUTO_TEST_CASE(SDBTrie_UString)
+BOOST_AUTO_TEST_CASE(HDBTrie_UString)
 {
-    CLEAN_SDB_FILE("ustring");
-
     {
-      SDBTrie2<UString,int> trie("./sdbtrie_ustring");
-      trie.openForWrite();
+      HDBTrie2<UString,int> trie("./hdbtrie_ustring");
+      trie.open();
 
       UString word("apple",UString::CP949);
       char* p= (char*)word.c_str();
       UString ww = (UString::value_type*)p;
       trie.insert(ww, 1);
-
-      trie.optimize();
     }
 
     {
-      SDBTrie2<UString,int> trie("./sdbtrie_ustring");
-      trie.openForRead();
+      HDBTrie2<UString,int> trie("./hdbtrie_ustring");
+      trie.open();
       BOOST_CHECK_EQUAL(trie.num_items(),  (size_t)1);
 
       TEST_TRIE_FIND(UString("apple",UString::CP949), 1);
@@ -321,9 +307,6 @@ BOOST_AUTO_TEST_CASE(SDBTrie_UString)
       UString ww = (UString::value_type*)p;
       TEST_TRIE_SEARCH_REGEXP(ww, idList, 1);
     }
-
-    CLEAN_SDB_FILE("ustring");
-
 }
-*/
+
 BOOST_AUTO_TEST_SUITE_END()

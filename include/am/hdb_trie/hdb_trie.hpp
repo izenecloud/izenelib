@@ -1,12 +1,11 @@
-#ifndef _SDB_TRIE_H_
-#define _SDB_TRIE_H_
+#ifndef _HDB_TRIE_H_
+#define _HDB_TRIE_H_
 
 #include <iostream>
 
 #include <am/concept/DataType.h>
+#include <hdb/HugeDB.h>
 #include <sdb/SequentialDB.h>
-#include "compoundkey.h"
-#include "sdb_hash2btree.h"
 #include "traits.h"
 
 NS_IZENELIB_AM_BEGIN
@@ -33,15 +32,15 @@ template <typename CharType,
           typename UserDataType,
           typename NodeIDType = uint64_t,
           typename LockType = izenelib::util::NullLock>
-class SDBTrie : public AccessMethod<std::vector<CharType>, UserDataType>
+class HDBTrie
 {
-    typedef CompoundKey<NodeIDType, CharType> EdgeTableKeyType;
+    // hdb is fast for large number of random insertions
+    typedef std::pair<NodeIDType, CharType> EdgeTableKeyType;
     typedef NodeIDType EdgeTableValueType;
     typedef DataType<EdgeTableKeyType, EdgeTableValueType> EdgeTableRecordType;
-    typedef izenelib::sdb::unordered_sdb_fixed<EdgeTableKeyType, EdgeTableValueType , LockType> EdgeTableType;
-    typedef izenelib::sdb::ordered_sdb_fixed<EdgeTableKeyType, EdgeTableValueType , LockType> OptEdgeTableType;
-    typedef Conv_Sdb_Hash2Btree<EdgeTableType, OptEdgeTableType> EdgeTableConverter;
+    typedef izenelib::hdb::ordered_hdb_fixed<EdgeTableKeyType, EdgeTableValueType , LockType> EdgeTableType;
 
+    // sdb is fast for sequential insertions
     typedef NodeIDType DataTableKeyType;
     typedef UserDataType DataTableValueType;
     typedef DataType<DataTableKeyType, DataTableValueType> DataTableRecordType;
@@ -49,80 +48,48 @@ class SDBTrie : public AccessMethod<std::vector<CharType>, UserDataType>
 
 public:
 
-    SDBTrie(const std::string& dbname)
+    HDBTrie(const std::string& dbname)
     :   closed_(true), dbname_(dbname),
-        edgeTable_(dbname_ + ".sdbtrie.edgetable.sdb"),
-        optEdgeTable_(dbname_ + ".sdbtrie.optedgetable.sdb"),
-        dataTable_(dbname_ + ".sdbtrie.datatable.sdb")
+        edgeTable_(dbname_ + ".hdbtrie.edgetable"),
+        dataTable_(dbname_ + ".hdbtrie.datatable.sdb")
     {
         nextNID_ = NodeIDTraits<NodeIDType>::MaxValue;
     }
 
-    virtual ~SDBTrie()
+    virtual ~HDBTrie()
     {
-        if(!closed_)
-            close();
+        flush();
     }
+
+    /** @see open */
+    void openForRead() { open(); }
+
+    /** @see open */
+    void openForWrite() { open(); }
 
     /**
      * @brief Open all db files, maps them to memory. Call it
      *        after config() and before any insert() or find() operations.
      */
-    void openForRead()
+    void open()
     {
-        if(closed_)
-        {
-            read_ = true;
-            closed_ = false;
+        dataTable_.setDegree(32);
+        dataTable_.setPageSize(1024);
+        dataTable_.setCacheSize(64*1024);
+        dataTable_.open();
 
-            optEdgeTable_.setDegree(32);
-            optEdgeTable_.setPageSize(2048);
-
-            dataTable_.setDegree(32);
-            dataTable_.setPageSize(1024);
-
-            optEdgeTable_.setCacheSize(128*1024);
-            optEdgeTable_.open();
-
-            dataTable_.setCacheSize(64*1024);
-            dataTable_.open();
-
-        } else if( !read_ )
-            throw std::runtime_error("close before open read mode");
+        edgeTable_.setDegree(128);
+        edgeTable_.setPageSize(8192);
+        edgeTable_.setCachedRecordsNumber(2500000);
+        edgeTable_.setMergeFactor(2);
+        edgeTable_.open();
+        nextNID_ = edgeTable_.numItems() + NodeIDTraits<NodeIDType>::MinValue;
     }
 
-    /**
-     * @brief Open all db files, maps them to memory. Call it
-     *        after config() and before any insert() or find() operations.
-     */
-    void openForWrite()
+    void flush()
     {
-        if(closed_)
-        {
-            read_ = false;
-            closed_ = false;
-
-            optEdgeTable_.setDegree(32);
-            optEdgeTable_.setPageSize(2048);
-
-            dataTable_.setDegree(32);
-            dataTable_.setPageSize(1024);
-
-            edgeTable_.setDegree(16);
-            edgeTable_.setBucketSize(512);
-
-            edgeTable_.setCacheSize(256*1024);
-            edgeTable_.open();
-
-            optEdgeTable_.setCacheSize(32*1024);
-            optEdgeTable_.open();
-
-            dataTable_.setCacheSize(64*1024);
-            dataTable_.open();
-
-            nextNID_ = edgeTable_.numItems() + NodeIDTraits<NodeIDType>::MinValue;
-        } else if(read_)
-            throw std::runtime_error("close before open write mode");
+        edgeTable_.flush();
+        dataTable_.flush();
     }
 
 
@@ -131,9 +98,7 @@ public:
      */
     void close()
     {
-        closed_ = true;
-        if(!read_) edgeTable_.close();
-        optEdgeTable_.close();
+        edgeTable_.close();
         dataTable_.close();
     }
 
@@ -142,25 +107,15 @@ public:
      */
     void optimize()
     {
-        if(read_) return;
-
-        EdgeTableConverter converter(edgeTable_,
-            optEdgeTable_, dbname_ + ".sdbtrie");
-        converter.startThread();
-        converter.joinThread();
-
-        edgeTable_.flush();
-        optEdgeTable_.flush();
+        edgeTable_.optimize();
     }
 
     /**
      * @brief Insert key value pairs into Trie.
-     * @return false if key exists already or key is empty
-     *         true  success
      */
-    bool insert(const std::vector<CharType>& key, const UserDataType& value)
+    void insert(const std::vector<CharType>& key, const UserDataType& value)
     {
-        if(read_ || key.size() == 0) return false;
+        if( key.size() == 0) return;
 
         NodeIDType nid = NodeIDTraits<NodeIDType>::RootValue;
         for( size_t i=0; i< key.size(); i++ )
@@ -169,27 +124,23 @@ public:
             addEdge(key[i], nid, tmp);
             nid = tmp;
         }
-        return putData(nid, value);
+        putData(nid, value);
     }
 
     /**
      * @brief Insert key value pairs into Trie.
-     * @return false if key exists already or key is empty
-     *         true  success
      */
-    bool insert(const DataType<std::vector<CharType>, UserDataType>& data)
+    void insert(const DataType<std::vector<CharType>, UserDataType>& data)
     {
-        return insert(data.key, data.value);
+        insert(data.key, data.value);
     }
 
     /**
      * @brief Update value for a given key, if key doesn't exist, do insertion instead.
-     * @return false if key is empty
-     *         true  otherwise
      */
-    bool update(const std::vector<CharType>& key, const UserDataType& value)
+    void update(const std::vector<CharType>& key, const UserDataType& value)
     {
-        if(read_ || key.size() == 0) return false;
+        if( key.size() == 0) return;
 
         NodeIDType nid = NodeIDTraits<NodeIDType>::RootValue;
         for( size_t i=0; i< key.size(); i++ )
@@ -199,17 +150,14 @@ public:
             nid = tmp;
         }
         updateData(nid, value);
-        return true;
     }
 
     /**
      * @brief Update value for a given key, if key doesn't exist, do insertion instead.
-     * @return false if key is empty
-     *         true  otherwise
      */
-    bool update(const DataType<std::vector<CharType>, UserDataType>& data)
+    void update(const DataType<std::vector<CharType>, UserDataType>& data)
     {
-        return update(data.key, data.value);
+        update(data.key, data.value);
     }
 
     /**
@@ -225,7 +173,7 @@ public:
         for( size_t i=0; i<key.size(); i++ )
         {
             NodeIDType tmp = NodeIDType();
-            if( !getEdge2(key[i], nid, tmp) )
+            if( !getEdge(key[i], nid, tmp) )
                 return false;
             nid = tmp;
         }
@@ -245,6 +193,29 @@ public:
         throw std::runtime_error("unsupported AM function, use get() instead");
     }
 
+
+    /**
+     * @brief Get a list of keys which begin with the same prefix.
+     * @return true at leaset one result found.
+     *         false nothing found.
+     */
+    bool findPrefix(const std::vector<CharType>& prefix,
+        std::vector<std::vector<CharType> >& keyList)
+    {
+        NodeIDType nid = NodeIDTraits<NodeIDType>::RootValue;
+        for( size_t i=0; i<prefix.size(); i++ )
+        {
+            NodeIDType tmp = NodeIDType();
+            if( !getEdge(prefix[i], nid, tmp) )
+                return false;
+            nid = tmp;
+        }
+        keyList.clear();
+        std::vector<CharType> begin = prefix;
+        findPrefix_(nid, begin, keyList);
+        return keyList.size() ? true : false;
+    }
+
     /**
      * @brief Get a list of values whose keys begin with the same prefix.
      * @return true at leaset one result found.
@@ -257,7 +228,7 @@ public:
         for( size_t i=0; i<prefix.size(); i++ )
         {
             NodeIDType tmp = NodeIDType();
-            if( !getEdge2(prefix[i], nid, tmp) )
+            if( !getEdge(prefix[i], nid, tmp) )
                 return false;
             nid = tmp;
         }
@@ -272,19 +243,20 @@ public:
      *         false nothing found.
      */
     bool findPrefix(const std::vector<CharType>& prefix,
-        std::vector<std::vector<CharType> >& keyList)
+        std::vector<std::vector<CharType> >& keyList,
+        std::vector<UserDataType>& valueList)
     {
         NodeIDType nid = NodeIDTraits<NodeIDType>::RootValue;
         for( size_t i=0; i<prefix.size(); i++ )
         {
             NodeIDType tmp = NodeIDType();
-            if( !getEdge2(prefix[i], nid, tmp) )
+            if( !getEdge(prefix[i], nid, tmp) )
                 return false;
             nid = tmp;
         }
         keyList.clear();
         std::vector<CharType> begin = prefix;
-        findPrefix_(nid, begin, keyList);
+        findPrefix_(nid, begin, keyList, valueList);
         return keyList.size() ? true : false;
     }
 
@@ -370,30 +342,6 @@ protected:
     }
 
     /**
-     * Given the NID of parent node and the edge's character property,
-     * find the child node's NID.
-     * The difference with getEdge is, it looks up edge info from OptEdgeTable.
-     *
-     * @param   ch          edge's character property
-     *          parentNID   NID of parent node
-     *          childNID    NID of child node
-     * @return  true    if successfully
-     *          false   if child does not exist yet
-     */
-    bool getEdge2(const CharType& ch, const NodeIDType& parentNID, NodeIDType& childNID)
-    {
-        EdgeTableKeyType etKey(parentNID, ch);
-        NodeIDType value = NodeIDType();
-
-        // Return false if edge doesn't exist
-        if(!optEdgeTable_.getValue(etKey, value))
-            return false;
-
-        childNID = value;
-        return true;
-    }
-
-    /**
      * Store key's nid and userdata into SDB.
      * @return true     successfully
      *         false    key exists already
@@ -422,23 +370,6 @@ protected:
     }
 
     void findPrefix_( const NodeIDType& nid,
-        std::vector<UserDataType>& valueList)
-    {
-        UserDataType tmp = UserDataType();
-        if(getData(nid, tmp))
-            valueList.push_back(tmp);
-
-        EdgeTableKeyType minKey(nid, NumericTraits<CharType>::MinValue);
-        EdgeTableKeyType maxKey(nid, NumericTraits<CharType>::MaxValue);
-
-        std::vector<EdgeTableRecordType> result;
-        optEdgeTable_.getValueBetween(result, minKey, maxKey);
-
-        for(size_t i = 0; i <result.size(); i++ )
-            findPrefix_(result[i].value, valueList);
-    }
-
-    void findPrefix_( const NodeIDType& nid,
         std::vector<CharType>& prefix,
         std::vector<std::vector<CharType> >& keyList)
     {
@@ -450,12 +381,55 @@ protected:
         EdgeTableKeyType maxKey(nid, NumericTraits<CharType>::MaxValue);
 
         std::vector<EdgeTableRecordType> result;
-        optEdgeTable_.getValueBetween(result, minKey, maxKey);
+        edgeTable_.getValueBetween(result, minKey, maxKey);
 
         for(size_t i = 0; i <result.size(); i++ )
         {
-            prefix.push_back(result[i].key.key2);
+            prefix.push_back(result[i].key.second);
             findPrefix_(result[i].value, prefix, keyList);
+            prefix.pop_back();
+        }
+    }
+
+    void findPrefix_( const NodeIDType& nid,
+        std::vector<UserDataType>& valueList)
+    {
+        UserDataType tmp = UserDataType();
+        if(getData(nid, tmp))
+            valueList.push_back(tmp);
+
+        EdgeTableKeyType minKey(nid, NumericTraits<CharType>::MinValue);
+        EdgeTableKeyType maxKey(nid, NumericTraits<CharType>::MaxValue);
+
+        std::vector<EdgeTableRecordType> result;
+        edgeTable_.getValueBetween(result, minKey, maxKey);
+
+        for(size_t i = 0; i <result.size(); i++ )
+            findPrefix_(result[i].value, valueList);
+    }
+
+    void findPrefix_( const NodeIDType& nid,
+        std::vector<CharType>& prefix,
+        std::vector<std::vector<CharType> >& keyList,
+        std::vector<UserDataType>& valueList)
+    {
+        UserDataType tmp = UserDataType();
+        if(getData(nid, tmp))
+        {
+            keyList.push_back(prefix);
+            valueList.push_back(tmp);
+        }
+
+        EdgeTableKeyType minKey(nid, NumericTraits<CharType>::MinValue);
+        EdgeTableKeyType maxKey(nid, NumericTraits<CharType>::MaxValue);
+
+        std::vector<EdgeTableRecordType> result;
+        edgeTable_.getValueBetween(result, minKey, maxKey);
+
+        for(size_t i = 0; i <result.size(); i++ )
+        {
+            prefix.push_back(result[i].key.second);
+            findPrefix_(result[i].value, prefix, keyList, valueList);
             prefix.pop_back();
         }
     }
@@ -480,7 +454,7 @@ protected:
                 EdgeTableKeyType maxKey(nid, NumericTraits<CharType>::MaxValue);
 
                 std::vector<EdgeTableRecordType> result;
-                optEdgeTable_.getValueBetween(result, minKey, maxKey);
+                edgeTable_.getValueBetween(result, minKey, maxKey);
 
                 for(size_t i = 0; i <result.size(); i++ )
                     findRegExp_(regexp, startPos, result[i].value, valueList);
@@ -494,7 +468,7 @@ protected:
                 EdgeTableKeyType maxKey(nid, NumericTraits<CharType>::MaxValue);
 
                 std::vector<EdgeTableRecordType> result;
-                optEdgeTable_.getValueBetween(result, minKey, maxKey);
+                edgeTable_.getValueBetween(result, minKey, maxKey);
 
                 for(size_t i = 0; i <result.size(); i++ )
                     findRegExp_(regexp, startPos+1, result[i].value, valueList);
@@ -504,7 +478,7 @@ protected:
             {
                 EdgeTableKeyType key(nid, regexp[startPos]);
                 NodeIDType nxtNode = NodeIDType();
-                if( optEdgeTable_.getValue(key, nxtNode) )
+                if( edgeTable_.getValue(key, nxtNode) )
                     findRegExp_(regexp, startPos+1, nxtNode, valueList);
                 break;
             }
@@ -515,13 +489,9 @@ private:
 
     bool closed_;
 
-    bool read_;
-
     std::string dbname_;
 
     EdgeTableType edgeTable_;
-
-    OptEdgeTableType optEdgeTable_;
 
     DataTableType dataTable_;
 
@@ -536,17 +506,17 @@ template <typename StringType,
           typename UserDataType = NullType,
           typename NodeIDType = uint64_t,
           typename LockType = izenelib::util::NullLock>
-class SDBTrie2 : public AccessMethod<StringType, UserDataType>
+class HDBTrie2
 {
     typedef typename StringType::value_type CharType;
-    typedef SDBTrie<CharType, UserDataType, NodeIDType, LockType> SDBTrieType;
+    typedef HDBTrie<CharType, UserDataType, NodeIDType, LockType> HDBTrieType;
 
 public:
 
-    SDBTrie2(const std::string name)
+    HDBTrie2(const std::string name)
     :   trie_(name) {}
 
-    virtual ~SDBTrie2(){}
+    virtual ~HDBTrie2(){}
 
 //    void config(int degree, int cacheSize, int pageSize)
 //    {
@@ -555,33 +525,35 @@ public:
 
     void openForRead(){ trie_.openForRead(); }
     void openForWrite(){ trie_.openForWrite(); }
+    void open(){ trie_.open(); }
+    void flush(){ trie_.flush(); }
     void close(){ trie_.close(); }
     void optimize(){ trie_.optimize(); }
 
-    bool insert(const StringType& key, const UserDataType& value)
+    void insert(const StringType& key, const UserDataType& value)
     {
         CharType* chArray = (CharType*)key.c_str();
         size_t chCount = key.length();
         std::vector<CharType> chVector(chArray, chArray+chCount);
-        return trie_.insert(chVector, value);
+        trie_.insert(chVector, value);
     }
 
-    bool insert(const DataType<StringType, UserDataType>& data)
+    void insert(const DataType<StringType, UserDataType>& data)
     {
-        return insert(data.key, data.value);
+        insert(data.key, data.value);
     }
 
-    bool update(const StringType& key, const UserDataType value)
+    void update(const StringType& key, const UserDataType value)
     {
         CharType* chArray = (CharType*)key.c_str();
         size_t chCount = key.length();
         std::vector<CharType> chVector(chArray, chArray+chCount);
-        return trie_.update(chVector, value);
+        trie_.update(chVector, value);
     }
 
-    bool update(const DataType<StringType, UserDataType>& data)
+    void update(const DataType<StringType, UserDataType>& data)
     {
-        return update(data.key, data.value);
+        update(data.key, data.value);
     }
 
     bool get(const StringType& key, UserDataType& value)
@@ -628,6 +600,26 @@ public:
         return true;
     }
 
+    bool findPrefix(const StringType& prefix,
+        std::vector<StringType>& keyList,
+        std::vector<UserDataType>& valueList)
+    {
+        CharType* chArray = (CharType*)prefix.c_str();
+        size_t chCount = prefix.length();
+        std::vector<CharType> chVector(chArray, chArray+chCount);
+
+        std::vector< std::vector<CharType> > resultList;
+        if( false == trie_.findPrefix(chVector, resultList, valueList) )
+            return false;
+
+        for(size_t i = 0; i< resultList.size(); i++ )
+        {
+            StringType tmp(resultList[i].begin(), resultList[i].end() );
+            keyList.push_back(tmp);
+        }
+        return true;
+    }
+
     bool findRegExp(const StringType& regexp,
         std::vector<UserDataType>& valueList)
     {
@@ -643,7 +635,7 @@ public:
 
 
 private:
-    SDBTrieType trie_;
+    HDBTrieType trie_;
 };
 
 NS_IZENELIB_AM_END

@@ -24,107 +24,6 @@ class FileDataBucket
   uint64_t num_;
   std::string filenm_;
   uint64_t fetch_i_;
-
-   /**
-     Swap two elements.
-  **/
-  void swap_(VALUE_TYPE* a, VALUE_TYPE* b)
-  {
-    VALUE_TYPE temp;
-    temp = *a;
-    *a = *b;
-    *b = temp;
-  }
-
-  /**
-     When quick sort, it return the index of media element.
-   **/
-  uint32_t findMedianIndex_(VALUE_TYPE* array, uint32_t left, uint32_t right)
-  {
-    return (left+right)/2;
-    
-//     VALUE_TYPE min = array[left];
-//     VALUE_TYPE max = array[left];
-//     uint32_t shift = 5;
-
-//     if (right-left<2*shift)
-//       return (left+right)/2;
-    
-//     for (uint32_t i=left+shift; i<=right; i+=shift)
-//     {
-//       if (array[i]<min)
-//       {
-//         min = array[i];
-//         continue;
-//       }
-
-//       if (array[i] > max)
-//       {
-//         max = array[i];
-//         continue;
-//       }
-//     }
-
-//     VALUE_TYPE average = (min + max )/2;
-//     uint32_t idx = left;
-//     VALUE_TYPE minGap = average>array[idx]? average-array[idx] : array[idx]-average;
-    
-//     for (uint32_t i=left+shift; i<=right; i+=shift)
-//     {
-//       VALUE_TYPE gap = average>array[i]? average-array[i] : array[i]-average;
-//       if (gap<minGap)
-//       {
-//         minGap = gap;
-//         idx = i;
-//       }
-//     }
-
-//     return idx;
-    
-  }
-  
-  /**
-     Partition the array into two halves and return the index about which the array is partitioned.
-  **/
-  uint32_t partition_(VALUE_TYPE* array, uint32_t left, uint32_t right)
-  {
-    uint32_t pivotIndex = findMedianIndex_(array, left, right), index = left, i;
-    VALUE_TYPE pivotValue = array[pivotIndex];
- 
-    swap_(&array[pivotIndex], &array[right]);
-    
-    for(i = left; i < right; i++)
-    {
-      if(array[i] < pivotValue)
-      {
-        swap_(&array[i], &array[index]);
-        index += 1;
-      }
-    }
-    swap_(&array[right], &array[index]);
- 
-    return index;
-  }
-
-  /**
-     A recursive function applying quick sort.
-   **/
-  void quickSort_(VALUE_TYPE* array, uint32_t left, uint32_t right)
-  {
-    if(right-left<=1)
-    {
-      if (array[left]>array[right])
-        swap_(&array[left], &array[right]);
-      return;
-    }
-    
-    uint32_t idx = partition_(array, left, right);
-    
-    if(idx>0 && left<idx-1)
-      quickSort_(array, left, idx - 1);
-    if (idx+1<right)
-      quickSort_(array, idx + 1, right);
-  }
   
 public:
   FileDataBucket(const char* nm)
@@ -132,6 +31,7 @@ public:
     filenm_ = nm;
     buf_.reserve(BUF_SIZE/sizeof(VALUE_TYPE));
     num_ = 0;
+    f_ = NULL;
   }
 
   void ready4add()
@@ -172,11 +72,15 @@ public:
     fflush(f_);
     fclose(f_);
 
+    f_ = NULL;
     buf_.reset();
   }
   
   void ready4fetch()
   {
+    if (f_!=NULL)
+      fclose(f_);
+    
     f_ = fopen(filenm_.c_str(), "r+");
 
     if (f_ == NULL)
@@ -203,7 +107,6 @@ public:
     {
       buf_.load(f_);
       fetch_i_ = 0;
-      return buf_.at(0);
     }
 
     return buf_.at(fetch_i_++);

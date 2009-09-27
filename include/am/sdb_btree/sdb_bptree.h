@@ -49,7 +49,7 @@ typename Alloc=std::allocator<DataType<KeyType,ValueType> >
 {
 	enum {unloadbyRss = false};
 	enum {unloadAll = true};
-	enum {unloadLeavesFirst = false};
+	enum {unloadLeavesFirst = true};
 	enum {loadIndexFirst = true};
 	enum {orderedCommit =true};
 	enum {quickFlush = false};
@@ -511,7 +511,7 @@ private:
 		while ( !qnode.empty() ) {
 			sdb_pnode* popNode = qnode.front();
 			qnode.pop();
-			if( popNode->isLeaf || popNode->children[0]->isLeaf) {
+			if( popNode->isLeaf) {
 				toBeWrited.insert(make_pair(popNode->fpos, popNode) );
 			}
 			if (popNode && popNode->isLoaded && !popNode->isLeaf) {
@@ -529,13 +529,9 @@ private:
 		for (; it != toBeWrited.end(); it++) {
 			if (it->second->write(_dataFile) )
 			--_dirtyPageNum;
+			it->second->unload();
 		}
-		it = toBeWrited.begin();
-		for (; it != toBeWrited.end(); it++) {
-			if( !it->second->isLeaf )
-				it->second->unload();
-		}
-
+		
 #ifdef DEBUG
 		printf("unload leaves elapsed 1 ( actually ): %lf seconds\n",
 				timer.elapsed() );

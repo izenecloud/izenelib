@@ -182,12 +182,26 @@ public:
   inline void flush()
   {
     if (fp_list_!= NULL)
+    {
       fp_list_->flush();
+      delete fp_list_;
+      fp_list_ = NULL;
+    }
+    
     if (group_!=NULL)
+    {
       group_->flush();
+      delete group_;
+      group_ = NULL;
+    }
+    
     for (uint8_t i=0; i<FP_HASH_NUM; i++)
       if (fp_hash_ptrs_[i]!= NULL)
+      {
         fp_hash_ptrs_[i]->flush();
+        delete fp_hash_ptrs_[i];
+        fp_hash_ptrs_[i] = NULL;
+      }
   }
 
   inline void ready_for_insert()
@@ -370,7 +384,7 @@ public:
     delete fp_list_;fp_list_=NULL;//fp_list_->free();
 
     gettimeofday (&tvafter , &tz);
-    std::cout<<"\nPre-clustering is over!(1.4GB): "<<((tvafter.tv_sec-tvpre.tv_sec)*1000+(tvafter.tv_usec-tvpre.tv_usec)/1000)/60000.<<" min\n";
+    std::cout<<"\nPre-clustering is over!: "<<((tvafter.tv_sec-tvpre.tv_sec)*1000+(tvafter.tv_usec-tvpre.tv_usec)/1000)/60000.<<" min\n";
 
     //----------------------------------------
     
