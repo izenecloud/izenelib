@@ -302,9 +302,7 @@ template<typename KeyType, typename ValueType, typename LockType, bool fixed,
 	if (objCount> 0 && !isLeaf) {
 		children.resize(_fh.maxKeys);
 
-		long* childAddresses = new long[objCount];
-		if ( !childAddresses)
-			childAddresses = new long[objCount];
+		long* childAddresses = new long[objCount];		
 		//memset(childAddresses, 0xff, sizeof(long) * (objCount));
 		memcpy(childAddresses, p, sizeof(long)*(objCount));
 		p += sizeof(long)*(objCount);

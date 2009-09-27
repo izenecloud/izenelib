@@ -14,8 +14,6 @@
 
 NS_IZENELIB_AM_BEGIN
 
-
-
 /**
  *
  * \brief  sdb_node represents a node(internal node or leaf node)
@@ -53,8 +51,8 @@ NS_IZENELIB_AM_BEGIN
  */
 
 template<typename KeyType, typename ValueType, typename LockType,
-		bool fixed = false,
-		typename Alloc=std::allocator<DataType<KeyType,ValueType> > > class sdb_node_ {
+bool fixed = false,
+typename Alloc=std::allocator<DataType<KeyType,ValueType> > > class sdb_node_ {
 	typedef std::pair<sdb_node_*, size_t> NodeKeyLocn;
 	typedef typename std::vector<KeyType>::iterator KIT;
 public:
@@ -173,7 +171,7 @@ public:
 		for (i=0; i<objCount; i++) {
 			if ( !isLeaf) {
 				if (children[i])
-					children[i]->display(os);
+				children[i]->display(os);
 				os<<"----|";
 			}
 			//keys[i]->display();
@@ -183,14 +181,14 @@ public:
 			//if (parent)
 			//	pfos = parent->fpos;
 			os<<"("<<fpos<<" parent="<<pfos<<" isLeaf="<<isLeaf<<" childNo="
-					<<childNo<<" objCount="<<objCount<<" isLoaded="<<isLoaded
-					<<")"<<endl;
+			<<childNo<<" objCount="<<objCount<<" isLoaded="<<isLoaded
+			<<")"<<endl;
 			//os<<"("<<isDirty<<" "<<parent<<" "<<this<<")";
 			os<<endl;
 		}
 		if (!isLeaf) {
 			if (children[i])
-				children[i]->display(os);
+			children[i]->display(os);
 			os<<"----|";
 		}
 	}
@@ -265,8 +263,6 @@ template<typename KeyType, typename ValueType, typename LockType, bool fixed,
 	}
 
 	keys.resize(_fh.maxKeys);
-	values.resize(_fh.maxKeys);
-	children.resize(_fh.maxKeys+1);
 
 	char *pBuf = new char[_pageSize];
 	if (1 != fread(pBuf, _pageSize, 1, f)) {
@@ -294,15 +290,17 @@ template<typename KeyType, typename ValueType, typename LockType, bool fixed,
 
 	// read the addresses of the child pages
 	if (objCount> 0 && !isLeaf) {
-		long* childAddresses = new long[objCount + 1];
-		//memset(childAddresses, 0xff, sizeof(long) * (objCount + 1));
+		children.resize(_fh.maxKeys);
+
+		long* childAddresses = new long[objCount+1];		
+		//memset(childAddresses, 0xff, sizeof(long) * (objCount));
 		memcpy(childAddresses, p, sizeof(long)*(objCount+1));
 		p += sizeof(long)*(objCount+1);
 		tsz += sizeof(long)*(objCount+1);
 
 		//Only allocate childnode when the node is no a leaf node.
 		if ( !isLeaf) {
-			for (size_t i = 0; i <= objCount; i++) {
+			for (size_t i = 0; i < objCount+1; i++) {
 				if (children[i] == 0) {
 					children[i] = new sdb_node_(_fh, _fileLock, activeNodeNum );
 				}
@@ -322,110 +320,77 @@ template<typename KeyType, typename ValueType, typename LockType, bool fixed,
 	p += sizeof(size_t);
 	tsz += sizeof(size_t);
 
-	char *povfl=0;
-	//size_t np = 0;
-	//size_t next_page_off = 0;
+	//cout<<" read overFlowAddress="<<_overflowAddress<<"& "<<_overflowPageCount
+	//		<<endl;
 
-	bool first_ovfl = true;
+	size_t ksize, vsize;
+	memcpy(&ksize, p, sizeof(size_t));
 
-	//cout<<" read overFlowAddress="<<_overflowAddress<<endl;
+	//cout<<"keysize: "<<ksize<<endl;
+	bool overflow = false;
 
-	//read the key/vaue pairs
-	for (size_t i = 0; i < objCount; i++) {
-
-		if ( !fixed) {
-
-			//cout<<" read data idx="<<i<<endl;
-			size_t ksize, vsize;
-
-			//DbObjPtr ptr, ptr1;
-
-			memcpy(&ksize, p, sizeof(size_t));
-
-			//cout<<"ksize"<<ksize<<endl;
-
-			//read from overflow page
-			if (ksize == 0) {
-				assert(first_ovfl);
-				if (first_ovfl)
-					first_ovfl =false;
-				if ( !povfl) {
-					//cout<<"read overflowaddress="<<_overflowAddress<<" | "<<_overflowPageCount<<endl;
-
-					povfl = new char[_pageSize*_overflowPageCount];
-					if (0 != fseek(f, _overflowAddress, SEEK_SET)) {
-						if (pBuf)
-							delete pBuf;
-						delete povfl;
-						return false;
-					}
-					if (1 != fread(povfl, _pageSize*_overflowPageCount, 1, f)) {
-						if (pBuf)
-							delete pBuf;
-						delete povfl;
-						return false;
-					}
-				}
-				//p = povfl + np*_pageSize;
-				p= povfl;
-				memcpy(&ksize, p, sizeof(size_t));
-				assert(ksize != 0);
-				//is_incr_page = true;
-			}
-
-			p += sizeof(size_t);
-
-			izene_deserialization<KeyType> izd(p, ksize);
-			izd.read_image(keys[i]);
-			p += ksize;
-
-			memcpy(&vsize, p, sizeof(size_t));
-			p += sizeof(size_t);
-
-			//if value is of NULLType, the vsize is 0
-			if (vsize != 0) {
-				izene_deserialization<ValueType> izd1(p, vsize);
-				izd1.read_image(values[i]);
-				p += vsize;
-			}
-
-		} else {
-			size_t esize = objCount*(sizeof(KeyType) + sizeof(ValueType));
-			if (tsz + esize > _pageSize ) {				
-				if ( !povfl) {
-					//cout<<"read overflowaddress="<<_overflowAddress<<" | "<<_overflowPageCount<<endl;
-
-					povfl = new char[_pageSize*_overflowPageCount];
-					if (0 != fseek(f, _overflowAddress, SEEK_SET)) {
-						if (pBuf)
-							delete pBuf;
-						delete povfl;
-						return false;
-					}
-					if (1 != fread(povfl, _pageSize*_overflowPageCount, 1, f)) {
-						if (pBuf)
-							delete pBuf;
-						delete povfl;
-						return false;
-					}
-				}
-				//p = povfl + np*_pageSize;
-				p= povfl;
-
-			}
-			memcpy(&keys[0], p, objCount*sizeof(KeyType));
-			p += objCount*sizeof(KeyType);
-			memcpy(&values[0], p, objCount*sizeof(ValueType));
-			p += objCount*sizeof(ValueType);				
-			break;
+	//overflow occur
+	if (ksize == 0) {
+		overflow = true;
+		char *temp = new char[_pageSize*(_overflowPageCount+1)];
+		memcpy(temp, pBuf, tsz);
+		delete pBuf;
+		pBuf = temp;
+		p = pBuf + tsz;
+		if (0 != fseek(f, _overflowAddress, SEEK_SET)) {
+			if (pBuf)
+				delete pBuf;
+			return false;
 		}
+		if (1 != fread(p, _pageSize*_overflowPageCount, 1, f)) {
+			if (pBuf)
+				delete pBuf;
+			pBuf = 0;
+			return false;
+		}
+		memcpy(&ksize, p, sizeof(size_t));
+	}
+	p += sizeof(size_t);
+	izene_deserialization< std::vector<KeyType> > izd(p, ksize);
+	izd.read_image(keys);
+	p += ksize;
+	tsz += ksize+sizeof(size_t);
 
+	values.resize(_fh.maxKeys);
+	memcpy(&vsize, p, sizeof(size_t));
+
+	//overflow occur
+	if (vsize == 0) {
+		//only overflow once!
+		assert( !overflow);
+		char *temp = new char[_pageSize*(_overflowPageCount+1)];
+		memcpy(temp, pBuf, tsz);
+		delete pBuf;
+		pBuf = temp;
+		p = pBuf + tsz;
+		if (0 != fseek(f, _overflowAddress, SEEK_SET)) {
+			if (pBuf)
+				delete pBuf;
+			return false;
+		}
+		if (1 != fread(p, _pageSize*_overflowPageCount, 1, f)) {
+			if (pBuf)
+				delete pBuf;
+			pBuf = 0;
+			return false;
+		}
+		memcpy(&vsize, p, sizeof(size_t));
 	}
 
-	if (povfl) {
-		delete [] povfl;
-		povfl = 0;
-	}
+	p += sizeof(size_t);
+	izene_deserialization< std::vector<ValueType> > izd1(p, vsize);
+	izd1.read_image(values);
+	tsz += vsize+sizeof(size_t);
+	//cout<<"vsize="<<vsize<<endl;
+
+
+	//cout<<"tsz: "<<tsz;
+
 	delete [] pBuf;
 	pBuf = 0;
 	isLoaded = true;
@@ -439,11 +404,12 @@ template<typename KeyType, typename ValueType, typename LockType, bool fixed,
 template<typename KeyType, typename ValueType, typename LockType, bool fixed,
 		typename Alloc> bool sdb_node_< KeyType, ValueType, LockType, fixed,
 		Alloc>::write(FILE* f) {
-
 	//#ifdef DEBUG
 	//static int _wcount;
 	//cout<<"write "<<_wcount++ <<endl;
 	//#endif
+
+	//cout<<"write fpos="<<fpos<<endl;
 
 	// If it is not loaded, it measn that we haven't been changed it ,
 	// so we can say that the flush was successful.
@@ -464,7 +430,6 @@ template<typename KeyType, typename ValueType, typename LockType, bool fixed,
 	memset(pBuf, 0, _pageSize);
 	char* p = pBuf;
 
-	//cout<<"write fpos="<<fpos<<endl;
 	// get to the right location
 	if (0 != fseek(f, fpos, SEEK_SET)) {
 		//assert(false);
@@ -485,10 +450,10 @@ template<typename KeyType, typename ValueType, typename LockType, bool fixed,
 
 	// write the addresses of the child pages
 	if (objCount> 0 && !isLeaf) {
-		long* childAddresses = new long[objCount + 1];
+		long* childAddresses = new long[objCount+1];
 		tsz += (objCount+1)*sizeof(long);
 		assert(tsz < _pageSize);
-		for (size_t i=0; i<=objCount; i++) {
+		for (size_t i=0; i<objCount+1; i++) {
 			childAddresses[i] = children[i]->fpos;
 			//cout<<"write child fpos="<<childAddresses[i]<<endl;
 		}
@@ -509,101 +474,67 @@ template<typename KeyType, typename ValueType, typename LockType, bool fixed,
 
 	assert(tsz+sizeof(size_t) <= _pageSize);
 	size_t np =1;
+	//bool first_ovfl = true;
 
-	bool first_ovfl = true;
-	for (size_t i=0; i<objCount; i++) {
-		//cout<<"idx = "<<i<<endl;
+	char *ptr;
+	size_t ksize;
+	size_t esize;
 
+	izene_serialization< std::vector<KeyType> > izs(keys);
+	izs.write_image(ptr, ksize);
+	esize = ksize + sizeof(size_t);
 
-		char *ptr, *ptr1;
-		size_t ksize, vsize;
-		size_t esize;
-		izene_serialization<KeyType> izs(keys[i]);
-		izene_serialization<ValueType> izs1(values[i]);
-
-		if ( !fixed) {	
-			izs.write_image(ptr, ksize);
-			izs1.write_image(ptr1, vsize);
-			esize = 2*sizeof(size_t)+ksize+vsize;
-		} else {
-			//ptr = (char*)&keys[i];
-			//ptr1 = (char*)&values[i];
-			//ksize = sizeof(KeyType);
-			//vsize = sizeof(ValueType);
-			//esize = ksize+vsize;
-			esize = objCount*(sizeof(KeyType) + sizeof(ValueType) ) -sizeof(size_t) ;
-		}
-
-		//when overflowing occurs, append the overflow buf
-		if (tsz+esize+sizeof(size_t) > np*_pageSize) {
-			//size_t endflag = 0;
-			//memcpy(p, &endflag, sizeof(size_t));
-
-			//tsz += sizeof(size_t);
-
-			assert(size_t(p - pBuf) < np*_pageSize);
-			if (first_ovfl) {
-				tsz = _pageSize;
-				first_ovfl = false;
-			}
-			//int incr_np = (tsz+esize+sizeof(size_t)-1 )/_pageSize+1;
-			np = (tsz+esize+sizeof(size_t)-1 )/_pageSize+1;
-
-			/*if(first_ovfl) {
-			 incr_np =(esize+sizeof(size_t)-1)/_pageSize + 1;
-			 first_ovfl = false;
-			 }
-			 else
-			 incr_np = (tsz+esize+sizeof(size_t)-1 )/_pageSize+1;*/
-
-			char *temp = new char[np*_pageSize];
-			//cout<<"alloc page num: "<<np<<endl;
-			memset(temp, 0, np*_pageSize);
-			memcpy(temp, pBuf, tsz);
-			delete [] pBuf;
-			pBuf = 0;
-			pBuf = temp;
-
-			p = pBuf+tsz;
-
-			//cout<<"incr_np: "<< incr_np <<endl;
-
-			/*	size_t endflag = 0;
-			 memcpy(p, &endflag, sizeof(size_t));
-
-			 int incr_np = ( tsz+esize+sizeof(size_t)-1)/_pageSize;
-			 cout<<"incr_np: "<< incr_np <<endl;
-			 //int incr_np = 1;
-			 char *temp = new char[(np+incr_np)*_pageSize];
-			 memset(temp, 0, (np+incr_np)*_pageSize );
-			 memcpy(temp, pBuf, np*_pageSize);
-			 delete pBuf;
-			 pBuf = temp;
-			 p = pBuf+np*_pageSize;
-			 tsz = 0;
-			 np+=incr_np;*/
-		}
-		if (!fixed) {
-			memcpy(p, &ksize, sizeof(size_t));
-			p += sizeof(size_t);
-			memcpy(p, ptr, ksize);
-			p += ksize;
-			memcpy(p, &vsize, sizeof(size_t));
-			p += sizeof(size_t);
-			memcpy(p, ptr1, vsize);
-			p += vsize;
-			tsz += esize;
-		}else{
-			memcpy(p, &keys[0], sizeof(KeyType)*objCount);
-			p +=  sizeof(KeyType)*objCount;
-			memcpy(p, &values[0], sizeof(ValueType)*objCount);
-			p +=  sizeof(ValueType)*objCount;
-			tsz += esize;
-			break;
-		}
+	bool first_overflow = true;
+	if (tsz+esize + sizeof(size_t) > np*_pageSize) {
+		first_overflow = false;
+		tsz = _pageSize;
+		np = (tsz+esize -1 )/_pageSize+1;
+		char *temp = new char[np*_pageSize];
+		//memset(temp, 0, np*_pageSize);
+		memcpy(temp, pBuf, _pageSize);
+		delete [] pBuf;
+		pBuf = 0;
+		pBuf = temp;
+		p = pBuf+tsz;
 	}
 
-	//cout<<"tsz="<<tsz<<endl;
+	memcpy(p, &ksize, sizeof(size_t));
+	p += sizeof(size_t);
+	memcpy(p, ptr, ksize);
+	p += ksize;
+	tsz += esize;
+
+	char* ptr1;
+	size_t vsize;
+
+	izene_serialization< std::vector<ValueType> > izs1(values);
+	izs1.write_image(ptr1, vsize);
+	esize = vsize+sizeof(size_t);
+
+	if (tsz+esize+sizeof(size_t) > np*_pageSize) {
+		if (first_overflow)
+			tsz = _pageSize;
+		np = (tsz+esize -1 )/_pageSize+1;
+		char *temp = new char[np*_pageSize];
+		memset(temp, 0, np*_pageSize);
+		memcpy(temp, pBuf, tsz);
+		delete [] pBuf;
+		pBuf = 0;
+		pBuf = temp;
+		if (first_overflow)
+			p = pBuf+_pageSize;
+		else
+			p = pBuf+tsz;
+	}
+
+	memcpy(p, &vsize, sizeof(size_t));
+	p += sizeof(size_t);
+	memcpy(p, ptr1, vsize);
+	p += vsize;
+	tsz += esize;
+
+	//if( tsz >  _pageSize)
+	//cout<<"fpos: "<<fpos<<" isLeaf: "<<isLeaf<<" tsz: "<<tsz<<endl;
 
 	//no overflow
 	if (np <= 1) {
@@ -612,7 +543,7 @@ template<typename KeyType, typename ValueType, typename LockType, bool fixed,
 		}
 	} else {
 		//oveflow
-		//cout<<"writing overflow!!!!"<<endl;
+
 		if (_overflowAddress <0 || _overflowPageCount < np-1) {
 			_overflowAddress = sizeof(CbFileHeader)+2*sizeof(size_t)+_pageSize
 					*(_fh.nPages+_fh.oPages);
@@ -631,6 +562,8 @@ template<typename KeyType, typename ValueType, typename LockType, bool fixed,
 				return false;
 			}
 		}
+		//cout<<"writing overflow!!!! pos:"<<_overflowAddress<<" & "
+		//		<< _overflowPageCount <<endl;
 	}
 	delete []pBuf;
 	pBuf = 0;

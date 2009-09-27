@@ -16,9 +16,9 @@ static bool trace = 0;
 BOOST_AUTO_TEST_SUITE( bptree_perf_suite )
 
 BOOST_AUTO_TEST_CASE(bptree_test) {
-	num = 10000000;
+	//num = 10000000;
 	
-	/*{
+	{
 			cout<<"\n\nsdb_btree<int, string >"<<endl;
 			typedef sdb_btree<int, string> AM_TYPE;
 			AmTest<int, string, AM_TYPE, true> am;
@@ -26,7 +26,7 @@ BOOST_AUTO_TEST_CASE(bptree_test) {
 			am.setRandom(rnd);
 			am.setNum(num);
 			run_am(am);
-	}*/
+	}
 
 	
 	{

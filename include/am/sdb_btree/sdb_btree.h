@@ -202,7 +202,7 @@ public:
 		while(get(locn, key, value)) {
 			other.insert(key, value);
 			if( !seq(locn) )
-				break;
+			break;
 		}
 		return true;
 	}
@@ -299,30 +299,31 @@ public:
 	 */
 	SDBCursor get_first_locn()
 	{
-		SDBCursor locn;
-		search(KeyType(), locn);
-		return locn;
+		sdb_node* node = _root;
+		while( !node->isLeaf )
+		node = node->loadChild(0, _dataFile);
+		return SDBCursor(node, 0);
 	}
 
 	SDBCursor get_last_locn()
 	{
 		sdb_node* node = _root;
-		while( !node->isLeaf ){
-			node = node->loadChild(node->objCount,_dataFile);
+		while( !node->isLeaf ) {
+			node = node->loadChild(node->objCount, _dataFile);
 		}
-		return SDBCursor(node, node->objCount);
+		return SDBCursor(node, node->objCount-1);
 	}
 
 	bool seq(SDBCursor& locn, KeyType& key, ValueType& value, ESeqDirection sdir=ESD_FORWARD)
 	{
-	    bool ret = seq(locn);
-	    get(locn, key, value);
-	    return ret;
+		bool ret = seq(locn);
+		get(locn, key, value);
+		return ret;
 	}
 	bool seq(SDBCursor& locn, DataType<KeyType, ValueType>& dat, ESeqDirection sdir=ESD_FORWARD)
-    {
+	{
 		return seq(locn, dat.key, dat.value, sdir);
-    }
+	}
 
 	bool seq(SDBCursor& locn, ESeqDirection sdir=ESD_FORWARD);
 
@@ -694,14 +695,14 @@ template<typename KeyType, typename ValueType, typename LockType, bool fixed,
 		if (!temp->isLeaf) {
 			temp = temp->loadChild(low, _dataFile);
 		} else {
-
 			locn.first = temp;
 			locn.second = low;
-
+			
 			if (low >= (int)temp->objCount) {
-                                locn.second = low - 1;
+				locn.second = low - 1;
 				seq(locn);
-                                break;
+			}
+			break;
 		}
 	}
 	return false;
@@ -1611,9 +1612,9 @@ template<typename KeyType, typename ValueType, typename LockType, bool fixed,
 		}
 
 		// pre-fetch all nested keys
-        sdb_node* parent=node->parent;
-        for(unsigned int i=1; i<=parent->objCount; i++)
-            parent->loadChild(i, _dataFile);
+		sdb_node* parent=node->parent;
+		for (unsigned int i=1; i<=parent->objCount; i++)
+			parent->loadChild(i, _dataFile);
 
 		locn.first = node;
 		locn.second = 0;
@@ -1646,9 +1647,9 @@ template<typename KeyType, typename ValueType, typename LockType, bool fixed,
 		}
 
 		// pre-fetch all nested keys
-        sdb_node* parent=node->parent;
-        for(unsigned int i=1; i<=parent->objCount; i++)
-            parent->loadChild(i, _dataFile);
+		sdb_node* parent=node->parent;
+		for (unsigned int i=1; i<=parent->objCount; i++)
+			parent->loadChild(i, _dataFile);
 
 		locn.first = node;
 		locn.second = 0;

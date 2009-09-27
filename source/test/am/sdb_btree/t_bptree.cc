@@ -1,4 +1,5 @@
 #include <am/sdb_btree/sdb_bptree.h>
+#include <am/sdb_btree/sdb_btree.h>
 
 #include <boost/test/unit_test.hpp>
 
@@ -6,8 +7,7 @@ using namespace izenelib::am;
 
 typedef string KeyType;
 typedef int ValueType;
-//typedef izenelib::cache::IzeneCache<KeyType, ValueType, NullLock, RDE_HASH, LFU> MyCache;
-typedef sdb_bptree<KeyType, ValueType> SDB_BPTREE;
+typedef sdb_btree<KeyType, ValueType> SDB_BPTREE;
 typedef SDB_BPTREE::SDBCursor SDBCursor;
 
 static string inputFile("../../db/test2.txt");
@@ -15,7 +15,7 @@ static string inputFile1("../../db/wordlist.txt");
 //static string inputFile2("../../db/wordlist_PLU.txt");
 static string inputFile2("../../db/wordlist_PLU.txt");
 static bool trace = false;
-int num = 300000;
+int num = 30000000;
 
 SDB_BPTREE cm("bptree.dat");
 SDB_BPTREE cm1("bptree1.dat#");
@@ -108,6 +108,7 @@ template<typename T> void seq_test(T& tb) {
 		//cm.display(cout, false);
 		cout<<"\nseq total num: "<<sum<<endl;
 		cout<<"eclipse:"<< double(clock()- t1)/CLOCKS_PER_SEC<<endl;
+		trace = false;
 
 	}
 #endif	
@@ -231,13 +232,13 @@ BOOST_AUTO_TEST_SUITE( bptree_suite )
 
 BOOST_AUTO_TEST_CASE(bptree_test)
 {
-	cm.setCacheSize(10000);
+	//cm.setCacheSize(10000);
 	cm.open();
 
-	//get_test(cm);
-	//seq_test(cm);
+	get_test(cm);
+	seq_test(cm);
 	insert_test(cm);
-/*get_test(cm);
+	get_test(cm);
 	seq_test(cm);
 	del_test(cm);
 	get_test(cm);
@@ -250,10 +251,10 @@ BOOST_AUTO_TEST_CASE(bptree_test)
 	del_test(cm);
 	get_test(cm);
 	seq_test(cm);
-	
+
 	insert_test(cm);
 	get_test(cm);
-	seq_test(cm);*/
+	seq_test(cm);
 
 	cm.close();
 	cm1.close();
