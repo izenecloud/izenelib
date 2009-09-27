@@ -175,7 +175,7 @@ public:
 				os<<"----|";
 			}
 			//keys[i]->display();
-			os<<keys[i]<<"->"<<values[i];
+			//os<<keys[i]<<"->"<<values[i];
 			//os<<keys[i];
 			size_t pfos=0;
 			//if (parent)
