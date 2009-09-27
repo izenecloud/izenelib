@@ -62,8 +62,8 @@ public:
 private:
     struct node
     {
-        static const hash_value_t kUnusedHash       = 0xFFFFFFFFFFFFFFFF;
-        static const hash_value_t kDeletedHash      = 0xFFFFFFFFFFFFFFFE;
+        static const hash_value_t kUnusedHash       = 0xFFFFFFFFFFFFFFFFULL;
+        static const hash_value_t kDeletedHash      = 0xFFFFFFFFFFFFFFFEULL;
 
         node(): hash(kUnusedHash) {}
 

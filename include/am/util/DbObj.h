@@ -16,7 +16,7 @@
 
 #include <types.h>
 #include <util/RefCount.h>
-
+#include <string.h>
 
 using namespace std;
 using namespace boost;
