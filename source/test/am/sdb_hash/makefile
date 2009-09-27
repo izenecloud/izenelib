@@ -5,9 +5,9 @@ GCC :=/usr/bin/gcc
 CC_OPTIONS :=  -O3 -g -Wall -c  -fmessage-length=0 -DDEBUG -pg
 
 LIBS =    /usr/local/lib/libboost_thread-gcc41-mt.so   /usr/local/lib/libboost_unit_test_framework-gcc41-mt.so   /usr/local/lib/libboost_serialization-gcc41-mt.so   ../../../../lib/libprocmeminfo.a	\
-	   ../../../../lib/libfebird.a	     
+	   ../../../../lib/libfebird.a	-L  ../../../../lib/  -lizene_log   -L /home/wps/workspace/wiselib/lib -lwiselib -L /usr/local/lib -lglog
 
-INC_PATH := -I  /usr/local/include/boost-1_36/ -I ../../../../include/ -I ../../../../include/3rdparty/
+INC_PATH := -I  /usr/local/include/boost-1_36/ -I ../../../../include/ -I ../../../../include/3rdparty/ -I /home/wps/workspace/wiselib/include
 
 
 SDB_HASH_OBJ  := t_sdb_hash.o 
@@ -18,11 +18,16 @@ AM_OBJ := t_am.o
 
 AM_OBJ1 := t_am1.o
  
+FLUSH_OBJ := t_flush.o 
 
-all:  t_sh  t_sdb_hash t_am1
+all:  t_flush t_sh  t_sdb_hash t_am1
 
 .cpp.o:
 	$(GPP) $(CC_OPTIONS) $(INC_PATH)  $< 
+	
+	
+t_flush:  $(FLUSH_OBJ)
+	$(GPP) $(FLUSH_OBJ) $(LIBS)  -o $@ -pg	
 
 t_sdb_hash:  $(SDB_HASH_OBJ)
 	$(GPP) $(SDB_HASH_OBJ) $(LIBS)  -o $@ -pg		

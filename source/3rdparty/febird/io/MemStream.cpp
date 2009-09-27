@@ -143,9 +143,9 @@ void AutoGrownMemIO::swap(AutoGrownMemIO& that)
 }
 
 /**
- @brief ¸Ä±ä buffer ³ß´ç
+ @brief ï¿½Ä±ï¿½ buffer ï¿½ß´ï¿½
 
-  ²»¸Ä±ä buffer ÖÐµÄÒÑ´æÄÚÈÝ£¬²»¸Ä±ä pos
+  ï¿½ï¿½ï¿½Ä±ï¿½ buffer ï¿½Ðµï¿½ï¿½Ñ´ï¿½ï¿½ï¿½ï¿½Ý£ï¿½ï¿½ï¿½ï¿½Ä±ï¿½ pos
 
  @note must m_pos <= newsize
  */
@@ -155,7 +155,7 @@ void AutoGrownMemIO::resize(size_t newsize)
 
 //	byte* newbeg = (byte*)::realloc(m_beg, newsize);
 	byte* newbeg = 0;
-	try {
+	try {		
 		newbeg = G_byteAlloc.allocate(newsize);
 	}
 	catch (const std::exception& exp)
@@ -167,7 +167,8 @@ void AutoGrownMemIO::resize(size_t newsize)
 	}
 	if (newbeg)
 	{
-		memcpy(newbeg, m_beg, size());
+		memcpy(newbeg, m_beg, size());		
+		G_byteAlloc.deallocate(m_beg, size() );
 		m_pos = newbeg + (m_pos - m_beg);
 		m_beg = newbeg;
 		m_end = newbeg + newsize;
@@ -186,10 +187,10 @@ void AutoGrownMemIO::resize(size_t newsize)
 }
 
 /**
- @brief ÊÍ·ÅÔ­ÏÈµÄ¿Õ¼ä²¢ÖØÐÂ·ÖÅä
+ @brief ï¿½Í·ï¿½Ô­ï¿½ÈµÄ¿Õ¼ä²¢ï¿½ï¿½ï¿½Â·ï¿½ï¿½ï¿½
 
-  Ïàµ±ÓÚ°´ÐÂ³ß´çÖØÐÂ¹¹ÔìÒ»¸öÐÂ AutoGrownMemIO
-  ²»ÐèÒª°Ñ¾ÉÄÚÈÝ¿½±´µ½ÐÂµØÖ·
+  ï¿½àµ±ï¿½Ú°ï¿½ï¿½Â³ß´ï¿½ï¿½ï¿½ï¿½Â¹ï¿½ï¿½ï¿½Ò»ï¿½ï¿½ï¿½ï¿½ AutoGrownMemIO
+  ï¿½ï¿½ï¿½ï¿½Òªï¿½Ñ¾ï¿½ï¿½ï¿½ï¿½Ý¿ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Âµï¿½Ö·
  */
 void AutoGrownMemIO::init(size_t newsize)
 {
