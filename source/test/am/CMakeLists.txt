@@ -24,6 +24,7 @@ IF (Boost_FOUND AND Boost_UNIT_TEST_FRAMEWORK_FOUND AND Boost_SERIALIZATION_FOUN
 
     ADD_EXECUTABLE(t_am ${t_am_SRC})
     TARGET_LINK_LIBRARIES(t_am
+      febird_shared
       ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY}
       ${Boost_SERIALIZATION_LIBRARY}
       ${TokyoCabinet_LIBRARIES}
