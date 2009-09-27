@@ -175,7 +175,7 @@ public:
 				os<<"----|";
 			}
 			//keys[i]->display();
-			//os<<keys[i]<<"->"<<values[i];
+			os<<keys[i]<<"->"<<values[i];
 			//os<<keys[i];
 			size_t pfos=0;
 			//if (parent)
@@ -263,6 +263,8 @@ template<typename KeyType, typename ValueType, typename LockType, bool fixed,
 	}
 
 	keys.resize(_fh.maxKeys);
+	values.resize(_fh.maxKeys);
+	children.resize(_fh.maxKeys+1);
 
 	char *pBuf = new char[_pageSize];
 	if (1 != fread(pBuf, _pageSize, 1, f)) {
@@ -290,7 +292,7 @@ template<typename KeyType, typename ValueType, typename LockType, bool fixed,
 
 	// read the addresses of the child pages
 	if (objCount> 0 && !isLeaf) {
-		children.resize(_fh.maxKeys);
+		
 
 		long* childAddresses = new long[objCount+1];		
 		//memset(childAddresses, 0xff, sizeof(long) * (objCount));
@@ -356,7 +358,6 @@ template<typename KeyType, typename ValueType, typename LockType, bool fixed,
 	p += ksize;
 	tsz += ksize+sizeof(size_t);
 
-	values.resize(_fh.maxKeys);
 	memcpy(&vsize, p, sizeof(size_t));
 
 	//overflow occur

@@ -719,9 +719,9 @@ template<typename KeyType, typename ValueType, typename LockType, bool fixed,
 	_isDelaySplit = true;
 	//_isDelaySplit = false;
 	_fileName = fileName;
-	_sfh.pageSize = 1024;
-	_sfh.maxKeys = 32;
-	_sfh.cacheSize = 1024*128;
+	//_sfh.pageSize = 1024;
+	//_sfh.maxKeys = 48;
+	//_sfh.cacheSize = 1024*128;
 
 	int len = _fileName.size();
 	if (_fileName[len-1] == '#') {

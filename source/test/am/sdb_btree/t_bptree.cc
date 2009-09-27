@@ -15,7 +15,7 @@ static string inputFile1("../../db/wordlist.txt");
 //static string inputFile2("../../db/wordlist_PLU.txt");
 static string inputFile2("../../db/wordlist_PLU.txt");
 static bool trace = false;
-int num = 30000000;
+int num = 10000000;
 
 SDB_BPTREE cm("bptree.dat");
 SDB_BPTREE cm1("bptree1.dat#");
@@ -233,6 +233,7 @@ BOOST_AUTO_TEST_SUITE( bptree_suite )
 BOOST_AUTO_TEST_CASE(bptree_test)
 {
 	//cm.setCacheSize(10000);
+	//cm.setDegree(3);
 	cm.open();
 
 	get_test(cm);
