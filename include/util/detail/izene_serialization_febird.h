@@ -14,7 +14,7 @@ using febird::ushort;
 NS_IZENELIB_UTIL_BEGIN
 
 template<typename T> class izene_serialization_febird {
-	NativeDataOutput<AutoGrownMemIO> oa;
+	NativeDataOutput<AutoGrownMemIO> oa;	
 public:
 	izene_serialization_febird(const T& dat) {
 		oa & dat;

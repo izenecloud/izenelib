@@ -288,7 +288,7 @@ public:
 	{
 		return tchdbiterinit(hdb_);
 	}
-
+	
 	bool iterNext(KeyType& key, ValueType& value)
 	{
 		TCXSTR* ptcKey = tcxstrnew();

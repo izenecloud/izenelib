@@ -5,16 +5,14 @@
  * This file defines class sdb_node.
  */
 
-#ifndef sdb_node_H_
-#define sdb_node_H_
+#ifndef sdb_pnode_H_
+#define sdb_pnode_H_
 
 #include "sdb_btree_types.h"
 #include "sdb_btree_header.h"
 #include <vector>
 
 NS_IZENELIB_AM_BEGIN
-
-
 
 /**
  *
@@ -53,9 +51,9 @@ NS_IZENELIB_AM_BEGIN
  */
 
 template<typename KeyType, typename ValueType, typename LockType,
-		bool fixed = false,
-		typename Alloc=std::allocator<DataType<KeyType,ValueType> > > class sdb_node_ {
-	typedef std::pair<sdb_node_*, size_t> NodeKeyLocn;
+bool fixed = false,
+typename Alloc=std::allocator<DataType<KeyType,ValueType> > > class sdb_pnode_ {
+	typedef std::pair<sdb_pnode_*, size_t> NodeKeyLocn;
 	typedef typename std::vector<KeyType>::iterator KIT;
 public:
 	/**
@@ -65,10 +63,11 @@ public:
 	 * Not that we assume that the node is a leaf,
 	 * and it is not loaded from the disk.
 	 */
-	sdb_node_(CbFileHeader& fileHeader, LockType& fileLock, size_t& activeNum);
+	sdb_pnode_(CbFileHeader& fileHeader, LockType& fileLock, size_t& activeNum);
 
-	~sdb_node_() {
+	~sdb_pnode_() {
 		unload();
+		//	cout<<"~~~sdb_pnode_ isLeaf:"<<isLeaf<<endl;
 	}
 
 	/**
@@ -77,7 +76,7 @@ public:
 	 *  Load a child node from the disk. This requires that we
 	 *  have the filepos already in place.
 	 */
-	inline sdb_node_* loadChild(size_t childNum, FILE* f);
+	inline sdb_pnode_* loadChild(size_t childNum, FILE* f);
 
 	/**
 	 * \brief delete  all its children and release self memory
@@ -101,27 +100,33 @@ public:
 	 *
 	 *  \brief delete a child from a given node.
 	 */
-	bool delFromLeaf(size_t objNo);
+	inline bool delFromLeaf(size_t objNo);
 
-	/**
-	 * 	\brief  Find the position of the object in a node.
-	 *
-	 *  If the key is at current node,
-	 * the function returns (pos, ECP_INTHIS). If the key is in a child to
-	 * the left of pos, the function returns (pos, ECP_INLEFT). If the node
-	 * is an internal node, the function returns (objCount, ECP_INRIGHT).
-	 * Otherwise, the function returns ((size_t)-1, false).
-	 *
-	 * The main assumption here is that we won't be searching for a key
-	 *  in this node unless it (a) is not in the tree, or (b) it is in the
-	 * subtree rooted at this node.
-	 */
-	KEYPOS findPos(const KeyType& key);
+	bool find(const KeyType& key, size_t & pos) {
+		if(objCount == 0) {
+			pos = size_t(-1);
+			return false;
+		}
+		size_t low = 0;
+		size_t high = objCount-1;
+		int compVal;
+		register size_t mid = 0;
+		while (low <= high) {
+			mid = (low+high)/2;
+			compVal = _comp(key, keys[mid]);
+			if (compVal == 0 ) {
+				pos = mid;
+				return true;
+			} else if (compVal < 0)
+			high = mid-1;
+			else {
+				low = mid+1;
+			}
+		}
+		pos = low;
+		return false;
 
-	/**
-	 * 	 \brief Find the position of the nearest object in a node,  given the key.
-	 */
-	KEYPOS findPos1(const KeyType& key);
+	}
 
 	/**
 	 * \brief
@@ -173,24 +178,27 @@ public:
 		for (i=0; i<objCount; i++) {
 			if ( !isLeaf) {
 				if (children[i])
-					children[i]->display(os);
+				children[i]->display(os);
 				os<<"----|";
 			}
 			//keys[i]->display();
-			//os<<keys[i]<<"->"<<values[i];
+			if(isLeaf)
+			os<<keys[i]<<"->"<<values[i];
+			else
+			os<<keys[i]<<"->"<<"NULL";
 			//os<<keys[i];
 			size_t pfos=0;
 			//if (parent)
 			//	pfos = parent->fpos;
 			os<<"("<<fpos<<" parent="<<pfos<<" isLeaf="<<isLeaf<<" childNo="
-					<<childNo<<" objCount="<<objCount<<" isLoaded="<<isLoaded
-					<<")"<<endl;
+			<<childNo<<" objCount="<<objCount<<" isLoaded="<<isLoaded
+			<<")"<<endl;
 			//os<<"("<<isDirty<<" "<<parent<<" "<<this<<")";
 			os<<endl;
 		}
 		if (!isLeaf) {
-			if (children[i])
-				children[i]->display(os);
+			if (i<objCount && children[i])
+			children[i]->display(os);
 			os<<"----|";
 		}
 	}
@@ -202,10 +210,10 @@ public:
 	bool isLoaded; //if it is loaded from disk.
 	int isDirty;
 	size_t childNo; //from 0 to objCount. Default is size_t(-1).
-	sdb_node_* parent;
+	sdb_pnode_* parent;
 
 	std::vector<KeyType> keys;
-	std::vector<sdb_node_*> children; //it has objCount+1 childrens.
+	std::vector<sdb_pnode_*> children; //it has objCount+1 childrens.
 	std::vector<ValueType> values;
 public:
 	// size_t activeNodeNum;//It is used for cache mechanism.
@@ -226,11 +234,11 @@ private:
 };
 
 template<typename KeyType, typename ValueType, typename LockType, bool fixed,
-		typename Alloc> CompareFunctor<KeyType> sdb_node_< KeyType, ValueType,
+		typename Alloc> CompareFunctor<KeyType> sdb_pnode_< KeyType, ValueType,
 		LockType, fixed, Alloc>::_comp;
 
 template<typename KeyType, typename ValueType, typename LockType, bool fixed,
-		typename Alloc> sdb_node_< KeyType, ValueType, LockType, fixed, Alloc>::sdb_node_(
+		typename Alloc> sdb_pnode_< KeyType, ValueType, LockType, fixed, Alloc>::sdb_pnode_(
 		CbFileHeader& fileHeader, LockType& fileLock, size_t& activeNum) :
 	objCount(0), fpos(-1), isLeaf(true), isLoaded(false), isDirty(1),
 			childNo((size_t)-1), _fh(fileHeader), _maxKeys(_fh.maxKeys),
@@ -245,7 +253,7 @@ template<typename KeyType, typename ValueType, typename LockType, bool fixed,
 
 // Read a node page to initialize this node from the disk
 template<typename KeyType, typename ValueType, typename LockType, bool fixed,
-		typename Alloc> bool sdb_node_< KeyType, ValueType, LockType, fixed,
+		typename Alloc> bool sdb_pnode_< KeyType, ValueType, LockType, fixed,
 		Alloc>::read(FILE* f) {
 
 	//#ifdef DEBUG
@@ -265,8 +273,6 @@ template<typename KeyType, typename ValueType, typename LockType, bool fixed,
 	}
 
 	keys.resize(_fh.maxKeys);
-	values.resize(_fh.maxKeys);
-	children.resize(_fh.maxKeys+1);
 
 	char *pBuf = new char[_pageSize];
 	if (1 != fread(pBuf, _pageSize, 1, f)) {
@@ -294,17 +300,19 @@ template<typename KeyType, typename ValueType, typename LockType, bool fixed,
 
 	// read the addresses of the child pages
 	if (objCount> 0 && !isLeaf) {
-		long* childAddresses = new long[objCount + 1];
-		//memset(childAddresses, 0xff, sizeof(long) * (objCount + 1));
-		memcpy(childAddresses, p, sizeof(long)*(objCount+1));
-		p += sizeof(long)*(objCount+1);
-		tsz += sizeof(long)*(objCount+1);
+		children.resize(_fh.maxKeys);
+
+		long* childAddresses = new long[objCount];		
+		//memset(childAddresses, 0xff, sizeof(long) * (objCount));
+		memcpy(childAddresses, p, sizeof(long)*(objCount));
+		p += sizeof(long)*(objCount);
+		tsz += sizeof(long)*(objCount);
 
 		//Only allocate childnode when the node is no a leaf node.
 		if ( !isLeaf) {
-			for (size_t i = 0; i <= objCount; i++) {
+			for (size_t i = 0; i < objCount; i++) {
 				if (children[i] == 0) {
-					children[i] = new sdb_node_(_fh, _fileLock, activeNodeNum );
+					children[i] = new sdb_pnode_(_fh, _fileLock, activeNodeNum );
 				}
 				children[i]->fpos = childAddresses[i];
 				children[i]->childNo = i;
@@ -322,110 +330,78 @@ template<typename KeyType, typename ValueType, typename LockType, bool fixed,
 	p += sizeof(size_t);
 	tsz += sizeof(size_t);
 
-	char *povfl=0;
-	//size_t np = 0;
-	//size_t next_page_off = 0;
+	//cout<<" read overFlowAddress="<<_overflowAddress<<"& "<<_overflowPageCount
+	//		<<endl;
 
-	bool first_ovfl = true;
+	size_t ksize, vsize;
+	memcpy(&ksize, p, sizeof(size_t));
 
-	//cout<<" read overFlowAddress="<<_overflowAddress<<endl;
+	//cout<<"keysize: "<<ksize<<endl;
+	bool overflow = false;
 
-	//read the key/vaue pairs
-	for (size_t i = 0; i < objCount; i++) {
+	//overflow occur
+	if (ksize == 0) {
+		overflow = true;
+		char *temp = new char[_pageSize*(_overflowPageCount+1)];
+		memcpy(temp, pBuf, tsz);
+		delete pBuf;
+		pBuf = temp;
+		p = pBuf + tsz;
+		if (0 != fseek(f, _overflowAddress, SEEK_SET)) {
+			if (pBuf)
+				delete pBuf;
+			return false;
+		}
+		if (1 != fread(p, _pageSize*_overflowPageCount, 1, f)) {
+			if (pBuf)
+				delete pBuf;
+			pBuf = 0;
+			return false;
+		}
+		memcpy(&ksize, p, sizeof(size_t));
+	}
+	p += sizeof(size_t);
+	izene_deserialization< std::vector<KeyType> > izd(p, ksize);
+	izd.read_image(keys);
+	p += ksize;
+	tsz += ksize+sizeof(size_t);
 
-		if ( !fixed) {
+	if (isLeaf) {
+		values.resize(_fh.maxKeys);
+		memcpy(&vsize, p, sizeof(size_t));
 
-			//cout<<" read data idx="<<i<<endl;
-			size_t ksize, vsize;
-
-			//DbObjPtr ptr, ptr1;
-
-			memcpy(&ksize, p, sizeof(size_t));
-
-			//cout<<"ksize"<<ksize<<endl;
-
-			//read from overflow page
-			if (ksize == 0) {
-				assert(first_ovfl);
-				if (first_ovfl)
-					first_ovfl =false;
-				if ( !povfl) {
-					//cout<<"read overflowaddress="<<_overflowAddress<<" | "<<_overflowPageCount<<endl;
-
-					povfl = new char[_pageSize*_overflowPageCount];
-					if (0 != fseek(f, _overflowAddress, SEEK_SET)) {
-						if (pBuf)
-							delete pBuf;
-						delete povfl;
-						return false;
-					}
-					if (1 != fread(povfl, _pageSize*_overflowPageCount, 1, f)) {
-						if (pBuf)
-							delete pBuf;
-						delete povfl;
-						return false;
-					}
-				}
-				//p = povfl + np*_pageSize;
-				p= povfl;
-				memcpy(&ksize, p, sizeof(size_t));
-				assert(ksize != 0);
-				//is_incr_page = true;
+		//overflow occur
+		if (vsize == 0) {
+			//only overflow once!
+			assert( !overflow);
+			char *temp = new char[_pageSize*(_overflowPageCount+1)];
+			memcpy(temp, pBuf, tsz);
+			delete pBuf;
+			pBuf = temp;
+			p = pBuf + tsz;
+			if (0 != fseek(f, _overflowAddress, SEEK_SET)) {
+				if (pBuf)
+					delete pBuf;
+				return false;
 			}
-
-			p += sizeof(size_t);
-
-			izene_deserialization<KeyType> izd(p, ksize);
-			izd.read_image(keys[i]);
-			p += ksize;
-
+			if (1 != fread(p, _pageSize*_overflowPageCount, 1, f)) {
+				if (pBuf)
+					delete pBuf;
+				pBuf = 0;
+				return false;
+			}
 			memcpy(&vsize, p, sizeof(size_t));
-			p += sizeof(size_t);
-
-			//if value is of NULLType, the vsize is 0
-			if (vsize != 0) {
-				izene_deserialization<ValueType> izd1(p, vsize);
-				izd1.read_image(values[i]);
-				p += vsize;
-			}
-
-		} else {
-			size_t esize = objCount*(sizeof(KeyType) + sizeof(ValueType));
-			if (tsz + esize > _pageSize ) {				
-				if ( !povfl) {
-					//cout<<"read overflowaddress="<<_overflowAddress<<" | "<<_overflowPageCount<<endl;
-
-					povfl = new char[_pageSize*_overflowPageCount];
-					if (0 != fseek(f, _overflowAddress, SEEK_SET)) {
-						if (pBuf)
-							delete pBuf;
-						delete povfl;
-						return false;
-					}
-					if (1 != fread(povfl, _pageSize*_overflowPageCount, 1, f)) {
-						if (pBuf)
-							delete pBuf;
-						delete povfl;
-						return false;
-					}
-				}
-				//p = povfl + np*_pageSize;
-				p= povfl;
-
-			}
-			memcpy(&keys[0], p, objCount*sizeof(KeyType));
-			p += objCount*sizeof(KeyType);
-			memcpy(&values[0], p, objCount*sizeof(ValueType));
-			p += objCount*sizeof(ValueType);				
-			break;
 		}
 
+		p += sizeof(size_t);
+		izene_deserialization< std::vector<ValueType> > izd(p, vsize);
+		izd.read_image(values);
+		tsz += vsize+sizeof(size_t);
+		//cout<<"vsize="<<vsize<<endl;
 	}
 
-	if (povfl) {
-		delete [] povfl;
-		povfl = 0;
-	}
+	//cout<<"tsz: "<<tsz;
+
 	delete [] pBuf;
 	pBuf = 0;
 	isLoaded = true;
@@ -437,13 +413,15 @@ template<typename KeyType, typename ValueType, typename LockType, bool fixed,
 }
 
 template<typename KeyType, typename ValueType, typename LockType, bool fixed,
-		typename Alloc> bool sdb_node_< KeyType, ValueType, LockType, fixed,
+		typename Alloc> bool sdb_pnode_< KeyType, ValueType, LockType, fixed,
 		Alloc>::write(FILE* f) {
 
 	//#ifdef DEBUG
 	//static int _wcount;
 	//cout<<"write "<<_wcount++ <<endl;
 	//#endif
+
+	//cout<<"write fpos="<<fpos<<endl;
 
 	// If it is not loaded, it measn that we haven't been changed it ,
 	// so we can say that the flush was successful.
@@ -464,7 +442,6 @@ template<typename KeyType, typename ValueType, typename LockType, bool fixed,
 	memset(pBuf, 0, _pageSize);
 	char* p = pBuf;
 
-	//cout<<"write fpos="<<fpos<<endl;
 	// get to the right location
 	if (0 != fseek(f, fpos, SEEK_SET)) {
 		//assert(false);
@@ -485,15 +462,15 @@ template<typename KeyType, typename ValueType, typename LockType, bool fixed,
 
 	// write the addresses of the child pages
 	if (objCount> 0 && !isLeaf) {
-		long* childAddresses = new long[objCount + 1];
-		tsz += (objCount+1)*sizeof(long);
+		long* childAddresses = new long[objCount];
+		tsz += (objCount)*sizeof(long);
 		assert(tsz < _pageSize);
-		for (size_t i=0; i<=objCount; i++) {
+		for (size_t i=0; i<objCount; i++) {
 			childAddresses[i] = children[i]->fpos;
 			//cout<<"write child fpos="<<childAddresses[i]<<endl;
 		}
-		memcpy(p, childAddresses, sizeof(long)*(objCount+1));
-		p += (objCount+1)*sizeof(long);
+		memcpy(p, childAddresses, sizeof(long)*(objCount));
+		p += objCount*sizeof(long);
 		delete [] childAddresses;
 		childAddresses = 0;
 
@@ -509,101 +486,69 @@ template<typename KeyType, typename ValueType, typename LockType, bool fixed,
 
 	assert(tsz+sizeof(size_t) <= _pageSize);
 	size_t np =1;
+	//bool first_ovfl = true;
 
-	bool first_ovfl = true;
-	for (size_t i=0; i<objCount; i++) {
-		//cout<<"idx = "<<i<<endl;
+	char *ptr;
+	size_t ksize;
+	size_t esize;
 
+	izene_serialization< std::vector<KeyType> > izs(keys);
+	izs.write_image(ptr, ksize);
+	esize = ksize + sizeof(size_t);
 
-		char *ptr, *ptr1;
-		size_t ksize, vsize;
-		size_t esize;
-		izene_serialization<KeyType> izs(keys[i]);
-		izene_serialization<ValueType> izs1(values[i]);
+	bool first_overflow = true;
+	if (tsz+esize + sizeof(size_t) > np*_pageSize) {
+		first_overflow = false;
+		tsz = _pageSize;
+		np = (tsz+esize -1 )/_pageSize+1;
+		char *temp = new char[np*_pageSize];
+		//memset(temp, 0, np*_pageSize);
+		memcpy(temp, pBuf, _pageSize);
+		delete [] pBuf;
+		pBuf = 0;
+		pBuf = temp;
+		p = pBuf+tsz;
+	}
 
-		if ( !fixed) {	
-			izs.write_image(ptr, ksize);
-			izs1.write_image(ptr1, vsize);
-			esize = 2*sizeof(size_t)+ksize+vsize;
-		} else {
-			//ptr = (char*)&keys[i];
-			//ptr1 = (char*)&values[i];
-			//ksize = sizeof(KeyType);
-			//vsize = sizeof(ValueType);
-			//esize = ksize+vsize;
-			esize = objCount*(sizeof(KeyType) + sizeof(ValueType) ) -sizeof(size_t) ;
-		}
+	memcpy(p, &ksize, sizeof(size_t));
+	p += sizeof(size_t);
+	memcpy(p, ptr, ksize);
+	p += ksize;
+	tsz += esize;
 
-		//when overflowing occurs, append the overflow buf
+	if (isLeaf) {
+		char* ptr1;
+		size_t vsize;
+
+		izene_serialization< std::vector<ValueType> > izs1(values);
+		izs1.write_image(ptr1, vsize);
+		esize = vsize+sizeof(size_t);
+
 		if (tsz+esize+sizeof(size_t) > np*_pageSize) {
-			//size_t endflag = 0;
-			//memcpy(p, &endflag, sizeof(size_t));
-
-			//tsz += sizeof(size_t);
-
-			assert(size_t(p - pBuf) < np*_pageSize);
-			if (first_ovfl) {
+			if (first_overflow)
 				tsz = _pageSize;
-				first_ovfl = false;
-			}
-			//int incr_np = (tsz+esize+sizeof(size_t)-1 )/_pageSize+1;
-			np = (tsz+esize+sizeof(size_t)-1 )/_pageSize+1;
-
-			/*if(first_ovfl) {
-			 incr_np =(esize+sizeof(size_t)-1)/_pageSize + 1;
-			 first_ovfl = false;
-			 }
-			 else
-			 incr_np = (tsz+esize+sizeof(size_t)-1 )/_pageSize+1;*/
-
+			np = (tsz+esize -1 )/_pageSize+1;
 			char *temp = new char[np*_pageSize];
-			//cout<<"alloc page num: "<<np<<endl;
 			memset(temp, 0, np*_pageSize);
 			memcpy(temp, pBuf, tsz);
 			delete [] pBuf;
 			pBuf = 0;
 			pBuf = temp;
-
-			p = pBuf+tsz;
-
-			//cout<<"incr_np: "<< incr_np <<endl;
-
-			/*	size_t endflag = 0;
-			 memcpy(p, &endflag, sizeof(size_t));
-
-			 int incr_np = ( tsz+esize+sizeof(size_t)-1)/_pageSize;
-			 cout<<"incr_np: "<< incr_np <<endl;
-			 //int incr_np = 1;
-			 char *temp = new char[(np+incr_np)*_pageSize];
-			 memset(temp, 0, (np+incr_np)*_pageSize );
-			 memcpy(temp, pBuf, np*_pageSize);
-			 delete pBuf;
-			 pBuf = temp;
-			 p = pBuf+np*_pageSize;
-			 tsz = 0;
-			 np+=incr_np;*/
+			if (first_overflow)
+				p = pBuf+_pageSize;
+			else
+				p = pBuf+tsz;
 		}
-		if (!fixed) {
-			memcpy(p, &ksize, sizeof(size_t));
-			p += sizeof(size_t);
-			memcpy(p, ptr, ksize);
-			p += ksize;
-			memcpy(p, &vsize, sizeof(size_t));
-			p += sizeof(size_t);
-			memcpy(p, ptr1, vsize);
-			p += vsize;
-			tsz += esize;
-		}else{
-			memcpy(p, &keys[0], sizeof(KeyType)*objCount);
-			p +=  sizeof(KeyType)*objCount;
-			memcpy(p, &values[0], sizeof(ValueType)*objCount);
-			p +=  sizeof(ValueType)*objCount;
-			tsz += esize;
-			break;
-		}
+
+		memcpy(p, &vsize, sizeof(size_t));
+		p += sizeof(size_t);
+		memcpy(p, ptr1, vsize);
+		p += vsize;
+		tsz += esize;
 	}
 
-	//cout<<"tsz="<<tsz<<endl;
+	//if( tsz >  _pageSize)
+	//cout<<"fpos: "<<fpos<<" isLeaf: "<<isLeaf<<" tsz: "<<tsz<<endl;
 
 	//no overflow
 	if (np <= 1) {
@@ -612,7 +557,7 @@ template<typename KeyType, typename ValueType, typename LockType, bool fixed,
 		}
 	} else {
 		//oveflow
-		//cout<<"writing overflow!!!!"<<endl;
+
 		if (_overflowAddress <0 || _overflowPageCount < np-1) {
 			_overflowAddress = sizeof(CbFileHeader)+2*sizeof(size_t)+_pageSize
 					*(_fh.nPages+_fh.oPages);
@@ -631,6 +576,8 @@ template<typename KeyType, typename ValueType, typename LockType, bool fixed,
 				return false;
 			}
 		}
+		//cout<<"writing overflow!!!! pos:"<<_overflowAddress<<" & "
+		//		<< _overflowPageCount <<endl;
 	}
 	delete []pBuf;
 	pBuf = 0;
@@ -639,13 +586,12 @@ template<typename KeyType, typename ValueType, typename LockType, bool fixed,
 }
 
 template<typename KeyType, typename ValueType, typename LockType, bool fixed,
-		typename Alloc> sdb_node_<KeyType, ValueType, LockType, fixed, Alloc>* sdb_node_<
+		typename Alloc> sdb_pnode_<KeyType, ValueType, LockType, fixed, Alloc>* sdb_pnode_<
 		KeyType, ValueType, LockType, fixed, Alloc>::loadChild(size_t childNum,
 		FILE* f) {
-
-	sdb_node_* child;
+	sdb_pnode_* child;
 	child = children[childNum];
-	if (isLeaf || child == 0) {
+	if (isLeaf) {
 		return NULL;
 		//assert(0);
 	}
@@ -656,18 +602,17 @@ template<typename KeyType, typename ValueType, typename LockType, bool fixed,
 		child->read(f);
 		_fileLock.release_write_lock();
 	}
-
 	return child;
 }
 
 // Unload a child, which means that we get rid of all
 // children in the children vector.
 template<typename KeyType, typename ValueType, typename LockType, bool fixed,
-		typename Alloc> void sdb_node_< KeyType, ValueType, LockType, fixed,
+		typename Alloc> void sdb_pnode_< KeyType, ValueType, LockType, fixed,
 		Alloc>::unload() {
 	if (isLoaded) {
 		if ( !isLeaf) {
-			for (size_t i=0; i<objCount+1; i++) {
+			for (size_t i=0; i<objCount; i++) {
 				if (children[i]) {
 					children[i]->unload();
 					if (children[i]) {
@@ -678,9 +623,12 @@ template<typename KeyType, typename ValueType, typename LockType, bool fixed,
 			}
 		}
 		objCount = 0;
-		keys.resize(0);
-		values.resize(0);
-		children.resize(0);
+		//keys.resize(0);
+		//values.resize(0);
+		//children.resize(0);
+		keys.clear();
+		values.clear();
+		children.clear();
 		isLoaded = false;
 
 		--activeNodeNum;
@@ -689,13 +637,16 @@ template<typename KeyType, typename ValueType, typename LockType, bool fixed,
 }
 
 template<typename KeyType, typename ValueType, typename LockType, bool fixed,
-		typename Alloc> void sdb_node_< KeyType, ValueType, LockType, fixed,
+		typename Alloc> void sdb_pnode_< KeyType, ValueType, LockType, fixed,
 		Alloc>::unloadself() {
 	if (isLoaded) {
 		objCount = 0;
-		keys.resize(0);
-		values.resize(0);
-		children.resize(0);
+		//keys.resize(0);
+		//values.resize(0);
+		//children.resize(0);
+		keys.clear();
+		values.clear();
+		children.clear();
 		isLoaded = false;
 
 		--activeNodeNum;
@@ -704,7 +655,7 @@ template<typename KeyType, typename ValueType, typename LockType, bool fixed,
 }
 
 template<typename KeyType, typename ValueType, typename LockType, bool fixed,
-		typename Alloc> bool sdb_node_< KeyType, ValueType, LockType, fixed,
+		typename Alloc> bool sdb_pnode_< KeyType, ValueType, LockType, fixed,
 		Alloc>::delFromLeaf(size_t objNo) {
 	bool ret = isLeaf;
 	if (ret) {
@@ -715,41 +666,6 @@ template<typename KeyType, typename ValueType, typename LockType, bool fixed,
 		setCount(objCount - 1);
 	}
 	isDirty = 1;
-	return ret;
-}
-
-// Find the position of the object in a node. If the key is at pos
-// the function returns (pos, ECP_INTHIS). If the key is in a child to
-// the left of pos, the function returns (pos, ECP_INLEFT). If the node
-// is an internal node, the function returns (objCount, ECP_INRIGHT).
-// Otherwise, the function returns ((size_t)-1, false).
-// The main assumption here is that we won't be searching for a key
-// in this node unless it (a) is not in the tree, or (b) it is in the
-// subtree rooted at this node.
-
-template<typename KeyType, typename ValueType, typename LockType, bool fixed,
-		typename Alloc> KEYPOS sdb_node_< KeyType, ValueType, LockType, fixed,
-		Alloc>::findPos(const KeyType& key) {
-
-	KEYPOS ret((size_t)-1, CCP_NONE);
-	KIT kit = keys.begin();
-	size_t i = 0;
-	while (i<objCount && kit < keys.end()) {
-		int compVal = _comp(key, *kit);
-		if (compVal == 0) {
-			return KEYPOS(i, CCP_INTHIS);
-		} else if (compVal < 0) {
-			if (isLeaf) {
-				return ret;
-			} else {
-				return KEYPOS(i, CCP_INLEFT);
-			}
-		}
-		++kit, ++i;
-	}
-	if (!isLeaf) {
-		return KEYPOS(i - 1, CCP_INRIGHT);
-	}
 	return ret;
 }
 

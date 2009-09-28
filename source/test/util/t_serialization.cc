@@ -303,7 +303,9 @@ int main() {
 	vstr.push_back("aa");
 	vstr.push_back("abc");
 	vstr.push_back("55");
-
+	vstr.push_back("551111");
+	vstr.push_back("wps");
+	
 	SOBJ so;
 	so.a = 33;
 	so.b = 45;

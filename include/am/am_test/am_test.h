@@ -90,6 +90,7 @@ template<typename KeyType, typename ValueType, typename AM, bool open=false> cla
 	bool trace_;
 	AMOBJ<KeyType, ValueType, AM, open>* am_;
 	izenelib::util::ClockTimer timer;
+	typedef typename AM::SDBCursor SDBCursor;
 public:
 	AmTest() :
 		rand_(true), num_(1000000), loop_(1), trace_(false) {
@@ -248,9 +249,25 @@ public:
 
 	void run_seq(bool mem=true) {
 		clock_t t1 = clock();
-		//todo
-		if (mem)
+		timer.restart();
+		if (open)
+			am_ = new AMOBJ<KeyType, ValueType, AM, open>();
+		int sum = 0;
+		SDBCursor locn = am_->get_first_locn();
+		KeyType key;
+		ValueType val;
+		while (am_->get(locn, key, val) ) {
+			am_->seq(locn);
+			sum++;
+		}
+		if (mem) {
+			printf("seq elapsed 0: %lf seconds\n", double(clock()- t1)/CLOCKS_PER_SEC);
+			printf("seq elapsed 1: %lf seconds\n", timer.elapsed() );
+			printf("seq num : %d\n", sum);
 			displayMemInfo();
+		}
+		if (open)
+			delete am_;
 	}
 	void display(std::ostream& os = std::cout) {
 		if (open)
@@ -275,6 +292,8 @@ template<typename T> void run_am(T& cm) {
 	cm.run_insert();
 	cout<<"num: "<<cm.num_items()<<endl;
 	cm.run_find();
+	cout<<"num: "<<cm.num_items()<<endl;
+	cm.run_seq();
 	cout<<"num: "<<cm.num_items()<<endl;
 	cm.run_del();
 	cout<<"num: "<<cm.num_items()<<endl;

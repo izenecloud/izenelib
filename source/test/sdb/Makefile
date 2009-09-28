@@ -10,7 +10,7 @@ INC_PATH=    -I /usr/local/include/  -I  ../../../../izenelib/include/ -I  ../..
 
 LIBS =      /usr/local/lib/libboost_thread-gcc41-mt.so \
            /usr/local/lib/libtokyocabinet.so   /usr/local/lib/libboost_serialization-gcc41-mt.so \
-           ../../../../ylib/lib/libylib.a   ../../../../izenelib/lib/libprocmeminfo.so
+           ../../../../ylib/lib/libylib.a   ../../../../izenelib/lib/libprocmeminfo.so -L ../../../ -L ../../../../izenelib/lib -lfebird
 .cc.o:
 
 	$(GPP) $(INC_PATH) $(CC_OPTIONS) $< 
@@ -37,7 +37,7 @@ obj9 = t_IndexSDB1.o
 obj10 = t_btree2.o
 
 
-all:   t_btree2  #t_btree1  t_sdb t_btree2 t_nsdb t_IndexSDB t_IndexSDB1 t_mul_sdb  t_btree_str \
+all:   t_btree2  t_btree1  t_sdb t_btree2 t_nsdb t_IndexSDB t_IndexSDB1 t_mul_sdb  t_btree_str \
       t_btree1 t_mul_sdb  t_nsdb t_overflow_btree 
 
 t_sdb: $(obj)

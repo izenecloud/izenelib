@@ -77,9 +77,8 @@ public:
 	void read_image(T& dat) {
 		izenelib::am::util::read_image<T>(dat, ptr_);
 	}
-};
+};*/
 
-*/
 
 /*
  template<typename T> class izene_serialization_boost {

@@ -11,6 +11,7 @@
 #include <am/sdb_hash/sdb_hash.h>
 #include <am/sdb_hash/sdb_fixedhash.h>
 #include <am/sdb_btree/sdb_btree.h>
+#include <am/sdb_btree/sdb_bptree.h>
 #include <am/tokyo_cabinet/tc_hash.h>
 #include <am/sdb_storage/sdb_storage.h>
 
@@ -698,6 +699,18 @@ public:
 
 	}
 };
+	
+	
+	template< typename KeyType =string, typename ValueType=NullType,
+			typename LockType =NullLock > class ordered_sdb_bptree :
+		public SequentialDB<KeyType, ValueType, LockType, sdb_bptree<KeyType, ValueType, LockType> > {
+	public:
+		ordered_sdb_bptree(const string& sdbname) :
+			SequentialDB<KeyType, ValueType, LockType,
+			     sdb_bptree<KeyType, ValueType, LockType> >(sdbname) {
+
+		}
+	};	
 
 template< typename KeyType =string, typename ValueType=NullType,
 		typename LockType =NullLock > class ordered_sdb :
