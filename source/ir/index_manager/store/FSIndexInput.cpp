@@ -6,7 +6,7 @@ using namespace izenelib::ir::indexmanager;
 FSIndexInput::FSIndexInput(const char* filename)
 {
     fileHandle_ = fopen(filename, "rb");
-    setbuf(fileHandle_,NULL);
+    //setbuf(fileHandle_,NULL);
 
     if (fileHandle_ == NULL)
     {
@@ -25,7 +25,7 @@ FSIndexInput::FSIndexInput(const char* filename,size_t buffsize)
         :IndexInput(buffsize)
 {
     fileHandle_ = fopen(filename, "rb");
-    setbuf(fileHandle_,NULL);
+    //setbuf(fileHandle_,NULL);
 
     if (fileHandle_ == NULL)
     {
