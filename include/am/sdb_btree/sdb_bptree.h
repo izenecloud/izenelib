@@ -501,6 +501,7 @@ private:
 		//display();
 #endif
 
+		commit();
 		typedef map<long, sdb_pnode*> COMMIT_MAP;
 		typedef typename COMMIT_MAP::iterator CMIT;
 
@@ -526,18 +527,16 @@ private:
 		}
 
 		CMIT it = toBeWrited.begin();
-		for (; it != toBeWrited.end(); it++) {
-			if (it->second->write(_dataFile) )
-			--_dirtyPageNum;
+		for (; it != toBeWrited.end(); it++) {			
 			it->second->unload();
 		}
-		
+
 #ifdef DEBUG
 		printf("unload leaves elapsed 1 ( actually ): %lf seconds\n",
 				timer.elapsed() );
-			cout<<"\n\nstop unload leaves..."<<endl;
-			cout<<_activeNodeNum<<" vs "<<_sfh.cacheSize <<endl;
-			cout<<"dirtyPageNum: "<<_dirtyPageNum<<endl;
+		cout<<"\n\nstop unload leaves..."<<endl;
+		cout<<_activeNodeNum<<" vs "<<_sfh.cacheSize <<endl;
+		cout<<"dirtyPageNum: "<<_dirtyPageNum<<endl;
 
 #endif
 
@@ -719,9 +718,9 @@ template<typename KeyType, typename ValueType, typename LockType, bool fixed,
 	_isDelaySplit = true;
 	//_isDelaySplit = false;
 	_fileName = fileName;
-	//_sfh.pageSize = 4096;
-	//_sfh.maxKeys = 512;
-	//_sfh.cacheSize = 1024*16;
+	_sfh.pageSize = 1024;
+	_sfh.maxKeys = 64;
+	_sfh.cacheSize = 1024*64;
 
 	int len = _fileName.size();
 	if (_fileName[len-1] == '#') {
@@ -1367,6 +1366,11 @@ template<typename KeyType, typename ValueType, typename LockType, bool fixed,
 		}
 		locn.first = node;
 		locn.second = 0;
+		if (locn.second == 0) {
+			sdb_pnode* parent=node->parent;
+			for (unsigned int i=1; i<parent->objCount; i++)
+				parent->loadChild(i, _dataFile);
+		}
 		return true;
 	}
 
@@ -1377,6 +1381,12 @@ template<typename KeyType, typename ValueType, typename LockType, bool fixed,
 	// going back up the tree.
 	if (node->isLeaf) {
 		// didn't visit the last node last time.
+		if (locn.second == 0) {
+			sdb_pnode* parent=node->parent;
+			for (unsigned int i=1; i<parent->objCount; i++)
+				parent->loadChild(i, _dataFile);
+		}
+
 		if (lastPos < node->objCount - 1) {
 			locn.second = lastPos + 1;
 			return true;
@@ -1439,6 +1449,11 @@ template<typename KeyType, typename ValueType, typename LockType, bool fixed,
 		}
 		locn.first = node;
 		locn.second = node->objCount-1;
+		if (locn.second == node->objCount-1) {
+			sdb_pnode* parent=node->parent;
+			for (unsigned int i=1; i<parent->objCount; i++)
+				parent->loadChild(i, _dataFile);
+		}
 		return true;
 	}
 
@@ -1449,6 +1464,11 @@ template<typename KeyType, typename ValueType, typename LockType, bool fixed,
 	// going back up the tree.
 	if (node->isLeaf) {
 		// didn't visit the last node last time.
+		if (locn.second == node->objCount-1) {
+			sdb_pnode* parent=node->parent;
+			for (unsigned int i=1; i<parent->objCount; i++)
+				parent->loadChild(i, _dataFile);
+		}
 		if (lastPos> 0) {
 			locn.second = lastPos - 1;
 			return true;
