@@ -61,8 +61,7 @@ struct CbFileHeader {
 			pageSize = 1024;
 			cacheSize = 200*1024;
 			numItems = 0;
-			rootPos = sizeof(CbFileHeader)+sizeof(size_t);
-
+			rootPos = sizeof(CbFileHeader);
 			nPages = 0;
 			oPages = 0;
 		}
@@ -78,7 +77,7 @@ struct CbFileHeader {
 			os<<"node Pages: "<<nPages<<endl;
 			os<<"overflow Pages: "<<oPages<<endl;
 			os<<endl;
-			os<<"file size: "<<pageSize*(nPages+oPages)+sizeof(CbFileHeader)+2*sizeof(size_t)<<"bytes"<<endl;
+			os<<"file size: "<<pageSize*(nPages+oPages)+sizeof(CbFileHeader)<<"bytes"<<endl;
 			if(nPages != 0)
 			{
 				os<<"average items number in a btree ndoe: "<<double(numItems)/double(nPages)<<endl;
@@ -91,9 +90,7 @@ struct CbFileHeader {
 		{
 			if ( 0 != fseek(f, 0, SEEK_SET) )
 				return false;
-			fwrite(this, sizeof(CbFileHeader), 1, f);
-			fwrite(&nPages, sizeof(size_t), 1, f);
-			fwrite(&oPages, sizeof(size_t), 1, f);
+			fwrite(this, sizeof(CbFileHeader), 1, f);	
 			return true;
 		}
 
@@ -102,10 +99,6 @@ struct CbFileHeader {
 			if ( 0 != fseek(f, 0, SEEK_SET) )
 				return false;
 			if ( 1 != fread(this, sizeof(CbFileHeader), 1, f) )
-				return false;
-			if ( 1 != fread(&nPages, sizeof(size_t), 1, f) )
-				return false;
-			if ( 1 != fread(&oPages, sizeof(size_t), 1, f) )
 				return false;
 
 			return true;

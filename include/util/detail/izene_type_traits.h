@@ -3,6 +3,8 @@
 
 #include <types.h>
 #include <vector>
+#include <list>
+#include <set>
 #include <map>
 #include <string>
 #include <boost/type_traits.hpp>
@@ -64,6 +66,59 @@ struct IsFebirdSerial{
 	enum {yes = 0, 
 		no = !yes};	
 };
+
+template < typename T1, typename T2   >
+struct IsFebirdSerial<std::pair<T1, T2>  >
+{
+	enum {yes = IsFebirdSerial<T1 >::yes && IsFebirdSerial<T2>::yes,
+		no= !yes};
+};
+
+
+
+template < typename T1, typename T2  >
+struct IsFebirdSerial<boost::tuple<T1, T2>  >
+{
+	enum {yes = IsFebirdSerial<T1 >::yes && IsFebirdSerial<T2>::yes,
+			no= !yes};
+};
+
+
+
+template < typename T1, typename T2, typename T3  >
+struct IsFebirdSerial<boost::tuple<T1, T2, T3>  >
+{
+	enum {yes = IsFebirdSerial<T1 >::yes && IsFebirdSerial<T2>::yes 
+		        && IsFebirdSerial<T3>::yes,
+			no= !yes};
+};
+
+
+template <typename T>
+struct IsFebirdSerial<std::vector<T >  >{
+	enum {yes = IsFebirdSerial<T >::yes,		
+		no= !yes};	
+};
+
+
+template <typename T>
+struct IsFebirdSerial<std::list<T >  >{
+	enum {yes = IsFebirdSerial<T >::yes,		
+		no= !yes};	
+};
+
+template <typename T>
+struct IsFebirdSerial<std::set<T >  >{
+	enum {yes = IsFebirdSerial<T >::yes,		
+		no= !yes};	
+};
+
+template <typename T1, typename T2>
+struct IsFebirdSerial<std::map<T1, T2 >  >{
+	enum {yes = IsFebirdSerial<T1 >::yes && IsFebirdSerial<T2 >::yes,		
+		no= !yes};	
+};
+
 
 NS_IZENELIB_UTIL_END
 

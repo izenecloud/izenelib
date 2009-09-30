@@ -654,7 +654,7 @@ private:
 		newNode = new sdb_pnode(_sfh, _fileLock, _activeNodeNum);
 		newNode->isLoaded = true;
 		newNode->isDirty = true;
-		newNode->fpos = sizeof(CbFileHeader)+2*sizeof(size_t) + _sfh.pageSize
+		newNode->fpos = sizeof(CbFileHeader)+ _sfh.pageSize
 		*(_sfh.nPages+_sfh.oPages);
 
 		//cout<<"allocate idx="<<CbFileHeader::nPages<<" "<<newNode->fpos;
@@ -1237,20 +1237,17 @@ template<typename KeyType, typename ValueType, typename LockType, bool fixed,
 	if (creating) {
 
 #ifdef DEBUG
-		cout<<"creating...\n"<<endl;
+		cout<<"creating sdb_bptree: "<<_fileName<<"...\n"<<endl;
 		_sfh.display();
 #endif
-
-		//sdb_pnode::initialize(_sfh.pageSize, _sfh.maxKeys);;
-
-		_sfh.toFile(_dataFile);
-
+		//sdb_pnode::initialize(_sfh.pageSize, _sfh.maxKeys);
+	
 		// If creating, allocate a node instead of
 		// reading one.
 		_root = _allocateNode(true);
 		_root->isLeaf = true;
 		_root->isLoaded = true;
-		//_root->write(_dataFile);
+		flush();		
 		ret = true;
 
 	} else {
@@ -1269,7 +1266,7 @@ template<typename KeyType, typename ValueType, typename LockType, bool fixed,
 			_sfh.cacheSize = _cacheSize;
 		}
 #ifdef DEBUG
-		cout<<"open exist...\n"<<endl;
+		cout<<"open sdb_bptree: "<<_fileName<<"...\n"<<endl;
 		_sfh.display();
 #endif
 

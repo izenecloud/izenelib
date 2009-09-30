@@ -28,7 +28,7 @@ ELSE(WIN32)
     ThreadPool.cpp
     common.cpp   
     
-    #MFClient.cpp  
+    MFClient.cpp  
     
   #  MessageClientLight.cpp
   #  MessageControllerLight.cpp

@@ -1,14 +1,14 @@
 /**
- * @file sdb_btree.h
- * @brief The header file of sdb_btree.
+ * @file sdb_vbtree.h
+ * @brief The header file of sdb_vbtree.
  *
  *
- * This file defines class sdb_btree.
+ * This file defines class sdb_vbtree.
  */
-#ifndef sdb_btree_H_
-#define sdb_btree_H_
+#ifndef sdb_vbtree_H_
+#define sdb_vbtree_H_
 
-#include "sdb_node.h"
+#include "sdb_vnode.h"
 #include "sdb_btree_types.h"
 #include <iostream>
 #include <sys/stat.h>
@@ -44,7 +44,7 @@ NS_IZENELIB_AM_BEGIN
 
 template<typename KeyType,typename ValueType=NullType,typename LockType=NullLock, bool fixed = false,
 typename Alloc=std::allocator<DataType<KeyType,ValueType> >
->class sdb_btree
+>class sdb_vbtree
 : public AccessMethod<KeyType, ValueType, LockType, Alloc>
 {
 	enum {unloadbyRss = false};
@@ -52,7 +52,7 @@ typename Alloc=std::allocator<DataType<KeyType,ValueType> >
 	enum {orderedCommit =true};
 	enum {quickFlush = false};
 public:
-	typedef sdb_node_<KeyType, ValueType, LockType, fixed, Alloc> sdb_node;
+	typedef sdb_vnode_<KeyType, ValueType, LockType, fixed, Alloc> sdb_node;
 	typedef std::pair<sdb_node*, size_t> SDBCursor;
 public:
 	/**
@@ -61,8 +61,8 @@ public:
 	 * \param fileName is the name for data file if fileName ends with '#', we set b-tree mode to
 	 *  not delay split.
 	 */
-	sdb_btree(const std::string& fileName = "sdb_btree.dat#");
-	virtual ~sdb_btree();
+	sdb_vbtree(const std::string& fileName = "sdb_vbtree.dat#");
+	virtual ~sdb_vbtree();
 
 	/**
 	 *
@@ -209,7 +209,7 @@ public:
 
 	bool dump2f(const string& fileName)
 	{
-		sdb_btree other(fileName);
+		sdb_vbtree other(fileName);
 		if( !other.open() )
 		return false;
 		return dump( other );
@@ -574,7 +574,7 @@ private:
 		newNode = new sdb_node(_sfh, _fileLock, _activeNodeNum);
 		newNode->isLoaded = true;
 		newNode->isDirty = true;
-		newNode->fpos = sizeof(CbFileHeader) + _sfh.pageSize
+		newNode->fpos = sizeof(CbFileHeader)+2*sizeof(size_t) + _sfh.pageSize
 		*(_sfh.nPages+_sfh.oPages);
 
 		//cout<<"allocate idx="<<CbFileHeader::nPages<<" "<<newNode->fpos;
@@ -631,7 +631,7 @@ private:
 
 // The constructor simply sets up the different data members
 template<typename KeyType, typename ValueType, typename LockType, bool fixed,
-		typename Alloc> sdb_btree< KeyType, ValueType, LockType, fixed, Alloc>::sdb_btree(
+		typename Alloc> sdb_vbtree< KeyType, ValueType, LockType, fixed, Alloc>::sdb_vbtree(
 		const std::string& fileName) {
 	_root = 0;
 	_isDelaySplit = true;
@@ -659,12 +659,12 @@ template<typename KeyType, typename ValueType, typename LockType, bool fixed,
 }
 
 template<typename KeyType, typename ValueType, typename LockType, bool fixed,
-		typename Alloc> sdb_btree< KeyType, ValueType, LockType, fixed, Alloc>::~sdb_btree() {
+		typename Alloc> sdb_vbtree< KeyType, ValueType, LockType, fixed, Alloc>::~sdb_vbtree() {
 	close();
 }
 
 template<typename KeyType, typename ValueType, typename LockType, bool fixed,
-		typename Alloc> bool sdb_btree< KeyType, ValueType, LockType, fixed,
+		typename Alloc> bool sdb_vbtree< KeyType, ValueType, LockType, fixed,
 		Alloc>::search(const KeyType& key, SDBCursor& locn) {
 	//do Flush, when cache is full
 	_flushCache();
@@ -712,7 +712,7 @@ template<typename KeyType, typename ValueType, typename LockType, bool fixed,
 // full child is moved into the *non-full* parent. The keys above the
 // median are moved from the full child to the new child.
 template<typename KeyType, typename ValueType, typename LockType, bool fixed,
-		typename Alloc> void sdb_btree< KeyType, ValueType, LockType, fixed,
+		typename Alloc> void sdb_vbtree< KeyType, ValueType, LockType, fixed,
 		Alloc>::_split(sdb_node* parent, size_t childNum, sdb_node* child) {
 
 	//display();
@@ -770,7 +770,7 @@ template<typename KeyType, typename ValueType, typename LockType, bool fixed,
 }
 //split two full leaf nodes into tree 2/3 ful nodes.
 template<typename KeyType, typename ValueType, typename LockType, bool fixed,
-		typename Alloc> void sdb_btree< KeyType, ValueType, LockType, fixed,
+		typename Alloc> void sdb_vbtree< KeyType, ValueType, LockType, fixed,
 		Alloc>::_split3Leaf(sdb_node* parent, size_t childNum) {
 
 	size_t i = 0;
@@ -846,7 +846,7 @@ template<typename KeyType, typename ValueType, typename LockType, bool fixed,
 }
 
 template<typename KeyType, typename ValueType, typename LockType, bool fixed,
-		typename Alloc> sdb_node_<KeyType, ValueType, LockType, fixed, Alloc>* sdb_btree<
+		typename Alloc> sdb_vnode_<KeyType, ValueType, LockType, fixed, Alloc>* sdb_vbtree<
 		KeyType, ValueType, LockType, fixed, Alloc>::_merge(sdb_node* &parent,
 		size_t objNo) {
 
@@ -909,7 +909,7 @@ template<typename KeyType, typename ValueType, typename LockType, bool fixed,
 }
 
 template<typename KeyType, typename ValueType, typename LockType, bool fixed,
-		typename Alloc> bool sdb_btree< KeyType, ValueType, LockType, fixed,
+		typename Alloc> bool sdb_vbtree< KeyType, ValueType, LockType, fixed,
 		Alloc>::insert(const KeyType& key, const ValueType& value) {
 	_flushCache();
 	if (_root->objCount >= _sfh.maxKeys) {
@@ -1118,7 +1118,7 @@ template<typename KeyType, typename ValueType, typename LockType, bool fixed,
 
 // Write all nodes in the tree to the file given.
 template<typename KeyType, typename ValueType, typename LockType, bool fixed,
-		typename Alloc> void sdb_btree< KeyType, ValueType, LockType, fixed,
+		typename Alloc> void sdb_vbtree< KeyType, ValueType, LockType, fixed,
 		Alloc>::_flush(sdb_node* node, FILE* f) {
 
 	// Bug out if the file is not valid
@@ -1177,7 +1177,7 @@ template<typename KeyType, typename ValueType, typename LockType, bool fixed,
 // Internal delete function, used once we've identified the
 // location of the node from which a key is to be deleted.
 template<typename KeyType, typename ValueType, typename LockType, bool fixed,
-		typename Alloc> bool sdb_btree< KeyType, ValueType, LockType, fixed,
+		typename Alloc> bool sdb_vbtree< KeyType, ValueType, LockType, fixed,
 		Alloc>::_delete(sdb_node* nd, const KeyType& k) {
 	bool ret = false;
 
@@ -1428,7 +1428,7 @@ template<typename KeyType, typename ValueType, typename LockType, bool fixed,
 // from scratch. If it does exist, load the root node into
 // memory.
 template<typename KeyType, typename ValueType, typename LockType, bool fixed,
-		typename Alloc> bool sdb_btree< KeyType, ValueType, LockType, fixed,
+		typename Alloc> bool sdb_vbtree< KeyType, ValueType, LockType, fixed,
 		Alloc>::open() {
 
 	if (_isOpen)
@@ -1453,20 +1453,21 @@ template<typename KeyType, typename ValueType, typename LockType, bool fixed,
 	if (creating) {
 
 #ifdef DEBUG
-		cout<<"creating sdb_btree: "<<_fileName<<"...\n"<<endl;
+		cout<<"creating...\n"<<endl;
 		_sfh.display();
 #endif
 
+		//sdb_node::initialize(_sfh.pageSize, _sfh.maxKeys);;
+
 		_sfh.toFile(_dataFile);
-		//sdb_node::initialize(_sfh.pageSize, _sfh.maxKeys);
 
 		// If creating, allocate a node instead of
 		// reading one.
 		_root = _allocateNode();
 		_root->isLeaf = true;
 		_root->isLoaded = true;
-		
-		flush();		
+
+		_root->write(_dataFile);
 		ret = true;
 
 	} else {
@@ -1485,7 +1486,7 @@ template<typename KeyType, typename ValueType, typename LockType, bool fixed,
 			_sfh.cacheSize = _cacheSize;
 		}
 #ifdef DEBUG
-		cout<<"open sdb_btree: "<<_fileName<<"...\n"<<endl;
+		cout<<"open exist...\n"<<endl;
 		_sfh.display();
 #endif
 
@@ -1501,7 +1502,7 @@ template<typename KeyType, typename ValueType, typename LockType, bool fixed,
 
 // This is the external delete function.
 template<typename KeyType, typename ValueType, typename LockType, bool fixed,
-		typename Alloc> bool sdb_btree< KeyType, ValueType, LockType, fixed,
+		typename Alloc> bool sdb_vbtree< KeyType, ValueType, LockType, fixed,
 		Alloc>::del(const KeyType& key) {
 
 	_flushCache();
@@ -1535,7 +1536,7 @@ template<typename KeyType, typename ValueType, typename LockType, bool fixed,
 // This method retrieves a record from the database
 // given its location.
 template<typename KeyType, typename ValueType, typename LockType, bool fixed,
-		typename Alloc> bool sdb_btree< KeyType, ValueType, LockType, fixed,
+		typename Alloc> bool sdb_vbtree< KeyType, ValueType, LockType, fixed,
 		Alloc>::get(const SDBCursor& locn, KeyType& key, ValueType& value) {
 	if ((sdb_node*)locn.first == 0 || locn.second == (size_t)-1 || locn.second
 			>= locn.first->objCount) {
@@ -1547,7 +1548,7 @@ template<typename KeyType, typename ValueType, typename LockType, bool fixed,
 }
 
 template<typename KeyType, typename ValueType, typename LockType, bool fixed,
-		typename Alloc> bool sdb_btree< KeyType, ValueType, LockType, fixed,
+		typename Alloc> bool sdb_vbtree< KeyType, ValueType, LockType, fixed,
 		Alloc>::update(const KeyType& key, const ValueType& value) {
 	SDBCursor locn(NULL, (size_t)-1);
 	if (search(key, locn) ) {
@@ -1565,7 +1566,7 @@ template<typename KeyType, typename ValueType, typename LockType, bool fixed,
 // location given as locn, and copies the record into rec.
 // The direction can be either forward or backward.
 template<typename KeyType, typename ValueType, typename LockType, bool fixed,
-		typename Alloc> bool sdb_btree< KeyType, ValueType, LockType, fixed,
+		typename Alloc> bool sdb_vbtree< KeyType, ValueType, LockType, fixed,
 		Alloc>::seq(SDBCursor& locn, ESeqDirection sdir) {
 	if (_sfh.numItems <=0) {
 		return false;
@@ -1585,7 +1586,7 @@ template<typename KeyType, typename ValueType, typename LockType, bool fixed,
 // Find the next item in the database given a location. Return
 // the subsequent item in rec.
 template<typename KeyType, typename ValueType, typename LockType, bool fixed,
-		typename Alloc> bool sdb_btree< KeyType, ValueType, LockType, fixed,
+		typename Alloc> bool sdb_vbtree< KeyType, ValueType, LockType, fixed,
 		Alloc>::_seqNext(SDBCursor& locn) {
 	// Set up a couple of convenience values
 
@@ -1678,7 +1679,7 @@ template<typename KeyType, typename ValueType, typename LockType, bool fixed,
 // Find the previous item in the database given a location. Return
 // the item in rec.
 template<typename KeyType, typename ValueType, typename LockType, bool fixed,
-		typename Alloc> bool sdb_btree< KeyType, ValueType, LockType, fixed,
+		typename Alloc> bool sdb_vbtree< KeyType, ValueType, LockType, fixed,
 		Alloc>::_seqPrev(SDBCursor& locn) {
 	// Set up a couple of convenience values
 	bool ret = false;
@@ -1764,7 +1765,7 @@ template<typename KeyType, typename ValueType, typename LockType, bool fixed,
 // everything to file, we also free up most memory previously
 // allocated.
 template<typename KeyType, typename ValueType, typename LockType, bool fixed,
-		typename Alloc> void sdb_btree< KeyType, ValueType, LockType, fixed,
+		typename Alloc> void sdb_vbtree< KeyType, ValueType, LockType, fixed,
 		Alloc>::flush() {
 
 	//write back the fileHead and dirtypage
@@ -1787,4 +1788,4 @@ template<typename KeyType, typename ValueType, typename LockType, bool fixed,
 }
 
 NS_IZENELIB_AM_END
-#endif /*sdb_btree_H_*/
+#endif /*sdb_vbtree_H_*/

@@ -1,6 +1,7 @@
 /**
  * @file SEQUENTIALDB.h
  * @brief The header file of SequentialDB.
+ * @Author Peisheng Wang
  *
  * This file defines Class SequentialDB.
  */
@@ -70,7 +71,7 @@ public:
     {
 	}
 
-	//=============for sdb/btree======================
+	//=============both for sdb/btree and sdb/hash======================
 	/**
 	 *
 	 *  \brief set degree for btree.

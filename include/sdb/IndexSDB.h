@@ -1,6 +1,7 @@
 /**
  * @file IndexSDB.h
  * @brief The header file of IndexSDB.
+ * @author Peisheng Wang
  *
  * This file defines clas IndexSDB.
  */

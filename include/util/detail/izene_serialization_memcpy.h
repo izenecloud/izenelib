@@ -285,7 +285,7 @@ MAKE_MEMCPY(long)
 
 MAKE_MEMCPY(unsigned long)
 
-#if LONGLONG_EXISTS
+#if 1 // LONGLONG_EXISTS
 MAKE_MEMCPY(signed long long)
 MAKE_MEMCPY(unsigned long long)
 #endif
