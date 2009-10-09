@@ -9,7 +9,7 @@ using namespace izenelib::am;
 typedef string KeyType;
 typedef int ValueType;
 typedef sdb_btree<KeyType, ValueType> SDB_BTREE;
-typedef sdb_vbtree<KeyType, ValueType> SDB_BPTREE;
+typedef sdb_bptree<KeyType, ValueType> SDB_BPTREE;
 typedef sdb_vbtree<KeyType, ValueType> SDB_VBPTREE;
 typedef SDB_BPTREE::SDBCursor SDBCursor;
 
@@ -32,7 +32,13 @@ struct MyKeyType{
 	}
 	
 	DATA_IO_LOAD_SAVE(MyKeyType, &a&b);
+	template <class Archive> void serialize(Archive& ar,
+			const unsigned int version) {
+		ar& a;
+		ar& b;	
+	}
 };
+
 
 MAKE_FEBIRD_SERIALIZATION( MyKeyType );
 
@@ -40,6 +46,52 @@ void test_user_defined_type(){
 	sdb_bptree<MyKeyType, int> sdb1;
 	sdb_btree<MyKeyType, int> sdb2;
 	sdb_vbtree<MyKeyType, int> sdb3;	
+}
+
+
+void test_mykeytype(){
+	sdb_bptree<MyKeyType, int> cm("cool.dat");
+	cm.open();
+	cout<<"\ninsert_test"<<endl;
+	cout<<"SerialType: "<<IsFebirdSerial<std::vector<MyKeyType>  >::yes<<endl; 
+	cout<<"SerialType: "<<IsFebirdSerial<MyKeyType >::yes<<endl; 
+	{
+		//trace = true;
+		int sum =0;
+		int hit =0;
+		clock_t t1 = clock();
+		ifstream inf(inputFile2.c_str());
+		string ystr;
+		ValueType val = 0;
+		while (inf>>ystr) {
+			val++;
+			sum++;
+			MyKeyType key;
+			key.a = val;
+			key.b = ystr;
+			if ( sum>num )
+				break;
+			if (trace) {
+				cout<< "Insert: key="<<ystr<<"->"<<val<<endl;
+			}
+			if (cm.insert(key, val) ) {
+				hit++;
+			}
+		}
+		if (trace) {
+			cout<< "Insert: key="<<ystr<<"->"<<val<<endl;
+			cout<< "b=tree numItem = "<<cm.num_items()<<endl;
+			cm.display(cout, false);
+		}
+		cm.flush();
+		cm.display();
+		//int num = cm.num_items();
+		cout<<"Hit ratio: "<<hit<<" / "<<sum<<endl;
+		cout<<"eclipse:"<< double(clock()- t1)/CLOCKS_PER_SEC<<endl;
+	}
+	
+	
+	
 }
 
 void test_openclose() {
@@ -281,6 +333,7 @@ BOOST_AUTO_TEST_CASE(bptree_open_close_test)
 {
 	test_openclose();
 	test_user_defined_type();
+	test_mykeytype();
 }
 
 
