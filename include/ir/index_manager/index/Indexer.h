@@ -158,6 +158,11 @@ public:
     {
         return pIndexWriter_;
     }
+    
+    IndexReader* getIndexReader()
+    {
+      return pIndexReader_;
+    }
 
     BTreeIndexerInterface* getBTreeIndexer();
 

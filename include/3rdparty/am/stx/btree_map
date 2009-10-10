@@ -25,6 +25,6 @@
 #ifndef _STX_BTREE_MAP_
 #define _STX_BTREE_MAP_
 
-#include <stx/btree_map.h>
+#include "btree_map.h"
 
 #endif // _STX_BTREE_MAP_
