@@ -117,6 +117,7 @@ bool MFClient::requestService(const std::string& agentInfo,
 	mit = hosts.find(agentInfo);
 	if (mit == hosts.end() ) {
 		LOG(ERROR) << "Server not found for "<<agentInfo<<std::endl;
+		return false;
 	}
 	if ( !requestOne_(mit->second, request) ) {
 		LOG(ERROR)<<"requst failed for agentInfo="<<agentInfo<<std::endl;
@@ -137,7 +138,8 @@ bool MFClient::requestService(const std::string& agentInfo,
 
 	mit = hosts.find(agentInfo);
 	if (mit == hosts.end() ) {
-		LOG(ERROR) << "Server not found for "<<agentInfo<<std::endl;		
+		LOG(ERROR) << "Server not found for "<<agentInfo<<std::endl;	
+		return false;
 	}
 	if (requestOne_(mit->second, request, result) ) {
 		result->setAgentInfo(agentInfo);
