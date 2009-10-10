@@ -272,7 +272,7 @@ template<typename KeyType, typename ValueType, typename LockType, bool fixed,
 		return false;
 	}
 
-	keys.resize(_fh.maxKeys);
+	//keys.resize(_fh.maxKeys);
 
 	char *pBuf = new char[_pageSize];
 	if (1 != fread(pBuf, _pageSize, 1, f)) {
@@ -295,46 +295,45 @@ template<typename KeyType, typename ValueType, typename LockType, bool fixed,
 	tsz += sizeof(size_t);
 	isLeaf = (leafFlag == 1);
 
-	//cout<<"read leafFlag ="<<isLeaf<<endl;
-	//cout<<" read objCount="<<objCount<<endl;
-
-	// read the addresses of the child pages
-	if (objCount> 0 && !isLeaf) {
-		children.resize(_fh.maxKeys);
-
-		long* childAddresses = new long[objCount];
-		//memset(childAddresses, 0xff, sizeof(long) * (objCount));
-		memcpy(childAddresses, p, sizeof(long)*(objCount));
-		p += sizeof(long)*(objCount);
-		tsz += sizeof(long)*(objCount);
-
-		//Only allocate childnode when the node is no a leaf node.
-		if ( !isLeaf) {
-			for (size_t i = 0; i < objCount; i++) {
-				if (children[i] == 0) {
-					children[i] = new sdb_pnode_(_fh, _fileLock, activeNodeNum );
-				}
-				children[i]->fpos = childAddresses[i];
-				children[i]->childNo = i;
-				//cout<<children[i]->fpos<<endl;
-			}
-		}
-		delete[] childAddresses;
-		childAddresses = 0;
-	}
-
-	memcpy(&_overflowAddress, p, sizeof(long));
-	p += sizeof(long);
-	tsz += sizeof(long);
-	memcpy(&_overflowPageCount, p, sizeof(size_t));
-	p += sizeof(size_t);
-	tsz += sizeof(size_t);
-
-	//if( !isLeaf && _overflowPageCount >0)
-	//  cout<<" read overFlowAddress="<<_overflowAddress<<"& "<<_overflowPageCount
-	//		<<endl;
-
 	if (objCount > 0) {
+
+		//cout<<"read leafFlag ="<<isLeaf<<endl;
+		//cout<<" read objCount="<<objCount<<endl;
+
+		// read the addresses of the child pages
+		if (objCount> 0 && !isLeaf) {
+			children.resize(_fh.maxKeys);
+
+			long* childAddresses = new long[objCount];
+			//memset(childAddresses, 0xff, sizeof(long) * (objCount));
+			memcpy(childAddresses, p, sizeof(long)*(objCount));
+			p += sizeof(long)*(objCount);
+			tsz += sizeof(long)*(objCount);
+
+			//Only allocate childnode when the node is no a leaf node.
+			if ( !isLeaf) {
+				for (size_t i = 0; i < objCount; i++) {
+					if (children[i] == 0) {
+						children[i] = new sdb_pnode_(_fh, _fileLock, activeNodeNum );
+					}
+					children[i]->fpos = childAddresses[i];
+					children[i]->childNo = i;
+					//cout<<children[i]->fpos<<endl;
+				}
+			}
+			delete[] childAddresses;
+			childAddresses = 0;
+		}
+
+		memcpy(&_overflowAddress, p, sizeof(long));
+		p += sizeof(long);
+		tsz += sizeof(long);
+		memcpy(&_overflowPageCount, p, sizeof(size_t));
+		p += sizeof(size_t);
+		tsz += sizeof(size_t);
+
+		//cout<<" read overFlowAddress="<<_overflowAddress<<"& "<<_overflowPageCount
+		//		<<endl;
 
 		size_t ksize, vsize;
 		memcpy(&ksize, p, sizeof(size_t));
@@ -405,6 +404,12 @@ template<typename KeyType, typename ValueType, typename LockType, bool fixed,
 
 	}
 	//cout<<"tsz: "<<tsz;
+
+	keys.resize(_fh.maxKeys);
+	if (isLeaf)
+		values.resize(_fh.maxKeys);
+	else
+		children.resize(_fh.maxKeys);
 
 	delete [] pBuf;
 	pBuf = 0;
@@ -492,69 +497,65 @@ template<typename KeyType, typename ValueType, typename LockType, bool fixed,
 	size_t np =1;
 	//bool first_ovfl = true;
 
-	if (objCount > 0) {
+	char *ptr;
+	size_t ksize;
+	size_t esize;
 
-		char *ptr;
-		size_t ksize;
-		size_t esize;
+	keys.resize(objCount);
+	izene_serialization< std::vector<KeyType> > izs(keys);
+	izs.write_image(ptr, ksize);
+	esize = ksize + sizeof(size_t);
 
-		keys.resize(objCount);
-		izene_serialization< std::vector<KeyType> > izs(keys);
-		izs.write_image(ptr, ksize);
-		esize = ksize + sizeof(size_t);
+	bool first_overflow = true;
+	if (tsz+esize + sizeof(size_t) > np*_pageSize) {
+		first_overflow = false;
+		tsz = _pageSize;
+		np = (tsz+esize -1 )/_pageSize+1;
+		char *temp = new char[np*_pageSize];
+		//memset(temp, 0, np*_pageSize);
+		memcpy(temp, pBuf, _pageSize);
+		delete [] pBuf;
+		pBuf = 0;
+		pBuf = temp;
+		p = pBuf+tsz;
+	}
 
-		bool first_overflow = true;
-		if (tsz+esize + sizeof(size_t) > np*_pageSize) {
-			first_overflow = false;
-			tsz = _pageSize;
+	memcpy(p, &ksize, sizeof(size_t));
+	p += sizeof(size_t);
+	memcpy(p, ptr, ksize);
+	p += ksize;
+	tsz += esize;
+
+	if (isLeaf) {
+		char* ptr1;
+		size_t vsize;
+
+		values.resize(objCount);
+		izene_serialization< std::vector<ValueType> > izs1(values);
+		izs1.write_image(ptr1, vsize);
+		esize = vsize+sizeof(size_t);
+
+		if (tsz+esize+sizeof(size_t) > np*_pageSize) {
+			if (first_overflow)
+				tsz = _pageSize;
 			np = (tsz+esize -1 )/_pageSize+1;
 			char *temp = new char[np*_pageSize];
-			//memset(temp, 0, np*_pageSize);
-			memcpy(temp, pBuf, _pageSize);
+			memset(temp, 0, np*_pageSize);
+			memcpy(temp, pBuf, tsz);
 			delete [] pBuf;
 			pBuf = 0;
 			pBuf = temp;
-			p = pBuf+tsz;
+			if (first_overflow)
+				p = pBuf+_pageSize;
+			else
+				p = pBuf+tsz;
 		}
 
-		memcpy(p, &ksize, sizeof(size_t));
+		memcpy(p, &vsize, sizeof(size_t));
 		p += sizeof(size_t);
-		memcpy(p, ptr, ksize);
-		p += ksize;
+		memcpy(p, ptr1, vsize);
+		p += vsize;
 		tsz += esize;
-
-		if (isLeaf) {
-			char* ptr1;
-			size_t vsize;
-
-			values.resize(objCount);
-			izene_serialization< std::vector<ValueType> > izs1(values);
-			izs1.write_image(ptr1, vsize);
-			esize = vsize+sizeof(size_t);
-
-			if (tsz+esize+sizeof(size_t) > np*_pageSize) {
-				if (first_overflow)
-					tsz = _pageSize;
-				np = (tsz+esize -1 )/_pageSize+1;
-				char *temp = new char[np*_pageSize];
-				memset(temp, 0, np*_pageSize);
-				memcpy(temp, pBuf, tsz);
-				delete [] pBuf;
-				pBuf = 0;
-				pBuf = temp;
-				if (first_overflow)
-					p = pBuf+_pageSize;
-				else
-					p = pBuf+tsz;
-			}
-
-			memcpy(p, &vsize, sizeof(size_t));
-			p += sizeof(size_t);
-			memcpy(p, ptr1, vsize);
-			p += vsize;
-			tsz += esize;
-		}
-
 	}
 
 	//if( tsz >  _pageSize)
@@ -589,9 +590,16 @@ template<typename KeyType, typename ValueType, typename LockType, bool fixed,
 		//cout<<"writing overflow!!!! pos:"<<_overflowAddress<<" & "
 		//		<< _overflowPageCount <<endl;
 	}
+
 	delete []pBuf;
 	pBuf = 0;
 	isDirty = false;
+	
+	keys.resize(_fh.maxKeys);
+	if (isLeaf)
+		values.resize(_fh.maxKeys);
+	else
+		children.resize(_fh.maxKeys);
 
 	return true;
 }

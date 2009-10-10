@@ -164,7 +164,7 @@ template<typename T> void insert_test1() {
 
 }
 
-template<typename T> void seq_test(T& tb) {
+template<typename T> void seq_test(T& cm) {
 	cout<<"\nseq_test"<<endl;
 
 #if 1
