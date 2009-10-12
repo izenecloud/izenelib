@@ -78,9 +78,9 @@ template<class KeyType, class ElementType, class LockType=NullLock> class IndexS
 	typedef iKeyType<KeyType> myKeyType;
 	typedef std::vector<ElementType> myValueType;
 	typedef DataType<myKeyType, myValueType> myDataType;
-
+public:
 	typedef typename SequentialDB<myKeyType, myValueType, LockType>::SDBCursor
-			SDBCursor;
+			IndexSDBCursor;
 
 public:
 	IndexSDB(const string& fileName = "index_sdb.dat") :
@@ -154,7 +154,7 @@ public:
 	void getValueGreat(const KeyType& key, vector<ElementType>& result) {
 		KeyType temp = getNext(key);
 		myKeyType ikey(temp, 0);
-		SDBCursor locn;
+		IndexSDBCursor locn;
 		_sdb.search(ikey, locn);
 		myDataType rec;
 		while (_sdb.seq(locn, ESD_FORWARD) ) {
@@ -173,7 +173,7 @@ public:
 	void getValueLess(const KeyType& key, vector<ElementType>& result) {
 		KeyType temp = getPrev(key);
 		myKeyType ikey(temp, 0);
-		SDBCursor locn;
+		IndexSDBCursor locn;
 		_sdb.search(ikey, locn);
 		myDataType rec;
 		while (_sdb.seq(locn, ESD_BACKWARD) ) {
@@ -196,7 +196,7 @@ public:
 		myKeyType temp;
 		myDataType idat;
 		temp = _sdb.getNearest(ikey);
-		SDBCursor locn;
+		IndexSDBCursor locn;
 		_sdb.search(temp, locn);
 		while (ikey.isPrefix(temp) ) {
 			//if (_sdb.getValue(temp, idat)) 
@@ -255,7 +255,7 @@ public:
 		}
 	}
 
-private:
+protected:
 	SequentialDB<myKeyType, myValueType, LockType> _sdb;
 
 	//test;

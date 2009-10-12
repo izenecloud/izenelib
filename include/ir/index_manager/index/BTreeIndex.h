@@ -147,6 +147,20 @@ public:
     {
     }
     bool remove(const KeyType& key, docid_t docID);
+
+    template<typename SDBCursor>
+    bool search(const KeyType& key, SDBCursor& locn) 
+    {
+	izenelib::sdb::iKeyType<KeyType> ikey(key, 0);	
+	return this->_sdb.search(ikey, locn);
+    }
+
+    template<typename SDBCursor>
+    bool seq(SDBCursor& locn, KeyType& key, std::vector<docid_t>& value, ESeqDirection sdir) 
+    {
+        izenelib::sdb::iKeyType<KeyType> ikey(key, 0);	
+        return this->_sdb.seq(locn, ikey, value, sdir);
+    }	
 };
 
 
