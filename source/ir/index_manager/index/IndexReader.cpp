@@ -57,10 +57,8 @@ void IndexReader::createBarrelReader()
 
 }
 
-TermReader* IndexReader::getTermReader(collectionid_t colID)
+TermReader* IndexReader::doGetTermReader_(collectionid_t colID)
 {
-    boost::mutex::scoped_lock lock(this->mutex_);
-
     if (dirty_)
     {
         //collection has been removed, need to rebuild the barrel reader
@@ -80,7 +78,14 @@ TermReader* IndexReader::getTermReader(collectionid_t colID)
     {
         createBarrelReader();
     }
-    TermReader* pTermReader = pBarrelReader_->termReader(colID);
+
+    return pBarrelReader_->termReader(colID);
+}
+
+TermReader* IndexReader::getTermReader(collectionid_t colID)
+{
+    boost::mutex::scoped_lock lock(this->mutex_);
+    TermReader* pTermReader = doGetTermReader_(colID);
     if (pTermReader)
         return pTermReader->clone();
     else
@@ -95,18 +100,36 @@ ForwardIndexReader* IndexReader::getForwardIndexReader()
     return pForwardIndexReader_->clone();
 }
 
-count_t IndexReader::maxDoc()
+// count_t IndexReader::maxDoc()
+// {
+//     return pBarrelsInfo_->getDocCount();
+// }
+count_t IndexReader::numDocs()
 {
     return pBarrelsInfo_->getDocCount();
 }
 
 freq_t IndexReader::docFreq(collectionid_t colID, Term* term)
 {
-    return getTermReader(colID)->docFreq(term);
+    boost::mutex::scoped_lock lock(this->mutex_);
+    TermReader* pTermReader = doGetTermReader_(colID);
+    if (pTermReader)
+    {
+        return pTermReader->docFreq(term);
+    }
+
+    return 0;
 }
 
 TermInfo* IndexReader::termInfo(collectionid_t colID,Term* term)
 {
-    return getTermReader(colID)->termInfo(term);
+    boost::mutex::scoped_lock lock(this->mutex_);
+    TermReader* pTermReader = doGetTermReader_(colID);
+    if (pTermReader)
+    {
+        return pTermReader->termInfo(term);
+    }
+
+    return 0;
 }
 

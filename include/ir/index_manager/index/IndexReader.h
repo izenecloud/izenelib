@@ -35,7 +35,7 @@ public:
 public:
     count_t numDocs();
 
-    count_t maxDoc();
+    // count_t maxDoc();
 
     freq_t docFreq(collectionid_t colID, Term* term);
 
@@ -50,12 +50,19 @@ public:
 
     static int64_t lastModified(Directory* pDirectory);
 
+    /**
+     * @warn client must delete the returned object
+     */
     TermReader* getTermReader(collectionid_t colID);
 
+    /**
+     * @warn client must delete the returned object
+     */
     ForwardIndexReader* getForwardIndexReader();
 
 private:
     void createBarrelReader();
+    TermReader* doGetTermReader_(collectionid_t colID);
 
 private:
 
