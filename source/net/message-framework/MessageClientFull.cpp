@@ -239,6 +239,10 @@ bool MessageClientFull::checkAgentInfo_(ServicePermissionInfo& permissionInfo) {
 
 }
 
+void MessageClientFull::flushPermissionCache(const std::string& serviceName){	
+	acceptedPermissionList_.erase(serviceName);	
+}
+
 bool MessageClientFull::getHostsOfService(const std::string& serviceName,
 		std::map<std::string, MessageFrameworkNode>& servers) {
 	try

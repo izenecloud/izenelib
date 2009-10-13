@@ -100,6 +100,10 @@ namespace messageframework
 		bool getHostsOfService(const std::string& serviceName,
 				std::map<std::string, MessageFrameworkNode>& servers);
 		
+		
+		void flushPermissionCache(const std::string& serviceName);
+			
+		
 		/**
 		 * @brief This function puts the request of the manager to the MessageClientFull.
 		 * The MessageClientFull will sends the request to either MessageController or
