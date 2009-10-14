@@ -264,7 +264,7 @@ protected:
 /// Mock object of TermPostions
 class MockTermPositions : public MockTermDocFreqs {
 public:
-    MockTermPositions(MockIndexReaderWriter* index, Term& term);
+    MockTermPositions(MockIndexReaderWriter* index, Term& term) : MockTermDocFreqs(index, term) {};
 
     ~MockTermPositions(){}
 
