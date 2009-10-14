@@ -88,7 +88,9 @@ TermInfo* DiskTermReader::termInfo(Term* term)
 
 TermReader* DiskTermReader::clone()
 {
-    return new DiskTermReader(pTermReaderImpl);
+    TermReader* pTermReader = new DiskTermReader(pTermReaderImpl);
+    pTermReader->setFieldInfo(pFieldInfo);
+    return pTermReader;
 }
 
 
