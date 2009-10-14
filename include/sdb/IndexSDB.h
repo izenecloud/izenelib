@@ -10,11 +10,29 @@
 #define INDEXSDB_H_
 
 #include <algorithm>
+#include <wiselib/ustring/UString.h>
+
 #include "SequentialDB.h"
 
 namespace izenelib {
 
 namespace sdb {
+
+template<typename KeyType>
+inline bool isPrefix1(const KeyType& sub, const KeyType& str){
+	return sub.isPrefix(str);	
+}
+
+
+template<>
+inline bool isPrefix1<std::string>(const string& sub, const string& str){	
+	return ( str.substr(0, sub.size() ) == sub );
+}
+
+template<>
+inline bool isPrefix1<wiselib::UString>(const wiselib::UString& sub, const wiselib::UString& str){	
+	return ( str.substr(0, sub.size() ) == sub );
+}
 
 /**
  *  \brief wrapper KeyType for indexSDB, 
@@ -46,21 +64,24 @@ template<class KeyType> struct iKeyType {
 	}
 
 	int compare(const iKeyType& other) const {
-		if (key.compare(other.key) != 0) {
-			return key.compare(other.key);
+		if ( comp_(key, other.key) != 0) {
+			return comp_(key, other.key);
 		} else {
 			return offset - other.offset;
 		}
 	}
 
-	bool isPrefix(const iKeyType<KeyType>& other) {
-		return key.isPrefix(other.key);
+	bool isPrefix(const iKeyType<KeyType>& other) const
+	{
+		return isPrefix1(key, other.key);
 	}
 
 	void display(std::ostream& os = std::cout) const {
-		key.display(os);
+		//key.display(os);
+		os<<key;
 		os<<" offset= "<<offset;
 	}
+	izenelib::am::CompareFunctor<KeyType> comp_;
 };
 /**
  * 
@@ -79,7 +100,8 @@ template<class KeyType, class ElementType, class LockType=NullLock> class IndexS
 	typedef std::vector<ElementType> myValueType;
 	typedef DataType<myKeyType, myValueType> myDataType;
 public:
-	typedef typename SequentialDB<myKeyType, myValueType, LockType>::SDBCursor
+	typedef SequentialDB<myKeyType, myValueType, LockType> SDB_TYPE;
+	typedef typename SDB_TYPE::SDBCursor
 			IndexSDBCursor;
 
 public:
@@ -93,7 +115,7 @@ public:
 	 *  It must be initialized to run IndexSDB.
 	 */
 	void initialize(unsigned int vecSize = 100, int degree= 16,
-			unsigned int pageSize = 1024, unsigned int cacheSize = 1000000) {
+			unsigned int pageSize = 1024, unsigned int cacheSize = 1024*100) {
 		_vDataSize = vecSize;
 		_sdb.setDegree(degree);
 		_sdb.setPageSize(pageSize);
@@ -198,7 +220,7 @@ public:
 		temp = _sdb.getNearest(ikey);
 		IndexSDBCursor locn;
 		_sdb.search(temp, locn);
-		while (ikey.isPrefix(temp) ) {
+		while ( ikey.isPrefix(temp) ) {
 			//if (_sdb.getValue(temp, idat)) 
 			//{
 			vector<ElementType> vdat = idat.get_value();
@@ -232,31 +254,29 @@ public:
 
 	//if we can make sure there are no duplicate inserting items, e.g, documentID
 	//can't be the same as the existing items in IndexSDB, i.e nodup is true. 
-	bool add_nodup(const KeyType& key, const ElementType& item) {
+	bool add_nodup(const KeyType& key, const ElementType& item) {		
 		myKeyType ikey(key, 0);
 		if ( !_sdb.hasKey(ikey) )
 			return add(key, item);
-		else {
-			myKeyType ukey = _getUpper(key);
-			myDataType udat;
-			_sdb.getValue(ukey, udat);
-			vector<ElementType> vdat = udat.get_value();
-			if (vdat.size() < _vDataSize) {
-				vdat.push_back(item);
-				myDataType udat(ukey, vdat);
+		else {			
+			myKeyType ukey = _getUpper(key);			
+			myValueType udat;
+			_sdb.getValue(ukey, udat);			
+			if (udat.size() < _vDataSize) {
+				udat.push_back(item);			
 				_sdb.update(ukey, udat);
 			} else {
 				vector<ElementType> nv;
 				nv.push_back(item);
-				myKeyType newkey(key, ukey.offset+1);
-				myDataType newData(newkey, nv);
-				_sdb.insert(newData);
+				myKeyType newkey(key, ukey.offset+1);			
+				_sdb.insertValue(newkey, nv);
 			}
 		}
+		return true;
 	}
 
 protected:
-	SequentialDB<myKeyType, myValueType, LockType> _sdb;
+	SDB_TYPE _sdb;
 
 	//test;
 	LockType lock_;
@@ -265,9 +285,9 @@ protected:
 	myKeyType _getUpper(const KeyType& key) {
 		unsigned int offset = 0;
 		do {
-			myDataType dat;
+			myValueType val;
 			myKeyType mykey(key, offset++);
-			if (!_sdb.getValue(mykey, dat)) {
+			if (!_sdb.getValue(mykey, val)) {
 				return myKeyType(key, offset-2);//it should be offset-2,not offset-1.
 			}
 		} while (true);
@@ -297,15 +317,14 @@ template<class KeyType, class ElementType, class LockType> bool IndexSDB<
 		KeyType, ElementType, LockType>::getValue(const KeyType& key,
 		vector<ElementType>& result) {
 
-	myDataType idat;
+	myValueType vdat;
 	unsigned int offset = 0;
 	myKeyType firstKey(key, 0);
 	if ( !_sdb.hasKey(firstKey) )
 		return false;
 	do {
 		myKeyType ikey(key, offset++);
-		if (_sdb.getValue(ikey, idat)) {
-			vector<ElementType> vdat = idat.get_value();
+		if (_sdb.getValue(ikey, vdat)) {			
 			for (size_t i=0; i<vdat.size(); i++) {
 				result.push_back(vdat[i]);
 			}
@@ -320,7 +339,6 @@ template<class KeyType, class ElementType, class LockType> bool IndexSDB<
 template<class KeyType, class ElementType, class LockType> void IndexSDB<
 		KeyType, ElementType, LockType>::getValueIn(const vector<KeyType>& vKey,
 		vector<ElementType>& result) {
-
 	for (size_t i=0; i<vKey.size(); i++) {
 		getValue(vKey[i], result);
 	}
@@ -402,6 +420,9 @@ template<class KeyType, class ElementType, class LockType> bool IndexSDB<
 	}
 	return true;
 }
+
+
+
 
 }
 

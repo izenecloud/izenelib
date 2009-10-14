@@ -549,19 +549,23 @@ private:
 		while ( !qnode.empty() ) {
 			sdb_pnode* popNode = qnode.front();
 			qnode.pop();
-
+			if( _activeNodeNum> _sfh.cacheSize ) 
+				break;
 			if (popNode && popNode->isLoaded && !popNode->isLeaf) {
 				for(size_t i=0; i<popNode->objCount; i++)
-				{
+				{		
 					popNode->loadChild(i, _dataFile);
-					if( !popNode->children[i]->isLeaf ) {
+					if( !popNode->children[i]->isLeaf ) {						
 						qnode.push( popNode->children[i] );
+					}else{
+						goto LABEL;
 					}
 
 				}
 			}
 
 		}
+		LABEL: return;
 
 	}
 
@@ -1275,8 +1279,8 @@ template<typename KeyType, typename ValueType, typename LockType, bool fixed,
 		_root->read(_dataFile);
 		if (loadIndexFirst)
 			_loadIndex();
-		ret = true;
-
+		ret = true;		
+		//display();
 	}
 	_isOpen = true;
 	return ret;

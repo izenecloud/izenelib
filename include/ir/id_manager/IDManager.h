@@ -283,8 +283,17 @@ typedef _IDManager<wiselib::UString, uint32_t> IDManagerDebug32;
  * This version of IDManager doesn't support getTermStringByTermId() and
  * getTermStringListByTermIdList() interface, generated ID are 32bits unsigned integer.
  */
+/*
 typedef _IDManager<wiselib::UString, uint32_t,
                    izenelib::util::NullLock,
+                   DiskRegExpHandler<wiselib::UString, uint32_t>,
+                   HashIDGenerator<wiselib::UString, uint32_t>,
+                   EmptyIDStorage<wiselib::UString, uint32_t>,
+                   UniqueIDGenerator<wiselib::UString, uint32_t>,
+                   SDBIDStorage<wiselib::UString, uint32_t> > IDManagerRelease32;*/
+
+typedef _IDManager<wiselib::UString, uint32_t,
+                   izenelib::util::ReadWriteLock,
                    DiskRegExpHandler<wiselib::UString, uint32_t>,
                    HashIDGenerator<wiselib::UString, uint32_t>,
                    EmptyIDStorage<wiselib::UString, uint32_t>,

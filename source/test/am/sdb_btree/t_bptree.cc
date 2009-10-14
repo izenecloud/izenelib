@@ -9,7 +9,7 @@ using namespace izenelib::am;
 typedef string KeyType;
 typedef int ValueType;
 typedef sdb_btree<KeyType, ValueType> SDB_BTREE;
-typedef sdb_bptree<KeyType, ValueType> SDB_BPTREE;
+typedef sdb_btree<KeyType, ValueType> SDB_BPTREE;
 typedef sdb_vbtree<KeyType, ValueType> SDB_VBPTREE;
 typedef SDB_BPTREE::SDBCursor SDBCursor;
 

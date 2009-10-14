@@ -17,7 +17,7 @@ BTreeIndex<IndexKeyType<double> >* BTreeIndexer::pBTreeDoubleIndexer_  = NULL;
 
 BTreeIndex<IndexKeyType<String> >* BTreeIndexer::pBTreeUStrIndexer_  = NULL;
 
-izenelib::sdb::IndexSDB<USuffix, String>* BTreeIndexer::pBTreeUStrSuffixIndexer_  = NULL;
+izenelib::sdb::TrieIndexSDB2<String, String>* BTreeIndexer::pBTreeUStrSuffixIndexer_  = NULL;
 
 BTreeIndexer::BTreeIndexer(string location, int degree, size_t cacheSize, size_t maxDataSize)
 {
@@ -48,8 +48,9 @@ BTreeIndexer::BTreeIndexer(string location, int degree, size_t cacheSize, size_t
 
     path.clear();
     path = location+"/usuf.bti";
-    pBTreeUStrSuffixIndexer_ = new izenelib::sdb::IndexSDB<USuffix, UString>( path);
-    pBTreeUStrSuffixIndexer_->initialize(maxDataSize/10, degree, maxDataSize*2,cacheSize);
+    pBTreeUStrSuffixIndexer_ = new izenelib::sdb::TrieIndexSDB2<String, String>( path);
+    pBTreeUStrSuffixIndexer_->open();
+    //  pBTreeUStrSuffixIndexer_->initialize(maxDataSize/10, degree, maxDataSize*2,cacheSize);
 
 }
 
@@ -161,19 +162,17 @@ void BTreeIndexer::getValueStart(collectionid_t colID, fieldid_t fid, PropertyTy
 
 void BTreeIndexer::getValueEnd(collectionid_t colID, fieldid_t fid, PropertyType& value,vector<docid_t>& docs)
 {
-    try
+   try
     {
 	vector<String> vkey;
-	pBTreeUStrSuffixIndexer_->getValue(boost::get<String>(value), vkey);
+	pBTreeUStrSuffixIndexer_->getValueSuffix(boost::get<String>(value), vkey);
 	
 	vector<IndexKeyType<String> > keys;
 	for (size_t i=0; i<vkey.size(); i++)
 		keys.push_back(IndexKeyType<String>(colID, fid, vkey[i]) );
 	
 	pBTreeUStrIndexer_->getValueIn(keys, docs);
-
 	uniqueResults(docs);
-
     }catch (...)
     {
         SF1V5_THROW(ERROR_UNSUPPORTED,"unsupported operation");
@@ -189,12 +188,9 @@ void BTreeIndexer::getValueSubString(collectionid_t colID, fieldid_t fid, Proper
 	
 	vector<IndexKeyType<String> > keys;
 	for (size_t i=0; i<vkey.size(); i++)
-		keys.push_back(IndexKeyType<String>(colID, fid, vkey[i]) );
-	
+		keys.push_back(IndexKeyType<String>(colID, fid, vkey[i]) );	
 	pBTreeUStrIndexer_->getValueIn(keys, docs);
-
 	uniqueResults(docs);
-
     }catch (...)
     {
         SF1V5_THROW(ERROR_UNSUPPORTED,"unsupported operation");

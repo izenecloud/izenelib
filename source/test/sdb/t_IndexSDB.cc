@@ -223,14 +223,14 @@ void ReportUsage(void) {
 	cout<<"the storage file of the B tree, default is sdb.dat.\n";
 }
 
-template<typename T, typename V> void run(T& cm, V& dm) {
-	run_insert(cm, dm);
-	run_getValue_perf(cm, dm);
+template<typename T> void run(T& cm) {
+	run_insert(cm);
+	run_getValue_perf(cm);
 	//run_getValue(cm, dm);
 	//run_del(cm);
 }
 
-template<typename T, typename V> void run_insert(T& cm, V& dm) {
+template<typename T> void run_insert(T& cm) {
 
 	clock_t t1 = clock();
 
@@ -260,9 +260,7 @@ template<typename T, typename V> void run_insert(T& cm, V& dm) {
 
 		//cout<<"\nupdate "<<size<<"\n\n";
 		if (cm.update(key, vIdx) ) {
-			if (trace) {
-				cm.display();
-			}
+			
 		}
 
 		if (trace) {
@@ -273,16 +271,16 @@ template<typename T, typename V> void run_insert(T& cm, V& dm) {
 	}
 	//sfh.display();
 	cm.flush();
-	dm.flush();
+	//dm.flush();
 	printf("eclipse: %lf seconds\n", double(clock()- t1)/CLOCKS_PER_SEC);
 	if (trace) {
 		cout<<"After run_insert, display..."<<endl;
-		dm.display();
+		//dm.display();
 		cm.display();
 	}
 }
 
-template<typename T, typename V> void run_getValue_perf(T& cm, V&dm) {
+template<typename T> void run_getValue_perf(T& cm) {
 
 	cout<<"testing indexSDB performance\n";
 
@@ -446,7 +444,7 @@ template<typename T, typename V> void run_getValue_perf(T& cm, V&dm) {
  }
 
  result.clear();
- cm.getValueIn(keys, result);
+ cm.getValueIn(keys, result);, d
  for (unsigned int i=0; i<result.size(); i++) {
  if (trace) {
  cout<<result[i]<<endl;
@@ -509,14 +507,14 @@ int main(int argc, char *argv[]) {
 	{
 		string file(indexFile);
 
-		string sufFile("suffix.dat");
-		IndexSDB<suffix, string> sufSDB(sufFile);
+		//string sufFile("suffix.dat");
+		//IndexSDB<suffix, string> sufSDB(sufFile);
 		IndexSDB<KeyType, DocID> isdb(file);
 
 		isdb.initialize(20, degree, 1024, cacheSize);
-		sufSDB.initialize(20, degree, 1024*2, cacheSize);
+		//sufSDB.initialize(20, degree, 1024*2, cacheSize);
 
-		run(isdb, sufSDB);
+		run(isdb);
 
 	}
 	catch(bad_alloc)
