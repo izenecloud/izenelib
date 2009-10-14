@@ -341,10 +341,10 @@ public:
     in_mem_doc_num_ = 0;
   }
 
-  inline uint32_t operator[] (size_t i)const
+  inline uint32_t& operator[] (size_t i)
   {
     assert(i < docids_.length());
-    return docids_.at(i);
+    return docids_[i];
   }
   
   void print()const

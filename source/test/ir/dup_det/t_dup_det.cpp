@@ -126,12 +126,12 @@ BOOST_AUTO_TEST_CASE(integer_dyn_array_check )
 
 BOOST_AUTO_TEST_CASE(partial_fp_list_check )
 {
-  #define FP_LENGTH 6
+  const uint32_t FP_LENGTH= 12;
   #define THRESHOLD 2
   const size_t TYPES_NUM= 400;
   const size_t SIZE= 1000000;
   
-  typedef PartialFpList<uint64_t, 6, 1> FpList;
+  typedef PartialFpList<uint32_t, FP_LENGTH, 1> FpList;
   typedef FpList::FpVector FpVector;
 
   vector<FpVector>  v;
@@ -202,6 +202,27 @@ BOOST_AUTO_TEST_CASE(partial_fp_list_check )
   
 }
 
+void prime_gen(uint32_t s)
+{
+  for (uint32_t i = 3; i<s; ++i)
+  {
+    uint32_t k = (uint32_t)sqrt(i);
+    if (k*k == i)
+      continue;
+
+    uint32_t j=3;
+    for (; j<k; ++j)
+      if (i%j==0)
+        break;
+
+    if (j == k)
+    {
+      //std::cout<<i<<std::endl;
+      //i is prime number
+    }
+  }
+}
+
 // bool is_prime(uint32_t a, uint32_t b)
 // {
   
@@ -221,7 +242,7 @@ BOOST_AUTO_TEST_CASE(partial_fp_list_check )
 BOOST_AUTO_TEST_CASE(group_table_check )
 {
 
-#define FP_LENGTH 6
+  const uint32_t FP_LENGTH = 6;
   #define THRESHOLD 2
   const size_t TYPES_NUM= 11;
   
@@ -311,8 +332,7 @@ BOOST_AUTO_TEST_CASE(group_table_check )
 BOOST_AUTO_TEST_CASE(fp_hash_table_check )
 {
   const size_t SIZE= 1000000;
-#define FP_LENGTH 6
-#define UNIT_LEN 2
+  const uint32_t FP_LENGTH = 6;
   const size_t TYPES_NUM= 400000;
   
   typedef FpHashTable<1> FpHT;
@@ -373,9 +393,8 @@ BOOST_AUTO_TEST_CASE(fp_hash_table_check )
 
 BOOST_AUTO_TEST_CASE(hash_table_check )
 {
+  #define UNIT_LEN 2
   const size_t SIZE= 1000000;
-#define FP_LENGTH 6
-#define UNIT_LEN 2
   const size_t TYPES_NUM= 200000;
   
   typedef FpHashTable<1> FpHT;
@@ -431,45 +450,55 @@ BOOST_AUTO_TEST_CASE(hash_table_check )
 
 BOOST_AUTO_TEST_CASE(overall_performace_check )
 {
-#define FP_LENGTH 6
-  const size_t SIZE= 1000000;
+  cout<<"Checking performance ...\n";
+  system("rm -f ./tt*");
+  system("rm -f ./fp*");
+  system("rm -f ./group*");
+  
+  const uint32_t  FP_LENGTH = 12;
+  const size_t SIZE= 20;//1000000;
 
-  const size_t TYPES_NUM= 200000;
+  const size_t TYPES_NUM= 4;//40000;
   typedef izenelib::am::IntegerDynArray<uint64_t> Vector64;
   typedef izenelib::am::IntegerDynArray<uint32_t> Vector32;
+  typedef izenelib::am::IntegerDynArray<uint8_t> Vector8;
 
   vector<Vector64>  v;
   v.reserve(TYPES_NUM);
   for (size_t i = 0; i<TYPES_NUM; i++)
   {
-    Vector64 vv;
-    vv.reserve(FP_LENGTH);
-    for (size_t j=0; j<FP_LENGTH; j++)
-      vv.push_back(rand());
-    
-    v.push_back(vv);
+    Vector8 v8;
+    v8.reserve(48);
+    for (size_t j=0; j<48; j++)
+      v8.push_back(rand());
+
+    Vector64 v64((const char*)v8.data(),v8.size());
+    v.push_back(v64);
   }
 
   cout<<"Data is ready!\n";
-  remove("./tt*");
+  system("rm -f ./tt*");
 
   struct timeval tvafter,tvpre;
   struct timezone tz;
 
+//   gettimeofday (&tvpre , &tz);
+//   prime_gen(5000000);
+//   gettimeofday (&tvafter , &tz);
+//   cout<<"Prime number generation: "<<((tvafter.tv_sec-tvpre.tv_sec)*1000+(tvafter.tv_usec-tvpre.tv_usec)/1000)/60000.<<" mins\n";
+
   
-  FpIndex<> fp_index("./tt");
+  FpIndex<1, uint32_t, FP_LENGTH> fp_index("./tt", 1);
   gettimeofday (&tvpre , &tz);
   
   fp_index.ready_for_insert();
   
   for (size_t i=0; i<SIZE; i++)
     fp_index.add_doc(i+SIZE, v[i%TYPES_NUM]);
-  cout<<"Flushing...\n";
-  fp_index.flush();
   gettimeofday (&tvafter , &tz);
   cout<<"Adding docs is over! "<<((tvafter.tv_sec-tvpre.tv_sec)*1000+(tvafter.tv_usec-tvpre.tv_usec)/1000)/60000.<<std::endl;
   //  getchar();
-
+  
   gettimeofday (&tvpre , &tz);
   fp_index.indexing();
   fp_index.flush();
@@ -477,14 +506,65 @@ BOOST_AUTO_TEST_CASE(overall_performace_check )
   cout<<"Indexing docs is over! "<<((tvafter.tv_sec-tvpre.tv_sec)*1000+(tvafter.tv_usec-tvpre.tv_usec)/1000)/60000.<<std::endl;
   //getchar();
 
-  for (size_t i=0; i<SIZE-TYPES_NUM; ++i)
+  //test for incremental
+  {
+    fp_index.ready_for_insert();
+    
+    for (size_t i=SIZE; i<SIZE+2*TYPES_NUM; i++)
+      fp_index.add_doc(i+SIZE, v[i%TYPES_NUM]);
+
+    fp_index.indexing(SIZE);
+    fp_index.flush();
+  }
+
+  //test for updating
+  {
+    vector<uint32_t> docids;
+    docids.push_back(SIZE+2);
+    docids.push_back(SIZE+3);
+    docids.push_back(SIZE+4);
+    vector<Vector64> fps;
+    fps.push_back(v[0]);
+    fps.push_back(v[0]);
+    fps.push_back(v[0]);
+    
+    fp_index.update_docs(docids, fps);
+    fps.clear();
+    
+    fps.push_back(v[2%TYPES_NUM]);
+    fps.push_back(v[3%TYPES_NUM]);
+    fps.push_back(v[4%TYPES_NUM]);
+
+    fp_index.update_docs(docids, fps);
+
+    docids.clear();
+    docids.push_back(SIZE+5);
+    fp_index.del_docs(docids);
+
+    fp_index.ready_for_insert();
+    fp_index.add_doc(5+SIZE, v[5%TYPES_NUM]);
+    fp_index.indexing(fp_index.doc_num()-1);
+    fp_index.flush();
+  }
+  
+  
+  for (size_t i=0; i<SIZE+TYPES_NUM; ++i)
   {
     const Vector32 p1 = fp_index.find(i+SIZE);
     const Vector32 p2 = fp_index.find(i+SIZE+TYPES_NUM);
 
     BOOST_CHECK(p1 == p2);
     
-    BOOST_CHECK(p1.length() == SIZE/TYPES_NUM);
+    BOOST_CHECK(p1.length() == SIZE/TYPES_NUM+2);
+
+//     if (!(p1 == p2))
+//     {
+//       cout<<i<<"  -------------\n";
+//       cout<<p1<<endl;
+//       cout<<p2<<endl;
+//       cout<<"=============\n";
+//       break;
+//     }
     
   }
 

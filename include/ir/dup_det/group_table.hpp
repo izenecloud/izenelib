@@ -401,7 +401,7 @@ public:
   template<
     class FpList
     >
-  void set_docid(const FpList& fp)
+  void set_docid(FpList& fp)
   {
     for (size_t i=0; i<doc_hash_.length(); i++)
     {

@@ -37,11 +37,11 @@ class FpIndex
   
 protected:
   const uint8_t UNIT_LEN_;
-  FpList* fp_list_;
-  HashT**  ht_ptrs_;
-  GroupT* group_;
-  GroupT* final_group_;
-  FpHashT* fp_hash_ptrs_[FP_HASH_NUM];
+  FpList* fp_list_;//partial FP list
+  HashT**  ht_ptrs_;//pre-clustering hash table
+  GroupT* group_;//documents group with inner id
+  GroupT* final_group_;//document group with real doc id
+  FpHashT* fp_hash_ptrs_[FP_HASH_NUM];//docid to address of FP hash table
   Vector32Ptr docid_hash_;
   std::string filenm_;
   static Prime* prime_;
@@ -137,6 +137,59 @@ protected:
       
       docid_hash_.at(j)->push_back(docid);
     }
+
+    {
+      uint32_t docid = -1;
+      size_t j = docid%ENTRY_SIZE;
+      
+      if (docid_hash_.at(j) == NULL)
+        docid_hash_[j] = new Vector32();
+      
+      docid_hash_.at(j)->push_back(docid);
+    }
+  }
+
+  inline void save_docid_hash()
+  {
+    std::string s = filenm_;
+    s+= ".docid_hash";
+
+    FILE* f = fopen(s.c_str(), "w+");
+
+    for (size_t i=0; i<ENTRY_SIZE; i++)
+      if (docid_hash_.at(i) != NULL)
+      {
+        assert(fwrite(&i, sizeof(uint32_t), 1, f)==1);
+        uint32_t len = docid_hash_.at(i)->length();
+        assert(fwrite(&len, sizeof(uint32_t), 1, f)==1);
+        assert(fwrite(docid_hash_.at(i)->data(), sizeof(uint32_t)*len, 1, f)==1);
+      }
+
+    uint32_t i = -1;
+    assert(fwrite(&i, sizeof(uint32_t), 1, f)==1);
+    fclose(f);
+  }
+
+  inline void load_docid_hash()
+  {
+    std::string s = filenm_;
+    s+= ".docid_hash";
+
+    FILE* f = fopen(s.c_str(), "r");
+    if (f == NULL)
+      return;
+
+    uint32_t i = -1;
+    assert(fread(&i, sizeof(uint32_t), 1, f)==1);
+    while (i!=(uint32_t)-1)
+    {
+      docid_hash_[i] = new Vector32();
+      uint32_t len = 0;
+      assert(fread(&len, sizeof(uint32_t), 1, f)==1);
+      assert(fread(docid_hash_[i]->array(len), sizeof(uint32_t)*len, 1, f)==1);
+    }
+
+    fclose(f);
   }
   
   
@@ -155,6 +208,8 @@ public:
 
     for (uint8_t i=0; i<FP_HASH_NUM; i++)
       fp_hash_ptrs_[i] = NULL;
+
+    load_docid_hash();
   }
 
   inline ~FpIndex()
@@ -202,6 +257,8 @@ public:
         delete fp_hash_ptrs_[i];
         fp_hash_ptrs_[i] = NULL;
       }
+
+    save_docid_hash();
   }
 
   inline void ready_for_insert()
@@ -248,6 +305,46 @@ public:
     
     fp_hash_ptrs_[docid%FP_HASH_NUM]->add_doc(docid/FP_HASH_NUM, fp);
   }
+
+  void update_docs(const std::vector<uint32_t>& docids, const std::vector<Vector64>& fps)
+  {
+    ready_for_insert();
+    uint32_t num = fp_list_->doc_num();
+    
+    for (uint32_t i=0; i<docids.size(); ++i)
+    {
+      for (uint32_t j=0; j<fp_list_->doc_num(); ++j)
+      {
+        if ((*fp_list_)[j] == docids[i])
+          (*fp_list_)[j] = -1;
+      }
+
+      add_doc(docids[i], fps[i]);
+    }
+
+    indexing(num);
+    flush();
+  }
+
+  void del_docs(const std::vector<uint32_t>& docids)
+  {
+    ready_for_insert();
+    uint32_t num = fp_list_->doc_num();
+    
+    for (uint32_t i=0; i<docids.size(); ++i)
+    {
+      for (uint32_t j=0; j<fp_list_->doc_num(); ++j)
+      {
+        if ((*fp_list_)[j] == docids[i])
+          (*fp_list_)[j] = -1;
+      }
+    }
+
+    switch_docid_in_group();
+    init_docid_hash();
+    flush();
+  }
+  
 
 //   inline void indexing()
 //   {
@@ -341,7 +438,7 @@ public:
 //   }
 
   
-  inline void indexing()
+  inline void indexing(uint32_t start = 0)
   {
     struct timeval tvafter,tvpre;
     struct timezone tz;
@@ -368,7 +465,7 @@ public:
     for (uint8_t i=0; i<FP_LENGTH/UNIT_LEN_; i++)
     {
       fp_list_->ready_for_uniform_access(i);
-      for (size_t j=0; j<fp_list_->doc_num();j++)
+      for (size_t j=start; j<fp_list_->doc_num();j++)
       {
         UNIT_TYPE v = 0;
         for (uint8_t k=0; k<UNIT_LEN_; k++)
@@ -384,7 +481,7 @@ public:
     delete fp_list_;fp_list_=NULL;//fp_list_->free();
 
     gettimeofday (&tvafter , &tz);
-    std::cout<<"\nPre-clustering is over!: "<<((tvafter.tv_sec-tvpre.tv_sec)*1000+(tvafter.tv_usec-tvpre.tv_usec)/1000)/60000.<<" min\n";
+    std::cout<<"\nPre-clustering is over!("<<doc_num<<"): "<<((tvafter.tv_sec-tvpre.tv_sec)*1000+(tvafter.tv_usec-tvpre.tv_usec)/1000)/60000.<<" min\n";
 
     //----------------------------------------
     
@@ -411,7 +508,7 @@ public:
     gettimeofday (&tvpre , &tz);
     std::cout<<"Start clustering...\n";
     size_t dealed = 0;
-    for (size_t i=0; i<doc_num;i++)
+    for (size_t i=start; i<doc_num;i++)
     {
       for (uint8_t k=0; k<FP_LENGTH/UNIT_LEN_; k++)
       {
@@ -420,7 +517,7 @@ public:
         
         assert(v.at(0)<=i);
         
-        if (v.at(0)!= i)
+        if (start == 0 && v.at(0)!= i)
           continue;
 
         dealed += v.length();
@@ -444,7 +541,11 @@ public:
             prime[docid1] *= (*prime_)[docid2];
             prime[docid2] *= (*prime_)[docid1];
             
-            const uint64_t* p2 = fp_hash_ptrs_[docid2%FP_HASH_NUM]->find(docid2/FP_HASH_NUM);            
+            const uint64_t* p2 = fp_hash_ptrs_[docid2%FP_HASH_NUM]->find(docid2/FP_HASH_NUM);
+
+//             std::cout<<docid1<<" "<<(*p1)<<std::endl;
+//             std::cout<<docid2<<" "<<(*p2)<<std::endl;
+//             std::cout<<"-----------\n";
             
             if (p1!=NULL && p2!=NULL && broder_compare(p1,p2))
             {
@@ -488,14 +589,23 @@ public:
     return false;
   }
 
-  inline const Vector32& find(size_t docid)const
+  inline Vector32 find(size_t docid)const
   {
-    return final_group_->find(docid);
+    Vector32 v = final_group_->find(docid);
+
+    uint32_t i = v.find(-1);
+    while (i!= (Vector32::size_t)-1)
+    {
+      v.erase(i);
+      i = v.find(-1);
+    }
+
+    return v;
   }
   
   inline size_t doc_num()const
   {
-    return 50000000;//fp_list_->doc_num();
+    return fp_list_->doc_num();
   }
 
   inline bool is_duplicated(uint32_t docid1, uint32_t docid2)const

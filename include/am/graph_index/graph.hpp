@@ -371,7 +371,7 @@ class Graph
   FILE*  doc_f_;
   FILE*  leaf_f_;
 
-  edge_t* insert_(TERM_TYPE term, edge_t* ep)
+  edge_t* insert_(TERM_TYPE term, edge_t* ep, bool ordered = true)
   {
     NID_LEN_TYPE nid = ep->NID();
     
@@ -410,7 +410,9 @@ class Graph
 
       return nodes_.at(nid)->data();
     }
-    
+
+    if (!ordered && !loads_.at(nid))
+        load_edge_(nid);
     sorted_edges_t* edges = nodes_.at(nid);
     assert (edges != (sorted_edges_t*)-1);
     
@@ -419,9 +421,16 @@ class Graph
     //exist
     if (nid == 0)
     {
-      if (edges->length()>0 && edges->back() == edge_t(term))
+      if (ordered && edges->length()>0 && edges->back() == edge_t(term))
       {
         return edges->data()+edges->length()-1;
+      }
+
+      if (!ordered)
+      {
+        typename sorted_edges_t::size_t i = edges->find(edge_t(term));
+        if (i != sorted_edges_t::NOT_FOUND)
+          return edges->data() + i;
       }
 
       typename sorted_edges_t::size_t i= edges->push_back(edge_t(term, nodes_.length()));
@@ -440,6 +449,33 @@ class Graph
     return i + edges->data();
   }
 
+  void save_redundant_(FILE* nid_f, FILE* doc_f)
+  {
+    fseek(nid_f, 0, SEEK_END);
+    fseek(doc_f, 0, SEEK_END);
+    
+    for (NID_LEN_TYPE i=0; i<loads_.length(); ++i)
+      if (!freqs_.at(i))
+      {
+        if (!loads_.at(i))
+          load_edge_(i);
+        
+        uint64_t addr = ftell(nid_f);
+        nodes_[i]->save(nid_f);
+        delete nodes_.at(i);
+        nodes_[i] = (sorted_edges_t*)addr;
+        if (docs_.at(i)!=0 && docs_.at(i)!=(uint64_t)-1)
+        {
+          addr = ftell(doc_f);
+          ((array32_t*)docs_.at(i))->save(doc_f);
+          delete (array32_t*)docs_.at(i);
+          docs_[i] = addr;
+        }
+
+        loads_[i] = 0;
+      }
+  }
+  
   void save_edge_(FILE* nid_f, FILE* doc_f, FILE* leaf_f,  NID_LEN_TYPE nid, bool root = false)
   {
     if (!loads_.at(nid))
@@ -449,7 +485,7 @@ class Graph
     {
       uint64_t addr = -1;
       loads_[nid] = 0;
-      if (docs_.at(nid) != 0)
+      if (docs_.at(nid) != 0 && docs_.at(nid) != (uint64_t)-1)
       {
         addr = ftell(doc_f);
         ((array32_t*)docs_.at(nid))->save(doc_f);
@@ -457,8 +493,7 @@ class Graph
       }
       
       docs_[nid] = addr;
-    }
-    
+    }    
     
     assert (nodes_.at(nid) != (sorted_edges_t*)-1);
 
@@ -471,7 +506,7 @@ class Graph
         {
           uint64_t addr = ftell(leaf_f);
           if (e->at(i).NID()-LEAF_BOUND >= leafs_.length())
-            std::cout<<nid<<" "<<e->at(i).NID()<<" "<<leafs_.length()<<std::endl;
+            ;//std::cout<<nid<<" "<<e->at(i).NID()<<" "<<leafs_.length()<<std::endl;
           
           leaf_t le = leafs_.at(e->at(i).NID()-LEAF_BOUND);
           (*e)[i].NID_() = LEAF_BOUND + addr;
@@ -501,6 +536,38 @@ class Graph
     
   }
 
+  void load_edge_(NID_LEN_TYPE nid)
+  {
+    if (loads_.at(nid))
+      return;
+    
+    sorted_edges_t* e = new sorted_edges_t();
+    e->load(nid_f_, (uint64_t)nodes_.at(nid));
+    nodes_[nid] = e;
+    loads_[nid] = 1;
+    
+    for (typename sorted_edges_t::size_t i=0; i<e->length(); ++i)
+      if (e->at(i).NID()>=LEAF_BOUND)
+      {
+        fseek(leaf_f_, e->at(i).NID()-LEAF_BOUND, SEEK_SET);
+        leaf_t le;
+        array32_t* docs = new array32_t();
+        
+        assert(fread(&le, sizeof(leaf_t), 1, leaf_f_)==1);
+        docs->load(doc_f_, le.DOCS());
+        le.DOCS_() = (uint64_t)docs;
+        leafs_.push_back(le);
+        (*e)[i].NID_() = LEAF_BOUND + leafs_.length()-1;
+      }
+
+    if (docs_.at(nid)!= (uint64_t)-1)
+    {
+      array32_t* docs = new array32_t();
+      docs->load(doc_f_, docs_.at(nid));
+      docs_[nid] = (uint64_t)docs;
+    }
+  }
+  
   void load_edge_(NID_LEN_TYPE nid, double ratio)
   {
     if (loads_.at(nid))
@@ -513,10 +580,34 @@ class Graph
     e->load(nid_f_, (uint64_t)nodes_.at(nid));
     nodes_[nid] = e;
     loads_[nid] = 1;
+
+    if (ratio>=1.)
+    {
+      for (typename sorted_edges_t::size_t i=0; i<e->length(); ++i)
+        if (e->at(i).NID()<LEAF_BOUND )
+          load_edge_(e->at(i).NID(), ratio);
+        else
+        {
+          fseek(leaf_f_, e->at(i).NID()-LEAF_BOUND, SEEK_SET);
+          leaf_t le;
+          array32_t* docs = new array32_t();
+        
+          assert(fread(&le, sizeof(leaf_t), 1, leaf_f_)==1);
+          docs->load(doc_f_, le.DOCS());
+          le.DOCS_() = (uint64_t)docs;
+          leafs_.push_back(le);
+          (*e)[i].NID_() = LEAF_BOUND + leafs_.length()-1;
+        }
+
+      if (docs_.at(nid)!= (uint64_t)-1)
+      {
+        array32_t* docs = new array32_t();
+        docs->load(doc_f_, docs_.at(nid));
+        docs_[nid] = (uint64_t)docs;
+      }
+      return;
+    }
     
-//     for (typename sorted_edges_t::size_t i=0; i<e->length(); ++i)
-//       if (e->at(i).NID()<LEAF_BOUND && freqs_.at(e->at(i).NID())>1)
-//         load_edge_(e->at(i).NID(), ratio);
     
 
     sort_freqs_t sf;
@@ -584,7 +675,7 @@ class Graph
       doclist += docs;
       return;
     }
-
+    
     if (docs_.at(nid)!= (uint64_t)-1)
       docs.load(doc_f_, docs_.at(nid));
     
@@ -663,12 +754,167 @@ public:
     sorter_ = new sorter_t(filenm_.c_str());
     sorter_->ready4add();
   }
+    
+  void ready4update()
+  {
+    for (NID_LEN_TYPE i=0; i<loads_.length(); ++i)
+      if (loads_.at(i))
+        delete nodes_.at(i);
+    
+    FILE* v_f = fopen((filenm_+".v").c_str(), "r");
+    nodes_.load(v_f);
+    freqs_.load(v_f);
+    docs_.load(v_f);
+    fclose(v_f);
+
+    leafs_.clear();
+    loads_.clear();
+    loads_.reserve(nodes_.length());
+    for (NID_LEN_TYPE i=0; i<nodes_.length(); ++i)
+      loads_.push_back(0);      
+    
+    nid_f_ = fopen((filenm_+".nid").c_str(), "r+");
+    doc_f_ = fopen((filenm_+".doc").c_str(), "r+");
+    leaf_f_ = fopen((filenm_+".lea").c_str(), "r+");
+  }
 
   uint32_t doc_num()const
   {
     return doc_num_;
   }
   
+  void append_terms(std::vector<uint32_t> terms, uint32_t docid)
+  {
+    static uint32_t last = -1;
+    if (docid != last)
+    {
+      last = docid;
+      ++doc_num_;
+    }
+
+    //id transfer
+    array32_t ids;
+    ids.reserve(terms.size());
+    for (uint32_t i=0; i<terms.size(); ++i)
+      ids.push_back(terms[i]/*id_mgr_.insert(terms[i])*/);
+
+    assert(ids.length() == terms.size());
+    
+    for (typename array32_t::size_t i=0; i<ids.length(); ++i)
+    {
+      edge_t tmp(0,0);
+      edge_t* next = &tmp;
+      for (array32_t::size_t j=i; j<ids.length(); ++j)
+      {
+        next = insert_(ids.at(j), next, false);
+
+        //docid should be added at the last term
+        if (j == ids.length()-1)
+        {//new leaf
+          if (next->NID() == nodes_.length())
+          {
+            array32_t* docs = new array32_t();
+            docs->push_back(docid);
+            leaf_t le(1, (uint64_t)docs);
+            next->NID_() = leafs_.length()+LEAF_BOUND;
+            leafs_.push_back(le);
+            break;
+          }
+
+          //leaf is already there
+          if (next->NID()>=LEAF_BOUND)
+          {
+            ((array32_t*)(leafs_[next->NID()-LEAF_BOUND].DOCS()))->push_back(docid);
+            leafs_[next->NID()-LEAF_BOUND].FREQ_()++;
+            break;
+          }
+
+          assert(next->NID()<nodes_.length());
+          ++freqs_[next->NID()];
+          load_edge_(next->NID());
+          
+          if (docs_.at(next->NID()) == (uint64_t)-1)
+            docs_[next->NID()] = (uint64_t)(new array32_t());
+          
+          ((array32_t*)docs_.at(next->NID()))->push_back(docid);
+        }
+      }
+    }
+  }
+  
+  void del_terms(std::vector<uint32_t> terms, uint32_t docid)
+  {
+    //id transfer
+    array32_t ids;
+    ids.reserve(terms.size());
+    for (uint32_t i=0; i<terms.size(); ++i)
+      ids.push_back(terms[i]/*id_mgr_.insert(terms[i])*/);
+
+    assert(ids.length() == terms.size());
+    
+    for (typename array32_t::size_t i=0; i<ids.length(); ++i)
+    {
+      NID_LEN_TYPE nid = 0;
+      sorted_edges_t* e = NULL;
+      typename sorted_edges_t::size_t t = 0;
+      
+      array32_t::size_t j=i;
+      for (; j<ids.length(); ++j)
+      {
+        if (nid>=LEAF_BOUND )
+        {
+          ++j;
+          break;
+        }
+        
+        load_edge_(nid);
+        
+        e = nodes_.at(nid);
+        t = e->find(edge_t(ids.at(j)));
+        if (t == sorted_edges_t::NOT_FOUND)
+          break;
+        
+        nid = e->at(t).NID();
+        if (nid>=LEAF_BOUND )
+          continue;
+        
+        freqs_[nid]--;
+        if (freqs_.at(nid)==0)
+          e->erase(t);
+      }
+      
+      if (j<ids.length())
+        continue;
+
+      array32_t* docs = NULL;
+      if (nid>=LEAF_BOUND )
+      {
+        if (leafs_.at(nid-LEAF_BOUND).FREQ()>0)
+          leafs_[nid-LEAF_BOUND].FREQ_()--;
+
+        if (leafs_.at(nid-LEAF_BOUND).FREQ() == 0)
+          e->erase(t);
+
+        docs = (array32_t*)leafs_[nid-LEAF_BOUND].DOCS();
+      }
+      else
+      {
+        load_edge_(nid);
+        docs = (array32_t*)docs_.at(nid);
+      }
+
+      if (docs == NULL || (uint64_t)docs == (uint64_t)-1)
+        continue;
+      
+      t = docs->find(docid);
+      while(t != sorted_edges_t::NOT_FOUND)
+      {
+        docs->erase(t);
+        t = docs->find(docid);
+      }
+    }
+  }
+
   void add_terms(std::vector<uint32_t> terms, uint32_t docid)
   {
     static uint32_t last = -1;
@@ -714,19 +960,14 @@ public:
     FILE* doc_f = fopen((filenm_+".doc").c_str(), "w+");
     FILE* leaf_f = fopen((filenm_+".lea").c_str(), "w+");
 
-    sorter_->ready4fetch();
-    
+    sorter_->ready4fetch();    
 
     TERM_TYPE last_term = 0;
     uint32_t  batch_size = 0;
     
     array32_t t;
-    uint32_t docid;
-    
-    nodes_.reserve(13000000);
-    docs_.reserve(13000000);
-    loads_.reserve(13000000);
-    freqs_.reserve(13000000);
+    uint32_t docid;    
+
     for (uint32_t i=0; i<sorter_->num(); ++i)
     {
       sorter_->next(t, docid);
@@ -745,8 +986,7 @@ public:
           batch_size = 0;
         }
       }
-
-
+      
       edge_t tmp(0,0);
       edge_t* next = &tmp;
       for (array32_t::size_t j=0; j<t.length(); ++j)
@@ -802,13 +1042,90 @@ public:
     fclose(leaf_f);
 
     std::cout<<"Nodes amount: "<<nodes_.length()<<std::endl;
-    // NID_LEN_TYPE c = 0;
-//     for (NID_LEN_TYPE i=0; i<freqs_.length(); ++i)
-//     {
-//       if (nodes_.at(i) == (sorted_edges_t*)-1)
-//         c++;
-//     }
-//     std::cout<<"Leaf is up to "<<(double)c/nodes_.length()*100.<<"%\n";
+
+    FILE* v_f = fopen((filenm_+".v").c_str(), "w+");
+    nodes_.save(v_f);
+    freqs_.save(v_f);
+    docs_.save(v_f);
+    fclose(v_f);
+
+    nodes_.clear();
+    loads_.clear();
+    freqs_.clear();
+    docs_.clear();
+    leafs_.clear();
+    
+    delete sorter_;
+    sorter_ = NULL;
+  }
+
+  void flush()
+  {
+    fseek(nid_f_, 0, SEEK_END);
+    fseek(doc_f_, 0, SEEK_END);
+    fseek(leaf_f_, 0, SEEK_END);
+    
+    save_edge_(nid_f_, doc_f_, leaf_f_, 0, true);
+
+    save_redundant_(nid_f_, doc_f_);
+        
+    fclose(nid_f_);
+    fclose(doc_f_);
+    fclose(leaf_f_);
+
+    FILE* v_f = fopen((filenm_+".v").c_str(), "w+");
+    nodes_.save(v_f);
+    freqs_.save(v_f);
+    docs_.save(v_f);
+    fclose(v_f);
+
+    nodes_.clear();
+    loads_.clear();
+    freqs_.clear();
+    docs_.clear();
+    leafs_.clear();
+  }
+
+  void compact()
+  {
+    ready4update();
+
+    load_edge_(0);
+    
+    FILE* nid_f = fopen((filenm_+".nid.tmp").c_str(), "w+");
+    FILE* doc_f = fopen((filenm_+".doc.tmp").c_str(), "w+");
+    FILE* leaf_f = fopen((filenm_+".lea.tmp").c_str(), "w+");
+
+    sorted_edges_t* e = nodes_.at(0);
+    for (typename edges_t::size_t i = 0; i<e->length(); ++i)
+    {
+      if (e->at(i).NID()<LEAF_BOUND )
+        load_edge_(e->at(i).NID(), 1.);
+      else
+      {
+        fseek(leaf_f_, e->at(i).NID()-LEAF_BOUND, SEEK_SET);
+        leaf_t le;
+        array32_t* docs = new array32_t();
+        
+        assert(fread(&le, sizeof(leaf_t), 1, leaf_f_)==1);
+        docs->load(doc_f_, le.DOCS());
+        le.DOCS_() = (uint64_t)docs;
+        leafs_.push_back(le);
+        (*e)[i].NID_() = LEAF_BOUND + leafs_.length()-1;
+      }
+      
+      if (i%BATCH_SAVE_SIZE==0)
+        save_edge_(nid_f, doc_f, leaf_f, 0);
+    }
+
+    save_edge_(nid_f, doc_f, leaf_f, 0, true);
+    save_redundant_(nid_f, doc_f);
+    fclose(nid_f);
+    fclose(doc_f);
+    fclose(leaf_f);
+    fclose(nid_f_);
+    fclose(doc_f_);
+    fclose(leaf_f_);
 
     FILE* v_f = fopen((filenm_+".v").c_str(), "w+");
     nodes_.save(v_f);
@@ -820,11 +1137,16 @@ public:
     freqs_.clear();
     docs_.clear();
     leafs_.clear();
-    
-    delete sorter_;
-    sorter_ = NULL;
-  }
 
+    remove((filenm_+".nid").c_str());
+    remove((filenm_+".doc").c_str());
+    remove((filenm_+".lea").c_str());
+
+    assert(rename((filenm_+".nid.tmp").c_str(), (filenm_+".nid").c_str())==0);
+    assert(rename((filenm_+".doc.tmp").c_str(), (filenm_+".doc").c_str())==0);
+    assert(rename((filenm_+".lea.tmp").c_str(), (filenm_+".lea").c_str())==0);
+  }
+  
   void ratio_load(double ratio = 0.9)
   {
     assert(ratio <= 1.);
@@ -850,6 +1172,8 @@ public:
     leaf_f_ = fopen((filenm_+".lea").c_str(), "r");
 
     load_edge_(0, ratio);
+
+    //std::cout<<docs_<<std::endl;
   }
 
   uint32_t get_freq(const std::vector<uint32_t>& terms)const
@@ -1030,8 +1354,9 @@ friend std::ostream& operator <<(std::ostream& os, const self_t& g)
           os <<"+"<<g.freqs_.at(i)<<"|"<<*g.nodes_.at(i)<<std::endl;
           continue;
         }
-        
+
         sorted_edges_t edges;
+        std::cout<<(uint64_t)g.nodes_.at(i)<<std::endl;
         edges.load(g.nid_f_, (uint64_t)g.nodes_.at(i));
         os<<g.freqs_.at(i)<<"|"<<edges<<std::endl;
       }
@@ -1051,6 +1376,10 @@ friend std::ostream& operator <<(std::ostream& os, const self_t& g)
     }
 
     return freqs_.at(nid);
+  }
+
+  void merge(self_t& other)
+  {
   }
   
   class NodeIterator;

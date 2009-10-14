@@ -117,7 +117,7 @@ protected:
 
   inline void assign_self()
   {
-    std::cout<<"assign_self............\n";
+    //std::cout<<"assign_self............\n";
     char* p = (char*)malloc(length_*sizeof(INTEGER_TYPE)+sizeof(ReferT));
     max_size_ = length_;
     memcpy(p + sizeof (ReferT), array_, capacity());
