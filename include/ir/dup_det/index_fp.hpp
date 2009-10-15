@@ -179,6 +179,11 @@ protected:
     if (f == NULL)
       return;
 
+    docid_hash_.reset();
+    docid_hash_.reserve(ENTRY_SIZE);
+    for (size_t i=0; i<ENTRY_SIZE; i++)
+      docid_hash_.add_tail(NULL);
+
     uint32_t i = -1;
     assert(fread(&i, sizeof(uint32_t), 1, f)==1);
     while (i!=(uint32_t)-1)
@@ -187,6 +192,7 @@ protected:
       uint32_t len = 0;
       assert(fread(&len, sizeof(uint32_t), 1, f)==1);
       assert(fread(docid_hash_[i]->array(len), sizeof(uint32_t)*len, 1, f)==1);
+      assert(fread(&i, sizeof(uint32_t), 1, f)==1);
     }
 
     fclose(f);
