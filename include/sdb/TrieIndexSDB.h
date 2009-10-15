@@ -10,7 +10,7 @@ namespace izenelib {
 namespace sdb {
 
 template <typename StringType, typename ElementType,
-		typename LockType =izenelib::util::NullLock> class TrieIndexSDB2 {
+		typename LockType =izenelib::util::NullLock> class TrieIndexSDB {
 public:
 	typedef uint32_t KeyType;
 	typedef typename StringType::value_type CharType;
@@ -23,7 +23,7 @@ public:
 	typedef izenelib::am::HDBTrie2<StringType, uint32_t, uint64_t, LockType>
 			TrieType;
 public:
-	TrieIndexSDB2(const string& fileName = "trie_index") :
+	TrieIndexSDB(const string& fileName = "trie_index") :
 		indexsdb_(fileName+".isdb"), triedb_(fileName + ".triedb") {
 	}
 	bool open() {
@@ -48,7 +48,7 @@ public:
 		uint32_t t;
 		if ( !triedb_.get(key, t) ) {
 			size_t pos = 0;
-			for (; pos<key.size(); pos++) {
+			for (; pos<key.length(); pos++) {
 				StringType suf = key.substr(pos);
 				add(suf, item);
 			}
@@ -81,11 +81,11 @@ private:
 };
 
 template <typename StringType, typename ElementType,
-		typename LockType =izenelib::util::NullLock> class TrieIndexSDB {
+		typename LockType =izenelib::util::NullLock> class TrieIndexSDB2 {
 	typedef SequentialDB<std::pair<StringType, ElementType>, NullType> SDBTYPE;
 	typedef typename SDBTYPE::SDBCursor SDBCursor;
 public:
-	TrieIndexSDB(const string& fileName = "trie_index2.dat") :
+	TrieIndexSDB2(const string& fileName = "trie_index2.dat") :
 		sdb_(fileName) {
 
 	}
@@ -128,8 +128,8 @@ public:
 	bool add_suffix(const StringType& key, const ElementType& item) {
 		if (sdb_.hasKey(make_pair(key, key) ) )
 			return false;
-		int pos = 0;
-		for (; pos<key.size(); pos++) {
+		size_t pos = 0;
+		for (; pos<key.length(); pos++) {
 			StringType suf = key.substr(pos);
 			add(suf, item);
 		}

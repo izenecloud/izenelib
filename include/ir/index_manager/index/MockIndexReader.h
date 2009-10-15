@@ -275,6 +275,18 @@ public:
 
     ~MockTermPositions(){}
 
+    freq_t	docFreq() { return MockTermDocFreqs::docFreq(); }
+
+    int64_t	getCTF() { return MockTermDocFreqs::getCTF();}
+
+    docid_t doc() { return MockTermDocFreqs::doc(); }
+
+    count_t freq() { return MockTermDocFreqs::freq(); }
+
+    freq_t docLength() { return MockTermDocFreqs::docLength(); }
+
+    virtual void close(){ MockTermDocFreqs::close(); }
+
     count_t next(docid_t*& docs, count_t*& freqs) {
         posCursor_ = 0;
         return MockTermDocFreqs::next(docs, freqs);
