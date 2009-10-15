@@ -106,7 +106,7 @@ namespace indexmanager {
         : index_(index), property_(term.getField()), termid_(term.getValue())
     {
         postings_ = index_->inverted_.find(std::pair<std::string, termid_t>(property_, termid_))->second;
-        cursor_ = 0;
+        cursor_ = -1;
 
         ctf_ = 0;
         for(size_t i=0; i<postings_.size(); i++) {

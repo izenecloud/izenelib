@@ -104,7 +104,7 @@ public:
 
             MockPostings::iterator it;
             for(it = postings.begin(); it < postings.end(); it++ ) {
-                if( boost::get<0>(*it) <= docid )
+                if( boost::get<0>(*it) >= docid )
                     break;
             }
 
@@ -158,16 +158,14 @@ public:
     * find the term in the vocabulary,return false if not found
     */
     bool seek(Term* pTerm) {
-        if(!term_ || term_->compare(pTerm)) {
-            if(!term_ ) {
-                term_ = new Term(*pTerm);
-            } else {
-                term_->setField(pTerm->getField());
-                term_->setValue(pTerm->getValue());
-            }
-            if( termInfo(term_) ) return true;
-            return false;
+        if(!term_ ) {
+            term_ = new Term(*pTerm);
+        } else if(term_->compare(pTerm)) {
+            term_->setField(pTerm->getField());
+            term_->setValue(pTerm->getValue());
         }
+        if( termInfo(term_) ) return true;
+        return false;
     }
 
     MockTermDocFreqs*	termDocFreqs();
@@ -245,8 +243,9 @@ public:
     }
 
     virtual bool next() {
-        if(cursor_ == postings_.size()) return false;
-        cursor_++; return true;
+        if(cursor_ == postings_.size() -1 ) return false;
+        cursor_++;
+        return true;
     }
 
     docid_t doc() { return boost::get<0>(postings_[cursor_]); }
