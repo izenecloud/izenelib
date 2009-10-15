@@ -200,7 +200,8 @@ void Indexer::initIndexManager()
 
         openDirectory();
 
-        pBTreeIndexer_ = new BTreeIndexer(pConfigurationManager_->indexStrategy_.indexLocation_, degree, cacheSize, maxDataSize);
+        if (!strcasecmp(pConfigurationManager_->storeStrategy_.param_.c_str(),"file"))
+            pBTreeIndexer_ = new BTreeIndexer(pConfigurationManager_->indexStrategy_.indexLocation_, degree, cacheSize, maxDataSize);
 
     }
     pIndexWriter_ = new IndexWriter(this);
@@ -661,84 +662,84 @@ bool Indexer::getTermFrequencyInCollectionByTermId( const vector<termid_t>& term
 }
 
 
-bool Indexer::getDocsByPropertyValue(collectionid_t colID, string property, PropertyType value, vector<docid_t>&docs)
+bool Indexer::getDocsByPropertyValue(collectionid_t colID, string property, PropertyType value, BitVector&docs)
 {
     fieldid_t fid = getPropertyIDByName(colID,property);
     pBTreeIndexer_->getValue(colID, fid, value, docs);
     return true;
 }
 
-bool Indexer::getDocsByPropertyValueRange(collectionid_t colID, string property, PropertyType value1, PropertyType value2, vector<docid_t>&docs)
+bool Indexer::getDocsByPropertyValueRange(collectionid_t colID, string property, PropertyType value1, PropertyType value2, BitVector&docs)
 {
     fieldid_t fid = getPropertyIDByName(colID,property);
     pBTreeIndexer_->getValueBetween(colID, fid, value1, value2, docs);
     return true;
 }
 
-bool Indexer::getDocsByPropertyValueLessThan(collectionid_t colID, string property, PropertyType value, vector<docid_t>&docList)
+bool Indexer::getDocsByPropertyValueLessThan(collectionid_t colID, string property, PropertyType value, BitVector&docList)
 {
     fieldid_t fid = getPropertyIDByName(colID,property);
     pBTreeIndexer_->getValueLess(colID, fid, value, docList);
     return true;
 }
 
-bool Indexer::getDocsByPropertyValueLessThanOrEqual(collectionid_t colID, string property, PropertyType value, vector<docid_t>&docList)
+bool Indexer::getDocsByPropertyValueLessThanOrEqual(collectionid_t colID, string property, PropertyType value, BitVector&docList)
 {
     fieldid_t fid = getPropertyIDByName(colID,property);
     pBTreeIndexer_->getValueLessEqual(colID, fid, value, docList);
     return true;
 }
 
-bool Indexer::getDocsByPropertyValueGreaterThan(collectionid_t colID, string property, PropertyType value, vector<docid_t>&docList)
+bool Indexer::getDocsByPropertyValueGreaterThan(collectionid_t colID, string property, PropertyType value, BitVector&docList)
 {
     fieldid_t fid = getPropertyIDByName(colID,property);
     pBTreeIndexer_->getValueGreat(colID, fid, value, docList);
     return true;
 }
 
-bool Indexer::getDocsByPropertyValueGreaterThanOrEqual(collectionid_t colID, string property, PropertyType value, vector<docid_t>&docList)
+bool Indexer::getDocsByPropertyValueGreaterThanOrEqual(collectionid_t colID, string property, PropertyType value, BitVector&docList)
 {
     fieldid_t fid = getPropertyIDByName(colID,property);
     pBTreeIndexer_->getValueGreatEqual(colID, fid, value, docList);
     return true;
 }
 
-bool Indexer::getDocsByPropertyValueIn(collectionid_t colID, string property, vector<PropertyType> values, vector<docid_t>&docList)
+bool Indexer::getDocsByPropertyValueIn(collectionid_t colID, string property, vector<PropertyType> values, BitVector&docList)
 {
     fieldid_t fid = getPropertyIDByName(colID,property);
     pBTreeIndexer_->getValueIn(colID, fid, values, docList);
     return true;
 }
 
-bool Indexer::getDocsByPropertyValueNotIn(collectionid_t colID, string property, vector<PropertyType> values, vector<docid_t>&docList)
+bool Indexer::getDocsByPropertyValueNotIn(collectionid_t colID, string property, vector<PropertyType> values, BitVector&docList)
 {
     fieldid_t fid = getPropertyIDByName(colID,property);
     pBTreeIndexer_->getValueNotIn(colID, fid, values, docList);
     return true;
 }
 
-bool Indexer::getDocsByPropertyValueNotEqual(collectionid_t colID, string property, PropertyType value, vector<docid_t>&docList)
+bool Indexer::getDocsByPropertyValueNotEqual(collectionid_t colID, string property, PropertyType value, BitVector&docList)
 {
     fieldid_t fid = getPropertyIDByName(colID,property);
     pBTreeIndexer_->getValueNotEqual(colID, fid, value, docList);
     return true;
 }
 
-bool Indexer::getDocsByPropertyValueStart(collectionid_t colID, string property, PropertyType value, vector<docid_t>&docList)
+bool Indexer::getDocsByPropertyValueStart(collectionid_t colID, string property, PropertyType value, BitVector&docList)
 {
     fieldid_t fid = getPropertyIDByName(colID,property);
     pBTreeIndexer_->getValueStart(colID, fid, value, docList);
     return true;
 }
 
-bool Indexer::getDocsByPropertyValueEnd(collectionid_t colID, string property, PropertyType value, vector<docid_t>&docList)
+bool Indexer::getDocsByPropertyValueEnd(collectionid_t colID, string property, PropertyType value, BitVector&docList)
 {
     fieldid_t fid = getPropertyIDByName(colID,property);
     pBTreeIndexer_->getValueEnd(colID, fid, value, docList);
     return true;
 }
 
-bool Indexer::getDocsByPropertyValueSubString(collectionid_t colID, string property, PropertyType value, vector<docid_t>&docList)
+bool Indexer::getDocsByPropertyValueSubString(collectionid_t colID, string property, PropertyType value, BitVector&docList)
 {
     fieldid_t fid = getPropertyIDByName(colID,property);
     pBTreeIndexer_->getValueSubString(colID, fid, value, docList);

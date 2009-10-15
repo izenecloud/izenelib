@@ -16,12 +16,10 @@
 
 #include <ir/index_manager/utility/system.h>
 #include <ir/index_manager/index/Term.h>
-#include <ir/index_manager/store/Directory.h>
 #include <ir/index_manager/index/TermInfo.h>
-#include <ir/index_manager/index/FieldInfo.h>
-#include <ir/index_manager/index/CollectionInfo.h>
-#include <ir/index_manager/index/FieldIndexer.h>
-#include <ir/index_manager/index/ForwardIndexReader.h>
+#include <ir/index_manager/index/AbsTermReader.h>
+#include <ir/index_manager/index/AbsTermIterator.h>
+
 
 NS_IZENELIB_IR_BEGIN
 
@@ -43,13 +41,18 @@ friend class MockTermDocFreqs;
 friend class MockTermPositions;
 
 public:
+
+    typedef boost::tuple<docid_t, count_t, freq_t, std::vector<loc_t> > MockPosting;
+
+    typedef std::vector<MockPosting> MockPostings;
+
     MockIndexReaderWriter();
 
     ~MockIndexReaderWriter();
 
     count_t numDocs() { return forward_.size(); }
 
-    count_t maxDoc() { return forward_.lower_bound((docid_t)-1)->first; }
+    count_t maxDoc() { return forward_.rbegin()->first; }
 
     freq_t docFreq(collectionid_t colID, Term* term);
 
@@ -58,7 +61,7 @@ public:
     /**
      * @param colID ignored
      */
-    MockTermReader* getTermReader(collectionid_t colID);
+    TermReader* getTermReader(collectionid_t colID);
 
 //    /// Not Implemented yet
 //    MockForwardIndexReader* getForwardIndexReader(){
@@ -68,8 +71,8 @@ public:
     /**
      * @param terms write space separated termid_t list
      */
-    bool insertDoc(docid_t docid ,
-            std::string& property, std::string& terms)
+    bool insertDoc(docid_t docid , const std::string& property,
+            const std::string& terms)
     {
         if ( terms.size() == 0 ) return false;
 
@@ -84,8 +87,8 @@ public:
         return insertDoc(docid, property, tl);
     }
 
-    bool insertDoc(docid_t docid ,
-            std::string& property, std::vector<termid_t>& terms)
+    bool insertDoc(docid_t docid , const std::string& property,
+            std::vector<termid_t>& terms)
     {
         if( !forward_.insert( std::make_pair(docid, std::make_pair(property, terms)) ).second )
             return false;
@@ -93,23 +96,23 @@ public:
         for(size_t i  =0; i< terms.size(); i++ ) {
             // get postings
             std::pair<std::string, termid_t> term = std::make_pair(property, terms[i]);
-            std::vector<boost::tuple<docid_t, count_t, freq_t, std::vector<loc_t> > >& postings = inverted_[term];
 
             // find posting
-            typedef std::vector<boost::tuple<docid_t, count_t, freq_t, std::vector<loc_t> > >::iterator Iter;
-            Iter it = postings.begin();
-            for( ; it != postings.end(); it ++ ) {
-                if( boost::get<0>(*it) <= docid )
+            MockPostings& postings = inverted_[term];
+
+            MockPostings::iterator it;
+            for(it = postings.begin(); it < postings.end(); it++ ) {
+                if( boost::get<0>(*it) >= docid )
                     break;
             }
 
             // update posting
-            if( boost::get<0>(*it) == docid ) {
+            if( it != postings.end() && boost::get<0>(*it) == docid ) {
                 boost::get<1>(*it) ++;
                 boost::get<3>(*it).push_back(i);
             } else {
                 // insert new posting
-                boost::tuple<docid_t, count_t, freq_t, std::vector<loc_t> > posting;
+                MockPosting posting;
                 boost::get<0>(posting) = docid;
                 boost::get<1>(posting) = 1;
                 boost::get<2>(posting) = terms.size();
@@ -125,14 +128,16 @@ private:
     std::map<docid_t, std::pair<std::string, std::vector<termid_t> > > forward_;
 
     /// <field, term> --> <docid, tf, docLen, positions>
-    std::map<std::pair<std::string, termid_t>,
-        std::vector<boost::tuple<docid_t, count_t, freq_t, std::vector<loc_t> > > > inverted_;
+    std::map<std::pair<std::string, termid_t>, MockPostings> inverted_;
 
     MockTermReader* reader_;
 
 };
 
-class MockTermReader {
+typedef MockIndexReaderWriter::MockPosting MockPosting;
+typedef MockIndexReaderWriter::MockPostings MockPostings;
+
+class MockTermReader : public TermReader {
 
 public:
 
@@ -146,26 +151,24 @@ public:
     /// Nothing to do
     void close(){}
 
-    MockTermIterator* termIterator(const char* field);
+    TermIterator* termIterator(const char* field);
     /**
     * find the term in the vocabulary,return false if not found
     */
     bool seek(Term* pTerm) {
-        if(!term_ || term_->compare(pTerm)) {
-            if(!term_ ) {
-                term_ = new Term(*pTerm);
-            } else {
-                term_->setField(pTerm->getField());
-                term_->setValue(pTerm->getValue());
-            }
-            if( termInfo(term_) ) return true;
-            return false;
+        if(!term_ ) {
+            term_ = new Term(*pTerm);
+        } else if(term_->compare(pTerm)) {
+            term_->setField(pTerm->getField());
+            term_->setValue(pTerm->getValue());
         }
+        if( termInfo(term_) ) return true;
+        return false;
     }
 
-    MockTermDocFreqs*	termDocFreqs();
+    TermDocFreqs*	termDocFreqs();
 
-    MockTermPositions*	termPositions();
+    TermPositions*	termPositions();
 
     freq_t docFreq(Term* term) {
         TermInfo* ti = termInfo(term);
@@ -173,11 +176,11 @@ public:
         return 0;
     }
 
-    TermInfo* termInfo(Term* term);
-
-    MockTermReader*	clone() {
-        return new MockTermReader(index_);
+    TermReader*	clone() {
+        return (TermReader*) (new MockTermReader(index_));
     }
+
+    TermInfo* termInfo(Term* term);
 
 private:
 
@@ -188,7 +191,7 @@ private:
 };
 
 /// Mock object for TermIterator
-class MockTermIterator {
+class MockTermIterator : public TermIterator {
 public:
     MockTermIterator(MockIndexReaderWriter* index, std::string property);
 
@@ -208,19 +211,22 @@ public:
         return &termInfo_;
     };
 
+    Posting* termPosting() {
+        return NULL;
+    }
+
 private:
     MockIndexReaderWriter* index_;
     std::string property_;
 
-    std::map<std::pair<std::string, termid_t>,
-        std::vector<boost::tuple<docid_t, count_t, freq_t, std::vector<loc_t> > > > ::iterator cursor_;
+    std::map<std::pair<std::string, termid_t>, MockPostings> ::iterator cursor_;
 
     Term term_;
     TermInfo termInfo_;
 };
 
 /// Mock object for TermDocFreqs
-class MockTermDocFreqs {
+class MockTermDocFreqs : public TermDocFreqs {
 public:
     MockTermDocFreqs(MockIndexReaderWriter* index, Term& term);
 
@@ -239,8 +245,9 @@ public:
     }
 
     virtual bool next() {
-        if(cursor_ == postings_.size()) return false;
-        cursor_++; return true;
+        if(cursor_ == postings_.size() -1 ) return false;
+        cursor_++;
+        return true;
     }
 
     docid_t doc() { return boost::get<0>(postings_[cursor_]); }
@@ -256,17 +263,29 @@ protected:
     std::string property_;
     termid_t termid_;
 
-    std::vector<boost::tuple<docid_t, count_t, freq_t, std::vector<loc_t> > > postings_;
+    MockPostings postings_;
     int64_t ctf_;
     size_t cursor_;
 };
 
 /// Mock object of TermPostions
-class MockTermPositions : public MockTermDocFreqs {
+class MockTermPositions : public MockTermDocFreqs , public TermPositions {
 public:
     MockTermPositions(MockIndexReaderWriter* index, Term& term) : MockTermDocFreqs(index, term) {};
 
     ~MockTermPositions(){}
+
+    freq_t	docFreq() { return MockTermDocFreqs::docFreq(); }
+
+    int64_t	getCTF() { return MockTermDocFreqs::getCTF();}
+
+    docid_t doc() { return MockTermDocFreqs::doc(); }
+
+    count_t freq() { return MockTermDocFreqs::freq(); }
+
+    freq_t docLength() { return MockTermDocFreqs::docLength(); }
+
+    virtual void close(){ MockTermDocFreqs::close(); }
 
     count_t next(docid_t*& docs, count_t*& freqs) {
         posCursor_ = 0;

@@ -47,8 +47,8 @@ public:
 	bool add_suffix(const StringType& key, const ElementType& item) {
 		uint32_t t;
 		if ( !triedb_.get(key, t) ) {
-			unsigned int pos = 0;
-			for (; pos<key.size(); pos++) {
+			size_t pos = 0;
+			for (; pos<key.length(); pos++) {
 				StringType suf = key.substr(pos);
 				add(suf, item);
 			}
@@ -128,7 +128,7 @@ public:
 	bool add_suffix(const StringType& key, const ElementType& item) {
 		if (sdb_.hasKey(make_pair(key, key) ) )
 			return false;
-		unsigned int pos = 0;
+		size_t pos = 0;
 		for (; pos<key.length(); pos++) {
 			StringType suf = key.substr(pos);
 			add(suf, item);
