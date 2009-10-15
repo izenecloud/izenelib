@@ -176,7 +176,7 @@ template<  typename ServiceHandle, typename MapType > bool MFServer<
 
 template<  typename ServiceHandle, typename MapType > bool MFServer<
 		 ServiceHandle, MapType>::registerServiceList() {
-	assert(messageServer_->getAgentInfo() != "" )
+	assert(messageServer_->getAgentInfo() != "" );
 	typename MapType::iterator iter = serviceList_.begin();
 			for ( ; iter != serviceList_.end(); iter++ )
 			{
