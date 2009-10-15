@@ -58,12 +58,12 @@ BTreeIndexer::~BTreeIndexer()
 {
     flush();
 
-    if(pBTreeIntIndexer_) delete pBTreeIntIndexer_;
-    if(pBTreeUIntIndexer_) delete pBTreeUIntIndexer_;
-    if(pBTreeFloatIndexer_) delete pBTreeFloatIndexer_;
-    if(pBTreeDoubleIndexer_) delete pBTreeDoubleIndexer_;
-    if(pBTreeUStrIndexer_) delete pBTreeUStrIndexer_;
-    if(pBTreeUStrSuffixIndexer_) delete pBTreeUStrSuffixIndexer_;
+    if(pBTreeIntIndexer_) {delete pBTreeIntIndexer_; pBTreeIntIndexer_ = NULL;}
+    if(pBTreeUIntIndexer_) {delete pBTreeUIntIndexer_; pBTreeUIntIndexer_ = NULL;
+    if(pBTreeFloatIndexer_) {delete pBTreeFloatIndexer_; pBTreeFloatIndexer_ = NULL;}
+    if(pBTreeDoubleIndexer_) {delete pBTreeDoubleIndexer_; pBTreeDoubleIndexer_ = NULL;}
+    if(pBTreeUStrIndexer_) {delete pBTreeUStrIndexer_; pBTreeUStrIndexer_ = NULL;}
+    if(pBTreeUStrSuffixIndexer_) {delete pBTreeUStrSuffixIndexer_; pBTreeUStrSuffixIndexer_ = NULL;}
 }
 
 void BTreeIndexer::add(collectionid_t colID, fieldid_t fid, PropertyType& value, docid_t docid)
