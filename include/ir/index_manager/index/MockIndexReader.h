@@ -16,12 +16,10 @@
 
 #include <ir/index_manager/utility/system.h>
 #include <ir/index_manager/index/Term.h>
-#include <ir/index_manager/store/Directory.h>
 #include <ir/index_manager/index/TermInfo.h>
-#include <ir/index_manager/index/FieldInfo.h>
-#include <ir/index_manager/index/CollectionInfo.h>
-#include <ir/index_manager/index/FieldIndexer.h>
-#include <ir/index_manager/index/ForwardIndexReader.h>
+#include <ir/index_manager/index/AbsTermReader.h>
+#include <ir/index_manager/index/AbsTermIterator.h>
+
 
 NS_IZENELIB_IR_BEGIN
 
@@ -63,7 +61,7 @@ public:
     /**
      * @param colID ignored
      */
-    MockTermReader* getTermReader(collectionid_t colID);
+    TermReader* getTermReader(collectionid_t colID);
 
 //    /// Not Implemented yet
 //    MockForwardIndexReader* getForwardIndexReader(){
@@ -139,7 +137,7 @@ private:
 typedef MockIndexReaderWriter::MockPosting MockPosting;
 typedef MockIndexReaderWriter::MockPostings MockPostings;
 
-class MockTermReader {
+class MockTermReader : public TermReader {
 
 public:
 
@@ -153,7 +151,7 @@ public:
     /// Nothing to do
     void close(){}
 
-    MockTermIterator* termIterator(const char* field);
+    TermIterator* termIterator(const char* field);
     /**
     * find the term in the vocabulary,return false if not found
     */
@@ -168,9 +166,9 @@ public:
         return false;
     }
 
-    MockTermDocFreqs*	termDocFreqs();
+    TermDocFreqs*	termDocFreqs();
 
-    MockTermPositions*	termPositions();
+    TermPositions*	termPositions();
 
     freq_t docFreq(Term* term) {
         TermInfo* ti = termInfo(term);
@@ -178,11 +176,11 @@ public:
         return 0;
     }
 
-    TermInfo* termInfo(Term* term);
-
-    MockTermReader*	clone() {
-        return new MockTermReader(index_);
+    TermReader*	clone() {
+        return (TermReader*) (new MockTermReader(index_));
     }
+
+    TermInfo* termInfo(Term* term);
 
 private:
 
@@ -193,7 +191,7 @@ private:
 };
 
 /// Mock object for TermIterator
-class MockTermIterator {
+class MockTermIterator : public TermIterator {
 public:
     MockTermIterator(MockIndexReaderWriter* index, std::string property);
 
@@ -213,6 +211,10 @@ public:
         return &termInfo_;
     };
 
+    Posting* termPosting() {
+        return NULL;
+    }
+
 private:
     MockIndexReaderWriter* index_;
     std::string property_;
@@ -224,7 +226,7 @@ private:
 };
 
 /// Mock object for TermDocFreqs
-class MockTermDocFreqs {
+class MockTermDocFreqs : public TermDocFreqs {
 public:
     MockTermDocFreqs(MockIndexReaderWriter* index, Term& term);
 
@@ -267,7 +269,7 @@ protected:
 };
 
 /// Mock object of TermPostions
-class MockTermPositions : public MockTermDocFreqs {
+class MockTermPositions : public MockTermDocFreqs , public TermPositions {
 public:
     MockTermPositions(MockIndexReaderWriter* index, Term& term) : MockTermDocFreqs(index, term) {};
 

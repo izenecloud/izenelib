@@ -25,10 +25,10 @@ namespace indexmanager {
     /**
      * @param colID ignored
      */
-    MockTermReader* MockIndexReaderWriter::getTermReader(collectionid_t colID) {
+    TermReader* MockIndexReaderWriter::getTermReader(collectionid_t colID) {
         if(reader_ == NULL)
             reader_ = new MockTermReader(this);
-        return reader_;
+        return (TermReader*)reader_;
     }
 
 //    /// Not Implemented yet
@@ -49,19 +49,19 @@ namespace indexmanager {
         if(termInfo_) delete termInfo_;
     }
 
-    MockTermIterator* MockTermReader::termIterator(const char* field)
+    TermIterator* MockTermReader::termIterator(const char* field)
     {
-        return new MockTermIterator(index_, std::string(field) );
+        return (TermIterator*)new MockTermIterator(index_, std::string(field) );
     }
 
-    MockTermDocFreqs*	MockTermReader::termDocFreqs()
+    TermDocFreqs*	MockTermReader::termDocFreqs()
     {
-        return new MockTermDocFreqs(index_, *term_);
+        return (TermDocFreqs*)new MockTermDocFreqs(index_, *term_);
     }
 
-    MockTermPositions*	MockTermReader::termPositions()
+    TermPositions*	MockTermReader::termPositions()
     {
-        return new MockTermPositions(index_, *term_);
+        return (TermPositions*)new MockTermPositions(index_, *term_);
     }
 
     TermInfo* MockTermReader::termInfo(Term* term)
