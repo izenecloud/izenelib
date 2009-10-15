@@ -33,21 +33,21 @@ public:
 
     virtual ~TermDocFreqs();
 public:
-    freq_t	docFreq();
+    virtual freq_t	docFreq();
 
-    int64_t	getCTF();
+    virtual int64_t	getCTF();
 
-    count_t next(docid_t*& docs, count_t*& freqs);
+    virtual count_t next(docid_t*& docs, count_t*& freqs);
 
-    bool next();
+    virtual bool next();
 
-    docid_t doc();
+    virtual docid_t doc();
 
-    count_t freq();
+    virtual count_t freq();
 
-    freq_t docLength();
+    virtual freq_t docLength();
 
-    void close();
+    virtual void close();
 
 protected:
 

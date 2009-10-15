@@ -8,7 +8,7 @@ namespace indexmanager {
      *                   MockIndexReaderWriter
      **************************************************************/
 
-    MockIndexReaderWriter::MockIndexReaderWriter(){}
+    MockIndexReaderWriter::MockIndexReaderWriter() : reader_(NULL) {}
 
     MockIndexReaderWriter::~MockIndexReaderWriter(){
         if(reader_) delete reader_;
@@ -25,10 +25,10 @@ namespace indexmanager {
     /**
      * @param colID ignored
      */
-    MockTermReader* MockIndexReaderWriter::getTermReader(collectionid_t colID) {
+    TermReader* MockIndexReaderWriter::getTermReader(collectionid_t colID) {
         if(reader_ == NULL)
             reader_ = new MockTermReader(this);
-        return reader_;
+        return (TermReader*)reader_;
     }
 
 //    /// Not Implemented yet
@@ -49,25 +49,24 @@ namespace indexmanager {
         if(termInfo_) delete termInfo_;
     }
 
-    MockTermIterator* MockTermReader::termIterator(const char* field)
+    TermIterator* MockTermReader::termIterator(const char* field)
     {
-        return new MockTermIterator(index_, std::string(field) );
+        return (TermIterator*)new MockTermIterator(index_, std::string(field) );
     }
 
-    MockTermDocFreqs*	MockTermReader::termDocFreqs()
+    TermDocFreqs*	MockTermReader::termDocFreqs()
     {
-        return new MockTermDocFreqs(index_, *term_);
+        return (TermDocFreqs*)new MockTermDocFreqs(index_, *term_);
     }
 
-    MockTermPositions*	MockTermReader::termPositions()
+    TermPositions*	MockTermReader::termPositions()
     {
-        return new MockTermPositions(index_, *term_);
+        return (TermPositions*)new MockTermPositions(index_, *term_);
     }
 
     TermInfo* MockTermReader::termInfo(Term* term)
     {
-        typedef std::map<std::pair<std::string, termid_t>,
-            std::vector<boost::tuple<docid_t, count_t, freq_t, std::vector<loc_t> > > >::iterator Iter;
+        typedef std::map<std::pair<std::string, termid_t>, MockPostings>::iterator Iter;
         Iter it = index_->inverted_.find(std::make_pair(std::string(term->getField()), term->getValue()));
         if(it == index_->inverted_.end()) return NULL;
 
@@ -107,7 +106,7 @@ namespace indexmanager {
         : index_(index), property_(term.getField()), termid_(term.getValue())
     {
         postings_ = index_->inverted_.find(std::pair<std::string, termid_t>(property_, termid_))->second;
-        cursor_ = 0;
+        cursor_ = -1;
 
         ctf_ = 0;
         for(size_t i=0; i<postings_.size(); i++) {
