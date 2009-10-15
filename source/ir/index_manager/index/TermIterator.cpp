@@ -116,6 +116,20 @@ size_t DiskTermIterator::setBuffer(char* pBuffer,size_t bufSize)
         return bufSize;
     }
 }
+
+//////////////////////////////////////////////////////////////////////////
+//
+UnOrderedDiskTermIterator::UnOrderedDiskTermIterator(DiskTermReader* termReader)
+        :DiskTermIterator(termReader)
+        ,currTermIter(termReader->getTermTable()->begin())
+        ,termIterEnd(termReader->getTermTable()->end())
+{
+}
+
+UnOrderedDiskTermIterator::~UnOrderedDiskTermIterator(void)
+{
+}
+
 //////////////////////////////////////////////////////////////////////////
 //
 InMemoryTermIterator::InMemoryTermIterator(InMemoryTermReader* pTermReader)

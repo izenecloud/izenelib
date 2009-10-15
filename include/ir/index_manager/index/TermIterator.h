@@ -13,6 +13,7 @@
 #include <ir/index_manager/index/TermInfo.h>
 #include <ir/index_manager/index/AbsTermIterator.h>
 
+#include <3rdparty/am/rde_hashmap/hash_map.h>
 #include <3rdparty/am/stx/btree_map>
 
 NS_IZENELIB_IR_BEGIN
@@ -22,6 +23,7 @@ class Posting;
 class InputDescriptor;
 class DiskTermReader;
 typedef stx::btree_map<termid_t, TermInfo > ORDERED_TERM_TABLE;
+typedef rde::hash_map<termid_t, TermInfo > TERM_TABLE;
 
 /**
 * Iterate terms from index barrel files(*.voc)
@@ -64,14 +66,27 @@ public:
      * @return actual size used
      */
     size_t   setBuffer(char* pBuffer,size_t bufSize);
-private:
+protected:
     DiskTermReader* pTermReader;      ///parent term reader
     Term* pCurTerm;         ///current term in this iterator
     TermInfo* pCurTermInfo;      ///current term info in this iterator
     Posting* pCurTermPosting;   ///current term's posting in this iterator
     InputDescriptor* pInputDescriptor;
+private:
     ORDERED_TERM_TABLE::iterator currTermIter;
     ORDERED_TERM_TABLE::iterator termIterEnd;	
+};
+
+
+class UnOrderedDiskTermIterator : public DiskTermIterator
+{
+public:
+    UnOrderedDiskTermIterator(DiskTermReader* pTermReader);
+
+    virtual ~UnOrderedDiskTermIterator(void);
+private:
+    TERM_TABLE::iterator currTermIter;
+    TERM_TABLE::iterator termIterEnd;	
 };
 
 class InMemoryTermReader;
