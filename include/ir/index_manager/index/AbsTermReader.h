@@ -49,7 +49,6 @@ public:
      */
     virtual TermReader*	clone() = 0;
 
-protected:
     virtual TermInfo* termInfo(Term* term)
     {
         return NULL;

@@ -200,7 +200,8 @@ void Indexer::initIndexManager()
 
         openDirectory();
 
-        pBTreeIndexer_ = new BTreeIndexer(pConfigurationManager_->indexStrategy_.indexLocation_, degree, cacheSize, maxDataSize);
+        if (!strcasecmp(pConfigurationManager_->storeStrategy_.param_.c_str(),"file"))
+            pBTreeIndexer_ = new BTreeIndexer(pConfigurationManager_->indexStrategy_.indexLocation_, degree, cacheSize, maxDataSize);
 
     }
     pIndexWriter_ = new IndexWriter(this);
