@@ -33,6 +33,8 @@ public:
 			);
 	bool createServiceList(MapType& serviceList) {
 		serviceList_ = serviceList;
+		if( !registerServiceList() )
+		 		return false;  
 		return createThreadObjectPool();
 			
 	}
@@ -40,6 +42,7 @@ public:
 		serviceHandle_ = serviceHandle;		
 	}
 	
+	//must be called before createServiceList
 	void setAgentInfo(const string& agentInfo){
 		messageServer_->setAgentInfo(agentInfo);
 	}
@@ -92,9 +95,7 @@ template< typename ServiceHandle, typename MapType > bool MFServer<
     wiselib::thread_pool::ThreadObject* threadObject = NULL;
     WorkerThread<ServiceHandle>* workerObject = NULL;
     try
-    {     
-    	if( !registerServiceList() )
-    		return false;  
+    { 
     	assert(serviceHandle_ != NULL);
         // main loop    	
         vector< ServiceRequestInfoPtr > requests;
@@ -175,6 +176,7 @@ template<  typename ServiceHandle, typename MapType > bool MFServer<
 
 template<  typename ServiceHandle, typename MapType > bool MFServer<
 		 ServiceHandle, MapType>::registerServiceList() {
+	assert(messageServer_->getAgentInfo() != "" )
 	typename MapType::iterator iter = serviceList_.begin();
 			for ( ; iter != serviceList_.end(); iter++ )
 			{
