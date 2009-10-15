@@ -74,10 +74,56 @@ public:
      * @param terms write space separated termid_t list
      */
     bool insertDoc(docid_t docid , const std::string& property,
-            const std::string& terms);
+            const std::string& terms)
+    {
+        if ( terms.size() == 0 ) return false;
+
+        std::vector<termid_t> tl;
+        termid_t t;
+
+        std::stringstream ss(terms);
+        while(!ss.eof()) {
+            ss >> t;
+            tl.push_back(t);
+        }
+        return insertDoc(docid, property, tl);
+    }
 
     bool insertDoc(docid_t docid , const std::string& property,
-            std::vector<termid_t>& terms);
+            std::vector<termid_t>& terms)
+    {
+        if( !forward_.insert( std::make_pair(docid, std::make_pair(property, terms)) ).second )
+            return false;
+
+        for(size_t i  =0; i< terms.size(); i++ ) {
+            // get postings
+            std::pair<std::string, termid_t> term = std::make_pair(property, terms[i]);
+
+            // find posting
+            MockPostings& postings = inverted_[term];
+
+            MockPostings::iterator it;
+            for(it = postings.begin(); it < postings.end(); it++ ) {
+                if( boost::get<0>(*it) <= docid )
+                    break;
+            }
+
+            // update posting
+            if( it != postings.end() && boost::get<0>(*it) == docid ) {
+                boost::get<1>(*it) ++;
+                boost::get<3>(*it).push_back(i);
+            } else {
+                // insert new posting
+                MockPosting posting;
+                boost::get<0>(posting) = docid;
+                boost::get<1>(posting) = 1;
+                boost::get<2>(posting) = terms.size();
+                boost::get<3>(posting).push_back(i);
+                postings.insert(it, posting);
+            }
+        }
+        return true;
+    }
 
 private:
 
