@@ -124,6 +124,7 @@ class BTreeIndex:public izenelib::sdb::IndexSDB<KeyType,docid_t>
     typedef izenelib::sdb::iKeyType<KeyType> myKeyType;
     typedef std::vector<docid_t> myValueType;
     typedef DataType<myKeyType, myValueType> myDataType;
+public:
     typedef typename IndexSDB<KeyType,docid_t>::IndexSDBCursor IndexSDBCursor;
 
 
