@@ -59,7 +59,7 @@ BTreeIndexer::~BTreeIndexer()
     flush();
 
     if(pBTreeIntIndexer_) {delete pBTreeIntIndexer_; pBTreeIntIndexer_ = NULL;}
-    if(pBTreeUIntIndexer_) {delete pBTreeUIntIndexer_; pBTreeUIntIndexer_ = NULL;
+    if(pBTreeUIntIndexer_) {delete pBTreeUIntIndexer_; pBTreeUIntIndexer_ = NULL;}
     if(pBTreeFloatIndexer_) {delete pBTreeFloatIndexer_; pBTreeFloatIndexer_ = NULL;}
     if(pBTreeDoubleIndexer_) {delete pBTreeDoubleIndexer_; pBTreeDoubleIndexer_ = NULL;}
     if(pBTreeUStrIndexer_) {delete pBTreeUStrIndexer_; pBTreeUStrIndexer_ = NULL;}
