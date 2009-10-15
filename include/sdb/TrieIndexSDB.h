@@ -10,7 +10,7 @@ namespace izenelib {
 namespace sdb {
 
 template <typename StringType, typename ElementType,
-		typename LockType =izenelib::util::NullLock> class TrieIndexSDB {
+		typename LockType =izenelib::util::NullLock> class TrieIndexSDB2 {
 public:
 	typedef uint32_t KeyType;
 	typedef typename StringType::value_type CharType;
@@ -23,7 +23,7 @@ public:
 	typedef izenelib::am::HDBTrie2<StringType, uint32_t, uint64_t, LockType>
 			TrieType;
 public:
-	TrieIndexSDB(const string& fileName = "trie_index") :
+	TrieIndexSDB2(const string& fileName = "trie_index") :
 		indexsdb_(fileName+".isdb"), triedb_(fileName + ".triedb") {
 	}
 	bool open() {
@@ -81,11 +81,11 @@ private:
 };
 
 template <typename StringType, typename ElementType,
-		typename LockType =izenelib::util::NullLock> class TrieIndexSDB2 {
+		typename LockType =izenelib::util::NullLock> class TrieIndexSDB {
 	typedef SequentialDB<std::pair<StringType, ElementType>, NullType> SDBTYPE;
 	typedef typename SDBTYPE::SDBCursor SDBCursor;
 public:
-	TrieIndexSDB2(const string& fileName = "trie_index2.dat") :
+	TrieIndexSDB(const string& fileName = "trie_index2.dat") :
 		sdb_(fileName) {
 
 	}
@@ -100,7 +100,7 @@ public:
 		NullType sval;
 		while (sdb_.get(locn, skey, sval) ) {
 			if (isPrefix1(key, skey.first) ) {
-				cout<<skey.first<<"+"<<skey.second<<endl;
+				//cout<<skey.first<<"+"<<skey.second<<endl;
 				result.push_back(skey.second);
 				sdb_.seq(locn);
 			} else
@@ -116,7 +116,7 @@ public:
 		NullType sval;
 		while (sdb_.get(locn, skey, sval) ) {
 			if (key == skey.first) {
-				cout<<skey.first<<"+"<<skey.second<<endl;
+				//cout<<skey.first<<"+"<<skey.second<<endl;
 				result.push_back(skey.second);
 				sdb_.seq(locn);
 			} else
