@@ -16,6 +16,7 @@
 #include <ir/index_manager/index/BTreeIndex.h>
 #include <ir/index_manager/index/IndexerDocument.h>
 #include <ir/index_manager/store/Directory.h>
+#include <ir/index_manager/utility/BitVector.h>
 
 #include <boost/noncopyable.hpp>
 #include <boost/thread.hpp>
@@ -82,29 +83,29 @@ public:
     
     bool getTermFrequencyInCollectionByTermId ( const std::vector<termid_t>& termIdList, const unsigned int collectionId, const std::vector<std::string>& propertyList, std::vector<unsigned int>& termFrequencyList );
 
-    bool getDocsByPropertyValue(collectionid_t colID, std::string property, PropertyType value, std::vector<docid_t>& docs);
+    bool getDocsByPropertyValue(collectionid_t colID, std::string property, PropertyType value, BitVector& docs);
 
-    bool getDocsByPropertyValueRange(collectionid_t colID, std::string property, PropertyType value1, PropertyType value2, std::vector<docid_t>& docs);
+    bool getDocsByPropertyValueRange(collectionid_t colID, std::string property, PropertyType value1, PropertyType value2, BitVector& docs);
 
-    bool getDocsByPropertyValueLessThan(collectionid_t colID, std::string property, PropertyType value, std::vector<docid_t>&docList);
+    bool getDocsByPropertyValueLessThan(collectionid_t colID, std::string property, PropertyType value, BitVector&docList);
 
-    bool getDocsByPropertyValueLessThanOrEqual(collectionid_t colID, std::string property, PropertyType value, std::vector<docid_t>&docList);
+    bool getDocsByPropertyValueLessThanOrEqual(collectionid_t colID, std::string property, PropertyType value, BitVector&docList);
 
-    bool getDocsByPropertyValueGreaterThan(collectionid_t colID, std::string property, PropertyType value, std::vector<docid_t>&docList);
+    bool getDocsByPropertyValueGreaterThan(collectionid_t colID, std::string property, PropertyType value, BitVector&docList);
 
-    bool getDocsByPropertyValueGreaterThanOrEqual(collectionid_t colID, std::string property, PropertyType value, std::vector<docid_t>&docList);
+    bool getDocsByPropertyValueGreaterThanOrEqual(collectionid_t colID, std::string property, PropertyType value, BitVector&docList);
 
-    bool getDocsByPropertyValueIn(collectionid_t colID, std::string property, std::vector<PropertyType> values, std::vector<docid_t>&docList);
+    bool getDocsByPropertyValueIn(collectionid_t colID, std::string property, std::vector<PropertyType> values, BitVector&docList);
 
-    bool getDocsByPropertyValueNotIn(collectionid_t colID, std::string property, std::vector<PropertyType> values, std::vector<docid_t>&docList);
+    bool getDocsByPropertyValueNotIn(collectionid_t colID, std::string property, std::vector<PropertyType> values, BitVector&docList);
 
-    bool getDocsByPropertyValueNotEqual(collectionid_t colID, std::string property, PropertyType value, std::vector<docid_t>&docList);
+    bool getDocsByPropertyValueNotEqual(collectionid_t colID, std::string property, PropertyType value, BitVector&docList);
 
-    bool getDocsByPropertyValueStart(collectionid_t colID, std::string property, PropertyType value, std::vector<docid_t>&docList);
+    bool getDocsByPropertyValueStart(collectionid_t colID, std::string property, PropertyType value, BitVector&docList);
 
-    bool getDocsByPropertyValueEnd(collectionid_t colID, std::string property, PropertyType value, std::vector<docid_t>&docList);
+    bool getDocsByPropertyValueEnd(collectionid_t colID, std::string property, PropertyType value, BitVector&docList);
 
-    bool getDocsByPropertyValueSubString(collectionid_t colID, std::string property, PropertyType value, std::vector<docid_t>&docList);
+    bool getDocsByPropertyValueSubString(collectionid_t colID, std::string property, PropertyType value, BitVector&docList);
 
 public:
     void setIndexManagerConfig(IndexManagerConfig* pConfigManager,const std::map<std::string, uint32_t>& collectionIdMapping);

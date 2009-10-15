@@ -47,7 +47,7 @@ public:
 	bool add_suffix(const StringType& key, const ElementType& item) {
 		uint32_t t;
 		if ( !triedb_.get(key, t) ) {
-			int pos = 0;
+			size_t pos = 0;
 			for (; pos<key.size(); pos++) {
 				StringType suf = key.substr(pos);
 				add(suf, item);
