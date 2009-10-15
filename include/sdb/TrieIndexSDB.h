@@ -49,7 +49,7 @@ public:
 		if ( !triedb_.get(key, t) ) {
 			int pos = 0;
 			for (; pos<key.size(); pos++) {
-				string suf = key.substr(pos);
+				StringType suf = key.substr(pos);
 				add(suf, item);
 			}
 		}
@@ -130,7 +130,7 @@ public:
 			return false;
 		int pos = 0;
 		for (; pos<key.size(); pos++) {
-			string suf = key.substr(pos);
+			StringType suf = key.substr(pos);
 			add(suf, item);
 		}
 		return false;
