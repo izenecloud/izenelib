@@ -137,7 +137,7 @@ protected:
       
       docid_hash_.at(j)->push_back(docid);
     }
-
+/*
     {
       uint32_t docid = -1;
       size_t j = docid%ENTRY_SIZE;
@@ -146,7 +146,7 @@ protected:
         docid_hash_[j] = new Vector32();
       
       docid_hash_.at(j)->push_back(docid);
-    }
+    }*/
   }
 
   inline void save_docid_hash()
@@ -179,6 +179,11 @@ protected:
     if (f == NULL)
       return;
 
+    docid_hash_.reset();
+    docid_hash_.reserve(ENTRY_SIZE);
+    for (size_t i=0; i<ENTRY_SIZE; i++)
+      docid_hash_.add_tail(NULL);
+
     uint32_t i = -1;
     assert(fread(&i, sizeof(uint32_t), 1, f)==1);
     while (i!=(uint32_t)-1)
@@ -187,6 +192,7 @@ protected:
       uint32_t len = 0;
       assert(fread(&len, sizeof(uint32_t), 1, f)==1);
       assert(fread(docid_hash_[i]->array(len), sizeof(uint32_t)*len, 1, f)==1);
+      assert(fread(&i, sizeof(uint32_t), 1, f)==1);
     }
 
     fclose(f);
@@ -329,7 +335,7 @@ public:
   void del_docs(const std::vector<uint32_t>& docids)
   {
     ready_for_insert();
-    uint32_t num = fp_list_->doc_num();
+    //uint32_t num = fp_list_->doc_num();
     
     for (uint32_t i=0; i<docids.size(); ++i)
     {
