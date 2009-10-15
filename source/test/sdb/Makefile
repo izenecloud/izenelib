@@ -38,8 +38,10 @@ obj10 = t_btree2.o
 
 obj11 = t_TrieIndexSDB.o
 
+obj12 = t_TrieIndexSDB1.o
 
-all:  t_TrieIndexSDB t_IndexSDB t_overflow_btree # t_btree2  t_btree1  t_sdb t_btree2 t_nsdb t_IndexSDB t_IndexSDB1 t_mul_sdb  t_btree_str \
+
+all:  t_TrieIndexSDB1  t_TrieIndexSDB  # t_btree2  t_btree1  t_sdb t_btree2 t_nsdb t_IndexSDB t_IndexSDB1 t_mul_sdb  t_btree_str \
       t_btree1 t_mul_sdb  t_nsdb t_overflow_btree 
 
 t_sdb: $(obj)
@@ -91,10 +93,14 @@ t_TrieIndexSDB: $(obj11)
 
 	$(GPP) $(obj11) $(LIBS) -o $@ -pg
 	
+t_TrieIndexSDB1: $(obj12)
+
+	$(GPP) $(obj12) $(LIBS) -o $@ -pg
+	
 
 
 clean:
-	-rm -f *.o  *.dat .t_sdb t_btree1 t_btree2 t_nsdb t_TrieIndexSDB\
+	-rm -f *.o  *.dat t_sdb t_btree1 t_btree2 t_nsdb t_TrieIndexSDB\
         t_sdb t_IndexSDB1 t_btree_str t_IndexSDB  t_mul_sdb  t_overflow_btree  gmon.out
 
    
