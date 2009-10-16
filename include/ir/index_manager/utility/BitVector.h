@@ -13,7 +13,8 @@ public:
     BitVector(size_t n)
         :size_(n)
     {
-        bits_ = new unsigned char[(size_ >> 3) + 1];
+        blockNum_ = (size_ >> 3) + 1;
+        bits_ = new unsigned char[blockNum_];
         clear();
     }
     ~BitVector()
@@ -36,40 +37,40 @@ public:
         bits_[bit >> 3] &= ~(1 << (bit & 7));
     }
 
-    void clear() { memset(bits_, 0 , size_); }
+    void clear() { memset(bits_, 0 , blockNum_); }
 
-    void setAll() { memset(bits_, 0xFF, size_);}
+    void setAll() { memset(bits_, 0xFF, blockNum_);}
 
     bool test(size_t bit)
     {
         if(bit >= size_)
             return false;
-        return (bool)bits_[bit >> 3] & (1 << (bit & 7));
+        return bits_[bit >> 3] & (1 << (bit & 7));
     }
 
     void toggle()
     {
-        for(size_t i = 0; i < size_; ++i )
+        for(size_t i = 0; i < blockNum_; ++i )
             bits_[i] = ~bits_[i];
     }
 
     BitVector& operator&=(const BitVector& b)
     {
-        for(size_t i = 0; i < size_; ++i )
+        for(size_t i = 0; i < blockNum_; ++i )
             bits_[i] &= b.bits_[i];
         return *this;
     }
 
     BitVector& operator|=(const BitVector& b)
     {
-        for(size_t i = 0; i < size_; ++i )
+        for(size_t i = 0; i < blockNum_; ++i )
             bits_[i] |= b.bits_[i];
         return *this;
     }
 
     BitVector& operator^=(const BitVector& b)
     {
-        for(size_t i = 0; i < size_; ++i )
+        for(size_t i = 0; i < blockNum_; ++i )
             bits_[i] ^= b.bits_[i];
         return *this;
     }
@@ -78,7 +79,7 @@ public:
 private:
     unsigned char* bits_;
     size_t size_;
-
+    size_t blockNum_;
 };
 
 

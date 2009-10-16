@@ -123,13 +123,12 @@ freq_t DiskTermReader::docFreq(Term* term)
 
 TermIterator* DiskTermReader::termIterator(const char* field)
 {
-    if (field && getFieldInfo()
-        && 0 == strcasecmp(field, getFieldInfo()->getName()))
-    {
-        return new DiskTermIterator(this);
-    }
+    if ((field != NULL) && (strcasecmp(getFieldInfo()->getName(),field)))
+        return NULL;
 
-    return 0;
+    return termReaderMode == UNORDERED
+        ? static_cast<TermIterator*>(new UnOrderedDiskTermIterator(this))
+        : static_cast<TermIterator*>(new DiskTermIterator(this));
 }
 
 void DiskTermReader::updateTermInfo(Term* term, count_t docFreq, fileoffset_t offset)
