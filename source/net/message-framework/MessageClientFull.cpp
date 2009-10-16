@@ -229,14 +229,17 @@ bool MessageClientFull::checkAgentInfo_(ServicePermissionInfo& permissionInfo) {
 			agentInfoMap.begin();
 
    bool ret =  true;
-	for (; it != agentInfoMap.end(); it++) {
-		if ( !prepareConnection(it->second) ) {
-			LOG(ERROR)<<"ServicePermissionInfo:"<<it->first<<" -> server:"
-					<<it->second<<"not exists";
-			permissionInfo.removeServer(it->first);
-			ret = false;
-		}
-	}
+   if( count & 0xff == 0 ){
+	  for (; it != agentInfoMap.end(); it++) {
+		  if ( prepareConnection(it->second) ) {
+			  LOG(ERROR)<<"ServicePermissionInfo:"<<it->first<<" -> server:"
+					<<it->second<<"not exists";		
+			  ret = false;
+		  }
+	  	}
+   }
+	if( !ret )
+		flushPermissionCache(permissionInfo.getServiceName() );
 	return ret;
 
 }
