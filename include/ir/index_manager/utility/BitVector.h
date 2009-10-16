@@ -45,7 +45,7 @@ public:
     {
         if(bit >= size_)
             return false;
-        return (bool)bits_[bit >> 3] & (1 << (bit & 7));
+        return bits_[bit >> 3] & (1 << (bit & 7));
     }
 
     void toggle()
