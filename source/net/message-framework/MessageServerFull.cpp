@@ -35,7 +35,7 @@ MessageServerFull::MessageServerFull(const std::string& serverName,
 	messageDispatcher_(this, this), connector_(this, io_service_),
 			connectionEstablished_(false) {
 	ownerManager_ = serverName;
-	timeOutMilliSecond_ = TIME_OUT_IN_MILISECOND;
+	timeOutMilliSecond_ = TIME_OUT_IN_MILISECOND*10;
 
 	server_.nodePort_ = serverPort;
 	server_.nodeIP_ = getLocalHostIp(io_service_);
@@ -60,6 +60,8 @@ MessageServerFull::MessageServerFull(const std::string& serverName,
 	boost::mutex::scoped_lock connectionEstablishedLock(
 			connectionEstablishedMutex_);
 	while (!connectionEstablished_) {
+		LOG(ERROR)<<"waiting for controller to be ready...."<<endl;
+		connector_.connect(controllerInfo.nodeIP_, controllerInfo.nodePort_);
 		if (!connectionEstablishedEvent_.timed_wait(connectionEstablishedLock,
 				timeout))
 			throw MessageFrameworkException(SF1_MSGFRK_CONNECTION_TIMEOUT, __LINE__, __FILE__);
