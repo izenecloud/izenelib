@@ -11,83 +11,85 @@ using namespace std;
 using namespace izenelib::ir::indexmanager;
 
 TermIterator::TermIterator(void)
-        :pBuffer(NULL)
-        ,nBuffSize(0)
+        :pBuffer_(NULL)
+        ,nBuffSize_(0)
 {
 }
 
 TermIterator::~TermIterator(void)
 {
-    pBuffer = NULL;
-    nBuffSize = 0;
+    pBuffer_ = NULL;
+    nBuffSize_ = 0;
 }
 size_t TermIterator::setBuffer(char* pBuffer,size_t bufSize)
 {
-    this->pBuffer = pBuffer;
-    nBuffSize = bufSize;
+    pBuffer_ = pBuffer;
+    nBuffSize_ = bufSize;
     return bufSize;
 }
 
 BasicDiskTermIterator::BasicDiskTermIterator(DiskTermReader* termReader)
-        :pTermReader(termReader)
-        ,pCurTerm(NULL)
-        ,pCurTermInfo(NULL)
-        ,pCurTermPosting(NULL)
-        ,pInputDescriptor(NULL)
+        :pTermReader_(termReader)
+        ,pCurTerm_(NULL)
+        ,pCurTermInfo_(NULL)
+        ,pCurTermPosting_(NULL)
+        ,pInputDescriptor_(NULL)
 {
 }
 
 BasicDiskTermIterator::~BasicDiskTermIterator(void)
 {
-    if (pCurTerm)
+    if (pCurTerm_)
     {
-        delete pCurTerm;
-        pCurTerm = NULL;
+        delete pCurTerm_;
+        pCurTerm_ = NULL;
     }
-    if (pCurTermPosting)
+    if (pCurTermPosting_)
     {
-        delete pCurTermPosting;
-        pCurTermPosting = NULL;
+        delete pCurTermPosting_;
+        pCurTermPosting_ = NULL;
     }
-    if (pInputDescriptor)
+    if (pInputDescriptor_)
     {
-        delete pInputDescriptor;
-        pInputDescriptor = NULL;
+        delete pInputDescriptor_;
+        pInputDescriptor_ = NULL;
     }
-    pCurTermInfo = NULL;
+    pCurTermInfo_ = NULL;
 }
 
 const Term* BasicDiskTermIterator::term()
 {
-    return pCurTerm;
+    return pCurTerm_;
 }
+
 const TermInfo* BasicDiskTermIterator::termInfo()
 {
-    return pCurTermInfo;
+    return pCurTermInfo_;
 }
+
 Posting* BasicDiskTermIterator::termPosting()
 {
-    if (!pCurTermPosting)
+    if (!pCurTermPosting_)
     {
         IndexInput* pInput;
-        pInputDescriptor = new InputDescriptor(true);
-        pInput = pTermReader->getTermReaderImpl()->pInputDescriptor->getDPostingInput()->clone();
-        pInputDescriptor->setDPostingInput(pInput);
-        pInput = pTermReader->getTermReaderImpl()->pInputDescriptor->getPPostingInput()->clone();
-        pInputDescriptor->setPPostingInput(pInput);
-        pCurTermPosting = new OnDiskPosting(pInputDescriptor,pCurTermInfo->docPointer());
+        pInputDescriptor_ = new InputDescriptor(true);
+        pInput = pTermReader_->getTermReaderImpl()->pInputDescriptor->getDPostingInput()->clone();
+        pInputDescriptor_->setDPostingInput(pInput);
+        pInput = pTermReader_->getTermReaderImpl()->pInputDescriptor->getPPostingInput()->clone();
+        pInputDescriptor_->setPPostingInput(pInput);
+        pCurTermPosting_ = new OnDiskPosting(pInputDescriptor_,pCurTermInfo_->docPointer());
     }
     else
     {
-        ((OnDiskPosting*)pCurTermPosting)->reset(pCurTermInfo->docPointer());///reset to a new posting
+        ((OnDiskPosting*)pCurTermPosting_)->reset(pCurTermInfo_->docPointer());///reset to a new posting
     }
-    return pCurTermPosting;
+    return pCurTermPosting_;
 }
 
 size_t BasicDiskTermIterator::setBuffer(char* pBuffer,size_t bufSize)
 {
     int64_t nDLen,nPLen;
-    pTermReader->getFieldInfo()->getLength(NULL,&nDLen,&nPLen);
+    pTermReader_->getFieldInfo()->getLength(NULL,&nDLen,&nPLen);
     if ( (size_t)(nDLen + nPLen) < bufSize)
     {
         TermIterator::setBuffer(pBuffer,(size_t)(nDLen + nPLen));
@@ -104,21 +106,21 @@ size_t BasicDiskTermIterator::setBuffer(char* pBuffer,size_t bufSize)
 //
 DiskTermIterator::DiskTermIterator(DiskTermReader* termReader)
         :BasicDiskTermIterator(termReader)
-        ,currTermIter(termReader->getTermReaderImpl()->pTermTable->begin())
-        ,termIterEnd(termReader->getTermReaderImpl()->pTermTable->end())
+        ,currTermIter_(termReader->getTermReaderImpl()->pTermTable->begin())
+        ,termIterEnd_(termReader->getTermReaderImpl()->pTermTable->end())
 {
 }
 
 bool DiskTermIterator::next()
 {
-    if(currTermIter != termIterEnd)
+    if(currTermIter_ != termIterEnd_)
     {
-        if (pCurTerm == NULL)
-            pCurTerm = new Term(pTermReader->getFieldInfo()->getName(),currTermIter->first);
-        else pCurTerm->setValue(currTermIter->first);
+        if (pCurTerm_ == NULL)
+            pCurTerm_ = new Term(pTermReader_->getFieldInfo()->getName(),currTermIter_->first);
+        else pCurTerm_->setValue(currTermIter_->first);
 
-        pCurTermInfo = &(currTermIter->second);
-        ++currTermIter;
+        pCurTermInfo_ = &(currTermIter_->second);
+        ++currTermIter_;
         return true;
     }
     else return false;
@@ -128,21 +130,21 @@ bool DiskTermIterator::next()
 //
 UnOrderedDiskTermIterator::UnOrderedDiskTermIterator(DiskTermReader* termReader)
         :BasicDiskTermIterator(termReader)
-        ,currTermIter(termReader->getTermTable()->begin())
-        ,termIterEnd(termReader->getTermTable()->end())
+        ,currTermIter_(termReader->getTermTable()->begin())
+        ,termIterEnd_(termReader->getTermTable()->end())
 {
 }
 
 bool UnOrderedDiskTermIterator::next()
 {
-    if(currTermIter != termIterEnd)
+    if(currTermIter_ != termIterEnd_)
     {
-        if (pCurTerm == NULL)
-            pCurTerm = new Term(pTermReader->getFieldInfo()->getName(),currTermIter->first);
-        else pCurTerm->setValue(currTermIter->first);
+        if (pCurTerm_ == NULL)
+            pCurTerm_ = new Term(pTermReader_->getFieldInfo()->getName(),currTermIter_->first);
+        else pCurTerm_->setValue(currTermIter_->first);
 
-        pCurTermInfo = &(currTermIter->second);
-        ++currTermIter;
+        pCurTermInfo_ = &(currTermIter_->second);
+        ++currTermIter_;
         return true;
     }
     else return false;
@@ -151,54 +153,54 @@ bool UnOrderedDiskTermIterator::next()
 //////////////////////////////////////////////////////////////////////////
 //
 InMemoryTermIterator::InMemoryTermIterator(InMemoryTermReader* pTermReader)
-        :pTermReader(pTermReader)
-        ,pCurTerm(NULL)
-        ,pCurTermInfo(NULL)
-        ,pCurTermPosting(NULL)
-        ,postingIterator(pTermReader->pIndexer->postingMap_.begin())
-        ,postingIteratorEnd(pTermReader->pIndexer->postingMap_.end())
+        :pTermReader_(pTermReader)
+        ,pCurTerm_(NULL)
+        ,pCurTermInfo_(NULL)
+        ,pCurTermPosting_(NULL)
+        ,postingIterator_(pTermReader->pIndexer->postingMap_.begin())
+        ,postingIteratorEnd_(pTermReader->pIndexer->postingMap_.end())
 {
 }
 
 InMemoryTermIterator::~InMemoryTermIterator(void)
 {
-    if (pCurTerm)
+    if (pCurTerm_)
     {
-        delete pCurTerm;
-        pCurTerm = NULL;
+        delete pCurTerm_;
+        pCurTerm_ = NULL;
     }
-    pCurTermPosting = NULL;
-    if (pCurTermInfo)
+    pCurTermPosting_ = NULL;
+    if (pCurTermInfo_)
     {
-        delete pCurTermInfo;
-        pCurTermInfo = NULL;
+        delete pCurTermInfo_;
+        pCurTermInfo_ = NULL;
     }
 }
 
 bool InMemoryTermIterator::next()
 {
-    postingIterator++;
+    postingIterator_++;
 
-    if(postingIterator != postingIteratorEnd)
+    if(postingIterator_ != postingIteratorEnd_)
     {
-        pCurTermPosting = postingIterator->second;
-        while (pCurTermPosting->hasNoChunk())
+        pCurTermPosting_ = postingIterator_->second;
+        while (pCurTermPosting_->hasNoChunk())
         {
-            postingIterator++;
-            if(postingIterator != postingIteratorEnd)
-                pCurTermPosting = postingIterator->second;
+            postingIterator_++;
+            if(postingIterator_ != postingIteratorEnd_)
+                pCurTermPosting_ = postingIterator_->second;
             else return false;
         }
 
         //TODO
-        if (pCurTerm == NULL)
-            pCurTerm = new Term(pTermReader->sField.c_str(),postingIterator->first);
-        else pCurTerm->setValue(postingIterator->first);
-        pCurTermPosting = postingIterator->second;
-        if (pCurTermInfo == NULL)
-            pCurTermInfo = new TermInfo(pCurTermPosting->docFreq(),-1);
+        if (pCurTerm_ == NULL)
+            pCurTerm_ = new Term(pTermReader_->sField.c_str(),postingIterator_->first);
+        else pCurTerm_->setValue(postingIterator_->first);
+        pCurTermPosting_ = postingIterator_->second;
+        if (pCurTermInfo_ == NULL)
+            pCurTermInfo_ = new TermInfo(pCurTermPosting_->docFreq(),-1);
         else
-            pCurTermInfo->set(pCurTermPosting->docFreq(),-1);
+            pCurTermInfo_->set(pCurTermPosting_->docFreq(),-1);
         return true;
     }
     else return false;
@@ -206,16 +208,17 @@ bool InMemoryTermIterator::next()
 
 const Term* InMemoryTermIterator::term()
 {
-    return pCurTerm;
+    return pCurTerm_;
 }
 const TermInfo* InMemoryTermIterator::termInfo()
 {
-    return pCurTermInfo;
+    return pCurTermInfo_;
 }
 Posting* InMemoryTermIterator::termPosting()
 {
-    return pCurTermPosting;
+    return pCurTermPosting_;
 }
+
 size_t InMemoryTermIterator::setBuffer(char* pBuffer,size_t bufSize)
 {
     return 0;///don't need buffer

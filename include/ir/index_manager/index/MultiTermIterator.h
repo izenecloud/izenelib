@@ -8,8 +8,8 @@
 #define MULTITERMITERATOR_H
 
 #include <ir/index_manager/index/AbsTermIterator.h>
-#include <ir/index_manager/utility/Logger.h>
 #include <ir/index_manager/utility/PriorityQueue.h>
+
 #include <vector>
 
 NS_IZENELIB_IR_BEGIN
@@ -23,30 +23,36 @@ class MultiTermIterator : public TermIterator
     class TermIteratorEntry
     {
     public:
-        TermIteratorEntry(TermIterator* iter):termIterator(iter),term(NULL) {}
+        TermIteratorEntry(TermIterator* iter):termIterator_(iter),term_(NULL) {}
         ~TermIteratorEntry()
         {
-            if (termIterator)
+            if (termIterator_)
             {
-                delete termIterator;
-                termIterator = NULL;
+                delete termIterator_;
+                termIterator_ = NULL;
             }
-            term = NULL;
+            term_ = NULL;
         }
 
         bool next()
         {
-            if (termIterator == NULL)
+            if (termIterator_ == NULL)
                 return false;
-            bool ret = termIterator->next();
+            bool ret = termIterator_->next();
             if (ret == false)
                 return false;
-            term = (Term*)termIterator->term();
+            term_ = (Term*)termIterator_->term();
             return true;
         }
+
+	void setCurrent(bool current){current_ = current;}
+	
+	bool isCurrent(){return current_;}
+		
     public:
-        TermIterator* termIterator;
-        Term* term;
+        TermIterator* termIterator_;
+        Term* term_;
+        bool current_;
     };
 
     class TermIteratorQueue : public PriorityQueue<MultiTermIterator::TermIteratorEntry*>
@@ -59,51 +65,33 @@ class MultiTermIterator : public TermIterator
     protected:
         bool lessThan(MultiTermIterator::TermIteratorEntry* o1, MultiTermIterator::TermIteratorEntry* o2)
         {
-            return (o1->term->compare(o2->term) < 0);
+            return (o1->term_->compare(o2->term_) < 0);
         }
     };
+
 public:
     MultiTermIterator(void);
+
     virtual ~MultiTermIterator(void);
 public:
-    /**
-     * move to next term
-     * @return false if to the end,otherwise true
-     */
     bool next();
 
-
-    /**
-     * get current term ,only valid after calling {@link #next()} or {@link #skipTo()} and returning true.
-     * @return term,internal object
-     */
     const Term* term();
 
-    /**
-     * get current term info,only valid after calling {@link #next()} or {@link #skipTo()} and returning true.
-     * @return term's info,internal object
-     */
     const TermInfo* termInfo();
 
-    /**
-     * get current term's posting(in-memory or on-disk posting),only valid after calling {@link #next()} or {@link #skipTo()} and returning true.
-     * @return term's posting,internal object
-     */
     Posting* termPosting();
 
-
-    /**
-     * add term iterator
-     * @param iter term iterator,internal object
-     */
     void addIterator(TermIterator* iter);
+
 protected:
     void initQueue();
 private:
-    std::vector<MultiTermIterator::TermIteratorEntry*>	iters;
-    MultiTermIterator::TermIteratorQueue* itersQueue;
-    Term* pTerm;
+    std::vector<MultiTermIterator::TermIteratorEntry*>	termIterators_;
+    MultiTermIterator::TermIteratorQueue* termIteratorsQueue_;
+    Term* pTerm_;
     freq_t docFreq_;
+    TermInfo* pTermInfo_;
 };
 
 

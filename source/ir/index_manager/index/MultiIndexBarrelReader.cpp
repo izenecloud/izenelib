@@ -5,7 +5,7 @@
 
 using namespace izenelib::ir::indexmanager;
 
-MultiIndexBarrelReader::MultiIndexBarrelReader(Indexer* pIndexer,BarrelsInfo* pBarrelsInfo_)
+MultiIndexBarrelReader::MultiIndexBarrelReader(Indexer* pIndexer,BarrelsInfo* pBarrelsInfo_, DiskIndexOpenMode mode)
         :IndexBarrelReader(pIndexer)
         ,pBarrelsInfo(pBarrelsInfo_)
 {
@@ -15,7 +15,7 @@ MultiIndexBarrelReader::MultiIndexBarrelReader(Indexer* pIndexer,BarrelsInfo* pB
     {
         pBarrelInfo = pBarrelsInfo->next();
         if (pBarrelInfo->getDocCount() > 0)
-            addReader(pBarrelInfo);
+            addReader(pBarrelInfo, mode);
     }
 }
 
@@ -59,8 +59,8 @@ void MultiIndexBarrelReader::close()
 
 }
 
-void MultiIndexBarrelReader::addReader(BarrelInfo* pBarrelInfo)
+void MultiIndexBarrelReader::addReader(BarrelInfo* pBarrelInfo, DiskIndexOpenMode mode)
 {
-    readers.push_back(new BarrelReaderEntry(pIndexer,pBarrelInfo));
+    readers.push_back(new BarrelReaderEntry(pIndexer,pBarrelInfo,mode));
 }
 

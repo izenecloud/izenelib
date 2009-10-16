@@ -162,8 +162,14 @@ public:
     
     IndexReader* getIndexReader()
     {
-      return pIndexReader_;
+        return pIndexReader_;
     }
+
+    boost::shared_ptr<IndexReader> getOrderedIndexReader()
+    {
+        return boost::shared_ptr<IndexReader>(new IndexReader(this, ORDERED));
+    }
+
 
     BTreeIndexerInterface* getBTreeIndexer();
 

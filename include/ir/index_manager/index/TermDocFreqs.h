@@ -33,9 +33,9 @@ public:
 
     virtual ~TermDocFreqs();
 public:
-    virtual freq_t	docFreq();
+    virtual freq_t docFreq();
 
-    virtual int64_t	getCTF();
+    virtual int64_t getCTF();
 
     virtual count_t next(docid_t*& docs, count_t*& freqs);
 

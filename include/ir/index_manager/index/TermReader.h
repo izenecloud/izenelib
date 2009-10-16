@@ -93,9 +93,7 @@ public:
 class DiskTermReader:public TermReader
 {
 public:
-    enum DiskTermReaderMode { UNORDERED,  ORDERPRESERVING }; 
-
-    DiskTermReader(DiskTermReaderMode mode = UNORDERED);
+    DiskTermReader(DiskIndexOpenMode mode = UNORDERED);
 
     DiskTermReader(TermReaderImpl* pTermReaderImpl);
 
@@ -131,7 +129,7 @@ protected:
     TermInfo* termInfo(Term* term);
 
 protected:
-    DiskTermReaderMode termReaderMode;	
+    DiskIndexOpenMode termReaderMode;	
 
     TermReaderImpl* pTermReaderImpl;
 

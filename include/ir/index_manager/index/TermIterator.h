@@ -35,42 +35,19 @@ public:
 
     virtual ~BasicDiskTermIterator(void);
 public:
-    /**
-     * sub class must implement it
-     */
-    // bool next();
-
-    /**
-     * get current term ,only valid after calling {@link #next()} or {@link #skipTo()} and returning true.
-     * @return term,internal object
-     */
     const Term* term();
 
-    /**
-     * get current term info,only valid after calling {@link #next()} or {@link #skipTo()} and returning true.
-     * @return term's info,internal object
-     */
     const TermInfo* termInfo();
 
-    /**
-     * get current term's posting(in-memory or on-disk posting),only valid after calling {@link #next()} or {@link #skipTo()} and returning true.
-     * @return term's posting,internal object
-     */
     Posting* termPosting();
 
-    /**
-     * set buffer for iterator
-     * @param pBuffer buffer, only keep the pointer, caller response for destroying.
-     * @param bufSize size of buffer
-     * @return actual size used
-     */
     size_t   setBuffer(char* pBuffer,size_t bufSize);
 protected:
-    DiskTermReader* pTermReader;      ///parent term reader
-    Term* pCurTerm;         ///current term in this iterator
-    TermInfo* pCurTermInfo;      ///current term info in this iterator
-    Posting* pCurTermPosting;   ///current term's posting in this iterator
-    InputDescriptor* pInputDescriptor;
+    DiskTermReader* pTermReader_;      ///parent term reader
+    Term* pCurTerm_;         ///current term in this iterator
+    TermInfo* pCurTermInfo_;      ///current term info in this iterator
+    Posting* pCurTermPosting_;   ///current term's posting in this iterator
+    InputDescriptor* pInputDescriptor_;
 };
 
 class DiskTermIterator : public BasicDiskTermIterator
@@ -81,8 +58,8 @@ public:
     bool next();
 
 private:
-    ORDERED_TERM_TABLE::iterator currTermIter;
-    ORDERED_TERM_TABLE::iterator termIterEnd;
+    ORDERED_TERM_TABLE::iterator currTermIter_;
+    ORDERED_TERM_TABLE::iterator termIterEnd_;
 };
 
 class UnOrderedDiskTermIterator : public BasicDiskTermIterator
@@ -93,8 +70,8 @@ public:
     bool next();
 
 private:
-    TERM_TABLE::iterator currTermIter;
-    TERM_TABLE::iterator termIterEnd;
+    TERM_TABLE::iterator currTermIter_;
+    TERM_TABLE::iterator termIterEnd_;
 };
 
 class InMemoryTermReader;
@@ -107,44 +84,23 @@ public:
     InMemoryTermIterator(InMemoryTermReader* pTermReader);
     virtual ~InMemoryTermIterator();
 public:
-    /**
-     * move to next term
-     * @return false if to the end,otherwise true
-     */
+
     bool next();
 
-    /**
-     * get current term ,only valid after calling {@link #next()} or {@link #skipTo()} and returning true.
-     * @return term,internal object
-     */
     const Term* term();
 
-    /**
-     * get current term info,only valid after calling {@link #next()} or {@link #skipTo()} and returning true.
-     * @return term's info,internal object
-     */
     const TermInfo* termInfo();
 
-    /**
-     * get current term's posting(in-memory or on-disk posting),only valid after calling {@link #next()} or {@link #skipTo()} and returning true.
-     * @return term's posting,internal object
-     */
     Posting* termPosting();
 
-    /**
-     * set buffer for iterator
-     * @param pBuffer buffer, only keep the pointer, caller response for destroying.
-     * @param bufSize size of buffer
-     * @return actual size used
-     */
     size_t   setBuffer(char* pBuffer,size_t bufSize);
 protected:
-    InMemoryTermReader* pTermReader;
-    Term* pCurTerm;         ///current term in this iterator
-    TermInfo* pCurTermInfo;      ///current term info in this iterator
-    InMemoryPosting* pCurTermPosting;   ///current term's posting in this iterator
-    InMemoryPostingMap::iterator postingIterator;
-    InMemoryPostingMap::iterator postingIteratorEnd;
+    InMemoryTermReader* pTermReader_;
+    Term* pCurTerm_;         ///current term in this iterator
+    TermInfo* pCurTermInfo_;      ///current term info in this iterator
+    InMemoryPosting* pCurTermPosting_;   ///current term's posting in this iterator
+    InMemoryPostingMap::iterator postingIterator_;
+    InMemoryPostingMap::iterator postingIteratorEnd_;
 };
 
 }

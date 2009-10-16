@@ -6,12 +6,12 @@
 
 using namespace izenelib::ir::indexmanager;
 
-SingleIndexBarrelReader::SingleIndexBarrelReader(Indexer* pIndex, BarrelInfo* pBarrel)
+SingleIndexBarrelReader::SingleIndexBarrelReader(Indexer* pIndex, BarrelInfo* pBarrel,DiskIndexOpenMode mode)
         : IndexBarrelReader(pIndex)
         , pBarrelInfo_(pBarrel)
 {
     pCollectionsInfo_ = new CollectionsInfo();
-    open(pBarrelInfo_->getName().c_str());
+    open(pBarrelInfo_->getName().c_str(),mode);
 }
 
 SingleIndexBarrelReader::~SingleIndexBarrelReader(void)
@@ -23,7 +23,7 @@ SingleIndexBarrelReader::~SingleIndexBarrelReader(void)
     delete pCollectionsInfo_;
 }
 
-void SingleIndexBarrelReader::open(const char* name)
+void SingleIndexBarrelReader::open(const char* name,DiskIndexOpenMode mode)
 {
     this->name_ = name;
 
@@ -50,7 +50,7 @@ void SingleIndexBarrelReader::open(const char* name)
         pFieldsInfo = pColInfo->getFieldsInfo();
         if (pFieldsInfo->numIndexFields() > 1)
         {
-            pTermReader = new MultiFieldTermReader(pDirectory,name,pFieldsInfo);
+            pTermReader = new MultiFieldTermReader(pDirectory,name,pFieldsInfo,mode);
         }
         else if (pFieldsInfo->numIndexFields() == 1)
         {
@@ -61,7 +61,7 @@ void SingleIndexBarrelReader::open(const char* name)
                 pFieldInfo = pFieldsInfo->next();
                 if (pFieldInfo->isIndexed()&&pFieldInfo->isForward())
                 {
-                    pTermReader = new DiskTermReader();
+                    pTermReader = new DiskTermReader(mode);
                     pTermReader->open(pDirectory,name,pFieldInfo);
                     break;
                 }

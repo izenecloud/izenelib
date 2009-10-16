@@ -24,7 +24,7 @@ TermReader::~TermReader(void)
 void TermReader::open(Directory* pDirectory,const char* barrelname,FieldInfo* pFieldInfo)
 {}
 
-DiskTermReader::DiskTermReader(DiskTermReaderMode mode)
+DiskTermReader::DiskTermReader(DiskIndexOpenMode mode)
         : TermReader()
         , termReaderMode(mode)
         , pTermReaderImpl(NULL)

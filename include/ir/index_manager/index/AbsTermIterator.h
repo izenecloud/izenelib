@@ -26,37 +26,21 @@ public:
 
     virtual ~TermIterator(void);
 public:
-    /**
-     * move to next term
-     * @return false if to the end,otherwise true
-     */
     virtual bool next() = 0;
-
-    /**
-     * get current term ,only valid after calling {@link #next()} or {@link #skipTo()} and returning true.
-     * @return term,internal object
-     */
+    /// get current term
     virtual const Term* term() = 0;
-
-    /**
-     * get current term info,only valid after calling {@link #next()} or {@link #skipTo()} and returning true.
-     * @return term's info,internal object
-     */
+    /// get current term info
     virtual const TermInfo* termInfo() = 0;
-
-    /**
-     * get current term's posting(in-memory or on-disk posting),only valid after calling {@link #next()} or {@link #skipTo()} and returning true.
-     * @return term's posting,internal object
-     */
+    /// get current term's posting (for merge only)
     virtual Posting* termPosting() = 0;
 
     virtual size_t   setBuffer(char* pBuffer,size_t bufSize);
 
 protected:
 
-    char* pBuffer;      ///buffer for iterator
+    char* pBuffer_;      ///buffer for iterator
 
-    size_t nBuffSize;   ///size of buffer
+    size_t nBuffSize_;   ///size of buffer
 };
 
 
