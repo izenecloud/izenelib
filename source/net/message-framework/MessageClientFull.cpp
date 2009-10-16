@@ -102,7 +102,9 @@ bool MessageClientFull::prepareConnection(const MessageFrameworkNode& node) {
 				connectionToServerEstablishedMutex_);
 
 		asyncConnector_.connect(node.nodeIP_, node.nodePort_);
-
+     // if( !messageDispatcher_.isExist(node) )
+     // 	return false;
+      
 		// maybe, the connection has been established before timed_wait
 		while (!messageDispatcher_.isExist(node)) {
 			if ( !connectedToServerEvent_.timed_wait(
@@ -221,21 +223,21 @@ bool MessageClientFull::checkAgentInfo_(ServicePermissionInfo& permissionInfo) {
 	static int count;
 	++count;
 
-	const std::map<std::string, MessageFrameworkNode>& agentInfoMap =
+	const std::map<std::string, MessageFrameworkNode> agentInfoMap =
 			permissionInfo.getServerMap();
 	std::map<std::string, MessageFrameworkNode>::const_iterator it =
 			agentInfoMap.begin();
 
+   bool ret =  true;
 	for (; it != agentInfoMap.end(); it++) {
 		if ( !prepareConnection(it->second) ) {
 			LOG(ERROR)<<"ServicePermissionInfo:"<<it->first<<" -> server:"
-					<<it->second<<"failed";
+					<<it->second<<"not exists";
 			permissionInfo.removeServer(it->first);
+			ret = false;
 		}
 	}
-	if (it != agentInfoMap.end() )
-		return false;
-	return true;
+	return ret;
 
 }
 

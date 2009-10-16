@@ -69,7 +69,7 @@ bool MFClient::requestService(const std::vector<std::string>& agentInfos,
 		mit = hosts.find(agentInfos[i]);
 		if (mit == hosts.end() ) {
 			LOG(ERROR) << "Server not found for "<<agentInfos[i]<<endl;
-			client_->flushPermissionCache( serviceName );
+			client_->flushPermissionCache(serviceName);
 			continue;
 		}
 		if ( !requestOne_(mit->second, request) ) {
@@ -95,12 +95,12 @@ bool MFClient::requestService(const std::vector<std::string>& agentInfos,
 		mit = hosts.find(agentInfos[i]);
 		if (mit == hosts.end() ) {
 			LOG(ERROR) << "Server not found for "<<agentInfos[i]<<endl;
-			client_->flushPermissionCache( serviceName );
+			client_->flushPermissionCache(serviceName);
 			continue;
 		}
 		if (requestOne_(mit->second, request, results[i]) ) {
 			results[i]->setAgentInfo(agentInfos[i]);
-		} else {			
+		} else {
 			LOG(ERROR)<<"requst failed for agentInfo="<<agentInfos[i]<<endl;
 		}
 	}
@@ -119,7 +119,7 @@ bool MFClient::requestService(const std::string& agentInfo,
 	mit = hosts.find(agentInfo);
 	if (mit == hosts.end() ) {
 		LOG(ERROR) << "Server not found for "<<agentInfo<<std::endl;
-		client_->flushPermissionCache( serviceName );
+		client_->flushPermissionCache(serviceName);
 		return false;
 	}
 	if ( !requestOne_(mit->second, request) ) {
@@ -141,8 +141,8 @@ bool MFClient::requestService(const std::string& agentInfo,
 
 	mit = hosts.find(agentInfo);
 	if (mit == hosts.end() ) {
-		LOG(ERROR) << "Server not found for "<<agentInfo<<std::endl;	
-		client_->flushPermissionCache( serviceName );
+		LOG(ERROR) << "Server not found for "<<agentInfo<<std::endl;
+		client_->flushPermissionCache(serviceName);
 		return false;
 	}
 	if (requestOne_(mit->second, request, result) ) {
@@ -154,13 +154,11 @@ bool MFClient::requestService(const std::string& agentInfo,
 	return true;
 }
 
-
-
 bool MFClient::requestOne_(const MessageFrameworkNode& server,
 		const ServiceRequestInfoPtr& request) {
 
 	ServiceRequestInfoPtr newRequest(new ServiceRequestInfo);
-	newRequest->setServiceName( request->getServiceName() );
+	newRequest->setServiceName(request->getServiceName() );
 	newRequest->setBuffer(request->bufferPtrVec);
 	if ( !client_->putServiceRequest(server, newRequest, false) ) {
 		LOG(ERROR) << "failed to send service request";
@@ -174,27 +172,33 @@ bool MFClient::requestOne_(const MessageFrameworkNode& server,
 		const ServiceRequestInfoPtr& request, ServiceResultPtr& result) {
 
 	ServiceRequestInfoPtr newRequest(new ServiceRequestInfo);
-	newRequest->setServiceName( request->getServiceName() );
+	newRequest->setServiceName(request->getServiceName() );
 	newRequest->setBuffer(request->bufferPtrVec);
-	if ( !client_->putServiceRequest(server, newRequest, true) ) {
-		LOG(ERROR) << "failed to send service request";
-		return false;
+	try {
+		if ( !client_->putServiceRequest(server, newRequest, true) ) {
+			LOG(ERROR) << "failed to send service request";
+			return false;
+		}
+		if ( !client_->getResultOfService(newRequest, result) ) {
+			LOG(ERROR) << "failed to get service reply";
+			return false;
+		}
 	}
-
-	if ( !client_->getResultOfService(newRequest, result) ) {
-		LOG(ERROR) << "failed to get service reply";
+	catch (MessageFrameworkException& e)
+	{
+		e.output(std::cout);
+		LOG(ERROR)<<"MFClient send request failed!"<<endl;
 		return false;
 	}
 	return true;
 
 }
 
-void MFClient::displayAgentInfo(const std::string& serviceName, std::ostream& os)  const
-{
+void MFClient::displayAgentInfo(const std::string& serviceName, std::ostream& os) const {
 
 	std::map<std::string, MessageFrameworkNode> hosts;
 	if ( !client_->getHostsOfService(serviceName, hosts) )
-		return ;
+		return;
 	std::map<std::string, MessageFrameworkNode>::const_iterator it =
 			hosts.begin();
 	for (; it != hosts.end(); it++) {

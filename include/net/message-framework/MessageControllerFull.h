@@ -98,6 +98,8 @@ public:
 	void processServiceResultFromServer(void){;}
 
 protected:
+	bool checkAgentInfo_(ServicePermissionInfo& permissionInfo) ;
+	
 
 	// old name: getPermissionOfService
 	// new name: getServiceInfo

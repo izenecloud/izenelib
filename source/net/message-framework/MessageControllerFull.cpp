@@ -149,6 +149,27 @@ void MessageControllerFull::processServiceRegistrationRequest(void) {
  permission to the MessageClient. If the service needs to use the direct
  connection, MessageControllerFull sends the permission to the MessageServer.
  ******************************************************************************/
+
+bool MessageControllerFull::checkAgentInfo_(ServicePermissionInfo& permissionInfo)
+{	
+	const std::map<std::string, MessageFrameworkNode>& agentInfoMap =
+			permissionInfo.getServerMap();
+	std::map<std::string, MessageFrameworkNode>::const_iterator it =
+			agentInfoMap.begin();
+
+	for (; it != agentInfoMap.end(); it++) {
+		if ( !messageDispatcher_.isExist(it->second) ) {
+			LOG(ERROR)<<"ServicePermissionInfo:"<<it->first<<" -> server:"
+					<<it->second<<"not exists";
+			permissionInfo.removeServer(it->first);
+		}
+	}
+	if (it != agentInfoMap.end() )
+		return false;
+	return true;
+
+}
+
 void MessageControllerFull::processServicePermissionRequest(void) {
 	try
 	{
@@ -171,7 +192,8 @@ void MessageControllerFull::processServicePermissionRequest(void) {
 				permissionRequestQueueLock.unlock();
 				
 				if( availableServiceList_.find(requestItem.first) != availableServiceList_.end() )
-				{				
+				{	
+				   checkAgentInfo_( availableServiceList_[requestItem.first] );
 					sendPermissionOfServiceResult(requestItem.second, availableServiceList_[requestItem.first] );
 					// to improve performance, direct connection to
 					// server is always made
