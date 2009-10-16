@@ -125,7 +125,10 @@ TermIterator* DiskTermReader::termIterator(const char* field)
 {
     if ((field != NULL) && (strcasecmp(getFieldInfo()->getName(),field)))
         return NULL;
-    return (termReaderMode == UNORDERED )? new  UnOrderedDiskTermIterator(this):new DiskTermIterator(this);
+
+    return termReaderMode == UNORDERED
+        ? static_cast<TermIterator*>(new UnOrderedDiskTermIterator(this))
+        : static_cast<TermIterator*>(new DiskTermIterator(this));
 }
 
 void DiskTermReader::updateTermInfo(Term* term, count_t docFreq, fileoffset_t offset)

@@ -28,18 +28,17 @@ typedef rde::hash_map<termid_t, TermInfo > TERM_TABLE;
 /**
 * Iterate terms from index barrel files(*.voc)
 */
-class DiskTermIterator : public TermIterator
+class BasicDiskTermIterator : public TermIterator
 {
 public:
-    DiskTermIterator(DiskTermReader* pTermReader);
+    BasicDiskTermIterator(DiskTermReader* pTermReader);
 
-    virtual ~DiskTermIterator(void);
+    virtual ~BasicDiskTermIterator(void);
 public:
     /**
-     * move to next term
-     * @return false if to the end,otherwise true
+     * sub class must implement it
      */
-    bool next();
+    // bool next();
 
     /**
      * get current term ,only valid after calling {@link #next()} or {@link #skipTo()} and returning true.
@@ -72,21 +71,30 @@ protected:
     TermInfo* pCurTermInfo;      ///current term info in this iterator
     Posting* pCurTermPosting;   ///current term's posting in this iterator
     InputDescriptor* pInputDescriptor;
-private:
-    ORDERED_TERM_TABLE::iterator currTermIter;
-    ORDERED_TERM_TABLE::iterator termIterEnd;	
 };
 
-
-class UnOrderedDiskTermIterator : public DiskTermIterator
+class DiskTermIterator : public BasicDiskTermIterator
 {
 public:
-    UnOrderedDiskTermIterator(DiskTermReader* pTermReader);
+    DiskTermIterator(DiskTermReader* termReader);
 
-    virtual ~UnOrderedDiskTermIterator(void);
+    bool next();
+
+private:
+    ORDERED_TERM_TABLE::iterator currTermIter;
+    ORDERED_TERM_TABLE::iterator termIterEnd;
+};
+
+class UnOrderedDiskTermIterator : public BasicDiskTermIterator
+{
+public:
+    UnOrderedDiskTermIterator(DiskTermReader* termReader);
+
+    bool next();
+
 private:
     TERM_TABLE::iterator currTermIter;
-    TERM_TABLE::iterator termIterEnd;	
+    TERM_TABLE::iterator termIterEnd;
 };
 
 class InMemoryTermReader;
