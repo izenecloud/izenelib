@@ -124,6 +124,8 @@ bool MFClient::requestService(const std::string& agentInfo,
 	}
 	if ( !requestOne_(mit->second, request) ) {
 		LOG(ERROR)<<"requst failed for agentInfo="<<agentInfo<<std::endl;
+		client_->flushPermissionCache(serviceName);
+		return false;
 	}
 
 	return true;
@@ -149,6 +151,8 @@ bool MFClient::requestService(const std::string& agentInfo,
 		result->setAgentInfo(agentInfo);
 	} else {
 		LOG(ERROR)<<"requst failed for agentInfo="<<agentInfo<<std::endl;
+		client_->flushPermissionCache(serviceName);
+		return false;
 	}
 
 	return true;
@@ -174,22 +178,16 @@ bool MFClient::requestOne_(const MessageFrameworkNode& server,
 	ServiceRequestInfoPtr newRequest(new ServiceRequestInfo);
 	newRequest->setServiceName(request->getServiceName() );
 	newRequest->setBuffer(request->bufferPtrVec);
-	try {
-		if ( !client_->putServiceRequest(server, newRequest, true) ) {
-			LOG(ERROR) << "failed to send service request";
-			return false;
-		}
-		if ( !client_->getResultOfService(newRequest, result) ) {
-			LOG(ERROR) << "failed to get service reply";
-			return false;
-		}
-	}
-	catch (MessageFrameworkException& e)
-	{
-		e.output(std::cout);
-		LOG(ERROR)<<"MFClient send request failed!"<<endl;
+
+	if ( !client_->putServiceRequest(server, newRequest, true) ) {
+		LOG(ERROR) << "failed to send service request";
 		return false;
 	}
+	if ( !client_->getResultOfService(newRequest, result) ) {
+		LOG(ERROR) << "failed to get service reply";
+		return false;
+	}
+
 	return true;
 
 }
