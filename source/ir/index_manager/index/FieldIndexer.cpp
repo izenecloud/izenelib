@@ -107,6 +107,52 @@ void FieldIndexer::removeField(docid_t docid, boost::shared_ptr<LAInput> laInput
 
 }
 
+void FieldIndexer::removeField(docid_t docid, boost::shared_ptr<ForwardIndex> forwardindex)
+{
+    docid_t decompressed_docid;
+
+    InMemoryPosting* newPosting;
+
+    InMemoryTermReader* pTermReader = new InMemoryTermReader(getField(),this);
+
+    freq_t docLength;	
+
+    for(ForwardIndex::iterator iter = forwardindex->begin(); iter != forwardindex->end(); ++iter)
+    {
+        termid_t termId = (termid_t)iter->first;
+
+        Term term(getField(), termId);
+        if (pTermReader->seek(&term))
+        {
+            newPosting = new InMemoryPosting(pMemCache_);
+            TermPositions* pTermPositions = pTermReader->termPositions();
+            while (pTermPositions->next())
+            {
+                decompressed_docid = pTermPositions->doc();
+                docLength = pTermPositions->docLength();
+                loc_t pos = pTermPositions->nextPosition();
+                loc_t subpos = pTermPositions->nextPosition();
+                while (pos != BAD_POSITION)
+                {
+                    if (decompressed_docid != docid)
+                        newPosting->addLocation(decompressed_docid, docLength, pos, subpos);
+                    pos = pTermPositions->nextPosition();
+                    subpos = pTermPositions->nextPosition();
+                }
+                newPosting->updateDF(decompressed_docid);
+            }
+
+            InMemoryPosting* curPosting =  (InMemoryPosting*)postingMap_[termId];
+            delete curPosting;
+            postingMap_[termId] = newPosting;
+        }
+    }
+
+    delete pTermReader;
+
+}
+
+
 void FieldIndexer::reset()
 {
     InMemoryPosting* pPosting;

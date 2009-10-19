@@ -98,7 +98,6 @@ void CollectionIndexer::addDocument(IndexerDocument* pDoc)
                 if(pForwardIndexWriter_)
                     pForwardIndexWriter_->addProperty(iter->first.getPropertyId(), laInput);
             }
-            continue;
         }
 
     }
@@ -131,17 +130,49 @@ bool CollectionIndexer::deleteDocument(IndexerDocument* pDoc,string barrelName, 
 
     for (map<IndexerPropertyConfig, IndexerDocumentPropertyType>::iterator iter = propertyValueList.begin(); iter != propertyValueList.end(); ++iter)
     {
-        if (iter->first.isForward())
-        {
-            boost::shared_ptr<LAInput> laInput = boost::get<boost::shared_ptr<LAInput> >(iter->second);
 
-            if (inMemory)
+        if(!iter->first.isIndex())
+            continue;
+        if (!iter->first.isForward())
+        {
+            pIndexer_->getBTreeIndexer()->remove(uniqueID.colId, iter->first.getPropertyId(), boost::get<PropertyType>(iter->second), uniqueID.docId);
+        }
+        else
+        {
+            map<string, boost::shared_ptr<FieldIndexer> >::iterator it = fieldIndexerMap_.find(iter->first.getName());
+			
+            if (it == fieldIndexerMap_.end())
+                // This field is not indexed.
+                continue;
+            if(! iter->first.isLAInput())
             {
-                map<string, boost::shared_ptr<FieldIndexer> >::iterator it = fieldIndexerMap_.find(iter->first.getName());
-                it->second->removeField(uniqueID.docId, laInput);
+                boost::shared_ptr<ForwardIndex> forwardIndex = boost::get<boost::shared_ptr<ForwardIndex> >(iter->second);
+                if (inMemory)
+                {
+                    map<string, boost::shared_ptr<FieldIndexer> >::iterator it = fieldIndexerMap_.find(iter->first.getName());
+                    it->second->removeField(uniqueID.docId, forwardIndex);
+                }
+                else
+                    ret |=removeDocumentInField(uniqueID.docId, pFieldsInfo_of_Barrel->getField(iter->first.getName().c_str()), forwardIndex, barrelName, pDirectory,desc);
+
             }
             else
-                ret |=removeDocumentInField(uniqueID.docId, pFieldsInfo_of_Barrel->getField(iter->first.getName().c_str()), laInput, barrelName, pDirectory,desc);
+            {
+                boost::shared_ptr<LAInput> laInput = boost::get<boost::shared_ptr<LAInput> >(iter->second);
+                if (inMemory)
+                {
+                    map<string, boost::shared_ptr<FieldIndexer> >::iterator it = fieldIndexerMap_.find(iter->first.getName());
+                    it->second->removeField(uniqueID.docId, laInput);
+                }
+                else
+                    ret |=removeDocumentInField(uniqueID.docId, pFieldsInfo_of_Barrel->getField(iter->first.getName().c_str()), laInput, barrelName, pDirectory,desc);
+            }
+
+            if(pForwardIndexWriter_)
+            {
+            ///TODO
+            }
+
         }
     }
 
@@ -150,7 +181,8 @@ bool CollectionIndexer::deleteDocument(IndexerDocument* pDoc,string barrelName, 
     return ret;
 }
 
-bool CollectionIndexer::removeDocumentInField(docid_t docid, FieldInfo* pFieldInfo, boost::shared_ptr<LAInput> laInput, string barrelName, Directory* pDirectory, OutputDescriptor* desc)
+bool CollectionIndexer::removeDocumentInField(docid_t docid, FieldInfo* pFieldInfo, 
+        boost::shared_ptr<LAInput> laInput, string barrelName, Directory* pDirectory, OutputDescriptor* desc)
 {
     bool ret = false;
 
@@ -172,6 +204,130 @@ bool CollectionIndexer::removeDocumentInField(docid_t docid, FieldInfo* pFieldIn
     for(LAInput::iterator iter = laInput->begin(); iter != laInput->end(); ++iter)
     {
         termid_t termId = (termid_t)iter->termId_;
+
+        Term term(pFieldInfo->getName(), termId);
+        if (pTermReader->seek(&term))
+        {
+            TermInfo* pTermInfo = pTermReader->termInfo(&term);
+            InMemoryPosting* newPosting = new InMemoryPosting(pMemCache_);
+
+            TermPositions* pTermPositions = pTermReader->termPositions();
+            while (pTermPositions->next())
+            {
+                decompressed_docid = pTermPositions->doc();
+                if (decompressed_docid == docid)
+                {
+                    ret = true;
+                    continue;
+                }
+                doclength = pTermPositions->docLength();
+                loc_t pos = pTermPositions->nextPosition();
+                loc_t subpos = pTermPositions->nextPosition();
+                while (pos != BAD_POSITION)
+                {
+                    newPosting->addLocation(decompressed_docid, doclength, pos, subpos);
+                    pos = pTermPositions->nextPosition();
+                    subpos = pTermPositions->nextPosition();
+                }
+                newPosting->updateDF(decompressed_docid);
+            }
+
+            if (ret)
+            {
+                //only required if this document lied in this barrel
+                ///seek to the offset of the old posting, because after deleting a document, the new posting must be shorter than the original
+                ///therefore we choose to override the posting to save space.
+                pDPInput->seekInternal(pTermInfo->docPointer());///not seek(), because seek() may trigger a large data read event.
+                ///read descriptor of posting list <PostingDescriptor>
+                uint8_t buf[32];
+                uint8_t* u = buf;
+                pDPInput->readInternal((char*)buf,32,false);
+                PostingDescriptor postingDesc;
+                postingDesc.length = CompressedPostingList::decodePosting64(u); ///<PostingLength(VInt64)>
+                postingDesc.df = CompressedPostingList::decodePosting32(u); 	///<DF(VInt32)>
+                postingDesc.tdf = CompressedPostingList::decodePosting32(u);	///<TDF(VInt32)>
+                postingDesc.ctf = CompressedPostingList::decodePosting64(u);		///<CTF(VInt64)>
+                postingDesc.poffset = CompressedPostingList::decodePosting64(u);	///PositionPointer(VInt64)
+                pPPInput->seekInternal(postingDesc.poffset);///not seek(), because seek() may trigger a large data read event.
+                pPPInput->readInternal((char*)buf,8,false);
+                u = buf;
+                int64_t nPPostingLength = CompressedPostingList::decodePosting64(u); ///<ChunkLength(VInt64)>
+                desc->getPPostingOutput()->seek(postingDesc.poffset - nPPostingLength);///seek to the begin of position posting data
+                desc->getDPostingOutput()->seek(pTermInfo->docPointer() - postingDesc.length); ///seek to the begin of posting data
+                fileoffset_t poffset = newPosting->write(desc);///write posting data
+                desc->getDPostingOutput()->flush();
+                desc->getPPostingOutput()->flush();
+                pTermReader->updateTermInfo(&term, newPosting->docFreq(), poffset);
+            }
+            //newPosting->reset();
+            delete newPosting;
+            delete pTermPositions;
+        }
+    }
+
+    if (ret)
+    {
+        //only required if this document lied in this barrel
+        pVocInput->seek(pFieldInfo->getIndexOffset());
+        fileoffset_t voffset = pVocInput->getFilePointer();
+
+        int64_t nVocLength = pVocInput->readLong();
+        pVocInput->readLong(); ///get total term count
+
+        IndexOutput* pVocWriter = desc->getVocOutput();
+        pVocWriter->seek(voffset - nVocLength);///seek to begin of vocabulary data
+
+        TERM_TABLE* pTermTable = pTermReader->getTermTable();
+
+        fileoffset_t lastPOffset = 0;
+        for(TERM_TABLE::iterator termTableIter = pTermTable->begin(); termTableIter!= pTermTable->end(); ++termTableIter)
+        //for (int i = 0; i < nTermCount; i++)
+        {
+         /*
+            pVocWriter->writeInt(pTermTable[i].tid); 				///write term id
+            pVocWriter->writeInt(pTermTable[i].ti.docFreq()); 					///write df
+            pVocWriter->writeLong(pTermTable[i].ti.docPointer() - lastPOffset);	///write postingpointer
+            lastPOffset = pTermTable[i].ti.docPointer();
+            */
+            pVocWriter->writeInt(termTableIter->first); 				///write term id
+            pVocWriter->writeInt(termTableIter->second.docFreq()); 					///write df
+            pVocWriter->writeLong(termTableIter->second.docPointer());	///write postingpointer
+            lastPOffset = termTableIter->second.docPointer();
+        }
+        pVocWriter->flush();
+    }
+    delete pTermReader;
+    delete pVocInput;
+    delete pDPInput;
+    delete pPPInput;
+
+    return ret;
+}
+
+
+bool CollectionIndexer::removeDocumentInField(docid_t docid, FieldInfo* pFieldInfo, 
+        boost::shared_ptr<ForwardIndex> forwardindex, string barrelName, Directory* pDirectory, OutputDescriptor* desc)
+{
+    bool ret = false;
+
+    docid_t decompressed_docid;
+
+    freq_t doclength;
+
+    DiskTermReader* pTermReader = new DiskTermReader();
+
+    ///open on-disk index barrel
+    pTermReader->open(pDirectory,barrelName.c_str(),pFieldInfo);
+
+    string bn = barrelName;
+
+    IndexInput* pVocInput = pDirectory->openInput(bn + ".voc");
+    IndexInput* pDPInput = pDirectory->openInput(bn + ".dfp");
+    IndexInput* pPPInput = pDirectory->openInput(bn + ".pop");
+
+    for(ForwardIndex::iterator iter = forwardindex->begin(); iter != forwardindex->end(); ++iter)
+    {
+        termid_t termId = (termid_t)iter->first;
 
         Term term(pFieldInfo->getName(), termId);
         if (pTermReader->seek(&term))

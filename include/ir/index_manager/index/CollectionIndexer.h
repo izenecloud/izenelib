@@ -63,7 +63,11 @@ public:
 
 private:
 
-    bool removeDocumentInField(docid_t docid, FieldInfo* pFieldInfo, boost::shared_ptr<LAInput> laInput, string barrelName, Directory* pDirectory, OutputDescriptor* desc);
+    bool removeDocumentInField(docid_t docid, FieldInfo* pFieldInfo, 
+        boost::shared_ptr<LAInput> laInput, string barrelName, Directory* pDirectory, OutputDescriptor* desc);
+
+    bool removeDocumentInField(docid_t docid, FieldInfo* pFieldInfo, 
+        boost::shared_ptr<ForwardIndex> forwardindex, string barrelName, Directory* pDirectory, OutputDescriptor* desc);
 
 private:
     collectionid_t colID_;
