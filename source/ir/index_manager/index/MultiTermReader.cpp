@@ -181,15 +181,17 @@ ReaderCache* MultiTermReader::loadReader(const char* field)
     ReaderCache* pPreList = NULL;
     ReaderCache* pHeadList = NULL;
     TermReader* pSe = NULL;
-    pBarrelReader->startIterator();
+
     BarrelReaderEntry* pEntry = NULL;
-    while (pBarrelReader->hasNext())
+
+    for(vector<BarrelReaderEntry*>::iterator iter = pBarrelReader->readers_.begin(); 
+        iter != pBarrelReader->readers_.end(); ++iter)	
     {
-        pEntry = pBarrelReader->nextEntry();
-        pSe =  (TermReader*)pEntry->pBarrel->termReader(colID, field)->clone();
+        pEntry = (*iter);
+        pSe =  (TermReader*)pEntry->pBarrelReader_->termReader(colID, field)->clone();
         if (pSe)
         {
-            pTailList = new ReaderCache(pEntry->pBarrelInfo,pSe);
+            pTailList = new ReaderCache(pEntry->pBarrelInfo_,pSe);
             if (pHeadList == NULL)
             {
                 pHeadList = pTailList;

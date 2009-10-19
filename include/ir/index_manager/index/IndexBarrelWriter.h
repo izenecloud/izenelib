@@ -41,11 +41,10 @@ public:
      */
     void addDocument(IndexerDocument* pDoc);
     /**
-     * delete a IndexerDocument in a barrel
+     * delete the in memory index for a document
      * @param pDoc analyzed document
-     * @param inMemory whether this barrel is in memory or not
      */
-    bool deleteDocument(IndexerDocument* pDoc, bool inMemory);
+    bool deleteDocument(IndexerDocument* pDoc);
     /**
      * determine if the memory cache for indexing is full
      * @return true if cache is full otherwise false.

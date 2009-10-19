@@ -9,6 +9,7 @@
 
 #include <ir/index_manager/index/IndexBarrelReader.h>
 #include <ir/index_manager/index/CollectionInfo.h>
+
 #include <map>
 
 NS_IZENELIB_IR_BEGIN
@@ -32,12 +33,17 @@ public:
 
     TermReader* termReader(collectionid_t colID,const char* field);
 
+    void deleteDocumentPhysically(IndexerDocument* pDoc);
+
     CollectionsInfo& getCollectionsInfo()
     {
         return *pCollectionsInfo_;
     }
 
     void close();
+private:
+    void delDocField(unsigned int colID, docid_t docId, const char* fieldName, boost::shared_ptr<ForwardIndex>& forwardIndex);
+
 private:
     string name_;
 
@@ -46,6 +52,8 @@ private:
     BarrelInfo* pBarrelInfo_;
 
     map<collectionid_t, TermReader*> termReaderMap_;
+
+    MemCache* pMemCache_; ///for deleting index;
 
 };
 

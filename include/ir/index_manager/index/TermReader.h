@@ -141,7 +141,7 @@ protected:
 
     friend class DiskTermIterator;
     friend class CollectionIndexer;
-
+    friend class SingleIndexBarrelReader;
 };
 
 class InMemoryTermReader : public TermReader

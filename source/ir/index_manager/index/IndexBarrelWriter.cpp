@@ -69,23 +69,12 @@ void IndexBarrelWriter::addDocument(IndexerDocument* pDoc)
     pCollectionIndexer->addDocument(pDoc);
 }
 
-bool	IndexBarrelWriter::deleteDocument(IndexerDocument* pDoc, bool inMemory)
+bool	IndexBarrelWriter::deleteDocument(IndexerDocument* pDoc)
 {
     DocId uniqueID;
     pDoc->getDocId(uniqueID);
-
     CollectionIndexer* pCollectionIndexer = collectionIndexMap[uniqueID.colId];
-
-    string s = barrelName +".voc";
-    IndexOutput* pVocOutput = pDirectory->createOutput(s.c_str(),"r+");
-    s = barrelName + ".dfp";
-    IndexOutput* pDOutput = pDirectory->createOutput(s.c_str(),"r+");
-    s = barrelName + ".pop";
-    IndexOutput* pPOutput = pDirectory->createOutput(s.c_str(),"r+");
-
-    OutputDescriptor desc(pVocOutput,pDOutput,pPOutput,true);
-
-    return pCollectionIndexer->deleteDocument(pDoc, barrelName, pDirectory, &desc, inMemory);
+    return pCollectionIndexer->deleteDocument(pDoc);
 }
 
 void IndexBarrelWriter::resetCache(bool bResetPosting /* = false */)

@@ -2,6 +2,9 @@
 #define BITVECTOR_H
 
 #include <ir/index_manager/utility/system.h>
+#include <ir/index_manager/store/Directory.h>
+#include <ir/index_manager/store/IndexInput.h>
+#include <ir/index_manager/store/IndexOutput.h>
 
 NS_IZENELIB_IR_BEGIN
 
@@ -10,6 +13,8 @@ namespace indexmanager{
 class BitVector
 {
 public:
+    BitVector():bits_(0), size_(0) {}
+	
     BitVector(size_t n)
         :size_(n)
     {
@@ -19,7 +24,8 @@ public:
     }
     ~BitVector()
     {
-        delete bits_;
+        if(bits_)
+            delete bits_;
     }
 
 public:
@@ -76,6 +82,26 @@ public:
     }
 
     size_t size() { return size_; }
+
+    void read(Directory* pDirectory,const char* name)
+    {
+        IndexInput* pInput = pDirectory->openInput(name);
+        size_= (size_t)pInput->readInt();
+        blockNum_ = (size_ >> 3) + 1;
+        bits_ = new unsigned char[blockNum_];
+        clear();
+        pInput->read((char*)bits_,blockNum_*sizeof(unsigned char));
+        delete pInput;
+    }
+
+    void write(Directory* pDirectory,const char* name)
+    {
+        IndexOutput* pOutput = pDirectory->createOutput(name);
+        pOutput->writeInt((int32_t)size_);
+        pOutput->write((const char*)bits_,blockNum_*sizeof(unsigned char));
+        delete pOutput;
+    }
+
 private:
     unsigned char* bits_;
     size_t size_;

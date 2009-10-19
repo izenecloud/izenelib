@@ -443,8 +443,9 @@ int Indexer::updateDocument(IndexerDocument* pDoc)
 
 int Indexer::removeDocument(IndexerDocument* pDoc)
 {
-    pIndexWriter_->deleteDocument(pDoc);
-    pIndexReader_->setDirty(true);
+//    pIndexWriter_->deleteDocument(pDoc);
+//    pIndexReader_->setDirty(true);
+    pIndexReader_->deleteDocumentPhysically(pDoc);
     return 1;
 }
 

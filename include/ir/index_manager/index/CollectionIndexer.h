@@ -49,7 +49,7 @@ public:
 
     void addDocument(IndexerDocument* pDoc);
 
-    bool deleteDocument(IndexerDocument* pDoc,string barrelName, Directory* pDirectory, OutputDescriptor* desc, bool inMemory);
+    bool deleteDocument(IndexerDocument* pDoc);
 
     void write(OutputDescriptor* desc);
 
@@ -60,14 +60,6 @@ public:
     FieldIndexer* getFieldIndexer(const char* field);
 
     FieldsInfo* getFieldsInfo() { return pFieldsInfo_;}
-
-private:
-
-    bool removeDocumentInField(docid_t docid, FieldInfo* pFieldInfo, 
-        boost::shared_ptr<LAInput> laInput, string barrelName, Directory* pDirectory, OutputDescriptor* desc);
-
-    bool removeDocumentInField(docid_t docid, FieldInfo* pFieldInfo, 
-        boost::shared_ptr<ForwardIndex> forwardindex, string barrelName, Directory* pDirectory, OutputDescriptor* desc);
 
 private:
     collectionid_t colID_;

@@ -110,6 +110,30 @@ count_t IndexReader::numDocs()
     return pBarrelsInfo_->getDocCount();
 }
 
+void IndexReader::deleteDocumentPhysically(IndexerDocument* pDoc)
+{
+    boost::mutex::scoped_lock lock(this->mutex_);
+    if (pBarrelReader_ == NULL)
+    {
+        createBarrelReader();
+    }
+    pBarrelReader_->deleteDocumentPhysically(pDoc);
+    map<IndexerPropertyConfig, IndexerDocumentPropertyType> propertyValueList;
+    pDoc->getPropertyList(propertyValueList);
+    DocId uniqueID;
+    pDoc->getDocId(uniqueID);
+    for (map<IndexerPropertyConfig, IndexerDocumentPropertyType>::iterator iter = propertyValueList.begin(); iter != propertyValueList.end(); ++iter)
+    {
+        if(!iter->first.isIndex())
+            continue;    
+        if (!iter->first.isForward())
+        {
+            pIndexer_->getBTreeIndexer()->remove(uniqueID.colId, iter->first.getPropertyId(), boost::get<PropertyType>(iter->second), uniqueID.docId);
+        }
+    }
+    pIndexer_->setDirty(true);//flush barrelsinfo when Indexer quit
+}
+
 freq_t IndexReader::docFreq(collectionid_t colID, Term* term)
 {
     boost::mutex::scoped_lock lock(this->mutex_);

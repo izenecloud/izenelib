@@ -97,6 +97,11 @@ TermReader* InMemoryIndexBarrelReader::termReader(collectionid_t colID, const ch
     return NULL;
 }
 
+void InMemoryIndexBarrelReader::deleteDocumentPhysically(IndexerDocument* pDoc)
+{
+    pIndexBarrelWriter->deleteDocument(pDoc);
+}
+
 void InMemoryIndexBarrelReader::close()
 {
 }

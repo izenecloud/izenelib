@@ -5,15 +5,15 @@
 
 using namespace izenelib::ir::indexmanager;
 
-MultiIndexBarrelReader::MultiIndexBarrelReader(Indexer* pIndexer,BarrelsInfo* pBarrelsInfo_, DiskIndexOpenMode mode)
+MultiIndexBarrelReader::MultiIndexBarrelReader(Indexer* pIndexer,BarrelsInfo* pBarrelsInfo, DiskIndexOpenMode mode)
         :IndexBarrelReader(pIndexer)
-        ,pBarrelsInfo(pBarrelsInfo_)
+        ,pBarrelsInfo_(pBarrelsInfo)
 {
-    pBarrelsInfo->startIterator();
+    pBarrelsInfo_->startIterator();
     BarrelInfo* pBarrelInfo;
-    while (pBarrelsInfo->hasNext())
+    while (pBarrelsInfo_->hasNext())
     {
-        pBarrelInfo = pBarrelsInfo->next();
+        pBarrelInfo = pBarrelsInfo_->next();
         if (pBarrelInfo->getDocCount() > 0)
             addReader(pBarrelInfo, mode);
     }
@@ -21,7 +21,7 @@ MultiIndexBarrelReader::MultiIndexBarrelReader(Indexer* pIndexer,BarrelsInfo* pB
 
 MultiIndexBarrelReader::~MultiIndexBarrelReader(void)
 {
-    pBarrelsInfo = NULL;
+    pBarrelsInfo_ = NULL;
     close();
 }
 
@@ -31,12 +31,12 @@ void MultiIndexBarrelReader::open(const char* name)
 
 TermReader* MultiIndexBarrelReader::termReader(collectionid_t colID)
 {
-    if (termReaderMap.find(colID) == termReaderMap.end())
+    if (termReaderMap_.find(colID) == termReaderMap_.end())
     {
         try
         {
             boost::shared_ptr<MultiTermReader > pTermReader(new MultiTermReader(this, colID));
-            termReaderMap[colID] = pTermReader;
+            termReaderMap_[colID] = pTermReader;
         }
         catch (std::bad_alloc& ba)
         {
@@ -44,23 +44,36 @@ TermReader* MultiIndexBarrelReader::termReader(collectionid_t colID)
             SF1V5_THROW(ERROR_OUTOFMEM,"MultiIndexBarrelReader::termReader():" + serror);
         }
     }
-    return termReaderMap[colID].get();
+    return termReaderMap_[colID].get();
+}
+
+void MultiIndexBarrelReader::deleteDocumentPhysically(IndexerDocument* pDoc)
+{
+    DocId uniqueID;
+    pDoc->getDocId(uniqueID);
+
+    for(vector<BarrelReaderEntry*>::iterator iter = readers_.begin(); iter != readers_.end(); ++iter)
+    {
+        BarrelInfo* pBarrelInfo = (*iter)->pBarrelInfo_;
+        if ((pBarrelInfo->baseDocIDMap.find(uniqueID.colId) != pBarrelInfo->baseDocIDMap.end())&&
+                (pBarrelInfo->baseDocIDMap[uniqueID.colId] <= uniqueID.docId))
+        {
+            (*iter)->pBarrelReader_->deleteDocumentPhysically(pDoc);
+            pBarrelInfo->deleteDocument();
+            break;
+        }
+    }
 }
 
 void MultiIndexBarrelReader::close()
 {
-    vector<BarrelReaderEntry*>::iterator iter = readers.begin();
-    while (iter != readers.end())
-    {
+    for(vector<BarrelReaderEntry*>::iterator iter = readers_.begin(); iter != readers_.end(); ++iter)
         delete (*iter);
-        iter++;
-    }
-    readers.clear();
-
+    readers_.clear();
 }
 
 void MultiIndexBarrelReader::addReader(BarrelInfo* pBarrelInfo, DiskIndexOpenMode mode)
 {
-    readers.push_back(new BarrelReaderEntry(pIndexer,pBarrelInfo,mode));
+    readers_.push_back(new BarrelReaderEntry(pIndexer,pBarrelInfo,mode));
 }
 

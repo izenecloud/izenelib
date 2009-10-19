@@ -11,8 +11,8 @@
 #include <ir/index_manager/index/IndexBarrelReader.h>
 #include <ir/index_manager/index/BarrelInfo.h>
 #include <ir/index_manager/index/SingleIndexBarrelReader.h>
-#include <ir/index_manager/store/Directory.h>
 #include <ir/index_manager/index/IndexBarrelWriter.h>
+#include <ir/index_manager/store/Directory.h>
 
 #include <boost/shared_ptr.hpp>
 
@@ -26,25 +26,25 @@ namespace indexmanager{
 class BarrelReaderEntry
 {
 public:
-    BarrelReaderEntry(Indexer* pIndexer,BarrelInfo* pBarrelInfo_,DiskIndexOpenMode mode)
+    BarrelReaderEntry(Indexer* pIndexer,BarrelInfo* pBarrelInfo,DiskIndexOpenMode mode)
     {
-        pBarrelInfo = pBarrelInfo_;
+        pBarrelInfo_ = pBarrelInfo;
         if (pBarrelInfo->getWriter())
-            pBarrel = pBarrelInfo->getWriter()->inMemoryReader();
+            pBarrelReader_ = pBarrelInfo->getWriter()->inMemoryReader();
         else
-            pBarrel = new SingleIndexBarrelReader(pIndexer,pBarrelInfo,mode);
+            pBarrelReader_ = new SingleIndexBarrelReader(pIndexer,pBarrelInfo,mode);
     }
 
     ~BarrelReaderEntry()
     {
-        delete pBarrel;
-        pBarrel = NULL;
-        pBarrelInfo = NULL;
+        delete pBarrelReader_;
+        pBarrelReader_ = NULL;
+        pBarrelInfo_ = NULL;
     }
 
 public:
-    BarrelInfo* pBarrelInfo;
-    IndexBarrelReader* pBarrel;
+    BarrelInfo* pBarrelInfo_;
+    IndexBarrelReader* pBarrelReader_;
 
     friend class MultiIndexBarrelReader;
 };
@@ -64,56 +64,22 @@ public:
 
     TermReader* termReader(collectionid_t colID);
 
+    void deleteDocumentPhysically(IndexerDocument* pDoc);
+
     void close();
 
-public:
-    void startIterator()
-    {
-        readersIterator = readers.begin();
-    }
-
-    bool hasNext()
-    {
-        return (readersIterator != readers.end());
-    }
-
-    BarrelReaderEntry* nextEntry();
-
-    IndexBarrelReader* nextReader();
-
-    BarrelInfo* nextBarrel();
-
-protected:
-
-    void addReader(BarrelInfo* pBarrelInfo,DiskIndexOpenMode mode);
 private:
-    BarrelsInfo* pBarrelsInfo;
+    void addReader(BarrelInfo* pBarrelInfo,DiskIndexOpenMode mode);
 
-    map<collectionid_t, boost::shared_ptr<MultiTermReader > > termReaderMap;
+private:
+    BarrelsInfo* pBarrelsInfo_;
 
-    vector<BarrelReaderEntry*> readers;
+    map<collectionid_t, boost::shared_ptr<MultiTermReader > > termReaderMap_;
 
-    vector<BarrelReaderEntry*>::iterator readersIterator;
+    vector<BarrelReaderEntry*> readers_;
+
+    friend class MultiTermReader;
 };
-//////////////////////////////////////////////////////////////////////////
-//Inline Functions
-inline BarrelReaderEntry* MultiIndexBarrelReader::nextEntry()
-{
-    return *readersIterator++;
-}
-inline IndexBarrelReader* MultiIndexBarrelReader::nextReader()
-{
-    IndexBarrelReader* pReader = (*readersIterator)->pBarrel;
-    readersIterator++;
-    return pReader;
-}
-inline BarrelInfo* MultiIndexBarrelReader::nextBarrel()
-{
-    BarrelInfo* pBarrelInfo = (*readersIterator)->pBarrelInfo;
-    readersIterator++;
-    return pBarrelInfo;
-}
-
 
 }
 

@@ -9,6 +9,7 @@
 #define INMEMORYINDEXBARRELREADER_H
 
 #include <ir/index_manager/index/IndexBarrelReader.h>
+
 #include <map>
 
 NS_IZENELIB_IR_BEGIN
@@ -26,6 +27,8 @@ public:
     TermReader* termReader(collectionid_t colID);
 
     TermReader* termReader(collectionid_t colID,const char* field);
+
+    void deleteDocumentPhysically(IndexerDocument* pDoc);
 
     void close();
 

@@ -16,6 +16,7 @@
 #include <ir/index_manager/index/BarrelInfo.h>
 #include <ir/index_manager/index/CollectionInfo.h>
 #include <ir/index_manager/index/ForwardIndexReader.h>
+#include <ir/index_manager/index/IndexerDocument.h>
 
 NS_IZENELIB_IR_BEGIN
 
@@ -59,6 +60,8 @@ public:
      * @warn client must delete the returned object
      */
     ForwardIndexReader* getForwardIndexReader();
+
+    void deleteDocumentPhysically(IndexerDocument* pDoc);
 
 private:
     void createBarrelReader();

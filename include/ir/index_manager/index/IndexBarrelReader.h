@@ -10,6 +10,7 @@
 #include <ir/index_manager/utility/system.h>
 #include <ir/index_manager/index/FieldIndexer.h>
 #include <ir/index_manager/index/FieldInfo.h>
+#include <ir/index_manager/index/IndexerDocument.h>
 #include <ir/index_manager/store/Directory.h>
 
 #include <map>
@@ -41,6 +42,9 @@ public:
     {
         return NULL;
     }
+
+    virtual void deleteDocumentPhysically(IndexerDocument* pDoc) = 0;
+	
     virtual void close() = 0;
 protected:
     Indexer* pIndexer;

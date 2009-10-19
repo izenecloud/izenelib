@@ -46,11 +46,6 @@ public:
     */
     void indexDocument(IndexerDocument* pDoc);
     /**
-    * @brief delete a document object from index
-    * @param pDoc: the document object to be indexed, it is an analyzed document object.
-    */
-    bool deleteDocument(IndexerDocument* pDoc);
-    /**
     * @brief remove a collection
     * @param colID, the collection id to be removed
     * @param docCount, the document count of the collection to be removed
