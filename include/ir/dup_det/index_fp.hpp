@@ -312,6 +312,17 @@ public:
     fp_hash_ptrs_[docid%FP_HASH_NUM]->add_doc(docid/FP_HASH_NUM, fp);
   }
 
+  inline void update_doc(size_t docid, const Vector64& fp)
+  {
+    for (uint32_t j=0; j<fp_list_->doc_num(); ++j)
+    {
+      if ((*fp_list_)[j] == docid)
+        (*fp_list_)[j] = -1;
+    }
+
+    add_doc(docid, fp);
+  }
+  
   void update_docs(const std::vector<uint32_t>& docids, const std::vector<Vector64>& fps)
   {
     ready_for_insert();
@@ -332,6 +343,15 @@ public:
     flush();
   }
 
+  void del_doc(uint32_t docid)
+  {
+    for (uint32_t j=0; j<fp_list_->doc_num(); ++j)
+    {
+      if ((*fp_list_)[j] == docid)
+        (*fp_list_)[j] = -1;
+    }
+  }
+  
   void del_docs(const std::vector<uint32_t>& docids)
   {
     ready_for_insert();
