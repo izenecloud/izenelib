@@ -73,7 +73,9 @@ public:
     void flush();
 
     int removeCollection(collectionid_t colID);
-    
+
+    size_t getDistinctNumTermsByProperty(collectionid_t colID, std::string property);
+	
     bool getDocsByTermInProperties(termid_t termID, collectionid_t colID, std::vector<std::string> properties, std::deque<docid_t>& docIds);
 
     bool getDocsByTermInProperties(termid_t termID, collectionid_t colID, std::vector<std::string> properties, std::deque<CommonItem>& commonSet);

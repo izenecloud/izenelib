@@ -44,6 +44,8 @@ public:
     }
 
     virtual void deleteDocumentPhysically(IndexerDocument* pDoc) = 0;
+
+    virtual size_t getDistinctNumTerms(collectionid_t colID,fieldid_t fid) = 0;
 	
     virtual void close() = 0;
 protected:

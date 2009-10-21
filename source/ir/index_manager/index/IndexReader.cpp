@@ -158,3 +158,27 @@ TermInfo* IndexReader::termInfo(collectionid_t colID,Term* term)
     return 0;
 }
 
+size_t IndexReader::getDistinctNumTerms(collectionid_t colID, fieldid_t fid)
+{
+    if (dirty_)
+    {
+        //collection has been removed, need to rebuild the barrel reader
+        if (pBarrelReader_ == NULL)
+        {
+            createBarrelReader();
+        }
+        else
+        {
+            delete pBarrelReader_;
+            pBarrelReader_ = NULL;
+        }
+        dirty_ = false;
+    }
+
+    if (pBarrelReader_ == NULL)
+    {
+        createBarrelReader();
+    }
+    return pBarrelReader_->getDistinctNumTerms(colID, fid);
+}
+

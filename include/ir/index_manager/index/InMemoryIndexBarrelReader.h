@@ -30,6 +30,8 @@ public:
 
     void deleteDocumentPhysically(IndexerDocument* pDoc);
 
+    size_t getDistinctNumTerms(collectionid_t colID, fieldid_t fid);
+
     void close();
 
 protected:

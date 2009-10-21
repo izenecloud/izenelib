@@ -462,6 +462,12 @@ void Indexer::flush()
     pBTreeIndexer_->flush();
 }
 
+size_t Indexer::getDistinctNumTermsByProperty(collectionid_t colID, std::string property)
+{
+    fieldid_t fid = getPropertyIDByName(colID,property);
+    return pIndexReader_->getDistinctNumTerms(colID, fid);
+}
+
 ///To be optimized: Using TermDocFreqs instead of TermPositions
 bool Indexer::getDocsByTermInProperties(termid_t termID, collectionid_t colID, vector<string> properties, deque<docid_t>& docIds)
 {
@@ -472,15 +478,6 @@ bool Indexer::getDocsByTermInProperties(termid_t termID, collectionid_t colID, v
             return false;
         if (parallelTermPosition.seek(termID))
         {
-/*        
-            vector<string> currProperties;
-            docid_t currDocID;
-            while (parallelTermPosition.next(currProperties,currDocID))
-            {
-                docIds.push_back(currDocID);
-                currProperties.clear();
-            }
-*/
             while(parallelTermPosition.next())
             {
                 docIds.push_back(parallelTermPosition.doc());
@@ -531,25 +528,6 @@ bool Indexer::getDocsByTermInProperties(termid_t termID, collectionid_t colID, v
             return false;
         if (parallelTermPosition.seek(termID))
         {
-/*        
-            vector<string> currProperties;
-            docid_t currDocID;
-            while (parallelTermPosition.next(currProperties,currDocID))
-            {
-                CommonItem item;
-                item.setDocID(currDocID);
-                item.setCollectionID(colID);
-                for (vector<string>::iterator iter = currProperties.begin(); iter != currProperties.end(); ++iter)
-                {
-                    boost::shared_ptr<std::deque<unsigned int> > positions(new std::deque<unsigned int>);
-                    freq_t tf,doclen = 0;
-                    parallelTermPosition.getPositions((*iter), positions, tf, doclen);
-                    item.addProperty((*iter), positions, tf);
-                }
-                commonSet.push_back(item);
-                currProperties.clear();
-            }
-*/
             while(parallelTermPosition.next())
             {
                 CommonItem item;

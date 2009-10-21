@@ -102,6 +102,12 @@ void InMemoryIndexBarrelReader::deleteDocumentPhysically(IndexerDocument* pDoc)
     pIndexBarrelWriter->deleteDocument(pDoc);
 }
 
+size_t InMemoryIndexBarrelReader::getDistinctNumTerms(collectionid_t colID, fieldid_t fid)
+{
+    CollectionsInfo* pCollectionsInfo = pIndexBarrelWriter->pCollectionsInfo;
+    return (*pCollectionsInfo)[colID]->getFieldsInfo()->getField(fid)->distinctNumTerms();
+}
+
 void InMemoryIndexBarrelReader::close()
 {
 }
