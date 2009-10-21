@@ -1,24 +1,23 @@
-#cannot compile
-#ADD_EXECUTABLE(t_exception t_exception)
+FIND_PACKAGE(Boost 1.35.0 REQUIRED COMPONENTS unit_test_framework serialization)
 
-ADD_EXECUTABLE(t_map t_map)
-
-IF(febird_shared AND Boost_FOUND)
-  ADD_EXECUTABLE(t_serialization t_serialization)
-  TARGET_LINK_LIBRARIES(t_serialization febird_shared)
-ENDIF(febird_shared AND Boost_FOUND)
-
-FIND_PACKAGE(Boost 1.35.0 COMPONENTS unit_test_framework)
 IF(Boost_FOUND AND Boost_UNIT_TEST_FRAMEWORK_FOUND)
   ADD_EXECUTABLE(t_ClockTimer t_ClockTimer)
   TARGET_LINK_LIBRARIES(t_ClockTimer ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY})
-  ADD_TEST(util/ClockTimer t_ClockTimer)
+  SET_TARGET_PROPERTIES(t_ClockTimer PROPERTIES
+      COMPILE_FLAGS "-include ${FileTestHelper}"
+      RUNTIME_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/testbin
+      )
+  ADD_TEST(ClockTimer "${CMAKE_SOURCE_DIR}/testbin/t_ClockTimer")
+
+  ADD_EXECUTABLE(t_IdMapper t_IdMapper)
+  TARGET_LINK_LIBRARIES(t_IdMapper ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY})
+  SET_TARGET_PROPERTIES(t_IdMapper PROPERTIES
+      COMPILE_FLAGS "-include ${FileTestHelper}"
+      RUNTIME_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/testbin
+      )
+  ADD_TEST(IdMapper "${CMAKE_SOURCE_DIR}/testbin/t_IdMapper")
+
 ENDIF(Boost_FOUND AND Boost_UNIT_TEST_FRAMEWORK_FOUND)
 
-#FIND_PACKAGE(Boost 1.35.0 COMPONENTS serialization)
-#IF(Boost_FOUND AND Boost_SERIALIZATION_FOUND)
-#  ADD_EXECUTABLE(t_wrapper t_wrapper)
-#  TARGET_LINK_LIBRARIES(t_wrapper febird_shared ${Boost_SERIALIZATION_LIBRARY}  ${Boost_THREAD_LIBRARY})
-#ENDIF(Boost_FOUND AND Boost_SERIALIZATION_FOUND)
 
 

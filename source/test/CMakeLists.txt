@@ -29,7 +29,7 @@ IF(Boost_FOUND)
   # ADD_SUBDIRECTORY(db)
   # ADD_SUBDIRECTORY(ir)
   # ADD_SUBDIRECTORY(sdb)
-  # ADD_SUBDIRECTORY(util)
+  ADD_SUBDIRECTORY(util)
 
 ELSE(Boost_FOUND)
   MESSAGE(STATUS "boost is required in boost")
