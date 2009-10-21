@@ -32,14 +32,14 @@ public:
     void set(size_t bit) 
     {
         if(bit >= size_)
-            return;
+            grow(bit+1);
         bits_[bit >> 3] |= 1 << (bit & 7);
     }
 
     void clear(size_t bit) 
     {
         if(bit >= size_)
-            return;
+            grow(bit+1);
         bits_[bit >> 3] &= ~(1 << (bit & 7));
     }
 
@@ -116,6 +116,18 @@ public:
             if (bits_[i])
                 return true;
         return false;
+    }
+
+private:
+    void grow(size_t length)
+    {
+        unsigned char* newBits_ = new unsigned char[length];
+        memset(newBits_,0,length);
+        memcpy(newBits_,bits_,size_);
+        size_ = length;
+        blockNum_ = (size_ >> 3) + 1;
+        delete bits_;
+        bits_ = newBits_;
     }
 
 private:

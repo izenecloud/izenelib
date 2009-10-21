@@ -67,8 +67,15 @@ public:
     int insertDocument(IndexerDocument* pDoc);
     ///pDoc should be deleted by the user
     int removeDocumentPhysically(IndexerDocument* pDoc);
-
-    int removeDocument(docid_t docId);
+    ///mark a document as deleted
+    int removeDocument(collectionid_t colID, docid_t docId);
+    /// Working flow of updating:
+    /// 1. pIndexer->removeDocument(docId);
+    /// 2. pIndexer->startUpdate();
+    /// 3. pIndexer->insertDocument(pDoc);
+    /// 4. pIndexer->flush();
+    /// 5. pIndexer->optimizeIndex();
+    bool startUpdate();
 
     void flush();
 

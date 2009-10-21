@@ -17,6 +17,7 @@
 #include <ir/index_manager/index/CollectionInfo.h>
 #include <ir/index_manager/index/ForwardIndexReader.h>
 #include <ir/index_manager/index/IndexerDocument.h>
+#include <ir/index_manager/utility/BitVector.h>
 
 NS_IZENELIB_IR_BEGIN
 
@@ -63,11 +64,20 @@ public:
 
     void deleteDocumentPhysically(IndexerDocument* pDoc);
 
+    /// mark a document as deleted;
+    void delDocument(collectionid_t colID, docid_t docId);
+
     size_t getDistinctNumTerms(collectionid_t colID, fieldid_t fid);
+
+    BitVector* getDocFilter() { return pDocFilter_; }
+
+    void delDocFilter();
 
 private:
     void createBarrelReader();
     TermReader* doGetTermReader_(collectionid_t colID);
+    ///find which barrel the document lies
+    BarrelInfo* findDocumentInBarrels(collectionid_t colID, docid_t docID);
 
 private:
     DiskIndexOpenMode openMode_; ///whether accessing vocabulary ordered preserving or not.(hash is unordered and is faster)
@@ -83,6 +93,8 @@ private:
     bool dirty_;
 
     mutable boost::mutex mutex_;
+
+    BitVector* pDocFilter_;
 
     friend class Indexer;
 };

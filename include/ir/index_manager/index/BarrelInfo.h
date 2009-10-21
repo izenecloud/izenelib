@@ -310,8 +310,6 @@ private:
 
     int32_t nBarrelCounter; ///barrel counter
 
-    docid_t maxDocId;
-
     vector<BarrelInfo*> barrelInfos;
 
     vector<BarrelInfo*>::iterator barrelsiterator;
