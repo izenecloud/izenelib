@@ -102,6 +102,22 @@ public:
         delete pOutput;
     }
 
+    bool hasSmallThan(size_t bit) const
+    {
+        if(bit >= size_)
+        {
+            for (size_t i = 0; i < blockNum_; ++i)
+                if (bits_[i])
+                    return true;
+            return false;
+        }
+        size_t nTestBlk = bit >> 3;
+        for (size_t i = 0; i <= nTestBlk; ++i)
+            if (bits_[i])
+                return true;
+        return false;
+    }
+
 private:
     unsigned char* bits_;
     size_t size_;

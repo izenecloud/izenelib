@@ -27,6 +27,7 @@ public:
     BarrelInfo()
             : nNumDocs(0)
             , pBarrelWriter(NULL)
+            , hasUpdateDocs(false)
     {
     }
 
@@ -34,6 +35,7 @@ public:
             : barrelName(name)
             , nNumDocs(count)
             , pBarrelWriter(NULL)
+            , hasUpdateDocs(false)
     {
     }
 
@@ -43,6 +45,7 @@ public:
             , baseDocIDMap(pBarrelInfo->baseDocIDMap)    
             , nNumDocs(pBarrelInfo->nNumDocs)
             , pBarrelWriter(NULL)
+            , hasUpdateDocs(false)
     {
     }
 
@@ -148,6 +151,8 @@ public:
     count_t nNumDocs;
     ///only valid when this barrel is a in-memory barrel,otherwise NULL.
     IndexBarrelWriter* pBarrelWriter;
+
+    bool hasUpdateDocs;
 };
 
 
@@ -304,6 +309,8 @@ private:
     string version;
 
     int32_t nBarrelCounter; ///barrel counter
+
+    docid_t maxDocId;
 
     vector<BarrelInfo*> barrelInfos;
 

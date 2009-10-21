@@ -12,6 +12,7 @@
 #include <ir/index_manager/utility/PriorityQueue.h>
 #include <ir/index_manager/index/BarrelInfo.h>
 #include <ir/index_manager/index/CollectionInfo.h>
+#include <ir/index_manager/utility/BitVector.h>
 #include <vector>
 
 NS_IZENELIB_IR_BEGIN
@@ -142,6 +143,10 @@ public:
         return pDirectory;
     }
 
+    void setDocFilter(BitVector* pFilter)
+    {
+        pDocFilter = pFilter;
+    }
 
     /**
      * transfer in-memory barrel to disk
@@ -212,6 +217,8 @@ protected:
     bool bBorrowedBuffer;		///is the buffer borrowed from indexer?
 
     vector<MergeBarrelEntry*>* pMergeBarrels;
+
+    BitVector* pDocFilter;
 
     friend class IndexWriter;
     friend class Indexer;

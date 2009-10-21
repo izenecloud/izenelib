@@ -27,6 +27,8 @@ public:
 
     TermPositions(TermReader* pReader,Posting* pPosting,TermInfo& ti);
 
+    TermPositions(Posting* pPosting);
+
     virtual ~TermPositions(void);
 public:
     /**

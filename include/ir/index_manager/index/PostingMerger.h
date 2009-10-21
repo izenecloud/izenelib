@@ -11,6 +11,7 @@
 #include <ir/index_manager/index/Posting.h>
 #include <ir/index_manager/index/OutputDescriptor.h>
 #include <ir/index_manager/index/InputDescriptor.h>
+#include <ir/index_manager/utility/BitVector.h>
 
 NS_IZENELIB_IR_BEGIN
 
@@ -33,14 +34,12 @@ public:
      */
     void setBuffer(char* buf,size_t bufSize);
 
-    /**
-     * set output descriptor for merging
-     * @param pOutputDescriptor output descriptor
-     */
-    void setOutputDescriptor(OutputDescriptor*	pOutputDescriptor)
+    void setOutputDescriptor(OutputDescriptor* pOutputDescriptor)
     {
         this->pOutputDescriptor=pOutputDescriptor;
     }
+
+    OutputDescriptor* getOutputDescriptor() {return pOutputDescriptor;}
 
 public:
     /**
@@ -54,6 +53,10 @@ public:
      * @param pOnDiskPosting on-disk posting
      */
     void mergeWith(OnDiskPosting* pOnDiskPosting);
+
+    void mergeWith(OnDiskPosting* pOnDiskPosting,BitVector* pFilter);
+
+    void mergeWith_GC(OnDiskPosting* pOnDiskPosting,BitVector* pFilter);
 
     /**
      * end the merge,flush posting descriptor and chunk descriptor to disk.

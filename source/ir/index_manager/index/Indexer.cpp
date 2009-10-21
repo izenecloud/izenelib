@@ -420,7 +420,7 @@ void Indexer::setDirty(bool bDirty)
     dirty_ = bDirty;
 }
 
-int Indexer::insertDocumentWithNoBatch(IndexerDocument* pDoc)
+int Indexer::insertDocumentPhysically(IndexerDocument* pDoc)
 {
     pIndexWriter_->indexDocument(pDoc);
     pIndexReader_->setDirty(true);
@@ -434,25 +434,22 @@ int Indexer::insertDocument(IndexerDocument* pDoc)
     return 1;
 }
 
-int Indexer::updateDocument(IndexerDocument* pDoc)
+int Indexer::removeDocumentPhysically(IndexerDocument* pDoc)
 {
-    removeDocument(pDoc);
-    insertDocument(pDoc);
+    pIndexReader_->deleteDocumentPhysically(pDoc);
+    pIndexReader_->setDirty(true);
     return 1;
 }
 
-int Indexer::removeDocument(IndexerDocument* pDoc)
+int Indexer::removeDocument(docid_t docId)
 {
-//    pIndexWriter_->deleteDocument(pDoc);
-//    pIndexReader_->setDirty(true);
-    pIndexReader_->deleteDocumentPhysically(pDoc);
+
     return 1;
 }
 
 int Indexer::removeCollection(collectionid_t colID)
 {
     count_t count = 0;
-//    izenelib::util::boost_variant_visit(boost::bind(document_manager_visitor(), _1, colID, count), *pDocumentManager_);
     pIndexWriter_->removeCollection(colID,count);
     pIndexReader_->setDirty(true);
     return 1;

@@ -50,6 +50,22 @@ TermPositions::TermPositions(TermReader* pReader,Posting* pPosting,TermInfo& ti)
         ,bOwnPPostingBuffer_(false)
 {
 }
+TermPositions::TermPositions(Posting* pPosting)
+        :TermDocFreqs(pPosting)
+        ,pPPostingBuffer_(NULL)
+        ,nPBufferSize_(0)
+        ,nTotalDecodedPCountWithinDoc_(0)
+        ,nCurDecodedPCountWithinDoc_(0)
+        ,nCurrentPPostingWithinDoc_(0)
+        ,nTotalDecodedPCount_(0)
+        ,nCurrentPPosting_(0)
+        ,nLastUnDecodedPCount_(0)
+        ,pPPostingBufferWithinDoc_(NULL)
+        ,nPPostingCountWithinDoc_(0)
+        ,nLastPosting_(-1)
+        ,bOwnPPostingBuffer_(false)
+{
+}
 TermPositions::~TermPositions(void)
 {
     TermDocFreqs::close();

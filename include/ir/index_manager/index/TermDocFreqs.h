@@ -31,6 +31,8 @@ public:
 
     TermDocFreqs(TermReader * pReader,Posting * pPosting,TermInfo& ti);
 
+    TermDocFreqs(Posting* pPosting);
+
     virtual ~TermDocFreqs();
 public:
     virtual freq_t docFreq();

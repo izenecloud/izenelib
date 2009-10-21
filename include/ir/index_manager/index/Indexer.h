@@ -61,17 +61,18 @@ public:
 
     virtual ~Indexer();
 public:
-    int insertDocumentWithNoBatch(IndexerDocument* pDoc);
-
+    ///pDoc should be deleted by the user
+    int insertDocumentPhysically(IndexerDocument* pDoc);
+    ///pDoc will be destroyed by Indexer
     int insertDocument(IndexerDocument* pDoc);
+    ///pDoc should be deleted by the user
+    int removeDocumentPhysically(IndexerDocument* pDoc);
 
-    int removeDocument(IndexerDocument* pDoc);
-
-    int removeCollection(collectionid_t colID);
-
-    int updateDocument(IndexerDocument* pDoc);
+    int removeDocument(docid_t docId);
 
     void flush();
+
+    int removeCollection(collectionid_t colID);
     
     bool getDocsByTermInProperties(termid_t termID, collectionid_t colID, std::vector<std::string> properties, std::deque<docid_t>& docIds);
 

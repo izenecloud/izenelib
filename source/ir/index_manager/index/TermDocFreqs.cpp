@@ -51,6 +51,21 @@ TermDocFreqs::TermDocFreqs(TermReader* pReader, Posting* pposting, TermInfo& ti)
     termInfo.set(ti.docFreq(),ti.docPointer());
 }
 
+TermDocFreqs::TermDocFreqs(Posting* pposting)
+        :pPosting(pposting)
+        ,pPostingBuffer(NULL)
+        ,nBufferSize(0)
+        ,nFreqStart(0)
+        ,nDocLenStart(0)
+        ,nTotalDecodedCount(0)
+        ,nCurDecodedCount(0)
+        ,nCurrentPosting(-1)
+        ,pTermReader(NULL)
+        ,pInputDescriptor(NULL)
+{
+    termInfo.set(pposting->docFreq(), 0);
+}
+
 TermDocFreqs::~TermDocFreqs(void)
 {
     close();

@@ -15,6 +15,8 @@
 #include <ir/index_manager/utility/PriorityQueue.h>
 #include <ir/index_manager/index/PostingMerger.h>
 #include <ir/index_manager/index/AbsTermReader.h>
+#include <ir/index_manager/utility/BitVector.h>
+#include <ir/index_manager/utility/MemCache.h>
 
 #include <string>
 #include <vector>
@@ -231,6 +233,11 @@ public:
     {
         return nMergedTerms;
     }
+
+    void setDocFilter(BitVector* pFilter)
+    {
+        pDocFilter = pFilter;
+    }
 private:
     /** initialize merge queue */
     bool initQueue();
@@ -241,6 +248,9 @@ private:
      * @param numInfos size of info array
      */
     inline fileoffset_t	mergeTerms(FieldMergeInfo** ppMergeInfos,int32_t numInfos);
+
+    fileoffset_t sortingMerge(FieldMergeInfo** ppMergeInfos,int32_t numInfos, BitVector* pFilter);
+
 private:
     /**
      * flush merged term info, Subclasses must define this one method.
@@ -286,19 +296,41 @@ private:
     vector<MergeFieldEntry*> fieldEntries;
 
     MergeTermInfo* cachedTermInfos[NUM_CACHEDTERMINFO];
+
+    BitVector* pDocFilter;
+
+    MemCache* pMemCache;
 };
 //////////////////////////////////////////////////////////////////////////
 //inline
 inline fileoffset_t FieldMerger::mergeTerms(FieldMergeInfo** ppMergeInfos,int32_t numInfos)
 {
     Posting* pPosting;
+    bool mergePostingHasUpdatedDocs = false;
+    for (int32_t i = 0;i< numInfos;i++)
+    {
+        if(ppMergeInfos[i]->pBarrelInfo->hasUpdateDocs)
+        {
+            mergePostingHasUpdatedDocs = true;
+            break;
+        }
+    }
+    if(mergePostingHasUpdatedDocs)
+        return sortingMerge(ppMergeInfos, numInfos, pDocFilter);
+
     for (int32_t i = 0;i< numInfos;i++)
     {
         pPosting = ppMergeInfos[i]->pIterator->termPosting();
         if (ppMergeInfos[i]->pBarrelInfo->getWriter())///in-memory posting
             pPostingMerger->mergeWith((InMemoryPosting*)pPosting);
         else
-            pPostingMerger->mergeWith((OnDiskPosting*)pPosting);
+        {
+            if(pDocFilter)
+                pPostingMerger->mergeWith((OnDiskPosting*)pPosting,pDocFilter);
+            else
+                pPostingMerger->mergeWith((OnDiskPosting*)pPosting);
+        }
+
     }
     ///end merge
     return pPostingMerger->endMerge();
