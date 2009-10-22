@@ -45,7 +45,7 @@ public:
             , baseDocIDMap(pBarrelInfo->baseDocIDMap)    
             , nNumDocs(pBarrelInfo->nNumDocs)
             , pBarrelWriter(NULL)
-            , hasUpdateDocs(false)
+            , hasUpdateDocs(pBarrelInfo->hasUpdateDocs)
     {
     }
 

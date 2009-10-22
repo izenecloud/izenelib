@@ -195,8 +195,6 @@ void IndexMerger::continueDocIDs(BarrelsInfo* pBarrelsInfo)
 
 void IndexMerger::mergeBarrel(MergeBarrel* pBarrel)
 {
-    cout<<"merge 1"<<endl;
-
     //////////////////////////////////////////////////////////////////////////
     SF1V5_LOG(level::info) << "Begin merge: " << SF1V5_END;
     BarrelInfo* pBaInfo;

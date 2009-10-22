@@ -81,6 +81,8 @@ protected:
 
     InputDescriptor* pInputDescriptor;
 
+    bool ownPosting;
+
     static const size_t DEFAULT_BUFFERSIZE = 49152;
 };
 

@@ -107,7 +107,7 @@ void IndexWriter::mergeIndex(IndexMerger* pMerger)
 
         if (pCurBarrelInfo_)
         {
-            pBarrelsInfo_->deleteLastBarrel();
+            //pBarrelsInfo_->deleteLastBarrel();
             pCurBarrelInfo_ = NULL;
             pCurDocCount_ = NULL;
         }
@@ -152,6 +152,8 @@ void IndexWriter::mergeAndWriteCachedIndex()
 
 void IndexWriter::flush()
 {
+    if(!pIndexBarrelWriter_)
+        return;
     flushDocuments();
     BarrelInfo* pLastBarrel = pBarrelsInfo_->getLastBarrel();
     if (pLastBarrel == NULL)
@@ -166,6 +168,8 @@ void IndexWriter::flush()
     pIndexer_->setDirty(true);
     pLastBarrel->setWriter(NULL);
     pBarrelsInfo_->write(pIndexer_->getDirectory());
+    delete pIndexBarrelWriter_;
+    pIndexBarrelWriter_ = NULL;
 }
 
 void IndexWriter::close()
@@ -284,7 +288,10 @@ bool IndexWriter::startUpdate()
     }
     pCurBarrelInfo_->setWriter(pIndexBarrelWriter_);
     if(!pIndexMerger_)
-        createMerger();
+    {
+        delete pIndexMerger_;
+        pIndexMerger_ = NULL;
+    }
     bool* pHasUpdateDocs =  &(pCurBarrelInfo_->hasUpdateDocs);
     *pHasUpdateDocs = true;
     return true;
