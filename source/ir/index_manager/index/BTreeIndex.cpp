@@ -7,9 +7,9 @@ using namespace wiselib;
 
 using namespace izenelib::ir::indexmanager;
 
-BTreeIndex<IndexKeyType<int> >* BTreeIndexer::pBTreeIntIndexer_ = NULL;
+BTreeIndex<IndexKeyType<int64_t> >* BTreeIndexer::pBTreeIntIndexer_ = NULL;
 
-BTreeIndex<IndexKeyType<unsigned int> >* BTreeIndexer::pBTreeUIntIndexer_  = NULL;
+BTreeIndex<IndexKeyType<uint64_t> >* BTreeIndexer::pBTreeUIntIndexer_  = NULL;
 
 BTreeIndex<IndexKeyType<float> >* BTreeIndexer::pBTreeFloatIndexer_  = NULL;
 
@@ -23,12 +23,12 @@ BTreeIndexer::BTreeIndexer(string location, int degree, size_t cacheSize, size_t
 {
     string path(location);
     path.append("/int.bti");
-    pBTreeIntIndexer_ = new BTreeIndex<IndexKeyType<int> >(path);
+    pBTreeIntIndexer_ = new BTreeIndex<IndexKeyType<int64_t> >(path);
     pBTreeIntIndexer_->initialize(maxDataSize/10, degree, maxDataSize, cacheSize);
 
     path.clear();
     path = location+"/uint.bti";
-    pBTreeUIntIndexer_ = new BTreeIndex<IndexKeyType<unsigned int> >(path);
+    pBTreeUIntIndexer_ = new BTreeIndex<IndexKeyType<uint64_t> >(path);
     pBTreeUIntIndexer_->initialize(maxDataSize/10, degree, maxDataSize, cacheSize);
 
     path.clear();
