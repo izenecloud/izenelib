@@ -77,3 +77,10 @@ void MultiIndexBarrelReader::addReader(BarrelInfo* pBarrelInfo, DiskIndexOpenMod
     readers_.push_back(new BarrelReaderEntry(pIndexer,pBarrelInfo,mode));
 }
 
+size_t MultiIndexBarrelReader::getDistinctNumTerms(collectionid_t colID, fieldid_t fid)
+{
+    size_t num = 0;
+    for(vector<BarrelReaderEntry*>::iterator iter = readers_.begin(); iter != readers_.end(); ++iter)
+        num += (*iter)->pBarrelReader_->getDistinctNumTerms(colID,fid);
+    return num;
+}

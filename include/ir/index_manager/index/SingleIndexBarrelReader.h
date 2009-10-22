@@ -40,6 +40,8 @@ public:
         return *pCollectionsInfo_;
     }
 
+    size_t getDistinctNumTerms(collectionid_t colID, fieldid_t fid);
+
     void close();
 private:
     void delDocField(unsigned int colID, docid_t docId, const char* fieldName, boost::shared_ptr<ForwardIndex>& forwardIndex);

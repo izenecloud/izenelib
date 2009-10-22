@@ -63,6 +63,8 @@ public:
 
     void deleteDocumentPhysically(IndexerDocument* pDoc);
 
+    size_t getDistinctNumTerms(collectionid_t colID, fieldid_t fid);
+
 private:
     void createBarrelReader();
     TermReader* doGetTermReader_(collectionid_t colID);

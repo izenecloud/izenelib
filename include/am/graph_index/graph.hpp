@@ -937,6 +937,29 @@ public:
 
   void indexing()
   {
+    if (sorter_->num() == 0)
+    {      
+      FILE* v_f = fopen((filenm_+".v").c_str(), "w+");
+      nodes_.save(v_f);
+      freqs_.save(v_f);
+      docs_.save(v_f);
+      fclose(v_f);
+
+      nodes_.clear();
+      loads_.clear();
+      freqs_.clear();
+      docs_.clear();
+      leafs_.clear();
+
+      sorter_->flush();
+      sorter_->sort();
+
+      delete sorter_;
+      sorter_ = NULL;
+      return;
+    }
+    
+
     struct timeval tvafter,tvpre;
     struct timezone tz;
 
@@ -1285,6 +1308,7 @@ public:
     NID_LEN_TYPE next = 0;
     for (std::size_t i=0; i<terms.size(); ++i)
     {
+      //std::cout<<terms[i]<<" ";
       next = get_next_(next, terms[i]/*id_mgr_.get32(terms[i])*/);
       if (next == (NID_LEN_TYPE)-1)
         return ;
@@ -1300,6 +1324,10 @@ public:
       fseek(leaf_f_, next-LEAF_BOUND, SEEK_SET);
       assert(fread(&le, sizeof(leaf_t), 1, leaf_f_)==1);
       docs.load(doc_f_, le.DOCS());
+
+      docids.reserve(docs.length());
+      for (typename array32_t::size_t i=0; i<docs.length(); ++i)
+        docids.push_back(docs.at(i));
       return;
     }
     

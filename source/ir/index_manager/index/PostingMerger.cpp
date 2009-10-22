@@ -2,7 +2,6 @@
 #include <ir/index_manager/store/IndexOutput.h>
 #include <ir/index_manager/store/IndexInput.h>
 
-
 using namespace izenelib::ir::indexmanager;
 
 PostingMerger::PostingMerger()
@@ -118,8 +117,8 @@ void PostingMerger::mergeWith(InMemoryPosting* pInMemoryPosting)
 
 void PostingMerger::mergeWith(OnDiskPosting* pOnDiskPosting)
 {
-    IndexOutput*	pDOutput = pOutputDescriptor->getDPostingOutput();
-    IndexOutput*	pPOutput = pOutputDescriptor->getPPostingOutput();
+    IndexOutput* pDOutput = pOutputDescriptor->getDPostingOutput();
+    IndexOutput* pPOutput = pOutputDescriptor->getPPostingOutput();
     IndexInput*	pDInput = pOnDiskPosting->getInputDescriptor()->getDPostingInput();
     IndexInput*	pPInput = pOnDiskPosting->getInputDescriptor()->getPPostingInput();
 
@@ -155,14 +154,106 @@ void PostingMerger::mergeWith(OnDiskPosting* pOnDiskPosting)
 
 }
 
+void PostingMerger::mergeWith(OnDiskPosting* pOnDiskPosting,BitVector* pFilter)
+{
+    if(pFilter &&  pFilter->hasSmallThan((size_t)pOnDiskPosting->chunkDesc.lastdocid))
+        mergeWith_GC(pOnDiskPosting,pFilter);
+    else
+        mergeWith(pOnDiskPosting);
+}
+
+void PostingMerger::mergeWith_GC(OnDiskPosting* pOnDiskPosting,BitVector* pFilter)
+{
+    IndexOutput* pDOutput = pOutputDescriptor->getDPostingOutput();
+    IndexOutput* pPOutput = pOutputDescriptor->getPPostingOutput();
+    IndexInput*	pDInput = pOnDiskPosting->getInputDescriptor()->getDPostingInput();
+    IndexInput*	pPInput = pOnDiskPosting->getInputDescriptor()->getPPostingInput();
+
+    docid_t nDocID = 0;
+    docid_t nDocIDPrev = 0;
+    docid_t nLastDocID = 0;
+    freq_t	nTF = 0;
+    freq_t nDocLength = 0;
+    count_t nCTF = 0;
+    count_t nDF = 0;
+    count_t nPCount = 0;
+    count_t nODDF = pOnDiskPosting->postingDesc.df;
+    if(nODDF <= 0)
+        return;
+
+    fileoffset_t oldDOff = pDOutput->getFilePointer();
+
+    if (bFirstPosting)///first posting
+    {
+        reset();
+        nPPostingLength = 0;
+        bFirstPosting = false;
+
+        ///save position offset
+        postingDesc.poffset = pPOutput->getFilePointer();
+    }
+
+    while (nODDF > 0)
+    {
+        nDocID += pDInput->readVInt();
+        nTF = pDInput->readVInt();
+        nDocLength = pDInput->readVInt();
+        if(!pFilter->test((size_t)nDocID))///the document has not been deleted
+        {
+            pDOutput->writeVInt(nDocID - nDocIDPrev);
+            pDOutput->writeVInt(nTF);
+            pDOutput->writeVInt(nDocLength);
+
+            nDocIDPrev = nDocID;
+            nPCount += nTF;
+            nDF++;
+            nLastDocID = nDocID;
+        }
+        else ///this document has been deleted
+        {					
+            nCTF += nPCount;
+            ///write positions of documents
+            while (nPCount > 0)
+            {							
+                pPOutput->writeVInt(pPInput->readVInt());
+                nPCount--;
+            }
+            ///skip positions of deleted documents
+            while (nTF > 0)
+            {		
+                pPInput->readVInt();
+                nTF--;							
+            }
+        }
+        nODDF--;
+    }	
+    if(nPCount > 0)
+    {
+        nCTF += nPCount;
+        while (nPCount > 0)
+        {							
+            pPOutput->writeVInt(pPInput->readVInt());
+            nPCount--;
+        }
+    }			
+
+    chunkDesc.length += (pDOutput->getFilePointer() - oldDOff);
+
+    ///update descriptors
+    postingDesc.ctf += nCTF;
+    postingDesc.df += nDF;
+    postingDesc.length = chunkDesc.length; ///currently,it's only one chunk 			
+    chunkDesc.lastdocid = nLastDocID;
+}
+
 fileoffset_t PostingMerger::endMerge()
 {
     bFirstPosting = true;
     if (postingDesc.df <= 0)
         return -1;
 
-    IndexOutput*	pDOutput = pOutputDescriptor->getDPostingOutput();
-    IndexOutput*	pPOutput = pOutputDescriptor->getPPostingOutput();
+    IndexOutput* pDOutput = pOutputDescriptor->getDPostingOutput();
+    IndexOutput* pPOutput = pOutputDescriptor->getPPostingOutput();
     fileoffset_t postingoffset = pDOutput->getFilePointer();
 
     ///write position posting descriptor

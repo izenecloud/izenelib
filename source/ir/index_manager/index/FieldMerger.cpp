@@ -2,6 +2,9 @@
 #include <ir/index_manager/index/Posting.h>
 #include <ir/index_manager/index/IndexBarrelWriter.h>
 #include <ir/index_manager/index/TermReader.h>
+#include <ir/index_manager/index/MultiPostingIterator.h>
+
+#define MEMPOOL_SIZE_FOR_MERGING    50*1024*1024
 
 using namespace izenelib::ir::indexmanager;
 
@@ -19,6 +22,8 @@ FieldMerger::FieldMerger()
         ,lastPOffset(0)
         ,beginOfVoc(0)
         ,nMergedTerms(0)
+        ,pDocFilter(0)
+        ,pMemCache(0)
 {
     memset(cachedTermInfos,0,NUM_CACHEDTERMINFO*sizeof(MergeTermInfo*));
 }
@@ -35,6 +40,8 @@ FieldMerger::FieldMerger(Directory* pDirectory)
         ,lastPOffset(0)
         ,beginOfVoc(0)
         ,nMergedTerms(0)
+        ,pDocFilter(0)
+        ,pMemCache(0)
 {
     memset(cachedTermInfos,0,NUM_CACHEDTERMINFO*sizeof(MergeTermInfo*));
 }
@@ -76,7 +83,12 @@ FieldMerger::~FieldMerger(void)
         ppFieldInfos = NULL;
         nNumInfos = 0;
     }
-
+    pDocFilter = 0;
+    if(pMemCache)
+    {
+        delete pMemCache;
+        pMemCache = NULL;
+    }
 }
 void FieldMerger::addField(BarrelInfo* pBarrelInfo,FieldInfo* pFieldInfo)
 {
@@ -287,4 +299,43 @@ fileoffset_t FieldMerger::endMerge(OutputDescriptor* pOutputDescriptor)
     ///end write vocabulary descriptor
     return voffset;
 }
+
+fileoffset_t FieldMerger::sortingMerge(FieldMergeInfo** ppMergeInfos,int32_t numInfos, BitVector* pFilter)
+{
+    if(!pMemCache)
+        pMemCache = new MemCache(MEMPOOL_SIZE_FOR_MERGING);
+    MultiPostingIterator postingIterator(numInfos);
+
+    for (int32_t i = 0;i< numInfos;i++)
+    {
+        TermPositions* pPosition = new TermPositions(ppMergeInfos[i]->pIterator->termPosting());
+        if(ppMergeInfos[i]->pBarrelInfo->hasUpdateDocs)
+            postingIterator.addTermPosition(pPosition);
+        else
+            postingIterator.addTermPosition(pPosition, pFilter);
+    }
+    InMemoryPosting* newPosting = new InMemoryPosting(pMemCache);
+
+    docid_t docId = 0;
+    freq_t docLength = 0;
+    while(postingIterator.next())
+    {
+        docId = postingIterator.doc();
+        docLength = postingIterator.docLength();
+        loc_t pos = postingIterator.nextPosition();
+        loc_t subpos = postingIterator.nextPosition();
+        while (pos != BAD_POSITION)
+        {
+            newPosting->addLocation(docId, docLength, pos, subpos);
+            pos = postingIterator.nextPosition();
+            subpos = postingIterator.nextPosition();
+        }
+        newPosting->updateDF(docId);
+    }
+    fileoffset_t offset = newPosting->write(pPostingMerger->getOutputDescriptor());
+    delete newPosting;
+    pMemCache->flushMem();
+    return offset;
+}
+
 

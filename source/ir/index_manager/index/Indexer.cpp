@@ -420,7 +420,7 @@ void Indexer::setDirty(bool bDirty)
     dirty_ = bDirty;
 }
 
-int Indexer::insertDocumentWithNoBatch(IndexerDocument* pDoc)
+int Indexer::insertDocumentPhysically(IndexerDocument* pDoc)
 {
     pIndexWriter_->indexDocument(pDoc);
     pIndexReader_->setDirty(true);
@@ -434,25 +434,22 @@ int Indexer::insertDocument(IndexerDocument* pDoc)
     return 1;
 }
 
-int Indexer::updateDocument(IndexerDocument* pDoc)
+int Indexer::removeDocumentPhysically(IndexerDocument* pDoc)
 {
-    removeDocument(pDoc);
-    insertDocument(pDoc);
+    pIndexReader_->deleteDocumentPhysically(pDoc);
+    pIndexReader_->setDirty(true);
     return 1;
 }
 
-int Indexer::removeDocument(IndexerDocument* pDoc)
+int Indexer::removeDocument(docid_t docId)
 {
-//    pIndexWriter_->deleteDocument(pDoc);
-//    pIndexReader_->setDirty(true);
-    pIndexReader_->deleteDocumentPhysically(pDoc);
+
     return 1;
 }
 
 int Indexer::removeCollection(collectionid_t colID)
 {
     count_t count = 0;
-//    izenelib::util::boost_variant_visit(boost::bind(document_manager_visitor(), _1, colID, count), *pDocumentManager_);
     pIndexWriter_->removeCollection(colID,count);
     pIndexReader_->setDirty(true);
     return 1;
@@ -465,6 +462,12 @@ void Indexer::flush()
     pBTreeIndexer_->flush();
 }
 
+size_t Indexer::getDistinctNumTermsByProperty(collectionid_t colID, std::string property)
+{
+    fieldid_t fid = getPropertyIDByName(colID,property);
+    return pIndexReader_->getDistinctNumTerms(colID, fid);
+}
+
 ///To be optimized: Using TermDocFreqs instead of TermPositions
 bool Indexer::getDocsByTermInProperties(termid_t termID, collectionid_t colID, vector<string> properties, deque<docid_t>& docIds)
 {
@@ -475,15 +478,6 @@ bool Indexer::getDocsByTermInProperties(termid_t termID, collectionid_t colID, v
             return false;
         if (parallelTermPosition.seek(termID))
         {
-/*        
-            vector<string> currProperties;
-            docid_t currDocID;
-            while (parallelTermPosition.next(currProperties,currDocID))
-            {
-                docIds.push_back(currDocID);
-                currProperties.clear();
-            }
-*/
             while(parallelTermPosition.next())
             {
                 docIds.push_back(parallelTermPosition.doc());
@@ -534,25 +528,6 @@ bool Indexer::getDocsByTermInProperties(termid_t termID, collectionid_t colID, v
             return false;
         if (parallelTermPosition.seek(termID))
         {
-/*        
-            vector<string> currProperties;
-            docid_t currDocID;
-            while (parallelTermPosition.next(currProperties,currDocID))
-            {
-                CommonItem item;
-                item.setDocID(currDocID);
-                item.setCollectionID(colID);
-                for (vector<string>::iterator iter = currProperties.begin(); iter != currProperties.end(); ++iter)
-                {
-                    boost::shared_ptr<std::deque<unsigned int> > positions(new std::deque<unsigned int>);
-                    freq_t tf,doclen = 0;
-                    parallelTermPosition.getPositions((*iter), positions, tf, doclen);
-                    item.addProperty((*iter), positions, tf);
-                }
-                commonSet.push_back(item);
-                currProperties.clear();
-            }
-*/
             while(parallelTermPosition.next())
             {
                 CommonItem item;

@@ -64,6 +64,7 @@ IndexMerger::IndexMerger()
         ,bufsize(0)
         ,bBorrowedBuffer(false)
         ,pMergeBarrels(NULL)
+        ,pDocFilter(NULL)
 {
 }
 IndexMerger::IndexMerger(Directory* pDirectory_)
@@ -72,6 +73,7 @@ IndexMerger::IndexMerger(Directory* pDirectory_)
         ,bufsize(0)
         ,bBorrowedBuffer(false)
         ,pMergeBarrels(NULL)
+	,pDocFilter(NULL)
 {
 }
 IndexMerger::IndexMerger(Directory* pDirectory_,char* buffer_,size_t bufsize_)
@@ -80,6 +82,7 @@ IndexMerger::IndexMerger(Directory* pDirectory_,char* buffer_,size_t bufsize_)
         ,bufsize(bufsize_)
         ,bBorrowedBuffer(false)
         ,pMergeBarrels(NULL)
+	,pDocFilter(NULL)
 {
 }
 IndexMerger::~IndexMerger()
@@ -90,6 +93,7 @@ IndexMerger::~IndexMerger()
         delete pMergeBarrels;
         pMergeBarrels = NULL;
     }
+    pDocFilter = 0;
 }
 
 void IndexMerger::setBuffer(char* buffer,size_t length)
@@ -100,7 +104,7 @@ void IndexMerger::setBuffer(char* buffer,size_t length)
 
 void IndexMerger::merge(BarrelsInfo* pBarrels)
 {
-    if (!pBarrels || pBarrels->getBarrelCount() <= 1)
+    if (!pBarrels || ((pBarrels->getBarrelCount() <= 1)&&!pDocFilter))
     {
         pendingUpdate(pBarrels);
         return ;
@@ -305,6 +309,8 @@ void IndexMerger::mergeBarrel(MergeBarrel* pBarrel)
                             {
                                 pFieldMerger = new FieldMerger();
                                 pFieldMerger->setDirectory(pDirectory);
+                                if(pDocFilter)
+                                    pFieldMerger->setDocFilter(pDocFilter);
                             }
                             pFieldInfo->setColID(*p);
 

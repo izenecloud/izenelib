@@ -111,6 +111,11 @@ TermReader* SingleIndexBarrelReader::termReader(collectionid_t colID)
     return termReaderMap_[colID];//->clone();
 }
 
+size_t SingleIndexBarrelReader::getDistinctNumTerms(collectionid_t colID, fieldid_t fid)
+{
+    return (*pCollectionsInfo_)[colID]->getFieldsInfo()->getField(fid)->distinctNumTerms();
+}
+
 void SingleIndexBarrelReader::deleteDocumentPhysically(IndexerDocument* pDoc)
 {
     map<IndexerPropertyConfig, IndexerDocumentPropertyType> propertyValueList;
