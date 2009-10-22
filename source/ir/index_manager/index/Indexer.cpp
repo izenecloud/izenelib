@@ -441,9 +441,14 @@ int Indexer::removeDocumentPhysically(IndexerDocument* pDoc)
     return 1;
 }
 
-int Indexer::removeDocument(docid_t docId)
+bool Indexer::startUpdate()
 {
+    return pIndexWriter_->startUpdate();
+}
 
+int Indexer::removeDocument(collectionid_t colID, docid_t docId)
+{
+    pIndexReader_->delDocument(colID, docId);
     return 1;
 }
 

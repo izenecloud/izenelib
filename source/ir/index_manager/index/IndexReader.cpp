@@ -13,8 +13,16 @@ IndexReader::IndexReader(Indexer* pIndex, DiskIndexOpenMode openMode)
         ,pBarrelReader_(NULL)
         ,pForwardIndexReader_(NULL)
         ,dirty_(false)
+	,pDocFilter_(NULL)
 {
     pBarrelsInfo_ = pIndexer_->getBarrelsInfo();
+
+    Directory* pDirectory = pIndexer_->getDirectory();
+    if(pDirectory->fileExists(DELETED_DOCS))
+    {
+        pDocFilter_ = new BitVector;
+        pDocFilter_->read(pDirectory, DELETED_DOCS);
+    }
 }
 
 IndexReader::~IndexReader(void)
@@ -26,6 +34,24 @@ IndexReader::~IndexReader(void)
     }
     if(pForwardIndexReader_)
         delete pForwardIndexReader_;
+    if(pDocFilter_)
+    {
+        if(pIndexer_->getDirectory()->fileExists(DELETED_DOCS))
+            pIndexer_->getDirectory()->deleteFile(DELETED_DOCS);
+        pDocFilter_->write(pIndexer_->getDirectory(), DELETED_DOCS);
+        delete pDocFilter_;
+    }
+}
+
+void IndexReader::delDocFilter()
+{
+    if(pDocFilter_)
+    {
+        if(pIndexer_->getDirectory()->fileExists(DELETED_DOCS))
+            pIndexer_->getDirectory()->deleteFile(DELETED_DOCS);
+        delete pDocFilter_;
+        pDocFilter_ = NULL;
+    }
 }
 
 void IndexReader::createBarrelReader()
@@ -110,6 +136,18 @@ count_t IndexReader::numDocs()
     return pBarrelsInfo_->getDocCount();
 }
 
+BarrelInfo* IndexReader::findDocumentInBarrels(collectionid_t colID, docid_t docID)
+{
+    for (int i = pBarrelsInfo_->getBarrelCount() - 1; i >= 0; i--)
+    {
+        BarrelInfo* pBarrelInfo = (*pBarrelsInfo_)[i];
+        if ((pBarrelInfo->baseDocIDMap.find(colID) != pBarrelInfo->baseDocIDMap.end())&&
+                (pBarrelInfo->baseDocIDMap[colID] <= docID))
+            return pBarrelInfo;
+    }
+    return NULL;
+}
+
 void IndexReader::deleteDocumentPhysically(IndexerDocument* pDoc)
 {
     boost::mutex::scoped_lock lock(this->mutex_);
@@ -118,10 +156,12 @@ void IndexReader::deleteDocumentPhysically(IndexerDocument* pDoc)
         createBarrelReader();
     }
     pBarrelReader_->deleteDocumentPhysically(pDoc);
-    map<IndexerPropertyConfig, IndexerDocumentPropertyType> propertyValueList;
-    pDoc->getPropertyList(propertyValueList);
     DocId uniqueID;
     pDoc->getDocId(uniqueID);
+    BarrelInfo* pBarrelInfo = findDocumentInBarrels(uniqueID.colId, uniqueID.docId);
+    pBarrelInfo->deleteDocument();
+    map<IndexerPropertyConfig, IndexerDocumentPropertyType> propertyValueList;
+    pDoc->getPropertyList(propertyValueList);
     for (map<IndexerPropertyConfig, IndexerDocumentPropertyType>::iterator iter = propertyValueList.begin(); iter != propertyValueList.end(); ++iter)
     {
         if(!iter->first.isIndex())
@@ -132,6 +172,18 @@ void IndexReader::deleteDocumentPhysically(IndexerDocument* pDoc)
         }
     }
     pIndexer_->setDirty(true);//flush barrelsinfo when Indexer quit
+}
+
+void IndexReader::delDocument(collectionid_t colID,docid_t docId)
+{
+    BarrelInfo* pBarrelInfo = findDocumentInBarrels(colID, docId);
+    pBarrelInfo->deleteDocument();
+
+    if(!pDocFilter_)
+    {
+        pDocFilter_ = new BitVector(pBarrelsInfo_->getDocCount() + 1);
+    }
+    pDocFilter_->set(docId);
 }
 
 freq_t IndexReader::docFreq(collectionid_t colID, Term* term)

@@ -359,9 +359,9 @@ public:
 
 private:
 
-    static BTreeIndex<IndexKeyType<int> >* pBTreeIntIndexer_;
+    static BTreeIndex<IndexKeyType<int64_t> >* pBTreeIntIndexer_;
 
-    static BTreeIndex<IndexKeyType<unsigned int> >* pBTreeUIntIndexer_;
+    static BTreeIndex<IndexKeyType<uint64_t> >* pBTreeUIntIndexer_;
 
     static BTreeIndex<IndexKeyType<float> >* pBTreeFloatIndexer_;
 
@@ -376,7 +376,7 @@ private:
 template<>
 struct BTreeIndexer::BTreeIndexerFactory<int>
 {
-    static BTreeIndex<IndexKeyType<int> >* get()
+    static BTreeIndex<IndexKeyType<int64_t> >* get()
     {
         return BTreeIndexer::pBTreeIntIndexer_;
     };
@@ -385,7 +385,7 @@ struct BTreeIndexer::BTreeIndexerFactory<int>
 template<>
 struct BTreeIndexer::BTreeIndexerFactory<unsigned int>
 {
-    static BTreeIndex<IndexKeyType<unsigned int> >* get()
+    static BTreeIndex<IndexKeyType<uint64_t> >* get()
     {
         return BTreeIndexer::pBTreeUIntIndexer_;
     };

@@ -87,6 +87,8 @@ enum DiskIndexOpenMode
 #define open64 open
 #endif
 
+#define DELETED_DOCS "docs.del"
+
 } // namespace indexmanager
 
 NS_IZENELIB_IR_END

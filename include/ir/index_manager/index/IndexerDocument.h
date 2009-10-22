@@ -24,7 +24,7 @@ NS_IZENELIB_IR_BEGIN
 
 namespace indexmanager{
 
-typedef boost::variant<int,unsigned int, float, double, String> PropertyType;
+typedef boost::variant<int64_t,uint64_t, float, double, String> PropertyType;
 typedef boost::variant<PropertyType, boost::shared_ptr<LAInput>, boost::shared_ptr<ForwardIndex> > IndexerDocumentPropertyType;
 
 struct DocId

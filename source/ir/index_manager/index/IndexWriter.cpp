@@ -91,6 +91,9 @@ void IndexWriter::mergeIndex(IndexMerger* pMerger)
     boost::mutex::scoped_lock lock(this->mutex_);
 
     pMerger->setDirectory(pIndexer_->getDirectory());
+
+    if(pIndexer_->getIndexReader()->getDocFilter())
+        pMerger->setDocFilter(pIndexer_->getIndexReader()->getDocFilter());
     ///there is a in-memory index
     if ((pIndexBarrelWriter_) && pCurDocCount_ && ((*pCurDocCount_) > 0))
     {
@@ -111,6 +114,7 @@ void IndexWriter::mergeIndex(IndexMerger* pMerger)
         pIndexer_->setDirty(true);
         pMerger->merge(pBarrelsInfo_);
     }
+    pIndexer_->getIndexReader()->delDocFilter();
 }
 
 
@@ -257,17 +261,35 @@ void IndexWriter::flushDocuments()
     clearCache();
 }
 
-BarrelInfo* IndexWriter::findDocumentInBarrels(collectionid_t colID, docid_t docID)
+bool IndexWriter::startUpdate()
 {
-    for (int i = pBarrelsInfo_->getBarrelCount() - 1; i >= 0; i--)
+    BarrelInfo* pLastBarrel = pBarrelsInfo_->getLastBarrel();
+    if(pLastBarrel == NULL)
+        return false;
+    IndexBarrelWriter* pBarrelWriter = pLastBarrel->getWriter();
+    if(pBarrelWriter)
+        flush();
+
+    pBarrelsInfo_->addBarrel(pBarrelsInfo_->newBarrel().c_str(),0);
+    pCurBarrelInfo_ = pBarrelsInfo_->getLastBarrel();
+    pCurDocCount_ = &(pCurBarrelInfo_->nNumDocs);
+    *pCurDocCount_ = 0;
+
+    if (!pMemCache_)
+        pMemCache_ = new MemCache((size_t)pIndexer_->getIndexManagerConfig()->indexStrategy_.memory_);
+    if(!pIndexBarrelWriter_)
     {
-        BarrelInfo* pBarrelInfo = (*pBarrelsInfo_)[i];
-        if ((pBarrelInfo->baseDocIDMap.find(colID) != pBarrelInfo->baseDocIDMap.end())&&
-                (pBarrelInfo->baseDocIDMap[colID] <= docID))
-            return pBarrelInfo;
+        pIndexBarrelWriter_ = new IndexBarrelWriter(pIndexer_,pMemCache_,pCurBarrelInfo_->getName().c_str());
+        pIndexBarrelWriter_->setCollectionsMeta(pIndexer_->getCollectionsMeta());
     }
-    return NULL;
+    pCurBarrelInfo_->setWriter(pIndexBarrelWriter_);
+    if(!pIndexMerger_)
+        createMerger();
+    bool* pHasUpdateDocs =  &(pCurBarrelInfo_->hasUpdateDocs);
+    *pHasUpdateDocs = true;
+    return true;
 }
+
 
 bool IndexWriter::removeCollection(collectionid_t colID, count_t colCount)
 {
