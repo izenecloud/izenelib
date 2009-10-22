@@ -1,9 +1,3 @@
-/**
- * @file test/util/t_IdMapper.cpp
- */
-#define BOOST_TEST_MODULE IdMapper
-#define BOOST_TEST_DYN_LINK
-#define BOOST_TEST_MAIN
 #include <boost/test/unit_test.hpp>
 
 #include <util/IdMapper.h>
@@ -39,25 +33,26 @@ struct MapFixture
 };
 } // namespace {anonymous}
 
+BOOST_FIXTURE_TEST_SUITE(IdMapper_test, MapFixture)
 
-BOOST_FIXTURE_TEST_CASE(Empty_FindId, MapFixture)
+BOOST_AUTO_TEST_CASE(Empty_FindId)
 {
     testNonExist("whatever");
 }
 
-BOOST_FIXTURE_TEST_CASE(Empty_FindValue, MapFixture)
+BOOST_AUTO_TEST_CASE(Empty_FindValue)
 {
     testNonExist(0);
 }
 
-BOOST_FIXTURE_TEST_CASE(InsertOne, MapFixture)
+BOOST_AUTO_TEST_CASE(InsertOne)
 {
     std::size_t id = map.insert("one");
 
     testExist(id, "one");
 }
 
-BOOST_FIXTURE_TEST_CASE(InsertOne_FindAnother, MapFixture)
+BOOST_AUTO_TEST_CASE(InsertOne_FindAnother)
 {
     std::size_t id = map.insert("one");
 
@@ -65,14 +60,14 @@ BOOST_FIXTURE_TEST_CASE(InsertOne_FindAnother, MapFixture)
     testNonExist(id + 1);
 }
 
-BOOST_FIXTURE_TEST_CASE(InsertOneWithId, MapFixture)
+BOOST_AUTO_TEST_CASE(InsertOneWithId)
 {
     BOOST_CHECK(map.insert("ten", 10));
 
     testExist(10, "ten");
 }
 
-BOOST_FIXTURE_TEST_CASE(InsertExist_test, MapFixture)
+BOOST_AUTO_TEST_CASE(InsertExist_test)
 {
     std::size_t id = map.insert("one");
     BOOST_ASSERT(map.insert("one") == id);
@@ -80,7 +75,7 @@ BOOST_FIXTURE_TEST_CASE(InsertExist_test, MapFixture)
     testExist(id, "one");
 }
 
-BOOST_FIXTURE_TEST_CASE(InsertExistWithId_test, MapFixture)
+BOOST_AUTO_TEST_CASE(InsertExistWithId_test)
 {
     std::size_t id = map.insert("one");
     BOOST_ASSERT(!map.insert("one", 10));
@@ -88,7 +83,7 @@ BOOST_FIXTURE_TEST_CASE(InsertExistWithId_test, MapFixture)
     testExist(id, "one");
 }
 
-BOOST_FIXTURE_TEST_CASE(InsertThree_test, MapFixture)
+BOOST_AUTO_TEST_CASE(InsertThree_test)
 {
     std::size_t idOne = map.insert("one");
     std::size_t idTwo = map.insert("two");
@@ -127,3 +122,5 @@ BOOST_FIXTURE_TEST_CASE(InsertThree_test, MapFixture)
     }
     testNonExist(maxId + 1);
 }
+
+BOOST_AUTO_TEST_SUITE_END()

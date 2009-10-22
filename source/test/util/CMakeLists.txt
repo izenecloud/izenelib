@@ -1,22 +1,17 @@
 FIND_PACKAGE(Boost 1.35.0 REQUIRED COMPONENTS unit_test_framework serialization)
 
 IF(Boost_FOUND AND Boost_UNIT_TEST_FRAMEWORK_FOUND)
-  ADD_EXECUTABLE(t_ClockTimer t_ClockTimer)
-  TARGET_LINK_LIBRARIES(t_ClockTimer ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY})
-  SET_TARGET_PROPERTIES(t_ClockTimer PROPERTIES
+  ADD_EXECUTABLE(t_util
+    Runner.cpp
+    t_ClockTimer.cpp
+    t_IdMapper.cpp
+    )
+  TARGET_LINK_LIBRARIES(t_util ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY})
+  SET_TARGET_PROPERTIES(t_util PROPERTIES
       COMPILE_FLAGS "-include ${FileTestHelper}"
       RUNTIME_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/testbin
       )
-  ADD_TEST(ClockTimer "${CMAKE_SOURCE_DIR}/testbin/t_ClockTimer")
-
-  ADD_EXECUTABLE(t_IdMapper t_IdMapper)
-  TARGET_LINK_LIBRARIES(t_IdMapper ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY})
-  SET_TARGET_PROPERTIES(t_IdMapper PROPERTIES
-      COMPILE_FLAGS "-include ${FileTestHelper}"
-      RUNTIME_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/testbin
-      )
-  ADD_TEST(IdMapper "${CMAKE_SOURCE_DIR}/testbin/t_IdMapper")
-
+  ADD_TEST(util "${CMAKE_SOURCE_DIR}/testbin/t_util")
 ENDIF(Boost_FOUND AND Boost_UNIT_TEST_FRAMEWORK_FOUND)
 
 

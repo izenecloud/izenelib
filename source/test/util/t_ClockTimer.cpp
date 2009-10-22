@@ -1,10 +1,4 @@
-/**
- * @file test/util/t_ClockTimer.cpp
- *
- * Created      <2009-05-06 10:03:20 Ian Yang>
- * Last Updated <2009-05-06 10:20:03 Ian Yang>
- */
-#include <boost/test/minimal.hpp>
+#include <boost/test/unit_test.hpp>
 
 #include <util/ClockTimer.h>
 #include <boost/timer.hpp>
@@ -24,7 +18,7 @@ void mySleep(int seconds)
 
 } // namespace {anonymous}
 
-int test_main(int, char* [])
+BOOST_AUTO_TEST_CASE(ClockTimer_test)
 {
     ClockTimer t;
 
@@ -40,6 +34,4 @@ int test_main(int, char* [])
 
     t.restart();
     BOOST_CHECK(t.elapsed() < 5);
-
-    return 0;
 }
