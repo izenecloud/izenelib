@@ -73,6 +73,7 @@ bool MultiPostingIterator::next_()
         }
 		
         currDoc_ = top->pPositions_->doc();
+        currEntry_ = top;
         for(vector<MultiPostingIterator::TermPositionEntry*>::iterator iter = positions_.begin(); iter != positions_.end(); ++iter)
             (*iter)->setCurrent(false);
 

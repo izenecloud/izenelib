@@ -76,7 +76,7 @@ void DiskTermReader::close()
 bool DiskTermReader::seek(Term* term)
 {
     pCurTermInfo = termInfo(term);
-    if (pCurTermInfo)
+    if ((pCurTermInfo)&&(pCurTermInfo->docFreq() > 0))
         return true;
     return false;
 }
@@ -370,7 +370,7 @@ TermIterator* InMemoryTermReader::termIterator(const char* field)
 bool InMemoryTermReader::seek(Term* term)
 {
     pCurTermInfo = termInfo(term);
-    if (pCurTermInfo)
+    if ((pCurTermInfo)&&(pCurTermInfo->docFreq() > 0))
         return true;
     return false;
 }

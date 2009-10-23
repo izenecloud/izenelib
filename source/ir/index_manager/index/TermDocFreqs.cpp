@@ -17,6 +17,7 @@ TermDocFreqs::TermDocFreqs(void)
         ,nCurrentPosting(-1)
         ,pTermReader(NULL)
         ,pInputDescriptor(NULL)
+        ,ownPosting(true)
 {
 }
 
@@ -30,6 +31,7 @@ TermDocFreqs::TermDocFreqs(TermReader* pReader, InputDescriptor* pInputDescripto
         ,nCurrentPosting(-1)
         ,pTermReader(pReader)
         ,pInputDescriptor(pInputDescriptor_)
+        ,ownPosting(true)
 {
     termInfo.set(ti.docFreq(),ti.docPointer());
     pInputDescriptor->getDPostingInput()->seek(ti.docPointer());
@@ -47,6 +49,7 @@ TermDocFreqs::TermDocFreqs(TermReader* pReader, Posting* pposting, TermInfo& ti)
         ,nCurrentPosting(-1)
         ,pTermReader(pReader)
         ,pInputDescriptor(NULL)
+        ,ownPosting(true)
 {
     termInfo.set(ti.docFreq(),ti.docPointer());
 }
@@ -62,6 +65,7 @@ TermDocFreqs::TermDocFreqs(Posting* pposting)
         ,nCurrentPosting(-1)
         ,pTermReader(NULL)
         ,pInputDescriptor(NULL)
+        ,ownPosting(false)
 {
     termInfo.set(pposting->docFreq(), 0);
 }
@@ -137,7 +141,8 @@ void TermDocFreqs::close()
     }
     if (pPosting)
     {
-        delete pPosting;
+        if(ownPosting)
+            delete pPosting;
         pPosting = NULL;
     }
 }
