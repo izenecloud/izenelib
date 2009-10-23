@@ -227,7 +227,6 @@ bool MFServer<ServiceHandle, MapType>::registerService_(
     const ServiceItem<ServiceHandle>& callback
 )
 {
-    BOOST_ASSERT(messageServer_->getAgentInfo() != "");
     static const int tryLimit = 10;
 
     int tryCount = 0;
