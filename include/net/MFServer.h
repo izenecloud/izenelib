@@ -2,8 +2,8 @@
  * @brief   Defines the MFServer class
  * @author  Peisheng Wang
  * @date    08-17-2009
- * @details 
- *   
+ * @details
+ *
  */
 
 #ifndef _MFSERVER_H_
@@ -19,101 +19,147 @@
 #include <boost/smart_ptr.hpp>
 #include <boost/unordered_map.hpp>
 
-
 namespace messageframework{
 
-
-template<	
-		typename ServiceHandle,
-		typename MapType =boost::unordered_map<std::string, ServiceItem<ServiceHandle> > > class MFServer {
-
+template
+<
+    typename ServiceHandle,
+    typename MapType = boost::unordered_map<std::string,
+                                            ServiceItem<ServiceHandle> >
+>
+class MFServer
+{
 public:
-	MFServer(unsigned int nThreads, unsigned int serverPort,
-			const std::string& controllerIP, unsigned int controllerPort
-			);
-	bool createServiceList(MapType& serviceList) {
-		serviceList_ = serviceList;
-		if( !registerServiceList() )
-		 		return false;  
-		return createThreadObjectPool();
-			
-	}
-	void setServiceHandle(const boost::shared_ptr<ServiceHandle> &serviceHandle){
-		serviceHandle_ = serviceHandle;		
-	}
-	
-	//must be called before createServiceList
-	void setAgentInfo(const string& agentInfo){
-		messageServer_->setAgentInfo(agentInfo);
-	}
-	
-	bool run(void);
+    typedef ServiceHandle service_handle_type;
+    typedef MapType map_type;
+
+    MFServer(unsigned int serverPort,
+             const std::string& controllerIP,
+             unsigned int controllerPort,
+             unsigned int nThreads);
+
+    void setServiceHandle(const boost::shared_ptr<ServiceHandle>& serviceHandle)
+    {
+        BOOST_ASSERT(serviceHandle);
+        serviceHandle_ = serviceHandle;
+    }
+
+    /// @warn must be called before addService
+    void setAgentInfo(const std::string& agentInfo)
+    {
+        BOOST_ASSERT(messageServer_);
+        messageServer_->setAgentInfo(agentInfo);
+    }
+
+    /// @brief adds service
+    /// @return \c false if failed to register
+    /// @pre non empty agent info has been set using setAgentInfo
+    bool addService(const std::string& name,
+                    const ServiceItem<ServiceHandle>& callback);
+
+    bool run();
+
 private:
+    bool registerService_(const std::string& name,
+                          const ServiceItem<ServiceHandle>& callback);
 
-	bool registerServiceList(void);
-
-	bool createThreadObjectPool();
+    bool createThreadObjectPool_();
 
 private:
-	///@brief   The number of threads to handle the services
-	unsigned int nThreads_;
+    ///@brief MessageServerFull or MessageServerLight
+    MessageServerPtr messageServer_;
 
-	///@brief   The thread pool for the ID services
-	wiselib::thread_pool::ThreadObjectPool threadObjPool_;
+    /// @brief Handler to the services
+    boost::shared_ptr<ServiceHandle> serviceHandle_;
 
-	/// @brief  Holds the information related to the controller
-	MessageFrameworkNode controllerInfo_;
+    /// @brief The information list of related services
+    MapType serviceList_;
 
-	///@brief   Handler to the services
-	boost::shared_ptr<ServiceHandle> serviceHandle_;
+    ///@brief The number of threads to handle the services
+    unsigned int nThreads_;
 
-	///@brief   The information list of related services 
-	MapType serviceList_;
-
-	///@brief MessageServerFull or MessageServerLight
-	MessageServerPtr messageServer_;
+    ///@brief   The thread pool for the ID services
+    wiselib::thread_pool::ThreadObjectPool threadObjPool_;
 };
 
-/////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
 
-template< typename ServiceHandle, typename MapType> MFServer<
- ServiceHandle, MapType>::MFServer(unsigned int nThreads,
-		unsigned int serverPort, const std::string& controllerIP,
-		unsigned int controllerPort):nThreads_(nThreads),
-controllerInfo_(controllerIP, controllerPort)
+template<typename ServiceHandle, typename MapType>
+MFServer<ServiceHandle, MapType>::MFServer(
+    unsigned int serverPort,
+    const std::string& controllerIP,
+    unsigned int controllerPort,
+    unsigned int nThreads
+)
+: messageServer_()
+, serviceHandle_()
+, serviceList_()
+, nThreads_(nThreads)
+, threadObjPool_()
 {
-	string serverName = std::string(typeid(MessageServer).name() ) ;
-	
-	messageServer_.reset( new MessageServer(
-			MF_SERVER_ARG (serverName, serverPort, controllerInfo_) )  );
+    std::string serverName(typeid(MessageServer).name());
+    MessageFrameworkNode controllerInfo(controllerIP, controllerPort);
+    messageServer_.reset(
+        new MessageServer(MF_SERVER_ARG(serverName, serverPort, controllerInfo))
+    );
 }
 
-template< typename ServiceHandle, typename MapType > bool MFServer<
-		ServiceHandle, MapType>::run(void) {
+template<typename ServiceHandle, typename MapType>
+bool MFServer<ServiceHandle, MapType>::addService(
+    const std::string& name,
+    const ServiceItem<ServiceHandle>& callback
+)
+{
+    if (!registerService_(name, callback))
+    {
+        serviceList_.erase(name);
+        return false;
+    }
+
+    serviceList_[name] = callback;
+    return true;
+}
+
+template<typename ServiceHandle, typename MapType>
+bool MFServer<ServiceHandle, MapType>::run(void)
+{
+    if (! (messageServer_
+           && serviceHandle_))
+    {
+        // not ready
+        LOG(ERROR) << "Data not ready for MFServer" << endl;
+        return false;
+    }
+
+    if (! createThreadObjectPool_())
+    {
+        LOG(ERROR) << "Failed to init thread pool for MFServer" << endl;
+        return false;
+    }
+
     bool ret = false;
     boost::system_time wakeupTime;
     wiselib::thread_pool::ThreadObject* threadObject = NULL;
     WorkerThread<ServiceHandle>* workerObject = NULL;
     try
-    { 
-    	assert(serviceHandle_ != NULL);
-        // main loop    	
-        vector< ServiceRequestInfoPtr > requests;
-        LOG(INFO) << " Starting service..." << endl;       
+    {
+        // main loop
+        std::vector< ServiceRequestInfoPtr > requests;
+        LOG(INFO) << " Starting service..." << endl;
         while( true )
-        {        
-        	// receive service request
+        {
+            // receive service request
             //TODO: Method is blocked: should we measure mf time?  @by MyungHyun - 2009-02-04
-            messageServer_->getServiceRequestList(requests);   
+            messageServer_->getServiceRequestList(requests);
             if( requests.size() >= 1 )
             {
                 // serve all of requests
-                vector< ServiceRequestInfoPtr >::iterator iter = requests.begin();          
+                std::vector< ServiceRequestInfoPtr >::iterator iter = requests.begin();
                 while( iter != requests.end() )
                 {
                     // find service in registered service
-                  //  cout << "Processing request : "<< (*iter)->getServiceName() << endl;
-                    typename MapType::iterator service = 
+                    //  cout << "Processing request : "<< (*iter)->getServiceName() << endl;
+                    typename MapType::iterator service =
                         serviceList_.find( (*iter)->getServiceName() );
                     if( service != serviceList_.end() )
                     {
@@ -133,7 +179,7 @@ template< typename ServiceHandle, typename MapType > bool MFServer<
                     }
                     else
                     {
-                    	serviceHandle_->no_callback(*iter);
+                        serviceHandle_->no_callback(*iter);
                     }
                     // next request
                     iter++;
@@ -142,59 +188,66 @@ template< typename ServiceHandle, typename MapType > bool MFServer<
             }
             //STOP_PROFILER(proIndexProcess)
         }
-    }  
+    }
     catch( ... )
     {
-    	threadObjPool_.shutdownAllThread();
+        threadObjPool_.shutdownAllThread();
         return false;
     }
 
     threadObjPool_.shutdownAllThread();
     return true;
-	
-
 }
 
-template<  typename ServiceHandle, typename MapType > bool MFServer<
-		 ServiceHandle, MapType>::createThreadObjectPool() {
+template<typename ServiceHandle, typename MapType>
+bool MFServer<ServiceHandle, MapType>::createThreadObjectPool_()
+{
+    for (unsigned int i = 0; i < nThreads_; i++)
+    {
+        wiselib::thread_pool::ThreadObject* threadObject
+            = new WorkerThread<ServiceHandle>();
 
-	for (unsigned int i = 0; i < nThreads_; i++) {
-		wiselib::thread_pool::ThreadObject* threadObject = NULL;
+        if (!threadObject)
+        {
+            threadObjPool_.shutdownAllThread();
+            return false;
+        }
 
-		threadObject = new WorkerThread<ServiceHandle>();
-		if ( !threadObject)
-			return false;
+        threadObject->setThreadObjectPool(&threadObjPool_);
+        threadObject->createThread(true);
+        threadObjPool_.add(threadObject);
+    } // end - for
 
-		threadObject->setThreadObjectPool( &threadObjPool_);
-		threadObject->createThread( true);
-		threadObjPool_.add(threadObject);
-
-	} // end - for
-
-	return true;
+    return true;
 }
 
-template<  typename ServiceHandle, typename MapType > bool MFServer<
-		 ServiceHandle, MapType>::registerServiceList() {
-	//assert(messageServer_->getAgentInfo() != "" );
-	typename MapType::iterator iter = serviceList_.begin();
-			for ( ; iter != serviceList_.end(); iter++ )
-			{
-				int tryCount = 10;					
-				while ( ! messageServer_->registerService( ServiceInfo(iter->first) )  )				       
-				{						
-					LOG(ERROR)<< "Register Service : service = " << iter->first
-					<< ", tryCount = " << tryCount<<". Waiting for controller ....." << std::endl;	
-					usleep ( 10000 ); // 10ms
-					tryCount--;					
-				} // end - while()
+template<typename ServiceHandle, typename MapType>
+bool MFServer<ServiceHandle, MapType>::registerService_(
+    const std::string& name,
+    const ServiceItem<ServiceHandle>& callback
+)
+{
+    BOOST_ASSERT(messageServer_->getAgentInfo() != "");
+    static const int tryLimit = 10;
 
-				if ( tryCount == 0 )
-					return false;
+    int tryCount = 0;
+    ServiceInfo service(name);
+    while (!messageServer_->registerService(service))
+    {
+        ++tryCount;
+        LOG(ERROR) << "Register Service : service = " << name
+                   << ", failed = " << tryCount
+                   << ". Waiting for controller ....." << std::endl;
 
-			} // end - for		
-			return true;
+        if (tryCount >= tryLimit)
+        {
+            return false;
+        }
 
+        usleep(100000); // 100ms
+    }
+
+    return true;
 }
 
 }

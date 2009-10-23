@@ -7,33 +7,32 @@
  *  - Log
  */
 
-#include <net/message_framework.h>
-#include <vector>
-
 #ifndef _SERVICE_ITEM_H_
 #define _SERVICE_ITEM_H_
 
-namespace messageframework{
+namespace messageframework {
 
 /// @brief a class which contain a service information of configuration manager.
 template <typename ServiceHandler>
-class ServiceItem
+struct ServiceItem
 {
-    public:     
+    /// @brief call back invoked when proper service is requested.
+    /// @param server message server of configuration manager.
+    /// @param request Service request information class.
+    typedef bool (ServiceHandler::*callback_type)(
+        MessageServer& /*server*/,
+        ServiceRequestInfoPtr& /*request*/
+    );
 
-        /// @brief call back function which is called when proper service is requested.
-        /// @param server message server of configuration manager.
-        /// @param request Service request information class.
-        bool (ServiceHandler::*callback_)(MessageServer& server, ServiceRequestInfoPtr& request);
+    callback_type callback_;
 
-    public:
-        ServiceItem(){};
+    explicit ServiceItem(callback_type c = 0)
+    : callback_(c)
+    {}
 
-}; // end - class ConfigServiceItem
+}; // end class ServiceItem
 
 }
 
 #endif  //_SERVICE_ITEM_H_
-
-//eof
 
