@@ -105,7 +105,7 @@ void search(Node parent_node, Node child_node, const std::vector<termid_t>& pare
 
 void input()
 {
-  system("rm -f ./tt*");
+  std::system("rm -f ./tt*");
   
   struct timeval tvafter,tvpre;
   struct timezone tz;
@@ -189,7 +189,7 @@ void input()
 
 int main()
 {
-  system("rm -f ./tt*");
+  std::system("rm -f ./tt*");
   
   struct timeval tvafter,tvpre;
   struct timezone tz;
