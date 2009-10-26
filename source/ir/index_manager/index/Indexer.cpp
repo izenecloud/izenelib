@@ -126,57 +126,17 @@ void Indexer::initIndexManager()
 
     set_property_name_id_map(pConfigurationManager_->getCollectionMetaNameMap());
 
-    InMemoryPosting::UPTIGHT_ALLOC_CHUNKSIZE = pConfigurationManager_->advance_.uptightAlloc_.chunkSize_;
-    InMemoryPosting::UPTIGHT_ALLOC_MEMSIZE = pConfigurationManager_->advance_.uptightAlloc_.memSize_;
+    InMemoryPosting::UPTIGHT_ALLOC_CHUNKSIZE = 40000;
+    InMemoryPosting::UPTIGHT_ALLOC_MEMSIZE = 8;
 
-    int32_t strategy = 1,n = 32,k = 0,l = 0;
-
-    vector<string> ps = split(pConfigurationManager_->advance_.MMS_,":");
-    if (ps.size() >= 2)
-    {
-        if (!strcasecmp(ps[0].c_str(),"exp"))
-        {
-            strategy = InMemoryPosting::STRATEGY_ALLOC_EXP;
-            if (ps.size() >= 3)
-            {
-                n = atoi(ps[1].c_str());
-                k = atoi(ps[2].c_str());
-            }
-            else
-            {
-                n = 32;
-                k = 2;
-            }
-        }
-        else if (!strcasecmp(ps[0].c_str(),"explimit"))
-        {
-            strategy = InMemoryPosting::STRATEGY_ALLOC_EXPLIMIT;
-            if (ps.size() >= 4)
-            {
-                n = atoi(ps[1].c_str());
-                k = atoi(ps[2].c_str());
-                l = atoi(ps[3].c_str());
-            }
-            else
-            {
-                n = 32;
-                k = 2;
-                l = 256;
-            }
-        }
-        else
-        {
-            strategy = InMemoryPosting::STRATEGY_ALLOC_CONST;
-            n = atoi(ps[1].c_str());
-        }
-    }
-    InMemoryPosting::ALLOCSTRATEGY.strategy = (InMemoryPosting::MEMALLOC_STRATEGY)strategy;
-    InMemoryPosting::ALLOCSTRATEGY.n = n;
-    InMemoryPosting::ALLOCSTRATEGY.k = k;
-    InMemoryPosting::ALLOCSTRATEGY.l = l;
+    InMemoryPosting::ALLOCSTRATEGY.strategy = InMemoryPosting::STRATEGY_ALLOC_EXP;
+    InMemoryPosting::ALLOCSTRATEGY.n = 32;
+    InMemoryPosting::ALLOCSTRATEGY.k = 2;
+    InMemoryPosting::ALLOCSTRATEGY.l = 0;
 
     if(managerType_ == MANAGER_TYPE_CLIENTPROCESS)
     {
+/*    
         vector<string> nodes = split(pConfigurationManager_->distributeStrategy_.iplist_,"|");
         for(vector<string>::iterator iter = nodes.begin(); iter != nodes.end(); ++iter)
             add_index_process_node((*iter),pConfigurationManager_->distributeStrategy_.batchport_,
@@ -186,18 +146,10 @@ void Indexer::initIndexManager()
         initialize_connection(index_process_address_.front(), true);
         pDirectory_ = new RemoteDirectory();
         pBarrelsInfo_ = new BarrelsInfo();
+*/		
     }
     else
     {
-        if (!strcasecmp(pConfigurationManager_->indexStrategy_.accessMode_.c_str(),"w" ))
-            accessMode_ = ACCESS_CREATE;
-        else if (!strcasecmp(pConfigurationManager_->indexStrategy_.accessMode_.c_str(),"a"))
-            accessMode_ = ACCESS_APPEND;
-        else
-        {
-            SF1V5_THROW(ERROR_FILEIO,"Wrong index access mode" );
-        }
-
         openDirectory();
 
         if (!strcasecmp(pConfigurationManager_->storeStrategy_.param_.c_str(),"file"))
@@ -209,6 +161,7 @@ void Indexer::initIndexManager()
 
     if(managerType_ == MANAGER_TYPE_SERVERPROCESS)
     {
+/*    
         pBTreeIndexerServer_ = new BTreeIndexerServer(pConfigurationManager_->distributeStrategy_.rpcport_, pBTreeIndexer_);
     
         boost::thread rpcServerThread(boost::bind(&BTreeIndexerServer::run, pBTreeIndexerServer_));
@@ -217,6 +170,7 @@ void Indexer::initIndexManager()
         pAgent_ = new UDTFSAgent(pConfigurationManager_->distributeStrategy_.batchport_, this);
         boost::thread agentThread(boost::bind(&UDTFSAgent::run, pAgent_));
         agentThread.join();
+*/		
     }
 
 }
@@ -255,40 +209,20 @@ fieldid_t Indexer::getPropertyIDByName(collectionid_t colID, string property)
 void Indexer::openDirectory()
 {
     close();
-
     string path = pConfigurationManager_->indexStrategy_.indexLocation_;
-    if ((accessMode_ & ACCESS_APPEND) == ACCESS_APPEND )
-    {
-        string strBarrel = path;
-        strBarrel += "/";
-        strBarrel += BARRELS_INFONAME;
-        if (!Utilities::dirExists(path.c_str()) || !Utilities::dirExists(strBarrel.c_str()))
-        {
-            accessMode_ = accessMode_ & (~ACCESS_APPEND);
-            accessMode_ = accessMode_ |ACCESS_CREATE;
-        }
-    }
-
     if (!strcasecmp(pConfigurationManager_->storeStrategy_.param_.c_str(),"file"))
-        pDirectory_ = FSDirectory::getDirectory(path,((accessMode_ & ACCESS_CREATE) == ACCESS_CREATE));
+        pDirectory_ = FSDirectory::getDirectory(path,true);
     else
         pDirectory_ = new RAMDirectory();
 
     pBarrelsInfo_ = new BarrelsInfo();
 
     pBarrelsInfo_->read(pDirectory_);
-    if ((accessMode_ & ACCESS_CREATE) == ACCESS_CREATE)
+    if (strcasecmp(pBarrelsInfo_->getVersion(),SF1_VERSION))
     {
-        pBarrelsInfo_->remove(getDirectory());
-    }
-    else
-    {
-        if (strcasecmp(pBarrelsInfo_->getVersion(),SF1_VERSION))
-        {
-            delete pBarrelsInfo_;
-            pBarrelsInfo_ = NULL;
-            SF1V5_THROW(ERROR_VERSION,"incompatible version.");
-        }
+        delete pBarrelsInfo_;
+        pBarrelsInfo_ = NULL;
+        SF1V5_THROW(ERROR_VERSION,"incompatible version.");
     }
 }
 
@@ -298,7 +232,7 @@ void Indexer::setBasePath(std::string basePath)
         return;
     if (pDirectory_)
         pDirectory_->close();
-    pDirectory_ = FSDirectory::getDirectory(basePath,(ACCESS_APPEND & ACCESS_CREATE));
+    pDirectory_ = FSDirectory::getDirectory(basePath,true);
 
     pIndexReader_ = new IndexReader(this);
     pIndexWriter_ = new IndexWriter(this);
@@ -730,8 +664,6 @@ bool Indexer::getDocsByPropertyValueSubString(collectionid_t colID, string prope
 void Indexer::optimizeIndex()
 {
     IndexMerger* pIndexMerger = new OfflineIndexMerger(pDirectory_, pBarrelsInfo_->getBarrelCount());
-
-    pIndexMerger->setParam(pConfigurationManager_->mergeStrategy_.param_.c_str());
 
     pIndexWriter_->mergeIndex(pIndexMerger);
 }

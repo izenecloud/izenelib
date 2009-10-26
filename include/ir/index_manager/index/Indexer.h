@@ -38,13 +38,6 @@ enum ManagerType
     MANAGER_TYPE_FORWARDREADER_AND_MERGER ///Only read forwardindex and merge it if necessary
 };
 
-typedef int32_t ACCESS_MODE;
-
-const static int32_t ACCESS_CREATE = 0x10;   /// can add or delete files but can't search over it,will delete existed index database
-
-const static int32_t ACCESS_APPEND = 0x20;   /// will append index data do existed index database.
-
-
 class BarrelsInfo;
 class UDTFSAgent;
 class BTreeIndexerClient;
@@ -200,8 +193,6 @@ protected:
     bool indexingForward_;
 
     Directory* pDirectory_;
-
-    ACCESS_MODE accessMode_;
 
     bool dirty_;
 

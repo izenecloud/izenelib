@@ -13,6 +13,7 @@ using namespace izenelib::ir::indexmanager;
 IndexWriter::IndexWriter(Indexer* pIndex)
         :pIndexBarrelWriter_(NULL)
         ,ppCachedDocs_(NULL)
+        ,nNumCachedDocs_(100)
         ,nNumCacheUsed_(0)
         ,pCurBarrelInfo_(NULL)
         ,pIndexMerger_(NULL)
@@ -21,7 +22,6 @@ IndexWriter::IndexWriter(Indexer* pIndex)
         ,pCurDocCount_(NULL)
 {
     pBarrelsInfo_ = pIndexer_->getBarrelsInfo();
-    nNumCachedDocs_= pIndexer_->getIndexManagerConfig()->indexStrategy_.cacheDocs_;
     setupCache();
 }
 
@@ -73,19 +73,6 @@ void IndexWriter::destroyCache()
     nNumCacheUsed_ = 0;
 }
 
-void IndexWriter::createMerger()
-{
-    if (!strcasecmp(pIndexer_->getIndexManagerConfig()->mergeStrategy_.strategy_.c_str(),"online"))
-    {
-        pIndexMerger_ = new OnlineIndexMerger(pIndexer_->getDirectory());
-        pIndexMerger_->setParam(pIndexer_->getIndexManagerConfig()->mergeStrategy_.param_.c_str());
-    }
-    else if (!strcasecmp(pIndexer_->getIndexManagerConfig()->mergeStrategy_.strategy_.c_str(),"offline"))
-        pIndexMerger_ = NULL;
-    else
-        SF1V5_THROW(ERROR_FILEIO,"Configuration values for index merging strategy have not been set" );
-}
-
 void IndexWriter::mergeIndex(IndexMerger* pMerger)
 {
     boost::mutex::scoped_lock lock(this->mutex_);
@@ -130,7 +117,7 @@ void IndexWriter::createBarrelWriter()
     pIndexBarrelWriter_ = new IndexBarrelWriter(pIndexer_,pMemCache_,pCurBarrelInfo_->getName().c_str());
     pCurBarrelInfo_->setWriter(pIndexBarrelWriter_);
     pIndexBarrelWriter_->setCollectionsMeta(pIndexer_->getCollectionsMeta());
-    createMerger();
+    pIndexMerger_ = new OnlineIndexMerger(pIndexer_->getDirectory());
 }
 
 void IndexWriter::mergeAndWriteCachedIndex()

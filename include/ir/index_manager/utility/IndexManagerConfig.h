@@ -28,9 +28,7 @@ private:
     {
     public:
         _indexstrategy() :
-                memory_(0),
-                maxIndexTerms_(0),
-                cacheDocs_(0)
+                memory_(0)
         {}
     private:
         friend class boost::serialization::access;
@@ -39,20 +37,13 @@ private:
         void serialize( Archive & ar, const unsigned int version )
         {
             ar & indexLocation_;
-            ar & accessMode_;
             ar & memory_;
-            ar & maxIndexTerms_;
-            ar & cacheDocs_;
         }
 
 
     public:
         /// @brief  Working directory
         std::string indexLocation_;
-
-        /// @brief  access mode of index file
-        std::string accessMode_;
-
         /**
          * @brief  the size of memory used by index cache
          * @details
@@ -60,21 +51,6 @@ private:
          * flushed into one barrel and a new barrel will be generated
          */
         int64_t memory_;
-
-        /**
-         * @brief  max indexed terms of a document
-         * @details
-         * when the memory is nearly full,when indexing a  new document ,this size will be used to
-         * malloc an emergency memory pool
-         */
-        int32_t maxIndexTerms_;
-
-        /**
-         * @brief the cached document number of IndexWriter
-         * @details
-         * When the cached document reaches this number, these documents will be indexed
-         */
-        int32_t cacheDocs_;
     };
 
     /**
@@ -123,110 +99,6 @@ private:
         /// @brief  whether the indexes are stored in file or memory
         std::string param_;
     };
-
-    /**
-     * @brief   Stores "Distribute strategy" configuration of IndexManager
-     */
-    class _distributestrategy
-    {
-
-    private:
-        friend class boost::serialization::access;
-
-        template <typename Archive>
-        void serialize( Archive & ar, const unsigned int version )
-        {
-            ar & rpcport_;
-            ar & batchport_;
-            ar & iplist_;
-        }
-    public:
-        /**
-         * @brief   The working mode of Indexer.
-         * @details
-         * It could be "local", which means it works locally, "distribute", which means the indexer works distributedly
-         */
-        std::string rpcport_;
-
-        /**
-         * @brief   The listenport number for indexprocess
-         */
-        std::string batchport_;
-
-        /**
-         * @brief   The parameter setting for distribute strategy
-         * @details
-         *  the indexerprocess list, with format of:
-         * "IP1|IP2|..."
-         */
-        std::string iplist_;
-    };
-
-
-    /**
-     * @brief   Stores "advance" configuration of IndexManager
-     */
-    class _advance
-    {
-    private:
-        friend class boost::serialization::access;
-
-        template <typename Archive>
-        void serialize( Archive & ar, const unsigned int version )
-        {
-            ar & MMS_;
-            ar & uptightAlloc_;
-        }
-
-    public:
-        /**
-         * @brief   Memory Management Strategy
-         * @details
-         * it can be:
-         * -# const:n  const means memory is allocated with constant size and n stands for the size
-         * -# exp:n:k
-         * -#explimit:n:k:l
-         */
-        std::string MMS_;
-
-        class _uptightAlloc
-        {
-
-        public:
-            _uptightAlloc() :
-                    memSize_(0),
-                    chunkSize_(0)
-            {}
-        private:
-            friend class boost::serialization::access;
-
-            template <typename Archive>
-            void serialize( Archive & ar, const unsigned int version )
-            {
-                ar & memSize_;
-                ar & chunkSize_;
-            }
-
-        public:
-            /**
-             * @brief   memory request size
-             * @details
-             * When the memory cache of building up index is exhausted, if the documents have not yet
-             * been finished indexing, then it will enter the state of "UPTIGHT MEMORY ALLOCATE",
-             * then it resent the request to allocate memory with default size of
-             * IndexStrategy.maxIndexTerms*chunkSize/2, or with the size configured here.
-             */
-            int32_t memSize_;
-
-            /**
-             * @brief   chunk size of posting.
-             */
-            int32_t chunkSize_;
-        };
-        _uptightAlloc uptightAlloc_;
-    };
-
-
 
 public:
     //----------------------------  CONSTRUCTORS  ----------------------------
@@ -283,12 +155,7 @@ private:
     void serialize( Archive & ar, const unsigned int version )
     {
         ar & indexStrategy_;
-        ar & mergeStrategy_;
         ar & storeStrategy_;
-        ar & advance_;
-        ar & distributeStrategy_;
-        ar & logLevel_;
-        //ar & collectionMetaNameMap_;
     }
 
 public:
@@ -297,20 +164,8 @@ public:
     /// @brief  Stores "index strategy" configurationof IndexManager
     _indexstrategy indexStrategy_;
 
-    /// @brief  Stores "merge strategy" configuration of IndexManager
-    _mergestrategy mergeStrategy_;
-
     /// @brief  Stores "Store strategy" configuration of IndexManager
     _storestrategy storeStrategy_;
-
-    /// @brief  Stores "Distribute strategy" configuration of IndexManager
-    _distributestrategy distributeStrategy_;
-
-    /// @brief  Stores "advance" configuration of IndexManager
-    _advance advance_;
-
-    /// @brief  disable_all,enable_all,default_level(info),fatal,err,warn,info,dbg
-    std::string logLevel_;
 
 
 private:

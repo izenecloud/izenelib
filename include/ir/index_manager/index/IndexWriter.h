@@ -61,7 +61,6 @@ private:
 
     void clearCache();
 
-    void createMerger();
     ///IndexBarrelWriter is the practical class to process indexing procedure.
     void createBarrelWriter();
     ///will be used by mergeIndex
