@@ -17,6 +17,7 @@
 #include <ir/index_manager/index/CollectionInfo.h>
 #include <ir/index_manager/index/ForwardIndexReader.h>
 #include <ir/index_manager/index/IndexerDocument.h>
+#include <ir/index_manager/index/DocLengthReader.h>
 #include <ir/index_manager/utility/BitVector.h>
 
 NS_IZENELIB_IR_BEGIN
@@ -37,7 +38,7 @@ public:
 public:
     count_t numDocs();
 
-    // count_t maxDoc();
+    size_t docLength(docid_t docId, fieldid_t fid);
 
     freq_t docFreq(collectionid_t colID, Term* term);
 
@@ -45,25 +46,17 @@ public:
 
     BarrelsInfo* getBarrelsInfo();
 
-    void setDirty(bool dirty)
-    {
-        dirty_ = dirty;
-    }
+    void setDirty(bool dirty) {dirty_ = dirty;}
 
     static int64_t lastModified(Directory* pDirectory);
 
-    /**
-     * @warn client must delete the returned object
-     */
+    ///client must delete the returned object
     TermReader* getTermReader(collectionid_t colID);
 
-    /**
-     * @warn client must delete the returned object
-     */
+    ///client must delete the returned object
     ForwardIndexReader* getForwardIndexReader();
 
     void deleteDocumentPhysically(IndexerDocument* pDoc);
-
     /// mark a document as deleted;
     void delDocument(collectionid_t colID, docid_t docId);
 
@@ -75,6 +68,7 @@ public:
 
 private:
     void createBarrelReader();
+
     TermReader* doGetTermReader_(collectionid_t colID);
     ///find which barrel the document lies
     BarrelInfo* findDocumentInBarrels(collectionid_t colID, docid_t docID);
@@ -95,6 +89,8 @@ private:
     mutable boost::mutex mutex_;
 
     BitVector* pDocFilter_;
+
+    DocLengthReader* pDocLengthReader_;
 
     friend class Indexer;
 };

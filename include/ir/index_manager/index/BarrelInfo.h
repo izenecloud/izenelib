@@ -194,109 +194,55 @@ class BarrelsInfo
 {
 public:
     BarrelsInfo();
+
     ~BarrelsInfo(void);
 public:
-    /**
-     * create a new name of barrel
-     */
     const string newBarrel();
-    /**
-     * add a barrel
-     * @param name barrel name
-     * @param minDID base id of document in this barrel
-     * @param docCount number of documents contains in this barrel
-     */
+
     void addBarrel(const char* name,count_t docCount);
-    /**
-     * add a barrel
-     * @param pBarrelInfo barrel information
-     * @param bCopy copy pBarrelInfo or not
-     */
+
     void addBarrel(BarrelInfo* pBarrelInfo,bool bCopy = true);
-    /**
-     * read barrels information from directory
-     * @param pDirectory directory
-     */
+
     void read(Directory* pDirectory, const char* name = BARRELS_INFONAME);
-    /**
-     * write barrels information to directory
-     * @param pDirectory directory
-     */
+
     void write(Directory* pDirectory);
-    /**
-     * remove all barrels
-     */
+
     void remove(Directory* pDirectory);
-    /**
-     * clear a specific barrel
-     * @param pDirectory directory
-     * @param barrelname barrel name to be removed
-     */
+
     void removeBarrel(Directory* pDirectory,const string& barrelname);
-    /**
-     * get number of barrels
-     */
+    /// get number of barrels
     int32_t getBarrelCount();
 
     int32_t getBarrelCounter() {return nBarrelCounter;}
 
-    /**
-     * get number of documents in all barrels
-     */
     int32_t getDocCount();
-    /**
-     * get number of deleted documents
-     * @return number of deleted documents
-     */
+
     count_t numDeletedDocs();
 
-    const char* getVersion()
-    {
-        return version.c_str();
-    }
+    const char* getVersion() { return version.c_str();  }
 
-    void setLock(bool lock_)
-    {
-        lock = lock_;
-    }
+    void setLock(bool lock_){lock = lock_; }
 
-    bool getLock()
-    {
-        return lock;
-    }
+    bool getLock() {return lock; }
 
     void setVersion(const char* ver);
-    /**
-     * get barrel info by barrel name
-     * @param barrel name of barrel
-     * @return info of barrel
-     */
+
     BarrelInfo* getBarrelInfo(const char* barrel);
-    /**
-     * get the last barrel
-     * @return the  last barrel
-     */
+
     BarrelInfo* getLastBarrel();
-    /**
-     * delete last barrel
-     */
+
     void deleteLastBarrel();
-    /**
-     * sort barrels by number of documents in barrel
-     * @param pDirectory directory where barrels stored
-     */
+
     void sort(Directory* pDirectory);
 
-    /**
-     * clear barrels and release resources
-     */
     void clear();
-public:
-    BarrelInfo* operator [](int32_t i)
-    {
-        return barrelInfos[i];
-    }
-public:
+
+    void updateMaxDoc(docid_t docId);
+
+    docid_t maxDocId() {return maxDoc;}
+
+    BarrelInfo* operator [](int32_t i) { return barrelInfos[i];}
+
     void startIterator();
 
     bool hasNext();
@@ -313,6 +259,8 @@ private:
     vector<BarrelInfo*> barrelInfos;
 
     vector<BarrelInfo*>::iterator barrelsiterator;
+
+    docid_t maxDoc;
 };
 
 //////////////////////////////////////////////////////////////////////////

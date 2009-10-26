@@ -215,6 +215,10 @@ void IndexWriter::indexDocument(IndexerDocument* pDoc)
 {
     if (!pIndexBarrelWriter_)
         createBarrelWriter();
+
+    DocId uniqueID;
+    pDoc->getDocId(uniqueID);
+
     if (pIndexBarrelWriter_->cacheFull())
     {
          if(pIndexer_->getIndexerType() == MANAGER_TYPE_CLIENTPROCESS)
@@ -223,12 +227,11 @@ void IndexWriter::indexDocument(IndexerDocument* pDoc)
             ///merge index
             mergeAndWriteCachedIndex2();
         baseDocIDMap_.clear();
-        DocId uniqueID;
-        pDoc->getDocId(uniqueID);
         baseDocIDMap_[uniqueID.colId] = uniqueID.docId;
         pIndexBarrelWriter_->open(pCurBarrelInfo_->getName().c_str());
 
     }
+    pBarrelsInfo_->updateMaxDoc(uniqueID.docId);
     pIndexBarrelWriter_->addDocument(pDoc);
     (*pCurDocCount_)++;
 }
