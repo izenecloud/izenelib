@@ -4,7 +4,7 @@
  * @file net/MFServerBuilder.h
  * @author Ian Yang
  * @date Created <2009-10-23 09:19:36>
- * @date Updated <2009-10-23 20:00:33>
+ * @date Updated <2009-10-26 11:27:15>
  * @brief builder to create MFServer
  */
 
@@ -28,9 +28,13 @@ public:
 
     void setServiceHandle(const boost::shared_ptr<service_handle_type>& handle)
     {
-        if (server_)
+        if (server_ && handle)
         {
             server_->setServiceHandle(handle);
+        }
+        else
+        {
+            server_.reset();
         }
     }
 
