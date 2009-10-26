@@ -167,7 +167,7 @@ void dyn_array_check(const VALUE_TYPE& t = VALUE_TYPE())
 {
   cout<<"DynArray checking....\n";
 
-  system("rm -f ./tt*");
+  system("rm -fr ./tt*");
   vector<VALUE_TYPE> v;
   typedef DynArray<VALUE_TYPE> Array;
   {
@@ -277,7 +277,7 @@ void integer_hash_check(const VALUE_TYPE& t = VALUE_TYPE())
 {
   cout<<"IntegerHashTable checking....\n";
 
-  system("rm -f ./tt*");
+  system("rm -fr ./tt*");
   
   vector<VALUE_TYPE> v;
   typedef IntegerHashTable<VALUE_TYPE> hash_t;
@@ -331,7 +331,7 @@ void id_transfer_check()
 {
   cout<<"IDtransfer checking ...\n";
 
-  system("rm -f ./tt*");
+  system("rm -fr ./tt*");
   typedef IdTransfer<> id_t;
 
   const uint32_t SIZE=1000000;
@@ -391,7 +391,7 @@ void sorter_check()
 {
   typedef DynArray<uint32_t> terms_t;
   {
-    system("rm -f ./tt*");
+    system("rm -fr ./tt*");
 
     struct timeval tvafter,tvpre;
     struct timezone tz;
@@ -470,11 +470,59 @@ void sorter_check()
   
 }
 
+void construct_trie(char* name, uint32_t num)
+{
+  Graph<> graph(name);
+    
+  struct timeval tvafter,tvpre;
+  struct timezone tz;
+  
+  const uint32_t SIZE = num;
+  const uint32_t snip_len = 10;
+  vector<uint64_t> vs;
+    
+  graph.ready4add();
+
+  gettimeofday (&tvpre , &tz);
+  for (uint32_t p = 0; p<10; ++p)
+  {
+    vs.resize(SIZE);
+    for (uint64_t i=0; i<SIZE; ++i)
+      vs[i] = (rand()%80000);
+
+    uint32_t docid = 0;
+    for (size_t i=0; i<vs.size()-snip_len; i+=snip_len)
+    {
+      vector<uint32_t> terms;
+      for (size_t j=i; j<i+snip_len; ++j)
+      {
+        //cout<<vs[j]<<" ";
+        terms.push_back(vs[j]);
+      }
+      //cout<<endl;
+
+      if (i%(10*snip_len)==0)
+        ++docid;
+
+      graph.add_terms(terms, docid);
+    }
+  }
+  gettimeofday (&tvafter , &tz);
+  cout<<"\nInsert into graph ("<<graph.doc_num()<<"): "<<((tvafter.tv_sec-tvpre.tv_sec)*1000+(tvafter.tv_usec-tvpre.tv_usec)/1000)/60000.<<" min\n";
+    
+  gettimeofday (&tvpre , &tz);
+  graph.indexing();
+  gettimeofday (&tvafter , &tz);
+  cout<<"\nGraph indexing: "<<((tvafter.tv_sec-tvpre.tv_sec)*1000+(tvafter.tv_usec-tvpre.tv_usec)/1000)/60000.<<" min\n";
+
+  //graph.ratio_load();
+}
+
 void graph_check()
 {
   cout<<"Graph checking ...\n";
 
-  system("rm -f ./tt*");
+  system("rm -fr ./tt*");
 
   {
      
@@ -632,7 +680,7 @@ void graph_check()
     graph.get_doc_list(suffix, suffix);
   }
 
-  system("rm -f ./tt*");
+  system("rm -fr ./tt*");
   {
     ofstream of("./of");
     Graph<> graph("./tt");
@@ -674,7 +722,9 @@ void graph_check()
   }
 
   
-  system("rm -f ./tt*");
+  system("rm -fr ./tt*");
+  construct_trie("./tt", 100000);
+  
   {
     Graph<> graph("./tt");
     
@@ -685,7 +735,7 @@ void graph_check()
     const uint32_t snip_len = 10;
     vector<uint64_t> vs;
     
-    graph.ready4add();
+    graph.ready4update();
 
     gettimeofday (&tvpre , &tz);
     for (uint32_t p = 0; p<10; ++p)
@@ -708,20 +758,221 @@ void graph_check()
         if (i%(10*snip_len)==0)
           ++docid;
 
-        graph.add_terms(terms, docid);
+        graph.append_terms(terms, docid);
       }
     }
-    gettimeofday (&tvafter , &tz);
-    cout<<"\nInsert into graph ("<<graph.doc_num()<<"): "<<((tvafter.tv_sec-tvpre.tv_sec)*1000+(tvafter.tv_usec-tvpre.tv_usec)/1000)/60000.<<" min\n";
-    
-    gettimeofday (&tvpre , &tz);
-    graph.indexing();
-    gettimeofday (&tvafter , &tz);
-    cout<<"\nGraph indexing: "<<((tvafter.tv_sec-tvpre.tv_sec)*1000+(tvafter.tv_usec-tvpre.tv_usec)/1000)/60000.<<" min\n";
 
+    graph.flush();
+    gettimeofday (&tvafter , &tz);
+    cout<<"\nAppend into graph ("<<graph.doc_num()<<"): "<<((tvafter.tv_sec-tvpre.tv_sec)*1000+(tvafter.tv_usec-tvpre.tv_usec)/1000)/60000.<<" min\n";
     //graph.ratio_load();
   }
   
+}
+
+
+void graph_merge_check()
+{
+  cout<<"Graph checking ...\n";
+
+  system("rm -fr ./tt*");
+
+  vector<uint32_t> vs;
+
+  {
+      
+    Graph<> graph("./tt1");
+
+    graph.ready4add();
+    
+    vs.push_back(7);vs.push_back(2);vs.push_back(8);vs.push_back(9);vs.push_back(10);
+    vs.push_back(11);vs.push_back(12);vs.push_back(13);
+    graph.add_terms(vs, 1);
+    vs.clear();
+  
+    vs.push_back(14);vs.push_back(15);vs.push_back(13);
+    graph.add_terms(vs, 1);
+    vs.clear();
+  
+    vs.push_back(1);vs.push_back(2);vs.push_back(3);vs.push_back(4);
+    graph.add_terms(vs, 2);
+    vs.clear();
+  
+    vs.push_back(5);vs.push_back(2);vs.push_back(3);vs.push_back(4);vs.push_back(6);
+    graph.add_terms(vs, 3);
+    vs.clear();
+
+    vs.push_back(3);vs.push_back(5);vs.push_back(3);vs.push_back(7);vs.push_back(6);
+    graph.add_terms(vs, 3);
+    vs.clear();
+
+    vs.push_back(5);vs.push_back(7);vs.push_back(7);vs.push_back(5);vs.push_back(6);
+    graph.add_terms(vs, 4);
+    vs.clear();
+
+    vs.push_back(15);vs.push_back(17);vs.push_back(17);vs.push_back(15);vs.push_back(13);
+    graph.add_terms(vs, 5);
+    vs.clear();
+
+    CHECK(graph.doc_num() == 5 );
+
+    //cout<<"\nStart indexing.............\n";
+    graph.indexing();
+  }
+  {
+    Graph<> graph("./tt2");
+
+    //test for appending
+    graph.ready4add();
+    
+    vs.push_back(105);vs.push_back(107);vs.push_back(107);vs.push_back(105);vs.push_back(103);
+    graph.add_terms(vs, 6);
+    vs.clear();
+
+    vs.push_back(15);vs.push_back(17);vs.push_back(5);vs.push_back(15);vs.push_back(17);
+    graph.add_terms(vs, 8);
+    vs.clear();
+
+    vs.push_back(17);vs.push_back(4);vs.push_back(5);vs.push_back(2);vs.push_back(3);
+    graph.add_terms(vs, 8);
+    vs.clear();
+    
+    graph.indexing();
+  }
+  {
+    Graph<> graph("./tt3");
+
+    //test for appending
+    graph.ready4add();
+    
+    vs.push_back(105);vs.push_back(107);vs.push_back(107);vs.push_back(105);vs.push_back(103);
+    graph.add_terms(vs, 6);
+    vs.clear();
+
+    vs.push_back(15);vs.push_back(17);vs.push_back(5);vs.push_back(15);vs.push_back(17);
+    graph.add_terms(vs, 9);
+    vs.clear();
+
+    vs.push_back(17);vs.push_back(4);vs.push_back(5);vs.push_back(2);vs.push_back(3);
+    graph.add_terms(vs, 9);
+    vs.clear();
+    
+    graph.indexing();
+  }
+  {
+    Graph<> graph("./tt1");
+    Graph<> graph2("./tt2");
+    Graph<> graph3("./tt3");
+
+    // graph.ratio_load(0.2);
+//     std::cout<<graph<<std::endl;
+//     cout<<"-----------------\n";
+//     graph2.ratio_load(0.2);
+//     std::cout<<graph2<<std::endl;
+
+    std::cout<<"Start merging...\n";
+    graph.merge(graph2);
+    graph.merge(graph3);
+  
+
+    std::cout<<"Start counter-merging...\n";
+    graph.counter_merge(graph3);
+    
+    graph.ratio_load(0.2);
+    //std::cout<<graph<<std::endl;
+    
+    vs.push_back(7);
+    //std::cout<<graph.get_freq(vs)<<" MMMMMMMMMM\n";
+    CHECK(graph.get_freq(vs)==4);
+    vs.clear();
+
+    vs.push_back(2);
+    //std::cout<<graph.get_freq(vs)<<" MMMMMMMMMM\n";
+    CHECK(graph.get_freq(vs)== 4);
+    vs.clear();
+
+    vs.push_back(5);
+    //std::cout<<graph.get_freq(vs)<<" MMMMMMMMMM\n";
+    CHECK(graph.get_freq(vs)==6);
+    vs.clear();
+
+    vs.push_back(2);
+    vs.push_back(3);
+    //std::cout<<graph.get_freq(vs)<<" MMMMMMMMMM\n";
+    CHECK(graph.get_freq(vs)==3);
+    vs.clear();
+
+    vs.push_back(5);vs.push_back(2);vs.push_back(3);vs.push_back(4);
+    vs.push_back(6);
+    CHECK(graph.get_freq(vs)==1);
+    vs.clear();
+
+    vector<uint32_t> suffix;
+    vector<uint32_t> counts;
+    vs.push_back(15);
+    graph.get_suffix(vs, suffix, counts);
+    CHECK(suffix.size()==2);
+    CHECK(counts.size()==2);
+    for (size_t i=0; i<suffix.size();++i)
+    {
+      if (suffix[i] == 13)
+      {
+        CHECK(counts[i]==2);
+      }    
+      else if(suffix[i]==17)
+      {
+        CHECK(counts[i]==3);
+      }
+      else
+        CHECK(false);
+    }
+    vs.clear();
+
+    vs.push_back(2);vs.push_back(3);
+    graph.get_suffix(vs, suffix, counts);
+    CHECK(suffix.size()==1);
+    CHECK(counts.size()==1);
+    for (size_t i=0; i<suffix.size();++i)
+    {
+      if (suffix[i]==4)
+      {
+        CHECK(counts[i]==2);
+      }
+      else
+        CHECK(false);
+    }
+    vs.clear();
+    
+    vector<uint32_t> docids;
+    graph.get_doc_list(suffix, docids);
+    
+  }
+
+  system("rm -fr ./tt*");
+  construct_trie("./tt", 100000);
+  construct_trie("./tt1", 100000);  
+  {
+    Graph<> graph("./tt");
+    Graph<> graph2("./tt1");
+
+    struct timeval tvafter,tvpre;
+    struct timezone tz;
+
+    gettimeofday (&tvpre , &tz);
+    graph.merge(graph2);
+    gettimeofday (&tvafter , &tz);
+    cout<<"\nMerge graph ("<<graph.doc_num()<<"): "<<((tvafter.tv_sec-tvpre.tv_sec)*1000+(tvafter.tv_usec-tvpre.tv_usec)/1000)/60000.<<" min\n";
+
+    
+    gettimeofday (&tvpre , &tz);
+    graph.counter_merge(graph2);
+    gettimeofday (&tvafter , &tz);
+    cout<<"\nCounter-Merge graph ("<<graph.doc_num()<<"): "<<((tvafter.tv_sec-tvpre.tv_sec)*1000+(tvafter.tv_usec-tvpre.tv_usec)/1000)/60000.<<" min\n";
+
+  }
+  
+
+
 }
 
 int main()
@@ -737,6 +988,7 @@ int main()
 
 //    sorter_check();
 
+  graph_merge_check();
   graph_check();
 }
 

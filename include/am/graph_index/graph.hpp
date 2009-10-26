@@ -9,6 +9,7 @@
 #include<string>
 #include<vector>
 #include <time.h>
+#include <boost/filesystem.hpp>
 //#include <fstream>
 
 NS_IZENELIB_AM_BEGIN
@@ -371,7 +372,7 @@ class Graph
   FILE*  doc_f_;
   FILE*  leaf_f_;
 
-  edge_t* insert_(TERM_TYPE term, edge_t* ep, bool ordered = true)
+  edge_t* insert_(TERM_TYPE term, edge_t* ep, bool ordered = true, uint32_t add_freq = 1)
   {
     NID_LEN_TYPE nid = ep->NID();
     
@@ -385,7 +386,7 @@ class Graph
       nid = nodes_.length()-1;
       
       nodes_.at(nid)->push_back(edge_t(term, nodes_.length()));
-      freqs_.push_back(leafs_.at(ep->NID()-LEAF_BOUND).FREQ()+1);
+      freqs_.push_back(leafs_.at(ep->NID()-LEAF_BOUND).FREQ()+add_freq);
       
       loads_.push_back(1);
             
@@ -402,7 +403,7 @@ class Graph
       
       nodes_.at(nid)->push_back(edge_t(term, nodes_.length()));
       
-      freqs_.push_back(1);
+      freqs_.push_back(add_freq);
       
       loads_.push_back(1);
             
@@ -413,10 +414,14 @@ class Graph
 
     if (!ordered && !loads_.at(nid))
         load_edge_(nid);
+
     sorted_edges_t* edges = nodes_.at(nid);
     assert (edges != (sorted_edges_t*)-1);
+
+    //if (nid == 5632)
+    //std::cout<<(*edges)<<std::endl;
     
-    ++freqs_[nid];
+    freqs_[nid] += add_freq;
 
     //exist
     if (nid == 0)
@@ -439,6 +444,9 @@ class Graph
     }
     
     typename sorted_edges_t::size_t i  = edges->find(edge_t(term));
+    if (nid == 5632)
+      std::cout<<i<<" "<<edge_t(term)<<std::endl;
+    
     if (sorted_edges_t::NOT_FOUND != i)
     {
       return edges->data()+i;
@@ -477,7 +485,7 @@ class Graph
   }
   
   void save_edge_(FILE* nid_f, FILE* doc_f, FILE* leaf_f,  NID_LEN_TYPE nid, bool root = false)
-  {
+  {    
     if (!loads_.at(nid))
       return;
     
@@ -498,6 +506,7 @@ class Graph
     assert (nodes_.at(nid) != (sorted_edges_t*)-1);
 
     sorted_edges_t* e = nodes_.at(nid);
+        
     for (typename sorted_edges_t::size_t i=0; i<e->length(); ++i)
     {
       if (e->at(i).NID()>=LEAF_BOUND)
@@ -505,8 +514,8 @@ class Graph
         if (nid!=0 || root)
         {
           uint64_t addr = ftell(leaf_f);
-          if (e->at(i).NID()-LEAF_BOUND >= leafs_.length())
-            ;//std::cout<<nid<<" "<<e->at(i).NID()<<" "<<leafs_.length()<<std::endl;
+          //if (e->at(i).NID()-LEAF_BOUND >= leafs_.length())
+            //std::cout<<nid<<" "<<e->at(i).NID()<<" "<<leafs_.length()<<std::endl;
           
           leaf_t le = leafs_.at(e->at(i).NID()-LEAF_BOUND);
           (*e)[i].NID_() = LEAF_BOUND + addr;
@@ -606,8 +615,7 @@ class Graph
         docs_[nid] = (uint64_t)docs;
       }
       return;
-    }
-    
+    }    
     
 
     sort_freqs_t sf;
@@ -666,6 +674,7 @@ class Graph
   void get_docs_(NID_LEN_TYPE nid, array32_t& doclist)
   {
     array32_t docs;
+    
     if (nid>=LEAF_BOUND)
     {
       leaf_t le;
@@ -734,19 +743,30 @@ class Graph
       }
     leafs_ = lea;
   }
+
+  void free_mem_(uint32_t start=0)
+  {
+    for (NID_LEN_TYPE i=start; i<loads_.length(); ++i)
+      if (loads_.at(i))
+      {
+        delete nodes_.at(i);
+        loads_[i] = 0;
+      }
+  }
   
+
 public:
   inline Graph(const char* nm)
   {
+    boost::filesystem::create_directories(nm);
     filenm_ = nm;
+    filenm_ += "/graph";
     doc_num_ = 0;
   }
 
   ~Graph()
   {
-    for (NID_LEN_TYPE i=0; i<loads_.length(); ++i)
-      if (loads_.at(i))
-        delete nodes_.at(i);
+    free_mem_();
   }
   
   void ready4add()
@@ -783,7 +803,7 @@ public:
     return doc_num_;
   }
   
-  void append_terms(std::vector<uint32_t> terms, uint32_t docid)
+  void append_terms(const std::vector<uint32_t>& terms, uint32_t docid)
   {
     static uint32_t last = -1;
     if (docid != last)
@@ -798,6 +818,8 @@ public:
     for (uint32_t i=0; i<terms.size(); ++i)
       ids.push_back(terms[i]/*id_mgr_.insert(terms[i])*/);
 
+    //std::cout<<ids<<std::endl;
+
     assert(ids.length() == terms.size());
     
     for (typename array32_t::size_t i=0; i<ids.length(); ++i)
@@ -810,7 +832,8 @@ public:
 
         //docid should be added at the last term
         if (j == ids.length()-1)
-        {//new leaf
+        {
+          //new leaf
           if (next->NID() == nodes_.length())
           {
             array32_t* docs = new array32_t();
@@ -828,12 +851,14 @@ public:
             leafs_[next->NID()-LEAF_BOUND].FREQ_()++;
             break;
           }
-
+          
           assert(next->NID()<nodes_.length());
           ++freqs_[next->NID()];
+          
           load_edge_(next->NID());
           
-          if (docs_.at(next->NID()) == (uint64_t)-1)
+          if (docs_.at(next->NID()) == (uint64_t)-1 ||
+              docs_.at(next->NID()) == 0)
             docs_[next->NID()] = (uint64_t)(new array32_t());
           
           ((array32_t*)docs_.at(next->NID()))->push_back(docid);
@@ -1108,7 +1133,7 @@ public:
     docs_.clear();
     leafs_.clear();
   }
-
+  
   void compact()
   {
     ready4update();
@@ -1172,6 +1197,7 @@ public:
   
   void ratio_load(double ratio = 0.9)
   {
+    free_mem_();
     assert(ratio <= 1.);
     FILE* v_f = fopen((filenm_+".v").c_str(), "r");
     nodes_.load(v_f);
@@ -1304,6 +1330,8 @@ public:
   void get_doc_list(const std::vector<uint32_t>& terms, std::vector<uint32_t>& docids)
   {
     docids.clear();
+    if (terms.size()==0)
+      return;
 
     NID_LEN_TYPE next = 0;
     for (std::size_t i=0; i<terms.size(); ++i)
@@ -1316,7 +1344,7 @@ public:
       if (next>=LEAF_BOUND && i!=terms.size()-1)
         return;
     }
-
+    
     array32_t docs;
     if (next>=LEAF_BOUND)
     {
@@ -1391,7 +1419,25 @@ friend std::ostream& operator <<(std::ostream& os, const self_t& g)
       
       return os;
     }
-  
+
+  std::vector<uint32_t> get_docs(NID_LEN_TYPE nid)const
+  {
+    array32_t docs;
+    if (nid>=LEAF_BOUND)
+    {
+      leaf_t le;
+      fseek(leaf_f_, nid-LEAF_BOUND, SEEK_SET);
+      assert(fread(&le, sizeof(leaf_t), 1, leaf_f_)==1);
+      docs.load(doc_f_, le.DOCS());
+    }
+    
+    else if (docs_.at(nid)!= (uint64_t)-1)
+      docs.load(doc_f_, docs_.at(nid));
+
+    std::vector<uint32_t> v(docs.length());
+    memcpy(v.data(), docs.data(), docs.size());
+    return v;
+  }
 
   uint32_t get_freq(NID_LEN_TYPE nid)const
   {
@@ -1405,10 +1451,122 @@ friend std::ostream& operator <<(std::ostream& os, const self_t& g)
 
     return freqs_.at(nid);
   }
-
-  void merge(self_t& other)
+  
+  void merge(self_t& other, double load_ratio = 0.8)
   {
+    doc_num_ += other.doc_num();
+    
+    ready4update();
+
+    other.ratio_load(load_ratio);
+
+    std::vector<uint32_t> parentValue(0);
+    Node rootNode = other.get_root();
+
+    NodeIterator it = rootNode.children_begin();
+    uint32_t i=0;
+    while(it != rootNode.children_end())
+    {
+      if (!(*it).has_child())
+      {
+	    ++it;
+	    continue;
+      }
+
+      merge_(*it, parentValue);
+      //add doc_list
+      ++it;
+
+      if ((i+1)%1000 == 0)
+      {
+        fseek(nid_f_, 0, SEEK_END);
+        fseek(doc_f_, 0, SEEK_END);
+        fseek(leaf_f_, 0, SEEK_END);
+        save_edge_(nid_f_, doc_f_, leaf_f_, 0);
+        //leaf_reset();
+      }
+      ++i;
+    }
+
+    fseek(nid_f_, 0, SEEK_END);
+    fseek(doc_f_, 0, SEEK_END);
+    fseek(leaf_f_, 0, SEEK_END);
+    save_edge_(nid_f_, doc_f_, leaf_f_, 0, true);
+    fclose(nid_f_);
+    fclose(doc_f_);
+    fclose(leaf_f_);
+
+    //free_mem_();
+
+    FILE* v_f = fopen((filenm_+".v").c_str(), "w+");
+    nodes_.save(v_f);
+    freqs_.save(v_f);
+    docs_.save(v_f);
+    fclose(v_f);
+
+    nodes_.clear();
+    loads_.clear();
+    freqs_.clear();
+    docs_.clear();
+    leafs_.clear();
   }
+    
+  void counter_merge(self_t& other, double load_ratio = 0.8)
+  {
+    ready4update();
+
+    other.ratio_load(load_ratio);
+
+    std::vector<uint32_t> parentValue(0);
+    Node rootNode = other.get_root();
+
+    NodeIterator it = rootNode.children_begin();
+    uint32_t i=0;
+    while(it != rootNode.children_end())
+    {
+      if (!(*it).has_child())
+      {
+	    ++it;
+	    continue;
+      }
+
+      counter_merge_(*it, parentValue);
+      //add doc_list
+      ++it;
+
+      if ((i+1)%1000 == 0)
+      {
+        fseek(nid_f_, 0, SEEK_END);
+        fseek(doc_f_, 0, SEEK_END);
+        fseek(leaf_f_, 0, SEEK_END);
+        save_edge_(nid_f_, doc_f_, leaf_f_, 0);
+        //free_mem_(1);
+        //leaf_reset();
+      }
+      ++i;
+    }
+
+    fseek(nid_f_, 0, SEEK_END);
+    fseek(doc_f_, 0, SEEK_END);
+    fseek(leaf_f_, 0, SEEK_END);
+    save_edge_(nid_f_, doc_f_, leaf_f_, 0, true);
+    fclose(nid_f_);
+    fclose(doc_f_);
+    fclose(leaf_f_);
+
+    FILE* v_f = fopen((filenm_+".v").c_str(), "w+");
+    nodes_.save(v_f);
+    freqs_.save(v_f);
+    docs_.save(v_f);
+    fclose(v_f);
+
+    nodes_.clear();
+    loads_.clear();
+    freqs_.clear();
+    docs_.clear();
+    leafs_.clear();
+  }
+
   
   class NodeIterator;
   
@@ -1442,7 +1600,7 @@ friend std::ostream& operator <<(std::ostream& os, const self_t& g)
       edges_ = node.edges_;
     }
     
-    uint64_t get_term()const
+    uint32_t get_term()const
     {
       //return graph_->id_mgr_.get64(edge_.EDGE());
       return edge_.EDGE();
@@ -1451,6 +1609,11 @@ friend std::ostream& operator <<(std::ostream& os, const self_t& g)
     uint32_t get_freq()const
     {
       return graph_->get_freq(edge_.NID());
+    }
+    
+    std::vector<uint32_t> get_docs()const
+    {
+      return graph_->get_docs(edge_.NID());
     }
 
     uint32_t get_nid()const
@@ -1548,7 +1711,202 @@ friend std::ostream& operator <<(std::ostream& os, const self_t& g)
     
   }
     ;
+protected:
   
+  void merge_(Node node, std::vector<uint32_t> parentValue)
+  {
+    parentValue.push_back(node.get_term());
+    
+    NodeIterator it = node.children_begin();
+    while(it != node.children_end())
+    {
+      merge_(*it, parentValue);
+      //add doc_list
+      ++it;
+    }
+
+    append_terms_(parentValue, node.get_freq(), node.get_docs());
+    
+  }
+  
+  void counter_merge_(Node node, std::vector<uint32_t> parentValue)
+  {
+    parentValue.push_back(node.get_term());
+    
+    NodeIterator it = node.children_begin();
+    while(it != node.children_end())
+    {
+      counter_merge_(*it, parentValue);
+      //add doc_list
+      ++it;
+    }
+
+    del_terms_(parentValue, node.get_freq(), node.get_docs());
+    
+  }
+    
+  void append_terms_(const std::vector<uint32_t>& terms, uint32_t freq,
+                    const std::vector<uint32_t>& docs)
+  {
+    //id transfer
+    array32_t ids;
+    ids.reserve(terms.size());
+    for (uint32_t i=0; i<terms.size(); ++i)
+      ids.push_back(terms[i]/*id_mgr_.insert(terms[i])*/);
+
+    assert(ids.length() == terms.size());
+
+    edge_t tmp(0,0);
+    edge_t* next = &tmp;
+    for (array32_t::size_t j=0; j<ids.length(); ++j)
+    {
+      next = insert_(ids.at(j), next, false, 0);
+
+      //docid should be added at the last term
+      if (j == ids.length()-1)
+      {
+        //new leaf
+        if (next->NID() == nodes_.length())
+        {
+          array32_t* dp = 0;
+          assert (docs.size()>0);
+          dp = new array32_t(docs);
+            
+          leaf_t le(freq, (uint64_t)dp);
+          next->NID_() = leafs_.length()+LEAF_BOUND;
+          leafs_.push_back(le);
+          break;
+        }
+
+        //leaf is already there
+        if (next->NID()>=LEAF_BOUND)
+        {
+          if (docs.size()>0)
+            (*(array32_t*)(leafs_[next->NID()-LEAF_BOUND].DOCS())) += docs;
+          leafs_[next->NID()-LEAF_BOUND].FREQ_()+=freq;
+          break;
+        }
+          
+        assert(next->NID()<nodes_.length());
+        freqs_[next->NID()] += freq;
+
+        if (docs.size() == 0)
+          continue;
+        
+        load_edge_(next->NID());
+          
+        if (docs_.at(next->NID()) == (uint64_t)-1 ||
+            docs_.at(next->NID()) == 0)
+          docs_[next->NID()] = (uint64_t)(new array32_t());
+          
+        (*(array32_t*)docs_.at(next->NID())) += docs;
+      }
+    }
+
+  }
+
+  void del_terms_(const std::vector<uint32_t>& terms, uint32_t freq,
+                  const std::vector<uint32_t>& doclist)
+  {
+    //id transfer
+    array32_t ids;
+    ids.reserve(terms.size());
+    for (uint32_t i=0; i<terms.size(); ++i)
+      ids.push_back(terms[i]/*id_mgr_.insert(terms[i])*/);
+
+    //std::cout<<ids<<std::endl;
+    
+    assert(ids.length() == terms.size());
+    
+    NID_LEN_TYPE nid = 0;
+    sorted_edges_t* e = NULL;
+    typename sorted_edges_t::size_t t = 0;
+
+    array32_t::size_t j=0;
+    for (; j<ids.length(); ++j)
+    {
+      if (nid>=LEAF_BOUND )
+      {
+        ++j;
+        break;
+      }
+        
+      load_edge_(nid);
+        
+      e = nodes_.at(nid);
+      t = e->find(edge_t(ids.at(j)));
+      if (t == sorted_edges_t::NOT_FOUND)
+        break;
+        
+      nid = e->at(t).NID();
+    }
+      
+    if (j<ids.length())
+    {
+      std::cout<<"[ERROR]: graph.hpp 1.\n";
+      return;
+    }    
+
+    array32_t* docs = NULL;
+    if (nid>=LEAF_BOUND )
+    {
+      if (leafs_.at(nid-LEAF_BOUND).FREQ()>=freq)
+        leafs_[nid-LEAF_BOUND].FREQ_()-=freq;
+      else
+      {
+        std::cout<<"[ERROR]: graph.hpp 2.\n";
+        leafs_[nid-LEAF_BOUND].FREQ_() = 0;
+      }
+
+      if (leafs_.at(nid-LEAF_BOUND).FREQ() == 0)
+      {
+        e->erase(t);
+        delete (array32_t*)leafs_[nid-LEAF_BOUND].DOCS();
+        leafs_[nid-LEAF_BOUND].DOCS_() = -1;
+      }
+      else
+        docs = (array32_t*)leafs_[nid-LEAF_BOUND].DOCS();
+    }
+    else
+    {
+      load_edge_(nid);
+      if (freqs_[nid]< freq)
+        std::cout<<"[ERROR]: graph.hpp 3.\n";
+      freqs_[nid]-=freq;
+      
+      if (freqs_.at(nid)==0)
+      {
+        e->erase(t);
+        if (docs_.at(nid) != (uint64_t)-1 && docs_.at(nid) != 0)
+          delete (array32_t*)docs_.at(nid);
+        docs_[nid] = -1;
+        delete nodes_.at(nid);
+        nodes_[nid] = (sorted_edges_t*)-1;
+        loads_[nid] = 0;
+      }
+      else
+        docs = (array32_t*)docs_.at(nid);
+    }
+
+    if (docs == NULL || (uint64_t)docs == (uint64_t)-1)
+      return;
+
+    for (uint32_t i=0; i<doclist.size(); ++i)
+    {
+      t = docs->find(doclist[i]);
+      uint32_t k = 0;
+      while(t != sorted_edges_t::NOT_FOUND && k<freq)
+      {
+        docs->erase(t);
+        t = docs->find(doclist[i]);
+        ++k;
+      }
+    }
+    
+  }
+
+
+
 }
   ;
 

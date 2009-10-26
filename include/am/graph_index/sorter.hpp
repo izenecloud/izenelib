@@ -171,7 +171,8 @@ private:
   inline void flush_()
   {
     //std::cout<<p_<<std::endl;
-    assert(fwrite(buf_, p_, 1, f_)==1);
+    if (p_>0)
+      assert(fwrite(buf_, p_, 1, f_)==1);
     p_=0;
   }
 
