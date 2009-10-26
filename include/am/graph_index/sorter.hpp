@@ -329,7 +329,7 @@ public:
     // if (terms.length()<2)
 //       return;
     
-    for (typename terms_t::size_t i=0; i<terms.length(); ++i)
+    for (typename terms_t::size_t i=0; i<terms.length() && i<=6; ++i)
     {
       uint16_t s = (terms.length()-i)*sizeof(TERM_TYPE)+sizeof(uint32_t);
       if (is_mem_full_(s+sizeof(uint16_t)))
