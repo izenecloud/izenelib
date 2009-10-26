@@ -374,7 +374,7 @@ private:
 };
 
 template<>
-struct BTreeIndexer::BTreeIndexerFactory<int>
+struct BTreeIndexer::BTreeIndexerFactory<int64_t>
 {
     static BTreeIndex<IndexKeyType<int64_t> >* get()
     {
@@ -383,7 +383,7 @@ struct BTreeIndexer::BTreeIndexerFactory<int>
 };
 
 template<>
-struct BTreeIndexer::BTreeIndexerFactory<unsigned int>
+struct BTreeIndexer::BTreeIndexerFactory<uint64_t>
 {
     static BTreeIndex<IndexKeyType<uint64_t> >* get()
     {
