@@ -13,7 +13,8 @@ IndexReader::IndexReader(Indexer* pIndex, DiskIndexOpenMode openMode)
         ,pBarrelReader_(NULL)
         ,pForwardIndexReader_(NULL)
         ,dirty_(false)
-	,pDocFilter_(NULL)
+        ,pDocFilter_(NULL)
+        ,pDocLengthReader_(NULL)
 {
     pBarrelsInfo_ = pIndexer_->getBarrelsInfo();
 
@@ -41,6 +42,7 @@ IndexReader::~IndexReader(void)
         pDocFilter_->write(pIndexer_->getDirectory(), DELETED_DOCS);
         delete pDocFilter_;
     }
+    if(pDocLengthReader_) {delete pDocLengthReader_; pDocLengthReader_ = NULL;}
 }
 
 void IndexReader::delDocFilter()
@@ -52,6 +54,15 @@ void IndexReader::delDocFilter()
         delete pDocFilter_;
         pDocFilter_ = NULL;
     }
+}
+
+size_t IndexReader::docLength(docid_t docId, fieldid_t fid)
+{
+    if (dirty_)
+    {
+        pDocLengthReader_->load(pBarrelsInfo_->maxDocId());
+    }
+    return pDocLengthReader_->docLength(docId, fid);
 }
 
 void IndexReader::createBarrelReader()
