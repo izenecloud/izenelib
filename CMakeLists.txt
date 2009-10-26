@@ -46,9 +46,6 @@ Please clone it from izenesoft.com:/git/cmake.git. Then set EXTRA_CMAKE_MODULES_
 ENDIF(NOT EXTRA_CMAKE_MODULES_DIRS)
 SET(CMAKE_MODULE_PATH ${EXTRA_CMAKE_MODULES_DIRS})
 
-INCLUDE_DIRECTORIES(/usr/local/boost-1_36/include)
-LINK_DIRECTORIES(/usr/local/boost-1_36/lib)
-
 # force out-of-source build
 IF (CMAKE_BINARY_DIR STREQUAL CMAKE_SOURCE_DIR)
   MESSAGE(FATAL_ERROR "In source build is not allowed")
@@ -123,15 +120,24 @@ SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}" CACHE STRING
 SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS}" CACHE STRING
   "Flags used by the compiler during all build types." FORCE)
 
-##################################################
-# Project Info
-#####
-INCLUDE(ProjectVersion.cmake)
-SET(PROJECT_VERSION "${PROJECT_VERSION_MAJOR}.${PROJECT_VERSION_MINOR}.${PROJECT_VERSION_PATCH}")
-SET(PROJECT_VERSION_STRING "${PROJECT_PACKAGE} ${PROJECT_VERSION}")
+# build shared or static library
+# default is shared
+OPTION(BUILD_SHARED_LIBS "Build shared libraries?" ON)
+IF(NOT CMAKE_BUILD_LIBRARY_TYPE)
+  SET(CMAKE_BUILD_LIBRARY_TYPE $ENV{CMAKE_BUILD_LIBRARY_TYPE})
+ENDIF(NOT CMAKE_BUILD_LIBRARY_TYPE)
+STRING(TOLOWER "${CMAKE_BUILD_LIBRARY_TYPE}" _lower_library_type)
+IF(_lower_library_type STREQUAL "static")
+  SET(BUILD_SHARED_LIBS OFF)
+ELSEIF(_lower_library_type STREQUAL "shared")
+  SET(BUILD_SHARED_LIBS ON)
+ENDIF(_lower_library_type STREQUAL "static")
 
-# tagged prefix
-SET(VERSION_INSTALL_PREFIX "${PROJECT_PACKAGE}-${PROJECT_VERSION}")
+# Always use rpath
+SET(CMAKE_SKIP_BUILD_RPATH  FALSE)
+SET(CMAKE_BUILD_WITH_INSTALL_RPATH FALSE)
+SET(CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/lib")
+SET(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
 
 ##################################################
 # Check Dependencies
@@ -147,41 +153,30 @@ INCLUDE(ConfigureChecks.cmake)
 # install directory.
 INSTALL(
   DIRECTORY include/
-  DESTINATION "${VERSION_INSTALL_PREFIX}/include"
+  DESTINATION include
   COMPONENT "header_only"
   )
 
 ##################################################
 # Config File
 #####
-CONFIGURE_FILE(
-  "${CMAKE_CURRENT_SOURCE_DIR}/package-config.cmake.in"
-  "${CMAKE_BINARY_DIR}/${PROJECT_PACKAGE}-config.cmake"
-  ESCAPE_QUOTES @ONLY)
-CONFIGURE_FILE(
-  "${CMAKE_CURRENT_SOURCE_DIR}/package-config-version.cmake.in"
-  "${CMAKE_BINARY_DIR}/${PROJECT_PACKAGE}-config-version.cmake"
-  ESCAPE_QUOTES @ONLY)
-INSTALL(FILES
-  "${CMAKE_BINARY_DIR}/${PROJECT_PACKAGE}-config.cmake"
-  "${CMAKE_BINARY_DIR}/${PROJECT_PACKAGE}-config-version.cmake"
-  DESTINATION "${VERSION_INSTALL_PREFIX}/cmake"
-  COMPONENT "package-config"
-)
 
 ##################################################
 # Sub Directories
 #####
 
 # macros
-INCLUDE(MacroAddComponent)
+INCLUDE(MacroCheckShouldBuild)
 
 # all headers
 INCLUDE_DIRECTORIES("${CMAKE_SOURCE_DIR}/include")
 INCLUDE_DIRECTORIES("${CMAKE_SOURCE_DIR}/include/3rdparty")
 
+# User can decide which to build using:
+# USER_BUILD_LIST, USER_IGNORE_LIST
 SET_PROPERTY(GLOBAL PROPERTY BUILD_COMPONENTS)
 SET_PROPERTY(GLOBAL PROPERTY NON_BUILD_COMPONENTS)
+MARK_AS_ADVANCED(BUILD_COMPONENTS NON_BUILD_COMPONENTS)
 
 SET(LIBRARY_OUTPUT_PATH "${CMAKE_SOURCE_DIR}/lib")
 
@@ -201,13 +196,13 @@ ADD_SUBDIRECTORY(source/util util)
 # Network libraries
 ADD_SUBDIRECTORY(source/net net)
 
+GET_PROPERTY(REAL_BUILD_COMPONENTS GLOBAL PROPERTY BUILD_COMPONENTS)
+GET_PROPERTY(REAL_NON_BUILD_COMPONENTS GLOBAL PROPERTY NON_BUILD_COMPONENTS)
+
 # Test cases and applications
 IF(ENABLE_TEST)
   ADD_SUBDIRECTORY(source/test test)
 ENDIF(ENABLE_TEST)
-
-GET_PROPERTY(BUILD_COMPONENTS GLOBAL PROPERTY BUILD_COMPONENTS)
-GET_PROPERTY(NON_BUILD_COMPONENTS GLOBAL PROPERTY NON_BUILD_COMPONENTS)
 
 ##################################################
 # Messages
@@ -234,7 +229,7 @@ IF(VERBOSE)
     MESSAGE(STATUS "  header: ${BZIP2_INCLUDE_DIR}")
     MESSAGE(STATUS "  libs: ${BZIP2_LIBRARIES}")
   ELSE(BZIP2_FOUND)
-    MESSAGE(STATUS "BZIP2: not found")  
+    MESSAGE(STATUS "BZIP2: not found")
   ENDIF(BZIP2_FOUND)
 
   IF(ZLIB_FOUND)
@@ -242,7 +237,7 @@ IF(VERBOSE)
     MESSAGE(STATUS "  header: ${ZLIB_INCLUDE_DIR}")
     MESSAGE(STATUS "  libs: ${ZLIB_LIBRARIES}")
   ELSE(ZLIB_FOUND)
-    MESSAGE(STATUS "ZLIB: not found")  
+    MESSAGE(STATUS "ZLIB: not found")
   ENDIF(ZLIB_FOUND)
 
   IF(Threads_FOUND)
@@ -270,15 +265,15 @@ IF(VERBOSE)
 
   MESSAGE(STATUS "----------------------------------------")
   MESSAGE(STATUS "COMPONENTS BUILD:")
-  FOREACH(c ${BUILD_COMPONENTS})
+  FOREACH(c ${REAL_BUILD_COMPONENTS})
     MESSAGE(STATUS "  ${c}")
-  ENDFOREACH(c ${BUILD_COMPONENTS})
-  IF(NON_BUILD_COMPONENTS)
+  ENDFOREACH(c ${REAL_BUILD_COMPONENTS})
+  IF(REAL_NON_BUILD_COMPONENTS)
     MESSAGE(STATUS "COMPONENTS NOT BUILD:")
-    FOREACH(c ${NON_BUILD_COMPONENTS})
+    FOREACH(c ${REAL_NON_BUILD_COMPONENTS})
       MESSAGE(STATUS "  ${c}")
-    ENDFOREACH(c ${NON_BUILD_COMPONENTS})
-  ENDIF(NON_BUILD_COMPONENTS)
+    ENDFOREACH(c ${REAL_NON_BUILD_COMPONENTS})
+  ENDIF(REAL_NON_BUILD_COMPONENTS)
   MESSAGE(STATUS "========================================")
 
 ENDIF(VERBOSE)

@@ -36,7 +36,7 @@ ENDIF(USE_DOT)
 SET(Boost_ADDITIONAL_VERSIONS 1.39 1.39.0 1.38 1.38.0 1.37 1.37.0)
 # find unit_test_framework in boost >= 1.35, it's optional and only
 # used in unit testcases
-FIND_PACKAGE(Boost 1.35.0 REQUIRED)
+FIND_PACKAGE(Boost 1.35.0)
 
 ##################################################
 # Threads
@@ -63,19 +63,7 @@ FIND_PACKAGE(Glog)
 ##################################################
 # wiselib
 #####
-SET(wiselib_FOUND FALSE)
-IF(IS_DIRECTORY "$ENV{WISELIB}"
-    AND IS_DIRECTORY "$ENV{WISELIB}/include"
-    AND IS_DIRECTORY "$ENV{WISELIB}/lib")
-  SET(wiselib_FOUND TRUE)
-  SET(wiselib_INCLUDE_DIRS "$ENV{WISELIB}/include")
-  SET(wiselib_LIBRARY_DIRS "$ENV{WISELIB}/lib")
-ENDIF(IS_DIRECTORY "$ENV{WISELIB}"
-  AND IS_DIRECTORY "$ENV{WISELIB}/include"
-  AND IS_DIRECTORY "$ENV{WISELIB}/lib")
-IF(NOT wiselib_FOUND)
-  MESSAGE(FATAL_ERROR "cannot found wiselib, please set env variable WISELIB")
-ENDIF(NOT wiselib_FOUND)
+FIND_PACKAGE(wiselib)
 
 ##################################################
 # Other common libraries

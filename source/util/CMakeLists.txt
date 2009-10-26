@@ -1,33 +1,21 @@
+SET(_NOT_WIN32 TRUE)
+IF(WIN32)
+  SET(_NOT_WIN32 FALSE)
+ENDIF(WIN32)
+
 INCLUDE_DIRECTORIES(
   ${Boost_INCLUDE_DIRS}
   ${wiselib_INCLUDE_DIRS}
-  ${Glog_INCLUDE_DIRS}
   )
 
-SET_PROPERTY(GLOBAL APPEND PROPERTY BUILD_COMPONENTS izene_log)
-SET(izene_log_SRC izene_log.cpp)
-MACRO_ADD_COMPONENT(izene_log
-  "${VERSION_INSTALL_PREFIX}"
-  "${PROJECT_VERSION}"
-  ${izene_log_SRC}
-  )
+MACRO_CHECK_SHOULD_BUILD(procmeminfo _NOT_WIN32)
+IF(procmeminfo_SHOULD_BUILD)
+  ADD_LIBRARY(procmeminfo ProcMemInfo.cpp)
+  INSTALL(TARGETS procmeminfo DESTINATION lib)
+ENDIF(procmeminfo_SHOULD_BUILD)
 
-IF(WIN32)
-
-  SET_PROPERTY(GLOBAL APPEND PROPERTY NON_BUILD_COMPONENTS procmeminfo)
-  MESSAGE(STATUS "! WARNING: procmeminfo can only been build in WIN32")
-
-ELSE(WIN32)
-
-  SET_PROPERTY(GLOBAL APPEND PROPERTY BUILD_COMPONENTS procmeminfo)
-
-  SET(procmeminfo_SRC ProcMemInfo.cpp)
-
-  MACRO_ADD_COMPONENT(procmeminfo
-    "${VERSION_INSTALL_PREFIX}"
-    "${PROJECT_VERSION}"
-    ${procmeminfo_SRC}
-    )
-    
-ENDIF(WIN32)
-
+MACRO_CHECK_SHOULD_BUILD(izene_log _NOT_WIN32)
+IF(izene_log_SHOULD_BUILD)
+  ADD_LIBRARY(izene_log izene_log.cpp)
+  INSTALL(TARGETS izene_log DESTINATION lib)
+ENDIF(izene_log_SHOULD_BUILD)

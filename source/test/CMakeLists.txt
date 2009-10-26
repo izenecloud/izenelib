@@ -1,4 +1,9 @@
-IF(Boost_FOUND)
+FIND_PACKAGE(Boost ${Boost_FIND_VERSION}
+  COMPONENTS unit_test_framework serialization)
+LIST(FIND REAL_BUILD_COMPONENTS "febird" _febird)
+
+IF(Boost_FOUND AND wiselib_FOUND AND _febird GREATER -1)
+
   GET_FILENAME_COMPONENT(FileTestHelper
     "${CMAKE_CURRENT_SOURCE_DIR}/TestHelper.h" ABSOLUTE)
   SET(FileTestHelper "${FileTestHelper}")
@@ -22,16 +27,13 @@ IF(Boost_FOUND)
 
   SET(RUNTIME_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/testbin)
 
-  # ADD_SUBDIRECTORY(3rdparty)
   ADD_SUBDIRECTORY(am)
+  ADD_SUBDIRECTORY(util)
+  # ADD_SUBDIRECTORY(3rdparty)
   # ADD_SUBDIRECTORY(am_test)
   # ADD_SUBDIRECTORY(cache)
   # ADD_SUBDIRECTORY(db)
   # ADD_SUBDIRECTORY(ir)
   # ADD_SUBDIRECTORY(sdb)
-  ADD_SUBDIRECTORY(util)
 
-ELSE(Boost_FOUND)
-  MESSAGE(STATUS "boost is required in boost")
-ENDIF(Boost_FOUND)
-
+ENDIF(Boost_FOUND AND wiselib_FOUND AND _febird GREATER -1)
