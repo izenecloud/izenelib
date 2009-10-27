@@ -38,10 +38,10 @@ void DocLengthWriter::fillData(fieldid_t fid, size_t len, unsigned char* docLeng
 void DocLengthWriter::add(docid_t docID, const unsigned char* docLength)
 {
     pOutput_->seek(docID*sizeof(width_));
-    pOutput_->writeBytes(docLength,width_);
+    pOutput_->writeBytes((unsigned char*)docLength,width_);
 }
 
 void DocLengthWriter::flush()
 {
-    pOutPut_->flush();
+    pOutput_->flush();
 }

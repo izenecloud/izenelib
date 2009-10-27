@@ -15,7 +15,7 @@ DocLengthReader::DocLengthReader(const std::set<IndexerPropertyConfig, IndexerPr
     {
         if(iter->isForward()&&iter->isIndex())
         {
-            numIndexedProperties_++;
+            numIndexedProperties++;
             propertyOffsetMap_[i] = offset++;
         }
     }
@@ -32,7 +32,7 @@ void DocLengthReader::load(docid_t maxDocId)
 {
     size_ = maxDocId*width_;
     data_ = new uint16_t[size_];
-    IndexInput* pInput = pDirectory->openInput("doclen.map");
+    IndexInput* pInput = pDirectory_->openInput("doclen.map");
     pInput->readBytes((unsigned char*)data_, maxDocId*width_*2);
 }
 
