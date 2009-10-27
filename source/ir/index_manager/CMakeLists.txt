@@ -1,9 +1,13 @@
-FIND_PACKAGE(Boost 1.36.0
+FIND_PACKAGE(Boost ${Boost_FIND_VERSION}
   COMPONENTS serialization filesystem system thread)
 
-IF(wiselib_FOUND AND Boost_FOUND)
+MACRO_CHECK_SHOULD_BUILD(
+  index_manager
+  wiselib_FOUND
+  Boost_FOUND
+  )
 
-  SET_PROPERTY(GLOBAL APPEND PROPERTY BUILD_COMPONENTS index_manager)
+IF(index_manager_SHOULD_BUILD)
 
   FILE(GLOB_RECURSE
     index_manager_SRC
@@ -18,30 +22,12 @@ IF(wiselib_FOUND AND Boost_FOUND)
     ${Boost_INCLUDE_DIRS}
     ${CMAKE_SOURCE_DIR}/include/3rdparty/am
     ${wiselib_INCLUDE_DIRS}
-	${Glog_INCLUDE_DIRS}
+    ${Glog_INCLUDE_DIRS}
     )
 
   ADD_DEFINITIONS("-fPIC -DUDT3")
 
-  MACRO_ADD_COMPONENT(
-    index_manager
-    "${VERSION_INSTALL_PREFIX}"
-    "${PROJECT_VERSION}"
-    ${index_manager_SRC}
-    )
+  ADD_LIBRARY(index_manager ${index_manager_SRC})
+  INSTALL(TARGETS index_manager DESTINATION lib)
 
-  # TARGET_LINK_LIBRARIES(index_manager_shared
-  #   streamflow_shared
-  #   udt3_shared
-  #   )
-  # TARGET_LINK_LIBRARIES(index_manager_static
-  #   streamflow_shared
-  #   udt3_shared
-  #   )
-
-ELSE(wiselib_FOUND AND Boost_FOUND)
-
-  SET_PROPERTY(GLOBAL APPEND PROPERTY NON_BUILD_COMPONENTS index_manager)
-  MESSAGE(STATUS "! WARNING: index_manager cannot been built without wiselib and boost")
-
-ENDIF(wiselib_FOUND AND Boost_FOUND)
+ENDIF(index_manager_SHOULD_BUILD)

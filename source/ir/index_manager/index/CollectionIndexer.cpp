@@ -24,6 +24,8 @@ CollectionIndexer::CollectionIndexer(collectionid_t id,MemCache* pCache,Indexer*
         ,pMemCache_(pCache)
         ,pIndexer_(pIndexer)
         ,pForwardIndexWriter_(NULL)
+        ,pDocLengthWriter_(NULL)
+        ,docLengthWidth_(0)
 {
     pFieldsInfo_ = new FieldsInfo();
 }
@@ -34,11 +36,17 @@ CollectionIndexer::~CollectionIndexer()
     pMemCache_ = NULL;
     pIndexer_ = NULL;
     pForwardIndexWriter_ = NULL;
+    if(pDocLengthWriter_){ delete pDocLengthWriter_; pDocLengthWriter_ = NULL;}
 }
 
 void CollectionIndexer::setSchema(const IndexerCollectionMeta& schema)
 {
     pFieldsInfo_->setSchema(schema);
+    if(pIndexer_->getIndexManagerConfig()->indexStrategy_.indexDocLength_)
+    {
+        pDocLengthWriter_ = new DocLengthWriter(schema.getDocumentSchema(), pIndexer_->getDirectory());
+        docLengthWidth_ = pDocLengthWriter_->getWidth();
+    }
 }
 
 void CollectionIndexer::setFieldIndexers()
@@ -67,6 +75,8 @@ void CollectionIndexer::addDocument(IndexerDocument* pDoc)
 
     if(pForwardIndexWriter_)
         pForwardIndexWriter_->addDocument(uniqueID.docId);
+
+    unsigned char docLength[docLengthWidth_];
     for (map<IndexerPropertyConfig, IndexerDocumentPropertyType>::iterator iter = propertyValueList.begin(); iter != propertyValueList.end(); ++iter)
     {
         if(!iter->first.isIndex())
@@ -90,6 +100,9 @@ void CollectionIndexer::addDocument(IndexerDocument* pDoc)
 
                 if(pForwardIndexWriter_)
                     pForwardIndexWriter_->addProperty(iter->first.getPropertyId(), forwardIndex);
+
+                if(pDocLengthWriter_)
+                    pDocLengthWriter_->fillData(iter->first.getPropertyId(), forwardIndex->docLength_, docLength);
             }
             else
             {
@@ -101,6 +114,8 @@ void CollectionIndexer::addDocument(IndexerDocument* pDoc)
         }
 
     }
+    if(pDocLengthWriter_)
+        pDocLengthWriter_->add(uniqueID.docId,docLength);
 }
 
 bool CollectionIndexer::deleteDocument(IndexerDocument* pDoc)
@@ -175,6 +190,8 @@ void CollectionIndexer::write(OutputDescriptor* desc)
 
         pFieldsInfo_->getField(fid)->setLength(vocOff2-vocOff1,dfiOff2-dfiOff1,ptiOff2-ptiOff1);
     }
+    if(pDocLengthWriter_)
+        pDocLengthWriter_->flush();
 }
 
 

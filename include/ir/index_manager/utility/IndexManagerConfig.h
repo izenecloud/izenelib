@@ -28,7 +28,8 @@ private:
     {
     public:
         _indexstrategy() :
-                memory_(0)
+                memory_(0),
+                indexDocLength_(false)
         {}
     private:
         friend class boost::serialization::access;
@@ -38,6 +39,7 @@ private:
         {
             ar & indexLocation_;
             ar & memory_;
+            ar & indexDocLength_;
         }
 
 
@@ -51,6 +53,8 @@ private:
          * flushed into one barrel and a new barrel will be generated
          */
         int64_t memory_;
+
+        bool indexDocLength_;
     };
 
     /**

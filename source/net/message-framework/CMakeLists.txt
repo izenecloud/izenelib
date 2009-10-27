@@ -1,16 +1,23 @@
-INCLUDE_DIRECTORIES(
-  ${Boost_INCLUDE_DIRS}  
-  ${wiselib_INCLUDE_DIRS}
-  ${Glog_INCLUDE_DIRS}
-)
-
+SET(_NOT_WIN32 TRUE)
 IF(WIN32)
-  SET_PROPERTY(GLOBAL APPEND PROPERTY NON_BUILD_COMPONENTS message_framework)
-  MESSAGE(STATUS "! WARNING: message_framework can only been build in WIN32")
+  SET(_NOT_WIN32 FALSE)
+ENDIF(WIN32)
 
-ELSE(WIN32)
+MACRO_CHECK_SHOULD_BUILD(
+  message_framework
+  _NOT_WIN32
+  Boost_FOUND
+  wiselib_FOUND
+  Glog_FOUND
+  )
 
-  SET_PROPERTY(GLOBAL APPEND PROPERTY BUILD_COMPONENTS message_framework)
+IF(message_framework_SHOULD_BUILD)
+
+  INCLUDE_DIRECTORIES(
+    ${Boost_INCLUDE_DIRS}
+    ${wiselib_INCLUDE_DIRS}
+    ${Glog_INCLUDE_DIRS}
+    )
 
   SET(message_framework_SRC
     AsyncConnector.cpp
@@ -21,27 +28,22 @@ ELSE(WIN32)
     MessageServerFull.cpp
     MessageDispatcher.cpp
     MessageFrameworkException.cpp
-    MessageFrameworkNode.cpp 
+    MessageFrameworkNode.cpp
     ServiceInfo.cpp
     ServicePermissionInfo.cpp
     ServiceRegistrationMessage.cpp
     ThreadPool.cpp
-    common.cpp   
-    
-    MFClient.cpp  
-    
-  #  MessageClientLight.cpp
-  #  MessageControllerLight.cpp
-  #  MessageServerLight.cpp
-  #  MessageAgentLight.cpp
-)
+    common.cpp
 
-  INCLUDE(MacroAddComponent)
-  MACRO_ADD_COMPONENT(message_framework
-    "${VERSION_INSTALL_PREFIX}"
-    "${PROJECT_VERSION}"
-    ${message_framework_SRC}
+    MFClient.cpp
+
+    # MessageClientLight.cpp
+    # MessageControllerLight.cpp
+    # MessageServerLight.cpp
+    # MessageAgentLight.cpp
     )
 
-ENDIF(WIN32)
+  ADD_LIBRARY(message_framework ${message_framework_SRC})
+  INSTALL(TARGETS message_framework DESTINATION lib)
 
+ENDIF(message_framework_SHOULD_BUILD)

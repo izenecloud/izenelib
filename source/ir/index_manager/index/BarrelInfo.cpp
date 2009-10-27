@@ -91,6 +91,11 @@ void BarrelsInfo::clear()
     nBarrelCounter = 0;
 }
 
+void BarrelsInfo::updateMaxDoc(docid_t docId)
+{
+    maxDoc = (docId>maxDoc)?docId:maxDoc;
+}
+
 void BarrelsInfo::read(Directory* pDirectory, const char* name)
 {
     clear();
@@ -122,6 +127,11 @@ void BarrelsInfo::read(Directory* pDirectory, const char* name)
             ///get <barrel_count></barrel_count> element
             pItem = pDatabase->getElementByName("barrel_count");
             if (!pItem) SF1V5_THROW(ERROR_INDEX_COLLAPSE,"index collapsed.");
+
+            ///get <maxdoc></maxdoc> element
+            pItem = pDatabase->getElementByName("maxdoc");
+            if (!pItem) SF1V5_THROW(ERROR_INDEX_COLLAPSE,"index collapsed.");
+            maxDoc = atoi(pItem->getValue().c_str());
 
             XMLElement* pBarrelsItem = pDatabase->getElementByName("barrels");
             if (!pBarrelsItem) SF1V5_THROW(ERROR_INDEX_COLLAPSE,"index collapsed.");
@@ -195,6 +205,11 @@ void BarrelsInfo::write(Directory* pDirectory)
     str = izenelib::ir::indexmanager::append(str,(int32_t)barrelInfos.size());
     pItem = pDatabase->addElement("barrel_count");
     pItem->setValue(str.c_str());
+
+    char buffer[10];
+    pItem = pDatabase->addElement("maxdoc");
+    sprintf(buffer,"%d",maxDoc);
+    pItem->setValue(buffer);
 
     ///add barrels elements
     XMLElement* pBarrelsItem = pDatabase->addElement("barrels");

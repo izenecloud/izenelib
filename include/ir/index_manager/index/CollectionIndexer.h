@@ -23,6 +23,7 @@
 #include <ir/index_manager/index/BTreeIndex.h>
 #include <ir/index_manager/index/LAInput.h>
 #include <ir/index_manager/index/ForwardIndexWriter.h>
+#include <ir/index_manager/index/DocLengthWriter.h>
 
 NS_IZENELIB_IR_BEGIN
 
@@ -73,6 +74,10 @@ private:
     Indexer* pIndexer_;
 
     ForwardIndexWriter* pForwardIndexWriter_;
+
+    DocLengthWriter* pDocLengthWriter_;
+
+    size_t docLengthWidth_;
 };
 
 }
