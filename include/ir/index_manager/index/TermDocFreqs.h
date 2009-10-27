@@ -47,8 +47,6 @@ public:
 
     virtual count_t freq();
 
-    virtual freq_t docLength();
-
     virtual void close();
 
 protected:

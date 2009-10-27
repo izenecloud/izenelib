@@ -80,8 +80,6 @@ public:
 
     bool getDocsByTermInProperties(termid_t termID, collectionid_t colID, std::vector<std::string> properties, std::deque<CommonItem>& commonSet);
 
-    bool getWordOffsetListOfQueryByDocumentProperty (const std::vector<termid_t>& queryTermIdList, collectionid_t colId, docid_t docId,  string propertyName, std::deque<std::deque<std::pair<unsigned int, unsigned int> > >& wordOffsetListOfQuery );
-  
     bool getForwardIndexByDocumentProperty(collectionid_t colId, docid_t docId, string propertyName, ForwardIndex& forwardIndex);	
     
     bool getTermFrequencyInCollectionByTermId ( const std::vector<termid_t>& termIdList, const unsigned int collectionId, const std::vector<std::string>& propertyList, std::vector<unsigned int>& termFrequencyList );

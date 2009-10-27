@@ -12,9 +12,7 @@ NS_IZENELIB_IR_BEGIN
 
 namespace indexmanager{
 
-typedef unsigned int WordOffset;
-typedef unsigned int CharOffset;
-typedef std::deque<std::pair<unsigned int, unsigned int> > ForwardIndexOffset;
+typedef std::deque<unsigned int> ForwardIndexOffset;
 
 class ForwardIndex : public rde::hash_map<unsigned int, ForwardIndexOffset* >
 {
@@ -35,19 +33,18 @@ public:
     }
 
     bool getTermOffsetListByTermId(unsigned int termId, 
-				std::vector<std::pair<unsigned int, unsigned int> >& termOffsetList) const
+				std::vector<unsigned int >& termOffsetList) const
     {
         ForwardIndex::const_iterator iter = find(termId);
         if(iter == end())
             return false;
         termOffsetList.reserve(iter->second->size());    
         for(ForwardIndexOffset::iterator it = iter->second->begin(); it != iter->second->end(); ++it)
-            termOffsetList.push_back(std::make_pair(it->first, it->second));
+            termOffsetList.push_back(*it);
         return true;
     }
 
-    bool insertTermOffset(unsigned int termId,
-                                    pair<unsigned int, unsigned int>& termOffset)
+    bool insertTermOffset(unsigned int termId, unsigned int termOffset)
     {
         ForwardIndex::iterator it = find(termId);
         if(it != end())

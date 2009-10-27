@@ -317,18 +317,14 @@ fileoffset_t FieldMerger::sortingMerge(FieldMergeInfo** ppMergeInfos,int32_t num
     InMemoryPosting* newPosting = new InMemoryPosting(pMemCache);
 
     docid_t docId = 0;
-    freq_t docLength = 0;
     while(postingIterator.next())
     {
         docId = postingIterator.doc();
-        docLength = postingIterator.docLength();
         loc_t pos = postingIterator.nextPosition();
-        loc_t subpos = postingIterator.nextPosition();
         while (pos != BAD_POSITION)
         {
-            newPosting->addLocation(docId, docLength, pos, subpos);
+            newPosting->addLocation(docId, pos);
             pos = postingIterator.nextPosition();
-            subpos = postingIterator.nextPosition();
         }
         newPosting->updateDF(docId);
     }

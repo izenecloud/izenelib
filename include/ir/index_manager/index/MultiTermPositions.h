@@ -71,8 +71,6 @@ public:
 
     freq_t docFreq();
 
-    freq_t docLength();
-
     int64_t getCTF();
 
     void  close();

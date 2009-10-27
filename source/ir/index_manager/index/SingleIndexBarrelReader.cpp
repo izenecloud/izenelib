@@ -163,7 +163,6 @@ void SingleIndexBarrelReader::delDocField(unsigned int colID, docid_t docId, con
 
     bool ret = false;
     docid_t decompressed_docid;
-    freq_t doclength;
 
     for(ForwardIndex::iterator iter = forwardIndex->begin(); iter != forwardIndex->end(); ++iter)
     {
@@ -185,14 +184,11 @@ void SingleIndexBarrelReader::delDocField(unsigned int colID, docid_t docId, con
                     ret = true;
                     continue;
                 }
-                doclength = pTermPositions->docLength();
                 loc_t pos = pTermPositions->nextPosition();
-                loc_t subpos = pTermPositions->nextPosition();
                 while (pos != BAD_POSITION)
                 {
-                    newPosting->addLocation(decompressed_docid, doclength, pos, subpos);
+                    newPosting->addLocation(decompressed_docid, pos);
                     pos = pTermPositions->nextPosition();
-                    subpos = pTermPositions->nextPosition();
                 }
                 newPosting->updateDF(decompressed_docid);
             }

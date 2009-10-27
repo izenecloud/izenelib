@@ -173,7 +173,6 @@ void PostingMerger::mergeWith_GC(OnDiskPosting* pOnDiskPosting,BitVector* pFilte
     docid_t nDocIDPrev = 0;
     docid_t nLastDocID = 0;
     freq_t	nTF = 0;
-    freq_t nDocLength = 0;
     count_t nCTF = 0;
     count_t nDF = 0;
     count_t nPCount = 0;
@@ -197,12 +196,10 @@ void PostingMerger::mergeWith_GC(OnDiskPosting* pOnDiskPosting,BitVector* pFilte
     {
         nDocID += pDInput->readVInt();
         nTF = pDInput->readVInt();
-        nDocLength = pDInput->readVInt();
         if(!pFilter->test((size_t)nDocID))///the document has not been deleted
         {
             pDOutput->writeVInt(nDocID - nDocIDPrev);
             pDOutput->writeVInt(nTF);
-            pDOutput->writeVInt(nDocLength);
 
             nDocIDPrev = nDocID;
             nPCount += nTF;

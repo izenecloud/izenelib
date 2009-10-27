@@ -143,7 +143,6 @@ void CompressedPostingList::reset()
 
 //////////////////////////////////////////////////////////////////////////
 ///InMemoryPosting
-InMemoryPosting::AllocStrategy InMemoryPosting::ALLOCSTRATEGY;
 
 InMemoryPosting::InMemoryPosting(MemCache* pCache)
         :pMemCache(pCache)
@@ -152,8 +151,6 @@ InMemoryPosting::InMemoryPosting(MemCache* pCache)
         ,nLastDocID(BAD_DOCID)
         ,nYetAnotherLastDocID(BAD_DOCID)
         ,nLastLoc(BAD_DOCID)
-        ,nLastCharLoc(BAD_DOCID)
-        ,nLastDocLen(0)
         ,nCurTermFreq(0)
         ,nCTF(0)
         ,pDS(NULL)
@@ -161,9 +158,9 @@ InMemoryPosting::InMemoryPosting(MemCache* pCache)
     pDocFreqList = new CompressedPostingList();
     pLocList  = new CompressedPostingList();
 
-    int32_t newSize = getNextChunkSize(pDocFreqList->nTotalSize,InMemoryPosting::ALLOCSTRATEGY);
+    int32_t newSize = getNextChunkSize(pDocFreqList->nTotalSize);
     pDocFreqList->addChunk(newChunk(newSize));
-    newSize = getNextChunkSize(pLocList->nTotalSize,InMemoryPosting::ALLOCSTRATEGY);
+    newSize = getNextChunkSize(pLocList->nTotalSize);
     pLocList->addChunk(newChunk(newSize));
 }
 
@@ -174,8 +171,6 @@ InMemoryPosting::InMemoryPosting()
         ,nLastDocID(BAD_DOCID)
         ,nYetAnotherLastDocID(BAD_DOCID)
         ,nLastLoc(BAD_DOCID)
-        ,nLastCharLoc(BAD_DOCID)
-        ,nLastDocLen(0)
         ,nCurTermFreq(0)
         ,nCTF(0)
         ,pDS(NULL)
@@ -262,8 +257,6 @@ void InMemoryPosting::reset()
     nLastDocID = BAD_DOCID;
     nYetAnotherLastDocID = BAD_DOCID;
     nLastLoc = 0;
-    nLastCharLoc = 0;
-    nLastDocLen = 0;
     nDF = 0;
     nTDF = 0;
     nCurTermFreq = 0;
@@ -293,27 +286,15 @@ Posting* InMemoryPosting::clone()
     pClone->nLastDocID = nLastDocID;
     pClone->nYetAnotherLastDocID = nYetAnotherLastDocID;
     pClone->nLastLoc = nLastLoc;
-    pClone->nLastCharLoc = nLastCharLoc;
-    pClone->nLastDocLen = nLastDocLen;	
     return pClone;
 }
 
 
 //////////////////////////////////////////////////////////////////////////
 ///InMemoryPosting
-int32_t InMemoryPosting::getNextChunkSize(int32_t nCurSize,AllocStrategy& as)
+int32_t InMemoryPosting::getNextChunkSize(int32_t nCurSize)
 {
-    int32_t newSize = 0;
-    if (as.strategy == STRATEGY_ALLOC_EXPLIMIT)
-    {
-        newSize = min(as.l,max(as.n,(int32_t)(nCurSize*(as.k - 1) + 0.5)) );
-    }
-    else if (as.strategy == STRATEGY_ALLOC_EXP)
-    {
-        newSize = max(as.n,(int32_t)(nCurSize*(as.k - 1) + 0.5));
-    }
-    else if (as.strategy == STRATEGY_ALLOC_CONST)
-        newSize = as.n;
+    int32_t newSize = max(32,(int32_t)(nCurSize + 0.5));
     return (int32_t)Utilities::LOG2_UP(newSize);
 }
 
@@ -326,7 +307,7 @@ void InMemoryPosting::updateDF(docid_t docid)
     }
 }
 
-void InMemoryPosting::addLocation(docid_t docid, freq_t doclength, loc_t location, loc_t charlocation)
+void InMemoryPosting::addLocation(docid_t docid, loc_t location)
 {
     if (docid == nLastDocID)
     {
@@ -334,21 +315,12 @@ void InMemoryPosting::addLocation(docid_t docid, freq_t doclength, loc_t locatio
         if (!pLocList->addPosting(location - nLastLoc))
         {
             ///chunk is exhausted
-            int32_t newSize = getNextChunkSize(pLocList->nTotalSize, InMemoryPosting::ALLOCSTRATEGY);
+            int32_t newSize = getNextChunkSize(pLocList->nTotalSize);
             pLocList->addChunk(newChunk(newSize));
             pLocList->addPosting(location - nLastLoc);///d-gap encoding
         }
-        if (!pLocList->addPosting(charlocation - nLastCharLoc))
-        {
-            ///chunk is exhausted
-            int32_t newSize = getNextChunkSize(pLocList->nTotalSize, InMemoryPosting::ALLOCSTRATEGY);
-            pLocList->addChunk(newChunk(newSize));
-            pLocList->addPosting(charlocation - nLastCharLoc);///d-gap encoding
-        }
-		
         nCurTermFreq++;
         nLastLoc = location;
-        nLastCharLoc = charlocation;
     }
     else///first see it
     {
@@ -357,17 +329,9 @@ void InMemoryPosting::addLocation(docid_t docid, freq_t doclength, loc_t locatio
             if (!pDocFreqList->addPosting(nCurTermFreq))
             {
                 ///chunk is exhausted
-                int32_t newSize = getNextChunkSize(pDocFreqList->nTotalSize,InMemoryPosting::ALLOCSTRATEGY);
+                int32_t newSize = getNextChunkSize(pDocFreqList->nTotalSize);
                 pDocFreqList->addChunk(newChunk(newSize));
                 pDocFreqList->addPosting(nCurTermFreq);
-            }
-            /// doc length info, which is required by Ranking
-            if (!pDocFreqList->addPosting(nLastDocLen))
-            {
-                ///chunk is exhausted
-                int32_t newSize = getNextChunkSize(pDocFreqList->nTotalSize,InMemoryPosting::ALLOCSTRATEGY);
-                pDocFreqList->addChunk(newChunk(newSize));
-                pDocFreqList->addPosting(nLastDocLen);
             }
         }
         else if (nLastDocID == BAD_DOCID)///first see it
@@ -377,34 +341,23 @@ void InMemoryPosting::addLocation(docid_t docid, freq_t doclength, loc_t locatio
         if (!pDocFreqList->addPosting(docid - nLastDocID))
         {
             ///chunk is exhausted
-            int32_t newSize = getNextChunkSize(pDocFreqList->nTotalSize,InMemoryPosting::ALLOCSTRATEGY);
+            int32_t newSize = getNextChunkSize(pDocFreqList->nTotalSize);
             pDocFreqList->addChunk(newChunk(newSize));
             pDocFreqList->addPosting(docid - nLastDocID);
         }
         if (!pLocList->addPosting(location))
         {
             ///chunk is exhausted
-            int32_t newSize = getNextChunkSize(pLocList->nTotalSize,InMemoryPosting::ALLOCSTRATEGY);
+            int32_t newSize = getNextChunkSize(pLocList->nTotalSize);
             pLocList->addChunk(newChunk(newSize));
             pLocList->addPosting(location);
-        }
-        if (!pLocList->addPosting(charlocation))
-        {
-            ///chunk is exhausted
-            int32_t newSize = getNextChunkSize(pLocList->nTotalSize,InMemoryPosting::ALLOCSTRATEGY);
-            pLocList->addChunk(newChunk(newSize));
-            pLocList->addPosting(charlocation);
         }
 
         nCTF += nCurTermFreq;
         nCurTermFreq = 1;
 
         nLastDocID = docid;
-
         nLastLoc = location;
-        nLastCharLoc = charlocation;
-
-        nLastDocLen = doclength;
 
         nDF++;
     }
@@ -460,15 +413,9 @@ void InMemoryPosting::flushLastDoc(bool bTruncTail)
     {
         if (!pDocFreqList->addPosting(nCurTermFreq))
         {
-            int32_t newSize = getNextChunkSize(pDocFreqList->nTotalSize,InMemoryPosting::ALLOCSTRATEGY);
+            int32_t newSize = getNextChunkSize(pDocFreqList->nTotalSize);
             pDocFreqList->addChunk(newChunk(newSize));
             pDocFreqList->addPosting(nCurTermFreq);
-        }
-        if (!pDocFreqList->addPosting(nLastDocLen))
-        {
-            int32_t newSize = getNextChunkSize(pDocFreqList->nTotalSize,InMemoryPosting::ALLOCSTRATEGY);
-            pDocFreqList->addChunk(newChunk(newSize));
-            pDocFreqList->addPosting(nLastDocLen);
         }
         if (bTruncTail)
         {
@@ -513,21 +460,18 @@ int32_t InMemoryPosting::decodeNext(uint32_t* pPosting,int32_t length)
         pDS->decodingPChunk = pLocList->pHeadChunk;
         pDS->decodingPChunkPos = 0;
         pDS->lastDecodedPos = 0;
-        pDS->lastDecodedCharPos = 0;
         pDS->decodedPosCount = 0;
     }
 
     uint32_t* pDoc = pPosting;
-    //uint32_t* pFreq = pPosting + (length >> 1);
-    uint32_t* pFreq = pPosting + (length/3);
-    uint32_t* pDocLen = pPosting + (length*2/3);
+    uint32_t* pFreq = pPosting + (length >> 1);
 
     int32_t left = nDF - pDS->decodedDocCount;
     if (left <= 0)
         return -1;
-    if (length > left*3)
-        length = left*3;
-    left = (length/3);//(length>>1);
+    if (length > left*2)
+        length = left*2;
+    left = (length>>1);
 
     uint8_t* pDChunk = &(pDS->decodingDChunk->data[pDS->decodingDChunkPos]);
     uint8_t* pDChunkEnd = &(pDS->decodingDChunk->data[pDS->decodingDChunk->size-1]);
@@ -544,9 +488,6 @@ int32_t InMemoryPosting::decodeNext(uint32_t* pPosting,int32_t length)
         ISCHUNKOVER_D();
 
         *pFreq++ = CompressedPostingList::decodePosting32(pDChunk);
-
-        ISCHUNKOVER_D();
-        *pDocLen++ = CompressedPostingList::decodePosting32(pDChunk);
 
         count++;
     }
@@ -565,8 +506,6 @@ void InMemoryPosting::decodeNextPositions(uint32_t* pPosting,int32_t length)
 
     uint32_t* pPos = pPosting;
     loc_t loc = pDS->lastDecodedPos;
-    loc_t charloc = pDS->lastDecodedCharPos;
-	
     int32_t  nDecoded = 0;
     while (nDecoded < length)
     {
@@ -586,17 +525,10 @@ void InMemoryPosting::decodeNextPositions(uint32_t* pPosting,int32_t length)
             *pPos = loc;
             pPos++;
         }
-        charloc += CompressedPostingList::decodePosting32(pPChunk);
-        if (pPos)
-        {
-            *pPos = charloc;
-            pPos++;
-        }
-        nDecoded+=2;
+        nDecoded++;
     }
     pDS->decodedPosCount += nDecoded;
     pDS->lastDecodedPos = loc;
-    pDS->lastDecodedCharPos = charloc;
 }
 
 void InMemoryPosting::decodeNextPositions(uint32_t* pPosting,uint32_t* pFreqs,int32_t nFreqs)
@@ -606,7 +538,6 @@ void InMemoryPosting::decodeNextPositions(uint32_t* pPosting,uint32_t* pFreqs,in
 
     uint32_t* pPos = pPosting;
     loc_t loc = pDS->lastDecodedPos;
-    loc_t charloc = pDS->lastDecodedCharPos;
     uint32_t  nTotalDecoded = 0;
     uint32_t  nCurDecoded;
     for (int32_t nF = 0; nF < nFreqs;nF++)
@@ -630,28 +561,19 @@ void InMemoryPosting::decodeNextPositions(uint32_t* pPosting,uint32_t* pFreqs,in
                 *pPos = loc;
                 pPos++;
             }
-            charloc += CompressedPostingList::decodePosting32(pPChunk);
-            if (pPos)
-            {
-                *pPos = charloc;
-                pPos++;
-            }
-            nCurDecoded+=2;
+            nCurDecoded++;
         }
         pDS->lastDecodedPos = loc = 0;
-        pDS->lastDecodedCharPos = charloc = 0;
         nTotalDecoded += nCurDecoded;
     }
 
     pDS->decodedPosCount += nTotalDecoded;
     pDS->lastDecodedPos = loc;
-    pDS->lastDecodedCharPos = charloc;
 }
 
 void InMemoryPosting::resetPosition()
 {
     pDS->lastDecodedPos = 0;
-    pDS->lastDecodedCharPos = 0;
 }
 //////////////////////////////////////////////////////////////////////////
 ///OnDiskPosting
@@ -681,7 +603,6 @@ OnDiskPosting::OnDiskPosting()
     ds.lastDecodedDocID = 0;
     ds.decodedPosCount= 0;
     ds.lastDecodedPos = 0;
-    ds.lastDecodedCharPos = 0;
 }
 OnDiskPosting::~OnDiskPosting()
 {
@@ -736,7 +657,6 @@ void OnDiskPosting::reset(fileoffset_t newOffset)
     ds.lastDecodedDocID = 0;
     ds.decodedPosCount= 0;
     ds.lastDecodedPos = 0;
-    ds.lastDecodedCharPos = 0;
 }
 
 int32_t OnDiskPosting::decodeNext(uint32_t* pPosting,int32_t length)
@@ -745,13 +665,11 @@ int32_t OnDiskPosting::decodeNext(uint32_t* pPosting,int32_t length)
     if (left <= 0)
         return -1;
     uint32_t* pDoc = pPosting;
-    //uint32_t* pFreq = pPosting + (length>>1);
-    uint32_t* pFreq = pPosting + (length/3);
-    uint32_t* pDocLen = pPosting + (length*2/3);
+    uint32_t* pFreq = pPosting + (length>>1);
 
-    if (length > left*3)
-        length = left*3;
-    left = (length/3);//(length>>1);
+    if (length > left*2)
+        length = left*2;
+    left = (length>>1);
 
     IndexInput* pDPostingInput = getInputDescriptor()->getDPostingInput();
 
@@ -763,7 +681,6 @@ int32_t OnDiskPosting::decodeNext(uint32_t* pPosting,int32_t length)
         did += pDPostingInput->readVInt();
         *pDoc++ = did;
         *pFreq++ = pDPostingInput->readVInt();
-        *pDocLen++ = pDPostingInput->readVInt();
 
         count++;
     }
@@ -782,7 +699,6 @@ void OnDiskPosting::decodeNextPositions(uint32_t* pPosting,int32_t length)
 
     int32_t nDecoded = 0;
     loc_t loc = ds.lastDecodedPos;
-    loc_t charloc = ds.lastDecodedCharPos;
     uint32_t* pPos = pPosting;
     while (nDecoded < length)
     {
@@ -792,18 +708,11 @@ void OnDiskPosting::decodeNextPositions(uint32_t* pPosting,int32_t length)
             *pPos = loc;
             pPos++;
         }
-        charloc += pPPostingInput->readVInt();
-        if (pPos)
-        {
-            *pPos = charloc;
-            pPos++;
-        }
-        nDecoded+=2;
+        nDecoded++;
     }
 
     ds.decodedPosCount += nDecoded;
     ds.lastDecodedPos = loc;
-    ds.lastDecodedCharPos = charloc;
 }
 void OnDiskPosting::decodeNextPositions(uint32_t* pPosting,uint32_t* pFreqs,int32_t nFreqs)
 {
@@ -812,14 +721,11 @@ void OnDiskPosting::decodeNextPositions(uint32_t* pPosting,uint32_t* pFreqs,int3
     uint32_t nTotalDecoded = 0;
     uint32_t nCurDecoded = 0;
     loc_t loc = ds.lastDecodedPos;
-    loc_t charloc = ds.lastDecodedCharPos;
-
     uint32_t* pPos = pPosting;
     for (int32_t nF = 0;nF < nFreqs;nF++)
     {
         nCurDecoded = 0;
-        uint32_t nCurrPOSLen = pFreqs[nF]*2; //TF*2
-        while (nCurDecoded < nCurrPOSLen)
+        while (nCurDecoded < pFreqs[nF])
         {
             loc += pPPostingInput->readVInt();
             if (pPos)
@@ -827,28 +733,18 @@ void OnDiskPosting::decodeNextPositions(uint32_t* pPosting,uint32_t* pFreqs,int3
                 *pPos = loc;
                 pPos++;
             }
-            charloc += pPPostingInput->readVInt();
-            if (pPos)
-            {
-                *pPos = charloc;
-                pPos++;
-            }
-
-            nCurDecoded+=2;
+            nCurDecoded++;
         }
         nTotalDecoded += nCurDecoded;
         loc = 0;
-        charloc = 0;
     }
 
     ds.decodedPosCount += nTotalDecoded;
     ds.lastDecodedPos = loc;
-    ds.lastDecodedCharPos = charloc;
 }
 void OnDiskPosting::resetPosition()
 {
     ds.lastDecodedPos = 0;
-    ds.lastDecodedCharPos = 0;
 }
 
 void OnDiskPosting::reset()
