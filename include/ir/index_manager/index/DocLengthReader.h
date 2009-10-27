@@ -25,11 +25,11 @@ public:
 private:
     Directory* pDirectory_;
 
-    size_t width_;
-
     unsigned char* propertyOffsetMap_;
 
     uint16_t* data_;
+
+    size_t numIndexedProperties_;
 
     size_t size_;
 };

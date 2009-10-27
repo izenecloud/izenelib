@@ -9,17 +9,16 @@ DocLengthReader::DocLengthReader(const std::set<IndexerPropertyConfig, IndexerPr
     size_t len = schema.size();
     propertyOffsetMap_ = new unsigned char[len];
     memset(propertyOffsetMap_, 0, len);
-    size_t i = 0, numIndexedProperties = 0;
+    size_t i = 0;
     size_t offset = 0;
     for(std::set<IndexerPropertyConfig, IndexerPropertyConfigComp>::const_iterator iter = schema.begin(); iter != schema.end(); ++iter, ++i)
     {
         if(iter->isForward()&&iter->isIndex())
         {
-            numIndexedProperties++;
+            numIndexedProperties_++;
             propertyOffsetMap_[i] = offset++;
         }
     }
-    width_ = numIndexedProperties*sizeof(uint16_t);
 }
 
 DocLengthReader::~DocLengthReader()
@@ -30,15 +29,15 @@ DocLengthReader::~DocLengthReader()
 
 void DocLengthReader::load(docid_t maxDocId)
 {
-    size_ = maxDocId*width_;
+    size_ = maxDocId * numIndexedProperties_;
     data_ = new uint16_t[size_];
     IndexInput* pInput = pDirectory_->openInput("doclen.map");
-    pInput->readBytes((unsigned char*)data_, maxDocId*width_*2);
+    pInput->readBytes((unsigned char*)data_, size_*2);
 }
 
 size_t DocLengthReader::docLength(docid_t docId, fieldid_t fid)
 {
-    if(docId*width_ > size_)
+    if(docId*numIndexedProperties_ > size_)
         return 0;
-    return (uint16_t)data_[docId*width_+propertyOffsetMap_[fid]];
+    return data_[docId*numIndexedProperties_+propertyOffsetMap_[fid]];
 }

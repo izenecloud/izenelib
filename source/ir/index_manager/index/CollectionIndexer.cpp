@@ -45,7 +45,7 @@ void CollectionIndexer::setSchema(const IndexerCollectionMeta& schema)
     if(pIndexer_->getIndexManagerConfig()->indexStrategy_.indexDocLength_)
     {
         pDocLengthWriter_ = new DocLengthWriter(schema.getDocumentSchema(), pIndexer_->getDirectory());
-        docLengthWidth_ = pDocLengthWriter_->getWidth();
+        docLengthWidth_ = pDocLengthWriter_->get_num_properties();
     }
 }
 
@@ -76,7 +76,7 @@ void CollectionIndexer::addDocument(IndexerDocument* pDoc)
     if(pForwardIndexWriter_)
         pForwardIndexWriter_->addDocument(uniqueID.docId);
 
-    unsigned char docLength[docLengthWidth_];
+    uint16_t docLength[docLengthWidth_];
     for (map<IndexerPropertyConfig, IndexerDocumentPropertyType>::iterator iter = propertyValueList.begin(); iter != propertyValueList.end(); ++iter)
     {
         if(!iter->first.isIndex())
@@ -102,7 +102,7 @@ void CollectionIndexer::addDocument(IndexerDocument* pDoc)
                     pForwardIndexWriter_->addProperty(iter->first.getPropertyId(), forwardIndex);
 
                 if(pDocLengthWriter_)
-                    pDocLengthWriter_->fillData(iter->first.getPropertyId(), forwardIndex->docLength_, docLength);
+                    pDocLengthWriter_->fill(iter->first.getPropertyId(), forwardIndex->docLength_, docLength);
             }
             else
             {

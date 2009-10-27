@@ -56,6 +56,11 @@ void IndexReader::delDocFilter()
     }
 }
 
+docid_t IndexReader::maxDoc()
+{
+    return pBarrelsInfo_->maxDocId();
+}
+
 size_t IndexReader::docLength(docid_t docId, fieldid_t fid)
 {
     if (dirty_)
