@@ -38,6 +38,8 @@ public:
 public:
     count_t numDocs();
 
+    docid_t maxDoc();
+
     size_t docLength(docid_t docId, fieldid_t fid);
 
     freq_t docFreq(collectionid_t colID, Term* term);
