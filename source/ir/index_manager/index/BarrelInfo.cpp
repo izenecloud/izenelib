@@ -60,7 +60,8 @@ void BarrelInfo::rename(Directory* pDirectory,const string& newName)
 BarrelsInfo::BarrelsInfo()
         :lock(false) 
         ,version(SF1_VERSION)
-        , nBarrelCounter(0)
+        ,nBarrelCounter(0)
+        ,maxDoc(0)
 {
 }
 

@@ -1,13 +1,14 @@
 #include <ir/index_manager/index/DocLengthWriter.h>
 
+#define MAX_PROPERTIES    100
+
 using namespace izenelib::ir::indexmanager;
 
 DocLengthWriter::DocLengthWriter(const std::set<IndexerPropertyConfig, IndexerPropertyConfigComp> & schema, Directory* pDirectory)
     :numIndexedProperties_(0)
 {
-    size_t len = schema.size();
-    propertyOffsetMap_ = new unsigned char[len];
-    memset(propertyOffsetMap_, 0, len);
+    propertyOffsetMap_ = new unsigned char[MAX_PROPERTIES];
+    memset(propertyOffsetMap_, 0, MAX_PROPERTIES);
     size_t i = 0;
     size_t offset = 0;
     for(std::set<IndexerPropertyConfig, IndexerPropertyConfigComp>::const_iterator iter = schema.begin(); iter != schema.end(); ++iter, ++i)
@@ -15,7 +16,7 @@ DocLengthWriter::DocLengthWriter(const std::set<IndexerPropertyConfig, IndexerPr
         if(iter->isForward()&&iter->isIndex())
         {
             numIndexedProperties_++;
-            propertyOffsetMap_[i] = offset++;
+            propertyOffsetMap_[iter->getPropertyId()] = offset++;
         }
     }
     size_t buffersize = 1024*1024;
