@@ -126,8 +126,8 @@ void Indexer::initIndexManager()
 
     set_property_name_id_map(pConfigurationManager_->getCollectionMetaNameMap());
 
-    InMemoryPosting::UPTIGHT_ALLOC_CHUNKSIZE = 40000;
-    InMemoryPosting::UPTIGHT_ALLOC_MEMSIZE = 8;
+    InMemoryPosting::UPTIGHT_ALLOC_CHUNKSIZE = 8;
+    InMemoryPosting::UPTIGHT_ALLOC_MEMSIZE = 40000;
 
     InMemoryPosting::ALLOCSTRATEGY.strategy = InMemoryPosting::STRATEGY_ALLOC_EXP;
     InMemoryPosting::ALLOCSTRATEGY.n = 32;
