@@ -329,9 +329,11 @@ public:
     // if (terms.length()<2)
 //       return;
     
-    for (typename terms_t::size_t i=0; i<terms.length() && i<=6; ++i)
+    for (typename terms_t::size_t i=0; i<terms.length(); ++i)
     {
-      uint16_t s = (terms.length()-i)*sizeof(TERM_TYPE)+sizeof(uint32_t);
+      uint32_t len = ((terms.length()-i>=6)? 6: (terms.length()-i));
+      
+      uint16_t s = len*sizeof(TERM_TYPE)+sizeof(uint32_t);
       if (is_mem_full_(s+sizeof(uint16_t)))
         flush_();
 
@@ -339,8 +341,8 @@ public:
       
       *(uint16_t*)(buf_+p_) = s;
       p_ += sizeof(uint16_t);      
-      memcpy(buf_+p_, terms.data()+i, (terms.length()-i)*sizeof(TERM_TYPE));
-      p_ += (terms.length()-i)*sizeof(TERM_TYPE);
+      memcpy(buf_+p_, terms.data()+i, len*sizeof(TERM_TYPE));
+      p_ += len*sizeof(TERM_TYPE);
       *(uint32_t*)(buf_+p_) = docid;
       p_ += sizeof(uint32_t);
       
