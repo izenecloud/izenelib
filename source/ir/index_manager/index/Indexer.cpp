@@ -211,7 +211,7 @@ void Indexer::openDirectory()
     close();
     string path = pConfigurationManager_->indexStrategy_.indexLocation_;
     if (!strcasecmp(pConfigurationManager_->storeStrategy_.param_.c_str(),"file"))
-        pDirectory_ = FSDirectory::getDirectory(path,false);
+        pDirectory_ = FSDirectory::getDirectory(path,true);
     else
         pDirectory_ = new RAMDirectory();
 
