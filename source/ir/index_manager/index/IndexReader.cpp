@@ -12,7 +12,7 @@ IndexReader::IndexReader(Indexer* pIndex, DiskIndexOpenMode openMode)
         ,pBarrelsInfo_(NULL)
         ,pBarrelReader_(NULL)
         ,pForwardIndexReader_(NULL)
-        ,dirty_(false)
+        ,dirty_(true)
         ,pDocFilter_(NULL)
         ,pDocLengthReader_(NULL)
 {
@@ -24,6 +24,11 @@ IndexReader::IndexReader(Indexer* pIndex, DiskIndexOpenMode openMode)
         pDocFilter_ = new BitVector;
         pDocFilter_->read(pDirectory, DELETED_DOCS);
     }
+    ///todo since only one collection is used within indexmanager, so we only get collectionmeta for one collection to build
+    ///up the DocLengthReader
+    if(pIndexer_->getIndexManagerConfig()->indexStrategy_.indexDocLength_)
+        pDocLengthReader_ = new DocLengthReader(pIndexer_->getCollectionsMeta().begin()->second.getDocumentSchema(), 
+                                                        pIndexer_->getDirectory());
 }
 
 IndexReader::~IndexReader(void)
@@ -63,6 +68,7 @@ docid_t IndexReader::maxDoc()
 
 size_t IndexReader::docLength(docid_t docId, fieldid_t fid)
 {
+    assert(pDocLengthReader_ != NULL);
     if (dirty_)
     {
         pDocLengthReader_->load(pBarrelsInfo_->maxDocId());
@@ -96,6 +102,10 @@ void IndexReader::createBarrelReader()
     }
     else
         SF1V5_THROW(ERROR_INDEX_COLLAPSE,"the index barrel number is 0.");
+
+    if(pDocLengthReader_)
+        pDocLengthReader_->load(pBarrelsInfo_->maxDocId());
+
     pIndexer_->setDirty(false);///clear dirty_ flag
 
 }

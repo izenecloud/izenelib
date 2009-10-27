@@ -126,8 +126,8 @@ void Indexer::initIndexManager()
 
     set_property_name_id_map(pConfigurationManager_->getCollectionMetaNameMap());
 
-    InMemoryPosting::UPTIGHT_ALLOC_CHUNKSIZE = 40000;
-    InMemoryPosting::UPTIGHT_ALLOC_MEMSIZE = 8;
+    InMemoryPosting::UPTIGHT_ALLOC_CHUNKSIZE = 8;
+    InMemoryPosting::UPTIGHT_ALLOC_MEMSIZE = 40000;
 
     InMemoryPosting::ALLOCSTRATEGY.strategy = InMemoryPosting::STRATEGY_ALLOC_EXP;
     InMemoryPosting::ALLOCSTRATEGY.n = 32;
@@ -211,7 +211,7 @@ void Indexer::openDirectory()
     close();
     string path = pConfigurationManager_->indexStrategy_.indexLocation_;
     if (!strcasecmp(pConfigurationManager_->storeStrategy_.param_.c_str(),"file"))
-        pDirectory_ = FSDirectory::getDirectory(path,false);
+        pDirectory_ = FSDirectory::getDirectory(path,true);
     else
         pDirectory_ = new RAMDirectory();
 

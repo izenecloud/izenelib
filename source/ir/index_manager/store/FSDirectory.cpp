@@ -44,36 +44,6 @@ void FSDirectory::create()
         }
         return;
     }
-
-    //clear old files
-    DIR* dir = opendir(directory.c_str());
-    struct dirent* fl = readdir(dir);
-    struct stat64 buf;
-
-    string path;
-    while ( fl != NULL )
-    {
-        path = directory;
-        path += "/";
-        path += fl->d_name;
-        int32_t ret = stat64(path.c_str(),&buf);
-        if ( ret==0 && !(buf.st_mode & S_IFDIR) )
-        {
-            if ( (strcmp(fl->d_name, ".")) && (strcmp(fl->d_name, "..")) )
-            {
-                if ( unlink( path.c_str() ) == -1 )
-                {
-                    closedir(dir);
-                    string s;
-                    s = "Couldn't delete file:";
-                    s += path;
-                    SF1V5_THROW(ERROR_FILEIO,s);
-                }
-            }
-        }
-        fl = readdir(dir);
-    }
-    closedir(dir);
 }
 
 FSDirectory* FSDirectory::getDirectory(const string& path,bool bCreate)

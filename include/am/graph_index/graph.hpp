@@ -1656,6 +1656,43 @@ friend std::ostream& operator <<(std::ostream& os, const self_t& g)
   {
     return Node(this, edge_t(-1, 0));
   }
+
+  bool get_node(const std::vector<uint32_t>& terms, Node& node)const
+  {
+    if (terms.size()==0)
+      return false;
+
+    NID_LEN_TYPE next = 0;
+    for (std::size_t i=0; i<terms.size(); ++i)
+    {
+      //std::cout<<terms[i]<<" ";
+      next = get_next_(next, terms[i]/*id_mgr_.get32(terms[i])*/);
+      if (next == (NID_LEN_TYPE)-1)
+        return false;
+
+      if (next>=LEAF_BOUND && i!=terms.size()-1)
+        return false;
+    }
+
+    node = Node(this, edge_t(terms.back(), next));
+    return true;
+  }
+
+  bool get_node(const Node& node, uint32_t term, Node& r)const
+  {
+    NodeIterator ni = node.children_begin();
+    while (ni!=node.children_end())
+    {
+      if ((*ni).get_term()==term)
+      {
+        r = *ni;
+        return true;
+      }
+    }
+
+    return false;
+  }
+  
   
   class NodeIterator
   {
