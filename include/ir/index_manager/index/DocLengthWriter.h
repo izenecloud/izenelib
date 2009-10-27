@@ -18,13 +18,13 @@ public:
     ~DocLengthWriter();
 
 public:
-    void fillData(fieldid_t fid, size_t len, unsigned char* docLength);
+    void fill(fieldid_t fid, size_t len, uint16_t* docLength);
 
-    void add(docid_t docID, const unsigned char* docLength);
+    void add(docid_t docID, const uint16_t* docLength);
 
     void flush();
 
-    size_t getWidth() {return width_;}
+    size_t get_num_properties() {return numIndexedProperties_;}
 
 private:
     Directory* pDirectory_;
@@ -32,8 +32,6 @@ private:
     IndexOutput* pOutput_;
 
     size_t numIndexedProperties_;
-
-    size_t width_;
 
     unsigned char* propertyOffsetMap_;
 };

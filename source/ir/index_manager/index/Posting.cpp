@@ -525,9 +525,9 @@ int32_t InMemoryPosting::decodeNext(uint32_t* pPosting,int32_t length)
     int32_t left = nDF - pDS->decodedDocCount;
     if (left <= 0)
         return -1;
-    if (length > left*2)
-        length = left*2;
-    left = (length >> 1);
+    if (length > left*3)
+        length = left*3;
+    left = (length/3);//(length>>1);
 
     uint8_t* pDChunk = &(pDS->decodingDChunk->data[pDS->decodingDChunkPos]);
     uint8_t* pDChunkEnd = &(pDS->decodingDChunk->data[pDS->decodingDChunk->size-1]);
@@ -545,6 +545,7 @@ int32_t InMemoryPosting::decodeNext(uint32_t* pPosting,int32_t length)
 
         *pFreq++ = CompressedPostingList::decodePosting32(pDChunk);
 
+        ISCHUNKOVER_D();
         *pDocLen++ = CompressedPostingList::decodePosting32(pDChunk);
 
         count++;
