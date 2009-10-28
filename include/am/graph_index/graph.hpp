@@ -768,6 +768,18 @@ public:
   {
     free_mem_();
   }
+
+  void release()
+  {
+    free_mem_();
+        
+    nodes_.clear();
+    loads_.clear();
+    freqs_.clear();
+    docs_.clear();
+    leafs_.clear();
+
+  }
   
   void ready4add()
   {
