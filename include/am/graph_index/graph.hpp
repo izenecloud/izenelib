@@ -768,6 +768,18 @@ public:
   {
     free_mem_();
   }
+
+  void release()
+  {
+    free_mem_();
+        
+    nodes_.clear();
+    loads_.clear();
+    freqs_.clear();
+    docs_.clear();
+    leafs_.clear();
+
+  }
   
   void ready4add()
   {
@@ -917,15 +929,19 @@ public:
         if (leafs_.at(nid-LEAF_BOUND).FREQ()>0)
           leafs_[nid-LEAF_BOUND].FREQ_()--;
 
-        if (leafs_.at(nid-LEAF_BOUND).FREQ() == 0)
-          e->erase(t);
-
         docs = (array32_t*)leafs_[nid-LEAF_BOUND].DOCS();
+        
+        if (leafs_.at(nid-LEAF_BOUND).FREQ() == 0)
+        {
+          e->erase(t);
+          delete docs;
+          docs = NULL;
+        }
       }
-      else
+      else if (freqs_.at(nid)!=0)
       {
-        load_edge_(nid);
-        docs = (array32_t*)docs_.at(nid);
+          load_edge_(nid);
+          docs = (array32_t*)docs_.at(nid);
       }
 
       if (docs == NULL || (uint64_t)docs == (uint64_t)-1)
