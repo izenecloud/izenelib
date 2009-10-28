@@ -234,7 +234,7 @@ bool FieldMerger::initQueue()
         else
         {
             ///on-disk index barrel
-            pTermReader = new DiskTermReader(ORDERED);
+            pTermReader = new DiskTermReader();
             ///open on-disk index barrel
             pTermReader->open(pDirectory,pEntry->pBarrelInfo->getName().c_str(),pEntry->pFieldInfo);
         }

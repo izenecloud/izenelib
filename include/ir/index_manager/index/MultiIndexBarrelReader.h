@@ -26,13 +26,13 @@ namespace indexmanager{
 class BarrelReaderEntry
 {
 public:
-    BarrelReaderEntry(Indexer* pIndexer,BarrelInfo* pBarrelInfo,DiskIndexOpenMode mode)
+    BarrelReaderEntry(Indexer* pIndexer,BarrelInfo* pBarrelInfo)
     {
         pBarrelInfo_ = pBarrelInfo;
         if (pBarrelInfo->getWriter())
             pBarrelReader_ = pBarrelInfo->getWriter()->inMemoryReader();
         else
-            pBarrelReader_ = new SingleIndexBarrelReader(pIndexer,pBarrelInfo,mode);
+            pBarrelReader_ = new SingleIndexBarrelReader(pIndexer,pBarrelInfo);
     }
 
     ~BarrelReaderEntry()
@@ -56,7 +56,7 @@ class MultiTermReader;
 class MultiIndexBarrelReader : public IndexBarrelReader
 {
 public:
-    MultiIndexBarrelReader(Indexer* pIndex,BarrelsInfo* pBarrelsInfo,DiskIndexOpenMode mode);
+    MultiIndexBarrelReader(Indexer* pIndex,BarrelsInfo* pBarrelsInfo);
 
     virtual ~MultiIndexBarrelReader(void);
 public:
@@ -71,7 +71,7 @@ public:
     void close();
 
 private:
-    void addReader(BarrelInfo* pBarrelInfo,DiskIndexOpenMode mode);
+    void addReader(BarrelInfo* pBarrelInfo);
 
 private:
     BarrelsInfo* pBarrelsInfo_;

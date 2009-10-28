@@ -170,7 +170,7 @@ public:
 
     boost::shared_ptr<IndexReader> getOrderedIndexReader()
     {
-        return boost::shared_ptr<IndexReader>(new IndexReader(this, ORDERED));
+        return boost::shared_ptr<IndexReader>(new IndexReader(this));
     }
 
 

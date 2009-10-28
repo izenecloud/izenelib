@@ -15,25 +15,19 @@ namespace indexmanager{
 
 class TermIterator;
 
-/**
-* Base class of InMemoryTermReader and DiskTermReader
-*/
 class TermReader
 {
 public:
     TermReader(void);
-    TermReader(FieldInfo* pFieldInfo_);
+
+    TermReader(FieldInfo* pFieldInfo);
+
     virtual ~TermReader(void);
 public:
-    /**
-    * open a index barrel
-    */
     virtual void open(Directory* pDirectory,const char* barrelname,FieldInfo* pFieldInfo);
 
     virtual TermIterator* termIterator(const char* field) = 0;
-    /**
-    * find the term in the vocabulary,return false if not found
-    */
+
     virtual bool seek(Term* pTerm) = 0;
 
     virtual TermDocFreqs*	termDocFreqs() = 0;
@@ -43,28 +37,16 @@ public:
     virtual freq_t docFreq(Term* term) = 0;
 
     virtual void close() = 0;
-    /**
-     * clone the term reader
-     * @return term reader, MUST be deleted by caller.
-     */
+
     virtual TermReader*	clone() = 0;
 
-    virtual TermInfo* termInfo(Term* term)
-    {
-        return NULL;
-    };
+    virtual TermInfo* termInfo(Term* term) { return NULL;};
 public:
-    FieldInfo* getFieldInfo()
-    {
-        return pFieldInfo;
-    }
+    FieldInfo* getFieldInfo() { return pFieldInfo_;}
 
-    void setFieldInfo(FieldInfo* pFieldInfo)
-    {
-        this->pFieldInfo = pFieldInfo;
-    }
+    void setFieldInfo(FieldInfo* pFieldInfo) { pFieldInfo_ = pFieldInfo; }
 protected:
-    FieldInfo* pFieldInfo;	///reference to field info
+    FieldInfo* pFieldInfo_;	///reference to field info
 
     friend class TermDocFreqs;
     friend class MultiFieldTermReader;
