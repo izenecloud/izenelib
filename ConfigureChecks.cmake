@@ -33,7 +33,7 @@ ENDIF(USE_DOT)
 # set BOOST_ROOT to select a boost installation
 
 # This is required to enable the new version
-SET(Boost_ADDITIONAL_VERSIONS 1.39 1.39.0 1.38 1.38.0 1.37 1.37.0)
+SET(Boost_ADDITIONAL_VERSIONS 1.40 1.40.0 1.39 1.39.0 1.38 1.38.0 1.37 1.37.0)
 FIND_PACKAGE(Boost 1.37)
 
 ##################################################
