@@ -129,11 +129,6 @@ void Indexer::initIndexManager()
     InMemoryPosting::UPTIGHT_ALLOC_CHUNKSIZE = 8;
     InMemoryPosting::UPTIGHT_ALLOC_MEMSIZE = 40000;
 
-    InMemoryPosting::ALLOCSTRATEGY.strategy = InMemoryPosting::STRATEGY_ALLOC_EXP;
-    InMemoryPosting::ALLOCSTRATEGY.n = 32;
-    InMemoryPosting::ALLOCSTRATEGY.k = 2;
-    InMemoryPosting::ALLOCSTRATEGY.l = 0;
-
     if(managerType_ == MANAGER_TYPE_CLIENTPROCESS)
     {
 /*    
@@ -437,14 +432,14 @@ bool Indexer::getDocsByTermInProperties(termid_t termID, collectionid_t colID, v
         Term term(properties[0].c_str(), termID);
         if (pTermReader->seek(&term))
         {
-            TermPositions* pPositions = pTermReader->termPositions();
+            TermDocFreqs* pTermDocFreqs = pTermReader->termDocFreqs();
 
-            while (pPositions->next())
+            while (pTermDocFreqs->next())
             {
-                docIds.push_back(pPositions->doc());
+                docIds.push_back(pTermDocFreqs->doc());
             }
 
-            delete pPositions;
+            delete pTermDocFreqs;
         }
         else
         {
@@ -502,12 +497,10 @@ bool Indexer::getDocsByTermInProperties(termid_t termID, collectionid_t colID, v
                 item.setDocID(pPositions->doc());
                 boost::shared_ptr<std::deque<unsigned int> > positions(new std::deque<unsigned int>);
                 loc_t pos = pPositions->nextPosition();
-                loc_t subpos = pPositions->nextPosition();
                 while (pos != BAD_POSITION)
                 {
                     positions->push_back(pos);
                     pos = pPositions->nextPosition();
-                    subpos = pPositions->nextPosition();
                 }
                 item.addProperty(properties[0], positions, pPositions->freq());
                 commonSet.push_back(item);
@@ -527,16 +520,6 @@ bool Indexer::getDocsByTermInProperties(termid_t termID, collectionid_t colID, v
     return true;
 }
 
-bool Indexer::getWordOffsetListOfQueryByDocumentProperty (const vector<termid_t>& queryTermIdList,  collectionid_t colId,  docid_t docId, string propertyName, deque<deque<pair<unsigned int, unsigned int> > >& wordOffsetListOfQuery )
-{
-    assert(indexingForward_ == true);
-    fieldid_t fid = getPropertyIDByName(colId,propertyName);
-    ForwardIndexReader* pForwardIndexReader = pIndexReader_->getForwardIndexReader();
-    bool ret = pForwardIndexReader->getTermOffsetList(queryTermIdList, docId, fid, wordOffsetListOfQuery);
-    delete pForwardIndexReader;
-    return ret;
-}
-
 bool Indexer::getForwardIndexByDocumentProperty(collectionid_t colId, docid_t docId, string propertyName, ForwardIndex& forwardIndex)
 {
     assert(indexingForward_ == true);
@@ -546,7 +529,6 @@ bool Indexer::getForwardIndexByDocumentProperty(collectionid_t colId, docid_t do
     delete pForwardIndexReader;
     return ret;
 }
-
 
 bool Indexer::getTermFrequencyInCollectionByTermId( const vector<termid_t>& termIdList, const unsigned int collectionId, const vector<string>& propertyList, vector<unsigned int>& termFrequencyList )
 {

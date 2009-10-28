@@ -35,7 +35,6 @@ public:
     CommonItem(const CommonItem& clone)
     {
         docid = clone.docid;
-//        collectionid = clone.collectionid;
         tfMap = clone.tfMap;
         commonItemProperty = clone.commonItemProperty;
     }
