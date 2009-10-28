@@ -14,7 +14,7 @@
 #include <ir/index_manager/index/LAInput.h>
 #include <ir/index_manager/index/ForwardIndex.h>
 
-#include <3rdparty/am/rde_hashmap/hash_map.h>
+#include <3rdparty/am/stx/btree_map>
 
 #include <boost/thread.hpp>
 #include <string>
@@ -26,7 +26,7 @@ NS_IZENELIB_IR_BEGIN
 
 namespace indexmanager{
 //Since TermID is got from hashfunc, DynamicArray is not suitable to be used as the container.
-typedef rde::hash_map<unsigned int, InMemoryPosting* > InMemoryPostingMap;
+typedef stx::btree_map<unsigned int, InMemoryPosting* > InMemoryPostingMap;
 
 class TermReader;
 /**

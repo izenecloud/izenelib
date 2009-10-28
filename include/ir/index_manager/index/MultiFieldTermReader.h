@@ -24,7 +24,7 @@ namespace indexmanager{
 class MultiFieldTermReader : public TermReader
 {
 public:
-    MultiFieldTermReader(Directory* pDirectory,const char* barrelname,FieldsInfo* pFieldsInfo,DiskIndexOpenMode mode);
+    MultiFieldTermReader(Directory* pDirectory,const char* barrelname,FieldsInfo* pFieldsInfo);
 
     MultiFieldTermReader();
 
@@ -105,7 +105,7 @@ protected:
      */
     TermInfo* termInfo(Term* term);
 
-    void open(Directory* pDirectory,const char* barrelname,FieldsInfo* pFieldsInfo,DiskIndexOpenMode mode);
+    void open(Directory* pDirectory,const char* barrelname,FieldsInfo* pFieldsInfo);
 protected:
     typedef map<string,TermReader*> reader_map;
 

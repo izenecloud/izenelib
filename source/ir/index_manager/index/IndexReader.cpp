@@ -6,9 +6,8 @@
 
 using namespace izenelib::ir::indexmanager;
 
-IndexReader::IndexReader(Indexer* pIndex, DiskIndexOpenMode openMode)
-        :openMode_(openMode)
-        ,pIndexer_(pIndex)
+IndexReader::IndexReader(Indexer* pIndex)
+        :pIndexer_(pIndex)
         ,pBarrelsInfo_(NULL)
         ,pBarrelReader_(NULL)
         ,pForwardIndexReader_(NULL)
@@ -94,11 +93,11 @@ void IndexReader::createBarrelReader()
         if (pLastBarrel && pLastBarrel->getWriter())
             pBarrelReader_ = pLastBarrel->getWriter()->inMemoryReader();
         else
-            pBarrelReader_ = new SingleIndexBarrelReader(pIndexer_,pLastBarrel,openMode_);
+            pBarrelReader_ = new SingleIndexBarrelReader(pIndexer_,pLastBarrel);
     }
     else if (bc > 1)
     {
-        pBarrelReader_ = new MultiIndexBarrelReader(pIndexer_,pBarrelsInfo_,openMode_);
+        pBarrelReader_ = new MultiIndexBarrelReader(pIndexer_,pBarrelsInfo_);
     }
     else
         SF1V5_THROW(ERROR_INDEX_COLLAPSE,"the index barrel number is 0.");

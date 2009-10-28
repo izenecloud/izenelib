@@ -71,11 +71,6 @@ typedef count_t freq_t;
 // Added by dohyun 2009.04.22
 typedef uint8_t byte;
 
-enum DiskIndexOpenMode
-{
-	UNORDERED,
-	ORDERED
-};
 
 #define BAD_POSITION 0xFFFFFFFF
 #define BAD_DOCID 0xFFFFFFFF
