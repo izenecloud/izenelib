@@ -1614,6 +1614,7 @@ friend std::ostream& operator <<(std::ostream& os, const self_t& g)
       graph_ = node.graph_;
       edge_ = node.edge_;
       edges_ = node.edges_;
+      return *this;
     }
     
     uint32_t get_term()const
@@ -1694,7 +1695,7 @@ friend std::ostream& operator <<(std::ostream& os, const self_t& g)
     return true;
   }
 
-  bool get_node(const Node& node, uint32_t term, Node& r)const
+  bool get_node(Node& node, uint32_t term, Node& r)const
   {
     NodeIterator ni = node.children_begin();
     while (ni!=node.children_end())
@@ -1704,6 +1705,7 @@ friend std::ostream& operator <<(std::ostream& os, const self_t& g)
         r = *ni;
         return true;
       }
+      ++ni;
     }
 
     return false;
