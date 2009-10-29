@@ -73,12 +73,11 @@ private:
             ar & param_;
         }
     public:
-        /**
-         * @brie    the merge method of index.
-         * @details
-         * It could be "OPT" or "DBT", OPT means all the postings exist in only one barrel,
-         * it could provide higher search performance while much lower indexing performance,"DBT" is default
-         */
+        /// It could be :
+        /// NO - no merge
+        /// IMM - immediate
+        /// MWAY - m-way
+        /// DEFAULT - online
         std::string strategy_;
 
         /// @brief  param of merge method
@@ -103,7 +102,6 @@ private:
         /// @brief  whether the indexes are stored in file or memory
         std::string param_;
     };
-
 public:
     //----------------------------  CONSTRUCTORS  ----------------------------
 
@@ -160,6 +158,7 @@ private:
     {
         ar & indexStrategy_;
         ar & storeStrategy_;
+        ar & mergeStrategy_;
     }
 
 public:
@@ -171,7 +170,8 @@ public:
     /// @brief  Stores "Store strategy" configuration of IndexManager
     _storestrategy storeStrategy_;
 
-
+    /// @brief  Stores "Merge strategy" configuration of IndexManager
+    _mergestrategy mergeStrategy_;
 private:
     //----------------------------  PRIVATE MEMBER VARIABLES  ----------------------------
 

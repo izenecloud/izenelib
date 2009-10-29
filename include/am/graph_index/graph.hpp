@@ -444,8 +444,6 @@ class Graph
     }
     
     typename sorted_edges_t::size_t i  = edges->find(edge_t(term));
-    if (nid == 5632)
-      std::cout<<i<<" "<<edge_t(term)<<std::endl;
     
     if (sorted_edges_t::NOT_FOUND != i)
     {
@@ -1483,23 +1481,18 @@ friend std::ostream& operator <<(std::ostream& os, const self_t& g)
     uint32_t i=0;
     while(it != rootNode.children_end())
     {
-      if (!(*it).has_child())
-      {
-	    ++it;
-	    continue;
-      }
-
       merge_(*it, parentValue);
       //add doc_list
       ++it;
 
-      if ((i+1)%1000 == 0)
+      if ((i+1)%2000 == 0)
       {
         fseek(nid_f_, 0, SEEK_END);
         fseek(doc_f_, 0, SEEK_END);
         fseek(leaf_f_, 0, SEEK_END);
         save_edge_(nid_f_, doc_f_, leaf_f_, 0);
         //leaf_reset();
+        std::cout<<i*1./rootNode.children_num()*100.<<"% ...\n";
       }
       ++i;
     }
@@ -1540,12 +1533,6 @@ friend std::ostream& operator <<(std::ostream& os, const self_t& g)
     uint32_t i=0;
     while(it != rootNode.children_end())
     {
-      if (!(*it).has_child())
-      {
-	    ++it;
-	    continue;
-      }
-
       counter_merge_(*it, parentValue);
       //add doc_list
       ++it;
@@ -1609,11 +1596,18 @@ friend std::ostream& operator <<(std::ostream& os, const self_t& g)
 
     }
 
+    inline Node()
+      :graph_(NULL)
+    {
+    }
+    
+
     Node& operator  = (const Node& node)
     {
       graph_ = node.graph_;
       edge_ = node.edge_;
       edges_ = node.edges_;
+      return *this;
     }
     
     uint32_t get_term()const
@@ -1642,7 +1636,7 @@ friend std::ostream& operator <<(std::ostream& os, const self_t& g)
       return edges_.length();
     }
     
-    NodeIterator children_begin()
+    NodeIterator children_begin() const
     {
       if (edge_.NID()>=LEAF_BOUND)
         return children_end();
@@ -1650,7 +1644,7 @@ friend std::ostream& operator <<(std::ostream& os, const self_t& g)
       return NodeIterator(edges_, graph_);
     }
     
-    NodeIterator children_end()
+    NodeIterator children_end()const
     {
       return NodeIterator(edges_, graph_, edges_.length());
     }
@@ -1704,6 +1698,7 @@ friend std::ostream& operator <<(std::ostream& os, const self_t& g)
         r = *ni;
         return true;
       }
+      ++ni;
     }
 
     return false;
@@ -1777,7 +1772,7 @@ protected:
       //add doc_list
       ++it;
     }
-
+    
     append_terms_(parentValue, node.get_freq(), node.get_docs());
     
   }
@@ -1808,6 +1803,7 @@ protected:
       ids.push_back(terms[i]/*id_mgr_.insert(terms[i])*/);
 
     assert(ids.length() == terms.size());
+    //std::cout<<ids<<std::endl;
 
     edge_t tmp(0,0);
     edge_t* next = &tmp;

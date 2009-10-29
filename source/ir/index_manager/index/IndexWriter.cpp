@@ -3,9 +3,8 @@
 #include <ir/index_manager/index/IndexMerger.h>
 #include <ir/index_manager/index/OnlineIndexMerger.h>
 #include <ir/index_manager/index/OfflineIndexMerger.h>
-//#include <ir/index_manager/index/ImmediateMerger.h>
-//#include <ir/index_manager/index/GPIndexMerger.h>
-//#include <ir/index_manager/index/LogarithmicMerger.h>
+#include <ir/index_manager/index/ImmediateMerger.h>
+#include <ir/index_manager/index/MultiWayMerger.h>
 #include <ir/index_manager/index/IndexBarrelWriter.h>
 #include <ir/index_manager/index/IndexerPropertyConfig.h>
 
@@ -120,10 +119,14 @@ void IndexWriter::createBarrelWriter()
     pIndexBarrelWriter_ = new IndexBarrelWriter(pIndexer_,pMemCache_,pCurBarrelInfo_->getName().c_str());
     pCurBarrelInfo_->setWriter(pIndexBarrelWriter_);
     pIndexBarrelWriter_->setCollectionsMeta(pIndexer_->getCollectionsMeta());
-    pIndexMerger_ = new OnlineIndexMerger(pIndexer_->getDirectory());
-    //pIndexMerger_ = new ImmediateMerger(pIndexer_->getDirectory());
-    //pIndexMerger_ = new LogarithmicMerger(pIndexer_->getDirectory());
-    //pIndexMerger_ = new GPIndexMerger(pIndexer_->getDirectory());
+    if(!strcasecmp(pIndexer_->pConfigurationManager_->mergeStrategy_.param_.c_str(),"no"))
+        pIndexMerger_ = NULL;
+    else if(!strcasecmp(pIndexer_->pConfigurationManager_->mergeStrategy_.param_.c_str(),"imm"))
+        pIndexMerger_ = new ImmediateMerger(pIndexer_->getDirectory());
+    else if(!strcasecmp(pIndexer_->pConfigurationManager_->mergeStrategy_.param_.c_str(),"mway"))
+        pIndexMerger_ = new MultiWayMerger(pIndexer_->getDirectory());	
+    else
+        pIndexMerger_ = new OnlineIndexMerger(pIndexer_->getDirectory());
 }
 
 void IndexWriter::mergeAndWriteCachedIndex()
