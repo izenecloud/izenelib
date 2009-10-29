@@ -8,7 +8,6 @@
 #define _MOCK_INDEXREADER_H
 
 #include <string>
-#include <strstream>
 #include <vector>
 #include <map>
 
