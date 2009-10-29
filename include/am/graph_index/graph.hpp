@@ -1481,17 +1481,11 @@ friend std::ostream& operator <<(std::ostream& os, const self_t& g)
     uint32_t i=0;
     while(it != rootNode.children_end())
     {
-      if (!(*it).has_child())
-      {
-	    ++it;
-	    continue;
-      }
-
       merge_(*it, parentValue);
       //add doc_list
       ++it;
 
-      if ((i+1)%1000 == 0)
+      if ((i+1)%2000 == 0)
       {
         fseek(nid_f_, 0, SEEK_END);
         fseek(doc_f_, 0, SEEK_END);
@@ -1539,12 +1533,6 @@ friend std::ostream& operator <<(std::ostream& os, const self_t& g)
     uint32_t i=0;
     while(it != rootNode.children_end())
     {
-      if (!(*it).has_child())
-      {
-	    ++it;
-	    continue;
-      }
-
       counter_merge_(*it, parentValue);
       //add doc_list
       ++it;
@@ -1608,6 +1596,12 @@ friend std::ostream& operator <<(std::ostream& os, const self_t& g)
 
     }
 
+    inline Node()
+      :graph_(NULL)
+    {
+    }
+    
+
     Node& operator  = (const Node& node)
     {
       graph_ = node.graph_;
@@ -1642,7 +1636,7 @@ friend std::ostream& operator <<(std::ostream& os, const self_t& g)
       return edges_.length();
     }
     
-    NodeIterator children_begin()
+    NodeIterator children_begin() const
     {
       if (edge_.NID()>=LEAF_BOUND)
         return children_end();
@@ -1650,7 +1644,7 @@ friend std::ostream& operator <<(std::ostream& os, const self_t& g)
       return NodeIterator(edges_, graph_);
     }
     
-    NodeIterator children_end()
+    NodeIterator children_end()const
     {
       return NodeIterator(edges_, graph_, edges_.length());
     }
@@ -1694,7 +1688,7 @@ friend std::ostream& operator <<(std::ostream& os, const self_t& g)
     return true;
   }
 
-  bool get_node(Node& node, uint32_t term, Node& r)const
+  bool get_node(const Node& node, uint32_t term, Node& r)const
   {
     NodeIterator ni = node.children_begin();
     while (ni!=node.children_end())
@@ -1778,7 +1772,7 @@ protected:
       //add doc_list
       ++it;
     }
-
+    
     append_terms_(parentValue, node.get_freq(), node.get_docs());
     
   }
@@ -1809,6 +1803,7 @@ protected:
       ids.push_back(terms[i]/*id_mgr_.insert(terms[i])*/);
 
     assert(ids.length() == terms.size());
+    //std::cout<<ids<<std::endl;
 
     edge_t tmp(0,0);
     edge_t* next = &tmp;
