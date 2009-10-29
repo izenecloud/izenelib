@@ -1498,7 +1498,7 @@ friend std::ostream& operator <<(std::ostream& os, const self_t& g)
         fseek(leaf_f_, 0, SEEK_END);
         save_edge_(nid_f_, doc_f_, leaf_f_, 0);
         //leaf_reset();
-        std::cout<<i*1./rootNode.children_num()*100.<<"% ...\n"
+        std::cout<<i*1./rootNode.children_num()*100.<<"% ...\n";
       }
       ++i;
     }
