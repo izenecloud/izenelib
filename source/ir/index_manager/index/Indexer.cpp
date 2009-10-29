@@ -28,7 +28,7 @@
 using namespace izenelib::ir::indexmanager;
 
 static int degree = 16;
-static size_t cacheSize = 50000;
+static size_t cacheSize = 5000;
 static size_t maxDataSize = 1000;
 IndexerFactory indexerFactory;
 

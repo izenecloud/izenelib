@@ -444,8 +444,6 @@ class Graph
     }
     
     typename sorted_edges_t::size_t i  = edges->find(edge_t(term));
-    if (nid == 5632)
-      std::cout<<i<<" "<<edge_t(term)<<std::endl;
     
     if (sorted_edges_t::NOT_FOUND != i)
     {
@@ -1500,6 +1498,7 @@ friend std::ostream& operator <<(std::ostream& os, const self_t& g)
         fseek(leaf_f_, 0, SEEK_END);
         save_edge_(nid_f_, doc_f_, leaf_f_, 0);
         //leaf_reset();
+        std::cout<<i*1./rootNode.children_num()*100.<<"% ...\n";
       }
       ++i;
     }
@@ -1614,6 +1613,7 @@ friend std::ostream& operator <<(std::ostream& os, const self_t& g)
       graph_ = node.graph_;
       edge_ = node.edge_;
       edges_ = node.edges_;
+      return *this;
     }
     
     uint32_t get_term()const
@@ -1694,7 +1694,7 @@ friend std::ostream& operator <<(std::ostream& os, const self_t& g)
     return true;
   }
 
-  bool get_node(const Node& node, uint32_t term, Node& r)const
+  bool get_node(Node& node, uint32_t term, Node& r)const
   {
     NodeIterator ni = node.children_begin();
     while (ni!=node.children_end())
@@ -1704,6 +1704,7 @@ friend std::ostream& operator <<(std::ostream& os, const self_t& g)
         r = *ni;
         return true;
       }
+      ++ni;
     }
 
     return false;
