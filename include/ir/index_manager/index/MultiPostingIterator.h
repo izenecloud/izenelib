@@ -74,8 +74,6 @@ public:
 
     docid_t doc() { return currDoc_; }
 
-    freq_t docLength() { return currEntry_->pPositions_->docLength(); }
-
     loc_t nextPosition() { return currEntry_->pPositions_->nextPosition(); }
 
 private:

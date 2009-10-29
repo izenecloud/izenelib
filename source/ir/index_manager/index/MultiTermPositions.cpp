@@ -87,12 +87,6 @@ freq_t MultiTermPositions::docFreq()
     return df;
 }
 
-freq_t MultiTermPositions::docLength()
-{
-    list<BarrelTermPositionsEntry*>::iterator iter = termPositionsList.begin();
-    return (*iter)->termPositions->docLength();
-}
-
 int64_t MultiTermPositions::getCTF()
 {
     BarrelTermPositionsEntry* pEntry;

@@ -11,15 +11,11 @@
 #include <ir/index_manager/index/AbsTermReader.h>
 #include <ir/index_manager/index/TermIterator.h>
 
-#include <3rdparty/am/rde_hashmap/hash_map.h>
-
 #include <string>
-
 
 NS_IZENELIB_IR_BEGIN
 
 namespace indexmanager{
-typedef rde::hash_map<termid_t, TermInfo > TERM_TABLE;
 
 /*
 struct TERM_TABLE
@@ -37,7 +33,7 @@ struct TERM_TABLE
 class TermReaderImpl
 {
 public:
-    TermReaderImpl(FieldInfo* pFieldInfo_);
+    TermReaderImpl(FieldInfo* pFieldInfo);
 
     ~TermReaderImpl();
 public:
@@ -52,48 +48,21 @@ public:
     TermInfo* termInfo(Term* term);
 
 public:
-    FieldInfo* pFieldInfo;
+    FieldInfo* pFieldInfo_;
 
-    TERM_TABLE* pTermTable;
+    TERM_TABLE* pTermTable_;
 
-    InputDescriptor* pInputDescriptor;
+    InputDescriptor* pInputDescriptor_;
 
-    int32_t nTermCount;
+    int32_t nTermCount_;
 
-    int64_t nVocLength;
-};
-
-
-class OrderPreservingTermReaderImpl
-{
-public:
-    OrderPreservingTermReaderImpl(FieldInfo* pFieldInfo_);
-
-    ~OrderPreservingTermReaderImpl();
-public:
-
-    void open(Directory* pDirectory,const char* barrelname,FieldInfo* pFieldInfo);
-
-    bool seek(Term* pTerm);
-
-    void close() ;
-
-public:
-    FieldInfo* pFieldInfo;
-
-    ORDERED_TERM_TABLE* pTermTable;
-
-    InputDescriptor* pInputDescriptor;
-
-    int32_t nTermCount;
-
-    int64_t nVocLength;
+    int64_t nVocLength_;
 };
 
 class DiskTermReader:public TermReader
 {
 public:
-    DiskTermReader(DiskIndexOpenMode mode = UNORDERED);
+    DiskTermReader();
 
     DiskTermReader(TermReaderImpl* pTermReaderImpl);
 
@@ -105,7 +74,7 @@ public:
 
     bool seek(Term* pTerm);
 
-    TERM_TABLE* getTermTable() { return pTermReaderImpl->pTermTable; }
+    TERM_TABLE* getTermTable() { return pTermReaderImpl_->pTermTable_; }
 
     TermDocFreqs* termDocFreqs();
 
@@ -120,24 +89,17 @@ public:
 
     void updateTermInfo(Term* term, count_t docFreq, fileoffset_t offset);
 
-    OrderPreservingTermReaderImpl* getTermReaderImpl()
-    {
-        return pOrderedTermReaderImpl;
-    }
+    TermReaderImpl* getTermReaderImpl(){ return pTermReaderImpl_;}
 
 protected:
     TermInfo* termInfo(Term* term);
 
 protected:
-    DiskIndexOpenMode termReaderMode;	
+    TermReaderImpl* pTermReaderImpl_;
 
-    TermReaderImpl* pTermReaderImpl;
+    TermInfo* pCurTermInfo_;
 
-    OrderPreservingTermReaderImpl* pOrderedTermReaderImpl;
-
-    TermInfo* pCurTermInfo;
-
-    bool ownTermReaderImpl;
+    bool ownTermReaderImpl_;
 
     friend class DiskTermIterator;
     friend class CollectionIndexer;
@@ -154,68 +116,36 @@ public:
     virtual ~InMemoryTermReader(void);
 public:
     void open(Directory* pDirectory,const char* barrelname,FieldInfo* pFieldInfo);
-    /**
-     * get the term iterator
-     * @param pLowerTerm lower bound
-     * @param pUpperTerm upper bound
-     * @return term iterator, MUST be deleted by caller
-     */
+
     TermIterator* termIterator(Term* pLowerTerm,Term* pUpperTerm);
 
-    /**
-     * get the term iterator
-     * @param field field name
-     * @return term iterator, MUST be deleted by caller
-     */
     TermIterator* termIterator(const char* field);
 
-    /**
-     * seek a term
-     * @param pTerm term
-     * @return true if success, otherwise false, if the return value is true then {@link termDocFreqs()} and
-     * {@link termPositions()}can be called.
-     */
     bool seek(Term* term);
 
-    /**
-     * get term's document postings,must be called after call seek() success
-     * @return return document postings,need to be deleted outside
-     */
     TermDocFreqs* termDocFreqs();
 
-    /**
-     * get term's position postings,must be called after call seek() success
-     * @return return position postings,need to be deleted outside
-     */
     TermPositions* termPositions();
 
     freq_t docFreq(Term* term);
 
     void close();
 
-    /**
-     * clone the term reader
-     * @return term reader, MUST be deleted by caller.
-     */
     TermReader* clone() ;
 
-public:
     TermInfo* termInfo(Term* term);
-    /**
-     * get in-memory posting
-     * @return reference to in-memory posting
-     */
+
     InMemoryPosting* inMemoryPosting();
 protected:
-    string sField;
+    string field_;
 
-    FieldIndexer* pIndexer;
+    FieldIndexer* pIndexer_;
 
-    TermInfo* pCurTermInfo;
+    TermInfo* pCurTermInfo_;
 
-    InMemoryPosting* pCurPosting;
+    InMemoryPosting* pCurPosting_;
 
-    TermInfo* pTermInfo;
+    TermInfo* pTermInfo_;
 
     friend class InMemoryTermIterator;
 };

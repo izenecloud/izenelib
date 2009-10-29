@@ -10,13 +10,12 @@ namespace indexmanager{
 class LAInputUnit
 {
 public:
-	LAInputUnit():termId_(0),wordOffset_(0),byteOffset_(0){}
-	LAInputUnit(const LAInputUnit& clone):termId_(clone.termId_),wordOffset_(clone.wordOffset_),byteOffset_(clone.byteOffset_){}
+	LAInputUnit():termId_(0),offset_(0){}
+	LAInputUnit(const LAInputUnit& clone):termId_(clone.termId_),offset_(clone.offset_){}
 	~LAInputUnit(){}
 public:
 	unsigned int termId_;
-	unsigned int wordOffset_;
-	unsigned int byteOffset_;
+	unsigned int offset_;
 };
 
 typedef std::deque<LAInputUnit> LAInput;

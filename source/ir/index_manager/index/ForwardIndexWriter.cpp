@@ -46,7 +46,7 @@ void ForwardIndexWriter::addProperty(fieldid_t fid, boost::shared_ptr<LAInput> l
             pForwardIndexOffset = new ForwardIndexOffset;
             (*forwardIndex_)[iter->termId_] = pForwardIndexOffset;
         }
-        pForwardIndexOffset->push_back(make_pair(iter->wordOffset_, iter->byteOffset_));
+        pForwardIndexOffset->push_back(iter->offset_);
     }
 
     size_t nNumTerms = forwardIndex_->size();
@@ -63,20 +63,13 @@ void ForwardIndexWriter::addProperty(fieldid_t fid, boost::shared_ptr<LAInput> l
         pForwardIndexOffset = iter->second;
         int numPosition = pForwardIndexOffset->size();
         pPOSOutput_->writeVInt(numPosition);	
-        unsigned int offset, lastOffset = 0, lastCharOffset = 0;
+        unsigned int offset, lastOffset = 0;
         for (int j = 0; j < numPosition; j++)
         {
-            ///start offset
-            offset = (*pForwardIndexOffset)[j].first;
+            offset = (*pForwardIndexOffset)[j];
             pPOSOutput_->writeVInt(offset - lastOffset);
             lastOffset = offset;
-            ///end offset
-            offset = (*pForwardIndexOffset)[j].second;
-            pPOSOutput_->writeVInt(offset - lastCharOffset);
-            lastCharOffset = offset;
         }
-		
-        //delete pForwardIndexOffset;
     }
 
     //forwardIndex_->clear();
@@ -103,17 +96,12 @@ void ForwardIndexWriter::addProperty(fieldid_t fid, boost::shared_ptr<ForwardInd
         pForwardIndexOffset = iter->second;
         int numPosition = pForwardIndexOffset->size();
         pPOSOutput_->writeVInt(numPosition);	
-        unsigned int offset, lastOffset = 0, lastCharOffset = 0;
+        unsigned int offset, lastOffset = 0;
         for (int j = 0; j < numPosition; j++)
         {
-            ///start offset
-            offset = (*pForwardIndexOffset)[j].first;
+            offset = (*pForwardIndexOffset)[j];
             pPOSOutput_->writeVInt(offset - lastOffset);
             lastOffset = offset;
-            ///end offset
-            offset = (*pForwardIndexOffset)[j].second;
-            pPOSOutput_->writeVInt(offset - lastCharOffset);
-            lastCharOffset = offset;
         }
 		
     }

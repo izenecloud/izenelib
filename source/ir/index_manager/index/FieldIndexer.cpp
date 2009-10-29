@@ -35,7 +35,7 @@ void FieldIndexer::addField(docid_t docid, boost::shared_ptr<LAInput> laInput)
         else
             curPosting = postingIter->second;
 
-        curPosting->addLocation(docid, laInput->size(), iter->wordOffset_, iter->byteOffset_);
+        curPosting->addLocation(docid, iter->offset_);
         curPosting->updateDF(docid);
     }
 }
@@ -57,7 +57,7 @@ void FieldIndexer::addField(docid_t docid, boost::shared_ptr<ForwardIndex> forwa
 
         ForwardIndexOffset::iterator	endit = iter->second->end();
         for(ForwardIndexOffset::iterator it = iter->second->begin(); it != endit; ++it)
-            curPosting->addLocation(docid, forwardindex->docLength_, it->first, it->second);
+            curPosting->addLocation(docid, *it);
         curPosting->updateDF(docid);
     }
 }
@@ -69,8 +69,6 @@ void FieldIndexer::removeField(docid_t docid, boost::shared_ptr<LAInput> laInput
     InMemoryPosting* newPosting;
 
     InMemoryTermReader* pTermReader = new InMemoryTermReader(getField(),this);
-
-    freq_t docLength;	
 
     for(LAInput::iterator iter = laInput->begin(); iter != laInput->end(); ++iter)
     {
@@ -84,15 +82,12 @@ void FieldIndexer::removeField(docid_t docid, boost::shared_ptr<LAInput> laInput
             while (pTermPositions->next())
             {
                 decompressed_docid = pTermPositions->doc();
-                docLength = pTermPositions->docLength();
                 loc_t pos = pTermPositions->nextPosition();
-                loc_t subpos = pTermPositions->nextPosition();
                 while (pos != BAD_POSITION)
                 {
                     if (decompressed_docid != docid)
-                        newPosting->addLocation(decompressed_docid, docLength, pos, subpos);
+                        newPosting->addLocation(decompressed_docid, pos);
                     pos = pTermPositions->nextPosition();
-                    subpos = pTermPositions->nextPosition();
                 }
                 newPosting->updateDF(decompressed_docid);
             }
@@ -115,8 +110,6 @@ void FieldIndexer::removeField(docid_t docid, boost::shared_ptr<ForwardIndex> fo
 
     InMemoryTermReader* pTermReader = new InMemoryTermReader(getField(),this);
 
-    freq_t docLength;	
-
     for(ForwardIndex::iterator iter = forwardindex->begin(); iter != forwardindex->end(); ++iter)
     {
         termid_t termId = (termid_t)iter->first;
@@ -129,15 +122,12 @@ void FieldIndexer::removeField(docid_t docid, boost::shared_ptr<ForwardIndex> fo
             while (pTermPositions->next())
             {
                 decompressed_docid = pTermPositions->doc();
-                docLength = pTermPositions->docLength();
                 loc_t pos = pTermPositions->nextPosition();
-                loc_t subpos = pTermPositions->nextPosition();
                 while (pos != BAD_POSITION)
                 {
                     if (decompressed_docid != docid)
-                        newPosting->addLocation(decompressed_docid, docLength, pos, subpos);
+                        newPosting->addLocation(decompressed_docid, pos);
                     pos = pTermPositions->nextPosition();
-                    subpos = pTermPositions->nextPosition();
                 }
                 newPosting->updateDF(decompressed_docid);
             }

@@ -24,10 +24,10 @@ class BarrelInfo;
 class SingleIndexBarrelReader : public IndexBarrelReader
 {
 public:
-    SingleIndexBarrelReader(Indexer* pIndex, BarrelInfo* pBarrelInfo,DiskIndexOpenMode mode);
+    SingleIndexBarrelReader(Indexer* pIndex, BarrelInfo* pBarrelInfo);
     virtual ~SingleIndexBarrelReader(void);
 public:
-    void open(const char* name,DiskIndexOpenMode mode);
+    void open(const char* name);
 
     TermReader* termReader(collectionid_t colID);
 

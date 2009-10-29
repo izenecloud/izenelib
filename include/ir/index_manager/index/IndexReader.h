@@ -30,9 +30,7 @@ class Term;
 class IndexReader
 {
 private:
-    ///ORDERED can not work for in-memory index, because current in-memory index is based on hash
-    ///and it is expensive to convert the in-memory hash to an order-preserving map
-    IndexReader(Indexer* pIndex, DiskIndexOpenMode openMode= UNORDERED);
+    IndexReader(Indexer* pIndex);
 public:
     virtual ~IndexReader();
 public:
@@ -76,8 +74,6 @@ private:
     BarrelInfo* findDocumentInBarrels(collectionid_t colID, docid_t docID);
 
 private:
-    DiskIndexOpenMode openMode_; ///whether accessing vocabulary ordered preserving or not.(hash is unordered and is faster)
-
     Indexer* pIndexer_; ///reference to index object
 
     BarrelsInfo* pBarrelsInfo_; ///reference to Index's pBarrelsInfo

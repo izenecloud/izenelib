@@ -231,19 +231,6 @@ public:
 class InMemoryPosting:public Posting
 {
 public:
-    enum MEMALLOC_STRATEGY
-    {
-        STRATEGY_ALLOC_CONST = 0x01,
-        STRATEGY_ALLOC_EXP = 0x02,
-        STRATEGY_ALLOC_EXPLIMIT = 0x03,
-    };
-    struct AllocStrategy
-    {
-        MEMALLOC_STRATEGY strategy;
-        int32_t n;
-        int32_t k;
-        int32_t l;
-    };
     struct DecodeState
     {
         PostingChunk* decodingDChunk;
@@ -274,7 +261,7 @@ public:
      * @param nCurSize current accumulated chunk size
      * @param as memory allocation strategy
      */
-    int32_t getNextChunkSize(int32_t nCurSize,AllocStrategy& as);
+    int32_t getNextChunkSize(int32_t nCurSize);
 
     /**
     * update document frequency incrementally. DF will contain doc ids from other field.
@@ -286,7 +273,7 @@ public:
      * @param docid the identifier of document
      * @param location the location of term
      */
-    void addLocation(docid_t docid, freq_t doclength, loc_t location, loc_t charlocation);
+    void addLocation(docid_t docid, loc_t location);
 
     /**
      * Is there any chunk?
@@ -401,8 +388,6 @@ protected:
     docid_t nLastDocID;	///current added doc id
     docid_t nYetAnotherLastDocID; ///last doc id served for nTDF;
     loc_t nLastLoc; 		///current added word offset
-    loc_t nLastCharLoc;  ///current added char offset
-    count_t nLastDocLen; ///current added doc length
     count_t nCurTermFreq; ///current term freq
     int32_t nCTF; 			///Collection's total term frequency
     DecodeState* pDS;			///decoding state
@@ -411,8 +396,6 @@ protected:
 
     friend class PostingMerger;
 public:
-    static AllocStrategy ALLOCSTRATEGY;		///index memory allocation strategy
-
     static int32_t UPTIGHT_ALLOC_CHUNKSIZE;
     static int32_t UPTIGHT_ALLOC_MEMSIZE;
 };
@@ -429,7 +412,6 @@ class OnDiskPosting:public Posting
         docid_t lastDecodedDocID;		///the latest decoded doc id
         int32_t decodedDocCount;		///decoded doc count
         loc_t lastDecodedPos; 		///the latest decoded position posting
-        loc_t lastDecodedCharPos; 	///the latest decoded char position posting
         int32_t decodedPosCount;		///decoded position posting count
     };
 public:

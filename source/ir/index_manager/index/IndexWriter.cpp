@@ -3,6 +3,9 @@
 #include <ir/index_manager/index/IndexMerger.h>
 #include <ir/index_manager/index/OnlineIndexMerger.h>
 #include <ir/index_manager/index/OfflineIndexMerger.h>
+//#include <ir/index_manager/index/ImmediateMerger.h>
+//#include <ir/index_manager/index/GPIndexMerger.h>
+//#include <ir/index_manager/index/LogarithmicMerger.h>
 #include <ir/index_manager/index/IndexBarrelWriter.h>
 #include <ir/index_manager/index/IndexerPropertyConfig.h>
 
@@ -118,6 +121,9 @@ void IndexWriter::createBarrelWriter()
     pCurBarrelInfo_->setWriter(pIndexBarrelWriter_);
     pIndexBarrelWriter_->setCollectionsMeta(pIndexer_->getCollectionsMeta());
     pIndexMerger_ = new OnlineIndexMerger(pIndexer_->getDirectory());
+    //pIndexMerger_ = new ImmediateMerger(pIndexer_->getDirectory());
+    //pIndexMerger_ = new LogarithmicMerger(pIndexer_->getDirectory());
+    //pIndexMerger_ = new GPIndexMerger(pIndexer_->getDirectory());
 }
 
 void IndexWriter::mergeAndWriteCachedIndex()

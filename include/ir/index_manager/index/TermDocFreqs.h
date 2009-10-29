@@ -47,15 +47,12 @@ public:
 
     virtual count_t freq();
 
-    virtual freq_t docLength();
-
     virtual void close();
 
 protected:
 
     virtual bool decode();
 
-    /** create buffer for decoding */
     void createBuffer();
 
 protected:
@@ -69,8 +66,6 @@ protected:
 
     size_t nFreqStart;
 
-    size_t nDocLenStart;
-
     int32_t nTotalDecodedCount;	///size of decoded postings
 
     int32_t nCurDecodedCount;
@@ -83,7 +78,7 @@ protected:
 
     bool ownPosting;
 
-    static const size_t DEFAULT_BUFFERSIZE = 49152;
+    static const size_t DEFAULT_BUFFERSIZE = 32768;
 };
 
 }

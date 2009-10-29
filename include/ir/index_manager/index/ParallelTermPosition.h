@@ -101,15 +101,9 @@ public:
 
     count_t tf(){return currTf_;}
 
-    //bool next(vector<string>& properties, docid_t& docid);
     bool next();
 
-    //void getPositions(string& property, boost::shared_ptr<std::deque<unsigned int> >& positions, freq_t& tf, freq_t& doclen);
     void getPositions(std::map<string, PropertyItem>& result);
-
-    void getPositions(std::map<string, PropertyItem2>& result);
-
-    //void getPositions(string& property, boost::shared_ptr<std::deque< std::pair<unsigned int,unsigned int> > >& positions, freq_t& tf, freq_t& doclen);
 
     void get_df_and_ctf(termid_t termID, DocumentFrequencyInProperties& dfmap, CollectionTermFrequencyInProperties& ctfmap);
 
@@ -135,15 +129,6 @@ private:
     docid_t currDoc_;
 
     size_t currTf_;
-/*
-    map<string, TermReader*> termReaderMap_;
-
-    map<string, TermPositions*> termPositionMap_;
-
-    map<string, bool> flagMap_;
-
-    map<string, docid_t> currDocMap_;
-*/
 };
 }
 

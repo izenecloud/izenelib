@@ -58,10 +58,6 @@ public:
         return TermDocFreqs::docFreq();
     };
 
-    virtual freq_t docLength()
-    {
-        return TermDocFreqs::docLength();
-    }
     /**
      * get collection's total term frequency
      * @return CTF value
@@ -114,7 +110,7 @@ private:
 
     bool bOwnPPostingBuffer_;			///we own the buffer or not
 
-    static const size_t DEFAULT_BUFFERSIZE = 256000;//163840;
+    static const size_t DEFAULT_BUFFERSIZE = 163840;
 };
 //////////////////////////////////////////////////////////////////////////
 ///inline functions
@@ -170,16 +166,15 @@ inline bool TermPositions::decodePositions()
             if (nLastUnDecodedPCount_ == 0)
                 pPosting->resetPosition();
         }
-        ///all items *2 are caused by the pair offset of a term in document
         if (!bEnd)
         {
             int32_t nFreqs;
             for (nFreqs = nLastPosting_; nFreqs < nCurDecodedCount;nFreqs++)
             {
-                nTotalDecodedPCount_ += pPostingBuffer[nFreqStart + nFreqs]*2;
+                nTotalDecodedPCount_ += pPostingBuffer[nFreqStart + nFreqs];
                 if (nTotalDecodedPCount_ > nPBufferSize_)
                 {
-                    nTotalDecodedPCount_ -= pPostingBuffer[nFreqStart + nFreqs]*2;
+                    nTotalDecodedPCount_ -= pPostingBuffer[nFreqStart + nFreqs];
                     break;
                 }
             }
@@ -192,7 +187,7 @@ inline bool TermPositions::decodePositions()
             {
                 nTotalDecodedPCount_ = nPBufferSize_;
                 pPosting->decodeNextPositions(pPPostingBuffer,(int32_t)nTotalDecodedPCount_);
-                nLastUnDecodedPCount_ = pPostingBuffer[nFreqStart + nLastPosting_]*2 - (int32_t)nTotalDecodedPCount_;
+                nLastUnDecodedPCount_ = pPostingBuffer[nFreqStart + nLastPosting_] - (int32_t)nTotalDecodedPCount_;
             }
         }
         nCurrentPPosting_ = 0;
@@ -203,7 +198,7 @@ inline bool TermPositions::decodePositions()
     nCurrentPPostingWithinDoc_ = 0;
 
     int32_t nNeedDecode = nPPostingCountWithinDoc_ - nTotalDecodedPCountWithinDoc_;
-    if ((size_t)nNeedDecode > (nTotalDecodedPCount_ - nCurrentPPosting_)*2)
+    if ((size_t)nNeedDecode > (nTotalDecodedPCount_ - nCurrentPPosting_))
         nNeedDecode = (int32_t)(nTotalDecodedPCount_ - nCurrentPPosting_);
 
     nCurDecodedPCountWithinDoc_ = nNeedDecode;

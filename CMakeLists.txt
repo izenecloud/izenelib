@@ -210,6 +210,7 @@ ENDIF(ENABLE_TEST)
 IF(VERBOSE)
 
   MESSAGE(STATUS "========================================")
+  MESSAGE(STATUS "CMAKE_INSTALL_PREFIX: ${CMAKE_INSTALL_PREFIX}")
   MESSAGE(STATUS "CMAKE_BUILD_TYPE: ${CMAKE_BUILD_TYPE}")
   STRING(TOUPPER "${CMAKE_BUILD_TYPE}" CMAKE_BUILD_TYPE_UPPER)
   MESSAGE(STATUS "  corresponding flags: ${CMAKE_CXX_FLAGS_${CMAKE_BUILD_TYPE_UPPER}}")
@@ -277,3 +278,14 @@ IF(VERBOSE)
   MESSAGE(STATUS "========================================")
 
 ENDIF(VERBOSE)
+
+##################################################
+# CPack
+#####
+SET(CPACK_GENERATOR "TBZ2")
+SET(CPACK_SOURCE_GENERATOR "TBZ2")
+SET(CPACK_SOURCE_IGNORE_FILES
+  "/\\\\.git/;\\\\.gitignore$;\\\\.swp$;\\\\.#;/#;~$"
+  )
+
+INCLUDE(CPack)

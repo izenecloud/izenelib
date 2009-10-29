@@ -5,11 +5,11 @@
 
 using namespace izenelib::ir::indexmanager;
 
-MultiFieldTermReader::MultiFieldTermReader(Directory* pDirectory,const char* barrelname,FieldsInfo* pFieldsInfo,DiskIndexOpenMode mode)
+MultiFieldTermReader::MultiFieldTermReader(Directory* pDirectory,const char* barrelname,FieldsInfo* pFieldsInfo)
         : TermReader()
         , pCurReader(NULL)
 {
-    open(pDirectory,barrelname,pFieldsInfo,mode);
+    open(pDirectory,barrelname,pFieldsInfo);
 }
 
 MultiFieldTermReader::MultiFieldTermReader()
@@ -105,7 +105,7 @@ TermReader* MultiFieldTermReader::clone()
     return pReader;
 }
 
-void MultiFieldTermReader::open(Directory* pDirectory,const char* barrelname,FieldsInfo* pFieldsInfo,DiskIndexOpenMode mode)
+void MultiFieldTermReader::open(Directory* pDirectory,const char* barrelname,FieldsInfo* pFieldsInfo)
 {
     FieldInfo* pInfo = NULL;
     TermReader* pTermReader = NULL;
@@ -116,7 +116,7 @@ void MultiFieldTermReader::open(Directory* pDirectory,const char* barrelname,Fie
 
         if (pInfo->isIndexed()&&pInfo->isForward())
         {
-            pTermReader = new DiskTermReader(mode);
+            pTermReader = new DiskTermReader();
             if (pTermReader)
             {
                 pTermReader->open(pDirectory,barrelname,pInfo);

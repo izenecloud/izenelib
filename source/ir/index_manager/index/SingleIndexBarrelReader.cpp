@@ -8,13 +8,13 @@
 
 using namespace izenelib::ir::indexmanager;
 
-SingleIndexBarrelReader::SingleIndexBarrelReader(Indexer* pIndex, BarrelInfo* pBarrel,DiskIndexOpenMode mode)
+SingleIndexBarrelReader::SingleIndexBarrelReader(Indexer* pIndex, BarrelInfo* pBarrel)
         : IndexBarrelReader(pIndex)
         , pBarrelInfo_(pBarrel)
         , pMemCache_(NULL)
 {
     pCollectionsInfo_ = new CollectionsInfo();
-    open(pBarrelInfo_->getName().c_str(),mode);
+    open(pBarrelInfo_->getName().c_str());
 }
 
 SingleIndexBarrelReader::~SingleIndexBarrelReader(void)
@@ -28,7 +28,7 @@ SingleIndexBarrelReader::~SingleIndexBarrelReader(void)
         delete pMemCache_;
 }
 
-void SingleIndexBarrelReader::open(const char* name,DiskIndexOpenMode mode)
+void SingleIndexBarrelReader::open(const char* name)
 {
     this->name_ = name;
 
@@ -55,7 +55,7 @@ void SingleIndexBarrelReader::open(const char* name,DiskIndexOpenMode mode)
         pFieldsInfo = pColInfo->getFieldsInfo();
         if (pFieldsInfo->numIndexFields() > 1)
         {
-            pTermReader = new MultiFieldTermReader(pDirectory,name,pFieldsInfo,mode);
+            pTermReader = new MultiFieldTermReader(pDirectory,name,pFieldsInfo);
         }
         else if (pFieldsInfo->numIndexFields() == 1)
         {
@@ -66,7 +66,7 @@ void SingleIndexBarrelReader::open(const char* name,DiskIndexOpenMode mode)
                 pFieldInfo = pFieldsInfo->next();
                 if (pFieldInfo->isIndexed()&&pFieldInfo->isForward())
                 {
-                    pTermReader = new DiskTermReader(mode);
+                    pTermReader = new DiskTermReader();
                     pTermReader->open(pDirectory,name,pFieldInfo);
                     break;
                 }
@@ -163,7 +163,6 @@ void SingleIndexBarrelReader::delDocField(unsigned int colID, docid_t docId, con
 
     bool ret = false;
     docid_t decompressed_docid;
-    freq_t doclength;
 
     for(ForwardIndex::iterator iter = forwardIndex->begin(); iter != forwardIndex->end(); ++iter)
     {
@@ -185,14 +184,11 @@ void SingleIndexBarrelReader::delDocField(unsigned int colID, docid_t docId, con
                     ret = true;
                     continue;
                 }
-                doclength = pTermPositions->docLength();
                 loc_t pos = pTermPositions->nextPosition();
-                loc_t subpos = pTermPositions->nextPosition();
                 while (pos != BAD_POSITION)
                 {
-                    newPosting->addLocation(decompressed_docid, doclength, pos, subpos);
+                    newPosting->addLocation(decompressed_docid, pos);
                     pos = pTermPositions->nextPosition();
-                    subpos = pTermPositions->nextPosition();
                 }
                 newPosting->updateDF(decompressed_docid);
             }
