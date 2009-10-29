@@ -68,7 +68,7 @@ public:
 	sdb_node_(CbFileHeader& fileHeader, LockType& fileLock, size_t& activeNum);
 
 	~sdb_node_() {
-		unload();
+		unload();	
 	}
 
 	/**
@@ -677,10 +677,11 @@ template<typename KeyType, typename ValueType, typename LockType, bool fixed,
 				}
 			}
 		}
-		objCount = 0;
+		objCount = 0;	
 		keys.resize(0);
 		values.resize(0);
 		children.resize(0);
+			
 		isLoaded = false;
 
 		--activeNodeNum;

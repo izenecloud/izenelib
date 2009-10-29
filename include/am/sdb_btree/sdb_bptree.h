@@ -1251,7 +1251,7 @@ template<typename KeyType, typename ValueType, typename LockType, bool fixed,
 		_root = _allocateNode(true);
 		_root->isLeaf = true;
 		_root->isLoaded = true;
-		flush();		
+		commit();		
 		ret = true;
 
 	} else {
@@ -1516,6 +1516,16 @@ template<typename KeyType, typename ValueType, typename LockType, bool fixed,
 
 	//write back the fileHead and dirtypage
 	commit();
+	
+
+	delete _root;
+	_root = new sdb_pnode(_sfh, _fileLock, _activeNodeNum);
+	_root->fpos = _sfh.rootPos;
+	_root->read(_dataFile);
+	return ;
+
+	/*
+	
 	// Unload each of the root's childrent.
 	if (_root && !_root->isLeaf) {
 		for (size_t i = 0; i < _root->objCount; i++) {
@@ -1524,7 +1534,7 @@ template<typename KeyType, typename ValueType, typename LockType, bool fixed,
 				_root->children[i]->unload();
 			}
 		}
-	}
+	}*/
 
 	if (unloadbyRss) {
 		unsigned long vm = 0;

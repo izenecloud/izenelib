@@ -15,7 +15,7 @@ static string inputFile = "test.txt";
 static size_t maxKeys = 32;
 static size_t pageSize = 1024;
 static size_t cacheSize = 100000;
-static int num = 1000000;
+static int num =5000000;
 
 static bool trace = 1;
 static bool rnd = 0;
@@ -53,7 +53,12 @@ template<typename T> void insert_test(T& tb) {
 			/CLOCKS_PER_SEC);
 	if (trace)
 		tb.display();
+	cout<<"before flush"<<endl;
+	LOG(ERROR) << getMemInfo();
 	tb.flush();
+	cout<<"After  flush"<<endl;
+	sleep(10);
+	LOG(ERROR) << getMemInfo();
 	if (trace)
 		tb.display();
 	finish = clock();

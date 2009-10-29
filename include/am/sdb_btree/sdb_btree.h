@@ -1466,7 +1466,7 @@ template<typename KeyType, typename ValueType, typename LockType, bool fixed,
 		_root->isLeaf = true;
 		_root->isLoaded = true;
 		
-		flush();		
+		commit();		
 		ret = true;
 
 	} else {
@@ -1765,19 +1765,30 @@ template<typename KeyType, typename ValueType, typename LockType, bool fixed,
 // allocated.
 template<typename KeyType, typename ValueType, typename LockType, bool fixed,
 		typename Alloc> void sdb_btree< KeyType, ValueType, LockType, fixed,
-		Alloc>::flush() {
+		Alloc>::flush() {	
 
 	//write back the fileHead and dirtypage
-	commit();
+	commit();	
+
+	delete _root;
+	_root = new sdb_node(_sfh, _fileLock, _activeNodeNum);
+	_root->fpos = _sfh.rootPos;
+	_root->read(_dataFile);
+
+	return ;
+
+	
 	// Unload each of the root's childrent.
+	/*
 	if (_root && !_root->isLeaf) {
 		for (size_t i = 0; i < _root->objCount+1; i++) {
-			sdb_node* pChild = _root->children[i];
-			if ((sdb_node*)pChild != 0 && pChild->isLoaded) {
+			//sdb_node* pChild = _root->children[i];
+			//if ((sdb_node*)pChild != 0 && pChild->isLoaded)
+			{
 				_root->children[i]->unload();
 			}
 		}
-	}
+	}*/
 
 	if (unloadbyRss) {
 		unsigned long vm = 0;
