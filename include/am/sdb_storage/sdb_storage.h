@@ -281,14 +281,14 @@ public:
 		keyHash_.open();
 		dataFile_ = fopen(fileName_.c_str(), creating ? "w+b" : "r+b");
 		if ( 0 == dataFile_) {
-			LOG(ERROR)<<"Error in open(): open file failed"<<endl;
+			DLOG(ERROR)<<"Error in open(): open file failed"<<endl;
 			return false;
 		}
 		bool ret = false;
 		if (creating) {
 			// We're creating if the file doesn't exist.
 			DLOG(INFO)<<"creating...\n"<<endl;
-			ssh_.display( LOG(INFO) );
+			//ssh_.display( LOG(INFO) );
 			ssh_.toFile(dataFile_);
 			ret = true;
 		} else {
@@ -300,7 +300,7 @@ public:
 					return false;
 				}
 				DLOG(INFO)<<"open exist...\n"<<endl;
-				ssh_.display( LOG(INFO) );
+				//ssh_.display( LOG(INFO) );
 
 			}
 		}

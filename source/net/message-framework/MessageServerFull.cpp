@@ -60,7 +60,7 @@ MessageServerFull::MessageServerFull(const std::string& serverName,
 	boost::mutex::scoped_lock connectionEstablishedLock(
 			connectionEstablishedMutex_);
 	while (!connectionEstablished_) {
-		LOG(ERROR)<<"waiting for controller to be ready...."<<endl;
+		DLOG(ERROR)<<"waiting for controller to be ready...."<<endl;
 		connector_.connect(controllerInfo.nodeIP_, controllerInfo.nodePort_);
 		if (!connectionEstablishedEvent_.timed_wait(connectionEstablishedLock,
 				timeout))
@@ -116,7 +116,7 @@ bool MessageServerFull::registerService(const ServiceInfo & serviceInfo) {
 		{
 			if(!serviceRegistrationReplyAccessor_.timed_wait(lock, timeout))
 			{
-				LOG(ERROR) << "[Server: " << getName() << "]Timed out!!! Connection is going to be closed." << std::endl;
+				DLOG(ERROR) << "[Server: " << getName() << "]Timed out!!! Connection is going to be closed." << std::endl;
 				return false;
 			}
 		}
@@ -131,7 +131,7 @@ bool MessageServerFull::registerService(const ServiceInfo & serviceInfo) {
 			availableServiceList_.insert(std::pair<std::string, ServiceInfo>(serviceName, serviceInfo));
 			serviceRegistrationResult_.erase(serviceName);
 
-			LOG(INFO) << "[Server: " << getName() << "] Service " << serviceName
+			DLOG(INFO) << "[Server: " << getName() << "] Service " << serviceName
 			<< " is successfully registered."<< std::endl;
 
 			return true;
@@ -222,7 +222,7 @@ bool MessageServerFull::putResultOfService(
 		const ServiceRequestInfoPtr& serviceRequestInfo,
 		const ServiceResultPtr& result) {
 
-	LOG(INFO) << "[Server: " << getName() << "] start to send result of "
+	DLOG(INFO) << "[Server: " << getName() << "] start to send result of "
 			<< serviceRequestInfo->getServiceName() << std::endl;
 
 	// connection has not been established
@@ -231,7 +231,7 @@ bool MessageServerFull::putResultOfService(
 
 	sendResultOfService(serviceRequestInfo->getRequester(), result);
 
-	LOG(INFO) << "[Server: " << getName() << "] Successfull to send result of "
+	DLOG(INFO) << "[Server: " << getName() << "] Successfull to send result of "
 			<< serviceRequestInfo->getServiceName() << std::endl;
 
 	return true;
@@ -239,7 +239,7 @@ bool MessageServerFull::putResultOfService(
 
 bool MessageServerFull::putResultOfService(const ServiceResultPtr& result) {
 
-	LOG(INFO) << "[Server: " << getName() << "] start to send result of "
+	DLOG(INFO) << "[Server: " << getName() << "] start to send result of "
 			<< result->getServiceName() << std::endl;
 
 	// connection has not been established
@@ -255,7 +255,7 @@ bool MessageServerFull::putResultOfService(const ServiceResultPtr& result) {
  *********************************************************************************/
 void MessageServerFull::sendResultOfService(
 		const MessageFrameworkNode& requester, const ServiceResultPtr& result) {
-	LOG(INFO)<< "============= MessageServer::sendResultOfService ===========";
+	DLOG(INFO)<< "============= MessageServer::sendResultOfService ===========";
 	messageDispatcher_.sendDataToLowerLayer1(SERVICE_RESULT_MSG, result,
 			requester);
 
@@ -273,7 +273,7 @@ void MessageServerFull::receiveServiceRequest(
 		const MessageFrameworkNode& requester,
 		ServiceRequestInfoPtr & requestInfo) {
 
-	LOG(INFO) << "[Server: " << getName() << "] Receive request to retrieve result of service "
+	DLOG(INFO) << "[Server: " << getName() << "] Receive request to retrieve result of service "
 	 << requestInfo->getServiceName()
 	 << "[requestId = " << requestInfo->getRequestId() << "]" << std::endl;
 
@@ -334,7 +334,7 @@ void MessageServerFull::receiveServiceRegistrationReply(
 		const std::string& serviceName, bool registrationSuccess) {
 	try
 	{
-		LOG(INFO)<<"receiveServiceRegistrationReply...";
+		DLOG(INFO)<<"receiveServiceRegistrationReply...";
 		{
 			boost::mutex::scoped_lock serviceRegistrationReplyLock(
 					serviceRegistrationReplyMutex_);
@@ -360,7 +360,7 @@ AsyncStream* MessageServerFull::createAsyncStream(
 		boost::shared_ptr<tcp::socket> sock) {
 	tcp::endpoint endpoint = sock->remote_endpoint();
 	
-	LOG(INFO) << "Remote IP = " << endpoint.address().to_string()
+	DLOG(INFO) << "Remote IP = " << endpoint.address().to_string()
 	 << ", port = " << endpoint.port() << std::endl;
 
 	if (!connectionEstablished_) {

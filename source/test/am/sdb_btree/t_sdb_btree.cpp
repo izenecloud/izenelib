@@ -28,6 +28,56 @@ typedef izenelib::am::DataType<KeyType, NullType> myDataType;
 typedef izenelib::am::sdb_btree<KeyType, NullType> SDB_BTREE;
 
 
+
+void cache10000_test(){
+
+izenelib::am::sdb_btree<unsigned int, string> tb;
+tb.setCacheSize(10000);
+tb.open();
+
+izenelib::util::ClockTimer timer;
+	clock_t start, finish;
+	start = clock();
+	for (int i=0; i<num; i++) {
+		if (trace) {
+			cout<<"insert key="<<i<<endl;
+		}
+		char p[20];
+		sprintf(p, "%08d", i);
+		string str = p;
+		//tb.insert(i, str);
+	        int b = rand()%10000000;
+		tb.insert(i, str);
+		if (trace) {
+			cout<<"numItem: "<<tb.num_items()<<"a"<<endl;
+			tb.display();
+		}
+		DLOG_EVERY_N(INFO, 1000000) << getMemInfo();
+		//cout<<"\nafte insert ...\n";		
+	}
+	cout<<"mumItem: "<<tb.num_items()<<endl;
+	printf("\nIt takes %f seconds before flush()\n", (double)(clock() - start)
+			/CLOCKS_PER_SEC);
+	if (trace)
+		tb.display();
+	cout<<"before flush"<<endl;
+	LOG(ERROR) << getMemInfo();
+	tb.flush();
+	cout<<"After  flush"<<endl;
+	sleep(10);
+	LOG(ERROR) << getMemInfo();
+	if (trace)
+		tb.display();
+	finish = clock();
+	printf("\nIt takes %f seconds to insert %d  data!\n", (double)(finish
+			- start) / CLOCKS_PER_SEC, num);
+	printf("commit elapsed 1 ( actually ): %lf seconds\n",
+					timer.elapsed() );
+   
+ 
+}
+
+
 template<typename T> void insert_test(T& tb) {
 	izenelib::util::ClockTimer timer;
 	clock_t start, finish;
@@ -368,6 +418,7 @@ int main(int argc, char *argv[]) {
 	}
 	try
 	{
+		cache10000_test();
 		SDB_BTREE tb(indexFile);
 		tb.setMaxKeys(maxKeys);
 		tb.setPageSize(pageSize);

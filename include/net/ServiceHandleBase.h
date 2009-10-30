@@ -9,7 +9,7 @@ class ServiceHandlerBase
 {
     public:    
     void no_callback(ServiceRequestInfoPtr& request){        
-        	    LOG(ERROR) << "Could not found callback function: service name=" << request->getServiceName().c_str() << endl;
+        	   DLOG(ERROR) << "Could not found callback function: service name=" << request->getServiceName().c_str() << endl;
     }   
 };
 

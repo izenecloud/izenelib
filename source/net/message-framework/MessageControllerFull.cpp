@@ -159,7 +159,7 @@ bool MessageControllerFull::checkAgentInfo_(ServicePermissionInfo& permissionInf
 
 	for (; it != agentInfoMap.end(); it++) {
 		if ( !messageDispatcher_.isExist(it->second) ) {
-			LOG(ERROR)<<"ServicePermissionInfo:"<<it->first<<" -> server:"
+			DLOG(ERROR)<<"ServicePermissionInfo:"<<it->first<<" -> server:"
 					<<it->second<<"not exists";
 			permissionInfo.removeServer(it->first);
 		}

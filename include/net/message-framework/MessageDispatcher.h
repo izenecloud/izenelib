@@ -193,7 +193,7 @@ private:
 	{
 
 		boost::posix_time::ptime before = boost::posix_time::microsec_clock::local_time();
-        LOG(INFO)<< typeid(DataType).name() << "sendDataToLowerLayer_impl...";
+                DLOG(INFO)<< typeid(DataType).name() << "sendDataToLowerLayer_impl...";
 
 		boost::shared_ptr<izenelib::util::izene_streambuf> archive_stream(
 				new izenelib::util::izene_streambuf());

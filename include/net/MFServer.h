@@ -127,13 +127,13 @@ bool MFServer<ServiceHandle, MapType>::run(void)
            && serviceHandle_))
     {
         // not ready
-        LOG(ERROR) << "Data not ready for MFServer" << endl;
+        DLOG(ERROR) << "Data not ready for MFServer" << endl;
         return false;
     }
 
     if (! createThreadObjectPool_())
     {
-        LOG(ERROR) << "Failed to init thread pool for MFServer" << endl;
+        DLOG(ERROR) << "Failed to init thread pool for MFServer" << endl;
         return false;
     }
 
@@ -145,7 +145,7 @@ bool MFServer<ServiceHandle, MapType>::run(void)
     {
         // main loop
         std::vector< ServiceRequestInfoPtr > requests;
-        LOG(INFO) << " Starting service..." << endl;
+        DLOG(INFO) << " Starting service..." << endl;
         while( true )
         {
             // receive service request
@@ -165,7 +165,7 @@ bool MFServer<ServiceHandle, MapType>::run(void)
                     {
                         while( false == (ret = threadObjPool_.get(threadObject)) )
                         {
-                            LOG(INFO) << "No idle threadObject. Waiting for a moment." << std::endl;
+                            DLOG(INFO) << "No idle threadObject. Waiting for a moment." << std::endl;
                             wakeupTime = boost::get_system_time() + boost::posix_time::milliseconds(5);
                             boost::thread::sleep( wakeupTime );
                         }
@@ -234,7 +234,7 @@ bool MFServer<ServiceHandle, MapType>::registerService_(
     while (!messageServer_->registerService(service))
     {
         ++tryCount;
-        LOG(ERROR) << "Register Service : service = " << name
+        DLOG(ERROR) << "Register Service : service = " << name
                    << ", failed = " << tryCount
                    << ". Waiting for controller ....." << std::endl;
 

@@ -158,7 +158,6 @@ UniqueIDGenerator<NameString, NameID,
     idFinder_(sdbName_ + "_name.sdb")
 {
 	idFinder_.open();
-	idFinder_.setCacheSize(10000);
 
     // reset newID_
 	if(idFinder_.numItems() > 0)

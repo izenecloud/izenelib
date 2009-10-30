@@ -65,7 +65,7 @@ MessageDispatcher::~MessageDispatcher() {
  */
 void MessageDispatcher::addPeerNode(const MessageFrameworkNode& peerNode,
 		AsyncStream* bindedStream) {
-	LOG(INFO) << "Add peer node : " << peerNode.nodeIP_ << ":"
+	DLOG(INFO) << "Add peer node : " << peerNode.nodeIP_ << ":"
 			<< peerNode.nodePort_ << std::endl;
 	boost::mutex::scoped_lock lock(availablePeerNodesMutex_);
 	availablePeerNodes_.insert(pair<MessageFrameworkNode, AsyncStream*>(
@@ -76,7 +76,7 @@ void MessageDispatcher::addPeerNode(const MessageFrameworkNode& peerNode,
  * Remove a a peer node from the available peer lis
  */
 void MessageDispatcher::removePeerNode(const MessageFrameworkNode& peerNode) {
-	LOG(INFO) << "Remove peer node : " << peerNode.nodeIP_ << ":"
+	DLOG(INFO) << "Remove peer node : " << peerNode.nodeIP_ << ":"
 			<< peerNode.nodePort_ << std::endl;
 	boost::mutex::scoped_lock lock(availablePeerNodesMutex_);
 	availablePeerNodes_.erase(peerNode);
@@ -91,7 +91,7 @@ bool MessageDispatcher::isExist(const MessageFrameworkNode& node) {
 		return true;
 	}
 
-	LOG(ERROR) << "Node: " << node.nodeIP_ << ":" << node.nodePort_
+	DLOG(ERROR) << "Node: " << node.nodeIP_ << ":" << node.nodePort_
 			<< " does not exists." << std::endl;
 	return false;
 }
@@ -102,7 +102,7 @@ AsyncStream& MessageDispatcher::getStreamByNode(const MessageFrameworkNode& node
 			iter;
 	iter = availablePeerNodes_.find(node);
 	if (iter == availablePeerNodes_.end()) {
-		LOG(ERROR) << "getStreamByNode fails. Node: " << node.nodeIP_ << ":"
+		DLOG(ERROR) << "getStreamByNode fails. Node: " << node.nodeIP_ << ":"
 				<< node.nodePort_ << " does not exist." << std::endl;
 		throw MessageFrameworkException(SF1_MSGFRK_DATA_NOT_FOUND, __LINE__, __FILE__);
 	}
@@ -132,7 +132,7 @@ void MessageDispatcher::sendDataToUpperLayer_impl(
 	boost::posix_time::ptime before =
 			boost::posix_time::microsec_clock::local_time();
 	
-	LOG(INFO)<< " sendDataToUpperLayer ..." ;
+	DLOG(INFO)<< " sendDataToUpperLayer ..." ;
 	ServiceRegistrationMessage registrationMsg;
 	ServiceRegistrationReplyMessage registrationReplyMessage;
 	std::string permissionRequestMessage;

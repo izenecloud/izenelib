@@ -109,7 +109,7 @@ bool MessageClientFull::prepareConnection(const MessageFrameworkNode& node) {
 		while (!messageDispatcher_.isExist(node)) {
 			if ( !connectedToServerEvent_.timed_wait(
 					connectionToServerEstablishedLock, timeout)) {
-				LOG(ERROR) << "Cannot connect to " << node.nodeIP_ << ":"
+				DLOG(ERROR) << "Cannot connect to " << node.nodeIP_ << ":"
 						<< node.nodePort_ << std::endl;
 				return false;
 			}
@@ -232,7 +232,7 @@ bool MessageClientFull::checkAgentInfo_(ServicePermissionInfo& permissionInfo) {
    if( count & 0xff == 0 ){
 	  for (; it != agentInfoMap.end(); it++) {
 		  if ( prepareConnection(it->second) ) {
-			  LOG(ERROR)<<"ServicePermissionInfo:"<<it->first<<" -> server:"
+			  DLOG(ERROR)<<"ServicePermissionInfo:"<<it->first<<" -> server:"
 					<<it->second<<"not exists";		
 			  ret = false;
 		  }
@@ -259,7 +259,7 @@ bool MessageClientFull::getHostsOfService(const std::string& serviceName,
 		if(!connectionToControllerEstablished_)
 		return false;
 
-		LOG(INFO)<< "============= MessageClient::getPermissionOfService ===========";
+		DLOG(INFO)<< "============= MessageClient::getPermissionOfService ===========";
 
 		{
 			boost::mutex::scoped_lock acceptedPermissionLock(acceptedPermissionMutex_);
@@ -287,9 +287,9 @@ bool MessageClientFull::getHostsOfService(const std::string& serviceName,
 		{
 			if(!newPermisionOfServiceEvent_.timed_wait(acceptedPermissionLock, timeout))
 			{
-				LOG(ERROR) << "[Client:" << getName()
+				DLOG(ERROR) << "[Client:" << getName()
 				<< "] Timeout!!! Cannot receive permission of Service: " << serviceName << std::endl;
-				LOG(ERROR) <<"getPermissionOfService returns false (timeout)";
+				DLOG(ERROR) <<"getPermissionOfService returns false (timeout)";
 				return false;
 			}
 		}
@@ -303,10 +303,10 @@ bool MessageClientFull::getHostsOfService(const std::string& serviceName,
 			if( servicePermissionInfo.getServerMap().empty() )
 			{
 				acceptedPermissionList_.erase(serviceName);
-				LOG(ERROR) << "[Client:" << getName()
+				DLOG(ERROR) << "[Client:" << getName()
 				<< "] Service " << serviceName << " is not listed in Message Controller." << std::endl;
 
-				LOG(ERROR) << "getPermissionOfService returns false(service is not available at MessageController)"<<std::endl;
+				DLOG(ERROR) << "getPermissionOfService returns false(service is not available at MessageController)"<<std::endl;
 
 				// service is not available at MessageController
 				return false;
@@ -318,7 +318,7 @@ bool MessageClientFull::getHostsOfService(const std::string& serviceName,
 
 			servicePermissionInfo.getServerMap(servers);
 
-			LOG(INFO) << "getPermissionOfService returns true(newly received)";
+			DLOG(INFO) << "getPermissionOfService returns true(newly received)";
 			return true;
 		}
 
@@ -372,7 +372,7 @@ bool MessageClientFull::putServiceRequest(const MessageFrameworkNode& server,
 	std::string serviceName = serviceRequestInfo->getServiceName();
 	unsigned int requestId = generateRequestId();
 
-	LOG(INFO) << "[Client:" << getName() << "]  generate a request id: "
+	DLOG(INFO) << "[Client:" << getName() << "]  generate a request id: "
 			<<requestId << std::endl;
 
 	serviceRequestInfo->setRequestId(requestId);
@@ -551,7 +551,7 @@ bool MessageClientFull::getResultOfService(
 				boost::system_time const timeout = boost::get_system_time()
 						+ boost::posix_time::milliseconds(timeOutMilliSecond_);
 				if ( false == semaphore->timed_wait(timeout) ) {
-					LOG(ERROR) << "[Client1:" << getName() 
+					DLOG(ERROR) << "[Client1:" << getName() 
 					<< "] Reqeust id 0x" << hex << requestId << dec
 							<< " timeout" << std::endl;
 					acceptedPermissionList_.erase(serviceName);
@@ -580,7 +580,7 @@ bool MessageClientFull::getResultOfService(
 				std::set<unsigned int>::iterator it =
 						completedRequestSet_.find(requestId);
 				if (it == completedRequestSet_.end() ) {
-					LOG(ERROR) << "dbg: [Client:" << getName()
+					DLOG(ERROR) << "dbg: [Client:" << getName()
 							<< "] invalid request " << requestId << std::endl;
 					goto get_service_result_fail;
 				}
@@ -589,7 +589,7 @@ bool MessageClientFull::getResultOfService(
 			for (unsigned int j = i; j <= i + range; j++) {
 				unsigned int minorId = serviceRequestInfos[j]->getMinorId();
 				if (serviceResultTable_[requestId][minorId -1] == NULL) {
-					LOG(ERROR) << "invalid service result " << requestId << ","
+					DLOG(ERROR) << "invalid service result " << requestId << ","
 							<< minorId << std::endl;
 					goto get_service_result_fail;
 				}
@@ -671,7 +671,7 @@ bool MessageClientFull::getResultOfService(
 		boost::system_time const timeout = boost::get_system_time()
 				+ boost::posix_time::milliseconds(timeOutMilliSecond_);
 		if ( false == semaphore->timed_wait(timeout) ) {
-			LOG(ERROR) << "[Client:" << getName() 
+			DLOG(ERROR) << "[Client:" << getName() 
 			 << "] Reqeust id 0x" << hex << requestId << dec
 			 << " timeout" << std::endl;
 			acceptedPermissionList_.erase(serviceName);
@@ -698,7 +698,7 @@ bool MessageClientFull::getResultOfService(
 			std::set<unsigned int>::iterator it =
 					completedRequestSet_.find(requestId);
 			if (it == completedRequestSet_.end() ) {
-				LOG(ERROR)<< "[Client:" << getName() << "] invalid request "
+				DLOG(ERROR)<< "[Client:" << getName() << "] invalid request "
 						<< requestId << std::endl;
 				return false;
 			}
@@ -730,7 +730,7 @@ bool MessageClientFull::getResultOfService(
 			std::set<unsigned int>::iterator it =
 					completedRequestSet_.find(requestId);
 			if (it == completedRequestSet_.end() ) {
-				LOG(ERROR) << "[Client:" << getName() << "] invalid request "
+				DLOG(ERROR) << "[Client:" << getName() << "] invalid request "
 						<< requestId << std::endl;
 				return false;
 			}
@@ -800,7 +800,7 @@ void MessageClientFull::sendPermissionOfServiceRequest(
 void MessageClientFull::receivePermissionOfServiceResult(
 		const ServicePermissionInfo& servicePermissionInfo) {
 
-	LOG(INFO) << "[Client:" << getName()
+	DLOG(INFO) << "[Client:" << getName()
 	 << "] Receive permission of " << servicePermissionInfo.getServiceName() << std::endl;
 
 	boost::mutex::scoped_lock acceptedPermissionLock(acceptedPermissionMutex_);	
@@ -839,8 +839,8 @@ void MessageClientFull::sendServiceRequest(
  *********************************************************************************/
 void MessageClientFull::receiveResultOfService(const ServiceResultPtr& result) {
 
-	LOG(INFO) << "[Client:" << getName() << "] Receive result of request " << result->getRequestId() << std::endl;
-	result->display( LOG(INFO) );
+	DLOG(INFO) << "[Client:" << getName() << "] Receive result of request " << result->getRequestId() << std::endl;
+	//result->display( LOG(INFO) );
 
 	//cout<<"!!!!! wps"<<endl;
 	//check whether request id in uncompleted request set
@@ -852,7 +852,7 @@ void MessageClientFull::receiveResultOfService(const ServiceResultPtr& result) {
 		std::set<unsigned int>::iterator it =
 				uncompletedRequestSet_.find(requestId);
 		if (it == uncompletedRequestSet_.end() ) {
-			LOG(ERROR) << "[Client:" << getName() << "] invalid request "
+			DLOG(ERROR) << "[Client:" << getName() << "] invalid request "
 					<< requestId << std::endl;
 			throw MessageFrameworkException(SF1_MSGFRK_LOGIC_ERROR, __LINE__, __FILE__);
 		}
@@ -872,7 +872,7 @@ void MessageClientFull::receiveResultOfService(const ServiceResultPtr& result) {
 		if (result->getMinorId() != 0)
 			resultCount= result->getBufferNum();
 		if (expectedResultCount != resultCount) {
-			LOG(ERROR) << "[Client:" << getName() << "] processing request "
+			DLOG(ERROR) << "[Client:" << getName() << "] processing request "
 					<< requestId << " expect " << expectedResultCount
 					<< " results " << " but receive " << resultCount
 					<< " results " << std::endl;
@@ -939,7 +939,7 @@ AsyncStream* MessageClientFull::createAsyncStream(
 
 	//std::cout << logMsg << std::endl;
 
-	LOG(INFO)<<logMsg;
+	DLOG(INFO)<<logMsg;
 
 	if (!connectionToControllerEstablished_) {
 		// this must be a connection to controller
