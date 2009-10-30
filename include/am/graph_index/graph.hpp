@@ -1655,9 +1655,19 @@ friend std::ostream& operator <<(std::ostream& os, const self_t& g)
       //return  (graph_->nodes_.at(edge_.NID())!= (sorted_edges_t*)-1);
     }
 
+    Node find_child(uint32_t term)const
+    {
+      typename self_t::edge_t edge(term);
+      typename sorted_edges_t::size_t i = edges_.find(edge);
+      if (i != sorted_edges_t::NOT_FOUND)
+        return Node(graph_, edges_.at(i));
+      
+      return Node();
+    }
+
     bool is_null()
     {
-      return edge_.EDGE()==(uint32_t)-1;
+      return (graph_== NULL || edge_.EDGE()==(uint32_t)-1);
     }
     
   };
@@ -1690,18 +1700,21 @@ friend std::ostream& operator <<(std::ostream& os, const self_t& g)
 
   bool get_node(const Node& node, uint32_t term, Node& r)const
   {
-    NodeIterator ni = node.children_begin();
-    while (ni!=node.children_end())
-    {
-      if ((*ni).get_term()==term)
-      {
-        r = *ni;
-        return true;
-      }
-      ++ni;
-    }
+    r = node.find_child(term);
+    return (!r.is_null());
+    
+//     NodeIterator ni = node.children_begin();
+//     while (ni!=node.children_end())
+//     {
+//       if ((*ni).get_term()==term)
+//       {
+//         r = *ni;
+//         return true;
+//       }
+//       ++ni;
+//     }
 
-    return false;
+//     return false;
   }
   
   

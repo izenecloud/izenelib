@@ -85,7 +85,7 @@ SDBIDStorage<NameString, NameID, LockType>::SDBIDStorage(
     sdbName_(sdbName),
     nameFinder_(sdbName_ + "_id.sdb")
 {
-	nameFinder_.open();	
+  	nameFinder_.open();	
 } // end - SDBIDStorage()
 
 template <typename NameString, typename NameID, typename LockType>
