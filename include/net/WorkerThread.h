@@ -14,6 +14,8 @@
 #include <net/ServiceItem.h>
 #include <wiselib/thread-pool/ThreadObject.h>
 
+#include <exception>
+
 namespace messageframework{
 
 /// @brief This class is a work thread of all the manager.
@@ -79,11 +81,17 @@ void WorkerThread<ServiceHandler>::start(void)
             DLOG(ERROR) << "Error while processing service : " << requestInfo_->getServiceName() << std::endl; 
         }  
     }
+    catch(std::exception& e)
+    {
+        DLOG(ERROR) << "Exception while processing service : " << requestInfo_->getServiceName() << std::endl;
+        DLOG(ERROR) << "  Detail: " << e.what() << std::endl;
+    }
     catch(...)
     {
+        DLOG(ERROR) << "Exception while processing service : " << requestInfo_->getServiceName() << std::endl;
         return;
     }
-} 
+}
 
 
 }
