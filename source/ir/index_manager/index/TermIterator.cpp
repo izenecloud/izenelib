@@ -193,3 +193,103 @@ size_t InMemoryTermIterator::setBuffer(char* pBuffer,size_t bufSize)
     return 0;///don't need buffer
 }
 
+
+///////////////////////////////////////////////////////////////////////////////////
+//
+VocIterator::VocIterator(Directory* pDirectory,string barrelname,FieldInfo* pFieldInfo)
+        :pCurTerm_(NULL)
+        ,pCurTermInfo_(NULL)
+        ,pCurTermPosting_(NULL)
+        ,nTermCount_(0)
+        ,currTermCounter_(-1)
+        ,pVocInput_(NULL)
+        ,pFieldInfo_(pFieldInfo)
+        ,pInputDescriptor_(NULL)
+{
+    pVocInput_ = pDirectory->openInput(barrelname + ".voc", 10*1024*1024);
+    pVocInput_->seek(pFieldInfo->getIndexOffset());
+    fileoffset_t voffset = pVocInput_->getFilePointer();
+    fileoffset_t nVocLength = pVocInput_->readLong();
+    nTermCount_ = (int32_t)pVocInput_->readLong();
+    pVocInput_->seek(voffset - nVocLength);
+    pInputDescriptor_ = new InputDescriptor(true);
+    pInputDescriptor_->setDPostingInput(pDirectory->openInput(barrelname + ".dfp"));
+    pInputDescriptor_->setPPostingInput(pDirectory->openInput(barrelname + ".pop"));
+}
+
+VocIterator::~VocIterator()
+{
+    if (pCurTerm_)
+    {
+        delete pCurTerm_;
+        pCurTerm_ = NULL;
+    }
+    if (pCurTermPosting_)
+    {
+        delete pCurTermPosting_;
+        pCurTermPosting_ = NULL;
+    }
+    if (pVocInput_)
+    {
+        delete pVocInput_;
+        pVocInput_ = NULL;
+    }
+    if (pCurTermInfo_)
+    {
+        delete pCurTermInfo_;
+        pCurTermInfo_ = NULL;
+    }
+    if(pInputDescriptor_)
+    {
+        delete pInputDescriptor_;
+        pInputDescriptor_ = NULL;
+    }
+}
+
+const Term* VocIterator::term()
+{
+    return pCurTerm_;
+}
+
+const TermInfo* VocIterator::termInfo()
+{
+    return pCurTermInfo_;
+}
+
+Posting* VocIterator::termPosting()
+{
+    if (!pCurTermPosting_)
+    {
+        pCurTermPosting_ = new OnDiskPosting(pInputDescriptor_,pCurTermInfo_->docPointer());
+    }
+    else
+    {
+        ((OnDiskPosting*)pCurTermPosting_)->reset(pCurTermInfo_->docPointer());///reset to a new posting
+    }
+    return pCurTermPosting_;
+}
+
+bool VocIterator::next()
+{
+    if(currTermCounter_ == nTermCount_ - 1)
+        return false;
+    else
+    {
+        termid_t tid = pVocInput_->readInt();
+        freq_t df = pVocInput_->readInt();
+        fileoffset_t dfiP = pVocInput_->readLong();
+
+        if (pCurTerm_ == NULL)
+            pCurTerm_ = new Term(pFieldInfo_->getName(),tid);
+        else pCurTerm_->setValue(tid);
+
+	if (pCurTermInfo_ == NULL)
+		pCurTermInfo_ = new TermInfo(df,dfiP);
+	else
+		pCurTermInfo_->set(df,dfiP);
+
+	currTermCounter_++;
+	return true;
+    }
+}
+

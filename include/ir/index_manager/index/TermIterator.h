@@ -83,6 +83,37 @@ protected:
     InMemoryPostingMap::iterator postingIteratorEnd_;
 };
 
+
+///Dedicated for index merging
+///Will not load all vocabulary into memory at a time
+class Directory;
+class FieldInfo;
+class VocIterator : public TermIterator
+{
+public:
+    VocIterator(Directory* pDirectory,string barrelname,FieldInfo* pFieldInfo);
+
+    ~VocIterator();
+
+    bool next();
+
+    const Term* term();
+
+    const TermInfo* termInfo();
+
+    Posting* termPosting();
+protected:
+    Term* pCurTerm_;
+    TermInfo* pCurTermInfo_;
+    Posting* pCurTermPosting_;
+    int32_t nTermCount_;
+    int32_t currTermCounter_;
+    IndexInput* pVocInput_;
+    FieldInfo* pFieldInfo_;
+    InputDescriptor* pInputDescriptor_;
+};
+
+
 }
 
 NS_IZENELIB_IR_END

@@ -337,7 +337,7 @@ TermInfo* InMemoryTermReader::termInfo(Term* term)
     termid_t tid = term->getValue();
 
     InMemoryPostingMap::iterator postingIter = pIndexer_->postingMap_.find(tid);
-    if(postingIter != pIndexer_->postingMap_.end())
+    if(postingIter == pIndexer_->postingMap_.end())
         return NULL;
     pCurPosting_ = postingIter->second;
     if (!pCurPosting_ || (pCurPosting_->hasNoChunk() == true))
@@ -365,9 +365,23 @@ void InMemoryTermReader::close()
     pCurTermInfo_ = NULL;
 }
 
-
 TermReader* InMemoryTermReader::clone()
 {
     return new InMemoryTermReader(field_.c_str(), pIndexer_);
+}
+
+void VocTermReader::open(Directory* pDirectory,const char* barrelname,FieldInfo* pFieldInfo)
+{
+    pDirectory_ = pDirectory;
+    barrelName_ = barrelname;
+    pFieldInfo_ = pFieldInfo;
+}
+
+TermIterator* VocTermReader::termIterator(const char* field)
+{
+    if ((field != NULL) && (strcasecmp(getFieldInfo()->getName(),field)))
+        return NULL;
+
+    return static_cast<TermIterator*>(new VocIterator(pDirectory_, barrelName_, pFieldInfo_));
 }
 
