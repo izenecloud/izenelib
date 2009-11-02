@@ -337,7 +337,7 @@ TermInfo* InMemoryTermReader::termInfo(Term* term)
     termid_t tid = term->getValue();
 
     InMemoryPostingMap::iterator postingIter = pIndexer_->postingMap_.find(tid);
-    if(postingIter != pIndexer_->postingMap_.end())
+    if(postingIter == pIndexer_->postingMap_.end())
         return NULL;
     pCurPosting_ = postingIter->second;
     if (!pCurPosting_ || (pCurPosting_->hasNoChunk() == true))
