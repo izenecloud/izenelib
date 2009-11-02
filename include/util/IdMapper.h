@@ -4,7 +4,7 @@
  * @file util/IdMapper.h
  * @author Ian Yang
  * @date Created <2009-10-21 14:35:13>
- * @date Updated <2009-10-21 16:32:12>
+ * @date Updated <2009-10-30 13:16:47>
  * @brief light utility map entity to id
  */
 #include <boost/unordered_map.hpp>
@@ -40,7 +40,7 @@ public:
     ID insert(const T& value)
     {
         std::pair<typename value_id_map_type::iterator, bool>
-            result = value2id_.insert(std::make_pair(value, newId_()));
+            result = value2id_.insert(std::make_pair(value, maxId() + 1));
 
         if (result.second) // new value
         {
@@ -94,16 +94,17 @@ public:
         return 0;
     }
 
-private:
-    ID newId_()
+    ID maxId()
     {
         if (id2value_.empty())
         {
-            return 1;
+            return 0;
         }
 
-        return id2value_.rbegin()->first + 1;
+        return id2value_.rbegin()->first;
     }
+
+private:
 
     value_id_map_type value2id_;
     id_value_map_type id2value_;
