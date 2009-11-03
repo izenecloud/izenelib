@@ -10,6 +10,7 @@
 
 #include "sdb_node.h"
 #include "sdb_btree_types.h"
+#include <fstream>
 #include <iostream>
 #include <sys/stat.h>
 #include <fstream>
@@ -395,6 +396,16 @@ public:
 	 *
 	 */
 	bool search(const KeyType& key, SDBCursor& locn);
+	
+	void optimize(){
+		string tempfile = _fileName+ ".swap";		
+		dump2f(tempfile);		
+		close();
+	    std::remove(_fileName.c_str() );
+		std::rename(tempfile.c_str(), _fileName.c_str() );
+		std::remove(tempfile.c_str());
+		open();		
+	}
 private:
 	sdb_node* _root;
 	FILE* _dataFile;
@@ -781,7 +792,14 @@ template<typename KeyType, typename ValueType, typename LockType, bool fixed,
 	sdb_node* child1 = parent->loadChild(childNum, _dataFile);
 	sdb_node* child2 = parent->loadChild(childNum+1, _dataFile);
 
+	
 	sdb_node* newChild = _allocateNode();
+	
+	//swap newchild's fpos with child2	
+	long tempfpos = child2->fpos;	
+	child2->fpos = newChild->fpos;
+	newChild->fpos = tempfpos;
+	
 	newChild->isLeaf =true;
 	newChild->setCount(count3);
 	newChild->parent = parent;

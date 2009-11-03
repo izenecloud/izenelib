@@ -1,6 +1,8 @@
 #include <boost/memory.hpp>
 #include <string>
 #include <ctime>
+#include <util/izene_log.h>
+
 //#include <time.h>
 
 #include <am/sdb_btree/sdb_fixedbtree.h>
@@ -50,7 +52,9 @@ template<typename T> void insert_test(T& tb) {
 			/CLOCKS_PER_SEC);
 	if (trace)
 		tb.display();
+	DLOG(ERROR) << getMemInfo();
 	tb.flush();
+	DLOG(ERROR) << getMemInfo();
 	if (trace)
 		tb.display();
 	finish = clock();
@@ -83,7 +87,9 @@ template<typename T> void random_insert_test(T& tb) {
 			/CLOCKS_PER_SEC);
 	if (trace)
 		tb.display();
+	DLOG(ERROR) << getMemInfo();
 	tb.flush();
+	DLOG(ERROR) << getMemInfo();
 	finish = clock();
 	printf("\nIt takes %f seconds to insert %d  data!\n", (double)(finish
 			- start) / CLOCKS_PER_SEC, num);
