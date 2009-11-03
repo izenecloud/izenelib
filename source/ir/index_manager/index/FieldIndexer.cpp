@@ -191,6 +191,7 @@ fileoffset_t FieldIndexer::write(OutputDescriptor* pWriterDesc)
             termCount++;
         }
         delete pPosting;
+        pPosting = NULL;
     }
     postingMap_.clear();
 
