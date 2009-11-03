@@ -13,16 +13,12 @@
 #include <ir/index_manager/index/TermInfo.h>
 #include <ir/index_manager/index/AbsTermIterator.h>
 
-#include <3rdparty/am/stx/btree_map>
-
 NS_IZENELIB_IR_BEGIN
 
 namespace indexmanager{
 class Posting;
 class InputDescriptor;
 class DiskTermReader;
-typedef stx::btree_map<termid_t, TermInfo > TERM_TABLE;
-
 /**
 * Iterate terms from index barrel files(*.voc)
 */
@@ -50,8 +46,7 @@ protected:
     TermInfo* pCurTermInfo_;      ///current term info in this iterator
     Posting* pCurTermPosting_;   ///current term's posting in this iterator
     InputDescriptor* pInputDescriptor_;
-    TERM_TABLE::iterator currTermIter_;
-    TERM_TABLE::iterator termIterEnd_;
+    int32_t nCurPos_;
 };
 
 class InMemoryTermReader;
@@ -82,37 +77,6 @@ protected:
     InMemoryPostingMap::iterator postingIterator_;
     InMemoryPostingMap::iterator postingIteratorEnd_;
 };
-
-
-///Dedicated for index merging
-///Will not load all vocabulary into memory at a time
-class Directory;
-class FieldInfo;
-class VocIterator : public TermIterator
-{
-public:
-    VocIterator(Directory* pDirectory,string barrelname,FieldInfo* pFieldInfo);
-
-    ~VocIterator();
-
-    bool next();
-
-    const Term* term();
-
-    const TermInfo* termInfo();
-
-    Posting* termPosting();
-protected:
-    Term* pCurTerm_;
-    TermInfo* pCurTermInfo_;
-    Posting* pCurTermPosting_;
-    int32_t nTermCount_;
-    int32_t currTermCounter_;
-    IndexInput* pVocInput_;
-    FieldInfo* pFieldInfo_;
-    InputDescriptor* pInputDescriptor_;
-};
-
 
 }
 

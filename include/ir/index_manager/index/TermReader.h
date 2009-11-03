@@ -17,13 +17,12 @@ NS_IZENELIB_IR_BEGIN
 
 namespace indexmanager{
 
-/*
 struct TERM_TABLE
 {
     termid_t tid;
     TermInfo ti;
 };
-*/
+
 /**
 * Internal class of DiskTermReader
 * We use this class because there would exist concurrent read, without this class,
@@ -38,8 +37,6 @@ public:
     ~TermReaderImpl();
 public:
     void open(Directory* pDirectory,const char* barrelname,FieldInfo* pFieldInfo);
-
-    bool seek(Term* pTerm);
 
     void close() ;
 
@@ -149,39 +146,6 @@ protected:
 
     friend class InMemoryTermIterator;
 };
-
-///Dedicated for Index Merging
-///So we only need one method: termIterator
-class VocTermReader:public TermReader
-{
-public:
-    VocTermReader(){}
-
-    virtual ~VocTermReader(){}
-public:
-    void open(Directory* pDirectory,const char* barrelname,FieldInfo* pFieldInfo);
-
-    TermIterator* termIterator(const char* field);
-
-    bool seek(Term* pTerm) { return false; }
-
-    TermDocFreqs* termDocFreqs(){ return NULL; }
-
-    TermPositions* termPositions(){ return NULL; }
-
-    freq_t docFreq(Term* term) { return 0; }
-
-    void close() {}
-
-    TermReader* clone() { return NULL; }
-private:
-    Directory* pDirectory_;
-
-    string barrelName_;
-
-    FieldInfo* pFieldInfo_;
-};
-
 
 }
 

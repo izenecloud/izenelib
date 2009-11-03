@@ -241,19 +241,21 @@ void SingleIndexBarrelReader::delDocField(unsigned int colID, docid_t docId, con
         TERM_TABLE* pTermTable = pTermReader->getTermTable();
 
         fileoffset_t lastPOffset = 0;
-        for(TERM_TABLE::iterator termTableIter = pTermTable->begin(); termTableIter!= pTermTable->end(); ++termTableIter)
-        //for (int i = 0; i < nTermCount; i++)
+        int nTermCount = pTermReader->pTermReaderImpl_->nTermCount_;
+        //for(TERM_TABLE::iterator termTableIter = pTermTable->begin(); termTableIter!= pTermTable->end(); ++termTableIter)
+        for (int i = 0; i < nTermCount; i++)
         {
-	 /*
-		pVocWriter->writeInt(pTermTable[i].tid);				///write term id
-		pVocWriter->writeInt(pTermTable[i].ti.docFreq());					///write df
-		pVocWriter->writeLong(pTermTable[i].ti.docPointer() - lastPOffset); ///write postingpointer
-		lastPOffset = pTermTable[i].ti.docPointer();
-		*/
+            pVocWriter->writeInt(pTermTable[i].tid);				///write term id
+            pVocWriter->writeInt(pTermTable[i].ti.docFreq());					///write df
+            pVocWriter->writeLong(pTermTable[i].ti.docPointer()); ///write postingpointer
+            lastPOffset = pTermTable[i].ti.docPointer();
+
+        /*
             pVocWriter->writeInt(termTableIter->first); 				///write term id
             pVocWriter->writeInt(termTableIter->second.docFreq());					///write df
             pVocWriter->writeLong(termTableIter->second.docPointer());	///write postingpointer
             lastPOffset = termTableIter->second.docPointer();
+            */
         }
         pVocWriter->flush();
     }
