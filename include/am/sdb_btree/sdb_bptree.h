@@ -393,6 +393,17 @@ public:
 	 *
 	 */
 	bool search(const KeyType& key, SDBCursor& locn);
+	
+	void optimize(){
+		string tempfile = _fileName+ ".swap";		
+		dump2f(tempfile);		
+		close();
+	    std::remove(_fileName.c_str() );
+		std::rename(tempfile.c_str(), _fileName.c_str() );
+		std::remove(tempfile.c_str());
+		open();		
+	}
+	
 private:
 	sdb_pnode* _root;
 	FILE* _dataFile;
@@ -722,9 +733,9 @@ template<typename KeyType, typename ValueType, typename LockType, bool fixed,
 	_isDelaySplit = true;
 	//_isDelaySplit = false;
 	_fileName = fileName;
-	_sfh.pageSize = 1024;
-	_sfh.maxKeys = 64;
-	_sfh.cacheSize = 1024*64;
+	//_sfh.pageSize = 1024;
+	//_sfh.maxKeys = 64;
+	//_sfh.cacheSize = 1024*64;
 
 	int len = _fileName.size();
 	if (_fileName[len-1] == '#') {
@@ -879,6 +890,12 @@ template<typename KeyType, typename ValueType, typename LockType, bool fixed,
 	sdb_pnode* child2 = parent->loadChild(childNum+1, _dataFile);
 
 	sdb_pnode* newChild = _allocateNode(true);
+	//swap fpos of newChild and child2
+	long tempfpos = child2->fpos;	
+	child2->fpos = newChild->fpos;
+	newChild->fpos = tempfpos;
+	
+	
 	newChild->isLeaf =true;
 	newChild->setCount(count3);
 	newChild->parent = parent;
