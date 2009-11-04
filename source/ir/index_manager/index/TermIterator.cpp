@@ -34,8 +34,7 @@ DiskTermIterator::DiskTermIterator(DiskTermReader* termReader)
         ,pCurTermInfo_(NULL)
         ,pCurTermPosting_(NULL)
         ,pInputDescriptor_(NULL)
-        ,currTermIter_(termReader->getTermReaderImpl()->pTermTable_->begin())
-        ,termIterEnd_(termReader->getTermReaderImpl()->pTermTable_->end())
+        ,nCurPos_(-1)
 {
 }
 
@@ -106,14 +105,13 @@ size_t DiskTermIterator::setBuffer(char* pBuffer,size_t bufSize)
 
 bool DiskTermIterator::next()
 {
-    if(currTermIter_ != termIterEnd_)
+    if(pTermReader_->getTermReaderImpl()->nTermCount_ > nCurPos_+1)			
     {
-        if (pCurTerm_ == NULL)
-            pCurTerm_ = new Term(pTermReader_->getFieldInfo()->getName(),currTermIter_->first);
-        else pCurTerm_->setValue(currTermIter_->first);
-
-        pCurTermInfo_ = &(currTermIter_->second);
-        ++currTermIter_;
+        if(pCurTerm_ == NULL)
+            pCurTerm_ = new Term(pTermReader_->getFieldInfo()->getName(),pTermReader_->getTermReaderImpl()->pTermTable_[++nCurPos_].tid);
+        else 
+            pCurTerm_->setValue(pTermReader_->getTermReaderImpl()->pTermTable_[++nCurPos_].tid);
+        pCurTermInfo_ = &(pTermReader_->getTermReaderImpl()->pTermTable_[nCurPos_].ti);
         return true;
     }
     else return false;
