@@ -394,7 +394,7 @@ public:
 			_root = new sdb_node(_sfh, _fileLock, _activeNodeNum);
 			_root->fpos = _sfh.rootPos;
 			_root->read(_dataFile);
-		}		
+		}
 		return _root;
 	}
 
@@ -680,6 +680,8 @@ template<typename KeyType, typename ValueType, typename LockType, bool fixed,
 		typename Alloc> bool sdb_btree< KeyType, ValueType, LockType, fixed,
 		Alloc>::search(const KeyType& key, SDBCursor& locn) {
 	//do Flush, when cache is full
+	if ( !_isOpen)
+		return false;
 	_flushCache();
 
 	locn.first = 0;
@@ -930,6 +932,8 @@ template<typename KeyType, typename ValueType, typename LockType, bool fixed,
 template<typename KeyType, typename ValueType, typename LockType, bool fixed,
 		typename Alloc> bool sdb_btree< KeyType, ValueType, LockType, fixed,
 		Alloc>::insert(const KeyType& key, const ValueType& value) {
+	if ( !_isOpen)
+		return false;
 	_flushCache();
 	if (_root->objCount >= _sfh.maxKeys) {
 		// Growing the tree happens by creating a new
@@ -1198,6 +1202,8 @@ template<typename KeyType, typename ValueType, typename LockType, bool fixed,
 template<typename KeyType, typename ValueType, typename LockType, bool fixed,
 		typename Alloc> bool sdb_btree< KeyType, ValueType, LockType, fixed,
 		Alloc>::_delete(sdb_node* nd, const KeyType& k) {
+	if ( !_isOpen)
+		return false;
 	bool ret = false;
 
 	// Find the object position. op will have the position
@@ -1451,7 +1457,7 @@ template<typename KeyType, typename ValueType, typename LockType, bool fixed,
 		Alloc>::open() {
 
 	if (_isOpen)
-		return false;
+		return true;
 
 	// We're creating if the file doesn't exist.
 
@@ -1524,6 +1530,8 @@ template<typename KeyType, typename ValueType, typename LockType, bool fixed,
 		typename Alloc> bool sdb_btree< KeyType, ValueType, LockType, fixed,
 		Alloc>::del(const KeyType& key) {
 
+	if ( !_isOpen)
+		return false;
 	_flushCache();
 	// Determine if the root node is empty.
 	bool ret = (_root->objCount != 0);
@@ -1569,6 +1577,8 @@ template<typename KeyType, typename ValueType, typename LockType, bool fixed,
 template<typename KeyType, typename ValueType, typename LockType, bool fixed,
 		typename Alloc> bool sdb_btree< KeyType, ValueType, LockType, fixed,
 		Alloc>::update(const KeyType& key, const ValueType& value) {
+	if ( !_isOpen)
+		return false;
 	SDBCursor locn(NULL, (size_t)-1);
 	if (search(key, locn) ) {
 		locn.first->values[locn.second] = value;
@@ -1587,6 +1597,8 @@ template<typename KeyType, typename ValueType, typename LockType, bool fixed,
 template<typename KeyType, typename ValueType, typename LockType, bool fixed,
 		typename Alloc> bool sdb_btree< KeyType, ValueType, LockType, fixed,
 		Alloc>::seq(SDBCursor& locn, ESeqDirection sdir) {
+	if ( !_isOpen)
+		return false;
 	if (_sfh.numItems <=0) {
 		return false;
 	}
