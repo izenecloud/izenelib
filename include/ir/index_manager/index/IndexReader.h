@@ -60,7 +60,7 @@ public:
     /// mark a document as deleted;
     void delDocument(collectionid_t colID, docid_t docId);
 
-    size_t getDistinctNumTerms(collectionid_t colID, fieldid_t fid);
+    size_t getDistinctNumTerms(collectionid_t colID, const std::string& property);
 
     BitVector* getDocFilter() { return pDocFilter_; }
 

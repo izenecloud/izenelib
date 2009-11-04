@@ -77,10 +77,10 @@ void MultiIndexBarrelReader::addReader(BarrelInfo* pBarrelInfo)
     readers_.push_back(new BarrelReaderEntry(pIndexer,pBarrelInfo));
 }
 
-size_t MultiIndexBarrelReader::getDistinctNumTerms(collectionid_t colID, fieldid_t fid)
+size_t MultiIndexBarrelReader::getDistinctNumTerms(collectionid_t colID, const std::string& property)
 {
     size_t num = 0;
     for(vector<BarrelReaderEntry*>::iterator iter = readers_.begin(); iter != readers_.end(); ++iter)
-        num += (*iter)->pBarrelReader_->getDistinctNumTerms(colID,fid);
+        num += (*iter)->pBarrelReader_->getDistinctNumTerms(colID,property);
     return num;
 }
