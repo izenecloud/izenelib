@@ -396,10 +396,9 @@ void Indexer::flush()
     pBTreeIndexer_->flush();
 }
 
-size_t Indexer::getDistinctNumTermsByProperty(collectionid_t colID, std::string property)
+size_t Indexer::getDistinctNumTermsByProperty(collectionid_t colID, const std::string& property)
 {
-    fieldid_t fid = getPropertyIDByName(colID,property);
-    return pIndexReader_->getDistinctNumTerms(colID, fid);
+    return pIndexReader_->getDistinctNumTerms(colID, property);
 }
 
 ///To be optimized: Using TermDocFreqs instead of TermPositions
