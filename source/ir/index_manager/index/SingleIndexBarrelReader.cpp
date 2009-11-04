@@ -111,9 +111,14 @@ TermReader* SingleIndexBarrelReader::termReader(collectionid_t colID)
     return termReaderMap_[colID];//->clone();
 }
 
-size_t SingleIndexBarrelReader::getDistinctNumTerms(collectionid_t colID, fieldid_t fid)
+size_t SingleIndexBarrelReader::getDistinctNumTerms(collectionid_t colID, const std::string& property)
 {
-    return (*pCollectionsInfo_)[colID]->getFieldsInfo()->getField(fid)->distinctNumTerms();
+    FieldsInfo* pFieldsInfo = (*pCollectionsInfo_)[colID]->getFieldsInfo();
+    FieldInfo* pFieldInfo = pFieldsInfo->getField(property.c_str());
+    if(NULL == pFieldInfo)
+        return 0;
+    else
+        return pFieldInfo->distinctNumTerms();
 }
 
 void SingleIndexBarrelReader::deleteDocumentPhysically(IndexerDocument* pDoc)

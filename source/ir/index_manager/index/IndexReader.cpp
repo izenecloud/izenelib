@@ -235,7 +235,7 @@ TermInfo* IndexReader::termInfo(collectionid_t colID,Term* term)
     return 0;
 }
 
-size_t IndexReader::getDistinctNumTerms(collectionid_t colID, fieldid_t fid)
+size_t IndexReader::getDistinctNumTerms(collectionid_t colID, const std::string& property)
 {
     if (dirty_)
     {
@@ -256,6 +256,6 @@ size_t IndexReader::getDistinctNumTerms(collectionid_t colID, fieldid_t fid)
     {
         createBarrelReader();
     }
-    return pBarrelReader_->getDistinctNumTerms(colID, fid);
+    return pBarrelReader_->getDistinctNumTerms(colID, property);
 }
 

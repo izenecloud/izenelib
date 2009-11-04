@@ -493,6 +493,9 @@ public:
 		 }*/
 
 		uint32_t idx = sdb_hashing::hash_fun(ptr, ksize) & dmask_;
+		
+		if( entry_ == NULL )
+			return false;
 		locn.first = entry_[idx];
 
 		if( !entry_[idx] )
@@ -898,6 +901,8 @@ public:
 						directorySize_, dataFile_) )
 		return;
 		if (orderedCommit) {
+			if( ! entry_ )
+				return;			
 			typedef map<long, bucket_chain*> COMMIT_MAP;
 			typedef typename COMMIT_MAP::iterator CMIT;
 			COMMIT_MAP toBeWrited;

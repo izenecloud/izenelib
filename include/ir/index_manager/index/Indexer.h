@@ -74,7 +74,7 @@ public:
 
     int removeCollection(collectionid_t colID);
 
-    size_t getDistinctNumTermsByProperty(collectionid_t colID, std::string property);
+    size_t getDistinctNumTermsByProperty(collectionid_t colID, const std::string& property);
 	
     bool getDocsByTermInProperties(termid_t termID, collectionid_t colID, std::vector<std::string> properties, std::deque<docid_t>& docIds);
 

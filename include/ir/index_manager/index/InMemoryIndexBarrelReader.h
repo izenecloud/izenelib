@@ -30,7 +30,7 @@ public:
 
     void deleteDocumentPhysically(IndexerDocument* pDoc);
 
-    size_t getDistinctNumTerms(collectionid_t colID, fieldid_t fid);
+    size_t getDistinctNumTerms(collectionid_t colID, const std::string& property);
 
     void close();
 
