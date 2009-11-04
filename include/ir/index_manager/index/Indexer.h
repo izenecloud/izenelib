@@ -109,7 +109,7 @@ public:
     bool getDocsByPropertyValueSubString(collectionid_t colID, std::string property, PropertyType value, BitVector&docList);
 
 public:
-    void setIndexManagerConfig(IndexManagerConfig* pConfigManager,const std::map<std::string, uint32_t>& collectionIdMapping);
+    void setIndexManagerConfig(const IndexManagerConfig& config,const std::map<std::string, uint32_t>& collectionIdMapping);
 
     IndexManagerConfig* getIndexManagerConfig()
     {
