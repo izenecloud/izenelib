@@ -4,7 +4,7 @@
  * @file net/ServiceHandleHelperMacros.h
  * @author Ian Yang
  * @date Created <2009-10-23 10:30:12>
- * @date Updated <2009-11-02 11:43:47>
+ * @date Updated <2009-11-04 15:41:09>
  * @brief helper macros to simplify registering services in MFServer.
  *
  * Usage Example:
@@ -90,7 +90,7 @@ if (step == 0)                                                  \
 {                                                               \
     if (n == 0)                                                 \
     {                                                           \
-        n == 1;                                                 \
+        n = 1;                                                  \
     }                                                           \
     step = 1;                                                   \
 }                                                               \
