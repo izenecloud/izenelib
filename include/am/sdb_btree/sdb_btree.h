@@ -300,21 +300,27 @@ public:
 	 */
 	SDBCursor get_first_locn()
 	{
-		sdb_node* node = _root;
-		while( !node->isLeaf )
+		sdb_node* node = getRoot();
+		while( node && !node->isLeaf )
 		node = node->loadChild(0, _dataFile);
 		return SDBCursor(node, 0);
 	}
 
 	SDBCursor get_last_locn()
 	{
-		sdb_node* node = _root;
-		while( !node->isLeaf ) {
+		sdb_node* node = getRoot();
+		while(node && !node->isLeaf ) {
 			node = node->loadChild(node->objCount, _dataFile);
 		}
 		return SDBCursor(node, node->objCount-1);
 	}
 
+	/**
+	 * 	\brief get the next or prev item.
+	 *
+	 *  \locn when locn is default value, it will start with firt element when sdri=ESD_FORWARD
+	 *   and start with last element when sdir = ESD_BACKWARD
+	 */
 	bool seq(SDBCursor& locn, KeyType& key, ValueType& value, ESeqDirection sdir=ESD_FORWARD)
 	{
 		bool ret = seq(locn);
@@ -328,20 +334,6 @@ public:
 
 	bool seq(SDBCursor& locn, ESeqDirection sdir=ESD_FORWARD);
 
-	//bool seq(SDBCursor& locn, KeyType& key, ValueType& value, ESeqDirection sdir=ESD_FORWARD);
-
-	/**
-	 * 	\brief get the next or prev item.
-	 *
-	 *  \locn when locn is default value, it will start with firt element when sdri=ESD_FORWARD
-	 *   and start with last element when sdir = ESD_BACKWARD
-	 */
-	//bool
-	//seq(SDBCursor& locn, DataType<KeyType,ValueType>& rec,
-	//		ESeqDirection sdir = ESD_FORWARD) {
-	//	return seq(locn, rec.key, rec.value, sdir);
-	//}
-
 	/**
 	 * 	\brief write all the items in memory to file.
 	 */
@@ -351,10 +343,10 @@ public:
 	 * 	\brief write back the dirypages
 	 */
 	void commit() {
-		_flush(_root, _dataFile);
-
-		if(_root)
-		_sfh.rootPos = _root->fpos;
+		if(_root) {
+			_flush(_root, _dataFile);
+			_sfh.rootPos = _root->fpos;
+		}
 
 		if( !_dataFile )return;
 
@@ -396,15 +388,24 @@ public:
 	 *
 	 */
 	bool search(const KeyType& key, SDBCursor& locn);
-	
-	void optimize(){
-		string tempfile = _fileName+ ".swap";		
-		dump2f(tempfile);		
+
+	sdb_node* getRoot() {
+		if( _root == NULL ) {
+			_root = new sdb_node(_sfh, _fileLock, _activeNodeNum);
+			_root->fpos = _sfh.rootPos;
+			_root->read(_dataFile);
+		}		
+		return _root;
+	}
+
+	void optimize() {
+		string tempfile = _fileName+ ".swap";
+		dump2f(tempfile);
 		close();
-	    std::remove(_fileName.c_str() );
+		std::remove(_fileName.c_str() );
 		std::rename(tempfile.c_str(), _fileName.c_str() );
 		std::remove(tempfile.c_str());
-		open();		
+		open();
 	}
 private:
 	sdb_node* _root;
@@ -434,6 +435,7 @@ private:
 	}
 
 	void _flushCache() {
+		getRoot();
 		if( unloadbyRss ) {
 			//static unsigned int count;
 			//++count;
@@ -462,7 +464,7 @@ private:
 
 	//for seq, reset SDBCursor
 	void _flushCache(SDBCursor& locn) {
-
+		getRoot();
 		if( unloadbyRss ) {
 			//static unsigned int count;
 			++_flushCount;
@@ -708,7 +710,7 @@ template<typename KeyType, typename ValueType, typename LockType, bool fixed,
 		} else {
 			locn.first = temp;
 			locn.second = low;
-			
+
 			if (low >= (int)temp->objCount) {
 				locn.second = low - 1;
 				seq(locn);
@@ -792,14 +794,13 @@ template<typename KeyType, typename ValueType, typename LockType, bool fixed,
 	sdb_node* child1 = parent->loadChild(childNum, _dataFile);
 	sdb_node* child2 = parent->loadChild(childNum+1, _dataFile);
 
-	
 	sdb_node* newChild = _allocateNode();
-	
+
 	//swap newchild's fpos with child2	
-	long tempfpos = child2->fpos;	
+	long tempfpos = child2->fpos;
 	child2->fpos = newChild->fpos;
 	newChild->fpos = tempfpos;
-	
+
 	newChild->isLeaf =true;
 	newChild->setCount(count3);
 	newChild->parent = parent;
@@ -1483,8 +1484,8 @@ template<typename KeyType, typename ValueType, typename LockType, bool fixed,
 		_root = _allocateNode();
 		_root->isLeaf = true;
 		_root->isLoaded = true;
-		
-		commit();		
+
+		commit();
 		ret = true;
 
 	} else {
@@ -1507,9 +1508,10 @@ template<typename KeyType, typename ValueType, typename LockType, bool fixed,
 		_sfh.display();
 #endif
 
-		_root = new sdb_node(_sfh, _fileLock, _activeNodeNum);
-		_root->fpos = _sfh.rootPos;
-		_root->read(_dataFile);
+		_root = getRoot();
+		//		_root = new sdb_node(_sfh, _fileLock, _activeNodeNum);
+		//		_root->fpos = _sfh.rootPos;
+		//		_root->read(_dataFile);
 		ret = true;
 
 	}
@@ -1588,6 +1590,7 @@ template<typename KeyType, typename ValueType, typename LockType, bool fixed,
 	if (_sfh.numItems <=0) {
 		return false;
 	}
+	getRoot();
 	_root->parent = 0;
 	_flushCache(locn);
 	switch (sdir) {
@@ -1783,36 +1786,34 @@ template<typename KeyType, typename ValueType, typename LockType, bool fixed,
 // allocated.
 template<typename KeyType, typename ValueType, typename LockType, bool fixed,
 		typename Alloc> void sdb_btree< KeyType, ValueType, LockType, fixed,
-		Alloc>::flush() {	
+		Alloc>::flush() {
 
 	//write back the fileHead and dirtypage
-	commit();	
+	commit();
+	if (_root) {
+		delete _root;
+		_root = 0;
+	}
 
-	delete _root;
-	_root = new sdb_node(_sfh, _fileLock, _activeNodeNum);
-	_root->fpos = _sfh.rootPos;
-	_root->read(_dataFile);
-
-	return ;
-
-	
 	// Unload each of the root's childrent.
 	/*
-	if (_root && !_root->isLeaf) {
-		for (size_t i = 0; i < _root->objCount+1; i++) {
-			//sdb_node* pChild = _root->children[i];
-			//if ((sdb_node*)pChild != 0 && pChild->isLoaded)
-			{
-				_root->children[i]->unload();
-			}
-		}
-	}*/
+	 if (_root && !_root->isLeaf) {
+	 for (size_t i = 0; i < _root->objCount+1; i++) {
+	 //sdb_node* pChild = _root->children[i];
+	 //if ((sdb_node*)pChild != 0 && pChild->isLoaded)
+	 {
+	 _root->children[i]->unload();
+	 }
+	 }
+	 }*/
 
 	if (unloadbyRss) {
 		unsigned long vm = 0;
 		unsigned long rlimit;
 		ProcMemInfo::getProcMemInfo(vm, _initRss, rlimit);
 	}
+
+	return;
 }
 
 NS_IZENELIB_AM_END

@@ -311,16 +311,16 @@ public:
 	 */
 	SDBCursor get_first_locn()
 	{
-		sdb_pnode* node = _root;
-		while( !node->isLeaf )
+		sdb_pnode* node = getRoot();
+		while(node && !node->isLeaf )
 		node = node->loadChild(0, _dataFile);
 		return SDBCursor(node, 0);
 	}
 
 	SDBCursor get_last_locn()
 	{
-		sdb_pnode* node = _root;
-		while( !node->isLeaf ) {
+		sdb_pnode* node = getRoot();
+		while(node && !node->isLeaf ) {
 			node = node->loadChild(node->objCount -1 ,_dataFile);
 		}
 		return SDBCursor(node, node->objCount-1);
@@ -348,17 +348,15 @@ public:
 	 * 	\brief write back the dirypages
 	 */
 	void commit() {
-		_flush(_root, _dataFile);
-
-		if(_root)
-		_sfh.rootPos = _root->fpos;
-
+		if(_root) {
+			_flush(_root, _dataFile);
+			_sfh.rootPos = _root->fpos;
+		}
 		if( !_dataFile )return;
 
 		if ( 0 != fseek(_dataFile, 0, SEEK_SET)) {
 			abort();
 		}
-
 		//write back the fileHead later, for overflow may occur when
 		//flushing.
 		_sfh.toFile(_dataFile);
@@ -393,17 +391,26 @@ public:
 	 *
 	 */
 	bool search(const KeyType& key, SDBCursor& locn);
-	
-	void optimize(){
-		string tempfile = _fileName+ ".swap";		
-		dump2f(tempfile);		
+
+	void optimize() {
+		string tempfile = _fileName+ ".swap";
+		dump2f(tempfile);
 		close();
-	    std::remove(_fileName.c_str() );
+		std::remove(_fileName.c_str() );
 		std::rename(tempfile.c_str(), _fileName.c_str() );
 		std::remove(tempfile.c_str());
-		open();		
+		open();
 	}
-	
+
+	sdb_pnode* getRoot() {
+		if( _root == NULL ) {
+			_root = new sdb_pnode(_sfh, _fileLock, _activeNodeNum);
+			_root->fpos = _sfh.rootPos;
+			_root->read(_dataFile);
+		}
+		return _root;
+	}
+
 private:
 	sdb_pnode* _root;
 	FILE* _dataFile;
@@ -432,6 +439,7 @@ private:
 	}
 
 	void _flushCache() {
+		getRoot();
 		if( unloadbyRss ) {
 			//static unsigned int count;
 			//++count;
@@ -465,7 +473,7 @@ private:
 
 	//for seq, reset SDBCursor
 	void _flushCache(SDBCursor& locn) {
-
+		getRoot();
 		if( unloadbyRss ) {
 			//static unsigned int count;
 			++_flushCount;
@@ -538,7 +546,7 @@ private:
 		}
 
 		CMIT it = toBeWrited.begin();
-		for (; it != toBeWrited.end(); it++) {			
+		for (; it != toBeWrited.end(); it++) {
 			it->second->unload();
 		}
 
@@ -560,15 +568,15 @@ private:
 		while ( !qnode.empty() ) {
 			sdb_pnode* popNode = qnode.front();
 			qnode.pop();
-			if( _activeNodeNum> _sfh.cacheSize ) 
-				break;
+			if( _activeNodeNum> _sfh.cacheSize )
+			break;
 			if (popNode && popNode->isLoaded && !popNode->isLeaf) {
 				for(size_t i=0; i<popNode->objCount; i++)
-				{		
+				{
 					popNode->loadChild(i, _dataFile);
-					if( !popNode->children[i]->isLeaf ) {						
+					if( !popNode->children[i]->isLeaf ) {
 						qnode.push( popNode->children[i] );
-					}else{
+					} else {
 						goto LABEL;
 					}
 
@@ -891,11 +899,10 @@ template<typename KeyType, typename ValueType, typename LockType, bool fixed,
 
 	sdb_pnode* newChild = _allocateNode(true);
 	//swap fpos of newChild and child2
-	long tempfpos = child2->fpos;	
+	long tempfpos = child2->fpos;
 	child2->fpos = newChild->fpos;
 	newChild->fpos = tempfpos;
-	
-	
+
 	newChild->isLeaf =true;
 	newChild->setCount(count3);
 	newChild->parent = parent;
@@ -1262,13 +1269,13 @@ template<typename KeyType, typename ValueType, typename LockType, bool fixed,
 		_sfh.display();
 #endif
 		//sdb_pnode::initialize(_sfh.pageSize, _sfh.maxKeys);
-	
+
 		// If creating, allocate a node instead of
 		// reading one.
 		_root = _allocateNode(true);
 		_root->isLeaf = true;
 		_root->isLoaded = true;
-		commit();		
+		commit();
 		ret = true;
 
 	} else {
@@ -1291,12 +1298,13 @@ template<typename KeyType, typename ValueType, typename LockType, bool fixed,
 		_sfh.display();
 #endif
 
-		_root = new sdb_pnode(_sfh, _fileLock, _activeNodeNum);
-		_root->fpos = _sfh.rootPos;
-		_root->read(_dataFile);
+		_root = getRoot();
+		//		_root = new sdb_pnode(_sfh, _fileLock, _activeNodeNum);
+		//		_root->fpos = _sfh.rootPos;
+		//		_root->read(_dataFile);
 		if (loadIndexFirst)
 			_loadIndex();
-		ret = true;		
+		ret = true;
 		//display();
 	}
 	_isOpen = true;
@@ -1342,6 +1350,7 @@ template<typename KeyType, typename ValueType, typename LockType, bool fixed,
 	if (_sfh.numItems <=0) {
 		return false;
 	}
+	getRoot();
 	_root->parent = 0;
 	_flushCache(locn);
 	switch (sdir) {
@@ -1533,31 +1542,29 @@ template<typename KeyType, typename ValueType, typename LockType, bool fixed,
 
 	//write back the fileHead and dirtypage
 	commit();
-	
-
-	delete _root;
-	_root = new sdb_pnode(_sfh, _fileLock, _activeNodeNum);
-	_root->fpos = _sfh.rootPos;
-	_root->read(_dataFile);
-	return ;
+	if (_root) {
+		delete _root;
+		_root = 0;
+	}
 
 	/*
-	
-	// Unload each of the root's childrent.
-	if (_root && !_root->isLeaf) {
-		for (size_t i = 0; i < _root->objCount; i++) {
-			sdb_pnode* pChild = _root->children[i];
-			if ((sdb_pnode*)pChild != 0 && pChild->isLoaded) {
-				_root->children[i]->unload();
-			}
-		}
-	}*/
+	 
+	 // Unload each of the root's childrent.
+	 if (_root && !_root->isLeaf) {
+	 for (size_t i = 0; i < _root->objCount; i++) {
+	 sdb_pnode* pChild = _root->children[i];
+	 if ((sdb_pnode*)pChild != 0 && pChild->isLoaded) {
+	 _root->children[i]->unload();
+	 }
+	 }
+	 }*/
 
 	if (unloadbyRss) {
 		unsigned long vm = 0;
 		unsigned long rlimit;
 		ProcMemInfo::getProcMemInfo(vm, _initRss, rlimit);
 	}
+	return;
 }
 
 NS_IZENELIB_AM_END
