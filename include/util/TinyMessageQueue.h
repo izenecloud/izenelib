@@ -4,7 +4,7 @@
  * @file util/TinyMessageQueue.h
  * @author Ian Yang
  * @date Created <2009-11-01 21:50:36>
- * @date Updated <2009-11-01 23:00:42>
+ * @date Updated <2009-11-04 17:14:51>
  */
 
 #include <boost/thread/condition_variable.hpp>
@@ -36,6 +36,11 @@ public:
     {
         boost::unique_lock<boost::mutex> lock(mutex_);
         queue_.clear();
+    }
+
+    bool empty() const
+    {
+        return queue_.empty();
     }
 
 private:
