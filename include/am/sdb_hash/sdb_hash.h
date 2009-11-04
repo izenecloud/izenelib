@@ -901,8 +901,10 @@ public:
 		bucketAddr = 0;
 		delete [] entry_;
 		entry_ = 0;
-		fclose(dataFile_);
-		dataFile_ = 0;
+		if(dataFile_) {
+			fclose(dataFile_);
+			dataFile_ = 0;
+		}
 		return true;
 	}
 	/**
@@ -910,6 +912,8 @@ public:
 	 *
 	 */
 	void commit() {
+		if( !dataFile_ )
+		return;
 		sfh_.toFile(dataFile_);
 		if (directorySize_ != fwrite(bucketAddr, sizeof(long),
 						directorySize_, dataFile_) )
@@ -979,10 +983,12 @@ public:
 	}
 
 	void unload_() {
-		for (size_t i=0; i<directorySize_; i++) {
-			if (entry_[i]) {
-				delete entry_[i];
-				entry_[i] = 0;
+		if(entry_) {
+			for (size_t i=0; i<directorySize_; i++) {
+				if (entry_[i]) {
+					delete entry_[i];
+					entry_[i] = 0;
+				}
 			}
 		}
 		activeNum_ = 0;
