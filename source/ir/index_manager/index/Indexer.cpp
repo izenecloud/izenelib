@@ -86,7 +86,7 @@ const std::map<std::string, IndexerCollectionMeta>& Indexer::getCollectionsMeta(
     return pConfigurationManager_->getCollectionMetaNameMap();
 }
 
-void Indexer::setIndexManagerConfig(IndexManagerConfig* pConfigManager,
+void Indexer::setIndexManagerConfig(const IndexManagerConfig& config,
                                        const std::map<std::string, uint32_t>& collectionIdMapping)
 {
     if (pConfigurationManager_)
@@ -95,9 +95,10 @@ void Indexer::setIndexManagerConfig(IndexManagerConfig* pConfigManager,
 
     pConfigurationManager_ = new IndexManagerConfig();
 
-    *pConfigurationManager_ = *pConfigManager;
+    *pConfigurationManager_ = config;
 
-    const std::map<std::string, IndexerCollectionMeta>& collectionsMeta = pConfigManager->getCollectionMetaNameMap();
+    const std::map<std::string, IndexerCollectionMeta>& collectionsMeta =
+        pConfigurationManager_->getCollectionMetaNameMap();
     std::map<std::string, uint32_t>::const_iterator idIter;
     std::map<std::string, IndexerCollectionMeta>::const_iterator iter;
     map<std::string, IndexerCollectionMeta> collectionList;
