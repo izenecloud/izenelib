@@ -516,8 +516,8 @@ template<typename KeyType, typename ValueType, typename LockType,
 		typename ContainerType, typename Alloc> bool SequentialDB< KeyType,
 		ValueType, LockType, ContainerType, Alloc>::hasKey(const KeyType& key) {
 	lock_.acquire_read_lock();
-	ValueType* pv = container_.find(key);
-	bool ret = (pv != NULL );
+	SDBCursor locn;
+	bool ret = container_.search(key, locn);
 	lock_.release_read_lock();
 	return ret;
 
