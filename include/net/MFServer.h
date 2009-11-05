@@ -44,6 +44,11 @@ public:
         serviceHandle_ = serviceHandle;
     }
 
+    const boost::shared_ptr<ServiceHandle>& serviceHandle() const
+    {
+        return serviceHandle_;
+    }
+
     /// @warn must be called before addService
     void setAgentInfo(const std::string& agentInfo)
     {
