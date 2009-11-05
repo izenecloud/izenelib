@@ -220,6 +220,8 @@ public:
     for (uint8_t i =0; i<PARTIALS_SIZE; i++)      
       fclose(fhandlers_[i]);
     clean_fp();
+
+    delete fhandlers_;
   }
   
   size_t add_doc(uint32_t docid, const FpVector& fp)

@@ -68,13 +68,14 @@ template<typename T> void find_test(T& tb) {
 	start = clock();
 	ifstream inf(inputFile.c_str());
 	string ystr;
+	NullType val;
 	while (inf>>ystr) {
 		//cout<<"input ="<<ystr<<" "<<ystr.get_key()<<endl;		
 		if (trace) {
 			cout<<"finding: key="<<ystr<<endl;
 		}
 		sum++;
-		if (tb.find(ystr) ) {
+		if (tb.get(ystr, val) ) {
 			hit++;
 			if (trace)
 				cout<<"found!!"<<endl;
