@@ -120,13 +120,29 @@ protected:
     final_group_->flush();
   }
 
+  inline void reset_docid_hash()
+  {
+    for (uint32_t i=0 ;i<docid_hash_.length(); ++i)
+      if (docid_hash_.at(i) != NULL)
+      {
+        delete docid_hash_.at(i);
+        docid_hash_[i] = NULL;
+      }
+
+    if (docid_hash_.length() == 0)
+    {
+      docid_hash_.reserve(ENTRY_SIZE);
+      for (size_t i=0; i<ENTRY_SIZE; i++)
+        docid_hash_.add_tail(NULL);
+    }
+
+    assert(docid_hash_.length() == ENTRY_SIZE);
+  }
+
   inline void init_docid_hash()
   {
-    docid_hash_.reset();
-    docid_hash_.reserve(ENTRY_SIZE);
-    for (size_t i=0; i<ENTRY_SIZE; i++)
-      docid_hash_.add_tail(NULL);
-
+    reset_docid_hash();
+    
     for(size_t i=0; i<fp_list_->doc_num(); i++)
     {
       uint32_t docid = (*fp_list_)[i];
@@ -179,10 +195,7 @@ protected:
     if (f == NULL)
       return;
 
-    docid_hash_.reset();
-    docid_hash_.reserve(ENTRY_SIZE);
-    for (size_t i=0; i<ENTRY_SIZE; i++)
-      docid_hash_.add_tail(NULL);
+    reset_docid_hash();
 
     uint32_t i = -1;
     assert(fread(&i, sizeof(uint32_t), 1, f)==1);
@@ -232,12 +245,25 @@ public:
       delete group_;
     }
 
+    if (final_group_!=NULL)
+    {
+      final_group_->flush();
+      delete final_group_;
+    }
+
     for (uint8_t i=0; i<FP_HASH_NUM; i++)
       if (fp_hash_ptrs_[i]!= NULL)
     {
       fp_hash_ptrs_[i]->flush();
       delete fp_hash_ptrs_[i];
     }
+
+    for (uint32_t i=0 ;i<docid_hash_.length(); ++i)
+      if (docid_hash_.at(i) != NULL)
+      {
+        delete docid_hash_.at(i);
+        docid_hash_[i] = NULL;
+      }
   }
 
   inline void flush()
@@ -599,6 +625,12 @@ public:
 
     switch_docid_in_group();
     init_docid_hash();
+    
+    for (uint8_t i=0; i<FP_LENGTH/UNIT_LEN_; i++)
+      delete ht_ptrs_[i];
+
+    delete ht_ptrs_;
+    ht_ptrs_ = NULL;
   }
 
   inline bool exist(uint32_t docid)

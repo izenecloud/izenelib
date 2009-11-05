@@ -324,7 +324,7 @@ friend std::ostream& operator << (std::ostream& os, const LEAF_STRUCT& v)
 
 
 template<
-  uint32_t BUCKET_NUM = 800,//used for alpha sort, number of inputfiles
+  uint32_t BUCKET_NUM = 895,//used for alpha sort, number of inputfiles
   uint32_t BATCH_SAVE_SIZE = 100, //number of branch of root for one time saving.
   bool LEAN_MODE = false,
   class TERM_TYPE = uint32_t,
