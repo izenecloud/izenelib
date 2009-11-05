@@ -211,8 +211,10 @@ void FSDirectory::close()
     if (nRefCount < 1)
     {
         //TODO segment error here, why
-        getDirectoryMap().erase(directory);
-        delete this;
+        directory_map& dm = getDirectoryMap();
+        delete dm[directory];
+        //getDirectoryMap().erase(directory);
+       // delete this;
     }
 }
 
