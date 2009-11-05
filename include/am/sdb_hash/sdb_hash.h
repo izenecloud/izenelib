@@ -87,7 +87,6 @@ public:
 			izs1.write_image(ptr1, vsize_);
 			BucketGap = ksize_+vsize_ + sizeof(long)+sizeof(int)+sizeof(size_t);
 
-
 		}
 
 	}
@@ -100,16 +99,16 @@ public:
 		close();
 	}
 
-	void setDataSize(const KeyType& key, const ValueType& val){
+	void setDataSize(const KeyType& key, const ValueType& val) {
 		char* ptr = 0;
-		char* ptr1 = 0;		
+		char* ptr1 = 0;
 		izene_serialization<KeyType> izs(key );
 		izene_serialization<ValueType> izs1( val );
 		izs.write_image(ptr, ksize_);
 		izs1.write_image(ptr1, vsize_);
 		BucketGap = ksize_+vsize_ + sizeof(long)+sizeof(int)+sizeof(size_t);
 	}
-	
+
 	bool is_open() {
 		return isOpen_;
 	}
@@ -179,7 +178,8 @@ public:
 	 *  insert an item in key/value pair
 	 */
 	bool insert(const KeyType& key, const ValueType& value) {
-
+		if( !isOpen_ )
+		return false;
 		SDBCursor locn;
 		if( search(key, locn) )
 		return false;
@@ -223,7 +223,7 @@ public:
 			{
 				assert(locn.second != NULL);
 				if( !fixed )
-					BucketGap =	ksize+vsize + sizeof(long)+sizeof(int) +3*sizeof(size_t);
+				BucketGap = ksize+vsize + sizeof(long)+sizeof(int) +3*sizeof(size_t);
 
 				//add an extra size_t to indicate if reach the end of  bucket_chain.
 				if ( size_t(p - sa->str)> sfh_.bucketSize-BucketGap ) {
@@ -268,6 +268,8 @@ public:
 	 *  Note that, there will be memory leak if not delete the value
 	 */
 	ValueType* find(const KeyType & key) {
+		if( !isOpen_ )
+		return NULL;
 
 		SDBCursor locn;
 		if( !search(key, locn) )
@@ -297,6 +299,8 @@ public:
 
 	bool get(const KeyType& key, ValueType& value)
 	{
+		if( !isOpen_ )
+		return false;
 		SDBCursor locn;
 		if( !search(key, locn) )
 		return false;
@@ -324,6 +328,8 @@ public:
 	 *  delete  an item
 	 */
 	bool del(const KeyType& key) {
+		if( !isOpen_ )
+		return false;
 
 		SDBCursor locn;
 		if( !search(key, locn) )
@@ -374,6 +380,8 @@ public:
 	 *  update  an item by key/value pair
 	 */
 	bool update(const KeyType& key, const ValueType& value) {
+		if( !isOpen_ )
+		return false;
 		SDBCursor locn;
 		if( !search(key, locn) )
 		return insert(key, value);
@@ -475,6 +483,8 @@ public:
 	 */
 	bool search(const KeyType &key, SDBCursor &locn)
 	{
+		if( !isOpen_ )
+		return false;
 		flushCache_();
 
 		locn.first = NULL;
@@ -493,9 +503,9 @@ public:
 		 }*/
 
 		uint32_t idx = sdb_hashing::hash_fun(ptr, ksize) & dmask_;
-		
+
 		if( entry_ == NULL )
-			return false;
+		return false;
 		locn.first = entry_[idx];
 
 		if( !entry_[idx] )
@@ -614,6 +624,8 @@ public:
 
 	bool get(const SDBCursor& locn, KeyType& key, ValueType& val)
 	{
+		if( !isOpen_ )
+		return false;
 		bucket_chain* sa = locn.first;
 		char* p = locn.second;
 
@@ -672,11 +684,11 @@ public:
 	}
 
 	bool isEmptyBucket_(uint32_t idx, bucket_chain* &sa) {
-	    if(idx >= directorySize_)
-	    {
-            sa = NULL;
-            return false;
-	    }
+		if(idx >= directorySize_)
+		{
+			sa = NULL;
+			return false;
+		}
 
 		if( !entry_[idx] )
 		{
@@ -695,6 +707,8 @@ public:
 	}
 
 	bool seq(SDBCursor& locn, util::ESeqDirection sdir=util::ESD_FORWARD) {
+		if( !isOpen_ )
+		return false;
 		flushCache_(locn);
 		if( sdir == util::ESD_FORWARD ) {
 			bucket_chain* sa = locn.first;
@@ -738,7 +752,7 @@ public:
 
 							while( isEmptyBucket_(++idx, sa ) ) {
 								if( idx >= directorySize_ -1) {
-								    break;
+									break;
 								}
 							}
 
@@ -771,7 +785,7 @@ public:
 							uint32_t idx = sdb_hashing::hash_fun(ptr, poff) & dmask_;
 							while( isEmptyBucket_(++idx, sa ) ) {
 								if( idx >= directorySize_ -1) {
-								    break;
+									break;
 								}
 							}
 
@@ -887,8 +901,10 @@ public:
 		bucketAddr = 0;
 		delete [] entry_;
 		entry_ = 0;
-		fclose(dataFile_);
-		dataFile_ = 0;
+		if(dataFile_) {
+			fclose(dataFile_);
+			dataFile_ = 0;
+		}
 		return true;
 	}
 	/**
@@ -896,13 +912,15 @@ public:
 	 *
 	 */
 	void commit() {
+		if( !dataFile_ )
+		return;
 		sfh_.toFile(dataFile_);
 		if (directorySize_ != fwrite(bucketAddr, sizeof(long),
 						directorySize_, dataFile_) )
 		return;
 		if (orderedCommit) {
 			if( ! entry_ )
-				return;			
+			return;
 			typedef map<long, bucket_chain*> COMMIT_MAP;
 			typedef typename COMMIT_MAP::iterator CMIT;
 			COMMIT_MAP toBeWrited;
@@ -965,10 +983,12 @@ public:
 	}
 
 	void unload_() {
-		for (size_t i=0; i<directorySize_; i++) {
-			if (entry_[i]) {
-				delete entry_[i];
-				entry_[i] = 0;
+		if(entry_) {
+			for (size_t i=0; i<directorySize_; i++) {
+				if (entry_[i]) {
+					delete entry_[i];
+					entry_[i] = 0;
+				}
 			}
 		}
 		activeNum_ = 0;

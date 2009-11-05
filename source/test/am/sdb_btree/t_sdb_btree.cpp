@@ -475,14 +475,14 @@ int main(int argc, char *argv[]) {
 	try
 	{
 		cache10000_test();
-		SDB_BTREE tb(indexFile);
-		tb.setMaxKeys(maxKeys);
-		tb.setPageSize(pageSize);
+		SDB_BTREE* tb = new SDB_BTREE(indexFile);
+		tb->setMaxKeys(maxKeys);
+		tb->setPageSize(pageSize);
 		//tb.setCacheSize(cacheSize);
 		//open_test(tb);
 
-		tb.open();
-		run(tb);
+		tb->open();
+		run(*tb);
 
 	}
 	catch(bad_alloc)

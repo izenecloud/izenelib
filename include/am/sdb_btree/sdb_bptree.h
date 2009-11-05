@@ -774,6 +774,8 @@ template<typename KeyType, typename ValueType, typename LockType, bool fixed,
 template<typename KeyType, typename ValueType, typename LockType, bool fixed,
 		typename Alloc> bool sdb_bptree< KeyType, ValueType, LockType, fixed,
 		Alloc>::search(const KeyType& key, SDBCursor& locn) {
+	if ( !_isOpen)
+		return false;
 	//do Flush, when cache is full
 	_flushCache();
 
@@ -956,6 +958,8 @@ template<typename KeyType, typename ValueType, typename LockType, bool fixed,
 template<typename KeyType, typename ValueType, typename LockType, bool fixed,
 		typename Alloc> bool sdb_bptree< KeyType, ValueType, LockType, fixed,
 		Alloc>::insert(const KeyType& key, const ValueType& value) {
+	if ( !_isOpen)
+		return false;
 	_flushCache();
 	if (_root->objCount >= _sfh.maxKeys) {
 		// Growing the tree happens by creating a new
@@ -1244,7 +1248,7 @@ template<typename KeyType, typename ValueType, typename LockType, bool fixed,
 		Alloc>::open() {
 
 	if (_isOpen)
-		return false;
+		return true;
 
 	// We're creating if the file doesn't exist.
 
@@ -1329,6 +1333,8 @@ template<typename KeyType, typename ValueType, typename LockType, bool fixed,
 template<typename KeyType, typename ValueType, typename LockType, bool fixed,
 		typename Alloc> bool sdb_bptree< KeyType, ValueType, LockType, fixed,
 		Alloc>::update(const KeyType& key, const ValueType& value) {
+	if ( !_isOpen)
+		return false;
 	SDBCursor locn(NULL, (size_t)-1);
 	if (search(key, locn) ) {
 		locn.first->values[locn.second] = value;
@@ -1347,6 +1353,8 @@ template<typename KeyType, typename ValueType, typename LockType, bool fixed,
 template<typename KeyType, typename ValueType, typename LockType, bool fixed,
 		typename Alloc> bool sdb_bptree< KeyType, ValueType, LockType, fixed,
 		Alloc>::seq(SDBCursor& locn, ESeqDirection sdir) {
+	if ( !_isOpen)
+		return false;
 	if (_sfh.numItems <=0) {
 		return false;
 	}
