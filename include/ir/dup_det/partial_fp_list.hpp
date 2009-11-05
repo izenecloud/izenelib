@@ -222,6 +222,7 @@ public:
     clean_fp();
 
     delete fhandlers_;
+    delete fp_ptrs_;
   }
   
   size_t add_doc(uint32_t docid, const FpVector& fp)
