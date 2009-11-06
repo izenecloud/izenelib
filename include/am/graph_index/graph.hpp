@@ -777,9 +777,12 @@ public:
   {
     free_mem_();
 
-    fclose(nid_f_);
-    fclose(doc_f_);
-    fclose(leaf_f_);
+    if (nid_f_ != NULL)
+      fclose(nid_f_);
+    if (doc_f_ != NULL)
+      fclose(doc_f_);
+    if (leaf_f_ != NULL)
+      fclose(leaf_f_);
   }
 
   void release()
@@ -1152,6 +1155,8 @@ public:
     fclose(doc_f_);
     fclose(leaf_f_);
 
+    nid_f_ = doc_f_ = leaf_f_ = NULL;
+
     FILE* v_f = fopen((filenm_+".v").c_str(), "w+");
     nodes_.save(v_f);
     freqs_.save(v_f);
@@ -1205,6 +1210,8 @@ public:
     fclose(nid_f_);
     fclose(doc_f_);
     fclose(leaf_f_);
+
+    nid_f_ = doc_f_ = leaf_f_ = NULL;
 
     FILE* v_f = fopen((filenm_+".v").c_str(), "w+");
     nodes_.save(v_f);
@@ -1523,6 +1530,8 @@ friend std::ostream& operator <<(std::ostream& os, const self_t& g)
     fclose(doc_f_);
     fclose(leaf_f_);
 
+    nid_f_ = doc_f_ = leaf_f_ = NULL;
+
     //free_mem_();
 
     FILE* v_f = fopen((filenm_+".v").c_str(), "w+");
@@ -1574,6 +1583,8 @@ friend std::ostream& operator <<(std::ostream& os, const self_t& g)
     fclose(nid_f_);
     fclose(doc_f_);
     fclose(leaf_f_);
+
+    nid_f_ = doc_f_ = leaf_f_ = NULL;
 
     FILE* v_f = fopen((filenm_+".v").c_str(), "w+");
     nodes_.save(v_f);

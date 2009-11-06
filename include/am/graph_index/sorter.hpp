@@ -219,7 +219,8 @@ private:
     FILE* f = fopen((filenm_+".out").c_str(), "w+");
     assert(fwrite(&num_, sizeof(uint64_t), 1, f)==1);
 
-    f_ = fopen(filenm_.c_str(), "r");
+    if (f_ == NULL)
+      f_ = fopen(filenm_.c_str(), "r");
     fseek(f_, 0, SEEK_END);
     uint64_t fs = ftell(f_);
     
@@ -273,6 +274,7 @@ private:
     
     fclose(f);
     fclose(f_);
+    f_ = NULL;
 
     free(buf);
 
@@ -305,6 +307,8 @@ public:
       free(buf_);
     if (out_f_!=NULL)
       fclose(out_f_);
+    if (f_!=NULL)
+      fclose(f_);
   }
 
   void ready4add()
@@ -360,6 +364,7 @@ public:
     assert(fwrite(&num_, sizeof(uint64_t), 1, f_)==1);
     fflush(f_);
     fclose(f_);
+    f_ = NULL;
 
     for (uint32_t i=0; i<BUCKET_NUM; ++i)
     {
@@ -453,7 +458,8 @@ public:
       buf_ = (char*)malloc(BUF_SIZE);
     
     //out_f_ = fopen((filenm_+".out").c_str(), "r");
-    out_f_ = fopen((filenm_+".out").c_str(), "r");
+    if (out_f_==NULL)
+      out_f_ = fopen((filenm_+".out").c_str(), "r");
     assert(out_f_!=NULL);
     
     p_ = 0;
