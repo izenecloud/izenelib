@@ -47,3 +47,16 @@ size_t DocLengthReader::docLength(docid_t docId, fieldid_t fid)
     return data_[docId*numIndexedProperties_+propertyOffsetMap_[fid]];
 }
 
+double DocLengthReader::averagePropertyLength(fieldid_t fid)
+{
+    size_t totalLen = 0;
+    size_t maxDoc = size_/numIndexedProperties_;
+    for(size_t i = 0; i < maxDoc; ++i)
+    {
+       if(i*numIndexedProperties_ <= size_)
+           totalLen+= data_[i*numIndexedProperties_+propertyOffsetMap_[fid]];
+    }
+    return (double)totalLen/(double)maxDoc;
+}
+
+

@@ -75,6 +75,16 @@ size_t IndexReader::docLength(docid_t docId, fieldid_t fid)
     return pDocLengthReader_->docLength(docId, fid);
 }
 
+double IndexReader::getAveragePropertyLength(fieldid_t fid)
+{
+    assert(pDocLengthReader_ != NULL);
+    if (dirty_)
+    {
+        pDocLengthReader_->load(pBarrelsInfo_->maxDocId());
+    }
+    return pDocLengthReader_->averagePropertyLength(fid);
+}
+
 void IndexReader::createBarrelReader()
 {
     if (pBarrelReader_)

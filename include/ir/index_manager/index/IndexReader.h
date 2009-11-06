@@ -40,6 +40,8 @@ public:
 
     size_t docLength(docid_t docId, fieldid_t fid);
 
+    double getAveragePropertyLength(fieldid_t fid);
+
     freq_t docFreq(collectionid_t colID, Term* term);
 
     TermInfo* termInfo(collectionid_t colID, Term* term);
