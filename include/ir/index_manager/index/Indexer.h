@@ -33,6 +33,7 @@ namespace indexmanager{
 enum ManagerType
 {
     MANAGER_TYPE_LOCAL,       /// Deployed in a single machine
+    MANAGER_TYPE_NO_BTREE,   /// No btree
     MANAGER_TYPE_CLIENTPROCESS, /// Deployed as the client indexer
     MANAGER_TYPE_SERVERPROCESS, /// Deployed as the server indexer
     MANAGER_TYPE_FORWARDREADER_AND_MERGER ///Only read forwardindex and merge it if necessary

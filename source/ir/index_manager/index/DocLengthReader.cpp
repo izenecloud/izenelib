@@ -28,16 +28,19 @@ DocLengthReader::DocLengthReader(const std::set<IndexerPropertyConfig, IndexerPr
 DocLengthReader::~DocLengthReader()
 {
     delete propertyOffsetMap_;
-    if(data_) delete data_;
+    if(data_) {delete data_; data_ = NULL;}
 }
 
 void DocLengthReader::load(docid_t maxDocId)
 {
+    if(data_) {delete data_; data_ = NULL;}
+
     size_ = maxDocId * numIndexedProperties_;
     data_ = new uint16_t[size_];
     memset(data_, 0, size_*2);
     IndexInput* pInput = pDirectory_->openInput("doclen.map");
     pInput->readBytes((unsigned char*)data_, size_*2);
+    delete pInput;
 }
 
 size_t DocLengthReader::docLength(docid_t docId, fieldid_t fid)
@@ -51,10 +54,12 @@ double DocLengthReader::averagePropertyLength(fieldid_t fid)
 {
     size_t totalLen = 0;
     size_t maxDoc = size_/numIndexedProperties_;
+    unsigned char offset = propertyOffsetMap_[fid];
     for(size_t i = 0; i < maxDoc; ++i)
     {
-       if(i*numIndexedProperties_ <= size_)
-           totalLen+= data_[i*numIndexedProperties_+propertyOffsetMap_[fid]];
+       unsigned int docOffset = i*numIndexedProperties_;
+       if(docOffset <= size_)
+           totalLen+= data_[docOffset + offset];
     }
     return (double)totalLen/(double)maxDoc;
 }

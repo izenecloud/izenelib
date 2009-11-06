@@ -148,7 +148,7 @@ void Indexer::initIndexManager()
     {
         openDirectory();
 
-        if (!strcasecmp(pConfigurationManager_->storeStrategy_.param_.c_str(),"file"))
+        if ((!strcasecmp(pConfigurationManager_->storeStrategy_.param_.c_str(),"file"))&&(managerType_ != MANAGER_TYPE_NO_BTREE))
             pBTreeIndexer_ = new BTreeIndexer(pConfigurationManager_->indexStrategy_.indexLocation_, degree, cacheSize, maxDataSize);
 
     }
@@ -561,6 +561,7 @@ bool Indexer::getTermFrequencyInCollectionByTermId( const vector<termid_t>& term
 
 bool Indexer::getDocsByPropertyValue(collectionid_t colID, string property, PropertyType value, BitVector&docs)
 {
+    assert(managerType_ != MANAGER_TYPE_NO_BTREE);
     fieldid_t fid = getPropertyIDByName(colID,property);
     pBTreeIndexer_->getValue(colID, fid, value, docs);
     return true;
@@ -568,6 +569,7 @@ bool Indexer::getDocsByPropertyValue(collectionid_t colID, string property, Prop
 
 bool Indexer::getDocsByPropertyValueRange(collectionid_t colID, string property, PropertyType value1, PropertyType value2, BitVector&docs)
 {
+    assert(managerType_ != MANAGER_TYPE_NO_BTREE);
     fieldid_t fid = getPropertyIDByName(colID,property);
     pBTreeIndexer_->getValueBetween(colID, fid, value1, value2, docs);
     return true;
@@ -575,6 +577,7 @@ bool Indexer::getDocsByPropertyValueRange(collectionid_t colID, string property,
 
 bool Indexer::getDocsByPropertyValueLessThan(collectionid_t colID, string property, PropertyType value, BitVector&docList)
 {
+    assert(managerType_ != MANAGER_TYPE_NO_BTREE);
     fieldid_t fid = getPropertyIDByName(colID,property);
     pBTreeIndexer_->getValueLess(colID, fid, value, docList);
     return true;
@@ -582,6 +585,7 @@ bool Indexer::getDocsByPropertyValueLessThan(collectionid_t colID, string proper
 
 bool Indexer::getDocsByPropertyValueLessThanOrEqual(collectionid_t colID, string property, PropertyType value, BitVector&docList)
 {
+    assert(managerType_ != MANAGER_TYPE_NO_BTREE);
     fieldid_t fid = getPropertyIDByName(colID,property);
     pBTreeIndexer_->getValueLessEqual(colID, fid, value, docList);
     return true;
@@ -589,6 +593,7 @@ bool Indexer::getDocsByPropertyValueLessThanOrEqual(collectionid_t colID, string
 
 bool Indexer::getDocsByPropertyValueGreaterThan(collectionid_t colID, string property, PropertyType value, BitVector&docList)
 {
+    assert(managerType_ != MANAGER_TYPE_NO_BTREE);
     fieldid_t fid = getPropertyIDByName(colID,property);
     pBTreeIndexer_->getValueGreat(colID, fid, value, docList);
     return true;
@@ -596,6 +601,7 @@ bool Indexer::getDocsByPropertyValueGreaterThan(collectionid_t colID, string pro
 
 bool Indexer::getDocsByPropertyValueGreaterThanOrEqual(collectionid_t colID, string property, PropertyType value, BitVector&docList)
 {
+    assert(managerType_ != MANAGER_TYPE_NO_BTREE);
     fieldid_t fid = getPropertyIDByName(colID,property);
     pBTreeIndexer_->getValueGreatEqual(colID, fid, value, docList);
     return true;
@@ -603,6 +609,7 @@ bool Indexer::getDocsByPropertyValueGreaterThanOrEqual(collectionid_t colID, str
 
 bool Indexer::getDocsByPropertyValueIn(collectionid_t colID, string property, vector<PropertyType> values, BitVector&docList)
 {
+    assert(managerType_ != MANAGER_TYPE_NO_BTREE);
     fieldid_t fid = getPropertyIDByName(colID,property);
     pBTreeIndexer_->getValueIn(colID, fid, values, docList);
     return true;
@@ -610,6 +617,7 @@ bool Indexer::getDocsByPropertyValueIn(collectionid_t colID, string property, ve
 
 bool Indexer::getDocsByPropertyValueNotIn(collectionid_t colID, string property, vector<PropertyType> values, BitVector&docList)
 {
+    assert(managerType_ != MANAGER_TYPE_NO_BTREE);
     fieldid_t fid = getPropertyIDByName(colID,property);
     pBTreeIndexer_->getValueNotIn(colID, fid, values, docList);
     return true;
@@ -617,6 +625,7 @@ bool Indexer::getDocsByPropertyValueNotIn(collectionid_t colID, string property,
 
 bool Indexer::getDocsByPropertyValueNotEqual(collectionid_t colID, string property, PropertyType value, BitVector&docList)
 {
+    assert(managerType_ != MANAGER_TYPE_NO_BTREE);
     fieldid_t fid = getPropertyIDByName(colID,property);
     pBTreeIndexer_->getValueNotEqual(colID, fid, value, docList);
     return true;
@@ -624,6 +633,7 @@ bool Indexer::getDocsByPropertyValueNotEqual(collectionid_t colID, string proper
 
 bool Indexer::getDocsByPropertyValueStart(collectionid_t colID, string property, PropertyType value, BitVector&docList)
 {
+    assert(managerType_ != MANAGER_TYPE_NO_BTREE);
     fieldid_t fid = getPropertyIDByName(colID,property);
     pBTreeIndexer_->getValueStart(colID, fid, value, docList);
     return true;
@@ -631,6 +641,7 @@ bool Indexer::getDocsByPropertyValueStart(collectionid_t colID, string property,
 
 bool Indexer::getDocsByPropertyValueEnd(collectionid_t colID, string property, PropertyType value, BitVector&docList)
 {
+    assert(managerType_ != MANAGER_TYPE_NO_BTREE);
     fieldid_t fid = getPropertyIDByName(colID,property);
     pBTreeIndexer_->getValueEnd(colID, fid, value, docList);
     return true;
@@ -638,6 +649,7 @@ bool Indexer::getDocsByPropertyValueEnd(collectionid_t colID, string property, P
 
 bool Indexer::getDocsByPropertyValueSubString(collectionid_t colID, string property, PropertyType value, BitVector&docList)
 {
+    assert(managerType_ != MANAGER_TYPE_NO_BTREE);
     fieldid_t fid = getPropertyIDByName(colID,property);
     pBTreeIndexer_->getValueSubString(colID, fid, value, docList);
     return true;
@@ -646,8 +658,8 @@ bool Indexer::getDocsByPropertyValueSubString(collectionid_t colID, string prope
 void Indexer::optimizeIndex()
 {
     IndexMerger* pIndexMerger = new OfflineIndexMerger(pDirectory_, pBarrelsInfo_->getBarrelCount());
-
     pIndexWriter_->mergeIndex(pIndexMerger);
+    delete pIndexMerger;
 }
 
 
