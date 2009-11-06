@@ -149,10 +149,7 @@ void Indexer::initIndexManager()
         openDirectory();
 
         if ((!strcasecmp(pConfigurationManager_->storeStrategy_.param_.c_str(),"file"))&&(managerType_ != MANAGER_TYPE_NO_BTREE))
-        	{
-        	cout<<"impossible!!!!!!!!!!!!!"<<endl;
             pBTreeIndexer_ = new BTreeIndexer(pConfigurationManager_->indexStrategy_.indexLocation_, degree, cacheSize, maxDataSize);
-        	}
 
     }
     pIndexWriter_ = new IndexWriter(this);
