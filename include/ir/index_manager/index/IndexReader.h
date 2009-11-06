@@ -75,6 +75,7 @@ private:
     ///find which barrel the document lies
     BarrelInfo* findDocumentInBarrels(collectionid_t colID, docid_t docID);
 
+    void reload();
 private:
     Indexer* pIndexer_; ///reference to index object
 

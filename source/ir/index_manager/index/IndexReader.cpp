@@ -68,20 +68,14 @@ docid_t IndexReader::maxDoc()
 size_t IndexReader::docLength(docid_t docId, fieldid_t fid)
 {
     assert(pDocLengthReader_ != NULL);
-    if (dirty_)
-    {
-        pDocLengthReader_->load(pBarrelsInfo_->maxDocId());
-    }
+    reload();
     return pDocLengthReader_->docLength(docId, fid);
 }
 
 double IndexReader::getAveragePropertyLength(fieldid_t fid)
 {
     assert(pDocLengthReader_ != NULL);
-    if (dirty_)
-    {
-        pDocLengthReader_->load(pBarrelsInfo_->maxDocId());
-    }
+    reload();
     return pDocLengthReader_->averagePropertyLength(fid);
 }
 
@@ -119,7 +113,7 @@ void IndexReader::createBarrelReader()
 
 }
 
-TermReader* IndexReader::doGetTermReader_(collectionid_t colID)
+void IndexReader::reload()
 {
     if (dirty_)
     {
@@ -133,6 +127,8 @@ TermReader* IndexReader::doGetTermReader_(collectionid_t colID)
             delete pBarrelReader_;
             pBarrelReader_ = NULL;
         }
+        pDocLengthReader_->load(pBarrelsInfo_->maxDocId());
+
         dirty_ = false;
     }
 
@@ -140,7 +136,11 @@ TermReader* IndexReader::doGetTermReader_(collectionid_t colID)
     {
         createBarrelReader();
     }
+}
 
+TermReader* IndexReader::doGetTermReader_(collectionid_t colID)
+{
+    reload();
     return pBarrelReader_->termReader(colID);
 }
 
