@@ -148,7 +148,7 @@ void IndexWriter::mergeAndWriteCachedIndex()
 
 void IndexWriter::flush()
 {
-    if(!pIndexBarrelWriter_)
+    if((!pIndexBarrelWriter_)&&(nNumCacheUsed_ <=0 ))
         return;
     flushDocuments();
     BarrelInfo* pLastBarrel = pBarrelsInfo_->getLastBarrel();
