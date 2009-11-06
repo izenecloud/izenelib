@@ -22,6 +22,8 @@ public:
 
     size_t docLength(docid_t docId, fieldid_t fid);
 
+    double averagePropertyLength(fieldid_t fid);
+
 private:
     Directory* pDirectory_;
 
