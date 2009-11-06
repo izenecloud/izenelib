@@ -299,11 +299,6 @@ public:
     */
     int32_t numIndexFields();
 
-    FieldInfo* operator[](int32_t i)
-    {
-        return ppFieldsInfo[i];
-    }
-
     void startIterator();
 
     bool hasNext();
@@ -313,6 +308,8 @@ private:
     collectionid_t colId;
 
     std::map<std::string,FieldInfo*> fdInfosByName;
+
+    std::map<fieldid_t,FieldInfo*> fdInfosById;
 
     FieldInfo** ppFieldsInfo;
 
@@ -348,11 +345,11 @@ inline int32_t FieldsInfo::numIndexFields()
 }
 inline const char* FieldsInfo::getFieldName(fieldid_t fid)
 {
-    return ppFieldsInfo[fid]->getName();
+    return fdInfosById[fid]->getName();//ppFieldsInfo[fid]->getName();
 }
 inline FieldInfo* FieldsInfo::getField(fieldid_t fid)
 {
-    return ppFieldsInfo[fid];
+    return fdInfosById[fid];//ppFieldsInfo[fid];
 }
 
 }

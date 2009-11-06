@@ -54,6 +54,7 @@ void FieldsInfo::setSchema(const IndexerCollectionMeta& collectionMeta)
                                                            it->isIndex());
            ppFieldsInfo[n]->setColID(colId);
            fdInfosByName.insert(make_pair(ppFieldsInfo[n]->getName(),ppFieldsInfo[n]));
+           fdInfosById.insert(make_pair(it->getPropertyId(),ppFieldsInfo[n]));
            n++;
 	}
     }
@@ -119,6 +120,7 @@ void FieldsInfo::read(IndexInput* pIndexInput)
 
             ppFieldsInfo[i] = pInfo;
             fdInfosByName.insert(pair<string,FieldInfo*>(pInfo->getName(),pInfo));
+            fdInfosById.insert(make_pair(pInfo->getID(),pInfo));
         }
 
     }
@@ -188,6 +190,7 @@ void FieldsInfo::clear()
     nNumFieldInfo = 0;
 
     fdInfosByName.clear();
+    fdInfosById.clear();
 }
 
 void FieldsInfo::reset()
@@ -200,21 +203,22 @@ void FieldsInfo::reset()
 
 void FieldsInfo::setFieldOffset(fieldid_t fid,fileoffset_t offset)
 {
-    ppFieldsInfo[fid]->setIndexOffset(offset);
+    //ppFieldsInfo[fid]->setIndexOffset(offset);
+    fdInfosById[fid]->setIndexOffset(offset);
 }
 fileoffset_t FieldsInfo::getFieldOffset(fieldid_t fid)
 {
-    return ppFieldsInfo[fid]->getIndexOffset();
+    return fdInfosById[fid]->getIndexOffset();//ppFieldsInfo[fid]->getIndexOffset();
 }
 
 void FieldsInfo::setDistinctNumTerms(fieldid_t fid,uint64_t distterms)
 {
-    ppFieldsInfo[fid]->setDistinctNumTerms(distterms);
+    fdInfosById[fid]->setDistinctNumTerms(distterms);//ppFieldsInfo[fid]->setDistinctNumTerms(distterms);
 }
 
 uint64_t FieldsInfo::distinctNumTerms(fieldid_t fid)
 {
-    return ppFieldsInfo[fid]->distinctNumTerms();
+    return fdInfosById[fid]->distinctNumTerms();//ppFieldsInfo[fid]->distinctNumTerms();
 }
 
 fieldid_t FieldsInfo::getFieldID(const char* fname)

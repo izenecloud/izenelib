@@ -49,7 +49,7 @@ public:
     void addPropertyConfig( const IndexerPropertyConfig & property )
     {
         schema_.insert( property );
-        initDocumentSchema();///bad smell here
+        //initDocumentSchema();///bad smell here
     }
 
 
