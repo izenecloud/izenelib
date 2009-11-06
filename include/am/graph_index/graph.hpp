@@ -751,8 +751,17 @@ class Graph
         loads_[i] = 0;
       }
   }
-  
 
+  void open_files_()
+  {
+    if (nid_f_ == NULL)
+      nid_f_ = fopen((filenm_+".nid").c_str(), "r+");
+    if (doc_f_ == NULL)
+      doc_f_ = fopen((filenm_+".doc").c_str(), "r+");
+    if (leaf_f_ == NULL)
+      leaf_f_ = fopen((filenm_+".lea").c_str(), "r+");
+  }
+  
 public:
   inline Graph(const char* nm)
   {
@@ -760,11 +769,20 @@ public:
     filenm_ = nm;
     filenm_ += "/graph";
     doc_num_ = 0;
+
+    nid_f_ = doc_f_ = leaf_f_ = NULL;
   }
 
   ~Graph()
   {
     free_mem_();
+
+    if (nid_f_ != NULL)
+      fclose(nid_f_);
+    if (doc_f_ != NULL)
+      fclose(doc_f_);
+    if (leaf_f_ != NULL)
+      fclose(leaf_f_);
   }
 
   void release()
@@ -802,10 +820,12 @@ public:
     loads_.reserve(nodes_.length());
     for (NID_LEN_TYPE i=0; i<nodes_.length(); ++i)
       loads_.push_back(0);      
+
+    open_files_();
     
-    nid_f_ = fopen((filenm_+".nid").c_str(), "r+");
-    doc_f_ = fopen((filenm_+".doc").c_str(), "r+");
-    leaf_f_ = fopen((filenm_+".lea").c_str(), "r+");
+//     nid_f_ = fopen((filenm_+".nid").c_str(), "r+");
+//     doc_f_ = fopen((filenm_+".doc").c_str(), "r+");
+//     leaf_f_ = fopen((filenm_+".lea").c_str(), "r+");
   }
 
   uint32_t doc_num()const
@@ -1135,6 +1155,8 @@ public:
     fclose(doc_f_);
     fclose(leaf_f_);
 
+    nid_f_ = doc_f_ = leaf_f_ = NULL;
+
     FILE* v_f = fopen((filenm_+".v").c_str(), "w+");
     nodes_.save(v_f);
     freqs_.save(v_f);
@@ -1189,6 +1211,8 @@ public:
     fclose(doc_f_);
     fclose(leaf_f_);
 
+    nid_f_ = doc_f_ = leaf_f_ = NULL;
+
     FILE* v_f = fopen((filenm_+".v").c_str(), "w+");
     nodes_.save(v_f);
     freqs_.save(v_f);
@@ -1229,10 +1253,11 @@ public:
     for (NID_LEN_TYPE i=0; i<nodes_.length(); ++i)
       loads_.push_back(0);
       
+    open_files_();
     
-    nid_f_ = fopen((filenm_+".nid").c_str(), "r");
-    doc_f_ = fopen((filenm_+".doc").c_str(), "r");
-    leaf_f_ = fopen((filenm_+".lea").c_str(), "r");
+//     nid_f_ = fopen((filenm_+".nid").c_str(), "r");
+//     doc_f_ = fopen((filenm_+".doc").c_str(), "r");
+//     leaf_f_ = fopen((filenm_+".lea").c_str(), "r");
 
     load_edge_(0, ratio);
 
@@ -1505,6 +1530,8 @@ friend std::ostream& operator <<(std::ostream& os, const self_t& g)
     fclose(doc_f_);
     fclose(leaf_f_);
 
+    nid_f_ = doc_f_ = leaf_f_ = NULL;
+
     //free_mem_();
 
     FILE* v_f = fopen((filenm_+".v").c_str(), "w+");
@@ -1556,6 +1583,8 @@ friend std::ostream& operator <<(std::ostream& os, const self_t& g)
     fclose(nid_f_);
     fclose(doc_f_);
     fclose(leaf_f_);
+
+    nid_f_ = doc_f_ = leaf_f_ = NULL;
 
     FILE* v_f = fopen((filenm_+".v").c_str(), "w+");
     nodes_.save(v_f);
