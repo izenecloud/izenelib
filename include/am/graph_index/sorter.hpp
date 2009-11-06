@@ -288,6 +288,7 @@ public:
     if (f_ == NULL)
     {
       f_ = fopen(filenm_.c_str(), "w+");
+      assert(f_ != NULL);
       assert(fwrite(&num_, sizeof(uint64_t), 1, f_)==1);
     }
     else
