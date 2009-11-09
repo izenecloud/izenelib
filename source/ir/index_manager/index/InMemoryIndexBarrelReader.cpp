@@ -48,10 +48,6 @@ InMemoryIndexBarrelReader::InMemoryIndexBarrelReader(IndexBarrelWriter* pIndexBa
                 }
             }
         }
-        else
-        {
-            SF1V5_LOG(level::warn) << "No in-memory field indexer." << SF1V5_ENDL;
-        }
 
         termReaderMap.insert(pair<collectionid_t, TermReader*>(pColInfo->getId(), pTermReader));
     }

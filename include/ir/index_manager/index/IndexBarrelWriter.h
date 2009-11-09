@@ -9,7 +9,6 @@
 
 #include <ir/index_manager/utility/system.h>
 #include <ir/index_manager/utility/MemCache.h>
-#include <ir/index_manager/utility/Logger.h>
 #include <ir/index_manager/store/Directory.h>
 
 #include <ir/index_manager/index/IndexerDocument.h>
