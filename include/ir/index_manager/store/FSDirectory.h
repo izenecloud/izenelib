@@ -10,7 +10,6 @@
 #include <ir/index_manager/store/Directory.h>
 #include <ir/index_manager/store/IndexInput.h>
 #include <ir/index_manager/store/IndexOutput.h>
-#include <ir/index_manager/utility/Logger.h>
 #include <ir/index_manager/utility/system.h>
 
 #include <boost/thread.hpp>

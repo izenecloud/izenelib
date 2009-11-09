@@ -208,7 +208,6 @@ ReaderCache* MultiTermReader::loadReader(const char* field)
     {
         readerCache.insert(pair<string,ReaderCache*>(field,pHeadList));
     }
-    else SF1V5_LOG(level::warn) << "No such field:" << field << SF1V5_ENDL;
     return pHeadList;
 }
 

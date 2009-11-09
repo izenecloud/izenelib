@@ -6,6 +6,8 @@
 #include <ir/index_manager/utility/ParamParser.h>
 #include <ir/index_manager/utility/StringUtils.h>
 
+#include <util/izene_log.h>
+
 #include <sstream>
 #include <memory>
 #include <algorithm>
@@ -195,15 +197,7 @@ void IndexMerger::continueDocIDs(BarrelsInfo* pBarrelsInfo)
 
 void IndexMerger::mergeBarrel(MergeBarrel* pBarrel)
 {
-    //////////////////////////////////////////////////////////////////////////
-    SF1V5_LOG(level::info) << "Begin merge: " << SF1V5_END;
-    BarrelInfo* pBaInfo;
-    for (int32_t i = 0;i < (int32_t)pBarrel->size();i++)
-    {
-        pBaInfo = pBarrel->getAt(i)->pBarrelInfo;
-        SF1V5_LOG(level::info) << "\t" << i << ":" << pBaInfo->getDocCount() << SF1V5_END;
-    }
-    //////////////////////////////////////////////////////////////////////////
+    DLOG(INFO)<< "Begin merge: " << endl;
     pBarrel->load();
     string newBarrelName = pBarrel->getIdentifier();
     BarrelInfo* pNewBarrelInfo = new BarrelInfo(newBarrelName,0);
@@ -277,7 +271,6 @@ void IndexMerger::mergeBarrel(MergeBarrel* pBarrel)
 
     for (vector<collectionid_t>::const_iterator p = colIDSet.begin(); p != colIDSet.end(); ++p)
     {
-        cout<<"merge  colid= "<<*p<<endl;
         bFinish = false;
         fieldid = 0;
         pFieldsInfo = NULL;
@@ -402,7 +395,7 @@ void IndexMerger::mergeBarrel(MergeBarrel* pBarrel)
     pOutputDesc = NULL;
 
     //////////////////////////////////////////////////////////////////////////
-    SF1V5_LOG(level::info) << "End merge: " << pNewBarrelInfo->getDocCount() << SF1V5_END;
+    DLOG(INFO) << "End merge: " << pNewBarrelInfo->getDocCount() << endl;
 
     MergeBarrelEntry* pNewEntry = new MergeBarrelEntry(pDirectory,pNewBarrelInfo);
     addBarrel(pNewEntry);

@@ -75,7 +75,6 @@ void CollectionsInfo::read(IndexInput* pIndexInput)
         int32_t count = pIndexInput->readInt(); ///<CollectionsCount(Int32)>
         if (count <= 0)
         {
-            SF1V5_LOG(level::warn) << "CollectionsInfo::read():collection count <=0." << SF1V5_ENDL;
             return ;
         }
 

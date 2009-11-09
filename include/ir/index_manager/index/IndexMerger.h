@@ -8,7 +8,6 @@
 #define INDEXMERGER_H
 
 #include <ir/index_manager/store/Directory.h>
-#include <ir/index_manager/utility/Logger.h>
 #include <ir/index_manager/utility/PriorityQueue.h>
 #include <ir/index_manager/index/BarrelInfo.h>
 #include <ir/index_manager/index/CollectionInfo.h>
