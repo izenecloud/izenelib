@@ -217,6 +217,7 @@ public:
         // so it doesn't effect the perforamnce.
         if( ! IsEmpty<RegExpHandler>::value )
             return handler_.findRegExp(exp, results);
+            // Files has been truncated in joinThread
         return false;
     }
 
@@ -255,10 +256,19 @@ public:
 
             filelock_.acquire_write_lock();
             // Reopen write pipes
-            rawTextFile_.open(rawTextFileName_.c_str(), std::ofstream::out|std::ofstream::app);
+
+            // warn!!! truncate files
+            rawTextFile_.open(
+                rawTextFileName_.c_str(),
+                std::ofstream::out|std::ofstream::app|std::ofstream::trunc
+            );
             if(rawTextFile_.fail())
                 std::cerr << "bad file " << rawTextFileName_ << std::endl;
-            rawIdFile_.open(rawIdFileName_.c_str(), std::ofstream::out|std::ofstream::app|std::ofstream::binary );
+            rawIdFile_.open(
+                rawIdFileName_.c_str(),
+                std::ofstream::out|std::ofstream::app|std::ofstream::trunc|
+                std::ofstream::binary
+            );
             if(rawIdFile_.fail())
                 std::cerr << "bad file " << rawIdFileName_ << std::endl;
             filelock_.release_write_lock();
