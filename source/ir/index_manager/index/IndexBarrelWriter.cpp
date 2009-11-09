@@ -1,6 +1,7 @@
 #include <ir/index_manager/index/IndexBarrelWriter.h>
 #include <ir/index_manager/index/Indexer.h>
 
+#include <util/izene_log.h>
 
 using namespace izenelib::ir::indexmanager;
 
@@ -92,7 +93,7 @@ void IndexBarrelWriter::writeCache()
 {
     try
     {
-        SF1V5_LOG(level::info) << "IndexBarrelWriter:Begin write cache..." << SF1V5_ENDL;
+        DLOG(INFO) << "Write Index Barrel" << endl;
 
         string s = barrelName +".voc";
         IndexOutput* pVocOutput = pDirectory->createOutput(s.c_str());

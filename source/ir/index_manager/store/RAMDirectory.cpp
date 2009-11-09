@@ -246,10 +246,7 @@ void RAMDirectory::batDeleteFiles(const string& filename,bool throwError)
     }
     catch (...)
     {
-        if (throwError)
-            SF1V5_THROW(ERROR_FILEIO,"void RAMDirectory::batDeleteFiles()");
-        else
-            SF1V5_LOG(level::warn) << " delete files error:" << filename << SF1V5_ENDL;
+        SF1V5_THROW(ERROR_FILEIO,"void RAMDirectory::batDeleteFiles()");
     }
 }
 

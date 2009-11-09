@@ -7,7 +7,6 @@
 #ifndef COLLECTIONINFO_H
 #define COLLECTIONINFO_H
 
-#include <ir/index_manager/utility/Logger.h>
 #include <ir/index_manager/index/FieldInfo.h>
 
 #include <map>

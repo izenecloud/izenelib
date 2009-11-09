@@ -463,7 +463,7 @@ private:
 					_flushLeaves();
 				}
 			}
-			if( _activeNodeNum> _sfh.cacheSize )
+			if( _activeNodeNum> _sfh.cacheSize/2 )
 			{
 				_flushCacheImpl(quickFlush);
 			}
@@ -500,7 +500,7 @@ private:
 					_flushLeaves();
 				}
 			}
-			if( _activeNodeNum> _sfh.cacheSize )
+			if( _activeNodeNum> _sfh.cacheSize/2 )
 			{
 				KeyType key;
 				ValueType value;

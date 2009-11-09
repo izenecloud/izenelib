@@ -1,5 +1,7 @@
 #include <ir/index_manager/index/FieldInfo.h>
 
+#include <util/izene_log.h>
+
 using namespace std;
 using namespace boost;
 
@@ -90,7 +92,7 @@ void FieldsInfo::read(IndexInput* pIndexInput)
 
         if (count <= 0)
         {
-            SF1V5_LOG(level::warn) << "FieldsInfo::read():field count <=0." << SF1V5_ENDL;
+            DLOG(INFO) << "FieldsInfo::read():field count <=0." << endl;
             return ;
         }
         nNumFieldInfo = count;
@@ -115,7 +117,7 @@ void FieldsInfo::read(IndexInput* pIndexInput)
                 pInfo->dfiLength = pIndexInput->readLong();
                 pInfo->ptiLength = pIndexInput->readLong();
 
-                cout<<"FieldInfo:"<<"indexoffset "<<pInfo->getIndexOffset()<<" distinctnumterms "<<pInfo->distinctNumTerms()<<" voclength "<<pInfo->vocLength<<" dfilength "<<pInfo->dfiLength<<" ptilength "<<pInfo->ptiLength<<endl;
+                DLOG(INFO)<<"FieldInfo:"<<"indexoffset "<<pInfo->getIndexOffset()<<" distinctnumterms "<<pInfo->distinctNumTerms()<<" voclength "<<pInfo->vocLength<<" dfilength "<<pInfo->dfiLength<<" ptilength "<<pInfo->ptiLength<<endl;
             }
 
             ppFieldsInfo[i] = pInfo;
