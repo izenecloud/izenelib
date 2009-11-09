@@ -11,6 +11,7 @@
 #include <ir/dup_det/group_table.hpp>
 #include <ir/dup_det/prime_gen.hpp>
 #include <sys/time.h>
+#include <math.h>
 
 NS_IZENELIB_IR_BEGIN
 
@@ -44,7 +45,7 @@ protected:
   FpHashT* fp_hash_ptrs_[FP_HASH_NUM];//docid to address of FP hash table
   Vector32Ptr docid_hash_;
   std::string filenm_;
-  static Prime* prime_;
+  //  static Prime* prime_;
   
 
   inline bool broder_compare(const uint64_t* p1, const uint64_t* p2, uint8_t threshold = 1)
@@ -210,7 +211,30 @@ protected:
 
     fclose(f);
   }
+
   
+  void prime_gen(uint32_t s, Vector32& v)
+  {
+    for (uint32_t i = 3; v.length()<s; ++i)
+    {
+      uint32_t k = (uint32_t)sqrt(i);
+      if (k*k == i)
+        continue;
+
+      uint32_t j=3;
+      for (; j<k; ++j)
+        if (i%j==0)
+          break;
+
+      if (j == k)
+      {
+        v.push_back(i);
+        //std::cout<<i<<std::endl;
+        //i is prime number
+      }
+    }
+  }
+
   
 public:
   inline FpIndex(const char* filenm, uint8_t unit_len=2)
@@ -549,11 +573,15 @@ public:
       fp_hash_ptrs_[i]->ready_for_find();
     }
     
-    Vector32 prime(doc_num);
-    for (size_t i=0; i<doc_num; i++)
-    {
-      prime.add_tail(prime_->next());//std::cout<<prime[i]<<std::endl;
-    }
+    Vector32 prime(doc_num+start);
+    prime_gen(doc_num+start, prime);
+    assert(prime.length() == doc_num+start);
+    Vector32 primeO = prime;
+    
+//     for (size_t i=0; i<doc_num; i++)
+//     {
+//       prime.add_tail(prime_->next());//std::cout<<prime[i]<<std::endl;
+//     }
     
     //prime.add_tail(3);
 
@@ -584,15 +612,19 @@ public:
             size_t index = v.at(h);
             uint32_t docid2 = index;//fps[index];
 
-            if (prime.at(docid1)%(*prime_)[docid2]==0)
+            //if (prime.at(docid1)%(*prime_)[docid2]==0)
+            if (prime.at(docid1)%primeO.at(docid2)==0)
             {
               f = true;
               continue;
             }
             
-            prime[docid1] *= (*prime_)[docid2];
-            prime[docid2] *= (*prime_)[docid1];
+//             prime[docid1] *= (*prime_)[docid2];
+//             prime[docid2] *= (*prime_)[docid1];
             
+            prime[docid1] *= primeO.at(docid2);
+            prime[docid2] *= primeO.at(docid1);
+
             const uint64_t* p2 = fp_hash_ptrs_[docid2%FP_HASH_NUM]->find(docid2/FP_HASH_NUM);
 
 //             std::cout<<docid1<<" "<<(*p1)<<std::endl;
@@ -674,15 +706,15 @@ public:
   ;
 
 
-template <
-  uint8_t  FP_HASH_NUM,
-  class    UNIT_TYPE,
-  uint8_t  FP_LENGTH,
-  uint32_t CACHE_SIZE,
-  uint32_t ENTRY_SIZE
-  >
-izenelib::ir::PrimeGen<>* FpIndex<FP_HASH_NUM,UNIT_TYPE,FP_LENGTH,
-                                 CACHE_SIZE,ENTRY_SIZE>::prime_ =  new izenelib::ir::PrimeGen<>("./prime_num");
+// template <
+//   uint8_t  FP_HASH_NUM,
+//   class    UNIT_TYPE,
+//   uint8_t  FP_LENGTH,
+//   uint32_t CACHE_SIZE,
+//   uint32_t ENTRY_SIZE
+//   >
+// izenelib::ir::PrimeGen<>* FpIndex<FP_HASH_NUM,UNIT_TYPE,FP_LENGTH,
+//                                  CACHE_SIZE,ENTRY_SIZE>::prime_ =  new izenelib::ir::PrimeGen<>("./prime_num");
 
 NS_IZENELIB_IR_END
 
