@@ -48,11 +48,11 @@ public:
   {
     struct LIST_HEAD head;
     fseek(f, addr, SEEK_SET);
-    assert(fread(&head, sizeof(struct LIST_HEAD),1,f)==1);
+    ASSERT(fread(&head, sizeof(struct LIST_HEAD),1,f)==1);
     
     buf_ = (char*)malloc(sizeof(struct LIST_HEAD)+head.num*sizeof(DOCID_TYPE));
     GET_MAX_NUM(buf_) = GET_NUM(buf_) = head.num;
-    assert(fread(buf_+sizeof(struct LIST_HEAD), GET_NUM(buf_)*sizeof(DOCID_TYPE),1, f)==1);
+    ASSERT(fread(buf_+sizeof(struct LIST_HEAD), GET_NUM(buf_)*sizeof(DOCID_TYPE),1, f)==1);
   }
 
   ~DocList()
@@ -113,7 +113,7 @@ public:
 
   DOCID_TYPE operator [](uint32_t i)const
   {
-    assert(i< GET_NUM(buf_));
+    ASSERT(i< GET_NUM(buf_));
     return GET(buf_, i);
   }
 
@@ -130,7 +130,7 @@ public:
   {
     uint32_t max = GET_MAX_NUM(buf_);
     GET_MAX_NUM(buf_) = GET_NUM(buf_);
-    assert(fwrite(buf_, GET_NUM(buf_)*sizeof(DOCID_TYPE)+sizeof(struct LIST_HEAD),1, f)==1);
+    ASSERT(fwrite(buf_, GET_NUM(buf_)*sizeof(DOCID_TYPE)+sizeof(struct LIST_HEAD),1, f)==1);
     GET_MAX_NUM(buf_) = max;
   }
 

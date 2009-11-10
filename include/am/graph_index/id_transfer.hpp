@@ -4,7 +4,6 @@
 #include<types.h>
 #include <ostream>
 #include <iostream>
-#include <assert.h>
 #include "dyn_array.hpp"
 #include "integer_hash.hpp"
 
@@ -233,7 +232,7 @@ public:
     table64_32_.insert(ID_64_32(id64, id32_));
 
     r = id32_;
-    assert(table32_64_.insert(ID_32_64(id32_, id64)));
+    IASSERT(table32_64_.insert(ID_32_64(id32_, id64)));
     ++id32_;
 
     return r;
@@ -264,7 +263,7 @@ public:
     
     uint32_t s = sizeof(uint32_t);
 
-    assert(fwrite(&id32_, sizeof(uint32_t), 1, f)==1);
+    IASSERT(fwrite(&id32_, sizeof(uint32_t), 1, f)==1);
 
     s += table32_64_.save(f);
     s += table64_32_.save(f);
@@ -279,7 +278,7 @@ public:
     
     uint32_t s = sizeof(uint32_t);
 
-    assert(fread(&id32_, sizeof(uint32_t), 1, f)==1);
+    IASSERT(fread(&id32_, sizeof(uint32_t), 1, f)==1);
 
     s += table32_64_.load(f);
     s += table64_32_.load(f);

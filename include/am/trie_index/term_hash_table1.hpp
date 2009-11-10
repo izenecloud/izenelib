@@ -3,7 +3,6 @@
 
 #include<types.h>
 #include <ostream>
-#include <assert.h>
 #include <stdio.h>
 #include <iostream>
 //#include <hashfunction.h>
@@ -171,10 +170,10 @@ public:
   inline Row(FILE* f)
   {
     uint32_t size = 0;
-    assert(fread(&size, sizeof(uint32_t), 1, f)==1);
+    IASSERT(fread(&size, sizeof(uint32_t), 1, f)==1);
     buf_ = (char*)malloc(size);
     ((ROW_HEAD*)buf_)->size_ = size;
-    assert(fread(buf_+sizeof(uint32_t), size-sizeof(uint32_t), 1, f)==1);
+    IASSERT(fread(buf_+sizeof(uint32_t), size-sizeof(uint32_t), 1, f)==1);
     const_buf_ = false;
   }
   
@@ -300,7 +299,7 @@ public:
     uint32_t s = ((ROW_HEAD*)buf_)->max_size_;
     ((ROW_HEAD*)buf_)->max_size_ = ((ROW_HEAD*)buf_)->size_;
     
-    assert(fwrite(buf_, ((ROW_HEAD*)buf_)->size_, 1, f)==1);
+    IASSERT(fwrite(buf_, ((ROW_HEAD*)buf_)->size_, 1, f)==1);
     ((ROW_HEAD*)buf_)->max_size_ = s;
 
     return ((ROW_HEAD*)buf_)->size_;
@@ -531,10 +530,10 @@ public:
     
     long int pos1 = ftell(f);
     
-    assert(fwrite(&s, sizeof(uint64_t),1, f)==1);
-    assert(fwrite(&entry_num, sizeof(uint32_t),1, f)==1);
-    assert(fwrite(&entry_size_, sizeof(uint32_t),1, f)==1);
-    assert(fwrite(&num_, sizeof(uint32_t),1, f)==1);
+    IASSERT(fwrite(&s, sizeof(uint64_t),1, f)==1);
+    IASSERT(fwrite(&entry_num, sizeof(uint32_t),1, f)==1);
+    IASSERT(fwrite(&entry_size_, sizeof(uint32_t),1, f)==1);
+    IASSERT(fwrite(&num_, sizeof(uint32_t),1, f)==1);
     
     for (uint32_t i=0; i<entry_size_; ++i)
       if (entry_[i]!= NULL)
@@ -546,8 +545,8 @@ public:
     long int pos2 = ftell(f);
     
     fseek(f, pos1, SEEK_SET);
-    assert(fwrite(&s, sizeof(uint64_t),1, f)==1);
-    assert(fwrite(&entry_num, sizeof(uint32_t),1, f)==1);
+    IASSERT(fwrite(&s, sizeof(uint64_t),1, f)==1);
+    IASSERT(fwrite(&entry_num, sizeof(uint32_t),1, f)==1);
     //std::cout<<s<<std::endl;
 
     fseek(f, pos2, SEEK_SET);
@@ -559,14 +558,14 @@ public:
     uint64_t s = 0;
 
     fseek(f, addr, SEEK_SET);
-    assert(fread(&s, sizeof(uint64_t),1, f)==1);
+    IASSERT(fread(&s, sizeof(uint64_t),1, f)==1);
     if (s > buf_size)
       return NULL;
 
     uint32_t es = 0;
     //entry number
-    assert(fread(&es, sizeof(uint32_t),1, f)==1);
-    assert(fread(&es, sizeof(uint32_t),1, f)==1);
+    IASSERT(fread(&es, sizeof(uint32_t),1, f)==1);
+    IASSERT(fread(&es, sizeof(uint32_t),1, f)==1);
 
     if (entry_==NULL || es != entry_size_)
     {
@@ -576,8 +575,8 @@ public:
         entry_[i] = NULL;
     }
     
-    assert(fread(&num_, sizeof(uint32_t),1, f)==1);
-    assert(fread(buf, s, 1, f)==1);
+    IASSERT(fread(&num_, sizeof(uint32_t),1, f)==1);
+    IASSERT(fread(buf, s, 1, f)==1);
 
     uint64_t size = 0;
     while (size<s)
@@ -598,9 +597,9 @@ public:
     uint32_t entry_num = 0;
 
     fseek(f, addr+sizeof(uint64_t), SEEK_SET);
-    assert(fread(&entry_num, sizeof(uint32_t),1, f)==1);
+    IASSERT(fread(&entry_num, sizeof(uint32_t),1, f)==1);
     //entry size
-    assert(fread(&s, sizeof(uint32_t),1, f)==1);
+    IASSERT(fread(&s, sizeof(uint32_t),1, f)==1);
     
     if (s != entry_size_ )
     {
@@ -613,7 +612,7 @@ public:
     }
 
     uint32_t size = 0;
-    assert(fread(&num_, sizeof(uint32_t),1, f)==1);
+    IASSERT(fread(&num_, sizeof(uint32_t),1, f)==1);
     for (uint32_t i=0; i<entry_num; ++i)
     {
       Row* row = new Row(f);
@@ -689,10 +688,10 @@ class TermPropertyVector
   {
     std::cout<<"flush...\n";
     fseek(f_, 0, SEEK_SET);
-    assert(fwrite(&num_, sizeof(uint64_t), 1, f_)==1);
+    IASSERT(fwrite(&num_, sizeof(uint64_t), 1, f_)==1);
     
     fseek(f_, start_addr_, SEEK_SET);
-    assert(fwrite(buf_, p_, 1, f_)==1);
+    IASSERT(fwrite(buf_, p_, 1, f_)==1);
     fflush(f_);
     start_addr_ += p_;
     p_ = 0;
@@ -710,11 +709,11 @@ public:
     if (f_ == NULL)
     {
       f_ = fopen(nm, "w+");
-      assert(fwrite(&num_, sizeof(uint64_t), 1, f_)==1);
+      IASSERT(fwrite(&num_, sizeof(uint64_t), 1, f_)==1);
     }
     else
     {
-      assert(fread(&num_, sizeof(uint64_t), 1, f_)==1);
+      IASSERT(fread(&num_, sizeof(uint64_t), 1, f_)==1);
       load_from(sizeof(uint64_t));
     }
     

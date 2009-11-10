@@ -5,7 +5,6 @@
 #include <vector>
 #include <ostream>
 #include <iostream>
-#include <assert.h>
 #include <boost/archive/binary_iarchive.hpp>
 #include <boost/archive/binary_oarchive.hpp>
 
@@ -253,7 +252,7 @@ public:
 
   inline void assign(const SelfT& other)
   {
-    assert(this!=&other);
+    IASSERT(this!=&other);
     
     if (other.length()==0)
     {
@@ -286,7 +285,7 @@ public:
 
   SelfT& operator += (const SelfT& other)
   {
-    assert(array_!= other.array_);
+    IASSERT(array_!= other.array_);
     
     if (other.length()==0)
       return *this;
@@ -371,7 +370,7 @@ public:
     // if (max_size_==0 || max_size_ == length_)
 //       enlarge((max_size_+1)<<APPEND_RATE);
     
-    assert(length_<max_size_);
+    IASSERT(length_<max_size_);
     array_[length_] = t;
     ++length_;
     return true;
@@ -379,7 +378,7 @@ public:
 
   void erase(size_t t)
   {
-    assert(t<length_);
+    IASSERT(t<length_);
     
     if (is_refered())
       assign_self();
@@ -416,7 +415,7 @@ public:
 
   inline void insert(size_t n, INTEGER_TYPE t)
   {
-    assert(n < length_ || n == (size_t)-1);
+    IASSERT(n < length_ || n == (size_t)-1);
     if (is_refered())
       assign_self();
 
@@ -449,13 +448,13 @@ public:
 
   inline INTEGER_TYPE at (size_t t)const
   {
-    assert(t < length_);
+    IASSERT(t < length_);
     return array_[t];
   }
   
   inline INTEGER_TYPE& operator [] (size_t t)
   {
-    assert(t < length_);
+    IASSERT(t < length_);
     
      if (is_refered())
        assign_self();
@@ -465,7 +464,7 @@ public:
 
   inline const INTEGER_TYPE& operator [] (size_t t)const
   {
-    assert(t < length_);
+    IASSERT(t < length_);
     return array_[t];
   }
 

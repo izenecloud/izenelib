@@ -4,7 +4,6 @@
 #include<types.h>
 #include <ostream>
 #include <iostream>
-#include <assert.h>
 #include "dyn_array.hpp"
 
 
@@ -149,14 +148,14 @@ public:
 
     uint32_t s = 2*sizeof(uint32_t);
     
-    assert(fwrite(&num_, sizeof(uint32_t), 1, f)==1);
+    IASSERT(fwrite(&num_, sizeof(uint32_t), 1, f)==1);
     uint32_t ety_num = entry_num_();
-    assert(fwrite(&ety_num, sizeof(uint32_t), 1, f)==1);
+    IASSERT(fwrite(&ety_num, sizeof(uint32_t), 1, f)==1);
     
     for (uint32_t i=0; i<ENTRY_SIZE; ++i)
       if (entry_[i] != NULL)
       {
-        assert(fwrite(&i, sizeof(uint32_t), 1, f)==1);
+        IASSERT(fwrite(&i, sizeof(uint32_t), 1, f)==1);
         s += sizeof(uint32_t);
         s += entry_[i]->save(f);
       }
@@ -174,14 +173,14 @@ public:
 
     uint32_t s = 2*sizeof(uint32_t);
     
-    assert(fread(&num_, sizeof(uint32_t), 1, f)==1);
+    IASSERT(fread(&num_, sizeof(uint32_t), 1, f)==1);
     uint32_t ety_num = 0;
-    assert(fread(&ety_num, sizeof(uint32_t), 1, f)==1);
+    IASSERT(fread(&ety_num, sizeof(uint32_t), 1, f)==1);
     
     for (uint32_t i=0; i<ety_num; ++i)
     {
       uint32_t j = 0;
-      assert(fread(&j, sizeof(uint32_t), 1, f)==1);
+      IASSERT(fread(&j, sizeof(uint32_t), 1, f)==1);
       s += sizeof(uint32_t);
       entry_[j] = new bucket_t();
       s += entry_[j]->load(f);

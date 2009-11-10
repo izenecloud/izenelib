@@ -59,7 +59,7 @@ public:
 
   inline uint32_t next()
   {
-    assert(i_<num_);
+    IASSERT(i_<num_);
     
     if (i_-start_i_ >= IN_MEM_SIZE)
       load_from(i_);

@@ -104,7 +104,7 @@ protected:
       fp_list_ = new FpList(s.c_str(), UNIT_LEN_);
     }
 
-    assert(final_group_!=NULL);
+    IASSERT(final_group_!=NULL);
 
     {
       s = filenm_;
@@ -112,7 +112,7 @@ protected:
       final_group_->reset(s.c_str());
     }
 
-    assert(group_!=NULL);
+    IASSERT(group_!=NULL);
     final_group_->assign(*group_);
     delete group_;
     group_ = NULL;
@@ -137,7 +137,7 @@ protected:
         docid_hash_.add_tail(NULL);
     }
 
-    assert(docid_hash_.length() == ENTRY_SIZE);
+    IASSERT(docid_hash_.length() == ENTRY_SIZE);
   }
 
   inline void init_docid_hash()
@@ -176,14 +176,14 @@ protected:
     for (size_t i=0; i<ENTRY_SIZE; i++)
       if (docid_hash_.at(i) != NULL)
       {
-        assert(fwrite(&i, sizeof(uint32_t), 1, f)==1);
+        IASSERT(fwrite(&i, sizeof(uint32_t), 1, f)==1);
         uint32_t len = docid_hash_.at(i)->length();
-        assert(fwrite(&len, sizeof(uint32_t), 1, f)==1);
-        assert(fwrite(docid_hash_.at(i)->data(), sizeof(uint32_t)*len, 1, f)==1);
+        IASSERT(fwrite(&len, sizeof(uint32_t), 1, f)==1);
+        IASSERT(fwrite(docid_hash_.at(i)->data(), sizeof(uint32_t)*len, 1, f)==1);
       }
 
     uint32_t i = -1;
-    assert(fwrite(&i, sizeof(uint32_t), 1, f)==1);
+    IASSERT(fwrite(&i, sizeof(uint32_t), 1, f)==1);
     fclose(f);
   }
 
@@ -199,14 +199,14 @@ protected:
     reset_docid_hash();
 
     uint32_t i = -1;
-    assert(fread(&i, sizeof(uint32_t), 1, f)==1);
+    IASSERT(fread(&i, sizeof(uint32_t), 1, f)==1);
     while (i!=(uint32_t)-1)
     {
       docid_hash_[i] = new Vector32();
       uint32_t len = 0;
-      assert(fread(&len, sizeof(uint32_t), 1, f)==1);
-      assert(fread(docid_hash_[i]->array(len), sizeof(uint32_t)*len, 1, f)==1);
-      assert(fread(&i, sizeof(uint32_t), 1, f)==1);
+      IASSERT(fread(&len, sizeof(uint32_t), 1, f)==1);
+      IASSERT(fread(docid_hash_[i]->array(len), sizeof(uint32_t)*len, 1, f)==1);
+      IASSERT(fread(&i, sizeof(uint32_t), 1, f)==1);
     }
 
     fclose(f);
@@ -575,7 +575,7 @@ public:
     
     Vector32 prime(doc_num+start);
     prime_gen(doc_num+start, prime);
-    assert(prime.length() == doc_num+start);
+    IASSERT(prime.length() == doc_num+start);
     Vector32 primeO = prime;
     
 //     for (size_t i=0; i<doc_num; i++)
@@ -595,7 +595,7 @@ public:
         const Vector32& v = (*(ht_ptrs_[k]))[i];
         //std::cout<<v<<std::endl;
         
-        assert(v.at(0)<=i);
+        IASSERT(v.at(0)<=i);
         
         if (start == 0 && v.at(0)!= i)
           continue;
@@ -667,7 +667,7 @@ public:
 
   inline bool exist(uint32_t docid)
   {
-    assert(docid_hash_.length()==ENTRY_SIZE);
+    IASSERT(docid_hash_.length()==ENTRY_SIZE);
     
     Vector32* v = docid_hash_.at(docid%ENTRY_SIZE);
     if (v == NULL)

@@ -40,7 +40,7 @@ class HashTrie
         
         node = new TermHashTable(node_entry_size_[i-start+1>=NODE_ENTRY_SIZE_TABLE_SIZE? NODE_ENTRY_SIZE_TABLE_SIZE-1: i-start+1]);
         ++node_num_;
-        assert(value_pool_->append(1, 1, (uint64_t)node)==value1);
+        IASSERT(value_pool_->append(1, 1, (uint64_t)node)==value1);
         continue;
       }
 
@@ -155,11 +155,11 @@ class HashTrie
     
     fseek(f_, 0, SEEK_SET);
     
-    assert(fread(&nn, sizeof(uint32_t), 1, f_)==1);
+    IASSERT(fread(&nn, sizeof(uint32_t), 1, f_)==1);
     
     root_ = new TermHashTable(ENTRY_SIZE);
     load_(root_, ftell(f_));
-    assert(node_num_ == nn);
+    IASSERT(node_num_ == nn);
 
     //std::cout<<"node num loaded: "<<node_num_<<std::endl;
   }
@@ -187,7 +187,7 @@ public:
     if (f_ == NULL)
     {
       f_ = fopen(nm, "w+");
-      assert(fwrite(&node_num_, sizeof(uint32_t), 1, f_)==1);
+      IASSERT(fwrite(&node_num_, sizeof(uint32_t), 1, f_)==1);
       root_ = new TermHashTable(ENTRY_SIZE);
     }
     else
@@ -207,7 +207,7 @@ public:
     uint32_t nn = node_num_;
     node_num_ = 0;
     release_(root_);
-    assert(nn == node_num_);
+    IASSERT(nn == node_num_);
     //std::cout<<"deleting value pool!\n";
     delete value_pool_;
     delete buf_node_;
@@ -308,7 +308,7 @@ public:
   inline void save()
   {
     fseek(f_, 0, SEEK_SET);
-    assert(fwrite(&node_num_, sizeof(uint32_t), 1, f_)==1);
+    IASSERT(fwrite(&node_num_, sizeof(uint32_t), 1, f_)==1);
     save_(root_);
     fflush(f_);
     root_ = NULL;

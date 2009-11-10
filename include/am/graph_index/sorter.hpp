@@ -158,6 +158,7 @@ private:
   FILE* out_f_;
   
   bucket_t* buckets_[BUCKET_NUM+1];
+  uint32_t  max_term_len_;
   
   //std::string filenm_;
 
@@ -172,7 +173,7 @@ private:
   {
     //std::cout<<p_<<std::endl;
     if (p_>0)
-      assert(fwrite(buf_, p_, 1, f_)==1);
+      IASSERT(fwrite(buf_, p_, 1, f_)==1);
     p_=0;
   }
 
@@ -217,7 +218,7 @@ private:
     char* buf = (char*)malloc(SIZE);
           
     FILE* f = fopen((filenm_+".out").c_str(), "w+");
-    assert(fwrite(&num_, sizeof(uint64_t), 1, f)==1);
+    IASSERT(fwrite(&num_, sizeof(uint64_t), 1, f)==1);
 
     if (f_ == NULL)
       f_ = fopen(filenm_.c_str(), "r");
@@ -254,20 +255,20 @@ private:
         {
           fseek(f_, addr.ADDR()+sizeof(uint16_t), SEEK_SET);
 
-          assert(addr.LEN()+sizeof(uint16_t)<=4048);
+          IASSERT(addr.LEN()+sizeof(uint16_t)<=4048);
           *(uint16_t*)record = addr.LEN();
-          assert(fread(record+sizeof(uint16_t), addr.LEN(), 1, f_)==1);
+          IASSERT(fread(record+sizeof(uint16_t), addr.LEN(), 1, f_)==1);
 
-          assert(*(uint32_t*)(record+sizeof(uint16_t)) == addr.INTEGER());
+          IASSERT(*(uint32_t*)(record+sizeof(uint16_t)) == addr.INTEGER());
             
-          assert(fwrite(record, addr.LEN()+sizeof(uint16_t), 1, f)==1);
+          IASSERT(fwrite(record, addr.LEN()+sizeof(uint16_t), 1, f)==1);
           continue;
         }
 
-        assert(*(uint16_t*)(buf+addr.ADDR()-start) == addr.LEN());
-        assert(*(uint32_t*)(buf+addr.ADDR()-start+sizeof(uint16_t)) == addr.INTEGER());
+        IASSERT(*(uint16_t*)(buf+addr.ADDR()-start) == addr.LEN());
+        IASSERT(*(uint32_t*)(buf+addr.ADDR()-start+sizeof(uint16_t)) == addr.INTEGER());
         
-        assert(fwrite(buf+addr.ADDR()-start, addr.LEN()+sizeof(uint16_t), 1, f)==1);
+        IASSERT(fwrite(buf+addr.ADDR()-start, addr.LEN()+sizeof(uint16_t), 1, f)==1);
 
       }
     }
@@ -290,15 +291,17 @@ public:
     if (f_ == NULL)
     {
       f_ = fopen(filenm_.c_str(), "w+");
-      assert(f_ != NULL);
-      assert(fwrite(&num_, sizeof(uint64_t), 1, f_)==1);
+      IASSERT(f_ != NULL);
+      IASSERT(fwrite(&num_, sizeof(uint64_t), 1, f_)==1);
     }
     else
-      assert(fread(&num_, sizeof(uint64_t), 1, f_)==1);
+      IASSERT(fread(&num_, sizeof(uint64_t), 1, f_)==1);
     
     buf_ = (char*)malloc(BUF_SIZE);
     p_ = 0;
     out_f_ = NULL;
+
+    max_term_len_ = -1;
   }
 
   ~Sorter()
@@ -328,6 +331,11 @@ public:
       buckets_[i]->ready4add();
     }
   }
+
+  inline void set_max_term_len(uint32_t t)
+  {
+    max_term_len_ = t;
+  }
   
   void add_terms(const terms_t& terms, uint32_t docid)
   {
@@ -336,7 +344,7 @@ public:
     
     for (typename terms_t::size_t i=0; i<terms.length(); ++i)
     {
-      uint32_t len = ((terms.length()-i>=6)? 6: (terms.length()-i));
+      uint32_t len = ((terms.length()-i>=max_term_len_)? max_term_len_: (terms.length()-i));
       
       uint16_t s = len*sizeof(TERM_TYPE)+sizeof(uint32_t);
       if (is_mem_full_(s+sizeof(uint16_t)))
@@ -361,7 +369,7 @@ public:
     std::cout<<"sorter is flushing...";
     flush_();
     fseek(f_, 0, SEEK_SET);
-    assert(fwrite(&num_, sizeof(uint64_t), 1, f_)==1);
+    IASSERT(fwrite(&num_, sizeof(uint64_t), 1, f_)==1);
     fflush(f_);
     fclose(f_);
     f_ = NULL;
@@ -412,7 +420,7 @@ public:
     while (1)
     {
       last = sort_(firsts);
-      assert(last<BUCKET_NUM);
+      IASSERT(last<BUCKET_NUM);
       
       if (firsts[last] == (TERM_TYPE)-1)
         break;
@@ -436,7 +444,7 @@ public:
     
     for (uint32_t i=0; i<BUCKET_NUM; ++i)
     {
-      assert(firsts[i]==(TERM_TYPE)-1);
+      IASSERT(firsts[i]==(TERM_TYPE)-1);
       buckets_[i]->dump();
       delete buckets_[i];
     }
@@ -460,7 +468,7 @@ public:
     //out_f_ = fopen((filenm_+".out").c_str(), "r");
     if (out_f_==NULL)
       out_f_ = fopen((filenm_+".out").c_str(), "r");
-    assert(out_f_!=NULL);
+    IASSERT(out_f_!=NULL);
     
     p_ = 0;
     fseek(out_f_, sizeof(uint64_t), SEEK_SET);
@@ -512,11 +520,11 @@ public:
 
       uint16_t len;
       fseek(of, addr.ADDR(), SEEK_SET);
-      assert(fread(&len, sizeof(uint16_t), 1, of)==1);
-      assert(fread(buf, len, 1, of)==1);
+      IASSERT(fread(&len, sizeof(uint16_t), 1, of)==1);
+      IASSERT(fread(buf, len, 1, of)==1);
 
-      assert(fwrite(&len, sizeof(uint16_t), 1, f)==1);
-      assert(fwrite(buf, len, 1, f)==1);
+      IASSERT(fwrite(&len, sizeof(uint16_t), 1, f)==1);
+      IASSERT(fwrite(buf, len, 1, f)==1);
     }
 
     fclose(f);
