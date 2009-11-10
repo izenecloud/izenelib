@@ -371,14 +371,15 @@ class Graph
   FILE*  nid_f_;
   FILE*  doc_f_;
   FILE*  leaf_f_;
+  uint32_t max_term_len_;
 
   edge_t* insert_(TERM_TYPE term, edge_t* ep, bool ordered = true, uint32_t add_freq = 1)
   {
     NID_LEN_TYPE nid = ep->NID();
     
-    assert (nodes_.length() == freqs_.length());
-    assert (nodes_.length() == loads_.length());
-    assert (nodes_.length() == docs_.length());
+    IASSERT (nodes_.length() == freqs_.length());
+    IASSERT (nodes_.length() == loads_.length());
+    IASSERT (nodes_.length() == docs_.length());
 
     if (nid>=LEAF_BOUND)
     {
@@ -416,7 +417,7 @@ class Graph
         load_edge_(nid);
 
     sorted_edges_t* edges = nodes_.at(nid);
-    assert (edges != (sorted_edges_t*)-1);
+    IASSERT (edges != (sorted_edges_t*)-1);
 
     //if (nid == 5632)
     //std::cout<<(*edges)<<std::endl;
@@ -501,7 +502,7 @@ class Graph
       docs_[nid] = addr;
     }    
     
-    assert (nodes_.at(nid) != (sorted_edges_t*)-1);
+    IASSERT (nodes_.at(nid) != (sorted_edges_t*)-1);
 
     sorted_edges_t* e = nodes_.at(nid);
         
@@ -523,13 +524,13 @@ class Graph
           delete (array32_t*)le.DOCS();
           le.DOCS_() = addr;
         
-          assert(fwrite(&le, sizeof(leaf_t), 1, leaf_f)==1);
+          IASSERT(fwrite(&le, sizeof(leaf_t), 1, leaf_f)==1);
         }
         
         continue;
       }
       
-      assert(e->at(i).NID()<nodes_.length());
+      IASSERT(e->at(i).NID()<nodes_.length());
       save_edge_(nid_f, doc_f, leaf_f,  e->at(i).NID(), root);
     }
 
@@ -560,7 +561,7 @@ class Graph
         leaf_t le;
         array32_t* docs = new array32_t();
         
-        assert(fread(&le, sizeof(leaf_t), 1, leaf_f_)==1);
+        IASSERT(fread(&le, sizeof(leaf_t), 1, leaf_f_)==1);
         docs->load(doc_f_, le.DOCS());
         le.DOCS_() = (uint64_t)docs;
         leafs_.push_back(le);
@@ -599,7 +600,7 @@ class Graph
           leaf_t le;
           array32_t* docs = new array32_t();
         
-          assert(fread(&le, sizeof(leaf_t), 1, leaf_f_)==1);
+          IASSERT(fread(&le, sizeof(leaf_t), 1, leaf_f_)==1);
           docs->load(doc_f_, le.DOCS());
           le.DOCS_() = (uint64_t)docs;
           leafs_.push_back(le);
@@ -677,7 +678,7 @@ class Graph
     {
       leaf_t le;
       fseek(leaf_f_, nid-LEAF_BOUND, SEEK_SET);
-      assert(fread(&le, sizeof(leaf_t), 1, leaf_f_)==1);
+      IASSERT(fread(&le, sizeof(leaf_t), 1, leaf_f_)==1);
       docs.load(doc_f_, le.DOCS());
       doclist += docs;
       return;
@@ -771,6 +772,7 @@ public:
     doc_num_ = 0;
 
     nid_f_ = doc_f_ = leaf_f_ = NULL;
+    max_term_len_ = -1;
   }
 
   ~Graph()
@@ -800,6 +802,7 @@ public:
   void ready4add()
   {
     sorter_ = new sorter_t(filenm_.c_str());
+    sorter_->set_max_term_len(max_term_len_);
     sorter_->ready4add();
   }
     
@@ -832,6 +835,11 @@ public:
   {
     return doc_num_;
   }
+
+  inline void set_max_term_len(uint32_t t)
+  {
+    max_term_len_ = t;
+  }
   
   void append_terms(const std::vector<uint32_t>& terms, uint32_t docid)
   {
@@ -850,7 +858,7 @@ public:
 
     //std::cout<<ids<<std::endl;
 
-    assert(ids.length() == terms.size());
+    IASSERT(ids.length() == terms.size());
     
     for (typename array32_t::size_t i=0; i<ids.length(); ++i)
     {
@@ -882,7 +890,7 @@ public:
             break;
           }
           
-          assert(next->NID()<nodes_.length());
+          IASSERT(next->NID()<nodes_.length());
           ++freqs_[next->NID()];
           
           load_edge_(next->NID());
@@ -905,7 +913,7 @@ public:
     for (uint32_t i=0; i<terms.size(); ++i)
       ids.push_back(terms[i]/*id_mgr_.insert(terms[i])*/);
 
-    assert(ids.length() == terms.size());
+    IASSERT(ids.length() == terms.size());
     
     for (typename array32_t::size_t i=0; i<ids.length(); ++i)
     {
@@ -989,7 +997,7 @@ public:
     for (uint32_t i=0; i<terms.size(); ++i)
       ids.push_back(terms[i]/*id_mgr_.insert(terms[i])*/);
 
-    assert(ids.length() == terms.size());
+    IASSERT(ids.length() == terms.size());
 
     sorter_->add_terms(ids, docid);
   }
@@ -1054,7 +1062,7 @@ public:
     {
       sorter_->next(t, docid);
       
-      assert(last_term<=t.at(0));
+      IASSERT(last_term<=t.at(0));
 
       if (last_term != t.at(0))
       {
@@ -1102,7 +1110,7 @@ public:
             break;
           }
 
-          assert(next->NID()<nodes_.length());
+          IASSERT(next->NID()<nodes_.length());
           ++freqs_[next->NID()];
           
           if (docs_.at(next->NID()) == 0)
@@ -1191,7 +1199,7 @@ public:
         leaf_t le;
         array32_t* docs = new array32_t();
         
-        assert(fread(&le, sizeof(leaf_t), 1, leaf_f_)==1);
+        IASSERT(fread(&le, sizeof(leaf_t), 1, leaf_f_)==1);
         docs->load(doc_f_, le.DOCS());
         le.DOCS_() = (uint64_t)docs;
         leafs_.push_back(le);
@@ -1228,15 +1236,15 @@ public:
     remove((filenm_+".doc").c_str());
     remove((filenm_+".lea").c_str());
 
-    assert(rename((filenm_+".nid.tmp").c_str(), (filenm_+".nid").c_str())==0);
-    assert(rename((filenm_+".doc.tmp").c_str(), (filenm_+".doc").c_str())==0);
-    assert(rename((filenm_+".lea.tmp").c_str(), (filenm_+".lea").c_str())==0);
+    IASSERT(rename((filenm_+".nid.tmp").c_str(), (filenm_+".nid").c_str())==0);
+    IASSERT(rename((filenm_+".doc.tmp").c_str(), (filenm_+".doc").c_str())==0);
+    IASSERT(rename((filenm_+".lea.tmp").c_str(), (filenm_+".lea").c_str())==0);
   }
   
   void ratio_load(double ratio = 0.9)
   {
     free_mem_();
-    assert(ratio <= 1.);
+    IASSERT(ratio <= 1.);
     FILE* v_f = fopen((filenm_+".v").c_str(), "r");
     nodes_.load(v_f);
     freqs_.load(v_f);
@@ -1284,7 +1292,7 @@ public:
       {
         leaf_t le;
         fseek(leaf_f_, next-LEAF_BOUND, SEEK_SET);
-        assert(fread(&le, sizeof(leaf_t), 1, leaf_f_)==1);
+        IASSERT(fread(&le, sizeof(leaf_t), 1, leaf_f_)==1);
         return le.FREQ();
       }
 
@@ -1332,7 +1340,7 @@ public:
         {
           leaf_t le;
           fseek(leaf_f_, edges->at(i).NID()-LEAF_BOUND, SEEK_SET);
-          assert(fread(&le, sizeof(leaf_t), 1, leaf_f_)==1);
+          IASSERT(fread(&le, sizeof(leaf_t), 1, leaf_f_)==1);
           freqs.push_back(le.FREQ());
           continue;
         }
@@ -1343,7 +1351,7 @@ public:
       return;
     }
 
-    assert (nodes_.at(next) != (sorted_edges_t*)-1);
+    IASSERT (nodes_.at(next) != (sorted_edges_t*)-1);
     
     edges_t edges;
     edges.load(nid_f_, (uint64_t)nodes_.at(next));
@@ -1357,7 +1365,7 @@ public:
       {
         leaf_t le;
         fseek(leaf_f_, edges.at(i).NID()-LEAF_BOUND, SEEK_SET);
-        assert(fread(&le, sizeof(leaf_t), 1, leaf_f_)==1);
+        IASSERT(fread(&le, sizeof(leaf_t), 1, leaf_f_)==1);
         freqs.push_back(le.FREQ());
         continue;
       }
@@ -1389,7 +1397,7 @@ public:
     {
       leaf_t le;
       fseek(leaf_f_, next-LEAF_BOUND, SEEK_SET);
-      assert(fread(&le, sizeof(leaf_t), 1, leaf_f_)==1);
+      IASSERT(fread(&le, sizeof(leaf_t), 1, leaf_f_)==1);
       docs.load(doc_f_, le.DOCS());
 
       docids.reserve(docs.length());
@@ -1466,7 +1474,7 @@ friend std::ostream& operator <<(std::ostream& os, const self_t& g)
     {
       leaf_t le;
       fseek(leaf_f_, nid-LEAF_BOUND, SEEK_SET);
-      assert(fread(&le, sizeof(leaf_t), 1, leaf_f_)==1);
+      IASSERT(fread(&le, sizeof(leaf_t), 1, leaf_f_)==1);
       docs.load(doc_f_, le.DOCS());
     }
     
@@ -1484,7 +1492,7 @@ friend std::ostream& operator <<(std::ostream& os, const self_t& g)
     {
       leaf_t le;
       fseek(leaf_f_, nid-LEAF_BOUND, SEEK_SET);
-      assert(fread(&le, sizeof(leaf_t), 1, leaf_f_)==1);
+      IASSERT(fread(&le, sizeof(leaf_t), 1, leaf_f_)==1);
       return le.FREQ();
     }
 
@@ -1844,7 +1852,7 @@ protected:
     for (uint32_t i=0; i<terms.size(); ++i)
       ids.push_back(terms[i]/*id_mgr_.insert(terms[i])*/);
 
-    assert(ids.length() == terms.size());
+    IASSERT(ids.length() == terms.size());
     //std::cout<<ids<<std::endl;
 
     edge_t tmp(0,0);
@@ -1860,7 +1868,7 @@ protected:
         if (next->NID() == nodes_.length())
         {
           array32_t* dp = 0;
-          assert (docs.size()>0);
+          IASSERT (docs.size()>0);
           dp = new array32_t(docs);
             
           leaf_t le(freq, (uint64_t)dp);
@@ -1878,7 +1886,7 @@ protected:
           break;
         }
           
-        assert(next->NID()<nodes_.length());
+        IASSERT(next->NID()<nodes_.length());
         freqs_[next->NID()] += freq;
 
         if (docs.size() == 0)
@@ -1907,7 +1915,7 @@ protected:
 
     //std::cout<<ids<<std::endl;
     
-    assert(ids.length() == terms.size());
+    IASSERT(ids.length() == terms.size());
     
     NID_LEN_TYPE nid = 0;
     sorted_edges_t* e = NULL;

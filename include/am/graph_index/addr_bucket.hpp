@@ -4,7 +4,6 @@
 #include<types.h>
 #include <ostream>
 #include <iostream>
-#include <assert.h>
 #include "dyn_array.hpp"
 #include <string>
 
@@ -40,11 +39,11 @@ public:
     if (f_ == NULL)
     {
       f_ = fopen(filenm_.c_str(), "w+");
-      assert(f_ != NULL);
-      assert(fwrite(&num_, sizeof(uint64_t), 1, f_)==1);
+      IASSERT(f_ != NULL);
+      IASSERT(fwrite(&num_, sizeof(uint64_t), 1, f_)==1);
     }
     else
-      assert(fread(&num_, sizeof(uint64_t), 1, f_)==1);
+      IASSERT(fread(&num_, sizeof(uint64_t), 1, f_)==1);
 
     fseek(f_, 0, SEEK_END);
 
@@ -68,7 +67,7 @@ public:
     buf_.save(f_);
 
     fseek(f_, 0, SEEK_SET);
-    assert(fwrite(&num_, sizeof(uint64_t), 1, f_)==1);
+    IASSERT(fwrite(&num_, sizeof(uint64_t), 1, f_)==1);
     
     fflush(f_);
     fclose(f_);
@@ -90,7 +89,7 @@ public:
       return;
     }
     else
-      assert(fread(&num_, sizeof(uint64_t), 1, f_)==1);
+      IASSERT(fread(&num_, sizeof(uint64_t), 1, f_)==1);
 
     fetch_i_ = 0;
 
@@ -145,7 +144,7 @@ public:
     
     num_ = 0;
     f_ = fopen(filenm_.c_str(), "w+");
-    assert(fwrite(&num_, sizeof(uint64_t), 1, f_)==1);
+    IASSERT(fwrite(&num_, sizeof(uint64_t), 1, f_)==1);
     fclose(f_);
 
     ready4add();

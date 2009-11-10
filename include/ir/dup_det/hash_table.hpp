@@ -67,19 +67,19 @@ public:
     fseek(f_, 0, SEEK_SET);
     fread(&doc_num, sizeof(size_t), 1,f_);
     
-    assert(fread(gids_.array(doc_num), doc_num*sizeof(uint32_t), 1, f_)==1);
+    IASSERT(fread(gids_.array(doc_num), doc_num*sizeof(uint32_t), 1, f_)==1);
 
     size_t index = 0;
-    assert(fread(&index, sizeof(size_t), 1, f_)==1);
+    IASSERT(fread(&index, sizeof(size_t), 1, f_)==1);
     for (size_t i=0; i<entry_.length(); i++)
     {
       if (index != i)
         continue;
 
       size_t len = 0;
-      assert(fread(&len, sizeof(size_t), 1, f_)==1);
+      IASSERT(fread(&len, sizeof(size_t), 1, f_)==1);
       entry_[i] = new Vector32();
-      assert(fread(entry_.at(i)->array(len), len*sizeof(uint32_t), 1, f_)==1);
+      IASSERT(fread(entry_.at(i)->array(len), len*sizeof(uint32_t), 1, f_)==1);
       if (fread(&index, sizeof(size_t), 1, f_)!=1)
         index = -1;
     }

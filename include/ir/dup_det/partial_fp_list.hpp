@@ -92,7 +92,7 @@ protected:
    **/
   inline bool cache_full()
   {
-    assert (cache_status_ == ADD_DOCS);
+    IASSERT (cache_status_ == ADD_DOCS);
 
     return in_mem_doc_num_ >= ALL_INFO_IN_MEM_LENGTH;
   }
@@ -107,7 +107,7 @@ protected:
       //std::cout<<"unload seeking: "<<start_doc_i_<<std::endl;
       
       fseek(fhandlers_[i], start_doc_i_*sizeof(UNIT_TYPE)*UNIT_LEN, SEEK_SET);
-      assert(fwrite(fp_ptrs_[i]->data(), fp_ptrs_[i]->size(), 1, fhandlers_[i])==1);
+      IASSERT(fwrite(fp_ptrs_[i]->data(), fp_ptrs_[i]->size(), 1, fhandlers_[i])==1);
       fp_ptrs_[i]->compact();
       fp_ptrs_[i]->reset();
     }
@@ -127,7 +127,7 @@ protected:
   
   inline void load_fp(uint8_t fpi, size_t n)
   {
-    assert(fpi < PARTIALS_SIZE);
+    IASSERT(fpi < PARTIALS_SIZE);
     
     static size_t max_fps_size = 0;
     max_fps_size = (CACHE_SIZE*1000000 - docids_.size())/sizeof(UNIT_TYPE);
@@ -151,7 +151,7 @@ protected:
       fp_ptrs_[fpi] = new FpVector();
 
     fseek(fhandlers_[fpi], n*sizeof (UNIT_TYPE)*UNIT_LEN, SEEK_SET);
-    assert(fread(fp_ptrs_[fpi]->array(size), size*sizeof(UNIT_TYPE), 1, fhandlers_[fpi])==1);
+    IASSERT(fread(fp_ptrs_[fpi]->array(size), size*sizeof(UNIT_TYPE), 1, fhandlers_[fpi])==1);
   }
 
   inline bool is_in_mem(uint8_t fpi, size_t n)
@@ -238,7 +238,7 @@ public:
       start_doc_i_ = doc_num_;
     }
     
-    assert(FP_LENGTH == fp.length());
+    IASSERT(FP_LENGTH == fp.length());
     docids_.push_back(docid);
     
     for (uint8_t i =0; i<PARTIALS_SIZE; i++)
@@ -266,7 +266,7 @@ public:
 
   inline UNIT_TYPE get_fp(uint8_t fpi, size_t n, uint8_t i=0)
   {
-    assert(fpi<PARTIALS_SIZE);
+    IASSERT(fpi<PARTIALS_SIZE);
     if (!is_in_mem(fpi, n))
       load_fp(fpi, n);
     
@@ -346,7 +346,7 @@ public:
 
   inline uint32_t& operator[] (size_t i)
   {
-    assert(i < docids_.length());
+    IASSERT(i < docids_.length());
     return docids_[i];
   }
   

@@ -43,7 +43,7 @@ protected:
   inline void set_gid(uint32_t docid, size_t gid)
   {
     Vector32* p = doc_hash_.at(docid%ENTRY_SIZE);
-    assert (p != NULL);
+    IASSERT (p != NULL);
     
     for (size_t i=0; i<p->length(); i++)
     {
@@ -76,8 +76,8 @@ protected:
   {
     Vector32* p1 = gids_.at(gid1);
     Vector32* p2 = gids_.at(gid2);
-    assert(p1 != NULL);
-    assert(p2 != NULL);
+    IASSERT(p1 != NULL);
+    IASSERT(p2 != NULL);
 
     //swap p1 p2, small one is merged into big one. p1<p2. p1->p2
     if (p1->length()>p2->length())

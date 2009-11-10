@@ -1,3 +1,4 @@
+
 #ifndef HASH_TRIE
 #define HASH_TRIE
 
@@ -194,14 +195,14 @@ protected:
     
     fseek(f_, 0, SEEK_SET);
     
-    assert(fread(&nn, sizeof(uint32_t), 1, f_)==1);
-    assert(fread(&root_addr, sizeof(uint64_t), 1, f_)==1);
+    IASSERT(fread(&nn, sizeof(uint32_t), 1, f_)==1);
+    IASSERT(fread(&root_addr, sizeof(uint64_t), 1, f_)==1);
     
     root_ = new TermHashTable(ENTRY_SIZE);
     load_(root_, root_addr);
 
     //std::cout<<"node num loaded: "<<node_num_<<" "<<nn<<std::endl;
-    assert(node_num_ == nn);
+    IASSERT(node_num_ == nn);
   }
 
   void get_docs_(uint64_t tb, bool loaded, doc_list_t** list, bool doc_loaded=true)
@@ -376,7 +377,7 @@ public:
     if (f_ == NULL)
     {
       f_ = fopen(nm, "w+");
-      assert(fwrite(&node_num_, sizeof(uint32_t), 1, f_)==1);
+      IASSERT(fwrite(&node_num_, sizeof(uint32_t), 1, f_)==1);
       root_ = new TermHashTable(ENTRY_SIZE);
       node_num_ = 1;
     }
@@ -405,7 +406,7 @@ public:
 
     //std::cout<<nn<<" "<<node_num_<<std::endl;
     
-    assert(nn == node_num_);
+    IASSERT(nn == node_num_);
     //std::cout<<"deleting buf_node_!\n";
     delete buf_node_;
   }
@@ -429,14 +430,14 @@ public:
     uint32_t nn = node_num_;
     node_num_ = 0;
     uint64_t s = size_(root_);
-    assert(nn==node_num_);
+    IASSERT(nn==node_num_);
 
     return s;
   }
   
   uint32_t get_freq(const std::vector<uint64_t>& terms)
   {
-    assert(root_ != NULL);
+    IASSERT(root_ != NULL);
     
     TermHashTable* node = root_;
     
@@ -466,7 +467,7 @@ public:
 
   bool get_suffix(const std::vector<uint64_t>& terms, std::vector<uint64_t>& suffixs, std::vector<uint32_t>& counts)
   {
-    assert(root_ != NULL);
+    IASSERT(root_ != NULL);
 
     suffixs.clear();
     counts.clear();
@@ -558,13 +559,13 @@ public:
     uint64_t root_addr = -1;
     fseek(f_, 0, SEEK_SET);
     
-    assert(fwrite(&node_num_, sizeof(uint32_t), 1, f_)==1);
-    assert(fwrite(&root_addr, sizeof(uint64_t), 1, f_)==1);
+    IASSERT(fwrite(&node_num_, sizeof(uint32_t), 1, f_)==1);
+    IASSERT(fwrite(&root_addr, sizeof(uint64_t), 1, f_)==1);
     if (root_!=NULL)
       root_addr = save_(root_);
 
     fseek(f_, sizeof(uint32_t), SEEK_SET);
-    assert(fwrite(&root_addr, sizeof(uint64_t), 1, f_)==1);
+    IASSERT(fwrite(&root_addr, sizeof(uint64_t), 1, f_)==1);
     
     fflush(f_);
     fflush(doc_f_);
@@ -589,7 +590,7 @@ public:
         
     fseek(f_, sizeof(uint32_t), SEEK_SET);
     
-    assert(fread(&root_addr, sizeof(uint64_t), 1, f_)==1);
+    IASSERT(fread(&root_addr, sizeof(uint64_t), 1, f_)==1);
 
     return root_addr;
   }

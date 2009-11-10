@@ -5,7 +5,6 @@
 #include <vector>
 #include <ostream>
 #include <iostream>
-#include <assert.h>
 #include <boost/archive/binary_iarchive.hpp>
 #include <boost/archive/binary_oarchive.hpp>
 
@@ -269,9 +268,9 @@ protected:
    **/
   void quickSort_(VALUE_TYPE* array, uint32_t left, uint32_t right)
   {
-    assert(left < right);
+    IASSERT(left < right);
 
-    assert(right < length_);
+    IASSERT(right < length_);
     
     if(right-left<=1)
     {
@@ -354,7 +353,7 @@ public:
 
   inline void assign(const SelfT& other)
   {
-    assert(this!=&other);
+    IASSERT(this!=&other);
     
     if (other.length()==0)
     {
@@ -445,7 +444,7 @@ public:
 
   SelfT& operator += (const SelfT& other)
   {
-    assert(p_!= other.p_);
+    IASSERT(p_!= other.p_);
     
     if (other.length()==0)
       return *this;
@@ -541,7 +540,7 @@ public:
     // if (max_size_==0 || max_size_ == length_)
 //       enlarge((max_size_+1)<<APPEND_RATE);
     
-    assert(length_<max_size_);
+    IASSERT(length_<max_size_);
     ARRAY(p_)[length_] = t;
     ++length_;
     return true;
@@ -549,7 +548,7 @@ public:
 
   void erase(size_t t)
   {
-    assert(t<length_);
+    IASSERT(t<length_);
     
     if (is_refered())
       assign_self();
@@ -585,11 +584,11 @@ public:
 
   inline void insert(size_t n, VALUE_TYPE t)
   {
-    assert(n < length_ || n == NOT_FOUND);
+    IASSERT(n < length_ || n == NOT_FOUND);
     if (is_refered())
       assign_self();
 
-    assert(max_size_>=length_);
+    IASSERT(max_size_>=length_);
     
     if (max_size_==0 || max_size_ == length_)
       enlarge((size_t)((max_size_+1)*1.2+.5));//<<APPEND_RATE);
@@ -597,7 +596,7 @@ public:
     for (size_t i=length_; i>n+1; i--)
       ARRAY(p_)[i] = ARRAY(p_)[i-1];
     
-    assert(n+1<=length_ && n+1<max_size_);
+    IASSERT(n+1<=length_ && n+1<max_size_);
     ARRAY(p_)[n+1] = t;
     length_++;
   }
@@ -625,25 +624,25 @@ public:
 
   inline VALUE_TYPE at (size_t t)const
   {
-    assert(t < length_);
+    IASSERT(t < length_);
     return ARRAY(p_)[t];
   }
 
   inline VALUE_TYPE back ()const
   {
-    assert(length_>0);
+    IASSERT(length_>0);
     return at(length_ -1);
   }
 
   inline VALUE_TYPE front ()const
   {
-    assert(length_>0);
+    IASSERT(length_>0);
     return at(0);
   }
   
   inline VALUE_TYPE& operator [] (size_t t)
   {
-    assert(t < length_);
+    IASSERT(t < length_);
     
      if (is_refered())
        assign_self();
@@ -653,7 +652,7 @@ public:
 
   inline const VALUE_TYPE& operator [] (size_t t)const
   {
-    assert(t < length_);
+    IASSERT(t < length_);
     return ARRAY(p_)[t];
   }
 
@@ -789,7 +788,7 @@ public:
 //       *(ARRAY(p)+i) = min;
 //       ++i;
 
-//       assert(index[mini]<SIZE);
+//       IASSERT(index[mini]<SIZE);
 //       ++index[mini];
 //       if (index[mini]==SIZE)
 //         ++finished;
@@ -824,10 +823,10 @@ friend std::ostream& operator << (std::ostream& os, const SelfT& v)
     if (addr != (uint64_t)-1)
       fseek(f, addr, SEEK_SET);
     size_t s = size();
-    assert(fwrite(&s, sizeof(size_t), 1, f)==1);
+    IASSERT(fwrite(&s, sizeof(size_t), 1, f)==1);
 
     if (s > 0)
-      assert(fwrite(ARRAY(p_), s, 1, f)==1);
+      IASSERT(fwrite(ARRAY(p_), s, 1, f)==1);
 
     return s+sizeof(size_t);
   }
@@ -841,14 +840,14 @@ friend std::ostream& operator << (std::ostream& os, const SelfT& v)
     
     size_t s = 0;
 
-    assert(fread(&s, sizeof(size_t), 1, f)==1);
+    IASSERT(fread(&s, sizeof(size_t), 1, f)==1);
 
     max_size_ = length_ = s/sizeof(VALUE_TYPE);
 
     new_one(length_);
 
     if (s > 0)
-      assert(fread(ARRAY(p_), s, 1, f)==1);
+      IASSERT(fread(ARRAY(p_), s, 1, f)==1);
 
     return s;
   }

@@ -35,3 +35,10 @@ typedef unsigned __int64  uint64_t;
 #define END_SERIALIZATION }}}
 
 #endif // end of TYPES_H
+
+#include <cassert>
+#define IASSERT(exp)\
+  {              \
+    if (!(exp))    \
+    {assert(false);}\
+  }
