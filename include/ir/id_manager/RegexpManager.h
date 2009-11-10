@@ -356,7 +356,8 @@ protected:
                     {
                         key = buffer;
                         iin.read((char*)&id, sizeof(NameID));
-                        handler_.insert(key, id);
+                        if(key.length() > 0)
+                            handler_.insert(key, id);
                     }
                 }
                 line++;
