@@ -81,8 +81,8 @@ namespace messageframework {
 		MessageClientPtr client_;
 
 	private:
-		bool requestOne_(const MessageFrameworkNode& server, const ServiceRequestInfoPtr& request);
-		bool requestOne_(const MessageFrameworkNode& server, const ServiceRequestInfoPtr& request, ServiceResultPtr& result);
+		inline bool requestOne_(const MessageFrameworkNode& server, const ServiceRequestInfoPtr& request);
+		inline bool requestOne_(const MessageFrameworkNode& server, const ServiceRequestInfoPtr& request, ServiceResultPtr& result);
 
 	};
 
