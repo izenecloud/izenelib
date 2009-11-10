@@ -23,6 +23,7 @@ MergeBarrelEntry::MergeBarrelEntry(Directory* pDirectory_,BarrelInfo* pBarrelInf
         :pDirectory(pDirectory_)
         ,pBarrelInfo(pBarrelInfo_)
         ,pCollectionsInfo(NULL)
+        ,currColID(-1)
 {
 }
 MergeBarrelEntry::~MergeBarrelEntry()
@@ -269,17 +270,35 @@ void IndexMerger::mergeBarrel(MergeBarrel* pBarrel)
     vector<collectionid_t>::iterator it = unique(colIDSet.begin(),colIDSet.end());
     colIDSet.resize(it - colIDSet.begin());
 
+    pBarrel->setDel(false);
+    vector<MergeBarrelEntry*> pBarrelsBackup;
+	
     for (vector<collectionid_t>::const_iterator p = colIDSet.begin(); p != colIDSet.end(); ++p)
     {
         bFinish = false;
         fieldid = 0;
         pFieldsInfo = NULL;
 
+        for (nEntry = 0;nEntry < nEntryCount;nEntry++)
+        {
+            pEntry = pBarrel->pop();
+            pEntry->setCurrColID(*p);
+            pBarrelsBackup.push_back(pEntry);
+        }
+        pBarrel->clear();
+        for (nEntry = 0;nEntry < nEntryCount;nEntry++)
+        {
+            pBarrel->insert(pBarrelsBackup[nEntry]);
+        }
+
+        pBarrelsBackup.clear();
+		
         while (!bFinish)
         {
             for (nEntry = 0;nEntry < nEntryCount;nEntry++)
             {
-                pEntry = pBarrel->getAt(nEntry);
+                pEntry = pBarrel->pop();
+                pBarrelsBackup.push_back(pEntry);
 
                 pColInfo = pEntry->pCollectionsInfo->getCollectionInfo(*p);
 
@@ -310,6 +329,13 @@ void IndexMerger::mergeBarrel(MergeBarrel* pBarrel)
                     }
                 }
             } // for
+
+            pBarrel->clear();
+            for (nEntry = 0;nEntry < nEntryCount;nEntry++)
+            {
+                pBarrel->insert(pBarrelsBackup[nEntry]);
+            }
+            pBarrelsBackup.clear();
 
             if (pFieldInfo)
             {
@@ -353,6 +379,8 @@ void IndexMerger::mergeBarrel(MergeBarrel* pBarrel)
         collectionsInfo.addCollection(pCollectionInfo);
     } // for
 
+
+    pBarrel->setDel(true);
 
     //deleted all merged barrels
     ///TODO:LOCK

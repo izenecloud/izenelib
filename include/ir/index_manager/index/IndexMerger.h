@@ -24,22 +24,26 @@ class MergeBarrelEntry
 {
 public:
     MergeBarrelEntry(Directory* pDirectory,BarrelInfo* pBarrelInfo);
+
     ~MergeBarrelEntry();
+
 public:
-    inline count_t numDocs()
-    {
-        return pBarrelInfo->getDocCount();
-    }
-    /**
-    *load barrel info from both memory or disk index files
-    */
+    inline count_t numDocs() { return pBarrelInfo->getDocCount();}
+    ///load barrel info from both memory or disk index files
     void load();
+
+    void setCurrColID(collectionid_t colID) { currColID = (int)colID;}
+
+    docid_t baseDocID() { return currColID < 0 ? 0 : pBarrelInfo->baseDocIDMap[currColID];}
+
 protected:
     Directory* pDirectory;		///index storage
 
     BarrelInfo* pBarrelInfo;		///barrel information
 
     CollectionsInfo* pCollectionsInfo;///collections information of barrel
+
+    int currColID;
 
     friend class MergeBarrel;
     friend class IndexMerger;
@@ -85,7 +89,10 @@ public:
 private:
     bool lessThan(MergeBarrelEntry* o1, MergeBarrelEntry* o2)
     {
-        return (o1->numDocs()) > (o2->numDocs());
+        if(o1->baseDocID() != o2->baseDocID())
+            return o1->baseDocID() < o2->baseDocID();
+        else
+            return (o1->numDocs()) > (o2->numDocs());
     }
 private:
     string identifier;		///identifier of merge barrel

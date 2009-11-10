@@ -372,7 +372,7 @@ void BarrelsInfo::sort(Directory* pDirectory)
     {
         ///sort barrels by number of documents
 
-        stable_sort(barrelInfos.begin(),barrelInfos.end(),BarrelInfo::greater);
+        stable_sort(barrelInfos.begin(),barrelInfos.end(),BarrelInfo::less);
 
         ///rename to a temp name
         string strPrefix = "tmp";
