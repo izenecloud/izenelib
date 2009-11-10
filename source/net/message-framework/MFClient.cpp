@@ -116,6 +116,17 @@ bool MFClient::requestService(const std::string& agentInfo,
 
 	std::map<std::string, MessageFrameworkNode>::iterator mit;
 
+	if (agentInfo == "#any") {
+		mit = hosts.begin();
+		for (; mit != hosts.end(); mit++) {
+			if (requestOne_(mit->second, request) ) {
+				return true;
+				break;
+			}
+		}
+		return false;
+	}
+	
 	mit = hosts.find(agentInfo);
 	if (mit == hosts.end() ) {
 		DLOG(ERROR) << "Server not found for "<<agentInfo<<std::endl;
@@ -135,11 +146,22 @@ bool MFClient::requestService(const std::string& agentInfo,
 		const std::string& serviceName, const ServiceRequestInfoPtr& request,
 		ServiceResultPtr& result) {
 	std::map<std::string, MessageFrameworkNode> hosts;
-
+	assert(client_ != 0);
 	if ( !client_->getHostsOfService(serviceName, hosts) )
 		return false;
 
-	std::map<std::string, MessageFrameworkNode>::iterator mit;
+	std::map<std::string, MessageFrameworkNode>::iterator mit;	
+	if (agentInfo == "#any") {
+		cout<<"agentInfo1: "<<agentInfo <<endl;
+		mit = hosts.begin();
+		for (; mit != hosts.end(); mit++) {
+			if (requestOne_(mit->second, request, result) ) {
+				return true;
+				break;
+			}
+		}
+		return false;
+	}
 
 	mit = hosts.find(agentInfo);
 	if (mit == hosts.end() ) {
