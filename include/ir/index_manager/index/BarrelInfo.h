@@ -102,6 +102,14 @@ public:
     {
         baseDocIDMap = baseMap;
     }
+
+    docid_t getBaseDocID()
+    {
+        if(baseDocIDMap.empty())
+            return 0;
+        else
+            return baseDocIDMap.begin()->second;
+    }
     /**
      * Get IndexBarrelWriter handle, after the indexed document has been flushed into barrel files, the IndexBarrelWriter handle will be set NULL,
      * if it is not NULL, it means the index is currently still an in-memory index
@@ -133,12 +141,23 @@ public:
      * rename the barrel name, it is used when index merge happens.
      */
     void rename(Directory* pDirectory,const string& newName);
-    /**
-     * compare function to sort all the barrels, the compare function will be based on the document count of a certain barrel.
-     */
+
+    ///compare function to sort all the barrels, the compare function will be based on the document count of a certain barrel.
+    ///we will sort barrels according to base doc id of the first collection.
+    static bool less (BarrelInfo* pElem1, BarrelInfo* pElem2 )
+    {
+        if( pElem1->getBaseDocID() != pElem2->getBaseDocID() )
+            return pElem1->getBaseDocID() < pElem2->getBaseDocID();
+        else
+            return pElem1->getDocCount() > pElem2->getDocCount();
+    }
+     
     static bool greater (BarrelInfo* pElem1, BarrelInfo* pElem2 )
     {
-        return pElem1->getDocCount() > pElem2->getDocCount();
+        if( pElem1->getBaseDocID() != pElem2->getBaseDocID() )
+            return pElem1->getBaseDocID() > pElem2->getBaseDocID();
+        else
+            return pElem1->getDocCount() > pElem2->getDocCount();
     }
 
 
