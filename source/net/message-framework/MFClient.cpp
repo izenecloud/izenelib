@@ -115,7 +115,7 @@ bool MFClient::requestService(const std::string& agentInfo,
 		return false;
 
 	std::map<std::string, MessageFrameworkNode>::iterator mit;
-
+	assert(client_ != 0);
 	if (agentInfo == "#any") {
 		mit = hosts.begin();
 		for (; mit != hosts.end(); mit++) {
@@ -151,8 +151,7 @@ bool MFClient::requestService(const std::string& agentInfo,
 		return false;
 
 	std::map<std::string, MessageFrameworkNode>::iterator mit;	
-	if (agentInfo == "#any") {
-		cout<<"agentInfo1: "<<agentInfo <<endl;
+	if (agentInfo == "#any") {		
 		mit = hosts.begin();
 		for (; mit != hosts.end(); mit++) {
 			if (requestOne_(mit->second, request, result) ) {
