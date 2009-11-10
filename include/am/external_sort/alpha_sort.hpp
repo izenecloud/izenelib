@@ -413,6 +413,13 @@ public:
     
     if (mediaBlock_!=NULL)
       delete mediaBlock_;
+
+    stringstream ss("./.");
+    ss<< getpid();
+    string tmp;
+    ss >> tmp;
+
+    remove(tmp.c_str());
   }
 
   /**
