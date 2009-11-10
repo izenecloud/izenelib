@@ -155,6 +155,7 @@ void IndexWriter::flush()
     if (pLastBarrel == NULL)
         return;
     pLastBarrel->setBaseDocID(baseDocIDMap_);
+    baseDocIDMap_.clear();
     if (pIndexBarrelWriter_->cacheEmpty() == false)///memory index has not been written to database yet.
     {
         pIndexBarrelWriter_->close();
