@@ -809,7 +809,7 @@ protected:
   void cs_treeGrow()
   {
     FILE* f = fopen(outputFileNm_.c_str(), "w+");
-    data_bucket_t bucket("./alpha_sort.tmp");
+    data_bucket_t bucket( (outputFileNm_+".tmp").c_str() );
     bucket.ready4add();
     
     if (f==NULL)
