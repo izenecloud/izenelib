@@ -266,6 +266,11 @@ void IndexWriter::indexDocument(IndexerDocument* pDoc)
              IndexMerger* pIndexMerger = new OfflineIndexMerger(pIndexer_->getDirectory(), pBarrelsInfo_->getBarrelCount());
              mergeUpdatedBarrel(pIndexMerger);
              delete pIndexMerger;
+             if(uniqueID.docId > pBarrelsInfo_->maxDocId())
+             {
+                 bool* pHasUpdateDocs =  &(pCurBarrelInfo_->hasUpdateDocs);
+                 *pHasUpdateDocs = false;
+             }
          }
          else
          {
@@ -331,6 +336,7 @@ bool IndexWriter::startUpdate()
         delete pIndexMerger_;
         pIndexMerger_ = NULL;
     }
+	cout<<"pCurBarrelInfo_ 1 "<<pCurBarrelInfo_->getName()<<endl;
     bool* pHasUpdateDocs =  &(pCurBarrelInfo_->hasUpdateDocs);
     *pHasUpdateDocs = true;
     return true;

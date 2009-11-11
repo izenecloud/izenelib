@@ -260,6 +260,8 @@ public:
 
     docid_t maxDocId() {return maxDoc;}
 
+    void resetMaxDocId() { maxDoc = 0;}
+
     BarrelInfo* operator [](int32_t i) { return barrelInfos[i];}
 
     void startIterator();

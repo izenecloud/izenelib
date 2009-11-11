@@ -106,7 +106,7 @@ bool MultiPostingIterator::next_()
     currEntry_ = top;
 
     for(vector<MultiPostingIterator::TermPositionEntry*>::iterator iter = positions_.begin(); iter != positions_.end(); ++iter)
-        if(top->pPositions_->doc() == currDoc_)
+        if((*iter)->pPositions_->doc() == currDoc_)
             (*iter)->setCurrent(true);
     return true;
 }

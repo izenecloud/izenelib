@@ -45,7 +45,6 @@ void MergeBarrelEntry::load()
         {
             pCollectionsInfo = new CollectionsInfo(*(pWriter->getCollectionsInfo()));
         }
-
         else
             pCollectionsInfo = new CollectionsInfo();
     }
@@ -55,7 +54,6 @@ void MergeBarrelEntry::load()
         IndexInput* fdiStream = pDirectory->openInput(pBarrelInfo->getName() + ".fdi");
 
         pCollectionsInfo->read(fdiStream);///read collection info
-
         delete fdiStream;
     }
 }
@@ -122,7 +120,7 @@ void IndexMerger::merge(BarrelsInfo* pBarrels)
     while (pBarrels->hasNext())
     {
         pBaInfo = pBarrels->next();
-
+cout<<"pBaInfo "<<pBaInfo->getName()<<" hasUpdateDocs "<<pBaInfo->hasUpdateDocs<<endl;
         mb.put(new MergeBarrelEntry(pDirectory,pBaInfo));
     }
 
@@ -240,6 +238,7 @@ void IndexMerger::mergeBarrel(MergeBarrel* pBarrel)
             }
         }
     }
+	
     pNewBarrelInfo->setDocCount(nNumDocs);
     pNewBarrelInfo->setBaseDocID(newBaseDocIDMap);
 
@@ -276,7 +275,7 @@ void IndexMerger::mergeBarrel(MergeBarrel* pBarrel)
     for (vector<collectionid_t>::const_iterator p = colIDSet.begin(); p != colIDSet.end(); ++p)
     {
         bFinish = false;
-        fieldid = 0;
+        fieldid = 1;
         pFieldsInfo = NULL;
 
         for (nEntry = 0;nEntry < nEntryCount;nEntry++)
@@ -295,6 +294,7 @@ void IndexMerger::mergeBarrel(MergeBarrel* pBarrel)
 		
         while (!bFinish)
         {
+        
             for (nEntry = 0;nEntry < nEntryCount;nEntry++)
             {
                 pEntry = pBarrel->pop();
@@ -323,7 +323,6 @@ void IndexMerger::mergeBarrel(MergeBarrel* pBarrel)
                                     pFieldMerger->setDocFilter(pDocFilter);
                             }
                             pFieldInfo->setColID(*p);
-
                             pFieldMerger->addField(pEntry->pBarrelInfo,pFieldInfo);///add to field merger
                         }
                     }
