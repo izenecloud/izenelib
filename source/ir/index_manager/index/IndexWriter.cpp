@@ -86,7 +86,6 @@ void IndexWriter::mergeIndex(IndexMerger* pMerger)
     ///there is a in-memory index
     if ((pIndexBarrelWriter_) && pCurDocCount_ && ((*pCurDocCount_) > 0))
     {
-    cout<<"mergeIndex 1"<<endl;
         IndexMerger* pTmp = pIndexMerger_;
         pIndexMerger_ = pMerger;
         mergeAndWriteCachedIndex();
@@ -94,7 +93,6 @@ void IndexWriter::mergeIndex(IndexMerger* pMerger)
     }
     else
     {
-cout<<"mergeIndex 2"<<endl;
         if (pCurBarrelInfo_)
         {
             //pBarrelsInfo_->deleteLastBarrel();
