@@ -175,11 +175,11 @@ public:
         // so it doesn't effect the perforamnce.
         if( ! IsEmpty<RegExpHandler>::value )
         {
-            rawTextFile_.open(rawTextFileName_.c_str(), std::ofstream::out|std::ofstream::app|std::ofstream::binary );
+            rawTextFile_.open(rawTextFileName_.c_str(), std::ofstream::out|std::ofstream::binary );
             if(rawTextFile_.fail())
                 std::cerr << "bad file " << rawTextFileName_ << std::endl;
 
-            rawIdFile_.open(rawIdFileName_.c_str(), std::ofstream::out|std::ofstream::app|std::ofstream::binary );
+            rawIdFile_.open(rawIdFileName_.c_str(), std::ofstream::out|std::ofstream::binary );
             if(rawIdFile_.fail())
                 std::cerr << "bad file " << rawIdFileName_ << std::endl;
         }
@@ -262,15 +262,13 @@ public:
             // warn!!! truncate files
             rawTextFile_.open(
                 rawTextFileName_.c_str(),
-                std::ofstream::out|std::ofstream::app|std::ofstream::trunc|
-                std::ofstream::binary
+                std::ofstream::out|std::ofstream::trunc|std::ofstream::binary
             );
             if(rawTextFile_.fail())
                 std::cerr << "bad file " << rawTextFileName_ << std::endl;
             rawIdFile_.open(
                 rawIdFileName_.c_str(),
-                std::ofstream::out|std::ofstream::app|std::ofstream::trunc|
-                std::ofstream::binary
+                std::ofstream::out|std::ofstream::trunc|std::ofstream::binary
             );
             if(rawIdFile_.fail())
                 std::cerr << "bad file " << rawIdFileName_ << std::endl;
@@ -345,7 +343,6 @@ protected:
             // write in Trie
             izenelib::util::ClockTimer timer;
 
-            long skip = handler_.num_items();
             long line = 0;
 
             int buffersize = 0;
@@ -362,15 +359,11 @@ protected:
                 iin.read((char*)&id, sizeof(NameID));
                 line++;
 
-                // skip records already in Trie
-                if( line >= skip )
+                if(buffer.size() > 0)
                 {
-                    if(buffer.size() > 0)
-                    {
-                        key = buffer;
-                        if(key.length() > 0)
-                            handler_.insert(key, id);
-                    }
+                    key = buffer;
+                    if(key.length() > 0)
+                        handler_.insert(key, id);
                 }
                 if( line%1000000 == 999999 ) {
                     long inputPos = iin.tellg();
@@ -391,6 +384,8 @@ protected:
             std::cout << std::endl;
             handler_.optimize();
             handler_.flush();
+            tin.close();
+            iin.close();
         }
     }
 
