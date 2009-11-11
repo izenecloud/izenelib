@@ -69,6 +69,8 @@ private:
     void mergeAndWriteCachedIndex2();
 
     void justWriteCachedIndex();	
+    ///merge the updated barrel
+    void mergeUpdatedBarrel(IndexMerger* pMerger);
 
 private:
     IndexBarrelWriter* pIndexBarrelWriter_;

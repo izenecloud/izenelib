@@ -86,6 +86,7 @@ void IndexWriter::mergeIndex(IndexMerger* pMerger)
     ///there is a in-memory index
     if ((pIndexBarrelWriter_) && pCurDocCount_ && ((*pCurDocCount_) > 0))
     {
+    cout<<"mergeIndex 1"<<endl;
         IndexMerger* pTmp = pIndexMerger_;
         pIndexMerger_ = pMerger;
         mergeAndWriteCachedIndex();
@@ -93,7 +94,7 @@ void IndexWriter::mergeIndex(IndexMerger* pMerger)
     }
     else
     {
-
+cout<<"mergeIndex 2"<<endl;
         if (pCurBarrelInfo_)
         {
             //pBarrelsInfo_->deleteLastBarrel();
@@ -104,6 +105,37 @@ void IndexWriter::mergeIndex(IndexMerger* pMerger)
         pMerger->merge(pBarrelsInfo_);
     }
     pIndexer_->getIndexReader()->delDocFilter();
+}
+
+
+void IndexWriter::mergeUpdatedBarrel(IndexMerger* pMerger)
+{
+    pMerger->setDirectory(pIndexer_->getDirectory());
+
+    if(pIndexer_->getIndexReader()->getDocFilter())
+        pMerger->setDocFilter(pIndexer_->getIndexReader()->getDocFilter());
+    ///there is a in-memory index
+    if ((pIndexBarrelWriter_) && pCurDocCount_ && ((*pCurDocCount_) > 0))
+    {
+        IndexMerger* pTmp = pIndexMerger_;
+        pIndexMerger_ = pMerger;
+        mergeAndWriteCachedIndex();
+        pIndexMerger_ = pTmp;
+    }
+    else
+    {
+        if (pCurBarrelInfo_)
+        {
+            //pBarrelsInfo_->deleteLastBarrel();
+            pCurBarrelInfo_ = NULL;
+            pCurDocCount_ = NULL;
+        }
+        pIndexer_->setDirty(true);
+        pMerger->merge(pBarrelsInfo_);
+    }
+
+    bool* pHasUpdateDocs =  &(pCurBarrelInfo_->hasUpdateDocs);
+    *pHasUpdateDocs = true;
 }
 
 
@@ -231,11 +263,20 @@ void IndexWriter::indexDocument(IndexerDocument* pDoc)
 
     if (pIndexBarrelWriter_->cacheFull())
     {
-         if(pIndexer_->getIndexerType() == MANAGER_TYPE_CLIENTPROCESS)
-            justWriteCachedIndex();
-        else
-            ///merge index
-            mergeAndWriteCachedIndex2();
+         if(pCurBarrelInfo_->hasUpdateDocs)
+         {
+             IndexMerger* pIndexMerger = new OfflineIndexMerger(pIndexer_->getDirectory(), pBarrelsInfo_->getBarrelCount());
+             mergeUpdatedBarrel(pIndexMerger);
+             delete pIndexMerger;
+         }
+         else
+         {
+             if(pIndexer_->getIndexerType() == MANAGER_TYPE_CLIENTPROCESS)
+                justWriteCachedIndex();
+            else
+                ///merge index
+                mergeAndWriteCachedIndex2();
+         }
         baseDocIDMap_.clear();
         baseDocIDMap_[uniqueID.colId] = uniqueID.docId;
         pIndexBarrelWriter_->open(pCurBarrelInfo_->getName().c_str());
