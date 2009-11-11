@@ -836,8 +836,8 @@ public:
 		if (creating) {
 
 			// We're creating if the file doesn't exist.
-#ifdef DEBUG
-			cout<<"creating...\n"<<endl;
+#ifdef DEBUG			
+			cout<<"creating sdb_hash: "<<fileName_<<"...\n"<<endl;
 			sfh_.display();
 #endif
 			bucketAddr = new long[directorySize_];
@@ -860,7 +860,7 @@ public:
 				if(cacheSize_ != 0)
 				sfh_.cacheSize = cacheSize_;
 #ifdef DEBUG
-				cout<<"open exist...\n"<<endl;
+				cout<<"open exist sdb_hash: "<<fileName_<<"...\n"<<endl;
 				sfh_.display();
 #endif
 				directorySize_ = (1<<sfh_.dpow);
