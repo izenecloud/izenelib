@@ -370,8 +370,6 @@ protected:
                         key = buffer;
                         if(key.length() > 0)
                             handler_.insert(key, id);
-                        if(id == 1934636467U)
-                            std::cout << "####" << key << "," << id << std::endl;
                     }
                 }
                 if( line%1000000 == 999999 ) {
