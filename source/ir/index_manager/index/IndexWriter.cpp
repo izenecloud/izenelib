@@ -285,6 +285,7 @@ void IndexWriter::indexDocument(IndexerDocument* pDoc)
         pIndexBarrelWriter_->open(pCurBarrelInfo_->getName().c_str());
 
     }
+    pCurBarrelInfo_->updateMaxDoc(uniqueID.docId);
     pBarrelsInfo_->updateMaxDoc(uniqueID.docId);
     pIndexBarrelWriter_->addDocument(pDoc);
     (*pCurDocCount_)++;

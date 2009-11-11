@@ -120,7 +120,6 @@ void IndexMerger::merge(BarrelsInfo* pBarrels)
     while (pBarrels->hasNext())
     {
         pBaInfo = pBarrels->next();
-cout<<"pBaInfo "<<pBaInfo->getName()<<" hasUpdateDocs "<<pBaInfo->hasUpdateDocs<<endl;
         mb.put(new MergeBarrelEntry(pDirectory,pBaInfo));
     }
 
@@ -139,6 +138,16 @@ cout<<"pBaInfo "<<pBaInfo->getName()<<" hasUpdateDocs "<<pBaInfo->hasUpdateDocs<
         setBuffer(NULL,0);
         bBorrowedBuffer = false;
     }
+    pBarrels->startIterator();
+    docid_t maxDoc = 0;
+    while (pBarrels->hasNext())
+    {
+        pBaInfo = pBarrels->next();
+        if(pBaInfo->getMaxDocID() > maxDoc)
+            maxDoc = pBaInfo->getMaxDocID();
+    }
+    if(maxDoc < pBarrels->maxDocId())
+        pBarrels->resetMaxDocId(maxDoc);
     pBarrels->write(pDirectory);
 }
 
@@ -216,12 +225,16 @@ void IndexMerger::mergeBarrel(MergeBarrel* pBarrel)
     int32_t nEntryCount = (int32_t)pBarrel->size();
     ///update min doc id of index barrels,let doc id continuous
     map<collectionid_t,docid_t> newBaseDocIDMap;
+    docid_t maxDocOfNewBarrel = 0;
     for (nEntry = 0;nEntry < nEntryCount;nEntry++)
     {
         pEntry = pBarrel->getAt(nEntry);
 
         nNumDocs += pEntry->pBarrelInfo->getDocCount();
-
+        
+        if(pEntry->pBarrelInfo->getMaxDocID() > maxDocOfNewBarrel)
+            maxDocOfNewBarrel = pEntry->pBarrelInfo->getMaxDocID();
+			
         for (map<collectionid_t,docid_t>::iterator iter = pEntry->pBarrelInfo->baseDocIDMap.begin();
                 iter != pEntry->pBarrelInfo->baseDocIDMap.end(); ++iter)
         {
@@ -241,6 +254,7 @@ void IndexMerger::mergeBarrel(MergeBarrel* pBarrel)
 	
     pNewBarrelInfo->setDocCount(nNumDocs);
     pNewBarrelInfo->setBaseDocID(newBaseDocIDMap);
+	pNewBarrelInfo->updateMaxDoc(maxDocOfNewBarrel);
 
     FieldsInfo* pFieldsInfo = NULL;
     CollectionsInfo collectionsInfo;
