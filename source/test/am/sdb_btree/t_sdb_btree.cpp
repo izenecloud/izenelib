@@ -75,6 +75,72 @@ void cache10000_test() {
 
 }
 
+struct label {
+	unsigned int id;
+	char c;
+	vector<unsigned int> termlist;
+	DATA_IO_LOAD_SAVE(label, &id&c&termlist);
+};
+
+MAKE_FEBIRD_SERIALIZATION( label )
+
+void cache10000_test1() {
+
+	izenelib::am::sdb_bptree<unsigned int, vector<label> > tb;
+	tb.setDegree(6);
+	tb.setCacheSize(5000);
+	tb.open();
+
+	izenelib::util::ClockTimer timer;
+	clock_t start, finish;
+	start = clock();
+	int cnt = 1000000;
+
+	for (int i=0; i<cnt; i++) {
+		if (trace) {
+			cout<<"insert key="<<i<<endl;
+		}
+		int b = rand()%10000000;
+		int size = rand()%20;
+		vector<label> aaa;
+		for(int k=0; k<size; k++) {
+			label lab;
+			lab.id = i;
+			lab.c = rand()%128;
+			int len = rand()%200;
+			for(int j=0; j<len; j++) {
+				lab.termlist.push_back(j);
+			}
+			aaa.push_back(lab);
+		}
+		tb.insert(b, aaa);
+		if (trace) {
+			cout<<"numItem: "<<tb.num_items()<<"a"<<endl;
+			tb.display();
+		}
+		DLOG_EVERY_N(INFO, 100000) << getMemInfo();
+		//cout<<"\nafte insert ...\n";		
+	}
+	cout<<"mumItem: "<<tb.num_items()<<endl;
+	printf("\nIt takes %f seconds before flush()\n", (double)(clock() - start)
+			/CLOCKS_PER_SEC);
+	if (trace)
+	tb.display();
+	cout<<"before flush"<<endl;
+	LOG(ERROR) << getMemInfo();
+	tb.flush();
+	cout<<"After  flush"<<endl;
+	//sleep(10);
+	LOG(ERROR) << getMemInfo();
+	if (trace)
+	tb.display();
+	finish = clock();
+	printf("\nIt takes %f seconds to insert %d  data!\n", (double)(finish
+					- start) / CLOCKS_PER_SEC, num);
+	printf("commit elapsed 1 ( actually ): %lf seconds\n", timer.elapsed() );
+
+}
+
 template<typename T> void insert_test(T& tb) {
 	izenelib::util::ClockTimer timer;
 	clock_t start, finish;
@@ -227,7 +293,7 @@ template<typename T> void search_test(T& tb) {
 }
 
 template<typename T> void sequence_search_test(T& tb) {
-	
+
 	//tb.optimize();
 	//seq_test(tb);
 
@@ -243,7 +309,7 @@ template<typename T> void sequence_search_test(T& tb) {
 
 		for (int i=0; i<3000; i++) {
 			int k = rand()%num;
-			if( find(vh.begin(), vh.end(), k) == vh.end() )
+			if (find(vh.begin(), vh.end(), k) == vh.end() )
 				vh.push_back(k);
 		}
 
@@ -347,12 +413,12 @@ template<typename T> void seq_test(T& tb) {
 	int a=0;
 	long lastfpos = 0;
 	while (tb.get(locn, dat) ) {
-		if(locn.first->isLeaf){
-			assert ( locn.first->fpos >= lastfpos );
+		if (locn.first->isLeaf) {
+			assert(locn.first->fpos >= lastfpos);
 			//cout<<"-> "<<lastfpos;	
-			lastfpos =  locn.first->fpos;
+			lastfpos = locn.first->fpos;
 		}
-			
+
 		//cout<<dat.key<<endl;
 		a++;
 		if ( !tb.seq(locn) )
@@ -474,15 +540,16 @@ int main(int argc, char *argv[]) {
 	}
 	try
 	{
-		cache10000_test();
-		SDB_BTREE* tb = new SDB_BTREE(indexFile);
-		tb->setMaxKeys(maxKeys);
-		tb->setPageSize(pageSize);
-		//tb.setCacheSize(cacheSize);
-		//open_test(tb);
+		//cache10000_test();
+		cache10000_test1();
+		/*(SDB_BTREE* tb = new SDB_BTREE(indexFile);
+		 tb->setMaxKeys(maxKeys);
+		 tb->setPageSize(pageSize);
+		 //tb.setCacheSize(cacheSize);
+		 //open_test(tb);
 
-		tb->open();
-		run(*tb);
+		 tb->open();
+		 run(*tb);*/
 
 	}
 	catch(bad_alloc)

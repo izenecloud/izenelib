@@ -400,8 +400,15 @@ public:
   {
     for(typename vector<PRE_KEY_POINTER_*>::iterator i=sorted_pool_.begin(); i!=sorted_pool_.end();i++)
     {
-      if (*i != NULL)
+       if (*i != NULL)
         delete *i;
+    }
+
+    for(typename vector<vector<TREE_BUCKET_* >* >::iterator i=cs_tree_pool_.begin(); i!=cs_tree_pool_.end();i++)
+    {
+      for (typename vector<TREE_BUCKET_* >::iterator j=(*i)->begin(); j!=(*i)->end(); ++j)
+        delete (*j);
+      delete (*i);
     }
 
     //for(typename vector<FileCache_*>::iterator i=inputFileCacheVctr_.begin(); i!=inputFileCacheVctr_.end();i++)

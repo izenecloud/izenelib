@@ -110,6 +110,10 @@ void CollectionIndexer::addDocument(IndexerDocument* pDoc)
                 it->second->addField(uniqueID.docId, laInput);
                 if(pForwardIndexWriter_)
                     pForwardIndexWriter_->addProperty(iter->first.getPropertyId(), laInput);
+
+                if(pDocLengthWriter_)
+                    pDocLengthWriter_->fill(iter->first.getPropertyId(), laInput->size(), docLength);
+
             }
         }
 

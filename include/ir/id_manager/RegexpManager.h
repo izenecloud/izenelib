@@ -175,11 +175,11 @@ public:
         // so it doesn't effect the perforamnce.
         if( ! IsEmpty<RegExpHandler>::value )
         {
-            rawTextFile_.open(rawTextFileName_.c_str(), std::ofstream::out|std::ofstream::app);
+            rawTextFile_.open(rawTextFileName_.c_str(), std::ofstream::out|std::ofstream::binary );
             if(rawTextFile_.fail())
                 std::cerr << "bad file " << rawTextFileName_ << std::endl;
 
-            rawIdFile_.open(rawIdFileName_.c_str(), std::ofstream::out|std::ofstream::app|std::ofstream::binary );
+            rawIdFile_.open(rawIdFileName_.c_str(), std::ofstream::out|std::ofstream::binary );
             if(rawIdFile_.fail())
                 std::cerr << "bad file " << rawIdFileName_ << std::endl;
         }
@@ -199,8 +199,10 @@ public:
         {
             filelock_.acquire_write_lock();
             try {
-                std::string str( (const char *)word.c_str(), word.size());
-                rawTextFile_ << str <<"\n";
+                int len = (int) word.size();
+                rawTextFile_.write((char*) &len, sizeof(int));
+                rawTextFile_.write((const char*)word.c_str(), word.size());
+
                 rawIdFile_.write((char*)&id, sizeof(NameID));
             } catch(const std::exception & e) {
                 std::cerr << "Files " << rawTextFileName_ << " and " << rawIdFileName_
@@ -260,14 +262,13 @@ public:
             // warn!!! truncate files
             rawTextFile_.open(
                 rawTextFileName_.c_str(),
-                std::ofstream::out|std::ofstream::app|std::ofstream::trunc
+                std::ofstream::out|std::ofstream::trunc|std::ofstream::binary
             );
             if(rawTextFile_.fail())
                 std::cerr << "bad file " << rawTextFileName_ << std::endl;
             rawIdFile_.open(
                 rawIdFileName_.c_str(),
-                std::ofstream::out|std::ofstream::app|std::ofstream::trunc|
-                std::ofstream::binary
+                std::ofstream::out|std::ofstream::trunc|std::ofstream::binary
             );
             if(rawIdFile_.fail())
                 std::cerr << "bad file " << rawIdFileName_ << std::endl;
@@ -326,7 +327,7 @@ protected:
         {
             // Open read pipes
             ifstream tin, iin;
-            tin.open(rawTextFileName_.c_str(), std::ifstream::in);
+            tin.open(rawTextFileName_.c_str(), std::ifstream::in|std::ifstream::binary);
             iin.open(rawIdFileName_.c_str(), std::ifstream::in|std::ifstream::binary);
             if (tin.fail() || iin.fail() )
             {
@@ -342,25 +343,28 @@ protected:
             // write in Trie
             izenelib::util::ClockTimer timer;
 
-            long skip = handler_.num_items();
             long line = 0;
-            std::string buffer;
+
+            int buffersize = 0;
+            char charBuffer[256];
+
             NameString key;
             NameID id;
-            while(getline(tin, buffer))
+            while(!tin.eof())
             {
-                // skip records already in Trie
-                if( line >= skip )
-                {
-                    if(buffer.size() > 0)
-                    {
-                        key = buffer;
-                        iin.read((char*)&id, sizeof(NameID));
-                        if(key.length() > 0)
-                            handler_.insert(key, id);
-                    }
-                }
+                tin.read((char*)&buffersize, sizeof(int));
+                tin.read( charBuffer, buffersize);
+                std::string buffer(charBuffer, buffersize);
+
+                iin.read((char*)&id, sizeof(NameID));
                 line++;
+
+                if(buffer.size() > 0)
+                {
+                    key = buffer;
+                    if(key.length() > 0)
+                        handler_.insert(key, id);
+                }
                 if( line%1000000 == 999999 ) {
                     long inputPos = iin.tellg();
                     int rate = (100* inputPos)/inputLength;
@@ -380,6 +384,8 @@ protected:
             std::cout << std::endl;
             handler_.optimize();
             handler_.flush();
+            tin.close();
+            iin.close();
         }
     }
 

@@ -614,7 +614,7 @@ template<typename KeyType, typename ValueType, typename LockType, bool fixed,
 		//oveflow
 		//cout<<"writing overflow!!!!"<<endl;
 		if (_overflowAddress <0 || _overflowPageCount < np-1) {
-			_overflowAddress = sizeof(CbFileHeader)+2*sizeof(size_t)+_pageSize
+			_overflowAddress = sizeof(CbFileHeader)+_pageSize
 					*(_fh.nPages+_fh.oPages);
 			_fh.oPages += (np-1);
 		}
