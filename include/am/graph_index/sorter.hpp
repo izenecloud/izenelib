@@ -214,7 +214,7 @@ private:
 
   void output_()
   {
-    const uint32_t SIZE = 1000000000;
+    const uint32_t SIZE = 500000000;
     char* buf = (char*)malloc(SIZE);
           
     FILE* f = fopen((filenm_+".out").c_str(), "w+");
