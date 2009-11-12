@@ -254,7 +254,7 @@ void IndexMerger::mergeBarrel(MergeBarrel* pBarrel)
 	
     pNewBarrelInfo->setDocCount(nNumDocs);
     pNewBarrelInfo->setBaseDocID(newBaseDocIDMap);
-	pNewBarrelInfo->updateMaxDoc(maxDocOfNewBarrel);
+    pNewBarrelInfo->updateMaxDoc(maxDocOfNewBarrel);
 
     FieldsInfo* pFieldsInfo = NULL;
     CollectionsInfo collectionsInfo;
@@ -297,6 +297,8 @@ void IndexMerger::mergeBarrel(MergeBarrel* pBarrel)
             pEntry = pBarrel->pop();
             pEntry->setCurrColID(*p);
             pBarrelsBackup.push_back(pEntry);
+            pColInfo = pEntry->pCollectionsInfo->getCollectionInfo(*p);
+            pColInfo->getFieldsInfo()->startIterator();
         }
         pBarrel->clear();
         for (nEntry = 0;nEntry < nEntryCount;nEntry++)
@@ -305,7 +307,7 @@ void IndexMerger::mergeBarrel(MergeBarrel* pBarrel)
         }
 
         pBarrelsBackup.clear();
-		
+
         while (!bFinish)
         {
         
@@ -321,9 +323,11 @@ void IndexMerger::mergeBarrel(MergeBarrel* pBarrel)
                     break;
                 }
 
-                if (pColInfo->getFieldsInfo()->numFields() > (fieldid-1))
+                //if (pColInfo->getFieldsInfo()->numFields() > (fieldid-1))
+                if(pColInfo->getFieldsInfo()->hasNext())
                 {
-                    pFieldInfo = pColInfo->getFieldsInfo()->getField(fieldid);///get field information
+                    //pFieldInfo = pColInfo->getFieldsInfo()->getField(fieldid);///get field information
+                    pFieldInfo = pColInfo->getFieldsInfo()->next();
                     if (pFieldInfo)
                     {
                         if (pFieldInfo->isIndexed()&&pFieldInfo->isForward())///it's a index field

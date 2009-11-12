@@ -337,7 +337,6 @@ bool IndexWriter::startUpdate()
         delete pIndexMerger_;
         pIndexMerger_ = NULL;
     }
-	cout<<"pCurBarrelInfo_ 1 "<<pCurBarrelInfo_->getName()<<endl;
     bool* pHasUpdateDocs =  &(pCurBarrelInfo_->hasUpdateDocs);
     *pHasUpdateDocs = true;
     return true;
