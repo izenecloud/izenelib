@@ -773,6 +773,8 @@ public:
 
     nid_f_ = doc_f_ = leaf_f_ = NULL;
     max_term_len_ = -1;
+
+    sorter_ = NULL;
   }
 
   ~Graph()
@@ -804,6 +806,9 @@ public:
   
   void ready4add()
   {
+    if (sorter_)
+      delete sorter_;
+    
     sorter_ = new sorter_t(filenm_.c_str());
     sorter_->set_max_term_len(max_term_len_);
     sorter_->ready4add();

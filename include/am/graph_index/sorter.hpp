@@ -302,6 +302,9 @@ public:
     out_f_ = NULL;
 
     max_term_len_ = -1;
+
+    for (uint32_t i=0; i<BUCKET_NUM+1; ++i)
+      buckets_[i] = NULL;
   }
 
   ~Sorter()
@@ -312,6 +315,16 @@ public:
       fclose(out_f_);
     if (f_!=NULL)
       fclose(f_);
+
+    for (uint32_t i=0; i<BUCKET_NUM+1; ++i)
+    {
+      if (buckets_[i] == NULL)
+        continue;
+      
+      buckets_[i]->dump();
+      delete buckets_[i];
+      buckets_[i] = NULL;
+    }
   }
 
   void ready4add()
@@ -319,9 +332,15 @@ public:
     p_ = 0;
     fflush(f_);
     fseek(f_, 0, SEEK_END);
-
+    
     for (uint32_t i=0; i<BUCKET_NUM+1; ++i)
     {
+      if (buckets_[i] != NULL)
+      {
+        buckets_[i]->dump();
+        delete buckets_[i];
+      }
+      
       std::stringstream ss;
       ss<< (filenm_+".buc.")<<i<<std::endl;
       std::string tmp;
@@ -447,6 +466,7 @@ public:
       IASSERT(firsts[i]==(TERM_TYPE)-1);
       buckets_[i]->dump();
       delete buckets_[i];
+      buckets_[i] = NULL;
     }
 
     buckets_[BUCKET_NUM]->flush();
@@ -457,6 +477,7 @@ public:
 
     buckets_[BUCKET_NUM]->dump();
     delete buckets_[BUCKET_NUM];
+    buckets_[BUCKET_NUM] = NULL;
 
   }
 
