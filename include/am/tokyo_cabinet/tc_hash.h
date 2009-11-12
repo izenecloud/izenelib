@@ -31,7 +31,7 @@ public:
 	/**
 	 *   constructor
 	 */
-	tc_hash(const string& fileName = "tc_hash.dat"): fileName_(fileName) {
+	tc_hash(const string& fileName = "tc_hash.dat"): fileName_(fileName),cacheSize_(0) {
 		hdb_ = tchdbnew();
 	}
 
@@ -49,6 +49,7 @@ public:
 	void setCacheSize(size_t cacheSize)
 	{
 		tchdbsetcache(hdb_, cacheSize);
+		cacheSize_ = cacheSize;
 	}
 
 	/**
@@ -345,7 +346,11 @@ public:
 	 *   Note that, for efficieny, entry_[] is not freed up.
 	 */
 	void flush() {
-		commit();
+	    close();
+	    tchdbdel(hdb_);
+	    hdb_ = tchdbnew();
+	    tchdbsetcache(hdb_, cacheSize_);
+	    tchdbopen(hdb_, fileName_.c_str(), HDBOCREAT | HDBOWRITER);
 	}
 	/**
 	 *  display the info of tc_hash
@@ -363,6 +368,7 @@ public:
 private:
 	string fileName_;
 	TCHDB* hdb_;
+	size_t cacheSize_;
 };
 
 NS_IZENELIB_AM_END
