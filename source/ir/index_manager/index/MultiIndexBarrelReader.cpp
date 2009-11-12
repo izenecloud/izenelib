@@ -59,7 +59,7 @@ void MultiIndexBarrelReader::deleteDocumentPhysically(IndexerDocument* pDoc)
                 (pBarrelInfo->baseDocIDMap[uniqueID.colId] <= uniqueID.docId))
         {
             (*iter)->pBarrelReader_->deleteDocumentPhysically(pDoc);
-            pBarrelInfo->deleteDocument();
+            pBarrelInfo->deleteDocument(uniqueID.docId);
             break;
         }
     }

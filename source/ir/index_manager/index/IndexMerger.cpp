@@ -313,7 +313,6 @@ void IndexMerger::mergeBarrel(MergeBarrel* pBarrel)
             {
                 pEntry = pBarrel->pop();
                 pBarrelsBackup.push_back(pEntry);
-
                 pColInfo = pEntry->pCollectionsInfo->getCollectionInfo(*p);
 
                 if (NULL == pColInfo)
@@ -322,7 +321,7 @@ void IndexMerger::mergeBarrel(MergeBarrel* pBarrel)
                     break;
                 }
 
-                if (pColInfo->getFieldsInfo()->numFields() > fieldid)
+                if (pColInfo->getFieldsInfo()->numFields() > (fieldid-1))
                 {
                     pFieldInfo = pColInfo->getFieldsInfo()->getField(fieldid);///get field information
                     if (pFieldInfo)

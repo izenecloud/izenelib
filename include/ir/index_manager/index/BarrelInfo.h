@@ -134,9 +134,10 @@ public:
     /**
      * after delete a document from a certain barrel, the document counter should be updated
      */
-    void deleteDocument()
+    void deleteDocument(docid_t docId)
     {
         nNumDocs--;
+        maxDocId = (docId>=maxDocId)?(--maxDocId):maxDocId;
     }
 
     void updateMaxDoc(docid_t docId)
