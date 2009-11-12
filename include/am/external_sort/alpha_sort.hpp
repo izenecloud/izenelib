@@ -919,8 +919,8 @@ protected:
       }
       
       *top = newNode;c++;
-      if (c%10000==0)
-        std::cout<<"cc: "<<c<<std::endl;
+      // if (c%10000==0)
+//         std::cout<<"cc: "<<c<<std::endl;
       //writeOutputBuff(top->key_);
       //output(f, top->key_);
       if (top->key_.f_!=NULL)
