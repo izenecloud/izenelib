@@ -23,6 +23,7 @@ FieldsInfo::FieldsInfo(const FieldsInfo& src)
     {
         ppFieldsInfo[i] = new FieldInfo(*(src.ppFieldsInfo[i]));
         fdInfosByName.insert(make_pair(ppFieldsInfo[i]->name.c_str(),ppFieldsInfo[i]));
+        fdInfosById.insert(make_pair(ppFieldsInfo[i]->getID(),ppFieldsInfo[i]));		
     }
 }
 
@@ -80,6 +81,7 @@ void FieldsInfo::addField(FieldInfo* pFieldInfo)
         nNumFieldInfo++;
 
         fdInfosByName.insert(pair<string,FieldInfo*>(pInfo->getName(),pInfo));
+        fdInfosById.insert(make_pair(pInfo->getID(),pInfo));
     }
 }
 
@@ -104,10 +106,10 @@ void FieldsInfo::read(IndexInput* pIndexInput)
         for (int32_t i = 0;i<count;i++)
         {
             pInfo = new FieldInfo();
-            pInfo->setID(i);
             pInfo->setColID(colId);
             pIndexInput->readString(str);	///<FieldName(String)>
             pInfo->setName(str.c_str());
+            pInfo->setID(pIndexInput->readInt());
             pInfo->setFieldFlag(pIndexInput->readByte()); //IsIndexed(Bool) and IsForward(Bool)
             if (pInfo->isIndexed()&&pInfo->isForward())
             {
@@ -151,6 +153,7 @@ void FieldsInfo::write(IndexOutput* pIndexOutput)
             pInfo = ppFieldsInfo[i];
 
             pIndexOutput->writeString(pInfo->getName());	///<FieldName(String)>
+            pIndexOutput->writeInt(pInfo->getID());	///<Field id(int)>            
             pIndexOutput->writeByte(pInfo->getFieldFlag());		///<IsIndexed(Bool) and IsForward(Bool)>(Byte)
             if (pInfo->isIndexed()&&pInfo->isForward())
             {

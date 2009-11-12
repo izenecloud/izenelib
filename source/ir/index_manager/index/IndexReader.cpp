@@ -194,7 +194,7 @@ void IndexReader::deleteDocumentPhysically(IndexerDocument* pDoc)
     DocId uniqueID;
     pDoc->getDocId(uniqueID);
     BarrelInfo* pBarrelInfo = findDocumentInBarrels(uniqueID.colId, uniqueID.docId);
-    pBarrelInfo->deleteDocument();
+    pBarrelInfo->deleteDocument(uniqueID.docId);
     map<IndexerPropertyConfig, IndexerDocumentPropertyType> propertyValueList;
     pDoc->getPropertyList(propertyValueList);
     for (map<IndexerPropertyConfig, IndexerDocumentPropertyType>::iterator iter = propertyValueList.begin(); iter != propertyValueList.end(); ++iter)
@@ -212,7 +212,7 @@ void IndexReader::deleteDocumentPhysically(IndexerDocument* pDoc)
 void IndexReader::delDocument(collectionid_t colID,docid_t docId)
 {
     BarrelInfo* pBarrelInfo = findDocumentInBarrels(colID, docId);
-    pBarrelInfo->deleteDocument();
+    pBarrelInfo->deleteDocument(docId);
 
     if(!pDocFilter_)
     {

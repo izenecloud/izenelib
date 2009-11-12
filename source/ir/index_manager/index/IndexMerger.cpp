@@ -45,7 +45,6 @@ void MergeBarrelEntry::load()
         {
             pCollectionsInfo = new CollectionsInfo(*(pWriter->getCollectionsInfo()));
         }
-
         else
             pCollectionsInfo = new CollectionsInfo();
     }
@@ -55,7 +54,6 @@ void MergeBarrelEntry::load()
         IndexInput* fdiStream = pDirectory->openInput(pBarrelInfo->getName() + ".fdi");
 
         pCollectionsInfo->read(fdiStream);///read collection info
-
         delete fdiStream;
     }
 }
@@ -122,7 +120,6 @@ void IndexMerger::merge(BarrelsInfo* pBarrels)
     while (pBarrels->hasNext())
     {
         pBaInfo = pBarrels->next();
-
         mb.put(new MergeBarrelEntry(pDirectory,pBaInfo));
     }
 
@@ -141,6 +138,16 @@ void IndexMerger::merge(BarrelsInfo* pBarrels)
         setBuffer(NULL,0);
         bBorrowedBuffer = false;
     }
+    pBarrels->startIterator();
+    docid_t maxDoc = 0;
+    while (pBarrels->hasNext())
+    {
+        pBaInfo = pBarrels->next();
+        if(pBaInfo->getMaxDocID() > maxDoc)
+            maxDoc = pBaInfo->getMaxDocID();
+    }
+    if(maxDoc < pBarrels->maxDocId())
+        pBarrels->resetMaxDocId(maxDoc);
     pBarrels->write(pDirectory);
 }
 
@@ -218,12 +225,16 @@ void IndexMerger::mergeBarrel(MergeBarrel* pBarrel)
     int32_t nEntryCount = (int32_t)pBarrel->size();
     ///update min doc id of index barrels,let doc id continuous
     map<collectionid_t,docid_t> newBaseDocIDMap;
+    docid_t maxDocOfNewBarrel = 0;
     for (nEntry = 0;nEntry < nEntryCount;nEntry++)
     {
         pEntry = pBarrel->getAt(nEntry);
 
         nNumDocs += pEntry->pBarrelInfo->getDocCount();
-
+        
+        if(pEntry->pBarrelInfo->getMaxDocID() > maxDocOfNewBarrel)
+            maxDocOfNewBarrel = pEntry->pBarrelInfo->getMaxDocID();
+			
         for (map<collectionid_t,docid_t>::iterator iter = pEntry->pBarrelInfo->baseDocIDMap.begin();
                 iter != pEntry->pBarrelInfo->baseDocIDMap.end(); ++iter)
         {
@@ -240,8 +251,10 @@ void IndexMerger::mergeBarrel(MergeBarrel* pBarrel)
             }
         }
     }
+	
     pNewBarrelInfo->setDocCount(nNumDocs);
     pNewBarrelInfo->setBaseDocID(newBaseDocIDMap);
+	pNewBarrelInfo->updateMaxDoc(maxDocOfNewBarrel);
 
     FieldsInfo* pFieldsInfo = NULL;
     CollectionsInfo collectionsInfo;
@@ -276,7 +289,7 @@ void IndexMerger::mergeBarrel(MergeBarrel* pBarrel)
     for (vector<collectionid_t>::const_iterator p = colIDSet.begin(); p != colIDSet.end(); ++p)
     {
         bFinish = false;
-        fieldid = 0;
+        fieldid = 1;
         pFieldsInfo = NULL;
 
         for (nEntry = 0;nEntry < nEntryCount;nEntry++)
@@ -295,11 +308,11 @@ void IndexMerger::mergeBarrel(MergeBarrel* pBarrel)
 		
         while (!bFinish)
         {
+        
             for (nEntry = 0;nEntry < nEntryCount;nEntry++)
             {
                 pEntry = pBarrel->pop();
                 pBarrelsBackup.push_back(pEntry);
-
                 pColInfo = pEntry->pCollectionsInfo->getCollectionInfo(*p);
 
                 if (NULL == pColInfo)
@@ -308,7 +321,7 @@ void IndexMerger::mergeBarrel(MergeBarrel* pBarrel)
                     break;
                 }
 
-                if (pColInfo->getFieldsInfo()->numFields() > fieldid)
+                if (pColInfo->getFieldsInfo()->numFields() > (fieldid-1))
                 {
                     pFieldInfo = pColInfo->getFieldsInfo()->getField(fieldid);///get field information
                     if (pFieldInfo)
@@ -323,7 +336,6 @@ void IndexMerger::mergeBarrel(MergeBarrel* pBarrel)
                                     pFieldMerger->setDocFilter(pDocFilter);
                             }
                             pFieldInfo->setColID(*p);
-
                             pFieldMerger->addField(pEntry->pBarrelInfo,pFieldInfo);///add to field merger
                         }
                     }

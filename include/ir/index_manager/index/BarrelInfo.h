@@ -28,6 +28,8 @@ public:
             : nNumDocs(0)
             , pBarrelWriter(NULL)
             , hasUpdateDocs(false)
+            , maxDocId(0)
+ 
     {
     }
 
@@ -36,6 +38,7 @@ public:
             , nNumDocs(count)
             , pBarrelWriter(NULL)
             , hasUpdateDocs(false)
+            , maxDocId(0)
     {
     }
 
@@ -46,6 +49,7 @@ public:
             , nNumDocs(pBarrelInfo->nNumDocs)
             , pBarrelWriter(NULL)
             , hasUpdateDocs(pBarrelInfo->hasUpdateDocs)
+            , maxDocId(pBarrelInfo->maxDocId)
     {
     }
 
@@ -110,6 +114,8 @@ public:
         else
             return baseDocIDMap.begin()->second;
     }
+
+	docid_t getMaxDocID() { return maxDocId; }
     /**
      * Get IndexBarrelWriter handle, after the indexed document has been flushed into barrel files, the IndexBarrelWriter handle will be set NULL,
      * if it is not NULL, it means the index is currently still an in-memory index
@@ -128,11 +134,16 @@ public:
     /**
      * after delete a document from a certain barrel, the document counter should be updated
      */
-    void deleteDocument()
+    void deleteDocument(docid_t docId)
     {
         nNumDocs--;
+        maxDocId = (docId>=maxDocId)?(--maxDocId):maxDocId;
     }
 
+    void updateMaxDoc(docid_t docId)
+    {
+        maxDocId = (docId>maxDocId)?docId:maxDocId;
+    }
     /**
      * delete index files of this barrel
      */
@@ -172,6 +183,8 @@ public:
     IndexBarrelWriter* pBarrelWriter;
 
     bool hasUpdateDocs;
+    ///max doc of this barrel
+    docid_t maxDocId;
 };
 
 
@@ -259,6 +272,8 @@ public:
     void updateMaxDoc(docid_t docId);
 
     docid_t maxDocId() {return maxDoc;}
+
+    void resetMaxDocId(docid_t docId) { maxDoc = docId;}
 
     BarrelInfo* operator [](int32_t i) { return barrelInfos[i];}
 
