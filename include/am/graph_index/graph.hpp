@@ -777,14 +777,7 @@ public:
 
   ~Graph()
   {
-    free_mem_();
-
-    if (nid_f_ != NULL)
-      fclose(nid_f_);
-    if (doc_f_ != NULL)
-      fclose(doc_f_);
-    if (leaf_f_ != NULL)
-      fclose(leaf_f_);
+    release();
   }
 
   void release()
@@ -797,6 +790,16 @@ public:
     docs_.clear();
     leafs_.clear();
 
+    if (nid_f_ != NULL)
+      fclose(nid_f_);
+    if (doc_f_ != NULL)
+      fclose(doc_f_);
+    if (leaf_f_ != NULL)
+      fclose(leaf_f_);
+
+    nid_f_ = NULL;
+    doc_f_ = NULL;
+    leaf_f_ = NULL;
   }
   
   void ready4add()
