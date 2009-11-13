@@ -449,7 +449,7 @@ int32_t InMemoryPosting::decodeNext(uint32_t* pPosting,int32_t length)
         }
 
     ///flush last document
-    //flushLastDoc(false);
+    flushLastDoc(false);
     if (!pDS)
     {
         pDS = new InMemoryPosting::DecodeState;

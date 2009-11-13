@@ -137,7 +137,7 @@ public:
     void deleteDocument(docid_t docId)
     {
         nNumDocs--;
-        maxDocId = (docId>=maxDocId)?(--maxDocId):maxDocId;
+        ///TODO  maxDocId issue
     }
 
     void updateMaxDoc(docid_t docId)

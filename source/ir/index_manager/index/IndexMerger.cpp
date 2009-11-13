@@ -19,99 +19,99 @@ using namespace izenelib::ir::indexmanager;
 
 //////////////////////////////////////////////////////////////////////////
 ///MergeBarrelEntry
-MergeBarrelEntry::MergeBarrelEntry(Directory* pDirectory_,BarrelInfo* pBarrelInfo_)
-        :pDirectory(pDirectory_)
-        ,pBarrelInfo(pBarrelInfo_)
-        ,pCollectionsInfo(NULL)
-        ,currColID(-1)
+MergeBarrelEntry::MergeBarrelEntry(Directory* pDirectory,BarrelInfo* pBarrelInfo)
+        :pDirectory_(pDirectory)
+        ,pBarrelInfo_(pBarrelInfo)
+        ,pCollectionsInfo_(NULL)
+        ,currColID_(-1)
 {
 }
 MergeBarrelEntry::~MergeBarrelEntry()
 {
-    if (pCollectionsInfo)
+    if (pCollectionsInfo_)
     {
-        delete pCollectionsInfo;
-        pCollectionsInfo = NULL;
+        delete pCollectionsInfo_;
+        pCollectionsInfo_ = NULL;
     }
 
-    pBarrelInfo = NULL;
+    pBarrelInfo_ = NULL;
 }
 void MergeBarrelEntry::load()
 {
-    IndexBarrelWriter* pWriter = pBarrelInfo->getWriter();
-    if (!pCollectionsInfo)
+    IndexBarrelWriter* pWriter = pBarrelInfo_->getWriter();
+    if (!pCollectionsInfo_)
     {
         if (pWriter)
         {
-            pCollectionsInfo = new CollectionsInfo(*(pWriter->getCollectionsInfo()));
+            pCollectionsInfo_ = new CollectionsInfo(*(pWriter->getCollectionsInfo()));
         }
         else
-            pCollectionsInfo = new CollectionsInfo();
+            pCollectionsInfo_ = new CollectionsInfo();
     }
 
     if (!pWriter)
     {
-        IndexInput* fdiStream = pDirectory->openInput(pBarrelInfo->getName() + ".fdi");
+        IndexInput* fdiStream = pDirectory_->openInput(pBarrelInfo_->getName() + ".fdi");
 
-        pCollectionsInfo->read(fdiStream);///read collection info
+        pCollectionsInfo_->read(fdiStream);///read collection info
         delete fdiStream;
     }
 }
 //////////////////////////////////////////////////////////////////////////
 ///IndexMerger
 IndexMerger::IndexMerger()
-        :pDirectory(NULL)
-        ,buffer(NULL)
-        ,bufsize(0)
-        ,bBorrowedBuffer(false)
-        ,pMergeBarrels(NULL)
-        ,pDocFilter(NULL)
+        :pDirectory_(NULL)
+        ,buffer_(NULL)
+        ,bufsize_(0)
+        ,bBorrowedBuffer_(false)
+        ,pMergeBarrels_(NULL)
+        ,pDocFilter_(NULL)
 {
 }
-IndexMerger::IndexMerger(Directory* pDirectory_)
-        :pDirectory(pDirectory_)
-        ,buffer(NULL)
-        ,bufsize(0)
-        ,bBorrowedBuffer(false)
-        ,pMergeBarrels(NULL)
-	,pDocFilter(NULL)
+IndexMerger::IndexMerger(Directory* pDirectory)
+        :pDirectory_(pDirectory)
+        ,buffer_(NULL)
+        ,bufsize_(0)
+        ,bBorrowedBuffer_(false)
+        ,pMergeBarrels_(NULL)
+	,pDocFilter_(NULL)
 {
 }
-IndexMerger::IndexMerger(Directory* pDirectory_,char* buffer_,size_t bufsize_)
-        :pDirectory(pDirectory_)
-        ,buffer(buffer_)
-        ,bufsize(bufsize_)
-        ,bBorrowedBuffer(false)
-        ,pMergeBarrels(NULL)
-	,pDocFilter(NULL)
+IndexMerger::IndexMerger(Directory* pDirectory,char* buffer,size_t bufsize)
+        :pDirectory_(pDirectory)
+        ,buffer_(buffer)
+        ,bufsize_(bufsize)
+        ,bBorrowedBuffer_(false)
+        ,pMergeBarrels_(NULL)
+	,pDocFilter_(NULL)
 {
 }
 IndexMerger::~IndexMerger()
 {
-    if (pMergeBarrels)
+    if (pMergeBarrels_)
     {
-        pMergeBarrels->clear();
-        delete pMergeBarrels;
-        pMergeBarrels = NULL;
+        pMergeBarrels_->clear();
+        delete pMergeBarrels_;
+        pMergeBarrels_ = NULL;
     }
-    pDocFilter = 0;
+    pDocFilter_ = 0;
 }
 
 void IndexMerger::setBuffer(char* buffer,size_t length)
 {
-    this->buffer = buffer;
-    bufsize = length;
+    buffer_ = buffer;
+    bufsize_ = length;
 }
 
 void IndexMerger::merge(BarrelsInfo* pBarrels)
 {
-    if (!pBarrels || ((pBarrels->getBarrelCount() <= 1)&&!pDocFilter))
+    if (!pBarrels || ((pBarrels->getBarrelCount() <= 1)&&!pDocFilter_))
     {
         pendingUpdate(pBarrels);
         return ;
     }
 
-    pBarrelsInfo = pBarrels;
+    pBarrelsInfo_ = pBarrels;
 
     MergeBarrel mb(pBarrels->getBarrelCount());
     ///put all index barrel into mb
@@ -120,7 +120,7 @@ void IndexMerger::merge(BarrelsInfo* pBarrels)
     while (pBarrels->hasNext())
     {
         pBaInfo = pBarrels->next();
-        mb.put(new MergeBarrelEntry(pDirectory,pBaInfo));
+        mb.put(new MergeBarrelEntry(pDirectory_,pBaInfo));
     }
 
     while (mb.size() > 0)
@@ -130,13 +130,13 @@ void IndexMerger::merge(BarrelsInfo* pBarrels)
 
     endMerge();
     pendingUpdate(pBarrels); ///update barrel name and base doc id
-    pBarrelsInfo = NULL;
+    pBarrelsInfo_ = NULL;
 
-    if (bBorrowedBuffer)
+    if (bBorrowedBuffer_)
     {
         ///the buffer is borrowed from indexer, give it back to indexer
         setBuffer(NULL,0);
-        bBorrowedBuffer = false;
+        bBorrowedBuffer_ = false;
     }
     pBarrels->startIterator();
     docid_t maxDoc = 0;
@@ -148,39 +148,41 @@ void IndexMerger::merge(BarrelsInfo* pBarrels)
     }
     if(maxDoc < pBarrels->maxDocId())
         pBarrels->resetMaxDocId(maxDoc);
-    pBarrels->write(pDirectory);
+    pBarrels->write(pDirectory_);
 }
 
 void IndexMerger::addToMerge(BarrelsInfo* pBarrelsInfo,BarrelInfo* pBarrelInfo)
 {
-    if (!pMergeBarrels)
+    if (!pMergeBarrels_)
     {
-        pMergeBarrels = new vector<MergeBarrelEntry*>();
+        pMergeBarrels_ = new vector<MergeBarrelEntry*>();
     }
 
     MergeBarrelEntry* pEntry = NULL;
-    this->pBarrelsInfo = pBarrelsInfo;
-    pEntry = new MergeBarrelEntry(pDirectory,pBarrelInfo);
-    pMergeBarrels->push_back(pEntry);
+    pBarrelsInfo_ = pBarrelsInfo;
+    pEntry = new MergeBarrelEntry(pDirectory_,pBarrelInfo);
+    pMergeBarrels_->push_back(pEntry);
+	
     addBarrel(pEntry);
 
+ 
     pendingUpdate(pBarrelsInfo); ///update barrel name and base doc id
-    this->pBarrelsInfo = NULL;
+    pBarrelsInfo_ = NULL;
 
-    if (bBorrowedBuffer)
+    if (bBorrowedBuffer_)
     {
         ///the buffer is borrowed from indexer, give it back to indexer
         setBuffer(NULL,0);
-        bBorrowedBuffer = false;
+        bBorrowedBuffer_ = false;
     }
-    pBarrelsInfo->write(pDirectory);
+    pBarrelsInfo->write(pDirectory_);
 }
 
 void IndexMerger::pendingUpdate(BarrelsInfo* pBarrelsInfo)
 {
     ///TODO:LOCK
     ///sort barrels
-    pBarrelsInfo->sort(pDirectory);
+    pBarrelsInfo->sort(pDirectory_);
     BarrelInfo* pBaInfo;
     pBarrelsInfo->startIterator();
     while (pBarrelsInfo->hasNext())
@@ -211,11 +213,11 @@ void IndexMerger::mergeBarrel(MergeBarrel* pBarrel)
     BarrelInfo* pNewBarrelInfo = new BarrelInfo(newBarrelName,0);
 
     string name = newBarrelName + ".voc";///the file name of new index barrel
-    IndexOutput* pVocStream = pDirectory->createOutput(name);
+    IndexOutput* pVocStream = pDirectory_->createOutput(name);
     name = newBarrelName + ".dfp";
-    IndexOutput* pDStream = pDirectory->createOutput(name);
+    IndexOutput* pDStream = pDirectory_->createOutput(name);
     name = newBarrelName + ".pop";
-    IndexOutput* pPStream = pDirectory->createOutput(name);
+    IndexOutput* pPStream = pDirectory_->createOutput(name);
 
     OutputDescriptor* pOutputDesc = new OutputDescriptor(pVocStream,pDStream,pPStream,true);
 
@@ -230,13 +232,13 @@ void IndexMerger::mergeBarrel(MergeBarrel* pBarrel)
     {
         pEntry = pBarrel->getAt(nEntry);
 
-        nNumDocs += pEntry->pBarrelInfo->getDocCount();
+        nNumDocs += pEntry->pBarrelInfo_->getDocCount();
         
-        if(pEntry->pBarrelInfo->getMaxDocID() > maxDocOfNewBarrel)
-            maxDocOfNewBarrel = pEntry->pBarrelInfo->getMaxDocID();
+        if(pEntry->pBarrelInfo_->getMaxDocID() > maxDocOfNewBarrel)
+            maxDocOfNewBarrel = pEntry->pBarrelInfo_->getMaxDocID();
 			
-        for (map<collectionid_t,docid_t>::iterator iter = pEntry->pBarrelInfo->baseDocIDMap.begin();
-                iter != pEntry->pBarrelInfo->baseDocIDMap.end(); ++iter)
+        for (map<collectionid_t,docid_t>::iterator iter = pEntry->pBarrelInfo_->baseDocIDMap.begin();
+                iter != pEntry->pBarrelInfo_->baseDocIDMap.end(); ++iter)
         {
             if (newBaseDocIDMap.find(iter->first) == newBaseDocIDMap.end())
             {
@@ -274,7 +276,7 @@ void IndexMerger::mergeBarrel(MergeBarrel* pBarrel)
 
     for (nEntry = 0; nEntry < nEntryCount; nEntry++)
     {
-        pColsInfo = pBarrel->getAt(nEntry)->pCollectionsInfo;
+        pColsInfo = pBarrel->getAt(nEntry)->pCollectionsInfo_;
         pColsInfo->startIterator();
         while (pColsInfo->hasNext())
             colIDSet.push_back(pColsInfo->next()->getId());
@@ -297,7 +299,7 @@ void IndexMerger::mergeBarrel(MergeBarrel* pBarrel)
             pEntry = pBarrel->pop();
             pEntry->setCurrColID(*p);
             pBarrelsBackup.push_back(pEntry);
-            pColInfo = pEntry->pCollectionsInfo->getCollectionInfo(*p);
+            pColInfo = pEntry->pCollectionsInfo_->getCollectionInfo(*p);
             pColInfo->getFieldsInfo()->startIterator();
         }
         pBarrel->clear();
@@ -315,7 +317,7 @@ void IndexMerger::mergeBarrel(MergeBarrel* pBarrel)
             {
                 pEntry = pBarrel->pop();
                 pBarrelsBackup.push_back(pEntry);
-                pColInfo = pEntry->pCollectionsInfo->getCollectionInfo(*p);
+                pColInfo = pEntry->pCollectionsInfo_->getCollectionInfo(*p);
 
                 if (NULL == pColInfo)
                 {
@@ -335,12 +337,12 @@ void IndexMerger::mergeBarrel(MergeBarrel* pBarrel)
                             if (pFieldMerger == NULL)
                             {
                                 pFieldMerger = new FieldMerger();
-                                pFieldMerger->setDirectory(pDirectory);
-                                if(pDocFilter)
-                                    pFieldMerger->setDocFilter(pDocFilter);
+                                pFieldMerger->setDirectory(pDirectory_);
+                                if(pDocFilter_)
+                                    pFieldMerger->setDocFilter(pDocFilter_);
                             }
                             pFieldInfo->setColID(*p);
-                            pFieldMerger->addField(pEntry->pBarrelInfo,pFieldInfo);///add to field merger
+                            pFieldMerger->addField(pEntry->pBarrelInfo_,pFieldInfo);///add to field merger
                         }
                     }
                 }
@@ -362,7 +364,7 @@ void IndexMerger::mergeBarrel(MergeBarrel* pBarrel)
                     if (pOutputDesc->getPPostingOutput())
                         ptiOff1 = pOutputDesc->getPPostingOutput()->getFilePointer();
 
-                    pFieldMerger->setBuffer(buffer,bufsize);		///set buffer for field merge
+                    pFieldMerger->setBuffer(buffer_,bufsize_);		///set buffer for field merge
                     voffset = pFieldMerger->merge(pOutputDesc);
                     pFieldInfo->setIndexOffset(voffset);///set offset of this field's index data
 
@@ -403,27 +405,27 @@ void IndexMerger::mergeBarrel(MergeBarrel* pBarrel)
     for (nEntry = 0;nEntry < nEntryCount;nEntry++)
     {
         pEntry = pBarrel->getAt(nEntry);
-        IndexBarrelWriter* pWriter = pEntry->pBarrelInfo->getWriter();
+        IndexBarrelWriter* pWriter = pEntry->pBarrelInfo_->getWriter();
         if (pWriter)///clear in-memory index
         {
             pWriter->resetCache(true);
             ///borrow buffer from indexer
             setBuffer((char*)pWriter->getMemCache()->getBegin(),pWriter->getMemCache()->getSize());
-            bBorrowedBuffer = true;
+            bBorrowedBuffer_ = true;
         }
-        pBarrelsInfo->removeBarrel(pDirectory,pEntry->pBarrelInfo->getName());///delete merged barrels
+        pBarrelsInfo_->removeBarrel(pDirectory_,pEntry->pBarrelInfo_->getName());///delete merged barrels
     }
-    pBarrelsInfo->addBarrel(pNewBarrelInfo,false);
-    continueDocIDs(pBarrelsInfo);///let doc ids in a continuous form
+    pBarrelsInfo_->addBarrel(pNewBarrelInfo,false);
+    continueDocIDs(pBarrelsInfo_);///let doc ids in a continuous form
     ///TODO:UNLOCK
-    if (pMergeBarrels)
+    if (pMergeBarrels_)
     {
         removeMergedBarrels(pBarrel);
     }
     pBarrel->clear();
 
     name = newBarrelName + ".fdi";
-    IndexOutput* fieldsStream = pDirectory->createOutput(name);
+    IndexOutput* fieldsStream = pDirectory_->createOutput(name);
     //fieldsInfo.write(fieldsStream);//field information
     collectionsInfo.write(fieldsStream);
     fieldsStream->flush();
@@ -432,7 +434,7 @@ void IndexMerger::mergeBarrel(MergeBarrel* pBarrel)
     if (bHasPPosting == false)
     {
         name = newBarrelName + ".pop";
-        pDirectory->deleteFile(name);
+        pDirectory_->deleteFile(name);
     }
 
     delete pOutputDesc;
@@ -441,26 +443,26 @@ void IndexMerger::mergeBarrel(MergeBarrel* pBarrel)
     //////////////////////////////////////////////////////////////////////////
     DLOG(INFO) << "End merge: " << pNewBarrelInfo->getDocCount() << endl;
 
-    MergeBarrelEntry* pNewEntry = new MergeBarrelEntry(pDirectory,pNewBarrelInfo);
+    MergeBarrelEntry* pNewEntry = new MergeBarrelEntry(pDirectory_,pNewBarrelInfo);
     addBarrel(pNewEntry);
 }
 
 void IndexMerger::removeMergedBarrels(MergeBarrel * pBarrel)
 {
-    if (!pMergeBarrels)
+    if (!pMergeBarrels_)
         return;
-    vector<MergeBarrelEntry*>::iterator iter = pMergeBarrels->begin();
+    vector<MergeBarrelEntry*>::iterator iter = pMergeBarrels_->begin();
     size_t nEntry = 0;
     bool bRemoved = false;
     uint32_t nRemoved = 0;
-    while (iter != pMergeBarrels->end())
+    while (iter != pMergeBarrels_->end())
     {
         bRemoved = false;
         for (nEntry = 0;nEntry < pBarrel->size();nEntry++)
         {
             if ((*iter) == pBarrel->getAt(nEntry))
             {
-                iter = pMergeBarrels->erase(iter);
+                iter = pMergeBarrels_->erase(iter);
                 bRemoved = true;
                 nRemoved++;
             }
@@ -474,15 +476,15 @@ void IndexMerger::removeMergedBarrels(MergeBarrel * pBarrel)
 
 void IndexMerger::transferToDisk(const char* pszBarrelName)
 {
-    if (!pMergeBarrels)
+    if (!pMergeBarrels_)
         return;
 
-    vector<MergeBarrelEntry*>::iterator iter = pMergeBarrels->begin();
+    vector<MergeBarrelEntry*>::iterator iter = pMergeBarrels_->begin();
     MergeBarrelEntry* pEntry = NULL;
 
-    while (iter != pMergeBarrels->end())
+    while (iter != pMergeBarrels_->end())
     {
-        if (!strcmp((*iter)->pBarrelInfo->getName().c_str(),pszBarrelName))
+        if (!strcmp((*iter)->pBarrelInfo_->getName().c_str(),pszBarrelName))
         {
             pEntry = (*iter);
             pEntry->load();

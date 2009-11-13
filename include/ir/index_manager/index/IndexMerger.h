@@ -28,22 +28,22 @@ public:
     ~MergeBarrelEntry();
 
 public:
-    inline count_t numDocs() { return pBarrelInfo->getDocCount();}
+    inline count_t numDocs() { return pBarrelInfo_->getDocCount();}
     ///load barrel info from both memory or disk index files
     void load();
 
-    void setCurrColID(collectionid_t colID) { currColID = (int)colID;}
+    void setCurrColID(collectionid_t colID) { currColID_ = (int)colID;}
 
-    docid_t baseDocID() { return currColID < 0 ? 0 : pBarrelInfo->baseDocIDMap[currColID];}
+    docid_t baseDocID() { return currColID_ < 0 ? 0 : pBarrelInfo_->baseDocIDMap[currColID_];}
 
 protected:
-    Directory* pDirectory;		///index storage
+    Directory* pDirectory_;		///index storage
 
-    BarrelInfo* pBarrelInfo;		///barrel information
+    BarrelInfo* pBarrelInfo_;		///barrel information
 
-    CollectionsInfo* pCollectionsInfo;///collections information of barrel
+    CollectionsInfo* pCollectionsInfo_;///collections information of barrel
 
-    int currColID;
+    int currColID_;
 
     friend class MergeBarrel;
     friend class IndexMerger;
@@ -137,7 +137,7 @@ public:
      */
     void setDirectory(Directory* pDirectory)
     {
-        this->pDirectory = pDirectory;
+        this->pDirectory_ = pDirectory;
     }
 
     /**
@@ -146,12 +146,12 @@ public:
      */
     Directory* getDirectory()
     {
-        return pDirectory;
+        return pDirectory_;
     }
 
     void setDocFilter(BitVector* pFilter)
     {
-        pDocFilter = pFilter;
+        pDocFilter_ = pFilter;
     }
 
     /**
@@ -212,19 +212,19 @@ protected:
      */
     void removeMergedBarrels(MergeBarrel* pBarrel);
 protected:
-    Directory* pDirectory;				///index data source
+    Directory* pDirectory_;				///index data source
 
-    BarrelsInfo* pBarrelsInfo;			///reference to Index's barrels information
+    BarrelsInfo* pBarrelsInfo_;			///reference to Index's barrels information
 
-    char* buffer;					///buffer for merging process
+    char* buffer_;					///buffer for merging process
 
-    size_t bufsize;					///size of buffer
+    size_t bufsize_;					///size of buffer
 
-    bool bBorrowedBuffer;		///is the buffer borrowed from indexer?
+    bool bBorrowedBuffer_;		///is the buffer borrowed from indexer?
 
-    vector<MergeBarrelEntry*>* pMergeBarrels;
+    vector<MergeBarrelEntry*>* pMergeBarrels_;
 
-    BitVector* pDocFilter;
+    BitVector* pDocFilter_;
 
     friend class IndexWriter;
     friend class Indexer;

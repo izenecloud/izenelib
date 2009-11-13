@@ -63,6 +63,9 @@ private:
 
     ///IndexBarrelWriter is the practical class to process indexing procedure.
     void createBarrelWriter();
+
+    void createMerger();
+	
     ///will be used by mergeIndex
     void mergeAndWriteCachedIndex();
     ///will be used when index documents
@@ -70,7 +73,7 @@ private:
 
     void justWriteCachedIndex();	
     ///merge the updated barrel
-    void mergeUpdatedBarrel(IndexMerger* pMerger);
+    void mergeUpdatedBarrel();
 
 private:
     IndexBarrelWriter* pIndexBarrelWriter_;
