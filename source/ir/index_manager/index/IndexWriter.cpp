@@ -127,6 +127,8 @@ void IndexWriter::mergeUpdatedBarrel()
         bool* pHasUpdateDocs =  &(pCurBarrelInfo_->hasUpdateDocs);
         *pHasUpdateDocs = true;
     }
+    delete pIndexMerger_;
+    pIndexMerger_ = NULL;
 
     delete pMerger;
 }
