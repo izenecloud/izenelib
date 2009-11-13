@@ -353,6 +353,16 @@ protected:
             while(!tin.eof())
             {
                 tin.read((char*)&buffersize, sizeof(int));
+                // skip terms that is too long
+                if(buffersize > 256) {
+                    char* tmpBuffer = new char[buffersize];
+                    tin.read(tmpBuffer, buffersize);
+                    std::string badString(tmpBuffer, buffersize);
+                    NameString badKey = badString;
+                    std::cout << std::endl << "Warning, find term that are too long: " <<
+                        buffersize << "," << badKey << std::endl << std::flush;
+                    continue;
+                }
                 tin.read( charBuffer, buffersize);
                 std::string buffer(charBuffer, buffersize);
 
