@@ -284,7 +284,9 @@ public:
 	 *   Note that, for efficieny, entry_[] is not freed up.
 	 */
 	void flush() {
-		commit();
+	    close();
+	    tcbdbdel(bdb_);
+	    open();
 	}
 	/**
 	 *  display the info of tc_btree

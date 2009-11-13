@@ -157,7 +157,8 @@ public:
 
   void dump()
   {
-    fclose(f_);
+    if (f_ != NULL)
+      fclose(f_);
     f_ = 0;
     remove(filenm_.c_str());
   }

@@ -773,18 +773,13 @@ public:
 
     nid_f_ = doc_f_ = leaf_f_ = NULL;
     max_term_len_ = -1;
+
+    sorter_ = NULL;
   }
 
   ~Graph()
   {
-    free_mem_();
-
-    if (nid_f_ != NULL)
-      fclose(nid_f_);
-    if (doc_f_ != NULL)
-      fclose(doc_f_);
-    if (leaf_f_ != NULL)
-      fclose(leaf_f_);
+    release();
   }
 
   void release()
@@ -797,10 +792,23 @@ public:
     docs_.clear();
     leafs_.clear();
 
+    if (nid_f_ != NULL)
+      fclose(nid_f_);
+    if (doc_f_ != NULL)
+      fclose(doc_f_);
+    if (leaf_f_ != NULL)
+      fclose(leaf_f_);
+
+    nid_f_ = NULL;
+    doc_f_ = NULL;
+    leaf_f_ = NULL;
   }
   
   void ready4add()
   {
+    if (sorter_)
+      delete sorter_;
+    
     sorter_ = new sorter_t(filenm_.c_str());
     sorter_->set_max_term_len(max_term_len_);
     sorter_->ready4add();
