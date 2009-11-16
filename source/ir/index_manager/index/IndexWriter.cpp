@@ -225,6 +225,9 @@ void IndexWriter::mergeAndWriteCachedIndex2()
             pIndexMerger_->transferToDisk(pIndexBarrelWriter_->barrelName.c_str());
     }
 
+    delete pIndexMerger_;
+    pIndexMerger_ = NULL;
+
     pBarrelsInfo_->addBarrel(pBarrelsInfo_->newBarrel().c_str(),0);
     pCurBarrelInfo_ = pBarrelsInfo_->getLastBarrel();
     pCurBarrelInfo_->setWriter(pIndexBarrelWriter_);

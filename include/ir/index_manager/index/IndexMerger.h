@@ -89,10 +89,7 @@ public:
 private:
     bool lessThan(MergeBarrelEntry* o1, MergeBarrelEntry* o2)
     {
-        if(o1->baseDocID() != o2->baseDocID())
-            return o1->baseDocID() < o2->baseDocID();
-        else
-            return (o1->numDocs()) > (o2->numDocs());
+        return o1->numDocs() > o2->numDocs();
     }
 private:
     string identifier;		///identifier of merge barrel
@@ -195,17 +192,6 @@ protected:
      */
     void mergeBarrel(MergeBarrel* pBarrel);
 
-    /**
-     * let document ids in a continuous form
-     * @param pBarrelsInfo barrels information
-     */
-    void continueDocIDs(BarrelsInfo* pBarrelsInfo);
-
-protected:
-    static bool BarrelGreater(MergeBarrelEntry* o1, MergeBarrelEntry* o2)
-    {
-        return (o1->numDocs()) > (o2->numDocs());
-    }
     /**
      * remove merged barrels from pMergeBarrels
      * @param pBarrel container of barrels

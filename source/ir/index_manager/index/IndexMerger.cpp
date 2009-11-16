@@ -192,18 +192,6 @@ void IndexMerger::pendingUpdate(BarrelsInfo* pBarrelsInfo)
     }
     ///TODO:UNLOCK
 }
-void IndexMerger::continueDocIDs(BarrelsInfo* pBarrelsInfo)
-{
-    docid_t baseDocID = 0;
-    BarrelInfo* pBaInfo;
-    pBarrelsInfo->startIterator();
-    while (pBarrelsInfo->hasNext())
-    {
-        pBaInfo = pBarrelsInfo->next();
-
-        baseDocID += pBaInfo->getDocCount();
-    }
-}
 
 void IndexMerger::mergeBarrel(MergeBarrel* pBarrel)
 {
@@ -285,9 +273,6 @@ void IndexMerger::mergeBarrel(MergeBarrel* pBarrel)
     vector<collectionid_t>::iterator it = unique(colIDSet.begin(),colIDSet.end());
     colIDSet.resize(it - colIDSet.begin());
 
-    pBarrel->setDel(false);
-    vector<MergeBarrelEntry*> pBarrelsBackup;
-	
     for (vector<collectionid_t>::const_iterator p = colIDSet.begin(); p != colIDSet.end(); ++p)
     {
         bFinish = false;
@@ -296,27 +281,18 @@ void IndexMerger::mergeBarrel(MergeBarrel* pBarrel)
 
         for (nEntry = 0;nEntry < nEntryCount;nEntry++)
         {
-            pEntry = pBarrel->pop();
+            pEntry = pBarrel->getAt(nEntry);
             pEntry->setCurrColID(*p);
-            pBarrelsBackup.push_back(pEntry);
             pColInfo = pEntry->pCollectionsInfo_->getCollectionInfo(*p);
             pColInfo->getFieldsInfo()->startIterator();
         }
-        pBarrel->clear();
-        for (nEntry = 0;nEntry < nEntryCount;nEntry++)
-        {
-            pBarrel->insert(pBarrelsBackup[nEntry]);
-        }
-
-        pBarrelsBackup.clear();
 
         while (!bFinish)
         {
         
             for (nEntry = 0;nEntry < nEntryCount;nEntry++)
             {
-                pEntry = pBarrel->pop();
-                pBarrelsBackup.push_back(pEntry);
+                pEntry = pBarrel->getAt(nEntry);
                 pColInfo = pEntry->pCollectionsInfo_->getCollectionInfo(*p);
 
                 if (NULL == pColInfo)
@@ -347,13 +323,6 @@ void IndexMerger::mergeBarrel(MergeBarrel* pBarrel)
                     }
                 }
             } // for
-
-            pBarrel->clear();
-            for (nEntry = 0;nEntry < nEntryCount;nEntry++)
-            {
-                pBarrel->insert(pBarrelsBackup[nEntry]);
-            }
-            pBarrelsBackup.clear();
 
             if (pFieldInfo)
             {
@@ -397,9 +366,6 @@ void IndexMerger::mergeBarrel(MergeBarrel* pBarrel)
         collectionsInfo.addCollection(pCollectionInfo);
     } // for
 
-
-    pBarrel->setDel(true);
-
     //deleted all merged barrels
     ///TODO:LOCK
     for (nEntry = 0;nEntry < nEntryCount;nEntry++)
@@ -416,7 +382,6 @@ void IndexMerger::mergeBarrel(MergeBarrel* pBarrel)
         pBarrelsInfo_->removeBarrel(pDirectory_,pEntry->pBarrelInfo_->getName());///delete merged barrels
     }
     pBarrelsInfo_->addBarrel(pNewBarrelInfo,false);
-    continueDocIDs(pBarrelsInfo_);///let doc ids in a continuous form
     ///TODO:UNLOCK
     if (pMergeBarrels_)
     {
