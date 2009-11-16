@@ -1,10 +1,10 @@
 #include <ir/index_manager/index/IndexWriter.h>
 #include <ir/index_manager/index/Indexer.h>
 #include <ir/index_manager/index/IndexMerger.h>
-#include <ir/index_manager/index/OnlineIndexMerger.h>
 #include <ir/index_manager/index/OfflineIndexMerger.h>
 #include <ir/index_manager/index/ImmediateMerger.h>
 #include <ir/index_manager/index/MultiWayMerger.h>
+#include <ir/index_manager/index/GPartitionMerger.h>
 #include <ir/index_manager/index/IndexBarrelWriter.h>
 #include <ir/index_manager/index/IndexerPropertyConfig.h>
 
@@ -142,7 +142,7 @@ void IndexWriter::createMerger()
     else if(!strcasecmp(pIndexer_->pConfigurationManager_->mergeStrategy_.param_.c_str(),"mway"))
         pIndexMerger_ = new MultiWayMerger(pIndexer_->getDirectory());	
     else
-        pIndexMerger_ = new OnlineIndexMerger(pIndexer_->getDirectory());
+        pIndexMerger_ = new GPartitionMerger(pIndexer_->getDirectory());
 }
 
 void IndexWriter::createBarrelWriter()
@@ -224,9 +224,6 @@ void IndexWriter::mergeAndWriteCachedIndex2()
         if (pIndexMerger_)
             pIndexMerger_->transferToDisk(pIndexBarrelWriter_->barrelName.c_str());
     }
-
-    delete pIndexMerger_;
-    pIndexMerger_ = NULL;
 
     pBarrelsInfo_->addBarrel(pBarrelsInfo_->newBarrel().c_str(),0);
     pCurBarrelInfo_ = pBarrelsInfo_->getLastBarrel();

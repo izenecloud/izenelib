@@ -3,7 +3,6 @@
 #include <ir/index_manager/store/Directory.h>
 #include <ir/index_manager/index/IndexWriter.h>
 #include <ir/index_manager/index/IndexBarrelWriter.h>
-#include <ir/index_manager/utility/ParamParser.h>
 #include <ir/index_manager/utility/StringUtils.h>
 
 #include <util/izene_log.h>

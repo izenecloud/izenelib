@@ -157,11 +157,6 @@ public:
      */
     void transferToDisk(const char* pszBarrelName);
 
-    /**
-     * set threshold parameter
-     * @param pszThreshold parameter
-     */
-    void setThreshold(const char* pszThreshold);
 protected:
     /**
      * add new index barrel to merge,derived classes implement it,and could apply some merge strategies.
