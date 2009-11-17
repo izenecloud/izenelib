@@ -36,7 +36,7 @@ public:
 
     ~TermReaderImpl();
 public:
-    void open(Directory* pDirectory,const char* barrelname,FieldInfo* pFieldInfo);
+    void open(Directory* pDirectory,const char* barrelname);
 
     void close() ;
 

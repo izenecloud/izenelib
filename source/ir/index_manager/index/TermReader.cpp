@@ -52,7 +52,7 @@ void DiskTermReader::open(Directory* pDirectory,const char* barrelname,FieldInfo
     setFieldInfo(pFieldInfo);
 
     pTermReaderImpl_ = new TermReaderImpl(pFieldInfo);
-    pTermReaderImpl_->open(pDirectory, barrelname, pFieldInfo);
+    pTermReaderImpl_->open(pDirectory, barrelname);
 }
 
 void DiskTermReader::close()
@@ -91,7 +91,8 @@ TermDocFreqs* DiskTermReader::termDocFreqs()
 
 TermPositions* DiskTermReader::termPositions()
 {
-    if (pCurTermInfo_ == NULL || pTermReaderImpl_->pInputDescriptor_->getPPostingInput() == NULL)
+    if (pCurTermInfo_ == NULL || pTermReaderImpl_ == NULL ||
+        pTermReaderImpl_->pInputDescriptor_ == NULL || pTermReaderImpl_->pInputDescriptor_->getPPostingInput() == NULL)
         return NULL;
     return new TermPositions(this,pTermReaderImpl_->pInputDescriptor_->clone(),*pCurTermInfo_);
 }
@@ -131,14 +132,14 @@ TermReaderImpl::~TermReaderImpl()
     close();
 }
 
-void TermReaderImpl::open(Directory* pDirectory,const char* barrelname,FieldInfo* pFieldInfo)
+void TermReaderImpl::open(Directory* pDirectory,const char* barrelname)
 {
     close();///TODO
 
     string bn = barrelname;
 
     IndexInput* pVocInput = pDirectory->openInput(bn + ".voc");
-    pVocInput->seek(pFieldInfo->getIndexOffset());
+    pVocInput->seek(pFieldInfo_->getIndexOffset());
     fileoffset_t voffset = pVocInput->getFilePointer();
     ///begin read vocabulary descriptor
     nVocLength_ = pVocInput->readLong();
@@ -209,6 +210,7 @@ void TermReaderImpl::close()
 
 TermInfo* TermReaderImpl::termInfo(Term* term)
 {
+assert(pFieldInfo_);
     if (strcmp(term->getField(),pFieldInfo_->getName()))
         return NULL;
 

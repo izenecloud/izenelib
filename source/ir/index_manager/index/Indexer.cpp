@@ -348,6 +348,7 @@ void Indexer::close()
 void Indexer::setDirty(bool bDirty)
 {
     dirty_ = bDirty;
+    pIndexReader_->setDirty(bDirty);
 }
 
 int Indexer::insertDocumentPhysically(IndexerDocument* pDoc)
