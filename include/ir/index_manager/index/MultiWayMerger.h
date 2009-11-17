@@ -52,7 +52,7 @@ public:
     }; 
 	
 public:
-    MultiWayMerger(Directory* pSrcDirectory);
+    MultiWayMerger(Indexer* pIndexer);
     virtual ~MultiWayMerger(void);
 public:
     void addBarrel(MergeBarrelEntry* pEntry);

@@ -2,8 +2,8 @@
 
 using namespace izenelib::ir::indexmanager;
 
-MultiWayMerger::MultiWayMerger(Directory* pSrcDirectory)
-        :IndexMerger(pSrcDirectory)
+MultiWayMerger::MultiWayMerger(Indexer* pIndexer)
+        :IndexMerger(pIndexer)
         ,curGeneration_(0)
 {
 }

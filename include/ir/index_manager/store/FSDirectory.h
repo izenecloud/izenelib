@@ -13,6 +13,8 @@
 #include <ir/index_manager/utility/system.h>
 
 #include <boost/thread.hpp>
+#include <boost/thread/shared_mutex.hpp>
+
 #include <string>
 #include <map>
 #include <dirent.h>
@@ -57,6 +59,8 @@ public:
 
     void close();
 
+    izenelib::util::ReadWriteLock* getLock() { return rwLock_; }
+
 private:
     static FSDirectory::directory_map& getDirectoryMap();
 
@@ -66,7 +70,7 @@ private:
 
     int nRefCount;
 
-    mutable boost::mutex mutex_;
+    izenelib::util::ReadWriteLock* rwLock_;
 };
 
 

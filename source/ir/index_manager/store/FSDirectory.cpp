@@ -12,6 +12,7 @@ using namespace izenelib::ir::indexmanager;
 
 FSDirectory::FSDirectory(const string& path,bool bCreate)
         : nRefCount(0)
+        , rwLock_(NULL)
 {
     directory = path;
     if (bCreate)
@@ -25,10 +26,14 @@ FSDirectory::FSDirectory(const string& path,bool bCreate)
         s += " is not a directory.";
         SF1V5_THROW(ERROR_FILEIO,s);
     }
+    
+    rwLock_ = new izenelib::util::ReadWriteLock;
 }
 
 FSDirectory::~FSDirectory(void)
 {
+    if(rwLock_)
+        delete rwLock_;
 }
 
 
@@ -48,8 +53,6 @@ void FSDirectory::create()
 
 FSDirectory* FSDirectory::getDirectory(const string& path,bool bCreate)
 {
-    //boost::mutex::scoped_lock lock(mutex_);
-
     FSDirectory* pS = NULL;
     directory_map& dm = getDirectoryMap();
     directory_iterator iter = dm.find(path);
@@ -206,7 +209,6 @@ IndexOutput* FSDirectory::createOutput(const string& name, size_t buffersize, co
 
 void FSDirectory::close()
 {
-    //boost::mutex::scoped_lock lock(this->mutex_);
     nRefCount--;
     if (nRefCount < 1)
     {

@@ -217,6 +217,8 @@ protected:
 
     UDTFSAgent* pAgent_;
 
+    std::string version_;
+
     friend class IndexWriter;
 
     friend class IndexReader;
@@ -225,7 +227,7 @@ protected:
 
     friend class IndexBarrelReader;
 
-    std::string version_;
+    friend class IndexMerger;
 };
 
 class IndexerFactory

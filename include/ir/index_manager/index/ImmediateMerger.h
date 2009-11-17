@@ -12,7 +12,7 @@ namespace indexmanager{
 class ImmediateMerger : public IndexMerger
 {
 public:
-    ImmediateMerger(Directory* pSrcDirectory);
+    ImmediateMerger(Indexer* pIndexer);
     virtual ~ImmediateMerger(void);
 public:
     void addBarrel(MergeBarrelEntry* pEntry);
