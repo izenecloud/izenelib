@@ -608,6 +608,7 @@ protected:
                 deletions ++;
             dst->sdb.insertValue(cursor.getKey(), cursor.getTag());
         }
+        dst->sdb.flush();
 
         for(size_t i=0; i<mergeFactor_; i++) {
             SdbInfo* last = sdbList_.back();
