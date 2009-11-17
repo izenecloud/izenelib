@@ -1,3 +1,4 @@
+#include <ir/index_manager/index/Indexer.h>
 #include <ir/index_manager/index/IndexMerger.h>
 #include <ir/index_manager/index/FieldMerger.h>
 #include <ir/index_manager/store/Directory.h>
@@ -56,19 +57,10 @@ void MergeBarrelEntry::load()
         delete fdiStream;
     }
 }
-//////////////////////////////////////////////////////////////////////////
-///IndexMerger
-IndexMerger::IndexMerger()
-        :pDirectory_(NULL)
-        ,buffer_(NULL)
-        ,bufsize_(0)
-        ,bBorrowedBuffer_(false)
-        ,pMergeBarrels_(NULL)
-        ,pDocFilter_(NULL)
-{
-}
-IndexMerger::IndexMerger(Directory* pDirectory)
-        :pDirectory_(pDirectory)
+
+IndexMerger::IndexMerger(Indexer* pIndexer)
+        :pIndexer_(pIndexer)
+        ,pDirectory_(pIndexer->getDirectory())
         ,buffer_(NULL)
         ,bufsize_(0)
         ,bBorrowedBuffer_(false)
@@ -76,17 +68,11 @@ IndexMerger::IndexMerger(Directory* pDirectory)
 	,pDocFilter_(NULL)
 {
 }
-IndexMerger::IndexMerger(Directory* pDirectory,char* buffer,size_t bufsize)
-        :pDirectory_(pDirectory)
-        ,buffer_(buffer)
-        ,bufsize_(bufsize)
-        ,bBorrowedBuffer_(false)
-        ,pMergeBarrels_(NULL)
-	,pDocFilter_(NULL)
-{
-}
+
 IndexMerger::~IndexMerger()
 {
+    pIndexer_ = 0;
+
     if (pMergeBarrels_)
     {
         pMergeBarrels_->clear();
@@ -179,7 +165,7 @@ void IndexMerger::addToMerge(BarrelsInfo* pBarrelsInfo,BarrelInfo* pBarrelInfo)
 
 void IndexMerger::pendingUpdate(BarrelsInfo* pBarrelsInfo)
 {
-    ///TODO:LOCK
+    boost::mutex::scoped_lock lock(pIndexer_->mutex_);
     ///sort barrels
     pBarrelsInfo->sort(pDirectory_);
     BarrelInfo* pBaInfo;

@@ -2,8 +2,8 @@
 
 using namespace izenelib::ir::indexmanager;
 
-GPartitionMerger::GPartitionMerger(Directory* pSrcDirectory)
-        :IndexMerger(pSrcDirectory)
+GPartitionMerger::GPartitionMerger(Indexer* pIndexer)
+        :IndexMerger(pIndexer)
         ,nR_(3)
         ,nP_(0)
         ,curPartitionSize_(1)

@@ -348,6 +348,7 @@ void Indexer::close()
 void Indexer::setDirty(bool bDirty)
 {
     dirty_ = bDirty;
+    pIndexReader_->setDirty(bDirty);
 }
 
 int Indexer::insertDocumentPhysically(IndexerDocument* pDoc)
@@ -657,7 +658,7 @@ bool Indexer::getDocsByPropertyValueSubString(collectionid_t colID, string prope
 
 void Indexer::optimizeIndex()
 {
-    IndexMerger* pIndexMerger = new OfflineIndexMerger(pDirectory_, pBarrelsInfo_->getBarrelCount());
+    IndexMerger* pIndexMerger = new OfflineIndexMerger(this, pBarrelsInfo_->getBarrelCount());
     pIndexWriter_->mergeIndex(pIndexMerger);
     delete pIndexMerger;
 }

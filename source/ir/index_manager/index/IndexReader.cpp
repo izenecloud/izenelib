@@ -109,7 +109,7 @@ void IndexReader::createBarrelReader()
     if(pDocLengthReader_)
         pDocLengthReader_->load(pBarrelsInfo_->maxDocId());
 
-    pIndexer_->setDirty(false);///clear dirty_ flag
+    //pIndexer_->setDirty(false);///clear dirty_ flag
 
 }
 
@@ -146,7 +146,7 @@ TermReader* IndexReader::doGetTermReader_(collectionid_t colID)
 
 TermReader* IndexReader::getTermReader(collectionid_t colID)
 {
-    boost::mutex::scoped_lock lock(this->mutex_);
+    boost::mutex::scoped_lock lock(pIndexer_->mutex_);
     TermReader* pTermReader = doGetTermReader_(colID);
     if (pTermReader)
         return pTermReader->clone();
@@ -162,10 +162,6 @@ ForwardIndexReader* IndexReader::getForwardIndexReader()
     return pForwardIndexReader_->clone();
 }
 
-// count_t IndexReader::maxDoc()
-// {
-//     return pBarrelsInfo_->getDocCount();
-// }
 count_t IndexReader::numDocs()
 {
     return pBarrelsInfo_->getDocCount();

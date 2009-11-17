@@ -53,7 +53,7 @@ public:
         friend class GPartitionMerger;
     };
 public:
-    GPartitionMerger(Directory* pSrcDirectory);
+    GPartitionMerger(Indexer* pIndexer);
 
     virtual ~GPartitionMerger(void);
 public:

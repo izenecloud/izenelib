@@ -52,7 +52,7 @@ void DiskTermReader::open(Directory* pDirectory,const char* barrelname,FieldInfo
     setFieldInfo(pFieldInfo);
 
     pTermReaderImpl_ = new TermReaderImpl(pFieldInfo);
-    pTermReaderImpl_->open(pDirectory, barrelname, pFieldInfo);
+    pTermReaderImpl_->open(pDirectory, barrelname);
 }
 
 void DiskTermReader::close()
@@ -91,7 +91,8 @@ TermDocFreqs* DiskTermReader::termDocFreqs()
 
 TermPositions* DiskTermReader::termPositions()
 {
-    if (pCurTermInfo_ == NULL || pTermReaderImpl_->pInputDescriptor_->getPPostingInput() == NULL)
+    if (pCurTermInfo_ == NULL || pTermReaderImpl_ == NULL ||
+        pTermReaderImpl_->pInputDescriptor_ == NULL || pTermReaderImpl_->pInputDescriptor_->getPPostingInput() == NULL)
         return NULL;
     return new TermPositions(this,pTermReaderImpl_->pInputDescriptor_->clone(),*pCurTermInfo_);
 }
@@ -131,14 +132,14 @@ TermReaderImpl::~TermReaderImpl()
     close();
 }
 
-void TermReaderImpl::open(Directory* pDirectory,const char* barrelname,FieldInfo* pFieldInfo)
+void TermReaderImpl::open(Directory* pDirectory,const char* barrelname)
 {
     close();///TODO
 
     string bn = barrelname;
 
     IndexInput* pVocInput = pDirectory->openInput(bn + ".voc");
-    pVocInput->seek(pFieldInfo->getIndexOffset());
+    pVocInput->seek(pFieldInfo_->getIndexOffset());
     fileoffset_t voffset = pVocInput->getFilePointer();
     ///begin read vocabulary descriptor
     nVocLength_ = pVocInput->readLong();
@@ -282,25 +283,26 @@ bool InMemoryTermReader::seek(Term* term)
 
 TermDocFreqs* InMemoryTermReader::termDocFreqs()
 {
-    if (pCurTermInfo_ == NULL)
+    if( (pCurTermInfo_ == NULL)||(pCurPosting_ == NULL))
         return NULL;
 
-    InMemoryPosting* pInMem = (InMemoryPosting*)pCurPosting_;
+    //InMemoryPosting* pInMem = (InMemoryPosting*)pCurPosting_;
     boost::mutex::scoped_lock lock(pIndexer_->getLock());
-    pInMem->flushLastDoc(false);
+    //pInMem->flushLastDoc(false);
     TermDocFreqs* pTermDocs = new TermDocFreqs(this,pCurPosting_,*pCurTermInfo_);
     return pTermDocs;
 }
 
 TermPositions* InMemoryTermReader::termPositions()
 {
-    if (pCurTermInfo_ == NULL)
+    if( (pCurTermInfo_ == NULL)||(pCurPosting_ == NULL))
         return NULL;
-
-    InMemoryPosting* pInMem = (InMemoryPosting*)pCurPosting_;
+    //InMemoryPosting* pInMem = (InMemoryPosting*)pCurPosting_;
     boost::mutex::scoped_lock lock(pIndexer_->getLock());
-    pInMem->flushLastDoc(false);
-    return new TermPositions(this,pCurPosting_,*pCurTermInfo_);
+    //pInMem->flushLastDoc(false);
+    TermPositions* pPositions = new TermPositions(this,pCurPosting_,*pCurTermInfo_);
+	cout<<"in memory termPositions "<<pPositions<<endl;
+    return pPositions;
 }
 freq_t InMemoryTermReader::docFreq(Term* term)
 {

@@ -10,6 +10,8 @@
 #include <ir/index_manager/utility/system.h>
 #include <vector>
 
+#include <util/ThreadModel.h>
+
 using namespace std;
 
 NS_IZENELIB_IR_BEGIN
@@ -51,6 +53,8 @@ public:
     virtual IndexOutput* createOutput(const string& name, size_t buffersize, const string& mode = "w+b") = 0;
 
     virtual void close() = 0;
+
+    virtual izenelib::util::ReadWriteLock* getLock() = 0;
 };
 
 

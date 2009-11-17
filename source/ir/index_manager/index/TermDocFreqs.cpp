@@ -164,6 +164,7 @@ void TermDocFreqs::createBuffer()
         nBufferSize = bufSize;
         nFreqStart = nBufferSize/2;
         pPostingBuffer = new uint32_t[nBufferSize];
+        memset(pPostingBuffer, 0, nBufferSize*sizeof(uint32_t));
     }
 }
 
