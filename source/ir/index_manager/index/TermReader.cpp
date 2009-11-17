@@ -210,7 +210,6 @@ void TermReaderImpl::close()
 
 TermInfo* TermReaderImpl::termInfo(Term* term)
 {
-assert(pFieldInfo_);
     if (strcmp(term->getField(),pFieldInfo_->getName()))
         return NULL;
 
@@ -284,25 +283,26 @@ bool InMemoryTermReader::seek(Term* term)
 
 TermDocFreqs* InMemoryTermReader::termDocFreqs()
 {
-    if (pCurTermInfo_ == NULL)
+    if( (pCurTermInfo_ == NULL)||(pCurPosting_ == NULL))
         return NULL;
 
-    InMemoryPosting* pInMem = (InMemoryPosting*)pCurPosting_;
+    //InMemoryPosting* pInMem = (InMemoryPosting*)pCurPosting_;
     boost::mutex::scoped_lock lock(pIndexer_->getLock());
-    pInMem->flushLastDoc(false);
+    //pInMem->flushLastDoc(false);
     TermDocFreqs* pTermDocs = new TermDocFreqs(this,pCurPosting_,*pCurTermInfo_);
     return pTermDocs;
 }
 
 TermPositions* InMemoryTermReader::termPositions()
 {
-    if (pCurTermInfo_ == NULL)
+    if( (pCurTermInfo_ == NULL)||(pCurPosting_ == NULL))
         return NULL;
-
-    InMemoryPosting* pInMem = (InMemoryPosting*)pCurPosting_;
+    //InMemoryPosting* pInMem = (InMemoryPosting*)pCurPosting_;
     boost::mutex::scoped_lock lock(pIndexer_->getLock());
-    pInMem->flushLastDoc(false);
-    return new TermPositions(this,pCurPosting_,*pCurTermInfo_);
+    //pInMem->flushLastDoc(false);
+    TermPositions* pPositions = new TermPositions(this,pCurPosting_,*pCurTermInfo_);
+	cout<<"in memory termPositions "<<pPositions<<endl;
+    return pPositions;
 }
 freq_t InMemoryTermReader::docFreq(Term* term)
 {

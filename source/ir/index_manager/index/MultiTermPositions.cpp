@@ -5,8 +5,8 @@ using namespace izenelib::ir::indexmanager;
 
 MultiTermPositions::MultiTermPositions(void)
 {
-    current = NULL;
-    pTermPositionQueue = NULL;
+    current_ = NULL;
+    pTermPositionQueue_ = NULL;
 }
 
 MultiTermPositions::~MultiTermPositions(void)
@@ -16,36 +16,36 @@ MultiTermPositions::~MultiTermPositions(void)
 
 docid_t MultiTermPositions::doc()
 {
-    return current->termPositions->doc();
+    return current_->termPositions_->doc();
 }
 
 count_t MultiTermPositions::freq()
 {
-    return current->termPositions->freq();
+    return current_->termPositions_->freq();
 }
 
 bool MultiTermPositions::next()
 {
-    if (pTermPositionQueue == NULL)
+    if (pTermPositionQueue_ == NULL)
     {
         initQueue();
-        if (current)
+        if (current_)
             return true;
         return false;
     }
 
-    while (pTermPositionQueue->size() > 0)
+    while (pTermPositionQueue_->size() > 0)
     {
-        if (current->termPositions->next())
+        if (current_->termPositions_->next())
         {
             return true;
         }
         else
         {
-            pTermPositionQueue->pop();
-            if (pTermPositionQueue->size() > 0)
+            pTermPositionQueue_->pop();
+            if (pTermPositionQueue_->size() > 0)
             {
-                current = pTermPositionQueue->top();
+                current_ = pTermPositionQueue_->top();
                 return true;
             }
         }
@@ -55,20 +55,20 @@ bool MultiTermPositions::next()
 
 count_t MultiTermPositions::next(docid_t*& docs, count_t*& freqs)
 {
-    if (pTermPositionQueue == NULL)
+    if (pTermPositionQueue_ == NULL)
     {
         initQueue();
     }
 
     int c = -1;
-    while (pTermPositionQueue->size() > 0)
+    while (pTermPositionQueue_->size() > 0)
     {
-        current = pTermPositionQueue->top();
-        c = current->termPositions->next(docs,freqs);
+        current_ = pTermPositionQueue_->top();
+        c = current_->termPositions_->next(docs,freqs);
         if (c> 0)
             return c;
         else
-            pTermPositionQueue->pop();
+            pTermPositionQueue_->pop();
     }
     return c;
 }
@@ -77,11 +77,11 @@ freq_t MultiTermPositions::docFreq()
 {
     BarrelTermPositionsEntry* pEntry;
     freq_t df = 0;
-    list<BarrelTermPositionsEntry*>::iterator iter = termPositionsList.begin();
-    while (iter != termPositionsList.end())
+    list<BarrelTermPositionsEntry*>::iterator iter = termPositionsList_.begin();
+    while (iter != termPositionsList_.end())
     {
         pEntry = (*iter);
-        df += pEntry->termPositions->docFreq();
+        df += pEntry->termPositions_->docFreq();
         iter++;
     }
     return df;
@@ -91,11 +91,11 @@ int64_t MultiTermPositions::getCTF()
 {
     BarrelTermPositionsEntry* pEntry;
     int64_t ctf = 0;
-    list<BarrelTermPositionsEntry*>::iterator iter = termPositionsList.begin();
-    while (iter != termPositionsList.end())
+    std::list<BarrelTermPositionsEntry*>::iterator iter = termPositionsList_.begin();
+    while (iter != termPositionsList_.end())
     {
         pEntry = (*iter);
-        ctf += pEntry->termPositions->getCTF();
+        ctf += pEntry->termPositions_->getCTF();
         iter++;
     }
     return ctf;
@@ -103,51 +103,51 @@ int64_t MultiTermPositions::getCTF()
 
 void MultiTermPositions::close()
 {
-    list<BarrelTermPositionsEntry*>::iterator iter = termPositionsList.begin();
-    while (iter != termPositionsList.end())
+    std::list<BarrelTermPositionsEntry*>::iterator iter = termPositionsList_.begin();
+    while (iter != termPositionsList_.end())
     {
         delete (*iter);
         iter++;
     }
-    termPositionsList.clear();
-    if (pTermPositionQueue)
+    termPositionsList_.clear();
+    if (pTermPositionQueue_)
     {
-        delete pTermPositionQueue;
-        pTermPositionQueue = NULL;
+        delete pTermPositionQueue_;
+        pTermPositionQueue_ = NULL;
     }
-    current = NULL;
+    current_ = NULL;
 }
 
 loc_t MultiTermPositions::nextPosition()
 {
-    return current->termPositions->nextPosition();
+    return current_->termPositions_->nextPosition();
 }
 
 int32_t MultiTermPositions::nextPositions(loc_t*& positions)
 {
-    return current->termPositions->nextPositions(positions);
+    return current_->termPositions_->nextPositions(positions);
 }
 void MultiTermPositions::add(BarrelInfo* pBarrelInfo,TermPositions* pTermPositions)
 {
-    termPositionsList.push_back(new BarrelTermPositionsEntry(pBarrelInfo,pTermPositions));
-    if (current == NULL)
-        current = termPositionsList.front();
+    termPositionsList_.push_back(new BarrelTermPositionsEntry(pBarrelInfo,pTermPositions));
+    if (current_ == NULL)
+        current_ = termPositionsList_.front();
 }
 void MultiTermPositions::initQueue()
 {
-    pTermPositionQueue = new TermPositionQueue(termPositionsList.size());
-    list<BarrelTermPositionsEntry*>::iterator iter = termPositionsList.begin();
+    pTermPositionQueue_ = new TermPositionQueue(termPositionsList_.size());
+    std::list<BarrelTermPositionsEntry*>::iterator iter = termPositionsList_.begin();
     BarrelTermPositionsEntry* pEntry;
-    while (iter != termPositionsList.end())
+    while (iter != termPositionsList_.end())
     {
         pEntry = *iter;
-        if (pEntry->termPositions->next())
-            pTermPositionQueue->insert(pEntry);
+        if (pEntry->termPositions_->next())
+            pTermPositionQueue_->insert(pEntry);
         iter++;
     }
-    if (pTermPositionQueue->size() > 0)
-        current = pTermPositionQueue->top();
-    else current = NULL;
+    if (pTermPositionQueue_->size() > 0)
+        current_ = pTermPositionQueue_->top();
+    else current_ = NULL;
 }
 
 

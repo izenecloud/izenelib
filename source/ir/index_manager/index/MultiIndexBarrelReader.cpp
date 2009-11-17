@@ -14,6 +14,8 @@ MultiIndexBarrelReader::MultiIndexBarrelReader(Indexer* pIndexer,BarrelsInfo* pB
     while (pBarrelsInfo_->hasNext())
     {
         pBarrelInfo = pBarrelsInfo_->next();
+        if(pBarrelInfo->getWriter())	
+            continue; ///disable in-memory reader temporarily;
         if (pBarrelInfo->getDocCount() > 0)
             addReader(pBarrelInfo);
     }
