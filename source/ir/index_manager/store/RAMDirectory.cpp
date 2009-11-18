@@ -167,11 +167,13 @@ void RAMIndexOutput::writeTo(IndexOutput* pOutput)
 //RAMDirectory
 RAMDirectory::RAMDirectory(void)
 {
+    rwLock_ = new izenelib::util::ReadWriteLock;
 }
 
 RAMDirectory::~RAMDirectory(void)
 {
     close();
+    delete rwLock_;
 }
 
 bool RAMDirectory::fileExists(const string& name) const

@@ -98,13 +98,11 @@ private:
 /**
 *@brief merge index
 */
-
+class Indexer;
 class IndexMerger
 {
 public:
-    IndexMerger();
-    IndexMerger(Directory* pDirectory);
-    IndexMerger(Directory* pDirectory,char* buffer,size_t bufsize);
+    IndexMerger(Indexer* pIndexer);
 public:
     virtual ~IndexMerger();
 public:
@@ -193,6 +191,8 @@ protected:
      */
     void removeMergedBarrels(MergeBarrel* pBarrel);
 protected:
+    Indexer* pIndexer_;
+
     Directory* pDirectory_;				///index data source
 
     BarrelsInfo* pBarrelsInfo_;			///reference to Index's barrels information

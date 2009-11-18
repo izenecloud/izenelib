@@ -12,6 +12,9 @@
 #include <ir/index_manager/store/IndexOutput.h>
 #include <ir/index_manager/utility/Utilities.h>
 
+#include <boost/thread.hpp>
+#include <boost/thread/shared_mutex.hpp>
+
 #include <map>
 #include <vector>
 
@@ -142,8 +145,11 @@ public:
 
     void close();
 
+    izenelib::util::ReadWriteLock* getLock() { return rwLock_; }
+
 private:
     map<string,RAMFile*> files;
+    izenelib::util::ReadWriteLock* rwLock_;
 };
 
 

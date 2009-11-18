@@ -2,8 +2,8 @@
 
 using namespace izenelib::ir::indexmanager;
 
-OfflineIndexMerger::OfflineIndexMerger(Directory* pSrDirectory, unsigned int numBarrels)
-        :IndexMerger(pSrDirectory)
+OfflineIndexMerger::OfflineIndexMerger(Indexer* pIndexer, unsigned int numBarrels)
+        :IndexMerger(pIndexer)
 {
     string s = "_mid_0_";
     pMergeBarrel_ = new MergeBarrel(s.c_str(),numBarrels+5);

@@ -110,7 +110,7 @@ void IndexWriter::mergeIndex(IndexMerger* pMerger)
 
 void IndexWriter::mergeUpdatedBarrel()
 {
-    IndexMerger* pMerger = new OfflineIndexMerger(pIndexer_->getDirectory(), pBarrelsInfo_->getBarrelCount());
+    IndexMerger* pMerger = new OfflineIndexMerger(pIndexer_, pBarrelsInfo_->getBarrelCount());
 
     pMerger->setDirectory(pIndexer_->getDirectory());
 
@@ -138,11 +138,11 @@ void IndexWriter::createMerger()
     if(!strcasecmp(pIndexer_->pConfigurationManager_->mergeStrategy_.param_.c_str(),"no"))
         pIndexMerger_ = NULL;
     else if(!strcasecmp(pIndexer_->pConfigurationManager_->mergeStrategy_.param_.c_str(),"imm"))
-        pIndexMerger_ = new ImmediateMerger(pIndexer_->getDirectory());
+        pIndexMerger_ = new ImmediateMerger(pIndexer_);
     else if(!strcasecmp(pIndexer_->pConfigurationManager_->mergeStrategy_.param_.c_str(),"mway"))
-        pIndexMerger_ = new MultiWayMerger(pIndexer_->getDirectory());	
+        pIndexMerger_ = new MultiWayMerger(pIndexer_);	
     else
-        pIndexMerger_ = new GPartitionMerger(pIndexer_->getDirectory());
+        pIndexMerger_ = new GPartitionMerger(pIndexer_);
 }
 
 void IndexWriter::createBarrelWriter()
@@ -208,8 +208,6 @@ void IndexWriter::close()
 
 void IndexWriter::mergeAndWriteCachedIndex2()
 {
-    boost::mutex::scoped_lock lock(pIndexer_->mutex_);
-
     pIndexer_->setDirty(true);
 
     BarrelInfo* pLastBarrel = pBarrelsInfo_->getLastBarrel();

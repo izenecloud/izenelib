@@ -240,8 +240,7 @@ public:
 	ValueType* find(const KeyType& key) {
 		SDBCursor locn;
 		if( search(key, locn) )
-		return new ValueType(locn.first->values[locn.second]);
-		return NULL;
+		return new ValueType(locn.first->values[locn.second]);		
 	}
 
 	bool get(const KeyType& key, ValueType& value)
@@ -596,9 +595,9 @@ private:
 		++_activeNodeNum;
 
 		//pre allocate memory for newNode for efficiency
-		newNode->keys.resize(_sfh.maxKeys);
-		newNode->values.resize(_sfh.maxKeys);
-		newNode->children.resize(_sfh.maxKeys+1);
+//		newNode->keys.resize(_sfh.maxKeys);
+//		newNode->values.resize(_sfh.maxKeys);
+//		newNode->children.resize(_sfh.maxKeys+1);
 
 		return newNode;
 	}

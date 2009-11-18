@@ -12,7 +12,7 @@ IndexMergerAgent::IndexMergerAgent(Indexer* pIndexer)
 
     nBarrelCounter_ = pBarrelsInfo_->getBarrelCounter();
 
-    pIndexMerger_ = new GPartitionMerger(pIndexer_->getDirectory());
+    pIndexMerger_ = new GPartitionMerger(pIndexer_);
 }
 
 IndexMergerAgent::~IndexMergerAgent()

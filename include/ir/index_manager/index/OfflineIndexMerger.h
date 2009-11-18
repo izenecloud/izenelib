@@ -18,7 +18,7 @@ namespace indexmanager{
 class OfflineIndexMerger : public IndexMerger
 {
 public:
-    OfflineIndexMerger(Directory* pSrcDirectory, unsigned int numBarrels);
+    OfflineIndexMerger(Indexer* pIndexer, unsigned int numBarrels);
     virtual ~OfflineIndexMerger(void);
 public:
     void addBarrel(MergeBarrelEntry* pEntry);
