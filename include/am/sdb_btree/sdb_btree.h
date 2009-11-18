@@ -240,7 +240,8 @@ public:
 	ValueType* find(const KeyType& key) {
 		SDBCursor locn;
 		if( search(key, locn) )
-		return new ValueType(locn.first->values[locn.second]);		
+			return new ValueType(locn.first->values[locn.second]);		
+		return NULL;
 	}
 
 	bool get(const KeyType& key, ValueType& value)
