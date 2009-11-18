@@ -45,7 +45,7 @@ void DocLengthReader::load(docid_t maxDocId)
 
 size_t DocLengthReader::docLength(docid_t docId, fieldid_t fid)
 {
-    if(docId*numIndexedProperties_ > size_)
+    if(docId*numIndexedProperties_ > size_|| !data_)
         return 0;
     return data_[docId*numIndexedProperties_+propertyOffsetMap_[fid]];
 }

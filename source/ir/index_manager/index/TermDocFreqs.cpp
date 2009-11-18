@@ -89,6 +89,9 @@ int64_t TermDocFreqs::getCTF()
 
 docid_t TermDocFreqs::doc()
 {
+ if(pPostingBuffer[nCurrentPosting] > 500000)
+ 	cout<<"!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! "<<pPostingBuffer[nCurrentPosting]<<endl;
+
     return pPostingBuffer[nCurrentPosting];
 }
 

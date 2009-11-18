@@ -66,16 +66,17 @@ docid_t IndexReader::maxDoc()
 
 size_t IndexReader::docLength(docid_t docId, fieldid_t fid)
 {
-    boost::mutex::scoped_lock lock(this->mutex_);
     assert(pDocLengthReader_ != NULL);
-    reload();
+    if (pBarrelReader_ == NULL)
+        createBarrelReader();
     return pDocLengthReader_->docLength(docId, fid);
 }
 
 double IndexReader::getAveragePropertyLength(fieldid_t fid)
 {
     assert(pDocLengthReader_ != NULL);
-    reload();
+    if (pBarrelReader_ == NULL)
+        createBarrelReader();
     return pDocLengthReader_->averagePropertyLength(fid);
 }
 
@@ -113,24 +114,12 @@ void IndexReader::createBarrelReader()
 
 }
 
-void IndexReader::reload()
-{
-    //collection has been removed, need to rebuild the barrel reader
-    if (pBarrelReader_ == NULL)
-        createBarrelReader();
-    pDocLengthReader_->load(pBarrelsInfo_->maxDocId());
-}
-
-TermReader* IndexReader::doGetTermReader_(collectionid_t colID)
-{
-    reload();
-    return pBarrelReader_->termReader(colID);
-}
-
 TermReader* IndexReader::getTermReader(collectionid_t colID)
 {
     boost::mutex::scoped_lock lock(pIndexer_->mutex_);
-    TermReader* pTermReader = doGetTermReader_(colID);
+    if (pBarrelReader_ == NULL)
+        createBarrelReader();
+    TermReader* pTermReader = pBarrelReader_->termReader(colID);
     if (pTermReader)
         return pTermReader->clone();
     else
@@ -213,7 +202,9 @@ void IndexReader::delDocument(collectionid_t colID,docid_t docId)
 freq_t IndexReader::docFreq(collectionid_t colID, Term* term)
 {
     boost::mutex::scoped_lock lock(this->mutex_);
-    TermReader* pTermReader = doGetTermReader_(colID);
+    if (pBarrelReader_ == NULL)
+        createBarrelReader();
+    TermReader* pTermReader = pBarrelReader_->termReader(colID);
     if (pTermReader)
     {
         return pTermReader->docFreq(term);
@@ -225,7 +216,9 @@ freq_t IndexReader::docFreq(collectionid_t colID, Term* term)
 TermInfo* IndexReader::termInfo(collectionid_t colID,Term* term)
 {
     boost::mutex::scoped_lock lock(this->mutex_);
-    TermReader* pTermReader = doGetTermReader_(colID);
+    if (pBarrelReader_ == NULL)
+        createBarrelReader();
+    TermReader* pTermReader = pBarrelReader_->termReader(colID);
     if (pTermReader)
     {
         return pTermReader->termInfo(term);
