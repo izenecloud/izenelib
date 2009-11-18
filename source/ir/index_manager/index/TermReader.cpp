@@ -304,7 +304,6 @@ TermPositions* InMemoryTermReader::termPositions()
     boost::mutex::scoped_lock lock(pIndexer_->getLock());
     //pInMem->flushLastDoc(false);
     TermPositions* pPositions = new TermPositions(this,pCurPosting_,*pCurTermInfo_);
-	cout<<"in memory termPositions "<<pPositions<<endl;
     return pPositions;
 }
 freq_t InMemoryTermReader::docFreq(Term* term)
