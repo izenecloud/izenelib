@@ -165,7 +165,7 @@ void IndexMerger::addToMerge(BarrelsInfo* pBarrelsInfo,BarrelInfo* pBarrelInfo)
 
 void IndexMerger::pendingUpdate(BarrelsInfo* pBarrelsInfo)
 {
-    boost::mutex::scoped_lock lock(pIndexer_->mutex_);
+    //boost::mutex::scoped_lock lock(pIndexer_->mutex_);
     ///sort barrels
     pBarrelsInfo->sort(pDirectory_);
     BarrelInfo* pBaInfo;

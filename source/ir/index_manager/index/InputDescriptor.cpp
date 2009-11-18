@@ -3,22 +3,11 @@
 
 using namespace izenelib::ir::indexmanager;
 
-InputDescriptor::InputDescriptor(void)
-        :bDestroy_(false)
-        ,pVocInput_(NULL)
-        ,pDPostingInput_(NULL)
-        ,pPPostingInput_(NULL)
-
-{
-
-}
-
 InputDescriptor::InputDescriptor(bool bDestroy)
         :bDestroy_(bDestroy)
         ,pVocInput_(NULL)
         ,pDPostingInput_(NULL)
         ,pPPostingInput_(NULL)
-
 {
 
 }
@@ -28,7 +17,6 @@ InputDescriptor::InputDescriptor(IndexInput* pVocInput,IndexInput* pDPostingInpu
         ,pVocInput_(pVocInput)
         ,pDPostingInput_(pDPostingInput)
         ,pPPostingInput_(pPPostingInput)
-
 {
 }
 
