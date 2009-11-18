@@ -16,7 +16,6 @@ namespace indexmanager{
 class InputDescriptor
 {
 public:
-    InputDescriptor(void);
     InputDescriptor(bool bDestroy);
     InputDescriptor(IndexInput* pVocInput,IndexInput* pDPostingInput,IndexInput* pPPostingInput,bool bDestroy);
     ~InputDescriptor(void);

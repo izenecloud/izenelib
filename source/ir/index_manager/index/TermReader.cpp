@@ -91,8 +91,11 @@ TermDocFreqs* DiskTermReader::termDocFreqs()
 
 TermPositions* DiskTermReader::termPositions()
 {
-    if (pCurTermInfo_ == NULL || pTermReaderImpl_ == NULL ||
-        pTermReaderImpl_->pInputDescriptor_ == NULL || pTermReaderImpl_->pInputDescriptor_->getPPostingInput() == NULL)
+    if (pCurTermInfo_ == NULL || pTermReaderImpl_ == NULL )
+        return NULL;
+    if(pTermReaderImpl_->pInputDescriptor_ == NULL)
+        return NULL;
+    if(pTermReaderImpl_->pInputDescriptor_->getPPostingInput() == NULL)
         return NULL;
     return new TermPositions(this,pTermReaderImpl_->pInputDescriptor_->clone(),*pCurTermInfo_);
 }
@@ -301,7 +304,6 @@ TermPositions* InMemoryTermReader::termPositions()
     boost::mutex::scoped_lock lock(pIndexer_->getLock());
     //pInMem->flushLastDoc(false);
     TermPositions* pPositions = new TermPositions(this,pCurPosting_,*pCurTermInfo_);
-	cout<<"in memory termPositions "<<pPositions<<endl;
     return pPositions;
 }
 freq_t InMemoryTermReader::docFreq(Term* term)

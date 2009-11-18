@@ -208,6 +208,8 @@ void IndexWriter::close()
 
 void IndexWriter::mergeAndWriteCachedIndex2()
 {
+    boost::mutex::scoped_lock lock(pIndexer_->mutex_);
+
     pIndexer_->setDirty(true);
 
     BarrelInfo* pLastBarrel = pBarrelsInfo_->getLastBarrel();
