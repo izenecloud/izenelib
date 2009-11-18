@@ -7,19 +7,15 @@
 
 using namespace izenelib::ir::indexmanager;
 
-MultiTermReader::MultiTermReader(void)
-{
-}
-
 MultiTermReader::MultiTermReader(MultiIndexBarrelReader* pReader, collectionid_t id)
-        : colID(id)
-        , pBarrelReader(pReader)
-        , pCurReader(NULL)
+        : colID_(id)
+        , pBarrelReader_(pReader)
+        , pCurReader_(NULL)
 {
 }
 MultiTermReader::~MultiTermReader(void)
 {
-    pBarrelReader = NULL;
+    pBarrelReader_ = NULL;
     close();
 }
 
@@ -32,8 +28,8 @@ void MultiTermReader::open(Directory* pDirectory,const char* barrelname,FieldInf
 TermIterator* MultiTermReader::termIterator(const char* field)
 {
     ReaderCache* pSeList = NULL;
-    map<string,ReaderCache*>::iterator iter = readerCache.find(field);
-    if (iter != readerCache.end())
+    map<string,ReaderCache*>::iterator iter = readerCache_.find(field);
+    if (iter != readerCache_.end())
     {
         pSeList = iter->second;
     }
@@ -45,10 +41,10 @@ TermIterator* MultiTermReader::termIterator(const char* field)
     TermIterator* pIt;
     while (pSeList)
     {
-        pIt = pSeList->pTermReader->termIterator(field);
+        pIt = pSeList->pTermReader_->termIterator(field);
         if (pIt)
             pTermIterator->addIterator(pIt);
-        pSeList = pSeList->next;
+        pSeList = pSeList->next_;
     }
     return pTermIterator;
 }
@@ -59,20 +55,20 @@ bool MultiTermReader::seek(Term* term)
     string field = term->getField();
     ReaderCache* pSeList = NULL;
 
-    pCurReader = NULL;
-    map<string,ReaderCache*>::iterator iter = readerCache.find(field);
-    if (iter != readerCache.end())
+    pCurReader_ = NULL;
+    map<string,ReaderCache*>::iterator iter = readerCache_.find(field);
+    if (iter != readerCache_.end())
     {
-        pCurReader = pSeList = iter->second;
+        pCurReader_ = pSeList = iter->second;
     }
     else
     {
-        pCurReader = pSeList = loadReader(field.c_str());
+        pCurReader_ = pSeList = loadReader(field.c_str());
     }
     while (pSeList)
     {
-        bSuc = (pSeList->pTermReader->seek(term) || bSuc);
-        pSeList = pSeList->next;
+        bSuc = (pSeList->pTermReader_->seek(term) || bSuc);
+        pSeList = pSeList->next_;
     }
 
     return bSuc;
@@ -80,22 +76,22 @@ bool MultiTermReader::seek(Term* term)
 
 TermDocFreqs* MultiTermReader::termDocFreqs()
 {
-    if (!pCurReader)
+    if (!pCurReader_)
         return NULL;
 
     MultiTermDocs* pTermDocs = new MultiTermDocs();
     bool bAdd = false;
     TermDocFreqs* pTmpTermDocs = NULL;
-    ReaderCache* pList = pCurReader;
+    ReaderCache* pList = pCurReader_;
     while (pList)
     {
-        pTmpTermDocs = pList->pTermReader->termDocFreqs();
+        pTmpTermDocs = pList->pTermReader_->termDocFreqs();
         if (pTmpTermDocs)
         {
-            pTermDocs->add(pList->barrelInfo,pTmpTermDocs);
+            pTermDocs->add(pList->pBarrelInfo_,pTmpTermDocs);
             bAdd = true;
         }
-        pList = pList->next;
+        pList = pList->next_;
     }
     if (bAdd == false)
     {
@@ -107,21 +103,21 @@ TermDocFreqs* MultiTermReader::termDocFreqs()
 
 TermPositions* MultiTermReader::termPositions()
 {
-    if (!pCurReader)
+    if (!pCurReader_)
         return NULL;
     MultiTermPositions* pTermPositions = new MultiTermPositions();
     bool bAdd = false;
     TermPositions* pTmpTermPositions = NULL;
-    ReaderCache* pList = pCurReader;
+    ReaderCache* pList = pCurReader_;
     while (pList)
     {
-        pTmpTermPositions = pList->pTermReader->termPositions();
+        pTmpTermPositions = pList->pTermReader_->termPositions();
         if (pTmpTermPositions)
         {
-            pTermPositions->add(pList->barrelInfo, pTmpTermPositions);
+            pTermPositions->add(pList->pBarrelInfo_, pTmpTermPositions);
             bAdd = true;
         }
-        pList = pList->next;
+        pList = pList->next_;
     }
     if (bAdd == false)
     {
@@ -137,21 +133,21 @@ freq_t MultiTermReader::docFreq(Term* term)
     string field = term->getField();
     ReaderCache* pSeList = NULL;
 
-    pCurReader = NULL;
-    map<string,ReaderCache*>::iterator iter = readerCache.find(field);
-    if (iter != readerCache.end())
+    pCurReader_ = NULL;
+    map<string,ReaderCache*>::iterator iter = readerCache_.find(field);
+    if (iter != readerCache_.end())
     {
-        pCurReader = pSeList = iter->second;
+        pCurReader_ = pSeList = iter->second;
     }
     else
     {
-        pCurReader = pSeList = loadReader(field.c_str());
+        pCurReader_ = pSeList = loadReader(field.c_str());
     }
 
     while (pSeList)
     {
-        df += pSeList->pTermReader->docFreq(term);
-        pSeList = pSeList->next;
+        df += pSeList->pTermReader_->docFreq(term);
+        pSeList = pSeList->next_;
     }
 
     return df;
@@ -159,20 +155,15 @@ freq_t MultiTermReader::docFreq(Term* term)
 
 void MultiTermReader::close()
 {
-    map<string,ReaderCache*>::iterator citer = readerCache.begin();
-    while (citer != readerCache.end())
-    {
-        delete citer->second;
-        citer++;
-    }
-    readerCache.clear();
-    pCurReader = NULL;
+    for(map<string,ReaderCache*>::iterator iter = readerCache_.begin(); 
+            iter != readerCache_.end(); ++iter)
+        delete iter->second;
+    pCurReader_ = NULL;
 }
-
 
 TermReader* MultiTermReader::clone()
 {
-    return new MultiTermReader(pBarrelReader, colID);
+    return new MultiTermReader(pBarrelReader_, colID_);
 }
 
 ReaderCache* MultiTermReader::loadReader(const char* field)
@@ -184,11 +175,11 @@ ReaderCache* MultiTermReader::loadReader(const char* field)
 
     BarrelReaderEntry* pEntry = NULL;
 
-    for(vector<BarrelReaderEntry*>::iterator iter = pBarrelReader->readers_.begin(); 
-        iter != pBarrelReader->readers_.end(); ++iter)	
+    for(vector<BarrelReaderEntry*>::iterator iter = pBarrelReader_->readers_.begin(); 
+        iter != pBarrelReader_->readers_.end(); ++iter)	
     {
         pEntry = (*iter);
-        pSe =  (TermReader*)pEntry->pBarrelReader_->termReader(colID, field)->clone();
+        pSe =  (TermReader*)pEntry->pBarrelReader_->termReader(colID_, field)->clone();
         if (pSe)
         {
             pTailList = new ReaderCache(pEntry->pBarrelInfo_,pSe);
@@ -199,14 +190,14 @@ ReaderCache* MultiTermReader::loadReader(const char* field)
             }
             else
             {
-                pPreList->next = pTailList;
+                pPreList->next_ = pTailList;
                 pPreList = pTailList;
             }
         }
     }
     if (pHeadList)
     {
-        readerCache.insert(pair<string,ReaderCache*>(field,pHeadList));
+        readerCache_.insert(make_pair(field,pHeadList));
     }
     return pHeadList;
 }
