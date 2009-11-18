@@ -68,11 +68,11 @@ public:
 	~sdb_node_() {
 		unload();
 		if(keys)
-			delete [] keys;
+		delete [] keys;
 		if(values)
-			delete [] values;
+		delete [] values;
 		if(children)
-			delete [] children;		
+		delete [] children;
 	}
 
 	/**
@@ -245,11 +245,11 @@ template<typename KeyType, typename ValueType, typename LockType, bool fixed,
 			_fileLock(fileLock), activeNodeNum(activeNum) {
 	_overflowAddress = -1;
 	_overflowPageCount = 0;
-	
+
 	keys = new KeyType[_fh.maxKeys];
 	values = new ValueType[_fh.maxKeys];
 	children = new sdb_node_*[_fh.maxKeys+1];
-	for(size_t i=0; i<_fh.maxKeys+1; i++)
+	for (size_t i=0; i<_fh.maxKeys+1; i++)
 		children[i] = NULL;
 
 	//activeNodeNum++;
@@ -302,6 +302,11 @@ template<typename KeyType, typename ValueType, typename LockType, bool fixed,
 	tsz += sizeof(size_t);
 	isLeaf = (leafFlag == 1);
 
+	if (keys == NULL)
+		keys = new KeyType[_fh.maxKeys];
+	if (values == NULL)
+		values = new ValueType[_fh.maxKeys];
+
 	//cout<<"read leafFlag ="<<isLeaf<<endl;
 	//cout<<" read objCount="<<objCount<<endl;
 
@@ -315,6 +320,9 @@ template<typename KeyType, typename ValueType, typename LockType, bool fixed,
 
 		//Only allocate childnode when the node is no a leaf node.
 		if ( !isLeaf) {
+			children = new sdb_node_*[_fh.maxKeys+1];
+			for (size_t i=0; i<_fh.maxKeys+1; i++)
+				children[i] = NULL;
 			for (size_t i = 0; i <= objCount; i++) {
 				if (children[i] == 0) {
 					children[i] = new sdb_node_(_fh, _fileLock, activeNodeNum );
@@ -656,7 +664,6 @@ template<typename KeyType, typename ValueType, typename LockType, bool fixed,
 		typename Alloc> sdb_node_<KeyType, ValueType, LockType, fixed, Alloc>* sdb_node_<
 		KeyType, ValueType, LockType, fixed, Alloc>::loadChild(size_t childNum,
 		FILE* f) {
-
 	sdb_node_* child;
 	child = children[childNum];
 	if (isLeaf || child == 0) {
@@ -680,8 +687,7 @@ template<typename KeyType, typename ValueType, typename LockType, bool fixed,
 		typename Alloc> void sdb_node_< KeyType, ValueType, LockType, fixed,
 		Alloc>::unload() {
 	if (isLoaded) {
-		if ( !isLeaf) 
-		{
+		if ( !isLeaf) {
 			for (size_t i=0; i<objCount+1; i++) {
 				if (children[i]) {
 					children[i]->unload();
@@ -720,7 +726,7 @@ template<typename KeyType, typename ValueType, typename LockType, bool fixed,
 		//values.resize(0);
 		//children.resize(0);
 		delete [] keys;
-		keys = NULL;		
+		keys = NULL;
 		delete [] values;
 		values = NULL;
 		delete [] children;
@@ -763,7 +769,7 @@ template<typename KeyType, typename ValueType, typename LockType, bool fixed,
 	KEYPOS ret((size_t)-1, CCP_NONE);
 	//KIT kit = keys.begin();
 	size_t i = 0;
-	while ( i<objCount  ) {
+	while (i<objCount) {
 		int compVal = _comp(key, keys[i]);
 		if (compVal == 0) {
 			return KEYPOS(i, CCP_INTHIS);
