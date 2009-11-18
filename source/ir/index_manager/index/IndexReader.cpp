@@ -66,6 +66,7 @@ docid_t IndexReader::maxDoc()
 
 size_t IndexReader::docLength(docid_t docId, fieldid_t fid)
 {
+    boost::mutex::scoped_lock lock(this->mutex_);
     assert(pDocLengthReader_ != NULL);
     reload();
     return pDocLengthReader_->docLength(docId, fid);
@@ -138,6 +139,8 @@ TermReader* IndexReader::getTermReader(collectionid_t colID)
 
 void IndexReader::reopen()
 {
+    boost::mutex::scoped_lock lock(this->mutex_);
+
     if(pBarrelReader_)
         delete pBarrelReader_;
     pBarrelReader_ = NULL;
