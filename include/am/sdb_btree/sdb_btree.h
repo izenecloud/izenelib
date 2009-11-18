@@ -1161,7 +1161,7 @@ template<typename KeyType, typename ValueType, typename LockType, bool fixed,
 			qnode.pop();
 			if (popNode && !popNode->isLeaf) {
 				for (size_t i=0; i<popNode->objCount+1; i++) {
-					if (popNode->children[i])
+					if (popNode->children && popNode->children[i])
 						qnode.push(popNode->children[i]);
 				}
 			}
