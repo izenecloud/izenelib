@@ -26,6 +26,8 @@ public:
 public:
     virtual void open(Directory* pDirectory,const char* barrelname,FieldInfo* pFieldInfo);
 
+    virtual void reopen() = 0;
+
     virtual TermIterator* termIterator(const char* field) = 0;
 
     virtual bool seek(Term* pTerm) = 0;

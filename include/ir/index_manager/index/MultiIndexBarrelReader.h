@@ -62,6 +62,8 @@ public:
 public:
     void open(const char* name);
 
+    void reopen();
+
     TermReader* termReader(collectionid_t colID);
 
     void deleteDocumentPhysically(IndexerDocument* pDoc);

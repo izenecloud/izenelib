@@ -26,6 +26,13 @@ MultiFieldTermReader::~MultiFieldTermReader()
 void MultiFieldTermReader::open(Directory* pDirectory,const char* barrelname,FieldInfo* pFieldInfo)
 {}
 
+void MultiFieldTermReader::reopen()
+{
+    for(reader_map::iterator iter = fieldsTermReaders.begin(); 
+            iter != fieldsTermReaders.end(); ++iter)
+        iter->second->reopen();
+}
+
 TermReader* MultiFieldTermReader::termReader(const char* field)
 {
     reader_map::iterator iter = fieldsTermReaders.find(field);

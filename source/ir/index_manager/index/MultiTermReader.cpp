@@ -24,6 +24,15 @@ void MultiTermReader::open(Directory* pDirectory,const char* barrelname,FieldInf
     throw UnsupportedOperationException("Unsupported Operation : MultiTermReader::open.");
 }
 
+void MultiTermReader::reopen()
+{
+    ReaderCache* pList = pCurReader_;
+    while(pList)
+    {
+        pList->pTermReader_->reopen();
+        pList = pList->next_;
+    }
+}
 
 TermIterator* MultiTermReader::termIterator(const char* field)
 {

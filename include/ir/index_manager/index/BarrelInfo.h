@@ -29,6 +29,7 @@ public:
             , pBarrelWriter(NULL)
             , hasUpdateDocs(false)
             , maxDocId(0)
+            , modified(false)
  
     {
     }
@@ -39,6 +40,7 @@ public:
             , pBarrelWriter(NULL)
             , hasUpdateDocs(false)
             , maxDocId(0)
+            , modified(false)
     {
     }
 
@@ -50,6 +52,7 @@ public:
             , pBarrelWriter(NULL)
             , hasUpdateDocs(pBarrelInfo->hasUpdateDocs)
             , maxDocId(pBarrelInfo->maxDocId)
+            , modified(pBarrelInfo->modified)
     {
     }
 
@@ -115,22 +118,16 @@ public:
             return baseDocIDMap.begin()->second;
     }
 
-	docid_t getMaxDocID() { return maxDocId; }
+    docid_t getMaxDocID() { return maxDocId; }
     /**
      * Get IndexBarrelWriter handle, after the indexed document has been flushed into barrel files, the IndexBarrelWriter handle will be set NULL,
      * if it is not NULL, it means the index is currently still an in-memory index
      */
-    IndexBarrelWriter* getWriter()
-    {
-        return pBarrelWriter;
-    }
+    IndexBarrelWriter* getWriter() { return pBarrelWriter; }
     /**
      * Set IndexBarrelWriter, then the writer will index the documents within this barrel
      */
-    void setWriter(IndexBarrelWriter* pWriter)
-    {
-        pBarrelWriter = pWriter;
-    }
+     void setWriter(IndexBarrelWriter* pWriter) { pBarrelWriter = pWriter; }
     /**
      * after delete a document from a certain barrel, the document counter should be updated
      */
@@ -152,6 +149,8 @@ public:
      * rename the barrel name, it is used when index merge happens.
      */
     void rename(Directory* pDirectory,const string& newName);
+
+    bool isModified() { return modified; }
 
     ///compare function to sort all the barrels, the compare function will be based on the document count of a certain barrel.
     ///we will sort barrels according to base doc id of the first collection.
@@ -185,6 +184,8 @@ public:
     bool hasUpdateDocs;
     ///max doc of this barrel
     docid_t maxDocId;
+
+    bool modified;
 };
 
 

@@ -11,7 +11,6 @@ IndexReader::IndexReader(Indexer* pIndex)
         ,pBarrelsInfo_(NULL)
         ,pBarrelReader_(NULL)
         ,pForwardIndexReader_(NULL)
-        ,dirty_(true)
         ,pDocFilter_(NULL)
         ,pDocLengthReader_(NULL)
 {
@@ -115,27 +114,10 @@ void IndexReader::createBarrelReader()
 
 void IndexReader::reload()
 {
-    if (dirty_)
-    {
-        //collection has been removed, need to rebuild the barrel reader
-        if (pBarrelReader_ == NULL)
-        {
-            createBarrelReader();
-        }
-        else
-        {
-            delete pBarrelReader_;
-            pBarrelReader_ = NULL;
-        }
-        pDocLengthReader_->load(pBarrelsInfo_->maxDocId());
-
-        dirty_ = false;
-    }
-
+    //collection has been removed, need to rebuild the barrel reader
     if (pBarrelReader_ == NULL)
-    {
         createBarrelReader();
-    }
+    pDocLengthReader_->load(pBarrelsInfo_->maxDocId());
 }
 
 TermReader* IndexReader::doGetTermReader_(collectionid_t colID)
@@ -152,6 +134,14 @@ TermReader* IndexReader::getTermReader(collectionid_t colID)
         return pTermReader->clone();
     else
         return NULL;
+}
+
+void IndexReader::reopen()
+{
+    if(pBarrelReader_)
+        delete pBarrelReader_;
+    pBarrelReader_ = NULL;
+//    pBarrelReader_->reopen();
 }
 
 ForwardIndexReader* IndexReader::getForwardIndexReader()
@@ -243,25 +233,9 @@ TermInfo* IndexReader::termInfo(collectionid_t colID,Term* term)
 
 size_t IndexReader::getDistinctNumTerms(collectionid_t colID, const std::string& property)
 {
-    if (dirty_)
-    {
-        //collection has been removed, need to rebuild the barrel reader
-        if (pBarrelReader_ == NULL)
-        {
-            createBarrelReader();
-        }
-        else
-        {
-            delete pBarrelReader_;
-            pBarrelReader_ = NULL;
-        }
-        dirty_ = false;
-    }
-
+    //collection has been removed, need to rebuild the barrel reader
     if (pBarrelReader_ == NULL)
-    {
         createBarrelReader();
-    }
     return pBarrelReader_->getDistinctNumTerms(colID, property);
 }
 
