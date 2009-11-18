@@ -44,6 +44,7 @@ void BarrelInfo::rename(Directory* pDirectory,const string& newName)
             pDirectory->batRenameFiles(barrelName,newName);
         }
         barrelName = newName;
+        modified = true;
     }
     catch (IndexManagerException& fe)
     {

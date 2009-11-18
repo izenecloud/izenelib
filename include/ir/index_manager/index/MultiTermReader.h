@@ -56,6 +56,9 @@ public:
      */
     void open(Directory* pDirectory,const char* barrelname,FieldInfo* pFieldInfo);
 
+
+    void reopen();
+
     /**
      * get the term iterator
      * @param field field name

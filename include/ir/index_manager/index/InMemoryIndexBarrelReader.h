@@ -34,6 +34,8 @@ public:
 
     void close();
 
+    void reopen(){}
+
 protected:
     IndexBarrelWriter* pIndexBarrelWriter;
     map<collectionid_t, TermReader*> termReaderMap;

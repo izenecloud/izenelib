@@ -55,6 +55,11 @@ void DiskTermReader::open(Directory* pDirectory,const char* barrelname,FieldInfo
     pTermReaderImpl_->open(pDirectory, barrelname);
 }
 
+void DiskTermReader::reopen()
+{
+    pTermReaderImpl_->reopen();
+}
+
 void DiskTermReader::close()
 {
     pCurTermInfo_ = NULL;
@@ -93,6 +98,9 @@ TermPositions* DiskTermReader::termPositions()
 {
     if (pCurTermInfo_ == NULL || pTermReaderImpl_ == NULL )
         return NULL;
+//cout<<"termpositions "<<pTermReaderImpl_->barrelName_<<endl;	
+    boost::mutex::scoped_lock lock(pTermReaderImpl_->mutex_);
+
     if(pTermReaderImpl_->pInputDescriptor_ == NULL)
         return NULL;
     if(pTermReaderImpl_->pInputDescriptor_->getPPostingInput() == NULL)
@@ -128,6 +136,7 @@ TermReaderImpl::TermReaderImpl(FieldInfo* pFieldInfo)
         :pFieldInfo_(pFieldInfo)
         ,pTermTable_(NULL)
         ,pInputDescriptor_(NULL)
+        ,pDirectory_(NULL)
 {}
 
 TermReaderImpl::~TermReaderImpl()
@@ -137,7 +146,11 @@ TermReaderImpl::~TermReaderImpl()
 
 void TermReaderImpl::open(Directory* pDirectory,const char* barrelname)
 {
+    boost::mutex::scoped_lock lock(mutex_);
+
     close();///TODO
+
+    barrelName_ = barrelname;
 
     string bn = barrelname;
 
@@ -168,6 +181,12 @@ void TermReaderImpl::open(Directory* pDirectory,const char* barrelname)
     pInputDescriptor_->setDPostingInput(pDirectory->openInput(bn + ".dfp"));
     pInputDescriptor_->setPPostingInput(pDirectory->openInput(bn + ".pop"));
 
+}
+
+void TermReaderImpl::reopen()
+{
+    if(pDirectory_)
+        open(pDirectory_, barrelName_.c_str());
 }
 
 void TermReaderImpl::updateTermInfo(Term* term, count_t docFreq, fileoffset_t offset)

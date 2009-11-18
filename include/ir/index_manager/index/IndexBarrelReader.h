@@ -48,6 +48,9 @@ public:
     virtual size_t getDistinctNumTerms(collectionid_t colID,const std::string& property) = 0;
 	
     virtual void close() = 0;
+
+    virtual void reopen() = 0;
+
 protected:
     Indexer* pIndexer;
 };
