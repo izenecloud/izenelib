@@ -65,7 +65,7 @@ public:
 class DiskTermReader:public TermReader
 {
 public:
-    DiskTermReader();
+    DiskTermReader(Directory* pDirectory,const char* barrelname,FieldInfo* pFieldInfo);
 
     DiskTermReader(TermReaderImpl* pTermReaderImpl);
 
@@ -105,6 +105,8 @@ protected:
     TermInfo* pCurTermInfo_;
 
     bool ownTermReaderImpl_;
+
+    InputDescriptor* pInputDescriptor_;
 
     friend class DiskTermIterator;
     friend class CollectionIndexer;

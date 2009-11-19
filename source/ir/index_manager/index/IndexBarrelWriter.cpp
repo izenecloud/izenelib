@@ -3,6 +3,8 @@
 
 #include <util/izene_log.h>
 
+#include <boost/thread.hpp>
+
 using namespace izenelib::ir::indexmanager;
 
 IndexBarrelWriter::IndexBarrelWriter(Indexer* pIndex,MemCache* pCache,const char* name)

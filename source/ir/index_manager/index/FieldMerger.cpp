@@ -234,9 +234,7 @@ bool FieldMerger::initQueue()
         else
         {
             ///on-disk index barrel
-            pTermReader = new DiskTermReader();
-            ///open on-disk index barrel
-            pTermReader->open(pDirectory,pEntry->pBarrelInfo->getName().c_str(),pEntry->pFieldInfo);
+            pTermReader = new DiskTermReader(pDirectory,pEntry->pBarrelInfo->getName().c_str(),pEntry->pFieldInfo);
         }
         pMI = new FieldMergeInfo(order,pEntry->pFieldInfo->getColID(),pEntry->pBarrelInfo,pTermReader);
         if (nSubBufSize > 0)

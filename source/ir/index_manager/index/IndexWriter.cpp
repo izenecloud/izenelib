@@ -220,18 +220,20 @@ void IndexWriter::mergeAndWriteCachedIndex2()
         pIndexBarrelWriter_->close();
         pLastBarrel->setWriter(NULL);
 
-        if (pIndexMerger_)
-            pIndexMerger_->addToMerge(pBarrelsInfo_,pBarrelsInfo_->getLastBarrel());
-		
-        if (pIndexMerger_)
-            pIndexMerger_->transferToDisk(pIndexBarrelWriter_->barrelName.c_str());
     }
+
+    if (pIndexMerger_)
+        pIndexMerger_->addToMerge(pBarrelsInfo_,pBarrelsInfo_->getLastBarrel());
+	
+    if (pIndexMerger_)
+        pIndexMerger_->transferToDisk(pIndexBarrelWriter_->barrelName.c_str());
 
     pBarrelsInfo_->addBarrel(pBarrelsInfo_->newBarrel().c_str(),0);
     pCurBarrelInfo_ = pBarrelsInfo_->getLastBarrel();
     pCurBarrelInfo_->setWriter(pIndexBarrelWriter_);
     pCurDocCount_ = &(pCurBarrelInfo_->nNumDocs);
     *pCurDocCount_ = 0;
+    pIndexer_->setDirty(true);
 }
 
 void IndexWriter::justWriteCachedIndex()
