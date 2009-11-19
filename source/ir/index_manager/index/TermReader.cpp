@@ -98,8 +98,6 @@ TermPositions* DiskTermReader::termPositions()
 {
     if (pCurTermInfo_ == NULL || pTermReaderImpl_ == NULL )
         return NULL;
-//cout<<"termpositions "<<pTermReaderImpl_->barrelName_<<endl;	
-    boost::mutex::scoped_lock lock(pTermReaderImpl_->mutex_);
 
     if(pTermReaderImpl_->pInputDescriptor_ == NULL)
         return NULL;
@@ -146,8 +144,6 @@ TermReaderImpl::~TermReaderImpl()
 
 void TermReaderImpl::open(Directory* pDirectory,const char* barrelname)
 {
-    boost::mutex::scoped_lock lock(mutex_);
-
     close();///TODO
 
     barrelName_ = barrelname;

@@ -144,6 +144,7 @@ void TermPositions::createBuffer()
     {
         nPBufferSize_ = bufSize;
         pPPostingBuffer_ = new uint32_t[bufSize];
+        memset(pPPostingBuffer_, 0, bufSize*sizeof(uint32_t));		
     }
 }
 

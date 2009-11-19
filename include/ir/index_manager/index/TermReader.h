@@ -11,8 +11,6 @@
 #include <ir/index_manager/index/AbsTermReader.h>
 #include <ir/index_manager/index/TermIterator.h>
 
-#include <boost/thread.hpp>
-
 #include <string>
 
 NS_IZENELIB_IR_BEGIN
@@ -62,8 +60,6 @@ public:
     std::string barrelName_;
 
     Directory* pDirectory_;
-
-    boost::mutex mutex_;	
 };
 
 class DiskTermReader:public TermReader
