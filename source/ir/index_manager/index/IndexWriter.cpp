@@ -77,7 +77,7 @@ void IndexWriter::destroyCache()
 
 void IndexWriter::mergeIndex(IndexMerger* pMerger)
 {
-    boost::mutex::scoped_lock lock(this->mutex_);
+    boost::mutex::scoped_lock lock(pIndexer_->mutex_);
 
     pMerger->setDirectory(pIndexer_->getDirectory());
 
@@ -110,6 +110,8 @@ void IndexWriter::mergeIndex(IndexMerger* pMerger)
 
 void IndexWriter::mergeUpdatedBarrel()
 {
+    boost::mutex::scoped_lock lock(pIndexer_->mutex_);
+
     IndexMerger* pMerger = new OfflineIndexMerger(pIndexer_, pBarrelsInfo_->getBarrelCount());
 
     pMerger->setDirectory(pIndexer_->getDirectory());
@@ -248,7 +250,6 @@ void IndexWriter::justWriteCachedIndex()
 
 void IndexWriter::addDocument(IndexerDocument* pDoc)
 {
-    //boost::mutex::scoped_lock lock(this->mutex_);
     ppCachedDocs_[nNumCacheUsed_++] = pDoc;
 
     if (isCacheFull())
@@ -299,8 +300,6 @@ void IndexWriter::indexDocument(IndexerDocument* pDoc)
 
 void IndexWriter::flushDocuments()
 {
-    boost::mutex::scoped_lock lock(this->mutex_);
-
     if (nNumCacheUsed_ <=0 )
         return;
     for (int i=0;i<nNumCacheUsed_;i++)
@@ -351,7 +350,7 @@ bool IndexWriter::startUpdate()
 
 bool IndexWriter::removeCollection(collectionid_t colID, count_t colCount)
 {
-    boost::mutex::scoped_lock lock(this->mutex_);
+    boost::mutex::scoped_lock lock(pIndexer_->mutex_);
 
     Directory* pDirectory = pIndexer_->getDirectory();
 
