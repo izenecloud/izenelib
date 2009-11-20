@@ -409,6 +409,9 @@ void InMemoryPosting::writeDescriptor(IndexOutput* pDOutput,fileoffset_t poffset
 
 void InMemoryPosting::flushLastDoc(bool bTruncTail)
 {
+    if(!pMemCache)
+        return;
+
     if (nCurTermFreq > 0)
     {
         if (!pDocFreqList->addPosting(nCurTermFreq))

@@ -38,6 +38,8 @@ public:
 public:
     void open(Directory* pDirectory,const char* barrelname);
 
+    void reopen();
+
     void close() ;
 
     void updateTermInfo(Term* term, count_t docFreq, fileoffset_t offset);
@@ -54,18 +56,24 @@ public:
     int32_t nTermCount_;
 
     int64_t nVocLength_;
+
+    std::string barrelName_;
+
+    Directory* pDirectory_;
 };
 
 class DiskTermReader:public TermReader
 {
 public:
-    DiskTermReader();
+    DiskTermReader(Directory* pDirectory,const char* barrelname,FieldInfo* pFieldInfo);
 
     DiskTermReader(TermReaderImpl* pTermReaderImpl);
 
     virtual ~DiskTermReader(void);
 public:
     void open(Directory* pDirectory,const char* barrelname,FieldInfo* pFieldInfo);
+
+    void reopen();
 
     TermIterator* termIterator(const char* field);
 
@@ -98,6 +106,8 @@ protected:
 
     bool ownTermReaderImpl_;
 
+    InputDescriptor* pInputDescriptor_;
+
     friend class DiskTermIterator;
     friend class CollectionIndexer;
     friend class SingleIndexBarrelReader;
@@ -113,6 +123,8 @@ public:
     virtual ~InMemoryTermReader(void);
 public:
     void open(Directory* pDirectory,const char* barrelname,FieldInfo* pFieldInfo);
+
+    void reopen(){}
 
     TermIterator* termIterator(Term* pLowerTerm,Term* pUpperTerm);
 

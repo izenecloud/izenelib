@@ -24,12 +24,14 @@ TermReader::~TermReader(void)
 void TermReader::open(Directory* pDirectory,const char* barrelname,FieldInfo* pFieldInfo)
 {}
 
-DiskTermReader::DiskTermReader()
+DiskTermReader::DiskTermReader(Directory* pDirectory,const char* barrelname,FieldInfo* pFieldInfo)
         : TermReader()
         , pTermReaderImpl_(NULL)
         , pCurTermInfo_(NULL)
         , ownTermReaderImpl_(true)
+        , pInputDescriptor_(NULL)
 {
+    open(pDirectory, barrelname, pFieldInfo);
 }
 
 DiskTermReader::DiskTermReader(TermReaderImpl* pTermReaderImpl)
@@ -37,6 +39,7 @@ DiskTermReader::DiskTermReader(TermReaderImpl* pTermReaderImpl)
         , pTermReaderImpl_(pTermReaderImpl)
         , pCurTermInfo_(NULL)
         , ownTermReaderImpl_(false)
+        , pInputDescriptor_(pTermReaderImpl->pInputDescriptor_->clone())
 {
 }
 
@@ -45,6 +48,8 @@ DiskTermReader::~DiskTermReader()
     close();
     if ((pTermReaderImpl_)&&(ownTermReaderImpl_))
         delete pTermReaderImpl_;
+    if (pInputDescriptor_)
+        delete pInputDescriptor_;
 }
 
 void DiskTermReader::open(Directory* pDirectory,const char* barrelname,FieldInfo* pFieldInfo)
@@ -53,6 +58,12 @@ void DiskTermReader::open(Directory* pDirectory,const char* barrelname,FieldInfo
 
     pTermReaderImpl_ = new TermReaderImpl(pFieldInfo);
     pTermReaderImpl_->open(pDirectory, barrelname);
+    pInputDescriptor_ = pTermReaderImpl_->pInputDescriptor_->clone();
+}
+
+void DiskTermReader::reopen()
+{
+    pTermReaderImpl_->reopen();
 }
 
 void DiskTermReader::close()
@@ -93,11 +104,13 @@ TermPositions* DiskTermReader::termPositions()
 {
     if (pCurTermInfo_ == NULL || pTermReaderImpl_ == NULL )
         return NULL;
+
     if(pTermReaderImpl_->pInputDescriptor_ == NULL)
         return NULL;
     if(pTermReaderImpl_->pInputDescriptor_->getPPostingInput() == NULL)
         return NULL;
-    return new TermPositions(this,pTermReaderImpl_->pInputDescriptor_->clone(),*pCurTermInfo_);
+    //return new TermPositions(this,pTermReaderImpl_->pInputDescriptor_->clone(),*pCurTermInfo_);
+    return new TermPositions(this,pInputDescriptor_->clone(),*pCurTermInfo_);
 }
 
 
@@ -128,6 +141,7 @@ TermReaderImpl::TermReaderImpl(FieldInfo* pFieldInfo)
         :pFieldInfo_(pFieldInfo)
         ,pTermTable_(NULL)
         ,pInputDescriptor_(NULL)
+        ,pDirectory_(NULL)
 {}
 
 TermReaderImpl::~TermReaderImpl()
@@ -138,6 +152,8 @@ TermReaderImpl::~TermReaderImpl()
 void TermReaderImpl::open(Directory* pDirectory,const char* barrelname)
 {
     close();///TODO
+
+    barrelName_ = barrelname;
 
     string bn = barrelname;
 
@@ -168,6 +184,12 @@ void TermReaderImpl::open(Directory* pDirectory,const char* barrelname)
     pInputDescriptor_->setDPostingInput(pDirectory->openInput(bn + ".dfp"));
     pInputDescriptor_->setPPostingInput(pDirectory->openInput(bn + ".pop"));
 
+}
+
+void TermReaderImpl::reopen()
+{
+    if(pDirectory_)
+        open(pDirectory_, barrelName_.c_str());
 }
 
 void TermReaderImpl::updateTermInfo(Term* term, count_t docFreq, fileoffset_t offset)

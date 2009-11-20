@@ -77,7 +77,7 @@ void IndexWriter::destroyCache()
 
 void IndexWriter::mergeIndex(IndexMerger* pMerger)
 {
-    boost::mutex::scoped_lock lock(this->mutex_);
+    boost::mutex::scoped_lock lock(pIndexer_->mutex_);
 
     pMerger->setDirectory(pIndexer_->getDirectory());
 
@@ -110,6 +110,8 @@ void IndexWriter::mergeIndex(IndexMerger* pMerger)
 
 void IndexWriter::mergeUpdatedBarrel()
 {
+    boost::mutex::scoped_lock lock(pIndexer_->mutex_);
+
     IndexMerger* pMerger = new OfflineIndexMerger(pIndexer_, pBarrelsInfo_->getBarrelCount());
 
     pMerger->setDirectory(pIndexer_->getDirectory());
@@ -220,18 +222,20 @@ void IndexWriter::mergeAndWriteCachedIndex2()
         pIndexBarrelWriter_->close();
         pLastBarrel->setWriter(NULL);
 
-        if (pIndexMerger_)
-            pIndexMerger_->addToMerge(pBarrelsInfo_,pBarrelsInfo_->getLastBarrel());
-		
-        if (pIndexMerger_)
-            pIndexMerger_->transferToDisk(pIndexBarrelWriter_->barrelName.c_str());
     }
+
+    if (pIndexMerger_)
+        pIndexMerger_->addToMerge(pBarrelsInfo_,pBarrelsInfo_->getLastBarrel());
+	
+    if (pIndexMerger_)
+        pIndexMerger_->transferToDisk(pIndexBarrelWriter_->barrelName.c_str());
 
     pBarrelsInfo_->addBarrel(pBarrelsInfo_->newBarrel().c_str(),0);
     pCurBarrelInfo_ = pBarrelsInfo_->getLastBarrel();
     pCurBarrelInfo_->setWriter(pIndexBarrelWriter_);
     pCurDocCount_ = &(pCurBarrelInfo_->nNumDocs);
     *pCurDocCount_ = 0;
+    pIndexer_->setDirty(true);
 }
 
 void IndexWriter::justWriteCachedIndex()
@@ -246,7 +250,6 @@ void IndexWriter::justWriteCachedIndex()
 
 void IndexWriter::addDocument(IndexerDocument* pDoc)
 {
-    //boost::mutex::scoped_lock lock(this->mutex_);
     ppCachedDocs_[nNumCacheUsed_++] = pDoc;
 
     if (isCacheFull())
@@ -297,8 +300,6 @@ void IndexWriter::indexDocument(IndexerDocument* pDoc)
 
 void IndexWriter::flushDocuments()
 {
-    boost::mutex::scoped_lock lock(this->mutex_);
-
     if (nNumCacheUsed_ <=0 )
         return;
     for (int i=0;i<nNumCacheUsed_;i++)
@@ -349,7 +350,7 @@ bool IndexWriter::startUpdate()
 
 bool IndexWriter::removeCollection(collectionid_t colID, count_t colCount)
 {
-    boost::mutex::scoped_lock lock(this->mutex_);
+    boost::mutex::scoped_lock lock(pIndexer_->mutex_);
 
     Directory* pDirectory = pIndexer_->getDirectory();
 

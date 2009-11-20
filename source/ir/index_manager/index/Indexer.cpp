@@ -348,27 +348,25 @@ void Indexer::close()
 void Indexer::setDirty(bool bDirty)
 {
     dirty_ = bDirty;
-    pIndexReader_->setDirty(bDirty);
+    if(bDirty)
+        pIndexReader_->reopen();	
 }
 
 int Indexer::insertDocumentPhysically(IndexerDocument* pDoc)
 {
     pIndexWriter_->indexDocument(pDoc);
-    pIndexReader_->setDirty(true);
     return 1;
 }
 
 int Indexer::insertDocument(IndexerDocument* pDoc)
 {
     pIndexWriter_->addDocument(pDoc);
-    pIndexReader_->setDirty(true);
     return 1;
 }
 
 int Indexer::removeDocumentPhysically(IndexerDocument* pDoc)
 {
     pIndexReader_->deleteDocumentPhysically(pDoc);
-    pIndexReader_->setDirty(true);
     return 1;
 }
 
@@ -387,14 +385,12 @@ int Indexer::removeCollection(collectionid_t colID)
 {
     count_t count = 0;
     pIndexWriter_->removeCollection(colID,count);
-    pIndexReader_->setDirty(true);
     return 1;
 }
 
 void Indexer::flush()
 {
     pIndexWriter_->flush();
-    pIndexReader_->setDirty(true);
     pBTreeIndexer_->flush();
 }
 

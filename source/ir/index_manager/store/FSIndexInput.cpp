@@ -66,8 +66,6 @@ void FSIndexInput::readInternal(char* b,size_t length,bool bCheck/* = true*/)
 
 void FSIndexInput::close()
 {
-    boost::mutex::scoped_lock lock(this->mutex_);
-
     if (fileHandle_ )
     {
         fclose(fileHandle_);

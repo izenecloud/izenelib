@@ -48,8 +48,6 @@ public:
 
     BarrelsInfo* getBarrelsInfo();
 
-    void setDirty(bool dirty) {dirty_ = dirty;}
-
     static int64_t lastModified(Directory* pDirectory);
 
     ///client must delete the returned object
@@ -68,14 +66,13 @@ public:
 
     void delDocFilter();
 
+    void reopen();
 private:
     void createBarrelReader();
 
-    TermReader* doGetTermReader_(collectionid_t colID);
     ///find which barrel the document lies
     BarrelInfo* findDocumentInBarrels(collectionid_t colID, docid_t docID);
 
-    void reload();
 private:
     Indexer* pIndexer_; ///reference to index object
 
@@ -84,8 +81,6 @@ private:
     IndexBarrelReader* pBarrelReader_; ///barrel reader
 
     ForwardIndexReader* pForwardIndexReader_;
-
-    bool dirty_;
 
     mutable boost::mutex mutex_;
 

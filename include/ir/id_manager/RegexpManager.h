@@ -352,6 +352,7 @@ protected:
             NameID id;
             while(!tin.eof())
             {
+                iin.read((char*)&id, sizeof(NameID));
                 tin.read((char*)&buffersize, sizeof(int));
                 // skip terms that is too long
                 if(buffersize > 256) {
@@ -361,13 +362,11 @@ protected:
                     NameString badKey = badString;
                     std::cout << std::endl << "Warning, find term that are too long: " <<
                         buffersize << "," << badKey << std::endl << std::flush;
+                    line++;
                     continue;
                 }
                 tin.read( charBuffer, buffersize);
                 std::string buffer(charBuffer, buffersize);
-
-                iin.read((char*)&id, sizeof(NameID));
-                line++;
 
                 if(buffer.size() > 0)
                 {
@@ -390,6 +389,7 @@ protected:
                     std::cout << "\r";
                     std::cout<<ss.str()<<std::flush;
                 }
+                line++;
             }
             std::cout << std::endl;
             handler_.optimize();

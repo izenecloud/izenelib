@@ -26,6 +26,13 @@ MultiFieldTermReader::~MultiFieldTermReader()
 void MultiFieldTermReader::open(Directory* pDirectory,const char* barrelname,FieldInfo* pFieldInfo)
 {}
 
+void MultiFieldTermReader::reopen()
+{
+    for(reader_map::iterator iter = fieldsTermReaders.begin(); 
+            iter != fieldsTermReaders.end(); ++iter)
+        iter->second->reopen();
+}
+
 TermReader* MultiFieldTermReader::termReader(const char* field)
 {
     reader_map::iterator iter = fieldsTermReaders.find(field);
@@ -116,12 +123,8 @@ void MultiFieldTermReader::open(Directory* pDirectory,const char* barrelname,Fie
 
         if (pInfo->isIndexed()&&pInfo->isForward())
         {
-            pTermReader = new DiskTermReader();
-            if (pTermReader)
-            {
-                pTermReader->open(pDirectory,barrelname,pInfo);
-                fieldsTermReaders.insert(pair<string,TermReader*>(pFieldsInfo->getFieldName(pInfo->getID()),pTermReader));
-            }
+            pTermReader = new DiskTermReader(pDirectory,barrelname,pInfo);
+            fieldsTermReaders.insert(pair<string,TermReader*>(pFieldsInfo->getFieldName(pInfo->getID()),pTermReader));
         }
     }
 }
