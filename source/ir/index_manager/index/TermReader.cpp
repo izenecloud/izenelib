@@ -237,6 +237,10 @@ TermInfo* TermReaderImpl::termInfo(Term* term)
 
     int32_t start = 0,end = nTermCount_ - 1;
     int32_t mid = (start + end)/2;
+    ///tid == 0 means we return the last term to see whether
+    ///the index is consistent;
+    if(MAX_TERMID == tid) return &(pTermTable_[end].ti);
+	
     while (start <= end)
     {
         mid = (start + end)/2;
