@@ -123,12 +123,8 @@ void MultiFieldTermReader::open(Directory* pDirectory,const char* barrelname,Fie
 
         if (pInfo->isIndexed()&&pInfo->isForward())
         {
-            pTermReader = new DiskTermReader();
-            if (pTermReader)
-            {
-                pTermReader->open(pDirectory,barrelname,pInfo);
-                fieldsTermReaders.insert(pair<string,TermReader*>(pFieldsInfo->getFieldName(pInfo->getID()),pTermReader));
-            }
+            pTermReader = new DiskTermReader(pDirectory,barrelname,pInfo);
+            fieldsTermReaders.insert(pair<string,TermReader*>(pFieldsInfo->getFieldName(pInfo->getID()),pTermReader));
         }
     }
 }

@@ -3,6 +3,8 @@
 
 #include <util/izene_log.h>
 
+#include <boost/thread.hpp>
+
 using namespace izenelib::ir::indexmanager;
 
 IndexBarrelWriter::IndexBarrelWriter(Indexer* pIndex,MemCache* pCache,const char* name)
@@ -48,6 +50,8 @@ void IndexBarrelWriter::open(const char* barrelName_)
 }
 void IndexBarrelWriter::close()
 {
+    boost::mutex::scoped_lock lock(pIndexer->mutex_);
+
     if (cacheEmpty() == false)
     {
         writeCache();

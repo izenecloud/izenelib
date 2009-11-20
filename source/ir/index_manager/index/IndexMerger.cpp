@@ -8,6 +8,8 @@
 
 #include <util/izene_log.h>
 
+#include <boost/date_time/posix_time/posix_time.hpp>
+
 #include <sstream>
 #include <memory>
 #include <algorithm>
@@ -165,7 +167,7 @@ void IndexMerger::addToMerge(BarrelsInfo* pBarrelsInfo,BarrelInfo* pBarrelInfo)
 
 void IndexMerger::pendingUpdate(BarrelsInfo* pBarrelsInfo)
 {
-    //boost::mutex::scoped_lock lock(pIndexer_->mutex_);
+    boost::mutex::scoped_lock lock(pIndexer_->mutex_);
     ///sort barrels
     pBarrelsInfo->sort(pDirectory_);
     BarrelInfo* pBaInfo;
@@ -175,7 +177,10 @@ void IndexMerger::pendingUpdate(BarrelsInfo* pBarrelsInfo)
         pBaInfo = pBarrelsInfo->next();
         pBaInfo->setWriter(NULL);///clear writer
     }
-    ///TODO:UNLOCK
+    ///sleep is necessary because if a query get termreader before this lock,
+    ///the query has not been finished even the index file/term dictionary info has been changed
+    ///500ms is used to let these queries finish their flow.
+    boost::thread::sleep(boost::get_system_time() + boost::posix_time::milliseconds(500));
 }
 
 void IndexMerger::mergeBarrel(MergeBarrel* pBarrel)
@@ -353,6 +358,8 @@ void IndexMerger::mergeBarrel(MergeBarrel* pBarrel)
 
     //deleted all merged barrels
     ///TODO:LOCK
+    {
+    boost::mutex::scoped_lock lock(pIndexer_->mutex_);
     for (nEntry = 0;nEntry < nEntryCount;nEntry++)
     {
         pEntry = pBarrel->getAt(nEntry);
@@ -367,6 +374,11 @@ void IndexMerger::mergeBarrel(MergeBarrel* pBarrel)
         pBarrelsInfo_->removeBarrel(pDirectory_,pEntry->pBarrelInfo_->getName());///delete merged barrels
     }
     pBarrelsInfo_->addBarrel(pNewBarrelInfo,false);
+    ///sleep is necessary because if a query get termreader before this lock,
+    ///the query has not been finished even the index file/term dictionary info has been changed
+    ///500ms is used to let these queries finish their flow.
+    boost::thread::sleep(boost::get_system_time() + boost::posix_time::milliseconds(500));
+    }
     ///TODO:UNLOCK
     if (pMergeBarrels_)
     {

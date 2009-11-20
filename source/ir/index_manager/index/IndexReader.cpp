@@ -116,7 +116,9 @@ void IndexReader::createBarrelReader()
 
 TermReader* IndexReader::getTermReader(collectionid_t colID)
 {
-    boost::mutex::scoped_lock lock(pIndexer_->mutex_);
+    boost::try_mutex::scoped_try_lock lock(pIndexer_->mutex_);
+    if(!lock.owns_lock())
+        return NULL;
     if (pBarrelReader_ == NULL)
         createBarrelReader();
     TermReader* pTermReader = pBarrelReader_->termReader(colID);
@@ -128,12 +130,10 @@ TermReader* IndexReader::getTermReader(collectionid_t colID)
 
 void IndexReader::reopen()
 {
-    boost::mutex::scoped_lock lock(this->mutex_);
-
     if(pBarrelReader_)
         delete pBarrelReader_;
     pBarrelReader_ = NULL;
-//    pBarrelReader_->reopen();
+    //pBarrelReader_->reopen();
 }
 
 ForwardIndexReader* IndexReader::getForwardIndexReader()
