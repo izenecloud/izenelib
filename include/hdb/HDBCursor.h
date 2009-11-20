@@ -1,7 +1,6 @@
 /**
- * @file HugeDB.h
- * @brief Implementation of HugeDB,
- *        Enhancement of SequentialDB for random accesses on large scale data set.
+ * @file HDBCursor.h
+ * @brief Implementation of HDBCursor.
  * @author Wei Cao
  * @date 2009-09-24
  */
@@ -47,18 +46,9 @@ class HDBCursor_ {
 
 public:
 
-    HDBCursor_(HdbType& hdb, size_t start, size_t len)
-    : hdb_(hdb),start_(start),end_(start+len)
-    {
-        cursorList_.resize(hdb.sdbList_.size());
-        for(size_t i = start_; i< end_; i++ )
-            cursorList_[i] = ( sdb(i).get_first_Locn() );
-        key_ = KeyType();
-        tag_.first = DELETE;
-        lastDirection_ = ESD_FORWARD;
-        toEnd_ = false;
-    }
-
+    /**
+     * @brief Constructor that iterate the whole hdb.
+     */
     HDBCursor_(HdbType& hdb)
     : hdb_(hdb),start_(0), end_(hdb.sdbList_.size())
     {
@@ -71,6 +61,24 @@ public:
         toEnd_ = false;
     }
 
+    /**
+     * @brief Constructor that iterate hdb partitions in given range.
+     */
+    HDBCursor_(HdbType& hdb, size_t start, size_t len)
+    : hdb_(hdb),start_(start),end_(start+len)
+    {
+        cursorList_.resize(hdb.sdbList_.size());
+        for(size_t i = start_; i< end_; i++ )
+            cursorList_[i] = ( sdb(i).get_first_Locn() );
+        key_ = KeyType();
+        tag_.first = DELETE;
+        lastDirection_ = ESD_FORWARD;
+        toEnd_ = false;
+    }
+
+    /**
+     * @brief Low cost copy constructor
+     */
     HDBCursor_(const ThisType& hc)
         : hdb_(hc.hdb_), start_(hc.start_), end_(hc.end_),
           key_(hc.key_), tag_(hc.tag_),
@@ -78,6 +86,9 @@ public:
           lastDirection_(hc.lastDirection_),
           toEnd_(hc.toEnd_) { }
 
+    /**
+     * @brief Low cost assignment operator
+     */
     const HDBCursor_& operator = (const ThisType& hc)
     {
         hdb_ = hc.hdb_;
@@ -91,6 +102,9 @@ public:
         return *this;
     }
 
+    /**
+     * @brief Move to previous element.
+     */
     bool prev() {
         if(lastDirection_ == ESD_FORWARD) {
             lastDirection_ = ESD_BACKWARD;
@@ -101,6 +115,9 @@ public:
         return seq<ESD_BACKWARD>();
     }
 
+    /**
+     * @brief Move to next element.
+     */
     bool next() {
         if(lastDirection_ == ESD_BACKWARD) {
             lastDirection_ = ESD_FORWARD;
@@ -111,6 +128,9 @@ public:
         return seq<ESD_FORWARD>();
     }
 
+    /**
+     * @brief Skip to a given element.
+     */
     bool seek(const KeyType& target)
     {
         lastDirection_ = ESD_FORWARD;
@@ -119,12 +139,28 @@ public:
         return seq<ESD_FORWARD>();
     }
 
+    /**
+     * @brief Get key of current element
+     */
     inline const KeyType& getKey() const { return key_; }
 
+    /**
+     * @brief Get Tag type of current element
+     */
     inline const TagType& getTag() const { return tag_; }
 
 protected:
 
+    /**
+     * @brief This works really like to part of a merge-sort algorithm.
+     *        There are multiple partitions inside a hdb, each partition
+     *        can be regarded as a sorted list of keys.
+     *        so it needs to find the smallest key from these partitions
+     *        if we are moving forward, or select the biggest key if we're
+     *        moving backward.
+     *        The challenging thing is duplicated keys may exist between
+     *        partitions, so we need to combine them together based on tag.
+     */
     template <ESeqDirection direction>
     inline bool seq()
     {
@@ -132,7 +168,7 @@ protected:
         KeyType hitKey = KeyType();
         bool hasDuplicatedKey = false;
 
-        // pass 1: find the least key
+        // Select the smallest/biggest key among serveral partitions
         KeyType tmpk = KeyType();
         TagType tmpt = TagType();
         for(size_t i=start_; i<end_; i++) {
@@ -164,7 +200,7 @@ protected:
             }
         }
 
-        // simple case
+        // only one partition contains this key
         if(!hasDuplicatedKey) {
             if(idx == -1U)  {
                 key_ = KeyType();
@@ -180,11 +216,13 @@ protected:
             toEnd_ = false;
             return true;
         } else {
+            // serveral partitions contain the key,
+            // so we need to combine tags and values into a single record.
             ValueType accumulator = ValueType();
             bool hasInsert = false;
             bool hasUpdate = false;
             bool hasDelta = false;
-            // pass 2: process all duplicated keys, safe starting from idx
+            // process all duplicated keys, safe starting from idx
             for(size_t i=idx; i<end_; i++) {
                 if( !sdb(i).get(cursorList_[i], tmpk, tmpt) ) continue;
                 if( hdb_.comp_(tmpk, hitKey) == 0) {
