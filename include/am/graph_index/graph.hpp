@@ -546,7 +546,7 @@ class Graph
 
   void load_edge_(NID_LEN_TYPE nid)
   {
-    if (loads_.at(nid))
+    if (loads_.length()==0 || loads_.at(nid))
       return;
     
     sorted_edges_t* e = new sorted_edges_t();
