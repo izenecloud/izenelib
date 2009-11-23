@@ -163,11 +163,11 @@ void IndexWriter::createBarrelWriter()
 void IndexWriter::mergeAndWriteCachedIndex()
 {
     pIndexMerger_->merge(pBarrelsInfo_);
-    pBarrelsInfo_->write(pIndexer_->getDirectory());
     if (pIndexBarrelWriter_->cacheEmpty() == false)///memory index has not been written to database yet.
     {
         pIndexBarrelWriter_->close();
     }
+    pBarrelsInfo_->write(pIndexer_->getDirectory());
 
     pBarrelsInfo_->addBarrel(pBarrelsInfo_->newBarrel().c_str(),0);
     pCurBarrelInfo_ = pBarrelsInfo_->getLastBarrel();
@@ -221,7 +221,7 @@ void IndexWriter::mergeAndWriteCachedIndex2()
     {
         pIndexBarrelWriter_->close();
         pLastBarrel->setWriter(NULL);
-
+        pBarrelsInfo_->write(pIndexer_->getDirectory());
     }
 
     if (pIndexMerger_)
