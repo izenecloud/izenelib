@@ -139,17 +139,12 @@ fileoffset_t FieldMerger::merge(OutputDescriptor* pOutputDescriptor)
             ///store merged terms to term info cache
             if (cachedTermInfos[nNumTermCached] == NULL)
             {
-                ///if the document frequency is required to be counted based on the total document, then use tdf
-                //cachedTermInfos[nNumTermCached] = new MergeTermInfo(pTerm->clone(),new TermInfo(pPostingMerger->getPostingDescriptor().tdf,postingoffset));
                 cachedTermInfos[nNumTermCached] = new MergeTermInfo(pTerm->clone(),new TermInfo(pPostingMerger->getPostingDescriptor().df,postingoffset));
 
             }
             else
             {
                 cachedTermInfos[nNumTermCached]->pTerm->setValue(pTerm->getValue());
-
-                ///if the document frequency is required to be counted based on the total document, then use tdf
-                //cachedTermInfos[nNumTermCached]->pTermInfo->set(pPostingMerger->getPostingDescriptor().tdf,postingoffset);
                 cachedTermInfos[nNumTermCached]->pTermInfo->set(pPostingMerger->getPostingDescriptor().df,postingoffset);
             }
             nNumTermCached++;
@@ -324,7 +319,6 @@ fileoffset_t FieldMerger::sortingMerge(FieldMergeInfo** ppMergeInfos,int32_t num
             newPosting->addLocation(docId, pos);
             pos = postingIterator.nextPosition();
         }
-        newPosting->updateDF(docId);
     }
     fileoffset_t offset = newPosting->write(pPostingMerger->getOutputDescriptor());
     delete newPosting;

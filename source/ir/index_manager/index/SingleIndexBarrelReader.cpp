@@ -205,7 +205,6 @@ void SingleIndexBarrelReader::delDocField(unsigned int colID, docid_t docId, con
                     newPosting->addLocation(decompressed_docid, pos);
                     pos = pTermPositions->nextPosition();
                 }
-                newPosting->updateDF(decompressed_docid);
             }
 
             if (ret)
@@ -221,7 +220,6 @@ void SingleIndexBarrelReader::delDocField(unsigned int colID, docid_t docId, con
                 PostingDescriptor postingDesc;
                 postingDesc.length = CompressedPostingList::decodePosting64(u); ///<PostingLength(VInt64)>
                 postingDesc.df = CompressedPostingList::decodePosting32(u); 	///<DF(VInt32)>
-                postingDesc.tdf = CompressedPostingList::decodePosting32(u);	///<TDF(VInt32)>
                 postingDesc.ctf = CompressedPostingList::decodePosting64(u);		///<CTF(VInt64)>
                 postingDesc.poffset = CompressedPostingList::decodePosting64(u);	///PositionPointer(VInt64)
                 pPPInput->seekInternal(postingDesc.poffset);///not seek(), because seek() may trigger a large data read event.

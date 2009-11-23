@@ -52,19 +52,32 @@ void ReportUsage(void)
     cout<<"	21 test getDocsByTermInProperties.\n";
 }
 
-void  display(const IndexManagerConfig& config)
+void  initMeta(IndexManagerConfig& config)
 {
     map<string, IndexerCollectionMeta> collectionList = config.getCollectionMetaNameMap();
     map<string, IndexerCollectionMeta>::iterator  collectionList_iter;
     for (collectionList_iter = collectionList.begin(); collectionList_iter != collectionList.end(); collectionList_iter++)
     {
         std::cout << "IndexerCollectionMeta name: " << collectionList_iter->second.getName() << std::endl;
-        const std::set<IndexerPropertyConfig, IndexerPropertyConfigComp>& shopMallDocSchema = collectionList_iter->second.getDocumentSchema();
-        for (std::set<IndexerPropertyConfig, IndexerPropertyConfigComp>::const_iterator it = shopMallDocSchema.begin(); it != shopMallDocSchema.end(); it++ )
+        const std::set<IndexerPropertyConfig, IndexerPropertyConfigComp>& schema =collectionList_iter->second.getDocumentSchema();
+
+        std::set<IndexerPropertyConfig, IndexerPropertyConfigComp> new_schema;
+        unsigned int id = 1;
+        for (std::set<IndexerPropertyConfig, IndexerPropertyConfigComp>::const_iterator it = schema.begin(); it != schema.end(); it++ )
         {
-            std::cout << it->toString();
+            IndexerPropertyConfig propertyConfig = *it;
+            propertyConfig.setPropertyId(id++);
+            new_schema.insert(propertyConfig);
+        }
+
+        collectionList_iter->second.setDocumentSchema(new_schema);
+
+        for (std::set<IndexerPropertyConfig, IndexerPropertyConfigComp>::const_iterator it = collectionList_iter->second.getDocumentSchema().begin(); it != collectionList_iter->second.getDocumentSchema().end(); it++ )
+        {
+            std::cout << it->toString()<<endl;
         }
     }
+    config.setCollectionMetaNameMap( collectionList );
 }
 
 bool makeForwardIndex_(
@@ -133,7 +146,9 @@ bool prepareDocument_(const SCDDoc& doc,
         wiselib::UString::EncodingType encoding = wiselib::UString::UTF_8;
         if ( (p->first == wiselib::UString("DOCID", encoding) ) && (!extraProperty) )
         {
-            idManager_.getDocIdByDocName(propertyValueU, docId);
+            bool ret = idManager_.getDocIdByDocName(propertyValueU, docId);
+            if(ret)
+                return false;
 
             indexDocument->setDocId(docId, 1);
         }
@@ -235,30 +250,31 @@ void test_run_insert(Indexer* pIndexer, IndexManagerConfig&indexManagerConfig, s
 
         pIndexer->insertDocument(document);
     }
-
+    pIndexer->flush();
+    idManager_.flush();
 }
 
 
-void test_run_query_singlethread(Indexer* pIndexer)
+void test_run_query_singlethread(Indexer* pIndexer, wiselib::UString& term)
 {
     try
     {
         deque<CommonItem> commonSet;
         vector<string> properties;
         properties.push_back("Content");
-        //properties.push_back("title");
+        //properties.push_back("Title");
         time_t start = time(0);
-        for (izenelib::ir::indexmanager::termid_t termid = 0; termid <10; termid++)
-        {
-            int ret = pIndexer->getDocsByTermInProperties(termid, 1, properties, commonSet);
-            if (0 == ret)
-            {
-                cout<<"can not find "<<termid<<endl;
-                continue;
-            }
+        uint32_t termid;
+        idManager_.getTermIdByTermString(term, termid);
+        int ret = pIndexer->getDocsByTermInProperties(termid, 1, properties, commonSet);
+        if (0 == ret)
+       	{
+            cout<<"can not find "<<termid<<endl;
+            return;
+       	}
+       cout<<"commonSet "<<commonSet.size()<<endl;
 
-        }
-        cout<<"time elapsed:"<<time(0)-start<<endl;
+       cout<<"time elapsed:"<<time(0)-start<<endl;
 
     }
     catch (IndexManagerException& e)
@@ -279,7 +295,7 @@ int main(int argc, char** argv)
     unsigned int collectionId = 1;
     collectionIdMapping.insert(pair<string, uint32_t>("EngWiki", collectionId));
 
-    display(indexManagerConfig);
+    initMeta(indexManagerConfig);
 
     if (argc < 2)
     {
@@ -304,8 +320,15 @@ int main(int argc, char** argv)
         test_run_insert(pIndexer,indexManagerConfig,argv[2],atoi(argv[3]),1,"EngWiki");
         break;
     case 2:
-        test_run_query_singlethread(pIndexer);
+	{
+        std::string s(argv[2]);
+        wiselib::UString term(s,wiselib::UString::UTF_8);
+        test_run_query_singlethread(pIndexer,term);
+    	}
         break;
+    case 3:
+        pIndexer->optimizeIndex();
+	break;
     default:
         cout<<"invalid option.\n";
         delete pIndexer;
