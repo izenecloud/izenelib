@@ -11,20 +11,13 @@
 
 		<Indexer>
 			<!-- ** NEED TO EDIT INDEX LOCATION **--> 
-            <IndexStrategy indexlocation="./index" accessmode="a" memory="100000000" maxindexterms="10000" cachedocs="100"/>
-			<MergeStrategy strategy="DBT" param="m=3"/>
-			<StoreStrategy param="file"/>
-			<DistributeStrategy batchport="8888" rpcport="9999" iplist="127.0.0.1"/>
-			<Advance mms="exp:32:2" memsize="40000" chunksize="8"/>
-			<Log level="default_level"/>
+			<IndexStrategy memorypoolsize="30000000" />
+			<IndexDirectory>./index</IndexDirectory>
 		</Indexer>
 
 	</System>
 
-
-
-
-    <Collection name="coll1" encoding="UTF-8">
+    <Collection name="EngWiki" encoding="UTF-8">
 
 		<DocumentSchema>
 
@@ -32,29 +25,13 @@
 
 			<Property name="DATE" type="string" maxlen="1000" index="no" />
 
-			<Property name="MediaType" type="string" maxlen="1000" index="no" />
-
-            <Property name="Title" type="string" maxlen="4000" index="yes">
-				<Indexing analyzer="la_allkor"/>
+            		<Property name="Title" type="string" maxlen="4000" index="yes">
+				<Indexing analyzer="la_korall"/>
 			</Property>
 
 			<Property name="Content" type="string" maxlen="40000" index="yes">
-				<Indexing analyzer="la_allkor"/>
+				<Indexing analyzer="la_korall"/>
 			</Property>
-
-			<Property name="ProviderName" type="string" maxlen="1000" index="yes" />
-
-			<Property name="ProviderID" type="string" maxlen="1000" index="no" />
-
-			<Property name="SectionName" type="string" maxlen="1000" index="no" />
-
-			<Property name="SectionID" type="string" maxlen="1000" index="no" />
-
-			<Property name="ImgURL" type="string" maxlen="1000" index="no" />
-
-			<Property name="RelateNews" type="string" maxlen="1000" index="no" />
-
-			<Property name="ArticleID" type="string" maxlen="1000" index="no" />
 
 		</DocumentSchema>
 

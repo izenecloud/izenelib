@@ -118,179 +118,32 @@ void XmlConfigParser::parseIndexProcess( const ticpp::Element & indexProcess )
         throw ticpp::Exception( "Multiple <IndexStrategy> configurations" );
     }
     {
-        string indexLocation, accessMode;
         int64_t memory;
-        int32_t maxIndexTerms, cacheDocs;
 
-        if ( (indexLocation = settings->GetAttribute( "indexlocation" )).empty() )
+        if ( (settings->GetAttribute( "memorypoolsize" )).empty() == false )
         {
-            throw ticpp::Exception( "requires \"indelocation\" setting" );
-        }
-
-        if ( (accessMode = settings->GetAttribute( "accessmode" )).empty() )
-        {
-            throw ticpp::Exception( "requires \"accessmode\" setting" );
-        }
-
-        if ( (settings->GetAttribute( "maxindexterms")).empty() == false )
-        {
-            settings->GetAttribute( "maxindexterms", &maxIndexTerms );
+            settings->GetAttribute( "memorypoolsize", &memory );
         }
         else
         {
-            throw ticpp::Exception( "requires \"maxindexterms\" setting" );
+            throw ticpp::Exception( "requires \"memorypoolsize\" setting" );
         }
 
-        if ( (settings->GetAttribute( "memory" )).empty() == false )
-        {
-            settings->GetAttribute( "memory", &memory );
-        }
-        else
-        {
-            throw ticpp::Exception( "requires \"memory\" setting" );
-        }
-
-        if ( (settings->GetAttribute( "cachedocs" )).empty() == false )
-        {
-            settings->GetAttribute( "cachedocs", &cacheDocs);
-        }
-        else
-        {
-            throw ticpp::Exception( "requires \"cachedocs\" setting" );
-        }
-
-        indexManagerConfig_.indexStrategy_.indexLocation_ = indexLocation;
-        indexManagerConfig_.indexStrategy_.accessMode_ = accessMode;
         indexManagerConfig_.indexStrategy_.memory_ = memory;
-        indexManagerConfig_.indexStrategy_.maxIndexTerms_ = maxIndexTerms;
-        indexManagerConfig_.indexStrategy_.cacheDocs_ = cacheDocs;
     }
+    indexManagerConfig_.indexStrategy_.indexDocLength_ = true;
+    indexManagerConfig_.storeStrategy_.param_ = "file";
+    indexManagerConfig_.mergeStrategy_.param_ = "default";
 
-    //Merge strategy
-    settings = indexProcess.FirstChildElement("MergeStrategy");
-    if ( indexProcess.IterateChildren( "MergeStrategy", settings ) != NULL )
+    Iterator<Element> directory("IndexDirectory");
+    for (directory = directory.begin(&indexProcess);
+         directory != directory.end(); ++directory)
     {
-        throw ticpp::Exception( "Multiple <MergeStrategy> configurations" );
-    }
-    {
-        string strategy, param;
-
-        if ( (strategy = settings->GetAttribute( "strategy" )).empty() )
-        {
-            throw ticpp::Exception( "requires \"strategy\" setting" );
-        }
-
-        if ( (param = settings->GetAttribute( "param" )).empty() )
-        {
-            throw ticpp::Exception( "requires \"param\" setting" );
-        }
-
-        indexManagerConfig_.mergeStrategy_.strategy_ = strategy;
-        indexManagerConfig_.mergeStrategy_.param_ = param;
-    }
-
-    //Store strategy
-    settings = indexProcess.FirstChildElement("StoreStrategy");
-    if ( indexProcess.IterateChildren( "StoreStrategy", settings ) != NULL )
-    {
-        throw ticpp::Exception( "Multiple <StoreStrategy> configurations" );
-    }
-    {
-        string param;
-
-        if ( (param = settings->GetAttribute( "param" )).empty() )
-        {
-            throw ticpp::Exception( "requires \"param\" setting" );
-        }
-
-        indexManagerConfig_.storeStrategy_.param_ = param;
-
-    }
-
-    //Distribute strategy
-    settings = indexProcess.FirstChildElement("DistributeStrategy");
-    if ( indexProcess.IterateChildren( "DistributeStrategy", settings ) != NULL )
-    {
-        throw ticpp::Exception( "Multiple <DistributeStrategy> configurations" );
-    }
-    {
-        string batchport, rpcport, iplist;
-
-        if ( (batchport = settings->GetAttribute( "batchport" )).empty() )
-        {
-            throw ticpp::Exception( "requires \"distribute\" setting" );
-        }
-
-        if ( (rpcport = settings->GetAttribute( "rpcport" )).empty() )
-        {
-            throw ticpp::Exception( "requires \"listenport\" setting" );
-        }
-
-        if ( (iplist = settings->GetAttribute( "iplist" )).empty() )
-        {
-            throw ticpp::Exception( "requires \"param\" setting" );
-        }
-
-        indexManagerConfig_.distributeStrategy_.batchport_ = batchport;
-        indexManagerConfig_.distributeStrategy_.rpcport_ = rpcport;
-        indexManagerConfig_.distributeStrategy_.iplist_ = iplist;
-    }
-
-    //Advance
-    settings = indexProcess.FirstChildElement("Advance");
-    if ( indexProcess.IterateChildren( "Advance", settings ) != NULL )
-    {
-        throw ticpp::Exception( "Multiple <Advance> configurations" );
-    }
-    {
-        string mms;
-        int32_t memSize, chunkSize;
-
-        if ( (mms = settings->GetAttribute( "mms" )).empty() )
-        {
-            throw ticpp::Exception( "requires \"mms\" setting" );
-        }
-
-        if ( (settings->GetAttribute( "memsize" )).empty() == false )
-        {
-            settings->GetAttribute( "memsize", &memSize );
-        }
-        else
-        {
-            throw ticpp::Exception( "requires \"memsize\" setting" );
-        }
-
-        if ( (settings->GetAttribute( "chunksize" )).empty() == false )
-        {
-            settings->GetAttribute( "chunksize", &chunkSize );
-        }
-        else
-        {
-            throw ticpp::Exception( "requires \"chunksize\" setting" );
-        }
-
-        indexManagerConfig_.advance_.MMS_ = mms;
-        indexManagerConfig_.advance_.uptightAlloc_.memSize_ = memSize;
-        indexManagerConfig_.advance_.uptightAlloc_.chunkSize_ = chunkSize;
-    }
-
-    //Log
-    settings = indexProcess.FirstChildElement("Log");
-    if ( indexProcess.IterateChildren( "Log", settings ) != NULL )
-    {
-        throw ticpp::Exception( "Multiple <Log> configurations" );
-    }
-    {
-        string level;
-
-        if ( (level = settings->GetAttribute( "level" )).empty() )
-        {
-            throw ticpp::Exception( "requires \"level\" setting" );
-        }
-
-        indexManagerConfig_.logLevel_ = level;
+        indexManagerConfig_.indexStrategy_.indexLocation_ = directory->GetText();
     }
 }
+
+
 
 
 //================================  COLLECTION SETTINGS  =====================================

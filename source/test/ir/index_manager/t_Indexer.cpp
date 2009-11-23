@@ -17,6 +17,8 @@
 #include <ir/id_manager/IDManager.h>
 
 #include <sf1v5/la-manager/LAManager.h>
+#include <sf1v5/la-manager/LAPool.h>
+#include <sf1v5/configuration-manager/ConfigurationManager.h>
 
 using namespace std;
 using namespace boost;
@@ -25,6 +27,9 @@ using namespace sf1v5;
 
 using namespace izenelib::ir::idmanager;
 using namespace izenelib::ir::indexmanager;
+
+IDManager idManager_;
+boost::shared_ptr<LAManager> laManager_;
 
 void ReportUsage(void)
 {
@@ -49,74 +54,170 @@ void ReportUsage(void)
 
 void  display(const IndexManagerConfig& config)
 {
-    map<string, IndexerCollectionMeta> collectionList;
-    collectionList = config.getCollectionMetaNameMap();
+    map<string, IndexerCollectionMeta> collectionList = config.getCollectionMetaNameMap();
     map<string, IndexerCollectionMeta>::iterator  collectionList_iter;
     for (collectionList_iter = collectionList.begin(); collectionList_iter != collectionList.end(); collectionList_iter++)
     {
         std::cout << "IndexerCollectionMeta name: " << collectionList_iter->second.getName() << std::endl;
-        IndexerCollectionMeta collectionMeta(collectionList_iter->second);
-        std::cout << "IndexerCollectionMeta name: " << collectionMeta.getName() << std::endl;
-        std::set<IndexerPropertyConfig> shopMallDocSchema = collectionMeta.getDocumentSchema();
-        for (std::set<IndexerPropertyConfig>::const_iterator it = shopMallDocSchema.begin(); it != shopMallDocSchema.end(); it++ )
+        const std::set<IndexerPropertyConfig, IndexerPropertyConfigComp>& shopMallDocSchema = collectionList_iter->second.getDocumentSchema();
+        for (std::set<IndexerPropertyConfig, IndexerPropertyConfigComp>::const_iterator it = shopMallDocSchema.begin(); it != shopMallDocSchema.end(); it++ )
         {
             std::cout << it->toString();
         }
     }
+}
+
+bool makeForwardIndex_(
+    const wiselib::UString& text,
+    const AnalysisInfo& analysisInfo,
+    boost::shared_ptr<ForwardIndex>& forwardIndex
+)
+{
+    la::TermList termList;   
+    if (laManager_->getTermList(text, analysisInfo, termList ) == false)
+    {
+        return false;
+    }
+    unsigned int id = 0;
+    for (la::TermList::iterator p = termList.begin(); p != termList.end(); p++)
+    {
+        idManager_.getTermIdByTermString(p->text_, id);
+        if (forwardIndex->insertTermOffset(id, p->wordOffset_) == false)
+        {
+            continue;
+        }
+    }
+
+    forwardIndex->docLength_ = termList.size();
+    return true;
+}
 
 
-    //setting up <indexstrategy>
-    std::cout << "indexLocation: " << config.indexStrategy_.indexLocation_ << std::endl;
-    std::cout << "config.indexStrategy_.accessMode_ =   " << config.indexStrategy_.accessMode_ << std::endl;
-    std::cout << "indexStrategy_.memory_ = " << config.indexStrategy_.memory_ << std::endl;
-    std::cout << "indexStrategy_.maxIndexTerms_ = " << config.indexStrategy_.maxIndexTerms_ << std::endl;
-    std::cout << "indexStrategy_.cacheDocs_ = " << config.indexStrategy_.cacheDocs_ << std::endl;
+bool prepareDocument_(const SCDDoc& doc,
+                                    IndexerDocument* indexDocument,
+                                    const std::set<IndexerPropertyConfig, IndexerPropertyConfigComp>& collectionProperty)
+{
+    sf1v5::docid_t docId = 0;
+    string fieldStr;
+    vector<unsigned int> sentenceOffsetList;
+    AnalysisInfo analysisInfo;
+    analysisInfo.analyzerId_ = "la_korall";
+    analysisInfo.tokenizerNameList_.insert("tok_divide");
+	
+    vector<pair<wiselib::UString, wiselib::UString> >::const_iterator p;
 
-    //setting up <mergestrategy>
-    std::cout << "mergeStrategy_.strategy_ =  " << config.mergeStrategy_.strategy_  << std::endl;
-    std::cout << "mergeStrategy_.param_ = " << config.mergeStrategy_.param_ << std::endl;
+    for (p = doc.begin(); p != doc.end(); p++)
+    {
+        bool extraProperty = false;
+        std::set<IndexerPropertyConfig, IndexerPropertyConfigComp>::const_iterator iter;
+        p->first.convertString( fieldStr, wiselib::UString::UTF_8 );
+        IndexerPropertyConfig temp;
+        temp.setName(fieldStr);
+        iter = collectionProperty.find( temp );
 
-    //setting up <storestrategy>
-    std::cout << "storeStrategy_.param_ = "  << config.storeStrategy_.param_ << std::endl;
+        IndexerPropertyConfig indexerPropertyConfig;
+        if ( iter == collectionProperty.end())
+            extraProperty = true;
 
-    //setting up <distributestrategy>
-    std::cout << "distributeStrategy_.batchport_ = " << config.distributeStrategy_.batchport_<< std::endl;
-    std::cout << "distributeStrategy_.rpcport_ = " << config.distributeStrategy_.rpcport_ << std::endl;; //PARSED IN INDEX-MANAGER
-    std::cout << "distributeStrategy_.iplist_ = " << config.distributeStrategy_.iplist_ << std::endl;; //PARSED IN INDEX-MANAGER
+        const wiselib::UString & propertyValueU = p->second; // preventing copy
 
-    //setting up <distributestrategy>
-    std::cout << "advance_.MMS_ = " << config.advance_.MMS_  << std::endl;
-    std::cout << "uptightAlloc_.memSize_ = " << config.advance_.uptightAlloc_.memSize_ << std::endl;
-    std::cout << "uptightAlloc_.chunkSize_ =  " << config.advance_.uptightAlloc_.chunkSize_ << std::endl;
+        if(!extraProperty)
+        {
+            indexerPropertyConfig.setPropertyId(iter->getPropertyId());
+            indexerPropertyConfig.setName(iter->getName());
+            indexerPropertyConfig.setIsIndex(iter->isIndex());
+            indexerPropertyConfig.setIsForward(iter->isForward());
+            indexerPropertyConfig.setIsLAInput(false);
+        }
 
-    std::cout << "logLevel_ = " << config.logLevel_ << std::endl;
+        wiselib::UString::EncodingType encoding = wiselib::UString::UTF_8;
+        if ( (p->first == wiselib::UString("DOCID", encoding) ) && (!extraProperty) )
+        {
+            idManager_.getDocIdByDocName(propertyValueU, docId);
+
+            indexDocument->setDocId(docId, 1);
+        }
+        else if ( (p->first == wiselib::UString("DATE", encoding) ) && (!extraProperty) )
+        {
+            /// format <DATE>20091009163011
+            //int64_t time = sf1v5::Utilities::convertDate(propertyValueU);
+            //indexerPropertyConfig.setIsIndex(true);
+            //indexDocument->insertProperty(indexerPropertyConfig, time);
+            continue;
+        }
+        else if (!extraProperty)
+        {
+            ///process for properties that requires forward index to be created
+            if ( (iter->isIndex() == true) && (!extraProperty) )
+            {
+                boost::shared_ptr<ForwardIndex> propertyForwardIndex(new ForwardIndex);
+
+                if (makeForwardIndex_(propertyValueU, analysisInfo, propertyForwardIndex) == false)
+                {
+                    cout << "makeForwardIndex() failed " << endl;
+                    return false;
+                }
+                indexDocument->insertProperty(indexerPropertyConfig, propertyForwardIndex);
+            }
+            // insert property name and value for other properties that is not DOCID and neither required to be indexed
+            else
+            {
+                //insert only if property that exist in collection configuration
+                if (!extraProperty)
+                {
+                    //other extra properties that need not be in index manager
+                    indexDocument->insertProperty(indexerPropertyConfig, propertyValueU);
+                }
+            }
+        }
+    }
+    return true;
 }
 
 void test_run_insert(Indexer* pIndexer, IndexManagerConfig&indexManagerConfig, string scdPath, int numberOfDocuments, unsigned int collectionId , string collectionName)
 {
-    IDManager idManager;
-    LAManager laManager;
+    // get la manger config
+    LAManagerConfig config;
 
+    TokenizerConfigUnit tkUnit;
+    tkUnit.id_ = "tok_divide";
+    tkUnit.method_ = "divide";
+    tkUnit.value_ = "@#$";
+    config.addTokenizerConfig( tkUnit );
 
-    ScdParser scdparser;
+    LAConfigUnit laConfig;
+    laConfig.id_       = "la_korall";
+    laConfig.analysis_ = "korean";
+    laConfig.mode_     = "all";
+    laConfig.option_ = "R+H+S+";
+    laConfig.specialChar_ = "#.";
+    laConfig.dictionaryPath_ = "/home/newpeak/CodeBase/kma/knowledge";   // defined macro
+    config.addLAConfig(laConfig);
+
+    AnalysisInfo analysisInfo;
+    analysisInfo.analyzerId_ = "la_korall";
+    analysisInfo.tokenizerNameList_.insert("tok_divide");
+    config.addAnalysisPair(analysisInfo);
+
+    if(LAPool::getInstance()->init(config))
+    {
+        laManager_.reset(new LAManager());
+    }
+    else
+    {
+        std::cout << "Create Extractor fail.." << std::endl;
+    }
+
+    ScdParser scdparser(wiselib::UString::UTF_8);
     if (scdparser.load(scdPath) == false)
     {
         cout<<"parse error"<<endl;
         return;
     }
-/*	
-    unsigned int n = scdparser.getCount();
-    vector<vector<pair<wiselib::UString, wiselib::UString> > > documents(n);
-    if (scdparser.getDocuments(documents, 0, numberOfDocuments) == false)
-    {
-        cout<<"get documents failes"<<endl;
-        return;
-    }
-*/
 
     map<string, IndexerCollectionMeta> collectionList = indexManagerConfig.getCollectionMetaNameMap();
     IndexerCollectionMeta collectionMeta = collectionList[collectionName];
-    std::set<IndexerPropertyConfig> collectionProperty = collectionMeta.getDocumentSchema();
+    const std::set<IndexerPropertyConfig, IndexerPropertyConfigComp>& collectionProperty = collectionMeta.getDocumentSchema();
 
     unsigned int n = 0;
     ScdParser::iterator iter_end = scdparser.end();
@@ -126,65 +227,11 @@ void test_run_insert(Indexer* pIndexer, IndexManagerConfig&indexManagerConfig, s
             cout<<"indexed "<<n<<endl;
         SCDDocPtr doc = (*iter);
 
-        wiselib::UString propertyName(" ", wiselib::UString::CP949);
-        wiselib::UString propertyValueU(" ", wiselib::UString::CP949);
-        IndexerDocument document;
+        IndexerDocument* document = new IndexerDocument;
 
-
-        AnalysisInfo analysisInfo;
-        analysisInfo.clear();
-        analysisInfo.methodId_ = "la_allkor";
-
-        //vector<pair<wiselib::UString, wiselib::UString> >::const_iterator p;
-        SCDDoc::const_iterator p;
-        for (p = doc->begin(); p != doc->end(); p++)
-        {
-        
-            std::set<IndexerPropertyConfig>::iterator iter;
-            for (iter = collectionProperty.begin(); iter != collectionProperty.end(); iter++)
-            {
-                if ( (wiselib::UString(iter->getName(), wiselib::UString::CP949)) == p->first)
-                    break;
-            }
-            propertyValueU.clear();
-            propertyValueU = p->second;
-            if (p->first == wiselib::UString("DOCID", wiselib::UString::CP949))
-            {
-                unsigned int docId;
-                idManager.getDocIdByDocName(collectionId, propertyValueU, docId);
-                document.setDocId(docId,collectionId);
-            }
-            else
-            {
-                if (iter->isIndex())
-                {
-                    if (iter->isForward())
-                    {
-                        boost::shared_ptr<LAInput> laInput(new LAInput);
-                        document.insertProperty(*iter, laInput);
-                        LAInformationList rawTermList;      // la information of the base terms
-                        LAInformationList laTermList;
-                        if(laManager.extractTerms_full(propertyValueU, analysisInfo, rawTermList, laTermList)==false)
-                        {
-                            //propertyValueU.displayStringValue(wiselib::UString::CP949,cout);
-                            //cout<<endl;
-                        }
-                        for (LAInformationList::iterator pp = laTermList.begin(); pp != laTermList.end(); pp++)
-                        {
-                            LAInputUnit u;
-                            u.wordOffset_ = pp->wordOffset_;
-                            u.byteOffset_ = 0;
-                            idManager.getTermIdByTermString(pp->termString_, u.termId_);
-                            document.add_to_property(u);
-                        }
-                    }
-                    else
-                    {
-                        document.insertProperty(*iter, propertyValueU);
-                    }
-                }
-            }
-        }
+        bool ret = prepareDocument_(*doc, document, collectionProperty);
+        if ( !ret )
+            continue;
 
         pIndexer->insertDocument(document);
     }
@@ -196,12 +243,12 @@ void test_run_query_singlethread(Indexer* pIndexer)
 {
     try
     {
-        vector<CommonItem> commonSet;
+        deque<CommonItem> commonSet;
         vector<string> properties;
         properties.push_back("Content");
         //properties.push_back("title");
         time_t start = time(0);
-        for (termid_t termid = 0; termid <10; termid++)
+        for (izenelib::ir::indexmanager::termid_t termid = 0; termid <10; termid++)
         {
             int ret = pIndexer->getDocsByTermInProperties(termid, 1, properties, commonSet);
             if (0 == ret)
@@ -209,20 +256,6 @@ void test_run_query_singlethread(Indexer* pIndexer)
                 cout<<"can not find "<<termid<<endl;
                 continue;
             }
-            /*			cout<<"termid: "<<termid<<endl;
-            			for(vector<CommonItem>::iterator iter = commonSet.begin(); iter != commonSet.end(); ++iter)
-            			{
-            				cout<<"docid: "<<(*iter).docid<<" positions: ";
-            				map<string,PositionPtr > commonItemProperty;
-            				for(map<string,PositionPtr >::iterator it = (*iter).commonItemProperty.begin(); it != (*iter).commonItemProperty.end(); ++it)
-            				{
-            					cout<<" field: "<<it->first;
-            					for(vector<loc_t>::iterator p = it->second->begin(); p != it->second->end(); ++p)
-            						cout<<"  "<<*p<<" ";
-            				}
-            				cout<<endl;
-            			}
-            */
 
         }
         cout<<"time elapsed:"<<time(0)-start<<endl;
@@ -244,7 +277,7 @@ int main(int argc, char** argv)
     IndexManagerConfig indexManagerConfig = parser.getIndexManagerConfig();
 
     unsigned int collectionId = 1;
-    collectionIdMapping.insert(pair<string, uint32_t>("coll1", collectionId));
+    collectionIdMapping.insert(pair<string, uint32_t>("EngWiki", collectionId));
 
     display(indexManagerConfig);
 
@@ -254,11 +287,9 @@ int main(int argc, char** argv)
         return 0;
     }
 
-
-    //Indexer* pIndexer = new Indexer(MANAGER_TYPE_DATAPROCESS);
     Indexer* pIndexer = new Indexer();
 
-    pIndexer->setIndexManagerConfig(&indexManagerConfig, collectionIdMapping);
+    pIndexer->setIndexManagerConfig(indexManagerConfig, collectionIdMapping);
 
 
     int ch = atoi(argv[1]);
@@ -270,7 +301,7 @@ int main(int argc, char** argv)
             ReportUsage();
             return 0;
         }
-        test_run_insert(pIndexer,indexManagerConfig,argv[2],atoi(argv[3]),1,"coll1");
+        test_run_insert(pIndexer,indexManagerConfig,argv[2],atoi(argv[3]),1,"EngWiki");
         break;
     case 2:
         test_run_query_singlethread(pIndexer);
