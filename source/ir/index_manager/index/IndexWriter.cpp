@@ -77,8 +77,7 @@ void IndexWriter::destroyCache()
 
 void IndexWriter::mergeIndex(IndexMerger* pMerger)
 {
-    boost::mutex::scoped_lock lock(pIndexer_->mutex_);
-
+//    boost::mutex::scoped_lock lock(pIndexer_->mutex_);
     pMerger->setDirectory(pIndexer_->getDirectory());
 
     if(pIndexer_->getIndexReader()->getDocFilter())
@@ -99,8 +98,8 @@ void IndexWriter::mergeIndex(IndexMerger* pMerger)
             pCurBarrelInfo_ = NULL;
             pCurDocCount_ = NULL;
         }
-        pIndexer_->setDirty(true);
         pMerger->merge(pBarrelsInfo_);
+        pIndexer_->setDirty(true);		
     }
     pIndexer_->getIndexReader()->delDocFilter();
     delete pIndexMerger_;
@@ -110,7 +109,7 @@ void IndexWriter::mergeIndex(IndexMerger* pMerger)
 
 void IndexWriter::mergeUpdatedBarrel()
 {
-    boost::mutex::scoped_lock lock(pIndexer_->mutex_);
+//    boost::mutex::scoped_lock lock(pIndexer_->mutex_);
 
     IndexMerger* pMerger = new OfflineIndexMerger(pIndexer_, pBarrelsInfo_->getBarrelCount());
 
@@ -163,19 +162,20 @@ void IndexWriter::createBarrelWriter()
 
 void IndexWriter::mergeAndWriteCachedIndex()
 {
-    pIndexer_->setDirty(true);
     pIndexMerger_->merge(pBarrelsInfo_);
-    pBarrelsInfo_->write(pIndexer_->getDirectory());
     if (pIndexBarrelWriter_->cacheEmpty() == false)///memory index has not been written to database yet.
     {
         pIndexBarrelWriter_->close();
     }
+    pBarrelsInfo_->write(pIndexer_->getDirectory());
 
     pBarrelsInfo_->addBarrel(pBarrelsInfo_->newBarrel().c_str(),0);
     pCurBarrelInfo_ = pBarrelsInfo_->getLastBarrel();
     pCurBarrelInfo_->setWriter(pIndexBarrelWriter_);
     pCurDocCount_ = &(pCurBarrelInfo_->nNumDocs);
     *pCurDocCount_ = 0;
+    pIndexer_->setDirty(true);
+	
 }
 
 void IndexWriter::flush()
@@ -210,9 +210,9 @@ void IndexWriter::close()
 
 void IndexWriter::mergeAndWriteCachedIndex2()
 {
-    boost::mutex::scoped_lock lock(pIndexer_->mutex_);
+//    boost::mutex::scoped_lock lock(pIndexer_->mutex_);
 
-    pIndexer_->setDirty(true);
+//    pIndexer_->setDirty(true);
 
     BarrelInfo* pLastBarrel = pBarrelsInfo_->getLastBarrel();
     pLastBarrel->setBaseDocID(baseDocIDMap_);
@@ -221,7 +221,7 @@ void IndexWriter::mergeAndWriteCachedIndex2()
     {
         pIndexBarrelWriter_->close();
         pLastBarrel->setWriter(NULL);
-
+        pBarrelsInfo_->write(pIndexer_->getDirectory());
     }
 
     if (pIndexMerger_)

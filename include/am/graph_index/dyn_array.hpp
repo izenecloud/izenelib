@@ -851,6 +851,21 @@ friend std::ostream& operator << (std::ostream& os, const SelfT& v)
 
     return s;
   }
+  
+  size_t load(const char* mem)
+  {
+    clear();
+        
+    size_t s = *(size_t*)mem;
+
+    max_size_ = length_ = s/sizeof(VALUE_TYPE);
+
+    new_one(length_);
+
+    memcpy(ARRAY(p_), mem+sizeof(size_t), s);
+
+    return s;
+  }
 
   /**
    *This is the interface for boost::serialization. Make it serializable by boost.

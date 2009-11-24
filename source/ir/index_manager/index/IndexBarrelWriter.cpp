@@ -50,6 +50,8 @@ void IndexBarrelWriter::open(const char* barrelName_)
 }
 void IndexBarrelWriter::close()
 {
+    boost::mutex::scoped_lock lock(pIndexer->mutex_);
+
     if (cacheEmpty() == false)
     {
         writeCache();

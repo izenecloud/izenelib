@@ -94,20 +94,15 @@ TermReader* DiskTermReader::clone()
 
 TermDocFreqs* DiskTermReader::termDocFreqs()
 {
-    if (pCurTermInfo_ == NULL)
+    if (pCurTermInfo_ == NULL || pTermReaderImpl_ == NULL )
         return NULL;
-    TermDocFreqs* pTermDocs = new TermDocFreqs(this,pTermReaderImpl_->pInputDescriptor_->clone(),*pCurTermInfo_);
-    return pTermDocs;
+    //TermDocFreqs* pTermDocs = new TermDocFreqs(this,pTermReaderImpl_->pInputDescriptor_->clone(),*pCurTermInfo_);
+    return new TermDocFreqs(this,pInputDescriptor_->clone(),*pCurTermInfo_);;
 }
 
 TermPositions* DiskTermReader::termPositions()
 {
     if (pCurTermInfo_ == NULL || pTermReaderImpl_ == NULL )
-        return NULL;
-
-    if(pTermReaderImpl_->pInputDescriptor_ == NULL)
-        return NULL;
-    if(pTermReaderImpl_->pInputDescriptor_->getPPostingInput() == NULL)
         return NULL;
     //return new TermPositions(this,pTermReaderImpl_->pInputDescriptor_->clone(),*pCurTermInfo_);
     return new TermPositions(this,pInputDescriptor_->clone(),*pCurTermInfo_);
@@ -242,6 +237,10 @@ TermInfo* TermReaderImpl::termInfo(Term* term)
 
     int32_t start = 0,end = nTermCount_ - 1;
     int32_t mid = (start + end)/2;
+    ///tid == 0 means we return the last term to see whether
+    ///the index is consistent;
+    if(MAX_TERMID == tid) return &(pTermTable_[end].ti);
+	
     while (start <= end)
     {
         mid = (start + end)/2;

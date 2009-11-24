@@ -1,3 +1,8 @@
+/**
+* @file        ImmediateMerger.h
+* @author     Yingfeng Zhang
+* @brief   ImmediateMerger 
+*/
 #ifndef IMMEDIATE_MERGER_H
 #define IMMEDIATE_MERGER_H
 

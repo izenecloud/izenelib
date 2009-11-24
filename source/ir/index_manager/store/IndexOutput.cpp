@@ -230,8 +230,9 @@ void IndexOutput::write(IndexInput* pInput,int64_t length)
             if ( (length - n) < (int64_t)nwrite)
                 nwrite = (size_t)(length - n);
 
-            pInput->readInternal(buffer,nwrite);
-            pInput->seek(pInput->getFilePointer() + nwrite);
+            //pInput->readInternal(buffer,nwrite);
+            //pInput->seek(pInput->getFilePointer() + nwrite);
+            pInput->readBytes((uint8_t*)buffer,(size_t)nwrite);
 
             if (nwrite == buffersize)
             {
