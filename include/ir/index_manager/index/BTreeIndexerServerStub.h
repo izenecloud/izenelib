@@ -1,3 +1,9 @@
+/**
+* @file        BTreeIndexerStubImpl.h
+* @author     Yingfeng Zhang
+* @version     SF1 v5.0
+* @brief 
+*/
 #ifndef BTREEINDEXERSERVERSTUB_H
 #define BTREEINDEXERSERVERSTUB_H
 
