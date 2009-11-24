@@ -42,7 +42,6 @@ inline void PostingMerger::reset()
     postingDesc.length = 0;
     postingDesc.ctf = 0;
     postingDesc.df = 0;
-    postingDesc.tdf = 0;
     postingDesc.poffset = -1;
     chunkDesc.lastdocid = 0;
     chunkDesc.length = 0;
@@ -78,11 +77,12 @@ void PostingMerger::mergeWith(InMemoryPosting* pInMemoryPosting)
         postingDesc.poffset = pPOutput->getFilePointer();
     }
     ///write chunk data, update the first doc id
-    PostingChunk* pDChunk = pInMemoryPosting->pDocFreqList->pHeadChunk;
+    PostingChunk* pDChunk = pInMemoryPosting->pDocFreqList_->pHeadChunk_;
     if (pDChunk)
     {
         uint8_t* bp = &(pDChunk->data[0]);
         docid_t firstDocID = CompressedPostingList::decodePosting32(bp) - chunkDesc.lastdocid;
+		
         pDOutput->writeVInt(firstDocID);///write first doc id
         int32_t writeSize = pDChunk->size - (bp - &(pDChunk->data[0]));	//write the rest data of first chunk
         if (writeSize > 0)
@@ -99,7 +99,7 @@ void PostingMerger::mergeWith(InMemoryPosting* pInMemoryPosting)
     chunkDesc.length += (pDOutput->getFilePointer() - oldDOff);
 
     ///write position posting
-    PostingChunk* pPChunk = pInMemoryPosting->pLocList->pHeadChunk;
+    PostingChunk* pPChunk = pInMemoryPosting->pLocList_->pHeadChunk_;
     while (pPChunk)
     {
         pPOutput->write((const char*)pPChunk->data,pPChunk->size);
@@ -107,12 +107,11 @@ void PostingMerger::mergeWith(InMemoryPosting* pInMemoryPosting)
     }
 
     ///update descriptors
-    postingDesc.ctf += pInMemoryPosting->nCTF;
-    postingDesc.df += pInMemoryPosting->nDF;
-    postingDesc.tdf += pInMemoryPosting->nTDF;
+    postingDesc.ctf += pInMemoryPosting->nCTF_;
+    postingDesc.df += pInMemoryPosting->nDF_;
     postingDesc.length = chunkDesc.length;
 
-    chunkDesc.lastdocid = pInMemoryPosting->nLastDocID;
+    chunkDesc.lastdocid = pInMemoryPosting->nLastDocID_;
 }
 
 void PostingMerger::mergeWith(OnDiskPosting* pOnDiskPosting)
@@ -135,28 +134,28 @@ void PostingMerger::mergeWith(OnDiskPosting* pOnDiskPosting)
     }
 
     docid_t firstDocID = pDInput->readVInt() - chunkDesc.lastdocid;
+
     pDOutput->writeVInt(firstDocID);///write first doc id
-    int64_t writeSize = pOnDiskPosting->postingDesc.length - pDOutput->getVIntLength(firstDocID + chunkDesc.lastdocid);
+    int64_t writeSize = pOnDiskPosting->postingDesc_.length - pDOutput->getVIntLength(firstDocID + chunkDesc.lastdocid);
     if (writeSize > 0)
         pDOutput->write(pDInput,writeSize);
 
     chunkDesc.length += (pDOutput->getFilePointer() - oldDOff);
 
     ///write position posting
-    pPOutput->write(pPInput,pOnDiskPosting->nPPostingLength);
+    pPOutput->write(pPInput,pOnDiskPosting->nPPostingLength_);
 
     ///update descriptors
-    postingDesc.ctf += pOnDiskPosting->postingDesc.ctf;
-    postingDesc.df += pOnDiskPosting->postingDesc.df;
-    postingDesc.tdf += pOnDiskPosting->postingDesc.tdf;
+    postingDesc.ctf += pOnDiskPosting->postingDesc_.ctf;
+    postingDesc.df += pOnDiskPosting->postingDesc_.df;
     postingDesc.length = chunkDesc.length; ///currently,it's only one chunk
-    chunkDesc.lastdocid = pOnDiskPosting->chunkDesc.lastdocid;
+    chunkDesc.lastdocid = pOnDiskPosting->chunkDesc_.lastdocid;
 
 }
 
 void PostingMerger::mergeWith(OnDiskPosting* pOnDiskPosting,BitVector* pFilter)
 {
-    if(pFilter &&  pFilter->hasSmallThan((size_t)pOnDiskPosting->chunkDesc.lastdocid))
+    if(pFilter &&  pFilter->hasSmallThan((size_t)pOnDiskPosting->chunkDesc_.lastdocid))
         mergeWith_GC(pOnDiskPosting,pFilter);
     else
         mergeWith(pOnDiskPosting);
@@ -176,7 +175,7 @@ void PostingMerger::mergeWith_GC(OnDiskPosting* pOnDiskPosting,BitVector* pFilte
     count_t nCTF = 0;
     count_t nDF = 0;
     count_t nPCount = 0;
-    count_t nODDF = pOnDiskPosting->postingDesc.df;
+    count_t nODDF = pOnDiskPosting->postingDesc_.df;
     if(nODDF <= 0)
         return;
 
@@ -261,7 +260,6 @@ fileoffset_t PostingMerger::endMerge()
     ///begin write posting descriptor
     pDOutput->writeVLong(postingDesc.length);	///<PostingLength(VInt64)>
     pDOutput->writeVInt(postingDesc.df);		///<DF(VInt32)>
-    pDOutput->writeVInt(postingDesc.tdf);		///<TDF(VInt32)>
     pDOutput->writeVLong(postingDesc.ctf);	///<CTF(VInt64)>
     pDOutput->writeVLong(postingDesc.poffset);///<PositionPointer(VInt64)>
     ///end write posting descriptor

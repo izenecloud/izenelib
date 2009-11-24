@@ -14,6 +14,13 @@ class IndexerCollectionMeta
 public:
     IndexerCollectionMeta() {}
 
+    IndexerCollectionMeta(const IndexerCollectionMeta& other)
+        :colId_(other.colId_)
+        ,name_(other.name_)
+        ,encoding_(other.encoding_)
+        ,schema_(other.schema_)
+    {}
+
     void setColId(uint32_t id)
     {
         colId_ = id;

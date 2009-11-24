@@ -34,7 +34,6 @@ struct PostingDescriptor
 {
     int64_t length; 	///length of the posting
     count_t df; 		///document frequency of this field
-    count_t tdf;		///document frequency regarding all fields in a document
     int64_t ctf;		///global  term frequency
     fileoffset_t	poffset;	///offset of the position postings in the .pop file
 };
@@ -53,19 +52,19 @@ class CompressedPostingList
 {
 public:
     CompressedPostingList()
-            :pHeadChunk(NULL)
-            ,pTailChunk(NULL)
-            ,nTotalSize(0)
-            ,nTotalUnused(0)
-            ,nPosInCurChunk(0)
+            :pHeadChunk_(NULL)
+            ,pTailChunk_(NULL)
+            ,nTotalSize_(0)
+            ,nTotalUnused_(0)
+            ,nPosInCurChunk_(0)
     {
     }
     CompressedPostingList(const CompressedPostingList& src)
-            :pHeadChunk(src.pHeadChunk)
-            ,pTailChunk(src.pTailChunk)
-            ,nTotalSize(src.nTotalSize)
-            ,nTotalUnused(src.nTotalUnused)
-            ,nPosInCurChunk(src.nPosInCurChunk)
+            :pHeadChunk_(src.pHeadChunk_)
+            ,pTailChunk_(src.pTailChunk_)
+            ,nTotalSize_(src.nTotalSize_)
+            ,nTotalUnused_(src.nTotalUnused_)
+            ,nPosInCurChunk_(src.nPosInCurChunk_)
     {
     }
     ~CompressedPostingList()
@@ -131,11 +130,11 @@ public:
      */
     void reset();
 protected:
-    PostingChunk* pHeadChunk;		///Posting list header
-    PostingChunk* pTailChunk;			///Posting list tail
-    uint32_t nTotalSize;			///Total size
-    uint32_t nTotalUnused;		///Total Unused size
-    uint32_t nPosInCurChunk;
+    PostingChunk* pHeadChunk_;		///Posting list header
+    PostingChunk* pTailChunk_;			///Posting list tail
+    uint32_t nTotalSize_;			///Total size
+    uint32_t nTotalUnused_;		///Total Unused size
+    uint32_t nPosInCurChunk_;
 
     friend class InMemoryPosting;
     friend class PostingMerger;
@@ -206,10 +205,10 @@ public:
     /**
      * set buffer for posting reading
      * @param buffer buffer for posting
-     * @param nBufSize size of buffer
+     * @param nBufSize_ size of buffer
      * @return size of used buffer
      */
-    virtual size_t setBuffer(int32_t* buffer,size_t nBufSize)
+    virtual size_t setBuffer(int32_t* buffer,size_t nBufSize_)
     {
         return 0;
     }
@@ -264,11 +263,6 @@ public:
     int32_t getNextChunkSize(int32_t nCurSize);
 
     /**
-    * update document frequency incrementally. DF will contain doc ids from other field.
-    * @param docid the identifier of document
-    */
-    void updateDF(docid_t docid);
-    /**
      * add (docid,position) pair
      * @param docid the identifier of document
      * @param location the location of term
@@ -281,19 +275,16 @@ public:
      **/
     bool hasNoChunk()
     {
-        return (pDocFreqList->pTailChunk==NULL);
+        return (pDocFreqList_->pTailChunk_==NULL);
     }
 
     /**
      * get document frequency
      * @return DF value
      */
-
-    ///if the document frequency is required to be counted based on the total document, then use tdf
-    //count_t docFreq() const {return nTDF;};
     count_t docFreq() const
     {
-        return nDF;
+        return nDF_;
     };
 
     /**
@@ -302,13 +293,13 @@ public:
      */
     int64_t getCTF() const
     {
-        return nCTF;
+        return nCTF_;
     };
 
     /** get last added doc id */
     docid_t lastDocID()
     {
-        return nLastDocID;
+        return nLastDocID_;
     }
 
     /**
@@ -382,17 +373,15 @@ protected:
      */
     void writeDescriptor(IndexOutput* pDOutput,fileoffset_t poffset);
 protected:
-    MemCache* pMemCache;	/// memory cache
-    count_t nDF;			///document frequency of this field
-    count_t nTDF;			///term frequency of this document
-    docid_t nLastDocID;	///current added doc id
-    docid_t nYetAnotherLastDocID; ///last doc id served for nTDF;
-    loc_t nLastLoc; 		///current added word offset
-    count_t nCurTermFreq; ///current term freq
-    int32_t nCTF; 			///Collection's total term frequency
-    DecodeState* pDS;			///decoding state
-    CompressedPostingList* pDocFreqList; /// Doc freq list
-    CompressedPostingList* pLocList; 	/// Location list
+    MemCache* pMemCache_;	/// memory cache
+    count_t nDF_;			///document frequency of this field
+    docid_t nLastDocID_;	///current added doc id
+    loc_t nLastLoc_; 		///current added word offset
+    count_t nCurTermFreq_; ///current term freq
+    int32_t nCTF_; 			///Collection's total term frequency
+    DecodeState* pDS_;			///decoding state
+    CompressedPostingList* pDocFreqList_; /// Doc freq list
+    CompressedPostingList* pLocList_; 	/// Location list
 
     friend class PostingMerger;
 public:
@@ -421,7 +410,7 @@ public:
 
     InputDescriptor* getInputDescriptor()
     {
-        return pInputDescriptor;
+        return pInputDescriptor_;
     }
     /**
      * Get the posting data
@@ -473,12 +462,9 @@ public:
      * get document frequency
      * @return DF value
      */
-
-    ///if the document frequency is required to be counted based on the total document, then use tdf
-    //count_t docFreq()const{return postingDesc.tdf;};
     count_t docFreq()const
     {
-        return postingDesc.df;
+        return postingDesc_.df;
     };
 
     /**
@@ -487,13 +473,13 @@ public:
      */
     int64_t getCTF()const
     {
-        return postingDesc.ctf;
+        return postingDesc_.ctf;
     };
 
     /**
      * set buffer for posting reading
      * @param buffer buffer for posting
-     * @param nBufSize size of buffer
+     * @param nBufSize_ size of buffer
      * @return size of used buffer
      */
     size_t setBuffer(int32_t* buffer,size_t nBufSize);
@@ -504,16 +490,16 @@ public:
      */
     virtual size_t getBufferSize()
     {
-        return nBufSize;
+        return nBufSize_;
     }
 protected:
-    PostingDescriptor postingDesc;
-    ChunkDescriptor chunkDesc;
-    fileoffset_t postingOffset;
-    int64_t nPPostingLength;
-    InputDescriptor* pInputDescriptor;
-    size_t nBufSize;
-    OnDiskPosting::DecodeState ds;
+    PostingDescriptor postingDesc_;
+    ChunkDescriptor chunkDesc_;
+    fileoffset_t postingOffset_;
+    int64_t nPPostingLength_;
+    InputDescriptor* pInputDescriptor_;
+    size_t nBufSize_;
+    OnDiskPosting::DecodeState ds_;
 
 
     friend class PostingMerger;
