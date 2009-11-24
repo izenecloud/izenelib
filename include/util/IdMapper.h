@@ -4,7 +4,7 @@
  * @file util/IdMapper.h
  * @author Ian Yang
  * @date Created <2009-10-21 14:35:13>
- * @date Updated <2009-10-30 13:16:47>
+ * @date Updated <2009-11-24 11:04:55>
  * @brief light utility map entity to id
  */
 #include <boost/unordered_map.hpp>
@@ -15,6 +15,11 @@
 namespace izenelib {
 namespace util {
 
+/**
+ * @brief maps entity to unique id
+ * @tparam T entity type
+ * @tparam ID id type
+ */
 template<typename T, typename ID = std::size_t>
 class IdMapper
 {
@@ -68,6 +73,10 @@ public:
         return false;
     }
 
+    /**
+     * @brief find corresponding id by \a value
+     * @return pointer to the id if found, \c zero pointer otherwise.
+     */
     const ID* findIdByValue(const T& value) const
     {
         typename value_id_map_type::const_iterator
@@ -81,6 +90,10 @@ public:
         return 0;
     }
 
+    /**
+     * @brief find corresponding value by \a id
+     * @return pointer to the entity if found, \c zero pointer otherwise
+     */
     const T* const findValueById(ID id) const
     {
         typename id_value_map_type::const_iterator
@@ -94,6 +107,10 @@ public:
         return 0;
     }
 
+    /**
+     * @brief gets max occupied id
+     * @return max occupied id. 0 if none is occupied.
+     */
     ID maxId()
     {
         if (id2value_.empty())
@@ -106,8 +123,8 @@ public:
 
 private:
 
-    value_id_map_type value2id_;
-    id_value_map_type id2value_;
+    value_id_map_type value2id_; /**< map from value to id */
+    id_value_map_type id2value_; /**< map from id to value */
 };
 
 }} // namespace izenelib::util
