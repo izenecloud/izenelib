@@ -28,18 +28,18 @@ public:
     virtual ~PostingMerger();
 public:
     /**
-     * set buffer for posting merging
-     * @param buf buffer
-     * @param bufSize size of buffer
+     * set buffer_ for posting merging
+     * @param buf buffer_
+     * @param bufSize size of buffer_
      */
     void setBuffer(char* buf,size_t bufSize);
 
     void setOutputDescriptor(OutputDescriptor* pOutputDescriptor)
     {
-        this->pOutputDescriptor=pOutputDescriptor;
+        pOutputDescriptor_=pOutputDescriptor;
     }
 
-    OutputDescriptor* getOutputDescriptor() {return pOutputDescriptor;}
+    OutputDescriptor* getOutputDescriptor() {return pOutputDescriptor_;}
 
 public:
     /**
@@ -77,7 +77,7 @@ public:
      */
     PostingDescriptor& getPostingDescriptor()
     {
-        return postingDesc;
+        return postingDesc_;
     }
 
     /**
@@ -86,29 +86,29 @@ public:
      */
     ChunkDescriptor& getChunkDescriptor()
     {
-        return chunkDesc;
+        return chunkDesc_;
     }
 
 private:
-    /** create buffer for merging */
+    /** create buffer_ for merging */
     void createBuffer();
 
 private:
-    char* buffer;				///buffer for posting merging
+    char* buffer_; ///buffer_ for posting merging
 
-    size_t bufsize;				///size of buffer
+    size_t bufsize_; ///size of buffer_
 
-    bool bOwnBuffer;			///does we own the buffer?
+    bool bOwnBuffer_; ///does we own the buffer_?
 
-    OutputDescriptor* pOutputDescriptor;	///where merged data store
+    OutputDescriptor* pOutputDescriptor_; ///where merged data store
 
-    PostingDescriptor postingDesc;
+    PostingDescriptor postingDesc_;
 
-    ChunkDescriptor chunkDesc;
+    ChunkDescriptor chunkDesc_;
 
-    int64_t nPPostingLength;
+    int64_t nPPostingLength_;
 
-    bool bFirstPosting;
+    bool bFirstPosting_;
 };
 
 }

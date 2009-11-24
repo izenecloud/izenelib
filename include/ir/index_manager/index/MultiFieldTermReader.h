@@ -110,8 +110,8 @@ protected:
 protected:
     typedef map<string,TermReader*> reader_map;
 
-    reader_map fieldsTermReaders;
-    TermReader* pCurReader;
+    reader_map fieldsTermReaders_;
+    TermReader* pCurReader_;
 };
 
 }
