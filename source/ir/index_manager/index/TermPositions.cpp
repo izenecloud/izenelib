@@ -96,7 +96,7 @@ bool TermPositions::next()
         nTotalDecodedPCountWithinDoc_ = 0;
         nCurDecodedPCountWithinDoc_ = 0;
         nCurrentPPostingWithinDoc_ = 0;
-        pPosting->resetPosition();
+        pPosting_->resetPosition();
         return true;
     }
     return false;

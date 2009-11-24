@@ -14,7 +14,6 @@
 #include <map>
 #include <sstream>
 
-
 #define BARRELS_INFONAME "barrels"
 
 NS_IZENELIB_IR_BEGIN
@@ -180,7 +179,7 @@ public:
     count_t nNumDocs;
     ///only valid when this barrel is a in-memory barrel,otherwise NULL.
     IndexBarrelWriter* pBarrelWriter;
-
+    ///whether this barrel contains updated documents
     bool hasUpdateDocs;
     ///max doc of this barrel
     docid_t maxDocId;
@@ -245,7 +244,7 @@ public:
     void removeBarrel(Directory* pDirectory,const string& barrelname);
     /// get number of barrels
     int32_t getBarrelCount();
-
+    /// counter of barrel name
     int32_t getBarrelCounter() {return nBarrelCounter;}
 
     int32_t getDocCount();
