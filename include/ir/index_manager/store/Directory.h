@@ -27,12 +27,10 @@ typedef vector<string>FileList;
 class Directory
 {
 public:
-    Directory(void)
-    {
-    }
-    virtual ~Directory(void)
-    {
-    }
+    Directory(){}
+
+    virtual ~Directory(){}
+
 public:
     virtual bool fileExists(const string& name) const = 0;
 
@@ -44,9 +42,9 @@ public:
 
     virtual void renameFile(const string& from, const string& to) = 0;
 
-    virtual void batDeleteFiles(const string& filename,bool throwError = true) = 0;
+    virtual void deleteFiles(const string& filename,bool throwError = true) = 0;
 
-    virtual void batRenameFiles(const string& from, const string& to) = 0;
+    virtual void renameFiles(const string& from, const string& to) = 0;
 
     virtual IndexOutput* createOutput(const string& name, const string& mode = "w+b") = 0;
 

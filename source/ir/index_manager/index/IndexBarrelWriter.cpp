@@ -60,7 +60,7 @@ void IndexBarrelWriter::close()
 }
 void IndexBarrelWriter::rename(const char* newName)
 {
-    pDirectory->batRenameFiles(barrelName,newName);
+    pDirectory->renameFiles(barrelName,newName);
     barrelName = newName;
 }
 

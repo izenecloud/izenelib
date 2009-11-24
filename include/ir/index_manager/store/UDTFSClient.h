@@ -1,3 +1,12 @@
+/**
+* @file        UDTFSClient.h
+* @author     Yingfeng Zhang
+* @version     SF1 v5.0
+* @brief It is used when indexmanager works as a client:
+* dispatch inverted index data locally to remote index server
+* the transmission utility is based on UDT library
+*/
+
 #ifndef UDTFSCLIENT_H
 #define UDTFSCLIENT_H
 

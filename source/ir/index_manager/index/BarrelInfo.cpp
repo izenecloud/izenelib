@@ -17,7 +17,7 @@ void BarrelInfo::remove(Directory* pDirectory)
 {
     try
     {
-        pDirectory->batDeleteFiles(barrelName);
+        pDirectory->deleteFiles(barrelName);
     }
     catch (IndexManagerException& fe)
     {
@@ -41,7 +41,7 @@ void BarrelInfo::rename(Directory* pDirectory,const string& newName)
         }
         else
         {
-            pDirectory->batRenameFiles(barrelName,newName);
+            pDirectory->renameFiles(barrelName,newName);
         }
         barrelName = newName;
         modified = true;
