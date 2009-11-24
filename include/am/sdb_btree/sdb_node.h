@@ -67,12 +67,12 @@ public:
 
 	~sdb_node_() {
 		unload();
-		if(keys)
-		delete [] keys;
-		if(values)
-		delete [] values;
-		if(children)
-		delete [] children;
+//		if(keys)
+//		delete [] keys;
+//		if(values)
+//		delete [] values;
+//		if(children)
+//		delete [] children;
 	}
 
 	/**
@@ -208,12 +208,12 @@ public:
 	size_t childNo; //from 0 to objCount. Default is size_t(-1).
 	sdb_node_* parent;
 
-	KeyType* keys;
-	sdb_node_** children;
-	ValueType* values;
-	//std::vector<KeyType> keys;
-	//std::vector<sdb_node_*> children; //it has objCount+1 childrens.
-	//std::vector<ValueType> values;
+//	KeyType* keys;
+//	sdb_node_** children;
+//	ValueType* values;
+	std::vector<KeyType> keys;
+	std::vector<sdb_node_*> children; //it has objCount+1 childrens.
+	std::vector<ValueType> values;
 public:
 	// size_t activeNodeNum;//It is used for cache mechanism.
 
@@ -246,11 +246,11 @@ template<typename KeyType, typename ValueType, typename LockType, bool fixed,
 	_overflowAddress = -1;
 	_overflowPageCount = 0;
 
-	keys = new KeyType[_fh.maxKeys];
-	values = new ValueType[_fh.maxKeys];
-	children = new sdb_node_*[_fh.maxKeys+1];
-	for (size_t i=0; i<_fh.maxKeys+1; i++)
-		children[i] = NULL;
+//	keys = new KeyType[_fh.maxKeys];
+//	values = new ValueType[_fh.maxKeys];
+//	children = new sdb_node_*[_fh.maxKeys+1];
+//	for (size_t i=0; i<_fh.maxKeys+1; i++)
+//		children[i] = NULL;
 
 	//activeNodeNum++;
 	//cout<<"activeNodeNum: "<<activeNodeNum<<endl;
@@ -277,9 +277,9 @@ template<typename KeyType, typename ValueType, typename LockType, bool fixed,
 		return false;
 	}
 
-	//keys.resize(_fh.maxKeys);
-	//values.resize(_fh.maxKeys);
-	//children.resize(_fh.maxKeys+1);
+	keys.resize(_fh.maxKeys);
+	values.resize(_fh.maxKeys);
+	children.resize(_fh.maxKeys+1);
 
 	char *pBuf = new char[_pageSize];
 	if (1 != fread(pBuf, _pageSize, 1, f)) {
@@ -302,10 +302,10 @@ template<typename KeyType, typename ValueType, typename LockType, bool fixed,
 	tsz += sizeof(size_t);
 	isLeaf = (leafFlag == 1);
 
-	if (keys == NULL)
-		keys = new KeyType[_fh.maxKeys];
-	if (values == NULL)
-		values = new ValueType[_fh.maxKeys];
+//	if (keys == NULL)
+//		keys = new KeyType[_fh.maxKeys];
+//	if (values == NULL)
+//		values = new ValueType[_fh.maxKeys];
 
 	//cout<<"read leafFlag ="<<isLeaf<<endl;
 	//cout<<" read objCount="<<objCount<<endl;
@@ -320,9 +320,9 @@ template<typename KeyType, typename ValueType, typename LockType, bool fixed,
 
 		//Only allocate childnode when the node is no a leaf node.
 		if ( !isLeaf) {
-			children = new sdb_node_*[_fh.maxKeys+1];
-			for (size_t i=0; i<_fh.maxKeys+1; i++)
-				children[i] = NULL;
+//			children = new sdb_node_*[_fh.maxKeys+1];
+//			for (size_t i=0; i<_fh.maxKeys+1; i++)
+//				children[i] = NULL;
 			for (size_t i = 0; i <= objCount; i++) {
 				if (children[i] == 0) {
 					children[i] = new sdb_node_(_fh, _fileLock, activeNodeNum );
@@ -699,16 +699,16 @@ template<typename KeyType, typename ValueType, typename LockType, bool fixed,
 			}
 		}
 		objCount = 0;
-		delete [] keys;
-		keys = NULL;
-		delete [] values;
-		values = NULL;
-		delete [] children;
-		children = NULL;
+//		delete [] keys;
+//		keys = NULL;
+//		delete [] values;
+//		values = NULL;
+//		delete [] children;
+//		children = NULL;
 
-		//keys.resize(0);
-		//values.resize(0);
-		//children.resize(0);
+		keys.resize(0);
+		values.resize(0);
+		children.resize(0);
 
 		isLoaded = false;
 
@@ -722,15 +722,15 @@ template<typename KeyType, typename ValueType, typename LockType, bool fixed,
 		Alloc>::unloadself() {
 	if (isLoaded) {
 		objCount = 0;
-		//keys.resize(0);
-		//values.resize(0);
-		//children.resize(0);
-		delete [] keys;
-		keys = NULL;
-		delete [] values;
-		values = NULL;
-		delete [] children;
-		children = NULL;
+		keys.resize(0);
+		values.resize(0);
+		children.resize(0);
+//		delete [] keys;
+//		keys = NULL;
+//		delete [] values;
+//		values = NULL;
+//		delete [] children;
+//		children = NULL;
 		isLoaded = false;
 
 		--activeNodeNum;
