@@ -85,7 +85,7 @@ void FSIndexOutput::seek(int64_t pos)
 
 int64_t FSIndexOutput::length()
 {
-    return bufferStart + (int64_t)bufferPosition;
+    return bufferStart_ + (int64_t)bufferPosition_;
 }
 
 void FSIndexOutput::close()

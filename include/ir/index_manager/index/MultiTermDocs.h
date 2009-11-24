@@ -18,21 +18,21 @@ namespace indexmanager{
 class BarrelTermDocsEntry
 {
 public:
-    BarrelTermDocsEntry(BarrelInfo* barrelInfo_,TermDocFreqs* termDocs_)
+    BarrelTermDocsEntry(BarrelInfo* barrelInfo,TermDocFreqs* termDocs)
     {
-        barrelInfo = new BarrelInfo(*barrelInfo_);
-        termDocs = termDocs_;
+        barrelInfo_ = new BarrelInfo(*barrelInfo);
+        termDocs_= termDocs;
     }
     ~BarrelTermDocsEntry()
     {
-        delete barrelInfo;
-        delete termDocs;
+        delete barrelInfo_;
+        delete termDocs_;
     }
 protected:
     BarrelTermDocsEntry() {}
 public:
-    BarrelInfo* barrelInfo;
-    TermDocFreqs* termDocs;
+    BarrelInfo* barrelInfo_;
+    TermDocFreqs* termDocs_;
 
     friend class MultiTermDocs;
 };
@@ -52,7 +52,7 @@ class MultiTermDocs : public TermDocFreqs
     protected:
         bool lessThan(BarrelTermDocsEntry* o1, BarrelTermDocsEntry* o2)
         {
-            return (o1->termDocs->doc()) < (o2->termDocs->doc());
+            return (o1->termDocs_->doc()) < (o2->termDocs_->doc());
         }
     };
 public:
@@ -82,13 +82,13 @@ protected:
 
 protected:
 
-    list<BarrelTermDocsEntry*> barrelTermDocs;
+    std::list<BarrelTermDocsEntry*> barrelTermDocs_;
 
-    BarrelTermDocsEntry* current;
+    BarrelTermDocsEntry* current_;
 
-    int cursor;
+    int cursor_;
 
-    TermDocsQueue* pTermDocsQueue;
+    TermDocsQueue* pTermDocsQueue_;
 };
 
 

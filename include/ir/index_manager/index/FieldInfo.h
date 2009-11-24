@@ -129,14 +129,16 @@ public:
     }
 
     /**
-    * @brief get index offset value, indexOffset information indicates the offset of this field in  the vocabulary index file, named *.voc, * refers to the barrel name
+    * @brief get index offset value, indexOffset information indicates the offset of this field in  
+    *  the vocabulary index file, named *.voc, * refers to the barrel name
     */
     fileoffset_t getIndexOffset()
     {
         return indexOffset;
     }
     /**
-    * @brief set index offset value, indexOffset information indicates the offset of this field in  the vocabulary index file, named *.voc, * refers to the barrel name
+    * @brief set index offset value, indexOffset information indicates the offset of this field in  
+    * the vocabulary index file, named *.voc, * refers to the barrel name
     */
     void setIndexOffset(fileoffset_t offset)
     {
@@ -237,15 +239,9 @@ public:
 
     virtual ~FieldsInfo();
 public:
-    collectionid_t getColID()
-    {
-        return colId;
-    }
+    collectionid_t getColID() { return colId; }
 
-    void setColID(collectionid_t id)
-    {
-        colId = id;
-    }
+    void setColID(collectionid_t id) { colId = id; }
 
     void setSchema(const IndexerCollectionMeta& schema);
 
@@ -289,10 +285,7 @@ public:
     /**
     * @brief number of all fields
     */
-    int32_t numFields()
-    {
-        return (int)nNumFieldInfo;
-    }
+    int32_t numFields() { return (int)nNumFieldInfo; }
     /**
     * @brief number of all fields to be indexed
     */

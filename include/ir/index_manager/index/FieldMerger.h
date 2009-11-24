@@ -34,28 +34,28 @@ class MergeFieldEntry
 {
 public:
     MergeFieldEntry()
-            :pFieldInfo(NULL)
-            ,pBarrelInfo(NULL)
+            :pFieldInfo_(NULL)
+            ,pBarrelInfo_(NULL)
     {
     }
-    MergeFieldEntry(BarrelInfo* pBarrel,FieldInfo* pFieldInfo_)
-            :pFieldInfo(new FieldInfo(*pFieldInfo_))
-            ,pBarrelInfo(pBarrel)
+    MergeFieldEntry(BarrelInfo* pBarrel,FieldInfo* pFieldInfo)
+            :pFieldInfo_(new FieldInfo(*pFieldInfo))
+            ,pBarrelInfo_(pBarrel)
     {
 
     }
     ~MergeFieldEntry()
     {
-        if (pFieldInfo)
+        if (pFieldInfo_)
         {
-            delete pFieldInfo;
-            pFieldInfo = NULL;
+            delete pFieldInfo_;
+            pFieldInfo_ = NULL;
         }
-        pBarrelInfo = NULL;
+        pBarrelInfo_ = NULL;
     }
 public:
-    FieldInfo* pFieldInfo;
-    BarrelInfo* pBarrelInfo;
+    FieldInfo* pFieldInfo_;
+    BarrelInfo* pBarrelInfo_;
 
     friend class FieldMerger;
 };
@@ -65,41 +65,41 @@ public:
 class FieldMergeInfo
 {
 public:
-    FieldMergeInfo(int32_t nOrder_, collectionid_t currColId, BarrelInfo* pBarrelInfo_,TermReader* pTermReader_)
-            :nOrder(nOrder_)
-            ,pBarrelInfo(pBarrelInfo_)
-            ,pCurTerm(NULL)
-            ,pTermReader(pTermReader_)
+    FieldMergeInfo(int32_t nOrder, collectionid_t currColId, BarrelInfo* pBarrelInfo,TermReader* pTermReader)
+            :nOrder_(nOrder)
+            ,pBarrelInfo_(pBarrelInfo)
+            ,pCurTerm_(NULL)
+            ,pTermReader_(pTermReader)
     {
-        pIterator = pTermReader->termIterator(NULL);
-        baseDocId = pBarrelInfo->baseDocIDMap[currColId];;
+        pIterator_ = pTermReader_->termIterator(NULL);
+        baseDocId_ = pBarrelInfo_->baseDocIDMap[currColId];;
     }
     ~FieldMergeInfo()
     {
-        delete pTermReader;
-        pTermReader = NULL;
-        if (pIterator)
-            delete pIterator;
-        pIterator = NULL;
+        delete pTermReader_;
+        pTermReader_ = NULL;
+        if (pIterator_)
+            delete pIterator_;
+        pIterator_ = NULL;
     }
 public:
     bool next()
     {
-        if (pIterator && pIterator->next())
+        if (pIterator_ && pIterator_->next())
         {
-            pCurTerm = (Term*)pIterator->term();
+            pCurTerm_ = (Term*)pIterator_->term();
             return true;
         }
         return false;
     }
 	
 public:
-    int32_t nOrder;			///order of barrel
-    BarrelInfo* pBarrelInfo;		///reference to barrel info
-    Term* pCurTerm;		///current term
-    TermReader* pTermReader;
-    TermIterator* pIterator;		///term iterator
-    docid_t baseDocId;
+    int32_t nOrder_;			///order of barrel
+    BarrelInfo* pBarrelInfo_;		///reference to barrel info
+    Term* pCurTerm_;		///current term
+    TermReader* pTermReader_;
+    TermIterator* pIterator_;		///term iterator
+    docid_t baseDocId_;
 
     friend class FieldMergeQueue;
     friend class FieldMerger;
@@ -123,10 +123,10 @@ private:
      */
     bool lessThan(FieldMergeInfo* a, FieldMergeInfo* b)
     {
-        int32_t ret = a->pCurTerm->compare(b->pCurTerm);
+        int32_t ret = a->pCurTerm_->compare(b->pCurTerm_);
         if(ret == 0)
         {
-            return a->baseDocId < b->baseDocId;
+            return a->baseDocId_ < b->baseDocId_;
         }
         else
             return (ret < 0);
@@ -140,32 +140,29 @@ class MergeTermInfo
 {
 public:
     MergeTermInfo()
-            :pTerm(NULL)
-            ,pTermInfo(NULL)
+            :pTerm_(NULL)
+            ,pTermInfo_(NULL)
     {}
-    MergeTermInfo(Term* pTerm_,TermInfo* pTermInfo_)
-            :pTerm(pTerm_)
-            ,pTermInfo(pTermInfo_)
+    MergeTermInfo(Term* pTerm,TermInfo* pTermInfo)
+            :pTerm_(pTerm)
+            ,pTermInfo_(pTermInfo)
     {}
     ~MergeTermInfo()
     {
-        if (pTerm)
-            delete pTerm;
-        if (pTermInfo)
-            delete pTermInfo;
+        if (pTerm_)
+            delete pTerm_;
+        if (pTermInfo_)
+            delete pTermInfo_;
     }
 public:
-    Term* getTerm()
-    {
-        return pTerm;
-    }
-    TermInfo* getTermInfo()
-    {
-        return pTermInfo;
-    }
+    Term* getTerm() { return pTerm_; }
+
+    TermInfo* getTermInfo() { return pTermInfo_; }
+
 public:
-    Term* pTerm;
-    TermInfo* pTermInfo;
+    Term* pTerm_;
+
+    TermInfo* pTermInfo_;
 
     friend class FieldMerger;
 };
@@ -177,7 +174,7 @@ class FieldMerger
 {
 public:
     FieldMerger();
-    FieldMerger(Directory* pDirectory);
+
     virtual ~FieldMerger(void);
 public:
     /**
@@ -185,12 +182,12 @@ public:
      * @param pBarrelInfo_ about the barrel of the field
      * @param pFieldInfo_ about the field
      */
-    void addField(BarrelInfo* pBarrelInfo_,FieldInfo* pFieldInfo_);
+    void addField(BarrelInfo* pBarrelInfo,FieldInfo* pFieldInfo);
 
     /** number of fields */
     int32_t numFields()
     {
-        return (int32_t)fieldEntries.size();
+        return (int32_t)fieldEntries_.size();
     }
 
     /**
@@ -211,9 +208,9 @@ public:
      * set directory of index database
      * @param pDirectory directory
      */
-    void setDirectory(Directory* pDirectory_)
+    void setDirectory(Directory* pDirectory)
     {
-        pDirectory = pDirectory_;
+        pDirectory_ = pDirectory;
     }
 
     /**
@@ -222,7 +219,7 @@ public:
      */
     Directory* getDirectory()
     {
-        return pDirectory;
+        return pDirectory_;
     }
 
     /**
@@ -231,12 +228,12 @@ public:
      */
     int64_t numMergedTerms()
     {
-        return nMergedTerms;
+        return nMergedTerms_;
     }
 
     void setDocFilter(BitVector* pFilter)
     {
-        pDocFilter = pFilter;
+        pDocFilter_ = pFilter;
     }
 private:
     /** initialize merge queue */
@@ -267,39 +264,39 @@ private:
      */
     fileoffset_t endMerge(OutputDescriptor* pOutputDescriptor) ;
 private:
-    char* buffer;
+    char* buffer_;
 
-    size_t bufsize;
+    size_t bufsize_;
 
-    FieldMergeQueue* pMergeQueue;
+    FieldMergeQueue* pMergeQueue_;
 
-    PostingMerger* pPostingMerger;
+    PostingMerger* pPostingMerger_;
 
-    int32_t nNumTermCached;
+    int32_t nNumTermCached_;
 
-    Directory* pDirectory;
+    Directory* pDirectory_;
 
-    MergeFieldEntry** ppFieldInfos;
+    MergeFieldEntry** ppFieldInfos_;
 
-    size_t nNumInfos;
+    size_t nNumInfos_;
 
-    int64_t termCount;	///total term count
+    int64_t termCount_;	///total term count
 
-    termid_t lastTerm;		///last term id
+    termid_t lastTerm_;		///last term id
 
-    fileoffset_t lastPOffset;	///last posting offset
+    fileoffset_t lastPOffset_;	///last posting offset
 
-    fileoffset_t beginOfVoc;	///begin of vocabulary data
+    fileoffset_t beginOfVoc_;	///begin of vocabulary data
 
-    int64_t nMergedTerms;
+    int64_t nMergedTerms_;
 
-    vector<MergeFieldEntry*> fieldEntries;
+    vector<MergeFieldEntry*> fieldEntries_;
 
-    MergeTermInfo* cachedTermInfos[NUM_CACHEDTERMINFO];
+    MergeTermInfo* cachedTermInfos_[NUM_CACHEDTERMINFO];
 
-    BitVector* pDocFilter;
+    BitVector* pDocFilter_;
 
-    MemCache* pMemCache;
+    MemCache* pMemCache_;
 };
 //////////////////////////////////////////////////////////////////////////
 //inline
@@ -309,31 +306,31 @@ inline fileoffset_t FieldMerger::mergeTerms(FieldMergeInfo** ppMergeInfos,int32_
     bool mergePostingHasUpdatedDocs = false;
     for (int32_t i = 0;i< numInfos;i++)
     {
-        if(ppMergeInfos[i]->pBarrelInfo->hasUpdateDocs)
+        if(ppMergeInfos[i]->pBarrelInfo_->hasUpdateDocs)
         {
             mergePostingHasUpdatedDocs = true;
             break;
         }
     }
     if(mergePostingHasUpdatedDocs)
-        return sortingMerge(ppMergeInfos, numInfos, pDocFilter);
+        return sortingMerge(ppMergeInfos, numInfos, pDocFilter_);
 
     for (int32_t i = 0;i< numInfos;i++)
     {
-        pPosting = ppMergeInfos[i]->pIterator->termPosting();
-        if (ppMergeInfos[i]->pBarrelInfo->getWriter())///in-memory posting
-            pPostingMerger->mergeWith((InMemoryPosting*)pPosting);
+        pPosting = ppMergeInfos[i]->pIterator_->termPosting();
+        if (ppMergeInfos[i]->pBarrelInfo_->getWriter())///in-memory posting
+            pPostingMerger_->mergeWith((InMemoryPosting*)pPosting);
         else
         {
-            if(pDocFilter)
-                pPostingMerger->mergeWith((OnDiskPosting*)pPosting,pDocFilter);
+            if(pDocFilter_)
+                pPostingMerger_->mergeWith((OnDiskPosting*)pPosting,pDocFilter_);
             else
-                pPostingMerger->mergeWith((OnDiskPosting*)pPosting);
+                pPostingMerger_->mergeWith((OnDiskPosting*)pPosting);
         }
 
     }
     ///end merge
-    return pPostingMerger->endMerge();
+    return pPostingMerger_->endMerge();
 }
 
 }

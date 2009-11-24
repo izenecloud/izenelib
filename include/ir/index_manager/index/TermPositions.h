@@ -123,7 +123,7 @@ inline void TermPositions::skipPositions(int32_t nSkips)
         nCurrentPPosting_ += nSkips;
     else
     {
-        pPosting->decodeNextPositions(NULL,(int32_t)(nSkips - (nTotalDecodedPCount_ - nCurrentPPosting_)));
+        pPosting_->decodeNextPositions(NULL,(int32_t)(nSkips - (nTotalDecodedPCount_ - nCurrentPPosting_)));
         nCurrentPPosting_ = nTotalDecodedPCount_;
         nLastPosting_ = -1;
     }
@@ -145,7 +145,7 @@ inline bool TermPositions::decodePositions()
         uint32_t* pPPostingBuffer = pPPostingBuffer_;
         bool bEnd = false;
         if (nLastPosting_ == -1)
-            nLastPosting_ = nCurrentPosting;
+            nLastPosting_ = nCurrentPosting_;
         nTotalDecodedPCount_ = 0;
         if (nLastUnDecodedPCount_ > 0)
         {
@@ -161,37 +161,37 @@ inline bool TermPositions::decodePositions()
                 nLastUnDecodedPCount_ = 0;
                 nLastPosting_++;
             }
-            pPosting->decodeNextPositions(pPPostingBuffer,(int32_t)nTotalDecodedPCount_);
+            pPosting_->decodeNextPositions(pPPostingBuffer,(int32_t)nTotalDecodedPCount_);
             pPPostingBuffer += nTotalDecodedPCount_;
             if (nLastUnDecodedPCount_ == 0)
-                pPosting->resetPosition();
+                pPosting_->resetPosition();
         }
         if (!bEnd)
         {
             int32_t nFreqs;
-            for (nFreqs = nLastPosting_; nFreqs < nCurDecodedCount;nFreqs++)
+            for (nFreqs = nLastPosting_; nFreqs < nCurDecodedCount_;nFreqs++)
             {
-                nTotalDecodedPCount_ += pPostingBuffer[nFreqStart + nFreqs];
+                nTotalDecodedPCount_ += pPostingBuffer_[nFreqStart_ + nFreqs];
                 if (nTotalDecodedPCount_ > nPBufferSize_)
                 {
-                    nTotalDecodedPCount_ -= pPostingBuffer[nFreqStart + nFreqs];
+                    nTotalDecodedPCount_ -= pPostingBuffer_[nFreqStart_+ nFreqs];
                     break;
                 }
             }
             if ((nFreqs - nLastPosting_) > 0)
             {
-                pPosting->decodeNextPositions(pPPostingBuffer,&(pPostingBuffer[nFreqStart + nLastPosting_]),nFreqs - nLastPosting_);
+                pPosting_->decodeNextPositions(pPPostingBuffer,&(pPostingBuffer_[nFreqStart_ + nLastPosting_]),nFreqs - nLastPosting_);
                 nLastPosting_ = nFreqs;
             }
             else if (nTotalDecodedPCount_ == 0)
             {
                 nTotalDecodedPCount_ = nPBufferSize_;
-                pPosting->decodeNextPositions(pPPostingBuffer,(int32_t)nTotalDecodedPCount_);
-                nLastUnDecodedPCount_ = pPostingBuffer[nFreqStart + nLastPosting_] - (int32_t)nTotalDecodedPCount_;
+                pPosting_->decodeNextPositions(pPPostingBuffer,(int32_t)nTotalDecodedPCount_);
+                nLastUnDecodedPCount_ = pPostingBuffer_[nFreqStart_ + nLastPosting_] - (int32_t)nTotalDecodedPCount_;
             }
         }
         nCurrentPPosting_ = 0;
-        if (nLastPosting_ >= nCurDecodedCount)
+        if (nLastPosting_ >= nCurDecodedCount_)
             nLastPosting_ = -1;
     }
 

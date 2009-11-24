@@ -29,7 +29,7 @@ bool CompressedPostingList::addPosting(uint32_t posting32)
         return false;
     int32_t left = pTailChunk_->size - nPosInCurChunk_;
 
-    if (left < 4)///at least 4 free space
+    if (left < 7)///at least 4 free space
     {
         nTotalUnused_ += left;///Unused size
         pTailChunk_->size = nPosInCurChunk_;///the real size
@@ -51,7 +51,7 @@ bool CompressedPostingList::addPosting(uint64_t posting64)
     if (pTailChunk_ == NULL)
         return false;
     int32_t left = pTailChunk_->size - nPosInCurChunk_;
-    if (left < 8)///at least 8 free space
+    if (left < 11)///at least 8 free space
     {
         nTotalUnused_ += left;///Unused size
         pTailChunk_->size = nPosInCurChunk_;///the real size
