@@ -14,8 +14,6 @@
 
 NS_IZENELIB_AM_BEGIN
 
-
-
 /**
  *
  * \brief  sdb_node represents a node(internal node or leaf node)
@@ -53,8 +51,8 @@ NS_IZENELIB_AM_BEGIN
  */
 
 template<typename KeyType, typename ValueType, typename LockType,
-		bool fixed = false,
-		typename Alloc=std::allocator<DataType<KeyType,ValueType> > > class sdb_node_ {
+bool fixed = false,
+typename Alloc=std::allocator<DataType<KeyType,ValueType> > > class sdb_node_ {
 	typedef std::pair<sdb_node_*, size_t> NodeKeyLocn;
 	typedef typename std::vector<KeyType>::iterator KIT;
 public:
@@ -68,7 +66,13 @@ public:
 	sdb_node_(CbFileHeader& fileHeader, LockType& fileLock, size_t& activeNum);
 
 	~sdb_node_() {
-		unload();	
+		unload();
+		if(keys)
+		delete [] keys;
+		if(values)
+		delete [] values;
+		if(children)
+		delete [] children;
 	}
 
 	/**
@@ -173,7 +177,7 @@ public:
 		for (i=0; i<objCount; i++) {
 			if ( !isLeaf) {
 				if (children[i])
-					children[i]->display(os);
+				children[i]->display(os);
 				os<<"----|";
 			}
 			//keys[i].display(os);				
@@ -183,14 +187,14 @@ public:
 			//if (parent)
 			//	pfos = parent->fpos;
 			os<<"("<<fpos<<" parent="<<pfos<<" isLeaf="<<isLeaf<<" childNo="
-					<<childNo<<" objCount="<<objCount<<" isLoaded="<<isLoaded
-					<<")"<<endl;
+			<<childNo<<" objCount="<<objCount<<" isLoaded="<<isLoaded
+			<<")"<<endl;
 			//os<<"("<<isDirty<<" "<<parent<<" "<<this<<")";
 			os<<endl;
 		}
 		if (!isLeaf) {
 			if (children[i])
-				children[i]->display(os);
+			children[i]->display(os);
 			os<<"----|";
 		}
 	}
@@ -204,9 +208,12 @@ public:
 	size_t childNo; //from 0 to objCount. Default is size_t(-1).
 	sdb_node_* parent;
 
-	std::vector<KeyType> keys;
-	std::vector<sdb_node_*> children; //it has objCount+1 childrens.
-	std::vector<ValueType> values;
+	KeyType* keys;
+	sdb_node_** children;
+	ValueType* values;
+	//std::vector<KeyType> keys;
+	//std::vector<sdb_node_*> children; //it has objCount+1 childrens.
+	//std::vector<ValueType> values;
 public:
 	// size_t activeNodeNum;//It is used for cache mechanism.
 
@@ -239,6 +246,12 @@ template<typename KeyType, typename ValueType, typename LockType, bool fixed,
 	_overflowAddress = -1;
 	_overflowPageCount = 0;
 
+	keys = new KeyType[_fh.maxKeys];
+	values = new ValueType[_fh.maxKeys];
+	children = new sdb_node_*[_fh.maxKeys+1];
+	for (size_t i=0; i<_fh.maxKeys+1; i++)
+		children[i] = NULL;
+
 	//activeNodeNum++;
 	//cout<<"activeNodeNum: "<<activeNodeNum<<endl;
 }
@@ -264,9 +277,9 @@ template<typename KeyType, typename ValueType, typename LockType, bool fixed,
 		return false;
 	}
 
-	keys.resize(_fh.maxKeys);
-	values.resize(_fh.maxKeys);
-	children.resize(_fh.maxKeys+1);
+	//keys.resize(_fh.maxKeys);
+	//values.resize(_fh.maxKeys);
+	//children.resize(_fh.maxKeys+1);
 
 	char *pBuf = new char[_pageSize];
 	if (1 != fread(pBuf, _pageSize, 1, f)) {
@@ -289,6 +302,11 @@ template<typename KeyType, typename ValueType, typename LockType, bool fixed,
 	tsz += sizeof(size_t);
 	isLeaf = (leafFlag == 1);
 
+	if (keys == NULL)
+		keys = new KeyType[_fh.maxKeys];
+	if (values == NULL)
+		values = new ValueType[_fh.maxKeys];
+
 	//cout<<"read leafFlag ="<<isLeaf<<endl;
 	//cout<<" read objCount="<<objCount<<endl;
 
@@ -302,6 +320,9 @@ template<typename KeyType, typename ValueType, typename LockType, bool fixed,
 
 		//Only allocate childnode when the node is no a leaf node.
 		if ( !isLeaf) {
+			children = new sdb_node_*[_fh.maxKeys+1];
+			for (size_t i=0; i<_fh.maxKeys+1; i++)
+				children[i] = NULL;
 			for (size_t i = 0; i <= objCount; i++) {
 				if (children[i] == 0) {
 					children[i] = new sdb_node_(_fh, _fileLock, activeNodeNum );
@@ -391,7 +412,7 @@ template<typename KeyType, typename ValueType, typename LockType, bool fixed,
 
 		} else {
 			size_t esize = objCount*(sizeof(KeyType) + sizeof(ValueType));
-			if (tsz + esize > _pageSize ) {				
+			if (tsz + esize > _pageSize) {
 				if ( !povfl) {
 					//cout<<"read overflowaddress="<<_overflowAddress<<" | "<<_overflowPageCount<<endl;
 
@@ -416,7 +437,7 @@ template<typename KeyType, typename ValueType, typename LockType, bool fixed,
 			memcpy(&keys[0], p, objCount*sizeof(KeyType));
 			p += objCount*sizeof(KeyType);
 			memcpy(&values[0], p, objCount*sizeof(ValueType));
-			p += objCount*sizeof(ValueType);				
+			p += objCount*sizeof(ValueType);
 			break;
 		}
 
@@ -521,7 +542,7 @@ template<typename KeyType, typename ValueType, typename LockType, bool fixed,
 		izene_serialization<KeyType> izs(keys[i]);
 		izene_serialization<ValueType> izs1(values[i]);
 
-		if ( !fixed) {	
+		if ( !fixed) {
 			izs.write_image(ptr, ksize);
 			izs1.write_image(ptr1, vsize);
 			esize = 2*sizeof(size_t)+ksize+vsize;
@@ -531,7 +552,8 @@ template<typename KeyType, typename ValueType, typename LockType, bool fixed,
 			//ksize = sizeof(KeyType);
 			//vsize = sizeof(ValueType);
 			//esize = ksize+vsize;
-			esize = objCount*(sizeof(KeyType) + sizeof(ValueType) ) -sizeof(size_t) ;
+			esize = objCount*(sizeof(KeyType) + sizeof(ValueType) )
+					-sizeof(size_t);
 		}
 
 		//when overflowing occurs, append the overflow buf
@@ -593,11 +615,11 @@ template<typename KeyType, typename ValueType, typename LockType, bool fixed,
 			memcpy(p, ptr1, vsize);
 			p += vsize;
 			tsz += esize;
-		}else{
+		} else {
 			memcpy(p, &keys[0], sizeof(KeyType)*objCount);
-			p +=  sizeof(KeyType)*objCount;
+			p += sizeof(KeyType)*objCount;
 			memcpy(p, &values[0], sizeof(ValueType)*objCount);
-			p +=  sizeof(ValueType)*objCount;
+			p += sizeof(ValueType)*objCount;
 			tsz += esize;
 			break;
 		}
@@ -614,8 +636,8 @@ template<typename KeyType, typename ValueType, typename LockType, bool fixed,
 		//oveflow
 		//cout<<"writing overflow!!!!"<<endl;
 		if (_overflowAddress <0 || _overflowPageCount < np-1) {
-			_overflowAddress = sizeof(CbFileHeader)+_pageSize
-					*(_fh.nPages+_fh.oPages);
+			_overflowAddress = sizeof(CbFileHeader)+_pageSize *(_fh.nPages
+					+_fh.oPages);
 			_fh.oPages += (np-1);
 		}
 		_overflowPageCount = np-1;
@@ -642,7 +664,6 @@ template<typename KeyType, typename ValueType, typename LockType, bool fixed,
 		typename Alloc> sdb_node_<KeyType, ValueType, LockType, fixed, Alloc>* sdb_node_<
 		KeyType, ValueType, LockType, fixed, Alloc>::loadChild(size_t childNum,
 		FILE* f) {
-
 	sdb_node_* child;
 	child = children[childNum];
 	if (isLeaf || child == 0) {
@@ -677,11 +698,18 @@ template<typename KeyType, typename ValueType, typename LockType, bool fixed,
 				}
 			}
 		}
-		objCount = 0;	
-		keys.resize(0);
-		values.resize(0);
-		children.resize(0);
-			
+		objCount = 0;
+		delete [] keys;
+		keys = NULL;
+		delete [] values;
+		values = NULL;
+		delete [] children;
+		children = NULL;
+
+		//keys.resize(0);
+		//values.resize(0);
+		//children.resize(0);
+
 		isLoaded = false;
 
 		--activeNodeNum;
@@ -694,9 +722,15 @@ template<typename KeyType, typename ValueType, typename LockType, bool fixed,
 		Alloc>::unloadself() {
 	if (isLoaded) {
 		objCount = 0;
-		keys.resize(0);
-		values.resize(0);
-		children.resize(0);
+		//keys.resize(0);
+		//values.resize(0);
+		//children.resize(0);
+		delete [] keys;
+		keys = NULL;
+		delete [] values;
+		values = NULL;
+		delete [] children;
+		children = NULL;
 		isLoaded = false;
 
 		--activeNodeNum;
@@ -733,10 +767,10 @@ template<typename KeyType, typename ValueType, typename LockType, bool fixed,
 		Alloc>::findPos(const KeyType& key) {
 
 	KEYPOS ret((size_t)-1, CCP_NONE);
-	KIT kit = keys.begin();
+	//KIT kit = keys.begin();
 	size_t i = 0;
-	while (i<objCount && kit < keys.end()) {
-		int compVal = _comp(key, *kit);
+	while (i<objCount) {
+		int compVal = _comp(key, keys[i]);
 		if (compVal == 0) {
 			return KEYPOS(i, CCP_INTHIS);
 		} else if (compVal < 0) {
@@ -746,7 +780,7 @@ template<typename KeyType, typename ValueType, typename LockType, bool fixed,
 				return KEYPOS(i, CCP_INLEFT);
 			}
 		}
-		++kit, ++i;
+		++i;
 	}
 	if (!isLeaf) {
 		return KEYPOS(i - 1, CCP_INRIGHT);

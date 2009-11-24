@@ -240,8 +240,8 @@ public:
 	ValueType* find(const KeyType& key) {
 		SDBCursor locn;
 		if( search(key, locn) )
-		return new ValueType(locn.first->values[locn.second]);
-		return NULL;
+       		return new ValueType(locn.first->values[locn.second]);
+		else return NULL;
 	}
 
 	bool get(const KeyType& key, ValueType& value)
@@ -596,9 +596,9 @@ private:
 		++_activeNodeNum;
 
 		//pre allocate memory for newNode for efficiency
-		newNode->keys.resize(_sfh.maxKeys);
-		newNode->values.resize(_sfh.maxKeys);
-		newNode->children.resize(_sfh.maxKeys+1);
+//		newNode->keys.resize(_sfh.maxKeys);
+//		newNode->values.resize(_sfh.maxKeys);
+//		newNode->children.resize(_sfh.maxKeys+1);
 
 		return newNode;
 	}
@@ -1162,7 +1162,7 @@ template<typename KeyType, typename ValueType, typename LockType, bool fixed,
 			qnode.pop();
 			if (popNode && !popNode->isLeaf) {
 				for (size_t i=0; i<popNode->objCount+1; i++) {
-					if (popNode->children[i])
+					if (popNode->children && popNode->children[i])
 						qnode.push(popNode->children[i]);
 				}
 			}
