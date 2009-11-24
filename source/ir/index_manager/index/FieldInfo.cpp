@@ -226,15 +226,6 @@ uint64_t FieldsInfo::distinctNumTerms(fieldid_t fid)
     return fdInfosById_[fid]->distinctNumTerms();//ppFieldsInfo_[fid]->distinctNumTerms();
 }
 
-fieldid_t FieldsInfo::getFieldID(const char* fname)
-{
-    map<string,FieldInfo*>::iterator iter = fdInfosByName_.find(fname);
-    if (iter != fdInfosByName_.end())
-    {
-        return iter->second->getID();
-    }
-    return -1;
-}
 FieldInfo* FieldsInfo::getField(const char* field)
 {
     string tmp(field);

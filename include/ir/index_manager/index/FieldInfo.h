@@ -214,9 +214,6 @@ public:
 
     void reset();
 
-    fieldid_t getFieldID(const char* fname);
-
-    inline const char* getFieldName(fieldid_t fid);
     /**
     * @brief get FieldInfo by fieldid
     */
@@ -290,10 +287,7 @@ inline int32_t FieldsInfo::numIndexFields()
     }
     return indFields;
 }
-inline const char* FieldsInfo::getFieldName(fieldid_t fid)
-{
-    return fdInfosById_[fid]->getName();//ppFieldsInfo_[fid]->getName();
-}
+
 inline FieldInfo* FieldsInfo::getField(fieldid_t fid)
 {
     return fdInfosById_[fid];//ppFieldsInfo_[fid];
