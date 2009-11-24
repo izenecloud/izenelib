@@ -124,7 +124,7 @@ void MultiFieldTermReader::open(Directory* pDirectory,const char* barrelname,Fie
         if (pInfo->isIndexed()&&pInfo->isForward())
         {
             pTermReader = new DiskTermReader(pDirectory,barrelname,pInfo);
-            fieldsTermReaders_.insert(pair<string,TermReader*>(pFieldsInfo->getFieldName(pInfo->getID()),pTermReader));
+            fieldsTermReaders_.insert(pair<string,TermReader*>(pInfo->getName(),pTermReader));
         }
     }
 }

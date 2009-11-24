@@ -8,22 +8,22 @@ using namespace boost;
 using namespace izenelib::ir::indexmanager;
 
 FieldsInfo::FieldsInfo()
-        :ppFieldsInfo(NULL)
-        ,nNumFieldInfo(0)
-        ,fdInfosIterator(0)
+        :ppFieldsInfo_(NULL)
+        ,nNumFieldInfo_(0)
+        ,fdInfosIterator_(0)
 {
 }
 FieldsInfo::FieldsInfo(const FieldsInfo& src)
-        :fdInfosIterator(0)
+        :fdInfosIterator_(0)
 {
-    colId = src.colId;
-    nNumFieldInfo = src.nNumFieldInfo;
-    ppFieldsInfo = new FieldInfo*[nNumFieldInfo];
-    for (int32_t i = 0;i<nNumFieldInfo;i++)
+    colId_ = src.colId_;
+    nNumFieldInfo_ = src.nNumFieldInfo_;
+    ppFieldsInfo_ = new FieldInfo*[nNumFieldInfo_];
+    for (int32_t i = 0;i<nNumFieldInfo_;i++)
     {
-        ppFieldsInfo[i] = new FieldInfo(*(src.ppFieldsInfo[i]));
-        fdInfosByName.insert(make_pair(ppFieldsInfo[i]->name.c_str(),ppFieldsInfo[i]));
-        fdInfosById.insert(make_pair(ppFieldsInfo[i]->getID(),ppFieldsInfo[i]));		
+        ppFieldsInfo_[i] = new FieldInfo(*(src.ppFieldsInfo_[i]));
+        fdInfosByName_.insert(make_pair(ppFieldsInfo_[i]->name_.c_str(),ppFieldsInfo_[i]));
+        fdInfosById_.insert(make_pair(ppFieldsInfo_[i]->getID(),ppFieldsInfo_[i]));		
     }
 }
 
@@ -36,28 +36,28 @@ void FieldsInfo::setSchema(const IndexerCollectionMeta& collectionMeta)
 {
     clear();
 
-    nNumFieldInfo = 0;
+    nNumFieldInfo_ = 0;
     std::set<IndexerPropertyConfig, IndexerPropertyConfigComp> schema = collectionMeta.getDocumentSchema();
 
     for(std::set<IndexerPropertyConfig, IndexerPropertyConfigComp>::const_iterator it = schema.begin(); it != schema.end(); it++ )
 	if (it->getPropertyId() != BAD_PROPERTY_ID)
-           nNumFieldInfo++;
+           nNumFieldInfo_++;
 
-    ppFieldsInfo = new FieldInfo*[nNumFieldInfo];
-    memset(ppFieldsInfo,0,nNumFieldInfo*sizeof(FieldInfo*));
+    ppFieldsInfo_ = new FieldInfo*[nNumFieldInfo_];
+    memset(ppFieldsInfo_,0,nNumFieldInfo_*sizeof(FieldInfo*));
 
     int32_t n = 0;
     for(std::set<IndexerPropertyConfig, IndexerPropertyConfigComp>::const_iterator it = schema.begin(); it != schema.end(); it++ )
     {
 	if (it->getPropertyId() != BAD_PROPERTY_ID)
 	{
-	    ppFieldsInfo[n] = new FieldInfo(it->getPropertyId(),
+	    ppFieldsInfo_[n] = new FieldInfo(it->getPropertyId(),
                                                            it->getName().c_str(),
                                                            it->isForward(),
                                                            it->isIndex());
-           ppFieldsInfo[n]->setColID(colId);
-           fdInfosByName.insert(make_pair(ppFieldsInfo[n]->getName(),ppFieldsInfo[n]));
-           fdInfosById.insert(make_pair(it->getPropertyId(),ppFieldsInfo[n]));
+           ppFieldsInfo_[n]->setColID(colId_);
+           fdInfosByName_.insert(make_pair(ppFieldsInfo_[n]->getName(),ppFieldsInfo_[n]));
+           fdInfosById_.insert(make_pair(it->getPropertyId(),ppFieldsInfo_[n]));
            n++;
 	}
     }
@@ -69,19 +69,19 @@ void FieldsInfo::addField(FieldInfo* pFieldInfo)
     if (!pInfo)
     {
         pInfo = new FieldInfo(*pFieldInfo);
-        FieldInfo** ppFieldInfos = new FieldInfo*[nNumFieldInfo+1];
-        for (int32_t i = 0;i<nNumFieldInfo;i++)
+        FieldInfo** ppFieldInfos = new FieldInfo*[nNumFieldInfo_+1];
+        for (int32_t i = 0;i<nNumFieldInfo_;i++)
         {
-            ppFieldInfos[i] = ppFieldsInfo[i];
+            ppFieldInfos[i] = ppFieldsInfo_[i];
         }
-        ppFieldInfos[nNumFieldInfo] = pInfo;
+        ppFieldInfos[nNumFieldInfo_] = pInfo;
 
-        delete[] ppFieldsInfo;
-        ppFieldsInfo = ppFieldInfos;
-        nNumFieldInfo++;
+        delete[] ppFieldsInfo_;
+        ppFieldsInfo_ = ppFieldInfos;
+        nNumFieldInfo_++;
 
-        fdInfosByName.insert(pair<string,FieldInfo*>(pInfo->getName(),pInfo));
-        fdInfosById.insert(make_pair(pInfo->getID(),pInfo));
+        fdInfosByName_.insert(pair<string,FieldInfo*>(pInfo->getName(),pInfo));
+        fdInfosById_.insert(make_pair(pInfo->getID(),pInfo));
     }
 }
 
@@ -97,16 +97,16 @@ void FieldsInfo::read(IndexInput* pIndexInput)
             DLOG(INFO) << "FieldsInfo::read():field count <=0." << endl;
             return ;
         }
-        nNumFieldInfo = count;
-        ppFieldsInfo = new FieldInfo*[count];
-        memset(ppFieldsInfo,0,count*sizeof(FieldInfo*));
+        nNumFieldInfo_ = count;
+        ppFieldsInfo_ = new FieldInfo*[count];
+        memset(ppFieldsInfo_,0,count*sizeof(FieldInfo*));
 
         string str;
         FieldInfo* pInfo = NULL;
         for (int32_t i = 0;i<count;i++)
         {
             pInfo = new FieldInfo();
-            pInfo->setColID(colId);
+            pInfo->setColID(colId_);
             pIndexInput->readString(str);	///<FieldName(String)>
             pInfo->setName(str.c_str());
             pInfo->setID(pIndexInput->readInt());
@@ -115,16 +115,16 @@ void FieldsInfo::read(IndexInput* pIndexInput)
             {
                 pInfo->setDistinctNumTerms(pIndexInput->readLong());
                 pInfo->setIndexOffset(pIndexInput->readLong());
-                pInfo->vocLength = pIndexInput->readLong();
-                pInfo->dfiLength = pIndexInput->readLong();
-                pInfo->ptiLength = pIndexInput->readLong();
+                pInfo->vocLength_ = pIndexInput->readLong();
+                pInfo->dfiLength_ = pIndexInput->readLong();
+                pInfo->ptiLength_ = pIndexInput->readLong();
 
-                DLOG(INFO)<<"FieldInfo:"<<"indexoffset "<<pInfo->getIndexOffset()<<" distinctnumterms "<<pInfo->distinctNumTerms()<<" voclength "<<pInfo->vocLength<<" dfilength "<<pInfo->dfiLength<<" ptilength "<<pInfo->ptiLength<<endl;
+                DLOG(INFO)<<"FieldInfo:"<<"indexoffset "<<pInfo->getIndexOffset()<<" distinctnumterms "<<pInfo->distinctNumTerms()<<" voclength "<<pInfo->vocLength_<<" dfilength "<<pInfo->dfiLength_<<" ptilength "<<pInfo->ptiLength_<<endl;
             }
 
-            ppFieldsInfo[i] = pInfo;
-            fdInfosByName.insert(pair<string,FieldInfo*>(pInfo->getName(),pInfo));
-            fdInfosById.insert(make_pair(pInfo->getID(),pInfo));
+            ppFieldsInfo_[i] = pInfo;
+            fdInfosByName_.insert(pair<string,FieldInfo*>(pInfo->getName(),pInfo));
+            fdInfosById_.insert(make_pair(pInfo->getID(),pInfo));
         }
 
     }
@@ -146,11 +146,11 @@ void FieldsInfo::write(IndexOutput* pIndexOutput)
 {
     try
     {
-        pIndexOutput->writeInt(nNumFieldInfo);///<FieldsCount(Int32)>
+        pIndexOutput->writeInt(nNumFieldInfo_);///<FieldsCount(Int32)>
         FieldInfo* pInfo;
-        for (int32_t i = 0;i<nNumFieldInfo;i++)
+        for (int32_t i = 0;i<nNumFieldInfo_;i++)
         {
-            pInfo = ppFieldsInfo[i];
+            pInfo = ppFieldsInfo_[i];
 
             pIndexOutput->writeString(pInfo->getName());	///<FieldName(String)>
             pIndexOutput->writeInt(pInfo->getID());	///<Field id(int)>            
@@ -159,9 +159,9 @@ void FieldsInfo::write(IndexOutput* pIndexOutput)
             {
                 pIndexOutput->writeLong(pInfo->distinctNumTerms());
                 pIndexOutput->writeLong(pInfo->getIndexOffset());
-                pIndexOutput->writeLong(pInfo->vocLength);
-                pIndexOutput->writeLong(pInfo->dfiLength);
-                pIndexOutput->writeLong(pInfo->ptiLength);
+                pIndexOutput->writeLong(pInfo->vocLength_);
+                pIndexOutput->writeLong(pInfo->dfiLength_);
+                pIndexOutput->writeLong(pInfo->ptiLength_);
             }
 
         }
@@ -181,55 +181,55 @@ void FieldsInfo::write(IndexOutput* pIndexOutput)
 }
 void FieldsInfo::clear()
 {
-    for (int32_t i = 0;i<nNumFieldInfo;i++)
+    for (int32_t i = 0;i<nNumFieldInfo_;i++)
     {
-        if (ppFieldsInfo[i])
-            delete ppFieldsInfo[i];
-        ppFieldsInfo[i] = NULL;
+        if (ppFieldsInfo_[i])
+            delete ppFieldsInfo_[i];
+        ppFieldsInfo_[i] = NULL;
     }
-    if (ppFieldsInfo)
+    if (ppFieldsInfo_)
     {
-        delete[] ppFieldsInfo;
-        ppFieldsInfo = NULL;
+        delete[] ppFieldsInfo_;
+        ppFieldsInfo_ = NULL;
     }
-    nNumFieldInfo = 0;
+    nNumFieldInfo_ = 0;
 
-    fdInfosByName.clear();
-    fdInfosById.clear();
+    fdInfosByName_.clear();
+    fdInfosById_.clear();
 }
 
 void FieldsInfo::reset()
 {
-    for (int32_t i = 0;i<nNumFieldInfo;i++)
+    for (int32_t i = 0;i<nNumFieldInfo_;i++)
     {
-        ppFieldsInfo[i]->reset();
+        ppFieldsInfo_[i]->reset();
     }
 }
 
 void FieldsInfo::setFieldOffset(fieldid_t fid,fileoffset_t offset)
 {
-    //ppFieldsInfo[fid]->setIndexOffset(offset);
-    fdInfosById[fid]->setIndexOffset(offset);
+    //ppFieldsInfo_[fid]->setIndexOffset(offset);
+    fdInfosById_[fid]->setIndexOffset(offset);
 }
 fileoffset_t FieldsInfo::getFieldOffset(fieldid_t fid)
 {
-    return fdInfosById[fid]->getIndexOffset();//ppFieldsInfo[fid]->getIndexOffset();
+    return fdInfosById_[fid]->getIndexOffset();//ppFieldsInfo_[fid]->getIndexOffset();
 }
 
 void FieldsInfo::setDistinctNumTerms(fieldid_t fid,uint64_t distterms)
 {
-    fdInfosById[fid]->setDistinctNumTerms(distterms);//ppFieldsInfo[fid]->setDistinctNumTerms(distterms);
+    fdInfosById_[fid]->setDistinctNumTerms(distterms);//ppFieldsInfo_[fid]->setDistinctNumTerms(distterms);
 }
 
 uint64_t FieldsInfo::distinctNumTerms(fieldid_t fid)
 {
-    return fdInfosById[fid]->distinctNumTerms();//ppFieldsInfo[fid]->distinctNumTerms();
+    return fdInfosById_[fid]->distinctNumTerms();//ppFieldsInfo_[fid]->distinctNumTerms();
 }
 
 fieldid_t FieldsInfo::getFieldID(const char* fname)
 {
-    map<string,FieldInfo*>::iterator iter = fdInfosByName.find(fname);
-    if (iter != fdInfosByName.end())
+    map<string,FieldInfo*>::iterator iter = fdInfosByName_.find(fname);
+    if (iter != fdInfosByName_.end())
     {
         return iter->second->getID();
     }
@@ -238,8 +238,8 @@ fieldid_t FieldsInfo::getFieldID(const char* fname)
 FieldInfo* FieldsInfo::getField(const char* field)
 {
     string tmp(field);
-    map<string,FieldInfo*>::iterator iter = fdInfosByName.find(tmp);
-    if (iter != fdInfosByName.end())
+    map<string,FieldInfo*>::iterator iter = fdInfosByName_.find(tmp);
+    if (iter != fdInfosByName_.end())
     {
         return iter->second;
     }
