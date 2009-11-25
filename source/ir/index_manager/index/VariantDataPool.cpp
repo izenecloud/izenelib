@@ -1,10 +1,10 @@
-#include <ir/index_manager/index/CompressedPostingList.h>
+#include <ir/index_manager/index/VariantDataPool.h>
 
 using namespace izenelib::ir::indexmanager;
 
 //////////////////////////////////////////////////////////////////////////
-///CompressedPostingList
-bool CompressedPostingList::addPosting(uint32_t posting32)
+///VariantDataPool
+bool VariantDataPool::addVData(uint32_t vdata32)
 {
     if (pTailChunk_ == NULL)
         return false;
@@ -17,7 +17,7 @@ bool CompressedPostingList::addPosting(uint32_t posting32)
         return false;
     }
 
-    uint32_t ui = posting32;
+    uint32_t ui = vdata32;
     while ((ui & ~0x7F) != 0)
     {
         pTailChunk_->data[nPosInCurChunk_++] = ((uint8_t)((ui & 0x7f) | 0x80));
@@ -27,7 +27,7 @@ bool CompressedPostingList::addPosting(uint32_t posting32)
     return true;
 }
 
-bool CompressedPostingList::addPosting(uint64_t posting64)
+bool VariantDataPool::addVData(uint64_t vdata64)
 {
     if (pTailChunk_ == NULL)
         return false;
@@ -39,7 +39,7 @@ bool CompressedPostingList::addPosting(uint64_t posting64)
         return false;
     }
 
-    uint64_t ui = posting64;
+    uint64_t ui = vdata64;
     while ((ui & ~0x7F) != 0)
     {
         pTailChunk_->data[nPosInCurChunk_++] = ((uint8_t)((ui & 0x7f) | 0x80));
@@ -49,58 +49,58 @@ bool CompressedPostingList::addPosting(uint64_t posting64)
 
     return true;
 }
-int32_t CompressedPostingList::decodePosting32(uint8_t*& posting)
+int32_t VariantDataPool::decodeVData32(uint8_t*& vdata)
 {
-    uint8_t b = *posting++;
+    uint8_t b = *vdata++;
     int32_t i = b & 0x7F;
     for (int32_t shift = 7; (b & 0x80) != 0; shift += 7)
     {
-        b = *posting++;
+        b = *vdata++;
         i |= (b & 0x7FL) << shift;
     }
     return i;
 }
 
-int64_t CompressedPostingList::decodePosting64(uint8_t*& posting)
+int64_t VariantDataPool::decodeVData64(uint8_t*& vdata)
 {
-    uint8_t b = *posting++;
+    uint8_t b = *vdata++;
     int64_t i = b & 0x7F;
     for (int32_t shift = 7; (b & 0x80) != 0; shift += 7)
     {
-        b = *posting++;
+        b = *vdata++;
         i |= (b & 0x7FLL) << shift;
     }
     return i;
 }
 
-void CompressedPostingList::encodePosting32(uint8_t*& posting,int32_t val)
+void VariantDataPool::encodeVData32(uint8_t*& vdata,int32_t val)
 {
     uint32_t ui = val;
     while ((ui & ~0x7F) != 0)
     {
-        *posting++ = ((uint8_t)((ui & 0x7f) | 0x80));
+        *vdata++ = ((uint8_t)((ui & 0x7f) | 0x80));
         ui >>= 7;
     }
-    *posting++ = (uint8_t)ui;
+    *vdata++ = (uint8_t)ui;
 }
-void CompressedPostingList::encodePosting64(uint8_t*& posting,int64_t val)
+void VariantDataPool::encodeVData64(uint8_t*& vdata,int64_t val)
 {
     uint64_t ui = val;
     while ((ui & ~0x7F) != 0)
     {
-        *posting++ = ((uint8_t)((ui & 0x7f) | 0x80));
+        *vdata++ = ((uint8_t)((ui & 0x7f) | 0x80));
         ui >>= 7;
     }
-    *posting++ = ((uint8_t)ui);
+    *vdata++ = ((uint8_t)ui);
 }
 
-void CompressedPostingList::truncTailChunk()
+void VariantDataPool::truncTailChunk()
 {
     nTotalUnused_ += pTailChunk_->size - nPosInCurChunk_;
     pTailChunk_->size = nPosInCurChunk_;
 }
 
-void CompressedPostingList::addChunk(PostingChunk* pChunk)
+void VariantDataPool::addChunk(VariantDataChunk* pChunk)
 {
     if (pTailChunk_)
         pTailChunk_->next = pChunk;
@@ -111,12 +111,12 @@ void CompressedPostingList::addChunk(PostingChunk* pChunk)
 
     nPosInCurChunk_ = 0;
 }
-int32_t CompressedPostingList::getRealSize()
+int32_t VariantDataPool::getRealSize()
 {
     return nTotalSize_ - nTotalUnused_;
 }
 
-void CompressedPostingList::reset()
+void VariantDataPool::reset()
 {
     pHeadChunk_ = pTailChunk_ = NULL;
     nTotalSize_ = nPosInCurChunk_ = nTotalUnused_ = 0;

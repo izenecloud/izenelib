@@ -218,14 +218,14 @@ void SingleIndexBarrelReader::delDocField(unsigned int colID, docid_t docId, con
                 uint8_t* u = buf;
                 pDPInput->readInternal((char*)buf,32,false);
                 PostingDescriptor postingDesc;
-                postingDesc.length = CompressedPostingList::decodePosting64(u); ///<PostingLength(VInt64)>
-                postingDesc.df = CompressedPostingList::decodePosting32(u); 	///<DF(VInt32)>
-                postingDesc.ctf = CompressedPostingList::decodePosting64(u);		///<CTF(VInt64)>
-                postingDesc.poffset = CompressedPostingList::decodePosting64(u);	///PositionPointer(VInt64)
+                postingDesc.length = VariantDataPool::decodeVData64(u); ///<PostingLength(VInt64)>
+                postingDesc.df = VariantDataPool::decodeVData32(u); 	///<DF(VInt32)>
+                postingDesc.ctf = VariantDataPool::decodeVData64(u);		///<CTF(VInt64)>
+                postingDesc.poffset = VariantDataPool::decodeVData64(u);	///PositionPointer(VInt64)
                 pPPInput->seekInternal(postingDesc.poffset);///not seek(), because seek() may trigger a large data read event.
                 pPPInput->readInternal((char*)buf,8,false);
                 u = buf;
-                int64_t nPPostingLength = CompressedPostingList::decodePosting64(u); ///<ChunkLength(VInt64)>
+                int64_t nPPostingLength = VariantDataPool::decodeVData64(u); ///<ChunkLength(VInt64)>
                 desc.getPPostingOutput()->seek(postingDesc.poffset - nPPostingLength);///seek to the begin of position posting data
                 desc.getDPostingOutput()->seek(pTermInfo->docPointer() - postingDesc.length); ///seek to the begin of posting data
                 fileoffset_t poffset = newPosting->write(&desc);///write posting data

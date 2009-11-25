@@ -32,8 +32,8 @@ InMemoryPosting::InMemoryPosting(MemCache* pCache)
         ,nCTF_(0)
         ,pDS_(NULL)
 {
-    pDocFreqList_ = new CompressedPostingList();
-    pLocList_  = new CompressedPostingList();
+    pDocFreqList_ = new VariantDataPool();
+    pLocList_  = new VariantDataPool();
 
     int32_t newSize = getNextChunkSize(pDocFreqList_->nTotalSize_);
     pDocFreqList_->addChunk(newChunk(newSize));
@@ -75,7 +75,7 @@ InMemoryPosting::~InMemoryPosting()
     }
 }
 
-PostingChunk* InMemoryPosting::newChunk(int32_t chunkSize)
+VariantDataChunk* InMemoryPosting::newChunk(int32_t chunkSize)
 {
     uint8_t* begin = pMemCache_->getMem(chunkSize);
     ///allocate memory failed,decrease chunk size
@@ -95,8 +95,8 @@ PostingChunk* InMemoryPosting::newChunk(int32_t chunkSize)
         chunkSize = UPTIGHT_ALLOC_CHUNKSIZE;
     }
 
-    PostingChunk* pChunk = (PostingChunk*)begin;
-    pChunk->size = (int32_t)(POW_TABLE[chunkSize] - sizeof(PostingChunk*) - sizeof(int32_t));
+    VariantDataChunk* pChunk = (VariantDataChunk*)begin;
+    pChunk->size = (int32_t)(POW_TABLE[chunkSize] - sizeof(VariantDataChunk*) - sizeof(int32_t));
     pChunk->next = NULL;
     return pChunk;
 }
@@ -146,11 +146,11 @@ Posting* InMemoryPosting::clone()
     InMemoryPosting* pClone = new InMemoryPosting();
     if (pDocFreqList_)
     {
-        pClone->pDocFreqList_ = new CompressedPostingList(*pDocFreqList_);
+        pClone->pDocFreqList_ = new VariantDataPool(*pDocFreqList_);
     }
     if (pLocList_)
     {
-        pClone->pLocList_ = new CompressedPostingList(*pLocList_);
+        pClone->pLocList_ = new VariantDataPool(*pLocList_);
     }
     pClone->nCTF_ = nCTF_;
     pClone->nDF_ = nDF_;
@@ -174,12 +174,12 @@ void InMemoryPosting::addLocation(docid_t docid, loc_t location)
     if (docid == nLastDocID_)
     {
         ///see it before,only position is needed
-        if (!pLocList_->addPosting(location - nLastLoc_))
+        if (!pLocList_->addVData(location - nLastLoc_))
         {
             ///chunk is exhausted
             int32_t newSize = getNextChunkSize(pLocList_->nTotalSize_);
             pLocList_->addChunk(newChunk(newSize));
-            pLocList_->addPosting(location - nLastLoc_);///d-gap encoding
+            pLocList_->addVData(location - nLastLoc_);///d-gap encoding
         }
         nCurTermFreq_++;
         nLastLoc_ = location;
@@ -188,31 +188,31 @@ void InMemoryPosting::addLocation(docid_t docid, loc_t location)
     {
         if (nCurTermFreq_ > 0)///write previous document's term freq
         {
-            if (!pDocFreqList_->addPosting(nCurTermFreq_))
+            if (!pDocFreqList_->addVData(nCurTermFreq_))
             {
                 ///chunk is exhausted
                 int32_t newSize = getNextChunkSize(pDocFreqList_->nTotalSize_);
                 pDocFreqList_->addChunk(newChunk(newSize));
-                pDocFreqList_->addPosting(nCurTermFreq_);
+                pDocFreqList_->addVData(nCurTermFreq_);
             }
         }
         else if (nLastDocID_ == BAD_DOCID)///first see it
         {
             nLastDocID_ = 0;
         }
-        if (!pDocFreqList_->addPosting(docid - nLastDocID_))
+        if (!pDocFreqList_->addVData(docid - nLastDocID_))
         {
             ///chunk is exhausted
             int32_t newSize = getNextChunkSize(pDocFreqList_->nTotalSize_);
             pDocFreqList_->addChunk(newChunk(newSize));
-            pDocFreqList_->addPosting(docid - nLastDocID_);
+            pDocFreqList_->addVData(docid - nLastDocID_);
         }
-        if (!pLocList_->addPosting(location))
+        if (!pLocList_->addVData(location))
         {
             ///chunk is exhausted
             int32_t newSize = getNextChunkSize(pLocList_->nTotalSize_);
             pLocList_->addChunk(newChunk(newSize));
-            pLocList_->addPosting(location);
+            pLocList_->addVData(location);
         }
 
         nCTF_ += nCurTermFreq_;
@@ -228,7 +228,7 @@ void InMemoryPosting::addLocation(docid_t docid, loc_t location)
 void InMemoryPosting::writeDPosting(IndexOutput* pDOutput)
 {
     ///write chunk data
-    PostingChunk* pChunk = pDocFreqList_->pHeadChunk_;
+    VariantDataChunk* pChunk = pDocFreqList_->pHeadChunk_;
     while (pChunk)
     {
         pDOutput->write((const char*)pChunk->data,pChunk->size);
@@ -239,7 +239,7 @@ void InMemoryPosting::writeDPosting(IndexOutput* pDOutput)
 fileoffset_t InMemoryPosting::writePPosting(IndexOutput* pPOutput)
 {
     ///write position posting data
-    PostingChunk* pChunk = pLocList_->pHeadChunk_;
+    VariantDataChunk* pChunk = pLocList_->pHeadChunk_;
     int size = 0;
     while (pChunk)
     {
@@ -275,11 +275,11 @@ void InMemoryPosting::flushLastDoc(bool bTruncTail)
 
     if (nCurTermFreq_ > 0)
     {
-        if (!pDocFreqList_->addPosting(nCurTermFreq_))
+        if (!pDocFreqList_->addVData(nCurTermFreq_))
         {
             int32_t newSize = getNextChunkSize(pDocFreqList_->nTotalSize_);
             pDocFreqList_->addChunk(newChunk(newSize));
-            pDocFreqList_->addPosting(nCurTermFreq_);
+            pDocFreqList_->addVData(nCurTermFreq_);
         }
         if (bTruncTail)
         {
@@ -345,13 +345,13 @@ int32_t InMemoryPosting::decodeNext(uint32_t* pPosting,int32_t length)
     while (count < left)
     {
         ISCHUNKOVER_D();
-        did += CompressedPostingList::decodePosting32(pDChunk);
+        did += VariantDataPool::decodeVData32(pDChunk);
 
         *pDoc++ = did;
 
         ISCHUNKOVER_D();
 
-        *pFreq++ = CompressedPostingList::decodePosting32(pDChunk);
+        *pFreq++ = VariantDataPool::decodeVData32(pDChunk);
 
         count++;
     }
@@ -383,7 +383,7 @@ void InMemoryPosting::decodeNextPositions(uint32_t* pPosting,int32_t length)
             pPChunkEnd = &(pDS_->decodingPChunk->data[pDS_->decodingPChunk->size-1]);
         }
 
-        loc += CompressedPostingList::decodePosting32(pPChunk);
+        loc += VariantDataPool::decodeVData32(pPChunk);
         if (pPos)
         {
             *pPos = loc;
@@ -419,7 +419,7 @@ void InMemoryPosting::decodeNextPositions(uint32_t* pPosting,uint32_t* pFreqs,in
                 pPChunkEnd = &(pDS_->decodingPChunk->data[pDS_->decodingPChunk->size-1]);
             }
 
-            loc += CompressedPostingList::decodePosting32(pPChunk);
+            loc += VariantDataPool::decodeVData32(pPChunk);
             if (pPos)
             {
                 *pPos = loc;
@@ -488,15 +488,15 @@ void OnDiskPosting::reset(fileoffset_t newOffset)
     uint8_t buf[512];
     uint8_t* u = buf;
     pDPInput->readInternal((char*)buf,512,false);
-    postingDesc_.length = CompressedPostingList::decodePosting64(u);	///<PostingLength(VInt64)>
-    postingDesc_.df = CompressedPostingList::decodePosting32(u);		///<DF(VInt32)>
-    postingDesc_.ctf = CompressedPostingList::decodePosting64(u);		///<CTF(VInt64)>
-    postingDesc_.poffset = CompressedPostingList::decodePosting64(u);	///PositionPointer(VInt64)
+    postingDesc_.length = VariantDataPool::decodeVData64(u);	///<PostingLength(VInt64)>
+    postingDesc_.df = VariantDataPool::decodeVData32(u);		///<DF(VInt32)>
+    postingDesc_.ctf = VariantDataPool::decodeVData64(u);		///<CTF(VInt64)>
+    postingDesc_.poffset = VariantDataPool::decodeVData64(u);	///PositionPointer(VInt64)
 
-    CompressedPostingList::decodePosting32(u);///<ChunkCount(VInt32)>
+    VariantDataPool::decodeVData32(u);///<ChunkCount(VInt32)>
     ///read first chunk descriptor of posting list <ChunkDescriptor>
-    chunkDesc_.length = CompressedPostingList::decodePosting64(u);	///<ChunkLength(VInt64)>
-    chunkDesc_.lastdocid = CompressedPostingList::decodePosting32(u);	///<LastDocID(VInt32)>
+    chunkDesc_.length = VariantDataPool::decodeVData64(u);	///<ChunkLength(VInt64)>
+    chunkDesc_.lastdocid = VariantDataPool::decodeVData32(u);	///<LastDocID(VInt32)>
     IndexInput* pPPInput = pInputDescriptor_->getPPostingInput();
     if (pPPInput)
     {
@@ -504,7 +504,7 @@ void OnDiskPosting::reset(fileoffset_t newOffset)
         pPPInput->seekInternal(postingDesc_.poffset);///not seek(), because seek() may trigger a large data read event.
         pPPInput->readInternal((char*)buf,8,false);
         u = buf;
-        nPPostingLength_ = CompressedPostingList::decodePosting64(u); ///<ChunkLength(VInt64)>
+        nPPostingLength_ = VariantDataPool::decodeVData64(u); ///<ChunkLength(VInt64)>
         pPPInput->seek(postingDesc_.poffset - nPPostingLength_);///seek to the begin of position posting data
     }
     else

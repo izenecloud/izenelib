@@ -77,11 +77,11 @@ void PostingMerger::mergeWith(InMemoryPosting* pInMemoryPosting)
         postingDesc_.poffset = pPOutput->getFilePointer();
     }
     ///write chunk data, update the first doc id
-    PostingChunk* pDChunk = pInMemoryPosting->pDocFreqList_->pHeadChunk_;
+    VariantDataChunk* pDChunk = pInMemoryPosting->pDocFreqList_->pHeadChunk_;
     if (pDChunk)
     {
         uint8_t* bp = &(pDChunk->data[0]);
-        docid_t firstDocID = CompressedPostingList::decodePosting32(bp) - chunkDesc_.lastdocid;
+        docid_t firstDocID = VariantDataPool::decodeVData32(bp) - chunkDesc_.lastdocid;
 		
         pDOutput->writeVInt(firstDocID);///write first doc id
         int32_t writeSize = pDChunk->size - (bp - &(pDChunk->data[0]));	//write the rest data of first chunk
@@ -99,7 +99,7 @@ void PostingMerger::mergeWith(InMemoryPosting* pInMemoryPosting)
     chunkDesc_.length += (pDOutput->getFilePointer() - oldDOff);
 
     ///write position posting
-    PostingChunk* pPChunk = pInMemoryPosting->pLocList_->pHeadChunk_;
+    VariantDataChunk* pPChunk = pInMemoryPosting->pLocList_->pHeadChunk_;
     while (pPChunk)
     {
         pPOutput->write((const char*)pPChunk->data,pPChunk->size);

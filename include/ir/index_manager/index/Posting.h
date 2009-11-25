@@ -13,7 +13,7 @@
 #include <ir/index_manager/utility/Utilities.h>
 #include <ir/index_manager/store/IndexOutput.h>
 
-#include <ir/index_manager/index/CompressedPostingList.h>
+#include <ir/index_manager/index/VariantDataPool.h>
 
 NS_IZENELIB_IR_BEGIN
 
@@ -21,10 +21,26 @@ namespace indexmanager{
 class OutputDescriptor;
 class InputDescriptor;
 
+/// the descriptor of posting
+struct PostingDescriptor
+{
+    int64_t length; ///length of the posting
+    count_t df; ///document frequency of this field
+    count_t tdf; ///document frequency regarding all fields in a document
+    int64_t ctf; ///global  term frequency
+    fileoffset_t poffset; ///offset of the position postings in the .pop file
+};
+
+/// the descriptor of chunk
+struct ChunkDescriptor
+{
+    int64_t length; ///length of the chunk
+    docid_t lastdocid; ///the last doc id of the chunk
+};
+
 /**
 *virtual base class of InMemoryPosting and OnDiskPosting
 */
-
 class Posting
 {
 public:
@@ -113,11 +129,11 @@ class InMemoryPosting:public Posting
 public:
     struct DecodeState
     {
-        PostingChunk* decodingDChunk;
+        VariantDataChunk* decodingDChunk;
         int32_t decodingDChunkPos;
         docid_t lastDecodedDocID;		///the latest decoded doc id
         int32_t decodedDocCount;
-        PostingChunk* decodingPChunk;
+        VariantDataChunk* decodingPChunk;
         int32_t decodingPChunkPos;
         loc_t lastDecodedPos; 		///the latest decoded offset
         loc_t lastDecodedCharPos;        ///the latest decoded char offset
@@ -134,7 +150,7 @@ public:
      * @param the size of chunk
      * @return the chunk object
      **/
-    PostingChunk* newChunk(int32_t chunkSize);
+    VariantDataChunk* newChunk(int32_t chunkSize);
 
     /**
      * Get the next chunk size
@@ -261,8 +277,8 @@ protected:
     count_t nCurTermFreq_; ///current term freq
     int32_t nCTF_; 			///Collection's total term frequency
     DecodeState* pDS_;			///decoding state
-    CompressedPostingList* pDocFreqList_; /// Doc freq list
-    CompressedPostingList* pLocList_; 	/// Location list
+    VariantDataPool* pDocFreqList_; /// Doc freq list
+    VariantDataPool* pLocList_; 	/// Location list
 
     friend class PostingMerger;
 public:
