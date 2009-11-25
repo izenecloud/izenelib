@@ -65,11 +65,11 @@ public:
     virtual void  seek(int64_t pos);
 
 protected:
-    char* buffer;
-    size_t buffersize;
-    int64_t bufferStart;
-    size_t bufferPosition;
-    bool bOwnBuff;
+    char* buffer_;
+    size_t buffersize_;
+    int64_t bufferStart_;
+    size_t bufferPosition_;
+    bool bOwnBuff_;
 };
 
 

@@ -56,27 +56,27 @@ protected:
     void createBuffer();
 
 protected:
-    TermInfo termInfo;
+    TermInfo termInfo_;
 
-    Posting* pPosting;
+    Posting* pPosting_;
 
-    uint32_t* pPostingBuffer;	///buffer for store decoded postings
+    uint32_t* pPostingBuffer_;	///buffer for store decoded postings
 
-    size_t nBufferSize;		///the size of buffer.
+    size_t nBufferSize_;		///the size of buffer.
 
-    size_t nFreqStart;
+    size_t nFreqStart_;
 
-    int32_t nTotalDecodedCount;	///size of decoded postings
+    int32_t nTotalDecodedCount_;	///size of decoded postings
 
-    int32_t nCurDecodedCount;
+    int32_t nCurDecodedCount_;
 
-    int32_t nCurrentPosting;	///position of current posting
+    int32_t nCurrentPosting_;	///position of current posting
 
-    TermReader* pTermReader;
+    TermReader* pTermReader_;
 
-    InputDescriptor* pInputDescriptor;
+    InputDescriptor* pInputDescriptor_;
 
-    bool ownPosting;
+    bool ownPosting_;
 
     static const size_t DEFAULT_BUFFERSIZE = 32768;
 };

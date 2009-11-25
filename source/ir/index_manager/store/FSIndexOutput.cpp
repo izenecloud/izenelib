@@ -32,7 +32,7 @@ FSIndexOutput::FSIndexOutput(const char* filename, const string& mode)
         SF1V5_THROW(ERROR_FILEIO,"Open file error: " + filename_);
     }
 
-    setbuf(fileHandle_,NULL);
+    //setbuf(fileHandle_,NULL);
 }
 
 FSIndexOutput::FSIndexOutput(const char* filename, size_t buffsize, const string& mode)
@@ -58,7 +58,7 @@ FSIndexOutput::FSIndexOutput(const char* filename, size_t buffsize, const string
         SF1V5_THROW(ERROR_FILEIO,"Open file error: " + filename_);
     }
 
-    setbuf(fileHandle_,NULL);
+    //setbuf(fileHandle_,NULL);
 }
 
 FSIndexOutput::~FSIndexOutput(void)
@@ -85,7 +85,7 @@ void FSIndexOutput::seek(int64_t pos)
 
 int64_t FSIndexOutput::length()
 {
-    return bufferStart + (int64_t)bufferPosition;
+    return bufferStart_ + (int64_t)bufferPosition_;
 }
 
 void FSIndexOutput::close()

@@ -642,21 +642,24 @@ template<typename KeyType, typename ValueType, typename LockType,
 	SDBCursor locn;
 	DataType<KeyType,ValueType> rec;
 
-	lock_.acquire_read_lock();
+	lock_.acquire_read_lock();	
+	
 	container_.search(lowKey, locn);
 	if (container_.get(locn, rec)) {
 		if (comp_(rec.get_key(), highKey) <= 0) {
 			result.push_back(rec);
 			ret = true;
-		} else
+		} else{
+			lock_.release_read_lock();
 			return ret;
+		}
 	}
 
 	//if lowKey not exist in database, it starts from the lowest key.
 	//container_.search(newLowKey, locn);
 	do {
 		if (container_.seq(locn, ESD_FORWARD) ) {
-			if (get(locn, rec) ) {
+			if (container_.get(locn, rec) ) {
 				if (comp_(rec.get_key(), highKey) <= 0) {
 					result.push_back(rec);
 					ret = true;

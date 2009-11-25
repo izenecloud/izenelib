@@ -1,3 +1,9 @@
+/**
+* @file        MultiPostingIterator.h
+* @author     Yingfeng Zhang
+* @version     SF1 v5.0
+* @brief   
+*/
 #ifndef MULTI_POSTINGITERATOR_H
 #define MULTI_POSTINGITERATOR_H
 

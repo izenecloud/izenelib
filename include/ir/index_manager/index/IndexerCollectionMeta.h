@@ -1,3 +1,10 @@
+/**
+* @file        IndexerCollectionMeta.h
+* @author     Yingfeng Zhang
+* @version     SF1 v5.0
+* @brief   The main configuration interface exposed to user of IndexManager
+* it is used to describe the document schema of one collection
+*/
 #ifndef INDEXER_COLLECTIONMETA_H
 #define INDEXER_COLLECTIONMETA_H
 
@@ -13,6 +20,13 @@ class IndexerCollectionMeta
 {
 public:
     IndexerCollectionMeta() {}
+
+    IndexerCollectionMeta(const IndexerCollectionMeta& other)
+        :colId_(other.colId_)
+        ,name_(other.name_)
+        ,encoding_(other.encoding_)
+        ,schema_(other.schema_)
+    {}
 
     void setColId(uint32_t id)
     {

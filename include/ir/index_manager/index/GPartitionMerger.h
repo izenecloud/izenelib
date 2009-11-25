@@ -1,3 +1,8 @@
+/**
+* @file        GPartitionMerger.h
+* @author     Yingfeng Zhang
+* @brief   GPartitionMerger 
+*/
 #ifndef GP_MERGER_H
 #define GP_MERGER_H
 

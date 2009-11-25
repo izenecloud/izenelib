@@ -6,18 +6,18 @@ using namespace izenelib::ir::indexmanager;
 
 IndexOutput::IndexOutput(char* buf,size_t buffsize)
 {
-    if (buffer)
+    if (buffer_)
     {
-        buffer = buf;
-        buffersize = buffsize;
-        bOwnBuff = false;
+        buffer_ = buf;
+        buffersize_ = buffsize;
+        bOwnBuff_ = false;
     }
     else
     {
-        SF1V5_THROW(ERROR_ILLEGALARGUMENT,":IndexOutput(char* buffer,size_t buffsize)");
+        SF1V5_THROW(ERROR_ILLEGALARGUMENT,":IndexOutput(char* buffer_,size_t buffsize)");
     }
-    bufferStart = 0;
-    bufferPosition = 0;
+    bufferStart_ = 0;
+    bufferPosition_ = 0;
 }
 
 IndexOutput::IndexOutput(size_t buffsize)
@@ -26,19 +26,19 @@ IndexOutput::IndexOutput(size_t buffsize)
     {
         if (buffsize > 0)
         {
-            buffer = new char[buffsize];
-            buffersize = buffsize;
+            buffer_ = new char[buffsize];
+            buffersize_ = buffsize;
         }
         else
         {
-            buffer = new char[INDEXOUTPUT_BUFFSIZE];
-            buffersize = INDEXOUTPUT_BUFFSIZE;
+            buffer_ = new char[INDEXOUTPUT_BUFFSIZE];
+            buffersize_ = INDEXOUTPUT_BUFFSIZE;
         }
 
-        bOwnBuff = true;
+        bOwnBuff_ = true;
 
-        bufferStart = 0;
-        bufferPosition = 0;
+        bufferStart_ = 0;
+        bufferPosition_ = 0;
 
     }
 
@@ -52,12 +52,12 @@ IndexOutput::IndexOutput(size_t buffsize)
 
 IndexOutput::~IndexOutput(void)
 {
-    if (bOwnBuff)
+    if (bOwnBuff_)
     {
-        if (buffer)
+        if (buffer_)
         {
-            delete[]buffer;
-            buffer = NULL;
+            delete[]buffer_;
+            buffer_ = NULL;
         }
     }
 }
@@ -66,24 +66,24 @@ IndexOutput::~IndexOutput(void)
 //
 void IndexOutput::write(const char* data,size_t length)
 {
-    if ((bufferPosition>0) && ( (int64_t)(bufferPosition + length) >= (int64_t)buffersize) )
+    if ((bufferPosition_>0) && ( (int64_t)(bufferPosition_ + length) >= (int64_t)buffersize_) )
         flush();
-    if ((int64_t)buffersize < (int64_t)length)
+    if ((int64_t)buffersize_ < (int64_t)length)
     {
         flushBuffer((char*)data,length);
-        bufferStart+=length;
+        bufferStart_+=length;
     }
     else
     {
-        memcpy(buffer + bufferPosition,data,length);
-        bufferPosition += length;
+        memcpy(buffer_ + bufferPosition_,data,length);
+        bufferPosition_ += length;
     }
 }
 void IndexOutput::writeByte(uint8_t b)
 {
-    if (bufferPosition >= buffersize)
+    if (bufferPosition_ >= buffersize_)
         flush();
-    buffer[bufferPosition++] = b;
+    buffer_[bufferPosition_++] = b;
 }
 
 void IndexOutput::writeBytes(uint8_t* b, size_t length)
@@ -186,39 +186,38 @@ uint8_t IndexOutput::getVLongLength(int64_t i)
 
 void IndexOutput::setBuffer(char* buf,size_t bufSize)
 {
-    if (bufferStart!=0 || bufferPosition != 0)
+    if (bufferStart_!=0 || bufferPosition_ != 0)
     {
         SF1V5_THROW(ERROR_UNSUPPORTED," void IndexOutput::setBuffer(char* buf,size_t bufSize):you must call setBuffer() before reading any data.");
     }
-    if (bOwnBuff && buffer)
+    if (bOwnBuff_ && buffer_)
     {
-        delete[] buffer;
+        delete[] buffer_;
     }
-    buffer = buf;
-    buffersize = bufSize;
-    bOwnBuff = false;
+    buffer_ = buf;
+    buffersize_ = bufSize;
+    bOwnBuff_ = false;
 }
 void IndexOutput:: flush()
 {
-    flushBuffer(buffer, bufferPosition);
-    bufferStart += bufferPosition;
-    bufferPosition = 0;
+    flushBuffer(buffer_, bufferPosition_);
+    bufferStart_ += bufferPosition_;
+    bufferPosition_ = 0;
 }
+
 int64_t IndexOutput::getFilePointer()
 {
-    return bufferStart + (int64_t)bufferPosition;
+    return bufferStart_ + (int64_t)bufferPosition_;
 }
-
-
 
 void IndexOutput::write(IndexInput* pInput,int64_t length)
 {
-    if ( (bufferPosition + length) >= buffersize)
+    if ( (bufferPosition_ + length) >= buffersize_)
         flush();
-    if (length <= (int64_t)(buffersize - bufferPosition) )
+    if (length <= (int64_t)(buffersize_ - bufferPosition_) )
     {
-        pInput->readBytes((uint8_t*)(buffer + bufferPosition),(size_t)length);
-        bufferPosition += (size_t)length;
+        pInput->readBytes((uint8_t*)(buffer_ + bufferPosition_),(size_t)length);
+        bufferPosition_ += (size_t)length;
     }
     else
     {
@@ -226,20 +225,21 @@ void IndexOutput::write(IndexInput* pInput,int64_t length)
         size_t nwrite=0;
         while (n < length)
         {
-            nwrite = buffersize;
+            nwrite = buffersize_;
             if ( (length - n) < (int64_t)nwrite)
                 nwrite = (size_t)(length - n);
 
-            pInput->readInternal(buffer,nwrite);
-            pInput->seek(pInput->getFilePointer() + nwrite);
+            //pInput->readInternal(buffer_,nwrite);
+            //pInput->seek(pInput->getFilePointer() + nwrite);
+            pInput->readBytes((uint8_t*)buffer_,(size_t)nwrite);
 
-            if (nwrite == buffersize)
+            if (nwrite == buffersize_)
             {
-                bufferPosition = nwrite;
+                bufferPosition_ = nwrite;
                 flush();
             }
 
-            else bufferPosition += nwrite;
+            else bufferPosition_ += nwrite;
 
             n += nwrite;
         }
@@ -250,13 +250,13 @@ void IndexOutput::write(IndexInput* pInput,int64_t length)
 void IndexOutput::seek(int64_t pos)
 {
     flush();
-    bufferStart = pos;
+    bufferStart_ = pos;
 }
 
 void IndexOutput::close()
 {
     flush();
-    bufferStart = 0;
-    bufferPosition = 0;
+    bufferStart_ = 0;
+    bufferPosition_ = 0;
 }
 

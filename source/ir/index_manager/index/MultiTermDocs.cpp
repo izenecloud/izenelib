@@ -5,8 +5,8 @@ using namespace izenelib::ir::indexmanager;
 
 MultiTermDocs::MultiTermDocs(void)
 {
-    current = NULL;
-    pTermDocsQueue = NULL;
+    current_ = NULL;
+    pTermDocsQueue_ = NULL;
 }
 
 MultiTermDocs::~MultiTermDocs(void)
@@ -16,34 +16,34 @@ MultiTermDocs::~MultiTermDocs(void)
 
 docid_t MultiTermDocs::doc()
 {
-    return current->termDocs->doc();
+    return current_->termDocs_->doc();
 }
 
 count_t MultiTermDocs::freq()
 {
-    return current->termDocs->freq();
+    return current_->termDocs_->freq();
 }
 
 bool MultiTermDocs::next()
 {
-    if (pTermDocsQueue == NULL)
+    if (pTermDocsQueue_ == NULL)
     {
         initQueue();
-        if (current)
+        if (current_)
             return true;
         return false;
     }
 
-    while (pTermDocsQueue->size() > 0)
+    while (pTermDocsQueue_->size() > 0)
     {
-        if (current->termDocs->next())
+        if (current_->termDocs_->next())
             return true;
         else
         {
-            pTermDocsQueue->pop();
-            if (pTermDocsQueue->size() > 0)
+            pTermDocsQueue_->pop();
+            if (pTermDocsQueue_->size() > 0)
             {
-                current = pTermDocsQueue->top();
+                current_ = pTermDocsQueue_->top();
                 return true;
             }
         }
@@ -53,20 +53,20 @@ bool MultiTermDocs::next()
 
 count_t MultiTermDocs::next(docid_t*& docs, count_t*& freqs)
 {
-    if (pTermDocsQueue == NULL)
+    if (pTermDocsQueue_ == NULL)
     {
         initQueue();
     }
 
     int c = -1;
-    while (pTermDocsQueue->size() > 0)
+    while (pTermDocsQueue_->size() > 0)
     {
-        current = pTermDocsQueue->top();
-        c = current->termDocs->next(docs,freqs);
+        current_ = pTermDocsQueue_->top();
+        c = current_->termDocs_->next(docs,freqs);
         if (c> 0)
             return c;
         else
-            pTermDocsQueue->pop();
+            pTermDocsQueue_->pop();
     }
     return c;
 }
@@ -75,11 +75,11 @@ freq_t MultiTermDocs::docFreq()
 {
     BarrelTermDocsEntry* pEntry;
     freq_t df = 0;
-    list<BarrelTermDocsEntry*>::iterator iter = barrelTermDocs.begin();
-    while (iter != barrelTermDocs.end())
+    list<BarrelTermDocsEntry*>::iterator iter = barrelTermDocs_.begin();
+    while (iter != barrelTermDocs_.end())
     {
         pEntry = (*iter);
-        df += pEntry->termDocs->docFreq();
+        df += pEntry->termDocs_->docFreq();
         iter++;
     }
     return df;
@@ -89,11 +89,11 @@ int64_t MultiTermDocs::getCTF()
 {
     BarrelTermDocsEntry* pEntry;
     int64_t ctf = 0;
-    list<BarrelTermDocsEntry*>::iterator iter = barrelTermDocs.begin();
-    while (iter != barrelTermDocs.end())
+    list<BarrelTermDocsEntry*>::iterator iter = barrelTermDocs_.begin();
+    while (iter != barrelTermDocs_.end())
     {
         pEntry = (*iter);
-        ctf += pEntry->termDocs->getCTF();
+        ctf += pEntry->termDocs_->getCTF();
         iter++;
     }
     return ctf;
@@ -101,42 +101,42 @@ int64_t MultiTermDocs::getCTF()
 
 void  MultiTermDocs::close()
 {
-    list<BarrelTermDocsEntry*>::iterator iter = barrelTermDocs.begin();
-    while (iter != barrelTermDocs.end())
+    list<BarrelTermDocsEntry*>::iterator iter = barrelTermDocs_.begin();
+    while (iter != barrelTermDocs_.end())
     {
         delete (*iter);
         iter++;
     }
-    barrelTermDocs.clear();
-    if (pTermDocsQueue)
+    barrelTermDocs_.clear();
+    if (pTermDocsQueue_)
     {
-        delete pTermDocsQueue;
-        pTermDocsQueue = NULL;
+        delete pTermDocsQueue_;
+        pTermDocsQueue_ = NULL;
     }
-    current = NULL;
-    cursor = -1;
+    current_ = NULL;
+    cursor_ = -1;
 }
 
 void MultiTermDocs::add(BarrelInfo* pBarrelInfo,TermDocFreqs* pTermDocs)
 {
-    barrelTermDocs.push_back(new BarrelTermDocsEntry(pBarrelInfo,pTermDocs));
-    if (current == NULL)
-        current = barrelTermDocs.front();
+    barrelTermDocs_.push_back(new BarrelTermDocsEntry(pBarrelInfo,pTermDocs));
+    if (current_ == NULL)
+        current_ = barrelTermDocs_.front();
 }
 void MultiTermDocs::initQueue()
 {
-    pTermDocsQueue = new TermDocsQueue(barrelTermDocs.size());
-    list<BarrelTermDocsEntry*>::iterator iter = barrelTermDocs.begin();
+    pTermDocsQueue_ = new TermDocsQueue(barrelTermDocs_.size());
+    std::list<BarrelTermDocsEntry*>::iterator iter = barrelTermDocs_.begin();
     BarrelTermDocsEntry* pEntry;
-    while (iter != barrelTermDocs.end())
+    while (iter != barrelTermDocs_.end())
     {
         pEntry = *iter;
-        if (pEntry->termDocs->next())
-            pTermDocsQueue->insert(pEntry);
+        if (pEntry->termDocs_->next())
+            pTermDocsQueue_->insert(pEntry);
         iter++;
     }
-    if (pTermDocsQueue->size() > 0)
-        current = pTermDocsQueue->top();
-    else current = NULL;
+    if (pTermDocsQueue_->size() > 0)
+        current_ = pTermDocsQueue_->top();
+    else current_ = NULL;
 }
 

@@ -36,7 +36,6 @@ void FieldIndexer::addField(docid_t docid, boost::shared_ptr<LAInput> laInput)
             curPosting = postingIter->second;
 
         curPosting->addLocation(docid, iter->offset_);
-        curPosting->updateDF(docid);
     }
 }
 
@@ -58,7 +57,6 @@ void FieldIndexer::addField(docid_t docid, boost::shared_ptr<ForwardIndex> forwa
         ForwardIndexOffset::iterator	endit = iter->second->end();
         for(ForwardIndexOffset::iterator it = iter->second->begin(); it != endit; ++it)
             curPosting->addLocation(docid, *it);
-        curPosting->updateDF(docid);
     }
 }
 
@@ -89,7 +87,6 @@ void FieldIndexer::removeField(docid_t docid, boost::shared_ptr<LAInput> laInput
                         newPosting->addLocation(decompressed_docid, pos);
                     pos = pTermPositions->nextPosition();
                 }
-                newPosting->updateDF(decompressed_docid);
             }
 
             InMemoryPosting* curPosting =  (InMemoryPosting*)postingMap_[termId];
@@ -129,7 +126,6 @@ void FieldIndexer::removeField(docid_t docid, boost::shared_ptr<ForwardIndex> fo
                         newPosting->addLocation(decompressed_docid, pos);
                     pos = pTermPositions->nextPosition();
                 }
-                newPosting->updateDF(decompressed_docid);
             }
 
             InMemoryPosting* curPosting =  (InMemoryPosting*)postingMap_[termId];

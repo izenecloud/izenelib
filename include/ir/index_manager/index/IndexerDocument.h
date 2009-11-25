@@ -1,3 +1,10 @@
+/**
+* @file        IndexerDocument.h
+* @author     Yingfeng Zhang
+* @version     SF1 v5.0
+* @brief   The main interface exposed to user of IndexManager
+* it encapsulates the Document entity to serve for the usage of IndexManager
+*/
 #ifndef INDEXERDOCUMENT_H
 #define INDEXERDOCUMENT_H
 
@@ -23,8 +30,10 @@
 NS_IZENELIB_IR_BEGIN
 
 namespace indexmanager{
-
+///PropertyType is the data supported to set up BTree index
 typedef boost::variant<int64_t,uint64_t, float, double, String> PropertyType;
+///Besides the type for building BTree index, we have two other kinds of type dedicated for analyzed properties,
+///which means inverted indices would be built
 typedef boost::variant<PropertyType, boost::shared_ptr<LAInput>, boost::shared_ptr<ForwardIndex> > IndexerDocumentPropertyType;
 
 struct DocId
@@ -60,6 +69,7 @@ public:
 
     void getDocId(DocId& docId){ docId.docId = docId_; docId.colId = colId_;}
 
+    ///insert data to IndexerDocument
     template<typename T>
     bool insertProperty(const IndexerPropertyConfig& config, T& property)
     {
@@ -75,6 +85,10 @@ public:
             return false;
     }
 
+    ///This interface is dedicated to the data with type of LAInput, because it can reduce
+    ///lots of data replication. We should use this interface in this sequence:
+    ///1. insertProperty
+    ///2. add_to_property
     void add_to_property(LAInputUnit& unit)
     {
         izenelib::util::boost_variant_visit(boost::bind(deque_visitor(), _1, unit), termIterator_->second);

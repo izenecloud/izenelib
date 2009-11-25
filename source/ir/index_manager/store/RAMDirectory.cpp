@@ -222,7 +222,7 @@ void RAMDirectory::renameFile(const string& from, const string& to)
     }
 }
 
-void RAMDirectory::batDeleteFiles(const string& filename,bool throwError)
+void RAMDirectory::deleteFiles(const string& filename,bool throwError)
 {
     try
     {
@@ -248,12 +248,12 @@ void RAMDirectory::batDeleteFiles(const string& filename,bool throwError)
     }
     catch (...)
     {
-        SF1V5_THROW(ERROR_FILEIO,"void RAMDirectory::batDeleteFiles()");
+        SF1V5_THROW(ERROR_FILEIO,"void RAMDirectory::deleteFiles()");
     }
 }
 
 
-void RAMDirectory::batRenameFiles(const string& from, const string& to)
+void RAMDirectory::renameFiles(const string& from, const string& to)
 {
     string path,fname,fext,s;
     string::size_type npos = (size_t)-1;

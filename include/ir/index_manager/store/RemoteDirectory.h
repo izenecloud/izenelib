@@ -34,9 +34,9 @@ public:
 
     void renameFile(const string& from, const string& to) { assert(false); }
 
-    void batDeleteFiles(const string& filename,bool throwError = true) { assert(false); }
+    void deleteFiles(const string& filename,bool throwError = true) { assert(false); }
 
-    void batRenameFiles(const string& from, const string& to) { assert(false); }
+    void renameFiles(const string& from, const string& to) { assert(false); }
 
     IndexInput*	openInput(const string& name) { assert(false);return NULL;}
 

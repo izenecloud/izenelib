@@ -30,7 +30,6 @@ using namespace izenelib::ir::indexmanager;
 static int degree = 16;
 static size_t cacheSize = 5000;
 static size_t maxDataSize = 1000;
-IndexerFactory indexerFactory;
 
 #define MAJOR_VERSION "1"
 #define MINOR_VERSION "0"
@@ -224,8 +223,6 @@ void Indexer::openDirectory()
 
 void Indexer::setBasePath(std::string basePath)
 {
-    if(managerType_ != MANAGER_TYPE_FORWARDREADER_AND_MERGER)
-        return;
     if (pDirectory_)
         pDirectory_->close();
     pDirectory_ = FSDirectory::getDirectory(basePath,true);
@@ -394,6 +391,74 @@ void Indexer::flush()
     pBTreeIndexer_->flush();
 }
 
+void Indexer::optimizeIndex()
+{
+    IndexMerger* pIndexMerger = new OfflineIndexMerger(this, pBarrelsInfo_->getBarrelCount());
+    pIndexWriter_->mergeIndex(pIndexMerger);
+    delete pIndexMerger;
+}
+
+IndexStatus Indexer::checkIntegrity()
+{
+    if(0 == pBarrelsInfo_->getBarrelCount() ||
+        0 == pBarrelsInfo_->maxDocId()
+    )
+        return EMPTY;
+
+    TermReader* pTermReader = NULL;
+
+    try{
+        const std::map<std::string, IndexerCollectionMeta> & collectionMeta = 
+            pConfigurationManager_->getCollectionMetaNameMap();
+
+        std::map<std::string, IndexerCollectionMeta>::const_iterator iter = collectionMeta.begin();
+        if(iter == collectionMeta.end())
+            return CORRUPT;
+
+
+        collectionid_t colID = iter->second.getColId();
+		
+        const std::set<IndexerPropertyConfig, IndexerPropertyConfigComp> & schema = 
+            iter->second.getDocumentSchema();
+
+        std::string property;
+        std::set<IndexerPropertyConfig, IndexerPropertyConfigComp>::const_iterator it;
+        for( it = schema.begin(); it != schema.end(); it++ )
+        {
+            if (it->isIndex() && it->isForward())
+            {
+                property = it->getName();
+                continue;
+            }
+        }
+
+        pTermReader = pIndexReader_->getTermReader(colID);
+        ///seek the posting for the last term
+        Term term(property.c_str(), MAX_TERMID);
+        if(pTermReader->seek(&term))
+        {
+            TermPositions* pTermPositions = pTermReader->termPositions();
+            while(pTermPositions->next())
+            {
+            }
+            delete pTermPositions;
+        }
+        else
+        {
+            delete pTermReader;
+            return CORRUPT;
+        }
+
+        delete pTermReader;
+    }catch(std::exception& e)
+    {
+        if(pTermReader) delete pTermReader;
+        return CORRUPT;
+    }
+
+    return CONSISTENT;
+}
+
 size_t Indexer::getDistinctNumTermsByProperty(collectionid_t colID, const std::string& property)
 {
     return pIndexReader_->getDistinctNumTerms(colID, property);
@@ -515,16 +580,6 @@ bool Indexer::getDocsByTermInProperties(termid_t termID, collectionid_t colID, v
     }
 
     return true;
-}
-
-bool Indexer::getForwardIndexByDocumentProperty(collectionid_t colId, docid_t docId, string propertyName, ForwardIndex& forwardIndex)
-{
-    assert(indexingForward_ == true);
-    fieldid_t fid = getPropertyIDByName(colId,propertyName);
-    ForwardIndexReader* pForwardIndexReader = pIndexReader_->getForwardIndexReader();
-    bool ret = pForwardIndexReader->getForwardIndexByDoc(docId, fid, forwardIndex);
-    delete pForwardIndexReader;
-    return ret;
 }
 
 bool Indexer::getTermFrequencyInCollectionByTermId( const vector<termid_t>& termIdList, const unsigned int collectionId, const vector<string>& propertyList, vector<unsigned int>& termFrequencyList )
@@ -651,12 +706,4 @@ bool Indexer::getDocsByPropertyValueSubString(collectionid_t colID, string prope
     pBTreeIndexer_->getValueSubString(colID, fid, value, docList);
     return true;
 }
-
-void Indexer::optimizeIndex()
-{
-    IndexMerger* pIndexMerger = new OfflineIndexMerger(this, pBarrelsInfo_->getBarrelCount());
-    pIndexWriter_->mergeIndex(pIndexMerger);
-    delete pIndexMerger;
-}
-
 
