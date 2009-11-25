@@ -1,3 +1,8 @@
+/**
+   @file index_fp.hpp
+   @author Kevin Hu
+   @date 2009.11.25
+ */
 #ifndef INDEX_FP_HPP
 #define INDEX_FP_HPP
 
@@ -11,14 +16,19 @@
 #include <ir/dup_det/group_table.hpp>
 #include <ir/dup_det/prime_gen.hpp>
 #include <sys/time.h>
+#include <math.h>
 
 NS_IZENELIB_IR_BEGIN
 
+/**
+   @class FpIndex
+   @brief It's an indexer that provides fast access of grouped fingerprinting.
+ */
 template <
-  uint8_t  FP_HASH_NUM = 1,
-  typename    UNIT_TYPE = uint64_t,
-  uint8_t  FP_LENGTH = 6,
-  uint32_t CACHE_SIZE = 600,
+  uint8_t  FP_HASH_NUM = 1,//!< number of hash tables
+  typename    UNIT_TYPE = uint64_t,//!< the minimous data type for pre-clustering
+  uint8_t  FP_LENGTH = 6,//!< number of minimous data unit
+  uint32_t CACHE_SIZE = 600,//!< cache size
   uint32_t ENTRY_SIZE = 1000000
   >
 class FpIndex
@@ -36,15 +46,15 @@ class FpIndex
   typedef izenelib::ir::PrimeGen<> Prime;
   
 protected:
-  const uint8_t UNIT_LEN_;
-  FpList* fp_list_;//partial FP list
-  HashT**  ht_ptrs_;//pre-clustering hash table
-  GroupT* group_;//documents group with inner id
+  const uint8_t UNIT_LEN_;//!< number of minimous data type that's taken as a unit
+  FpList* fp_list_;//!< partial FP list
+  HashT**  ht_ptrs_;//!< pre-clustering hash table
+  GroupT* group_;//!< documents group with inner id
   GroupT* final_group_;//document group with real doc id
-  FpHashT* fp_hash_ptrs_[FP_HASH_NUM];//docid to address of FP hash table
-  Vector32Ptr docid_hash_;
-  std::string filenm_;
-  static Prime* prime_;
+  FpHashT* fp_hash_ptrs_[FP_HASH_NUM];//!< docid to address of FP hash table
+  Vector32Ptr docid_hash_;//!< docid hash table
+  std::string filenm_;//!< prefix of file name.
+  //  static Prime* prime_;
   
 
   inline bool broder_compare(const uint64_t* p1, const uint64_t* p2, uint8_t threshold = 1)
@@ -103,7 +113,7 @@ protected:
       fp_list_ = new FpList(s.c_str(), UNIT_LEN_);
     }
 
-    assert(final_group_!=NULL);
+    IASSERT(final_group_!=NULL);
 
     {
       s = filenm_;
@@ -111,7 +121,7 @@ protected:
       final_group_->reset(s.c_str());
     }
 
-    assert(group_!=NULL);
+    IASSERT(group_!=NULL);
     final_group_->assign(*group_);
     delete group_;
     group_ = NULL;
@@ -120,13 +130,35 @@ protected:
     final_group_->flush();
   }
 
+  /**
+     @brief reset docid hash table, clear the table
+   */
+  inline void reset_docid_hash()
+  {
+    for (uint32_t i=0 ;i<docid_hash_.length(); ++i)
+      if (docid_hash_.at(i) != NULL)
+      {
+        delete docid_hash_.at(i);
+        docid_hash_[i] = NULL;
+      }
+
+    if (docid_hash_.length() == 0)
+    {
+      docid_hash_.reserve(ENTRY_SIZE);
+      for (size_t i=0; i<ENTRY_SIZE; i++)
+        docid_hash_.add_tail(NULL);
+    }
+
+    IASSERT(docid_hash_.length() == ENTRY_SIZE);
+  }
+
+  /**
+     @brief initialize hash table
+   */
   inline void init_docid_hash()
   {
-    docid_hash_.reset();
-    docid_hash_.reserve(ENTRY_SIZE);
-    for (size_t i=0; i<ENTRY_SIZE; i++)
-      docid_hash_.add_tail(NULL);
-
+    reset_docid_hash();
+    
     for(size_t i=0; i<fp_list_->doc_num(); i++)
     {
       uint32_t docid = (*fp_list_)[i];
@@ -159,14 +191,14 @@ protected:
     for (size_t i=0; i<ENTRY_SIZE; i++)
       if (docid_hash_.at(i) != NULL)
       {
-        assert(fwrite(&i, sizeof(uint32_t), 1, f)==1);
+        IASSERT(fwrite(&i, sizeof(uint32_t), 1, f)==1);
         uint32_t len = docid_hash_.at(i)->length();
-        assert(fwrite(&len, sizeof(uint32_t), 1, f)==1);
-        assert(fwrite(docid_hash_.at(i)->data(), sizeof(uint32_t)*len, 1, f)==1);
+        IASSERT(fwrite(&len, sizeof(uint32_t), 1, f)==1);
+        IASSERT(fwrite(docid_hash_.at(i)->data(), sizeof(uint32_t)*len, 1, f)==1);
       }
 
     uint32_t i = -1;
-    assert(fwrite(&i, sizeof(uint32_t), 1, f)==1);
+    IASSERT(fwrite(&i, sizeof(uint32_t), 1, f)==1);
     fclose(f);
   }
 
@@ -179,25 +211,49 @@ protected:
     if (f == NULL)
       return;
 
-    docid_hash_.reset();
-    docid_hash_.reserve(ENTRY_SIZE);
-    for (size_t i=0; i<ENTRY_SIZE; i++)
-      docid_hash_.add_tail(NULL);
+    reset_docid_hash();
 
     uint32_t i = -1;
-    assert(fread(&i, sizeof(uint32_t), 1, f)==1);
+    IASSERT(fread(&i, sizeof(uint32_t), 1, f)==1);
     while (i!=(uint32_t)-1)
     {
       docid_hash_[i] = new Vector32();
       uint32_t len = 0;
-      assert(fread(&len, sizeof(uint32_t), 1, f)==1);
-      assert(fread(docid_hash_[i]->array(len), sizeof(uint32_t)*len, 1, f)==1);
-      assert(fread(&i, sizeof(uint32_t), 1, f)==1);
+      IASSERT(fread(&len, sizeof(uint32_t), 1, f)==1);
+      IASSERT(fread(docid_hash_[i]->array(len), sizeof(uint32_t)*len, 1, f)==1);
+      IASSERT(fread(&i, sizeof(uint32_t), 1, f)==1);
     }
 
     fclose(f);
   }
-  
+
+  /**
+     @brief it generates prime number.
+     @param s the amount of prime numbers need to be generated.
+     @param v store all the generated prime number.
+   */
+  void prime_gen(uint32_t s, Vector32& v)
+  {
+    for (uint32_t i = 3; v.length()<s; ++i)
+    {
+      uint32_t k = (uint32_t)sqrt(i);
+      if (k*k == i)
+        continue;
+
+      uint32_t j=3;
+      for (; j<k; ++j)
+        if (i%j==0)
+          break;
+
+      if (j == k)
+      {
+        v.push_back(i);
+        //std::cout<<i<<std::endl;
+        //i is prime number
+      }
+    }
+  }
+
   
 public:
   inline FpIndex(const char* filenm, uint8_t unit_len=2)
@@ -232,12 +288,25 @@ public:
       delete group_;
     }
 
+    if (final_group_!=NULL)
+    {
+      final_group_->flush();
+      delete final_group_;
+    }
+
     for (uint8_t i=0; i<FP_HASH_NUM; i++)
       if (fp_hash_ptrs_[i]!= NULL)
     {
       fp_hash_ptrs_[i]->flush();
       delete fp_hash_ptrs_[i];
     }
+
+    for (uint32_t i=0 ;i<docid_hash_.length(); ++i)
+      if (docid_hash_.at(i) != NULL)
+      {
+        delete docid_hash_.at(i);
+        docid_hash_[i] = NULL;
+      }
   }
 
   inline void flush()
@@ -267,6 +336,9 @@ public:
     save_docid_hash();
   }
 
+  /**
+     @brief it must be called before insert FPs.
+   */
   inline void ready_for_insert()
   {
     std::string s = filenm_;
@@ -463,7 +535,11 @@ public:
 //     //std::cout<<*group_<<std::endl;
 //   }
 
-  
+
+  /**
+     @brief group all the docs by their FPs, including pre-clustring.
+     @param start the index of docs starting from which need to be grouped.
+   */
   inline void indexing(uint32_t start = 0)
   {
     struct timeval tvafter,tvpre;
@@ -523,11 +599,15 @@ public:
       fp_hash_ptrs_[i]->ready_for_find();
     }
     
-    Vector32 prime(doc_num);
-    for (size_t i=0; i<doc_num; i++)
-    {
-      prime.add_tail(prime_->next());//std::cout<<prime[i]<<std::endl;
-    }
+    Vector32 prime(doc_num+start);
+    prime_gen(doc_num+start, prime);
+    IASSERT(prime.length() == doc_num+start);
+    Vector32 primeO = prime;
+    
+//     for (size_t i=0; i<doc_num; i++)
+//     {
+//       prime.add_tail(prime_->next());//std::cout<<prime[i]<<std::endl;
+//     }
     
     //prime.add_tail(3);
 
@@ -541,7 +621,7 @@ public:
         const Vector32& v = (*(ht_ptrs_[k]))[i];
         //std::cout<<v<<std::endl;
         
-        assert(v.at(0)<=i);
+        IASSERT(v.at(0)<=i);
         
         if (start == 0 && v.at(0)!= i)
           continue;
@@ -558,15 +638,19 @@ public:
             size_t index = v.at(h);
             uint32_t docid2 = index;//fps[index];
 
-            if (prime.at(docid1)%(*prime_)[docid2]==0)
+            //if (prime.at(docid1)%(*prime_)[docid2]==0)
+            if (prime.at(docid1)%primeO.at(docid2)==0)
             {
               f = true;
               continue;
             }
             
-            prime[docid1] *= (*prime_)[docid2];
-            prime[docid2] *= (*prime_)[docid1];
+//             prime[docid1] *= (*prime_)[docid2];
+//             prime[docid2] *= (*prime_)[docid1];
             
+            prime[docid1] *= primeO.at(docid2);
+            prime[docid2] *= primeO.at(docid1);
+
             const uint64_t* p2 = fp_hash_ptrs_[docid2%FP_HASH_NUM]->find(docid2/FP_HASH_NUM);
 
 //             std::cout<<docid1<<" "<<(*p1)<<std::endl;
@@ -599,11 +683,20 @@ public:
 
     switch_docid_in_group();
     init_docid_hash();
+    
+    for (uint8_t i=0; i<FP_LENGTH/UNIT_LEN_; i++)
+      delete ht_ptrs_[i];
+
+    delete ht_ptrs_;
+    ht_ptrs_ = NULL;
   }
 
+  /**
+     @return true if the doc in the collcection.
+   */
   inline bool exist(uint32_t docid)
   {
-    assert(docid_hash_.length()==ENTRY_SIZE);
+    IASSERT(docid_hash_.length()==ENTRY_SIZE);
     
     Vector32* v = docid_hash_.at(docid%ENTRY_SIZE);
     if (v == NULL)
@@ -615,6 +708,9 @@ public:
     return false;
   }
 
+  /**
+     @return vector of docids who are in the same group. 
+   */
   inline Vector32 find(size_t docid)const
   {
     Vector32 v = final_group_->find(docid);
@@ -634,6 +730,9 @@ public:
     return fp_list_->doc_num();
   }
 
+  /**
+     @return true if 2 docs are duplicated by each other.
+   */
   inline bool is_duplicated(uint32_t docid1, uint32_t docid2)const
   {
     return final_group_->same_group(docid1, docid2);
@@ -642,15 +741,15 @@ public:
   ;
 
 
-template <
-  uint8_t  FP_HASH_NUM,
-  class    UNIT_TYPE,
-  uint8_t  FP_LENGTH,
-  uint32_t CACHE_SIZE,
-  uint32_t ENTRY_SIZE
-  >
-izenelib::ir::PrimeGen<>* FpIndex<FP_HASH_NUM,UNIT_TYPE,FP_LENGTH,
-                                 CACHE_SIZE,ENTRY_SIZE>::prime_ =  new izenelib::ir::PrimeGen<>("./prime_num");
+// template <
+//   uint8_t  FP_HASH_NUM,
+//   class    UNIT_TYPE,
+//   uint8_t  FP_LENGTH,
+//   uint32_t CACHE_SIZE,
+//   uint32_t ENTRY_SIZE
+//   >
+// izenelib::ir::PrimeGen<>* FpIndex<FP_HASH_NUM,UNIT_TYPE,FP_LENGTH,
+//                                  CACHE_SIZE,ENTRY_SIZE>::prime_ =  new izenelib::ir::PrimeGen<>("./prime_num");
 
 NS_IZENELIB_IR_END
 

@@ -1,4 +1,10 @@
-#ifndef _INDEX_MANAGER_CONFIG_H_
+/**
+ * @file        IndexManagerConfig.h
+ * @author     Yingfeng Zhang
+ * @version     SF1 v5.0
+ * @brief The major configuration interface exposed to user of Indexmanager
+ */
+ #ifndef _INDEX_MANAGER_CONFIG_H_
 #define _INDEX_MANAGER_CONFIG_H_
 
 #include <ir/index_manager/index/IndexerCollectionMeta.h>
@@ -38,6 +44,7 @@ private:
         void serialize( Archive & ar, const unsigned int version )
         {
             ar & indexLocation_;
+            ar & indexLocations_;
             ar & memory_;
             ar & indexDocLength_;
         }
@@ -46,6 +53,12 @@ private:
     public:
         /// @brief  Working directory
         std::string indexLocation_;
+
+        /// @brief all working directory candidates
+        ///
+        /// directory name relative to the base index directory
+        std::vector<std::string> indexLocations_;
+
         /**
          * @brief  the size of memory used by index cache
          * @details

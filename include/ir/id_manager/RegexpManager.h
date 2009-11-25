@@ -16,7 +16,7 @@
 #include <boost/thread.hpp>
 
 #include "LexicalTrie.h"
-#include <am/sdb_trie_v1/sdb_trie.hpp>
+#include <am/hdb_trie/hdb_trie.hpp>
 
 NS_IZENELIB_IR_BEGIN
 
@@ -33,9 +33,7 @@ class BasicRegExpHandler
 {
 public:
 
-	void openForRead() {}
-
-	void openForWrite(){}
+	void open() {}
 
 	void optimize(){}
 
@@ -99,9 +97,7 @@ public:
 	DiskRegExpHandler(const std::string& name)
 	:   trie_(name) {}
 
-	void openForRead() { trie_.openForRead(); }
-
-	void openForWrite(){ trie_.openForWrite(); }
+	void open() { trie_.open(); }
 
 	void optimize(){ trie_.optimize(); }
 
@@ -119,7 +115,7 @@ public:
 
 private:
 
-    SDBTrie2<NameString, NameID> trie_;
+    HDBTrie2<NameString, NameID> trie_;
 }; // end - class DiskRegExpHandler
 
 
@@ -139,21 +135,21 @@ public:
     static const bool value = true;
 };
 
-/**
- * @brief A meta function to test if given class is an instantiation of template MemoryRegExpHandler.
- * @return true it's a MemoryRegExpHandler
- *         false otherwise
- */
-template <typename RegExpHandler>
-class IsMemory {
-public:
-    static const bool value = false;
-};
-template <typename N,typename I>
-class IsMemory<MemoryRegExpHandler<N,I> > {
-public:
-    static const bool value = true;
-};
+///**
+// * @brief A meta function to test if given class is an instantiation of template MemoryRegExpHandler.
+// * @return true it's a MemoryRegExpHandler
+// *         false otherwise
+// */
+//template <typename RegExpHandler>
+//class IsMemory {
+//public:
+//    static const bool value = false;
+//};
+//template <typename N,typename I>
+//class IsMemory<MemoryRegExpHandler<N,I> > {
+//public:
+//    static const bool value = true;
+//};
 
 
 /**
@@ -173,26 +169,21 @@ public:
         : storageName_(storageName),
           rawTextFileName_(storageName_ + ".rawtext"),
           rawIdFileName_(storageName_ + ".rawid"),
-          handler_(NULL), worker_(NULL)
+          handler_(storageName), worker_(NULL)
     {
         // here if statement could be optimized at compile time,
         // so it doesn't effect the perforamnce.
         if( ! IsEmpty<RegExpHandler>::value )
         {
-            rawTextFile_.open(rawTextFileName_.c_str(), std::ofstream::out|std::ofstream::app);
+            rawTextFile_.open(rawTextFileName_.c_str(), std::ofstream::out|std::ofstream::binary );
             if(rawTextFile_.fail())
                 std::cerr << "bad file " << rawTextFileName_ << std::endl;
 
-            rawIdFile_.open(rawIdFileName_.c_str(), std::ofstream::out|std::ofstream::app|std::ofstream::binary );
+            rawIdFile_.open(rawIdFileName_.c_str(), std::ofstream::out|std::ofstream::binary );
             if(rawIdFile_.fail())
                 std::cerr << "bad file " << rawIdFileName_ << std::endl;
-
-            if(false == IsMemory<RegExpHandler>::value)
-            {
-                handler_ = new RegExpHandler(storageName_);
-                handler_->openForRead();
-            }
         }
+        handler_.open();
     }
 
     ~RegexpManager()
@@ -208,8 +199,10 @@ public:
         {
             filelock_.acquire_write_lock();
             try {
-                std::string str( (const char *)word.c_str(), word.size());
-                rawTextFile_ << str <<"\n";
+                int len = (int) word.size();
+                rawTextFile_.write((char*) &len, sizeof(int));
+                rawTextFile_.write((const char*)word.c_str(), word.size());
+
                 rawIdFile_.write((char*)&id, sizeof(NameID));
             } catch(const std::exception & e) {
                 std::cerr << "Files " << rawTextFileName_ << " and " << rawIdFileName_
@@ -225,19 +218,8 @@ public:
         // here if statement could be optimized at compile time,
         // so it doesn't effect the perforamnce.
         if( ! IsEmpty<RegExpHandler>::value )
-        {
-            if(handler_)
-                return handler_->findRegExp(exp, results);
-
-            filelock_.acquire_write_lock();
-            rawTextFile_.flush();
-            rawIdFile_.flush();
-            /// TODO: use grep here
-
-
-            filelock_.release_write_lock();
-            return false;
-        }
+            return handler_.findRegExp(exp, results);
+            // Files has been truncated in joinThread
         return false;
     }
 
@@ -276,10 +258,18 @@ public:
 
             filelock_.acquire_write_lock();
             // Reopen write pipes
-            rawTextFile_.open(rawTextFileName_.c_str(), std::ofstream::out|std::ofstream::app);
+
+            // warn!!! truncate files
+            rawTextFile_.open(
+                rawTextFileName_.c_str(),
+                std::ofstream::out|std::ofstream::trunc|std::ofstream::binary
+            );
             if(rawTextFile_.fail())
                 std::cerr << "bad file " << rawTextFileName_ << std::endl;
-            rawIdFile_.open(rawIdFileName_.c_str(), std::ofstream::out|std::ofstream::app|std::ofstream::binary );
+            rawIdFile_.open(
+                rawIdFileName_.c_str(),
+                std::ofstream::out|std::ofstream::trunc|std::ofstream::binary
+            );
             if(rawIdFile_.fail())
                 std::cerr << "bad file " << rawIdFileName_ << std::endl;
             filelock_.release_write_lock();
@@ -297,8 +287,7 @@ public:
             rawIdFile_.flush();
             filelock_.release_write_lock();
 
-            if(handler_)
-                handler_->flush();
+            handler_.flush();
         }
     }
 
@@ -318,12 +307,7 @@ public:
             rawIdFile_.close();
             filelock_.release_write_lock();
 
-            if(handler_) {
-                handler_->close();
-                delete handler_;
-                handler_ = NULL;
-                handlerInitialized_ = false;
-            }
+            handler_.close();
 
             if(worker_) {
                 worker_->join();
@@ -343,7 +327,7 @@ protected:
         {
             // Open read pipes
             ifstream tin, iin;
-            tin.open(rawTextFileName_.c_str(), std::ifstream::in);
+            tin.open(rawTextFileName_.c_str(), std::ifstream::in|std::ifstream::binary);
             iin.open(rawIdFileName_.c_str(), std::ifstream::in|std::ifstream::binary);
             if (tin.fail() || iin.fail() )
             {
@@ -352,45 +336,66 @@ protected:
                 return;
             }
 
-            if(handler_) {
-                handler_->close();
-                delete handler_;
-            }
+            iin.seekg(0, ifstream::end);
+            long inputLength = iin.tellg();
+            iin.seekg(0, ifstream::beg);
 
-            handler_ = new RegExpHandler(storageName_);
             // write in Trie
-            handler_->openForWrite();
-            int skip = handler_->num_items();
+            izenelib::util::ClockTimer timer;
 
-            int line = 0;
-            std::string buffer;
+            long line = 0;
+
+            int buffersize = 0;
+            char charBuffer[256];
+
             NameString key;
             NameID id;
-            while(getline(tin, buffer))
+            while(!tin.eof())
             {
-                // skip records already in Trie
-                if( line >= skip )
+                iin.read((char*)&id, sizeof(NameID));
+                tin.read((char*)&buffersize, sizeof(int));
+                // skip terms that is too long
+                if(buffersize > 256) {
+                    char* tmpBuffer = new char[buffersize];
+                    tin.read(tmpBuffer, buffersize);
+                    std::string badString(tmpBuffer, buffersize);
+                    NameString badKey = badString;
+                    std::cout << std::endl << "Warning, find term that are too long: " <<
+                        buffersize << "," << badKey << std::endl << std::flush;
+                    line++;
+                    continue;
+                }
+                tin.read( charBuffer, buffersize);
+                std::string buffer(charBuffer, buffersize);
+
+                if(buffer.size() > 0)
                 {
-                    if(buffer.size() > 0)
-                    {
-                        key = buffer;
-                        iin.read((char*)&id, sizeof(NameID));
-                        handler_->insert(key, id);
-                    }
+                    key = buffer;
+                    if(key.length() > 0)
+                        handler_.insert(key, id);
+                }
+                if( line%1000000 == 999999 ) {
+                    long inputPos = iin.tellg();
+                    int rate = (100* inputPos)/inputLength;
+
+                    float elapse = timer.elapsed();
+                    float timeLeft = elapse*(inputLength-inputPos)/inputPos;
+                    int leftmin = int(timeLeft/60);
+                    int leftsec = int(timeLeft)-60*leftmin;
+
+                    std::stringstream ss;
+                    ss << "\tBuild regexp manager\tProcess Rate[" << rate << "%]\t"
+                        << "[left time:" << leftmin << "minutes" << leftsec << "seconds" << "]";
+                    std::cout << "\r";
+                    std::cout<<ss.str()<<std::flush;
                 }
                 line++;
             }
-            handler_->optimize();
-
-            // if this is a disk version regexp handler
-            // build a trie and flush it into disk
-            if(false == IsMemory<RegExpHandler>::value)
-            {
-                handler_->close();
-                delete handler_;
-                handler_ = new RegExpHandler(storageName_);
-                handler_->openForRead();
-            }
+            std::cout << std::endl;
+            handler_.optimize();
+            handler_.flush();
+            tin.close();
+            iin.close();
         }
     }
 
@@ -406,11 +411,9 @@ private:
 
     std::ofstream rawIdFile_;
 
-    bool handlerInitialized_;
-
     LockType filelock_;
 
-    RegExpHandler* handler_;
+    RegExpHandler handler_;
 
     boost::thread* worker_;
 };

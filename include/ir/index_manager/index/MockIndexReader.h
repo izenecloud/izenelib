@@ -147,6 +147,8 @@ public:
     /// Nothing to do
     void open(Directory* pDirectory,const char* barrelname,FieldInfo* pFieldInfo){}
 
+    void reopen(){}
+
     /// Nothing to do
     void close(){}
 

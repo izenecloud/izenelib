@@ -40,13 +40,13 @@ public:
 
     size_t docLength(docid_t docId, fieldid_t fid);
 
+    double getAveragePropertyLength(fieldid_t fid);
+
     freq_t docFreq(collectionid_t colID, Term* term);
 
     TermInfo* termInfo(collectionid_t colID, Term* term);
 
     BarrelsInfo* getBarrelsInfo();
-
-    void setDirty(bool dirty) {dirty_ = dirty;}
 
     static int64_t lastModified(Directory* pDirectory);
 
@@ -66,10 +66,10 @@ public:
 
     void delDocFilter();
 
+    void reopen();
 private:
     void createBarrelReader();
 
-    TermReader* doGetTermReader_(collectionid_t colID);
     ///find which barrel the document lies
     BarrelInfo* findDocumentInBarrels(collectionid_t colID, docid_t docID);
 
@@ -81,8 +81,6 @@ private:
     IndexBarrelReader* pBarrelReader_; ///barrel reader
 
     ForwardIndexReader* pForwardIndexReader_;
-
-    bool dirty_;
 
     mutable boost::mutex mutex_;
 

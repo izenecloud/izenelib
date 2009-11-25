@@ -11,7 +11,9 @@
 #include <ir/index_manager/store/IndexInput.h>
 #include <ir/index_manager/store/IndexOutput.h>
 #include <ir/index_manager/utility/Utilities.h>
-#include <ir/index_manager/utility/Logger.h>
+
+#include <boost/thread.hpp>
+#include <boost/thread/shared_mutex.hpp>
 
 #include <map>
 #include <vector>
@@ -133,9 +135,9 @@ public:
 
     void renameFile(const string& from, const string& to);
 
-    void batDeleteFiles(const string& filename,bool throwError = true);
+    void deleteFiles(const string& filename,bool throwError = true);
 
-    void batRenameFiles(const string& from, const string& to);
+    void renameFiles(const string& from, const string& to);
 
     IndexOutput* createOutput(const string& name, const string& mode);
 
@@ -143,8 +145,11 @@ public:
 
     void close();
 
+    izenelib::util::ReadWriteLock* getLock() { return rwLock_; }
+
 private:
     map<string,RAMFile*> files;
+    izenelib::util::ReadWriteLock* rwLock_;
 };
 
 

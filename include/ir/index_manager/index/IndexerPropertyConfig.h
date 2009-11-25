@@ -1,3 +1,10 @@
+/**
+* @file        IndexerPropertyConfig.h
+* @author     Yingfeng Zhang
+* @version     SF1 v5.0
+* @brief   The main configuration interface exposed to user of IndexManager
+* it is used to describe the attibutes of properties in IndexerDocument
+*/
 #ifndef INDEXER_PROPERTYCONFIG_H
 #define INDEXER_PROPERTYCONFIG_H
 
@@ -128,9 +135,10 @@ protected:
     uint32_t propertyId_;
 
     std::string propertyName_;
-
+    /// if only index_ is true, then BTree index will be built
     bool index_;
-
+    ///whether this property is analyzed
+    ///inverted index will only be built when both index_ and forward_ are true
     bool forward_;
 
     ///This field is for compatabile with SF1

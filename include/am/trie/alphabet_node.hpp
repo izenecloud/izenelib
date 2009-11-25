@@ -1,3 +1,8 @@
+/**
+   @file alphabet_node.hpp
+   @author Kevin Hu
+   @date 2009.11.25
+ */
 #ifndef ALPHABET_NODE_HPP
 #define ALPHABET_NODE_HPP
 
@@ -398,8 +403,8 @@ friend ostream& operator << ( ostream& os, const SelfType& node)
 
 
 protected:
-  FILE* f_;//<!File handler for node data file.
-  struct _node_* pNode_;//<! Data storage
+  FILE* f_;//!< File handler for node data file.
+  struct _node_* pNode_;//!< Data storage
 }
   ;
 

@@ -35,7 +35,7 @@ MessageServerFull::MessageServerFull(const std::string& serverName,
 	messageDispatcher_(this, this), connector_(this, io_service_),
 			connectionEstablished_(false) {
 	ownerManager_ = serverName;
-	timeOutMilliSecond_ = TIME_OUT_IN_MILISECOND*10;
+	timeOutMilliSecond_ = TIME_OUT_IN_MILISECOND;
 
 	server_.nodePort_ = serverPort;
 	server_.nodeIP_ = getLocalHostIp(io_service_);
@@ -59,13 +59,21 @@ MessageServerFull::MessageServerFull(const std::string& serverName,
 			+ boost::posix_time::milliseconds(timeOutMilliSecond_);
 	boost::mutex::scoped_lock connectionEstablishedLock(
 			connectionEstablishedMutex_);
-	while (!connectionEstablished_) {
-		DLOG(ERROR)<<"waiting for controller to be ready...."<<endl;
-		connector_.connect(controllerInfo.nodeIP_, controllerInfo.nodePort_);
-		if (!connectionEstablishedEvent_.timed_wait(connectionEstablishedLock,
-				timeout))
-			throw MessageFrameworkException(SF1_MSGFRK_CONNECTION_TIMEOUT, __LINE__, __FILE__);
+	try {
+		while (!connectionEstablished_) {
+			DLOG(ERROR)<<"Please run Controller firstly!"<<endl;
+			connector_.connect(controllerInfo.nodeIP_, controllerInfo.nodePort_);
+			if (!connectionEstablishedEvent_.timed_wait(connectionEstablishedLock,
+							timeout))
+				throw MessageFrameworkException(SF1_MSGFRK_CONNECTION_TIMEOUT, __LINE__, __FILE__);
+		}
 	}
+	catch(MessageFrameworkException &e) {
+		e.output(std::cout);
+		LOG(ERROR)<<"Please check if Controller is ready... "<<std::endl;
+		exit(1);
+	}
+
 	// connect to controller successfully now
 }
 
@@ -231,7 +239,8 @@ bool MessageServerFull::putResultOfService(
 
 	sendResultOfService(serviceRequestInfo->getRequester(), result);
 
-	DLOG(INFO) << "[Server: " << getName() << "] Successfull to send result of "
+	DLOG(INFO) << "[Server: " << getName()
+			<< "] Successfull to send result of "
 			<< serviceRequestInfo->getServiceName() << std::endl;
 
 	return true;
@@ -273,9 +282,10 @@ void MessageServerFull::receiveServiceRequest(
 		const MessageFrameworkNode& requester,
 		ServiceRequestInfoPtr & requestInfo) {
 
-	DLOG(INFO) << "[Server: " << getName() << "] Receive request to retrieve result of service "
-	 << requestInfo->getServiceName()
-	 << "[requestId = " << requestInfo->getRequestId() << "]" << std::endl;
+	DLOG(INFO) << "[Server: " << getName()
+			<< "] Receive request to retrieve result of service "
+			<< requestInfo->getServiceName() << "[requestId = "
+			<< requestInfo->getRequestId() << "]" << std::endl;
 
 	try
 	{
@@ -293,7 +303,7 @@ void MessageServerFull::receiveServiceRequest(
 			requestQueueLock.unlock();
 			newRequestEvent_.notify_all();
 			return;
-		}		
+		}
 	}
 	catch (boost::system::error_code& e)
 	{
@@ -359,9 +369,8 @@ void MessageServerFull::receiveServiceRegistrationReply(
 AsyncStream* MessageServerFull::createAsyncStream(
 		boost::shared_ptr<tcp::socket> sock) {
 	tcp::endpoint endpoint = sock->remote_endpoint();
-	
-	DLOG(INFO) << "Remote IP = " << endpoint.address().to_string()
-	 << ", port = " << endpoint.port() << std::endl;
+
+	DLOG(INFO) << "Remote IP = " << endpoint.address().to_string() << ", port = " << endpoint.port() << std::endl;
 
 	if (!connectionEstablished_) {
 		{

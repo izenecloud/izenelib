@@ -1,3 +1,8 @@
+/**
+   @file prime_num.hpp
+   @author Kevin Hu
+   @date 2009.11.25
+ */
 #ifndef PRIME_GEN_HPP
 #define PRIME_GEN_HPP
 
@@ -7,18 +12,22 @@
 
 NS_IZENELIB_IR_BEGIN
 
+/**
+   @class PrimeGen
+   @brief It generates large amount of prime number and provides uniform access of them.
+ */
 template <
-  uint32_t IN_MEM_SIZE = 50000000
+  uint32_t IN_MEM_SIZE = 50000000//!< numbers of prime number
   >
 class PrimeGen
 {
   typedef izenelib::am::IntegerDynArray<uint32_t> Vector32;
   
 protected:
-  Vector32 primes_;
+  Vector32 primes_;//!< buffer to store primes
   uint32_t num_;
-  uint32_t start_i_;
-  uint32_t i_;
+  uint32_t start_i_;//!< general starting position of the first one in buffer.
+  uint32_t i_;//!< current position
   
   FILE* f_;
 
@@ -49,6 +58,10 @@ public:
     load_from(0);
   }
 
+  /**
+     @brief load from file starting at nth.
+     @param n the gloable index of starting point
+   */
   inline void load_from(uint32_t n = 0)
   {
     fseek (f_, (n+1)*sizeof(uint32_t), SEEK_SET);
@@ -59,7 +72,7 @@ public:
 
   inline uint32_t next()
   {
-    assert(i_<num_);
+    IASSERT(i_<num_);
     
     if (i_-start_i_ >= IN_MEM_SIZE)
       load_from(i_);

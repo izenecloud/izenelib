@@ -33,9 +33,16 @@ namespace indexmanager{
 enum ManagerType
 {
     MANAGER_TYPE_LOCAL,       /// Deployed in a single machine
+    MANAGER_TYPE_NO_BTREE,   /// No btree
     MANAGER_TYPE_CLIENTPROCESS, /// Deployed as the client indexer
     MANAGER_TYPE_SERVERPROCESS, /// Deployed as the server indexer
-    MANAGER_TYPE_FORWARDREADER_AND_MERGER ///Only read forwardindex and merge it if necessary
+};
+
+enum IndexStatus
+{
+    EMPTY,  /// There are no index files in the directory
+    CORRUPT, /// The index is corrupt
+    CONSISTENT  /// The index is OK and later index could be built incrementally
 };
 
 class BarrelsInfo;
@@ -54,6 +61,8 @@ public:
 
     virtual ~Indexer();
 public:
+    /// API for indexing
+	
     ///pDoc should be deleted by the user
     int insertDocumentPhysically(IndexerDocument* pDoc);
     ///pDoc will be destroyed by Indexer
@@ -69,10 +78,18 @@ public:
     /// 4. pIndexer->flush();
     /// 5. pIndexer->optimizeIndex();
     bool startUpdate();
-
+    /// flush in-memory index to disk
     void flush();
+    /// merge all index barrels into a single barrel
+    void optimizeIndex();
 
     int removeCollection(collectionid_t colID);
+
+    ///check whether the integrity of indices, always used when starts up
+    IndexStatus checkIntegrity();
+
+public:
+    ///API for query
 
     size_t getDistinctNumTermsByProperty(collectionid_t colID, const std::string& property);
 	
@@ -80,10 +97,10 @@ public:
 
     bool getDocsByTermInProperties(termid_t termID, collectionid_t colID, std::vector<std::string> properties, std::deque<CommonItem>& commonSet);
 
-    bool getForwardIndexByDocumentProperty(collectionid_t colId, docid_t docId, string propertyName, ForwardIndex& forwardIndex);	
-    
     bool getTermFrequencyInCollectionByTermId ( const std::vector<termid_t>& termIdList, const unsigned int collectionId, const std::vector<std::string>& propertyList, std::vector<unsigned int>& termFrequencyList );
 
+public:
+    ///API for BTreeIndex
     bool getDocsByPropertyValue(collectionid_t colID, std::string property, PropertyType value, BitVector& docs);
 
     bool getDocsByPropertyValueRange(collectionid_t colID, std::string property, PropertyType value1, PropertyType value2, BitVector& docs);
@@ -109,17 +126,13 @@ public:
     bool getDocsByPropertyValueSubString(collectionid_t colID, std::string property, PropertyType value, BitVector&docList);
 
 public:
-    void setIndexManagerConfig(IndexManagerConfig* pConfigManager,const std::map<std::string, uint32_t>& collectionIdMapping);
+    ///API for configuration
 
-    IndexManagerConfig* getIndexManagerConfig()
-    {
-        return pConfigurationManager_;
-    }
+    void setIndexManagerConfig(const IndexManagerConfig& config,const std::map<std::string, uint32_t>& collectionIdMapping);
 
-    ManagerType getIndexerType()
-    {
-        return managerType_;
-    }
+    IndexManagerConfig* getIndexManagerConfig() { return pConfigurationManager_;}
+
+    ManagerType getIndexerType() {return managerType_;}
 
     void add_index_process_node(string ip, string batchport, string rpcport);
 
@@ -131,46 +144,24 @@ public:
 
     bool initialize_connection(pair<string,pair<string, string> >& node, bool wait=false);
 
-    const std::string& getVersionString() const
-    {
-        return version_;
-    }
-
-    void optimizeIndex();
+    const std::string& getVersionString() const { return version_; }
 
     void set_property_name_id_map(const std::map<std::string, IndexerCollectionMeta>& collections);
 
     const std::map<std::string, IndexerCollectionMeta>& getCollectionsMeta();
 
-    BarrelsInfo* getBarrelsInfo()
-    {
-        return pBarrelsInfo_;
-    }
+public:
+    BarrelsInfo* getBarrelsInfo() { return pBarrelsInfo_; }
 
-    Directory* getDirectory()
-    {
-        return pDirectory_;
-    }
+    Directory* getDirectory() { return pDirectory_; }
 
     void setBasePath(std::string basePath);
 
     void setDirty(bool bDirty);
 
-    IndexWriter* getIndexWriter()
-    {
-        return pIndexWriter_;
-    }
+    IndexWriter* getIndexWriter(){return pIndexWriter_;}
     
-    IndexReader* getIndexReader()
-    {
-        return pIndexReader_;
-    }
-
-    boost::shared_ptr<IndexReader> getOrderedIndexReader()
-    {
-        return boost::shared_ptr<IndexReader>(new IndexReader(this));
-    }
-
+    IndexReader* getIndexReader() { return pIndexReader_;}
 
     BTreeIndexerInterface* getBTreeIndexer();
 
@@ -216,6 +207,8 @@ protected:
 
     UDTFSAgent* pAgent_;
 
+    std::string version_;
+
     friend class IndexWriter;
 
     friend class IndexReader;
@@ -224,32 +217,10 @@ protected:
 
     friend class IndexBarrelReader;
 
-    std::string version_;
+    friend class IndexMerger;
 };
 
-class IndexerFactory
-{
-public:
-    IndexerFactory():pIndexer_(NULL) {}
-    ~IndexerFactory()
-    {
-        if (pIndexer_)
-            delete pIndexer_;
-    }
-public:
-    Indexer* getIndexer()
-    {
-        if (NULL == pIndexer_)
-            pIndexer_ = new Indexer();
-        return pIndexer_;
-    }
-private:
-    Indexer* pIndexer_;
-};
-///extern Indexer indexer;
-extern IndexerFactory indexerFactory;
 }
-
 NS_IZENELIB_IR_END
 
 #endif

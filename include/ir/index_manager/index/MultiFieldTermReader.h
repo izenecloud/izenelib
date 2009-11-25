@@ -39,6 +39,7 @@ public:
     void open(Directory* pDirectory,const char* barrelname,FieldInfo* pFieldInfo);
 
 
+    void reopen();
     /**
      * get the term iterator
      * @param field field name
@@ -109,8 +110,8 @@ protected:
 protected:
     typedef map<string,TermReader*> reader_map;
 
-    reader_map fieldsTermReaders;
-    TermReader* pCurReader;
+    reader_map fieldsTermReaders_;
+    TermReader* pCurReader_;
 };
 
 }

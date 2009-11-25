@@ -125,6 +125,12 @@ template<class KeyType, class ValueType, class ContainerType,
 			CacheInfoListType& cacheContainer_) {
 		KeyType key = cacheContainer_.front();
 		cacheContainer_.pop_front();
+		CachedDataType* cd = 0;
+		hash_.get(key, cd);
+		if (cd) {
+			delete cd;
+			cd = 0;
+		}
 		hash_.del(key);
 	}
 
@@ -151,7 +157,7 @@ template<class KeyType, class ValueType, class ContainerType,
 		++lit->second;
 
 		int freq = lit->second;
-		
+
 		int a=0;
 		int count =rand() & 0x0f;
 		while (lit->second <= freq && lit != cacheContainer_.end() ) {
@@ -195,6 +201,12 @@ template<class KeyType, class ValueType, class ContainerType,
 			CacheInfoListType& cacheContainer_) {
 		std::pair<KeyType, int> kp = cacheContainer_.front();
 		cacheContainer_.pop_front();
+		CachedDataType* cd = 0;
+		hash_.get(kp.first, cd);
+		if (cd) {
+			delete cd;
+			cd = 0;
+		}
 		hash_.del(kp.first);
 	}
 

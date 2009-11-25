@@ -1,3 +1,12 @@
+/**
+* @file        UDTFSAgent.h
+* @author     Yingfeng Zhang
+* @version     SF1 v5.0
+* @brief It is used when indexmanager works as a server:
+* receives inverted index data from remote client and flush them to local disk
+* the transmission utility is based on UDT library
+*/
+
 #ifndef UDTFSAGENT_H
 #define UDTFSAGENT_H
 

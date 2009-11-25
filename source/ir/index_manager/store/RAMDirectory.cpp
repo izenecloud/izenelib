@@ -167,11 +167,13 @@ void RAMIndexOutput::writeTo(IndexOutput* pOutput)
 //RAMDirectory
 RAMDirectory::RAMDirectory(void)
 {
+    rwLock_ = new izenelib::util::ReadWriteLock;
 }
 
 RAMDirectory::~RAMDirectory(void)
 {
     close();
+    delete rwLock_;
 }
 
 bool RAMDirectory::fileExists(const string& name) const
@@ -220,7 +222,7 @@ void RAMDirectory::renameFile(const string& from, const string& to)
     }
 }
 
-void RAMDirectory::batDeleteFiles(const string& filename,bool throwError)
+void RAMDirectory::deleteFiles(const string& filename,bool throwError)
 {
     try
     {
@@ -246,15 +248,12 @@ void RAMDirectory::batDeleteFiles(const string& filename,bool throwError)
     }
     catch (...)
     {
-        if (throwError)
-            SF1V5_THROW(ERROR_FILEIO,"void RAMDirectory::batDeleteFiles()");
-        else
-            SF1V5_LOG(level::warn) << " delete files error:" << filename << SF1V5_ENDL;
+        SF1V5_THROW(ERROR_FILEIO,"void RAMDirectory::deleteFiles()");
     }
 }
 
 
-void RAMDirectory::batRenameFiles(const string& from, const string& to)
+void RAMDirectory::renameFiles(const string& from, const string& to)
 {
     string path,fname,fext,s;
     string::size_type npos = (size_t)-1;

@@ -1,3 +1,8 @@
+/**
+   @file cccr_hash.h
+   @author Kevin Hu
+   @date 2009.11.24
+ */
 #ifndef CCCR_HASH_H
 #define CCCR_HASH_H
 
@@ -5,6 +10,7 @@
 
 NS_IZENELIB_AM_BEGIN
 /**
+ * @class cccr_hash
  * @brief cccr_hash stands for Cache-Conscious Collision Resolution String Hash Table.
  *
  *  This is based on work of Nikolas Askitis and Justin Zobel, 'Cache-Conscious Collision Resolution
@@ -29,6 +35,9 @@ size_t ENTRY_POW = 17
 	enum {EXPAND = PAGE_EXPANDING};
 	//typedef DataType<KeyType,ValueType> DataType;
 public:
+    /**
+       @brief a constructor
+     */
 	cccr_hash()
 	{
 	    entry_ = new char*[ENTRY_SIZE];
@@ -38,7 +47,10 @@ public:
 		}
 		count_ = 0;
 	}
-
+    
+    /**
+       @brief a destructor
+     */
 	~cccr_hash()
 	{
 		for(size_t i=0; i<ENTRY_SIZE; i++)
@@ -439,9 +451,9 @@ public:
 	 }*/
 
 protected:
-	char** entry_;
-	vector<ValueType> dataVec_;
-	int count_;
+	char** entry_;//!< entry of table
+	vector<ValueType> dataVec_;//!< store values
+	int count_;//!< count of records in there
 };
 
 template< typename KeyType =string, typename ValueType =NullType > class cccr_small_hash :

@@ -1,3 +1,8 @@
+/**
+   @file atomation.hpp
+   @author Kevin Hu
+   @date 2009.11.25
+ */
 #ifndef AUTOMATION_HPP
 #define AUTOMATION_HPP
 
@@ -9,7 +14,7 @@ using namespace wiselib;
 
 /**
  *@class Automation
- * It generates a automation for wildcard '*' and '?'.
+ * It generates a automation for wildcard '*' and '?' matching.
  **/
 template<
   class STRING_TYPE = string,
@@ -23,6 +28,10 @@ class Automation
   class _state_ ;
 
 
+  /**
+     @class _edge_
+     @brief edge between states
+   */
   class _edge_
   {
   public:
@@ -58,9 +67,13 @@ class Automation
   }
     ;
 
+  /**
+     @class _state_
+     @brief automation state
+   */
   class _state_
   {
-    vector<_edge_> edges_;
+    vector<_edge_> edges_;//!< all the edges starting from this state
 
   public:
     _state_* nextState(charT ch)
@@ -221,9 +234,9 @@ friend ostream& operator << ( ostream& os, const Automation<STRING_TYPE, MULTI_W
 
 
 protected:
-  _state_* pStart_;
-  _state_* pEnd_;
-  vector<_state_*> pV_;
+  _state_* pStart_;//!< start state of a wild card matching automation
+  _state_* pEnd_;//!< end state of a wild card matching automation
+  vector<_state_*> pV_;//!< store all the state in a vector
   bool has_wildcard_;
 
 }

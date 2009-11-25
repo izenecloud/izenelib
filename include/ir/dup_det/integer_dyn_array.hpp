@@ -1,3 +1,8 @@
+/**
+   @file integer_dyn_array.hpp
+   @author Kevin Hu
+   @date 2009.11.25
+ */
 #ifndef INTEGER_DYN_ARRAY_HPP
 #define INTEGER_DYN_ARRAY_HPP
 
@@ -5,13 +10,15 @@
 #include <vector>
 #include <ostream>
 #include <iostream>
-#include <assert.h>
 #include <boost/archive/binary_iarchive.hpp>
 #include <boost/archive/binary_oarchive.hpp>
 
 NS_IZENELIB_AM_BEGIN
 
-
+/**
+   @class IntegerDynArray
+   @brief a copy-on-write vector that stores fixed size data.
+ */
 template<
   class INTEGER_TYPE = unsigned int,
   bool  AUTO_SORT = false,
@@ -27,10 +34,10 @@ public:
   typedef LENG_TYPE size_t;
   
 private:
-  char* p_;
-  INTEGER_TYPE* array_;
-  size_t length_;
-  size_t max_size_;
+  char* p_;//!< buffer pointer
+  INTEGER_TYPE* array_;//!< start pointer of data
+  size_t length_;//!< amount of data
+  size_t max_size_;//!< size of allocated buffer
 
 protected:
   inline void refer()
@@ -253,7 +260,7 @@ public:
 
   inline void assign(const SelfT& other)
   {
-    assert(this!=&other);
+    IASSERT(this!=&other);
     
     if (other.length()==0)
     {
@@ -286,7 +293,7 @@ public:
 
   SelfT& operator += (const SelfT& other)
   {
-    assert(array_!= other.array_);
+    IASSERT(array_!= other.array_);
     
     if (other.length()==0)
       return *this;
@@ -371,7 +378,7 @@ public:
     // if (max_size_==0 || max_size_ == length_)
 //       enlarge((max_size_+1)<<APPEND_RATE);
     
-    assert(length_<max_size_);
+    IASSERT(length_<max_size_);
     array_[length_] = t;
     ++length_;
     return true;
@@ -379,7 +386,7 @@ public:
 
   void erase(size_t t)
   {
-    assert(t<length_);
+    IASSERT(t<length_);
     
     if (is_refered())
       assign_self();
@@ -416,7 +423,7 @@ public:
 
   inline void insert(size_t n, INTEGER_TYPE t)
   {
-    assert(n < length_ || n == (size_t)-1);
+    IASSERT(n < length_ || n == (size_t)-1);
     if (is_refered())
       assign_self();
 
@@ -449,13 +456,13 @@ public:
 
   inline INTEGER_TYPE at (size_t t)const
   {
-    assert(t < length_);
+    IASSERT(t < length_);
     return array_[t];
   }
   
   inline INTEGER_TYPE& operator [] (size_t t)
   {
-    assert(t < length_);
+    IASSERT(t < length_);
     
      if (is_refered())
        assign_self();
@@ -465,7 +472,7 @@ public:
 
   inline const INTEGER_TYPE& operator [] (size_t t)const
   {
-    assert(t < length_);
+    IASSERT(t < length_);
     return array_[t];
   }
 

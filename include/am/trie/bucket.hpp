@@ -1,3 +1,8 @@
+/**
+   @file bucket.hpp
+   @author Kevin Hu
+   @date 2009.11.25
+ */
 #ifndef BUCKET_HPP
 #define BUCKET_HPP
 

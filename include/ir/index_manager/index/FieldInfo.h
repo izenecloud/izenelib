@@ -8,7 +8,6 @@
 #define FIELDINFO_H
 
 #include <ir/index_manager/utility/system.h>
-#include <ir/index_manager/utility/Logger.h>
 #include <ir/index_manager/store/IndexInput.h>
 #include <ir/index_manager/store/IndexOutput.h>
 #include <ir/index_manager/index/Posting.h>
@@ -41,122 +40,85 @@ class FieldInfo
 public:
 
     FieldInfo(void)
-            :id(-1)
-            ,fieldFlag(0)
+            :id_(-1)
+            ,fieldFlag_(0)
     {
         reset();
     }
     FieldInfo(fieldid_t fid,const char* name,bool isforward,bool indexed)
-            :id(fid)
-            ,name(name)
-            ,fieldFlag(0)
+            :id_(fid)
+            ,name_(name)
+            ,fieldFlag_(0)
     {
         reset();
-        fieldFlag |= isforward;
-        fieldFlag |= indexed<<4;
+        fieldFlag_ |= isforward;
+        fieldFlag_ |= indexed<<4;
     }
     FieldInfo(const FieldInfo& src)
     {
-        colid = src.colid;
-        fieldFlag = src.fieldFlag;
-        id = src.id;
-        name = src.name;
-        distTerms = src.distTerms;
-        indexOffset = src.indexOffset;
-        vocLength = src.vocLength;
-        dfiLength = src.dfiLength;
-        ptiLength = src.ptiLength;
+        colid_ = src.colid_;
+        fieldFlag_ = src.fieldFlag_;
+        id_ = src.id_;
+        name_ = src.name_;
+        distTerms_ = src.distTerms_;
+        indexOffset_ = src.indexOffset_;
+        vocLength_ = src.vocLength_;
+        dfiLength_ = src.dfiLength_;
+        ptiLength_ = src.ptiLength_;
     }
-    ~FieldInfo(void)
-    {
-    }
+    ~FieldInfo(){}
 public:
     /**
-    * @brief get field id information.    Field id is formed according to the Field sequence in the document schema definition file
+    * @brief get field id_ information.    Field id_ is formed according to the Field sequence in the document schema definition file
     */
-    fieldid_t getID()
-    {
-        return id;
-    }
+    fieldid_t getID() { return id_; }
     /**
-    * @brief set field id information.    Field id is formed according to the Field sequence in the document schema definition file
+    * @brief set field id_ information.    Field id_ is formed according to the Field sequence in the document schema definition file
     */
-    void setID(fieldid_t fid)
-    {
-        id = fid;
-    }
+    void setID(fieldid_t fid) { id_ = fid; }
     /**
-    * @brief get collection id information.
+    * @brief get collection id_ information.
     */
-    collectionid_t getColID()
-    {
-        return colid;
-    }
+    collectionid_t getColID() { return colid_; }
     /**
-    * @brief set collection id information.
+    * @brief set collection id_ information.
     */
-    void setColID(collectionid_t cid)
-    {
-        colid = cid;
-    }
+    void setColID(collectionid_t cid) { colid_ = cid; }
     /**
     * @brief get field name
     */
-    const char* getName()
-    {
-        return name.c_str();
-    }
+    const char* getName() { return name_.c_str(); }
     /**
     * @brief set field name
     */
-    void setName(const char* name)
-    {
-        this->name = name;
-    }
+    void setName(const char* name) { name_ = name; }
     /**
     * @brief set indexed flag
     */
-    // TODO: "byte" is ambiguous.
-    void setFieldFlag(byte flag)
-    {
-        fieldFlag = flag;
-    }
+    void setFieldFlag(byte flag) { fieldFlag_ = flag; }
     /**
     * @brief get indexed flag
     */
-    byte getFieldFlag()
-    {
-        return fieldFlag;
-    }
+    byte getFieldFlag() { return fieldFlag_; }
 
     /**
-    * @brief get index offset value, indexOffset information indicates the offset of this field in  the vocabulary index file, named *.voc, * refers to the barrel name
+    * @brief get index offset value, indexOffset_ information indicates the offset of this field in  
+    *  the vocabulary index file, named *.voc, * refers to the barrel name
     */
-    fileoffset_t getIndexOffset()
-    {
-        return indexOffset;
-    }
+    fileoffset_t getIndexOffset() { return indexOffset_; }
     /**
-    * @brief set index offset value, indexOffset information indicates the offset of this field in  the vocabulary index file, named *.voc, * refers to the barrel name
+    * @brief set index offset value, indexOffset_ information indicates the offset of this field in  
+    * the vocabulary index file, named *.voc, * refers to the barrel name
     */
-    void setIndexOffset(fileoffset_t offset)
-    {
-        indexOffset = offset;
-    }
+    void setIndexOffset(fileoffset_t offset) { indexOffset_ = offset; }
     /**
     * @brief get total distinct term number of this indexed field in a certain barrel
     */
-    uint64_t distinctNumTerms()
-    {
-        return distTerms;
-    }
+     uint64_t distinctNumTerms() { return distTerms_; }
     /**
     * @brief set total distinct term number of this indexed field in a certain barrel
     */
-    void setDistinctNumTerms(uint64_t n)
-    {
-        distTerms = n;
-    }
+    void setDistinctNumTerms(uint64_t n) { distTerms_ = n; }
     /**
     * @brief set length
     * @param nVocLen the length of this field that has occupied in the vocabulary *.voc file
@@ -165,9 +127,9 @@ public:
     */
     void setLength(int64_t nVocLen,int64_t dfiLen,int64_t ptiLen)
     {
-        vocLength = nVocLen;
-        dfiLength=dfiLen;
-        ptiLength=ptiLen;
+        vocLength_ = nVocLen;
+        dfiLength_=dfiLen;
+        ptiLength_=ptiLen;
     }
     /**
     * @brief get length
@@ -176,40 +138,34 @@ public:
     /**
     * @brief Whether this field is indexed,only for PropertyType of ForwardIndex
     */
-    bool isIndexed()
-    {
-        return FIELD_INDEXED(fieldFlag);
-    }
+    bool isIndexed() { return FIELD_INDEXED(fieldFlag_);}
 
-    bool isForward()
-    {
-        return FIELD_FORWARD(fieldFlag);
-    }
+    bool isForward() { return FIELD_FORWARD(fieldFlag_); }
 
     void reset()
     {
-        distTerms = 0;
-        indexOffset = -1;
-        vocLength = dfiLength = ptiLength = 0;
+        distTerms_ = 0;
+        indexOffset_ = -1;
+        vocLength_ = dfiLength_ = ptiLength_ = 0;
     }
 private:
-    fieldid_t id;
+    fieldid_t id_;
 
-    collectionid_t colid;
+    collectionid_t colid_;
 
-    std::string name;
+    std::string name_;
 
-    byte fieldFlag;
+    byte fieldFlag_;
 
-    uint64_t distTerms;
+    uint64_t distTerms_;
 
-    fileoffset_t indexOffset;
+    fileoffset_t indexOffset_;
 
-    int64_t vocLength;
+    int64_t vocLength_;
 
-    int64_t dfiLength;
+    int64_t dfiLength_;
 
-    int64_t ptiLength;
+    int64_t ptiLength_;
 
     friend class FieldsInfo;
 };
@@ -218,11 +174,11 @@ private:
 inline void FieldInfo::getLength(int64_t* pNVocLen,int64_t* pNDLen,int64_t* pNPLen)
 {
     if (pNVocLen)
-        *pNVocLen = vocLength;
+        *pNVocLen = vocLength_;
     if (pNDLen)
-        *pNDLen = dfiLength;
+        *pNDLen = dfiLength_;
     if (pNPLen)
-        *pNPLen = ptiLength;
+        *pNPLen = ptiLength_;
 }
 
 /**
@@ -238,15 +194,9 @@ public:
 
     virtual ~FieldsInfo();
 public:
-    collectionid_t getColID()
-    {
-        return colId;
-    }
+    collectionid_t getColID() { return colId_; }
 
-    void setColID(collectionid_t id)
-    {
-        colId = id;
-    }
+    void setColID(collectionid_t id) { colId_ = id; }
 
     void setSchema(const IndexerCollectionMeta& schema);
 
@@ -264,9 +214,6 @@ public:
 
     void reset();
 
-    fieldid_t getFieldID(const char* fname);
-
-    inline const char* getFieldName(fieldid_t fid);
     /**
     * @brief get FieldInfo by fieldid
     */
@@ -290,19 +237,11 @@ public:
     /**
     * @brief number of all fields
     */
-    int32_t numFields()
-    {
-        return (int)nNumFieldInfo;
-    }
+    int32_t numFields() { return nNumFieldInfo_; }
     /**
     * @brief number of all fields to be indexed
     */
     int32_t numIndexFields();
-
-    FieldInfo* operator[](int32_t i)
-    {
-        return ppFieldsInfo[i];
-    }
 
     void startIterator();
 
@@ -310,15 +249,17 @@ public:
 
     FieldInfo* next();
 private:
-    collectionid_t colId;
+    collectionid_t colId_;
 
-    std::map<std::string,FieldInfo*> fdInfosByName;
+    std::map<std::string,FieldInfo*> fdInfosByName_;
 
-    FieldInfo** ppFieldsInfo;
+    std::map<fieldid_t,FieldInfo*> fdInfosById_;
 
-    int32_t nNumFieldInfo;
+    FieldInfo** ppFieldsInfo_;
 
-    int32_t fdInfosIterator;
+    int32_t nNumFieldInfo_;
+
+    int32_t fdInfosIterator_;
 };
 
 
@@ -326,33 +267,30 @@ private:
 //Inline functions
 inline void FieldsInfo::startIterator()
 {
-    fdInfosIterator = 0;
+    fdInfosIterator_ = 0;
 }
 inline bool FieldsInfo::hasNext()
 {
-    return (fdInfosIterator != nNumFieldInfo);
+    return (fdInfosIterator_ != nNumFieldInfo_);
 }
 inline FieldInfo* FieldsInfo::next()
 {
-    return ppFieldsInfo[fdInfosIterator++];
+    return ppFieldsInfo_[fdInfosIterator_++];
 }
 inline int32_t FieldsInfo::numIndexFields()
 {
     int32_t indFields = 0;
-    for (int32_t i = 0;i<nNumFieldInfo;i++)
+    for (int32_t i = 0;i<nNumFieldInfo_;i++)
     {
-        if (ppFieldsInfo[i]->isIndexed())
+        if (ppFieldsInfo_[i]->isIndexed())
             indFields++;
     }
     return indFields;
 }
-inline const char* FieldsInfo::getFieldName(fieldid_t fid)
-{
-    return ppFieldsInfo[fid]->getName();
-}
+
 inline FieldInfo* FieldsInfo::getField(fieldid_t fid)
 {
-    return ppFieldsInfo[fid];
+    return fdInfosById_[fid];//ppFieldsInfo_[fid];
 }
 
 }

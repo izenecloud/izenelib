@@ -39,17 +39,19 @@ struct ShFileHeader {
 		os<<"cacheSize: "<<cacheSize<<endl;
 		os<<"numItem: "<<numItems<<endl;
 		os<<"nBlock: "<<nBlock<<endl;
-		
+
 		os<<endl;
 		os<<"file size: "<<nBlock*bucketSize+sizeof(ShFileHeader)<<"bytes"<<endl;
 		if(nBlock != 0) {
-			os<<"average items number in bucket: "<<double(numItems)/double(nBlock)<<endl;		
+			os<<"average items number in bucket: "<<double(numItems)/double(nBlock)<<endl;
 			os<<"average length of bucket chain: "<< double(nBlock)/double(1<<dpow)<<endl;
 		}
 	}
 
 	bool toFile(FILE* f)
 	{
+		if (!f)
+		return false;
 		if ( 0 != fseek(f, 0, SEEK_SET) )
 		return false;
 
@@ -60,6 +62,8 @@ struct ShFileHeader {
 
 	bool fromFile(FILE* f)
 	{
+		if (!f)
+		return false;
 		if ( 0 != fseek(f, 0, SEEK_SET) )
 		return false;
 		fread(this, sizeof(ShFileHeader), 1, f);

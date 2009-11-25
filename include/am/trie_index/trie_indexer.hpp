@@ -160,8 +160,8 @@ protected:
     FILE* f = fopen((fname_+"_o").c_str(), "w+");
     FILE* doc_f = fopen((fname_+"_o.doc").c_str(), "w+");
 
-    assert(f!=NULL);
-    assert(doc_f!=NULL);
+    IASSERT(f!=NULL);
+    IASSERT(doc_f!=NULL);
     fseek(f, sizeof(uint32_t)+sizeof(uint64_t), SEEK_SET);
 
     uint32_t node_num = 0;
@@ -193,14 +193,14 @@ protected:
       uint64_t pos = ftell(f);
       //std::cout<<node_pos<<" hhhhhhh\n";
       fseek(f, cq_[i].obj_addr, SEEK_SET);
-      assert(fwrite(&node_pos, sizeof(uint64_t), 1, f)==1);
+      IASSERT(fwrite(&node_pos, sizeof(uint64_t), 1, f)==1);
       fseek(f, pos, SEEK_SET);
     }
 
     //std::cout<<"root_addr: "<<root_addr<<std::endl;
     fseek(f, 0, SEEK_SET);
-    assert(fwrite(&node_num, sizeof(uint32_t), 1, f) == 1);
-    assert(fwrite(&root_addr, sizeof(uint64_t), 1, f) == 1);
+    IASSERT(fwrite(&node_num, sizeof(uint32_t), 1, f) == 1);
+    IASSERT(fwrite(&root_addr, sizeof(uint64_t), 1, f) == 1);
     
     fclose(f);
     fclose(doc_f);

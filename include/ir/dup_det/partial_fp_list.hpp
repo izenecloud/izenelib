@@ -1,3 +1,8 @@
+/**
+   @file partial_fp_list.hpp
+   @author Kevin Hu
+   @date 2009.11.25
+ */
 #ifndef PARTIAL_FP_LIST_HPP
 #define PARTIAL_FP_LIST_HPP
 
@@ -8,6 +13,10 @@
 
 NS_IZENELIB_IR_BEGIN
 
+/**
+   @class PartialFpList
+   @brief it stores fp partially as a vector. It splits FPs into cloumns.
+ */
 template<
   typename UNIT_TYPE = uint64_t,
   uint8_t  FP_LENGTH = 6,
@@ -55,6 +64,9 @@ protected:
       fp_ptrs_[i] = NULL;
   }
 
+  /**
+     @brief swich cache status between uniform access and adding docs
+   */
   inline void swith_cache_status(CACHE_STATUS sta)
   {    
     if (cache_status_ == UNIFORM_ACCESS)
@@ -92,7 +104,7 @@ protected:
    **/
   inline bool cache_full()
   {
-    assert (cache_status_ == ADD_DOCS);
+    IASSERT (cache_status_ == ADD_DOCS);
 
     return in_mem_doc_num_ >= ALL_INFO_IN_MEM_LENGTH;
   }
@@ -107,7 +119,7 @@ protected:
       //std::cout<<"unload seeking: "<<start_doc_i_<<std::endl;
       
       fseek(fhandlers_[i], start_doc_i_*sizeof(UNIT_TYPE)*UNIT_LEN, SEEK_SET);
-      assert(fwrite(fp_ptrs_[i]->data(), fp_ptrs_[i]->size(), 1, fhandlers_[i])==1);
+      IASSERT(fwrite(fp_ptrs_[i]->data(), fp_ptrs_[i]->size(), 1, fhandlers_[i])==1);
       fp_ptrs_[i]->compact();
       fp_ptrs_[i]->reset();
     }
@@ -127,7 +139,7 @@ protected:
   
   inline void load_fp(uint8_t fpi, size_t n)
   {
-    assert(fpi < PARTIALS_SIZE);
+    IASSERT(fpi < PARTIALS_SIZE);
     
     static size_t max_fps_size = 0;
     max_fps_size = (CACHE_SIZE*1000000 - docids_.size())/sizeof(UNIT_TYPE);
@@ -151,7 +163,7 @@ protected:
       fp_ptrs_[fpi] = new FpVector();
 
     fseek(fhandlers_[fpi], n*sizeof (UNIT_TYPE)*UNIT_LEN, SEEK_SET);
-    assert(fread(fp_ptrs_[fpi]->array(size), size*sizeof(UNIT_TYPE), 1, fhandlers_[fpi])==1);
+    IASSERT(fread(fp_ptrs_[fpi]->array(size), size*sizeof(UNIT_TYPE), 1, fhandlers_[fpi])==1);
   }
 
   inline bool is_in_mem(uint8_t fpi, size_t n)
@@ -164,6 +176,11 @@ protected:
   
   
 public:
+  /**
+     @brief a constructor
+     @param file_name name of file to store data
+     @param unit_len length of a unit
+   */
   explicit PartialFpList(const char* file_name, uint8_t unit_len=2, size_t doc_num = 0)
     :file_name_(file_name),doc_num_(doc_num), in_mem_doc_num_(0),start_doc_i_(0),cache_status_(ADD_DOCS),
      ALL_INFO_IN_MEM_LENGTH(CACHE_SIZE*1000000/(FP_LENGTH*sizeof(UNIT_TYPE))),
@@ -220,6 +237,9 @@ public:
     for (uint8_t i =0; i<PARTIALS_SIZE; i++)      
       fclose(fhandlers_[i]);
     clean_fp();
+
+    delete fhandlers_;
+    delete fp_ptrs_;
   }
   
   size_t add_doc(uint32_t docid, const FpVector& fp)
@@ -235,7 +255,7 @@ public:
       start_doc_i_ = doc_num_;
     }
     
-    assert(FP_LENGTH == fp.length());
+    IASSERT(FP_LENGTH == fp.length());
     docids_.push_back(docid);
     
     for (uint8_t i =0; i<PARTIALS_SIZE; i++)
@@ -254,6 +274,10 @@ public:
     return ++doc_num_;
   }
 
+  /**
+     @brief this must be called before accessing a certain cloumn of fingerprinting.
+     @param fpi the index of cloumn
+   */
   inline void ready_for_uniform_access(uint8_t fpi)
   {
     set_cache_status(UNIFORM_ACCESS);
@@ -261,9 +285,14 @@ public:
     load_fp(fpi, 0);
   }
 
+  /**
+     @param fpi index of cloumn
+     @param n  index of document
+     @param i index in a unit
+   */
   inline UNIT_TYPE get_fp(uint8_t fpi, size_t n, uint8_t i=0)
   {
-    assert(fpi<PARTIALS_SIZE);
+    IASSERT(fpi<PARTIALS_SIZE);
     if (!is_in_mem(fpi, n))
       load_fp(fpi, n);
     
@@ -341,9 +370,12 @@ public:
     in_mem_doc_num_ = 0;
   }
 
+  /**
+     @return docid of i indexed document.
+   */
   inline uint32_t& operator[] (size_t i)
   {
-    assert(i < docids_.length());
+    IASSERT(i < docids_.length());
     return docids_[i];
   }
   

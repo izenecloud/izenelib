@@ -1,3 +1,8 @@
+/**
+   @file group_table.hpp
+   @author Kevin Hu
+   @date 2009.11.25
+ */
 #ifndef GROUP_TABLE_HPP
 #define GROUP_TABLE_HPP
 
@@ -7,6 +12,10 @@
 
 NS_IZENELIB_IR_BEGIN
 
+/**
+   @class GroupTable
+   @brief A table to provide a fast lookup to docids that within the same group.
+ */
 template <
   uint32_t ENTRY_SIZE = 1000000,
   class  UNIT_TYPE = uint64_t
@@ -19,11 +28,15 @@ class GroupTable
   typedef GroupTable<ENTRY_SIZE, UNIT_TYPE> SelfT;
   
 protected:
-  Vector32Ptr gids_;
-  Vector32Ptr doc_hash_;
+  Vector32Ptr gids_;//!< store group pointer
+  Vector32Ptr doc_hash_;//!< docid hash table entry
   FILE* f_;
-  Vector32    empty_q_;
+  Vector32    empty_q_;//!< store empty group that's ready for using.
 
+  /**
+     @brief get group id of the doc with ID as docid
+     @return group ID
+   */
   inline size_t get_gid(uint32_t docid)const
   {
     Vector32* p = doc_hash_.at(docid%ENTRY_SIZE);
@@ -38,12 +51,14 @@ protected:
 
     return -1;
   }
-
   
+  /**
+     @brief set group id of the doc with ID as docid
+   */
   inline void set_gid(uint32_t docid, size_t gid)
   {
     Vector32* p = doc_hash_.at(docid%ENTRY_SIZE);
-    assert (p != NULL);
+    IASSERT (p != NULL);
     
     for (size_t i=0; i<p->length(); i++)
     {
@@ -72,12 +87,15 @@ protected:
     
   }
 
+  /**
+     @brief merge 2 groups that share same documents.
+   */
   inline void merge(size_t gid1, size_t gid2)
   {
     Vector32* p1 = gids_.at(gid1);
     Vector32* p2 = gids_.at(gid2);
-    assert(p1 != NULL);
-    assert(p2 != NULL);
+    IASSERT(p1 != NULL);
+    IASSERT(p2 != NULL);
 
     //swap p1 p2, small one is merged into big one. p1<p2. p1->p2
     if (p1->length()>p2->length())
@@ -100,6 +118,10 @@ protected:
     empty_q_.push_back(gid1);
   }
 
+  /**
+     @brief get some available group.
+     @return group ID.
+   */
   inline size_t get_empty_gid()
   {
     if (empty_q_.length()>0)
@@ -332,6 +354,9 @@ public:
     merge(t1, t2);
   }
 
+  /**
+     @brief to assign this doc a new group
+   */
   inline void add_doc(uint32_t docid)
   {
     if (get_gid(docid) != (size_t)-1)
@@ -349,7 +374,10 @@ public:
       return false;
     return true;
   }
-  
+
+  /**
+     @return a reference of vector of docids that are in the same group.
+   */
   inline const Vector32& find(uint32_t docid)const
   {
     static Vector32 v;
@@ -398,6 +426,9 @@ public:
     return gids_.length();
   }
 
+  /**
+     @brief reset docids by FpList
+   */
   template<
     class FpList
     >

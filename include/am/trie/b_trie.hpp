@@ -1,3 +1,8 @@
+/**
+   @file b_trie.hpp
+   @author Kevin Hu
+   @date 2009.11.25
+ */
 #ifndef STATIC_B_TRIE_HPP
 #define STATIC_B_TRIE_HPP
 

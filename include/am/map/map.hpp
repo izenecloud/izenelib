@@ -1,3 +1,8 @@
+/**
+   @file map.hpp
+   @author Kevin Hu
+   @date 2009.11.25
+ */
 #ifndef MAP_HPP
 #define MAP_HPP
 
@@ -29,8 +34,6 @@ using namespace std;
 
 using namespace izenelib::am::util;
 
-using namespace izenelib::util;
-
 
 class simple_hash
 {
@@ -55,15 +58,16 @@ NS_IZENELIB_AM_BEGIN
 
 
 /**
+   @class Map 
  *@brief This is an implementation of open addressing and linear probing hash table for integer key.
  *
  **/
 template<
   class KeyType = uint32_t,
   class ValueType = uint64_t,
-  size_t ENTRY_POW = 16,
+  size_t ENTRY_POW = 16,//!< entry size will be 2^ENTRY_POW
   class HASH_FUNCTION = simple_hash,
-  int INIT_MAP_BUCKET_SIZE=64
+  int INIT_MAP_BUCKET_SIZE=64//!< initial size of bucket
   >
 class Map : public AccessMethod<KeyType, ValueType>
 {

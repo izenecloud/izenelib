@@ -1,7 +1,8 @@
 /**
  * @file HugeDB.h
  * @brief Implementation of HugeDB,
- *        Enhancement of SequentialDB for random accesses on large scale data set.
+ *        Enhancement to SequentialDB for random accesses on large scale data set.
+ *        See my TR docs/pdf/hdb_draft.pdf for my information.
  * @author Wei Cao
  * @date 2009-09-11
  */
@@ -32,11 +33,12 @@ namespace hdb {
  * SequentialDB, is fast for sequential accesses, however not good at random
  * insertions and look up.
  *
- * ScalableDB, is based on SequentialDB, but use a keep-modifications-in-memory,
+ * HugeDB, is based on SequentialDB, but use a keep-modifications-in-memory,
  * flush-small-db-from-memory-to-disk, and merge-small-dbs-to-large-one-on-disk
  * techniques to provide scalable performance for random accesses.
  *
- * If you are to maintain large scale of data on disk, use this one.
+ * If you are to maintain large scale of data on disk and have random insertions,
+ * use this one.
  */
 
 template< typename KeyType,
@@ -54,6 +56,9 @@ protected:
 
     typedef SequentialDB<KeyType, TagType, LockType, ContainerType, Alloc> SdbType;
 
+    /**
+     * @brief Hdb partition, contain both data and metadata about a partition.
+     */
     class SdbInfo {
     public:
         SdbType sdb;
@@ -62,21 +67,37 @@ protected:
         SdbInfo(std::string name) : sdb(name), level(0), deletions(0) {}
     };
 
+    static const int DEFAULT_CACHED_RECORDS_NUM = 2000000;
+    static const int DEFAULT_MERGE_FACTOR = 2;
+    static const int DEFAULT_BTREE_CACHED_PAGE_NUM = 8*1024;
+    static const int DEFAULT_BTREE_PAGE_SIZE = 8*1024;
+    static const int DEFAULT_BTREE_DEGREE = 128;
+
 public:
 
+    /**
+     * @brief HDBCursor can be used to iterate the whole hdb,
+     *        the same as SequentialDB::SDBCursor
+     */
     typedef HDBCursor_<ThisType> HDBCursor;
 
     friend class HDBCursor_<ThisType>;
 
+public:
+
+    /**
+     * @brief Constructor.
+     * @param hdbName - identifier of hdb
+     */
     HugeDB(const std::string &hdbName)
         : hdbName_(hdbName),
           isOpen_(false), isSync_(true),
           headerPath_(hdbName_ + ".hdb.header.xml"),
           header_(headerPath_),
-          cachedRecordsNumber_(2000000),
-          mergeFactor_(2),
-          pageSize_(8*1024),
-          degree_(128)
+          cachedRecordsNumber_(DEFAULT_CACHED_RECORDS_NUM),
+          mergeFactor_(DEFAULT_MERGE_FACTOR),
+          pageSize_(DEFAULT_BTREE_PAGE_SIZE),
+          degree_(DEFAULT_BTREE_DEGREE)
     {
 #ifdef VERBOSE_HDB
         header_.display();
@@ -84,7 +105,7 @@ public:
         for(size_t i = 0; i<header_.slicesNum; i++)
         {
             SdbInfo* sdbi = new SdbInfo(getSdbName(i,header_.slicesLevel[i]));
-            sdbi->sdb.setCacheSize(8*1024);
+            sdbi->sdb.setCacheSize(DEFAULT_BTREE_CACHED_PAGE_NUM);
             sdbi->level = header_.slicesLevel[i];
             sdbi->deletions = header_.deletions[i];
             sdbList_.push_back(sdbi);
@@ -94,11 +115,9 @@ public:
     ~HugeDB()
     {
         close();
+
         for(size_t i = 0; i<sdbList_.size(); i++)
-        {
             delete sdbList_[i];
-            sdbList_[i] = NULL;
-        }
     }
 
     /*************************************************
@@ -106,20 +125,23 @@ public:
      *************************************************/
 
     /**
-     * @brief Set CacheRecordsNumber to N.
-     * It means you will cache at most N records in memory.
+     * @brief Cache at most cachedRecordsNumber numbers of records in memory.
      */
     void setCachedRecordsNumber(int cachedRecordsNumber)
     {
         if(isOpen_)
             throw std::runtime_error("cannot set cache size after opened");
+        if(cachedRecordsNumber <= 0)
+            throw std::runtime_error("cachedRecordsNumber should be positive");
         cachedRecordsNumber_ = cachedRecordsNumber;
     }
 
     /**
-     * @brief Set MergeFactor to M.
-     * This factor controls sdb merging process. When there are M sdbs of equal size,
-     * a merge process will be triggered, which merges M small sdbs into a larger one.
+     * @brief Mergefactor controls when pieces of hdb partition will merge.
+     *        All hdb partition starts from level 0.
+     *        A merge happens when there are M numbers of level L hdb partitions exist on disk,
+     *        they will be merged to a single level L+1 hdb partition.
+     *        Default mergefactor is set to 2, a value of 4 is recommened in practice.
      */
     void setMergeFactor(size_t mergeFactor)
     {
@@ -134,11 +156,28 @@ public:
         mergeFactor_ = mergeFactor;
     }
 
+    /**
+     * @brief Set Btree's page size, the same as SequentialDB.
+     *        Default page size is 8K.
+     */
 	void setPageSize(size_t pageSize) {
+        if(isOpen_)
+            throw std::runtime_error("cannot set cache size after opened");
+        if(pageSize <= 0 || pageSize % 512)
+            throw std::runtime_error("pageSize should be positive and aligned to 512bytes");
 		pageSize_ = pageSize;
 	}
 
+    /**
+     * @brief Set Btree's degree, the same as SequentialDB.
+     *        Default degree is 128, which means the number of children
+     *        of each Btree node ranges from 129~256
+     */
 	void setDegree(int degree) {
+        if(isOpen_)
+            throw std::runtime_error("cannot set merge factor after opened");
+        if(degree <= 0)
+            throw std::runtime_error("degree should be positive");
 		degree_ = degree;
 	}
 
@@ -146,6 +185,9 @@ public:
      *               Open/Close/Flush
      *************************************************/
 
+    /**
+     * Open a hdb.
+     */
     void open()
     {
         if(sdbList_.size() == 0)
@@ -155,6 +197,9 @@ public:
         isOpen_ = true;
     }
 
+    /**
+     * Close a hdb.
+     */
     void close()
     {
         flush();
@@ -163,6 +208,9 @@ public:
         isOpen_ = false;
     }
 
+    /**
+     * Flush hdb content to disk.
+     */
     void flush()
     {
         header_.slicesNum = sdbList_.size();
@@ -227,7 +275,6 @@ public:
 	    ramSdb->sdb.update(key, TagType(DELETE, ValueType()));
         isSync_ = false;
 	}
-
 
     /**
      * @brief Add a delta value to the given key in sdb. newvalue := oldvalue + delta.
@@ -319,9 +366,13 @@ public:
 	}
 
     /*************************************************
-     *               Iterator
+     *               Cursor/Iterator
      *************************************************/
 
+    /**
+     * @brief Get the cursor of the first element in hdb.
+     *        You can get element's content by call get().
+     */
 	HDBCursor get_first_Locn() {
 	    HDBCursor cursor(*this);
 	    /*
@@ -332,6 +383,11 @@ public:
 	    return cursor;
 	}
 
+    /**
+     * @brief Update the cursor to move to the previous or next element.
+     * @return true - if success
+     *         false - to the beginning or the end of hdb, no available element.
+     */
 	bool seq(HDBCursor& cursor, ESeqDirection sdir = ESD_FORWARD) {
 	    if(sdir == ESD_FORWARD ) {
             while( cursor.next() ) {
@@ -348,6 +404,9 @@ public:
 	    }
 	}
 
+    /**
+     * @brief Retrieve element's content , see above
+     */
 	bool seq(HDBCursor& cursor, KeyType& key, ValueType& value,
 			ESeqDirection sdir=ESD_FORWARD) {
         if( seq(cursor, sdir) ) {
@@ -357,11 +416,27 @@ public:
         return false;
 	}
 
+    /**
+     * @brief See above
+     */
 	bool seq(HDBCursor& cursor, DataType<KeyType, ValueType>& dat,
 			ESeqDirection sdir=ESD_FORWARD) {
         return seq(cursor, dat.key, dat.value, sdir);
 	}
 
+    /**
+     * @brief Search the given key in either up or down direction from current position.
+     * @param key - the given key
+     *        cursor - current position
+     *        sdir - search direction, forward or backward
+     * @return true - if key is found, update cursor to point to new position.
+     *                when no hit found,
+     *                   if we are searching forward, return the next element that larger than key,
+     *                   if we are searching backward, return the previous element that smaller than the key.
+     *         false - only in two cases:
+     *                       the given key is larger than the largest key inside hdb when searching forward.
+     *                       or key is smaller than the smallest key inside hdb when searching backward.
+     */
 	bool search(const KeyType& key, HDBCursor& cursor,
             ESeqDirection sdir = ESD_FORWARD) {
 	    bool suc = cursor.seek(key);
@@ -376,12 +451,21 @@ public:
         return false;
 	}
 
+    /**
+     * @brief See above
+     */
 	HDBCursor search(const KeyType& key, ESeqDirection sdir = ESD_FORWARD) {
 	    HDBCursor cursor(*this);
 	    search(key, cursor, sdir);
 	    return cursor;
 	}
 
+    /**
+     * @brief Get the content of element at a position.
+     * @return false - if the element doesn't exist, e.g. before the begining of hdb
+     *          or after the end of hdb.
+     *         true - otherwise.
+     */
 	bool get(const HDBCursor& cursor, KeyType& key, ValueType& value) {
 	    if(cursor.getTag().first != DELETE) {
             key = cursor.getKey();
@@ -391,6 +475,9 @@ public:
 	    return false;
 	}
 
+    /**
+     * @brief See above
+     */
 	bool get(const HDBCursor& cursor, DataType<KeyType,ValueType> & dat) {
 	    return get(cursor, dat.key, dat.value);
 	}
@@ -399,6 +486,9 @@ public:
      *                Range Search
      *************************************************/
 
+    /**
+     * Find the next bigger key than the given key.
+     */
 	bool getNext(const KeyType& key, KeyType& nxtKey) {
 	    KeyType tmpk = KeyType();
 	    ValueType tmpv = ValueType();
@@ -416,6 +506,9 @@ public:
 	    return false;
 	}
 
+    /**
+     * Find the next smaller key than the given key.
+     */
 	bool getPrev(const KeyType& key, KeyType& prevKey) {
 	    KeyType tmpk = KeyType();
 	    ValueType tmpv = ValueType();
@@ -433,6 +526,9 @@ public:
         return false;
 	}
 
+    /**
+     * Find N keys next to the given key.
+     */
 	bool getValueForward(const int count,
             vector<DataType<KeyType,ValueType> >& result, const KeyType& key) {
         result.clear();
@@ -450,11 +546,17 @@ public:
         return true;
     }
 
+    /**
+     * @brief See above
+     */
 	bool getValueForward(int count, vector<DataType<KeyType,ValueType> >& result) {
         KeyType key;
         return getValueForward(count, result, key);
 	}
 
+    /**
+     * Find N keys next to the given key in the reverse order.
+     */
 	bool getValueBackward(const int count,
 			vector<DataType<KeyType,ValueType> >& result, const KeyType& key) {
         result.clear();
@@ -472,11 +574,17 @@ public:
         return true;
     }
 
+    /**
+     * @brief See above
+     */
 	bool getValueBackward(int count, vector<DataType<KeyType,ValueType> >& result) {
         KeyType key;
 	    return getValueBackward(count, result, key);
 	}
 
+    /**
+     * Find all keys between the given range.
+     */
 	bool getValueBetween(vector<DataType<KeyType,ValueType> >& result,
 			const KeyType& lowKey, const KeyType& highKey) {
         result.clear();
@@ -517,7 +625,7 @@ public:
         SdbInfo* dst = new SdbInfo(dstName);
         dst->sdb.setPageSize(pageSize_);
         dst->sdb.setDegree(degree_);
-        dst->sdb.setCacheSize(8*1024);
+        dst->sdb.setCacheSize(DEFAULT_BTREE_CACHED_PAGE_NUM);
         dst->sdb.open();
 
         HDBCursor cursor(*this);
@@ -542,6 +650,9 @@ public:
         isSync_ = true;
 	}
 
+    /**
+     * @brief Print out debug messages.
+     */
     void display(std::ostream& os = std::cout)
     {
         header_.display(os);
@@ -549,6 +660,11 @@ public:
             sdbList_[i]->sdb.display(os);
     }
 
+    /**
+     * @return number of records kept in hdb. However, restrict by hdb's design,
+     *      the interface is avaiable to call only when only one partition exist.
+     *      you can call it after HugeDB::optimize() finishes.
+     */
     size_t numItems()
     {
         if(sdbList_.size() == 1)
@@ -598,7 +714,7 @@ protected:
         SdbInfo* dst = new SdbInfo(dstName);
         dst->sdb.setPageSize(pageSize_);
         dst->sdb.setDegree(degree_);
-        dst->sdb.setCacheSize(8*1024);
+        dst->sdb.setCacheSize(DEFAULT_BTREE_CACHED_PAGE_NUM);
         dst->sdb.open();
 
         size_t deletions = 0;
@@ -608,6 +724,7 @@ protected:
                 deletions ++;
             dst->sdb.insertValue(cursor.getKey(), cursor.getTag());
         }
+        dst->sdb.flush();
 
         for(size_t i=0; i<mergeFactor_; i++) {
             SdbInfo* last = sdbList_.back();
@@ -643,7 +760,7 @@ protected:
 
     inline void flushRamSdb()
     {
-        sdbList_.back()->sdb.setCacheSize(8*1024);
+        sdbList_.back()->sdb.setCacheSize(DEFAULT_BTREE_CACHED_PAGE_NUM);
         sdbList_.back()->sdb.flush();
     }
 

@@ -11,7 +11,7 @@ NS_IZENELIB_AM_BEGIN
 
 template <
 typename KeyType,
-typename ValueType,
+typename ValueType = NullType,
 class HashFunc = rde::hash<KeyType>
 > class rde_hash: public AccessMethod<KeyType, ValueType>
 {	

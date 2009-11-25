@@ -6,46 +6,46 @@ using namespace izenelib::ir::indexmanager;
 ///CompressedPostingList
 bool CompressedPostingList::addPosting(uint32_t posting32)
 {
-    if (pTailChunk == NULL)
+    if (pTailChunk_ == NULL)
         return false;
-    int32_t left = pTailChunk->size - nPosInCurChunk;
+    int32_t left = pTailChunk_->size - nPosInCurChunk_;
 
-    if (left < 7)///at least 7 free space
+    if (left < 7)///at least 4 free space
     {
-        nTotalUnused += left;///Unused size
-        pTailChunk->size = nPosInCurChunk;///the real size
+        nTotalUnused_ += left;///Unused size
+        pTailChunk_->size = nPosInCurChunk_;///the real size
         return false;
     }
 
     uint32_t ui = posting32;
     while ((ui & ~0x7F) != 0)
     {
-        pTailChunk->data[nPosInCurChunk++] = ((uint8_t)((ui & 0x7f) | 0x80));
+        pTailChunk_->data[nPosInCurChunk_++] = ((uint8_t)((ui & 0x7f) | 0x80));
         ui >>= 7;
     }
-    pTailChunk->data[nPosInCurChunk++] = (uint8_t)ui;
+    pTailChunk_->data[nPosInCurChunk_++] = (uint8_t)ui;
     return true;
 }
 
 bool CompressedPostingList::addPosting(uint64_t posting64)
 {
-    if (pTailChunk == NULL)
+    if (pTailChunk_ == NULL)
         return false;
-    int32_t left = pTailChunk->size - nPosInCurChunk;
-    if (left < 11)///at least 11 free space
+    int32_t left = pTailChunk_->size - nPosInCurChunk_;
+    if (left < 11)///at least 8 free space
     {
-        nTotalUnused += left;///Unused size
-        pTailChunk->size = nPosInCurChunk;///the real size
+        nTotalUnused_ += left;///Unused size
+        pTailChunk_->size = nPosInCurChunk_;///the real size
         return false;
     }
 
     uint64_t ui = posting64;
     while ((ui & ~0x7F) != 0)
     {
-        pTailChunk->data[nPosInCurChunk++] = ((uint8_t)((ui & 0x7f) | 0x80));
+        pTailChunk_->data[nPosInCurChunk_++] = ((uint8_t)((ui & 0x7f) | 0x80));
         ui >>= 7;
     }
-    pTailChunk->data[nPosInCurChunk++] = ((uint8_t)ui);
+    pTailChunk_->data[nPosInCurChunk_++] = ((uint8_t)ui);
 
     return true;
 }
@@ -96,29 +96,29 @@ void CompressedPostingList::encodePosting64(uint8_t*& posting,int64_t val)
 
 void CompressedPostingList::truncTailChunk()
 {
-    nTotalUnused += pTailChunk->size - nPosInCurChunk;
-    pTailChunk->size = nPosInCurChunk;
+    nTotalUnused_ += pTailChunk_->size - nPosInCurChunk_;
+    pTailChunk_->size = nPosInCurChunk_;
 }
 
 void CompressedPostingList::addChunk(PostingChunk* pChunk)
 {
-    if (pTailChunk)
-        pTailChunk->next = pChunk;
-    pTailChunk = pChunk;
-    if (!pHeadChunk)
-        pHeadChunk = pTailChunk;
-    nTotalSize += pChunk->size;
+    if (pTailChunk_)
+        pTailChunk_->next = pChunk;
+    pTailChunk_ = pChunk;
+    if (!pHeadChunk_)
+        pHeadChunk_ = pTailChunk_;
+    nTotalSize_ += pChunk->size;
 
-    nPosInCurChunk = 0;
+    nPosInCurChunk_ = 0;
 }
 int32_t CompressedPostingList::getRealSize()
 {
-    return nTotalSize - nTotalUnused;
+    return nTotalSize_ - nTotalUnused_;
 }
 
 void CompressedPostingList::reset()
 {
-    pHeadChunk = pTailChunk = NULL;
-    nTotalSize = nPosInCurChunk = nTotalUnused = 0;
+    pHeadChunk_ = pTailChunk_ = NULL;
+    nTotalSize_ = nPosInCurChunk_ = nTotalUnused_ = 0;
 }
 

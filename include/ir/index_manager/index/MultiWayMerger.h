@@ -1,3 +1,8 @@
+/**
+* @file        MultiWayMerger.h
+* @author     Yingfeng Zhang
+* @brief   MultiWayMerger with log merge policy
+*/
 #ifndef LOG_MERGER_H
 #define LOG_MERGER_H
 
@@ -52,7 +57,7 @@ public:
     }; 
 	
 public:
-    MultiWayMerger(Directory* pSrcDirectory);
+    MultiWayMerger(Indexer* pIndexer);
     virtual ~MultiWayMerger(void);
 public:
     void addBarrel(MergeBarrelEntry* pEntry);

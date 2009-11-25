@@ -24,12 +24,14 @@ TermReader::~TermReader(void)
 void TermReader::open(Directory* pDirectory,const char* barrelname,FieldInfo* pFieldInfo)
 {}
 
-DiskTermReader::DiskTermReader()
+DiskTermReader::DiskTermReader(Directory* pDirectory,const char* barrelname,FieldInfo* pFieldInfo)
         : TermReader()
         , pTermReaderImpl_(NULL)
         , pCurTermInfo_(NULL)
         , ownTermReaderImpl_(true)
+        , pInputDescriptor_(NULL)
 {
+    open(pDirectory, barrelname, pFieldInfo);
 }
 
 DiskTermReader::DiskTermReader(TermReaderImpl* pTermReaderImpl)
@@ -37,6 +39,7 @@ DiskTermReader::DiskTermReader(TermReaderImpl* pTermReaderImpl)
         , pTermReaderImpl_(pTermReaderImpl)
         , pCurTermInfo_(NULL)
         , ownTermReaderImpl_(false)
+        , pInputDescriptor_(pTermReaderImpl->pInputDescriptor_->clone())
 {
 }
 
@@ -45,6 +48,8 @@ DiskTermReader::~DiskTermReader()
     close();
     if ((pTermReaderImpl_)&&(ownTermReaderImpl_))
         delete pTermReaderImpl_;
+    if (pInputDescriptor_)
+        delete pInputDescriptor_;
 }
 
 void DiskTermReader::open(Directory* pDirectory,const char* barrelname,FieldInfo* pFieldInfo)
@@ -52,7 +57,13 @@ void DiskTermReader::open(Directory* pDirectory,const char* barrelname,FieldInfo
     setFieldInfo(pFieldInfo);
 
     pTermReaderImpl_ = new TermReaderImpl(pFieldInfo);
-    pTermReaderImpl_->open(pDirectory, barrelname, pFieldInfo);
+    pTermReaderImpl_->open(pDirectory, barrelname);
+    pInputDescriptor_ = pTermReaderImpl_->pInputDescriptor_->clone();
+}
+
+void DiskTermReader::reopen()
+{
+    pTermReaderImpl_->reopen();
 }
 
 void DiskTermReader::close()
@@ -83,17 +94,18 @@ TermReader* DiskTermReader::clone()
 
 TermDocFreqs* DiskTermReader::termDocFreqs()
 {
-    if (pCurTermInfo_ == NULL)
+    if (pCurTermInfo_ == NULL || pTermReaderImpl_ == NULL )
         return NULL;
-    TermDocFreqs* pTermDocs = new TermDocFreqs(this,pTermReaderImpl_->pInputDescriptor_->clone(),*pCurTermInfo_);
-    return pTermDocs;
+    //TermDocFreqs* pTermDocs = new TermDocFreqs(this,pTermReaderImpl_->pInputDescriptor_->clone(),*pCurTermInfo_);
+    return new TermDocFreqs(this,pInputDescriptor_->clone(),*pCurTermInfo_);;
 }
 
 TermPositions* DiskTermReader::termPositions()
 {
-    if (pCurTermInfo_ == NULL || pTermReaderImpl_->pInputDescriptor_->getPPostingInput() == NULL)
+    if (pCurTermInfo_ == NULL || pTermReaderImpl_ == NULL )
         return NULL;
-    return new TermPositions(this,pTermReaderImpl_->pInputDescriptor_->clone(),*pCurTermInfo_);
+    //return new TermPositions(this,pTermReaderImpl_->pInputDescriptor_->clone(),*pCurTermInfo_);
+    return new TermPositions(this,pInputDescriptor_->clone(),*pCurTermInfo_);
 }
 
 
@@ -124,6 +136,7 @@ TermReaderImpl::TermReaderImpl(FieldInfo* pFieldInfo)
         :pFieldInfo_(pFieldInfo)
         ,pTermTable_(NULL)
         ,pInputDescriptor_(NULL)
+        ,pDirectory_(NULL)
 {}
 
 TermReaderImpl::~TermReaderImpl()
@@ -131,14 +144,16 @@ TermReaderImpl::~TermReaderImpl()
     close();
 }
 
-void TermReaderImpl::open(Directory* pDirectory,const char* barrelname,FieldInfo* pFieldInfo)
+void TermReaderImpl::open(Directory* pDirectory,const char* barrelname)
 {
     close();///TODO
+
+    barrelName_ = barrelname;
 
     string bn = barrelname;
 
     IndexInput* pVocInput = pDirectory->openInput(bn + ".voc");
-    pVocInput->seek(pFieldInfo->getIndexOffset());
+    pVocInput->seek(pFieldInfo_->getIndexOffset());
     fileoffset_t voffset = pVocInput->getFilePointer();
     ///begin read vocabulary descriptor
     nVocLength_ = pVocInput->readLong();
@@ -164,6 +179,12 @@ void TermReaderImpl::open(Directory* pDirectory,const char* barrelname,FieldInfo
     pInputDescriptor_->setDPostingInput(pDirectory->openInput(bn + ".dfp"));
     pInputDescriptor_->setPPostingInput(pDirectory->openInput(bn + ".pop"));
 
+}
+
+void TermReaderImpl::reopen()
+{
+    if(pDirectory_)
+        open(pDirectory_, barrelName_.c_str());
 }
 
 void TermReaderImpl::updateTermInfo(Term* term, count_t docFreq, fileoffset_t offset)
@@ -216,6 +237,10 @@ TermInfo* TermReaderImpl::termInfo(Term* term)
 
     int32_t start = 0,end = nTermCount_ - 1;
     int32_t mid = (start + end)/2;
+    ///tid == 0 means we return the last term to see whether
+    ///the index is consistent;
+    if(MAX_TERMID == tid) return &(pTermTable_[end].ti);
+	
     while (start <= end)
     {
         mid = (start + end)/2;
@@ -282,25 +307,25 @@ bool InMemoryTermReader::seek(Term* term)
 
 TermDocFreqs* InMemoryTermReader::termDocFreqs()
 {
-    if (pCurTermInfo_ == NULL)
+    if( (pCurTermInfo_ == NULL)||(pCurPosting_ == NULL))
         return NULL;
 
-    InMemoryPosting* pInMem = (InMemoryPosting*)pCurPosting_;
+    //InMemoryPosting* pInMem = (InMemoryPosting*)pCurPosting_;
     boost::mutex::scoped_lock lock(pIndexer_->getLock());
-    pInMem->flushLastDoc(false);
+    //pInMem->flushLastDoc(false);
     TermDocFreqs* pTermDocs = new TermDocFreqs(this,pCurPosting_,*pCurTermInfo_);
     return pTermDocs;
 }
 
 TermPositions* InMemoryTermReader::termPositions()
 {
-    if (pCurTermInfo_ == NULL)
+    if( (pCurTermInfo_ == NULL)||(pCurPosting_ == NULL))
         return NULL;
-
-    InMemoryPosting* pInMem = (InMemoryPosting*)pCurPosting_;
+    //InMemoryPosting* pInMem = (InMemoryPosting*)pCurPosting_;
     boost::mutex::scoped_lock lock(pIndexer_->getLock());
-    pInMem->flushLastDoc(false);
-    return new TermPositions(this,pCurPosting_,*pCurTermInfo_);
+    //pInMem->flushLastDoc(false);
+    TermPositions* pPositions = new TermPositions(this,pCurPosting_,*pCurTermInfo_);
+    return pPositions;
 }
 freq_t InMemoryTermReader::docFreq(Term* term)
 {

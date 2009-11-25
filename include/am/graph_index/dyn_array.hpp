@@ -1,3 +1,8 @@
+/**
+   @file dyn_arry.hpp
+   @author Kevin Hu
+   @date 2009.11.24
+ */
 #ifndef DYN_ARRAY_HPP
 #define DYN_ARRAY_HPP
 
@@ -5,13 +10,15 @@
 #include <vector>
 #include <ostream>
 #include <iostream>
-#include <assert.h>
 #include <boost/archive/binary_iarchive.hpp>
 #include <boost/archive/binary_oarchive.hpp>
 
 NS_IZENELIB_AM_BEGIN
 
-
+/**
+   @class DynArray
+   @detail it is a copy-on-write dynamic array, and fix length data only.
+ */
 template<
   class VALUE_TYPE = unsigned int,
   bool  AUTO_SORT = false,
@@ -30,11 +37,14 @@ public:
 #define ARRAY(p) ((VALUE_TYPE*)((p)+sizeof(ReferT)))
 #define REFER (*(ReferT*)p_)
 private:
-  char* p_;
-  size_t length_;
-  size_t max_size_;
+  char* p_;//!< buffer for array
+  size_t length_;//!< vector size
+  size_t max_size_;//!< buffer size.
 
 protected:
+  /**
+     @brief add reference count by 1
+   */
   inline void refer()
   {
     if (!COPY_ON_WRITE)
@@ -57,6 +67,9 @@ protected:
 
   }
 
+  /**
+     @brief deduct reference count by 1.
+   */
   inline void derefer()
   {
     if (!COPY_ON_WRITE)
@@ -86,6 +99,10 @@ protected:
 
   }
 
+  /**
+     @brief check if reference count is equal to 1
+     @return true reference count is large than 1, refered
+   */
   inline bool is_refered()const
   {
     if (!COPY_ON_WRITE)
@@ -99,6 +116,9 @@ protected:
     return false;
   }
 
+  /**
+     @brief clean reference count
+   */
   inline void clean_reference()
   {
     if (!COPY_ON_WRITE)
@@ -111,6 +131,9 @@ protected:
     
   }
 
+  /**
+     @brief make one copy when write to a refered vector
+   */
   inline void assign_self()
   {
     //std::cout<<"assign_self............\n";
@@ -269,9 +292,9 @@ protected:
    **/
   void quickSort_(VALUE_TYPE* array, uint32_t left, uint32_t right)
   {
-    assert(left < right);
+    IASSERT(left < right);
 
-    assert(right < length_);
+    IASSERT(right < length_);
     
     if(right-left<=1)
     {
@@ -295,24 +318,36 @@ public:
   {
   }
 
+  /**
+     @brief it can be initialized with std::vector
+   */
   inline explicit DynArray(const std::vector<VALUE_TYPE>& v)
     :p_(NULL), length_(0), max_size_(0)
   {
     assign(v);
   }
 
+  /**
+     @brief initialized with a buffer
+   */
   DynArray(const char* p, size_t len)
     :p_(NULL), length_(0), max_size_(0)
   {
     assign(p, len);
   }
 
+  /**
+     @brief a copy constructor
+   */
   DynArray(const SelfT& other)
     :p_(NULL), length_(0), max_size_(0)
   {
     assign(other);
   }
 
+  /**
+     @brief reserve memory of n data
+   */
   explicit DynArray(size_t n)
     :p_(NULL), length_(0), max_size_(0)
   {
@@ -323,7 +358,10 @@ public:
   {
     derefer();
   }
-  
+
+  /**
+     @brief it can be initialized with std::vector
+   */
   inline void assign(const std::vector<VALUE_TYPE>& v)
   {
     if (v.size()==0)
@@ -337,7 +375,10 @@ public:
     new_one(v.size());
     memcpy(ARRAY(p_), v.data(), sizeof(VALUE_TYPE)*v.size());
   }
-  
+
+  /**
+     @brief initialized with a buffer
+   */
   inline void assign(const char* p, size_t len)
   {
     if (!len)
@@ -354,7 +395,7 @@ public:
 
   inline void assign(const SelfT& other)
   {
-    assert(this!=&other);
+    IASSERT(this!=&other);
     
     if (other.length()==0)
     {
@@ -443,9 +484,12 @@ public:
     return *this;
   }
 
+  /**
+     @brief append another vector at the end
+   */
   SelfT& operator += (const SelfT& other)
   {
-    assert(p_!= other.p_);
+    IASSERT(p_!= other.p_);
     
     if (other.length()==0)
       return *this;
@@ -462,6 +506,9 @@ public:
     return *this;
   }
 
+  /**
+     @brief Append a std::vector at the end
+   */
   SelfT& operator += (const std::vector<VALUE_TYPE>& other)
   {
     if (other.size()==0)
@@ -479,7 +526,10 @@ public:
     
     return *this;
   }
-  
+
+  /**
+     @brief appended by a element.
+   */
   inline SelfT& operator += (VALUE_TYPE t)
   {
     push_back(t);
@@ -494,7 +544,10 @@ public:
 
     return true;
   }
-  
+
+  /**
+     @see inline SelfT& operator += (VALUE_TYPE t)
+   */
   inline size_t push_back(VALUE_TYPE t)
   {
     if (is_refered())
@@ -506,6 +559,9 @@ public:
     return n+1;
   }
 
+  /**
+     @brief push back n elements of another vector.
+   */
   void push_back(const SelfT& other, size_t n = 0)
   {
     if (other.length()==0 || n>=other.length())
@@ -522,7 +578,10 @@ public:
     
     length_ += other.length()-n;
   }
-  
+
+  /**
+     @brief remove the last element
+   */
   inline VALUE_TYPE pop_back()
   {
     if (length_ ==0)
@@ -536,20 +595,27 @@ public:
     return r;
   }
 
+  /**
+     @brief it's equal to push_back(), but make sure memory has been
+     reserved and no reference before calling.
+   */
   inline bool add_tail(VALUE_TYPE t)
   {
     // if (max_size_==0 || max_size_ == length_)
 //       enlarge((max_size_+1)<<APPEND_RATE);
     
-    assert(length_<max_size_);
+    IASSERT(length_<max_size_);
     ARRAY(p_)[length_] = t;
     ++length_;
     return true;
   }
 
+  /**
+     @brief remove an element indicated by index t.
+   */
   void erase(size_t t)
   {
-    assert(t<length_);
+    IASSERT(t<length_);
     
     if (is_refered())
       assign_self();
@@ -559,6 +625,9 @@ public:
     length_--;
   }
 
+  /**
+     @brief compact vector
+   */
   inline void compact()
   {
     if (max_size_ <= length_+1)
@@ -576,6 +645,9 @@ public:
     shrink();
   }
 
+  /**
+     @brief deallocate
+   */
   inline void clear()
   {
     derefer();
@@ -583,13 +655,16 @@ public:
     max_size_ = length_ = 0;
   }  
 
+  /**
+     @brief insert t at n.
+   */
   inline void insert(size_t n, VALUE_TYPE t)
   {
-    assert(n < length_ || n == NOT_FOUND);
+    IASSERT(n < length_ || n == NOT_FOUND);
     if (is_refered())
       assign_self();
 
-    assert(max_size_>=length_);
+    IASSERT(max_size_>=length_);
     
     if (max_size_==0 || max_size_ == length_)
       enlarge((size_t)((max_size_+1)*1.2+.5));//<<APPEND_RATE);
@@ -597,7 +672,7 @@ public:
     for (size_t i=length_; i>n+1; i--)
       ARRAY(p_)[i] = ARRAY(p_)[i-1];
     
-    assert(n+1<=length_ && n+1<max_size_);
+    IASSERT(n+1<=length_ && n+1<max_size_);
     ARRAY(p_)[n+1] = t;
     length_++;
   }
@@ -625,25 +700,25 @@ public:
 
   inline VALUE_TYPE at (size_t t)const
   {
-    assert(t < length_);
+    IASSERT(t < length_);
     return ARRAY(p_)[t];
   }
 
   inline VALUE_TYPE back ()const
   {
-    assert(length_>0);
+    IASSERT(length_>0);
     return at(length_ -1);
   }
 
   inline VALUE_TYPE front ()const
   {
-    assert(length_>0);
+    IASSERT(length_>0);
     return at(0);
   }
   
   inline VALUE_TYPE& operator [] (size_t t)
   {
-    assert(t < length_);
+    IASSERT(t < length_);
     
      if (is_refered())
        assign_self();
@@ -653,7 +728,7 @@ public:
 
   inline const VALUE_TYPE& operator [] (size_t t)const
   {
-    assert(t < length_);
+    IASSERT(t < length_);
     return ARRAY(p_)[t];
   }
 
@@ -668,33 +743,52 @@ public:
     enlarge(n);
   }
 
+  /**
+     @brief set length to 0.
+   */
   inline void reset()
   {
     length_ = 0;
   }
 
+  /**
+     @breif except for returning head pointer of buffer, it reserve memory for n elements
+     @return head pointer of buffer.
+   */
   inline VALUE_TYPE* array(size_t n)
   {
     reserve(n);
     length_ = n;
     return ARRAY(p_);
   }
-  
+
+  /**
+     @return the number of element.
+   */
   inline size_t length()const
   {
     return length_;
   }
 
+  /**
+     @return the entire memory size it takes.
+   */
   inline size_t capacity()const
   {
     return sizeof(VALUE_TYPE) * max_size_;
   }
 
+  /**
+     @brief the memory size.
+   */
   inline size_t size()const
   {
     return sizeof(VALUE_TYPE) * length_;
   }
 
+  /**
+     @brief it gives the pointer of buffer.
+   */
   inline VALUE_TYPE* data()const
   {
     return ARRAY(p_);
@@ -723,6 +817,9 @@ public:
     return true;
   }
 
+  /**
+     @brief sort vector in 
+   */
   void sort()
   {
     if (length_<=1 || AUTO_SORT)
@@ -789,7 +886,7 @@ public:
 //       *(ARRAY(p)+i) = min;
 //       ++i;
 
-//       assert(index[mini]<SIZE);
+//       IASSERT(index[mini]<SIZE);
 //       ++index[mini];
 //       if (index[mini]==SIZE)
 //         ++finished;
@@ -814,6 +911,9 @@ friend std::ostream& operator << (std::ostream& os, const SelfT& v)
     return os;
   }
 
+  /**
+     @return the size used for saving this vector
+   */
   size_t save_size()const
   {
     return sizeof(size_t)+size();
@@ -824,10 +924,10 @@ friend std::ostream& operator << (std::ostream& os, const SelfT& v)
     if (addr != (uint64_t)-1)
       fseek(f, addr, SEEK_SET);
     size_t s = size();
-    assert(fwrite(&s, sizeof(size_t), 1, f)==1);
+    IASSERT(fwrite(&s, sizeof(size_t), 1, f)==1);
 
     if (s > 0)
-      assert(fwrite(ARRAY(p_), s, 1, f)==1);
+      IASSERT(fwrite(ARRAY(p_), s, 1, f)==1);
 
     return s+sizeof(size_t);
   }
@@ -841,14 +941,32 @@ friend std::ostream& operator << (std::ostream& os, const SelfT& v)
     
     size_t s = 0;
 
-    assert(fread(&s, sizeof(size_t), 1, f)==1);
+    IASSERT(fread(&s, sizeof(size_t), 1, f)==1);
 
     max_size_ = length_ = s/sizeof(VALUE_TYPE);
 
     new_one(length_);
 
     if (s > 0)
-      assert(fread(ARRAY(p_), s, 1, f)==1);
+      IASSERT(fread(ARRAY(p_), s, 1, f)==1);
+
+    return s;
+  }
+
+  /**
+    @brief it load from a memory buffer.
+   */
+  size_t load(const char* mem)
+  {
+    clear();
+        
+    size_t s = *(size_t*)mem;
+
+    max_size_ = length_ = s/sizeof(VALUE_TYPE);
+
+    new_one(length_);
+
+    memcpy(ARRAY(p_), mem+sizeof(size_t), s);
 
     return s;
   }

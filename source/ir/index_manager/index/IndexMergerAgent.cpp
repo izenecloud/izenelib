@@ -1,7 +1,7 @@
 #include <boost/thread.hpp>
 
 #include <ir/index_manager/index/IndexMergerAgent.h>
-#include <ir/index_manager/index/OnlineIndexMerger.h>
+#include <ir/index_manager/index/GPartitionMerger.h>
 
 using namespace izenelib::ir::indexmanager;
 
@@ -12,7 +12,7 @@ IndexMergerAgent::IndexMergerAgent(Indexer* pIndexer)
 
     nBarrelCounter_ = pBarrelsInfo_->getBarrelCounter();
 
-    pIndexMerger_ = new OnlineIndexMerger(pIndexer_->getDirectory());
+    pIndexMerger_ = new GPartitionMerger(pIndexer_);
 }
 
 IndexMergerAgent::~IndexMergerAgent()

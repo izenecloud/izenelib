@@ -1,3 +1,8 @@
+/**
+   @file fp_hash_table.hpp
+   @author Kevin Hu
+   @date 2009.11.25
+ */
 #ifndef FP_HASH_TABLE_HPP
 #define FP_HASH_TABLE_HPP
 
@@ -7,9 +12,13 @@
 
 NS_IZENELIB_IR_BEGIN
 
+/**
+   @class FpHashTable
+   @brief it provides fast access to doc's fingerprinting by a hash table.
+ */
 template <
   uint32_t CACHE_SIZE = 600,
-  uint8_t  FP_LENGTH = 48,
+  uint8_t  FP_LENGTH = 48,//!< bytes of a fingerprinting
   uint32_t ENTRY_SIZE = 1000000
   >
 class FpHashTable
@@ -21,15 +30,15 @@ class FpHashTable
   typedef FpHashTable<CACHE_SIZE, FP_LENGTH, ENTRY_SIZE> SelfT;
   
 protected:
-  const uint32_t NUM_IN_MEM_;
-  Vector32Ptr entry_;
+  const uint32_t NUM_IN_MEM_;//!< number of FP that can be in memory.
+  Vector32Ptr entry_;//!< hash table entry
   FILE* hash_f_;
   size_t doc_num_;
 
   //----------cache------
-  uint32_t swich_p_;
-  Vector32 keys_;
-  Vector64 fps_;
+  uint32_t swich_p_;//!< pointer to current FP
+  Vector32 keys_;//!< store docids
+  Vector64 fps_;//!< store fps
   FILE* fp_f_;
   FILE* key_f_;
   
@@ -40,31 +49,31 @@ protected:
     //-------------------Load cache-----------------------
     uint32_t size = doc_num_-i>NUM_IN_MEM_? NUM_IN_MEM_: doc_num_-i;
     fseek(fp_f_, i*FP_LENGTH, SEEK_SET);
-    assert(fread(fps_.array(size*FP_LENGTH/sizeof(uint64_t)), size*FP_LENGTH, 1, fp_f_)==1 );
+    IASSERT(fread(fps_.array(size*FP_LENGTH/sizeof(uint64_t)), size*FP_LENGTH, 1, fp_f_)==1 );
     
     fseek(key_f_, i*sizeof(uint32_t), SEEK_SET);
-    assert(fread(keys_.array(size),size*sizeof(uint32_t), 1, key_f_)==1 );
+    IASSERT(fread(keys_.array(size),size*sizeof(uint32_t), 1, key_f_)==1 );
   }
   
   inline void load_hash()
   {
     //-----------Load doc hash table-----------
     fseek(hash_f_, 0, SEEK_SET);
-    assert (fread(&doc_num_, sizeof(size_t), 1,hash_f_)==1);
+    IASSERT (fread(&doc_num_, sizeof(size_t), 1,hash_f_)==1);
     if (doc_num_ == 0)
       return;
 
     size_t index = 0;
-    assert(fread(&index, sizeof(size_t), 1, hash_f_)==1);
+    IASSERT(fread(&index, sizeof(size_t), 1, hash_f_)==1);
     for (size_t i=0; i<entry_.length(); i++)
     {
       if (index != i)
         continue;
 
       size_t len = 0;
-      assert(fread(&len, sizeof(size_t), 1, hash_f_)==1);
+      IASSERT(fread(&len, sizeof(size_t), 1, hash_f_)==1);
       entry_[i] = new Vector32();
-      assert(fread(entry_.at(i)->array(len), len*sizeof(uint32_t), 1, hash_f_)==1);
+      IASSERT(fread(entry_.at(i)->array(len), len*sizeof(uint32_t), 1, hash_f_)==1);
       if (fread(&index, sizeof(size_t), 1, hash_f_)!=1)
       {
         //std::cout<<*this<<std::endl;
@@ -83,10 +92,10 @@ protected:
       return;
     
     fseek(fp_f_, swich_p_*FP_LENGTH, SEEK_SET);
-    assert( fwrite(fps_.data(), fps_.size(), 1, fp_f_)==1);
+    IASSERT( fwrite(fps_.data(), fps_.size(), 1, fp_f_)==1);
 
     fseek(key_f_, swich_p_*sizeof(uint32_t), SEEK_SET);
-    assert(fwrite(keys_.data(), keys_.size(), 1, key_f_)==1);
+    IASSERT(fwrite(keys_.data(), keys_.size(), 1, key_f_)==1);
     
     swich_p_ = doc_num_;
     keys_.compact();
@@ -99,7 +108,7 @@ protected:
   inline void unload_hash()
   {
     fseek(hash_f_, 0, SEEK_SET);
-    assert( fwrite(&doc_num_, sizeof(size_t), 1, hash_f_)==1);
+    IASSERT( fwrite(&doc_num_, sizeof(size_t), 1, hash_f_)==1);
 
     for (size_t i=0; i<entry_.length(); i++)
     {
@@ -107,10 +116,10 @@ protected:
       if (v==NULL)
         continue;
 
-      assert( fwrite(&i, sizeof(size_t), 1, hash_f_)==1);
+      IASSERT( fwrite(&i, sizeof(size_t), 1, hash_f_)==1);
       size_t len = v->length();
-      assert( fwrite(&len, sizeof(size_t), 1, hash_f_)==1);
-      assert( fwrite(v->data(), v->size(), 1, hash_f_)==1);
+      IASSERT( fwrite(&len, sizeof(size_t), 1, hash_f_)==1);
+      IASSERT( fwrite(v->data(), v->size(), 1, hash_f_)==1);
     }
 
   }
@@ -118,7 +127,7 @@ protected:
   inline void set_addr(size_t docid, size_t addr)
   {
     size_t i = docid%ENTRY_SIZE;
-    assert (entry_.at(i)!=NULL);
+    IASSERT (entry_.at(i)!=NULL);
 
     Vector32* p  = entry_.at(i);
     
@@ -135,10 +144,10 @@ protected:
   inline size_t cache_switch(size_t docid)
   {
     fseek(key_f_, docid*sizeof(uint32_t), SEEK_SET);
-    assert( fread(&keys_[swich_p_], sizeof(uint32_t), 1, key_f_)==1);
+    IASSERT( fread(&keys_[swich_p_], sizeof(uint32_t), 1, key_f_)==1);
 
     fseek(fp_f_, docid*FP_LENGTH, SEEK_SET);
-    assert( fread(&fps_[swich_p_*FP_LENGTH/sizeof(uint64_t)], FP_LENGTH, 1, fp_f_)==1);
+    IASSERT( fread(&fps_[swich_p_*FP_LENGTH/sizeof(uint64_t)], FP_LENGTH, 1, fp_f_)==1);
 
     size_t r = swich_p_;
     
@@ -171,7 +180,7 @@ public:
         return;
       }
       swich_p_ = 0;
-      assert( fwrite(&doc_num_, sizeof(size_t), 1, hash_f_)==1);
+      IASSERT( fwrite(&doc_num_, sizeof(size_t), 1, hash_f_)==1);
     }
     else
       load_hash();

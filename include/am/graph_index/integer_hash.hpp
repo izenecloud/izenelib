@@ -1,26 +1,37 @@
+/**
+   @file integer_hash.hpp
+   @author Kevin Hu
+   @date 2009.11.25
+ */
 #ifndef INTEGER_HASH_HPP
 #define INTEGER_HASH_HPP
 
 #include<types.h>
 #include <ostream>
 #include <iostream>
-#include <assert.h>
 #include "dyn_array.hpp"
 
 
+/**
+   @class IntegerHashTable
+   @brief This is for hash fixed size data.
+ */
 NS_IZENELIB_AM_BEGIN
 
 template<
-  class VALUE_TYPE = uint32_t,
-  uint32_t ENTRY_SIZE = 100000,
-  bool BUCKET_SORTED = false
+  class VALUE_TYPE = uint32_t,//!< data type
+  uint32_t ENTRY_SIZE = 100000,//!< size of entries
+  bool BUCKET_SORTED = false//!< true if it needs to get every slot sorted. This will delay insertion but accelerate lookups.
   >
 class IntegerHashTable
 {
   typedef DynArray<VALUE_TYPE, BUCKET_SORTED> bucket_t;
-  bucket_t* entry_[ENTRY_SIZE];
-  uint32_t num_;
+  bucket_t* entry_[ENTRY_SIZE];//!< entry vector
+  uint32_t num_;//!< data number
 
+  /**
+     @return the amount of entry that has been taken.
+   */
   uint32_t entry_num_()const
   {
     uint32_t r = 0;
@@ -116,6 +127,9 @@ public:
     return num_;
   }
 
+  /**
+     @brief remove all the data and deallocate.
+   */
   void clear()
   {
     for (uint32_t i=0; i<ENTRY_SIZE; ++i)
@@ -128,6 +142,9 @@ public:
     num_ = 0;
   }
 
+  /**
+     @brief size of the entire table that is needed to save it.
+   */
   uint32_t save_size()const
   {
     uint32_t s = 2*sizeof(uint32_t);
@@ -149,14 +166,14 @@ public:
 
     uint32_t s = 2*sizeof(uint32_t);
     
-    assert(fwrite(&num_, sizeof(uint32_t), 1, f)==1);
+    IASSERT(fwrite(&num_, sizeof(uint32_t), 1, f)==1);
     uint32_t ety_num = entry_num_();
-    assert(fwrite(&ety_num, sizeof(uint32_t), 1, f)==1);
+    IASSERT(fwrite(&ety_num, sizeof(uint32_t), 1, f)==1);
     
     for (uint32_t i=0; i<ENTRY_SIZE; ++i)
       if (entry_[i] != NULL)
       {
-        assert(fwrite(&i, sizeof(uint32_t), 1, f)==1);
+        IASSERT(fwrite(&i, sizeof(uint32_t), 1, f)==1);
         s += sizeof(uint32_t);
         s += entry_[i]->save(f);
       }
@@ -174,14 +191,14 @@ public:
 
     uint32_t s = 2*sizeof(uint32_t);
     
-    assert(fread(&num_, sizeof(uint32_t), 1, f)==1);
+    IASSERT(fread(&num_, sizeof(uint32_t), 1, f)==1);
     uint32_t ety_num = 0;
-    assert(fread(&ety_num, sizeof(uint32_t), 1, f)==1);
+    IASSERT(fread(&ety_num, sizeof(uint32_t), 1, f)==1);
     
     for (uint32_t i=0; i<ety_num; ++i)
     {
       uint32_t j = 0;
-      assert(fread(&j, sizeof(uint32_t), 1, f)==1);
+      IASSERT(fread(&j, sizeof(uint32_t), 1, f)==1);
       s += sizeof(uint32_t);
       entry_[j] = new bucket_t();
       s += entry_[j]->load(f);

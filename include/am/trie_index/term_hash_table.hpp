@@ -5,7 +5,6 @@
 #include<stdlib.h>
 #include<stdio.h>
 #include <iostream>
-#include <assert.h>
 
 NS_IZENELIB_AM_BEGIN
 
@@ -187,7 +186,7 @@ public:
   template<typename T>
   typename T::const_iterator begin(T t = TermHashTable())
   {
-    assert(GET_CHILD(buf_)!=(uint64_t)-1);
+    IASSERT(GET_CHILD(buf_)!=(uint64_t)-1);
 
     return ((T*)GET_CHILD(buf_))->begin();
   }
@@ -195,7 +194,7 @@ public:
   template<typename T>
   typename T::const_iterator end(T t = TermHashTable())
   {
-    assert(GET_CHILD(buf_)!=(uint64_t)-1);
+    IASSERT(GET_CHILD(buf_)!=(uint64_t)-1);
 
     return ((T*)GET_CHILD(buf_))->end();
   } 
@@ -241,11 +240,11 @@ public:
   inline Row(FILE* f)
   {
     uint32_t size = 0;
-    assert(fread(&size, sizeof(uint32_t), 1, f)==1);
+    IASSERT(fread(&size, sizeof(uint32_t), 1, f)==1);
     buf_ = (char*)malloc(size);
     GET_MAX_SIZE(buf_) = size;
     
-    assert(fread(buf_+sizeof(uint32_t), size-sizeof(uint32_t), 1, f)==1);
+    IASSERT(fread(buf_+sizeof(uint32_t), size-sizeof(uint32_t), 1, f)==1);
   }
 
   inline Row(const Row& row)
@@ -381,7 +380,7 @@ public:
   {
     uint32_t s = GET_MAX_SIZE(buf_);
     GET_MAX_SIZE(buf_) = size();
-    assert(fwrite(buf_, size(), 1, f)==1);
+    IASSERT(fwrite(buf_, size(), 1, f)==1);
     GET_MAX_SIZE(buf_) = s;
     
     return size();
@@ -399,7 +398,7 @@ public:
 
   char* operator [] (uint32_t i)const
   {
-    assert(i<count());
+    IASSERT(i<count());
     return begin()+i*sizeof(struct Term::TERM);
   }
   
@@ -756,7 +755,7 @@ public:
     
 
     
-    assert(fwrite(buf, s, 1, f)==1);
+    IASSERT(fwrite(buf, s, 1, f)==1);
     free(buf);
     
     return s;
@@ -769,24 +768,24 @@ public:
     
 //     long int pos1 = ftell(f);
     
-//     assert(fwrite(&s, sizeof(uint64_t),1, f)==1);
-//     assert(fwrite(&entry_num, sizeof(uint32_t),1, f)==1);
-//     assert(fwrite(&entry_size_, sizeof(uint32_t),1, f)==1);
-//     assert(fwrite(&num_, sizeof(uint32_t),1, f)==1);
+//     IASSERT(fwrite(&s, sizeof(uint64_t),1, f)==1);
+//     IASSERT(fwrite(&entry_num, sizeof(uint32_t),1, f)==1);
+//     IASSERT(fwrite(&entry_size_, sizeof(uint32_t),1, f)==1);
+//     IASSERT(fwrite(&num_, sizeof(uint32_t),1, f)==1);
     
 //     for (uint32_t i=0; i<entry_size_; ++i)
 //       if (entry_[i]!= NULL)
 //       {
 //         ++entry_num;
-//         assert(fwrite(&i, sizeof(uint32_t),1, f)==1);
+//         IASSERT(fwrite(&i, sizeof(uint32_t),1, f)==1);
 //         s += entry_[i]->save(f);
 //       }
 
 //     long int pos2 = ftell(f);
     
 //     fseek(f, pos1, SEEK_SET);
-//     assert(fwrite(&s, sizeof(uint64_t),1, f)==1);
-//     assert(fwrite(&entry_num, sizeof(uint32_t),1, f)==1);
+//     IASSERT(fwrite(&s, sizeof(uint64_t),1, f)==1);
+//     IASSERT(fwrite(&entry_num, sizeof(uint32_t),1, f)==1);
 //     //std::cout<<s<<std::endl;
 
 //     fseek(f, pos2, SEEK_SET);
@@ -817,14 +816,14 @@ public:
 //     uint64_t s = 0;
 
 //     fseek(f, addr, SEEK_SET);
-//     assert(fread(&s, sizeof(uint64_t),1, f)==1);
+//     IASSERT(fread(&s, sizeof(uint64_t),1, f)==1);
 //     if (s > buf_size)
 //       return NULL;
 
 //     uint32_t es = 0;
 //     //entry number
-//     assert(fread(&es, sizeof(uint32_t),1, f)==1);
-//     assert(fread(&es, sizeof(uint32_t),1, f)==1);
+//     IASSERT(fread(&es, sizeof(uint32_t),1, f)==1);
+//     IASSERT(fread(&es, sizeof(uint32_t),1, f)==1);
 
 //     if (entry_==NULL || es != entry_size_)
 //     {
@@ -834,8 +833,8 @@ public:
 //         entry_[i] = NULL;
 //     }
     
-//     assert(fread(&num_, sizeof(uint32_t),1, f)==1);
-//     assert(fread(buf, s, 1, f)==1);
+//     IASSERT(fread(&num_, sizeof(uint32_t),1, f)==1);
+//     IASSERT(fread(buf, s, 1, f)==1);
 
 //     uint64_t size = 0;
 //     while (size<s)
@@ -858,9 +857,9 @@ public:
 
     fseek(f, addr+sizeof(uint64_t), SEEK_SET);
     
-    assert(fread(&entry_num, sizeof(uint32_t),1, f)==1);
+    IASSERT(fread(&entry_num, sizeof(uint32_t),1, f)==1);
     //entry size
-    assert(fread(&s, sizeof(uint32_t),1, f)==1);
+    IASSERT(fread(&s, sizeof(uint32_t),1, f)==1);
     
     if (s != entry_size_ )
     {
@@ -873,11 +872,11 @@ public:
     }
 
     uint32_t size = 0;
-    assert(fread(&num_, sizeof(uint32_t),1, f)==1);
+    IASSERT(fread(&num_, sizeof(uint32_t),1, f)==1);
     for (uint32_t i=0; i<entry_num; ++i)
     {
       uint32_t e = 0;
-      assert(fread(&e, sizeof(uint32_t),1, f)==1);
+      IASSERT(fread(&e, sizeof(uint32_t),1, f)==1);
       Row* row = new Row(f);
       entry_[e] = row;
       size += row->size();

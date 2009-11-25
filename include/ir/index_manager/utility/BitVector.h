@@ -1,3 +1,9 @@
+/**
+* @file        BitVector.h
+* @author     Yingfeng Zhang
+* @version     SF1 v5.0
+* @brief 
+*/
 #ifndef BITVECTOR_H
 #define BITVECTOR_H
 
@@ -10,6 +16,10 @@ NS_IZENELIB_IR_BEGIN
 
 namespace indexmanager{
 
+/*
+*@brief BitVector
+* An implementation of bitmap
+*/
 class BitVector
 {
 public:

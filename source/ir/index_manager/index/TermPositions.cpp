@@ -96,7 +96,7 @@ bool TermPositions::next()
         nTotalDecodedPCountWithinDoc_ = 0;
         nCurDecodedPCountWithinDoc_ = 0;
         nCurrentPPostingWithinDoc_ = 0;
-        pPosting->resetPosition();
+        pPosting_->resetPosition();
         return true;
     }
     return false;
@@ -144,6 +144,7 @@ void TermPositions::createBuffer()
     {
         nPBufferSize_ = bufSize;
         pPPostingBuffer_ = new uint32_t[bufSize];
+        memset(pPPostingBuffer_, 0, bufSize*sizeof(uint32_t));		
     }
 }
 

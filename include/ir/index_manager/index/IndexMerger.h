@@ -8,7 +8,6 @@
 #define INDEXMERGER_H
 
 #include <ir/index_manager/store/Directory.h>
-#include <ir/index_manager/utility/Logger.h>
 #include <ir/index_manager/utility/PriorityQueue.h>
 #include <ir/index_manager/index/BarrelInfo.h>
 #include <ir/index_manager/index/CollectionInfo.h>
@@ -25,22 +24,26 @@ class MergeBarrelEntry
 {
 public:
     MergeBarrelEntry(Directory* pDirectory,BarrelInfo* pBarrelInfo);
+
     ~MergeBarrelEntry();
+
 public:
-    inline count_t numDocs()
-    {
-        return pBarrelInfo->getDocCount();
-    }
-    /**
-    *load barrel info from both memory or disk index files
-    */
+    inline count_t numDocs() { return pBarrelInfo_->getDocCount();}
+    ///load barrel info from both memory or disk index files
     void load();
+
+    void setCurrColID(collectionid_t colID) { currColID_ = (int)colID;}
+
+    docid_t baseDocID() { return currColID_ < 0 ? 0 : pBarrelInfo_->baseDocIDMap[currColID_];}
+
 protected:
-    Directory* pDirectory;		///index storage
+    Directory* pDirectory_;		///index storage
 
-    BarrelInfo* pBarrelInfo;		///barrel information
+    BarrelInfo* pBarrelInfo_;		///barrel information
 
-    CollectionsInfo* pCollectionsInfo;///collections information of barrel
+    CollectionsInfo* pCollectionsInfo_;///collections information of barrel
+
+    int currColID_;
 
     friend class MergeBarrel;
     friend class IndexMerger;
@@ -86,7 +89,7 @@ public:
 private:
     bool lessThan(MergeBarrelEntry* o1, MergeBarrelEntry* o2)
     {
-        return (o1->numDocs()) > (o2->numDocs());
+        return o1->numDocs() > o2->numDocs();
     }
 private:
     string identifier;		///identifier of merge barrel
@@ -95,13 +98,11 @@ private:
 /**
 *@brief merge index
 */
-
+class Indexer;
 class IndexMerger
 {
 public:
-    IndexMerger();
-    IndexMerger(Directory* pDirectory);
-    IndexMerger(Directory* pDirectory,char* buffer,size_t bufsize);
+    IndexMerger(Indexer* pIndexer);
 public:
     virtual ~IndexMerger();
 public:
@@ -131,7 +132,7 @@ public:
      */
     void setDirectory(Directory* pDirectory)
     {
-        this->pDirectory = pDirectory;
+        this->pDirectory_ = pDirectory;
     }
 
     /**
@@ -140,12 +141,12 @@ public:
      */
     Directory* getDirectory()
     {
-        return pDirectory;
+        return pDirectory_;
     }
 
     void setDocFilter(BitVector* pFilter)
     {
-        pDocFilter = pFilter;
+        pDocFilter_ = pFilter;
     }
 
     /**
@@ -154,11 +155,6 @@ public:
      */
     void transferToDisk(const char* pszBarrelName);
 
-    /**
-     * set threshold parameter
-     * @param pszThreshold parameter
-     */
-    void setThreshold(const char* pszThreshold);
 protected:
     /**
      * add new index barrel to merge,derived classes implement it,and could apply some merge strategies.
@@ -190,35 +186,26 @@ protected:
     void mergeBarrel(MergeBarrel* pBarrel);
 
     /**
-     * let document ids in a continuous form
-     * @param pBarrelsInfo barrels information
-     */
-    void continueDocIDs(BarrelsInfo* pBarrelsInfo);
-
-protected:
-    static bool BarrelGreater(MergeBarrelEntry* o1, MergeBarrelEntry* o2)
-    {
-        return (o1->numDocs()) > (o2->numDocs());
-    }
-    /**
      * remove merged barrels from pMergeBarrels
      * @param pBarrel container of barrels
      */
     void removeMergedBarrels(MergeBarrel* pBarrel);
 protected:
-    Directory* pDirectory;				///index data source
+    Indexer* pIndexer_;
 
-    BarrelsInfo* pBarrelsInfo;			///reference to Index's barrels information
+    Directory* pDirectory_;				///index data source
 
-    char* buffer;					///buffer for merging process
+    BarrelsInfo* pBarrelsInfo_;			///reference to Index's barrels information
 
-    size_t bufsize;					///size of buffer
+    char* buffer_;					///buffer for merging process
 
-    bool bBorrowedBuffer;		///is the buffer borrowed from indexer?
+    size_t bufsize_;					///size of buffer
 
-    vector<MergeBarrelEntry*>* pMergeBarrels;
+    bool bBorrowedBuffer_;		///is the buffer borrowed from indexer?
 
-    BitVector* pDocFilter;
+    vector<MergeBarrelEntry*>* pMergeBarrels_;
+
+    BitVector* pDocFilter_;
 
     friend class IndexWriter;
     friend class Indexer;

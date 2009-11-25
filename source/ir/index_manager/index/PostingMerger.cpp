@@ -5,59 +5,58 @@
 using namespace izenelib::ir::indexmanager;
 
 PostingMerger::PostingMerger()
-        :buffer(NULL)
-        ,bufsize(0)
-        ,bOwnBuffer(false)
-        ,pOutputDescriptor(NULL)
-        ,nPPostingLength(0)
-        ,bFirstPosting(true)
+        :buffer_(NULL)
+        ,bufsize_(0)
+        ,bOwnBuffer_(false)
+        ,pOutputDescriptor_(NULL)
+        ,nPPostingLength_(0)
+        ,bFirstPosting_(true)
 {
     reset();
 }
 
 PostingMerger::PostingMerger(OutputDescriptor* pOutputDescriptor)
-        :buffer(NULL)
-        ,bufsize(0)
-        ,bOwnBuffer(false)
-        ,pOutputDescriptor(pOutputDescriptor)
-        ,nPPostingLength(0)
-        ,bFirstPosting(true)
+        :buffer_(NULL)
+        ,bufsize_(0)
+        ,bOwnBuffer_(false)
+        ,pOutputDescriptor_(pOutputDescriptor)
+        ,nPPostingLength_(0)
+        ,bFirstPosting_(true)
 {
     reset();
 }
 
 PostingMerger::~PostingMerger()
 {
-    if (buffer && bOwnBuffer)
+    if (buffer_ && bOwnBuffer_)
     {
-        delete buffer;
-        buffer = NULL;
+        delete buffer_;
+        buffer_ = NULL;
     }
-    bufsize = 0;
+    bufsize_ = 0;
 }
 
 inline void PostingMerger::reset()
 {
     ///reset posting descriptor
-    postingDesc.length = 0;
-    postingDesc.ctf = 0;
-    postingDesc.df = 0;
-    postingDesc.tdf = 0;
-    postingDesc.poffset = -1;
-    chunkDesc.lastdocid = 0;
-    chunkDesc.length = 0;
+    postingDesc_.length = 0;
+    postingDesc_.ctf = 0;
+    postingDesc_.df = 0;
+    postingDesc_.poffset = -1;
+    chunkDesc_.lastdocid = 0;
+    chunkDesc_.length = 0;
 }
 
 void PostingMerger::setBuffer(char* buf,size_t bufSize)
 {
-    buffer = buf;
-    bufsize = bufSize;
+    buffer_ = buf;
+    bufsize_ = bufSize;
 }
 void PostingMerger::createBuffer()
 {
-    buffer = new char[POSTINGMERGE_BUFFERSIZE];
-    bufsize = POSTINGMERGE_BUFFERSIZE;
-    bOwnBuffer = true;
+    buffer_ = new char[POSTINGMERGE_BUFFERSIZE];
+    bufsize_ = POSTINGMERGE_BUFFERSIZE;
+    bOwnBuffer_ = true;
 }
 
 void PostingMerger::mergeWith(InMemoryPosting* pInMemoryPosting)
@@ -65,24 +64,25 @@ void PostingMerger::mergeWith(InMemoryPosting* pInMemoryPosting)
     ///flush last doc
     pInMemoryPosting->flushLastDoc(true);
 
-    IndexOutput* pDOutput = pOutputDescriptor->getDPostingOutput();
-    IndexOutput* pPOutput = pOutputDescriptor->getPPostingOutput();
+    IndexOutput* pDOutput = pOutputDescriptor_->getDPostingOutput();
+    IndexOutput* pPOutput = pOutputDescriptor_->getPPostingOutput();
     fileoffset_t oldDOff = pDOutput->getFilePointer();
 
-    if (bFirstPosting)///first posting
+    if (bFirstPosting_)///first posting
     {
         reset();
-        nPPostingLength = 0;
-        bFirstPosting = false;
+        nPPostingLength_ = 0;
+        bFirstPosting_ = false;
         ///save position posting offset
-        postingDesc.poffset = pPOutput->getFilePointer();
+        postingDesc_.poffset = pPOutput->getFilePointer();
     }
     ///write chunk data, update the first doc id
-    PostingChunk* pDChunk = pInMemoryPosting->pDocFreqList->pHeadChunk;
+    PostingChunk* pDChunk = pInMemoryPosting->pDocFreqList_->pHeadChunk_;
     if (pDChunk)
     {
         uint8_t* bp = &(pDChunk->data[0]);
-        docid_t firstDocID = CompressedPostingList::decodePosting32(bp) - chunkDesc.lastdocid;
+        docid_t firstDocID = CompressedPostingList::decodePosting32(bp) - chunkDesc_.lastdocid;
+		
         pDOutput->writeVInt(firstDocID);///write first doc id
         int32_t writeSize = pDChunk->size - (bp - &(pDChunk->data[0]));	//write the rest data of first chunk
         if (writeSize > 0)
@@ -96,10 +96,10 @@ void PostingMerger::mergeWith(InMemoryPosting* pInMemoryPosting)
         pDChunk = pDChunk->next;
     }
 
-    chunkDesc.length += (pDOutput->getFilePointer() - oldDOff);
+    chunkDesc_.length += (pDOutput->getFilePointer() - oldDOff);
 
     ///write position posting
-    PostingChunk* pPChunk = pInMemoryPosting->pLocList->pHeadChunk;
+    PostingChunk* pPChunk = pInMemoryPosting->pLocList_->pHeadChunk_;
     while (pPChunk)
     {
         pPOutput->write((const char*)pPChunk->data,pPChunk->size);
@@ -107,56 +107,55 @@ void PostingMerger::mergeWith(InMemoryPosting* pInMemoryPosting)
     }
 
     ///update descriptors
-    postingDesc.ctf += pInMemoryPosting->nCTF;
-    postingDesc.df += pInMemoryPosting->nDF;
-    postingDesc.tdf += pInMemoryPosting->nTDF;
-    postingDesc.length = chunkDesc.length;
+    postingDesc_.ctf += pInMemoryPosting->nCTF_;
+    postingDesc_.df += pInMemoryPosting->nDF_;
+    postingDesc_.length = chunkDesc_.length;
 
-    chunkDesc.lastdocid = pInMemoryPosting->nLastDocID;
+    chunkDesc_.lastdocid = pInMemoryPosting->nLastDocID_;
 }
 
 void PostingMerger::mergeWith(OnDiskPosting* pOnDiskPosting)
 {
-    IndexOutput* pDOutput = pOutputDescriptor->getDPostingOutput();
-    IndexOutput* pPOutput = pOutputDescriptor->getPPostingOutput();
+    IndexOutput* pDOutput = pOutputDescriptor_->getDPostingOutput();
+    IndexOutput* pPOutput = pOutputDescriptor_->getPPostingOutput();
     IndexInput*	pDInput = pOnDiskPosting->getInputDescriptor()->getDPostingInput();
     IndexInput*	pPInput = pOnDiskPosting->getInputDescriptor()->getPPostingInput();
 
     fileoffset_t oldDOff = pDOutput->getFilePointer();
 
-    if (bFirstPosting)///first posting
+    if (bFirstPosting_)///first posting
     {
         reset();
-        nPPostingLength = 0;
-        bFirstPosting = false;
+        nPPostingLength_ = 0;
+        bFirstPosting_ = false;
 
         ///save position offset
-        postingDesc.poffset = pPOutput->getFilePointer();
+        postingDesc_.poffset = pPOutput->getFilePointer();
     }
 
-    docid_t firstDocID = pDInput->readVInt() - chunkDesc.lastdocid;
+    docid_t firstDocID = pDInput->readVInt() - chunkDesc_.lastdocid;
+
     pDOutput->writeVInt(firstDocID);///write first doc id
-    int64_t writeSize = pOnDiskPosting->postingDesc.length - pDOutput->getVIntLength(firstDocID + chunkDesc.lastdocid);
+    int64_t writeSize = pOnDiskPosting->postingDesc_.length - pDOutput->getVIntLength(firstDocID + chunkDesc_.lastdocid);
     if (writeSize > 0)
         pDOutput->write(pDInput,writeSize);
 
-    chunkDesc.length += (pDOutput->getFilePointer() - oldDOff);
+    chunkDesc_.length += (pDOutput->getFilePointer() - oldDOff);
 
     ///write position posting
-    pPOutput->write(pPInput,pOnDiskPosting->nPPostingLength);
+    pPOutput->write(pPInput,pOnDiskPosting->nPPostingLength_);
 
     ///update descriptors
-    postingDesc.ctf += pOnDiskPosting->postingDesc.ctf;
-    postingDesc.df += pOnDiskPosting->postingDesc.df;
-    postingDesc.tdf += pOnDiskPosting->postingDesc.tdf;
-    postingDesc.length = chunkDesc.length; ///currently,it's only one chunk
-    chunkDesc.lastdocid = pOnDiskPosting->chunkDesc.lastdocid;
+    postingDesc_.ctf += pOnDiskPosting->postingDesc_.ctf;
+    postingDesc_.df += pOnDiskPosting->postingDesc_.df;
+    postingDesc_.length = chunkDesc_.length; ///currently,it's only one chunk
+    chunkDesc_.lastdocid = pOnDiskPosting->chunkDesc_.lastdocid;
 
 }
 
 void PostingMerger::mergeWith(OnDiskPosting* pOnDiskPosting,BitVector* pFilter)
 {
-    if(pFilter &&  pFilter->hasSmallThan((size_t)pOnDiskPosting->chunkDesc.lastdocid))
+    if(pFilter &&  pFilter->hasSmallThan((size_t)pOnDiskPosting->chunkDesc_.lastdocid))
         mergeWith_GC(pOnDiskPosting,pFilter);
     else
         mergeWith(pOnDiskPosting);
@@ -164,8 +163,8 @@ void PostingMerger::mergeWith(OnDiskPosting* pOnDiskPosting,BitVector* pFilter)
 
 void PostingMerger::mergeWith_GC(OnDiskPosting* pOnDiskPosting,BitVector* pFilter)
 {
-    IndexOutput* pDOutput = pOutputDescriptor->getDPostingOutput();
-    IndexOutput* pPOutput = pOutputDescriptor->getPPostingOutput();
+    IndexOutput* pDOutput = pOutputDescriptor_->getDPostingOutput();
+    IndexOutput* pPOutput = pOutputDescriptor_->getPPostingOutput();
     IndexInput*	pDInput = pOnDiskPosting->getInputDescriptor()->getDPostingInput();
     IndexInput*	pPInput = pOnDiskPosting->getInputDescriptor()->getPPostingInput();
 
@@ -176,20 +175,20 @@ void PostingMerger::mergeWith_GC(OnDiskPosting* pOnDiskPosting,BitVector* pFilte
     count_t nCTF = 0;
     count_t nDF = 0;
     count_t nPCount = 0;
-    count_t nODDF = pOnDiskPosting->postingDesc.df;
+    count_t nODDF = pOnDiskPosting->postingDesc_.df;
     if(nODDF <= 0)
         return;
 
     fileoffset_t oldDOff = pDOutput->getFilePointer();
 
-    if (bFirstPosting)///first posting
+    if (bFirstPosting_)///first posting
     {
         reset();
-        nPPostingLength = 0;
-        bFirstPosting = false;
+        nPPostingLength_ = 0;
+        bFirstPosting_ = false;
 
         ///save position offset
-        postingDesc.poffset = pPOutput->getFilePointer();
+        postingDesc_.poffset = pPOutput->getFilePointer();
     }
 
     while (nODDF > 0)
@@ -234,42 +233,41 @@ void PostingMerger::mergeWith_GC(OnDiskPosting* pOnDiskPosting,BitVector* pFilte
         }
     }			
 
-    chunkDesc.length += (pDOutput->getFilePointer() - oldDOff);
+    chunkDesc_.length += (pDOutput->getFilePointer() - oldDOff);
 
     ///update descriptors
-    postingDesc.ctf += nCTF;
-    postingDesc.df += nDF;
-    postingDesc.length = chunkDesc.length; ///currently,it's only one chunk 			
-    chunkDesc.lastdocid = nLastDocID;
+    postingDesc_.ctf += nCTF;
+    postingDesc_.df += nDF;
+    postingDesc_.length = chunkDesc_.length; ///currently,it's only one chunk 			
+    chunkDesc_.lastdocid = nLastDocID;
 }
 
 fileoffset_t PostingMerger::endMerge()
 {
-    bFirstPosting = true;
-    if (postingDesc.df <= 0)
+    bFirstPosting_ = true;
+    if (postingDesc_.df <= 0)
         return -1;
 
-    IndexOutput* pDOutput = pOutputDescriptor->getDPostingOutput();
-    IndexOutput* pPOutput = pOutputDescriptor->getPPostingOutput();
+    IndexOutput* pDOutput = pOutputDescriptor_->getDPostingOutput();
+    IndexOutput* pPOutput = pOutputDescriptor_->getPPostingOutput();
     fileoffset_t postingoffset = pDOutput->getFilePointer();
 
     ///write position posting descriptor
-    nPPostingLength = pPOutput->getFilePointer() - postingDesc.poffset;
-    postingDesc.poffset = pPOutput->getFilePointer();
-    pPOutput->writeVLong(nPPostingLength);	////<ChunkLength(VInt64)>
+    nPPostingLength_ = pPOutput->getFilePointer() - postingDesc_.poffset;
+    postingDesc_.poffset = pPOutput->getFilePointer();
+    pPOutput->writeVLong(nPPostingLength_);	////<ChunkLength(VInt64)>
 
     ///begin write posting descriptor
-    pDOutput->writeVLong(postingDesc.length);	///<PostingLength(VInt64)>
-    pDOutput->writeVInt(postingDesc.df);		///<DF(VInt32)>
-    pDOutput->writeVInt(postingDesc.tdf);		///<TDF(VInt32)>
-    pDOutput->writeVLong(postingDesc.ctf);	///<CTF(VInt64)>
-    pDOutput->writeVLong(postingDesc.poffset);///<PositionPointer(VInt64)>
+    pDOutput->writeVLong(postingDesc_.length);	///<PostingLength(VInt64)>
+    pDOutput->writeVInt(postingDesc_.df);		///<DF(VInt32)>
+    pDOutput->writeVLong(postingDesc_.ctf);	///<CTF(VInt64)>
+    pDOutput->writeVLong(postingDesc_.poffset);///<PositionPointer(VInt64)>
     ///end write posting descriptor
 
     pDOutput->writeVInt(1);						///<ChunkCount(VInt32)>
     ///begin write chunk descriptor
-    pDOutput->writeVLong(chunkDesc.length);	///<ChunkLength(VInt64)>
-    pDOutput->writeVInt(chunkDesc.lastdocid);	///<LastDocID(VInt32)>
+    pDOutput->writeVLong(chunkDesc_.length);	///<ChunkLength(VInt64)>
+    pDOutput->writeVInt(chunkDesc_.lastdocid);	///<LastDocID(VInt32)>
     ///end write posting descriptor
 
     return postingoffset;

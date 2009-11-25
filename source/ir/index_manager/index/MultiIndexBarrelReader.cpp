@@ -14,6 +14,11 @@ MultiIndexBarrelReader::MultiIndexBarrelReader(Indexer* pIndexer,BarrelsInfo* pB
     while (pBarrelsInfo_->hasNext())
     {
         pBarrelInfo = pBarrelsInfo_->next();
+        ///disable in-memory barrel reader temporarily 		
+        ///it will be recovered when InMemoryTermReader can have multex reference of FieldIndexer
+        if(pBarrelInfo->getWriter())
+            continue;
+
         if (pBarrelInfo->getDocCount() > 0)
             addReader(pBarrelInfo);
     }
@@ -27,6 +32,12 @@ MultiIndexBarrelReader::~MultiIndexBarrelReader(void)
 
 void MultiIndexBarrelReader::open(const char* name)
 {
+}
+
+void MultiIndexBarrelReader::reopen()
+{
+    for(vector<BarrelReaderEntry*>::iterator iter = readers_.begin(); iter != readers_.end(); ++iter)
+        (*iter)->pBarrelReader_->reopen();
 }
 
 TermReader* MultiIndexBarrelReader::termReader(collectionid_t colID)
@@ -59,7 +70,7 @@ void MultiIndexBarrelReader::deleteDocumentPhysically(IndexerDocument* pDoc)
                 (pBarrelInfo->baseDocIDMap[uniqueID.colId] <= uniqueID.docId))
         {
             (*iter)->pBarrelReader_->deleteDocumentPhysically(pDoc);
-            pBarrelInfo->deleteDocument();
+            pBarrelInfo->deleteDocument(uniqueID.docId);
             break;
         }
     }

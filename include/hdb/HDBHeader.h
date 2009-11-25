@@ -1,3 +1,10 @@
+/**
+ * @file HDBHeader.h
+ * @brief Implementation of hdb header.
+ * @author Wei Cao
+ * @date 2009-09-11
+ */
+
 #ifndef _HDBHEADER_H_
 #define _HDBHEADER_H_
 
@@ -20,20 +27,23 @@ namespace hdb {
 struct HugeDBHeader {
 
     /**
-     * Number of sdbs.
+     * @brief Number of sdbs.
      */
     size_t slicesNum;
 
     /**
-     * Level of each sdb.
+     * @brief Level of each sdb.
      */
     std::vector<int> slicesLevel;
 
     /**
-     * Size of each sdb.
+     * @brief Size of each sdb.
      */
     std::vector<size_t> deletions;
 
+    /**
+     * @param path - path of header file.
+     */
     HugeDBHeader(const std::string& path)
         : path_(path)
 	{
@@ -61,6 +71,9 @@ struct HugeDBHeader {
         flush();
     }
 
+    /**
+     * @brief Flush header out to hdbname.hdb.header.xml
+     */
     void flush()
     {
         ofstream ofs(path_.c_str());

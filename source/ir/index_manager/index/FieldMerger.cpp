@@ -9,92 +9,75 @@
 using namespace izenelib::ir::indexmanager;
 
 FieldMerger::FieldMerger()
-        :buffer(NULL)
-        ,bufsize(0)
-        ,pMergeQueue(NULL)
-        ,pPostingMerger(NULL)
-        ,nNumTermCached(0)
-        ,pDirectory(NULL)
-        ,ppFieldInfos(NULL)
-        ,nNumInfos(0)
-        ,termCount(0)
-        ,lastTerm(0)
-        ,lastPOffset(0)
-        ,beginOfVoc(0)
-        ,nMergedTerms(0)
-        ,pDocFilter(0)
-        ,pMemCache(0)
+        :buffer_(NULL)
+        ,bufsize_(0)
+        ,pMergeQueue_(NULL)
+        ,pPostingMerger_(NULL)
+        ,nNumTermCached_(0)
+        ,pDirectory_(NULL)
+        ,ppFieldInfos_(NULL)
+        ,nNumInfos_(0)
+        ,termCount_(0)
+        ,lastTerm_(0)
+        ,lastPOffset_(0)
+        ,beginOfVoc_(0)
+        ,nMergedTerms_(0)
+        ,pDocFilter_(0)
+        ,pMemCache_(0)
 {
-    memset(cachedTermInfos,0,NUM_CACHEDTERMINFO*sizeof(MergeTermInfo*));
+    memset(cachedTermInfos_,0,NUM_CACHEDTERMINFO*sizeof(MergeTermInfo*));
 }
-FieldMerger::FieldMerger(Directory* pDirectory)
-        :buffer(NULL)
-        ,bufsize(0)
-        ,pMergeQueue(NULL)
-        ,pPostingMerger(NULL)
-        ,nNumTermCached(0)
-        ,ppFieldInfos(NULL)
-        ,nNumInfos(0)
-        ,termCount(0)
-        ,lastTerm(0)
-        ,lastPOffset(0)
-        ,beginOfVoc(0)
-        ,nMergedTerms(0)
-        ,pDocFilter(0)
-        ,pMemCache(0)
-{
-    memset(cachedTermInfos,0,NUM_CACHEDTERMINFO*sizeof(MergeTermInfo*));
-}
+
 FieldMerger::~FieldMerger(void)
 {
-    buffer = NULL;
-    bufsize = 0;
-    vector<MergeFieldEntry*>::iterator iter = fieldEntries.begin();
-    while (iter != fieldEntries.end())
+    buffer_ = NULL;
+    bufsize_ = 0;
+    vector<MergeFieldEntry*>::iterator iter = fieldEntries_.begin();
+    while (iter != fieldEntries_.end())
     {
         delete (*iter);
         iter++;
     }
-    fieldEntries.clear();
+    fieldEntries_.clear();
 
-    if (pMergeQueue)
+    if (pMergeQueue_)
     {
-        delete pMergeQueue;
-        pMergeQueue = NULL;
+        delete pMergeQueue_;
+        pMergeQueue_ = NULL;
     }
-    if (pPostingMerger)
+    if (pPostingMerger_)
     {
-        delete pPostingMerger;
-        pPostingMerger = NULL;
+        delete pPostingMerger_;
+        pPostingMerger_ = NULL;
     }
 
     for (int32_t i = 0;i<NUM_CACHEDTERMINFO;i++)
     {
-        if (cachedTermInfos[i])
+        if (cachedTermInfos_[i])
         {
-            delete cachedTermInfos[i];
-            cachedTermInfos[i] = NULL;
+            delete cachedTermInfos_[i];
+            cachedTermInfos_[i] = NULL;
         }
     }
 
-    if (ppFieldInfos)
+    if (ppFieldInfos_)
     {
-        delete[] ppFieldInfos;
-        ppFieldInfos = NULL;
-        nNumInfos = 0;
+        delete[] ppFieldInfos_;
+        ppFieldInfos_ = NULL;
+        nNumInfos_ = 0;
     }
-    pDocFilter = 0;
-    if(pMemCache)
+    pDocFilter_ = 0;
+    if(pMemCache_)
     {
-        delete pMemCache;
-        pMemCache = NULL;
+        delete pMemCache_;
+        pMemCache_ = NULL;
     }
 }
 void FieldMerger::addField(BarrelInfo* pBarrelInfo,FieldInfo* pFieldInfo)
 {
-    fieldEntries.push_back(new MergeFieldEntry(pBarrelInfo,pFieldInfo));
-    if (pPostingMerger == NULL)
-        pPostingMerger = new PostingMerger();
+    fieldEntries_.push_back(new MergeFieldEntry(pBarrelInfo,pFieldInfo));
+    if (pPostingMerger_ == NULL)
+        pPostingMerger_ = new PostingMerger();
 
 }
 
@@ -106,30 +89,30 @@ fileoffset_t FieldMerger::merge(OutputDescriptor* pOutputDescriptor)
         return endMerge(pOutputDescriptor);
 
 
-    pPostingMerger->setOutputDescriptor(pOutputDescriptor);
+    pPostingMerger_->setOutputDescriptor(pOutputDescriptor);
 
-    nMergedTerms = 0;
+    nMergedTerms_ = 0;
     int64_t mergedTerms = 0;
     int32_t nMatch = 0;
-    FieldMergeInfo** match = new FieldMergeInfo*[pMergeQueue->size()];
+    FieldMergeInfo** match = new FieldMergeInfo*[pMergeQueue_->size()];
     Term* pTerm = NULL;
     FieldMergeInfo* pTop = NULL;
     fileoffset_t postingoffset = 0;
 
-    while (pMergeQueue->size() > 0)
+    while (pMergeQueue_->size() > 0)
     {
         nMatch = 0;
         //Pop the first
-        match[nMatch++] = pMergeQueue->pop();
-        pTerm = match[0]->pCurTerm;
+        match[nMatch++] = pMergeQueue_->pop();
+        pTerm = match[0]->pCurTerm_;
         //Get the current top of the queue
-        pTop = pMergeQueue->top();
-        while (pTop != NULL && (pTerm->compare(pTop->pCurTerm)==0) )
+        pTop = pMergeQueue_->top();
+        while (pTop != NULL && (pTerm->compare(pTop->pCurTerm_)==0) )
         {
             //A match has been found so add the matching FieldMergeInfo to the match array
-            match[nMatch++] = pMergeQueue->pop();
+            match[nMatch++] = pMergeQueue_->pop();
             //Get the next FieldMergeInfo
-            pTop = pMergeQueue->top();
+            pTop = pMergeQueue_->top();
         }
 
         postingoffset = mergeTerms(match,nMatch);
@@ -137,26 +120,21 @@ fileoffset_t FieldMerger::merge(OutputDescriptor* pOutputDescriptor)
         if (postingoffset > 0)
         {
             ///store merged terms to term info cache
-            if (cachedTermInfos[nNumTermCached] == NULL)
+            if (cachedTermInfos_[nNumTermCached_] == NULL)
             {
-                ///if the document frequency is required to be counted based on the total document, then use tdf
-                //cachedTermInfos[nNumTermCached] = new MergeTermInfo(pTerm->clone(),new TermInfo(pPostingMerger->getPostingDescriptor().tdf,postingoffset));
-                cachedTermInfos[nNumTermCached] = new MergeTermInfo(pTerm->clone(),new TermInfo(pPostingMerger->getPostingDescriptor().df,postingoffset));
+                cachedTermInfos_[nNumTermCached_] = new MergeTermInfo(pTerm->clone(),new TermInfo(pPostingMerger_->getPostingDescriptor().df,postingoffset));
 
             }
             else
             {
-                cachedTermInfos[nNumTermCached]->pTerm->setValue(pTerm->getValue());
-
-                ///if the document frequency is required to be counted based on the total document, then use tdf
-                //cachedTermInfos[nNumTermCached]->pTermInfo->set(pPostingMerger->getPostingDescriptor().tdf,postingoffset);
-                cachedTermInfos[nNumTermCached]->pTermInfo->set(pPostingMerger->getPostingDescriptor().df,postingoffset);
+                cachedTermInfos_[nNumTermCached_]->pTerm_->setValue(pTerm->getValue());
+                cachedTermInfos_[nNumTermCached_]->pTermInfo_->set(pPostingMerger_->getPostingDescriptor().df,postingoffset);
             }
-            nNumTermCached++;
-            if (nNumTermCached >= NUM_CACHEDTERMINFO)///cache is exhausted
+            nNumTermCached_++;
+            if (nNumTermCached_ >= NUM_CACHEDTERMINFO)///cache is exhausted
             {
-                flushTermInfo(pOutputDescriptor,cachedTermInfos,nNumTermCached);
-                nNumTermCached = 0;
+                flushTermInfo(pOutputDescriptor,cachedTermInfos_,nNumTermCached_);
+                nNumTermCached_ = 0;
             }
             mergedTerms++;
         }
@@ -169,7 +147,7 @@ fileoffset_t FieldMerger::merge(OutputDescriptor* pOutputDescriptor)
             if (pTop->next())
             {
                 //There still are some terms so restore it in the queue
-                pMergeQueue->put(pTop);
+                pMergeQueue_->put(pTop);
             }
             else
             {
@@ -178,27 +156,27 @@ fileoffset_t FieldMerger::merge(OutputDescriptor* pOutputDescriptor)
             }
         }
     }
-    if (nNumTermCached > 0)///flush cache
+    if (nNumTermCached_ > 0)///flush cache
     {
-        flushTermInfo(pOutputDescriptor,cachedTermInfos,nNumTermCached);
-        nNumTermCached = 0;
+        flushTermInfo(pOutputDescriptor,cachedTermInfos_,nNumTermCached_);
+        nNumTermCached_ = 0;
     }
     delete[] match;
-    nMergedTerms = mergedTerms;
+    nMergedTerms_ = mergedTerms;
     return endMerge(pOutputDescriptor);///merge end here
 }
 
 void FieldMerger::setBuffer(char* buf,size_t bufSize)
 {
-    buffer = buf;
-    bufsize = bufSize;
+    buffer_ = buf;
+    bufsize_ = bufSize;
 }
 
 bool FieldMerger::initQueue()
 {
-    if (fieldEntries.size() <= 0)
+    if (fieldEntries_.size() <= 0)
         return false;
-    pMergeQueue = new FieldMergeQueue(fieldEntries.size());
+    pMergeQueue_ = new FieldMergeQueue(fieldEntries_.size());
     TermReader* pTermReader = NULL;
     FieldMergeInfo* pMI = NULL;
     MergeFieldEntry* pEntry;
@@ -209,44 +187,42 @@ bool FieldMerger::initQueue()
     size_t nSubBufUsed = 0;
 
     ///dispatch buffer
-    if ( (bufsize > 0) && (fieldEntries.size() > 0))
+    if ( (bufsize_ > 0) && (fieldEntries_.size() > 0))
     {
-        nSubBufSize = bufsize/fieldEntries.size();
+        nSubBufSize = bufsize_/fieldEntries_.size();
         nCurBufferSize = nSubBufSize;
     }
 
     int32_t order = 0;
-    nNumInfos = fieldEntries.size();
-    if (nNumInfos > 0)
+    nNumInfos_ = fieldEntries_.size();
+    if (nNumInfos_ > 0)
     {
-        ppFieldInfos = new MergeFieldEntry*[fieldEntries.size()];
-        memset(ppFieldInfos,0,nNumInfos * sizeof(MergeFieldEntry*));
+        ppFieldInfos_ = new MergeFieldEntry*[fieldEntries_.size()];
+        memset(ppFieldInfos_,0,nNumInfos_ * sizeof(MergeFieldEntry*));
     }
-    vector<MergeFieldEntry*>::iterator iter = fieldEntries.begin();
-    while (iter != fieldEntries.end())
+    vector<MergeFieldEntry*>::iterator iter = fieldEntries_.begin();
+    while (iter != fieldEntries_.end())
     {
         pEntry = (*iter);
-        ppFieldInfos[order] = pEntry;
-        if (pEntry->pBarrelInfo->getWriter()) ///in-memory index barrel
+        ppFieldInfos_[order] = pEntry;
+        if (pEntry->pBarrelInfo_->getWriter()) ///in-memory index barrel
         {
-            pTermReader = pEntry->pBarrelInfo->getWriter()->getCollectionIndexer(pEntry->pFieldInfo->getColID())->getFieldIndexer(pEntry->pFieldInfo->getName())->termReader();
+            pTermReader = pEntry->pBarrelInfo_->getWriter()->getCollectionIndexer(pEntry->pFieldInfo_->getColID())->getFieldIndexer(pEntry->pFieldInfo_->getName())->termReader();
         }
         else
         {
             ///on-disk index barrel
-            pTermReader = new DiskTermReader();
-            ///open on-disk index barrel
-            pTermReader->open(pDirectory,pEntry->pBarrelInfo->getName().c_str(),pEntry->pFieldInfo);
+            pTermReader = new DiskTermReader(pDirectory_,pEntry->pBarrelInfo_->getName().c_str(),pEntry->pFieldInfo_);
         }
-        pMI = new FieldMergeInfo(order,pEntry->pFieldInfo->getColID(),pEntry->pBarrelInfo,pTermReader);
+        pMI = new FieldMergeInfo(order,pEntry->pFieldInfo_->getColID(),pEntry->pBarrelInfo_,pTermReader);
         if (nSubBufSize > 0)
         {
-            nSubBufUsed = pMI->pIterator->setBuffer(buffer + nTotalUsed,nCurBufferSize);
+            nSubBufUsed = pMI->pIterator_->setBuffer(buffer_ + nTotalUsed,nCurBufferSize);
             nTotalUsed += nSubBufUsed;
         }
         if (pMI->next())	///get first term
         {
-            pMergeQueue->put(pMI);
+            pMergeQueue_->put(pMI);
             nCurBufferSize = nSubBufSize + (nCurBufferSize - nSubBufUsed);
             order++;
         }
@@ -257,34 +233,34 @@ bool FieldMerger::initQueue()
         }
         iter++;
     }
-    nNumInfos = order;
+    nNumInfos_ = order;
 
     ///buffer for posting merging
-    if ( (bufsize - nTotalUsed) > POSTINGMERGE_BUFFERSIZE)
-        pPostingMerger->setBuffer(buffer + nTotalUsed,bufsize - nTotalUsed);
+    if ( (bufsize_ - nTotalUsed) > POSTINGMERGE_BUFFERSIZE)
+        pPostingMerger_->setBuffer(buffer_ + nTotalUsed,bufsize_ - nTotalUsed);
 
-    return (pMergeQueue->size() > 0);
+    return (pMergeQueue_->size() > 0);
 }
 
 void FieldMerger::flushTermInfo(OutputDescriptor* pOutputDescriptor,MergeTermInfo** ppTermInfo,int32_t numTermInfos)
 {
     IndexOutput* pVocOutput = pOutputDescriptor->getVocOutput();
 
-    if (termCount == 0)
-        beginOfVoc = pVocOutput->getFilePointer();
+    if (termCount_ == 0)
+        beginOfVoc_ = pVocOutput->getFilePointer();
     termid_t tid;
     fileoffset_t poffset;
     for (int32_t i = 0;i < numTermInfos;i++)
     {
         tid = ppTermInfo[i]->getTerm()->getValue();
-        //pVocOutput->writeInt(tid - lastTerm);
+        //pVocOutput->writeInt(tid - lastTerm_);
         pVocOutput->writeInt(tid);
         pVocOutput->writeInt(ppTermInfo[i]->getTermInfo()->docFreq());
         poffset = ppTermInfo[i]->getTermInfo()->docPointer();
         pVocOutput->writeLong(poffset);
-        //lastTerm = tid;
-        //lastPOffset = poffset;
-        termCount++;
+        //lastTerm_ = tid;
+        //lastPOffset_ = poffset;
+        termCount_++;
     }
 
 }
@@ -294,27 +270,27 @@ fileoffset_t FieldMerger::endMerge(OutputDescriptor* pOutputDescriptor)
     IndexOutput* pVocOutput = pOutputDescriptor->getVocOutput();
     fileoffset_t voffset = pVocOutput->getFilePointer();
     ///begin write vocabulary descriptor
-    pVocOutput->writeLong(voffset - beginOfVoc);
-    pVocOutput->writeLong(termCount);
+    pVocOutput->writeLong(voffset - beginOfVoc_);
+    pVocOutput->writeLong(termCount_);
     ///end write vocabulary descriptor
     return voffset;
 }
 
 fileoffset_t FieldMerger::sortingMerge(FieldMergeInfo** ppMergeInfos,int32_t numInfos, BitVector* pFilter)
 {
-    if(!pMemCache)
-        pMemCache = new MemCache(MEMPOOL_SIZE_FOR_MERGING);
+    if(!pMemCache_)
+        pMemCache_ = new MemCache(MEMPOOL_SIZE_FOR_MERGING);
     MultiPostingIterator postingIterator(numInfos);
 
     for (int32_t i = 0;i< numInfos;i++)
     {
-        TermPositions* pPosition = new TermPositions(ppMergeInfos[i]->pIterator->termPosting());
-        if(ppMergeInfos[i]->pBarrelInfo->hasUpdateDocs)
+        TermPositions* pPosition = new TermPositions(ppMergeInfos[i]->pIterator_->termPosting());
+        if(ppMergeInfos[i]->pBarrelInfo_->hasUpdateDocs)
             postingIterator.addTermPosition(pPosition);
         else
             postingIterator.addTermPosition(pPosition, pFilter);
     }
-    InMemoryPosting* newPosting = new InMemoryPosting(pMemCache);
+    InMemoryPosting* newPosting = new InMemoryPosting(pMemCache_);
 
     docid_t docId = 0;
     while(postingIterator.next())
@@ -326,11 +302,10 @@ fileoffset_t FieldMerger::sortingMerge(FieldMergeInfo** ppMergeInfos,int32_t num
             newPosting->addLocation(docId, pos);
             pos = postingIterator.nextPosition();
         }
-        newPosting->updateDF(docId);
     }
-    fileoffset_t offset = newPosting->write(pPostingMerger->getOutputDescriptor());
+    fileoffset_t offset = newPosting->write(pPostingMerger_->getOutputDescriptor());
     delete newPosting;
-    pMemCache->flushMem();
+    pMemCache_->flushMem();
     return offset;
 }
 

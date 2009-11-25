@@ -74,7 +74,7 @@ typedef uint8_t byte;
 
 #define BAD_POSITION 0xFFFFFFFF
 #define BAD_DOCID 0xFFFFFFFF
-
+#define MAX_TERMID 0xFFFFFFFF
 #define BAD_PROPERTY_ID 0xFFFFFFFF
 
 #ifdef __APPLE__

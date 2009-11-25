@@ -1,3 +1,9 @@
+/**
+* @file        BTreeIndexerServer.h
+* @author     Yingfeng Zhang
+* @version     SF1 v5.0
+* @brief BTreeIndexerServer is used to accept BTree index data, and flush them to local disk
+*/
 #ifndef BTREEINDEXERSERVER_H
 #define BTREEINDEXERSERVER_H
 

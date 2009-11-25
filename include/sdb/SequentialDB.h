@@ -23,6 +23,7 @@
 
 using namespace izenelib::am;
 using namespace std;
+using namespace izenelib::util;
 
 namespace izenelib {
 
@@ -66,9 +67,7 @@ public:
 	 *
 	 */
 	SequentialDB(const string& fileName = "SequentialDB.dat") :
-        sdbname_(fileName),
-		container_(fileName)
-    {
+		sdbname_(fileName), container_(fileName) {
 	}
 
 	//=============both for sdb/btree and sdb/hash======================
@@ -158,12 +157,19 @@ public:
 	 */
 	bool getValue(const KeyType& key, ValueType& value);
 
+	bool get(const KeyType& key, ValueType& value) {
+		return getValue(key, value);
+	}
+
 	/**
 	 *   \brief insert an new item into SequentialDB
 	 *   @data wrap both key/value pair
 	 */
 	bool insertValue(const DataType<KeyType,ValueType> & data);
 
+	bool insert(const KeyType& key, const ValueType& value) {
+		return insertValue(key, value);
+	}
 	/**
 	 *   \brief insert an new item into SequentialDB
 	 */
@@ -203,12 +209,18 @@ public:
 	}
 
 	bool dump(SequentialDB& other) {
+		lock_.acquire_write_lock();
 		ContainerType &otherContainer = other.getContainer();
-		return container_.dump(otherContainer);
+		bool ret = container_.dump(otherContainer);
+		lock_.release_write_lock();
+		return ret;
 	}
 
 	bool dump(const string& fileName) {
-		return container_.dump(fileName);
+		lock_.acquire_write_lock();
+		bool ret = container_.dump(fileName);
+		lock_.release_write_lock();
+		return ret;
 	}
 
 	/**
@@ -222,7 +234,17 @@ public:
 	}
 
 	SDBCursor get_first_Locn() {
-		return container_.get_first_locn();
+		lock_.acquire_read_lock();
+		SDBCursor locn = container_.get_first_locn();
+		lock_.release_read_lock();
+		return locn;
+	}
+
+	SDBCursor get_last_locn() {
+		lock_.acquire_read_lock();
+		SDBCursor locn = container_.get_last_locn();
+		lock_.release_read_lock();
+		return locn;
 	}
 
 	/**
@@ -237,13 +259,18 @@ public:
 		get(locn, key, value);
 		return ret;
 	}
+
 	bool seq(SDBCursor& locn, DataType<KeyType, ValueType>& dat,
 			ESeqDirection sdir=ESD_FORWARD) {
 		return seq(locn, dat.key, dat.value, sdir);
 	}
 
 	bool seq(SDBCursor& locn, ESeqDirection sdir = ESD_FORWARD) {
-		return container_.seq(locn, sdir);
+		//ScopedReadLock<LockType>(lock_);
+		lock_.acquire_read_lock();
+		bool ret = container_.seq(locn, sdir);
+		lock_.release_read_lock();
+		return ret;
 	}
 
 	/**
@@ -460,10 +487,10 @@ public:
 	}
 
 	const std::string& getName() {
-        return sdbname_;
+		return sdbname_;
 	}
 private:
-    std::string sdbname_;
+	std::string sdbname_;
 	ContainerType container_;
 	LockType lock_; // for multithread access.
 	izenelib::am::CompareFunctor<KeyType> comp_;
@@ -516,8 +543,8 @@ template<typename KeyType, typename ValueType, typename LockType,
 		typename ContainerType, typename Alloc> bool SequentialDB< KeyType,
 		ValueType, LockType, ContainerType, Alloc>::hasKey(const KeyType& key) {
 	lock_.acquire_read_lock();
-	ValueType* pv = container_.find(key);
-	bool ret = (pv != NULL );
+	SDBCursor locn;
+	bool ret = container_.search(key, locn);
 	lock_.release_read_lock();
 	return ret;
 
@@ -608,28 +635,31 @@ template<typename KeyType, typename ValueType, typename LockType,
 		ValueType, LockType, ContainerType, Alloc>::getValueBetween(
 		vector<DataType<KeyType,ValueType> >& result, const KeyType& lowKey,
 		const KeyType& highKey) {
-    bool ret = false;
+	bool ret = false;
 	if (comp_(lowKey, highKey)> 0) {
 		return false;
 	}
 	SDBCursor locn;
 	DataType<KeyType,ValueType> rec;
 
-	lock_.acquire_read_lock();
+	lock_.acquire_read_lock();	
+	
 	container_.search(lowKey, locn);
 	if (container_.get(locn, rec)) {
 		if (comp_(rec.get_key(), highKey) <= 0) {
 			result.push_back(rec);
 			ret = true;
-		} else
+		} else{
+			lock_.release_read_lock();
 			return ret;
+		}
 	}
 
 	//if lowKey not exist in database, it starts from the lowest key.
 	//container_.search(newLowKey, locn);
 	do {
 		if (container_.seq(locn, ESD_FORWARD) ) {
-			if (get(locn, rec) ) {
+			if (container_.get(locn, rec) ) {
 				if (comp_(rec.get_key(), highKey) <= 0) {
 					result.push_back(rec);
 					ret = true;
@@ -700,18 +730,17 @@ public:
 
 	}
 };
-	
-	
-	template< typename KeyType =string, typename ValueType=NullType,
-			typename LockType =NullLock > class ordered_sdb_bptree :
-		public SequentialDB<KeyType, ValueType, LockType, sdb_bptree<KeyType, ValueType, LockType> > {
-	public:
-		ordered_sdb_bptree(const string& sdbname) :
-			SequentialDB<KeyType, ValueType, LockType,
-			     sdb_bptree<KeyType, ValueType, LockType> >(sdbname) {
 
-		}
-	};	
+template< typename KeyType =string, typename ValueType=NullType,
+		typename LockType =NullLock > class ordered_sdb_bptree :
+	public SequentialDB<KeyType, ValueType, LockType, sdb_bptree<KeyType, ValueType, LockType> > {
+public:
+	ordered_sdb_bptree(const string& sdbname) :
+		SequentialDB<KeyType, ValueType, LockType,
+				sdb_bptree<KeyType, ValueType, LockType> >(sdbname) {
+
+	}
+};
 
 template< typename KeyType =string, typename ValueType=NullType,
 		typename LockType =NullLock > class ordered_sdb :

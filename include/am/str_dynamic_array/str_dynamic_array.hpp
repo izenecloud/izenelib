@@ -1,3 +1,8 @@
+/**
+   @file str_dynamic_array.hpp
+   @author kevin hu
+   @date 2009.11.25
+ */
 #ifndef STR_DYNAMIC_ARRAY
 #define STR_DYNAMIC_ARRAY
 
@@ -15,6 +20,10 @@ using namespace std;
 
 NS_IZENELIB_AM_BEGIN
 
+/**
+   @class DynamicStrArray
+   @brief A dynamic string array.
+ */
 class DynamicStrArray
 {
   enum 

@@ -15,7 +15,7 @@ const char* indexFile = "sdb.dat";
 static string inputFile = "test.txt";
 static size_t maxKeys = 32;
 static size_t pageSize = 1024;
-static size_t cacheSize = 1000000;
+static size_t cacheSize = 10000;
 static int num = 1000000;
 
 static bool trace = 1;

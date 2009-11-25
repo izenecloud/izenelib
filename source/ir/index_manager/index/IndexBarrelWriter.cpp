@@ -1,6 +1,9 @@
 #include <ir/index_manager/index/IndexBarrelWriter.h>
 #include <ir/index_manager/index/Indexer.h>
 
+#include <util/izene_log.h>
+
+#include <boost/thread.hpp>
 
 using namespace izenelib::ir::indexmanager;
 
@@ -47,6 +50,8 @@ void IndexBarrelWriter::open(const char* barrelName_)
 }
 void IndexBarrelWriter::close()
 {
+    boost::mutex::scoped_lock lock(pIndexer->mutex_);
+
     if (cacheEmpty() == false)
     {
         writeCache();
@@ -55,7 +60,7 @@ void IndexBarrelWriter::close()
 }
 void IndexBarrelWriter::rename(const char* newName)
 {
-    pDirectory->batRenameFiles(barrelName,newName);
+    pDirectory->renameFiles(barrelName,newName);
     barrelName = newName;
 }
 
@@ -92,7 +97,7 @@ void IndexBarrelWriter::writeCache()
 {
     try
     {
-        SF1V5_LOG(level::info) << "IndexBarrelWriter:Begin write cache..." << SF1V5_ENDL;
+        DLOG(INFO) << "Write Index Barrel" << endl;
 
         string s = barrelName +".voc";
         IndexOutput* pVocOutput = pDirectory->createOutput(s.c_str());

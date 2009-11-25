@@ -14,7 +14,6 @@
 #include <map>
 #include <sstream>
 
-
 #define BARRELS_INFONAME "barrels"
 
 NS_IZENELIB_IR_BEGIN
@@ -28,6 +27,9 @@ public:
             : nNumDocs(0)
             , pBarrelWriter(NULL)
             , hasUpdateDocs(false)
+            , maxDocId(0)
+            , modified(false)
+ 
     {
     }
 
@@ -36,6 +38,8 @@ public:
             , nNumDocs(count)
             , pBarrelWriter(NULL)
             , hasUpdateDocs(false)
+            , maxDocId(0)
+            , modified(false)
     {
     }
 
@@ -46,6 +50,8 @@ public:
             , nNumDocs(pBarrelInfo->nNumDocs)
             , pBarrelWriter(NULL)
             , hasUpdateDocs(pBarrelInfo->hasUpdateDocs)
+            , maxDocId(pBarrelInfo->maxDocId)
+            , modified(pBarrelInfo->modified)
     {
     }
 
@@ -102,29 +108,38 @@ public:
     {
         baseDocIDMap = baseMap;
     }
+
+    docid_t getBaseDocID()
+    {
+        if(baseDocIDMap.empty())
+            return 0;
+        else
+            return baseDocIDMap.begin()->second;
+    }
+
+    docid_t getMaxDocID() { return maxDocId; }
     /**
      * Get IndexBarrelWriter handle, after the indexed document has been flushed into barrel files, the IndexBarrelWriter handle will be set NULL,
      * if it is not NULL, it means the index is currently still an in-memory index
      */
-    IndexBarrelWriter* getWriter()
-    {
-        return pBarrelWriter;
-    }
+    IndexBarrelWriter* getWriter() { return pBarrelWriter; }
     /**
      * Set IndexBarrelWriter, then the writer will index the documents within this barrel
      */
-    void setWriter(IndexBarrelWriter* pWriter)
-    {
-        pBarrelWriter = pWriter;
-    }
+     void setWriter(IndexBarrelWriter* pWriter) { pBarrelWriter = pWriter; }
     /**
      * after delete a document from a certain barrel, the document counter should be updated
      */
-    void deleteDocument()
+    void deleteDocument(docid_t docId)
     {
         nNumDocs--;
+        ///TODO  maxDocId issue
     }
 
+    void updateMaxDoc(docid_t docId)
+    {
+        maxDocId = (docId>maxDocId)?docId:maxDocId;
+    }
     /**
      * delete index files of this barrel
      */
@@ -133,12 +148,25 @@ public:
      * rename the barrel name, it is used when index merge happens.
      */
     void rename(Directory* pDirectory,const string& newName);
-    /**
-     * compare function to sort all the barrels, the compare function will be based on the document count of a certain barrel.
-     */
+
+    bool isModified() { return modified; }
+
+    ///compare function to sort all the barrels, the compare function will be based on the document count of a certain barrel.
+    ///we will sort barrels according to base doc id of the first collection.
+    static bool less (BarrelInfo* pElem1, BarrelInfo* pElem2 )
+    {
+        if( pElem1->getBaseDocID() != pElem2->getBaseDocID() )
+            return pElem1->getBaseDocID() < pElem2->getBaseDocID();
+        else
+            return pElem1->getDocCount() > pElem2->getDocCount();
+    }
+     
     static bool greater (BarrelInfo* pElem1, BarrelInfo* pElem2 )
     {
-        return pElem1->getDocCount() > pElem2->getDocCount();
+        if( pElem1->getBaseDocID() != pElem2->getBaseDocID() )
+            return pElem1->getBaseDocID() > pElem2->getBaseDocID();
+        else
+            return pElem1->getDocCount() > pElem2->getDocCount();
     }
 
 
@@ -151,8 +179,12 @@ public:
     count_t nNumDocs;
     ///only valid when this barrel is a in-memory barrel,otherwise NULL.
     IndexBarrelWriter* pBarrelWriter;
-
+    ///whether this barrel contains updated documents
     bool hasUpdateDocs;
+    ///max doc of this barrel
+    docid_t maxDocId;
+
+    bool modified;
 };
 
 
@@ -212,7 +244,7 @@ public:
     void removeBarrel(Directory* pDirectory,const string& barrelname);
     /// get number of barrels
     int32_t getBarrelCount();
-
+    /// counter of barrel name
     int32_t getBarrelCounter() {return nBarrelCounter;}
 
     int32_t getDocCount();
@@ -240,6 +272,8 @@ public:
     void updateMaxDoc(docid_t docId);
 
     docid_t maxDocId() {return maxDoc;}
+
+    void resetMaxDocId(docid_t docId) { maxDoc = docId;}
 
     BarrelInfo* operator [](int32_t i) { return barrelInfos[i];}
 

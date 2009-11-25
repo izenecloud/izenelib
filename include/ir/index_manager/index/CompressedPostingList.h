@@ -1,3 +1,10 @@
+/**
+* @file        CompressedPostingList.h
+* @author     Yingfeng Zhang
+* @version     SF1 v5.0
+* @brief CompressedPosting data
+*/
+
 #ifndef COMPRESSED_POSTINGLIST_H
 #define COMPRESSED_POSTINGLIST_H
 
@@ -19,18 +26,18 @@ struct PostingChunk
 /// the descriptor of posting
 struct PostingDescriptor
 {
-    int64_t length; 	///length of the posting
-    count_t df; 		///document frequency of this field
-    count_t tdf;		///document frequency regarding all fields in a document
-    int64_t ctf;		///global  term frequency
-    fileoffset_t	poffset;	///offset of the position postings in the .pop file
+    int64_t length; ///length of the posting
+    count_t df; ///document frequency of this field
+    count_t tdf; ///document frequency regarding all fields in a document
+    int64_t ctf; ///global  term frequency
+    fileoffset_t poffset; ///offset of the position postings in the .pop file
 };
 
 /// the descriptor of chunk
 struct ChunkDescriptor
 {
-    int64_t length; 	///length of the chunk
-    docid_t lastdocid;	///the last doc id of the chunk
+    int64_t length; ///length of the chunk
+    docid_t lastdocid; ///the last doc id of the chunk
 };
 
 /**
@@ -40,19 +47,19 @@ class CompressedPostingList
 {
 public:
     CompressedPostingList()
-            :pHeadChunk(NULL)
-            ,pTailChunk(NULL)
-            ,nTotalSize(0)
-            ,nTotalUnused(0)
-            ,nPosInCurChunk(0)
+            :pHeadChunk_(NULL)
+            ,pTailChunk_(NULL)
+            ,nTotalSize_(0)
+            ,nTotalUnused_(0)
+            ,nPosInCurChunk_(0)
     {
     }
     CompressedPostingList(const CompressedPostingList& src)
-            :pHeadChunk(src.pHeadChunk)
-            ,pTailChunk(src.pTailChunk)
-            ,nTotalSize(src.nTotalSize)
-            ,nTotalUnused(src.nTotalUnused)
-            ,nPosInCurChunk(src.nPosInCurChunk)
+            :pHeadChunk_(src.pHeadChunk_)
+            ,pTailChunk_(src.pTailChunk_)
+            ,nTotalSize_(src.nTotalSize_)
+            ,nTotalUnused_(src.nTotalUnused_)
+            ,nPosInCurChunk_(src.nPosInCurChunk_)
     {
     }
     ~CompressedPostingList()
@@ -118,11 +125,11 @@ public:
      */
     void reset();
 protected:
-    PostingChunk* pHeadChunk;		///Posting list header
-    PostingChunk* pTailChunk;			///Posting list tail
-    uint32_t nTotalSize;			///Total size
-    uint32_t nTotalUnused;		///Total Unused size
-    uint32_t nPosInCurChunk;
+    PostingChunk* pHeadChunk_; ///Posting list header
+    PostingChunk* pTailChunk_; ///Posting list tail
+    uint32_t nTotalSize_; ///Total size
+    uint32_t nTotalUnused_; ///Total Unused size
+    uint32_t nPosInCurChunk_;
 
     friend class InMemoryPosting;
     friend class PostingMerger;

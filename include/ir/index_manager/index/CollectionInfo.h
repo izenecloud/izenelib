@@ -7,7 +7,6 @@
 #ifndef COLLECTIONINFO_H
 #define COLLECTIONINFO_H
 
-#include <ir/index_manager/utility/Logger.h>
 #include <ir/index_manager/index/FieldInfo.h>
 
 #include <map>
@@ -22,38 +21,29 @@ namespace indexmanager{
 class CollectionInfo
 {
 public:
-    CollectionInfo(collectionid_t id_);
-    CollectionInfo(collectionid_t id_, FieldsInfo* pInfo);
+    CollectionInfo(collectionid_t id);
+
+    CollectionInfo(collectionid_t id, FieldsInfo* pInfo);
+
     CollectionInfo(CollectionInfo& src);
+
     ~CollectionInfo();
 public:
-    void setId(collectionid_t id)
-    {
-        this->id = id;
-    }
-    collectionid_t getId()
-    {
-        return id;
-    }
-    ///set the FieldsInfo object to associate it with collection id.
-    void setFieldsInfo(FieldsInfo* pInfo)
-    {
-        pFieldsInfo = pInfo;
-    }
-    ///return the associated FieldsInfo object
-    FieldsInfo* getFieldsInfo()
-    {
-        return pFieldsInfo;
-    }
+    void setId(collectionid_t id) { id_ = id; }
 
-    void setOwn(bool own)
-    {
-        ownFieldInfo = own;
-    }
+    collectionid_t getId() { return id_; }
+    ///set the FieldsInfo object to associate it with collection id_.
+    void setFieldsInfo(FieldsInfo* pInfo) { pFieldsInfo_ = pInfo; }
+    ///return the associated FieldsInfo object
+    FieldsInfo* getFieldsInfo() { return pFieldsInfo_; }
+
+    void setOwn(bool own) { ownFieldInfo_ = own; }
 private:
-    collectionid_t id;
-    FieldsInfo* pFieldsInfo;
-    bool ownFieldInfo;
+    collectionid_t id_;
+
+    FieldsInfo* pFieldsInfo_;
+
+    bool ownFieldInfo_;
 };
 /**
 *@brief A collection of CollectionInfo, it is composed of CollectionInfo
@@ -69,7 +59,7 @@ public:
 public:
     void addCollection(CollectionInfo* pColInfo)
     {
-        collectionsInfoMap.insert(std::pair<collectionid_t, CollectionInfo*>(pColInfo->getId(),pColInfo));
+        collectionsInfoMap_.insert(std::pair<collectionid_t, CollectionInfo*>(pColInfo->getId(),pColInfo));
     }
     /**
     * read collectionsInfo from "fdi" file
@@ -84,37 +74,37 @@ public:
 
     void reset();
 
-    inline CollectionInfo* getCollectionInfo(collectionid_t cid)
+    CollectionInfo* getCollectionInfo(collectionid_t cid)
     {
-        return collectionsInfoMap[cid];
+        return collectionsInfoMap_[cid];
     }
 
     int32_t numCollections()
     {
-        return (int32_t)collectionsInfoMap.size();
+        return (int32_t)collectionsInfoMap_.size();
     }
 
 public:
     CollectionInfo* operator[](int32_t i)
     {
-        return collectionsInfoMap[i];
+        return collectionsInfoMap_[i];
     }
     void startIterator()
     {
-        colInfosIterator = collectionsInfoMap.begin();
+        colInfosIterator_ = collectionsInfoMap_.begin();
     }
     bool hasNext()
     {
-        return (colInfosIterator != collectionsInfoMap.end());
+        return (colInfosIterator_ != collectionsInfoMap_.end());
     }
     CollectionInfo* next()
     {
-        return (colInfosIterator++)->second;
+        return (colInfosIterator_++)->second;
     }
     void removeCollectionInfo(collectionid_t colID);
 private:
-    std::map<collectionid_t, CollectionInfo*> collectionsInfoMap;
-    std::map<collectionid_t, CollectionInfo*>::iterator colInfosIterator;
+    std::map<collectionid_t, CollectionInfo*> collectionsInfoMap_;
+    std::map<collectionid_t, CollectionInfo*>::iterator colInfosIterator_;
 };
 
 }

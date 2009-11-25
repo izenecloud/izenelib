@@ -19,21 +19,20 @@ namespace indexmanager{
 class BarrelTermPositionsEntry
 {
 public:
-    BarrelTermPositionsEntry(BarrelInfo* barrelInfo_,TermPositions* termPositions_)
+    BarrelTermPositionsEntry(BarrelInfo* barrelInfo,TermPositions* termPositions)
+        :barrelInfo_(barrelInfo)
+        ,termPositions_(termPositions)
     {
-        barrelInfo = new BarrelInfo(*barrelInfo_);
-        termPositions = termPositions_;
     }
     ~BarrelTermPositionsEntry()
     {
-        delete barrelInfo;
-        delete termPositions;
+        delete termPositions_;
     }
 protected:
     BarrelTermPositionsEntry() {}
 public:
-    BarrelInfo* barrelInfo;
-    TermPositions* termPositions;
+    BarrelInfo* barrelInfo_;
+    TermPositions* termPositions_;
 
     friend class MultiTermPositions;
 };
@@ -54,11 +53,12 @@ class MultiTermPositions : public TermPositions
     protected:
         bool lessThan(BarrelTermPositionsEntry* o1, BarrelTermPositionsEntry* o2)
         {
-            return (o1->termPositions->doc()) < (o2->termPositions->doc());
+            return (o1->termPositions_->doc()) < (o2->termPositions_->doc());
         }
     };
 public:
     MultiTermPositions(void);
+
     ~MultiTermPositions(void);
 public:
     docid_t doc();
@@ -80,16 +80,17 @@ public:
     int32_t nextPositions(loc_t*& positions);
 
     void add(BarrelInfo* pBarrelInfo,TermPositions* pTermPositions);
-protected:
+private:
 
     void initQueue();
-protected:
 
-    list<BarrelTermPositionsEntry*>	termPositionsList;
+private:
 
-    BarrelTermPositionsEntry* current;
+    std::list<BarrelTermPositionsEntry*> termPositionsList_;
 
-    TermPositionQueue* pTermPositionQueue;
+    BarrelTermPositionsEntry* current_;
+
+    TermPositionQueue* pTermPositionQueue_;
 };
 
 }

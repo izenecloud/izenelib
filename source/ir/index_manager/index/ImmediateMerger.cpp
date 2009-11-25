@@ -2,8 +2,8 @@
 
 using namespace izenelib::ir::indexmanager;
 
-ImmediateMerger::ImmediateMerger(Directory* pSrDirectory)
-        :IndexMerger(pSrDirectory)
+ImmediateMerger::ImmediateMerger(Indexer* pIndexer)
+        :IndexMerger(pIndexer)
         ,mergeTimes_(0)
 {
     string s = "_mid_0";

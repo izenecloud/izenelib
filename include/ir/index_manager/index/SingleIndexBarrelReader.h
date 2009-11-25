@@ -29,6 +29,8 @@ public:
 public:
     void open(const char* name);
 
+    void reopen();
+
     TermReader* termReader(collectionid_t colID);
 
     TermReader* termReader(collectionid_t colID,const char* field);

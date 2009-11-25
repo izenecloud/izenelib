@@ -1,3 +1,9 @@
+/**
+   @file doc_fp_list.hpp
+   @author Kevin Hu
+   @date 2009.11.25
+   @brief It's not used yet.
+ */
 #ifndef DOC_FP_LIST_HPP
 #define DOC_FP_LIST_HPP
 
@@ -98,7 +104,7 @@ protected:
    **/
   inline bool cache_full()
   {
-    assert (cache_status_ == ADD_DOCS);
+    IASSERT (cache_status_ == ADD_DOCS);
 
     return in_mem_doc_num_ >= ALL_INFO_IN_MEM_LENGTH;
   }
@@ -235,7 +241,7 @@ public:
 
     docids_.push_back(docid);
 
-//     assert(FP_LENGTH == fp.length());
+//     IASSERT(FP_LENGTH == fp.length());
     
 //     for (uint8_t i =0; i<FP_LENGTH; i++)
 //     {
@@ -254,7 +260,7 @@ public:
     clean_fp();
     load_fp(fpi, 0);
     
-    assert((*fp_ptrs_[fpi]).length()==doc_num_);
+    IASSERT((*fp_ptrs_[fpi]).length()==doc_num_);
     //return *fp_ptrs_[fpi];
   }
 

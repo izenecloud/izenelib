@@ -30,7 +30,6 @@ using namespace izenelib::ir::indexmanager;
 static int degree = 16;
 static size_t cacheSize = 5000;
 static size_t maxDataSize = 1000;
-IndexerFactory indexerFactory;
 
 #define MAJOR_VERSION "1"
 #define MINOR_VERSION "0"
@@ -86,7 +85,7 @@ const std::map<std::string, IndexerCollectionMeta>& Indexer::getCollectionsMeta(
     return pConfigurationManager_->getCollectionMetaNameMap();
 }
 
-void Indexer::setIndexManagerConfig(IndexManagerConfig* pConfigManager,
+void Indexer::setIndexManagerConfig(const IndexManagerConfig& config,
                                        const std::map<std::string, uint32_t>& collectionIdMapping)
 {
     if (pConfigurationManager_)
@@ -95,9 +94,10 @@ void Indexer::setIndexManagerConfig(IndexManagerConfig* pConfigManager,
 
     pConfigurationManager_ = new IndexManagerConfig();
 
-    *pConfigurationManager_ = *pConfigManager;
+    *pConfigurationManager_ = config;
 
-    const std::map<std::string, IndexerCollectionMeta>& collectionsMeta = pConfigManager->getCollectionMetaNameMap();
+    const std::map<std::string, IndexerCollectionMeta>& collectionsMeta =
+        pConfigurationManager_->getCollectionMetaNameMap();
     std::map<std::string, uint32_t>::const_iterator idIter;
     std::map<std::string, IndexerCollectionMeta>::const_iterator iter;
     map<std::string, IndexerCollectionMeta> collectionList;
@@ -147,7 +147,7 @@ void Indexer::initIndexManager()
     {
         openDirectory();
 
-        if (!strcasecmp(pConfigurationManager_->storeStrategy_.param_.c_str(),"file"))
+        if ((!strcasecmp(pConfigurationManager_->storeStrategy_.param_.c_str(),"file"))&&(managerType_ != MANAGER_TYPE_NO_BTREE))
             pBTreeIndexer_ = new BTreeIndexer(pConfigurationManager_->indexStrategy_.indexLocation_, degree, cacheSize, maxDataSize);
 
     }
@@ -223,8 +223,6 @@ void Indexer::openDirectory()
 
 void Indexer::setBasePath(std::string basePath)
 {
-    if(managerType_ != MANAGER_TYPE_FORWARDREADER_AND_MERGER)
-        return;
     if (pDirectory_)
         pDirectory_->close();
     pDirectory_ = FSDirectory::getDirectory(basePath,true);
@@ -347,26 +345,25 @@ void Indexer::close()
 void Indexer::setDirty(bool bDirty)
 {
     dirty_ = bDirty;
+    if(bDirty)
+        pIndexReader_->reopen();	
 }
 
 int Indexer::insertDocumentPhysically(IndexerDocument* pDoc)
 {
     pIndexWriter_->indexDocument(pDoc);
-    pIndexReader_->setDirty(true);
     return 1;
 }
 
 int Indexer::insertDocument(IndexerDocument* pDoc)
 {
     pIndexWriter_->addDocument(pDoc);
-    pIndexReader_->setDirty(true);
     return 1;
 }
 
 int Indexer::removeDocumentPhysically(IndexerDocument* pDoc)
 {
     pIndexReader_->deleteDocumentPhysically(pDoc);
-    pIndexReader_->setDirty(true);
     return 1;
 }
 
@@ -385,15 +382,81 @@ int Indexer::removeCollection(collectionid_t colID)
 {
     count_t count = 0;
     pIndexWriter_->removeCollection(colID,count);
-    pIndexReader_->setDirty(true);
     return 1;
 }
 
 void Indexer::flush()
 {
     pIndexWriter_->flush();
-    pIndexReader_->setDirty(true);
     pBTreeIndexer_->flush();
+}
+
+void Indexer::optimizeIndex()
+{
+    IndexMerger* pIndexMerger = new OfflineIndexMerger(this, pBarrelsInfo_->getBarrelCount());
+    pIndexWriter_->mergeIndex(pIndexMerger);
+    delete pIndexMerger;
+}
+
+IndexStatus Indexer::checkIntegrity()
+{
+    if(0 == pBarrelsInfo_->getBarrelCount() ||
+        0 == pBarrelsInfo_->maxDocId()
+    )
+        return EMPTY;
+
+    TermReader* pTermReader = NULL;
+
+    try{
+        const std::map<std::string, IndexerCollectionMeta> & collectionMeta = 
+            pConfigurationManager_->getCollectionMetaNameMap();
+
+        std::map<std::string, IndexerCollectionMeta>::const_iterator iter = collectionMeta.begin();
+        if(iter == collectionMeta.end())
+            return CORRUPT;
+
+
+        collectionid_t colID = iter->second.getColId();
+		
+        const std::set<IndexerPropertyConfig, IndexerPropertyConfigComp> & schema = 
+            iter->second.getDocumentSchema();
+
+        std::string property;
+        std::set<IndexerPropertyConfig, IndexerPropertyConfigComp>::const_iterator it;
+        for( it = schema.begin(); it != schema.end(); it++ )
+        {
+            if (it->isIndex() && it->isForward())
+            {
+                property = it->getName();
+                continue;
+            }
+        }
+
+        pTermReader = pIndexReader_->getTermReader(colID);
+        ///seek the posting for the last term
+        Term term(property.c_str(), MAX_TERMID);
+        if(pTermReader->seek(&term))
+        {
+            TermPositions* pTermPositions = pTermReader->termPositions();
+            while(pTermPositions->next())
+            {
+            }
+            delete pTermPositions;
+        }
+        else
+        {
+            delete pTermReader;
+            return CORRUPT;
+        }
+
+        delete pTermReader;
+    }catch(std::exception& e)
+    {
+        if(pTermReader) delete pTermReader;
+        return CORRUPT;
+    }
+
+    return CONSISTENT;
 }
 
 size_t Indexer::getDistinctNumTermsByProperty(collectionid_t colID, const std::string& property)
@@ -519,16 +582,6 @@ bool Indexer::getDocsByTermInProperties(termid_t termID, collectionid_t colID, v
     return true;
 }
 
-bool Indexer::getForwardIndexByDocumentProperty(collectionid_t colId, docid_t docId, string propertyName, ForwardIndex& forwardIndex)
-{
-    assert(indexingForward_ == true);
-    fieldid_t fid = getPropertyIDByName(colId,propertyName);
-    ForwardIndexReader* pForwardIndexReader = pIndexReader_->getForwardIndexReader();
-    bool ret = pForwardIndexReader->getForwardIndexByDoc(docId, fid, forwardIndex);
-    delete pForwardIndexReader;
-    return ret;
-}
-
 bool Indexer::getTermFrequencyInCollectionByTermId( const vector<termid_t>& termIdList, const unsigned int collectionId, const vector<string>& propertyList, vector<unsigned int>& termFrequencyList )
 {
     TermReader* pTermReader = pIndexReader_->getTermReader(collectionId);
@@ -560,6 +613,7 @@ bool Indexer::getTermFrequencyInCollectionByTermId( const vector<termid_t>& term
 
 bool Indexer::getDocsByPropertyValue(collectionid_t colID, string property, PropertyType value, BitVector&docs)
 {
+    assert(managerType_ != MANAGER_TYPE_NO_BTREE);
     fieldid_t fid = getPropertyIDByName(colID,property);
     pBTreeIndexer_->getValue(colID, fid, value, docs);
     return true;
@@ -567,6 +621,7 @@ bool Indexer::getDocsByPropertyValue(collectionid_t colID, string property, Prop
 
 bool Indexer::getDocsByPropertyValueRange(collectionid_t colID, string property, PropertyType value1, PropertyType value2, BitVector&docs)
 {
+    assert(managerType_ != MANAGER_TYPE_NO_BTREE);
     fieldid_t fid = getPropertyIDByName(colID,property);
     pBTreeIndexer_->getValueBetween(colID, fid, value1, value2, docs);
     return true;
@@ -574,6 +629,7 @@ bool Indexer::getDocsByPropertyValueRange(collectionid_t colID, string property,
 
 bool Indexer::getDocsByPropertyValueLessThan(collectionid_t colID, string property, PropertyType value, BitVector&docList)
 {
+    assert(managerType_ != MANAGER_TYPE_NO_BTREE);
     fieldid_t fid = getPropertyIDByName(colID,property);
     pBTreeIndexer_->getValueLess(colID, fid, value, docList);
     return true;
@@ -581,6 +637,7 @@ bool Indexer::getDocsByPropertyValueLessThan(collectionid_t colID, string proper
 
 bool Indexer::getDocsByPropertyValueLessThanOrEqual(collectionid_t colID, string property, PropertyType value, BitVector&docList)
 {
+    assert(managerType_ != MANAGER_TYPE_NO_BTREE);
     fieldid_t fid = getPropertyIDByName(colID,property);
     pBTreeIndexer_->getValueLessEqual(colID, fid, value, docList);
     return true;
@@ -588,6 +645,7 @@ bool Indexer::getDocsByPropertyValueLessThanOrEqual(collectionid_t colID, string
 
 bool Indexer::getDocsByPropertyValueGreaterThan(collectionid_t colID, string property, PropertyType value, BitVector&docList)
 {
+    assert(managerType_ != MANAGER_TYPE_NO_BTREE);
     fieldid_t fid = getPropertyIDByName(colID,property);
     pBTreeIndexer_->getValueGreat(colID, fid, value, docList);
     return true;
@@ -595,6 +653,7 @@ bool Indexer::getDocsByPropertyValueGreaterThan(collectionid_t colID, string pro
 
 bool Indexer::getDocsByPropertyValueGreaterThanOrEqual(collectionid_t colID, string property, PropertyType value, BitVector&docList)
 {
+    assert(managerType_ != MANAGER_TYPE_NO_BTREE);
     fieldid_t fid = getPropertyIDByName(colID,property);
     pBTreeIndexer_->getValueGreatEqual(colID, fid, value, docList);
     return true;
@@ -602,6 +661,7 @@ bool Indexer::getDocsByPropertyValueGreaterThanOrEqual(collectionid_t colID, str
 
 bool Indexer::getDocsByPropertyValueIn(collectionid_t colID, string property, vector<PropertyType> values, BitVector&docList)
 {
+    assert(managerType_ != MANAGER_TYPE_NO_BTREE);
     fieldid_t fid = getPropertyIDByName(colID,property);
     pBTreeIndexer_->getValueIn(colID, fid, values, docList);
     return true;
@@ -609,6 +669,7 @@ bool Indexer::getDocsByPropertyValueIn(collectionid_t colID, string property, ve
 
 bool Indexer::getDocsByPropertyValueNotIn(collectionid_t colID, string property, vector<PropertyType> values, BitVector&docList)
 {
+    assert(managerType_ != MANAGER_TYPE_NO_BTREE);
     fieldid_t fid = getPropertyIDByName(colID,property);
     pBTreeIndexer_->getValueNotIn(colID, fid, values, docList);
     return true;
@@ -616,6 +677,7 @@ bool Indexer::getDocsByPropertyValueNotIn(collectionid_t colID, string property,
 
 bool Indexer::getDocsByPropertyValueNotEqual(collectionid_t colID, string property, PropertyType value, BitVector&docList)
 {
+    assert(managerType_ != MANAGER_TYPE_NO_BTREE);
     fieldid_t fid = getPropertyIDByName(colID,property);
     pBTreeIndexer_->getValueNotEqual(colID, fid, value, docList);
     return true;
@@ -623,6 +685,7 @@ bool Indexer::getDocsByPropertyValueNotEqual(collectionid_t colID, string proper
 
 bool Indexer::getDocsByPropertyValueStart(collectionid_t colID, string property, PropertyType value, BitVector&docList)
 {
+    assert(managerType_ != MANAGER_TYPE_NO_BTREE);
     fieldid_t fid = getPropertyIDByName(colID,property);
     pBTreeIndexer_->getValueStart(colID, fid, value, docList);
     return true;
@@ -630,6 +693,7 @@ bool Indexer::getDocsByPropertyValueStart(collectionid_t colID, string property,
 
 bool Indexer::getDocsByPropertyValueEnd(collectionid_t colID, string property, PropertyType value, BitVector&docList)
 {
+    assert(managerType_ != MANAGER_TYPE_NO_BTREE);
     fieldid_t fid = getPropertyIDByName(colID,property);
     pBTreeIndexer_->getValueEnd(colID, fid, value, docList);
     return true;
@@ -637,16 +701,9 @@ bool Indexer::getDocsByPropertyValueEnd(collectionid_t colID, string property, P
 
 bool Indexer::getDocsByPropertyValueSubString(collectionid_t colID, string property, PropertyType value, BitVector&docList)
 {
+    assert(managerType_ != MANAGER_TYPE_NO_BTREE);
     fieldid_t fid = getPropertyIDByName(colID,property);
     pBTreeIndexer_->getValueSubString(colID, fid, value, docList);
     return true;
 }
-
-void Indexer::optimizeIndex()
-{
-    IndexMerger* pIndexMerger = new OfflineIndexMerger(pDirectory_, pBarrelsInfo_->getBarrelCount());
-
-    pIndexWriter_->mergeIndex(pIndexMerger);
-}
-
 

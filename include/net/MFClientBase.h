@@ -40,7 +40,6 @@ void mf_client_deserialize(std::vector<TYPE>& result, std::vector<ServiceResultP
 #define MF_CLIENT_IMPL_0_1(agentInfo, servicename, result) \
 	ServiceRequestInfoPtr req(new ServiceRequestInfo); \
 	ServiceResultPtr res; \
-	result.resize(res.size() ); \
 	req->setServiceName( servicename ); \
     if ( requestService(agentInfo, servicename, req, res) ) \
     { \

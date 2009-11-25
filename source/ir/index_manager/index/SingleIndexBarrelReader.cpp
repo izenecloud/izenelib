@@ -40,7 +40,8 @@ void SingleIndexBarrelReader::open(const char* name)
     pIndexInput->close();
     delete pIndexInput;
 
-    for (map<collectionid_t, TermReader*>::iterator iter = termReaderMap_.begin(); iter != termReaderMap_.end(); ++iter)
+    for (map<collectionid_t, TermReader*>::iterator iter = termReaderMap_.begin(); 
+            iter != termReaderMap_.end(); ++iter)
         delete iter->second;
 
     termReaderMap_.clear();
@@ -66,8 +67,7 @@ void SingleIndexBarrelReader::open(const char* name)
                 pFieldInfo = pFieldsInfo->next();
                 if (pFieldInfo->isIndexed()&&pFieldInfo->isForward())
                 {
-                    pTermReader = new DiskTermReader();
-                    pTermReader->open(pDirectory,name,pFieldInfo);
+                    pTermReader = new DiskTermReader(pDirectory,name,pFieldInfo);
                     break;
                 }
             }
@@ -79,6 +79,16 @@ void SingleIndexBarrelReader::open(const char* name)
         termReaderMap_.insert(pair<collectionid_t, TermReader*>(pColInfo->getId(),pTermReader));
     }
 
+}
+
+void SingleIndexBarrelReader::reopen()
+{
+    if(pBarrelInfo_->isModified())
+    {
+        for (map<collectionid_t, TermReader*>::iterator iter = termReaderMap_.begin(); 
+                iter != termReaderMap_.end(); ++iter)
+            iter->second->reopen();
+    }
 }
 
 TermReader* SingleIndexBarrelReader::termReader(collectionid_t colID, const char* field)
@@ -195,7 +205,6 @@ void SingleIndexBarrelReader::delDocField(unsigned int colID, docid_t docId, con
                     newPosting->addLocation(decompressed_docid, pos);
                     pos = pTermPositions->nextPosition();
                 }
-                newPosting->updateDF(decompressed_docid);
             }
 
             if (ret)
@@ -211,7 +220,6 @@ void SingleIndexBarrelReader::delDocField(unsigned int colID, docid_t docId, con
                 PostingDescriptor postingDesc;
                 postingDesc.length = CompressedPostingList::decodePosting64(u); ///<PostingLength(VInt64)>
                 postingDesc.df = CompressedPostingList::decodePosting32(u); 	///<DF(VInt32)>
-                postingDesc.tdf = CompressedPostingList::decodePosting32(u);	///<TDF(VInt32)>
                 postingDesc.ctf = CompressedPostingList::decodePosting64(u);		///<CTF(VInt64)>
                 postingDesc.poffset = CompressedPostingList::decodePosting64(u);	///PositionPointer(VInt64)
                 pPPInput->seekInternal(postingDesc.poffset);///not seek(), because seek() may trigger a large data read event.

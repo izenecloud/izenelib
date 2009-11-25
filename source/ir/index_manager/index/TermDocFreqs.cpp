@@ -7,100 +7,100 @@
 using namespace izenelib::ir::indexmanager;
 
 TermDocFreqs::TermDocFreqs(void)
-        :pPosting(NULL)
-        ,pPostingBuffer(0)
-        ,nBufferSize(0)
-        ,nFreqStart(0)
-        ,nTotalDecodedCount(0)
-        ,nCurDecodedCount(0)
-        ,nCurrentPosting(-1)
-        ,pTermReader(NULL)
-        ,pInputDescriptor(NULL)
-        ,ownPosting(true)
+        :pPosting_(NULL)
+        ,pPostingBuffer_(0)
+        ,nBufferSize_(0)
+        ,nFreqStart_(0)
+        ,nTotalDecodedCount_(0)
+        ,nCurDecodedCount_(0)
+        ,nCurrentPosting_(-1)
+        ,pTermReader_(NULL)
+        ,pInputDescriptor_(NULL)
+        ,ownPosting_(true)
 {
 }
 
-TermDocFreqs::TermDocFreqs(TermReader* pReader, InputDescriptor* pInputDescriptor_, TermInfo& ti)
-        :pPostingBuffer(NULL)
-        ,nBufferSize(0)
-        ,nFreqStart(0)
-        ,nTotalDecodedCount(0)
-        ,nCurDecodedCount(0)
-        ,nCurrentPosting(-1)
-        ,pTermReader(pReader)
-        ,pInputDescriptor(pInputDescriptor_)
-        ,ownPosting(true)
+TermDocFreqs::TermDocFreqs(TermReader* pReader, InputDescriptor* pInputDescriptor, TermInfo& ti)
+        :pPostingBuffer_(NULL)
+        ,nBufferSize_(0)
+        ,nFreqStart_(0)
+        ,nTotalDecodedCount_(0)
+        ,nCurDecodedCount_(0)
+        ,nCurrentPosting_(-1)
+        ,pTermReader_(pReader)
+        ,pInputDescriptor_(pInputDescriptor)
+        ,ownPosting_(true)
 {
-    termInfo.set(ti.docFreq(),ti.docPointer());
-    pInputDescriptor->getDPostingInput()->seek(ti.docPointer());
-    pPosting = new OnDiskPosting(pInputDescriptor,ti.docPointer());
+    termInfo_.set(ti.docFreq(),ti.docPointer());
+    pInputDescriptor_->getDPostingInput()->seek(ti.docPointer());
+    pPosting_ = new OnDiskPosting(pInputDescriptor_,ti.docPointer());
 }
 
-TermDocFreqs::TermDocFreqs(TermReader* pReader, Posting* pposting, TermInfo& ti)
-        :pPosting(pposting->clone())
-        ,pPostingBuffer(NULL)
-        ,nBufferSize(0)
-        ,nFreqStart(0)
-        ,nTotalDecodedCount(0)
-        ,nCurDecodedCount(0)
-        ,nCurrentPosting(-1)
-        ,pTermReader(pReader)
-        ,pInputDescriptor(NULL)
-        ,ownPosting(true)
+TermDocFreqs::TermDocFreqs(TermReader* pReader, Posting* pPosting, TermInfo& ti)
+        :pPosting_(pPosting->clone())
+        ,pPostingBuffer_(NULL)
+        ,nBufferSize_(0)
+        ,nFreqStart_(0)
+        ,nTotalDecodedCount_(0)
+        ,nCurDecodedCount_(0)
+        ,nCurrentPosting_(-1)
+        ,pTermReader_(pReader)
+        ,pInputDescriptor_(NULL)
+        ,ownPosting_(true)
 {
-    termInfo.set(ti.docFreq(),ti.docPointer());
+    termInfo_.set(ti.docFreq(),ti.docPointer());
 }
 
-TermDocFreqs::TermDocFreqs(Posting* pposting)
-        :pPosting(pposting)
-        ,pPostingBuffer(NULL)
-        ,nBufferSize(0)
-        ,nFreqStart(0)
-        ,nTotalDecodedCount(0)
-        ,nCurDecodedCount(0)
-        ,nCurrentPosting(-1)
-        ,pTermReader(NULL)
-        ,pInputDescriptor(NULL)
-        ,ownPosting(false)
+TermDocFreqs::TermDocFreqs(Posting* pPosting)
+        :pPosting_(pPosting)
+        ,pPostingBuffer_(NULL)
+        ,nBufferSize_(0)
+        ,nFreqStart_(0)
+        ,nTotalDecodedCount_(0)
+        ,nCurDecodedCount_(0)
+        ,nCurrentPosting_(-1)
+        ,pTermReader_(NULL)
+        ,pInputDescriptor_(NULL)
+        ,ownPosting_(false)
 {
-    termInfo.set(pposting->docFreq(), 0);
+    termInfo_.set(pPosting->docFreq(), 0);
 }
 
 TermDocFreqs::~TermDocFreqs(void)
 {
     close();
-    if (pPostingBuffer)
+    if (pPostingBuffer_)
     {
-        delete[] pPostingBuffer;
-        pPostingBuffer = NULL;
+        delete[] pPostingBuffer_;
+        pPostingBuffer_ = NULL;
     }
-    nBufferSize = 0;
+    nBufferSize_ = 0;
 }
 
 freq_t TermDocFreqs::docFreq()
 {
-    return termInfo.docFreq();
+    return termInfo_.docFreq();
 }
 
 int64_t TermDocFreqs::getCTF()
 {
-    return pPosting->getCTF();
+    return pPosting_->getCTF();
 }
 
 docid_t TermDocFreqs::doc()
 {
-    return pPostingBuffer[nCurrentPosting];
+    return pPostingBuffer_[nCurrentPosting_];
 }
 
 count_t TermDocFreqs::freq()
 {
-    return pPostingBuffer[nFreqStart + nCurrentPosting];
+    return pPostingBuffer_[nFreqStart_ + nCurrentPosting_];
 }
 
 bool TermDocFreqs::next()
 {
-    nCurrentPosting ++;
-    if (nCurrentPosting >= nCurDecodedCount)
+    nCurrentPosting_ ++;
+    if (nCurrentPosting_ >= nCurDecodedCount_)
     {
         if (!decode())
             return false;
@@ -110,60 +110,61 @@ bool TermDocFreqs::next()
 }
 count_t TermDocFreqs::next(docid_t*& docs, count_t*& freqs)
 {
-    if ((nCurrentPosting < 0) || (nCurrentPosting >= nCurDecodedCount) )
+    if ((nCurrentPosting_ < 0) || (nCurrentPosting_ >= nCurDecodedCount_) )
     {
         if (!decode())
             return false;
     }
-    docs = &pPostingBuffer[nCurrentPosting];
-    freqs = &pPostingBuffer[nFreqStart + nCurrentPosting];
-    int32_t c = nCurDecodedCount - nCurrentPosting;
-    nCurDecodedCount = nCurrentPosting = 0;
+    docs = &pPostingBuffer_[nCurrentPosting_];
+    freqs = &pPostingBuffer_[nFreqStart_ + nCurrentPosting_];
+    int32_t c = nCurDecodedCount_ - nCurrentPosting_;
+    nCurDecodedCount_ = nCurrentPosting_ = 0;
     return c;
 }
 
 void TermDocFreqs::close()
 {
-    if (pInputDescriptor)
+    if (pInputDescriptor_)
     {
-        delete pInputDescriptor;
-        pInputDescriptor = NULL;
-        pTermReader = NULL;
+        delete pInputDescriptor_;
+        pInputDescriptor_ = NULL;
+        pTermReader_ = NULL;
     }
-    if (pPosting)
+    if (pPosting_)
     {
-        if(ownPosting)
-            delete pPosting;
-        pPosting = NULL;
+        if(ownPosting_)
+            delete pPosting_;
+        pPosting_ = NULL;
     }
 }
 bool TermDocFreqs::decode()
 {
-    count_t df = termInfo.docFreq();
-    if ((count_t)nTotalDecodedCount == df)
+    count_t df = termInfo_.docFreq();
+    if ((count_t)nTotalDecodedCount_ == df)
     {
         return false;
     }
 
-    if (!pPostingBuffer)
+    if (!pPostingBuffer_)
         createBuffer();
 
-    nCurrentPosting = 0;
-    nCurDecodedCount = pPosting->decodeNext(pPostingBuffer,nBufferSize);
-    if (nCurDecodedCount <= 0)
+    nCurrentPosting_ = 0;
+    nCurDecodedCount_ = pPosting_->decodeNext(pPostingBuffer_,nBufferSize_);
+    if (nCurDecodedCount_ <= 0)
         return false;
-    nTotalDecodedCount += nCurDecodedCount;
+    nTotalDecodedCount_ += nCurDecodedCount_;
 
     return true;
 }
 void TermDocFreqs::createBuffer()
 {
     size_t bufSize = TermDocFreqs::DEFAULT_BUFFERSIZE;
-    if (pPostingBuffer == NULL)
+    if (pPostingBuffer_ == NULL)
     {
-        nBufferSize = bufSize;
-        nFreqStart = nBufferSize/2;
-        pPostingBuffer = new uint32_t[nBufferSize];
+        nBufferSize_ = bufSize;
+        nFreqStart_ = nBufferSize_/2;
+        pPostingBuffer_ = new uint32_t[nBufferSize_];
+        memset(pPostingBuffer_, 0, nBufferSize_*sizeof(uint32_t));
     }
 }
 

@@ -4,30 +4,30 @@ using namespace std;
 
 using namespace izenelib::ir::indexmanager;
 
-CollectionInfo::CollectionInfo(collectionid_t id_)
-        :id(id_)
-        ,ownFieldInfo(false)
+CollectionInfo::CollectionInfo(collectionid_t id)
+        :id_(id)
+        ,ownFieldInfo_(false)
 {}
 
-CollectionInfo::CollectionInfo(collectionid_t id_, FieldsInfo* pInfo)
-        :id(id_)
-        ,pFieldsInfo(pInfo)
-        ,ownFieldInfo(false)
+CollectionInfo::CollectionInfo(collectionid_t id, FieldsInfo* pInfo)
+        :id_(id)
+        ,pFieldsInfo_(pInfo)
+        ,ownFieldInfo_(false)
 {
 }
 
 CollectionInfo::CollectionInfo(CollectionInfo& src)
-        :id(src.id)
-        ,ownFieldInfo(true)
+        :id_(src.id_)
+        ,ownFieldInfo_(true)
 {
-    pFieldsInfo = new FieldsInfo(*(src.pFieldsInfo));
+    pFieldsInfo_ = new FieldsInfo(*(src.pFieldsInfo_));
 }
 
 CollectionInfo::~CollectionInfo()
 {
-    if (ownFieldInfo&&pFieldsInfo)
-        delete pFieldsInfo;
-    pFieldsInfo = NULL;
+    if (ownFieldInfo_&&pFieldsInfo_)
+        delete pFieldsInfo_;
+    pFieldsInfo_ = NULL;
 }
 
 CollectionsInfo::CollectionsInfo()
@@ -36,11 +36,11 @@ CollectionsInfo::CollectionsInfo()
 
 CollectionsInfo::CollectionsInfo(CollectionsInfo& src)
 {
-    for (map<collectionid_t, CollectionInfo*>::iterator iter = src.collectionsInfoMap.begin();
-            iter != src.collectionsInfoMap.end(); ++iter)
+    for (map<collectionid_t, CollectionInfo*>::iterator iter = src.collectionsInfoMap_.begin();
+            iter != src.collectionsInfoMap_.end(); ++iter)
     {
         CollectionInfo* pColInfo = new CollectionInfo(*(iter->second));
-        collectionsInfoMap.insert(pair<collectionid_t, CollectionInfo*>(iter->first,pColInfo));
+        collectionsInfoMap_.insert(pair<collectionid_t, CollectionInfo*>(iter->first,pColInfo));
     }
 }
 
@@ -51,18 +51,19 @@ CollectionsInfo::~CollectionsInfo()
 
 void CollectionsInfo::clear()
 {
-    for (map<collectionid_t, CollectionInfo*>::iterator iter = collectionsInfoMap.begin(); iter != collectionsInfoMap.end(); ++iter)
+    for (map<collectionid_t, CollectionInfo*>::iterator iter = 
+            collectionsInfoMap_.begin(); iter != collectionsInfoMap_.end(); ++iter)
         delete iter->second;
-    collectionsInfoMap.clear();
+    collectionsInfoMap_.clear();
 }
 
 void CollectionsInfo::removeCollectionInfo(collectionid_t colID)
 {
-    CollectionInfo* pColInfo = collectionsInfoMap[colID];
+    CollectionInfo* pColInfo = collectionsInfoMap_[colID];
     if (pColInfo)
     {
         delete pColInfo;
-        collectionsInfoMap.erase(colID);
+        collectionsInfoMap_.erase(colID);
     }
 }
 
@@ -75,7 +76,6 @@ void CollectionsInfo::read(IndexInput* pIndexInput)
         int32_t count = pIndexInput->readInt(); ///<CollectionsCount(Int32)>
         if (count <= 0)
         {
-            SF1V5_LOG(level::warn) << "CollectionsInfo::read():collection count <=0." << SF1V5_ENDL;
             return ;
         }
 
@@ -92,7 +92,7 @@ void CollectionsInfo::read(IndexInput* pIndexInput)
             pInfo->setFieldsInfo(pFieldsInfo);
             pInfo->setOwn(true);
 
-            collectionsInfoMap.insert(pair<collectionid_t, CollectionInfo*>(colID,pInfo));
+            collectionsInfoMap_.insert(pair<collectionid_t, CollectionInfo*>(colID,pInfo));
 
         }
 
@@ -118,7 +118,8 @@ void CollectionsInfo::write(IndexOutput* pIndexOutput)
     {
         pIndexOutput->writeInt(numCollections());///<CollectionsCount(Int32)>
         CollectionInfo* pInfo;
-        for (map<collectionid_t, CollectionInfo*>::iterator iter = collectionsInfoMap.begin(); iter != collectionsInfoMap.end(); ++iter)
+        for (map<collectionid_t, CollectionInfo*>::iterator iter = collectionsInfoMap_.begin(); 
+                iter != collectionsInfoMap_.end(); ++iter)
         {
             pInfo = iter->second;
             pIndexOutput->writeInt(pInfo->getId());	///<CollectionID(Int32)>
@@ -142,9 +143,8 @@ void CollectionsInfo::write(IndexOutput* pIndexOutput)
 
 void CollectionsInfo::reset()
 {
-    for (map<collectionid_t, CollectionInfo*>::iterator iter = collectionsInfoMap.begin();iter != collectionsInfoMap.end(); ++iter)
-    {
+    for (map<collectionid_t, CollectionInfo*>::iterator iter = 
+            collectionsInfoMap_.begin();iter != collectionsInfoMap_.end(); ++iter)
         iter->second->getFieldsInfo()->reset();
-    }
 }
 

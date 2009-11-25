@@ -1,3 +1,9 @@
+/**
+* @file        UDTFSConstant.h
+* @author     Yingfeng Zhang
+* @version     SF1 v5.0
+* @brief 
+*/
 #ifndef UDTFS_H
 #define UDTFS_H
 

@@ -16,36 +16,34 @@ class ReaderCache
 public:
     ReaderCache()
     {
-        pTermReader = NULL;
-        next = NULL;
+        pTermReader_ = NULL;
+        next_ = NULL;
     }
-    ReaderCache(BarrelInfo* barrelInfo,TermReader* pSe)
+    ReaderCache(BarrelInfo* pBarrelInfo,TermReader* pSe)
     {
-        this->barrelInfo = barrelInfo;
-        pTermReader = pSe;
-        next = NULL;
+        pBarrelInfo_ = pBarrelInfo;
+        pTermReader_ = pSe;
+        next_ = NULL;
     }
     ~ReaderCache()
     {
-        barrelInfo = NULL;
-        delete pTermReader;
-        pTermReader = NULL;
-        delete next;
-        next = NULL;
+        pBarrelInfo_ = NULL;
+        delete pTermReader_;
+        pTermReader_ = NULL;
+        delete next_;
+        next_ = NULL;
     }
-protected:
-    BarrelInfo*	barrelInfo;
-    TermReader*	pTermReader;
-    ReaderCache*	next;
+private:
+    BarrelInfo* pBarrelInfo_;
+    TermReader* pTermReader_;
+    ReaderCache* next_;
     friend class MultiTermReader;
 };
 
 class MultiIndexBarrelReader;
-class MultiTermReader :  public TermReader
+class MultiTermReader : public TermReader
 {
 public:
-    MultiTermReader(void);
-
     MultiTermReader(MultiIndexBarrelReader* pBarrelReader, collectionid_t colID);
 
     virtual ~MultiTermReader(void);
@@ -57,6 +55,9 @@ public:
      * @param pFieldInfo field information
      */
     void open(Directory* pDirectory,const char* barrelname,FieldInfo* pFieldInfo);
+
+
+    void reopen();
 
     /**
      * get the term iterator
@@ -102,20 +103,18 @@ public:
      */
     TermReader* clone() ;
 
-protected:
-    /**
-     * load reader
-     */
+private:
+
     ReaderCache* loadReader(const char* field);
 
-protected:
-    collectionid_t colID;
+private:
+    collectionid_t colID_;
 
-    MultiIndexBarrelReader* pBarrelReader;
+    MultiIndexBarrelReader* pBarrelReader_;
 
-    ReaderCache* pCurReader;
+    ReaderCache* pCurReader_;
 
-    map<string,ReaderCache*> readerCache;	//search cache
+    map<string,ReaderCache*> readerCache_;
 };
 
 }

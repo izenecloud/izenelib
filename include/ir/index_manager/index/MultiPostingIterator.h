@@ -1,3 +1,9 @@
+/**
+* @file        MultiPostingIterator.h
+* @author     Yingfeng Zhang
+* @version     SF1 v5.0
+* @brief   
+*/
 #ifndef MULTI_POSTINGITERATOR_H
 #define MULTI_POSTINGITERATOR_H
 
@@ -11,7 +17,7 @@
 NS_IZENELIB_IR_BEGIN
 namespace indexmanager{
 
-///used for posting merger only.
+///used for posting merger only, especially for index updating
 ///when merging two postings that does not satisfy the doc id sequence order, such as
 ///   1 2 5 10...100  and 3 4 7 8
 ///notice: among postings, there will not exist duplicated docs
@@ -59,7 +65,12 @@ class MultiPostingIterator
     protected:
         bool lessThan(MultiPostingIterator::TermPositionEntry* o1, MultiPostingIterator::TermPositionEntry* o2)
         {
-            return (o1->pPositions_->doc() < o2->pPositions_->doc());
+            if(o1->pPositions_->doc() == o2->pPositions_->doc())
+            {
+                return (uint64_t)(o1->pDocFilter_) < (uint64_t)(o2->pDocFilter_);
+            }
+            else
+                return (o1->pPositions_->doc() < o2->pPositions_->doc());
         }
     };
 
@@ -74,12 +85,12 @@ public:
 
     docid_t doc() { return currDoc_; }
 
-    loc_t nextPosition() { return currEntry_->pPositions_->nextPosition(); }
+    loc_t nextPosition(){ return currEntry_->pPositions_->nextPosition(); }
 
 private:
     void initQueue();
-
-    bool next_();
+    ///skip docs if these docs are going to be deleted
+    bool skipDocs(TermPositionEntry* pEntry);
 private:
     size_t nPos_;
 	

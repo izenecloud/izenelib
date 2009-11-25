@@ -26,7 +26,7 @@ namespace messageframework
 	// if the data has not arrived for TIME_OUT_IN_MILISECOND, the connection
 	// will be automatically disconnected
 	
-	#define TIME_OUT_IN_MILISECOND 5000
+	#define TIME_OUT_IN_MILISECOND 5000*2
 
 	#define INVALID_MESSAGE_ID 0
 } // end of namespace messageframework

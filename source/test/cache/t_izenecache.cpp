@@ -39,7 +39,7 @@ typedef int ValueType;
 typedef ILRUCache<KeyType, ValueType> MyCache;
 
 static string inputFile("../db/test2.txt");
-static string inputFile1("../db/wordlist_PLU.txt");
+static string inputFile1("../db/wordlist.txt");
 static bool trace = true;
 static size_t cacheSize = 2500;
 

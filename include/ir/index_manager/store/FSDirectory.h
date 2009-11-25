@@ -10,10 +10,11 @@
 #include <ir/index_manager/store/Directory.h>
 #include <ir/index_manager/store/IndexInput.h>
 #include <ir/index_manager/store/IndexOutput.h>
-#include <ir/index_manager/utility/Logger.h>
 #include <ir/index_manager/utility/system.h>
 
 #include <boost/thread.hpp>
+#include <boost/thread/shared_mutex.hpp>
+
 #include <string>
 #include <map>
 #include <dirent.h>
@@ -48,15 +49,17 @@ public:
 
     void renameFile(const string& from, const string& to);
 
-    void batDeleteFiles(const string& filename,bool throwError = true);
+    void deleteFiles(const string& filename,bool throwError = true);
 
-    void batRenameFiles(const string& from, const string& to);
+    void renameFiles(const string& from, const string& to);
 
     IndexOutput* createOutput(const string& name, const string& mode="w+b");
 
     IndexOutput* createOutput(const string& name, size_t buffersize, const string& mode = "w+b");
 
     void close();
+
+    izenelib::util::ReadWriteLock* getLock() { return rwLock_; }
 
 private:
     static FSDirectory::directory_map& getDirectoryMap();
@@ -67,7 +70,7 @@ private:
 
     int nRefCount;
 
-    mutable boost::mutex mutex_;
+    izenelib::util::ReadWriteLock* rwLock_;
 };
 
 
