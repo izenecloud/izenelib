@@ -1,3 +1,6 @@
+/**
+   @file graph.hpp
+ */
 #ifndef GRAPH_HPP
 #define GRAPH_HPP
 
@@ -14,6 +17,9 @@
 
 NS_IZENELIB_AM_BEGIN
 
+/**
+   @brief frequency structure
+ */
 template<typename VALUE_TYPE = uint32_t>
 struct FREQ_STRUCT
 {
@@ -118,6 +124,9 @@ friend std::ostream& operator << (std::ostream& os, const FREQ_STRUCT& v)
 }
   ;
 
+/**
+   @brief this is edge structure.
+ */
 template<typename VALUE_TYPE = uint32_t>
 struct EDGE_STRUCT
 {
@@ -220,6 +229,9 @@ friend std::ostream& operator << (std::ostream& os, const EDGE_STRUCT& v)
   
 }
   ;
+/**
+   @brief leaf node in tree
+ */
 struct LEAF_STRUCT
 {
   char freq[4];
@@ -324,13 +336,13 @@ friend std::ostream& operator << (std::ostream& os, const LEAF_STRUCT& v)
 
 
 template<
-  uint32_t BUCKET_NUM = 895,//used for alpha sort, number of inputfiles
-  uint32_t BATCH_SAVE_SIZE = 100, //number of branch of root for one time saving.
+  uint32_t BUCKET_NUM = 895,//!< used for alpha sort, number of inputfiles
+  uint32_t BATCH_SAVE_SIZE = 100, //!< number of branch of root for one time saving.
   bool LEAN_MODE = false,
   class TERM_TYPE = uint32_t,
   //uint32_t SAVE_RATIO = 500,//number of branch for saving
-  class NID_LEN_TYPE = uint32_t,//the length type of nodes table
-  uint32_t ADDING_BUF_SIZE = 100000000//used for adding and fetch terms
+  class NID_LEN_TYPE = uint32_t,//!< the length type of nodes table
+  uint32_t ADDING_BUF_SIZE = 100000000//!< used for adding and fetch terms
   >
 class Graph
 {
@@ -359,19 +371,19 @@ class Graph
 
 #define LEAF_BOUND 1000000000
   
-  nids_t nodes_;
-  freqs_t freqs_;
-  loads_t  loads_;
-  docs_t docs_;
-  leafs_t leafs_;
+  nids_t nodes_;//!< vector to store nodes pointer
+  freqs_t freqs_;//!< vector to store frequency of nodes
+  loads_t  loads_;//!< vector to store loads flag of nodes
+  docs_t docs_;//!< vector to store docid vector pointer
+  leafs_t leafs_;//!< vector to store leafs
   //IdTransfer<60000> id_mgr_;
-  uint32_t doc_num_;
-  sorter_t* sorter_;
-  std::string filenm_;
-  FILE*  nid_f_;
-  FILE*  doc_f_;
-  FILE*  leaf_f_;
-  uint32_t max_term_len_;
+  uint32_t doc_num_;//!< document number
+  sorter_t* sorter_;//!< sorter for sorting all the suffix string
+  std::string filenm_;//!< prefix of file name
+  FILE*  nid_f_;//!< file handler for nodes pointer vector
+  FILE*  doc_f_;//!< file handler for document pointer vector
+  FILE*  leaf_f_;//!< file handler for leaf pointer vector
+  uint32_t max_term_len_;//!< max number of term for one string.
 
   edge_t* insert_(TERM_TYPE term, edge_t* ep, bool ordered = true, uint32_t add_freq = 1)
   {
@@ -782,6 +794,9 @@ public:
     release();
   }
 
+  /**
+     @brief deallocate all the memory
+   */
   void release()
   {
     free_mem_();
@@ -803,7 +818,10 @@ public:
     doc_f_ = NULL;
     leaf_f_ = NULL;
   }
-  
+
+  /**
+     @brief This function must be called before adding terms.
+   */
   void ready4add()
   {
     if (sorter_)
@@ -813,7 +831,10 @@ public:
     sorter_->set_max_term_len(max_term_len_);
     sorter_->ready4add();
   }
-    
+
+  /**
+     @brief This function must be called before updating.
+   */
   void ready4update()
   {
     for (NID_LEN_TYPE i=0; i<loads_.length(); ++i)
@@ -839,6 +860,9 @@ public:
 //     leaf_f_ = fopen((filenm_+".lea").c_str(), "r+");
   }
 
+  /**
+     @return document number
+   */
   uint32_t doc_num()const
   {
     return doc_num_;
@@ -848,7 +872,10 @@ public:
   {
     max_term_len_ = t;
   }
-  
+
+  /**
+     @brief add terms of a document. It doesn't need to call indexing() after appending.
+   */
   void append_terms(const std::vector<uint32_t>& terms, uint32_t docid)
   {
     static uint32_t last = -1;
@@ -912,7 +939,10 @@ public:
       }
     }
   }
-  
+
+  /**
+     @brief delete terms of one document.
+   */
   void del_terms(std::vector<uint32_t> terms, uint32_t docid)
   {
     //id transfer
@@ -989,7 +1019,10 @@ public:
       }
     }
   }
-
+  
+  /**
+     @brief add terms of a document. Function indexing() must be called after all addings are done.
+   */
   void add_terms(std::vector<uint32_t> terms, uint32_t docid)
   {
     static uint32_t last = -1;
@@ -1010,6 +1043,9 @@ public:
     sorter_->add_terms(ids, docid);
   }
 
+  /**
+     @brief call this function to finish indexing
+   */
   void indexing()
   {
     if (sorter_->num() == 0)
@@ -1157,6 +1193,9 @@ public:
     sorter_ = NULL;
   }
 
+  /**
+     @brief flush and deallocate
+   */
   void flush()
   {
     fseek(nid_f_, 0, SEEK_END);
@@ -1185,7 +1224,10 @@ public:
     docs_.clear();
     leafs_.clear();
   }
-  
+
+  /**
+     @brief after several times of update, it need to compact.
+   */
   void compact()
   {
     ready4update();
@@ -1248,7 +1290,10 @@ public:
     IASSERT(rename((filenm_+".doc.tmp").c_str(), (filenm_+".doc").c_str())==0);
     IASSERT(rename((filenm_+".lea.tmp").c_str(), (filenm_+".lea").c_str())==0);
   }
-  
+
+  /**
+     @brief load nodes by this ratio
+   */
   void ratio_load(double ratio = 0.9)
   {
     free_mem_();
@@ -1280,6 +1325,9 @@ public:
     //std::cout<<docs_<<std::endl;
   }
 
+  /**
+     @brief it will return frequency of the terms
+   */
   uint32_t get_freq(const std::vector<uint32_t>& terms)const
   {
     NID_LEN_TYPE next = 0;
@@ -1311,6 +1359,9 @@ public:
     return freqs_.at(next);
   }
 
+  /**
+     @brief it will return all the suffix term and their frequency
+   */
   void get_suffix(const std::vector<uint32_t>& terms, std::vector<uint32_t>& suffix, std::vector<uint32_t>& freqs)const
   {
     freqs.clear();
@@ -1382,6 +1433,9 @@ public:
     }
   }
 
+  /**
+     @brief it will return docid list of a terms
+   */
   void get_doc_list(const std::vector<uint32_t>& terms, std::vector<uint32_t>& docids)
   {
     docids.clear();
@@ -1475,6 +1529,9 @@ friend std::ostream& operator <<(std::ostream& os, const self_t& g)
       return os;
     }
 
+  /**
+     @brief it will return doc ID list of a node indexed by nid
+   */
   std::vector<uint32_t> get_docs(NID_LEN_TYPE nid)const
   {
     array32_t docs;
@@ -1494,6 +1551,9 @@ friend std::ostream& operator <<(std::ostream& os, const self_t& g)
     return v;
   }
 
+  /**
+     @brief it will return frequency of a node indexed by nid
+   */
   uint32_t get_freq(NID_LEN_TYPE nid)const
   {
     if (nid>=LEAF_BOUND)
@@ -1506,7 +1566,10 @@ friend std::ostream& operator <<(std::ostream& os, const self_t& g)
 
     return freqs_.at(nid);
   }
-  
+
+  /**
+     @breif merge 2 indexer
+   */
   void merge(self_t& other, double load_ratio = 0.8)
   {
     doc_num_ += other.doc_num();
@@ -1564,7 +1627,10 @@ friend std::ostream& operator <<(std::ostream& os, const self_t& g)
     docs_.clear();
     leafs_.clear();
   }
-    
+
+  /**
+     @breif this is equal to substruact
+   */
   void counter_merge(self_t& other, double load_ratio = 0.8)
   {
     ready4update();
@@ -1619,7 +1685,10 @@ friend std::ostream& operator <<(std::ostream& os, const self_t& g)
 
   
   class NodeIterator;
-  
+
+  /**
+     @class Node
+   */
   class Node
   {
     const self_t* graph_;
@@ -1763,8 +1832,10 @@ friend std::ostream& operator <<(std::ostream& os, const self_t& g)
 
 //     return false;
   }
-  
-  
+
+  /**
+     @class NodeIterator
+   */
   class NodeIterator
   {
     sorted_edges_t edges_;
@@ -1820,7 +1891,10 @@ friend std::ostream& operator <<(std::ostream& os, const self_t& g)
   }
     ;
 protected:
-  
+
+  /**
+     @brief a recurrence function used for merge.
+   */
   void merge_(Node node, std::vector<uint32_t> parentValue)
   {
     parentValue.push_back(node.get_term());
@@ -1837,6 +1911,9 @@ protected:
     
   }
   
+  /**
+     @brief a recurrence function used for counter-merge.
+   */
   void counter_merge_(Node node, std::vector<uint32_t> parentValue)
   {
     parentValue.push_back(node.get_term());
@@ -1852,7 +1929,10 @@ protected:
     del_terms_(parentValue, node.get_freq(), node.get_docs());
     
   }
-    
+
+  /**
+     @brief This will be called by append_terms()
+   */
   void append_terms_(const std::vector<uint32_t>& terms, uint32_t freq,
                     const std::vector<uint32_t>& docs)
   {
@@ -1914,6 +1994,9 @@ protected:
 
   }
 
+  /**
+     @brief This will be called by del_term()
+   */
   void del_terms_(const std::vector<uint32_t>& terms, uint32_t freq,
                   const std::vector<uint32_t>& doclist)
   {

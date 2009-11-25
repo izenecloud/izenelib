@@ -1,3 +1,8 @@
+/**
+   @file fp_hash_table.hpp
+   @author Kevin Hu
+   @date 2009.11.25
+ */
 #ifndef FP_HASH_TABLE_HPP
 #define FP_HASH_TABLE_HPP
 
@@ -7,9 +12,13 @@
 
 NS_IZENELIB_IR_BEGIN
 
+/**
+   @class FpHashTable
+   @brief it provides fast access to doc's fingerprinting by a hash table.
+ */
 template <
   uint32_t CACHE_SIZE = 600,
-  uint8_t  FP_LENGTH = 48,
+  uint8_t  FP_LENGTH = 48,//!< bytes of a fingerprinting
   uint32_t ENTRY_SIZE = 1000000
   >
 class FpHashTable
@@ -21,15 +30,15 @@ class FpHashTable
   typedef FpHashTable<CACHE_SIZE, FP_LENGTH, ENTRY_SIZE> SelfT;
   
 protected:
-  const uint32_t NUM_IN_MEM_;
-  Vector32Ptr entry_;
+  const uint32_t NUM_IN_MEM_;//!< number of FP that can be in memory.
+  Vector32Ptr entry_;//!< hash table entry
   FILE* hash_f_;
   size_t doc_num_;
 
   //----------cache------
-  uint32_t swich_p_;
-  Vector32 keys_;
-  Vector64 fps_;
+  uint32_t swich_p_;//!< pointer to current FP
+  Vector32 keys_;//!< store docids
+  Vector64 fps_;//!< store fps
   FILE* fp_f_;
   FILE* key_f_;
   

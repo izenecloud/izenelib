@@ -1,4 +1,10 @@
-#ifndef _INDEX_MANAGER_CONFIG_H_
+/**
+ * @file        IndexManagerConfig.h
+ * @author     Yingfeng Zhang
+ * @version     SF1 v5.0
+ * @brief The major configuration interface exposed to user of Indexmanager
+ */
+ #ifndef _INDEX_MANAGER_CONFIG_H_
 #define _INDEX_MANAGER_CONFIG_H_
 
 #include <ir/index_manager/index/IndexerCollectionMeta.h>

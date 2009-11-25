@@ -1,3 +1,8 @@
+/**
+   @file hash_table.hpp
+   @author Kevin Hu
+   @date 2009.11.25
+ */
 #ifndef HASH_TABLE_HPP
 #define HASH_TABLE_HPP
 
@@ -7,6 +12,10 @@
 
 NS_IZENELIB_IR_BEGIN
 
+/**
+   @class HashTable
+   @brief used for pre-clustring, Those who share one same chunk in FP will be linked together.
+ */
 template <
   uint32_t ENTRY_SIZE = 1000000,
   class  UNIT_TYPE = uint64_t
@@ -19,8 +28,8 @@ class HashTable
   typedef HashTable<ENTRY_SIZE, UNIT_TYPE> SelfT;
   
 protected:
-  Vector32 gids_;
-  Vector32Ptr entry_;
+  Vector32 gids_;//!< store index of entrance
+  Vector32Ptr entry_;//!< table entrance
   FILE* f_;
 
 public:
@@ -137,6 +146,9 @@ public:
     
   }
 
+  /**
+     @return all the index of documents that share same chunk in FP.
+   */
   inline const Vector32& operator[] (size_t i)
   {
     return *(entry_.at(gids_.at(i)));

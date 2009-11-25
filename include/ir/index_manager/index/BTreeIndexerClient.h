@@ -1,3 +1,9 @@
+/**
+* @file        BTreeIndexerClient.h
+* @author     Yingfeng Zhang
+* @version     SF1 v5.0
+* @brief BTreeIndexerClient is used to flush BTree index remotely
+*/
 #ifndef BTREEINDEXERCLIENT_H
 #define BTREEINDEXERCLIENT_H
 

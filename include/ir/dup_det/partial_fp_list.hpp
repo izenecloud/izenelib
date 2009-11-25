@@ -1,3 +1,8 @@
+/**
+   @file partial_fp_list.hpp
+   @author Kevin Hu
+   @date 2009.11.25
+ */
 #ifndef PARTIAL_FP_LIST_HPP
 #define PARTIAL_FP_LIST_HPP
 
@@ -8,6 +13,10 @@
 
 NS_IZENELIB_IR_BEGIN
 
+/**
+   @class PartialFpList
+   @brief it stores fp partially as a vector. It splits FPs into cloumns.
+ */
 template<
   typename UNIT_TYPE = uint64_t,
   uint8_t  FP_LENGTH = 6,
@@ -55,6 +64,9 @@ protected:
       fp_ptrs_[i] = NULL;
   }
 
+  /**
+     @brief swich cache status between uniform access and adding docs
+   */
   inline void swith_cache_status(CACHE_STATUS sta)
   {    
     if (cache_status_ == UNIFORM_ACCESS)
@@ -164,6 +176,11 @@ protected:
   
   
 public:
+  /**
+     @brief a constructor
+     @param file_name name of file to store data
+     @param unit_len length of a unit
+   */
   explicit PartialFpList(const char* file_name, uint8_t unit_len=2, size_t doc_num = 0)
     :file_name_(file_name),doc_num_(doc_num), in_mem_doc_num_(0),start_doc_i_(0),cache_status_(ADD_DOCS),
      ALL_INFO_IN_MEM_LENGTH(CACHE_SIZE*1000000/(FP_LENGTH*sizeof(UNIT_TYPE))),
@@ -257,6 +274,10 @@ public:
     return ++doc_num_;
   }
 
+  /**
+     @brief this must be called before accessing a certain cloumn of fingerprinting.
+     @param fpi the index of cloumn
+   */
   inline void ready_for_uniform_access(uint8_t fpi)
   {
     set_cache_status(UNIFORM_ACCESS);
@@ -264,6 +285,11 @@ public:
     load_fp(fpi, 0);
   }
 
+  /**
+     @param fpi index of cloumn
+     @param n  index of document
+     @param i index in a unit
+   */
   inline UNIT_TYPE get_fp(uint8_t fpi, size_t n, uint8_t i=0)
   {
     IASSERT(fpi<PARTIALS_SIZE);
@@ -344,6 +370,9 @@ public:
     in_mem_doc_num_ = 0;
   }
 
+  /**
+     @return docid of i indexed document.
+   */
   inline uint32_t& operator[] (size_t i)
   {
     IASSERT(i < docids_.length());

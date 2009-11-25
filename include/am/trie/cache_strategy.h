@@ -1,3 +1,8 @@
+/**
+   @file cache_strategy.h
+   @author Kevin Hu
+   @date 2009.11.25
+ */
 #ifndef CACHE_STRATEGY_H
 #define CACHE_STRATEGY_H
 

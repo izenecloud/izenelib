@@ -1,3 +1,8 @@
+/**
+   @file integer_dyn_array.hpp
+   @author Kevin Hu
+   @date 2009.11.25
+ */
 #ifndef INTEGER_DYN_ARRAY_HPP
 #define INTEGER_DYN_ARRAY_HPP
 
@@ -10,7 +15,10 @@
 
 NS_IZENELIB_AM_BEGIN
 
-
+/**
+   @class IntegerDynArray
+   @brief a copy-on-write vector that stores fixed size data.
+ */
 template<
   class INTEGER_TYPE = unsigned int,
   bool  AUTO_SORT = false,
@@ -26,10 +34,10 @@ public:
   typedef LENG_TYPE size_t;
   
 private:
-  char* p_;
-  INTEGER_TYPE* array_;
-  size_t length_;
-  size_t max_size_;
+  char* p_;//!< buffer pointer
+  INTEGER_TYPE* array_;//!< start pointer of data
+  size_t length_;//!< amount of data
+  size_t max_size_;//!< size of allocated buffer
 
 protected:
   inline void refer()

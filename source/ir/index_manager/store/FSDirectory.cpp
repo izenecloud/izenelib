@@ -103,7 +103,7 @@ void FSDirectory::renameFile(const string& from, const string& to)
         }
     }
 }
-void FSDirectory::batDeleteFiles(const string& filename,bool throwError)
+void FSDirectory::deleteFiles(const string& filename,bool throwError)
 {
     DIR* dir = opendir(directory.c_str());
     struct dirent* fl = readdir(dir);
@@ -144,7 +144,7 @@ void FSDirectory::batDeleteFiles(const string& filename,bool throwError)
     }
     closedir(dir);
 }
-void FSDirectory::batRenameFiles(const string& from, const string& to)
+void FSDirectory::renameFiles(const string& from, const string& to)
 {
     DIR* dir = opendir(directory.c_str());
     struct dirent* fl = readdir(dir);

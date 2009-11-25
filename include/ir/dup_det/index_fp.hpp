@@ -1,3 +1,8 @@
+/**
+   @file index_fp.hpp
+   @author Kevin Hu
+   @date 2009.11.25
+ */
 #ifndef INDEX_FP_HPP
 #define INDEX_FP_HPP
 
@@ -15,11 +20,15 @@
 
 NS_IZENELIB_IR_BEGIN
 
+/**
+   @class FpIndex
+   @brief It's an indexer that provides fast access of grouped fingerprinting.
+ */
 template <
-  uint8_t  FP_HASH_NUM = 1,
-  typename    UNIT_TYPE = uint64_t,
-  uint8_t  FP_LENGTH = 6,
-  uint32_t CACHE_SIZE = 600,
+  uint8_t  FP_HASH_NUM = 1,//!< number of hash tables
+  typename    UNIT_TYPE = uint64_t,//!< the minimous data type for pre-clustering
+  uint8_t  FP_LENGTH = 6,//!< number of minimous data unit
+  uint32_t CACHE_SIZE = 600,//!< cache size
   uint32_t ENTRY_SIZE = 1000000
   >
 class FpIndex
@@ -37,14 +46,14 @@ class FpIndex
   typedef izenelib::ir::PrimeGen<> Prime;
   
 protected:
-  const uint8_t UNIT_LEN_;
-  FpList* fp_list_;//partial FP list
-  HashT**  ht_ptrs_;//pre-clustering hash table
-  GroupT* group_;//documents group with inner id
+  const uint8_t UNIT_LEN_;//!< number of minimous data type that's taken as a unit
+  FpList* fp_list_;//!< partial FP list
+  HashT**  ht_ptrs_;//!< pre-clustering hash table
+  GroupT* group_;//!< documents group with inner id
   GroupT* final_group_;//document group with real doc id
-  FpHashT* fp_hash_ptrs_[FP_HASH_NUM];//docid to address of FP hash table
-  Vector32Ptr docid_hash_;
-  std::string filenm_;
+  FpHashT* fp_hash_ptrs_[FP_HASH_NUM];//!< docid to address of FP hash table
+  Vector32Ptr docid_hash_;//!< docid hash table
+  std::string filenm_;//!< prefix of file name.
   //  static Prime* prime_;
   
 
@@ -121,6 +130,9 @@ protected:
     final_group_->flush();
   }
 
+  /**
+     @brief reset docid hash table, clear the table
+   */
   inline void reset_docid_hash()
   {
     for (uint32_t i=0 ;i<docid_hash_.length(); ++i)
@@ -140,6 +152,9 @@ protected:
     IASSERT(docid_hash_.length() == ENTRY_SIZE);
   }
 
+  /**
+     @brief initialize hash table
+   */
   inline void init_docid_hash()
   {
     reset_docid_hash();
@@ -212,7 +227,11 @@ protected:
     fclose(f);
   }
 
-  
+  /**
+     @brief it generates prime number.
+     @param s the amount of prime numbers need to be generated.
+     @param v store all the generated prime number.
+   */
   void prime_gen(uint32_t s, Vector32& v)
   {
     for (uint32_t i = 3; v.length()<s; ++i)
@@ -317,6 +336,9 @@ public:
     save_docid_hash();
   }
 
+  /**
+     @brief it must be called before insert FPs.
+   */
   inline void ready_for_insert()
   {
     std::string s = filenm_;
@@ -513,7 +535,11 @@ public:
 //     //std::cout<<*group_<<std::endl;
 //   }
 
-  
+
+  /**
+     @brief group all the docs by their FPs, including pre-clustring.
+     @param start the index of docs starting from which need to be grouped.
+   */
   inline void indexing(uint32_t start = 0)
   {
     struct timeval tvafter,tvpre;
@@ -665,6 +691,9 @@ public:
     ht_ptrs_ = NULL;
   }
 
+  /**
+     @return true if the doc in the collcection.
+   */
   inline bool exist(uint32_t docid)
   {
     IASSERT(docid_hash_.length()==ENTRY_SIZE);
@@ -679,6 +708,9 @@ public:
     return false;
   }
 
+  /**
+     @return vector of docids who are in the same group. 
+   */
   inline Vector32 find(size_t docid)const
   {
     Vector32 v = final_group_->find(docid);
@@ -698,6 +730,9 @@ public:
     return fp_list_->doc_num();
   }
 
+  /**
+     @return true if 2 docs are duplicated by each other.
+   */
   inline bool is_duplicated(uint32_t docid1, uint32_t docid2)const
   {
     return final_group_->same_group(docid1, docid2);

@@ -13,7 +13,6 @@
 #include <cmath>
 #include <vector>
 
-
 #define MINPOW 5
 #define MAXPOW 31
 
@@ -36,26 +35,16 @@ public:
 
     const uint8_t* getEnd();
 
-    const size_t getSize()
-    {
-        return size_;
-    }
+    const size_t getSize() { return size_; }
 
-    bool	isEmpty()
-    {
-        return (end_==begin_);
-    }
+    bool isEmpty() { return (end_==begin_); }
     /**
     * If the initial size of the memory has been exhausted, this function will apply for more memory
     */
     MemCache* grow(size_t growSize);
     ///Judge whether memory has grown, if true, it means the memory allocated is not so enough, some
     ///strategy should be adopted such as flushing InMemoryPosting to barrels
-    bool isGrowed()
-    {
-        return (pGrowCache_!=NULL);
-    }
-
+    bool isGrowed() { return pGrowCache_!=NULL; }
 
 private:
     uint8_t* begin_;

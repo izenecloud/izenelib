@@ -135,9 +135,9 @@ public:
 
     void renameFile(const string& from, const string& to);
 
-    void batDeleteFiles(const string& filename,bool throwError = true);
+    void deleteFiles(const string& filename,bool throwError = true);
 
-    void batRenameFiles(const string& from, const string& to);
+    void renameFiles(const string& from, const string& to);
 
     IndexOutput* createOutput(const string& name, const string& mode);
 
