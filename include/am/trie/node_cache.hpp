@@ -1,3 +1,8 @@
+/**
+   @file node_cache.hpp
+   @author Kevin Hu
+   @date 2009.11.25
+ */
 #ifndef NODE_CACHE_HPP
 #define NODE_CACHE_HPP
 
@@ -218,7 +223,7 @@ friend ostream& operator << ( ostream& os, const SelfType& node)
   }
 
 
-  /**
+  /*!
    *Find out the switched one.
    **/
   uint32_t findSwitchOut() const
@@ -244,7 +249,7 @@ friend ostream& operator << ( ostream& os, const SelfType& node)
     return minIdx;
   }
 
-  /**
+  /*!
    *Lock mode in order to not be switched out.
    **/
   void lockNode(uint32_t memAddr)
@@ -252,7 +257,7 @@ friend ostream& operator << ( ostream& os, const SelfType& node)
     nodes[memAddr].locked_ = true;
   }
 
-  /**
+  /*!
    *Unclock node.
    **/
   void unlockNode(uint32_t memAddr)
@@ -260,7 +265,7 @@ friend ostream& operator << ( ostream& os, const SelfType& node)
     nodes[memAddr].locked_ = false;
   }
 
-  /**
+  /*!
    *Get node count.
    **/
   uint32_t getCount()const
@@ -268,7 +273,7 @@ friend ostream& operator << ( ostream& os, const SelfType& node)
     return count_;
   }
 
-  /**
+  /*!
    *Get node by specific disk address into memory.
    **/
   nodePtr getNodeByMemAddr(uint32_t& memAddr, uint64_t diskAddr)
@@ -312,7 +317,7 @@ friend ostream& operator << ( ostream& os, const SelfType& node)
   }
 
 
-  /**
+  /*!
    *Get a new node in cache which is stroed in position 'diskAddr'.
    **/
   nodePtr newNode(uint64_t diskAddr)
@@ -339,7 +344,7 @@ friend ostream& operator << ( ostream& os, const SelfType& node)
 
   }
 
-  /**
+  /*!
    *New a node
    **/
   nodePtr newNode()
@@ -368,7 +373,7 @@ friend ostream& operator << ( ostream& os, const SelfType& node)
   }
 
 
-  /**
+  /*!
    *Kick out the 'memAddr' node.
    **/
   uint64_t kickOutNodes(uint32_t memAddr)
@@ -412,7 +417,7 @@ friend ostream& operator << ( ostream& os, const SelfType& node)
 
   }
 
-  /**
+  /*!
    *Flush nodes data into disk.
    **/
   void flush()

@@ -1,3 +1,8 @@
+/**
+   @file alphabet_cjk.hpp
+   @author Wei Cao
+   @date 2009.11.25
+ */
 #ifndef ALPHABET_CJK_H
 #define ALPHABET_CJK_H
 

@@ -1,3 +1,8 @@
+/**
+   @file dynamic_perfect_hash.hpp
+   @author Kevin Hu
+   @date 2009.11.24
+ */
 #ifndef DYNAMIC_PERFECT_HASHING_HPP
 #define DYNAMIC_PERFECT_HASHING_HPP
 
@@ -145,14 +150,14 @@ class DynamicPerfectHash : public AccessMethod<KeyType, ValueType>
     ;
 public:
   
-  DynamicPerfectHash()
+  inline DynamicPerfectHash()
   {
     sum_s_ = M_ = count_ = update_count_ = mainT_size_ = 0;
     pMainT_ = NULL;
     //condition_time_ = insert_time1_ = insert_time2_ = adjust_time_ = rehash_time_ = 0;
   }
 
-  virtual ~DynamicPerfectHash()
+  inline ~DynamicPerfectHash()
   {
     deleteAll();
   }
@@ -690,6 +695,9 @@ protected:
     return ((a*x+b)%p)%s;
   }
 
+  /**
+     @brief adjust table when collision happened.
+   */
   void adjustSubTable(uint64_t idx, const subtable_cell& x = subtable_cell(0,-1))
   {
     //cout<<idx<<" adjustSubTable()\n";
@@ -789,8 +797,7 @@ protected:
         pMainT_[idx].pSub_ = NULL;
       }
 
-  }
-  
+  }  
     
   static void random_param(uint64_t& a, uint64_t& b, uint64_t& p)
   {
@@ -800,16 +807,16 @@ protected:
   }
 
 protected:
-  table_cell* pMainT_;
-  uint64_t count_;
-  uint64_t update_count_;
-  uint64_t M_;
-  uint64_t mainT_size_;
-  uint64_t main_k_;
-  uint64_t main_u_;
-  uint64_t main_p_;
-  vector<ValueType> dataVec_;
-  uint64_t sum_s_;
+  table_cell* pMainT_;//!< entry pointer
+  uint64_t count_; //!< record count
+  uint64_t update_count_;//!< times of updates
+  uint64_t M_; //!< used for upper bounds of update times 
+  uint64_t mainT_size_;//!< main table size
+  uint64_t main_k_;//!< 3 parameters for main table
+  uint64_t main_u_;//!< 3 parameters for main table
+  uint64_t main_p_;//!< 3 parameters for main table
+  vector<ValueType> dataVec_;//!< used for storing value field
+  uint64_t sum_s_;//!< sumary of 2 parameters.
   
 //   clock_t adjust_time_;
 //   clock_t rehash_time_;

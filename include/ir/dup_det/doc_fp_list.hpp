@@ -1,3 +1,9 @@
+/**
+   @file doc_fp_list.hpp
+   @author Kevin Hu
+   @date 2009.11.25
+   @brief It's not used yet.
+ */
 #ifndef DOC_FP_LIST_HPP
 #define DOC_FP_LIST_HPP
 
