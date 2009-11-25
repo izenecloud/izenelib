@@ -49,6 +49,17 @@ bool VariantDataPool::addVData(uint64_t vdata64)
 
     return true;
 }
+
+void VariantDataPool::write(IndexOutput* pOutput)
+{
+    VariantDataChunk* pChunk = pHeadChunk_;
+    while (pChunk)
+    {
+        pOutput->write((const char*)pChunk->data,pChunk->size);
+        pChunk = pChunk->next;
+    }
+}
+
 int32_t VariantDataPool::decodeVData32(uint8_t*& vdata)
 {
     uint8_t b = *vdata++;

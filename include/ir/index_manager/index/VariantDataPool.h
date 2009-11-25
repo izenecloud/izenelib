@@ -10,6 +10,8 @@
 
 #include <ir/index_manager/utility/system.h>
 
+#include <ir/index_manager/store/IndexOutput.h>
+
 NS_IZENELIB_IR_BEGIN
 
 namespace indexmanager{
@@ -62,6 +64,11 @@ public:
      * @return return false if no enough space, else return true.
      */
     bool addVData(uint64_t vdata64);
+
+    /**
+     * write all data contained to disk;
+     */
+    void write(IndexOutput* pOutput);
 
     /**
      * decode 32bit vdata

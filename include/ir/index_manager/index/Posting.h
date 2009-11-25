@@ -11,7 +11,6 @@
 #include <ir/index_manager/utility/system.h>
 #include <ir/index_manager/utility/MemCache.h>
 #include <ir/index_manager/utility/Utilities.h>
-#include <ir/index_manager/store/IndexOutput.h>
 
 #include <ir/index_manager/index/VariantDataPool.h>
 
