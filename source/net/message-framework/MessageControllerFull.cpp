@@ -152,6 +152,7 @@ void MessageControllerFull::processServiceRegistrationRequest(void) {
 
 bool MessageControllerFull::checkAgentInfo_(ServicePermissionInfo& permissionInfo)
 {	
+	boost::mutex::scoped_lock availableServiceListLock(availableServiceListMutex_);
 	const std::map<std::string, MessageFrameworkNode>& agentInfoMap =
 			permissionInfo.getServerMap();
 	std::map<std::string, MessageFrameworkNode>::const_iterator it =
