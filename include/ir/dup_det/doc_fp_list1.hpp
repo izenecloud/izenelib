@@ -1,3 +1,9 @@
+/**
+   @file doc_fp_list1.hpp
+   @author Kevin
+   @date 2009.11.25
+   @brief it's not in use anymore.
+ */
 #ifndef DOC_FP_LIST_HPP
 #define DOC_FP_LIST_HPP
 

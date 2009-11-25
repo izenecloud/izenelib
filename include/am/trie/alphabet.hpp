@@ -1,3 +1,8 @@
+/**
+   @file alphabet.hpp
+   @author Kevin Hu
+   @date 2009.11.25
+ */
 #ifndef ALPHABET_H
 #define ALPHABET_H
 

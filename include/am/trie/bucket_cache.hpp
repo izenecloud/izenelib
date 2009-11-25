@@ -1,3 +1,8 @@
+/**
+   @file bucket_cache.hpp
+   @author Kevin Hu
+   @date 2009.11.25
+ */
 #ifndef BUCKET_CACHE_HPP
 #define BUCKET_CACHE_HPP
 
@@ -160,7 +165,7 @@ friend ostream& operator << ( ostream& os, const SelfType& node)
 
   }
 
-  /**
+  /*!
    *Find out the switched one.
    **/
   uint32_t findSwitchOut() const
@@ -194,7 +199,7 @@ friend ostream& operator << ( ostream& os, const SelfType& node)
     return count_;
   }
 
-  /**
+  /*!
    *Find the bucket with specific disk address.
    **/
   uint32_t findInCache(uint64_t diskAddr)
@@ -212,7 +217,7 @@ friend ostream& operator << ( ostream& os, const SelfType& node)
 
   }
 
-  /**
+  /*!
    *Load bucket of specific disk address into memory when the program loads data.
    **/
   nodePtr getNodeByMemAddrForLoading(uint32_t& memAddr, uint64_t diskAddr)
@@ -257,7 +262,7 @@ friend ostream& operator << ( ostream& os, const SelfType& node)
     return nodePtr(nodes[memAddr], memAddr);
   }
 
-  /**
+  /*!
    *Load bucket of specific disk address into memory.
    **/
   nodePtr getNodeByMemAddr(uint32_t& memAddr, uint64_t diskAddr)
@@ -309,7 +314,7 @@ friend ostream& operator << ( ostream& os, const SelfType& node)
     return nodePtr(nodes[memAddr], memAddr);
   }
 
-  /**
+  /*!
    *Locked node can't be switch out
    **/
   void lockNode(uint32_t memAddr)
@@ -317,7 +322,7 @@ friend ostream& operator << ( ostream& os, const SelfType& node)
     nodes[memAddr].locked_ = true;
   }
 
-  /**
+  /*!
    *Unlock on node of 'memAddr'
    **/
   void unlockNode(uint32_t memAddr)
@@ -325,7 +330,7 @@ friend ostream& operator << ( ostream& os, const SelfType& node)
     nodes[memAddr].locked_ = false;
   }
 
-  /**
+  /*!
    *Get a new node in cache which is stroed in position 'diskAddr'.
    **/
   nodePtr newNode(uint64_t diskAddr)
@@ -351,7 +356,7 @@ friend ostream& operator << ( ostream& os, const SelfType& node)
     return p;
   }
 
-  /**
+  /*!
    *New a node
    **/
   nodePtr newNode()
@@ -378,7 +383,7 @@ friend ostream& operator << ( ostream& os, const SelfType& node)
 
   }
 
-  /**
+  /*!
    *Kick out some older and rarer used node out of cache.
    **/
   uint64_t kickOutNodes(uint32_t memAddr)
@@ -398,7 +403,7 @@ friend ostream& operator << ( ostream& os, const SelfType& node)
     return ret;
   }
 
-  /**
+  /*!
    *Flush all the node into disk.
    **/
   void flush()

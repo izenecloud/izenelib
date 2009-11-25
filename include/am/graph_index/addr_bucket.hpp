@@ -1,3 +1,8 @@
+/**
+   @file addr_bucket.hpp
+   @author Kevin Hu
+   @date 2009.11.24
+ */
 #ifndef ADDR_BUCKET_HPP
 #define ADDR_BUCKET_HPP
 
@@ -10,6 +15,10 @@
 
 NS_IZENELIB_AM_BEGIN
 
+/**
+   @class FileDataBucket
+   @brief this is used to store large data set sequentially and get it sorted.
+ **/
 template<
   typename VALUE_TYPE = uint64_t,
   uint32_t BUF_SIZE = 1000
@@ -18,11 +27,11 @@ class FileDataBucket
 {
   typedef DynArray<VALUE_TYPE> array_t;
 
-  array_t buf_;
+  array_t buf_;//!< a vector buffer to store data
   FILE* f_;
   uint64_t num_;
   std::string filenm_;
-  uint64_t fetch_i_;
+  uint64_t fetch_i_;//!< it indicate the current position when doing uniform access
   
 public:
   FileDataBucket(const char* nm)
@@ -33,6 +42,9 @@ public:
     f_ = NULL;
   }
 
+  /**
+     @brief this must be called before adding new data.
+   */
   void ready4add()
   {
     f_ = fopen(filenm_.c_str(), "r+");
@@ -50,6 +62,9 @@ public:
     buf_.reset();
   }
 
+  /**
+     @brief add data at tail
+   */
   void push_back(const VALUE_TYPE& v)
   {
     if (buf_.length()>=BUF_SIZE/sizeof(VALUE_TYPE))
@@ -62,6 +77,9 @@ public:
     ++num_;
   }
 
+  /**
+     @breif flush data from buffer to disk
+   */
   void flush()
   {
     buf_.save(f_);
@@ -75,7 +93,10 @@ public:
     f_ = NULL;
     buf_.reset();
   }
-  
+
+  /**
+     @brief This must be called before uniform access
+   */
   void ready4fetch()
   {
     if (f_!=NULL)
@@ -96,11 +117,17 @@ public:
     buf_.load(f_);
   }
 
+  /**
+     @brief record number
+   */
   uint64_t num()const
   {
     return num_;
   }
-  
+
+  /**
+     @brief get next data
+   */
   VALUE_TYPE next()
   {
     if (fetch_i_ >= buf_.length())
@@ -111,8 +138,10 @@ public:
 
     return buf_.at(fetch_i_++);
   }
-  
 
+  /**
+     @brief sort all the data
+   */
   void sort()
   {
     if (num_<=1)
@@ -155,6 +184,9 @@ public:
     flush();
   }
 
+  /**
+     @brief dump data file
+   */
   void dump()
   {
     if (f_ != NULL)

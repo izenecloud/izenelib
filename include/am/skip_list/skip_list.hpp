@@ -1,6 +1,8 @@
 /**
  * @file skip-list.hpp
  * @brief The pHeader_ file of SkipList class.
+ * @author Kevin Hu
+ * @date 2009.11.25
  */
 #ifndef _SkipList_H_
 #define _SkipList_H_
@@ -449,11 +451,11 @@ public:
 
 
 private:
-  const KeyType m_infinity;
+  const KeyType m_infinity;//!< the infinite value.
 
-  SkipNode *pHeader_;  // The list
-  SkipNode *pBottom_;
-  SkipNode *pTail_;
+  SkipNode *pHeader_;  //!< The list head
+  SkipNode *pBottom_;  //!< the bottom chain head
+  SkipNode *pTail_;    //!< the tail
   Size size_;
   std::vector<ValueType*, boost::stl_allocator<ValueType*> > pPool_;
   boost::scoped_alloc alloc_;

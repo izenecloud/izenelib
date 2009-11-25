@@ -1,3 +1,8 @@
+/**
+   @file alpha_sort.hpp
+   @author Kevin Hu
+   @date 2009.11.24
+ */
 #ifndef ALPHA_SORT_HPP
 #define ALPHA_SORT_HPP
 
@@ -32,6 +37,9 @@ template<
 class AlphaSort
 {
 
+  /**
+     @brief pre-key used for sorting
+   */
   struct PRE_KEY_POINTER_
   {
     PRE_KEY_TYPE pre_key_;//!< pre-key, used to compare
