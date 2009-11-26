@@ -31,7 +31,7 @@ inline bool isPrefix1<std::string>(const string& sub, const string& str){
 
 template<>
 inline bool isPrefix1<wiselib::UString>(const wiselib::UString& sub, const wiselib::UString& str){	
-	return ( str.substr(0, sub.size() ) == sub );
+	return ( str.substr(0, sub.length() ) == sub );
 }
 
 /**

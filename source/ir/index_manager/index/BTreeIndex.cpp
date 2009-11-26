@@ -174,7 +174,6 @@ void BTreeIndexer::getValueSubString(collectionid_t colID, fieldid_t fid, Proper
     {
         vector<String> vkey;
         pBTreeUStrSuffixIndexer_->getValuePrefix(boost::get<String>(value), vkey);
-
         vector<IndexKeyType<String> > keys;
         for (size_t i=0; i<vkey.size(); i++)
             pBTreeUStrIndexer_->get(IndexKeyType<String>(colID, fid, vkey[i]),docs);
