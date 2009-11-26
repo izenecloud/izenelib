@@ -446,9 +446,10 @@ struct add_visitor::__operator<String>
 {
     static void apply(collectionid_t& colid, fieldid_t& fid, String& v, docid_t& docid)
     {
-        IndexKeyType<String> key(colid, fid, v);
+        String str = wiselib::UString(v, wiselib::UString::UTF_8);
+        IndexKeyType<String> key(colid, fid, str);
         BTreeIndexer::getIndexer<String>()->add(key, docid);
-        BTreeIndexer::getTrieIndexer()->add_suffix(v, v);
+        BTreeIndexer::getTrieIndexer()->add_suffix(str, str);
     }
 };
 
