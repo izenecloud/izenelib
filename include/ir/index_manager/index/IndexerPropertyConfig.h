@@ -27,6 +27,7 @@ public:
             :propertyId_(0),
             index_(false),
             forward_(false),
+            filter_(false),
             laInput_(false)
     { }
 
@@ -35,14 +36,16 @@ public:
              propertyName_(other.propertyName_),
              index_(other.index_),
              forward_(other.forward_),
+             filter_(other.filter_),
              laInput_(other.laInput_)
     {}
 
-    IndexerPropertyConfig(unsigned int propertyid, std::string propertyname, bool index, bool forward)
+    IndexerPropertyConfig(unsigned int propertyid, std::string propertyname, bool index, bool forward, bool filter = false)
 		:propertyId_(propertyid)
 		,propertyName_(propertyname)
 		,index_(index)
 		,forward_(forward)
+		,filter_(filter)
 		,laInput_(false)
     { }
 
@@ -87,6 +90,16 @@ public:
         return forward_;
     }
 
+    void setIsFilter( const bool isFilter)
+    {
+        filter_ = isFilter;
+    }
+
+    bool isFilter() const
+    {
+        return filter_;
+    }
+		
     void setIsLAInput( bool isLAInput)
     {
         laInput_ = isLAInput;
@@ -140,7 +153,8 @@ protected:
     ///whether this property is analyzed
     ///inverted index will only be built when both index_ and forward_ are true
     bool forward_;
-
+    ///whether filter index is going to be built on this property
+    bool filter_;
     ///This field is for compatabile with SF1
     ///IndexManager permits two kinds of inputs:LAInput, or ForwardIndex
     ///The latter means the forwardindex of a document is generated outside IndexManager.
