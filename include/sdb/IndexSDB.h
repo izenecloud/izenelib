@@ -26,7 +26,7 @@ inline bool isPrefix1(const KeyType& sub, const KeyType& str){
 
 template<>
 inline bool isPrefix1<std::string>(const string& sub, const string& str){	
-	return ( str.substr(0, sub.size() ) == sub );
+	return ( str.substr(0, sub.length() ) == sub );
 }
 
 template<>
@@ -213,7 +213,7 @@ public:
 		getValueLess(key, result);
 	}
 
-	void getValuePrefix(const KeyType& key, vector<ElementType>& result) {
+	void getValuePrefix(const KeyType& key, vector<ElementType>& result) {		
 		myKeyType ikey(key, 0);
 		myKeyType temp;
 		myDataType idat;

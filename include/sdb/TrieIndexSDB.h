@@ -82,6 +82,7 @@ private:
 
 template <typename StringType, typename ElementType,
 		typename LockType =izenelib::util::NullLock> class TrieIndexSDB2 {
+public:
 	typedef SequentialDB<std::pair<StringType, ElementType>, NullType> SDBTYPE;
 	typedef typename SDBTYPE::SDBCursor SDBCursor;
 public:
@@ -100,13 +101,12 @@ public:
 		NullType sval;
 		while (sdb_.get(locn, skey, sval) ) {
 			if (isPrefix1(key, skey.first) ) {
-				//cout<<skey.first<<"+"<<skey.second<<endl;
+				//cout<<skey.first<<"+"<<skey.second<<endl;	
 				result.push_back(skey.second);
 				sdb_.seq(locn);
 			} else
 				break;
 		}
-
 	}
 
 	void getValueSuffix(const StringType& key, vector<ElementType>& result) {
@@ -126,7 +126,7 @@ public:
 	}
 
 	bool add_suffix(const StringType& key, const ElementType& item) {
-		if (sdb_.hasKey(make_pair(key, key) ) )
+		if (sdb_.hasKey(make_pair(key, item) ) )
 			return false;
 		size_t pos = 0;
 		for (; pos<key.length(); pos++) {
@@ -152,7 +152,7 @@ public:
 	void flush() {
 		sdb_.flush();
 	}
-private:
+protected:
 	SDBTYPE sdb_;
 
 };

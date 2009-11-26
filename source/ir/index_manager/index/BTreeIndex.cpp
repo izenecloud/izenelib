@@ -17,7 +17,7 @@ BTreeIndex<IndexKeyType<double> >* BTreeIndexer::pBTreeDoubleIndexer_  = NULL;
 
 BTreeIndex<IndexKeyType<String> >* BTreeIndexer::pBTreeUStrIndexer_  = NULL;
 
-izenelib::sdb::TrieIndexSDB2<String, String>* BTreeIndexer::pBTreeUStrSuffixIndexer_  = NULL;
+BTreeTrieIndex<String>* BTreeIndexer::pBTreeUStrSuffixIndexer_  = NULL;
 
 BTreeIndexer::BTreeIndexer(string location, int degree, size_t cacheSize, size_t maxDataSize)
 {
@@ -48,7 +48,7 @@ BTreeIndexer::BTreeIndexer(string location, int degree, size_t cacheSize, size_t
 
     path.clear();
     path = location+"/usuf.bti";
-    pBTreeUStrSuffixIndexer_ = new izenelib::sdb::TrieIndexSDB2<String, String>( path);
+    pBTreeUStrSuffixIndexer_ = new BTreeTrieIndex<String>( path);
     pBTreeUStrSuffixIndexer_->open();
 }
 
@@ -155,13 +155,9 @@ void BTreeIndexer::getValueStart(collectionid_t colID, fieldid_t fid, PropertyTy
 void BTreeIndexer::getValueEnd(collectionid_t colID, fieldid_t fid, PropertyType& value,BitVector& docs)
 {
     try
-    {
-        vector<String> vkey;
-        pBTreeUStrSuffixIndexer_->getValueSuffix(boost::get<String>(value), vkey);
-
-        vector<IndexKeyType<String> > keys;
-        for (size_t i=0; i<vkey.size(); i++)
-            pBTreeUStrIndexer_->get(IndexKeyType<String>(colID, fid, vkey[i]),docs);
+    {       
+        pBTreeUStrSuffixIndexer_->getValueSuffix(boost::get<String>(value), docs);
+       
     } catch (...)
     {
         SF1V5_THROW(ERROR_UNSUPPORTED,"unsupported operation");
@@ -172,11 +168,7 @@ void BTreeIndexer::getValueSubString(collectionid_t colID, fieldid_t fid, Proper
 {
     try
     {
-        vector<String> vkey;
-        pBTreeUStrSuffixIndexer_->getValuePrefix(boost::get<String>(value), vkey);
-        vector<IndexKeyType<String> > keys;
-        for (size_t i=0; i<vkey.size(); i++)
-            pBTreeUStrIndexer_->get(IndexKeyType<String>(colID, fid, vkey[i]),docs);
+        pBTreeUStrSuffixIndexer_->getValuePrefix(boost::get<String>(value), docs);
     } catch (...)
     {
         SF1V5_THROW(ERROR_UNSUPPORTED,"unsupported operation");
