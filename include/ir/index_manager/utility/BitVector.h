@@ -24,7 +24,15 @@ class BitVector
 {
 public:
     BitVector():bits_(0), size_(0) {}
-	
+
+    BitVector(const BitVector& other)
+        :size_(other.size_)
+    {
+        blockNum_ = (size_ >> 3) + 1;
+        bits_ = new unsigned char[blockNum_];
+        clear();
+    }
+
     BitVector(size_t n)
         :size_(n)
     {
