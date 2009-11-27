@@ -462,9 +462,12 @@ public:
 		search(key, locn);
 		DataType<KeyType,ValueType> dat;
 		lock_.acquire_read_lock();
-		while (key.isPrefix(dat.get_key()) && container_.seq(locn, ESD_FORWARD) ) {
-			if (container_.get(locn, dat) )
+		while (container_.get(locn, dat) ) {
+			if (key.isPrefix(dat.get_key() ) ) {
 				result.push_back(dat);
+				container_.seq(locn, ESD_FORWARD);
+			} else
+				break;
 		}
 		lock_.release_read_lock();
 	}
@@ -473,11 +476,13 @@ public:
 		SDBCursor locn;
 		search(key, locn);
 		DataType<KeyType,ValueType> dat;
-		get(locn, dat);
 		lock_.acquire_read_lock();
-		while (key.isPrefix(dat.get_key()) && container_.seq(locn, ESD_FORWARD) ) {
-			if (container_.get(locn, dat))
-				result.push_back(dat.get_key());
+		while (container_.get(locn, dat) ) {
+			if (key.isPrefix(dat.get_key() ) ) {
+				result.push_back(dat.get_key() );
+				container_.seq(locn, ESD_FORWARD);
+			} else
+				break;
 		}
 		lock_.release_read_lock();
 	}
@@ -642,14 +647,14 @@ template<typename KeyType, typename ValueType, typename LockType,
 	SDBCursor locn;
 	DataType<KeyType,ValueType> rec;
 
-	lock_.acquire_read_lock();	
-	
+	lock_.acquire_read_lock();
+
 	container_.search(lowKey, locn);
 	if (container_.get(locn, rec)) {
 		if (comp_(rec.get_key(), highKey) <= 0) {
 			result.push_back(rec);
 			ret = true;
-		} else{
+		} else {
 			lock_.release_read_lock();
 			return ret;
 		}
