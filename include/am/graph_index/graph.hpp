@@ -497,7 +497,7 @@ class Graph
   
   void save_edge_(FILE* nid_f, FILE* doc_f, FILE* leaf_f,  NID_LEN_TYPE nid, bool root = false)
   {    
-    if (!loads_.at(nid))
+    if (loads_.length()==0 || !loads_.at(nid))
       return;
     
     if (nid!=0 || root)
