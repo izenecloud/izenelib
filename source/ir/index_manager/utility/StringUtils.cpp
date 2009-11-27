@@ -46,8 +46,7 @@ void trimleft(wiselib::UString& s )
     for ( it = s.begin(); it != s.end(); it++ )
         if ( !std::isspace(*it))
             break;
-
-    s.erase( s.begin(), it );
+    s.erase( s.begin(), --it );
 }
 
 void trimright( wiselib::UString& s )
