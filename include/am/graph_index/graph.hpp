@@ -1299,6 +1299,9 @@ public:
     free_mem_();
     IASSERT(ratio <= 1.);
     FILE* v_f = fopen((filenm_+".v").c_str(), "r");
+    if (v_f == NULL)
+      return;
+    
     fseek(v_f, 0, SEEK_END);
     if (ftell(v_f)==0)
       return;
