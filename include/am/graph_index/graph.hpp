@@ -497,7 +497,7 @@ class Graph
   
   void save_edge_(FILE* nid_f, FILE* doc_f, FILE* leaf_f,  NID_LEN_TYPE nid, bool root = false)
   {    
-    if (!loads_.at(nid))
+    if (loads_.length()==0 || !loads_.at(nid))
       return;
     
     if (nid!=0 || root)
@@ -590,7 +590,7 @@ class Graph
   
   void load_edge_(NID_LEN_TYPE nid, double ratio)
   {
-    if (loads_.at(nid))
+    if (loads_.length()==0 || loads_.at(nid))
       return;
 
     if (nodes_.at(nid) == (sorted_edges_t*)-1)
@@ -1299,6 +1299,14 @@ public:
     free_mem_();
     IASSERT(ratio <= 1.);
     FILE* v_f = fopen((filenm_+".v").c_str(), "r");
+    if (v_f == NULL)
+      return;
+    
+    fseek(v_f, 0, SEEK_END);
+    if (ftell(v_f)==0)
+      return;
+
+    fseek(v_f, 0, SEEK_SET);
     nodes_.load(v_f);
     freqs_.load(v_f);
     docs_.load(v_f);
