@@ -73,7 +73,7 @@ struct IndexKeyType
             else
             {
                 String str;
-                other.value.substr(str, 0, value.size());
+                other.value.substr(str, 0, value.length());
                 if (str == value)
                     return true;
                 else
