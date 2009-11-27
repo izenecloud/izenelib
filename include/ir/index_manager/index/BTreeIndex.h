@@ -10,6 +10,7 @@
 
 #include <ir/index_manager/index/IndexerDocument.h>
 #include <ir/index_manager/utility/BitVector.h>
+#include <ir/index_manager/utility/StringUtils.h>
 
 #include <sdb/SequentialDB.h>
 #include <sdb/IndexSDB.h>
@@ -495,6 +496,7 @@ struct add_visitor::__operator<String>
     static void apply(collectionid_t& colid, fieldid_t& fid, String& v, docid_t& docid)
     {
         String str = wiselib::UString(v, wiselib::UString::UTF_8);
+        trim(str);
         IndexKeyType<String> key(colid, fid, str);
         BTreeIndexer::getIndexer<String>()->add_nodup(key, docid);
         BTreeIndexer::getTrieIndexer()->add_suffix(str, docid);
