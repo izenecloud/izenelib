@@ -1293,18 +1293,19 @@ public:
 
   /**
      @brief load nodes by this ratio
+     @return false if it's empty
    */
-  void ratio_load(double ratio = 0.9)
+  bool ratio_load(double ratio = 0.9)
   {
     free_mem_();
     IASSERT(ratio <= 1.);
     FILE* v_f = fopen((filenm_+".v").c_str(), "r");
     if (v_f == NULL)
-      return;
+      return false;
     
     fseek(v_f, 0, SEEK_END);
     if (ftell(v_f)==0)
-      return;
+      return false;
 
     fseek(v_f, 0, SEEK_SET);
     nodes_.load(v_f);
@@ -1331,6 +1332,7 @@ public:
     load_edge_(0, ratio);
 
     //std::cout<<docs_<<std::endl;
+    return true;
   }
 
   /**
@@ -1706,6 +1708,9 @@ friend std::ostream& operator <<(std::ostream& os, const self_t& g)
       :graph_(graph),edge_(edge)
     {
       if (edge_.NID()>=LEAF_BOUND)
+        return;
+
+      if (graph_->loads_.length()==0)
         return;
       
       if (graph_->loads_.at(edge_.NID()))
