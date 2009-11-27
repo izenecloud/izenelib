@@ -73,7 +73,7 @@ struct IndexKeyType
             else
             {
                 String str;
-                other.value.substr(str, 0, value.size());
+                other.value.substr(str, 0, value.length());
                 if (str == value)
                     return true;
                 else
@@ -96,7 +96,7 @@ struct IndexKeyType
 private:
     int __compare(const IndexKeyType<T>& other, const boost::mpl::true_*) const
     {
-        if ( value > other.value)
+        if ( value> other.value)
         {
             return 1;
         }
@@ -126,7 +126,6 @@ class BTreeIndex:public izenelib::sdb::IndexSDB<KeyType,docid_t>
     typedef DataType<myKeyType, myValueType> myDataType;
 public:
     typedef typename IndexSDB<KeyType,docid_t>::IndexSDBCursor IndexSDBCursor;
-
 
 public:
 
@@ -191,7 +190,6 @@ public:
         return true;
     }
 
-
     void getGreat(const KeyType& key, BitVector& result)
     {
         KeyType temp = getNext(key);
@@ -216,7 +214,6 @@ public:
         get(key, result);
         getGreat(key, result);
     }
-
 
     void getLess(const KeyType& key, BitVector& result)
     {
@@ -246,24 +243,21 @@ public:
     void getPrefix(const KeyType& key, BitVector& result)
     {
         myKeyType ikey(key, 0);
-        myKeyType temp;
-        myDataType idat;
-        temp = this->_sdb.getNearest(ikey);
-        IndexSDBCursor locn;
-        this->_sdb.search(temp, locn);
-        while ( ikey.isPrefix(temp) )
+        myValueType ival;
+
+        IndexSDBCursor locn=	this->_sdb.search(ikey);
+        while(this->_sdb.get(locn, ikey, ival) )
         {
-            vector<docid_t>& vdat = idat.get_value();
-            for (size_t i=0; i<vdat.size(); i++)
-                result.set(vdat[i]);
-            if (this->_sdb.seq(locn, ESD_FORWARD) )
-                if (this->_sdb.get(locn, idat))
-                    temp = idat.get_key();
-                else
-                    break;
+            if( isPrefix1(key, ikey.key) )
+            {
+                for (size_t i=0; i<ival.size(); i++)
+                    result.set(ival[i]);
+                this->_sdb.seq(locn);	   
+            }
+            else
+                break;
         }
     }
-
 };
 
 template <class KeyType>
@@ -286,6 +280,60 @@ bool BTreeIndex<KeyType>::remove(const KeyType& key, docid_t docID)
     }
 
 }
+
+template <class StringType>
+class BTreeTrieIndex:public izenelib::sdb::TrieIndexSDB2<StringType, docid_t>
+{
+public:
+    typedef typename izenelib::sdb::TrieIndexSDB2<StringType, docid_t>::SDBTYPE SDBTYPE;
+    typedef typename SDBTYPE::SDBCursor SDBCursor;
+public:
+    BTreeTrieIndex(string& fileName) :
+            izenelib::sdb::TrieIndexSDB2<StringType,docid_t>(fileName)
+    {
+    }
+    void getValuePrefix(const StringType& key, BitVector& result)
+    {
+        SDBCursor locn = this->sdb_.search(make_pair(key, 0) );
+        std::pair<StringType, docid_t> skey;
+        StringType lstr;
+        NullType sval;
+        while (this->sdb_.get(locn, skey, sval) )
+        {
+            if (isPrefix1(key, skey.first) )
+            {
+                //cout<<skey.first<<"+"<<skey.second<<endl;
+                //result.push_back(skey.second);
+                result.set(skey.second);
+                this->sdb_.seq(locn);
+            }
+            else
+                break;
+        }
+    }
+
+    void getValueSuffix(const StringType& key, BitVector& result)
+    {
+        SDBCursor locn = this->sdb_.search(make_pair(key, 0 ) );
+        std::pair<StringType, docid_t> skey;
+        StringType lstr;
+        NullType sval;
+        while (this->sdb_.get(locn, skey, sval) )
+        {
+            if (key == skey.first)
+            {
+                //cout<<skey.first<<"+"<<skey.second<<endl;
+                //result.push_back(skey.second);
+                result.set(skey.second);
+                this->sdb_.seq(locn);
+            }
+            else
+                break;
+        }
+
+    }
+
+};
 
 class BTreeIndexerInterface
 {
@@ -352,7 +400,7 @@ public:
         return BTreeIndexerFactory<T>::get();
     }
 
-    static izenelib::sdb::TrieIndexSDB2<String, String>* getTrieIndexer()
+    static BTreeTrieIndex<String>* getTrieIndexer()
     {
         return pBTreeUStrSuffixIndexer_;
     }
@@ -369,7 +417,7 @@ private:
 
     static BTreeIndex<IndexKeyType<String> >* pBTreeUStrIndexer_;
 
-    static izenelib::sdb::TrieIndexSDB2<String, String>* pBTreeUStrSuffixIndexer_;
+    static BTreeTrieIndex<String>* pBTreeUStrSuffixIndexer_;
 
 };
 
@@ -435,7 +483,7 @@ private:
         static void apply(collectionid_t& colid, fieldid_t& fid, T& v, docid_t& docid)
         {
             IndexKeyType<T> key(colid, fid, v);
-            BTreeIndexer::getIndexer<T>()->add(key, docid);
+            BTreeIndexer::getIndexer<T>()->add_nodup(key, docid);
         }
     };
 
@@ -448,8 +496,8 @@ struct add_visitor::__operator<String>
     {
         String str = wiselib::UString(v, wiselib::UString::UTF_8);
         IndexKeyType<String> key(colid, fid, str);
-        BTreeIndexer::getIndexer<String>()->add(key, docid);
-        BTreeIndexer::getTrieIndexer()->add_suffix(str, str);
+        BTreeIndexer::getIndexer<String>()->add_nodup(key, docid);
+        BTreeIndexer::getTrieIndexer()->add_suffix(str, docid);
     }
 };
 
@@ -485,7 +533,6 @@ public:
         BTreeIndexer::getIndexer<T>()->get_without(key, docids);
     }
 };
-
 
 template<typename T>
 class get_between_visitor : public boost::static_visitor<void>
@@ -544,7 +591,6 @@ public:
 };
 
 }
-
 
 NS_IZENELIB_IR_END
 
