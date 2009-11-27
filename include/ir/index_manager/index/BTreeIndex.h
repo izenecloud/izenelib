@@ -243,24 +243,21 @@ public:
     void getPrefix(const KeyType& key, BitVector& result)
     {
         myKeyType ikey(key, 0);
-        myKeyType temp;
-        myDataType idat;
-        temp = this->_sdb.getNearest(ikey);
-        IndexSDBCursor locn;
-        this->_sdb.search(temp, locn);
-        while ( ikey.isPrefix(temp) )
+        myValueType ival;
+
+        IndexSDBCursor locn=	this->_sdb.search(ikey);
+        while(this->_sdb.get(locn, ikey, ival) )
         {
-            vector<docid_t>& vdat = idat.get_value();
-            for (size_t i=0; i<vdat.size(); i++)
-                result.set(vdat[i]);
-            if (this->_sdb.seq(locn, ESD_FORWARD) )
-                if (this->_sdb.get(locn, idat))
-                    temp = idat.get_key();
-                else
-                    break;
+            if( isPrefix1(key, ikey.key) )
+            {
+                for (size_t i=0; i<ival.size(); i++)
+                    result.set(ival[i]);
+                this->_sdb.seq(locn);	   
+            }
+            else
+                break;
         }
     }
-
 };
 
 template <class KeyType>
