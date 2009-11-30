@@ -85,7 +85,7 @@ void MultiIndexBarrelReader::close()
 
 void MultiIndexBarrelReader::addReader(BarrelInfo* pBarrelInfo)
 {
-    readers_.push_back(new BarrelReaderEntry(pIndexer,pBarrelInfo));
+    readers_.push_back(new BarrelReaderEntry(pIndexer_,pBarrelInfo));
 }
 
 size_t MultiIndexBarrelReader::getDistinctNumTerms(collectionid_t colID, const std::string& property)

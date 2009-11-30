@@ -215,25 +215,27 @@ public:
     void reset();
 
     /**
-    * @brief get FieldInfo by fieldid
+    * @brief get FieldInfo by field name
     */
-    inline FieldInfo* getField(fieldid_t fid);
+    inline FieldInfo* getField(const string& field){ return getField(field.c_str()); }
     /**
     * @brief get FieldInfo by field name
     */
     FieldInfo* getField(const char* field);
 
-    void setFieldOffset(fieldid_t fid,fileoffset_t offset);
+    void setFieldOffset(const string& field,fileoffset_t offset);
     /**
     * @brief offset of vocabulary in .voc file of the certain field
     */
-    fileoffset_t getFieldOffset(fieldid_t fid);
-
-    void setDistinctNumTerms(fieldid_t fid,uint64_t distterms);
+    fileoffset_t getFieldOffset(const string& field);
+    /**
+    * @brief set distinct num terms to a field
+    */ 
+    void setDistinctNumTerms(const string& field,uint64_t distterms);
     /**
     * @brief number of all distinct terms that this field has contained
     */
-    uint64_t distinctNumTerms(fieldid_t fid);
+    uint64_t distinctNumTerms(const string& field);
     /**
     * @brief number of all fields
     */
@@ -252,8 +254,6 @@ private:
     collectionid_t colId_;
 
     std::map<std::string,FieldInfo*> fdInfosByName_;
-
-    std::map<fieldid_t,FieldInfo*> fdInfosById_;
 
     FieldInfo** ppFieldsInfo_;
 
@@ -286,11 +286,6 @@ inline int32_t FieldsInfo::numIndexFields()
             indFields++;
     }
     return indFields;
-}
-
-inline FieldInfo* FieldsInfo::getField(fieldid_t fid)
-{
-    return fdInfosById_[fid];//ppFieldsInfo_[fid];
 }
 
 }
