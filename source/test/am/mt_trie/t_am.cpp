@@ -35,13 +35,27 @@ BOOST_AUTO_TEST_CASE(HDBTrie_am)
     boost::posix_time::ptime start_real = boost::posix_time::microsec_clock::local_time();
 
     {
-        MtTrie<wiselib::UString> mtTrie("mt");
+
+        MtTrie<std::string> mtTrie("mt");
+	mtTrie.open();
         start = clock();
-	mtTrie.executeTask("input", 4, 4);
+	mtTrie.executeTask("input", 16, 2);
         finish = clock();
         boost::posix_time::time_duration td = boost::posix_time::microsec_clock::local_time() - start_real;
         printf( "\nIt takes %f seconds (CPU time) and %f seconds (real time)\n",
             (double)(finish - start) / CLOCKS_PER_SEC, (double) (td.total_microseconds())/1000000);
+	mtTrie.flush();
+	while(true) {
+		std::string term;
+		std::vector<std::string> terms;
+		std::cout << "Input term" << std::endl;
+		std::cin >> term;
+		mtTrie.findRegExp(term, terms);
+		for(size_t i =0; i<terms.size(); i++ )
+			std::cout << terms[i] << std::endl;
+	}
+
+	mtTrie.close();
     }
 }
 

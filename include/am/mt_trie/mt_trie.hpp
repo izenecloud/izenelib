@@ -3,7 +3,7 @@
 
 #include <iostream>
 
-#include "hdb_trie.hpp"
+#include "partition_trie.hpp"
 
 NS_IZENELIB_AM_BEGIN
 
@@ -14,8 +14,23 @@ class MtTrie
 public:
 
     MtTrie(const std::string& name)
-    :   name_(name)
+    :   name_(name), trie_(name_ + ".trie")
     {
+    }
+
+    void open()
+    {
+        trie_.open();
+    }
+
+    void close()
+    {
+        trie_.close();
+    }
+
+    void flush()
+    {
+        trie_.flush();
     }
 
     /**
@@ -57,9 +72,10 @@ public:
      *         false nothing found.
      */
     bool findRegExp(const StringType& regexp,
-        std::vector<StringType>& valueList)
+        std::vector<StringType>& keyList,
+        int maximumResultNumber = 100)
     {
-        return false;
+        return trie_.findRegExp(regexp, keyList, maximumResultNumber);
     }
 
 protected:
@@ -78,32 +94,39 @@ protected:
      *        to allow multiple threads rescan it at the same time.
      *        how to divide distinct terms into partitions, and so on.
      */
-    void computeBoundaries(float sampleRate) {
+    void computeBoundaries(int sampleNumber) {
 
         std::ifstream input;
         input.open(inputName_.c_str(), std::ofstream::in|std::ofstream::binary );
         if(input.fail())
             throw std::runtime_error("failed open file " + inputName_);
 
-        // normalize
-        if(sampleRate < 1.0e-10) {
-             sampleRate = 1.0e-10;
-        } else if(sampleRate > 1.0) {
-            sampleRate = 1.0;
-        }
-        int sampleInterval = (int)(1/sampleRate);
-
+        // Get lines
         long line = 0;
         int buffersize = 0;
-        char charBuffer[256];
-        StringType term;
+        while(!input.eof())
+        {
+            input.read((char*)&buffersize, sizeof(int));
+            input.seekg(buffersize, ifstream::cur);
+            line ++;
+        }
+        fileLength_ = input.tellg();
+        fileLines_ = line;
+        input.clear();
+        input.seekg(0, ifstream::beg);
 
         std::set<StringType> samples;
+        int sampleStep = 1 + (line/sampleNumber);
+
+        line = 0;
+        buffersize = 0;
+        char charBuffer[256];
+        StringType term;
 
         while(!input.eof())
         {
             input.read((char*)&buffersize, sizeof(int));
-            if( line%sampleInterval || buffersize > 256 ) {
+            if( line%sampleStep || buffersize > 256 ) {
                 input.seekg(buffersize, ifstream::cur);
             } else {
                 // selected as a sample
@@ -116,21 +139,21 @@ protected:
             }
             line ++;
         }
-
-        fileLength_ = input.tellg();
-        fileLines_ = line;
         input.close();
 
-        // caculate boundaries between partitions
-        size_t interval = samples.size()/partitionNum_;
-        int count = 0;
-        typename std::set<StringType>::iterator it = samples.begin();
+        if(samples.size()) {
+            // caculate boundaries between partitions
+            size_t interval = samples.size()/partitionNum_;
+            int count = 0;
+            typename std::set<StringType>::iterator it = samples.begin();
 
-        while(count < partitionNum_-1) {
-            for(size_t i=0; i<interval; i++)
-                it++;
-            boundaries_.push_back(*it);
-            count ++;
+            while(count < partitionNum_-1) {
+                for(size_t i=0; i<interval; i++)
+                    it++;
+                boundaries_.push_back(*it);
+                //std::cout << *it << std::endl;
+                count ++;
+            }
         }
     }
 
@@ -168,20 +191,25 @@ protected:
             term.assign( std::string(charBuffer,buffersize) );
 
             if(term.size() > 0) {
-                if(term.compare(boundaries_[0]) < 0) {
+                if(partitionNum_ == 1) {
                     output[0].write((char*)&buffersize, sizeof(int));
                     output[0].write(charBuffer, buffersize);
-                } else if(term.compare(boundaries_[boundaries_.size()-1]) >= 0) {
-                    output[boundaries_.size()].write((char*)&buffersize, sizeof(int));
-                    output[boundaries_.size()].write(charBuffer, buffersize);
                 } else {
-                    for(size_t i=1; i<boundaries_.size(); i++) {
-                        int c1 = term.compare(boundaries_[i-1]);
-                        int c2 = term.compare(boundaries_[i]);
-                        if(c1 >=0 && c2<0 ) {
-                            output[i].write((char*)&buffersize, sizeof(int));
-                            output[i].write(charBuffer, buffersize);
-                            break;
+                    if(term.compare(boundaries_[0]) < 0) {
+                        output[0].write((char*)&buffersize, sizeof(int));
+                        output[0].write(charBuffer, buffersize);
+                    } else if(term.compare(boundaries_[boundaries_.size()-1]) >= 0) {
+                        output[boundaries_.size()].write((char*)&buffersize, sizeof(int));
+                        output[boundaries_.size()].write(charBuffer, buffersize);
+                    } else {
+                        for(size_t i=1; i<boundaries_.size(); i++) {
+                            int c1 = term.compare(boundaries_[i-1]);
+                            int c2 = term.compare(boundaries_[i]);
+                            if(c1 >=0 && c2<0 ) {
+                                output[i].write((char*)&buffersize, sizeof(int));
+                                output[i].write(charBuffer, buffersize);
+                                break;
+                            }
                         }
                     }
                 }
@@ -194,65 +222,66 @@ protected:
     }
 
     void preprocess() {
-        computeBoundaries(0.001);
+        computeBoundaries(1000);
         splitInput();
     }
 
-    void taskBody(int partitionId) {
-        std::string inputName = getPartitionName(partitionId) + ".input";
-        std::string trieName = getPartitionName(partitionId) + ".trie";
+    void taskBody(int threadId) {
+        int partitionId = threadId;
+        while(partitionId < partitionNum_) {
+            std::string inputName = getPartitionName(partitionId) + ".input";
+            std::string trieName = getPartitionName(partitionId) + ".trie";
 
-        std::ifstream input;
-        input.open(inputName.c_str(), std::ifstream::in|std::ifstream::binary );
-        if(input.fail())
-            throw std::runtime_error("failed open file " + inputName);
+            std::ifstream input;
+            input.open(inputName.c_str(), std::ifstream::in|std::ifstream::binary );
+            if(input.fail())
+                throw std::runtime_error("failed open file " + inputName);
 
-        PartitionTrie2<StringType, int> trie(trieName);
-        trie.open();
+            PartitionTrie2<StringType> trie(trieName);
+            trie.open();
 
-        // Insert all boundaries into trie, to ensure NodeIDs are consistent
-        // in all tries, the details of reasoning and proof see MtTrie TR.
-        for(size_t i =0; i<boundaries_.size(); i++) {
-            trie.insert(boundaries_[i], 0);
+            // Insert all boundaries into trie, to ensure NodeIDs are consistent
+            // in all tries, the details of reasoning and proof see MtTrie TR.
+            for(size_t i =0; i<boundaries_.size(); i++) {
+                trie.insert(boundaries_[i]);
+            }
+
+            // Insert all terms in this partition
+            StringType term;
+            int buffersize = 0;
+            char charBuffer[256];
+            while(!input.eof())
+            {
+                input.read((char*)&buffersize, sizeof(int));
+                input.read( charBuffer, buffersize );
+                term.assign( std::string(charBuffer,buffersize) );
+                trie.insert(term);
+            }
+            trie.optimize();
+            trie.close();
+            input.close();
+
+            partitionId += threadNum_;
         }
-
-        // Insert all terms in this partition
-        StringType term;
-        int buffersize = 0;
-        char charBuffer[256];
-        while(!input.eof())
-        {
-            input.read((char*)&buffersize, sizeof(int));
-            input.read( charBuffer, buffersize );
-            term.assign( std::string(charBuffer,buffersize) );
-            trie.insert(term, 0);
-        }
-        trie.optimize();
-
-        trie.close();
-        input.close();
     }
 
     void mergeTries() {
-        std::string trieName = name_ + ".trie";
-
-        PartitionTrie2<StringType, int> trie(trieName);
-        trie.open();
         for(size_t i =0; i<boundaries_.size(); i++) {
-            trie.insert(boundaries_[i], 0);
+            trie_.insert(boundaries_[i]);
         }
-        int64_t nextNID = trie.nextNodeID();
+
+        int64_t nextNID = trie_.nextNodeID();
+        //std::cout << "nextNID is " << nextNID << std::endl;
 
         for(int i=0; i<partitionNum_; i++) {
             std::string p = getPartitionName(i) + ".trie";
-            PartitionTrie2<StringType, int> pt(p);
+            PartitionTrie2<StringType> pt(p);
             pt.open();
-            trie.concatenate(pt,nextNID);
+            trie_.concatenate(pt,nextNID);
             pt.close();
         }
 
-        trie.optimize();
-        trie.close();
+        trie_.optimize();
     }
 
 private:
@@ -276,6 +305,8 @@ private:
     size_t fileLines_;
 
     boost::thread_group workerThreads_;
+
+    PartitionTrie2<StringType> trie_;
 
 };
 

@@ -30,6 +30,9 @@ class get_input
 
   static void input(const string& str, ostream& of)
   {
+	int size = str.size();
+	of.write((char*)&size, sizeof(int));
+	of.write((char*)str.c_str(), size);
   }
 
 public:
@@ -53,7 +56,7 @@ public:
 
     for (unsigned long i = 0; i<size; i++)
     {
-      STRING_TYPE str("", ENCODE_TYPE);
+      STRING_TYPE str;
       unsigned long charCount = rand()%maxChars;
       while (charCount == 0)
         charCount = rand()%maxChars;
@@ -105,7 +108,7 @@ int main (int argc,char **argv)
   ss <<*argv;
   ss >> maxChars;
 
-  typedef wiselib::UString string_type;
+  typedef std::string string_type;
 
   if (size ==0)
   {
