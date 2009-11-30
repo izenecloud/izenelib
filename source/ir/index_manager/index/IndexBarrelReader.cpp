@@ -3,16 +3,16 @@
 
 using namespace izenelib::ir::indexmanager;
 
-IndexBarrelReader::IndexBarrelReader(Indexer* pIndexer_)
-        : pIndexer(pIndexer_)
+IndexBarrelReader::IndexBarrelReader(Indexer* pIndexer)
+        : pIndexer_(pIndexer)
 {
 }
 IndexBarrelReader::IndexBarrelReader()
-        : pIndexer(NULL)
+        : pIndexer_(NULL)
 {
 }
-IndexBarrelReader::~IndexBarrelReader(void)
+IndexBarrelReader::~IndexBarrelReader()
 {
-    pIndexer = NULL;
+    pIndexer_ = NULL;
 }
 
