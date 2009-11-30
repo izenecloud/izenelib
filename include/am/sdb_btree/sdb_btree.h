@@ -1680,8 +1680,9 @@ template<typename KeyType, typename ValueType, typename LockType, bool fixed,
 
 		// pre-fetch all nested keys
 		sdb_node* parent=node->parent;
-		for (unsigned int i=1; i<=parent->objCount; i++)
-			parent->loadChild(i, _dataFile);
+		if(parent)
+			for (unsigned int i=1; i<=parent->objCount; i++)
+				parent->loadChild(i, _dataFile);
 
 		locn.first = node;
 		locn.second = 0;
