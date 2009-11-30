@@ -190,6 +190,8 @@ void IndexReader::deleteDocumentPhysically(IndexerDocument* pDoc)
 void IndexReader::delDocument(collectionid_t colID,docid_t docId)
 {
     BarrelInfo* pBarrelInfo = findDocumentInBarrels(colID, docId);
+    if(NULL == pBarrelInfo)
+        return;
     pBarrelInfo->deleteDocument(docId);
 
     if(!pDocFilter_)
