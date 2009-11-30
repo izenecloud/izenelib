@@ -1,5 +1,5 @@
-#ifndef _HDB_TRIE_H_
-#define _HDB_TRIE_H_
+#ifndef _PARTITION_TRIE_H_
+#define _PARTITION_TRIE_H_
 
 #include <iostream>
 
