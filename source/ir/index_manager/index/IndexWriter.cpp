@@ -99,7 +99,7 @@ void IndexWriter::mergeIndex(IndexMerger* pMerger)
             pCurDocCount_ = NULL;
         }
         pMerger->merge(pBarrelsInfo_);
-        pIndexer_->setDirty(true);		
+        //pIndexer_->setDirty(true);		
     }
     pIndexer_->getIndexReader()->delDocFilter();
     delete pIndexMerger_;
@@ -174,7 +174,7 @@ void IndexWriter::mergeAndWriteCachedIndex()
     pCurBarrelInfo_->setWriter(pIndexBarrelWriter_);
     pCurDocCount_ = &(pCurBarrelInfo_->nNumDocs);
     *pCurDocCount_ = 0;
-    pIndexer_->setDirty(true);
+    //pIndexer_->setDirty(true);
 	
 }
 
@@ -235,7 +235,7 @@ void IndexWriter::mergeAndWriteCachedIndex2()
     pCurBarrelInfo_->setWriter(pIndexBarrelWriter_);
     pCurDocCount_ = &(pCurBarrelInfo_->nNumDocs);
     *pCurDocCount_ = 0;
-    pIndexer_->setDirty(true);
+    //pIndexer_->setDirty(true);
 }
 
 void IndexWriter::justWriteCachedIndex()

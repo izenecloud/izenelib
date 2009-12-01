@@ -32,7 +32,7 @@ void SingleIndexBarrelReader::open(const char* name)
 {
     this->name_ = name;
 
-    Directory* pDirectory = pIndexer->getDirectory();
+    Directory* pDirectory = pIndexer_->getDirectory();
     string s = name;
     s+= ".fdi";
     IndexInput* pIndexInput = pDirectory->openInput(s.c_str());
@@ -163,7 +163,7 @@ void SingleIndexBarrelReader::delDocField(unsigned int colID, docid_t docId, con
         pMemCache_ = new MemCache(MAX_MEM_POOL_SIZE_FOR_ONE_POSTING);
     }
 
-    Directory* pDirectory = pIndexer->getDirectory();
+    Directory* pDirectory = pIndexer_->getDirectory();
 
     IndexOutput* pVocOutput = pDirectory->createOutput(pBarrelInfo_->getName() + ".voc","r+");
     IndexOutput* pDOutput = pDirectory->createOutput(pBarrelInfo_->getName() + ".dfp","r+");

@@ -204,19 +204,17 @@ void CollectionIndexer::write(OutputDescriptor* desc)
         dfiOff1 = pDOutput->getFilePointer();
         ptiOff1 = pPOutput->getFilePointer();
 
-        fieldid_t fid = pIndexer_->getPropertyIDByName(colID_, iter->first);
-
-        pFieldsInfo_->setDistinctNumTerms(fid,pFieldIndexer->distinctNumTerms());///set distinct term numbers
+        pFieldsInfo_->setDistinctNumTerms(iter->first,pFieldIndexer->distinctNumTerms());///set distinct term numbers
 
         vocOffset = pFieldIndexer->write(desc);///write field index data
 
-        pFieldsInfo_->setFieldOffset(fid,vocOffset);///set offset of vocabulary descriptor
+        pFieldsInfo_->setFieldOffset(iter->first,vocOffset);///set offset of vocabulary descriptor
 
         vocOff2 = pVocOutput->getFilePointer();
         dfiOff2 = pDOutput->getFilePointer();
         ptiOff2 = pPOutput->getFilePointer();
 
-        pFieldsInfo_->getField(fid)->setLength(vocOff2-vocOff1,dfiOff2-dfiOff1,ptiOff2-ptiOff1);
+        pFieldsInfo_->getField(iter->first)->setLength(vocOff2-vocOff1,dfiOff2-dfiOff1,ptiOff2-ptiOff1);
     }
     if(pDocLengthWriter_)
         pDocLengthWriter_->flush();

@@ -177,6 +177,7 @@ void IndexMerger::pendingUpdate(BarrelsInfo* pBarrelsInfo)
         pBaInfo = pBarrelsInfo->next();
         pBaInfo->setWriter(NULL);///clear writer
     }
+    pIndexer_->setDirty(true);	
     ///sleep is necessary because if a query get termreader before this lock,
     ///the query has not been finished even the index file/term dictionary info has been changed
     ///500ms is used to let these queries finish their flow.

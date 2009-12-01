@@ -1,5 +1,5 @@
-#ifndef _HDB_TRIE_H_
-#define _HDB_TRIE_H_
+#ifndef _PARTITION_TRIE_H_
+#define _PARTITION_TRIE_H_
 
 #include <iostream>
 
@@ -29,7 +29,6 @@ NS_IZENELIB_AM_BEGIN
  * node "catc".
  */
 template <typename CharType,
-          typename UserDataType,
           typename NodeIDType = uint64_t,
           typename LockType = izenelib::util::NullLock>
 class PartitionTrie
@@ -42,11 +41,11 @@ class PartitionTrie
 
     // sdb is fast for sequential insertions
     typedef NodeIDType DataTableKeyType;
-    typedef UserDataType DataTableValueType;
+    typedef bool DataTableValueType;
     typedef DataType<DataTableKeyType, DataTableValueType> DataTableRecordType;
     typedef izenelib::sdb::ordered_sdb_fixed<DataTableKeyType, DataTableValueType , LockType> DataTableType;
 
-    typedef PartitionTrie<CharType, UserDataType, NodeIDType, LockType> ThisType;
+    typedef PartitionTrie<CharType, NodeIDType, LockType> ThisType;
 
 public:
 
@@ -109,7 +108,7 @@ public:
     /**
      * @brief Insert key value pairs into Trie.
      */
-    void insert(const std::vector<CharType>& key, const UserDataType& value)
+    void insert(const std::vector<CharType>& key)
     {
         if( key.size() == 0) return;
 
@@ -120,40 +119,7 @@ public:
             addEdge(key[i], nid, tmp);
             nid = tmp;
         }
-        putData(nid, value);
-    }
-
-    /**
-     * @brief Insert key value pairs into Trie.
-     */
-    void insert(const DataType<std::vector<CharType>, UserDataType>& data)
-    {
-        insert(data.key, data.value);
-    }
-
-    /**
-     * @brief Update value for a given key, if key doesn't exist, do insertion instead.
-     */
-    void update(const std::vector<CharType>& key, const UserDataType& value)
-    {
-        if( key.size() == 0) return;
-
-        NodeIDType nid = NodeIDTraits<NodeIDType>::RootValue;
-        for( size_t i=0; i< key.size(); i++ )
-        {
-            NodeIDType tmp = NodeIDType();
-            addEdge(key[i], nid, tmp);
-            nid = tmp;
-        }
-        updateData(nid, value);
-    }
-
-    /**
-     * @brief Update value for a given key, if key doesn't exist, do insertion instead.
-     */
-    void update(const DataType<std::vector<CharType>, UserDataType>& data)
-    {
-        update(data.key, data.value);
+        setLeaf(nid);
     }
 
     /**
@@ -161,7 +127,7 @@ public:
      * @return false if key doesn't exist
      *         true otherwise
      */
-    bool get(const std::vector<CharType>& key, UserDataType& value)
+    bool get(const std::vector<CharType>& key)
     {
         if(key.size() == 0) return false;
 
@@ -173,11 +139,7 @@ public:
                 return false;
             nid = tmp;
         }
-        UserDataType tmp;
-        if(! getData(nid,tmp) )
-            return false;
-        value = tmp;
-        return true;
+        return isLeaf(nid);
     }
 
     /**
@@ -187,11 +149,14 @@ public:
      *         false nothing found.
      */
     bool findRegExp(const std::vector<CharType>& regexp,
-        std::vector<UserDataType>& valueList)
+        std::vector<std::vector<CharType> >& keyList,
+        int maximumResultNumber)
     {
-        valueList.clear();
-        findRegExp_(regexp, 0, NodeIDTraits<NodeIDType>::RootValue, valueList);
-        return valueList.size() ? true : false;
+        keyList.clear();
+        std::vector<CharType> prefix;
+        findRegExp_(regexp, 0, NodeIDTraits<NodeIDType>::RootValue,
+            prefix, keyList, maximumResultNumber);
+        return keyList.size() ? true : false;
     }
 
     void concatenate(ThisType& other, NodeIDType start) {
@@ -199,20 +164,24 @@ public:
 
         EdgeTableRecordType edge;
         typename EdgeTableType::HDBCursor ecur = other.edgeTable_.get_first_Locn();
-        while(edgeTable_.get(ecur,edge)) {
+        while(other.edgeTable_.get(ecur,edge)) {
+            //std::cout << edge.key.first << "," << edge.key.second << "," << edge.value << "\t==>\t";
             if(edge.key.first >= start ) edge.key.first += base;
             if(edge.value >= start ) edge.value += base;
+            //std::cout << edge.key.first << "," << edge.key.second << "," << edge.value << std::endl;
             edgeTable_.insertValue(edge.key, edge.value);
-            edgeTable_.seq(ecur);
+            other.edgeTable_.seq(ecur);
         }
 
         DataTableRecordType data;
         typename DataTableType::SDBCursor dcur = other.dataTable_.get_first_Locn();
-        while(dataTable_.get(dcur,data)) {
-            if(data.key > start) data.key += base;
+        while(other.dataTable_.get(dcur,data)) {
+            if(data.key >= start) data.key += base;
             dataTable_.insertValue(data.key, data.value);
-            dataTable_.seq(dcur);
+            other.dataTable_.seq(dcur);
         }
+
+        nextNID_ = base + other.nextNID_;
     }
 
     NodeIDType nextNodeID() {
@@ -291,17 +260,9 @@ protected:
      * @return true     successfully
      *         false    key exists already
      */
-    bool putData( const NodeIDType& nid, const UserDataType& userData)
+    void setLeaf( const NodeIDType nid)
     {
-        return dataTable_.insertValue(nid,userData);
-    }
-
-    /**
-     * Update userdata in SDB for a given key, insert if key doesnot exist.
-     */
-    void updateData( const NodeIDType& nid, const UserDataType& userData)
-    {
-        dataTable_.update(nid, userData);
+        dataTable_.insertValue(nid,true);
     }
 
     /**
@@ -309,87 +270,29 @@ protected:
      * @return true     successfully
      *         false    given key does not exist
      */
-    bool getData( const NodeIDType& nid, UserDataType& userData)
+    bool isLeaf( const NodeIDType nid)
     {
-        return dataTable_.getValue(nid, userData);
-    }
-
-    void findPrefix_( const NodeIDType& nid,
-        std::vector<CharType>& prefix,
-        std::vector<std::vector<CharType> >& keyList)
-    {
-        UserDataType tmp = UserDataType();
-        if(getData(nid, tmp))
-            keyList.push_back(prefix);
-
-        EdgeTableKeyType minKey(nid, NumericTraits<CharType>::MinValue);
-        EdgeTableKeyType maxKey(nid, NumericTraits<CharType>::MaxValue);
-
-        std::vector<EdgeTableRecordType> result;
-        edgeTable_.getValueBetween(result, minKey, maxKey);
-
-        for(size_t i = 0; i <result.size(); i++ )
-        {
-            prefix.push_back(result[i].key.second);
-            findPrefix_(result[i].value, prefix, keyList);
-            prefix.pop_back();
-        }
-    }
-
-    void findPrefix_( const NodeIDType& nid,
-        std::vector<UserDataType>& valueList)
-    {
-        UserDataType tmp = UserDataType();
-        if(getData(nid, tmp))
-            valueList.push_back(tmp);
-
-        EdgeTableKeyType minKey(nid, NumericTraits<CharType>::MinValue);
-        EdgeTableKeyType maxKey(nid, NumericTraits<CharType>::MaxValue);
-
-        std::vector<EdgeTableRecordType> result;
-        edgeTable_.getValueBetween(result, minKey, maxKey);
-
-        for(size_t i = 0; i <result.size(); i++ )
-            findPrefix_(result[i].value, valueList);
-    }
-
-    void findPrefix_( const NodeIDType& nid,
-        std::vector<CharType>& prefix,
-        std::vector<std::vector<CharType> >& keyList,
-        std::vector<UserDataType>& valueList)
-    {
-        UserDataType tmp = UserDataType();
-        if(getData(nid, tmp))
-        {
-            keyList.push_back(prefix);
-            valueList.push_back(tmp);
-        }
-
-        EdgeTableKeyType minKey(nid, NumericTraits<CharType>::MinValue);
-        EdgeTableKeyType maxKey(nid, NumericTraits<CharType>::MaxValue);
-
-        std::vector<EdgeTableRecordType> result;
-        edgeTable_.getValueBetween(result, minKey, maxKey);
-
-        for(size_t i = 0; i <result.size(); i++ )
-        {
-            prefix.push_back(result[i].key.second);
-            findPrefix_(result[i].value, prefix, keyList, valueList);
-            prefix.pop_back();
-        }
+        bool flag = false;
+        return dataTable_.getValue(nid, flag);
     }
 
     void findRegExp_(const std::vector<CharType>& regexp,
         const size_t& startPos, const NodeIDType& nid,
-        std::vector<UserDataType>& valueList)
+        std::vector<CharType>& prefix,
+        std::vector<std::vector<CharType> >& keyList,
+        int maximumResultNumber)
     {
+        if(keyList.size() >= (size_t)maximumResultNumber)
+            return;
+
         if(startPos == regexp.size())
         {
-            UserDataType tmp = UserDataType();
-            if(getData(nid, tmp))
-                valueList.push_back(tmp);
+            if(isLeaf(nid))
+                keyList.push_back(prefix);
             return;
         }
+
+        // std::cout << regexp[startPos] << "," << nid << std::endl;
 
         switch( regexp[startPos] )
         {
@@ -401,10 +304,15 @@ protected:
                 std::vector<EdgeTableRecordType> result;
                 edgeTable_.getValueBetween(result, minKey, maxKey);
 
-                for(size_t i = 0; i <result.size(); i++ )
-                    findRegExp_(regexp, startPos, result[i].value, valueList);
+                for(size_t i = 0; i <result.size(); i++ ) {
+                    prefix.push_back(result[i].key.second);
+                    findRegExp_(regexp, startPos, result[i].value, prefix,
+                        keyList, maximumResultNumber);
+                    prefix.pop_back();
+                }
 
-                findRegExp_(regexp, startPos+1, nid, valueList);
+                findRegExp_(regexp, startPos+1, nid, prefix,
+                    keyList, maximumResultNumber);
                 break;
             }
             case 63:    //"?"
@@ -415,16 +323,24 @@ protected:
                 std::vector<EdgeTableRecordType> result;
                 edgeTable_.getValueBetween(result, minKey, maxKey);
 
-                for(size_t i = 0; i <result.size(); i++ )
-                    findRegExp_(regexp, startPos+1, result[i].value, valueList);
+                for(size_t i = 0; i <result.size(); i++ ) {
+                    prefix.push_back(result[i].key.second);
+                    findRegExp_(regexp, startPos+1, result[i].value, prefix,
+                        keyList, maximumResultNumber);
+                    prefix.pop_back();
+                }
                 break;
             }
             default:
             {
                 EdgeTableKeyType key(nid, regexp[startPos]);
                 NodeIDType nxtNode = NodeIDType();
-                if( edgeTable_.getValue(key, nxtNode) )
-                    findRegExp_(regexp, startPos+1, nxtNode, valueList);
+                if( edgeTable_.getValue(key, nxtNode) ) {
+                    prefix.push_back(regexp[startPos]);
+                    findRegExp_(regexp, startPos+1, nxtNode, prefix,
+                        keyList, maximumResultNumber);
+                    prefix.pop_back();
+                }
                 break;
             }
         }
@@ -448,14 +364,13 @@ private:
  * @see SDBTrie
  */
 template <typename StringType,
-          typename UserDataType = NullType,
           typename NodeIDType = uint64_t,
           typename LockType = izenelib::util::NullLock>
 class PartitionTrie2
 {
     typedef typename StringType::value_type CharType;
-    typedef PartitionTrie2<StringType, UserDataType, NodeIDType, LockType> ThisType;
-    typedef PartitionTrie<CharType, UserDataType, NodeIDType, LockType> PartitionTrieType;
+    typedef PartitionTrie2<StringType, NodeIDType, LockType> ThisType;
+    typedef PartitionTrie<CharType, NodeIDType, LockType> PartitionTrieType;
 
 public:
 
@@ -471,47 +386,40 @@ public:
     void close(){ trie_.close(); }
     void optimize(){ trie_.optimize(); }
 
-    void insert(const StringType& key, const UserDataType& value)
+    void insert(const StringType& key)
     {
         CharType* chArray = (CharType*)key.c_str();
         size_t chCount = key.length();
         std::vector<CharType> chVector(chArray, chArray+chCount);
-        trie_.insert(chVector, value);
+        trie_.insert(chVector);
     }
 
-    void insert(const DataType<StringType, UserDataType>& data)
-    {
-        insert(data.key, data.value);
-    }
-
-    void update(const StringType& key, const UserDataType value)
+    bool get(const StringType& key)
     {
         CharType* chArray = (CharType*)key.c_str();
         size_t chCount = key.length();
         std::vector<CharType> chVector(chArray, chArray+chCount);
-        trie_.update(chVector, value);
-    }
-
-    void update(const DataType<StringType, UserDataType>& data)
-    {
-        update(data.key, data.value);
-    }
-
-    bool get(const StringType& key, UserDataType& value)
-    {
-        CharType* chArray = (CharType*)key.c_str();
-        size_t chCount = key.length();
-        std::vector<CharType> chVector(chArray, chArray+chCount);
-        return trie_.get(chVector, value);
+        return trie_.get(chVector);
     }
 
     bool findRegExp(const StringType& regexp,
-        std::vector<UserDataType>& valueList)
+        std::vector<StringType>& keyList,
+        int maximumResultNumber)
     {
         CharType* chArray = (CharType*)regexp.c_str();
         size_t chCount = regexp.length();
         std::vector<CharType> chVector(chArray, chArray+chCount);
-        return trie_.findRegExp(chVector, valueList);
+
+        std::vector< std::vector<CharType> > resultList;
+        if( false == trie_.findRegExp(chVector, resultList, maximumResultNumber) )
+            return false;
+
+        for(size_t i = 0; i< resultList.size(); i++ )
+        {
+            StringType tmp(resultList[i].begin(), resultList[i].end() );
+            keyList.push_back(tmp);
+        }
+        return true;
     }
 
     void concatenate(ThisType& other, NodeIDType start) {
@@ -522,11 +430,9 @@ public:
         return trie_.nextNodeID();
     }
 
-
     unsigned int num_items() { return trie_.num_items(); }
 
     void display() { trie_.display(); }
-
 
 private:
     PartitionTrieType trie_;
