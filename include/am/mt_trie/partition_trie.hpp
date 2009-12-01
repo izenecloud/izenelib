@@ -49,10 +49,12 @@ class PartitionTrie
 
 public:
 
-    PartitionTrie(const std::string& dbname)
+    PartitionTrie(const std::string& dbname,
+                  const NodeIDType start = NodeIDTraits<NodeIDType>::MinValue )
     :   closed_(true), dbname_(dbname),
         edgeTable_(dbname_ + ".hdbtrie.edgetable"),
-        dataTable_(dbname_ + ".hdbtrie.datatable.sdb")
+        dataTable_(dbname_ + ".hdbtrie.datatable.sdb"),
+        startNodeID_(start)
     {
         nextNID_ = NodeIDTraits<NodeIDType>::MaxValue;
     }
@@ -78,7 +80,8 @@ public:
         edgeTable_.setCachedRecordsNumber(2500000);
         edgeTable_.setMergeFactor(2);
         edgeTable_.open();
-        nextNID_ = edgeTable_.numItems() + NodeIDTraits<NodeIDType>::MinValue;
+        ///TODO adjust nextNID_ after boundaries are inserted;
+        nextNID_ = edgeTable_.numItems() + startNodeID_;
     }
 
     void flush()
@@ -160,28 +163,22 @@ public:
     }
 
     void concatenate(ThisType& other, NodeIDType start) {
-        NodeIDType base = nextNID_;
-
         EdgeTableRecordType edge;
         typename EdgeTableType::HDBCursor ecur = other.edgeTable_.get_first_Locn();
         while(other.edgeTable_.get(ecur,edge)) {
-            //std::cout << edge.key.first << "," << edge.key.second << "," << edge.value << "\t==>\t";
-            if(edge.key.first >= start ) edge.key.first += base;
-            if(edge.value >= start ) edge.value += base;
-            //std::cout << edge.key.first << "," << edge.key.second << "," << edge.value << std::endl;
-            edgeTable_.insertValue(edge.key, edge.value);
+            if(edge.value > start)
+                edgeTable_.insertValue(edge.key, edge.value);
             other.edgeTable_.seq(ecur);
         }
 
         DataTableRecordType data;
-        typename DataTableType::SDBCursor dcur = other.dataTable_.get_first_Locn();
+        typename DataTableType::SDBCursor dcur = other.dataTable_.search(start);
         while(other.dataTable_.get(dcur,data)) {
-            if(data.key >= start) data.key += base;
             dataTable_.insertValue(data.key, data.value);
             other.dataTable_.seq(dcur);
         }
 
-        nextNID_ = base + other.nextNID_;
+        nextNID_ = (nextNID_ > other.nextNID_) ? nextNID_ : other.nextNID_;
     }
 
     NodeIDType nextNodeID() {
@@ -351,6 +348,8 @@ private:
     bool closed_;
 
     std::string dbname_;
+
+    NodeIDType startNodeID_;
 
     EdgeTableType edgeTable_;
 
