@@ -26,7 +26,7 @@ public:
      *  @param partitionNum - how many partitions do we divide all input terms into.
      */
     MtTrie(const std::string& name, const int partitionNum)
-    :   name_(name), partitionNum_(partitionNum);
+    :   name_(name), partitionNum_(partitionNum),
         writeCacheName_(name_+".writecache"),
         trie_(name_ + ".trie"),
         fileLines_(0)
@@ -35,7 +35,7 @@ public:
             throw std::runtime_error( logHead() +
                 "wrong partitionNum, should between 0 and 256");
         }
-        partitionState_.resize(partitionNum_);
+        skipNodeID_.resize(partitionNum_);
     }
 
     void open()
@@ -68,7 +68,7 @@ public:
         try {
              int len = (int) term.size();
              writeCache_.write((char*) &len, sizeof(int));
-             writeCache_.write((const char*)term.c_str(), word.size());
+             writeCache_.write((const char*)term.c_str(), term.size());
              fileLines_ ++;
         } catch(const std::exception & e) {
             std::cerr << logHead() << " write cache locked" << std::endl;
@@ -88,7 +88,7 @@ public:
             throw std::runtime_error(logHead() + "wrong threadNum, should be larger than 0");
         if( partitionNum_ < threadNum_ ) {
             std::cout << logHead() << " threadNum(" << threadNum << ") is less than partitionNum("
-                << partitionNum_ << ", shrink it" << std::end;
+                << partitionNum_ << ", shrink it" << std::endl;
             threadNum_ = partitionNum_;
         }
 
@@ -166,15 +166,15 @@ protected:
         if(input.fail())
             throw std::runtime_error("failed open file " + writeCacheName_);
 
-        std::cout << "MtTrie["<< name_ << "] input file contains " << fileLength_
-            << " bytes, " << fileLines_ << " words" << std::endl;
+        std::cout << "MtTrie["<< name_ << "] input file contains "
+            << fileLines_ << " words" << std::endl;
 
-        int sampleStep = 1 + (line/sampleNumber);
+        int sampleStep = 1 + (fileLines_/sampleNumber);
         std::cout << "MtTrie["<< name_ << "] extract a sample for every "
             << sampleStep << " words" << std::endl;
 
-        line = 0;
-        buffersize = 0;
+        long line = 0;
+        int buffersize = 0;
         char charBuffer[256];
         StringType term;
 
@@ -276,9 +276,6 @@ protected:
         input.close();
         for(int i = 0; i<partitionNum_; i++ ) {
             output[i].close();
-
-            std::string outputName = getPartitionName(i) + ".input";
-            remove( outputName.c_str() );
         }
         delete[] output;
     }
@@ -293,14 +290,6 @@ protected:
 
         std::cout << logHead() << "start spliting inputs" << std::endl;
         splitInput();
-
-        // Initialize trie at the first time.
-        if(trie_.num_items() == 0) {
-            for(size_t i =0; i<boundaries_.size(); i++) {
-                trie_.insert(boundaries_[i]);
-            }
-            overlappingNodeID_ = trie_.nextNodeID();
-        }
     }
 
     void taskBody(int threadId) {
@@ -316,17 +305,19 @@ protected:
                 throw std::runtime_error("failed open input for "
                         + getPartitionName(partitionId));
 
-            PartitionTrie2<StringType> trie(trieName,
-                getPartitionStartNodeID(partitionId));
+            PartitionTrie2<StringType> trie(trieName);
             trie.open();
 
             // Initialize trie at the first time.
             if(trie.num_items() == 0) {
                 // Insert all boundaries into trie, to ensure NodeIDs are consistent
                 // in all tries, the details of reasoning and proof see MtTrie TR.
-                trie.concatenate(trie_);
+                for(size_t i =0; i<boundaries_.size(); i++) {
+                    trie.insert(boundaries_[i]);
+                }
+                trie.setbase(getPartitionStartNodeID(partitionId));
             }
-            partitionState_[i] = trie.nextNodeID();
+            skipNodeID_[partitionId] = trie.nextNodeID();
 
             // Insert all terms in this partition
             StringType term;
@@ -342,17 +333,25 @@ protected:
 
             trie.close();
             input.close();
+            remove( inputName.c_str() );
             partitionId += threadNum_;
         }
     }
 
     void mergeTries() {
 
+        // Initialize trie at the first time.
+        if(trie_.num_items() == 0) {
+            for(size_t i =0; i<boundaries_.size(); i++) {
+                trie_.insert(boundaries_[i]);
+            }
+        }
+
         for(int i=0; i<partitionNum_; i++) {
             std::string p = getPartitionName(i) + ".trie";
             PartitionTrie2<StringType> pt(p);
             pt.open();
-            trie_.concatenate(pt, partitionState_[i]);
+            trie_.concatenate(pt, skipNodeID_[i]);
             pt.close();
         }
 
@@ -361,10 +360,15 @@ protected:
 
 private:
 
+    /// @brief prefix of assoicated files' name.
     std::string name_;
 
+    /// @brief name of write cache file.
     std::string writeCacheName_;
 
+    /// @brief file acts as write cache.
+    ///        all inputs are cached in this file first,
+    ///        then inserted into trie in executeTask().
     std::ofstream writeCache_;
 
     /// @brief how many partitions do we divide all input terms into.
@@ -373,15 +377,21 @@ private:
     /// @brief boundaries between partitions, there are partitionNum_-1 elements.
     std::vector<StringType> boundaries_;
 
+    /// @brief next available NodeID of tries on each partition before insertions,
+    ///        skip all previous NodeID when merging a partition trie into the final trie.
+    ///        designed for supporting incremental updates. there are partitionNum_ elements.
+    std::vector<TrieNodeIDType> skipNodeID_;
+
     /// @brief how many term occurences.
     size_t fileLines_;
 
+    /// @brief number of work threads.
     int threadNum_;
 
+    /// @brief work thread pool.
     boost::thread_group workerThreads_;
 
-    std::vector<TrieNodeIDType> partitionState_;
-
+    /// @brief the final(major) trie, findRegExp are operating this trie.
     PartitionTrie2<StringType, TrieNodeIDType> trie_;
 
 };

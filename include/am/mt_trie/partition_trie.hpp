@@ -49,12 +49,10 @@ class PartitionTrie
 
 public:
 
-    PartitionTrie(const std::string& dbname,
-                  const NodeIDType start = NodeIDTraits<NodeIDType>::MinValue )
+    PartitionTrie(const std::string& dbname)
     :   closed_(true), dbname_(dbname),
         edgeTable_(dbname_ + ".hdbtrie.edgetable"),
-        dataTable_(dbname_ + ".hdbtrie.datatable.sdb"),
-        startNodeID_(start)
+        dataTable_(dbname_ + ".hdbtrie.datatable.sdb")
     {
         nextNID_ = NodeIDTraits<NodeIDType>::MaxValue;
     }
@@ -81,7 +79,18 @@ public:
         edgeTable_.setMergeFactor(2);
         edgeTable_.open();
         ///TODO adjust nextNID_ after boundaries are inserted;
-        nextNID_ = edgeTable_.numItems() + startNodeID_;
+        nextNID_ = edgeTable_.numItems() +
+            NodeIDTraits<NodeIDType>::MinValue;
+    }
+
+    /**
+     * @brief set base NodeID.
+     *        Next available NodeID <= Base NodeID + Edge numbers
+     */
+    void setbase(const NodeIDType base)
+    {
+        nextNID_ = NodeIDTraits<NodeIDType>::MinValue +
+            edgeTable_.numItems()  + base;
     }
 
     void flush()
@@ -162,17 +171,17 @@ public:
         return keyList.size() ? true : false;
     }
 
-    void concatenate(ThisType& other, NodeIDType start) {
+    void concatenate(ThisType& other, NodeIDType startNID) {
         EdgeTableRecordType edge;
         typename EdgeTableType::HDBCursor ecur = other.edgeTable_.get_first_Locn();
         while(other.edgeTable_.get(ecur,edge)) {
-            if(edge.value > start)
+            if(edge.value >=startNID)
                 edgeTable_.insertValue(edge.key, edge.value);
             other.edgeTable_.seq(ecur);
         }
 
         DataTableRecordType data;
-        typename DataTableType::SDBCursor dcur = other.dataTable_.search(start);
+        typename DataTableType::SDBCursor dcur = other.dataTable_.search(startNID);
         while(other.dataTable_.get(dcur,data)) {
             dataTable_.insertValue(data.key, data.value);
             other.dataTable_.seq(dcur);
@@ -349,8 +358,6 @@ private:
 
     std::string dbname_;
 
-    NodeIDType startNodeID_;
-
     EdgeTableType edgeTable_;
 
     DataTableType dataTable_;
@@ -378,9 +385,8 @@ public:
 
     virtual ~PartitionTrie2(){}
 
-    void openForRead(){ trie_.openForRead(); }
-    void openForWrite(){ trie_.openForWrite(); }
     void open(){ trie_.open(); }
+    void setbase(const NodeIDType base){ trie_.setbase(base); }
     void flush(){ trie_.flush(); }
     void close(){ trie_.close(); }
     void optimize(){ trie_.optimize(); }
