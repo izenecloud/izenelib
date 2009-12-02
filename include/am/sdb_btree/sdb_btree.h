@@ -240,7 +240,7 @@ public:
 	ValueType* find(const KeyType& key) {
 		SDBCursor locn;
 		if( search(key, locn) )
-       		return new ValueType(locn.first->values[locn.second]);
+		return new ValueType(locn.first->values[locn.second]);
 		else return NULL;
 	}
 
@@ -407,6 +407,30 @@ public:
 		std::remove(tempfile.c_str());
 		open();
 	}
+
+	void fillCache() {
+		queue<sdb_node*> qnode;
+		qnode.push( getRoot() );
+
+		while ( !qnode.empty() )
+		{
+			sdb_node* popNode = qnode.front();
+			qnode.pop();
+			if (popNode && !popNode->isLeaf && popNode->isLoaded ) {
+				for(size_t i=0; i<=popNode->objCount; i++)
+				{
+					if( _activeNodeNum > _sfh.cacheSize )
+					goto LABEL;
+					sdb_node* node = popNode->loadChild(i, _dataFile);
+					if( node )
+						qnode.push( node );
+
+				}
+			}
+		}
+		LABEL: return;
+	}
+
 private:
 	sdb_node* _root;
 	FILE* _dataFile;
@@ -596,9 +620,9 @@ private:
 		++_activeNodeNum;
 
 		//pre allocate memory for newNode for efficiency
-//		newNode->keys.resize(_sfh.maxKeys);
-//		newNode->values.resize(_sfh.maxKeys);
-//		newNode->children.resize(_sfh.maxKeys+1);
+		//		newNode->keys.resize(_sfh.maxKeys);
+		//		newNode->values.resize(_sfh.maxKeys);
+		//		newNode->children.resize(_sfh.maxKeys+1);
 
 		return newNode;
 	}
@@ -1680,7 +1704,7 @@ template<typename KeyType, typename ValueType, typename LockType, bool fixed,
 
 		// pre-fetch all nested keys
 		sdb_node* parent=node->parent;
-		if(parent)
+		if (parent)
 			for (unsigned int i=1; i<=parent->objCount; i++)
 				parent->loadChild(i, _dataFile);
 
