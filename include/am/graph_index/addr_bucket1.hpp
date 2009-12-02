@@ -3,8 +3,8 @@
    @author Kevin Hu
    @date 2009.11.24
  */
-#ifndef ADDR_BUCKET_HPP
-#define ADDR_BUCKET_HPP
+#ifndef ADDR_BUCKET1_HPP
+#define ADDR_BUCKET1_HPP
 
 #include<types.h>
 #include <ostream>

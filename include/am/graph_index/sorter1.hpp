@@ -3,8 +3,8 @@
    @author Kevin Hu
    @date 2009.11.24
  */
-#ifndef SORTER_HPP
-#define SORTER_HPP
+#ifndef SORTER1_HPP
+#define SORTER1_HPP
 
 #include<fstream>
 #include<types.h>
