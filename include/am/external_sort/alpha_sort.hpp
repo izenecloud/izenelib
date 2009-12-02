@@ -175,7 +175,7 @@ class AlphaSort
     
   };
 
-  typedef FileDataBucket<PRE_KEY_POINTER_, 10000000> data_bucket_t;
+  typedef FileDataBucket1<PRE_KEY_POINTER_, 10000000> data_bucket_t;
   /**
      Tournament tree node.
    **/

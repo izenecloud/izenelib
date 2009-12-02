@@ -8,7 +8,6 @@
 
 #include<fstream>
 #include<types.h>
-#include <am/external_sort/alpha_sort.hpp>
 #include <am/graph_index/dyn_array.hpp>
 #include "addr_bucket.hpp"
 #include<string>
