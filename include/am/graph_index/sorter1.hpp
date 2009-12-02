@@ -145,13 +145,13 @@ friend std::ostream& operator << (std::ostream& os, const ADDR_STRUCT& v)
    Get every bucket sorted. Then, merge all of them into one bucket.
  */
 template<
-  uint32_t MAX_LEN_PER_BUCK = 10000000,
+  uint32_t BUCKET_NUM = 800,//!< number of bucket 
   uint32_t BUF_SIZE = 200000000,//!< size of buffer which is used for access
   class TERM_TYPE = uint32_t//!< type of term
   >
 class Sorter
 {
-  typedef Sorter<MAX_LEN_PER_BUCK, BUF_SIZE, TERM_TYPE> self_t;
+  typedef Sorter<BUCKET_NUM, BUF_SIZE, TERM_TYPE> self_t;
   
   typedef FileDataBucket<struct ADDR_STRUCT, 10000> bucket_t;
   
@@ -165,10 +165,8 @@ private:
   std::string filenm_;//!< prefix name of file to store data
   FILE* f_;
   FILE* out_f_;
-  FILE* bucket_f_;
-  FILE* sorted_bucket_f_;
   
-  std::vector<bucket_t*> buckets_;//!< data bucket
+  bucket_t* buckets_[BUCKET_NUM+1];//!< data bucket
   uint32_t  max_term_len_;//!< the max length of a phrase
 
   /**
@@ -222,7 +220,7 @@ private:
     uint32_t r = 0;
     uint32_t min = -1;
 
-    for (uint32_t i=0; i<buckets_.size()-1; ++i)
+    for (uint32_t i=0; i<BUCKET_NUM; ++i)
       if (min>array[i].INTEGER())
       {
         min = array[i].INTEGER();
@@ -263,10 +261,10 @@ private:
       uint64_t end = fs>(k+1)*SIZE? (k+1)*SIZE: fs;
       
       fseek(f, sizeof(uint64_t), SEEK_SET);
-      buckets_.back()->ready4fetch();
-      for (uint64_t i=0; i<buckets_.back()->num(); ++i)
+      buckets_[BUCKET_NUM]->ready4fetch();
+      for (uint64_t i=0; i<buckets_[BUCKET_NUM]->num(); ++i)
       {
-        ADDR_STRUCT addr = buckets_.back()->next();
+        ADDR_STRUCT addr = buckets_[BUCKET_NUM]->next();
         //std::cout<<addr<<std::endl;
 
         if (addr.ADDR() < start || addr.ADDR() >= end)
@@ -328,7 +326,8 @@ public:
 
     max_term_len_ = -1;
 
-    bucket_f_ = sorted_bucket_f_ = NULL;
+    for (uint32_t i=0; i<BUCKET_NUM+1; ++i)
+      buckets_[i] = NULL;
   }
 
   ~Sorter()
@@ -340,23 +339,15 @@ public:
     if (f_!=NULL)
       fclose(f_);
 
-    for (; buckets_.size()>0;)
+    for (uint32_t i=0; i<BUCKET_NUM+1; ++i)
     {
-      if (buckets_.back() == NULL)
-      {
-        buckets_.pop_back();
+      if (buckets_[i] == NULL)
         continue;
-      }
       
-      delete buckets_.back();
-      buckets_.pop_back();
+      buckets_[i]->dump();
+      delete buckets_[i];
+      buckets_[i] = NULL;
     }
-    
-    if (sorted_bucket_f_!= NULL)
-      fclose(sorted_bucket_f_);
-    if (bucket_f_!= NULL)
-      fclose(bucket_f_);
-
   }
 
   /**
@@ -364,36 +355,25 @@ public:
    */
   void ready4add()
   {
-    num_ = 0;
     p_ = 0;
-
-    if (f_)
-      fclose(f_);
-
-    f_ = fopen(filenm_.c_str(), "w+");
-    IASSERT(f_ != NULL);
-    IASSERT(fwrite(&num_, sizeof(uint64_t), 1, f_)==1);
-
-    if (sorted_bucket_f_!= NULL)
-      fclose(sorted_bucket_f_);
-    if (bucket_f_!= NULL)
-      fclose(bucket_f_);
-
-    sorted_bucket_f_ = fopen((filenm_+".sbuc").c_str(), "w+");
-    IASSERT(sorted_bucket_f_ != NULL);
-    bucket_f_ = fopen((filenm_+".buc").c_str(), "w+");
-    IASSERT(bucket_f_ != NULL);
-
-    for (; buckets_.size()>0;)
+    fflush(f_);
+    fseek(f_, 0, SEEK_END);
+    
+    for (uint32_t i=0; i<BUCKET_NUM+1; ++i)
     {
-      if (buckets_.back() == NULL)
+      if (buckets_[i] != NULL)
       {
-        buckets_.pop_back();
-        continue;
+        buckets_[i]->dump();
+        delete buckets_[i];
       }
       
-      delete buckets_.back();
-      buckets_.pop_back();
+      std::stringstream ss;
+      ss<< (filenm_+".buc.")<<i<<std::endl;
+      std::string tmp;
+      ss >> tmp;
+
+      buckets_[i] = new bucket_t(tmp.c_str());
+      buckets_[i]->ready4add();
     }
   }
 
@@ -404,11 +384,8 @@ public:
   
   void add_terms(const terms_t& terms, uint32_t docid)
   {
-    if(buckets_.size()==0)
-    {
-      buckets_.push_back(new bucket_t(bucket_f_, 0));
-      buckets_.back()->ready4add();
-    }
+    // if (terms.length()<2)
+//       return;
     
     for (typename terms_t::size_t i=0; i<terms.length(); ++i)
     {
@@ -418,15 +395,7 @@ public:
       if (is_mem_full_(s+sizeof(uint16_t)))
         flush_();
 
-      if (buckets_.back()->num()>=MAX_LEN_PER_BUCK)
-      {
-        buckets_.back()->flush();
-        fseek(bucket_f_, 0, SEEK_END);
-        buckets_.push_back(new bucket_t(bucket_f_, ftell(bucket_f_)));
-        buckets_.back()->ready4add();
-      }
-
-      buckets_.back()->push_back(ADDR_STRUCT(terms.at(i), ftell(f_)+p_, s));
+      buckets_[num_%BUCKET_NUM]->push_back(ADDR_STRUCT(terms.at(i), ftell(f_)+p_, s));
       
       *(uint16_t*)(buf_+p_) = s;
       p_ += sizeof(uint16_t);      
@@ -450,9 +419,13 @@ public:
     fclose(f_);
     f_ = NULL;
 
-    buckets_.back()->flush();
-    for (uint32_t i=0; i<buckets_.size(); ++i)
+    for (uint32_t i=0; i<BUCKET_NUM; ++i)
+    {
+      buckets_[i]->flush();
       buckets_[i]->sort();
+
+      //std::cout<<"Bucket "<<i<<" sorted\n";
+    }
 
     std::cout<<" ...[OK]\n";
   }
@@ -468,18 +441,20 @@ public:
     free(buf_);
     buf_= NULL;
 
-    for (uint32_t i=0; i<buckets_.size(); ++i)
-      buckets_[i]->ready4fetch();
+//     AlphaSort<uint32_t, false> alpha;
+//     alpha.addInputFile(filenm_.c_str());
+//     alpha.sort((filenm_+".out").c_str());
+//     return;
 
-    buckets_.push_back(new bucket_t(sorted_bucket_f_, 0));
+    for (uint32_t i=0; i<BUCKET_NUM; ++i)
+      buckets_[i]->ready4fetch();
     
-    ADDR_STRUCT firsts[buckets_.size()-1];
-    uint64_t    index[buckets_.size()-1];
+    ADDR_STRUCT firsts[BUCKET_NUM];
+    uint64_t    index[BUCKET_NUM];
 
     //uint32_t finished = 0;
-    for (uint32_t i=0; i<buckets_.size()-1; ++i)
+    for (uint32_t i=0; i<BUCKET_NUM; ++i)
     {
-      buckets_[i]->ready4fetch();
       if (buckets_[i]->num()>0)
         firsts[i] = buckets_[i]->next();
       else
@@ -488,7 +463,7 @@ public:
       index[i] = 1;
     }
 
-    buckets_.back()->ready4add();
+    buckets_[BUCKET_NUM]->ready4add();
 
     uint32_t last = 0;
 
@@ -496,12 +471,12 @@ public:
     while (1)
     {
       last = sort_(firsts);
-      IASSERT(last<buckets_.size()-1);
+      IASSERT(last<BUCKET_NUM);
       
       if (firsts[last] == (TERM_TYPE)-1)
         break;
       
-      buckets_.back()->push_back(firsts[last]);
+      buckets_[BUCKET_NUM]->push_back(firsts[last]);
       //of<<firsts[last].INTEGER()<<" "<<firsts[last].ADDR()<<std::endl;
       
       if (index[last]>=buckets_[last]->num())
@@ -516,11 +491,26 @@ public:
 //       std::cout<<std::endl;
     }
 
-    buckets_.back()->flush();
+    //std::cout<<buckets_[BUCKET_NUM]->num()<<" ++\n";
+    
+    for (uint32_t i=0; i<BUCKET_NUM; ++i)
+    {
+      IASSERT(firsts[i]==(TERM_TYPE)-1);
+      buckets_[i]->dump();
+      delete buckets_[i];
+      buckets_[i] = NULL;
+    }
+
+    buckets_[BUCKET_NUM]->flush();
 
     std::cout<<"Sorting is done.\nOutputing is going on...\n";
 
     output_();
+
+    buckets_[BUCKET_NUM]->dump();
+    delete buckets_[BUCKET_NUM];
+    buckets_[BUCKET_NUM] = NULL;
+
   }
 
   /**
@@ -566,6 +556,42 @@ public:
     p_ += sizeof(uint32_t);
   }  
 
+//   void output(uint64_t start, uint64_t size)
+//   {
+//     std::stringstream ss;
+//     ss<< (filenm_+".buc.")<<BUCKET_NUM<<std::endl;
+//     std::string tmp;
+//     ss >> tmp;
+
+//     bucket_t* buckets = new bucket_t(tmp.c_str());
+
+//     buckets->ready4fetch();
+
+//     for(uint64_t i=0; i<start; ++i)
+//       buckets->next();
+
+//     ss.clear();
+//     ss<< (filenm_)<<start<<std::endl;
+//     ss >> tmp;
+//     FILE* f = fopen(tmp.c_str(), "w+");
+//     FILE* of = fopen(filenm_.c_str(), "r");
+//     char buf[1024];
+//     for (uint32_t i=0; i<size&&i<buckets->num(); ++i)
+//     {
+//       ADDR_STRUCT addr = buckets->next();
+
+//       uint16_t len;
+//       fseek(of, addr.ADDR(), SEEK_SET);
+//       IASSERT(fread(&len, sizeof(uint16_t), 1, of)==1);
+//       IASSERT(fread(buf, len, 1, of)==1);
+
+//       IASSERT(fwrite(&len, sizeof(uint16_t), 1, f)==1);
+//       IASSERT(fwrite(buf, len, 1, f)==1);
+//     }
+
+//     fclose(f);
+//     fclose(of);
+//   }
 }
 ;
 
