@@ -17,7 +17,7 @@
 #include <boost/thread/mutex.hpp>
 #include <boost/bind.hpp>
 #include <time.h>
-#include <am/graph_index/addr_bucket.hpp>
+#include <am/graph_index/addr_bucket1.hpp>
 
 using namespace std;
 
