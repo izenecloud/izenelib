@@ -124,7 +124,12 @@ public:
 		return true;
 	}
 	
-
+    bool load(FILE* f){
+    	fileLock_.acquire_write_lock();
+		bool ret = this->read(f);	
+		fileLock_.release_write_lock();  
+		return ret;      
+    }
 	/**
 	 *  read from disk
 	 */
