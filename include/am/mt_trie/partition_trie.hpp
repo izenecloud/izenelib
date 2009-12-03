@@ -10,6 +10,51 @@
 
 NS_IZENELIB_AM_BEGIN
 
+template<typename NodeIDType>
+class PartitionTrieHeader {
+
+public:
+
+    NodeIDType nextNodeID;
+
+    PartitionTrieHeader(const std::string& path)
+        : path_(path)
+	{
+	    ifstream ifs(path_.c_str());
+        if( !ifs ) {
+            nextNodeID = NodeIDTraits<NodeIDType>::MinValue;
+            return;
+        }
+
+        ifs.seekg(0, ifstream::end);
+        if( 0 == ifs.tellg()) {
+            nextNodeID = NodeIDTraits<NodeIDType>::MinValue;
+        } else {
+            ifs.seekg(0, fstream::beg);
+            boost::archive::xml_iarchive xml(ifs);
+            xml >> boost::serialization::make_nvp("NextNodeID", nextNodeID);
+        }
+        ifs.close();
+    }
+
+    ~PartitionTrieHeader()
+    {
+        flush();
+    }
+
+    void flush()
+    {
+        ofstream ofs(path_.c_str());
+        boost::archive::xml_oarchive xml(ofs);
+        xml << boost::serialization::make_nvp("NextNodeID", nextNodeID);
+        ofs.flush();
+    }
+
+private:
+
+    std::string path_;
+};
+
 /**
  * Maintain all edges' information in a Trie data structure with the form of
  * database table.
@@ -51,10 +96,11 @@ public:
 
     PartitionTrie(const std::string& dbname)
     :   closed_(true), dbname_(dbname),
-        edgeTable_(dbname_ + ".hdbtrie.edgetable"),
-        dataTable_(dbname_ + ".hdbtrie.datatable.sdb")
+        partitionTrieHeader_(dbname_ + ".header.xml"),
+        edgeTable_(dbname_ + ".edgetable"),
+        dataTable_(dbname_ + ".datatable.sdb")
     {
-        nextNID_ = NodeIDTraits<NodeIDType>::MaxValue;
+        nextNID_ = partitionTrieHeader_.nextNodeID;
     }
 
     virtual ~PartitionTrie()
@@ -78,23 +124,12 @@ public:
         edgeTable_.setCachedRecordsNumber(2500000);
         edgeTable_.setMergeFactor(2);
         edgeTable_.open();
-        ///TODO adjust nextNID_ after boundaries are inserted;
-        nextNID_ = edgeTable_.numItems() +
-            NodeIDTraits<NodeIDType>::MinValue;
-    }
-
-    /**
-     * @brief set base NodeID.
-     *        Next available NodeID <= Base NodeID + Edge numbers
-     */
-    void setbase(const NodeIDType base)
-    {
-        nextNID_ = NodeIDTraits<NodeIDType>::MinValue +
-            edgeTable_.numItems()  + base;
     }
 
     void flush()
     {
+        partitionTrieHeader_.nextNodeID = nextNID_;
+        partitionTrieHeader_.flush();
         edgeTable_.flush();
         dataTable_.flush();
     }
@@ -188,6 +223,16 @@ public:
         }
 
         nextNID_ = (nextNID_ > other.nextNID_) ? nextNID_ : other.nextNID_;
+    }
+
+    /**
+     * @brief set base NodeID.
+     */
+    void setbase(const NodeIDType base)
+    {
+        //std::cout << "nextNID_ changes " << nextNID_;
+        nextNID_ += base;
+        //std::cout << " ==> " << nextNID_ << std::endl;
     }
 
     NodeIDType nextNodeID() {
@@ -358,6 +403,8 @@ private:
 
     std::string dbname_;
 
+    PartitionTrieHeader<NodeIDType> partitionTrieHeader_;
+
     EdgeTableType edgeTable_;
 
     DataTableType dataTable_;
@@ -386,7 +433,6 @@ public:
     virtual ~PartitionTrie2(){}
 
     void open(){ trie_.open(); }
-    void setbase(const NodeIDType base){ trie_.setbase(base); }
     void flush(){ trie_.flush(); }
     void close(){ trie_.close(); }
     void optimize(){ trie_.optimize(); }
@@ -425,6 +471,10 @@ public:
             keyList.push_back(tmp);
         }
         return true;
+    }
+
+    void setbase(const NodeIDType base) {
+        trie_.setbase(base);
     }
 
     void concatenate(ThisType& other, NodeIDType start) {
