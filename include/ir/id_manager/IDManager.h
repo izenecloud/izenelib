@@ -68,9 +68,9 @@ template<typename NameString,
          typename LockType = izenelib::util::NullLock,
          typename RegExpHandler = DiskRegExpHandler<NameString, NameID>,
          typename TermIDGenerator = HashIDGenerator<NameString, NameID>,
-         typename TermIDStorage = SDBIDStorage<NameString, NameID, LockType>,
+         typename TermIDStorage = HDBIDStorage<NameString, NameID, LockType>,
          typename DocIDGenerator = UniqueIDGenerator<NameString, NameID, LockType>,
-         typename DocIDStorage = SDBIDStorage<NameString, NameID, LockType> >
+         typename DocIDStorage = HDBIDStorage<NameString, NameID, LockType> >
 class _IDManager
 {
 
@@ -298,7 +298,7 @@ typedef _IDManager<wiselib::UString, uint32_t,
                    HashIDGenerator<wiselib::UString, uint32_t>,
                    EmptyIDStorage<wiselib::UString, uint32_t>,
                    UniqueIDGenerator<wiselib::UString, uint32_t>,
-                   SDBIDStorage<wiselib::UString, uint32_t> > IDManagerRelease32;
+                   HDBIDStorage<wiselib::UString, uint32_t> > IDManagerRelease32;
 
 /**
  * This version of IDManager supports getTermStringByTermId() and
@@ -316,7 +316,7 @@ typedef _IDManager<wiselib::UString, uint64_t,
                    HashIDGenerator<wiselib::UString, uint64_t>,
                    EmptyIDStorage<wiselib::UString, uint64_t>,
                    UniqueIDGenerator<wiselib::UString, uint64_t>,
-                   SDBIDStorage<wiselib::UString, uint64_t> > IDManagerRelease64;
+                   HDBIDStorage<wiselib::UString, uint64_t> > IDManagerRelease64;
 
 /**
  * This version of IDManager is provided for I-classifier, which requires TermID to be
@@ -327,7 +327,7 @@ typedef _IDManager<wiselib::UString, uint32_t,
                    izenelib::util::NullLock,
                    EmptyRegExpHandler<wiselib::UString, uint32_t>,
                    UniqueIDGenerator<wiselib::UString, uint32_t, izenelib::util::ReadWriteLock>,
-                   SDBIDStorage<wiselib::UString, uint32_t, izenelib::util::ReadWriteLock>,
+                   HDBIDStorage<wiselib::UString, uint32_t, izenelib::util::ReadWriteLock>,
                    EmptyIDGenerator<wiselib::UString, uint32_t>,
                    EmptyIDStorage<wiselib::UString, uint32_t> > IDManagerIClassifier;
 
@@ -339,7 +339,7 @@ typedef _IDManager<wiselib::UString, uint32_t,
                    izenelib::util::NullLock,
                    EmptyRegExpHandler<wiselib::UString, uint32_t>,
                    HashIDGenerator<wiselib::UString, uint32_t>,
-                   EmptyIDStorage<wiselib::UString, uint32_t>,
+                   HDBIDStorage<wiselib::UString, uint32_t>,
                    EmptyIDGenerator<wiselib::UString, uint32_t>,
                    EmptyIDStorage<wiselib::UString, uint32_t> > IDManagerMIA;
 /**
