@@ -36,10 +36,27 @@ BOOST_AUTO_TEST_CASE(HDBTrie_am)
 
     {
 
-        MtTrie<std::string> mtTrie("mt");
+        MtTrie<std::string> mtTrie("mt", 16);
 	mtTrie.open();
         start = clock();
-	mtTrie.executeTask("input", 16, 2);
+
+	std::ifstream input;
+	input.open("input", std::ifstream::binary|std::ifstream::in);
+	int buffersize;
+	char buffer[256];
+	while(!input.eof()) {
+		input.read((char*)&buffersize, sizeof(int));
+		if(buffersize > 256) {
+			input.seekg(buffersize, std::ifstream::cur);
+		} else {
+			input.read(buffer, buffersize);
+			std::string term(buffer, buffersize);
+			mtTrie.insert(term);
+		}
+	}
+
+
+	mtTrie.executeTask(2);
         finish = clock();
         boost::posix_time::time_duration td = boost::posix_time::microsec_clock::local_time() - start_real;
         printf( "\nIt takes %f seconds (CPU time) and %f seconds (real time)\n",

@@ -273,6 +273,9 @@ int main(int argc, char *argv[]) {
 		tb.setPageSize(pageSize);
 		tb.setCacheSize(cacheSize);
 		tb.open();
+		cout<<"after fillCache!!!"<<endl;
+		tb.fillCache();
+		tb.display();
 		run(tb);
 	}
 	catch(bad_alloc)

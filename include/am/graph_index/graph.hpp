@@ -336,8 +336,8 @@ friend std::ostream& operator << (std::ostream& os, const LEAF_STRUCT& v)
 
 
 template<
-  uint32_t BUCKET_NUM = 895,//!< used for alpha sort, number of inputfiles
-  uint32_t BATCH_SAVE_SIZE = 100, //!< number of branch of root for one time saving.
+  uint32_t MAX_LEN_PER_BUCK = 10000000,//!< the max size per bucket
+  uint32_t BATCH_SAVE_SIZE = 1000, //!< number of branch of root for one time saving.
   bool LEAN_MODE = false,
   class TERM_TYPE = uint32_t,
   //uint32_t SAVE_RATIO = 500,//number of branch for saving
@@ -346,12 +346,12 @@ template<
   >
 class Graph
 {
-  typedef Graph<BUCKET_NUM, BATCH_SAVE_SIZE, LEAN_MODE, TERM_TYPE, NID_LEN_TYPE, ADDING_BUF_SIZE> self_t;
+  typedef Graph<MAX_LEN_PER_BUCK, BATCH_SAVE_SIZE, LEAN_MODE, TERM_TYPE, NID_LEN_TYPE, ADDING_BUF_SIZE> self_t;
   
   typedef DynArray<uint64_t> array64_t;
   typedef DynArray<uint32_t> array32_t;
   
-  typedef Sorter<BUCKET_NUM, ADDING_BUF_SIZE, TERM_TYPE> sorter_t;
+  typedef Sorter<MAX_LEN_PER_BUCK, ADDING_BUF_SIZE, TERM_TYPE> sorter_t;
   
   typedef EDGE_STRUCT<NID_LEN_TYPE> edge_t;
   typedef FREQ_STRUCT<NID_LEN_TYPE> sort_freq_t;
@@ -723,23 +723,23 @@ class Graph
     doclist += docs;
   }
 
-  uint32_t min_(sort_freq_t* array)
-  {
-    uint32_t i  = 0;
-    uint32_t min = 0;
+//   uint32_t min_(sort_freq_t* array)
+//   {
+//     uint32_t i  = 0;
+//     uint32_t min = 0;
 
-    for (uint32_t k=0;k<BUCKET_NUM;++k)
-    {
-      if (array[k].FREQ()>min)
-      {
-        i = k;
-        min = array[k].FREQ();
-      }
+//     for (uint32_t k=0;k<buckets_.size()-1;++k)
+//     {
+//       if (array[k].FREQ()>min)
+//       {
+//         i = k;
+//         min = array[k].FREQ();
+//       }
       
-    }
+//     }
 
-    return i;
-  }
+//     return i;
+//   }
 
   void leaf_reset()
   {

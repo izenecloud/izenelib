@@ -817,6 +817,27 @@ public:
 		return sfh_.numItems;
 	}
 
+	void fillCache() {
+		queue<bucket_chain*> qnode;
+
+		for (size_t i=0; i<directorySize_; i++) {
+			load_( entry_[i] );
+			if( entry_[i] && entry_[i]->isLoaded )
+				qnode.push( entry_[i] );
+		}
+		while (!qnode.empty() ) {
+			bucket_chain* popNode = qnode.front();
+			if ( popNode && popNode->isLoaded)
+			qnode.pop();
+			if (popNode && popNode->next ) {
+				bucket_chain* node  = loadNext_(popNode); 
+				if( node )
+					qnode.push(node );
+				if( activeNum_> sfh_.cacheSize )
+				break;
+			}
+		}
+	}
 public:
 	/**
 	 *   db must be opened to be used.
@@ -1081,7 +1102,7 @@ private:
 	bool load_(bucket_chain* bucket) {
 		if (bucket && !bucket->isLoaded ) {
 			++activeNum_;
-			return bucket->read(dataFile_);
+			return bucket->load(dataFile_);
 
 		}
 		return false;

@@ -411,6 +411,29 @@ public:
 		return _root;
 	}
 
+	void fillCache() {
+		queue<sdb_pnode*> qnode;
+		qnode.push( getRoot() );
+
+		while ( !qnode.empty() )
+		{
+			sdb_pnode* popNode = qnode.front();
+			qnode.pop();
+			if (popNode && !popNode->isLeaf && popNode->isLoaded ) {
+				for(size_t i=0; i< popNode->objCount; i++)
+				{
+					if( _activeNodeNum > _sfh.cacheSize )
+					goto LABEL;
+					sdb_pnode* node = popNode->loadChild(i, _dataFile);
+					if( node )
+						qnode.push( node );
+
+				}
+			}
+		}
+		LABEL: return;
+	}
+
 private:
 	sdb_pnode* _root;
 	FILE* _dataFile;
@@ -1418,7 +1441,7 @@ template<typename KeyType, typename ValueType, typename LockType, bool fixed,
 		// didn't visit the last node last time.
 		if (locn.second == 0) {
 			sdb_pnode* parent=node->parent;
-			if( parent )
+			if (parent)
 				for (unsigned int i=1; i<parent->objCount; i++)
 					parent->loadChild(i, _dataFile);
 		}

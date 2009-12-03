@@ -17,7 +17,7 @@
 #include <boost/thread/mutex.hpp>
 #include <boost/bind.hpp>
 #include <time.h>
-#include <am/graph_index/addr_bucket.hpp>
+#include <am/graph_index/addr_bucket1.hpp>
 
 using namespace std;
 
@@ -175,7 +175,7 @@ class AlphaSort
     
   };
 
-  typedef FileDataBucket<PRE_KEY_POINTER_, 10000000> data_bucket_t;
+  typedef FileDataBucket1<PRE_KEY_POINTER_, 10000000> data_bucket_t;
   /**
      Tournament tree node.
    **/
