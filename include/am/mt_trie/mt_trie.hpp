@@ -399,6 +399,7 @@ protected:
         }
 
         trie_.optimize();
+        trie_.flush();
     }
 
 private:

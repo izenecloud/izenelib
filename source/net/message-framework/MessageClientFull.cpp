@@ -256,6 +256,7 @@ bool MessageClientFull::checkAgentInfo_(ServicePermissionInfo& permissionInfo) {
 }
 
 void MessageClientFull::flushPermissionCache(const std::string& serviceName) {
+	boost::mutex::scoped_lock acceptedPermissionLock(acceptedPermissionMutex_);  	
 	acceptedPermissionList_.erase(serviceName);
 }
 
@@ -562,6 +563,7 @@ bool MessageClientFull::putServiceRequest(const MessageFrameworkNode& server,
 							DLOG(ERROR) << "[Client1:" << getName()
 							<< "] Reqeust id 0x" << hex << requestId << dec
 							<< " timeout" << std::endl;
+							boost::mutex::scoped_lock acceptedPermissionLock(acceptedPermissionMutex_);  							
 							acceptedPermissionList_.erase(serviceName);
 							goto get_service_result_fail;
 						}
