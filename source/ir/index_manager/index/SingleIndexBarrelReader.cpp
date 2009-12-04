@@ -154,9 +154,9 @@ void SingleIndexBarrelReader::deleteDocumentPhysically(IndexerDocument* pDoc)
 
 void SingleIndexBarrelReader::delDocField(unsigned int colID, docid_t docId, const char* fieldName, boost::shared_ptr<ForwardIndex>& forwardIndex)
 {
-    DiskTermReader* pTermReader = reinterpret_cast<DiskTermReader*>(termReader(colID,fieldName));
-    if (pTermReader == NULL)
-        return;
+///TODO  has not been verified
+    FieldInfo* pFieldInfo = pCollectionsInfo_->getCollectionInfo(colID)->getFieldsInfo()->getField(fieldName);
+    VocReader* pTermReader = new VocReader(pIndexer_->getDirectory(),name_.c_str(),pFieldInfo);
 
     if(!pMemCache_)
     {
@@ -174,7 +174,6 @@ void SingleIndexBarrelReader::delDocField(unsigned int colID, docid_t docId, con
     IndexInput* pDPInput = pDirectory->openInput(pBarrelInfo_->getName() + ".dfp");
     IndexInput* pPPInput = pDirectory->openInput(pBarrelInfo_->getName() + ".pop");
 
-    FieldInfo* pFieldInfo = pCollectionsInfo_->getCollectionInfo(colID)->getFieldsInfo()->getField(fieldName);
 
     bool ret = false;
     docid_t decompressed_docid;
@@ -253,22 +252,12 @@ void SingleIndexBarrelReader::delDocField(unsigned int colID, docid_t docId, con
 
         TERM_TABLE* pTermTable = pTermReader->getTermTable();
 
-        fileoffset_t lastPOffset = 0;
         int nTermCount = pTermReader->pTermReaderImpl_->nTermCount_;
-        //for(TERM_TABLE::iterator termTableIter = pTermTable->begin(); termTableIter!= pTermTable->end(); ++termTableIter)
         for (int i = 0; i < nTermCount; i++)
         {
             pVocWriter->writeInt(pTermTable[i].tid);				///write term id
             pVocWriter->writeInt(pTermTable[i].ti.docFreq());					///write df
             pVocWriter->writeLong(pTermTable[i].ti.docPointer()); ///write postingpointer
-            lastPOffset = pTermTable[i].ti.docPointer();
-
-        /*
-            pVocWriter->writeInt(termTableIter->first); 				///write term id
-            pVocWriter->writeInt(termTableIter->second.docFreq());					///write df
-            pVocWriter->writeLong(termTableIter->second.docPointer());	///write postingpointer
-            lastPOffset = termTableIter->second.docPointer();
-            */
         }
         pVocWriter->flush();
     }
@@ -276,6 +265,7 @@ void SingleIndexBarrelReader::delDocField(unsigned int colID, docid_t docId, con
     delete pDPInput;
     delete pPPInput;
     pMemCache_->flushMem();
+    delete pTermReader;
 }
 
 void SingleIndexBarrelReader::close()

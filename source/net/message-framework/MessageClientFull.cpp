@@ -683,7 +683,8 @@ bool MessageClientFull::putServiceRequest(const MessageFrameworkNode& server,
 				if ( false == semaphore->timed_wait(timeout) ) {
 					DLOG(ERROR) << "[Client:" << getName()
 					<< "] Reqeust id 0x" << hex << requestId << dec
-					<< " timeout" << std::endl;
+					<< " timeout" << std::endl;					
+					boost::mutex::scoped_lock acceptedPermissionLock(acceptedPermissionMutex_);					
 					acceptedPermissionList_.erase(serviceName);
 					return false;
 				}
@@ -935,6 +936,7 @@ bool MessageClientFull::putServiceRequest(const MessageFrameworkNode& server,
 				boost::shared_ptr<tcp::socket> sock) {
 			// tcp::endpoint endpoint = sock->local_endpoint();
 			tcp::endpoint endpoint = sock->remote_endpoint();
+			
 			std::string logMsg;
 			logMsg = "Accept new connection, Remote IP = ";
 			logMsg += endpoint.address().to_string();
