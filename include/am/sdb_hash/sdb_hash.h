@@ -1102,7 +1102,7 @@ private:
 	bool load_(bucket_chain* bucket) {
 		if (bucket && !bucket->isLoaded ) {
 			++activeNum_;
-			return bucket->read(dataFile_);
+			return bucket->load(dataFile_);
 
 		}
 		return false;

@@ -9,8 +9,8 @@
 #include "dyn_array.hpp"
 #include "id_transfer.hpp"
 #include "addr_bucket.hpp"
-#include<string>
-#include<vector>
+#include <string>
+#include <vector>
 #include <time.h>
 #include <boost/filesystem.hpp>
 //#include <fstream>
@@ -336,8 +336,8 @@ friend std::ostream& operator << (std::ostream& os, const LEAF_STRUCT& v)
 
 
 template<
-  uint32_t BUCKET_NUM = 895,//!< used for alpha sort, number of inputfiles
-  uint32_t BATCH_SAVE_SIZE = 100, //!< number of branch of root for one time saving.
+  uint32_t BUCKET_NUM = 800,//!< the max size per bucket
+  uint32_t BATCH_SAVE_SIZE = 1000, //!< number of branch of root for one time saving.
   bool LEAN_MODE = false,
   class TERM_TYPE = uint32_t,
   //uint32_t SAVE_RATIO = 500,//number of branch for saving
@@ -723,23 +723,23 @@ class Graph
     doclist += docs;
   }
 
-  uint32_t min_(sort_freq_t* array)
-  {
-    uint32_t i  = 0;
-    uint32_t min = 0;
+//   uint32_t min_(sort_freq_t* array)
+//   {
+//     uint32_t i  = 0;
+//     uint32_t min = 0;
 
-    for (uint32_t k=0;k<BUCKET_NUM;++k)
-    {
-      if (array[k].FREQ()>min)
-      {
-        i = k;
-        min = array[k].FREQ();
-      }
+//     for (uint32_t k=0;k<buckets_.size()-1;++k)
+//     {
+//       if (array[k].FREQ()>min)
+//       {
+//         i = k;
+//         min = array[k].FREQ();
+//       }
       
-    }
+//     }
 
-    return i;
-  }
+//     return i;
+//   }
 
   void leaf_reset()
   {

@@ -23,7 +23,7 @@ template<
   typename VALUE_TYPE = uint64_t,
   uint32_t BUF_SIZE = 1000
   >
-class FileDataBucket
+class FileDataBucket1
 {
   typedef DynArray<VALUE_TYPE> array_t;
 
@@ -34,7 +34,7 @@ class FileDataBucket
   uint64_t fetch_i_;//!< it indicate the current position when doing uniform access
   
 public:
-  FileDataBucket(const char* nm)
+  FileDataBucket1(const char* nm)
   {
     filenm_ = nm;
     buf_.reserve(BUF_SIZE/sizeof(VALUE_TYPE));

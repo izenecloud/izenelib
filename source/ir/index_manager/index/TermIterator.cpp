@@ -28,7 +28,7 @@ size_t TermIterator::setBuffer(char* pBuffer,size_t bufSize)
     return bufSize;
 }
 
-DiskTermIterator::DiskTermIterator(DiskTermReader* termReader)
+VocIterator::VocIterator(VocReader* termReader)
         :pTermReader_(termReader)
         ,pCurTerm_(NULL)
         ,pCurTermInfo_(NULL)
@@ -38,7 +38,7 @@ DiskTermIterator::DiskTermIterator(DiskTermReader* termReader)
 {
 }
 
-DiskTermIterator::~DiskTermIterator(void)
+VocIterator::~VocIterator(void)
 {
     if (pCurTerm_)
     {
@@ -58,17 +58,17 @@ DiskTermIterator::~DiskTermIterator(void)
     pCurTermInfo_ = NULL;
 }
 
-const Term* DiskTermIterator::term()
+const Term* VocIterator::term()
 {
     return pCurTerm_;
 }
 
-const TermInfo* DiskTermIterator::termInfo()
+const TermInfo* VocIterator::termInfo()
 {
     return pCurTermInfo_;
 }
 
-Posting* DiskTermIterator::termPosting()
+Posting* VocIterator::termPosting()
 {
     if (!pCurTermPosting_)
     {
@@ -87,7 +87,7 @@ Posting* DiskTermIterator::termPosting()
     return pCurTermPosting_;
 }
 
-size_t DiskTermIterator::setBuffer(char* pBuffer,size_t bufSize)
+size_t VocIterator::setBuffer(char* pBuffer,size_t bufSize)
 {
     int64_t nDLen,nPLen;
     pTermReader_->getFieldInfo()->getLength(NULL,&nDLen,&nPLen);
@@ -103,7 +103,7 @@ size_t DiskTermIterator::setBuffer(char* pBuffer,size_t bufSize)
     }
 }
 
-bool DiskTermIterator::next()
+bool VocIterator::next()
 {
     if(pTermReader_->getTermReaderImpl()->nTermCount_ > nCurPos_+1)			
     {
@@ -116,6 +116,103 @@ bool DiskTermIterator::next()
     }
     else return false;
 }
+
+//////////////////////////////////////////////////////////////////////////
+///DiskTermIterator
+DiskTermIterator::DiskTermIterator(Directory* pDirectory,const char* barrelname,FieldInfo* pFieldInfo)
+    :pDirectory_(pDirectory)
+    ,pFieldInfo_(pFieldInfo)
+    ,pCurTerm_(NULL)
+    ,pCurTermInfo_(NULL)
+    ,pCurTermPosting_(NULL)
+    ,pInputDescriptor_(NULL)
+    ,nCurPos_(-1)
+{
+    barrelName_ = barrelname;
+    pVocInput_ = pDirectory->openInput(barrelName_ + ".voc");
+    pVocInput_->seek(pFieldInfo->getIndexOffset());
+    fileoffset_t voffset = pVocInput_->getFilePointer();
+    ///begin read vocabulary descriptor
+    nVocLength_ = pVocInput_->readLong();
+    nTermCount_ = (int32_t)pVocInput_->readLong(); ///get total term count
+    ///end read vocabulary descriptor
+    pVocInput_->seek(voffset - nVocLength_);///seek to begin of vocabulary data
+
+}
+
+DiskTermIterator::~DiskTermIterator()
+{
+    delete pVocInput_;
+    if (pCurTerm_)
+    {
+        delete pCurTerm_;
+        pCurTerm_ = NULL;
+    }
+    if (pCurTermPosting_)
+    {
+        delete pCurTermPosting_;
+        pCurTermPosting_ = NULL;
+    }
+    if (pInputDescriptor_)
+    {
+        delete pInputDescriptor_;
+        pInputDescriptor_ = NULL;
+    }
+    if(pCurTermInfo_)
+    {
+        delete pCurTermInfo_;
+        pCurTermInfo_ = NULL;
+    }
+}
+
+const Term* DiskTermIterator::term()
+{
+    return pCurTerm_;
+}
+
+const TermInfo* DiskTermIterator::termInfo()
+{
+    return pCurTermInfo_;
+}
+
+Posting* DiskTermIterator::termPosting()
+{
+    if (!pCurTermPosting_)
+    {
+        pInputDescriptor_ = new InputDescriptor(true);
+        pInputDescriptor_->setDPostingInput(pDirectory_->openInput(barrelName_ + ".dfp"));
+        pInputDescriptor_->setPPostingInput(pDirectory_->openInput(barrelName_ + ".pop"));
+        pCurTermPosting_ = new OnDiskPosting(pInputDescriptor_,pCurTermInfo_->docPointer());
+    }
+    else
+    {
+        ((OnDiskPosting*)pCurTermPosting_)->reset(pCurTermInfo_->docPointer());///reset to a new posting
+    }
+    return pCurTermPosting_;
+}
+
+bool DiskTermIterator::next()
+{
+    if(nTermCount_ > nCurPos_+1) 		
+    {
+        ++nCurPos_;
+        termid_t tid = pVocInput_->readInt();
+        freq_t df = pVocInput_->readInt();
+        fileoffset_t dfiP = pVocInput_->readLong();
+
+        if(pCurTerm_ == NULL)
+            pCurTerm_ = new Term(pFieldInfo_->getName(),tid);
+        else 
+            pCurTerm_->setValue(tid);
+        if(pCurTermInfo_ == NULL)
+            pCurTermInfo_ = new TermInfo(df,dfiP);
+        else
+            pCurTermInfo_->set(df,dfiP);
+        return true;
+    }
+    else return false;
+}
+
 
 //////////////////////////////////////////////////////////////////////////
 //
