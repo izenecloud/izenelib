@@ -182,6 +182,7 @@ public:
 //            std::ofstream::trunc|std::ofstream::binary );
         if(writeCache_.fail())
             std::cerr << logHead() << "fail to reopen write cache" << std::endl;
+        flush();
     }
 
     /**
