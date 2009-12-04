@@ -110,14 +110,13 @@ public:
             sdbi->deletions = header_.deletions[i];
             sdbList_.push_back(sdbi);
         }
+
+        header_.flush();
     }
 
     ~HugeDB()
     {
         close();
-
-        for(size_t i = 0; i<sdbList_.size(); i++)
-            delete sdbList_[i];
     }
 
     /*************************************************
@@ -190,11 +189,32 @@ public:
      */
     void open()
     {
-        if(sdbList_.size() == 0)
-            createRamSdb();
         for(size_t i = 0; i<sdbList_.size(); i++)
             sdbList_[i]->sdb.open();
+
+        // create a empty partition
+        createRamSdb();
+
+        isSync_ = true;
         isOpen_ = true;
+    }
+
+    void clear()
+    {
+        // delete each partitions
+        for(size_t i = 0; i<sdbList_.size(); i++) {
+            std::string n = sdbList_[i]->sdb.getName();
+            sdbList_[i]->sdb.close();
+            delete sdbList_[i];
+            std::remove(n.c_str());
+        }
+        sdbList_.clear();
+
+        // create a empty partition
+        createRamSdb();
+
+        // update header
+        flush();
     }
 
     /**
@@ -203,8 +223,12 @@ public:
     void close()
     {
         flush();
-        for(size_t i = 0; i<sdbList_.size(); i++)
+        for(size_t i = 0; i<sdbList_.size(); i++) {
             sdbList_[i]->sdb.close();
+            delete sdbList_[i];
+        }
+        sdbList_.clear();
+        isSync_ = false;
         isOpen_ = false;
     }
 
@@ -678,7 +702,7 @@ protected:
 
     inline void tryMerge()
     {
-        if(cachedRecordsNumber_ == (size_t)sdbList_.back()->sdb.numItems() )
+        if(cachedRecordsNumber_ <= (size_t)sdbList_.back()->sdb.numItems() )
 	    {
             if( !isSync_ )
                 flushRamSdb();
