@@ -19,16 +19,17 @@ namespace indexmanager{
 class Posting;
 class InputDescriptor;
 class DiskTermReader;
+class VocReader;
 /**
-* Iterate terms from index barrel files(*.voc)
+* Iterate terms from index barrel files(*.voc), the vocabulary should
+* first be all loaded into memory by VocReader
 */
-
-class DiskTermIterator : public TermIterator
+class VocIterator : public TermIterator
 {
 public:
-    DiskTermIterator(DiskTermReader* termReader);
+    VocIterator(VocReader* termReader);
 
-    ~DiskTermIterator();
+    ~VocIterator();
 
     bool next();
 
@@ -40,14 +41,65 @@ public:
 
     size_t setBuffer(char* pBuffer,size_t bufSize);
 
-protected:
-    DiskTermReader* pTermReader_;      ///parent term reader
+private:
+    VocReader* pTermReader_;      ///parent term reader
+
     Term* pCurTerm_;         ///current term in this iterator
+
     TermInfo* pCurTermInfo_;      ///current term info in this iterator
+
     Posting* pCurTermPosting_;   ///current term's posting in this iterator
+
     InputDescriptor* pInputDescriptor_;
+
     int32_t nCurPos_;
 };
+
+class Directory;
+class FieldInfo;
+/*
+* Disk Term Iterator that does not need to load vocabulary into memory
+* it is only used for index merging
+*/
+class DiskTermIterator : public TermIterator
+{
+public:
+    DiskTermIterator(Directory* pDirectory,const char* barrelname,FieldInfo* pFieldInfo);
+
+    ~DiskTermIterator();
+
+    bool next();
+
+    const Term* term();
+
+    const TermInfo* termInfo();
+
+    Posting* termPosting();
+
+private:
+    Directory* pDirectory_;	
+
+    FieldInfo* pFieldInfo_;
+	
+    IndexInput* pVocInput_;
+
+    int32_t nTermCount_;
+
+    int64_t nVocLength_;
+
+    std::string barrelName_;
+	
+    Term* pCurTerm_;		 ///current term in this iterator
+
+    TermInfo* pCurTermInfo_;	  ///current term info in this iterator
+
+    Posting* pCurTermPosting_;   ///current term's posting in this iterator
+
+    InputDescriptor* pInputDescriptor_;
+
+    int32_t nCurPos_;
+};
+
 
 class InMemoryTermReader;
 /**
@@ -57,6 +109,7 @@ class InMemoryTermIterator : public TermIterator
 {
 public:
     InMemoryTermIterator(InMemoryTermReader* pTermReader);
+
     virtual ~InMemoryTermIterator();
 public:
 
@@ -71,10 +124,15 @@ public:
     size_t   setBuffer(char* pBuffer,size_t bufSize);
 protected:
     InMemoryTermReader* pTermReader_;
+
     Term* pCurTerm_;         ///current term in this iterator
+
     TermInfo* pCurTermInfo_;      ///current term info in this iterator
+
     InMemoryPosting* pCurTermPosting_;   ///current term's posting in this iterator
+
     InMemoryPostingMap::iterator postingIterator_;
+
     InMemoryPostingMap::iterator postingIteratorEnd_;
 };
 

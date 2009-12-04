@@ -82,6 +82,9 @@ public:
    */
   void flush()
   {
+    if (f_ == NULL)
+      return;
+    
     buf_.save(f_);
 
     fseek(f_, 0, SEEK_SET);
@@ -106,7 +109,7 @@ public:
 
     if (f_ == NULL)
     {
-      std::cout<<"can't open file: "<<filenm_<<std::endl;
+      //std::cout<<"can't open file: "<<filenm_<<std::endl;
       return;
     }
     else
