@@ -168,6 +168,9 @@ private:
   bucket_t* buckets_[BUCKET_NUM+1];//!< data bucket
   uint32_t  max_term_len_;//!< the max length of a phrase
 
+  uint32_t cur_buck_;
+  uint32_t num_cur_buck_;
+
   /**
      @return true if the buffer is full
    */
@@ -372,8 +375,11 @@ public:
       ss >> tmp;
 
       buckets_[i] = new bucket_t(tmp.c_str());
-      buckets_[i]->ready4add();
+      //buckets_[i]->ready4add();
     }
+
+    cur_buck_ = num_cur_buck_  =0;
+    buckets_[0]->ready4add();
   }
 
   inline void set_max_term_len(uint32_t t)
@@ -382,10 +388,7 @@ public:
   }
   
   void add_terms(const terms_t& terms, uint32_t docid)
-  {
-    // if (terms.length()<2)
-//       return;
-    
+  {    
     for (typename terms_t::size_t i=0; i<terms.length(); ++i)
     {
       uint32_t len = ((terms.length()-i>=max_term_len_)? max_term_len_: (terms.length()-i));
@@ -394,7 +397,17 @@ public:
       if (is_mem_full_(s+sizeof(uint16_t)))
         flush_();
 
-      buckets_[num_%BUCKET_NUM]->push_back(ADDR_STRUCT(terms.at(i), ftell(f_)+p_, s));
+      //buckets_[num_%BUCKET_NUM]->push_back(ADDR_STRUCT(terms.at(i), ftell(f_)+p_, s));
+      if (num_cur_buck_ == 100000)
+      {
+        num_cur_buck_ = 0;
+        buckets_[cur_buck_]->flush();
+        cur_buck_++;
+        cur_buck_ = cur_buck_%BUCKET_NUM;
+        buckets_[cur_buck_]->ready4add();
+      }
+      buckets_[cur_buck_]->push_back(ADDR_STRUCT(terms.at(i), ftell(f_)+p_, s));
+      num_cur_buck_++;
       
       *(uint16_t*)(buf_+p_) = s;
       p_ += sizeof(uint16_t);      
