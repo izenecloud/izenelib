@@ -396,11 +396,12 @@ void sorter_check()
     struct timeval tvafter,tvpre;
     struct timezone tz;
   
-    const uint32_t SIZE = 10000000;
+    const uint32_t SIZE = 1000000;
     const uint32_t snip_len = 10;
     vector<uint32_t> vs;
     
-    Sorter<3> sorter("./tt");
+    Sorter<
+    > sorter("./tt");
     
     terms_t terms;
 
@@ -610,7 +611,7 @@ void graph_check()
 
     graph.flush();
 
-    graph.compact();
+    //graph.compact();
     
     graph.ratio_load(0.2);
     //std::cout<<graph;
@@ -711,13 +712,13 @@ void graph_check()
     
     graph.indexing();
 
-    graph.ratio_load(.99);
+    graph.ratio_load(.88);
     
     for (uint32_t p = 0; p<SIZE; ++p)
       if (graph.get_freq(vs[p])<1)
       {
         Array arr(vs[p]);
-        cout<<arr<<endl;
+        cout<<"[ERROR]: "<<arr<<endl;
       }
   }
 
@@ -845,16 +846,16 @@ void graph_merge_check()
     //test for appending
     graph.ready4add();
     
-    vs.push_back(105);vs.push_back(107);vs.push_back(107);vs.push_back(105);vs.push_back(103);
-    graph.add_terms(vs, 6);
+    vs.push_back(1115);vs.push_back(1077);vs.push_back(1077);vs.push_back(1055);vs.push_back(1033);
+    graph.add_terms(vs, 45);
     vs.clear();
 
-    vs.push_back(15);vs.push_back(17);vs.push_back(5);vs.push_back(15);vs.push_back(17);
-    graph.add_terms(vs, 9);
+    vs.push_back(155);vs.push_back(177);vs.push_back(55);vs.push_back(15);vs.push_back(127);
+    graph.add_terms(vs, 99);
     vs.clear();
 
-    vs.push_back(17);vs.push_back(4);vs.push_back(5);vs.push_back(2);vs.push_back(3);
-    graph.add_terms(vs, 9);
+    vs.push_back(177);vs.push_back(44);vs.push_back(55);vs.push_back(22);vs.push_back(33);
+    graph.add_terms(vs, 99);
     vs.clear();
     
     graph.indexing();
@@ -872,12 +873,34 @@ void graph_merge_check()
 
     std::cout<<"Start merging...\n";
     graph.merge(graph2);
+    
+    {
+      graph2.ratio_load();
+      graph.ratio_load();
+      // cout<<graph<<endl;
+//       cout<<"===========\n";
+//       cout<<graph2<<endl;
+      Graph<>::Node root1 = graph.get_root();
+      Graph<>::Node root2 = graph2.get_root();
+
+      Graph<>::NodeIterator it = root2.children_begin();
+      while(it != root2.children_end())
+      {
+        Graph<>::Node tmp;
+        CHECK(graph2.get_node(root1, (*it).get_term(), tmp));
+        ++it;
+      }
+    }
+    
+    
     graph.merge(graph3);
   
 
     std::cout<<"Start counter-merging...\n";
     graph.counter_merge(graph3);
-    
+  }
+  {
+    Graph<> graph("./tt1");
     graph.ratio_load(0.2);
     //std::cout<<graph<<std::endl;
     
@@ -986,7 +1009,7 @@ int main()
 
 //    id_transfer_check();
 
-//    sorter_check();
+  sorter_check();
 
   graph_merge_check();
   graph_check();

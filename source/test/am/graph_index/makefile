@@ -14,7 +14,7 @@ OBJS := $(patsubst %.cpp, %.o, $(wildcard *.cpp))
 #./t_main.o
 
 
-all: izenelib
+all: izenelib gen-integers fp-cluster
 
 
 .cc.o:
@@ -24,7 +24,15 @@ all: izenelib
 	$(GPP) $(CC_OPTIONS) $(INC_PATH)  -o"./$@" "$<"
 
 
-izenelib: $(OBJS)
+gen-integers: t_gen_integers.o
+	$(GPP)  -g -o "gen-integers"  $^ $(LIBS) 
+	-rm -f t_gen_integers.o
+
+fp-cluster: t_cluster.o
+	$(GPP)  -g -o "fp-cluster"  $^ $(LIBS) 
+	-rm -f t_cluster.o
+
+izenelib: t_graph_index.o
 	$(GPP)  -g -o "graph-index"  $^ $(LIBS) 
 	-rm -f $(OBJS)
 
