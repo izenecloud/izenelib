@@ -256,6 +256,7 @@ protected:
                 count ++;
             }
             header_.boundaries = boundaries_;
+            header_.flush();
         }
     }
 

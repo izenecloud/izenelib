@@ -76,10 +76,10 @@ public:
         xml << boost::serialization::make_nvp("PartitionNumber", partitionNum);
 //        xml << boost::serialization::make_nvp("WriteCacheLine", writeCacheLine);
         std::vector<std::string> boundariesBuffer;
-        xml << boost::serialization::make_nvp("Boundaries", boundariesBuffer);
-        for(size_t i =0; i< boundariesBuffer.size(); i++ ) {
+        for(size_t i =0; i< boundaries.size(); i++ ) {
             boundaries.push_back( StringType(boundariesBuffer[i]) );
         }
+        xml << boost::serialization::make_nvp("Boundaries", boundariesBuffer);
         ofs.flush();
     }
 
