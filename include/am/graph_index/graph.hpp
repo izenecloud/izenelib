@@ -9,8 +9,8 @@
 #include "dyn_array.hpp"
 #include "id_transfer.hpp"
 #include "addr_bucket.hpp"
-#include<string>
-#include<vector>
+#include <string>
+#include <vector>
 #include <time.h>
 #include <boost/filesystem.hpp>
 //#include <fstream>
@@ -336,7 +336,7 @@ friend std::ostream& operator << (std::ostream& os, const LEAF_STRUCT& v)
 
 
 template<
-  uint32_t MAX_LEN_PER_BUCK = 10000000,//!< the max size per bucket
+  uint32_t BUCKET_NUM = 800,//!< the max size per bucket
   uint32_t BATCH_SAVE_SIZE = 1000, //!< number of branch of root for one time saving.
   bool LEAN_MODE = false,
   class TERM_TYPE = uint32_t,
@@ -346,12 +346,12 @@ template<
   >
 class Graph
 {
-  typedef Graph<MAX_LEN_PER_BUCK, BATCH_SAVE_SIZE, LEAN_MODE, TERM_TYPE, NID_LEN_TYPE, ADDING_BUF_SIZE> self_t;
+  typedef Graph<BUCKET_NUM, BATCH_SAVE_SIZE, LEAN_MODE, TERM_TYPE, NID_LEN_TYPE, ADDING_BUF_SIZE> self_t;
   
   typedef DynArray<uint64_t> array64_t;
   typedef DynArray<uint32_t> array32_t;
   
-  typedef Sorter<MAX_LEN_PER_BUCK, ADDING_BUF_SIZE, TERM_TYPE> sorter_t;
+  typedef Sorter<BUCKET_NUM, ADDING_BUF_SIZE, TERM_TYPE> sorter_t;
   
   typedef EDGE_STRUCT<NID_LEN_TYPE> edge_t;
   typedef FREQ_STRUCT<NID_LEN_TYPE> sort_freq_t;

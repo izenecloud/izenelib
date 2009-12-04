@@ -13,6 +13,9 @@
 
 #include <string>
 
+#define SPARSE_FACTOR 512
+#define VOC_ENTRY_LENGTH 16
+
 NS_IZENELIB_IR_BEGIN
 
 namespace indexmanager{
@@ -24,11 +27,10 @@ struct TERM_TABLE
 };
 
 /**
-* Internal class of DiskTermReader
+* Internal class of VocReader
 * We use this class because there would exist concurrent read, without this class,
 * we have to repeat constructing the vocabulary in memory when read the index concurrently
 */
-
 class TermReaderImpl
 {
 public:
@@ -61,15 +63,20 @@ public:
 
     Directory* pDirectory_;
 };
+/*
+* The difference between VocReader and DiskTermReader
+* is it will load vocabulary all into memory, it is suitable to do
+* so for a small index
+*/
 
-class DiskTermReader:public TermReader
+class VocReader:public TermReader
 {
 public:
-    DiskTermReader(Directory* pDirectory,const char* barrelname,FieldInfo* pFieldInfo);
+    VocReader(Directory* pDirectory,const char* barrelname,FieldInfo* pFieldInfo);
 
-    DiskTermReader(TermReaderImpl* pTermReaderImpl);
+    VocReader(TermReaderImpl* pTermReaderImpl);
 
-    virtual ~DiskTermReader(void);
+    virtual ~VocReader(void);
 public:
     void open(Directory* pDirectory,const char* barrelname,FieldInfo* pFieldInfo);
 
@@ -96,10 +103,10 @@ public:
 
     TermReaderImpl* getTermReaderImpl(){ return pTermReaderImpl_;}
 
-protected:
+private:
     TermInfo* termInfo(Term* term);
 
-protected:
+private:
     TermReaderImpl* pTermReaderImpl_;
 
     TermInfo* pCurTermInfo_;
@@ -113,6 +120,108 @@ protected:
     friend class SingleIndexBarrelReader;
 };
 
+/**
+* Internal class of DiskTermReader
+* We use this class because there would exist concurrent read, without this class,
+* we have to repeat constructing the vocabulary in memory when read the index concurrently
+*/
+class SparseTermReaderImpl
+{
+public:
+    SparseTermReaderImpl(FieldInfo* pFieldInfo);
+
+    ~SparseTermReaderImpl();
+public:
+    void open(Directory* pDirectory,const char* barrelname);
+
+    void reopen();
+
+    void close() ;
+
+public:
+    FieldInfo* pFieldInfo_;
+
+    TERM_TABLE* sparseTermTable_;
+
+    InputDescriptor* pInputDescriptor_;
+
+    int32_t nTermCount_;
+
+    int32_t nSparseSize_;
+
+    int64_t nVocLength_;
+
+    int64_t nBeginOfVoc_;
+
+    std::string barrelName_;
+
+    Directory* pDirectory_;
+};
+
+/**
+* @brief DiskTermReader
+*/
+class DiskTermReader: public TermReader
+{
+public:
+    DiskTermReader(Directory* pDirectory,const char* barrelname,FieldInfo* pFieldInfo);
+
+    DiskTermReader(SparseTermReaderImpl* pTermReaderImpl);
+
+    virtual ~DiskTermReader(void);
+public:
+    void open(Directory* pDirectory,const char* barrelname,FieldInfo* pFieldInfo);
+
+    void reopen();
+
+    TermIterator* termIterator(const char* field);
+
+    bool seek(Term* pTerm);
+
+    TermDocFreqs* termDocFreqs();
+
+    TermPositions* termPositions();
+
+    freq_t docFreq(Term* term);
+
+    void close() ;
+
+    TermReader* clone() ;
+
+private:
+    TermInfo* termInfo(Term* term);
+
+    inline TermInfo* searchBuffer(termid_t termId, int end);
+
+    inline int fillBuffer(int pos);
+
+private:
+    SparseTermReaderImpl* pTermReaderImpl_;
+
+    TermInfo* pCurTermInfo_;
+
+    bool ownTermReaderImpl_;
+
+    IndexInput* pVocInput_;
+
+    TERM_TABLE* bufferTermTable_;
+
+    TERM_TABLE* sparseTermTable_;
+
+    int32_t nTermCount_;
+
+    int64_t nBeginOfVoc_;
+
+    InputDescriptor* pInputDescriptor_;
+
+    friend class DiskTermIterator;
+    friend class CollectionIndexer;
+    friend class SingleIndexBarrelReader;
+};
+
+/**
+* @brief InMemoryTermReader
+*/
 class InMemoryTermReader : public TermReader
 {
 public:
@@ -145,7 +254,7 @@ public:
     TermInfo* termInfo(Term* term);
 
     InMemoryPosting* inMemoryPosting();
-protected:
+private:
     string field_;
 
     FieldIndexer* pIndexer_;
