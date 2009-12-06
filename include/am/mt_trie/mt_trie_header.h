@@ -28,9 +28,6 @@ public:
     /// @brief how many partitions do we divide all input terms into.
     int partitionNum;
 
-//    /// @brief Number of terms in write cache.
-//    size_t writeCacheLine;
-
     /// @brief boundaries between partitions, there are partitionNum_-1 elements.
     std::vector<StringType> boundaries;
 
@@ -49,13 +46,13 @@ public:
             ifs.seekg(0, fstream::beg);
             boost::archive::xml_iarchive xml(ifs);
             xml >> boost::serialization::make_nvp("PartitionNumber", partitionNum);
-//            xml >> boost::serialization::make_nvp("WriteCacheLine", writeCacheLine);
+
             std::vector<std::string> boundariesBuffer;
-            for(size_t i =0; i< boundaries.size(); i++ ) {
-                boundariesBuffer.push_back(std::string((char*)boundaries[i].c_str(),
-                    boundaries[i].size()));
-            }
             xml >> boost::serialization::make_nvp("Boundaries", boundariesBuffer);
+            for(size_t i =0; i< boundariesBuffer.size(); i++ ) {
+                // convert std::string to StringType
+                boundaries.push_back( StringType(boundariesBuffer[i]) );
+            }
             exist_ = true;
         }
         ifs.close();
@@ -74,10 +71,12 @@ public:
         ofstream ofs(path_.c_str());
         boost::archive::xml_oarchive xml(ofs);
         xml << boost::serialization::make_nvp("PartitionNumber", partitionNum);
-//        xml << boost::serialization::make_nvp("WriteCacheLine", writeCacheLine);
+
         std::vector<std::string> boundariesBuffer;
         for(size_t i =0; i< boundaries.size(); i++ ) {
-            boundariesBuffer.push_back( StringType(boundaries[i]) );
+            // convert StringType to std::string
+            boundariesBuffer.push_back( std::string((char*)boundaries[i].c_str(),
+                    boundaries[i].size()) );
         }
         xml << boost::serialization::make_nvp("Boundaries", boundariesBuffer);
         ofs.flush();
