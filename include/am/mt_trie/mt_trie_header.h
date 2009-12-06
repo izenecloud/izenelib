@@ -77,7 +77,7 @@ public:
 //        xml << boost::serialization::make_nvp("WriteCacheLine", writeCacheLine);
         std::vector<std::string> boundariesBuffer;
         for(size_t i =0; i< boundaries.size(); i++ ) {
-            boundaries.push_back( StringType(boundariesBuffer[i]) );
+            boundariesBuffer.push_back( StringType(boundaries[i]) );
         }
         xml << boost::serialization::make_nvp("Boundaries", boundariesBuffer);
         ofs.flush();
