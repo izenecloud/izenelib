@@ -265,6 +265,10 @@ template<typename KeyType, typename ValueType, typename LockType, bool fixed,
 	//	static int _rcount;
 	//	cout<<"reading "<<_rcount++<<endl;
 	//#endif
+	
+	if ( isLoaded ) {
+		return true;
+	}
 
 	if (!f) {
 		return false;

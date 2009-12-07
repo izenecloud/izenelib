@@ -393,7 +393,9 @@ public:
 		if( _root == NULL ) {
 			_root = new sdb_node(_sfh, _fileLock, _activeNodeNum);
 			_root->fpos = _sfh.rootPos;
+			_fileLock.acquire_write_lock();
 			_root->read(_dataFile);
+			_fileLock.release_write_lock();
 		}
 		return _root;
 	}
@@ -419,11 +421,11 @@ public:
 			if (popNode && !popNode->isLeaf && popNode->isLoaded ) {
 				for(size_t i=0; i<=popNode->objCount; i++)
 				{
-					if( _activeNodeNum > _sfh.cacheSize )
+					if( _activeNodeNum> _sfh.cacheSize )
 					goto LABEL;
 					sdb_node* node = popNode->loadChild(i, _dataFile);
 					if( node )
-						qnode.push( node );
+					qnode.push( node );
 
 				}
 			}
@@ -711,7 +713,7 @@ template<typename KeyType, typename ValueType, typename LockType, bool fixed,
 	locn.first = 0;
 	locn.second = (size_t)-1;
 
-	sdb_node* temp = _root;
+	sdb_node* temp = getRoot();
 	while (1) {
 		int i = temp->objCount;
 		int low = 0;
@@ -959,6 +961,7 @@ template<typename KeyType, typename ValueType, typename LockType, bool fixed,
 	if ( !_isOpen)
 		return false;
 	_flushCache();
+	getRoot();
 	if (_root->objCount >= _sfh.maxKeys) {
 		// Growing the tree happens by creating a new
 		// node as the new root, and splitting the
@@ -1557,6 +1560,7 @@ template<typename KeyType, typename ValueType, typename LockType, bool fixed,
 	if ( !_isOpen)
 		return false;
 	_flushCache();
+	getRoot();
 	// Determine if the root node is empty.
 	bool ret = (_root->objCount != 0);
 	if (_root->objCount == (size_t) -1) {
@@ -1827,22 +1831,22 @@ template<typename KeyType, typename ValueType, typename LockType, bool fixed,
 
 	//write back the fileHead and dirtypage
 	commit();
-	if (_root) {
-		delete _root;
-		_root = 0;
-	}
+	//	if (_root) {
+	//		delete _root;
+	//		_root = 0;
+	//	}
 
 	// Unload each of the root's childrent.
-	/*
-	 if (_root && !_root->isLeaf) {
-	 for (size_t i = 0; i < _root->objCount+1; i++) {
-	 //sdb_node* pChild = _root->children[i];
-	 //if ((sdb_node*)pChild != 0 && pChild->isLoaded)
-	 {
-	 _root->children[i]->unload();
-	 }
-	 }
-	 }*/
+
+	if (_root && !_root->isLeaf) {
+		for (size_t i = 0; i < _root->objCount+1; i++) {
+			sdb_node* pChild = _root->children[i];
+			if ((sdb_node*)pChild != 0 && pChild->isLoaded)
+			{
+				_root->children[i]->unload();
+			}
+		}
+	}
 
 	if (unloadbyRss) {
 		unsigned long vm = 0;

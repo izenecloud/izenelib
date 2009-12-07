@@ -623,7 +623,7 @@ template<typename KeyType, typename ValueType, typename LockType,
 	}
 	for (; i<count; i++) {
 		if (container_.seq(locn, ESD_BACKWARD) ) {
-			if (get(locn, rec))
+			if (container_.get(locn, rec))
 				result.push_back(rec);
 		} else {
 			lock_.release_read_lock();
