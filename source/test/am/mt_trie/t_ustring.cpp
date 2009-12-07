@@ -4,7 +4,6 @@
 #include <fstream>
 #include <iostream>
 
-#include <boost/test/unit_test.hpp>
 #include <boost/date_time/posix_time/posix_time.hpp>
 
 #include <util/ProcMemInfo.h>
@@ -17,15 +16,13 @@ using namespace std;
 using namespace izenelib::am;
 using namespace izenelib::util;
 
-BOOST_AUTO_TEST_SUITE( mt_trie_suite )
-
 void displayMemInfo(std::ostream& os = std::cout) {
 	unsigned long rlimit = 0, vm = 0, rss = 0;
 	ProcMemInfo::getProcMemInfo(vm, rss, rlimit);
 	os << "vm: " << vm << "bytes rss: " << rss << "bytes" << endl;
 }
 
-BOOST_AUTO_TEST_CASE(HDBTrie_am)
+int main()
 {
     std::cout << std::endl << "Performance Test for HDBTrie" << std::endl;
 
@@ -36,12 +33,12 @@ BOOST_AUTO_TEST_CASE(HDBTrie_am)
 
     {
 
-        MtTrie<std::string> mtTrie("mt", 16);
+        MtTrie<wiselib::UString> mtTrie("mt", 16);
 	mtTrie.open();
         start = clock();
 
 	std::ifstream input;
-	input.open("input", std::ifstream::binary|std::ifstream::in);
+	input.open("input-ustring", std::ifstream::binary|std::ifstream::in);
 	int buffersize;
 	char buffer[256];
 	while(!input.eof()) {
@@ -50,7 +47,7 @@ BOOST_AUTO_TEST_CASE(HDBTrie_am)
 			input.seekg(buffersize, std::ifstream::cur);
 		} else {
 			input.read(buffer, buffersize);
-			std::string term(buffer, buffersize);
+			wiselib::UString term(std::string(buffer, buffersize) );
 			mtTrie.insert(term);
 		}
 	}
@@ -64,16 +61,27 @@ BOOST_AUTO_TEST_CASE(HDBTrie_am)
 	mtTrie.flush();
 	while(true) {
 		std::string term;
-		std::vector<std::string> terms;
 		std::cout << "Input term" << std::endl;
 		std::cin >> term;
-		mtTrie.findRegExp(term, terms);
+/**
+		wiselib::UString uterm("",wiselib::UString::UTF_8);
+		for(size_t i=0; i<term.size(); i++) {
+			uterm += term[i];
+		}
+*/
+		wiselib::UString uterm(term,wiselib::UString::UTF_8);
+		for(size_t i=0; i<uterm.size(); i++) {
+			std::cout <<(short) ((char*) uterm.c_str())[i] << ",";
+		}
+		std::cout << std::endl;
+		std::vector<wiselib::UString> terms;
+		mtTrie.findRegExp(uterm, terms);
 		for(size_t i =0; i<terms.size(); i++ )
 			std::cout << terms[i] << std::endl;
 	}
 
 	mtTrie.close();
+	return 0;
     }
 }
 
-BOOST_AUTO_TEST_SUITE_END()
