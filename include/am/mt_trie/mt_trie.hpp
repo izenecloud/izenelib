@@ -48,6 +48,7 @@ public:
 
         needSample_ = false;
         if(boundaries_.size() != (size_t)(partitionNum-1) ) {
+            boundaries_.clear();
             needSample_ = true;
             sampleStep_ = 1;
             sampleCounter_ = 0;
@@ -161,9 +162,27 @@ public:
         writeCache_.flush();
         writeCache_.close();
 
-        // Sample 1000 records to estimate segments.
-        std::cout << logHead() << "Start preprocess" << std::endl;
-        preprocess();
+        if( boundaries_.size() != header_.partitionNum-1 ) {
+            std::cout << logHead() << "start computing boundaries" << std::endl;
+
+            boundaries_.clear();
+            computeBoundaries(1000);
+            if(boundaries_.size() == header_.partitionNum-1 ) {
+                header_.boundaries = boundaries_;
+                header_.flush();
+                needSample_ = false;
+            } else {
+                std::cout << logHead() << "number of terms isn't enough to be partitioned to "
+                    << header_.partitionNum << " partitions" << std::endl;
+                return;
+            }
+        } else {
+            std::cout << logHead() << "skip computing boundareis, already exist"
+                << std::endl;
+        }
+
+        std::cout << logHead() << "start spliting inputs" << std::endl;
+        splitInput();
 
         std::cout << logHead() << "Start building tries with " << threadNum_
             << " threads on " << header_.partitionNum << " partitions" << std::endl;
@@ -255,8 +274,6 @@ protected:
                 //std::cout << *it << std::endl;
                 count ++;
             }
-            header_.boundaries = boundaries_;
-            header_.flush();
         }
     }
 
@@ -323,18 +340,6 @@ protected:
             output[i].close();
         }
         delete[] output;
-    }
-
-    void preprocess() {
-        if(needSample_) {
-            std::cout << logHead() << "start computing boundaries" << std::endl;
-            computeBoundaries(1000);
-        } else {
-            std::cout << logHead() << "skip computing boundareis" << std::endl;
-        }
-
-        std::cout << logHead() << "start spliting inputs" << std::endl;
-        splitInput();
     }
 
     void taskBody(int threadId) {
