@@ -212,8 +212,6 @@ private:
 
     int64_t nBeginOfVoc_;
 
-    InputDescriptor* pInputDescriptor_;
-
     friend class DiskTermIterator;
     friend class CollectionIndexer;
     friend class SingleIndexBarrelReader;
