@@ -351,7 +351,6 @@ DiskTermReader::DiskTermReader(Directory* pDirectory,const char* barrelname,Fiel
         , pCurTermInfo_(NULL)
         , ownTermReaderImpl_(true)
         , pVocInput_(NULL)
-        , pInputDescriptor_(NULL)
 {
     open(pDirectory, barrelname, pFieldInfo);
     pVocInput_ = pDirectory->openInput(pTermReaderImpl_->barrelName_ + ".voc",1025*VOC_ENTRY_LENGTH);
@@ -367,7 +366,6 @@ DiskTermReader::DiskTermReader(SparseTermReaderImpl* pTermReaderImpl)
         , pCurTermInfo_(NULL)
         , ownTermReaderImpl_(false)
         , pVocInput_(NULL)
-        , pInputDescriptor_(pTermReaderImpl->pInputDescriptor_->clone())
 {
     pVocInput_ = pTermReaderImpl_->pDirectory_->openInput(pTermReaderImpl_->barrelName_ + ".voc",1025*VOC_ENTRY_LENGTH);
     bufferTermTable_ = new TERM_TABLE[1025];
@@ -386,8 +384,6 @@ DiskTermReader::~DiskTermReader()
         delete pVocInput_;
     if(bufferTermTable_)
         delete[] bufferTermTable_;
-    if (pInputDescriptor_)
-        delete pInputDescriptor_;
 }
 
 void DiskTermReader::open(Directory* pDirectory,const char* barrelname,FieldInfo* pFieldInfo)
@@ -396,7 +392,6 @@ void DiskTermReader::open(Directory* pDirectory,const char* barrelname,FieldInfo
 
     pTermReaderImpl_ = new SparseTermReaderImpl(pFieldInfo);
     pTermReaderImpl_->open(pDirectory, barrelname);
-    pInputDescriptor_ = pTermReaderImpl_->pInputDescriptor_->clone();
 }
 
 void DiskTermReader::reopen()
@@ -534,16 +529,14 @@ TermDocFreqs* DiskTermReader::termDocFreqs()
 {
     if (pCurTermInfo_ == NULL || pTermReaderImpl_ == NULL )
         return NULL;
-    //TermDocFreqs* pTermDocs = new TermDocFreqs(this,pTermReaderImpl_->pInputDescriptor_->clone(),*pCurTermInfo_);
-    return new TermDocFreqs(this,pInputDescriptor_->clone(),*pCurTermInfo_);;
+    return new TermDocFreqs(this,pTermReaderImpl_->pInputDescriptor_->clone(),*pCurTermInfo_);
 }
 
 TermPositions* DiskTermReader::termPositions()
 {
     if (pCurTermInfo_ == NULL || pTermReaderImpl_ == NULL )
         return NULL;
-    //return new TermPositions(this,pTermReaderImpl_->pInputDescriptor_->clone(),*pCurTermInfo_);
-    return new TermPositions(this,pInputDescriptor_->clone(),*pCurTermInfo_);
+    return new TermPositions(this,pTermReaderImpl_->pInputDescriptor_->clone(),*pCurTermInfo_);
 }
 
 freq_t DiskTermReader::docFreq(Term* term)
