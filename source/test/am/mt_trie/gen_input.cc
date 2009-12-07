@@ -21,20 +21,12 @@ template<
   >
 class get_input
 {
-  static void input(const UString& str, ostream& of)
-  {
-	int size = str.size();
-	of.write((char*)&size, sizeof(int));
-	of.write((char*)str.c_str(), size);
+  static void setEncoding(std::string& str) {
   }
 
-  static void input(const string& str, ostream& of)
-  {
-	int size = str.size();
-	of.write((char*)&size, sizeof(int));
-	of.write((char*)str.c_str(), size);
+  static void setEncoding(wiselib::UString& str) {
+	str.setSystemEncodingType(ENCODE_TYPE);
   }
-
 public:
   /**
    *This is a static function to generate random query into 'filename' file.
@@ -43,7 +35,7 @@ public:
    *@param filename The output file name. Default value is './input'.
    *
    **/
-  static bool doit(unsigned long size=1000000, unsigned long maxChars=20, const std::string& filename="./input")
+  static bool doit(const std::string& filename, unsigned long size=1000000, unsigned long maxChars=20)
   {
     std::ofstream of;
     of.open (filename.c_str(), std::ofstream::out|std::ofstream::binary);
@@ -51,12 +43,12 @@ public:
     {
       std::cout<<"Can't open the output file! Please check the file name: "<<filename<<std::endl;
       return 0;
-
     }
 
     for (unsigned long i = 0; i<size; i++)
     {
       STRING_TYPE str;
+      setEncoding(str);
       unsigned long charCount = rand()%maxChars;
       while (charCount == 0)
         charCount = rand()%maxChars;
@@ -66,14 +58,11 @@ public:
         str += en[rand()%en_size];
       }
 
-      //str += (typename STRING_TYPE::value_type)'\n';
-      input(str, of);
+      int size = str.size();
+      of.write((char*)&size, sizeof(int));
+      of.write((char*)str.c_str(), size);
+
     }
-
-    //str.displayStringValue(ENCODE_TYPE, of);
-
-
-    //of.write(str.c_str(), str.size());
     of.close();
 
     return true;
@@ -85,16 +74,14 @@ public:
 
 int main (int argc,char **argv)
 {
-
   if (argc ==1)
   {
-    std::cout<<"\nUsage: ./gen-input <size> <max chars of one word>\n";
-    std::cout<<"\nDefault:\n    <size>: 100 \n    <max chars of one word>:100\nThe output file name is './input\n";
+    std::cout<<"\nUsage: ./gen-input  <size> <max chars of one word>\n";
+    std::cout<<"\nDefault:\n <size>: 100 \n  <max chars of one word>:100" << std::endl
+	<< "The output file name is './input-string and ./input-ustring\n";
     return -1;
   }
-
   *argv++;
-
 
   std::stringstream ss(std::stringstream::in | std::stringstream::out);
   ss<<*argv;
@@ -108,23 +95,21 @@ int main (int argc,char **argv)
   ss <<*argv;
   ss >> maxChars;
 
-  typedef std::string string_type;
-
   if (size ==0)
   {
-    get_input<string_type>::doit();
+    get_input<std::string>::doit("input-string");
+    get_input<wiselib::UString>::doit("input-ustring");
   }
 
   else
   {
-    if (maxChars==0)
-      get_input<string_type>::doit(size);
-    else
-      get_input<string_type>::doit(size, maxChars);
+    if (maxChars==0) {
+      get_input<std::string>::doit("input-string", size);
+      get_input<wiselib::UString>::doit("input-ustring", size);
+    } else {
+      get_input<std::string>::doit("input-string", size, maxChars);
+      get_input<wiselib::UString>::doit("input-ustring", size, maxChars);
+    }
 
   }
-
-
-
-
 }
