@@ -162,12 +162,12 @@ public:
         writeCache_.flush();
         writeCache_.close();
 
-        if( boundaries_.size() != header_.partitionNum-1 ) {
+        if( boundaries_.size() != (size_t)(header_.partitionNum-1) ) {
             std::cout << logHead() << "start computing boundaries" << std::endl;
 
             boundaries_.clear();
             computeBoundaries(1000);
-            if(boundaries_.size() == header_.partitionNum-1 ) {
+            if(boundaries_.size() == (size_t)(header_.partitionNum-1) ) {
                 header_.boundaries = boundaries_;
                 header_.flush();
                 needSample_ = false;

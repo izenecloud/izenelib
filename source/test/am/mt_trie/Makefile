@@ -33,26 +33,27 @@ EXT_LIB = \
 		  -l boost_serialization-gcc41-mt \
 		  -l boost_program_options-gcc41-mt \
 		  -l boost_thread-gcc41-mt \
+		  -l boost_unit_test_framework-gcc41-mt \
 		  -l tokyocabinet \
 		  -l procmeminfo  \
 		  -l btrie  \
+
+OBJECTS = $(patsubst %.cpp, %.o, $(wildcard *.cpp)) 
 
 %.o : %.cpp
 	$(CXX) $(INCLUDE_PATH) $(CXXFLAGS) -c -o $@ $? 
 
 TARGET = test
 
-all: gen_input t_string t_ustring
+all: gen_input $(TARGET)
+
+$(TARGET) : $(OBJECTS)
+	$(CXX) -o $@ $^  $(EXT_LIB_PATH) $(EXT_LIB) 
 
 gen_input:
 	$(CXX) -o gen_input gen_input.cc $(INCLUDE_PATH) $(CXXFLAGS) $(EXT_LIB_PATH) $(EXT_LIB) 
 
-t_string:
-	$(CXX) -o t_string t_string.cpp $(INCLUDE_PATH) $(CXXFLAGS) $(EXT_LIB_PATH) $(EXT_LIB) 
-
-t_ustring:
-	$(CXX) -o t_ustring t_ustring.cpp $(INCLUDE_PATH) $(CXXFLAGS) $(EXT_LIB_PATH) $(EXT_LIB) 
 clean:
-	rm -rf *.o $(TARGET) mt.*
+	rm -rf *.o mtstring.* mtustring.*
 cleanup:
-	rm -rf mt.*
+	rm -rf mtstring.* mtustring.*
