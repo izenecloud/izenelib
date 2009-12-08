@@ -65,17 +65,22 @@ public:
 class FieldMergeInfo
 {
 public:
-    FieldMergeInfo(int32_t nOrder, collectionid_t currColId, BarrelInfo* pBarrelInfo,TermIterator* pTermIterator)
+    FieldMergeInfo(int32_t nOrder, collectionid_t currColId, BarrelInfo* pBarrelInfo,TermReader* pTermReader)
             :nOrder_(nOrder)
             ,pBarrelInfo_(pBarrelInfo)
             ,pCurTerm_(NULL)
-            ,pIterator_(pTermIterator)
+            ,pTermReader_(pTermReader)
     {
+        pIterator_ = pTermReader_->termIterator(NULL);
         baseDocId_ = pBarrelInfo_->baseDocIDMap[currColId];;
     }
     ~FieldMergeInfo()
     {
-        delete pIterator_;
+        delete pTermReader_;
+        pTermReader_ = NULL;
+        if (pIterator_)
+            delete pIterator_;
+        pIterator_ = NULL;
     }
 public:
     bool next()

@@ -77,7 +77,7 @@ public:
 	 *
 	 *
 	 */
-	void setBtreeMode(bool delaySplit)
+	void setBtreeMode(bool delaySplit = true)
 	{
 		_isDelaySplit = delaySplit;
 	}
