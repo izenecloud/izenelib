@@ -1,6 +1,4 @@
-#include <am/sdb_btree/sdb_bptree.h>
 #include <am/sdb_btree/sdb_btree.h>
-
 #include <boost/test/unit_test.hpp>
 
 using namespace izenelib::am;
@@ -8,7 +6,8 @@ using namespace izenelib::am;
 typedef string KeyType;
 typedef int ValueType;
 typedef sdb_btree<KeyType, ValueType> SDB_BTREE;
-typedef sdb_bptree<KeyType, ValueType> SDB_BPTREE;
+typedef sdb_btree<KeyType, ValueType> SDB_BPTREE;
+typedef sdb_btree<KeyType, ValueType> SDB_VBPTREE;
 typedef SDB_BPTREE::SDBCursor SDBCursor;
 
 static string inputFile("../../db/test2.txt");
@@ -18,8 +17,8 @@ static string inputFile2("../../db/wordlist_PLU.txt");
 static bool trace = false;
 static int num = 10000000;
 
-static SDB_BPTREE cm("bptree11.dat");
-static SDB_BPTREE cm1("bptree21.dat#");
+static SDB_BPTREE cm("bptree.dat");
+static SDB_BPTREE cm1("bptree1.dat#");
 
 
 struct MyKeyType{
@@ -41,13 +40,13 @@ struct MyKeyType{
 MAKE_FEBIRD_SERIALIZATION( MyKeyType );
 
 static void test_user_defined_type(){
-	sdb_bptree<MyKeyType, int> sdb1;
-	sdb_btree<MyKeyType, int> sdb2;
+	sdb_btree<MyKeyType, int> sdb1;
+	sdb_btree<MyKeyType, int> sdb2;	
 }
 
 
 static void test_mykeytype(){
-	sdb_bptree<MyKeyType, int> cm("cool1.dat");
+	sdb_btree<MyKeyType, int> cm("cool.dat");
 	cm.open();
 	cout<<"\ninsert_test"<<endl;
 	cout<<"SerialType: "<<IsFebirdSerial<std::vector<MyKeyType>  >::yes<<endl; 
@@ -93,13 +92,13 @@ static void test_mykeytype(){
 
 static void test_openclose() {
 	{
-		SDB_BTREE tdb("t11.dat");
+		SDB_BTREE tdb("t1.dat");
 		tdb.open();
 		tdb.close();
 		tdb.open();
 	}
 	{
-		SDB_BTREE tdb("t21.dat");
+		SDB_BTREE tdb("t2.dat");
 		tdb.close();
 		tdb.open();
 		tdb.insert("a", 1);
@@ -108,7 +107,7 @@ static void test_openclose() {
 		tdb.open();
 	}
 	{
-		SDB_BTREE tdb("t31.dat");
+		SDB_BTREE tdb("t3.dat");
 		tdb.open();
 		tdb.display(cout, false);
 		//tdb.flush();
@@ -325,8 +324,8 @@ template<typename T> void del_test(T& cm) {
 
 }
 
-BOOST_AUTO_TEST_SUITE( bptree_suite )
-BOOST_AUTO_TEST_CASE(bptree_open_close_test)
+BOOST_AUTO_TEST_SUITE( btree_suite )
+BOOST_AUTO_TEST_CASE(btree_open_close_test)
 {
 	test_openclose();
 	test_user_defined_type();
@@ -334,7 +333,7 @@ BOOST_AUTO_TEST_CASE(bptree_open_close_test)
 }
 
 
-BOOST_AUTO_TEST_CASE(bptree_test)
+BOOST_AUTO_TEST_CASE(btree_test)
 {
 	//cm.setCacheSize(10000);
 	//cm.setDegree(3);

@@ -6,7 +6,7 @@
 #include <am/dynamic_perfect_hash/dynamic_perfect_hash.hpp>
 #include <am/sdb_hash/sdb_hash.h>
 #include <am/sdb_btree/sdb_btree.h>
-#include <am/btree/BTreeFile.h>
+#include <am/sdb_btree/sdb_bptree.h>
 #include <am/tokyo_cabinet/tc_hash.h>
 #include <am/tokyo_cabinet/tc_btree.h>
 #include <am/skip_list_file/SkipListFile.h>
