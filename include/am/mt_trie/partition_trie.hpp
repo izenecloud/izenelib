@@ -88,7 +88,7 @@ class PartitionTrie
     typedef NodeIDType DataTableKeyType;
     typedef bool DataTableValueType;
     typedef DataType<DataTableKeyType, DataTableValueType> DataTableRecordType;
-    typedef izenelib::sdb::ordered_sdb_fixed<DataTableKeyType, DataTableValueType , LockType> DataTableType;
+    typedef izenelib::hdb::ordered_hdb_fixed<DataTableKeyType, DataTableValueType , LockType> DataTableType;
 
     typedef PartitionTrie<CharType, NodeIDType, LockType> ThisType;
 
@@ -116,7 +116,8 @@ public:
     {
         dataTable_.setDegree(32);
         dataTable_.setPageSize(1024);
-        dataTable_.setCacheSize(64*1024);
+        dataTable_.setCachedRecordsNumber(2500000);
+        dataTable_.setMergeFactor(2);
         dataTable_.open();
 
         edgeTable_.setDegree(128);
@@ -149,6 +150,7 @@ public:
      */
     void optimize()
     {
+        dataTable_.optimize();
         edgeTable_.optimize();
     }
 
@@ -216,7 +218,7 @@ public:
         }
 
         DataTableRecordType data;
-        typename DataTableType::SDBCursor dcur = other.dataTable_.search(startNID);
+        typename DataTableType::HDBCursor dcur = other.dataTable_.get_first_Locn();
         while(other.dataTable_.get(dcur,data)) {
             dataTable_.insertValue(data.key, data.value);
             other.dataTable_.seq(dcur);

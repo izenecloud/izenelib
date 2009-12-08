@@ -5,6 +5,7 @@
 #include <iostream>
 
 #include <boost/date_time/posix_time/posix_time.hpp>
+#include <boost/test/unit_test.hpp>
 
 #include <util/ProcMemInfo.h>
 #include <am/trie/alphabet.hpp>
@@ -16,24 +17,17 @@ using namespace std;
 using namespace izenelib::am;
 using namespace izenelib::util;
 
-void displayMemInfo(std::ostream& os = std::cout) {
-	unsigned long rlimit = 0, vm = 0, rss = 0;
-	ProcMemInfo::getProcMemInfo(vm, rss, rlimit);
-	os << "vm: " << vm << "bytes rss: " << rss << "bytes" << endl;
-}
+BOOST_AUTO_TEST_SUITE( mt_trie_t_ustring )
 
-int main()
+BOOST_AUTO_TEST_CASE(regular)
 {
-    std::cout << std::endl << "Performance Test for HDBTrie" << std::endl;
-
-    displayMemInfo();
 
     clock_t start, finish;
     boost::posix_time::ptime start_real = boost::posix_time::microsec_clock::local_time();
 
     {
 
-        MtTrie<wiselib::UString> mtTrie("mt", 16);
+        MtTrie<wiselib::UString> mtTrie("mtustring", 16);
 	mtTrie.open();
         start = clock();
 
@@ -59,29 +53,40 @@ int main()
         printf( "\nIt takes %f seconds (CPU time) and %f seconds (real time)\n",
             (double)(finish - start) / CLOCKS_PER_SEC, (double) (td.total_microseconds())/1000000);
 	mtTrie.flush();
-	while(true) {
-		std::string term;
-		std::cout << "Input term" << std::endl;
-		std::cin >> term;
-/**
-		wiselib::UString uterm("",wiselib::UString::UTF_8);
-		for(size_t i=0; i<term.size(); i++) {
-			uterm += term[i];
+
+	{
+	std::ifstream input;
+	input.open("input-ustring", std::ifstream::binary|std::ifstream::in);
+	int buffersize;
+	char buffer[256];
+	std::vector<wiselib::UString> results;
+	while(!input.eof()) {
+		input.read((char*)&buffersize, sizeof(int));
+		if(buffersize > 256) {
+			input.seekg(buffersize, std::ifstream::cur);
+		} else {
+			input.read(buffer, buffersize);
+			wiselib::UString term(std::string(buffer, buffersize) );
+			for(size_t i=0; i<term.length(); i++) {
+				wiselib::UString wildcard = term;
+				wildcard[i] = '?';
+				results.clear();
+				mtTrie.findRegExp(wildcard, results);
+				BOOST_CHECK(results.size()>0);
+			}
+			for(size_t i=1; i<term.length(); i++) {
+				wiselib::UString wildcard = term;
+				wildcard[i] = '*';
+				results.clear();
+				mtTrie.findRegExp(wildcard, results);
+				BOOST_CHECK(results.size()>0);
+			}
 		}
-*/
-		wiselib::UString uterm(term,wiselib::UString::UTF_8);
-		for(size_t i=0; i<uterm.size(); i++) {
-			std::cout <<(short) ((char*) uterm.c_str())[i] << ",";
-		}
-		std::cout << std::endl;
-		std::vector<wiselib::UString> terms;
-		mtTrie.findRegExp(uterm, terms);
-		for(size_t i =0; i<terms.size(); i++ )
-			std::cout << terms[i] << std::endl;
 	}
 
+	}
 	mtTrie.close();
-	return 0;
     }
 }
 
+BOOST_AUTO_TEST_SUITE_END()
