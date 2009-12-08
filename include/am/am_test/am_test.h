@@ -38,6 +38,8 @@ Type generateData(const int a, int num=1000000, bool rand=false) {
 }
 
 template<> inline string generateData<string>(const int a, int num, bool rand) {
+	if (num < 1000000)
+		num = 1000000;
 	char p[10];
 	int b;
 	if (rand)
@@ -49,6 +51,8 @@ template<> inline string generateData<string>(const int a, int num, bool rand) {
 }
 
 template<> inline int generateData<int>(const int a, int num, bool rand) {
+	if (num < 1000000)
+		num = 1000000;
 	if (rand)
 		return myrand()%(num+1);
 	else
@@ -56,6 +60,8 @@ template<> inline int generateData<int>(const int a, int num, bool rand) {
 }
 
 template<> inline float generateData<float>(const int a, int num, bool rand) {
+	if (num < 1000000)
+		num = 1000000;
 	if (rand)
 		return float(myrand())/(num+1);
 	else
@@ -195,6 +201,7 @@ public:
 				cout<<"find key="<<generateData<KeyType>(i, num_, rand_)<<endl;
 			}
 #endif
+
 			ValueType pv;
 			bool ret = am_->get(generateData<KeyType>(i, num_, rand_), pv);
 			if (ret) {

@@ -80,7 +80,7 @@ struct CbFileHeader {
 			os<<"file size: "<<pageSize*(nPages+oPages)+sizeof(CbFileHeader)<<"bytes"<<endl;
 			if(nPages != 0)
 			{
-				os<<"average items number in a btree ndoe: "<<double(numItems)/double(nPages)<<endl;
+				os<<"average items number in a btree node: "<<double(numItems)/double(nPages)<<endl;
 				os<<"average overflow page for a node: "<<double(oPages)/double(nPages)<<endl;
 			}
 

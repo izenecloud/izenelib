@@ -58,6 +58,10 @@ public:
 		}
 	}
 	
+	void clear(){
+		map_.clear();
+	}
+	
 private:
 	ContainerType 		map_;
 };
