@@ -198,7 +198,6 @@ public:
         writeCacheLine_ = 0;
         writeCache_.open(writeCachePath_.c_str(), std::ofstream::out|
             std::ofstream::binary );
-//            std::ofstream::trunc|std::ofstream::binary );
         if(writeCache_.fail())
             std::cerr << logHead() << "fail to reopen write cache" << std::endl;
         flush();
@@ -311,28 +310,10 @@ protected:
             term.assign( std::string(charBuffer,buffersize) );
 
             if(term.size() > 0) {
-                if(header_.partitionNum == 1) {
-                    output[0].write((char*)&buffersize, sizeof(int));
-                    output[0].write(charBuffer, buffersize);
-                } else {
-                    if(term.compare(boundaries_[0]) < 0) {
-                        output[0].write((char*)&buffersize, sizeof(int));
-                        output[0].write(charBuffer, buffersize);
-                    } else if(term.compare(boundaries_[boundaries_.size()-1]) >= 0) {
-                        output[boundaries_.size()].write((char*)&buffersize, sizeof(int));
-                        output[boundaries_.size()].write(charBuffer, buffersize);
-                    } else {
-                        for(size_t i=1; i<boundaries_.size(); i++) {
-                            int c1 = term.compare(boundaries_[i-1]);
-                            int c2 = term.compare(boundaries_[i]);
-                            if(c1 >=0 && c2<0 ) {
-                                output[i].write((char*)&buffersize, sizeof(int));
-                                output[i].write(charBuffer, buffersize);
-                                break;
-                            }
-                        }
-                    }
-                }
+                int pos = std::lower_bound(boundaries_.begin(), boundaries_.end(),
+                        term) - boundaries_.begin();
+                output[pos].write((char*)&buffersize, sizeof(int));
+                output[pos].write(charBuffer, buffersize);
             }
         }
         input.close();
@@ -365,8 +346,8 @@ protected:
                 for(size_t i =0; i<boundaries_.size(); i++) {
                     trie.insert(boundaries_[i]);
                 }
+                trie.setbase(getPartitionStartNodeID(partitionId));
             }
-            trie.setbase(getPartitionStartNodeID(partitionId));
             skipNodeID_[partitionId] = trie.nextNodeID();
 
             // Insert all terms in this partition
