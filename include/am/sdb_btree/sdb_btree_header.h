@@ -105,7 +105,7 @@ struct CbFileHeader {
 		}
 	};
 
-
+const size_t SDB_FILE_HEAD_SIZE = 1024;
 NS_IZENELIB_AM_END
 
 #endif

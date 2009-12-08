@@ -76,9 +76,11 @@ public:
 	 *
 	 *
 	 */
-	void setBtreeMode(bool delaySplit)
+	void setBtreeMode(bool autoTuning=true, unsigned int optimizeNum = 65536, bool delaySplit=true)
 	{
 		_isDelaySplit = delaySplit;
+		_autoTunning = autoTuning;
+		_optimizeNum = optimizeNum;
 	}
 	/**
 	 *  \brief set the MaxKeys
@@ -401,13 +403,14 @@ public:
 	}
 
 	void optimize() {
-		string tempfile = _fileName+ ".swap";
-		dump2f(tempfile);
-		close();
-		std::remove(_fileName.c_str() );
-		std::rename(tempfile.c_str(), _fileName.c_str() );
-		std::remove(tempfile.c_str());
-		open();
+		optimize_();
+		//		string tempfile = _fileName+ ".swap";
+		//		dump2f(tempfile);
+		//		close();
+		//		std::remove(_fileName.c_str() );
+		//		std::rename(tempfile.c_str(), _fileName.c_str() );
+		//		std::remove(tempfile.c_str());
+		//		open();
 	}
 
 	void fillCache() {
@@ -441,6 +444,8 @@ private:
 
 	bool _isDelaySplit;
 	bool _isOpen;
+	bool _autoTunning;
+	unsigned int _optimizeNum;
 
 	izenelib::am::CompareFunctor<KeyType> _comp;
 	std::string _fileName; // name of the database file
@@ -462,11 +467,11 @@ private:
 
 	void _flushCache() {
 		getRoot();
+		++_flushCount;
 		if( unloadbyRss ) {
 			//static unsigned int count;
 			//++count;
-			++_flushCount;
-
+			//++_flushCount;
 			if( (_flushCount & 0xffff) == 0 ) {
 				unsigned long vm = 0, rss=0;
 				unsigned long rlimit;
@@ -607,13 +612,13 @@ private:
 	}
 
 	sdb_node* _allocateNode() {
-
 		sdb_node* newNode;
 
 		newNode = new sdb_node(_sfh, _fileLock, _activeNodeNum);
 		newNode->isLoaded = true;
 		newNode->isDirty = true;
-		newNode->fpos = sizeof(CbFileHeader) + _sfh.pageSize
+		assert(sizeof(CbFileHeader) < 1024);
+		newNode->fpos = SDB_FILE_HEAD_SIZE + _sfh.pageSize
 		*(_sfh.nPages+_sfh.oPages);
 
 		//cout<<"allocate idx="<<CbFileHeader::nPages<<" "<<newNode->fpos;
@@ -666,6 +671,41 @@ private:
 		return ret;
 	}
 
+	void optimize_(bool autoTuning = false) {
+		commit();
+		double ofactor = double(_sfh.oPages)/double(_sfh.nPages)+1;
+		int pfactor = int(ofactor);
+		
+		//auto adapt cache size.
+		setCacheSize( _sfh.cacheSize/pfactor );
+		
+		if( autoTuning ) {
+
+			string tempfile = _fileName + ".swap";
+			sdb_btree other(tempfile);
+			if( ofactor> 0.1 )
+			{
+				
+				double dfactor = ofactor/pfactor;
+
+				cout<<pfactor<<" : "<<dfactor<<endl;
+
+				other.setPageSize( _sfh.pageSize*(pfactor+1) );
+				other.setCacheSize( _sfh.cacheSize/pfactor );
+				other.setMaxKeys( int(_sfh.maxKeys/dfactor) );
+				//other.open();
+
+				dump(other);
+				other.close();
+				close();
+				std::remove(_fileName.c_str() );
+				std::rename(tempfile.c_str(), _fileName.c_str() );
+				std::remove(tempfile.c_str());
+				open();
+			}
+		}
+	}
+
 };
 
 // The constructor simply sets up the different data members
@@ -674,6 +714,9 @@ template<typename KeyType, typename ValueType, typename LockType, bool fixed,
 		const std::string& fileName) {
 	_root = 0;
 	_isDelaySplit = true;
+	_autoTunning = false;
+	_optimizeNum = 65536;
+
 	_fileName = fileName;
 
 	int len = _fileName.size();
@@ -960,6 +1003,9 @@ template<typename KeyType, typename ValueType, typename LockType, bool fixed,
 		Alloc>::insert(const KeyType& key, const ValueType& value) {
 	if ( !_isOpen)
 		return false;
+	if (_sfh.numItems == _optimizeNum)
+		optimize_(_autoTunning);
+
 	_flushCache();
 	getRoot();
 	if (_root->objCount >= _sfh.maxKeys) {
@@ -1841,8 +1887,7 @@ template<typename KeyType, typename ValueType, typename LockType, bool fixed,
 	if (_root && !_root->isLeaf) {
 		for (size_t i = 0; i < _root->objCount+1; i++) {
 			sdb_node* pChild = _root->children[i];
-			if ((sdb_node*)pChild != 0 && pChild->isLoaded)
-			{
+			if ((sdb_node*)pChild != 0 && pChild->isLoaded) {
 				_root->children[i]->unload();
 			}
 		}
