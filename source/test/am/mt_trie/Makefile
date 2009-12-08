@@ -45,16 +45,15 @@ OBJECTS = $(patsubst %.cpp, %.o, $(wildcard *.cpp))
 
 TARGET = test
 
-all: $(TARGET)
+all: gen_input $(TARGET)
 
-$(TARGET) : $(OBJECTS) 
+$(TARGET) : $(OBJECTS)
 	$(CXX) -o $@ $^  $(EXT_LIB_PATH) $(EXT_LIB) 
 
 gen_input:
 	$(CXX) -o gen_input gen_input.cc $(INCLUDE_PATH) $(CXXFLAGS) $(EXT_LIB_PATH) $(EXT_LIB) 
 
 clean:
-	rm -rf *.o $(TARGET) mt.*
-
+	rm -rf *.o mtstring.* mtustring.*
 cleanup:
-	rm -rf mt.*
+	rm -rf mtstring.* mtustring.*

@@ -4,8 +4,8 @@
 #include <fstream>
 #include <iostream>
 
-#include <boost/test/unit_test.hpp>
 #include <boost/date_time/posix_time/posix_time.hpp>
+#include <boost/test/unit_test.hpp>
 
 #include <util/ProcMemInfo.h>
 #include <am/trie/alphabet.hpp>
@@ -17,31 +17,24 @@ using namespace std;
 using namespace izenelib::am;
 using namespace izenelib::util;
 
-BOOST_AUTO_TEST_SUITE( mt_trie_suite )
 
-void displayMemInfo(std::ostream& os = std::cout) {
-	unsigned long rlimit = 0, vm = 0, rss = 0;
-	ProcMemInfo::getProcMemInfo(vm, rss, rlimit);
-	os << "vm: " << vm << "bytes rss: " << rss << "bytes" << endl;
-}
+BOOST_AUTO_TEST_SUITE( mt_trie_t_string )
 
-BOOST_AUTO_TEST_CASE(HDBTrie_am)
+BOOST_AUTO_TEST_CASE(t_regular)
 {
-    std::cout << std::endl << "Performance Test for HDBTrie" << std::endl;
-
-    displayMemInfo();
 
     clock_t start, finish;
     boost::posix_time::ptime start_real = boost::posix_time::microsec_clock::local_time();
 
     {
 
-        MtTrie<std::string> mtTrie("mt", 16);
+        MtTrie<std::string> mtTrie("mtstring", 16);
 	mtTrie.open();
         start = clock();
-
+	
+	{
 	std::ifstream input;
-	input.open("input", std::ifstream::binary|std::ifstream::in);
+	input.open("input-string", std::ifstream::binary|std::ifstream::in);
 	int buffersize;
 	char buffer[256];
 	while(!input.eof()) {
@@ -54,6 +47,7 @@ BOOST_AUTO_TEST_CASE(HDBTrie_am)
 			mtTrie.insert(term);
 		}
 	}
+	}
 
 
 	mtTrie.executeTask(2);
@@ -62,14 +56,37 @@ BOOST_AUTO_TEST_CASE(HDBTrie_am)
         printf( "\nIt takes %f seconds (CPU time) and %f seconds (real time)\n",
             (double)(finish - start) / CLOCKS_PER_SEC, (double) (td.total_microseconds())/1000000);
 	mtTrie.flush();
-	while(true) {
-		std::string term;
-		std::vector<std::string> terms;
-		std::cout << "Input term" << std::endl;
-		std::cin >> term;
-		mtTrie.findRegExp(term, terms);
-		for(size_t i =0; i<terms.size(); i++ )
-			std::cout << terms[i] << std::endl;
+
+	{
+	std::ifstream input;
+	input.open("input-string", std::ifstream::binary|std::ifstream::in);
+	int buffersize;
+	char buffer[256];
+	std::vector<std::string> results;
+	while(!input.eof()) {
+		input.read((char*)&buffersize, sizeof(int));
+		if(buffersize > 256) {
+			input.seekg(buffersize, std::ifstream::cur);
+		} else {
+			input.read(buffer, buffersize);
+			std::string term(buffer, buffersize);
+			for(size_t i=0; i<term.length(); i++) {
+				std::string wildcard = term;
+				wildcard[i] = '?';
+				results.clear();
+				mtTrie.findRegExp(wildcard, results);
+				BOOST_CHECK(results.size()>0);
+			}
+			for(size_t i=1; i<term.length(); i++) {
+				std::string wildcard = term;
+				wildcard[i] = '*';
+				results.clear();
+				mtTrie.findRegExp(wildcard, results);
+				BOOST_CHECK(results.size()>0);
+			}
+		}
+	}
+
 	}
 
 	mtTrie.close();

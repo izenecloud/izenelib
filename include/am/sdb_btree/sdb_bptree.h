@@ -50,7 +50,7 @@ typename Alloc=std::allocator<DataType<KeyType,ValueType> >
 	enum {unloadbyRss = false};
 	enum {unloadAll = true};
 	enum {unloadLeavesFirst = true};
-	enum {loadIndexFirst = true};
+	enum {loadIndexFirst = false};
 	enum {orderedCommit =true};
 	enum {quickFlush = false};
 public:
@@ -77,7 +77,7 @@ public:
 	 *
 	 *
 	 */
-	void setBtreeMode(bool delaySplit)
+	void setBtreeMode(bool delaySplit = true)
 	{
 		_isDelaySplit = delaySplit;
 	}
@@ -422,11 +422,11 @@ public:
 			if (popNode && !popNode->isLeaf && popNode->isLoaded ) {
 				for(size_t i=0; i< popNode->objCount; i++)
 				{
-					if( _activeNodeNum > _sfh.cacheSize )
+					if( _activeNodeNum> _sfh.cacheSize )
 					goto LABEL;
 					sdb_pnode* node = popNode->loadChild(i, _dataFile);
 					if( node )
-						qnode.push( node );
+					qnode.push( node );
 
 				}
 			}
@@ -700,7 +700,7 @@ private:
 		newNode = new sdb_pnode(_sfh, _fileLock, _activeNodeNum);
 		newNode->isLoaded = true;
 		newNode->isDirty = true;
-		newNode->fpos = sizeof(CbFileHeader)+ _sfh.pageSize
+		newNode->fpos = SDB_FILE_HEAD_SIZE + _sfh.pageSize
 		*(_sfh.nPages+_sfh.oPages);
 
 		//cout<<"allocate idx="<<CbFileHeader::nPages<<" "<<newNode->fpos;
@@ -752,6 +752,14 @@ private:
 			child = child->loadChild(0, _dataFile);
 		}
 		return SDBCursor(child, 0);;
+	}
+
+	void optimize_() {
+		commit();
+		double ofactor = double(_sfh.oPages)/double(_sfh.nPages)+1;
+		int pfactor = int(ofactor);
+		//auto adapt cache size.
+		setCacheSize( _sfh.cacheSize/pfactor );
 	}
 
 };
@@ -983,6 +991,8 @@ template<typename KeyType, typename ValueType, typename LockType, bool fixed,
 		Alloc>::insert(const KeyType& key, const ValueType& value) {
 	if ( !_isOpen)
 		return false;
+	if (_sfh.numItems == 1<<16)
+		optimize_();
 	_flushCache();
 	if (_root->objCount >= _sfh.maxKeys) {
 		// Growing the tree happens by creating a new

@@ -177,7 +177,7 @@ bool FieldMerger::initQueue()
     if (fieldEntries_.size() <= 0)
         return false;
     pMergeQueue_ = new FieldMergeQueue(fieldEntries_.size());
-    TermIterator* pTermIterator = NULL;
+    TermReader* pTermReader = NULL;
     FieldMergeInfo* pMI = NULL;
     MergeFieldEntry* pEntry;
 
@@ -207,18 +207,15 @@ bool FieldMerger::initQueue()
         ppFieldInfos_[order] = pEntry;
         if (pEntry->pBarrelInfo_->getWriter()) ///in-memory index barrel
         {
-            TermReader* pTermReader = pEntry->pBarrelInfo_->getWriter()->getCollectionIndexer(pEntry->pFieldInfo_->getColID())
-                            ->getFieldIndexer(pEntry->pFieldInfo_->getName())->termReader();
-             pTermIterator = pTermReader->termIterator(NULL);
-             delete pTermReader;
+            pTermReader = pEntry->pBarrelInfo_->getWriter()->getCollectionIndexer(pEntry->pFieldInfo_->getColID())
+				->getFieldIndexer(pEntry->pFieldInfo_->getName())->termReader();
         }
         else
         {
             ///on-disk index barrel
-            //pTermReader = new DiskTermReader(pDirectory_,pEntry->pBarrelInfo_->getName().c_str(),pEntry->pFieldInfo_);
-            pTermIterator = new DiskTermIterator(pDirectory_,pEntry->pBarrelInfo_->getName().c_str(),pEntry->pFieldInfo_);
+            pTermReader = new DiskTermReader(pDirectory_,pEntry->pBarrelInfo_->getName().c_str(),pEntry->pFieldInfo_);
         }
-        pMI = new FieldMergeInfo(order,pEntry->pFieldInfo_->getColID(),pEntry->pBarrelInfo_,pTermIterator);
+        pMI = new FieldMergeInfo(order,pEntry->pFieldInfo_->getColID(),pEntry->pBarrelInfo_,pTermReader);
         if (nSubBufSize > 0)
         {
             nSubBufUsed = pMI->pIterator_->setBuffer(buffer_ + nTotalUsed,nCurBufferSize);
