@@ -44,9 +44,9 @@ void trimleft(wiselib::UString& s )
     wiselib::UString::iterator it;
 
     for ( it = s.begin(); it != s.end(); it++ )
-        if ( !std::isspace(*it))
+        if ( !wiselib::UString::isThisSpaceChar(*it))
             break;
-    s.erase( s.begin(), --it );
+    s.erase( s.begin(), it );
 }
 
 void trimright( wiselib::UString& s )
@@ -55,7 +55,7 @@ void trimright( wiselib::UString& s )
 
     size_t i = 0;
     for ( ; it != s.rend(); it++, i++ )
-        if ( !std::isspace( *it )  && !std::iscntrl( *it ) )
+        if ( !wiselib::UString::isThisSpaceChar( *it )  && !wiselib::UString::isThisControlChar( *it ) )
             break;
     size_t dt = s.length() - i;
     s.erase( s.begin() + dt, s.end() );
@@ -63,6 +63,8 @@ void trimright( wiselib::UString& s )
 
 void trim( wiselib::UString& s )
 {
+    if(s.empty())
+        return;
     trimleft( s );
     trimright( s );
 }
