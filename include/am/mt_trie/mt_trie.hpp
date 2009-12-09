@@ -254,11 +254,11 @@ protected:
 
         std::set<StringType> sortedSamples;
         {
-            size_t last = 0;
+            //size_t last = 0;
             for( typename std::map<size_t, StringType>::iterator it =
                 samples_.begin(); it != samples_.end(); it++ ) {
-                std::cout << (it->first - last) << "," << it->first << "," << it->second << std::endl;
-                last = it->first;
+                //std::cout << (it->first - last) << "," << it->first << "," << it->second << std::endl;
+                //last = it->first;
                 sortedSamples.insert(it->second);
             }
         }
