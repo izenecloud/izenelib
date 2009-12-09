@@ -1039,7 +1039,7 @@ public:
       ids.push_back(terms[i]/*id_mgr_.insert(terms[i])*/);
 
     IASSERT(ids.length() == terms.size());
-
+    
     sorter_->add_terms(ids, docid);
   }
 

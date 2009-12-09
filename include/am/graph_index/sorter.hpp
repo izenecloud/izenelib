@@ -176,7 +176,7 @@ private:
    */
   inline bool is_mem_full_(uint32_t s)
   {
-    if (p_+s > BUF_SIZE)
+    if (p_+s >= BUF_SIZE)
       return true;
     return false;
   }
@@ -194,10 +194,10 @@ private:
    */
   inline bool is_in_mem_()const
   {
-    if (p_+sizeof(uint16_t)>BUF_SIZE)
+    if (p_+sizeof(uint16_t)>=BUF_SIZE)
       return false;
 
-    return (p_+*(uint16_t*)(buf_+p_)+sizeof(uint16_t)<=BUF_SIZE);
+    return (p_+*(uint16_t*)(buf_+p_)+sizeof(uint16_t)<BUF_SIZE);
   }
 
   /**
@@ -276,7 +276,7 @@ private:
         }
 
         //data is in the middle of two buffer
-        if (addr.ADDR()+sizeof(uint16_t)+addr.LEN()>end)
+        if (addr.ADDR()+sizeof(uint16_t)+addr.LEN()>=end)
         {
           fseek(f_, addr.ADDR()+sizeof(uint16_t), SEEK_SET);
 

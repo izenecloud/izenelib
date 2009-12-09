@@ -35,6 +35,8 @@ DocLengthReader::~DocLengthReader()
 
 void DocLengthReader::load(docid_t maxDocId)
 {
+    boost::mutex::scoped_lock lock(this->mutex_);
+
     if(data_) {delete data_; data_ = NULL;}
 
     size_ = maxDocId * numIndexedProperties_;
