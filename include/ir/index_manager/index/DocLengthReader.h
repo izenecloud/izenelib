@@ -12,6 +12,8 @@
 #include <ir/index_manager/store/Directory.h>
 #include <ir/index_manager/store/IndexInput.h>
 
+#include <boost/thread.hpp>
+
 #include <string>
 
 NS_IZENELIB_IR_BEGIN
@@ -51,6 +53,8 @@ private:
     size_t numIndexedProperties_;
 
     size_t size_;
+
+    mutable boost::mutex mutex_;
 };
 
 }
