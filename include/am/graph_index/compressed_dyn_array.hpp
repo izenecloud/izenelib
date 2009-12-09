@@ -3,8 +3,8 @@
    @author Kevin Hu
    @date 2009.11.24
  */
-#ifndef DYN_ARRAY_HPP
-#define DYN_ARRAY_HPP
+#ifndef COMPRESSED_DYN_ARRAY_HPP
+#define COMPRESSED_DYN_ARRAY_HPP
 
 #include<types.h>
 #include <vector>
@@ -20,7 +20,8 @@ NS_IZENELIB_AM_BEGIN
    @detail it is a copy-on-write dynamic array, and fix length data only.
  */
 template<
-  class VALUE_TYPE = unsigned int,
+  class LONG_VALUE_TYPE = unsigned int,
+  class SHORT_VALUE_TYPE = unsigned short,
   bool  AUTO_SORT = false,
   uint8_t APPEND_RATE = 1, // POWER OF 2
   bool COPY_ON_WRITE = true,
@@ -29,13 +30,14 @@ template<
 class DynArray
 {
   typedef uint8_t  ReferT;
-  typedef DynArray<VALUE_TYPE, AUTO_SORT, APPEND_RATE, COPY_ON_WRITE, LENG_TYPE> SelfT;
+  typedef DynArray<LONG_VALUE_TYPE, SHORT_VALUE_TYPE, AUTO_SORT, APPEND_RATE, COPY_ON_WRITE, LENG_TYPE> SelfT;
 public:
   typedef LENG_TYPE size_t;
   static const size_t NOT_FOUND = -1;
 
-#define ARRAY(p) ((VALUE_TYPE*)((p)+sizeof(ReferT)))
+#define ARRAY(p) ((uint8_t*)((p)+sizeof(ReferT)))
 #define REFER (*(ReferT*)p_)
+#define LONG(p, i) ((ARRAY(p) & 128)>0) 
 private:
   char* p_;//!< buffer for array
   size_t length_;//!< vector size
@@ -54,7 +56,7 @@ protected:
     {
       if (REFER ==(ReferT)-1)
       {
-        char* p = (char*)malloc(length_*sizeof(VALUE_TYPE)+sizeof(ReferT));
+        char* p = (char*)malloc(size()+sizeof(ReferT));
         memcpy((char*)ARRAY(p), (char*)ARRAY(p_), size());
           
         p_ = p;
@@ -137,9 +139,9 @@ protected:
   inline void assign_self()
   {
     //std::cout<<"assign_self............\n";
-    char* p = (char*)malloc(length_*sizeof(VALUE_TYPE)+sizeof(ReferT));
-    max_size_ = length_;
-    memcpy((char*)ARRAY(p), ARRAY(p_), capacity());
+    char* p = (char*)malloc(size()+sizeof(ReferT));
+    max_size_ = size();
+    memcpy((char*)ARRAY(p), ARRAY(p_), size());
     
     derefer();
     p_ = p;
@@ -148,56 +150,86 @@ protected:
 
   inline void new_one(size_t t)
   {
-    length_ = max_size_ = t;
-    p_ = (char*)malloc(t*sizeof(VALUE_TYPE)+sizeof(ReferT));
+    length_ = t;
+    max_size_ = t*sizeof(LONG_VALUE_TYPE);
+    p_ = (char*)malloc(size()+sizeof(ReferT));
     clean_reference();
   }
 
   inline void enlarge(size_t t)
   {
-    max_size_ = t;
-    p_ = (char*)realloc(p_, t*sizeof(VALUE_TYPE)+sizeof(ReferT));
+    max_size_ = t*sizeof(LONG_VALUE_TYPE);
+    p_ = (char*)realloc(p_, size()+sizeof(ReferT));
 
     clean_reference();
   }
 
   inline void shrink()
   {
-    max_size_ = length_;
-    p_ = (char*)realloc(p_, length_*sizeof(VALUE_TYPE)+sizeof(ReferT));
+    size_t j=0;
+    for (size_t i=0; i<length_; ++i, j+= sizeof (SHORT_VALUE_TYPE))
+      if (LONG(p_, j))
+        j+= sizeof (SHORT_VALUE_TYPE)
+    
+    max_size_ = j;
+    p_ = (char*)realloc(p_, size()+sizeof(ReferT));
 
     clean_reference();
   }
 
-  inline size_t binary_search(VALUE_TYPE t, size_t low, size_t high)const
-  {
-    if (length_ == 0)
-      return -1;
+  inline size_t size_of_(LONG_VALUE_TYPE t)const
+  {        
+    static const SHORT_VALUE_ max_short = ((SHORT_VALUE_TYPE)(-1))>>1;
+    static const LONG_VALUE_TYPE max_long = ((LONG_VALUE_TYPE)(-1))>>1;
+
+    if (t>max_long)
+    {
+      std::cout<<t<<" too long\n";
+      return sizeof(LONG_VALUE_TYPE);
+    }
     
-    IASSERT(high>=low);
-    
-    size_t mid;
-    
-    if (t> ARRAY(p_)[length_-1])
-      return length_-1;
-    if (t < ARRAY(p_)[0])
-      return -1;
-    
-    while (low < high) {
-      mid = low + ((high - low) / 2);  // Note: not (low + high) / 2 !!
-        if (ARRAY(p_)[mid] < t)
-          low = mid + 1; 
-        else
-          //can't be high = mid-1: here A[mid] >= value,
-          //so high can't be < mid if A[mid] == value
-          high = mid; 
-      }
-    // high == low, using high or low depends on taste
-    if (ARRAY(p_)[low]<=t)
-      return low;
+    if (t>max_short)
+    {
+      return sizeof(LONG_VALUE_TYPE);
+    }
     else
-      return low-1;
+    {
+      return sizeof(SHORT_VALUE_TYPE);
+    }
+
   }
+
+  inline LONG_VALUE_TYPE flag_()const
+  {
+    static const LONG_VALUE_TYPE flag = ((LONG_VALUE_TYPE)(1))<<sizeof(LONG_VALUE_TYPE)*8-1;
+    return flag;
+  }
+  
+  
+//   inline size_t binary_search(VALUE_TYPE t, size_t low, size_t high)const
+//   {
+//     size_t mid;
+    
+//     if (t> ARRAY(p_)[length_-1])
+//       return length_-1;
+//     if (t < ARRAY(p_)[0])
+//       return -1;
+    
+//     while (low < high) {
+//       mid = low + ((high - low) / 2);  // Note: not (low + high) / 2 !!
+//         if (ARRAY(p_)[mid] < t)
+//           low = mid + 1; 
+//         else
+//           //can't be high = mid-1: here A[mid] >= value,
+//           //so high can't be < mid if A[mid] == value
+//           high = mid; 
+//       }
+//     // high == low, using high or low depends on taste
+//     if (ARRAY(p_)[low]<=t)
+//       return low;
+//     else
+//       return low-1;
+//   }
 
   inline size_t find_pos_2insert(VALUE_TYPE t)const
   {
@@ -207,123 +239,114 @@ protected:
     if (!AUTO_SORT)
       return length_-1;
 
-    return binary_search(t, 0, length_-1);
+    return length_-1;//binary_search(t, 0, length_-1);
   }
 
   
-   /**
-     Swap two elements.
-  **/
-  void swap_(VALUE_TYPE* a, VALUE_TYPE* b)
-  {
-    VALUE_TYPE temp;
-    temp = *a;
-    *a = *b;
-    *b = temp;
-  }
+//    /**
+//      Swap two elements.
+//   **/
+//   void swap_(VALUE_TYPE* a, VALUE_TYPE* b)
+//   {
+//     VALUE_TYPE temp;
+//     temp = *a;
+//     *a = *b;
+//     *b = temp;
+//   }
 
-  /**
-     When quick sort, it return the index of media element.
-   **/
-  uint32_t findMedianIndex_(VALUE_TYPE* array, uint32_t left, uint32_t right)
-  {
-    return (left+right)/2;
+//   /**
+//      When quick sort, it return the index of media element.
+//    **/
+//   size_t findMedianIndex_(VALUE_TYPE* array, size_t left, size_t right)
+//   {
+//     return (left+right)/2;
     
-//     VALUE_TYPE min = array[left];
-//     VALUE_TYPE max = array[left];
-//     uint32_t shift = 5;
+// //     VALUE_TYPE min = array[left];
+// //     VALUE_TYPE max = array[left];
+// //     size_t shift = 5;
 
-//     if (right-left<2*shift)
-//       return (left+right)/2;
+// //     if (right-left<2*shift)
+// //       return (left+right)/2;
     
-//     for (uint32_t i=left+shift; i<=right; i+=shift)
-//     {
-//       if (array[i]<min)
-//       {
-//         min = array[i];
-//         continue;
-//       }
+// //     for (size_t i=left+shift; i<=right; i+=shift)
+// //     {
+// //       if (array[i]<min)
+// //       {
+// //         min = array[i];
+// //         continue;
+// //       }
 
-//       if (array[i] > max)
-//       {
-//         max = array[i];
-//         continue;
-//       }
-//     }
+// //       if (array[i] > max)
+// //       {
+// //         max = array[i];
+// //         continue;
+// //       }
+// //     }
 
-//     VALUE_TYPE average = (min + max )/2;
-//     uint32_t idx = left;
-//     VALUE_TYPE minGap = average>array[idx]? average-array[idx] : array[idx]-average;
+// //     VALUE_TYPE average = (min + max )/2;
+// //     size_t idx = left;
+// //     VALUE_TYPE minGap = average>array[idx]? average-array[idx] : array[idx]-average;
     
-//     for (uint32_t i=left+shift; i<=right; i+=shift)
-//     {
-//       VALUE_TYPE gap = average>array[i]? average-array[i] : array[i]-average;
-//       if (gap<minGap)
-//       {
-//         minGap = gap;
-//         idx = i;
-//       }
-//     }
+// //     for (size_t i=left+shift; i<=right; i+=shift)
+// //     {
+// //       VALUE_TYPE gap = average>array[i]? average-array[i] : array[i]-average;
+// //       if (gap<minGap)
+// //       {
+// //         minGap = gap;
+// //         idx = i;
+// //       }
+// //     }
 
-//     return idx;
+// //     return idx;
     
-  }
+//   }
   
-  /**
-     Partition the array into two halves and return the index about which the array is partitioned.
-  **/
-  uint32_t partition_(VALUE_TYPE* array, uint32_t left, uint32_t right)
-  {
-    IASSERT(right<length_);
-    IASSERT(left<=right);
-    
-    uint32_t pivotIndex = findMedianIndex_(array, left, right);
-    uint32_t index = left;
-    
-    VALUE_TYPE pivotValue = array[pivotIndex];
+//   /**
+//      Partition the array into two halves and return the index about which the array is partitioned.
+//   **/
+//   size_t partition_(VALUE_TYPE* array, size_t left, size_t right)
+//   {
+//     size_t pivotIndex = findMedianIndex_(array, left, right), index = left, i;
+//     VALUE_TYPE pivotValue = array[pivotIndex];
  
-    swap_(&array[pivotIndex], &array[right]);
-
-    uint32_t i;
-    for(i = left; i <right; i++)
-    {
-      if(array[i] <= pivotValue)
-      {
-        swap_(&array[i], &array[index]);
-        index += 1;
-      }
-    }
-    swap_(&array[right], &array[index]);
+//     swap_(&array[pivotIndex], &array[right]);
+    
+//     for(i = left; i <right; i++)
+//     {
+//       if(array[i] <= pivotValue)
+//       {
+//         swap_(&array[i], &array[index]);
+//         index += 1;
+//       }
+//     }
+//     swap_(&array[right], &array[index]);
  
-    return index;
-  }
+//     return index;
+//   }
 
-  /**
-     A recursive function applying quick sort.
-   **/
-  void quickSort_(VALUE_TYPE* array, uint32_t left, uint32_t right)
-  {
-    if (left == right)
-      return;
-    
-    IASSERT(left < right);
+//   /**
+//      A recursive function applying quick sort.
+//    **/
+//   void quickSort_(VALUE_TYPE* array, size_t left, size_t right)
+//   {
+//     IASSERT(left < right);
 
-    IASSERT(right < length_);
+//     IASSERT(right < length_);
     
-    if(right-left<=1)
-    {
-      if (array[left]>array[right])
-        swap_(&array[left], &array[right]);
-      return;
-    }
+//     if(right-left<=1)
+//     {
+//       if (array[left]>array[right])
+//         swap_(&array[left], &array[right]);
+//       return;
+//     }
     
-    uint32_t idx = partition_(array, left, right);
+//     size_t idx = partition_(array, left, right);
     
-    if(idx>0 && left<idx-1)
-      quickSort_(array, left, idx - 1);
-    if (idx+1<length_ && idx+1<right)
-      quickSort_(array, idx + 1, right);
-  }
+//     if(idx>0 && left<idx-1)
+//       quickSort_(array, left, idx - 1);
+//     if (idx+1<length_ && idx+1<right)
+//       quickSort_(array, idx + 1, right);
+//   }
 
 public:
   
@@ -335,7 +358,7 @@ public:
   /**
      @brief it can be initialized with std::vector
    */
-  inline explicit DynArray(const std::vector<VALUE_TYPE>& v)
+  inline explicit DynArray(const std::vector<LONG_VALUE_TYPE>& v)
     :p_(NULL), length_(0), max_size_(0)
   {
     assign(v);
@@ -376,7 +399,7 @@ public:
   /**
      @brief it can be initialized with std::vector
    */
-  inline void assign(const std::vector<VALUE_TYPE>& v)
+  inline void assign(const std::vector<LONG_VALUE_TYPE>& v)
   {
     if (v.size()==0)
     {
@@ -387,24 +410,19 @@ public:
     derefer();
     
     new_one(v.size());
-    memcpy(ARRAY(p_), v.data(), sizeof(VALUE_TYPE)*v.size());
-  }
-
-  /**
-     @brief initialized with a buffer
-   */
-  inline void assign(const char* p, size_t len)
-  {
-    if (!len)
+    for (size_t i=0, j=0; i<v.size(); ++i)
     {
-      clear();
-      return;
+      if (size_of_(v[i]) == sizeof(LONG_VALUE_TYPE))
+      { 
+        *((LONG_VALUE_TYPE*)(ARRAY(p_)+j)) = v[i]|flag_();
+        j += sizeof(LONG_VALUE_TYPE);
+      }
+      else
+      {
+        *((SHORT_VALUE_TYPE*)(ARRAY(p_)+j)) = v[i];
+        j += sizeof(SHORT_VALUE_TYPE);
+      }
     }
-
-    derefer();
-    
-    new_one(len/sizeof(VALUE_TYPE));
-    memcpy(ARRAY(p_), p, len);
   }
 
   inline void assign(const SelfT& other)
@@ -430,7 +448,7 @@ public:
     }
 
     new_one(other.length());
-    memcpy(ARRAY(p_), ARRAY(other.p_), sizeof(VALUE_TYPE)*other.length());
+    memcpy(ARRAY(p_), ARRAY(other.p_), size());
   }
 
   inline SelfT& operator = (const SelfT& other)
@@ -492,7 +510,7 @@ public:
     return *this>other || *this == other;
   }
   
-  inline SelfT& operator = (const std::vector<VALUE_TYPE>& other)
+  inline SelfT& operator = (const std::vector<LONG_VALUE_TYPE>& other)
   {
     assign(other);
     return *this;
@@ -514,7 +532,7 @@ public:
     if (max_size_ < length_+other.length())
       enlarge(length_+other.length());
 
-    memcpy(&ARRAY(p_)[length_], ARRAY(other.p_), other.size());
+    memcpy(ARRAY(p_)+size(), ARRAY(other.p_), other.size());
     length_ += other.length();
 
     return *this;
@@ -523,7 +541,7 @@ public:
   /**
      @brief Append a std::vector at the end
    */
-  SelfT& operator += (const std::vector<VALUE_TYPE>& other)
+  SelfT& operator += (const std::vector<LONG_VALUE_TYPE>& other)
   {
     if (other.size()==0)
       return *this;
@@ -531,26 +549,20 @@ public:
     if (is_refered())
       assign_self();
 
-    if (max_size_ < length_+other.size())
-      enlarge(length_+other.size());
-    
-    memcpy(&ARRAY(p_)[length_], other.data(), other.size()*sizeof(VALUE_TYPE));
-    
-    length_ += other.size();
-    
-    return *this;
+    SelfT tmp(other);
+    return operator +=(tmp);
   }
 
   /**
      @brief appended by a element.
    */
-  inline SelfT& operator += (VALUE_TYPE t)
+  inline SelfT& operator += (LONG_VALUE_TYPE t)
   {
     push_back(t);
     return *this;
   }
 
-  inline bool operator == (const VALUE_TYPE* other)
+  inline bool operator == (const LONG_VALUE_TYPE* other)
   {
     for (size_t i=0; i<length_; i++)
       if (at(i)!= other[i])
@@ -562,7 +574,7 @@ public:
   /**
      @see inline SelfT& operator += (VALUE_TYPE t)
    */
-  inline size_t push_back(VALUE_TYPE t)
+  inline size_t push_back(LONG_VALUE_TYPE t)
   {
     if (is_refered())
       assign_self();
@@ -574,37 +586,17 @@ public:
   }
 
   /**
-     @brief push back n elements of another vector.
-   */
-  void push_back(const SelfT& other, size_t n = 0)
-  {
-    if (other.length()==0 || n>=other.length())
-      return;
-    
-    if (is_refered())
-      assign_self();
-
-    
-    if (max_size_ < length_+other.length()-n)
-      enlarge(length_+other.length()-n);
-    
-    memcpy(&ARRAY(p_)[length_], other.data()+n, (other.length()-n)*sizeof(VALUE_TYPE));
-    
-    length_ += other.length()-n;
-  }
-
-  /**
      @brief remove the last element
    */
-  inline VALUE_TYPE pop_back()
+  inline LONG_VALUE_TYPE pop_back()
   {
     if (length_ ==0)
-      return VALUE_TYPE();
+      return LONG_VALUE_TYPE();
     
     if (is_refered())
       assign_self();
     
-    VALUE_TYPE r = at(length_-1);
+    LONG_VALUE_TYPE r = at(length_-1);
     --length_;
     return r;
   }
@@ -613,13 +605,24 @@ public:
      @brief it's equal to push_back(), but make sure memory has been
      reserved and no reference before calling.
    */
-  inline bool add_tail(VALUE_TYPE t)
+  inline bool add_tail(LONG_VALUE_TYPE t)
   {
     // if (max_size_==0 || max_size_ == length_)
 //       enlarge((max_size_+1)<<APPEND_RATE);
     
     IASSERT(length_<max_size_);
-    ARRAY(p_)[length_] = t;
+    
+    if (size_of_(t) == sizeof(LONG_VALUE_TYPE))
+    {
+      *((LONG_VALUE_TYPE*)(ARRAY(p_)+size())) = t | flag_();
+      size_ += sizeof(LONG_VALUE_TYPE);
+    }
+    else
+    {
+      *((SHORT_VALUE_TYPE*)(ARRAY(p_)+size())) = t;
+      size_ += sizeof(SHORT_VALUE_TYPE);
+    }
+    
     ++length_;
     return true;
   }
@@ -633,10 +636,19 @@ public:
     
     if (is_refered())
       assign_self();
-    
-    for (size_t i=t; i<length_-1; i++)
-      ARRAY(p_)[i] = ARRAY(p_)[i+1];
+
+    size_t i = 0;
+    for (size_t j; j<t; ++j)
+      if (LONG(p_, i))
+        i += sizeof(LONG_VALUE_TYPE);
+      else
+        i += sizeof(SHORT_VALUE_TYPE);
+
+    size_t gap = (LONG(p_, i))? sizeof(LONG_VALUE_TYPE): sizeof(SHORT_VALUE_TYPE);
+    for (; i<size()-gap; i++)
+      ARRAY(p_)[i] = ARRAY(p_)[i+gap];
     length_--;
+    size_ -= gap;
   }
 
   /**
@@ -666,13 +678,13 @@ public:
   {
     derefer();
     p_ = NULL;
-    max_size_ = length_ = 0;
+    size_ = max_size_ = length_ = 0;
   }  
 
   /**
      @brief insert t at n.
    */
-  inline void insert(size_t n, VALUE_TYPE t)
+  inline void insert(size_t n, LONG_VALUE_TYPE t)
   {
     IASSERT(n < length_ || n == NOT_FOUND);
     if (is_refered())
@@ -680,11 +692,12 @@ public:
 
     IASSERT(max_size_>=length_);
     
-    if (max_size_==0 || max_size_ == length_)
+    while (size_==0 || max_size_ <= size() + sizeof(LONG_VALUE_TYPE))
       enlarge((size_t)((max_size_+1)*1.2+.5));//<<APPEND_RATE);
-    
-    for (size_t i=length_; i>n+1; i--)
-      ARRAY(p_)[i] = ARRAY(p_)[i-1];
+
+    size_t gap = size_of_(t);
+    for (size_t i=size_-1; i>n+1; i--)
+      ARRAY(p_)[i+gap] = ARRAY(p_)[i-1];
     
     IASSERT(n+1<=length_ && n+1<max_size_);
     ARRAY(p_)[n+1] = t;
@@ -853,13 +866,13 @@ public:
 //     if (is_refered())
 //       assign_self();
 
-//     const uint32_t SIZE = 1000000;
+//     const size_t SIZE = 1000000;
 //     if (length_/SIZE <=2)
 //       return quickSort_(ARRAY(p_), 0, length_-1);
 
-//     const uint32_t LEN = length_%SIZE==0? length_/SIZE: length_/SIZE+1;
-//     uint32_t* index = (uint32_t*)malloc(sizeof(uint32_t)*LEN);
-//     for (uint32_t i=0; i<LEN; ++i)
+//     const size_t LEN = length_%SIZE==0? length_/SIZE: length_/SIZE+1;
+//     size_t* index = (size_t*)malloc(sizeof(size_t)*LEN);
+//     for (size_t i=0; i<LEN; ++i)
 //       index[i] = 0;
     
 //     size_t i=0;
@@ -868,14 +881,14 @@ public:
 
 //     char* p = (char*)malloc(length_*sizeof(VALUE_TYPE)+sizeof(ReferT));
 //     i = 0;
-//     uint32_t finished = 0;
+//     size_t finished = 0;
 
 //     while (finished != LEN)
 //     {
-//       uint32_t mini = 0;
+//       size_t mini = 0;
 //       VALUE_TYPE min;
 
-//       uint32_t j = 0;
+//       size_t j = 0;
 //       for (; j<LEN; ++j)
 //         if (index[j]<SIZE)
 //         {
