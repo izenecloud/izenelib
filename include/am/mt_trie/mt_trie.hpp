@@ -52,6 +52,7 @@ public:
             needSample_ = true;
             sampleStep_ = 1;
             sampleCounter_ = 0;
+            lastSampleLine_ = 0;
         }
 
         skipNodeID_.resize(partitionNum);
@@ -95,6 +96,7 @@ public:
              if(needSample_) {
                  sampleCounter_ ++;
                  if(sampleCounter_ == sampleStep_) {
+                    sampleCounter_ = 0;
                     size_t measure = writeCacheLine_-lastSampleLine_;
 
                     // havn't collect enough samples from sequence
@@ -103,7 +105,6 @@ public:
                         associations_.insert(std::make_pair(writeCacheLine_ ,  mesures_.insert(
                             std::make_pair(measure, writeCacheLine_) )));
                         lastSampleLine_ = writeCacheLine_;
-                        sampleCounter_ = 0;
                     } else {
                         //  replace existing samples with new one
                         size_t existingLeastMeasure = mesures_.begin()->first;
@@ -253,8 +254,11 @@ protected:
 
         std::set<StringType> sortedSamples;
         {
+            size_t last = 0;
             for( typename std::map<size_t, StringType>::iterator it =
                 samples_.begin(); it != samples_.end(); it++ ) {
+                std::cout << (it->first - last) << "," << it->first << "," << it->second << std::endl;
+                last = it->first;
                 sortedSamples.insert(it->second);
             }
         }
@@ -410,7 +414,7 @@ private:
     bool needSample_;
 
     /// @brief number of samples that need to collect.
-    const static size_t sampleNum_ = 1000;
+    const static size_t sampleNum_ = 65536;
 
     /// @brief for implementing sampling at insert-time
     size_t sampleStep_;
