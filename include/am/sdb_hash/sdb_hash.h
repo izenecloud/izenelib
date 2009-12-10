@@ -6,6 +6,7 @@
  * @history
  * ==========================
  * 1. 2009-02-16 first version.
+ * 2. 2009-12-10 thread safe
  *
  *
  * This file defines class sdb_hash.
@@ -69,12 +70,6 @@ public:
 		dirtyPageNum_ = 0;
 		cacheSize_ = 0;
 
-		if(unloadByRss)
-		{
-			unsigned long vm = 0;
-			unsigned long rlimit;
-			ProcMemInfo::getProcMemInfo(vm, initRss_, rlimit);
-		}
 		ksize_ = vsize_ = 0;
 		if(fixed) {
 			char* ptr = 0;
@@ -86,7 +81,6 @@ public:
 			izs.write_image(ptr, ksize_);
 			izs1.write_image(ptr1, vsize_);
 			BucketGap = ksize_+vsize_ + sizeof(long)+sizeof(int)+sizeof(size_t);
-
 		}
 
 	}
@@ -180,8 +174,9 @@ public:
 	bool insert(const KeyType& key, const ValueType& value) {
 		if( !isOpen_ )
 		return false;
+		flushCache_();
 		SDBCursor locn;
-		if( search(key, locn) )
+		if( search_(key, locn) )
 		return false;
 		else {
 			char* ptr = 0;
@@ -271,10 +266,12 @@ public:
 		if( !isOpen_ )
 		return NULL;
 
+		ScopedReadLock<LockType> lock(flushLock_);
 		SDBCursor locn;
-		if( !search(key, locn) )
+		if( !search_(key, locn) )
 		return NULL;
 		else {
+
 			char *p = locn.second;
 			size_t ksz, vsz;
 			ValueType *pval = new ValueType;
@@ -301,8 +298,10 @@ public:
 	{
 		if( !isOpen_ )
 		return false;
+		safeFlushCache_();
+		ScopedReadLock<LockType> lock(flushLock_);
 		SDBCursor locn;
-		if( !search(key, locn) )
+		if( !search_(key, locn) )
 		return false;
 		else {
 			char *p = locn.second;
@@ -481,11 +480,16 @@ public:
 	 *    another search function, flushCache_() will be called at the beginning,
 	 *
 	 */
-	bool search(const KeyType &key, SDBCursor &locn)
+	bool search(const KeyType &key, SDBCursor &locn) {
+		safeFlushCache_();
+		ScopedReadLock<LockType> lock(flushLock_);
+		return search_(key, locn);
+	}
+
+	bool search_(const KeyType &key, SDBCursor &locn)
 	{
 		if( !isOpen_ )
 		return false;
-		flushCache_();
 
 		locn.first = NULL;
 		locn.second = NULL;
@@ -589,7 +593,13 @@ public:
 	 */
 	SDBCursor get_first_locn()
 	{
+		ScopedReadLock<LockType> lock(flushLock_);
 		SDBCursor locn;
+		locn.first = NULL;
+		locn.second = NULL;
+		if( sfh_.numItems == 0 )
+			return locn;
+
 		for(size_t i=0; i<directorySize_; i++)
 		{
 			if( !entry_[i] )
@@ -607,10 +617,11 @@ public:
 				break;
 			}
 		}
+
 		KeyType key;
 		ValueType value;
-		while( !get(locn, key, value) ) {
-			seq(locn);
+		while( !get_(locn, key, value) ) {
+			seq_(locn);
 		}
 		return locn;
 	}
@@ -622,10 +633,16 @@ public:
 		return get(locn, rec.key, rec.value);
 	}
 
-	bool get(const SDBCursor& locn, KeyType& key, ValueType& val)
+	bool get(const SDBCursor& locn, KeyType& key, ValueType& val) {
+		ScopedReadLock<LockType> lock(flushLock_);
+		return get_(locn, key, val);
+	}
+
+	bool get_(const SDBCursor& locn, KeyType& key, ValueType& val)
 	{
 		if( !isOpen_ )
 		return false;
+
 		bucket_chain* sa = locn.first;
 		char* p = locn.second;
 
@@ -683,33 +700,16 @@ public:
 		return seq(locn, dat.key, dat.value, sdir);
 	}
 
-	bool isEmptyBucket_(uint32_t idx, bucket_chain* &sa) {
-		if(idx >= directorySize_)
-		{
-			sa = NULL;
-			return false;
-		}
-
-		if( !entry_[idx] )
-		{
-			if( bucketAddr[idx] != 0 ) {
-				entry_[idx] = new bucket_chain(sfh_.bucketSize, fileLock_);
-				entry_[idx] ->fpos = bucketAddr[idx];
-			}
-		}
-		sa = entry_[idx];
-		load_(sa);
-		while(sa && sa->num <= 0) {
-			sa = loadNext_(sa);
-		}
-		return sa == NULL;
-
+	bool seq(SDBCursor& locn, util::ESeqDirection sdir=util::ESD_FORWARD) {
+		safeFlushCache_(locn);
+		ScopedReadLock<LockType> lock(flushLock_);
+		return seq_(locn, sdir);
 	}
 
-	bool seq(SDBCursor& locn, util::ESeqDirection sdir=util::ESD_FORWARD) {
+	bool seq_(SDBCursor& locn, util::ESeqDirection sdir=util::ESD_FORWARD) {
 		if( !isOpen_ )
 		return false;
-		flushCache_(locn);
+
 		if( sdir == util::ESD_FORWARD ) {
 			bucket_chain* sa = locn.first;
 			char* p = locn.second;
@@ -823,16 +823,16 @@ public:
 		for (size_t i=0; i<directorySize_; i++) {
 			load_( entry_[i] );
 			if( entry_[i] && entry_[i]->isLoaded )
-				qnode.push( entry_[i] );
+			qnode.push( entry_[i] );
 		}
 		while (!qnode.empty() ) {
 			bucket_chain* popNode = qnode.front();
 			if ( popNode && popNode->isLoaded)
 			qnode.pop();
 			if (popNode && popNode->next ) {
-				bucket_chain* node  = loadNext_(popNode); 
+				bucket_chain* node = loadNext_(popNode);
 				if( node )
-					qnode.push(node );
+				qnode.push(node );
 				if( activeNum_> sfh_.cacheSize )
 				break;
 			}
@@ -964,10 +964,8 @@ public:
 				if ( it->second->write( dataFile_ ) )
 				--dirtyPageNum_;
 			}
-
 		}
 		else {
-
 			for (size_t i=0; i<directorySize_; i++) {
 				bucket_chain* sc = entry_[i];
 				while (sc) {
@@ -995,12 +993,8 @@ public:
 		printf("commit elapsed 1 ( actually ): %lf seconds\n",
 				timer.elapsed() );
 #endif
+		ScopedWriteLock<LockType> lock(flushLock_);
 		unload_();
-		if (unloadByRss) {
-			unsigned long vm = 0;
-			unsigned long rlimit;
-			ProcMemInfo::getProcMemInfo(vm, initRss_, rlimit);
-		}
 	}
 
 	void unload_() {
@@ -1058,7 +1052,6 @@ public:
 		return 0.0;
 		else
 		return double(sfh_.numItems)/nslot;
-
 	}
 
 protected:
@@ -1080,6 +1073,7 @@ private:
 	unsigned int activeNum_;
 	unsigned int dirtyPageNum_;
 	LockType fileLock_;
+	LockType flushLock_;
 private:
 	size_t directorySize_;
 	size_t dmask_;
@@ -1138,71 +1132,58 @@ private:
 		return next;
 	}
 
+	bool isEmptyBucket_(uint32_t idx, bucket_chain* &sa) {
+		if(idx >= directorySize_)
+		{
+			sa = NULL;
+			return false;
+		}
+
+		if( !entry_[idx] )
+		{
+			if( bucketAddr[idx] != 0 ) {
+				entry_[idx] = new bucket_chain(sfh_.bucketSize, fileLock_);
+				entry_[idx] ->fpos = bucketAddr[idx];
+			}
+		}
+		sa = entry_[idx];
+		load_(sa);
+		while(sa && sa->num <= 0) {
+			sa = loadNext_(sa);
+		}
+		return sa == NULL;
+
+	}
+
 	/**
 	 *  when cache is full, it was called to reduce memory usage.
 	 *
 	 */
-	void flushCache_() {
-		if (unloadByRss) {
-			++flushCount_;
-
-			if ( (flushCount_ & 0xffff) == 0) {
-
-				unsigned long vm = 0, rss;
-				unsigned long rlimit;
-				ProcMemInfo::getProcMemInfo(vm, rss, rlimit);
-
-				//if( _activeNodeNum> _sfh.cacheSize/1024 )
-				if (rss - initRss_> sfh_.cacheSize*sfh_.bucketSize) {
-#ifdef DEBUG
-					cout<<"\n!!! memory occupied: "<<rss<<" bytes"<<endl;
-#endif
-					flushCacheImpl_();
-#ifdef DEBUG
-					ProcMemInfo::getProcMemInfo(vm, rss, rlimit);
-					cout<<"\n!!! after unload.  Memory occupied: "<<rss<<" bytes"<<endl;
-#endif
-				}
-
-				//cout<<activeNum_<<" vs "<<sfh_.cacheSize <<endl;
-				//if( activeNum_> sfh_.cacheSize )
-				//{
-				//	flushCacheImpl_(quickFlush);
-				//}
-			}
-		} else {
-			if (activeNum_> sfh_.cacheSize) {
-				flushCacheImpl_();
-			}
+	void safeFlushCache_() {
+		if (activeNum_> sfh_.cacheSize) {
+			ScopedWriteLock<LockType> lock(flushLock_);
+			flushCacheImpl_();
 		}
 	}
 
-	void flushCache_(SDBCursor &locn) {
-		if (unloadByRss) {
-			++flushCount_;
-			if ( (flushCount_ & 0xffff) == 0) {
-				unsigned long vm = 0, rss;
-				unsigned long rlimit;
-				ProcMemInfo::getProcMemInfo(vm, rss, rlimit);
-
-				if (rss - initRss_> sfh_.cacheSize * sfh_.bucketSize) {
-					KeyType key;
-					ValueType value;
-					get(locn, key, value);
-					flushCacheImpl_();
-					search(key, locn);
-				}
-			}
-		} else {
-			if (activeNum_> sfh_.cacheSize) {
-				KeyType key;
-				ValueType value;
-				get(locn, key, value);
-				flushCacheImpl_();
-				search(key, locn);
-			}
+	void flushCache_() {
+		if (activeNum_> sfh_.cacheSize) {
+			flushCacheImpl_();
 		}
 
+	}
+
+	void safeFlushCache_(SDBCursor &locn) {
+		if (activeNum_> sfh_.cacheSize) {
+			KeyType key;
+			ValueType value;
+			get(locn, key, value);
+			{
+				ScopedWriteLock<LockType> lock(flushLock_);
+				flushCacheImpl_();
+			}
+			search(key, locn);
+		}
 	}
 
 	void flushCacheImpl_() {

@@ -20,11 +20,20 @@ AM_OBJ1 := t_am1.o
  
 FLUSH_OBJ := t_flush.o 
 
-all:  t_flush t_sh  t_sdb_hash t_am1
 
+OBJS := $(patsubst %.cc, %.o, $(wildcard *.cc))
+
+.cc.o:
+
+	$(GPP) $(INC_PATH) $(CC_OPTIONS) $< 
 .cpp.o:
-	$(GPP) $(CC_OPTIONS) $(INC_PATH)  $< 
-	
+	$(GPP) $(CC_OPTIONS) $(INC_PATH)  $< 	
+
+
+all: test t_flush t_sh  t_sdb_hash t_am1
+
+test:  $(OBJS)
+	$(GPP) $(OBJS) $(LIBS)  -o $@ -pg  	
 	
 t_flush:  $(FLUSH_OBJ)
 	$(GPP) $(FLUSH_OBJ) $(LIBS)  -o $@ -pg	
