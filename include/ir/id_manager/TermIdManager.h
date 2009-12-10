@@ -69,19 +69,9 @@ public:
 	 * @return true     : The term ID is in dictionary.
 	 * @return false    : There is no matched term ID in dictionary. New term Id generation and Insertion processes are done.
 	 */
-    template<typename RegexpManager>
-	bool getTermIdByTermString(const NameString& termString, NameID& termId, RegexpManager& starSearcher)
+	bool getTermIdByTermString(const NameString& termString, NameID& termId)
     {
-        // If given term string is not in the dictionary,
-        // insertion into File and starSearchInsertion is needed.
-        // If the return value of getNameIdByNameString is false,
-        // termId contains new id of
-        if (false == idFactory_.getNameIDByNameString(termString, termId) ) {
-            // Write into startSearchIndexer
-            starSearcher.insert(termString, termId);
-            return false;
-        }
-        return true;
+        return idFactory_.getNameIDByNameString(termString, termId);
     }
 
 
@@ -99,16 +89,18 @@ public:
     }
 
 	/**
-	 * @brief a member function to offer a set of search result of term id list. If one or more term strings are not matched in the dictionary, 0 will be contained for each unmatched termIdList.
+	 * @brief a member function to offer a set of search result of term id list.
+	 * If one or more term strings are not matched in the dictionary,
+	 * 0 will be contained for each unmatched termIdList.
 	 *
 	 * @param termStringList    a string list
 	 * @param termIdList        a list of term IDs which is the result of searching
 	 * @return true  :          all the term strings in given list are matched in the dictionary.
 	 * @return false :          one or more term strings are not matched in the dictionary.
 	 */
-    template<typename RegexpManager>
-	bool getTermIdListByTermStringList( const std::vector<NameString>& termStringList,
-			std::vector<NameID>& termIdList, RegexpManager& starSearcher)
+	bool getTermIdListByTermStringList(
+            const std::vector<NameString>& termStringList,
+			std::vector<NameID>& termIdList)
     {
         bool ret;
         bool isAllIDFound = true;
@@ -119,7 +111,7 @@ public:
         termIdList.resize(sizeOfTermStringList);
 
         for (size_t i = 0; i < sizeOfTermStringList; i++) {
-            ret = getTermIdByTermString(termStringList[i], termIdList[i], starSearcher);
+            ret = getTermIdByTermString(termStringList[i], termIdList[i]);
             if (ret == false)
                 isAllIDFound = false;
         } // end - for
