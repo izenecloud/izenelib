@@ -106,6 +106,7 @@ public:
 	void clear(){
 		close();
 		std::remove(fileName_.c_str() );
+		sfh_.initialize();
 		open();		
 	}
 

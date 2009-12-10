@@ -562,19 +562,13 @@ TermIterator* DiskTermReader::termIterator(const char* field)
 
 //////////////////////////////////////////////////////////////////////////
 ///InMemoryTermReader
-InMemoryTermReader::InMemoryTermReader(void)
-        : pIndexer_(NULL)
-        , pCurTermInfo_(NULL)
-        , pCurPosting_(NULL)
-        , pTermInfo_(NULL)
-{
-}
 InMemoryTermReader::InMemoryTermReader(const char* field,FieldIndexer* pIndexer)
         : field_(field)
         , pIndexer_(pIndexer)
         , pCurTermInfo_(NULL)
         , pCurPosting_(NULL)
         , pTermInfo_(NULL)
+        , rwLock_(pIndexer->getLock())
 {
 }
 
@@ -609,9 +603,10 @@ TermDocFreqs* InMemoryTermReader::termDocFreqs()
         return NULL;
 
     //InMemoryPosting* pInMem = (InMemoryPosting*)pCurPosting_;
-    boost::mutex::scoped_lock lock(pIndexer_->getLock());
+    rwLock_.acquire_read_lock();
     //pInMem->flushLastDoc(false);
     TermDocFreqs* pTermDocs = new TermDocFreqs(this,pCurPosting_,*pCurTermInfo_);
+    rwLock_.release_read_lock();	
     return pTermDocs;
 }
 
@@ -620,9 +615,10 @@ TermPositions* InMemoryTermReader::termPositions()
     if( (pCurTermInfo_ == NULL)||(pCurPosting_ == NULL))
         return NULL;
     //InMemoryPosting* pInMem = (InMemoryPosting*)pCurPosting_;
-    boost::mutex::scoped_lock lock(pIndexer_->getLock());
+    rwLock_.acquire_read_lock();
     //pInMem->flushLastDoc(false);
     TermPositions* pPositions = new TermPositions(this,pCurPosting_,*pCurTermInfo_);
+    rwLock_.release_read_lock();	
     return pPositions;
 }
 freq_t InMemoryTermReader::docFreq(Term* term)
@@ -642,6 +638,7 @@ TermInfo* InMemoryTermReader::termInfo(Term* term)
 
     termid_t tid = term->getValue();
 
+    rwLock_.acquire_read_lock();
     InMemoryPostingMap::iterator postingIter = pIndexer_->postingMap_.find(tid);
     if(postingIter == pIndexer_->postingMap_.end())
         return NULL;
@@ -651,6 +648,9 @@ TermInfo* InMemoryTermReader::termInfo(Term* term)
     if (!pTermInfo_)
         pTermInfo_ = new TermInfo;
     pTermInfo_->set(pCurPosting_->docFreq(),-1);
+
+    rwLock_.release_read_lock();	
+	
     return pTermInfo_;
 }
 

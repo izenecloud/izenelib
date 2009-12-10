@@ -42,9 +42,15 @@ void DocLengthReader::load(docid_t maxDocId)
     size_ = maxDocId * numIndexedProperties_;
     data_ = new uint16_t[size_];
     memset(data_, 0, size_*2);
-    IndexInput* pInput = pDirectory_->openInput("doclen.map");
+    IndexInput* pInput = 0;
+    try{
+    pInput = pDirectory_->openInput("doclen.map");
     pInput->readBytes((unsigned char*)data_, size_*2);
     delete pInput;
+    }catch(std::exception& e)
+    {
+        if(pInput) delete pInput;
+    }
 }
 
 size_t DocLengthReader::docLength(docid_t docId, fieldid_t fid)
