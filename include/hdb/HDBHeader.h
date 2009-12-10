@@ -32,6 +32,11 @@ struct HugeDBHeader {
     size_t slicesNum;
 
     /**
+     * @brief Stamp for last modification.
+     */
+    size_t lastModificationStamp;
+
+    /**
      * @brief Level of each sdb.
      */
     std::vector<int> slicesLevel;
@@ -42,6 +47,11 @@ struct HugeDBHeader {
     std::vector<size_t> deletions;
 
     /**
+     * @brief Deletion in memory partition.
+     */
+    size_t memoryPartitionDeletion;
+
+    /**
      * @param path - path of header file.
      */
     HugeDBHeader(const std::string& path)
@@ -50,18 +60,24 @@ struct HugeDBHeader {
 	    ifstream ifs(path_.c_str());
         if( !ifs ) {
             slicesNum = 0;
+            lastModificationStamp = 0;
+            memoryPartitionDeletion = 0;
             return;
         }
 
         ifs.seekg(0, ifstream::end);
         if( 0 == ifs.tellg()) {
             slicesNum = 0;
+            lastModificationStamp = 0;
+            memoryPartitionDeletion = 0;
         } else {
             ifs.seekg(0, fstream::beg);
             boost::archive::xml_iarchive xml(ifs);
             xml >> boost::serialization::make_nvp("PartitionNumber", slicesNum);
+            xml >> boost::serialization::make_nvp("LastModificationStamp", lastModificationStamp);
             xml >> boost::serialization::make_nvp("PartitionLevel", slicesLevel);
             xml >> boost::serialization::make_nvp("Deletions", deletions);
+            xml >> boost::serialization::make_nvp("MemoryPartitionDeletion", memoryPartitionDeletion);
         }
         ifs.close();
     }
@@ -79,14 +95,17 @@ struct HugeDBHeader {
         ofstream ofs(path_.c_str());
         boost::archive::xml_oarchive xml(ofs);
         xml << boost::serialization::make_nvp("PartitionNumber", slicesNum);
+        xml << boost::serialization::make_nvp("LastModificationStamp", lastModificationStamp);
         xml << boost::serialization::make_nvp("PartitionLevel", slicesLevel);
         xml << boost::serialization::make_nvp("Deletions", deletions);
+        xml << boost::serialization::make_nvp("MemoryPartitionDeletion", memoryPartitionDeletion);
         ofs.flush();
     }
 
 	void display(std::ostream& os = std::cout)
 	{
 		os << "Number of partitions " << slicesNum << std::endl;
+		os << "Stamp of last modification " << lastModificationStamp << std::endl;
 		if(slicesNum != 0) {
             os << "Partitions:";
             for(size_t i= 0; i<slicesNum; i++)
