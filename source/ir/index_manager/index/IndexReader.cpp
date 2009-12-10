@@ -107,7 +107,7 @@ void IndexReader::createBarrelReader()
         pBarrelReader_ = new MultiIndexBarrelReader(pIndexer_,pBarrelsInfo_);
     }
     else
-        SF1V5_THROW(ERROR_INDEX_COLLAPSE,"the index barrel number is 0.");
+        return;
 
     if(pDocLengthReader_)
         pDocLengthReader_->load(pBarrelsInfo_->maxDocId());
