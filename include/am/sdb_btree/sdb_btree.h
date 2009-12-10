@@ -171,6 +171,7 @@ public:
 	void clear(){
 		close();
 		std::remove(_fileName.c_str() );
+		_sfh.initialize();
 		open();		
 	}
 
