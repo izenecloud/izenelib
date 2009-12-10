@@ -66,7 +66,6 @@ docid_t IndexReader::maxDoc()
 
 size_t IndexReader::docLength(docid_t docId, fieldid_t fid)
 {
-    assert(pDocLengthReader_ != NULL);
     if (pBarrelReader_ == NULL)
         createBarrelReader();
     return pDocLengthReader_->docLength(docId, fid);
@@ -74,9 +73,9 @@ size_t IndexReader::docLength(docid_t docId, fieldid_t fid)
 
 double IndexReader::getAveragePropertyLength(fieldid_t fid)
 {
-    assert(pDocLengthReader_ != NULL);
     if (pBarrelReader_ == NULL)
         createBarrelReader();
+    boost::mutex::scoped_lock indexReaderLock(this->mutex_);
     return pDocLengthReader_->averagePropertyLength(fid);
 }
 
@@ -85,7 +84,8 @@ void IndexReader::createBarrelReader()
     boost::mutex::scoped_lock lock(this->mutex_);
 
     if (pBarrelReader_)
-        delete pBarrelReader_;
+        return;
+    //    delete pBarrelReader_;
     int32_t bc = pBarrelsInfo_->getBarrelCount();
     BarrelInfo* pLastBarrel = pBarrelsInfo_->getLastBarrel();
     if ( (bc > 0) && pLastBarrel)
@@ -169,11 +169,9 @@ BarrelInfo* IndexReader::findDocumentInBarrels(collectionid_t colID, docid_t doc
 
 void IndexReader::deleteDocumentPhysically(IndexerDocument* pDoc)
 {
-    boost::mutex::scoped_lock lock(this->mutex_);
     if (pBarrelReader_ == NULL)
-    {
         createBarrelReader();
-    }
+    boost::mutex::scoped_lock lock(this->mutex_);
     pBarrelReader_->deleteDocumentPhysically(pDoc);
     DocId uniqueID;
     pDoc->getDocId(uniqueID);

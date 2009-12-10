@@ -120,18 +120,18 @@ private:
  */
 
 template <class KeyType>
-class BTreeIndex:public izenelib::sdb::IndexSDB<KeyType,docid_t>
+class BTreeIndex:public izenelib::sdb::IndexSDB<KeyType,docid_t,izenelib::util::ReadWriteLock>
 {
     typedef izenelib::sdb::iKeyType<KeyType> myKeyType;
     typedef std::vector<docid_t> myValueType;
     typedef DataType<myKeyType, myValueType> myDataType;
 public:
-    typedef typename IndexSDB<KeyType,docid_t>::IndexSDBCursor IndexSDBCursor;
+    typedef typename IndexSDB<KeyType,docid_t,izenelib::util::ReadWriteLock>::IndexSDBCursor IndexSDBCursor;
 
 public:
 
     BTreeIndex(string& fileName) :
-            izenelib::sdb::IndexSDB<KeyType,docid_t>(fileName) //0, use default compare
+            izenelib::sdb::IndexSDB<KeyType,docid_t,izenelib::util::ReadWriteLock>(fileName) //0, use default compare
     {
     }
     bool remove(const KeyType& key, docid_t docID);
@@ -283,14 +283,14 @@ bool BTreeIndex<KeyType>::remove(const KeyType& key, docid_t docID)
 }
 
 template <class StringType>
-class BTreeTrieIndex:public izenelib::sdb::TrieIndexSDB2<StringType, docid_t>
+class BTreeTrieIndex:public izenelib::sdb::TrieIndexSDB2<StringType, docid_t, izenelib::util::ReadWriteLock>
 {
 public:
-    typedef typename izenelib::sdb::TrieIndexSDB2<StringType, docid_t>::SDBTYPE SDBTYPE;
+    typedef typename izenelib::sdb::TrieIndexSDB2<StringType, docid_t,izenelib::util::ReadWriteLock>::SDBTYPE SDBTYPE;
     typedef typename SDBTYPE::SDBCursor SDBCursor;
 public:
     BTreeTrieIndex(string& fileName) :
-            izenelib::sdb::TrieIndexSDB2<StringType,docid_t>(fileName)
+            izenelib::sdb::TrieIndexSDB2<StringType,docid_t,izenelib::util::ReadWriteLock>(fileName)
     {
     }
     void getValuePrefix(const StringType& key, BitVector& result)
