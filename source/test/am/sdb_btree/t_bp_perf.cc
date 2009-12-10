@@ -30,7 +30,7 @@ BOOST_AUTO_TEST_CASE(bptree_test) {
 
 	
 	{
-		cout<<"\n\nsdb_bptree<int, string >"<<endl;
+		cout<<"\n\nsdb_btree<int, string >"<<endl;
 		typedef sdb_btree<int, string> AM_TYPE;
 		AmTest<int, string, AM_TYPE, true> am;
 		am.setTrace(trace);
@@ -38,6 +38,17 @@ BOOST_AUTO_TEST_CASE(bptree_test) {
 		am.setNum(num);
 		run_am(am);
 	}
+	
+	{
+		cout<<"\n\nsdb_btree<int, string >"<<endl;
+		typedef sdb_bptree<int, string> AM_TYPE;
+		AmTest<int, string, AM_TYPE, true> am;
+		am.setTrace(trace);
+		am.setRandom(rnd);
+		am.setNum(num);
+		run_am(am);
+	}
+
 
 
 	

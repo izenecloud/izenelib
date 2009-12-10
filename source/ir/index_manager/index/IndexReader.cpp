@@ -82,6 +82,8 @@ double IndexReader::getAveragePropertyLength(fieldid_t fid)
 
 void IndexReader::createBarrelReader()
 {
+    boost::mutex::scoped_lock lock(this->mutex_);
+
     if (pBarrelReader_)
         delete pBarrelReader_;
     int32_t bc = pBarrelsInfo_->getBarrelCount();
@@ -121,6 +123,9 @@ TermReader* IndexReader::getTermReader(collectionid_t colID)
         return NULL;
     if (pBarrelReader_ == NULL)
         createBarrelReader();
+
+    boost::mutex::scoped_lock indexReaderLock(this->mutex_);
+	
     TermReader* pTermReader = pBarrelReader_->termReader(colID);
     if (pTermReader)
         return pTermReader->clone();
@@ -130,10 +135,11 @@ TermReader* IndexReader::getTermReader(collectionid_t colID)
 
 void IndexReader::reopen()
 {
-    if(pBarrelReader_)
-        delete pBarrelReader_;
-    pBarrelReader_ = NULL;
-    //pBarrelReader_->reopen();
+    //if(pBarrelReader_)
+        //delete pBarrelReader_;
+    //pBarrelReader_ = NULL;
+    /////pBarrelReader_->reopen();
+    createBarrelReader();
 }
 
 ForwardIndexReader* IndexReader::getForwardIndexReader()
@@ -203,9 +209,15 @@ void IndexReader::delDocument(collectionid_t colID,docid_t docId)
 
 freq_t IndexReader::docFreq(collectionid_t colID, Term* term)
 {
-    boost::mutex::scoped_lock lock(this->mutex_);
+    boost::try_mutex::scoped_try_lock lock(pIndexer_->mutex_);
+    if(!lock.owns_lock())
+        return 0;
+
     if (pBarrelReader_ == NULL)
         createBarrelReader();
+
+    boost::mutex::scoped_lock indexReaderLock(this->mutex_);
+	
     TermReader* pTermReader = pBarrelReader_->termReader(colID);
     if (pTermReader)
     {
@@ -217,9 +229,14 @@ freq_t IndexReader::docFreq(collectionid_t colID, Term* term)
 
 TermInfo* IndexReader::termInfo(collectionid_t colID,Term* term)
 {
-    boost::mutex::scoped_lock lock(this->mutex_);
+    boost::try_mutex::scoped_try_lock lock(pIndexer_->mutex_);
+    if(!lock.owns_lock())
+        return NULL;
     if (pBarrelReader_ == NULL)
         createBarrelReader();
+
+    boost::mutex::scoped_lock indexReaderLock(this->mutex_);
+
     TermReader* pTermReader = pBarrelReader_->termReader(colID);
     if (pTermReader)
     {
@@ -234,6 +251,9 @@ size_t IndexReader::getDistinctNumTerms(collectionid_t colID, const std::string&
     //collection has been removed, need to rebuild the barrel reader
     if (pBarrelReader_ == NULL)
         createBarrelReader();
+
+    boost::mutex::scoped_lock indexReaderLock(this->mutex_);
+
     return pBarrelReader_->getDistinctNumTerms(colID, property);
 }
 

@@ -265,16 +265,17 @@ template<typename KeyType, typename ValueType, typename LockType, bool fixed,
 	//	static int _rcount;
 	//	cout<<"reading "<<_rcount++<<endl;
 	//#endif
-	
-	if ( isLoaded ) {
-		return true;
-	}
 
 	if (!f) {
 		return false;
 	}
 
 	//cout<<"read from fpos "<<fpos<<endl;
+	ScopedWriteLock<LockType> lock(_fileLock);
+	
+	if (isLoaded) {
+		return true;
+	}
 
 	// get to the right location
 	if (0 != fseek(f, fpos, SEEK_SET)) {
@@ -490,6 +491,8 @@ template<typename KeyType, typename ValueType, typename LockType, bool fixed,
 	char* p = pBuf;
 
 	//cout<<"write fpos="<<fpos<<endl;
+	ScopedWriteLock<LockType> lock(_fileLock);
+
 	// get to the right location
 	if (0 != fseek(f, fpos, SEEK_SET)) {
 		//assert(false);
@@ -640,8 +643,7 @@ template<typename KeyType, typename ValueType, typename LockType, bool fixed,
 		//oveflow
 		//cout<<"writing overflow!!!!"<<endl;
 		if (_overflowAddress <0 || _overflowPageCount < np-1) {
-			_overflowAddress = 1024 +_pageSize *(_fh.nPages
-					+_fh.oPages);
+			_overflowAddress = 1024 +_pageSize *(_fh.nPages +_fh.oPages);
 			_fh.oPages += (np-1);
 		}
 		_overflowPageCount = np-1;
@@ -677,9 +679,9 @@ template<typename KeyType, typename ValueType, typename LockType, bool fixed,
 	child->childNo = childNum;
 	child->parent = this;
 	if (child && !child->isLoaded) {
-		_fileLock.acquire_write_lock();
+		//_fileLock.acquire_write_lock();
 		child->read(f);
-		_fileLock.release_write_lock();
+		//_fileLock.release_write_lock();
 	}
 
 	return child;
@@ -693,9 +695,9 @@ template<typename KeyType, typename ValueType, typename LockType, bool fixed,
 	if (isLoaded) {
 		if ( !isLeaf) {
 			for (size_t i=0; i<objCount+1; i++) {
-				if (children[i]) {
+				if (children && children[i]) {
 					children[i]->unload();
-					if (children[i]) {
+					if (children && children[i]) {
 						delete children[i];
 						children[i] = 0;
 					}

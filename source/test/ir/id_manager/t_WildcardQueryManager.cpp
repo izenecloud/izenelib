@@ -6,7 +6,7 @@ using namespace boost::unit_test;
 BOOST_FIXTURE_TEST_SUITE( t_Regexp, IDManagerFixture )
 
 typedef _IDManager< UString, uint32_t, izenelib::util::NullLock,
-                    EmptyRegExpHandler<UString, uint32_t>,
+                    EmptyWildcardQueryHandler<UString, uint32_t>,
                     HashIDGenerator<UString, uint32_t>,
                     SDBIDStorage<UString, uint32_t>,
                     UniqueIDGenerator<UString, uint32_t>,
@@ -14,7 +14,7 @@ typedef _IDManager< UString, uint32_t, izenelib::util::NullLock,
 IDManagerEmptyRegexpHandler;
 
 typedef _IDManager< UString, uint32_t, izenelib::util::NullLock,
-                    DiskRegExpHandler<UString, uint32_t>,
+                    DiskWildcardQueryHandler<UString, uint32_t>,
                     HashIDGenerator<UString, uint32_t>,
                     SDBIDStorage<UString, uint32_t>,
                     UniqueIDGenerator<UString, uint32_t>,
@@ -30,7 +30,9 @@ BOOST_AUTO_TEST_CASE( EmptyRegexpHandler )
     termIdList1_.resize(termUStringList1_.size());
     termIdList2_.resize(termUStringList2_.size());
     idManager.getTermIdListByTermStringList( termUStringList1_, termIdList1_ );
+    idManager.addWildcardCandidateList(termUStringList1_);
     idManager.getTermIdListByTermStringList( termUStringList2_, termIdList2_ );
+    idManager.addWildcardCandidateList(termUStringList2_);
 
     idManager.startWildcardProcess();
     idManager.joinWildcardProcess();
@@ -74,13 +76,15 @@ BOOST_AUTO_TEST_CASE( EmptyRegexpHandler )
 BOOST_AUTO_TEST_CASE( DiskRegexpHandler )
 {
     {
-        IDManagerDiskRegexpHandler idManager("regexp3");
+        IDManagerDiskRegexpHandler idManager("regexp2");
 
         // Build term index dictionary using getTermIdListByTermStringList() Interface.
         termIdList1_.resize(termUStringList1_.size());
         termIdList2_.resize(termUStringList2_.size());
         idManager.getTermIdListByTermStringList( termUStringList1_, termIdList1_ );
+        idManager.addWildcardCandidateList(termUStringList1_);
         idManager.getTermIdListByTermStringList( termUStringList2_, termIdList2_ );
+        idManager.addWildcardCandidateList(termUStringList2_);
 
         idManager.startWildcardProcess();
         idManager.joinWildcardProcess();
@@ -90,7 +94,7 @@ BOOST_AUTO_TEST_CASE( DiskRegexpHandler )
         termIdList2_.clear();
     }
 
-    IDManagerDiskRegexpHandler idManager("regexp3");
+    IDManagerDiskRegexpHandler idManager("regexp2");
     UString compare;
 
     std::string patternSource("ad");

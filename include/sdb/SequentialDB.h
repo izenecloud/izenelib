@@ -136,6 +136,11 @@ public:
 		return container_.close();
 	}
 
+
+	void clear() {
+		return container_.clear();
+	}
+	
 	/**
 	 *  \brief read an item from SequentialDB by key.
 	 *
