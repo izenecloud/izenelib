@@ -27,7 +27,7 @@
 
 #include <wiselib/ustring/UString.h>
 
-#include "RegexpManager.h"
+#include "WildcardQueryManager.h"
 #include "DocIdManager.h"
 #include "TermIdManager.h"
 #include "IDGenerator.h"
@@ -57,7 +57,7 @@ namespace idmanager {
 
 #define MAJOR_VERSION "1"
 #define MINOR_VERSION "0"
-#define PATCH_VERSION "20081203"
+#define PATCH_VERSION "20091210"
 
 /**
  * @brief Combination of both TermIdManager, DocIdManager and RegexpManager.
@@ -66,7 +66,7 @@ namespace idmanager {
 template<typename NameString,
          typename NameID,
          typename LockType = izenelib::util::NullLock,
-         typename RegExpHandler = DiskRegExpHandler<NameString, NameID>,
+         typename WildcardQueryHandler = DiskWildcardQueryHandler<NameString, NameID>,
          typename TermIDGenerator = HashIDGenerator<NameString, NameID>,
          typename TermIDStorage = HDBIDStorage<NameString, NameID, LockType>,
          typename DocIDGenerator = UniqueIDGenerator<NameString, NameID, LockType>,
@@ -79,7 +79,7 @@ public:
 	:
 		termIdManager_(storageName + "_tid"),
 		docIdManager_(storageName + "_did"),
-		regexpManager_(storageName + "_regexp")
+		wildcardQueryManager_(storageName + "_regexp")
     {
 		version_ = "ID Manager - ver. alpha ";
 		version_ += MAJOR_VERSION;
@@ -103,7 +103,16 @@ public:
 	 */
 	bool getTermIdByTermString(const NameString& termString, NameID& termId)
     {
-        return termIdManager_.getTermIdByTermString(termString, termId, regexpManager_);
+        return termIdManager_.getTermIdByTermString(termString, termId);
+    }
+
+    /**
+     * @brief a member function to add a term to be candidate of wildcard queries
+     */
+    bool addWildcardCandidate(const NameString& termString)
+    {
+        wildcardQueryManager_.insert(termString);
+        return true;
     }
 
 	/**
@@ -117,7 +126,18 @@ public:
 	bool getTermIdListByTermStringList( const std::vector<NameString>& termStringList,
 			std::vector<NameID>& termIdList)
     {
-        return termIdManager_.getTermIdListByTermStringList(termStringList, termIdList, regexpManager_);
+        return termIdManager_.getTermIdListByTermStringList(termStringList, termIdList);
+    }
+
+    /**
+     * @brief a member function to add a list of terms to be candidates of wildcard queries.
+     */
+    bool addWildcardCandidateList( const std::vector<NameString>& termStringList)
+    {
+        for(size_t i =0; i< termStringList.size(); i++ ) {
+            wildcardQueryManager_.insert(termStringList[i]);
+        }
+        return true;
     }
 
 	/**
@@ -131,7 +151,7 @@ public:
 	bool getTermIdListByWildcardPattern(const NameString& wildcardPattern,
 			std::vector<NameID>& termIdList)
     {
-        return regexpManager_.findRegExp(wildcardPattern, termIdList);
+        return wildcardQueryManager_.findRegExp(wildcardPattern, termIdList);
     }
 
 	/**
@@ -190,9 +210,9 @@ public:
     /**
      * @brief Start a standalone thread to insert all cached terms and ids into RegexpManager.
      */
-    void startWildcardProcess()
+    void startWildcardProcess(const int threadNumber = 1)
     {
-        regexpManager_.startThread(0);
+        wildcardQueryManager_.startThread(threadNumber);
     }
 
     /**
@@ -200,7 +220,7 @@ public:
      */
     void joinWildcardProcess()
     {
-        regexpManager_.joinThread();
+        wildcardQueryManager_.joinThread();
     }
 
     /**
@@ -210,7 +230,7 @@ public:
     {
         termIdManager_.flush();
         docIdManager_.flush();
-        regexpManager_.flush();
+        wildcardQueryManager_.flush();
     }
 
     /**
@@ -220,7 +240,7 @@ public:
     {
         termIdManager_.close();
         docIdManager_.close();
-        regexpManager_.close();
+        wildcardQueryManager_.close();
     }
 
 	/**
@@ -242,7 +262,7 @@ private:
 
 	DocIdManager<NameString, NameID, DocIDGenerator, DocIDStorage> docIdManager_;
 
-    RegexpManager<NameString, NameID, RegExpHandler, LockType> regexpManager_;
+    WildcardQueryManager<NameString, NameID, WildcardQueryHandler, LockType> wildcardQueryManager_;
 
 	std::string version_;
 
@@ -286,7 +306,7 @@ typedef _IDManager<wiselib::UString, uint32_t> IDManagerDebug32;
 /*
 typedef _IDManager<wiselib::UString, uint32_t,
                    izenelib::util::NullLock,
-                   DiskRegExpHandler<wiselib::UString, uint32_t>,
+                   DiskWildcardQueryHandler<wiselib::UString, uint32_t>,
                    HashIDGenerator<wiselib::UString, uint32_t>,
                    EmptyIDStorage<wiselib::UString, uint32_t>,
                    UniqueIDGenerator<wiselib::UString, uint32_t>,
@@ -294,7 +314,7 @@ typedef _IDManager<wiselib::UString, uint32_t,
 
 typedef _IDManager<wiselib::UString, uint32_t,
                    izenelib::util::ReadWriteLock,
-                   DiskRegExpHandler<wiselib::UString, uint32_t>,
+                   DiskWildcardQueryHandler<wiselib::UString, uint32_t>,
                    HashIDGenerator<wiselib::UString, uint32_t>,
                    EmptyIDStorage<wiselib::UString, uint32_t>,
                    UniqueIDGenerator<wiselib::UString, uint32_t>,
@@ -312,7 +332,7 @@ typedef _IDManager<wiselib::UString, uint64_t> IDManagerDebug64;
  */
 typedef _IDManager<wiselib::UString, uint64_t,
                    izenelib::util::NullLock,
-                   DiskRegExpHandler<wiselib::UString, uint64_t>,
+                   DiskWildcardQueryHandler<wiselib::UString, uint64_t>,
                    HashIDGenerator<wiselib::UString, uint64_t>,
                    EmptyIDStorage<wiselib::UString, uint64_t>,
                    UniqueIDGenerator<wiselib::UString, uint64_t>,
@@ -325,7 +345,7 @@ typedef _IDManager<wiselib::UString, uint64_t,
  */
 typedef _IDManager<wiselib::UString, uint32_t,
                    izenelib::util::NullLock,
-                   EmptyRegExpHandler<wiselib::UString, uint32_t>,
+                   EmptyWildcardQueryHandler<wiselib::UString, uint32_t>,
                    UniqueIDGenerator<wiselib::UString, uint32_t, izenelib::util::ReadWriteLock>,
                    HDBIDStorage<wiselib::UString, uint32_t, izenelib::util::ReadWriteLock>,
                    EmptyIDGenerator<wiselib::UString, uint32_t>,
@@ -337,7 +357,7 @@ typedef _IDManager<wiselib::UString, uint32_t,
  */
 typedef _IDManager<wiselib::UString, uint32_t,
                    izenelib::util::NullLock,
-                   EmptyRegExpHandler<wiselib::UString, uint32_t>,
+                   EmptyWildcardQueryHandler<wiselib::UString, uint32_t>,
                    HashIDGenerator<wiselib::UString, uint32_t>,
                    HDBIDStorage<wiselib::UString, uint32_t>,
                    EmptyIDGenerator<wiselib::UString, uint32_t>,
