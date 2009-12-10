@@ -164,13 +164,14 @@ namespace LaProcess {
 
 void InitLAServer(MFServer<LAServiceHandle>& laServer) {
 	boost::unordered_map<std::string, ServiceItem<LAServiceHandle> > serviceList;
-	{
+	
 		ServiceItem<LAServiceHandle> item;
 		item.callback_ = &LAServiceHandle::parseString;
 		serviceList[ "parseString" ] = item;
-	}
+	
 
-	laServer.createServiceList(serviceList);
+	//laServer.createServiceList(serviceList);
+	laServer.addService("parseString", item);
 
 	LAManagerPtr laMgr_(new LAManager);
 	boost::shared_ptr<LAServiceHandle> lash(new LAServiceHandle);
@@ -191,8 +192,8 @@ MF_AUTO_MAIN(laProcess) {
 
 	//MessageFrameworkNodePtr  mfnode(new  MessageFrameworkNode(controllerNode( po.getControllerIp(), po.getControllerPort() ) );
 
-	MFServer<LAServiceHandle> laServer(4, po.getHostPort(),
-			po.getControllerIp(), po.getControllerPort() );
+	MFServer<LAServiceHandle> laServer(po.getHostPort(),
+			po.getControllerIp(), po.getControllerPort(), 4);
 
 	cout << "[LAProcess]: MF up and ready to go" << endl;
 
