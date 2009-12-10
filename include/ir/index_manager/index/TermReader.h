@@ -11,6 +11,8 @@
 #include <ir/index_manager/index/AbsTermReader.h>
 #include <ir/index_manager/index/TermIterator.h>
 
+#include <util/ThreadModel.h>
+
 #include <string>
 
 #define SPARSE_FACTOR 512
@@ -223,8 +225,6 @@ private:
 class InMemoryTermReader : public TermReader
 {
 public:
-    InMemoryTermReader(void);
-
     InMemoryTermReader(const char* field,FieldIndexer* pIndexer);
 
     virtual ~InMemoryTermReader(void);
@@ -262,6 +262,8 @@ private:
     InMemoryPosting* pCurPosting_;
 
     TermInfo* pTermInfo_;
+
+    izenelib::util::ReadWriteLock& rwLock_;
 
     friend class InMemoryTermIterator;
 };
