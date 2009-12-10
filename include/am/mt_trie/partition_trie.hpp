@@ -98,7 +98,7 @@ public:
     :   closed_(true), dbname_(dbname),
         partitionTrieHeader_(dbname_ + ".header.xml"),
         edgeTable_(dbname_ + ".edgetable"),
-        dataTable_(dbname_ + ".datatable.sdb")
+        dataTable_(dbname_ + ".datatable")
     {
         nextNID_ = partitionTrieHeader_.nextNodeID;
     }
@@ -114,23 +114,24 @@ public:
      */
     void open()
     {
-        dataTable_.setDegree(32);
-        dataTable_.setPageSize(1024);
-        dataTable_.setCachedRecordsNumber(2500000);
-        dataTable_.setMergeFactor(2);
-        dataTable_.open();
-
         edgeTable_.setDegree(128);
         edgeTable_.setPageSize(8192);
         edgeTable_.setCachedRecordsNumber(2500000);
         edgeTable_.setMergeFactor(2);
         edgeTable_.open();
+
+        dataTable_.setDegree(32);
+        dataTable_.setPageSize(1024);
+        dataTable_.setCachedRecordsNumber(2500000);
+        dataTable_.setMergeFactor(2);
+        dataTable_.open();
     }
 
     void flush()
     {
         partitionTrieHeader_.nextNodeID = nextNID_;
         partitionTrieHeader_.flush();
+
         edgeTable_.flush();
         dataTable_.flush();
     }
@@ -150,8 +151,8 @@ public:
      */
     void optimize()
     {
-        dataTable_.optimize();
         edgeTable_.optimize();
+        dataTable_.optimize();
     }
 
     /**
