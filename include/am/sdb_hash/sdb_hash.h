@@ -102,6 +102,12 @@ public:
 		izs1.write_image(ptr1, vsize_);
 		BucketGap = ksize_+vsize_ + sizeof(long)+sizeof(int)+sizeof(size_t);
 	}
+	
+	void clear(){
+		close();
+		std::remove(fileName_.c_str() );
+		open();		
+	}
 
 	bool is_open() {
 		return isOpen_;

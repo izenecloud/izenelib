@@ -167,6 +167,12 @@ public:
 	{
 		return _isOpen;
 	}
+	
+	void clear(){
+		close();
+		std::remove(_fileName.c_str() );
+		open();		
+	}
 
 	/**
 	 * 	 \brief close the database.
