@@ -139,6 +139,14 @@ void IndexReader::reopen()
         //delete pBarrelReader_;
     //pBarrelReader_ = NULL;
     /////pBarrelReader_->reopen();
+    {
+    boost::mutex::scoped_lock lock(this->mutex_);
+    if(pBarrelReader_)
+    {
+        delete pBarrelReader_;
+        pBarrelReader_ = NULL;
+    }
+    }
     createBarrelReader();
 }
 
