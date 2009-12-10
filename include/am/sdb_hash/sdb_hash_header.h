@@ -27,8 +27,7 @@ struct ShFileHeader {
 		//directorySize =8192*8;
 		dpow = 16;
 		cacheSize = 1024*200;
-		numItems = 0;
-		nBlock = 0;
+		initialize();
 	}
 
 	void display(std::ostream& os = std::cout) {
@@ -68,6 +67,11 @@ struct ShFileHeader {
 		return false;
 		fread(this, sizeof(ShFileHeader), 1, f);
 		return true;
+	}
+
+	void initialize() {
+		numItems = 0;
+		nBlock = 0;
 	}
 };
 

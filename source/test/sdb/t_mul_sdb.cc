@@ -1,5 +1,5 @@
 #include <sdb/SequentialDB.h>
-#include <am/btree/BTreeFile.h>
+//#include <am/btree/BTreeFile.h>
 //#include <am/skip_list_file/SkipListFile.h>
 #include "YString.h"
 
@@ -16,26 +16,31 @@ string indexFile1("msdb1.dat");
 string indexFile2("msdb2.dat");
 string indexFile3("msdb3.dat");
 string indexFile4("msdb4.dat");
+string indexFile5("msdb5.dat");
+
 
 //Use YString-YString pair for testing. 
 
 typedef YString Key;
 typedef izenelib::am::DataType<YString,NullType> MyDataType;
 
-typedef BTreeFile<Key, NullType, ReadWriteLock> BTF;
+//typedef BTreeFile<Key, NullType, ReadWriteLock> BTF;
 typedef sdb_btree<Key, NullType, ReadWriteLock> SBTREE;
+typedef sdb_bptree<Key, NullType, ReadWriteLock> SBPTREE;
 //typedef SkipListFile<Key, NullType, ReadWriteLock> SLF;
 typedef sdb_hash<Key, NullType, ReadWriteLock> SHASH;
 
-typedef SequentialDB<Key, NullType, ReadWriteLock, BTF> SDB_BT;
+//typedef SequentialDB<Key, NullType, ReadWriteLock, BTF> SDB_BT;
 //typedef SequentialDB<Key, NullType, ReadWriteLock, SLF> SDB_SL;
 typedef SequentialDB<Key, NullType, ReadWriteLock, SHASH> SDB_HASH;
 typedef SequentialDB<Key, NullType, ReadWriteLock, SBTREE> SDB_BTREE;
+typedef SequentialDB<Key, NullType, ReadWriteLock, SBPTREE> SDB_BPTREE;
 
-SDB_BT cm1(indexFile1);
+//SDB_BT cm1(indexFile1);
 //SDB_SL cm2(indexFile2);
 SDB_HASH cm3(indexFile3);
 SDB_BTREE cm4(indexFile4);
+SDB_BPTREE cm5(indexFile5);
 
 int sum =0;
 int hit =0;
@@ -239,30 +244,30 @@ template<typename T> struct run_thread6 {
 };
 
 /*
-template<typename T> struct run_thread7 {
-	run_thread7(T& cm_, char *str_) :
-		cm(cm_) {
-		strcpy(str, str_);
-	}
-	void operator()() {
-		MyDataType dat;
-		typename T::SDBCursor locn;
-		while (cm.seq(locn, dat) ) {
-			if (trace) {
-				//	boost::mutex::scoped_lock lock(io_mutex);
-				cout<<str<<": seq get key="<<dat.key<<endl;
-				//cm.printKeyInfoMap();
-				//cout<< "t7 numItem = "<<cm.numItems()<<endl;
-				//cm.display();								
-			}
-		}
-		cout<< "t7 numItem = "<<cm.numItems()<<endl;
-		cm.flush();
-	}
-	char str[1000];
-	T& cm;
-	//
-};*/
+ template<typename T> struct run_thread7 {
+ run_thread7(T& cm_, char *str_) :
+ cm(cm_) {
+ strcpy(str, str_);
+ }
+ void operator()() {
+ MyDataType dat;
+ typename T::SDBCursor locn;
+ while (cm.seq(locn, dat) ) {
+ if (trace) {
+ //	boost::mutex::scoped_lock lock(io_mutex);
+ cout<<str<<": seq get key="<<dat.key<<endl;
+ //cm.printKeyInfoMap();
+ //cout<< "t7 numItem = "<<cm.numItems()<<endl;
+ //cm.display();								
+ }
+ }
+ cout<< "t7 numItem = "<<cm.numItems()<<endl;
+ cm.flush();
+ }
+ char str[1000];
+ T& cm;
+ //
+ };*/
 
 template<typename T> void run1(T& cm) {
 
@@ -307,11 +312,11 @@ template<typename T> void run1(T& cm) {
 		threads.create_thread(run_thread5<T>(cm, fileName) );
 
 		//=====================
-		sprintf(fileName, "../db/dat/wordlist_%d.dat", 5);
-		threads.create_thread(run_thread3<T>(cm, fileName) );
-
-		sprintf(fileName, "../db/dat/wordlist_%d.dat", 6);
-		threads.create_thread(run_thread3<T>(cm, fileName) );
+//		sprintf(fileName, "../db/dat/wordlist_%d.dat", 5);
+//		threads.create_thread(run_thread3<T>(cm, fileName) );
+//
+//		sprintf(fileName, "../db/dat/wordlist_%d.dat", 6);
+//		threads.create_thread(run_thread3<T>(cm, fileName) );
 
 		//sprintf(fileName, "../db/dat/wordlist_%d.dat", 10);
 		//threads.create_thread(run_thread6<T>(cm, fileName) );
@@ -351,14 +356,14 @@ template<typename T> void run(T& cm) {
 		sprintf(fileName, "../db/dat/wordlist_%d.dat", 6);
 		threads.create_thread(run_thread2<T>(cm, fileName) );
 
-		sprintf(fileName, "../db/dat/wordlist_%d.dat", 7);
-		threads.create_thread(run_thread3<T>(cm, fileName) );
-
-		sprintf(fileName, "../db/dat/wordlist_%d.dat", 8);
-		threads.create_thread(run_thread3<T>(cm, fileName) );
-
-		sprintf(fileName, "../db/dat/wordlist_%d.dat", 9);
-		threads.create_thread(run_thread3<T>(cm, fileName) );
+//		sprintf(fileName, "../db/dat/wordlist_%d.dat", 7);
+//		threads.create_thread(run_thread3<T>(cm, fileName) );
+//
+//		sprintf(fileName, "../db/dat/wordlist_%d.dat", 8);
+//		threads.create_thread(run_thread3<T>(cm, fileName) );
+//
+//		sprintf(fileName, "../db/dat/wordlist_%d.dat", 9);
+//		threads.create_thread(run_thread3<T>(cm, fileName) );
 
 		sprintf(fileName, "../db/dat/wordlist_%d.dat", 9);
 		threads.create_thread(run_thread4<T>(cm, fileName) );
@@ -369,10 +374,8 @@ template<typename T> void run(T& cm) {
 		sprintf(fileName, "../db/dat/wordlist_%d.dat", 9);
 		threads.create_thread(run_thread5<T>(cm, fileName) );
 
-		sprintf(fileName, "../db/dat/wordlist_%d.dat", 10);
-		threads.create_thread(run_thread6<T>(cm, fileName) );
-		
-		
+//		sprintf(fileName, "../db/dat/wordlist_%d.dat", 10);
+//		threads.create_thread(run_thread6<T>(cm, fileName) );
 
 		//sprintf(fileName, "../db/dat/wordlist_%d.dat", 11);
 		//threads.create_thread(run_thread7<T>(cm, fileName) );
@@ -397,18 +400,24 @@ int main(int argc, char *argv[]) {
 	//run1(cm2);
 	//run(cm2);
 	//cm2.close();
-	
-	//cm3.open();
+
+	cm3.setCacheSize(10000);
+	cm3.open();
 	//run1(cm3);
-	//run(cm3);
-	//cm3.close();
+	run(cm3);
+	cm3.close();
 
-	cm4.open();	
-	run(cm4);
-	run1(cm4);
-	cm4.close();
-
-
+//	cm4.setCacheSize(2000);
+//	cm4.open();
+//	run(cm4);
+//	run1(cm4);
+//	cm4.close();
+	
+//	cm5.setCacheSize(2000);
+//	cm5.open();
+//	run(cm5);
+//	run1(cm5);
+//	cm5.close();
 
 }
 

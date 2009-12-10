@@ -265,6 +265,11 @@ template<typename KeyType, typename ValueType, typename LockType, bool fixed,
 		return false;
 	}
 
+	ScopedWriteLock<LockType> lock(_fileLock);	
+	if (isLoaded) {
+		return true;
+	}
+
 	//cout<<"read from fpos "<<fpos<<endl;
 
 	// get to the right location
@@ -444,6 +449,8 @@ template<typename KeyType, typename ValueType, typename LockType, bool fixed,
 		return false;
 	}
 
+	ScopedWriteLock<LockType> lock(_fileLock);	
+	
 	size_t tsz=0;
 
 	//cout<<"_pageSize"<<_pageSize<<endl;
@@ -617,9 +624,9 @@ template<typename KeyType, typename ValueType, typename LockType, bool fixed,
 	child->childNo = childNum;
 	child->parent = this;
 	if (child && !child->isLoaded) {
-		_fileLock.acquire_write_lock();
+		//_fileLock.acquire_write_lock();
 		child->read(f);
-		_fileLock.release_write_lock();
+		//_fileLock.release_write_lock();
 	}
 	return child;
 }

@@ -66,7 +66,6 @@ docid_t IndexReader::maxDoc()
 
 size_t IndexReader::docLength(docid_t docId, fieldid_t fid)
 {
-    assert(pDocLengthReader_ != NULL);
     if (pBarrelReader_ == NULL)
         createBarrelReader();
     return pDocLengthReader_->docLength(docId, fid);
@@ -74,16 +73,19 @@ size_t IndexReader::docLength(docid_t docId, fieldid_t fid)
 
 double IndexReader::getAveragePropertyLength(fieldid_t fid)
 {
-    assert(pDocLengthReader_ != NULL);
     if (pBarrelReader_ == NULL)
         createBarrelReader();
+    boost::mutex::scoped_lock indexReaderLock(this->mutex_);
     return pDocLengthReader_->averagePropertyLength(fid);
 }
 
 void IndexReader::createBarrelReader()
 {
+    boost::mutex::scoped_lock lock(this->mutex_);
+
     if (pBarrelReader_)
-        delete pBarrelReader_;
+        return;
+    //    delete pBarrelReader_;
     int32_t bc = pBarrelsInfo_->getBarrelCount();
     BarrelInfo* pLastBarrel = pBarrelsInfo_->getLastBarrel();
     if ( (bc > 0) && pLastBarrel)
@@ -105,7 +107,7 @@ void IndexReader::createBarrelReader()
         pBarrelReader_ = new MultiIndexBarrelReader(pIndexer_,pBarrelsInfo_);
     }
     else
-        SF1V5_THROW(ERROR_INDEX_COLLAPSE,"the index barrel number is 0.");
+        return;
 
     if(pDocLengthReader_)
         pDocLengthReader_->load(pBarrelsInfo_->maxDocId());
@@ -121,6 +123,9 @@ TermReader* IndexReader::getTermReader(collectionid_t colID)
         return NULL;
     if (pBarrelReader_ == NULL)
         createBarrelReader();
+
+    boost::mutex::scoped_lock indexReaderLock(this->mutex_);
+	
     TermReader* pTermReader = pBarrelReader_->termReader(colID);
     if (pTermReader)
         return pTermReader->clone();
@@ -130,10 +135,19 @@ TermReader* IndexReader::getTermReader(collectionid_t colID)
 
 void IndexReader::reopen()
 {
+    //if(pBarrelReader_)
+        //delete pBarrelReader_;
+    //pBarrelReader_ = NULL;
+    /////pBarrelReader_->reopen();
+    {
+    boost::mutex::scoped_lock lock(this->mutex_);
     if(pBarrelReader_)
+    {
         delete pBarrelReader_;
-    pBarrelReader_ = NULL;
-    //pBarrelReader_->reopen();
+        pBarrelReader_ = NULL;
+    }
+    }
+    createBarrelReader();
 }
 
 ForwardIndexReader* IndexReader::getForwardIndexReader()
@@ -163,11 +177,9 @@ BarrelInfo* IndexReader::findDocumentInBarrels(collectionid_t colID, docid_t doc
 
 void IndexReader::deleteDocumentPhysically(IndexerDocument* pDoc)
 {
-    boost::mutex::scoped_lock lock(this->mutex_);
     if (pBarrelReader_ == NULL)
-    {
         createBarrelReader();
-    }
+    boost::mutex::scoped_lock lock(this->mutex_);
     pBarrelReader_->deleteDocumentPhysically(pDoc);
     DocId uniqueID;
     pDoc->getDocId(uniqueID);
@@ -203,9 +215,15 @@ void IndexReader::delDocument(collectionid_t colID,docid_t docId)
 
 freq_t IndexReader::docFreq(collectionid_t colID, Term* term)
 {
-    boost::mutex::scoped_lock lock(this->mutex_);
+    boost::try_mutex::scoped_try_lock lock(pIndexer_->mutex_);
+    if(!lock.owns_lock())
+        return 0;
+
     if (pBarrelReader_ == NULL)
         createBarrelReader();
+
+    boost::mutex::scoped_lock indexReaderLock(this->mutex_);
+	
     TermReader* pTermReader = pBarrelReader_->termReader(colID);
     if (pTermReader)
     {
@@ -217,9 +235,14 @@ freq_t IndexReader::docFreq(collectionid_t colID, Term* term)
 
 TermInfo* IndexReader::termInfo(collectionid_t colID,Term* term)
 {
-    boost::mutex::scoped_lock lock(this->mutex_);
+    boost::try_mutex::scoped_try_lock lock(pIndexer_->mutex_);
+    if(!lock.owns_lock())
+        return NULL;
     if (pBarrelReader_ == NULL)
         createBarrelReader();
+
+    boost::mutex::scoped_lock indexReaderLock(this->mutex_);
+
     TermReader* pTermReader = pBarrelReader_->termReader(colID);
     if (pTermReader)
     {
@@ -234,6 +257,9 @@ size_t IndexReader::getDistinctNumTerms(collectionid_t colID, const std::string&
     //collection has been removed, need to rebuild the barrel reader
     if (pBarrelReader_ == NULL)
         createBarrelReader();
+
+    boost::mutex::scoped_lock indexReaderLock(this->mutex_);
+
     return pBarrelReader_->getDistinctNumTerms(colID, property);
 }
 

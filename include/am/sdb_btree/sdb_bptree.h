@@ -167,6 +167,13 @@ public:
 		return _isOpen;
 	}
 
+	
+	void clear(){
+		close();
+		std::remove(_fileName.c_str() );
+		_sfh.initialize();
+		open();		
+	}
 	/**
 	 * 	 \brief close the database.
 	 *
@@ -249,16 +256,19 @@ public:
 	 *  \brief find an item given a key.
 	 */
 	ValueType* find(const KeyType& key) {
+		ScopedReadLock<LockType> lock(_flushLock);
 		SDBCursor locn;
-		if( search(key, locn) )
+		if( search_(key, locn) )
 		return new ValueType(locn.first->values[locn.second]);
 		return NULL;
 	}
 
 	bool get(const KeyType& key, ValueType& value)
 	{
+		_safeFlushCache();
+		ScopedReadLock<LockType> lock(_flushLock);
 		SDBCursor locn;
-		if( search(key, locn) ) {
+		if( search_(key, locn) ) {
 			value = locn.first->values[locn.second];
 			return true;
 		}
@@ -311,6 +321,7 @@ public:
 	 */
 	SDBCursor get_first_locn()
 	{
+		ScopedReadLock<LockType> lock(_flushLock);
 		sdb_pnode* node = getRoot();
 		while(node && !node->isLeaf )
 		node = node->loadChild(0, _dataFile);
@@ -319,6 +330,7 @@ public:
 
 	SDBCursor get_last_locn()
 	{
+		ScopedReadLock<LockType> lock(_flushLock);
 		sdb_pnode* node = getRoot();
 		while(node && !node->isLeaf ) {
 			node = node->loadChild(node->objCount -1 ,_dataFile);
@@ -337,8 +349,13 @@ public:
 		return seq(locn, dat.key, dat.value, sdir);
 	}
 
-	bool seq(SDBCursor& locn, ESeqDirection sdir=ESD_FORWARD);
+	bool seq(SDBCursor& locn, ESeqDirection sdir=ESD_FORWARD) {
+		_flushCache(locn);
+		ScopedReadLock<LockType> lock(_flushLock);
+		return seq_(locn, sdir);
+	}
 
+	bool seq_(SDBCursor& locn, ESeqDirection sdir=ESD_FORWARD);
 	/**
 	 * 	\brief write all the items in memory to file.
 	 */
@@ -390,7 +407,13 @@ public:
 	 *   @return true if key exists otherwise false.
 	 *
 	 */
-	bool search(const KeyType& key, SDBCursor& locn);
+	bool search(const KeyType& key, SDBCursor& locn) {
+		_safeFlushCache();
+		ScopedReadLock<LockType> lock(_flushLock);
+		return search_(key, locn);
+	}
+
+	bool search_(const KeyType& key, SDBCursor& locn);
 
 	void optimize() {
 		string tempfile = _fileName+ ".swap";
@@ -447,6 +470,7 @@ private:
 	std::string _fileName; // name of the database file
 private:
 	LockType _fileLock;
+	LockType _flushLock;
 	size_t _activeNodeNum;
 	size_t _dirtyPageNum;
 
@@ -461,35 +485,32 @@ private:
 		}
 	}
 
-	void _flushCache() {
+	void _safeFlushCache() {
 		getRoot();
-		if( unloadbyRss ) {
-			//static unsigned int count;
-			//++count;
-			++_flushCount;
-
-			if( (_flushCount & 0xffff) == 0 ) {
-				unsigned long vm = 0, rss=0;
-				unsigned long rlimit;
-				ProcMemInfo::getProcMemInfo(vm, rss, rlimit);
-
-				//if( _activeNodeNum> _sfh.cacheSize/1024 )
-				if(rss - _initRss> _sfh.cacheSize*_sfh.pageSize )
-				{
-					_flushCacheImpl(quickFlush);
-				}
+		++_flushCount;
+		if(unloadLeavesFirst) {
+			if( _activeNodeNum> _sfh.cacheSize ) {
+				ScopedWriteLock<LockType> lock(_flushLock);
+				_flushLeaves();
 			}
 		}
-		else {
-			if(unloadLeavesFirst) {
-				if( _activeNodeNum> _sfh.cacheSize ) {
-					_flushLeaves();
-				}
+		if( _activeNodeNum> _sfh.cacheSize )
+		{
+			ScopedWriteLock<LockType> lock(_flushLock);
+			_flushCacheImpl(quickFlush);
+		}
+	}
+
+	void _flushCache() {
+		getRoot();
+		if(unloadLeavesFirst) {
+			if( _activeNodeNum> _sfh.cacheSize ) {
+				_flushLeaves();
 			}
-			if( _activeNodeNum> _sfh.cacheSize/2 )
-			{
-				_flushCacheImpl(quickFlush);
-			}
+		}
+		if( _activeNodeNum> _sfh.cacheSize )
+		{
+			_flushCacheImpl(quickFlush);
 		}
 
 	}
@@ -497,41 +518,24 @@ private:
 	//for seq, reset SDBCursor
 	void _flushCache(SDBCursor& locn) {
 		getRoot();
-		if( unloadbyRss ) {
-			//static unsigned int count;
-			++_flushCount;
-
-			if( (_flushCount & 0xffff) == 0 ) {
-				unsigned long vm = 0, rss=0;
-				unsigned long rlimit;
-				ProcMemInfo::getProcMemInfo(vm, rss, rlimit);
-
-				//if( _activeNodeNum> _sfh.cacheSize/1024 )
-				if(rss - _initRss> _sfh.cacheSize*_sfh.pageSize )
-				{
-					KeyType key;
-					ValueType value;
-					get(locn, key, value);
-					_flushCacheImpl();
-					search(key, locn);
-				}
+		if(unloadLeavesFirst) {
+			if( _activeNodeNum> _sfh.cacheSize ) {
+				ScopedWriteLock<LockType> lock(_flushLock);
+				_flushLeaves();
 			}
 		}
-		else {
-			if(unloadLeavesFirst) {
-				if( _activeNodeNum> _sfh.cacheSize ) {
-					_flushLeaves();
-				}
-			}
-			if( _activeNodeNum> _sfh.cacheSize/2 )
+		if( _activeNodeNum> _sfh.cacheSize )
+		{
+			KeyType key;
+			ValueType value;
+			get(locn, key, value);
 			{
-				KeyType key;
-				ValueType value;
-				get(locn, key, value);
+				ScopedWriteLock<LockType> lock(_flushLock);
 				_flushCacheImpl();
-				search(key, locn);
 			}
+			search(key, locn);
 		}
+
 	}
 
 	void _flushLeaves() {
@@ -633,6 +637,7 @@ private:
 			{
 				_root->children[i]->unload();
 			}
+			_activeNodeNum = 1;
 #ifdef DEBUG
 			cout<<"\n\nstop unload..."<<endl;
 			cout<<_activeNodeNum<<" vs "<<_sfh.cacheSize <<endl;
@@ -804,11 +809,11 @@ template<typename KeyType, typename ValueType, typename LockType, bool fixed,
 
 template<typename KeyType, typename ValueType, typename LockType, bool fixed,
 		typename Alloc> bool sdb_bptree< KeyType, ValueType, LockType, fixed,
-		Alloc>::search(const KeyType& key, SDBCursor& locn) {
+		Alloc>::search_(const KeyType& key, SDBCursor& locn) {
 	if ( !_isOpen)
 		return false;
 	//do Flush, when cache is full
-	_flushCache();
+	//_flushCache();
 
 	locn.first = 0;
 	locn.second = (size_t)-1;
@@ -852,7 +857,7 @@ template<typename KeyType, typename ValueType, typename LockType, bool fixed,
 			locn.first = temp;
 			locn.second = low;
 			if (low >= (int)temp->objCount)
-				seq(locn);
+				seq_(locn);
 			break;
 		}
 	}
@@ -1353,6 +1358,7 @@ template<typename KeyType, typename ValueType, typename LockType, bool fixed,
 template<typename KeyType, typename ValueType, typename LockType, bool fixed,
 		typename Alloc> bool sdb_bptree< KeyType, ValueType, LockType, fixed,
 		Alloc>::get(const SDBCursor& locn, KeyType& key, ValueType& value) {
+	ScopedReadLock<LockType> lock(_flushLock);
 	if ((sdb_pnode*)locn.first == 0 || locn.second == (size_t)-1 || locn.second
 			>= locn.first->objCount || !(locn.first->isLeaf)) {
 		return false;
@@ -1385,7 +1391,7 @@ template<typename KeyType, typename ValueType, typename LockType, bool fixed,
 // The direction can be either forward or backward.
 template<typename KeyType, typename ValueType, typename LockType, bool fixed,
 		typename Alloc> bool sdb_bptree< KeyType, ValueType, LockType, fixed,
-		Alloc>::seq(SDBCursor& locn, ESeqDirection sdir) {
+		Alloc>::seq_(SDBCursor& locn, ESeqDirection sdir) {
 	if ( !_isOpen)
 		return false;
 	if (_sfh.numItems <=0) {
@@ -1393,7 +1399,7 @@ template<typename KeyType, typename ValueType, typename LockType, bool fixed,
 	}
 	getRoot();
 	_root->parent = 0;
-	_flushCache(locn);
+	//_flushCache(locn);
 	switch (sdir) {
 	case ESD_FORWARD:
 		return _seqNext(locn);
@@ -1584,28 +1590,23 @@ template<typename KeyType, typename ValueType, typename LockType, bool fixed,
 
 	//write back the fileHead and dirtypage
 	commit();
-	if (_root) {
-		delete _root;
-		_root = 0;
+	//	if (_root) {
+	//		delete _root;
+	//		_root = 0;
+	//	}
+
+	ScopedWriteLock<LockType> lock(_flushLock);
+
+	// Unload each of the root's childrent.
+	if (_root && !_root->isLeaf) {
+		for (size_t i = 0; i < _root->objCount; i++) {
+			sdb_pnode* pChild = _root->children[i];
+			if ((sdb_pnode*)pChild != 0 && pChild->isLoaded) {
+				_root->children[i]->unload();
+			}
+		}
 	}
 
-	/*
-	 
-	 // Unload each of the root's childrent.
-	 if (_root && !_root->isLeaf) {
-	 for (size_t i = 0; i < _root->objCount; i++) {
-	 sdb_pnode* pChild = _root->children[i];
-	 if ((sdb_pnode*)pChild != 0 && pChild->isLoaded) {
-	 _root->children[i]->unload();
-	 }
-	 }
-	 }*/
-
-	if (unloadbyRss) {
-		unsigned long vm = 0;
-		unsigned long rlimit;
-		ProcMemInfo::getProcMemInfo(vm, _initRss, rlimit);
-	}
 	return;
 }
 
