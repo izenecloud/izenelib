@@ -94,7 +94,6 @@ public:
 	typedef KeyType key_type;
 	typedef ValueType value_type;
 	typedef DataType<KeyType, ValueType> data_type;
-	typedef typename AM::SDBCursor SDBCursor;
 
 	AMOBJ() :
 		am_() {
@@ -121,17 +120,18 @@ public:
 		return am_.find(key);
 	}
 
-	SDBCursor get_first_locn() {
-		return am_.get_first_locn();
-	}
-
-	bool seq(SDBCursor& locn) {
-		return am_.seq(locn);
-	}
-	bool get(const SDBCursor&locn,  KeyType& key, ValueType& value)
-	{
-		return am_.get(locn, key, value);
-	}
+//	SDBCursor get_first_locn() {
+//		return am_.get_first_locn();
+//	}
+//
+//	bool seq(SDBCursor& locn) {
+//		typedef typename AM::SDBCursor SDBCursor;
+//		return am_.seq(locn);
+//	}
+//	bool get(const SDBCursor&locn,  KeyType& key, ValueType& value)
+//	{
+//		return am_.get(locn, key, value);
+//	}
 
 	int num_items() {
 		return am_.num_items();
