@@ -17,7 +17,10 @@
 #include <ir/dup_det/prime_gen.hpp>
 #include <sys/time.h>
 #include <math.h>
+
+//#include <boost/thread/locks.hpp>
 #include <boost/thread/mutex.hpp>
+
 
 NS_IZENELIB_IR_BEGIN
 
@@ -55,7 +58,7 @@ protected:
   FpHashT* fp_hash_ptrs_[FP_HASH_NUM];//!< docid to address of FP hash table
   Vector32Ptr docid_hash_;//!< docid hash table
   std::string filenm_;//!< prefix of file name.
-  boost::mutex mtx_;//!< it's for indexing in case of query
+  mutable boost::mutex mtx_;//!< it's for indexing in case of query
   //  static Prime* prime_;
   
 
