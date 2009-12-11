@@ -494,6 +494,14 @@ bool Indexer::getDocsByTermInProperties(termid_t termID, collectionid_t colID, v
         Term term(properties[0].c_str(), termID);
         if (pTermReader->seek(&term))
         {
+
+            boost::try_mutex::scoped_try_lock try_lock(mutex_);
+            if(!try_lock.owns_lock())
+            {
+                delete pTermReader;
+                return false;
+            }
+        
             TermDocFreqs* pTermDocFreqs = pTermReader->termDocFreqs();
 
             while (pTermDocFreqs->next())
@@ -505,7 +513,6 @@ bool Indexer::getDocsByTermInProperties(termid_t termID, collectionid_t colID, v
         }
         else
         {
-            cout<<"can not find term"<<endl;
             delete pTermReader;
             return false;
         }
