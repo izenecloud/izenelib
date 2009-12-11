@@ -6,7 +6,10 @@ ENDIF(WIN32)
 MACRO_CHECK_SHOULD_BUILD(procmeminfo _NOT_WIN32)
 IF(procmeminfo_SHOULD_BUILD)
   ADD_LIBRARY(procmeminfo ProcMemInfo.cpp)
-  INSTALL(TARGETS procmeminfo DESTINATION lib)
+  #INSTALL(TARGETS procmeminfo DESTINATION lib)
+  INSTALL(TARGETS procmeminfo  
+      LIBRARY DESTINATION lib 
+      COMPONENT "izenelib_libraries")
 ENDIF(procmeminfo_SHOULD_BUILD)
 
 MACRO_CHECK_SHOULD_BUILD(
@@ -23,5 +26,8 @@ IF(izene_log_SHOULD_BUILD)
     )
 
   ADD_LIBRARY(izene_log izene_log.cpp)
-  INSTALL(TARGETS izene_log DESTINATION lib)
+  #INSTALL(TARGETS izene_log DESTINATION lib)
+  INSTALL(TARGETS izene_log  
+      LIBRARY DESTINATION lib 
+      COMPONENT "izenelib_libraries")
 ENDIF(izene_log_SHOULD_BUILD)

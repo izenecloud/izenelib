@@ -11,6 +11,9 @@ IF(bigint_SHOULD_BUILD)
     )
 
   ADD_LIBRARY(bigint ${bigint_SRC})
-  INSTALL(TARGETS bigint DESTINATION lib)
+  #INSTALL(TARGETS bigint DESTINATION lib)
+  INSTALL(TARGETS bigint       
+      LIBRARY DESTINATION lib 
+      COMPONENT "izenelib_libraries")
 
 ENDIF(bigint_SHOULD_BUILD)

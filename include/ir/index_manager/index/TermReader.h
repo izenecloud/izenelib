@@ -223,8 +223,6 @@ private:
 class InMemoryTermReader : public TermReader
 {
 public:
-    InMemoryTermReader(void);
-
     InMemoryTermReader(const char* field,FieldIndexer* pIndexer);
 
     virtual ~InMemoryTermReader(void);

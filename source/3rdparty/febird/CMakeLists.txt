@@ -46,6 +46,9 @@ IF(febird_SHOULD_BUILD)
     ${ZLIB_LIBRARIES}
     ${Boost_LIBRARIES}
     )
-  INSTALL(TARGETS febird DESTINATION lib)
+#INSTALL(TARGETS febird DESTINATION lib)
+  INSTALL(TARGETS febird      
+      LIBRARY DESTINATION lib 
+      COMPONENT "izenelib_libraries")
 
 ENDIF(febird_SHOULD_BUILD)

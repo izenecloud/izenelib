@@ -189,4 +189,18 @@ BOOST_AUTO_TEST_CASE(hdb_delete)
     hdb.close();
 }
 
+BOOST_AUTO_TEST_CASE(hdb_clear)
+{
+    ordered_hdb<int, int> hdb("t_hdb_clear");
+    hdb.setMergeFactor(2);
+    hdb.setCachedRecordsNumber(100U);
+    hdb.open();
+    for(int i=0; i<1000; i++)
+        hdb.insertValue(i, i);
+    hdb.optimize();
+    hdb.clear();
+    BOOST_CHECK_EQUAL(hdb.numItems(), 0U);
+    hdb.close();
+}
+
 BOOST_AUTO_TEST_SUITE_END()

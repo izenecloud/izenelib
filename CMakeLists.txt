@@ -152,10 +152,10 @@ INCLUDE(ConfigureChecks.cmake)
 # trailing / is required, otherwise dectory name is appended to
 # install directory.
 INSTALL(
-  DIRECTORY include/
-  DESTINATION include
-  COMPONENT "header_only"
-  )
+    DIRECTORY include/
+    DESTINATION include
+    COMPONENT "izenelib_headers"
+    )
 
 ##################################################
 # Config File
@@ -169,8 +169,8 @@ INSTALL(
 INCLUDE(MacroCheckShouldBuild)
 
 # all headers
-INCLUDE_DIRECTORIES("${CMAKE_SOURCE_DIR}/include")
-INCLUDE_DIRECTORIES("${CMAKE_SOURCE_DIR}/include/3rdparty")
+INCLUDE_DIRECTORIES("${IZENELIB_SOURCE_DIR}/include")
+INCLUDE_DIRECTORIES("${IZENELIB_SOURCE_DIR}/include/3rdparty")
 
 # User can decide which to build using:
 # USER_BUILD_LIST, USER_IGNORE_LIST
@@ -178,7 +178,7 @@ SET_PROPERTY(GLOBAL PROPERTY BUILD_COMPONENTS)
 SET_PROPERTY(GLOBAL PROPERTY NON_BUILD_COMPONENTS)
 MARK_AS_ADVANCED(BUILD_COMPONENTS NON_BUILD_COMPONENTS)
 
-SET(LIBRARY_OUTPUT_PATH "${CMAKE_SOURCE_DIR}/lib")
+SET(LIBRARY_OUTPUT_PATH "${IZENELIB_SOURCE_DIR}/lib")
 
 # third party libraries
 # put it first, they may be referred in other components

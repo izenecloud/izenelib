@@ -6,6 +6,7 @@
 #include <3rdparty/febird/io/DataIO.h>
 #include <3rdparty/febird/io/StreamBuffer.h>
 #include <3rdparty/febird/io/FileStream.h>
+#include <3rdparty/febird/io/ConcurrentStream.h>
 
 using namespace febird;
 using febird::ulong;
@@ -14,7 +15,7 @@ using febird::ushort;
 NS_IZENELIB_UTIL_BEGIN
 
 template<typename T> class izene_serialization_febird {
-	NativeDataOutput<AutoGrownMemIO> oa;	
+	NativeDataOutput<ConcurrentStreamWrapper<AutoGrownMemIO> > oa;	
 public:
 	izene_serialization_febird(const T& dat) {
 		oa & dat;
@@ -27,7 +28,7 @@ public:
 };
 
 template<typename T> class izene_deserialization_febird {
-	NativeDataInput<MemIO> ia;
+	NativeDataInput<ConcurrentStreamWrapper<MemIO> > ia;
 public:
 	izene_deserialization_febird(const char* ptr,  const size_t size) {
 		ia.set((void*)ptr, size);		

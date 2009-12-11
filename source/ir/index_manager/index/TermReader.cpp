@@ -562,13 +562,6 @@ TermIterator* DiskTermReader::termIterator(const char* field)
 
 //////////////////////////////////////////////////////////////////////////
 ///InMemoryTermReader
-InMemoryTermReader::InMemoryTermReader(void)
-        : pIndexer_(NULL)
-        , pCurTermInfo_(NULL)
-        , pCurPosting_(NULL)
-        , pTermInfo_(NULL)
-{
-}
 InMemoryTermReader::InMemoryTermReader(const char* field,FieldIndexer* pIndexer)
         : field_(field)
         , pIndexer_(pIndexer)
@@ -609,7 +602,6 @@ TermDocFreqs* InMemoryTermReader::termDocFreqs()
         return NULL;
 
     //InMemoryPosting* pInMem = (InMemoryPosting*)pCurPosting_;
-    boost::mutex::scoped_lock lock(pIndexer_->getLock());
     //pInMem->flushLastDoc(false);
     TermDocFreqs* pTermDocs = new TermDocFreqs(this,pCurPosting_,*pCurTermInfo_);
     return pTermDocs;
@@ -620,7 +612,6 @@ TermPositions* InMemoryTermReader::termPositions()
     if( (pCurTermInfo_ == NULL)||(pCurPosting_ == NULL))
         return NULL;
     //InMemoryPosting* pInMem = (InMemoryPosting*)pCurPosting_;
-    boost::mutex::scoped_lock lock(pIndexer_->getLock());
     //pInMem->flushLastDoc(false);
     TermPositions* pPositions = new TermPositions(this,pCurPosting_,*pCurTermInfo_);
     return pPositions;
