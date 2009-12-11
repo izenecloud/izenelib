@@ -123,7 +123,8 @@ TermReader* IndexReader::getTermReader(collectionid_t colID)
         return NULL;
     if (pBarrelReader_ == NULL)
         createBarrelReader();
-
+    if (pBarrelReader_ == NULL)
+        return NULL;
     boost::mutex::scoped_lock indexReaderLock(this->mutex_);
 	
     TermReader* pTermReader = pBarrelReader_->termReader(colID);

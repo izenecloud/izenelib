@@ -44,6 +44,9 @@ IF(message_framework_SHOULD_BUILD)
     )
 
   ADD_LIBRARY(message_framework ${message_framework_SRC})
-  INSTALL(TARGETS message_framework DESTINATION lib)
+  #INSTALL(TARGETS message_framework DESTINATION lib)
+  INSTALL(TARGETS message_framework   
+      LIBRARY DESTINATION lib 
+      COMPONENT "izenelib_libraries")
 
 ENDIF(message_framework_SHOULD_BUILD)

@@ -150,6 +150,8 @@ public:
 
     const std::map<std::string, IndexerCollectionMeta>& getCollectionsMeta();
 
+    boost::mutex& getLock() { return mutex_; }
+
 public:
     BarrelsInfo* getBarrelsInfo() { return pBarrelsInfo_; }
 

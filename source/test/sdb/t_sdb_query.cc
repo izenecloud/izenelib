@@ -1,5 +1,6 @@
 #include <am/am_test/am_test.h>
 #include <am/am_test/am_types.h>
+#include <am/3rdparty/stx_btree.h>
 
 using namespace std;
 
@@ -29,12 +30,40 @@ namespace izenelib {
 
 typedef int KeyType;
 typedef MyValueType ValueType;
-static bool rnd = false;
+static bool rnd = true;
 static int num = 500000;
 static int num1 = 100000;
 static int is_insert = 1;
 
-void test() {
+void test1(){
+	{
+		cout<<"\nsdb_btree<"<<endl;
+		typedef sdb_btree<KeyType, string> SDB;
+		AmTest<KeyType, string, SDB, true> am;
+		am.setRandom(rnd);
+		am.setNum(1000000);		
+		am.run_insert();
+		am.setRandom(true);				
+		am.run_find();	
+	}
+	
+	
+	{
+		cout<<"\nstx_btree<"<<endl;
+		typedef stx_btree<KeyType, string> stx_btree_am;
+		AmTest<KeyType, string, stx_btree_am> am;
+		am.setRandom(rnd);
+		am.setNum(1000000);		
+		am.run_insert();
+		am.setRandom(true);				
+		am.run_find();	
+	}
+		
+}
+
+void test() {	
+
+
 
 	//	{
 	//		cout<<"\nsdb_hash<"<<endl;
@@ -132,6 +161,7 @@ void test() {
 int main(int argc, char *argv[]) {
 	if (argv[1])
 		is_insert = atoi(argv[1]);
+	test1();
 	test();
 	return 1;
 }
