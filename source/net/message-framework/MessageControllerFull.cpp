@@ -152,7 +152,6 @@ void MessageControllerFull::processServiceRegistrationRequest(void) {
 
 bool MessageControllerFull::checkAgentInfo_(ServicePermissionInfo& permissionInfo)
 {	
-	boost::mutex::scoped_lock availableServiceListLock(availableServiceListMutex_);
 	const std::map<std::string, MessageFrameworkNode>& agentInfoMap =
 			permissionInfo.getServerMap();
 	std::map<std::string, MessageFrameworkNode>::const_iterator it =
@@ -194,7 +193,8 @@ void MessageControllerFull::processServicePermissionRequest(void) {
 				
 				if( availableServiceList_.find(requestItem.first) != availableServiceList_.end() )
 				{	
-				   checkAgentInfo_( availableServiceList_[requestItem.first] );
+					boost::mutex::scoped_lock availableServiceListLock(availableServiceListMutex_);
+				    checkAgentInfo_( availableServiceList_[requestItem.first] );
 					sendPermissionOfServiceResult(requestItem.second, availableServiceList_[requestItem.first] );
 					// to improve performance, direct connection to
 					// server is always made
