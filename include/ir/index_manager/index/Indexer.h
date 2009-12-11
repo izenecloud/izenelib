@@ -12,7 +12,6 @@
 
 #include <ir/index_manager/index/CommonItem.h>
 #include <ir/index_manager/index/IndexWriter.h>
-#include <ir/index_manager/index/IndexReader.h>
 #include <ir/index_manager/index/BTreeIndex.h>
 #include <ir/index_manager/index/IndexerDocument.h>
 #include <ir/index_manager/store/Directory.h>
@@ -49,6 +48,7 @@ class BarrelsInfo;
 class UDTFSAgent;
 class BTreeIndexerClient;
 class BTreeIndexerServer;
+class IndexReader;
 /**
 *The interface class of IndexManager component in SF1v5.0
  * @brief It is the interface component of the IndexManager.
