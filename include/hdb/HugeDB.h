@@ -21,6 +21,7 @@
 
 #include <sdb/SequentialDB.h>
 
+#include "MultiSDBCursor.h"
 #include "HDBCursor.h"
 #include "HDBHeader.h"
 
@@ -56,6 +57,10 @@ protected:
 
     typedef SequentialDB<KeyType, TagType, LockType, ContainerType, Alloc> SdbType;
 
+    typedef MultiSDBCursor_<ThisType> MultiSDBCursor;
+
+    friend class MultiSDBCursor_<ThisType>;
+
     /**
      * @brief Hdb partition, contain both data and metadata about a partition.
      */
@@ -67,13 +72,13 @@ protected:
         SdbInfo(std::string name) : sdb(name), level(0), deletions(0) {}
     };
 
+public:
+
     static const int DEFAULT_CACHED_RECORDS_NUM = 2000000;
     static const int DEFAULT_MERGE_FACTOR = 2;
     static const int DEFAULT_BTREE_CACHED_PAGE_NUM = 8*1024;
     static const int DEFAULT_BTREE_PAGE_SIZE = 8*1024;
     static const int DEFAULT_BTREE_DEGREE = 128;
-
-public:
 
     /**
      * @brief HDBCursor can be used to iterate the whole hdb,
@@ -85,19 +90,23 @@ public:
 
 public:
 
+    /*************************************************
+     *           Constructor/Destructor
+     *************************************************/
+
     /**
      * @brief Constructor.
      * @param hdbName - identifier of hdb
      */
     HugeDB(const std::string &hdbName)
-        : hdbName_(hdbName),
-          isOpen_(false), isSync_(true),
+        : hdbName_(hdbName), isOpen_(false),
           headerPath_(hdbName_ + ".hdb.header.xml"),
           header_(headerPath_),
           cachedRecordsNumber_(DEFAULT_CACHED_RECORDS_NUM),
           mergeFactor_(DEFAULT_MERGE_FACTOR),
           pageSize_(DEFAULT_BTREE_PAGE_SIZE),
-          degree_(DEFAULT_BTREE_DEGREE)
+          degree_(DEFAULT_BTREE_DEGREE),
+          memorySdb_(hdbName_ + ".memorycache")
     {
 #ifdef VERBOSE_HDB
         header_.display();
@@ -108,9 +117,15 @@ public:
             sdbi->sdb.setCacheSize(DEFAULT_BTREE_CACHED_PAGE_NUM);
             sdbi->level = header_.slicesLevel[i];
             sdbi->deletions = header_.deletions[i];
-            sdbList_.push_back(sdbi);
+            diskSdbList_.push_back(sdbi);
         }
 
+        memorySdb_.setPageSize(pageSize_);
+        memorySdb_.setDegree(degree_);
+        memorySdb_.setCacheSize( (size_t)-1 );
+        memorySdbDeletion_ = header_.memoryPartitionDeletion;
+
+        lastModificationStamp_ = header_.lastModificationStamp;
         header_.flush();
     }
 
@@ -181,7 +196,7 @@ public:
 	}
 
     /*************************************************
-     *               Open/Close/Flush
+     *               Open/Clear/Flush/Close
      *************************************************/
 
     /**
@@ -189,32 +204,48 @@ public:
      */
     void open()
     {
-        for(size_t i = 0; i<sdbList_.size(); i++)
-            sdbList_[i]->sdb.open();
+        if(!isOpen_) {
 
-        // create a empty partition
-        createRamSdb();
+            diskSdbLock_.acquire_write_lock();
+            for(size_t i = 0; i<diskSdbList_.size(); i++)
+                diskSdbList_[i]->sdb.open();
+            diskSdbLock_.release_write_lock();
 
-        isSync_ = true;
-        isOpen_ = true;
+            memorySdbLock_.acquire_write_lock();
+            memorySdb_.open();
+            memorySdbLock_.release_write_lock();
+
+            isOpen_ = true;
+        }
     }
 
+    /**
+     * Clear all records in a hdb.
+     */
     void clear()
     {
-        // delete each partitions
-        for(size_t i = 0; i<sdbList_.size(); i++) {
-            std::string n = sdbList_[i]->sdb.getName();
-            sdbList_[i]->sdb.close();
-            delete sdbList_[i];
-            std::remove(n.c_str());
+        if(isOpen_) {
+
+            diskSdbLock_.acquire_write_lock();
+            for(size_t i = 0; i<diskSdbList_.size(); i++) {
+                std::string n = diskSdbList_[i]->sdb.getName();
+                diskSdbList_[i]->sdb.close();
+                delete diskSdbList_[i];
+                std::remove(n.c_str());
+            }
+            diskSdbList_.clear();
+            lastModificationStamp_ ++;
+            diskSdbLock_.release_write_lock();
+
+            memorySdbLock_.acquire_write_lock();
+            memorySdb_.clear();
+            memorySdbDeletion_ = 0;
+            lastModificationStamp_ ++;
+            memorySdbLock_.release_write_lock();
+
+            // update header
+            flush();
         }
-        sdbList_.clear();
-
-        // create a empty partition
-        createRamSdb();
-
-        // update header
-        flush();
     }
 
     /**
@@ -222,33 +253,52 @@ public:
      */
     void close()
     {
-        flush();
-        for(size_t i = 0; i<sdbList_.size(); i++) {
-            sdbList_[i]->sdb.close();
-            delete sdbList_[i];
+        if(isOpen_) {
+
+            flush();
+
+            diskSdbLock_.acquire_write_lock();
+            for(size_t i = 0; i<diskSdbList_.size(); i++) {
+                diskSdbList_[i]->sdb.close();
+                delete diskSdbList_[i];
+            }
+            diskSdbList_.clear();
+            diskSdbLock_.release_write_lock();
+
+            memorySdbLock_.acquire_write_lock();
+            memorySdb_.close();
+            memorySdbDeletion_ = 0;
+            memorySdbLock_.release_write_lock();
+
+            isOpen_ = false;
         }
-        sdbList_.clear();
-        isSync_ = false;
-        isOpen_ = false;
     }
 
     /**
-     * Flush hdb content to disk.
+     * Flush all records in hdb to disk.
      */
     void flush()
     {
-        header_.slicesNum = sdbList_.size();
-        header_.deletions.resize(sdbList_.size());
-        header_.slicesLevel.resize(sdbList_.size());
-        for(size_t i = 0; i<sdbList_.size(); i++) {
-            header_.deletions[i] = sdbList_[i]->deletions;
-            header_.slicesLevel[i] = sdbList_[i]->level;
-        }
-        header_.flush();
+        if(isOpen_) {
 
-        for(size_t i = 0; i<sdbList_.size(); i++)
-            sdbList_[i]->sdb.flush();
-        isSync_ = true;
+            // Flush header
+            header_.slicesNum = diskSdbList_.size();
+            header_.deletions.resize(header_.slicesNum);
+            header_.slicesLevel.resize(header_.slicesNum);
+            header_.lastModificationStamp = lastModificationStamp_;
+            for(size_t i = 0; i<diskSdbList_.size(); i++) {
+                header_.deletions[i] = diskSdbList_[i]->deletions;
+                header_.slicesLevel[i] = diskSdbList_[i]->level;
+            }
+            header_.flush();
+
+            // Flush all on-disk partitions
+            for(size_t i = 0; i<diskSdbList_.size(); i++)
+                diskSdbList_[i]->sdb.flush();
+
+            header_.memoryPartitionDeletion = memorySdbDeletion_;
+            memorySdb_.flush();
+        }
     }
 
     /*************************************************
@@ -260,15 +310,17 @@ public:
 	 */
 	void insertValue(const KeyType& key, const ValueType& value)
 	{
-	    tryMerge();
-	    SdbInfo* ramSdb = sdbList_.back();
+	    tryToMerge();
 
-	    TagType tag = TagType();
-	    bool keyExist = ramSdb->sdb.getValue(key, tag);
+        TagType tag = TagType();
+
+        memorySdbLock_.acquire_write_lock();
+	    bool keyExist = memorySdb_.getValue(key, tag);
 	    if(!keyExist || tag.first == DELETE) {
-            ramSdb->sdb.update(key, TagType(INSERT, value));
-            isSync_ = false;
+            memorySdb_.update(key, TagType(INSERT, value));
+            lastModificationStamp_ ++;
         }
+        memorySdbLock_.release_write_lock();
 	}
 
 	/**
@@ -276,11 +328,12 @@ public:
 	 */
 	void update(const KeyType& key, const ValueType& value)
 	{
-	    tryMerge();
-	    SdbInfo* ramSdb = sdbList_.back();
+	    tryToMerge();
 
-	    ramSdb->sdb.update(key, TagType(UPDATE, value));
-        isSync_ = false;
+        memorySdbLock_.acquire_write_lock();
+	    memorySdb_.update(key, TagType(UPDATE, value));
+        lastModificationStamp_ ++;
+        memorySdbLock_.release_write_lock();
 	}
 
 	/**
@@ -288,16 +341,17 @@ public:
 	 */
 	void del(const KeyType& key)
 	{
-	    tryMerge();
-	    SdbInfo* ramSdb = sdbList_.back();
+	    tryToMerge();
 
-	    TagType tag = TagType();
-	    bool keyExist = ramSdb->sdb.getValue(key, tag);
+        TagType tag = TagType();
+
+        memorySdbLock_.acquire_write_lock();
+	    bool keyExist = memorySdb_.getValue(key, tag);
 	    if(!keyExist || (keyExist && tag.first != DELETE) )
-            ramSdb->deletions++;
-
-	    ramSdb->sdb.update(key, TagType(DELETE, ValueType()));
-        isSync_ = false;
+            memorySdbDeletion_++;
+	    memorySdb_.update(key, TagType(DELETE, ValueType()));
+        lastModificationStamp_ ++;
+        memorySdbLock_.release_write_lock();
 	}
 
     /**
@@ -318,29 +372,31 @@ public:
      */
 	void delta(const KeyType& key, const ValueType& delta)
 	{
-	    tryMerge();
-	    SdbInfo* ramSdb = sdbList_.back();
+	    tryToMerge();
 
 	    TagType tag = TagType();
-	    bool keyExist = ramSdb->sdb.getValue(key, tag);
+
+        memorySdbLock_.acquire_write_lock();
+	    bool keyExist = memorySdb_.getValue(key, tag);
 	    if(!keyExist) {
-            ramSdb->sdb.update(key, TagType(DELTA, delta));
-            isSync_ = false;
+            memorySdb_.update(key, TagType(DELTA, delta));
 	    } else if (tag.first == DELTA) {
-	        ramSdb->sdb.update(key, TagType(DELTA, tag.second + delta));
-	        isSync_ = false;
+	        memorySdb_.update(key, TagType(DELTA, tag.second + delta));
 	    } else if (tag.first == UPDATE) {
-	        ramSdb->sdb.update(key, TagType(UPDATE, tag.second + delta));
-	        isSync_ = false;
+	        memorySdb_.update(key, TagType(UPDATE, tag.second + delta));
 	    } else if (tag.first == DELETE) {
-            ramSdb->sdb.update(key, TagType(UPDATE, delta));
-            isSync_ = false;
+            memorySdb_.update(key, TagType(UPDATE, delta));
 	    } else if (tag.first == INSERT) {
-	        throw std::runtime_error( "Warning: In hdb, use insert() together with delta() is not recommended, \
-                which causes bad performance, try update() instead." );
+            memorySdbLock_.release_write_lock();
+	        throw std::runtime_error( "Warning: In hdb, use insert() together\
+                with delta() is not recommended, which causes bad performance,\
+                try update() instead." );
 	    } else {
+            memorySdbLock_.release_write_lock();
 	        throw std::runtime_error("unrecognized tag format in hdb");
 	    }
+        lastModificationStamp_ ++;
+        memorySdbLock_.release_write_lock();
 	}
 
     /**
@@ -350,37 +406,49 @@ public:
      */
 	bool getValue(const KeyType& key, ValueType& value)
 	{
-	    bool found = false;
-	    ValueType accumulator = ValueType();
+        std::vector<TagType> tagList;
 
-	    TagType tag = TagType();
-        for(size_t i = 0; i < sdbList_.size() ; i++)
+        // Collect all tags from both on-disk partitions and the in-memory partition.
+        diskSdbLock_.acquire_read_lock();
+        TagType tmp = TagType();
+        for(size_t i = 0; i < diskSdbList_.size() ; i++)
         {
-            if(sdbList_[i]->sdb.getValue(key, tag) )
+            if(diskSdbList_[i]->sdb.getValue(key, tmp) )
+                tagList.push_back(tmp);
+        }
+        memorySdbLock_.acquire_read_lock();
+        if( memorySdb_.getValue(key,tmp) )
+            tagList.push_back(tmp);
+        memorySdbLock_.release_read_lock();
+        diskSdbLock_.release_read_lock();
+
+        // Iterate all tags to caculate the correct answer.
+	    bool found = false;
+        ValueType accumulator = ValueType();
+        for(size_t i = 0; i < tagList.size() ; i++)
+        {
+            switch(tagList[i].first)
             {
-                switch(tag.first)
-                {
-                    case INSERT:
-                        if(found == false) {
-                            accumulator = tag.second;
-                            found = true;
-                        }
-                        break;
-                    case UPDATE:
-                        accumulator = tag.second;
+                case INSERT:
+                    if(found == false) {
+                        accumulator = tagList[i].second;
                         found = true;
-                        break;
-                    case DELTA:
-                        accumulator += tag.second;
-                        found = true;
-                        break;
-                    case DELETE:
-                        accumulator = ValueType();
-                        found = false;
-                        break;
-                    default:
-                        throw std::runtime_error("unrecognized tag format in hdb");
-                }
+                    }
+                    break;
+                case UPDATE:
+                    accumulator = tagList[i].second;
+                    found = true;
+                    break;
+                case DELTA:
+                    accumulator += tagList[i].second;
+                    found = true;
+                    break;
+                case DELETE:
+                    accumulator = ValueType();
+                    found = false;
+                    break;
+                default:
+                    throw std::runtime_error("unrecognized tag format in hdb");
             }
         }
 
@@ -388,6 +456,290 @@ public:
             value = accumulator;
         return found;
 	}
+
+
+    /*************************************************
+     *               Misc utilities
+     *************************************************/
+    /**
+     * @brief Merge all pieces of small sdbs in this ScalableDB into a larger one.
+     * This is usually called after all writings and before reading to improve searching
+     * efficiency. Of course, you can search without calling this function, after all,
+     * it is just a optimization.
+     */
+	void optimize()
+	{
+	    // optimize() is kind of merge process, hence single-threaded.
+        mergeLock_.acquire_write_lock();
+
+        // Step 1, First flush memory partition to disk.
+        if( memorySdb_.numItems() ) {
+            flushRamSdb();
+        }
+        // Sanity check.
+        if(diskSdbList_.size() < 2) {
+            mergeLock_.release_write_lock();
+            return;
+        }
+
+#ifdef VERBOSE_HDB
+	    std::cout << "optimize ScalableDB, merge " << diskSdbList_.size() << " small sdbs together" << std::endl;
+#endif
+
+        // Step 2, prepare the final on-disk partition.
+        std::string dstName = diskSdbList_[0]->sdb.getName() + "+";
+        int dstLevel = diskSdbList_[0]->level + 1;
+
+        SdbInfo* dst = new SdbInfo(dstName);
+        dst->level = dstLevel;
+        dst->deletions = 0;
+        dst->sdb.setPageSize(pageSize_);
+        dst->sdb.setDegree(degree_);
+        dst->sdb.setCacheSize(DEFAULT_BTREE_CACHED_PAGE_NUM);
+        dst->sdb.open();
+
+        // Step 3, Dump all records to the final partition.
+        //          lock the memory parition is enough, because disk partition
+        //          cannot be modified except during merging.
+        memorySdbLock_.acquire_read_lock();
+        HDBCursor cursor(*this);
+        while( cursor.next() ) {
+            if(cursor.getTag().first != DELETE)
+                dst->sdb.insertValue(cursor.getKey(), cursor.getTag());
+        }
+        memorySdbLock_.release_read_lock();
+        dst->sdb.flush();
+
+        // Step 4, Store all to-be-deleted partitions.
+        std::vector<SdbInfo*> tobeDeleted;
+        for(size_t i = 0; i< diskSdbList_.size(); i++ ) {
+            tobeDeleted.push_back(diskSdbList_[i]);
+        }
+
+        // Step 5, Maintain list.
+        diskSdbLock_.acquire_write_lock();
+        diskSdbList_.clear();
+        diskSdbList_.push_back(dst);
+        lastModificationStamp_ ++;
+        diskSdbLock_.release_write_lock();
+
+        // Step 5, Close and delete old partitions.
+        for(size_t i = 0; i< tobeDeleted.size(); i++ ) {
+            std::string n = tobeDeleted[i]->sdb.getName();
+            tobeDeleted[i]->sdb.close();
+            delete tobeDeleted[i];
+            std::remove(n.c_str());
+        }
+
+        mergeLock_.release_write_lock();
+	}
+
+    /**
+     * @brief Print out debug messages.
+     */
+    void display(std::ostream& os = std::cout)
+    {
+        header_.display(os);
+        for(size_t i = 0; i<diskSdbList_.size(); i++)
+            diskSdbList_[i]->sdb.display(os);
+    }
+
+    /**
+     * @return number of records kept in hdb. However, restrict by hdb's design,
+     *      the interface is avaiable to call only when only one partition exist.
+     *      you can call it after HugeDB::optimize() finishes.
+     */
+    size_t numItems()
+    {
+        if(diskSdbList_.size() == 0)
+            return memorySdb_.numItems() - memorySdbDeletion_;
+        if(diskSdbList_.size() == 1)
+            return (diskSdbList_[0]->sdb.numItems() - diskSdbList_[0]->deletions);
+        flush();
+        throw std::runtime_error("\nThere are unmerged sdb files, \
+            Call ScalableDB::optimize() before numItems()\n");
+    }
+
+protected:
+
+    std::string getMemorySdbName()
+    {
+        std::string ret = hdbName_ + ".hdb.memorycache";
+        return ret;
+    }
+
+    std::string getSdbName(int slice, int level = 0)
+    {
+        std::string ret = hdbName_ + ".hdb.partition" +
+            boost::lexical_cast<std::string>(slice);
+        for(int i = 0; i<level; i++ )
+            ret += "+";
+        return ret;
+    }
+
+    void tryToMerge()
+    {
+        if(cachedRecordsNumber_ <= (size_t)memorySdb_.numItems() )
+	    {
+	        // Step 1, flush memory partition to disk.
+            flushRamSdb();
+
+            // Step 2, merge disk partitions when condition satisfied.
+            while (true)
+            {
+                // check
+                if(!mergable() ) break;
+
+                // Ensure only one thread enter merging.
+                mergeLock_.acquire_write_lock();
+                // recheck
+                if(mergable()) merge();
+                mergeLock_.release_write_lock();
+            }
+	    }
+    }
+
+    bool mergable()
+    {
+        diskSdbLock_.acquire_read_lock();
+        bool test = false;
+        if(diskSdbList_.size() >= mergeFactor_) {
+            test = true;
+            for(size_t i = 1; i < mergeFactor_; i++) {
+                if(diskSdbList_[diskSdbList_.size()-1-i]->level !=
+                    diskSdbList_.back()->level) {
+                    test = false;
+                    break;
+                }
+            }
+        }
+        diskSdbLock_.release_read_lock();
+        return test;
+    }
+
+    /// Merge will be exectued by only one thread at a given time,
+    /// protected by the mutex mergeLock_.
+    void merge()
+    {
+#ifdef VERBOSE_HDB
+    std::cout << "merge btree ";
+    for(size_t i=0; i<mergeFactor_; i++)
+        std::cout << diskSdbList_[diskSdbList_.size()-mergeFactor_+i]->sdb.getName()
+            << "(" << diskSdbList_[diskSdbList_.size()-mergeFactor_+i]->sdb.numItems() << ") ";
+    std::cout << "...\n";
+#endif
+
+        // Step 1. Prepare for the destination partition.
+        std::string dstName = diskSdbList_[diskSdbList_.size()-mergeFactor_]->sdb.getName() + "+";
+        int dstLevel = diskSdbList_[diskSdbList_.size()-mergeFactor_]->level + 1;
+
+        SdbInfo* dst = new SdbInfo(dstName);
+        dst->level = dstLevel;
+        dst->sdb.setPageSize(pageSize_);
+        dst->sdb.setDegree(degree_);
+        dst->sdb.setCacheSize(DEFAULT_BTREE_CACHED_PAGE_NUM);
+        dst->sdb.open();
+
+        // Step 2. Prepare for an iterator from all to-be-merged partitions.
+        std::vector<SdbType*> source;
+        source.resize(mergeFactor_);
+        for(size_t i = 0; i < mergeFactor_; i++ ) {
+            source[i] = &(diskSdbList_[diskSdbList_.size()-mergeFactor_+i]->sdb);
+        }
+        MultiSDBCursor cursor(source);
+
+        // Step 3. Merge.
+        //         Since modification to on-disk partitions happens during merging process only,
+        //          and merging process is single-threaded, so no proctection needed here.
+        size_t deletions = 0;
+        while( cursor.next() ) {
+            if(cursor.getTag().first == DELETE)
+                deletions ++;
+            dst->sdb.insertValue(cursor.getKey(), cursor.getTag());
+        }
+        dst->deletions = deletions;
+        dst->sdb.flush();
+
+        // Step 4. Prepare for to-be-deleted partitions.
+        std::vector<SdbInfo*> tobeDeleted;
+        tobeDeleted.resize(mergeFactor_);
+        for(size_t i=0; i<mergeFactor_; i++) {
+            tobeDeleted[i] = diskSdbList_[diskSdbList_.size()-mergeFactor_+i];
+        }
+
+        // Step 5. delete old partitions from list and insert the new partition
+        //          into list in a write lock.
+        diskSdbLock_.acquire_write_lock();
+        for(size_t i=0; i<mergeFactor_; i++) {
+            diskSdbList_.pop_back();
+        }
+        diskSdbList_.push_back(dst);
+        lastModificationStamp_ ++;
+        diskSdbLock_.release_write_lock();
+
+        // Step 6. close and delete old partitions
+        for(size_t i=0; i<mergeFactor_; i++) {
+            std::string fn = tobeDeleted[i]->sdb.getName();
+            tobeDeleted[i]->sdb.close();
+            delete tobeDeleted[i];
+            std::remove(fn.c_str());
+        }
+
+#ifdef VERBOSE_HDB
+    std::cout << " into " << dst->sdb.getName() << "(" << dst->sdb.numItems() << ")" << std::endl;
+#endif
+    }
+
+    void flushRamSdb()
+    {
+        // Step 1. Initialize a new disk partition
+        SdbInfo* newDiskSdb = new SdbInfo( getSdbName(diskSdbList_.size()) );
+        newDiskSdb->sdb.setPageSize(pageSize_);
+        newDiskSdb->sdb.setDegree(degree_);
+        newDiskSdb->sdb.setCacheSize( DEFAULT_BTREE_CACHED_PAGE_NUM );
+        newDiskSdb->sdb.open();
+
+        // Step 2. Dump all records in memory partition to the new disk partition.
+        //          Protected by a read lock.
+        memorySdbLock_.acquire_read_lock();
+        KeyType tmpk = KeyType();
+        TagType tmpv = TagType();
+        typename SdbType::SDBCursor cursor = memorySdb_.get_first_Locn();
+        while(memorySdb_.get(cursor, tmpk, tmpv)) {
+            newDiskSdb->sdb.insertValue(tmpk, tmpv);
+            memorySdb_.seq(cursor);
+        }
+        newDiskSdb->deletions = memorySdbDeletion_;
+        memorySdbLock_.release_read_lock();
+
+        // Step 3. Flush new disk partition, need not lock.
+        newDiskSdb->sdb.flush();
+
+        // Step 4. Insert new disk partition to list, protected by write lock.
+        diskSdbLock_.acquire_write_lock();
+        diskSdbList_.push_back(newDiskSdb);
+        lastModificationStamp_ ++;
+        diskSdbLock_.release_write_lock();
+
+        // Dont worry the memory partition and the new disk partition coexist
+        // between Step 4 and Step 5. Because hdb allows redundancy.
+
+        // Step 5. Clear memory partition, protected by write lock.
+        memorySdbLock_.acquire_write_lock();
+        memorySdb_.clear();
+        memorySdbDeletion_ = 0;
+        lastModificationStamp_ ++;
+        memorySdbLock_.acquire_write_lock();
+    }
+
+public:
+
+    /*************************************************
+     *                                                *
+     *           SDB compatible interfaces            *
+     *                                                *
+     *************************************************/
+
 
     /*************************************************
      *               Cursor/Iterator
@@ -514,40 +866,52 @@ public:
      * Find the next bigger key than the given key.
      */
 	bool getNext(const KeyType& key, KeyType& nxtKey) {
+        bool ret = false;
 	    KeyType tmpk = KeyType();
 	    ValueType tmpv = ValueType();
+
+	    diskSdbLock_.acquire_read_lock();
+	    memorySdbLock_.acquire_read_lock();
 	    HDBCursor cursor(*this);
 	    if( search(key, cursor, ESD_FORWARD) ) {
 	        if( seq(cursor, ESD_FORWARD) ) {
                 get(cursor, tmpk, tmpv);
                 nxtKey = tmpk;
-                return true;
+                ret = true;
 	        }
 	    } else if( get(cursor, tmpk, tmpv) ) {
 	        nxtKey = tmpk;
-	        return true;
+	        ret = true;
 	    }
-	    return false;
+	    memorySdbLock_.release_read_lock();
+	    diskSdbLock_.release_read_lock();
+	    return ret;
 	}
 
     /**
      * Find the next smaller key than the given key.
      */
 	bool getPrev(const KeyType& key, KeyType& prevKey) {
+        bool ret = false;
 	    KeyType tmpk = KeyType();
 	    ValueType tmpv = ValueType();
+
+	    diskSdbLock_.acquire_read_lock();
+	    memorySdbLock_.acquire_read_lock();
 	    HDBCursor cursor(*this);
 	    if( search(key, cursor, ESD_BACKWARD) ) {
 	        if( seq(cursor, ESD_BACKWARD) ) {
                 get(cursor, tmpk, tmpv);
                 prevKey = tmpk;
-                return true;
+                ret = true;
 	        }
 	    } else if( get(cursor, tmpk, tmpv) ) {
 	        prevKey = tmpk;
-	        return true;
+	        ret = true;
 	    }
-        return false;
+	    memorySdbLock_.release_read_lock();
+	    diskSdbLock_.release_read_lock();
+	    return ret;
 	}
 
     /**
@@ -557,17 +921,21 @@ public:
             vector<DataType<KeyType,ValueType> >& result, const KeyType& key) {
         result.clear();
 
+	    diskSdbLock_.acquire_read_lock();
+	    memorySdbLock_.acquire_read_lock();
         HDBCursor cursor(*this);
         search(key, cursor, ESD_FORWARD);
         KeyType tmpk;
         ValueType tmpv;
         for( int i=0; i<count; i++ ) {
             if(!get(cursor, tmpk, tmpv))
-                return false;
+                break;
             result.push_back(DataType<KeyType, ValueType>(tmpk, tmpv));
             seq(cursor, ESD_FORWARD);
         }
-        return true;
+	    memorySdbLock_.release_read_lock();
+	    diskSdbLock_.release_read_lock();
+	    return result.size() > 0 ? true:false;
     }
 
     /**
@@ -585,17 +953,21 @@ public:
 			vector<DataType<KeyType,ValueType> >& result, const KeyType& key) {
         result.clear();
 
+	    diskSdbLock_.acquire_read_lock();
+	    memorySdbLock_.acquire_read_lock();
         HDBCursor cursor(*this);
         search(key, cursor, ESD_BACKWARD);
         KeyType tmpk;
         ValueType tmpv;
         for( int i=0; i<count; i++ ) {
             if(!get(cursor, tmpk, tmpv))
-                return false;
+                break;
             result.push_back(DataType<KeyType, ValueType>(tmpk, tmpv));
             seq(cursor, ESD_BACKWARD);
         }
-        return true;
+	    memorySdbLock_.release_read_lock();
+	    diskSdbLock_.release_read_lock();
+	    return result.size() > 0 ? true:false;
     }
 
     /**
@@ -613,6 +985,8 @@ public:
 			const KeyType& lowKey, const KeyType& highKey) {
         result.clear();
 
+	    diskSdbLock_.acquire_read_lock();
+	    memorySdbLock_.acquire_read_lock();
         HDBCursor cursor(*this);
         search(lowKey, cursor, ESD_FORWARD);
         KeyType tmpk;
@@ -623,178 +997,9 @@ public:
             result.push_back(DataType<KeyType, ValueType>(tmpk, tmpv));
             seq(cursor, ESD_FORWARD);
         }
-        if(result.size() > 0) return true;
-        return false;
-    }
-
-    /*************************************************
-     *               Misc utilities
-     *************************************************/
-    /**
-     * @brief Merge all pieces of small sdbs in this ScalableDB into a larger one.
-     * This is usually called after all writings and before reading to improve searching
-     * efficiency. Of course, you can search without calling this function, after all,
-     * it is just a optimization.
-     */
-	void optimize()
-	{
-#ifdef VERBOSE_HDB
-	    std::cout << "optimize ScalableDB, merge " << sdbList_.size() << " small sdbs together" << std::endl;
-#endif
-        if(sdbList_.size() < 2) return;
-
-        std::string dstName = sdbList_[0]->sdb.getName() + "+";
-        int dstLevel = sdbList_[0]->level + 1;
-
-        SdbInfo* dst = new SdbInfo(dstName);
-        dst->sdb.setPageSize(pageSize_);
-        dst->sdb.setDegree(degree_);
-        dst->sdb.setCacheSize(DEFAULT_BTREE_CACHED_PAGE_NUM);
-        dst->sdb.open();
-
-        HDBCursor cursor(*this);
-        while( cursor.next() ) {
-            if(cursor.getTag().first != DELETE)
-                dst->sdb.insertValue(cursor.getKey(), cursor.getTag());
-        }
-        dst->sdb.flush();
-
-        for(size_t i = 0; i< sdbList_.size(); i++ ) {
-            std::string n = sdbList_[i]->sdb.getName();
-            sdbList_[i]->sdb.close();
-            delete sdbList_[i];
-            std::remove(n.c_str());
-        }
-        sdbList_.clear();
-
-        dst->level = dstLevel;
-        dst->deletions = 0;
-        sdbList_.push_back(dst);
-
-        isSync_ = true;
-	}
-
-    /**
-     * @brief Print out debug messages.
-     */
-    void display(std::ostream& os = std::cout)
-    {
-        header_.display(os);
-        for(size_t i = 0; i<sdbList_.size(); i++)
-            sdbList_[i]->sdb.display(os);
-    }
-
-    /**
-     * @return number of records kept in hdb. However, restrict by hdb's design,
-     *      the interface is avaiable to call only when only one partition exist.
-     *      you can call it after HugeDB::optimize() finishes.
-     */
-    size_t numItems()
-    {
-        if(sdbList_.size() == 1)
-            return (sdbList_[0]->sdb.numItems() - sdbList_[0]->deletions);
-        flush();
-        throw std::runtime_error("\nThere are unmerged sdb files, \
-            Call ScalableDB::optimize() before numItems()\n");
-    }
-
-protected:
-
-    inline void tryMerge()
-    {
-        if(cachedRecordsNumber_ <= (size_t)sdbList_.back()->sdb.numItems() )
-	    {
-            if( !isSync_ )
-                flushRamSdb();
-
-            tryMergeDiskSdb();
-            createRamSdb();
-	    }
-    }
-
-    inline void tryMergeDiskSdb()
-    {
-        while (sdbList_.size() >= mergeFactor_)
-        {
-            for(size_t i = 1; i < mergeFactor_; i++)
-                if(sdbList_[sdbList_.size()-1-i]->level !=
-                    sdbList_.back()->level) return;
-            mergeDiskSdb();
-        }
-    }
-
-    inline void mergeDiskSdb()
-    {
-#ifdef VERBOSE_HDB
-    std::cout << "merge btree ";
-    for(size_t i=0; i<mergeFactor_; i++)
-        std::cout << sdbList_[sdbList_.size()-mergeFactor_+i]->sdb.getName()
-            << "(" << sdbList_[sdbList_.size()-mergeFactor_+i]->sdb.numItems() << ") ";
-    std::cout << "...\n";
-#endif
-        std::string dstName = sdbList_[sdbList_.size()-mergeFactor_]->sdb.getName() + "+";
-        int dstLevel = sdbList_[sdbList_.size()-mergeFactor_]->level + 1;
-
-        SdbInfo* dst = new SdbInfo(dstName);
-        dst->sdb.setPageSize(pageSize_);
-        dst->sdb.setDegree(degree_);
-        dst->sdb.setCacheSize(DEFAULT_BTREE_CACHED_PAGE_NUM);
-        dst->sdb.open();
-
-        size_t deletions = 0;
-        HDBCursor cursor(*this, sdbList_.size()-mergeFactor_, mergeFactor_);
-        while( cursor.next() ) {
-            if(cursor.getTag().first == DELETE)
-                deletions ++;
-            dst->sdb.insertValue(cursor.getKey(), cursor.getTag());
-        }
-        dst->sdb.flush();
-
-        for(size_t i=0; i<mergeFactor_; i++) {
-            SdbInfo* last = sdbList_.back();
-            sdbList_.pop_back();
-
-            std::string fn = last->sdb.getName();
-            last->sdb.close();
-            delete last;
-            std::remove(fn.c_str());
-        }
-        dst->level = dstLevel;
-        dst->deletions = deletions;
-        sdbList_.push_back(dst);
-#ifdef VERBOSE_HDB
-    std::cout << " into " << dst->sdb.getName() << "(" << dst->sdb.numItems() << ")" << std::endl;
-#endif
-    }
-
-    inline void createRamSdb()
-    {
-        std::string name = getSdbName(sdbList_.size());
-        SdbInfo* ramsdb = new SdbInfo(name);
-        // upper limit
-        ramsdb->sdb.setPageSize(pageSize_);
-        ramsdb->sdb.setDegree(degree_);
-        ramsdb->sdb.setCacheSize( (size_t)-1 );
-        ramsdb->sdb.open();
-        sdbList_.push_back(ramsdb);
-#ifdef VERBOSE_HDB
-        std::cout << "create ram sdb " << name << std::endl;
-#endif
-    }
-
-    inline void flushRamSdb()
-    {
-        sdbList_.back()->sdb.setCacheSize(DEFAULT_BTREE_CACHED_PAGE_NUM);
-        sdbList_.back()->sdb.flush();
-    }
-
-    inline std::string getSdbName(int slice, int level = 0)
-    {
-        std::string ret = hdbName_ + ".hdb.partition" +
-            boost::lexical_cast<std::string>(slice);
-        for(int i = 0; i<level; i++ )
-            ret += "+";
-        return ret;
+	    memorySdbLock_.release_read_lock();
+	    diskSdbLock_.release_read_lock();
+	    return result.size() > 0 ? true:false;
     }
 
 
@@ -818,9 +1023,29 @@ private:
 
     size_t degree_;
 
-    std::vector<SdbInfo*> sdbList_;
-
 	CompareFunctor<KeyType> comp_;
+
+    /// A list of on-disk partitions. Implemented by sdb_btree.
+    std::vector<SdbInfo*> diskSdbList_;
+
+    /// The in-memory partition. Implemented by sdb_btree.
+    SdbType memorySdb_;
+
+    size_t memorySdbDeletion_;
+
+    /// Stamp of last modification in either on-disk or in-memory partitions,
+    /// incremented by 1 after each modify operation.
+    size_t lastModificationStamp_;
+
+    /// Lock for managing on-disk partitions,
+    /// They are modified only during merging process.
+    LockType diskSdbLock_;
+
+    /// Lock for managing in-memory partition.
+    LockType memorySdbLock_;
+
+    /// A mutex for allowing only one thread entering the merging process.
+    LockType mergeLock_;
 };
 
 template< typename KeyType, typename ValueType,

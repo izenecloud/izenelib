@@ -48,7 +48,10 @@ IF(nvwa_SHOULD_BUILD)
 
   ADD_LIBRARY(nvwa ${nvwa_SRC})
   TARGET_LINK_LIBRARIES(nvwa ${CMAKE_THREAD_LIBS_INIT})
-  INSTALL(TARGETS nvwa DESTINATION lib)
+  #INSTALL(TARGETS nvwa DESTINATION lib)
+  INSTALL(TARGETS nvwa     
+      LIBRARY DESTINATION lib 
+      COMPONENT "izenelib_libraries")
 
   # we know the warnings, it's ok to alias void* as char*
   IF(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_COMPILER_IS_GNUC)
