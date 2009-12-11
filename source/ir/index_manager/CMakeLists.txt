@@ -29,6 +29,9 @@ IF(index_manager_SHOULD_BUILD)
   ADD_DEFINITIONS("-fPIC -DUDT3")
 
   ADD_LIBRARY(index_manager ${index_manager_SRC})
-  INSTALL(TARGETS index_manager DESTINATION lib)
+  #INSTALL(TARGETS index_manager DESTINATION lib)
+  INSTALL(TARGETS index_manager 
+      LIBRARY DESTINATION lib 
+      COMPONENT "izenelib_libraries")
 
 ENDIF(index_manager_SHOULD_BUILD)

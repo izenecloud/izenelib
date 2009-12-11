@@ -18,6 +18,10 @@
 #include <sys/time.h>
 #include <math.h>
 
+//#include <boost/thread/locks.hpp>
+#include <boost/thread/mutex.hpp>
+
+
 NS_IZENELIB_IR_BEGIN
 
 /**
@@ -28,7 +32,7 @@ template <
   uint8_t  FP_HASH_NUM = 1,//!< number of hash tables
   typename    UNIT_TYPE = uint64_t,//!< the minimous data type for pre-clustering
   uint8_t  FP_LENGTH = 6,//!< number of minimous data unit
-  uint32_t CACHE_SIZE = 600,//!< cache size
+  uint32_t CACHE_SIZE = 200,//!< cache size
   uint32_t ENTRY_SIZE = 1000000
   >
 class FpIndex
@@ -54,6 +58,7 @@ protected:
   FpHashT* fp_hash_ptrs_[FP_HASH_NUM];//!< docid to address of FP hash table
   Vector32Ptr docid_hash_;//!< docid hash table
   std::string filenm_;//!< prefix of file name.
+  mutable boost::mutex mtx_;//!< it's for indexing in case of query
   //  static Prime* prime_;
   
 
@@ -113,6 +118,8 @@ protected:
       fp_list_ = new FpList(s.c_str(), UNIT_LEN_);
     }
 
+    boost::mutex::scoped_lock lock(mtx_);
+    
     IASSERT(final_group_!=NULL);
 
     {
@@ -157,6 +164,8 @@ protected:
    */
   inline void init_docid_hash()
   {
+    boost::mutex::scoped_lock lock(mtx_);
+    
     reset_docid_hash();
     
     for(size_t i=0; i<fp_list_->doc_num(); i++)
@@ -183,6 +192,8 @@ protected:
 
   inline void save_docid_hash()
   {
+    boost::mutex::scoped_lock lock(mtx_);
+    
     std::string s = filenm_;
     s+= ".docid_hash";
 
@@ -204,6 +215,8 @@ protected:
 
   inline void load_docid_hash()
   {
+    boost::mutex::scoped_lock lock(mtx_);
+    
     std::string s = filenm_;
     s+= ".docid_hash";
 
@@ -696,6 +709,8 @@ public:
    */
   inline bool exist(uint32_t docid)
   {
+    boost::mutex::scoped_lock lock(mtx_);
+    
     IASSERT(docid_hash_.length()==ENTRY_SIZE);
     
     Vector32* v = docid_hash_.at(docid%ENTRY_SIZE);
@@ -713,6 +728,7 @@ public:
    */
   inline Vector32 find(size_t docid)const
   {
+    boost::mutex::scoped_lock lock(mtx_);
     Vector32 v = final_group_->find(docid);
 
     uint32_t i = v.find(-1);
@@ -735,6 +751,7 @@ public:
    */
   inline bool is_duplicated(uint32_t docid1, uint32_t docid2)const
   {
+    boost::mutex::scoped_lock lock(mtx_);
     return final_group_->same_group(docid1, docid2);
   }
 }
