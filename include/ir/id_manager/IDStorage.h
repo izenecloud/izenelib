@@ -153,6 +153,12 @@ public:
 	    nameFinder_.flush();
 	}
 
+	void release()
+	{
+		nameFinder_.optimize();
+		nameFinder_.release();
+	}
+
 	void close()
 	{
 	    nameFinder_.close();
@@ -177,6 +183,7 @@ HDBIDStorage<NameString, NameID, LockType>::HDBIDStorage(
     sdbName_(sdbName),
     nameFinder_(sdbName_ + "_id.sdb")
 {
+    nameFinder_.setCachedRecordsNumber(2000000);
   	nameFinder_.open();
 } // end - SDBIDStorage()
 
