@@ -10,8 +10,14 @@
 #define _MT_TRIE_H_
 
 #include <iostream>
+#include <fstream>
 
-#include "mt_trie_header.h"
+#include <boost/archive/xml_oarchive.hpp>
+#include <boost/archive/xml_iarchive.hpp>
+#include <boost/serialization/split_member.hpp>
+#include <boost/serialization/nvp.hpp>
+
+#include "sampler.h"
 #include "partition_trie.hpp"
 
 NS_IZENELIB_AM_BEGIN
@@ -27,45 +33,44 @@ public:
      *  @param partitionNum - how many partitions do we divide all input terms into.
      */
     MtTrie(const std::string& name, const int partitionNum)
-    :   name_(name),
+    :   name_(name), configPath_(name_ + ".config.xml"),
         writeCachePath_(name_+".writecache"),
-        header_(name_ + ".header.xml"),
         trie_(name_ + ".trie")
     {
         if( partitionNum <= 0 || partitionNum > 256 ) {
-            throw std::runtime_error( logHead() +
-                "wrong partitionNum, should between 0 and 256");
+            throw std::runtime_error( logHead() + "wrong partitionNum,\
+                should between 0 and 256");
         }
-        if(!header_.exist()) {
-            header_.partitionNum = partitionNum;
-            header_.flush();
-        } else {
-            if(header_.partitionNum != partitionNum)
-                throw std::runtime_error( logHead() +
-                    "inconsistent partitionNum");
-            boundaries_ = header_.boundaries;
+
+        std::ifstream config(configPath_.c_str(), std::ifstream::in);
+        if( config ) {
+            boost::archive::xml_iarchive xml(config);
+            try {
+                xml >> boost::serialization::make_nvp("MtTrie", *this);
+            } catch (...) {
+                throw std::runtime_error( logHead() + "config file corrputed");
+            }
+            config.close();
+
+            if(partitionNum_ != partitionNum)
+                throw std::runtime_error( logHead() + "inconsistent partitionNum");
         }
+
+        partitionNum_ = partitionNum;
 
         needSample_ = false;
-        if(boundaries_.size() != (size_t)(partitionNum-1) ) {
-            boundaries_.clear();
+        if(boundaries_.size() != (size_t)(partitionNum_-1) )
             needSample_ = true;
-            sampleStep_ = 1;
-            sampleCounter_ = 0;
-            lastSampleLine_ = 0;
-        }
 
-        skipNodeID_.resize(partitionNum);
+        skipNodeID_.resize(partitionNum_);
     }
 
     void open()
     {
         writeCache_.open(writeCachePath_.c_str(), std::ofstream::out|
-            std::ofstream::binary );
+            std::ofstream::binary | std::ofstream::app );
         if(writeCache_.fail())
             std::cerr << logHead() << " fail to open write cache" << std::endl;
-
-        writeCacheLine_ = 0;
 
         trie_.open();
     }
@@ -76,10 +81,18 @@ public:
         trie_.close();
     }
 
+    void sync()
+    {
+        std::ofstream config(configPath_.c_str(), std::ifstream::out);
+        boost::archive::xml_oarchive xml(config);
+        xml << boost::serialization::make_nvp("MtTrie", *this);
+        config.flush();
+    }
+
     void flush()
     {
+        sync();
         writeCache_.flush();
-        header_.flush();
         trie_.flush();
     }
 
@@ -94,52 +107,13 @@ public:
              writeCache_.write((const char*)term.c_str(), term.size());
 
              if(needSample_) {
-                 sampleCounter_ ++;
-                 if(sampleCounter_ == sampleStep_) {
-                    sampleCounter_ = 0;
-                    size_t measure = writeCacheLine_-lastSampleLine_;
-
-                    // havn't collect enough samples from sequence
-                    if(samples_.size() < sampleNum_) {
-                        samples_.insert(std::make_pair(writeCacheLine_ , term));
-                        associations_.insert(std::make_pair(writeCacheLine_ ,  mesures_.insert(
-                            std::make_pair(measure, writeCacheLine_) )));
-                        lastSampleLine_ = writeCacheLine_;
-                    } else {
-                        //  replace existing samples with new one
-                        size_t existingLeastMeasure = mesures_.begin()->first;
-
-                        if( existingLeastMeasure < measure ) {
-                            // step 1. erase replaced sample from samples_
-                            size_t replacedLine = mesures_.begin()->second;
-                            samples_.erase(replacedLine);
-                            mesures_.erase(mesures_.begin());
-                            associations_.erase(replacedLine);
-
-                            // step 2. add measure of replaced line to the next line
-                            size_t updatedLine = samples_.upper_bound(replacedLine)->first;
-                            size_t updatedMeasure = existingLeastMeasure +
-                                associations_[updatedLine]->first;
-                            mesures_.erase(associations_[updatedLine]);
-                            associations_.erase(updatedLine);
-                            associations_.insert(std::make_pair( updatedLine, mesures_.insert(
-                                std::make_pair(updatedMeasure, updatedLine) )));
-
-                            // step 3. insert new line
-                            samples_.insert(std::make_pair(writeCacheLine_, term));
-                            associations_.insert(std::make_pair( writeCacheLine_, mesures_.insert(
-                                std::make_pair(measure, writeCacheLine_))));
-                            lastSampleLine_ = writeCacheLine_;
-                        } else {
-                            sampleStep_ *= 2;
-                        }
-                    }
-                 }
+                sampler_.collect(term);
              }
-
-             writeCacheLine_ ++;
         } catch(const std::exception & e) {
-            std::cerr << logHead() << " write cache locked" << std::endl;
+            std::cerr << logHead() << " fail to update writecache" << std::endl;
+//            writeCache_.close();
+//            writeCache_.open(writeCachePath_.c_str(), std::ofstream::out|
+//                std::ofstream::binary|std::ofstream::app);
         }
     }
 
@@ -154,39 +128,62 @@ public:
         threadNum_ = threadNum;
         if( threadNum_<= 0)
             throw std::runtime_error(logHead() + "wrong threadNum, should be larger than 0");
-        if( header_.partitionNum < threadNum_ ) {
+        if( partitionNum_ < threadNum_ ) {
             std::cout << logHead() << " threadNum(" << threadNum << ") is less than partitionNum("
-                << header_.partitionNum << ", shrink it" << std::endl;
-            threadNum_ = header_.partitionNum;
+                << partitionNum_ << ", shrink it" << std::endl;
+            threadNum_ = partitionNum_;
         }
 
-        writeCache_.flush();
-        writeCache_.close();
-
-        if( boundaries_.size() != (size_t)(header_.partitionNum-1) ) {
+        if( needSample_ ) {
             std::cout << logHead() << "start computing boundaries" << std::endl;
 
+            std::set<StringType> samples;
+            sampler_.getSamples(samples);
+
+            std::cout << logHead() << samples.size() << " smaples are selected" << std::endl;
+
             boundaries_.clear();
-            computeBoundaries(1000);
-            if(boundaries_.size() == (size_t)(header_.partitionNum-1) ) {
-                header_.boundaries = boundaries_;
-                header_.flush();
-                needSample_ = false;
+            if( samples.size() > (size_t)(partitionNum_-1) ) {
+                // caculate boundaries between partitions
+                size_t interval = samples.size()/partitionNum_;
+
+                int count = 0;
+                typename std::set<StringType>::iterator it =
+                    samples.begin();
+                while(count < partitionNum_-1) {
+                    for(size_t i=0; i<interval; i++)
+                        it++;
+                    boundaries_.push_back(*it);
+                    //std::cout << *it << std::endl;
+                    count ++;
+                }
             } else {
                 std::cout << logHead() << "number of terms isn't enough to be partitioned to "
-                    << header_.partitionNum << " partitions" << std::endl;
+                    << partitionNum_ << " partitions" << std::endl;
                 return;
             }
+
+            needSample_ = false;
+
+            sync();
         } else {
             std::cout << logHead() << "skip computing boundareis, already exist"
                 << std::endl;
         }
 
         std::cout << logHead() << "start spliting inputs" << std::endl;
+
+        writeCache_.flush();
+        writeCache_.close();
+
         splitInput();
 
+        remove( writeCachePath_.c_str() );
+        writeCache_.open(writeCachePath_.c_str(), std::ofstream::out | std::ofstream::binary );
+
         std::cout << logHead() << "Start building tries with " << threadNum_
-            << " threads on " << header_.partitionNum << " partitions" << std::endl;
+            << " threads on " << partitionNum_ << " partitions" << std::endl;
+
         // multi-threaded building tries on partitions
         for( int i=0; i < threadNum_; i++ )
           workerThreads_.create_thread(boost::bind(&MtTrie::taskBody, this, i) );
@@ -196,11 +193,6 @@ public:
         std::cout << logHead() << "Start merge tries " << std::endl;
         mergeTries();
 
-        writeCacheLine_ = 0;
-        writeCache_.open(writeCachePath_.c_str(), std::ofstream::out|
-            std::ofstream::binary );
-        if(writeCache_.fail())
-            std::cerr << logHead() << "fail to reopen write cache" << std::endl;
         flush();
     }
 
@@ -241,46 +233,6 @@ protected:
     }
 
     /**
-     * @brief Skip over all input terms and select some samples to get
-     *        statistical information such as file's length,
-     *        how many terms it contains, how to split this file
-     *        to allow multiple threads rescan it at the same time.
-     *        how to divide distinct terms into partitions, and so on.
-     */
-    void computeBoundaries(int sampleNumber) {
-
-        std::cout << "MtTrie["<< name_ << "] preporcessing.. " << samples_.size()
-            << " smaples are selected" << std::endl;
-
-        std::set<StringType> sortedSamples;
-        {
-            //size_t last = 0;
-            for( typename std::map<size_t, StringType>::iterator it =
-                samples_.begin(); it != samples_.end(); it++ ) {
-                //std::cout << (it->first - last) << "," << it->first << "," << it->second << std::endl;
-                //last = it->first;
-                sortedSamples.insert(it->second);
-            }
-        }
-
-        if(sortedSamples.size()) {
-            // caculate boundaries between partitions
-            size_t interval = sortedSamples.size()/header_.partitionNum;
-
-            int count = 0;
-            typename std::set<StringType>::iterator it =
-                sortedSamples.begin();
-            while(count < header_.partitionNum-1) {
-                for(size_t i=0; i<interval; i++)
-                    it++;
-                boundaries_.push_back(*it);
-                //std::cout << *it << std::endl;
-                count ++;
-            }
-        }
-    }
-
-    /**
      * @brief Split orignal input files into multiple partitions.
      */
     void splitInput() {
@@ -290,10 +242,10 @@ protected:
         if(input.fail())
             throw std::runtime_error("failed open write cache " + writeCachePath_);
 
-        std::ofstream* output = new std::ofstream[header_.partitionNum];
-        for(int i = 0; i<header_.partitionNum; i++ ) {
+        std::ofstream* output = new std::ofstream[partitionNum_];
+        for(int i = 0; i<partitionNum_; i++ ) {
             std::string outputName = getPartitionName(i) + ".input";
-            output[i].open(outputName.c_str(), std::ofstream::out|std::ofstream::binary);
+            output[i].open(outputName.c_str(), std::ofstream::out|std::ofstream::binary|std::ofstream::app);
             if(output[i].fail())
                 throw std::runtime_error("failed prepare input for " + getPartitionName(i) );
         }
@@ -321,7 +273,7 @@ protected:
             }
         }
         input.close();
-        for(int i = 0; i<header_.partitionNum; i++ ) {
+        for(int i = 0; i<partitionNum_; i++ ) {
             output[i].close();
         }
         delete[] output;
@@ -329,7 +281,7 @@ protected:
 
     void taskBody(int threadId) {
         int partitionId = threadId;
-        while(partitionId < header_.partitionNum) {
+        while(partitionId < partitionNum_) {
             std::string inputName = getPartitionName(partitionId) + ".input";
             std::string trieName = getPartitionName(partitionId) + ".trie";
 
@@ -382,7 +334,7 @@ protected:
             }
         }
 
-        for(int i=0; i<header_.partitionNum; i++) {
+        for(int i=0; i<partitionNum_; i++) {
             std::string p = getPartitionName(i) + ".trie";
             PartitionTrie2<StringType> pt(p);
             pt.open();
@@ -394,10 +346,50 @@ protected:
         trie_.flush();
     }
 
+protected:
+
+
+    friend class boost::serialization::access;
+
+    template<class Archive>
+    void save(Archive & ar, const unsigned int version) const
+    {
+        ar & boost::serialization::make_nvp("PartitionNumber", partitionNum_);
+
+        std::vector<std::string> buffer;
+        for(size_t i =0; i< boundaries_.size(); i++ ) {
+            buffer.push_back( std::string((char*)boundaries_[i].c_str(),
+                    boundaries_[i].size()) );
+        }
+        ar & boost::serialization::make_nvp("Boundaries", buffer);
+
+        ar & boost::serialization::make_nvp("StreamSampler", sampler_);
+    }
+
+    template<class Archive>
+    void load(Archive & ar, const unsigned int version)
+    {
+        ar & boost::serialization::make_nvp("PartitionNumber", partitionNum_);
+
+        std::vector<std::string> buffer;
+        ar & boost::serialization::make_nvp("Boundaries", buffer);
+        for(size_t i =0; i< buffer.size(); i++ ) {
+            boundaries_.push_back( StringType(buffer[i]) );
+        }
+
+        ar & boost::serialization::make_nvp("StreamSampler", sampler_);
+    }
+
+    BOOST_SERIALIZATION_SPLIT_MEMBER()
+
+
 private:
 
     /// @brief prefix of assoicated files' name.
     std::string name_;
+
+    /// @brief load configuration from this file.
+    std::string configPath_;
 
     /// @brief path of write cache file.
     std::string writeCachePath_;
@@ -407,26 +399,17 @@ private:
     ///        then inserted into trie in executeTask().
     std::ofstream writeCache_;
 
+    /// @brief how many partitions do we divide all input terms into.
+    int partitionNum_;
+
     /// @brief boundaries between partitions, there are partitionNum-1 elements.
     std::vector<StringType> boundaries_;
 
     /// @brief whether we need sample inputs.
     bool needSample_;
 
-    /// @brief number of samples that need to collect.
-    const static size_t sampleNum_ = 65536;
-
-    /// @brief for implementing sampling at insert-time
-    size_t sampleStep_;
-    size_t sampleCounter_;
-    size_t writeCacheLine_;
-    size_t lastSampleLine_;
-    std::map<size_t, StringType> samples_;
-    std::multimap<size_t, size_t> mesures_;
-    std::map<size_t, std::multimap<size_t, size_t>::iterator> associations_;
-
-    /// @brief store persistent states of MtTrie.
-    MtTrieHeader<StringType> header_;
+    /// @brief collect given numbers of samples from input term stream.
+    StreamSampler<StringType> sampler_;
 
     /// @brief next available NodeID of tries on each partition before insertions,
     ///        skip all previous NodeID when merging a partition trie into the final trie.
