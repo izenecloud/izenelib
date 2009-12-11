@@ -95,8 +95,7 @@ template<typename KeyType, typename ValueType, typename AM, bool open=false> cla
 	int loop_;
 	bool trace_;
 	AMOBJ<KeyType, ValueType, AM, open>* am_;
-	izenelib::util::ClockTimer timer;
-	typedef typename AM::SDBCursor SDBCursor;
+	izenelib::util::ClockTimer timer;	
 public:
 	AmTest() :
 		rand_(true), num_(1000000), loop_(1), trace_(false) {
@@ -255,6 +254,8 @@ public:
 	}
 
 	void run_seq(bool mem=true) {
+		typedef typename AM::SDBCursor SDBCursor;
+		
 		clock_t t1 = clock();
 		timer.restart();
 		if (open)
