@@ -203,4 +203,26 @@ BOOST_AUTO_TEST_CASE(hdb_clear)
     hdb.close();
 }
 
+BOOST_AUTO_TEST_CASE(hdb_release)
+{
+    ordered_hdb<int, int> hdb("t_hdb_clear");
+    hdb.setMergeFactor(2);
+    hdb.setCachedRecordsNumber(100U);
+    hdb.open();
+    for(int i=0; i<1000; i++)
+        hdb.insertValue(i, i);
+    BOOST_CHECK_EQUAL(hdb.numItems(), 1000U);
+    hdb.release();
+    BOOST_CHECK_EQUAL(hdb.numItems(), 1000U);
+    for(int i=0; i<1000; i++)
+    {
+        int r = -1;
+        BOOST_CHECK_EQUAL(hdb.getValue(i, r), true);
+        BOOST_CHECK_EQUAL(r, i);
+    }
+    hdb.close();
+
+}
+
+
 BOOST_AUTO_TEST_SUITE_END()

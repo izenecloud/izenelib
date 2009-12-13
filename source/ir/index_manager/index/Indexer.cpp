@@ -1,4 +1,5 @@
 #include <ir/index_manager/index/Indexer.h>
+#include <ir/index_manager/index/IndexReader.h>
 #include <ir/index_manager/index/TermReader.h>
 #include <ir/index_manager/index/IndexMerger.h>
 #include <ir/index_manager/index/OfflineIndexMerger.h>
@@ -491,9 +492,28 @@ bool Indexer::getDocsByTermInProperties(termid_t termID, collectionid_t colID, v
         if (NULL == pTermReader)
             return false;
 
+        {
+        boost::try_mutex::scoped_try_lock try_lock(mutex_);
+        if(!try_lock.owns_lock())
+        {
+            delete pTermReader;
+            return false;
+        }
+        }	   
+
         Term term(properties[0].c_str(), termID);
         if (pTermReader->seek(&term))
         {
+
+            {
+            boost::try_mutex::scoped_try_lock try_lock(mutex_);
+            if(!try_lock.owns_lock())
+            {
+                delete pTermReader;
+                return false;
+            }
+            }      
+
             TermDocFreqs* pTermDocFreqs = pTermReader->termDocFreqs();
 
             while (pTermDocFreqs->next())
@@ -505,7 +525,6 @@ bool Indexer::getDocsByTermInProperties(termid_t termID, collectionid_t colID, v
         }
         else
         {
-            cout<<"can not find term"<<endl;
             delete pTermReader;
             return false;
         }
@@ -538,7 +557,6 @@ bool Indexer::getDocsByTermInProperties(termid_t termID, collectionid_t colID, v
         }
         else
         {
-            cout<<"can not find term"<<endl;
             return false;
         }
     }

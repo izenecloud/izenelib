@@ -275,6 +275,33 @@ public:
     }
 
     /**
+     * Release all memory.
+     */
+    void release()
+    {
+        if(isOpen_) {
+
+            flush();
+
+            for(size_t i = 0; i<diskSdbList_.size(); i++) {
+                std::string n = diskSdbList_[i]->sdb.getName();
+                int l = diskSdbList_[i]->level;
+                size_t d = diskSdbList_[i]->deletions;
+
+                diskSdbList_[i]->sdb.close();
+                delete diskSdbList_[i];
+
+                SdbInfo* sdbi = new SdbInfo(n);
+                sdbi->level = l;
+                sdbi->deletions = d;
+                sdbi->sdb.setCacheSize(DEFAULT_BTREE_CACHED_PAGE_NUM);
+                sdbi->sdb.open();
+                diskSdbList_[i] = sdbi;
+            }
+        }
+    }
+
+    /**
      * Flush all records in hdb to disk.
      */
     void flush()
@@ -555,9 +582,20 @@ public:
             return memorySdb_.numItems() - memorySdbDeletion_;
         if(diskSdbList_.size() == 1)
             return (diskSdbList_[0]->sdb.numItems() - diskSdbList_[0]->deletions);
-        flush();
-        throw std::runtime_error("\nThere are unmerged sdb files, \
-            Call ScalableDB::optimize() before numItems()\n");
+
+        std::cerr << "Warning: There are unmerged sdb files, \
+                Call ScalableDB::optimize() before numItems(), \
+                Or It would be extreamly inefficient." << std::endl;
+
+        size_t count = 0;
+        memorySdbLock_.acquire_read_lock();
+        HDBCursor cursor(*this);
+        while( cursor.next() ) {
+            if(cursor.getTag().first != DELETE)
+                count ++;
+        }
+        memorySdbLock_.release_read_lock();
+        return count;
     }
 
 protected:

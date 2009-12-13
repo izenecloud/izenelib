@@ -334,24 +334,34 @@ public:
 		return tchdbclose(hdb_);
 	}
 
-	/**
-	 *  write the dirty buckets to disk, not release the memory
-	 *
-	 */
-	void commit() {
-		tchdbsync(hdb_);
-	}
-	/**
-	 *   Write the dirty buckets to disk and also free up most of the memory.
-	 *   Note that, for efficieny, entry_[] is not freed up.
-	 */
-	void flush() {
-	    close();
-	    tchdbdel(hdb_);
-	    hdb_ = tchdbnew();
-	    tchdbsetcache(hdb_, cacheSize_);
-	    tchdbopen(hdb_, fileName_.c_str(), HDBOCREAT | HDBOWRITER);
-	}
+    /**
+    *  write the dirty buckets to disk, not release the memory
+    *
+    */
+    void commit() 
+    {
+        tchdbsync(hdb_);
+    }
+    /**
+    *   Write the dirty buckets to disk.
+    */
+    void flush() 
+    {
+        commit();
+    }
+    
+    /**
+    *   Write the dirty buckets to disk and also free up most of the memory.
+    */
+    void release()
+    {
+        close();
+        tchdbdel(hdb_);
+        hdb_ = tchdbnew();
+        tchdbsetcache(hdb_, cacheSize_);
+        tchdbopen(hdb_, fileName_.c_str(), HDBOCREAT | HDBOWRITER);
+    }
+    
 	/**
 	 *  display the info of tc_hash
 	 */

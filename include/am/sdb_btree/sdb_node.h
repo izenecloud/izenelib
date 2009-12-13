@@ -325,7 +325,8 @@ template<typename KeyType, typename ValueType, typename LockType, bool fixed,
 
 		//Only allocate childnode when the node is no a leaf node.
 		if ( !isLeaf) {
-			children = new sdb_node_*[_fh.maxKeys+1];
+			if( !children )
+				children = new sdb_node_*[_fh.maxKeys+1];
 			for (size_t i=0; i<_fh.maxKeys+1; i++)
 				children[i] = NULL;
 			for (size_t i = 0; i <= objCount; i++) {
