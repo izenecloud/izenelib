@@ -9,8 +9,10 @@ string  getMemInfo() {
 	static unsigned long  vm = 0, rss;
 	unsigned long pre_vm = vm;
 	unsigned long pre_rss = rss;
-	
+
+    sleep(2);
 	ProcMemInfo::getProcMemInfo(vm, rss, rlimit);
+    
 	ss << "Current vm(virtual memory): " << vm << " bytes; \t rss(Resident Set Size): " << rss << " bytes. " ;
 	if(vm >= pre_vm )
 		ss << "\t ++++ vm: " << vm - pre_vm << " bytes;";				
