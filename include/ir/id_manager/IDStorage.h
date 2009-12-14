@@ -150,60 +150,69 @@ public:
 
 	void flush()
 	{
-	    nameFinder_.flush();
+	    nameFinder_->flush();
 	}
 
 	void release()
 	{
-		nameFinder_.optimize();
-		nameFinder_.release();
+		nameFinder_->optimize();
+		nameFinder_->release();
+		if(nameFinder_)
+		{
+			delete(nameFinder_);
+			nameFinder_=new NameFinder(sdbName_ + "_id.sdb");
+		}
+
 	}
 
 	void close()
 	{
-	    nameFinder_.close();
+	    nameFinder_->close();
 	}
 
 	void display()
 	{
-		nameFinder_.display();
+		nameFinder_->display();
 	}
 
 protected:
 
 	std::string sdbName_;
 
-	NameFinder nameFinder_; ///< an inverted indexer which gives name according to the id.
+	NameFinder* nameFinder_; ///< an inverted indexer which gives name according to the id.
 }; // end - template SDBIDStorage
 
 template <typename NameString, typename NameID, typename LockType>
 HDBIDStorage<NameString, NameID, LockType>::HDBIDStorage(
         const std::string& sdbName)
 :
-    sdbName_(sdbName),
-    nameFinder_(sdbName_ + "_id.sdb")
+    sdbName_(sdbName)
+    /*nameFinder_(sdbName_ + "_id.sdb")*/
 {
-    nameFinder_.setCachedRecordsNumber(2000000);
-  	nameFinder_.open();
+    nameFinder_=new NameFinder(sdbName_ + "_id.sdb");
+    nameFinder_->setCachedRecordsNumber(2000000);
+  	nameFinder_->open();
 } // end - SDBIDStorage()
 
 template <typename NameString, typename NameID, typename LockType>
 HDBIDStorage<NameString, NameID, LockType>::~HDBIDStorage()
 {
+	if(nameFinder_)
+		delete(nameFinder_);
 } // end - ~SDBIDStorage()
 
 template <typename NameString, typename NameID, typename LockType>
 void HDBIDStorage<NameString, NameID, LockType>::put( const NameID& nameID,
     const NameString& nameString)
 {
-	nameFinder_.insertValue(nameID, nameString);
+	nameFinder_->insertValue(nameID, nameString);
 } // end - put()
 
 template <typename NameString, typename NameID, typename LockType>
 bool HDBIDStorage<NameString, NameID, LockType>::get( const NameID& nameID,
     NameString& nameString)
 {
-	return nameFinder_.getValue(nameID, nameString);
+	return nameFinder_->getValue(nameID, nameString);
 } // end - get()
 
 
