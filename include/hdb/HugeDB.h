@@ -631,6 +631,7 @@ protected:
                 // Ensure only one thread enter merging.
                 mergeLock_.acquire_write_lock();
                 // recheck
+
                 if(mergable()) merge();
                 mergeLock_.release_write_lock();
             }
@@ -767,7 +768,7 @@ protected:
         memorySdb_.clear();
         memorySdbDeletion_ = 0;
         lastModificationStamp_ ++;
-        memorySdbLock_.acquire_write_lock();
+        memorySdbLock_.release_write_lock();
     }
 
 public:

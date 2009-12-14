@@ -17,6 +17,8 @@
 #include <boost/serialization/split_member.hpp>
 #include <boost/serialization/nvp.hpp>
 
+#include <util/ThreadModel.h>
+
 #include "sampler.h"
 #include "partition_trie.hpp"
 
@@ -27,6 +29,8 @@ class MtTrie
 {
 public:
     typedef uint64_t TrieNodeIDType;
+    typedef PartitionTrie2<StringType, TrieNodeIDType, izenelib::util::ReadWriteLock> PartitionTrieType;
+    typedef PartitionTrie2<StringType, TrieNodeIDType, izenelib::util::ReadWriteLock> FinalTrieType;
 
 public:
     /**
@@ -42,27 +46,19 @@ public:
                 should between 0 and 256");
         }
 
-        std::ifstream config(configPath_.c_str(), std::ifstream::in);
-        if( config ) {
-            boost::archive::xml_iarchive xml(config);
-            try {
-                xml >> boost::serialization::make_nvp("MtTrie", *this);
-            } catch (...) {
-                throw std::runtime_error( logHead() + "config file corrputed");
-            }
-            config.close();
-
+        if(load()) {
             if(partitionNum_ != partitionNum)
                 throw std::runtime_error( logHead() + "inconsistent partitionNum");
+        } else {
+            partitionNum_ = partitionNum;
+            boundariesInitialized_ = false;
+            boundaries_.clear();
+            partitionsInitialized_.resize(partitionNum_, false);
+            startNodeID_.resize(partitionNum_, NodeIDTraits<TrieNodeIDType>::MinValue);
+            trieInitialized_ = false;
         }
 
-        partitionNum_ = partitionNum;
-
-        needSample_ = false;
-        if(boundaries_.size() != (size_t)(partitionNum_-1) )
-            needSample_ = true;
-
-        skipNodeID_.resize(partitionNum_);
+        sync();
     }
 
     void open()
@@ -81,14 +77,6 @@ public:
         trie_.close();
     }
 
-    void sync()
-    {
-        std::ofstream config(configPath_.c_str(), std::ifstream::out);
-        boost::archive::xml_oarchive xml(config);
-        xml << boost::serialization::make_nvp("MtTrie", *this);
-        config.flush();
-    }
-
     void flush()
     {
         sync();
@@ -105,15 +93,9 @@ public:
              int len = (int) term.size();
              writeCache_.write((char*) &len, sizeof(int));
              writeCache_.write((const char*)term.c_str(), term.size());
-
-             if(needSample_) {
-                sampler_.collect(term);
-             }
+             sampler_.collect(term);
         } catch(const std::exception & e) {
             std::cerr << logHead() << " fail to update writecache" << std::endl;
-//            writeCache_.close();
-//            writeCache_.open(writeCachePath_.c_str(), std::ofstream::out|
-//                std::ofstream::binary|std::ofstream::app);
         }
     }
 
@@ -134,63 +116,57 @@ public:
             threadNum_ = partitionNum_;
         }
 
-        if( needSample_ ) {
-            std::cout << logHead() << "start computing boundaries" << std::endl;
-
+        if( !boundariesInitialized_ ) {
             std::set<StringType> samples;
             sampler_.getSamples(samples);
 
-            std::cout << logHead() << samples.size() << " smaples are selected" << std::endl;
+            std::cout << logHead() << "start computing " << (partitionNum_-1) <<
+                " boundaries from " << samples.size() << " smaples" << std::endl;
 
-            boundaries_.clear();
             if( samples.size() > (size_t)(partitionNum_-1) ) {
-                // caculate boundaries between partitions
+                int count = 0;
                 size_t interval = samples.size()/partitionNum_;
 
-                int count = 0;
-                typename std::set<StringType>::iterator it =
-                    samples.begin();
+                typename std::set<StringType>::iterator it = samples.begin();
                 while(count < partitionNum_-1) {
                     for(size_t i=0; i<interval; i++)
                         it++;
                     boundaries_.push_back(*it);
-                    //std::cout << *it << std::endl;
                     count ++;
                 }
             } else {
                 std::cout << logHead() << "number of terms isn't enough to be partitioned to "
                     << partitionNum_ << " partitions" << std::endl;
+                sync();
                 return;
             }
 
-            needSample_ = false;
+            boundariesInitialized_ = true;
 
             sync();
+
         } else {
             std::cout << logHead() << "skip computing boundareis, already exist"
                 << std::endl;
         }
 
-        std::cout << logHead() << "start spliting inputs" << std::endl;
-
         writeCache_.flush();
         writeCache_.close();
-
         splitInput();
-
         remove( writeCachePath_.c_str() );
         writeCache_.open(writeCachePath_.c_str(), std::ofstream::out | std::ofstream::binary );
 
-        std::cout << logHead() << "Start building tries with " << threadNum_
-            << " threads on " << partitionNum_ << " partitions" << std::endl;
-
         // multi-threaded building tries on partitions
+        std::cout << logHead() << "Build " << partitionNum_ << " partitions in "
+            << threadNum_ << " threads" << std::endl;
+
+        processedPartitions_ = 0;
         for( int i=0; i < threadNum_; i++ )
           workerThreads_.create_thread(boost::bind(&MtTrie::taskBody, this, i) );
         workerThreads_.join_all();
+        std::cout << std::endl;
 
         // merging tries on partitions into one
-        std::cout << logHead() << "Start merge tries " << std::endl;
         mergeTries();
 
         flush();
@@ -242,6 +218,11 @@ protected:
         if(input.fail())
             throw std::runtime_error("failed open write cache " + writeCachePath_);
 
+        long sizeofInput;
+        input.seekg(0, ios_base::end);
+        sizeofInput = input.tellg();
+        input.seekg(0, ios_base::beg);
+
         std::ofstream* output = new std::ofstream[partitionNum_];
         for(int i = 0; i<partitionNum_; i++ ) {
             std::string outputName = getPartitionName(i) + ".input";
@@ -253,6 +234,9 @@ protected:
         StringType term;
         int buffersize = 0;
         char charBuffer[256];
+        int progress = 0;
+        long sizeofNextProgress = 0;
+        long sizeofProcessed = 0;
 
         while(!input.eof())
         {
@@ -271,56 +255,70 @@ protected:
                 output[pos].write((char*)&buffersize, sizeof(int));
                 output[pos].write(charBuffer, buffersize);
             }
+
+            sizeofProcessed += (buffersize + sizeof(int));
+            if(sizeofProcessed >= sizeofNextProgress ) {
+                std::cout << "\r" << logHead() << "Split input, progress ["
+                    << progress << "%]" << std::flush;
+                progress ++;
+                sizeofNextProgress = (long)( ((double)(progress)/(double)100)
+                    *(double)sizeofInput );
+            }
         }
         input.close();
         for(int i = 0; i<partitionNum_; i++ ) {
             output[i].close();
         }
         delete[] output;
+        std::cout << std::endl;
     }
 
     void taskBody(int threadId) {
         int partitionId = threadId;
         while(partitionId < partitionNum_) {
+
             std::string inputName = getPartitionName(partitionId) + ".input";
+            std::ifstream input(inputName.c_str(), std::ifstream::in|std::ifstream::binary);
+
             std::string trieName = getPartitionName(partitionId) + ".trie";
-
-            std::ifstream input;
-            input.open(inputName.c_str(), std::ifstream::in|
-                std::ifstream::binary );
-            if(input.fail())
-                throw std::runtime_error("failed open input for "
-                        + getPartitionName(partitionId));
-
-            PartitionTrie2<StringType> trie(trieName);
+            PartitionTrieType trie(trieName);
             trie.open();
 
             // Initialize trie at the first time.
-            if(trie.num_items() == 0) {
+            if( !partitionsInitialized_[partitionId] ) {
                 // Insert all boundaries into trie, to ensure NodeIDs are consistent
                 // in all tries, the details of reasoning and proof see MtTrie TR.
                 for(size_t i =0; i<boundaries_.size(); i++) {
                     trie.insert(boundaries_[i]);
                 }
                 trie.setbase(getPartitionStartNodeID(partitionId));
+                startNodeID_[partitionId] = trie.nextNodeID();
+                partitionsInitialized_[partitionId] = true;
             }
-            skipNodeID_[partitionId] = trie.nextNodeID();
 
-            // Insert all terms in this partition
-            StringType term;
-            int buffersize = 0;
-            char charBuffer[256];
-            while(!input.eof())
-            {
-                input.read((char*)&buffersize, sizeof(int));
-                input.read( charBuffer, buffersize );
-                term.assign( std::string(charBuffer,buffersize) );
-                trie.insert(term);
+            if(input) {
+                // Insert all terms in this partition
+                StringType term;
+                int buffersize = 0;
+                char charBuffer[256];
+                while(!input.eof())
+                {
+                    input.read((char*)&buffersize, sizeof(int));
+                    input.read( charBuffer, buffersize );
+                    term.assign( std::string(charBuffer,buffersize) );
+                    trie.insert(term);
+                }
+                trie.optimize();
+
+                input.close();
+                remove( inputName.c_str() );
             }
-            trie.optimize();
+
             trie.close();
-            input.close();
-            remove( inputName.c_str() );
+
+            processedPartitions_ ++;
+            std::cout << "\r" << logHead() << "Build partitions, progress ["
+                << (100*processedPartitions_)/partitionNum_ << "%]" << std::flush;
             partitionId += threadNum_;
         }
     }
@@ -328,26 +326,36 @@ protected:
     void mergeTries() {
 
         // Initialize trie at the first time.
-        if(trie_.num_items() == 0) {
+        if(!trieInitialized_) {
             for(size_t i =0; i<boundaries_.size(); i++) {
                 trie_.insert(boundaries_[i]);
             }
+            trieInitialized_ = true;
         }
 
+        int mergedPartitions = 0;
         for(int i=0; i<partitionNum_; i++) {
-            std::string p = getPartitionName(i) + ".trie";
-            PartitionTrie2<StringType> pt(p);
+            PartitionTrieType pt(getPartitionName(i) + ".trie");
             pt.open();
-            trie_.concatenate(pt, skipNodeID_[i]);
+
+            trie_.concatenate(pt, startNodeID_[i]);
+            startNodeID_[i] = pt.nextNodeID();
+            sync();
+
             pt.close();
+            mergedPartitions ++;
+            std::cout << "\r" << logHead() << "Merge partitions, progress ["
+                << (100*mergedPartitions)/(partitionNum_+1) << "%]" << std::flush;
         }
 
         trie_.optimize();
         trie_.flush();
+        std::cout << "\r" << logHead() << "Merge partitions, progress [100%]"
+            << std::endl << std::flush;
+
     }
 
 protected:
-
 
     friend class boost::serialization::access;
 
@@ -356,6 +364,7 @@ protected:
     {
         ar & boost::serialization::make_nvp("PartitionNumber", partitionNum_);
 
+        ar & boost::serialization::make_nvp("BoundariesInitialized", boundariesInitialized_);
         std::vector<std::string> buffer;
         for(size_t i =0; i< boundaries_.size(); i++ ) {
             buffer.push_back( std::string((char*)boundaries_[i].c_str(),
@@ -363,7 +372,13 @@ protected:
         }
         ar & boost::serialization::make_nvp("Boundaries", buffer);
 
+        ar & boost::serialization::make_nvp("PartitionsInitialized", partitionsInitialized_);
+        ar & boost::serialization::make_nvp("StartNodeID", startNodeID_);
+
+        ar & boost::serialization::make_nvp("TrieInitialized", trieInitialized_);
+
         ar & boost::serialization::make_nvp("StreamSampler", sampler_);
+
     }
 
     template<class Archive>
@@ -371,17 +386,46 @@ protected:
     {
         ar & boost::serialization::make_nvp("PartitionNumber", partitionNum_);
 
+        ar & boost::serialization::make_nvp("BoundariesInitialized", boundariesInitialized_);
         std::vector<std::string> buffer;
         ar & boost::serialization::make_nvp("Boundaries", buffer);
         for(size_t i =0; i< buffer.size(); i++ ) {
             boundaries_.push_back( StringType(buffer[i]) );
         }
 
+        ar & boost::serialization::make_nvp("PartitionsInitialized", partitionsInitialized_);
+        ar & boost::serialization::make_nvp("StartNodeID", startNodeID_);
+
+        ar & boost::serialization::make_nvp("TrieInitialized", trieInitialized_);
+
         ar & boost::serialization::make_nvp("StreamSampler", sampler_);
     }
 
     BOOST_SERIALIZATION_SPLIT_MEMBER()
 
+    bool load()
+    {
+        std::ifstream config(configPath_.c_str(), std::ifstream::in);
+        if( config ) {
+            boost::archive::xml_iarchive xml(config);
+            try {
+                xml >> boost::serialization::make_nvp("MtTrie", *this);
+            } catch (...) {
+                throw std::runtime_error( logHead() + "config file corrputed");
+            }
+            config.close();
+            return true;
+        }
+        return false;
+    }
+
+    void sync()
+    {
+        std::ofstream config(configPath_.c_str(), std::ifstream::out);
+        boost::archive::xml_oarchive xml(config);
+        xml << boost::serialization::make_nvp("MtTrie", *this);
+        config.flush();
+    }
 
 private:
 
@@ -399,22 +443,31 @@ private:
     ///        then inserted into trie in executeTask().
     std::ofstream writeCache_;
 
+    /// @brief collect given numbers of samples from input term stream.
+    StreamSampler<StringType> sampler_;
+
     /// @brief how many partitions do we divide all input terms into.
     int partitionNum_;
+
+    /// @brief Indicate whether boundaries have been determined.
+    bool boundariesInitialized_;
 
     /// @brief boundaries between partitions, there are partitionNum-1 elements.
     std::vector<StringType> boundaries_;
 
-    /// @brief whether we need sample inputs.
-    bool needSample_;
-
-    /// @brief collect given numbers of samples from input term stream.
-    StreamSampler<StringType> sampler_;
+    /// @brief Indicate whether partitions has been initialized.
+    std::vector<bool> partitionsInitialized_;
 
     /// @brief next available NodeID of tries on each partition before insertions,
     ///        skip all previous NodeID when merging a partition trie into the final trie.
     ///        designed for supporting incremental updates. there are partitionNum_ elements.
-    std::vector<TrieNodeIDType> skipNodeID_;
+    std::vector<TrieNodeIDType> startNodeID_;
+
+    /// @brief Indicate whether the final trie has been initialized.
+    bool trieInitialized_;
+
+    /// @brief the final(major) trie, findRegExp are operating this trie.
+    FinalTrieType trie_;
 
     /// @brief number of work threads.
     int threadNum_;
@@ -422,9 +475,8 @@ private:
     /// @brief work thread pool.
     boost::thread_group workerThreads_;
 
-    /// @brief the final(major) trie, findRegExp are operating this trie.
-    PartitionTrie2<StringType, TrieNodeIDType> trie_;
-
+    /// @brief number of partitions that finishes building.
+    int processedPartitions_;
 };
 
 NS_IZENELIB_AM_END

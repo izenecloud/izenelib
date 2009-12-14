@@ -131,6 +131,7 @@ protected:
             associations_.insert( std::make_pair( p ,
                 measures_.insert(std::make_pair(p-last,p))
             ));
+            last = p;
         }
     }
 
