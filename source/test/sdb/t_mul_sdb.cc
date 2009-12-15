@@ -401,18 +401,18 @@ int main(int argc, char *argv[]) {
 	//run(cm2);
 	//cm2.close();
 
-	cm3.setCacheSize(10000);
-	cm3.open();
-	//run1(cm3);
-	run(cm3);
-	cm3.close();
+//	cm3.setCacheSize(10000);
+//	cm3.open();
+//	//run1(cm3);
+//	run(cm3);
+//	cm3.close();
 
-//	cm4.setCacheSize(2000);
-//	cm4.open();
-//	run(cm4);
-//	run1(cm4);
-//	cm4.close();
-	
+	cm4.setCacheSize(10000);
+	cm4.open();
+	run(cm4);
+	run1(cm4);
+	cm4.close();
+//	
 //	cm5.setCacheSize(2000);
 //	cm5.open();
 //	run(cm5);
