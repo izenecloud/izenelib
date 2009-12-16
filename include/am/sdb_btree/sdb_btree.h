@@ -716,7 +716,7 @@ template<typename KeyType, typename ValueType, typename LockType, bool fixed,
 	_root = 0;
 	_isDelaySplit = true;
 	_autoTunning = false;
-	_optimizeNum = 65536;
+	_optimizeNum = 8192*2;
 
 	_fileName = fileName;
 
