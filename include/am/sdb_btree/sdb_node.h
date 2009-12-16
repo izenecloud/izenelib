@@ -71,6 +71,11 @@ public:
 		delete [] keys;
 		if(values)
 		delete [] values;
+		if (children) 
+			for (size_t i=0; i<_fh.maxKeys+1; i++){
+				delete children[i];
+				children[i] = NULL;
+			}
 		if(children)
 		delete [] children;
 	}
