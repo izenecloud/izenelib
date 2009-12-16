@@ -59,7 +59,7 @@ struct CbFileHeader {
 		magic = 0x061561;
 		maxKeys = 24;
 		pageSize = 1024;
-		cacheSize = 200*1024;
+		cacheSize = 100*1024;
 		initialize();
 	}
 
