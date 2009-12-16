@@ -118,7 +118,7 @@ template <typename  NameString,
           typename  LockType    = izenelib::util::NullLock>
 class HDBIDStorage
 {
-	typedef izenelib::hdb::ordered_hdb<NameID, NameString, LockType> NameFinder;
+	typedef izenelib::hdb::ordered_hdb_no_delta<NameID, NameString, LockType> NameFinder;
 public:
 
 	/**
