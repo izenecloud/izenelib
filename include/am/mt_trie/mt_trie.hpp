@@ -29,8 +29,8 @@ class MtTrie
 {
 public:
     typedef uint64_t TrieNodeIDType;
-    typedef PartitionTrie2<StringType, TrieNodeIDType, izenelib::util::ReadWriteLock> PartitionTrieType;
-    typedef PartitionTrie2<StringType, TrieNodeIDType, izenelib::util::ReadWriteLock> FinalTrieType;
+    typedef PartitionTrie<StringType, TrieNodeIDType> PartitionTrieType;
+    typedef FinalTrie<StringType, TrieNodeIDType> FinalTrieType;
 
 public:
     /**
@@ -39,6 +39,7 @@ public:
     MtTrie(const std::string& name, const int partitionNum)
     :   name_(name), configPath_(name_ + ".config.xml"),
         writeCachePath_(name_+".writecache"),
+        sampler_(name_ + ".sampler"),
         trie_(name_ + ".trie")
     {
         if( partitionNum <= 0 || partitionNum > 256 ) {
@@ -291,8 +292,8 @@ protected:
                 for(size_t i =0; i<boundaries_.size(); i++) {
                     trie.insert(boundaries_[i]);
                 }
-                trie.setbase(getPartitionStartNodeID(partitionId));
-                startNodeID_[partitionId] = trie.nextNodeID();
+                trie.setBaseNID(getPartitionStartNodeID(partitionId));
+                startNodeID_[partitionId] = trie.getNextNID();
                 partitionsInitialized_[partitionId] = true;
             }
 
@@ -316,9 +317,12 @@ protected:
 
             trie.close();
 
+            printLock_.acquire_write_lock();
             processedPartitions_ ++;
             std::cout << "\r" << logHead() << "Build partitions, progress ["
                 << (100*processedPartitions_)/partitionNum_ << "%]" << std::flush;
+            printLock_.release_write_lock();
+
             partitionId += threadNum_;
         }
     }
@@ -338,8 +342,8 @@ protected:
             PartitionTrieType pt(getPartitionName(i) + ".trie");
             pt.open();
 
-            trie_.concatenate(pt, startNodeID_[i]);
-            startNodeID_[i] = pt.nextNodeID();
+            mergeToFinal(trie_, pt, startNodeID_[i]);
+            startNodeID_[i] = pt.getNextNID();
             sync();
 
             pt.close();
@@ -350,9 +354,9 @@ protected:
 
         trie_.optimize();
         trie_.flush();
+
         std::cout << "\r" << logHead() << "Merge partitions, progress [100%]"
             << std::endl << std::flush;
-
     }
 
 protected:
@@ -376,9 +380,6 @@ protected:
         ar & boost::serialization::make_nvp("StartNodeID", startNodeID_);
 
         ar & boost::serialization::make_nvp("TrieInitialized", trieInitialized_);
-
-        ar & boost::serialization::make_nvp("StreamSampler", sampler_);
-
     }
 
     template<class Archive>
@@ -397,8 +398,6 @@ protected:
         ar & boost::serialization::make_nvp("StartNodeID", startNodeID_);
 
         ar & boost::serialization::make_nvp("TrieInitialized", trieInitialized_);
-
-        ar & boost::serialization::make_nvp("StreamSampler", sampler_);
     }
 
     BOOST_SERIALIZATION_SPLIT_MEMBER()
@@ -469,14 +468,17 @@ private:
     /// @brief the final(major) trie, findRegExp are operating this trie.
     FinalTrieType trie_;
 
+    /// @brief number of partitions that finishes building.
+    int processedPartitions_;
+
+    /// @brief Lock for correct printing between work threads
+    ReadWriteLock printLock_;
+
     /// @brief number of work threads.
     int threadNum_;
 
     /// @brief work thread pool.
     boost::thread_group workerThreads_;
-
-    /// @brief number of partitions that finishes building.
-    int processedPartitions_;
 };
 
 NS_IZENELIB_AM_END

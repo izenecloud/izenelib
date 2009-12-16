@@ -26,11 +26,16 @@ class StreamSampler
 
 public:
 
-    StreamSampler()
-    :   step_(1), skip_(0),
-        currentPosition_(0),
-        lastSampledPosition_(0)
+    StreamSampler(const std::string& path)
+    :   path_(path), step_(1), skip_(0),
+        currentPosition_(0), lastSampledPosition_(0)
     {
+        load();
+    }
+
+    void flush()
+    {
+        sync();
     }
 
     void collect(const StringType& term)
@@ -137,7 +142,33 @@ protected:
 
     BOOST_SERIALIZATION_SPLIT_MEMBER()
 
+    bool load()
+    {
+	    ifstream ifs(path_.c_str());
+        if( ifs ) {
+            try {
+                boost::archive::xml_iarchive xml(ifs);
+                xml >> boost::serialization::make_nvp("StreamSampler", *this);
+            } catch (...) {
+                throw std::runtime_error("StreamSampler config file corrputed");
+            }
+            ifs.close();
+            return true;
+        }
+        return false;
+    }
+
+    void sync()
+    {
+            ofstream ofs(path_.c_str());
+            boost::archive::xml_oarchive xml(ofs);
+            xml << boost::serialization::make_nvp("StreamSampler", *this);
+            ofs.flush();
+    }
+
 private:
+
+    std::string path_;
 
     const static size_t maximumSampleNum_ = 65556;
 
