@@ -250,7 +250,7 @@ protected:
                                 throw std::runtime_error("Warning: In hdb, use insert() together with delta() is not recommended, \
                                     which causes bad performance, try update() instead.");
 
-                            accumulator += tmpt.second;
+                            accumulator = HdbType::ADD(accumulator, tmpt.second);
                             hasDelta = true;
                             break;
                         case DELETE:
