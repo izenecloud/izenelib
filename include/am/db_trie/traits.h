@@ -1,5 +1,5 @@
-#ifndef _TRAITS_H_
-#define _TRAITS_H_
+#ifndef _DB_TRIE_TRAITS_H_
+#define _DB_TRIE_TRAITS_H_
 
 #include <limits.h>
 

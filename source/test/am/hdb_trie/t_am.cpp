@@ -12,7 +12,6 @@
 #include <am/trie/alphabet_en.hpp>
 
 #include <am/hdb_trie/hdb_trie.hpp>
-#include <am/sdb_trie_v1/sdb_trie.hpp>
 
 using namespace std;
 using namespace izenelib::am;

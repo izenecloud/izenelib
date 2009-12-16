@@ -118,7 +118,7 @@ template <typename  NameString,
           typename  LockType    = izenelib::util::NullLock>
 class HDBIDStorage
 {
-	typedef izenelib::hdb::ordered_hdb<NameID, NameString, LockType> NameFinder;
+	typedef izenelib::hdb::ordered_hdb_no_delta<NameID, NameString, LockType> NameFinder;
 public:
 
 	/**
@@ -258,7 +258,7 @@ class TCIDStorage
 
 	void flush()
 	{
-	    nameFinder_.flush();
+	    nameFinder_.release();
 	}
 
 	void close()
@@ -285,7 +285,6 @@ const std::string& sdbName)
 sdbName_(sdbName),
 nameFinder_(sdbName_ + "_id.tc")
 {
-    nameFinder_.setCacheSize(1000000);
     nameFinder_.open();
 } // end - SDBIDStorage()
 
