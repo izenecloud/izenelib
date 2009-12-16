@@ -3,8 +3,8 @@
  * @date 2009-12-15
  */
 
-#ifndef _COMMON_TRIE_H_
-#define _COMMON_TRIE_H_
+#ifndef _COMMON_DB_TRIE_H_
+#define _COMMON_DB_TRIE_H_
 
 #include <iostream>
 
@@ -95,6 +95,9 @@ public:
     virtual unsigned int  numItems() = 0;
 
     virtual void insertValue(const DataTableKeyType&,
+        const DataTableValueType &) = 0;
+
+    virtual void update(const DataTableKeyType&,
         const DataTableValueType &) = 0;
 
     virtual bool getValue(const DataTableKeyType&,
@@ -214,6 +217,39 @@ public:
     }
 
     /**
+     * @brief Insert key value pairs into Trie.
+     */
+    void insert(const DataType<std::vector<CharType>, UserDataType>& data)
+    {
+        insert(data.key, data.value);
+    }
+
+    /**
+     * @brief Update value for a given key, if key doesn't exist, do insertion instead.
+     */
+    void update(const std::vector<CharType>& key, const UserDataType& value)
+    {
+        if( key.size() == 0) return;
+
+        NodeIDType nid = NodeIDTraits<NodeIDType>::RootValue;
+        for( size_t i=0; i< key.size(); i++ )
+        {
+            NodeIDType tmp = NodeIDType();
+            addEdge(key[i], nid, tmp);
+            nid = tmp;
+        }
+        updateData(nid, value);
+    }
+
+    /**
+     * @brief Update value for a given key, if key doesn't exist, do insertion instead.
+     */
+    void update(const DataType<std::vector<CharType>, UserDataType>& data)
+    {
+        update(data.key, data.value);
+    }
+
+    /**
      * @brief Get value for a given key.
      * @return false if key doesn't exist
      *         true otherwise
@@ -231,6 +267,79 @@ public:
             nid = tmp;
         }
         return getData(nid,data);
+    }
+
+    /**
+     * @brief Get a list of keys which begin with the same prefix.
+     * @return true at leaset one result found.
+     *         false nothing found.
+     */
+    bool findPrefix(const std::vector<CharType>& prefix,
+        std::vector<std::vector<CharType> >& keyList)
+    {
+        NodeIDType nid = NodeIDTraits<NodeIDType>::RootValue;
+        for( size_t i=0; i<prefix.size(); i++ )
+        {
+            NodeIDType tmp = NodeIDType();
+            if( !getEdge(prefix[i], nid, tmp) )
+                return false;
+            nid = tmp;
+        }
+        keyList.clear();
+        std::vector<UserDataType> valueList;
+
+        std::vector<CharType> begin = prefix;
+        findPrefix_<EnumerateKey>(nid, begin, keyList, valueList);
+        return keyList.size() ? true : false;
+    }
+
+    /**
+     * @brief Get a list of values whose keys begin with the same prefix.
+     * @return true at leaset one result found.
+     *         false nothing found.
+     */
+    bool findPrefix(const std::vector<CharType>& prefix,
+        std::vector<UserDataType>& valueList)
+    {
+        NodeIDType nid = NodeIDTraits<NodeIDType>::RootValue;
+        for( size_t i=0; i<prefix.size(); i++ )
+        {
+            NodeIDType tmp = NodeIDType();
+            if( !getEdge(prefix[i], nid, tmp) )
+                return false;
+            nid = tmp;
+        }
+        valueList.clear();
+        std::vector<std::vector<CharType> > keyList;
+
+        std::vector<CharType> begin = prefix;
+        findPrefix_<EnumerateValue>(nid, begin, keyList, valueList);
+        return valueList.size() ? true : false;
+    }
+
+    /**
+     * @brief Get a list of keys which begin with the same prefix.
+     * @return true at leaset one result found.
+     *         false nothing found.
+     */
+    bool findPrefix(const std::vector<CharType>& prefix,
+        std::vector<std::vector<CharType> >& keyList,
+        std::vector<UserDataType>& valueList)
+    {
+        NodeIDType nid = NodeIDTraits<NodeIDType>::RootValue;
+        for( size_t i=0; i<prefix.size(); i++ )
+        {
+            NodeIDType tmp = NodeIDType();
+            if( !getEdge(prefix[i], nid, tmp) )
+                return false;
+            nid = tmp;
+        }
+        keyList.clear();
+        valueList.clear();
+
+        std::vector<CharType> begin = prefix;
+        findPrefix_<EnumerateBoth>(nid, begin, keyList, valueList);
+        return keyList.size() ? true : false;
     }
 
     /**
@@ -260,7 +369,7 @@ public:
      *         false nothing found.
      */
     bool findRegExp(const std::vector<CharType>& regexp,
-        std::vector<std::vector<UserDataType> >& valueList,
+        std::vector<UserDataType>& valueList,
         const int maximumResultNumber)
     {
         std::vector<CharType> prefix;
@@ -281,7 +390,7 @@ public:
      */
     bool findRegExp(const std::vector<CharType>& regexp,
         std::vector<std::vector<CharType> >& keyList,
-        std::vector<std::vector<UserDataType> >& valueList,
+        std::vector<UserDataType>& valueList,
         const int maximumResultNumber)
     {
         std::vector<CharType> prefix;
@@ -390,6 +499,14 @@ protected:
     }
 
     /**
+     * Update userdata in SDB for a given key, insert if key doesnot exist.
+     */
+    void updateData( const NodeIDType& nid, const UserDataType& userData)
+    {
+        dataTable_.update(nid, userData);
+    }
+
+    /**
      * Retrieve userdata stored in DataTable by given key.
      * @return true     successfully
      *         false    given key does not exist
@@ -397,6 +514,39 @@ protected:
     bool getData( const NodeIDType& nid, UserDataType& userData)
     {
         return dataTable_.getValue(nid, userData);
+    }
+
+    template<FindRegexpParameterType EnumerateType>
+    void findPrefix_( const NodeIDType& nid,
+        std::vector<CharType>& prefix,
+        std::vector<std::vector<CharType> >& keyList,
+        std::vector<UserDataType>& valueList)
+    {
+        UserDataType tmp = UserDataType();
+        if(getData(nid, tmp))
+        {
+            if(EnumerateType == EnumerateKey) {
+                keyList.push_back(prefix);
+            } else if(EnumerateType == EnumerateValue) {
+                valueList.push_back(tmp);
+            } else {
+                keyList.push_back(prefix);
+                valueList.push_back(tmp);
+            }
+        }
+
+        EdgeTableKeyType minKey(nid, NumericTraits<CharType>::MinValue);
+        EdgeTableKeyType maxKey(nid, NumericTraits<CharType>::MaxValue);
+
+        std::vector<EdgeTableRecordType> result;
+        edgeTable_.getValueBetween(result, minKey, maxKey);
+
+        for(size_t i = 0; i <result.size(); i++ )
+        {
+            prefix.push_back(result[i].key.second);
+            findPrefix_<EnumerateType>(result[i].value, prefix, keyList, valueList);
+            prefix.pop_back();
+        }
     }
 
     template<FindRegexpParameterType EnumerateType>
@@ -413,10 +563,12 @@ protected:
         {
             UserDataType tmp = UserDataType();
             if(getData(nid, tmp)) {
-                if(EnumerateType == EnumerateKey || EnumerateType == EnumerateBoth) {
+                if(EnumerateType == EnumerateKey) {
                     keyList.push_back(prefix);
-                }
-                if(EnumerateType == EnumerateValue || EnumerateType == EnumerateBoth) {
+                } else if(EnumerateType == EnumerateValue) {
+                    valueList.push_back(tmp);
+                } else {
+                    keyList.push_back(prefix);
                     valueList.push_back(tmp);
                 }
             }
@@ -572,12 +724,78 @@ public:
         trie_.insert(chVector, data);
     }
 
-    bool get(const StringType& key, const UserDataType& data = UserDataType())
+    void insert(const DataType<StringType, UserDataType>& data)
+    {
+        insert(data.key, data.value);
+    }
+
+    void update(const StringType& key, const UserDataType value)
+    {
+        CharType* chArray = (CharType*)key.c_str();
+        size_t chCount = key.length();
+        std::vector<CharType> chVector(chArray, chArray+chCount);
+        trie_.update(chVector, value);
+    }
+
+    void update(const DataType<StringType, UserDataType>& data)
+    {
+        update(data.key, data.value);
+    }
+
+    bool get(const StringType& key, UserDataType& data = UserDataType())
     {
         CharType* chArray = (CharType*)key.c_str();
         size_t chCount = key.length();
         std::vector<CharType> chVector(chArray, chArray+chCount);
         return trie_.get(chVector, data);
+    }
+
+    bool findPrefix(const StringType& prefix,
+        std::vector<StringType>& keyList)
+    {
+        CharType* chArray = (CharType*)prefix.c_str();
+        size_t chCount = prefix.length();
+        std::vector<CharType> chVector(chArray, chArray+chCount);
+
+        std::vector< std::vector<CharType> > resultList;
+        if( false == trie_.findPrefix(chVector, resultList) )
+            return false;
+
+        for(size_t i = 0; i< resultList.size(); i++ )
+        {
+            StringType tmp(resultList[i].begin(), resultList[i].end() );
+            keyList.push_back(tmp);
+        }
+        return true;
+    }
+
+    bool findPrefix(const StringType& prefix,
+        std::vector<UserDataType>& valueList)
+    {
+        CharType* chArray = (CharType*)prefix.c_str();
+        size_t chCount = prefix.length();
+        std::vector<CharType> chVector(chArray, chArray+chCount);
+        return trie_.findPrefix(chVector, valueList);
+    }
+
+    bool findPrefix(const StringType& prefix,
+        std::vector<StringType>& keyList,
+        std::vector<UserDataType>& valueList)
+    {
+        CharType* chArray = (CharType*)prefix.c_str();
+        size_t chCount = prefix.length();
+        std::vector<CharType> chVector(chArray, chArray+chCount);
+
+        std::vector< std::vector<CharType> > resultList;
+        if( false == trie_.findPrefix(chVector, resultList, valueList) )
+            return false;
+
+        for(size_t i = 0; i< resultList.size(); i++ )
+        {
+            StringType tmp(resultList[i].begin(), resultList[i].end() );
+            keyList.push_back(tmp);
+        }
+        return true;
     }
 
     bool findRegExp(const StringType& regexp,

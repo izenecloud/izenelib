@@ -11,8 +11,7 @@
 #include <hdb/HugeDB.h>
 #include <sdb/SequentialDB.h>
 
-#include "common_trie.hpp"
-#include "traits.h"
+#include <am/db_trie/common_trie.h>
 
 NS_IZENELIB_AM_BEGIN
 
@@ -245,6 +244,11 @@ public:
     virtual void insertValue(const DataTableKeyType& key, const DataTableValueType & value)
     {
         db_.insertValue(key, value);
+    }
+
+    virtual void update(const DataTableKeyType& key, const DataTableValueType & value)
+    {
+        db_.update(key, value);
     }
 
     virtual bool getValue(const DataTableKeyType& key, DataTableValueType & value)
