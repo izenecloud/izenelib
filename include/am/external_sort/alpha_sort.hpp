@@ -419,7 +419,7 @@ public:
         delete (*j);
       }
       
-      delete (*i);
+      delete  (*i);
     }
 
     //for(typename vector<FileCache_*>::iterator i=inputFileCacheVctr_.begin(); i!=inputFileCacheVctr_.end();i++)
