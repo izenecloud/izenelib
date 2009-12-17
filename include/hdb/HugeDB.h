@@ -46,12 +46,13 @@ template< typename KeyType,
           typename ValueType,
           typename LockType,
           typename ContainerType,
+          bool SupportDelta,
           typename Alloc=std::allocator<DataType<KeyType, std::pair<char, ValueType> > > >
 class HugeDB {
 
 protected:
 
-    typedef HugeDB<KeyType, ValueType, LockType, ContainerType, Alloc> ThisType;
+    typedef HugeDB<KeyType, ValueType, LockType, ContainerType, SupportDelta, Alloc> ThisType;
 
     typedef std::pair<char, ValueType> TagType;
 
@@ -132,6 +133,10 @@ public:
     ~HugeDB()
     {
         close();
+
+        for(size_t i = 0; i<diskSdbList_.size(); i++)
+            delete diskSdbList_[i];
+        diskSdbList_.clear();
     }
 
     /*************************************************
@@ -258,11 +263,8 @@ public:
             flush();
 
             diskSdbLock_.acquire_write_lock();
-            for(size_t i = 0; i<diskSdbList_.size(); i++) {
+            for(size_t i = 0; i<diskSdbList_.size(); i++)
                 diskSdbList_[i]->sdb.close();
-                delete diskSdbList_[i];
-            }
-            diskSdbList_.clear();
             diskSdbLock_.release_write_lock();
 
             memorySdbLock_.acquire_write_lock();
@@ -408,9 +410,9 @@ public:
 	    if(!keyExist) {
             memorySdb_.update(key, TagType(DELTA, delta));
 	    } else if (tag.first == DELTA) {
-	        memorySdb_.update(key, TagType(DELTA, tag.second + delta));
+	        memorySdb_.update(key, TagType(DELTA, ADD(tag.second, delta) ));
 	    } else if (tag.first == UPDATE) {
-	        memorySdb_.update(key, TagType(UPDATE, tag.second + delta));
+	        memorySdb_.update(key, TagType(UPDATE, ADD(tag.second, delta) ));
 	    } else if (tag.first == DELETE) {
             memorySdb_.update(key, TagType(UPDATE, delta));
 	    } else if (tag.first == INSERT) {
@@ -467,7 +469,7 @@ public:
                     found = true;
                     break;
                 case DELTA:
-                    accumulator += tagList[i].second;
+                    accumulator = ADD( accumulator, tagList[i].second);
                     found = true;
                     break;
                 case DELETE:
@@ -614,6 +616,27 @@ protected:
             ret += "+";
         return ret;
     }
+
+    static ValueType ADD(const ValueType& op1, const ValueType& op2 )
+    {
+        return ADDImpl<SupportDelta>::op(op1, op2);
+    }
+
+    template <bool Enable, typename T = void> class ADDImpl;
+
+    template <typename T> class ADDImpl<true, T> {
+    public:
+        static ValueType op(const ValueType& op1, const ValueType& op2) {
+            return op1+op2;
+        }
+    };
+
+    template <typename T> class ADDImpl<false, T> {
+    public:
+        static ValueType op(const ValueType& op1, const ValueType& op2) {
+            throw std::runtime_error("delta not supported in the weak hdb version");
+        }
+    };
 
     void tryToMerge()
     {
@@ -1087,15 +1110,29 @@ private:
     LockType mergeLock_;
 };
 
+
 template< typename KeyType, typename ValueType,
 		typename LockType =NullLock > class ordered_hdb :
 	public HugeDB<KeyType, ValueType, LockType,
-        sdb_btree<KeyType, std::pair<char, ValueType>, LockType> >
+        sdb_btree<KeyType, std::pair<char, ValueType>, LockType>, true >
 {
 public:
 	ordered_hdb(const string& sdbname) :
 		HugeDB<KeyType, ValueType, LockType,
-				sdb_btree<KeyType, std::pair<char, ValueType>, LockType> >(sdbname) {
+				sdb_btree<KeyType, std::pair<char, ValueType>, LockType>, true >(sdbname) {
+
+	}
+};
+
+template< typename KeyType, typename ValueType,
+		typename LockType =NullLock > class ordered_hdb_no_delta :
+	public HugeDB<KeyType, ValueType, LockType,
+        sdb_btree<KeyType, std::pair<char, ValueType>, LockType>, false >
+{
+public:
+	ordered_hdb_no_delta(const string& sdbname) :
+		HugeDB<KeyType, ValueType, LockType,
+				sdb_btree<KeyType, std::pair<char, ValueType>, LockType>, false >(sdbname) {
 
 	}
 };
@@ -1103,12 +1140,26 @@ public:
 template< typename KeyType, typename ValueType,
 		typename LockType =NullLock > class ordered_hdb_fixed :
 	public HugeDB<KeyType, ValueType, LockType,
-        sdb_btree<KeyType, std::pair<char, ValueType>, LockType, true> >
+        sdb_btree<KeyType, std::pair<char, ValueType>, LockType, true>, true >
 {
 public:
 	ordered_hdb_fixed(const string& sdbname) :
 		HugeDB<KeyType, ValueType, LockType,
-				sdb_btree<KeyType, std::pair<char, ValueType>, LockType, true> >(sdbname) {
+				sdb_btree<KeyType, std::pair<char, ValueType>, LockType, true>, true >(sdbname) {
+
+	}
+};
+
+
+template< typename KeyType, typename ValueType,
+		typename LockType =NullLock > class ordered_hdb_fixed_no_delta :
+	public HugeDB<KeyType, ValueType, LockType,
+        sdb_btree<KeyType, std::pair<char, ValueType>, LockType, true>, false >
+{
+public:
+	ordered_hdb_fixed_no_delta(const string& sdbname) :
+		HugeDB<KeyType, ValueType, LockType,
+				sdb_btree<KeyType, std::pair<char, ValueType>, LockType, true>, false >(sdbname) {
 
 	}
 };

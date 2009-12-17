@@ -32,6 +32,7 @@
 #include <am/graph_index/id_transfer.hpp>
 #include <am/graph_index/sorter.hpp>
 #include <am/graph_index/graph.hpp>
+//#include <util/izene_log.h>
 
 #include <string>
 #include <time.h>
@@ -255,14 +256,14 @@ void dyn_array_check(const VALUE_TYPE& t = VALUE_TYPE())
   {
     Array array;
 
-    const size_t SIZE=50000000;
+    const size_t SIZE=5000;//0000;
     
     for (size_t i=0; i<SIZE; i++)
       array.push_back(random<VALUE_TYPE>());
 
     clock_t start, finish;
     start = clock();
-    array.merge_sort();
+    array.sort();
     finish = clock();
     printf( "\n[sort] Array: %f !\n", (double)(finish-start) / CLOCKS_PER_SEC);
 
@@ -724,15 +725,26 @@ void graph_check()
 
   
   system("rm -fr ./tt*");
-  construct_trie("./tt", 100000);
-  
+  construct_trie("./tt", 1000);
+
+  //std::cout << izenelib::util::getMemInfo() << std::endl;
+  // getchar();
+//   char* kk = (char*)malloc(20000000);//new char[200000000];//
+//   std::cout << izenelib::util::getMemInfo() << std::endl;
+//   getchar();
+//   free(kk);
+//   kk = NULL;
+//   std::cout << izenelib::util::getMemInfo() << std::endl;
+//   getchar();
+
+    
   {
     Graph<> graph("./tt");
     
     struct timeval tvafter,tvpre;
     struct timezone tz;
   
-    const uint32_t SIZE = 100000;
+    const uint32_t SIZE = 1000;
     const uint32_t snip_len = 10;
     vector<uint64_t> vs;
     
@@ -1001,18 +1013,19 @@ void graph_merge_check()
 int main()
 {
   
-  //   dyn_array_check<uint64_t>();
-  //dyn_array_check<struct TEST_STRUCT>();
+   dyn_array_check<uint64_t>();
+   dyn_array_check<struct TEST_STRUCT>();
 
 //    integer_hash_check<uint64_t>();
 //    integer_hash_check<struct TEST_STRUCT>();
 
 //    id_transfer_check();
 
-  sorter_check();
+  //sorter_check();
 
-  graph_merge_check();
-  graph_check();
+  //graph_merge_check();
+  
+   graph_check();
 }
 
  

@@ -415,8 +415,11 @@ public:
     for(typename vector<vector<TREE_BUCKET_* >* >::iterator i=cs_tree_pool_.begin(); i!=cs_tree_pool_.end();i++)
     {
       for (typename vector<TREE_BUCKET_* >::iterator j=(*i)->begin(); j!=(*i)->end(); ++j)
+      {
         delete (*j);
-      delete (*i);
+      }
+      
+      delete  (*i);
     }
 
     //for(typename vector<FileCache_*>::iterator i=inputFileCacheVctr_.begin(); i!=inputFileCacheVctr_.end();i++)
@@ -1156,7 +1159,8 @@ protected:
       LDBG_<<"can't write to temple file.";
       return false;
     }
-    
+
+    delete[] block;
     return true;
   }
 

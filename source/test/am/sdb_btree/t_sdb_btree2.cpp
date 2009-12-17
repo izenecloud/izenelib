@@ -2,6 +2,7 @@
 #include <string>
 #include <ctime>
 #include <util/izene_log.h>
+#include <wiselib/ustring/UString.h>
 
 //#include <time.h>
 
@@ -10,12 +11,13 @@
 
 using namespace std;
 using namespace izenelib::am;
+using namespace wiselib;
 
 const char* indexFile = "sdb.dat";
 static string inputFile = "test.txt";
 static size_t maxKeys = 32;
 static size_t pageSize = 1024;
-static size_t cacheSize = 10000;
+static size_t cacheSize = 100000;
 static int num = 1000000;
 
 static bool trace = 1;
@@ -27,6 +29,40 @@ typedef NullType ValueType;
 typedef izenelib::am::DataType<KeyType, NullType> DataType;
 typedef izenelib::am::DataType<KeyType, NullType> myDataType;
 typedef izenelib::am::sdb_fixedbtree<KeyType, NullType> SDB_BTREE;
+
+void test_ustring() {
+	izenelib::am::sdb_btree<UString, int>* sdb1 =
+			new izenelib::am::sdb_btree<UString, int>("sdb1.dat");
+	izenelib::am::sdb_btree<int, UString>* sdb2 =
+			new izenelib::am::sdb_btree<int, UString>("sdb2.dat");
+	sdb1->open();
+	sdb2->open();
+	DLOG(ERROR)<<"start:" << getMemInfo();
+	for (int i=0; i<10000000; i++) {
+		char p[20];
+		sprintf(p, "%08d", i);
+		sdb1->insert(UString(p, UString::UTF_8), i);
+		sdb2->insert(i, UString(p, UString::UTF_8));
+		if (i % 1000000 == 0)
+			DLOG(ERROR) << getMemInfo();
+	}
+	DLOG(ERROR) << getMemInfo();
+	sdb1->flush();
+	sdb2->flush();
+	DLOG(ERROR)<<"after flush : " << getMemInfo();
+	int i = 0;
+	while (1) {
+		i++;
+		if (i%100000000 == 0)
+			DLOG(ERROR) << getMemInfo();
+	}
+
+	delete sdb1;
+	delete sdb2;
+	DLOG(ERROR)<<"after deletion : "<< getMemInfo();
+	cout<<std::endl;
+
+}
 
 template<typename T> void insert_test(T& tb) {
 	clock_t start, finish;
@@ -41,6 +77,9 @@ template<typename T> void insert_test(T& tb) {
 			tb.insert(key);
 		}
 
+		if (i%1000000 == 0)
+			DLOG(ERROR) << getMemInfo();
+
 		if (trace) {
 			cout<<"numItem: "<<tb.num_items()<<"a"<<endl;
 			tb.display();
@@ -54,12 +93,19 @@ template<typename T> void insert_test(T& tb) {
 		tb.display();
 	DLOG(ERROR) << getMemInfo();
 	tb.flush();
+	tb.display();
 	DLOG(ERROR) << getMemInfo();
 	if (trace)
 		tb.display();
 	finish = clock();
 	printf("\nIt takes %f seconds to insert %d  data!\n", (double)(finish
 			- start) / CLOCKS_PER_SEC, num);
+	int i = 0;
+	while (1) {
+		i++;
+		if (i%100000000 == 0)
+			DLOG(ERROR) << getMemInfo();
+	}
 
 }
 
@@ -327,12 +373,22 @@ int main(int argc, char *argv[]) {
 	}
 	try
 	{
+		test_ustring();
 		SDB_BTREE* tb = new SDB_BTREE(indexFile);
 		tb->setMaxKeys(maxKeys);
 		tb->setPageSize(pageSize);
 		tb->setCacheSize(cacheSize);
 		tb->open();
 		run(*tb);
+
+		DLOG(ERROR) << getMemInfo();
+		int i=0;
+		while(1) {
+			i++;
+			if (i%100000000 == 0)
+			DLOG(ERROR) << getMemInfo();
+		}
+		delete tb;
 
 		/*SDB_BTREE tb(indexFile);
 		 tb.setMaxKeys(maxKeys);

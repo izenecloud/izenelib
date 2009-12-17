@@ -167,12 +167,12 @@ public:
 	{
 		return _isOpen;
 	}
-	
-	void clear(){
+
+	void clear() {
 		close();
 		std::remove(_fileName.c_str() );
 		_sfh.initialize();
-		open();		
+		open();
 	}
 
 	/**
@@ -716,7 +716,7 @@ template<typename KeyType, typename ValueType, typename LockType, bool fixed,
 	_root = 0;
 	_isDelaySplit = true;
 	_autoTunning = false;
-	_optimizeNum = 65536;
+	_optimizeNum = 8192*2;
 
 	_fileName = fileName;
 
@@ -1412,6 +1412,7 @@ template<typename KeyType, typename ValueType, typename LockType, bool fixed,
 						// Shuffle the keys and elements up
 						size_t i = _minDegree - 1;
 						for (; i> 0; i--) {
+							cout<<i<<endl;
 							childNode->keys[i] = childNode->keys[i - 1];
 							childNode->values[i] = childNode->values[i - 1];
 							childNode->children[i + 1] = childNode->children[i];
@@ -1884,23 +1885,21 @@ template<typename KeyType, typename ValueType, typename LockType, bool fixed,
 
 	//write back the fileHead and dirtypage
 	commit();
-	//	if (_root) {
-	//		delete _root;
-	//		_root = 0;
-	//	}
-
+	ScopedWriteLock<LockType> lock(_flushLock);
+	if (_root) {
+		delete _root;
+		_root = 0;
+	}	
 	// Unload each of the root's childrent.
 
-	ScopedWriteLock<LockType> lock(_flushLock);
-
-	if (_root && !_root->isLeaf) {
-		for (size_t i = 0; i < _root->objCount+1; i++) {
-			sdb_node* pChild = _root->children[i];
-			if ((sdb_node*)pChild != 0 && pChild->isLoaded) {
-				_root->children[i]->unload();
-			}
-		}
-	}
+//	if (_root && !_root->isLeaf) {
+//		for (size_t i = 0; i < _root->objCount+1; i++) {
+//			sdb_node* pChild = _root->children[i];
+//			if ((sdb_node*)pChild != 0 && pChild->isLoaded) {
+//				_root->children[i]->unload();
+//			}
+//		}
+//	}
 	return;
 }
 
