@@ -3,6 +3,7 @@
 #include <ir/index_manager/index/Indexer.h>
 #include <ir/index_manager/index/MultiIndexBarrelReader.h>
 
+#include <util/ThreadModel.h>
 
 using namespace izenelib::ir::indexmanager;
 
@@ -118,9 +119,10 @@ void IndexReader::createBarrelReader()
 
 TermReader* IndexReader::getTermReader(collectionid_t colID)
 {
-    boost::try_mutex::scoped_try_lock lock(pIndexer_->mutex_);
-    if(!lock.owns_lock())
-        return NULL;
+    //boost::try_mutex::scoped_try_lock lock(pIndexer_->mutex_);
+    //if(!lock.owns_lock())
+        //return NULL;
+    izenelib::util::ScopedReadLock<izenelib::util::ReadWriteLock> lock(pIndexer_->mutex_);
     if (pBarrelReader_ == NULL)
         createBarrelReader();
     if (pBarrelReader_ == NULL)
@@ -216,12 +218,15 @@ void IndexReader::delDocument(collectionid_t colID,docid_t docId)
 
 freq_t IndexReader::docFreq(collectionid_t colID, Term* term)
 {
-    boost::try_mutex::scoped_try_lock lock(pIndexer_->mutex_);
-    if(!lock.owns_lock())
-        return 0;
+    //boost::try_mutex::scoped_try_lock lock(pIndexer_->mutex_);
+    //if(!lock.owns_lock())
+        //return 0;
+    izenelib::util::ScopedReadLock<izenelib::util::ReadWriteLock> lock(pIndexer_->mutex_);
 
     if (pBarrelReader_ == NULL)
         createBarrelReader();
+    if (pBarrelReader_ == NULL)
+        return 0;
 
     boost::mutex::scoped_lock indexReaderLock(this->mutex_);
 	
@@ -236,11 +241,15 @@ freq_t IndexReader::docFreq(collectionid_t colID, Term* term)
 
 TermInfo* IndexReader::termInfo(collectionid_t colID,Term* term)
 {
-    boost::try_mutex::scoped_try_lock lock(pIndexer_->mutex_);
-    if(!lock.owns_lock())
-        return NULL;
+    //boost::try_mutex::scoped_try_lock lock(pIndexer_->mutex_);
+    //if(!lock.owns_lock())
+        //return NULL;
+    izenelib::util::ScopedReadLock<izenelib::util::ReadWriteLock> lock(pIndexer_->mutex_);
+
     if (pBarrelReader_ == NULL)
         createBarrelReader();
+    if (pBarrelReader_ == NULL)
+        return NULL;
 
     boost::mutex::scoped_lock indexReaderLock(this->mutex_);
 
@@ -258,6 +267,8 @@ size_t IndexReader::getDistinctNumTerms(collectionid_t colID, const std::string&
     //collection has been removed, need to rebuild the barrel reader
     if (pBarrelReader_ == NULL)
         createBarrelReader();
+    if (pBarrelReader_ == NULL)
+        return 0;
 
     boost::mutex::scoped_lock indexReaderLock(this->mutex_);
 

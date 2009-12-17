@@ -2,6 +2,7 @@
 #include <ir/index_manager/index/Indexer.h>
 
 #include <util/izene_log.h>
+#include <util/ThreadModel.h>
 
 #include <boost/thread.hpp>
 
@@ -50,7 +51,8 @@ void IndexBarrelWriter::open(const char* barrelName_)
 }
 void IndexBarrelWriter::close()
 {
-    boost::mutex::scoped_lock lock(pIndexer->mutex_);
+    //boost::mutex::scoped_lock lock(pIndexer->mutex_);
+    izenelib::util::ScopedWriteLock<izenelib::util::ReadWriteLock> lock(pIndexer->mutex_);
 
     if (cacheEmpty() == false)
     {

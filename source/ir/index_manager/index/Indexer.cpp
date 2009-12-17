@@ -345,9 +345,15 @@ void Indexer::close()
 
 void Indexer::setDirty(bool bDirty)
 {
+    izenelib::util::ScopedWriteLock<izenelib::util::ReadWriteLock> lock(mutex_);
     dirty_ = bDirty;
     if(bDirty)
-        pIndexReader_->reopen();	
+    {
+        boost::thread::sleep(boost::get_system_time() + boost::posix_time::milliseconds(100));
+        pIndexReader_->reopen();
+        boost::thread::sleep(boost::get_system_time() + boost::posix_time::milliseconds(500));
+        dirty_ = false;
+    }
 }
 
 int Indexer::insertDocumentPhysically(IndexerDocument* pDoc)
@@ -492,27 +498,22 @@ bool Indexer::getDocsByTermInProperties(termid_t termID, collectionid_t colID, v
         if (NULL == pTermReader)
             return false;
 
-        {
-        boost::try_mutex::scoped_try_lock try_lock(mutex_);
-        if(!try_lock.owns_lock())
+
+        if(isDirty())
         {
             delete pTermReader;
             return false;
         }
-        }	   
 
         Term term(properties[0].c_str(), termID);
         if (pTermReader->seek(&term))
         {
 
-            {
-            boost::try_mutex::scoped_try_lock try_lock(mutex_);
-            if(!try_lock.owns_lock())
+            if(isDirty())
             {
                 delete pTermReader;
                 return false;
             }
-            }      
 
             TermDocFreqs* pTermDocFreqs = pTermReader->termDocFreqs();
 

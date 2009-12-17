@@ -17,6 +17,8 @@
 #include <ir/index_manager/store/Directory.h>
 #include <ir/index_manager/utility/BitVector.h>
 
+#include <util/ThreadModel.h>
+
 #include <boost/noncopyable.hpp>
 #include <boost/thread.hpp>
 #include <boost/shared_ptr.hpp>
@@ -150,7 +152,7 @@ public:
 
     const std::map<std::string, IndexerCollectionMeta>& getCollectionsMeta();
 
-    boost::mutex& getLock() { return mutex_; }
+    izenelib::util::ReadWriteLock& getLock() { return mutex_; }
 
 public:
     BarrelsInfo* getBarrelsInfo() { return pBarrelsInfo_; }
@@ -160,6 +162,8 @@ public:
     void setBasePath(std::string basePath);
 
     void setDirty(bool bDirty);
+
+    bool isDirty() { return dirty_; }
 
     IndexWriter* getIndexWriter(){return pIndexWriter_;}
     
@@ -185,7 +189,7 @@ protected:
 
     Directory* pDirectory_;
 
-    bool dirty_;
+    volatile bool dirty_;
 
     BarrelsInfo* pBarrelsInfo_;
 
@@ -195,7 +199,7 @@ protected:
 
     IndexManagerConfig* pConfigurationManager_;
 
-    boost::mutex mutex_;
+    izenelib::util::ReadWriteLock mutex_;
 
     BTreeIndexer* pBTreeIndexer_;
 

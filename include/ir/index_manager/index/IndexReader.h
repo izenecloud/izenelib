@@ -69,8 +69,10 @@ public:
 
     void reopen();
 
-    boost::mutex& getGlobalLock() { return pIndexer_->mutex_; }
+    //boost::mutex& getGlobalLock() { return pIndexer_->mutex_; }
+    izenelib::util::ReadWriteLock& getGlobalLock() { return pIndexer_->mutex_; }
 
+    bool isDirty() {return pIndexer_->isDirty(); }
 private:
     void createBarrelReader();
 

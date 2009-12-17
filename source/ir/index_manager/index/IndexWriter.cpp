@@ -351,7 +351,8 @@ bool IndexWriter::startUpdate()
 
 bool IndexWriter::removeCollection(collectionid_t colID, count_t colCount)
 {
-    boost::mutex::scoped_lock lock(pIndexer_->mutex_);
+    //boost::mutex::scoped_lock lock(pIndexer_->mutex_);
+    izenelib::util::ScopedWriteLock<izenelib::util::ReadWriteLock> lock(pIndexer_->mutex_);        
 
     Directory* pDirectory = pIndexer_->getDirectory();
 

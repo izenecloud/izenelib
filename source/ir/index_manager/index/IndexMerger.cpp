@@ -7,6 +7,7 @@
 #include <ir/index_manager/utility/StringUtils.h>
 
 #include <util/izene_log.h>
+#include <util/ThreadModel.h>
 
 #include <boost/date_time/posix_time/posix_time.hpp>
 
@@ -94,7 +95,7 @@ void IndexMerger::merge(BarrelsInfo* pBarrels)
 {
     if (!pBarrels || ((pBarrels->getBarrelCount() <= 1)&&!pDocFilter_))
     {
-        pendingUpdate(pBarrels);
+        updateBarrels(pBarrels);
         return ;
     }
 
@@ -116,7 +117,7 @@ void IndexMerger::merge(BarrelsInfo* pBarrels)
     }
 
     endMerge();
-    pendingUpdate(pBarrels); ///update barrel name and base doc id
+    updateBarrels(pBarrels); ///update barrel name and base doc id
     pBarrelsInfo_ = NULL;
 
     if (bBorrowedBuffer_)
@@ -153,7 +154,7 @@ void IndexMerger::addToMerge(BarrelsInfo* pBarrelsInfo,BarrelInfo* pBarrelInfo)
     addBarrel(pEntry);
 
  
-    pendingUpdate(pBarrelsInfo); ///update barrel name and base doc id
+    updateBarrels(pBarrelsInfo); ///update barrel name and base doc id
     pBarrelsInfo_ = NULL;
 
     if (bBorrowedBuffer_)
@@ -165,9 +166,10 @@ void IndexMerger::addToMerge(BarrelsInfo* pBarrelsInfo,BarrelInfo* pBarrelInfo)
     pBarrelsInfo->write(pDirectory_);
 }
 
-void IndexMerger::pendingUpdate(BarrelsInfo* pBarrelsInfo)
+void IndexMerger::updateBarrels(BarrelsInfo* pBarrelsInfo)
 {
-    boost::mutex::scoped_lock lock(pIndexer_->mutex_);
+    //boost::mutex::scoped_lock lock(pIndexer_->mutex_);
+    //izenelib::util::ScopedWriteLock<izenelib::util::ReadWriteLock> lock(pIndexer_->mutex_);
     ///sort barrels
     pBarrelsInfo->sort(pDirectory_);
     BarrelInfo* pBaInfo;
@@ -181,7 +183,7 @@ void IndexMerger::pendingUpdate(BarrelsInfo* pBarrelsInfo)
     ///sleep is necessary because if a query get termreader before this lock,
     ///the query has not been finished even the index file/term dictionary info has been changed
     ///500ms is used to let these queries finish their flow.
-    boost::thread::sleep(boost::get_system_time() + boost::posix_time::milliseconds(500));
+//    boost::thread::sleep(boost::get_system_time() + boost::posix_time::milliseconds(500));
 }
 
 void IndexMerger::mergeBarrel(MergeBarrel* pBarrel)
@@ -360,7 +362,8 @@ void IndexMerger::mergeBarrel(MergeBarrel* pBarrel)
     //deleted all merged barrels
     ///TODO:LOCK
     {
-    boost::mutex::scoped_lock lock(pIndexer_->mutex_);
+    //boost::mutex::scoped_lock lock(pIndexer_->mutex_);
+    izenelib::util::ScopedWriteLock<izenelib::util::ReadWriteLock> lock(pIndexer_->mutex_);
     for (nEntry = 0;nEntry < nEntryCount;nEntry++)
     {
         pEntry = pBarrel->getAt(nEntry);
