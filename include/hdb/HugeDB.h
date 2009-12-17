@@ -133,6 +133,10 @@ public:
     ~HugeDB()
     {
         close();
+
+        for(size_t i = 0; i<diskSdbList_.size(); i++)
+            delete diskSdbList_[i];
+        diskSdbList_.clear();
     }
 
     /*************************************************
@@ -259,11 +263,8 @@ public:
             flush();
 
             diskSdbLock_.acquire_write_lock();
-            for(size_t i = 0; i<diskSdbList_.size(); i++) {
+            for(size_t i = 0; i<diskSdbList_.size(); i++)
                 diskSdbList_[i]->sdb.close();
-                delete diskSdbList_[i];
-            }
-            diskSdbList_.clear();
             diskSdbLock_.release_write_lock();
 
             memorySdbLock_.acquire_write_lock();
