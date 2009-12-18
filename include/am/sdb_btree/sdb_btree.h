@@ -419,7 +419,7 @@ public:
 	bool search_(const KeyType& key, SDBCursor& locn);
 
 	sdb_node* getRoot() {
-		if( _root == NULL ) {
+		if( _root == NULL) {
 			_root = new sdb_node(_sfh, _fileLock, _activeNodeNum);
 			_root->fpos = _sfh.rootPos;
 			_root->read(_dataFile);
@@ -628,9 +628,9 @@ private:
 		++_activeNodeNum;
 
 		//pre allocate memory for newNode for efficiency
-		//		newNode->keys.resize(_sfh.maxKeys);
-		//		newNode->values.resize(_sfh.maxKeys);
-		//		newNode->children.resize(_sfh.maxKeys+1);
+		newNode->keys.resize(_sfh.maxKeys);
+		newNode->values.resize(_sfh.maxKeys);
+		newNode->children.resize(_sfh.maxKeys+1);
 
 		return newNode;
 	}
@@ -1240,7 +1240,7 @@ template<typename KeyType, typename ValueType, typename LockType, bool fixed,
 			qnode.pop();
 			if (popNode && !popNode->isLeaf) {
 				for (size_t i=0; i<popNode->objCount+1; i++) {
-					if (popNode->children && popNode->children[i])
+					if (popNode->children[i])
 						qnode.push(popNode->children[i]);
 				}
 			}
@@ -1610,14 +1610,14 @@ template<typename KeyType, typename ValueType, typename LockType, bool fixed,
 
 	if ( !_isOpen)
 		return false;
-	_flushCache();
-	getRoot();
+	_flushCache();	
+	getRoot();	
 	// Determine if the root node is empty.
 	bool ret = (_root->objCount != 0);
 	if (_root->objCount == (size_t) -1) {
 		return 0;
 	}
-
+		
 	// If we successfully deleted the key, and there
 	// is nothing left in the root node and the root
 	// node is not a leaf, we need to shrink the tree
