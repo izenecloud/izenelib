@@ -15,6 +15,8 @@
 #include <net/message-framework/ServiceRegistrationReplyMessage.h>
 #include <net/message-framework/ClientIdReplyMessage.h>
 #include <net/message-framework/ServicePermissionInfo.h>
+#include <boost/filesystem.hpp>
+
 
 /**************** Include boost header files *******************/
 #include <boost/bind.hpp>
@@ -25,6 +27,8 @@
 #include <iostream>
 
 /**************** Include sf1lib header files *******************/
+
+const static string AvailServiceFileName = "_ctr_services.dat";
 
 namespace messageframework {
 //static member variables
@@ -44,6 +48,8 @@ MessageControllerFull::MessageControllerFull(const std::string& controllerName,
 	asyncConnector_.listen(servicePort_);
 	ipAddress_ = getLocalHostIp(io_service_);
 
+	saveLoadAvailableServiceList_(AvailServiceFileName, false);
+
 	// timeout is 1 second
 	timeOutMilliSecond_ = 1000;
 
@@ -60,6 +66,31 @@ MessageControllerFull::~MessageControllerFull() {
 	asyncConnector_.shutdown();
 	ioThread_->join();
 	delete ioThread_;
+	saveLoadAvailableServiceList_(AvailServiceFileName, true);
+}
+
+void MessageControllerFull::saveLoadAvailableServiceList_(
+		const string& fileName, bool bStore) {
+	if (bStore) {		
+		std::ofstream ofs(fileName.data(), ios::binary | ios::trunc);
+		boost::archive::binary_oarchive oa(ofs);		
+		oa & availableServiceList_;
+	} else {
+		if ( ! boost::filesystem::exists(fileName) ) 
+			return;
+		
+		std::ifstream ifs(fileName.data(), ios::binary);
+		boost::archive::binary_iarchive ia(ifs);	
+		ia & availableServiceList_;
+		
+		std::map<std::string, ServicePermissionInfo>::iterator it;
+		it = availableServiceList_.begin();
+		for(; it != availableServiceList_.begin(); it++){
+			cout<<"!!!!!!!!1"<<endl;
+			cout<<it->first<<endl;
+		    it->second.display();
+		}
+	}
 }
 
 /******************************************************************************
@@ -90,8 +121,9 @@ void MessageControllerFull::processServiceRegistrationRequest(void) {
 					// check if the sevice has been registered
 					string serviceName = request.first.getServiceInfo().getServiceName();
 					MessageFrameworkNode server = request.first.getServiceInfo().getServer();
+
 					boost::mutex::scoped_lock availableServiceListLock(availableServiceListMutex_);
-					
+
 					std::cout<<"ServiceRegistrationRequest: "<<serviceName<<std::endl;
 					if( availableServiceList_.find(serviceName) != availableServiceList_.end() )
 					{
@@ -99,21 +131,22 @@ void MessageControllerFull::processServiceRegistrationRequest(void) {
 						std::cout << "[Controller:" << getName();
 						std::cout << "] ServiceInfo " << request.first.getServiceName() << " already exists.";
 						std::cout << "New data overwrites old data." << std::endl;
-	#endif
-						
+#endif
+
 						availableServiceList_[serviceName].setServer(request.first.getAgentInfo(), server);
 					} else
 					{
 						ServicePermissionInfo permissionInfo;
-						permissionInfo.setServiceName(serviceName);						
+						permissionInfo.setServiceName(serviceName);
 						permissionInfo.setServer(request.first.getAgentInfo(), server);
 						availableServiceList_[serviceName] = permissionInfo;
 					}
-					
+
 					//availableServiceList_[serviceName].display();
 					sendServiceRegistrationResult(request.second, request.first.getServiceInfo(), true);
 				}
 
+				saveLoadAvailableServiceList_(AvailServiceFileName, true);
 #ifdef SF1_DEBUG
 				std::cout << "[Controller:" << getName() << "] ServiceInfo [" << request.first.getServiceName();
 				std::cout << ", " << request.first.getServer().nodeIP_ << ":";
@@ -150,8 +183,8 @@ void MessageControllerFull::processServiceRegistrationRequest(void) {
  connection, MessageControllerFull sends the permission to the MessageServer.
  ******************************************************************************/
 
-bool MessageControllerFull::checkAgentInfo_(ServicePermissionInfo& permissionInfo)
-{	
+bool MessageControllerFull::checkAgentInfo_(
+		ServicePermissionInfo& permissionInfo) {
 	const std::map<std::string, MessageFrameworkNode>& agentInfoMap =
 			permissionInfo.getServerMap();
 	std::map<std::string, MessageFrameworkNode>::const_iterator it =
@@ -162,6 +195,7 @@ bool MessageControllerFull::checkAgentInfo_(ServicePermissionInfo& permissionInf
 			DLOG(ERROR)<<"ServicePermissionInfo:"<<it->first<<" -> server:"
 					<<it->second<<"not exists";
 			permissionInfo.removeServer(it->first);
+			saveLoadAvailableServiceList_(AvailServiceFileName, true);		
 		}
 	}
 	if (it != agentInfoMap.end() )
@@ -190,19 +224,20 @@ void MessageControllerFull::processServicePermissionRequest(void) {
 				servicePermissionRequestQueue_.pop();
 
 				permissionRequestQueueLock.unlock();
-				
+
 				if( availableServiceList_.find(requestItem.first) != availableServiceList_.end() )
-				{	
+				{
 					boost::mutex::scoped_lock availableServiceListLock(availableServiceListMutex_);
-				    checkAgentInfo_( availableServiceList_[requestItem.first] );
+					checkAgentInfo_( availableServiceList_[requestItem.first] );
 					sendPermissionOfServiceResult(requestItem.second, availableServiceList_[requestItem.first] );
+					availableServiceList_[requestItem.first].display();
 					// to improve performance, direct connection to
 					// server is always made
 					//serviceInfo.setPermissionFlag(SERVE_AT_SERVER);
 					// serviceInfo.setServer(ipAddress_, servicePort_);
 
 				} else
-				{		
+				{
 					ServicePermissionInfo permission;
 					permission.setServiceName(requestItem.first);
 					//serviceInfo.setPermissionFlag(UNKNOWN_PERMISSION_FLAG);
@@ -212,8 +247,10 @@ void MessageControllerFull::processServicePermissionRequest(void) {
 					std::cout << " is not listed." << std::endl;
 #endif
 					sendPermissionOfServiceResult(requestItem.second, permission );
+					cout<<"!!! no listed"<<endl;
+					availableServiceList_[requestItem.first].display();
 				}
-				
+
 #ifdef SF1_DEBUG
 				std::cout << "[Controller:" << getName();
 				std::cout << "] Permission of " << requestItem.first;
@@ -286,7 +323,6 @@ void MessageControllerFull::receivePermissionOfServiceRequest(
 	newPermissionRequestEvent_.notify_all();
 }
 
-
 /******************************************************************************
  Description: This function inserts a ServiceInfo to the serviceRegistrationRequestQueue_.
  It returns false if the data alread exists in the queue.
@@ -336,7 +372,7 @@ bool success)
  */
 void MessageControllerFull::sendPermissionOfServiceResult(const MessageFrameworkNode& requester,
 const ServicePermissionInfo & permission)
-{		
+{
 	messageDispatcher_.sendDataToLowerLayer(PERMISSION_OF_SERVICE_REPLY_MSG,
 	permission, requester);
 }
