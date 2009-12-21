@@ -25,8 +25,8 @@ IF(streamflow_SHOULD_BUILD)
     "malloc_new.cpp"
     )
 
-  INCLUDE_DIRECTORIES("${IZENELIB_SOURCE_DIR}/include/3rdparty/streamflow")
-  INCLUDE_DIRECTORIES("${IZENELIB_SOURCE_DIR}/include/3rdparty/streamflow/include-${streamflow_ARCH}")
+  INCLUDE_DIRECTORIES("${IZENELIB_SOURCE_DIR}/include/3rdparty/memory/streamflow")
+  INCLUDE_DIRECTORIES("${IZENELIB_SOURCE_DIR}/include/3rdparty/memory/streamflow/include-${streamflow_ARCH}")
   ADD_DEFINITIONS("${streamflow_DEFINITIONS}")
 
   ADD_LIBRARY(streamflow ${streamflow_SRC})

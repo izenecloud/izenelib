@@ -1,0 +1,3 @@
+ADD_SUBDIRECTORY(streamflow)
+ADD_SUBDIRECTORY(nvwa)
+#ADD_SUBDIRECTORY(nedmalloc)

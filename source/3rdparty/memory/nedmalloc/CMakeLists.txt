@@ -10,7 +10,7 @@ IF(nedmalloc_SHOULD_BUILD)
   SET(nedmalloc_SRC
     "nedmalloc.c"
     )
-  INCLUDE_DIRECTORIES("${IZENELIB_SOURCE_DIR}/include/3rdparty/nedmalloc")
+  INCLUDE_DIRECTORIES("${IZENELIB_SOURCE_DIR}/include/3rdparty/memory/nedmalloc")
   ADD_DEFINITIONS("${nedmalloc_DEFINITIONS}")
   ADD_LIBRARY(nedmalloc ${nedmalloc_SRC})
 
