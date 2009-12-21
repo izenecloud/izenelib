@@ -38,7 +38,7 @@ IF(nvwa_SHOULD_BUILD)
 
   MESSAGE(STATUS "nvwa_DEFINITIONS=${nvwa_DEFINITIONS}")
   ADD_DEFINITIONS("${nvwa_DEFINITIONS}")
-
+  INCLUDE_DIRECTORIES("${IZENELIB_SOURCE_DIR}/include/3rdparty/memory/")
   SET(nvwa_SRC
     bool_array.cpp
     debug_new.cpp

@@ -28,7 +28,7 @@ BOOST_AUTO_TEST_CASE(t_regular)
 
     {
 
-        MtTrie<std::string> mtTrie("mtstring", 16);
+        MtTrie<std::string> mtTrie("mtstring", 64);
 	mtTrie.open();
         start = clock();
 	

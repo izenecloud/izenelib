@@ -123,7 +123,7 @@ BOOST_AUTO_TEST_CASE(SDBTrie_update)
 }
 
 
-
+/*
 BOOST_AUTO_TEST_CASE(SDBTrie_find)
 {
     CLEAN_SDB_FILE("find");
@@ -342,5 +342,5 @@ BOOST_AUTO_TEST_CASE(SDBTrie_UString)
     CLEAN_SDB_FILE("ustring");
 
 }
-
+*/
 BOOST_AUTO_TEST_SUITE_END()
