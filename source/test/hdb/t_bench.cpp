@@ -40,12 +40,11 @@ BOOST_AUTO_TEST_CASE(bench_insert)
 {
     displayMemInfo();
 
-    {
     std::cout << "building hdb" << std::endl;
     //ordered_hdb_no_delta< wiselib::UString, wiselib::UString> hdb("bench0");
-    ordered_hdb_no_delta< std::string, std::string> hdb("bench0");
+    //ordered_hdb_no_delta< std::string, std::string> hdb("bench0");
 
-    //ordered_hdb_no_delta< int, int> hdb("bench0");
+    ordered_hdb_no_delta< int, int> hdb("bench0");
     hdb.setMergeFactor(2);
     hdb.setCachedRecordsNumber(100000);
     hdb.open();
@@ -57,18 +56,20 @@ BOOST_AUTO_TEST_CASE(bench_insert)
             std::cout << "insert " << i << " elements" << std::endl;
             displayMemInfo();
         }
-	std::string k = boost::lexical_cast<std::string>(myrand() );
-	std::string v = boost::lexical_cast<std::string>(myrand() );
-	wiselib::UString key = k;
-	wiselib::UString value = v;
+    //	std::string k = boost::lexical_cast<std::string>(myrand() );
+    //	std::string v = boost::lexical_cast<std::string>(myrand() );
+    //	wiselib::UString key = k;
+    //	wiselib::UString value = v;
         //hdb.insertValue(key,value);
-        hdb.insertValue(k,v);
-        //hdb.insertValue(myrand(),myrand());
+        //hdb.insertValue(k,v);
+        hdb.insertValue(myrand(),myrand());
     }
     hdb.close();
+
     boost::posix_time::time_duration td = boost::posix_time::microsec_clock::local_time() - start;
     std::cout << "build hdb cost " << td.total_microseconds()/1000000 << " seconds" << std::endl;
-    }
+
+    hdb.release();
 
     displayMemInfo();
 }

@@ -9,10 +9,6 @@
 #include <am/trie/alphabet.hpp>
 #include <am/trie/alphabet_en.hpp>
 #include <am/sdb_trie_v1/sdb_trie.hpp>
-#include <am/map/map.hpp>
-#include <am/btree/BTreeFile.h>
-#include <am/sdb_btree/sdb_btree.h>
-#include <am/sdb_hash/sdb_hash.h>
 
 using namespace std;
 using namespace izenelib::am;

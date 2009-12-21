@@ -27,7 +27,6 @@ void displayMemInfo(std::ostream& os = std::cout) {
 
 BOOST_AUTO_TEST_SUITE( sdb_trie_suite )
 
-#if 0
 BOOST_AUTO_TEST_CASE(conv_sdb_hash2btree_test)
 {
     Sdb1 sdb1("conv_sdb_hash2btree_test.hash.sdb");
@@ -53,7 +52,6 @@ BOOST_AUTO_TEST_CASE(conv_sdb_hash2btree_test)
     remove("conv_sdb_hash2btree_test.hash.sdb");
     remove("conv_sdb_hash2btree_test.btree.sdb");
 }
-#endif
 
 #define TEST_BENCH
 
