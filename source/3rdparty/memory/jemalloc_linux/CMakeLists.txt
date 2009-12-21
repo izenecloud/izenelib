@@ -6,7 +6,7 @@ MACRO_CHECK_SHOULD_BUILD(
 
 IF(jemalloc_SHOULD_BUILD)
 
-  MESSAGE(STATUS "Build extra flags ${streamflow_DEFINITIONS}")
+  MESSAGE(STATUS "Build extra flags ${jemalloc_DEFINITIONS}")
   SET(jemalloc_SRC
     "jemalloc_linux.c"
     )
