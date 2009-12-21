@@ -27,10 +27,9 @@ BOOST_AUTO_TEST_CASE(regular)
 
     {
 
-        MtTrie<wiselib::UString> mtTrie("mtustring", 16);
+        MtTrie<wiselib::UString> mtTrie("mtustring", 64);
 	mtTrie.open();
         start = clock();
-
 	std::ifstream input;
 	input.open("input-ustring", std::ifstream::binary|std::ifstream::in);
 	int buffersize;
@@ -45,15 +44,12 @@ BOOST_AUTO_TEST_CASE(regular)
 			mtTrie.insert(term);
 		}
 	}
-
-
 	mtTrie.executeTask(2);
         finish = clock();
         boost::posix_time::time_duration td = boost::posix_time::microsec_clock::local_time() - start_real;
         printf( "\nIt takes %f seconds (CPU time) and %f seconds (real time)\n",
             (double)(finish - start) / CLOCKS_PER_SEC, (double) (td.total_microseconds())/1000000);
 	mtTrie.flush();
-
 	{
 	std::ifstream input;
 	input.open("input-ustring", std::ifstream::binary|std::ifstream::in);
