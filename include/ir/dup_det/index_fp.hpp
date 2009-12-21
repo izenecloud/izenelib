@@ -220,11 +220,11 @@ protected:
     std::string s = filenm_;
     s+= ".docid_hash";
 
+    reset_docid_hash();
+    
     FILE* f = fopen(s.c_str(), "r");
     if (f == NULL)
       return;
-
-    reset_docid_hash();
 
     uint32_t i = -1;
     IASSERT(fread(&i, sizeof(uint32_t), 1, f)==1);
@@ -698,7 +698,10 @@ public:
     init_docid_hash();
     
     for (uint8_t i=0; i<FP_LENGTH/UNIT_LEN_; i++)
+    {
       delete ht_ptrs_[i];
+    }
+    
 
     delete ht_ptrs_;
     ht_ptrs_ = NULL;

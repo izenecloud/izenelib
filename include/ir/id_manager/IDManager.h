@@ -318,7 +318,7 @@ typedef _IDManager<wiselib::UString, uint32_t,
                    HashIDGenerator<wiselib::UString, uint32_t>,
                    EmptyIDStorage<wiselib::UString, uint32_t>,
                    UniqueIDGenerator<wiselib::UString, uint32_t>,
-                   HDBIDStorage<wiselib::UString, uint32_t> > IDManagerRelease32;
+                   SDBIDStorage<wiselib::UString, uint32_t> > IDManagerRelease32;
 
 /**
  * This version of IDManager supports getTermStringByTermId() and
