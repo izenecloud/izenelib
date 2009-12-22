@@ -270,7 +270,7 @@ bool MessageClientFull::checkPermissionInfo_(
 			permissionInfo.setServer(it->first, it->second);
 		}
 	}
-	permissionInfo.display();
+	//permissionInfo.display();
 	return true;
 
 }
