@@ -40,7 +40,7 @@ BOOST_AUTO_TEST_CASE(hdb_seq_forward)
         std::cout << "Test seq forward to the end" << std::endl;
         int k,v;
         int count = 0;
-        HDBCursor cursor = hdb.get_first_Locn();
+        HDBCursor cursor = hdb.get_first_locn();
         while(hdb.get(cursor,k,v))
         {
             BOOST_CHECK_EQUAL(k,count);
@@ -82,7 +82,7 @@ BOOST_AUTO_TEST_CASE(hdb_seq_backward)
     {
         std::cout << "Test seq backward at first cursor" << std::endl;
         int k,v;
-        HDBCursor cursor = hdb.get_first_Locn();
+        HDBCursor cursor = hdb.get_first_locn();
         BOOST_CHECK_EQUAL(hdb.seq(cursor, ESD_BACKWARD), false);
         BOOST_CHECK_EQUAL(hdb.get(cursor, k , v), false);
     }
@@ -90,7 +90,7 @@ BOOST_AUTO_TEST_CASE(hdb_seq_backward)
     {
         std::cout << "Test seq forward then seq backward" << std::endl;
 
-        HDBCursor cursor = hdb.get_first_Locn();
+        HDBCursor cursor = hdb.get_first_locn();
         for(int i=0; i<800; i++)
             hdb.seq(cursor, ESD_FORWARD);
         //500
@@ -104,7 +104,7 @@ BOOST_AUTO_TEST_CASE(hdb_seq_backward)
 
     {
         std::cout << "Test seq forward to the end then seq backward to the end" << std::endl;
-        HDBCursor cursor = hdb.get_first_Locn();
+        HDBCursor cursor = hdb.get_first_locn();
         while(hdb.seq(cursor, ESD_FORWARD));
 
         int count = 999;
