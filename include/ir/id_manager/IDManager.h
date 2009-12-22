@@ -155,6 +155,21 @@ public:
     }
 
 	/**
+	 * @brief a member function to offer a result set of wildcard search with WildcardSearchManager.
+	 *
+	 * @param wildcardPattern   a UString of wildcard pattern which contains '*';
+	 * @param termList        a list of terms which is the result of WildcardSearchManager.
+	 * @return true  :          Given wildcard pattern is matched at least once in the dictionary.
+	 * @return false :          Given wildcard pattern is not matched in the dictionary.
+	 */
+	bool getTermListByWildcardPattern(const NameString& wildcardPattern,
+			std::vector<NameString>& termList)
+    {
+        return wildcardQueryManager_.findRegExp(wildcardPattern, termList);
+    }
+
+
+	/**
 	 * @brief a member function to get term string by its ID.
 	 *
 	 * @param termId	    a term identifier for the input.
