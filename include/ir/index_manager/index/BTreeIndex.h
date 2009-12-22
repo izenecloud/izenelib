@@ -30,6 +30,8 @@
 
 NS_IZENELIB_IR_BEGIN
 
+#define MAX_NUMERICSIZER 32768	
+
 namespace indexmanager
 {
 
@@ -39,6 +41,7 @@ struct IndexKeyType
     collectionid_t cid;
     fieldid_t fid;
     T value;
+    typedef T type;
 
     IndexKeyType():cid(0),fid(0),value(T()) {}
 
@@ -122,6 +125,7 @@ private:
 template <class KeyType>
 class BTreeIndex:public izenelib::sdb::IndexSDB<KeyType,docid_t,izenelib::util::ReadWriteLock>
 {
+    typedef typename KeyType::type KeyValueType;
     typedef izenelib::sdb::iKeyType<KeyType> myKeyType;
     typedef std::vector<docid_t> myValueType;
     typedef DataType<myKeyType, myValueType> myDataType;
@@ -135,20 +139,6 @@ public:
     {
     }
     bool remove(const KeyType& key, docid_t docID);
-
-    template<typename SDBCursor>
-    bool search(const KeyType& key, SDBCursor& locn)
-    {
-        izenelib::sdb::iKeyType<KeyType> ikey(key, 0);
-        return this->_sdb.search(ikey, locn);
-    }
-
-    template<typename SDBCursor>
-    bool seq(SDBCursor& locn, KeyType& key, std::vector<docid_t>& value, ESeqDirection sdir)
-    {
-        izenelib::sdb::iKeyType<KeyType> ikey(key, 0);
-        return this->_sdb.seq(locn, ikey, value, sdir);
-    }
 
     bool get(const KeyType& key,BitVector& result)
     {
@@ -169,6 +159,38 @@ public:
         while (true);
         return true;
     }
+
+    void get_between(const KeyType& lowKey, const KeyType& highKey, KeyValueType* & data, size_t maxDoc )
+    {
+	if (comp_(lowKey, highKey) > 0) {
+		return;
+	}
+	myKeyType ikey(lowKey, 0);
+	myValueType ival;
+	IndexSDBCursor locn;
+	this->_sdb.search(ikey, locn);
+       docid_t currDoc;
+       while (this->_sdb.get(locn, ikey, ival) ) {
+              if (comp_(ikey.key, highKey) <= 0) {
+                     for (size_t i=0; i<ival.size(); i++) {
+                         currDoc = ival[i];
+                         if(currDoc >= maxDoc)
+                         {
+                             KeyValueType* ppBytes = new KeyValueType[maxDoc + MAX_NUMERICSIZER];
+                             memcpy(ppBytes, data, maxDoc * sizeof(KeyValueType));
+                             memset(ppBytes+maxDoc, 0, maxDoc * sizeof(KeyValueType));
+                             delete[] data;
+                             data = ppBytes;
+                             maxDoc = maxDoc + MAX_NUMERICSIZER;
+                         }
+                         data[currDoc] = ikey.key.value;
+			}
+                  this->_sdb.seq(locn, ESD_FORWARD);
+              } else
+                  break;
+      }
+    }
+
 
     bool get_without(const KeyType& key,BitVector& result)
     {
