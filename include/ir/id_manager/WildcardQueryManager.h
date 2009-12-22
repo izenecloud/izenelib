@@ -133,25 +133,20 @@ public:
         handler_.insert(word);
     }
 
+	bool findRegExp(const NameString& exp, std::vector<NameString> & results)
+	{
+	    return handler_.findRegExp(exp, results);
+    }
+
 	bool findRegExp(const NameString& exp, std::vector<NameID> & results)
 	{
-	    std::cout << "find wildcard expression ";
-	    exp.displayStringValue(wiselib::UString::UTF_8);
 	    std::vector<NameString> rlist;
-	    if(handler_.findRegExp(exp, rlist) == false) {
-	        std::cout << "nothing found" << std::endl;
+	    if(handler_.findRegExp(exp, rlist) == false)
             return false;
-	    }
-	    std::cout << "," << rlist.size() << " results found:" << std::endl;
+
         for(size_t i =0; i< rlist.size(); i++) {
-            NameID value = NameIDTraits<NameID>::hash(rlist[i]);
-            std::cout << "<";
-	        rlist[i].displayStringValue(wiselib::UString::UTF_8);
-            std::cout << "," << value << ">\t";
-            results.push_back( value );
+            results.push_back( NameIDTraits<NameID>::hash(rlist[i]) );
         }
-        if( rlist.size() )
-            std::cout << std::endl;
         return true;
     }
 
