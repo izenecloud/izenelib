@@ -766,7 +766,7 @@ protected:
         memorySdbLock_.acquire_read_lock();
         KeyType tmpk = KeyType();
         TagType tmpv = TagType();
-        typename SdbType::SDBCursor cursor = memorySdb_.get_first_Locn();
+        typename SdbType::SDBCursor cursor = memorySdb_.get_first_locn();
         while(memorySdb_.get(cursor, tmpk, tmpv)) {
             newDiskSdb->sdb.insertValue(tmpk, tmpv);
             memorySdb_.seq(cursor);
@@ -811,11 +811,11 @@ public:
      * @brief Get the cursor of the first element in hdb.
      *        You can get element's content by call get().
      */
-	HDBCursor get_first_Locn() {
+	HDBCursor get_first_locn() {
 	    HDBCursor cursor(*this);
 	    /*
 	     * to keep the same semantics with sdb
-	     * that is, get() after get_first_Locn is legal
+	     * that is, get() after get_first_locn is legal
 	     */
 	    seq(cursor, ESD_FORWARD);
 	    return cursor;

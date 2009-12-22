@@ -366,7 +366,7 @@ void mergeToFinal(FinalTrieType& finalTrie, PartitionTrieType& partitionTrie, co
     PTDataTableDBType& d1 = partitionTrie.getDataTable().getDB();
     FTDataTableDBType& d2 = finalTrie.getDataTable().getDB();
     DataType<DataTableKeyType, DataTableValueType> data;
-    typename PTDataTableDBType::HDBCursor dcur = d1.get_first_Locn();
+    typename PTDataTableDBType::HDBCursor dcur = d1.get_first_locn();
     while(d1.get(dcur,data)) {
         d2.insertValue(data.key, data.value);
         d1.seq(dcur);

@@ -164,7 +164,7 @@ UniqueIDGenerator<NameString, NameID,
 	{
 	    NameID maxValue = MinValueID;
         NameString k; NameID v;
-        typename IdFinder::SDBCursor locn = idFinder_.get_first_Locn();
+        typename IdFinder::SDBCursor locn = idFinder_.get_first_locn();
         while (idFinder_.get(locn, k, v) ) {
             if(maxValue < v)
                 maxValue = v;

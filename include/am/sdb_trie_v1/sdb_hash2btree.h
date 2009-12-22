@@ -41,7 +41,7 @@ void mapStage()
     size_t itemNum = src_sdb_.numItems();
     fwrite(&itemNum, sizeof(size_t), 1, f);
     unsigned short itemSize = sizeof(KeyType) + sizeof(ValueType);
-    typename UnorderedSdbType::SDBCursor locn = src_sdb_.get_first_Locn();
+    typename UnorderedSdbType::SDBCursor locn = src_sdb_.get_first_locn();
     KeyType k = KeyType();
     ValueType v = ValueType();
     while( src_sdb_.get(locn, k, v) ) {

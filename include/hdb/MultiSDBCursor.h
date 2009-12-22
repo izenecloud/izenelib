@@ -66,7 +66,7 @@ public:
     {
         cursorList_.resize(sdbList_.size());
         for(size_t i =0; i<sdbList_.size(); i++) {
-            cursorList_[i] = sdbList_[i]->get_first_Locn();
+            cursorList_[i] = sdbList_[i]->get_first_locn();
         }
     }
 
@@ -100,7 +100,7 @@ public:
         cursorList_.resize(sdbList_.size());
         for(size_t i =0; i<sdbList.size(); i++) {
             sdbList_[i] = sdbList[i];
-            cursorList_[i] = sdbList[i]->get_first_Locn();
+            cursorList_[i] = sdbList[i]->get_first_locn();
         }
         key_ = KeyType();
         tag_ = TagType(DELETE,ValueType());

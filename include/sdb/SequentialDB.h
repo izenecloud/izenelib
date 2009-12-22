@@ -238,7 +238,7 @@ public:
 		lock_.release_write_lock();
 	}
 
-	SDBCursor get_first_Locn() {
+	SDBCursor get_first_locn() {
 		lock_.acquire_read_lock();
 		SDBCursor locn = container_.get_first_locn();
 		lock_.release_read_lock();
