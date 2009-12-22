@@ -71,26 +71,26 @@ MessageControllerFull::~MessageControllerFull() {
 
 void MessageControllerFull::saveLoadAvailableServiceList_(
 		const string& fileName, bool bStore) {
-	if (bStore) {		
-		std::ofstream ofs(fileName.data(), ios::binary | ios::trunc);
-		boost::archive::binary_oarchive oa(ofs);		
-		oa & availableServiceList_;
-	} else {
-		if ( ! boost::filesystem::exists(fileName) ) 
-			return;
-		
-		std::ifstream ifs(fileName.data(), ios::binary);
-		boost::archive::binary_iarchive ia(ifs);	
-		ia & availableServiceList_;
-		
-		std::map<std::string, ServicePermissionInfo>::iterator it;
-		it = availableServiceList_.begin();
-		for(; it != availableServiceList_.begin(); it++){
-			cout<<"!!!!!!!!1"<<endl;
-			cout<<it->first<<endl;
-		    it->second.display();
-		}
-	}
+//	if (bStore) {		
+//		std::ofstream ofs(fileName.data(), ios::binary | ios::trunc);
+//		boost::archive::binary_oarchive oa(ofs);		
+//		oa & availableServiceList_;
+//	} else {
+//		if ( ! boost::filesystem::exists(fileName) ) 
+//			return;
+//		
+//		std::ifstream ifs(fileName.data(), ios::binary);
+//		boost::archive::binary_iarchive ia(ifs);	
+//		ia & availableServiceList_;
+//		
+//		std::map<std::string, ServicePermissionInfo>::iterator it;
+//		it = availableServiceList_.begin();
+//		for(; it != availableServiceList_.end(); it++){
+//			cout<<"!!!!!!!!1"<<endl;
+//			cout<<it->first<<endl;
+//		    it->second.display();
+//		}
+//	}
 }
 
 /******************************************************************************
