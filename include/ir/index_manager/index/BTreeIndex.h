@@ -339,29 +339,35 @@ bool BTreeIndex<KeyType>::remove(const KeyType& key, docid_t docID)
 
 }
 
-template <class StringType>
-class BTreeTrieIndex:public izenelib::sdb::TrieIndexSDB2<StringType, docid_t, izenelib::util::ReadWriteLock>
+template <typename StringType, typename LockType =izenelib::util::ReadWriteLock>
+class BTreeTrieIndex
 {
 public:
-    typedef typename izenelib::sdb::TrieIndexSDB2<StringType, docid_t,izenelib::util::ReadWriteLock>::SDBTYPE SDBTYPE;
+    typedef SequentialDB<std::pair<std::pair<StringType,fieldid_t>, docid_t>, NullType> SDBTYPE;
     typedef typename SDBTYPE::SDBCursor SDBCursor;
 public:
-    BTreeTrieIndex(string& fileName) :
-            izenelib::sdb::TrieIndexSDB2<StringType,docid_t,izenelib::util::ReadWriteLock>(fileName)
+
+    BTreeTrieIndex(const string& fileName) 
+        :sdb_(fileName)
     {
     }
-    void getValuePrefix(const StringType& key, BitVector& result)
+    bool open()
     {
-        SDBCursor locn = this->sdb_.search(make_pair(key, 0) );
-        std::pair<StringType, docid_t> skey;
+        return sdb_.open();
+    }
+
+    void getValuePrefix(const StringType& key,const fieldid_t& fid, BitVector& result)
+    {
+        SDBCursor locn = this->sdb_.search(make_pair(make_pair(key,fid), 0) );
+        std::pair<std::pair<StringType,fieldid_t>, docid_t> skey;
         StringType lstr;
         NullType sval;
         while (this->sdb_.get(locn, skey, sval) )
         {
-            if (isPrefix1(key, skey.first) )
+            if (skey.first.second != fid)
+                continue;
+            if (isPrefix1(key, skey.first.first) )
             {
-                //cout<<skey.first<<"+"<<skey.second<<endl;
-                //result.push_back(skey.second);
                 result.set(skey.second);
                 this->sdb_.seq(locn);
             }
@@ -370,18 +376,18 @@ public:
         }
     }
 
-    void getValueSuffix(const StringType& key, BitVector& result)
+    void getValueSuffix(const StringType& key, const fieldid_t& fid, BitVector& result)
     {
-        SDBCursor locn = this->sdb_.search(make_pair(key, 0 ) );
-        std::pair<StringType, docid_t> skey;
+        SDBCursor locn = this->sdb_.search(make_pair(make_pair(key,fid), 0 ) );
+        std::pair<std::pair<StringType,fieldid_t>, docid_t> skey;
         StringType lstr;
         NullType sval;
         while (this->sdb_.get(locn, skey, sval) )
         {
-            if (key == skey.first)
+            if (skey.first.second != fid)
+                continue;
+            if (key == skey.first.first)
             {
-                //cout<<skey.first<<"+"<<skey.second<<endl;
-                //result.push_back(skey.second);
                 result.set(skey.second);
                 this->sdb_.seq(locn);
             }
@@ -390,6 +396,43 @@ public:
         }
 
     }
+
+
+    bool add_suffix(const StringType& key, const fieldid_t& fid, const docid_t& item)
+    {
+        if (sdb_.hasKey(make_pair(make_pair(key,fid), item) ) )
+            return false;
+        size_t pos = 0;
+        for (; pos<key.length(); pos++)
+        {
+            StringType suf = key.substr(pos);
+            add(suf, fid, item);
+        }
+        return false;
+    }
+
+    bool add(const StringType& key, const fieldid_t& fid, const docid_t& item)
+    {
+        sdb_.insertValue(make_pair(make_pair(key,fid), item) );
+        return false;
+    }
+
+    void display()
+    {
+        sdb_.display();
+    }
+
+    void commit()
+    {
+        sdb_.commit();
+    }
+
+    void flush()
+    {
+        sdb_.flush();
+    }
+protected:
+    SDBTYPE sdb_;
 
 };
 
@@ -555,7 +598,7 @@ struct add_visitor::__operator<String>
         trim(v);
         IndexKeyType<String> key(colid, fid, v);
         BTreeIndexer::getIndexer<String>()->add_nodup(key, docid);
-        BTreeIndexer::getTrieIndexer()->add_suffix(v, docid);
+        BTreeIndexer::getTrieIndexer()->add_suffix(v, fid, docid);
     }
 };
 
