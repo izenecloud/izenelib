@@ -233,7 +233,8 @@ void MessageControllerFull::processServicePermissionRequest(void) {
 					boost::mutex::scoped_lock availableServiceListLock(availableServiceListMutex_);
 					checkAgentInfo_( availableServiceList_[requestItem.first] );
 					sendPermissionOfServiceResult(requestItem.second, availableServiceList_[requestItem.first] );
-					availableServiceList_[requestItem.first].display();
+					
+					//availableServiceList_[requestItem.first].display();
 					// to improve performance, direct connection to
 					// server is always made
 					//serviceInfo.setPermissionFlag(SERVE_AT_SERVER);
