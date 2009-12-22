@@ -301,7 +301,7 @@ public:
         myKeyType ikey(key, 0);
         myValueType ival;
 
-        IndexSDBCursor locn=	this->_sdb.search(ikey);
+        IndexSDBCursor locn= this->_sdb.search(ikey);
         while (this->_sdb.get(locn, ikey, ival) )
         {
             if (ikey.key.fid != key.fid)
@@ -364,11 +364,10 @@ public:
         NullType sval;
         while (this->sdb_.get(locn, skey, sval) )
         {
-            if (skey.first.second != fid)
-                continue;
             if (isPrefix1(key, skey.first.first) )
-            {
-                result.set(skey.second);
+            {   
+                if (skey.first.second == fid)
+                    result.set(skey.second);
                 this->sdb_.seq(locn);
             }
             else
@@ -384,11 +383,10 @@ public:
         NullType sval;
         while (this->sdb_.get(locn, skey, sval) )
         {
-            if (skey.first.second != fid)
-                continue;
             if (key == skey.first.first)
             {
-                result.set(skey.second);
+	            if (skey.first.second == fid)
+                    result.set(skey.second);
                 this->sdb_.seq(locn);
             }
             else
