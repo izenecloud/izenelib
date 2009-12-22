@@ -65,7 +65,7 @@ MessageDispatcher::~MessageDispatcher() {
  */
 void MessageDispatcher::addPeerNode(const MessageFrameworkNode& peerNode,
 		AsyncStream* bindedStream) {
-	DLOG(INFO) << "Add peer node : " << peerNode.nodeIP_ << ":"
+	DLOG(ERROR) << "Add peer node : " << peerNode.nodeIP_ << ":"
 			<< peerNode.nodePort_ << std::endl;
 	boost::mutex::scoped_lock lock(availablePeerNodesMutex_);
 	availablePeerNodes_.insert(pair<MessageFrameworkNode, AsyncStream*>(
@@ -76,7 +76,7 @@ void MessageDispatcher::addPeerNode(const MessageFrameworkNode& peerNode,
  * Remove a a peer node from the available peer lis
  */
 void MessageDispatcher::removePeerNode(const MessageFrameworkNode& peerNode) {
-	DLOG(INFO) << "Remove peer node : " << peerNode.nodeIP_ << ":"
+	DLOG(ERROR) << "Remove peer node : " << peerNode.nodeIP_ << ":"
 			<< peerNode.nodePort_ << std::endl;
 	boost::mutex::scoped_lock lock(availablePeerNodesMutex_);
 	availablePeerNodes_.erase(peerNode);

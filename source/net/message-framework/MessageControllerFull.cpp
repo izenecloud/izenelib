@@ -17,7 +17,6 @@
 #include <net/message-framework/ServicePermissionInfo.h>
 #include <boost/filesystem.hpp>
 
-
 /**************** Include boost header files *******************/
 #include <boost/bind.hpp>
 #include <boost/shared_ptr.hpp>
@@ -71,26 +70,26 @@ MessageControllerFull::~MessageControllerFull() {
 
 void MessageControllerFull::saveLoadAvailableServiceList_(
 		const string& fileName, bool bStore) {
-//	if (bStore) {		
-//		std::ofstream ofs(fileName.data(), ios::binary | ios::trunc);
-//		boost::archive::binary_oarchive oa(ofs);		
-//		oa & availableServiceList_;
-//	} else {
-//		if ( ! boost::filesystem::exists(fileName) ) 
-//			return;
-//		
-//		std::ifstream ifs(fileName.data(), ios::binary);
-//		boost::archive::binary_iarchive ia(ifs);	
-//		ia & availableServiceList_;
-//		
-//		std::map<std::string, ServicePermissionInfo>::iterator it;
-//		it = availableServiceList_.begin();
-//		for(; it != availableServiceList_.end(); it++){
-//			cout<<"!!!!!!!!1"<<endl;
-//			cout<<it->first<<endl;
-//		    it->second.display();
-//		}
-//	}
+	//	if (bStore) {		
+	//		std::ofstream ofs(fileName.data(), ios::binary | ios::trunc);
+	//		boost::archive::binary_oarchive oa(ofs);		
+	//		oa & availableServiceList_;
+	//	} else {
+	//		if ( ! boost::filesystem::exists(fileName) ) 
+	//			return;
+	//		
+	//		std::ifstream ifs(fileName.data(), ios::binary);
+	//		boost::archive::binary_iarchive ia(ifs);	
+	//		ia & availableServiceList_;
+	//		
+	//		std::map<std::string, ServicePermissionInfo>::iterator it;
+	//		it = availableServiceList_.begin();
+	//		for(; it != availableServiceList_.end(); it++){
+	//			cout<<"!!!!!!!!1"<<endl;
+	//			cout<<it->first<<endl;
+	//		    it->second.display();
+	//		}
+	//	}
 }
 
 /******************************************************************************
@@ -116,15 +115,19 @@ void MessageControllerFull::processServiceRegistrationRequest(void) {
 				serviceRegistrationRequestQueue_.front();
 				serviceRegistrationRequestQueue_.pop();
 				serviceRegistrationRequestQueueLock.unlock();
-
+				
+				string serviceName = request.first.getServiceInfo().getServiceName();
+				MessageFrameworkNode server = request.first.getServiceInfo().getServer();	
+				if( server.nodeIP_.substr(0, 3) == "127" )
+					server.nodeIP_ = request.second.nodeIP_;
 				{
 					// check if the sevice has been registered
-					string serviceName = request.first.getServiceInfo().getServiceName();
-					MessageFrameworkNode server = request.first.getServiceInfo().getServer();
+
 
 					boost::mutex::scoped_lock availableServiceListLock(availableServiceListMutex_);
 
 					std::cout<<"ServiceRegistrationRequest: "<<serviceName<<std::endl;
+					//request.second.display();
 					if( availableServiceList_.find(serviceName) != availableServiceList_.end() )
 					{
 #ifdef SF1_DEBUG
@@ -153,10 +156,10 @@ void MessageControllerFull::processServiceRegistrationRequest(void) {
 				std::cout << request.first.getServer().nodePort_ << "] is successfully registerd." << std::endl;
 #endif
 				// connection to server
-				if(!messageDispatcher_.isExist(request.first.getServer()))
+				if(!messageDispatcher_.isExist( server ))
 				{
-					asyncConnector_.connect(request.first.getServer().nodeIP_,
-							request.first.getServer().nodePort_);
+					asyncConnector_.connect(server.nodeIP_,
+							server.nodePort_);
 				}
 				serviceRegistrationRequestQueueLock.lock();
 			}
@@ -195,7 +198,7 @@ bool MessageControllerFull::checkAgentInfo_(
 			DLOG(ERROR)<<"ServicePermissionInfo:"<<it->first<<" -> server:"
 					<<it->second<<"not exists";
 			permissionInfo.removeServer(it->first);
-			saveLoadAvailableServiceList_(AvailServiceFileName, true);		
+			saveLoadAvailableServiceList_(AvailServiceFileName, true);
 		}
 	}
 	if (it != agentInfoMap.end() )
@@ -247,8 +250,8 @@ void MessageControllerFull::processServicePermissionRequest(void) {
 					std::cout << " is not listed." << std::endl;
 #endif
 					sendPermissionOfServiceResult(requestItem.second, permission );
-					cout<<"!!! no listed"<<endl;
-					availableServiceList_[requestItem.first].display();
+					//cout<<"!!! no listed"<<endl;
+					//availableServiceList_[requestItem.first].display();
 				}
 
 #ifdef SF1_DEBUG
