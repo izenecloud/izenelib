@@ -212,14 +212,16 @@ void IndexMerger::mergeBarrel(MergeBarrel* pBarrel)
     ///update min doc id of index barrels,let doc id continuous
     map<collectionid_t,docid_t> newBaseDocIDMap;
     docid_t maxDocOfNewBarrel = 0;
-    bool isUpdateBarrel = true;
+    bool isNewBarrelUpdateBarrel = true;
+    bool hasUpdateBarrel = false;
     for (nEntry = 0;nEntry < nEntryCount;nEntry++)
     {
         pEntry = pBarrel->getAt(nEntry);
 
         nNumDocs += pEntry->pBarrelInfo_->getDocCount();
 
-        isUpdateBarrel &= pEntry->pBarrelInfo_->hasUpdateDocs;
+        isNewBarrelUpdateBarrel &= pEntry->pBarrelInfo_->hasUpdateDocs;
+        hasUpdateBarrel |= pEntry->pBarrelInfo_->hasUpdateDocs;
 
         if(pEntry->pBarrelInfo_->getMaxDocID() > maxDocOfNewBarrel)
             maxDocOfNewBarrel = pEntry->pBarrelInfo_->getMaxDocID();
@@ -240,11 +242,12 @@ void IndexMerger::mergeBarrel(MergeBarrel* pBarrel)
             }
         }
     }
+    bool needSortingMerge = hasUpdateBarrel&&(!isNewBarrelUpdateBarrel);
 	
     pNewBarrelInfo->setDocCount(nNumDocs);
     pNewBarrelInfo->setBaseDocID(newBaseDocIDMap);
     pNewBarrelInfo->updateMaxDoc(maxDocOfNewBarrel);
-    pNewBarrelInfo->hasUpdateDocs = isUpdateBarrel;
+    pNewBarrelInfo->hasUpdateDocs = isNewBarrelUpdateBarrel;
 
 
     FieldsInfo* pFieldsInfo = NULL;
@@ -313,7 +316,7 @@ void IndexMerger::mergeBarrel(MergeBarrel* pBarrel)
                         {
                             if (pFieldMerger == NULL)
                             {
-                                pFieldMerger = new FieldMerger();
+                                pFieldMerger = new FieldMerger(needSortingMerge);
                                 pFieldMerger->setDirectory(pDirectory_);
                                 if(pDocFilter_)
                                     pFieldMerger->setDocFilter(pDocFilter_);

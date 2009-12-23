@@ -8,8 +8,9 @@
 
 using namespace izenelib::ir::indexmanager;
 
-FieldMerger::FieldMerger()
-        :buffer_(NULL)
+FieldMerger::FieldMerger(bool sortingMerge)
+        :sortingMerge_(sortingMerge)
+        ,buffer_(NULL)
         ,bufsize_(0)
         ,pMergeQueue_(NULL)
         ,pPostingMerger_(NULL)
@@ -98,7 +99,6 @@ fileoffset_t FieldMerger::merge(OutputDescriptor* pOutputDescriptor)
     Term* pTerm = NULL;
     FieldMergeInfo* pTop = NULL;
     fileoffset_t postingoffset = 0;
-    bool isSortingMerge = false;
     freq_t sortingMergeDF = 0;
     while (pMergeQueue_->size() > 0)
     {
@@ -116,7 +116,7 @@ fileoffset_t FieldMerger::merge(OutputDescriptor* pOutputDescriptor)
             pTop = pMergeQueue_->top();
         }
 
-        postingoffset = mergeTerms(match,nMatch,isSortingMerge,sortingMergeDF);
+        postingoffset = mergeTerms(match,nMatch,sortingMergeDF);
 
         if (postingoffset > 0)
         {
@@ -129,7 +129,7 @@ fileoffset_t FieldMerger::merge(OutputDescriptor* pOutputDescriptor)
             else
             {
                 cachedTermInfos_[nNumTermCached_]->pTerm_->setValue(pTerm->getValue());
-                if(isSortingMerge)
+                if(sortingMerge_)
                     cachedTermInfos_[nNumTermCached_]->pTermInfo_->set(sortingMergeDF,postingoffset);					
                 else
                     cachedTermInfos_[nNumTermCached_]->pTermInfo_->set(pPostingMerger_->getPostingDescriptor().df,postingoffset);

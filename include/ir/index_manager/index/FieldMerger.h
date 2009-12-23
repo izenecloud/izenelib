@@ -173,7 +173,7 @@ public:
 class FieldMerger
 {
 public:
-    FieldMerger();
+    FieldMerger(bool sortingMerge);
 
     virtual ~FieldMerger(void);
 public:
@@ -244,7 +244,7 @@ private:
      * @param ppMergeInfos merge information array
      * @param numInfos size of info array
      */
-    inline fileoffset_t	mergeTerms(FieldMergeInfo** ppMergeInfos,int32_t numInfos, bool& isSortingMerge, freq_t& df);
+    inline fileoffset_t	mergeTerms(FieldMergeInfo** ppMergeInfos,int32_t numInfos, freq_t& df);
 
     fileoffset_t sortingMerge(FieldMergeInfo** ppMergeInfos,int32_t numInfos, BitVector* pFilter, freq_t& df);
 
@@ -264,6 +264,8 @@ private:
      */
     fileoffset_t endMerge(OutputDescriptor* pOutputDescriptor) ;
 private:
+    bool sortingMerge_;
+
     char* buffer_;
 
     size_t bufsize_;
@@ -300,24 +302,11 @@ private:
 };
 //////////////////////////////////////////////////////////////////////////
 //inline
-inline fileoffset_t FieldMerger::mergeTerms(FieldMergeInfo** ppMergeInfos,int32_t numInfos, bool& isSortingMerge, freq_t& df)
+inline fileoffset_t FieldMerger::mergeTerms(FieldMergeInfo** ppMergeInfos,int32_t numInfos,freq_t& df)
 {
     Posting* pPosting;
-    bool mergePostingHasUpdatedDocs = false;
-    for (int32_t i = 0;i< numInfos;i++)
-    {
-        if(ppMergeInfos[i]->pBarrelInfo_->hasUpdateDocs)
-        {
-            mergePostingHasUpdatedDocs = true;
-            break;
-        }
-    }
-    isSortingMerge = mergePostingHasUpdatedDocs;
-    if(mergePostingHasUpdatedDocs)
-    {
-        fileoffset_t ret = sortingMerge(ppMergeInfos, numInfos, pDocFilter_, df);
-        return ret;
-    }
+    if(sortingMerge_)
+        return sortingMerge(ppMergeInfos, numInfos, pDocFilter_, df);
 
     for (int32_t i = 0;i< numInfos;i++)
     {
