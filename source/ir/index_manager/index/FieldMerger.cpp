@@ -123,8 +123,14 @@ fileoffset_t FieldMerger::merge(OutputDescriptor* pOutputDescriptor)
             ///store merged terms to term info cache
             if (cachedTermInfos_[nNumTermCached_] == NULL)
             {
-                cachedTermInfos_[nNumTermCached_] = new MergeTermInfo(pTerm->clone(),new TermInfo(pPostingMerger_->getPostingDescriptor().df,postingoffset));
-
+                if(sortingMerge_)
+                    cachedTermInfos_[nNumTermCached_] = 
+                        new MergeTermInfo(pTerm->clone(),
+                                                        new TermInfo(sortingMergeDF,postingoffset));
+                else
+                    cachedTermInfos_[nNumTermCached_] = 
+                        new MergeTermInfo(pTerm->clone(),
+                                                        new TermInfo(pPostingMerger_->getPostingDescriptor().df,postingoffset));
             }
             else
             {
