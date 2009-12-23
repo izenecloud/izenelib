@@ -43,21 +43,24 @@ public:
     ~BitVector()
     {
         if(bits_)
-            delete bits_;
+        {
+            delete[] bits_;
+            bits_ = 0;
+        }
     }
 
 public:
     void set(size_t bit) 
     {
         if(bit >= size_)
-            grow(bit+1);
+            grow(bit+4);
         bits_[bit >> 3] |= 1 << (bit & 7);
     }
 
     void clear(size_t bit) 
     {
         if(bit >= size_)
-            grow(bit+1);
+            grow(bit+4);
         bits_[bit >> 3] &= ~(1 << (bit & 7));
     }
 
@@ -139,13 +142,14 @@ public:
 private:
     void grow(size_t length)
     {
-        unsigned char* newBits_ = new unsigned char[length];
-        memset(newBits_,0,length);
-        memcpy(newBits_,bits_,size_);
         size_ = length;
-        blockNum_ = (size_ >> 3) + 1;
+        size_t newBlockNum = (size_ >> 3) + 1;
+        unsigned char* newBits_ = new unsigned char[newBlockNum];
+        memset(newBits_,0,newBlockNum*sizeof(unsigned char));
+        memcpy(newBits_,bits_,blockNum_*sizeof(unsigned char));
         delete bits_;
         bits_ = newBits_;
+        blockNum_ = newBlockNum;
     }
 
 private:

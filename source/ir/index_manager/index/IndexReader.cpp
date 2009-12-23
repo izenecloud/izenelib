@@ -214,6 +214,8 @@ void IndexReader::delDocument(collectionid_t colID,docid_t docId)
         pDocFilter_ = new BitVector(pBarrelsInfo_->getDocCount() + 1);
     }
     pDocFilter_->set(docId);
+	cout<<docId<<endl;
+	
 }
 
 freq_t IndexReader::docFreq(collectionid_t colID, Term* term)
