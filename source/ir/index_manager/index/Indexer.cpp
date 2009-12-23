@@ -368,15 +368,16 @@ int Indexer::insertDocument(IndexerDocument* pDoc)
     return 1;
 }
 
+int Indexer::updateDocument(IndexerDocument* pDoc)
+{
+    pIndexWriter_->addDocument(pDoc,true);
+    return 1;
+}
+
 int Indexer::removeDocumentPhysically(IndexerDocument* pDoc)
 {
     pIndexReader_->deleteDocumentPhysically(pDoc);
     return 1;
-}
-
-bool Indexer::startUpdate()
-{
-    return pIndexWriter_->startUpdate();
 }
 
 int Indexer::removeDocument(collectionid_t colID, docid_t docId)

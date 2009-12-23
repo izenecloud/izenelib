@@ -139,6 +139,17 @@ public:
         return false;
     }
 
+    size_t getMaxSet()
+    {
+        size_t i;
+        for(i = size_-1; i >=0; --i)
+        {
+            if(test(i))
+                return i;
+        }
+        return i;
+    }
+
 private:
     void grow(size_t length)
     {

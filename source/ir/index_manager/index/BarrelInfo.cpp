@@ -176,6 +176,17 @@ void BarrelsInfo::read(Directory* pDirectory, const char* name)
                 if (!pItem) SF1V5_THROW(ERROR_INDEX_COLLAPSE,"index collapsed.");
                 pBarrelInfo->maxDocId = atoi(pItem->getValue().c_str());
 
+                ///get <is_update></is_update> element
+                pItem = pBarrelItem->getElementByName("is_update");
+                if (!pItem) pBarrelInfo->hasUpdateDocs = false;
+                else
+                {
+                    if(pItem->getValue().compare("yes") == 0)
+                        pBarrelInfo->hasUpdateDocs = true;
+                    else
+                        pBarrelInfo->hasUpdateDocs = false;
+                }
+
                 barrelInfos.push_back(pBarrelInfo);
             }
             delete pDatabase;
@@ -252,6 +263,10 @@ void BarrelsInfo::write(Directory* pDirectory)
         pItem = pBarrelItem->addElement("max_doc");
         str = "";
         str = izenelib::ir::indexmanager::append(str,pBarrelInfo->maxDocId);
+        pItem->setValue(str.c_str()); 
+        ///add <is_update></is_update>
+        pItem = pBarrelItem->addElement("is_update");
+        str = pBarrelInfo->hasUpdateDocs ? "yes":"no";
         pItem->setValue(str.c_str()); 
 
         iter ++;

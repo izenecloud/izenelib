@@ -110,7 +110,7 @@ public:
      * merge sub indexes
      * @param pBarrelsInfo barrels of index
      */
-    void merge(BarrelsInfo* pBarrelsInfo);
+    void merge(BarrelsInfo* pBarrelsInfo,bool mergeUpdateOnly = false);
 
     /**
      * add a index barrel to merge

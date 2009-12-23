@@ -73,13 +73,8 @@ public:
     int removeDocumentPhysically(IndexerDocument* pDoc);
     ///mark a document as deleted
     int removeDocument(collectionid_t colID, docid_t docId);
-    /// Working flow of updating:
-    /// 1. pIndexer->removeDocument(docId);
-    /// 2. pIndexer->startUpdate();
-    /// 3. pIndexer->insertDocument(pDoc);
-    /// 4. pIndexer->flush();
-    /// 5. pIndexer->optimizeIndex();
-    bool startUpdate();
+    ///update document
+    int updateDocument(IndexerDocument* pDoc);	
     /// flush in-memory index to disk
     void flush();
     /// merge all index barrels into a single barrel
