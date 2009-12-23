@@ -30,7 +30,7 @@
 
 NS_IZENELIB_IR_BEGIN
 
-#define MAX_NUMERICSIZER 32768	
+#define MAX_NUMERICSIZER 32768
 
 namespace indexmanager
 {
@@ -162,33 +162,38 @@ public:
 
     void get_between(const KeyType& lowKey, const KeyType& highKey, KeyValueType* & data, size_t maxDoc )
     {
-	if (comp_(lowKey, highKey) > 0) {
-		return;
-	}
-	myKeyType ikey(lowKey, 0);
-	myValueType ival;
-	IndexSDBCursor locn;
-	this->_sdb.search(ikey, locn);
-       docid_t currDoc;
-       while (this->_sdb.get(locn, ikey, ival) ) {
-              if (comp_(ikey.key, highKey) <= 0) {
-                     for (size_t i=0; i<ival.size(); i++) {
-                         currDoc = ival[i];
-                         if(currDoc >= maxDoc)
-                         {
-                             KeyValueType* ppBytes = new KeyValueType[maxDoc + MAX_NUMERICSIZER];
-                             memcpy(ppBytes, data, maxDoc * sizeof(KeyValueType));
-                             memset(ppBytes+maxDoc, 0, maxDoc * sizeof(KeyValueType));
-                             delete[] data;
-                             data = ppBytes;
-                             maxDoc = maxDoc + MAX_NUMERICSIZER;
-                         }
-                         data[currDoc] = ikey.key.value;
-			}
-                  this->_sdb.seq(locn, ESD_FORWARD);
-              } else
-                  break;
-      }
+        if (comp_(lowKey, highKey) > 0)
+        {
+            return;
+        }
+        myKeyType ikey(lowKey, 0);
+        myValueType ival;
+        IndexSDBCursor locn;
+        this->_sdb.search(ikey, locn);
+        docid_t currDoc;
+        while (this->_sdb.get(locn, ikey, ival) )
+        {
+            if (comp_(ikey.key, highKey) <= 0)
+            {
+                for (size_t i=0; i<ival.size(); i++)
+                {
+                    currDoc = ival[i];
+                    if (currDoc >= maxDoc)
+                    {
+                        KeyValueType* ppBytes = new KeyValueType[maxDoc + MAX_NUMERICSIZER];
+                        memcpy(ppBytes, data, maxDoc * sizeof(KeyValueType));
+                        memset(ppBytes+maxDoc, 0, maxDoc * sizeof(KeyValueType));
+                        delete[] data;
+                        data = ppBytes;
+                        maxDoc = maxDoc + MAX_NUMERICSIZER;
+                    }
+                    data[currDoc] = ikey.key.value;
+                }
+                this->_sdb.seq(locn, ESD_FORWARD);
+            }
+            else
+                break;
+        }
     }
 
 
@@ -215,52 +220,80 @@ public:
 
     void getGreat(const KeyType& key, BitVector& result)
     {
-        KeyType temp = getNext(key);
-        myKeyType ikey(temp, 0);
+        myKeyType ikey(key, 0);
+        myValueType ival;
         IndexSDBCursor locn;
         this->_sdb.search(ikey, locn);
-        myDataType rec;
-        while (this->_sdb.seq(locn, ESD_FORWARD) )
+        while (this->_sdb.get(locn, ikey, ival) )
         {
-            if (this->_sdb.get(locn, rec))
+            if (ikey.key.fid != key.fid)
+                break;
+            if (comp_(ikey.key, key) > 0)
             {
-                vector<docid_t> vdat = rec.get_value();
-                for (size_t i=0; i<vdat.size(); i++)
-                    result.set(vdat[i]);
+                for (size_t i=0; i<ival.size(); i++)
+                    result.set(ival[i]);
             }
+            this->_sdb.seq(locn, ESD_FORWARD);
         }
-
     }
 
     void getGreatEqual(const KeyType& key, BitVector& result)
     {
-        get(key, result);
-        getGreat(key, result);
+        myKeyType ikey(key, 0);
+        myValueType ival;
+        IndexSDBCursor locn;
+        this->_sdb.search(ikey, locn);
+        while (this->_sdb.get(locn, ikey, ival) )
+        {
+            if (ikey.key.fid != key.fid)
+                break;
+            if (comp_(ikey.key, key) >= 0)
+            {
+                for (size_t i=0; i<ival.size(); i++)
+                    result.set(ival[i]);
+            }
+            this->_sdb.seq(locn, ESD_FORWARD);
+        }
+
+
     }
 
     void getLess(const KeyType& key, BitVector& result)
     {
-        KeyType temp = getPrev(key);
-        myKeyType ikey(temp, 0);
+        myKeyType ikey(key, 0);
+        myValueType ival;
         IndexSDBCursor locn;
         this->_sdb.search(ikey, locn);
-        myDataType rec;
-        while (this->_sdb.seq(locn, ESD_BACKWARD) )
+        while (this->_sdb.get(locn, ikey, ival) )
         {
-            if (this->_sdb.get(locn, rec) )
+            if (ikey.key.fid != key.fid)
+                break;
+            if (comp_(ikey.key, key) < 0)
             {
-                vector<docid_t> vdat = rec.get_value();
-                for (size_t i=0; i<vdat.size(); i++)
-                    result.set(vdat[i]);
+                for (size_t i=0; i<ival.size(); i++)
+                    result.set(ival[i]);
             }
+            this->_sdb.seq(locn, ESD_BACKWARD);
         }
-
     }
 
     void getLessEqual(const KeyType& key, BitVector& result)
     {
-        get(key, result);
-        getLess(key, result);
+        myKeyType ikey(key, 0);
+        myValueType ival;
+        IndexSDBCursor locn;
+        this->_sdb.search(ikey, locn);
+        while (this->_sdb.get(locn, ikey, ival) )
+        {
+            if (ikey.key.fid != key.fid)
+                break;
+            if (comp_(ikey.key, key) <= 0)
+            {
+                for (size_t i=0; i<ival.size(); i++)
+                    result.set(ival[i]);
+            }
+            this->_sdb.seq(locn, ESD_BACKWARD);
+        }
     }
 
     void getPrefix(const KeyType& key, BitVector& result)
@@ -268,14 +301,16 @@ public:
         myKeyType ikey(key, 0);
         myValueType ival;
 
-        IndexSDBCursor locn=	this->_sdb.search(ikey);
-        while(this->_sdb.get(locn, ikey, ival) )
+        IndexSDBCursor locn= this->_sdb.search(ikey);
+        while (this->_sdb.get(locn, ikey, ival) )
         {
-            if( isPrefix1(key, ikey.key) )
+            if (ikey.key.fid != key.fid)
+                break;
+            if ( isPrefix1(key, ikey.key) )
             {
                 for (size_t i=0; i<ival.size(); i++)
                     result.set(ival[i]);
-                this->_sdb.seq(locn);	   
+                this->_sdb.seq(locn);
             }
             else
                 break;
@@ -304,30 +339,35 @@ bool BTreeIndex<KeyType>::remove(const KeyType& key, docid_t docID)
 
 }
 
-template <class StringType>
-class BTreeTrieIndex:public izenelib::sdb::TrieIndexSDB2<StringType, docid_t, izenelib::util::ReadWriteLock>
+template <typename StringType, typename LockType =izenelib::util::ReadWriteLock>
+class BTreeTrieIndex
 {
 public:
-    typedef typename izenelib::sdb::TrieIndexSDB2<StringType, docid_t,izenelib::util::ReadWriteLock>::SDBTYPE SDBTYPE;
+    typedef SequentialDB<std::pair<std::pair<StringType,fieldid_t>, docid_t>, NullType> SDBTYPE;
     typedef typename SDBTYPE::SDBCursor SDBCursor;
 public:
-    BTreeTrieIndex(string& fileName) :
-            izenelib::sdb::TrieIndexSDB2<StringType,docid_t,izenelib::util::ReadWriteLock>(fileName)
+
+    BTreeTrieIndex(const string& fileName) 
+        :sdb_(fileName)
     {
     }
-    void getValuePrefix(const StringType& key, BitVector& result)
+    bool open()
     {
-        SDBCursor locn = this->sdb_.search(make_pair(key, 0) );
-        std::pair<StringType, docid_t> skey;
+        return sdb_.open();
+    }
+
+    void getValuePrefix(const StringType& key,const fieldid_t& fid, BitVector& result)
+    {
+        SDBCursor locn = this->sdb_.search(make_pair(make_pair(key,fid), 0) );
+        std::pair<std::pair<StringType,fieldid_t>, docid_t> skey;
         StringType lstr;
         NullType sval;
         while (this->sdb_.get(locn, skey, sval) )
         {
-            if (isPrefix1(key, skey.first) )
-            {
-                //cout<<skey.first<<"+"<<skey.second<<endl;
-                //result.push_back(skey.second);
-                result.set(skey.second);
+            if (isPrefix1(key, skey.first.first) )
+            {   
+                if (skey.first.second == fid)
+                    result.set(skey.second);
                 this->sdb_.seq(locn);
             }
             else
@@ -335,19 +375,18 @@ public:
         }
     }
 
-    void getValueSuffix(const StringType& key, BitVector& result)
+    void getValueSuffix(const StringType& key, const fieldid_t& fid, BitVector& result)
     {
-        SDBCursor locn = this->sdb_.search(make_pair(key, 0 ) );
-        std::pair<StringType, docid_t> skey;
+        SDBCursor locn = this->sdb_.search(make_pair(make_pair(key,fid), 0 ) );
+        std::pair<std::pair<StringType,fieldid_t>, docid_t> skey;
         StringType lstr;
         NullType sval;
         while (this->sdb_.get(locn, skey, sval) )
         {
-            if (key == skey.first)
+            if (key == skey.first.first)
             {
-                //cout<<skey.first<<"+"<<skey.second<<endl;
-                //result.push_back(skey.second);
-                result.set(skey.second);
+	            if (skey.first.second == fid)
+                    result.set(skey.second);
                 this->sdb_.seq(locn);
             }
             else
@@ -355,6 +394,43 @@ public:
         }
 
     }
+
+
+    bool add_suffix(const StringType& key, const fieldid_t& fid, const docid_t& item)
+    {
+        if (sdb_.hasKey(make_pair(make_pair(key,fid), item) ) )
+            return false;
+        size_t pos = 0;
+        for (; pos<key.length(); pos++)
+        {
+            StringType suf = key.substr(pos);
+            add(suf, fid, item);
+        }
+        return false;
+    }
+
+    bool add(const StringType& key, const fieldid_t& fid, const docid_t& item)
+    {
+        sdb_.insertValue(make_pair(make_pair(key,fid), item) );
+        return false;
+    }
+
+    void display()
+    {
+        sdb_.display();
+    }
+
+    void commit()
+    {
+        sdb_.commit();
+    }
+
+    void flush()
+    {
+        sdb_.flush();
+    }
+protected:
+    SDBTYPE sdb_;
 
 };
 
@@ -520,7 +596,7 @@ struct add_visitor::__operator<String>
         trim(v);
         IndexKeyType<String> key(colid, fid, v);
         BTreeIndexer::getIndexer<String>()->add_nodup(key, docid);
-        BTreeIndexer::getTrieIndexer()->add_suffix(v, docid);
+        BTreeIndexer::getTrieIndexer()->add_suffix(v, fid, docid);
     }
 };
 

@@ -163,7 +163,7 @@ void BTreeIndexer::getValueEnd(collectionid_t colID, fieldid_t fid, PropertyType
 {
     try
     {
-        pBTreeUStrSuffixIndexer_->getValueSuffix(boost::get<String>(value), docs);
+        pBTreeUStrSuffixIndexer_->getValueSuffix(boost::get<String>(value),fid, docs);
 
     }
     catch (...)
@@ -176,7 +176,7 @@ void BTreeIndexer::getValueSubString(collectionid_t colID, fieldid_t fid, Proper
 {
     try
     {
-        pBTreeUStrSuffixIndexer_->getValuePrefix(boost::get<String>(value), docs);
+        pBTreeUStrSuffixIndexer_->getValuePrefix(boost::get<String>(value), fid, docs);
     }
     catch (...)
     {
