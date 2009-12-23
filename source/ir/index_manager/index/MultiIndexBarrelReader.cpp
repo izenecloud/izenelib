@@ -18,7 +18,7 @@ MultiIndexBarrelReader::MultiIndexBarrelReader(Indexer* pIndexer,BarrelsInfo* pB
         pBarrelInfo = pBarrelsInfo_->next();
         if(pBarrelInfo->hasUpdateDocs)
         {
-            hasUpdatedBarrel = false;
+            hasUpdatedBarrel = true;
             break;
         }
     }
