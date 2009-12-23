@@ -98,7 +98,8 @@ fileoffset_t FieldMerger::merge(OutputDescriptor* pOutputDescriptor)
     Term* pTerm = NULL;
     FieldMergeInfo* pTop = NULL;
     fileoffset_t postingoffset = 0;
-
+    bool isSortingMerge = false;
+    freq_t sortingMergeDF = 0;
     while (pMergeQueue_->size() > 0)
     {
         nMatch = 0;
@@ -115,7 +116,7 @@ fileoffset_t FieldMerger::merge(OutputDescriptor* pOutputDescriptor)
             pTop = pMergeQueue_->top();
         }
 
-        postingoffset = mergeTerms(match,nMatch);
+        postingoffset = mergeTerms(match,nMatch,isSortingMerge,sortingMergeDF);
 
         if (postingoffset > 0)
         {
@@ -128,7 +129,10 @@ fileoffset_t FieldMerger::merge(OutputDescriptor* pOutputDescriptor)
             else
             {
                 cachedTermInfos_[nNumTermCached_]->pTerm_->setValue(pTerm->getValue());
-                cachedTermInfos_[nNumTermCached_]->pTermInfo_->set(pPostingMerger_->getPostingDescriptor().df,postingoffset);
+                if(isSortingMerge)
+                    cachedTermInfos_[nNumTermCached_]->pTermInfo_->set(sortingMergeDF,postingoffset);					
+                else
+                    cachedTermInfos_[nNumTermCached_]->pTermInfo_->set(pPostingMerger_->getPostingDescriptor().df,postingoffset);
             }
             nNumTermCached_++;
             if (nNumTermCached_ >= NUM_CACHEDTERMINFO)///cache is exhausted
@@ -277,7 +281,7 @@ fileoffset_t FieldMerger::endMerge(OutputDescriptor* pOutputDescriptor)
     return voffset;
 }
 
-fileoffset_t FieldMerger::sortingMerge(FieldMergeInfo** ppMergeInfos,int32_t numInfos, BitVector* pFilter)
+fileoffset_t FieldMerger::sortingMerge(FieldMergeInfo** ppMergeInfos,int32_t numInfos, BitVector* pFilter, freq_t& df)
 {
     if(!pMemCache_)
         pMemCache_ = new MemCache(MEMPOOL_SIZE_FOR_MERGING);
@@ -305,6 +309,7 @@ fileoffset_t FieldMerger::sortingMerge(FieldMergeInfo** ppMergeInfos,int32_t num
         }
     }
     fileoffset_t offset = newPosting->write(pPostingMerger_->getOutputDescriptor());
+    df = newPosting->docFreq();
     delete newPosting;
     pMemCache_->flushMem();
     return offset;

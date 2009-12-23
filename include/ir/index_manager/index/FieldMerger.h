@@ -244,9 +244,9 @@ private:
      * @param ppMergeInfos merge information array
      * @param numInfos size of info array
      */
-    inline fileoffset_t	mergeTerms(FieldMergeInfo** ppMergeInfos,int32_t numInfos);
+    inline fileoffset_t	mergeTerms(FieldMergeInfo** ppMergeInfos,int32_t numInfos, bool& isSortingMerge, freq_t& df);
 
-    fileoffset_t sortingMerge(FieldMergeInfo** ppMergeInfos,int32_t numInfos, BitVector* pFilter);
+    fileoffset_t sortingMerge(FieldMergeInfo** ppMergeInfos,int32_t numInfos, BitVector* pFilter, freq_t& df);
 
 private:
     /**
@@ -300,7 +300,7 @@ private:
 };
 //////////////////////////////////////////////////////////////////////////
 //inline
-inline fileoffset_t FieldMerger::mergeTerms(FieldMergeInfo** ppMergeInfos,int32_t numInfos)
+inline fileoffset_t FieldMerger::mergeTerms(FieldMergeInfo** ppMergeInfos,int32_t numInfos, bool& isSortingMerge, freq_t& df)
 {
     Posting* pPosting;
     bool mergePostingHasUpdatedDocs = false;
@@ -312,8 +312,12 @@ inline fileoffset_t FieldMerger::mergeTerms(FieldMergeInfo** ppMergeInfos,int32_
             break;
         }
     }
+    isSortingMerge = mergePostingHasUpdatedDocs;
     if(mergePostingHasUpdatedDocs)
-        return sortingMerge(ppMergeInfos, numInfos, pDocFilter_);
+    {
+        fileoffset_t ret = sortingMerge(ppMergeInfos, numInfos, pDocFilter_, df);
+        return ret;
+    }
 
     for (int32_t i = 0;i< numInfos;i++)
     {
