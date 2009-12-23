@@ -550,7 +550,7 @@ private:
 			{
 				_root->children[i]->unload();
 			}
-			if(_activeNodeNum !=1 ){
+			if(_activeNodeNum !=1 ) {
 				cout<<"Warning! multi-thread enviroment"<<endl;
 				_activeNodeNum = 1;
 			}
@@ -1617,9 +1617,6 @@ template<typename KeyType, typename ValueType, typename LockType, bool fixed,
 	getRoot();
 	// Determine if the root node is empty.
 	bool ret = (_root->objCount != 0);
-	if (_root->objCount == (size_t) -1) {
-		return 0;
-	}
 
 	// If we successfully deleted the key, and there
 	// is nothing left in the root node and the root
@@ -1629,8 +1626,16 @@ template<typename KeyType, typename ValueType, typename LockType, bool fixed,
 	// the new root to the start of the file so we
 	// know where to look
 	if (_root->objCount == 0 && !_root->isLeaf) {
+		sdb_node* node = _root;
 		_root = _root->children[0];
 		_root->parent = 0;
+		node->unloadself();
+		delete node;
+		node = 0;
+	}
+
+	if (_root->objCount == (size_t) -1) {
+		return 0;
 	}
 
 	// If our root is not empty, call the internal
@@ -1892,17 +1897,17 @@ template<typename KeyType, typename ValueType, typename LockType, bool fixed,
 	if (_root) {
 		delete _root;
 		_root = 0;
-	}	
+	}
 	// Unload each of the root's childrent.
 
-//	if (_root && !_root->isLeaf) {
-//		for (size_t i = 0; i < _root->objCount+1; i++) {
-//			sdb_node* pChild = _root->children[i];
-//			if ((sdb_node*)pChild != 0 && pChild->isLoaded) {
-//				_root->children[i]->unload();
-//			}
-//		}
-//	}
+	//	if (_root && !_root->isLeaf) {
+	//		for (size_t i = 0; i < _root->objCount+1; i++) {
+	//			sdb_node* pChild = _root->children[i];
+	//			if ((sdb_node*)pChild != 0 && pChild->isLoaded) {
+	//				_root->children[i]->unload();
+	//			}
+	//		}
+	//	}
 	return;
 }
 

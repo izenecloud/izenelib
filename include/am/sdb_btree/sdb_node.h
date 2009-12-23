@@ -181,7 +181,7 @@ public:
 		size_t i;
 		for (i=0; i<objCount; i++) {
 			if ( !isLeaf) {
-				if (children[i])
+				if (children && children[i])
 				children[i]->display(os);
 				os<<"----|";
 			}
