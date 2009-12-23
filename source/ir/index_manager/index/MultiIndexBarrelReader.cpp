@@ -11,6 +11,20 @@ MultiIndexBarrelReader::MultiIndexBarrelReader(Indexer* pIndexer,BarrelsInfo* pB
 {
     pBarrelsInfo_->startIterator();
     BarrelInfo* pBarrelInfo;
+
+    bool hasUpdatedBarrel = false;
+    while (pBarrelsInfo_->hasNext())
+    {
+        pBarrelInfo = pBarrelsInfo_->next();
+        if(pBarrelInfo->hasUpdateDocs)
+        {
+            hasUpdatedBarrel = false;
+            break;
+        }
+    }
+
+    pBarrelsInfo_->startIterator();
+
     while (pBarrelsInfo_->hasNext())
     {
         pBarrelInfo = pBarrelsInfo_->next();
@@ -18,6 +32,12 @@ MultiIndexBarrelReader::MultiIndexBarrelReader(Indexer* pIndexer,BarrelsInfo* pB
         ///it will be recovered when InMemoryTermReader can have multex reference of FieldIndexer
         if(pBarrelInfo->getWriter())
             continue;
+        if(hasUpdatedBarrel)
+        {
+            ///bypass old index during updating
+            if(!(pBarrelInfo->hasUpdateDocs))
+                continue;
+        }
 
         if (pBarrelInfo->getDocCount() > 0)
             addReader(pBarrelInfo);
