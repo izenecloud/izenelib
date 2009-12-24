@@ -5,7 +5,7 @@ GCC :=/usr/bin/gcc
 CC_OPTIONS :=  -O3 -g -Wall -c  -fmessage-length=0 -DDEBUG -pg
 
 LIBS =    /usr/local/lib/libboost_thread-gcc41-mt.so   /usr/local/lib/libboost_unit_test_framework-gcc41-mt.so   /usr/local/lib/libboost_serialization-gcc41-mt.so   ../../../../lib/libprocmeminfo.a	\
-	   ../../../../lib/libfebird.a	-L  ../../../../lib/  -lizene_log   -L /home/wps/workspace/wiselib/lib -lwiselib -L /usr/local/lib -lglog
+	   ../../../../lib/libfebird.a	-L  ../../../../lib/  -lizene_log  -lprocmeminfo  -L /home/wps/workspace/wiselib/lib -lwiselib -L /usr/local/lib -lglog
 
 INC_PATH := -I  /usr/local/include/boost-1_36/ -I ../../../../include/ -I ../../../../include/3rdparty/ -I /home/wps/workspace/wiselib/include
 
@@ -20,11 +20,20 @@ AM_OBJ1 := t_am1.o
  
 FLUSH_OBJ := t_flush.o 
 
-all:  t_flush t_sh  t_sdb_hash t_am1
 
+OBJS := $(patsubst %.cc, %.o, $(wildcard *.cc))
+
+.cc.o:
+
+	$(GPP) $(INC_PATH) $(CC_OPTIONS) $< 
 .cpp.o:
-	$(GPP) $(CC_OPTIONS) $(INC_PATH)  $< 
-	
+	$(GPP) $(CC_OPTIONS) $(INC_PATH)  $< 	
+
+
+all: test t_flush t_sh  t_sdb_hash t_am1
+
+test:  $(OBJS)
+	$(GPP) $(OBJS) $(LIBS)  -o $@ -pg  	
 	
 t_flush:  $(FLUSH_OBJ)
 	$(GPP) $(FLUSH_OBJ) $(LIBS)  -o $@ -pg	

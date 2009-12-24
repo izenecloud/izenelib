@@ -23,7 +23,6 @@ FieldsInfo::FieldsInfo(const FieldsInfo& src)
     {
         ppFieldsInfo_[i] = new FieldInfo(*(src.ppFieldsInfo_[i]));
         fdInfosByName_.insert(make_pair(ppFieldsInfo_[i]->name_.c_str(),ppFieldsInfo_[i]));
-        fdInfosById_.insert(make_pair(ppFieldsInfo_[i]->getID(),ppFieldsInfo_[i]));		
     }
 }
 
@@ -57,7 +56,6 @@ void FieldsInfo::setSchema(const IndexerCollectionMeta& collectionMeta)
                                                            it->isIndex());
            ppFieldsInfo_[n]->setColID(colId_);
            fdInfosByName_.insert(make_pair(ppFieldsInfo_[n]->getName(),ppFieldsInfo_[n]));
-           fdInfosById_.insert(make_pair(it->getPropertyId(),ppFieldsInfo_[n]));
            n++;
 	}
     }
@@ -81,7 +79,6 @@ void FieldsInfo::addField(FieldInfo* pFieldInfo)
         nNumFieldInfo_++;
 
         fdInfosByName_.insert(pair<string,FieldInfo*>(pInfo->getName(),pInfo));
-        fdInfosById_.insert(make_pair(pInfo->getID(),pInfo));
     }
 }
 
@@ -124,7 +121,6 @@ void FieldsInfo::read(IndexInput* pIndexInput)
 
             ppFieldsInfo_[i] = pInfo;
             fdInfosByName_.insert(pair<string,FieldInfo*>(pInfo->getName(),pInfo));
-            fdInfosById_.insert(make_pair(pInfo->getID(),pInfo));
         }
 
     }
@@ -195,7 +191,6 @@ void FieldsInfo::clear()
     nNumFieldInfo_ = 0;
 
     fdInfosByName_.clear();
-    fdInfosById_.clear();
 }
 
 void FieldsInfo::reset()
@@ -206,24 +201,23 @@ void FieldsInfo::reset()
     }
 }
 
-void FieldsInfo::setFieldOffset(fieldid_t fid,fileoffset_t offset)
+void FieldsInfo::setFieldOffset(const string& field, fileoffset_t offset)
 {
-    //ppFieldsInfo_[fid]->setIndexOffset(offset);
-    fdInfosById_[fid]->setIndexOffset(offset);
+    fdInfosByName_[field]->setIndexOffset(offset);
 }
-fileoffset_t FieldsInfo::getFieldOffset(fieldid_t fid)
+fileoffset_t FieldsInfo::getFieldOffset(const string& field)
 {
-    return fdInfosById_[fid]->getIndexOffset();//ppFieldsInfo_[fid]->getIndexOffset();
-}
-
-void FieldsInfo::setDistinctNumTerms(fieldid_t fid,uint64_t distterms)
-{
-    fdInfosById_[fid]->setDistinctNumTerms(distterms);//ppFieldsInfo_[fid]->setDistinctNumTerms(distterms);
+    return fdInfosByName_[field]->getIndexOffset();
 }
 
-uint64_t FieldsInfo::distinctNumTerms(fieldid_t fid)
+void FieldsInfo::setDistinctNumTerms(const string& field,uint64_t distterms)
 {
-    return fdInfosById_[fid]->distinctNumTerms();//ppFieldsInfo_[fid]->distinctNumTerms();
+    fdInfosByName_[field]->setDistinctNumTerms(distterms);
+}
+
+uint64_t FieldsInfo::distinctNumTerms(const string& field)
+{
+    return fdInfosByName_[field]->distinctNumTerms();
 }
 
 FieldInfo* FieldsInfo::getField(const char* field)

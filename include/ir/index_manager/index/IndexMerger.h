@@ -110,7 +110,7 @@ public:
      * merge sub indexes
      * @param pBarrelsInfo barrels of index
      */
-    void merge(BarrelsInfo* pBarrelsInfo);
+    void merge(BarrelsInfo* pBarrelsInfo,bool mergeUpdateOnly = false);
 
     /**
      * add a index barrel to merge
@@ -177,7 +177,7 @@ protected:
      * update barrel name and its base document id after merging.
      * @param pBarrelsInfo barrels of index
      */
-    virtual void pendingUpdate(BarrelsInfo* pBarrelsInfo);
+    virtual void updateBarrels(BarrelsInfo* pBarrelsInfo);
 
     /**
      * merge a merge barrel which contains more than one index barrels

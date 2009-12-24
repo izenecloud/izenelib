@@ -38,10 +38,8 @@ public:
     * Return the TermReader instance
     */
     virtual TermReader* termReader(collectionid_t colID) = 0;
-    virtual TermReader* termReader(collectionid_t colID,const char* field)
-    {
-        return NULL;
-    }
+
+    virtual TermReader* termReader(collectionid_t colID,const char* field) { return NULL; }
 
     virtual void deleteDocumentPhysically(IndexerDocument* pDoc) = 0;
 
@@ -51,8 +49,9 @@ public:
 
     virtual void reopen() = 0;
 
+    Indexer* getIndexer() { return pIndexer_; }
 protected:
-    Indexer* pIndexer;
+    Indexer* pIndexer_;
 };
 
 }

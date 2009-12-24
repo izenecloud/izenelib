@@ -41,10 +41,12 @@ void mapStage()
     size_t itemNum = src_sdb_.numItems();
     fwrite(&itemNum, sizeof(size_t), 1, f);
     unsigned short itemSize = sizeof(KeyType) + sizeof(ValueType);
-    typename UnorderedSdbType::SDBCursor locn = src_sdb_.get_first_Locn();
+    typename UnorderedSdbType::SDBCursor locn = src_sdb_.get_first_locn();
     KeyType k = KeyType();
     ValueType v = ValueType();
     while( src_sdb_.get(locn, k, v) ) {
+        std::cout << "1" << std::endl;
+        std::cout << k.first << "," << k.second << "," << v << std::endl;
         fwrite(&itemSize, sizeof(unsigned short), 1, f);
         fwrite(&k, sizeof(KeyType), 1, f);
         fwrite(&v, sizeof(ValueType), 1, f);
@@ -94,6 +96,7 @@ void reduceStage2()
     KeyType k = KeyType();
     ValueType v = ValueType();
     for( size_t i = 0; i < itemNum; i++ ) {
+        std::cout << "2" << std::endl;
 #ifdef DEBUG
         if(i%1000000 == 0)
             std::cout << "convert " << i << " elements" << std::endl;
@@ -107,6 +110,7 @@ void reduceStage2()
 #endif
         fread(&k, sizeof(KeyType), 1, f);
         fread(&v, sizeof(ValueType), 1, f);
+        std::cout << k.first << "," << k.second << "," << v << std::endl;
         dst_sdb_.insertValue(k, v);
     }
     fclose(f);
@@ -125,6 +129,8 @@ bool joinThread()
 
     std::remove(fin_.c_str());
     std::remove(fout_.c_str());
+
+    std::cout << dst_sdb_.numItems() << "," << src_sdb_.numItems() << std::endl;
 
     if(dst_sdb_.numItems() == src_sdb_.numItems())
         return true;

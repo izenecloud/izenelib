@@ -21,7 +21,7 @@ NS_IZENELIB_AM_BEGIN
  *	brief cc-b*-tree file header
  *
  *
-	@FileHeader
+ @FileHeader
  *
  *	   |----------------|
  *	   |   magic		|
@@ -44,70 +44,74 @@ NS_IZENELIB_AM_BEGIN
  *	   |----------------|
  */
 struct CbFileHeader {
-		int magic;	//set it as 0x061561, check consistence.
-		size_t maxKeys; //a node at mostly hold maxKeys items.
-		size_t pageSize;
-		size_t cacheSize;
-		size_t numItems;
-		long rootPos;
+	int magic; //set it as 0x061561, check consistence.
+	size_t maxKeys; //a node at mostly hold maxKeys items.
+	size_t pageSize;
+	size_t cacheSize;
+	size_t numItems;
+	long rootPos;
 
-	    size_t nPages;
-		size_t oPages;
+	size_t nPages;
+	size_t oPages;
 
-		CbFileHeader()
+	CbFileHeader()
+	{
+		magic = 0x061561;
+		maxKeys = 24;
+		pageSize = 1024;
+		cacheSize = 100*1024;
+		initialize();
+	}
+
+	void display(std::ostream& os = std::cout) {
+		os<<"magic: "<<magic<<endl;
+		os<<"maxKeys: "<<maxKeys<<endl;
+		os<<"pageSize: "<<pageSize<<endl;
+		os<<"cacheSize: "<<cacheSize<<endl;
+		os<<"numItem: "<<numItems<<endl;
+		os<<"rootPos: "<<rootPos<<endl;
+
+		os<<"node Pages: "<<nPages<<endl;
+		os<<"overflow Pages: "<<oPages<<endl;
+		os<<endl;
+		os<<"file size: "<<pageSize*(nPages+oPages)+sizeof(CbFileHeader)<<"bytes"<<endl;
+		if(nPages != 0)
 		{
-			magic = 0x061561;
-			maxKeys = 24;
-			pageSize = 1024;
-			cacheSize = 200*1024;
-			numItems = 0;
-			rootPos = sizeof(CbFileHeader);
-			nPages = 0;
-			oPages = 0;
+			os<<"average items number in a btree node: "<<double(numItems)/double(nPages)<<endl;
+			os<<"average overflow page for a node: "<<double(oPages)/double(nPages)<<endl;
 		}
 
-		void display(std::ostream& os = std::cout) {
-			os<<"magic: "<<magic<<endl;
-			os<<"maxKeys: "<<maxKeys<<endl;
-			os<<"pageSize: "<<pageSize<<endl;
-			os<<"cacheSize: "<<cacheSize<<endl;
-			os<<"numItem: "<<numItems<<endl;
-			os<<"rootPos: "<<rootPos<<endl;
+	}
 
-			os<<"node Pages: "<<nPages<<endl;
-			os<<"overflow Pages: "<<oPages<<endl;
-			os<<endl;
-			os<<"file size: "<<pageSize*(nPages+oPages)+sizeof(CbFileHeader)<<"bytes"<<endl;
-			if(nPages != 0)
-			{
-				os<<"average items number in a btree ndoe: "<<double(numItems)/double(nPages)<<endl;
-				os<<"average overflow page for a node: "<<double(oPages)/double(nPages)<<endl;
-			}
+	bool toFile(FILE* f)
+	{
+		if ( 0 != fseek(f, 0, SEEK_SET) )
+		return false;
+		fwrite(this, sizeof(CbFileHeader), 1, f);
+		return true;
+	}
 
-		}
+	bool fromFile(FILE* f)
+	{
+		if ( 0 != fseek(f, 0, SEEK_SET) )
+		return false;
+		if ( 1 != fread(this, sizeof(CbFileHeader), 1, f) )
+		return false;
 
-		bool toFile(FILE* f)
-		{
-			if ( 0 != fseek(f, 0, SEEK_SET) )
-				return false;
-			fwrite(this, sizeof(CbFileHeader), 1, f);	
-			return true;
-		}
+		return true;
+	}
 
-		bool fromFile(FILE* f)
-		{
-			if ( 0 != fseek(f, 0, SEEK_SET) )
-				return false;
-			if ( 1 != fread(this, sizeof(CbFileHeader), 1, f) )
-				return false;
+	void initialize() {
+		numItems = 0;
+		rootPos = sizeof(CbFileHeader);
+		nPages = 0;
+		oPages = 0;
+	}
 
-			return true;
-		}
-	};
+};
 
-
+const size_t SDB_FILE_HEAD_SIZE = 1024;
 NS_IZENELIB_AM_END
 
 #endif
-
 

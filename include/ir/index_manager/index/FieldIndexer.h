@@ -14,6 +14,8 @@
 #include <ir/index_manager/index/LAInput.h>
 #include <ir/index_manager/index/ForwardIndex.h>
 
+#include <util/ThreadModel.h>
+
 #include <3rdparty/am/stx/btree_map>
 
 #include <boost/thread.hpp>
@@ -65,7 +67,7 @@ public:
 
     TermReader* termReader();
 
-    boost::mutex& getLock() { return mutex_;}
+    izenelib::util::ReadWriteLock& getLock() { return rwLock_;}
 private:
     InMemoryPostingMap postingMap_;
 
@@ -75,7 +77,7 @@ private:
 
     fileoffset_t vocFilePointer_;
 
-    boost::mutex mutex_;
+    izenelib::util::ReadWriteLock rwLock_;
 
     friend class InMemoryTermReader;
     friend class InMemoryTermIterator;

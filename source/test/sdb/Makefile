@@ -41,8 +41,14 @@ obj11 = t_TrieIndexSDB.o
 obj12 = t_TrieIndexSDB1.o
 
 
-all:  t_TrieIndexSDB1  t_TrieIndexSDB  t_btree2  t_btree1  t_sdb t_btree2 t_nsdb t_IndexSDB t_IndexSDB1 t_mul_sdb  t_btree_str \
-      t_btree1 t_mul_sdb  t_nsdb t_overflow_btree 
+obj13 = t_sdb_query.o
+
+all: t_mul_sdb t_sdb_query #t_IndexSDB1 t_IndexSDB t_TrieIndexSDB1  t_TrieIndexSDB  t_btree2  t_btree1  t_sdb t_btree2 t_nsdb t_IndexSDB t_IndexSDB1 t_mul_sdb  t_btree_str \
+     # t_btree1 t_mul_sdb  t_nsdb t_overflow_btree 
+      
+t_sdb_query: $(obj13)
+
+	$(GPP) $(obj13) $(LIBS)  -o $@ -pg
 
 t_sdb: $(obj)
 

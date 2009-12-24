@@ -57,6 +57,10 @@ InMemoryIndexBarrelReader::~InMemoryIndexBarrelReader(void)
 {
     close();
 
+    for (map<collectionid_t, TermReader*>::iterator iter = termReaderMap.begin(); 
+        iter != termReaderMap.end(); ++iter)
+        delete iter->second;
+
     termReaderMap.clear();
 
     pIndexBarrelWriter = NULL;

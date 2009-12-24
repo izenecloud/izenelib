@@ -5,15 +5,15 @@ using namespace std;
 using namespace izenelib::sdb;
 
 const char* indexFile = "indexsdb1.dat";
-static string inputFile = "test.txt";
+static string inputFile = "test2.txt";
 static int degree =8;
 static size_t cacheSize = 1000000;
 bool trace = 0;
 
 typedef unsigned int FieldID;
 typedef unsigned int ColID;
-typedef unsigned int TermID;
-//typedef string TermID;
+//typedef unsigned int TermID;
+typedef string TermID;
 
 typedef unsigned int DocID;
 
@@ -25,7 +25,7 @@ struct KeyType {
 	KeyType() {
 		cid = 0;
 		fid = 0;
-		tid = 0;
+		tid = "";
 	}
 
 	KeyType(ColID c, FieldID f, TermID t) :
@@ -46,16 +46,16 @@ struct KeyType {
 			if (fid != other.fid)
 				return fid-other.cid;
 			else {
-				return tid-other.tid;
+				return tid.compare(other.tid);
 			}
 		}
 	}
 
-	/*bool isPrefix(const KeyType& other) const {
-		//cout<<"Key typeid "<<typeid(tid).name()<<endl;
-		if (typeid(tid).name() != "Ss") {
-			return false;
-		}
+	bool isPrefix(const KeyType& other) const {
+		cout<<"Key typeid "<<typeid(tid).name()<<endl;
+		display();
+		cout<<endl;
+		other.display();
 		if (cid != other.cid)
 			return false;
 		else {
@@ -69,7 +69,7 @@ struct KeyType {
 				}
 			}
 		}
-	}*/
+	}
 
 	void display(std::ostream& os = std::cout) const {
 		//cout<<"KeyType display...\n"<<endl;;
@@ -80,39 +80,37 @@ struct KeyType {
 
 };
 
-
 /*
 
-NS_IZENELIB_AM_BEGIN
+ NS_IZENELIB_AM_BEGIN
 
-namespace util {
+ namespace util {
 
-template<> inline void read_image< iKeyType<KeyType> >(iKeyType<KeyType>& key,
-		const DbObjPtr& ptr) {
-	memcpy(&key, ptr->getData(), ptr->getSize());
-}
+ template<> inline void read_image< iKeyType<KeyType> >(iKeyType<KeyType>& key,
+ const DbObjPtr& ptr) {
+ memcpy(&key, ptr->getData(), ptr->getSize());
+ }
 
-template<> inline void write_image< iKeyType<KeyType> >(
-		const iKeyType<KeyType>& key, DbObjPtr& ptr) {
-	ptr->setData(&key, sizeof(iKeyType<KeyType>));
-}*/
+ template<> inline void write_image< iKeyType<KeyType> >(
+ const iKeyType<KeyType>& key, DbObjPtr& ptr) {
+ ptr->setData(&key, sizeof(iKeyType<KeyType>));
+ }*/
 
 /*
-template<> inline void read_image<std::vector<DocID> >(std::vector<DocID>& val,
-		const DbObjPtr& ptr) {
-	val.resize(ptr->getSize()/sizeof(DocID));
-	memcpy(&val[0], ptr->getData(), ptr->getSize());
-}
+ template<> inline void read_image<std::vector<DocID> >(std::vector<DocID>& val,
+ const DbObjPtr& ptr) {
+ val.resize(ptr->getSize()/sizeof(DocID));
+ memcpy(&val[0], ptr->getData(), ptr->getSize());
+ }
 
-template<> inline void write_image<std::vector<DocID> >(
-		const std::vector<DocID>& val, DbObjPtr& ptr) {	
-	ptr->setData(&val[0], sizeof(DocID)*val.size() );
-}
+ template<> inline void write_image<std::vector<DocID> >(
+ const std::vector<DocID>& val, DbObjPtr& ptr) {	
+ ptr->setData(&val[0], sizeof(DocID)*val.size() );
+ }
 
-}
+ }
 
-NS_IZENELIB_AM_END*/
-
+ NS_IZENELIB_AM_END*/
 
 struct suffix {
 	string suf;
@@ -184,36 +182,40 @@ template<typename T, typename V> void run_insert(T& cm, V& dm) {
 	clock_t t1 = clock();
 
 	ifstream inf(inputFile.c_str());
-	//string ystr;
+	string ystr;
 
-	//while(inf>>ystr)
-	for(int i=0; i<100000; i++)
+	while (inf>>ystr)
+	//for(int i=0; i<100; i++)
 	{
-		//cout<<"input= "<<ystr<<endl;
-		int p = rand()%100000;
-		KeyType key(11, 22, p);
-		vector<DocID> vIdx;
+		if (trace)
+			cout<<"input= "<<ystr<<endl;
+		//int p = rand()%100000;
+		KeyType key(11, 22, ystr);
+		vector<string> vIdx;
 
-		int size = rand()%100;
+		int size = rand()%10;
 		for (int i=1; i<=size; i++) {
-			vIdx.push_back(i);
+			if (trace)
+				cout<<i<<":"<<ystr<<endl;
+			cm.add_nodup(key, ystr);
+			//vIdx.push_back(ystr);
 		}
 
-	/*	size_t pos = 0;
-		for (; pos<ystr.size(); pos++) {
-			string suf = ystr.substr(pos);
-			suffix skey(suf);
-			dm.add(skey, ystr);
-			//dm.display();
+		/*	size_t pos = 0;
+		 for (; pos<ystr.size(); pos++) {
+		 string suf = ystr.substr(pos);
+		 suffix skey(suf);
+		 dm.add(skey, ystr);
+		 //dm.display();
 
-		}*/
+		 }*/
 
 		//cout<<"\nupdate "<<size<<"\n\n";
-		if (cm.update(key, vIdx) ) {
-			if (trace) {
-				cm.display();
-			}
-		}
+		//		if (cm.update(key, vIdx) ) {
+		//			if (trace) {
+		//				cm.display();
+		//			}
+		//		}
 
 		if (trace) {
 			cout<<" After insert: key="<<key.tid<<endl;
@@ -238,13 +240,13 @@ template<typename T, typename V> void run_getValue_perf(T& cm, V&dm) {
 
 	clock_t t1 = clock();
 
-	vector<DocID> result;
+	vector<string> result;
 
 	//cout<<"pls input one key:\n";
 	//string str = "haha";
 	//string str1= "show";
-	int low = 113;
-	int high= 984;
+	TermID low = "howers";
+	TermID high= "wps";
 	//cin>>str;	
 	KeyType key(11, 22, low);
 	cout<<"\ngetValueGreat\n\n";
@@ -252,9 +254,7 @@ template<typename T, typename V> void run_getValue_perf(T& cm, V&dm) {
 
 	for (unsigned int i=0; i<result.size(); i++) {
 		if (trace) {
-			if (result[i] == 1)
-				cout<<"idx "<<endl;
-			cout<<result[i]<<endl;
+			cout<<i<<" : "<<result[i]<<endl;
 		}
 	}
 	result.clear();
@@ -263,9 +263,17 @@ template<typename T, typename V> void run_getValue_perf(T& cm, V&dm) {
 
 	for (unsigned int i=0; i<result.size(); i++) {
 		if (trace) {
-			if (result[i] == 1)
-				cout<<"idx "<<endl;
-			cout<<result[i]<<endl;
+			cout<<i<<" : "<<result[i]<<endl;
+		}
+	}
+
+	result.clear();
+	cout<<"\ngetValue\n\n";
+	cm.getValue(key, result);
+
+	for (unsigned int i=0; i<result.size(); i++) {
+		if (trace) {
+			cout<<i<<": "<<result[i]<<endl;
 		}
 	}
 	result.clear();
@@ -278,7 +286,7 @@ template<typename T, typename V> void run_getValue_perf(T& cm, V&dm) {
 	cm.getValueLess(key1, result);
 	for (unsigned int i=0; i<result.size(); i++) {
 		if (trace) {
-			cout<<result[i]<<endl;
+			cout<<i<<" : "<<result[i]<<endl;
 		}
 	}
 
@@ -287,7 +295,7 @@ template<typename T, typename V> void run_getValue_perf(T& cm, V&dm) {
 	cm.getValueLessEqual(key1, result);
 	for (unsigned int i=0; i<result.size(); i++) {
 		if (trace)
-			cout<<result[i]<<endl;
+			cout<<i<<" : "<<result[i]<<endl;
 	}
 
 	result.clear();
@@ -295,10 +303,20 @@ template<typename T, typename V> void run_getValue_perf(T& cm, V&dm) {
 	cm.getValueBetween(key, key1, result);
 	for (unsigned int i=0; i<result.size(); i++) {
 		if (trace)
-			cout<<result[i]<<endl;
+			cout<<i<<" : "<<result[i]<<endl;
 	}
 	result.clear();
-	
+
+	KeyType key2(11, 22, "a");
+
+	cout<<"\ngetValuePrefix\n\n";
+	cm.getValuePrefix(key2, result);
+	for (unsigned int i=0; i<result.size(); i++) {
+		if (trace) {
+			cout<<i<<" : "<<result[i]<<endl;
+		}
+	}
+
 	//cout<<"pls input substring\n";
 	//string suf = "c";
 	//cin>>suf;
@@ -309,123 +327,154 @@ template<typename T, typename V> void run_getValue_perf(T& cm, V&dm) {
 	//for (size_t i=0; i<vkey.size(); i++) {
 	//	if (trace)
 	//		cout<<vkey[i]<<endl;
-		//keys.push_back(KeyType(11, 22, vkey[i]) );
+	//keys.push_back(KeyType(11, 22, vkey[i]) );
 	//}
 
 	result.clear();
 	/*cm.getValueIn(keys, result);
-	for (unsigned int i=0; i<result.size(); i++) {
-		if (trace) {
-			cout<<result[i]<<endl;
-		}
-	}*/
-	printf("eclipse: %lf seconds\n", double(clock()- t1)/CLOCKS_PER_SEC);
+	 for (unsigned int i=0; i<result.size(); i++) {
+	 if (trace) {
+	 cout<<result[i]<<endl;
+	 }
+	 }*/
+	cout<<"delete key:"<<endl;
 
-}
-
-
-/*
-template<typename T, typename V> void run_getValue(T& cm, V&dm) {
-
-	vector<DocID> result;
-
-	cout<<"pls input one key:\n";
-	string str;
-	string str1;
-	cin>>str;
-	KeyType key(11, 22, str);
-	cout<<"\ngetValueGreat\n\n";
-	cm.getValueGreat(key, result);
+	cm.del(key);
+	result.clear();
+	cout<<"\ngetValue\n\n";
+	cm.getValue(key, result);
 
 	for (unsigned int i=0; i<result.size(); i++) {
 		if (trace) {
-			if (result[i] == 1)
-				cout<<"idx "<<endl;
-			cout<<result[i]<<endl;
+			cout<<i<<": "<<result[i]<<endl;
 		}
 	}
 	result.clear();
-	cout<<"\ngetValueGreatEqual\n\n";
-	cm.getValueGreatEqual(key, result);
 
-	for (unsigned int i=0; i<result.size(); i++) {
-		if (trace) {
-			if (result[i] == 1)
-				cout<<"idx "<<endl;
-			cout<<result[i]<<endl;
-		}
-	}
-	result.clear();
-	cout<<"pls input another key:\n";
-	cin>>str1;
-
-	KeyType key1(11, 22, str1);
-
-	cout<<"\ngetValueLess\n\n";
-	cm.getValueLess(key1, result);
-	for (unsigned int i=0; i<result.size(); i++) {
-		if (trace) {
-			cout<<result[i]<<endl;
-		}
-	}
-
-	result.clear();
-	cout<<"\ngetValueLessEqual\n\n";
-	cm.getValueLessEqual(key1, result);
-	for (unsigned int i=0; i<result.size(); i++) {
-		if (trace)
-			cout<<result[i]<<endl;
-	}
-
-	result.clear();
 	cout<<"\ngetValueBetween\n\n";
 	cm.getValueBetween(key, key1, result);
 	for (unsigned int i=0; i<result.size(); i++) {
 		if (trace)
-			cout<<result[i]<<endl;
+			cout<<i<<" : "<<result[i]<<endl;
 	}
 	result.clear();
-	cout<<"pls input substring\n";
-	string suf;
-	cin>>suf;
-	vector<string> vkey;
-	dm.getValuePrefix(suf, vkey);
-	vector<KeyType> keys;
-	for (size_t i=0; i<vkey.size(); i++) {
-		//if(trace)
-		cout<<vkey[i]<<endl;
-		keys.push_back(KeyType(11, 22, vkey[i]) );
-	}
 
-	result.clear();
-	cm.getValueIn(keys, result);
+	KeyType key3(11, 22, "the");
+	cm.remove(key3, "the");
+
+	cout<<"\ngetValueBetween\n\n";
+	cm.getValueBetween(key, key1, result);
 	for (unsigned int i=0; i<result.size(); i++) {
-		if (trace) {
-			cout<<result[i]<<endl;
-		}
+		if (trace)
+			cout<<i<<" : "<<result[i]<<endl;
 	}
-}
-*/
+	result.clear();
 
+	printf("eclipse: %lf seconds\n", double(clock()- t1)/CLOCKS_PER_SEC);
+
+}
 
 /*
-template<typename T> void run_del(T& cm) {
+ template<typename T, typename V> void run_getValue(T& cm, V&dm) {
 
-	ifstream inf2(inputFile.c_str());
-	string ystr;	
-	while (inf2>>ystr) {
-		//cout<<"input ="<<ystr<<" "<<endl;	
-		KeyType key(11, 22, ystr);
+ vector<DocID> result;
 
-		if (cm.del(key) ) {
-		}
-		if (trace) {
-			cout<<" After del: key="<<key.tid<<endl;
-			//cm.display();
-		}
-	}
-}
-*/
+ cout<<"pls input one key:\n";
+ string str;
+ string str1;
+ cin>>str;
+ KeyType key(11, 22, str);
+ cout<<"\ngetValueGreat\n\n";
+ cm.getValueGreat(key, result);
+
+ for (unsigned int i=0; i<result.size(); i++) {
+ if (trace) {
+ if (result[i] == 1)
+ cout<<"idx "<<endl;
+ cout<<result[i]<<endl;
+ }
+ }
+ result.clear();
+ cout<<"\ngetValueGreatEqual\n\n";
+ cm.getValueGreatEqual(key, result);
+
+ for (unsigned int i=0; i<result.size(); i++) {
+ if (trace) {
+ if (result[i] == 1)
+ cout<<"idx "<<endl;
+ cout<<result[i]<<endl;
+ }
+ }
+ result.clear();
+ cout<<"pls input another key:\n";
+ cin>>str1;
+
+ KeyType key1(11, 22, str1);
+
+ cout<<"\ngetValueLess\n\n";
+ cm.getValueLess(key1, result);
+ for (unsigned int i=0; i<result.size(); i++) {
+ if (trace) {
+ cout<<result[i]<<endl;
+ }
+ }
+
+ result.clear();
+ cout<<"\ngetValueLessEqual\n\n";
+ cm.getValueLessEqual(key1, result);
+ for (unsigned int i=0; i<result.size(); i++) {
+ if (trace)
+ cout<<result[i]<<endl;
+ }
+
+ result.clear();
+ cout<<"\ngetValueBetween\n\n";
+ cm.getValueBetween(key, key1, result);
+ for (unsigned int i=0; i<result.size(); i++) {
+ if (trace)
+ cout<<result[i]<<endl;
+ }
+ result.clear();
+ cout<<"pls input substring\n";
+ string suf;
+ cin>>suf;
+ vector<string> vkey;
+ dm.getValuePrefix(suf, vkey);
+ vector<KeyType> keys;
+ for (size_t i=0; i<vkey.size(); i++) {
+ //if(trace)
+ cout<<vkey[i]<<endl;
+ keys.push_back(KeyType(11, 22, vkey[i]) );
+ }
+
+ result.clear();
+ cm.getValueIn(keys, result);
+ for (unsigned int i=0; i<result.size(); i++) {
+ if (trace) {
+ cout<<result[i]<<endl;
+ }
+ }
+ }
+ */
+
+/*
+ template<typename T> void run_del(T& cm) {
+
+ ifstream inf2(inputFile.c_str());
+ string ystr;	
+ while (inf2>>ystr) {
+ //cout<<"input ="<<ystr<<" "<<endl;	
+ KeyType key(11, 22, ystr);
+
+ if (cm.del(key) ) {
+ }
+ if (trace) {
+ cout<<" After del: key="<<key.tid<<endl;
+ //cm.display();
+ }
+ }
+ }
+ */
 
 int main(int argc, char *argv[]) {
 
@@ -464,9 +513,9 @@ int main(int argc, char *argv[]) {
 
 		string sufFile("suffix1.dat");
 		IndexSDB<suffix, string> sufSDB(sufFile);
-		IndexSDB<KeyType, DocID> isdb(file);
+		IndexSDB<KeyType, string> isdb(file);
 
-		isdb.initialize(20, degree, 1024, cacheSize);
+		isdb.initialize();
 		sufSDB.initialize(20, degree, 1024*2, cacheSize);
 
 		run(isdb, sufSDB);

@@ -3,8 +3,8 @@
    @author Kevin Hu
    @date 2009.11.24
  */
-#ifndef ADDR_BUCKET_HPP
-#define ADDR_BUCKET_HPP
+#ifndef ADDR_BUCKET1_HPP
+#define ADDR_BUCKET1_HPP
 
 #include<types.h>
 #include <ostream>
@@ -82,6 +82,9 @@ public:
    */
   void flush()
   {
+    if (f_ == NULL)
+      return;
+    
     buf_.save(f_);
 
     fseek(f_, 0, SEEK_SET);
@@ -106,7 +109,7 @@ public:
 
     if (f_ == NULL)
     {
-      std::cout<<"can't open file: "<<filenm_<<std::endl;
+      //std::cout<<"can't open file: "<<filenm_<<std::endl;
       return;
     }
     else

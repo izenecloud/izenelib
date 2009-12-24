@@ -10,7 +10,7 @@
 #include <boost/thread.hpp>
 
 #include <ir/index_manager/utility/system.h>
-#include <ir/index_manager/store/Directory.h>
+#include <ir/index_manager/index/Indexer.h>
 #include <ir/index_manager/index/IndexBarrelReader.h>
 #include <ir/index_manager/index/TermInfo.h>
 #include <ir/index_manager/index/BarrelInfo.h>
@@ -18,6 +18,7 @@
 #include <ir/index_manager/index/ForwardIndexReader.h>
 #include <ir/index_manager/index/IndexerDocument.h>
 #include <ir/index_manager/index/DocLengthReader.h>
+#include <ir/index_manager/store/Directory.h>
 #include <ir/index_manager/utility/BitVector.h>
 
 NS_IZENELIB_IR_BEGIN
@@ -67,6 +68,11 @@ public:
     void delDocFilter();
 
     void reopen();
+
+    //boost::mutex& getGlobalLock() { return pIndexer_->mutex_; }
+    izenelib::util::ReadWriteLock& getGlobalLock() { return pIndexer_->mutex_; }
+
+    bool isDirty() {return pIndexer_->isDirty(); }
 private:
     void createBarrelReader();
 

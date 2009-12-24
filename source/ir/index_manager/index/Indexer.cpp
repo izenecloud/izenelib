@@ -1,4 +1,5 @@
 #include <ir/index_manager/index/Indexer.h>
+#include <ir/index_manager/index/IndexReader.h>
 #include <ir/index_manager/index/TermReader.h>
 #include <ir/index_manager/index/IndexMerger.h>
 #include <ir/index_manager/index/OfflineIndexMerger.h>
@@ -344,9 +345,15 @@ void Indexer::close()
 
 void Indexer::setDirty(bool bDirty)
 {
+    izenelib::util::ScopedWriteLock<izenelib::util::ReadWriteLock> lock(mutex_);
     dirty_ = bDirty;
     if(bDirty)
-        pIndexReader_->reopen();	
+    {
+        boost::thread::sleep(boost::get_system_time() + boost::posix_time::milliseconds(100));
+        pIndexReader_->reopen();
+        boost::thread::sleep(boost::get_system_time() + boost::posix_time::milliseconds(500));
+        dirty_ = false;
+    }
 }
 
 int Indexer::insertDocumentPhysically(IndexerDocument* pDoc)
@@ -361,15 +368,16 @@ int Indexer::insertDocument(IndexerDocument* pDoc)
     return 1;
 }
 
+int Indexer::updateDocument(IndexerDocument* pDoc)
+{
+    pIndexWriter_->addDocument(pDoc,true);
+    return 1;
+}
+
 int Indexer::removeDocumentPhysically(IndexerDocument* pDoc)
 {
     pIndexReader_->deleteDocumentPhysically(pDoc);
     return 1;
-}
-
-bool Indexer::startUpdate()
-{
-    return pIndexWriter_->startUpdate();
 }
 
 int Indexer::removeDocument(collectionid_t colID, docid_t docId)
@@ -491,9 +499,23 @@ bool Indexer::getDocsByTermInProperties(termid_t termID, collectionid_t colID, v
         if (NULL == pTermReader)
             return false;
 
+
+        if(isDirty())
+        {
+            delete pTermReader;
+            return false;
+        }
+
         Term term(properties[0].c_str(), termID);
         if (pTermReader->seek(&term))
         {
+
+            if(isDirty())
+            {
+                delete pTermReader;
+                return false;
+            }
+
             TermDocFreqs* pTermDocFreqs = pTermReader->termDocFreqs();
 
             while (pTermDocFreqs->next())
@@ -505,7 +527,6 @@ bool Indexer::getDocsByTermInProperties(termid_t termID, collectionid_t colID, v
         }
         else
         {
-            cout<<"can not find term"<<endl;
             delete pTermReader;
             return false;
         }
@@ -538,7 +559,6 @@ bool Indexer::getDocsByTermInProperties(termid_t termID, collectionid_t colID, v
         }
         else
         {
-            cout<<"can not find term"<<endl;
             return false;
         }
     }

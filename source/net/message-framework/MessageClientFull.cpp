@@ -38,7 +38,6 @@ MessageClientFull::MessageClientFull(const std::string& clientName,
 		const MessageFrameworkNode& controllerInfo) :
 	messageDispatcher_(this, this, this), asyncConnector_(this, io_service_) {
 	ownerManager_ = clientName;
-
 	//  information of service that retrieves permission of service
 	servicePermisionServer_ = controllerInfo;
 
@@ -47,7 +46,7 @@ MessageClientFull::MessageClientFull(const std::string& clientName,
 	batchProcessedRequestNumber_ = 128;
 	//batchProcessedRequestNumber_ = 1;
 	//batchProcessedRequestNumber_ = 32;
-	controllerNode_.nodeIP_ = getHostIp(io_service_, controllerInfo.nodeIP_);
+	controllerNode_.nodeIP_ = getHostIp(io_service_, controllerInfo.nodeIP_);	
 	controllerNode_.nodePort_ = controllerInfo.nodePort_;
 	controllerNode_.nodeName_ = controllerInfo.nodeName_;
 
@@ -62,7 +61,7 @@ MessageClientFull::MessageClientFull(const std::string& clientName,
 			connectionToControllerEstablishedMutex_);
 	boost::system_time const timeout = boost::get_system_time()
 			+ boost::posix_time::milliseconds(timeOutMilliSecond_);
-	
+
 	// there should not be any other thread waiting on connectionToControllerEvent_
 	try {
 		while (!connectionToControllerEstablished_) {
@@ -70,7 +69,7 @@ MessageClientFull::MessageClientFull(const std::string& clientName,
 					controllerInfo.nodePort_);
 			if ( !connectionToControllerEvent_.timed_wait(
 							connectionToControllerEstablishedLock, timeout) )
-				throw MessageFrameworkException(SF1_MSGFRK_CONNECTION_TIMEOUT, __LINE__, __FILE__);
+			throw MessageFrameworkException(SF1_MSGFRK_CONNECTION_TIMEOUT, __LINE__, __FILE__);
 		}
 	}
 	catch(MessageFrameworkException &e) {
@@ -234,7 +233,7 @@ bool MessageClientFull::checkAgentInfo_(ServicePermissionInfo& permissionInfo) {
 	static int count;
 	++count;
 
-	const std::map<std::string, MessageFrameworkNode> agentInfoMap =
+	 std::map<std::string, MessageFrameworkNode> agentInfoMap =
 			permissionInfo.getServerMap();
 	std::map<std::string, MessageFrameworkNode>::const_iterator it =
 			agentInfoMap.begin();
@@ -255,7 +254,29 @@ bool MessageClientFull::checkAgentInfo_(ServicePermissionInfo& permissionInfo) {
 
 }
 
+bool MessageClientFull::checkPermissionInfo_(
+		ServicePermissionInfo& permissionInfo) {
+	 std::map<std::string, MessageFrameworkNode> agentInfoMap =
+			permissionInfo.getServerMap();
+	std::map<std::string, MessageFrameworkNode>::iterator it =
+			agentInfoMap.begin();
+	for(; it !=agentInfoMap.end(); it++ )
+	{     
+	       //change 127.0.0.1 like ip to real ip 
+		if( it->second.nodeIP_ .substr(0, 3) == "127" ){		
+			MessageFrameworkNode node = it->second;	
+			node.nodeIP_ = controllerNode_.nodeIP_;		
+			it->second = node;
+			permissionInfo.setServer(it->first, it->second);
+		}
+	}
+	//permissionInfo.display();
+	return true;
+
+}
+
 void MessageClientFull::flushPermissionCache(const std::string& serviceName) {
+	boost::mutex::scoped_lock acceptedPermissionLock(acceptedPermissionMutex_);
 	acceptedPermissionList_.erase(serviceName);
 }
 
@@ -562,6 +583,7 @@ bool MessageClientFull::putServiceRequest(const MessageFrameworkNode& server,
 							DLOG(ERROR) << "[Client1:" << getName()
 							<< "] Reqeust id 0x" << hex << requestId << dec
 							<< " timeout" << std::endl;
+							boost::mutex::scoped_lock acceptedPermissionLock(acceptedPermissionMutex_);  							
 							acceptedPermissionList_.erase(serviceName);
 							goto get_service_result_fail;
 						}
@@ -681,7 +703,8 @@ bool MessageClientFull::putServiceRequest(const MessageFrameworkNode& server,
 				if ( false == semaphore->timed_wait(timeout) ) {
 					DLOG(ERROR) << "[Client:" << getName()
 					<< "] Reqeust id 0x" << hex << requestId << dec
-					<< " timeout" << std::endl;
+					<< " timeout" << std::endl;					
+					boost::mutex::scoped_lock acceptedPermissionLock(acceptedPermissionMutex_);					
 					acceptedPermissionList_.erase(serviceName);
 					return false;
 				}
@@ -806,12 +829,14 @@ bool MessageClientFull::putServiceRequest(const MessageFrameworkNode& server,
 		 servicePermissionInfo- the information of the PermissionOfService
 		 ******************************************************************************/
 		void MessageClientFull::receivePermissionOfServiceResult(
-				const ServicePermissionInfo& servicePermissionInfo) {
+				 const ServicePermissionInfo& servicePermissionInfo_) {
 
 			DLOG(INFO) << "[Client:" << getName()
-			<< "] Receive permission of " << servicePermissionInfo.getServiceName() << std::endl;
+			<< "] Receive permission of " << servicePermissionInfo_.getServiceName() << std::endl;
 
 			boost::mutex::scoped_lock acceptedPermissionLock(acceptedPermissionMutex_);
+			ServicePermissionInfo  servicePermissionInfo = servicePermissionInfo_;
+			checkPermissionInfo_(servicePermissionInfo);
 			acceptedPermissionList_[servicePermissionInfo.getServiceName()] = servicePermissionInfo;
 			acceptedPermissionLock.unlock();
 			newPermisionOfServiceEvent_.notify_all();
@@ -831,7 +856,8 @@ bool MessageClientFull::putServiceRequest(const MessageFrameworkNode& server,
 		void MessageClientFull::sendServiceRequest(
 				const ServiceRequestInfoPtr& requestInfo,
 				const MessageFrameworkNode& server) {
-
+			cout<<"!!!!!!!!!!!!!!!!!!1sendServiceRequest"	<<endl;
+                        server.display();
 			// now send the message to server
 			messageDispatcher_.sendDataToLowerLayer1(SERVICE_REQUEST_MSG, requestInfo,
 					server);
@@ -933,6 +959,7 @@ bool MessageClientFull::putServiceRequest(const MessageFrameworkNode& server,
 				boost::shared_ptr<tcp::socket> sock) {
 			// tcp::endpoint endpoint = sock->local_endpoint();
 			tcp::endpoint endpoint = sock->remote_endpoint();
+			
 			std::string logMsg;
 			logMsg = "Accept new connection, Remote IP = ";
 			logMsg += endpoint.address().to_string();

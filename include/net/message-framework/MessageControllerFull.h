@@ -271,6 +271,9 @@ protected:
 	AsyncStream* createAsyncStream(boost::shared_ptr<tcp::socket> sock);
 
 	friend class AsyncConnector;
+	
+private:
+	void saveLoadAvailableServiceList_(const string& fileName,  bool bStore);
 
 private:
 
@@ -323,8 +326,8 @@ private:
 	/**
 	 * @brief the list of availabe service
 	 */
-	//boost::unordered_map<std::string, ServiceInfo> availableServiceList_;
-	boost::unordered_map<std::string, ServicePermissionInfo> availableServiceList_;
+	std::map<std::string, ServicePermissionInfo> availableServiceList_;
+	//boost::unordered_map<std::string, ServicePermissionInfo> availableServiceList_;
 
 	/**
 	 * @brief mutex to allow exclusively access to availableServiceList_

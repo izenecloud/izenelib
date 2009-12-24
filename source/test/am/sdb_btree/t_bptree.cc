@@ -1,5 +1,4 @@
 #include <am/sdb_btree/sdb_bptree.h>
-#include <am/sdb_btree/sdb_vbtree.h>
 #include <am/sdb_btree/sdb_btree.h>
 
 #include <boost/test/unit_test.hpp>
@@ -9,8 +8,7 @@ using namespace izenelib::am;
 typedef string KeyType;
 typedef int ValueType;
 typedef sdb_btree<KeyType, ValueType> SDB_BTREE;
-typedef sdb_btree<KeyType, ValueType> SDB_BPTREE;
-typedef sdb_vbtree<KeyType, ValueType> SDB_VBPTREE;
+typedef sdb_bptree<KeyType, ValueType> SDB_BPTREE;
 typedef SDB_BPTREE::SDBCursor SDBCursor;
 
 static string inputFile("../../db/test2.txt");
@@ -18,10 +16,10 @@ static string inputFile1("../../db/wordlist.txt");
 //static string inputFile2("../../db/wordlist_PLU.txt");
 static string inputFile2("../../db/wordlist_PLU.txt");
 static bool trace = false;
-int num = 10000000;
+static int num = 10000000;
 
-SDB_BPTREE cm("bptree.dat");
-SDB_BPTREE cm1("bptree1.dat#");
+static SDB_BPTREE cm("bptree11.dat");
+static SDB_BPTREE cm1("bptree21.dat#");
 
 
 struct MyKeyType{
@@ -42,15 +40,14 @@ struct MyKeyType{
 
 MAKE_FEBIRD_SERIALIZATION( MyKeyType );
 
-void test_user_defined_type(){
+static void test_user_defined_type(){
 	sdb_bptree<MyKeyType, int> sdb1;
 	sdb_btree<MyKeyType, int> sdb2;
-	sdb_vbtree<MyKeyType, int> sdb3;	
 }
 
 
-void test_mykeytype(){
-	sdb_bptree<MyKeyType, int> cm("cool.dat");
+static void test_mykeytype(){
+	sdb_bptree<MyKeyType, int> cm("cool1.dat");
 	cm.open();
 	cout<<"\ninsert_test"<<endl;
 	cout<<"SerialType: "<<IsFebirdSerial<std::vector<MyKeyType>  >::yes<<endl; 
@@ -94,15 +91,15 @@ void test_mykeytype(){
 	
 }
 
-void test_openclose() {
+static void test_openclose() {
 	{
-		SDB_BTREE tdb("t1.dat");
+		SDB_BTREE tdb("t11.dat");
 		tdb.open();
 		tdb.close();
 		tdb.open();
 	}
 	{
-		SDB_BTREE tdb("t2.dat");
+		SDB_BTREE tdb("t21.dat");
 		tdb.close();
 		tdb.open();
 		tdb.insert("a", 1);
@@ -111,7 +108,7 @@ void test_openclose() {
 		tdb.open();
 	}
 	{
-		SDB_BTREE tdb("t3.dat");
+		SDB_BTREE tdb("t31.dat");
 		tdb.open();
 		tdb.display(cout, false);
 		//tdb.flush();

@@ -39,6 +39,13 @@ public:
 	}
 
 	/** 
+	 * @ brief Get entity mutex. 
+	 */
+	boost::shared_mutex& get_entity() {
+		return rwMutex_;
+	}
+
+	/** 
 	 * @ brief Attempts to get the read lock. 
 	 */
 	inline int acquire_read_lock() {
@@ -95,5 +102,9 @@ public:
 };
 
 NS_IZENELIB_UTIL_END
+
+namespace boost{
+typedef boost::detail::try_lock_wrapper<boost::shared_mutex> shared_scoped_try_lock;
+}
 
 #endif

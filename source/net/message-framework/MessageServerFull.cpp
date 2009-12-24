@@ -329,7 +329,7 @@ void MessageServerFull::receiveServiceRequest(
  */
 void MessageServerFull::sendServiceRegistrationRequest(
 		ServiceRegistrationMessage& message) {
-	message.setServer(server_);
+	message.setServer(server_);	
 	message.setRequester(ownerManager_);
 	messageDispatcher_.sendDataToLowerLayer(SERVICE_REGISTRATION_REQUEST_MSG,
 			message, controllerNode_);

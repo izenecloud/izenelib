@@ -171,6 +171,11 @@ protected:
 
   inline size_t binary_search(VALUE_TYPE t, size_t low, size_t high)const
   {
+    if (length_ == 0)
+      return -1;
+    
+    IASSERT(high>=low);
+    
     size_t mid;
     
     if (t> ARRAY(p_)[length_-1])
@@ -269,11 +274,17 @@ protected:
   **/
   uint32_t partition_(VALUE_TYPE* array, uint32_t left, uint32_t right)
   {
-    uint32_t pivotIndex = findMedianIndex_(array, left, right), index = left, i;
+    IASSERT(right<length_);
+    IASSERT(left<=right);
+    
+    uint32_t pivotIndex = findMedianIndex_(array, left, right);
+    uint32_t index = left;
+    
     VALUE_TYPE pivotValue = array[pivotIndex];
  
     swap_(&array[pivotIndex], &array[right]);
-    
+
+    uint32_t i;
     for(i = left; i <right; i++)
     {
       if(array[i] <= pivotValue)
@@ -292,6 +303,9 @@ protected:
    **/
   void quickSort_(VALUE_TYPE* array, uint32_t left, uint32_t right)
   {
+    if (left == right)
+      return;
+    
     IASSERT(left < right);
 
     IASSERT(right < length_);

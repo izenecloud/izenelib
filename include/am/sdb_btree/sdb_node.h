@@ -71,6 +71,11 @@ public:
 		delete [] keys;
 		if(values)
 		delete [] values;
+		if (children) 
+			for (size_t i=0; i<_fh.maxKeys+1; i++){
+				delete children[i];
+				children[i] = NULL;
+			}
 		if(children)
 		delete [] children;
 	}
@@ -176,7 +181,7 @@ public:
 		size_t i;
 		for (i=0; i<objCount; i++) {
 			if ( !isLeaf) {
-				if (children[i])
+				if (children && children[i])
 				children[i]->display(os);
 				os<<"----|";
 			}
@@ -271,6 +276,11 @@ template<typename KeyType, typename ValueType, typename LockType, bool fixed,
 	}
 
 	//cout<<"read from fpos "<<fpos<<endl;
+	ScopedWriteLock<LockType> lock(_fileLock);
+	
+	if (isLoaded) {
+		return true;
+	}
 
 	// get to the right location
 	if (0 != fseek(f, fpos, SEEK_SET)) {
@@ -320,7 +330,8 @@ template<typename KeyType, typename ValueType, typename LockType, bool fixed,
 
 		//Only allocate childnode when the node is no a leaf node.
 		if ( !isLeaf) {
-			children = new sdb_node_*[_fh.maxKeys+1];
+			if( !children )
+				children = new sdb_node_*[_fh.maxKeys+1];
 			for (size_t i=0; i<_fh.maxKeys+1; i++)
 				children[i] = NULL;
 			for (size_t i = 0; i <= objCount; i++) {
@@ -486,6 +497,8 @@ template<typename KeyType, typename ValueType, typename LockType, bool fixed,
 	char* p = pBuf;
 
 	//cout<<"write fpos="<<fpos<<endl;
+	ScopedWriteLock<LockType> lock(_fileLock);
+
 	// get to the right location
 	if (0 != fseek(f, fpos, SEEK_SET)) {
 		//assert(false);
@@ -636,8 +649,7 @@ template<typename KeyType, typename ValueType, typename LockType, bool fixed,
 		//oveflow
 		//cout<<"writing overflow!!!!"<<endl;
 		if (_overflowAddress <0 || _overflowPageCount < np-1) {
-			_overflowAddress = sizeof(CbFileHeader)+_pageSize *(_fh.nPages
-					+_fh.oPages);
+			_overflowAddress = 1024 +_pageSize *(_fh.nPages +_fh.oPages);
 			_fh.oPages += (np-1);
 		}
 		_overflowPageCount = np-1;
@@ -673,9 +685,9 @@ template<typename KeyType, typename ValueType, typename LockType, bool fixed,
 	child->childNo = childNum;
 	child->parent = this;
 	if (child && !child->isLoaded) {
-		_fileLock.acquire_write_lock();
+		//_fileLock.acquire_write_lock();
 		child->read(f);
-		_fileLock.release_write_lock();
+		//_fileLock.release_write_lock();
 	}
 
 	return child;
@@ -689,9 +701,9 @@ template<typename KeyType, typename ValueType, typename LockType, bool fixed,
 	if (isLoaded) {
 		if ( !isLeaf) {
 			for (size_t i=0; i<objCount+1; i++) {
-				if (children[i]) {
+				if (children && children[i]) {
 					children[i]->unload();
-					if (children[i]) {
+					if (children && children[i]) {
 						delete children[i];
 						children[i] = 0;
 					}

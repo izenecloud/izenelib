@@ -25,7 +25,7 @@ void trimright( string& s )
     string::reverse_iterator it;
 
     for ( it = s.rbegin(); it != s.rend(); it++ )
-        if ( !std::isspace( *it ) )
+        if ( !std::isspace( *it )  && !std::iscntrl( *it ) )
             break;
 
     dt = s.rend() - it;
@@ -38,6 +38,37 @@ void trim( string& s )
     trimleft( s );
     trimright( s );
 }
+
+void trimleft(wiselib::UString& s )
+{
+    wiselib::UString::iterator it;
+
+    for ( it = s.begin(); it != s.end(); it++ )
+        if ( !wiselib::UString::isThisSpaceChar(*it))
+            break;
+    s.erase( s.begin(), it );
+}
+
+void trimright( wiselib::UString& s )
+{
+    wiselib::UString::reverse_iterator it = s.rbegin();
+
+    size_t i = 0;
+    for ( ; it != s.rend(); it++, i++ )
+        if ( !wiselib::UString::isThisSpaceChar( *it )  && !wiselib::UString::isThisControlChar( *it ) )
+            break;
+    size_t dt = s.length() - i;
+    s.erase( s.begin() + dt, s.end() );
+}
+
+void trim( wiselib::UString& s )
+{
+    if(s.empty())
+        return;
+    trimleft( s );
+    trimright( s );
+}
+
 
 int datetime_to_int(string& s)
 {

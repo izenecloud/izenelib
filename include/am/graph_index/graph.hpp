@@ -9,8 +9,8 @@
 #include "dyn_array.hpp"
 #include "id_transfer.hpp"
 #include "addr_bucket.hpp"
-#include<string>
-#include<vector>
+#include <string>
+#include <vector>
 #include <time.h>
 #include <boost/filesystem.hpp>
 //#include <fstream>
@@ -336,8 +336,8 @@ friend std::ostream& operator << (std::ostream& os, const LEAF_STRUCT& v)
 
 
 template<
-  uint32_t BUCKET_NUM = 895,//!< used for alpha sort, number of inputfiles
-  uint32_t BATCH_SAVE_SIZE = 100, //!< number of branch of root for one time saving.
+  uint32_t BUCKET_NUM = 800,//!< the max size per bucket
+  uint32_t BATCH_SAVE_SIZE = 1000, //!< number of branch of root for one time saving.
   bool LEAN_MODE = false,
   class TERM_TYPE = uint32_t,
   //uint32_t SAVE_RATIO = 500,//number of branch for saving
@@ -497,7 +497,7 @@ class Graph
   
   void save_edge_(FILE* nid_f, FILE* doc_f, FILE* leaf_f,  NID_LEN_TYPE nid, bool root = false)
   {    
-    if (!loads_.at(nid))
+    if (loads_.length()==0 || !loads_.at(nid))
       return;
     
     if (nid!=0 || root)
@@ -590,7 +590,7 @@ class Graph
   
   void load_edge_(NID_LEN_TYPE nid, double ratio)
   {
-    if (loads_.at(nid))
+    if (loads_.length()==0 || loads_.at(nid))
       return;
 
     if (nodes_.at(nid) == (sorted_edges_t*)-1)
@@ -723,23 +723,23 @@ class Graph
     doclist += docs;
   }
 
-  uint32_t min_(sort_freq_t* array)
-  {
-    uint32_t i  = 0;
-    uint32_t min = 0;
+//   uint32_t min_(sort_freq_t* array)
+//   {
+//     uint32_t i  = 0;
+//     uint32_t min = 0;
 
-    for (uint32_t k=0;k<BUCKET_NUM;++k)
-    {
-      if (array[k].FREQ()>min)
-      {
-        i = k;
-        min = array[k].FREQ();
-      }
+//     for (uint32_t k=0;k<buckets_.size()-1;++k)
+//     {
+//       if (array[k].FREQ()>min)
+//       {
+//         i = k;
+//         min = array[k].FREQ();
+//       }
       
-    }
+//     }
 
-    return i;
-  }
+//     return i;
+//   }
 
   void leaf_reset()
   {
@@ -1039,7 +1039,7 @@ public:
       ids.push_back(terms[i]/*id_mgr_.insert(terms[i])*/);
 
     IASSERT(ids.length() == terms.size());
-
+    
     sorter_->add_terms(ids, docid);
   }
 
@@ -1293,12 +1293,21 @@ public:
 
   /**
      @brief load nodes by this ratio
+     @return false if it's empty
    */
-  void ratio_load(double ratio = 0.9)
+  bool ratio_load(double ratio = 0.9)
   {
     free_mem_();
     IASSERT(ratio <= 1.);
     FILE* v_f = fopen((filenm_+".v").c_str(), "r");
+    if (v_f == NULL)
+      return false;
+    
+    fseek(v_f, 0, SEEK_END);
+    if (ftell(v_f)==0)
+      return false;
+
+    fseek(v_f, 0, SEEK_SET);
     nodes_.load(v_f);
     freqs_.load(v_f);
     docs_.load(v_f);
@@ -1323,6 +1332,7 @@ public:
     load_edge_(0, ratio);
 
     //std::cout<<docs_<<std::endl;
+    return true;
   }
 
   /**
@@ -1596,10 +1606,12 @@ friend std::ostream& operator <<(std::ostream& os, const self_t& g)
         fseek(leaf_f_, 0, SEEK_END);
         save_edge_(nid_f_, doc_f_, leaf_f_, 0);
         //leaf_reset();
-        std::cout<<i*1./rootNode.children_num()*100.<<"% ...\n";
+        std::cout<<"\r";
+        std::cout<<i*1./rootNode.children_num()*100.<<"% ..."<<std::flush;
       }
       ++i;
     }
+    std::cout<<std::endl;
 
     fseek(nid_f_, 0, SEEK_END);
     fseek(doc_f_, 0, SEEK_END);
@@ -1698,6 +1710,9 @@ friend std::ostream& operator <<(std::ostream& os, const self_t& g)
       :graph_(graph),edge_(edge)
     {
       if (edge_.NID()>=LEAF_BOUND)
+        return;
+
+      if (graph_->loads_.length()==0)
         return;
       
       if (graph_->loads_.at(edge_.NID()))

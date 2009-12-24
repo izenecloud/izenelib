@@ -12,11 +12,12 @@
 
 #include <ir/index_manager/index/CommonItem.h>
 #include <ir/index_manager/index/IndexWriter.h>
-#include <ir/index_manager/index/IndexReader.h>
 #include <ir/index_manager/index/BTreeIndex.h>
 #include <ir/index_manager/index/IndexerDocument.h>
 #include <ir/index_manager/store/Directory.h>
 #include <ir/index_manager/utility/BitVector.h>
+
+#include <util/ThreadModel.h>
 
 #include <boost/noncopyable.hpp>
 #include <boost/thread.hpp>
@@ -49,6 +50,7 @@ class BarrelsInfo;
 class UDTFSAgent;
 class BTreeIndexerClient;
 class BTreeIndexerServer;
+class IndexReader;
 /**
 *The interface class of IndexManager component in SF1v5.0
  * @brief It is the interface component of the IndexManager.
@@ -71,13 +73,8 @@ public:
     int removeDocumentPhysically(IndexerDocument* pDoc);
     ///mark a document as deleted
     int removeDocument(collectionid_t colID, docid_t docId);
-    /// Working flow of updating:
-    /// 1. pIndexer->removeDocument(docId);
-    /// 2. pIndexer->startUpdate();
-    /// 3. pIndexer->insertDocument(pDoc);
-    /// 4. pIndexer->flush();
-    /// 5. pIndexer->optimizeIndex();
-    bool startUpdate();
+    ///update document
+    int updateDocument(IndexerDocument* pDoc);	
     /// flush in-memory index to disk
     void flush();
     /// merge all index barrels into a single barrel
@@ -150,6 +147,8 @@ public:
 
     const std::map<std::string, IndexerCollectionMeta>& getCollectionsMeta();
 
+    izenelib::util::ReadWriteLock& getLock() { return mutex_; }
+
 public:
     BarrelsInfo* getBarrelsInfo() { return pBarrelsInfo_; }
 
@@ -158,6 +157,8 @@ public:
     void setBasePath(std::string basePath);
 
     void setDirty(bool bDirty);
+
+    bool isDirty() { return dirty_; }
 
     IndexWriter* getIndexWriter(){return pIndexWriter_;}
     
@@ -183,7 +184,7 @@ protected:
 
     Directory* pDirectory_;
 
-    bool dirty_;
+    volatile bool dirty_;
 
     BarrelsInfo* pBarrelsInfo_;
 
@@ -193,7 +194,7 @@ protected:
 
     IndexManagerConfig* pConfigurationManager_;
 
-    boost::mutex mutex_;
+    izenelib::util::ReadWriteLock mutex_;
 
     BTreeIndexer* pBTreeIndexer_;
 

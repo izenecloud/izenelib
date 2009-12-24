@@ -38,6 +38,8 @@ Type generateData(const int a, int num=1000000, bool rand=false) {
 }
 
 template<> inline string generateData<string>(const int a, int num, bool rand) {
+	if (num < 1000000)
+		num = 1000000;
 	char p[10];
 	int b;
 	if (rand)
@@ -49,6 +51,8 @@ template<> inline string generateData<string>(const int a, int num, bool rand) {
 }
 
 template<> inline int generateData<int>(const int a, int num, bool rand) {
+	if (num < 1000000)
+		num = 1000000;
 	if (rand)
 		return myrand()%(num+1);
 	else
@@ -56,6 +60,8 @@ template<> inline int generateData<int>(const int a, int num, bool rand) {
 }
 
 template<> inline float generateData<float>(const int a, int num, bool rand) {
+	if (num < 1000000)
+		num = 1000000;
 	if (rand)
 		return float(myrand())/(num+1);
 	else
@@ -89,8 +95,7 @@ template<typename KeyType, typename ValueType, typename AM, bool open=false> cla
 	int loop_;
 	bool trace_;
 	AMOBJ<KeyType, ValueType, AM, open>* am_;
-	izenelib::util::ClockTimer timer;
-	typedef typename AM::SDBCursor SDBCursor;
+	izenelib::util::ClockTimer timer;	
 public:
 	AmTest() :
 		rand_(true), num_(1000000), loop_(1), trace_(false) {
@@ -195,6 +200,7 @@ public:
 				cout<<"find key="<<generateData<KeyType>(i, num_, rand_)<<endl;
 			}
 #endif
+
 			ValueType pv;
 			bool ret = am_->get(generateData<KeyType>(i, num_, rand_), pv);
 			if (ret) {
@@ -248,6 +254,8 @@ public:
 	}
 
 	void run_seq(bool mem=true) {
+		typedef typename AM::SDBCursor SDBCursor;
+		
 		clock_t t1 = clock();
 		timer.restart();
 		if (open)

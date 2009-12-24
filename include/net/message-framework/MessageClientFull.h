@@ -255,7 +255,7 @@ namespace messageframework
  		 * servicePermissionInfo - the information of the PermissionOfService
  		 */
 		void receivePermissionOfServiceResult(
-							const ServicePermissionInfo& servicePermissionInfo);
+							const  ServicePermissionInfo& servicePermissionInfo);
 		/*** End of Interfaces of PermissionRequester ***/
 
 		const std::string& getName(){return ownerManager_;}
@@ -284,6 +284,7 @@ namespace messageframework
 
 	private:
 		bool checkAgentInfo_(ServicePermissionInfo& permissionInfo);
+		bool checkPermissionInfo_(ServicePermissionInfo& permissionInfo);
 		
 		/**
 		 * @brief The request list, it contains the result of the service if the result

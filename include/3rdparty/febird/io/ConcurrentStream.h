@@ -8,8 +8,7 @@
 
 #include "../stdtypes.h"
 
-#include "../thread/lockable.h"
-#include "../thread/LockSentry.h"
+#include <boost/thread.hpp>
 
 namespace febird {
 
@@ -19,7 +18,7 @@ class ConcurrentStreamWrapper : public StreamClass
 	ConcurrentStreamWrapper(const ConcurrentStreamWrapper&);
 	ConcurrentStreamWrapper& operator=(const ConcurrentStreamWrapper&);
 protected:
-	thread::MutexLock lock;
+	mutable boost::mutex mutex_;
 public:
 	ConcurrentStreamWrapper() {}
 
@@ -32,85 +31,85 @@ public:
 
 	int getByte()
 	{
-		thread::MutexLock::Sentry sentry(lock);
+		boost::mutex::scoped_lock lock(mutex_);
 		return StreamClass::getByte();
 	}
 	byte readByte()
 	{
-		thread::MutexLock::Sentry sentry(lock);
+		boost::mutex::scoped_lock lock(mutex_);
 		return StreamClass::readByte();
 	}
 	void writeByte(byte b) 
 	{
-		thread::MutexLock::Sentry sentry(lock);
+		boost::mutex::scoped_lock lock(mutex_);
 		return StreamClass::writeByte(b);
 	}
 	size_t read(void* data, size_t length)
 	{
-		thread::MutexLock::Sentry sentry(lock);
+		boost::mutex::scoped_lock lock(mutex_);
 		return StreamClass::read(data, length);
 	}
 	size_t write(const void* data, size_t length)
 	{
-		thread::MutexLock::Sentry sentry(lock);
+		boost::mutex::scoped_lock lock(mutex_);
 		return StreamClass::write(data, length);
 	}
 	void flush()
 	{
-		thread::MutexLock::Sentry sentry(lock);
+		boost::mutex::scoped_lock lock(mutex_);
 		StreamClass::flush();
 	}
 	bool eof()
 	{
-		thread::MutexLock::Sentry sentry(lock);
+		boost::mutex::scoped_lock lock(mutex_);
 		return StreamClass::eof();
 	}
 
 	bool seek(size_t newPos)
 	{
-		thread::MutexLock::Sentry sentry(lock);
+		boost::mutex::scoped_lock lock(mutex_);
 		return StreamClass::seek(newPos);
 	}
 	bool seek(long offset, int origin)
 	{
-		thread::MutexLock::Sentry sentry(lock);
+		boost::mutex::scoped_lock lock(mutex_);
 		return StreamClass::seek(offset, origin);
 	}
 	size_t tell()
 	{
-		thread::MutexLock::Sentry sentry(lock);
+		boost::mutex::scoped_lock lock(mutex_);
 		return StreamClass::tell();
 	}	
 
 // for divided dual IO
 	bool seekp(size_t newPos)
 	{
-		thread::MutexLock::Sentry sentry(lock);
+		boost::mutex::scoped_lock lock(mutex_);
 		return StreamClass::seekp(newPos);
 	}
 	bool seekp(long offset, int origin)
 	{
-		thread::MutexLock::Sentry sentry(lock);
+		boost::mutex::scoped_lock lock(mutex_);
 		return StreamClass::seekp(offset, origin);
 	}
 	size_t tellp()
 	{
-		thread::MutexLock::Sentry sentry(lock);
+		boost::mutex::scoped_lock lock(mutex_);
 		return StreamClass::tellp();
 	}
 	bool seekg(size_t newPos)
 	{
-		thread::MutexLock::Sentry sentry(lock);
+		boost::mutex::scoped_lock lock(mutex_);
 		return StreamClass::seekg(newPos);
 	}
 	bool seekg(long offset, int origin)
 	{
-		thread::MutexLock::Sentry sentry(lock);
+		boost::mutex::scoped_lock lock(mutex_);
 		return StreamClass::seekg(offset, origin);
 	}
 	size_t tellg()
 	{
-		thread::MutexLock::Sentry sentry(lock);
+		boost::mutex::scoped_lock lock(mutex_);
 		return StreamClass::tellg();
 	}
 };

@@ -20,7 +20,9 @@ DocLengthReader::DocLengthReader(const std::set<IndexerPropertyConfig, IndexerPr
         if(iter->isForward()&&iter->isIndex())
         {
             numIndexedProperties_++;
-            propertyOffsetMap_[iter->getPropertyId()] = offset++;
+            ///This judgement is necessary because aliased properties have the same property id
+            if(0 == propertyOffsetMap_[iter->getPropertyId()])
+                propertyOffsetMap_[iter->getPropertyId()] = offset++;
         }
     }
 }
@@ -33,14 +35,22 @@ DocLengthReader::~DocLengthReader()
 
 void DocLengthReader::load(docid_t maxDocId)
 {
+    boost::mutex::scoped_lock lock(this->mutex_);
+
     if(data_) {delete data_; data_ = NULL;}
 
     size_ = maxDocId * numIndexedProperties_;
     data_ = new uint16_t[size_];
     memset(data_, 0, size_*2);
-    IndexInput* pInput = pDirectory_->openInput("doclen.map");
+    IndexInput* pInput = 0;
+    try{
+    pInput = pDirectory_->openInput("doclen.map");
     pInput->readBytes((unsigned char*)data_, size_*2);
     delete pInput;
+    }catch(std::exception& e)
+    {
+        if(pInput) delete pInput;
+    }
 }
 
 size_t DocLengthReader::docLength(docid_t docId, fieldid_t fid)

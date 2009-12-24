@@ -246,11 +246,14 @@ int main(int argc, char *argv[]) {
 	try
 	{
 		SDB_HASH tb(indexFile);
-		//tb.setDirectorySize(directorySize);
+		//tb.setDirectorySize(directorySize);	
 		tb.setDegree(degree);
 		tb.setBucketSize(bucketSize);
 		tb.setCacheSize(cacheSize);
 		tb.open();
+		tb.fillCache();
+		cout<<"after fillCache!!!"<<endl;
+		tb.display();
 		run(tb);
 	}
 	catch(bad_alloc)

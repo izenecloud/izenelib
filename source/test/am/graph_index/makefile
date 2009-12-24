@@ -5,16 +5,16 @@ GCC :=/usr/bin/gcc
 CC_OPTIONS :=  -O3 -g -rdynamic -Wall -c -fmessage-length=0 
 
 
-LIBS := -lpthread /usr/local/lib/libboost_unit_test_framework-gcc41-mt-1_35.so /usr/local/lib/libboost_thread-gcc41-mt-1_35.so /usr/local/lib/libboost_filesystem-gcc41-mt-1_35.so 
+LIBS := -lpthread /home/Kevin/izenelib/lib/libizene_log.so /home/Kevin/izenelib/lib/libprocmeminfo.so /usr/local/lib/libboost_unit_test_framework-gcc41-mt-1_37.so /usr/local/lib/libboost_thread-gcc41-mt-1_37.so /usr/local/lib/libboost_filesystem-gcc41-mt-1_37.so 
 
-INC_PATH := -I  /usr/local/include/boost-1_35/ -I ../../../../include/ -I ../../../../include/3rdparty/
+INC_PATH := -I /home/Kevin/wiselib/include/ -I /home/Kevin/izenelib/include/ -I /usr/local/include/boost-1_37/ -I ../../../../include/ -I ../../../../include/3rdparty/
 
 
 OBJS := $(patsubst %.cpp, %.o, $(wildcard *.cpp))
 #./t_main.o
 
 
-all: izenelib
+all: izenelib gen-integers fp-cluster
 
 
 .cc.o:
@@ -24,7 +24,15 @@ all: izenelib
 	$(GPP) $(CC_OPTIONS) $(INC_PATH)  -o"./$@" "$<"
 
 
-izenelib: $(OBJS)
+gen-integers: t_gen_integers.o
+	$(GPP)  -g -o "gen-integers"  $^ $(LIBS) 
+	-rm -f t_gen_integers.o
+
+fp-cluster: t_cluster.o
+	$(GPP)  -g -o "fp-cluster"  $^ $(LIBS) 
+	-rm -f t_cluster.o
+
+izenelib: t_graph_index.o
 	$(GPP)  -g -o "graph-index"  $^ $(LIBS) 
 	-rm -f $(OBJS)
 

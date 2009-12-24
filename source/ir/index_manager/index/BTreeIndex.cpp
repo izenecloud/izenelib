@@ -17,7 +17,7 @@ BTreeIndex<IndexKeyType<double> >* BTreeIndexer::pBTreeDoubleIndexer_  = NULL;
 
 BTreeIndex<IndexKeyType<String> >* BTreeIndexer::pBTreeUStrIndexer_  = NULL;
 
-izenelib::sdb::TrieIndexSDB2<String, String>* BTreeIndexer::pBTreeUStrSuffixIndexer_  = NULL;
+BTreeTrieIndex<String>* BTreeIndexer::pBTreeUStrSuffixIndexer_  = NULL;
 
 BTreeIndexer::BTreeIndexer(string location, int degree, size_t cacheSize, size_t maxDataSize)
 {
@@ -48,7 +48,7 @@ BTreeIndexer::BTreeIndexer(string location, int degree, size_t cacheSize, size_t
 
     path.clear();
     path = location+"/usuf.bti";
-    pBTreeUStrSuffixIndexer_ = new izenelib::sdb::TrieIndexSDB2<String, String>( path);
+    pBTreeUStrSuffixIndexer_ = new BTreeTrieIndex<String>( path);
     pBTreeUStrSuffixIndexer_->open();
 }
 
@@ -56,27 +56,33 @@ BTreeIndexer::~BTreeIndexer()
 {
     flush();
 
-    if (pBTreeIntIndexer_) {
+    if (pBTreeIntIndexer_)
+    {
         delete pBTreeIntIndexer_;
         pBTreeIntIndexer_ = NULL;
     }
-    if (pBTreeUIntIndexer_) {
+    if (pBTreeUIntIndexer_)
+    {
         delete pBTreeUIntIndexer_;
         pBTreeUIntIndexer_ = NULL;
     }
-    if (pBTreeFloatIndexer_) {
+    if (pBTreeFloatIndexer_)
+    {
         delete pBTreeFloatIndexer_;
         pBTreeFloatIndexer_ = NULL;
     }
-    if (pBTreeDoubleIndexer_) {
+    if (pBTreeDoubleIndexer_)
+    {
         delete pBTreeDoubleIndexer_;
         pBTreeDoubleIndexer_ = NULL;
     }
-    if (pBTreeUStrIndexer_) {
+    if (pBTreeUStrIndexer_)
+    {
         delete pBTreeUStrIndexer_;
         pBTreeUStrIndexer_ = NULL;
     }
-    if (pBTreeUStrSuffixIndexer_) {
+    if (pBTreeUStrSuffixIndexer_)
+    {
         delete pBTreeUStrSuffixIndexer_;
         pBTreeUStrSuffixIndexer_ = NULL;
     }
@@ -94,43 +100,43 @@ void BTreeIndexer::remove(collectionid_t colID, fieldid_t fid, PropertyType& val
 
 void BTreeIndexer::getValue(collectionid_t colID, fieldid_t fid, PropertyType& value,BitVector& docs)
 {
-    izenelib::util::boost_variant_visit(boost::bind(get_visitor(), colID, fid, _1, docs), value);
+    izenelib::util::boost_variant_visit(boost::bind(get_visitor(), colID, fid, _1, boost::ref(docs)), value);
 }
 
 void BTreeIndexer::getValueNotEqual(collectionid_t colID, fieldid_t fid, PropertyType& value,BitVector& docs)
 {
-    izenelib::util::boost_variant_visit(boost::bind(get_without_visitor(), colID, fid, _1, docs), value);
+    izenelib::util::boost_variant_visit(boost::bind(get_without_visitor(), colID, fid, _1, boost::ref(docs)), value);
 }
 
 void BTreeIndexer::getValueBetween(collectionid_t colID, fieldid_t fid, PropertyType& value1, PropertyType& value2, BitVector& docs)
 {
-    boost::bind(get_between_visitor<PropertyType>(), colID, fid, value1, value2, docs);
+    boost::bind(get_between_visitor<PropertyType>(), colID, fid, value1, value2, boost::ref(docs));
 }
 
 void BTreeIndexer::getValueLess(collectionid_t colID, fieldid_t fid, PropertyType& value,BitVector& docs)
 {
-    izenelib::util::boost_variant_visit(boost::bind(get_less_visitor(), colID, fid, _1, docs), value);
+    izenelib::util::boost_variant_visit(boost::bind(get_less_visitor(), colID, fid, _1, boost::ref(docs)), value);
 }
 
 void BTreeIndexer::getValueLessEqual(collectionid_t colID, fieldid_t fid, PropertyType& value,BitVector& docs)
 {
-    izenelib::util::boost_variant_visit(boost::bind(get_less_equal_visitor(), colID, fid, _1, docs), value);
+    izenelib::util::boost_variant_visit(boost::bind(get_less_equal_visitor(), colID, fid, _1, boost::ref(docs)), value);
 }
 
 void BTreeIndexer::getValueGreat(collectionid_t colID, fieldid_t fid, PropertyType& value,BitVector& docs)
 {
-    izenelib::util::boost_variant_visit(boost::bind(get_great_visitor(), colID, fid, _1, docs), value);
+    izenelib::util::boost_variant_visit(boost::bind(get_great_visitor(), colID, fid, _1, boost::ref(docs)), value);
 }
 
 void BTreeIndexer::getValueGreatEqual(collectionid_t colID, fieldid_t fid, PropertyType& value,BitVector& docs)
 {
-    izenelib::util::boost_variant_visit(boost::bind(get_great_equal_visitor(), colID, fid, _1, docs), value);
+    izenelib::util::boost_variant_visit(boost::bind(get_great_equal_visitor(), colID, fid, _1, boost::ref(docs)), value);
 }
 
 void BTreeIndexer::getValueIn(collectionid_t colID, fieldid_t fid, vector<PropertyType>& values,BitVector& docs)
 {
     for (size_t i = 0; i < values.size(); i++)
-        izenelib::util::boost_variant_visit(boost::bind(get_visitor(), colID, fid, _1, docs), values[i]);
+        izenelib::util::boost_variant_visit(boost::bind(get_visitor(), colID, fid, _1, boost::ref(docs)), values[i]);
 }
 
 void BTreeIndexer::getValueNotIn(collectionid_t colID, fieldid_t fid, vector<PropertyType>& values,BitVector& docs)
@@ -146,7 +152,8 @@ void BTreeIndexer::getValueStart(collectionid_t colID, fieldid_t fid, PropertyTy
     {
         IndexKeyType<String> key(colID,fid,boost::get<String>(value));
         pBTreeUStrIndexer_->getPrefix(key,docs);
-    } catch (...)
+    }
+    catch (...)
     {
         SF1V5_THROW(ERROR_UNSUPPORTED,"unsupported operation");
     }
@@ -156,13 +163,10 @@ void BTreeIndexer::getValueEnd(collectionid_t colID, fieldid_t fid, PropertyType
 {
     try
     {
-        vector<String> vkey;
-        pBTreeUStrSuffixIndexer_->getValueSuffix(boost::get<String>(value), vkey);
+        pBTreeUStrSuffixIndexer_->getValueSuffix(boost::get<String>(value),fid, docs);
 
-        vector<IndexKeyType<String> > keys;
-        for (size_t i=0; i<vkey.size(); i++)
-            pBTreeUStrIndexer_->get(IndexKeyType<String>(colID, fid, vkey[i]),docs);
-    } catch (...)
+    }
+    catch (...)
     {
         SF1V5_THROW(ERROR_UNSUPPORTED,"unsupported operation");
     }
@@ -172,13 +176,9 @@ void BTreeIndexer::getValueSubString(collectionid_t colID, fieldid_t fid, Proper
 {
     try
     {
-        vector<String> vkey;
-        pBTreeUStrSuffixIndexer_->getValuePrefix(boost::get<String>(value), vkey);
-
-        vector<IndexKeyType<String> > keys;
-        for (size_t i=0; i<vkey.size(); i++)
-            pBTreeUStrIndexer_->get(IndexKeyType<String>(colID, fid, vkey[i]),docs);
-    } catch (...)
+        pBTreeUStrSuffixIndexer_->getValuePrefix(boost::get<String>(value), fid, docs);
+    }
+    catch (...)
     {
         SF1V5_THROW(ERROR_UNSUPPORTED,"unsupported operation");
     }

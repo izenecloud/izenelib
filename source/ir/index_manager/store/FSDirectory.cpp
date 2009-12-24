@@ -215,7 +215,7 @@ void FSDirectory::close()
         //TODO segment error here, why
         directory_map& dm = getDirectoryMap();
         delete dm[directory];
-        //getDirectoryMap().erase(directory);
+        dm.erase(directory);
        // delete this;
     }
 }

@@ -10,6 +10,7 @@
 
 #include <ir/index_manager/index/IndexerDocument.h>
 #include <ir/index_manager/utility/BitVector.h>
+#include <ir/index_manager/utility/StringUtils.h>
 
 #include <sdb/SequentialDB.h>
 #include <sdb/IndexSDB.h>
@@ -29,6 +30,8 @@
 
 NS_IZENELIB_IR_BEGIN
 
+#define MAX_NUMERICSIZER 32768
+
 namespace indexmanager
 {
 
@@ -38,6 +41,7 @@ struct IndexKeyType
     collectionid_t cid;
     fieldid_t fid;
     T value;
+    typedef T type;
 
     IndexKeyType():cid(0),fid(0),value(T()) {}
 
@@ -73,7 +77,7 @@ struct IndexKeyType
             else
             {
                 String str;
-                other.value.substr(str, 0, value.size());
+                other.value.substr(str, 0, value.length());
                 if (str == value)
                     return true;
                 else
@@ -96,7 +100,7 @@ struct IndexKeyType
 private:
     int __compare(const IndexKeyType<T>& other, const boost::mpl::true_*) const
     {
-        if ( value > other.value)
+        if ( value> other.value)
         {
             return 1;
         }
@@ -119,36 +123,22 @@ private:
  */
 
 template <class KeyType>
-class BTreeIndex:public izenelib::sdb::IndexSDB<KeyType,docid_t>
+class BTreeIndex:public izenelib::sdb::IndexSDB<KeyType,docid_t,izenelib::util::ReadWriteLock>
 {
+    typedef typename KeyType::type KeyValueType;
     typedef izenelib::sdb::iKeyType<KeyType> myKeyType;
     typedef std::vector<docid_t> myValueType;
     typedef DataType<myKeyType, myValueType> myDataType;
 public:
-    typedef typename IndexSDB<KeyType,docid_t>::IndexSDBCursor IndexSDBCursor;
-
+    typedef typename IndexSDB<KeyType,docid_t,izenelib::util::ReadWriteLock>::IndexSDBCursor IndexSDBCursor;
 
 public:
 
     BTreeIndex(string& fileName) :
-            izenelib::sdb::IndexSDB<KeyType,docid_t>(fileName) //0, use default compare
+            izenelib::sdb::IndexSDB<KeyType,docid_t,izenelib::util::ReadWriteLock>(fileName) //0, use default compare
     {
     }
     bool remove(const KeyType& key, docid_t docID);
-
-    template<typename SDBCursor>
-    bool search(const KeyType& key, SDBCursor& locn)
-    {
-        izenelib::sdb::iKeyType<KeyType> ikey(key, 0);
-        return this->_sdb.search(ikey, locn);
-    }
-
-    template<typename SDBCursor>
-    bool seq(SDBCursor& locn, KeyType& key, std::vector<docid_t>& value, ESeqDirection sdir)
-    {
-        izenelib::sdb::iKeyType<KeyType> ikey(key, 0);
-        return this->_sdb.seq(locn, ikey, value, sdir);
-    }
 
     bool get(const KeyType& key,BitVector& result)
     {
@@ -169,6 +159,43 @@ public:
         while (true);
         return true;
     }
+
+    void get_between(const KeyType& lowKey, const KeyType& highKey, KeyValueType* & data, size_t maxDoc )
+    {
+        if (comp_(lowKey, highKey) > 0)
+        {
+            return;
+        }
+        myKeyType ikey(lowKey, 0);
+        myValueType ival;
+        IndexSDBCursor locn;
+        this->_sdb.search(ikey, locn);
+        docid_t currDoc;
+        while (this->_sdb.get(locn, ikey, ival) )
+        {
+            if (comp_(ikey.key, highKey) <= 0)
+            {
+                for (size_t i=0; i<ival.size(); i++)
+                {
+                    currDoc = ival[i];
+                    if (currDoc >= maxDoc)
+                    {
+                        KeyValueType* ppBytes = new KeyValueType[maxDoc + MAX_NUMERICSIZER];
+                        memcpy(ppBytes, data, maxDoc * sizeof(KeyValueType));
+                        memset(ppBytes+maxDoc, 0, maxDoc * sizeof(KeyValueType));
+                        delete[] data;
+                        data = ppBytes;
+                        maxDoc = maxDoc + MAX_NUMERICSIZER;
+                    }
+                    data[currDoc] = ikey.key.value;
+                }
+                this->_sdb.seq(locn, ESD_FORWARD);
+            }
+            else
+                break;
+        }
+    }
+
 
     bool get_without(const KeyType& key,BitVector& result)
     {
@@ -191,79 +218,104 @@ public:
         return true;
     }
 
-
     void getGreat(const KeyType& key, BitVector& result)
     {
-        KeyType temp = getNext(key);
-        myKeyType ikey(temp, 0);
+        myKeyType ikey(key, 0);
+        myValueType ival;
         IndexSDBCursor locn;
         this->_sdb.search(ikey, locn);
-        myDataType rec;
-        while (this->_sdb.seq(locn, ESD_FORWARD) )
+        while (this->_sdb.get(locn, ikey, ival) )
         {
-            if (this->_sdb.get(locn, rec))
+            if (ikey.key.fid != key.fid)
+                break;
+            if (comp_(ikey.key, key) > 0)
             {
-                vector<docid_t> vdat = rec.get_value();
-                for (size_t i=0; i<vdat.size(); i++)
-                    result.set(vdat[i]);
+                for (size_t i=0; i<ival.size(); i++)
+                    result.set(ival[i]);
             }
+            this->_sdb.seq(locn, ESD_FORWARD);
         }
-
     }
 
     void getGreatEqual(const KeyType& key, BitVector& result)
     {
-        get(key, result);
-        getGreat(key, result);
-    }
+        myKeyType ikey(key, 0);
+        myValueType ival;
+        IndexSDBCursor locn;
+        this->_sdb.search(ikey, locn);
+        while (this->_sdb.get(locn, ikey, ival) )
+        {
+            if (ikey.key.fid != key.fid)
+                break;
+            if (comp_(ikey.key, key) >= 0)
+            {
+                for (size_t i=0; i<ival.size(); i++)
+                    result.set(ival[i]);
+            }
+            this->_sdb.seq(locn, ESD_FORWARD);
+        }
 
+
+    }
 
     void getLess(const KeyType& key, BitVector& result)
     {
-        KeyType temp = getPrev(key);
-        myKeyType ikey(temp, 0);
+        myKeyType ikey(key, 0);
+        myValueType ival;
         IndexSDBCursor locn;
         this->_sdb.search(ikey, locn);
-        myDataType rec;
-        while (this->_sdb.seq(locn, ESD_BACKWARD) )
+        while (this->_sdb.get(locn, ikey, ival) )
         {
-            if (this->_sdb.get(locn, rec) )
+            if (ikey.key.fid != key.fid)
+                break;
+            if (comp_(ikey.key, key) < 0)
             {
-                vector<docid_t> vdat = rec.get_value();
-                for (size_t i=0; i<vdat.size(); i++)
-                    result.set(vdat[i]);
+                for (size_t i=0; i<ival.size(); i++)
+                    result.set(ival[i]);
             }
+            this->_sdb.seq(locn, ESD_BACKWARD);
         }
-
     }
 
     void getLessEqual(const KeyType& key, BitVector& result)
     {
-        get(key, result);
-        getLess(key, result);
+        myKeyType ikey(key, 0);
+        myValueType ival;
+        IndexSDBCursor locn;
+        this->_sdb.search(ikey, locn);
+        while (this->_sdb.get(locn, ikey, ival) )
+        {
+            if (ikey.key.fid != key.fid)
+                break;
+            if (comp_(ikey.key, key) <= 0)
+            {
+                for (size_t i=0; i<ival.size(); i++)
+                    result.set(ival[i]);
+            }
+            this->_sdb.seq(locn, ESD_BACKWARD);
+        }
     }
 
     void getPrefix(const KeyType& key, BitVector& result)
     {
         myKeyType ikey(key, 0);
-        myKeyType temp;
-        myDataType idat;
-        temp = this->_sdb.getNearest(ikey);
-        IndexSDBCursor locn;
-        this->_sdb.search(temp, locn);
-        while ( ikey.isPrefix(temp) )
+        myValueType ival;
+
+        IndexSDBCursor locn= this->_sdb.search(ikey);
+        while (this->_sdb.get(locn, ikey, ival) )
         {
-            vector<docid_t>& vdat = idat.get_value();
-            for (size_t i=0; i<vdat.size(); i++)
-                result.set(vdat[i]);
-            if (this->_sdb.seq(locn, ESD_FORWARD) )
-                if (this->_sdb.get(locn, idat))
-                    temp = idat.get_key();
-                else
-                    break;
+            if (ikey.key.fid != key.fid)
+                break;
+            if ( isPrefix1(key, ikey.key) )
+            {
+                for (size_t i=0; i<ival.size(); i++)
+                    result.set(ival[i]);
+                this->_sdb.seq(locn);
+            }
+            else
+                break;
         }
     }
-
 };
 
 template <class KeyType>
@@ -286,6 +338,101 @@ bool BTreeIndex<KeyType>::remove(const KeyType& key, docid_t docID)
     }
 
 }
+
+template <typename StringType, typename LockType =izenelib::util::ReadWriteLock>
+class BTreeTrieIndex
+{
+public:
+    typedef SequentialDB<std::pair<std::pair<StringType,fieldid_t>, docid_t>, NullType> SDBTYPE;
+    typedef typename SDBTYPE::SDBCursor SDBCursor;
+public:
+
+    BTreeTrieIndex(const string& fileName) 
+        :sdb_(fileName)
+    {
+    }
+    bool open()
+    {
+        return sdb_.open();
+    }
+
+    void getValuePrefix(const StringType& key,const fieldid_t& fid, BitVector& result)
+    {
+        SDBCursor locn = this->sdb_.search(make_pair(make_pair(key,fid), 0) );
+        std::pair<std::pair<StringType,fieldid_t>, docid_t> skey;
+        StringType lstr;
+        NullType sval;
+        while (this->sdb_.get(locn, skey, sval) )
+        {
+            if (isPrefix1(key, skey.first.first) )
+            {   
+                if (skey.first.second == fid)
+                    result.set(skey.second);
+                this->sdb_.seq(locn);
+            }
+            else
+                break;
+        }
+    }
+
+    void getValueSuffix(const StringType& key, const fieldid_t& fid, BitVector& result)
+    {
+        SDBCursor locn = this->sdb_.search(make_pair(make_pair(key,fid), 0 ) );
+        std::pair<std::pair<StringType,fieldid_t>, docid_t> skey;
+        StringType lstr;
+        NullType sval;
+        while (this->sdb_.get(locn, skey, sval) )
+        {
+            if (key == skey.first.first)
+            {
+	            if (skey.first.second == fid)
+                    result.set(skey.second);
+                this->sdb_.seq(locn);
+            }
+            else
+                break;
+        }
+
+    }
+
+
+    bool add_suffix(const StringType& key, const fieldid_t& fid, const docid_t& item)
+    {
+        if (sdb_.hasKey(make_pair(make_pair(key,fid), item) ) )
+            return false;
+        size_t pos = 0;
+        for (; pos<key.length(); pos++)
+        {
+            StringType suf = key.substr(pos);
+            add(suf, fid, item);
+        }
+        return false;
+    }
+
+    bool add(const StringType& key, const fieldid_t& fid, const docid_t& item)
+    {
+        sdb_.insertValue(make_pair(make_pair(key,fid), item) );
+        return false;
+    }
+
+    void display()
+    {
+        sdb_.display();
+    }
+
+    void commit()
+    {
+        sdb_.commit();
+    }
+
+    void flush()
+    {
+        sdb_.flush();
+    }
+protected:
+    SDBTYPE sdb_;
+
+};
 
 class BTreeIndexerInterface
 {
@@ -352,7 +499,7 @@ public:
         return BTreeIndexerFactory<T>::get();
     }
 
-    static izenelib::sdb::TrieIndexSDB2<String, String>* getTrieIndexer()
+    static BTreeTrieIndex<String>* getTrieIndexer()
     {
         return pBTreeUStrSuffixIndexer_;
     }
@@ -369,7 +516,7 @@ private:
 
     static BTreeIndex<IndexKeyType<String> >* pBTreeUStrIndexer_;
 
-    static izenelib::sdb::TrieIndexSDB2<String, String>* pBTreeUStrSuffixIndexer_;
+    static BTreeTrieIndex<String>* pBTreeUStrSuffixIndexer_;
 
 };
 
@@ -435,7 +582,7 @@ private:
         static void apply(collectionid_t& colid, fieldid_t& fid, T& v, docid_t& docid)
         {
             IndexKeyType<T> key(colid, fid, v);
-            BTreeIndexer::getIndexer<T>()->add(key, docid);
+            BTreeIndexer::getIndexer<T>()->add_nodup(key, docid);
         }
     };
 
@@ -446,9 +593,10 @@ struct add_visitor::__operator<String>
 {
     static void apply(collectionid_t& colid, fieldid_t& fid, String& v, docid_t& docid)
     {
+        trim(v);
         IndexKeyType<String> key(colid, fid, v);
-        BTreeIndexer::getIndexer<String>()->add(key, docid);
-        BTreeIndexer::getTrieIndexer()->add_suffix(v, v);
+        BTreeIndexer::getIndexer<String>()->add_nodup(key, docid);
+        BTreeIndexer::getTrieIndexer()->add_suffix(v, fid, docid);
     }
 };
 
@@ -484,7 +632,6 @@ public:
         BTreeIndexer::getIndexer<T>()->get_without(key, docids);
     }
 };
-
 
 template<typename T>
 class get_between_visitor : public boost::static_visitor<void>
@@ -543,7 +690,6 @@ public:
 };
 
 }
-
 
 NS_IZENELIB_IR_END
 

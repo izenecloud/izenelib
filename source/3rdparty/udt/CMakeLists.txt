@@ -56,7 +56,10 @@ IF(udt_SHOULD_BUILD)
 
   ADD_LIBRARY(udt ${udt_SRC})
   TARGET_LINK_LIBRARIES(udt ${CMAKE_THREAD_LIBS_INIT})
-  INSTALL(TARGETS udt DESTINATION lib)
+  #INSTALL(TARGETS udt DESTINATION lib)
+  INSTALL(TARGETS udt     
+      LIBRARY DESTINATION lib 
+      COMPONENT "izenelib_libraries")
 
   # we know the warnings, it's ok to alias void* as char*
   IF(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_COMPILER_IS_GNUC)

@@ -22,8 +22,7 @@ using namespace std;
  *
  */
 
-template<typename LockType = NullLock>
-class bucket_chain_ {	
+template<typename LockType =NullLock> class bucket_chain_ {
 	size_t bucketSize_;
 public:
 	char *str;
@@ -31,15 +30,15 @@ public:
 	int num;
 	bucket_chain_* next;
 	bool isLoaded;
-	bool isDirty;		
-	long nextfpos;	
+	bool isDirty;
+	long nextfpos;
 	int level;
-	
+
 	//It indicates how many active bucket_chains in memory.
 	//It increases when allocateBlock() called, or reading from disk,
 	//and decreases when unload() called. 
 	//static size_t activeNum;
-private:	
+private:
 	//static LockType fileLock_;
 	LockType& fileLock_;
 
@@ -48,7 +47,7 @@ public:
 	 *  constructor
 	 */
 	bucket_chain_(size_t bucketSize, LockType& fileLock) :
-	bucketSize_(bucketSize), fileLock_(fileLock) {
+		bucketSize_(bucketSize), fileLock_(fileLock) {
 		str = NULL;
 		num = 0;
 		next = 0;
@@ -56,25 +55,25 @@ public:
 		isDirty = true;
 		fpos = 0;
 		nextfpos = 0;
-		
-		level = 0;				
+
+		level = 0;
 		//++activeNum;
 	}
-    
+
 	/**	 
 	 *  deconstructor
 	 */
 	virtual ~bucket_chain_() {
 		/*if( str ){
-			delete str;
-			str = 0;
-		}*/			
+		 delete str;
+		 str = 0;
+		 }*/
 		unload();
-		if(next){
+		if (next) {
 			delete next;
 			next = 0;
 		}
-		isLoaded = false;		
+		isLoaded = false;
 	}
 
 	/**
@@ -93,17 +92,19 @@ public:
 			return false;
 		}
 
+		ScopedWriteLock<LockType> lock(fileLock_);
+		
 		//cout<<"write fpos="<<fpos<<endl;
 		if ( 0 != fseek(f, fpos, SEEK_SET) )
-		return false;
+			return false;
 
 		if (1 != fwrite(&num, sizeof(int), 1, f) ) {
 			return false;
 		}
 		//cout<<"write num="<<num<<endl;
-		
+
 		size_t blockSize = bucketSize_ - sizeof(int) - sizeof(long);
-			
+
 		if (1 != fwrite(str, blockSize, 1, f) ) {
 			return false;
 		}
@@ -111,7 +112,7 @@ public:
 		//long nextfpos = 0;
 
 		if (next)
-		nextfpos = next->fpos;
+			nextfpos = next->fpos;
 
 		//cout<<"write nextfpos = "<< nextfpos<<endl;
 		if (1 != fwrite(&nextfpos, sizeof(long), 1, f) ) {
@@ -123,8 +124,13 @@ public:
 
 		return true;
 	}
-	
 
+	bool load(FILE* f) {
+		//fileLock_.acquire_write_lock();
+		bool ret = this->read(f);
+		//fileLock_.release_write_lock();
+		return ret;
+	}
 	/**
 	 *  read from disk
 	 */
@@ -133,82 +139,86 @@ public:
 			return false;
 		}
 
+		ScopedWriteLock<LockType> lock(fileLock_);
+
+		if (isLoaded) {
+			return true;
+		}
+
 		//cout<<"read from "<<fpos<<endl;
 		if ( 0 != fseek(f, fpos, SEEK_SET) )
-		return false;
+			return false;
 
 		if (1 != fread(&num, sizeof(int), 1, f) ) {
 			return false;
 		}
-		
 
-		
 		//cout<<"read num="<<num<<endl;
 		size_t blockSize = bucketSize_ - sizeof(int) - sizeof(long);
-		
-		if ( !str )
-		{
-			str = new char[blockSize];		
-     	   // memset(str, 0, blockSize);
+
+		if ( !str) {
+			str = new char[blockSize];
+			// memset(str, 0, blockSize);
 		}
- 
+
 		//cout<<"read blocksize="<<blockSize<<endl;
 		if (1 != fread(str, blockSize, 1, f) ) {
 			return false;
 		}
 
 		//long nextfpos = 0;
-		
+
 		if (1 != fread(&nextfpos, sizeof(long), 1, f) ) {
 			return false;
 		}
 
 		//cout<<"read next fpos="<<nextfpos<<endl;
 		if (nextfpos !=0) {
-			if( !next )next = new bucket_chain_(bucketSize_, fileLock_);
+			if ( !next)
+				next = new bucket_chain_(bucketSize_, fileLock_);
 			next->fpos = nextfpos;
 		}
 
-
 		isLoaded = true;
-		isDirty = false;		
-				
+		isDirty = false;
+
 		//++activeNum;
-		
+
 		return true;
 	}
 
 	/**
 	 *    load next bucket_chain element.
-	 */ 
+	 */
 	bucket_chain_* loadNext(FILE* f, bool& loaded) {
 		loaded = false;
-		if (next && !next->isLoaded) {	
+		if (next && !next->isLoaded) {
 			//cout<<"reading next"<<endl;
-			fileLock_.acquire_write_lock();
-			next->read(f);	
+			//fileLock_.acquire_write_lock();
+			next->read(f);
 			loaded = true;
-			fileLock_.release_write_lock();
-		}		
-		if( next )next->level = level+1;
+			//fileLock_.release_write_lock();
+		}
+		if (next)
+			next->level = level+1;
 		return next;
 	}
-	
+
 	/**
 	 *   unload a buck_chain element.
 	 *   It releases most of the memory, and was used to recycle memory when cache is full. 
 	 */
-	bool unload(){			
-		if(str){
+	bool unload() {
+		if (str) {
 			delete str;
-			str = 0;			
+			str = 0;
 			//--activeNum;
 			isLoaded = false;
 			return true;
-		}	
+		}
 		isLoaded = false;
-		return false;	
-		
+		return false;
+
 		//cout<<"unload fpos="<<fpos<<endl;
 		//cout<<"activeNode: "<<activeNum<<endl;
 	}
@@ -216,19 +226,19 @@ public:
 	/**
 	 *   display string_chain info.
 	 */
-	void display(std::ostream& os = std::cout) {		
+	void display(std::ostream& os = std::cout) {
 		os<<"(level: "<<level;
 		os<<"  isLoaded: "<<isLoaded;
 		os<<"  bucketSize: "<<bucketSize_;
 		os<<"  numitems: "<<num;
 		os<<"  fpos: "<<fpos;
-		if(next)os<<"  nextfpos: "<<next->fpos;
+		if (next)
+			os<<"  nextfpos: "<<next->fpos;
 		//os<<"str: "<<str;
-		os<<")- > ";		
+		os<<")- > ";
 		if (next)
 			next->display(os);
 	}
 };
-
 
 #endif /*bucket_chain_H_*/

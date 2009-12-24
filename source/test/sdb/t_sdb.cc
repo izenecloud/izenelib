@@ -150,7 +150,7 @@ template<typename T> void run_seq(T& cm) {
 
 	vector<MyDataType> result;
 	typename T::SDBCursor locn;
-	locn = cm.get_first_Locn();
+	locn = cm.get_first_locn();
 	MyDataType dat;
 	int a=0;
 	while (cm.get(locn, dat) ) {

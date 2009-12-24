@@ -16,7 +16,9 @@ DocLengthWriter::DocLengthWriter(const std::set<IndexerPropertyConfig, IndexerPr
         if(iter->isForward()&&iter->isIndex())
         {
             numIndexedProperties_++;
-            propertyOffsetMap_[iter->getPropertyId()] = offset++;
+            ///This judgement is necessary because aliased properties have the same property id
+            if(0 == propertyOffsetMap_[iter->getPropertyId()])
+                propertyOffsetMap_[iter->getPropertyId()] = offset++;
         }
     }
     size_t buffersize = 1024*1024;
