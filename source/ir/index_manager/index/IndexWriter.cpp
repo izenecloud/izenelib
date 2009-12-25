@@ -161,7 +161,6 @@ void IndexWriter::createBarrelWriter(bool update)
     pIndexBarrelWriter_ = new IndexBarrelWriter(pIndexer_,pMemCache_,pCurBarrelInfo_->getName().c_str());
     pCurBarrelInfo_->setWriter(pIndexBarrelWriter_);
     pIndexBarrelWriter_->setCollectionsMeta(pIndexer_->getCollectionsMeta());
-
     if(update)
     {
         bool* pHasUpdateDocs = &(pCurBarrelInfo_->hasUpdateDocs);
@@ -195,10 +194,10 @@ void IndexWriter::flush()
 {
     if((!pIndexBarrelWriter_)&&(nNumCacheUsed_ <=0 ))
         return;
-    flushDocuments();
     BarrelInfo* pLastBarrel = pBarrelsInfo_->getLastBarrel();
     if (pLastBarrel == NULL)
         return;
+    flushDocuments(pLastBarrel->hasUpdateDocs);
     pLastBarrel->setBaseDocID(baseDocIDMap_);
     baseDocIDMap_.clear();
     if (pIndexBarrelWriter_->cacheEmpty() == false)///memory index has not been written to database yet.
@@ -263,6 +262,11 @@ void IndexWriter::justWriteCachedIndex()
 
 void IndexWriter::addDocument(IndexerDocument* pDoc, bool update)
 {
+    if(!pIndexBarrelWriter_)
+        createBarrelWriter(update);
+    if(!pIndexMerger_)
+        createMerger();
+
     ppCachedDocs_[nNumCacheUsed_++] = pDoc;
 
     if (isCacheFull())
@@ -271,14 +275,8 @@ void IndexWriter::addDocument(IndexerDocument* pDoc, bool update)
 
 void IndexWriter::indexDocument(IndexerDocument* pDoc, bool update)
 {
-    if(!pIndexBarrelWriter_)
-        createBarrelWriter(update);
-    if(!pIndexMerger_)
-        createMerger();
-
     DocId uniqueID;
     pDoc->getDocId(uniqueID);
-
     if(update)
         pIndexer_->getIndexReader()->delDocument(uniqueID.colId,uniqueID.docId);
 
