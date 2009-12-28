@@ -72,6 +72,7 @@ void FSIndexOutput::flushBuffer(char* b, size_t len)
     fflush(fileHandle_);
     if (len > 0 && len != ret)
     {
+        close();
         SF1V5_THROW(ERROR_FILEIO,"FSIndexOutput::flushBuffer():file IO write error:");
     }
 }
@@ -80,7 +81,10 @@ void FSIndexOutput::seek(int64_t pos)
 {
     IndexOutput::seek(pos);
     if (0 != fseek(fileHandle_, pos, SEEK_SET))
+    {
+        close();
         SF1V5_THROW(ERROR_FILEIO,"FSIndexOutput::seek():file IO seek error.");
+    }
 }
 
 int64_t FSIndexOutput::length()
