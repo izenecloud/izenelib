@@ -10,6 +10,8 @@
 
 #include <ir/index_manager/utility/system.h>
 
+#include <ir/index_manager/utility/MemCache.h>
+#include <ir/index_manager/utility/Utilities.h>
 #include <ir/index_manager/store/IndexOutput.h>
 
 NS_IZENELIB_IR_BEGIN
@@ -31,25 +33,11 @@ struct VariantDataChunk
 class VariantDataPool
 {
 public:
-    VariantDataPool()
-            :pHeadChunk_(NULL)
-            ,pTailChunk_(NULL)
-            ,nTotalSize_(0)
-            ,nTotalUnused_(0)
-            ,nPosInCurChunk_(0)
-    {
-    }
-    VariantDataPool(const VariantDataPool& src)
-            :pHeadChunk_(src.pHeadChunk_)
-            ,pTailChunk_(src.pTailChunk_)
-            ,nTotalSize_(src.nTotalSize_)
-            ,nTotalUnused_(src.nTotalUnused_)
-            ,nPosInCurChunk_(src.nPosInCurChunk_)
-    {
-    }
-    ~VariantDataPool()
-    {
-    }
+    VariantDataPool(MemCache* pMemCache);
+
+    VariantDataPool(const VariantDataPool& src);
+
+    ~VariantDataPool();
 public:
     /**
      * add variant length data which is 32 bit
@@ -98,12 +86,6 @@ public:
      */
     static void encodeVData64(uint8_t*& vdata,int64_t val);
 
-    /**
-     * add a new node to the list
-     * @param pNode the node
-     */
-    void addChunk(VariantDataChunk* pChunk);
-
     /** truncation the tail chunk,let chunk size=real used size of this chunk */
     void truncTailChunk();
 
@@ -114,7 +96,17 @@ public:
      * reset the list for using at next time
      */
     void reset();
-protected:
+
+private:
+
+    /**
+     * add a new node to the list
+     * @param pNode the node
+     */
+    void addChunk();
+
+private:
+    MemCache* pMemCache_;
     VariantDataChunk* pHeadChunk_; ///Posting list header
     VariantDataChunk* pTailChunk_; ///Posting list tail
     uint32_t nTotalSize_; ///Total size
@@ -123,7 +115,11 @@ protected:
 
     friend class InMemoryPosting;
     friend class PostingMerger;
-};
+
+public:
+    static int32_t UPTIGHT_ALLOC_CHUNKSIZE;
+    static int32_t UPTIGHT_ALLOC_MEMSIZE;
+ };
 
 }
 NS_IZENELIB_IR_END

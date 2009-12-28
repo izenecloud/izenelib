@@ -13,8 +13,7 @@ SkipListWriter::SkipListWriter(int skipInterval, int maxLevel, MemCache* pMemCac
     ppSkipLevels_ = new VariantDataPool*[maxLevel];
     memset(ppSkipLevels_,0,maxLevel*sizeof(VariantDataPool*)); 
     for(int i = 0; i < maxLevel; i++)
-        ///TODO
-	//ppSkipLevels_[i] = new VariantDataPool(pMemCache);
+	ppSkipLevels_[i] = new VariantDataPool(pMemCache);
 
     pLastDoc_ = new docid_t[maxLevel];
     memset(pLastDoc_,0,maxLevel*sizeof(docid_t));

@@ -8,10 +8,6 @@
 #ifndef POSTING_H
 #define POSTING_H
 
-#include <ir/index_manager/utility/system.h>
-#include <ir/index_manager/utility/MemCache.h>
-#include <ir/index_manager/utility/Utilities.h>
-
 #include <ir/index_manager/index/VariantDataPool.h>
 
 NS_IZENELIB_IR_BEGIN
@@ -143,21 +139,6 @@ public:
     InMemoryPosting(MemCache* pMemCache);
     virtual ~InMemoryPosting();
 public:
-
-    /**
-     * allocate new chunk
-     * @param the size of chunk
-     * @return the chunk object
-     **/
-    VariantDataChunk* newChunk(int32_t chunkSize);
-
-    /**
-     * Get the next chunk size
-     * @param nCurSize current accumulated chunk size
-     * @param as memory allocation strategy
-     */
-    int32_t getNextChunkSize(int32_t nCurSize);
-
     /**
      * add (docid,position) pair
      * @param docid the identifier of document
@@ -280,9 +261,6 @@ protected:
     VariantDataPool* pLocList_; 	/// Location list
 
     friend class PostingMerger;
-public:
-    static int32_t UPTIGHT_ALLOC_CHUNKSIZE;
-    static int32_t UPTIGHT_ALLOC_MEMSIZE;
 };
 
 /**

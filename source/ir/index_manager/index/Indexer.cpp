@@ -127,8 +127,8 @@ void Indexer::initIndexManager()
 
     set_property_name_id_map(pConfigurationManager_->getCollectionMetaNameMap());
 
-    InMemoryPosting::UPTIGHT_ALLOC_CHUNKSIZE = 8;
-    InMemoryPosting::UPTIGHT_ALLOC_MEMSIZE = 40000;
+    VariantDataPool::UPTIGHT_ALLOC_CHUNKSIZE = 8;
+    VariantDataPool::UPTIGHT_ALLOC_MEMSIZE = 40000;
 
     if(managerType_ == MANAGER_TYPE_CLIENTPROCESS)
     {

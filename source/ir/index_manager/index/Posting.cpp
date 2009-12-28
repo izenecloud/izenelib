@@ -11,9 +11,6 @@ using namespace std;
 
 using namespace izenelib::ir::indexmanager;
 
-int32_t InMemoryPosting::UPTIGHT_ALLOC_CHUNKSIZE = 8;
-int32_t InMemoryPosting::UPTIGHT_ALLOC_MEMSIZE = 40000;
-
 Posting::Posting()
 {}
 
@@ -32,13 +29,8 @@ InMemoryPosting::InMemoryPosting(MemCache* pCache)
         ,nCTF_(0)
         ,pDS_(NULL)
 {
-    pDocFreqList_ = new VariantDataPool();
-    pLocList_  = new VariantDataPool();
-
-    int32_t newSize = getNextChunkSize(pDocFreqList_->nTotalSize_);
-    pDocFreqList_->addChunk(newChunk(newSize));
-    newSize = getNextChunkSize(pLocList_->nTotalSize_);
-    pLocList_->addChunk(newChunk(newSize));
+    pDocFreqList_ = new VariantDataPool(pCache);
+    pLocList_  = new VariantDataPool(pCache);
 }
 
 InMemoryPosting::InMemoryPosting()
@@ -73,32 +65,6 @@ InMemoryPosting::~InMemoryPosting()
         delete pDS_;
         pDS_ = NULL;
     }
-}
-
-VariantDataChunk* InMemoryPosting::newChunk(int32_t chunkSize)
-{
-    uint8_t* begin = pMemCache_->getMem(chunkSize);
-    ///allocate memory failed,decrease chunk size
-    if (!begin)
-    {
-        ///into UPTIGHT state
-        begin = pMemCache_->getMem(UPTIGHT_ALLOC_CHUNKSIZE);
-        ///allocation failed again, grow memory cache.
-        if (!begin)
-        {
-            begin  = pMemCache_->grow(UPTIGHT_ALLOC_MEMSIZE)->getMem(UPTIGHT_ALLOC_CHUNKSIZE);
-            if (!begin)
-            {
-                SF1V5_THROW(ERROR_OUTOFMEM,"InMemoryPosting:newChunk() : Allocate memory failed.");
-            }
-        }
-        chunkSize = UPTIGHT_ALLOC_CHUNKSIZE;
-    }
-
-    VariantDataChunk* pChunk = (VariantDataChunk*)begin;
-    pChunk->size = (int32_t)(POW_TABLE[chunkSize] - sizeof(VariantDataChunk*) - sizeof(int32_t));
-    pChunk->next = NULL;
-    return pChunk;
 }
 
 fileoffset_t InMemoryPosting::write(OutputDescriptor* pOutputDescriptor)
@@ -163,24 +129,12 @@ Posting* InMemoryPosting::clone()
 
 //////////////////////////////////////////////////////////////////////////
 ///InMemoryPosting
-int32_t InMemoryPosting::getNextChunkSize(int32_t nCurSize)
-{
-    int32_t newSize = max(32,(int32_t)(nCurSize + 0.5));
-    return (int32_t)Utilities::LOG2_UP(newSize);
-}
-
 void InMemoryPosting::addLocation(docid_t docid, loc_t location)
 {
     if (docid == nLastDocID_)
     {
         ///see it before,only position is needed
-        if (!pLocList_->addVData(location - nLastLoc_))
-        {
-            ///chunk is exhausted
-            int32_t newSize = getNextChunkSize(pLocList_->nTotalSize_);
-            pLocList_->addChunk(newChunk(newSize));
-            pLocList_->addVData(location - nLastLoc_);///d-gap encoding
-        }
+        pLocList_->addVData(location - nLastLoc_);
         nCurTermFreq_++;
         nLastLoc_ = location;
     }
@@ -188,32 +142,14 @@ void InMemoryPosting::addLocation(docid_t docid, loc_t location)
     {
         if (nCurTermFreq_ > 0)///write previous document's term freq
         {
-            if (!pDocFreqList_->addVData(nCurTermFreq_))
-            {
-                ///chunk is exhausted
-                int32_t newSize = getNextChunkSize(pDocFreqList_->nTotalSize_);
-                pDocFreqList_->addChunk(newChunk(newSize));
-                pDocFreqList_->addVData(nCurTermFreq_);
-            }
+            pDocFreqList_->addVData(nCurTermFreq_);
         }
         else if (nLastDocID_ == BAD_DOCID)///first see it
         {
             nLastDocID_ = 0;
         }
-        if (!pDocFreqList_->addVData(docid - nLastDocID_))
-        {
-            ///chunk is exhausted
-            int32_t newSize = getNextChunkSize(pDocFreqList_->nTotalSize_);
-            pDocFreqList_->addChunk(newChunk(newSize));
-            pDocFreqList_->addVData(docid - nLastDocID_);
-        }
-        if (!pLocList_->addVData(location))
-        {
-            ///chunk is exhausted
-            int32_t newSize = getNextChunkSize(pLocList_->nTotalSize_);
-            pLocList_->addChunk(newChunk(newSize));
-            pLocList_->addVData(location);
-        }
+        pDocFreqList_->addVData(docid - nLastDocID_);
+        pLocList_->addVData(location);
 
         nCTF_ += nCurTermFreq_;
         nCurTermFreq_ = 1;
@@ -227,26 +163,13 @@ void InMemoryPosting::addLocation(docid_t docid, loc_t location)
 
 void InMemoryPosting::writeDPosting(IndexOutput* pDOutput)
 {
-    ///write chunk data
-    VariantDataChunk* pChunk = pDocFreqList_->pHeadChunk_;
-    while (pChunk)
-    {
-        pDOutput->write((const char*)pChunk->data,pChunk->size);
-        pChunk = pChunk->next;
-    }
+    pDocFreqList_->write(pDOutput);
 }
 
 fileoffset_t InMemoryPosting::writePPosting(IndexOutput* pPOutput)
 {
     ///write position posting data
-    VariantDataChunk* pChunk = pLocList_->pHeadChunk_;
-    int size = 0;
-    while (pChunk)
-    {
-        pPOutput->write((const char*)pChunk->data,pChunk->size);
-        size+=pChunk->size;
-        pChunk = pChunk->next;
-    }
+    pLocList_->write(pPOutput);
     fileoffset_t poffset = pPOutput->getFilePointer();
     pPOutput->writeVLong(pLocList_->getRealSize());///<ChunkLength(VInt64)>
     return poffset;
@@ -256,15 +179,15 @@ void InMemoryPosting::writeDescriptor(IndexOutput* pDOutput,fileoffset_t poffset
 {
     ///begin write posting descriptor
     pDOutput->writeVLong(pDocFreqList_->getRealSize());///<PostingLength(VInt64)>
-    pDOutput->writeVInt(nDF_); 						///<DF(VInt32)>
-    pDOutput->writeVLong(nCTF_);						///<CTF(VInt64)>
-    pDOutput->writeVLong(poffset);						///<PositionPointer(VInt64)>
+    pDOutput->writeVInt(nDF_); ///<DF(VInt32)>
+    pDOutput->writeVLong(nCTF_); ///<CTF(VInt64)>
+    pDOutput->writeVLong(poffset); ///<PositionPointer(VInt64)>
     ///end write posting descriptor
 
-    pDOutput->writeVInt(1); 							///<ChunkCount(VInt32)>
+    pDOutput->writeVInt(1); ///<ChunkCount(VInt32)>
     ///begin write chunk descriptor
     pDOutput->writeVLong(pDocFreqList_->getRealSize());///<ChunkLength(VInt64)>
-    pDOutput->writeVInt(nLastDocID_);					///<LastDocID(VInt32)>
+    pDOutput->writeVInt(nLastDocID_); ///<LastDocID(VInt32)>
     ///end write posting descriptor
 }
 
@@ -275,12 +198,7 @@ void InMemoryPosting::flushLastDoc(bool bTruncTail)
 
     if (nCurTermFreq_ > 0)
     {
-        if (!pDocFreqList_->addVData(nCurTermFreq_))
-        {
-            int32_t newSize = getNextChunkSize(pDocFreqList_->nTotalSize_);
-            pDocFreqList_->addChunk(newChunk(newSize));
-            pDocFreqList_->addVData(nCurTermFreq_);
-        }
+        pDocFreqList_->addVData(nCurTermFreq_);
         if (bTruncTail)
         {
             pDocFreqList_->truncTailChunk();///update real size
@@ -295,7 +213,6 @@ void InMemoryPosting::flushLastDoc(bool bTruncTail)
         pLocList_->truncTailChunk();///update real size
     }
 }
-
 
 
 int32_t InMemoryPosting::decodeNext(uint32_t* pPosting,int32_t length)
