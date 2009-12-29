@@ -54,14 +54,19 @@ void FSIndexInput::readInternal(char* b,size_t length,bool bCheck/* = true*/)
         if (0 != fseek(fileHandle_, 0, SEEK_CUR))
         {
             if (0 != fseek(fileHandle_, position, SEEK_SET))
-
+            {
+                close();
                 SF1V5_THROW(ERROR_FILEIO,"FSIndexInput::readInternal():file IO seek error: " + filename_);
+            }
         }
     }
     int ret = fread(b, 1, length, fileHandle_);
     if (ret != (int)length)
         if (!feof(fileHandle_))
+        {
+            close();
             SF1V5_THROW(ERROR_FILEIO,"FSIndexInput::readInternal():file IO read error:" + filename_);
+        }
 }
 
 void FSIndexInput::close()
@@ -83,7 +88,7 @@ void FSIndexInput::seekInternal(int64_t position)
 {
     if (0 != fseek(fileHandle_, position, SEEK_SET))
     {
-        cout<<"error "<<position<<" "<<filename_<<endl;
+        close();
         SF1V5_THROW(ERROR_FILEIO,"FSIndexInput::seekInternal():file IO seek error: " + filename_);
     }
 }
