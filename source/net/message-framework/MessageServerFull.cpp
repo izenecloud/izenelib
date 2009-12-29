@@ -31,22 +31,21 @@ namespace messageframework {
  ***************************************************************************/
 
 MessageServerFull::MessageServerFull(const std::string& serverName,
-		unsigned int serverPort, const MessageFrameworkNode& controllerInfo) :
-	messageDispatcher_(this, this), connector_(this, io_service_),
-			connectionEstablished_(false) {
-	ownerManager_ = serverName;
-	timeOutMilliSecond_ = TIME_OUT_IN_MILISECOND;
-
-	server_.nodePort_ = serverPort;
+		unsigned int serverPort, const MessageFrameworkNode& controllerInfo)
+    :   ownerManager_(serverName),
+        timeOutMilliSecond_(TIME_OUT_IN_MILISECOND),
+        messageDispatcher_(this, this),
+        connector_(this, io_service_),
+        connectionEstablished_(false)
+{
 	server_.nodeIP_ = getLocalHostIp(io_service_);
-
-	//availableServiceList_.clear();
-
-	serviceRegistrationServer_ = controllerInfo;
+	server_.nodePort_ = serverPort;
 	connector_.listen(serverPort);
+
 	controllerNode_.nodeIP_ = getHostIp(io_service_, controllerInfo.nodeIP_);
 	controllerNode_.nodePort_ = controllerInfo.nodePort_;
 	controllerNode_.nodeName_ = controllerInfo.nodeName_;
+
 	connector_.connect(controllerInfo.nodeIP_, controllerInfo.nodePort_);
 
 	// create new thread for I/O operations
@@ -329,7 +328,7 @@ void MessageServerFull::receiveServiceRequest(
  */
 void MessageServerFull::sendServiceRegistrationRequest(
 		ServiceRegistrationMessage& message) {
-	message.setServer(server_);	
+	message.setServer(server_);
 	message.setRequester(ownerManager_);
 	messageDispatcher_.sendDataToLowerLayer(SERVICE_REGISTRATION_REQUEST_MSG,
 			message, controllerNode_);
