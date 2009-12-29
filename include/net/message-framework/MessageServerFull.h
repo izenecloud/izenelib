@@ -267,11 +267,6 @@ private:
 	std::map<std::string, bool> serviceRegistrationResult_;
 
 	/**
-	 * @brief Information of the server to register services
-	 */
-	MessageFrameworkNode serviceRegistrationServer_;
-
-	/**
 	 * @brief The maximum time in milliseconds to wait to process data.
 	 * If no data arrives during this period, this system considers it as error
 	 */

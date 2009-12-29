@@ -6,13 +6,13 @@ using boost::asio::ip::tcp;
 
 namespace messageframework
 {
-	AsyncConnector::AsyncConnector(AsyncStreamFactory* streamFactory, boost::asio::io_service& ioservice): 
+	AsyncConnector::AsyncConnector(AsyncStreamFactory* streamFactory, boost::asio::io_service& ioservice):
 			io_service_(ioservice),
 			streamFactory_(streamFactory)
 	{
 	}
 
-	AsyncConnector::~AsyncConnector() 
+	AsyncConnector::~AsyncConnector()
 	{
 			std::cout << "~AsyncConnector..." << std::endl;
 			std::cout << "close streams..." << std::endl;
@@ -25,17 +25,17 @@ namespace messageframework
 	}
 
 
-	size_t AsyncConnector::streamNum(void) 
+	size_t AsyncConnector::streamNum(void)
 	{
 		return streams_.size();
 	}
 
-	void AsyncConnector::closeStream(AsyncStream* stream) 
+	void AsyncConnector::closeStream(AsyncStream* stream)
 	{
 		streams_.remove(stream);
 	}
 
-	void AsyncConnector::shutdown(void) 
+	void AsyncConnector::shutdown(void)
 	{
 			std::cout << "close acceptors..." << std::endl;
 			for (std::list<boost::shared_ptr<tcp::acceptor> >::iterator iter0 = acceptors_.begin();
@@ -50,7 +50,7 @@ namespace messageframework
 			std::cout << "finish shutdown..." << std::endl;
 	}
 
-	void AsyncConnector::listen(int port) 
+	void AsyncConnector::listen(int port)
 	{
 		tcp::endpoint endpoint(tcp::v4(), port);
 		boost::shared_ptr<tcp::acceptor> acceptor(new tcp::acceptor(io_service_, endpoint));
@@ -93,7 +93,7 @@ namespace messageframework
 	{
 
 		tcp::resolver resolver(io_service_);
-		tcp::resolver::query query(host, port);
+		tcp::resolver::query query(tcp::v4(), host, port);
 		tcp::resolver::iterator endpoint_iterator = resolver.resolve(query);
 		tcp::endpoint endpoint = *endpoint_iterator;
 
@@ -101,11 +101,11 @@ namespace messageframework
 		boost::shared_ptr<tcp::socket> sock(new tcp::socket(io_service_));
 		sock->async_connect(endpoint,
 			boost::bind(&AsyncConnector::handle_connect, this, sock,
-							boost::asio::placeholders::error, 
+							boost::asio::placeholders::error,
 							++endpoint_iterator));
 	}
 
-	void AsyncConnector::handle_connect(boost::shared_ptr<tcp::socket> sock, 
+	void AsyncConnector::handle_connect(boost::shared_ptr<tcp::socket> sock,
 					const boost::system::error_code& error,
 					tcp::resolver::iterator endpoint_iterator)
 	{
@@ -121,16 +121,16 @@ namespace messageframework
 			sock->close();
 			tcp::endpoint endpoint = *endpoint_iterator;
 			sock->async_connect(endpoint,
-					boost::bind(&AsyncConnector::handle_connect, this, sock, 
+					boost::bind(&AsyncConnector::handle_connect, this, sock,
 						boost::asio::placeholders::error, ++endpoint_iterator));
 		}
 	}
 
-	std::string getHostIp(boost::asio::io_service& ioservice, const std::string&  host)	
+	std::string getHostIp(boost::asio::io_service& ioservice, const std::string&  host)
 	{
 		// get the IP of the machine
 		tcp::resolver resolver(ioservice);
-		tcp::resolver::query query(host, "0");
+		tcp::resolver::query query(tcp::v4(), host, "0");
 		tcp::resolver::iterator endpoint_iterator = resolver.resolve(query);
 		tcp::endpoint endpoint = *endpoint_iterator;
 		return endpoint.address().to_string();
@@ -142,11 +142,11 @@ namespace messageframework
 		// get the IP of the machine
 		std::string host = boost::asio::ip::host_name();
 		tcp::resolver resolver(ioservice);
-		tcp::resolver::query query(host, "0");
+		tcp::resolver::query query(tcp::v4(), host, "0");
 		tcp::resolver::iterator endpoint_iterator = resolver.resolve(query);
 		tcp::endpoint endpoint = *endpoint_iterator;
 		return endpoint.address().to_string();
 	}
-	
+
 }// end of namespace messageframework
 
