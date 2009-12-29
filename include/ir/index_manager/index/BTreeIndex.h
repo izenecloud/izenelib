@@ -316,6 +316,11 @@ public:
                 break;
         }
     }
+
+
+    void getSuffix(const KeyType& key, BitVector& result);
+
+    void getSubString(const KeyType& key, BitVector& result);
 };
 
 template <class KeyType>
@@ -499,10 +504,11 @@ public:
         return BTreeIndexerFactory<T>::get();
     }
 
-    static BTreeTrieIndex<String>* getTrieIndexer()
-    {
-        return pBTreeUStrSuffixIndexer_;
-    }
+
+//    static BTreeTrieIndex<String>* getTrieIndexer()
+//    {
+//        return pBTreeUStrSuffixIndexer_;
+//    }
 
 private:
 
@@ -516,7 +522,7 @@ private:
 
     static BTreeIndex<IndexKeyType<String> >* pBTreeUStrIndexer_;
 
-    static BTreeTrieIndex<String>* pBTreeUStrSuffixIndexer_;
+//    static BTreeTrieIndex<String>* pBTreeUStrSuffixIndexer_;
 
 };
 
@@ -596,7 +602,7 @@ struct add_visitor::__operator<String>
         trim(v);
         IndexKeyType<String> key(colid, fid, v);
         BTreeIndexer::getIndexer<String>()->add_nodup(key, docid);
-        BTreeIndexer::getTrieIndexer()->add_suffix(v, fid, docid);
+        //BTreeIndexer::getTrieIndexer()->add_suffix(v, fid, docid);
     }
 };
 

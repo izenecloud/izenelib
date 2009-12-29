@@ -17,7 +17,55 @@ BTreeIndex<IndexKeyType<double> >* BTreeIndexer::pBTreeDoubleIndexer_  = NULL;
 
 BTreeIndex<IndexKeyType<String> >* BTreeIndexer::pBTreeUStrIndexer_  = NULL;
 
-BTreeTrieIndex<String>* BTreeIndexer::pBTreeUStrSuffixIndexer_  = NULL;
+//BTreeTrieIndex<String>* BTreeIndexer::pBTreeUStrSuffixIndexer_  = NULL;
+
+namespace izenelib{ namespace ir{ namespace indexmanager{
+template <>
+void BTreeIndex<IndexKeyType<String> >::getSuffix(const IndexKeyType<String>& key, BitVector& result)
+{
+    myKeyType ikey(key, 0);
+    myValueType ival;
+
+    IndexSDBCursor locn= this->_sdb.search(ikey);
+    while (this->_sdb.get(locn, ikey, ival) )
+    {
+        if (ikey.key.fid != key.fid)
+            break;
+        if ( IsSuffix(key.value, ikey.key.value) )
+        {
+        for (size_t i=0; i<ival.size(); i++)
+			result.set(ival[i]);
+		this->_sdb.seq(locn);
+        }
+        else
+            break;
+    }
+}
+
+
+template <>
+void BTreeIndex<IndexKeyType<String> >::getSubString(const IndexKeyType<String>& key, BitVector& result)
+{
+    myKeyType ikey(key, 0);
+    myValueType ival;
+
+    IndexSDBCursor locn= this->_sdb.search(ikey);
+    while (this->_sdb.get(locn, ikey, ival) )
+    {
+        if (ikey.key.fid != key.fid)
+            break;
+        if ( IsSubString(key.value, ikey.key.value) )
+        {
+            for (size_t i=0; i<ival.size(); i++)
+                result.set(ival[i]);
+            this->_sdb.seq(locn);
+        }
+        else
+            break;
+    }
+}
+
+}}}
 
 BTreeIndexer::BTreeIndexer(string location, int degree, size_t cacheSize, size_t maxDataSize)
 {
@@ -46,10 +94,12 @@ BTreeIndexer::BTreeIndexer(string location, int degree, size_t cacheSize, size_t
     pBTreeUStrIndexer_ = new BTreeIndex<IndexKeyType<String> >(path);
     pBTreeUStrIndexer_->initialize(maxDataSize/10, degree, maxDataSize, cacheSize);
 
+/*
     path.clear();
     path = location+"/usuf.bti";
     pBTreeUStrSuffixIndexer_ = new BTreeTrieIndex<String>( path);
     pBTreeUStrSuffixIndexer_->open();
+*/	
 }
 
 BTreeIndexer::~BTreeIndexer()
@@ -81,11 +131,13 @@ BTreeIndexer::~BTreeIndexer()
         delete pBTreeUStrIndexer_;
         pBTreeUStrIndexer_ = NULL;
     }
+/*	
     if (pBTreeUStrSuffixIndexer_)
     {
         delete pBTreeUStrSuffixIndexer_;
         pBTreeUStrSuffixIndexer_ = NULL;
     }
+*/	
 }
 
 void BTreeIndexer::add(collectionid_t colID, fieldid_t fid, PropertyType& value, docid_t docid)
@@ -163,8 +215,9 @@ void BTreeIndexer::getValueEnd(collectionid_t colID, fieldid_t fid, PropertyType
 {
     try
     {
-        pBTreeUStrSuffixIndexer_->getValueSuffix(boost::get<String>(value),fid, docs);
-
+        //pBTreeUStrSuffixIndexer_->getValueSuffix(boost::get<String>(value),fid, docs);
+        IndexKeyType<String> key(colID,fid,boost::get<String>(value));
+        pBTreeUStrIndexer_->getSuffix(key,docs);
     }
     catch (...)
     {
@@ -176,7 +229,9 @@ void BTreeIndexer::getValueSubString(collectionid_t colID, fieldid_t fid, Proper
 {
     try
     {
-        pBTreeUStrSuffixIndexer_->getValuePrefix(boost::get<String>(value), fid, docs);
+        //pBTreeUStrSuffixIndexer_->getValuePrefix(boost::get<String>(value), fid, docs);
+        IndexKeyType<String> key(colID,fid,boost::get<String>(value));
+        pBTreeUStrIndexer_->getSubString(key,docs);
     }
     catch (...)
     {
@@ -191,6 +246,6 @@ void BTreeIndexer::flush()
     if (pBTreeFloatIndexer_) pBTreeFloatIndexer_->commit();
     if (pBTreeDoubleIndexer_) pBTreeDoubleIndexer_->commit();
     if (pBTreeUStrIndexer_) pBTreeUStrIndexer_->commit();
-    if (pBTreeUStrSuffixIndexer_) pBTreeUStrSuffixIndexer_->commit();
+    //if (pBTreeUStrSuffixIndexer_) pBTreeUStrSuffixIndexer_->flush();
 }
 
