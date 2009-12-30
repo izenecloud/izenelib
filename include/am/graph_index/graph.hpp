@@ -1553,6 +1553,9 @@ friend std::ostream& operator <<(std::ostream& os, const self_t& g)
       fseek(leaf_f_, nid-LEAF_BOUND, SEEK_SET);
       IASSERT(fread(&le, sizeof(leaf_t), 1, leaf_f_)==1);
       docs.load(doc_f_, le.DOCS());
+      std::vector<uint32_t> v(docs.length());
+      memcpy(v.data(), docs.data(), docs.size());
+      return v;
     }
     
     else if (docs_.at(nid)!= (uint64_t)-1)
@@ -1560,7 +1563,7 @@ friend std::ostream& operator <<(std::ostream& os, const self_t& g)
 
     std::vector<uint32_t> v(docs.length());
     memcpy(v.data(), docs.data(), docs.size());
-
+    
     edges_t edges;
     edges.load(nid_f_, (uint64_t)nodes_.at(nid));
     for (typename edges_t::size_t i =0;i<edges.length(); ++i)
