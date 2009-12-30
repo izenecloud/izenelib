@@ -23,7 +23,9 @@ namespace izenelib{ namespace ir{ namespace indexmanager{
 template <>
 void BTreeIndex<IndexKeyType<String> >::getSuffix(const IndexKeyType<String>& key, BitVector& result)
 {
-    myKeyType ikey(key, 0);
+    String str("",String::UTF_8);
+    IndexKeyType<String> strkey(key.cid,key.fid,str);
+    myKeyType ikey(strkey, 0);
     myValueType ival;
 
     IndexSDBCursor locn= this->_sdb.search(ikey);
@@ -33,9 +35,14 @@ void BTreeIndex<IndexKeyType<String> >::getSuffix(const IndexKeyType<String>& ke
             break;
         if ( IsSuffix(key.value, ikey.key.value) )
         {
-        for (size_t i=0; i<ival.size(); i++)
-			result.set(ival[i]);
-		this->_sdb.seq(locn);
+            for (size_t i=0; i<ival.size(); i++)
+                result.set(ival[i]);
+            this->_sdb.seq(locn);
+        }
+        else if(ikey.key.value.empty())
+        {
+            this->_sdb.seq(locn);
+            continue;
         }
         else
             break;
@@ -46,19 +53,28 @@ void BTreeIndex<IndexKeyType<String> >::getSuffix(const IndexKeyType<String>& ke
 template <>
 void BTreeIndex<IndexKeyType<String> >::getSubString(const IndexKeyType<String>& key, BitVector& result)
 {
-    myKeyType ikey(key, 0);
+    String str("",String::UTF_8);
+    IndexKeyType<String> strkey(key.cid,key.fid,str);
+    myKeyType ikey(strkey, 0);
     myValueType ival;
 
-    IndexSDBCursor locn= this->_sdb.search(ikey);
+    IndexSDBCursor locn;
+    this->_sdb.search(ikey,locn);
     while (this->_sdb.get(locn, ikey, ival) )
     {
         if (ikey.key.fid != key.fid)
             break;
+
         if ( IsSubString(key.value, ikey.key.value) )
         {
             for (size_t i=0; i<ival.size(); i++)
                 result.set(ival[i]);
             this->_sdb.seq(locn);
+        }
+        else if(ikey.key.value.empty())
+        {
+            this->_sdb.seq(locn);
+            continue;
         }
         else
             break;
