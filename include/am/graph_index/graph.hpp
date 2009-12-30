@@ -839,7 +839,9 @@ public:
   {
     for (NID_LEN_TYPE i=0; i<loads_.length(); ++i)
       if (loads_.at(i))
+      {
         delete nodes_.at(i);
+      }
     
     FILE* v_f = fopen((filenm_+".v").c_str(), "r");
     nodes_.load(v_f);
@@ -1542,7 +1544,7 @@ friend std::ostream& operator <<(std::ostream& os, const self_t& g)
   /**
      @brief it will return doc ID list of a node indexed by nid
    */
-  std::vector<uint32_t> get_docs(NID_LEN_TYPE nid)const
+  std::vector<uint32_t> get_docs(NID_LEN_TYPE nid)
   {
     array32_t docs;
     if (nid>=LEAF_BOUND)
@@ -1558,6 +1560,16 @@ friend std::ostream& operator <<(std::ostream& os, const self_t& g)
 
     std::vector<uint32_t> v(docs.length());
     memcpy(v.data(), docs.data(), docs.size());
+
+    edges_t edges;
+    edges.load(nid_f_, (uint64_t)nodes_.at(nid));
+    for (typename edges_t::size_t i =0;i<edges.length(); ++i)
+      get_docs_(edges.at(i).NID(), docs);
+
+    v.reserve(docs.length());
+    for (typename array32_t::size_t i=0; i<docs.length(); ++i)
+      v.push_back(docs.at(i));
+    
     return v;
   }
 
@@ -1701,12 +1713,12 @@ friend std::ostream& operator <<(std::ostream& os, const self_t& g)
    */
   class Node
   {
-    const self_t* graph_;
+    self_t* graph_;
     typename self_t::edge_t edge_;
     sorted_edges_t edges_;
 
   public:
-    inline Node(const self_t* graph, typename self_t::edge_t edge)
+    inline Node(self_t* graph, typename self_t::edge_t edge)
       :graph_(graph),edge_(edge)
     {
       if (edge_.NID()>=LEAF_BOUND)
@@ -1852,11 +1864,11 @@ friend std::ostream& operator <<(std::ostream& os, const self_t& g)
   class NodeIterator
   {
     sorted_edges_t edges_;
-    const self_t* graph_;
+    self_t* graph_;
     typename edges_t::size_t p_;
 
   public:
-    NodeIterator(const sorted_edges_t edges, const self_t* graph, typename edges_t::size_t p = 0)
+    NodeIterator(const sorted_edges_t edges, self_t* graph, typename edges_t::size_t p = 0)
       :edges_(edges),graph_(graph),p_(p)
     {
     }
