@@ -40,7 +40,7 @@ class FpIndex
   typedef PartialFpList<UNIT_TYPE, FP_LENGTH, CACHE_SIZE> FpList;
   typedef HashTable<ENTRY_SIZE, UNIT_TYPE> HashT;
   typedef GroupTable<ENTRY_SIZE, UNIT_TYPE> GroupT;
-  typedef FpHashTable<CACHE_SIZE/FP_HASH_NUM, FP_LENGTH*sizeof(UNIT_TYPE), ENTRY_SIZE > FpHashT;
+  typedef FpHashTable<UNIT_TYPE, CACHE_SIZE/FP_HASH_NUM, FP_LENGTH*sizeof(UNIT_TYPE), ENTRY_SIZE > FpHashT;
   
   typedef izenelib::am::IntegerDynArray<uint8_t> Vector8;
   typedef izenelib::am::IntegerDynArray<uint32_t> Vector32;
@@ -62,11 +62,11 @@ protected:
   //  static Prime* prime_;
   
 
-  inline bool broder_compare(const uint64_t* p1, const uint64_t* p2, uint8_t threshold = 1)
+  inline bool broder_compare(const UNIT_TYPE* p1, const UNIT_TYPE* p2, uint8_t threshold = 1)
   {
     //std::cout<<"\nborder_compare: ";
     uint8_t r = 0;
-    for (uint8_t i=0; i<FP_LENGTH/(sizeof(uint64_t)/sizeof(UNIT_TYPE)); i++)
+    for (uint8_t i=0; i<FP_LENGTH/(sizeof(UNIT_TYPE)/sizeof(UNIT_TYPE)); i++)
     {
       //std::cout<<p1[i]<<"-"<<p2[i]<<" ";
       
@@ -81,12 +81,12 @@ protected:
     return false;
   }
 
-  inline bool charick_compare(const uint64_t* p1, const uint64_t* p2, uint8_t threshold = 12)
+  inline bool charick_compare(const UNIT_TYPE* p1, const UNIT_TYPE* p2, uint8_t threshold = 50)
   {
     uint32_t count = 0;
     for (uint32_t i=0; i<FP_LENGTH; ++i)
     {
-      uint64_t k = p1[i]^p2[i];
+      UNIT_TYPE k = p1[i]^p2[i];
       while(k)
       {
         k &= (k-1);
@@ -387,17 +387,16 @@ public:
   {
   }
   
-  inline void add_doc(size_t docid, const Vector64& fp)
+  inline void add_doc(size_t docid, const izenelib::am::IntegerDynArray<UNIT_TYPE>& fp)
   {
-    fp_list_->add_doc(docid,
-                      izenelib::am::IntegerDynArray<UNIT_TYPE>((const char*)fp.data(), fp.size()));
+    fp_list_->add_doc(docid, fp);
     
     docid = fp_list_->doc_num()-1;
     
     fp_hash_ptrs_[docid%FP_HASH_NUM]->add_doc(docid/FP_HASH_NUM, fp);
   }
 
-  inline void update_doc(size_t docid, const Vector64& fp)
+  inline void update_doc(size_t docid, const izenelib::am::IntegerDynArray<UNIT_TYPE>& fp)
   {
     for (uint32_t j=0; j<fp_list_->doc_num(); ++j)
     {
@@ -408,7 +407,8 @@ public:
     add_doc(docid, fp);
   }
   
-  void update_docs(const std::vector<uint32_t>& docids, const std::vector<Vector64>& fps)
+  void update_docs(const std::vector<uint32_t>& docids, const std::vector<
+                   izenelib::am::IntegerDynArray<UNIT_TYPE> >& fps)
   {
     ready_for_insert();
     uint32_t num = fp_list_->doc_num();
@@ -626,6 +626,7 @@ public:
 
     gettimeofday (&tvpre , &tz);
     std::cout<<"Start clustering...\n";
+    uint32_t pairs = 0;
     size_t dealed = 0;
     for (size_t i=start; i<doc_num;i++)
     {
@@ -643,7 +644,7 @@ public:
         for (size_t j = 0; j<v.length(); j++)
         {
           uint32_t docid1 = v.at(j);//fps[i];
-          const uint64_t* p1 = fp_hash_ptrs_[docid1%FP_HASH_NUM]->find(docid1/FP_HASH_NUM);
+          const UNIT_TYPE* p1 = fp_hash_ptrs_[docid1%FP_HASH_NUM]->find(docid1/FP_HASH_NUM);
           bool f=  false;
 
           for (size_t h=j+1; h<v.length(); h++)
@@ -664,15 +665,16 @@ public:
             prime[docid1] *= primeO.at(docid2);
             prime[docid2] *= primeO.at(docid1);
 
-            const uint64_t* p2 = fp_hash_ptrs_[docid2%FP_HASH_NUM]->find(docid2/FP_HASH_NUM);
+            const UNIT_TYPE* p2 = fp_hash_ptrs_[docid2%FP_HASH_NUM]->find(docid2/FP_HASH_NUM);
 
 //             std::cout<<docid1<<" "<<(*p1)<<std::endl;
 //             std::cout<<docid2<<" "<<(*p2)<<std::endl;
 //             std::cout<<"-----------\n";
             
-            if (p1!=NULL && p2!=NULL && broder_compare(p1,p2))
+            if (p1!=NULL && p2!=NULL && charick_compare(p1,p2))
             {
               group_->add_doc(docid1, docid2);
+              ++pairs;
             }
           }
           
@@ -694,6 +696,7 @@ public:
     std::cout<<"\nClustering is over!: "<<((tvafter.tv_sec-tvpre.tv_sec)*1000+(tvafter.tv_usec-tvpre.tv_usec)/1000)/60000.<<" min\n";
     //std::cout<<*group_<<std::endl;
 
+    std::cout<<"Detected DUP pairs: "<<pairs<<"\n";
     switch_docid_in_group();
     init_docid_hash();
     

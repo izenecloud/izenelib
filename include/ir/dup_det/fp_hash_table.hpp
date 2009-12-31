@@ -17,6 +17,7 @@ NS_IZENELIB_IR_BEGIN
    @brief it provides fast access to doc's fingerprinting by a hash table.
  */
 template <
+  class    FP_TYPE = uint64_t,
   uint32_t CACHE_SIZE = 600,
   uint8_t  FP_LENGTH = 48,//!< bytes of a fingerprinting
   uint32_t ENTRY_SIZE = 1000000
@@ -27,7 +28,8 @@ class FpHashTable
   typedef izenelib::am::IntegerDynArray<uint64_t> Vector64;
   typedef izenelib::am::IntegerDynArray<Vector32*> Vector32Ptr;
   typedef Vector32::size_t size_t;
-  typedef FpHashTable<CACHE_SIZE, FP_LENGTH, ENTRY_SIZE> SelfT;
+  typedef FpHashTable<FP_TYPE, CACHE_SIZE, FP_LENGTH, ENTRY_SIZE> SelfT;
+  typedef izenelib::am::IntegerDynArray<FP_TYPE> VectorFP;
   
 protected:
   const uint32_t NUM_IN_MEM_;//!< number of FP that can be in memory.
@@ -38,7 +40,7 @@ protected:
   //----------cache------
   uint32_t swich_p_;//!< pointer to current FP
   Vector32 keys_;//!< store docids
-  Vector64 fps_;//!< store fps
+  VectorFP fps_;//!< store fps
   FILE* fp_f_;
   FILE* key_f_;
   
@@ -49,7 +51,7 @@ protected:
     //-------------------Load cache-----------------------
     uint32_t size = doc_num_-i>NUM_IN_MEM_? NUM_IN_MEM_: doc_num_-i;
     fseek(fp_f_, i*FP_LENGTH, SEEK_SET);
-    IASSERT(fread(fps_.array(size*FP_LENGTH/sizeof(uint64_t)), size*FP_LENGTH, 1, fp_f_)==1 );
+    IASSERT(fread(fps_.array(size*FP_LENGTH/sizeof(FP_TYPE)), size*FP_LENGTH, 1, fp_f_)==1 );
     
     fseek(key_f_, i*sizeof(uint32_t), SEEK_SET);
     IASSERT(fread(keys_.array(size),size*sizeof(uint32_t), 1, key_f_)==1 );
@@ -147,7 +149,7 @@ protected:
     IASSERT( fread(&keys_[swich_p_], sizeof(uint32_t), 1, key_f_)==1);
 
     fseek(fp_f_, docid*FP_LENGTH, SEEK_SET);
-    IASSERT( fread(&fps_[swich_p_*FP_LENGTH/sizeof(uint64_t)], FP_LENGTH, 1, fp_f_)==1);
+    IASSERT( fread(&fps_[swich_p_*FP_LENGTH/sizeof(FP_TYPE)], FP_LENGTH, 1, fp_f_)==1);
 
     size_t r = swich_p_;
     
@@ -264,7 +266,7 @@ public:
     swich_p_ = keys_.length()-1;
   }
   
-  inline void add_doc(size_t docid, const Vector64& fp)
+  inline void add_doc(size_t docid, const VectorFP& fp)
   {
     if (keys_.length()>=NUM_IN_MEM_)
     {
@@ -283,7 +285,7 @@ public:
     ++doc_num_;
   }
 
-  inline const uint64_t* find(size_t docid)
+  inline const FP_TYPE* find(size_t docid)
   {
 //     static uint32_t total = 0;
 //     static uint32_t lose = 0;
@@ -309,7 +311,7 @@ public:
           //std::cout<<"----------\n";
         }
 
-        return fps_.data()+k*FP_LENGTH/sizeof(uint64_t);
+        return fps_.data()+k*FP_LENGTH/sizeof(FP_TYPE);
       }
     }
 
@@ -355,8 +357,8 @@ friend std::ostream& operator << (std::ostream& os, const SelfT& v)
     for (size_t i=0; i<v.keys_.length(); i++)
     {
       os<<v.keys_.at(i)<<"=>";
-      for (size_t j=0; j<FP_LENGTH/sizeof(uint64_t); j++)
-        os<< v.fps_.at(i*FP_LENGTH/sizeof(uint64_t)+j)<<" ";
+      for (size_t j=0; j<FP_LENGTH/sizeof(FP_TYPE); j++)
+        os<< v.fps_.at(i*FP_LENGTH/sizeof(FP_TYPE)+j)<<" ";
       os<<"\n";
     }
     
