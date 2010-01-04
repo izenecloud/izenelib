@@ -1,6 +1,8 @@
 #include <ir/index_manager/index/SkipListWriter.h>
 
-using namespace izenelib::ir::indexmanager;
+NS_IZENELIB_IR_BEGIN
+
+namespace indexmanager{
 
 SkipListWriter::SkipListWriter(int skipInterval, int maxLevel, MemCache* pMemCache)
     :skipInterval_(skipInterval)
@@ -31,7 +33,7 @@ SkipListWriter::~SkipListWriter()
             delete ppSkipLevels_[i];
             ppSkipLevels_[i] = NULL;
         }
-    delete ppSkipLevels_;
+    delete[] ppSkipLevels_;
 
     delete[] pLastDoc_;
     delete[] pLastOffset_;
@@ -99,3 +101,7 @@ void SkipListWriter::reset()
             ppSkipLevels_[i]->reset();
     }
 }
+
+}
+NS_IZENELIB_IR_END
+
