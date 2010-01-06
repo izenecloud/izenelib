@@ -49,6 +49,14 @@ public:
 public:
     int getMaxSkipLevel() { return maxSkipLevel_;}
 
+    int getSkipInterval(int level)
+    {
+        int nSkipInterval = skipInterval_;
+        for(int i = 0;i < level;i++)
+            nSkipInterval = nSkipInterval * nSkipInterval;
+        return nSkipInterval;
+    }
+
     int getNumLevels()
     {
         int nNumLevls = 0;
@@ -67,7 +75,7 @@ public:
     void write(IndexOutput* pOutput);
 
     void reset();
-private:
+protected:
     VariantDataPool** ppSkipLevels_;
 
     int skipInterval_;

@@ -31,6 +31,10 @@ public:
 
     docid_t getDoc() { return curDoc_;}
 
+    fileoffset_t getOffset() { return lastOffset_; }
+	
+    fileoffset_t getPOffset() { return lastPOffset_; }
+
     int getNumLevels(){ return numSkipLevels_; }
 
     IndexInput* getLevelInput(int level)
@@ -46,6 +50,8 @@ public:
             skipInterval = skipInterval * skipInterval;
         return skipInterval;
     }
+
+    int getCurSkipInterval()	{ return curSkipInterval_; }
 
     void reset();
 
