@@ -26,13 +26,20 @@ public:
     virtual ~SkipListMerger();
 
 public:
-    bool addToMerge(SkipListReader* pSkipReader,docid_t lastDoc,int nAppendedSkipInterval);
+    void setBasePoint(docid_t baseDocID,fileoffset_t baseOffset,fileoffset_t basePOffset)
+    {
+        baseDocID_ = baseDocID;
+        baseOffset_ = baseOffset;
+        basePOffset_ = basePOffset;
+    }
+	
+    bool addToMerge(SkipListReader* pSkipReader,docid_t lastDoc,int skipInterval);
 
     void writeSkipData(int level,IndexOutput* pSkipLevelOutput);
 
     void reset();
 private:
-    bool setSkipPoint(SkipListReader* pSkipReader,int nAppendedSkipInterval);
+    void addSkipPoint(SkipListReader* pSkipReader,int skipInterval);
 
 private:
     docid_t baseDocID_;

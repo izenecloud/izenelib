@@ -31,12 +31,12 @@ VariantDataPool::~VariantDataPool()
 {
 }
 
-bool VariantDataPool::addVData(uint32_t vdata32)
+bool VariantDataPool::addVData32(uint32_t vdata32)
 {
     if (pTailChunk_ == NULL)
     {
         addChunk();
-        return addVData(vdata32);
+        return addVData32(vdata32);
     }
     int32_t left = pTailChunk_->size - nPosInCurChunk_;
 
@@ -45,7 +45,7 @@ bool VariantDataPool::addVData(uint32_t vdata32)
         nTotalUnused_ += left;///Unused size
         pTailChunk_->size = nPosInCurChunk_;///the real size
         addChunk();
-        return addVData(vdata32);
+        return addVData32(vdata32);
     }
 
     uint32_t ui = vdata32;
@@ -58,12 +58,12 @@ bool VariantDataPool::addVData(uint32_t vdata32)
     return true;
 }
 
-bool VariantDataPool::addVData(uint64_t vdata64)
+bool VariantDataPool::addVData64(uint64_t vdata64)
 {
     if (pTailChunk_ == NULL)
     {
         addChunk();
-        return addVData(vdata64);
+        return addVData64(vdata64);
     }
     int32_t left = pTailChunk_->size - nPosInCurChunk_;
     if (left < 11)///at least 8 free space
@@ -71,7 +71,7 @@ bool VariantDataPool::addVData(uint64_t vdata64)
         nTotalUnused_ += left;///Unused size
         pTailChunk_->size = nPosInCurChunk_;///the real size
         addChunk();
-        return addVData(vdata64);
+        return addVData64(vdata64);
     }
 
     uint64_t ui = vdata64;

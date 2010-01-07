@@ -10,7 +10,7 @@ SkipListReader::SkipListReader(IndexInput* pSkipInput, int skipInterval, int num
 	, defaultSkipInterval_(skipInterval)
 	, numSkipLevels_(numSkipLevels)
 	, numSkipped_(0)
-	, nNumSkipped_(0)
+	, totalSkipped_(0)
 	, curSkipInterval_(0)
 	, lastChildPointer_(0)
 {
@@ -54,7 +54,7 @@ docid_t SkipListReader::skipTo(docid_t docID)
 	
     /// walk up the levels until highest level is found that has a skip for this target
     int level = 0;
-    while (level < numSkipLevels_ - 1 && docID > skipDoc_[level + 1]) 
+    while (level < (numSkipLevels_-1) && docID > skipDoc_[level + 1]) 
     {
         level++;
     }
@@ -79,6 +79,26 @@ docid_t SkipListReader::skipTo(docid_t docID)
     return curDoc_;
 }
 
+bool SkipListReader::nextSkip(docid_t docID)
+{
+    if (!loaded_) 
+    {
+        loadSkipLevels();
+        loaded_ = true;
+    }
+    if(skipDoc_[0] == 0)
+    {
+        if(!loadNextSkip(0))
+            return false;
+    }
+    if(skipDoc_[0] <= docID)
+    {
+        loadNextSkip(0);
+        return true;
+    }
+    return false;
+}
+
 void SkipListReader::seekChild(int level)
 {
     skipStream_[level]->seek(lastChildPointer_);
@@ -96,7 +116,7 @@ bool SkipListReader::loadNextSkip(int level)
     lastChildPointer_ = childPointer_[level];
     lastOffset_ = offsets_[level];
     lastPOffset_ = pOffsets_[level];
-    nNumSkipped_ = numSkipped_[level];
+    totalSkipped_ = numSkipped_[level];
     curSkipInterval_ = skipInterval_[level];
 
     if (skipStream_[level]->isEof()) 
@@ -107,39 +127,39 @@ bool SkipListReader::loadNextSkip(int level)
     }
 
     /// read next skip entry
-    skipDoc_[level] += readSkipPoint(level, skipStream_[level]);
-    numSkipped_[level] += skipInterval_[level];
-    if (level!= 0) 
-    {
-        /// read the child pointer if we are not on the leaf level
-        childPointer_[level] = skipStream_[level]->readVLong() + skipPointer_[level- 1];
-    }
+    readSkipPoint(level, skipStream_[level]);
     return true;
 }
 
-docid_t SkipListReader::readSkipPoint(int level,IndexInput* pLevelInput)
+void SkipListReader::readSkipPoint(int level,IndexInput* pLevelInput)
 {
-    docid_t delta = pLevelInput->readVInt();
-    skipInterval_[level] = getLevelSkipInterval(level);
+    skipDoc_[level] += pLevelInput->readVInt();
     offsets_[level] += pLevelInput->readVInt();
     pOffsets_[level] += pLevelInput->readVInt();
-    return delta;
+
+    skipInterval_[level] = getLevelSkipInterval(level);
+    numSkipped_[level] += skipInterval_[level];
+    if (level > 0) 
+    {
+        /// read the child pointer if we are not on the leaf level
+        childPointer_[level] = pLevelInput->readVLong() + skipPointer_[level- 1];
+    }
 }
 
 void SkipListReader::loadSkipLevels()
 {
     for (int i = numSkipLevels_-1; i >= 0; i--)
     {
-        fileoffset_t nLength = skipStream_[0]->readVLong();
+        fileoffset_t length = skipStream_[0]->readVLong();
         skipPointer_[i] = skipStream_[0]->getFilePointer();
         if(i > 0)
         {
             skipStream_[i] = skipStream_[0]->clone();
         }
-        skipStream_[i]->setlength(skipStream_[0]->getFilePointer() + nLength);
+        skipStream_[i]->setlength(skipStream_[0]->getFilePointer() + length);
         if(i > 0)
         {
-            skipStream_[0]->seek(skipStream_[0]->getFilePointer() + nLength);
+            skipStream_[0]->seek(skipStream_[0]->getFilePointer() + length);
         }
     }
 }

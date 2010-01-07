@@ -23,30 +23,29 @@ SkipListMerger::~SkipListMerger()
     }
 }
 
-bool SkipListMerger::setSkipPoint(SkipListReader* pSkipReader,int nAppendedSkipInterval)
+void SkipListMerger::addSkipPoint(SkipListReader* pSkipReader,int skipInterval)
 {
-    int nCurSkipped = (pSkipReader->getCurSkipInterval() + nAppendedSkipInterval);
+    int curSkipped = (pSkipReader->getCurSkipInterval() + skipInterval);
     for(int i = 0;i < maxSkipLevel_;i++)
-        ppSkipLevels_[i] += nCurSkipped;
+        pSkipInterval_[i] += curSkipped;
 
     if(pSkipInterval_[0] <= 1)
-        return false;
+        return;
 
-    curDoc_ = pSkipReader->getDoc() + baseDocID_;
-    curOffset_ = pSkipReader->getOffset() + baseOffset_;
-    curPOffset_ = pSkipReader->getPOffset() + basePOffset_;
-    return true;
+    SkipListWriter::addSkipPoint( pSkipReader->getDoc() + baseDocID_, 
+                        pSkipReader->getOffset() + baseOffset_,
+                        pSkipReader->getPOffset() + basePOffset_
+                      );
 }
 
-bool SkipListMerger::addToMerge(SkipListReader* pSkipReader,docid_t lastDoc,int nAppendedSkipInterval)
+bool SkipListMerger::addToMerge(SkipListReader* pSkipReader,docid_t lastDoc,int skipInterval)
 {			
     bool ret = false;
-    while(pSkipReader->stepTo(lastDoc))
+    while(pSkipReader->nextSkip(lastDoc))
     {				
-        if(setSkipPoint(pSkipReader,nAppendedSkipInterval))					
-            addSkipPoint();
+        addSkipPoint(pSkipReader,skipInterval);
         ret = true;
-        nAppendedSkipInterval = 0;
+        skipInterval = 0;
     }
     return ret;
 }

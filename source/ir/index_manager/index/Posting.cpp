@@ -134,7 +134,7 @@ void InMemoryPosting::addLocation(docid_t docid, loc_t location)
     if (docid == nLastDocID_)
     {
         ///see it before,only position is needed
-        pLocList_->addVData(location - nLastLoc_);
+        pLocList_->addVData32(location - nLastLoc_);
         nCurTermFreq_++;
         nLastLoc_ = location;
     }
@@ -142,14 +142,14 @@ void InMemoryPosting::addLocation(docid_t docid, loc_t location)
     {
         if (nCurTermFreq_ > 0)///write previous document's term freq
         {
-            pDocFreqList_->addVData(nCurTermFreq_);
+            pDocFreqList_->addVData32(nCurTermFreq_);
         }
         else if (nLastDocID_ == BAD_DOCID)///first see it
         {
             nLastDocID_ = 0;
         }
-        pDocFreqList_->addVData(docid - nLastDocID_);
-        pLocList_->addVData(location);
+        pDocFreqList_->addVData32(docid - nLastDocID_);
+        pLocList_->addVData32(location);
 
         nCTF_ += nCurTermFreq_;
         nCurTermFreq_ = 1;
@@ -198,7 +198,7 @@ void InMemoryPosting::flushLastDoc(bool bTruncTail)
 
     if (nCurTermFreq_ > 0)
     {
-        pDocFreqList_->addVData(nCurTermFreq_);
+        pDocFreqList_->addVData32(nCurTermFreq_);
         if (bTruncTail)
         {
             pDocFreqList_->truncTailChunk();///update real size

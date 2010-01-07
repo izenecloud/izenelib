@@ -29,6 +29,9 @@ public:
 public:
     docid_t skipTo(docid_t docID);
 
+    ///iterating skip points of lowest level
+    bool nextSkip(docid_t docID);
+
     docid_t getDoc() { return curDoc_;}
 
     fileoffset_t getOffset() { return lastOffset_; }
@@ -53,6 +56,8 @@ public:
 
     int getCurSkipInterval()	{ return curSkipInterval_; }
 
+    int getNumSkipped() { return totalSkipped_; }
+
     void reset();
 
 private:
@@ -62,7 +67,7 @@ private:
 
     bool loadNextSkip(int level);
 
-    docid_t readSkipPoint(int level,IndexInput* pLevelInput);
+    void readSkipPoint(int level,IndexInput* pLevelInput);
 
 private:
     bool loaded_;
@@ -74,7 +79,7 @@ private:
     fileoffset_t* skipPointer_; /// the start pointer of each skip level
     int* skipInterval_; ///skip interval in each level
     int* numSkipped_; ///number of skipped document per level 
-    int nNumSkipped_; ///number of skipped document per level 
+    int totalSkipped_; ///total skipped document 
     int curSkipInterval_; ///skip interval of current skip point
 
     docid_t* skipDoc_; ///doc id of current skip entry per level
@@ -85,7 +90,6 @@ private:
     fileoffset_t lastOffset_;
     fileoffset_t* pOffsets_; ///offset of the first doc's position in position posting.		
     fileoffset_t lastPOffset_;
-
 };
 
 }

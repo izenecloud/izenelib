@@ -44,14 +44,14 @@ public:
      * @param vdata32 32 bit variant length data
      * @return return false if no enough space, else return true.
      */
-    bool addVData(uint32_t vdata32);
+    bool addVData32(uint32_t vdata32);
 
     /**
      * add variant length data which is 64 bit
      * @param vdata64 64 bit variant length data
      * @return return false if no enough space, else return true.
      */
-    bool addVData(uint64_t vdata64);
+    bool addVData64(uint64_t vdata64);
 
     /**
      * write all data contained to disk;

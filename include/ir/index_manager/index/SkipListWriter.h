@@ -70,7 +70,7 @@ public:
         return nNumLevls;
     }
 
-    void addSkipPoint();
+    void addSkipPoint(docid_t docId,fileoffset_t offset,fileoffset_t pOffset);
 
     void write(IndexOutput* pOutput);
 

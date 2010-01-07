@@ -40,8 +40,12 @@ SkipListWriter::~SkipListWriter()
     delete[] pLastPOffset_;
 }
 
-void SkipListWriter::addSkipPoint()
+void SkipListWriter::addSkipPoint(docid_t docId,fileoffset_t offset,fileoffset_t pOffset)
 {
+    curDoc_ = docId;
+    curOffset_ = offset;
+    curPOffset_ = pOffset;
+
     int nNumLevels;   
     int nNumPoints = ++numPointsInLowestLevel_;
     for (nNumLevels = 1; (nNumPoints % skipInterval_) == 0 && nNumLevels < maxSkipLevel_; nNumPoints /= skipInterval_) 
@@ -51,9 +55,9 @@ void SkipListWriter::addSkipPoint()
 
     for (int level = 0; level < nNumLevels; level++) 
     {
-        ppSkipLevels_[level]->addVData(curDoc_ - pLastDoc_[level]);
-        ppSkipLevels_[level]->addVData((uint64_t)(curOffset_ - pLastOffset_[level]));
-        ppSkipLevels_[level]->addVData((uint64_t)(curPOffset_ - pLastPOffset_[level]));
+        ppSkipLevels_[level]->addVData32(curDoc_ - pLastDoc_[level]);
+        ppSkipLevels_[level]->addVData64((uint64_t)(curOffset_ - pLastOffset_[level]));
+        ppSkipLevels_[level]->addVData64((uint64_t)(curPOffset_ - pLastPOffset_[level]));
 
         pLastDoc_[level] = curDoc_;
         pLastOffset_[level] = curOffset_;
@@ -63,7 +67,7 @@ void SkipListWriter::addSkipPoint()
         if (level != 0) 
         {
             // store child pointers for all levels except the lowest
-            ppSkipLevels_[level]->addVData(nChildPointer);
+            ppSkipLevels_[level]->addVData64(nChildPointer);
         }
         //remember the childPointer for the next level
         nChildPointer = nNewChildPointer;
