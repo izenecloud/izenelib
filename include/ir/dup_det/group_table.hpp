@@ -32,25 +32,6 @@ protected:
   Vector32Ptr doc_hash_;//!< docid hash table entry
   FILE* f_;
   Vector32    empty_q_;//!< store empty group that's ready for using.
-
-  /**
-     @brief get group id of the doc with ID as docid
-     @return group ID
-   */
-  inline size_t get_gid(uint32_t docid)const
-  {
-    Vector32* p = doc_hash_.at(docid%ENTRY_SIZE);
-    if (p == NULL)
-      return -1;
-    
-    for (size_t i=0; i<p->length(); i++)
-    {
-      if (p->at(i++) == docid)
-        return p->at(i);
-    }
-
-    return -1;
-  }
   
   /**
      @brief set group id of the doc with ID as docid
@@ -175,6 +156,25 @@ public:
       delete v;
       gids_[i] = NULL;
     }
+  }
+
+  /**
+     @brief get group id of the doc with ID as docid
+     @return group ID
+   */
+  inline size_t get_gid(uint32_t docid)const
+  {
+    Vector32* p = doc_hash_.at(docid%ENTRY_SIZE);
+    if (p == NULL)
+      return -1;
+    
+    for (size_t i=0; i<p->length(); i++)
+    {
+      if (p->at(i++) == docid)
+        return p->at(i);
+    }
+
+    return -1;
   }
 
   inline void reset(const char* filenm)
