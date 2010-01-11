@@ -151,8 +151,7 @@ public:
    */
   inline const Vector32& operator[] (size_t i)
   {
-    return *(entry_.at(gids_.at(i)));
-  
+    return *(entry_.at(gids_.at(i)));  
   }
   
   /**
