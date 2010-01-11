@@ -47,6 +47,8 @@ private:
             ar & indexLocations_;
             ar & memory_;
             ar & indexDocLength_;
+            ar & skipInterval_;
+            ar & maxSkipLevel_;
         }
 
 
@@ -68,6 +70,10 @@ private:
         int64_t memory_;
 
         bool indexDocLength_;
+
+        int skipInterval_;
+
+        int maxSkipLevel_;
     };
 
     /**

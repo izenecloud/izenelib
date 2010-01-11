@@ -1,6 +1,7 @@
 #include <ir/index_manager/index/Posting.h>
 #include <ir/index_manager/index/OutputDescriptor.h>
 #include <ir/index_manager/index/InputDescriptor.h>
+#include <ir/index_manager/index/SkipListWriter.h>
 #include <ir/index_manager/store/IndexOutput.h>
 #include <ir/index_manager/store/IndexInput.h>
 
@@ -10,6 +11,9 @@
 using namespace std;
 
 using namespace izenelib::ir::indexmanager;
+
+int InMemoryPosting::skipInterval_;
+int InMemoryPosting::maxSkipLevel_;
 
 Posting::Posting()
 {}
@@ -28,6 +32,7 @@ InMemoryPosting::InMemoryPosting(MemCache* pCache)
         ,nCurTermFreq_(0)
         ,nCTF_(0)
         ,pDS_(NULL)
+        ,pSkipListWriter_(0)
 {
     pDocFreqList_ = new VariantDataPool(pCache);
     pLocList_  = new VariantDataPool(pCache);
@@ -43,6 +48,7 @@ InMemoryPosting::InMemoryPosting()
         ,pDS_(NULL)
         ,pDocFreqList_(NULL)
         ,pLocList_(NULL)
+        ,pSkipListWriter_(0)
 {
 }
 
@@ -148,6 +154,15 @@ void InMemoryPosting::addLocation(docid_t docid, loc_t location)
         {
             nLastDocID_ = 0;
         }
+
+        if(nDF_ > 0 && nDF_ % skipInterval_ == 0)
+        {
+            if(!pSkipListWriter_)
+                pSkipListWriter_ = new SkipListWriter(skipInterval_,maxSkipLevel_,pMemCache_);
+
+            pSkipListWriter_->addSkipPoint(nLastDocID_,pDocFreqList_->getRealSize(),pLocList_->getRealSize());
+        }
+		
         pDocFreqList_->addVData32(docid - nLastDocID_);
         pLocList_->addVData32(location);
 
@@ -187,7 +202,18 @@ void InMemoryPosting::writeDescriptor(IndexOutput* pDOutput,fileoffset_t poffset
     pDOutput->writeVInt(1); ///<ChunkCount(VInt32)>
     ///begin write chunk descriptor
     pDOutput->writeVLong(pDocFreqList_->getRealSize());///<ChunkLength(VInt64)>
-    pDOutput->writeVInt(nLastDocID_); ///<LastDocID(VInt32)>
+
+    if( pSkipListWriter_ && pSkipListWriter_->getNumLevels() > 0) ///nDF_ > SkipInterval
+    {
+        pDOutput->writeVInt(nLastDocID_);///<LastDocID(VInt32)>
+        pDOutput->writeByte(pSkipListWriter_->getNumLevels());
+        pSkipListWriter_->write(pDOutput);	///write skip list data
+    }
+    else
+    {
+        pDOutput->writeVInt(nLastDocID_);///<LastDocID(VInt32)>
+    }
+
     ///end write posting descriptor
 }
 

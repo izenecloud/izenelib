@@ -118,7 +118,7 @@ public:
 /**
 *InMemoryPosting
 */
-
+class SkipListWriter;
 class InMemoryPosting:public Posting
 {
 public:
@@ -259,8 +259,11 @@ protected:
     DecodeState* pDS_;			///decoding state
     VariantDataPool* pDocFreqList_; /// Doc freq list
     VariantDataPool* pLocList_; 	/// Location list
-
+    SkipListWriter* pSkipListWriter_;   ///skiplist writer
+    static int skipInterval_;
+    static int maxSkipLevel_;
     friend class PostingMerger;
+    friend class Indexer;
 };
 
 /**

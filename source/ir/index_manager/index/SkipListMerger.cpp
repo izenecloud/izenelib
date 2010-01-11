@@ -53,10 +53,10 @@ bool SkipListMerger::addToMerge(SkipListReader* pSkipReader,docid_t lastDoc,int 
 void SkipListMerger::writeSkipData(int level,IndexOutput* pSkipLevelOutput)
 {			
     if(pSkipInterval_[level] == getSkipInterval(level))
-        pSkipLevelOutput->writeVInt( (curDoc_ - pLastDoc_[level]) << 1);
+        pSkipLevelOutput->writeVInt(curDoc_ - pLastDoc_[level]);
     else
     {
-        pSkipLevelOutput->writeVInt( ((curDoc_ - pLastDoc_[level]) << 1) + 1);
+        pSkipLevelOutput->writeVInt(curDoc_ - pLastDoc_[level]);
         pSkipLevelOutput->writeVInt(pSkipInterval_[level]);
     }
     pSkipInterval_[level] = 0;

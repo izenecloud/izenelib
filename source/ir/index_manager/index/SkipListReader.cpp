@@ -106,7 +106,7 @@ void SkipListReader::seekChild(int level)
     numSkipped_[level] = numSkipped_[level + 1];
     if (level > 0)
     {
-        childPointer_[level] = skipStream_[level]->readVLong() + childPointer_[level - 1];
+        childPointer_[level] = skipStream_[level]->readVLong() + skipPointer_[level - 1];
     }
 }
 
