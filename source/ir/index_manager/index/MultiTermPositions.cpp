@@ -53,24 +53,36 @@ bool MultiTermPositions::next()
     return false;
 }
 
-count_t MultiTermPositions::next(docid_t*& docs, count_t*& freqs)
-{
-    if (pTermPositionQueue_ == NULL)
+docid_t MultiTermPositions::skipTo(docid_t target)
+{			
+    if(pTermPositionQueue_ == NULL)
     {
         initQueue();
     }
 
-    int c = -1;
+    TermPositions* pTop = NULL;
+    docid_t nBaseId;
+    docid_t t;
+    docid_t nFoundId = -1;
     while (pTermPositionQueue_->size() > 0)
     {
         current_ = pTermPositionQueue_->top();
-        c = current_->termPositions_->next(docs,freqs);
-        if (c> 0)
-            return c;
-        else
+        nBaseId = current_->barrelInfo_->getBaseDocID();
+        t = target - nBaseId;
+        pTop = current_->termPositions_;
+
+        nFoundId = pTop->skipTo(t);
+        if(nFoundId >= t)
+        {
+            nFoundId += nBaseId;
+            return nFoundId;
+        }
+        else 
+        {
             pTermPositionQueue_->pop();
+        }		
     }
-    return c;
+    return -1;
 }
 
 freq_t MultiTermPositions::docFreq()

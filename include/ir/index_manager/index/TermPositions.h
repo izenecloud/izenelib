@@ -42,13 +42,10 @@ public:
      * move to the next documents block
      */
     virtual bool	next();
-    /**
-     * move to the next documents block
-     * @param docs documents block
-     * @param freqs term frequency block
-     * @return number of documents in the block
-     */
-    virtual count_t next(docid_t*& docs, count_t*& freqs);
+    /*
+    * skip to the target doc id
+    */
+    virtual docid_t skipTo(docid_t docId);
     /**
      * get document frequency
      * @return frequency

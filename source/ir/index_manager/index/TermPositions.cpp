@@ -102,9 +102,74 @@ bool TermPositions::next()
     return false;
 }
 
-count_t TermPositions::next(docid_t*& docs, count_t*& freqs)
+docid_t TermPositions::skipTo(docid_t docId)
+{		
+    int32_t start,end,skip;
+    int32_t i = 0;
+    docid_t foundDocId = -1;
+    while (true)
+    {
+        if((nCurrentPosting_ == -1) || (nCurrentPosting_ >= nCurDecodedCount_) )
+        {
+            if(!pPostingBuffer_)
+                createBuffer();
+            nCurrentPosting_ = 0;
+            nCurDecodedCount_ = 1;
+            pPosting_->decodeTo(docId);
+            foundDocId = pPostingBuffer_[0];
+            goto end;
+        }
+        start = nCurrentPosting_;
+        end = start + (docId - pPostingBuffer_[nCurrentPosting_]);
+        if(end == start)
+        {
+            foundDocId = docId;
+            goto end;
+        }
+        else if(end < start)
+        {
+            foundDocId = pPostingBuffer_[nCurrentPosting_];
+            goto end;
+        }				
+        if ( end > (nCurDecodedCount_ - 1) )
+            end = nCurDecodedCount_ - 1;
+
+        nCurrentPosting_ = bsearch(pPostingBuffer_,start,end,docId,foundDocId);///binary search in decoded buffer
+
+        ///skip positions
+        skip = (pPostingBuffer_[nFreqStart_ + start] - nTotalDecodedPCountWithinDoc_);
+        for (i = start + 1;i < nCurrentPosting_;i++)
+        {
+            skip += pPostingBuffer_[nFreqStart_ + i];
+        }				
+        skipPositions(skip);
+        
+        if(foundDocId >= docId)
+            goto end;
+
+        if(start != nCurrentPosting_)
+            skipPositions(pPostingBuffer_[nFreqStart_ + nCurrentPosting_]);
+        nTotalDecodedPCountWithinDoc_ = 0;
+        nCurDecodedPCountWithinDoc_ = 0;
+        nCurrentPPostingWithinDoc_ = 0;
+        nCurrentPosting_ = nCurDecodedCount_;///buffer is over
+    }			
+end:			
+    nPPostingCountWithinDoc_ = pPostingBuffer_[nFreqStart_ + nCurrentPosting_];
+    nCurDecodedPCountWithinDoc_ = 0;
+    nTotalDecodedPCountWithinDoc_ = 0;			
+    nCurrentPPostingWithinDoc_ = 0;
+    pPosting_->resetPosition();
+    return foundDocId;
+}
+
+void TermPositions::resetPosition()
 {
-    throw UnsupportedOperationException("don't support TermPositions::next(docid_t*& docs, count_t*& freqs),please use TermDocFreqs.");
+    nPPostingCountWithinDoc_ = pPostingBuffer_[nFreqStart_ + nCurrentPosting_];
+    nCurDecodedPCountWithinDoc_ = 0;
+    nTotalDecodedPCountWithinDoc_ = 0;			
+    nCurrentPPostingWithinDoc_ = 0;
+    pPosting_->resetPosition();
 }
 
 void TermPositions::close()

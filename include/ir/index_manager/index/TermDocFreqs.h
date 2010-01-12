@@ -39,7 +39,7 @@ public:
 
     virtual int64_t getCTF();
 
-    virtual count_t next(docid_t*& docs, count_t*& freqs);
+    virtual docid_t skipTo(docid_t docId);	
 
     virtual bool next();
 
@@ -54,6 +54,8 @@ protected:
     virtual bool decode();
 
     void createBuffer();
+
+    int32_t bsearch(docid_t docs[],int32_t start,int32_t end,docid_t key,docid_t& keyFound);
 
 protected:
     TermInfo termInfo_;

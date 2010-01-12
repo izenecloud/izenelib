@@ -36,6 +36,9 @@ struct ChunkDescriptor
 /**
 *virtual base class of InMemoryPosting and OnDiskPosting
 */
+class SkipListWriter;
+class SkipListReader;
+
 class Posting
 {
 public:
@@ -70,6 +73,18 @@ public:
      * reset the base position which used in d-gap encoding
      */
     virtual void resetPosition() = 0;
+
+    /**
+     * Set file pointer after skipping
+     */
+    virtual void seekTo(SkipListReader* pSkipListReader) = 0;
+
+    /**
+     * Decode postings to target docID
+     * @param docID target docID 
+     * @return last decoded docID
+     */
+    virtual docid_t decodeTo(docid_t docID) = 0;
 
     /**
      * reset the content of Posting list.
@@ -118,7 +133,6 @@ public:
 /**
 *InMemoryPosting
 */
-class SkipListWriter;
 class InMemoryPosting:public Posting
 {
 public:
@@ -221,6 +235,18 @@ public:
     void decodeNextPositions(uint32_t* pPosting,uint32_t* pFreqs,int32_t nFreqs);
 
     /**
+     * Set file pointer after skipping
+     */
+    void seekTo(SkipListReader* pSkipListReader);
+
+    /**
+     * Decode postings to target docID
+     * @param docID target docID 
+     * @return last decoded docID
+     */
+    docid_t decodeTo(docid_t docID);
+
+    /**
      * reset the base position which used in d-gap encoding
      */
     void resetPosition();
@@ -270,15 +296,16 @@ protected:
 *OnDiskPosting
 */
 
-
 class OnDiskPosting:public Posting
 {
     struct DecodeState
     {
         docid_t lastDecodedDocID;		///the latest decoded doc id
+        int32_t lastDecodedDocTF;		///the latest decoded doc tf
         int32_t decodedDocCount;		///decoded doc count
         loc_t lastDecodedPos; 		///the latest decoded position posting
         int32_t decodedPosCount;		///decoded position posting count
+        int32_t skipPosCount_; 		///position count to be skipped
     };
 public:
     OnDiskPosting();
@@ -310,8 +337,20 @@ public:
      * @param pPosing the address to store posting data
      * @param pFreqs freqs array
      * @param nFreqs size of freqs array
-    	 */
+     */
     void decodeNextPositions(uint32_t* pPosting,uint32_t* pFreqs,int32_t nFreqs);
+
+    /**
+     * Set file pointer after skipping
+     */
+    void seekTo(SkipListReader* pSkipListReader);
+
+    /**
+     * Decode postings to target docID
+     * @param docID target docID 
+     * @return last decoded docID
+     */
+    docid_t decodeTo(docid_t docID);
 
     /**
      * reset the base position which used in d-gap encoding
@@ -377,7 +416,7 @@ protected:
     InputDescriptor* pInputDescriptor_;
     size_t nBufSize_;
     OnDiskPosting::DecodeState ds_;
-
+    SkipListReader* pSkipListReader_; ///skiplist reader
 
     friend class PostingMerger;
 };

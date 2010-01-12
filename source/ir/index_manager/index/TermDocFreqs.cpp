@@ -108,18 +108,74 @@ bool TermDocFreqs::next()
     }
     return true;
 }
-count_t TermDocFreqs::next(docid_t*& docs, count_t*& freqs)
+
+docid_t TermDocFreqs::skipTo(docid_t docId)
 {
-    if ((nCurrentPosting_ < 0) || (nCurrentPosting_ >= nCurDecodedCount_) )
+    int32_t start,end;
+    while (true)
     {
-        if (!decode())
-            return false;
+        if((nCurrentPosting_ == -1) || (nCurrentPosting_ >= nCurDecodedCount_) )
+        {
+            if(!pPostingBuffer_)
+                createBuffer();
+            nCurrentPosting_ = 0;
+            nCurDecodedCount_ = 1;
+            pPosting_->decodeTo(docId);
+            return pPostingBuffer_[0];
+        }
+        start = nCurrentPosting_;
+        end = start + (docId - pPostingBuffer_[nCurrentPosting_]);
+        if(end == start)
+        {
+            return docId;
+        }
+        else if(end < start)
+        {
+            return pPostingBuffer_[nCurrentPosting_];			
+        }				
+        if ( end > (nCurDecodedCount_ - 1) )
+            end = nCurDecodedCount_ - 1;
+        docid_t nRetDocId;
+        nCurrentPosting_ = bsearch(pPostingBuffer_,start,end,docId,nRetDocId);///binary search in decoded buffer
+        if(nRetDocId >= docId)
+            return nRetDocId;
+        nCurrentPosting_ = nCurDecodedCount_;///buffer is over
     }
-    docs = &pPostingBuffer_[nCurrentPosting_];
-    freqs = &pPostingBuffer_[nFreqStart_ + nCurrentPosting_];
-    int32_t c = nCurDecodedCount_ - nCurrentPosting_;
-    nCurDecodedCount_ = nCurrentPosting_ = 0;
-    return c;
+}
+
+int32_t TermDocFreqs::bsearch(docid_t docs[],int32_t start,int32_t end,docid_t key,docid_t& keyFound)
+{
+    int32_t k;
+    int32_t nk = end;
+    keyFound = docs[end];
+    while (start<=end)
+    {
+        k = (start + end)/2;
+        if(key == docs[k])
+        {
+            keyFound = key;
+            return k;
+        }
+        if(key < docs[k])
+        {
+            end = k - 1;
+            if(k >= start)
+            {
+                keyFound = docs[k];
+                nk =k;
+            }
+        }
+        else
+        {
+            start = k + 1;
+            if( (start <= end) && (docs[start] > key) )
+            {
+                keyFound = docs[start];
+                nk = start;
+            }
+        }
+    }
+    return nk;
 }
 
 void TermDocFreqs::close()

@@ -66,7 +66,7 @@ public:
 
     bool next();
 
-    count_t next(docid_t*& docs, count_t*& freqs);
+    docid_t skipTo(docid_t docId);
 
     freq_t docFreq();
 
