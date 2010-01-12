@@ -202,9 +202,9 @@ public:
         myValueType vdat;
         unsigned int offset = 0;
         myKeyType firstKey(key, 0);
+        result.setAll();
         if ( !this->_sdb.hasKey(firstKey) )
             return false;
-        result.setAll();
         do
         {
             myKeyType ikey(key, offset++);
