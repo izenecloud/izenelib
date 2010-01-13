@@ -555,6 +555,9 @@ public:
    */
   inline void indexing(uint32_t start = 0)
   {
+    if (fp_list_==NULL || fp_list_->doc_num() == 0)
+      return;
+    
     struct timeval tvafter,tvpre;
     struct timezone tz;
 
