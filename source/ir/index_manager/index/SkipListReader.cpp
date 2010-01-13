@@ -164,25 +164,68 @@ void SkipListReader::loadSkipLevels()
     }
 }
 
-void SkipListReader::reset()
+void SkipListReader::reset(int levels,fileoffset_t skipOffset)
 {
     curSkipInterval_ = 0;
     numSkipped_ = 0;
     curDoc_ = 0;
     lastChildPointer_ = 0;
-	
-    memset(skipDoc_,0,numSkipLevels_ * sizeof(docid_t));
-    memset(skipInterval_,0,numSkipLevels_ * sizeof(int));
-    memset(numSkipped_,0,numSkipLevels_ * sizeof(int));
-    memset(childPointer_,0,numSkipLevels_ * sizeof(fileoffset_t));			
 
-    for(int i = 0;i < numSkipLevels_; i++)
+    if(levels > numSkipLevels_)
     {
-        if(skipStream_[i])
-            skipStream_[i]->seek(skipPointer_[i]);
+        delete skipDoc_;
+        skipDoc_ = new docid_t[levels];
+        memset(skipDoc_,0,levels * sizeof(docid_t));
+
+        delete skipInterval_;
+        skipInterval_ = new int[levels];
+        memset(skipInterval_,0,levels * sizeof(int));
+
+        delete numSkipped_;
+        numSkipped_ = new int[levels];
+        memset(numSkipped_,0,levels * sizeof(int));
+
+        delete childPointer_;
+        childPointer_ = new fileoffset_t[levels];
+        memset(childPointer_,0,levels * sizeof(fileoffset_t));
+
+        delete skipPointer_;
+        skipPointer_= new fileoffset_t[levels];
+        memset(skipPointer_,0,levels * sizeof(fileoffset_t));
+
+        IndexInput** skipStream = new IndexInput*[levels];
+        memset(skipStream,0,levels * sizeof(IndexInput*));
+        memcpy(skipStream,skipStream_,numSkipLevels_ * sizeof(IndexInput*));
+        delete[] skipStream_;
+        skipStream_ = skipStream;
+        numSkipLevels_ = levels;
+
+        delete offsets_;
+        offsets_ = new fileoffset_t[numSkipLevels_];
+        memset(offsets_,0,numSkipLevels_ * sizeof(fileoffset_t));
+
+        delete pOffsets_;
+        pOffsets_ = new fileoffset_t[numSkipLevels_];
+        memset(pOffsets_,0,numSkipLevels_ * sizeof(fileoffset_t));
+        numSkipLevels_ = levels;
     }
+    else
+    {
+        memset(skipDoc_,0,numSkipLevels_ * sizeof(docid_t));
+        memset(skipInterval_,0,numSkipLevels_ * sizeof(int));
+        memset(numSkipped_,0,numSkipLevels_ * sizeof(int));
+        memset(childPointer_,0,numSkipLevels_ * sizeof(fileoffset_t));			
+
+        for(int i = 0;i < numSkipLevels_; i++)
+        {
+            if(skipStream_[i])
+                skipStream_[i]->seek(skipPointer_[i]);
+        }
+    }
+
     loaded_ = false;
 }
+
 
 }
 NS_IZENELIB_IR_END

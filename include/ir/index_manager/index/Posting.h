@@ -128,6 +128,9 @@ public:
     {
         return 0;
     }
+public:
+    static int skipInterval_;
+    static int maxSkipLevel_;
 };
 
 /**
@@ -286,10 +289,7 @@ protected:
     VariantDataPool* pDocFreqList_; /// Doc freq list
     VariantDataPool* pLocList_; 	/// Location list
     SkipListWriter* pSkipListWriter_;   ///skiplist writer
-    static int skipInterval_;
-    static int maxSkipLevel_;
     friend class PostingMerger;
-    friend class Indexer;
 };
 
 /**

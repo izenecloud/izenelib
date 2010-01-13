@@ -58,7 +58,7 @@ public:
 
     int getNumSkipped() { return totalSkipped_; }
 
-    void reset();
+    void reset(int levels,fileoffset_t skipOffset);
 
 private:
     void seekChild(int level);

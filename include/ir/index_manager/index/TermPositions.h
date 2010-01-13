@@ -82,6 +82,9 @@ private:
 
     /** create buffer for decoding */
     void createBuffer();
+
+    void resetDecodingState();
+	
 private:
     uint32_t* pPPostingBuffer_;				///buffer for position posting
 

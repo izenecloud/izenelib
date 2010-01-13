@@ -13,8 +13,8 @@ using namespace std;
 
 using namespace izenelib::ir::indexmanager;
 
-int InMemoryPosting::skipInterval_;
-int InMemoryPosting::maxSkipLevel_;
+int Posting::skipInterval_;
+int Posting::maxSkipLevel_;
 
 Posting::Posting()
 {}
@@ -207,12 +207,13 @@ void InMemoryPosting::writeDescriptor(IndexOutput* pDOutput,fileoffset_t poffset
     if( pSkipListWriter_ && pSkipListWriter_->getNumLevels() > 0) ///nDF_ > SkipInterval
     {
         pDOutput->writeVInt(nLastDocID_);///<LastDocID(VInt32)>
-        pDOutput->writeByte(pSkipListWriter_->getNumLevels());
+        pDOutput->writeVInt(pSkipListWriter_->getNumLevels()); ///skiplevel (VInt32)
         pSkipListWriter_->write(pDOutput);	///write skip list data
     }
     else
     {
         pDOutput->writeVInt(nLastDocID_);///<LastDocID(VInt32)>
+        pDOutput->writeVInt(0);  /// skiplevel = 0
     }
 
     ///end write posting descriptor
@@ -441,6 +442,7 @@ Posting* OnDiskPosting::clone()
 void OnDiskPosting::reset(fileoffset_t newOffset)
 {
     postingOffset_ = newOffset;
+
     IndexInput* pDPInput = pInputDescriptor_->getDPostingInput();
     //IndexInput should be reset because the internal buffer should be clear when a new posting is needed to be read
     pDPInput->reset();
@@ -459,6 +461,20 @@ void OnDiskPosting::reset(fileoffset_t newOffset)
     ///read first chunk descriptor of posting list <ChunkDescriptor>
     chunkDesc_.length = VariantDataPool::decodeVData64(u);	///<ChunkLength(VInt64)>
     chunkDesc_.lastdocid = VariantDataPool::decodeVData32(u);	///<LastDocID(VInt32)>
+
+    int skipLevel = VariantDataPool::decodeVData32(u);
+
+    if(skipLevel > 0)
+    {
+        if(pSkipListReader_)
+            pSkipListReader_->reset(skipLevel, postingOffset_ + (buf - u + 1));
+        else
+        {
+            pDPInput->seek(postingOffset_ + (buf - u + 1)); ///start of skipping data
+            pSkipListReader_ = new SkipListReader(pDPInput,skipInterval_,skipLevel);		
+        }
+    }
+	
     IndexInput* pPPInput = pInputDescriptor_->getPPostingInput();
     if (pPPInput)
     {
@@ -480,6 +496,8 @@ void OnDiskPosting::reset(fileoffset_t newOffset)
     ds_.lastDecodedDocID = 0;
     ds_.decodedPosCount= 0;
     ds_.lastDecodedPos = 0;
+    ds_.lastDecodedDocTF = 0;
+    ds_.skipPosCount_ = 0;
 }
 
 docid_t OnDiskPosting::decodeTo(docid_t docID)
@@ -541,8 +559,8 @@ void OnDiskPosting::seekTo(SkipListReader* pSkipListReader)
     IndexInput* pPPostingInput = getInputDescriptor()->getPPostingInput();
     if(pPPostingInput)
     {
-        pPPostingInput->seek(postingOffset_ - postingDesc_.length + pSkipListReader->getPOffset());
-        resetPosition();
+        pPPostingInput->seek(postingDesc_.poffset - nPPostingLength_ + pSkipListReader->getPOffset());
+        ds_.lastDecodedPos = 0;
         ds_.skipPosCount_ = 0;
     }
 }
