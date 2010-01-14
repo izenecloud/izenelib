@@ -517,7 +517,6 @@ docid_t OnDiskPosting::decodeTo(docid_t docID)
     if(postingDesc_.df == 1)
     {
         ds_.lastDecodedDocTF = 0;
-        ds_.skipPosCount_ += postingDesc_.ctf; /// skip the freq
         return -1;
     }
 
@@ -560,7 +559,7 @@ void OnDiskPosting::seekTo(SkipListReader* pSkipListReader)
     if(pPPostingInput)
     {
         pPPostingInput->seek(postingDesc_.poffset - nPPostingLength_ + pSkipListReader->getPOffset());
-        ds_.lastDecodedPos = 0;
+        ds_.lastDecodedPos = 0;///reset position
         ds_.skipPosCount_ = 0;
     }
 }
