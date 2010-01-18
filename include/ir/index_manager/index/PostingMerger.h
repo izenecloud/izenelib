@@ -11,6 +11,7 @@
 #include <ir/index_manager/index/Posting.h>
 #include <ir/index_manager/index/OutputDescriptor.h>
 #include <ir/index_manager/index/InputDescriptor.h>
+#include <ir/index_manager/index/SkipListMerger.h>
 #include <ir/index_manager/utility/BitVector.h>
 
 NS_IZENELIB_IR_BEGIN
@@ -109,6 +110,12 @@ private:
     int64_t nPPostingLength_;
 
     bool bFirstPosting_;
+
+    SkipListMerger* pSkipListMerger_;
+
+    MemCache* pMemCache_; /// memory cache
+
+    int64_t skipInterval_;
 };
 
 }

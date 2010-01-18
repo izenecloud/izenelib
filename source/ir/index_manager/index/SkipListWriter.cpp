@@ -1,4 +1,5 @@
 #include <ir/index_manager/index/SkipListWriter.h>
+#include <ir/index_manager/index/SkipListReader.h>
 
 NS_IZENELIB_IR_BEGIN
 
@@ -104,6 +105,11 @@ void SkipListWriter::reset()
         if(ppSkipLevels_[i])
             ppSkipLevels_[i]->reset();
     }
+}
+
+SkipListReader* SkipListWriter::getSkipListReader()
+{
+    return new SkipListReader(ppSkipLevels_,getSkipInterval(0),getNumLevels());
 }
 
 }

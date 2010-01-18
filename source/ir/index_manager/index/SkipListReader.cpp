@@ -40,6 +40,40 @@ SkipListReader::SkipListReader(IndexInput* pSkipInput, int skipInterval, int num
     memset(pOffsets_,0,numSkipLevels_ * sizeof(fileoffset_t));
 }		
 
+SkipListReader::SkipListReader(VariantDataPool** pSkipLevels, int skipInterval, int numSkipLevels)
+	: loaded_(false)
+	, defaultSkipInterval_(skipInterval)
+	, numSkipLevels_(numSkipLevels)
+	, numSkipped_(0)
+	, totalSkipped_(0)
+	, curSkipInterval_(0)
+	, lastChildPointer_(0)
+{
+    skipDoc_ = new docid_t[numSkipLevels_];
+    memset(skipDoc_,0,numSkipLevels_ * sizeof(docid_t));
+
+    skipInterval_ = new int[numSkipLevels_];
+    memset(skipInterval_,0,numSkipLevels_ * sizeof(int));
+
+    numSkipped_ = new int[numSkipLevels_];
+    memset(numSkipped_,0,numSkipLevels_ * sizeof(int));
+
+    childPointer_ = new fileoffset_t[numSkipLevels_];
+    memset(childPointer_,0,numSkipLevels_ * sizeof(fileoffset_t));
+
+    skipPointer_= new fileoffset_t[numSkipLevels_];
+    memset(skipPointer_,0,numSkipLevels_ * sizeof(fileoffset_t));
+
+    offsets_ = new fileoffset_t[numSkipLevels_];
+    memset(offsets_,0,numSkipLevels_ * sizeof(fileoffset_t));
+
+    pOffsets_ = new fileoffset_t[numSkipLevels_];
+    memset(pOffsets_,0,numSkipLevels_ * sizeof(fileoffset_t));
+
+    for(int i = 0;i < numSkipLevels_;i++)
+	skipStream_[i] = new VariantDataPoolInput(pSkipLevels[i]);
+}
+
 SkipListReader::~SkipListReader()
 {
 }

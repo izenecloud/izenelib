@@ -13,6 +13,7 @@
 #include <ir/index_manager/utility/MemCache.h>
 #include <ir/index_manager/utility/Utilities.h>
 #include <ir/index_manager/store/IndexOutput.h>
+#include <ir/index_manager/store/IndexInput.h>
 
 NS_IZENELIB_IR_BEGIN
 
@@ -115,11 +116,35 @@ private:
 
     friend class InMemoryPosting;
     friend class PostingMerger;
-
+    friend class VariantDataPoolInput;
 public:
     static int32_t UPTIGHT_ALLOC_CHUNKSIZE;
     static int32_t UPTIGHT_ALLOC_MEMSIZE;
  };
+
+
+class VariantDataPoolInput : public IndexInput
+{
+public:
+    VariantDataPoolInput(VariantDataPool* pVDataPool);
+
+    VariantDataPoolInput(const VariantDataPoolInput& src);
+
+    ~VariantDataPoolInput();
+public:
+    void readInternal(char* b,size_t length,bool bCheck = true);
+
+    IndexInput* clone();
+
+    void close();
+	
+    void seekInternal(int64_t position);
+private:
+    VariantDataPool* pVDataPool_;
+    VariantDataChunk* pVDataChunk_;
+    int64_t currPos_;
+    uint8_t* pData_;
+};
 
 }
 NS_IZENELIB_IR_END

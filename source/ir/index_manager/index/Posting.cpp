@@ -34,6 +34,7 @@ InMemoryPosting::InMemoryPosting(MemCache* pCache)
         ,nCTF_(0)
         ,pDS_(NULL)
         ,pSkipListWriter_(0)
+        ,pSkipListReader_(0)
 {
     pDocFreqList_ = new VariantDataPool(pCache);
     pLocList_  = new VariantDataPool(pCache);
@@ -50,6 +51,7 @@ InMemoryPosting::InMemoryPosting()
         ,pDocFreqList_(NULL)
         ,pLocList_(NULL)
         ,pSkipListWriter_(0)
+        ,pSkipListReader_(0)
 {
 }
 
@@ -71,6 +73,12 @@ InMemoryPosting::~InMemoryPosting()
     {
         delete pDS_;
         pDS_ = NULL;
+    }
+
+    if(pSkipListReader_)
+    {
+        delete pSkipListReader_;
+        pSkipListReader_ = 0;
     }
 }
 
@@ -376,6 +384,14 @@ void InMemoryPosting::decodeNextPositions(uint32_t* pPosting,uint32_t* pFreqs,in
 
     pDS_->decodedPosCount += nTotalDecoded;
     pDS_->lastDecodedPos = loc;
+}
+
+SkipListReader* InMemoryPosting::getSkipListReader()
+{
+    if(!pSkipListReader_)
+        if(pSkipListWriter_)
+        pSkipListReader_ = pSkipListWriter_->getSkipListReader();
+    return pSkipListReader_;
 }
 
 void InMemoryPosting::resetPosition()

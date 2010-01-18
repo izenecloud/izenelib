@@ -24,6 +24,8 @@ class SkipListReader
 public:
     SkipListReader(IndexInput* pSkipInput, int skipInterval, int numSkipLevels);
 
+    SkipListReader(VariantDataPool** pSkipLevels, int skipInterval, int numSkipLevels);
+
     virtual ~SkipListReader();
 
 public:

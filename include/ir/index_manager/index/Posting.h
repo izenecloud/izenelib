@@ -128,6 +128,8 @@ public:
     {
         return 0;
     }
+
+    virtual SkipListReader* getSkipListReader() = 0;
 public:
     static int skipInterval_;
     static int maxSkipLevel_;
@@ -259,6 +261,9 @@ public:
      * @param bTruncTail trunc the tail of posting or not
      */
     void flushLastDoc(bool bTruncTail);
+
+    SkipListReader* getSkipListReader();
+
 protected:
     /**
      * write document posting to output
@@ -289,6 +294,7 @@ protected:
     VariantDataPool* pDocFreqList_; /// Doc freq list
     VariantDataPool* pLocList_; 	/// Location list
     SkipListWriter* pSkipListWriter_;   ///skiplist writer
+    SkipListReader* pSkipListReader_; ///skiplist reader
     friend class PostingMerger;
 };
 
@@ -408,6 +414,12 @@ public:
     {
         return nBufSize_;
     }
+
+    SkipListReader* getSkipListReader()
+    {
+        return pSkipListReader_;
+    }
+
 protected:
     PostingDescriptor postingDesc_;
     ChunkDescriptor chunkDesc_;

@@ -194,3 +194,116 @@ void VariantDataPool::reset()
     nTotalSize_ = nPosInCurChunk_ = nTotalUnused_ = 0;
 }
 
+//////////////////////////////////////////////////////
+///VariantDataPoolInput
+/////////////////////////////////////////////////////
+
+VariantDataPoolInput::VariantDataPoolInput(VariantDataPool* pVDataPool)
+    :pVDataPool_(pVDataPool)
+    ,currPos_(0)
+{
+    setLength(pVDataPool->getRealSize());
+    pVDataChunk_ = pVDataPool->pHeadChunk_;
+    pData_ = pVDataChunk_->data;
+}
+
+VariantDataPoolInput::VariantDataPoolInput(const VariantDataPoolInput& src)
+    :pVDataPool_(src.pVDataPool_)
+    ,currPos_(0)
+{
+    setLength(pVDataPool_->getRealSize());
+    pVDataChunk_ = pVDataPool_->pHeadChunk_;
+    pData_ = pVDataChunk_->data;
+}
+
+VariantDataPoolInput::~VariantDataPoolInput()
+{
+    pVDataPool_ = NULL;
+}
+
+void VariantDataPoolInput::readInternal(char* b,size_t length,bool bCheck)
+{
+    if(bCheck && getFilePointer() != currPos_)
+        seekInternal(getFilePointer());
+    if(!pData_)
+        SF1V5_THROW(ERROR_FILEIO,"VariantDataPoolInput::readInternal():read past EOF" );
+
+    size_t nLen = length;
+    uint8_t* pEnd = pVDataChunk_->data + pVDataChunk_->size;				
+    while(nLen > 0)
+    {
+        if(nLen > (size_t)(pEnd - pData_))
+        {
+            memcpy(b,pData_,pEnd - pData_);
+            b += (pEnd - pData_);
+            nLen -= (pEnd - pData_);
+            pVDataChunk_ = pVDataChunk_->next;
+            if(pVDataChunk_)
+            {
+                pData_ = pVDataChunk_->data;
+                pEnd = pVDataChunk_->data + pVDataChunk_->size;
+            }
+            else
+            {
+                pData_ = NULL;
+                break;
+            }
+        }
+        else
+        {
+            memcpy(b,pData_,nLen); 					
+            if(nLen == pEnd - pData_)
+            {
+                pVDataChunk_ = pVDataChunk_->next;
+                if(pVDataChunk_)
+                    pData_ = pVDataChunk_->data;
+                else
+                    pData_ = NULL;
+            }						
+            else
+            {
+                pData_ += nLen;
+            }
+            nLen = 0;
+        }
+    }
+    if(nLen > 0)
+    {
+        SF1V5_THROW(ERROR_FILEIO,"VariantDataPoolInput::readInternal():read past EOF" );
+    }
+    currPos_ += length;
+}
+
+
+void VariantDataPoolInput::seekInternal(int64_t position)
+{
+    int64_t nSkip = position;
+    pData_ = pVDataChunk_->data;
+    while(nSkip > 0 && pVDataChunk_)
+    {
+        if(nSkip >= pVDataChunk_->size)
+        {
+            nSkip -= pVDataChunk_->size;					
+            pVDataChunk_ = pVDataChunk_->next;
+            pData_ = pVDataChunk_->data;
+        }
+        else
+        {
+            pData_ = pVDataChunk_->data + nSkip;
+            nSkip = 0;
+        }
+    }
+    currPos_ = position;
+    if(nSkip > 0)
+        SF1V5_THROW(ERROR_FILEIO,"VariantDataPoolInput::readInternal():file IO seek error: VariantDataPoolInput" );
+}
+
+void VariantDataPoolInput::close()
+{
+}
+
+IndexInput* VariantDataPoolInput::clone()
+{
+    return new VariantDataPoolInput(*this);
+}
+

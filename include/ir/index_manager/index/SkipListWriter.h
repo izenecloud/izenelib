@@ -39,6 +39,7 @@ namespace indexmanager{
  * subclasses must define the actual format of the skip data.
  * 
  */
+class SkipListReader;
 class SkipListWriter
 {
 public:
@@ -75,6 +76,9 @@ public:
     void write(IndexOutput* pOutput);
 
     void reset();
+
+    SkipListReader* getSkipListReader();
+
 protected:
     VariantDataPool** ppSkipLevels_;
 
