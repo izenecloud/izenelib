@@ -38,6 +38,14 @@ void SkipListMerger::addSkipPoint(SkipListReader* pSkipReader,int skipInterval)
                       );
 }
 
+void SkipListMerger::addSkipPoint(docid_t docId,fileoffset_t offset,fileoffset_t pOffset)
+{
+    SkipListWriter::addSkipPoint( docId + baseDocID_, 
+                        offset + baseOffset_,
+                        pOffset + basePOffset_
+                      );
+}
+
 bool SkipListMerger::addToMerge(SkipListReader* pSkipReader,docid_t lastDoc,int skipInterval)
 {			
     bool ret = false;
@@ -48,25 +56,6 @@ bool SkipListMerger::addToMerge(SkipListReader* pSkipReader,docid_t lastDoc,int 
         skipInterval = 0;
     }
     return ret;
-}
-
-void SkipListMerger::writeSkipData(int level,IndexOutput* pSkipLevelOutput)
-{			
-    if(pSkipInterval_[level] == getSkipInterval(level))
-        pSkipLevelOutput->writeVInt(curDoc_ - pLastDoc_[level]);
-    else
-    {
-        pSkipLevelOutput->writeVInt(curDoc_ - pLastDoc_[level]);
-        pSkipLevelOutput->writeVInt(pSkipInterval_[level]);
-    }
-    pSkipInterval_[level] = 0;
-
-    pSkipLevelOutput->writeVLong(curOffset_ - pLastOffset_[level]);
-    pSkipLevelOutput->writeVLong(curPOffset_ - pLastPOffset_[level]);
-
-    pLastDoc_[level] = curDoc_;
-    pLastOffset_[level] = curOffset_;
-    pLastPOffset_[level] = curPOffset_;
 }
 
 void SkipListMerger::reset()

@@ -35,7 +35,7 @@ public:
 	
     bool addToMerge(SkipListReader* pSkipReader,docid_t lastDoc,int skipInterval);
 
-    void writeSkipData(int level,IndexOutput* pSkipLevelOutput);
+    void addSkipPoint(docid_t docId,fileoffset_t offset,fileoffset_t pOffset);
 
     void reset();
 private:
