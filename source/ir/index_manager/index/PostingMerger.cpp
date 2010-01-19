@@ -13,7 +13,6 @@ PostingMerger::PostingMerger()
         ,bFirstPosting_(true)
         ,pSkipListMerger_(NULL)
         ,pMemCache_(NULL)
-        ,skipInterval_(0)
 {
     reset();
 }
@@ -27,7 +26,6 @@ PostingMerger::PostingMerger(OutputDescriptor* pOutputDescriptor)
         ,bFirstPosting_(true)
         ,pSkipListMerger_(NULL)
         ,pMemCache_(NULL)
-        ,skipInterval_(0)
 {
     reset();
 }
@@ -134,12 +132,7 @@ void PostingMerger::mergeWith(InMemoryPosting* pInMemoryPosting)
             pSkipListMerger_ = new SkipListMerger(pInMemoryPosting->skipInterval_,pInMemoryPosting->maxSkipLevel_,pMemCache_);
         }
         pSkipListMerger_->setBasePoint(0,baseDOffset,basePOffset);
-        pSkipListMerger_->addToMerge(pSkipReader,pInMemoryPosting->lastDocID(),skipInterval_);
-        skipInterval_ = pInMemoryPosting->docFreq() - pSkipReader->getNumSkipped();
-    }
-    else
-    {
-        skipInterval_ += pInMemoryPosting->docFreq();
+        pSkipListMerger_->addToMerge(pSkipReader,pInMemoryPosting->lastDocID());
     }
 
     ///update descriptors
@@ -198,14 +191,8 @@ void PostingMerger::mergeWith(OnDiskPosting* pOnDiskPosting)
             pSkipListMerger_ = new SkipListMerger(pOnDiskPosting->skipInterval_,pOnDiskPosting->maxSkipLevel_,pMemCache_);
         }
         pSkipListMerger_->setBasePoint(0,baseDOffset,basePOffset);
-        pSkipListMerger_->addToMerge(pSkipReader,pOnDiskPosting->chunkDesc_.lastdocid,skipInterval_);
-        skipInterval_ = pOnDiskPosting->docFreq() - pSkipReader->getNumSkipped();
+        pSkipListMerger_->addToMerge(pSkipReader,pOnDiskPosting->chunkDesc_.lastdocid);
     }
-    else
-    {
-        skipInterval_ += pOnDiskPosting->docFreq();
-    }
-
 
     ///update descriptors
     postingDesc_.ctf += pOnDiskPosting->postingDesc_.ctf;
@@ -253,11 +240,6 @@ void PostingMerger::mergeWith_GC(OnDiskPosting* pOnDiskPosting,BitVector* pFilte
         postingDesc_.poffset = pPOutput->getFilePointer();
     }
 
-    fileoffset_t baseDOffset,basePOffset;
-    baseDOffset = postingDesc_.length;
-    basePOffset = postingDesc_.poffset;
-
-
     ///merge skiplist
     if(!pSkipListMerger_)
     {
@@ -265,7 +247,6 @@ void PostingMerger::mergeWith_GC(OnDiskPosting* pOnDiskPosting,BitVector* pFilte
             createBuffer();
         pSkipListMerger_ = new SkipListMerger(pOnDiskPosting->skipInterval_,pOnDiskPosting->maxSkipLevel_,pMemCache_);
     }
-    pSkipListMerger_->setBasePoint(0,baseDOffset,basePOffset);
 
     while (nODDF > 0)
     {
@@ -281,7 +262,7 @@ void PostingMerger::mergeWith_GC(OnDiskPosting* pOnDiskPosting,BitVector* pFilte
             nDF++;
             nLastDocID = nDocID;
             if(pSkipListMerger_)
-                pSkipListMerger_->addSkipPoint(nLastDocID,pDOutput->getFilePointer(),pPOutput->getFilePointer());			
+                pSkipListMerger_->addSkipPoint(nLastDocID,pDOutput->getFilePointer(),pPOutput->getFilePointer());
         }
         else ///this document has been deleted
         {					

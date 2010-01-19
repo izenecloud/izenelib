@@ -33,21 +33,16 @@ public:
         basePOffset_ = basePOffset;
     }
 	
-    bool addToMerge(SkipListReader* pSkipReader,docid_t lastDoc,int skipInterval);
-
-    void addSkipPoint(docid_t docId,fileoffset_t offset,fileoffset_t pOffset);
+    bool addToMerge(SkipListReader* pSkipReader,docid_t lastDoc);
 
     void reset();
 private:
-    void addSkipPoint(SkipListReader* pSkipReader,int skipInterval);
+    void add(SkipListReader* pSkipReaderl);
 
 private:
     docid_t baseDocID_;
     fileoffset_t baseOffset_;
     fileoffset_t basePOffset_;		
-
-    int* pSkipInterval_; ///current skip interval of each skip level
-
 };
 
 }

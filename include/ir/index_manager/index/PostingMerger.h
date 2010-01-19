@@ -114,8 +114,6 @@ private:
     SkipListMerger* pSkipListMerger_;
 
     MemCache* pMemCache_; /// memory cache
-
-    int64_t skipInterval_;
 };
 
 }
