@@ -24,6 +24,8 @@
 #include <net/message-framework/MessageDispatcher.h>
 #include <net/message-framework/ClientIdServer.h>
 
+#include <sdb/SequentialDB.h>
+
 /**************** Include wiselib header files *******************/
 //#include <wiselib/hash/LinearHashTable.h>
 
@@ -99,7 +101,7 @@ public:
 
 protected:
 	bool checkAgentInfo_(ServicePermissionInfo& permissionInfo) ;
-	
+
 
 	// old name: getPermissionOfService
 	// new name: getServiceInfo
@@ -271,9 +273,6 @@ protected:
 	AsyncStream* createAsyncStream(boost::shared_ptr<tcp::socket> sock);
 
 	friend class AsyncConnector;
-	
-private:
-	void saveLoadAvailableServiceList_(const string& fileName,  bool bStore);
 
 private:
 
@@ -326,8 +325,8 @@ private:
 	/**
 	 * @brief the list of availabe service
 	 */
-	std::map<std::string, ServicePermissionInfo> availableServiceList_;
-	//boost::unordered_map<std::string, ServicePermissionInfo> availableServiceList_;
+	//std::map<std::string, ServicePermissionInfo> availableServiceList_;
+	izenelib::sdb::ordered_sdb<std::string, ServicePermissionInfo>  availableServiceList_;
 
 	/**
 	 * @brief mutex to allow exclusively access to availableServiceList_
