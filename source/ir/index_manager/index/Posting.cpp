@@ -305,13 +305,13 @@ int32_t InMemoryPosting::decodeNext(uint32_t* pPosting,int32_t length)
 			
             ISCHUNKOVER_D();
 		
-            *pFreq++ = VariantDataPool::decodePosting32(pDChunk);					
+            *pFreq++ = VariantDataPool::decodeVData32(pDChunk);					
         }
         else
         {
             ///this doc is deleted
             ISCHUNKOVER_D();
-            VariantDataPool::decodePosting32(pDChunk);
+            VariantDataPool::decodeVData32(pDChunk);
         }
 
         count++;

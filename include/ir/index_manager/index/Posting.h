@@ -1,7 +1,5 @@
 /**
 * @file        Posting.h
-* @auth/**
-* @file        Posting.h
 * @author     Yingfeng Zhang
 * @version     SF1 v5.0
 * @brief Process the postings
@@ -132,10 +130,16 @@ public:
         return 0;
     }
 
-    virtual SkipListReader* getSkipListReader() = 0;
+    virtual SkipListReader* getSkipListReader() = 0;    
+
+    void setFilter(BitVector* pFilter) { pDocFilter_ = pFilter;}
+
 public:
     static int skipInterval_;
     static int maxSkipLevel_;
+
+protected:
+    BitVector* pDocFilter_;
 };
 
 /**

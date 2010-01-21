@@ -202,7 +202,7 @@ VariantDataPoolInput::VariantDataPoolInput(VariantDataPool* pVDataPool)
     :pVDataPool_(pVDataPool)
     ,currPos_(0)
 {
-    setLength(pVDataPool->getRealSize());
+    setlength(pVDataPool->getRealSize());
     pVDataChunk_ = pVDataPool->pHeadChunk_;
     pData_ = pVDataChunk_->data;
 }
@@ -211,7 +211,7 @@ VariantDataPoolInput::VariantDataPoolInput(const VariantDataPoolInput& src)
     :pVDataPool_(src.pVDataPool_)
     ,currPos_(0)
 {
-    setLength(pVDataPool_->getRealSize());
+    setlength(pVDataPool_->getRealSize());
     pVDataChunk_ = pVDataPool_->pHeadChunk_;
     pData_ = pVDataChunk_->data;
 }
@@ -252,7 +252,7 @@ void VariantDataPoolInput::readInternal(char* b,size_t length,bool bCheck)
         else
         {
             memcpy(b,pData_,nLen); 					
-            if(nLen == pEnd - pData_)
+            if(nLen == (size_t)(pEnd - pData_))
             {
                 pVDataChunk_ = pVDataChunk_->next;
                 if(pVDataChunk_)
