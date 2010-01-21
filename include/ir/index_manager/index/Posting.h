@@ -1,5 +1,7 @@
 /**
 * @file        Posting.h
+* @auth/**
+* @file        Posting.h
 * @author     Yingfeng Zhang
 * @version     SF1 v5.0
 * @brief Process the postings
@@ -9,6 +11,7 @@
 #define POSTING_H
 
 #include <ir/index_manager/index/VariantDataPool.h>
+#include <ir/index_manager/utility/BitVector.h>
 
 NS_IZENELIB_IR_BEGIN
 
