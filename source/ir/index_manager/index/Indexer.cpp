@@ -130,8 +130,10 @@ void Indexer::initIndexManager()
     VariantDataPool::UPTIGHT_ALLOC_CHUNKSIZE = 8;
     VariantDataPool::UPTIGHT_ALLOC_MEMSIZE = 40000;
 
-    Posting::skipInterval_ = pConfigurationManager_->indexStrategy_.skipInterval_;
-    Posting::maxSkipLevel_ = pConfigurationManager_->indexStrategy_.maxSkipLevel_;
+    Posting::skipInterval_ = pConfigurationManager_->indexStrategy_.skipInterval_ > 0 ?
+              pConfigurationManager_->indexStrategy_.skipInterval_ : 8;
+    Posting::maxSkipLevel_ = pConfigurationManager_->indexStrategy_.maxSkipLevel_ >0 ?
+              pConfigurationManager_->indexStrategy_.maxSkipLevel_ : 3;
 
     if(managerType_ == MANAGER_TYPE_CLIENTPROCESS)
     {
