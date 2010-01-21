@@ -35,7 +35,6 @@ public:
 	
     bool addToMerge(SkipListReader* pSkipReader,docid_t lastDoc);
 
-    void reset();
 private:
     void add(SkipListReader* pSkipReaderl);
 
