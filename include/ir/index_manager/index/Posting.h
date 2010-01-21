@@ -76,11 +76,6 @@ public:
     virtual void resetPosition() = 0;
 
     /**
-     * Set file pointer after skipping
-     */
-    virtual void seekTo(SkipListReader* pSkipListReader) = 0;
-
-    /**
      * Decode postings to target docID
      * @param docID target docID 
      * @return last decoded docID
@@ -245,11 +240,6 @@ public:
      * @param nFreqs size of freqs array
      */
     void decodeNextPositions(uint32_t* pPosting,uint32_t* pFreqs,int32_t nFreqs);
-
-    /**
-     * Set file pointer after skipping
-     */
-    void seekTo(SkipListReader* pSkipListReader);
 
     /**
      * Decode postings to target docID

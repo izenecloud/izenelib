@@ -409,10 +409,6 @@ void InMemoryPosting::resetPosition()
     pDS_->lastDecodedPos = 0;
 }
 
-void InMemoryPosting::seekTo(SkipListReader* pSkipListReader)
-{
-}
-
 docid_t InMemoryPosting::decodeTo(docid_t docID)
 {
     ///skipping for in-memory posting is not that necessary

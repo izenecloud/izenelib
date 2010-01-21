@@ -14,30 +14,8 @@ SkipListReader::SkipListReader(IndexInput* pSkipInput, int skipInterval, int num
 	, curSkipInterval_(0)
 	, lastChildPointer_(0)
 {
-    skipDoc_ = new docid_t[numSkipLevels_];
-    memset(skipDoc_,0,numSkipLevels_ * sizeof(docid_t));
-
-    skipInterval_ = new int[numSkipLevels_];
-    memset(skipInterval_,0,numSkipLevels_ * sizeof(int));
-
-    numSkipped_ = new int[numSkipLevels_];
-    memset(numSkipped_,0,numSkipLevels_ * sizeof(int));
-
-    childPointer_ = new fileoffset_t[numSkipLevels_];
-    memset(childPointer_,0,numSkipLevels_ * sizeof(fileoffset_t));
-
-    skipPointer_= new fileoffset_t[numSkipLevels_];
-    memset(skipPointer_,0,numSkipLevels_ * sizeof(fileoffset_t));
-
-    skipStream_ = new IndexInput*[numSkipLevels_];
-    memset(skipStream_, 0, numSkipLevels_ * sizeof(IndexInput*));
+    reset();
     skipStream_[0] = pSkipInput->clone();
-
-    offsets_ = new fileoffset_t[numSkipLevels_];
-    memset(offsets_,0,numSkipLevels_ * sizeof(fileoffset_t));
-
-    pOffsets_ = new fileoffset_t[numSkipLevels_];
-    memset(pOffsets_,0,numSkipLevels_ * sizeof(fileoffset_t));
 }		
 
 SkipListReader::SkipListReader(VariantDataPool** pSkipLevels, int skipInterval, int numSkipLevels)
@@ -49,33 +27,17 @@ SkipListReader::SkipListReader(VariantDataPool** pSkipLevels, int skipInterval, 
 	, curSkipInterval_(0)
 	, lastChildPointer_(0)
 {
-    skipDoc_ = new docid_t[numSkipLevels_];
-    memset(skipDoc_,0,numSkipLevels_ * sizeof(docid_t));
-
-    skipInterval_ = new int[numSkipLevels_];
-    memset(skipInterval_,0,numSkipLevels_ * sizeof(int));
-
-    numSkipped_ = new int[numSkipLevels_];
-    memset(numSkipped_,0,numSkipLevels_ * sizeof(int));
-
-    childPointer_ = new fileoffset_t[numSkipLevels_];
-    memset(childPointer_,0,numSkipLevels_ * sizeof(fileoffset_t));
-
-    skipPointer_= new fileoffset_t[numSkipLevels_];
-    memset(skipPointer_,0,numSkipLevels_ * sizeof(fileoffset_t));
-
-    offsets_ = new fileoffset_t[numSkipLevels_];
-    memset(offsets_,0,numSkipLevels_ * sizeof(fileoffset_t));
-
-    pOffsets_ = new fileoffset_t[numSkipLevels_];
-    memset(pOffsets_,0,numSkipLevels_ * sizeof(fileoffset_t));
-
+    reset();
     for(int i = 0;i < numSkipLevels_;i++)
 	skipStream_[i] = new VariantDataPoolInput(pSkipLevels[i]);
 }
 
 SkipListReader::~SkipListReader()
 {
+    std::vector<IndexInput*>::iterator iter =skipStream_.begin();
+    for( ; iter != skipStream_.end(); ++iter)
+        if(*iter)
+            delete *iter;
 }
 
 docid_t SkipListReader::skipTo(docid_t docID)
@@ -201,62 +163,24 @@ void SkipListReader::loadSkipLevels()
 void SkipListReader::reset(int levels,fileoffset_t skipOffset)
 {
     curSkipInterval_ = 0;
-    numSkipped_ = 0;
+    totalSkipped_ = 0;
     curDoc_ = 0;
     lastChildPointer_ = 0;
 
     if(levels > numSkipLevels_)
     {
-        delete skipDoc_;
-        skipDoc_ = new docid_t[levels];
-        memset(skipDoc_,0,levels * sizeof(docid_t));
-
-        delete skipInterval_;
-        skipInterval_ = new int[levels];
-        memset(skipInterval_,0,levels * sizeof(int));
-
-        delete numSkipped_;
-        numSkipped_ = new int[levels];
-        memset(numSkipped_,0,levels * sizeof(int));
-
-        delete childPointer_;
-        childPointer_ = new fileoffset_t[levels];
-        memset(childPointer_,0,levels * sizeof(fileoffset_t));
-
-        delete skipPointer_;
-        skipPointer_= new fileoffset_t[levels];
-        memset(skipPointer_,0,levels * sizeof(fileoffset_t));
-
-        IndexInput** skipStream = new IndexInput*[levels];
-        memset(skipStream,0,levels * sizeof(IndexInput*));
-        memcpy(skipStream,skipStream_,numSkipLevels_ * sizeof(IndexInput*));
-        delete[] skipStream_;
-        skipStream_ = skipStream;
         numSkipLevels_ = levels;
-
-        delete offsets_;
-        offsets_ = new fileoffset_t[numSkipLevels_];
-        memset(offsets_,0,numSkipLevels_ * sizeof(fileoffset_t));
-
-        delete pOffsets_;
-        pOffsets_ = new fileoffset_t[numSkipLevels_];
-        memset(pOffsets_,0,numSkipLevels_ * sizeof(fileoffset_t));
-        numSkipLevels_ = levels;
+        reset();
     }
     else
     {
-        memset(skipDoc_,0,numSkipLevels_ * sizeof(docid_t));
-        memset(skipInterval_,0,numSkipLevels_ * sizeof(int));
-        memset(numSkipped_,0,numSkipLevels_ * sizeof(int));
-        memset(childPointer_,0,numSkipLevels_ * sizeof(fileoffset_t));			
-
+        reset();
         for(int i = 0;i < numSkipLevels_; i++)
         {
             if(skipStream_[i])
                 skipStream_[i]->seek(skipPointer_[i]);
         }
     }
-
     loaded_ = false;
 }
 

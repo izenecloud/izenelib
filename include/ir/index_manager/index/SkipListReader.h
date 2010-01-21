@@ -12,6 +12,8 @@
 #include <ir/index_manager/utility/MemCache.h>
 #include <ir/index_manager/store/IndexInput.h>
 
+#include <vector>
+
 NS_IZENELIB_IR_BEGIN
 
 namespace indexmanager{
@@ -48,6 +50,7 @@ public:
 	return skipStream_[level];
     }
 
+    ///get skip interval of a certain levels
     int getLevelSkipInterval(int level)
     {
         int skipInterval = defaultSkipInterval_;
@@ -62,6 +65,7 @@ public:
 
     void reset(int levels,fileoffset_t skipOffset);
 
+    inline void reset();
 private:
     void seekChild(int level);
 
@@ -76,24 +80,43 @@ private:
     int defaultSkipInterval_;
     int numSkipLevels_;	 ///number of skip levels
 
-    IndexInput** skipStream_; /// skipStream for each level
+    std::vector<IndexInput*> skipStream_; /// skipStream for each level
 
-    fileoffset_t* skipPointer_; /// the start pointer of each skip level
-    int* skipInterval_; ///skip interval in each level
-    int* numSkipped_; ///number of skipped document per level 
+    std::vector<fileoffset_t> skipPointer_; /// the start pointer of each skip level
+    std::vector<int> skipInterval_; ///skip interval in each level
+    std::vector<int> numSkipped_; ///number of skipped document per level 
     int totalSkipped_; ///total skipped document 
     int curSkipInterval_; ///skip interval of current skip point
 
-    docid_t* skipDoc_; ///doc id of current skip entry per level
+    std::vector<docid_t> skipDoc_; ///doc id of current skip entry per level
     docid_t curDoc_; ///document of current skip point
-    fileoffset_t* childPointer_; ///current child pointer of each level (except level 0) 
+    std::vector<fileoffset_t> childPointer_; ///current child pointer of each level (except level 0) 
     fileoffset_t lastChildPointer_; ///child pointer of current skip point
-    fileoffset_t* offsets_; ///offset of this point in posting (relative  to the begin of the posting)	
+    std::vector<fileoffset_t> offsets_; ///offset of this point in posting (relative  to the begin of the posting)	
     fileoffset_t lastOffset_;
-    fileoffset_t* pOffsets_; ///offset of the first doc's position in position posting.		
+    std::vector<fileoffset_t> pOffsets_; ///offset of the first doc's position in position posting.		
     fileoffset_t lastPOffset_;
 };
 
+
+inline void SkipListReader::reset()
+{
+    skipDoc_.resize(numSkipLevels_);
+    skipDoc_.assign(numSkipLevels_, 0);
+    skipInterval_.resize(numSkipLevels_);
+    skipInterval_.assign(numSkipLevels_, 0);
+    numSkipped_.resize(numSkipLevels_);
+    numSkipped_.assign(numSkipLevels_, 0);
+    childPointer_.resize(numSkipLevels_);
+    childPointer_.assign(numSkipLevels_, 0);
+    skipPointer_.resize(numSkipLevels_);
+    skipPointer_.assign(numSkipLevels_, 0);
+    offsets_.resize(numSkipLevels_);
+    offsets_.assign(numSkipLevels_, 0);
+    pOffsets_.resize(numSkipLevels_);
+    pOffsets_.assign(numSkipLevels_, 0);
+    skipStream_.resize(numSkipLevels_,NULL);
+}
 }
 NS_IZENELIB_IR_END
 
