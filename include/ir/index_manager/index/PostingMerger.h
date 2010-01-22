@@ -69,7 +69,7 @@ public:
     /**
      * reset descriptors value
      */
-    inline void reset();
+    void reset();
 
 public:
     /**

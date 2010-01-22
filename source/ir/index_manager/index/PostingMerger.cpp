@@ -44,7 +44,7 @@ PostingMerger::~PostingMerger()
         delete pSkipListMerger_;
 }
 
-inline void PostingMerger::reset()
+void PostingMerger::reset()
 {
     ///reset posting descriptor
     postingDesc_.length = 0;

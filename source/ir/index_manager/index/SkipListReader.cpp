@@ -14,7 +14,7 @@ SkipListReader::SkipListReader(IndexInput* pSkipInput, int skipInterval, int num
 	, curSkipInterval_(0)
 	, lastChildPointer_(0)
 {
-    reset();
+    init();
     skipStream_[0] = pSkipInput->clone();
 }		
 
@@ -27,7 +27,7 @@ SkipListReader::SkipListReader(VariantDataPool** pSkipLevels, int skipInterval, 
 	, curSkipInterval_(0)
 	, lastChildPointer_(0)
 {
-    reset();
+    init();
     for(int i = 0;i < numSkipLevels_;i++)
 	skipStream_[i] = new VariantDataPoolInput(pSkipLevels[i]);
 }
@@ -159,31 +159,6 @@ void SkipListReader::loadSkipLevels()
         }
     }
 }
-
-void SkipListReader::reset(int levels,fileoffset_t skipOffset)
-{
-    curSkipInterval_ = 0;
-    totalSkipped_ = 0;
-    curDoc_ = 0;
-    lastChildPointer_ = 0;
-
-    if(levels > numSkipLevels_)
-    {
-        numSkipLevels_ = levels;
-        reset();
-    }
-    else
-    {
-        reset();
-        for(int i = 0;i < numSkipLevels_; i++)
-        {
-            if(skipStream_[i])
-                skipStream_[i]->seek(skipPointer_[i]);
-        }
-    }
-    loaded_ = false;
-}
-
 
 }
 NS_IZENELIB_IR_END

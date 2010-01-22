@@ -63,10 +63,9 @@ public:
 
     int getNumSkipped() { return totalSkipped_; }
 
-    void reset(int levels,fileoffset_t skipOffset);
-
-    inline void reset();
 private:
+    inline void init();
+
     void seekChild(int level);
 
     void loadSkipLevels();
@@ -99,21 +98,14 @@ private:
 };
 
 
-inline void SkipListReader::reset()
+inline void SkipListReader::init()
 {
-    skipDoc_.resize(numSkipLevels_);
     skipDoc_.assign(numSkipLevels_, 0);
-    skipInterval_.resize(numSkipLevels_);
     skipInterval_.assign(numSkipLevels_, 0);
-    numSkipped_.resize(numSkipLevels_);
     numSkipped_.assign(numSkipLevels_, 0);
-    childPointer_.resize(numSkipLevels_);
     childPointer_.assign(numSkipLevels_, 0);
-    skipPointer_.resize(numSkipLevels_);
     skipPointer_.assign(numSkipLevels_, 0);
-    offsets_.resize(numSkipLevels_);
     offsets_.assign(numSkipLevels_, 0);
-    pOffsets_.resize(numSkipLevels_);
     pOffsets_.assign(numSkipLevels_, 0);
     skipStream_.resize(numSkipLevels_,NULL);
 }
