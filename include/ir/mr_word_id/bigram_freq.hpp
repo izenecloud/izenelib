@@ -374,7 +374,7 @@ public:
     boost::filesystem::remove(std::string(std::string("rm -f ")+std::string(filenm_+".over")).c_str());
   }
   
-  double optimize()
+  double optimize(uint32_t thr = -1)
   {
     boost::filesystem::remove(std::string(std::string("rm -f ")+std::string(filenm_+".over")).c_str());
     clean_();
@@ -385,7 +385,10 @@ public:
     fclose(f);
 
     f = fopen(std::string(filenm_+".tbl").c_str(), "r+");
-    get_threashold_(f);
+    if (thr == (uint32_t)-1 )
+      get_threashold_(f);
+    else
+      threshold_ = thr;
     
     FILE* ff = fopen(std::string(filenm_+".tbl.tmp").c_str(), "w+");
     fseek(ff, sizeof(count_)+sizeof(threshold_), SEEK_SET);
