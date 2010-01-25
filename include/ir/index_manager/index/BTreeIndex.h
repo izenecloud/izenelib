@@ -196,15 +196,35 @@ public:
         }
     }
 
+    void get_between(const KeyType& lowKey, const KeyType& highKey, BitVector& result)
+    {
+        if (comp_(lowKey, highKey) > 0)
+        {
+            return;
+        }
+        myKeyType ikey(lowKey, 0);
+        myValueType ival;
+        IndexSDBCursor locn;
+        this->_sdb.search(ikey, locn);
+        while (this->_sdb.get(locn, ikey, ival) )
+        {
+            if (comp_(ikey.key, highKey) <= 0)
+            {
+                for (size_t i=0; i<ival.size(); i++)
+                    result.set(ival[i]);
+            }
+            this->_sdb.seq(locn, ESD_FORWARD);
+        }
+    }
 
     bool get_without(const KeyType& key,BitVector& result)
     {
         myValueType vdat;
         unsigned int offset = 0;
         myKeyType firstKey(key, 0);
+        result.setAll();
         if ( !this->_sdb.hasKey(firstKey) )
             return false;
-        result.setAll();
         do
         {
             myKeyType ikey(key, offset++);
@@ -639,15 +659,19 @@ public:
     }
 };
 
-template<typename T>
 class get_between_visitor : public boost::static_visitor<void>
 {
 public:
+    template<typename T>
     void operator()(collectionid_t colid,fieldid_t fid, T& v1, T& v2, BitVector& docids)
     {
         IndexKeyType<T> key1(colid, fid,v1);
         IndexKeyType<T> key2(colid, fid,v2);
-        BTreeIndexer::getIndexer<T>()->getBetween(key1,key2,docids);
+        BTreeIndexer::getIndexer<T>()->get_between(key1,key2,docids);
+    }
+    template<typename T1, typename T2>
+    void operator()(collectionid_t colid,fieldid_t fid, T1& v1, T2& v2, BitVector& docids)
+    {
     }
 };
 

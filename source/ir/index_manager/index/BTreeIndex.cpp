@@ -178,7 +178,7 @@ void BTreeIndexer::getValueNotEqual(collectionid_t colID, fieldid_t fid, Propert
 
 void BTreeIndexer::getValueBetween(collectionid_t colID, fieldid_t fid, PropertyType& value1, PropertyType& value2, BitVector& docs)
 {
-    boost::bind(get_between_visitor<PropertyType>(), colID, fid, value1, value2, boost::ref(docs));
+    izenelib::util::boost_variant_visit(boost::bind(get_between_visitor(), colID, fid, _1, _2, boost::ref(docs)),value1,value2);	
 }
 
 void BTreeIndexer::getValueLess(collectionid_t colID, fieldid_t fid, PropertyType& value,BitVector& docs)

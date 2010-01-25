@@ -314,6 +314,14 @@ fileoffset_t FieldMerger::sortingMerge(FieldMergeInfo** ppMergeInfos,int32_t num
             pos = postingIterator.nextPosition();
         }
     }
+
+    if(0 == docId)
+    {
+        delete newPosting;
+        df = 0;
+        return -1;
+    }
+
     fileoffset_t offset = newPosting->write(pPostingMerger_->getOutputDescriptor());
     df = newPosting->docFreq();
     delete newPosting;
