@@ -43,7 +43,7 @@ public:
      */
     virtual bool	next();
     /*
-    * skip to the target doc id
+    * move to the first document whose id is greater than or equal to target
     */
     virtual docid_t skipTo(docid_t docId);
     /**

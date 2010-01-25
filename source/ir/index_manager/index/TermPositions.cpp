@@ -124,6 +124,7 @@ docid_t TermPositions::skipTo(docid_t docId)
         if(end == start)
         {
             resetDecodingState();
+
             return docId;
         }
         else if(end < start)
@@ -135,7 +136,6 @@ docid_t TermPositions::skipTo(docid_t docId)
             end = nCurDecodedCount_ - 1;
 
         nCurrentPosting_ = bsearch(pPostingBuffer_,start,end,docId,foundDocId);///binary search in decoded buffer
-
         ///skip positions
         skip = (pPostingBuffer_[nFreqStart_ + start] - nTotalDecodedPCountWithinDoc_);
         for (i = start + 1;i < nCurrentPosting_;i++)
@@ -145,7 +145,10 @@ docid_t TermPositions::skipTo(docid_t docId)
         skipPositions(skip);
         
         if(foundDocId >= docId)
+        {
             resetDecodingState();
+            return foundDocId;
+        }
 
         if(start != nCurrentPosting_)
             skipPositions(pPostingBuffer_[nFreqStart_ + nCurrentPosting_]);
@@ -154,7 +157,6 @@ docid_t TermPositions::skipTo(docid_t docId)
         nCurrentPPostingWithinDoc_ = 0;
         nCurrentPosting_ = nCurDecodedCount_;///buffer is over
     }			
-    return foundDocId;
 }
 
 void TermPositions::resetDecodingState()
