@@ -6,13 +6,11 @@
 
 
 /**************** Include module header files *******************/
-// #include <BasicMessage.h>
 #include <net/message-framework/MessageServerFull.h>
 #include <net/message-framework/MessageFrameworkConfiguration.h>
 #include <net/message-framework/ServiceRegistrationMessage.h>
 #include <net/message-framework/MessageType.h>
 #include <net/message-framework/ServiceMessage.h>
-#include <net/message-framework/common.h>
 
 /**************** Include std header files *******************/
 #include <iostream>
@@ -60,16 +58,15 @@ MessageServerFull::MessageServerFull(const std::string& serverName,
 			connectionEstablishedMutex_);
 	try {
 		while (!connectionEstablished_) {
-			DLOG(ERROR)<<"Please run Controller firstly!"<<endl;
+			DLOG(WARNING)<<"Fail connecting to controller, try again ...";
 			connector_.connect(controllerInfo.nodeIP_, controllerInfo.nodePort_);
-			if (!connectionEstablishedEvent_.timed_wait(connectionEstablishedLock,
-							timeout))
+			if (!connectionEstablishedEvent_.timed_wait(connectionEstablishedLock, timeout))
 				throw MessageFrameworkException(SF1_MSGFRK_CONNECTION_TIMEOUT, __LINE__, __FILE__);
 		}
 	}
 	catch(MessageFrameworkException &e) {
-		e.output(std::cout);
-		LOG(ERROR)<<"Please check if Controller is ready... "<<std::endl;
+        DLOG(ERROR)<<"Catch an exception while connectting to controller : ";
+		e.output(DLOG(ERROR));
 		exit(1);
 	}
 
@@ -123,7 +120,7 @@ bool MessageServerFull::registerService(const ServiceInfo & serviceInfo) {
 		{
 			if(!serviceRegistrationReplyAccessor_.timed_wait(lock, timeout))
 			{
-				DLOG(ERROR) << "[Server: " << getName() << "]Timed out!!! Connection is going to be closed." << std::endl;
+				DLOG(ERROR) << "[Server: " << getName() << "]Timed out!!! Connection is going to be closed";
 				return false;
 			}
 		}
@@ -139,7 +136,7 @@ bool MessageServerFull::registerService(const ServiceInfo & serviceInfo) {
 			serviceRegistrationResult_.erase(serviceName);
 
 			DLOG(INFO) << "[Server: " << getName() << "] Service " << serviceName
-			<< " is successfully registered."<< std::endl;
+                    << " is successfully registered";
 
 			return true;
 		}
@@ -149,15 +146,15 @@ bool MessageServerFull::registerService(const ServiceInfo & serviceInfo) {
 	}
 	catch(MessageFrameworkException& e)
 	{
-		e.output(std::cerr);
+		e.output(DLOG(ERROR));
 	}
 	catch(boost::system::error_code& e)
 	{
-		std::cerr << e << std::endl;
+		DLOG(ERROR) << e;
 	}
 	catch(std::exception& e)
 	{
-		std::cerr << "Exception: " << e.what() << std::endl;
+		DLOG(ERROR) << e.what();
 	}
 
 	return false;
@@ -230,7 +227,7 @@ bool MessageServerFull::putResultOfService(
 		const ServiceResultPtr& result) {
 
 	DLOG(INFO) << "[Server: " << getName() << "] start to send result of "
-			<< serviceRequestInfo->getServiceName() << std::endl;
+			<< serviceRequestInfo->getServiceName();
 
 	// connection has not been established
 	if (!connectionEstablished_)
@@ -240,7 +237,7 @@ bool MessageServerFull::putResultOfService(
 
 	DLOG(INFO) << "[Server: " << getName()
 			<< "] Successfull to send result of "
-			<< serviceRequestInfo->getServiceName() << std::endl;
+			<< serviceRequestInfo->getServiceName();
 
 	return true;
 }
@@ -248,7 +245,7 @@ bool MessageServerFull::putResultOfService(
 bool MessageServerFull::putResultOfService(const ServiceResultPtr& result) {
 
 	DLOG(INFO) << "[Server: " << getName() << "] start to send result of "
-			<< result->getServiceName() << std::endl;
+			<< result->getServiceName();
 
 	// connection has not been established
 	if (!connectionEstablished_)
@@ -284,7 +281,7 @@ void MessageServerFull::receiveServiceRequest(
 	DLOG(INFO) << "[Server: " << getName()
 			<< "] Receive request to retrieve result of service "
 			<< requestInfo->getServiceName() << "[requestId = "
-			<< requestInfo->getRequestId() << "]" << std::endl;
+			<< requestInfo->getRequestId() << "]";
 
 	try
 	{

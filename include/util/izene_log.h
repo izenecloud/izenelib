@@ -1,8 +1,6 @@
 #ifndef IZENE_LOG_H_
 #define IZENE_LOG_H_
 
-#define GOOGLE_STRIP_LOG 1    // this must go before the #include!
-
 #include <glog/logging.h>
 #include <wiselib/profiler/ProfilerGroup.h>
 
@@ -21,7 +19,7 @@ using namespace std;
 
 NS_IZENELIB_UTIL_BEGIN
 
-string  getMemInfo(); 
+string  getMemInfo();
 string getProfilingInfo();
 
 

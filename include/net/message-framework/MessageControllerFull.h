@@ -12,9 +12,6 @@
 /**************** Include module header files *******************/
 #include <net/message-framework/ServiceInfo.h>
 #include <net/message-framework/ServicePermissionInfo.h>
-//#include <message-framework/ServiceResult.h>
-//#include <message-framework/ServiceRequestInfo.h>
-//#include <net/message-framework/PermissionOfServiceMessage.h>
 #include <net/message-framework/ServiceRegistrationMessage.h>
 #include <net/message-framework/ServiceResultServer.h>
 #include <net/message-framework/ServiceResultRequester.h>
@@ -25,9 +22,6 @@
 #include <net/message-framework/ClientIdServer.h>
 
 #include <sdb/SequentialDB.h>
-
-/**************** Include wiselib header files *******************/
-//#include <wiselib/hash/LinearHashTable.h>
 
 /**************** Include boost header files *******************/
 #include <boost/bind.hpp>
@@ -63,14 +57,10 @@ public:
 	MessageControllerFull(const std::string& controllerName,
 			unsigned int servicePort);
 
-	// MessageControllerFull(const std::string& controllerName, const ControllerInfo& controllerInfo);
-	//
 	/**
 	 * @brief The desstructor
 	 */
 	~MessageControllerFull();
-
-	// void start(unsigned int Port = 7777);
 
 	/**
 	 * @brief This function processes all the waiting service registration requests.
@@ -99,31 +89,12 @@ public:
 	 */
 	void processServiceResultFromServer(void){;}
 
+	/**
+	 * @brief Shutdown controller.
+	 */
+	void shutdown(void);
+
 protected:
-	bool checkAgentInfo_(ServicePermissionInfo& permissionInfo) ;
-
-
-	// old name: getPermissionOfService
-	// new name: getServiceInfo
-	// The function does not match the implementation, it returns only ServiceInfo
-	/**
-	 * @brief This function retrieves a information of service. It returns false if the
-	 * service is not found.
-	 * @param
-	 * serviceName - the service name
-	 * @param
-	 * serviceInfo - the information of service
-	 */
-	//bool
-	//		getServiceInfo(const std::string& serviceName,
-	//				ServiceInfo& serviceInfo);
-
-	/**
-	 * @brief This function forward the request to the server and
-	 * put the request for a service result in the waiting list.
-	 * @param requestInfo informationi of the request
-	 */
-	//void forwardServiceRequest(const ServiceRequestInfo& requestInfo);
 
 	/************ Interfaces of Service Registration Server ****************/
 	/**
@@ -151,9 +122,6 @@ protected:
 	/************ End of Interfaces of Service Registration Server ****************/
 
 	/************ Interfaces of Permission Server ****************/
-	// old name: putPermissionOfService
-	// new name: putPermissionOfServiceRequest
-	// The function inherits from PermissionServer
 
 	/**
 	 * @brief This function put a request to get  permission of service into the
@@ -197,74 +165,11 @@ protected:
 
 	/************ End of Interfaces of ClientIdServer ****************/
 
-	/************ Interfaces of Service Result Requester ****************/
-
-	/**
-	 * @brief This function sends request to the ServiceResultServer
-	 * @param
-	 * requestId - the id of service request
-	 * @param
-	 * serviceName - the service name
-	 * @param
-	 * data - the data of the service request
-	 * @param
-	 * server - the server that will receive data
-	 */
-	/*void sendServiceRequest(unsigned requestId,
-	 const std::string& serviceName,
-	 const std::vector<boost::shared_ptr<VariantType> >& data,
-	 const MessageFrameworkNode& server);*/
-
-	/**
-	 * @brief This function put the result of a serivce. The service result
-	 * has been requested before.
-	 * @param
-	 * requestId - id of the request
-	 * @param
-	 * serviceName - the name of service
-	 * @param
-	 * data - result of the service
-	 */
-	/*void receiveResultOfService(unsigned int requestId,
-	 const std::string& serviceName,
-	 const std::vector<boost::shared_ptr<VariantType> >& data) ;*/
-	/************ End of Interfaces of Service Result Requester ****************/
-
-	/************ Interfaces of Service Result Server ****************/
-
-	/**
-	 * @brief This function put the request for a service result in the waiting list.
-	 * @param requester requester that requests for result
-	 * @param requestId the id of the request
-	 * @param serviceName the service name
-	 * @param data the parameter data of the request
-	 */
-	/*void receiveServiceRequest(const MessageFrameworkNode& requester,
-	 unsigned int requestId,
-	 const std::string& serviceName,
-	 const std::vector<boost::shared_ptr<VariantType> >& data);*/
-
-	/**
-	 * @brief This function replies to a request from ServiceResultRequester. I will sends
-	 * ServiceResult to the ServiceResultRequester.
-	 * @param
-	 * requester - the requester that requests for result
-	 * @param
-	 * requestInfo - information of the request
-	 * @param
-	 * result - result of the requested service
-	 */
-	/*void sendResultOfService(const MessageFrameworkNode& requester,
-	 const ServiceRequestInfo& requestInfo,
-	 const ServiceResult& result);*/
-
-	/************ End of Interfaces of Service Result Server ****************/
-
 	/**
 	 * @brief get Name of the controller
 	 */
 	const std::string& getName() const {
-		return ownerManager_;
+		return ownerManagerName_;
 	}
 
 	/**
@@ -279,13 +184,16 @@ private:
 	/**
 	 * @brief Name of the manager that uses MessageControllerFull
 	 */
-	std::string ownerManager_;
+	std::string ownerManagerName_;
 
 	/**
 	 * @brief Sequential number used to generate client id
 	 */
 	int nxtClientId_;
 
+    /**
+     * @brief Lock that protects accesses to nxtClientId_
+     */
 	boost::mutex nxtClientIdMutex_;
 
 	/**
@@ -325,30 +233,12 @@ private:
 	/**
 	 * @brief the list of availabe service
 	 */
-	//std::map<std::string, ServicePermissionInfo> availableServiceList_;
 	izenelib::sdb::ordered_sdb<std::string, ServicePermissionInfo>  availableServiceList_;
 
 	/**
 	 * @brief mutex to allow exclusively access to availableServiceList_
 	 */
 	boost::mutex availableServiceListMutex_;
-
-	/**
-	 * @brief the queue of waiting service requests
-	 */
-	//std::queue<std::pair<MessageFrameworkNode, ServiceRequestInfoPtr> >
-	//		serviceRequestQueue_;
-
-	/**
-	 * @brief the mutex to allow exclusive access to serviceRequestQueue_
-	 */
-	//boost::mutex serviceRequestQueueMutex_;
-
-	/**
-	 * @brief this variable is used as a signal to a new service request
-	 * It is signalized when a new request comes.
-	 */
-	//boost::condition_variable newServiceRequestEvent_;
 
 	/**
 	 * @brief Listening port to serve service result
@@ -366,42 +256,6 @@ private:
 	 */
 	unsigned int timeOutMilliSecond_;
 
-	/**
-	 * @brief This variable store all requests that have been sent to server but have not
-	 * been received the result
-	 */
-	//std::map<unsigned int, MessageFrameworkNode> waitingForResultMessageQueue_;
-
-	/**
-	 * @brief This mutext allows exclusive access to waitingForResultMessageQueue_
-	 */
-	//boost::mutex waitingForResultMessageQueueMutex_;
-
-	/**
-	 * @brief This variable is used to notify if the result of service has been
-	 * successfully sent.
-	 */
-	//bool serviceResultReply_;
-
-	/**
-	 * @brief This mutex is used to allow exclusively access to  serviceResultReply_
-	 */
-	//boost::mutex serviceResultReplyMutex_;
-
-	/**
-	 * @brief This queue contains results of requested services
-	 */
-	//std::queue<std::pair<MessageFrameworkNode, ServiceResultPtr> > resultQueue_;
-
-	/**
-	 * @brief This mutex is used to allow exclusive access to resultQueue_
-	 */
-	//boost::mutex resultQueueMutex_;
-
-	/**
-	 * @brief This event is signalized when new result of service arrives
-	 */
-	//boost::condition_variable newServiceResultEvent_;
 
 	/**
 	 * @brief This variables receives data from peer and sends data to the peer
@@ -423,6 +277,11 @@ private:
 	 * @brief thread for I/O operations
 	 */
 	boost::thread* ioThread_;
+
+	/**
+	 * @brief indicate whether controller is working;
+	 */
+    bool stop_;
 };
 
 /**
@@ -434,23 +293,25 @@ public:
 			unsigned int controllerPort) {
 		controllerName_ = controllerName;
 		controllerPort_ = controllerPort;
-
-	}
-
-	static void _init() {
-		//call_once
-		messageController_.reset(new MessageControllerFull(controllerName_, controllerPort_));
 	}
 
 	static MessageControllerFull& instance() {
-		boost::call_once(_init, flag);
-
+	    if(messageController_ == NULL)
+            messageController_ = new MessageControllerFull(
+                controllerName_, controllerPort_);
 		return *messageController_;
 	}
 
+	static void destroy() {
+        delete messageController_;
+        messageController_ = NULL;
+	}
+
 private:
+
 	MessageControllerFullSingleton() {
 	}
+
 	~MessageControllerFullSingleton() {
 	}
 
@@ -459,21 +320,17 @@ private:
 	 * @brief name of controller
 	 */
 	static std::string controllerName_;
+
 	/**
 	 * @brief port of controller
 	 */
 	static unsigned int controllerPort_;
 
-	static boost::scoped_ptr<MessageControllerFull> messageController_;
-	static boost::once_flag flag;
+	/**
+	 * @brief singleton
+	 */
+	static MessageControllerFull* messageController_;
 };
-
-/*
- boost::scoped_ptr<MessageControllerFull> MessageControllerFullSingleton::messageController_(0);
- boost::once_flag MessageControllerFullSingleton::flag = BOOST_ONCE_INIT;
- std::string MessageControllerFullSingleton::controllerName_("");
- unsigned int MessageControllerFullSingleton::controllerPort_ = 0;
- */
 
 }
 // end of messageframework
