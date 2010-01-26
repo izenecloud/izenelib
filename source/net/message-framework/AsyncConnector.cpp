@@ -14,14 +14,14 @@ namespace messageframework
 
 	AsyncConnector::~AsyncConnector()
 	{
-			std::cout << "~AsyncConnector..." << std::endl;
-			std::cout << "close streams..." << std::endl;
+			DLOG(INFO)  << "delete streams...";
+
 			for (std::list<AsyncStream* >::iterator iter = streams_.begin();
 							iter != streams_.end(); iter++) {
 					delete *iter; //delete streams and connections & interfaces
 			}
-			std::cout << "finish shutdown..." << std::endl;
 
+			DLOG(INFO)  << "finish shutdown...";
 	}
 
 
@@ -37,17 +37,21 @@ namespace messageframework
 
 	void AsyncConnector::shutdown(void)
 	{
-			std::cout << "close acceptors..." << std::endl;
+			DLOG(INFO) << "close acceptors...";
+
 			for (std::list<boost::shared_ptr<tcp::acceptor> >::iterator iter0 = acceptors_.begin();
 							iter0 != acceptors_.end(); iter0++) {
 					(*iter0)->close(); //close acceptors
 			}
-			std::cout << "close streams..." << std::endl;
+
+			DLOG(INFO) << "shutdown streams...";
+
 			for (std::list<AsyncStream* >::iterator iter = streams_.begin();
 							iter != streams_.end(); iter++) {
 					(*iter)->shutdown(); //shutdown stream
 			}
-			std::cout << "finish shutdown..." << std::endl;
+
+			DLOG(INFO) << "finish shutdown...";
 	}
 
 	void AsyncConnector::listen(int port)
@@ -57,7 +61,8 @@ namespace messageframework
 		acceptor->listen();
 		acceptors_.push_back(acceptor);
 
-		std::cout << "Listen at : " << port << std::endl;
+		DLOG(INFO) << "Listen at : " << port;
+
 		boost::shared_ptr<tcp::socket> sock(new tcp::socket(io_service_));
 		acceptor->async_accept(*sock, boost::bind(&AsyncConnector::handle_accept, this,
 								acceptor, sock, boost::asio::placeholders::error));
@@ -70,14 +75,16 @@ namespace messageframework
 	{
 		if (!error)
 		{
-			std::cout << "Accept new connection." << std::endl;
+			DLOG(INFO) << "Accept new connection";
+
 			AsyncStream* stream = streamFactory_->createAsyncStream(sock);
 			streams_.push_back(stream);
 			boost::shared_ptr<tcp::socket> new_sock(new tcp::socket(io_service_));
 			acceptor->async_accept(*new_sock, boost::bind(&AsyncConnector::handle_accept, this,
 					acceptor, new_sock, boost::asio::placeholders::error));
-		}else
-			std::cout << "Error in handle_accept." << std::endl;
+		} else {
+			DLOG(INFO) << "Connection closed while accepting";
+		}
 	}
 
 	void AsyncConnector::connect(const std::string& host, unsigned int port)
@@ -97,7 +104,8 @@ namespace messageframework
 		tcp::resolver::iterator endpoint_iterator = resolver.resolve(query);
 		tcp::endpoint endpoint = *endpoint_iterator;
 
-		std::cout << "Connect to " << host << ":" << port << std::endl;
+		DLOG(INFO) << "Connect to " << host << ":" << port;
+
 		boost::shared_ptr<tcp::socket> sock(new tcp::socket(io_service_));
 		sock->async_connect(endpoint,
 			boost::bind(&AsyncConnector::handle_connect, this, sock,
@@ -111,13 +119,13 @@ namespace messageframework
 	{
 		if (!error)
 		{
-			std::cout << "Connection is established. " << std::endl;
+			DLOG(INFO) << "Connection is established";
 			AsyncStream* stream = streamFactory_->createAsyncStream(sock);
 			streams_.push_back(stream);
 		}
 		else if (endpoint_iterator != tcp::resolver::iterator())
 		{
-			std::cout << "Fail to connect to server, try another endpoint. " << std::endl;
+			DLOG(WARNING) << "Fail to connect to server, try another endpoint";
 			sock->close();
 			tcp::endpoint endpoint = *endpoint_iterator;
 			sock->async_connect(endpoint,
