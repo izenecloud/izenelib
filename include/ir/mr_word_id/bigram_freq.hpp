@@ -303,7 +303,7 @@ public:
     return count_;
   }
 
-  bool update(uint64_t id1, uint64_t id2)
+  bool update(uint64_t id1, uint64_t id2, uint32_t freq = 1)
   {
     if (id1 < start_ || id1>end_)
       return false;
@@ -323,9 +323,9 @@ public:
     typename bucket_t::size_t i = buk->find(ID_STRUCT(id2));
     
     if (i != bucket_t::NOT_FOUND)
-      (*buk)[i].FREQ_()++;
+      (*buk)[i].FREQ_()+=freq;
     else
-      buk->push_back(ID_STRUCT(id2, 1));
+      buk->push_back(ID_STRUCT(id2, freq));
     
     return true;
   }
