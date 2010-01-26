@@ -17,6 +17,7 @@
 #include <boost/filesystem/path.hpp>
 #include <boost/filesystem/operations.hpp>
 #include <vector>
+#include <utility>
 
 NS_IZENELIB_IR_BEGIN
 /**
@@ -365,6 +366,27 @@ public:
 
     for (uint32_t i=0; i<buk->length(); ++i)
       r.push_back(buk->at(i).ID());
+
+    return r;
+  }
+  
+  std::vector<std::pair<uint32_t, uint32_t> > find(uint64_t id1)
+  {
+    std::vector<std::pair<uint32_t, uint32_t> > r;
+    
+    if (id1<start_ || id1>end_)
+      return r;
+
+    uint32_t idx = id1-start_;
+    if (id1>=entry_.length() || entry_.at(idx) == NULL)
+      return r;
+
+    bucket_t* buk = entry_.at(idx);
+    if (buk == NULL)
+      return r;
+
+    for (uint32_t i=0; i<buk->length(); ++i)
+      r.push_back(std::make_pair(buk->at(i).ID(), buk->at(i).FREQ()));
 
     return r;
   }
