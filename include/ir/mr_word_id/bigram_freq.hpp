@@ -303,7 +303,7 @@ public:
     return count_;
   }
 
-  bool update(uint64_t id1, uint64_t id2)
+  bool update(uint64_t id1, uint64_t id2, uint32_t freq = 1)
   {
     if (id1 < start_ || id1>end_)
       return false;
@@ -323,9 +323,9 @@ public:
     typename bucket_t::size_t i = buk->find(ID_STRUCT(id2));
     
     if (i != bucket_t::NOT_FOUND)
-      (*buk)[i].FREQ_()++;
+      (*buk)[i].FREQ_()+=freq;
     else
-      buk->push_back(ID_STRUCT(id2, 1));
+      buk->push_back(ID_STRUCT(id2, freq));
     
     return true;
   }
@@ -376,7 +376,6 @@ public:
   
   double optimize(uint32_t thr = -1)
   {
-    boost::filesystem::remove(std::string(std::string("rm -f ")+std::string(filenm_+".over")).c_str());
     clean_();
     
     FILE* f = fopen(std::string(filenm_+".over").c_str(), "r+");
@@ -384,6 +383,8 @@ public:
       return 0;
     fclose(f);
 
+    boost::filesystem::remove(std::string(std::string("rm -f ")+std::string(filenm_+".over")).c_str());
+    
     f = fopen(std::string(filenm_+".tbl").c_str(), "r+");
     if (thr == (uint32_t)-1 )
       get_threashold_(f);
