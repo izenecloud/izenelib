@@ -369,28 +369,27 @@ public:
 
     return r;
   }
-  
-  std::vector<std::pair<uint32_t, uint32_t> > find(uint64_t id1)
+
+  bool find(uint32_t id1,  std::vector<std::pair<uint32_t, float> >& listDoc)
   {
-    std::vector<std::pair<uint32_t, uint32_t> > r;
-    
+    listDoc.clear();
     if (id1<start_ || id1>end_)
-      return r;
+      return false;
 
     uint32_t idx = id1-start_;
     if (id1>=entry_.length() || entry_.at(idx) == NULL)
-      return r;
+      return false;
 
     bucket_t* buk = entry_.at(idx);
     if (buk == NULL)
-      return r;
+      return false;
 
     for (uint32_t i=0; i<buk->length(); ++i)
-      r.push_back(std::make_pair(buk->at(i).ID(), buk->at(i).FREQ()));
+      listDoc.push_back(std::make_pair(buk->at(i).ID(), (float)buk->at(i).FREQ()));
 
-    return r;
+    return true;
   }
-
+  
   void reset()
   {
     boost::filesystem::remove(std::string(std::string("rm -f ")+std::string(filenm_+".over")).c_str());
