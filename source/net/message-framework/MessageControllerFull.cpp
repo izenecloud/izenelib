@@ -167,12 +167,6 @@ void MessageControllerFull::processServiceRegistrationRequest(void) {
                             << request.first.getServer().nodePort_
                             << "] is successfully registerd";
 
-				// connection to server
-				if(!messageDispatcher_.isExist( server ))
-				{
-					asyncConnector_.connect(server.nodeIP_,
-							server.nodePort_);
-				}
 				serviceRegistrationRequestQueueLock.lock();
 			}
 		}// end of while true
