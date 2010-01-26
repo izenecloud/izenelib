@@ -164,9 +164,10 @@ class MultiPassSort
     }    
   };
 
-  inline bool is_buffer_full_(LEN_TYPE len)const
+  inline bool is_buffer_full_(uint32_t len)const
   {
-    return pos_+sizeof(PRE_KEY_STRUCT)>buf_size_;
+    return pos_+sizeof(struct PRE_KEY_STRUCT)>buf_size_
+      || tmp_pos_+sizeof(LEN_TYPE)+len>TMP_BUF_SIZE;
   }
  
   inline void flush_buffer_()
@@ -176,16 +177,18 @@ class MultiPassSort
       key_f_ = fopen((filenm_+".key").c_str(), "w+");
       IASSERT(key_f_!=NULL);
     }
-
+    
     //std::cout<<std::endl<<pos_/sizeof(PRE_KEY_STRUCT)-1<<std::endl;
     fseek(original_f_, 0, SEEK_END);
-    IASSERT(fwrite(tmp_buffer_, tmp_pos_, 1, original_f_)==1);
+    if (tmp_pos_!=0)
+      IASSERT(fwrite(tmp_buffer_, tmp_pos_, 1, original_f_)==1);
     end_pos_ = ftell(original_f_);
     tmp_pos_ = 0;
     
     quick_sort_(0, pos_/sizeof(PRE_KEY_STRUCT)-1);
     //assert(t_check_quick_sort_());
-    IASSERT(fwrite(buffer_, pos_, 1, key_f_)==1);
+    if (pos_ >0)
+      IASSERT(fwrite(buffer_, pos_, 1, key_f_)==1);
     pos_ = 0;
   }
   
@@ -242,7 +245,7 @@ class MultiPassSort
         s = DATA_BUF_SIZE;
       uint64_t data_end_pos = data_start_pos + s;
 
-      IASSERT(data_start_pos == (uint64_t)ftell(original_f_));
+      fseek(original_f_, data_start_pos, SEEK_SET);
       IASSERT(fread(data_buf, s, 1, original_f_)==1);
       
       fseek(key_f_, 0, SEEK_SET);
@@ -251,6 +254,7 @@ class MultiPassSort
       for (uint32_t i=0; i<KEY_LOAD_TIMES; ++i)
       {
         uint32_t ss = KEY_FILE_SIZE - ftell(key_f_)>KEY_BUF_SIZE? KEY_BUF_SIZE: KEY_FILE_SIZE - ftell(key_f_);//loading size
+        IASSERT(ss%sizeof(PRE_KEY_STRUCT)==0);
         uint32_t nn = ss/sizeof(PRE_KEY_STRUCT);
         IASSERT(fread(buffer_, ss, 1, key_f_)==1);
         for (uint32_t j=0; j<nn; ++j)
@@ -261,19 +265,19 @@ class MultiPassSort
           {
             if (len+addr+sizeof(LEN_TYPE)>data_end_pos)
             {// if the data accross the buffer
-              uint64_t a = ftell(original_f_);
               fseek(original_f_, addr+sizeof(LEN_TYPE), SEEK_SET);
               char* b = new char[len];
               IASSERT(fread(b, len, 1, original_f_)==1);
               IASSERT(fwrite(&len, sizeof(LEN_TYPE), 1, out_f)==1);
               IASSERT(fwrite(b, len, 1, out_f)==1);
               
-              fseek(original_f_, a, SEEK_SET);
               delete b;
               continue;
             }
 
+            IASSERT(addr-data_start_pos+sizeof(LEN_TYPE)+len <= s);
             IASSERT(len == *(LEN_TYPE*)(data_buf+addr-data_start_pos));
+            IASSERT(((PRE_KEY_STRUCT*)buffer_)[j].PRE_KEY() == *(PRE_KEY_TYPE*)(data_buf+addr-data_start_pos+sizeof(LEN_TYPE)));
             IASSERT(fwrite(data_buf+addr-data_start_pos, len+sizeof(LEN_TYPE), 1, out_f)==1);
             continue;
           }
@@ -281,7 +285,7 @@ class MultiPassSort
         }
       }
 
-      data_start_pos += s;
+      data_start_pos = data_end_pos;
     }
 
     fclose(key_f_);
@@ -407,15 +411,6 @@ public:
       IASSERT(original_f_!=NULL);
     }
 
-    if (tmp_pos_+sizeof(LEN_TYPE)+len>TMP_BUF_SIZE)
-    {
-      fseek(original_f_, 0, SEEK_END);
-      IASSERT(fwrite(tmp_buffer_, tmp_pos_, 1, original_f_)==1);
-      end_pos_ = ftell(original_f_);
-      tmp_pos_ = 0;
-
-    }
-
     *(PRE_KEY_STRUCT*)(buffer_+pos_) = PRE_KEY_STRUCT(*(PRE_KEY_TYPE*)data,
                                                       end_pos_+tmp_pos_, len);
     
@@ -430,20 +425,17 @@ public:
   }
   
   void sort()
-  {
+  {    
     std::cout<<"\nStart to sort "<<count_<<" items.\n";
     count_ = 0;
 
     uint32_t seek_times = 0;
     threads_t threads;
-    const uint32_t THREADS_NUM = 10000;
+    const uint32_t THREADS_NUM = 1;
     threads.reserve(THREADS_NUM);
     
     flush_buffer_();
     fflush(key_f_);
-    free(tmp_buffer_);
-    tmp_buffer_ = NULL;
-    tmp_pos_ = 0;
     
     fseek(key_f_, 0, SEEK_END);
     const uint64_t FILE_SIZE = ftell(key_f_);
@@ -463,7 +455,7 @@ public:
       FILE* key_out_f = fopen((filenm_+".key.out").c_str(), "w+");
       IASSERT(key_out_f!=NULL);
     
-      const uint32_t CHUNK_SIZE = buf_size_/sizeof(struct PRE_KEY_STRUCT)*(uint32_t)pow(MAX_GROUP_SIZE, times);
+      const uint32_t CHUNK_SIZE = buf_size_/sizeof(struct PRE_KEY_STRUCT)*(uint32_t)std::pow((float)MAX_GROUP_SIZE, (float)times);
       uint64_t start = 0;
       while (start<FILE_SIZE)
       {
@@ -658,6 +650,12 @@ public:
 
   bool begin()
   {
+    if (buffer_==NULL)
+    {
+      buffer_ = (char*)malloc(buf_size_);
+      pos_ = 0;
+    }
+
     if (original_f_ == NULL)
     {
       original_f_ = fopen((filenm_+".dat").c_str(), "r");
