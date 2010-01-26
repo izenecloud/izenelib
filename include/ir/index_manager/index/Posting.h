@@ -11,6 +11,7 @@
 #include <ir/index_manager/utility/system.h>
 #include <ir/index_manager/utility/MemCache.h>
 #include <ir/index_manager/utility/Utilities.h>
+#include <ir/index_manager/utility/BitVector.h>
 #include <ir/index_manager/store/IndexOutput.h>
 
 
@@ -221,6 +222,11 @@ public:
     {
         return 0;
     }
+
+    void setFilter(BitVector* pFilter) { pDocFilter_ = pFilter; }
+
+protected:
+    BitVector* pDocFilter_;
 };
 
 /**

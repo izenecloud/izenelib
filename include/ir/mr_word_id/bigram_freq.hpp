@@ -17,6 +17,7 @@
 #include <boost/filesystem/path.hpp>
 #include <boost/filesystem/operations.hpp>
 #include <vector>
+#include <utility>
 
 NS_IZENELIB_IR_BEGIN
 /**
@@ -303,7 +304,7 @@ public:
     return count_;
   }
 
-  bool update(uint64_t id1, uint64_t id2)
+  bool update(uint64_t id1, uint64_t id2, uint32_t freq = 1)
   {
     if (id1 < start_ || id1>end_)
       return false;
@@ -323,9 +324,9 @@ public:
     typename bucket_t::size_t i = buk->find(ID_STRUCT(id2));
     
     if (i != bucket_t::NOT_FOUND)
-      (*buk)[i].FREQ_()++;
+      (*buk)[i].FREQ_()+=freq;
     else
-      buk->push_back(ID_STRUCT(id2, 1));
+      buk->push_back(ID_STRUCT(id2, freq));
     
     return true;
   }
@@ -368,15 +369,35 @@ public:
 
     return r;
   }
+  
+  std::vector<std::pair<uint32_t, uint32_t> > find(uint64_t id1)
+  {
+    std::vector<std::pair<uint32_t, uint32_t> > r;
+    
+    if (id1<start_ || id1>end_)
+      return r;
+
+    uint32_t idx = id1-start_;
+    if (id1>=entry_.length() || entry_.at(idx) == NULL)
+      return r;
+
+    bucket_t* buk = entry_.at(idx);
+    if (buk == NULL)
+      return r;
+
+    for (uint32_t i=0; i<buk->length(); ++i)
+      r.push_back(std::make_pair(buk->at(i).ID(), buk->at(i).FREQ()));
+
+    return r;
+  }
 
   void reset()
   {
     boost::filesystem::remove(std::string(std::string("rm -f ")+std::string(filenm_+".over")).c_str());
   }
   
-  double optimize()
+  double optimize(uint32_t thr = -1)
   {
-    boost::filesystem::remove(std::string(std::string("rm -f ")+std::string(filenm_+".over")).c_str());
     clean_();
     
     FILE* f = fopen(std::string(filenm_+".over").c_str(), "r+");
@@ -384,8 +405,17 @@ public:
       return 0;
     fclose(f);
 
+    boost::filesystem::remove(std::string(std::string("rm -f ")+std::string(filenm_+".over")).c_str());
+    
     f = fopen(std::string(filenm_+".tbl").c_str(), "r+");
-    get_threashold_(f);
+    if (thr == (uint32_t)-1 )
+      get_threashold_(f);
+    else
+    {
+      fseek(f, 0, SEEK_SET);
+      IASSERT(fread(&count_, sizeof(count_), 1, f)==1);
+      threshold_ = thr;
+    }
     
     FILE* ff = fopen(std::string(filenm_+".tbl.tmp").c_str(), "w+");
     fseek(ff, sizeof(count_)+sizeof(threshold_), SEEK_SET);

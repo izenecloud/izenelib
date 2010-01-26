@@ -15,6 +15,7 @@ int32_t InMemoryPosting::UPTIGHT_ALLOC_CHUNKSIZE = 8;
 int32_t InMemoryPosting::UPTIGHT_ALLOC_MEMSIZE = 40000;
 
 Posting::Posting()
+    :pDocFilter_(0)
 {}
 
 Posting::~Posting()
@@ -468,11 +469,20 @@ int32_t InMemoryPosting::decodeNext(uint32_t* pPosting,int32_t length)
         ISCHUNKOVER_D();
         did += CompressedPostingList::decodePosting32(pDChunk);
 
-        *pDoc++ = did;
-
-        ISCHUNKOVER_D();
-
-        *pFreq++ = CompressedPostingList::decodePosting32(pDChunk);
+        if(!pDocFilter_ || !pDocFilter_->test((size_t)did))
+        {
+            *pDoc++ = did;
+			
+            ISCHUNKOVER_D();
+		
+            *pFreq++ = CompressedPostingList::decodePosting32(pDChunk);					
+        }
+        else
+        {
+            ///this doc is deleted
+            ISCHUNKOVER_D();
+            CompressedPostingList::decodePosting32(pDChunk);
+        }
 
         count++;
     }
@@ -661,8 +671,17 @@ int32_t OnDiskPosting::decodeNext(uint32_t* pPosting,int32_t length)
     while (count < left)
     {
         did += pDPostingInput->readVInt();
-        *pDoc++ = did;
-        *pFreq++ = pDPostingInput->readVInt();
+
+        if(!pDocFilter_ || !pDocFilter_->test((size_t)did))
+        {
+            *pDoc++ = did;
+            *pFreq++ = pDPostingInput->readVInt();
+        }
+        else
+        {
+            ///this doc is deleted
+            pDPostingInput->readVInt();
+        }				
 
         count++;
     }
