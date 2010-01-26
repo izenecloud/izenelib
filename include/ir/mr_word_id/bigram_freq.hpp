@@ -376,7 +376,6 @@ public:
   
   double optimize(uint32_t thr = -1)
   {
-    boost::filesystem::remove(std::string(std::string("rm -f ")+std::string(filenm_+".over")).c_str());
     clean_();
     
     FILE* f = fopen(std::string(filenm_+".over").c_str(), "r+");
@@ -384,6 +383,8 @@ public:
       return 0;
     fclose(f);
 
+    boost::filesystem::remove(std::string(std::string("rm -f ")+std::string(filenm_+".over")).c_str());
+    
     f = fopen(std::string(filenm_+".tbl").c_str(), "r+");
     if (thr == (uint32_t)-1 )
       get_threashold_(f);
