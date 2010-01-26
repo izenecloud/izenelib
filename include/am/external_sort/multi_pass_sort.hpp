@@ -430,9 +430,11 @@ public:
     count_ = 0;
 
     uint32_t seek_times = 0;
+    const uint32_t THREADS_NUM = 100;
     threads_t threads;
-    const uint32_t THREADS_NUM = 1;
     threads.reserve(THREADS_NUM);
+    for (uint32_t i=0; i<THREADS_NUM; ++i)
+      threads.push_back(NULL);
     
     flush_buffer_();
     fflush(key_f_);
@@ -448,6 +450,9 @@ public:
     uint32_t buf_start_pos[MAX_GROUP_SIZE+1];//the last one is for output
     const uint32_t TIMES = (uint32_t)(log((double)FILE_SIZE/buf_size_)/log((double)MAX_GROUP_SIZE)+0.9999999999);
     
+    uint32_t key_out_buf_pos[THREADS_NUM] = {0};
+    
+      
     uint32_t times = 0;
 
     while (times < TIMES)
@@ -468,6 +473,7 @@ public:
         const uint32_t DATA_NUM_IN_BUF = ((buf_size_/(GROUP_SIZE+1))/sizeof(struct PRE_KEY_STRUCT));//data number that chunk buffer can contain
         const uint32_t CHUNK_BUF_SIZE = sizeof(struct PRE_KEY_STRUCT) * DATA_NUM_IN_BUF;
         IASSERT(DATA_NUM_IN_BUF>=1);
+        IASSERT(DATA_NUM_IN_BUF/THREADS_NUM>=1);
       
         //get start and end position in file of every chunk
         for (uint32_t t=0; t<GROUP_SIZE; ++t)
@@ -482,7 +488,8 @@ public:
         //get start position within buffer of every chunk
         for (uint32_t t=0; t<GROUP_SIZE+1; ++t)
           buf_start_pos[t] = t*CHUNK_BUF_SIZE;
-        uint32_t key_out_buf_pos = (buf_start_pos[GROUP_SIZE]+buf_size_)/2;
+        for (uint32_t t=0; t<THREADS_NUM; ++t)
+          key_out_buf_pos[t] = buf_start_pos[GROUP_SIZE] + t*DATA_NUM_IN_BUF/THREADS_NUM*sizeof(struct PRE_KEY_STRUCT);;
 
         //initiate every chunk buffer
         for (uint32_t t=0; t<GROUP_SIZE; ++t)
@@ -513,6 +520,7 @@ public:
         uint32_t min_i = 0;
         PRE_KEY_STRUCT min;
         uint32_t sorted_ch = 0;
+        uint64_t threads_i = 0;
         while (sorted_ch < GROUP_SIZE)
         {
           //std::cout<<sorted_ch<<"+"<<GROUP_SIZE<<std::endl;
@@ -541,28 +549,24 @@ public:
           }
 
           //assign it to output buffer
-          ((PRE_KEY_STRUCT*)(buffer_+buf_start_pos[GROUP_SIZE]))[buf_idx[GROUP_SIZE]] = min;
-          ++(buf_idx[GROUP_SIZE]);
-          if (buf_idx[GROUP_SIZE]>=DATA_NUM_IN_BUF/2)
+          if (threads.at(threads_i))
           {
-            //output buffer full
-            if (threads.length() == THREADS_NUM)
-            {
-              for (uint32_t g=0; g<threads.length(); ++g)
-              {
-                threads.at(g)->join();
-                delete threads.at(g);
-              }
-              threads.reset();
-            }
-            
-            threads.push_back(new boost::thread(boost::bind(&self_t::output_keys_, this, key_out_f,
-                                           buffer_+buf_start_pos[GROUP_SIZE],
-                                                            buf_idx[GROUP_SIZE]*sizeof(PRE_KEY_STRUCT))));
-            uint32_t tmp = buf_start_pos[GROUP_SIZE];
-            buf_start_pos[GROUP_SIZE] = key_out_buf_pos;
-            key_out_buf_pos = tmp;
-            
+            threads.at(threads_i)->join();
+            delete threads.at(threads_i);
+            threads[threads_i]=NULL;
+          }
+          ((PRE_KEY_STRUCT*)(buffer_+key_out_buf_pos[threads_i]))[buf_idx[GROUP_SIZE]] = min;
+
+          ++(buf_idx[GROUP_SIZE]);
+          if (buf_idx[GROUP_SIZE]>=DATA_NUM_IN_BUF/THREADS_NUM)
+          {
+            //output buffer full            
+            threads[threads_i] = new boost::thread(boost::bind(&self_t::output_keys_, this, key_out_f,
+                                                            buffer_+key_out_buf_pos[threads_i],
+                                                            buf_idx[GROUP_SIZE]*sizeof(PRE_KEY_STRUCT)));
+            ++threads_i;
+            if (threads_i>=THREADS_NUM)
+              threads_i = 0;
             buf_idx[GROUP_SIZE] = 0;
           }
         
@@ -595,23 +599,22 @@ public:
             IASSERT(buf_end_idx[min_i]<=DATA_NUM_IN_BUF);
           }
         }
-        
-        if (buf_idx[GROUP_SIZE]!=0 && buf_idx[GROUP_SIZE]<DATA_NUM_IN_BUF)
+
+        for (uint32_t g=0; g<threads.length(); ++g)
         {
-          //output buffer still has something
-          if (threads.length()==THREADS_NUM)
-          {
-            for (uint32_t g=0; g<threads.length(); ++g)
-            {
-              threads.at(g)->join();
-              delete threads.at(g);
-            }
-            threads.reset();
-          }
-          
-          threads.push_back(new boost::thread(boost::bind(&self_t::output_keys_, this, key_out_f,
-                                                          buffer_+buf_start_pos[GROUP_SIZE],
-                                                          buf_idx[GROUP_SIZE]*sizeof(PRE_KEY_STRUCT))));
+          if (!threads.at(g))
+            continue;
+          threads.at(g)->join();
+          delete threads.at(g);
+          threads[g] = NULL;
+        }
+      
+        if (buf_idx[GROUP_SIZE]!=0)
+        {
+          IASSERT(buf_idx[GROUP_SIZE]<DATA_NUM_IN_BUF/THREADS_NUM);
+          output_keys_(key_out_f, buffer_+key_out_buf_pos[threads_i],
+                       buf_idx[GROUP_SIZE]*sizeof(PRE_KEY_STRUCT));
+        
           //threads.back()->detach();
           buf_idx[GROUP_SIZE] = 0;
         }
@@ -621,10 +624,12 @@ public:
 
       for (uint32_t g=0; g<threads.length(); ++g)
       {
+        if (!threads.at(g))
+          continue;
         threads.at(g)->join();
         delete threads.at(g);
+        threads[g] = NULL;
       }
-      threads.reset();
       
       fseek(key_f_, 0, SEEK_END);
       fseek(key_out_f, 0, SEEK_END);
