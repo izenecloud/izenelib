@@ -389,7 +389,11 @@ public:
     if (thr == (uint32_t)-1 )
       get_threashold_(f);
     else
+    {
+      fseek(f, 0, SEEK_SET);
+      IASSERT(fread(&count_, sizeof(count_), 1, f)==1);
       threshold_ = thr;
+    }
     
     FILE* ff = fopen(std::string(filenm_+".tbl.tmp").c_str(), "w+");
     fseek(ff, sizeof(count_)+sizeof(threshold_), SEEK_SET);
