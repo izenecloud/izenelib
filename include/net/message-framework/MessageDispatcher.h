@@ -108,7 +108,7 @@ public:
 			const MessageFrameworkNode& destination) {
 		return sendDataToLowerLayer(messageType, *serviceMessage, destination);
 	}
-#else	 
+#else
 
 	bool sendDataToLowerLayer1(
 			MessageType messageType,
@@ -146,7 +146,7 @@ public:
 				else
 				return sendDataToLowerLayer_impl<DataType>(messageType, data,destination);
 		return true;
-		
+
 	}
 
 	/**
@@ -205,8 +205,8 @@ private:
 
 		// retrieve stream that is binded to destination
 		AsyncStream& stream = getStreamByNode(destination);
-	  
-		DLOG(INFO)<<(const char*)archive_stream->data();		
+
+		DLOG(INFO)<<(const char*)archive_stream->data();
 
 		// forward data to network layer, the data will be sent
 		// to destination
@@ -216,16 +216,13 @@ private:
 	}
 
 
-#if 0	
+#if 0
 	bool sendDataToLowerLayer_impl1(MessageType  messageType,
 			const ServiceMessagePtr& serviceMessage,
 			const MessageFrameworkNode& destination)
 		{
 						// retrieve stream that is binded to destination
 		AsyncStream& stream = getStreamByNode(destination);
-#ifdef _LOGGING_
-		WriteToLog("log.log", " sendDataToLowerLayer : ServiceMessage ..." );  		
-#endif   
 		stream.sendMessage(messageType, serviceMessage);
 
 		/* unsigned int dataLength = serviceMessage.getSerializedSize();
@@ -233,7 +230,7 @@ private:
 		 throw MessageFrameworkException(SF1_MSGFRK_DATA_OUT_OF_RANGE,
 				__LINE__, __FILE__);
 
-	   int header = (messageType << 24) | dataLength;	  
+	   int header = (messageType << 24) | dataLength;
 	   	boost::shared_ptr<std::string> writeHeaderBuffer(new string((char*)&header, sizeof(header)));
 
      cout<<"DBG sendDataToLowerLayer_impl 1 : ServiceMessage ..." <<endl;
@@ -242,18 +239,18 @@ private:
 	buffers.push_back(boost::asio::buffer(*writeHeaderBuffer));
 	//buffers.push_back(boost::asio::buffer(&header, sizeof(int)));
 	buffers.push_back(boost::asio::buffer(&(serviceMessage.mh), sizeof(MessageHeader)));
-	buffers.push_back(boost::asio::buffer(serviceMessage.getServiceName().c_str(), 
+	buffers.push_back(boost::asio::buffer(serviceMessage.getServiceName().c_str(),
 		serviceMessage.getServiceName().size()));
 	for(int i=0; i<serviceMessage.getBufferNum(); i++){
-		cout<<i<<endl;	
+		cout<<i<<endl;
 		unsigned int sz = serviceMessage.getBuffer(i)->getSize();
 		cout<< sz<<endl;
-		buffers.push_back(boost::asio::buffer(&sz, sizeof(unsigned int)) ); 		
+		buffers.push_back(boost::asio::buffer(&sz, sizeof(unsigned int)) );
 		buffers.push_back(boost::asio::buffer(serviceMessage.getBuffer(i)->getData(), sz));
-	}  
+	}
 		// forward data to network layer, the data will be sent
-		// to destination		
-		stream.sendMessage(buffers);	*/	
+		// to destination
+		stream.sendMessage(buffers);	*/
 
 		}
 #endif

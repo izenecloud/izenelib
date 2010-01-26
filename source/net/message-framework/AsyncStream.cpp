@@ -1,7 +1,3 @@
-#ifdef _LOGGING_
-#include <net/message-framework/common.h>
-#endif
-
 #include <net/message-framework/MessageType.h>
 #include <net/message-framework/MessageDispatcher.h>
 #include <net/message-framework/AsyncStream.h>
@@ -62,22 +58,18 @@ void AsyncStream::readNewMessage() {
 void AsyncStream::readMessageData(const boost::system::error_code& error) {
 	if (!error) {
 
-#ifdef _LOGGING_
-		WriteToLog("log.log", "Received message header " );
-#endif
+		DLOG(INFO) << "Received message header";
 		// The message header consist of 4 bytes
 		// the first byte contains the message type
 		// the next 3 bytes contain the data length
 		messageType_ = MessageType((readHeaderBufer_ >> 28)& 0xFF);
 		dataLength_ = readHeaderBufer_ & 0x00FFFFFF;
-		
-#ifdef 	SF1_DEBUG
-		cout<<"DBG:: AsyncStream::readMessageData len="<<dataLength_<<endl;
-#endif		
-		
+
+		DLOG(INFO) << "header length "<< dataLength_;
+
 		//readBuffer_.reset(new boost::asio::streambuf());
 		readBuffer_.reset(new izenelib::util::izene_streambuf);
-		
+
 		//boost::asio::streambuf::mutable_buffers_type buf =
 		//		readBuffer_->prepare(dataLength_);
 		izenelib::util::izene_streambuf::mutable_buffers_type buf =
@@ -86,47 +78,38 @@ void AsyncStream::readMessageData(const boost::system::error_code& error) {
 				&AsyncStream::handle_read, this,
 				boost::asio::placeholders::error));
 	} else {
-		std::cout
-				<< "Error while Receiving message header. Connection is closed."
-				<< std::endl;
-		std::cout << "Error detail " << error.message() << std::endl;
+		DLOG(INFO) << "Connection is closed while waiting for new message : " << error;
 		messageDispatcher_->removePeerNode(peerNode_);
 	}
 }
 
 void AsyncStream::handle_read(const boost::system::error_code& error) {
 	if (!error) {
-#ifdef _LOGGING_
-		WriteToLog("log.log", "Received message data " );
-#endif
-		readBuffer_->commit(dataLength_);		
+		DLOG(INFO) << "Received message data";
+
+		readBuffer_->commit(dataLength_);
 		messageDispatcher_->sendDataToUpperLayer(peerNode_, messageType_,
 				readBuffer_);
 		readBuffer_.reset();
 		// read next message
 		readNewMessage();
 	} else {
-		std::cout
-				<< "Error while Receiving message body. Connection is closed."
-				<< std::endl;
-		std::cout << "Error detail " << error.message() << std::endl;
+		DLOG(ERROR) << "Connection is closed while receiving message body : " << error;
 		messageDispatcher_->removePeerNode(peerNode_);
 	}
 }
 
 void AsyncStream::sendMessage(MessageType messageType, //const std::string& data)
 		boost::shared_ptr<izenelib::util::izene_streambuf>& buffer) {
-	unsigned int dataLength = buffer->size();	
+	unsigned int dataLength = buffer->size();
 	if ((dataLength >> 28) != 0)
 		throw MessageFrameworkException(SF1_MSGFRK_DATA_OUT_OF_RANGE,
 				__LINE__, __FILE__);
 
 	sended_data_size += dataLength;
-	
-#ifdef 	SF1_DEBUG
-	cout<<"DBG:: AsyncStream::sendMessage len="<<dataLength<<endl;
-#endif
-	
+
+	DLOG(INFO) << "body length" << dataLength <<endl;
+
 	int header = (messageType << 28) | dataLength;
 	boost::shared_ptr<std::string> writeHeaderBuffer(new string((char*)&header, sizeof(header)));
 
@@ -141,12 +124,13 @@ void AsyncStream::sendMessage(MessageType messageType, //const std::string& data
 				+ boost::posix_time::milliseconds(5000);
 		while (writing_) {
 			if (!writingEvent_.timed_wait(lock, timeout) ) {
-				cout << "severe error " << "package cannot be sent out" << endl;
+				DLOG(ERROR) << "package cannot be sent out" << endl;
 				return;
 			}
 		}
 		writing_ = true;
 	}
+
 	boost::asio::async_write(*socket_, buffers, boost::bind(
 			&AsyncStream::handle_write, this, buffer, writeHeaderBuffer,
 			boost::asio::placeholders::error));
@@ -159,8 +143,8 @@ void AsyncStream::sendMessage(MessageType messageType, const boost::shared_ptr<S
 		unsigned int dataLength = serviceMessage->getSerializedSize();
 		if ((dataLength >> 28) != 0)
 			throw MessageFrameworkException(SF1_MSGFRK_DATA_OUT_OF_RANGE,
-					__LINE__, __FILE__);      
-      
+					__LINE__, __FILE__);
+
 		int header = (messageType << 28) | dataLength;
 		boost::shared_ptr<std::string> writeHeaderBuffer(new string((char*)&header, sizeof(header)));
 		unsigned int tl = 0;
@@ -173,24 +157,23 @@ void AsyncStream::sendMessage(MessageType messageType, const boost::shared_ptr<S
 				sizeof(MessageHeader)));
 		tl += serviceMessage->getServiceName().size();
 		buffers->push_back(boost::asio::buffer(serviceMessage->getServiceName().c_str(), serviceMessage->getServiceName().size()));
-		for (unsigned int i=0; i<serviceMessage->getBufferNum(); i++) {	
+		for (unsigned int i=0; i<serviceMessage->getBufferNum(); i++) {
 			buffers->push_back(boost::asio::buffer(&(serviceMessage->getBuffer(i)->size), sizeof(size_t)) );
 			tl += sizeof(size_t);
 			tl += serviceMessage->getBuffer(i)->size;
 			buffers->push_back(boost::asio::buffer(serviceMessage->getBuffer(i)->getData(), serviceMessage->getBuffer(i)->size) );
-		}    
-		
+		}
+
         assert(tl == dataLength);
 		// forward data to network layer, the data will be sent
-		// to destination	
+		// to destination
 		{
 			boost::mutex::scoped_lock lock(writingMutex_);
 			boost::system_time const timeout = boost::get_system_time()
 					+ boost::posix_time::milliseconds(5000);
 			while (writing_) {
 				if (!writingEvent_.timed_wait(lock, timeout) ) {
-					cout << "severe error " << "package cannot be sent out"
-							<< endl;
+                    DLOG(ERROR) << "package cannot be sent out" << endl;
 					return;
 				}
 			}
@@ -198,7 +181,7 @@ void AsyncStream::sendMessage(MessageType messageType, const boost::shared_ptr<S
 		writing_ = true;
 		boost::asio::async_write(*socket_, *buffers, boost::bind(
 				&AsyncStream::handle_write1, this, writeHeaderBuffer, buffers, serviceMessage,
-							
+
 				boost::asio::placeholders::error)
 		);
 	}
@@ -214,22 +197,18 @@ void AsyncStream::handle_write(
 	}
 
 	if (!error) {
-#ifdef _LOGGING_
-		WriteToLog("log.log", "Finish sending message data(not ServiceMessage) " );
-#endif
+        DLOG(INFO) << "Finish sending message data(MessageService)";
 	} else {
-		std::cout << "Error while writting data. Connection is closed."
-				<< std::endl;
-		std::cout << "Error detail " << error.message() << std::endl;
+		DLOG(ERROR) << " Connection is closed while writting data" << error;
 		messageDispatcher_->removePeerNode(peerNode_);
 	}
 }
 
-void AsyncStream::	 handle_write1(
-			boost::shared_ptr<std::string> writeHeaderBuffer,
-		   boost::shared_ptr<std::vector<boost::asio::const_buffer> > a,
-			ServiceMessagePtr serviceMessage,			
-			const boost::system::error_code& error) {
+void AsyncStream::handle_write1(
+        boost::shared_ptr<std::string> writeHeaderBuffer,
+        boost::shared_ptr<std::vector<boost::asio::const_buffer> > a,
+        ServiceMessagePtr serviceMessage,
+		const boost::system::error_code& error) {
 
 	{
 		boost::mutex::scoped_lock lock(writingMutex_);
@@ -238,14 +217,9 @@ void AsyncStream::	 handle_write1(
 	}
 
 	if (!error) {
-#ifdef _LOGGING_
-		WriteToLog("log.log", "Finish sending message data(MessageService) " );
-		cout<<"Finish sending message data(MessageService)"<<endl;
-#endif
+		DLOG(INFO) << "Finish sending message data(MessageService)";
 	} else {
-		std::cout << "Error while writting data. Connection is closed."
-				<< std::endl;
-		std::cout << "Error detail " << error.message() << std::endl;
+		DLOG(ERROR) << " Connection is closed while writting data" << error;
 		messageDispatcher_->removePeerNode(peerNode_);
 	}
 }

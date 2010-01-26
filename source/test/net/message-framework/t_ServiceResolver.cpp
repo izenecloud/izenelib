@@ -4,6 +4,8 @@
 #include <boost/lambda/lambda.hpp>
 #include <boost/lambda/bind.hpp>
 
+#include <util/izene_log.h>
+
 #include <net/message_framework.h>
 
 using namespace std;
@@ -15,12 +17,16 @@ BOOST_AUTO_TEST_SUITE( t_ServiceResolver )
 
 BOOST_AUTO_TEST_CASE(basic) {
 
-    // Init Controller
+    google::InitGoogleLogging("t_mf");
+
+    ::remove("_ctr_services.10080.dat");
+
     MessageFrameworkNode ctrlNode("localhost", 10080);
-    messageframework::MessageControllerFullSingleton::init( "controller", 10080);
-    MessageControllerFull& controller = messageframework::MessageControllerFullSingleton::instance();
-    thread* t1 = new thread((lambda::bind(&MessageControllerFull::processServiceRegistrationRequest, var(controller)) ));
-    thread* t2 = new thread((lambda::bind(&MessageControllerFull::processServicePermissionRequest, var(controller)) ));
+
+    // Init Controller
+    MessageControllerFull controller("controller", 10080);
+    thread* t1 = new thread(lambda::bind(&MessageControllerFull::processServiceRegistrationRequest, var(controller)));
+    thread* t2 = new thread(lambda::bind(&MessageControllerFull::processServicePermissionRequest, var(controller)));
 
     // Init Client
     map<string, MessageFrameworkNode> response;
@@ -40,18 +46,22 @@ BOOST_AUTO_TEST_CASE(basic) {
         BOOST_CHECK_EQUAL( response[""].nodePort_, 10086U );
     }
 
+    controller.shutdown();
+    t1->join();
+    t2->join();
     delete t1;
     delete t2;
 }
 
 BOOST_AUTO_TEST_CASE(service_name_changed) {
 
+    ::remove("_ctr_services.10080.dat");
+
     // Init Controller
     MessageFrameworkNode ctrlNode("localhost", 10080);
-    messageframework::MessageControllerFullSingleton::init( "controller", 10080);
-    MessageControllerFull& controller = messageframework::MessageControllerFullSingleton::instance();
-    thread* t1 = new thread((lambda::bind(&MessageControllerFull::processServiceRegistrationRequest, var(controller)) ));
-    thread* t2 = new thread((lambda::bind(&MessageControllerFull::processServicePermissionRequest, var(controller)) ));
+    MessageControllerFull controller("controller", 10080);
+    thread* t1 = new thread(lambda::bind(&MessageControllerFull::processServiceRegistrationRequest, var(controller)));
+    thread* t2 = new thread(lambda::bind(&MessageControllerFull::processServicePermissionRequest, var(controller)));
 
     // Init Client
     map<string, MessageFrameworkNode> response;
@@ -85,8 +95,69 @@ BOOST_AUTO_TEST_CASE(service_name_changed) {
         BOOST_CHECK_EQUAL( response[""].nodePort_, 10087U );
     }
 
+    controller.shutdown();
+    t1->join();
+    t2->join();
     delete t1;
     delete t2;
 }
+
+
+BOOST_AUTO_TEST_CASE(controller_reboot) {
+
+    ::remove("_ctr_services.10080.dat");
+
+    MessageFrameworkNode ctrlNode("localhost", 10080);
+
+    // Init Controller
+    MessageControllerFull controller("controller", 10080);
+    thread* t1 = new thread(lambda::bind(&MessageControllerFull::processServiceRegistrationRequest, var(controller)));
+    thread* t2 = new thread(lambda::bind(&MessageControllerFull::processServicePermissionRequest, var(controller)));
+    ::sleep(1);
+
+    // Init service @10086
+    ServiceInfo service("service");
+    service.setServer("localhost", 10086);
+    MessageServerFull server("server", 10086, ctrlNode);
+    server.registerService(service);
+
+    {
+        // Init Client
+        map<string, MessageFrameworkNode> response;
+        MessageClientFull client("client", ctrlNode);
+        // Resolved service address == localhost::10086
+        client.getHostsOfService("service", response);
+        BOOST_CHECK_EQUAL( response[""].nodeIP_, "127.0.0.1" );
+        BOOST_CHECK_EQUAL( response[""].nodePort_, 10086U );
+    }
+
+    controller.shutdown();
+    t1->join();
+    t2->join();
+    delete t1;
+    delete t2;
+
+    MessageControllerFull rebootedController("controller", 10080);
+    t1 = new thread(lambda::bind(&MessageControllerFull::processServiceRegistrationRequest, var(rebootedController)));
+    t2 = new thread(lambda::bind(&MessageControllerFull::processServicePermissionRequest, var(rebootedController)));
+    ::sleep(1);
+
+    {
+        // Init Client
+        map<string, MessageFrameworkNode> response;
+        MessageClientFull client("client", ctrlNode);
+        // Resolved service address == localhost::10086
+        client.getHostsOfService("service", response);
+        BOOST_CHECK_EQUAL( response[""].nodeIP_, "127.0.0.1" );
+        BOOST_CHECK_EQUAL( response[""].nodePort_, 10086U );
+    }
+
+    rebootedController.shutdown();
+    t1->join();
+    t2->join();
+    delete t1;
+    delete t2;
+}
+
 
 BOOST_AUTO_TEST_SUITE_END()

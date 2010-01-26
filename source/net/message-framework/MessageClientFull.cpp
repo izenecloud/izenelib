@@ -3,13 +3,11 @@
 ///  @date : 8/5/2008
 ///  @author : TuanQuang Nguyen
 ///
-//
-//
+
 /**************** Include module header files *******************/
 #include <net/message-framework/MessageClientFull.h>
 #include <net/message-framework/MessageFrameworkConfiguration.h>
 #include <net/message-framework/ServiceMessage.h>
-//#include <net/message-framework/PermissionOfServiceMessage.h>
 #include <net/message-framework/MessageType.h>
 #include <net/message-framework/ClientIdRequestMessage.h>
 
@@ -46,7 +44,7 @@ MessageClientFull::MessageClientFull(const std::string& clientName,
 	batchProcessedRequestNumber_ = 128;
 	//batchProcessedRequestNumber_ = 1;
 	//batchProcessedRequestNumber_ = 32;
-	controllerNode_.nodeIP_ = getHostIp(io_service_, controllerInfo.nodeIP_);	
+	controllerNode_.nodeIP_ = getHostIp(io_service_, controllerInfo.nodeIP_);
 	controllerNode_.nodePort_ = controllerInfo.nodePort_;
 	controllerNode_.nodeName_ = controllerInfo.nodeName_;
 
@@ -158,13 +156,13 @@ const unsigned int MessageClientFull::generateRequestId() {
  used combined with a sequential number to generate requestIds.
  ****************************************************************************/
 /*	bool MessageClientFull::getClientId(int& clientId)
- {     
+ {
  clientId = nxtSequentialNumber_;
  nxtSequentialNumber_ ++;
  return clientId+1;
- 
+
  if(clientId_ != 0)
- {   
+ {
  clientId = clientId_;
  return true;
  }
@@ -261,11 +259,11 @@ bool MessageClientFull::checkPermissionInfo_(
 	std::map<std::string, MessageFrameworkNode>::iterator it =
 			agentInfoMap.begin();
 	for(; it !=agentInfoMap.end(); it++ )
-	{     
-	       //change 127.0.0.1 like ip to real ip 
-		if( it->second.nodeIP_ .substr(0, 3) == "127" ){		
-			MessageFrameworkNode node = it->second;	
-			node.nodeIP_ = controllerNode_.nodeIP_;		
+	{
+	       //change 127.0.0.1 like ip to real ip
+		if( it->second.nodeIP_ .substr(0, 3) == "127" ){
+			MessageFrameworkNode node = it->second;
+			node.nodeIP_ = controllerNode_.nodeIP_;
 			it->second = node;
 			permissionInfo.setServer(it->first, it->second);
 		}
@@ -583,7 +581,7 @@ bool MessageClientFull::putServiceRequest(const MessageFrameworkNode& server,
 							DLOG(ERROR) << "[Client1:" << getName()
 							<< "] Reqeust id 0x" << hex << requestId << dec
 							<< " timeout" << std::endl;
-							boost::mutex::scoped_lock acceptedPermissionLock(acceptedPermissionMutex_);  							
+							boost::mutex::scoped_lock acceptedPermissionLock(acceptedPermissionMutex_);
 							acceptedPermissionList_.erase(serviceName);
 							goto get_service_result_fail;
 						}
@@ -703,8 +701,8 @@ bool MessageClientFull::putServiceRequest(const MessageFrameworkNode& server,
 				if ( false == semaphore->timed_wait(timeout) ) {
 					DLOG(ERROR) << "[Client:" << getName()
 					<< "] Reqeust id 0x" << hex << requestId << dec
-					<< " timeout" << std::endl;					
-					boost::mutex::scoped_lock acceptedPermissionLock(acceptedPermissionMutex_);					
+					<< " timeout" << std::endl;
+					boost::mutex::scoped_lock acceptedPermissionLock(acceptedPermissionMutex_);
 					acceptedPermissionList_.erase(serviceName);
 					return false;
 				}
@@ -959,7 +957,7 @@ bool MessageClientFull::putServiceRequest(const MessageFrameworkNode& server,
 				boost::shared_ptr<tcp::socket> sock) {
 			// tcp::endpoint endpoint = sock->local_endpoint();
 			tcp::endpoint endpoint = sock->remote_endpoint();
-			
+
 			std::string logMsg;
 			logMsg = "Accept new connection, Remote IP = ";
 			logMsg += endpoint.address().to_string();

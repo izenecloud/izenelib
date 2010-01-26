@@ -1,9 +1,6 @@
 #ifndef _ASYNC_STREAM_H_
 #define _ASYNC_STREAM_H_
 
-#ifdef _LOGGING_
-#include <net/message-framework/common.h>
-#endif
 #include <net/message-framework/PermissionRequester.h>
 #include <net/message-framework/PermissionServer.h>
 #include <net/message-framework/ServiceResultRequester.h>
@@ -68,7 +65,7 @@ public:
 	void sendMessage(MessageType messageType, //const std::string& data);
 			boost::shared_ptr<izenelib::util::izene_streambuf>& buffer);
 
-	void sendMessage(MessageType messageType, const boost::shared_ptr<ServiceMessage>& serviceMessage); 
+	void sendMessage(MessageType messageType, const boost::shared_ptr<ServiceMessage>& serviceMessage);
 
 	void shutdown(void);
 
@@ -92,7 +89,7 @@ private:
 	void handle_write1(
 			boost::shared_ptr<std::string> writeHeaderBuffer,
 		   boost::shared_ptr<std::vector<boost::asio::const_buffer> >,
-			ServiceMessagePtr serviceMessage,			
+			ServiceMessagePtr serviceMessage,
 			const boost::system::error_code& error);
 
 
@@ -136,7 +133,7 @@ private:
 	 */
 	// std::vector<char> readDataBuffer_;
 	//	  MFSocketBuffer readDataBuffer_;
-	// boost::shared_ptr<boost::asio::streambuf> readBuffer_;		
+	// boost::shared_ptr<boost::asio::streambuf> readBuffer_;
 	boost::shared_ptr<izenelib::util::izene_streambuf> readBuffer_;
 
 	//	  /**
