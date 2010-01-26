@@ -83,6 +83,8 @@ MessageControllerFull::MessageControllerFull(
 
 	// create thread for I/O operations
 	ioThread_ = new boost::thread(boost::bind(&boost::asio::io_service::run, &io_service_));
+
+	std::cout << "Controller boot" << std::endl;
 }
 
 MessageControllerFull::~MessageControllerFull() {
@@ -100,6 +102,8 @@ void MessageControllerFull::shutdown() {
     stop_ = true;
     newRegistrationEvent_.notify_all();
     newPermissionRequestEvent_.notify_all();
+
+    std::cout << "Controller shutdown" << std::endl;
 }
 
 /******************************************************************************
@@ -138,7 +142,7 @@ void MessageControllerFull::processServiceRegistrationRequest(void) {
 					// check if the sevice has been registered
 					boost::mutex::scoped_lock availableServiceListLock(availableServiceListMutex_);
 
-					DLOG(INFO) <<"ServiceRegistrationRequest: " << serviceName;
+                    std::cout <<"ServiceRegistrationRequest: " << serviceName << std::endl;
 
 					ServicePermissionInfo permissionInfo;
 					if( availableServiceList_.get(serviceName, permissionInfo) )
