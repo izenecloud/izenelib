@@ -644,8 +644,8 @@ public:
     }
 
     std::cout<<"\nSorting is over, seeking times is "<<seek_times<<", begin to output ...\n";
-    t_check_sort_();
-    //output_();
+    //t_check_sort_();
+    output_();
   }
 
   void output()
