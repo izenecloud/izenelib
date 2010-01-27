@@ -441,7 +441,7 @@ public:
   void flush()
   {
     std::cout<<"Amount: "<<num_<<std::endl;
-    std::cout<<"sorter is flushing...";
+    std::cout<<"sorter is flushing...\n";
     flush_();
     fseek(f_, 0, SEEK_SET);
     IASSERT(fwrite(&num_, sizeof(uint64_t), 1, f_)==1);
@@ -450,6 +450,7 @@ public:
     f_ = NULL;
 
     buckets_.back()->flush();
+    std::cout<<"start bukets sorting ... \n";
     for (uint32_t i=0; i<buckets_.size(); ++i)
       buckets_[i]->sort();
 
