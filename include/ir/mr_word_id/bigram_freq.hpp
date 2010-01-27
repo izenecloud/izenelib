@@ -331,6 +331,28 @@ public:
     return true;
   }
 
+  bool add(uint64_t id1, uint64_t id2, uint32_t freq = 1)
+  {
+    if (id1 < start_ || id1>end_)
+      return false;
+
+    uint32_t idx = id1-start_;
+    while (idx >= entry_.length())
+      entry_.push_back(NULL);
+
+    if (entry_.at(idx) == NULL)
+    {
+      entry_[idx] = new bucket_t();
+      ++count_;
+      //std::cout<<count_<<std::endl;
+    }
+
+    bucket_t* buk = entry_.at(idx);
+    buk->push_back(ID_STRUCT(id2, freq));
+
+    return true;
+  }
+
   uint32_t find(uint64_t id1, uint64_t id2)const
   {
     if (id1<start_ || id1>end_)
