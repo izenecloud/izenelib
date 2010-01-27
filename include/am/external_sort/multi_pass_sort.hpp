@@ -17,6 +17,8 @@
 #include <boost/thread/thread.hpp>
 #include <boost/bind.hpp>
 #include <am/graph_index/dyn_array.hpp>
+#include <math.h>
+#include <sys/time.h>
 
 NS_IZENELIB_AM_BEGIN
 
@@ -26,7 +28,7 @@ NS_IZENELIB_AM_BEGIN
 template<
   class PRE_KEY_TYPE = uint32_t,//pre-key type, indicate the length of the pre-key.
   class LEN_TYPE = uint8_t,//
-  bool  COMPARE_ALL = true
+  bool  COMPARE_ALL = false
 >
 class MultiPassSort
 {
@@ -300,6 +302,17 @@ class MultiPassSort
     boost::filesystem::remove(filenm_+".key");
     boost::filesystem::remove(filenm_+".key.out");
     boost::filesystem::rename(filenm_+".dat.out", filenm_+".dat");
+
+    char* data;
+    LEN_TYPE len;
+    PRE_KEY_TYPE last = 0;
+
+    IASSERT(begin());
+    while (next_data(len, &data))
+    {
+      IASSERT(last<=*(PRE_KEY_TYPE*)data);
+      free(data);
+    }
   }
 
   void quick_sort_(int left, int right)
@@ -441,7 +454,10 @@ public:
   }
   
   void sort()
-  {    
+  {
+    struct timeval tvafter, tvpre;
+    struct timezone tz;
+    
     std::cout<<"\nStart to sort "<<count_<<" items.\n";
     count_ = 0;
 
@@ -460,8 +476,13 @@ public:
 
     if (FILE_SIZE<=buf_size_)
     {
+      std::cout<<"\nNo merging.\n";
       t_check_sort_();
-      //output_();
+      gettimeofday (&tvpre , &tz);
+      output_();
+      gettimeofday (&tvafter , &tz);
+      std::cout<<"\nIt takes "<<((tvafter.tv_sec-tvpre.tv_sec)*1000+(tvafter.tv_usec-tvpre.tv_usec)/1000.)/60000
+               <<" minutes to output";
       return;
     }
     
@@ -476,16 +497,16 @@ public:
     const uint32_t TIMES = (uint32_t)_times;
     
     uint32_t key_out_buf_pos[thre_num_];
-    
-      
-    uint32_t times = 0;
 
+    gettimeofday (&tvpre , &tz);
+    
+    uint32_t times = 0;
     while (times < TIMES)
     {
       FILE* key_out_f = fopen((filenm_+".key.out").c_str(), "w+");
       IASSERT(key_out_f!=NULL);
     
-      const uint32_t CHUNK_SIZE = buf_size_/sizeof(struct PRE_KEY_STRUCT)*(uint32_t)std::pow((float)MAX_GROUP_SIZE, (float)times);
+      const uint32_t CHUNK_SIZE = buf_size_/sizeof(struct PRE_KEY_STRUCT)*(uint32_t)pow((float)MAX_GROUP_SIZE, (float)times);
       uint64_t start = 0;
       while (start<FILE_SIZE)
       {
@@ -672,9 +693,19 @@ public:
       IASSERT(key_f_!= NULL);
     }
 
+    gettimeofday (&tvafter , &tz);
+    std::cout<<"\nIt takes "<<((tvafter.tv_sec-tvpre.tv_sec)*1000+(tvafter.tv_usec-tvpre.tv_usec)/1000.)/60000
+             <<" minutes to merge\n";
+    
     std::cout<<"\nSorting is over, seeking times is "<<seek_times<<", begin to output ...\n";
+    
     t_check_sort_();
-    //output_();
+    gettimeofday (&tvpre , &tz);
+    output_();
+    gettimeofday (&tvafter , &tz);
+    std::cout<<"\nIt takes "<<((tvafter.tv_sec-tvpre.tv_sec)*1000+(tvafter.tv_usec-tvpre.tv_usec)/1000.)/60000
+             <<" minutes to output";
+
   }
 
   void output()
