@@ -26,7 +26,7 @@ NS_IZENELIB_AM_BEGIN
 template<
   class PRE_KEY_TYPE = uint32_t,//pre-key type, indicate the length of the pre-key.
   class LEN_TYPE = uint8_t,//
-  bool  COMPARE_ALL = false
+  bool  COMPARE_ALL = true
 >
 class MultiPassSort
 {
@@ -54,6 +54,7 @@ class MultiPassSort
     };
 
   uint64_t count_;
+  uint32_t thre_num_;
   /**
      @brief pre-key used for sorting
    */
@@ -370,7 +371,7 @@ class MultiPassSort
   }
   
 public:
-  MultiPassSort(const char* filenm, uint32_t buf_size = 100000000, uint32_t group_size=3)
+  MultiPassSort(const char* filenm, uint32_t buf_size = 100000000, uint32_t group_size=4)
     :filenm_(filenm), buf_size_(buf_size), buffer_(NULL), MAX_GROUP_SIZE(group_size)
   {
     tmp_buffer_ = buffer_ =  NULL;
@@ -381,7 +382,9 @@ public:
     end_pos_ = 0;
     count_ = 0;
 
+    thre_num_ = 100;
     assert(buf_size_>12);
+    assert(MAX_GROUP_SIZE>1);
   }
 
   ~MultiPassSort()
@@ -396,6 +399,11 @@ public:
     buf_size_ = buf_size_/sizeof(struct PRE_KEY_STRUCT)*sizeof(struct PRE_KEY_STRUCT);
   }
 
+  void set_threads_num(uint32_t num)
+  {
+    thre_num_ = num;
+  }
+  
   void add_data(LEN_TYPE len, const char* data)
   {
     if (len == 0)
@@ -430,10 +438,9 @@ public:
     count_ = 0;
 
     uint32_t seek_times = 0;
-    const uint32_t THREADS_NUM = 100;
     threads_t threads;
-    threads.reserve(THREADS_NUM);
-    for (uint32_t i=0; i<THREADS_NUM; ++i)
+    threads.reserve(thre_num_);
+    for (uint32_t i=0; i<thre_num_; ++i)
       threads.push_back(NULL);
     
     flush_buffer_();
@@ -442,6 +449,9 @@ public:
     fseek(key_f_, 0, SEEK_END);
     const uint64_t FILE_SIZE = ftell(key_f_);
     assert(FILE_SIZE%sizeof(struct PRE_KEY_STRUCT)==0);
+
+    if (FILE_SIZE<=buf_size_)
+      return;
     
     uint64_t file_pos[MAX_GROUP_SIZE];
     uint64_t file_end_pos[MAX_GROUP_SIZE];
@@ -450,7 +460,7 @@ public:
     uint32_t buf_start_pos[MAX_GROUP_SIZE+1];//the last one is for output
     const uint32_t TIMES = (uint32_t)(log((double)FILE_SIZE/buf_size_)/log((double)MAX_GROUP_SIZE)+0.9999999999);
     
-    uint32_t key_out_buf_pos[THREADS_NUM] = {0};
+    uint32_t key_out_buf_pos[thre_num_];
     
       
     uint32_t times = 0;
@@ -469,11 +479,12 @@ public:
         uint32_t GROUP_SIZE = ((uint32_t)(((double)(FILE_SIZE-start))/CHUNK_SIZE/sizeof(struct PRE_KEY_STRUCT)+0.999999));
         if (GROUP_SIZE > MAX_GROUP_SIZE)
           GROUP_SIZE = MAX_GROUP_SIZE;
+        IASSERT(GROUP_SIZE>1);
       
         const uint32_t DATA_NUM_IN_BUF = ((buf_size_/(GROUP_SIZE+1))/sizeof(struct PRE_KEY_STRUCT));//data number that chunk buffer can contain
         const uint32_t CHUNK_BUF_SIZE = sizeof(struct PRE_KEY_STRUCT) * DATA_NUM_IN_BUF;
         IASSERT(DATA_NUM_IN_BUF>=1);
-        IASSERT(DATA_NUM_IN_BUF/THREADS_NUM>=1);
+        IASSERT(DATA_NUM_IN_BUF/thre_num_>=1);
       
         //get start and end position in file of every chunk
         for (uint32_t t=0; t<GROUP_SIZE; ++t)
@@ -488,8 +499,8 @@ public:
         //get start position within buffer of every chunk
         for (uint32_t t=0; t<GROUP_SIZE+1; ++t)
           buf_start_pos[t] = t*CHUNK_BUF_SIZE;
-        for (uint32_t t=0; t<THREADS_NUM; ++t)
-          key_out_buf_pos[t] = buf_start_pos[GROUP_SIZE] + t*DATA_NUM_IN_BUF/THREADS_NUM*sizeof(struct PRE_KEY_STRUCT);;
+        for (uint32_t t=0; t<thre_num_; ++t)
+          key_out_buf_pos[t] = buf_start_pos[GROUP_SIZE] + t*DATA_NUM_IN_BUF/thre_num_*sizeof(struct PRE_KEY_STRUCT);;
 
         //initiate every chunk buffer
         for (uint32_t t=0; t<GROUP_SIZE; ++t)
@@ -558,14 +569,14 @@ public:
           ((PRE_KEY_STRUCT*)(buffer_+key_out_buf_pos[threads_i]))[buf_idx[GROUP_SIZE]] = min;
 
           ++(buf_idx[GROUP_SIZE]);
-          if (buf_idx[GROUP_SIZE]>=DATA_NUM_IN_BUF/THREADS_NUM)
+          if (buf_idx[GROUP_SIZE]>=DATA_NUM_IN_BUF/thre_num_)
           {
             //output buffer full            
             threads[threads_i] = new boost::thread(boost::bind(&self_t::output_keys_, this, key_out_f,
                                                             buffer_+key_out_buf_pos[threads_i],
                                                             buf_idx[GROUP_SIZE]*sizeof(PRE_KEY_STRUCT)));
             ++threads_i;
-            if (threads_i>=THREADS_NUM)
+            if (threads_i>=thre_num_)
               threads_i = 0;
             buf_idx[GROUP_SIZE] = 0;
           }
@@ -611,7 +622,7 @@ public:
       
         if (buf_idx[GROUP_SIZE]!=0)
         {
-          IASSERT(buf_idx[GROUP_SIZE]<DATA_NUM_IN_BUF/THREADS_NUM);
+          IASSERT(buf_idx[GROUP_SIZE]<DATA_NUM_IN_BUF/thre_num_);
           output_keys_(key_out_f, buffer_+key_out_buf_pos[threads_i],
                        buf_idx[GROUP_SIZE]*sizeof(PRE_KEY_STRUCT));
         
