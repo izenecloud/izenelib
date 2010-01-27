@@ -186,10 +186,12 @@ class MultiPassSort
     end_pos_ = ftell(original_f_);
     tmp_pos_ = 0;
     
-    quick_sort_(0, pos_/sizeof(PRE_KEY_STRUCT)-1);
     //assert(t_check_quick_sort_());
     if (pos_ >0)
+    {
+      quick_sort_(0, pos_/sizeof(PRE_KEY_STRUCT)-1);
       IASSERT(fwrite(buffer_, pos_, 1, key_f_)==1);
+    }
     pos_ = 0;
   }
   
@@ -431,6 +433,12 @@ public:
 
     ++count_;
   }
+
+  void flush()
+  {
+    flush_buffer_();
+    fflush(key_f_);
+  }
   
   void sort()
   {    
@@ -451,14 +459,21 @@ public:
     assert(FILE_SIZE%sizeof(struct PRE_KEY_STRUCT)==0);
 
     if (FILE_SIZE<=buf_size_)
+    {
+      t_check_sort_();
+      output_();
       return;
+    }
     
     uint64_t file_pos[MAX_GROUP_SIZE];
     uint64_t file_end_pos[MAX_GROUP_SIZE];
     uint32_t buf_idx[MAX_GROUP_SIZE+1];//the last one is for output
     uint32_t buf_end_idx[MAX_GROUP_SIZE];//the last one is for output
     uint32_t buf_start_pos[MAX_GROUP_SIZE+1];//the last one is for output
-    const uint32_t TIMES = (uint32_t)(log((double)FILE_SIZE/buf_size_)/log((double)MAX_GROUP_SIZE)+0.9999999999);
+    double   _times = (log((double)FILE_SIZE/buf_size_)/log((double)MAX_GROUP_SIZE));
+    if ((double)((uint32_t)_times) != _times)
+      _times += 1;
+    const uint32_t TIMES = (uint32_t)_times;
     
     uint32_t key_out_buf_pos[thre_num_];
     
@@ -475,8 +490,11 @@ public:
       while (start<FILE_SIZE)
       {
         std::cout<<"\r"<<((double)times/TIMES+1./TIMES*start/FILE_SIZE)*100.<<"%"<<std::flush;
-        
-        uint32_t GROUP_SIZE = ((uint32_t)(((double)(FILE_SIZE-start))/CHUNK_SIZE/sizeof(struct PRE_KEY_STRUCT)+0.999999));
+
+        double gs = ((double)(FILE_SIZE-start))/CHUNK_SIZE/sizeof(struct PRE_KEY_STRUCT);
+        if ((double)((uint32_t)gs) != gs)
+          gs += 1;
+        uint32_t GROUP_SIZE = (uint32_t)gs;
         if (GROUP_SIZE > MAX_GROUP_SIZE)
           GROUP_SIZE = MAX_GROUP_SIZE;
         IASSERT(GROUP_SIZE>1);
@@ -655,7 +673,7 @@ public:
     }
 
     std::cout<<"\nSorting is over, seeking times is "<<seek_times<<", begin to output ...\n";
-    //t_check_sort_();
+    t_check_sort_();
     output_();
   }
 
@@ -664,6 +682,32 @@ public:
     output_();
   }
 
+  void clear_files()
+  {
+    if (original_f_)
+    {
+      fclose(original_f_);
+      original_f_ = NULL;
+    }
+    if (key_f_)
+    {
+      fclose(key_f_);
+      key_f_ = NULL;
+    }
+
+    if (boost::filesystem::exists(filenm_+".dat"))
+      boost::filesystem::remove(filenm_+".dat");
+
+    if (boost::filesystem::exists(filenm_+".dat.out"))
+      boost::filesystem::remove(filenm_+".dat.out");
+
+    if (boost::filesystem::exists(filenm_+".key"))
+      boost::filesystem::remove(filenm_+".key");
+
+    if (boost::filesystem::exists(filenm_+".key.out"))
+      boost::filesystem::remove(filenm_+".key.out");
+  }
+  
   bool begin()
   {
     if (buffer_==NULL)
