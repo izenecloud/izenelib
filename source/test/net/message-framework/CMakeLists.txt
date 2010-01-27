@@ -27,7 +27,6 @@ ADD_EXECUTABLE(t_mf ${t_mf_SRC})
 TARGET_LINK_LIBRARIES(t_mf
   message_framework
   procmeminfo
-  ${wiselib_LIBRARIES}
   ${Boost_LIBRARIES}
   ${Glog_LIBRARIES}
 )
