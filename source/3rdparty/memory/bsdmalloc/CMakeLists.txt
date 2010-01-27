@@ -17,4 +17,4 @@ IF(bsdmalloc_SHOULD_BUILD)
       LIBRARY DESTINATION lib 
       COMPONENT "izenelib_libraries")
 
-ENDIF(jemalloc_SHOULD_BUILD)
+ENDIF(bsdmalloc_SHOULD_BUILD)
