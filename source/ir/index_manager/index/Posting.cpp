@@ -81,6 +81,11 @@ InMemoryPosting::~InMemoryPosting()
         delete pSkipListReader_;
         pSkipListReader_ = 0;
     }
+    if(pSkipListWriter_)
+    {
+        delete pSkipListWriter_;
+        pSkipListWriter_ = 0;
+    }
 }
 
 fileoffset_t InMemoryPosting::write(OutputDescriptor* pOutputDescriptor)
