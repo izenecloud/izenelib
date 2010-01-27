@@ -81,7 +81,7 @@ protected:
     return false;
   }
 
-  inline bool charick_compare(const UNIT_TYPE* p1, const UNIT_TYPE* p2, uint8_t threshold = 50)
+  inline bool charick_compare(const UNIT_TYPE* p1, const UNIT_TYPE* p2, uint8_t threshold = 24)
   {
     uint32_t count = 0;
     for (uint32_t i=0; i<FP_LENGTH; ++i)

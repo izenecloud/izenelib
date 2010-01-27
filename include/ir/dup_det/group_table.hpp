@@ -325,6 +325,7 @@ public:
 
   inline void add_doc(uint32_t docID1, uint32_t docID2)
   {
+//	  std::cout<<"doc1: "<<docID1<<" , doc2: "<<docID2<<std::endl;
     size_t t1 = get_gid(docID1);
     size_t t2 = get_gid(docID2);
 
@@ -409,6 +410,7 @@ public:
       if (v==NULL)
         continue;
       v->compact();
+      std::cout<<"group: "<<i<<" "<<*v<<std::endl;
     }
     
   }

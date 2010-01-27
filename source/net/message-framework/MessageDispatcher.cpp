@@ -65,8 +65,9 @@ MessageDispatcher::~MessageDispatcher() {
  */
 void MessageDispatcher::addPeerNode(const MessageFrameworkNode& peerNode,
 		AsyncStream* bindedStream) {
-	DLOG(ERROR) << "Add peer node : " << peerNode.nodeIP_ << ":"
+	DLOG(INFO) << "Add peer node : " << peerNode.nodeIP_ << ":"
 			<< peerNode.nodePort_ << std::endl;
+
 	boost::mutex::scoped_lock lock(availablePeerNodesMutex_);
 	availablePeerNodes_.insert(pair<MessageFrameworkNode, AsyncStream*>(
 			peerNode, bindedStream));
@@ -76,8 +77,9 @@ void MessageDispatcher::addPeerNode(const MessageFrameworkNode& peerNode,
  * Remove a a peer node from the available peer lis
  */
 void MessageDispatcher::removePeerNode(const MessageFrameworkNode& peerNode) {
-	DLOG(ERROR) << "Remove peer node : " << peerNode.nodeIP_ << ":"
+	DLOG(INFO) << "Remove peer node : " << peerNode.nodeIP_ << ":"
 			<< peerNode.nodePort_ << std::endl;
+
 	boost::mutex::scoped_lock lock(availablePeerNodesMutex_);
 	availablePeerNodes_.erase(peerNode);
 }
@@ -90,8 +92,7 @@ bool MessageDispatcher::isExist(const MessageFrameworkNode& node) {
 	if (iter != availablePeerNodes_.end()) {
 		return true;
 	}
-
-	DLOG(ERROR) << "Node: " << node.nodeIP_ << ":" << node.nodePort_
+	DLOG(INFO) << "Node: " << node.nodeIP_ << ":" << node.nodePort_
 			<< " does not exists." << std::endl;
 	return false;
 }
@@ -131,8 +132,7 @@ void MessageDispatcher::sendDataToUpperLayer_impl(
 		boost::shared_ptr<izenelib::util::izene_streambuf>& buffer) {
 	boost::posix_time::ptime before =
 			boost::posix_time::microsec_clock::local_time();
-	
-	DLOG(INFO)<< " sendDataToUpperLayer ..." ;
+
 	ServiceRegistrationMessage registrationMsg;
 	ServiceRegistrationReplyMessage registrationReplyMessage;
 	std::string permissionRequestMessage;
@@ -143,7 +143,7 @@ void MessageDispatcher::sendDataToUpperLayer_impl(
 
 	switch (messageType) {
 	case SERVICE_REGISTRATION_REQUEST_MSG:
-		// forward this message to RegistrationRequester	
+		// forward this message to RegistrationRequester
 		from_buffer(registrationMsg, buffer);
 		registrationServer_->receiveServiceRegistrationRequest(source,
 				registrationMsg);
@@ -158,17 +158,17 @@ void MessageDispatcher::sendDataToUpperLayer_impl(
 				registrationReplyMessage.getStatus());
 		break;
 
-	case SERVICE_REQUEST_MSG:	
-		from_buffer(*serviceMessage, buffer);	
+	case SERVICE_REQUEST_MSG:
+		from_buffer(*serviceMessage, buffer);
 		resultServer_->receiveServiceRequest(source, serviceMessage);
 		break;
 
-	case SERVICE_RESULT_MSG:		
+	case SERVICE_RESULT_MSG:
 		from_buffer(*serviceMessage, buffer);
 		resultRequester_->receiveResultOfService(serviceMessage);
 		break;
 
-	case PERMISSION_OF_SERVICE_REQUEST_MSG:	
+	case PERMISSION_OF_SERVICE_REQUEST_MSG:
 		from_buffer(permissionRequestMessage, buffer);
 		permissionServer_->receivePermissionOfServiceRequest(source,
 				permissionRequestMessage);
@@ -177,7 +177,7 @@ void MessageDispatcher::sendDataToUpperLayer_impl(
 	case PERMISSION_OF_SERVICE_REPLY_MSG:
 		//archive >> permissionOfServiceMessage;
 		from_buffer(permissionOfServiceMessage, buffer);
-		permissionRequester_->receivePermissionOfServiceResult(permissionOfServiceMessage);		
+		permissionRequester_->receivePermissionOfServiceResult(permissionOfServiceMessage);
 		break;
 
 	case CLIENT_ID_REQUEST_MSG:

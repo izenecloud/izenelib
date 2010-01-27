@@ -28,8 +28,8 @@ IF (TokyoCabinet_FOUND AND Glog_FOUND)
 
   SET_TARGET_PROPERTIES(t_am PROPERTIES
     COMPILE_FLAGS "-include ${FileTestHelper}"
-    RUNTIME_OUTPUT_DIRECTORY ${IZENELIB_SOURCE_DIR}/testbin
+    RUNTIME_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/testbin
     )
 
-  ADD_TEST(am "${IZENELIB_SOURCE_DIR}/testbin/t_am")
+  ADD_TEST(am "${CMAKE_SOURCE_DIR}/testbin/t_am")
 ENDIF (TokyoCabinet_FOUND AND Glog_FOUND)

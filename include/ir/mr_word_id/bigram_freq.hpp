@@ -331,6 +331,28 @@ public:
     return true;
   }
 
+  bool add(uint64_t id1, uint64_t id2, uint32_t freq = 1)
+  {
+    if (id1 < start_ || id1>end_)
+      return false;
+
+    uint32_t idx = id1-start_;
+    while (idx >= entry_.length())
+      entry_.push_back(NULL);
+
+    if (entry_.at(idx) == NULL)
+    {
+      entry_[idx] = new bucket_t();
+      ++count_;
+      //std::cout<<count_<<std::endl;
+    }
+
+    bucket_t* buk = entry_.at(idx);
+    buk->push_back(ID_STRUCT(id2, freq));
+
+    return true;
+  }
+
   uint32_t find(uint64_t id1, uint64_t id2)const
   {
     if (id1<start_ || id1>end_)
@@ -369,28 +391,27 @@ public:
 
     return r;
   }
-  
-  std::vector<std::pair<uint32_t, uint32_t> > find(uint64_t id1)
+
+  bool find(uint32_t id1,  std::vector<std::pair<uint32_t, float> >& listDoc)
   {
-    std::vector<std::pair<uint32_t, uint32_t> > r;
-    
+    listDoc.clear();
     if (id1<start_ || id1>end_)
-      return r;
+      return false;
 
     uint32_t idx = id1-start_;
     if (id1>=entry_.length() || entry_.at(idx) == NULL)
-      return r;
+      return false;
 
     bucket_t* buk = entry_.at(idx);
     if (buk == NULL)
-      return r;
+      return false;
 
     for (uint32_t i=0; i<buk->length(); ++i)
-      r.push_back(std::make_pair(buk->at(i).ID(), buk->at(i).FREQ()));
+      listDoc.push_back(std::make_pair(buk->at(i).ID(), (float)buk->at(i).FREQ()));
 
-    return r;
+    return true;
   }
-
+  
   void reset()
   {
     boost::filesystem::remove(std::string(std::string("rm -f ")+std::string(filenm_+".over")).c_str());

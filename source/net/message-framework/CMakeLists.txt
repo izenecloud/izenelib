@@ -33,14 +33,7 @@ IF(message_framework_SHOULD_BUILD)
     ServicePermissionInfo.cpp
     ServiceRegistrationMessage.cpp
     ThreadPool.cpp
-    common.cpp
-
     MFClient.cpp
-
-    # MessageClientLight.cpp
-    # MessageControllerLight.cpp
-    # MessageServerLight.cpp
-    # MessageAgentLight.cpp
     )
 
   ADD_LIBRARY(message_framework ${message_framework_SRC})
