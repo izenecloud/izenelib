@@ -461,7 +461,7 @@ public:
     if (FILE_SIZE<=buf_size_)
     {
       t_check_sort_();
-      output_();
+      //output_();
       return;
     }
     
@@ -491,13 +491,13 @@ public:
       {
         std::cout<<"\r"<<((double)times/TIMES+1./TIMES*start/FILE_SIZE)*100.<<"%"<<std::flush;
 
-        double gs = ((double)(FILE_SIZE-start))/CHUNK_SIZE/sizeof(struct PRE_KEY_STRUCT);
+        double gs = ((double)(FILE_SIZE-start))/(CHUNK_SIZE*sizeof(struct PRE_KEY_STRUCT));
         if ((double)((uint32_t)gs) != gs)
           gs += 1;
         uint32_t GROUP_SIZE = (uint32_t)gs;
         if (GROUP_SIZE > MAX_GROUP_SIZE)
           GROUP_SIZE = MAX_GROUP_SIZE;
-        IASSERT(GROUP_SIZE>1);
+        //IASSERT(GROUP_SIZE>1);
       
         const uint32_t DATA_NUM_IN_BUF = ((buf_size_/(GROUP_SIZE+1))/sizeof(struct PRE_KEY_STRUCT));//data number that chunk buffer can contain
         const uint32_t CHUNK_BUF_SIZE = sizeof(struct PRE_KEY_STRUCT) * DATA_NUM_IN_BUF;
@@ -674,7 +674,7 @@ public:
 
     std::cout<<"\nSorting is over, seeking times is "<<seek_times<<", begin to output ...\n";
     t_check_sort_();
-    output_();
+    //output_();
   }
 
   void output()
