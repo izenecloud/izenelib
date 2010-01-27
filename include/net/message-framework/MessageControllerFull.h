@@ -63,6 +63,27 @@ public:
 	~MessageControllerFull();
 
 	/**
+	 * @brief Run controller until shutdown is called
+	 */
+    void run(void);
+
+	/**
+	 * @brief Shutdown controller.
+	 */
+	void shutdown(void);
+
+	/**
+	 * @brief get Name of the manager who owns this Controller instance
+	 */
+	inline const std::string& getName() const {
+		return ownerManagerName_;
+	}
+
+protected:
+
+
+	/************ Interfaces of Work Thread****************************/
+	/**
 	 * @brief This function processes all the waiting service registration requests.
 	 * It registers all the services from MessageServer (IP address, port number,
 	 * a list of service which can be provided by the MessageServer).
@@ -77,24 +98,6 @@ public:
 	 */
 	void processServicePermissionRequest(void);
 
-	/**
-	 * @brief This function processes all waiting service requests from MessageClient.
-	 * It will deliver these messages MessageServers.
-	 */
-	void processServiceRequestFromClient(void){;}
-
-	/**
-	 * @brief This function processes all the coming results from MessageServer. It will
-	 * deliver the results to the MessageClient.
-	 */
-	void processServiceResultFromServer(void){;}
-
-	/**
-	 * @brief Shutdown controller.
-	 */
-	void shutdown(void);
-
-protected:
 
 	/************ Interfaces of Service Registration Server ****************/
 	/**
@@ -164,13 +167,6 @@ protected:
 			const int& clientId);
 
 	/************ End of Interfaces of ClientIdServer ****************/
-
-	/**
-	 * @brief get Name of the controller
-	 */
-	const std::string& getName() const {
-		return ownerManagerName_;
-	}
 
 	/**
 	 * @brief This function create a new AsyncStream that is based on tcp::socket
@@ -256,7 +252,6 @@ private:
 	 */
 	unsigned int timeOutMilliSecond_;
 
-
 	/**
 	 * @brief This variables receives data from peer and sends data to the peer
 	 */
@@ -274,9 +269,14 @@ private:
 	AsyncConnector asyncConnector_;
 
 	/**
-	 * @brief thread for I/O operations
+	 * @brief thread for processing service registration
 	 */
-	boost::thread* ioThread_;
+	boost::thread* workThread1_;
+
+	/**
+	 * @brief thread for answering service permission
+	 */
+	boost::thread* workThread2_;
 
 	/**
 	 * @brief indicate whether controller is working;
