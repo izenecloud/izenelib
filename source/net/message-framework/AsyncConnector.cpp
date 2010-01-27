@@ -20,8 +20,6 @@ namespace messageframework
 							iter != streams_.end(); iter++) {
 					delete *iter; //delete streams and connections & interfaces
 			}
-
-			DLOG(INFO)  << "finish shutdown...";
 	}
 
 
@@ -50,8 +48,6 @@ namespace messageframework
 							iter != streams_.end(); iter++) {
 					(*iter)->shutdown(); //shutdown stream
 			}
-
-			DLOG(INFO) << "finish shutdown...";
 	}
 
 	void AsyncConnector::listen(int port)

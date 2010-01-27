@@ -80,28 +80,36 @@ MessageControllerFull::MessageControllerFull(
 	}
 
     stop_ = false;
-
-	// create thread for I/O operations
-	ioThread_ = new boost::thread(boost::bind(&boost::asio::io_service::run, &io_service_));
-
-	std::cout << "Controller boot" << std::endl;
+	workThread1_ = new boost::thread(boost::bind(&MessageControllerFull::processServiceRegistrationRequest, this));
+	workThread2_ = new boost::thread(boost::bind(&MessageControllerFull::processServicePermissionRequest, this));
 }
 
 MessageControllerFull::~MessageControllerFull() {
     if(!stop_) shutdown();
 }
 
+void MessageControllerFull::run() {
+	boost::thread* ioThread = new boost::thread(boost::bind(&boost::asio::io_service::run, &io_service_));
+	std::cout << "Controller run" << std::endl;
+	ioThread->join();
+	delete ioThread;
+}
+
 void MessageControllerFull::shutdown() {
 	asyncConnector_.shutdown();
-	ioThread_->join();
-	delete ioThread_;
+
+    stop_ = true;
+
+    newRegistrationEvent_.notify_all();
+    workThread1_->join();
+    delete workThread1_;
+
+    newPermissionRequestEvent_.notify_all();
+    workThread2_->join();
+    delete workThread2_;
 
     availableServiceList_.flush();
     availableServiceList_.close();
-
-    stop_ = true;
-    newRegistrationEvent_.notify_all();
-    newPermissionRequestEvent_.notify_all();
 
     std::cout << "Controller shutdown" << std::endl;
 }
@@ -299,7 +307,8 @@ void MessageControllerFull::receivePermissionOfServiceRequest(
 
 	{
 		boost::mutex::scoped_lock lock(servicePermissionRequestQueueMutex_);
-		servicePermissionRequestQueue_.push(std::pair<std::string, MessageFrameworkNode>(serviceName, requester));
+		servicePermissionRequestQueue_.push(std::pair<std::string,
+            MessageFrameworkNode>(serviceName, requester));
 	}
 	newPermissionRequestEvent_.notify_all();
 }
@@ -310,28 +319,17 @@ void MessageControllerFull::receivePermissionOfServiceRequest(
  Input:
  serviceInfo - data to add
  ******************************************************************************/
-void MessageControllerFull::receiveServiceRegistrationRequest(const MessageFrameworkNode& localEndPoint,
-const ServiceRegistrationMessage& registMessage)
+void MessageControllerFull::receiveServiceRegistrationRequest(
+        const MessageFrameworkNode& localEndPoint,
+        const ServiceRegistrationMessage& registMessage)
 {
 	DLOG(INFO) << "[Controller:" << getName() << "] Receive registration request";
-	try
-	{
-		{
-			boost::mutex::scoped_lock lock(serviceRegistrationRequestQueueMutex_);
-			serviceRegistrationRequestQueue_.push(
-			std::pair<ServiceRegistrationMessage, MessageFrameworkNode>(registMessage, localEndPoint));
-		}
-		newRegistrationEvent_.notify_all();
-	}
-	catch (boost::system::error_code& e)
-	{
-		DLOG(ERROR) << e;
-	}
-	catch (std::exception& e)
-	{
-		DLOG(ERROR) << e.what();
-	}
-
+    {
+        boost::mutex::scoped_lock lock(serviceRegistrationRequestQueueMutex_);
+        serviceRegistrationRequestQueue_.push( std::pair<ServiceRegistrationMessage,
+            MessageFrameworkNode>(registMessage, localEndPoint));
+    }
+    newRegistrationEvent_.notify_all();
 }
 
 /**
@@ -341,22 +339,22 @@ const ServiceRegistrationMessage& registMessage)
  * @param serviceInfo the service information to register
  * @param success the registration result
  */
-void MessageControllerFull::sendServiceRegistrationResult(const MessageFrameworkNode& localEndPoint, const ServiceInfo& serviceInfo,
-bool success)
+void MessageControllerFull::sendServiceRegistrationResult(
+        const MessageFrameworkNode& localEndPoint,
+        const ServiceInfo& serviceInfo, bool success)
 {
 	ServiceRegistrationReplyMessage message(serviceInfo.getServiceName(), success);
-
 	messageDispatcher_.sendDataToLowerLayer(SERVICE_REGISTRATION_REPLY_MSG, message, localEndPoint);
 }
 
 /**
  * @brief This function replies to a request from PermissionRequester
  */
-void MessageControllerFull::sendPermissionOfServiceResult(const MessageFrameworkNode& requester,
-const ServicePermissionInfo & permission)
+void MessageControllerFull::sendPermissionOfServiceResult(
+        const MessageFrameworkNode& requester,
+        const ServicePermissionInfo & permission)
 {
-	messageDispatcher_.sendDataToLowerLayer(PERMISSION_OF_SERVICE_REPLY_MSG,
-	permission, requester);
+	messageDispatcher_.sendDataToLowerLayer(PERMISSION_OF_SERVICE_REPLY_MSG, permission, requester);
 }
 
 /**
@@ -372,4 +370,3 @@ AsyncStream* MessageControllerFull::createAsyncStream(boost::shared_ptr<tcp::soc
 }
 
 }// end of namespace messageframework
-
