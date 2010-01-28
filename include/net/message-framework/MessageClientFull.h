@@ -85,16 +85,6 @@ namespace messageframework
 		bool getPermissionOfService(const std::string& serviceName,
 							std::map<std::string, MessageFrameworkNode>& servers);
 
-        /**
-         * @brief clear all permissions cached for a specific service.
-         */
-		void clearPermissionCache(const std::string& serviceName);
-
-        /**
-         * @brief clear all permissions cached for all services.
-         */
-		void clearPermissionCache();
-
 		/**
 		 * @brief This function puts the request of the manager to the MessageClientFull.
 		 * The MessageClientFull will sends the request to either MessageController or

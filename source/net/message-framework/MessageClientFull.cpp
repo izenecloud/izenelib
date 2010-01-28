@@ -132,15 +132,6 @@ namespace messageframework
         return true;
     }
 
-    /**
-     * @brief generate unique request id
-     */
-    const unsigned int MessageClientFull::generateRequestId()
-    {
-        boost::mutex::scoped_lock lock(nxtSequentialNumberMutex_);
-        return nxtSequentialNumber_++;
-    }
-
     bool MessageClientFull::getPermissionOfService(const std::string& serviceName,
             std::map<std::string, MessageFrameworkNode>& servers)
     {
@@ -149,47 +140,15 @@ namespace messageframework
 
         DLOG(INFO)<< getName() << " request permission for service " << serviceName;
 
+        // connection has not been established
+        if (!connectionToControllerEstablished_) {
+            DLOG(ERROR) << getName() << " acquire retrieve service permission from controller, \
+                while controller hasn't been ready";
+            return false;
+        }
+
         try
         {
-            // check permission cache
-            {
-                boost::mutex::scoped_lock acceptedPermissionLock(acceptedPermissionMutex_);
-                iter = acceptedPermissionList_.find(serviceName);
-                if (iter != acceptedPermissionList_.end() )
-                {
-                    servicePermissionInfo = iter->second;
-
-                    bool valid = true;
-                    const std::map<std::string, MessageFrameworkNode> list =
-                        servicePermissionInfo.getServerMap();
-                    for(std::map<std::string, MessageFrameworkNode>::const_iterator
-                        it = list.begin(); it!=list.end(); it++ ) {
-                        // quick check whether connection is established
-                        if(!messageDispatcher_.isExist(it->second)) {
-                            valid = false;
-                            break;
-                        }
-                    }
-
-                    // all connections are valid
-                    if(valid) {
-                        DLOG(INFO) << getName() << " retrieve service permission from cache successfully";
-                        servicePermissionInfo.getServerMap(servers);
-                        return true;
-                    }
-
-                    DLOG(INFO) << getName() << " permission cache is not up to date for service " << serviceName;
-                    acceptedPermissionList_.erase(serviceName);
-                }
-            }
-
-            // connection has not been established
-            if (!connectionToControllerEstablished_) {
-                DLOG(ERROR) << getName() << " acquire retrieve service permission from controller, \
-                    while controller hasn't been ready";
-                return false;
-            }
-
             sendPermissionOfServiceRequest(serviceName);
 
             boost::system_time const timeout = boost::get_system_time()
@@ -216,8 +175,7 @@ namespace messageframework
                     DLOG(ERROR) << getName() << "Service " << serviceName << " is not listed in Message Controller";
                     return false;
                 }
-                acceptedPermissionLock.unlock();
-
+                acceptedPermissionList_.erase(serviceName);
                 servicePermissionInfo.getServerMap(servers);
 
                 DLOG(INFO) << "getPermissionOfService returns true(newly received)";
@@ -241,38 +199,13 @@ namespace messageframework
         return false;
     }
 
-
-    bool MessageClientFull::checkPermissionInfo_(
-        ServicePermissionInfo& permissionInfo)
+    /**
+     * @brief generate unique request id
+     */
+    const unsigned int MessageClientFull::generateRequestId()
     {
-        std::map<std::string, MessageFrameworkNode> agentInfoMap =
-            permissionInfo.getServerMap();
-        std::map<std::string, MessageFrameworkNode>::iterator it =
-            agentInfoMap.begin();
-        for (; it !=agentInfoMap.end(); it++ )
-        {
-            //change 127.0.0.1 like ip to real ip
-            if ( it->second.nodeIP_ .substr(0, 3) == "127" )
-            {
-                MessageFrameworkNode node = it->second;
-                node.nodeIP_ = controllerNode_.nodeIP_;
-                it->second = node;
-                permissionInfo.setServer(it->first, it->second);
-            }
-        }
-        return true;
-    }
-
-    void MessageClientFull::clearPermissionCache()
-    {
-        boost::mutex::scoped_lock acceptedPermissionLock(acceptedPermissionMutex_);
-        acceptedPermissionList_.clear();
-    }
-
-    void MessageClientFull::clearPermissionCache(const std::string& serviceName)
-    {
-        boost::mutex::scoped_lock acceptedPermissionLock(acceptedPermissionMutex_);
-        acceptedPermissionList_.erase(serviceName);
+        boost::mutex::scoped_lock lock(nxtSequentialNumberMutex_);
+        return nxtSequentialNumber_++;
     }
 
     /******************************************************************************
@@ -496,7 +429,34 @@ namespace messageframework
         const std::string& serviceName)
     {
         messageDispatcher_.sendDataToLowerLayer(PERMISSION_OF_SERVICE_REQUEST_MSG,
-                                                serviceName, controllerNode_);
+            serviceName, controllerNode_);
+    }
+
+
+    /**
+     * @brief If server runs on the same machine with controller, controller may
+     *        return 127.0.0.1 for that service, which is incorrect if client and
+     *        controller are at different machine, so a conversion is needed here.
+     */
+    bool MessageClientFull::checkPermissionInfo_(
+        ServicePermissionInfo& permissionInfo)
+    {
+        std::map<std::string, MessageFrameworkNode> agentInfoMap =
+            permissionInfo.getServerMap();
+        std::map<std::string, MessageFrameworkNode>::iterator it =
+            agentInfoMap.begin();
+        for (; it !=agentInfoMap.end(); it++ )
+        {
+            //change 127.0.0.1 like ip to real ip
+            if ( it->second.nodeIP_ .substr(0, 3) == "127" )
+            {
+                MessageFrameworkNode node = it->second;
+                node.nodeIP_ = controllerNode_.nodeIP_;
+                it->second = node;
+                permissionInfo.setServer(it->first, it->second);
+            }
+        }
+        return true;
     }
 
     /******************************************************************************

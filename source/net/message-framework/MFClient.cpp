@@ -69,7 +69,6 @@ bool MFClient::requestService(const std::vector<std::string>& agentInfos,
 		mit = hosts.find(agentInfos[i]);
 		if (mit == hosts.end() ) {
 			DLOG(ERROR) << "Server not found for "<<agentInfos[i]<<endl;
-			client_->clearPermissionCache(serviceName);
 			continue;
 		}
 		if ( !requestOne_(mit->second, request) ) {
@@ -95,7 +94,6 @@ bool MFClient::requestService(const std::vector<std::string>& agentInfos,
 		mit = hosts.find(agentInfos[i]);
 		if (mit == hosts.end() ) {
 			DLOG(ERROR) << "Server not found for "<<agentInfos[i]<<endl;
-			client_->clearPermissionCache(serviceName);
 			continue;
 		}
 		if (requestOne_(mit->second, request, results[i]) ) {
@@ -130,12 +128,10 @@ bool MFClient::requestService(const std::string& agentInfo,
 	mit = hosts.find(agentInfo);
 	if (mit == hosts.end() ) {
 		DLOG(ERROR) << "Server not found for "<<agentInfo<<std::endl;
-		client_->clearPermissionCache(serviceName);
 		return false;
 	}
 	if ( !requestOne_(mit->second, request) ) {
 		DLOG(ERROR)<<"requst failed for agentInfo="<<agentInfo<<std::endl;
-		client_->clearPermissionCache(serviceName);
 		return false;
 	}
 
@@ -165,14 +161,12 @@ bool MFClient::requestService(const std::string& agentInfo,
 	mit = hosts.find(agentInfo);
 	if (mit == hosts.end() ) {
 		DLOG(ERROR) << "Server not found for "<<agentInfo<<std::endl;
-		client_->clearPermissionCache(serviceName);
 		return false;
 	}
 	if (requestOne_(mit->second, request, result) ) {
 		result->setAgentInfo(agentInfo);
 	} else {
 		DLOG(ERROR)<<"requst failed for agentInfo="<<agentInfo<<std::endl;
-		client_->clearPermissionCache(serviceName);
 		return false;
 	}
 
