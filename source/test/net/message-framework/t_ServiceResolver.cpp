@@ -33,18 +33,57 @@ BOOST_AUTO_TEST_CASE(basic) {
 
     ::sleep(1);
 
-    {
-        // Init service
-        ServiceInfo service("service");
-        service.setServer("localhost", 10086);
-        MessageServerFull server("server", 10086, ctrlNode);
-        server.registerService(service);
-        // Resolved service address == localhost::10086
-        client.getHostsOfService("service", response);
-        BOOST_CHECK_EQUAL( response[""].nodeIP_, "127.0.0.1" );
-        BOOST_CHECK_EQUAL( response[""].nodePort_, 10086U );
-    }
+    // Init service
+    ServiceInfo service("service");
+    service.setServer("localhost", 10086);
+    MessageServerFull server("server", 10086, ctrlNode);
+    server.setAgentInfo("0");
+    server.registerService(service);
+    // Resolved service address == localhost::10086
+    client.getHostsOfService("service", response);
+    BOOST_CHECK_EQUAL( response["0"].nodeIP_, "127.0.0.1" );
+    BOOST_CHECK_EQUAL( response["0"].nodePort_, 10086U );
 
+    controller.shutdown();
+    t.join();
+}
+
+BOOST_AUTO_TEST_CASE(multiple_collection) {
+
+    ::remove("_ctr_services.10080.dat");
+
+    MessageFrameworkNode ctrlNode("localhost", 10080);
+
+    // Init Controller
+    MessageControllerFull controller("controller", 10080);
+    thread t(lambda::bind(&MessageControllerFull::run, var(controller)));
+
+    // Init Client
+    map<string, MessageFrameworkNode> response;
+    MessageClientFull client("client", ctrlNode);
+
+    ::sleep(1);
+
+    // Init service 0
+    ServiceInfo service0("service");
+    service0.setServer("localhost", 10086);
+    MessageServerFull server0("server", 10086, ctrlNode);
+    server0.setAgentInfo("0");
+    server0.registerService(service0);
+
+    // Init service 1
+    ServiceInfo service1("service");
+    service1.setServer("localhost", 10087);
+    MessageServerFull server1("server", 10087, ctrlNode);
+    server1.setAgentInfo("1");
+    server1.registerService(service1);
+
+    client.getHostsOfService("service", response);
+    BOOST_CHECK_EQUAL( response["0"].nodeIP_, "127.0.0.1" );
+    BOOST_CHECK_EQUAL( response["0"].nodePort_, 10086U );
+
+    BOOST_CHECK_EQUAL( response["1"].nodeIP_, "127.0.0.1" );
+    BOOST_CHECK_EQUAL( response["1"].nodePort_, 10087U );
     controller.shutdown();
     t.join();
 }
@@ -69,11 +108,12 @@ BOOST_AUTO_TEST_CASE(service_name_changed) {
         ServiceInfo service("service");
         service.setServer("localhost", 10086);
         MessageServerFull server("server", 10086, ctrlNode);
+        server.setAgentInfo("0");
         server.registerService(service);
         // Resolved service address == localhost::10086
         client.getHostsOfService("service", response);
-        BOOST_CHECK_EQUAL( response[""].nodeIP_, "127.0.0.1" );
-        BOOST_CHECK_EQUAL( response[""].nodePort_, 10086U );
+        BOOST_CHECK_EQUAL( response["0"].nodeIP_, "127.0.0.1" );
+        BOOST_CHECK_EQUAL( response["0"].nodePort_, 10086U );
     }
 
     ::sleep(1);
@@ -83,11 +123,12 @@ BOOST_AUTO_TEST_CASE(service_name_changed) {
         ServiceInfo service("service");
         service.setServer("localhost", 10087);
         MessageServerFull server("server", 10087, ctrlNode);
+        server.setAgentInfo("0");
         server.registerService(service);
         // Resolved service address == localhost::10087
         client.getHostsOfService("service", response);
-        BOOST_CHECK_EQUAL( response[""].nodeIP_, "127.0.0.1" );
-        BOOST_CHECK_EQUAL( response[""].nodePort_, 10087U );
+        BOOST_CHECK_EQUAL( response["0"].nodeIP_, "127.0.0.1" );
+        BOOST_CHECK_EQUAL( response["0"].nodePort_, 10087U );
     }
 
     controller.shutdown();
@@ -110,6 +151,7 @@ BOOST_AUTO_TEST_CASE(controller_reboot) {
     ServiceInfo service("service");
     service.setServer("localhost", 10086);
     MessageServerFull server("server", 10086, ctrlNode);
+    server.setAgentInfo("0");
     server.registerService(service);
 
     {
@@ -118,8 +160,8 @@ BOOST_AUTO_TEST_CASE(controller_reboot) {
         MessageClientFull client("client", ctrlNode);
         // Resolved service address == localhost::10086
         client.getHostsOfService("service", response);
-        BOOST_CHECK_EQUAL( response[""].nodeIP_, "127.0.0.1" );
-        BOOST_CHECK_EQUAL( response[""].nodePort_, 10086U );
+        BOOST_CHECK_EQUAL( response["0"].nodeIP_, "127.0.0.1" );
+        BOOST_CHECK_EQUAL( response["0"].nodePort_, 10086U );
     }
 
     controller.shutdown();
@@ -135,8 +177,8 @@ BOOST_AUTO_TEST_CASE(controller_reboot) {
         MessageClientFull client("client", ctrlNode);
         // Resolved service address == localhost::10086
         client.getHostsOfService("service", response);
-        BOOST_CHECK_EQUAL( response[""].nodeIP_, "127.0.0.1" );
-        BOOST_CHECK_EQUAL( response[""].nodePort_, 10086U );
+        BOOST_CHECK_EQUAL( response["0"].nodeIP_, "127.0.0.1" );
+        BOOST_CHECK_EQUAL( response["0"].nodePort_, 10086U );
     }
 
     rebootedController.shutdown();

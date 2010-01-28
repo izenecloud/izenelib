@@ -36,7 +36,6 @@ EXT_LIB = \
 		  -l boost_unit_test_framework-gcc41-mt \
 		  -l tokyocabinet \
 		  -l procmeminfo  \
-		  -l btrie  \
 
 OBJECTS = $(patsubst %.cpp, %.o, $(wildcard *.cpp)) 
 

@@ -38,7 +38,7 @@ BOOST_AUTO_TEST_SUITE( hdb_trie_suite )
 { \
   vector<int> result;\
   bool suc;\
-  suc = trie.findPrefix(str,result); \
+  suc = trie.findPrefixData(str,result); \
   if(suc == false) \
     BOOST_CHECK_EQUAL(0, idListNum); \
   else\
@@ -65,7 +65,7 @@ BOOST_AUTO_TEST_SUITE( hdb_trie_suite )
 { \
   vector<int> result;\
   bool suc;\
-  suc = trie.findRegExp(str,result); \
+  suc = trie.findRegExpData(str,result); \
   if(suc == false) \
     BOOST_CHECK_EQUAL(0, idListNum); \
   else\
@@ -91,7 +91,7 @@ BOOST_AUTO_TEST_SUITE( hdb_trie_suite )
 BOOST_AUTO_TEST_CASE(HDBTrie_update)
 {
     {
-      HDBTrie2<string,int> trie("./hdbtrie_update");
+      HDBTrie<string,int> trie("./hdbtrie_update");
       trie.open();
       trie.insert("apple",1);
       BOOST_CHECK_EQUAL(trie.num_items(),  (size_t)1);
@@ -100,7 +100,7 @@ BOOST_AUTO_TEST_CASE(HDBTrie_update)
     }
 
     {
-      HDBTrie2<string,int> trie("./hdbtrie_update");
+      HDBTrie<string,int> trie("./hdbtrie_update");
       trie.open();
       BOOST_CHECK_EQUAL(trie.num_items(),  (size_t)1);
       TEST_TRIE_FIND("apple", 2);
@@ -113,7 +113,7 @@ BOOST_AUTO_TEST_CASE(HDBTrie_update)
 BOOST_AUTO_TEST_CASE(HDBTrie_find)
 {
     {
-      HDBTrie2<string,int> trie("./hdbtrie_find");
+      HDBTrie<string,int> trie("./hdbtrie_find");
       trie.open();
       trie.insert("apple",1);
       trie.insert("blue",2);
@@ -125,7 +125,7 @@ BOOST_AUTO_TEST_CASE(HDBTrie_find)
     }
 
     {
-      HDBTrie2<string,int> trie("./hdbtrie_find");
+      HDBTrie<string,int> trie("./hdbtrie_find");
       trie.open();
       BOOST_CHECK_EQUAL(trie.num_items(),  (size_t)7);
 
@@ -153,7 +153,7 @@ BOOST_AUTO_TEST_CASE(HDBTrie_find)
 BOOST_AUTO_TEST_CASE(HDBTrie_findPrefix)
 {
     {
-      HDBTrie2<string,int> trie("./hdbtrie_findprefix");
+      HDBTrie<string,int> trie("./hdbtrie_findprefix");
       trie.open();
       trie.insert("apple",1);
       trie.insert("blue",2);
@@ -165,7 +165,7 @@ BOOST_AUTO_TEST_CASE(HDBTrie_findPrefix)
     }
 
     {
-      HDBTrie2<string,int> trie("./hdbtrie_findprefix");
+      HDBTrie<string,int> trie("./hdbtrie_findprefix");
       trie.open();
       BOOST_CHECK_EQUAL(trie.num_items(),  (size_t)7);
 
@@ -230,7 +230,7 @@ BOOST_AUTO_TEST_CASE(HDBTrie_findPrefix)
 BOOST_AUTO_TEST_CASE(HDBTrie_searchregexp)
 {
     {
-      HDBTrie2<string,int> trie("./hdbtrie_searchregexp");
+      HDBTrie<string,int> trie("./hdbtrie_searchregexp");
       trie.open();
       trie.insert("apple",1);
       trie.insert("blue",2);
@@ -242,7 +242,7 @@ BOOST_AUTO_TEST_CASE(HDBTrie_searchregexp)
     }
 
     {
-      HDBTrie2<string,int> trie("./hdbtrie_searchregexp");
+      HDBTrie<string,int> trie("./hdbtrie_searchregexp");
       trie.open();
       BOOST_CHECK_EQUAL(trie.num_items(),  (size_t)7);
 
@@ -279,10 +279,20 @@ BOOST_AUTO_TEST_CASE(HDBTrie_searchregexp)
 }
 
 
+BOOST_AUTO_TEST_CASE(HDBTrie_String_String) {
+    HDBTrie<string,string> trie("./hdbtrie_string_string");
+    trie.open();
+
+    trie.insert("key", "value");
+    string result;
+    BOOST_CHECK(trie.get("key",result));
+    BOOST_CHECK_EQUAL(result, "value"); 
+}
+
 BOOST_AUTO_TEST_CASE(HDBTrie_UString)
 {
     {
-      HDBTrie2<UString,int> trie("./hdbtrie_ustring");
+      HDBTrie<UString,int> trie("./hdbtrie_ustring");
       trie.open();
 
       UString word("apple",UString::CP949);
@@ -292,7 +302,7 @@ BOOST_AUTO_TEST_CASE(HDBTrie_UString)
     }
 
     {
-      HDBTrie2<UString,int> trie("./hdbtrie_ustring");
+      HDBTrie<UString,int> trie("./hdbtrie_ustring");
       trie.open();
       BOOST_CHECK_EQUAL(trie.num_items(),  (size_t)1);
 

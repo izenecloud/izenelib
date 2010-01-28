@@ -67,18 +67,6 @@ namespace messageframework
 		~MessageClientFull();
 
 		/**
-		 * @brief This function gets an ID from MessageController. This ID
-		 * will be used combined with a sequential number to generate requestIds.
-		 * @param
-		 * clientId - controller assigned ID
-		 * @return
-		 * true - ID is got successfully
-		 * @return
-		 * false - MessageController is busy.
-		 */
-		//bool getClientId(int& clientId);	   
-
-		/**
 		 * @brief This function gets a permission of the given service from
 		 * MessageController. If MessageController is busy,
 		 * this function returns false immediately. Then, the MessageClientFull
@@ -93,17 +81,16 @@ namespace messageframework
 		 * @return
 		 * false - the MessageController is busy
 		 */
-		
+
 		//bool getPermissionOfService(const std::string& serviceName,
 		//					ServicePermissionInfo& servicePermissionInfo);
-		
+
 		bool getHostsOfService(const std::string& serviceName,
 				std::map<std::string, MessageFrameworkNode>& servers);
-		
-		
+
 		void flushPermissionCache(const std::string& serviceName);
-			
-		
+
+
 		/**
 		 * @brief This function puts the request of the manager to the MessageClientFull.
 		 * The MessageClientFull will sends the request to either MessageController or
@@ -120,21 +107,6 @@ namespace messageframework
 							ServiceRequestInfoPtr& serviceRequestInfo, bool withResult = true);
 
 		/**
-		 * @brief This function puts a set of requests of the same manager to the
-		 * MessageClientFull. The MessageClientFull will sends the request to either
-		 * MessageController or MessageServerFull.
-		 * @param
-		 * servicePermissionInfo - it contains information of service name and the server
-		 * @param
-		 * serviceRequestInfos - a set of information about request services, each contains
-		 * the service name and its parameter values.
-		 * @return
-		 * true - if the receiver successfully receives these requests
-		 */
-		bool putServiceRequest(const MessageFrameworkNode& server,
-							std::vector<ServiceRequestInfoPtr>& serviceRequestInfos, bool withResult = true);
-
-		/**
 		 * @brief This function gets a result of the service that have been requested.
 		 * The service is requested through function putServiceRequest(...).
 		 * When the result is not ready, it returns false immediately.
@@ -149,22 +121,6 @@ namespace messageframework
 		 */
 		bool getResultOfService(const ServiceRequestInfoPtr& serviceRequestInfo,
 						ServiceResultPtr& serviceResult);
-
-		/**
-		 * @brief This function gets a set of results of the service
-		 * that have been requested. The service is requested through function
-		 * putServiceRequest(..) When the result is not ready, it returns false immediately.
-		 * @param
-		 * serviceRequestInfos - a set of service request informations
-		 * @param
-		 * serviceResults - a set of service results
-		 * @return
-		 * true - Result is ready.
-		 * @return
-		 * false - result is not ready.
-		 */
-		bool getResultOfService(const std::vector<ServiceRequestInfoPtr> & serviceRequestInfo,
-						std::vector<ServiceResultPtr> & serviceResults);
 
 		/** @brief for profiling - Wei Cao */
 		inline MessageDispatcher& getMessageDispatcher()
@@ -188,56 +144,9 @@ namespace messageframework
 
 		/*** Interfaces of ServiceResultRequester ***/
 
-		/**
-		 * @brief This function sends request to the ServiceResultServer
-		 * @param
-		 * requestId - the id of service request
-		 * @param
-		 * serviceName - the service name
-		 * @param
-		 * data - the data of the service request
-		 * @param
-		 * server - the server that will receive data
-		 */
-		/*void sendServiceRequest(unsigned requestId,
-				const std::string& serviceName,
-				const std::vector<boost::shared_ptr<VariantType> >& data, const MessageFrameworkNode& server) ;*/
-
-
-		/**
-		 * @brief This function put the result of a serivce. The service result
-		 * has been requested before.
-		 * @param
-		 * requestId - id of the request
-		 * @param
-		 * serviceName - the name of service
-		 * @param
-		 * data - result of the service
-		 */
-	/*	void receiveResultOfService(unsigned int requestId,
-						const std::string& serviceName,
-						const std::vector<boost::shared_ptr<VariantType> >& data);*/
-
-
 		void sendServiceRequest(const ServiceRequestInfoPtr& requestInfo, const MessageFrameworkNode& server) ;
 
-
 		void receiveResultOfService(const ServiceResultPtr& result);
-
-		/*** End of Interfaces of ServiceResultRequester ***/
-
-		/*** Interfaces of ClientIdRequester ***/
-		/**
-		 * @brief This function sends a request to get client id
-		 */
-		//void sendClientIdRequest();
-
-		/**
-		 * @brief This function saves client id
-		 * @param
-		 * clientId - controller assigned client id
-		 */
-		//void receiveClientIdResult(const int& clientId);
 
 		/*** End of Interfaces of ServiceResultRequester ***/
 
@@ -285,7 +194,7 @@ namespace messageframework
 	private:
 		bool checkAgentInfo_(ServicePermissionInfo& permissionInfo);
 		bool checkPermissionInfo_(ServicePermissionInfo& permissionInfo);
-		
+
 		/**
 		 * @brief The request list, it contains the result of the service if the result
 		 * has come
