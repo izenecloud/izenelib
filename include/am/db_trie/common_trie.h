@@ -438,6 +438,38 @@ public:
         return dataTable_;
     }
 
+    /**
+     * Given the NID of parent node and the edge's character property,
+     * find the child node's NID.
+     * @param   ch          edge's character property
+     *          parentNID   NID of parent node
+     *          childNID    NID of child node
+     * @return  true    if successfully
+     *          false   if child does not exist yet
+     */
+    bool getEdge(const CharType& ch, const NodeIDType& parentNID, NodeIDType& childNID)
+    {
+        EdgeTableKeyType etKey(parentNID, ch);
+        NodeIDType value = NodeIDType();
+
+        // Return false if edge doesn't exist
+        if(!edgeTable_.getValue(etKey, value))
+            return false;
+
+        childNID = value;
+        return true;
+    }
+
+    /**
+     * Retrieve userdata stored in DataTable by given key.
+     * @return true     successfully
+     *         false    given key does not exist
+     */
+    bool getData( const NodeIDType& nid, UserDataType& userData)
+    {
+        return dataTable_.getValue(nid, userData);
+    }
+
 protected:
 
     /**
@@ -466,27 +498,7 @@ protected:
         return true;
     }
 
-    /**
-     * Given the NID of parent node and the edge's character property,
-     * find the child node's NID.
-     * @param   ch          edge's character property
-     *          parentNID   NID of parent node
-     *          childNID    NID of child node
-     * @return  true    if successfully
-     *          false   if child does not exist yet
-     */
-    bool getEdge(const CharType& ch, const NodeIDType& parentNID, NodeIDType& childNID)
-    {
-        EdgeTableKeyType etKey(parentNID, ch);
-        NodeIDType value = NodeIDType();
-
-        // Return false if edge doesn't exist
-        if(!edgeTable_.getValue(etKey, value))
-            return false;
-
-        childNID = value;
-        return true;
-    }
+    
 
     /**
      * Store key's nid and userdata into DataTable.
@@ -506,15 +518,7 @@ protected:
         dataTable_.update(nid, userData);
     }
 
-    /**
-     * Retrieve userdata stored in DataTable by given key.
-     * @return true     successfully
-     *         false    given key does not exist
-     */
-    bool getData( const NodeIDType& nid, UserDataType& userData)
-    {
-        return dataTable_.getValue(nid, userData);
-    }
+    
 
     template<FindRegexpParameterType EnumerateType>
     void findPrefix_( const NodeIDType& nid,

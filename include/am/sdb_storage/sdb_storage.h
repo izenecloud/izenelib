@@ -19,7 +19,6 @@
 #include <sys/stat.h>
 #include <stdio.h>
 
-
 #include "sdb_storage_header.h"
 #include "sdb_storage_types.h"
 
@@ -42,15 +41,17 @@ NS_IZENELIB_AM_BEGIN
  */
 
 template<
-		typename KeyType,
-		typename ValueType,
-		typename LockType =NullLock,
-		typename AmType=sdb_btree<KeyType, unsigned int, LockType> 
+	typename KeyType,
+	typename ValueType,
+	typename LockType =NullLock,
+	typename AmType=sdb_btree<KeyType, unsigned int, LockType>
 > class sdb_storage :public AccessMethod<KeyType, ValueType, LockType>
 {
 public:
 	typedef AmType KeyHash;
 	typedef typename AmType::SDBCursor SDBCursor;
+	enum {BATCH_READ_NUM = 16};
+	enum {FILE_HEAD_SIZE = 1024};
 public:
 	/**
 	 *   constructor
@@ -142,7 +143,6 @@ public:
 				pv = 0;
 				return NULL;
 			}
-
 		}
 
 	}
@@ -153,7 +153,7 @@ public:
 		if( ! keyHash_.get(key, npos) )
 		return false;
 		else {
-			return readValue_(npos, val);
+			return readValue_(key, npos, val);
 		}
 
 	}
@@ -214,6 +214,11 @@ public:
 		return keyHash_.get_first_locn();
 	}
 
+	SDBCursor get_last_locn()
+	{
+		return keyHash_.get_last_locn();
+	}
+
 	bool get(const SDBCursor& locn, KeyType& key, ValueType& value)
 	{
 		unsigned int npos;
@@ -239,10 +244,10 @@ public:
 	 *   
 	 */
 	bool seq(SDBCursor& locn, ESeqDirection sdir=ESD_FORWARD)
-	{	
-		return keyHash_.seq(locn,  sdir);
+	{
+		return keyHash_.seq(locn, sdir);
 	}
-	
+
 	bool seq(SDBCursor& locn, KeyType& key, ESeqDirection sdir=ESD_FORWARD)
 	{
 		unsigned int npos;
@@ -271,6 +276,9 @@ public:
 	}
 
 public:
+	bool is_open() {
+		return isOpen_;
+	}
 	/**
 	 *   db must be opened to be used.
 	 */
@@ -288,7 +296,6 @@ public:
 		if (creating) {
 			// We're creating if the file doesn't exist.
 			DLOG(INFO)<<"creating...\n"<<endl;
-			//ssh_.display( LOG(INFO) );
 			ssh_.toFile(dataFile_);
 			ret = true;
 		} else {
@@ -304,6 +311,9 @@ public:
 
 			}
 		}
+#ifdef DEBUG 
+		ssh_.display();
+#endif
 		isOpen_ = true;
 		return true;
 	}
@@ -312,7 +322,7 @@ public:
 	 */
 	bool close()
 	{
-		keyHash_.flush();
+		flush();
 		fclose(dataFile_);
 		dataFile_ = 0;
 		return true;
@@ -323,6 +333,7 @@ public:
 	 */
 	void commit() {
 		keyHash_.commit();
+		ssh_.toFile(dataFile_);
 		fflush(dataFile_);
 	}
 	/**
@@ -331,6 +342,7 @@ public:
 	 */
 	void flush() {
 		keyHash_.flush();
+		ssh_.toFile(dataFile_);
 		fflush(dataFile_);
 	}
 	/**
@@ -360,16 +372,14 @@ public:
 
 	}
 
-private:	
+private:
 	SsHeader ssh_;
 	string fileName_;
 	FILE* dataFile_;
 	KeyHash keyHash_;
 	bool isOpen_;
-	
-	
-   // map<unsigned int, ValueType> valueHash_;
-	
+private:
+	map<unsigned int, ValueType> readCache_;
 
 	/**
 	 *   Allocate an bucket_chain element 
@@ -390,6 +400,32 @@ private:
 
 		ssh_.nPage += (sizeof(size_t)+vsize)/ssh_.pageSize + 1;
 		return true;
+	}
+
+	inline bool readValue_(const KeyType& key, unsigned int npos, ValueType& val) {
+		typename map<unsigned int, ValueType>::iterator iter;
+		iter = readCache_.find(npos);
+		if( iter != readCache_.end() )
+		val = iter->second;
+		else {
+			if(readCache_.size() >= BATCH_READ_NUM * 1024 )
+			readCache_.clear();
+			readValue_(npos, val);
+			readCache_.insert( make_pair(npos, val) );
+
+			SDBCursor locn = keyHash_.search(key);
+			for(unsigned int i=1; i<BATCH_READ_NUM; i++ ) {
+				KeyType key;
+				ValueType temp;
+				unsigned int off;
+				keyHash_.seq(locn);
+				keyHash_.get(locn, key, off);
+				readValue_(off, temp);
+				readCache_.insert(make_pair(off, temp) );
+			}
+		}
+		return true;
+
 	}
 
 	inline bool readValue_(unsigned int npos, ValueType& val) {

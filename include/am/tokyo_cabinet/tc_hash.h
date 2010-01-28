@@ -82,6 +82,11 @@ public:
 
 		return tchdbputkeep(hdb_, ptr, ksize, ptr1, vsize);
 	}
+    
+    bool insertValue(const KeyType& key, const ValueType& value)
+    {
+        return insert(key, value);
+    }
 
 	/**
 	 *  find an item, return pointer to the value.
@@ -123,6 +128,11 @@ public:
 			return true;
 		}
 	}
+    
+    bool getValue(const KeyType& key, ValueType& value)
+    {
+        return get(key, value);
+    }
 
 	/**
 	 *  delete  an item
@@ -316,6 +326,10 @@ public:
 	int num_items() {
 		return tchdbrnum(hdb_);
 	}
+    
+    int numItems() {
+        return num_items();
+    }
 
 public:
 	/**
