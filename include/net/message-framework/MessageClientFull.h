@@ -82,14 +82,18 @@ namespace messageframework
 		 * false - the MessageController is busy
 		 */
 
-		//bool getPermissionOfService(const std::string& serviceName,
-		//					ServicePermissionInfo& servicePermissionInfo);
+		bool getPermissionOfService(const std::string& serviceName,
+							std::map<std::string, MessageFrameworkNode>& servers);
 
-		bool getHostsOfService(const std::string& serviceName,
-				std::map<std::string, MessageFrameworkNode>& servers);
+        /**
+         * @brief clear all permissions cached for a specific service.
+         */
+		void clearPermissionCache(const std::string& serviceName);
 
-		void flushPermissionCache(const std::string& serviceName);
-
+        /**
+         * @brief clear all permissions cached for all services.
+         */
+		void clearPermissionCache();
 
 		/**
 		 * @brief This function puts the request of the manager to the MessageClientFull.
@@ -122,24 +126,6 @@ namespace messageframework
 		bool getResultOfService(const ServiceRequestInfoPtr& serviceRequestInfo,
 						ServiceResultPtr& serviceResult);
 
-		/** @brief for profiling - Wei Cao */
-		inline MessageDispatcher& getMessageDispatcher()
-		{
-			return messageDispatcher_;
-		}
-
-		/** Set number of requests be processed at a time **/
-		inline int getBatchProcessedRequestNumber()
-		{
-			return batchProcessedRequestNumber_;
-		}
-
-		/** Get number of requests be processed at a time **/
-		inline void setBatchProcessedRequestNumber( int batchProcessedRequestNumber )
-		{
-			batchProcessedRequestNumber_ = batchProcessedRequestNumber;
-		}
-
 	protected:
 
 		/*** Interfaces of ServiceResultRequester ***/
@@ -167,8 +153,6 @@ namespace messageframework
 							const  ServicePermissionInfo& servicePermissionInfo);
 		/*** End of Interfaces of PermissionRequester ***/
 
-		const std::string& getName(){return ownerManager_;}
-
 		/**
 		 * @brief This function generate request id
 		 */
@@ -184,6 +168,8 @@ namespace messageframework
 		 */
 		bool prepareConnection(const MessageFrameworkNode& node);
 
+		inline const std::string& getName(){return ownerManager_;}
+
 		/**
  	     * @brief This function create a new AsyncStream that is based on tcp::socket
  		 */
@@ -192,7 +178,6 @@ namespace messageframework
 		friend class AsyncConnector;
 
 	private:
-		bool checkAgentInfo_(ServicePermissionInfo& permissionInfo);
 		bool checkPermissionInfo_(ServicePermissionInfo& permissionInfo);
 
 		/**
@@ -292,11 +277,6 @@ namespace messageframework
  		 * @brief thread for I/O operations
  		 */
 		boost::thread* ioThread_;
-
-		/**
-		 * @brief number of requests be processed at a time
-		 */
-		int batchProcessedRequestNumber_;
 
 		/**
  		 * @brief the controller node

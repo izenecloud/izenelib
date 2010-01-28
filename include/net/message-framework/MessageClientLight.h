@@ -43,9 +43,6 @@ public:
 	bool getPermissionOfService(const std::string& serviceName,
 			ServicePermissionInfo& servicePermissionInfo);
 
-	bool getHostsOfService(const std::string& serviceName,
-			std::map<std::string, MessageFrameworkNode>& servers);
-
 	/**
 	 * @brief This function puts the request of the manager to the MessageClientFull.
 	 * The MessageClientFull will sends the request to either MessageController or

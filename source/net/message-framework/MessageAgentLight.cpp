@@ -55,13 +55,13 @@ long recv_time = 0;
  else
  {
  lock.unlock();
- 
+
  if( false == client.getPermissionOfService(serviceName, servicePermissionInfo) )
  throw std::runtime_error( "failed to get service permission" );
 
  lock.lock();
  permissionCache.insert(permission_cache_element(serviceName, servicePermissionInfo));
- lock.unlock();			
+ lock.unlock();
  }
 
  //servicePermissionInfo.display();
@@ -149,10 +149,10 @@ void runMessageClientLight(ServiceRequestInfoPtr& serviceRequestInfo,
 		std::string serviceName = serviceRequestInfo->getServiceName();
 		std::map<std::string, MessageFrameworkNode> agentInfoMap;
 
-		if( client.getHostsOfService(serviceName, agentInfoMap) ) {
+		if( client.getPermissionOfService(serviceName, agentInfoMap) ) {
 
 			std::map<std::string, MessageFrameworkNode>::const_iterator cit = agentInfoMap.begin();
-			
+
 			cit->second.display();
 
 			for(; cit != agentInfoMap.end(); cit++) {
@@ -191,7 +191,7 @@ void runMessageClientLight(ServiceRequestInfoPtr& serviceRequestInfo,
 	{
 		std::string serviceName = serviceRequestInfo->getServiceName();
 		std::map<std::string, MessageFrameworkNode> agentInfoMap;
-		if( client.getHostsOfService(serviceName, agentInfoMap) ) {
+		if( client.getPermissionOfService(serviceName, agentInfoMap) ) {
 
 			std::map<std::string, MessageFrameworkNode>::const_iterator cit = agentInfoMap.begin();
 			for(; cit != agentInfoMap.end(); cit++) {
@@ -238,7 +238,7 @@ bool requestService(const std::string& serviceName,
 	try
 	{
 		std::map<std::string, MessageFrameworkNode> agentInfoMap;
-		client.getHostsOfService(serviceName, agentInfoMap);
+		client.getPermissionOfService(serviceName, agentInfoMap);
 		std::map<std::string, MessageFrameworkNode>::const_iterator cit = agentInfoMap.begin();
 		for(; cit != agentInfoMap.end(); cit++) {
 			//before = posix_time::microsec_clock::local_time();
@@ -272,7 +272,7 @@ bool requestService(const std::string& serviceName,
 	try
 	{
 		std::map<std::string, MessageFrameworkNode> agentInfoMap;
-				client.getHostsOfService(serviceName, agentInfoMap);				
+				client.getPermissionOfService(serviceName, agentInfoMap);
 				std::map<std::string, MessageFrameworkNode>::const_iterator cit = agentInfoMap.begin();
 		for(; cit != agentInfoMap.end(); cit++) {
 			//before = posix_time::microsec_clock::local_time();

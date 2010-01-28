@@ -50,52 +50,52 @@ namespace messageframework
     {
         return controller_.getServicePermission( serviceName, servicePermissionInfo );
     }*/
-	
-	bool MessageClientLight::getHostsOfService(const std::string& serviceName,
-			std::map<std::string, MessageFrameworkNode>& servers) {	
+
+	bool MessageClientLight::getPermissionOfService(const std::string& serviceName,
+			std::map<std::string, MessageFrameworkNode>& servers) {
 		ServicePermissionInfo servicePermissionInfo;
 		controller_.getServicePermission( serviceName, servicePermissionInfo );
-		servers = servicePermissionInfo.getServerMap();	
+		servers = servicePermissionInfo.getServerMap();
 		return true;
 	}
-	
+
 
     bool MessageClientLight::putServiceRequest(const MessageFrameworkNode& server,
             ServiceRequestInfoPtr& serviceRequestInfo)
     {
     	unsigned int requestId = generateRequestId();
         serviceRequestInfo->setRequestId( requestId );
-        //serviceRequestInfo->setServiceResultFlag( servicePermissionInfo.getServiceResultFlag() );     
+        //serviceRequestInfo->setServiceResultFlag( servicePermissionInfo.getServiceResultFlag() );
         return controller_.addServiceRequest( server, serviceRequestInfo );
     }
 
 	bool MessageClientLight::putServiceRequest(
 			const MessageFrameworkNode& server,
 				std::vector<ServiceRequestInfoPtr>& serviceRequestInfos)
-	{	
+	{
 		for(unsigned int i=0; i<serviceRequestInfos.size(); i++){
 			unsigned int requestId = generateRequestId();
-			serviceRequestInfos[i]->setRequestId( requestId );		
-		}	        
+			serviceRequestInfos[i]->setRequestId( requestId );
+		}
 		return controller_.addServiceRequests( server, serviceRequestInfos );
 	}
 
-    bool MessageClientLight::getResultOfService(const ServiceRequestInfoPtr& serviceRequest,           
+    bool MessageClientLight::getResultOfService(const ServiceRequestInfoPtr& serviceRequest,
             ServiceResultPtr& serviceResult)
     {
            return controller_.getResultByRequestId( serviceRequest->getRequestId(), serviceResult );
     }
 
-	bool MessageClientLight::getResultOfService(const std::vector<ServiceRequestInfoPtr> & serviceRequests, 				
+	bool MessageClientLight::getResultOfService(const std::vector<ServiceRequestInfoPtr> & serviceRequests,
 				std::vector<ServiceResultPtr> & serviceResults)
 	{
 		if(serviceRequests.size() == 0)
-			return true;   
+			return true;
         std::vector<unsigned int> requestIds;
         requestIds.reserve(serviceResults.size() );
 		for(unsigned int i=0; i<serviceRequests.size(); i++)
 			requestIds.push_back( serviceRequests[i]->getRequestId() );
-		
+
 		return controller_.getResultsByRequestIds(requestIds, serviceResults );
 	}
 }

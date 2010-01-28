@@ -115,11 +115,6 @@ public:
 
 	bool putResultOfService(const ServiceResultPtr& result);
 
-	/** @brief for profiling - Wei Cao */
-	inline MessageDispatcher& getMessageDispatcher() {
-		return messageDispatcher_;
-	}
-
 protected:
 	const MessageFrameworkNode& getServerInfo() {
 		return server_;

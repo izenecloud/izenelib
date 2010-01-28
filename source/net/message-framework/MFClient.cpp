@@ -5,7 +5,7 @@ bool MFClient::getAgentInfo(const std::string& serviceName,
 	agentInfos.clear();
 	std::map<std::string, MessageFrameworkNode> hosts;
 
-	if ( !client_->getHostsOfService(serviceName, hosts) )
+	if ( !client_->getPermissionOfService(serviceName, hosts) )
 		return false;
 
 	std::map<std::string, MessageFrameworkNode>::const_iterator it =
@@ -21,7 +21,7 @@ bool MFClient::requestService(const std::string& serviceName,
 		const ServiceRequestInfoPtr& request) {
 	std::map<std::string, MessageFrameworkNode> hosts;
 
-	if ( !client_->getHostsOfService(serviceName, hosts) )
+	if ( !client_->getPermissionOfService(serviceName, hosts) )
 		return false;
 
 	std::map<std::string, MessageFrameworkNode>::const_iterator it =
@@ -39,7 +39,7 @@ bool MFClient::requestService(const std::string& serviceName,
 		std::vector<ServiceResultPtr>& results) {
 	std::map<std::string, MessageFrameworkNode> hosts;
 
-	if ( !client_->getHostsOfService(serviceName, hosts) )
+	if ( !client_->getPermissionOfService(serviceName, hosts) )
 		return false;
 
 	std::map<std::string, MessageFrameworkNode>::const_iterator it =
@@ -60,7 +60,7 @@ bool MFClient::requestService(const std::vector<std::string>& agentInfos,
 		const std::string& serviceName, const ServiceRequestInfoPtr& request) {
 	std::map<std::string, MessageFrameworkNode> hosts;
 
-	if ( !client_->getHostsOfService(serviceName, hosts) )
+	if ( !client_->getPermissionOfService(serviceName, hosts) )
 		return false;
 
 	std::map<std::string, MessageFrameworkNode>::iterator mit;
@@ -69,7 +69,7 @@ bool MFClient::requestService(const std::vector<std::string>& agentInfos,
 		mit = hosts.find(agentInfos[i]);
 		if (mit == hosts.end() ) {
 			DLOG(ERROR) << "Server not found for "<<agentInfos[i]<<endl;
-			client_->flushPermissionCache(serviceName);
+			client_->clearPermissionCache(serviceName);
 			continue;
 		}
 		if ( !requestOne_(mit->second, request) ) {
@@ -85,7 +85,7 @@ bool MFClient::requestService(const std::vector<std::string>& agentInfos,
 		std::vector<ServiceRequestInfoPtr>& results) {
 	std::map<std::string, MessageFrameworkNode> hosts;
 
-	if ( !client_->getHostsOfService(serviceName, hosts) )
+	if ( !client_->getPermissionOfService(serviceName, hosts) )
 		return false;
 
 	results.resize(agentInfos.size() );
@@ -95,7 +95,7 @@ bool MFClient::requestService(const std::vector<std::string>& agentInfos,
 		mit = hosts.find(agentInfos[i]);
 		if (mit == hosts.end() ) {
 			DLOG(ERROR) << "Server not found for "<<agentInfos[i]<<endl;
-			client_->flushPermissionCache(serviceName);
+			client_->clearPermissionCache(serviceName);
 			continue;
 		}
 		if (requestOne_(mit->second, request, results[i]) ) {
@@ -111,7 +111,7 @@ bool MFClient::requestService(const std::string& agentInfo,
 		const std::string& serviceName, const ServiceRequestInfoPtr& request) {
 	std::map<std::string, MessageFrameworkNode> hosts;
 
-	if ( !client_->getHostsOfService(serviceName, hosts) )
+	if ( !client_->getPermissionOfService(serviceName, hosts) )
 		return false;
 
 	std::map<std::string, MessageFrameworkNode>::iterator mit;
@@ -126,16 +126,16 @@ bool MFClient::requestService(const std::string& agentInfo,
 		}
 		return false;
 	}
-	
+
 	mit = hosts.find(agentInfo);
 	if (mit == hosts.end() ) {
 		DLOG(ERROR) << "Server not found for "<<agentInfo<<std::endl;
-		client_->flushPermissionCache(serviceName);
+		client_->clearPermissionCache(serviceName);
 		return false;
 	}
 	if ( !requestOne_(mit->second, request) ) {
 		DLOG(ERROR)<<"requst failed for agentInfo="<<agentInfo<<std::endl;
-		client_->flushPermissionCache(serviceName);
+		client_->clearPermissionCache(serviceName);
 		return false;
 	}
 
@@ -147,11 +147,11 @@ bool MFClient::requestService(const std::string& agentInfo,
 		ServiceResultPtr& result) {
 	std::map<std::string, MessageFrameworkNode> hosts;
 	assert(client_ != 0);
-	if ( !client_->getHostsOfService(serviceName, hosts) )
+	if ( !client_->getPermissionOfService(serviceName, hosts) )
 		return false;
 
-	std::map<std::string, MessageFrameworkNode>::iterator mit;	
-	if (agentInfo == "#any") {		
+	std::map<std::string, MessageFrameworkNode>::iterator mit;
+	if (agentInfo == "#any") {
 		mit = hosts.begin();
 		for (; mit != hosts.end(); mit++) {
 			if (requestOne_(mit->second, request, result) ) {
@@ -165,14 +165,14 @@ bool MFClient::requestService(const std::string& agentInfo,
 	mit = hosts.find(agentInfo);
 	if (mit == hosts.end() ) {
 		DLOG(ERROR) << "Server not found for "<<agentInfo<<std::endl;
-		client_->flushPermissionCache(serviceName);
+		client_->clearPermissionCache(serviceName);
 		return false;
 	}
 	if (requestOne_(mit->second, request, result) ) {
 		result->setAgentInfo(agentInfo);
 	} else {
 		DLOG(ERROR)<<"requst failed for agentInfo="<<agentInfo<<std::endl;
-		client_->flushPermissionCache(serviceName);
+		client_->clearPermissionCache(serviceName);
 		return false;
 	}
 
@@ -216,7 +216,7 @@ bool MFClient::requestOne_(const MessageFrameworkNode& server,
 void MFClient::displayAgentInfo(const std::string& serviceName, std::ostream& os) const {
 
 	std::map<std::string, MessageFrameworkNode> hosts;
-	if ( !client_->getHostsOfService(serviceName, hosts) )
+	if ( !client_->getPermissionOfService(serviceName, hosts) )
 		return;
 	std::map<std::string, MessageFrameworkNode>::const_iterator it =
 			hosts.begin();

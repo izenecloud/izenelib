@@ -40,7 +40,7 @@ BOOST_AUTO_TEST_CASE(basic) {
     server.setAgentInfo("0");
     server.registerService(service);
     // Resolved service address == localhost::10086
-    client.getHostsOfService("service", response);
+    client.getPermissionOfService("service", response);
     BOOST_CHECK_EQUAL( response["0"].nodeIP_, "127.0.0.1" );
     BOOST_CHECK_EQUAL( response["0"].nodePort_, 10086U );
 
@@ -71,6 +71,10 @@ BOOST_AUTO_TEST_CASE(multiple_collection) {
     server0.setAgentInfo("0");
     server0.registerService(service0);
 
+    client.getPermissionOfService("service", response);
+    BOOST_CHECK_EQUAL( response["0"].nodeIP_, "127.0.0.1" );
+    BOOST_CHECK_EQUAL( response["0"].nodePort_, 10086U );
+
     // Init service 1
     ServiceInfo service1("service");
     service1.setServer("localhost", 10087);
@@ -78,7 +82,7 @@ BOOST_AUTO_TEST_CASE(multiple_collection) {
     server1.setAgentInfo("1");
     server1.registerService(service1);
 
-    client.getHostsOfService("service", response);
+    client.getPermissionOfService("service", response);
     BOOST_CHECK_EQUAL( response["0"].nodeIP_, "127.0.0.1" );
     BOOST_CHECK_EQUAL( response["0"].nodePort_, 10086U );
 
@@ -111,7 +115,7 @@ BOOST_AUTO_TEST_CASE(service_name_changed) {
         server.setAgentInfo("0");
         server.registerService(service);
         // Resolved service address == localhost::10086
-        client.getHostsOfService("service", response);
+        client.getPermissionOfService("service", response);
         BOOST_CHECK_EQUAL( response["0"].nodeIP_, "127.0.0.1" );
         BOOST_CHECK_EQUAL( response["0"].nodePort_, 10086U );
     }
@@ -126,7 +130,7 @@ BOOST_AUTO_TEST_CASE(service_name_changed) {
         server.setAgentInfo("0");
         server.registerService(service);
         // Resolved service address == localhost::10087
-        client.getHostsOfService("service", response);
+        client.getPermissionOfService("service", response);
         BOOST_CHECK_EQUAL( response["0"].nodeIP_, "127.0.0.1" );
         BOOST_CHECK_EQUAL( response["0"].nodePort_, 10087U );
     }
@@ -159,7 +163,7 @@ BOOST_AUTO_TEST_CASE(controller_reboot) {
         map<string, MessageFrameworkNode> response;
         MessageClientFull client("client", ctrlNode);
         // Resolved service address == localhost::10086
-        client.getHostsOfService("service", response);
+        client.getPermissionOfService("service", response);
         BOOST_CHECK_EQUAL( response["0"].nodeIP_, "127.0.0.1" );
         BOOST_CHECK_EQUAL( response["0"].nodePort_, 10086U );
     }
@@ -176,7 +180,7 @@ BOOST_AUTO_TEST_CASE(controller_reboot) {
         map<string, MessageFrameworkNode> response;
         MessageClientFull client("client", ctrlNode);
         // Resolved service address == localhost::10086
-        client.getHostsOfService("service", response);
+        client.getPermissionOfService("service", response);
         BOOST_CHECK_EQUAL( response["0"].nodeIP_, "127.0.0.1" );
         BOOST_CHECK_EQUAL( response["0"].nodePort_, 10086U );
     }

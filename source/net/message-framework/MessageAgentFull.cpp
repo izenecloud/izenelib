@@ -93,7 +93,7 @@ void runMessageClientFull(ServiceRequestInfoPtr& serviceRequestInfo,
 		std::string serviceName = serviceRequestInfo->getServiceName();
 		std::map<std::string, MessageFrameworkNode> agentInfoMap;
 
-		if( client.getHostsOfService(serviceName, agentInfoMap) ) {
+		if( client.getPermissionOfService(serviceName, agentInfoMap) ) {
 
 			std::map<std::string, MessageFrameworkNode>::const_iterator cit = agentInfoMap.begin();
 
@@ -135,7 +135,7 @@ void runMessageClientFull(ServiceRequestInfoPtr& serviceRequestInfo,
 	{
 		std::string serviceName = serviceRequestInfo->getServiceName();
 		std::map<std::string, MessageFrameworkNode> agentInfoMap;
-		if( client.getHostsOfService(serviceName, agentInfoMap) ) {
+		if( client.getPermissionOfService(serviceName, agentInfoMap) ) {
 			//assert(agentInfoMap.size() == 1);
 			std::map<std::string, MessageFrameworkNode>::const_iterator cit = agentInfoMap.begin();
 			for(; cit != agentInfoMap.end(); cit++) {

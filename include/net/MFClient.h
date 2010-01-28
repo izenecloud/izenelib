@@ -34,7 +34,7 @@ namespace messageframework {
 
 	protected:
 		bool getHostsOfService(const std::string& serviceName, std::map<std::string, MessageFrameworkNode>& servers){
-			return client_->getHostsOfService(serviceName, servers);
+			return client_->getPermissionOfService(serviceName, servers);
 		}
 		/**
 		 *   requst with no result with agentInfo(collectionname)
@@ -62,7 +62,7 @@ namespace messageframework {
 		bool requestService( const std::string& serviceName,
 				const ServiceRequestInfoPtr& serviceRequestInfo,
 				std::vector<ServiceResultPtr>& results
-		);		
+		);
 
 		/**
 		 *   requst with no result to one agent
@@ -77,7 +77,7 @@ namespace messageframework {
 				const ServiceRequestInfoPtr& serviceRequestInfo,
 				ServiceResultPtr& result
 		);
-		
+
 		MessageClientPtr client_;
 
 	private:
