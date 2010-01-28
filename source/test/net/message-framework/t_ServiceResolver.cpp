@@ -25,8 +25,7 @@ BOOST_AUTO_TEST_CASE(basic) {
 
     // Init Controller
     MessageControllerFull controller("controller", 10080);
-    thread* t1 = new thread(lambda::bind(&MessageControllerFull::processServiceRegistrationRequest, var(controller)));
-    thread* t2 = new thread(lambda::bind(&MessageControllerFull::processServicePermissionRequest, var(controller)));
+    thread t(lambda::bind(&MessageControllerFull::run, var(controller)));
 
     // Init Client
     map<string, MessageFrameworkNode> response;
@@ -47,10 +46,7 @@ BOOST_AUTO_TEST_CASE(basic) {
     }
 
     controller.shutdown();
-    t1->join();
-    t2->join();
-    delete t1;
-    delete t2;
+    t.join();
 }
 
 BOOST_AUTO_TEST_CASE(service_name_changed) {
@@ -60,8 +56,7 @@ BOOST_AUTO_TEST_CASE(service_name_changed) {
     // Init Controller
     MessageFrameworkNode ctrlNode("localhost", 10080);
     MessageControllerFull controller("controller", 10080);
-    thread* t1 = new thread(lambda::bind(&MessageControllerFull::processServiceRegistrationRequest, var(controller)));
-    thread* t2 = new thread(lambda::bind(&MessageControllerFull::processServicePermissionRequest, var(controller)));
+    thread t(lambda::bind(&MessageControllerFull::run, var(controller)));
 
     // Init Client
     map<string, MessageFrameworkNode> response;
@@ -96,10 +91,7 @@ BOOST_AUTO_TEST_CASE(service_name_changed) {
     }
 
     controller.shutdown();
-    t1->join();
-    t2->join();
-    delete t1;
-    delete t2;
+    t.join();
 }
 
 
@@ -111,8 +103,7 @@ BOOST_AUTO_TEST_CASE(controller_reboot) {
 
     // Init Controller
     MessageControllerFull controller("controller", 10080);
-    thread* t1 = new thread(lambda::bind(&MessageControllerFull::processServiceRegistrationRequest, var(controller)));
-    thread* t2 = new thread(lambda::bind(&MessageControllerFull::processServicePermissionRequest, var(controller)));
+    thread t(lambda::bind(&MessageControllerFull::run, var(controller)));
     ::sleep(1);
 
     // Init service @10086
@@ -132,14 +123,10 @@ BOOST_AUTO_TEST_CASE(controller_reboot) {
     }
 
     controller.shutdown();
-    t1->join();
-    t2->join();
-    delete t1;
-    delete t2;
+    t.join();
 
     MessageControllerFull rebootedController("controller", 10080);
-    t1 = new thread(lambda::bind(&MessageControllerFull::processServiceRegistrationRequest, var(rebootedController)));
-    t2 = new thread(lambda::bind(&MessageControllerFull::processServicePermissionRequest, var(rebootedController)));
+    thread rt(lambda::bind(&MessageControllerFull::run, var(rebootedController)));
     ::sleep(1);
 
     {
@@ -153,10 +140,7 @@ BOOST_AUTO_TEST_CASE(controller_reboot) {
     }
 
     rebootedController.shutdown();
-    t1->join();
-    t2->join();
-    delete t1;
-    delete t2;
+    rt.join();
 }
 
 
