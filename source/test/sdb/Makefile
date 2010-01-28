@@ -5,13 +5,19 @@ CC_OPTIONS= -O3 -Wall -c -g -pg  -DDEBUG
 
 
 INC_PATH=    -I /usr/local/include/  -I  ../../../../izenelib/include/ -I  ../../../../ylib/include/ \
-   -I /home/wps/workspace/wiselib/include      -I ../../../../izenelib/include/3rdparty/ -I /usr/local/include/boost-1_36  
+   -I ../../../../wiselib/include -I ../../../../izenelib/include/3rdparty/ -I /usr/local/include/boost-1_36  
 
 
 LIBS =      /usr/local/lib/libboost_thread-gcc41-mt.so \
            /usr/local/lib/libtokyocabinet.so   /usr/local/lib/libboost_serialization-gcc41-mt.so \
-           ../../../../ylib/lib/libylib.a   ../../../../izenelib/lib/libprocmeminfo.so -L ../../../ -L ../../../../izenelib/lib -lfebird
+           ../../../../ylib/lib/libylib.a   ../../../../izenelib/lib/libprocmeminfo.so -L ../../../ \
+           -L ../../../../izenelib/lib -lfebird -lizene_log -lglog
+            
 .cc.o:
+
+	$(GPP) $(INC_PATH) $(CC_OPTIONS) $< 
+	
+.cpp.o:
 
 	$(GPP) $(INC_PATH) $(CC_OPTIONS) $< 
 
@@ -40,11 +46,17 @@ obj11 = t_TrieIndexSDB.o
 
 obj12 = t_TrieIndexSDB1.o
 
-
 obj13 = t_sdb_query.o
 
-all: t_mul_sdb t_sdb_query #t_IndexSDB1 t_IndexSDB t_TrieIndexSDB1  t_TrieIndexSDB  t_btree2  t_btree1  t_sdb t_btree2 t_nsdb t_IndexSDB t_IndexSDB1 t_mul_sdb  t_btree_str \
+obj14 = t_dm.o
+
+all: t_dm #t_mul_sdb t_sdb_query #t_IndexSDB1 t_IndexSDB t_TrieIndexSDB1  t_TrieIndexSDB  t_btree2  t_btree1  t_sdb t_btree2 t_nsdb t_IndexSDB t_IndexSDB1 t_mul_sdb  t_btree_str \
      # t_btree1 t_mul_sdb  t_nsdb t_overflow_btree 
+     
+t_dm: $(obj14)
+
+	$(GPP) $(obj14) $(LIBS)  -o $@ -pg     
+     
       
 t_sdb_query: $(obj13)
 

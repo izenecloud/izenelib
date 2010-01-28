@@ -21,7 +21,7 @@ struct SsHeader {
 	SsHeader()
 	{
 		magic = 0x061561;
-		pageSize = 1024;		
+		pageSize = 8;		
 		cacheSize = 100000;		
 		nPage = 0;
 		dPage = 0;
