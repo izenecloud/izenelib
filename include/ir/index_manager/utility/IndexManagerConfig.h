@@ -33,9 +33,11 @@ private:
     class _indexstrategy
     {
     public:
-        _indexstrategy() :
+        explicit _indexstrategy() :
                 memory_(0),
-                indexDocLength_(false)
+                indexDocLength_(false),
+                skipInterval_(0),
+                maxSkipLevel_(0)
         {}
     private:
         friend class boost::serialization::access;
