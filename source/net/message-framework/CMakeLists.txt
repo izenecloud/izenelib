@@ -40,6 +40,7 @@ IF(message_framework_SHOULD_BUILD)
   #INSTALL(TARGETS message_framework DESTINATION lib)
   INSTALL(TARGETS message_framework   
       LIBRARY DESTINATION lib 
+      ARCHIVE DESTINATION lib 
       COMPONENT "izenelib_libraries")
 
 ENDIF(message_framework_SHOULD_BUILD)

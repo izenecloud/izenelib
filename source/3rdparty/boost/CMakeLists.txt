@@ -7,6 +7,7 @@ IF(boost_memory_SHOULD_BUILD)
   #INSTALL(TARGETS boost_memory DESTINATION lib)
   INSTALL(TARGETS boost_memory        
       LIBRARY DESTINATION lib 
+      ARCHIVE DESTINATION lib 
       COMPONENT "izenelib_libraries")
 
 ENDIF(boost_memory_SHOULD_BUILD)

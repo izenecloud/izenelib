@@ -49,6 +49,7 @@ IF(febird_SHOULD_BUILD)
 #INSTALL(TARGETS febird DESTINATION lib)
   INSTALL(TARGETS febird      
       LIBRARY DESTINATION lib 
+      ARCHIVE DESTINATION lib 
       COMPONENT "izenelib_libraries")
 
 ENDIF(febird_SHOULD_BUILD)

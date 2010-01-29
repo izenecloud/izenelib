@@ -14,6 +14,7 @@ IF(bigint_SHOULD_BUILD)
   #INSTALL(TARGETS bigint DESTINATION lib)
   INSTALL(TARGETS bigint       
       LIBRARY DESTINATION lib 
+      ARCHIVE DESTINATION lib 
       COMPONENT "izenelib_libraries")
 
 ENDIF(bigint_SHOULD_BUILD)

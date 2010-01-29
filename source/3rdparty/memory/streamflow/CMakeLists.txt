@@ -39,6 +39,7 @@ IF(streamflow_SHOULD_BUILD)
 #INSTALL(TARGETS streamflow DESTINATION lib)
   INSTALL(TARGETS streamflow     
       LIBRARY DESTINATION lib 
+      ARCHIVE DESTINATION lib 
       COMPONENT "izenelib_libraries")
 
 ENDIF(streamflow_SHOULD_BUILD)
