@@ -47,7 +47,6 @@ docid_t SkipListReader::skipTo(docid_t docID)
         loadSkipLevels();
         loaded_ = true;
     }
-	
     /// walk up the levels until highest level is found that has a skip for this target
     int level = 0;
     while (level < (numSkipLevels_-1) && docID > skipDoc_[level + 1]) 
@@ -152,7 +151,7 @@ void SkipListReader::loadSkipLevels()
         {
             skipStream_[i] = skipStream_[0]->clone();
         }
-        skipStream_[i]->setlength(skipStream_[0]->getFilePointer() + length);
+        //skipStream_[i]->setlength(skipStream_[0]->getFilePointer() + length);
         if(i > 0)
         {
             skipStream_[0]->seek(skipStream_[0]->getFilePointer() + length);

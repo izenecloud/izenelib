@@ -82,6 +82,7 @@ void FSIndexInput::close()
 IndexInput* FSIndexInput::clone()
 {
     FSIndexInput* pClone = new FSIndexInput(filename_.c_str(),bufferSize_);
+    pClone->seek(getFilePointer());
     return pClone;
 }
 void FSIndexInput::seekInternal(int64_t position)

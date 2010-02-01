@@ -72,6 +72,7 @@ docid_t MultiTermPositions::skipTo(docid_t target)
         pTop = current_->termPositions_;
 
         nFoundId = pTop->skipTo(t);
+		
         if(nFoundId >= t)
         {
             nFoundId += nBaseId;
@@ -82,6 +83,7 @@ docid_t MultiTermPositions::skipTo(docid_t target)
             pTermPositionQueue_->pop();
         }		
     }
+	
     return -1;
 }
 

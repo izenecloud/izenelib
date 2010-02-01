@@ -222,6 +222,7 @@ void InMemoryPosting::writeDescriptor(IndexOutput* pDOutput,fileoffset_t poffset
     {
         pDOutput->writeVInt(nLastDocID_);///<LastDocID(VInt32)>
         pDOutput->writeVInt(pSkipListWriter_->getNumLevels()); ///skiplevel (VInt32)
+        cout<<"before write skip "<<pDOutput->getFilePointer()<<endl;
         pSkipListWriter_->write(pDOutput);	///write skip list data
     }
     else
@@ -229,6 +230,7 @@ void InMemoryPosting::writeDescriptor(IndexOutput* pDOutput,fileoffset_t poffset
         pDOutput->writeVInt(nLastDocID_);///<LastDocID(VInt32)>
         pDOutput->writeVInt(0);  /// skiplevel = 0
     }
+	cout<<"after write skip "<<pDOutput->getFilePointer()<<endl;
 
     ///end write posting descriptor
 }
@@ -538,7 +540,7 @@ void OnDiskPosting::reset(fileoffset_t newOffset)
 
     IndexInput* pDPInput = pInputDescriptor_->getDPostingInput();
     //IndexInput should be reset because the internal buffer should be clear when a new posting is needed to be read
-    pDPInput->reset();
+    //pDPInput->reset();
     pDPInput->seekInternal(newOffset);///not seek(), because seek() may trigger a large data read event.
 
     ///read descriptor of posting list <PostingDescriptor>
@@ -560,11 +562,10 @@ void OnDiskPosting::reset(fileoffset_t newOffset)
     if(skipLevel > 0)
     {
         if(pSkipListReader_)
-        {
             delete pSkipListReader_;
-            pDPInput->seek(postingOffset_ + (buf - u + 1)); ///start of skipping data
-            pSkipListReader_ = new SkipListReader(pDPInput,skipInterval_,skipLevel);		
-        }
+
+        pDPInput->seek(postingOffset_ + (u - buf)); ///start of skipping data
+        pSkipListReader_ = new SkipListReader(pDPInput,skipInterval_,skipLevel);		
     }
 	
     IndexInput* pPPInput = pInputDescriptor_->getPPostingInput();
@@ -583,7 +584,6 @@ void OnDiskPosting::reset(fileoffset_t newOffset)
     }
 
     pDPInput->seek(newOffset - postingDesc_.length);	///seek to the begin of posting data
-
     ds_.decodedDocCount = 0;
     ds_.lastDecodedDocID = 0;
     ds_.decodedPosCount= 0;
@@ -596,7 +596,6 @@ docid_t OnDiskPosting::decodeTo(docid_t docID)
 {
     if((count_t)(ds_.decodedDocCount) >= postingDesc_.df)		
         return -1;
-
     if(pSkipListReader_)
     {
         docid_t lastDocID = pSkipListReader_->skipTo(docID);
@@ -637,7 +636,6 @@ docid_t OnDiskPosting::decodeTo(docid_t docID)
     ds_.lastDecodedDocTF = nFreq;
     ds_.decodedDocCount = nDecodedCount;
     ds_.skipPosCount_ += nSkipPCount;
-
     return ( nDocID >= docID )? nDocID : -1;
 }
 

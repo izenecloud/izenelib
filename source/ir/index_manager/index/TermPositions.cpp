@@ -115,7 +115,7 @@ docid_t TermPositions::skipTo(docid_t docId)
                 createBuffer();
             nCurrentPosting_ = 0;
             nCurDecodedCount_ = 1;
-            pPosting_->decodeTo(docId);
+            pPostingBuffer_[0] = pPosting_->decodeTo(docId);
             resetDecodingState();
             return pPostingBuffer_[0];
         }
@@ -124,7 +124,6 @@ docid_t TermPositions::skipTo(docid_t docId)
         if(end == start)
         {
             resetDecodingState();
-
             return docId;
         }
         else if(end < start)
