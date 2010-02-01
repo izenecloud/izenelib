@@ -222,7 +222,6 @@ void InMemoryPosting::writeDescriptor(IndexOutput* pDOutput,fileoffset_t poffset
     {
         pDOutput->writeVInt(nLastDocID_);///<LastDocID(VInt32)>
         pDOutput->writeVInt(pSkipListWriter_->getNumLevels()); ///skiplevel (VInt32)
-        cout<<"before write skip "<<pDOutput->getFilePointer()<<endl;
         pSkipListWriter_->write(pDOutput);	///write skip list data
     }
     else
@@ -230,7 +229,6 @@ void InMemoryPosting::writeDescriptor(IndexOutput* pDOutput,fileoffset_t poffset
         pDOutput->writeVInt(nLastDocID_);///<LastDocID(VInt32)>
         pDOutput->writeVInt(0);  /// skiplevel = 0
     }
-	cout<<"after write skip "<<pDOutput->getFilePointer()<<endl;
 
     ///end write posting descriptor
 }
