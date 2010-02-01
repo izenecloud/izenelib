@@ -59,20 +59,16 @@ docid_t MultiTermDocs::skipTo(docid_t docId)
     }
 
     TermDocFreqs* pTop = NULL;	
-    docid_t nBaseId;
-    docid_t t;
     docid_t nFoundId = -1;
     while (pTermDocsQueue_->size() > 0)
     {
         current_ = pTermDocsQueue_->top();
-        nBaseId = current_->barrelInfo_->getBaseDocID();
-        t = docId - nBaseId;
         pTop = current_->termDocs_;
 		
-        nFoundId = pTop->skipTo(t);
-        if( nFoundId >= t)
+        nFoundId = pTop->skipTo(docId);
+        if((nFoundId != (docid_t)-1)&&(nFoundId >= docId))
+			
         {
-            nFoundId += nBaseId;
             return nFoundId;
         }
         else 

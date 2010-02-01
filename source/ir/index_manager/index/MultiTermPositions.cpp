@@ -61,21 +61,15 @@ docid_t MultiTermPositions::skipTo(docid_t target)
     }
 
     TermPositions* pTop = NULL;
-    docid_t nBaseId;
-    docid_t t;
     docid_t nFoundId = -1;
     while (pTermPositionQueue_->size() > 0)
     {
         current_ = pTermPositionQueue_->top();
-        nBaseId = current_->barrelInfo_->getBaseDocID();
-        t = target - nBaseId;
         pTop = current_->termPositions_;
 
-        nFoundId = pTop->skipTo(t);
-		
-        if(nFoundId >= t)
+        nFoundId = pTop->skipTo(target);
+        if((nFoundId != (docid_t)-1)&&(nFoundId >= target))
         {
-            nFoundId += nBaseId;
             return nFoundId;
         }
         else 
