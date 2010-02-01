@@ -1,19 +1,7 @@
-#define BOOST_TEST_DYN_LINK
-#define BOOST_TEST_NO_MAIN
-#define BOOST_TEST_ALTERNATIVE_INIT_API
+#ifndef TEST_COVERAGE
+# define BOOST_TEST_DYN_LINK
+#endif
+#define BOOST_TEST_MAIN
+#define BOOST_TEST_MODULE "util"
 
 #include <boost/test/unit_test.hpp>
-
-bool initRunner()
-{
-    using namespace ::boost::unit_test;
-    framework::master_test_suite().p_name.value = "util";
-
-    return true;
-}
-
-int BOOST_TEST_CALL_DECL
-main(int argc, char* argv[])
-{
-    return ::boost::unit_test::unit_test_main(&initRunner, argc, argv);
-}
