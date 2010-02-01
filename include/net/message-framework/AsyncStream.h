@@ -110,15 +110,9 @@ private:
 	 */
 	boost::shared_ptr<boost::asio::ip::tcp::socket> socket_;
 
-	//	  /**
-	// 	   * @brief writting buffer of the message header
-	// 	   */
-	//	  unsigned int writeHeaderBuffer_;
-
 	/**
 	 * @brief type of the message
 	 */
-	//unsigned int messageType_;
 	MessageType messageType_;
 
 	unsigned int dataLength_;
@@ -131,15 +125,7 @@ private:
 	/**
 	 * @brief reading buffer of message data
 	 */
-	// std::vector<char> readDataBuffer_;
-	//	  MFSocketBuffer readDataBuffer_;
-	// boost::shared_ptr<boost::asio::streambuf> readBuffer_;
 	boost::shared_ptr<izenelib::util::izene_streambuf> readBuffer_;
-
-	//	  /**
-	// 	   * @brief writting buffer of message data
-	// 	   */
-	//	  std::string writeDataBuffer_;
 
 	/**
 	 * @brief Modified by Wei Cao, 2009-3-3, IMPORTANT FIX
