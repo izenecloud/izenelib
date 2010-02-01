@@ -227,18 +227,20 @@ class MultiPassSort
 
   void shrink_key_()
   {
-    const uint32_t KEY_BUF_SIZE = buf_size_/2;
+    /*flag 1: if address is larger than 2^32*//*address*/
+    const uint32_t KEY_SIZE = 1+sizeof(uint32_t)+sizeof(LEN_TYPE);
+    
+    const uint32_t KEY_BUF_SIZE = buf_size_/2/sizeof(PRE_KEY_STRUCT)*sizeof(PRE_KEY_STRUCT);
     const uint32_t OUT_BUF_SIZE = buf_size_ - KEY_BUF_SIZE;
     
     FILE* f = fopen((filenm_+".key.out").c_str(), "w+");
     char* out_b = buffer_+KEY_BUF_SIZE;
     uint32_t out_p = 0;
-    /*flag 1: if address is larger than 2^32*//*address*/
-    const uint32_t KEY_SIZE = 1+sizeof(uint32_t)+sizeof(LEN_TYPE);
 
     //get key file size
     fseek(key_f_, 0, SEEK_END);
     const uint64_t KEY_FILE_SIZE = ftell(key_f_);
+    IASSERT(KEY_FILE_SIZE%sizeof(PRE_KEY_STRUCT)==0);
     
     const uint32_t KEY_LOAD_TIMES = KEY_FILE_SIZE%KEY_BUF_SIZE==0? KEY_FILE_SIZE/KEY_BUF_SIZE: KEY_FILE_SIZE/KEY_BUF_SIZE+1;
 
@@ -247,6 +249,7 @@ class MultiPassSort
     for (uint32_t i=0; i<KEY_LOAD_TIMES; ++i)
     {
       uint32_t ss = KEY_FILE_SIZE - ftell(key_f_)>KEY_BUF_SIZE? KEY_BUF_SIZE: KEY_FILE_SIZE - ftell(key_f_);//loading size
+      IASSERT(ss%sizeof(PRE_KEY_STRUCT)==0);
       uint32_t nn = ss/sizeof(PRE_KEY_STRUCT);
       IASSERT(fread(buffer_, ss, 1, key_f_)==1);
       
@@ -284,7 +287,7 @@ class MultiPassSort
     boost::filesystem::rename(filenm_+".key.out", filenm_+".key");
     key_f_ = fopen((filenm_+".key").c_str(), "r");
     IASSERT(key_f_!= NULL);
-    std::cout<<"\n-Count: "<<count_<<std::endl;
+    //std::cout<<"\n-Count: "<<count_<<std::endl;
   }
   
   void output_()
@@ -412,7 +415,7 @@ class MultiPassSort
 //       last = *(PRE_KEY_TYPE*)data;
 //       free(data);
 //     }
-    std::cout<<"\nCount: "<<count_<<std::endl;
+    //std::cout<<"\nCount: "<<count_<<std::endl;
   }
 
   void quick_sort_(int left, int right)
@@ -479,11 +482,11 @@ class MultiPassSort
       IASSERT(fread(buffer_, ss, 1, key_f_)==1);
       for (uint32_t j=0; j<nn-1; ++j)
       {
-        if (((PRE_KEY_STRUCT*)buffer_)[j].PRE_KEY()+1!=((PRE_KEY_STRUCT*)buffer_)[j+1].PRE_KEY())
-        {
-          std::cout<<"+"<<((PRE_KEY_STRUCT*)buffer_)[j].PRE_KEY()<<"-"<<((PRE_KEY_STRUCT*)buffer_)[j+1].PRE_KEY();
-          return false;
-        }
+//         if (((PRE_KEY_STRUCT*)buffer_)[j].PRE_KEY()+1!=((PRE_KEY_STRUCT*)buffer_)[j+1].PRE_KEY())
+//         {
+//           std::cout<<"+"<<((PRE_KEY_STRUCT*)buffer_)[j].PRE_KEY()<<"-"<<((PRE_KEY_STRUCT*)buffer_)[j+1].PRE_KEY();
+//           return false;
+//         }
         if (((PRE_KEY_STRUCT*)buffer_)[j].compare(((PRE_KEY_STRUCT*)buffer_)[j+1], original_f_)>0)
         {
           std::cout<<((PRE_KEY_STRUCT*)buffer_)[j].PRE_KEY()<<"-"<<((PRE_KEY_STRUCT*)buffer_)[j+1].PRE_KEY()<<std::endl;
@@ -622,7 +625,8 @@ public:
     uint32_t key_out_buf_pos[thre_num_];
 
     gettimeofday (&tvpre , &tz);
-    
+
+    count_ = 0;
     uint32_t times = 0;
     while (times < TIMES)
     {
@@ -736,6 +740,7 @@ public:
           }
                     
           ((PRE_KEY_STRUCT*)(buffer_+key_out_buf_pos[threads_i]))[buf_idx[GROUP_SIZE]] = min;
+          ++count_;
           //std::cout<<min<<std::endl;
 
           ++(buf_idx[GROUP_SIZE]);
@@ -814,7 +819,7 @@ public:
 
     gettimeofday (&tvafter , &tz);
     std::cout<<"\nIt takes "<<((tvafter.tv_sec-tvpre.tv_sec)*1000+(tvafter.tv_usec-tvpre.tv_usec)/1000.)/60000
-             <<" minutes to merge\n";
+             <<" minutes to merge("<<count_/TIMES<<")\n";
     
     std::cout<<"\nSorting is over, seeking times is "<<seek_times<<", begin to output ...\n";
     
