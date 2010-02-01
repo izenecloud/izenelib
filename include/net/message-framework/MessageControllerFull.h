@@ -44,8 +44,7 @@ namespace messageframework {
 
 class MessageControllerFull : protected ServiceResultServer,
 	protected ServiceResultRequester, protected PermissionServer,
-	protected ServiceRegistrationServer, protected ClientIdServer,
-	protected AsyncStreamFactory {
+	protected ServiceRegistrationServer, protected ClientIdServer {
 public:
 	/**
 	 * @brief The construct a MessageControllerFull with paramters

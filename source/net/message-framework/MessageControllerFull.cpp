@@ -359,16 +359,4 @@ void MessageControllerFull::sendPermissionOfServiceResult(
 	messageDispatcher_.sendDataToLowerLayer(PERMISSION_OF_SERVICE_REPLY_MSG, permission, requester);
 }
 
-/**
- * @brief This function create a new AsyncStream that is based on tcp::socket
- */
-AsyncStream* MessageControllerFull::createAsyncStream(boost::shared_ptr<tcp::socket> sock)
-{
-	tcp::endpoint endpoint = sock->remote_endpoint();
-	DLOG(INFO) << "Remote IP = " << endpoint.address().to_string()
-        << ", port = " << endpoint.port();
-
-	return new AsyncStream(&messageDispatcher_, sock);
-}
-
 }// end of namespace messageframework

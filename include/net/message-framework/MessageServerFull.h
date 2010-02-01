@@ -33,7 +33,7 @@ namespace messageframework {
  * must provide result to the other Manager in different process should use MessageServerFull.
  */
 class MessageServerFull : protected ServiceResultServer,
-	protected ServiceRegistrationRequester, protected AsyncStreamFactory {
+	protected ServiceRegistrationRequester {
 public:
 	/**
 	 * @brief Construct a MessageServerFull with paramters. It initializes

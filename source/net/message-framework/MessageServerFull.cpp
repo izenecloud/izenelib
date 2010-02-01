@@ -332,17 +332,5 @@ void MessageServerFull::receiveServiceRegistrationReply(
 	}
 }
 
-/**
- * @brief This function create a new AsyncStream that is based on tcp::socket
- */
-AsyncStream* MessageServerFull::createAsyncStream(
-		boost::shared_ptr<tcp::socket> sock) {
-	tcp::endpoint endpoint = sock->remote_endpoint();
-
-	DLOG(INFO) << "Remote IP = " << endpoint.address().to_string() << ", port = " << endpoint.port() << std::endl;
-
-	return new AsyncStream(&messageDispatcher_, sock);
-}
-
 }// end of namespace messageframework
 

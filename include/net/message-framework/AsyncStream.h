@@ -151,18 +151,6 @@ public:
 	static long sended_data_size;
 };
 
-/**
- * @brief this abstract class defines functions to creates new AsyncStream
- */
-class AsyncStreamFactory {
-public:
-	AsyncStreamFactory() {
-	}
-	virtual ~AsyncStreamFactory() {
-	}
-	virtual AsyncStream
-			* createAsyncStream(boost::shared_ptr<tcp::socket> sock)=0;
-};
 }// end of namespace messageframework
 
 #endif // end of #ifndef _ASYNC_STREAM_H_
