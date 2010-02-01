@@ -23,9 +23,11 @@ namespace messageframework
 	// IndexManager
 	#define INDEX_PROCESS_SERVICE_PORT_AT_SERVER  9010
 
+	#define CONNECTION_RETRY_INTERVAL 1000
+
 	// if the data has not arrived for TIME_OUT_IN_MILISECOND, the connection
 	// will be automatically disconnected
-	
+
 	#define TIME_OUT_IN_MILISECOND 5000*2
 
 	#define INVALID_MESSAGE_ID 0

@@ -4,148 +4,155 @@
 ///  @author : TuanQuang Nguyen
 ///
 
-/**************** Include module header files *******************/
+
+#include <iostream>
+#include <sstream>
+
+#include <boost/shared_ptr.hpp>
+#include <boost/bind.hpp>
+#include <boost/thread.hpp>
+
 #include <net/message-framework/MessageClientFull.h>
 #include <net/message-framework/MessageFrameworkConfiguration.h>
 #include <net/message-framework/ServiceMessage.h>
 #include <net/message-framework/MessageType.h>
 #include <net/message-framework/ClientIdRequestMessage.h>
 
-/**************** Include boost header files *******************/
-#include <boost/shared_ptr.hpp>
-#include <boost/bind.hpp>
-#include <boost/thread.hpp>
-
-/**************** Include std header files *******************/
-#include <iostream>
-#include <sstream>
-
 using namespace std;
 
 namespace messageframework
 {
 
-    /***************************************************************************
-     Description: construct a MessageClientFull given the client name and
-     information of controller. The MessageClientFull will connects to controller.
-     Input:
-     ioservice - main io service
-     clientName - name of client
-     controller - information of controller
-     ***************************************************************************/
-    MessageClientFull::MessageClientFull(const std::string& clientName,
-                                         const MessageFrameworkNode& controllerInfo) :
-            messageDispatcher_(this, this, this), asyncConnector_(this, io_service_)
+    MessageClientFull::MessageClientFull(
+        const std::string& clientName,
+            const MessageFrameworkNode& controllerInfo)
+    :
+        messageDispatcher_(this, this, this),
+            asyncConnector_(this, io_service_),
+                connect_check_handler_(io_service_)
     {
         ownerManager_ = clientName;
-        //  information of service that retrieves permission of service
-        servicePermisionServer_ = controllerInfo;
 
-        // timeout is 1 second
+        // timeout is 10 second
         timeOutMilliSecond_ = TIME_OUT_IN_MILISECOND;
 
-        controllerNode_.nodeIP_ = getHostIp(io_service_, controllerInfo.nodeIP_);
+        controllerNode_.nodeIP_ = getHostIp(io_service_,
+            controllerInfo.nodeIP_);
         controllerNode_.nodePort_ = controllerInfo.nodePort_;
         controllerNode_.nodeName_ = controllerInfo.nodeName_;
 
-        connectionToControllerEstablished_ = false;
-        asyncConnector_.connect(controllerInfo.nodeIP_, controllerInfo.nodePort_);
+        ConnectionFuture cf = asyncConnector_.connect(
+            controllerInfo.nodeIP_, controllerInfo.nodePort_);
 
         // create thread for I/O operations
-        ioThread_ = new boost::thread(boost::bind(&boost::asio::io_service::run, &io_service_));
+        ioThread_ = new boost::thread(boost::bind(
+            &boost::asio::io_service::run, &io_service_));
 
-        // waiting until connection to controller is established
-        boost::mutex::scoped_lock connectionToControllerEstablishedLock(
-            connectionToControllerEstablishedMutex_);
-        boost::system_time const timeout = boost::get_system_time()
-                                           + boost::posix_time::milliseconds(timeOutMilliSecond_);
+        cf.wait();
+        while( !cf.isSucc() ) {
+            cf = asyncConnector_.connect(
+                controllerInfo.nodeIP_, controllerInfo.nodePort_);
+            cf.wait();
+        }
 
-        // there should not be any other thread waiting on connectionToControllerEvent_
-        try
-        {
-            while (!connectionToControllerEstablished_)
-            {
-                asyncConnector_.connect(controllerInfo.nodeIP_,
-                                        controllerInfo.nodePort_);
-                if ( !connectionToControllerEvent_.timed_wait(
-                            connectionToControllerEstablishedLock, timeout) )
-                    throw MessageFrameworkException(SF1_MSGFRK_CONNECTION_TIMEOUT, __LINE__, __FILE__);
-            }
-        }
-        catch (MessageFrameworkException &e)
-        {
-            e.output(std::cout);
-            LOG(ERROR)<<"Pleas check if Controller is ready... "<<std::endl;
-            exit(1);
-        }
+        // create a timer for monitoring connection to the controller
+        const int check_interval = 1;
+
+        connect_check_handler_.expires_from_now(
+            boost::posix_time::seconds(check_interval));
+        connect_check_handler_.async_wait(boost::bind(
+            &MessageClientFull::controllerConnectionCheckHandler,
+                this, check_interval, boost::asio::placeholders::error) );
 
         acceptedPermissionList_.clear();
     }
 
-    /***************************************************************************
-     Description: destructor, destroy variables it if is neccessary
-     ***************************************************************************/
     MessageClientFull::~MessageClientFull()
     {
         asyncConnector_.shutdown();
+        io_service_.stop();
         ioThread_->join();
         delete ioThread_;
     }
 
-    /****************************************************************************
-     Input:
-     node - remote node
-     Return:
-     true - connection has already been established or built successfully.
-     false - if the connection to remote node cannot be established in the given time.
-     Description: This function check connection to remote node, if connection
-     havn't been established, this function will try to prepare the connection.
-     ****************************************************************************/
+    void MessageClientFull::controllerConnectionCheckHandler(
+        const int check_interval,
+                const boost::system::error_code& error)
+    {
+        if (!error)
+        {
+            connect_check_handler_.expires_from_now(
+                boost::posix_time::seconds(check_interval));
+
+            if ( !messageDispatcher_.isExist(controllerNode_))
+            {
+                DLOG(WARNING) << "Try to reconnect to the controller";
+                ConnectionFuture cf = asyncConnector_.connect(
+                    controllerNode_.nodeIP_, controllerNode_.nodePort_);
+                connect_check_handler_.async_wait(boost::bind(
+                    &MessageClientFull::controllerConnectionCheckHandler,
+                        this, check_interval, cf,
+                            boost::asio::placeholders::error));
+            } else {
+                connect_check_handler_.async_wait(boost::bind(
+                    &MessageClientFull::controllerConnectionCheckHandler,
+                        this, check_interval,
+                            boost::asio::placeholders::error));
+            }
+        }
+    }
+
+
+    void MessageClientFull::controllerConnectionCheckHandler(
+        const int check_interval,
+            ConnectionFuture cf,
+                const boost::system::error_code& error)
+    {
+        if (!error)
+        {
+            connect_check_handler_.expires_from_now(
+                boost::posix_time::seconds(check_interval));
+
+            // fail to connect last time
+            if ( cf.isFinish() && !cf.isSucc() ) {
+                DLOG(WARNING) << "Try to reconnect to the controller";
+                ConnectionFuture cf = asyncConnector_.connect(
+                    controllerNode_.nodeIP_, controllerNode_.nodePort_);
+                connect_check_handler_.async_wait(boost::bind(
+                    &MessageClientFull::controllerConnectionCheckHandler,
+                        this, check_interval, cf,
+                            boost::asio::placeholders::error));
+            } else {
+                connect_check_handler_.async_wait(boost::bind(
+                    &MessageClientFull::controllerConnectionCheckHandler,
+                        this, check_interval,
+                            boost::asio::placeholders::error));
+            }
+        }
+    }
+
     bool MessageClientFull::prepareConnection(const MessageFrameworkNode& node)
     {
-        // connection to controller has not been established
-        if (!connectionToControllerEstablished_)
-            return false;
-
-        if (!messageDispatcher_.isExist(node))
-        {
-            // if connection to sever has not been established, connect to the server;
+        if (!messageDispatcher_.isExist(node)) {
             boost::system_time const timeout = boost::get_system_time()
                 + boost::posix_time::milliseconds(timeOutMilliSecond_);
-            boost::mutex::scoped_lock connectionToServerEstablishedLock(
-                connectionToServerEstablishedMutex_);
 
-            asyncConnector_.connect(node.nodeIP_, node.nodePort_);
-
-            // maybe, the connection has been established before timed_wait
-            while (!messageDispatcher_.isExist(node))
-            {
-                if ( !connectedToServerEvent_.timed_wait(
-                            connectionToServerEstablishedLock, timeout))
-                {
-                    DLOG(ERROR) << getName() << " cannot connect to "
-                        << node.nodeIP_ << ":" << node.nodePort_;
-                    return false;
-                }
-            }
+            ConnectionFuture cf = asyncConnector_.connect(
+                node.nodeIP_, node.nodePort_);
+            cf.timed_wait(timeout);
+            return cf.isSucc();
         }
         return true;
     }
 
-    bool MessageClientFull::getPermissionOfService(const std::string& serviceName,
+    bool MessageClientFull::getPermissionOfService(
+        const std::string& serviceName,
             std::map<std::string, MessageFrameworkNode>& servers)
     {
         ServicePermissionInfo servicePermissionInfo;
         std::map<std::string, ServicePermissionInfo>::const_iterator iter;
 
         DLOG(INFO)<< getName() << " request permission for service " << serviceName;
-
-        // connection has not been established
-        if (!connectionToControllerEstablished_) {
-            DLOG(ERROR) << getName() << " acquire retrieve service permission from controller, \
-                while controller hasn't been ready";
-            return false;
-        }
 
         try
         {
@@ -290,10 +297,6 @@ namespace messageframework
         const ServiceRequestInfoPtr& serviceRequestInfo,
         ServiceResultPtr& serviceResult)
     {
-        // connection has not been established
-        if (!connectionToControllerEstablished_)
-            return false;
-
         //the service provides no return value  @by MyungHyun - 2009-01-28
 
         /*if( serviceRequestInfo.getServiceResultFlag() ==
@@ -429,7 +432,7 @@ namespace messageframework
         const std::string& serviceName)
     {
         messageDispatcher_.sendDataToLowerLayer(PERMISSION_OF_SERVICE_REQUEST_MSG,
-            serviceName, controllerNode_);
+                                                serviceName, controllerNode_);
     }
 
 
@@ -604,39 +607,10 @@ namespace messageframework
     {
         tcp::endpoint endpoint = sock->remote_endpoint();
 
-        if (!connectionToControllerEstablished_)
-        {
-            DLOG(INFO) << "Accept new connection from controller, Remote IP = "
-                << endpoint.address().to_string() << endpoint.port();
+        DLOG(INFO) << "Accept new connection from another peer, Remote IP = "
+            << endpoint.address().to_string() << endpoint.port();
 
-            // this must be a connection to controller
-            AsyncStream* pNewSocket;
-            {
-                boost::mutex::scoped_lock connectionToControllerEstablishedLock(
-                    connectionToControllerEstablishedMutex_);
-                pNewSocket = new AsyncStream(&messageDispatcher_, sock);
-                connectionToControllerEstablished_ = true;
-            }
-            connectionToControllerEvent_.notify_all();
-            return pNewSocket;
-
-        }
-        else
-        {
-
-            DLOG(INFO) << "Accept new connection from server, Remote IP = "
-                << endpoint.address().to_string() << endpoint.port();
-
-            AsyncStream* pNewSocket;
-            {
-                boost::mutex::scoped_lock connectionToServerEstablishedLock(
-                    connectionToServerEstablishedMutex_);
-                pNewSocket = new AsyncStream(&messageDispatcher_, sock);
-            }
-            // the connection is made with server
-            connectedToServerEvent_.notify_all();
-            return pNewSocket;
-        }
+        return new AsyncStream(&messageDispatcher_, sock);
     }
 }// end of messageframework
 
