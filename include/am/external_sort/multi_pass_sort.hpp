@@ -569,6 +569,9 @@ public:
   
   void sort()
   {
+    if (count_ == 0)
+      return;
+    
     struct timeval tvafter, tvpre;
     struct timezone tz;
 
