@@ -32,6 +32,7 @@ IF(index_manager_SHOULD_BUILD)
   #INSTALL(TARGETS index_manager DESTINATION lib)
   INSTALL(TARGETS index_manager 
       LIBRARY DESTINATION lib 
+      ARCHIVE DESTINATION lib 
       COMPONENT "izenelib_libraries")
 
 ENDIF(index_manager_SHOULD_BUILD)

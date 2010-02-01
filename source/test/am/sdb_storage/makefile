@@ -4,10 +4,10 @@ GCC :=/usr/bin/gcc
 
 CC_OPTIONS :=  -O3 -g -Wall -c  -fmessage-length=0 -DDEBUG -pg
 
-LIBS =    /usr/local/lib/libboost_thread-gcc41-mt.so   /usr/local/lib/libboost_unit_test_framework-gcc41-mt.so   /usr/local/lib/libboost_serialization-gcc41-mt.so   ../../../../lib/libprocmeminfo.a	\
-	   ../../../../lib/libfebird.a	     -lglog 
+LIBS =    /usr/local/lib/libboost_thread-gcc41-mt.so   /usr/local/lib/libboost_unit_test_framework-gcc41-mt.so   /usr/local/lib/libboost_serialization-gcc41-mt.so   ../../../../lib/libprocmeminfo.so	\
+	   ../../../../lib/libfebird.so	 -lglog -L ../../../../../wiselib/lib
 
-INC_PATH := -I  /usr/local/include/boost-1_36/ -I ../../../../include/ -I ../../../../include/3rdparty/
+INC_PATH := -I  /usr/local/include/boost-1_36/ -I ../../../../include/ -I ../../../../include/3rdparty/   -I ../../../../../wiselib/include
 
 
 SDB_HASH_OBJ  := t_sdb_storage.o 
@@ -18,11 +18,18 @@ AM_OBJ := t_am.o
 
 AM_OBJ1 := t_am1.o
  
+OBJS := $(patsubst %.cc, %.o, $(wildcard *.cc)) 
 
 all: t_sdb_storage t_am 
 
 .cpp.o:
 	$(GPP) $(CC_OPTIONS) $(INC_PATH)  $< 
+	
+.cc.o:
+	$(GPP) $(CC_OPTIONS) $(INC_PATH)  $< 
+
+test:  $(OBJS)
+	$(GPP) $(OBJS) $(LIBS)  -o $@
 
 t_sdb_storage:  $(SDB_HASH_OBJ)
 	$(GPP) $(SDB_HASH_OBJ) $(LIBS)  -o $@ -pg		

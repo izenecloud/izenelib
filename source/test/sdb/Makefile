@@ -50,7 +50,7 @@ obj13 = t_sdb_query.o
 
 obj14 = t_dm.o
 
-all: t_dm #t_mul_sdb t_sdb_query #t_IndexSDB1 t_IndexSDB t_TrieIndexSDB1  t_TrieIndexSDB  t_btree2  t_btree1  t_sdb t_btree2 t_nsdb t_IndexSDB t_IndexSDB1 t_mul_sdb  t_btree_str \
+all: t_dm t_mul_sdb #t_sdb_query #t_IndexSDB1 t_IndexSDB t_TrieIndexSDB1  t_TrieIndexSDB  t_btree2  t_btree1  t_sdb t_btree2 t_nsdb t_IndexSDB t_IndexSDB1 t_mul_sdb  t_btree_str \
      # t_btree1 t_mul_sdb  t_nsdb t_overflow_btree 
      
 t_dm: $(obj14)

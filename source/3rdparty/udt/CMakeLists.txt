@@ -59,6 +59,7 @@ IF(udt_SHOULD_BUILD)
   #INSTALL(TARGETS udt DESTINATION lib)
   INSTALL(TARGETS udt     
       LIBRARY DESTINATION lib 
+      ARCHIVE DESTINATION lib 
       COMPONENT "izenelib_libraries")
 
   # we know the warnings, it's ok to alias void* as char*

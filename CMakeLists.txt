@@ -133,6 +133,12 @@ ELSEIF(_lower_library_type STREQUAL "shared")
   SET(BUILD_SHARED_LIBS ON)
 ENDIF(_lower_library_type STREQUAL "static")
 
+# use static in profile mode
+STRING(TOLOWER "${CMAKE_BUILD_TYPE}" _lower_build_type)
+IF(_lower_build_type STREQUAL "profile")
+  SET(BUILD_SHARED_LIBS OFF)
+ENDIF(_lower_build_type STREQUAL "profile")
+
 # Always use rpath
 SET(CMAKE_SKIP_BUILD_RPATH  FALSE)
 SET(CMAKE_BUILD_WITH_INSTALL_RPATH FALSE)
