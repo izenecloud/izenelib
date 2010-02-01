@@ -21,6 +21,7 @@ IF(jemalloc_SHOULD_BUILD)
     )
   INSTALL(TARGETS jemalloc     
       LIBRARY DESTINATION lib 
+      ARCHIVE DESTINATION lib 
       COMPONENT "izenelib_libraries")
 
 ENDIF(jemalloc_SHOULD_BUILD)
