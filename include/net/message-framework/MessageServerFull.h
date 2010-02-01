@@ -286,7 +286,17 @@ private:
 	/**
 	 * @brief connection with controller
 	 */
+	AsyncStreamManager asyncStreamManager_;
+
+	/**
+	 * @brief connection with controller
+	 */
 	AsyncConnector connector_;
+
+	/**
+	 * @brief connection with controller
+	 */
+	AsyncAcceptor acceptor_;
 
 	/**
 	 * @brief thread for I/O operations
@@ -297,9 +307,6 @@ private:
 	 * @brief local end point of the connection to MessageController
 	 */
 	MessageFrameworkNode controllerNode_;
-	bool connectionEstablished_;
-	boost::mutex connectionEstablishedMutex_;
-	boost::condition_variable connectionEstablishedEvent_;
 
 	clock_t tick1, tick2;
 	struct timeval val1, val2;

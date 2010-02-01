@@ -6,34 +6,12 @@ using boost::asio::ip::tcp;
 
 namespace messageframework
 {
-	AsyncConnector::AsyncConnector(AsyncStreamFactory* streamFactory, boost::asio::io_service& ioservice):
-			io_service_(ioservice),
-			streamFactory_(streamFactory)
-	{
-	}
+	AsyncAcceptor::AsyncAcceptor( boost::asio::io_service& ioservice,
+        AsyncStreamManager& streamManager)
+    :   io_service_(ioservice),
+            streamManager_(streamManager) {}
 
-	AsyncConnector::~AsyncConnector()
-	{
-			DLOG(INFO)  << "delete streams...";
-
-			for (std::list<AsyncStream* >::iterator iter = streams_.begin();
-							iter != streams_.end(); iter++) {
-					delete *iter; //delete streams and connections & interfaces
-			}
-	}
-
-
-	size_t AsyncConnector::streamNum(void)
-	{
-		return streams_.size();
-	}
-
-	void AsyncConnector::closeStream(AsyncStream* stream)
-	{
-		streams_.remove(stream);
-	}
-
-	void AsyncConnector::shutdown(void)
+	void AsyncAcceptor::shutdown(void)
 	{
 			DLOG(INFO) << "close acceptors...";
 
@@ -41,16 +19,10 @@ namespace messageframework
 							iter0 != acceptors_.end(); iter0++) {
 					(*iter0)->close(); //close acceptors
 			}
-
-			DLOG(INFO) << "shutdown streams...";
-
-			for (std::list<AsyncStream* >::iterator iter = streams_.begin();
-							iter != streams_.end(); iter++) {
-					(*iter)->shutdown(); //shutdown stream
-			}
 	}
 
-	void AsyncConnector::listen(int port)
+
+	void AsyncAcceptor::listen(int port)
 	{
 		tcp::endpoint endpoint(tcp::v4(), port);
 		boost::shared_ptr<tcp::acceptor> acceptor(new tcp::acceptor(io_service_, endpoint));
@@ -60,12 +32,11 @@ namespace messageframework
 		DLOG(INFO) << "Listen at : " << port;
 
 		boost::shared_ptr<tcp::socket> sock(new tcp::socket(io_service_));
-		acceptor->async_accept(*sock, boost::bind(&AsyncConnector::handle_accept, this,
+		acceptor->async_accept(*sock, boost::bind(&AsyncAcceptor::handle_accept, this,
 								acceptor, sock, boost::asio::placeholders::error));
 	}
 
-
-	void AsyncConnector::handle_accept(boost::shared_ptr<tcp::acceptor> acceptor,
+	void AsyncAcceptor::handle_accept(boost::shared_ptr<tcp::acceptor> acceptor,
 				boost::shared_ptr<tcp::socket> sock,
 				const boost::system::error_code& error)
 	{
@@ -73,15 +44,21 @@ namespace messageframework
 		{
 			DLOG(INFO) << "Accept new connection";
 
-			AsyncStream* stream = streamFactory_->createAsyncStream(sock);
-			streams_.push_back(stream);
+            streamManager_.addStream(sock);
 			boost::shared_ptr<tcp::socket> new_sock(new tcp::socket(io_service_));
-			acceptor->async_accept(*new_sock, boost::bind(&AsyncConnector::handle_accept, this,
+			acceptor->async_accept(*new_sock, boost::bind(&AsyncAcceptor::handle_accept, this,
 					acceptor, new_sock, boost::asio::placeholders::error));
 		} else {
 			DLOG(INFO) << "Connection closed while accepting";
 		}
 	}
+
+
+	AsyncConnector::AsyncConnector(boost::asio::io_service& ioservice,
+        AsyncStreamManager& streamManager)
+    :   io_service_(ioservice), streamManager_(streamManager) {}
+
+	AsyncConnector::~AsyncConnector() {}
 
 	ConnectionFuture AsyncConnector::connect(const std::string& host, unsigned int port)
 	{
@@ -117,9 +94,8 @@ namespace messageframework
 		if (!error)
 		{
 			DLOG(INFO) << "Connection is established";
-			AsyncStream* stream = streamFactory_->createAsyncStream(sock);
-			streams_.push_back(stream);
 			connectionFuture.setStatus(true, true);
+			streamManager_.addStream(sock);
 		}
 		else if (endpoint_iterator != tcp::resolver::iterator())
 		{
@@ -135,6 +111,37 @@ namespace messageframework
 		}
 	}
 
+
+	AsyncStreamManager::~AsyncStreamManager()
+	{
+			DLOG(INFO)  << "delete streams...";
+			for (std::list<AsyncStream* >::iterator iter = streams_.begin();
+							iter != streams_.end(); iter++) {
+					delete *iter; //delete streams and connections & interfaces
+			}
+	}
+
+	void AsyncStreamManager::addStream(boost::shared_ptr<tcp::socket> socket)
+	{
+		streams_.push_back(new AsyncStream(&messageDispatcher_, socket));
+	}
+
+	void AsyncStreamManager::shutdown(void)
+	{
+			DLOG(INFO) << "shutdown streams...";
+
+			for (std::list<AsyncStream* >::iterator iter = streams_.begin();
+							iter != streams_.end(); iter++) {
+					(*iter)->shutdown(); //shutdown stream
+			}
+	}
+
+	size_t AsyncStreamManager::streamNum(void)
+	{
+		return streams_.size();
+	}
+
+
 	std::string getHostIp(boost::asio::io_service& ioservice, const std::string&  host)
 	{
 		// get the IP of the machine
@@ -144,7 +151,6 @@ namespace messageframework
 		tcp::endpoint endpoint = *endpoint_iterator;
 		return endpoint.address().to_string();
 	}
-
 
 	std::string getLocalHostIp(boost::asio::io_service& ioservice)
 	{

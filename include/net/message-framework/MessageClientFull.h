@@ -46,8 +46,8 @@ namespace messageframework
 	 * result from MessageServer or from MessageController. A Manager that needs
 	 * result of other Managers in different process should use the MessageClientFull.
 	 */
-	class MessageClientFull : protected ServiceResultRequester, protected PermissionRequester,
-		protected ClientIdRequester, protected AsyncStreamFactory
+	class MessageClientFull : protected ServiceResultRequester,
+        protected PermissionRequester, protected ClientIdRequester
 	{
 	public:
 		/**
@@ -266,6 +266,11 @@ namespace messageframework
  		 * @brief queue of I/O operations
  		 */
 		boost::asio::io_service io_service_;
+
+		/**
+		 * @brief manage all connections
+		 */
+		AsyncStreamManager asyncStreamManager_;
 
 		/**
  		 * @brief connector to connect to controller

@@ -74,11 +74,9 @@ namespace messageframework
         boost::shared_ptr<ConnectionFutureImpl> impl_;
     };
 
+    class AsyncStreamManager;
 
-    /**
-     * @brief This class control the connection with peer node
-     */
-    class AsyncConnector
+    class AsyncAcceptor
     {
     public:
         /**
@@ -87,12 +85,13 @@ namespace messageframework
           * @param streamFactory pointer to AsyncStreamFactory
           * @param ioservice the thread for I/O queues
           */
-        AsyncConnector(AsyncStreamFactory* streamFactory, boost::asio::io_service& ioservice);
+        AsyncAcceptor(boost::asio::io_service& ioservice,
+            AsyncStreamManager& streamManager);
 
         /**
           * @brief Default destructor
           */
-        ~AsyncConnector();
+        ~AsyncAcceptor() {};
 
         /**
           * @brief start listening at a given port. If it accepts new connection, AsyncStreamFactory
@@ -100,26 +99,6 @@ namespace messageframework
           * @param port listening port
           */
         void listen(int port);
-
-        /**
-          * @brief connection to a given host:port
-          * @param host the host IP
-          * @param port the port number
-          */
-        ConnectionFuture connect(const std::string& host, const std::string& port);
-
-        ConnectionFuture connect(const std::string& host, unsigned int port);
-
-        /**
-         * @brief Return the number of AsyncStream
-         */
-        size_t streamNum(void);
-
-        /**
-          * @brief close a given stream
-          * @param stream: the stream to close
-          */
-        void closeStream(AsyncStream* stream);
 
         /**
           * @brief Shutdown all streams and acceptors
@@ -133,7 +112,47 @@ namespace messageframework
         void handle_accept(boost::shared_ptr<tcp::acceptor> acceptor,
                            boost::shared_ptr<tcp::socket> sock,
                            const boost::system::error_code& error);
+    private:
+        /**
+          * @brief I/O operation queue
+          */
+        boost::asio::io_service& io_service_;
 
+        std::list<boost::shared_ptr<tcp::acceptor> > acceptors_;
+
+        AsyncStreamManager& streamManager_;
+    };
+
+    /**
+     * @brief This class control the connection with peer node
+     */
+    class AsyncConnector
+    {
+    public:
+        /**
+          * @brief Construct a AsyncConnector with a given AsyncStreamFactory and io_service.
+          * The AsyncStreamFactory creates new AsyncStream when it accepts a new connection.
+          * @param streamFactory pointer to AsyncStreamFactory
+          * @param ioservice the thread for I/O queues
+          */
+        AsyncConnector(boost::asio::io_service& ioservice,
+            AsyncStreamManager& streamManager);
+
+        /**
+          * @brief Default destructor
+          */
+        ~AsyncConnector();
+
+        /**
+          * @brief connection to a given host:port
+          * @param host the host IP
+          * @param port the port number
+          */
+        ConnectionFuture connect(const std::string& host, const std::string& port);
+
+        ConnectionFuture connect(const std::string& host, unsigned int port);
+
+    private:
 
         /**
           * @brief this function is called when connection to a remote socket
@@ -150,18 +169,44 @@ namespace messageframework
           */
         boost::asio::io_service& io_service_;
 
+        AsyncStreamManager& streamManager_;
+    };
+
+    class AsyncStreamManager
+    {
+    public:
+        AsyncStreamManager(MessageDispatcher& dispatcher)
+            : messageDispatcher_(dispatcher) {}
+
+        ~AsyncStreamManager();
+
+        /**
+         * @brief Add a socket as stream
+         */
+        void addStream(boost::shared_ptr<tcp::socket> socket);
+
+        /**
+         * @brief Return the number of AsyncStream
+         */
+        size_t streamNum(void);
+
+        /**
+          * @brief Shutdown all streams
+          */
+        void shutdown(void);
+
+    private:
+
+        /**
+         * @brief MessageDispatcher is essential for creating a AsyncStream object
+         */
+        MessageDispatcher& messageDispatcher_;
+
         /**
           * @brief A list of AsyncStream that has been accepted
           */
         std::list<AsyncStream* > streams_;
-
-
-        std::list<boost::shared_ptr<tcp::acceptor> > acceptors_;
-
-
-        AsyncStreamFactory* streamFactory_;
     };
-
 
     std::string getHostIp(boost::asio::io_service& ioservice, const std::string&  host)	;
 

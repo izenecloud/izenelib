@@ -51,12 +51,13 @@ MessageControllerFull::MessageControllerFull(
     ownerManagerName_(controllerName),
     availableServiceList_(getAvailServiceSdbName(servicePort)),
 	messageDispatcher_(this, this, this, this, this),
-	asyncConnector_(this, io_service_)
+	asyncStreamManager_(messageDispatcher_),
+	asyncAcceptor_(io_service_, asyncStreamManager_)
 {
 	servicePort_ = servicePort;
 	ipAddress_ = getLocalHostIp(io_service_);
 
-	asyncConnector_.listen(servicePort_);
+	asyncAcceptor_.listen(servicePort_);
 
 	timeOutMilliSecond_ = 1000;
 
@@ -96,7 +97,8 @@ void MessageControllerFull::run() {
 }
 
 void MessageControllerFull::shutdown() {
-	asyncConnector_.shutdown();
+	asyncAcceptor_.shutdown();
+	asyncStreamManager_.shutdown();
 
     stop_ = true;
 

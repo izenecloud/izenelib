@@ -28,8 +28,9 @@ namespace messageframework
             const MessageFrameworkNode& controllerInfo)
     :
         messageDispatcher_(this, this, this),
-            asyncConnector_(this, io_service_),
-                connect_check_handler_(io_service_)
+            asyncStreamManager_(messageDispatcher_),
+                asyncConnector_(io_service_, asyncStreamManager_),
+                    connect_check_handler_(io_service_)
     {
         ownerManager_ = clientName;
 
@@ -63,13 +64,12 @@ namespace messageframework
         connect_check_handler_.async_wait(boost::bind(
             &MessageClientFull::controllerConnectionCheckHandler,
                 this, check_interval, boost::asio::placeholders::error) );
-
         acceptedPermissionList_.clear();
     }
 
     MessageClientFull::~MessageClientFull()
     {
-        asyncConnector_.shutdown();
+        asyncStreamManager_.shutdown();
         io_service_.stop();
         ioThread_->join();
         delete ioThread_;
@@ -599,18 +599,5 @@ namespace messageframework
             semaphore->post();
     }
 
-    /**
-     * @brief This function create a new AsyncStream that is based on tcp::socket
-     */
-    AsyncStream* MessageClientFull::createAsyncStream(
-        boost::shared_ptr<tcp::socket> sock)
-    {
-        tcp::endpoint endpoint = sock->remote_endpoint();
-
-        DLOG(INFO) << "Accept new connection from another peer, Remote IP = "
-            << endpoint.address().to_string() << endpoint.port();
-
-        return new AsyncStream(&messageDispatcher_, sock);
-    }
 }// end of messageframework
 
