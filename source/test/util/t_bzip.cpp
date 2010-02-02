@@ -1,3 +1,5 @@
+#include <stdlib.h>
+#include <string.h>
 #include <util/bzip.h>
 #include <boost/test/unit_test.hpp>
 #include <iostream>
