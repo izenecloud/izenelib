@@ -16,7 +16,7 @@
 
 #include <util/izene_log.h>
 #include <util/izene_serialization.h>
-
+#include <util/bzip.h>
 
 using namespace std;
 
