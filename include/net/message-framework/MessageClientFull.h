@@ -140,8 +140,21 @@ namespace messageframework
  		 * servicePermissionInfo - the information of the PermissionOfService
  		 */
 		void receivePermissionOfServiceResult(
-							const  ServicePermissionInfo& servicePermissionInfo);
+                const  ServicePermissionInfo& servicePermissionInfo);
 		/*** End of Interfaces of PermissionRequester ***/
+
+        /**
+         * @brief Check connection to controller from time to time
+         */
+		void controllerConnectionCheckHandler(const int check_interval,
+                const boost::system::error_code& error);
+
+        /**
+         * @brief Check connection to controller from time to time
+         */
+		void controllerConnectionCheckHandler(const int check_interval,
+                ConnectionFuture connectionFuture,
+                    const boost::system::error_code& error);
 
 		/**
 		 * @brief This function generate request id
@@ -238,10 +251,6 @@ namespace messageframework
 		int nxtSequentialNumber_;
 		boost::mutex nxtSequentialNumberMutex_;
 
-		// information of the server of ServicePermision
-		MessageFrameworkNode servicePermisionServer_;
-
-
 		/**
  		 * @brief This variables receives data from peer and sends data to the peer
  		 */
@@ -268,27 +277,17 @@ namespace messageframework
  		 */
 		boost::thread* ioThread_;
 
+
+        /**
+         * @brief timer which fires thread to check connection to controller every few seconds.
+         */
+		boost::asio::deadline_timer connect_check_handler_;
+
 		/**
  		 * @brief the controller node
  		 */
 		MessageFrameworkNode controllerNode_;
-		bool connectionToControllerEstablished_;
-		boost::mutex connectionToControllerEstablishedMutex_;
-		boost::condition_variable connectionToControllerEvent_;
-
-		bool connectionToServerEstablished_;
-		boost::mutex connectionToServerEstablishedMutex_;
-		boost::condition_variable connectedToServerEvent_;
-
-		// time for context switching
-		clock_t contextSwitchTick1, contextSwitchTick2;
-		struct timeval contextSwitchVal1, contextSwitchVal2;
-
-		// time for waiting data from socket
-		clock_t socketDataWaitingTick1, socketDataWaitingTick2;
-		struct timeval socketDataWaitingVal1, socketDataWaitingVal2;
 	};
- // typedef boost::shard_ptr<MessageClientFull> MessageClientFullPtr;
 
 }// end of namespace messageframework
 #endif  //#if !defined(_MESSAGECLIENT_FULL_H)

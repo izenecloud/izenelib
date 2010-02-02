@@ -17,7 +17,8 @@ BOOST_AUTO_TEST_SUITE( t_ServiceResolver )
 
 BOOST_AUTO_TEST_CASE(basic) {
 
-    google::InitGoogleLogging("t_mf");
+    std::cout << "Test basic" << std::endl;
+    //google::InitGoogleLogging("t_mf");
 
     ::remove("_ctr_services.10080.dat");
 
@@ -49,6 +50,7 @@ BOOST_AUTO_TEST_CASE(basic) {
 }
 
 BOOST_AUTO_TEST_CASE(multiple_collection) {
+    std::cout << "Test multiple collection" << std::endl;
 
     ::remove("_ctr_services.10080.dat");
 
@@ -93,6 +95,7 @@ BOOST_AUTO_TEST_CASE(multiple_collection) {
 }
 
 BOOST_AUTO_TEST_CASE(service_name_changed) {
+    std::cout << "Test service name changed" << std::endl;
 
     ::remove("_ctr_services.10080.dat");
 
@@ -189,5 +192,54 @@ BOOST_AUTO_TEST_CASE(controller_reboot) {
     rt.join();
 }
 
+
+
+BOOST_AUTO_TEST_CASE(controller_halt) {
+
+    ::remove("_ctr_services.10080.dat");
+
+    MessageFrameworkNode ctrlNode("localhost", 10080);
+
+    // Init Controller
+    MessageControllerFull controller("controller", 10080);
+    thread t(lambda::bind(&MessageControllerFull::run, var(controller)));
+    ::sleep(1);
+
+    // Init service @10086
+    ServiceInfo service("service");
+    service.setServer("localhost", 10086);
+    MessageServerFull server("server", 10086, ctrlNode);
+    server.setAgentInfo("0");
+    server.registerService(service);
+
+    // Init Client
+    map<string, MessageFrameworkNode> response;
+    MessageClientFull client("client", ctrlNode);
+    // Resolved service address == localhost::10086
+    client.getPermissionOfService("service", response);
+    BOOST_CHECK_EQUAL( response["0"].nodeIP_, "127.0.0.1" );
+    BOOST_CHECK_EQUAL( response["0"].nodePort_, 10086U );
+
+    // Controller halt for 10 seconds
+    controller.shutdown();
+    t.join();
+    ::sleep(10);
+
+    // Check whether client and server are still alive after controller reboot.
+    MessageControllerFull rebootedController("controller", 10080);
+    thread rt(lambda::bind(&MessageControllerFull::run, var(rebootedController)));
+    ::sleep(2);
+
+    // TODO: I cannot test whether server is alive in current code.
+
+    response.clear();
+    client.getPermissionOfService("service", response);
+    BOOST_CHECK_EQUAL( response["0"].nodeIP_, "127.0.0.1" );
+    BOOST_CHECK_EQUAL( response["0"].nodePort_, 10086U );
+
+    rebootedController.shutdown();
+    rt.join();
+
+}
 
 BOOST_AUTO_TEST_SUITE_END()
