@@ -63,7 +63,7 @@ public:
         int nNumLevls = 0;
         for(int i = 0; i < maxSkipLevel_; i++)
         {
-            if(ppSkipLevels_[i] && ppSkipLevels_[i]->getRealSize() > 0)
+            if(ppSkipLevels_[i] && ppSkipLevels_[i]->getLength() > 0)
                 nNumLevls++;
             else
                 break;
