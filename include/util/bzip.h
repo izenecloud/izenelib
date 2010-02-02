@@ -12,6 +12,7 @@
 
 #include <types.h>
 #include <bzlib.h>
+#include <cstdlib>
 
 NS_IZENELIB_UTIL_BEGIN
 
