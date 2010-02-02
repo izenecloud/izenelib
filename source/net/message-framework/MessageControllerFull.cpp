@@ -145,6 +145,7 @@ void MessageControllerFull::processServiceRegistrationRequest(void) {
 				serviceRegistrationRequestQueueLock.unlock();
 
 				string serviceName = request.first.getServiceInfo().getServiceName();
+				string agentInfo = request.first.getAgentInfo();
 				MessageFrameworkNode server = request.first.getServiceInfo().getServer();
 				if( server.nodeIP_.substr(0, 3) == "127" )
 					server.nodeIP_ = request.second.nodeIP_;
@@ -152,7 +153,8 @@ void MessageControllerFull::processServiceRegistrationRequest(void) {
 					// check if the sevice has been registered
 					boost::mutex::scoped_lock availableServiceListLock(availableServiceListMutex_);
 
-                    std::cout <<"ServiceRegistrationRequest: " << serviceName << std::endl;
+                    std::cout <<"ServiceRegistrationRequest: " << serviceName << ","
+                        << agentInfo << std::endl;
 
 					ServicePermissionInfo permissionInfo;
 					if( availableServiceList_.get(serviceName, permissionInfo) )

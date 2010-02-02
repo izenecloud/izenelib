@@ -46,7 +46,7 @@ MessageServerFull::MessageServerFull(const std::string& serverName,
 	controllerNode_.nodePort_ = controllerInfo.nodePort_;
 	controllerNode_.nodeName_ = controllerInfo.nodeName_;
 
-	ConnectionFuture cf = controllerConnector_.connect(controllerInfo);
+	ConnectionFuture cf = controllerConnector_.connect(controllerNode_);
 
 	// create new thread for I/O operations
 	ioThread_ = new boost::thread(boost::bind(&boost::asio::io_service::run, &io_service_));

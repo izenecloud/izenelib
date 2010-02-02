@@ -87,6 +87,38 @@ namespace messageframework
 
         try
         {
+            // check permission cache
+            {
+                boost::mutex::scoped_lock acceptedPermissionLock(acceptedPermissionMutex_);
+                iter = acceptedPermissionList_.find(serviceName);
+                if (iter != acceptedPermissionList_.end() )
+                {
+                    servicePermissionInfo = iter->second;
+
+                    bool valid = true;
+                    const std::map<std::string, MessageFrameworkNode> list =
+                        servicePermissionInfo.getServerMap();
+                    for(std::map<std::string, MessageFrameworkNode>::const_iterator
+                        it = list.begin(); it!=list.end(); it++ ) {
+                        // quick check whether connection is established
+                        if(!messageDispatcher_.isExist(it->second)) {
+                            valid = false;
+                            break;
+                        }
+                    }
+
+                    // all connections are valid
+                    if(valid) {
+                        DLOG(INFO) << getName() << " retrieve service permission from cache successfully";
+                        servicePermissionInfo.getServerMap(servers);
+                        return true;
+                    }
+
+                    DLOG(INFO) << getName() << " permission cache is not up to date for service " << serviceName;
+                    acceptedPermissionList_.erase(serviceName);
+                }
+            }
+
             sendPermissionOfServiceRequest(serviceName);
 
             boost::system_time const timeout = boost::get_system_time()
@@ -113,7 +145,6 @@ namespace messageframework
                     DLOG(ERROR) << getName() << "Service " << serviceName << " is not listed in Message Controller";
                     return false;
                 }
-                acceptedPermissionList_.erase(serviceName);
                 servicePermissionInfo.getServerMap(servers);
 
                 DLOG(INFO) << "getPermissionOfService returns true(newly received)";
