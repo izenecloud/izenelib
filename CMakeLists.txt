@@ -42,7 +42,7 @@ ENDIF(IS_DIRECTORY "${CMAKE_SOURCE_DIR}/cmake")
 IF(NOT EXTRA_CMAKE_MODULES_DIRS)
   MESSAGE(FATAL_ERROR
     "Cannot find EXTRA_CMAKE_MODULES_DIRS.
-Please clone it from izenesoft.com:/git/cmake.git. Then set EXTRA_CMAKE_MODULES_DIRS (-DEXTRA_CMAKE_MODULES_DIRS=/path/to/cmake)to path of the cloned repository. You also can copy the cloned cmakedirectory to ${CMAKE_INSTALL_PREFIX} or ${CMAKE_SOURCE_DIR}")
+Please clone it from https://git.izenesoft.cn/cmake/cmake. Then set EXTRA_CMAKE_MODULES_DIRS (-DEXTRA_CMAKE_MODULES_DIRS=/path/to/cmake) to path of the cloned repository. You also can copy the cloned cmakedirectory to ${CMAKE_INSTALL_PREFIX} or ${CMAKE_SOURCE_DIR}")
 ENDIF(NOT EXTRA_CMAKE_MODULES_DIRS)
 SET(CMAKE_MODULE_PATH ${EXTRA_CMAKE_MODULES_DIRS})
 
@@ -73,45 +73,37 @@ ENDIF(ENABLE_TEST)
 # set their own options. If it's required to customized these in cmake
 # command line options, please also add
 # "-DBUILD_FLAGS_HAS_BEEN_CUSTOMIZED".
-IF (NOT BUILD_FLAGS_HAS_BEEN_CUSTOMIZED)
+IF (CMAKE_COMPILER_IS_GNUCXX)
+  INCLUDE(MacroSetBuildTypes)
+  MACRO_SET_BUILD_TYPES(
+    RelWithDebInfo
+    "-O2 -g"
+    "Flags used by the compiler during Release with Debug Info builds."
 
-  # Set available types for build tool suppoting it, such as VS
-  IF (NOT CMAKE_CONFIGURATION_TYPES)
-    SET(CMAKE_CONFIGURATION_TYPES RelWithDebInfo Release MinSizeRel Debug)
-  ENDIF (NOT CMAKE_CONFIGURATION_TYPES)
+    Release
+    "-O3 -DNDEBUG"
+    "Flags used by the compiler during release builds"
 
-  # Add two build type
-  SET(CMAKE_CONFIGURATION_TYPES ${CMAKE_CONFIGURATION_TYPES} "Debugfull" "Profile" CACHE STRING "avalable build types" FORCE)
+    MinSizeRel
+    "-Os -DNDEBUG"
+    "Flags used by the compiler during release minsize builds."
 
-  # Customize For GNU/GCC
-  IF (CMAKE_COMPILER_IS_GNUCXX)
+    Debug
+    "-g -O0 -fno-reorder-blocks -fno-schedule-insns -fno-inline"
+    "Flags used by the compiler during debug builds."
 
-    # Customize options for the build types
-    SET(CMAKE_CXX_FLAGS_RELWITHDEBINFO "-O2 -g" CACHE STRING "Flags used by the compiler during Release with Debug Info builds." FORCE)
-    SET(CMAKE_CXX_FLAGS_RELEASE        "-O3 -DNDEBUG" CACHE STRING "Flags used by the compiler during release builds" FORCE)
-    SET(CMAKE_CXX_FLAGS_MINSIZEREL     "-Os -DNDEBUG" CACHE STRING "Flags used by the compiler during release minsize builds." FORCE)
-    SET(CMAKE_CXX_FLAGS_DEBUG          "-g -O0 -fno-reorder-blocks -fno-schedule-insns -fno-inline" CACHE STRING "Flags used by the compiler during debug builds." FORCE)
-    SET(CMAKE_CXX_FLAGS_DEBUGFULL      "-g3 -fno-inline" CACHE STRING "Debugfull build type" FORCE)
-    SET(CMAKE_CXX_FLAGS_PROFILE        "-g -O0 -fno-inline -ftest-coverage -fprofile-arcs" CACHE STRING "Profile build type" FORCE)
-  ENDIF (CMAKE_COMPILER_IS_GNUCXX)
+    DebugFull
+    "-g3 -fno-inline"
+    "Debugfull build type"
 
-  SET(BUILD_FLAGS_HAS_BEEN_CUSTOMIZED yes CACHE INTERNEL "build falgs has been customized?")
-  MARK_AS_ADVANCED(CMAKE_CONFIGURATION_TYPES CMAKE_CXX_FLAGS_DEBUGFULL CMAKE_CXX_FLAGS_PROFILE)
+    Profile
+    "-g -O0 -fno-inline -ftest-coverage -fprofile-arcs"
+    "Profile build type"
+    )
+ENDIF (CMAKE_COMPILER_IS_GNUCXX)
 
-ENDIF (NOT BUILD_FLAGS_HAS_BEEN_CUSTOMIZED)
-SET(CMAKE_C_FLAGS_RELWITHDEBINFO "${CMAKE_CXX_FLAGS_RELWITHDEBINFO}")
-SET(CMAKE_C_FLAGS_RELEASE        "${CMAKE_CXX_FLAGS_RELEASE}")
-SET(CMAKE_C_FLAGS_MINSIZEREL     "${CMAKE_CXX_FLAGS_MINSIZEREL}")
-SET(CMAKE_C_FLAGS_DEBUG          "${CMAKE_CXX_FLAGS_DEBUG}")
-SET(CMAKE_C_FLAGS_DEBUGFULL      "${CMAKE_CXX_FLAGS_DEBUGFULL}")
-SET(CMAKE_C_FLAGS_PROFILE        "${CMAKE_CXX_FLAGS_PROFILE}")
-
-# Set default build type
-IF(NOT CMAKE_BUILD_TYPE)
-  SET(CMAKE_BUILD_TYPE RelWithDebInfo)
-ENDIF(NOT CMAKE_BUILD_TYPE)
-SET(CMAKE_BUILD_TYPE "${CMAKE_BUILD_TYPE}" CACHE STRING
-    "Choose the type of build, options are: None(CMAKE_CXX_FLAGS or CMAKE_C_FLAGS used) Debug Release RelWithDebInfo MinSizeRel Debugfull Profile." FORCE)
+INCLUDE(MacroSetDefaultBuildType)
+MACRO_SET_DEFAULT_BUILD_TYPE(RelWithDebInfo)
 
 INCLUDE(SetCompilerWarningAll)
 # Write to cache
@@ -133,17 +125,45 @@ ELSEIF(_lower_library_type STREQUAL "shared")
   SET(BUILD_SHARED_LIBS ON)
 ENDIF(_lower_library_type STREQUAL "static")
 
-# use static in profile mode
+# use static in profile mode and add linking flag -lgcov
 STRING(TOLOWER "${CMAKE_BUILD_TYPE}" _lower_build_type)
 IF(_lower_build_type STREQUAL "profile")
-  SET(BUILD_SHARED_LIBS OFF)
+  SET(BUILD_SHARED_LIBS OFF CACHE BOOL "Build shared libraries?" FORCE)
+
+  IF(NOT CMAKE_EXE_LINKER_FLAGS MATCHES "-lgcov$")
+    SET(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -lgcov")
+  ENDIF(NOT CMAKE_EXE_LINKER_FLAGS MATCHES "-lgcov$")
+
+  SET(CMAKE_MODULE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS}")
+  SET(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS}")
+
+  # remove default link flags, some of them may add -rdynamic
+  SET(CMAKE_SHARED_LIBRARY_LINK_C_FLAGS)
+  SET(CMAKE_SHARED_LIBRARY_LINK_CXX_FLAGS)
+  SET(CMAKE_MODULE_LIBRARY_LINK_C_FLAGS)
+  SET(CMAKE_MODULE_LIBRARY_LINK_CXX_FLAGS)
+  SET(CMAKE_EXE_LIBRARY_LINK_C_FLAGS)
+  SET(CMAKE_EXE_LIBRARY_LINK_CXX_FLAGS)
+
+  SET(Boost_USE_STATIC_LIBS ON)
+
+  SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DTEST_COVERAGE")
+  SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -DTEST_COVERAGE")
 ENDIF(_lower_build_type STREQUAL "profile")
 
-# Always use rpath
-SET(CMAKE_SKIP_BUILD_RPATH  FALSE)
-SET(CMAKE_BUILD_WITH_INSTALL_RPATH FALSE)
-SET(CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/lib")
-SET(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
+IF(_lower_build_type STREQUAL "profile")
+  # No rpath in profile mode
+  SET(CMAKE_SKIP_BUILD_RPATH  TRUE)
+  SET(CMAKE_BUILD_WITH_INSTALL_RPATH TRUE)
+  SET(CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/lib")
+  SET(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
+ELSE(_lower_build_type STREQUAL "profile")
+  # Use rpath in non-profile mode
+  SET(CMAKE_SKIP_BUILD_RPATH  FALSE)
+  SET(CMAKE_BUILD_WITH_INSTALL_RPATH FALSE)
+  SET(CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/lib")
+  SET(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
+ENDIF(_lower_build_type STREQUAL "profile")
 
 ##################################################
 # Check Dependencies
@@ -221,6 +241,7 @@ IF(VERBOSE)
   STRING(TOUPPER "${CMAKE_BUILD_TYPE}" CMAKE_BUILD_TYPE_UPPER)
   MESSAGE(STATUS "  corresponding flags: ${CMAKE_CXX_FLAGS_${CMAKE_BUILD_TYPE_UPPER}}")
   MESSAGE(STATUS "CMAKE_CXX_FLAGS: ${CMAKE_CXX_FLAGS}")
+  MESSAGE(STATUS "CMAKE_EXE_LINKER_FLAGS: ${CMAKE_EXE_LINKER_FLAGS}")
   MESSAGE(STATUS "----------------------------------------")
 
   IF(Boost_FOUND)

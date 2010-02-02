@@ -352,15 +352,15 @@ BOOST_AUTO_TEST_CASE(LargerIsNotLess_test)
 BOOST_AUTO_TEST_CASE(ToBuffer_test)
 {
     String str("123");
-    izenelib::am::raw::Buffer buf;
+    ::izenelib::am::raw::Buffer buf;
     str.toBuffer(buf);
 
     BOOST_CHECK(str.empty());
     BOOST_CHECK(buf.size() == 3);
+    BOOST_CHECK(!buf.empty());
     BOOST_CHECK(buf[0] == '1');
     BOOST_CHECK(buf[1] == '2');
     BOOST_CHECK(buf[2] == '3');
 }
-
 
 BOOST_AUTO_TEST_SUITE_END()

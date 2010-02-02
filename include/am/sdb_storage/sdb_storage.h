@@ -44,13 +44,14 @@ template<
 typename KeyType,
 typename ValueType,
 typename LockType =NullLock,
-typename AmType=sdb_btree<KeyType, unsigned int, LockType>
-> class sdb_storage :public AccessMethod<KeyType, ValueType, LockType>
+typename AmType=sdb_btree<KeyType, unsigned int, LockType>,
+bool UseCompress = true
+>class sdb_storage :public AccessMethod<KeyType, ValueType, LockType>
 {
 public:
 	typedef AmType KeyHash;
 	typedef typename AmType::SDBCursor SDBCursor;
-	enum {BATCH_READ_NUM = 16};
+	enum {BATCH_READ_NUM = 8};
 	enum {FILE_HEAD_SIZE = 1024};
 public:
 	/**
@@ -154,6 +155,7 @@ public:
 		return false;
 		else {
 			return readValue_(key, npos, val);
+			//return readValue_(npos, val);
 		}
 
 	}
@@ -282,10 +284,10 @@ public:
 	/**
 	 *   db must be opened to be used.
 	 */
-	bool open() {		
+	bool open() {
 		if(isOpen_)
-			return true;
-		
+		return true;
+
 		struct stat statbuf;
 		bool creating = stat(fileName_.c_str(), &statbuf);
 
@@ -311,8 +313,8 @@ public:
 				}
 				DLOG(INFO)<<"open exist...\n"<<endl;
 				//ssh_.display( LOG(INFO) );
-
 			}
+			keyHash_.fillCache();
 		}
 #ifdef DEBUG 
 		ssh_.display();
@@ -326,7 +328,7 @@ public:
 	bool close()
 	{
 		if( !isOpen_ )
-			return false;
+		return false;
 		flush();
 		fclose(dataFile_);
 		dataFile_ = 0;
@@ -348,7 +350,7 @@ public:
 	 */
 	void flush() {
 		if( !dataFile_ )
-			return;
+		return;
 		keyHash_.flush();
 		ssh_.toFile(dataFile_);
 		fflush(dataFile_);
@@ -400,15 +402,37 @@ private:
 		izene_serialization<ValueType> izs(val);
 		izs.write_image(ptr, vsize);
 
+		if( UseCompress ) {
+			int vsz;
+			ptr = (char*)_tc_bzcompress(ptr, vsize, &vsz);
+			vsize = vsz;
+		}
+
 		ScopedWriteLock<LockType> lock(fileLock_);
-		if ( 0 != fseek(dataFile_, ssh_.nPage*ssh_.pageSize+sizeof(SsHeader), SEEK_SET) )
-		return false;
-		if( 1 != fwrite(&vsize, sizeof(size_t), 1, dataFile_) )
-		return false;
-		if( 1 != fwrite(ptr, vsize, 1, dataFile_) )
-		return false;
+		if ( 0 != fseek(dataFile_, ssh_.nPage*ssh_.pageSize+sizeof(SsHeader), SEEK_SET) ) {
+			if( UseCompress ) {
+				free(ptr);
+			}
+			return false;
+		}
+		if( 1 != fwrite(&vsize, sizeof(size_t), 1, dataFile_) ) {
+			if( UseCompress ) {
+				free(ptr);
+			}
+			return false;
+		}
+		if( 1 != fwrite(ptr, vsize, 1, dataFile_) ) {
+			if( UseCompress ) {
+				free(ptr);
+			}
+			return false;
+		}
 
 		ssh_.nPage += (sizeof(size_t)+vsize)/ssh_.pageSize + 1;
+
+		if( UseCompress ) {
+			free(ptr);
+		}
 		return true;
 	}
 
@@ -432,8 +456,8 @@ private:
 				if( keyHash_.get(locn, key, off) ) {
 					readValue_(off, temp);
 					readCache_.insert( make_pair(off, temp) );
-				}else
-					break;
+				} else
+				break;
 			}
 		}
 		return true;
@@ -453,11 +477,23 @@ private:
 		if ( 1 != fread(ptr, vsize, 1, dataFile_) )
 		return false;
 
+		if( UseCompress ) {			
+			int vsz=0;
+			char *p =(char*)_tc_bzdecompress(ptr, vsize, &vsz);
+			vsize = vsz;
+			delete ptr;
+			ptr = p;
+		}
+
 		izene_deserialization<ValueType> izd(ptr, vsize);
 		izd.read_image(val);
 
-		delete ptr;
-		ptr = 0;
+		if( UseCompress ) {
+			free(ptr);
+		} else {
+			delete ptr;
+			ptr = 0;
+		}
 		return true;
 	}
 
