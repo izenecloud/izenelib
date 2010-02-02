@@ -175,7 +175,7 @@ void InMemoryPosting::addLocation(docid_t docid, loc_t location)
             if(!pSkipListWriter_)
                 pSkipListWriter_ = new SkipListWriter(skipInterval_,maxSkipLevel_,pMemCache_);
 
-            pSkipListWriter_->addSkipPoint(nLastDocID_,pDocFreqList_->getRealSize(),pLocList_->getRealSize());
+            pSkipListWriter_->addSkipPoint(nLastDocID_,pDocFreqList_->getLength(),pLocList_->getLength());
         }
 		
         pDocFreqList_->addVData32(docid - nLastDocID_);
@@ -253,6 +253,14 @@ void InMemoryPosting::flushLastDoc(bool bTruncTail)
     {
         pDocFreqList_->truncTailChunk();///update real size
         pLocList_->truncTailChunk();///update real size
+    }
+
+    if(nDF_ > 0 && nDF_ % skipInterval_ == 0)
+    {
+        if(pSkipListWriter_)
+        {
+            pSkipListWriter_->addSkipPoint(nLastDocID_,pDocFreqList_->getRealSize(),pLocList_->getRealSize());
+        }
     }
 }
 
@@ -563,6 +571,7 @@ void OnDiskPosting::reset(fileoffset_t newOffset)
             delete pSkipListReader_;
 
         pDPInput->seek(postingOffset_ + (u - buf)); ///start of skipping data
+        cout<<"skipping start "<<pDPInput->getFilePointer()<<endl;
         pSkipListReader_ = new SkipListReader(pDPInput,skipInterval_,skipLevel);		
     }
 	

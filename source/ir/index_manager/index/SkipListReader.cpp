@@ -11,7 +11,7 @@ SkipListReader::SkipListReader(IndexInput* pSkipInput, int skipInterval, int num
 	, numSkipLevels_(numSkipLevels)
 	, numSkipped_(0)
 	, totalSkipped_(0)
-	, curSkipInterval_(0)
+	, lastDoc_(0)
 	, lastChildPointer_(0)
 {
     init();
@@ -24,7 +24,7 @@ SkipListReader::SkipListReader(VariantDataPool** pSkipLevels, int skipInterval, 
 	, numSkipLevels_(numSkipLevels)
 	, numSkipped_(0)
 	, totalSkipped_(0)
-	, curSkipInterval_(0)
+	, lastDoc_(0)
 	, lastChildPointer_(0)
 {
     init();
@@ -71,7 +71,7 @@ docid_t SkipListReader::skipTo(docid_t docID)
             level--;
         }
     }
-    return curDoc_;
+    return lastDoc_;
 }
 
 bool SkipListReader::nextSkip(docid_t docID)
@@ -80,16 +80,12 @@ bool SkipListReader::nextSkip(docid_t docID)
     {
         loadSkipLevels();
         loaded_ = true;
-    }
-    if(skipDoc_[0] == 0)
-    {
         if(!loadNextSkip(0))
             return false;
     }
     if(skipDoc_[0] <= docID)
     {
-        loadNextSkip(0);
-        return true;
+        return loadNextSkip(0);
     }
     return false;
 }
@@ -97,7 +93,7 @@ bool SkipListReader::nextSkip(docid_t docID)
 void SkipListReader::seekChild(int level)
 {
     skipStream_[level]->seek(lastChildPointer_);
-    skipDoc_[level] = curDoc_;
+    skipDoc_[level] = lastDoc_;
     numSkipped_[level] = numSkipped_[level + 1];
     if (level > 0)
     {
@@ -107,12 +103,11 @@ void SkipListReader::seekChild(int level)
 
 bool SkipListReader::loadNextSkip(int level)
 {
-    curDoc_ = skipDoc_[level];
+    lastDoc_ = skipDoc_[level];
     lastChildPointer_ = childPointer_[level];
     lastOffset_ = offsets_[level];
     lastPOffset_ = pOffsets_[level];
     totalSkipped_ = numSkipped_[level];
-    curSkipInterval_ = skipInterval_[level];
 
     if (skipStream_[level]->isEof()) 
     {
@@ -151,7 +146,7 @@ void SkipListReader::loadSkipLevels()
         {
             skipStream_[i] = skipStream_[0]->clone();
         }
-        //skipStream_[i]->setlength(skipStream_[0]->getFilePointer() + length);
+        skipStream_[i]->setlength(skipStream_[0]->getFilePointer() + length);
         if(i > 0)
         {
             skipStream_[0]->seek(skipStream_[0]->getFilePointer() + length);

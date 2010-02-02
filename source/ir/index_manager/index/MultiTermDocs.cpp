@@ -67,7 +67,6 @@ docid_t MultiTermDocs::skipTo(docid_t docId)
 		
         nFoundId = pTop->skipTo(docId);
         if((nFoundId != (docid_t)-1)&&(nFoundId >= docId))
-			
         {
             return nFoundId;
         }

@@ -199,7 +199,6 @@ void PostingMerger::mergeWith(OnDiskPosting* pOnDiskPosting)
     postingDesc_.df += pOnDiskPosting->postingDesc_.df;
     postingDesc_.length = chunkDesc_.length; ///currently,it's only one chunk
     chunkDesc_.lastdocid = pOnDiskPosting->chunkDesc_.lastdocid;
-
 }
 
 void PostingMerger::mergeWith(OnDiskPosting* pOnDiskPosting,BitVector* pFilter)
@@ -340,7 +339,6 @@ fileoffset_t PostingMerger::endMerge()
     }
     
     ///end write posting descriptor
-
     return postingoffset;
 }
 

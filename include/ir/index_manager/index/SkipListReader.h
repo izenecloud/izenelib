@@ -36,19 +36,13 @@ public:
     ///iterating skip points of lowest level
     bool nextSkip(docid_t docID);
 
-    docid_t getDoc() { return curDoc_;}
+    docid_t getDoc() { return lastDoc_;}
 
     fileoffset_t getOffset() { return lastOffset_; }
 	
     fileoffset_t getPOffset() { return lastPOffset_; }
 
     int getNumLevels(){ return numSkipLevels_; }
-
-    IndexInput* getLevelInput(int level)
-    {
-	assert(level >= 0&& level < numSkipLevels_);
-	return skipStream_[level];
-    }
 
     ///get skip interval of a certain levels
     int getLevelSkipInterval(int level)
@@ -58,8 +52,6 @@ public:
             skipInterval = skipInterval * skipInterval;
         return skipInterval;
     }
-
-    int getCurSkipInterval()	{ return curSkipInterval_; }
 
     int getNumSkipped() { return totalSkipped_; }
 
@@ -85,10 +77,9 @@ private:
     std::vector<int> skipInterval_; ///skip interval in each level
     std::vector<int> numSkipped_; ///number of skipped document per level 
     int totalSkipped_; ///total skipped document 
-    int curSkipInterval_; ///skip interval of current skip point
 
     std::vector<docid_t> skipDoc_; ///doc id of current skip entry per level
-    docid_t curDoc_; ///document of current skip point
+    docid_t lastDoc_; ///document of current skip point
     std::vector<fileoffset_t> childPointer_; ///current child pointer of each level (except level 0) 
     fileoffset_t lastChildPointer_; ///child pointer of current skip point
     std::vector<fileoffset_t> offsets_; ///offset of this point in posting (relative  to the begin of the posting)	

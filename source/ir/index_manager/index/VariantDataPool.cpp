@@ -14,6 +14,7 @@ VariantDataPool::VariantDataPool(MemCache* pMemCache)
 		,nTotalSize_(0)
 		,nTotalUnused_(0)
 		,nPosInCurChunk_(0)
+		,nTotalUsed_(0)
 {
 }
 
@@ -24,6 +25,7 @@ VariantDataPool::VariantDataPool(const VariantDataPool& src)
 		,nTotalSize_(src.nTotalSize_)
 		,nTotalUnused_(src.nTotalUnused_)
 		,nPosInCurChunk_(src.nPosInCurChunk_)
+		,nTotalUsed_(src.nTotalUsed_)
 {
 }
 
@@ -53,8 +55,10 @@ bool VariantDataPool::addVData32(uint32_t vdata32)
     {
         pTailChunk_->data[nPosInCurChunk_++] = ((uint8_t)((ui & 0x7f) | 0x80));
         ui >>= 7;
+        nTotalUsed_++;
     }
     pTailChunk_->data[nPosInCurChunk_++] = (uint8_t)ui;
+    nTotalUsed_++;
     return true;
 }
 
@@ -79,8 +83,10 @@ bool VariantDataPool::addVData64(uint64_t vdata64)
     {
         pTailChunk_->data[nPosInCurChunk_++] = ((uint8_t)((ui & 0x7f) | 0x80));
         ui >>= 7;
+        nTotalUsed_++;
     }
     pTailChunk_->data[nPosInCurChunk_++] = ((uint8_t)ui);
+    nTotalUsed_++;
 
     return true;
 }
@@ -188,10 +194,15 @@ int32_t VariantDataPool::getRealSize()
     return nTotalSize_ - nTotalUnused_;
 }
 
+uint32_t VariantDataPool::getLength()
+{
+    return nTotalUsed_;
+}
+
 void VariantDataPool::reset()
 {
     pHeadChunk_ = pTailChunk_ = NULL;
-    nTotalSize_ = nPosInCurChunk_ = nTotalUnused_ = 0;
+    nTotalSize_ = nPosInCurChunk_ = nTotalUnused_ = nTotalUsed_ = 0;
 }
 
 //////////////////////////////////////////////////////

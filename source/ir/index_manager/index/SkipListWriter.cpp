@@ -64,7 +64,7 @@ void SkipListWriter::addSkipPoint(docid_t docId,fileoffset_t offset,fileoffset_t
         pLastOffset_[level] = curOffset_;
         pLastPOffset_[level] = curPOffset_;    
 		
-        uint64_t nNewChildPointer = ppSkipLevels_[level]->getRealSize();
+        uint64_t nNewChildPointer = ppSkipLevels_[level]->getLength();
         if (level != 0) 
         {
             // store child pointers for all levels except the lowest
@@ -84,6 +84,7 @@ void SkipListWriter::write(IndexOutput* pOutput)
     {
         if(ppSkipLevels_[i])
         {
+            ppSkipLevels_[i]->truncTailChunk();
             fileoffset_t nLength = ppSkipLevels_[i]->getRealSize();
             if (nLength > 0) 
             {

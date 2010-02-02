@@ -93,6 +93,11 @@ public:
     /** get the real size of the list */
     int32_t getRealSize();
 
+    /** the difference between getLength and getRealSize is :
+           getRealsize=getLength after truncTailChunk is called
+    */
+    uint32_t getLength();
+
     /**
      * reset the list for using at next time
      */
@@ -113,6 +118,7 @@ private:
     uint32_t nTotalSize_; ///Total size
     uint32_t nTotalUnused_; ///Total Unused size
     uint32_t nPosInCurChunk_;
+    uint32_t nTotalUsed_; ///Total Unused size
 
     friend class InMemoryPosting;
     friend class PostingMerger;

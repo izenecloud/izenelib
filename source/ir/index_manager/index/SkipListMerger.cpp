@@ -28,10 +28,15 @@ bool SkipListMerger::addToMerge(SkipListReader* pSkipReader,docid_t lastDoc)
 {			
     bool ret = false;
     while(pSkipReader->nextSkip(lastDoc))
-    {				
+    {
         add(pSkipReader);
         ret = true;
     }
+    if(pSkipReader->getDoc()>0 && pSkipReader->getDoc()<BAD_DOCID)
+    {
+        add(pSkipReader);
+    }
+
     return ret;
 }
 
