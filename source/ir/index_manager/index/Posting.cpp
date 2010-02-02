@@ -571,7 +571,6 @@ void OnDiskPosting::reset(fileoffset_t newOffset)
             delete pSkipListReader_;
 
         pDPInput->seek(postingOffset_ + (u - buf)); ///start of skipping data
-        cout<<"skipping start "<<pDPInput->getFilePointer()<<endl;
         pSkipListReader_ = new SkipListReader(pDPInput,skipInterval_,skipLevel);		
     }
 	
