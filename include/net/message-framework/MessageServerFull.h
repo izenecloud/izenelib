@@ -187,6 +187,7 @@ protected:
 	void sendResultOfService(const MessageFrameworkNode& requester,
 			const ServiceResultPtr& result);
 
+
 	/************** End of interfaces of ServiceResultServer **************/
 
 	/**
@@ -297,6 +298,8 @@ private:
 	 * @brief connection with controller
 	 */
 	AsyncAcceptor acceptor_;
+
+    AsyncControllerConnector controllerConnector_;
 
 	/**
 	 * @brief thread for I/O operations

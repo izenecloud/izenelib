@@ -30,7 +30,7 @@ namespace messageframework
         messageDispatcher_(this, this, this),
             asyncStreamManager_(messageDispatcher_),
                 asyncConnector_(io_service_, asyncStreamManager_),
-                    connect_check_handler_(io_service_)
+                    asyncControllerConnector_(io_service_, asyncStreamManager_, 1)
     {
         ownerManager_ = clientName;
 
@@ -42,93 +42,24 @@ namespace messageframework
         controllerNode_.nodePort_ = controllerInfo.nodePort_;
         controllerNode_.nodeName_ = controllerInfo.nodeName_;
 
-        ConnectionFuture cf = asyncConnector_.connect(
-            controllerInfo.nodeIP_, controllerInfo.nodePort_);
+        ConnectionFuture cf = asyncControllerConnector_.connect(
+            controllerNode_);
 
         // create thread for I/O operations
         ioThread_ = new boost::thread(boost::bind(
             &boost::asio::io_service::run, &io_service_));
 
-        cf.wait();
-        while( !cf.isSucc() ) {
-            cf = asyncConnector_.connect(
-                controllerInfo.nodeIP_, controllerInfo.nodePort_);
+        while( !cf.isSucc() )
             cf.wait();
-        }
-
-        // create a timer for monitoring connection to the controller
-        const int check_interval = 1;
-
-        connect_check_handler_.expires_from_now(
-            boost::posix_time::seconds(check_interval));
-        connect_check_handler_.async_wait(boost::bind(
-            &MessageClientFull::controllerConnectionCheckHandler,
-                this, check_interval, boost::asio::placeholders::error) );
         acceptedPermissionList_.clear();
     }
 
     MessageClientFull::~MessageClientFull()
     {
         asyncStreamManager_.shutdown();
-        io_service_.stop();
+        asyncControllerConnector_.stop();
         ioThread_->join();
         delete ioThread_;
-    }
-
-    void MessageClientFull::controllerConnectionCheckHandler(
-        const int check_interval,
-                const boost::system::error_code& error)
-    {
-        if (!error)
-        {
-            connect_check_handler_.expires_from_now(
-                boost::posix_time::seconds(check_interval));
-
-            if ( !messageDispatcher_.isExist(controllerNode_))
-            {
-                DLOG(WARNING) << "Try to reconnect to the controller";
-                ConnectionFuture cf = asyncConnector_.connect(
-                    controllerNode_.nodeIP_, controllerNode_.nodePort_);
-                connect_check_handler_.async_wait(boost::bind(
-                    &MessageClientFull::controllerConnectionCheckHandler,
-                        this, check_interval, cf,
-                            boost::asio::placeholders::error));
-            } else {
-                connect_check_handler_.async_wait(boost::bind(
-                    &MessageClientFull::controllerConnectionCheckHandler,
-                        this, check_interval,
-                            boost::asio::placeholders::error));
-            }
-        }
-    }
-
-
-    void MessageClientFull::controllerConnectionCheckHandler(
-        const int check_interval,
-            ConnectionFuture cf,
-                const boost::system::error_code& error)
-    {
-        if (!error)
-        {
-            connect_check_handler_.expires_from_now(
-                boost::posix_time::seconds(check_interval));
-
-            // fail to connect last time
-            if ( cf.isFinish() && !cf.isSucc() ) {
-                DLOG(WARNING) << "Try to reconnect to the controller";
-                ConnectionFuture cf = asyncConnector_.connect(
-                    controllerNode_.nodeIP_, controllerNode_.nodePort_);
-                connect_check_handler_.async_wait(boost::bind(
-                    &MessageClientFull::controllerConnectionCheckHandler,
-                        this, check_interval, cf,
-                            boost::asio::placeholders::error));
-            } else {
-                connect_check_handler_.async_wait(boost::bind(
-                    &MessageClientFull::controllerConnectionCheckHandler,
-                        this, check_interval,
-                            boost::asio::placeholders::error));
-            }
-        }
     }
 
     bool MessageClientFull::prepareConnection(const MessageFrameworkNode& node)

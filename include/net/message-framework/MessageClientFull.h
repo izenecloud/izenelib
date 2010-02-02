@@ -143,19 +143,6 @@ namespace messageframework
                 const  ServicePermissionInfo& servicePermissionInfo);
 		/*** End of Interfaces of PermissionRequester ***/
 
-        /**
-         * @brief Check connection to controller from time to time
-         */
-		void controllerConnectionCheckHandler(const int check_interval,
-                const boost::system::error_code& error);
-
-        /**
-         * @brief Check connection to controller from time to time
-         */
-		void controllerConnectionCheckHandler(const int check_interval,
-                ConnectionFuture connectionFuture,
-                    const boost::system::error_code& error);
-
 		/**
 		 * @brief This function generate request id
 		 */
@@ -277,16 +264,15 @@ namespace messageframework
  		 */
 		AsyncConnector asyncConnector_;
 
+        /**
+         * @brief connector to controller
+         */
+		AsyncControllerConnector asyncControllerConnector_;
+
 		/**
  		 * @brief thread for I/O operations
  		 */
 		boost::thread* ioThread_;
-
-
-        /**
-         * @brief timer which fires thread to check connection to controller every few seconds.
-         */
-		boost::asio::deadline_timer connect_check_handler_;
 
 		/**
  		 * @brief the controller node

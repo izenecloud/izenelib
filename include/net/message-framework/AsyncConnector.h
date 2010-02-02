@@ -7,6 +7,7 @@
 #include <boost/shared_ptr.hpp>
 #include <boost/enable_shared_from_this.hpp>
 #include <boost/asio.hpp>
+#include <boost/lexical_cast.hpp>
 
 #include <string>
 #include <list>
@@ -22,8 +23,10 @@ namespace messageframework
     class ConnectionFuture
     {
     public:
-        ConnectionFuture() : impl_(new ConnectionFutureImpl()) {}
-        ConnectionFuture(const ConnectionFuture& cf) : impl_(cf.impl_) {}
+        ConnectionFuture(std::string host, std::string port)
+        : impl_(new ConnectionFutureImpl(host, port)) {}
+        ConnectionFuture(const ConnectionFuture& cf)
+        : impl_(cf.impl_) {}
         ConnectionFuture& operator = (const ConnectionFuture& cf)
         {
             impl_ = cf.impl_;
@@ -43,6 +46,14 @@ namespace messageframework
         bool isSucc()
         {
             return impl_->succ_;
+        }
+        const std::string& getHost()
+        {
+            return impl_->host_;
+        }
+        const std::string& getPort()
+        {
+            return impl_->port_;
         }
         void wait()
         {
@@ -65,7 +76,10 @@ namespace messageframework
         class ConnectionFutureImpl
         {
         public:
-            ConnectionFutureImpl() : finish_(false), succ_(false) {}
+            ConnectionFutureImpl(std::string host, std::string port)
+            : host_(host), port_(port), finish_(false), succ_(false) {}
+            std::string host_;
+            std::string port_;
             bool finish_;
             bool succ_;
             boost::mutex mutex_;
@@ -136,21 +150,33 @@ namespace messageframework
           * @param ioservice the thread for I/O queues
           */
         AsyncConnector(boost::asio::io_service& ioservice,
-            AsyncStreamManager& streamManager);
+            AsyncStreamManager& streamManager)
+        : io_service_(ioservice), streamManager_(streamManager) {}
 
         /**
           * @brief Default destructor
           */
-        ~AsyncConnector();
+        virtual ~AsyncConnector() {}
 
         /**
           * @brief connection to a given host:port
           * @param host the host IP
           * @param port the port number
           */
-        ConnectionFuture connect(const std::string& host, const std::string& port);
 
-        ConnectionFuture connect(const std::string& host, unsigned int port);
+        ConnectionFuture connect(const std::string& host, const unsigned int port)
+        {
+            return doConnect(host, boost::lexical_cast<std::string>(port));
+        }
+
+        ConnectionFuture connect(const MessageFrameworkNode & node)
+        {
+            return doConnect(node.nodeIP_, boost::lexical_cast<std::string>(node.nodePort_));
+        }
+
+    protected:
+
+        virtual ConnectionFuture doConnect(const std::string& host, const std::string& port);
 
     private:
 
@@ -163,7 +189,7 @@ namespace messageframework
                             ConnectionFuture connectionFuture,
                             const boost::system::error_code& error);
 
-    private:
+    protected:
         /**
           * @brief I/O operation queue
           */
@@ -171,6 +197,57 @@ namespace messageframework
 
         AsyncStreamManager& streamManager_;
     };
+
+
+    /**
+     * @brief This class control the connection with peer node
+     */
+    class AsyncControllerConnector : public AsyncConnector
+    {
+    public:
+
+        AsyncControllerConnector(boost::asio::io_service& ioservice,
+            AsyncStreamManager& streamManager, int check_interval)
+        :   AsyncConnector(ioservice, streamManager),
+                check_interval_(check_interval),
+                    connect_check_handler_ (ioservice) {}
+
+        /**
+          * @brief Default destructor
+          */
+        virtual ~AsyncControllerConnector() {}
+
+        void stop() {connect_check_handler_.cancel();}
+
+    protected:
+
+        ConnectionFuture doConnect(const std::string& host, const std::string& port);
+
+    private:
+
+        /**
+         * @brief Check connection to controller from time to time
+         */
+		void controllerConnectionCheckHandler(const int check_interval,
+            const std::string host, const std::string port,
+                const boost::system::error_code& error);
+
+        /**
+         * @brief Check connection to controller from time to time
+         */
+		void controllerConnectionCheckHandler(const int check_interval,
+                ConnectionFuture connectionFuture,
+                    const boost::system::error_code& error);
+
+        int check_interval_;
+
+        /**
+         * @brief timer which fires thread to check connection to
+         * controller every few seconds.
+         */
+		boost::asio::deadline_timer connect_check_handler_;
+    };
+
 
     class AsyncStreamManager
     {
@@ -184,6 +261,16 @@ namespace messageframework
          * @brief Add a socket as stream
          */
         void addStream(boost::shared_ptr<tcp::socket> socket);
+
+//        /**
+//         * @brief Shutdown and destruct stream
+//         */
+//        void eraseStream(const MessageFrameworkNode& node);
+
+        /**
+         * @brief Does stream exist
+         */
+        bool exist(const MessageFrameworkNode& node);
 
         /**
          * @brief Return the number of AsyncStream

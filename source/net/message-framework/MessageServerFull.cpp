@@ -35,7 +35,8 @@ MessageServerFull::MessageServerFull(const std::string& serverName,
         messageDispatcher_(this, this),
         asyncStreamManager_(messageDispatcher_),
         connector_(io_service_, asyncStreamManager_),
-        acceptor_(io_service_, asyncStreamManager_)
+        acceptor_(io_service_, asyncStreamManager_),
+        controllerConnector_(io_service_, asyncStreamManager_, 1)
 {
 	server_.nodeIP_ = getLocalHostIp(io_service_);
 	server_.nodePort_ = serverPort;
@@ -45,18 +46,13 @@ MessageServerFull::MessageServerFull(const std::string& serverName,
 	controllerNode_.nodePort_ = controllerInfo.nodePort_;
 	controllerNode_.nodeName_ = controllerInfo.nodeName_;
 
-	ConnectionFuture cf = connector_.connect(controllerInfo.nodeIP_,
-        controllerInfo.nodePort_);
+	ConnectionFuture cf = controllerConnector_.connect(controllerInfo);
 
 	// create new thread for I/O operations
 	ioThread_ = new boost::thread(boost::bind(&boost::asio::io_service::run, &io_service_));
 
-	cf.wait();
-	while(!cf.isSucc() ) {
-	    cf = connector_.connect(controllerInfo.nodeIP_,
-            controllerInfo.nodePort_);
+	while(!cf.isSucc() )
 	    cf.wait();
-	}
 }
 
 /******************************************************************************
@@ -65,6 +61,7 @@ MessageServerFull::MessageServerFull(const std::string& serverName,
 MessageServerFull::~MessageServerFull() {
     asyncStreamManager_.shutdown();
 	acceptor_.shutdown();
+    controllerConnector_.stop();
 	ioThread_->join();
 	delete ioThread_;
 }

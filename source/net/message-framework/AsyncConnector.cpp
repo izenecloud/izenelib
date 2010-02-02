@@ -1,4 +1,5 @@
 #include <net/message-framework/AsyncConnector.h>
+#include <net/message-framework/MessageDispatcher.h>
 
 #include <iostream>
 
@@ -53,25 +54,9 @@ namespace messageframework
 		}
 	}
 
-
-	AsyncConnector::AsyncConnector(boost::asio::io_service& ioservice,
-        AsyncStreamManager& streamManager)
-    :   io_service_(ioservice), streamManager_(streamManager) {}
-
-	AsyncConnector::~AsyncConnector() {}
-
-	ConnectionFuture AsyncConnector::connect(const std::string& host, unsigned int port)
+	ConnectionFuture AsyncConnector::doConnect(const std::string& host, const std::string& port)
 	{
-		std::stringstream sstream;
-		sstream << port;
-		std::string strPort = sstream.str();
-
-		return connect(host, strPort);
-	}
-
-	ConnectionFuture AsyncConnector::connect(const std::string& host, const std::string& port)
-	{
-	    ConnectionFuture connectionFuture;
+	    ConnectionFuture connectionFuture(host, port);
 
 		tcp::resolver resolver(io_service_);
 		tcp::resolver::query query(tcp::v4(), host, port);
@@ -111,6 +96,73 @@ namespace messageframework
 		}
 	}
 
+	ConnectionFuture AsyncControllerConnector::doConnect(
+        const std::string& host, const std::string& port)
+	{
+        ConnectionFuture cf = AsyncConnector::doConnect(host, port);
+
+        connect_check_handler_.expires_from_now(
+            boost::posix_time::seconds(check_interval_));
+        connect_check_handler_.async_wait(boost::bind(
+            &AsyncControllerConnector::controllerConnectionCheckHandler,
+                this, check_interval_, cf, boost::asio::placeholders::error) );
+        return cf;
+	}
+
+    void AsyncControllerConnector::controllerConnectionCheckHandler(
+        const int check_interval, const std::string host, const std::string port,
+                const boost::system::error_code& error)
+    {
+        if (!error)
+        {
+            connect_check_handler_.expires_from_now(
+                boost::posix_time::seconds(check_interval));
+
+            if ( !streamManager_.exist(MessageFrameworkNode(host,
+                boost::lexical_cast<unsigned int>(port) )))
+            {
+                DLOG(WARNING) << "Try to reconnect to the controller";
+                ConnectionFuture cf = AsyncConnector::doConnect( host, port);
+                connect_check_handler_.async_wait(boost::bind(
+                    &AsyncControllerConnector::controllerConnectionCheckHandler,
+                        this, check_interval, cf,
+                            boost::asio::placeholders::error));
+            } else {
+                connect_check_handler_.async_wait(boost::bind(
+                    &AsyncControllerConnector::controllerConnectionCheckHandler,
+                        this, check_interval, host, port,
+                            boost::asio::placeholders::error));
+            }
+        }
+    }
+
+    void AsyncControllerConnector::controllerConnectionCheckHandler(
+        const int check_interval, ConnectionFuture cf,
+            const boost::system::error_code& error)
+    {
+        if (!error)
+        {
+            connect_check_handler_.expires_from_now(
+                boost::posix_time::seconds(check_interval));
+
+            // fail to connect last time
+            if ( cf.isFinish() && !cf.isSucc() ) {
+                DLOG(WARNING) << "Try to reconnect to the controller";
+                std::string host = cf.getHost();
+                std::string port = cf.getPort();
+                ConnectionFuture cf = AsyncConnector::doConnect(host , port);
+                connect_check_handler_.async_wait(boost::bind(
+                    &AsyncControllerConnector::controllerConnectionCheckHandler,
+                        this, check_interval, cf,
+                            boost::asio::placeholders::error));
+            } else {
+                connect_check_handler_.async_wait(boost::bind(
+                    &AsyncControllerConnector::controllerConnectionCheckHandler,
+                        this, check_interval, cf.getHost(), cf.getPort(),
+                            boost::asio::placeholders::error));
+            }
+        }
+    }
 
 	AsyncStreamManager::~AsyncStreamManager()
 	{
@@ -125,6 +177,11 @@ namespace messageframework
 	{
 		streams_.push_back(new AsyncStream(&messageDispatcher_, socket));
 	}
+
+    bool AsyncStreamManager::exist(const MessageFrameworkNode& node)
+    {
+        return messageDispatcher_.isExist(node);
+    }
 
 	void AsyncStreamManager::shutdown(void)
 	{
