@@ -15,6 +15,7 @@ PostingMerger::PostingMerger()
         ,pMemCache_(NULL)
 {
     reset();
+    init();
 }
 
 PostingMerger::PostingMerger(OutputDescriptor* pOutputDescriptor)
@@ -28,6 +29,7 @@ PostingMerger::PostingMerger(OutputDescriptor* pOutputDescriptor)
         ,pMemCache_(NULL)
 {
     reset();
+    init();
 }
 
 PostingMerger::~PostingMerger()
@@ -62,12 +64,13 @@ void PostingMerger::setBuffer(char* buf,size_t bufSize)
     buffer_ = buf;
     bufsize_ = bufSize;
 }
-void PostingMerger::createBuffer()
+void PostingMerger::init()
 {
     buffer_ = new char[POSTINGMERGE_BUFFERSIZE];
     bufsize_ = POSTINGMERGE_BUFFERSIZE;
     bOwnBuffer_ = true;
-    pMemCache_ = new MemCache(POSTINGMERGE_BUFFERSIZE);
+    pMemCache_ = new MemCache(POSTINGMERGE_BUFFERSIZE*128);
+    pSkipListMerger_ = new SkipListMerger(Posting::skipInterval_,Posting::maxSkipLevel_,pMemCache_);
 }
 
 void PostingMerger::mergeWith(InMemoryPosting* pInMemoryPosting)
@@ -125,12 +128,6 @@ void PostingMerger::mergeWith(InMemoryPosting* pInMemoryPosting)
 
     if(pSkipReader)
     {
-        if(!pSkipListMerger_)
-        {
-            if(!pMemCache_)
-                createBuffer();
-            pSkipListMerger_ = new SkipListMerger(pInMemoryPosting->skipInterval_,pInMemoryPosting->maxSkipLevel_,pMemCache_);
-        }
         pSkipListMerger_->setBasePoint(0,baseDOffset,basePOffset);
         pSkipListMerger_->addToMerge(pSkipReader,pInMemoryPosting->lastDocID());
     }
@@ -184,12 +181,6 @@ void PostingMerger::mergeWith(OnDiskPosting* pOnDiskPosting)
 
     if(pSkipReader)
     {
-        if(!pSkipListMerger_)
-        {
-            if(!pMemCache_)
-                createBuffer();
-            pSkipListMerger_ = new SkipListMerger(pOnDiskPosting->skipInterval_,pOnDiskPosting->maxSkipLevel_,pMemCache_);
-        }
         pSkipListMerger_->setBasePoint(0,baseDOffset,basePOffset);
         pSkipListMerger_->addToMerge(pSkipReader,pOnDiskPosting->chunkDesc_.lastdocid);
     }
@@ -243,7 +234,7 @@ void PostingMerger::mergeWith_GC(OnDiskPosting* pOnDiskPosting,BitVector* pFilte
     if(!pSkipListMerger_)
     {
         if(!pMemCache_)
-            createBuffer();
+            init();
         pSkipListMerger_ = new SkipListMerger(pOnDiskPosting->skipInterval_,pOnDiskPosting->maxSkipLevel_,pMemCache_);
     }
 

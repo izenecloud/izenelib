@@ -92,7 +92,7 @@ public:
 
 private:
     /** create buffer_ for merging */
-    void createBuffer();
+    void init();
 
 private:
     char* buffer_; ///buffer_ for posting merging
