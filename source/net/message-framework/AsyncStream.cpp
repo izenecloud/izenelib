@@ -63,7 +63,8 @@ void AsyncStream::readMessageData(const boost::system::error_code& error) {
 		// the first byte contains the message type
 		// the next 3 bytes contain the data length
 		messageType_ = MessageType((readHeaderBufer_ >> 28)& 0xFF);
-		dataLength_ = readHeaderBufer_ & 0x00FFFFFF;
+		//dataLength_ = readHeaderBufer_ & 0x00FFFFFF;
+		dataLength_ = readHeaderBufer_ & 0x0FFFFFFF;
 
 		DLOG(INFO) << "header length "<< dataLength_;
 
@@ -78,7 +79,7 @@ void AsyncStream::readMessageData(const boost::system::error_code& error) {
 				&AsyncStream::handle_read, this,
 				boost::asio::placeholders::error));
 	} else {
-		DLOG(INFO) << "Connection is closed while waiting for new message : " << error;
+		DLOG(INFO) << "Connection is closed while waiting for new message : " << error.message();
 		messageDispatcher_->removePeerNode(peerNode_);
 	}
 }
@@ -94,7 +95,7 @@ void AsyncStream::handle_read(const boost::system::error_code& error) {
 		// read next message
 		readNewMessage();
 	} else {
-		DLOG(ERROR) << "Connection is closed while receiving message body : " << error;
+		DLOG(ERROR) << "Connection is closed while receiving message body : " << error.message();
 		messageDispatcher_->removePeerNode(peerNode_);
 	}
 }
@@ -199,7 +200,7 @@ void AsyncStream::handle_write(
 	if (!error) {
         DLOG(INFO) << "Finish sending message data(MessageService)";
 	} else {
-		DLOG(ERROR) << " Connection is closed while writting data" << error;
+		DLOG(ERROR) << " Connection is closed while writting data" << error.message();
 		messageDispatcher_->removePeerNode(peerNode_);
 	}
 }
@@ -219,7 +220,7 @@ void AsyncStream::handle_write1(
 	if (!error) {
 		DLOG(INFO) << "Finish sending message data(MessageService)";
 	} else {
-		DLOG(ERROR) << " Connection is closed while writting data" << error;
+		DLOG(ERROR) << " Connection is closed while writting data" << error.message();
 		messageDispatcher_->removePeerNode(peerNode_);
 	}
 }

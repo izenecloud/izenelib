@@ -28,8 +28,9 @@ namespace messageframework
             const MessageFrameworkNode& controllerInfo)
     :
         messageDispatcher_(this, this, this),
-            asyncConnector_(this, io_service_),
-                connect_check_handler_(io_service_)
+            asyncStreamManager_(messageDispatcher_),
+                asyncConnector_(io_service_, asyncStreamManager_),
+                    asyncControllerConnector_(io_service_, asyncStreamManager_, 1)
     {
         ownerManager_ = clientName;
 
@@ -41,94 +42,24 @@ namespace messageframework
         controllerNode_.nodePort_ = controllerInfo.nodePort_;
         controllerNode_.nodeName_ = controllerInfo.nodeName_;
 
-        ConnectionFuture cf = asyncConnector_.connect(
-            controllerInfo.nodeIP_, controllerInfo.nodePort_);
+        ConnectionFuture cf = asyncControllerConnector_.connect(
+            controllerNode_);
 
         // create thread for I/O operations
         ioThread_ = new boost::thread(boost::bind(
             &boost::asio::io_service::run, &io_service_));
 
-        cf.wait();
-        while( !cf.isSucc() ) {
-            cf = asyncConnector_.connect(
-                controllerInfo.nodeIP_, controllerInfo.nodePort_);
+        while( !cf.isSucc() )
             cf.wait();
-        }
-
-        // create a timer for monitoring connection to the controller
-        const int check_interval = 1;
-
-        connect_check_handler_.expires_from_now(
-            boost::posix_time::seconds(check_interval));
-        connect_check_handler_.async_wait(boost::bind(
-            &MessageClientFull::controllerConnectionCheckHandler,
-                this, check_interval, boost::asio::placeholders::error) );
-
         acceptedPermissionList_.clear();
     }
 
     MessageClientFull::~MessageClientFull()
     {
-        asyncConnector_.shutdown();
-        io_service_.stop();
+        asyncStreamManager_.shutdown();
+        asyncControllerConnector_.stop();
         ioThread_->join();
         delete ioThread_;
-    }
-
-    void MessageClientFull::controllerConnectionCheckHandler(
-        const int check_interval,
-                const boost::system::error_code& error)
-    {
-        if (!error)
-        {
-            connect_check_handler_.expires_from_now(
-                boost::posix_time::seconds(check_interval));
-
-            if ( !messageDispatcher_.isExist(controllerNode_))
-            {
-                DLOG(WARNING) << "Try to reconnect to the controller";
-                ConnectionFuture cf = asyncConnector_.connect(
-                    controllerNode_.nodeIP_, controllerNode_.nodePort_);
-                connect_check_handler_.async_wait(boost::bind(
-                    &MessageClientFull::controllerConnectionCheckHandler,
-                        this, check_interval, cf,
-                            boost::asio::placeholders::error));
-            } else {
-                connect_check_handler_.async_wait(boost::bind(
-                    &MessageClientFull::controllerConnectionCheckHandler,
-                        this, check_interval,
-                            boost::asio::placeholders::error));
-            }
-        }
-    }
-
-
-    void MessageClientFull::controllerConnectionCheckHandler(
-        const int check_interval,
-            ConnectionFuture cf,
-                const boost::system::error_code& error)
-    {
-        if (!error)
-        {
-            connect_check_handler_.expires_from_now(
-                boost::posix_time::seconds(check_interval));
-
-            // fail to connect last time
-            if ( cf.isFinish() && !cf.isSucc() ) {
-                DLOG(WARNING) << "Try to reconnect to the controller";
-                ConnectionFuture cf = asyncConnector_.connect(
-                    controllerNode_.nodeIP_, controllerNode_.nodePort_);
-                connect_check_handler_.async_wait(boost::bind(
-                    &MessageClientFull::controllerConnectionCheckHandler,
-                        this, check_interval, cf,
-                            boost::asio::placeholders::error));
-            } else {
-                connect_check_handler_.async_wait(boost::bind(
-                    &MessageClientFull::controllerConnectionCheckHandler,
-                        this, check_interval,
-                            boost::asio::placeholders::error));
-            }
-        }
     }
 
     bool MessageClientFull::prepareConnection(const MessageFrameworkNode& node)
@@ -156,6 +87,38 @@ namespace messageframework
 
         try
         {
+            // check permission cache
+            {
+                boost::mutex::scoped_lock acceptedPermissionLock(acceptedPermissionMutex_);
+                iter = acceptedPermissionList_.find(serviceName);
+                if (iter != acceptedPermissionList_.end() )
+                {
+                    servicePermissionInfo = iter->second;
+
+                    bool valid = true;
+                    const std::map<std::string, MessageFrameworkNode> list =
+                        servicePermissionInfo.getServerMap();
+                    for(std::map<std::string, MessageFrameworkNode>::const_iterator
+                        it = list.begin(); it!=list.end(); it++ ) {
+                        // quick check whether connection is established
+                        if(!messageDispatcher_.isExist(it->second)) {
+                            valid = false;
+                            break;
+                        }
+                    }
+
+                    // all connections are valid
+                    if(valid) {
+                        DLOG(INFO) << getName() << " retrieve service permission from cache successfully";
+                        servicePermissionInfo.getServerMap(servers);
+                        return true;
+                    }
+
+                    DLOG(INFO) << getName() << " permission cache is not up to date for service " << serviceName;
+                    acceptedPermissionList_.erase(serviceName);
+                }
+            }
+
             sendPermissionOfServiceRequest(serviceName);
 
             boost::system_time const timeout = boost::get_system_time()
@@ -182,7 +145,6 @@ namespace messageframework
                     DLOG(ERROR) << getName() << "Service " << serviceName << " is not listed in Message Controller";
                     return false;
                 }
-                acceptedPermissionList_.erase(serviceName);
                 servicePermissionInfo.getServerMap(servers);
 
                 DLOG(INFO) << "getPermissionOfService returns true(newly received)";
@@ -599,18 +561,5 @@ namespace messageframework
             semaphore->post();
     }
 
-    /**
-     * @brief This function create a new AsyncStream that is based on tcp::socket
-     */
-    AsyncStream* MessageClientFull::createAsyncStream(
-        boost::shared_ptr<tcp::socket> sock)
-    {
-        tcp::endpoint endpoint = sock->remote_endpoint();
-
-        DLOG(INFO) << "Accept new connection from another peer, Remote IP = "
-            << endpoint.address().to_string() << endpoint.port();
-
-        return new AsyncStream(&messageDispatcher_, sock);
-    }
 }// end of messageframework
 
