@@ -63,7 +63,8 @@ void AsyncStream::readMessageData(const boost::system::error_code& error) {
 		// the first byte contains the message type
 		// the next 3 bytes contain the data length
 		messageType_ = MessageType((readHeaderBufer_ >> 28)& 0xFF);
-		dataLength_ = readHeaderBufer_ & 0x00FFFFFF;
+		//dataLength_ = readHeaderBufer_ & 0x00FFFFFF;
+		dataLength_ = readHeaderBufer_ & 0x0FFFFFFF;
 
 		DLOG(INFO) << "header length "<< dataLength_;
 
