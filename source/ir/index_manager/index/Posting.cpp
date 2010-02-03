@@ -126,6 +126,8 @@ void InMemoryPosting::reset()
         delete pDS_;
         pDS_ = NULL;
     }
+    if(pSkipListWriter_)
+        pSkipListWriter_ ->reset();
 }
 
 Posting* InMemoryPosting::clone()
@@ -680,7 +682,7 @@ int32_t OnDiskPosting::decodeNext(uint32_t* pPosting,int32_t length)
     while (count < left)
     {
         did += pDPostingInput->readVInt();
-
+cout<<did<<endl;
         if(!pDocFilter_ || !pDocFilter_->test((size_t)did))
         {
             *pDoc++ = did;

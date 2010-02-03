@@ -122,13 +122,9 @@ void PostingMerger::mergeWith(InMemoryPosting* pInMemoryPosting)
 
     ///merge skiplist
     SkipListReader* pSkipReader = pInMemoryPosting->getSkipListReader();
-    fileoffset_t baseDOffset,basePOffset;
-    baseDOffset = postingDesc_.length;
-    basePOffset = postingDesc_.poffset;
-
     if(pSkipReader)
     {
-        pSkipListMerger_->setBasePoint(0,baseDOffset,basePOffset);
+        pSkipListMerger_->setBasePoint(0,pDOutput->getFilePointer(),pPOutput->getFilePointer());
         pSkipListMerger_->addToMerge(pSkipReader,pInMemoryPosting->lastDocID());
     }
 
@@ -159,8 +155,6 @@ void PostingMerger::mergeWith(OnDiskPosting* pOnDiskPosting)
         postingDesc_.poffset = pPOutput->getFilePointer();
     }
 
-    fileoffset_t baseDOffset,basePOffset;
-
     docid_t firstDocID = pDInput->readVInt() - chunkDesc_.lastdocid;
 
     pDOutput->writeVInt(firstDocID);///write first doc id
@@ -169,19 +163,15 @@ void PostingMerger::mergeWith(OnDiskPosting* pOnDiskPosting)
         pDOutput->write(pDInput,writeSize);
 
     chunkDesc_.length += (pDOutput->getFilePointer() - oldDOff);
-
     ///write position posting
     pPOutput->write(pPInput,pOnDiskPosting->nPPostingLength_);
 
     ///merge skiplist
     SkipListReader* pSkipReader = pOnDiskPosting->getSkipListReader();
 
-    baseDOffset = postingDesc_.length;
-    basePOffset = postingDesc_.poffset;
-
     if(pSkipReader)
     {
-        pSkipListMerger_->setBasePoint(0,baseDOffset,basePOffset);
+        pSkipListMerger_->setBasePoint(0,pDOutput->getFilePointer(),pPOutput->getFilePointer());
         pSkipListMerger_->addToMerge(pSkipReader,pOnDiskPosting->chunkDesc_.lastdocid);
     }
 
@@ -228,14 +218,6 @@ void PostingMerger::mergeWith_GC(OnDiskPosting* pOnDiskPosting,BitVector* pFilte
 
         ///save position offset
         postingDesc_.poffset = pPOutput->getFilePointer();
-    }
-
-    ///merge skiplist
-    if(!pSkipListMerger_)
-    {
-        if(!pMemCache_)
-            init();
-        pSkipListMerger_ = new SkipListMerger(pOnDiskPosting->skipInterval_,pOnDiskPosting->maxSkipLevel_,pMemCache_);
     }
 
     while (nODDF > 0)
@@ -328,7 +310,6 @@ fileoffset_t PostingMerger::endMerge()
         pDOutput->writeVInt(chunkDesc_.lastdocid);///<LastDocID(VInt32)>
         pDOutput->writeVInt(0);  /// skiplevel = 0
     }
-    
     ///end write posting descriptor
     return postingoffset;
 }

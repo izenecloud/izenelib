@@ -82,16 +82,15 @@ void SkipListWriter::write(IndexOutput* pOutput)
 
     for (int i = maxSkipLevel_ - 1; i >= 0; i--)
     {
-        if(ppSkipLevels_[i])
+        if(ppSkipLevels_[i] &&ppSkipLevels_[i]->getLength() > 0)
         {
-            if(ppSkipLevels_[i]->getLength() > 0)
-                ppSkipLevels_[i]->truncTailChunk();
+            ppSkipLevels_[i]->truncTailChunk();
             fileoffset_t nLength = ppSkipLevels_[i]->getRealSize();
-            if (nLength > 0) 
-            {
-                pOutput->writeVLong(nLength);
-                ppSkipLevels_[i]->write(pOutput);
-            }
+            pOutput->writeVLong(nLength);
+fileoffset_t o1 = pOutput->getFilePointer();
+            ppSkipLevels_[i]->write(pOutput);
+fileoffset_t o2 = pOutput->getFilePointer();
+            assert((o2-o1)==nLength);
         }
     }			
 }
