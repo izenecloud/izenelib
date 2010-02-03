@@ -87,10 +87,7 @@ void SkipListWriter::write(IndexOutput* pOutput)
             ppSkipLevels_[i]->truncTailChunk();
             fileoffset_t nLength = ppSkipLevels_[i]->getRealSize();
             pOutput->writeVLong(nLength);
-fileoffset_t o1 = pOutput->getFilePointer();
             ppSkipLevels_[i]->write(pOutput);
-fileoffset_t o2 = pOutput->getFilePointer();
-            assert((o2-o1)==nLength);
         }
     }			
 }

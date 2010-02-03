@@ -69,7 +69,7 @@ void PostingMerger::init()
     buffer_ = new char[POSTINGMERGE_BUFFERSIZE];
     bufsize_ = POSTINGMERGE_BUFFERSIZE;
     bOwnBuffer_ = true;
-    pMemCache_ = new MemCache(POSTINGMERGE_BUFFERSIZE*128);
+    pMemCache_ = new MemCache(POSTINGMERGE_BUFFERSIZE*512);
     pSkipListMerger_ = new SkipListMerger(Posting::skipInterval_,Posting::maxSkipLevel_,pMemCache_);
 }
 
