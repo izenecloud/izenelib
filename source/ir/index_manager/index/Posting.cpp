@@ -548,7 +548,7 @@ void OnDiskPosting::reset(fileoffset_t newOffset)
 
     IndexInput* pDPInput = pInputDescriptor_->getDPostingInput();
     //IndexInput should be reset because the internal buffer should be clear when a new posting is needed to be read
-    //pDPInput->reset();
+    pDPInput->reset();
     pDPInput->seekInternal(newOffset);///not seek(), because seek() may trigger a large data read event.
 
     ///read descriptor of posting list <PostingDescriptor>
@@ -682,7 +682,6 @@ int32_t OnDiskPosting::decodeNext(uint32_t* pPosting,int32_t length)
     while (count < left)
     {
         did += pDPostingInput->readVInt();
-cout<<did<<endl;
         if(!pDocFilter_ || !pDocFilter_->test((size_t)did))
         {
             *pDoc++ = did;
