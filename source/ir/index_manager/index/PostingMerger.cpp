@@ -124,7 +124,6 @@ void PostingMerger::mergeWith(InMemoryPosting* pInMemoryPosting)
     SkipListReader* pSkipReader = pInMemoryPosting->getSkipListReader();
     if(pSkipReader)
     {
-        pSkipListMerger_->setBasePoint(0,pDOutput->getFilePointer(),pPOutput->getFilePointer());
         pSkipListMerger_->addToMerge(pSkipReader,pInMemoryPosting->lastDocID());
     }
 
@@ -171,7 +170,6 @@ void PostingMerger::mergeWith(OnDiskPosting* pOnDiskPosting)
 
     if(pSkipReader)
     {
-        pSkipListMerger_->setBasePoint(0,pDOutput->getFilePointer(),pPOutput->getFilePointer());
         pSkipListMerger_->addToMerge(pSkipReader,pOnDiskPosting->chunkDesc_.lastdocid);
     }
 
