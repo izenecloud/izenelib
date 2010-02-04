@@ -229,7 +229,13 @@ typedef SortRunner<KEY_TYPE, LEN_TYPE, COMPARE_ALL> self_t;
       }
       pos -= s- pre_buf_size_;
       //std::cout<<pre_buf_size_<<std::endl;
-      IASSERT(pre_buf_num_>=1);
+      if (pre_buf_num_ == 0)
+      {
+        std::cout<<"\n[Warning]: A record is too long, and has been ignored!\n";
+        pos += *(LEN_TYPE*)(pre_buf_+pre_buf_size_) + sizeof(LEN_TYPE);
+        --count_;
+      }
+      
       IASSERT(pre_buf_size_ <= RUN_BUF_SIZE_);
       pre_buf_con_.notify_one();
     }
@@ -377,10 +383,12 @@ public:
     sort_thre.join();
     out_thre.join();
 
-    fseek(f, 0, SEEK_END);
-    fseek(out_f, 0, SEEK_END);
-    IASSERT((uint64_t)ftell(f)+ run_num_*sizeof(uint32_t)*2== (uint64_t)ftell(out_f));
+//     fseek(f, 0, SEEK_END);
+//     fseek(out_f, 0, SEEK_END);
+//     IASSERT((uint64_t)ftell(f)+ run_num_*sizeof(uint32_t)*2== (uint64_t)ftell(out_f));
 
+    fseek(out_f, 0, SEEK_SET);
+    IASSERT(fwrite(&count_, sizeof(uint64_t), 1, out_f)==1);
     fclose(f);
     fclose(out_f);
     
