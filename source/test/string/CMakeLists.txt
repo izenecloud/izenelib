@@ -3,6 +3,7 @@ SET(t_string_SRC
 
   t_RangeTokenIterator.cpp
   t_RangeTokenizer.cpp
+  t_CharSeparator.cpp
   )
 
 ADD_EXECUTABLE(t_string ${t_string_SRC})
