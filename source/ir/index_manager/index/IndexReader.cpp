@@ -93,7 +93,8 @@ void IndexReader::createBarrelReader()
     {
         if (pLastBarrel->getDocCount() <= 0)///skip empty barrel
             bc--;
-        pLastBarrel = (*pBarrelsInfo_)[bc - 1];
+        if(bc > 0)
+            pLastBarrel = (*pBarrelsInfo_)[bc - 1];
     }
 
     if (bc == 1)
