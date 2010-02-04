@@ -4,14 +4,14 @@
 #ifndef GRAPH_HPP
 #define GRAPH_HPP
 
-#include<types.h>
+#include <types.h>
 #include "sorter.hpp"
 #include "dyn_array.hpp"
 #include "id_transfer.hpp"
 #include "addr_bucket.hpp"
 #include <string>
 #include <vector>
-#include <time.h>
+#include <sys/time.h>
 #include <boost/filesystem.hpp>
 //#include <fstream>
 
@@ -351,7 +351,7 @@ class Graph
   typedef DynArray<uint64_t> array64_t;
   typedef DynArray<uint32_t> array32_t;
   
-  typedef Sorter<BUCKET_NUM, ADDING_BUF_SIZE, TERM_TYPE> sorter_t;
+  typedef Sorter<ADDING_BUF_SIZE, TERM_TYPE> sorter_t;
   
   typedef EDGE_STRUCT<NID_LEN_TYPE> edge_t;
   typedef FREQ_STRUCT<NID_LEN_TYPE> sort_freq_t;
@@ -827,7 +827,7 @@ public:
     if (sorter_)
       delete sorter_;
     
-    sorter_ = new sorter_t(filenm_.c_str());
+    sorter_ = new sorter_t((filenm_+".sort").c_str());
     sorter_->set_max_term_len(max_term_len_);
     sorter_->ready4add();
   }
@@ -1064,14 +1064,10 @@ public:
       docs_.clear();
       leafs_.clear();
 
-      sorter_->flush();
-      sorter_->sort();
-
       delete sorter_;
       sorter_ = NULL;
       return;
-    }
-    
+    }    
 
     struct timeval tvafter,tvpre;
     struct timezone tz;
@@ -1096,7 +1092,7 @@ public:
     FILE* doc_f = fopen((filenm_+".doc").c_str(), "w+");
     FILE* leaf_f = fopen((filenm_+".lea").c_str(), "w+");
 
-    sorter_->ready4fetch();    
+    sorter_->ready4fetch();
 
     TERM_TYPE last_term = 0;
     uint32_t  batch_size = 0;
@@ -1104,9 +1100,9 @@ public:
     array32_t t;
     uint32_t docid;    
 
-    for (uint32_t i=0; i<sorter_->num(); ++i)
+    for (uint32_t i=0; sorter_->next(t, docid); ++i)
     {
-      sorter_->next(t, docid);
+      //std::cout<<t<<std::endl;
       
       IASSERT(last_term<=t.at(0));
 
@@ -1170,6 +1166,7 @@ public:
       }
     }
 
+    sorter_->clear_files();
     //std::cout<<*this;
     
     save_edge_(nid_f, doc_f, leaf_f, 0, true);
