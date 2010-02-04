@@ -188,7 +188,9 @@ ReaderCache* MultiTermReader::loadReader(const char* field)
         iter != pBarrelReader_->readers_.end(); ++iter)	
     {
         pEntry = (*iter);
-        pSe =  (TermReader*)pEntry->pBarrelReader_->termReader(colID_, field)->clone();
+        TermReader* pTermReader = pEntry->pBarrelReader_->termReader(colID_, field);
+        if(pTermReader)
+            pSe =  pTermReader->clone();
         if (pSe)
         {
             pTailList = new ReaderCache(pEntry->pBarrelInfo_,pSe);
