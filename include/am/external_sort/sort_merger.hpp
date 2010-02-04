@@ -74,7 +74,7 @@ typedef SortMerger<KEY_TYPE, LEN_TYPE, COMPARE_ALL> self_t;
 
   uint32_t pre_buf_size_;//!< the current size of microrun that has been loaded onto prediect buffer
   uint32_t pre_buf_num_;//!< the current records number of microrun that has been loaded onto prediect buffer
-  uint32_t pre_idx_;//!< the index of microrun channel right in the predict buffer
+  //uint32_t pre_idx_;//!< the index of microrun channel right in the predict buffer
   uint32_t out_buf_in_idx_;//!< used by merge to get the current available output buffer
   uint32_t out_buf_out_idx_;//!< used by output threads to get the index of the turn of outputting
   uint32_t* out_buf_size_;//!< data size of each output buffer
@@ -303,7 +303,7 @@ typedef SortMerger<KEY_TYPE, LEN_TYPE, COMPARE_ALL> self_t;
         pos += sizeof(LEN_TYPE)+len;
       }
     }
-    pre_idx_ = -1;
+    //pre_idx_ = -1;
   }
 
   void predict_(FILE* f)
@@ -357,13 +357,13 @@ typedef SortMerger<KEY_TYPE, LEN_TYPE, COMPARE_ALL> self_t;
         pos += sizeof(LEN_TYPE)+len;
       }
       pre_buf_size_ = pos;
-      pre_idx_ = idx;
+      //pre_idx_ = idx;
       pre_buf_con_.notify_one();
     }
     {
       boost::mutex::scoped_lock lock(pre_buf_mtx_);
       pre_buf_size_ = -1;
-      pre_idx_ = -1;
+      //pre_idx_ = -1;
       pre_buf_con_.notify_one();
     }
 
@@ -413,17 +413,19 @@ typedef SortMerger<KEY_TYPE, LEN_TYPE, COMPARE_ALL> self_t;
         while (pre_buf_size_==0)
           pre_buf_con_.wait(lock);
 
-        if (pre_idx_ != idx)
-        {
-          //std::cout<<pre_idx_<<"="<<idx<<std::endl;
+        if (pre_buf_size_ == (uint32_t)-1)
           continue;
-        }
+        // if (pre_idx_ != idx)
+//         {
+//           std::cout<<pre_idx_<<"="<<idx<<std::endl;
+//           continue;
+//         }
 
         memcpy(micro_buf_[idx], pre_buf_, pre_buf_size_);
         size_micro_run_[idx] = pre_buf_size_;
         num_micro_run_[idx] = pre_buf_num_;
         micro_run_pos_[idx] = micro_run_idx_[idx] = pre_buf_num_ = pre_buf_size_ = 0;
-        pre_idx_ = -1;
+        //pre_idx_ = -1;
         pre_buf_con_.notify_one();
       }
 
