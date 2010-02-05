@@ -154,7 +154,7 @@ public:
     }
     fclose(f);
     
-    if (count_ == 0)
+    if (count_ <= 1)
       return true;
 
     if (run_)
