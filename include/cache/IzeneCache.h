@@ -1,6 +1,7 @@
 /**
  * @file IzeneCache.h
  * @brief The header file of IzeneCache.
+ * @Author Peisheng Wang
  *
  * This file defines class IzeneCache.
  */
@@ -133,6 +134,10 @@ public:
 		cache_.clear();
 	}
 
+	CacheInfoListType getKeyList(){
+		return cacheContainer_;
+	}
+	
 	/**
 	 *	\brief  monitor the performance of Cache.
 	 *	

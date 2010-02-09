@@ -162,6 +162,14 @@ public:
 	}
 
 	/**
+	 *  \brief set file name.
+	 *   
+	 */	
+	void setFileName(const std::string& fileName ){
+		fileName_ = fileName;		
+	}
+	
+	/**
 	 * 	\brief return the file name of the SequentialDB
 	 */
 	std::string getFileName() const {

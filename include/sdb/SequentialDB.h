@@ -499,6 +499,11 @@ public:
 	const std::string& getName() {
 		return sdbname_;
 	}
+	
+	void setFileName(const std::string& fileName){
+		container_.setFileName(fileName);
+	}
+	
 private:
 	std::string sdbname_;
 	ContainerType container_;
@@ -690,7 +695,7 @@ template< typename KeyType =string, typename ValueType=NullType,
 		typename LockType =NullLock > class unordered_sdb_fixed :
 	public SequentialDB<KeyType, ValueType, LockType, sdb_fixedhash<KeyType, ValueType, LockType> > {
 public:
-	unordered_sdb_fixed(const string& sdbname) :
+	unordered_sdb_fixed(const string& sdbname="unordered_sdb_fixed.dat") :
 		SequentialDB<KeyType, ValueType, LockType,
 				sdb_fixedhash<KeyType, ValueType, LockType> >(sdbname) {
 
@@ -701,7 +706,7 @@ template< typename KeyType =string, typename ValueType=NullType,
 		typename LockType =NullLock > class unordered_sdb_1 :
 	public SequentialDB<KeyType, ValueType, LockType, tc_hash<KeyType, ValueType, LockType> > {
 public:
-	unordered_sdb_1(const string& sdbname) :
+	unordered_sdb_1(const string& sdbname="unordered_sdb_tc.dat") :
 		SequentialDB<KeyType, ValueType, LockType,
 				tc_hash<KeyType, ValueType, LockType> >(sdbname) {
 
@@ -712,7 +717,7 @@ template< typename KeyType =string, typename ValueType=NullType,
 		typename LockType =NullLock > class unordered_sdb_tc :
 	public SequentialDB<KeyType, ValueType, LockType, tc_hash<KeyType, ValueType, LockType> > {
 public:
-	unordered_sdb_tc(const string& sdbname) :
+	unordered_sdb_tc(const string& sdbname="unordered_sdb_tc.dat") :
 		SequentialDB<KeyType, ValueType, LockType,
 				tc_hash<KeyType, ValueType, LockType> >(sdbname) {
 
@@ -723,7 +728,7 @@ template< typename KeyType =string, typename ValueType=NullType,
 		typename LockType =NullLock > class unordered_sdb :
 	public SequentialDB<KeyType, ValueType, LockType, sdb_hash<KeyType, ValueType, LockType> > {
 public:
-	unordered_sdb(const string& sdbname) :
+	unordered_sdb(const string& sdbname="unordered_sdb.dat") :
 		SequentialDB<KeyType, ValueType, LockType,
 				sdb_hash<KeyType, ValueType, LockType> >(sdbname) {
 
@@ -734,7 +739,7 @@ template< typename KeyType =string, typename ValueType=NullType,
 		typename LockType =NullLock > class ordered_sdb_fixed :
 	public SequentialDB<KeyType, ValueType, LockType, sdb_btree<KeyType, ValueType, LockType, true> > {
 public:
-	ordered_sdb_fixed(const string& sdbname) :
+	ordered_sdb_fixed(const string& sdbname="ordered_sdb_fixed.dat") :
 		SequentialDB<KeyType, ValueType, LockType,
 				sdb_btree<KeyType, ValueType, LockType, true> >(sdbname) {
 
@@ -745,7 +750,7 @@ template< typename KeyType =string, typename ValueType=NullType,
 		typename LockType =NullLock > class ordered_sdb_bptree :
 	public SequentialDB<KeyType, ValueType, LockType, sdb_bptree<KeyType, ValueType, LockType> > {
 public:
-	ordered_sdb_bptree(const string& sdbname) :
+	ordered_sdb_bptree(const string& sdbname="ordered_sdb_bptree.dat") :
 		SequentialDB<KeyType, ValueType, LockType,
 				sdb_bptree<KeyType, ValueType, LockType> >(sdbname) {
 
@@ -756,7 +761,7 @@ template< typename KeyType =string, typename ValueType=NullType,
 		typename LockType =NullLock > class ordered_sdb :
 	public SequentialDB<KeyType, ValueType, LockType, sdb_btree<KeyType, ValueType, LockType> > {
 public:
-	ordered_sdb(const string& sdbname) :
+	ordered_sdb(const string& sdbname="ordered_sdb.dat") :
 		SequentialDB<KeyType, ValueType, LockType,
 				sdb_btree<KeyType, ValueType, LockType> >(sdbname) {
 
@@ -767,7 +772,7 @@ template< typename KeyType =string, typename ValueType=NullType,
 		typename LockType =NullLock > class ordered_sdb_storage :
 	public SequentialDB<KeyType, ValueType, LockType, sdb_storage<KeyType, ValueType, LockType> > {
 public:
-	ordered_sdb_storage(const string& sdbname) :
+	ordered_sdb_storage(const string& sdbname="ordered_sdb_storage.dat") :
 		SequentialDB<KeyType, ValueType, LockType,
 				sdb_storage<KeyType, ValueType, LockType> >(sdbname) {
 
@@ -779,7 +784,7 @@ template< typename KeyType =string, typename ValueType=NullType,
 	public SequentialDB<KeyType, ValueType, LockType, sdb_storage<KeyType, ValueType, LockType,
 		sdb_hash<KeyType, unsigned, NullLock> > > {
 public:
-	unordered_sdb_storage(const string& sdbname) :
+	unordered_sdb_storage(const string& sdbname="unordered_sdb_storage.dat") :
 		SequentialDB<KeyType, ValueType, LockType,
 				sdb_storage<KeyType, ValueType, LockType> >(sdbname) {
 
