@@ -92,9 +92,16 @@ public:
 
     if (f_ == NULL)
     {
-      f_ = fopen(filenm_.c_str(), "w+");
-      IASSERT(f_!=NULL);
-      fseek(f_, sizeof(uint64_t), SEEK_SET);
+      f_ = fopen(filenm_.c_str(), "r+");
+      if (f_== NULL)
+      {
+        f_ = fopen(filenm_.c_str(), "w+");
+        IASSERT(f_!=NULL);
+        count_ = 0;
+        IASSERT(fwrite(&count_, sizeof(uint64_t), SEEK_SET)==1);
+      }
+      else
+        IASSERT(fread(&count_, sizeof(uint64_t), SEEK_SET)==1);
     }
     
     new_buffer_();
@@ -221,6 +228,11 @@ public:
     IASSERT(fread(*data, len, 1, f_)==1);
     
     return true;
+  }
+
+  uint64_t item_num()const
+  {
+    return count_;
   }
 }
   ;
