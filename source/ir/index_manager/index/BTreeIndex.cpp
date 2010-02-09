@@ -27,7 +27,6 @@ void BTreeIndex<IndexKeyType<String> >::getSuffix(const IndexKeyType<String>& ke
     IndexKeyType<String> strkey(key.cid,key.fid,str);
     myKeyType ikey(strkey, 0);
     myValueType ival;
-
     IndexSDBCursor locn= this->_sdb.search(ikey);
     while (this->_sdb.get(locn, ikey, ival) )
     {
@@ -37,15 +36,8 @@ void BTreeIndex<IndexKeyType<String> >::getSuffix(const IndexKeyType<String>& ke
         {
             for (size_t i=0; i<ival.size(); i++)
                 result.set(ival[i]);
-            this->_sdb.seq(locn);
         }
-        else if(ikey.key.value.empty())
-        {
-            this->_sdb.seq(locn);
-            continue;
-        }
-        else
-            break;
+        this->_sdb.seq(locn);
     }
 }
 
@@ -69,15 +61,8 @@ void BTreeIndex<IndexKeyType<String> >::getSubString(const IndexKeyType<String>&
         {
             for (size_t i=0; i<ival.size(); i++)
                 result.set(ival[i]);
-            this->_sdb.seq(locn);
         }
-        else if(ikey.key.value.empty())
-        {
-            this->_sdb.seq(locn);
-            continue;
-        }
-        else
-            break;
+        this->_sdb.seq(locn);
     }
 }
 
