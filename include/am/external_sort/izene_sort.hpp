@@ -98,10 +98,10 @@ public:
         f_ = fopen(filenm_.c_str(), "w+");
         IASSERT(f_!=NULL);
         count_ = 0;
-        IASSERT(fwrite(&count_, sizeof(uint64_t), SEEK_SET)==1);
+        IASSERT(fwrite(&count_, sizeof(uint64_t), 1, f_)==1);
       }
       else
-        IASSERT(fread(&count_, sizeof(uint64_t), SEEK_SET)==1);
+        IASSERT(fread(&count_, sizeof(uint64_t), 1, f_)==1);
     }
     
     new_buffer_();
