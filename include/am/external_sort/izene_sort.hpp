@@ -92,9 +92,16 @@ public:
 
     if (f_ == NULL)
     {
-      f_ = fopen(filenm_.c_str(), "w+");
-      IASSERT(f_!=NULL);
-      fseek(f_, sizeof(uint64_t), SEEK_SET);
+      f_ = fopen(filenm_.c_str(), "r+");
+      if (f_== NULL)
+      {
+        f_ = fopen(filenm_.c_str(), "w+");
+        IASSERT(f_!=NULL);
+        count_ = 0;
+        IASSERT(fwrite(&count_, sizeof(uint64_t), 1, f_)==1);
+      }
+      else
+        IASSERT(fread(&count_, sizeof(uint64_t), 1, f_)==1);
     }
     
     new_buffer_();
@@ -134,23 +141,38 @@ public:
     }
   }
   
-  void sort(const std::string& filenm = "")
+  bool sort(const std::string& filenm = "")
   {
-    if (count_ == 0)
-      return;
-
     flush();
     struct timeval tvafter, tvpre;
     struct timezone tz;
 
     gettimeofday (&tvpre , &tz);
-
     if (!filenm.empty())
       filenm_ = filenm;
 
+    FILE* f = fopen(filenm_.c_str(), "r");
+    if(f == NULL)
+      return false;
+    if (fread(&count_, sizeof(uint64_t), 1, f)!=1)
+    {
+      fclose(f);
+      return false;
+    }
+    fclose(f);
+    
+    if (count_ <= 1)
+      return true;
+
+    if (run_)
+      delete run_;
+    
     run_ = new run_t(filenm_.c_str(), buf_size_);
     run_->run();
 
+    if (merge_)
+      delete merge_;
+    
     merge_ = new merge_t(filenm_.c_str(), run_->run_num(), buf_size_, buf_num_);
     delete run_;
     run_ = NULL;
@@ -159,6 +181,8 @@ public:
     gettimeofday (&tvafter , &tz);
     std::cout<<"\nIt takes "<<((tvafter.tv_sec-tvpre.tv_sec)*1000+(tvafter.tv_usec-tvpre.tv_usec)/1000.)/60000
              <<" minutes to sort("<<count_<<")\n";
+
+    return true;
 
   }
 
@@ -204,6 +228,11 @@ public:
     IASSERT(fread(*data, len, 1, f_)==1);
     
     return true;
+  }
+
+  uint64_t item_num()const
+  {
+    return count_;
   }
 }
   ;
