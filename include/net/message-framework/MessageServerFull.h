@@ -16,6 +16,8 @@
 #include <net/message-framework/AsyncConnector.h>
 #include <net/message-framework/ThreadPool.h>
 
+#include <net/message-framework/MessageDispatcher.h>
+
 /**************** Include boost header files *******************/
 #include <boost/thread/condition_variable.hpp>
 #include <boost/thread.hpp>
@@ -115,7 +117,7 @@ public:
 
 	bool putResultOfService(const ServiceResultPtr& result);
 
-protected:
+
 	const MessageFrameworkNode& getServerInfo() {
 		return server_;
 	}
@@ -197,12 +199,6 @@ protected:
 		return ownerManager_;
 	}
 
-	/**
-	 * @brief This function create a new AsyncStream that is based on tcp::socket
-	 */
-	AsyncStream* createAsyncStream(boost::shared_ptr<tcp::socket> sock);
-
-	friend class AsyncConnector;
 
 private:
 	/**
@@ -277,7 +273,7 @@ private:
 	 * @brief MessageDispatcher plays an intermediary role between network layer
 	 * and application layer
 	 */
-	MessageDispatcher messageDispatcher_;
+	MessageDispatcher<MessageServerFull> messageDispatcher_;
 
 	/**
 	 * @brief Queue for I/O operations
@@ -287,19 +283,19 @@ private:
 	/**
 	 * @brief connection with controller
 	 */
-	AsyncStreamManager asyncStreamManager_;
+	AsyncStreamManager<MessageServerFull, MessageDispatcher<MessageServerFull> > asyncStreamManager_;
 
 	/**
 	 * @brief connection with controller
 	 */
-	AsyncConnector connector_;
+	AsyncConnector<AsyncStreamManager<MessageServerFull, MessageDispatcher<MessageServerFull> > > connector_;
 
 	/**
 	 * @brief connection with controller
 	 */
-	AsyncAcceptor acceptor_;
+	AsyncAcceptor<AsyncStreamManager<MessageServerFull, MessageDispatcher<MessageServerFull> > > acceptor_;
 
-    AsyncControllerConnector controllerConnector_;
+    AsyncControllerConnector<AsyncStreamManager<MessageServerFull, MessageDispatcher<MessageServerFull> > > controllerConnector_;
 
 	/**
 	 * @brief thread for I/O operations

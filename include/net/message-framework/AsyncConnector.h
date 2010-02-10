@@ -88,8 +88,8 @@ namespace messageframework
         boost::shared_ptr<ConnectionFutureImpl> impl_;
     };
 
-    class AsyncStreamManager;
 
+    template<typename AsyncStreamManager>
     class AsyncAcceptor
     {
     public:
@@ -100,7 +100,9 @@ namespace messageframework
           * @param ioservice the thread for I/O queues
           */
         AsyncAcceptor(boost::asio::io_service& ioservice,
-            AsyncStreamManager& streamManager);
+            AsyncStreamManager& streamManager)
+        :   io_service_(ioservice),
+            streamManager_(streamManager) {}
 
         /**
           * @brief Default destructor
@@ -112,12 +114,32 @@ namespace messageframework
           * is used to create new AsyncStream.
           * @param port listening port
           */
-        void listen(int port);
+        void listen(int port)
+        {
+            tcp::endpoint endpoint(tcp::v4(), port);
+            boost::shared_ptr<tcp::acceptor> acceptor(new tcp::acceptor(io_service_, endpoint));
+            acceptor->listen();
+            acceptors_.push_back(acceptor);
+
+            DLOG(INFO) << "Listen at : " << port;
+
+            boost::shared_ptr<tcp::socket> sock(new tcp::socket(io_service_));
+            acceptor->async_accept(*sock, boost::bind(&AsyncAcceptor::handle_accept, this,
+                                    acceptor, sock, boost::asio::placeholders::error));
+        }
 
         /**
           * @brief Shutdown all streams and acceptors
           */
-        void shutdown(void);
+        void shutdown(void)
+        {
+			DLOG(INFO) << "close acceptors...";
+
+			for (std::list<boost::shared_ptr<tcp::acceptor> >::iterator iter0 = acceptors_.begin();
+							iter0 != acceptors_.end(); iter0++) {
+					(*iter0)->close(); //close acceptors
+			}
+        }
 
     private:
         /**
@@ -125,7 +147,21 @@ namespace messageframework
           */
         void handle_accept(boost::shared_ptr<tcp::acceptor> acceptor,
                            boost::shared_ptr<tcp::socket> sock,
-                           const boost::system::error_code& error);
+                           const boost::system::error_code& error)
+        {
+            if (!error)
+            {
+                DLOG(INFO) << "Accept new connection";
+
+                streamManager_.addStream(sock);
+                boost::shared_ptr<tcp::socket> new_sock(new tcp::socket(io_service_));
+                acceptor->async_accept(*new_sock, boost::bind(&AsyncAcceptor::handle_accept, this,
+                        acceptor, new_sock, boost::asio::placeholders::error));
+            } else {
+                DLOG(INFO) << "Connection closed while accepting";
+            }
+        }
+
     private:
         /**
           * @brief I/O operation queue
@@ -140,6 +176,7 @@ namespace messageframework
     /**
      * @brief This class control the connection with peer node
      */
+    template<typename AsyncStreamManager>
     class AsyncConnector
     {
     public:
@@ -176,7 +213,23 @@ namespace messageframework
 
     protected:
 
-        virtual ConnectionFuture doConnect(const std::string& host, const std::string& port);
+        virtual ConnectionFuture doConnect(const std::string& host, const std::string& port)
+        {
+            ConnectionFuture connectionFuture(host, port);
+
+            tcp::resolver resolver(io_service_);
+            tcp::resolver::query query(tcp::v4(), host, port);
+            tcp::resolver::iterator endpoint_iterator = resolver.resolve(query);
+            tcp::endpoint endpoint = *endpoint_iterator;
+
+            DLOG(INFO) << "Connect to " << host << ":" << port;
+
+            boost::shared_ptr<tcp::socket> sock(new tcp::socket(io_service_));
+            sock->async_connect(endpoint, boost::bind(&AsyncConnector::handle_connect,
+                this, sock, ++endpoint_iterator, connectionFuture,
+                    boost::asio::placeholders::error));
+            return connectionFuture;
+        }
 
     private:
 
@@ -187,7 +240,27 @@ namespace messageframework
         void handle_connect(boost::shared_ptr<tcp::socket> sock,
                             tcp::resolver::iterator endpoint_iterator,
                             ConnectionFuture connectionFuture,
-                            const boost::system::error_code& error);
+                            const boost::system::error_code& error)
+        {
+            if (!error)
+            {
+                DLOG(INFO) << "Connection is established";
+                connectionFuture.setStatus(true, true);
+                streamManager_.addStream(sock);
+            }
+            else if (endpoint_iterator != tcp::resolver::iterator())
+            {
+                DLOG(WARNING) << "Fail to connect to server, try another endpoint";
+                sock->close();
+                tcp::endpoint endpoint = *endpoint_iterator;
+                sock->async_connect(endpoint, boost::bind(&AsyncConnector::handle_connect,
+                    this, sock, ++endpoint_iterator, connectionFuture,
+                        boost::asio::placeholders::error));
+            } else {
+                DLOG(WARNING) << "Fail to connect to server";
+                connectionFuture.setStatus(true, false);
+            }
+        }
 
     protected:
         /**
@@ -202,13 +275,14 @@ namespace messageframework
     /**
      * @brief This class control the connection with peer node
      */
-    class AsyncControllerConnector : public AsyncConnector
+    template<typename AsyncStreamManager>
+    class AsyncControllerConnector : public AsyncConnector<AsyncStreamManager>
     {
     public:
 
         AsyncControllerConnector(boost::asio::io_service& ioservice,
             AsyncStreamManager& streamManager, int check_interval)
-        :   AsyncConnector(ioservice, streamManager),
+        :   AsyncConnector<AsyncStreamManager>(ioservice, streamManager),
                 check_interval_(check_interval),
                     connect_check_handler_ (ioservice) {}
 
@@ -221,7 +295,17 @@ namespace messageframework
 
     protected:
 
-        ConnectionFuture doConnect(const std::string& host, const std::string& port);
+        ConnectionFuture doConnect(const std::string& host, const std::string& port)
+        {
+            ConnectionFuture cf = AsyncConnector<AsyncStreamManager>::doConnect(host, port);
+
+            connect_check_handler_.expires_from_now(
+                boost::posix_time::seconds(check_interval_));
+            connect_check_handler_.async_wait(boost::bind(
+                &AsyncControllerConnector<AsyncStreamManager>::controllerConnectionCheckHandler,
+                    this, check_interval_, cf, boost::asio::placeholders::error) );
+            return cf;
+        }
 
     private:
 
@@ -230,14 +314,61 @@ namespace messageframework
          */
 		void controllerConnectionCheckHandler(const int check_interval,
             const std::string host, const std::string port,
-                const boost::system::error_code& error);
+                const boost::system::error_code& error)
+        {
+            if (!error)
+            {
+                connect_check_handler_.expires_from_now(
+                    boost::posix_time::seconds(check_interval));
+
+                if ( !AsyncConnector<AsyncStreamManager>::streamManager_.exist(MessageFrameworkNode(host,
+                    boost::lexical_cast<unsigned int>(port) )))
+                {
+                    DLOG(WARNING) << "Try to reconnect to the controller";
+                    ConnectionFuture cf = AsyncConnector<AsyncStreamManager>::doConnect( host, port);
+                    connect_check_handler_.async_wait(boost::bind(
+                        &AsyncControllerConnector<AsyncStreamManager>::controllerConnectionCheckHandler,
+                            this, check_interval, cf,
+                                boost::asio::placeholders::error));
+                } else {
+                    connect_check_handler_.async_wait(boost::bind(
+                        &AsyncControllerConnector<AsyncStreamManager>::controllerConnectionCheckHandler,
+                            this, check_interval, host, port,
+                                boost::asio::placeholders::error));
+                }
+            }
+        }
 
         /**
          * @brief Check connection to controller from time to time
          */
 		void controllerConnectionCheckHandler(const int check_interval,
-                ConnectionFuture connectionFuture,
-                    const boost::system::error_code& error);
+                ConnectionFuture cf, const boost::system::error_code& error)
+        {
+            if (!error)
+            {
+                connect_check_handler_.expires_from_now(
+                    boost::posix_time::seconds(check_interval));
+
+                // fail to connect last time
+                if ( cf.isFinish() && !cf.isSucc() ) {
+                    DLOG(WARNING) << "Try to reconnect to the controller";
+                    std::string host = cf.getHost();
+                    std::string port = cf.getPort();
+                    ConnectionFuture cf = AsyncConnector<AsyncStreamManager>::doConnect(host , port);
+                    connect_check_handler_.async_wait(boost::bind(
+                        &AsyncControllerConnector<AsyncStreamManager>::controllerConnectionCheckHandler,
+                            this, check_interval, cf,
+                                boost::asio::placeholders::error));
+                } else {
+                    connect_check_handler_.async_wait(boost::bind(
+                        &AsyncControllerConnector<AsyncStreamManager>::controllerConnectionCheckHandler,
+                            this, check_interval, cf.getHost(), cf.getPort(),
+                                boost::asio::placeholders::error));
+                }
+            }
+        }
+
 
         int check_interval_;
 
@@ -249,50 +380,73 @@ namespace messageframework
     };
 
 
+    template<typename Application, typename MessageDispatcherType>
     class AsyncStreamManager
     {
+    typedef AsyncStream<Application, MessageDispatcherType> AsyncStreamType;
+
     public:
-        AsyncStreamManager(MessageDispatcher& dispatcher)
+        AsyncStreamManager(MessageDispatcherType& dispatcher)
             : messageDispatcher_(dispatcher) {}
 
-        ~AsyncStreamManager();
+        ~AsyncStreamManager()
+        {
+                DLOG(INFO)  << "delete streams...";
+                for (typename std::list<AsyncStreamType* >::iterator iter = streams_.begin();
+                                iter != streams_.end(); iter++) {
+                        delete *iter; //delete streams and connections & interfaces
+                }
+        }
 
         /**
          * @brief Add a socket as stream
          */
-        void addStream(boost::shared_ptr<tcp::socket> socket);
-
-//        /**
-//         * @brief Shutdown and destruct stream
-//         */
-//        void eraseStream(const MessageFrameworkNode& node);
+        void addStream(boost::shared_ptr<tcp::socket> socket)
+        {
+            streams_.push_back(new AsyncStreamType(&messageDispatcher_, socket));
+        }
 
         /**
          * @brief Does stream exist
          */
-        bool exist(const MessageFrameworkNode& node);
+        bool exist(const MessageFrameworkNode& node)
+        {
+            return messageDispatcher_.isExist(node);
+        }
 
         /**
          * @brief Return the number of AsyncStream
          */
-        size_t streamNum(void);
+        size_t streamNum(void)
+        {
+            return streams_.size();
+        }
+
 
         /**
           * @brief Shutdown all streams
           */
-        void shutdown(void);
+        void shutdown(void)
+        {
+            DLOG(INFO) << "shutdown streams...";
+
+            for (typename std::list<AsyncStreamType* >::iterator iter = streams_.begin();
+                iter != streams_.end(); iter++) {
+                (*iter)->shutdown(); //shutdown stream
+            }
+        }
 
     private:
 
         /**
          * @brief MessageDispatcher is essential for creating a AsyncStream object
          */
-        MessageDispatcher& messageDispatcher_;
+        MessageDispatcherType& messageDispatcher_;
 
         /**
           * @brief A list of AsyncStream that has been accepted
           */
-        std::list<AsyncStream* > streams_;
+        std::list<AsyncStreamType* > streams_;
     };
 
     std::string getHostIp(boost::asio::io_service& ioservice, const std::string&  host)	;
