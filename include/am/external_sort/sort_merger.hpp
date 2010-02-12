@@ -268,6 +268,7 @@ typedef SortMerger<KEY_TYPE, LEN_TYPE, COMPARE_ALL> self_t;
       IASSERT(fread(micro_buf_[i], s, 1, f)==1);
 
       //if a record can fit in microrun buffer
+      bool flag = false;
       while (*(LEN_TYPE*)(micro_buf_[i])+sizeof(LEN_TYPE) > s)
       {
         size_micro_run_[i] = 0;
@@ -276,13 +277,16 @@ typedef SortMerger<KEY_TYPE, LEN_TYPE, COMPARE_ALL> self_t;
         fseek(f, *(LEN_TYPE*)(micro_buf_[i])+sizeof(LEN_TYPE)-s, SEEK_CUR);
 
         if (ftell(f)-run_addr_[i]>=size_run_[i])
+        {
+          flag = true;
           break;
+        }
         
         s = size_run_[i]-(ftell(f)-run_addr_[i])>PRE_BUF_SIZE_? PRE_BUF_SIZE_:size_run_[i]-(ftell(f)-run_addr_[i]);
         size_micro_run_[i] = s;
         IASSERT(fread(micro_buf_[i], s, 1, f)==1);
       }
-      if (ftell(f)-run_addr_[i]>=size_run_[i])
+      if (flag)
         continue;
       
       merge_heap_.push(KEY_ADDR(micro_buf_[i], -1, i));

@@ -281,7 +281,7 @@ void check_izene_sort(uint32_t SIZE = 200000, uint32_t bs =1000000)
   struct timeval tvafter, tvpre;
   struct timezone tz;
   
-  IzeneSort<KEY_TYPE, LEN_TYPE> sorter("./tt", bs);
+  IzeneSort<KEY_TYPE, LEN_TYPE, true> sorter("./tt", bs);
 
   cout<<"\n-----------------------------\n";
   std::vector<char> str;
@@ -300,7 +300,7 @@ void check_izene_sort(uint32_t SIZE = 200000, uint32_t bs =1000000)
   sorter.sort();
 
   char* data;
-  uint8_t len;
+  LEN_TYPE len;
   KEY_TYPE i = 1;
 
   CHECK(sorter.begin());
@@ -315,15 +315,36 @@ void check_izene_sort(uint32_t SIZE = 200000, uint32_t bs =1000000)
     free(data);
     ++i;
   }
+
+//   char* data=NULL;
+//   LEN_TYPE len;
+//   KEY_TYPE i = 1;
+
+//   CHECK(sorter.begin());
+//   sorter.next_data(len, &data);
+//   i=*(KEY_TYPE*)data;
+//   free(data);
+//   while (sorter.next_data(len, &data))
+//   {
+//     CHECK(i<=*(KEY_TYPE*)data);
+//     if (i>*(KEY_TYPE*)data)
+//     {
+//       std::cout<<i<<"-"<<*(KEY_TYPE*)data<<endl;
+//       break;
+//     }
+//     i=*(KEY_TYPE*)data;
+//     free(data);
+//   }
 }
 
 int main()
 {
   //alpha_sort_check();
 
-  const uint32_t SIZE = 40000000;
+  const uint32_t SIZE = 400000000;//00000;
   //check_runner<uint32_t, uint8_t>(SIZE, 10000000);
   //check_merger<uint32_t, uint8_t>(SIZE, 10000000);
+  check_izene_sort<uint64_t, uint16_t>(SIZE, 10000000);
   check_izene_sort<uint32_t, uint8_t>(SIZE, 10000000);
 
   // check_multi_sort<uint64_t>(100000, 200000000);
