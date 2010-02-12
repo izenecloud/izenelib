@@ -21,8 +21,6 @@
 #include <net/message-framework/MessageDispatcher.h>
 #include <net/message-framework/ClientIdServer.h>
 
-#include <net/message-framework/MessageDispatcher.h>
-
 #include <sdb/SequentialDB.h>
 
 /**************** Include boost header files *******************/
@@ -80,6 +78,7 @@ public:
 		return ownerManagerName_;
 	}
 
+protected:
 
 
 	/************ Interfaces of Work Thread****************************/
@@ -166,6 +165,15 @@ public:
 	void sendClientIdResult(const MessageFrameworkNode& requester,
 			const int& clientId);
 
+	/************ End of Interfaces of ClientIdServer ****************/
+
+	/**
+	 * @brief This function create a new AsyncStream that is based on tcp::socket
+	 */
+	AsyncStream* createAsyncStream(boost::shared_ptr<tcp::socket> sock);
+
+	friend class AsyncConnector;
+
 private:
 
 	/**
@@ -246,7 +254,7 @@ private:
 	/**
 	 * @brief This variables receives data from peer and sends data to the peer
 	 */
-	MessageDispatcher<MessageControllerFull> messageDispatcher_;
+	MessageDispatcher messageDispatcher_;
 
 	/**
 	 * @brief queue for I/O operations
@@ -261,12 +269,12 @@ private:
 	/**
 	 * @brief Manage all connections
 	 */
-    AsyncStreamManager<MessageControllerFull, MessageDispatcher<MessageControllerFull> >asyncStreamManager_;
+    AsyncStreamManager asyncStreamManager_;
 
 	/**
 	 * @brief Listen at the controller port
 	 */
-	AsyncAcceptor<AsyncStreamManager<MessageControllerFull, MessageDispatcher<MessageControllerFull> > > asyncAcceptor_;
+	AsyncAcceptor asyncAcceptor_;
 
 	/**
 	 * @brief thread for processing service registration

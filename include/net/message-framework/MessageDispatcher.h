@@ -20,7 +20,7 @@
 #include <net/message-framework/MessageType.h>
 #include <net/message-framework/ClientIdRequester.h>
 #include <net/message-framework/ClientIdServer.h>
-
+#include <net/message-framework/ThreadPool.h>
 
 #include <boost/bind.hpp>
 #include <boost/ref.hpp>
@@ -36,191 +36,291 @@
 
 #include <map>
 
-namespace messageframework
-{
-    class MessageClientFull;
-    class MessageControllerFull;
-    class MessageServerFull;
+namespace messageframework {
+/**
+ * @brief This class plays an intermediary role between network layer
+ * and application layer. It converts raw data sent by network layer
+ * into object data, and then, sends the object to application layer.
+ * It also converts object data sent by application layer into raw data,
+ * and then, sends the raw data to newtwork layer.
+ **/
+class MessageDispatcher {
+public:
+	long serialization_time;
+	long deserialization_time;
+	/**
+	 * @brief construct a MessageDispatcher that are used by PermissionRequester
+	 * ,ServiceResultRequester and ClientIdRequester
+	 * @param permissionRequester pointer to PermissionRequester
+	 * @param resultRequester pointer to ServiceResultRequester
+	 * @param clientIdRequester pointer to ClientIdRequester
+	 */
+	MessageDispatcher(PermissionRequester* permissionRequester,
+			ServiceResultRequester* resultRequester,
+			ClientIdRequester* clientIdRequester);
+
+	/**
+	 * @brief construct a MessageDispatcher that are used by ServiceRegistrationRequester
+	 * and ServiceResultServer
+	 * @param registrationRequester pointer to ServiceRegistrationRequester
+	 * @param resultServer pointer to ServiceResultServer
+	 */
+	MessageDispatcher(ServiceRegistrationRequester* registrationRequester,
+			ServiceResultServer* resultServer);
+
+	/**
+	 * @brief construct a MessageDispatcher that are used by ServiceRegistrationServer,
+	 * PermissionServer, ServiceResultClient, ServiceResultServer, and ClientIdServer
+	 * @param registrationServer pointer to ServiceRegistrationServer
+	 * @param permissionServer pointer to PermissionServer
+	 * @param resultClient pointer to ServiceResultClient
+	 * @param resultServer pointer to ServiceResultServer
+	 * @param clientIdServer pointer to ClientIdServer
+	 */
+	MessageDispatcher(ServiceRegistrationServer* registrationServer,
+			PermissionServer* permissionServer,
+			ServiceResultRequester* resultClient,
+			ServiceResultServer* resultServer, ClientIdServer* clientIdServer);
+
+	/**
+	 * @brief default destructor,
+	 */
+	~MessageDispatcher();
+
+	bool isExist(const MessageFrameworkNode& node);
+
+	/**
+	 * When network layer (AsycnStream class) receives raw data, the network layer calls
+	 * this function in order to send data to upper layer. MessageDispatcher converts
+	 * raw data into object data according to messageType. The object will be sent
+	 * to upper layer.
+	 * @param source the source (node) where data is received from
+	 * @param messageType the message type
+	 * @param data the raw message data
+	 */
+	void sendDataToUpperLayer(const MessageFrameworkNode& source,
+			MessageType messageType, //const std::string& data);
+			boost::shared_ptr<izenelib::util::izene_streambuf>& buffer);
+
+#if 1
+	bool sendDataToLowerLayer1(MessageType messageType,
+			const ServiceMessagePtr& serviceMessage,
+			const MessageFrameworkNode& destination) {
+		return sendDataToLowerLayer(messageType, *serviceMessage, destination);
+	}
+#else
+
+	bool sendDataToLowerLayer1(
+			MessageType messageType,
+			const ServiceMessagePtr& data,
+			const MessageFrameworkNode& destination) {
+		if (threadPool_) {
+			ThreadPool::Task task = boost::bind(
+					&MessageDispatcher::sendDataToLowerLayer_impl1,
+					this, messageType, data, destination );
+			threadPool_->executeTask(task);
+		}
+		else
+		return sendDataToLowerLayer_impl1(messageType, data, destination);
+	}
+
+#endif
+	/**
+	 * @brief This function sends a message having messageType and dataType to a
+	 * peer node. If threadPool exists,
+	 * @param messageType the message type
+	 * @param data the message data
+	 * @param destination the node where data will be sent to
+	 * @return true if the data is sent to peer node
+	 * @return false if the node is not found
+	 */
+	template <typename DataType> bool sendDataToLowerLayer(
+			MessageType messageType, const DataType& data,
+			const MessageFrameworkNode& destination) {
+		if (threadPool_) {
+			ThreadPool::Task task = boost::bind(
+					&MessageDispatcher::sendDataToLowerLayer_impl<DataType>,
+					this, messageType, data, destination );
+					threadPool_->executeTask(task);
+				}
+				else
+				return sendDataToLowerLayer_impl<DataType>(messageType, data,destination);
+		return true;
+
+	}
+
+	/**
+	 * @brief Add a new peer node to the available peer list
+	 * @param peerNode - the peer node
+	 * @param bindedStream - the stream that is binded to the connection with the peer node
+	 */
+	void addPeerNode(const MessageFrameworkNode& peerNode, AsyncStream* bindedStream);
+
+	/**
+	 * @brief Remove a a peer node from the available peer list
+	 * @param peerNode the peer node to be removed
+	 */
+	void removePeerNode(const MessageFrameworkNode& peerNode);
+
+	/**
+	 * @brief Use the thread pool for serialization
+	 * @param threadPool - the thread pool to be used
+	 */
+	void attachThreadPool(ThreadPool* threadPool) {
+		threadPool_ = threadPool;
+	}
+
+private:
+
+	/**
+	 * @brief Retrieve a stream that is binded to a node
+	 * @param node node where the stream is binded to
+	 * @return the stream
+	 * @return NULL if the stream does not exist
+	 */
+	AsyncStream& getStreamByNode(const MessageFrameworkNode& node);
+
+	/**
+	 * @brief This function should be called by threads in threadPool_ or called
+	 * directly from sendDataToLowerLayer. To avoid arguments be copied when the
+	 * funtion object generated by boost::bind copied elsewhere, I change all
+	 * arguments to be pointer.
+	 */
+	template <typename DataType>
+	bool sendDataToLowerLayer_impl(MessageType  messageType,
+			const DataType& data,
+			const MessageFrameworkNode& destination)
+	{
+
+		boost::posix_time::ptime before = boost::posix_time::microsec_clock::local_time();
+                DLOG(INFO)<< typeid(DataType).name() << "sendDataToLowerLayer_impl...";
+
+		boost::shared_ptr<izenelib::util::izene_streambuf> archive_stream(
+				new izenelib::util::izene_streambuf());
+
+		to_buffer(data, archive_stream);
+
+		boost::posix_time::ptime after = boost::posix_time::microsec_clock::local_time();
+		serialization_time += (after-before).total_microseconds();
+
+		// retrieve stream that is binded to destination
+		AsyncStream& stream = getStreamByNode(destination);
+
+		DLOG(INFO)<<(const char*)archive_stream->data();
+
+		// forward data to network layer, the data will be sent
+		// to destination
+		stream.sendMessage(messageType, archive_stream);
+		return true;
+
+	}
 
 
-    extern void sendDataToUpperLayer_impl( MessageServerFull& server, const MessageFrameworkNode& source,
-                MessageType messageType, boost::shared_ptr<izenelib::util::izene_streambuf>& buffer);
-    extern void sendDataToUpperLayer_impl( MessageClientFull& client, const MessageFrameworkNode& source,
-                MessageType messageType, boost::shared_ptr<izenelib::util::izene_streambuf>& buffer);
-    extern void sendDataToUpperLayer_impl( MessageControllerFull& controller, const MessageFrameworkNode& source,
-                MessageType messageType, boost::shared_ptr<izenelib::util::izene_streambuf>& buffer);
+#if 0
+	bool sendDataToLowerLayer_impl1(MessageType  messageType,
+			const ServiceMessagePtr& serviceMessage,
+			const MessageFrameworkNode& destination)
+		{
+						// retrieve stream that is binded to destination
+		AsyncStream& stream = getStreamByNode(destination);
+		stream.sendMessage(messageType, serviceMessage);
 
-    /**
-     * @brief This class plays an intermediary role between network layer
-     * and application layer. It converts raw data sent by network layer
-     * into object data, and then, sends the object to application layer.
-     * It also converts object data sent by application layer into raw data,
-     * and then, sends the raw data to newtwork layer.
-     **/
-    template<typename ApplicationType>
-    class MessageDispatcher
-    {
-        typedef MessageDispatcher<ApplicationType> ThisType;
-        typedef AsyncStream<ApplicationType, ThisType> AsyncStreamType;
+		/* unsigned int dataLength = serviceMessage.getSerializedSize();
+		if ((dataLength >> 24) != 0)
+		 throw MessageFrameworkException(SF1_MSGFRK_DATA_OUT_OF_RANGE,
+				__LINE__, __FILE__);
 
-    public:
+	   int header = (messageType << 24) | dataLength;
+	   	boost::shared_ptr<std::string> writeHeaderBuffer(new string((char*)&header, sizeof(header)));
 
-        MessageDispatcher(ApplicationType& app) : app_(app) {};
+     cout<<"DBG sendDataToLowerLayer_impl 1 : ServiceMessage ..." <<endl;
 
-        /**
-         * @brief default destructor,
-         */
-        ~MessageDispatcher() {}
+	std::vector<boost::asio::const_buffer> buffers;
+	buffers.push_back(boost::asio::buffer(*writeHeaderBuffer));
+	//buffers.push_back(boost::asio::buffer(&header, sizeof(int)));
+	buffers.push_back(boost::asio::buffer(&(serviceMessage.mh), sizeof(MessageHeader)));
+	buffers.push_back(boost::asio::buffer(serviceMessage.getServiceName().c_str(),
+		serviceMessage.getServiceName().size()));
+	for(int i=0; i<serviceMessage.getBufferNum(); i++){
+		cout<<i<<endl;
+		unsigned int sz = serviceMessage.getBuffer(i)->getSize();
+		cout<< sz<<endl;
+		buffers.push_back(boost::asio::buffer(&sz, sizeof(unsigned int)) );
+		buffers.push_back(boost::asio::buffer(serviceMessage.getBuffer(i)->getData(), sz));
+	}
+		// forward data to network layer, the data will be sent
+		// to destination
+		stream.sendMessage(buffers);	*/
 
-        /**
-         * Add a new peer node to the available peer list
-         */
-        void addPeerNode(const MessageFrameworkNode& peerNode,
-                         AsyncStreamType* bindedStream)
-        {
-            DLOG(INFO) << "Add peer node : " << peerNode.nodeIP_ << ":"
-            << peerNode.nodePort_ << std::endl;
+		}
+#endif
 
-            boost::mutex::scoped_lock lock(availablePeerNodesMutex_);
-            availablePeerNodes_.insert(pair<MessageFrameworkNode, AsyncStreamType*>(
-                peerNode, bindedStream));
-        }
+/**
+ * This function should be called by threads in threadPool_ or called
+ * directly from sendDataToUpperLayer. To avoid arguments be copied when the
+ * funtion object generated by boost::bind copied elsewhere, I change all
+ * arguments to be pointer.
+ */
+void sendDataToUpperLayer_impl(const MessageFrameworkNode& source,
+	MessageType messageType, //const std::string& data);
+	boost::shared_ptr<izenelib::util::izene_streambuf>& buffer);
 
-        /**
-         * Remove a a peer node from the available peer lis
-         */
-        void removePeerNode(const MessageFrameworkNode& peerNode)
-        {
-            DLOG(INFO) << "Remove peer node : " << peerNode.nodeIP_ << ":"
-            << peerNode.nodePort_ << std::endl;
+private:
+/**
+ * @brief message's serialization would be executed in the thread pool
+ * so that upper thread sending the message or lower io thread receiving
+ * the message can return quickly
+ */
+ThreadPool* threadPool_;
 
-            boost::mutex::scoped_lock lock(availablePeerNodesMutex_);
-            availablePeerNodes_.erase(peerNode);
-        }
+/**
+ * @brief list of available peer nodes. There is a AsyncStream
+ * binded to each peer node
+ **/
+std::map<MessageFrameworkNode, AsyncStream*, MessageFrameworkNode_less> availablePeerNodes_;
+boost::mutex availablePeerNodesMutex_;
 
-        bool isExist(const MessageFrameworkNode& node)
-        {
-            boost::mutex::scoped_lock lock(availablePeerNodesMutex_);
-            typename std::map<MessageFrameworkNode, AsyncStreamType*,
-                MessageFrameworkNode_less>::const_iterator iter =
-                    availablePeerNodes_.find(node);
-            if (iter != availablePeerNodes_.end())
-            {
-                return true;
-            }
-            DLOG(INFO) << "Node: " << node.nodeIP_ << ":" << node.nodePort_
-            << " does not exists." << std::endl;
-            return false;
-        }
+/**
+ * @brief Pointer to a ServiceRegistrationRequester
+ */
+ServiceRegistrationRequester* registrationRequester_;
 
-        /**
-         * When network layer (AsycnStream class) receives raw data, the network layer calls
-         * this function in order to send data to upper layer. MessageDispatcher converts
-         * raw data into object data according to messageType. The object will be sent
-         * to upper layer.
-         * @param source the source (node) where data is received from
-         * @param messageType the message type
-         * @param data the raw message data
-         */
-        void sendDataToUpperLayer(const MessageFrameworkNode& source,
-                                  MessageType messageType, //const std::string& data);
-                                  boost::shared_ptr<izenelib::util::izene_streambuf>& buffer)
-        {
-            sendDataToUpperLayer_impl(source, messageType, buffer);
-        }
+/**
+ * @brief Pointer to a ServiceRegistrationServer
+ */
+ServiceRegistrationServer* registrationServer_;
 
-        /**
-         * @brief This function sends a message having messageType and dataType to a
-         * peer node. If threadPool exists,
-         * @param messageType the message type
-         * @param data the message data
-         * @param destination the node where data will be sent to
-         * @return true if the data is sent to peer node
-         * @return false if the node is not found
-         */
-        template <typename DataType> bool sendDataToLowerLayer(
-            MessageType messageType, const DataType& data,
-            const MessageFrameworkNode& destination)
-        {
-            return sendDataToLowerLayer_impl<DataType>(messageType, data,destination);
-        }
+/**
+ * @brief Pointer to a ServicePermissionRequester
+ */
+PermissionRequester* permissionRequester_;
 
-    private:
+/**
+ * @brief Pointer to a ServicePermissionServer
+ */
+PermissionServer* permissionServer_;
 
-        /**
-         * @brief Retrieve a stream that is binded to a node
-         * @param node node where the stream is binded to
-         * @return the stream
-         * @return NULL if the stream does not exist
-         */
-        AsyncStreamType& getStreamByNode(const MessageFrameworkNode& node)
-        {
-            boost::mutex::scoped_lock lock(availablePeerNodesMutex_);
-            typename std::map<MessageFrameworkNode, AsyncStreamType*,
-                MessageFrameworkNode_less>::const_iterator iter =
-                    availablePeerNodes_.find(node);
-            if (iter == availablePeerNodes_.end())
-            {
-                DLOG(ERROR) << "getStreamByNode fails. Node: " << node.nodeIP_ << ":"
-                << node.nodePort_ << " does not exist." << std::endl;
-                throw MessageFrameworkException(SF1_MSGFRK_DATA_NOT_FOUND, __LINE__, __FILE__);
-            }
+/**
+ * @brief Pointer to a ServiceResultRequester
+ */
+ServiceResultRequester* resultRequester_;
 
-            return *(iter->second);
-        }
+/**
+ * @brief Pointer to a ServiceResultServer
+ */
+ServiceResultServer* resultServer_;
 
-        /**
-         * @brief This function should be called by threads in threadPool_ or called
-         * directly from sendDataToLowerLayer. To avoid arguments be copied when the
-         * funtion object generated by boost::bind copied elsewhere, I change all
-         * arguments to be pointer.
-         */
-        template <typename DataType>
-        bool sendDataToLowerLayer_impl(MessageType  messageType,
-                                       const DataType& data,
-                                       const MessageFrameworkNode& destination)
-        {
-            boost::shared_ptr<izenelib::util::izene_streambuf> archive_stream(
-                new izenelib::util::izene_streambuf());
+/**
+ * @brief Pointer to a ClientIdRequster;
+ */
+ClientIdRequester* clientIdRequester_;
 
-            to_buffer(data, archive_stream);
+/**
+ * @brief Pointer to a ClientIdServer
+ */
+ClientIdServer* clientIdServer_;
 
-            // retrieve stream that is binded to destination
-            AsyncStreamType& stream = getStreamByNode(destination);
-
-            // forward data to network layer, the data will be sent
-            // to destination
-            stream.sendMessage(messageType, archive_stream);
-
-            return true;
-        }
-
-        /**
-         * This function should be called by threads in threadPool_ or called
-         * directly from sendDataToUpperLayer. To avoid arguments be copied when the
-         * funtion object generated by boost::bind copied elsewhere, I change all
-         * arguments to be pointer.
-         */
-        void sendDataToUpperLayer_impl( const MessageFrameworkNode& source,
-                MessageType messageType, boost::shared_ptr<izenelib::util::izene_streambuf>& buffer)
-        {
-            messageframework::sendDataToUpperLayer_impl(app_, source, messageType, buffer);
-        }
-
-    private:
-
-        ApplicationType& app_;
-
-        /**
-         * @brief list of available peer nodes. There is a AsyncStream
-         * binded to each peer node
-         **/
-        std::map<MessageFrameworkNode, AsyncStreamType*, MessageFrameworkNode_less> availablePeerNodes_;
-        boost::mutex availablePeerNodesMutex_;
-
-    };
-
-
+};
 }// end of namespace messageframework
 
 #endif

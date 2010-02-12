@@ -32,7 +32,7 @@ MessageServerFull::MessageServerFull(const std::string& serverName,
 		unsigned int serverPort, const MessageFrameworkNode& controllerInfo)
     :   ownerManager_(serverName),
         timeOutMilliSecond_(TIME_OUT_IN_MILISECOND),
-        messageDispatcher_(*this),
+        messageDispatcher_(this, this),
         asyncStreamManager_(messageDispatcher_),
         connector_(io_service_, asyncStreamManager_),
         acceptor_(io_service_, asyncStreamManager_),
@@ -231,7 +231,7 @@ bool MessageServerFull::putResultOfService(const ServiceResultPtr& result) {
 void MessageServerFull::sendResultOfService(
 		const MessageFrameworkNode& requester, const ServiceResultPtr& result) {
 	DLOG(INFO)<< "============= MessageServer::sendResultOfService ===========";
-	messageDispatcher_.sendDataToLowerLayer(SERVICE_RESULT_MSG, result,
+	messageDispatcher_.sendDataToLowerLayer1(SERVICE_RESULT_MSG, result,
 			requester);
 
 }

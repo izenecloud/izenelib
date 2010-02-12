@@ -19,8 +19,6 @@
 #include <net/message-framework/ClientIdRequester.h>
 #include <net/message-framework/Semaphore.h>
 
-#include <net/message-framework/MessageDispatcher.h>
-
 
 /**************** Include boost header files *******************/
 #include <boost/asio.hpp>
@@ -118,6 +116,7 @@ namespace messageframework
 		bool getResultOfService(const ServiceRequestInfoPtr& serviceRequestInfo,
 						ServiceResultPtr& serviceResult);
 
+	protected:
 
 		/*** Interfaces of ServiceResultRequester ***/
 
@@ -160,6 +159,13 @@ namespace messageframework
 		bool prepareConnection(const MessageFrameworkNode& node);
 
 		inline const std::string& getName(){return ownerManager_;}
+
+		/**
+ 	     * @brief This function create a new AsyncStream that is based on tcp::socket
+ 		 */
+		AsyncStream* createAsyncStream(boost::shared_ptr<tcp::socket> sock);
+
+		friend class AsyncConnector;
 
 	private:
 		bool checkPermissionInfo_(ServicePermissionInfo& permissionInfo);
@@ -235,7 +241,7 @@ namespace messageframework
 		/**
  		 * @brief This variables receives data from peer and sends data to the peer
  		 */
-		MessageDispatcher<MessageClientFull> messageDispatcher_;
+		MessageDispatcher messageDispatcher_;
 
 		/**
  		 * @brief The maximum time in milliseconds to wait to process data.
@@ -251,17 +257,17 @@ namespace messageframework
 		/**
 		 * @brief manage all connections
 		 */
-		AsyncStreamManager<MessageClientFull, MessageDispatcher<MessageClientFull> > asyncStreamManager_;
+		AsyncStreamManager asyncStreamManager_;
 
 		/**
  		 * @brief connector to connect to controller
  		 */
-		AsyncConnector<AsyncStreamManager<MessageClientFull, MessageDispatcher<MessageClientFull> > > asyncConnector_;
+		AsyncConnector asyncConnector_;
 
         /**
          * @brief connector to controller
          */
-		AsyncControllerConnector<AsyncStreamManager<MessageClientFull, MessageDispatcher<MessageClientFull> > > asyncControllerConnector_;
+		AsyncControllerConnector asyncControllerConnector_;
 
 		/**
  		 * @brief thread for I/O operations

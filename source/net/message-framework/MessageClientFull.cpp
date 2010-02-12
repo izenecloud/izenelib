@@ -27,7 +27,7 @@ namespace messageframework
         const std::string& clientName,
             const MessageFrameworkNode& controllerInfo)
     :
-        messageDispatcher_(*this),
+        messageDispatcher_(this, this, this),
             asyncStreamManager_(messageDispatcher_),
                 asyncConnector_(io_service_, asyncStreamManager_),
                     asyncControllerConnector_(io_service_, asyncStreamManager_, 1)
@@ -238,7 +238,7 @@ namespace messageframework
             }
         }
 
-        messageDispatcher_.sendDataToLowerLayer(SERVICE_REQUEST_MSG, serviceRequestInfo, server);
+        messageDispatcher_.sendDataToLowerLayer1(SERVICE_REQUEST_MSG, serviceRequestInfo, server);
 
         return true;
     }
@@ -461,7 +461,7 @@ namespace messageframework
     {
         server.display();
         // now send the message to server
-        messageDispatcher_.sendDataToLowerLayer(SERVICE_REQUEST_MSG, requestInfo,
+        messageDispatcher_.sendDataToLowerLayer1(SERVICE_REQUEST_MSG, requestInfo,
                 server);
     }
 

@@ -228,7 +228,7 @@ BOOST_AUTO_TEST_CASE(controller_halt) {
     // Check whether client and server are still alive after controller reboot.
     MessageControllerFull rebootedController("controller", 10080);
     thread rt(lambda::bind(&MessageControllerFull::run, var(rebootedController)));
-    ::sleep(5);
+    ::sleep(2);
 
     // TODO: I cannot test whether server is alive in current code.
 

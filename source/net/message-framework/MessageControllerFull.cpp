@@ -50,7 +50,7 @@ MessageControllerFull::MessageControllerFull(
 		unsigned int servicePort) :
     ownerManagerName_(controllerName),
     availableServiceList_(getAvailServiceSdbName(servicePort)),
-	messageDispatcher_(*this),
+	messageDispatcher_(this, this, this, this, this),
 	asyncStreamManager_(messageDispatcher_),
 	asyncAcceptor_(io_service_, asyncStreamManager_)
 {

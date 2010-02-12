@@ -21,6 +21,7 @@ IF(message_framework_SHOULD_BUILD)
 
   SET(message_framework_SRC
     AsyncConnector.cpp
+    AsyncStream.cpp
     MessageAgentFull.cpp
     MessageClientFull.cpp
     MessageControllerFull.cpp
