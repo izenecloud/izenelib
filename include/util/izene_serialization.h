@@ -1,3 +1,17 @@
+/**
+ * @file izene_serialization.h
+ * @brief The header file of izene_serialization.
+ * @author Peisheng Wang
+ *
+ * This file defines clas izene_serialization and izene_deserialization.
+ * 
+ * @history
+ *  - 2009.7.27 Peisheng Wnag
+ *
+ * */
+
+
+
 #ifndef IZENE_SERIALIZATION_H_
 #define IZENE_SERIALIZATION_H_
 
@@ -35,6 +49,14 @@ struct izene_serial_type<T, false, true>
 	typedef izene_deserialization_febird<T> dtype;
 };
 
+
+/**
+ * 
+ *  \brief izene_serialization 
+ *  
+ *  It wraps boost, febird and memory serialization into one unified interface according to the type 
+ *  
+ */
 template <typename T> class izene_serialization {
 	typedef typename izene_serial_type< T, IsMemcpySerial<T>::yes, IsFebirdSerial<T>::yes>::stype
 			stype;
@@ -49,6 +71,14 @@ public:
 		}
 };
 
+
+/**
+ * 
+ *  \brief izene_deserialization 
+ * 
+ *  It wraps boost, febird and memory deserialization into one unified interface according to the type
+ * 
+ **/
 template <typename T> class izene_deserialization {
 	typedef typename izene_serial_type<T, IsMemcpySerial<T>::yes, IsFebirdSerial<T>::yes>::dtype
 			dtype;

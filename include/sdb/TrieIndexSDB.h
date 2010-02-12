@@ -1,3 +1,18 @@
+/**
+ * @file TrieIndexSDB.h
+ * @brief The header file of TrieIndexSDB.
+ * @author Peisheng Wang
+ *
+ * This file defines clas IndexSDB.
+ * 
+ * @history
+ *  - 11.27 Peisheng Wnag
+ *  
+ * 
+ *
+ * */
+
+
 #ifndef TRIEINDEXSDB_H_
 #define TRIEINDEXSDB_H_
 
@@ -9,6 +24,15 @@ using namespace std;
 namespace izenelib {
 namespace sdb {
 
+
+/**
+ * 
+ *  \brief TrieIndexSDB 
+ * 
+ *   It wraps both IndexSDB and Trie into a TrieIndexSDB, using for triexdexing,
+ *   suffix  -> <doc_id list>
+ *  
+ */
 template <typename StringType, typename ElementType,
 		typename LockType =izenelib::util::NullLock> class TrieIndexSDB {
 public:
@@ -80,6 +104,14 @@ private:
 	TrieType triedb_;
 };
 
+
+/**
+ * 
+ *  \brief TrieIndexSDB2 
+ * 
+ *   It use only a SDB to function as TrieIndexSDB. More fast with small data set 
+ *  
+ */
 template <typename StringType, typename ElementType,
 		typename LockType =izenelib::util::NullLock> class TrieIndexSDB2 {
 public:

@@ -24,6 +24,7 @@ NS_IZENELIB_IR_BEGIN
  **/
 
 template<
+  typename FREQ_TYPE = uint32_t,
   typename LenType = uint8_t,
   uint8_t ENTRY_POW = 17
   >
@@ -111,8 +112,8 @@ public:
         os<<(pBkt+p);
         p += len;
 
-        os<<"=>"<<*((uint32_t*)(pBkt+p))<<std::endl;
-        p += sizeof (uint32_t);
+        os<<"=>"<<*((FREQ_TYPE*)(pBkt+p))<<std::endl;
+        p += sizeof (FREQ_TYPE);
       }
     }
   
@@ -148,7 +149,7 @@ public:
 
         if (len-1 != (LenType)term.length())
         {
-          p += len + sizeof (uint32_t);
+          p += len + sizeof (FREQ_TYPE);
           continue;
         }
 
@@ -159,21 +160,21 @@ public:
 
         if (j++ == len-1)
         {
-          ++(*(uint32_t*)(pBkt+p+j));
+          ++(*(FREQ_TYPE*)(pBkt+p+j));
           return true;
         }
 
-        p += len + sizeof (uint32_t);
+        p += len + sizeof (FREQ_TYPE);
       }
     }
 
     IASSERT(bs>=content_len);
     
-    while(bs-content_len<term.length()+1+sizeof(LenType)+sizeof(uint32_t))
+    while(bs-content_len<term.length()+1+sizeof(LenType)+sizeof(FREQ_TYPE))
     {
       bs += INIT_BUCKET_SIZE;
 
-      if (bs-content_len<term.length()+1+sizeof(LenType)+sizeof(uint32_t))
+      if (bs-content_len<term.length()+1+sizeof(LenType)+sizeof(FREQ_TYPE))
         continue;
       //content_len += str.length()+sizeof(uint32_t);
       pBkt = (char*)realloc(pBkt, bs);
@@ -191,7 +192,7 @@ public:
     ++content_len; 
         
     *((uint32_t*)(pBkt+content_len)) = 1;
-    content_len += sizeof(uint32_t);
+    content_len += sizeof(FREQ_TYPE);
 
     *(uint32_t*)(pBkt) = bs;
     *((uint32_t*)pBkt+1) = content_len;
@@ -200,7 +201,7 @@ public:
     return false;
   }
 
-  bool insert(const std::string& term, uint32_t freq)
+  bool insert(const std::string& term, FREQ_TYPE freq)
   {
     if (term.length()==0)
       return false;
@@ -229,11 +230,11 @@ public:
     
     IASSERT(bs>=content_len);
     
-    while(bs-content_len<term.length()+1+sizeof(LenType)+sizeof(uint32_t))
+    while(bs-content_len<term.length()+1+sizeof(LenType)+sizeof(FREQ_TYPE))
     {
       bs += INIT_BUCKET_SIZE;
 
-      if (bs-content_len<term.length()+1+sizeof(LenType)+sizeof(uint32_t))
+      if (bs-content_len<term.length()+1+sizeof(LenType)+sizeof(FREQ_TYPE))
         continue;
       //content_len += str.length()+sizeof(uint32_t);
       pBkt = (char*)realloc(pBkt, bs);
@@ -250,8 +251,8 @@ public:
     *(pBkt+content_len) = '\0';
     ++content_len; 
         
-    *((uint32_t*)(pBkt+content_len)) = freq;
-    content_len += sizeof(uint32_t);
+    *((FREQ_TYPE*)(pBkt+content_len)) = freq;
+    content_len += sizeof(FREQ_TYPE);
 
     *(uint32_t*)(pBkt) = bs;
     *((uint32_t*)pBkt+1) = content_len;
@@ -260,7 +261,7 @@ public:
     return false;
   }
 
-  uint32_t find(const std::string& term)const
+  FREQ_TYPE find(const std::string& term)const
   {
     if (term.length()==0)
       return 0;
@@ -285,7 +286,7 @@ public:
 
       if (len-1 != (LenType)term.length())
       {
-        p += len + sizeof (uint32_t);
+        p += len + sizeof (FREQ_TYPE);
         continue;
       }
 
@@ -295,9 +296,9 @@ public:
           break;
 
       if (j++ == len-1)
-        return (*(uint32_t*)(pBkt+p+j));
+        return (*(FREQ_TYPE*)(pBkt+p+j));
 
-      p += (uint32_t)len + sizeof (uint32_t);
+      p += (uint32_t)len + sizeof (FREQ_TYPE);
     }
 
     return 0;
@@ -376,8 +377,8 @@ public:
     
     term = std::string(pBkt+iter_+sizeof(LenType));
     iter_ += sizeof(LenType) + term.length()+1;
-    freq = *(uint32_t*)(pBkt+iter_);
-    iter_ += sizeof(uint32_t);
+    freq = *(FREQ_TYPE*)(pBkt+iter_);
+    iter_ += sizeof(FREQ_TYPE);
 
     if (iter_ < *((uint32_t*)pBkt+1))
       return true;
