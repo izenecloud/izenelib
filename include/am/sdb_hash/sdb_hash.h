@@ -832,7 +832,9 @@ public:
 		return sfh_.numItems;
 	}
 
-	void fillCache() {
+	void fillCache() {		
+		if( !isOpen_ )
+			return;
 		queue<bucket_chain*> qnode;
 
 		for (size_t i=0; i<directorySize_; i++) {

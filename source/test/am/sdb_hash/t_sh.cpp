@@ -27,7 +27,10 @@ typedef izenelib::am::sdb_hash<KeyType, izenelib::am::NullType, NullLock>
 		SDB_HASH;
 
 
+izenelib::am::sdb_hash<uint64_t, std::string, NullLock> sdb;
+
 template<typename T> void insert_test(T& tb) {
+	sdb.open();
 
 	clock_t start;
 	start = clock();
@@ -37,9 +40,11 @@ template<typename T> void insert_test(T& tb) {
 
 	ifstream inf(inputFile.c_str());
 	string ystr;
-	while (inf>>ystr) {
+	while (inf>>ystr) {		
 		//cout<<"input ="<<ystr<<endl;		
 		sum++;
+		sdb.insert(sum, ystr);
+		
 		myDataType val(ystr);
 		if (tb.insert(val) ) {
 			hit++;
