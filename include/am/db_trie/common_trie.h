@@ -117,7 +117,7 @@ template <typename CharType,
           typename DataTableType>
 class CommonTrie_
 {
-
+public:
     enum FindRegexpParameterType {
         EnumerateKey = 0,
         EnumerateValue = 1,
