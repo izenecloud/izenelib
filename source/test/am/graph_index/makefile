@@ -2,12 +2,12 @@ GPP :=g++
 
 GCC :=/usr/bin/gcc
 
-CC_OPTIONS :=  -O3 -g -rdynamic -Wall -c -fmessage-length=0 
+CC_OPTIONS := -O3 -g -Wall -c -fmessage-length=0 
 
 
-LIBS := -lpthread /home/Kevin/izenelib/lib/libizene_log.so /home/Kevin/izenelib/lib/libprocmeminfo.so /usr/local/lib/libboost_unit_test_framework-gcc41-mt-1_37.so /usr/local/lib/libboost_thread-gcc41-mt-1_37.so /usr/local/lib/libboost_filesystem-gcc41-mt-1_37.so 
+LIBS :=  -lpthread /usr/local/lib/libboost_thread-gcc41-mt-1_36.so /home/Kevin/izenelib/lib/libizene_log.so /home/Kevin/izenelib/lib/libprocmeminfo.so /usr/local/lib/libboost_unit_test_framework-gcc41-mt-1_36.so /usr/local/lib/libboost_thread-gcc41-mt-1_36.so /usr/local/lib/libboost_filesystem-gcc41-mt-1_36.so 
 
-INC_PATH := -I /home/Kevin/wiselib/include/ -I /home/Kevin/izenelib/include/ -I /usr/local/include/boost-1_37/ -I ../../../../include/ -I ../../../../include/3rdparty/
+INC_PATH := -I /home/Kevin/wiselib/include/ -I /home/Kevin/izenelib/include/ -I /usr/local/include/boost-1_36/ -I ../../../../include/ -I ../../../../include/3rdparty/
 
 
 OBJS := $(patsubst %.cpp, %.o, $(wildcard *.cpp))
