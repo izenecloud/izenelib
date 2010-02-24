@@ -252,6 +252,21 @@ void dyn_array_check(const VALUE_TYPE& t = VALUE_TYPE())
     fclose(f);
 
     CHECK(array == v);
+
+    f = fopen("./tt", "w+");
+    array.compressed_save(f);
+    fclose(f);
+  }  
+
+  {
+    Array array;
+    array = v;
+
+    FILE* f = fopen("./tt", "r");
+    array.compressed_load(f);
+    fclose(f);
+
+    CHECK(array == v);
   }  
 
   {
@@ -1026,7 +1041,7 @@ int main()
 
   //graph_merge_check();
   
-   graph_check();
+   //graph_check();
 }
 
  
