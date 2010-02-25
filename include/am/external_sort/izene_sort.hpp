@@ -169,10 +169,10 @@ public:
     
     run_ = new run_t(filenm_.c_str(), buf_size_);
     run_->run();
-    delete run_;
-    run_ = NULL;
     
     merge_ = new merge_t(filenm_.c_str(), run_->run_num(), buf_size_, buf_num_);
+    delete run_;
+    run_ = NULL;
     merge_->run();
 
     gettimeofday (&tvafter , &tz);
