@@ -169,18 +169,17 @@ public:
     
     run_ = new run_t(filenm_.c_str(), buf_size_);
     run_->run();
-
-    if (merge_)
-      delete merge_;
-    
-    merge_ = new merge_t(filenm_.c_str(), run_->run_num(), buf_size_, buf_num_);
     delete run_;
     run_ = NULL;
+    
+    merge_ = new merge_t(filenm_.c_str(), run_->run_num(), buf_size_, buf_num_);
     merge_->run();
 
     gettimeofday (&tvafter , &tz);
     std::cout<<"\nIt takes "<<((tvafter.tv_sec-tvpre.tv_sec)*1000+(tvafter.tv_usec-tvpre.tv_usec)/1000.)/60000
              <<" minutes to sort("<<count_<<")\n";
+    delete merge_;
+    merge_ = NULL;
 
     return true;
 
