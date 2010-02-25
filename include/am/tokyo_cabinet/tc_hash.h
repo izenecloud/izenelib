@@ -323,11 +323,11 @@ public:
 	/**
 	 *   get the num of items
 	 */
-	int num_items() {
+	uint64_t num_items() {
 		return tchdbrnum(hdb_);
 	}
     
-    int numItems() {
+    uint64_t numItems() {
         return num_items();
     }
 
@@ -374,6 +374,18 @@ public:
         hdb_ = tchdbnew();
         tchdbsetcache(hdb_, cacheSize_);
         tchdbopen(hdb_, fileName_.c_str(), HDBOCREAT | HDBOWRITER);
+    }
+    
+    int ecode()
+    {
+        if ( tchdbecode(hdb_) == TCESUCCESS )
+        {
+            return 0;
+        }
+        else
+        {
+            return 1;
+        }
     }
     
 	/**
