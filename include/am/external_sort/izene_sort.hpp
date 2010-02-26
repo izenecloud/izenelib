@@ -101,7 +101,10 @@ public:
         IASSERT(fwrite(&count_, sizeof(uint64_t), 1, f_)==1);
       }
       else
+      {
         IASSERT(fread(&count_, sizeof(uint64_t), 1, f_)==1);
+        fseek(f_, 0, SEEK_END);
+      }
     }
     
     new_buffer_();
