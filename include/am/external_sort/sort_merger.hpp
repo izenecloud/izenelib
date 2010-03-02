@@ -569,7 +569,7 @@ public:
     delete sub_out_buf_;
 
     delete[] in_out_mtx_;
-    //delete[] in_out_con_;
+    delete[] in_out_con_;
 
     delete out_buf_size_;
     delete out_buf_full_;
