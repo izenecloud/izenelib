@@ -10,7 +10,7 @@
 #define TC_HASH_H
 
 #include "tc_types.h"
-
+#include "../../util/Exception.h"
 #include <boost/optional.hpp>
 
 NS_IZENELIB_AM_BEGIN
@@ -33,6 +33,14 @@ public:
 	 */
 	tc_hash(const string& fileName = "tc_hash.dat"): fileName_(fileName),cacheSize_(0) {
 		hdb_ = tchdbnew();
+        if( hdb_ == NULL )
+        {
+            int errcode = ecode();
+            if( errcode != TCESUCCESS )
+            {
+                IZENELIB_THROW("tc_hash new on "+fileName_+" : "+tchdberrmsg(errcode));
+            }
+        }
 	}
 
 	/**
@@ -40,7 +48,11 @@ public:
 	 */
 	virtual ~tc_hash() {
 		close();
-		tchdbdel(hdb_);
+		bool op = tchdbdel(hdb_);
+        if( !op )
+        {
+            
+        }
 	}
 
 	/**
@@ -48,7 +60,12 @@ public:
 	 */
 	void setCacheSize(size_t cacheSize)
 	{
-		tchdbsetcache(hdb_, cacheSize);
+		bool op = tchdbsetcache(hdb_, cacheSize);
+        if( !op )
+        {
+            int errcode = ecode();
+            IZENELIB_THROW("tc_hash setCacheSize on "+fileName_+" : "+tchdberrmsg(errcode));
+        }
 		cacheSize_ = cacheSize;
 	}
 
@@ -80,7 +97,14 @@ public:
 		izs.write_image(ptr, ksize);
 		izs1.write_image(ptr1, vsize);
 
-		return tchdbputkeep(hdb_, ptr, ksize, ptr1, vsize);
+		bool op = tchdbputkeep(hdb_, ptr, ksize, ptr1, vsize);
+        
+        if( !op )
+        {
+            int errcode = ecode();
+            IZENELIB_THROW("tc_hash insert on "+fileName_+" : "+tchdberrmsg(errcode));
+        }
+        return ret;
 	}
     
     bool insertValue(const KeyType& key, const ValueType& value)
@@ -100,6 +124,15 @@ public:
 
 		int sp;
 		void* value = tchdbget(hdb_, ptr, ksize, &sp);
+        
+        if( value == NULL )
+        {
+            int errcode = ecode();
+            if( errcode != TCENOREC )
+            {
+                IZENELIB_THROW("tc_hash find on "+fileName_+" : "+tchdberrmsg(errcode));
+            }
+        }
 		if( !value )return NULL;
 		else {
 			ValueType *val = new ValueType;
@@ -120,6 +153,14 @@ public:
 
 		int sp;
 		void* pv = tchdbget(hdb_, ptr, ksize, &sp);
+        if( pv == NULL )
+        {
+            int errcode = ecode();
+            if( errcode != TCENOREC )
+            {
+                IZENELIB_THROW("tc_hash get on "+fileName_+" : "+tchdberrmsg(errcode));
+            }
+        }
 		if( !pv )return false;
 		else {
 			izene_deserialization<ValueType> izd((char*)pv, (size_t)sp);
@@ -144,7 +185,14 @@ public:
 		izs.write_image(ptr, ksize);
 
 		//ptr->display();
-		return tchdbout(hdb_, ptr, ksize);
+		bool op = tchdbout(hdb_, ptr, ksize);
+        
+        if( !op )
+        {
+            int errcode = ecode();
+            IZENELIB_THROW("tc_hash del on "+fileName_+" : "+tchdberrmsg(errcode));
+        }
+        return op;
 	}
 
 	/**
@@ -168,7 +216,14 @@ public:
 		izs.write_image(ptr, ksize);
 		izs1.write_image(ptr1, vsize);
 
-		return tchdbput(hdb_, ptr, ksize, ptr1, vsize);
+		bool op = tchdbput(hdb_, ptr, ksize, ptr1, vsize);
+        
+        if( !op )
+        {
+            int errcode = ecode();
+            IZENELIB_THROW("tc_hash update on "+fileName_+" : "+tchdberrmsg(errcode));
+        }
+        return op;
 
 	}
 
@@ -228,7 +283,15 @@ public:
 				&ret_key_size, // returned key size
 				&value_buff, &value_size // returned value
 		);
-
+        
+        if( ret_key_buff == NULL )
+        {
+            int errcode = ecode();
+            if( errcode != TCENOREC )
+            {
+                IZENELIB_THROW("tc_hash get next on "+fileName_+" : "+tchdberrmsg(errcode));
+            }
+        }
 		if (ret_key_buff)
 		{
 			izene_deserialization<KeyType> izd_key(
@@ -244,6 +307,11 @@ public:
 			izd_value.read_image(value);
 
 			tcfree(ret_key_buff);
+            int errcode = ecode();
+            if( errcode != TCESUCCESS )
+            {
+                IZENELIB_THROW("tc_hash free on "+fileName_+" : "+tchdberrmsg(errcode));
+            }
 			return true;
 		}
 
@@ -297,7 +365,13 @@ public:
 
 	bool iterInit()
 	{
-		return tchdbiterinit(hdb_);
+		bool ret = tchdbiterinit(hdb_);
+        int errcode = ecode();
+        if( errcode != TCESUCCESS )
+        {
+            IZENELIB_THROW("tc_hash iterInit on "+fileName_+" : "+tchdberrmsg(errcode));
+        }
+        return ret;
 	}
 	
 	bool iterNext(KeyType& key, ValueType& value)
@@ -306,6 +380,11 @@ public:
 		TCXSTR* ptcValue = tcxstrnew();
 
 		bool b = tchdbiternext3(hdb_, ptcKey, ptcValue);
+        int errcode = ecode();
+        if( errcode != TCESUCCESS )
+        {
+            IZENELIB_THROW("tc_hash iterNext on "+fileName_+" : "+tchdberrmsg(errcode));
+        }
 		if(!b) return false;
 		char* cpKey = (char*)tcxstrptr(ptcKey);
 		char* cpValue = (char*)tcxstrptr(ptcValue);
@@ -315,7 +394,17 @@ public:
 		izene_deserialization<ValueType> izdv(cpValue, tcxstrsize(ptcValue));
 		izdv.read_image(value);
 		tcxstrdel(ptcKey);
+        errcode = ecode();
+        if( errcode != TCESUCCESS )
+        {
+            IZENELIB_THROW("tc_hash str del key on "+fileName_+" : "+tchdberrmsg(errcode));
+        }
 		tcxstrdel(ptcValue);
+        errcode = ecode();
+        if( errcode != TCESUCCESS )
+        {
+            IZENELIB_THROW("tc_hash str del value on "+fileName_+" : "+tchdberrmsg(errcode));
+        }
 
 		return true;
 	}
@@ -324,7 +413,13 @@ public:
 	 *   get the num of items
 	 */
 	uint64_t num_items() {
-		return tchdbrnum(hdb_);
+		uint64_t r = tchdbrnum(hdb_);
+        int errcode = ecode();
+        if( errcode != TCESUCCESS )
+        {
+            IZENELIB_THROW("tc_hash numItems on "+fileName_+" : "+tchdberrmsg(errcode));
+        }
+        return r;
 	}
     
     uint64_t numItems() {
@@ -337,7 +432,13 @@ public:
 	 */
 	bool open() {
 		
-		return tchdbopen(hdb_, fileName_.c_str(), HDBOCREAT | HDBOWRITER);
+		bool ret = tchdbopen(hdb_, fileName_.c_str(), HDBOCREAT | HDBOWRITER);
+        int errcode = ecode();
+        if( errcode != TCESUCCESS )
+        {
+            IZENELIB_THROW("tc_hash open on "+fileName_+" : "+tchdberrmsg(errcode));
+        }
+        return ret;
 	}
 	/**
 	 *   db should be closed after open, and  it will automatically called in deconstuctor.
@@ -345,7 +446,13 @@ public:
 	bool close()
 	{
 		commit();
-		return tchdbclose(hdb_);
+		bool ret = tchdbclose(hdb_);
+        int errcode = ecode();
+        if( errcode != TCESUCCESS )
+        {
+            IZENELIB_THROW("tc_hash close on "+fileName_+" : "+tchdberrmsg(errcode));
+        }
+        return ret;
 	}
 
     /**
@@ -355,6 +462,11 @@ public:
     void commit() 
     {
         tchdbsync(hdb_);
+        int errcode = ecode();
+        if( errcode != TCESUCCESS )
+        {
+            IZENELIB_THROW("tc_hash commit on "+fileName_+" : "+tchdberrmsg(errcode));
+        }
     }
     /**
     *   Write the dirty buckets to disk.
@@ -371,21 +483,34 @@ public:
     {
         close();
         tchdbdel(hdb_);
+        int errcode = ecode();
+        if( errcode != TCESUCCESS )
+        {
+            IZENELIB_THROW("tc_hash del on "+fileName_+" : "+tchdberrmsg(errcode));
+        }
         hdb_ = tchdbnew();
+        errcode = ecode();
+        if( errcode != TCESUCCESS )
+        {
+            IZENELIB_THROW("tc_hash new on "+fileName_+" : "+tchdberrmsg(errcode));
+        }
         tchdbsetcache(hdb_, cacheSize_);
+        errcode = ecode();
+        if( errcode != TCESUCCESS )
+        {
+            IZENELIB_THROW("tc_hash set cache on "+fileName_+" : "+tchdberrmsg(errcode));
+        }
         tchdbopen(hdb_, fileName_.c_str(), HDBOCREAT | HDBOWRITER);
+        errcode = ecode();
+        if( errcode != TCESUCCESS )
+        {
+            IZENELIB_THROW("tc_hash open on "+fileName_+" : "+tchdberrmsg(errcode));
+        }
     }
     
     int ecode()
     {
-        if ( tchdbecode(hdb_) == TCESUCCESS )
-        {
-            return 0;
-        }
-        else
-        {
-            return 1;
-        }
+        return tchdbecode(hdb_);
     }
     
 	/**
