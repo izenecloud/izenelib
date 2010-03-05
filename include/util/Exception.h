@@ -43,9 +43,9 @@ public:
         ERROR_OUTOFRANGE,
         NUM_ERRORS
     };
-    IZENELIBException(ExceptionCode code, std::string d=""):detail(d) throw(){}
+    IZENELIBException(ExceptionCode code,const std::string& d="") throw():detail(d) {}
 
-    IZENELIBException(std::string d="") throw():detail(d) {}
+    IZENELIBException(const std::string& d="") throw():detail(d) {}
 
     ~IZENELIBException() throw() {}
 
@@ -63,14 +63,14 @@ public:
         if (func.get()!=0 && file.get()!=0 && line.get()!=0)
         {
             std::stringstream out;
-            out << "\n\tInfo: " << *func << " in file " << *file << "(l. " << *line << ")\n";
+            out << "\t[Info: " << *func << " in file " << *file << "(l. " << *line << ")]";
             ret += out.str();
         }
 
         return ret.c_str();
     }
 
-    std::string& getDetail() const throw()
+    std::string getDetail() const throw()
     {
         return detail;
     }
@@ -81,5 +81,6 @@ protected:
 
 
 NS_IZENELIB_UTIL_END
-
+#define IZENELIB_THROW(msg) BOOST_THROW_EXCEPTION( izenelib::util::IZENELIBException(msg) )
 #endif //End of IZENE_UTIL_EXCEPTION_H
+
