@@ -52,22 +52,23 @@ public:
 public:
     virtual const char* what() const throw ()
     {
-        std::string ret="";
-
-        if (getDetail().compare("")!=0)
-            ret += "\n" + getDetail();
-
-        boost::shared_ptr<const char* const> func = boost::get_error_info<boost::throw_function>(*this);
-        boost::shared_ptr<const char* const> file = boost::get_error_info<boost::throw_file>(*this);
-        boost::shared_ptr<const int> line = boost::get_error_info<boost::throw_line>(*this);
-        if (func.get()!=0 && file.get()!=0 && line.get()!=0)
-        {
-            std::stringstream out;
-            out << "\t[Info: " << *func << " in file " << *file << "(l. " << *line << ")]";
-            ret += out.str();
-        }
-
-        return ret.c_str();
+//         std::string ret="";
+// 
+//         if (getDetail().compare("")!=0)
+//             ret += "\n" + getDetail();
+// 
+//         boost::shared_ptr<const char* const> func = boost::get_error_info<boost::throw_function>(*this);
+//         boost::shared_ptr<const char* const> file = boost::get_error_info<boost::throw_file>(*this);
+//         boost::shared_ptr<const int> line = boost::get_error_info<boost::throw_line>(*this);
+//         if (func.get()!=0 && file.get()!=0 && line.get()!=0)
+//         {
+//             std::stringstream out;
+//             out << "\t[Info: " << *func << " in file " << *file << "(l. " << *line << ")]";
+//             ret += out.str();
+//         }
+// 
+//         return ret.c_str();
+        return getDetail().c_str();
     }
 
     std::string getDetail() const throw()
