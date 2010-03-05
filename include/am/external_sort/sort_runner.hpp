@@ -118,9 +118,9 @@ typedef SortRunner<KEY_TYPE, LEN_TYPE, COMPARE_ALL> self_t;
 
       for (LEN_TYPE i=1; i<len1 && i<len2; ++i)
       {
-        if (((KEY_TYPE*)(buf+pos))[i]>((KEY_TYPE*)(buf+p.pos))[i])
+        if (((KEY_TYPE*)(buf+pos+sizeof(LEN_TYPE)))[i]>((KEY_TYPE*)(buf+p.pos+sizeof(LEN_TYPE)))[i])
           return 1;
-        if (((KEY_TYPE*)(buf+pos))[i]<((KEY_TYPE*)(buf+p.pos))[i])
+        if (((KEY_TYPE*)(buf+pos+sizeof(LEN_TYPE)))[i]<((KEY_TYPE*)(buf+p.pos+sizeof(LEN_TYPE)))[i])
           return -1;
       }
 
