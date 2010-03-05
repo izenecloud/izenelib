@@ -10,7 +10,6 @@
 #define TC_HASH_H
 
 #include "tc_types.h"
-#include <boost/throw_exception.hpp>
 #include <util/Exception.h>
 #include <boost/optional.hpp>
 
