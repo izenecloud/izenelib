@@ -122,7 +122,7 @@ public:
             sampler_.getSamples(samples);
 
             std::cout << logHead() << "start computing " << (partitionNum_-1) <<
-                " boundaries from " << samples.size() << " smaples" << std::endl;
+                " boundaries from " << samples.size() << " samples" << std::endl;
 
             if( samples.size() > (size_t)(partitionNum_-1) ) {
                 int count = 0;
