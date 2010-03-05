@@ -202,14 +202,17 @@ public:
       pos_ = 0;
     }
 
-    if (f_ == NULL)
-    {
-      f_ = fopen(filenm_.c_str(), "r");
-      if(f_==NULL)
-        return false;
-    }
+    if (f_)
+      fclose(f_);
+
+    f_ = fopen(filenm_.c_str(), "r");
+    if(f_==NULL)
+      return false;
+    
     fseek(f_, 0, SEEK_SET);
     IASSERT(fread(&count_, sizeof(uint64_t), 1, f_)==1);
+    if (count_ == 0)
+      return false;
     
     return true;
   }
