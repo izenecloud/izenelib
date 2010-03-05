@@ -81,6 +81,6 @@ protected:
 
 
 NS_IZENELIB_UTIL_END
-#define IZENELIB_THROW(msg) BOOST_THROW_EXCEPTION( izenelib::util::IZENELIBException(msg) )
+#define IZENELIB_THROW(msg) throw( izenelib::util::IZENELIBException(msg) )
 #endif //End of IZENE_UTIL_EXCEPTION_H
 

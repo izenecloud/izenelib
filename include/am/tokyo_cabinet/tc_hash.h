@@ -10,7 +10,7 @@
 #define TC_HASH_H
 
 #include "tc_types.h"
-#include "../../util/Exception.h"
+#include <util/Exception.h>
 #include <boost/optional.hpp>
 
 NS_IZENELIB_AM_BEGIN
