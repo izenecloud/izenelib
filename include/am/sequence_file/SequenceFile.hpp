@@ -18,6 +18,7 @@
 #include <boost/serialization/deque.hpp>
 #include <boost/thread/shared_mutex.hpp>
 #include <boost/thread/thread.hpp> 
+#include <boost/format.hpp>
 
 #include <cache/IzeneCache.h>
 #include <util/izene_serialization.h>
@@ -72,6 +73,7 @@ void open()
     {
         IZENELIB_THROW("SequenceFile open on "+file_);
     }
+    isOpen_ = true;
     if( valueSize_ == 0 )
     {
         ValueType _value;
@@ -83,7 +85,7 @@ void open()
     stream_.flush();
     
     loadCache_();
-    isOpen_ = true;
+    
 }
 
 bool isOpen() const
@@ -129,6 +131,7 @@ void append(const ValueType& value)
     if( !isOpen() ) return;
     boost::lock_guard<boost::mutex> mLock(readWriteMutex_);
     append_(value);
+    itemCount_ += 1;
 }
 
 
@@ -188,13 +191,16 @@ private:
 void loadItemCount_()
 {
     if( !isOpen() ) return;
+//     std::cout<<" loadItemCount"<<std::endl;
     boost::lock_guard<boost::mutex> mLock(readWriteMutex_);
     stream_.seekg(0, ios::end);
     streampos size = stream_.tellg();
+//     std::cout<<" loadItemCount "<<size<<(streampos) sizeof(itemCount_)<<std::endl;
     if (size < (streampos) sizeof(itemCount_) )
     {
         itemCount_ = 0;
         writeItemCount_();
+//         std::cout<<" tellg after load : "<<stream_.tellg()<<std::endl;
     }
     else
     {
@@ -217,6 +223,7 @@ void writeItemCount_()
         IZENELIB_THROW("SequenceFile writeItemCount on "+file_);
         
     }
+    stream_.seekg(0, ios::end);
 }
 
 void loadCache_()
@@ -256,9 +263,10 @@ void seekToItemBeginWithExpand_(KeyType id)
     {
         stream_.seekg(0, ios::end);
         streampos size = stream_.tellg();
-        if (size != (streampos) (headSize_ + itemCount_ * valueSize_) )
+        streampos expectSize = (streampos) (headSize_ + itemCount_ * valueSize_);
+        if (size != expectSize )
         {
-            IZENELIB_THROW("SequenceFile abnormal file size "+file_);
+            IZENELIB_THROW( (boost::format("SequenceFile abnormal file size on %1%, param: %2%,%3%,%4%") % file_ % id % size % expectSize).str() );
         }
         uint64_t toBeAddSize = (id - itemCount_) * (uint64_t)valueSize_;
         uint32_t roundSize = 1000;

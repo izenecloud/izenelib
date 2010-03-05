@@ -38,8 +38,9 @@ public:
         }
         else
         {
-            loadItemCount_();
             isOpen_ = true;
+            loadItemCount_();
+            
         }
     }
     
@@ -220,6 +221,7 @@ class SimpleSequenceFileWriter {
                 IZENELIB_THROW("SimpleSequenceFileWriter open on "+file_);
                 
             }
+            isOpen_ = true;
             loadItemCount_();
             stream_.flush();
             stream_.seekg(0, ios::end);
@@ -228,7 +230,7 @@ class SimpleSequenceFileWriter {
                 IZENELIB_THROW("SimpleSequenceFileWriter open on "+file_);
                 
             }
-            isOpen_ = true;
+            
         }
         
         bool isOpen() const

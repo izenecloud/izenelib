@@ -31,29 +31,31 @@ public:
 	/**
 	 *   constructor
 	 */
-	tc_hash(const string& fileName = "tc_hash.dat"): fileName_(fileName),cacheSize_(0) {
-		hdb_ = tchdbnew();
-        if( hdb_ == NULL )
-        {
-            int errcode = ecode();
-            if( errcode != TCESUCCESS )
-            {
-                IZENELIB_THROW("tc_hash new on "+fileName_+" : "+tchdberrmsg(errcode));
-            }
-        }
+	tc_hash(const string& fileName = "tc_hash.dat"): fileName_(fileName),hdb_(NULL),isOpen_(false), cacheSize_(0) {
+		initHandle_();
 	}
 
 	/**
 	 *   deconstructor, close() will also be called here.
 	 */
 	virtual ~tc_hash() {
-		close();
-		bool op = tchdbdel(hdb_);
-        if( !op )
+        if( isOpen() )
         {
-            
+            try{
+                close();
+            }
+            catch(std::exception& ex)
+            {
+                std::cout<<"error while close tc_hash : "<<fileName_<<std::endl;
+            }
         }
+		freeHandle_();
 	}
+    
+    bool isOpen() const
+    {
+        return isOpen_;
+    }
 
 	/**
 	 *  set cache size, if not called use default size 100000
@@ -80,6 +82,7 @@ public:
 	 *  insert an item of DataType
 	 */
 	bool insert(const DataType<KeyType,ValueType> & dat) {
+        if( !isOpen() ) return false;
 		return insert(dat.get_key(), dat.get_value() );
 	}
 
@@ -87,7 +90,7 @@ public:
 	 *  insert an item in key/value pair
 	 */
 	bool insert(const KeyType& key, const ValueType& value) {
-
+        if( !isOpen() ) return false;
 		char* ptr;
 		char* ptr1;
 		size_t ksize;
@@ -104,11 +107,12 @@ public:
             int errcode = ecode();
             IZENELIB_THROW("tc_hash insert on "+fileName_+" : "+tchdberrmsg(errcode));
         }
-        return ret;
+        return op;
 	}
     
     bool insertValue(const KeyType& key, const ValueType& value)
     {
+        if( !isOpen() ) return false;
         return insert(key, value);
     }
 
@@ -117,6 +121,7 @@ public:
 	 *  Note that, there will be memory leak if not delete the value
 	 */
 	ValueType* find(const KeyType & key) {
+        if( !isOpen() ) return NULL;
 		char* ptr;
 		size_t ksize;
 		izene_serialization<KeyType> izs(key);
@@ -133,7 +138,7 @@ public:
                 IZENELIB_THROW("tc_hash find on "+fileName_+" : "+tchdberrmsg(errcode));
             }
         }
-		if( !value )return NULL;
+		if( value == NULL )return NULL;
 		else {
 			ValueType *val = new ValueType;
 			izene_deserialization<ValueType> izd((char*)value, (size_t)sp);
@@ -145,7 +150,7 @@ public:
 
 	bool get(const KeyType& key, ValueType& value)
 	{
-
+        if( !isOpen() ) return false;
 		char* ptr;
 		size_t ksize;
 		izene_serialization<KeyType> izs(key);
@@ -172,6 +177,7 @@ public:
     
     bool getValue(const KeyType& key, ValueType& value)
     {
+        if( !isOpen() ) return false;
         return get(key, value);
     }
 
@@ -179,6 +185,7 @@ public:
 	 *  delete  an item
 	 */
 	bool del(const KeyType& key) {
+        if( !isOpen() ) return false;
 		char* ptr;
 		size_t ksize;
 		izene_serialization<KeyType> izs(key);
@@ -200,6 +207,7 @@ public:
 	 */
 	bool update(const DataType<KeyType,ValueType> & dat)
 	{
+        if( !isOpen() ) return false;
 		return update( dat.get_key(), dat.get_value() );
 	}
 
@@ -207,6 +215,7 @@ public:
 	 *  update  an item by key/value pair
 	 */
 	bool update(const KeyType& key, const ValueType& value) {
+        if( !isOpen() ) return false;
 		char* ptr;
 		char* ptr1;
 		size_t ksize;
@@ -248,6 +257,7 @@ public:
 
 	bool search(const KeyType&key, SDBCursor& locn)
 	{
+        if( !isOpen() ) return false;
 		if( find(key) ) {
 			locn = key;
 			return true;
@@ -266,6 +276,7 @@ public:
 
 	bool get(const SDBCursor& locn, KeyType& key, ValueType& value)
 	{
+        if( !isOpen() ) return false;
 		char* ptr = 0;
 		size_t ksize = 0;
 		if (locn)
@@ -307,11 +318,6 @@ public:
 			izd_value.read_image(value);
 
 			tcfree(ret_key_buff);
-            int errcode = ecode();
-            if( errcode != TCESUCCESS )
-            {
-                IZENELIB_THROW("tc_hash free on "+fileName_+" : "+tchdberrmsg(errcode));
-            }
 			return true;
 		}
 
@@ -322,6 +328,7 @@ public:
 	 *  get an item from given SDBCursor
 	 */
 	bool get(const SDBCursor& locn, DataType<KeyType,ValueType> & rec) {
+        if( !isOpen() ) return false;
 		return get(locn, rec.get_key(), rec.get_value() );
 	}
 
@@ -335,17 +342,20 @@ public:
 	 */
 	bool seq(SDBCursor& locn, KeyType& key, ValueType& value, ESeqDirection sdir=ESD_FORWARD)
 	{
+        if( !isOpen() ) return false;
 	    bool ret = seq(locn);
 	    get(locn, key, value);
 	    return ret;
 	}
 	bool seq(SDBCursor& locn, DataType<KeyType, ValueType>& dat, ESeqDirection sdir=ESD_FORWARD)
     {
+        if( !isOpen() ) return false;
 		return seq(locn, dat.key, dat.value, sdir);
     }
 
 	
 	bool seq(SDBCursor& locn, ESeqDirection sdir = ESD_FORWARD) {
+        if( !isOpen() ) return false;
 		if( sdir == ESD_FORWARD) {
 			DataType<KeyType,ValueType> rec;
 			if (get(locn, rec))
@@ -365,25 +375,33 @@ public:
 
 	bool iterInit()
 	{
-		bool ret = tchdbiterinit(hdb_);
-        int errcode = ecode();
-        if( errcode != TCESUCCESS )
+        if( !isOpen() ) return false;
+		bool op = tchdbiterinit(hdb_);
+        if( !op )
         {
-            IZENELIB_THROW("tc_hash iterInit on "+fileName_+" : "+tchdberrmsg(errcode));
+            int errcode = ecode();
+            if( errcode != TCESUCCESS )
+            {
+                IZENELIB_THROW("tc_hash iterInit on "+fileName_+" : "+tchdberrmsg(errcode));
+            }
         }
-        return ret;
+        return op;
 	}
 	
 	bool iterNext(KeyType& key, ValueType& value)
 	{
+        if( !isOpen() ) return false;
 		TCXSTR* ptcKey = tcxstrnew();
 		TCXSTR* ptcValue = tcxstrnew();
 
 		bool b = tchdbiternext3(hdb_, ptcKey, ptcValue);
-        int errcode = ecode();
-        if( errcode != TCESUCCESS )
+        if( !b )
         {
-            IZENELIB_THROW("tc_hash iterNext on "+fileName_+" : "+tchdberrmsg(errcode));
+            int errcode = ecode();
+            if( errcode != TCESUCCESS )
+            {
+                IZENELIB_THROW("tc_hash iterNext on "+fileName_+" : "+tchdberrmsg(errcode));
+            }
         }
 		if(!b) return false;
 		char* cpKey = (char*)tcxstrptr(ptcKey);
@@ -394,17 +412,7 @@ public:
 		izene_deserialization<ValueType> izdv(cpValue, tcxstrsize(ptcValue));
 		izdv.read_image(value);
 		tcxstrdel(ptcKey);
-        errcode = ecode();
-        if( errcode != TCESUCCESS )
-        {
-            IZENELIB_THROW("tc_hash str del key on "+fileName_+" : "+tchdberrmsg(errcode));
-        }
 		tcxstrdel(ptcValue);
-        errcode = ecode();
-        if( errcode != TCESUCCESS )
-        {
-            IZENELIB_THROW("tc_hash str del value on "+fileName_+" : "+tchdberrmsg(errcode));
-        }
 
 		return true;
 	}
@@ -413,12 +421,8 @@ public:
 	 *   get the num of items
 	 */
 	uint64_t num_items() {
+        if( !isOpen() ) return 0;
 		uint64_t r = tchdbrnum(hdb_);
-        int errcode = ecode();
-        if( errcode != TCESUCCESS )
-        {
-            IZENELIB_THROW("tc_hash numItems on "+fileName_+" : "+tchdberrmsg(errcode));
-        }
         return r;
 	}
     
@@ -431,13 +435,17 @@ public:
 	 *   db must be opened to be used.
 	 */
 	bool open() {
-		
+		if( isOpen() ) return false;
 		bool ret = tchdbopen(hdb_, fileName_.c_str(), HDBOCREAT | HDBOWRITER);
-        int errcode = ecode();
-        if( errcode != TCESUCCESS )
+        if( !ret )
         {
-            IZENELIB_THROW("tc_hash open on "+fileName_+" : "+tchdberrmsg(errcode));
+            int errcode = ecode();
+            if( errcode != TCESUCCESS )
+            {
+                IZENELIB_THROW("tc_hash open on "+fileName_+" : "+tchdberrmsg(errcode));
+            }
         }
+        isOpen_ = true;
         return ret;
 	}
 	/**
@@ -445,13 +453,18 @@ public:
 	 */
 	bool close()
 	{
+        if( !isOpen() ) return false;
 		commit();
 		bool ret = tchdbclose(hdb_);
-        int errcode = ecode();
-        if( errcode != TCESUCCESS )
+        if( !ret )
         {
-            IZENELIB_THROW("tc_hash close on "+fileName_+" : "+tchdberrmsg(errcode));
+            int errcode = ecode();
+            if( errcode != TCESUCCESS )
+            {
+                IZENELIB_THROW("tc_hash close on "+fileName_+" : "+tchdberrmsg(errcode));
+            }
         }
+        isOpen_ = false;
         return ret;
 	}
 
@@ -461,11 +474,15 @@ public:
     */
     void commit() 
     {
-        tchdbsync(hdb_);
-        int errcode = ecode();
-        if( errcode != TCESUCCESS )
+        if( !isOpen() ) return;
+        bool ret = tchdbsync(hdb_);
+        if( !ret )
         {
-            IZENELIB_THROW("tc_hash commit on "+fileName_+" : "+tchdberrmsg(errcode));
+            int errcode = ecode();
+            if( errcode != TCESUCCESS )
+            {
+                IZENELIB_THROW("tc_hash commit on "+fileName_+" : "+tchdberrmsg(errcode));
+            }
         }
     }
     /**
@@ -473,6 +490,7 @@ public:
     */
     void flush() 
     {
+        if( !isOpen() ) return;
         commit();
     }
     
@@ -482,30 +500,10 @@ public:
     void release()
     {
         close();
-        tchdbdel(hdb_);
-        int errcode = ecode();
-        if( errcode != TCESUCCESS )
-        {
-            IZENELIB_THROW("tc_hash del on "+fileName_+" : "+tchdberrmsg(errcode));
-        }
-        hdb_ = tchdbnew();
-        errcode = ecode();
-        if( errcode != TCESUCCESS )
-        {
-            IZENELIB_THROW("tc_hash new on "+fileName_+" : "+tchdberrmsg(errcode));
-        }
-        tchdbsetcache(hdb_, cacheSize_);
-        errcode = ecode();
-        if( errcode != TCESUCCESS )
-        {
-            IZENELIB_THROW("tc_hash set cache on "+fileName_+" : "+tchdberrmsg(errcode));
-        }
-        tchdbopen(hdb_, fileName_.c_str(), HDBOCREAT | HDBOWRITER);
-        errcode = ecode();
-        if( errcode != TCESUCCESS )
-        {
-            IZENELIB_THROW("tc_hash open on "+fileName_+" : "+tchdberrmsg(errcode));
-        }
+        freeHandle_();
+        initHandle_();
+        setCacheSize(cacheSize_);
+        open();
     }
     
     int ecode()
@@ -525,10 +523,38 @@ public:
 	TCHDB* getHandle() {
 		return hdb_;
 	}
+    
+private:
+    void initHandle_()
+    {
+        if( hdb_ == NULL )
+        {
+            hdb_ = tchdbnew();
+            if( hdb_ == NULL )
+            {
+                int errcode = ecode();
+                if( errcode != TCESUCCESS )
+                {
+                    IZENELIB_THROW("tc_hash new on "+fileName_+" : "+tchdberrmsg(errcode));
+                }
+            }
+        }
+    }
+    
+    void freeHandle_()
+    {
+        if( hdb_ != NULL )
+        {
+            tchdbdel(hdb_);
+            hdb_ = NULL;
+        }
+    }
 
 private:
 	string fileName_;
+    
 	TCHDB* hdb_;
+    bool isOpen_;
 	size_t cacheSize_;
 };
 
