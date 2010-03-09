@@ -80,6 +80,11 @@ public:
     delete entry_;
   }
 
+  void reset()
+  {
+    clean_();
+  }
+  
   uint32_t num_items() const
   {
     return count_;
@@ -365,7 +370,7 @@ public:
     return false;
   }
 
-  bool next(std::string& term, uint32_t& freq)
+  bool next(std::string& term, FREQ_TYPE& freq)
   {
     if (bkt_iter_ == (uint32_t)-1)
       return false;
