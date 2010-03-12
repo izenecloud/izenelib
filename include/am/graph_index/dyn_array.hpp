@@ -199,6 +199,7 @@ protected:
       return low-1;
   }
 
+public:
   inline size_t find_pos_2insert(VALUE_TYPE t)const
   {
     if (length_ ==0)
@@ -210,7 +211,7 @@ protected:
     return binary_search(t, 0, length_-1);
   }
 
-  
+protected:
    /**
      Swap two elements.
   **/
@@ -967,12 +968,96 @@ friend std::ostream& operator << (std::ostream& os, const SelfT& v)
     return s;
   }
 
+  size_t compressed_save(FILE* f, uint64_t addr = -1)
+  {
+    if (size()%sizeof(uint32_t)!=0)
+      return save(f, addr);
+    
+    if (addr != (uint64_t)-1)
+      fseek(f, addr, SEEK_SET);
+
+    size_t len = size();
+    IASSERT(fwrite(&len, sizeof(size_t), 1, f)==1);
+    len /= sizeof(uint32_t);
+    
+    uint32_t* arr = (uint32_t*)ARRAY(p_);
+    size_t s = 0;
+    uint8_t* buff = new uint8_t[size()*2];
+    
+    for (uint32_t i=0; i<len; ++i)
+    {
+      uint32_t ui = arr[i];
+      while ((ui & ~0x7F) != 0)
+      {
+        buff[s++] = ((uint8_t)((ui & 0x7f) | 0x80));
+        ui >>= 7;
+      }
+      buff[s++] = ( (uint8_t)ui );
+    }
+    
+    IASSERT(fwrite(&s, sizeof(size_t), 1, f)==1);
+
+    if (s > 0)
+      IASSERT(fwrite(buff, s, 1, f)==1);
+
+    delete buff;
+    
+    return s+sizeof(size_t)*2;
+  }
+  
+  size_t compressed_load(FILE* f, uint64_t addr = -1)
+  {
+    clear();
+    
+    if (addr != (uint64_t)-1)
+      fseek(f, addr, SEEK_SET);
+    
+    size_t s = 0;
+
+    IASSERT(fread(&s, sizeof(size_t), 1, f)==1);
+
+    size_t LEN = s/sizeof(uint32_t);
+    max_size_ = length_ = s/sizeof(VALUE_TYPE);
+    new_one(length_);
+
+    if (s % sizeof(uint32_t)!=0)
+    {
+      if (s > 0)
+        IASSERT(fread(ARRAY(p_), s, 1, f)==1);
+      return s;
+    }
+
+    IASSERT(fread(&s, sizeof(size_t), 1, f)==1);
+    if (s == 0)
+      return s;
+
+    uint32_t* arr = (uint32_t*)ARRAY(p_);
+    size_t len = 0;
+    uint8_t* buff = new uint8_t[s];
+    IASSERT(fread(buff, s, 1, f)==1);
+    for (size_t c = 0;c<s && len<LEN; ++len)
+    {
+      uint8_t b = buff[c++];
+      uint32_t i = b & 0x7F;
+      for (uint32_t shift = 7; (b & 0x80) != 0; shift += 7)
+      {
+        b = buff[c++];
+        i |= (b & 0x7FL) << shift;
+      }
+      arr[len] = i;
+    }
+
+    delete buff;
+    return s+2*sizeof(size_t);
+  }
+
   /**
     @brief it load from a memory buffer.
    */
   size_t load(const char* mem)
   {
-    clear();
+    if (is_refered())
+      assign_self();
         
     size_t s = *(size_t*)mem;
 
@@ -983,6 +1068,17 @@ friend std::ostream& operator << (std::ostream& os, const SelfT& v)
     memcpy(ARRAY(p_), mem+sizeof(size_t), s);
 
     return s;
+  }
+
+  /**
+    @brief it save from a memory buffer.
+   */
+  size_t save(char* mem)const
+  {
+    *(size_t*)mem = size();
+    memcpy( mem+sizeof(size_t), ARRAY(p_), size() );
+
+    return size();
   }
 
   /**
