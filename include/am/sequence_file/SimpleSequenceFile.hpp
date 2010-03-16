@@ -49,6 +49,11 @@ public:
         return isOpen_;
     }
     
+    std::string getPath() const
+    {
+        return file_;
+    }
+    
     
     bool next()
     {
@@ -76,6 +81,117 @@ public:
         std::size_t valueSize = recodeSize - sizeof(KeyType);
         izenelib::util::izene_deserialization<ValueType> izd_value(pData,valueSize);
         izd_value.read_image(lastValue_);
+        delete[] data;
+        index_++;
+        lastSet_ = true;
+        return true;
+    }
+    
+    bool nextKeyList(std::vector<KeyType>& keyList)
+    {
+        if( !isOpen() ) return false;
+        if(index_ >= itemCount_ ) 
+        {
+            lastSet_ = false;
+            return false;
+        }
+        LenType recodeSize = 0;
+        stream_.read( (char*)&recodeSize, sizeof(recodeSize) );
+        if ( stream_.fail() )
+        {
+            IZENELIB_THROW("SimpleSequenceFileReader read keylist on "+file_);
+        }
+        if( recodeSize % sizeof(KeyType) != 0 )
+        {
+            IZENELIB_THROW("SimpleSequenceFileReader read keylist error on "+file_);
+        }
+        char* data = new char[recodeSize];
+        stream_.read( data, recodeSize );
+        if ( stream_.fail() )
+        {
+            IZENELIB_THROW("SimpleSequenceFileReader read keylist on "+file_);
+        }
+        keyList.resize( recodeSize / sizeof(KeyType) );
+        char* pData = data;
+        for( uint32_t i=0;i<keyList.size();i++)
+        {
+            memcpy( &keyList[i], pData, sizeof(KeyType) );
+            pData += sizeof(KeyType);
+        }
+        delete[] data;
+        index_++;
+        lastSet_ = true;
+        return true;
+    }
+    
+    bool nextKey(KeyType& key)
+    {
+        if( !isOpen() ) return false;
+        if(index_ >= itemCount_ ) 
+        {
+            lastSet_ = false;
+            return false;
+        }
+        LenType recodeSize = 0;
+        stream_.read( (char*)&recodeSize, sizeof(recodeSize) );
+        if ( stream_.fail() )
+        {
+            IZENELIB_THROW("SimpleSequenceFileReader read keylist on "+file_);
+        }
+        if( recodeSize != sizeof(KeyType) )
+        {
+            IZENELIB_THROW("SimpleSequenceFileReader read keylist error on "+file_);
+        }
+        char* data = new char[recodeSize];
+        stream_.read( data, recodeSize );
+        if ( stream_.fail() )
+        {
+            IZENELIB_THROW("SimpleSequenceFileReader read keylist on "+file_);
+        }
+
+        memcpy( &key, data, sizeof(KeyType) );
+
+        delete[] data;
+        index_++;
+        lastSet_ = true;
+        return true;
+    }
+    
+    bool next(KeyType& key, std::vector<ValueType>& valueList)
+    {
+        if( !isOpen() ) return false;
+        if(index_ >= itemCount_ ) 
+        {
+            lastSet_ = false;
+            return false;
+        }
+        LenType recodeSize = 0;
+        stream_.read( (char*)&recodeSize, sizeof(recodeSize) );
+        if ( stream_.fail() )
+        {
+            IZENELIB_THROW("SimpleSequenceFileReader read keylist on "+file_);
+        }
+        if( (recodeSize-sizeof(KeyType)) % sizeof(ValueType) != 0 )
+        {
+            IZENELIB_THROW("SimpleSequenceFileReader read valuelist error on "+file_);
+        }
+        char* data = new char[recodeSize];
+        stream_.read( data, recodeSize );
+        if ( stream_.fail() )
+        {
+            IZENELIB_THROW("SimpleSequenceFileReader read keylist on "+file_);
+        }
+        
+        char* pData = data;
+        memcpy( &key, pData, sizeof(KeyType) );
+        pData += sizeof(KeyType);
+
+        valueList.resize( (recodeSize-sizeof(KeyType)) / sizeof(ValueType) );
+        for( uint32_t i=0;i<valueList.size();i++)
+        {
+            memcpy( &valueList[i], pData, sizeof(ValueType) );
+            pData += sizeof(ValueType);
+        }
         delete[] data;
         index_++;
         lastSet_ = true;
@@ -146,6 +262,18 @@ public:
         return false;
     }
     
+    void recordPosition()
+    {
+        posSet_ = stream_.tellg();
+        indexSet_ = index_;
+    }
+    
+    void backTo()
+    {
+        stream_.seekg(posSet_, ios::beg);
+        index_ = indexSet_;
+    }
+    
     uint64_t getItemCount()
     {
         return itemCount_;
@@ -191,6 +319,8 @@ private:
     std::ifstream stream_;
     uint64_t itemCount_;
     uint64_t index_;
+    uint64_t indexSet_;
+    uint64_t posSet_;
     bool lastSet_;
     KeyType lastKey_;
     ValueType lastValue_;
@@ -238,7 +368,7 @@ class SimpleSequenceFileWriter {
             return isOpen_;
         }
         
-        std::string getPath()
+        std::string getPath() const
         {
             return file_;
         }
@@ -276,6 +406,66 @@ class SimpleSequenceFileWriter {
                 
             }
             itemCount_++;
+        }
+        
+        void append(const KeyType& key, const std::vector<ValueType>& valueList)
+        {
+            if( !isOpen() ) return;
+            
+            std::size_t valueSize = sizeof(ValueType) * valueList.size();
+            LenType keySize = sizeof(KeyType);
+            LenType recodeSize = keySize + valueSize;
+            char* data = new char[recodeSize + sizeof(recodeSize)];
+            char* pData = data;
+            memcpy( pData, &recodeSize, sizeof(recodeSize) );
+            pData += sizeof(recodeSize);
+            memcpy( pData, &key, keySize );
+            pData += keySize;
+            for( uint32_t i=0;i<valueList.size();i++)
+            {
+                memcpy( pData, &valueList[i], sizeof(ValueType) );
+                pData += sizeof(ValueType);
+            }
+            stream_.write(data, recodeSize+ sizeof(recodeSize));
+            delete[] data;
+            if( stream_.fail() )
+            {
+                IZENELIB_THROW("SimpleSequenceFileWriter append on "+file_);
+                
+            }
+            itemCount_++;
+        }
+        
+        void append(const std::vector<KeyType>& keyList)
+        {
+            if( !isOpen() ) return;
+
+            LenType keySize = sizeof(KeyType);
+            LenType recodeSize = keySize * keyList.size();
+            char* data = new char[recodeSize + sizeof(recodeSize)];
+            char* pData = data;
+            memcpy( pData, &recodeSize, sizeof(recodeSize) );
+            pData += sizeof(recodeSize);
+            for( uint32_t i=0;i<keyList.size();i++)
+            {
+                memcpy( pData, &keyList[i], keySize );
+                pData += keySize;
+            }
+            
+            stream_.write(data, recodeSize+ sizeof(recodeSize));
+            delete[] data;
+            if( stream_.fail() )
+            {
+                IZENELIB_THROW("SimpleSequenceFileWriter append on "+file_);
+                
+            }
+            itemCount_++;
+        }
+        
+        void append(const KeyType& key)
+        {
+            std::vector<KeyType> keyList(1, key);
+            append(keyList);
         }
         
         void flush()
@@ -409,8 +599,10 @@ class SimpleSequenceFileMerger {
             }
             pReader1_ = new reader_t(file);
             pReader1_->open();
+            pReader1_->next();
             pReader2_ = new reader2_t(anotherFile);
             pReader2_->open();
+            pReader2_->next();
         }
         
         
@@ -420,116 +612,72 @@ class SimpleSequenceFileMerger {
             if( pReader2_ == NULL ) return false;
             valueList1.resize(0);
             valueList2.resize(0);
-            boost::optional<KeyType> theKey1;
-            boost::optional<KeyType> theKey2;
-            ValueType lastValue1;
-            ValueType2 lastValue2;
+            bool keySet = false;
+            std::pair<KeyType, ValueType> pairValue1;
+            if( pReader1_->getCurrentPair(pairValue1) )
+            {
+                key = pairValue1.first;
+                keySet = true;
+            }
+            std::pair<KeyType, ValueType2> pairValue2;
+            if( pReader2_->getCurrentPair(pairValue2) )
+            {
+                if( keySet )
+                {
+                    if( pairValue2.first< key )
+                    {
+                        key = pairValue2.first;
+                    }
+                }
+                else
+                {
+                    key = pairValue2.first;
+                    keySet = true;
+                }
+            }
+            if( !keySet )
+            {
+                return false;
+            }
             while( true )
             {
-                std::pair<KeyType, ValueType> pairValue1;
                 if( pReader1_->getCurrentPair(pairValue1) )
                 {
-                    theKey1 = pairValue1.first;
-                    lastValue1 = pairValue1.second;
+                    if( pairValue1.first == key )
+                    {
+                        valueList1.push_back(pairValue1.second);
+                        pReader1_->next();
+                    }
+                    else
+                    {
+                        break;
+                    }
                 }
-                std::pair<KeyType, ValueType2> pairValue2;
+                else
+                {
+                    break;
+                }
+            }
+            while( true )
+            {
                 if( pReader2_->getCurrentPair(pairValue2) )
                 {
-                    theKey2 = pairValue2.first;
-                    lastValue2 = pairValue2.second;
-                }
-                bool bAddValue1 = false;
-                bool bAddValue2 = false;
-                if( theKey1 && !theKey2 )
-                {
-                    key = theKey1.get();
-                    valueList1.push_back( lastValue1 );
-                    bAddValue1 = true;
-                    
-                }
-                else if ( !theKey1 && theKey2 )
-                {
-                    key = theKey2.get();
-                    valueList2.push_back( lastValue2 );
-                    bAddValue2 = true;
-                    
-                }
-                else if (!theKey1 && !theKey2)
-                {
-                    bool b1 = pReader1_->next();
-                    bool b2 = pReader2_->next();
-                    if( !b1 && !b2 )
+                    if( pairValue2.first == key )
                     {
-                        return false;
+                        valueList2.push_back(pairValue2.second);
+                        pReader2_->next();
                     }
                     else
                     {
-                        continue;
+                        break;
                     }
                 }
-                else if (theKey1 && theKey2)
+                else
                 {
-                    if( theKey1.get() < theKey2.get() )
-                    {
-                        key = theKey1.get();
-                        valueList1.push_back( lastValue1 );
-                        bAddValue1 = true;
-                    }
-                    else if ( theKey1.get() > theKey2.get() )
-                    {
-                        key = theKey2.get();
-                        valueList2.push_back( lastValue2 );
-                        bAddValue2 = true;
-                    }
-                    else
-                    {
-                        key = theKey1.get();
-                        valueList1.push_back( lastValue1 );
-                        valueList2.push_back( lastValue2 );
-                        bAddValue1 = true;
-                        bAddValue2 = true;
-                    }
+                    break;
                 }
-                if( bAddValue1 )
-                {
-                    while(true)
-                    {
-                        bool b = pReader1_->next(pairValue1);
-                        if( !b ) return true;
-                        else
-                        {
-                            if( pairValue1.first == key )
-                            {
-                                valueList1.push_back( pairValue1.second );
-                            }
-                            else
-                            {
-                                break;
-                            }
-                        }
-                    }
-                }
-                if( bAddValue2 )
-                {
-                    while(true)
-                    {
-                        bool b = pReader2_->next(pairValue2);
-                        if( !b ) return true;
-                        else
-                        {
-                            if( pairValue2.first == key )
-                            {
-                                valueList2.push_back( pairValue2.second );
-                            }
-                            else
-                            {
-                                break;
-                            }
-                        }
-                    }
-                }
-                return true;
             }
+            return true;
             
             
         }
@@ -544,6 +692,17 @@ class SimpleSequenceFileMerger {
                 
     
         
+};
+
+template <typename KT, typename VT, typename LenType=uint16_t, bool COMPARE_ALL = false>
+class SSFType
+{
+    public:
+        typedef KT KeyType;
+        typedef VT ValueType;
+        typedef SimpleSequenceFileReader<KT, VT, LenType> ReaderType;
+        typedef SimpleSequenceFileWriter<KT, VT, LenType> WriterType;
+        typedef SimpleSequenceFileSorter<KT, VT, LenType, COMPARE_ALL> SorterType;
 };
 
 NS_IZENELIB_AM_END
