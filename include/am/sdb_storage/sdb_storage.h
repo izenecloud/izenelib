@@ -51,7 +51,7 @@ bool UseCompress = true
 public:
 	typedef AmType KeyHash;
 	typedef typename AmType::SDBCursor SDBCursor;
-	enum {BATCH_READ_NUM = 8};
+	enum {BATCH_READ_NUM = 16};
 	enum {FILE_HEAD_SIZE = 1024};
 public:
 	/**
