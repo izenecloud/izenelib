@@ -1,6 +1,8 @@
 #include <ir/index_manager/index/TermPositions.h>
 #include <ir/index_manager/index/InputDescriptor.h>
 
+#include <wiselib/profiler/ProfilerGroup.h>
+#define SF1_TIME_CHECK
 
 using namespace izenelib::ir::indexmanager;
 
@@ -114,6 +116,8 @@ void TermPositions::close()
 
 loc_t TermPositions::nextPosition()
 {
+CREATE_SCOPED_PROFILER ( getpositions, "IndexManager", "nextPosition: get positions");
+
     if (nCurrentPPostingWithinDoc_ >= nCurDecodedPCountWithinDoc_)
     {
         if (!decodePositions())
