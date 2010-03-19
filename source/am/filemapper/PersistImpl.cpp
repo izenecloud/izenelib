@@ -85,13 +85,7 @@ void PersistImpl::mapBlocks()
     for (int b=num_mapped_blocks; b<n; ++b)
     {
         MappedData::mapped_block &block = mappedData->blocks[b];
-        try{
-            map(block.file_offset, block.size, block.base);
-        }catch (std::bad_alloc&)
-        {
-            void *base = map(block.file_offset, block.size, 0);
-            block.base = base;
-        }
+        map(block.file_offset, block.size, block.base);
     }
 
     num_mapped_blocks = n;
