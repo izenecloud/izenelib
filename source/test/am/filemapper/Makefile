@@ -1,16 +1,17 @@
-IZENELIB = ../../../../include
+IZENELIB = ../../../..
 
 TEST_OBJS = tests.o
 BENCH_OBJS = bench.o
 
-CPPFLAGS = -I $(IZENELIB)  -Wall -O2 -g
+LIBS := $(IZENELIB)/lib/libam.so
+CPPFLAGS = -I $(IZENELIB)/include  -Wall -O2 -g
 
 all : tests bench
 
 tests : $(TEST_OBJS) 
-	g++ $(TEST_OBJS)  -lpthread -o tests
+	g++ $(TEST_OBJS)  -lpthread  $(LIBS) -o tests
 
 bench: $(BENCH_OBJS)
-	g++ $(BENCH_OBJS)  -lpthread -o bench 
+	g++ $(BENCH_OBJS)  -lpthread  $(LIBS)  -o bench 
 clean:
 	rm -rf posix/*.o *.map *.a *.o bench tests
