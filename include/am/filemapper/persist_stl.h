@@ -14,7 +14,7 @@ NS_IZENELIB_AM_BEGIN
 
 
 template<class T>
-class list : public std::list<T, izenelib::am::allocator<T> >
+class mapped_list : public std::list<T, izenelib::am::allocator<T> >
 {
 };
 
@@ -30,6 +30,12 @@ public:
     {
         assign(s.begin(), s.end());
     }
+    
+    basic_string(char* p, size_t sz)
+    :std::basic_string<C, Traits, izenelib::am::allocator<C> >(p,sz)
+    {
+        
+    }
 
     basic_string &operator=(const C *s)
     {
@@ -39,33 +45,36 @@ public:
     // TODO: Other constructors
 };
 
-typedef basic_string<char> string;
-typedef basic_string<wchar_t> wstring;
+//typedef basic_string<char> string;
+//typedef basic_string<wchar_t> wstring;
+
+typedef basic_string<char> mapped_string;
+typedef basic_string<wchar_t> mapped_wstring;
 
 
 template<class T>
-class vector : public std::vector<T, izenelib::am::allocator<T> >
+class mapped_vector : public std::vector<T, izenelib::am::allocator<T> >
 {
     // TODO: constructors
 };
 
 template<class T, class L = std::less<T> >
-class set : public std::set<T, L, izenelib::am::allocator<T> >
+class mapped_set : public std::set<T, L, izenelib::am::allocator<T> >
 {
 };
 
 template<class T, class L = std::less<T> >
-class multiset : public std::multiset<T, L, izenelib::am::allocator<T> >
+class mapped_multiset : public std::multiset<T, L, izenelib::am::allocator<T> >
 {
 };
 
 template<class T, class V, class L = std::less<T> >
-class map : public std::map<T, V, L, izenelib::am::allocator<std::pair<T,V> > >
+class mapped_map : public std::map<T, V, L, izenelib::am::allocator<std::pair<T,V> > >
 {
 };
 
 template<class T, class V, class L = std::less<T> >
-class multimap : public std::multimap<T, V, L, izenelib::am::allocator<std::pair<T,V> > >
+class mapped_multimap : public std::multimap<T, V, L, izenelib::am::allocator<std::pair<T,V> > >
 {
 };
 
