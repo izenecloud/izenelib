@@ -9,9 +9,9 @@ using namespace izenelib::am;
 namespace izenelib { namespace am{
 struct TestObject
 {
-    string str1;
-    map<string,string> map1;
-    set<int> data;
+    mapped_string str1;
+    mapped_map<mapped_string,mapped_string> map1;
+    mapped_set<int> data;
 };
 
 typedef map_data<TestObject> TestRoot;
