@@ -403,7 +403,7 @@ private:
 		izs.write_image(ptr, vsize);
 
 		if( UseCompress ) {
-			int vsz;
+			int vsz = 0;
 			ptr = (char*)_tc_bzcompress(ptr, vsize, &vsz);
 			vsize = vsz;
 		}
