@@ -70,6 +70,27 @@ public:
         }
 		cacheSize_ = cacheSize;
 	}
+    
+    void tune(int64_t bnum, int8_t apow, int8_t fpow, uint8_t opts)
+    {
+        bool op = tchdbtune(hdb_, bnum, apow, fpow, opts);
+        if( !op )
+        {
+            int errcode = ecode();
+            IZENELIB_THROW("tc_hash tune on "+fileName_+" : "+tchdberrmsg(errcode));
+        }
+        
+    }
+    
+    void setXMSize(int64_t xmsize)
+    {
+        bool op = tchdbsetxmsiz(hdb_, xmsize);
+        if( !op )
+        {
+            int errcode = ecode();
+            IZENELIB_THROW("tc_hash setXMSize on "+fileName_+" : "+tchdberrmsg(errcode));
+        }
+    }
 
 	/**
 	 * 	\brief return the file name of the SequentialDB
