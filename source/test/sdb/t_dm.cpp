@@ -4,6 +4,7 @@
 #include <util/bzip.h>
 #include <am/filemapper/persist_stl.h>
 #include <boost/filesystem.hpp>
+#include <3rdparty/am/luxio/array.h>
 
 
 #include <am/sdb_storage/sdb_storage.h>
@@ -19,7 +20,7 @@ static std::string sdb_type = "btree";
 
 std::string
 		filename =
-				"/home/wps/codebase/sf1-r/sf1-revolution/bin/collection/index-data/DocumentPropertyTable.dat";
+				"/home/newpeak/Desktop/DocumentPropertyTable.mmp";
 
 izenelib::am::sdb_storage<docid_t, Document> sdb(filename);
 
@@ -46,15 +47,25 @@ struct ppmm {
 				
 				Document doc;
 				izd.read_image(doc);
+				cout<<doc.getId()<<endl;
 //
-//				izene_serialization<Document> izs(doc);
-//				char *ptr;
-//				size_t size;
-//				izs.write_image(ptr, size);
-//				cout<<"doc size="<<size<<endl;
+				izene_serialization<Document> izs(doc);
+				char *ptr;
+				size_t size;
+				izs.write_image(ptr, size);
+				cout<<"doc size="<<size<<endl;
 			}
 		}
 		printf(" elapsed : %lf seconds\n", timer.elapsed() );
+	}
+
+	void dump(Lux::IO::Array *ary)
+	{
+		for(int i = 1;i < num; i++)
+		{
+			izenelib::am::mapped_string docStr = pm[i];
+			ary->put(i, docStr.c_str(), docStr.length(), Lux::IO::NOOVERWRITE);
+		}
 	}
 };
 }
@@ -235,29 +246,80 @@ template<typename SDB> void query_test(SDB& sdb) {
 //	//sdb0.setPageSize(8192*8);
 //}
 
-int main(int argc, char* argv[]) {	
-	izenelib::am::sdb_storage_mm<docid_t, Document> sdb_mm("DocumentPropertyTable_2mm");
+void array_test(Lux::IO::Array *ary) {
+	izenelib::util::ClockTimer timer;
+	for (int i=0; i<100; i++) {
+		for (int j=0; j<10; j++) {
+			int docid = rand()%num+1;
+			//cout<<"docid="<<docid<<endl;
+			Lux::IO::data_t val_data;
+			Lux::IO::data_t *val_p = &val_data;
+			assert(true== ary->get(docid, &val_p, Lux::IO::SYSTEM));
+			izene_deserialization<Document> izd((const char*)val_p->data, val_p->size);
 
-	
-//	dump(sdb, sdb_mm, num);
-	cout<<getMemInfo()<<endl;
-	query_test(sdb);
-	cout<<getMemInfo()<<endl;
-	query_test(sdb_mm);
-	cout<<getMemInfo()<<endl;
-	
-	
-	if ( !boost::filesystem::exists("DocumentPropertyTable_mm.dat") ) {
-			map_data<izenelib::am::ppmm> root("DocumentPropertyTable_mm.dat", 1, create_new |auto_grow,
-					1024*1024*1024);
-			//		
-			//		map_data<izenelib::am::ppmm> root("ppmm.map", 1);
-			dump1(sdb, *root, num);
-		} else {
-			map_data<izenelib::am::ppmm> root("DocumentPropertyTable_mm.dat", 1);
-			root->test();
+			Document doc;
+			izd.read_image(doc);
+//			cout<<doc.getId()<<endl;
+//
+//			izene_serialization<Document> izs(doc);
+//			char *ptr;
+//			size_t size;
+//			izs.write_image(ptr, size);
+//			cout<<"doc size="<<size<<endl;
+			ary->clean_data(val_p);
 		}
+	}
+	printf(" elapsed : %lf seconds\n", timer.elapsed() );
+}
+
+void dump(Lux::IO::Array *in, Lux::IO::Array *out) {
+	izenelib::util::ClockTimer timer;
+
+	char buf[1024*100];
+	for(int i = 1;i < num; i++)
+	{
+		memset(buf,0,1024*100);
+		Lux::IO::data_t val_data = {buf,0,1024*100};
+		Lux::IO::data_t *val_p = &val_data;
+		assert(true== in->get(i, &val_p, Lux::IO::USER));
+		out->put(i, buf, val_p->size, Lux::IO::NOOVERWRITE);
+//		izene_deserialization<Document> izd((const char*)val_p->data, val_p->size);
+
+//		Document doc;
+//		izd.read_image(doc);
+	}
+	printf(" elapsed : %lf seconds\n", timer.elapsed() );
+}
+
+
+int main(int argc, char* argv[]) {
+
+	Lux::IO::Array*	ary = new Lux::IO::Array(Lux::IO::NONCLUSTER);
+			ary->set_noncluster_params(Lux::IO::Padded);
+			std::string db_name = "array";
+			if(! ary->open(db_name.c_str(), Lux::IO::DB_CREAT))
+				ary->open(db_name.c_str(), Lux::IO::DB_RDWR);
+
+	Lux::IO::Array*	ary2 = new Lux::IO::Array(Lux::IO::NONCLUSTER);
+			ary2->set_noncluster_params(Lux::IO::Linked);
+			std::string db_name2 = "array2";
+			if(! ary2->open(db_name2.c_str(), Lux::IO::DB_CREAT))
+				ary2->open(db_name2.c_str(), Lux::IO::DB_RDWR);
+
+	{
+//		map_data<izenelib::am::ppmm> root(filename.c_str(), 1);
+		//root->test();
+//		root->dump(ary);
+	}
+	array_test(ary2);
+	//dump(ary,ary2);
+	cout<<getMemInfo()<<endl;
+
+	//query_test(sdb);
 	
+	//cout<<getMemInfo()<<endl;
+	delete ary;
+	delete ary2;
 	//	initialize();
 	//	//query_test1();
 	//	if (argv[1]) {
