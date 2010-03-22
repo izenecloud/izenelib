@@ -11,7 +11,7 @@ INC_PATH=    -I /usr/local/include/  -I  ../../../../izenelib/include/ -I  ../..
 LIBS =      /usr/local/lib/libboost_thread-gcc41-mt.so \
            /usr/local/lib/libtokyocabinet.so   /usr/local/lib/libboost_serialization-gcc41-mt.so \
            ../../../../ylib/lib/libylib.a   ../../../../izenelib/lib/libprocmeminfo.so -L ../../../ \
-           -L ../../../../izenelib/lib -lam -L /usr/local/lib -lfebird -lizene_log -lglog -lbz2 -lboost_filesystem-gcc41-mt
+           -L ../../../../izenelib/lib -lam -L /usr/local/lib -lfebird -lizene_log -lglog -lbz2 -lboost_iostreams-gcc41-mt -lboost_filesystem-gcc41-mt
             
 .cc.o:
 
