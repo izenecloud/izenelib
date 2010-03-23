@@ -1,10 +1,15 @@
 #include "Document.h"
-#include <sdb/SequentialDB.h>
+//#include <sdb/SequentialDB.h>
 #include <am/tokyo_cabinet/tc_btree.h>
 #include <util/bzip.h>
 #include <am/filemapper/persist_stl.h>
 #include <boost/filesystem.hpp>
 #include <3rdparty/am/luxio/array.h>
+
+
+#include <am/sdb_storage/sdb_storage.h>
+//#include <am/sdb_storage/sdb_storage_mm.h>
+#include <am/sdb_storage/sdb_storage_mm1.h>
 
 using namespace sf1v5;
 using namespace izenelib::am;
@@ -17,7 +22,8 @@ std::string
 		filename =
 				"/home/newpeak/Desktop/DocumentPropertyTable.mmp";
 
-sdb_storage<docid_t, Document> sdb(filename);
+izenelib::am::sdb_storage<docid_t, Document> sdb(filename);
+
 
 namespace izenelib {
 namespace am {
@@ -31,8 +37,14 @@ struct ppmm {
 				int docid = rand()%num+1;
 				//cout<<"docid="<<j<<endl;
 				izenelib::am::mapped_string docStr = pm[docid];
-				izene_deserialization<Document> izd(docStr.c_str(),
-						docStr.length() );
+				
+				int nsz=0;
+				char *p =(char*)_tc_bzdecompress(docStr.c_str(), docStr.length(), &nsz);	
+				izene_deserialization<Document> izd(p, nsz);
+				
+//				izene_deserialization<Document> izd(docStr.c_str(),
+//						docStr.length() );
+				
 				Document doc;
 				izd.read_image(doc);
 				cout<<doc.getId()<<endl;
@@ -80,7 +92,12 @@ template<typename T1, typename T2> void dump1(T1& t1, T2& t2, int num=10) {
 		size_t sz;
 		izs.write_image(ptr, sz);
 		//		t2.pm.insert(make_pair(key, izenelib::am::string(ptr,sz)) );
-		t2.pm[key] = izenelib::am::mapped_string(ptr, sz);
+		
+		int nsz=0;
+		char *p =(char*)_tc_bzcompress(ptr, sz, &nsz);		
+		t2.pm[key] = izenelib::am::mapped_string(p, nsz);
+		delete p;
+		
 		//		cout<<"doc size="<<sz<<endl;
 		count++;
 		if (count%100000 == 0)
@@ -94,28 +111,28 @@ template<typename T1, typename T2> void dump1(T1& t1, T2& t2, int num=10) {
 	//	t2.close();
 }
 
-//template<typename T1, typename T2> void dump(T1& t1, T2& t2, int num=100000) {
-//	//if ( !t1.is_open() )
-//	t1.open();
-//	//if ( !t2.is_open() )
-//	t2.open();
-//
-//	typename T1::SDBCursor locn = t1.get_first_locn();
-//	docid_t key;
-//	Document value;
-//	int count = 0;
-//	while (t1.get(locn, key, value)) {
-//		t2.insert(key, value);
-//		count++;
-//		if (count%10000 == 0)
-//			cout<<"idx: "<<count<<endl;
-//		if (count > num)
-//			break;
-//		if ( !t1.seq(locn) )
-//			break;
-//	}
-//	t2.close();
-//}
+template<typename T1, typename T2> void dump(T1& t1, T2& t2, int num=100000) {
+	//if ( !t1.is_open() )
+	t1.open();
+	//if ( !t2.is_open() )
+	t2.open();
+
+	typename T1::SDBCursor locn = t1.get_first_locn();
+	docid_t key;
+	Document value;
+	int count = 0;
+	while (t1.get(locn, key, value)) {
+		t2.insert(key, value);
+		count++;
+		if (count%10000 == 0)
+			cout<<"idx: "<<count<<endl;
+		if (count > num)
+			break;
+		if ( !t1.seq(locn) )
+			break;
+	}
+	t2.close();
+}
 
 template<typename SDB> void query_test(SDB& sdb) {
 	sdb.open();
@@ -125,10 +142,10 @@ template<typename SDB> void query_test(SDB& sdb) {
 	for (int i=0; i<100; i++) {
 		for (int j=0; j<10; j++) {
 			sdb.get(rand()%num+1, doc);
-			izene_serialization<Document> izs(doc);
-			char* str;
-			size_t sz;
-			izs.write_image(str, sz);
+//			izene_serialization<Document> izs(doc);
+//			char* str;
+//			size_t sz;
+//			izs.write_image(str, sz);
 			//cout<<"doc sz:"<<sz<<endl;
 		}
 	}
@@ -208,7 +225,7 @@ template<typename SDB> void query_test(SDB& sdb) {
 //		if (i % 100 == 0) {
 //			izene_serialization<Document> izs(doc);
 //			char* str;
-//			size_t sz;
+//			size_t sz;propertyValueTable_
 //			izs.write_image(str, sz);
 //			cout<<"doc sz:"<<sz<<endl;
 //		}
