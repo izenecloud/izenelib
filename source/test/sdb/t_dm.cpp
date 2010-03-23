@@ -231,14 +231,23 @@ template<typename SDB> void query_test(SDB& sdb) {
 
 void array_test(Lux::IO::Array *ary) {
 	izenelib::util::ClockTimer timer;
+	char buf[1024*100];
+	
 	for (int i=0; i<100; i++) {
 		for (int j=0; j<10; j++) {
 			int docid = rand()%num+1;
 			//cout<<"docid="<<docid<<endl;
-			Lux::IO::data_t val_data;
+			
+			memset(buf,0,1024*100);
+			Lux::IO::data_t val_data = {buf,0,1024*100};
+			//Lux::IO::data_t val_data;
 			Lux::IO::data_t *val_p = &val_data;
-			assert(true== ary->get(docid, &val_p, Lux::IO::SYSTEM));
-			izene_deserialization<Document> izd((const char*)val_p->data, val_p->size);
+			//assert(true== ary->get(docid, &val_p, Lux::IO::SYSTEM));
+			assert(true== ary->get(84997, &val_p, Lux::IO::USER));
+			int nsz=0;
+			char *p =(char*)_tc_bzdecompress(buf, val_p->size, &nsz);
+			izene_deserialization<Document> izd(p, nsz);
+			//izene_deserialization<Document> izd((const char*)val_p->data, val_p->size);
 
 			Document doc;
 			izd.read_image(doc);
@@ -249,7 +258,8 @@ void array_test(Lux::IO::Array *ary) {
 //			size_t size;
 //			izs.write_image(ptr, size);
 //			cout<<"doc size="<<size<<endl;
-			ary->clean_data(val_p);
+			//ary->clean_data(val_p);
+			delete p;
 		}
 	}
 	printf(" elapsed : %lf seconds\n", timer.elapsed() );
@@ -265,7 +275,10 @@ void dump(Lux::IO::Array *in, Lux::IO::Array *out) {
 		Lux::IO::data_t val_data = {buf,0,1024*100};
 		Lux::IO::data_t *val_p = &val_data;
 		assert(true== in->get(i, &val_p, Lux::IO::USER));
-		out->put(i, buf, val_p->size, Lux::IO::NOOVERWRITE);
+		int nsz=0;
+               char *p =(char*)_tc_bzcompress(buf, val_p->size, &nsz);
+		out->put(i, p, nsz, Lux::IO::NOOVERWRITE);
+		delete p;
 //		izene_deserialization<Document> izd((const char*)val_p->data, val_p->size);
 
 //		Document doc;
@@ -278,14 +291,14 @@ void dump(Lux::IO::Array *in, Lux::IO::Array *out) {
 int main(int argc, char* argv[]) {
 
 	Lux::IO::Array*	ary = new Lux::IO::Array(Lux::IO::NONCLUSTER);
-			ary->set_noncluster_params(Lux::IO::Padded);
-			std::string db_name = "array";
+			ary->set_noncluster_params(Lux::IO::Linked);
+			std::string db_name = "array2";
 			if(! ary->open(db_name.c_str(), Lux::IO::DB_CREAT))
 				ary->open(db_name.c_str(), Lux::IO::DB_RDWR);
 
 	Lux::IO::Array*	ary2 = new Lux::IO::Array(Lux::IO::NONCLUSTER);
 			ary2->set_noncluster_params(Lux::IO::Linked);
-			std::string db_name2 = "array2";
+			std::string db_name2 = "array3";
 			if(! ary2->open(db_name2.c_str(), Lux::IO::DB_CREAT))
 				ary2->open(db_name2.c_str(), Lux::IO::DB_RDWR);
 
