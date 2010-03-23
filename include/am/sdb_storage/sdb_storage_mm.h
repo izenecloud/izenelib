@@ -39,8 +39,8 @@ private:
 	boost::iostreams::mapped_file m_file_; // current memory map source   
 public:
 	memory_map(const std::string& path, long offSet=0, size_t mapSize=1024*1024*1024):
-	path_(path),offSet_(offSet),mapSize_(mapSize),
-	m_file_(path, ios_base::in | ios_base::out, mapSize) {		
+	path_(path),offSet_(0),mapSize_(mapSize),
+	m_file_(path, ios_base::in | ios_base::out, mapSize, offSet) {
 	}
 
 	size_t read (long offSet, void * buf, size_t num_bytes) {
@@ -62,7 +62,7 @@ public:
 	void setOffset(size_t off) {
 		offSet_ = off;
 	}
-	
+
 	size_t getOffset() {
 		return offSet_;
 	}
@@ -86,7 +86,7 @@ struct mm_header {
 
 	mm_header() :
 		idx(0), offset(sizeof(mm_header)), tsz(sizeof(mm_header)) {
-		mapSize = 1024*1024*1024;
+		mapSize =1024*1024*1024;
 	}
 	void read(void* fileBuffer) {
 		memcpy(this, fileBuffer, sizeof(mm_header));
@@ -121,9 +121,6 @@ template< typename KeyType, typename ValueType, typename LockType =NullLock,
 public:
 	typedef AmType KeyHash;
 	typedef typename AmType::SDBCursor SDBCursor;
-	//enum {MMAP_SIZE = 1024*1024*1024};
-	//enum {BATCH_READ_NUM = 16};
-	//enum {FILE_HEAD_SIZE = 1024};
 public:
 	/**
 	 *   constructor
@@ -139,8 +136,8 @@ public:
 	 *   deconstructor, close() will also be called here.
 	 */
 	virtual ~sdb_storage_mm() {
-		if (dataFile_)
-			close();
+		//if (dataFile_)
+		close();
 	}
 
 	void setMapSize(size_t mapSize) {
@@ -148,12 +145,6 @@ public:
 		ssh_.mapSize = mapSize;
 
 	}
-
-	/*void setPageSize(size_t pageSize) {
-	 assert(isOpen_ == false);
-	 ssh_.pageSize = pageSize;
-
-	 }*/
 
 	/**
 	 *  set directory size if fileHeader
@@ -194,8 +185,8 @@ public:
 		if (keyHash_.search(key, locn))
 			return false;
 		else {
-			keyHash_.insert(key, ssh_.offset);
-			return appendValue_(val);
+			keyHash_.insert(key, ssh_.tsz);
+			return appendValue_(key, val);
 		}
 		return true;
 
@@ -254,8 +245,8 @@ public:
 		if ( !keyHash_.get(key, npos) )
 			return insert(key, val);
 		else {
-			keyHash_.update(key, ssh_.offset);
-			appendValue_(val);
+			keyHash_.update(key, ssh_.tsz);
+			appendValue_(key, val);
 		}
 		return true;
 	}
@@ -342,6 +333,10 @@ public:
 		return keyHash_.num_items();
 	}
 
+	void optimize() {
+
+	}
+
 public:
 	bool is_open() {
 		return isOpen_;
@@ -354,71 +349,25 @@ public:
 			return true;
 
 		keyHash_.open();
+		mms_.resize(1);
 		if (boost::filesystem::exists(fileName_) ) {
-			DLOG(INFO)<<"open exist...\n"<<endl;			
-			mms_.reset(new memory_map(fileName_, ssh_.offset, ssh_.mapSize));
-			ssh_.read(mms_->header() );
-			mms_->setOffset(ssh_.offset);	
-			dataFile_ = fopen(fileName_.c_str(), "r+b");
-
-			//			ssh_.tsz = 1024*1024*1024+ssh_.offset;
-			//			syncHeader_();
-
-			//			int idx=1;
-			//			char ch[5];
-			//			sprintf(ch, "_%d", idx);
-			//			ff = fileName_ + ch;
-			//			while (boost::filesystem::exists( ff ) ) {
-			//				mms_.resize(idx+1);
-			//				mms_.reset(new memory_map( ff ));
-			//				++idx;
-			//				sprintf(ch, "_%d", idx);
-			//				ff = fileName_ + ch;
-			//			}
-			//			mms_[ssh_.idx]->setOffset(ssh_.offset);
+			DLOG(INFO)<<"open exist...\n"<<endl;
+			mms_[0].reset(new memory_map(fileName_, 0, ssh_.mapSize));
+			ssh_.read(mms_[0]->header() );
+			if (ssh_.idx > 0)
+				mms_.resize(ssh_.idx+1);
+			for (int i=1; i<=ssh_.idx; i++)
+				mms_[i].reset(new memory_map(fileName_,ssh_.mapSize*i, ssh_.mapSize));
+			mms_[ssh_.idx]->setOffset(ssh_.offset);
 		} else {
 			DLOG(INFO)<<"creat new...\n"<<endl;
-
-			//			dataFile_=fopen(fileName_.c_str(), "w+");
-			//			fseek(dataFile_, 1024*1024*1024, SEEK_SET);
-			//			putw(0, dataFile_);
-			//mms_.resize(1);
-			genInitFile_();		
-			mms_.reset(new memory_map(fileName_, 0, ssh_.mapSize));
-			mms_->setOffset(ssh_.offset);		
+			expandFile_(ssh_.idx);
+			mms_[0].reset(new memory_map(fileName_, 0, ssh_.mapSize));
+			mms_[0]->setOffset(ssh_.offset);
 			syncHeader_();
-			dataFile_=fopen(fileName_.c_str(), "r+b");
 		}
 		keyHash_.fillCache();
-		
-		//		struct stat statbuf;
-		//		bool creating = stat(fileName_.c_str(), &statbuf);
-		//
-		//		keyHash_.open();
-		//		dataFile_ = fopen(fileName_.c_str(), creating ? "w+b" : "r+b");
-		//		if ( 0 == dataFile_) {
-		//			DLOG(ERROR)<<"Error in open(): open file failed"<<endl;
-		//			return false;
-		//		}
-		//		bool ret = false;
-		//		if (creating) {
-		//			// We're creating if the file doesn't exist.
-		//			DLOG(INFO)<<"creating...\n"<<endl;
-		//			//ssh_.toFile(dataFile_);
-		//			ret = true;
-		//		} else {
-		//			if ( !ssh_.fromFile(dataFile_) ) {
-		//				return false;
-		//			} else {
-		//				if (ssh_.magic != 0x061561) {
-		//					cout<<"Error, read wrong file header_\n"<<endl;
-		//					return false;
-		//				}
-		//				DLOG(INFO)<<"open exist...\n"<<endl;
-		//				//ssh_.display( LOG(INFO) );
-		//			}
-		//			keyHash_.fillCache();
-		//		}
+
 #ifdef DEBUG 
 		ssh_.display();
 #endif
@@ -432,8 +381,6 @@ public:
 		if ( !isOpen_)
 			return false;
 		flush();
-		fclose(dataFile_);
-		dataFile_ = 0;
 		isOpen_ = false;
 		return true;
 	}
@@ -443,19 +390,14 @@ public:
 	 */
 	void commit() {
 		keyHash_.commit();
-		//ssh_.toFile(dataFile_);
-		fflush(dataFile_);
 	}
 	/**
 	 *   Write the dirty buckets to disk and also free up most of the memory.
 	 *   Note that, for efficieny, entry_[] is not freed up.
 	 */
 	void flush() {
-		if ( !dataFile_)
-			return;
 		keyHash_.flush();
-		//ssh_.toFile(dataFile_);
-		fflush(dataFile_);
+
 	}
 	/**
 	 *  display the info of sdb_storage
@@ -463,30 +405,30 @@ public:
 	void display(std::ostream& os = std::cout, bool onlyheader = true) {
 		ssh_.display(os);
 		keyHash_.display(os);
-		//os<<"dataFile loadFactor: " <<loadFactor()<<endl;
 	}
 
 private:
 	///SsHeader ssh_;
 	mm_header ssh_;
 	string fileName_;
-	FILE* dataFile_;
+	//FILE* dataFile_;
 	KeyHash keyHash_;
 	bool isOpen_;
 
 private:
 	LockType fileLock_;
 	map<unsigned int, ValueType> readCache_;
-	boost::shared_ptr<memory_map> mms_;
-	
+	vector<boost::shared_ptr<memory_map> > mms_;
+
 	void syncHeader_() {
-		memcpy(mms_->header(), &ssh_, sizeof(ssh_));
+		memcpy(mms_[0]->header(), &ssh_, sizeof(ssh_));
 	}
 
-	void genInitFile_() {
-		//cout<<"genInitFile: "<<fileName_<<endl;
-		FILE *fp=fopen(fileName_.c_str(), "w+");
-		fseek(fp, 1024*1024*1024, SEEK_SET);
+	void expandFile_(int seq) {
+		struct stat statbuf;
+		bool creating = stat(fileName_.c_str(), &statbuf);
+		FILE *fp = fopen(fileName_.c_str(), creating ? "w+b" : "r+b");
+		fseek(fp, (seq+1)*ssh_.mapSize, SEEK_SET);
 		putw(0, fp);
 		fclose(fp);
 	}
@@ -494,7 +436,7 @@ private:
 	/**
 	 *   Allocate an bucket_chain element 
 	 */
-	inline bool appendValue_(const ValueType& val) {
+	inline bool appendValue_(const KeyType& key, const ValueType& val) {
 		char* ptr;
 		size_t vsize;
 
@@ -507,83 +449,25 @@ private:
 			vsize = vsz;
 		}
 
-		if ( ( (size_t)ssh_.offset < ssh_.mapSize) && ( (size_t)ssh_.offset
-				+sizeof(size_t)+vsize >= ssh_.mapSize ) ){
-			ssh_.offset = ssh_.mapSize;
-		    ssh_.tsz = ssh_.offset;
+		if ( (size_t)ssh_.offset +sizeof(size_t)+vsize >= ssh_.mapSize) {
+			++ssh_.idx;
+			ssh_.offset = 0;
+			ssh_.tsz = ssh_.idx*ssh_.mapSize;
+			mms_.resize(ssh_.idx+1);
+			expandFile_(ssh_.idx);
+			mms_[ssh_.idx].reset(new memory_map(fileName_, ssh_.tsz, ssh_.mapSize));
+			keyHash_.update(key, ssh_.tsz);
 		}
-		
-		//cout<<"write Value_:  "<<ssh_.offset<<endl;	
-		//cout<<"to "<<mms_->getOffset()<<endl;
-		
-		if (ssh_.offset < ssh_.mapSize) {
-			mms_->write(&vsize, sizeof(size_t));
-			mms_->write(ptr, vsize);
+
+		assert (ssh_.offset < ssh_.mapSize);
+		{
+			mms_[ssh_.idx]->write(&vsize, sizeof(size_t));
+			mms_[ssh_.idx]->write(ptr, vsize);
 			ssh_.tsz += sizeof(size_t) + vsize;
 			ssh_.offset += sizeof(size_t) + vsize;
-		} else {
-			if ( 0 != fseek(dataFile_, ssh_.offset, 
-			SEEK_SET) ) {
-				if (UseCompress) {
-					free(ptr);
-				}
-				return false;
-			}
-			if ( 1 != fwrite(&vsize, sizeof(size_t), 1, dataFile_) ) {
-				if (UseCompress) {
-					free(ptr);
-				}
-				return false;
-			}
-			if ( 1 != fwrite(ptr, vsize, 1, dataFile_) ) {
-				if (UseCompress) {
-					free(ptr);
-				}
-				return false;
-			}
-			//ssh_.nPage += (sizeof(size_t)+vsize)/ssh_.pageSize + 1;
-			ssh_.tsz += sizeof(size_t) + vsize;
-			ssh_.offset += sizeof(size_t)+vsize;
-
-			//			++ssh_.idx;
-			//			mms_.resize(ssh_.idx+1);
-			//			char ch[5];
-			//			sprintf(ch, "_%d", ssh_.idx);
-			//			string ff = fileName_+ch;
-			//			genInitFile_(ff);
-			//			mms_[ssh_.idx].reset(new memory_map(ff ));
-			//			mms_[ssh_.idx]->write(&vsize, sizeof(size_t));
-			//			mms_[ssh_.idx]->write(ptr, vsize);
-			//			ssh_.tsz = ssh_.idx*MMAP_SIZE+sizeof(size_t) + vsize;
-			//			ssh_.offset = sizeof(size_t) + vsize;
-			//			ssh_.tsz
 		}
-		syncHeader_();
-		
-		
-		//mms_[ssh_.idx]->display();
-		//	ScopedWriteLock<LockType> lock(fileLock_);
 
-		//	if ( 0 != fseek(dataFile_, ssh_.nPage*ssh_.pageSize+sizeof(SsHeader), 
-		//	SEEK_SET) ) {
-		//		if (UseCompress) {
-		//			free(ptr);
-		//		}
-		//		return false;
-		//	}
-		//	if ( 1 != fwrite(&vsize, sizeof(size_t), 1, dataFile_) ) {
-		//		if (UseCompress) {
-		//			free(ptr);
-		//		}
-		//		return false;
-		//	}
-		//	if ( 1 != fwrite(ptr, vsize, 1, dataFile_) ) {
-		//		if (UseCompress) {
-		//			free(ptr);
-		//		}
-		//		return false;
-		//	}
-		//  ssh_.nPage += (sizeof(size_t)+vsize)/ssh_.pageSize + 1;
+		syncHeader_();
 
 		if (UseCompress) {
 			free(ptr);
@@ -592,41 +476,15 @@ private:
 	}
 
 	inline bool readValue_(unsigned int npos, ValueType& val) {
-		//	ScopedWriteLock<LockType> lock(fileLock_);
-		//
-		//	if ( 0 != fseek(dataFile_, npos*ssh_.pageSize+sizeof(SsHeader), 
-		//	SEEK_SET) )
-		//		return false;
-		//
-		//	size_t vsize;
-		//	if ( 1 != fread(&vsize, sizeof(size_t), 1, dataFile_) )
-		//		return false;
-		//	char* ptr = new char[vsize];
-		//	if ( 1 != fread(ptr, vsize, 1, dataFile_) )
-		//		return false;
-		// cout<<"read from off: "<<npos<<endl;
-
 		char* ptr;
 		size_t vsize = 0;
-		if (npos < ssh_.mapSize) {
-			//int idx = npos/MMAP_SIZE;
-			//size_t offset = npos - idx*MMAP_SIZE;
-			//cout<<"readValue_:  "<<npos<<endl;			
-			mms_->read(npos, &vsize, sizeof(size_t));
-			//cout<<"vsz="<<vsize<<endl;	
-			assert(vsize> 0);	
-			ptr = new char[vsize];
-			mms_->read(npos+sizeof(size_t), ptr, vsize);
 
-		} else {
-			if ( 0 != fseek(dataFile_, npos, SEEK_SET) )
-				return false;
-			if ( 1 != fread(&vsize, sizeof(size_t), 1, dataFile_) )
-				return false;
-			ptr = new char[vsize];
-			if ( 1 != fread(ptr, vsize, 1, dataFile_) )
-				return false;
-		}
+		int idx = npos/ssh_.mapSize;
+		size_t offset = npos - idx*ssh_.mapSize;	
+		mms_[idx]->read(offset, &vsize, sizeof(size_t));		
+		assert(vsize> 0);
+		ptr = new char[vsize];
+		mms_[idx]->read(offset+sizeof(size_t), ptr, vsize);
 
 		if (UseCompress) {
 			int vsz=0;

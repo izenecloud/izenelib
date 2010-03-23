@@ -8,22 +8,22 @@
 
 
 #include <am/sdb_storage/sdb_storage.h>
-//#include <am/sdb_storage/sdb_storage_mm.h>
-#include <am/sdb_storage/sdb_storage_mm1.h>
+#include <am/sdb_storage/sdb_storage_mm.h>
+//#include <am/sdb_storage/sdb_storage_mm1.h>
 
 using namespace sf1v5;
 using namespace izenelib::am;
 
 bool isDump = false;
-int num = 1000000;
+int num = 10000000;
 static std::string sdb_type = "btree";
 
 std::string
 		filename =
-				"/home/newpeak/Desktop/DocumentPropertyTable.mmp";
+				"/home/wps/sf1corpus/default-index-dir/DocumentPropertyTable.dat";
 
 izenelib::am::sdb_storage<docid_t, Document> sdb(filename);
-
+izenelib::am::sdb_storage_mm<docid_t, Document> sdb_mm("/home/wps/sf1corpus/default-index-dir/DocumentPropertyTable_2mm");
 
 namespace izenelib {
 namespace am {
@@ -122,8 +122,10 @@ template<typename T1, typename T2> void dump(T1& t1, T2& t2, int num=100000) {
 	Document value;
 	int count = 0;
 	while (t1.get(locn, key, value)) {
-		t2.insert(key, value);
+		if(count > 1000000-1)
+			t2.insert(key, value);
 		count++;
+		
 		if (count%10000 == 0)
 			cout<<"idx: "<<count<<endl;
 		if (count > num)
@@ -294,32 +296,41 @@ void dump(Lux::IO::Array *in, Lux::IO::Array *out) {
 
 int main(int argc, char* argv[]) {
 
-	Lux::IO::Array*	ary = new Lux::IO::Array(Lux::IO::NONCLUSTER);
-			ary->set_noncluster_params(Lux::IO::Padded);
-			std::string db_name = "array";
-			if(! ary->open(db_name.c_str(), Lux::IO::DB_CREAT))
-				ary->open(db_name.c_str(), Lux::IO::DB_RDWR);
-
-	Lux::IO::Array*	ary2 = new Lux::IO::Array(Lux::IO::NONCLUSTER);
-			ary2->set_noncluster_params(Lux::IO::Linked);
-			std::string db_name2 = "array2";
-			if(! ary2->open(db_name2.c_str(), Lux::IO::DB_CREAT))
-				ary2->open(db_name2.c_str(), Lux::IO::DB_RDWR);
-
-	{
-//		map_data<izenelib::am::ppmm> root(filename.c_str(), 1);
-		//root->test();
-//		root->dump(ary);
-	}
-	array_test(ary2);
-	//dump(ary,ary2);
+//	Lux::IO::Array*	ary = new Lux::IO::Array(Lux::IO::NONCLUSTER);
+//			ary->set_noncluster_params(Lux::IO::Padded);
+//			std::string db_name = "array";
+//			if(! ary->open(db_name.c_str(), Lux::IO::DB_CREAT))
+//				ary->open(db_name.c_str(), Lux::IO::DB_RDWR);
+//
+//	Lux::IO::Array*	ary2 = new Lux::IO::Array(Lux::IO::NONCLUSTER);
+//			ary2->set_noncluster_params(Lux::IO::Linked);
+//			std::string db_name2 = "array2";
+//			if(! ary2->open(db_name2.c_str(), Lux::IO::DB_CREAT))
+//				ary2->open(db_name2.c_str(), Lux::IO::DB_RDWR);
+//
+//	{
+////		map_data<izenelib::am::ppmm> root(filename.c_str(), 1);
+//		//root->test();
+////		root->dump(ary);
+//	}
+//	array_test(ary2);
+//	//dump(ary,ary2);
+//	cout<<getMemInfo()<<endl;
+//
+//	//query_test(sdb);
+//	
+//	//cout<<getMemInfo()<<endl;
+//	delete ary;
+//	delete ary2;
+//	
+	//sdb_mm.setMapSize(5*1024*1024);
+	//if( !boost::filesystem::exists("DocumentPropertyTable_1mm_key.dat") )
+	//	dump(sdb, sdb_mm, num);	
+	query_test(sdb_mm);
 	cout<<getMemInfo()<<endl;
-
-	//query_test(sdb);
+	query_test(sdb);
+	cout<<getMemInfo()<<endl;
 	
-	//cout<<getMemInfo()<<endl;
-	delete ary;
-	delete ary2;
 	//	initialize();
 	//	//query_test1();
 	//	if (argv[1]) {
