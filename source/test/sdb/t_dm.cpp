@@ -9,7 +9,7 @@
 
 #include <am/sdb_storage/sdb_storage.h>
 //#include <am/sdb_storage/sdb_storage_mm.h>
-#include <am/sdb_storage/sdb_storage_mm1.h>
+//#include <am/sdb_storage/sdb_storage_mm1.h>
 
 using namespace sf1v5;
 using namespace izenelib::am;
@@ -74,7 +74,7 @@ struct ppmm {
 //sdb_btree<docid_t, Document> sdb(filename);
 //sdb_btree<docid_t, Document> sdb0("_bt.dat");
 //sdb_bptree<docid_t, Document> sdb1("_bp.dat");
-//sdb_storage<docid_t, Document> sdb2("_seq.dat");
+sdb_storage<docid_t, Document> sdb2("DocumentPropertyTable.dat");
 //tc_hash<docid_t, Document> sdb3("_tch.dat");
 //tc_btree<docid_t, Document> sdb4("_tcb.dat");
 
@@ -85,29 +85,23 @@ template<typename T1, typename T2> void dump1(T1& t1, T2& t2, int num=10) {
 	docid_t key;
 	Document value;
 	int count = 0;
-	t2.pm.resize(num+1);
 	while (t1.get(locn, key, value)) {
 		izene_serialization<Document> izs(value);
 		char* ptr;
 		size_t sz;
 		izs.write_image(ptr, sz);
-		//		t2.pm.insert(make_pair(key, izenelib::am::string(ptr,sz)) );
-		
+				
 		int nsz=0;
-		char *p =(char*)_tc_bzcompress(ptr, sz, &nsz);		
-		t2.pm[key] = izenelib::am::mapped_string(p, nsz);
+		char *p =(char*)_tc_bzcompress(ptr, sz, &nsz);
+		t2.put(key, p, nsz, Lux::IO::APPEND);
 		delete p;
-		
 		//		cout<<"doc size="<<sz<<endl;
 		count++;
 		if (count%100000 == 0)
 			cout<<"idx: "<<count<<endl;
-		if (count > num)
-			break;
 		if ( !t1.seq(locn) )
 			break;
 	}
-	t2.test();
 	//	t2.close();
 }
 
@@ -324,8 +318,9 @@ int main(int argc, char* argv[]) {
 		//root->test();
 //		root->dump(ary);
 	}
-	array_test(ary2);
+	//array_test(ary2);
 	//dump(ary,ary2);
+	dump1(sdb2, *ary2);
 	cout<<getMemInfo()<<endl;
 
 	//query_test(sdb);
