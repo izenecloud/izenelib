@@ -196,6 +196,28 @@ public:
 		}
 	}
     
+    char* get(const KeyType& key, int& sp)
+    {
+        if( !isOpen() ) return false;
+        char* ptr;
+        size_t ksize;
+        izene_serialization<KeyType> izs(key);
+        izs.write_image(ptr, ksize);
+        void* pv = tchdbget(hdb_, ptr, ksize, &sp);
+        if( pv == NULL )
+        {
+            int errcode = ecode();
+            if( errcode != TCENOREC )
+            {
+                IZENELIB_THROW("tc_fixdb get on "+fileName_+" : "+tcfdberrmsg(errcode));
+            }
+            return NULL;
+        }
+        else {
+            return(char*)pv;
+        }
+    }
+    
     bool getValue(const KeyType& key, ValueType& value)
     {
         if( !isOpen() ) return false;
@@ -256,6 +278,24 @@ public:
         return op;
 
 	}
+    
+    bool update(const KeyType& key, char* value, std::size_t vsize) {
+        if( !isOpen() ) return false;
+        char* ptr;
+        size_t ksize;
+        izene_serialization<KeyType> izs(key);
+        izs.write_image(ptr, ksize);
+
+        bool op = tchdbput(hdb_, ptr, ksize, value, vsize);
+        
+        if( !op )
+        {
+            int errcode = ecode();
+            IZENELIB_THROW("tc_fixdb update on "+fileName_+" : "+tcfdberrmsg(errcode));
+        }
+        return op;
+
+    }
 
 	/**
 	 *  search an item
@@ -441,13 +481,13 @@ public:
 	/**
 	 *   get the num of items
 	 */
-	uint64_t num_items() {
+	uint64_t num_items() const {
         if( !isOpen() ) return 0;
 		uint64_t r = tchdbrnum(hdb_);
         return r;
 	}
     
-    uint64_t numItems() {
+    uint64_t numItems() const{
         return num_items();
     }
 

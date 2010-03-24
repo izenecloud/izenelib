@@ -278,7 +278,7 @@ namespace irdb
             , propertyMap_()
             , dataSize_(boost::mpl::size<DATA_VECTOR_TYPE>::value)
             , dataDb_(dataSize_, NULL)
-            , info_(0)
+            , info_(1)
             , serInfo_(NULL)
             
             {

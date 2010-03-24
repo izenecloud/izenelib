@@ -32,6 +32,7 @@ public:
     tc_fixdb(const string& fileName): fileName_(fileName),fdb_(NULL),isOpen_(false)
     {
         initHandle_();
+        tune();
     }
 
     /**
@@ -57,7 +58,7 @@ public:
     }
 
     
-    void tune(int32_t width, int64_t limsiz)
+    void tune(int32_t width = sizeof(ValueType), int64_t limsiz = std::numeric_limits< uint32_t >::max())
     {
         bool op = tcfdbtune(fdb_, width, limsiz);
         if( !op )
@@ -96,6 +97,19 @@ public:
         }
         return op;
     }
+    
+    bool insert(int64_t key, char* value, std::size_t vsize) {
+        if( !isOpen() ) return false;
+
+        bool op = tcfdbputkeep(fdb_, key, value, vsize);
+        
+        if( !op )
+        {
+            int errcode = ecode();
+            IZENELIB_THROW("tc_fixdb insert on "+fileName_+" : "+tcfdberrmsg(errcode));
+        }
+        return op;
+    }
 
     bool get(int64_t key, ValueType& value)
     {
@@ -117,6 +131,26 @@ public:
             izd.read_image(value);
             free(pv);
             return true;
+        }
+    }
+    
+    char* get(int64_t key, int& sp)
+    {
+        if( !isOpen() ) return false;
+
+        void* pv = tcfdbget(fdb_, key, &sp);
+        if( pv == NULL )
+        {
+            int errcode = ecode();
+            if( errcode != TCENOREC )
+            {
+                IZENELIB_THROW("tc_fixdb get on "+fileName_+" : "+tcfdberrmsg(errcode));
+            }
+            return NULL;
+        }
+        else {
+            return (char*)pv;
+            
         }
     }
 
@@ -141,18 +175,32 @@ public:
         return op;
 
     }
+    
+    bool update(int64_t key, char* value, std::size_t vsize) {
+        if( !isOpen() ) return false;
+
+        bool op = tcfdbput(fdb_, key, value, vsize);
+        
+        if( !op )
+        {
+            int errcode = ecode();
+            IZENELIB_THROW("tc_fixdb update on "+fileName_+" : "+tcfdberrmsg(errcode));
+        }
+        return op;
+
+    }
 
     
     /**
      *   get the num of items
      */
-    uint64_t num_items() {
+    uint64_t num_items() const{
         if( !isOpen() ) return 0;
         uint64_t r = tcfdbrnum(fdb_);
         return r;
     }
     
-    uint64_t numItems() {
+    uint64_t numItems() const{
         return num_items();
     }
 
