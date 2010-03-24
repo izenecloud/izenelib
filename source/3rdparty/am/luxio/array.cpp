@@ -26,6 +26,8 @@
 namespace Lux {
 namespace IO {
 
+static const char *ARYMAGIC = "LUXAR001";
+
   Array::Array(db_index_t index_type, uint8_t data_size)
   : map_(NULL),
     dt_(NULL),
@@ -149,7 +151,7 @@ namespace IO {
           unlock_db();
           return false;
         }
-        if ((*data)->user_alloc_size >= dh_->data_size + 1) {
+        if ((*data)->user_alloc_size >= (size_t)(dh_->data_size + 1)) {
           ((char *) (*data)->data)[dh_->data_size] = '\0';
         }
       }
@@ -282,6 +284,11 @@ namespace IO {
     std::cout << "node_size: " << dh_->page_size << std::endl;
     std::cout << "index_type: " << (int) dh_->index_type << std::endl;
     std::cout << "data_size: " << (int) dh_->data_size << std::endl;
+  }
+
+  size_t Array::num_items()
+  {
+    return dh_->num_keys;
   }
 
   bool Array::open_(std::string db_name, db_flags_t oflags)
