@@ -20,23 +20,31 @@
 #include <boost/thread/thread.hpp> 
 #include <boost/format.hpp>
 
+#include <am/tokyo_cabinet/tc_fixdb.h>
 #include <cache/IzeneCache.h>
 #include <util/izene_serialization.h>
 #include <util/Exception.h>
 
+#include "SeqFileDef.hpp"
+
 NS_IZENELIB_AM_BEGIN
 
-template <typename ValueType>
-class SequenceFile
+
+template <typename ValueType
+, class Container = izenelib::am::tc_fixdb<ValueType >
+, template <typename T> class SerializeHandler = CommonSeqFileSerializeHandler
+, template <typename U, template <typename VT> class V> class CacheHandler = SeqFileObjectCacheHandler>
+class SequenceFile : public CacheHandler<ValueType, SerializeHandler>
 {
+typedef CacheHandler<ValueType, SerializeHandler> CacheHandlerType;
 typedef std::vector<ValueType> CacheType;
 typedef typename CacheType::size_type KeyType;
-
+typedef SerializeHandler<ValueType> SerializeType;
 public:
     
 
 SequenceFile(const std::string& file) :
-file_(file), isOpen_(false), stream_(), itemCount_(0),valueSize_(0), cacheSize_(10000000), cache_(NULL), nextKey_(0)
+file_(file), isOpen_(false), fileData_(file)
 {
     
 }
@@ -46,45 +54,24 @@ file_(file), isOpen_(false), stream_(), itemCount_(0),valueSize_(0), cacheSize_(
     close();
 }
 
-void setCacheSize(KeyType cacheSize)
+Container& getContainer()
 {
-    cacheSize_ = cacheSize;
-}
-
-void setValueSize(const ValueType& value)
-{
-    char* ptr;
-    std::size_t vsize;
-    izenelib::util::izene_serialization<ValueType> izs(value);
-    izs.write_image(ptr, vsize);
-    valueSize_ = vsize;
+    return fileData_;
 }
 
 void open()
 {
     if( isOpen() ) return;
-    if (!boost::filesystem::exists(file_))
+    fileData_.open();
+    CacheHandlerType::initCache_();
+    ValueType value;
+    for(uint32_t i=0;i<CacheHandlerType::getCacheSize();i++)
     {
-        std::ofstream ostream(file_.c_str());
-        ostream.close();
-    }
-    stream_.open(file_.c_str());
-    if (!stream_.is_open())
-    {
-        IZENELIB_THROW("SequenceFile open on "+file_);
+        bool b = getOnFile(i+1, value);
+        if(b) insertToCache(i+1, value);
+        else break;
     }
     isOpen_ = true;
-    if( valueSize_ == 0 )
-    {
-        ValueType _value;
-        setValueSize(_value);
-    }
-    
-    loadItemCount_();
-    headSize_ = sizeof(getItemCount());
-    stream_.flush();
-    
-    loadCache_();
     
 }
 
@@ -97,271 +84,82 @@ bool isOpen() const
 
 KeyType getItemCount() const
 {
-    return itemCount_;
+    return fileData_.numItems();
 }
 
-
-
-
-
-bool insert(KeyType id, const ValueType& value)
-{
-    if( !isOpen() ) return false;
-    if( id >= itemCount_)
-    {
-        return update(id, value);
-    }
-    return false;
-    
-}
 
 void update(KeyType id, const ValueType& value)
 {
     if( !isOpen() ) return;
-    boost::lock_guard<boost::mutex> mLock(readWriteMutex_);
-    seekToItemBeginWithExpand_(id);
-    nextKey_ = id;
-    append_(value);
-    writeItemCount_();
-    nextKey_ = getItemCount();
+    std::size_t vsize;
+    char* data = SerializeType::serialize(value, vsize);
+    if( vsize>0 )
+    {
+        boost::lock_guard<boost::mutex> mLock(readWriteMutex_);
+        fileData_.update(id, data, vsize);
+        insertToCache(id, value);
+    }
+    free(data);
 }
-
-void append(const ValueType& value)
-{
-    if( !isOpen() ) return;
-    boost::lock_guard<boost::mutex> mLock(readWriteMutex_);
-    append_(value);
-    itemCount_ += 1;
-}
-
-
 
 
 bool get(KeyType id, ValueType& value)
 {
     if( !isOpen() ) return false;
-    if (id >= itemCount_)
+    if (id > getItemCount() )
     {
         return false;
     }
-    if(id < (*cache_).size())
+    if(getInCache(id, value))
     {
-        value = (*cache_)[id];
+        return true;
     }
     else
     {
-        boost::lock_guard<boost::mutex> mLock(readWriteMutex_);
-        return getOnFile_(id, value);
+        
+        return getOnFile(id, value);
     }
-    return true;
+
     
 }
-
+bool getOnFile(KeyType id, ValueType& value)
+{
+    char* ptr = NULL;
+    int sp;
+    {
+        boost::lock_guard<boost::mutex> mLock(readWriteMutex_);
+        ptr = fileData_.get(id, sp);
+    }
+    if(ptr==NULL) return false;
+    SerializeType::deserialize(ptr, (std::size_t)sp, value);
+    free(ptr);
+    return true;
+}
 
 void flush()
 {
     if( !isOpen() ) return;
-    boost::lock_guard<boost::mutex> mLock(readWriteMutex_);
-    writeItemCount_();
-    stream_.flush();
-    if( stream_.fail() )
-    {
-        IZENELIB_THROW("SequenceFile open "+file_);
-    }
+    fileData_.flush();
 }
 
 void close()
 {
     if(isOpen())
     {
-//         flush();
-        stream_.close();
-        if(cache_ != NULL)
-        {
-            delete cache_;
-            cache_ = NULL;
-        }
-        
+        fileData_.close();
         isOpen_ = false;
     }
 }
 
-private:
     
-void loadItemCount_()
-{
-    if( !isOpen() ) return;
-//     std::cout<<" loadItemCount"<<std::endl;
-    boost::lock_guard<boost::mutex> mLock(readWriteMutex_);
-    stream_.seekg(0, ios::end);
-    streampos size = stream_.tellg();
-//     std::cout<<" loadItemCount "<<size<<(streampos) sizeof(itemCount_)<<std::endl;
-    if (size < (streampos) sizeof(itemCount_) )
-    {
-        itemCount_ = 0;
-        writeItemCount_();
-//         std::cout<<" tellg after load : "<<stream_.tellg()<<std::endl;
-    }
-    else
-    {
-        stream_.seekg(0, ios::beg);
-        stream_.read((char*) &itemCount_, sizeof(itemCount_));
-    }
-    if( stream_.fail() )
-    {
-        IZENELIB_THROW("SequenceFile loadItemCount on "+file_);
-    }
-}    
 
-void writeItemCount_()
-{
-    if( !isOpen() ) return;
-    stream_.seekg(0, ios::beg);
-    stream_.write((char*) &itemCount_, sizeof(itemCount_));
-    if( stream_.fail() )
-    {
-        IZENELIB_THROW("SequenceFile writeItemCount on "+file_);
-        
-    }
-    stream_.seekg(0, ios::end);
-}
-
-void loadCache_()
-{
-    if( !isOpen() ) return;
-    boost::lock_guard<boost::shared_mutex> mLock(loadCacheMutex_);
-    if( cache_ == NULL)
-    {
-        if(cache_ != NULL)
-        {
-            delete cache_;
-        }
-        cache_ = new CacheType(cacheSize_);
-        if (itemCount_ > 0)
-        {
-            KeyType cache_num = getItemCount() > cacheSize_ ? cacheSize_
-            : getItemCount();
-            ValueType value;
-            for(KeyType i=0;i<cache_num;i++)
-            {
-                bool b = getOnFile_(i, value);
-                if(b)
-                    (*cache_)[i] = value;
-                
-            }
-        }
-    }
-    
-}
-
-
-
-void seekToItemBeginWithExpand_(KeyType id)
-{
-    if( !isOpen() ) return;
-    if (id >= itemCount_)//new item
-    {
-        stream_.seekg(0, ios::end);
-        streampos size = stream_.tellg();
-        streampos expectSize = (streampos) (headSize_ + itemCount_ * valueSize_);
-        if (size != expectSize )
-        {
-            IZENELIB_THROW( (boost::format("SequenceFile abnormal file size on %1%, param: %2%,%3%,%4%") % file_ % id % size % expectSize).str() );
-        }
-        uint64_t toBeAddSize = (id - itemCount_) * (uint64_t)valueSize_;
-        uint32_t roundSize = 1000;
-        char* tmpData = new char[roundSize];
-        while(toBeAddSize > 0)
-        {
-            uint32_t writeSize = toBeAddSize>roundSize? roundSize : toBeAddSize;
-            if( writeSize < roundSize )
-            {
-                delete[] tmpData;
-                tmpData = new char[writeSize];
-            }
-            stream_.write(tmpData, writeSize);
-            toBeAddSize -= writeSize;
-        }
-        delete[] tmpData;
-    }
-    else
-    {
-        stream_.seekg(headSize_ + id * valueSize_, ios::beg);
-        if( stream_.fail() )
-        {
-            IZENELIB_THROW("SequenceFile seekToItemBegin "+file_);
-        }
-    }
-    
-    
-}
-
-void append_(const ValueType& value)
-{
-    if( !isOpen() ) return;
-    char* ptr;
-    std::size_t vsize;
-    izenelib::util::izene_serialization<ValueType> izs(value);
-    izs.write_image(ptr, vsize);
-    
-    if(valueSize_ == 0)//first insert
-    {
-        valueSize_ = vsize;
-    }
-    if( vsize != valueSize_ )
-    {
-        IZENELIB_THROW("SequenceFile value size error on "+file_);
-    }
-
-    stream_.write(ptr, valueSize_);
-    KeyType id = nextKey_;
-    if(id >= itemCount_)
-    {
-        itemCount_ = id+1;
-    }
-    if( stream_.fail() )
-    {
-        IZENELIB_THROW("SequenceFile append stream fail on "+file_);
-    }
-    if( id < (*cache_).size() )
-    {
-        (*cache_)[id] = value;
-    }
-    
-    
-    nextKey_ = id+1;
-}
-
-bool getOnFile_(KeyType id, ValueType& value)
-{
-    if( !isOpen() ) return false;
-    if (id >= itemCount_)
-    {
-        return false;
-    }
-    char* data = new char[valueSize_];
-    stream_.seekg(headSize_ + id * valueSize_, ios::beg);
-    stream_.read(data, valueSize_);
-    if( stream_.fail() )
-    {
-        IZENELIB_THROW("SequenceFile getOnFile on "+file_);
-    }
-    izenelib::util::izene_deserialization<ValueType> izd_value(data,(std::size_t)valueSize_);
-    izd_value.read_image(value);
-    delete[] data;
-    return true;
-}
 
 private:
     std::string file_;
     bool isOpen_;
-    std::fstream stream_;
-    KeyType itemCount_;
-    uint32_t headSize_;
+    Container fileData_;
     uint32_t valueSize_;
-    KeyType cacheSize_;
-    CacheType* cache_;
-    KeyType nextKey_;
+    uint32_t fileLimitSize_;
     boost::mutex readWriteMutex_;
     boost::shared_mutex loadCacheMutex_;
 };
