@@ -42,3 +42,9 @@ typedef unsigned __int64  uint64_t;
     if (!(exp))    \
     {assert(false);}\
   }
+
+#define THROW(exp, info)\
+  {              \
+    if (!(exp))    \
+    {throw (info);}\
+  }
