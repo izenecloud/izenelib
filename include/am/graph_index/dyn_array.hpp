@@ -1060,6 +1060,8 @@ friend std::ostream& operator << (std::ostream& os, const SelfT& v)
       assign_self();
         
     size_t s = *(size_t*)mem;
+    if ( 0 == s)
+      return sizeof (size_t);
 
     max_size_ = length_ = s/sizeof(VALUE_TYPE);
 
@@ -1067,7 +1069,7 @@ friend std::ostream& operator << (std::ostream& os, const SelfT& v)
 
     memcpy(ARRAY(p_), mem+sizeof(size_t), s);
 
-    return s;
+    return s+sizeof(size_t);
   }
 
   /**
@@ -1078,7 +1080,7 @@ friend std::ostream& operator << (std::ostream& os, const SelfT& v)
     *(size_t*)mem = size();
     memcpy( mem+sizeof(size_t), ARRAY(p_), size() );
 
-    return size();
+    return size()+sizeof(size_t);
   }
 
   /**
