@@ -8,12 +8,13 @@
 
 
 #include <am/sdb_storage/sdb_storage.h>
-<<<<<<< HEAD
-//#include <am/sdb_storage/sdb_storage_mm.h>
-=======
 #include <am/sdb_storage/sdb_storage_mm.h>
->>>>>>> 7d39b4153850aea5d3a0ce8b7167dfcbdb374333
+#include <3rdparty/compression/minilzo/minilzo.h>
+
+#define IN_LEN      (512*1024ul)
+#define OUT_LEN     (IN_LEN + IN_LEN / 16 + 64 + 3)
 //#include <am/sdb_storage/sdb_storage_mm1.h>
+lzo_align_t __LZO_MMODEL wrkmem [ ((LZO1X_1_MEM_COMPRESS) + (sizeof(lzo_align_t) - 1)) / sizeof(lzo_align_t) ];
 
 using namespace sf1v5;
 using namespace izenelib::am;
@@ -84,21 +85,24 @@ sdb_storage<docid_t, Document> sdb2("DocumentPropertyTable.dat");
 
 template<typename T1, typename T2> void dump1(T1& t1, T2& t2, int num=10) {
 	t1.open();
+	lzo_init();
 
 	typename T1::SDBCursor locn = t1.get_first_locn();
 	docid_t key;
 	Document value;
 	int count = 0;
+	unsigned char __LZO_MMODEL p [ OUT_LEN ];
 	while (t1.get(locn, key, value)) {
 		izene_serialization<Document> izs(value);
 		char* ptr;
 		size_t sz;
 		izs.write_image(ptr, sz);
 				
-		int nsz=0;
-		char *p =(char*)_tc_bzcompress(ptr, sz, &nsz);
-		t2.put(key, p, nsz, Lux::IO::APPEND);
-		delete p;
+		lzo_uint nsz=0;
+//		char *p =(char*)_tc_bzcompress(ptr, sz, &nsz);
+		lzo1x_1_compress((unsigned char*)ptr,sz,p,&nsz,wrkmem);
+		t2.put(key, p, (size_t)nsz, Lux::IO::APPEND);
+//		delete p;
 		//		cout<<"doc size="<<sz<<endl;
 		count++;
 		if (count%100000 == 0)
@@ -249,7 +253,8 @@ template<typename SDB> void query_test(SDB& sdb) {
 void array_test(Lux::IO::Array *ary) {
 	izenelib::util::ClockTimer timer;
 	char buf[1024*100];
-	
+	lzo_init();
+	unsigned char __LZO_MMODEL p [ OUT_LEN ];
 	for (int i=0; i<100; i++) {
 		for (int j=0; j<10; j++) {
 			int docid = rand()%num+1;
@@ -260,10 +265,12 @@ void array_test(Lux::IO::Array *ary) {
 			//Lux::IO::data_t val_data;
 			Lux::IO::data_t *val_p = &val_data;
 			//assert(true== ary->get(docid, &val_p, Lux::IO::SYSTEM));
-			assert(true== ary->get(84997, &val_p, Lux::IO::USER));
-			int nsz=0;
-			char *p =(char*)_tc_bzdecompress(buf, val_p->size, &nsz);
-			izene_deserialization<Document> izd(p, nsz);
+			assert(true== ary->get(docid, &val_p, Lux::IO::USER));
+			//int nsz=0;
+			lzo_uint nsz=0;
+			//char *p =(char*)_tc_bzdecompress(buf, val_p->size, &nsz);
+			lzo1x_decompress((unsigned char*)buf,val_p->size,p,&nsz,NULL);
+			izene_deserialization<Document> izd((char*)p, nsz);
 			//izene_deserialization<Document> izd((const char*)val_p->data, val_p->size);
 
 			Document doc;
@@ -276,7 +283,7 @@ void array_test(Lux::IO::Array *ary) {
 //			izs.write_image(ptr, size);
 //			cout<<"doc size="<<size<<endl;
 			//ary->clean_data(val_p);
-			delete p;
+			//delete p;
 		}
 	}
 	printf(" elapsed : %lf seconds\n", timer.elapsed() );
@@ -307,18 +314,12 @@ void dump(Lux::IO::Array *in, Lux::IO::Array *out) {
 
 int main(int argc, char* argv[]) {
 
-<<<<<<< HEAD
 	Lux::IO::Array*	ary = new Lux::IO::Array(Lux::IO::NONCLUSTER);
 			ary->set_noncluster_params(Lux::IO::Linked);
-			std::string db_name = "array2";
+			std::string db_name = "array";
 			if(! ary->open(db_name.c_str(), Lux::IO::DB_CREAT))
 				ary->open(db_name.c_str(), Lux::IO::DB_RDWR);
 
-	Lux::IO::Array*	ary2 = new Lux::IO::Array(Lux::IO::NONCLUSTER);
-			ary2->set_noncluster_params(Lux::IO::Linked);
-			std::string db_name2 = "array3";
-			if(! ary2->open(db_name2.c_str(), Lux::IO::DB_CREAT))
-				ary2->open(db_name2.c_str(), Lux::IO::DB_RDWR);
 
 	{
 //		map_data<izenelib::am::ppmm> root(filename.c_str(), 1);
@@ -327,8 +328,7 @@ int main(int argc, char* argv[]) {
 	}
 	//array_test(ary2);
 	//dump(ary,ary2);
-	dump1(sdb2, *ary2);
-=======
+	dump1(sdb2, *ary);
 //	Lux::IO::Array*	ary = new Lux::IO::Array(Lux::IO::NONCLUSTER);
 //			ary->set_noncluster_params(Lux::IO::Padded);
 //			std::string db_name = "array";
@@ -359,10 +359,6 @@ int main(int argc, char* argv[]) {
 	//sdb_mm.setMapSize(5*1024*1024);
 	//if( !boost::filesystem::exists("DocumentPropertyTable_1mm_key.dat") )
 	//	dump(sdb, sdb_mm, num);	
-	query_test(sdb_mm);
-	cout<<getMemInfo()<<endl;
-	query_test(sdb);
->>>>>>> 7d39b4153850aea5d3a0ce8b7167dfcbdb374333
 	cout<<getMemInfo()<<endl;
 	
 	//	initialize();
