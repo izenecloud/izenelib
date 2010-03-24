@@ -1,21 +1,23 @@
-#include <am/sdb_storage/sdb_storage.h>
+#include <am/sdb_storage/sdb_storage_mm.h>
 #include <boost/test/unit_test.hpp>
 
 using namespace izenelib::am;
 
 typedef string KeyType;
 typedef int ValueType;
-typedef sdb_storage<KeyType, ValueType> SDB_BTREE;
-typedef sdb_storage<KeyType, ValueType> SDB_BPTREE;
-typedef sdb_storage<KeyType, ValueType> SDB_VBPTREE;
+typedef sdb_storage_mm<KeyType, ValueType> SDB_BTREE;
+typedef sdb_storage_mm<KeyType, ValueType> SDB_BPTREE;
+typedef sdb_storage_mm<KeyType, ValueType> SDB_VBPTREE;
 typedef SDB_BPTREE::SDBCursor SDBCursor;
 
 static string inputFile("../../db/test2.txt");
+//static string inputFile1("../../db/test2.txt");
+//static string inputFile2("../../db/test2.txt");
 static string inputFile1("../../db/wordlist.txt");
-//static string inputFile2("../../db/wordlist_PLU.txt");
 static string inputFile2("../../db/wordlist_PLU.txt");
+//static string inputFile2("../../db/wordlist_PLU.txt");
 static bool trace = false;
-static int num = 10000000;
+static int num = 10000;
 
 static SDB_BPTREE cm("bptree.dat");
 static SDB_BPTREE cm1("bptree1.dat#");
@@ -38,12 +40,12 @@ struct MyKeyType {
 MAKE_FEBIRD_SERIALIZATION(MyKeyType);
 
 static void test_user_defined_type() {
-	sdb_btree<MyKeyType, int> sdb1;
-	sdb_btree<MyKeyType, int> sdb2;
+	sdb_storage_mm<MyKeyType, int> sdb1;
+	sdb_storage_mm<MyKeyType, int> sdb2;
 }
 
 static void test_mykeytype() {
-	sdb_btree<MyKeyType, int> cm("cool.dat");
+	sdb_storage_mm<MyKeyType, int> cm("cool.dat");
 	cm.open();
 	cout<<"\ninsert_test"<<endl;
 	cout<<"SerialType: "<<IsFebirdSerial<std::vector<MyKeyType> >::yes<<endl;
@@ -98,13 +100,16 @@ static void test_openclose() {
 	{
 		cout<<"4"<<endl;
 		SDB_BTREE tdb("t2.dat");
-		tdb.close();
+	//	tdb.close();
 		cout<<"5"<<endl;
 		tdb.open();
 		tdb.insert("a", 1);
 		tdb.insert("a33", 222);
-		int a;
+		int a, b;
 		tdb.get("a", a);
+		tdb.get("a33", b);
+		cout<<"get a="<<a<<endl;
+		cout<<"get b="<<b<<endl;
 		assert(a == 1);
 		cout<<"6"<<endl;
 		tdb.close();
@@ -124,7 +129,7 @@ static void test_openclose() {
 template<typename T> void insert_test1() {
 
 	{
-		trace = false;
+		//trace = false;
 		int sum =0;
 		int hit =0;
 		clock_t t1 = clock();
@@ -171,7 +176,7 @@ template<typename T> void seq_test(T& cm) {
 
 #if 1
 	{
-		trace = false;
+		//trace = false;
 		int sum =0;
 		int hit =0;
 		clock_t t1 = clock();
@@ -210,7 +215,7 @@ template<typename T> void seq_test(T& cm) {
 		//cm.display(cout, false);
 		cout<<"\nseq total num: "<<sum<<endl;
 		cout<<"eclipse:"<< double(clock()- t1)/CLOCKS_PER_SEC<<endl;
-		trace = false;
+		//trace = false;
 
 	}
 #endif	
@@ -258,7 +263,7 @@ template<typename T> void get_test(T& cm) {
 
 #if 1
 	{
-		trace = false;
+		//trace = false;
 		int sum =0;
 		int hit =0;
 		clock_t t1 = clock();
@@ -275,7 +280,8 @@ template<typename T> void get_test(T& cm) {
 			}
 			if (cm.get(ystr, val) ) {
 				hit++;
-				if (trace) {
+				if (trace) 
+				{
 					cout<< "get key->val: "<<ystr<<"->"<<val<<endl;
 					//cm.display(cout, false);
 				}
@@ -296,7 +302,7 @@ template<typename T> void del_test(T& cm) {
 	cout<<"\ndel_test"<<endl;
 #if 1
 	{
-		trace = false;
+		//trace = true;
 		int sum =0;
 		int hit =0;
 		clock_t t1 = clock();
@@ -315,8 +321,8 @@ template<typename T> void del_test(T& cm) {
 				hit++;
 			}
 			if (trace) {
-				//cout<< "get: key="<<ystr<<"->"<<val<<endl;
-				cm.display(cout, false);
+				cout<< "get: key="<<ystr<<"->"<<val<<endl;
+				//cm.display(cout, false);
 			}
 
 		}
@@ -330,16 +336,17 @@ template<typename T> void del_test(T& cm) {
 
 }
 
-BOOST_AUTO_TEST_SUITE( btree_suite )
-BOOST_AUTO_TEST_CASE(btree_open_close_test)
+BOOST_AUTO_TEST_SUITE( mm_suite )
+BOOST_AUTO_TEST_CASE(mm_open_close_test)
 {
 	test_openclose();
 	test_user_defined_type();
 	test_mykeytype();
 }
 
-BOOST_AUTO_TEST_CASE(btree_test)
+BOOST_AUTO_TEST_CASE(mm1_test)
 {
+	cout<<"btree_test"<<endl;
 	//cm.setCacheSize(10000);
 	//cm.setDegree(3);
 	cm.open();
@@ -366,7 +373,7 @@ BOOST_AUTO_TEST_CASE(btree_test)
 	seq_test(cm);
 
 	cm.close();
-	cm1.close();
+//	cm1.close();
 }
 
 BOOST_AUTO_TEST_SUITE_END()

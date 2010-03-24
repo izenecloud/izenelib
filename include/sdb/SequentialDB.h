@@ -15,6 +15,7 @@
 #include <am/sdb_btree/sdb_bptree.h>
 #include <am/tokyo_cabinet/tc_hash.h>
 #include <am/sdb_storage/sdb_storage.h>
+#include <am/sdb_storage/sdb_storage_mm.h>
 
 /*#ifdef EXTERNAL_TOKYO_CABINET
  #include <am/tokyo_cabinet/tc_hash.h>
@@ -136,11 +137,10 @@ public:
 		return container_.close();
 	}
 
-
 	void clear() {
 		return container_.clear();
 	}
-	
+
 	/**
 	 *  \brief read an item from SequentialDB by key.
 	 *
@@ -499,11 +499,11 @@ public:
 	const std::string& getName() {
 		return sdbname_;
 	}
-	
-	void setFileName(const std::string& fileName){
+
+	void setFileName(const std::string& fileName) {
 		container_.setFileName(fileName);
 	}
-	
+
 private:
 	std::string sdbname_;
 	ContainerType container_;
@@ -775,6 +775,17 @@ public:
 	ordered_sdb_storage(const string& sdbname="ordered_sdb_storage.dat") :
 		SequentialDB<KeyType, ValueType, LockType,
 				sdb_storage<KeyType, ValueType, LockType> >(sdbname) {
+
+	}
+};
+
+template< typename KeyType =string, typename ValueType=NullType,
+		typename LockType =NullLock > class ordered_sdb_storage_mm :
+	public SequentialDB<KeyType, ValueType, LockType, sdb_storage_mm<KeyType, ValueType, LockType> > {
+public:
+	ordered_sdb_storage_mm(const string& sdbname="ordered_sdb_storage_mm.dat") :
+		SequentialDB<KeyType, ValueType, LockType,
+				sdb_storage_mm<KeyType, ValueType, LockType> >(sdbname) {
 
 	}
 };
