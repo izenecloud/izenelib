@@ -8,7 +8,12 @@
 
 #include <am/sdb_storage/sdb_storage.h>
 #include <am/sdb_storage/sdb_storage_mm.h>
+#include <3rdparty/compression/minilzo/minilzo.h>
+
+#define IN_LEN      (512*1024ul)
+#define OUT_LEN     (IN_LEN + IN_LEN / 16 + 64 + 3)
 //#include <am/sdb_storage/sdb_storage_mm1.h>
+lzo_align_t __LZO_MMODEL wrkmem [ ((LZO1X_1_MEM_COMPRESS) + (sizeof(lzo_align_t) - 1)) / sizeof(lzo_align_t) ];
 
 using namespace sf1v5;
 using namespace izenelib::am;
@@ -73,18 +78,19 @@ struct ppmm {
 //sdb_btree<docid_t, Document> sdb(filename);
 //sdb_btree<docid_t, Document> sdb0("_bt.dat");
 //sdb_bptree<docid_t, Document> sdb1("_bp.dat");
-//sdb_storage<docid_t, Document> sdb2("_seq.dat");
+sdb_storage<docid_t, Document> sdb2("DocumentPropertyTable.dat");
 //tc_hash<docid_t, Document> sdb3("_tch.dat");
 //tc_btree<docid_t, Document> sdb4("_tcb.dat");
 
 template<typename T1, typename T2> void dump1(T1& t1, T2& t2, int num=10) {
 	t1.open();
+	lzo_init();
 
 	typename T1::SDBCursor locn = t1.get_first_locn();
 	docid_t key;
 	Document value;
 	int count = 0;
-	t2.pm.resize(num+1);
+	unsigned char __LZO_MMODEL p [ OUT_LEN ];
 	while (t1.get(locn, key, value)) {
 		izene_serialization<Document> izs(value);
 		char* ptr;
@@ -101,12 +107,9 @@ template<typename T1, typename T2> void dump1(T1& t1, T2& t2, int num=10) {
 		count++;
 		if (count%100000 == 0)
 			cout<<"idx: "<<count<<endl;
-		if (count > num)
-			break;
 		if ( !t1.seq(locn) )
 			break;
 	}
-	t2.test();
 	//	t2.close();
 }
 
@@ -254,11 +257,17 @@ template<typename SDB> void query_test(SDB& sdb) {
 
 void array_test(Lux::IO::Array *ary) {
 	izenelib::util::ClockTimer timer;
+	char buf[1024*100];
+	lzo_init();
+	unsigned char __LZO_MMODEL p [ OUT_LEN ];
 	for (int i=0; i<100; i++) {
 		for (int j=0; j<10; j++) {
 			int docid = rand()%num+1;
 			//cout<<"docid="<<docid<<endl;
-			Lux::IO::data_t val_data;
+			
+			memset(buf,0,1024*100);
+			Lux::IO::data_t val_data = {buf,0,1024*100};
+			//Lux::IO::data_t val_data;
 			Lux::IO::data_t *val_p = &val_data;
 			assert(true== ary->get(docid, &val_p, Lux::IO::SYSTEM));
 			izene_deserialization<Document> izd((const char*)val_p->data,

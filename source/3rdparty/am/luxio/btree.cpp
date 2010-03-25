@@ -703,7 +703,7 @@ namespace IO {
           error_log("allocated size is too small");
           return false;
         }
-        if ((*data)->user_alloc_size >= *size + 1) {
+        if ((*data)->user_alloc_size >= (size_t)(*size + 1)) {
           ((char *) (*data)->data)[*size] = '\0';
         }
       }
