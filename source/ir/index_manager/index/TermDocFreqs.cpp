@@ -32,7 +32,7 @@ TermDocFreqs::TermDocFreqs(TermReader* pReader, InputDescriptor* pInputDescripto
         ,ownPosting_(true)
 {
     termInfo_.set(ti.docFreq(),ti.docPointer());
-    pInputDescriptor_->getDPostingInput()->seek(ti.docPointer());
+    //pInputDescriptor_->getDPostingInput()->seek(ti.docPointer());
     pPosting_ = new OnDiskPosting(pInputDescriptor_,ti.docPointer());
 }
 
