@@ -35,32 +35,8 @@ IF(am_SHOULD_BUILD)
 
 ENDIF(am_SHOULD_BUILD)
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-SET(_NOT_WIN32 TRUE)
-IF(WIN32)
-  SET(_NOT_WIN32 FALSE)
-ENDIF(WIN32)
-
-MACRO_CHECK_SHOULD_BUILD(  
-  filemapper_SHOULD_BUILD  
-  )
+MACRO_CHECK_SHOULD_BUILD(filemapper)
 IF(filemapper_SHOULD_BUILD)
-  INCLUDE_DIRECTORIES(
-    ${Boost_INCLUDE_DIRS}    
-    )
-
   ADD_LIBRARY(filemapper filemapper/persist.cpp)
   #INSTALL(TARGETS izene_log DESTINATION lib)
   INSTALL(TARGETS filemapper  
