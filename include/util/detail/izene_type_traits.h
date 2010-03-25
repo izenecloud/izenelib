@@ -15,6 +15,19 @@ using namespace boost;
 
 NS_IZENELIB_UTIL_BEGIN
 
+template <typename T>
+struct IsFixedType{
+	enum {yes = (is_arithmetic<T >::value 
+		|| is_empty<T>::value ),
+		no= !yes};
+};
+
+template <typename T1, typename T2>
+struct IsFixed {
+	enum {yes = IsFixedType<T1>::yes && IsFixedType<T2>::yes ,
+		no= !yes};
+};
+
 
 template <typename T>
 struct IsMemcpySerial{

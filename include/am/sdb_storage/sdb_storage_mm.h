@@ -23,7 +23,7 @@
 #include "sdb_storage_types.h"
 
 #include <am/sdb_btree/sdb_btree.h>
-#include <am/sdb_hash/sdb_hash.h>
+#include <am/sdb_hash/sdb_fixedhash.h>
 
 #include <boost/iostreams/device/mapped_file.hpp>
 #include <boost/filesystem/operations.hpp>  
@@ -86,7 +86,7 @@ struct mm_header {
 
 	mm_header() :
 		idx(0), offset(sizeof(mm_header)), tsz(sizeof(mm_header)) {
-		mapSize =1024*1024*1024;
+		mapSize =128*1024*1024;
 	}
 	void read(void* fileBuffer) {
 		memcpy(this, fileBuffer, sizeof(mm_header));
@@ -115,7 +115,7 @@ struct mm_header {
  */
 
 template< typename KeyType, typename ValueType, typename LockType =NullLock,
-		typename AmType=sdb_btree<KeyType, unsigned int, LockType>,
+		typename AmType=sdb_hash<KeyType, unsigned int, LockType>,
 		bool UseCompress = true > class sdb_storage_mm :
 	public AccessMethod<KeyType, ValueType, LockType> {
 public:
@@ -276,7 +276,7 @@ public:
 	}
 
 	SDBCursor get_last_locn() {
-		return keyHash_.get_last_locn();
+		//	return keyHash_.get_last_locn();
 	}
 
 	bool get(const SDBCursor& locn, KeyType& key, ValueType& value) {
@@ -349,21 +349,18 @@ public:
 			return true;
 
 		keyHash_.open();
-		mms_.resize(1);
 		if (boost::filesystem::exists(fileName_) ) {
 			DLOG(INFO)<<"open exist...\n"<<endl;
-			mms_[0].reset(new memory_map(fileName_, 0, ssh_.mapSize));
-			ssh_.read(mms_[0]->header() );
+			mms_.reset(new memory_map(fileName_, 0, ssh_.mapSize));
+			ssh_.read(mms_->header() );	
 			if (ssh_.idx > 0)
-				mms_.resize(ssh_.idx+1);
-			for (int i=1; i<=ssh_.idx; i++)
-				mms_[i].reset(new memory_map(fileName_,ssh_.mapSize*i, ssh_.mapSize));
-			mms_[ssh_.idx]->setOffset(ssh_.offset);
+				mms_.reset(new memory_map(fileName_, 0, ssh_.mapSize*(ssh_.idx+1) ));
+			mms_->setOffset(ssh_.offset);
 		} else {
 			DLOG(INFO)<<"creat new...\n"<<endl;
 			expandFile_(ssh_.idx);
-			mms_[0].reset(new memory_map(fileName_, 0, ssh_.mapSize));
-			mms_[0]->setOffset(ssh_.offset);
+			mms_.reset(new memory_map(fileName_, 0, ssh_.mapSize));
+			mms_->setOffset(ssh_.offset);
 			syncHeader_();
 		}
 		keyHash_.fillCache();
@@ -418,10 +415,10 @@ private:
 private:
 	LockType fileLock_;
 	map<unsigned int, ValueType> readCache_;
-	vector<boost::shared_ptr<memory_map> > mms_;
+	boost::shared_ptr<memory_map> mms_;
 
 	void syncHeader_() {
-		memcpy(mms_[0]->header(), &ssh_, sizeof(ssh_));
+		memcpy(mms_->header(), &ssh_, sizeof(ssh_));
 	}
 
 	void expandFile_(int seq) {
@@ -449,20 +446,17 @@ private:
 			vsize = vsz;
 		}
 
-		if ( (size_t)ssh_.offset +sizeof(size_t)+vsize >= ssh_.mapSize) {
-			++ssh_.idx;
-			ssh_.offset = 0;
-			ssh_.tsz = ssh_.idx*ssh_.mapSize;
-			mms_.resize(ssh_.idx+1);
+		if ( (size_t)ssh_.offset+sizeof(size_t)+vsize >= ssh_.mapSize*(ssh_.idx
+				+1)) {		
+			++ssh_.idx;		
 			expandFile_(ssh_.idx);
-			mms_[ssh_.idx].reset(new memory_map(fileName_, ssh_.tsz, ssh_.mapSize));
-			keyHash_.update(key, ssh_.tsz);
+			mms_.reset(new memory_map(fileName_, 0, ssh_.mapSize*(ssh_.idx+1) ));
+			mms_->setOffset(ssh_.offset);		
 		}
-
-		assert (ssh_.offset < ssh_.mapSize);
+	
 		{
-			mms_[ssh_.idx]->write(&vsize, sizeof(size_t));
-			mms_[ssh_.idx]->write(ptr, vsize);
+			mms_->write(&vsize, sizeof(size_t));
+			mms_->write(ptr, vsize);
 			ssh_.tsz += sizeof(size_t) + vsize;
 			ssh_.offset += sizeof(size_t) + vsize;
 		}
@@ -479,12 +473,10 @@ private:
 		char* ptr;
 		size_t vsize = 0;
 
-		int idx = npos/ssh_.mapSize;
-		size_t offset = npos - idx*ssh_.mapSize;	
-		mms_[idx]->read(offset, &vsize, sizeof(size_t));		
+		mms_->read(npos, &vsize, sizeof(size_t));
 		assert(vsize> 0);
 		ptr = new char[vsize];
-		mms_[idx]->read(offset+sizeof(size_t), ptr, vsize);
+		mms_->read(npos+sizeof(size_t), ptr, vsize);
 
 		if (UseCompress) {
 			int vsz=0;

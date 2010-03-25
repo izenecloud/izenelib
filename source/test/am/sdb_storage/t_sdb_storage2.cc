@@ -1,4 +1,4 @@
-#include <am/sdb_storage/sdb_storage_mm.h>
+#include <am/sdb_storage/sdb_storage_tt.h>
 #include <boost/test/unit_test.hpp>
 
 using namespace izenelib::am;
@@ -346,8 +346,7 @@ BOOST_AUTO_TEST_CASE(mm_open_close_test)
 
 BOOST_AUTO_TEST_CASE(mm1_test)
 {
-	cout<<"btree_test"<<endl;
-	//cm.setCacheSize(10000);
+		//cm.setCacheSize(10000);
 	//cm.setDegree(3);
 	cm.open();
 

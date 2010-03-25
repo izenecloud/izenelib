@@ -44,7 +44,7 @@ NS_IZENELIB_AM_BEGIN
  *
  */
 
-template< typename KeyType, typename ValueType, typename LockType =NullLock, bool fixed=false> class sdb_hash :
+template< typename KeyType, typename ValueType, typename LockType =NullLock, bool fixed=IsFixed<KeyType, ValueType>::yes  > class sdb_hash :
 public AccessMethod<KeyType, ValueType, LockType>
 {
 	enum {unloadByRss = false};
