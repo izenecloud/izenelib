@@ -341,11 +341,11 @@ int main()
 {
   //alpha_sort_check();
 
-  const uint32_t SIZE = 400000000;//00000;
+  //const uint32_t SIZE = 400000000;//00000;
   //check_runner<uint32_t, uint8_t>(SIZE, 10000000);
   //check_merger<uint32_t, uint8_t>(SIZE, 10000000);
-  check_izene_sort<uint64_t, uint16_t>(SIZE, 10000000);
-  check_izene_sort<uint32_t, uint8_t>(SIZE, 10000000);
+  //check_izene_sort<uint64_t, uint16_t>(SIZE, 10000000);
+  //check_izene_sort<uint32_t, uint8_t>(SIZE, 10000000);
 
   // check_multi_sort<uint64_t>(100000, 200000000);
 //   //-----------------------------

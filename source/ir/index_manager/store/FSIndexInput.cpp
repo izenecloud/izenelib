@@ -6,7 +6,6 @@ using namespace izenelib::ir::indexmanager;
 FSIndexInput::FSIndexInput(const char* filename)
 {
     fileHandle_ = fopen(filename, "rb");
-    //setbuf(fileHandle_,NULL);
 
     if (fileHandle_ == NULL)
     {
@@ -25,7 +24,6 @@ FSIndexInput::FSIndexInput(const char* filename,size_t buffsize)
         :IndexInput(buffsize)
 {
     fileHandle_ = fopen(filename, "rb");
-    //setbuf(fileHandle_,NULL);
 
     if (fileHandle_ == NULL)
     {
@@ -48,18 +46,6 @@ FSIndexInput::~FSIndexInput()
 
 void FSIndexInput::readInternal(char* b,size_t length,bool bCheck/* = true*/)
 {
-    if (bCheck)
-    {
-        int64_t position = getFilePointer();
-        if (0 != fseek(fileHandle_, 0, SEEK_CUR))
-        {
-            if (0 != fseek(fileHandle_, position, SEEK_SET))
-            {
-                close();
-                SF1V5_THROW(ERROR_FILEIO,"FSIndexInput::readInternal():file IO seek error: " + filename_);
-            }
-        }
-    }
     int ret = fread(b, 1, length, fileHandle_);
     if (ret != (int)length)
         if (!feof(fileHandle_))

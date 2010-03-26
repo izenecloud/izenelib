@@ -307,6 +307,7 @@ void SparseTermReaderImpl::open(Directory* pDirectory,const char* barrelname)
         tid = pVocInput->readInt();
         df = pVocInput->readInt();
         dfiP = pVocInput->readLong();
+
         if((i+1)%SPARSE_FACTOR == 0)
         {
             sparseTermTable_[i>>9].tid = tid;
@@ -440,8 +441,9 @@ inline int DiskTermReader::fillBuffer(int pos)
 {
     int begin = (pos-SPARSE_FACTOR) > 0 ? (pos-SPARSE_FACTOR) : 0;
     int end = (pos+SPARSE_FACTOR) >= nTermCount_ ? nTermCount_ : (pos+SPARSE_FACTOR);
-    pVocInput_->reset();
-    pVocInput_->seekInternal(pTermReaderImpl_->nBeginOfVoc_ + begin*VOC_ENTRY_LENGTH);
+    //pVocInput_->reset();
+    //pVocInput_->seekInternal(pTermReaderImpl_->nBeginOfVoc_ + begin*VOC_ENTRY_LENGTH);
+    pVocInput_->seek(pTermReaderImpl_->nBeginOfVoc_ + begin*VOC_ENTRY_LENGTH);
     freq_t df = 0;
     fileoffset_t dfiP = 0;
     termid_t tid = 0;
@@ -541,10 +543,15 @@ TermPositions* DiskTermReader::termPositions()
 
 freq_t DiskTermReader::docFreq(Term* term)
 {
-    TermInfo* ti = termInfo(term);
-    if (ti)
+    if(pCurTermInfo_)
     {
-        return ti->docFreq();
+        return pCurTermInfo_->docFreq();
+    }
+    else
+    {
+        TermInfo* ti = termInfo(term);
+        if(ti)
+            return ti->docFreq();
     }
     return 0;
 }
