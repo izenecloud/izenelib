@@ -223,7 +223,7 @@ typedef SortRunner<KEY_TYPE, LEN_TYPE, COMPARE_ALL> self_t;
       pre_buf_num_ = 0;
       for(; pre_buf_size_<s; ++pre_buf_num_)
       {
-        if (pre_buf_size_+*(LEN_TYPE*)(pre_buf_+pre_buf_size_)+sizeof(LEN_TYPE)>=s)
+        if (pre_buf_size_+*(LEN_TYPE*)(pre_buf_+pre_buf_size_)+sizeof(LEN_TYPE)>s)
           break;
         pre_buf_size_ += *(LEN_TYPE*)(pre_buf_+pre_buf_size_)+sizeof(LEN_TYPE);
       }
