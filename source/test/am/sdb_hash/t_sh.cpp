@@ -254,10 +254,12 @@ int main(int argc, char *argv[]) {
 		//tb.setDirectorySize(directorySize);	
 		tb.setDegree(degree);
 		tb.setBucketSize(bucketSize);
-		tb.setCacheSize(cacheSize);
+		tb.setCacheSize(cacheSize);		
+		izenelib::util::ClockTimer timer;
 		tb.open();
 		tb.fillCache();
 		cout<<"after fillCache!!!"<<endl;
+		printf(" elapsed : %lf seconds\n", timer.elapsed() );
 		tb.display();
 		run(tb);
 	}

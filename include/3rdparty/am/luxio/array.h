@@ -24,8 +24,6 @@ namespace Lux {
 namespace IO {
 
   class Data;
-
-  static const char *ARYMAGIC = "LUXAR001";
   const int DEFAULT_PAGESIZE = getpagesize();
   static const uint32_t ARY_ALLOCATE_UNIT = 100;
 
@@ -64,6 +62,7 @@ namespace IO {
                                uint32_t padding = 20);
     static void clean_data(data_t *d);
     void show_db_header(void);
+    size_t num_items(void);
 
   private:
     int fd_;
