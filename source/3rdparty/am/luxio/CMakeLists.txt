@@ -12,7 +12,7 @@ IF(luxio_SHOULD_BUILD)
     luxio_SRC
     RELATIVE
     "${CMAKE_CURRENT_SOURCE_DIR}"
-    "*.cpp"   
+    "*.cpp"
     )
 
   INCLUDE_DIRECTORIES(
@@ -24,31 +24,9 @@ IF(luxio_SHOULD_BUILD)
 
   ADD_LIBRARY(luxio ${luxio_SRC})
   INSTALL(TARGETS luxio
-      LIBRARY DESTINATION lib 
-      ARCHIVE DESTINATION lib 
+      LIBRARY DESTINATION lib
+      ARCHIVE DESTINATION lib
       COMPONENT "izenelib_libraries")
 
-ENDIF(luxio_SHOULD_BUILD)
-
-
-
-
-SET(_NOT_WIN32 TRUE)
-IF(WIN32)
-  SET(_NOT_WIN32 FALSE)
-ENDIF(WIN32)
-
-MACRO_CHECK_SHOULD_BUILD(  
-  luxio_SHOULD_BUILD  
-  )
-IF(luxio_SHOULD_BUILD)
-  INCLUDE_DIRECTORIES(
-    ${Boost_INCLUDE_DIRS}    
-    )
-
-  INSTALL(TARGETS luxio  
-      LIBRARY DESTINATION lib 
-      ARCHIVE DESTINATION lib 
-      COMPONENT "izenelib_libraries")
 ENDIF(luxio_SHOULD_BUILD)
 
