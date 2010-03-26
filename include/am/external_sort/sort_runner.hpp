@@ -43,7 +43,7 @@ typedef SortRunner<KEY_TYPE, LEN_TYPE, COMPARE_ALL> self_t;
   KEY_PTR* key_buf_;
   char* out_buf_;
   
-  const uint32_t RUN_BUF_SIZE_;
+  uint32_t RUN_BUF_SIZE_;
 
   boost::mutex pre_buf_mtx_;
   boost::condition pre_buf_con_;
@@ -221,9 +221,9 @@ typedef SortRunner<KEY_TYPE, LEN_TYPE, COMPARE_ALL> self_t;
       //check the position of the last record
       pre_buf_size_ = 0;
       pre_buf_num_ = 0;
-      for(; pre_buf_size_<=s; ++pre_buf_num_)
+      for(; pre_buf_size_<s; ++pre_buf_num_)
       {
-        if (pre_buf_size_+*(LEN_TYPE*)(pre_buf_+pre_buf_size_)+sizeof(LEN_TYPE)>s)
+        if (pre_buf_size_+*(LEN_TYPE*)(pre_buf_+pre_buf_size_)+sizeof(LEN_TYPE)>=s)
           break;
         pre_buf_size_ += *(LEN_TYPE*)(pre_buf_+pre_buf_size_)+sizeof(LEN_TYPE);
       }
@@ -232,8 +232,11 @@ typedef SortRunner<KEY_TYPE, LEN_TYPE, COMPARE_ALL> self_t;
       if (pre_buf_num_ == 0)
       {
         std::cout<<"\n[Warning]: A record is too long, and has been ignored!\n";
-        pos += *(LEN_TYPE*)(pre_buf_+pre_buf_size_) + sizeof(LEN_TYPE);
+        //pos += *(LEN_TYPE*)(pre_buf_+pre_buf_size_) + sizeof(LEN_TYPE);
         --count_;
+        RUN_BUF_SIZE_ = (uint32_t)((*(LEN_TYPE*)(pre_buf_+pre_buf_size_) + sizeof(LEN_TYPE))*1.1);
+        pre_buf_ = (char*)realloc(pre_buf_, RUN_BUF_SIZE_);
+        continue;
       }
       
       IASSERT(pre_buf_size_ <= RUN_BUF_SIZE_);
