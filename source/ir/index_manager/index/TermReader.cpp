@@ -1,4 +1,5 @@
 #include <ir/index_manager/index/TermReader.h>
+#include <ir/index_manager/store/FSDirectory.h>
 
 #include <boost/thread.hpp>
 
@@ -317,8 +318,16 @@ void SparseTermReaderImpl::open(Directory* pDirectory,const char* barrelname)
     delete pVocInput;
 
     pInputDescriptor_ = new InputDescriptor(true);
-    pInputDescriptor_->setDPostingInput(pDirectory->openInput(barrelName_ + ".dfp"));
-    pInputDescriptor_->setPPostingInput(pDirectory->openInput(barrelName_ + ".pop"));
+    if(dynamic_cast<FSDirectory*>(pDirectory)->isMMapEnable())
+    {
+        pInputDescriptor_->setDPostingInput(dynamic_cast<FSDirectory*>(pDirectory)->openMMapInput(barrelName_ + ".dfp"));
+        pInputDescriptor_->setPPostingInput(dynamic_cast<FSDirectory*>(pDirectory)->openMMapInput(barrelName_ + ".pop"));
+    }
+    else
+    {
+        pInputDescriptor_->setDPostingInput(pDirectory->openInput(barrelName_ + ".dfp"));
+        pInputDescriptor_->setPPostingInput(pDirectory->openInput(barrelName_ + ".pop"));
+    }
 
 }
 

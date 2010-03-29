@@ -45,6 +45,8 @@ public:
 
     IndexInput*	openInput(const string& name,size_t bufsize);
 
+    IndexInput* openMMapInput(const string& name);
+
     void deleteFile(const string& filename,bool throwError = true);
 
     void renameFile(const string& from, const string& to);
@@ -61,6 +63,9 @@ public:
 
     izenelib::util::ReadWriteLock* getLock() { return rwLock_; }
 
+    void setMMapFlag(bool flag) { mmap_ = flag;}
+
+    bool isMMapEnable() { return mmap_;}
 private:
     static FSDirectory::directory_map& getDirectoryMap();
 
@@ -69,6 +74,8 @@ private:
     string directory;
 
     int nRefCount;
+
+    bool mmap_;
 
     izenelib::util::ReadWriteLock* rwLock_;
 };

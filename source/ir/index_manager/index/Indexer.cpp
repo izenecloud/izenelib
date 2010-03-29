@@ -208,6 +208,11 @@ void Indexer::openDirectory()
     string path = pConfigurationManager_->indexStrategy_.indexLocation_;
     if (!strcasecmp(pConfigurationManager_->storeStrategy_.param_.c_str(),"file"))
         pDirectory_ = FSDirectory::getDirectory(path,true);
+    else if(!strcasecmp(pConfigurationManager_->storeStrategy_.param_.c_str(),"mmap"))
+    {
+        pDirectory_ = FSDirectory::getDirectory(path,true);
+        static_cast<FSDirectory*>(pDirectory_)->setMMapFlag(true);
+    }
     else
         pDirectory_ = new RAMDirectory();
 
