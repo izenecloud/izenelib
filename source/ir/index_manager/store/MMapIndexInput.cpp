@@ -4,33 +4,25 @@ using namespace izenelib::ir::indexmanager;
 
 MMapIndexInput::MMapIndexInput(const char* path)
 {
-    handle_ = ::open (path, O_RDONLY);
+    FILE* fileHandle = fopen(path, "rb");
     filename_ = path;
-    if (handle_ < 0){
+    if (fileHandle == NULL)
+    {
+        perror("error when opening file");
         SF1V5_THROW(ERROR_FILEIO,"Open file error: " + filename_);
-    }else{
-        // stat it
-        struct stat sb;
-        if (::fstat (handle_, &sb)){
-            SF1V5_THROW(ERROR_FILEIO,"File stat error: " + filename_);
-        }else{
-            // get length from stat
-            length_ = sb.st_size;
-
-            // mmap the file
-            void* address = ::mmap(0, length_, PROT_READ, MAP_SHARED, handle_, 0);
-            if (address == MAP_FAILED){
-                SF1V5_THROW(ERROR_FILEIO,"mmap error: " + filename_);
-            }else{
-                data_ = (uint8_t*)address;
-            }
-        }
     }
+    fseek(fileHandle, 0, SEEK_END);
+    length_ = ftell(fileHandle);
+    fclose(fileHandle);
+
+    m_file_ = new boost::iostreams::mapped_file(path, ios_base::in , length_, 0);
+    data_ = (uint8_t*)m_file_->data();
     pos_ = 0;
     isClone_ = false;
 }
 
 MMapIndexInput::MMapIndexInput(const MMapIndexInput& clone){
+    m_file_ = 0;
     data_ = clone.data_;
     pos_ = clone.pos_;
     length_  = clone.length_;
@@ -48,12 +40,11 @@ IndexInput* MMapIndexInput::clone()
 
 void MMapIndexInput::close()  {
     if ( !isClone_ ){
-        if ( data_ != NULL )
-            ::munmap(data_, length_);
-            if ( handle_ > 0 )
-                ::close(handle_);
-	  	handle_ = 0;
-	}
+        if(m_file_){
+            delete m_file_;
+            m_file_ = 0;
+        }
+    }
     data_ = NULL;
     pos_ = 0;
 }

@@ -30,7 +30,7 @@ public:
     void close();
 
 private:
-    int handle_;
+    boost::iostreams::mapped_file* m_file_;
 
     string filename_;
 
