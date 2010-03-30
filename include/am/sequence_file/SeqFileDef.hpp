@@ -168,7 +168,7 @@ template <typename T, template <class SerialType> class SerialHandler >
 class SeqFileObjectCacheHandler
 {
     public:
-    SeqFileObjectCacheHandler():cache_(0), cacheSize_(0), maxCacheId_(0)
+    SeqFileObjectCacheHandler():cache_(0), bucketSize_(10000), cacheSize_(0), maxCacheId_(0)
     {
     }
     ~SeqFileObjectCacheHandler()
@@ -179,6 +179,17 @@ class SeqFileObjectCacheHandler
     {
         if( id == 0 ) return false;
         if( id > cacheSize_ ) return false;
+        if( id > cache_.capacity() )
+        {
+            uint32_t need = id - cache_.capacity();
+            uint32_t bucketNum = ( need )/bucketSize_;
+            if( need%bucketSize_ != 0 )
+            {
+                ++bucketNum;
+            }
+            cache_.resize( cache_.capacity()+bucketNum*bucketSize_ );
+            
+        }
         cache_[id-1] = data;
         if( id > maxCacheId_ )
         {
@@ -207,14 +218,28 @@ class SeqFileObjectCacheHandler
 
     
     protected:
+        void initCache_(std::size_t size)
+        {
+            uint32_t bucketNum = size/bucketSize_;
+            if( size%bucketSize_ != 0 )
+            {
+                ++bucketNum;
+            }
+            if( size == 0 ) bucketNum = 1;
+            cache_.resize( bucketNum*bucketSize_ );
+            
+        }
+        
         void initCache_()
         {
-            cache_.resize(cacheSize_);
+            initCache_(bucketSize_);
+            
         }
         
     
     private:
         std::vector<T> cache_;
+        std::size_t bucketSize_;
         std::size_t cacheSize_;
         std::size_t maxCacheId_;
 };
