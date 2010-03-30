@@ -1,5 +1,6 @@
 #include <ir/index_manager/store/FSDirectory.h>
 #include <ir/index_manager/store/FSIndexInput.h>
+#include <ir/index_manager/store/MMapIndexInput.h>
 #include <ir/index_manager/store/FSIndexOutput.h>
 #include <ir/index_manager/utility/Utilities.h>
 
@@ -12,6 +13,7 @@ using namespace izenelib::ir::indexmanager;
 
 FSDirectory::FSDirectory(const string& path,bool bCreate)
         : nRefCount(0)
+        , mmap_(false)
         , rwLock_(NULL)
 {
     directory = path;
@@ -195,6 +197,13 @@ IndexInput* FSDirectory::openInput(const string& name, size_t bufsize)
     string fullpath = directory + "/" + name;
     return new FSIndexInput(fullpath.c_str(),bufsize);
 }
+
+IndexInput* FSDirectory::openMMapInput(const string& name)
+{
+    string fullpath = directory + "/" + name;
+    return new MMapIndexInput(fullpath.c_str());
+}
+
 IndexOutput* FSDirectory::createOutput(const string& name, const string& mode)
 {
     string fullpath = directory + "/" + name;

@@ -19,8 +19,9 @@ namespace messageframework
 				SF1_MSGFRK_DATA_OUT_OF_RANGE,
 				SF1_MSGFRK_MEM_ALLOC_FAILED,
 				SF1_MSGFRK_LOGIC_ERROR,
-				SF1_MSGFRK_UNSUPPORTED_OPERATION,
-				SF1_MSGFRK_ERROR_NO
+				SF1_MSGFRK_UNSUPPORTED_OPERATION,				
+				SF1_MSGFRK_MFOBJECT_CORRUPTED,
+				SF1_MSGFRK_ERROR_NO,
 		};
 
 
@@ -36,7 +37,8 @@ namespace messageframework
 				"Data is out of range",
 				"Cannot allocate memory",
 				"Unsupported operation",
-				"Logic error"
+				"Logic error",
+				"emtpy mf object"
 		};
 }// end of namespace messageframework
 
