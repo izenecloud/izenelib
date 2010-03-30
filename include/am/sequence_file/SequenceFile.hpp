@@ -63,9 +63,9 @@ void open()
 {
     if( isOpen() ) return;
     fileData_.open();
-    CacheHandlerType::initCache_();
+    CacheHandlerType::initCache_(fileData_.numItems());
     ValueType value;
-    for(uint32_t i=0;i<CacheHandlerType::getCacheSize();i++)
+    for(uint32_t i=0;i<fileData_.numItems();i++)
     {
         bool b = getOnFile(i+1, value);
         if(b) insertToCache(i+1, value);
