@@ -244,13 +244,96 @@ class SeqFileObjectCacheHandler
         std::size_t maxCacheId_;
 };
 
+
+// template < template <class SerialType> class SerialHandler >
+// class SeqFileObjectCacheHandler<wiselib::UString, SerialHandler>
+// {
+//     public:
+//     SeqFileObjectCacheHandler():cache_(0), bucketSize_(10000), cacheSize_(0), maxCacheId_(0)
+//     {
+//     }
+//     ~SeqFileObjectCacheHandler()
+//     {
+//     }
+//     
+//     bool insertToCache(std::size_t id, const wiselib::UString& data)
+//     {
+//         if( id == 0 ) return false;
+//         if( id > cacheSize_ ) return false;
+//         if( id > cache_.capacity() )
+//         {
+//             uint32_t need = id - cache_.capacity();
+//             uint32_t bucketNum = ( need )/bucketSize_;
+//             if( need%bucketSize_ != 0 )
+//             {
+//                 ++bucketNum;
+//             }
+//             cache_.resize( cache_.capacity()+bucketNum*bucketSize_ );
+//             
+//         }
+//         std::string str;
+//         data.convertString(str, wiselib::UString::UTF_8);
+//         cache_[id-1] = str;
+//         if( id > maxCacheId_ )
+//         {
+//             maxCacheId_ = id;
+//         }
+//         return true;
+//     }
+//     
+//     bool getInCache(std::size_t id, wiselib::UString& data)
+//     {
+//         if( id == 0 ) return false;
+//         if( id > maxCacheId_ ) return false;
+//         data = wiselib::UString(cache_[id-1], wiselib::UString::UTF_8);
+//         return true;
+//     }
+//     
+//     void setCacheSize(std::size_t cacheSize)
+//     {
+//         cacheSize_ = cacheSize;
+//     }
+//     
+//     std::size_t getCacheSize() const
+//     {
+//         return cacheSize_;
+//     }
+// 
+//     
+//     protected:
+//         void initCache_(std::size_t size)
+//         {
+//             uint32_t bucketNum = size/bucketSize_;
+//             if( size%bucketSize_ != 0 )
+//             {
+//                 ++bucketNum;
+//             }
+//             if( size == 0 ) bucketNum = 1;
+//             cache_.resize( bucketNum*bucketSize_ );
+//             std::cout<<"init cache for ustr "<<size<<bucketNum*bucketSize_<<std::endl;
+//         }
+//         
+//         void initCache_()
+//         {
+//             initCache_(bucketSize_);
+//             
+//         }
+//         
+//     
+//     private:
+//         std::vector<std::string> cache_;
+//         std::size_t bucketSize_;
+//         std::size_t cacheSize_;
+//         std::size_t maxCacheId_;
+// };
+
 template <typename T, template <class SerialType> class SerialHandler>
 class SeqFileCharCacheHandler
 {
     typedef SerialHandler<T> SerType;
     typedef std::pair<char*, uint32_t> ValueType;
     public:
-    SeqFileCharCacheHandler():cache_(0), cacheSize_(0), maxCacheId_(0)
+    SeqFileCharCacheHandler():cache_(0), bucketSize_(10000), cacheSize_(0), maxCacheId_(0)
     {
     }
     ~SeqFileCharCacheHandler()
@@ -268,12 +351,26 @@ class SeqFileCharCacheHandler
     {
         if( id == 0 ) return false;
         if( id > cacheSize_ ) return false;
-        ValueType& value = cache_[id-1];
-        if (cache_[id-1].second > 0 )
+        if( id > cache_.capacity() )
         {
-            free(cache_[id-1].first);
-            cache_[id-1].first = NULL;
-            cache_[id-1].second = 0;
+            uint32_t need = id - cache_.capacity();
+            uint32_t bucketNum = ( need )/bucketSize_;
+            if( need%bucketSize_ != 0 )
+            {
+                ++bucketNum;
+            }
+            ValueType defaultValue(NULL, 0);
+            cache_.resize( cache_.capacity()+bucketNum*bucketSize_, defaultValue );
+            
+        }
+        else
+        {
+            if (cache_[id-1].second > 0 )
+            {
+                free(cache_[id-1].first);
+                cache_[id-1].first = NULL;
+                cache_[id-1].second = 0;
+            }
         }
         std::size_t vsize;
         char* ptr = SerType::serialize(data, vsize);
@@ -298,7 +395,7 @@ class SeqFileCharCacheHandler
         {
             return false;
         }
-        SerType::serialize(cache_[id-1].first, cache_[id-1].second, data);
+        SerType::deserialize(cache_[id-1].first, cache_[id-1].second, data);
         return true;
     }
     
@@ -309,19 +406,140 @@ class SeqFileCharCacheHandler
 
     
     protected:
+        protected:
+        void initCache_(std::size_t size)
+        {
+            uint32_t bucketNum = size/bucketSize_;
+            if( size%bucketSize_ != 0 )
+            {
+                ++bucketNum;
+            }
+            if( size == 0 ) bucketNum = 1;
+            ValueType defaultValue(NULL, 0);
+            cache_.resize( bucketNum*bucketSize_,defaultValue  );
+            
+        }
+        
         void initCache_()
         {
-            ValueType defaultValue(NULL, 0);
-            cache_.resize(cacheSize_, defaultValue);
+            initCache_(bucketSize_);
+            
         }
         
     
     private:
         std::vector<ValueType > cache_;
+        std::size_t bucketSize_;
         std::size_t cacheSize_;
         std::size_t maxCacheId_;
     
 };
+
+// template < template <class SerialType> class SerialHandler>
+// class SeqFileCharCacheHandler<wiselib::UString, SerialHandler>
+// {
+//     typedef SerialHandler<wiselib::UString> SerType;
+//     typedef std::pair<char*, uint32_t> ValueType;
+//     public:
+//     SeqFileCharCacheHandler():cache_(0), bucketSize_(10000), cacheSize_(0), maxCacheId_(0)
+//     {
+//     }
+//     ~SeqFileCharCacheHandler()
+//     {
+//         for(uint32_t i=0;i<cache_.size();i++)
+//         {
+//             if( cache_[i].first!=NULL )
+//             {
+//                 free(cache_[i].first);
+//             }
+//         }
+//     }
+//     
+//     bool insertToCache(std::size_t id, const wiselib::UString& data)
+//     {
+//         if( id == 0 ) return false;
+//         if( id > cacheSize_ ) return false;
+//         if( id > cache_.capacity() )
+//         {
+//             uint32_t need = id - cache_.capacity();
+//             uint32_t bucketNum = ( need )/bucketSize_;
+//             if( need%bucketSize_ != 0 )
+//             {
+//                 ++bucketNum;
+//             }
+//             ValueType defaultValue(NULL, 0);
+//             cache_.resize( cache_.capacity()+bucketNum*bucketSize_, defaultValue );
+//             
+//         }
+//         else
+//         {
+//             if (cache_[id-1].second > 0 )
+//             {
+//                 free(cache_[id-1].first);
+//                 cache_[id-1].first = NULL;
+//                 cache_[id-1].second = 0;
+//             }
+//         }
+//         if( data.length() == 0 ) return false;
+//         const char* inner = (const char*)data.c_str();
+//         char* ptr = (char*) malloc(data.size());
+//         memcpy( ptr, inner, data.size() );
+//         cache_[id-1].first = ptr;
+//         cache_[id-1].second = (uint32_t)data.length();
+//         if( id > maxCacheId_ )
+//         {
+//             maxCacheId_ = id;
+//         }
+//         return true;
+//     }
+//     
+//     bool getInCache(std::size_t id, wiselib::UString& data)
+//     {
+//         if( id == 0 ) return false;
+//         if( id > maxCacheId_ ) return false;
+//         if( cache_[id-1].first == NULL || cache_[id-1].second==0 )
+//         {
+//             return false;
+//         }
+//         data = wiselib::UString( (uint16_t*)cache_[id-1].first, cache_[id-1].second);
+//         return true;
+//     }
+//     
+//     void setCacheSize(std::size_t cacheSize)
+//     {
+//         cacheSize_ = cacheSize;
+//     }
+// 
+//     
+//     protected:
+//         protected:
+//         void initCache_(std::size_t size)
+//         {
+//             uint32_t bucketNum = size/bucketSize_;
+//             if( size%bucketSize_ != 0 )
+//             {
+//                 ++bucketNum;
+//             }
+//             if( size == 0 ) bucketNum = 1;
+//             ValueType defaultValue(NULL, 0);
+//             cache_.resize( bucketNum*bucketSize_,defaultValue  );
+//             
+//         }
+//         
+//         void initCache_()
+//         {
+//             initCache_(bucketSize_);
+//             
+//         }
+//         
+//     
+//     private:
+//         std::vector<ValueType > cache_;
+//         std::size_t bucketSize_;
+//         std::size_t cacheSize_;
+//         std::size_t maxCacheId_;
+//     
+// };
 
 NS_IZENELIB_AM_END
 #endif
