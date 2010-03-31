@@ -18,6 +18,7 @@
 #include <boost/serialization/deque.hpp>
 #include <boost/thread/shared_mutex.hpp>
 #include <boost/thread/thread.hpp> 
+#include <boost/thread/locks.hpp> 
 #include <boost/format.hpp>
 
 #include <am/graph_index/dyn_array.hpp>
@@ -187,6 +188,7 @@ class SeqFileObjectCacheHandler
             {
                 ++bucketNum;
             }
+            boost::unique_lock<boost::shared_mutex> mLock(mutex_);
             cache_.resize( cache_.capacity()+bucketNum*bucketSize_ );
             
         }
@@ -202,6 +204,7 @@ class SeqFileObjectCacheHandler
     {
         if( id == 0 ) return false;
         if( id > maxCacheId_ ) return false;
+        boost::shared_lock<boost::shared_mutex> mLock(mutex_);
         data = cache_[id-1];
         return true;
     }
@@ -242,90 +245,9 @@ class SeqFileObjectCacheHandler
         std::size_t bucketSize_;
         std::size_t cacheSize_;
         std::size_t maxCacheId_;
+        boost::shared_mutex mutex_;
 };
 
-
-// template < template <class SerialType> class SerialHandler >
-// class SeqFileObjectCacheHandler<wiselib::UString, SerialHandler>
-// {
-//     public:
-//     SeqFileObjectCacheHandler():cache_(0), bucketSize_(10000), cacheSize_(0), maxCacheId_(0)
-//     {
-//     }
-//     ~SeqFileObjectCacheHandler()
-//     {
-//     }
-//     
-//     bool insertToCache(std::size_t id, const wiselib::UString& data)
-//     {
-//         if( id == 0 ) return false;
-//         if( id > cacheSize_ ) return false;
-//         if( id > cache_.capacity() )
-//         {
-//             uint32_t need = id - cache_.capacity();
-//             uint32_t bucketNum = ( need )/bucketSize_;
-//             if( need%bucketSize_ != 0 )
-//             {
-//                 ++bucketNum;
-//             }
-//             cache_.resize( cache_.capacity()+bucketNum*bucketSize_ );
-//             
-//         }
-//         std::string str;
-//         data.convertString(str, wiselib::UString::UTF_8);
-//         cache_[id-1] = str;
-//         if( id > maxCacheId_ )
-//         {
-//             maxCacheId_ = id;
-//         }
-//         return true;
-//     }
-//     
-//     bool getInCache(std::size_t id, wiselib::UString& data)
-//     {
-//         if( id == 0 ) return false;
-//         if( id > maxCacheId_ ) return false;
-//         data = wiselib::UString(cache_[id-1], wiselib::UString::UTF_8);
-//         return true;
-//     }
-//     
-//     void setCacheSize(std::size_t cacheSize)
-//     {
-//         cacheSize_ = cacheSize;
-//     }
-//     
-//     std::size_t getCacheSize() const
-//     {
-//         return cacheSize_;
-//     }
-// 
-//     
-//     protected:
-//         void initCache_(std::size_t size)
-//         {
-//             uint32_t bucketNum = size/bucketSize_;
-//             if( size%bucketSize_ != 0 )
-//             {
-//                 ++bucketNum;
-//             }
-//             if( size == 0 ) bucketNum = 1;
-//             cache_.resize( bucketNum*bucketSize_ );
-//             std::cout<<"init cache for ustr "<<size<<bucketNum*bucketSize_<<std::endl;
-//         }
-//         
-//         void initCache_()
-//         {
-//             initCache_(bucketSize_);
-//             
-//         }
-//         
-//     
-//     private:
-//         std::vector<std::string> cache_;
-//         std::size_t bucketSize_;
-//         std::size_t cacheSize_;
-//         std::size_t maxCacheId_;
-// };
 
 template <typename T, template <class SerialType> class SerialHandler>
 class SeqFileCharCacheHandler
@@ -360,6 +282,7 @@ class SeqFileCharCacheHandler
                 ++bucketNum;
             }
             ValueType defaultValue(NULL, 0);
+            boost::unique_lock<boost::shared_mutex> mLock(mutex_);
             cache_.resize( cache_.capacity()+bucketNum*bucketSize_, defaultValue );
             
         }
@@ -391,11 +314,18 @@ class SeqFileCharCacheHandler
     {
         if( id == 0 ) return false;
         if( id > maxCacheId_ ) return false;
-        if( cache_[id-1].first == NULL || cache_[id-1].second==0 )
+        char* ptr = NULL;
+        uint32_t len = 0;
+        {
+            boost::shared_lock<boost::shared_mutex> mLock(mutex_);
+            ptr = cache_[id-1].first;
+            len = cache_[id-1].second;
+        }
+        if( ptr == NULL || len==0 )
         {
             return false;
         }
-        SerType::deserialize(cache_[id-1].first, cache_[id-1].second, data);
+        SerType::deserialize(ptr, len, data);
         return true;
     }
     
@@ -432,6 +362,7 @@ class SeqFileCharCacheHandler
         std::size_t bucketSize_;
         std::size_t cacheSize_;
         std::size_t maxCacheId_;
+        boost::shared_mutex mutex_;
     
 };
 
