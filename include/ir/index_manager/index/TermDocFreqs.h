@@ -78,7 +78,7 @@ protected:
 
     bool ownPosting_;
 
-    static const size_t DEFAULT_BUFFERSIZE = 32768;
+    static const size_t DEFAULT_BUFFERSIZE = 131072;
 };
 
 }
