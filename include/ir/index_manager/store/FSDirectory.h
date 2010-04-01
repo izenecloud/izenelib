@@ -29,8 +29,6 @@ namespace indexmanager{
 
 class FSDirectory : public Directory
 {
-    typedef map<string,FSDirectory*> directory_map;
-    typedef directory_map::iterator directory_iterator;
 public:
     FSDirectory(const string& path,bool bCreate=false);
     virtual ~FSDirectory(void);
@@ -66,9 +64,7 @@ public:
 private:
     void create();
 private:
-    string directory;
-
-    int nRefCount;
+    string directoryName_;
 
     bool mmap_;
 
