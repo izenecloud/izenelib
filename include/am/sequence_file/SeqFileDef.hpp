@@ -188,7 +188,7 @@ class SeqFileObjectCacheHandler
             {
                 ++bucketNum;
             }
-            boost::unique_lock<boost::shared_mutex> mLock(mutex_);
+            boost::lock_guard<boost::shared_mutex> mLock(mutex_);
             cache_.resize( cache_.capacity()+bucketNum*bucketSize_ );
             
         }
@@ -229,7 +229,9 @@ class SeqFileObjectCacheHandler
                 ++bucketNum;
             }
             if( size == 0 ) bucketNum = 1;
-            cache_.resize( bucketNum*bucketSize_ );
+            std::size_t space = bucketNum*bucketSize_;
+            std::size_t fspace = space<=cacheSize_?space:cacheSize_;
+            cache_.resize( fspace );
             
         }
         
@@ -345,8 +347,10 @@ class SeqFileCharCacheHandler
                 ++bucketNum;
             }
             if( size == 0 ) bucketNum = 1;
+            std::size_t space = bucketNum*bucketSize_;
+            std::size_t fspace = space<=cacheSize_?space:cacheSize_;
             ValueType defaultValue(NULL, 0);
-            cache_.resize( bucketNum*bucketSize_,defaultValue  );
+            cache_.resize( fspace,defaultValue  );
             
         }
         
