@@ -53,24 +53,6 @@ void FSDirectory::create()
     }
 }
 
-FSDirectory* FSDirectory::getDirectory(const string& path,bool bCreate)
-{
-    FSDirectory* pS = NULL;
-    directory_map& dm = getDirectoryMap();
-    directory_iterator iter = dm.find(path);
-    if (iter == dm.end())
-    {
-        pS = new FSDirectory(path,bCreate);
-        dm.insert(pair<string,FSDirectory*>(path,pS));
-    }
-    else
-    {
-        pS = iter->second;
-    }
-    pS->nRefCount++;
-    return pS;
-}
-
 void FSDirectory::deleteFile(const string& filename,bool throwError)
 {
     string fullpath = directory + "/" + filename;
@@ -219,19 +201,5 @@ IndexOutput* FSDirectory::createOutput(const string& name, size_t buffersize, co
 void FSDirectory::close()
 {
     nRefCount--;
-    if (nRefCount < 1)
-    {
-        //TODO segment error here, why
-        directory_map& dm = getDirectoryMap();
-        delete dm[directory];
-        dm.erase(directory);
-       // delete this;
-    }
-}
-
-FSDirectory::directory_map& FSDirectory::getDirectoryMap()
-{
-    static directory_map FS_DIRECTORIES;
-    return FS_DIRECTORIES;
 }
 

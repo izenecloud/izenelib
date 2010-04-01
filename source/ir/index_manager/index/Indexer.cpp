@@ -209,10 +209,10 @@ void Indexer::openDirectory()
     close();
     string path = pConfigurationManager_->indexStrategy_.indexLocation_;
     if (!strcasecmp(pConfigurationManager_->storeStrategy_.param_.c_str(),"file"))
-        pDirectory_ = FSDirectory::getDirectory(path,true);
+        pDirectory_ = new FSDirectory(path,true);
     else if(!strcasecmp(pConfigurationManager_->storeStrategy_.param_.c_str(),"mmap"))
     {
-        pDirectory_ = FSDirectory::getDirectory(path,true);
+        pDirectory_ = new FSDirectory(path,true);
         static_cast<FSDirectory*>(pDirectory_)->setMMapFlag(true);
     }
     else
@@ -232,8 +232,8 @@ void Indexer::openDirectory()
 void Indexer::setBasePath(std::string basePath)
 {
     if (pDirectory_)
-        pDirectory_->close();
-    pDirectory_ = FSDirectory::getDirectory(basePath,true);
+        delete pDirectory_;
+    pDirectory_ = new FSDirectory(basePath,true);
 
     pIndexReader_ = new IndexReader(this);
     pIndexWriter_ = new IndexWriter(this);
@@ -337,7 +337,7 @@ void Indexer::close()
     }
     if (pDirectory_)
     {
-        pDirectory_->close();
+        delete pDirectory_;
         pDirectory_ = NULL;
     }
     dirty_ = false;

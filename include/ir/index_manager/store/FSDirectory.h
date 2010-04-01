@@ -31,14 +31,11 @@ class FSDirectory : public Directory
 {
     typedef map<string,FSDirectory*> directory_map;
     typedef directory_map::iterator directory_iterator;
-private:
-    FSDirectory(const string& path,bool bCreate=false);
 public:
+    FSDirectory(const string& path,bool bCreate=false);
     virtual ~FSDirectory(void);
 
 public:
-    static FSDirectory* getDirectory(const string& path,bool bCreate);
-
     bool fileExists(const string& name) const;
 
     IndexInput*	openInput(const string& name);
@@ -67,8 +64,6 @@ public:
 
     bool isMMapEnable() { return mmap_;}
 private:
-    static FSDirectory::directory_map& getDirectoryMap();
-
     void create();
 private:
     string directory;
