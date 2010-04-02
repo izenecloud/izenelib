@@ -13,7 +13,7 @@ TARGET_LINK_LIBRARIES(t_string
 
 SET_TARGET_PROPERTIES(t_string PROPERTIES
   COMPILE_FLAGS "-include ${FileTestHelper}"
-  RUNTIME_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/testbin
+  RUNTIME_OUTPUT_DIRECTORY ${IZENELIB_SOURCE_DIR}/testbin
   )
 
-ADD_TEST(string "${CMAKE_SOURCE_DIR}/testbin/t_string")
+ADD_TEST(string "${IZENELIB_SOURCE_DIR}/testbin/t_string")
