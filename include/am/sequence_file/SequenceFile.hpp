@@ -41,7 +41,7 @@ typedef std::vector<ValueType> CacheType;
 typedef typename CacheType::size_type KeyType;
 typedef SerializeHandler<ValueType> SerializeType;
 public:
-    
+typedef Container ContainerType;
 
 SequenceFile(const std::string& file) :
 file_(file), isOpen_(false), fileData_(file)

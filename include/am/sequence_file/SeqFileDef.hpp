@@ -84,21 +84,19 @@ class CompressSeqFileSerializeHandler<std::vector<uint32_t> >
     public:
     static char* serialize(const std::vector<uint32_t>& data, std::size_t& len)
     {
-        char* result = NULL;
         if (data.size()==0)
         {
-            len = 0;
-            return result;
+            len=0;
+            return NULL;
         }
         
         
         uint32_t count = data.size();
         uint16_t max = 65535;
-        if(count >= max/4)
+        if(count >= max/sizeof(uint32_t))
         {
-            count = max/4;
+            count = max/sizeof(uint32_t);
         }
-        
         izenelib::am::DynArray<uint32_t> ar;
         for(uint32_t i=0;i<count;i++)
             ar.push_back(data[i]);
@@ -113,39 +111,38 @@ class CompressSeqFileSerializeHandler<std::vector<uint32_t> >
         }
         //std::cout<<std::endl;
         
-        result = (char*)malloc((uint16_t) (count*4));
-        char* pResult = result;
+        char* result = (char*) malloc(2*count*sizeof(uint32_t));
         len = 0;
         
-        uint32_t ui = 0;
+        int32_t ui = 0;
         for(uint32_t i=0;i<ar.length();i++)
         {
             ui = ar.at(i);
             while ((ui & ~0x7F) != 0)
             {
-                *(pResult + len) = ((uint8_t)((ui & 0x7f) | 0x80));
+                *(result + len) = ((uint8_t)((ui & 0x7f) | 0x80));
                 ui >>= 7;
                 ++len;
             }
-            *(pResult + len) = (uint8_t)ui;
+            *(result + len) = (uint8_t)ui;
             ++len;
         }
         return result;
     }
     
-    static void deserialize(char* ptr, std::size_t len, std::vector<uint32_t>& vdata)
+    static void deserialize(char* data, std::size_t len, std::vector<uint32_t>& vdata)
     {
         if (len ==0)
-        return;
-        char* data = ptr;
+            return;
+    
         izenelib::am::DynArray<uint32_t> ar;
         for (uint16_t p = 0; p<len;)
         { 
             uint8_t b = *(data+p);
             ++p;
             
-            uint32_t i = b & 0x7F;
-            for (uint32_t shift = 7; (b & 0x80) != 0; shift += 7)
+            int32_t i = b & 0x7F;
+            for (int32_t shift = 7; (b & 0x80) != 0; shift += 7)
             {
                 b = *(data+p);
                 ++p;
@@ -259,21 +256,33 @@ public:
     }
     CharCacheItem(char* data, T len):data_(NULL), len_(len)
     {
-        data_ = (char*) malloc(len_);
-        memcpy(data_, data, len_);
+        if( len_ >0 )
+        {
+            data_ = (char*) malloc(len_);
+            memcpy(data_, data, len_);
+        }
     }
-    CharCacheItem(const CharCacheItem<T>& rhs):data_(NULL), len_(0)
+    CharCacheItem(const CharCacheItem<T>& rhs):data_(NULL), len_(rhs.len_)
     {
-        len_ = rhs.len_;
-        data_ = (char*) malloc(len_);
-        memcpy(data_, rhs.data_, len_);
+        if( len_ >0 )
+        {
+            data_ = (char*) malloc(len_);
+            memcpy(data_, rhs.data_, len_);
+        }
     }
     CharCacheItem<T>& operator=(const CharCacheItem<T>& rhs)
     {
-        if( data_ != NULL ) free(data_);
+        if( data_ != NULL )
+        {
+            free(data_);
+            data_ = NULL;
+        }
         len_ = rhs.len_;
-        data_ = (char*) malloc(len_);
-        memcpy(data_, rhs.data_, len_);
+        if( len_ >0 )
+        {
+            data_ = (char*) malloc(len_);
+            memcpy(data_, rhs.data_, len_);
+        }
         return *this;
     }
     ~CharCacheItem()
