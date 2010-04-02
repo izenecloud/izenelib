@@ -60,7 +60,7 @@ namespace irdb
     
     
     template <typename DATA_VECTOR_TYPE, typename DB_VECTOR_TYPE>
-    class IRDatabase
+    class IRDatabase : public boost::noncopyable
     {
         BOOST_MPL_ASSERT_RELATION( boost::mpl::size<DATA_VECTOR_TYPE>::value, ==, boost::mpl::size<DB_VECTOR_TYPE>::value );
         BOOST_MPL_ASSERT_RELATION( boost::mpl::size<DATA_VECTOR_TYPE>::value, >, 0 );
@@ -295,14 +295,6 @@ namespace irdb
                     delete serInfo_;
                     serInfo_ = NULL;
                 }
-            }
-            
-        private:
-            //avoid copy constructor
-            IRDatabase(const IRDatabase& db) {}
-            IRDatabase& operator=(const IRDatabase& rhs)
-            {
-                return *this;
             }
             
         public:

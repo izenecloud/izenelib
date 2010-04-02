@@ -58,7 +58,7 @@ public:
     }
 
     
-    void tune(int32_t width = sizeof(ValueType), int64_t limsiz = std::numeric_limits< uint32_t >::max())
+    void tune(int32_t width = sizeof(ValueType), int64_t limsiz = std::numeric_limits< int64_t >::max())
     {
         bool op = tcfdbtune(fdb_, width, limsiz);
         if( !op )
