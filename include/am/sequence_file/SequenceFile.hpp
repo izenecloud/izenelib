@@ -98,8 +98,9 @@ void update(KeyType id, const ValueType& value)
         boost::lock_guard<boost::mutex> mLock(readWriteMutex_);
         fileData_.update(id, data, vsize);
         insertToCache(id, value);
+        free(data);
     }
-    free(data);
+    
 }
 
 
@@ -122,6 +123,31 @@ bool get(KeyType id, ValueType& value)
 
     
 }
+
+template <typename T>
+bool get(const std::vector<T>& idList, std::vector<ValueType>& valueList)
+{
+    if( !isOpen() ) return false;
+    std::vector<T> sortedIdList(idList);
+    std::sort(sortedIdList.begin(), sortedIdList.end());
+    uint32_t falseCount = 0;
+    valueList.resize(sortedIdList.size());
+    for(uint32_t i=0;i<sortedIdList.size();i++)
+    {
+        ValueType value;
+        bool b = get(sortedIdList[i], value);
+        valueList[i] = value;
+        if(!b) falseCount++;
+    }
+    if( falseCount == valueList.size() ) 
+    {
+        return false;
+    }
+    return true;
+        
+    
+}
+
 bool getOnFile(KeyType id, ValueType& value)
 {
     char* ptr = NULL;

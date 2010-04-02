@@ -40,8 +40,12 @@ class CommonSeqFileSerializeHandler
         char* ptr;
         izenelib::util::izene_serialization<T> izs(data);
         izs.write_image(ptr, vsize);
-        char* result = (char*)malloc(vsize);
-        memcpy(result, ptr, vsize);
+        char* result = NULL;
+        if( vsize>0 )
+        {
+            result = (char*)malloc(vsize);
+            memcpy(result, ptr, vsize);
+        }
         return result;
     }
     
