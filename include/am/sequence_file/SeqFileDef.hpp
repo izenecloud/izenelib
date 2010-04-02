@@ -250,25 +250,57 @@ class SeqFileObjectCacheHandler
         boost::shared_mutex mutex_;
 };
 
+template <typename T = uint32_t>
+class CharCacheItem
+{
+public:
+    CharCacheItem():data_(NULL), len_(0)
+    {
+    }
+    CharCacheItem(char* data, T len):data_(NULL), len_(len)
+    {
+        data_ = (char*) malloc(len_);
+        memcpy(data_, data, len_);
+    }
+    CharCacheItem(const CharCacheItem<T>& rhs):data_(NULL), len_(0)
+    {
+        len_ = rhs.len_;
+        data_ = (char*) malloc(len_);
+        memcpy(data_, rhs.data_, len_);
+    }
+    CharCacheItem<T>& operator=(const CharCacheItem<T>& rhs)
+    {
+        if( data_ != NULL ) free(data_);
+        len_ = rhs.len_;
+        data_ = (char*) malloc(len_);
+        memcpy(data_, rhs.data_, len_);
+        return *this;
+    }
+    ~CharCacheItem()
+    {
+        if( data_ != NULL )
+        {
+            free(data_);
+        }
+    }
+public:
+    char* data_;
+    T len_;
+};
+
 
 template <typename T, template <class SerialType> class SerialHandler>
 class SeqFileCharCacheHandler
 {
     typedef SerialHandler<T> SerType;
-    typedef std::pair<char*, uint32_t> ValueType;
+    typedef CharCacheItem<uint32_t> ValueType;
     public:
     SeqFileCharCacheHandler():cache_(0), bucketSize_(10000), cacheSize_(0), maxCacheId_(0)
     {
     }
     ~SeqFileCharCacheHandler()
     {
-        for(uint32_t i=0;i<cache_.size();i++)
-        {
-            if( cache_[i].first!=NULL )
-            {
-                free(cache_[i].first);
-            }
-        }
+
     }
     
     bool insertToCache(std::size_t id, const T& data)
@@ -283,26 +315,18 @@ class SeqFileCharCacheHandler
             {
                 ++bucketNum;
             }
-            ValueType defaultValue(NULL, 0);
             boost::unique_lock<boost::shared_mutex> mLock(mutex_);
-            cache_.resize( cache_.capacity()+bucketNum*bucketSize_, defaultValue );
+            cache_.resize( cache_.capacity()+bucketNum*bucketSize_ );
             
         }
-        else
-        {
-            if (cache_[id-1].second > 0 )
-            {
-                free(cache_[id-1].first);
-                cache_[id-1].first = NULL;
-                cache_[id-1].second = 0;
-            }
-        }
+
         std::size_t vsize;
         char* ptr = SerType::serialize(data, vsize);
         if( vsize>0 )
         {
-            cache_[id-1].first = ptr;
-            cache_[id-1].second = (uint32_t)vsize;
+            CharCacheItem<uint32_t> item( ptr, (uint32_t)vsize);
+            cache_[id-1] = item;
+            free(ptr);
         }
         
         if( id > maxCacheId_ )
@@ -320,8 +344,8 @@ class SeqFileCharCacheHandler
         uint32_t len = 0;
         {
             boost::shared_lock<boost::shared_mutex> mLock(mutex_);
-            ptr = cache_[id-1].first;
-            len = cache_[id-1].second;
+            ptr = cache_[id-1].data_;
+            len = cache_[id-1].len_;
         }
         if( ptr == NULL || len==0 )
         {
