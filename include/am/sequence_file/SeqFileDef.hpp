@@ -276,7 +276,7 @@ public:
     }
     CharCacheItem<T>& operator=(const CharCacheItem<T>& rhs)
     {
-        if( data_ != NULL )
+        if( data_ != NULL && len_>0 )
         {
             free(data_);
             data_ = NULL;
