@@ -50,8 +50,7 @@ namespace messageframework
 		/**
 		 * @brief Destructor of the node
 		 */
-		~MessageFrameworkNode(){
-			//display();
+		~MessageFrameworkNode(){			
 			//std::cout<<" ~MessageFrameworkNode"<<std::endl;
 		}
 

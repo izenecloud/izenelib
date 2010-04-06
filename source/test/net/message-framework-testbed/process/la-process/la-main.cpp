@@ -162,23 +162,19 @@ namespace LaProcess {
  }*/
 }
 
-void InitLAServer(MFServer<LAServiceHandle>& laServer) {
+void InitLAServer(MFServer<LAServiceHandle>& laServer) {	
+	laServer.setAgentInfo("la");
+	
 	boost::unordered_map<std::string, ServiceItem<LAServiceHandle> > serviceList;
-	
-		ServiceItem<LAServiceHandle> item;
-		item.callback_ = &LAServiceHandle::parseString;
-		serviceList[ "parseString" ] = item;
-	
-
-	//laServer.createServiceList(serviceList);
+	ServiceItem<LAServiceHandle> item;
+	item.callback_ = &LAServiceHandle::parseString;
+	serviceList[ "parseString" ] = item;
 	laServer.addService("parseString", item);
 
 	LAManagerPtr laMgr_(new LAManager);
 	boost::shared_ptr<LAServiceHandle> lash(new LAServiceHandle);
 	lash->setLAManager(laMgr_);
-
 	laServer.setServiceHandle(lash);
-	laServer.setAgentInfo("la");
 }
 
 MF_AUTO_MAIN(laProcess) {
@@ -192,15 +188,15 @@ MF_AUTO_MAIN(laProcess) {
 
 	//MessageFrameworkNodePtr  mfnode(new  MessageFrameworkNode(controllerNode( po.getControllerIp(), po.getControllerPort() ) );
 
-	MFServer<LAServiceHandle> laServer(po.getHostPort(),
-			po.getControllerIp(), po.getControllerPort(), 4);
+	MFServer<LAServiceHandle> laServer(po.getHostPort(), po.getControllerIp(),
+			po.getControllerPort(), 4);
 
 	cout << "[LAProcess]: MF up and ready to go" << endl;
 
 	InitLAServer(laServer);
 
 	laServer.run();
-	
+
 	// client_ = new MessageClient( MF_CLIENT_ARG( "DocumentProcess_Server", controllerNode ) );
 
 

@@ -41,61 +41,32 @@ namespace messageframework
 			ret |= (nxtSequentialNumber_& MF_LIGHT_MASK_SEQUENTIAL_NUMBER);
 			nxtSequentialNumber_ ++;
 		}
-		//cout<<"MessageClientLight::generateRequestId "<<clientId<<" "<<ret<<endl;
 		return ret;
 	}
 
-  /*  bool MessageClientLight::getPermissionOfService(const std::string& serviceName,
-            ServicePermissionInfo& servicePermissionInfo)
-    {
-        return controller_.getServicePermission( serviceName, servicePermissionInfo );
-    }*/
 
 	bool MessageClientLight::getPermissionOfService(const std::string& serviceName,
 			std::map<std::string, MessageFrameworkNode>& servers) {
 		ServicePermissionInfo servicePermissionInfo;
 		controller_.getServicePermission( serviceName, servicePermissionInfo );
 		servers = servicePermissionInfo.getServerMap();
+		//cout<<" MessageClientLight::getPermissionOfService "<<endl;
+		//servicePermissionInfo.display();
 		return true;
 	}
 
-
-    bool MessageClientLight::putServiceRequest(const MessageFrameworkNode& server,
-            ServiceRequestInfoPtr& serviceRequestInfo)
-    {
-    	unsigned int requestId = generateRequestId();
-        serviceRequestInfo->setRequestId( requestId );
-        //serviceRequestInfo->setServiceResultFlag( servicePermissionInfo.getServiceResultFlag() );
-        return controller_.addServiceRequest( server, serviceRequestInfo );
-    }
-
-	bool MessageClientLight::putServiceRequest(
-			const MessageFrameworkNode& server,
-				std::vector<ServiceRequestInfoPtr>& serviceRequestInfos)
-	{
-		for(unsigned int i=0; i<serviceRequestInfos.size(); i++){
-			unsigned int requestId = generateRequestId();
-			serviceRequestInfos[i]->setRequestId( requestId );
-		}
-		return controller_.addServiceRequests( server, serviceRequestInfos );
+	
+	bool MessageClientLight::putServiceRequest(const MessageFrameworkNode& server,
+						ServiceRequestInfoPtr& serviceRequestInfo, bool withResult){
+		unsigned int requestId = generateRequestId();
+		serviceRequestInfo->setRequestId( requestId );		
+		return controller_.addServiceRequest( server, serviceRequestInfo );
+		
 	}
 
-    bool MessageClientLight::getResultOfService(const ServiceRequestInfoPtr& serviceRequest,
-            ServiceResultPtr& serviceResult)
-    {
-           return controller_.getResultByRequestId( serviceRequest->getRequestId(), serviceResult );
-    }
-
-	bool MessageClientLight::getResultOfService(const std::vector<ServiceRequestInfoPtr> & serviceRequests,
-				std::vector<ServiceResultPtr> & serviceResults)
-	{
-		if(serviceRequests.size() == 0)
-			return true;
-        std::vector<unsigned int> requestIds;
-        requestIds.reserve(serviceResults.size() );
-		for(unsigned int i=0; i<serviceRequests.size(); i++)
-			requestIds.push_back( serviceRequests[i]->getRequestId() );
-
-		return controller_.getResultsByRequestIds(requestIds, serviceResults );
+	bool MessageClientLight::getResultOfService(const ServiceRequestInfoPtr& serviceRequestInfo,
+					ServiceResultPtr& serviceResult){
+		 return controller_.getResultByRequestId( serviceRequestInfo->getRequestId(), serviceResult );
 	}
+	
 }

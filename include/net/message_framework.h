@@ -39,7 +39,7 @@ namespace messageframework
     clientName, messageframework::MessageController::instance()
 
 #define MF_SERVER_ARG( serverName, serverPort, controllerInfo )          \
-    serverName, messageframework::MessageController::instance() 
+    serverName, serverPort, messageframework::MessageController::instance() 
 
 #define INIT_MF_CONTROLLER( controllerName, controllerPort )
 
