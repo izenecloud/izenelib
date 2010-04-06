@@ -12,7 +12,7 @@ IF(lzo_SHOULD_BUILD)
     )
 
  INCLUDE_DIRECTORIES(
-    ${CMAKE_SOURCE_DIR}/include/3rdparty/compression/minilzo
+    ${IZENELIB_SOURCE_DIR}/include/3rdparty/compression/minilzo
     )
     
   ADD_DEFINITIONS("${lzo_DEFINITIONS}")

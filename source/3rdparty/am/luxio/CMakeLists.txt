@@ -17,7 +17,7 @@ IF(luxio_SHOULD_BUILD)
 
   INCLUDE_DIRECTORIES(
     ${Boost_INCLUDE_DIRS}
-    ${CMAKE_SOURCE_DIR}/include/3rdparty/am/luxio
+    ${IZENELIB_SOURCE_DIR}/include/3rdparty/am/luxio
     )
 
   ADD_DEFINITIONS("-fPIC")

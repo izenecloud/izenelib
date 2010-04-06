@@ -75,7 +75,9 @@ MessageControllerFull::MessageControllerFull(
          std::string serviceName;
          ServicePermissionInfo permissionInfo;
          while(availableServiceList_.get(cursor, serviceName, permissionInfo)) {
+#ifndef NDEBUG
              permissionInfo.display(DLOG(WARNING));
+#endif
              availableServiceList_.seq(cursor);
          }
 	}
@@ -257,7 +259,7 @@ void MessageControllerFull::processServicePermissionRequest(void) {
 	}
 	catch(MessageFrameworkException& e)
 	{
-		e.output(DLOG(ERROR));
+        DLOG(ERROR) << e.getString();
 	}
 	catch (boost::system::error_code& e)
 	{

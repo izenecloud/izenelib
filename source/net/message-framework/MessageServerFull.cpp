@@ -126,7 +126,7 @@ bool MessageServerFull::registerService(const ServiceInfo & serviceInfo) {
 	}
 	catch(MessageFrameworkException& e)
 	{
-		e.output(DLOG(ERROR));
+        DLOG(ERROR) << e.getString();
 	}
 	catch(boost::system::error_code& e)
 	{

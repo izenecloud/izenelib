@@ -18,7 +18,7 @@ MMapIndexInput::MMapIndexInput(const char* path)
             length_ = sb.st_size;
 
             // mmap the file
-            void* address = ::mmap(0, length_, PROT_READ, MAP_SHARED, handle_, 0);
+            void* address = ::mmap64(0, length_, PROT_READ, MAP_SHARED, handle_, 0);
             if (address == MAP_FAILED){
                 SF1V5_THROW(ERROR_FILEIO,"mmap error: " + filename_);
             }else{
