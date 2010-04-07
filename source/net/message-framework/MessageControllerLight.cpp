@@ -72,7 +72,7 @@ bool MessageControllerLight::addServiceRegistrationRequest(
 	
 
 	DLOG(INFO)<<"MessageControllerLight::addServiceRegistrationRequest()"<<endl;
-	availableServiceList_[serviceName].display();
+	//availableServiceList_[serviceName].display();
 	
 
 	boost::mutex::scoped_lock lock_map(serverServiceRequestQueueMapMutex_);
