@@ -63,9 +63,7 @@ namespace messageframework
 		// ADDED @by MyungHyun (Kent) -2008-11-27
 		//void setServer( const MessageFrameworkNode & server );
 		
-		void setServer(const std::string& agentInfo,  const MessageFrameworkNode server ){
-			agentInfoMap_[agentInfo] = server;
-		}
+		void setServer(const std::string& agentInfo,  const MessageFrameworkNode server );
 		
 		void removeServer(const std::string& agentInfo ){
 				agentInfoMap_.erase(agentInfo);
