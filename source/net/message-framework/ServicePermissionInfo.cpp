@@ -10,87 +10,45 @@
 #include <net/message-framework/ServicePermissionInfo.h>
 
 #include <string>
+#include <vector>
+using namespace std;
 
-namespace messageframework
-{
-		ServicePermissionInfo::ServicePermissionInfo():
-			serviceName_("")
-			//permissionFlag_(SERVE_THROUGH_CONTROLLER)
-		{
-			//server_.nodeIP_ = "";
-			//server_.nodePort_ = 0;
-			//serviceResultFlag_ = SERVICE_WITH_RESULT;
-		}
+namespace messageframework {
+ServicePermissionInfo::ServicePermissionInfo() :
+	serviceName_("") {
+}
 
-	/*	ServicePermissionInfo::ServicePermissionInfo(
-			const ServicePermissionInfo& servicePermissionInfo)
-		{
-			serviceName_ = servicePermissionInfo.getServiceName();
-			agentInfoMap_ = servicePermissionInfo.getServerMap();
-			//permissionFlag_ = servicePermissionInfo.getPermissionFlag();
-			//server_ = servicePermissionInfo.getServer();
-			//serviceResultFlag_ = servicePermissionInfo.getServiceResultFlag();
-		}*/
+/**
+ * @brief The destructor
+ */
+ServicePermissionInfo::~ServicePermissionInfo() {
+}
 
-		/**
-		 * @brief The destructor
-		 */
-		ServicePermissionInfo::~ServicePermissionInfo(){}
+void ServicePermissionInfo::clear() {
+}
 
-		void ServicePermissionInfo::clear()
-		{
-			//serviceName_.clear();
-			//permissionFlag_ = UNKNOWN_PERMISSION_FLAG;
-			//server_.clear();
-			//serviceResultFlag_ = SERVICE_WITH_RESULT;
-		}
+const std::string& ServicePermissionInfo::getServiceName() const {
+	return serviceName_;
+}
 
-		const std::string& ServicePermissionInfo::getServiceName() const
-		{
-			return serviceName_;
-		}
+void ServicePermissionInfo::setServiceName(const std::string& serviceName) {
+	serviceName_ = serviceName;
+}
 
-		void ServicePermissionInfo::setServiceName(const std::string& serviceName){ serviceName_ = serviceName;}
-
-		// ADDED @by MyungHyun (Kent) -2008-11-27
-		/*void ServicePermissionInfo::setServer( const MessageFrameworkNode & server )
-		{
-		  server_ = server;
-		}
-
-		const MessageFrameworkNode& ServicePermissionInfo::getServer()const
-		{
-			return server_;
-		}*/
-
-		//const PermissionFlag& ServicePermissionInfo::getPermissionFlag()const
-		//{
-		//	return permissionFlag_;
-		//}
-
-		/**
- 		 * @brief set the server of the service
- 	 	 * @param
- 	 	 * ipAddress - IPAddress of the server
- 	 	 * @param
- 	 	 * port - port of the server
- 	 	 */
-		
-		/*void ServicePermissionInfo::setServer(const std::string& ipAddress, unsigned int port)
-		{
-			server_.nodeIP_ = ipAddress;
-			server_.nodePort_ = port;
-		}*/
-
-		/**
- 	 	 * @brief Set the permission flag of the service
- 	 	 * @param
- 	 	 * permissionFlag - the permission flag
- 	 	 */
-	//	void ServicePermissionInfo::setPermissionFlag(PermissionFlag permissionFlag)
-	//	{
-	//		permissionFlag_ = permissionFlag;
-	//	}
+void ServicePermissionInfo::setServer(const std::string& agentInfo,
+		const MessageFrameworkNode server) {
+	std::map<std::string, MessageFrameworkNode>::iterator it =
+			agentInfoMap_.begin();
+	//delete obsolete infos
+	vector<string> toBeDeleted;
+	for (; it != agentInfoMap_.end(); it++) {
+		if (server == it->second)
+			toBeDeleted.push_back(it->first);
+	}
+    for(vector<string>::iterator it=toBeDeleted.begin(); it != toBeDeleted.end(); it++)
+    	agentInfoMap_.erase(*it);
+	agentInfoMap_[agentInfo] = server;
+}
 
 }// end of messageframework
 

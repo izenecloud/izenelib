@@ -16,10 +16,6 @@
 #include <net/message-framework/ServiceMessage.h>
 #include <net/message-framework/ServiceRegistrationMessage.h>
 
-#ifdef SF1_TIME_CHECK
-#include <profiler/Profiler.h>
-#endif
-
 #include <boost/thread.hpp>
 #include <boost/thread/condition.hpp>
 
@@ -40,19 +36,6 @@ namespace messageframework
 
     class MessageControllerLight : public MFSingleton<MessageControllerLight>
     {
-#ifdef SF1_TIME_CHECK
-        static sf1lib::Profiler contextSwitchProf;
-        static sf1lib::Profiler::Profile getRequestCS;
-        static sf1lib::Profiler::Profile addRequestCS;
-        static sf1lib::Profiler::Profile resultCS;
-
-        static sf1lib::Profiler::Profile getPermM;
-        static sf1lib::Profiler::Profile addReqM;
-        static sf1lib::Profiler::Profile processReqM;
-        static sf1lib::Profiler::Profile getReqM;
-        static sf1lib::Profiler::Profile addResultM;
-        static sf1lib::Profiler::Profile getResultM;
-#endif
 
         friend class MFSingleton<MessageControllerLight>;
         friend class MessageClientLight;
@@ -66,8 +49,46 @@ namespace messageframework
             {
                 nxtClientId_ = 1;
             }
+            
+        public:    
+        	/**
+        	 * @brief The construct a MessageControllerFull with paramters
+        	 * @param
+        	 * controllerName - name of controller
+        	 * @param
+        	 * servicePort - port of controller
+        	 */
+        	MessageControllerLight(const std::string& controllerName,
+        			unsigned int servicePort);
 
-        public:
+        	/**
+        	 * @brief The desstructor
+        	 */
+        	~MessageControllerLight(){        		
+        	}
+
+        	/**
+        	 * @brief Run controller until shutdown is called
+        	 */
+            void run(void){
+            	
+            }
+
+        	/**
+        	 * @brief Shutdown controller.
+        	 */
+        	void shutdown(void){
+        		
+        	}
+
+        	/**
+        	 * @brief get Name of the manager who owns this Controller instance
+        	 */
+        	inline const std::string& getName() const {
+        		return ownerManagerName_;
+        	}
+
+        protected:
 
             //nothing to do
             void processServiceRegistrationRequest();
@@ -123,6 +144,7 @@ namespace messageframework
             void printAvailServiceList();
 
         private:
+        	const std::string ownerManagerName_;
 
             const std::string           controllerName_;
 

@@ -78,9 +78,7 @@ public:
 
 
 	template <typename Archive> void serialize(Archive & ar,
-			const unsigned int version) {
-		//ar & server_ & serviceName_ & permissionFlag_ & parameterList_
-		//		& serviceResultFlag_;
+			const unsigned int version) {	
 		ar & server_ & serviceName_;
 	}
 

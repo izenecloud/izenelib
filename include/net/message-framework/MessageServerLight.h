@@ -19,10 +19,11 @@ public:
 	 * @details
 	 * The name of the server is used to identify the server among other servers in the same network.
 	 */
-	MessageServerLight(const std::string & serverName,
+	MessageServerLight(const std::string & serverName, unsigned int serverPort,
 			MessageControllerLight & controller) :
 		serverName_(serverName), controller_(controller) {
-		thisNode_.nodeName_ = serverName_;
+		thisNode_.nodeIP_ = "localhost";	
+		thisNode_.nodePort_ = serverPort;		
 	}
 
 	/**
@@ -38,13 +39,17 @@ public:
 	void setAgentInfo(const string& agentInfo) {
 		agentInfo_ = agentInfo;
 	}
+	string getAgentInfo() {
+		return agentInfo_;
+	}
+
 	/**
 	 * @brief This function gets all the list of waiting service requests. It deletes the waiting
 	 * service requests in the queue.
 	 * @param
-	 *  requestList - the list of waiting service requests
+	 *	requestList - the list of waiting service requests
 	 * @return
-	 *  true - the list is retrieved successfully
+	 *	true - the list is retrieved successfully
 	 */
 	bool getServiceRequestList(std::vector<ServiceRequestInfoPtr>& requestList);
 
@@ -52,20 +57,23 @@ public:
 	 * @brief This function answers a service request by putting the ServiceResult to the
 	 * requester of the service.
 	 * @param
-	 *  serviceRequest - information about the service request (service name, requester, parameter list)
+	 *	serviceRequest - information about the service request (service name, requester, parameter list)
 	 * @param
-	 *  result - the result of the service
+	 *	result - the result of the service
 	 * @return
-	 *  true - the service result has been successfully put to the requester
+	 *	true - the service result has been successfully put to the requester
 	 */
-	//  bool putResultOfService(const ServiceRequestInfo& serviceRequestInfo, const ServiceResult& result);
-	bool putResultOfService(const ServiceResultPtr& result);
+	bool putResultOfService(const ServiceRequestInfoPtr& serviceRequestInfo,
+			const ServiceResultPtr& result);
+
+	bool putResultOfService(const ServiceResultPtr& result);	
+
 
 private:
 
 	std::string serverName_;
 
-	MessageControllerLight & controller_;
+	MessageControllerLight& controller_;
 
 	MessageFrameworkNode thisNode_;
 

@@ -4,10 +4,12 @@
  */
 
 #include "ScdParser.h"
-#include <IndexClient.h>
+
 
 #include <ProcessOptions.h>
 #include <net/message_framework.h>
+#include <IndexClient.h>
+
 #include <DocumentManager.h>
 
 #include <boost/smart_ptr.hpp>
@@ -57,10 +59,10 @@ void initMFClient() {
 	//-H -I -P -C -S -N
 	MessageFrameworkNode controllerNode(po.getControllerIp(),
 			po.getControllerPort() );
-	
-	client_.reset(new MessageClient( MF_CLIENT_ARG( "DocumentProcess_Server", controllerNode ) )  );
-	indexClient_.setMessageClient(client_);
 
+	client_.reset(new MessageClient( MF_CLIENT_ARG( "DocumentProcess_Server", controllerNode ) ));
+	indexClient_.setMessageClient(client_);
+	cout<<"\n!!!!! main-document "<<typeid(client_).name()<<endl;
 	cout << "[DocumentProcess]: MF-Client up and ready to go" << endl;
 }
 
@@ -123,14 +125,14 @@ bool buildForwardIndex(const vector<Document> & docList,
 	}
 	// batch process all parsing requests
 	posix_time::ptime before = posix_time::microsec_clock::local_time();
-	if ( false == requestService("parseString", requestsToLA, resultsFromLA,
-			*client_) )
-		return false;
-	/* for(unsigned int i=0; i<2*docList.size(); i++)
-	 {
-	 if( false == requestService("parseString", requestsToLA[i], resultsFromLA[i], *client_) )
-	 return false; 
-	 }*/
+	//	if ( false == requestService("parseString", requestsToLA, resultsFromLA,
+	//			*client_) )
+	//		return false;
+	for (unsigned int i=0; i<2*docList.size(); i++) {
+		if ( false == requestService("parseString", requestsToLA[i],
+				resultsFromLA[i], *client_) )
+			return false;
+	}
 	posix_time::ptime after = posix_time::microsec_clock::local_time();
 	laTime += (after-before).total_microseconds();
 	cout << "[PROFILE] on client la cost " << laTime << " macroseconds" << endl;
@@ -231,7 +233,7 @@ void initServiceList(vector<ServiceInfo> & serviceList) {
 	ServiceInfo serviceInfo;
 	//vector<ServiceParameterType>    params;
 
-	serviceInfo.setServer(po.getControllerIp(), po.getControllerPort() );
+	//serviceInfo.setServer(po.getControllerIp(), po.getControllerPort() );
 	//serviceInfo.setPermissionFlag( SERVE_AT_SERVER );
 
 	serviceInfo.setServiceName("getDocument");

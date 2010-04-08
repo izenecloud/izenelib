@@ -15,9 +15,9 @@ namespace messageframework {
 /**
  * @brief for profiling - Wei Cao
  */
-long permission_time = 0;
-long send_time = 0;
-long recv_time = 0;
+//long permission_time = 0;
+//long send_time = 0;
+//long recv_time = 0;
 
 /**
  * @brief Get the service permission info of a given service name
@@ -218,85 +218,87 @@ void runMessageClientLight(ServiceRequestInfoPtr& serviceRequestInfo,
 	}
 }
 
-/**
- * @brief Batch processing requests.
- * Send all requests out at the same time, then wait for their replies
- * Added by Wei Cao, 2009-02-19
- */
-bool requestService(const std::string& serviceName,
-		std::vector<ServiceRequestInfoPtr>& serviceRequestInfos,
-		MessageClientLight& client) throw (std::runtime_error) {
-//	ServicePermissionInfo servicePermissionInfo;
+///**
+// * @brief Batch processing requests.
+// * Send all requests out at the same time, then wait for their replies
+// * Added by Wei Cao, 2009-02-19
+// */
+//bool requestService(const std::string& serviceName,
+//		std::vector<ServiceRequestInfoPtr>& serviceRequestInfos,
+//		MessageClientLight& client) throw (std::runtime_error) {
+////	ServicePermissionInfo servicePermissionInfo;
+//
+////	posix_time::ptime before = posix_time::microsec_clock::local_time();
+////	getServicePermissionInfo(serviceName, servicePermissionInfo, client);
+////	posix_time::ptime after = posix_time::microsec_clock::local_time();
+////	permission_time += (after-before).total_microseconds();
+//
+//	//servicePermissionInfo.display();
+//
+//	try
+//	{
+//		std::map<std::string, MessageFrameworkNode> agentInfoMap;
+//		client.getPermissionOfService(serviceName, agentInfoMap);
+//		std::map<std::string, MessageFrameworkNode>::const_iterator cit = agentInfoMap.begin();
+//		for(; cit != agentInfoMap.end(); cit++) {
+//			//before = posix_time::microsec_clock::local_time();
+//			if( false == client.putServiceRequest(cit->second, serviceRequestInfos) )
+//			throw std::runtime_error( "failed to send service request" );
+//			//if( servicePermissionInfo.getServiceResultFlag() != SERVICE_WITHOUT_RESULT )
+//			//	throw std::runtime_error( "call a service with result without waiting for the result" );
+//			//after = posix_time::microsec_clock::local_time();
+//			//send_time += (after-before).total_microseconds();
+//		}
+//	}
+//	catch (MessageFrameworkException& e)
+//	{
+//		e.output(std::cout);
+//		return false;
+//	}
+//	return true;
+//}
+//
+//bool requestService(const std::string& serviceName,
+//		std::vector<ServiceRequestInfoPtr>& serviceRequestInfos,
+//		std::vector<ServiceResultPtr>& serviceResults, MessageClientLight& client)
+//		throw (std::runtime_error) {
+//	//ServicePermissionInfo servicePermissionInfo;
+//
+//	//posix_time::ptime before = posix_time::microsec_clock::local_time();
+//	//getServicePermissionInfo(serviceName, servicePermissionInfo, client);
+//	//posix_time::ptime after = posix_time::microsec_clock::local_time();
+//	//permission_time += (after-before).total_microseconds();
+//
+//	try
+//	{
+//		std::map<std::string, MessageFrameworkNode> agentInfoMap;
+//				client.getPermissionOfService(serviceName, agentInfoMap);
+//				std::map<std::string, MessageFrameworkNode>::const_iterator cit = agentInfoMap.begin();
+//		for(; cit != agentInfoMap.end(); cit++) {
+//			//before = posix_time::microsec_clock::local_time();
+//			if( false == client.putServiceRequest(cit->second, serviceRequestInfos) )
+//			throw std::runtime_error( "failed to send service request" );
+//			//if( servicePermissionInfo.getServiceResultFlag() == SERVICE_WITHOUT_RESULT )
+//			//    return true;
+//			//after = posix_time::microsec_clock::local_time();
+//			//send_time += (after-before).total_microseconds();
+//
+//			serviceResults.resize(serviceRequestInfos.size());
+//
+//			//before = posix_time::microsec_clock::local_time();
+//			if ( false == client.getResultOfService(serviceRequestInfos, serviceResults) )
+//			throw std::runtime_error( "failed to get service reply" );
+//			//after = posix_time::microsec_clock::local_time();
+//			//recv_time += (after-before).total_microseconds();
+//		}
+//	}
+//	catch (MessageFrameworkException& e)
+//	{
+//		e.output(std::cout);
+//		return false;
+//	}
+//	return true;
+//}
 
-//	posix_time::ptime before = posix_time::microsec_clock::local_time();
-//	getServicePermissionInfo(serviceName, servicePermissionInfo, client);
-//	posix_time::ptime after = posix_time::microsec_clock::local_time();
-//	permission_time += (after-before).total_microseconds();
 
-	//servicePermissionInfo.display();
-
-	try
-	{
-		std::map<std::string, MessageFrameworkNode> agentInfoMap;
-		client.getPermissionOfService(serviceName, agentInfoMap);
-		std::map<std::string, MessageFrameworkNode>::const_iterator cit = agentInfoMap.begin();
-		for(; cit != agentInfoMap.end(); cit++) {
-			//before = posix_time::microsec_clock::local_time();
-			if( false == client.putServiceRequest(cit->second, serviceRequestInfos) )
-			throw std::runtime_error( "failed to send service request" );
-			//if( servicePermissionInfo.getServiceResultFlag() != SERVICE_WITHOUT_RESULT )
-			//	throw std::runtime_error( "call a service with result without waiting for the result" );
-			//after = posix_time::microsec_clock::local_time();
-			//send_time += (after-before).total_microseconds();
-		}
-	}
-	catch (MessageFrameworkException& e)
-	{
-		e.output(std::cout);
-		return false;
-	}
-	return true;
-}
-
-bool requestService(const std::string& serviceName,
-		std::vector<ServiceRequestInfoPtr>& serviceRequestInfos,
-		std::vector<ServiceResultPtr>& serviceResults, MessageClientLight& client)
-		throw (std::runtime_error) {
-	//ServicePermissionInfo servicePermissionInfo;
-
-	//posix_time::ptime before = posix_time::microsec_clock::local_time();
-	//getServicePermissionInfo(serviceName, servicePermissionInfo, client);
-	//posix_time::ptime after = posix_time::microsec_clock::local_time();
-	//permission_time += (after-before).total_microseconds();
-
-	try
-	{
-		std::map<std::string, MessageFrameworkNode> agentInfoMap;
-				client.getPermissionOfService(serviceName, agentInfoMap);
-				std::map<std::string, MessageFrameworkNode>::const_iterator cit = agentInfoMap.begin();
-		for(; cit != agentInfoMap.end(); cit++) {
-			//before = posix_time::microsec_clock::local_time();
-			if( false == client.putServiceRequest(cit->second, serviceRequestInfos) )
-			throw std::runtime_error( "failed to send service request" );
-			//if( servicePermissionInfo.getServiceResultFlag() == SERVICE_WITHOUT_RESULT )
-			//    return true;
-			//after = posix_time::microsec_clock::local_time();
-			//send_time += (after-before).total_microseconds();
-
-			serviceResults.resize(serviceRequestInfos.size());
-
-			//before = posix_time::microsec_clock::local_time();
-			if ( false == client.getResultOfService(serviceRequestInfos, serviceResults) )
-			throw std::runtime_error( "failed to get service reply" );
-			//after = posix_time::microsec_clock::local_time();
-			//recv_time += (after-before).total_microseconds();
-		}
-	}
-	catch (MessageFrameworkException& e)
-	{
-		e.output(std::cout);
-		return false;
-	}
-	return true;
-}
 }

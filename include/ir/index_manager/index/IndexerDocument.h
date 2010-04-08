@@ -36,7 +36,7 @@ typedef boost::variant<int64_t,uint64_t, float, double, String> PropertyType;
 ///which means inverted indices would be built
 
 ///A property that both BTreeIndex and inverted index will be built
-typedef std::pair<boost::shared_ptr<ForwardIndex>, PropertyType >  IndexPropertyType;
+typedef std::pair<boost::shared_ptr<LAInput>, PropertyType >  IndexPropertyType;
 
 typedef boost::variant<PropertyType, IndexPropertyType, boost::shared_ptr<LAInput>, boost::shared_ptr<ForwardIndex> > IndexerDocumentPropertyType;
 
