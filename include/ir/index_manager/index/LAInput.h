@@ -7,6 +7,8 @@
 #ifndef LAINPUT_H
 #define LAINPUT_H
 
+#include <types.h>
+
 #include <deque>
 
 NS_IZENELIB_IR_BEGIN
@@ -28,6 +30,7 @@ class LAInputUnit
 {
 public:
 	LAInputUnit():termId_(0),offset_(0){}
+	LAInputUnit(unsigned int termId, unsigned int offset): termId_(termId),offset_(offset){}
 	LAInputUnit(const LAInputUnit& clone):termId_(clone.termId_),offset_(clone.offset_){}
 	~LAInputUnit(){}
 public:
