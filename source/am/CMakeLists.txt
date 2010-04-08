@@ -14,7 +14,8 @@ IF(am_SHOULD_BUILD)
     am_SRC
     RELATIVE
     "${CMAKE_CURRENT_SOURCE_DIR}"
-    "filemapper/*.cpp"   
+    "filemapper/*.cpp"
+    "vsynonym/*.cpp"
     )
 
   INCLUDE_DIRECTORIES(
