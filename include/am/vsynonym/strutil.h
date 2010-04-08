@@ -266,7 +266,7 @@ inline string depTrim (const string & s, const string & t = SPACES)
 	return ret;
 }
 
-inline void tokenizeAndLowerCase(vector<string>& vec, string text, const char* delimiter){
+inline void tokenizeAndLowerCase(vector<string>& vec, string& text, const char* delimiter){
     string::size_type last = 0;
     string::size_type next = 0;
     string::size_type dellen = strlen(delimiter);
