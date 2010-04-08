@@ -95,14 +95,14 @@ void CollectionIndexer::addDocument(IndexerDocument* pDoc)
                     // This field is not indexed.
                     continue;
 
-                boost::shared_ptr<ForwardIndex> forwardIndex = indexData.first;
-                it->second->addField(uniqueID.docId, forwardIndex);
+                boost::shared_ptr<LAInput> laInput = indexData.first;
+                it->second->addField(uniqueID.docId, laInput);
 
                 if(pForwardIndexWriter_)
-                    pForwardIndexWriter_->addProperty(iter->first.getPropertyId(), forwardIndex);
+                    pForwardIndexWriter_->addProperty(iter->first.getPropertyId(), laInput);
 
                 if(pDocLengthWriter_)
-                    pDocLengthWriter_->fill(iter->first.getPropertyId(), forwardIndex->docLength_, docLength);
+                    pDocLengthWriter_->fill(iter->first.getPropertyId(), laInput->size(), docLength);
             }
             else
             {
