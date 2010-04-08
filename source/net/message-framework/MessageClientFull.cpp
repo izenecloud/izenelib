@@ -153,7 +153,7 @@ namespace messageframework
         }
         catch (MessageFrameworkException& e)
         {
-            e.output(DLOG(ERROR));
+            DLOG(ERROR) << e.getString();
         }
         catch (boost::system::error_code& e)
         {

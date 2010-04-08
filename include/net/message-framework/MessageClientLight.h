@@ -8,7 +8,7 @@
 
 #include <string>
 
-#define MF_LIGHT_REQUEST_ID_CLIENT_ID_SHIFT 24
+#define MF_LIGHT_REQUEST_ID_CLIENT_ID_SHIFT 20
 #define MF_LIGHT_MAX_SEQUENTIAL_NUMBER (1 << MF_LIGHT_REQUEST_ID_CLIENT_ID_SHIFT)
 #define MF_LIGHT_MASK_SEQUENTIAL_NUMBER ( MF_LIGHT_MAX_SEQUENTIAL_NUMBER - 1)
 
@@ -27,7 +27,7 @@ public:
 	/**
 	 * @brief This function gets a permission of the given service from
 	 * MessageController. If MessageController is busy,
-	 * this function returns false immediately. Then, the MessageClient
+	 * this function returns false immediately. Then, the MessageClientFull
 	 * has to call this function again
 	 * @param
 	 * serviceName - the service name
@@ -41,7 +41,7 @@ public:
 	 */
 
 	bool getPermissionOfService(const std::string& serviceName,
-			ServicePermissionInfo& servicePermissionInfo);
+						std::map<std::string, MessageFrameworkNode>& servers);
 
 	/**
 	 * @brief This function puts the request of the manager to the MessageClientFull.
@@ -56,22 +56,7 @@ public:
 	 * true - if the receiver successfully receives the request
 	 */
 	bool putServiceRequest(const MessageFrameworkNode& server,
-			ServiceRequestInfoPtr& serviceRequestInfo);
-
-	/**
-	 * @brief This function puts a set of requests of the same manager to the
-	 * MessageClientFull. The MessageClientFull will sends the request to either
-	 * MessageController or MessageServerFull.
-	 * @param
-	 * servicePermissionInfo - it contains information of service name and the server
-	 * @param
-	 * serviceRequestInfos - a set of information about request services, each contains
-	 * the service name and its parameter values.
-	 * @return
-	 * true - if the receiver successfully receives these requests
-	 */
-	bool putServiceRequest(const MessageFrameworkNode& server,
-			std::vector<ServiceRequestInfoPtr>& serviceRequestInfos);
+						ServiceRequestInfoPtr& serviceRequestInfo, bool withResult = true);
 
 	/**
 	 * @brief This function gets a result of the service that have been requested.
@@ -87,24 +72,7 @@ public:
 	 * false - result is not ready.
 	 */
 	bool getResultOfService(const ServiceRequestInfoPtr& serviceRequestInfo,
-			ServiceResultPtr& serviceResult);
-
-	/**
-	 * @brief This function gets a set of results of the service
-	 * that have been requested. The service is requested through function
-	 * putServiceRequest(..) When the result is not ready, it returns false immediately.
-	 * @param
-	 * serviceRequestInfos - a set of service request informations
-	 * @param
-	 * serviceResults - a set of service results
-	 * @return
-	 * true - Result is ready.
-	 * @return
-	 * false - result is not ready.
-	 */
-	bool getResultOfService(
-			const std::vector<ServiceRequestInfoPtr> & serviceRequestInfos,
-			std::vector<ServiceResultPtr> & serviceResults);
+					ServiceResultPtr& serviceResult);
 
 protected:
 

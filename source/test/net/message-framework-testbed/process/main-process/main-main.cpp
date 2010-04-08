@@ -28,6 +28,7 @@ namespace MainProcess {
 //IndexManager        indexMgr_;
 //DocumentManager     docMgr_;
 //LAmanager           lamMgr_;
+
 MessageClient * client_;
 IndexClient indexClient_;
 
@@ -109,17 +110,13 @@ MF_AUTO_MAIN(mainProcess) {
 
 		// for the number of terms in a query string
 		for (size_t i = 0; i < termList->size(); i++) {
-			
-
 			///requst to two collection
 			{
 				std::vector<std::string> agentInfos;
 				agentInfos.push_back("index1");
 				agentInfos.push_back("index2");
-
 				if (!indexClient_.findDocListByTerm(agentInfos, (*termList)[i], docIdLists) )
 					return -1;
-
 			}
 
 			/*ServiceRequestInfoPtr requestToIndex(new ServiceRequestInfo);

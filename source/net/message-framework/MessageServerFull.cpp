@@ -126,7 +126,7 @@ bool MessageServerFull::registerService(const ServiceInfo & serviceInfo) {
 	}
 	catch(MessageFrameworkException& e)
 	{
-		e.output(DLOG(ERROR));
+        DLOG(ERROR) << e.getString();
 	}
 	catch(boost::system::error_code& e)
 	{
@@ -167,9 +167,7 @@ bool MessageServerFull::getServiceRequestList(
 		boost::mutex::scoped_lock requestQueueLock(requestQueueMutex_);
 		while( requestQueue_.empty() )
 		newRequestEvent_.wait(requestQueueLock);
-		//newRequestEvent_.timed_wait(requestQueueLock, timeout);
-		//<<<<<<<<<<<<<<
-
+	
 		while(!requestQueue_.empty())
 		{
 			requestList.push_back(requestQueue_.front() );

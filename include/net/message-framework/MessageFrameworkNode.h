@@ -46,12 +46,16 @@ namespace messageframework
 
 			return *this;
 		}
+		
+		bool operator==(const MessageFrameworkNode& inputNode) const
+		{
+			return ( nodeIP_ == inputNode.nodeIP_ ) && ( nodePort_ == inputNode.nodePort_ );
+		}
 
 		/**
 		 * @brief Destructor of the node
 		 */
-		~MessageFrameworkNode(){
-			//display();
+		~MessageFrameworkNode(){			
 			//std::cout<<" ~MessageFrameworkNode"<<std::endl;
 		}
 

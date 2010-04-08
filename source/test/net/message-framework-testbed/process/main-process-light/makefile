@@ -49,7 +49,8 @@ LIB =  		 	\
 				-lboost_program_options-gcc41-mt \
 				-lglog \
 				-lprocmeminfo \
-
+				-lwiselib
+				
 
 OBJECTS = $(patsubst %.cpp, %.o, $(wildcard *.cpp))
 
