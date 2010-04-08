@@ -591,6 +591,9 @@ protected:
                 std::vector<EdgeTableRecordType> result;
                 edgeTable_.getValueBetween(result, minKey, maxKey);
 
+                findRegExp_<EnumerateType>(regexp, startPos+1, prefix, nid,
+                    keyList, valueList, maximumResultNumber);
+
                 for(size_t i = 0; i <result.size(); i++ ) {
                     prefix.push_back(result[i].key.second);
                     findRegExp_<EnumerateType>(regexp, startPos, prefix, result[i].value,
@@ -598,8 +601,6 @@ protected:
                     prefix.pop_back();
                 }
 
-                findRegExp_<EnumerateType>(regexp, startPos+1, prefix, nid,
-                    keyList, valueList, maximumResultNumber);
                 break;
             }
             case 63:    //"?"

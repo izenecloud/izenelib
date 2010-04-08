@@ -44,7 +44,7 @@ public:
 
 	void insert(const NameString& str) {}
 
-	bool findRegExp(const NameString& exp, std::vector<NameString> & results){ return false;}
+	bool findRegExp(const NameString& exp, std::vector<NameString> & results, int maximumResultNumber){ return false;}
 
 	int num_items(){return 0;}
 
@@ -89,8 +89,8 @@ public:
         trie_.executeTask(threadNum);
     }
 
-	bool findRegExp(const NameString& exp, std::vector<NameString> & results){
-        return trie_.findRegExp(exp, results);
+	bool findRegExp(const NameString& exp, std::vector<NameString> & results, int maximumResultNumber){
+        return trie_.findRegExp(exp, results, maximumResultNumber);
     }
 
 	int num_items(){return trie_.num_items();}
@@ -133,15 +133,15 @@ public:
         handler_.insert(word);
     }
 
-	bool findRegExp(const NameString& exp, std::vector<NameString> & results)
+	bool findRegExp(const NameString& exp, std::vector<NameString> & results, int maximumResultNumber)
 	{
-	    return handler_.findRegExp(exp, results);
+	    return handler_.findRegExp(exp, results, maximumResultNumber);
     }
 
-	bool findRegExp(const NameString& exp, std::vector<NameID> & results)
+	bool findRegExp(const NameString& exp, std::vector<NameID> & results, int maximumResultNumber)
 	{
 	    std::vector<NameString> rlist;
-	    if(handler_.findRegExp(exp, rlist) == false)
+	    if(handler_.findRegExp(exp, rlist, maximumResultNumber) == false)
             return false;
 
         for(size_t i =0; i< rlist.size(); i++) {
