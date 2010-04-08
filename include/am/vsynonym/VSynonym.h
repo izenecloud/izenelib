@@ -46,17 +46,23 @@ typedef uint16_t vtoffset_t;
  */
 class VSynonym{
 public:
+    static VSynonym* createObject();
+
     VSynonym();
 
-    VSynonym(uint8_t* start);
+    VSynonym( uint8_t* start, bool moreLong );
 
     void setData(uint8_t* start);
+
+    void setMoreLong( bool moreLong );
+
+    bool hasMoreLong();
 
     /**
      * Return the count of lines including query used in searching.
      * \return number of the synonym entries matched
      */
-    vtnum_t getMatchedCount();
+    vtnum_t getOverlapCount();
 
     /**
      * After calling getMatchedCount( ), it is called for iterating whole
@@ -99,6 +105,9 @@ public:
 private:
     /** uint8_t array to hold synonym entry list */
     uint8_t* start_;
+
+    /** Whether have longer word with the same prefix */
+    bool moreLong_;
 };
 
 /**
@@ -169,6 +178,8 @@ private:
 class VSynonymContainer {
 public:
 
+    static VSynonymContainer* createObject();
+
     /**
      * Create the PHSynonymCntainer with default synonym delimiter (',')
      * and word delimiter ('_')
@@ -217,7 +228,7 @@ public:
      * \param query word to be queried
      * \param synonym to store the returned information
      */
-    void searchNgetSynonym( char* query, VSynonym* synonym );
+    bool searchNgetSynonym( const char* query, VSynonym* synonym );
 
     /**
      * Get the synonyms with specific key, if found nothing, return NULL.
@@ -240,7 +251,7 @@ public:
      * \param pathDic the path of the synonym dictionary file
      * \return 0 if occur error and 1 if works fine
      */
-    int loadSynonyms( const char* pathDic );
+    int loadSynonym( const char* pathDic );
 
     /**
      * Get the size of the whole VSynonymContainer used

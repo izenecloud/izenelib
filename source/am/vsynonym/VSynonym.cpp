@@ -4,14 +4,20 @@
 
 NS_IZENELIB_AM_BEGIN
 
-VSynonym::VSynonym()
-    : start_(0)
+VSynonym* VSynonym::createObject()
+{
+    return new VSynonym;
+}
+
+
+VSynonym::VSynonym( )
+    : start_( 0 ), moreLong_( false )
 {
 }
 
 
-VSynonym::VSynonym(uint8_t* start)
-    : start_(start)
+VSynonym::VSynonym( uint8_t* start, bool moreLong = false )
+    : start_(start), moreLong_(moreLong)
 {
 }
 
@@ -22,7 +28,19 @@ void VSynonym::setData(uint8_t* start)
 }
 
 
-vtnum_t VSynonym::getMatchedCount()
+void VSynonym::setMoreLong( bool moreLong )
+{
+    moreLong_ = moreLong;
+}
+
+
+bool VSynonym::hasMoreLong()
+{
+    return moreLong_;
+}
+
+
+vtnum_t VSynonym::getOverlapCount()
 {
     if(!start_) return 0;
     return *reinterpret_cast<vtnum_t*>(start_);
@@ -63,7 +81,7 @@ vtnum_t VSynonym::size()
     if(!start_)
         return 0;
     size_t ret = 0;
-    vtnum_t size1 = getMatchedCount();
+    vtnum_t size1 = getOverlapCount();
     ret += VT_NUM_LEN + size1 * VT_OFFSET_LEN;
     for(vtnum_t i=0; i<size1; ++i){
         vtnum_t size2 = getSynonymCount(i);
@@ -81,7 +99,7 @@ ostream& operator << ( ostream& sout, VSynonym& retUnit )
 {
     if(!retUnit.start_)
         return sout;
-    vtnum_t max1 = retUnit.getMatchedCount() - 1;
+    vtnum_t max1 = retUnit.getOverlapCount() - 1;
     for(vtnum_t i=0; i<=max1; ++i){
         vtnum_t max2 = retUnit.getSynonymCount(i) - 1;
         for(vtnum_t j=0; j<=max2; ++j){
@@ -100,7 +118,7 @@ ostream& operator << ( ostream& sout, VSynonym& retUnit )
 void VSynonym::testLoop(){
     if(!start_)
         return;
-    vtnum_t max1 = getMatchedCount() - 1;
+    vtnum_t max1 = getOverlapCount() - 1;
     for(vtnum_t i=0; i<=max1; ++i){
         vtnum_t max2 = getSynonymCount(i) - 1;
         for(vtnum_t j=0; j<=max2; ++j){
@@ -192,6 +210,12 @@ ostream& operator << ( ostream& sout, VExpandedQuery& query )
 }
 
 
+VSynonymContainer* VSynonymContainer::createObject()
+{
+    return new VSynonymContainer();
+}
+
+
 VSynonymContainer::VSynonymContainer()
 {
     init();
@@ -206,7 +230,7 @@ VSynonymContainer::VSynonymContainer( string nameFile,
     init();
     setSynonymDelimiter(sep_synonyms);
     setWordDelimiter(sep_words);
-    loadSynonyms(nameFile.c_str());
+    loadSynonym(nameFile.c_str());
 }
 
 
@@ -235,21 +259,33 @@ void VSynonymContainer::setWordDelimiter( const char* delim )
 void VSynonymContainer::get_synonyms( const string& key, VSynonym& synonym )
 {
     VTrieNode node;
-    if(trie_->search(key.data(), &node)){
-        synonym.setData(value_ + node.data);
-    }else{
-        synonym.setData(0);
+    if( trie_->search( key.data(), &node ) )
+    {
+        synonym.setData( value_ + node.data );
+        synonym.setMoreLong( node.moreLong );
+    }
+    else
+    {
+        synonym.setData( 0 );
+        synonym.setMoreLong( false );
     }
 }
 
 
-void VSynonymContainer::searchNgetSynonym( char* query, VSynonym* synonym )
+bool VSynonymContainer::searchNgetSynonym( const char* query, VSynonym* synonym )
 {
     VTrieNode node;
-    if(trie_->search(query, &node)){
-        synonym->setData(value_ + node.data);
-    }else{
-        synonym->setData(0);
+    if( trie_->search( query, &node ) )
+    {
+        synonym->setData( value_ + node.data );
+        synonym->setMoreLong( node.moreLong );
+        return true;
+    }
+    else
+    {
+        synonym->setData( 0 );
+        synonym->setMoreLong( false );
+        return false;
     }
 }
 
@@ -257,9 +293,12 @@ void VSynonymContainer::searchNgetSynonym( char* query, VSynonym* synonym )
 VSynonym* VSynonymContainer::get_synonyms(const string& key)
 {
     VTrieNode node;
-    if(trie_->search(key.data(), &node)){
-        return new VSynonym(value_ + node.data);
-    }else{
+    if( trie_->search(key.data(), &node) )
+    {
+        return new VSynonym( value_ + node.data, node.moreLong );
+    }
+    else
+    {
         return NULL;
     }
 }
@@ -324,7 +363,7 @@ VTrie* VSynonymContainer::getData()
 }
 
 
-int VSynonymContainer::loadSynonyms(const char* pathDic)
+int VSynonymContainer::loadSynonym(const char* pathDic)
 {
     if( synonymDelim_ == wordDelim_){
         cerr << "Because delimeter among synonyms and delimiter among "<<
@@ -481,7 +520,7 @@ int VSynonymContainer::appendValue(vector<string>& vec, int origData)
 
     uint8_t* startPtr = endValPtr_;
 
-    vtnum_t lapCount = origSyn.getMatchedCount();
+    vtnum_t lapCount = origSyn.getOverlapCount();
     //set the lap count
     *reinterpret_cast<vtnum_t*>(endValPtr_) = (vtnum_t)(1 + lapCount);
     endValPtr_ += VT_NUM_LEN;
