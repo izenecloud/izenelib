@@ -258,6 +258,13 @@ public:
      */
     size_t size();
 
+
+    /**
+     * Clear the VTrie
+     * \param releaseData whether release allocated data
+     */
+    void clear( bool releaseData = false );
+
 private:
 
     inline size_t getFromLengthMap(const string& key, size_t maxValue);

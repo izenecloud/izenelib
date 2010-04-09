@@ -13,8 +13,6 @@ NS_IZENELIB_AM_BEGIN
 
 using namespace std;
 
-//#define DEBUGP
-
 #ifndef _VTRIE_H
 #define	_VTRIE_H
 
@@ -164,6 +162,12 @@ public:
      * Get the size of the structure
      */
     size_t size();
+
+    /**
+     * Clear the VTrie
+     * \param releaseData whether release allocated data
+     */
+    void clear( bool releaseData = false );
 
 private:
     /** initialize the VTrie and add assert statement*/

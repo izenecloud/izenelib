@@ -8,6 +8,8 @@
 
 NS_IZENELIB_AM_BEGIN
 
+//#define DEBUGP
+
 /* Conversion table for VTKEY_NUM numerical code */
 uint8_t VTRIE_CODE[ VTKEY_NUM ] = {
 //	0x0 0x1 0x2 0x3 0x4 0x5 0x6 0x7 0x8 0x9 0xa 0xb 0xc 0xd 0xe 0xf
@@ -106,7 +108,7 @@ int VTrie::insert( const char* key, VTrieNode* node )
     if(!*childPtr){
         *childPtr = (size_t)(endPtr_ - data_);
         #ifdef DEBUGP
-            cout<<"Create "<<(uint8_t*)childPtr - data_ <<endl;
+            cout<<"Create First Child Level at offset "<<(uint8_t*)childPtr - data_ <<endl;
         #endif
         appendLeafNode(key, node);
         return 1;
@@ -399,6 +401,26 @@ size_t VTrie::size()
 }
 
 
+void VTrie::clear( bool releaseData )
+{
+    if( releaseData )
+    {
+        delete data_;
+        data_ = 0;
+        endPtr_ = 0;
+        curDataSize_ = 0;
+    }
+    else if( data_ != NULL )
+    {
+        data_;
+        endPtr_ = data_ + VALUE_L + VTCHILDS_L + VTKEY_NUM * VTPTR_L;
+        memset( data_, 0x0, curDataSize_ );
+    }
+    wastedBytes_ = 0;
+
+}
+
+
 void VTrie::init()
 {
     assert(sizeof(int) == VALUE_L);
@@ -490,14 +512,14 @@ void VTrie::copyLeafNodeValue(uint8_t* dataPtr, const char* key, VTrieNode* node
     while(*key){
         *dataPtr = (uint8_t)*key++;
         #ifdef DEBUGP
-            cout<<"Set Ptr "<< (unsigned int)(*dataPtr)<<" at "
+            cout<<"copyLeafNodeValue set remaining string "<< (unsigned int)(*dataPtr)<<" at "
                 <<(unsigned int)(dataPtr-data_)<<endl;
         #endif
         dataPtr += VTENTRY_L;
     }
     *reinterpret_cast<int*>(dataPtr-VALUE_L) = node->data;
     #ifdef DEBUGP
-        cout<<"Copy value at "<<(unsigned int)(dataPtr-data_ - VALUE_L)
+        cout<<"copyLeafNodeValue copy trie value at "<<(unsigned int)(dataPtr-data_ - VALUE_L)
             <<" with "<<*reinterpret_cast<int*>(dataPtr-VALUE_L)<<endl;
     #endif
     //with no child status
