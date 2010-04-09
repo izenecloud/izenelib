@@ -2,7 +2,6 @@
 #include <fstream>
 #include <iostream>
 #include <sstream>
-#include <am/trie/alphabet_en.hpp>
 #include <am/linear_hash_table/linearHashTable.hpp>
 #include <wiselib/ustring/UString.h>
 
@@ -11,6 +10,13 @@
 using namespace wiselib;
 using namespace std;
 using namespace izenelib::am;
+
+const int en_size = 26;
+char en[en_size] = {97,	98,	99,	100,	101,	102,	103,
+104,	105,	106,	107,	108,	109,	110,	111,
+112,	113,	114,	115,	116,	117,	118,	119,
+120,	121,	122};
+
 
 /** * @class get_input gen_input.cc
  *  @brief Genarate random words with random k for sEdit-Distance.
