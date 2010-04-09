@@ -447,6 +447,33 @@ size_t VSynonymContainer::size()
 }
 
 
+void VSynonymContainer::clear( bool releaseData )
+{
+    assert( trie_ != NULL );
+    trie_->clear( releaseData );
+
+    if( lengthMap_ != NULL )
+    {
+        lengthMap_->clear();
+    }
+
+    //clear the value bit
+    if( releaseData )
+    {
+        if( value_ )
+            free( value_ );
+        valueSize_ = 1;
+        value_ = (uint8_t*)malloc(valueSize_);
+        //reserve the first TRIE
+        endValPtr_ = value_ + 1;
+    }
+    else
+    {
+        endValPtr_ = value_ + 1;
+    }
+}
+
+
 size_t VSynonymContainer::getFromLengthMap( const string& key, size_t maxValue )
 {
     size_t ret = static_cast<size_t>((*lengthMap_)[key]);
