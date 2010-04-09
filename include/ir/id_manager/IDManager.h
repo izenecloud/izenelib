@@ -149,9 +149,9 @@ public:
 	 * @return false :          Given wildcard pattern is not matched in the dictionary.
 	 */
 	bool getTermIdListByWildcardPattern(const NameString& wildcardPattern,
-			std::vector<NameID>& termIdList)
+			std::vector<NameID>& termIdList, int maximumResultNumber = 5)
     {
-        return wildcardQueryManager_.findRegExp(wildcardPattern, termIdList);
+        return wildcardQueryManager_.findRegExp(wildcardPattern, termIdList, maximumResultNumber);
     }
 
 	/**
@@ -163,9 +163,9 @@ public:
 	 * @return false :          Given wildcard pattern is not matched in the dictionary.
 	 */
 	bool getTermListByWildcardPattern(const NameString& wildcardPattern,
-			std::vector<NameString>& termList)
+			std::vector<NameString>& termList, int maximumResultNumber = 5)
     {
-        return wildcardQueryManager_.findRegExp(wildcardPattern, termList);
+        return wildcardQueryManager_.findRegExp(wildcardPattern, termList, maximumResultNumber);
     }
 
 

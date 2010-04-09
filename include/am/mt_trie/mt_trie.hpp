@@ -181,7 +181,7 @@ public:
      */
     bool findRegExp(const StringType& regexp,
         std::vector<StringType>& keyList,
-        int maximumResultNumber = 100)
+        int maximumResultNumber)
     {
         return trie_.findRegExp(regexp, keyList, maximumResultNumber);
     }
