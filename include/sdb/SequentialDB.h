@@ -121,6 +121,13 @@ public:
 	void setCacheSize(size_t sz) {
 		container_.setCacheSize(sz);
 	}
+	
+	/**
+	 *   \brief warm up sdb.
+	 */
+	void fillCache(){
+		container_.fillCache();
+	}
 
 	/**
 	 *  \brief open the db
