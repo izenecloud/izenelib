@@ -36,7 +36,7 @@ namespace util{
  * a DBT in the Berkeley DB package.
  * 
  */
-class DbObj : public RefCount<NullLock>
+class DbObj : public RefCount<ReadWriteLock>
 //boost::enable_shared_from_this<DbObj>
 {
 public:

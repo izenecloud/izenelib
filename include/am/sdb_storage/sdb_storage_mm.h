@@ -24,6 +24,7 @@
 
 #include <am/sdb_btree/sdb_btree.h>
 #include <am/sdb_hash/sdb_fixedhash.h>
+#include <cache/IzeneCache.h>
 
 #include <boost/iostreams/device/mapped_file.hpp>
 #include <boost/filesystem/operations.hpp>  
@@ -160,6 +161,7 @@ public:
 	 *  set cache size, if not called use default size 100000
 	 */
 	void setCacheSize(size_t cacheSize) {
+		binCache_.setCacheSize(cacheSize);
 		//ssh_.cacheSize = cacheSize;
 	}
 
@@ -352,7 +354,7 @@ public:
 		if (boost::filesystem::exists(fileName_) ) {
 			DLOG(INFO)<<"open exist...\n"<<endl;
 			mms_.reset(new memory_map(fileName_, 0, ssh_.mapSize));
-			ssh_.read(mms_->header() );	
+			ssh_.read(mms_->header() );
 			if (ssh_.idx > 0)
 				mms_.reset(new memory_map(fileName_, 0, ssh_.mapSize*(ssh_.idx+1) ));
 			mms_->setOffset(ssh_.offset);
@@ -414,9 +416,10 @@ private:
 
 private:
 	LockType fileLock_;
-	map<unsigned int, ValueType> readCache_;
+	izenelib::cache::ILRUCache<unsigned int, DbObjPtr> binCache_;
 	boost::shared_ptr<memory_map> mms_;
 
+private:
 	void syncHeader_() {
 		memcpy(mms_->header(), &ssh_, sizeof(ssh_));
 	}
@@ -447,13 +450,13 @@ private:
 		}
 
 		if ( (size_t)ssh_.offset+sizeof(size_t)+vsize >= ssh_.mapSize*(ssh_.idx
-				+1)) {		
-			++ssh_.idx;		
+				+1)) {
+			++ssh_.idx;
 			expandFile_(ssh_.idx);
 			mms_.reset(new memory_map(fileName_, 0, ssh_.mapSize*(ssh_.idx+1) ));
-			mms_->setOffset(ssh_.offset);		
+			mms_->setOffset(ssh_.offset);
 		}
-	
+
 		{
 			mms_->write(&vsize, sizeof(size_t));
 			mms_->write(ptr, vsize);
@@ -470,31 +473,45 @@ private:
 	}
 
 	inline bool readValue_(unsigned int npos, ValueType& val) {
-		char* ptr;
-		size_t vsize = 0;
 
-		mms_->read(npos, &vsize, sizeof(size_t));
-		assert(vsize> 0);
-		ptr = new char[vsize];
-		mms_->read(npos+sizeof(size_t), ptr, vsize);
+		DbObjPtr dp;
 
-		if (UseCompress) {
-			int vsz=0;
-			char *p =(char*)_tc_bzdecompress(ptr, vsize, &vsz);
-			vsize = vsz;
-			delete ptr;
-			ptr = p;
-		}
-
-		izene_deserialization<ValueType> izd(ptr, vsize);
-		izd.read_image(val);
-
-		if (UseCompress) {
-			free(ptr);
+		if (binCache_.getValue(npos, dp) ) {
+			izene_deserialization<ValueType> izd( (char*)dp->getData(), dp->getSize() );
+			izd.read_image(val);
+			return true;
 		} else {
-			delete ptr;
-			ptr = 0;
+			char* ptr;
+			size_t vsize = 0;
+
+			mms_->read(npos, &vsize, sizeof(size_t));
+			assert(vsize> 0);
+			ptr = new char[vsize];
+			mms_->read(npos+sizeof(size_t), ptr, vsize);
+
+			if (UseCompress) {
+				int vsz=0;
+				char *p =(char*)_tc_bzdecompress(ptr, vsize, &vsz);
+				vsize = vsz;
+				delete ptr;
+				ptr = p;
+			}
+
+			izene_deserialization<ValueType> izd(ptr, vsize);
+			izd.read_image(val);
+			
+			dp.reset(new DbObj(ptr, vsize) );
+			binCache_.insertValue(npos, dp);
+
+			if (UseCompress) {
+				free(ptr);
+			} else {
+				delete ptr;
+				ptr = 0;
+			}
+
 		}
+
 		return true;
 	}
 

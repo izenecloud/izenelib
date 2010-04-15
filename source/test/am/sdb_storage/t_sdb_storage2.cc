@@ -1,4 +1,4 @@
-#include <am/sdb_storage/sdb_storage_tt.h>
+#include <am/sdb_storage/sdb_storage_mm.h>
 #include <boost/test/unit_test.hpp>
 
 using namespace izenelib::am;
