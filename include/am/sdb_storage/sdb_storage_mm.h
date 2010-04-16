@@ -416,7 +416,7 @@ private:
 
 private:
 	LockType fileLock_;
-	izenelib::cache::ILRUCache<unsigned int, DbObjPtr> binCache_;
+	izenelib::cache::ILRUCache<unsigned int, DbObjPtr, ReadWriteLock> binCache_;
 	boost::shared_ptr<memory_map> mms_;
 
 private:
