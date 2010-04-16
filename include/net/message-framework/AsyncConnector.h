@@ -23,6 +23,7 @@ namespace messageframework
     class ConnectionFuture
     {
     public:
+    	ConnectionFuture(){}
         ConnectionFuture(std::string host, std::string port)
         : impl_(new ConnectionFutureImpl(host, port)) {}
         ConnectionFuture(const ConnectionFuture& cf)
@@ -70,6 +71,11 @@ namespace messageframework
                     return false;
             }
             return true;
+        }
+        void display(){
+        	cout<<"host_ "<<impl_->host_<<endl;
+        	cout<<"succ_ "<<impl_->succ_<<endl;
+        	cout<<"address_ :"<<impl_.get()<<endl;
         }
 
     private:
@@ -134,7 +140,8 @@ namespace messageframework
 
         std::list<boost::shared_ptr<tcp::acceptor> > acceptors_;
 
-        AsyncStreamManager& streamManager_;
+        AsyncStreamManager& streamManager_;   
+        
     };
 
     /**
@@ -151,7 +158,7 @@ namespace messageframework
           */
         AsyncConnector(boost::asio::io_service& ioservice,
             AsyncStreamManager& streamManager)
-        : io_service_(ioservice), streamManager_(streamManager) {}
+        : io_service_(ioservice), streamManager_(streamManager),once_(true) {}
 
         /**
           * @brief Default destructor
@@ -195,7 +202,10 @@ namespace messageframework
           */
         boost::asio::io_service& io_service_;
 
-        AsyncStreamManager& streamManager_;
+        AsyncStreamManager& streamManager_;   
+        
+        ConnectionFuture cf_;
+        bool once_;
     };
 
 
@@ -245,7 +255,8 @@ namespace messageframework
          * @brief timer which fires thread to check connection to
          * controller every few seconds.
          */
-		boost::asio::deadline_timer connect_check_handler_;
+		boost::asio::deadline_timer connect_check_handler_;	
+       
     };
 
 
