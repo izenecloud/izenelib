@@ -432,6 +432,7 @@ namespace irdb
             void addDocument(docid_t docId, IRDocument<DATA_VECTOR_TYPE>& irDocument)
             {
                 if(!isOpen()) return;
+                if(irDocument.termSize()==0) return;
                 irDocument.sortField();
                 iii::IndexerDocument* document = new iii::IndexerDocument;
                 document->setDocId(docId,C::kCollectionId());
@@ -497,6 +498,7 @@ namespace irdb
             void updateDocument(docid_t docId, IRDocument<DATA_VECTOR_TYPE>& irDocument)
             {
                 if(!isOpen()) return;
+                if(irDocument.termSize()==0) return;
                 irDocument.sortField();
                 iii::IndexerDocument* document = new iii::IndexerDocument;
                 document->setDocId(docId,C::kCollectionId());
@@ -897,6 +899,7 @@ namespace irdb
             void addDocument(docid_t docId, PureIRDocument& irDocument)
             {
                 if(!isOpen()) return;
+                if(irDocument.termSize()==0) return;
                 irDocument.sortField();
                 iii::IndexerDocument* document = new iii::IndexerDocument;
                 document->setDocId(docId,C::kCollectionId());
@@ -961,6 +964,7 @@ namespace irdb
             void updateDocument(docid_t docId, PureIRDocument& irDocument)
             {
                 if(!isOpen()) return;
+                if(irDocument.termSize()==0) return;
                 irDocument.sortField();
                 iii::IndexerDocument* document = new iii::IndexerDocument;
                 document->setDocId(docId,C::kCollectionId());
