@@ -392,7 +392,7 @@ void IndexMerger::mergeBarrel(MergeBarrel* pBarrel)
     ///sleep is necessary because if a query get termreader before this lock,
     ///the query has not been finished even the index file/term dictionary info has been changed
     ///500ms is used to let these queries finish their flow.
-    boost::thread::sleep(boost::get_system_time() + boost::posix_time::milliseconds(500));
+    boost::thread::sleep(boost::get_system_time() + boost::posix_time::milliseconds(5000));
     }
     ///TODO:UNLOCK
     if (pMergeBarrels_)
