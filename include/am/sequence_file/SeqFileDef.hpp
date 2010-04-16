@@ -276,6 +276,7 @@ public:
     }
     CharCacheItem<T>& operator=(const CharCacheItem<T>& rhs)
     {
+        if( rhs.data_ == data_ ) return *this;
         if( data_ != NULL && len_>0 )
         {
             free(data_);

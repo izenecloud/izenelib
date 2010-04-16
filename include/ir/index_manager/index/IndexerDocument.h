@@ -111,6 +111,7 @@ public:
         ar & propertyList_;
     }
 
+    bool empty() { return propertyList_.empty();}
 private:
 	friend class boost::serialization::access;
 	
