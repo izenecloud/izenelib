@@ -181,16 +181,16 @@ class SeqFileObjectCacheHandler
     {
         if( id == 0 ) return false;
         if( id > cacheSize_ ) return false;
-        if( id > cache_.capacity() )
+        if( id > cache_.size() )
         {
-            uint32_t need = id - cache_.capacity();
+            uint32_t need = id - cache_.size();
             uint32_t bucketNum = ( need )/bucketSize_;
             if( need%bucketSize_ != 0 )
             {
                 ++bucketNum;
             }
             boost::lock_guard<boost::shared_mutex> mLock(mutex_);
-            cache_.resize( cache_.capacity()+bucketNum*bucketSize_ );
+            cache_.resize( cache_.size()+bucketNum*bucketSize_ );
             
         }
         cache_[id-1] = data;
@@ -321,16 +321,16 @@ class SeqFileCharCacheHandler
     {
         if( id == 0 ) return false;
         if( id > cacheSize_ ) return false;
-        if( id > cache_.capacity() )
+        if( id > cache_.size() )
         {
-            uint32_t need = id - cache_.capacity();
+            uint32_t need = id - cache_.size();
             uint32_t bucketNum = ( need )/bucketSize_;
             if( need%bucketSize_ != 0 )
             {
                 ++bucketNum;
             }
             boost::unique_lock<boost::shared_mutex> mLock(mutex_);
-            cache_.resize( cache_.capacity()+bucketNum*bucketSize_ );
+            cache_.resize( cache_.size()+bucketNum*bucketSize_ );
             
         }
 
