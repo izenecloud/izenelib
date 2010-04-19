@@ -116,7 +116,7 @@ struct mm_header {
  */
 
 template< typename KeyType, typename ValueType, typename LockType =NullLock,
-		typename AmType=sdb_hash<KeyType, unsigned int, LockType>,
+		typename AmType=sdb_btree<KeyType, unsigned int, LockType>,
 		bool UseCompress = true > class sdb_storage_mm :
 	public AccessMethod<KeyType, ValueType, LockType> {
 public:
@@ -476,33 +476,45 @@ private:
 
 		DbObjPtr dp;
 
-		if (binCache_.getValue(npos, dp) ) {
-			izene_deserialization<ValueType> izd( (char*)dp->getData(), dp->getSize() );
-			izd.read_image(val);
-			return true;
-		} else {
+//		if (binCache_.getValue(npos, dp) ) {
+//			izene_deserialization<ValueType> izd( (char*)dp->getData(), dp->getSize() );
+//			izd.read_image(val);
+//			return true;
+//		} else 
+		{
+			
 			char* ptr;
 			size_t vsize = 0;
-
-			mms_->read(npos, &vsize, sizeof(size_t));
-			assert(vsize> 0);
-			ptr = new char[vsize];
-			mms_->read(npos+sizeof(size_t), ptr, vsize);
+			DbObjPtr dp;
+			bool cached = false;
+			
+			if (binCache_.getValue(npos, dp) ) {				
+				vsize = dp->getSize();	
+				//ptr = new char[vsize];
+				//mempcpy(ptr, dp->getData(), vsize);
+				ptr = (char*)dp->getData();
+				cached = true;
+			}else{
+				mms_->read(npos, &vsize, sizeof(size_t));
+				assert(vsize> 0);
+				ptr = new char[vsize];
+				mms_->read(npos+sizeof(size_t), ptr, vsize);
+				dp.reset(new DbObj(ptr, vsize) );
+				binCache_.insertValue(npos, dp);
+			}
 
 			if (UseCompress) {
 				int vsz=0;
 				char *p =(char*)_tc_bzdecompress(ptr, vsize, &vsz);
 				vsize = vsz;
-				delete ptr;
+				if( !cached )
+					delete ptr;
 				ptr = p;
 			}
 
 			izene_deserialization<ValueType> izd(ptr, vsize);
 			izd.read_image(val);
 			
-			dp.reset(new DbObj(ptr, vsize) );
-			binCache_.insertValue(npos, dp);
-
 			if (UseCompress) {
 				free(ptr);
 			} else {
