@@ -510,6 +510,11 @@ public:
 	void setFileName(const std::string& fileName) {
 		container_.setFileName(fileName);
 	}
+	
+	bool is_open(){
+		return container_.is_open();
+	}
+
 
 private:
 	std::string sdbname_;

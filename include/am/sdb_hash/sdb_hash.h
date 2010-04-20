@@ -907,8 +907,7 @@ public:
 			//initialization
 			memset(bucketAddr, 0, sizeof(long)*directorySize_);
 			memset(entry_ , 0, sizeof(bucket_chain*)*directorySize_);
-
-			sfh_.toFile(dataFile_);
+			commit();
 			ret = true;
 		} else {
 			if ( !sfh_.fromFile(dataFile_) ) {
