@@ -10,6 +10,7 @@ FSIndexInput::FSIndexInput(const char* filename)
     if (fileHandle_ == NULL)
     {
         perror("error when opening file");
+        perror(filename);
         string sFileName = filename;
         SF1V5_THROW(ERROR_FILEIO,"Open file error: " + sFileName);
     }

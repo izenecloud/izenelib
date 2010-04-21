@@ -265,7 +265,7 @@ template< typename KeyType =string, typename ValueType=NullType,
 		typename LockType =NullLock > class ILRUCache :
 	public IzeneCache<KeyType, ValueType, LockType, RDE_HASH, LRU> {
 public:
-	ILRUCache(size_t cacheSize) :
+	ILRUCache(size_t cacheSize=1000) :
 		IzeneCache<KeyType, ValueType, LockType, RDE_HASH, LRU >(cacheSize) {
 
 	}
@@ -275,7 +275,7 @@ template< typename KeyType =string, typename ValueType=NullType,
 		typename LockType =NullLock > class ILFUCache :
 	public IzeneCache<KeyType, ValueType, LockType, RDE_HASH, LFU> {
 public:
-	ILFUCache(size_t cacheSize) :
+	ILFUCache(size_t cacheSize=1000) :
 		IzeneCache<KeyType, ValueType, LockType, RDE_HASH, LFU >(cacheSize) {
 
 	}

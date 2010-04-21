@@ -43,8 +43,7 @@ namespace messageframework
 	{
 		if (!error)
 		{
-			DLOG(INFO) << "Accept new connection";
-
+			DLOG(INFO) << "Accept new connection";            
             streamManager_.addStream(sock);
 			boost::shared_ptr<tcp::socket> new_sock(new tcp::socket(io_service_));
 			acceptor->async_accept(*new_sock, boost::bind(&AsyncAcceptor::handle_accept, this,
@@ -64,11 +63,21 @@ namespace messageframework
 		tcp::endpoint endpoint = *endpoint_iterator;
 
 		DLOG(INFO) << "Connect to " << host << ":" << port;
+		
+		if( once_ ){
+			cf_ = connectionFuture;
+			once_ = false;
+		//	cf_.display();
+		}
+		
 
 		boost::shared_ptr<tcp::socket> sock(new tcp::socket(io_service_));
 		sock->async_connect(endpoint, boost::bind(&AsyncConnector::handle_connect,
             this, sock, ++endpoint_iterator, connectionFuture,
-                boost::asio::placeholders::error));
+                boost::asio::placeholders::error));		
+		
+		
+		//connectionFuture.display()<<endl;
         return connectionFuture;
 	}
 
@@ -80,6 +89,8 @@ namespace messageframework
 		{
 			DLOG(INFO) << "Connection is established";
 			connectionFuture.setStatus(true, true);
+			cf_.setStatus(true, true);
+			//cf_.display();
 			streamManager_.addStream(sock);
 		}
 		else if (endpoint_iterator != tcp::resolver::iterator())
@@ -105,7 +116,8 @@ namespace messageframework
             boost::posix_time::seconds(check_interval_));
         connect_check_handler_.async_wait(boost::bind(
             &AsyncControllerConnector::controllerConnectionCheckHandler,
-                this, check_interval_, cf, boost::asio::placeholders::error) );
+                this, check_interval_, cf, boost::asio::placeholders::error) );        
+        //cf_ = cf;
         return cf;
 	}
 

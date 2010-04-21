@@ -147,6 +147,11 @@ namespace irdb
                 std::sort(terms_.begin(),terms_.end());
             }
             
+            uint32_t termSize() const
+            {
+                return terms_.size();
+            }
+            
         private:
             
             std::vector<IRTerm > terms_;
@@ -200,6 +205,11 @@ namespace irdb
             void sortField()
             {
                 std::sort(terms_.begin(),terms_.end());
+            }
+            
+            uint32_t termSize() const
+            {
+                return terms_.size();
             }
             
         private:
