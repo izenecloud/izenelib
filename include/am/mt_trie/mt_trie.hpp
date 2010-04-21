@@ -70,6 +70,7 @@ public:
 
     void open()
     {
+        remove( writeCachePath_.c_str() );
         writeCache_.open(writeCachePath_.c_str(), std::ofstream::out|
             std::ofstream::binary | std::ofstream::app );
         if(writeCache_.fail())
