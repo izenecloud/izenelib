@@ -199,7 +199,7 @@ public:
         for(int i=0; i<maximumResultNumber; i++) {
             if(l1Count.size() == 0) break;
             int max = 0; int maxIndex = 0;
-            for(int j=0; j<l1Count.size(); j++) {
+            for(size_t j=0; j<l1Count.size(); j++) {
                 if( l1Count[j] > max ) {
                     max = l1Count[j];
                     maxIndex = j;
@@ -217,7 +217,7 @@ public:
             for(typename std::vector<StringType>::iterator it = l2SearchResult.begin(); it!=l2SearchResult.end(); it++ ) {
                 if( std::find(keyList.begin(), keyList.end(), *it) == keyList.end() ) {
                     keyList.push_back(*it);
-                    if(keyList.size() == maximumResultNumber) break;
+                    if(keyList.size() == (unsigned)maximumResultNumber) break;
                 }
             }
         }
