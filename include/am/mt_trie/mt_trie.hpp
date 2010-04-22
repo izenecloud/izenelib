@@ -211,7 +211,7 @@ public:
             l1SearchResult.erase(l1SearchResult.begin()+maxIndex);
         }
 
-        if(keyList.size() < maximumResultNumber) {
+        if(keyList.size() < (unsigned)maximumResultNumber) {
             std::vector<StringType> l2SearchResult;
             trie_.findRegExp(regexp, l2SearchResult, maximumResultNumber);
             for(typename std::vector<StringType>::iterator it = l2SearchResult.begin(); it!=l2SearchResult.end(); it++ ) {
