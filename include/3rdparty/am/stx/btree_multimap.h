@@ -25,7 +25,7 @@
 #ifndef _STX_BTREE_MULTIMAP_H_
 #define _STX_BTREE_MULTIMAP_H_
 
-#include <stx/btree.h>
+#include "btree.h"
 
 namespace stx {
 
