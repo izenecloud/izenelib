@@ -358,13 +358,15 @@ typedef _IDManager<wiselib::UString, uint64_t,
  * uique for different terms, besides it doesn't need generate doc id.
  * Besides, IClassifier requires multi-threads protection.
  */
-typedef _IDManager<wiselib::UString, uint32_t,
-                   izenelib::util::NullLock,
-                   EmptyWildcardQueryHandler<wiselib::UString, uint32_t>,
-                   UniqueIDGenerator<wiselib::UString, uint32_t, izenelib::util::ReadWriteLock>,
-                   HDBIDStorage<wiselib::UString, uint32_t, izenelib::util::ReadWriteLock>,
-                   EmptyIDGenerator<wiselib::UString, uint32_t>,
-                   EmptyIDStorage<wiselib::UString, uint32_t> > IDManagerIClassifier;
+//typedef _IDManager<wiselib::UString, uint32_t,
+//                   izenelib::util::NullLock,
+//                   EmptyWildcardQueryHandler<wiselib::UString, uint32_t>,
+//                   UniqueIDGenerator<wiselib::UString, uint32_t, izenelib::util::ReadWriteLock>,
+//                   HDBIDStorage<wiselib::UString, uint32_t, izenelib::util::ReadWriteLock>,
+//                   EmptyIDGenerator<wiselib::UString, uint32_t>,
+//                   EmptyIDStorage<wiselib::UString, uint32_t> > IDManagerIClassifier;
+
+typedef IDManagerRelease32 IDManagerIClassifier;
 
 /**
  * This version of IDManager is provided for MIA, which only wants TermID genrated by
