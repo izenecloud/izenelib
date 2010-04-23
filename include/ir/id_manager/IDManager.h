@@ -366,7 +366,13 @@ typedef _IDManager<wiselib::UString, uint64_t,
 //                   EmptyIDGenerator<wiselib::UString, uint32_t>,
 //                   EmptyIDStorage<wiselib::UString, uint32_t> > IDManagerIClassifier;
 
-typedef IDManagerRelease32 IDManagerIClassifier;
+typedef _IDManager<wiselib::UString, uint32_t,
+                   izenelib::util::ReadWriteLock,
+                   EmptyWildcardQueryHandler<wiselib::UString, uint32_t>,
+                   HashIDGenerator<wiselib::UString, uint32_t>,
+                   EmptyIDStorage<wiselib::UString, uint32_t>,
+                   EmptyIDGenerator<wiselib::UString, uint32_t>,
+                   EmptyIDStorage<wiselib::UString, uint32_t> > IDManagerIClassifier;
 
 /**
  * This version of IDManager is provided for MIA, which only wants TermID genrated by
