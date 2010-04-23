@@ -13,6 +13,7 @@
 #define _MESSAGE_FRAMEWORK_H_
 
 #include <util/izene_log.h>
+#include "RestrictMacro.h"
 
 //---------------  IF USING MESSAGE FRAMEWORK FULL  -----------------
 #ifdef USE_MF_LIGHT
