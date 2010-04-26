@@ -26,9 +26,7 @@ namespace indexmanager {
      * @param colID ignored
      */
     TermReader* MockIndexReaderWriter::getTermReader(collectionid_t colID) {
-        if(reader_ == NULL)
-            reader_ = new MockTermReader(this);
-        return (TermReader*)reader_;
+        return (TermReader*) new MockTermReader(this);
     }
 
 //    /// Not Implemented yet
