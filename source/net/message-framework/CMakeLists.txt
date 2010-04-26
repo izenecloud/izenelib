@@ -18,15 +18,19 @@ IF(message_framework_SHOULD_BUILD)
     ${wiselib_INCLUDE_DIRS}
     ${Glog_INCLUDE_DIRS}
     )
+    
+  IF(NOT USE_MF_LIGHT)  
 
-  SET(message_framework_SRC
+   SET(message_framework_SRC 
+
     AsyncConnector.cpp
     AsyncStream.cpp
     MessageAgentFull.cpp
     MessageClientFull.cpp
     MessageControllerFull.cpp
     MessageServerFull.cpp
-    MessageDispatcher.cpp
+    MessageDispatcher.cpp 
+    
     MessageFrameworkException.cpp
     MessageFrameworkNode.cpp
     ServiceInfo.cpp
@@ -40,6 +44,26 @@ IF(message_framework_SHOULD_BUILD)
     MessageControllerLight.cpp
     MessageAgentLight.cpp
     )
+    
+  ELSE(NOT USE_MF_LIGHT)    
+
+   SET(message_framework_SRC 
+  
+    MessageFrameworkException.cpp
+    MessageFrameworkNode.cpp
+    ServiceInfo.cpp
+    ServicePermissionInfo.cpp
+    ServiceRegistrationMessage.cpp
+    ThreadPool.cpp
+    #MFClient.cpp
+    
+    MessageServerLight.cpp
+    MessageClientLight.cpp
+    MessageControllerLight.cpp
+    MessageAgentLight.cpp 
+    )  
+
+  ENDIF(NOT USE_MF_LIGHT)    
 
   ADD_LIBRARY(message_framework ${message_framework_SRC})
   #INSTALL(TARGETS message_framework DESTINATION lib)
