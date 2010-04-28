@@ -8,7 +8,11 @@
 //  http://www.boost.org/LICENSE_1_0.txt)
 
 #include <string.h>
+#if BOOST_VERSION > 103800
+#include <boost/smart_ptr/detail/spinlock_pool.hpp>
+#else
 #include <boost/detail/spinlock_pool.hpp>
+#endif
 
 namespace boost {
 namespace detail {
