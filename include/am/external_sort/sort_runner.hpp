@@ -202,7 +202,7 @@ typedef SortRunner<KEY_TYPE, LEN_TYPE, COMPARE_ALL> self_t;
 
     run_num_ = 0;
     uint64_t pos = sizeof(uint64_t);
-    std::cout<<std::endl;
+    //std::cout<<std::endl;
     while(pos < FILE_LEN)
     {
       std::cout<<"\rA runner is processing "<<pos*1./FILE_LEN<<std::flush;
@@ -242,7 +242,7 @@ typedef SortRunner<KEY_TYPE, LEN_TYPE, COMPARE_ALL> self_t;
       IASSERT(pre_buf_size_ <= RUN_BUF_SIZE_);
       pre_buf_con_.notify_one();
     }
-    std::cout<<"Prefetching is over...\n";
+    //std::cout<<"Prefetching is over...\n";
   }
 
   void sort_()
@@ -295,7 +295,7 @@ typedef SortRunner<KEY_TYPE, LEN_TYPE, COMPARE_ALL> self_t;
       out_buf_con_.notify_one();
     }
 
-    std::cout<<"Sorting is over...\n";
+    //std::cout<<"Sorting is over...\n";
   }
 
   void output_(FILE* f)
@@ -317,7 +317,7 @@ typedef SortRunner<KEY_TYPE, LEN_TYPE, COMPARE_ALL> self_t;
       out_buf_con_.notify_one();
     }
 
-    std::cout<<"Outputting is over...\n";
+    //std::cout<<"Outputting is over...\n";
   }
 
   bool t_check_sort_()
@@ -401,8 +401,8 @@ public:
       boost::filesystem::rename(filenm_+".out", filenm_);
 
     gettimeofday (&tvafter , &tz);
-    std::cout<<"A run is over("<<count_
-             <<"): "<<((tvafter.tv_sec-tvpre.tv_sec)*1000+(tvafter.tv_usec-tvpre.tv_usec)/1000.)/60000<<" min\n";
+    //std::cout<<"A run is over("<<count_
+           //  <<"): "<<((tvafter.tv_sec-tvpre.tv_sec)*1000+(tvafter.tv_usec-tvpre.tv_usec)/1000.)/60000<<" min\n";
   }
 
   uint32_t run_num()const

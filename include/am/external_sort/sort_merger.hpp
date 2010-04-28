@@ -297,7 +297,7 @@ typedef SortMerger<KEY_TYPE, LEN_TYPE, COMPARE_ALL> self_t;
       //if size_run_[i]>PRE_BUF_SIZE_, it needs to the end of a run and turn to the next run
       fseek(f, size_run_[i]-s, SEEK_CUR);
     }
-    std::cout<<"Run number: "<<group_size_<<std::endl;
+    //std::cout<<"Run number: "<<group_size_<<std::endl;
     
     //initialize predict heap and records number of every microrun
     for (uint32_t i = 0; i<group_size_; ++i)
@@ -390,7 +390,7 @@ typedef SortMerger<KEY_TYPE, LEN_TYPE, COMPARE_ALL> self_t;
       pre_buf_con_.notify_one();
     }
 
-    std::cout<<"\nPredicting is over...\n";
+    //std::cout<<"\nPredicting is over...\n";
   }
 
   void merge_()
@@ -467,7 +467,7 @@ typedef SortMerger<KEY_TYPE, LEN_TYPE, COMPARE_ALL> self_t;
     }
     
 
-    std::cout<<"\nMerging is over...\n";
+    //std::cout<<"\nMerging is over...\n";
   }
 
   void output_(FILE* f, uint32_t idx)
@@ -507,7 +507,7 @@ typedef SortMerger<KEY_TYPE, LEN_TYPE, COMPARE_ALL> self_t;
       in_out_con_[idx].notify_one();
     }
 
-    std::cout<<"\nOutputting is over...\n";
+    //std::cout<<"\nOutputting is over...\n";
   }
 
   bool t_check_sort_()
@@ -611,8 +611,8 @@ public:
     fclose(out_f);
 
     gettimeofday (&tvafter , &tz);
-    std::cout<<"\nMerging is done("<<count_
-             <<"): "<<((tvafter.tv_sec-tvpre.tv_sec)*1000+(tvafter.tv_usec-tvpre.tv_usec)/1000.)/60000<<" min\n";
+    //std::cout<<"\nMerging is done("<<count_
+            // <<"): "<<((tvafter.tv_sec-tvpre.tv_sec)*1000+(tvafter.tv_usec-tvpre.tv_usec)/1000.)/60000<<" min\n";
     
     if (boost::filesystem::exists(filenm_))
       boost::filesystem::remove(filenm_);
