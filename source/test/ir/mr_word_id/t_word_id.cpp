@@ -797,13 +797,13 @@ int main()
 
 //   mister_wordID_check();
 
-//   bigram_freq_check();
+   bigram_freq_check();
 
 //   id_table_check();
 
 //   str_str_table_check();
 
-  bigram_freqency();
+//  bigram_freqency();
   
   //std::system("rm -f ./tt*");
 }

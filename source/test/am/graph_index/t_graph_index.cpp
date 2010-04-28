@@ -27,6 +27,7 @@
 /// \n
 /// -# Tested all the interfaces by using correct and incorrect test sets.
 //#include <util/log.h
+
 #include <am/graph_index/dyn_array.hpp>
 #include <am/graph_index/integer_hash.hpp>
 #include <am/graph_index/id_transfer.hpp>
@@ -248,6 +249,21 @@ void dyn_array_check(const VALUE_TYPE& t = VALUE_TYPE())
 
     FILE* f = fopen("./tt", "r");
     array.load(f);
+    fclose(f);
+
+    CHECK(array == v);
+
+    f = fopen("./tt", "w+");
+    array.compressed_save(f);
+    fclose(f);
+  }  
+
+  {
+    Array array;
+    array = v;
+
+    FILE* f = fopen("./tt", "r");
+    array.compressed_load(f);
     fclose(f);
 
     CHECK(array == v);
@@ -682,6 +698,7 @@ void graph_check()
     graph.get_doc_list(suffix, suffix);
   }
 
+  std::cout<<"kkkkkkkkkkkkkkkkkkkkkkk\n";
   system("rm -fr ./tt*");
   {
     ofstream of("./of");
@@ -691,7 +708,7 @@ void graph_check()
     struct timeval tvafter,tvpre;
     struct timezone tz;
   
-    const uint32_t SIZE = 5000;
+    const uint32_t SIZE = 500000;
     const uint32_t snip_len = 10;
     vector<vector<uint32_t> > vs;
     
@@ -722,7 +739,6 @@ void graph_check()
         cout<<"[ERROR]: "<<arr<<endl;
       }
   }
-
   
   system("rm -fr ./tt*");
   construct_trie("./tt", 1000);
@@ -1025,7 +1041,7 @@ int main()
 
   //graph_merge_check();
   
-   graph_check();
+   //graph_check();
 }
 
  

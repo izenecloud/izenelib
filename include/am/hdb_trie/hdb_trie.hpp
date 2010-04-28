@@ -99,7 +99,7 @@ public:
     typedef typename CommonType::DataTableKeyType DataTableKeyType;
     typedef typename CommonType::DataTableValueType DataTableValueType;
 
-    typedef izenelib::hdb::ordered_hdb_fixed_no_delta<
+    typedef izenelib::hdb::ordered_hdb_no_delta<
         DataTableKeyType,
         DataTableValueType,
         LockType> DBType;

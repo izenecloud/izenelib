@@ -46,8 +46,8 @@ namespace messageframework
 	 * result from MessageServer or from MessageController. A Manager that needs
 	 * result of other Managers in different process should use the MessageClientFull.
 	 */
-	class MessageClientFull : protected ServiceResultRequester, protected PermissionRequester,
-		protected ClientIdRequester, protected AsyncStreamFactory
+	class MessageClientFull : protected ServiceResultRequester,
+        protected PermissionRequester, protected ClientIdRequester
 	{
 	public:
 		/**
@@ -67,18 +67,6 @@ namespace messageframework
 		~MessageClientFull();
 
 		/**
-		 * @brief This function gets an ID from MessageController. This ID
-		 * will be used combined with a sequential number to generate requestIds.
-		 * @param
-		 * clientId - controller assigned ID
-		 * @return
-		 * true - ID is got successfully
-		 * @return
-		 * false - MessageController is busy.
-		 */
-		//bool getClientId(int& clientId);	   
-
-		/**
 		 * @brief This function gets a permission of the given service from
 		 * MessageController. If MessageController is busy,
 		 * this function returns false immediately. Then, the MessageClientFull
@@ -93,17 +81,10 @@ namespace messageframework
 		 * @return
 		 * false - the MessageController is busy
 		 */
-		
-		//bool getPermissionOfService(const std::string& serviceName,
-		//					ServicePermissionInfo& servicePermissionInfo);
-		
-		bool getHostsOfService(const std::string& serviceName,
-				std::map<std::string, MessageFrameworkNode>& servers);
-		
-		
-		void flushPermissionCache(const std::string& serviceName);
-			
-		
+
+		bool getPermissionOfService(const std::string& serviceName,
+							std::map<std::string, MessageFrameworkNode>& servers);
+
 		/**
 		 * @brief This function puts the request of the manager to the MessageClientFull.
 		 * The MessageClientFull will sends the request to either MessageController or
@@ -118,21 +99,6 @@ namespace messageframework
 		 */
 		bool putServiceRequest(const MessageFrameworkNode& server,
 							ServiceRequestInfoPtr& serviceRequestInfo, bool withResult = true);
-
-		/**
-		 * @brief This function puts a set of requests of the same manager to the
-		 * MessageClientFull. The MessageClientFull will sends the request to either
-		 * MessageController or MessageServerFull.
-		 * @param
-		 * servicePermissionInfo - it contains information of service name and the server
-		 * @param
-		 * serviceRequestInfos - a set of information about request services, each contains
-		 * the service name and its parameter values.
-		 * @return
-		 * true - if the receiver successfully receives these requests
-		 */
-		bool putServiceRequest(const MessageFrameworkNode& server,
-							std::vector<ServiceRequestInfoPtr>& serviceRequestInfos, bool withResult = true);
 
 		/**
 		 * @brief This function gets a result of the service that have been requested.
@@ -150,94 +116,13 @@ namespace messageframework
 		bool getResultOfService(const ServiceRequestInfoPtr& serviceRequestInfo,
 						ServiceResultPtr& serviceResult);
 
-		/**
-		 * @brief This function gets a set of results of the service
-		 * that have been requested. The service is requested through function
-		 * putServiceRequest(..) When the result is not ready, it returns false immediately.
-		 * @param
-		 * serviceRequestInfos - a set of service request informations
-		 * @param
-		 * serviceResults - a set of service results
-		 * @return
-		 * true - Result is ready.
-		 * @return
-		 * false - result is not ready.
-		 */
-		bool getResultOfService(const std::vector<ServiceRequestInfoPtr> & serviceRequestInfo,
-						std::vector<ServiceResultPtr> & serviceResults);
-
-		/** @brief for profiling - Wei Cao */
-		inline MessageDispatcher& getMessageDispatcher()
-		{
-			return messageDispatcher_;
-		}
-
-		/** Set number of requests be processed at a time **/
-		inline int getBatchProcessedRequestNumber()
-		{
-			return batchProcessedRequestNumber_;
-		}
-
-		/** Get number of requests be processed at a time **/
-		inline void setBatchProcessedRequestNumber( int batchProcessedRequestNumber )
-		{
-			batchProcessedRequestNumber_ = batchProcessedRequestNumber;
-		}
-
 	protected:
 
 		/*** Interfaces of ServiceResultRequester ***/
 
-		/**
-		 * @brief This function sends request to the ServiceResultServer
-		 * @param
-		 * requestId - the id of service request
-		 * @param
-		 * serviceName - the service name
-		 * @param
-		 * data - the data of the service request
-		 * @param
-		 * server - the server that will receive data
-		 */
-		/*void sendServiceRequest(unsigned requestId,
-				const std::string& serviceName,
-				const std::vector<boost::shared_ptr<VariantType> >& data, const MessageFrameworkNode& server) ;*/
-
-
-		/**
-		 * @brief This function put the result of a serivce. The service result
-		 * has been requested before.
-		 * @param
-		 * requestId - id of the request
-		 * @param
-		 * serviceName - the name of service
-		 * @param
-		 * data - result of the service
-		 */
-	/*	void receiveResultOfService(unsigned int requestId,
-						const std::string& serviceName,
-						const std::vector<boost::shared_ptr<VariantType> >& data);*/
-
-
 		void sendServiceRequest(const ServiceRequestInfoPtr& requestInfo, const MessageFrameworkNode& server) ;
 
-
 		void receiveResultOfService(const ServiceResultPtr& result);
-
-		/*** End of Interfaces of ServiceResultRequester ***/
-
-		/*** Interfaces of ClientIdRequester ***/
-		/**
-		 * @brief This function sends a request to get client id
-		 */
-		//void sendClientIdRequest();
-
-		/**
-		 * @brief This function saves client id
-		 * @param
-		 * clientId - controller assigned client id
-		 */
-		//void receiveClientIdResult(const int& clientId);
 
 		/*** End of Interfaces of ServiceResultRequester ***/
 
@@ -255,10 +140,8 @@ namespace messageframework
  		 * servicePermissionInfo - the information of the PermissionOfService
  		 */
 		void receivePermissionOfServiceResult(
-							const  ServicePermissionInfo& servicePermissionInfo);
+                const  ServicePermissionInfo& servicePermissionInfo);
 		/*** End of Interfaces of PermissionRequester ***/
-
-		const std::string& getName(){return ownerManager_;}
 
 		/**
 		 * @brief This function generate request id
@@ -275,6 +158,8 @@ namespace messageframework
 		 */
 		bool prepareConnection(const MessageFrameworkNode& node);
 
+		inline const std::string& getName(){return ownerManager_;}
+
 		/**
  	     * @brief This function create a new AsyncStream that is based on tcp::socket
  		 */
@@ -283,9 +168,8 @@ namespace messageframework
 		friend class AsyncConnector;
 
 	private:
-		bool checkAgentInfo_(ServicePermissionInfo& permissionInfo);
 		bool checkPermissionInfo_(ServicePermissionInfo& permissionInfo);
-		
+
 		/**
 		 * @brief The request list, it contains the result of the service if the result
 		 * has come
@@ -354,10 +238,6 @@ namespace messageframework
 		int nxtSequentialNumber_;
 		boost::mutex nxtSequentialNumberMutex_;
 
-		// information of the server of ServicePermision
-		MessageFrameworkNode servicePermisionServer_;
-
-
 		/**
  		 * @brief This variables receives data from peer and sends data to the peer
  		 */
@@ -375,9 +255,19 @@ namespace messageframework
 		boost::asio::io_service io_service_;
 
 		/**
+		 * @brief manage all connections
+		 */
+		AsyncStreamManager asyncStreamManager_;
+
+		/**
  		 * @brief connector to connect to controller
  		 */
 		AsyncConnector asyncConnector_;
+
+        /**
+         * @brief connector to controller
+         */
+		AsyncControllerConnector asyncControllerConnector_;
 
 		/**
  		 * @brief thread for I/O operations
@@ -385,31 +275,10 @@ namespace messageframework
 		boost::thread* ioThread_;
 
 		/**
-		 * @brief number of requests be processed at a time
-		 */
-		int batchProcessedRequestNumber_;
-
-		/**
  		 * @brief the controller node
  		 */
 		MessageFrameworkNode controllerNode_;
-		bool connectionToControllerEstablished_;
-		boost::mutex connectionToControllerEstablishedMutex_;
-		boost::condition_variable connectionToControllerEvent_;
-
-		bool connectionToServerEstablished_;
-		boost::mutex connectionToServerEstablishedMutex_;
-		boost::condition_variable connectedToServerEvent_;
-
-		// time for context switching
-		clock_t contextSwitchTick1, contextSwitchTick2;
-		struct timeval contextSwitchVal1, contextSwitchVal2;
-
-		// time for waiting data from socket
-		clock_t socketDataWaitingTick1, socketDataWaitingTick2;
-		struct timeval socketDataWaitingVal1, socketDataWaitingVal2;
 	};
- // typedef boost::shard_ptr<MessageClientFull> MessageClientFullPtr;
 
 }// end of namespace messageframework
 #endif  //#if !defined(_MESSAGECLIENT_FULL_H)

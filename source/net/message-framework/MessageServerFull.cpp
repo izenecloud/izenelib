@@ -33,51 +33,35 @@ MessageServerFull::MessageServerFull(const std::string& serverName,
     :   ownerManager_(serverName),
         timeOutMilliSecond_(TIME_OUT_IN_MILISECOND),
         messageDispatcher_(this, this),
-        connector_(this, io_service_),
-        connectionEstablished_(false)
+        asyncStreamManager_(messageDispatcher_),
+        connector_(io_service_, asyncStreamManager_),
+        acceptor_(io_service_, asyncStreamManager_),
+        controllerConnector_(io_service_, asyncStreamManager_, 1)
 {
 	server_.nodeIP_ = getLocalHostIp(io_service_);
 	server_.nodePort_ = serverPort;
-	connector_.listen(serverPort);
+	acceptor_.listen(serverPort);
 
 	controllerNode_.nodeIP_ = getHostIp(io_service_, controllerInfo.nodeIP_);
 	controllerNode_.nodePort_ = controllerInfo.nodePort_;
 	controllerNode_.nodeName_ = controllerInfo.nodeName_;
 
-	connector_.connect(controllerInfo.nodeIP_, controllerInfo.nodePort_);
+	ConnectionFuture cf = controllerConnector_.connect(controllerNode_);
 
 	// create new thread for I/O operations
 	ioThread_ = new boost::thread(boost::bind(&boost::asio::io_service::run, &io_service_));
 
-	// Added by Wei Cao, 2009-02-20
-	// To slove the problem of service registration timeout.
-	// waiting until connection to controller is established.
-	boost::system_time const timeout = boost::get_system_time()
-			+ boost::posix_time::milliseconds(timeOutMilliSecond_);
-	boost::mutex::scoped_lock connectionEstablishedLock(
-			connectionEstablishedMutex_);
-	try {
-		while (!connectionEstablished_) {
-			DLOG(WARNING)<<"Fail connecting to controller, try again ...";
-			connector_.connect(controllerInfo.nodeIP_, controllerInfo.nodePort_);
-			if (!connectionEstablishedEvent_.timed_wait(connectionEstablishedLock, timeout))
-				throw MessageFrameworkException(SF1_MSGFRK_CONNECTION_TIMEOUT, __LINE__, __FILE__);
-		}
-	}
-	catch(MessageFrameworkException &e) {
-        DLOG(ERROR)<<"Catch an exception while connectting to controller : ";
-		e.output(DLOG(ERROR));
-		exit(1);
-	}
-
-	// connect to controller successfully now
+	while(!cf.isSucc() )
+	    cf.wait();
 }
 
 /******************************************************************************
  Description: Destroy communication resources.
  ******************************************************************************/
 MessageServerFull::~MessageServerFull() {
-	connector_.shutdown();
+    asyncStreamManager_.shutdown();
+	acceptor_.shutdown();
+    controllerConnector_.stop();
 	ioThread_->join();
 	delete ioThread_;
 }
@@ -86,10 +70,6 @@ bool MessageServerFull::registerService(const ServiceInfo & serviceInfo) {
 	try
 	{
 		std::map<std::string, ServiceInfo>::iterator it;
-
-		// connection has not been established
-		if(!connectionEstablished_)
-		return false;
 
 		// Check if the service has been registered
 		std::string serviceName = serviceInfo.getServiceName();
@@ -146,7 +126,7 @@ bool MessageServerFull::registerService(const ServiceInfo & serviceInfo) {
 	}
 	catch(MessageFrameworkException& e)
 	{
-		e.output(DLOG(ERROR));
+        DLOG(ERROR) << e.getString();
 	}
 	catch(boost::system::error_code& e)
 	{
@@ -174,9 +154,6 @@ bool MessageServerFull::getServiceRequestList(
 	{
 		if(requestList.size()> 0)
 		requestList.clear();
-		// connection has not been established
-		if(!connectionEstablished_)
-		return false;
 
 		/* >>>>>>>>>>>
 		 * TODO: NEED TO DECIDE WHETHER THERE SHOULD BE A TIMEOUT FOR THE RESULT    @by MyungHyun - 2009-01-29
@@ -190,9 +167,7 @@ bool MessageServerFull::getServiceRequestList(
 		boost::mutex::scoped_lock requestQueueLock(requestQueueMutex_);
 		while( requestQueue_.empty() )
 		newRequestEvent_.wait(requestQueueLock);
-		//newRequestEvent_.timed_wait(requestQueueLock, timeout);
-		//<<<<<<<<<<<<<<
-
+	
 		while(!requestQueue_.empty())
 		{
 			requestList.push_back(requestQueue_.front() );
@@ -229,10 +204,6 @@ bool MessageServerFull::putResultOfService(
 	DLOG(INFO) << "[Server: " << getName() << "] start to send result of "
 			<< serviceRequestInfo->getServiceName();
 
-	// connection has not been established
-	if (!connectionEstablished_)
-		return false;
-
 	sendResultOfService(serviceRequestInfo->getRequester(), result);
 
 	DLOG(INFO) << "[Server: " << getName()
@@ -247,9 +218,6 @@ bool MessageServerFull::putResultOfService(const ServiceResultPtr& result) {
 	DLOG(INFO) << "[Server: " << getName() << "] start to send result of "
 			<< result->getServiceName();
 
-	// connection has not been established
-	if (!connectionEstablished_)
-		return false;
 	sendResultOfService(result->getRequester(), result);
 	return true;
 }
@@ -357,27 +325,6 @@ void MessageServerFull::receiveServiceRegistrationReply(
 	{
 		std::cerr << "Exception: " << e.what() << std::endl;
 	}
-}
-
-/**
- * @brief This function create a new AsyncStream that is based on tcp::socket
- */
-AsyncStream* MessageServerFull::createAsyncStream(
-		boost::shared_ptr<tcp::socket> sock) {
-	tcp::endpoint endpoint = sock->remote_endpoint();
-
-	DLOG(INFO) << "Remote IP = " << endpoint.address().to_string() << ", port = " << endpoint.port() << std::endl;
-
-	if (!connectionEstablished_) {
-		{
-			boost::mutex::scoped_lock connectionEstablishedLock(
-					connectionEstablishedMutex_);
-			connectionEstablished_ = true;
-		}
-		connectionEstablishedEvent_.notify_all();
-	}
-
-	return new AsyncStream(&messageDispatcher_, sock);
 }
 
 }// end of namespace messageframework

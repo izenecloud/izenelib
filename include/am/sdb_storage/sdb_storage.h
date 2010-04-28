@@ -41,11 +41,12 @@ NS_IZENELIB_AM_BEGIN
  */
 
 template<
-	typename KeyType,
-	typename ValueType,
-	typename LockType =NullLock,
-	typename AmType=sdb_btree<KeyType, unsigned int, LockType>
-> class sdb_storage :public AccessMethod<KeyType, ValueType, LockType>
+typename KeyType,
+typename ValueType,
+typename LockType =NullLock,
+typename AmType=sdb_btree<KeyType, unsigned int, LockType>,
+bool UseCompress = true
+>class sdb_storage :public AccessMethod<KeyType, ValueType, LockType>
 {
 public:
 	typedef AmType KeyHash;
@@ -154,6 +155,7 @@ public:
 		return false;
 		else {
 			return readValue_(key, npos, val);
+			//return readValue_(npos, val);
 		}
 
 	}
@@ -283,6 +285,9 @@ public:
 	 *   db must be opened to be used.
 	 */
 	bool open() {
+		if(isOpen_)
+		return true;
+
 		struct stat statbuf;
 		bool creating = stat(fileName_.c_str(), &statbuf);
 
@@ -308,8 +313,8 @@ public:
 				}
 				DLOG(INFO)<<"open exist...\n"<<endl;
 				//ssh_.display( LOG(INFO) );
-
 			}
+			keyHash_.fillCache();
 		}
 #ifdef DEBUG 
 		ssh_.display();
@@ -322,9 +327,12 @@ public:
 	 */
 	bool close()
 	{
+		if( !isOpen_ )
+		return false;
 		flush();
 		fclose(dataFile_);
 		dataFile_ = 0;
+		isOpen_ = false;
 		return true;
 	}
 	/**
@@ -341,6 +349,8 @@ public:
 	 *   Note that, for efficieny, entry_[] is not freed up.
 	 */
 	void flush() {
+		if( !dataFile_ )
+		return;
 		keyHash_.flush();
 		ssh_.toFile(dataFile_);
 		fflush(dataFile_);
@@ -379,6 +389,7 @@ private:
 	KeyHash keyHash_;
 	bool isOpen_;
 private:
+	LockType fileLock_;
 	map<unsigned int, ValueType> readCache_;
 
 	/**
@@ -391,14 +402,37 @@ private:
 		izene_serialization<ValueType> izs(val);
 		izs.write_image(ptr, vsize);
 
-		if ( 0 != fseek(dataFile_, ssh_.nPage*ssh_.pageSize+sizeof(SsHeader), SEEK_SET) )
-		return false;
-		if( 1 != fwrite(&vsize, sizeof(size_t), 1, dataFile_) )
-		return false;
-		if( 1 != fwrite(ptr, vsize, 1, dataFile_) )
-		return false;
+		if( UseCompress ) {
+			int vsz = 0;
+			ptr = (char*)_tc_bzcompress(ptr, vsize, &vsz);
+			vsize = vsz;
+		}
+
+		ScopedWriteLock<LockType> lock(fileLock_);
+		if ( 0 != fseek(dataFile_, ssh_.nPage*ssh_.pageSize+sizeof(SsHeader), SEEK_SET) ) {
+			if( UseCompress ) {
+				free(ptr);
+			}
+			return false;
+		}
+		if( 1 != fwrite(&vsize, sizeof(size_t), 1, dataFile_) ) {
+			if( UseCompress ) {
+				free(ptr);
+			}
+			return false;
+		}
+		if( 1 != fwrite(ptr, vsize, 1, dataFile_) ) {
+			if( UseCompress ) {
+				free(ptr);
+			}
+			return false;
+		}
 
 		ssh_.nPage += (sizeof(size_t)+vsize)/ssh_.pageSize + 1;
+
+		if( UseCompress ) {
+			free(ptr);
+		}
 		return true;
 	}
 
@@ -417,11 +451,13 @@ private:
 			for(unsigned int i=1; i<BATCH_READ_NUM; i++ ) {
 				KeyType key;
 				ValueType temp;
-				unsigned int off;
+				unsigned int off = 0;
 				keyHash_.seq(locn);
-				keyHash_.get(locn, key, off);
-				readValue_(off, temp);
-				readCache_.insert(make_pair(off, temp) );
+				if( keyHash_.get(locn, key, off) ) {
+					readValue_(off, temp);
+					readCache_.insert( make_pair(off, temp) );
+				} else
+				break;
 			}
 		}
 		return true;
@@ -429,21 +465,35 @@ private:
 	}
 
 	inline bool readValue_(unsigned int npos, ValueType& val) {
+		ScopedWriteLock<LockType> lock(fileLock_);
+
 		if ( 0 != fseek(dataFile_, npos*ssh_.pageSize+sizeof(SsHeader), SEEK_SET) )
 		return false;
 
 		size_t vsize;
-		if( 1 != fread(&vsize, sizeof(size_t), 1, dataFile_) )
+		if ( 1 != fread(&vsize, sizeof(size_t), 1, dataFile_) )
 		return false;
 		char* ptr = new char[vsize];
-		if( 1 != fread(ptr, vsize, 1, dataFile_) )
+		if ( 1 != fread(ptr, vsize, 1, dataFile_) )
 		return false;
+
+		if( UseCompress ) {			
+			int vsz=0;
+			char *p =(char*)_tc_bzdecompress(ptr, vsize, &vsz);
+			vsize = vsz;
+			delete ptr;
+			ptr = p;
+		}
 
 		izene_deserialization<ValueType> izd(ptr, vsize);
 		izd.read_image(val);
 
-		delete ptr;
-		ptr = 0;
+		if( UseCompress ) {
+			free(ptr);
+		} else {
+			delete ptr;
+			ptr = 0;
+		}
 		return true;
 	}
 
@@ -451,18 +501,15 @@ private:
 	 *  when cache is full, it was called to reduce memory usage.
 	 * 
 	 */
-	void flushCache_(bool quickFlush = false)
-	{
+	void flushCache_(bool quickFlush = false) {
 
 	}
 
-	void flushCache_(SDBCursor &locn)
-	{
+	void flushCache_(SDBCursor &locn) {
 
 	}
 
-	void flushCacheImpl_(bool quickFlush = false)
-	{
+	void flushCacheImpl_(bool quickFlush = false) {
 
 	}
 

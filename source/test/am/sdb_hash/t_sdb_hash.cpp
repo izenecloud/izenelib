@@ -386,7 +386,9 @@ int main(int argc, char *argv[]) {
 		tb.setBucketSize(bucketSize);
 		tb.setCacheSize(cacheSize);
 		tb.open();
-		
+		izenelib::util::ClockTimer timer;
+		tb.fillCache();
+		printf(" elapsed : %lf seconds\n", timer.elapsed() );
 		//open_test(tb);
 		run(tb);
 

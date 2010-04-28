@@ -117,7 +117,7 @@ template <typename CharType,
           typename DataTableType>
 class CommonTrie_
 {
-
+public:
     enum FindRegexpParameterType {
         EnumerateKey = 0,
         EnumerateValue = 1,
@@ -298,7 +298,7 @@ public:
      * @return true at leaset one result found.
      *         false nothing found.
      */
-    bool findPrefix(const std::vector<CharType>& prefix,
+    bool findPrefixData(const std::vector<CharType>& prefix,
         std::vector<UserDataType>& valueList)
     {
         NodeIDType nid = NodeIDTraits<NodeIDType>::RootValue;
@@ -368,7 +368,7 @@ public:
      * @return true at leaset one result found.
      *         false nothing found.
      */
-    bool findRegExp(const std::vector<CharType>& regexp,
+    bool findRegExpData(const std::vector<CharType>& regexp,
         std::vector<UserDataType>& valueList,
         const int maximumResultNumber)
     {
@@ -498,7 +498,7 @@ protected:
         return true;
     }
 
-    
+
 
     /**
      * Store key's nid and userdata into DataTable.
@@ -518,7 +518,7 @@ protected:
         dataTable_.update(nid, userData);
     }
 
-    
+
 
     template<FindRegexpParameterType EnumerateType>
     void findPrefix_( const NodeIDType& nid,
@@ -591,6 +591,9 @@ protected:
                 std::vector<EdgeTableRecordType> result;
                 edgeTable_.getValueBetween(result, minKey, maxKey);
 
+                findRegExp_<EnumerateType>(regexp, startPos+1, prefix, nid,
+                    keyList, valueList, maximumResultNumber);
+
                 for(size_t i = 0; i <result.size(); i++ ) {
                     prefix.push_back(result[i].key.second);
                     findRegExp_<EnumerateType>(regexp, startPos, prefix, result[i].value,
@@ -598,8 +601,6 @@ protected:
                     prefix.pop_back();
                 }
 
-                findRegExp_<EnumerateType>(regexp, startPos+1, prefix, nid,
-                    keyList, valueList, maximumResultNumber);
                 break;
             }
             case 63:    //"?"
@@ -773,13 +774,13 @@ public:
         return true;
     }
 
-    bool findPrefix(const StringType& prefix,
+    bool findPrefixData(const StringType& prefix,
         std::vector<UserDataType>& valueList)
     {
         CharType* chArray = (CharType*)prefix.c_str();
         size_t chCount = prefix.length();
         std::vector<CharType> chVector(chArray, chArray+chCount);
-        return trie_.findPrefix(chVector, valueList);
+        return trie_.findPrefixData(chVector, valueList);
     }
 
     bool findPrefix(const StringType& prefix,
@@ -822,7 +823,7 @@ public:
         return false;
     }
 
-    bool findRegExp(const StringType& regexp,
+    bool findRegExpData(const StringType& regexp,
         std::vector<UserDataType>& valueList,
         int maximumResultNumber = 100)
     {
@@ -830,7 +831,7 @@ public:
         size_t chCount = regexp.length();
         std::vector<CharType> chVector(chArray, chArray+chCount);
 
-        return trie_.findRegExp(chVector, valueList, maximumResultNumber);
+        return trie_.findRegExpData(chVector, valueList, maximumResultNumber);
     }
 
     bool findRegExp(const StringType& regexp,

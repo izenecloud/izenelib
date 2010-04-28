@@ -28,9 +28,12 @@ template <typename StringType>
 class MtTrie
 {
 public:
+    enum{ L1CacheThreshold = 50 };
+
     typedef uint64_t TrieNodeIDType;
     typedef PartitionTrie<StringType, TrieNodeIDType> PartitionTrieType;
     typedef FinalTrie<StringType, TrieNodeIDType> FinalTrieType;
+    typedef FinalL1Trie<StringType, TrieNodeIDType> FinalL1TrieType;
 
 public:
     /**
@@ -40,7 +43,8 @@ public:
     :   name_(name), configPath_(name_ + ".config.xml"),
         writeCachePath_(name_+".writecache"),
         sampler_(name_ + ".sampler"),
-        trie_(name_ + ".trie")
+        trie_(name_ + ".trie"),
+        l1Trie_(name_ + ".l1.trie")
     {
         if( partitionNum <= 0 || partitionNum > 256 ) {
             throw std::runtime_error( logHead() + "wrong partitionNum,\
@@ -56,6 +60,8 @@ public:
             boundaries_.clear();
             partitionsInitialized_.resize(partitionNum_, false);
             startNodeID_.resize(partitionNum_, NodeIDTraits<TrieNodeIDType>::MinValue);
+            l1TrieStartNodeID_.resize(partitionNum_, NodeIDTraits<TrieNodeIDType>::MinValue);
+
             trieInitialized_ = false;
         }
 
@@ -64,18 +70,21 @@ public:
 
     void open()
     {
+        remove( writeCachePath_.c_str() );
         writeCache_.open(writeCachePath_.c_str(), std::ofstream::out|
             std::ofstream::binary | std::ofstream::app );
         if(writeCache_.fail())
             std::cerr << logHead() << " fail to open write cache" << std::endl;
 
         trie_.open();
+        l1Trie_.open();
     }
 
     void close()
     {
         writeCache_.close();
         trie_.close();
+        l1Trie_.close();
     }
 
     void flush()
@@ -83,6 +92,7 @@ public:
         sync();
         writeCache_.flush();
         trie_.flush();
+        l1Trie_.flush();
     }
 
     /**
@@ -122,7 +132,7 @@ public:
             sampler_.getSamples(samples);
 
             std::cout << logHead() << "start computing " << (partitionNum_-1) <<
-                " boundaries from " << samples.size() << " smaples" << std::endl;
+                " boundaries from " << samples.size() << " samples" << std::endl;
 
             if( samples.size() > (size_t)(partitionNum_-1) ) {
                 int count = 0;
@@ -181,9 +191,37 @@ public:
      */
     bool findRegExp(const StringType& regexp,
         std::vector<StringType>& keyList,
-        int maximumResultNumber = 100)
+        int maximumResultNumber)
     {
-        return trie_.findRegExp(regexp, keyList, maximumResultNumber);
+        std::vector<StringType> l1SearchResult;
+        std::vector<int> l1Count;
+        l1Trie_.findRegExp(regexp, l1SearchResult, l1Count, maximumResultNumber > 100? maximumResultNumber:100 );
+        for(int i=0; i<maximumResultNumber; i++) {
+            if(l1Count.size() == 0) break;
+            int max = 0; int maxIndex = 0;
+            for(size_t j=0; j<l1Count.size(); j++) {
+                if( l1Count[j] > max ) {
+                    max = l1Count[j];
+                    maxIndex = j;
+                }
+            }
+            //if(max == 0) break;
+            keyList.push_back(l1SearchResult[maxIndex]);
+            l1Count.erase(l1Count.begin()+maxIndex);
+            l1SearchResult.erase(l1SearchResult.begin()+maxIndex);
+        }
+
+        if(keyList.size() < (unsigned)maximumResultNumber) {
+            std::vector<StringType> l2SearchResult;
+            trie_.findRegExp(regexp, l2SearchResult, maximumResultNumber);
+            for(typename std::vector<StringType>::iterator it = l2SearchResult.begin(); it!=l2SearchResult.end(); it++ ) {
+                if( std::find(keyList.begin(), keyList.end(), *it) == keyList.end() ) {
+                    keyList.push_back(*it);
+                    if(keyList.size() == (unsigned)maximumResultNumber) break;
+                }
+            }
+        }
+        return keyList.size()==0 ? false:true;
     }
 
 protected:
@@ -242,6 +280,7 @@ protected:
         while(!input.eof())
         {
             input.read((char*)&buffersize, sizeof(int));
+            if(input.eof()) break;
             // skip too long term
             if(buffersize > 256) {
                 input.seekg(buffersize, std::ifstream::cur);
@@ -285,15 +324,24 @@ protected:
             PartitionTrieType trie(trieName);
             trie.open();
 
+            std::string l1TrieName = getPartitionName(partitionId) + ".l1.trie";
+            PartitionTrieType l1Trie(l1TrieName);
+            l1Trie.open();
+
             // Initialize trie at the first time.
             if( !partitionsInitialized_[partitionId] ) {
                 // Insert all boundaries into trie, to ensure NodeIDs are consistent
                 // in all tries, the details of reasoning and proof see MtTrie TR.
                 for(size_t i =0; i<boundaries_.size(); i++) {
-                    trie.insert(boundaries_[i]);
+                    trie.insert(boundaries_[i], 0);
+                    l1Trie.insert(boundaries_[i], 0);
                 }
                 trie.setBaseNID(getPartitionStartNodeID(partitionId));
                 startNodeID_[partitionId] = trie.getNextNID();
+
+                l1Trie.setBaseNID(getPartitionStartNodeID(partitionId));
+                l1TrieStartNodeID_[partitionId] = l1Trie.getNextNID();
+
                 partitionsInitialized_[partitionId] = true;
             }
 
@@ -305,17 +353,29 @@ protected:
                 while(!input.eof())
                 {
                     input.read((char*)&buffersize, sizeof(int));
+                    if(input.eof()) break;
                     input.read( charBuffer, buffersize );
                     term.assign( std::string(charBuffer,buffersize) );
-                    trie.insert(term);
+
+                    int count = 0;
+                    if (trie.get(term, count)) {
+                        trie.update(term, ++count);
+                    } else {
+                        trie.insert(term, ++count);
+                    }
+                    if(count >= L1CacheThreshold) {
+                        l1Trie.update(term, count);
+                    }
                 }
                 trie.optimize();
+                l1Trie.optimize();
 
                 input.close();
                 remove( inputName.c_str() );
             }
 
             trie.close();
+            l1Trie.close();
 
             printLock_.acquire_write_lock();
             processedPartitions_ ++;
@@ -333,6 +393,7 @@ protected:
         if(!trieInitialized_) {
             for(size_t i =0; i<boundaries_.size(); i++) {
                 trie_.insert(boundaries_[i]);
+                l1Trie_.insert(boundaries_[i], 0);
             }
             trieInitialized_ = true;
         }
@@ -341,12 +402,17 @@ protected:
         for(int i=0; i<partitionNum_; i++) {
             PartitionTrieType pt(getPartitionName(i) + ".trie");
             pt.open();
+            PartitionTrieType l1pt(getPartitionName(i) + ".l1.trie");
+            l1pt.open();
 
             mergeToFinal(trie_, pt, startNodeID_[i]);
+            mergeToFinalL1(l1Trie_, l1pt, l1TrieStartNodeID_[i]);
             startNodeID_[i] = pt.getNextNID();
+            l1TrieStartNodeID_[i] = l1pt.getNextNID();
             sync();
 
             pt.close();
+            l1pt.close();
             mergedPartitions ++;
             std::cout << "\r" << logHead() << "Merge partitions, progress ["
                 << (100*mergedPartitions)/(partitionNum_+1) << "%]" << std::flush;
@@ -354,6 +420,9 @@ protected:
 
         trie_.optimize();
         trie_.flush();
+
+        l1Trie_.optimize();
+        l1Trie_.flush();
 
         std::cout << "\r" << logHead() << "Merge partitions, progress [100%]"
             << std::endl << std::flush;
@@ -378,6 +447,7 @@ protected:
 
         ar & boost::serialization::make_nvp("PartitionsInitialized", partitionsInitialized_);
         ar & boost::serialization::make_nvp("StartNodeID", startNodeID_);
+        ar & boost::serialization::make_nvp("L1TrieStartNodeID", l1TrieStartNodeID_);
 
         ar & boost::serialization::make_nvp("TrieInitialized", trieInitialized_);
     }
@@ -396,6 +466,7 @@ protected:
 
         ar & boost::serialization::make_nvp("PartitionsInitialized", partitionsInitialized_);
         ar & boost::serialization::make_nvp("StartNodeID", startNodeID_);
+        ar & boost::serialization::make_nvp("L1TrieStartNodeID", l1TrieStartNodeID_);
 
         ar & boost::serialization::make_nvp("TrieInitialized", trieInitialized_);
     }
@@ -462,11 +533,17 @@ private:
     ///        designed for supporting incremental updates. there are partitionNum_ elements.
     std::vector<TrieNodeIDType> startNodeID_;
 
+    std::vector<TrieNodeIDType> l1TrieStartNodeID_;
+
     /// @brief Indicate whether the final trie has been initialized.
     bool trieInitialized_;
 
     /// @brief the final(major) trie, findRegExp are operating this trie.
     FinalTrieType trie_;
+
+    /// @brief Cache of the final(major) trie, findRegExp are operating this trie first.
+    /// @brief If enough candidates are gained from this trie, it will not search the major trie.
+    FinalL1TrieType l1Trie_;
 
     /// @brief number of partitions that finishes building.
     int processedPartitions_;

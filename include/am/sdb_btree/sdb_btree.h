@@ -149,6 +149,15 @@ public:
 		_cacheSize = sz;
 	}
 
+	
+	/**
+	 *  \brief set file name.
+	 *   
+	 */	
+	void setFileName(const std::string& fileName ){
+		_fileName = fileName;		
+	}
+	
 	/**
 	 * 	\brief return the file name of the SequentialDB
 	 */
@@ -1414,8 +1423,7 @@ template<typename KeyType, typename ValueType, typename LockType, bool fixed,
 					if (leftCount >= _minDegree) {
 						// Shuffle the keys and elements up
 						size_t i = _minDegree - 1;
-						for (; i> 0; i--) {
-							cout<<i<<endl;
+						for (; i> 0; i--) {						
 							childNode->keys[i] = childNode->keys[i - 1];
 							childNode->values[i] = childNode->values[i - 1];
 							childNode->children[i + 1] = childNode->children[i];

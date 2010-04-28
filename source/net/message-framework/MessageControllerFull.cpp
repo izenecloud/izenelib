@@ -51,12 +51,13 @@ MessageControllerFull::MessageControllerFull(
     ownerManagerName_(controllerName),
     availableServiceList_(getAvailServiceSdbName(servicePort)),
 	messageDispatcher_(this, this, this, this, this),
-	asyncConnector_(this, io_service_)
+	asyncStreamManager_(messageDispatcher_),
+	asyncAcceptor_(io_service_, asyncStreamManager_)
 {
 	servicePort_ = servicePort;
 	ipAddress_ = getLocalHostIp(io_service_);
 
-	asyncConnector_.listen(servicePort_);
+	asyncAcceptor_.listen(servicePort_);
 
 	timeOutMilliSecond_ = 1000;
 
@@ -74,7 +75,9 @@ MessageControllerFull::MessageControllerFull(
          std::string serviceName;
          ServicePermissionInfo permissionInfo;
          while(availableServiceList_.get(cursor, serviceName, permissionInfo)) {
+#ifndef NDEBUG
              permissionInfo.display(DLOG(WARNING));
+#endif
              availableServiceList_.seq(cursor);
          }
 	}
@@ -96,7 +99,8 @@ void MessageControllerFull::run() {
 }
 
 void MessageControllerFull::shutdown() {
-	asyncConnector_.shutdown();
+	asyncAcceptor_.shutdown();
+	asyncStreamManager_.shutdown();
 
     stop_ = true;
 
@@ -143,6 +147,7 @@ void MessageControllerFull::processServiceRegistrationRequest(void) {
 				serviceRegistrationRequestQueueLock.unlock();
 
 				string serviceName = request.first.getServiceInfo().getServiceName();
+				string agentInfo = request.first.getAgentInfo();
 				MessageFrameworkNode server = request.first.getServiceInfo().getServer();
 				if( server.nodeIP_.substr(0, 3) == "127" )
 					server.nodeIP_ = request.second.nodeIP_;
@@ -150,7 +155,8 @@ void MessageControllerFull::processServiceRegistrationRequest(void) {
 					// check if the sevice has been registered
 					boost::mutex::scoped_lock availableServiceListLock(availableServiceListMutex_);
 
-                    std::cout <<"ServiceRegistrationRequest: " << serviceName << std::endl;
+                    std::cout <<"ServiceRegistrationRequest: " << serviceName << ","
+                        << agentInfo << std::endl;
 
 					ServicePermissionInfo permissionInfo;
 					if( availableServiceList_.get(serviceName, permissionInfo) )
@@ -253,7 +259,7 @@ void MessageControllerFull::processServicePermissionRequest(void) {
 	}
 	catch(MessageFrameworkException& e)
 	{
-		e.output(DLOG(ERROR));
+        DLOG(ERROR) << e.getString();
 	}
 	catch (boost::system::error_code& e)
 	{
@@ -355,18 +361,6 @@ void MessageControllerFull::sendPermissionOfServiceResult(
         const ServicePermissionInfo & permission)
 {
 	messageDispatcher_.sendDataToLowerLayer(PERMISSION_OF_SERVICE_REPLY_MSG, permission, requester);
-}
-
-/**
- * @brief This function create a new AsyncStream that is based on tcp::socket
- */
-AsyncStream* MessageControllerFull::createAsyncStream(boost::shared_ptr<tcp::socket> sock)
-{
-	tcp::endpoint endpoint = sock->remote_endpoint();
-	DLOG(INFO) << "Remote IP = " << endpoint.address().to_string()
-        << ", port = " << endpoint.port();
-
-	return new AsyncStream(&messageDispatcher_, sock);
 }
 
 }// end of namespace messageframework

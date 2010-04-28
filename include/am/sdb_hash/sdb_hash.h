@@ -44,7 +44,7 @@ NS_IZENELIB_AM_BEGIN
  *
  */
 
-template< typename KeyType, typename ValueType, typename LockType =NullLock, bool fixed=false> class sdb_hash :
+template< typename KeyType, typename ValueType, typename LockType =NullLock, bool fixed=IsFixed<KeyType, ValueType>::yes> class sdb_hash :
 public AccessMethod<KeyType, ValueType, LockType>
 {
 	enum {unloadByRss = false};
@@ -102,12 +102,12 @@ public:
 		izs1.write_image(ptr1, vsize_);
 		BucketGap = ksize_+vsize_ + sizeof(long)+sizeof(int)+sizeof(size_t);
 	}
-	
-	void clear(){
+
+	void clear() {
 		close();
 		std::remove(fileName_.c_str() );
 		sfh_.initialize();
-		open();		
+		open();
 	}
 
 	bool is_open() {
@@ -159,6 +159,14 @@ public:
 		cacheSize_ = cacheSize;
 		//if(sfh_.cacheSize < directorySize_)
 		//sfh_.cacheSize = directorySize_;
+	}
+
+	/**
+	 *  \brief set file name.
+	 *   
+	 */
+	void setFileName(const std::string& fileName ) {
+		fileName_ = fileName;
 	}
 
 	/**
@@ -605,7 +613,7 @@ public:
 		locn.first = NULL;
 		locn.second = NULL;
 		if( sfh_.numItems == 0 )
-			return locn;
+		return locn;
 
 		for(size_t i=0; i<directorySize_; i++)
 		{
@@ -825,25 +833,50 @@ public:
 	}
 
 	void fillCache() {
-		queue<bucket_chain*> qnode;
+		if( !isOpen_ )
+		return;
 
+		if(sfh_.numItems == 0)
+		return;
+
+		typedef map<long, bucket_chain*> COMMIT_MAP;
+		typedef typename COMMIT_MAP::iterator CMIT;
+		COMMIT_MAP toBeRead, nextRead;
 		for (size_t i=0; i<directorySize_; i++) {
-			load_( entry_[i] );
-			if( entry_[i] && entry_[i]->isLoaded )
-			qnode.push( entry_[i] );
+			if( entry_&& entry_[i] && entry_[i]->fpos !=0 )
+			toBeRead.insert(make_pair(entry_[i]->fpos, entry_[i]) );
 		}
-		while (!qnode.empty() ) {
-			bucket_chain* popNode = qnode.front();
-			if ( popNode && popNode->isLoaded)
-			qnode.pop();
-			if (popNode && popNode->next ) {
-				bucket_chain* node = loadNext_(popNode);
-				if( node )
-				qnode.push(node );
+		while( !toBeRead.empty() ) {
+			CMIT it = toBeRead.begin();
+			for (; it != toBeRead.end(); it++) {
+				load_( it->second);				
 				if( activeNum_> sfh_.cacheSize )
-				break;
+				return;
+				if(it->second->next)
+				nextRead.insert(make_pair(it->second->nextfpos, it->second->next) );
 			}
+			toBeRead = nextRead;
+			nextRead.clear();
 		}
+		//
+		//				queue<bucket_chain*> qnode;
+		//				for (size_t i=0; i<directorySize_; i++) {
+		//					load_( entry_[i] );
+		//					if( entry_[i] && entry_[i]->isLoaded )
+		//					qnode.push( entry_[i] );
+		//				}
+		//				while (!qnode.empty() ) {
+		//					bucket_chain* popNode = qnode.front();
+		//					if ( popNode && popNode->isLoaded)
+		//					qnode.pop();
+		//					if (popNode && popNode->next ) {
+		//						bucket_chain* node = loadNext_(popNode);
+		//						if( node )
+		//						qnode.push(node );
+		//						if( activeNum_> sfh_.cacheSize )
+		//						break;
+		//					}
+		//				}
 	}
 public:
 	/**
@@ -874,8 +907,7 @@ public:
 			//initialization
 			memset(bucketAddr, 0, sizeof(long)*directorySize_);
 			memset(entry_ , 0, sizeof(bucket_chain*)*directorySize_);
-
-			sfh_.toFile(dataFile_);
+			commit();
 			ret = true;
 		} else {
 			if ( !sfh_.fromFile(dataFile_) ) {

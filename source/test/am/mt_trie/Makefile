@@ -10,8 +10,6 @@ CXXFLAGS = -Wall -O3 -g
 endif
 
 TARGET_PATH = .
-WISELIB = /home/wei/dev/wiselib
-IZENELIB = /home/wei/dev/izenelib
 
 IDMANAGER_PATH = ../include/
 
@@ -35,8 +33,7 @@ EXT_LIB = \
 		  -l boost_thread-gcc41-mt \
 		  -l boost_unit_test_framework-gcc41-mt \
 		  -l tokyocabinet \
-		  -l procmeminfo  \
-		  -l btrie  \
+		  -l procmeminfo 
 
 OBJECTS = $(patsubst %.cpp, %.o, $(wildcard *.cpp)) 
 

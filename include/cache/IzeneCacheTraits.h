@@ -151,7 +151,8 @@ template<class KeyType, class ValueType, class ContainerType,
 	static inline void replace_(const KeyType& key, ContainerType& hash_,
 			CacheInfoListType& cacheContainer_) {
 		CachedDataType *pd1 = 0;
-		bool ret = hash_.get(key, pd1);
+		bool ret;
+		ret = hash_.get(key, pd1);
 		assert(ret);
 		LIT lit = pd1->lit;
 		++lit->second;

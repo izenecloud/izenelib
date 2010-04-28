@@ -15,7 +15,7 @@ struct AddressBook
         fixed_string<14> telephone;
     };
 
-    typedef map<fixed_string<20>, Person> Pmap;
+    typedef mapped_map<fixed_string<20>, Person> Pmap;
     Pmap addresses;
 };
 }}

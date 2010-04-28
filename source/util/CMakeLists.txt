@@ -9,6 +9,7 @@ IF(procmeminfo_SHOULD_BUILD)
   #INSTALL(TARGETS procmeminfo DESTINATION lib)
   INSTALL(TARGETS procmeminfo  
       LIBRARY DESTINATION lib 
+      ARCHIVE DESTINATION lib 
       COMPONENT "izenelib_libraries")
 ENDIF(procmeminfo_SHOULD_BUILD)
 
@@ -29,5 +30,6 @@ IF(izene_log_SHOULD_BUILD)
   #INSTALL(TARGETS izene_log DESTINATION lib)
   INSTALL(TARGETS izene_log  
       LIBRARY DESTINATION lib 
+      ARCHIVE DESTINATION lib 
       COMPONENT "izenelib_libraries")
 ENDIF(izene_log_SHOULD_BUILD)

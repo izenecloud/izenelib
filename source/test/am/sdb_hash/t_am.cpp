@@ -8,16 +8,16 @@ int rnd = 1;
 using namespace izenelib::am_test;
 using namespace izenelib::am;
 
-static int num = 100000000;
+static int num = 10000000;
 
 
 int main()
 {
 	
 	{
-		cout<<"\nsdb_hash<int, string>"<<endl;
-		typedef sdb_hash<int, string> SDB_STRING_INT;
-		AmTest<int, string , SDB_STRING_INT, true> am;		
+		cout<<"\nsdb_hash<uint64_t, string>"<<endl;
+		typedef sdb_hash<uint64_t, string> SDB_STRING_INT;
+		AmTest<uint64_t, string , SDB_STRING_INT, true> am;		
 		am.setRandom(rnd);	
 		am.setNum(num);
 		run_am(am);

@@ -125,8 +125,6 @@ void MessageDispatcher::sendDataToUpperLayer(
 		sendDataToUpperLayer_impl(source, messageType, buffer);
 }
 
-
-
 void MessageDispatcher::sendDataToUpperLayer_impl(
 		const MessageFrameworkNode& source, MessageType messageType, //const std::string& data)
 		boost::shared_ptr<izenelib::util::izene_streambuf>& buffer) {
@@ -145,51 +143,75 @@ void MessageDispatcher::sendDataToUpperLayer_impl(
 	case SERVICE_REGISTRATION_REQUEST_MSG:
 		// forward this message to RegistrationRequester
 		from_buffer(registrationMsg, buffer);
-		registrationServer_->receiveServiceRegistrationRequest(source,
-				registrationMsg);
+		if (registrationServer_)
+			registrationServer_->receiveServiceRegistrationRequest(source,
+					registrationMsg);
+		else
+			throw MessageFrameworkException(SF1_MSGFRK_MFOBJECT_CORRUPTED, __LINE__, __FILE__);
 		break;
 
 	case SERVICE_REGISTRATION_REPLY_MSG:
 		// forward this message to RegistrationServer
 		//archive >> registrationReplyMessage;
 		from_buffer(registrationReplyMessage, buffer);
-		registrationRequester_->receiveServiceRegistrationReply(
-				registrationReplyMessage.getServiceName(),
-				registrationReplyMessage.getStatus());
+		if (registrationRequester_)
+			registrationRequester_->receiveServiceRegistrationReply(
+					registrationReplyMessage.getServiceName(),
+					registrationReplyMessage.getStatus());
+		else
+			throw MessageFrameworkException(SF1_MSGFRK_MFOBJECT_CORRUPTED, __LINE__, __FILE__);
 		break;
 
 	case SERVICE_REQUEST_MSG:
 		from_buffer(*serviceMessage, buffer);
-		resultServer_->receiveServiceRequest(source, serviceMessage);
+		if (resultServer_)
+			resultServer_->receiveServiceRequest(source, serviceMessage);
+		else
+			throw MessageFrameworkException(SF1_MSGFRK_MFOBJECT_CORRUPTED, __LINE__, __FILE__);
 		break;
 
 	case SERVICE_RESULT_MSG:
 		from_buffer(*serviceMessage, buffer);
-		resultRequester_->receiveResultOfService(serviceMessage);
+		if (resultRequester_)
+			resultRequester_->receiveResultOfService(serviceMessage);
+		else
+			throw MessageFrameworkException(SF1_MSGFRK_MFOBJECT_CORRUPTED, __LINE__, __FILE__);
 		break;
 
 	case PERMISSION_OF_SERVICE_REQUEST_MSG:
 		from_buffer(permissionRequestMessage, buffer);
-		permissionServer_->receivePermissionOfServiceRequest(source,
-				permissionRequestMessage);
+		if (permissionServer_)
+			permissionServer_->receivePermissionOfServiceRequest(source,
+					permissionRequestMessage);
+		else
+			throw MessageFrameworkException(SF1_MSGFRK_MFOBJECT_CORRUPTED, __LINE__, __FILE__);
 		break;
 
 	case PERMISSION_OF_SERVICE_REPLY_MSG:
 		//archive >> permissionOfServiceMessage;
 		from_buffer(permissionOfServiceMessage, buffer);
-		permissionRequester_->receivePermissionOfServiceResult(permissionOfServiceMessage);
+		if (permissionRequester_)
+			permissionRequester_->receivePermissionOfServiceResult(permissionOfServiceMessage);
+		else
+			throw MessageFrameworkException(SF1_MSGFRK_MFOBJECT_CORRUPTED, __LINE__, __FILE__);
 		break;
 
 	case CLIENT_ID_REQUEST_MSG:
 		//archive >> clientIdRequestMessage;
 		from_buffer(clientIdRequestMessage, buffer);
-		clientIdServer_->receiveClientIdRequest(source);
+		if (clientIdServer_)
+			clientIdServer_->receiveClientIdRequest(source);
+		else
+			throw MessageFrameworkException(SF1_MSGFRK_MFOBJECT_CORRUPTED, __LINE__, __FILE__);
 		break;
 
 	case CLIENT_ID_REPLY_MSG:
 		//archive >> clientIdReplyMessage;
 		from_buffer(clientIdReplyMessage, buffer);
-		clientIdRequester_->receiveClientIdResult(clientIdReplyMessage.getClientId());
+		if (clientIdRequester_)
+			clientIdRequester_->receiveClientIdResult(clientIdReplyMessage.getClientId());
+		else
+			throw MessageFrameworkException(SF1_MSGFRK_MFOBJECT_CORRUPTED, __LINE__, __FILE__);
 		break;
 
 	default:

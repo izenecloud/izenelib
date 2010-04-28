@@ -44,8 +44,7 @@ namespace messageframework {
 
 class MessageControllerFull : protected ServiceResultServer,
 	protected ServiceResultRequester, protected PermissionServer,
-	protected ServiceRegistrationServer, protected ClientIdServer,
-	protected AsyncStreamFactory {
+	protected ServiceRegistrationServer, protected ClientIdServer {
 public:
 	/**
 	 * @brief The construct a MessageControllerFull with paramters
@@ -261,12 +260,21 @@ private:
 	 * @brief queue for I/O operations
 	 */
 	boost::asio::io_service io_service_;
+//
+//	/**
+//	 * @brief Connect to servers
+//	 */
+//	AsyncConnector asyncConnector_;
 
 	/**
-	 * @brief This connector is used to listen at the controller port and connect
-	 * to servers
+	 * @brief Manage all connections
 	 */
-	AsyncConnector asyncConnector_;
+    AsyncStreamManager asyncStreamManager_;
+
+	/**
+	 * @brief Listen at the controller port
+	 */
+	AsyncAcceptor asyncAcceptor_;
 
 	/**
 	 * @brief thread for processing service registration

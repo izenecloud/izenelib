@@ -15,6 +15,7 @@ IF(bsdmalloc_SHOULD_BUILD)
     )
   INSTALL(TARGETS bsdmalloc     
       LIBRARY DESTINATION lib 
+      ARCHIVE DESTINATION lib 
       COMPONENT "izenelib_libraries")
 
 ENDIF(bsdmalloc_SHOULD_BUILD)

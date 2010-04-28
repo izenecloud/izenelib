@@ -5,6 +5,7 @@
 #include <boost/exception.hpp>
 #include <boost/exception/info.hpp>
 #include <exception>
+#include <boost/throw_exception.hpp>
 
 #include <string>
 #include <iostream>
@@ -43,34 +44,35 @@ public:
         ERROR_OUTOFRANGE,
         NUM_ERRORS
     };
-    IZENELIBException(ExceptionCode code, std::string d=""):detail(d) throw(){}
+    IZENELIBException(ExceptionCode code,const std::string& d="") throw():detail(d) {}
 
-    IZENELIBException(std::string d="") throw():detail(d) {}
+    IZENELIBException(const std::string& d="") throw():detail(d) {}
 
     ~IZENELIBException() throw() {}
 
 public:
     virtual const char* what() const throw ()
     {
-        std::string ret="";
-
-        if (getDetail().compare("")!=0)
-            ret += "\n" + getDetail();
-
-        boost::shared_ptr<const char* const> func = boost::get_error_info<boost::throw_function>(*this);
-        boost::shared_ptr<const char* const> file = boost::get_error_info<boost::throw_file>(*this);
-        boost::shared_ptr<const int> line = boost::get_error_info<boost::throw_line>(*this);
-        if (func.get()!=0 && file.get()!=0 && line.get()!=0)
-        {
-            std::stringstream out;
-            out << "\n\tInfo: " << *func << " in file " << *file << "(l. " << *line << ")\n";
-            ret += out.str();
-        }
-
-        return ret.c_str();
+//         std::string ret="";
+// 
+//         if (getDetail().compare("")!=0)
+//             ret += "\n" + getDetail();
+// 
+//         boost::shared_ptr<const char* const> func = boost::get_error_info<boost::throw_function>(*this);
+//         boost::shared_ptr<const char* const> file = boost::get_error_info<boost::throw_file>(*this);
+//         boost::shared_ptr<const int> line = boost::get_error_info<boost::throw_line>(*this);
+//         if (func.get()!=0 && file.get()!=0 && line.get()!=0)
+//         {
+//             std::stringstream out;
+//             out << "\t[Info: " << *func << " in file " << *file << "(l. " << *line << ")]";
+//             ret += out.str();
+//         }
+// 
+//         return ret.c_str();
+        return getDetail().c_str();
     }
 
-    std::string& getDetail() const throw()
+    std::string getDetail() const throw()
     {
         return detail;
     }
@@ -81,5 +83,6 @@ protected:
 
 
 NS_IZENELIB_UTIL_END
-
+#define IZENELIB_THROW(msg) throw( izenelib::util::IZENELIBException(msg) )
 #endif //End of IZENE_UTIL_EXCEPTION_H
+

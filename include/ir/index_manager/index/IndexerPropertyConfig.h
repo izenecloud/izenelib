@@ -46,7 +46,7 @@ public:
 		,index_(index)
 		,forward_(forward)
 		,filter_(filter)
-		,laInput_(false)
+		,laInput_(true)
     { }
 
 public:

@@ -149,9 +149,9 @@ public:
 	 * @return false :          Given wildcard pattern is not matched in the dictionary.
 	 */
 	bool getTermIdListByWildcardPattern(const NameString& wildcardPattern,
-			std::vector<NameID>& termIdList)
+			std::vector<NameID>& termIdList, int maximumResultNumber = 5)
     {
-        return wildcardQueryManager_.findRegExp(wildcardPattern, termIdList);
+        return wildcardQueryManager_.findRegExp(wildcardPattern, termIdList, maximumResultNumber);
     }
 
 	/**
@@ -163,9 +163,9 @@ public:
 	 * @return false :          Given wildcard pattern is not matched in the dictionary.
 	 */
 	bool getTermListByWildcardPattern(const NameString& wildcardPattern,
-			std::vector<NameString>& termList)
+			std::vector<NameString>& termList, int maximumResultNumber = 5)
     {
-        return wildcardQueryManager_.findRegExp(wildcardPattern, termList);
+        return wildcardQueryManager_.findRegExp(wildcardPattern, termList, maximumResultNumber);
     }
 
 
@@ -358,11 +358,19 @@ typedef _IDManager<wiselib::UString, uint64_t,
  * uique for different terms, besides it doesn't need generate doc id.
  * Besides, IClassifier requires multi-threads protection.
  */
+//typedef _IDManager<wiselib::UString, uint32_t,
+//                   izenelib::util::NullLock,
+//                   EmptyWildcardQueryHandler<wiselib::UString, uint32_t>,
+//                   UniqueIDGenerator<wiselib::UString, uint32_t, izenelib::util::ReadWriteLock>,
+//                   HDBIDStorage<wiselib::UString, uint32_t, izenelib::util::ReadWriteLock>,
+//                   EmptyIDGenerator<wiselib::UString, uint32_t>,
+//                   EmptyIDStorage<wiselib::UString, uint32_t> > IDManagerIClassifier;
+
 typedef _IDManager<wiselib::UString, uint32_t,
-                   izenelib::util::NullLock,
+                   izenelib::util::ReadWriteLock,
                    EmptyWildcardQueryHandler<wiselib::UString, uint32_t>,
-                   UniqueIDGenerator<wiselib::UString, uint32_t, izenelib::util::ReadWriteLock>,
-                   HDBIDStorage<wiselib::UString, uint32_t, izenelib::util::ReadWriteLock>,
+                   HashIDGenerator<wiselib::UString, uint32_t>,
+                   EmptyIDStorage<wiselib::UString, uint32_t>,
                    EmptyIDGenerator<wiselib::UString, uint32_t>,
                    EmptyIDStorage<wiselib::UString, uint32_t> > IDManagerIClassifier;
 

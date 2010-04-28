@@ -153,7 +153,9 @@ void Indexer::initIndexManager()
     {
         openDirectory();
 
-        if ((!strcasecmp(pConfigurationManager_->storeStrategy_.param_.c_str(),"file"))&&(managerType_ != MANAGER_TYPE_NO_BTREE))
+        if ((!strcasecmp(pConfigurationManager_->storeStrategy_.param_.c_str(),"file"))
+             ||(!strcasecmp(pConfigurationManager_->storeStrategy_.param_.c_str(),"mmap"))			
+             &&(managerType_ != MANAGER_TYPE_NO_BTREE))
             pBTreeIndexer_ = new BTreeIndexer(pConfigurationManager_->indexStrategy_.indexLocation_, degree, cacheSize, maxDataSize);
 
     }
@@ -212,7 +214,12 @@ void Indexer::openDirectory()
     close();
     string path = pConfigurationManager_->indexStrategy_.indexLocation_;
     if (!strcasecmp(pConfigurationManager_->storeStrategy_.param_.c_str(),"file"))
-        pDirectory_ = FSDirectory::getDirectory(path,true);
+        pDirectory_ = new FSDirectory(path,true);
+    else if(!strcasecmp(pConfigurationManager_->storeStrategy_.param_.c_str(),"mmap"))
+    {
+        pDirectory_ = new FSDirectory(path,true);
+        static_cast<FSDirectory*>(pDirectory_)->setMMapFlag(true);
+    }
     else
         pDirectory_ = new RAMDirectory();
 
@@ -230,8 +237,8 @@ void Indexer::openDirectory()
 void Indexer::setBasePath(std::string basePath)
 {
     if (pDirectory_)
-        pDirectory_->close();
-    pDirectory_ = FSDirectory::getDirectory(basePath,true);
+        delete pDirectory_;
+    pDirectory_ = new FSDirectory(basePath,true);
 
     pIndexReader_ = new IndexReader(this);
     pIndexWriter_ = new IndexWriter(this);
@@ -335,7 +342,7 @@ void Indexer::close()
     }
     if (pDirectory_)
     {
-        pDirectory_->close();
+        delete pDirectory_;
         pDirectory_ = NULL;
     }
     dirty_ = false;

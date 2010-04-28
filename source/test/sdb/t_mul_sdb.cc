@@ -17,6 +17,7 @@ string indexFile2("msdb2.dat");
 string indexFile3("msdb3.dat");
 string indexFile4("msdb4.dat");
 string indexFile5("msdb5.dat");
+string indexFile6("msdb6.dat");
 
 
 //Use YString-YString pair for testing. 
@@ -29,18 +30,21 @@ typedef sdb_btree<Key, NullType, ReadWriteLock> SBTREE;
 typedef sdb_bptree<Key, NullType, ReadWriteLock> SBPTREE;
 //typedef SkipListFile<Key, NullType, ReadWriteLock> SLF;
 typedef sdb_hash<Key, NullType, ReadWriteLock> SHASH;
+typedef sdb_storage<Key, NullType, ReadWriteLock> SDBSEQ;
 
 //typedef SequentialDB<Key, NullType, ReadWriteLock, BTF> SDB_BT;
 //typedef SequentialDB<Key, NullType, ReadWriteLock, SLF> SDB_SL;
 typedef SequentialDB<Key, NullType, ReadWriteLock, SHASH> SDB_HASH;
 typedef SequentialDB<Key, NullType, ReadWriteLock, SBTREE> SDB_BTREE;
 typedef SequentialDB<Key, NullType, ReadWriteLock, SBPTREE> SDB_BPTREE;
+typedef SequentialDB<Key, NullType, ReadWriteLock, SDBSEQ> SDB_STORAGE;
 
 //SDB_BT cm1(indexFile1);
 //SDB_SL cm2(indexFile2);
 SDB_HASH cm3(indexFile3);
 SDB_BTREE cm4(indexFile4);
 SDB_BPTREE cm5(indexFile5);
+SDB_STORAGE cm6(indexFile6);
 
 int sum =0;
 int hit =0;
@@ -406,18 +410,27 @@ int main(int argc, char *argv[]) {
 //	//run1(cm3);
 //	run(cm3);
 //	cm3.close();
+	
+	
+	cm6.setCacheSize(2000);
+	cm6.open();
+	run(cm6);
+	run1(cm6);
+	cm6.close();
 
 	cm4.setCacheSize(10000);
 	cm4.open();
 	run(cm4);
 	run1(cm4);
 	cm4.close();
-//	
-//	cm5.setCacheSize(2000);
-//	cm5.open();
-//	run(cm5);
-//	run1(cm5);
-//	cm5.close();
+	
+	cm5.setCacheSize(2000);
+	cm5.open();
+	run(cm5);
+	run1(cm5);
+	cm5.close();
+	
+	
 
 }
 

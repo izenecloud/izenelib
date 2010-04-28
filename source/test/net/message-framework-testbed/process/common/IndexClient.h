@@ -11,7 +11,7 @@ using namespace messageframework;
 class IndexClient:public MFClient{
 	
 public:
-	bool addDocument(const std::vector<std::string>& agentInfos, const ForwardIndex& forwardIndex){	
+	bool addDocument(const std::vector<std::string>& agentInfos, const ForwardIndex& forwardIndex){			
 		MF_CLIENT_IMPL_N_1_0(agentInfos, "addDocument", forwardIndex)		
 	}
 	

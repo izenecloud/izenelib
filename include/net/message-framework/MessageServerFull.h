@@ -33,7 +33,7 @@ namespace messageframework {
  * must provide result to the other Manager in different process should use MessageServerFull.
  */
 class MessageServerFull : protected ServiceResultServer,
-	protected ServiceRegistrationRequester, protected AsyncStreamFactory {
+	protected ServiceRegistrationRequester {
 public:
 	/**
 	 * @brief Construct a MessageServerFull with paramters. It initializes
@@ -115,11 +115,6 @@ public:
 
 	bool putResultOfService(const ServiceResultPtr& result);
 
-	/** @brief for profiling - Wei Cao */
-	inline MessageDispatcher& getMessageDispatcher() {
-		return messageDispatcher_;
-	}
-
 protected:
 	const MessageFrameworkNode& getServerInfo() {
 		return server_;
@@ -191,6 +186,7 @@ protected:
 
 	void sendResultOfService(const MessageFrameworkNode& requester,
 			const ServiceResultPtr& result);
+
 
 	/************** End of interfaces of ServiceResultServer **************/
 
@@ -291,7 +287,19 @@ private:
 	/**
 	 * @brief connection with controller
 	 */
+	AsyncStreamManager asyncStreamManager_;
+
+	/**
+	 * @brief connection with controller
+	 */
 	AsyncConnector connector_;
+
+	/**
+	 * @brief connection with controller
+	 */
+	AsyncAcceptor acceptor_;
+
+    AsyncControllerConnector controllerConnector_;
 
 	/**
 	 * @brief thread for I/O operations
@@ -302,9 +310,6 @@ private:
 	 * @brief local end point of the connection to MessageController
 	 */
 	MessageFrameworkNode controllerNode_;
-	bool connectionEstablished_;
-	boost::mutex connectionEstablishedMutex_;
-	boost::condition_variable connectionEstablishedEvent_;
 
 	clock_t tick1, tick2;
 	struct timeval val1, val2;

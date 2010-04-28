@@ -13,6 +13,7 @@
 #define _MESSAGE_FRAMEWORK_H_
 
 #include <util/izene_log.h>
+#include <protect/RestrictMacro.h>
 
 //---------------  IF USING MESSAGE FRAMEWORK FULL  -----------------
 #ifdef USE_MF_LIGHT
@@ -39,7 +40,7 @@ namespace messageframework
     clientName, messageframework::MessageController::instance()
 
 #define MF_SERVER_ARG( serverName, serverPort, controllerInfo )          \
-    serverName, messageframework::MessageController::instance() 
+    serverName, serverPort, messageframework::MessageController::instance() 
 
 #define INIT_MF_CONTROLLER( controllerName, controllerPort )
 

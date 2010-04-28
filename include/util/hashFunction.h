@@ -185,6 +185,21 @@ public:
 
 		return id;
 	}
+    
+    static ub8 generateHash64BySer (const KeyType& key) {
+        using namespace izenelib::am::util;
+        char* token = 0;
+        size_t len;
+        izene_serialization<KeyType> izs(key);
+        izs.write_image(token, len);
+        ub8 id = 0L;
+        ub8 id1, id2;
+        id1 = calcHash (token, len, init_pattern_1);
+        id2 = calcHash (token, len, init_pattern_2);
+        id = (id1 << 32) | id2;
+
+        return id;
+    }
 
 	static ub4 generateHash32 (const KeyType& key) {
 		const char *token = (const char *) key.c_str();

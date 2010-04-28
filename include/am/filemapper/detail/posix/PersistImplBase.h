@@ -81,7 +81,7 @@ void *PersistImpl::map(size_t offset, size_t length, void *base)
 
     if (base2 == MAP_FAILED)
     {
-        throw failed_to_map();
+        throw std::bad_alloc();
     }
 
     return base2;

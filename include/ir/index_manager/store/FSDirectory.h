@@ -29,21 +29,18 @@ namespace indexmanager{
 
 class FSDirectory : public Directory
 {
-    typedef map<string,FSDirectory*> directory_map;
-    typedef directory_map::iterator directory_iterator;
-private:
-    FSDirectory(const string& path,bool bCreate=false);
 public:
+    FSDirectory(const string& path,bool bCreate=false);
     virtual ~FSDirectory(void);
 
 public:
-    static FSDirectory* getDirectory(const string& path,bool bCreate);
-
     bool fileExists(const string& name) const;
 
     IndexInput*	openInput(const string& name);
 
     IndexInput*	openInput(const string& name,size_t bufsize);
+
+    IndexInput* openMMapInput(const string& name);
 
     void deleteFile(const string& filename,bool throwError = true);
 
@@ -61,14 +58,15 @@ public:
 
     izenelib::util::ReadWriteLock* getLock() { return rwLock_; }
 
-private:
-    static FSDirectory::directory_map& getDirectoryMap();
+    void setMMapFlag(bool flag) { mmap_ = flag;}
 
+    bool isMMapEnable() { return mmap_;}
+private:
     void create();
 private:
-    string directory;
+    string directoryName_;
 
-    int nRefCount;
+    bool mmap_;
 
     izenelib::util::ReadWriteLock* rwLock_;
 };

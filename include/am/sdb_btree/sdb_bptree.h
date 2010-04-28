@@ -147,6 +147,14 @@ public:
 		_sfh.cacheSize = sz;
 		_cacheSize = sz;
 	}
+	
+	/**
+	 *  \brief set file name.
+	 *   
+	 */	
+	void setFileName(const std::string& fileName ){
+		_fileName = fileName;		
+	}
 
 	/**
 	 * 	\brief return the file name of the SequentialDB

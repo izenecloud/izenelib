@@ -37,6 +37,9 @@
 
 //#include <am/external_sort/alpha_sort.hpp>
 #include <am/external_sort/multi_pass_sort.hpp>
+#include <am/external_sort/sort_runner.hpp>
+#include <am/external_sort/sort_merger.hpp>
+#include <am/external_sort/izene_sort.hpp>
 #include <sys/time.h>
 #include <signal.h>
 
@@ -75,7 +78,7 @@ uint32_t error_count = 0;
 
 
 template<class T>
-std::vector<char> randstr()
+std::vector<char> randstr(T key)
 {
   uint32_t len = rand()%100+sizeof(T);
   while(len == sizeof(T))
@@ -86,25 +89,26 @@ std::vector<char> randstr()
   for (uint32_t i=0; i<len; ++i)
     str.push_back('a'+rand()%26);
   
+  *(T*)str.data() = key;
   return str;
 }
 
-void check_multi_sort(uint32_t group_size = 4)
+template<class KEY_TYPE>
+void check_multi_sort(uint32_t SIZE = 200000, uint32_t bs =1000000, uint32_t group_size = 4)
 {
   system("rm -f ./tt*");
+  
   struct timeval tvafter, tvpre;
   struct timezone tz;
-  typedef uint32_t key_t;
-  const uint32_t SIZE = 200000;
   
-  MultiPassSort<key_t> sorter("./tt", SIZE*12/500, group_size);
+  MultiPassSort<KEY_TYPE> sorter("./tt", bs, group_size);
 
-  cout<<"-----------------------------\n";
+  cout<<"\n-----------------------------\n";
   std::vector<char> str;
   gettimeofday (&tvpre , &tz);
   for (uint32_t i=0; i<SIZE; ++i)
   {
-    str = randstr<key_t>();
+    str = randstr<KEY_TYPE>(SIZE-i);
     sorter.add_data(str.size(), str.data());
     cout<<"\rAdd data: "<<(double)i/SIZE*100.<<"%"<<std::flush;
   }
@@ -112,37 +116,250 @@ void check_multi_sort(uint32_t group_size = 4)
   printf( "\nIt takes %f minutes to add %d random data!\n",
           ((tvafter.tv_sec-tvpre.tv_sec)*1000+(tvafter.tv_usec-tvpre.tv_usec)/1000.)/60000,
           SIZE);
-
-  gettimeofday (&tvpre , &tz);
+  
   sorter.sort();
-  gettimeofday (&tvafter , &tz);
-  printf( "\nIt takes %f minutes to sort %d random data!\n",
-          ((tvafter.tv_sec-tvpre.tv_sec)*1000+(tvafter.tv_usec-tvpre.tv_usec)/1000.)/60000,
-          SIZE);
-
-  gettimeofday (&tvpre , &tz);
-  sorter.output();
-  gettimeofday (&tvafter , &tz);
-  printf( "\nIt takes %f minutes to output %d random data!\n",
-          ((tvafter.tv_sec-tvpre.tv_sec)*1000+(tvafter.tv_usec-tvpre.tv_usec)/1000.)/60000,
-          SIZE);
 
   char* data;
   uint8_t len;
-  key_t last = 0;
+  KEY_TYPE i = 1;
 
   CHECK(sorter.begin());
   while (sorter.next_data(len, &data))
   {
-    CHECK(last<=*(key_t*)data);
+    CHECK(i==*(KEY_TYPE*)data);
+    if (i!=*(KEY_TYPE*)data)
+    {
+      std::cout<<i<<"-"<<*(KEY_TYPE*)data<<endl;
+      break;
+    }
+    
+    ++i;
   }
+}
+
+template<class KEY_TYPE, class LEN_TYPE>
+void check_runner(const uint64_t SIZE, uint32_t bs=100000000)
+{
+  system("rm -f ./tt*");
+
+  std::vector<char> str;
+  FILE* f = fopen("./tt", "w+");
+  fwrite(&SIZE, sizeof(uint64_t), 1, f);
+  for (uint32_t i=0; i<SIZE; ++i)
+  {
+    str = randstr<KEY_TYPE>(SIZE-i);
+    LEN_TYPE len = str.size();
+    fwrite(&len, sizeof(LEN_TYPE), 1, f);
+    fwrite(str.data(), len, 1, f);
+    cout<<"\rAdd data: "<<(double)i/SIZE*100.<<"%"<<std::flush;
+  }
+  fclose(f);  
+  
+  
+  cout<<"\n-----------------------------\n";
+  SortRunner<KEY_TYPE> runner("./tt", bs);
+  runner.run();
+  cout<<"\nRun number: "<<runner.run_num()<<endl;
+
+  f = fopen("./tt", "r");
+  uint64_t count = 0;
+  fread(&count, sizeof(uint64_t), 1, f);
+  CHECK(count == SIZE);
+  fseek(f, 0, SEEK_END);
+  uint64_t file_len = ftell(f);
+  fseek(f, sizeof(uint64_t), SEEK_SET);
+
+  uint64_t pos = sizeof(uint64_t);
+  while(pos < file_len)
+  {
+    uint32_t run_num = 0;
+    uint32_t run_size = 0;
+    fread(&run_size, sizeof(uint32_t), 1, f);
+    fread(&run_num, sizeof(uint32_t), 1, f);
+    pos += sizeof(uint32_t)*2;
+    KEY_TYPE last;
+    for (uint32_t i=0; i<run_num; ++i)
+    {
+      LEN_TYPE len = 0;
+      fread(&len, sizeof(len), 1, f);
+      char* buf = new char[len];
+      fread(buf, len, 1, f);
+      if (i==0)
+      {
+        last = *(KEY_TYPE*)buf;
+        pos += len + sizeof(len);
+        run_size -= (len + sizeof(len));
+        delete buf;
+        continue;
+      }
+      CHECK(last <= *(KEY_TYPE*)buf);
+      CHECK(1 == *(KEY_TYPE*)buf - last);
+      if (last > *(KEY_TYPE*)buf || 1 != *(KEY_TYPE*)buf - last)
+      {
+        cout<<"ERROR: "<<*(KEY_TYPE*)buf<<"-"<<last<<endl;
+        return;
+      }
+
+      last = *(KEY_TYPE*)buf;
+      pos += len + sizeof(len);
+      run_size -= (len + sizeof(len));
+      delete buf;
+    }
+    CHECK(run_size == 0);
+  }
+}
+
+template<class KEY_TYPE, class LEN_TYPE>
+void check_merger(const uint64_t SIZE, uint32_t bs=100000000)
+{
+  system("rm -f ./tt*");
+
+  std::vector<char> str;
+  FILE* f = fopen("./tt", "w+");
+  fwrite(&SIZE, sizeof(uint64_t), 1, f);
+
+  uint32_t run_num = rand()%300;
+  while (run_num<100 || SIZE%run_num!=0)
+    run_num = rand()%300;
+
+  run_num = 800;
+  for (uint32_t i=0; i<run_num; ++i)
+  {
+    uint64_t pos = ftell(f);
+    fseek(f, 2*sizeof(uint32_t), SEEK_CUR);
+    uint32_t s = 0;
+    for (uint32_t j=0; j<SIZE/run_num; ++j)
+    {
+      str = randstr<KEY_TYPE>(i*SIZE/run_num+j);
+      LEN_TYPE len = str.size();
+      fwrite(&len, sizeof(LEN_TYPE), 1, f);
+      fwrite(str.data(), len, 1, f);
+      s += len+sizeof(LEN_TYPE);
+
+      cout<<"\rAdd data: "<<(double)(i*SIZE/run_num+j)/SIZE*100.<<"%"<<std::flush;
+    }
+    fseek(f, pos, SEEK_SET);
+    fwrite(&s, sizeof(uint32_t), 1, f);
+    s = SIZE/run_num;
+    fwrite(&s, sizeof(uint32_t), 1, f);
+    fseek(f, 0, SEEK_END);
+  }
+  fclose(f);  
+  
+  
+  cout<<"\n-----------------------------\n";
+  cout<<"Run number: "<<run_num<<endl;
+  SortMerger<KEY_TYPE, LEN_TYPE> merger("./tt", run_num, bs, 2);
+  merger.run();
+
+  f = fopen("./tt", "r");
+  uint64_t count = 0;
+  fread(&count, sizeof(uint64_t), 1, f);
+  CHECK(count == SIZE);
+  for (uint32_t i=0; i<count; ++i)
+  {
+    LEN_TYPE len = 0;
+    fread(&len, sizeof(LEN_TYPE), 1, f);
+    char* buf = new char[len];
+    fread(buf, len, 1, f);
+    CHECK(*(KEY_TYPE*)buf == i);
+    if (*(KEY_TYPE*)buf != i)
+    {
+      std::cout<<"\nERROR: "<<*(KEY_TYPE*)buf<<":"<<i<<std::endl;
+      break;
+    }
+    delete buf;
+  }
+}
+
+
+template<class KEY_TYPE, class LEN_TYPE>
+void check_izene_sort(uint32_t SIZE = 200000, uint32_t bs =1000000)
+{
+  system("rm -f ./tt*");
+  
+  struct timeval tvafter, tvpre;
+  struct timezone tz;
+  
+  IzeneSort<KEY_TYPE, LEN_TYPE, true> sorter("./tt", bs);
+
+  cout<<"\n-----------------------------\n";
+  std::vector<char> str;
+  gettimeofday (&tvpre , &tz);
+  for (uint32_t i=0; i<SIZE; ++i)
+  {
+    str = randstr<KEY_TYPE>(SIZE-i);
+    sorter.add_data(str.size(), str.data());
+    cout<<"\rAdd data: "<<(double)i/SIZE*100.<<"%"<<std::flush;
+  }
+  gettimeofday (&tvafter , &tz);
+  printf( "\nIt takes %f minutes to add %d random data!\n",
+          ((tvafter.tv_sec-tvpre.tv_sec)*1000+(tvafter.tv_usec-tvpre.tv_usec)/1000.)/60000,
+          SIZE);
+  
+  sorter.sort();
+
+  char* data;
+  LEN_TYPE len;
+  KEY_TYPE i = 1;
+
+  CHECK(sorter.begin());
+  while (sorter.next_data(len, &data))
+  {
+    CHECK(i==*(KEY_TYPE*)data);
+    if (i!=*(KEY_TYPE*)data)
+    {
+      std::cout<<i<<"-"<<*(KEY_TYPE*)data<<endl;
+      break;
+    }
+    free(data);
+    ++i;
+  }
+
+//   char* data=NULL;
+//   LEN_TYPE len;
+//   KEY_TYPE i = 1;
+
+//   CHECK(sorter.begin());
+//   sorter.next_data(len, &data);
+//   i=*(KEY_TYPE*)data;
+//   free(data);
+//   while (sorter.next_data(len, &data))
+//   {
+//     CHECK(i<=*(KEY_TYPE*)data);
+//     if (i>*(KEY_TYPE*)data)
+//     {
+//       std::cout<<i<<"-"<<*(KEY_TYPE*)data<<endl;
+//       break;
+//     }
+//     i=*(KEY_TYPE*)data;
+//     free(data);
+//   }
 }
 
 int main()
 {
   //alpha_sort_check();
-  //check_multi_sort(200);
-  check_multi_sort();
+
+  //const uint32_t SIZE = 400000000;//00000;
+  //check_runner<uint32_t, uint8_t>(SIZE, 10000000);
+  //check_merger<uint32_t, uint8_t>(SIZE, 10000000);
+  //check_izene_sort<uint64_t, uint16_t>(SIZE, 10000000);
+  //check_izene_sort<uint32_t, uint8_t>(SIZE, 10000000);
+
+  // check_multi_sort<uint64_t>(100000, 200000000);
+//   //-----------------------------
+//   check_multi_sort<uint32_t>(SIZE, SIZE/5);
+//   check_multi_sort<uint32_t>(SIZE, SIZE/5, 20);
+  
+//   //-----------------------------
+//   check_multi_sort<uint64_t>(SIZE, SIZE/5);
+//   check_multi_sort<uint64_t>(SIZE, SIZE/5, 20);
+
+  
+//   //-----------------------------
+//   check_multi_sort<uint16_t>(30000, 30000/5);
+//   check_multi_sort<uint16_t>(30000, 300000/5, 20);
 }
 
 

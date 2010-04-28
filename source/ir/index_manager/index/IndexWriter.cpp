@@ -313,6 +313,8 @@ void IndexWriter::flushDocuments(bool update)
     {
         DocId uniqueID;
         ppCachedDocs_[i]->getDocId(uniqueID);
+        if(ppCachedDocs_[i]->empty())
+            continue;
         if (baseDocIDMap_.find(uniqueID.colId) == baseDocIDMap_.end())
             baseDocIDMap_.insert(make_pair(uniqueID.colId,uniqueID.docId));
 

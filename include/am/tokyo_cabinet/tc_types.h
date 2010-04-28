@@ -22,7 +22,7 @@
 #include <iostream>
 
 #include <tchdb.h>
-
+#include <tcfdb.h>
 #include <tcutil.h>
 #include <tcadb.h>
 #include <stdlib.h>

@@ -51,6 +51,7 @@ IF(nvwa_SHOULD_BUILD)
   #INSTALL(TARGETS nvwa DESTINATION lib)
   INSTALL(TARGETS nvwa     
       LIBRARY DESTINATION lib 
+      ARCHIVE DESTINATION lib 
       COMPONENT "izenelib_libraries")
 
   # we know the warnings, it's ok to alias void* as char*

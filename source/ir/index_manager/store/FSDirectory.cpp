@@ -1,5 +1,6 @@
 #include <ir/index_manager/store/FSDirectory.h>
 #include <ir/index_manager/store/FSIndexInput.h>
+#include <ir/index_manager/store/MMapIndexInput.h>
 #include <ir/index_manager/store/FSIndexOutput.h>
 #include <ir/index_manager/utility/Utilities.h>
 
@@ -11,19 +12,19 @@ using namespace std;
 using namespace izenelib::ir::indexmanager;
 
 FSDirectory::FSDirectory(const string& path,bool bCreate)
-        : nRefCount(0)
+        : mmap_(false)
         , rwLock_(NULL)
 {
-    directory = path;
+    directoryName_ = path;
     if (bCreate)
     {
         create();
     }
 
-    if (!Utilities::dirExists(directory.c_str()))
+    if (!Utilities::dirExists(directoryName_.c_str()))
     {
-        string s = directory;
-        s += " is not a directory.";
+        string s = directoryName_;
+        s += " is not a directoryName_.";
         SF1V5_THROW(ERROR_FILEIO,s);
     }
     
@@ -39,39 +40,21 @@ FSDirectory::~FSDirectory(void)
 
 void FSDirectory::create()
 {
-    if ( !Utilities::dirExists(directory.c_str()) )
+    if ( !Utilities::dirExists(directoryName_.c_str()) )
     {
-        if ( mkdir(directory.c_str(),0777) == -1 )
+        if ( mkdir(directoryName_.c_str(),0777) == -1 )
         {
-            string s = "Couldn't create directory: ";
-            s += directory;
+            string s = "Couldn't create directoryName_: ";
+            s += directoryName_;
             SF1V5_THROW(ERROR_FILEIO,s);
         }
         return;
     }
 }
 
-FSDirectory* FSDirectory::getDirectory(const string& path,bool bCreate)
-{
-    FSDirectory* pS = NULL;
-    directory_map& dm = getDirectoryMap();
-    directory_iterator iter = dm.find(path);
-    if (iter == dm.end())
-    {
-        pS = new FSDirectory(path,bCreate);
-        dm.insert(pair<string,FSDirectory*>(path,pS));
-    }
-    else
-    {
-        pS = iter->second;
-    }
-    pS->nRefCount++;
-    return pS;
-}
-
 void FSDirectory::deleteFile(const string& filename,bool throwError)
 {
-    string fullpath = directory + "/" + filename;
+    string fullpath = directoryName_ + "/" + filename;
     if ( unlink(fullpath.c_str()) == -1 && throwError)
     {
         string str = "deleteFile error:";
@@ -81,8 +64,8 @@ void FSDirectory::deleteFile(const string& filename,bool throwError)
 }
 void FSDirectory::renameFile(const string& from, const string& to)
 {
-    string tofullpath = directory + "/" + to;
-    string fromfullpath = directory + "/" + from;
+    string tofullpath = directoryName_ + "/" + to;
+    string fromfullpath = directoryName_ + "/" + from;
     if ( fileExists(to.c_str()) )
     {
         string s = to;
@@ -105,7 +88,7 @@ void FSDirectory::renameFile(const string& from, const string& to)
 }
 void FSDirectory::deleteFiles(const string& filename,bool throwError)
 {
-    DIR* dir = opendir(directory.c_str());
+    DIR* dir = opendir(directoryName_.c_str());
     struct dirent* fl = readdir(dir);
     struct stat64 buf;
 
@@ -114,7 +97,7 @@ void FSDirectory::deleteFiles(const string& filename,bool throwError)
     string::size_type npos = (size_t)-1;
     while ( fl != NULL )
     {
-        path = directory;
+        path = directoryName_;
         path += "/";
         path += fl->d_name;
         int32_t ret = stat64(path.c_str(),&buf);
@@ -146,7 +129,7 @@ void FSDirectory::deleteFiles(const string& filename,bool throwError)
 }
 void FSDirectory::renameFiles(const string& from, const string& to)
 {
-    DIR* dir = opendir(directory.c_str());
+    DIR* dir = opendir(directoryName_.c_str());
     struct dirent* fl = readdir(dir);
     struct stat64 buf;
 
@@ -154,7 +137,7 @@ void FSDirectory::renameFiles(const string& from, const string& to)
     string::size_type npos = (size_t)-1;
     while ( fl != NULL )
     {
-        path = directory;
+        path = directoryName_;
         path += "/";
         path += fl->d_name;
         int32_t ret = stat64(path.c_str(),&buf);
@@ -182,47 +165,39 @@ void FSDirectory::renameFiles(const string& from, const string& to)
 }
 bool FSDirectory::fileExists(const string& name) const
 {
-    string s = directory + "/" + name;
+    string s = directoryName_ + "/" + name;
     return Utilities::dirExists(s.c_str());
 }
 IndexInput* FSDirectory::openInput(const string& name)
 {
-    string fullpath = directory + "/" + name;
+    string fullpath = directoryName_ + "/" + name;
     return new FSIndexInput(fullpath.c_str());
 }
 IndexInput* FSDirectory::openInput(const string& name, size_t bufsize)
 {
-    string fullpath = directory + "/" + name;
+    string fullpath = directoryName_ + "/" + name;
     return new FSIndexInput(fullpath.c_str(),bufsize);
 }
+
+IndexInput* FSDirectory::openMMapInput(const string& name)
+{
+    string fullpath = directoryName_ + "/" + name;
+    return new MMapIndexInput(fullpath.c_str());
+}
+
 IndexOutput* FSDirectory::createOutput(const string& name, const string& mode)
 {
-    string fullpath = directory + "/" + name;
+    string fullpath = directoryName_ + "/" + name;
     return new FSIndexOutput(fullpath.c_str(), mode);
 }
 
 IndexOutput* FSDirectory::createOutput(const string& name, size_t buffersize, const string& mode)
 {
-    string fullpath = directory + "/" + name;
+    string fullpath = directoryName_ + "/" + name;
     return new FSIndexOutput(fullpath.c_str(), buffersize, mode);
 }
 
 void FSDirectory::close()
 {
-    nRefCount--;
-    if (nRefCount < 1)
-    {
-        //TODO segment error here, why
-        directory_map& dm = getDirectoryMap();
-        delete dm[directory];
-        dm.erase(directory);
-       // delete this;
-    }
-}
-
-FSDirectory::directory_map& FSDirectory::getDirectoryMap()
-{
-    static directory_map FS_DIRECTORIES;
-    return FS_DIRECTORIES;
 }
 
