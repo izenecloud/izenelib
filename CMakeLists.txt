@@ -22,10 +22,10 @@ IF(NOT CMAKE_INSTALL_PREFIX)
 ENDIF(NOT CMAKE_INSTALL_PREFIX)
 
 # Check the mf 
-IF( NOT USE_MF_FULL )
-    MESSAGE( STATUS "Set USE_MF_LIGHT to TRUE")
-    SET( USE_MF_LIGHT "TRUE")
-ENDIF( NOT USE_MF_FULL )
+#IF( NOT USE_MF_FULL )
+#    MESSAGE( STATUS "Set USE_MF_LIGHT to TRUE")
+#    SET( USE_MF_LIGHT "TRUE")
+#ENDIF( NOT USE_MF_FULL )
 
 ##################################################
 # Find extra cmake modules dirs
