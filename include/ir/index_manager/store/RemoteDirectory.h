@@ -53,6 +53,8 @@ public:
     }
 
     void close(){ }
+
+    izenelib::util::ReadWriteLock* getLock(){ return NULL; }
 };
 
 }

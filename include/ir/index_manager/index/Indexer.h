@@ -31,13 +31,14 @@ NS_IZENELIB_IR_BEGIN
 
 namespace indexmanager{
 
-enum ManagerType
-{
-    MANAGER_TYPE_LOCAL,       /// Deployed in a single machine
-    MANAGER_TYPE_NO_BTREE,   /// No btree
-    MANAGER_TYPE_CLIENTPROCESS, /// Deployed as the client indexer
-    MANAGER_TYPE_SERVERPROCESS, /// Deployed as the server indexer
-};
+#define MANAGER_TYPE_LOCAL 0x0100				/// Deployed in a single machine
+#define MANAGER_TYPE_CLIENTPROCESS 0x0200		/// Deployed as the client indexer
+#define MANAGER_TYPE_SERVERPROCESS 0x0400		/// Deployed as the server indexer
+
+#define MANAGER_INDEXING_FORWARD 0x0001		///has fowardindex
+#define MANAGER_INDEXING_BTREE 0x0002			///has btree index
+
+typedef uint16_t ManagerType;
 
 enum IndexStatus
 {
@@ -59,7 +60,7 @@ class Indexer: private boost::noncopyable
 {
 public:
 
-    Indexer(bool indexingForward = false, ManagerType managerType = MANAGER_TYPE_LOCAL);
+    Indexer(ManagerType managerType = MANAGER_TYPE_LOCAL|MANAGER_INDEXING_BTREE);
 
     virtual ~Indexer();
 public:
@@ -173,14 +174,12 @@ public:
 protected:
     void initIndexManager();
 
-    void openDirectory();
+    void openDirectory(const std::string& storagePolicy);
 
     void close();
 
 protected:
     ManagerType managerType_;
-
-    bool indexingForward_;
 
     Directory* pDirectory_;
 

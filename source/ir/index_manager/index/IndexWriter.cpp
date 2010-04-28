@@ -288,7 +288,7 @@ void IndexWriter::indexDocument(IndexerDocument* pDoc, bool update)
          }
          else
          {
-             if(pIndexer_->getIndexerType() == MANAGER_TYPE_CLIENTPROCESS)
+             if(pIndexer_->getIndexerType() & MANAGER_TYPE_CLIENTPROCESS)
                 justWriteCachedIndex();
             else
                 ///merge index

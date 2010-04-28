@@ -18,7 +18,7 @@ IndexBarrelWriter::IndexBarrelWriter(Indexer* pIndex,MemCache* pCache,const char
     pCollectionsInfo = new CollectionsInfo();
     pDirectory = pIndexer->getDirectory();
 
-    if(pIndexer->indexingForward_)
+    if(pIndexer->getIndexerType() & MANAGER_INDEXING_FORWARD)
         pForwardIndexWriter_ = new ForwardIndexWriter(pDirectory);
 }
 
