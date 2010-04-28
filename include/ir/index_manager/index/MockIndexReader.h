@@ -57,6 +57,9 @@ public:
 
     TermInfo* termInfo(collectionid_t colID, Term* term);
 
+    bool isDirty() {return false;}
+
+    size_t docLength(docid_t docId, fieldid_t fid) {return 1;}
     /**
      * @param colID ignored
      */

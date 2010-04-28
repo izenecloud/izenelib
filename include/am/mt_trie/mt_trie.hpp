@@ -70,6 +70,7 @@ public:
 
     void open()
     {
+        remove( writeCachePath_.c_str() );
         writeCache_.open(writeCachePath_.c_str(), std::ofstream::out|
             std::ofstream::binary | std::ofstream::app );
         if(writeCache_.fail())
@@ -198,7 +199,7 @@ public:
         for(int i=0; i<maximumResultNumber; i++) {
             if(l1Count.size() == 0) break;
             int max = 0; int maxIndex = 0;
-            for(int j=0; j<l1Count.size(); j++) {
+            for(size_t j=0; j<l1Count.size(); j++) {
                 if( l1Count[j] > max ) {
                     max = l1Count[j];
                     maxIndex = j;
@@ -210,13 +211,13 @@ public:
             l1SearchResult.erase(l1SearchResult.begin()+maxIndex);
         }
 
-        if(keyList.size() < maximumResultNumber) {
+        if(keyList.size() < (unsigned)maximumResultNumber) {
             std::vector<StringType> l2SearchResult;
             trie_.findRegExp(regexp, l2SearchResult, maximumResultNumber);
             for(typename std::vector<StringType>::iterator it = l2SearchResult.begin(); it!=l2SearchResult.end(); it++ ) {
                 if( std::find(keyList.begin(), keyList.end(), *it) == keyList.end() ) {
                     keyList.push_back(*it);
-                    if(keyList.size() == maximumResultNumber) break;
+                    if(keyList.size() == (unsigned)maximumResultNumber) break;
                 }
             }
         }

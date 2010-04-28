@@ -262,6 +262,11 @@ public:
         return false;
     }
     
+    uint64_t tellg()
+    {
+        return stream_.tellg();
+    }
+    
     void recordPosition()
     {
         posSet_ = stream_.tellg();
@@ -354,7 +359,12 @@ class SimpleSequenceFileWriter {
             isOpen_ = true;
             loadItemCount_();
             stream_.flush();
-            stream_.seekg(0, ios::end);
+            SimpleSequenceFileReader<KeyType,ValueType,LenType> reader(file_);
+            reader.open();
+            while( reader.next() ) {}
+            uint64_t lastPos = reader.tellg();
+            reader.close();
+            stream_.seekg(lastPos);
             if (stream_.fail())
             {
                 IZENELIB_THROW("SimpleSequenceFileWriter open on "+file_);
