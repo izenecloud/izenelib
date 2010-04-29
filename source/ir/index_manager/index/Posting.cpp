@@ -564,7 +564,7 @@ void OnDiskPosting::reset(fileoffset_t newOffset)
     ///read first chunk descriptor of posting list <ChunkDescriptor>
     chunkDesc_.length = VariantDataPool::decodeVData64(u);	///<ChunkLength(VInt64)>
     chunkDesc_.lastdocid = VariantDataPool::decodeVData32(u);	///<LastDocID(VInt32)>
-
+/*
     int skipLevel = VariantDataPool::decodeVData32(u);
 
     if(skipLevel > 0)
@@ -575,7 +575,7 @@ void OnDiskPosting::reset(fileoffset_t newOffset)
         pDPInput->seek(postingOffset_ + (u - buf)); ///start of skipping data
         pSkipListReader_ = new SkipListReader(pDPInput,skipInterval_,skipLevel);		
     }
-	
+*/	
     IndexInput* pPPInput = pInputDescriptor_->getPPostingInput();
     if (pPPInput)
     {
