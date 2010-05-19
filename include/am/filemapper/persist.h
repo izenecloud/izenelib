@@ -81,7 +81,7 @@ public:
         map_instance_ = map_file::instance();
     }
 
-    allocator(const map_file* instance):map_instance_(instance) {}
+    allocator(map_file* instance):map_instance_(instance) {}
 
 
     typedef T value_type;
