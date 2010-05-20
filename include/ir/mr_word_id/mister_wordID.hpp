@@ -11,6 +11,7 @@
 #include "id_str_table.hpp"
 #include <string>
 #include <vector>
+#include <algorithm>
 #include <wiselib/ustring/UString.h>
 #include <boost/filesystem/path.hpp>
 #include <boost/filesystem/operations.hpp>
@@ -330,17 +331,19 @@ class MisterWordID
       return;
 
     freq_t freqs;
+    std::vector<FREQ_STRUCT> vfreqs;
     std::vector<std::string> words;
     
     std::string word;
     uint32_t freq = 0;
     while(term_freq_.next(word, freq))
     {
-      freqs.push_back(FREQ_STRUCT(freq, words.size()));
+      vfreqs.push_back(FREQ_STRUCT(freq, words.size()));
       words.push_back(word);
     }
 
-    freqs.sort();
+    std::sort(vfreqs.begin(), vfreqs.end());
+    freqs.assign(vfreqs);
 
     for (uint32_t i= freqs.length()-1; i!=(uint32_t)-1; --i)
     {

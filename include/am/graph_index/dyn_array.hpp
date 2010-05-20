@@ -36,6 +36,7 @@ public:
 
 #define ARRAY(p) ((VALUE_TYPE*)((p)+sizeof(ReferT)))
 #define REFER (*(ReferT*)p_)
+
 private:
   char* p_;//!< buffer for array
   size_t length_;//!< vector size
@@ -173,7 +174,7 @@ protected:
   {
     if (length_ == 0)
       return -1;
-    
+
     IASSERT(high>=low);
     
     size_t mid;
@@ -209,6 +210,17 @@ public:
       return length_-1;
 
     return binary_search(t, 0, length_-1);
+  }
+
+  inline size_t find_pos_2insert(size_t start, VALUE_TYPE t)const
+  {
+    if (length_ ==0)
+      return -1;
+    
+    if (!AUTO_SORT)
+      return length_-1;
+
+    return binary_search(t, start, length_-1);
   }
 
 protected:
