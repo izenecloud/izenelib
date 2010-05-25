@@ -77,6 +77,9 @@ typedef uint8_t byte;
 #define MAX_TERMID 0xFFFFFFFF
 #define BAD_PROPERTY_ID 0xFFFFFFFF
 
+
+#define SKIP_THRESHOLD 1024//40960
+
 #ifdef __APPLE__
 #define lseek64 lseek
 #define open64 open

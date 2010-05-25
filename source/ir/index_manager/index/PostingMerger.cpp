@@ -14,8 +14,8 @@ PostingMerger::PostingMerger()
         ,pSkipListMerger_(NULL)
         ,pMemCache_(NULL)
 {
-    reset();
     init();
+    reset();
 }
 
 PostingMerger::PostingMerger(OutputDescriptor* pOutputDescriptor)
@@ -28,8 +28,8 @@ PostingMerger::PostingMerger(OutputDescriptor* pOutputDescriptor)
         ,pSkipListMerger_(NULL)
         ,pMemCache_(NULL)
 {
-    reset();
     init();
+    reset();
 }
 
 PostingMerger::~PostingMerger()
@@ -55,6 +55,8 @@ void PostingMerger::reset()
     postingDesc_.poffset = -1;
     chunkDesc_.lastdocid = 0;
     chunkDesc_.length = 0;
+    termInfo_.reset();
+    pMemCache_->flushMem();
     if(pSkipListMerger_)
         pSkipListMerger_->reset();
 }
@@ -85,6 +87,8 @@ void PostingMerger::mergeWith(InMemoryPosting* pInMemoryPosting)
     if (bFirstPosting_)///first posting
     {
         reset();
+        termInfo_.docPointer_ = pDOutput->getFilePointer();
+        termInfo_.positionPointer_ = pPOutput->getFilePointer();
         nPPostingLength_ = 0;
         bFirstPosting_ = false;
         ///save position posting offset
@@ -147,6 +151,9 @@ void PostingMerger::mergeWith(OnDiskPosting* pOnDiskPosting)
     if (bFirstPosting_)///first posting
     {
         reset();
+        termInfo_.docPointer_ = pDOutput->getFilePointer();
+        termInfo_.positionPointer_ = pPOutput->getFilePointer();
+		
         nPPostingLength_ = 0;
         bFirstPosting_ = false;
 
@@ -211,6 +218,9 @@ void PostingMerger::mergeWith_GC(OnDiskPosting* pOnDiskPosting,BitVector* pFilte
     if (bFirstPosting_)///first posting
     {
         reset();
+        termInfo_.docPointer_ = pDOutput->getFilePointer();
+        termInfo_.positionPointer_ = pPOutput->getFilePointer();
+		
         nPPostingLength_ = 0;
         bFirstPosting_ = false;
 
@@ -281,33 +291,15 @@ fileoffset_t PostingMerger::endMerge()
     IndexOutput* pPOutput = pOutputDescriptor_->getPPostingOutput();
     fileoffset_t postingoffset = pDOutput->getFilePointer();
 
-    ///write position posting descriptor
-    nPPostingLength_ = pPOutput->getFilePointer() - postingDesc_.poffset;
-    postingDesc_.poffset = pPOutput->getFilePointer();
-    pPOutput->writeVLong(nPPostingLength_);	////<ChunkLength(VInt64)>
+    termInfo_.docFreq_ = postingDesc_.df;
+    termInfo_.ctf_ = postingDesc_.ctf;
+    termInfo_.skipLevel_ = pSkipListMerger_->getNumLevels();
+    termInfo_.lastDocID_ = chunkDesc_.lastdocid;
+    termInfo_.docPostingLen_ = postingDesc_.length;
+    termInfo_.positionPostingLen_ = pPOutput->getFilePointer() - postingDesc_.poffset;
 
-    ///begin write posting descriptor
-    pDOutput->writeVLong(postingDesc_.length);	///<PostingLength(VInt64)>
-    pDOutput->writeVInt(postingDesc_.df);		///<DF(VInt32)>
-    pDOutput->writeVLong(postingDesc_.ctf);	///<CTF(VInt64)>
-    pDOutput->writeVLong(postingDesc_.poffset);///<PositionPointer(VInt64)>
-    ///end write posting descriptor
+    pSkipListMerger_->write(pDOutput);
 
-    pDOutput->writeVInt(1);						///<ChunkCount(VInt32)>
-    ///begin write chunk descriptor
-    pDOutput->writeVLong(chunkDesc_.length);	///<ChunkLength(VInt64)>
-
-    if( pSkipListMerger_ && pSkipListMerger_->getNumLevels() > 0) ///nDF_ > SkipInterval
-    {
-        pDOutput->writeVInt(chunkDesc_.lastdocid);///<LastDocID(VInt32)>
-        pDOutput->writeVInt(pSkipListMerger_->getNumLevels()); ///skiplevel (VInt32)
-        pSkipListMerger_->write(pDOutput);	///write skip list data
-    }
-    else
-    {
-        pDOutput->writeVInt(chunkDesc_.lastdocid);///<LastDocID(VInt32)>
-        pDOutput->writeVInt(0);  /// skiplevel = 0
-    }
     ///end write posting descriptor
     return postingoffset;
 }

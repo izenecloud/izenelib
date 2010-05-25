@@ -40,11 +40,6 @@ public:
      */
     void addDocument(IndexerDocument* pDoc);
     /**
-     * delete the in memory index for a document
-     * @param pDoc analyzed document
-     */
-    bool deleteDocument(IndexerDocument* pDoc);
-    /**
      * determine if the memory cache for indexing is full
      * @return true if cache is full otherwise false.
      */

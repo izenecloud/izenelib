@@ -6,7 +6,7 @@
 
 using namespace izenelib::ir::indexmanager;
 
-TermDocFreqs::TermDocFreqs(void)
+TermDocFreqs::TermDocFreqs()
         :pPosting_(NULL)
         ,pPostingBuffer_(0)
         ,nBufferSize_(0)
@@ -20,8 +20,9 @@ TermDocFreqs::TermDocFreqs(void)
 {
 }
 
-TermDocFreqs::TermDocFreqs(TermReader* pReader, InputDescriptor* pInputDescriptor, TermInfo& ti)
-        :pPostingBuffer_(NULL)
+TermDocFreqs::TermDocFreqs(TermReader* pReader, InputDescriptor* pInputDescriptor, const TermInfo& ti)
+        :termInfo_(ti)
+        ,pPostingBuffer_(NULL)
         ,nBufferSize_(0)
         ,nFreqStart_(0)
         ,nTotalDecodedCount_(0)
@@ -31,13 +32,12 @@ TermDocFreqs::TermDocFreqs(TermReader* pReader, InputDescriptor* pInputDescripto
         ,pInputDescriptor_(pInputDescriptor)
         ,ownPosting_(true)
 {
-    termInfo_.set(ti.docFreq(),ti.docPointer());
-    //pInputDescriptor_->getDPostingInput()->seek(ti.docPointer());
-    pPosting_ = new OnDiskPosting(pInputDescriptor_,ti.docPointer());
+    pPosting_ = new OnDiskPosting(pInputDescriptor_,termInfo_);
 }
 
-TermDocFreqs::TermDocFreqs(TermReader* pReader, Posting* pPosting, TermInfo& ti)
-        :pPosting_(pPosting->clone())
+TermDocFreqs::TermDocFreqs(TermReader* pReader, Posting* pPosting, const TermInfo& ti)
+        :termInfo_(ti)
+        ,pPosting_(pPosting->clone())
         ,pPostingBuffer_(NULL)
         ,nBufferSize_(0)
         ,nFreqStart_(0)
@@ -48,11 +48,11 @@ TermDocFreqs::TermDocFreqs(TermReader* pReader, Posting* pPosting, TermInfo& ti)
         ,pInputDescriptor_(NULL)
         ,ownPosting_(true)
 {
-    termInfo_.set(ti.docFreq(),ti.docPointer());
 }
 
-TermDocFreqs::TermDocFreqs(Posting* pPosting)
-        :pPosting_(pPosting)
+TermDocFreqs::TermDocFreqs(Posting* pPosting, const TermInfo& ti)
+        :termInfo_(ti)
+        ,pPosting_(pPosting)
         ,pPostingBuffer_(NULL)
         ,nBufferSize_(0)
         ,nFreqStart_(0)
@@ -63,7 +63,6 @@ TermDocFreqs::TermDocFreqs(Posting* pPosting)
         ,pInputDescriptor_(NULL)
         ,ownPosting_(false)
 {
-    termInfo_.set(pPosting->docFreq(), 0);
 }
 
 TermDocFreqs::~TermDocFreqs(void)
@@ -79,12 +78,12 @@ TermDocFreqs::~TermDocFreqs(void)
 
 freq_t TermDocFreqs::docFreq()
 {
-    return termInfo_.docFreq();
+    return termInfo_.docFreq_;
 }
 
 int64_t TermDocFreqs::getCTF()
 {
-    return pPosting_->getCTF();
+    return termInfo_.ctf_;
 }
 
 docid_t TermDocFreqs::doc()
@@ -109,25 +108,37 @@ bool TermDocFreqs::next()
     return true;
 }
 
-docid_t TermDocFreqs::skipTo(docid_t docId)
+docid_t TermDocFreqs::skipTo(docid_t target)
 {
     int32_t start,end;
     while (true)
     {
         if((nCurrentPosting_ == -1) || (nCurrentPosting_ >= nCurDecodedCount_) )
         {
-            if(!pPostingBuffer_)
-                createBuffer();
-            nCurrentPosting_ = 0;
-            nCurDecodedCount_ = 1;
-            pPostingBuffer_[0] = pPosting_->decodeTo(docId);
-            return pPostingBuffer_[0];
-        }
+            //if(termInfo_.docFreq_ < SKIP_THRESHOLD)
+#if 0
+            {
+                if(!decode())
+                    return BAD_DOCID;
+            }
+#else
+            //else
+            {
+                if(!pPostingBuffer_)
+                    createBuffer();
+                nCurrentPosting_ = 0;
+                nCurDecodedCount_ = 1;
+                pPostingBuffer_[0] = pPosting_->decodeTo(target);
+                pPostingBuffer_[nFreqStart_] = pPosting_->docFreq();
+                return pPostingBuffer_[0];
+            }
+#endif
+       }
         start = nCurrentPosting_;
-        end = start + (docId - pPostingBuffer_[nCurrentPosting_]);
+        end = start + (target - pPostingBuffer_[nCurrentPosting_]);
         if(end == start)
         {
-            return docId;
+            return target;
         }
         else if(end < start)
         {
@@ -136,8 +147,8 @@ docid_t TermDocFreqs::skipTo(docid_t docId)
         if ( end > (nCurDecodedCount_ - 1) )
             end = nCurDecodedCount_ - 1;
         docid_t nRetDocId;
-        nCurrentPosting_ = bsearch(pPostingBuffer_,start,end,docId,nRetDocId);///binary search in decoded buffer
-        if(nRetDocId >= docId)
+        nCurrentPosting_ = bsearch(pPostingBuffer_,start,end,target,nRetDocId);///binary search in decoded buffer
+        if(nRetDocId >= target)
             return nRetDocId;
         nCurrentPosting_ = nCurDecodedCount_;///buffer is over
     }

@@ -13,8 +13,6 @@
 
 #include <string>
 
-#define SPARSE_FACTOR 512
-#define VOC_ENTRY_LENGTH 16
 
 NS_IZENELIB_IR_BEGIN
 
@@ -25,6 +23,9 @@ struct TERM_TABLE
     termid_t tid;
     TermInfo ti;
 };
+
+#define SPARSE_FACTOR 512
+#define VOC_ENTRY_LENGTH 44
 
 /**
 * Internal class of VocReader
@@ -43,8 +44,6 @@ public:
     void reopen();
 
     void close() ;
-
-    void updateTermInfo(Term* term, count_t docFreq, fileoffset_t offset);
 
     TermInfo* termInfo(Term* term);
 
@@ -98,8 +97,6 @@ public:
     void close() ;
 
     TermReader* clone() ;
-
-    void updateTermInfo(Term* term, count_t docFreq, fileoffset_t offset);
 
     TermReaderImpl* getTermReaderImpl(){ return pTermReaderImpl_;}
 
@@ -191,9 +188,9 @@ public:
 private:
     TermInfo* termInfo(Term* term);
 
-    inline TermInfo* searchBuffer(termid_t termId, int end);
+    TermInfo* searchBuffer(termid_t termId, int end);
 
-    inline int fillBuffer(int pos);
+    int fillBuffer(int pos);
 
 private:
     SparseTermReaderImpl* pTermReaderImpl_;

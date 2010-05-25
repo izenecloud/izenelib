@@ -1,11 +1,13 @@
 #include <ir/index_manager/index/SkipListReader.h>
 #include <ir/index_manager/utility/system.h>
 
+//#define SKIP_DEBUG
+
 NS_IZENELIB_IR_BEGIN
 
 namespace indexmanager{
 
-SkipListReader::SkipListReader(IndexInput* pSkipInput, int skipInterval, int numSkipLevels)
+SkipListReader::SkipListReader(IndexInput* pSkipInput, fileoffset_t skipOffset, int skipInterval, int numSkipLevels)
 	: loaded_(false)
 	, defaultSkipInterval_(skipInterval)
 	, numSkipLevels_(numSkipLevels)
@@ -16,6 +18,7 @@ SkipListReader::SkipListReader(IndexInput* pSkipInput, int skipInterval, int num
 {
     init();
     skipStream_[0] = pSkipInput->clone();
+    skipStream_[0]->seek(skipOffset);
 }		
 
 SkipListReader::SkipListReader(VariantDataPool** pSkipLevels, int skipInterval, int numSkipLevels)
@@ -40,7 +43,7 @@ SkipListReader::~SkipListReader()
             delete *iter;
 }
 
-docid_t SkipListReader::skipTo(docid_t docID)
+docid_t SkipListReader::skipTo(docid_t target)
 {
     if (!loaded_) 
     {
@@ -49,15 +52,18 @@ docid_t SkipListReader::skipTo(docid_t docID)
     }
     /// walk up the levels until highest level is found that has a skip for this target
     int level = 0;
-    while (level < (numSkipLevels_-1) && docID > skipDoc_[level + 1]) 
+    while (level < (numSkipLevels_-1) && target > skipDoc_[level + 1]) 
     {
         level++;
     }
 
     while (level >= 0) 
     {
-        if (docID > skipDoc_[level]) 
+        if (target > skipDoc_[level]) 
         {
+#ifdef SKIP_DEBUG
+        cout<<"in level "<<level<<":";
+#endif
             if (!loadNextSkip(level)) 
                 continue;
         }
@@ -71,6 +77,9 @@ docid_t SkipListReader::skipTo(docid_t docID)
             level--;
         }
     }
+#ifdef SKIP_DEBUG
+    cout<<"skipto result: doc "<<lastDoc_<<" totalskipped "<<totalSkipped_<<endl;	
+#endif
     return lastDoc_;
 }
 
@@ -94,7 +103,9 @@ void SkipListReader::seekChild(int level)
 {
     skipStream_[level]->seek(lastChildPointer_);
     skipDoc_[level] = lastDoc_;
-    numSkipped_[level] = numSkipped_[level + 1];
+    offsets_[level] = lastOffset_;
+    pOffsets_[level] = lastPOffset_;
+    numSkipped_[level] = totalSkipped_;
     if (level > 0)
     {
         childPointer_[level] = skipStream_[level]->readVLong() + skipPointer_[level - 1];
@@ -108,7 +119,9 @@ bool SkipListReader::loadNextSkip(int level)
     lastOffset_ = offsets_[level];
     lastPOffset_ = pOffsets_[level];
     totalSkipped_ = numSkipped_[level];
-
+#ifdef SKIP_DEBUG
+    cout<<"lastdoc "<<lastDoc_<<" totalskipped "<<totalSkipped_<<",";
+#endif
     if (skipStream_[level]->isEof()) 
     {
         /// this skip list is exhausted
@@ -124,11 +137,12 @@ bool SkipListReader::loadNextSkip(int level)
 void SkipListReader::readSkipPoint(int level,IndexInput* pLevelInput)
 {
     skipDoc_[level] += pLevelInput->readVInt();
-    offsets_[level] += pLevelInput->readVInt();
-    pOffsets_[level] += pLevelInput->readVInt();
-
-    skipInterval_[level] = getLevelSkipInterval(level);
+    offsets_[level] += pLevelInput->readVLong();
+    pOffsets_[level] += pLevelInput->readVLong();
     numSkipped_[level] += skipInterval_[level];
+#ifdef SKIP_DEBUG
+    cout<<"doc "<<skipDoc_[level]<<" numSkipped_[level] "<<numSkipped_[level]<<",";
+#endif
     if (level > 0) 
     {
         /// read the child pointer if we are not on the leaf level

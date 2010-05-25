@@ -6,7 +6,7 @@
 
 using namespace izenelib::ir::indexmanager;
 
-TermPositions::TermPositions(void)
+TermPositions::TermPositions()
         :pPPostingBuffer_(NULL)
         ,nPBufferSize_(0)
         ,nTotalDecodedPCountWithinDoc_(0)
@@ -18,10 +18,9 @@ TermPositions::TermPositions(void)
         ,pPPostingBufferWithinDoc_(NULL)
         ,nPPostingCountWithinDoc_(0)
         ,nLastPosting_(-1)
-{
-}
+{}
 
-TermPositions::TermPositions(TermReader* pReader,InputDescriptor* pInputDescriptor,TermInfo& ti)
+TermPositions::TermPositions(TermReader* pReader,InputDescriptor* pInputDescriptor,const TermInfo& ti)
         :TermDocFreqs(pReader,pInputDescriptor,ti)
         ,pPPostingBuffer_(NULL)
         ,nPBufferSize_(0)
@@ -34,9 +33,9 @@ TermPositions::TermPositions(TermReader* pReader,InputDescriptor* pInputDescript
         ,pPPostingBufferWithinDoc_(NULL)
         ,nPPostingCountWithinDoc_(0)
         ,nLastPosting_(-1)
-{
-}
-TermPositions::TermPositions(TermReader* pReader,Posting* pPosting,TermInfo& ti)
+{}
+
+TermPositions::TermPositions(TermReader* pReader,Posting* pPosting,const TermInfo& ti)
         :TermDocFreqs(pReader,pPosting,ti)
         ,pPPostingBuffer_(NULL)
         ,nPBufferSize_(0)
@@ -50,10 +49,10 @@ TermPositions::TermPositions(TermReader* pReader,Posting* pPosting,TermInfo& ti)
         ,nPPostingCountWithinDoc_(0)
         ,nLastPosting_(-1)
         ,bOwnPPostingBuffer_(false)
-{
-}
-TermPositions::TermPositions(Posting* pPosting)
-        :TermDocFreqs(pPosting)
+{}
+
+TermPositions::TermPositions(Posting* pPosting, const TermInfo& ti)
+        :TermDocFreqs(pPosting,ti)
         ,pPPostingBuffer_(NULL)
         ,nPBufferSize_(0)
         ,nTotalDecodedPCountWithinDoc_(0)
@@ -66,9 +65,9 @@ TermPositions::TermPositions(Posting* pPosting)
         ,nPPostingCountWithinDoc_(0)
         ,nLastPosting_(-1)
         ,bOwnPPostingBuffer_(false)
-{
-}
-TermPositions::~TermPositions(void)
+{}
+
+TermPositions::~TermPositions()
 {
     TermDocFreqs::close();
 
@@ -104,8 +103,8 @@ bool TermPositions::next()
     return false;
 }
 
-docid_t TermPositions::skipTo(docid_t docId)
-{		
+docid_t TermPositions::skipTo(docid_t target)
+{
     int32_t start,end,skip;
     int32_t i = 0;
     docid_t foundDocId = -1;
@@ -113,20 +112,32 @@ docid_t TermPositions::skipTo(docid_t docId)
     {
         if((nCurrentPosting_ == -1) || (nCurrentPosting_ >= nCurDecodedCount_) )
         {
-            if(!pPostingBuffer_)
-                createBuffer();
-            nCurrentPosting_ = 0;
-            nCurDecodedCount_ = 1;
-            pPostingBuffer_[0] = pPosting_->decodeTo(docId);
-            resetDecodingState();
-            return pPostingBuffer_[0];
+            //if(termInfo_.docFreq_ < SKIP_THRESHOLD)
+#if 0
+            {
+                if(!TermDocFreqs::decode())
+                    return BAD_DOCID;
+            }
+            //else
+#else
+            {
+                if(!pPostingBuffer_)
+                    TermDocFreqs::createBuffer();
+                nCurrentPosting_ = 0;
+                nCurDecodedCount_ = 1;
+                pPostingBuffer_[0] = pPosting_->decodeTo(target);
+                pPostingBuffer_[nFreqStart_] = pPosting_->docFreq();				
+                resetDecodingState();
+                return pPostingBuffer_[0];
+            }
+#endif
         }
         start = nCurrentPosting_;
-        end = start + (docId - pPostingBuffer_[nCurrentPosting_]);
+        end = start + (target - pPostingBuffer_[nCurrentPosting_]);
         if(end == start)
         {
             resetDecodingState();
-            return docId;
+            return target;
         }
         else if(end < start)
         {
@@ -136,7 +147,7 @@ docid_t TermPositions::skipTo(docid_t docId)
         if ( end > (nCurDecodedCount_ - 1) )
             end = nCurDecodedCount_ - 1;
 
-        nCurrentPosting_ = bsearch(pPostingBuffer_,start,end,docId,foundDocId);///binary search in decoded buffer
+        nCurrentPosting_ = bsearch(pPostingBuffer_,start,end,target,foundDocId);///binary search in decoded buffer
         ///skip positions
         skip = (pPostingBuffer_[nFreqStart_ + start] - nTotalDecodedPCountWithinDoc_);
         for (i = start + 1;i < nCurrentPosting_;i++)
@@ -145,7 +156,7 @@ docid_t TermPositions::skipTo(docid_t docId)
         }				
         skipPositions(skip);
         
-        if(foundDocId >= docId)
+        if(foundDocId >= target)
         {
             resetDecodingState();
             return foundDocId;
@@ -157,7 +168,7 @@ docid_t TermPositions::skipTo(docid_t docId)
         nCurDecodedPCountWithinDoc_ = 0;
         nCurrentPPostingWithinDoc_ = 0;
         nCurrentPosting_ = nCurDecodedCount_;///buffer is over
-    }			
+    }		
 }
 
 void TermPositions::resetDecodingState()

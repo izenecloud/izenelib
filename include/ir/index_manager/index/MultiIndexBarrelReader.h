@@ -66,8 +66,6 @@ public:
 
     TermReader* termReader(collectionid_t colID);
 
-    void deleteDocumentPhysically(IndexerDocument* pDoc);
-
     size_t getDistinctNumTerms(collectionid_t colID, const std::string& property);
 
     void close();

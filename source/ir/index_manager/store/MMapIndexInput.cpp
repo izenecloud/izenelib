@@ -43,7 +43,9 @@ MMapIndexInput::~MMapIndexInput(){
 
 IndexInput* MMapIndexInput::clone()
 {
-    return new MMapIndexInput(*this);
+    MMapIndexInput* pClone = new MMapIndexInput(*this);
+    pClone->seek(getFilePointer());
+    return pClone;
 }
 
 void MMapIndexInput::close()  {

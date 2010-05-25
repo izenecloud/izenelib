@@ -35,7 +35,7 @@ void FieldIndexer::addField(docid_t docid, boost::shared_ptr<LAInput> laInput)
         else
             curPosting = postingIter->second;
 
-        curPosting->addLocation(docid, iter->offset_);
+        curPosting->add(docid, iter->offset_);
     }
 }
 
@@ -56,88 +56,9 @@ void FieldIndexer::addField(docid_t docid, boost::shared_ptr<ForwardIndex> forwa
 
         ForwardIndexOffset::iterator	endit = iter->second->end();
         for(ForwardIndexOffset::iterator it = iter->second->begin(); it != endit; ++it)
-            curPosting->addLocation(docid, *it);
+            curPosting->add(docid, *it);
     }
 }
-
-void FieldIndexer::removeField(docid_t docid, boost::shared_ptr<LAInput> laInput)
-{
-    docid_t decompressed_docid;
-
-    InMemoryPosting* newPosting;
-
-    InMemoryTermReader* pTermReader = new InMemoryTermReader(getField(),this);
-
-    for(LAInput::iterator iter = laInput->begin(); iter != laInput->end(); ++iter)
-    {
-        termid_t termId = (termid_t)iter->termId_;
-
-        Term term(getField(), termId);
-        if (pTermReader->seek(&term))
-        {
-            newPosting = new InMemoryPosting(pMemCache_);
-            TermPositions* pTermPositions = pTermReader->termPositions();
-            while (pTermPositions->next())
-            {
-                decompressed_docid = pTermPositions->doc();
-                loc_t pos = pTermPositions->nextPosition();
-                while (pos != BAD_POSITION)
-                {
-                    if (decompressed_docid != docid)
-                        newPosting->addLocation(decompressed_docid, pos);
-                    pos = pTermPositions->nextPosition();
-                }
-            }
-
-            InMemoryPosting* curPosting =  (InMemoryPosting*)postingMap_[termId];
-            delete curPosting;
-            postingMap_[termId] = newPosting;
-        }
-    }
-
-    delete pTermReader;
-
-}
-
-void FieldIndexer::removeField(docid_t docid, boost::shared_ptr<ForwardIndex> forwardindex)
-{
-    docid_t decompressed_docid;
-
-    InMemoryPosting* newPosting;
-
-    InMemoryTermReader* pTermReader = new InMemoryTermReader(getField(),this);
-
-    for(ForwardIndex::iterator iter = forwardindex->begin(); iter != forwardindex->end(); ++iter)
-    {
-        termid_t termId = (termid_t)iter->first;
-
-        Term term(getField(), termId);
-        if (pTermReader->seek(&term))
-        {
-            newPosting = new InMemoryPosting(pMemCache_);
-            TermPositions* pTermPositions = pTermReader->termPositions();
-            while (pTermPositions->next())
-            {
-                decompressed_docid = pTermPositions->doc();
-                loc_t pos = pTermPositions->nextPosition();
-                while (pos != BAD_POSITION)
-                {
-                    if (decompressed_docid != docid)
-                        newPosting->addLocation(decompressed_docid, pos);
-                    pos = pTermPositions->nextPosition();
-                }
-            }
-
-            InMemoryPosting* curPosting =  (InMemoryPosting*)postingMap_[termId];
-            delete curPosting;
-            postingMap_[termId] = newPosting;
-        }
-    }
-
-    delete pTermReader;
-
-}
-
 
 void FieldIndexer::reset()
 {
@@ -159,12 +80,11 @@ fileoffset_t FieldIndexer::write(OutputDescriptor* pWriterDesc)
 
     IndexOutput* pVocWriter = pWriterDesc->getVocOutput();
 
-    fileoffset_t poffset;
     termid_t tid;
-    termid_t lastTermId = 0;
     int32_t termCount = 0;
     InMemoryPosting* pPosting;
     fileoffset_t vocOffset = pVocWriter->getFilePointer();
+    TermInfo termInfo;
 
     for(InMemoryPostingMap::iterator iter = postingMap_.begin(); iter !=postingMap_.end(); ++iter)
     {
@@ -172,17 +92,19 @@ fileoffset_t FieldIndexer::write(OutputDescriptor* pWriterDesc)
         if (!pPosting->hasNoChunk())
         {
             tid = iter->first;
-            pVocWriter->writeInt(tid);			///write term id
+            pPosting->write(pWriterDesc, termInfo);		///write posting data
+            pVocWriter->writeInt(tid);						///write term id
+            pVocWriter->writeInt(termInfo.docFreq_);		///write df
+            pVocWriter->writeInt(termInfo.ctf_);			///write ctf
+            pVocWriter->writeInt(termInfo.lastDocID_);		///write last doc id
+            pVocWriter->writeInt(termInfo.skipLevel_);		///write skip level
+            pVocWriter->writeLong(termInfo.docPointer_);	///write document posting offset
+            pVocWriter->writeInt(termInfo.docPostingLen_);	///write document posting length (without skiplist)
+            pVocWriter->writeLong(termInfo.positionPointer_);	///write position posting offset
+            pVocWriter->writeInt(termInfo.positionPostingLen_);///write position posting length
 
-            pVocWriter->writeInt(pPosting->docFreq());		///write df
-
-            poffset = pPosting->write(pWriterDesc);		///write posting data
-
-            //pVocWriter->writeLong(poffset - lastPOffset);	///write offset of posting descriptor
-            pVocWriter->writeLong(poffset);	///write offset of posting descriptor
             pPosting->reset();								///clear posting data
-
-            lastTermId = tid;
+            termInfo.reset();
 
             termCount++;
         }

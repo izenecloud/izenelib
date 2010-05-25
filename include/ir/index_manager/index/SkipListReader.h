@@ -24,7 +24,7 @@ namespace indexmanager{
 class SkipListReader
 {
 public:
-    SkipListReader(IndexInput* pSkipInput, int skipInterval, int numSkipLevels);
+    SkipListReader(IndexInput* pSkipInput, fileoffset_t skipOffset, int skipInterval, int numSkipLevels);
 
     SkipListReader(VariantDataPool** pSkipLevels, int skipInterval, int numSkipLevels);
 
@@ -49,7 +49,7 @@ public:
     {
         int skipInterval = defaultSkipInterval_;
         for(int i = 0;i < level;i++)
-            skipInterval = skipInterval * skipInterval;
+            skipInterval = skipInterval * defaultSkipInterval_;
         return skipInterval;
     }
 
@@ -99,6 +99,8 @@ inline void SkipListReader::init()
     offsets_.assign(numSkipLevels_, 0);
     pOffsets_.assign(numSkipLevels_, 0);
     skipStream_.resize(numSkipLevels_,NULL);
+    for(int i = 0; i < numSkipLevels_; i++)
+        skipInterval_[i] = getLevelSkipInterval(i);
 }
 }
 NS_IZENELIB_IR_END

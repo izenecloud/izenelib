@@ -35,8 +35,6 @@ public:
 
     TermReader* termReader(collectionid_t colID,const char* field);
 
-    void deleteDocumentPhysically(IndexerDocument* pDoc);
-
     CollectionsInfo& getCollectionsInfo()
     {
         return *pCollectionsInfo_;
@@ -45,8 +43,6 @@ public:
     size_t getDistinctNumTerms(collectionid_t colID, const std::string& property);
 
     void close();
-private:
-    void delDocField(unsigned int colID, docid_t docId, const char* fieldName, boost::shared_ptr<ForwardIndex>& forwardIndex);
 
 private:
     string name_;

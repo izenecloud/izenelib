@@ -50,8 +50,6 @@ public:
 
     void addDocument(IndexerDocument* pDoc);
 
-    bool deleteDocument(IndexerDocument* pDoc);
-
     void write(OutputDescriptor* desc);
 
     void reset();

@@ -78,24 +78,6 @@ TermReader* MultiIndexBarrelReader::termReader(collectionid_t colID)
     return termReaderMap_[colID].get();
 }
 
-void MultiIndexBarrelReader::deleteDocumentPhysically(IndexerDocument* pDoc)
-{
-    DocId uniqueID;
-    pDoc->getDocId(uniqueID);
-
-    for(vector<BarrelReaderEntry*>::iterator iter = readers_.begin(); iter != readers_.end(); ++iter)
-    {
-        BarrelInfo* pBarrelInfo = (*iter)->pBarrelInfo_;
-        if ((pBarrelInfo->baseDocIDMap.find(uniqueID.colId) != pBarrelInfo->baseDocIDMap.end())&&
-                (pBarrelInfo->baseDocIDMap[uniqueID.colId] <= uniqueID.docId))
-        {
-            (*iter)->pBarrelReader_->deleteDocumentPhysically(pDoc);
-            pBarrelInfo->deleteDocument(uniqueID.docId);
-            break;
-        }
-    }
-}
-
 void MultiIndexBarrelReader::close()
 {
     for(vector<BarrelReaderEntry*>::iterator iter = readers_.begin(); iter != readers_.end(); ++iter)

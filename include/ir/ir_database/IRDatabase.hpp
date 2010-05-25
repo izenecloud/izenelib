@@ -313,9 +313,10 @@ namespace irdb
                 indexer.reset(new iii::Indexer(MANAGER_TYPE_LOCAL));
                 iii::IndexManagerConfig indexManagerConfig;
                 indexManagerConfig.indexStrategy_.indexLocation_ = path_;
-//                 std::cout<<"Creating indexer on "<<indexManagerConfig.indexStrategy_.indexLocation_<<std::endl;
                 indexManagerConfig.indexStrategy_.memory_ = 30000000;
                 indexManagerConfig.indexStrategy_.indexDocLength_ = true;
+                indexManagerConfig.indexStrategy_.skipInterval_ = 0;
+                indexManagerConfig.indexStrategy_.maxSkipLevel_ = 0;
                 indexManagerConfig.mergeStrategy_.param_ = "default";
                 if(inMemory_)
                 {

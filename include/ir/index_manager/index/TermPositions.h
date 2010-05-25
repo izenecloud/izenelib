@@ -23,11 +23,11 @@ class TermPositions: public TermDocFreqs
 public:
     TermPositions(void);
 
-    TermPositions(TermReader* pReader,InputDescriptor* pInputDescriptor,TermInfo& ti);
+    TermPositions(TermReader* pReader,InputDescriptor* pInputDescriptor,const TermInfo& ti);
 
-    TermPositions(TermReader* pReader,Posting* pPosting,TermInfo& ti);
+    TermPositions(TermReader* pReader,Posting* pPosting,const TermInfo& ti);
 
-    TermPositions(Posting* pPosting);
+    TermPositions(Posting* pPosting,const TermInfo& ti);
 
     virtual ~TermPositions(void);
 public:

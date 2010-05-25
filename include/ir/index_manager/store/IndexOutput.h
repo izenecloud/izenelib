@@ -46,9 +46,9 @@ public:
 
     void writeChars(const char* s, size_t start, size_t length);
 
-    uint8_t getVIntLength(int32_t i);
+    static uint8_t getVIntLength(int32_t i);
 
-    uint8_t getVLongLength(int64_t i);
+    static uint8_t getVLongLength(int64_t i);
 
     void setBuffer(char* buf,size_t bufSize);
 

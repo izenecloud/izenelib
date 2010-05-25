@@ -51,10 +51,6 @@ public:
 
     void addField(docid_t docid, boost::shared_ptr<ForwardIndex> forwardindex);
 
-    void removeField(docid_t docid, boost::shared_ptr<LAInput> laInput);
-
-    void removeField(docid_t docid, boost::shared_ptr<ForwardIndex> forwardindex);
-
     void reset();
 
     uint64_t distinctNumTerms() {return postingMap_.size();}

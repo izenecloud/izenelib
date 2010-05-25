@@ -97,11 +97,6 @@ TermReader* InMemoryIndexBarrelReader::termReader(collectionid_t colID, const ch
     return NULL;
 }
 
-void InMemoryIndexBarrelReader::deleteDocumentPhysically(IndexerDocument* pDoc)
-{
-    pIndexBarrelWriter->deleteDocument(pDoc);
-}
-
 size_t InMemoryIndexBarrelReader::getDistinctNumTerms(collectionid_t colID, const std::string& property)
 {
     CollectionsInfo* pCollectionsInfo = pIndexBarrelWriter->pCollectionsInfo;

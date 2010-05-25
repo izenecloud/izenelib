@@ -70,7 +70,7 @@ namespace indexmanager {
 
         if(termInfo_ == NULL)
             termInfo_ = new TermInfo;
-        termInfo_->set(it->second.size(), -1);
+        termInfo_->set(it->second.size(), it->second.size(), -1,0,-1,0,-1,0);
         return termInfo_;
     };
 

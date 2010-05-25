@@ -75,6 +75,24 @@ void SkipListWriter::addSkipPoint(docid_t docId,fileoffset_t offset,fileoffset_t
     }	
 }
 
+fileoffset_t SkipListWriter::getRealLength()
+{
+    if (ppSkipLevels_ == NULL || getNumLevels() == 0)
+        return 0;
+
+    fileoffset_t length = 0;
+    for (int i = maxSkipLevel_ - 1; i >= 0; i--)
+    {
+        if(ppSkipLevels_[i] &&ppSkipLevels_[i]->getLength() > 0)
+        {
+            fileoffset_t nLength = ppSkipLevels_[i]->getLength();
+            length += nLength;
+            length += IndexOutput::getVLongLength(nLength);
+        }
+    }
+    return length;
+}
+
 void SkipListWriter::write(IndexOutput* pOutput)
 {
     if (ppSkipLevels_ == NULL || getNumLevels() == 0)
@@ -85,7 +103,7 @@ void SkipListWriter::write(IndexOutput* pOutput)
         if(ppSkipLevels_[i] &&ppSkipLevels_[i]->getLength() > 0)
         {
             ppSkipLevels_[i]->truncTailChunk();
-            fileoffset_t nLength = ppSkipLevels_[i]->getRealSize();
+            fileoffset_t nLength = ppSkipLevels_[i]->getLength();
             pOutput->writeVLong(nLength);
             ppSkipLevels_[i]->write(pOutput);
         }

@@ -12,7 +12,6 @@ VariantDataPool::VariantDataPool(MemCache* pMemCache)
 		,pHeadChunk_(NULL)
 		,pTailChunk_(NULL)
 		,nTotalSize_(0)
-		,nTotalUnused_(0)
 		,nPosInCurChunk_(0)
 		,nTotalUsed_(0)
 {
@@ -23,7 +22,6 @@ VariantDataPool::VariantDataPool(const VariantDataPool& src)
 		,pHeadChunk_(src.pHeadChunk_)
 		,pTailChunk_(src.pTailChunk_)
 		,nTotalSize_(src.nTotalSize_)
-		,nTotalUnused_(src.nTotalUnused_)
 		,nPosInCurChunk_(src.nPosInCurChunk_)
 		,nTotalUsed_(src.nTotalUsed_)
 {
@@ -44,7 +42,6 @@ bool VariantDataPool::addVData32(uint32_t vdata32)
 
     if (left < 7)///at least 4 free space
     {
-        nTotalUnused_ += left;///Unused size
         pTailChunk_->size = nPosInCurChunk_;///the real size
         addChunk();
         return addVData32(vdata32);
@@ -72,7 +69,6 @@ bool VariantDataPool::addVData64(uint64_t vdata64)
     int32_t left = pTailChunk_->size - nPosInCurChunk_;
     if (left < 11)///at least 8 free space
     {
-        nTotalUnused_ += left;///Unused size
         pTailChunk_->size = nPosInCurChunk_;///the real size
         addChunk();
         return addVData64(vdata64);
@@ -148,7 +144,6 @@ void VariantDataPool::encodeVData64(uint8_t*& vdata,int64_t val)
 
 void VariantDataPool::truncTailChunk()
 {
-    nTotalUnused_ += pTailChunk_->size - nPosInCurChunk_;
     pTailChunk_->size = nPosInCurChunk_;
 }
 
@@ -189,11 +184,6 @@ void VariantDataPool::addChunk()
     nPosInCurChunk_ = 0;
 }
 
-int32_t VariantDataPool::getRealSize()
-{
-    return nTotalSize_ - nTotalUnused_;
-}
-
 uint32_t VariantDataPool::getLength()
 {
     return nTotalUsed_;
@@ -202,7 +192,7 @@ uint32_t VariantDataPool::getLength()
 void VariantDataPool::reset()
 {
     pHeadChunk_ = pTailChunk_ = NULL;
-    nTotalSize_ = nPosInCurChunk_ = nTotalUnused_ = nTotalUsed_ = 0;
+    nTotalSize_ = nPosInCurChunk_ = nTotalUsed_ = 0;
 }
 
 //////////////////////////////////////////////////////
@@ -213,7 +203,7 @@ VariantDataPoolInput::VariantDataPoolInput(VariantDataPool* pVDataPool)
     :pVDataPool_(pVDataPool)
     ,currPos_(0)
 {
-    setlength(pVDataPool->getRealSize());
+    setlength(pVDataPool->getLength());
     pVDataChunk_ = pVDataPool->pHeadChunk_;
     pData_ = pVDataChunk_->data;
 }
@@ -222,7 +212,7 @@ VariantDataPoolInput::VariantDataPoolInput(const VariantDataPoolInput& src)
     :pVDataPool_(src.pVDataPool_)
     ,currPos_(0)
 {
-    setlength(pVDataPool_->getRealSize());
+    setlength(pVDataPool_->getLength());
     pVDataChunk_ = pVDataPool_->pHeadChunk_;
     pData_ = pVDataChunk_->data;
 }

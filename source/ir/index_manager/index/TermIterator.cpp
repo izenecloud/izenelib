@@ -78,11 +78,11 @@ Posting* VocIterator::termPosting()
         pInputDescriptor_->setDPostingInput(pInput);
         pInput = pTermReader_->getTermReaderImpl()->pInputDescriptor_->getPPostingInput()->clone();
         pInputDescriptor_->setPPostingInput(pInput);
-        pCurTermPosting_ = new OnDiskPosting(pInputDescriptor_,pCurTermInfo_->docPointer());
+        pCurTermPosting_ = new OnDiskPosting(pInputDescriptor_,*pCurTermInfo_);
     }
     else
     {
-        ((OnDiskPosting*)pCurTermPosting_)->reset(pCurTermInfo_->docPointer());///reset to a new posting
+        ((OnDiskPosting*)pCurTermPosting_)->reset(*pCurTermInfo_);///reset to a new posting
     }
     return pCurTermPosting_;
 }
@@ -182,11 +182,11 @@ Posting* DiskTermIterator::termPosting()
         pInputDescriptor_ = new InputDescriptor(true);
         pInputDescriptor_->setDPostingInput(pDirectory_->openInput(barrelName_ + ".dfp"));
         pInputDescriptor_->setPPostingInput(pDirectory_->openInput(barrelName_ + ".pop"));
-        pCurTermPosting_ = new OnDiskPosting(pInputDescriptor_,pCurTermInfo_->docPointer());
+        pCurTermPosting_ = new OnDiskPosting(pInputDescriptor_,*pCurTermInfo_);
     }
     else
     {
-        ((OnDiskPosting*)pCurTermPosting_)->reset(pCurTermInfo_->docPointer());///reset to a new posting
+        ((OnDiskPosting*)pCurTermPosting_)->reset(*pCurTermInfo_);///reset to a new posting
     }
     return pCurTermPosting_;
 }
@@ -198,16 +198,21 @@ bool DiskTermIterator::next()
         ++nCurPos_;
         termid_t tid = pVocInput_->readInt();
         freq_t df = pVocInput_->readInt();
-        fileoffset_t dfiP = pVocInput_->readLong();
+        freq_t ctf = pVocInput_->readInt();
+        docid_t lastdoc = pVocInput_->readInt();
+        freq_t skipLevel = pVocInput_->readInt();
+        fileoffset_t docPointer = pVocInput_->readLong();
+        freq_t docPostingLen = pVocInput_->readInt();
+        fileoffset_t positionPointer = pVocInput_->readLong();
+        freq_t positionPostingLen = pVocInput_->readInt();	
 
         if(pCurTerm_ == NULL)
             pCurTerm_ = new Term(pFieldInfo_->getName(),tid);
         else 
             pCurTerm_->setValue(tid);
         if(pCurTermInfo_ == NULL)
-            pCurTermInfo_ = new TermInfo(df,dfiP);
-        else
-            pCurTermInfo_->set(df,dfiP);
+            pCurTermInfo_ = new TermInfo();
+        pCurTermInfo_->set(df,ctf,lastdoc,skipLevel,docPointer,docPostingLen,positionPointer,positionPostingLen);;
         return true;
     }
     else return false;
@@ -262,9 +267,13 @@ bool InMemoryTermIterator::next()
         else pCurTerm_->setValue(postingIterator_->first);
         pCurTermPosting_ = postingIterator_->second;
         if (pCurTermInfo_ == NULL)
-            pCurTermInfo_ = new TermInfo(pCurTermPosting_->docFreq(),-1);
-        else
-            pCurTermInfo_->set(pCurTermPosting_->docFreq(),-1);
+            pCurTermInfo_ = new TermInfo();
+        pCurTermInfo_->set(
+                                pCurTermPosting_->docFreq(),
+                                pCurTermPosting_->getCTF(),
+                                pCurTermPosting_->lastDocID(),
+                                pCurTermPosting_->getSkipLevel(),
+                                -1,0,-1,0);
         return true;
     }
     else return false;

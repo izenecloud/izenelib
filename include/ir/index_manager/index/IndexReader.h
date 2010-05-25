@@ -57,7 +57,6 @@ public:
     ///client must delete the returned object
     ForwardIndexReader* getForwardIndexReader();
 
-    void deleteDocumentPhysically(IndexerDocument* pDoc);
     /// mark a document as deleted;
     void delDocument(collectionid_t colID, docid_t docId);
 

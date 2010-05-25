@@ -13,10 +13,12 @@ using namespace std;
 
 using namespace izenelib::ir::indexmanager;
 
+#define NUM_CACHED_DOC 1
+
 IndexWriter::IndexWriter(Indexer* pIndex)
         :pIndexBarrelWriter_(NULL)
         ,ppCachedDocs_(NULL)
-        ,nNumCachedDocs_(100)
+        ,nNumCachedDocs_(NUM_CACHED_DOC)
         ,nNumCacheUsed_(0)
         ,pCurBarrelInfo_(NULL)
         ,pIndexMerger_(NULL)

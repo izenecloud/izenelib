@@ -146,45 +146,6 @@ void CollectionIndexer::addDocument(IndexerDocument* pDoc)
         pDocLengthWriter_->add(uniqueID.docId,docLength);
 }
 
-bool CollectionIndexer::deleteDocument(IndexerDocument* pDoc)
-{
-    DocId uniqueID;
-    pDoc->getDocId(uniqueID);
-
-    bool ret = false;
-
-    map<IndexerPropertyConfig, IndexerDocumentPropertyType> propertyValueList;
-    pDoc->getPropertyList(propertyValueList);
-
-    for (map<IndexerPropertyConfig, IndexerDocumentPropertyType>::iterator iter = propertyValueList.begin(); iter != propertyValueList.end(); ++iter)
-    {
-        if(!iter->first.isIndex())
-            continue;
-        if (iter->first.isForward())
-        {
-            map<string, boost::shared_ptr<FieldIndexer> >::iterator it = fieldIndexerMap_.find(iter->first.getName());
-			
-            if (it == fieldIndexerMap_.end())
-                // This field is not indexed.
-                continue;
-            if(! iter->first.isLAInput())
-            {
-                boost::shared_ptr<ForwardIndex> forwardIndex = boost::get<boost::shared_ptr<ForwardIndex> >(iter->second);
-                map<string, boost::shared_ptr<FieldIndexer> >::iterator it = fieldIndexerMap_.find(iter->first.getName());
-                it->second->removeField(uniqueID.docId, forwardIndex);
-            }
-            else
-            {
-                boost::shared_ptr<LAInput> laInput = boost::get<boost::shared_ptr<LAInput> >(iter->second);
-                map<string, boost::shared_ptr<FieldIndexer> >::iterator it = fieldIndexerMap_.find(iter->first.getName());
-                it->second->removeField(uniqueID.docId, laInput);
-            }
-        }
-    }
-
-    return ret;
-}
-
 void CollectionIndexer::write(OutputDescriptor* desc)
 {
     IndexOutput* pVocOutput = desc->getVocOutput();
@@ -219,7 +180,6 @@ void CollectionIndexer::write(OutputDescriptor* desc)
     if(pDocLengthWriter_)
         pDocLengthWriter_->flush();
 }
-
 
 void CollectionIndexer::reset()
 {

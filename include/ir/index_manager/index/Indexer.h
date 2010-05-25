@@ -70,8 +70,6 @@ public:
     int insertDocumentPhysically(IndexerDocument* pDoc);
     ///pDoc will be destroyed by Indexer
     int insertDocument(IndexerDocument* pDoc);
-    ///pDoc should be deleted by the user
-    int removeDocumentPhysically(IndexerDocument* pDoc);
     ///mark a document as deleted
     int removeDocument(collectionid_t colID, docid_t docId);
     ///update document

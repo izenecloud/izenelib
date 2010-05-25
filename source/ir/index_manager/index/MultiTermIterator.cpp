@@ -61,7 +61,7 @@ bool MultiTermIterator::next()
     }
 
     if(pTermInfo_)
-        pTermInfo_->set(0,0);
+        pTermInfo_->reset();
 
     if (pTerm_)
     {
@@ -95,6 +95,7 @@ const Term* MultiTermIterator::term()
 
 const TermInfo* MultiTermIterator::termInfo()
 {
+    ///TODO
     if(!pTermInfo_)
         pTermInfo_ = new TermInfo();
     if(pTermInfo_->docFreq() == 0)
@@ -112,10 +113,9 @@ const TermInfo* MultiTermIterator::termInfo()
                 if(nOffset == -1)
                     nOffset = const_cast<TermInfo*>(termInfo)->docPointer();
                 nDF += termInfo->docFreq();
+                pTermInfo_->set(*termInfo);
             }					
-        
         }
-        pTermInfo_->set(nDF,nOffset);
     }
     return pTermInfo_;
 }

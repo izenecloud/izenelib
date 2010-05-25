@@ -75,7 +75,7 @@ protected:
     int32_t nR_; ///parameter r, used it to define the capacity of the partitions
     int32_t nP_; ///parameter p, number of partitions
     int32_t curPartitionSize_;
-    map<int32_t,Partition*>	partitionMap_;
+    map<int32_t,Partition*> partitionMap_;
 };
 
 }

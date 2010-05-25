@@ -17,50 +17,99 @@ namespace indexmanager{
 class TermInfo
 {
 public:
-    TermInfo(void)
-    {
-        docFreq_ = 0;
-        postingPointer_ = 0;
-    }
+    TermInfo()
+        :docFreq_(0),
+         ctf_(0),
+         lastDocID_(BAD_DOCID),
+         skipLevel_(0),
+         docPointer_(0),
+         docPostingLen_(0),
+         positionPointer_(0),
+         positionPostingLen_(0)
+    {}
+		
     TermInfo(const TermInfo& ti)
-    {
-        docFreq_ = ti.docFreq_;
-        postingPointer_ = ti.postingPointer_;
-    }
-    TermInfo(count_t df,fileoffset_t dp)
-    {
-        docFreq_ = df;
-        postingPointer_ = dp;
-    }
+        :docFreq_(ti.docFreq_),
+         ctf_(ti.ctf_),
+         lastDocID_(ti.lastDocID_),
+         skipLevel_(ti.skipLevel_),
+         docPointer_(ti.docPointer_),
+         docPostingLen_(ti.docPostingLen_),
+         positionPointer_(ti.positionPointer_),
+         positionPostingLen_(ti.positionPostingLen_)
+    {}
 
-    ~TermInfo(void)
-    {
-    }
+    ~TermInfo() {}
 public:
-    count_t docFreq()const
+    freq_t docFreq()const
     {
         return docFreq_;
     }
 
     void setDocPointer(fileoffset_t pointer)
     {
-        postingPointer_ = pointer;
+        docPointer_ = pointer;
     }
 
     fileoffset_t docPointer()
     {
-        return postingPointer_;
+        return docPointer_;
     }
 
-    void set(count_t df,fileoffset_t dp)
+    void set(const TermInfo& ti)
+    {
+        set(ti.docFreq_, ti.ctf_, ti.lastDocID_, ti.skipLevel_, ti.docPointer_, 
+              ti.docPostingLen_, ti.positionPointer_, ti.positionPostingLen_);
+    }
+
+    void set(
+                   freq_t df,
+                   freq_t ctf,
+                   docid_t lastDocID,
+                   freq_t skipLevel,
+                   fileoffset_t docPointer,
+                   freq_t docPostingLen,
+                   fileoffset_t positionPointer,
+                   freq_t positionPostingLen
+                   )
     {
         docFreq_ = df;
-        postingPointer_ = dp;
+        ctf_ = ctf;
+        lastDocID_ = lastDocID;
+        skipLevel_ = skipLevel;
+        docPointer_ = docPointer;
+        docPostingLen_ = docPostingLen;
+        positionPointer_ = positionPointer;
+        positionPostingLen_ = positionPostingLen;
     }
-private:
-    count_t docFreq_;
 
-    fileoffset_t	postingPointer_;
+    void reset()
+    {
+        docFreq_ = 0;
+        ctf_ = 0;
+        lastDocID_ = BAD_DOCID;
+        skipLevel_ = 0;
+        docPointer_ = -1;
+        docPostingLen_ = 0;
+        positionPointer_ = -1;
+        positionPostingLen_ = 0;
+    }
+public:
+    freq_t docFreq_;
+
+    freq_t ctf_;
+
+    docid_t lastDocID_;
+
+    freq_t skipLevel_;
+
+    fileoffset_t docPointer_;
+
+    freq_t docPostingLen_;
+
+    fileoffset_t positionPointer_;
+
+    freq_t positionPostingLen_;
 };
 
 }

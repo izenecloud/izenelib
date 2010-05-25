@@ -27,11 +27,11 @@ class TermDocFreqs
 public:
     TermDocFreqs();
 
-    TermDocFreqs(TermReader * pReader,InputDescriptor * pInputDescriptor,TermInfo& ti);
+    TermDocFreqs(TermReader * pReader,InputDescriptor * pInputDescriptor,const TermInfo& ti);
 
-    TermDocFreqs(TermReader * pReader,Posting * pPosting,TermInfo& ti);
+    TermDocFreqs(TermReader * pReader,Posting * pPosting,const TermInfo& ti);
 
-    TermDocFreqs(Posting* pPosting);
+    TermDocFreqs(Posting* pPosting, const TermInfo& ti);
 
     virtual ~TermDocFreqs();
 public:

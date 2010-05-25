@@ -28,73 +28,36 @@ public:
 
     virtual ~PostingMerger();
 public:
-    /**
-     * set buffer_ for posting merging
-     * @param buf buffer_
-     * @param bufSize size of buffer_
-     */
     void setBuffer(char* buf,size_t bufSize);
 
     void setOutputDescriptor(OutputDescriptor* pOutputDescriptor)
     {
-        pOutputDescriptor_=pOutputDescriptor;
+        pOutputDescriptor_ = pOutputDescriptor;
     }
 
     OutputDescriptor* getOutputDescriptor() {return pOutputDescriptor_;}
 
-public:
-    /**
-     * merge a in-memory posting
-     * @param pInMemoryPosting in-memory posting
-     */
     void mergeWith(InMemoryPosting* pInMemoryPosting);
 
-    /**
-     * merge a on-disk posting
-     * @param pOnDiskPosting on-disk posting
-     */
     void mergeWith(OnDiskPosting* pOnDiskPosting);
 
     void mergeWith(OnDiskPosting* pOnDiskPosting,BitVector* pFilter);
 
     void mergeWith_GC(OnDiskPosting* pOnDiskPosting,BitVector* pFilter);
 
-    /**
-     * end the merge,flush posting descriptor and chunk descriptor to disk.
-     * @return offset of posting descriptor
-     */
     fileoffset_t endMerge();
 
-public:
-    /**
-     * reset descriptors value
-     */
     void reset();
-
-public:
-    /**
-     * get posting descriptor
-     * @return posting descriptor,internal object
-     */
-    PostingDescriptor& getPostingDescriptor()
-    {
-        return postingDesc_;
-    }
-
-    /**
-     * get chunk descriptor
-     * @return chunk descriptor,internal object
-     */
-    ChunkDescriptor& getChunkDescriptor()
-    {
-        return chunkDesc_;
-    }
 
 private:
     /** create buffer_ for merging */
     void init();
 
 private:
+    friend class FieldMerger;
+
+    TermInfo termInfo_;
+
     char* buffer_; ///buffer_ for posting merging
 
     size_t bufsize_; ///size of buffer_

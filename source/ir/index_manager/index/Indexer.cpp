@@ -130,10 +130,8 @@ void Indexer::initIndexManager()
     VariantDataPool::UPTIGHT_ALLOC_CHUNKSIZE = 8;
     VariantDataPool::UPTIGHT_ALLOC_MEMSIZE = 40000;
 
-    Posting::skipInterval_ = pConfigurationManager_->indexStrategy_.skipInterval_ > 0 ?
-                             pConfigurationManager_->indexStrategy_.skipInterval_ : 8;
-    Posting::maxSkipLevel_ = pConfigurationManager_->indexStrategy_.maxSkipLevel_ >0 ?
-                             pConfigurationManager_->indexStrategy_.maxSkipLevel_ : 3;
+    Posting::skipInterval_ = pConfigurationManager_->indexStrategy_.skipInterval_;
+    Posting::maxSkipLevel_ = pConfigurationManager_->indexStrategy_.maxSkipLevel_;
 
     if (managerType_&MANAGER_TYPE_CLIENTPROCESS)
     {
@@ -399,12 +397,6 @@ int Indexer::insertDocument(IndexerDocument* pDoc)
 int Indexer::updateDocument(IndexerDocument* pDoc)
 {
     pIndexWriter_->addDocument(pDoc,true);
-    return 1;
-}
-
-int Indexer::removeDocumentPhysically(IndexerDocument* pDoc)
-{
-    pIndexReader_->deleteDocumentPhysically(pDoc);
     return 1;
 }
 

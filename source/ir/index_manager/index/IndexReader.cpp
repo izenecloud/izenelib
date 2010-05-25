@@ -179,30 +179,6 @@ BarrelInfo* IndexReader::findDocumentInBarrels(collectionid_t colID, docid_t doc
     return NULL;
 }
 
-void IndexReader::deleteDocumentPhysically(IndexerDocument* pDoc)
-{
-    if (pBarrelReader_ == NULL)
-        createBarrelReader();
-    boost::mutex::scoped_lock lock(this->mutex_);
-    pBarrelReader_->deleteDocumentPhysically(pDoc);
-    DocId uniqueID;
-    pDoc->getDocId(uniqueID);
-    BarrelInfo* pBarrelInfo = findDocumentInBarrels(uniqueID.colId, uniqueID.docId);
-    pBarrelInfo->deleteDocument(uniqueID.docId);
-    map<IndexerPropertyConfig, IndexerDocumentPropertyType> propertyValueList;
-    pDoc->getPropertyList(propertyValueList);
-    for (map<IndexerPropertyConfig, IndexerDocumentPropertyType>::iterator iter = propertyValueList.begin(); iter != propertyValueList.end(); ++iter)
-    {
-        if(!iter->first.isIndex())
-            continue;    
-        if (!iter->first.isForward())
-        {
-            pIndexer_->getBTreeIndexer()->remove(uniqueID.colId, iter->first.getPropertyId(), boost::get<PropertyType>(iter->second), uniqueID.docId);
-        }
-    }
-    pIndexer_->setDirty(true);//flush barrelsinfo when Indexer quit
-}
-
 void IndexReader::delDocument(collectionid_t colID,docid_t docId)
 {
     BarrelInfo* pBarrelInfo = findDocumentInBarrels(colID, docId);

@@ -41,8 +41,6 @@ public:
 
     virtual TermReader* termReader(collectionid_t colID,const char* field) { return NULL; }
 
-    virtual void deleteDocumentPhysically(IndexerDocument* pDoc) = 0;
-
     virtual size_t getDistinctNumTerms(collectionid_t colID,const std::string& property) = 0;
 	
     virtual void close() = 0;

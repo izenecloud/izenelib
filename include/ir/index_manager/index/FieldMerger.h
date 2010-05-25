@@ -136,33 +136,11 @@ private:
 /**
 *@brief MergeTermInfo is a pair used when merge postings
 */
-class MergeTermInfo
+struct MergeTermInfo
 {
-public:
-    MergeTermInfo()
-            :pTerm_(NULL)
-            ,pTermInfo_(NULL)
-    {}
-    MergeTermInfo(Term* pTerm,TermInfo* pTermInfo)
-            :pTerm_(pTerm)
-            ,pTermInfo_(pTermInfo)
-    {}
-    ~MergeTermInfo()
-    {
-        if (pTerm_)
-            delete pTerm_;
-        if (pTermInfo_)
-            delete pTermInfo_;
-    }
-public:
-    Term* getTerm() { return pTerm_; }
+    termid_t term_;
 
-    TermInfo* getTermInfo() { return pTermInfo_; }
-
-public:
-    Term* pTerm_;
-
-    TermInfo* pTermInfo_;
+    TermInfo termInfo_;
 
     friend class FieldMerger;
 };
@@ -244,18 +222,17 @@ private:
      * @param ppMergeInfos merge information array
      * @param numInfos size of info array
      */
-    inline fileoffset_t	mergeTerms(FieldMergeInfo** ppMergeInfos,int32_t numInfos, freq_t& df);
+    inline void mergeTerms(FieldMergeInfo** ppMergeInfos,int32_t numInfos,TermInfo& ti);
 
-    fileoffset_t sortingMerge(FieldMergeInfo** ppMergeInfos,int32_t numInfos, BitVector* pFilter, freq_t& df);
+    void sortingMerge(FieldMergeInfo** ppMergeInfos,int32_t numInfos,TermInfo& ti);
 
 private:
     /**
      * flush merged term info, Subclasses must define this one method.
      * @param pOutputDescriptor output descriptor
-     * @param ppTermInfo merged term infos
      * @param numTermInfos number of term infos.
      */
-    void flushTermInfo(OutputDescriptor* pOutputDescriptor,MergeTermInfo** ppTermInfo,int32_t numTermInfos) ;
+    void flushTermInfo(OutputDescriptor* pOutputDescriptor, int32_t numTermInfos) ;
 
     /**
      * merge is over, Subclasses must define this one method.
@@ -294,7 +271,7 @@ private:
 
     vector<MergeFieldEntry*> fieldEntries_;
 
-    MergeTermInfo* cachedTermInfos_[NUM_CACHEDTERMINFO];
+    MergeTermInfo cachedTermInfos_[NUM_CACHEDTERMINFO];
 
     BitVector* pDocFilter_;
 
@@ -302,11 +279,12 @@ private:
 };
 //////////////////////////////////////////////////////////////////////////
 //inline
-inline fileoffset_t FieldMerger::mergeTerms(FieldMergeInfo** ppMergeInfos,int32_t numInfos,freq_t& df)
+inline void FieldMerger::mergeTerms(FieldMergeInfo** ppMergeInfos,int32_t numInfos,TermInfo& ti)
 {
-    Posting* pPosting;
     if(sortingMerge_)
-        return sortingMerge(ppMergeInfos, numInfos, pDocFilter_, df);
+        return sortingMerge(ppMergeInfos, numInfos, ti);
+
+    Posting* pPosting;
 
     for (int32_t i = 0;i< numInfos;i++)
     {
@@ -316,14 +294,13 @@ inline fileoffset_t FieldMerger::mergeTerms(FieldMergeInfo** ppMergeInfos,int32_
         else
         {
             if(pDocFilter_)
-                pPostingMerger_->mergeWith((OnDiskPosting*)pPosting,pDocFilter_);
+                pPostingMerger_->mergeWith((OnDiskPosting*)pPosting, pDocFilter_);
             else
                 pPostingMerger_->mergeWith((OnDiskPosting*)pPosting);
         }
-
     }
-    ///end merge
-    return pPostingMerger_->endMerge();
+    pPostingMerger_->endMerge();	
+    ti.set(pPostingMerger_->termInfo_);
 }
 
 }

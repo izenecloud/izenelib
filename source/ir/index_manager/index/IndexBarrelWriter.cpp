@@ -76,14 +76,6 @@ void IndexBarrelWriter::addDocument(IndexerDocument* pDoc)
     pCollectionIndexer->addDocument(pDoc);
 }
 
-bool	IndexBarrelWriter::deleteDocument(IndexerDocument* pDoc)
-{
-    DocId uniqueID;
-    pDoc->getDocId(uniqueID);
-    CollectionIndexer* pCollectionIndexer = collectionIndexMap[uniqueID.colId];
-    return pCollectionIndexer->deleteDocument(pDoc);
-}
-
 void IndexBarrelWriter::resetCache(bool bResetPosting /* = false */)
 {
     if (bResetPosting)

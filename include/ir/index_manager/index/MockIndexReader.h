@@ -211,7 +211,7 @@ public:
     }
 
     const TermInfo* termInfo() {
-        termInfo_.set(cursor_->second.size(), -1);
+        termInfo_.set(cursor_->second.size(), cursor_->second.size(), -1,0,-1,0,-1,0);
         return &termInfo_;
     };
 

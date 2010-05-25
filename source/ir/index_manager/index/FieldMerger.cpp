@@ -26,7 +26,6 @@ FieldMerger::FieldMerger(bool sortingMerge)
         ,pDocFilter_(0)
         ,pMemCache_(0)
 {
-    memset(cachedTermInfos_,0,NUM_CACHEDTERMINFO*sizeof(MergeTermInfo*));
 }
 
 FieldMerger::~FieldMerger(void)
@@ -50,15 +49,6 @@ FieldMerger::~FieldMerger(void)
     {
         delete pPostingMerger_;
         pPostingMerger_ = NULL;
-    }
-
-    for (int32_t i = 0;i<NUM_CACHEDTERMINFO;i++)
-    {
-        if (cachedTermInfos_[i])
-        {
-            delete cachedTermInfos_[i];
-            cachedTermInfos_[i] = NULL;
-        }
     }
 
     if (ppFieldInfos_)
@@ -98,8 +88,7 @@ fileoffset_t FieldMerger::merge(OutputDescriptor* pOutputDescriptor)
     FieldMergeInfo** match = new FieldMergeInfo*[pMergeQueue_->size()];
     Term* pTerm = NULL;
     FieldMergeInfo* pTop = NULL;
-    fileoffset_t postingoffset = 0;
-    freq_t sortingMergeDF = 0;
+    TermInfo termInfo;
     while (pMergeQueue_->size() > 0)
     {
         nMatch = 0;
@@ -116,34 +105,17 @@ fileoffset_t FieldMerger::merge(OutputDescriptor* pOutputDescriptor)
             pTop = pMergeQueue_->top();
         }
 
-        postingoffset = mergeTerms(match,nMatch,sortingMergeDF);
+        mergeTerms(match,nMatch,termInfo);
 
-        if (postingoffset > 0)
+        if (termInfo.docFreq_ > 0)
         {
             ///store merged terms to term info cache
-            if (cachedTermInfos_[nNumTermCached_] == NULL)
-            {
-                if(sortingMerge_)
-                    cachedTermInfos_[nNumTermCached_] = 
-                        new MergeTermInfo(pTerm->clone(),
-                                                        new TermInfo(sortingMergeDF,postingoffset));
-                else
-                    cachedTermInfos_[nNumTermCached_] = 
-                        new MergeTermInfo(pTerm->clone(),
-                                                        new TermInfo(pPostingMerger_->getPostingDescriptor().df,postingoffset));
-            }
-            else
-            {
-                cachedTermInfos_[nNumTermCached_]->pTerm_->setValue(pTerm->getValue());
-                if(sortingMerge_)
-                    cachedTermInfos_[nNumTermCached_]->pTermInfo_->set(sortingMergeDF,postingoffset);					
-                else
-                    cachedTermInfos_[nNumTermCached_]->pTermInfo_->set(pPostingMerger_->getPostingDescriptor().df,postingoffset);
-            }
+            cachedTermInfos_[nNumTermCached_].term_ = pTerm->getValue();
+            cachedTermInfos_[nNumTermCached_].termInfo_.set(termInfo);
             nNumTermCached_++;
             if (nNumTermCached_ >= NUM_CACHEDTERMINFO)///cache is exhausted
             {
-                flushTermInfo(pOutputDescriptor,cachedTermInfos_,nNumTermCached_);
+                flushTermInfo(pOutputDescriptor, nNumTermCached_);
                 nNumTermCached_ = 0;
             }
             mergedTerms++;
@@ -168,7 +140,7 @@ fileoffset_t FieldMerger::merge(OutputDescriptor* pOutputDescriptor)
     }
     if (nNumTermCached_ > 0)///flush cache
     {
-        flushTermInfo(pOutputDescriptor,cachedTermInfos_,nNumTermCached_);
+        flushTermInfo(pOutputDescriptor, nNumTermCached_);
         nNumTermCached_ = 0;
     }
     delete[] match;
@@ -253,24 +225,26 @@ bool FieldMerger::initQueue()
     return (pMergeQueue_->size() > 0);
 }
 
-void FieldMerger::flushTermInfo(OutputDescriptor* pOutputDescriptor,MergeTermInfo** ppTermInfo,int32_t numTermInfos)
+void FieldMerger::flushTermInfo(OutputDescriptor* pOutputDescriptor, int32_t numTermInfos)
 {
     IndexOutput* pVocOutput = pOutputDescriptor->getVocOutput();
 
     if (termCount_ == 0)
         beginOfVoc_ = pVocOutput->getFilePointer();
     termid_t tid;
-    fileoffset_t poffset;
     for (int32_t i = 0;i < numTermInfos;i++)
     {
-        tid = ppTermInfo[i]->getTerm()->getValue();
-        //pVocOutput->writeInt(tid - lastTerm_);
+        tid = cachedTermInfos_[i].term_;
         pVocOutput->writeInt(tid);
-        pVocOutput->writeInt(ppTermInfo[i]->getTermInfo()->docFreq());
-        poffset = ppTermInfo[i]->getTermInfo()->docPointer();
-        pVocOutput->writeLong(poffset);
-        //lastTerm_ = tid;
-        //lastPOffset_ = poffset;
+        pVocOutput->writeInt(cachedTermInfos_[i].termInfo_.docFreq_);			///write df
+        pVocOutput->writeInt(cachedTermInfos_[i].termInfo_.ctf_);				///write ctf
+        pVocOutput->writeInt(cachedTermInfos_[i].termInfo_.lastDocID_);			///write last doc id
+        pVocOutput->writeInt(cachedTermInfos_[i].termInfo_.skipLevel_); 			///write skip level
+        pVocOutput->writeLong(cachedTermInfos_[i].termInfo_.docPointer_);		///write document posting offset
+        pVocOutput->writeInt(cachedTermInfos_[i].termInfo_.docPostingLen_);		///write document posting length (without skiplist)
+        pVocOutput->writeLong(cachedTermInfos_[i].termInfo_.positionPointer_);		///write position posting offset
+        pVocOutput->writeInt(cachedTermInfos_[i].termInfo_.positionPostingLen_);	///write position posting length
+        
         termCount_++;
     }
 
@@ -287,7 +261,7 @@ fileoffset_t FieldMerger::endMerge(OutputDescriptor* pOutputDescriptor)
     return voffset;
 }
 
-fileoffset_t FieldMerger::sortingMerge(FieldMergeInfo** ppMergeInfos,int32_t numInfos, BitVector* pFilter, freq_t& df)
+void FieldMerger::sortingMerge(FieldMergeInfo** ppMergeInfos,int32_t numInfos,TermInfo& ti)
 {
     if(!pMemCache_)
         pMemCache_ = new MemCache(MEMPOOL_SIZE_FOR_MERGING);
@@ -295,11 +269,13 @@ fileoffset_t FieldMerger::sortingMerge(FieldMergeInfo** ppMergeInfos,int32_t num
 
     for (int32_t i = 0;i< numInfos;i++)
     {
-        TermPositions* pPosition = new TermPositions(ppMergeInfos[i]->pIterator_->termPosting());
+        TermPositions* pPosition = new TermPositions(
+                                                ppMergeInfos[i]->pIterator_->termPosting(),
+                                                *(ppMergeInfos[i]->pIterator_->termInfo()));
         if(ppMergeInfos[i]->pBarrelInfo_->hasUpdateDocs)
             postingIterator.addTermPosition(pPosition);
         else
-            postingIterator.addTermPosition(pPosition, pFilter);
+            postingIterator.addTermPosition(pPosition, pDocFilter_);
     }
     InMemoryPosting* newPosting = new InMemoryPosting(pMemCache_);
 
@@ -310,23 +286,16 @@ fileoffset_t FieldMerger::sortingMerge(FieldMergeInfo** ppMergeInfos,int32_t num
         loc_t pos = postingIterator.nextPosition();
         while (pos != BAD_POSITION)
         {
-            newPosting->addLocation(docId, pos);
+            newPosting->add(docId, pos);
             pos = postingIterator.nextPosition();
         }
     }
 
-    if(0 == docId)
-    {
-        delete newPosting;
-        df = 0;
-        return -1;
-    }
+    if(docId !=0)
+        newPosting->write(pPostingMerger_->getOutputDescriptor(), ti);
 
-    fileoffset_t offset = newPosting->write(pPostingMerger_->getOutputDescriptor());
-    df = newPosting->docFreq();
     delete newPosting;
     pMemCache_->flushMem();
-    return offset;
 }
 
 

@@ -73,6 +73,8 @@ public:
 
     void addSkipPoint(docid_t docId,fileoffset_t offset,fileoffset_t pOffset);
 
+    fileoffset_t getRealLength();
+
     void write(IndexOutput* pOutput);
 
     void reset();

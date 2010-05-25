@@ -9,6 +9,7 @@
 #define POSTING_H
 
 #include <ir/index_manager/index/VariantDataPool.h>
+#include <ir/index_manager/index/TermInfo.h>
 #include <ir/index_manager/utility/BitVector.h>
 
 NS_IZENELIB_IR_BEGIN
@@ -165,7 +166,7 @@ public:
      * @param docid the identifier of document
      * @param location the location of term
      */
-    void addLocation(docid_t docid, loc_t location);
+    void add(docid_t docid, loc_t location);
 
     /**
      * Is there any chunk?
@@ -200,12 +201,15 @@ public:
         return nLastDocID_;
     }
 
+    int32_t getSkipLevel();
+
+
     /**
      * write index data
      * @param pOutputDescriptor output place
-     * @return	offset of posting descriptor
+     * @param termInfo set term info for voc
      */
-    fileoffset_t write(OutputDescriptor* pOutputDescriptor);
+    void write(OutputDescriptor* pOutputDescriptor, TermInfo& termInfo);
 
     /**
      * reset the content of Posting list.
@@ -259,27 +263,11 @@ public:
      */
     void flushLastDoc(bool bTruncTail);
 
+    /*
+     * get skiplist reader
+     */
     SkipListReader* getSkipListReader();
 
-protected:
-    /**
-     * write document posting to output
-     * @param pDOutput document posting output
-     */
-    void writeDPosting(IndexOutput* pDOutput);
-
-    /**
-     * write position posting to output
-     * @param pPOutput position posting output
-    	 */
-    fileoffset_t writePPosting(IndexOutput* pPOutput);
-
-    /**
-     * write descriptors to output
-     * @param pDOutput document posting output
-     * @param poffset position offset
-     */
-    void writeDescriptor(IndexOutput* pDOutput,fileoffset_t poffset);
 protected:
     MemCache* pMemCache_;	/// memory cache
     count_t nDF_;			///document frequency of this field
@@ -312,7 +300,9 @@ class OnDiskPosting:public Posting
     };
 public:
     OnDiskPosting();
-    OnDiskPosting(InputDescriptor* pInputDescriptor,fileoffset_t poffset);
+
+    OnDiskPosting(InputDescriptor* pInputDescriptor,const TermInfo& termInfo);
+
     ~OnDiskPosting();
 
     InputDescriptor* getInputDescriptor()
@@ -361,15 +351,14 @@ public:
     void resetPosition();
 
     /**
-    	 * reset the content of Posting list.
+     * reset the content of Posting list.
      */
     void reset();
 
     /**
      * reset to a new posting
-     * @param newOffset offset to the target posting
      */
-    void reset(fileoffset_t newOffset);
+    void reset(const TermInfo& termInfo);
 
     /**
      * clone the object
