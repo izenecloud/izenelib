@@ -36,11 +36,13 @@ InputDescriptor::~InputDescriptor()
     pPPostingInput_ = NULL;
 }
 
-InputDescriptor* InputDescriptor::clone()
+InputDescriptor* InputDescriptor::clone(IndexType type)
 {
     IndexInput* pVocInput = pVocInput_?pVocInput_->clone():NULL;
     IndexInput* pDPostingInput = pDPostingInput_?pDPostingInput_->clone():NULL;
-    IndexInput* pPPostingInput = pPPostingInput_?pPPostingInput_->clone():NULL;
+    IndexInput* pPPostingInput = NULL;
+    if(type == WORD_LEVEL)
+        pPPostingInput = pPPostingInput_?pPPostingInput_->clone():NULL;
     return new InputDescriptor(pVocInput, pDPostingInput, pPPostingInput, true);
 }
 

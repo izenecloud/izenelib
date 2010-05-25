@@ -13,6 +13,11 @@ NS_IZENELIB_IR_BEGIN
 
 namespace indexmanager{
 /// Helper class of combining different IndexInput, including *.voc, *.dfp, *.pop
+enum IndexType
+{
+    DOCUMENT_LEVEL,  /// document level posting
+    WORD_LEVEL /// word level posting
+};
 class InputDescriptor
 {
 public:
@@ -50,7 +55,7 @@ public:
     {
         return bDestroy_;
     }
-    InputDescriptor* clone();
+    InputDescriptor* clone(IndexType type = WORD_LEVEL);
 
 private:
     bool bDestroy_;

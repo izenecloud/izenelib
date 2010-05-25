@@ -550,7 +550,7 @@ TermDocFreqs* DiskTermReader::termDocFreqs()
 {
     if (pCurTermInfo_ == NULL || pTermReaderImpl_ == NULL )
         return NULL;
-    return new TermDocFreqs(this,pTermReaderImpl_->pInputDescriptor_->clone(),*pCurTermInfo_);
+    return new TermDocFreqs(this,pTermReaderImpl_->pInputDescriptor_->clone(DOCUMENT_LEVEL),*pCurTermInfo_);
 }
 
 TermPositions* DiskTermReader::termPositions()
