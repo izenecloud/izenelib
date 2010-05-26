@@ -126,7 +126,7 @@ docid_t TermPositions::skipTo(docid_t target)
                 nCurrentPosting_ = 0;
                 nCurDecodedCount_ = 1;
                 pPostingBuffer_[0] = pPosting_->decodeTo(target);
-                pPostingBuffer_[nFreqStart_] = pPosting_->docFreq();				
+                pPostingBuffer_[nFreqStart_] = pPosting_->getCurTF();
                 resetDecodingState();
                 return pPostingBuffer_[0];
             }
@@ -175,7 +175,7 @@ void TermPositions::resetDecodingState()
 {
     nPPostingCountWithinDoc_ = pPostingBuffer_[nFreqStart_ + nCurrentPosting_];
     nCurDecodedPCountWithinDoc_ = 0;
-    nTotalDecodedPCountWithinDoc_ = 0;			
+    nTotalDecodedPCountWithinDoc_ = 0;
     nCurrentPPostingWithinDoc_ = 0;
     pPosting_->resetPosition();
 }

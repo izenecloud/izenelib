@@ -204,7 +204,7 @@ void InMemoryPosting::add(docid_t docid, loc_t location)
 
             pSkipListWriter_->addSkipPoint(nLastDocID_,pDocFreqList_->getLength(),pLocList_->getLength());
         }
-		
+
         pDocFreqList_->addVData32(docid - nLastDocID_);
         pLocList_->addVData32(location);
 
@@ -569,26 +569,39 @@ docid_t OnDiskPosting::decodeTo(docid_t target)
         }
     }
 
-    if(postingDesc_.df == 1)
+    docid_t nDocID = ds_.lastDecodedDocID;
+    count_t nFreq = 0;
+    count_t nSkipPCount = 0;
+    count_t nDF = postingDesc_.df;
+    count_t nDecodedCount = ds_.decodedDocCount;
+
+    if(postingDesc_.df  == 1)
     {
-        ds_.lastDecodedDocTF = 0;
-        return -1;
+        if(!pDocFilter_ || !pDocFilter_->test((size_t)nDocID))///Is the document deleted?
+        {
+            nFreq = getCTF();
+            if( nDocID >= target)
+                return nDocID;
+            else return -1;
+        }
+        else
+        {
+            nFreq = 0;
+            nSkipPCount += getCTF(); /// skip the freq
+            return -1;
+        }
+        nDecodedCount++;
     }
 
     IndexInput* pDPostingInput = getInputDescriptor()->getDPostingInput();
 
-    count_t nSkipPCount = 0;
-    count_t nDF = postingDesc_.df;
-    count_t nFreq = 0;
-    docid_t nDocID = ds_.lastDecodedDocID;
-    count_t nDecodedCount = ds_.decodedDocCount;
     while ( nDecodedCount < nDF )
     {
         nDocID += pDPostingInput->readVInt();
         nDecodedCount++;
         if(nDocID >= target)
         {
-            nFreq = pDPostingInput->readVInt();						
+            nFreq = pDPostingInput->readVInt();
             break;
         }
         else 
@@ -599,6 +612,7 @@ docid_t OnDiskPosting::decodeTo(docid_t target)
     ds_.lastDecodedDocTF = nFreq;
     ds_.decodedDocCount = nDecodedCount;
     ds_.skipPosCount_ += nSkipPCount;
+
     return ( nDocID >= target )? nDocID : -1;
 }
 
@@ -608,6 +622,7 @@ void OnDiskPosting::seekTo(SkipListReader* pSkipListReader)
     pDPostingInput->seek(postingOffset_ + pSkipListReader->getOffset());
     ds_.lastDecodedDocID = pSkipListReader->getDoc();
     ds_.decodedDocCount = pSkipListReader->getNumSkipped();
+
     IndexInput* pPPostingInput = getInputDescriptor()->getPPostingInput();
     if(pPPostingInput)
     {
@@ -633,6 +648,7 @@ int32_t OnDiskPosting::decodeNext(uint32_t* pPosting,int32_t length)
 
     int32_t count = 0;
     docid_t did = ds_.lastDecodedDocID;
+    count_t nSkipPCount = 0;
 
     while (count < left)
     {
@@ -645,7 +661,7 @@ int32_t OnDiskPosting::decodeNext(uint32_t* pPosting,int32_t length)
         else
         {
             ///this doc is deleted
-            pDPostingInput->readVInt();
+            nSkipPCount += pDPostingInput->readVInt();
         }				
 
         count++;
@@ -654,6 +670,7 @@ int32_t OnDiskPosting::decodeNext(uint32_t* pPosting,int32_t length)
     ///update state
     ds_.decodedDocCount += count;
     ds_.lastDecodedDocID = did;
+    ds_.skipPosCount_ += nSkipPCount;
 
     return (int32_t)(pDoc - pPosting);
 }
@@ -661,28 +678,53 @@ void OnDiskPosting::decodeNextPositions(uint32_t* pPosting,int32_t length)
 {
     if (length <= 0)
         return;
+    if(!pPosting)
+    {
+        ds_.skipPosCount_ += length;///just record the skip number
+        return;
+    }
+	
     IndexInput* pPPostingInput = getInputDescriptor()->getPPostingInput();
+
+    count_t nSkipPCount = ds_.skipPosCount_;
+    while(nSkipPCount > 0) ///skip previous positions
+    {
+        pPPostingInput->readVInt();
+        nSkipPCount--;
+    }
+    ds_.skipPosCount_ = 0;
 
     int32_t nDecoded = 0;
     loc_t loc = ds_.lastDecodedPos;
+
     uint32_t* pPos = pPosting;
     while (nDecoded < length)
     {
         loc += pPPostingInput->readVInt();
-        if (pPos)
-        {
-            *pPos = loc;
-            pPos++;
-        }
+        *pPos++ = loc;
         nDecoded++;
     }
-
     ds_.decodedPosCount += nDecoded;
     ds_.lastDecodedPos = loc;
 }
 void OnDiskPosting::decodeNextPositions(uint32_t* pPosting,uint32_t* pFreqs,int32_t nFreqs)
 {
+    if(!pPosting)
+    {
+        for (int nF = 0;nF < nFreqs;nF++)///just record the skip number
+            ds_.skipPosCount_ += pFreqs[nF];
+        return;
+    }
+
     IndexInput*	pPPostingInput = getInputDescriptor()->getPPostingInput();
+
+    count_t nSkipPCount = ds_.skipPosCount_;
+    while(nSkipPCount > 0) ///skip previous positions
+    {
+        pPPostingInput->readVInt();
+        nSkipPCount--;
+    }
+    ds_.skipPosCount_ = 0;
 
     uint32_t nTotalDecoded = 0;
     uint32_t nCurDecoded = 0;
@@ -694,11 +736,7 @@ void OnDiskPosting::decodeNextPositions(uint32_t* pPosting,uint32_t* pFreqs,int3
         while (nCurDecoded < pFreqs[nF])
         {
             loc += pPPostingInput->readVInt();
-            if (pPos)
-            {
-                *pPos = loc;
-                pPos++;
-            }
+            *pPos++ = loc;
             nCurDecoded++;
         }
         nTotalDecoded += nCurDecoded;
@@ -731,6 +769,8 @@ void OnDiskPosting::reset()
     ds_.lastDecodedDocID = 0;
     ds_.decodedPosCount= 0;
     ds_.lastDecodedPos = 0;
+    ds_.skipPosCount_ = 0;
+
 }
 
 size_t OnDiskPosting::setBuffer(int32_t* buffer,size_t nBufSize)

@@ -112,6 +112,7 @@ private:
 
     static const size_t DEFAULT_BUFFERSIZE = 163840;
 };
+
 //////////////////////////////////////////////////////////////////////////
 ///inline functions
 inline void TermPositions::skipPositions(int32_t nSkips)
@@ -137,9 +138,7 @@ inline bool TermPositions::decodePositions()
         return false;
     }
     if (!pPPostingBuffer_)
-    {
         createBuffer();
-    }
     if ((size_t)nCurrentPPosting_ >= nTotalDecodedPCount_)///decode position posting to buffer
     {
         uint32_t* pPPostingBuffer = pPPostingBuffer_;
@@ -208,7 +207,6 @@ inline bool TermPositions::decodePositions()
 
     return true;
 }
-
 
 }
 

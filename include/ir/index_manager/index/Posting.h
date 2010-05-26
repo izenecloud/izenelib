@@ -23,7 +23,6 @@ struct PostingDescriptor
 {
     int64_t length; ///length of the posting
     count_t df; ///document frequency of this field
-    count_t tdf; ///document frequency regarding all fields in a document
     int64_t ctf; ///global  term frequency
     fileoffset_t poffset; ///offset of the position postings in the .pop file
 };
@@ -105,6 +104,11 @@ public:
      * @return CTF value
      */
     virtual int64_t getCTF()const = 0;
+
+    /*
+     * get current tf
+    */
+    virtual count_t getCurTF()const = 0;
 
     /**
      * set buffer for posting reading
@@ -194,6 +198,14 @@ public:
     {
         return nCTF_;
     };
+
+    /*
+     * get current tf
+    */
+    count_t getCurTF() const
+    {
+        return nCurTermFreq_;
+    }
 
     /** get last added doc id */
     docid_t lastDocID()
@@ -383,6 +395,14 @@ public:
     {
         return postingDesc_.ctf;
     };
+
+    /*
+     * get current tf
+    */
+    count_t getCurTF() const
+    {
+        return ds_.lastDecodedDocTF;
+    }
 
     /**
      * set buffer for posting reading
