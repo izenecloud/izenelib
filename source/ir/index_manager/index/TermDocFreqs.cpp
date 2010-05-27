@@ -115,14 +115,12 @@ docid_t TermDocFreqs::skipTo(docid_t target)
     {
         if((nCurrentPosting_ == -1) || (nCurrentPosting_ >= nCurDecodedCount_) )
         {
-            //if(termInfo_.docFreq_ < SKIP_THRESHOLD)
-#if 0
+            if(termInfo_.docFreq_ < 4096)
             {
                 if(!decode())
                     return BAD_DOCID;
             }
-#else
-            //else
+            else
             {
                 if(!pPostingBuffer_)
                     createBuffer();
@@ -132,7 +130,6 @@ docid_t TermDocFreqs::skipTo(docid_t target)
                 pPostingBuffer_[nFreqStart_] = pPosting_->getCurTF();
                 return pPostingBuffer_[0];
             }
-#endif
        }
         start = nCurrentPosting_;
         end = start + (target - pPostingBuffer_[nCurrentPosting_]);

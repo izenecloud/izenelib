@@ -112,14 +112,12 @@ docid_t TermPositions::skipTo(docid_t target)
     {
         if((nCurrentPosting_ == -1) || (nCurrentPosting_ >= nCurDecodedCount_) )
         {
-            //if(termInfo_.docFreq_ < SKIP_THRESHOLD)
-#if 0
+            if(termInfo_.docFreq_ < 4096)
             {
                 if(!TermDocFreqs::decode())
                     return BAD_DOCID;
             }
-            //else
-#else
+            else
             {
                 if(!pPostingBuffer_)
                     TermDocFreqs::createBuffer();
@@ -130,7 +128,6 @@ docid_t TermPositions::skipTo(docid_t target)
                 resetDecodingState();
                 return pPostingBuffer_[0];
             }
-#endif
         }
         start = nCurrentPosting_;
         end = start + (target - pPostingBuffer_[nCurrentPosting_]);
