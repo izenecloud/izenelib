@@ -316,16 +316,16 @@ protected:
    **/
   void quickSort_(VALUE_TYPE* array, uint32_t left, uint32_t right)
   {
-    uint32_t i = left, j = right;
+    int i = left, j = right;
     VALUE_TYPE tmp;
     VALUE_TYPE pivot = array[(left + right) / 2];
     
     /* partition */
     while (i <= j) {
       
-      while (array[i] < pivot)
+      while (array[i] < pivot && i < (int)length_)
         i++;
-      while (array[j] > pivot)
+      while (array[j] > pivot && j>=0)
         j--;
 
       if (i <= j) {
@@ -339,10 +339,10 @@ protected:
 
     //IASSERT(i-1==j);
     /* recursion */
-    if (left < j)
+    if ((int)left < j)
       quickSort_(array, left, j);
 
-    if (i < right)
+    if (i < (int)right)
       quickSort_(array, i, right);
 
     //     if (left == right)
