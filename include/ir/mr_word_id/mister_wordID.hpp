@@ -2,7 +2,7 @@
    @file mister_wordID.h
    @auther Kevin Hu
    @date 2010.01.09
- **/
+**/
 
 #ifndef MISTER_WORDID_HPP
 #define MISTER_WORDID_HPP
@@ -161,6 +161,7 @@ class MisterWordID
         continue;
 
       std::string nm = item_b->path().file_string();
+      std::cout<<"Start to scan '"<<nm<<"'\n";
       FILE* f = fopen(nm.c_str(), "r");
       IASSERT(f!=NULL);
       
@@ -181,9 +182,9 @@ class MisterWordID
         uint32_t pos_s = 0;
         uint32_t pos_e = 0;
         std::vector<std::string> terms;
-        while (pos_s < rs && pos_e<=rs)
+        while (pos_s < rs && pos_e<rs)
         {
-          if (!(fs ==0 && pos_e==rs)&& buff[pos_e]!='\n')
+          if (!(fs ==0 && pos_e==rs)&& (buff[pos_e]!='\n'||buff[pos_e]!='\r')  && pos_e-pos_s != rs-1)
           {
             ++pos_e;
             continue;
@@ -406,7 +407,7 @@ class MisterWordID
     }
   }
   
- public:
+public:
   MisterWordID(const char* filenm)
     :filenm_(filenm)
   {
@@ -467,7 +468,7 @@ class MisterWordID
   }
   
 }
-;
+  ;
 
 NS_IZENELIB_IR_END
 
