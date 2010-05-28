@@ -201,6 +201,7 @@ bool DiskTermIterator::next()
         freq_t ctf = pVocInput_->readInt();
         docid_t lastdoc = pVocInput_->readInt();
         freq_t skipLevel = pVocInput_->readInt();
+        fileoffset_t skipPointer = pVocInput_->readLong();
         fileoffset_t docPointer = pVocInput_->readLong();
         freq_t docPostingLen = pVocInput_->readInt();
         fileoffset_t positionPointer = pVocInput_->readLong();
@@ -212,7 +213,7 @@ bool DiskTermIterator::next()
             pCurTerm_->setValue(tid);
         if(pCurTermInfo_ == NULL)
             pCurTermInfo_ = new TermInfo();
-        pCurTermInfo_->set(df,ctf,lastdoc,skipLevel,docPointer,docPostingLen,positionPointer,positionPostingLen);;
+        pCurTermInfo_->set(df,ctf,lastdoc,skipLevel,skipPointer,docPointer,docPostingLen,positionPointer,positionPostingLen);;
         return true;
     }
     else return false;
@@ -273,7 +274,7 @@ bool InMemoryTermIterator::next()
                                 pCurTermPosting_->getCTF(),
                                 pCurTermPosting_->lastDocID(),
                                 pCurTermPosting_->getSkipLevel(),
-                                -1,0,-1,0);
+                                -1,-1,0,-1,0);
         return true;
     }
     else return false;

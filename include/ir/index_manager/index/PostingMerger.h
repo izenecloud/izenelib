@@ -24,16 +24,12 @@ class PostingMerger
 public:
     PostingMerger();
 
-    PostingMerger(OutputDescriptor* pOutputDescriptor);
-
     virtual ~PostingMerger();
+
 public:
     void setBuffer(char* buf,size_t bufSize);
 
-    void setOutputDescriptor(OutputDescriptor* pOutputDescriptor)
-    {
-        pOutputDescriptor_ = pOutputDescriptor;
-    }
+    void setOutputDescriptor(OutputDescriptor* pOutputDescriptor);
 
     OutputDescriptor* getOutputDescriptor() {return pOutputDescriptor_;}
 
@@ -65,6 +61,12 @@ private:
     bool bOwnBuffer_; ///does we own the buffer_?
 
     OutputDescriptor* pOutputDescriptor_; ///where merged data store
+
+    string tmpPostingName_; 
+
+    IndexOutput* pTmpPostingOutput_; ///used during merging posting
+
+    IndexInput* pTmpPostingInput_; ///used during merging posting
 
     PostingDescriptor postingDesc_;
 

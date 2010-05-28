@@ -8,6 +8,7 @@
 #define OUTPUTDESCRIPTOR_H
 
 #include <ir/index_manager/store/IndexOutput.h>
+#include <ir/index_manager/store/Directory.h>
 
 NS_IZENELIB_IR_BEGIN
 
@@ -16,41 +17,58 @@ namespace indexmanager{
 class OutputDescriptor
 {
 public:
-    OutputDescriptor(void);
+    OutputDescriptor();
     OutputDescriptor(IndexOutput* pVocOutput,IndexOutput* pDPostingOutput,IndexOutput* pPPostingOutput,bool bDestroy);
-    ~OutputDescriptor(void);
+    ~OutputDescriptor();
 
 public:
     IndexOutput* getVocOutput()
     {
-        return pVocOutput;
+        return pVocOutput_;
     }
     IndexOutput* getDPostingOutput()
     {
-        return pDPostingOutput;
-    };
+        return pDPostingOutput_;
+    }
     IndexOutput* getPPostingOutput()
     {
-        return pPPostingOutput;
-    };
-
+        return pPPostingOutput_;
+    }
     void setVocOutput(IndexOutput* pVocOutput)
     {
-        pVocOutput = pVocOutput;
+        pVocOutput_ = pVocOutput_;
     }
     void setDPostingOutput(IndexOutput* pDPostingOutput)
     {
-        pDPostingOutput = pDPostingOutput;
-    };
+        pDPostingOutput_ = pDPostingOutput_;
+    }
     void setPPostingOutput(IndexOutput* pPPostingOutput)
     {
-        pPPostingOutput = pPPostingOutput;
-    };
+        pPPostingOutput_ = pPPostingOutput_;
+    }
+    void setBarrelName(std::string name)
+    {
+        barrelName_ = name;
+    }
+    std::string getBarrelName()
+    {
+        return barrelName_;
+    }
+    void setDirectory(Directory* pDirectory)
+    {
+        pDirectory_ = pDirectory;
+    }
+    Directory* getDirectory()
+    {
+        return pDirectory_;
+    }
 protected:
-    IndexOutput* pVocOutput;
-    IndexOutput* pDPostingOutput;
-    IndexOutput* pPPostingOutput;
-    bool bDestroy;
+    IndexOutput* pVocOutput_;
+    IndexOutput* pDPostingOutput_;
+    IndexOutput* pPPostingOutput_;
+    bool bDestroy_;
+    std::string barrelName_;
+    Directory* pDirectory_;
 };
 
 

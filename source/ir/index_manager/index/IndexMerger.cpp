@@ -204,6 +204,8 @@ void IndexMerger::mergeBarrel(MergeBarrel* pBarrel)
     IndexOutput* pPStream = pDirectory_->createOutput(name);
 
     OutputDescriptor* pOutputDesc = new OutputDescriptor(pVocStream,pDStream,pPStream,true);
+    pOutputDesc->setBarrelName(newBarrelName);
+    pOutputDesc->setDirectory(pDirectory_);
 
     int32_t nEntry;
     MergeBarrelEntry* pEntry = NULL;

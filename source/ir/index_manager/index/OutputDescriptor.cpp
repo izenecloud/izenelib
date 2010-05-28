@@ -2,38 +2,40 @@
 
 using namespace izenelib::ir::indexmanager;
 
-OutputDescriptor::OutputDescriptor(void)
-        :pVocOutput(NULL)
-        ,pDPostingOutput(NULL)
-        ,pPPostingOutput(NULL)
-        ,bDestroy(false)
+OutputDescriptor::OutputDescriptor()
+        :pVocOutput_(NULL)
+        ,pDPostingOutput_(NULL)
+        ,pPPostingOutput_(NULL)
+        ,bDestroy_(false)
+        ,pDirectory_(0)
 {
 }
 OutputDescriptor::OutputDescriptor(IndexOutput* pVocOutput,IndexOutput* pDPostingOutput,IndexOutput* pPPostingOutput,bool bDestroy)
-        :pVocOutput(pVocOutput)
-        ,pDPostingOutput(pDPostingOutput)
-        ,pPPostingOutput(pPPostingOutput)
-        ,bDestroy(bDestroy)
+        :pVocOutput_(pVocOutput)
+        ,pDPostingOutput_(pDPostingOutput)
+        ,pPPostingOutput_(pPPostingOutput)
+        ,bDestroy_(bDestroy)
+        ,pDirectory_(0)
 {
 }
 
-OutputDescriptor::~OutputDescriptor(void)
+OutputDescriptor::~OutputDescriptor()
 {
-    pVocOutput->flush();
-    pDPostingOutput->flush();
-    pPPostingOutput->flush();
+    pVocOutput_->flush();
+    pDPostingOutput_->flush();
+    pPPostingOutput_->flush();
 
-    if (bDestroy)
+    if (bDestroy_)
     {
-        if (pVocOutput)
-            delete pVocOutput;
-        if (pDPostingOutput)
-            delete pDPostingOutput;
-        if (pPPostingOutput)
-            delete pPPostingOutput;
+        if (pVocOutput_)
+            delete pVocOutput_;
+        if (pDPostingOutput_)
+            delete pDPostingOutput_;
+        if (pPPostingOutput_)
+            delete pPPostingOutput_;
     }
-    pVocOutput = NULL;
-    pDPostingOutput = NULL;
-    pPPostingOutput = NULL;
+    pVocOutput_ = NULL;
+    pDPostingOutput_ = NULL;
+    pPPostingOutput_ = NULL;
 }
 

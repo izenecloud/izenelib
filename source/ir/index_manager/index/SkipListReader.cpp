@@ -7,7 +7,7 @@ NS_IZENELIB_IR_BEGIN
 
 namespace indexmanager{
 
-SkipListReader::SkipListReader(IndexInput* pSkipInput, fileoffset_t skipOffset, int skipInterval, int numSkipLevels)
+SkipListReader::SkipListReader(IndexInput* pSkipInput, int skipInterval, int numSkipLevels)
 	: loaded_(false)
 	, defaultSkipInterval_(skipInterval)
 	, numSkipLevels_(numSkipLevels)
@@ -18,7 +18,6 @@ SkipListReader::SkipListReader(IndexInput* pSkipInput, fileoffset_t skipOffset, 
 {
     init();
     skipStream_[0] = pSkipInput->clone();
-    skipStream_[0]->seek(skipOffset);
 }		
 
 SkipListReader::SkipListReader(VariantDataPool** pSkipLevels, int skipInterval, int numSkipLevels)

@@ -109,6 +109,18 @@ void InMemoryPosting::write(OutputDescriptor* pOutputDescriptor, TermInfo& termI
 
     IndexOutput* pDOutput = pOutputDescriptor->getDPostingOutput();
 
+    if( pSkipListWriter_ && pSkipListWriter_->getNumLevels() > 0) ///nDF_ > SkipInterval
+    {
+        termInfo.skipLevel_ = pSkipListWriter_->getNumLevels();
+        termInfo.skipPointer_ = pDOutput->getFilePointer();
+        pSkipListWriter_->write(pDOutput);	///write skip list data
+    }
+    else
+    {
+        termInfo.skipPointer_ = -1;
+        termInfo.skipLevel_ = 0;
+    }
+
     ///save the offset of posting descriptor
     termInfo.docPointer_ = pDOutput->getFilePointer();
 
@@ -116,14 +128,6 @@ void InMemoryPosting::write(OutputDescriptor* pOutputDescriptor, TermInfo& termI
     pDocFreqList_->write(pDOutput);
 	
     termInfo.docPostingLen_ = pDOutput->getFilePointer() - termInfo.docPointer_;
-
-    if( pSkipListWriter_ && pSkipListWriter_->getNumLevels() > 0) ///nDF_ > SkipInterval
-    {
-        termInfo.skipLevel_ = pSkipListWriter_->getNumLevels();
-        pSkipListWriter_->write(pDOutput);	///write skip list data
-    }
-    else
-        termInfo.skipLevel_ = 0;	
 
     IndexOutput* pPOutput = pOutputDescriptor->getPPostingOutput();
 
@@ -518,7 +522,6 @@ void OnDiskPosting::reset(const TermInfo& termInfo)
     IndexInput* pDPInput = pInputDescriptor_->getDPostingInput();
     //IndexInput should be reset because the internal buffer should be clear when a new posting is needed to be read
     pDPInput->reset();
-    pDPInput->seek(postingOffset_);
 
     postingDesc_.length = termInfo.docPostingLen_;	///<PostingLength(VInt64)>
     postingDesc_.df = termInfo.docFreq_;			///<DF(VInt32)>
@@ -528,13 +531,22 @@ void OnDiskPosting::reset(const TermInfo& termInfo)
     chunkDesc_.length = termInfo.docPostingLen_;	///<ChunkLength(VInt64)>
     chunkDesc_.lastdocid = termInfo.lastDocID_;		///<LastDocID(VInt32)>
 
+    if(pSkipListReader_)
+    {
+        delete pSkipListReader_;
+        pSkipListReader_ = 0;	
+    }
+
     if(termInfo.skipLevel_ > 0)
     {
-        if(pSkipListReader_)
-            delete pSkipListReader_;
-
-        pSkipListReader_ = new SkipListReader(pDPInput, postingOffset_ + termInfo.docPostingLen_, skipInterval_, termInfo.skipLevel_);		
+        if(termInfo.skipPointer_ != -1)
+        {
+            pDPInput->seek(termInfo.skipPointer_);
+            pSkipListReader_ = new SkipListReader(pDPInput, skipInterval_, termInfo.skipLevel_);
+        }
     }
+
+    pDPInput->seek(postingOffset_);
 
     IndexInput* pPPInput = pInputDescriptor_->getPPostingInput();
     if (pPPInput)

@@ -115,12 +115,14 @@ docid_t TermDocFreqs::skipTo(docid_t target)
     {
         if((nCurrentPosting_ == -1) || (nCurrentPosting_ >= nCurDecodedCount_) )
         {
+#if 0
             if(termInfo_.docFreq_ < 4096)
             {
                 if(!decode())
                     return BAD_DOCID;
             }
             else
+#endif
             {
                 if(!pPostingBuffer_)
                     createBuffer();

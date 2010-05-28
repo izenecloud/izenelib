@@ -39,6 +39,7 @@ public:
 
     void seekInternal(int64_t position);
 
+    void reopen();
 private:
     FILE* fileHandle_;
 

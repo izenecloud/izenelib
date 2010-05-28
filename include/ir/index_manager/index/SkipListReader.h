@@ -24,7 +24,7 @@ namespace indexmanager{
 class SkipListReader
 {
 public:
-    SkipListReader(IndexInput* pSkipInput, fileoffset_t skipOffset, int skipInterval, int numSkipLevels);
+    SkipListReader(IndexInput* pSkipInput, int skipInterval, int numSkipLevels);
 
     SkipListReader(VariantDataPool** pSkipLevels, int skipInterval, int numSkipLevels);
 

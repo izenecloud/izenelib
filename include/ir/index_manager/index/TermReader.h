@@ -25,7 +25,7 @@ struct TERM_TABLE
 };
 
 #define SPARSE_FACTOR 512
-#define VOC_ENTRY_LENGTH 44
+#define VOC_ENTRY_LENGTH 52
 
 /**
 * Internal class of VocReader

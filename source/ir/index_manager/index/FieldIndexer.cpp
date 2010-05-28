@@ -98,6 +98,7 @@ fileoffset_t FieldIndexer::write(OutputDescriptor* pWriterDesc)
             pVocWriter->writeInt(termInfo.ctf_);			///write ctf
             pVocWriter->writeInt(termInfo.lastDocID_);		///write last doc id
             pVocWriter->writeInt(termInfo.skipLevel_);		///write skip level
+            pVocWriter->writeLong(termInfo.skipPointer_);	///write skip list offset offset
             pVocWriter->writeLong(termInfo.docPointer_);	///write document posting offset
             pVocWriter->writeInt(termInfo.docPostingLen_);	///write document posting length (without skiplist)
             pVocWriter->writeLong(termInfo.positionPointer_);	///write position posting offset

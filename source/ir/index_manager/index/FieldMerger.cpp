@@ -240,6 +240,7 @@ void FieldMerger::flushTermInfo(OutputDescriptor* pOutputDescriptor, int32_t num
         pVocOutput->writeInt(cachedTermInfos_[i].termInfo_.ctf_);				///write ctf
         pVocOutput->writeInt(cachedTermInfos_[i].termInfo_.lastDocID_);			///write last doc id
         pVocOutput->writeInt(cachedTermInfos_[i].termInfo_.skipLevel_); 			///write skip level
+        pVocOutput->writeLong(cachedTermInfos_[i].termInfo_.skipPointer_);		///write document posting offset        
         pVocOutput->writeLong(cachedTermInfos_[i].termInfo_.docPointer_);		///write document posting offset
         pVocOutput->writeInt(cachedTermInfos_[i].termInfo_.docPostingLen_);		///write document posting length (without skiplist)
         pVocOutput->writeLong(cachedTermInfos_[i].termInfo_.positionPointer_);		///write position posting offset

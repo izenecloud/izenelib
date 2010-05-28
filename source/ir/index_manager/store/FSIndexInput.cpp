@@ -81,3 +81,13 @@ void FSIndexInput::seekInternal(int64_t position)
     }
 }
 
+void FSIndexInput::reopen()
+{
+    IndexInput::reset();
+    fclose(fileHandle_);
+    fileHandle_ = fopen(filename_.c_str(), "rb");
+    fseek(fileHandle_, 0, SEEK_END);
+    length_ = ftell(fileHandle_);
+    rewind(fileHandle_);
+}
+

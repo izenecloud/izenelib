@@ -102,4 +102,12 @@ void FSIndexOutput::close()
     }
 }
 
+void FSIndexOutput::trunc()
+{
+    if(fileHandle_)
+    {
+        close();
+    }
+    fileHandle_ = fopen(filename_.c_str(), "w+b");
+}
 

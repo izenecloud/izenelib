@@ -63,6 +63,7 @@ void TermReaderImpl::open(Directory* pDirectory,const char* barrelname)
     freq_t ctf = 0;
     docid_t lastdoc = BAD_DOCID;
     freq_t skipLevel = 0;
+    fileoffset_t skipPointer = 0;
     fileoffset_t docPointer = 0;
     freq_t docPostingLen = 0;
     fileoffset_t positionPointer = 0;
@@ -75,13 +76,14 @@ void TermReaderImpl::open(Directory* pDirectory,const char* barrelname)
         ctf = pVocInput->readInt();
         lastdoc = pVocInput->readInt();
         skipLevel = pVocInput->readInt();
+        skipPointer = pVocInput->readLong();
         docPointer = pVocInput->readLong();
         docPostingLen = pVocInput->readInt();
         positionPointer = pVocInput->readLong();
         positionPostingLen = pVocInput->readInt();
 
         pTermTable_[i].tid = tid;
-        pTermTable_[i].ti.set(df,ctf,lastdoc,skipLevel,docPointer,docPostingLen,positionPointer,positionPostingLen);
+        pTermTable_[i].ti.set(df,ctf,lastdoc,skipLevel,skipPointer,docPointer,docPostingLen,positionPointer,positionPostingLen);
     }
 
     delete pVocInput;
@@ -288,6 +290,7 @@ void SparseTermReaderImpl::open(Directory* pDirectory,const char* barrelname)
     freq_t ctf = 0;
     docid_t lastdoc = BAD_DOCID;
     freq_t skipLevel = 0;
+    fileoffset_t skipPointer = 0;
     fileoffset_t docPointer = 0;
     freq_t docPostingLen = 0;
     fileoffset_t positionPointer = 0;
@@ -300,6 +303,7 @@ void SparseTermReaderImpl::open(Directory* pDirectory,const char* barrelname)
         ctf = pVocInput->readInt();
         lastdoc = pVocInput->readInt();
         skipLevel = pVocInput->readInt();
+        skipPointer = pVocInput->readLong();
         docPointer = pVocInput->readLong();
         docPostingLen = pVocInput->readInt();
         positionPointer = pVocInput->readLong();
@@ -308,7 +312,7 @@ void SparseTermReaderImpl::open(Directory* pDirectory,const char* barrelname)
         if((i+1)%SPARSE_FACTOR == 0)
         {
             sparseTermTable_[i>>9].tid = tid;
-            sparseTermTable_[i>>9].ti.set(df,ctf,lastdoc,skipLevel,docPointer,docPostingLen,positionPointer,positionPostingLen);
+            sparseTermTable_[i>>9].ti.set(df,ctf,lastdoc,skipLevel,skipPointer,docPointer,docPostingLen,positionPointer,positionPostingLen);
         }
     }
     delete pVocInput;
@@ -455,6 +459,7 @@ int DiskTermReader::fillBuffer(int pos)
     freq_t ctf = 0;
     docid_t lastdoc = BAD_DOCID;
     freq_t skipLevel = 0;
+    fileoffset_t skipPointer = 0;
     fileoffset_t docPointer = 0;
     freq_t docPostingLen = 0;
     fileoffset_t positionPointer = 0;
@@ -468,12 +473,13 @@ int DiskTermReader::fillBuffer(int pos)
         ctf = pVocInput_->readInt();
         lastdoc = pVocInput_->readInt();
         skipLevel = pVocInput_->readInt();
+        skipPointer = pVocInput_->readLong();
         docPointer = pVocInput_->readLong();
         docPostingLen = pVocInput_->readInt();
         positionPointer = pVocInput_->readLong();
         positionPostingLen = pVocInput_->readInt();
 
-        bufferTermTable_[j].ti.set(df,ctf,lastdoc,skipLevel,docPointer,docPostingLen,positionPointer,positionPostingLen);
+        bufferTermTable_[j].ti.set(df,ctf,lastdoc,skipLevel,skipPointer,docPointer,docPostingLen,positionPointer,positionPostingLen);
     }
     return end - begin;
 }
@@ -673,7 +679,7 @@ TermInfo* InMemoryTermReader::termInfo(Term* term)
                                 pCurPosting_->getCTF(),
                                 pCurPosting_->lastDocID(),
                                 pCurPosting_->getSkipLevel(),
-                                -1,0,-1,0);
+                                -1,-1,0,-1,0);
     return pTermInfo_;
 }
 

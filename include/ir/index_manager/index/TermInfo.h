@@ -22,9 +22,10 @@ public:
          ctf_(0),
          lastDocID_(BAD_DOCID),
          skipLevel_(0),
-         docPointer_(0),
+         skipPointer_(-1),
+         docPointer_(-1),
          docPostingLen_(0),
-         positionPointer_(0),
+         positionPointer_(-1),
          positionPostingLen_(0)
     {}
 		
@@ -33,6 +34,7 @@ public:
          ctf_(ti.ctf_),
          lastDocID_(ti.lastDocID_),
          skipLevel_(ti.skipLevel_),
+         skipPointer_(ti.skipPointer_),
          docPointer_(ti.docPointer_),
          docPostingLen_(ti.docPostingLen_),
          positionPointer_(ti.positionPointer_),
@@ -58,7 +60,7 @@ public:
 
     void set(const TermInfo& ti)
     {
-        set(ti.docFreq_, ti.ctf_, ti.lastDocID_, ti.skipLevel_, ti.docPointer_, 
+        set(ti.docFreq_, ti.ctf_, ti.lastDocID_, ti.skipLevel_, ti.skipPointer_, ti.docPointer_, 
               ti.docPostingLen_, ti.positionPointer_, ti.positionPostingLen_);
     }
 
@@ -67,6 +69,7 @@ public:
                    freq_t ctf,
                    docid_t lastDocID,
                    freq_t skipLevel,
+                   fileoffset_t skipPointer,
                    fileoffset_t docPointer,
                    freq_t docPostingLen,
                    fileoffset_t positionPointer,
@@ -77,6 +80,7 @@ public:
         ctf_ = ctf;
         lastDocID_ = lastDocID;
         skipLevel_ = skipLevel;
+        skipPointer_ = skipPointer;
         docPointer_ = docPointer;
         docPostingLen_ = docPostingLen;
         positionPointer_ = positionPointer;
@@ -89,6 +93,7 @@ public:
         ctf_ = 0;
         lastDocID_ = BAD_DOCID;
         skipLevel_ = 0;
+        skipPointer_ = -1;
         docPointer_ = -1;
         docPostingLen_ = 0;
         positionPointer_ = -1;
@@ -102,6 +107,8 @@ public:
     docid_t lastDocID_;
 
     freq_t skipLevel_;
+
+    fileoffset_t skipPointer_;
 
     fileoffset_t docPointer_;
 

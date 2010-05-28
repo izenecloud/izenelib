@@ -37,6 +37,8 @@ public:
     int64_t length();
 
     void close();
+
+    void trunc();
 private:
     FILE* fileHandle_;
 
