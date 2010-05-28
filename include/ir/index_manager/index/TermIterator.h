@@ -39,8 +39,6 @@ public:
 
     Posting* termPosting();
 
-    size_t setBuffer(char* pBuffer,size_t bufSize);
-
 private:
     VocReader* pTermReader_;      ///parent term reader
 
@@ -121,7 +119,6 @@ public:
 
     Posting* termPosting();
 
-    size_t   setBuffer(char* pBuffer,size_t bufSize);
 protected:
     InMemoryTermReader* pTermReader_;
 

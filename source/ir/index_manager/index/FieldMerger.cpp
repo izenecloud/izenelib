@@ -10,8 +10,6 @@ using namespace izenelib::ir::indexmanager;
 
 FieldMerger::FieldMerger(bool sortingMerge)
         :sortingMerge_(sortingMerge)
-        ,buffer_(NULL)
-        ,bufsize_(0)
         ,pMergeQueue_(NULL)
         ,pPostingMerger_(NULL)
         ,nNumTermCached_(0)
@@ -28,10 +26,8 @@ FieldMerger::FieldMerger(bool sortingMerge)
 {
 }
 
-FieldMerger::~FieldMerger(void)
+FieldMerger::~FieldMerger()
 {
-    buffer_ = NULL;
-    bufsize_ = 0;
     vector<MergeFieldEntry*>::iterator iter = fieldEntries_.begin();
     while (iter != fieldEntries_.end())
     {
@@ -148,12 +144,6 @@ fileoffset_t FieldMerger::merge(OutputDescriptor* pOutputDescriptor)
     return endMerge(pOutputDescriptor);///merge end here
 }
 
-void FieldMerger::setBuffer(char* buf,size_t bufSize)
-{
-    buffer_ = buf;
-    bufsize_ = bufSize;
-}
-
 bool FieldMerger::initQueue()
 {
     if (fieldEntries_.size() <= 0)
@@ -162,18 +152,6 @@ bool FieldMerger::initQueue()
     TermReader* pTermReader = NULL;
     FieldMergeInfo* pMI = NULL;
     MergeFieldEntry* pEntry;
-
-    size_t nSubBufSize = 0;
-    size_t nCurBufferSize = 0;
-    size_t nTotalUsed = 0;
-    size_t nSubBufUsed = 0;
-
-    ///dispatch buffer
-    if ( (bufsize_ > 0) && (fieldEntries_.size() > 0))
-    {
-        nSubBufSize = bufsize_/fieldEntries_.size();
-        nCurBufferSize = nSubBufSize;
-    }
 
     int32_t order = 0;
     nNumInfos_ = fieldEntries_.size();
@@ -198,29 +176,17 @@ bool FieldMerger::initQueue()
             pTermReader = new DiskTermReader(pDirectory_,pEntry->pBarrelInfo_->getName().c_str(),pEntry->pFieldInfo_);
         }
         pMI = new FieldMergeInfo(order,pEntry->pFieldInfo_->getColID(),pEntry->pBarrelInfo_,pTermReader);
-        if (nSubBufSize > 0)
-        {
-            nSubBufUsed = pMI->pIterator_->setBuffer(buffer_ + nTotalUsed,nCurBufferSize);
-            nTotalUsed += nSubBufUsed;
-        }
         if (pMI->next())	///get first term
         {
             pMergeQueue_->put(pMI);
-            nCurBufferSize = nSubBufSize + (nCurBufferSize - nSubBufUsed);
             order++;
         }
         else
-        {
-            nTotalUsed -= nSubBufUsed;
             delete pMI;
-        }
         iter++;
     }
     nNumInfos_ = order;
 
-    ///buffer for posting merging
-    if ( (bufsize_ - nTotalUsed) > POSTINGMERGE_BUFFERSIZE)
-        pPostingMerger_->setBuffer(buffer_ + nTotalUsed,bufsize_ - nTotalUsed);
 
     return (pMergeQueue_->size() > 0);
 }

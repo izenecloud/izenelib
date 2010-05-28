@@ -40,14 +40,6 @@ public:
     virtual const TermInfo* termInfo() = 0;
     /// get current term's posting (for merge only)
     virtual Posting* termPosting() = 0;
-
-    virtual size_t setBuffer(char* pBuffer,size_t bufSize);
-
-protected:
-
-    char* pBuffer_;      ///buffer for iterator
-
-    size_t nBuffSize_;   ///size of buffer
 };
 
 

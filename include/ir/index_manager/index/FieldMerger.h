@@ -175,12 +175,6 @@ public:
      */
     fileoffset_t merge(OutputDescriptor* pOutputDescriptor);
 
-    /**
-     * set buffer for merging
-     * @param buf buffer
-     * @param bufSize size of buffer
-     */
-    void setBuffer(char* buf,size_t bufSize);
 
     /**
      * set directory of index database
@@ -242,10 +236,6 @@ private:
     fileoffset_t endMerge(OutputDescriptor* pOutputDescriptor) ;
 private:
     bool sortingMerge_;
-
-    char* buffer_;
-
-    size_t bufsize_;
 
     FieldMergeQueue* pMergeQueue_;
 

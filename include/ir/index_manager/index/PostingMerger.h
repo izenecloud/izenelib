@@ -27,8 +27,6 @@ public:
     virtual ~PostingMerger();
 
 public:
-    void setBuffer(char* buf,size_t bufSize);
-
     void setOutputDescriptor(OutputDescriptor* pOutputDescriptor);
 
     OutputDescriptor* getOutputDescriptor() {return pOutputDescriptor_;}
@@ -53,12 +51,6 @@ private:
     friend class FieldMerger;
 
     TermInfo termInfo_;
-
-    char* buffer_; ///buffer_ for posting merging
-
-    size_t bufsize_; ///size of buffer_
-
-    bool bOwnBuffer_; ///does we own the buffer_?
 
     OutputDescriptor* pOutputDescriptor_; ///where merged data store
 

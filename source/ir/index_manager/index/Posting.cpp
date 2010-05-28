@@ -785,34 +785,3 @@ void OnDiskPosting::reset()
 
 }
 
-size_t OnDiskPosting::setBuffer(int32_t* buffer,size_t nBufSize)
-{
-    size_t nBufUsed = nBufSize*sizeof(int32_t);
-    if (nBufUsed <= 2*INDEXINPUT_BUFFSIZE)
-    {
-        nBufSize_ = 0;
-        return 0;
-    }
-
-    IndexInput* pDInput = getInputDescriptor()->getDPostingInput();
-    IndexInput* pPInput = getInputDescriptor()->getPPostingInput();
-    if ((int64_t)nBufUsed > (postingDesc_.length + nPPostingLength_))
-    {
-        nBufUsed = (size_t)(postingDesc_.length + nPPostingLength_);
-        pDInput->setBuffer((char*)buffer,(size_t)postingDesc_.length);
-        if (pPInput)
-            pPInput->setBuffer((char*)buffer + postingDesc_.length,(size_t)nPPostingLength_);
-    }
-    else
-    {
-        size_t nDSize = nBufUsed/2;
-        if ((int64_t)nDSize > postingDesc_.length)
-            nDSize = (size_t)postingDesc_.length;
-        pDInput->setBuffer((char*)buffer,nDSize);
-        if (pPInput)
-            pPInput->setBuffer((char*)buffer + nDSize,nBufUsed - nDSize);
-    }
-    nBufSize_ = nBufUsed;
-    return (nBufUsed + sizeof(int32_t) - 1)/sizeof(int32_t);
-}
-

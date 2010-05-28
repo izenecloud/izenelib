@@ -120,13 +120,6 @@ public:
     void addToMerge(BarrelsInfo* pBarrelsInfo,BarrelInfo* pBarrelInfo);
 
     /**
-     * set buffer for merging
-     * @param buffer outside buffer for merging
-     * @param length size of buffer
-     */
-    void setBuffer(char* buffer,size_t bufsize);
-
-    /**
      * set directory of index
      * @param pDirectory directory of index
      */
@@ -196,12 +189,6 @@ protected:
     Directory* pDirectory_;				///index data source
 
     BarrelsInfo* pBarrelsInfo_;			///reference to Index's barrels information
-
-    char* buffer_;					///buffer for merging process
-
-    size_t bufsize_;					///size of buffer
-
-    bool bBorrowedBuffer_;		///is the buffer borrowed from indexer?
 
     vector<MergeBarrelEntry*>* pMergeBarrels_;
 

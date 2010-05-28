@@ -110,16 +110,6 @@ public:
     */
     virtual count_t getCurTF()const = 0;
 
-    /**
-     * set buffer for posting reading
-     * @param buffer buffer for posting
-     * @param nBufSize_ size of buffer
-     * @return size of used buffer
-     */
-    virtual size_t setBuffer(int32_t* buffer,size_t nBufSize_)
-    {
-        return 0;
-    }
 
     /**
      * get buffer size of posting
@@ -402,23 +392,6 @@ public:
     count_t getCurTF() const
     {
         return ds_.lastDecodedDocTF;
-    }
-
-    /**
-     * set buffer for posting reading
-     * @param buffer buffer for posting
-     * @param nBufSize_ size of buffer
-     * @return size of used buffer
-     */
-    size_t setBuffer(int32_t* buffer,size_t nBufSize);
-
-    /**
-     * get buffer size of posting
-     * @return buffer size
-     */
-    virtual size_t getBufferSize()
-    {
-        return nBufSize_;
     }
 
     SkipListReader* getSkipListReader()

@@ -10,23 +10,11 @@ using namespace std;
 
 using namespace izenelib::ir::indexmanager;
 
-TermIterator::TermIterator(void)
-        :pBuffer_(NULL)
-        ,nBuffSize_(0)
-{
-}
+TermIterator::TermIterator()
+{}
 
-TermIterator::~TermIterator(void)
-{
-    pBuffer_ = NULL;
-    nBuffSize_ = 0;
-}
-size_t TermIterator::setBuffer(char* pBuffer,size_t bufSize)
-{
-    this->pBuffer_ = pBuffer;
-    nBuffSize_ = bufSize;
-    return bufSize;
-}
+TermIterator::~TermIterator()
+{}
 
 VocIterator::VocIterator(VocReader* termReader)
         :pTermReader_(termReader)
@@ -85,22 +73,6 @@ Posting* VocIterator::termPosting()
         ((OnDiskPosting*)pCurTermPosting_)->reset(*pCurTermInfo_);///reset to a new posting
     }
     return pCurTermPosting_;
-}
-
-size_t VocIterator::setBuffer(char* pBuffer,size_t bufSize)
-{
-    int64_t nDLen,nPLen;
-    pTermReader_->getFieldInfo()->getLength(NULL,&nDLen,&nPLen);
-    if ( (size_t)(nDLen + nPLen) < bufSize)
-    {
-        TermIterator::setBuffer(pBuffer,(size_t)(nDLen + nPLen));
-        return (size_t)(nDLen + nPLen);
-    }
-    else
-    {
-        TermIterator::setBuffer(pBuffer,bufSize);
-        return bufSize;
-    }
 }
 
 bool VocIterator::next()
@@ -291,10 +263,5 @@ const TermInfo* InMemoryTermIterator::termInfo()
 Posting* InMemoryTermIterator::termPosting()
 {
     return pCurTermPosting_;
-}
-
-size_t InMemoryTermIterator::setBuffer(char* pBuffer,size_t bufSize)
-{
-    return 0;///don't need buffer
 }
 

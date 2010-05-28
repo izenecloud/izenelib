@@ -64,9 +64,6 @@ void MergeBarrelEntry::load()
 IndexMerger::IndexMerger(Indexer* pIndexer)
         :pIndexer_(pIndexer)
         ,pDirectory_(pIndexer->getDirectory())
-        ,buffer_(NULL)
-        ,bufsize_(0)
-        ,bBorrowedBuffer_(false)
         ,pMergeBarrels_(NULL)
 	,pDocFilter_(NULL)
 {
@@ -85,11 +82,6 @@ IndexMerger::~IndexMerger()
     pDocFilter_ = 0;
 }
 
-void IndexMerger::setBuffer(char* buffer,size_t length)
-{
-    buffer_ = buffer;
-    bufsize_ = length;
-}
 
 void IndexMerger::merge(BarrelsInfo* pBarrels, bool mergeUpdateOnly)
 {
@@ -123,12 +115,6 @@ void IndexMerger::merge(BarrelsInfo* pBarrels, bool mergeUpdateOnly)
     updateBarrels(pBarrels); ///update barrel name and base doc id
     pBarrelsInfo_ = NULL;
 
-    if (bBorrowedBuffer_)
-    {
-        ///the buffer is borrowed from indexer, give it back to indexer
-        setBuffer(NULL,0);
-        bBorrowedBuffer_ = false;
-    }
     pBarrels->startIterator();
     docid_t maxDoc = 0;
     while (pBarrels->hasNext())
@@ -160,12 +146,6 @@ void IndexMerger::addToMerge(BarrelsInfo* pBarrelsInfo,BarrelInfo* pBarrelInfo)
     updateBarrels(pBarrelsInfo); ///update barrel name and base doc id
     pBarrelsInfo_ = NULL;
 
-    if (bBorrowedBuffer_)
-    {
-        ///the buffer is borrowed from indexer, give it back to indexer
-        setBuffer(NULL,0);
-        bBorrowedBuffer_ = false;
-    }
     pBarrelsInfo->write(pDirectory_);
 }
 
@@ -339,7 +319,6 @@ void IndexMerger::mergeBarrel(MergeBarrel* pBarrel)
                     if (pOutputDesc->getPPostingOutput())
                         ptiOff1 = pOutputDesc->getPPostingOutput()->getFilePointer();
 
-                    pFieldMerger->setBuffer(buffer_,bufsize_);		///set buffer for field merge
                     voffset = pFieldMerger->merge(pOutputDesc);
                     pFieldInfo->setIndexOffset(voffset);///set offset of this field's index data
 
@@ -384,9 +363,6 @@ void IndexMerger::mergeBarrel(MergeBarrel* pBarrel)
         if (pWriter)///clear in-memory index
         {
             pWriter->resetCache(true);
-            ///borrow buffer from indexer
-            setBuffer((char*)pWriter->getMemCache()->getBegin(),pWriter->getMemCache()->getSize());
-            bBorrowedBuffer_ = true;
         }
         pBarrelsInfo_->removeBarrel(pDirectory_,pEntry->pBarrelInfo_->getName());///delete merged barrels
     }

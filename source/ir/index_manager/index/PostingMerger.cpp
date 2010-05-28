@@ -5,10 +5,7 @@
 using namespace izenelib::ir::indexmanager;
 
 PostingMerger::PostingMerger()
-        :buffer_(NULL)
-        ,bufsize_(0)
-        ,bOwnBuffer_(false)
-        ,pOutputDescriptor_(NULL)
+        :pOutputDescriptor_(NULL)
         ,pTmpPostingOutput_(NULL)
         ,pTmpPostingInput_(NULL)
         ,nPPostingLength_(0)
@@ -22,12 +19,6 @@ PostingMerger::PostingMerger()
 
 PostingMerger::~PostingMerger()
 {
-    if (buffer_ && bOwnBuffer_)
-    {
-        delete buffer_;
-        buffer_ = NULL;
-    }
-    bufsize_ = 0;
     if(pMemCache_)
         delete pMemCache_;
     if(pSkipListMerger_)
@@ -59,16 +50,8 @@ void PostingMerger::reset()
     }
 }
 
-void PostingMerger::setBuffer(char* buf,size_t bufSize)
-{
-    buffer_ = buf;
-    bufsize_ = bufSize;
-}
 void PostingMerger::init()
 {
-    buffer_ = new char[POSTINGMERGE_BUFFERSIZE];
-    bufsize_ = POSTINGMERGE_BUFFERSIZE;
-    bOwnBuffer_ = true;
     pMemCache_ = new MemCache(POSTINGMERGE_BUFFERSIZE*512);
     pSkipListMerger_ = new SkipListMerger(Posting::skipInterval_,Posting::maxSkipLevel_,pMemCache_);
 }
