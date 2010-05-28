@@ -31,8 +31,7 @@ public:
      * @param port listen port
      */
     explicit AsyncServer(
-        const std::string& address,
-        const std::string& port,
+        const boost::asio::ip::tcp::endpoint& bindPort,
         const boost::shared_ptr<ConnectionFactory>& connectionFactory
     );
 
@@ -60,7 +59,7 @@ public:
     inline void setErrorHandler(error_handler handler);
 
 private:
-    inline void listen(const std::string& address, const std::string& port);
+    inline void listen(const boost::asio::ip::tcp::endpoint& bindPort);
 
     inline void asyncAccept();
 
@@ -87,8 +86,7 @@ private:
 
 template<typename ConnectionFactory>
 AsyncServer<ConnectionFactory>::AsyncServer(
-    const std::string& address,
-    const std::string& port,
+    const boost::asio::ip::tcp::endpoint& bindPort,
     const boost::shared_ptr<ConnectionFactory>& connectionFactory
 )
 : ioService_()
@@ -97,7 +95,7 @@ AsyncServer<ConnectionFactory>::AsyncServer(
 , newConnection_()
 , errorHandler_()
 {
-    listen(address, port);
+    listen(bindPort);
     asyncAccept();
 }
 
@@ -120,15 +118,13 @@ void AsyncServer<ConnectionFactory>::setErrorHandler(error_handler handler)
 }
 
 template<typename ConnectionFactory>
-void AsyncServer<ConnectionFactory>::listen(const std::string& address,
-                                            const std::string& port)
+void AsyncServer<ConnectionFactory>::listen(
+    const boost::asio::ip::tcp::endpoint& bindPort
+)
 {
-    boost::asio::ip::tcp::resolver resolver(ioService_);
-    boost::asio::ip::tcp::resolver::query query(address, port);
-    boost::asio::ip::tcp::endpoint endpoint = *resolver.resolve(query);
-    acceptor_.open(endpoint.protocol());
+    acceptor_.open(bindPort.protocol());
     acceptor_.set_option(boost::asio::ip::tcp::acceptor::reuse_address(true));
-    acceptor_.bind(endpoint);
+    acceptor_.bind(bindPort);
     acceptor_.listen();
 }
 
