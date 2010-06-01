@@ -5,7 +5,7 @@
  */
 #ifndef DYN_ARRAY_HPP
 #define DYN_ARRAY_HPP
-
+ 
 #include<types.h>
 #include <vector>
 #include <ostream>
@@ -282,60 +282,89 @@ protected:
     
   }
   
-  /**
-     Partition the array into two halves and return the index about which the array is partitioned.
-  **/
-  uint32_t partition_(VALUE_TYPE* array, uint32_t left, uint32_t right)
-  {
-    IASSERT(right<length_);
-    IASSERT(left<=right);
+//   /**
+//      Partition the array into two halves and return the index about which the array is partitioned.
+//   **/
+//   uint32_t partition_(VALUE_TYPE* array, uint32_t left, uint32_t right)
+//   {
+//     IASSERT(right<length_);
+//     IASSERT(left<=right);
     
-    uint32_t pivotIndex = findMedianIndex_(array, left, right);
-    uint32_t index = left;
+//     uint32_t pivotIndex = findMedianIndex_(array, left, right);
+//     uint32_t index = left;
     
-    VALUE_TYPE pivotValue = array[pivotIndex];
+//     VALUE_TYPE pivotValue = array[pivotIndex];
  
-    swap_(&array[pivotIndex], &array[right]);
+//     swap_(&array[pivotIndex], &array[right]);
 
-    uint32_t i;
-    for(i = left; i <right; i++)
-    {
-      if(array[i] <= pivotValue)
-      {
-        swap_(&array[i], &array[index]);
-        index += 1;
-      }
-    }
-    swap_(&array[right], &array[index]);
+//     uint32_t i;
+//     for(i = left; i <right; i++)
+//     {
+//       if(array[i] <= pivotValue)
+//       {
+//         swap_(&array[i], &array[index]);
+//         index += 1;
+//       }
+//     }
+//     swap_(&array[right], &array[index]);
  
-    return index;
-  }
+//     return index;
+//   }
 
   /**
      A recursive function applying quick sort.
    **/
   void quickSort_(VALUE_TYPE* array, uint32_t left, uint32_t right)
   {
-    if (left == right)
-      return;
+    int i = left, j = right;
+    VALUE_TYPE tmp;
+    VALUE_TYPE pivot = array[(left + right) / 2];
     
-    IASSERT(left < right);
+    /* partition */
+    while (i <= j) {
+      
+      while (array[i] < pivot && i < (int)length_)
+        i++;
+      while (array[j] > pivot && j>=0)
+        j--;
 
-    IASSERT(right < length_);
+      if (i <= j) {
+        tmp = array[i];
+        array[i] = array[j];
+        array[j] = tmp;
+        i++;
+        j--;
+      }
+    };
+
+    //IASSERT(i-1==j);
+    /* recursion */
+    if ((int)left < j)
+      quickSort_(array, left, j);
+
+    if (i < (int)right)
+      quickSort_(array, i, right);
+
+    //     if (left == right)
+//       return;
     
-    if(right-left<=1)
-    {
-      if (array[left]>array[right])
-        swap_(&array[left], &array[right]);
-      return;
-    }
+//     IASSERT(left < right);
+
+//     IASSERT(right < length_);
     
-    uint32_t idx = partition_(array, left, right);
+//     if(right-left<=1)
+//     {
+//       if (array[left]>array[right])
+//         swap_(&array[left], &array[right]);
+//       return;
+//     }
     
-    if(idx>0 && left<idx-1)
-      quickSort_(array, left, idx - 1);
-    if (idx+1<length_ && idx+1<right)
-      quickSort_(array, idx + 1, right);
+//     uint32_t idx = partition_(array, left, right);
+    
+//     if(idx>0 && left<idx-1)
+//       quickSort_(array, left, idx - 1);
+//     if (idx+1<length_ && idx+1<right)
+//       quickSort_(array, idx + 1, right);
   }
 
 public:
