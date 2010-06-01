@@ -181,10 +181,9 @@ void Indexer::initIndexManager()
         std::string storagePolicy = pConfigurationManager_->storeStrategy_.param_;
         openDirectory(storagePolicy);
 
-        if ((!strcasecmp(storagePolicy.c_str(),"file"))
-                ||(!strcasecmp(storagePolicy.c_str(),"mmap"))
-                &&(managerType_&MANAGER_INDEXING_BTREE))
-            pBTreeIndexer_ = new BTreeIndexer(pConfigurationManager_->indexStrategy_.indexLocation_, degree, cacheSize, maxDataSize);
+        if(managerType_&MANAGER_INDEXING_BTREE)
+          if ((!strcasecmp(storagePolicy.c_str(),"file"))||(!strcasecmp(storagePolicy.c_str(),"mmap")))
+              pBTreeIndexer_ = new BTreeIndexer(pConfigurationManager_->indexStrategy_.indexLocation_, degree, cacheSize, maxDataSize);
 
     }
     pIndexWriter_ = new IndexWriter(this);

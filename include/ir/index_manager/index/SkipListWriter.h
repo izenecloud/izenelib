@@ -54,7 +54,7 @@ public:
     {
         int nSkipInterval = skipInterval_;
         for(int i = 0;i < level;i++)
-            nSkipInterval = nSkipInterval * nSkipInterval;
+            nSkipInterval = nSkipInterval * skipInterval_;
         return nSkipInterval;
     }
 
@@ -72,6 +72,8 @@ public:
     }
 
     void addSkipPoint(docid_t docId,fileoffset_t offset,fileoffset_t pOffset);
+
+    virtual void writeSkipData(int level);
 
     fileoffset_t getRealLength();
 
@@ -99,7 +101,6 @@ protected:
     fileoffset_t curOffset_;
     fileoffset_t curPOffset_;
 };
-
 }
 NS_IZENELIB_IR_END
 

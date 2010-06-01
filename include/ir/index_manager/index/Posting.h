@@ -25,6 +25,7 @@ struct PostingDescriptor
     count_t df; ///document frequency of this field
     int64_t ctf; ///global  term frequency
     fileoffset_t poffset; ///offset of the position postings in the .pop file
+    int64_t plength;
 };
 
 /// the descriptor of chunk
@@ -124,6 +125,12 @@ public:
 
     void setFilter(BitVector* pFilter) { pDocFilter_ = pFilter;}
 
+    virtual docid_t lastDocID() = 0;
+
+    virtual count_t getDPostingLen() = 0;
+
+    virtual count_t getPPostingLen() = 0;
+
 public:
     static int skipInterval_;
     static int maxSkipLevel_;
@@ -205,6 +212,9 @@ public:
 
     int32_t getSkipLevel();
 
+    count_t getDPostingLen();
+
+    count_t getPPostingLen();
 
     /**
      * write index data
@@ -397,6 +407,21 @@ public:
     SkipListReader* getSkipListReader()
     {
         return pSkipListReader_;
+    }
+
+    docid_t lastDocID()
+    {
+        return chunkDesc_.lastdocid;
+    }
+
+    count_t getDPostingLen()
+    {
+        return postingDesc_.length;
+    }
+
+    count_t getPPostingLen()
+    {
+        return postingDesc_.plength;
     }
 
 protected:

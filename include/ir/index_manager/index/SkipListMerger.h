@@ -32,13 +32,22 @@ public:
         baseOffset_ = baseOffset;
         basePOffset_ = basePOffset;
     }
-	
-    bool addToMerge(SkipListReader* pSkipReader,docid_t lastDoc);
 
+    bool addToMerge(SkipListReader* pSkipReader,docid_t lastDoc,int nSkipIntervalBetweenBarrels);
+
+    void writeSkipData(int level);
+
+    void reset()
+    {
+        SkipListWriter::reset();
+        for(int i = 0;i < maxSkipLevel_;i++)
+            skipIntervals_[i] = 0;
+    }
 private:
     docid_t baseDocID_;
     fileoffset_t baseOffset_;
-    fileoffset_t basePOffset_;		
+    fileoffset_t basePOffset_;
+    std::vector<int> skipIntervals_;
 };
 
 }

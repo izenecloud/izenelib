@@ -53,6 +53,11 @@ public:
         return skipInterval;
     }
 
+    int getSkipInterval()
+    {
+        return lastSkipInterval_;
+    }
+
     int getNumSkipped() { return totalSkipped_; }
 
 private:
@@ -80,6 +85,7 @@ private:
 
     std::vector<docid_t> skipDoc_; ///doc id of current skip entry per level
     docid_t lastDoc_; ///document of current skip point
+    int lastSkipInterval_;///last skip interval
     std::vector<fileoffset_t> childPointer_; ///current child pointer of each level (except level 0) 
     fileoffset_t lastChildPointer_; ///child pointer of current skip point
     std::vector<fileoffset_t> offsets_; ///offset of this point in posting (relative  to the begin of the posting)	
@@ -99,8 +105,9 @@ inline void SkipListReader::init()
     offsets_.assign(numSkipLevels_, 0);
     pOffsets_.assign(numSkipLevels_, 0);
     skipStream_.resize(numSkipLevels_,NULL);
-    for(int i = 0; i < numSkipLevels_; i++)
-        skipInterval_[i] = getLevelSkipInterval(i);
+    skipInterval_.assign(numSkipLevels_, 0);
+//    for(int i = 0; i < numSkipLevels_; i++)
+//        skipInterval_[i] = getLevelSkipInterval(i);
 }
 }
 NS_IZENELIB_IR_END

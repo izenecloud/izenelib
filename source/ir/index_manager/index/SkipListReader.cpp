@@ -14,6 +14,7 @@ SkipListReader::SkipListReader(IndexInput* pSkipInput, int skipInterval, int num
 	, numSkipped_(0)
 	, totalSkipped_(0)
 	, lastDoc_(0)
+	, lastSkipInterval_(0)
 	, lastChildPointer_(0)
 {
     init();
@@ -27,6 +28,7 @@ SkipListReader::SkipListReader(VariantDataPool** pSkipLevels, int skipInterval, 
 	, numSkipped_(0)
 	, totalSkipped_(0)
 	, lastDoc_(0)
+	, lastSkipInterval_(0)
 	, lastChildPointer_(0)
 {
     init();
@@ -88,12 +90,16 @@ bool SkipListReader::nextSkip(docid_t docID)
     {
         loadSkipLevels();
         loaded_ = true;
+    }
+    if(skipDoc_[0] == 0)
+    {
         if(!loadNextSkip(0))
             return false;
     }
     if(skipDoc_[0] <= docID)
     {
-        return loadNextSkip(0);
+        loadNextSkip(0);
+        return true;
     }
     return false;
 }
@@ -114,6 +120,7 @@ void SkipListReader::seekChild(int level)
 bool SkipListReader::loadNextSkip(int level)
 {
     lastDoc_ = skipDoc_[level];
+    lastSkipInterval_ = skipInterval_[level];
     lastChildPointer_ = childPointer_[level];
     lastOffset_ = offsets_[level];
     lastPOffset_ = pOffsets_[level];
@@ -135,7 +142,13 @@ bool SkipListReader::loadNextSkip(int level)
 
 void SkipListReader::readSkipPoint(int level,IndexInput* pLevelInput)
 {
-    skipDoc_[level] += pLevelInput->readVInt();
+    docid_t nDocDelta = pLevelInput->readVInt();
+    if( (nDocDelta & 1) == 1)
+        skipInterval_[level] = pLevelInput->readVInt();
+    else
+        skipInterval_[level] = getLevelSkipInterval(level);
+
+    skipDoc_[level] += (nDocDelta >> 1);//pLevelInput->readVInt();
     offsets_[level] += pLevelInput->readVLong();
     pOffsets_[level] += pLevelInput->readVLong();
     numSkipped_[level] += skipInterval_[level];

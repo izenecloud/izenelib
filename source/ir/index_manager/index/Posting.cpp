@@ -96,6 +96,18 @@ int32_t InMemoryPosting::getSkipLevel()
         return 0;
 }
 
+count_t InMemoryPosting::getDPostingLen()
+{
+    flushLastDoc(true);
+    return pDocFreqList_->getLength();
+}
+
+count_t InMemoryPosting::getPPostingLen()
+{
+    flushLastDoc(true);
+    return pLocList_->getLength();
+}
+
 void InMemoryPosting::write(OutputDescriptor* pOutputDescriptor, TermInfo& termInfo)
 {
     ///flush last document
@@ -106,6 +118,14 @@ void InMemoryPosting::write(OutputDescriptor* pOutputDescriptor, TermInfo& termI
     termInfo.ctf_ = nCTF_;
 
     termInfo.lastDocID_ = nLastDocID_;
+
+    if(skipInterval_ && nDF_ > 0 && nDF_ % skipInterval_ == 0)
+    {
+        if(pSkipListWriter_)
+        {
+            pSkipListWriter_->addSkipPoint(nLastDocID_,pDocFreqList_->getLength(),pLocList_->getLength());
+        }
+    }
 
     IndexOutput* pDOutput = pOutputDescriptor->getDPostingOutput();
 
@@ -242,14 +262,6 @@ void InMemoryPosting::flushLastDoc(bool bTruncTail)
     {
         pDocFreqList_->truncTailChunk();///update real size
         pLocList_->truncTailChunk();///update real size
-    }
-
-    if(skipInterval_ && nDF_ > 0 && nDF_ % skipInterval_ == 0)
-    {
-        if(pSkipListWriter_)
-        {
-            pSkipListWriter_->addSkipPoint(nLastDocID_,pDocFreqList_->getLength(),pLocList_->getLength());
-        }
     }
 }
 
@@ -527,6 +539,7 @@ void OnDiskPosting::reset(const TermInfo& termInfo)
     postingDesc_.df = termInfo.docFreq_;			///<DF(VInt32)>
     postingDesc_.ctf = termInfo.ctf_;				///<CTF(VInt64)>
     postingDesc_.poffset = termInfo.positionPointer_;	///PositionPointer(VInt64)
+    postingDesc_.plength = termInfo.positionPostingLen_;
 
     chunkDesc_.length = termInfo.docPostingLen_;	///<ChunkLength(VInt64)>
     chunkDesc_.lastdocid = termInfo.lastDocID_;		///<LastDocID(VInt32)>
@@ -587,26 +600,7 @@ docid_t OnDiskPosting::decodeTo(docid_t target)
     count_t nDF = postingDesc_.df;
     count_t nDecodedCount = ds_.decodedDocCount;
 
-    if(postingDesc_.df  == 1)
-    {
-        if(!pDocFilter_ || !pDocFilter_->test((size_t)nDocID))///Is the document deleted?
-        {
-            nFreq = getCTF();
-            if( nDocID >= target)
-                return nDocID;
-            else return -1;
-        }
-        else
-        {
-            nFreq = 0;
-            nSkipPCount += getCTF(); /// skip the freq
-            return -1;
-        }
-        nDecodedCount++;
-    }
-
     IndexInput* pDPostingInput = getInputDescriptor()->getDPostingInput();
-
     while ( nDecodedCount < nDF )
     {
         nDocID += pDPostingInput->readVInt();
@@ -624,7 +618,6 @@ docid_t OnDiskPosting::decodeTo(docid_t target)
     ds_.lastDecodedDocTF = nFreq;
     ds_.decodedDocCount = nDecodedCount;
     ds_.skipPosCount_ += nSkipPCount;
-
     return ( nDocID >= target )? nDocID : -1;
 }
 
@@ -634,7 +627,6 @@ void OnDiskPosting::seekTo(SkipListReader* pSkipListReader)
     pDPostingInput->seek(postingOffset_ + pSkipListReader->getOffset());
     ds_.lastDecodedDocID = pSkipListReader->getDoc();
     ds_.decodedDocCount = pSkipListReader->getNumSkipped();
-
     IndexInput* pPPostingInput = getInputDescriptor()->getPPostingInput();
     if(pPPostingInput)
     {

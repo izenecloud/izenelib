@@ -41,6 +41,13 @@ SkipListWriter::~SkipListWriter()
     delete[] pLastPOffset_;
 }
 
+void SkipListWriter::writeSkipData(int level)
+{
+    ppSkipLevels_[level]->addVData32((curDoc_ - pLastDoc_[level])<<1);
+    ppSkipLevels_[level]->addVData64((uint64_t)(curOffset_ - pLastOffset_[level]));
+    ppSkipLevels_[level]->addVData64((uint64_t)(curPOffset_ - pLastPOffset_[level]));
+}
+
 void SkipListWriter::addSkipPoint(docid_t docId,fileoffset_t offset,fileoffset_t pOffset)
 {
     curDoc_ = docId;
@@ -56,9 +63,7 @@ void SkipListWriter::addSkipPoint(docid_t docId,fileoffset_t offset,fileoffset_t
 
     for (int level = 0; level < nNumLevels; level++) 
     {
-        ppSkipLevels_[level]->addVData32(curDoc_ - pLastDoc_[level]);
-        ppSkipLevels_[level]->addVData64((uint64_t)(curOffset_ - pLastOffset_[level]));
-        ppSkipLevels_[level]->addVData64((uint64_t)(curPOffset_ - pLastPOffset_[level]));
+        writeSkipData(level);
 
         pLastDoc_[level] = curDoc_;
         pLastOffset_[level] = curOffset_;

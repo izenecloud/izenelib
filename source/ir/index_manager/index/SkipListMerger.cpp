@@ -10,32 +10,48 @@ SkipListMerger::SkipListMerger(int skipInterval, int maxLevel, MemCache* pMemCac
     ,baseOffset_(0)
     ,basePOffset_(0)		
 {
+    skipIntervals_.assign(maxLevel, 0);
 }
 
 SkipListMerger::~SkipListMerger()
 {
 }
 
-bool SkipListMerger::addToMerge(SkipListReader* pSkipReader,docid_t lastDoc)
-{			
-    bool ret = false;
+void SkipListMerger::writeSkipData(int level)
+{
+    if(skipIntervals_[level] == getSkipInterval(level))
+        ppSkipLevels_[level]->addVData32( (curDoc_ - pLastDoc_[level]) << 1);
+    else
+    {
+        ppSkipLevels_[level]->addVData32( ((curDoc_ - pLastDoc_[level]) << 1) + 1);
+        ppSkipLevels_[level]->addVData32(skipIntervals_[level]);
+    }
+    skipIntervals_[level] = 0;
+    ppSkipLevels_[level]->addVData64((uint64_t)(curOffset_ - pLastOffset_[level]));
+    ppSkipLevels_[level]->addVData64((uint64_t)(curPOffset_ - pLastPOffset_[level]));
+}
+
+bool SkipListMerger::addToMerge(SkipListReader* pSkipReader,docid_t lastDoc,int nSkipIntervalBetweenBarrels)
+{
+    int lastdoc = 0;
     while(pSkipReader->nextSkip(lastDoc))
     {
-        SkipListWriter::addSkipPoint( pSkipReader->getDoc() + baseDocID_, 
-                                                  pSkipReader->getOffset() + baseOffset_,
-                                                  pSkipReader->getPOffset() + basePOffset_
-                                                );
-        ret = true;
-    }
-    if(pSkipReader->getDoc()>0 && pSkipReader->getDoc()<BAD_DOCID)
-    {
-        SkipListWriter::addSkipPoint( pSkipReader->getDoc() + baseDocID_, 
-                                                  pSkipReader->getOffset() + baseOffset_,
-                                                  pSkipReader->getPOffset() + basePOffset_
-                                                );
-    }
+    	int nCurSkipped = (pSkipReader->getSkipInterval() + nSkipIntervalBetweenBarrels);
+	for(int i = 0;i < maxSkipLevel_;i++)
+            skipIntervals_[i] += nCurSkipped;
 
-    return ret;
+	nSkipIntervalBetweenBarrels = 0;
+	
+	if(skipIntervals_[0] <= 1)
+           continue;
+        addSkipPoint( pSkipReader->getDoc() + baseDocID_, 
+                            pSkipReader->getOffset() + baseOffset_,
+                            pSkipReader->getPOffset() + basePOffset_
+                          );
+
+	lastdoc = pSkipReader->getDoc();
+    }
+    return true;
 }
 
 }

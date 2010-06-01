@@ -66,6 +66,8 @@ private:
 
     int64_t nPPostingLength_;
 
+    int nSkipIntervalBetweenBarrels_; ///skip interval between two postings from different barrels might not be the default fixed skipinterval value
+
     bool bFirstPosting_;
 
     SkipListMerger* pSkipListMerger_;
