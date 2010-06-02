@@ -323,9 +323,9 @@ protected:
     /* partition */
     while (i <= j) {
       
-      while (array[i] < pivot && i < (int)length_)
+      while (i < (int)length_ && array[i] < pivot)
         i++;
-      while (array[j] > pivot && j>=0)
+      while (j>=0 && array[j] > pivot )
         j--;
 
       if (i <= j) {

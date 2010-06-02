@@ -276,13 +276,13 @@ typedef SortMerger<KEY_TYPE, LEN_TYPE, COMPARE_ALL> self_t;
         std::cout<<"[Warning]: A record is too long, it will be ignored\n";
         fseek(f, *(LEN_TYPE*)(micro_buf_[i])+sizeof(LEN_TYPE)-s, SEEK_CUR);
 
-        if (ftell(f)-run_addr_[i]>=size_run_[i])
+        if (ftell(f)-run_addr_[i] >= (uint64_t)size_run_[i])
         {
           flag = true;
           break;
         }
         
-        s = size_run_[i]-(ftell(f)-run_addr_[i])>PRE_BUF_SIZE_? PRE_BUF_SIZE_:size_run_[i]-(ftell(f)-run_addr_[i]);
+        s = (uint32_t)((uint64_t)size_run_[i]-(ftell(f)-run_addr_[i])>PRE_BUF_SIZE_? PRE_BUF_SIZE_:(uint64_t)size_run_[i]-(ftell(f)-run_addr_[i]));
         size_micro_run_[i] = s;
         IASSERT(fread(micro_buf_[i], s, 1, f)==1);
       }
@@ -348,7 +348,7 @@ typedef SortMerger<KEY_TYPE, LEN_TYPE, COMPARE_ALL> self_t;
 
       assert(idx < MAX_GROUP_SIZE_);
       //get loading size of a microrun
-      uint32_t s = size_run_[idx] - (addr - run_addr_[idx]);
+      uint32_t s = (uint32_t)((uint64_t)size_run_[idx] - (addr - run_addr_[idx]));
       if (s == 0)
       {
         //std::cout<<"==================\n";
@@ -373,7 +373,7 @@ typedef SortMerger<KEY_TYPE, LEN_TYPE, COMPARE_ALL> self_t;
           len = *(LEN_TYPE*)(pre_buf_+last_pos)+sizeof(LEN_TYPE);
           char* tmp = (char*)malloc(len);
           memcpy(tmp, pre_buf_+last_pos, len);
-          pre_heap_.push(KEY_ADDR(tmp, addr+pos, idx));
+          pre_heap_.push(KEY_ADDR(tmp, addr+(uint64_t)pos, idx));
           break;
         }
 

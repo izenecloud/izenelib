@@ -212,11 +212,11 @@ typedef SortRunner<KEY_TYPE, LEN_TYPE, COMPARE_ALL> self_t;
       while (pre_buf_size_!=0)
         pre_buf_con_.wait(lock);
       
-      uint32_t s = FILE_LEN-pos>RUN_BUF_SIZE_? RUN_BUF_SIZE_: FILE_LEN-pos;
+      uint32_t s = (uint32_t)(FILE_LEN-pos>RUN_BUF_SIZE_? RUN_BUF_SIZE_: FILE_LEN-pos);
       //std::cout<<std::endl<<pos<<"-"<<FILE_LEN<<"-"<<RUN_BUF_SIZE_<<"-"<<s<<std::endl;
       fseek(f, pos, SEEK_SET);
       IASSERT(fread(pre_buf_, s, 1, f)==1);
-      pos += s;
+      pos += (uint64_t)s;
 
       //check the position of the last record
       pre_buf_size_ = 0;
@@ -227,7 +227,7 @@ typedef SortRunner<KEY_TYPE, LEN_TYPE, COMPARE_ALL> self_t;
           break;
         pre_buf_size_ += *(LEN_TYPE*)(pre_buf_+pre_buf_size_)+sizeof(LEN_TYPE);
       }
-      pos -= s- pre_buf_size_;
+      pos -= (uint64_t)(s- pre_buf_size_);
       //std::cout<<pre_buf_size_<<std::endl;
       if (pre_buf_num_ == 0)
       {
