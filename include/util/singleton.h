@@ -31,19 +31,23 @@
 
 #include <types.h>
 
-namespace izenelib {
-namespace util {
+namespace izenelib
+{
+namespace util
+{
 
-enum CallOnceState {
-  ONCE_INIT = 0,
-  ONCE_DONE = 1,
+enum CallOnceState
+{
+    ONCE_INIT = 0,
+    ONCE_DONE = 1,
 };
 
 #define IZENE_ONCE_INIT { 0, 0 }
 
-struct once_t {
-  volatile int state;
-  volatile int counter;
+struct once_t
+{
+    volatile int state;
+    volatile int counter;
 };
 
 // portable re-implementation of pthread_once
@@ -52,18 +56,19 @@ void CallOnce(once_t *once, void (*func)());
 // reset once_t
 void ResetOnce(once_t *once);
 
-class SingletonFinalizer {
- public:
-  typedef void (*FinalizerFunc)();
+class SingletonFinalizer
+{
+public:
+    typedef void (*FinalizerFunc)();
 
-  // Do not call this method directly.
-  // use Singleton<Typename> instead.
-  static void AddFinalizer(FinalizerFunc func);
+    // Do not call this method directly.
+    // use Singleton<Typename> instead.
+    static void AddFinalizer(FinalizerFunc func);
 
-  // Call Finalize() if you want to finalize
-  // all instances created by Sigleton.
-  //
-  static void Finalize();
+    // Call Finalize() if you want to finalize
+    // all instances created by Sigleton.
+    //
+    static void Finalize();
 };
 
 // Thread-safe Singleton class.
@@ -73,27 +78,31 @@ class SingletonFinalizer {
 //
 // Foo *instance = Singleton<Foo>::get();
 template <typename T>
-class Singleton {
- public:
-  static T *get() {
-    CallOnce(&once_, &Singleton<T>::Init);
-    return instance_;
-  }
+class Singleton
+{
+public:
+    static T *get()
+    {
+        CallOnce(&once_, &Singleton<T>::Init);
+        return instance_;
+    }
 
- private:
-  static void Init() {
-    SingletonFinalizer::AddFinalizer(&Singleton<T>::Delete);
-    instance_ = new T;
-  }
+private:
+    static void Init()
+    {
+        SingletonFinalizer::AddFinalizer(&Singleton<T>::Delete);
+        instance_ = new T;
+    }
 
-  static void Delete() {
-    delete instance_;
-    instance_ = NULL;
-    ResetOnce(&once_);
-  }
+    static void Delete()
+    {
+        delete instance_;
+        instance_ = NULL;
+        ResetOnce(&once_);
+    }
 
-  static once_t once_;
-  static T *instance_;
+    static once_t once_;
+    static T *instance_;
 };
 
 template <typename T>
