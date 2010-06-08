@@ -1,3 +1,6 @@
+FIND_PACKAGE(Boost ${Boost_FIND_VERSION}
+  COMPONENTS serialization filesystem system thread)
+
 SET(_NOT_WIN32 TRUE)
 IF(WIN32)
   SET(_NOT_WIN32 FALSE)
@@ -33,3 +36,31 @@ IF(izene_log_SHOULD_BUILD)
       ARCHIVE DESTINATION lib 
       COMPONENT "izenelib_libraries")
 ENDIF(izene_log_SHOULD_BUILD)
+
+
+MACRO_CHECK_SHOULD_BUILD(
+  izene_util
+  Boost_FOUND
+  )
+
+IF(izene_util_SHOULD_BUILD)
+
+  FILE(GLOB_RECURSE
+    util_SRC
+    RELATIVE
+    "${CMAKE_CURRENT_SOURCE_DIR}"
+    "*.cpp"
+    )
+
+  INCLUDE_DIRECTORIES(
+    ${Boost_INCLUDE_DIRS}
+    ${wiselib_INCLUDE_DIRS}
+    ${Glog_INCLUDE_DIRS}
+  )
+
+  ADD_DEFINITIONS("-fPIC")
+
+  ADD_LIBRARY(izene_util ${util_SRC})
+
+ENDIF(izeneutil_SHOULD_BUILD)
+
