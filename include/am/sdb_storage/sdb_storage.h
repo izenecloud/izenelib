@@ -154,8 +154,8 @@ public:
 		if( ! keyHash_.get(key, npos) )
 		return false;
 		else {
-			return readValue_(key, npos, val);
-			//return readValue_(npos, val);
+			//return readValue_(key, npos, val);
+			return readValue_(npos, val);
 		}
 
 	}
