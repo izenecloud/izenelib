@@ -1,7 +1,7 @@
-#ifndef UTIL_TINY_MESSAGE_QUEUE_H
-#define UTIL_TINY_MESSAGE_QUEUE_H
+#ifndef UTIL_CONCURRENT_QUEUE_H
+#define UTIL_CONCURRENT_QUEUE_H
 /**
- * @file util/TinyMessageQueue.h
+ * @file util/concurrent_queue.h
  * @author Ian Yang
  * @date Created <2009-11-01 21:50:36>
  * @date Updated <2009-11-04 17:14:51>
@@ -17,7 +17,7 @@ namespace izenelib {
 namespace util {
 
 template<typename T>
-class TinyMessageQueue
+class concurrent_queue
 {
 public:
     /**
@@ -40,6 +40,7 @@ public:
 
     bool empty() const
     {
+        boost::mutex::scoped_lock lock(mutex_);
         return queue_.empty();
     }
 
@@ -51,7 +52,7 @@ private:
 };
 
 template<typename T>
-void TinyMessageQueue<T>::pop(T& t)
+void concurrent_queue<T>::pop(T& t)
 {
     boost::unique_lock<boost::mutex> lock(mutex_);
     while(queue_.empty())
@@ -61,16 +62,17 @@ void TinyMessageQueue<T>::pop(T& t)
     t = queue_.front();
     queue_.pop_front();
 }
+
 template<typename T>
-void TinyMessageQueue<T>::push(const T& t)
+void concurrent_queue<T>::push(const T& t)
 {
     {
         boost::unique_lock<boost::mutex> lock(mutex_);
         queue_.push_back(t);
     }
-    cond_.notify_all();
+    cond_.notify_one();
 }
 
 }} // namespace izenelib::util
 
-#endif // UTIL_TINY_MESSAGE_QUEUE_H
+#endif // UTIL_CONCURRENT_QUEUE_H
