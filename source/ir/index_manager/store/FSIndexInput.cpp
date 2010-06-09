@@ -30,6 +30,7 @@ FSIndexInput::FSIndexInput(const char* filename,size_t buffsize)
     {
         perror("error when opening file");
         string sFileName = filename;
+        cout<<"open file error "<<sFileName<<endl;
         SF1V5_THROW(ERROR_FILEIO,"Open file error: " + sFileName);
     }
 

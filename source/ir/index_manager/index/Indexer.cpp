@@ -1,11 +1,8 @@
 #include <ir/index_manager/index/Indexer.h>
 #include <ir/index_manager/index/IndexReader.h>
 #include <ir/index_manager/index/TermReader.h>
-#include <ir/index_manager/index/IndexMerger.h>
-#include <ir/index_manager/index/OfflineIndexMerger.h>
 #include <ir/index_manager/index/ParallelTermPosition.h>
 #include <ir/index_manager/index/Posting.h>
-#include <ir/index_manager/index/ForwardIndexReader.h>
 #include <ir/index_manager/store/FSDirectory.h>
 #include <ir/index_manager/store/RemoteDirectory.h>
 #include <ir/index_manager/store/UDTFSAgent.h>
@@ -13,6 +10,8 @@
 #include <ir/index_manager/utility/StringUtils.h>
 #include <ir/index_manager/index/BTreeIndexerClient.h>
 #include <ir/index_manager/index/BTreeIndexerServer.h>
+
+#include <util/hashFunction.h>
 
 #ifdef SF1_TIME_CHECK
 #include <wiselib/profiler/ProfilerGroup.h>
@@ -188,6 +187,16 @@ void Indexer::initIndexManager()
     }
     pIndexWriter_ = new IndexWriter(this);
     pIndexReader_ = new IndexReader(this);
+
+    if(! pConfigurationManager_->indexStrategy_.optimizeSchedule_.empty())
+    {
+        using namespace izenelib::util;
+        int32_t uuid =  (int32_t)HashFunction<std::string>::generateHash32(pConfigurationManager_->indexStrategy_.indexLocation_);
+        char uuidstr[10];
+        memset(uuidstr,0,10);
+        sprintf(uuidstr,"%d",uuid);
+        pIndexWriter_->scheduleOptimizeTask(pConfigurationManager_->indexStrategy_.optimizeSchedule_, uuidstr);
+    }
 }
 
 
@@ -381,15 +390,12 @@ void Indexer::setDirty(bool bDirty)
     }
 }
 
-int Indexer::insertDocumentPhysically(IndexerDocument* pDoc)
+int Indexer::insertDocument(IndexerDocument* pDoc, bool docOwnedByUser)
 {
-    pIndexWriter_->indexDocument(pDoc);
-    return 1;
-}
-
-int Indexer::insertDocument(IndexerDocument* pDoc)
-{
-    pIndexWriter_->addDocument(pDoc);
+    if(docOwnedByUser)
+        pIndexWriter_->indexDocument(pDoc);
+    else
+        pIndexWriter_->addDocument(pDoc);
     return 1;
 }
 
@@ -405,13 +411,6 @@ int Indexer::removeDocument(collectionid_t colID, docid_t docId)
     return 1;
 }
 
-int Indexer::removeCollection(collectionid_t colID)
-{
-    count_t count = 0;
-    pIndexWriter_->removeCollection(colID,count);
-    return 1;
-}
-
 void Indexer::flush()
 {
     pIndexWriter_->flush();
@@ -420,9 +419,7 @@ void Indexer::flush()
 
 void Indexer::optimizeIndex()
 {
-    IndexMerger* pIndexMerger = new OfflineIndexMerger(this, pBarrelsInfo_->getBarrelCount());
-    pIndexWriter_->mergeIndex(pIndexMerger);
-    delete pIndexMerger;
+    pIndexWriter_->optimizeIndex();
 }
 
 IndexStatus Indexer::checkIntegrity()

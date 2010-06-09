@@ -15,7 +15,6 @@
 #include <ir/index_manager/index/TermInfo.h>
 #include <ir/index_manager/index/BarrelInfo.h>
 #include <ir/index_manager/index/CollectionInfo.h>
-#include <ir/index_manager/index/ForwardIndexReader.h>
 #include <ir/index_manager/index/IndexerDocument.h>
 #include <ir/index_manager/index/DocLengthReader.h>
 #include <ir/index_manager/store/Directory.h>
@@ -54,9 +53,6 @@ public:
     ///client must delete the returned object
     TermReader* getTermReader(collectionid_t colID);
 
-    ///client must delete the returned object
-    ForwardIndexReader* getForwardIndexReader();
-
     /// mark a document as deleted;
     void delDocument(collectionid_t colID, docid_t docId);
 
@@ -84,8 +80,6 @@ private:
     BarrelsInfo* pBarrelsInfo_; ///reference to Index's pBarrelsInfo
 
     IndexBarrelReader* pBarrelReader_; ///barrel reader
-
-    ForwardIndexReader* pForwardIndexReader_;
 
     mutable boost::mutex mutex_;
 

@@ -471,7 +471,7 @@ namespace irdb
                 
                 if(inMemory_)
                 {
-                    indexer_->insertDocumentPhysically(document);
+                    indexer_->insertDocument(document, true);
                     //as index manager required, this must be deleted manully
                     delete document;
                 }
@@ -537,7 +537,7 @@ namespace irdb
 
                 if(inMemory_)
                 {
-                    indexer_->insertDocumentPhysically(document);
+                    indexer_->insertDocument(document, true);
                     //as index manager required, this must be deleted manully
                     delete document;
                 }
@@ -938,7 +938,7 @@ namespace irdb
                 
                 if(inMemory_)
                 {
-                    indexer_->insertDocumentPhysically(document);
+                    indexer_->insertDocument(document, true);
                     //as index manager required, this must be deleted manully
                     delete document;
                 }
@@ -1003,7 +1003,7 @@ namespace irdb
 
                 if(inMemory_)
                 {
-                    indexer_->insertDocumentPhysically(document);
+                    indexer_->insertDocument(document, true);
                     //as index manager required, this must be deleted manully
                     delete document;
                 }

@@ -11,7 +11,8 @@
 #include <ir/index_manager/index/IndexerDocument.h>
 #include <ir/index_manager/utility/MemCache.h>
 
-#include <boost/thread.hpp>
+#include <util/cronexpression.h>
+
 #include <iostream>
 #include <fstream>
 #include <map>
@@ -24,10 +25,10 @@ namespace indexmanager{
 
 class Indexer;
 class IndexMerger;
+class IndexMergeManager;
 /**
-* @brief IndexWriter is the manager class which process the index construction, index merge and index deletion
+* @brief IndexWriter is the manager class which process the index construction and index merging
 */
-
 class IndexWriter
 {
 public:
@@ -39,40 +40,43 @@ public:
     void addDocument(IndexerDocument* pDoc, bool update = false);
     /// index the document object practically
     void indexDocument(IndexerDocument* pDoc, bool update = false);
-
-    bool removeCollection(collectionid_t colID, count_t docCount);
-
-    bool isCacheFull() { return nNumCacheUsed_ >= nNumCachedDocs_; }
-    ///when the memory cache of IndexWriter is full, then index all the cached index. Call this function directly will force to index all the cached docuement objects.
-    void flushDocuments(bool update = false);
     ///merge the barrels index manually using an existing IndexMerger
     void mergeIndex(IndexMerger* pIndexMerger);
+
+    void optimizeIndex();
 
     void flush();
 
     void close();
 
+    void scheduleOptimizeTask(std::string expression, string uuid);
 private:
+
     void setupCache();
 
     void destroyCache();
 
     void clearCache();
 
-    ///IndexBarrelWriter is the practical class to process indexing procedure.
+    bool isCacheFull() { return nNumCacheUsed_ >= nNumCachedDocs_; }
+
+    void lazyOptimizeIndex();
+
+   ///IndexBarrelWriter is the practical class to process indexing procedure.
     void createBarrelWriter(bool update = false);
 
     void createMerger();
-	
     ///will be used by mergeIndex
     void mergeAndWriteCachedIndex(bool mergeUpdateOnly = false);
     ///will be used when index documents
-    void mergeAndWriteCachedIndex2();
+    void addToMergeAndWriteCachedIndex();
 
-    void justWriteCachedIndex();	
+    void writeCachedIndex();	
     ///merge the updated barrel
     void mergeUpdatedBarrel(docid_t currDocId);
-
+    ///when the memory cache of IndexWriter is full, then index all the cached index. 
+    ///Call this function directly will force to index all the cached docuement objects.
+    void flushDocuments(bool update = false);
 private:
     IndexBarrelWriter* pIndexBarrelWriter_;
 
@@ -96,7 +100,9 @@ private:
 
     count_t* pCurDocCount_;
 
-    mutable boost::mutex mutex_;
+    IndexMergeManager* pIndexMergeManager_;
+
+    izenelib::util::CronExpression scheduleExpression_;
 };
 
 }

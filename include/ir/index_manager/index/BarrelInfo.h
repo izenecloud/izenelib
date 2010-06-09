@@ -29,6 +29,7 @@ public:
             , hasUpdateDocs(false)
             , maxDocId(0)
             , modified(false)
+            , searchable(true)
  
     {
     }
@@ -40,6 +41,7 @@ public:
             , hasUpdateDocs(false)
             , maxDocId(0)
             , modified(false)
+            , searchable(true)
     {
     }
 
@@ -52,6 +54,7 @@ public:
             , hasUpdateDocs(pBarrelInfo->hasUpdateDocs)
             , maxDocId(pBarrelInfo->maxDocId)
             , modified(pBarrelInfo->modified)
+            , searchable(pBarrelInfo->searchable)
     {
     }
 
@@ -112,7 +115,7 @@ public:
     docid_t getBaseDocID()
     {
         if(baseDocIDMap.empty())
-            return 0;
+            return -1;
         else
             return baseDocIDMap.begin()->second;
     }
@@ -151,20 +154,19 @@ public:
 
     bool isModified() { return modified; }
 
+    void setSearchable(bool cansearch)
+    {
+        searchable = cansearch;
+    }
+
+    bool isSearchable() { return searchable; }
+
     ///compare function to sort all the barrels, the compare function will be based on the document count of a certain barrel.
     ///we will sort barrels according to base doc id of the first collection.
-    static bool less (BarrelInfo* pElem1, BarrelInfo* pElem2 )
-    {
-        if( pElem1->getBaseDocID() != pElem2->getBaseDocID() )
-            return pElem1->getBaseDocID() < pElem2->getBaseDocID();
-        else
-            return pElem1->getDocCount() > pElem2->getDocCount();
-    }
-     
     static bool greater (BarrelInfo* pElem1, BarrelInfo* pElem2 )
     {
         if( pElem1->getBaseDocID() != pElem2->getBaseDocID() )
-            return pElem1->getBaseDocID() > pElem2->getBaseDocID();
+            return pElem1->getBaseDocID() < pElem2->getBaseDocID();
         else
             return pElem1->getDocCount() > pElem2->getDocCount();
     }
@@ -185,6 +187,8 @@ public:
     docid_t maxDocId;
 
     bool modified;
+
+    bool searchable;
 };
 
 
@@ -253,7 +257,12 @@ public:
 
     const char* getVersion() { return version.c_str();  }
 
-    void setLock(bool lock_){lock = lock_; }
+    void setLock(bool lock_)
+    {
+        lock = lock_; 
+        if(!lock)
+            modifyBarrelsEvent_.notify_all();
+    }
 
     bool getLock() {return lock; }
 
@@ -282,6 +291,8 @@ public:
     bool hasNext();
 
     BarrelInfo* next();
+
+    void wait_for_barrels_ready();
 private:
     //lock means index is under merging and can not serve the query requests.
     bool lock;
@@ -295,6 +306,10 @@ private:
     vector<BarrelInfo*>::iterator barrelsiterator;
 
     docid_t maxDoc;
+
+    boost::condition_variable modifyBarrelsEvent_;
+
+    boost::mutex mutex_;
 };
 
 //////////////////////////////////////////////////////////////////////////

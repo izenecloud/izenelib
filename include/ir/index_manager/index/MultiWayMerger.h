@@ -19,7 +19,7 @@ public:
     class Generation
     {
     public:
-        Generation(int32_t g,int32_t nMaxSize)
+        Generation(int g,int nMaxSize)
             :generation_(g)
             ,mergeTimes_(0)
         {
@@ -64,10 +64,10 @@ public:
 
     void endMerge();
 protected:
-    void triggerMerge(Generation* pGen,int32_t nGen);
+    void triggerMerge(Generation* pGen,int nGen);
 
 protected:
-    const static int32_t MAX_TRIGGERS = 5;
+    const static int MAX_TRIGGERS = 5;
     int curGeneration_;
     map<int,Generation*> generationMap_;
 };

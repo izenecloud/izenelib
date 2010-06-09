@@ -1,12 +1,14 @@
 #include <ir/index_manager/index/FieldIndexer.h>
 #include <ir/index_manager/index/TermReader.h>
 #include <ir/index_manager/index/TermPositions.h>
+#include <ir/index_manager/index/Indexer.h>
 
 using namespace std;
 
 using namespace izenelib::ir::indexmanager;
 
-FieldIndexer::FieldIndexer(MemCache* pCache):pMemCache_(pCache),vocFilePointer_(0)
+FieldIndexer::FieldIndexer(MemCache* pCache, Indexer* pIndexer)
+    :pMemCache_(pCache),pIndexer_(pIndexer),vocFilePointer_(0)
 {
 }
 
@@ -85,7 +87,7 @@ fileoffset_t FieldIndexer::write(OutputDescriptor* pWriterDesc)
     InMemoryPosting* pPosting;
     fileoffset_t vocOffset = pVocWriter->getFilePointer();
     TermInfo termInfo;
-
+    izenelib::util::ScopedWriteLock<izenelib::util::ReadWriteLock> lock(rwLock_);
     for(InMemoryPostingMap::iterator iter = postingMap_.begin(); iter !=postingMap_.end(); ++iter)
     {
         pPosting = iter->second;
@@ -112,6 +114,8 @@ fileoffset_t FieldIndexer::write(OutputDescriptor* pWriterDesc)
         delete pPosting;
         pPosting = NULL;
     }
+
+    boost::thread::sleep(boost::get_system_time() + boost::posix_time::milliseconds(500));
     postingMap_.clear();
 
     fileoffset_t vocDescOffset = pVocWriter->getFilePointer();

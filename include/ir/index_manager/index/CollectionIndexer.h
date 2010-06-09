@@ -22,7 +22,6 @@
 #include <ir/index_manager/index/OutputDescriptor.h>
 #include <ir/index_manager/index/BTreeIndex.h>
 #include <ir/index_manager/index/LAInput.h>
-#include <ir/index_manager/index/ForwardIndexWriter.h>
 #include <ir/index_manager/index/DocLengthWriter.h>
 
 NS_IZENELIB_IR_BEGIN
@@ -46,8 +45,6 @@ public:
 
     void setFieldIndexers();
 
-    void setForwardIndexWriter(ForwardIndexWriter* pForwardIndexWriter){pForwardIndexWriter_ = pForwardIndexWriter;}
-
     void addDocument(IndexerDocument* pDoc);
 
     void write(OutputDescriptor* desc);
@@ -70,8 +67,6 @@ private:
     FieldsInfo* pFieldsInfo_;
 
     Indexer* pIndexer_;
-
-    ForwardIndexWriter* pForwardIndexWriter_;
 
     DocLengthWriter* pDocLengthWriter_;
 

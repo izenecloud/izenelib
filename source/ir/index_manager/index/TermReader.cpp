@@ -2,6 +2,7 @@
 #include <ir/index_manager/store/FSDirectory.h>
 
 #include <boost/thread.hpp>
+#include <util/ThreadModel.h>
 
 using namespace izenelib::ir::indexmanager;
 
@@ -630,6 +631,8 @@ bool InMemoryTermReader::seek(Term* term)
 
 TermDocFreqs* InMemoryTermReader::termDocFreqs()
 {
+    izenelib::util::ScopedReadLock<izenelib::util::ReadWriteLock> lock(pIndexer_->rwLock_);
+
     if( (pCurTermInfo_ == NULL)||(pCurPosting_ == NULL))
         return NULL;
 
@@ -641,6 +644,8 @@ TermDocFreqs* InMemoryTermReader::termDocFreqs()
 
 TermPositions* InMemoryTermReader::termPositions()
 {
+    izenelib::util::ScopedReadLock<izenelib::util::ReadWriteLock> lock(pIndexer_->rwLock_);
+
     if( (pCurTermInfo_ == NULL)||(pCurPosting_ == NULL))
         return NULL;
     //InMemoryPosting* pInMem = (InMemoryPosting*)pCurPosting_;
@@ -660,6 +665,8 @@ freq_t InMemoryTermReader::docFreq(Term* term)
 
 TermInfo* InMemoryTermReader::termInfo(Term* term)
 {
+    izenelib::util::ScopedReadLock<izenelib::util::ReadWriteLock> lock(pIndexer_->rwLock_);
+
     if (strcasecmp(term->getField(),field_.c_str()))
         return NULL;
 

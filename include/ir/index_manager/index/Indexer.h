@@ -35,8 +35,8 @@ namespace indexmanager{
 #define MANAGER_TYPE_CLIENTPROCESS 0x0200		/// Deployed as the client indexer
 #define MANAGER_TYPE_SERVERPROCESS 0x0400		/// Deployed as the server indexer
 
-#define MANAGER_INDEXING_FORWARD 0x0001		///has fowardindex
-#define MANAGER_INDEXING_BTREE 0x0002			///has btree index
+#define MANAGER_INDEXING_BTREE 0x0001			///has btree index
+#define MANAGER_INDEXING_STANDALONE_MERGER 0x0002  //merge index in a stand alone thread
 
 typedef uint16_t ManagerType;
 
@@ -60,16 +60,15 @@ class Indexer: private boost::noncopyable
 {
 public:
 
-    Indexer(ManagerType managerType = MANAGER_TYPE_LOCAL|MANAGER_INDEXING_BTREE);
+    Indexer(ManagerType managerType = MANAGER_TYPE_LOCAL|MANAGER_INDEXING_BTREE
+                                                                       |MANAGER_INDEXING_STANDALONE_MERGER);
 
     virtual ~Indexer();
 public:
     /// API for indexing
 	
-    ///pDoc should be deleted by the user
-    int insertDocumentPhysically(IndexerDocument* pDoc);
-    ///pDoc will be destroyed by Indexer
-    int insertDocument(IndexerDocument* pDoc);
+    ///docOwnedByUser = true means pDoc will be destroyed by User
+    int insertDocument(IndexerDocument* pDoc, bool docOwnedByUser = false);
     ///mark a document as deleted
     int removeDocument(collectionid_t colID, docid_t docId);
     ///update document
@@ -78,8 +77,6 @@ public:
     void flush();
     /// merge all index barrels into a single barrel
     void optimizeIndex();
-
-    int removeCollection(collectionid_t colID);
 
     ///check whether the integrity of indices, always used when starts up
     IndexStatus checkIntegrity();
@@ -216,6 +213,10 @@ protected:
     friend class IndexBarrelReader;
 
     friend class IndexMerger;
+
+    friend class FieldIndexer;
+
+    friend class IndexMergeManager;
 };
 
 }

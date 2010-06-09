@@ -21,6 +21,8 @@ public:
     OfflineIndexMerger(Indexer* pIndexer, unsigned int numBarrels);
     virtual ~OfflineIndexMerger(void);
 public:
+    void setBarrels(unsigned int numBarrels);
+
     void addBarrel(MergeBarrelEntry* pEntry);
 
     void endMerge();

@@ -47,6 +47,7 @@ private:
         {
             ar & indexLocation_;
             ar & indexLocations_;
+            ar & optimizeSchedule_;
             ar & memory_;
             ar & indexDocLength_;
             ar & skipInterval_;
@@ -63,6 +64,7 @@ private:
         /// directory name relative to the base index directory
         std::vector<std::string> indexLocations_;
 
+        std::string optimizeSchedule_;
         /**
          * @brief  the size of memory used by index cache
          * @details

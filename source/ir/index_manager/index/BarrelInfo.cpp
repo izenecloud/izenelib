@@ -83,6 +83,8 @@ void BarrelsInfo::setVersion(const char* ver)
 
 void BarrelsInfo::clear()
 {
+    boost::mutex::scoped_lock lock(mutex_);
+
     vector<BarrelInfo*>::iterator iter = barrelInfos.begin();
     while (iter != barrelInfos.end())
     {
@@ -95,12 +97,14 @@ void BarrelsInfo::clear()
 
 void BarrelsInfo::updateMaxDoc(docid_t docId)
 {
+    boost::mutex::scoped_lock lock(mutex_);
     maxDoc = (docId>maxDoc)?docId:maxDoc;
 }
 
 void BarrelsInfo::read(Directory* pDirectory, const char* name)
 {
     clear();
+    boost::mutex::scoped_lock lock(mutex_);
 
     if (pDirectory->fileExists(name))
     {
@@ -206,6 +210,8 @@ void BarrelsInfo::read(Directory* pDirectory, const char* name)
 }
 void BarrelsInfo::write(Directory* pDirectory)
 {
+    boost::mutex::scoped_lock lock(mutex_);
+
     string str;
     XMLElement* pDatabase = new XMLElement(NULL,"database");
 
@@ -281,6 +287,8 @@ void BarrelsInfo::write(Directory* pDirectory)
 
 void BarrelsInfo::remove(Directory* pDirectory)
 {
+    boost::mutex::scoped_lock lock(mutex_);
+
     try
     {
         BarrelInfo* pBInfo = NULL;
@@ -312,6 +320,8 @@ void BarrelsInfo::remove(Directory* pDirectory)
 }
 void BarrelsInfo::removeBarrel(Directory* pDirectory,const string& barrelname)
 {
+    boost::mutex::scoped_lock lock(mutex_);
+
     BarrelInfo* pBInfo = NULL;
 
     vector<BarrelInfo*>::iterator iter = barrelInfos.begin();
@@ -330,7 +340,7 @@ void BarrelsInfo::removeBarrel(Directory* pDirectory,const string& barrelname)
 }
 const string BarrelsInfo::newBarrel()
 {
-
+    boost::mutex::scoped_lock lock(mutex_);
     string sName = "_";
     sName = izenelib::ir::indexmanager::append(sName,nBarrelCounter);
     nBarrelCounter ++;
@@ -338,12 +348,13 @@ const string BarrelsInfo::newBarrel()
 }
 void BarrelsInfo::addBarrel(const char* name,count_t docCount)
 {
-
+    boost::mutex::scoped_lock lock(mutex_);
     BarrelInfo* barrelInfo = new BarrelInfo(name,docCount);
     barrelInfos.push_back(barrelInfo);
 }
 void BarrelsInfo::addBarrel(BarrelInfo* pBarrelInfo,bool bCopy)
 {
+    boost::mutex::scoped_lock lock(mutex_);
     BarrelInfo* barrelInfo ;
     if (bCopy)
         barrelInfo = new BarrelInfo(*pBarrelInfo);
@@ -382,6 +393,8 @@ BarrelInfo* BarrelsInfo::getLastBarrel()
 }
 void BarrelsInfo::deleteLastBarrel()
 {
+    boost::mutex::scoped_lock lock(mutex_);
+
     if (barrelInfos.size() <= 0)
         return ;
     delete barrelInfos[barrelInfos.size() - 1];
@@ -390,15 +403,16 @@ void BarrelsInfo::deleteLastBarrel()
 
 void BarrelsInfo::sort(Directory* pDirectory)
 {
+    boost::mutex::scoped_lock lock(mutex_);
+
     BarrelInfo* pBaInfo;
     BarrelsInfo newBarrelsInfo;
 
     vector<BarrelInfo*>::iterator iter;
     if (barrelInfos.size() > 1)
     {
-        ///sort barrels by number of documents
-
-        stable_sort(barrelInfos.begin(),barrelInfos.end(),BarrelInfo::less);
+        ///sort barrels by base doc id and number of documents
+        stable_sort(barrelInfos.begin(),barrelInfos.end(),BarrelInfo::greater);
 
         ///rename to a temp name
         string strPrefix = "tmp";
@@ -416,8 +430,20 @@ void BarrelsInfo::sort(Directory* pDirectory)
     while (iter != barrelInfos.end())
     {
         pBaInfo = *iter;
-        pBaInfo->rename(pDirectory,newBarrelsInfo.newBarrel());///update barrel name
+        string str = newBarrelsInfo.newBarrel();
+        cout<<"rename from "<<pBaInfo->getName()<<" to "<<str<<endl;
+        pBaInfo->rename(pDirectory,str);///update barrel name
+        pBaInfo->setSearchable(true);
         iter++;
+    }
+}
+
+void BarrelsInfo::wait_for_barrels_ready()
+{
+    boost::unique_lock<boost::mutex> waitlock(mutex_);
+    while(lock)
+    {
+        modifyBarrelsEvent_.wait(waitlock);
     }
 }
 

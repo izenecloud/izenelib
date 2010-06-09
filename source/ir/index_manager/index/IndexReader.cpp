@@ -11,7 +11,6 @@ IndexReader::IndexReader(Indexer* pIndex)
         :pIndexer_(pIndex)
         ,pBarrelsInfo_(NULL)
         ,pBarrelReader_(NULL)
-        ,pForwardIndexReader_(NULL)
         ,pDocFilter_(NULL)
         ,pDocLengthReader_(NULL)
 {
@@ -26,8 +25,9 @@ IndexReader::IndexReader(Indexer* pIndex)
     ///todo since only one collection is used within indexmanager, so we only get collectionmeta for one collection to build
     ///up the DocLengthReader
     if(pIndexer_->getIndexManagerConfig()->indexStrategy_.indexDocLength_)
-        pDocLengthReader_ = new DocLengthReader(pIndexer_->getCollectionsMeta().begin()->second.getDocumentSchema(), 
-                                                        pIndexer_->getDirectory());
+        pDocLengthReader_ = new DocLengthReader(
+                                pIndexer_->getCollectionsMeta().begin()->second.getDocumentSchema(), 
+                                pIndexer_->getDirectory());
 }
 
 IndexReader::~IndexReader(void)
@@ -37,8 +37,6 @@ IndexReader::~IndexReader(void)
         delete pBarrelReader_;
         pBarrelReader_ = NULL;
     }
-    if(pForwardIndexReader_)
-        delete pForwardIndexReader_;
     if(pDocFilter_)
     {
         if(pIndexer_->getDirectory()->fileExists(DELETED_DOCS))
@@ -152,14 +150,6 @@ void IndexReader::reopen()
     }
     }
     createBarrelReader();
-}
-
-ForwardIndexReader* IndexReader::getForwardIndexReader()
-{
-    if(!pForwardIndexReader_)
-        pForwardIndexReader_ = new ForwardIndexReader(pIndexer_->getDirectory());
-
-    return pForwardIndexReader_->clone();
 }
 
 count_t IndexReader::numDocs()

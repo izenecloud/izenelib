@@ -12,14 +12,10 @@ IndexBarrelWriter::IndexBarrelWriter(Indexer* pIndex,MemCache* pCache,const char
         :barrelName(name)
         ,pIndexer(pIndex)
         ,pMemCache(pCache)
-        ,pForwardIndexWriter_(NULL)
 
 {
     pCollectionsInfo = new CollectionsInfo();
     pDirectory = pIndexer->getDirectory();
-
-    if(pIndexer->getIndexerType() & MANAGER_INDEXING_FORWARD)
-        pForwardIndexWriter_ = new ForwardIndexWriter(pDirectory);
 }
 
 IndexBarrelWriter::~IndexBarrelWriter(void)
@@ -36,11 +32,6 @@ IndexBarrelWriter::~IndexBarrelWriter(void)
     {
         delete iter->second;
     }
-    if(pForwardIndexWriter_)
-    {
-        delete pForwardIndexWriter_;
-        pForwardIndexWriter_ = NULL;		
-    }
     collectionIndexMap.clear();
 }
 
@@ -51,9 +42,6 @@ void IndexBarrelWriter::open(const char* barrelName_)
 }
 void IndexBarrelWriter::close()
 {
-    //boost::mutex::scoped_lock lock(pIndexer->mutex_);
-    izenelib::util::ScopedWriteLock<izenelib::util::ReadWriteLock> lock(pIndexer->mutex_);
-
     if (cacheEmpty() == false)
     {
         writeCache();
@@ -113,8 +101,6 @@ void IndexBarrelWriter::writeCache()
         pCollectionsInfo->write(fdiOutput);
         fdiOutput->flush();
         delete fdiOutput;
-        if(pForwardIndexWriter_)
-            pForwardIndexWriter_->flush();
     }
     catch (const FileIOException& e)
     {
@@ -141,8 +127,6 @@ void IndexBarrelWriter::setCollectionsMeta(const std::map<std::string, IndexerCo
         pCollectionIndexer = new CollectionIndexer(colID, pMemCache, pIndexer);
         pCollectionIndexer->setSchema((iter->second));
         pCollectionIndexer->setFieldIndexers();
-        if(pForwardIndexWriter_)
-            pCollectionIndexer->setForwardIndexWriter(pForwardIndexWriter_);
         collectionIndexMap.insert(make_pair(colID,pCollectionIndexer));
         pCollectionInfo = new CollectionInfo(colID, pCollectionIndexer->getFieldsInfo());
         pCollectionsInfo->addCollection(pCollectionInfo);

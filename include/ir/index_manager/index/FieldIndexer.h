@@ -35,11 +35,11 @@ class TermReader;
 *@brief  FieldIndexer will is the internal indexer of CollectionIndexer, when indexing a document, it will choose the according
 * FieldIndexer to process. Each Field has its own FieldIndexer
 */
-
+class Indexer;
 class FieldIndexer
 {
 public:
-    FieldIndexer(MemCache* pMemcache);
+    FieldIndexer(MemCache* pMemcache,Indexer* pIndexer);
 
     ~FieldIndexer();
 public:
@@ -63,13 +63,14 @@ public:
 
     TermReader* termReader();
 
-    izenelib::util::ReadWriteLock& getLock() { return rwLock_;}
 private:
     InMemoryPostingMap postingMap_;
 
     std::string field;
 
     MemCache* pMemCache_;
+
+    Indexer* pIndexer_;
 
     fileoffset_t vocFilePointer_;
 

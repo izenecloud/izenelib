@@ -146,7 +146,7 @@ public:
      * transfer in-memory barrel to disk
      * @param pszBarrelName barrel name
      */
-    void transferToDisk(const char* pszBarrelName);
+    void flushBarrelToDisk(const std::string& barrelName);
 
 protected:
     /**
@@ -193,6 +193,8 @@ protected:
     vector<MergeBarrelEntry*>* pMergeBarrels_;
 
     BitVector* pDocFilter_;
+
+    bool triggerMerge_;
 
     friend class IndexWriter;
     friend class Indexer;
