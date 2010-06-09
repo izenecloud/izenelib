@@ -38,9 +38,9 @@ public:
         queue_.clear();
     }
 
-    bool empty() const
+    bool empty()
     {
-        boost::mutex::scoped_lock lock(mutex_);
+        boost::unique_lock<boost::mutex> lock(mutex_);
         return queue_.empty();
     }
 

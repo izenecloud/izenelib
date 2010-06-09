@@ -125,6 +125,8 @@ namespace util{
 class CronExpression
 {
 public:
+    CronExpression(){};
+
     CronExpression(std::string job);
 
     ~CronExpression();
