@@ -36,10 +36,10 @@ public:
 
     ~IndexWriter();
 public:
-    /// add a document to the internal cache, if the cache is full, then index all the cached documents.
-    void addDocument(IndexerDocument* pDoc, bool update = false);
     /// index the document object practically
-    void indexDocument(IndexerDocument* pDoc, bool update = false);
+    void indexDocument(IndexerDocument& doc, bool update = false);
+    /// update the document object practically
+    void updateDocument(IndexerDocument& doc);
     ///merge the barrels index manually using an existing IndexMerger
     void mergeIndex(IndexMerger* pIndexMerger);
 
@@ -51,15 +51,6 @@ public:
 
     void scheduleOptimizeTask(std::string expression, string uuid);
 private:
-
-    void setupCache();
-
-    void destroyCache();
-
-    void clearCache();
-
-    bool isCacheFull() { return nNumCacheUsed_ >= nNumCachedDocs_; }
-
     void lazyOptimizeIndex();
 
    ///IndexBarrelWriter is the practical class to process indexing procedure.
@@ -74,19 +65,12 @@ private:
     void writeCachedIndex();	
     ///merge the updated barrel
     void mergeUpdatedBarrel(docid_t currDocId);
-    ///when the memory cache of IndexWriter is full, then index all the cached index. 
-    ///Call this function directly will force to index all the cached docuement objects.
-    void flushDocuments(bool update = false);
 private:
     IndexBarrelWriter* pIndexBarrelWriter_;
 
+    IndexBarrelWriter* pUpdateBarrelWriter_;
+
     map<collectionid_t,docid_t> baseDocIDMap_;
-
-    IndexerDocument** ppCachedDocs_;
-
-    int nNumCachedDocs_;
-
-    int nNumCacheUsed_;
 
     BarrelsInfo* pBarrelsInfo_;
 

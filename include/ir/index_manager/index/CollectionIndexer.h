@@ -45,7 +45,7 @@ public:
 
     void setFieldIndexers();
 
-    void addDocument(IndexerDocument* pDoc);
+    void addDocument(IndexerDocument& doc);
 
     void write(OutputDescriptor* desc);
 

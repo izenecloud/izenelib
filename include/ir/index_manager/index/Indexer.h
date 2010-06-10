@@ -67,12 +67,12 @@ public:
 public:
     /// API for indexing
 	
-    ///docOwnedByUser = true means pDoc will be destroyed by User
-    int insertDocument(IndexerDocument* pDoc, bool docOwnedByUser = false);
+    ///insert document
+    int insertDocument(IndexerDocument& doc);
     ///mark a document as deleted
     int removeDocument(collectionid_t colID, docid_t docId);
     ///update document
-    int updateDocument(IndexerDocument* pDoc);	
+    int updateDocument(IndexerDocument& doc);	
     /// flush in-memory index to disk
     void flush();
     /// merge all index barrels into a single barrel

@@ -35,9 +35,9 @@ public:
 public:
     /**
      * add a analyzed IndexerDocument
-     * @param pDoc analyzed document
+     * @param doc analyzed document
      */
-    void addDocument(IndexerDocument* pDoc);
+    void addDocument(IndexerDocument& doc);
     /**
      * determine if the memory cache for indexing is full
      * @return true if cache is full otherwise false.

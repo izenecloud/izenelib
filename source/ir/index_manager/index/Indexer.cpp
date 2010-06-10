@@ -390,18 +390,15 @@ void Indexer::setDirty(bool bDirty)
     }
 }
 
-int Indexer::insertDocument(IndexerDocument* pDoc, bool docOwnedByUser)
+int Indexer::insertDocument(IndexerDocument& doc)
 {
-    if(docOwnedByUser)
-        pIndexWriter_->indexDocument(pDoc);
-    else
-        pIndexWriter_->addDocument(pDoc);
+    pIndexWriter_->indexDocument(doc);
     return 1;
 }
 
-int Indexer::updateDocument(IndexerDocument* pDoc)
+int Indexer::updateDocument(IndexerDocument& doc)
 {
-    pIndexWriter_->addDocument(pDoc,true);
+    pIndexWriter_->indexDocument(doc,true);
     return 1;
 }
 

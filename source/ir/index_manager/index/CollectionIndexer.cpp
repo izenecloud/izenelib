@@ -70,13 +70,13 @@ void CollectionIndexer::setFieldIndexers()
     }
 }
 
-void CollectionIndexer::addDocument(IndexerDocument* pDoc)
+void CollectionIndexer::addDocument(IndexerDocument& doc)
 {
     DocId uniqueID;
-    pDoc->getDocId(uniqueID);
+    doc.getDocId(uniqueID);
 
     map<IndexerPropertyConfig, IndexerDocumentPropertyType> propertyValueList;
-    pDoc->getPropertyList(propertyValueList);
+    doc.getPropertyList(propertyValueList);
 
     uint16_t docLength[docLengthWidth_];
     for (map<IndexerPropertyConfig, IndexerDocumentPropertyType>::iterator iter 

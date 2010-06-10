@@ -435,8 +435,8 @@ namespace irdb
                 if(!isOpen()) return;
                 if(irDocument.termSize()==0) return;
                 irDocument.sortField();
-                iii::IndexerDocument* document = new iii::IndexerDocument;
-                document->setDocId(docId,C::kCollectionId());
+                iii::IndexerDocument document;
+                document.setDocId(docId,C::kCollectionId());
                 std::string propertyName = "";
                 
                 IRTermIterator ti = irDocument.termListBegin();
@@ -456,7 +456,7 @@ namespace irdb
                         propertyConfig.setIsLAInput(true);
                         
                         boost::shared_ptr<iii::LAInput> laInput(new iii::LAInput);
-                        document->insertProperty(propertyConfig, laInput);
+                        document.insertProperty(propertyConfig, laInput);
                     }
                     
                     termid_t tid = ti->termId_;
@@ -464,22 +464,12 @@ namespace irdb
                     iii::LAInputUnit unit;
                     unit.termId_ = tid;
                     unit.offset_ = pos;
-                    document->add_to_property(unit);
+                    document.add_to_property(unit);
                     ti++;
 //                     std::cout<<"ADD TERM "<<tid<<" in DOC "<<docId<<std::endl;
                 }
                 
-                if(inMemory_)
-                {
-                    indexer_->insertDocument(document, true);
-                    //as index manager required, this must be deleted manully
-                    delete document;
-                }
-                else
-                {
-                    indexer_->insertDocument(document);
-//                     delete document;
-                }
+                indexer_->insertDocument(document);
                 //add document data if neccessary
                 updateDocData_(docId, irDocument);
 
@@ -501,8 +491,8 @@ namespace irdb
                 if(!isOpen()) return;
                 if(irDocument.termSize()==0) return;
                 irDocument.sortField();
-                iii::IndexerDocument* document = new iii::IndexerDocument;
-                document->setDocId(docId,C::kCollectionId());
+                iii::IndexerDocument document;
+                document.setDocId(docId,C::kCollectionId());
                 std::string propertyName = "";
 
                 IRTermIterator ti = irDocument.termListBegin();
@@ -522,7 +512,7 @@ namespace irdb
                         propertyConfig.setIsLAInput(true);
 
                         boost::shared_ptr<iii::LAInput> laInput(new iii::LAInput);
-                        document->insertProperty(propertyConfig, laInput);
+                        document.insertProperty(propertyConfig, laInput);
                     }
 
                     termid_t tid = ti->termId_;
@@ -530,22 +520,12 @@ namespace irdb
                     iii::LAInputUnit unit;
                     unit.termId_ = tid;
                     unit.offset_ = pos;
-                    document->add_to_property(unit);
+                    document.add_to_property(unit);
                     ti++;
 //                     std::cout<<"ADD TERM "<<tid<<" in DOC "<<docId<<std::endl;
                 }
 
-                if(inMemory_)
-                {
-                    indexer_->insertDocument(document, true);
-                    //as index manager required, this must be deleted manully
-                    delete document;
-                }
-                else
-                {
-                    indexer_->updateDocument(document);
-//                     delete document;
-                }
+                indexer_->updateDocument(document);
                 //add document data if neccessary
                 updateDocData_(docId, irDocument);
             }
@@ -902,8 +882,8 @@ namespace irdb
                 if(!isOpen()) return;
                 if(irDocument.termSize()==0) return;
                 irDocument.sortField();
-                iii::IndexerDocument* document = new iii::IndexerDocument;
-                document->setDocId(docId,C::kCollectionId());
+                iii::IndexerDocument document;
+                document.setDocId(docId,C::kCollectionId());
                 std::string propertyName = "";
                 
                 IRTermIterator ti = irDocument.termListBegin();
@@ -923,7 +903,7 @@ namespace irdb
                         propertyConfig.setIsLAInput(true);
                         
                         boost::shared_ptr<iii::LAInput> laInput(new iii::LAInput);
-                        document->insertProperty(propertyConfig, laInput);
+                        document.insertProperty(propertyConfig, laInput);
                     }
                     
                     termid_t tid = ti->termId_;
@@ -931,24 +911,12 @@ namespace irdb
                     iii::LAInputUnit unit;
                     unit.termId_ = tid;
                     unit.offset_ = pos;
-                    document->add_to_property(unit);
+                    document.add_to_property(unit);
                     ti++;
 //                     std::cout<<"ADD TERM "<<tid<<" in DOC "<<docId<<std::endl;
                 }
                 
-                if(inMemory_)
-                {
-                    indexer_->insertDocument(document, true);
-                    //as index manager required, this must be deleted manully
-                    delete document;
-                }
-                else
-                {
-                    indexer_->insertDocument(document);
-//                     delete document;
-                }
-
-
+                indexer_->insertDocument(document);
             }
             
             
@@ -967,8 +935,8 @@ namespace irdb
                 if(!isOpen()) return;
                 if(irDocument.termSize()==0) return;
                 irDocument.sortField();
-                iii::IndexerDocument* document = new iii::IndexerDocument;
-                document->setDocId(docId,C::kCollectionId());
+                iii::IndexerDocument document;
+                document.setDocId(docId,C::kCollectionId());
                 std::string propertyName = "";
 
                 IRTermIterator ti = irDocument.termListBegin();
@@ -988,7 +956,7 @@ namespace irdb
                         propertyConfig.setIsLAInput(true);
 
                         boost::shared_ptr<iii::LAInput> laInput(new iii::LAInput);
-                        document->insertProperty(propertyConfig, laInput);
+                        document.insertProperty(propertyConfig, laInput);
                     }
 
                     termid_t tid = ti->termId_;
@@ -996,22 +964,12 @@ namespace irdb
                     iii::LAInputUnit unit;
                     unit.termId_ = tid;
                     unit.offset_ = pos;
-                    document->add_to_property(unit);
+                    document.add_to_property(unit);
                     ti++;
 //                     std::cout<<"ADD TERM "<<tid<<" in DOC "<<docId<<std::endl;
                 }
 
-                if(inMemory_)
-                {
-                    indexer_->insertDocument(document, true);
-                    //as index manager required, this must be deleted manully
-                    delete document;
-                }
-                else
-                {
-                    indexer_->updateDocument(document);
-//                     delete document;
-                }
+                indexer_->updateDocument(document);
 
             }
             

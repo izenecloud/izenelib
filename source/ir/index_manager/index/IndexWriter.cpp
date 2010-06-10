@@ -23,13 +23,9 @@ NS_IZENELIB_IR_BEGIN
 
 namespace indexmanager{
 
-#define NUM_CACHED_DOC 1
-
 IndexWriter::IndexWriter(Indexer* pIndex)
         :pIndexBarrelWriter_(NULL)
-        ,ppCachedDocs_(NULL)
-        ,nNumCachedDocs_(NUM_CACHED_DOC)
-        ,nNumCacheUsed_(0)
+        ,pUpdateBarrelWriter_(NULL)
         ,pCurBarrelInfo_(NULL)
         ,pIndexMerger_(NULL)
         ,pMemCache_(NULL)
@@ -38,14 +34,12 @@ IndexWriter::IndexWriter(Indexer* pIndex)
         ,pIndexMergeManager_(NULL)
 {
     pBarrelsInfo_ = pIndexer_->getBarrelsInfo();
-    setupCache();
     pIndexMergeManager_ = new IndexMergeManager(pIndex);
     pIndexMergeManager_->run();
 }
 
 IndexWriter::~IndexWriter()
 {
-    destroyCache();
     if (pMemCache_)
     {
         delete pMemCache_;
@@ -59,40 +53,6 @@ IndexWriter::~IndexWriter()
         delete pIndexMergeManager_;
 }
 
-void IndexWriter::setupCache()
-{
-    if (ppCachedDocs_)
-        destroyCache();
-    ppCachedDocs_ = new IndexerDocument*[nNumCachedDocs_];
-    for (int i = 0;i<nNumCachedDocs_;i++)
-        ppCachedDocs_[i] = NULL;
-
-}
-
-void IndexWriter::clearCache()
-{
-    if (ppCachedDocs_)
-    {
-        for (int i = 0;i<nNumCachedDocs_;i++)
-        {
-            if (ppCachedDocs_[i] != NULL)
-            {
-                delete ppCachedDocs_[i];
-                ppCachedDocs_[i] = NULL;
-            }
-        }
-    }
-    nNumCacheUsed_ = 0;
-}
-
-void IndexWriter::destroyCache()
-{
-    clearCache();
-    delete[] ppCachedDocs_;
-    ppCachedDocs_ = NULL;
-    nNumCacheUsed_ = 0;
-}
-
 void IndexWriter::close()
 {
     if (!pIndexBarrelWriter_)
@@ -102,12 +62,11 @@ void IndexWriter::close()
 
 void IndexWriter::flush()
 {
-    if((!pIndexBarrelWriter_)&&(nNumCacheUsed_ <=0 ))
+    if(!pIndexBarrelWriter_)
         return;
     BarrelInfo* pLastBarrel = pBarrelsInfo_->getLastBarrel();
     if (pLastBarrel == NULL)
         return;
-    flushDocuments(pLastBarrel->hasUpdateDocs);
     pLastBarrel->setBaseDocID(baseDocIDMap_);
     baseDocIDMap_.clear();
     if (pIndexBarrelWriter_->cacheEmpty() == false)///memory index has not been written to database yet.
@@ -330,23 +289,19 @@ void IndexWriter::writeCachedIndex()
     *pCurDocCount_ = 0;
 }
 
-void IndexWriter::addDocument(IndexerDocument* pDoc, bool update)
+void IndexWriter::indexDocument(IndexerDocument& doc, bool update)
 {
     if(!pIndexBarrelWriter_)
         createBarrelWriter(update);
     if(!pIndexMerger_)
         createMerger();
 
-    ppCachedDocs_[nNumCacheUsed_++] = pDoc;
-
-    if (isCacheFull())
-        flushDocuments(update);
-}
-
-void IndexWriter::indexDocument(IndexerDocument* pDoc, bool update)
-{
     DocId uniqueID;
-    pDoc->getDocId(uniqueID);
+    doc.getDocId(uniqueID);
+
+    if (baseDocIDMap_.find(uniqueID.colId) == baseDocIDMap_.end())
+        baseDocIDMap_.insert(make_pair(uniqueID.colId,uniqueID.docId));
+
     if(update)
         pIndexer_->getIndexReader()->delDocument(uniqueID.colId,uniqueID.docId);
 
@@ -372,26 +327,17 @@ void IndexWriter::indexDocument(IndexerDocument* pDoc, bool update)
     }
     pCurBarrelInfo_->updateMaxDoc(uniqueID.docId);
     pBarrelsInfo_->updateMaxDoc(uniqueID.docId);
-    pIndexBarrelWriter_->addDocument(pDoc);
+    pIndexBarrelWriter_->addDocument(doc);
     (*pCurDocCount_)++;
 }
 
-void IndexWriter::flushDocuments(bool update)
+void IndexWriter::updateDocument(IndexerDocument& doc)
 {
-    if (nNumCacheUsed_ <=0 )
-        return;
-    for (int i=0;i<nNumCacheUsed_;i++)
-    {
-        DocId uniqueID;
-        ppCachedDocs_[i]->getDocId(uniqueID);
-        if(ppCachedDocs_[i]->empty())
-            continue;
-        if (baseDocIDMap_.find(uniqueID.colId) == baseDocIDMap_.end())
-            baseDocIDMap_.insert(make_pair(uniqueID.colId,uniqueID.docId));
+    DocId uniqueID;
+    doc.getDocId(uniqueID);
 
-        indexDocument(ppCachedDocs_[i],update);
-    }
-    clearCache();
+    pIndexer_->getIndexReader()->delDocument(uniqueID.colId,uniqueID.docId);
+
 }
 
 }

@@ -54,14 +54,14 @@ void IndexBarrelWriter::rename(const char* newName)
     barrelName_ = newName;
 }
 
-void IndexBarrelWriter::addDocument(IndexerDocument* pDoc)
+void IndexBarrelWriter::addDocument(IndexerDocument& doc)
 {
     DocId uniqueID;
-    pDoc->getDocId(uniqueID);
+    doc.getDocId(uniqueID);
     CollectionIndexer* pCollectionIndexer = collectionIndexerMap_[uniqueID.colId];
     if (NULL == pCollectionIndexer)
         SF1V5_THROW(ERROR_OUTOFRANGE,"IndexBarrelWriter::addDocument(): collection id does not belong to the range");
-    pCollectionIndexer->addDocument(pDoc);
+    pCollectionIndexer->addDocument(doc);
 }
 
 void IndexBarrelWriter::resetCache(bool bResetPosting)
