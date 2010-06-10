@@ -4,24 +4,15 @@
 #include <ir/index_manager/index/ParallelTermPosition.h>
 #include <ir/index_manager/index/Posting.h>
 #include <ir/index_manager/store/FSDirectory.h>
-#include <ir/index_manager/store/RemoteDirectory.h>
-#include <ir/index_manager/store/UDTFSAgent.h>
 #include <ir/index_manager/store/RAMDirectory.h>
 #include <ir/index_manager/utility/StringUtils.h>
-#include <ir/index_manager/index/BTreeIndexerClient.h>
-#include <ir/index_manager/index/BTreeIndexerServer.h>
 
 #include <util/hashFunction.h>
-
-#ifdef SF1_TIME_CHECK
-#include <wiselib/profiler/ProfilerGroup.h>
-#endif
 
 #include <boost/timer.hpp>
 #include <boost/date_time/posix_time/posix_time.hpp>
 #include <boost/thread.hpp>
 #include <boost/assert.hpp>
-
 
 #include <algorithm>
 
@@ -45,9 +36,6 @@ Indexer::Indexer(ManagerType managerType)
         ,pIndexReader_(NULL)
         ,pConfigurationManager_(NULL)
         ,pBTreeIndexer_(NULL)
-        ,pBTreeIndexerClient_(NULL)
-        ,pBTreeIndexerServer_(NULL)
-        ,pAgent_(NULL)
 {
     version_ = "Index Manager - ver. alpha ";
     version_ += MAJOR_VERSION;
@@ -64,17 +52,6 @@ Indexer::~Indexer()
     if (pConfigurationManager_)
         delete pConfigurationManager_;
     pConfigurationManager_ = NULL;
-
-    if (pAgent_)
-    {
-        delete pAgent_;
-        pAgent_ = NULL;
-    }
-
-    if (pBTreeIndexerClient_)
-        delete pBTreeIndexerClient_;
-    if (pBTreeIndexerServer_)
-        delete pBTreeIndexerServer_;
 }
 
 const std::map<std::string, IndexerCollectionMeta>& Indexer::getCollectionsMeta()
@@ -132,59 +109,13 @@ void Indexer::initIndexManager()
     Posting::skipInterval_ = pConfigurationManager_->indexStrategy_.skipInterval_;
     Posting::maxSkipLevel_ = pConfigurationManager_->indexStrategy_.maxSkipLevel_;
 
-    if (managerType_&MANAGER_TYPE_CLIENTPROCESS)
-    {
-        ///storeStrategy_.param_ should be 
-        ///batchport:rpcport|ip1|ip2|..
-        vector<string> nodes = split(pConfigurationManager_->storeStrategy_.param_,"|");
-        std::string portsStr = nodes[0];
-        vector<string> ports = split(portsStr,":");
-        BOOST_ASSERT(ports.size() == 2);
-        string batchPort = ports[0];
-        string rpcPort = ports[1];
-        for(size_t i = 1; i < nodes.size(); ++i)
-            add_index_process_node(nodes[i],batchPort, rpcPort);
+    std::string storagePolicy = pConfigurationManager_->storeStrategy_.param_;
+    openDirectory(storagePolicy);
 
-        if(managerType_&MANAGER_INDEXING_BTREE)
-            pBTreeIndexerClient_ = new BTreeIndexerClient;
-        initialize_connection(index_process_address_.front(), true);
-        pDirectory_ = new RemoteDirectory();
-        pBarrelsInfo_ = new BarrelsInfo();
-    }
-    else if (managerType_&MANAGER_TYPE_SERVERPROCESS)
-    {
-        ///storeStrategy_.param_ should be 
-        ///batchport:rpcport|file or mmap
-        vector<string> storePolicyStr = split(pConfigurationManager_->storeStrategy_.param_,"|");
-        BOOST_ASSERT(storePolicyStr.size() == 2);
-        vector<string> ports = split(storePolicyStr[0],":");
-        BOOST_ASSERT(ports.size() == 2);
-        string batchPort = ports[0];
-        string rpcPort = ports[1];
+    if(managerType_&MANAGER_INDEXING_BTREE)
+      if ((!strcasecmp(storagePolicy.c_str(),"file"))||(!strcasecmp(storagePolicy.c_str(),"mmap")))
+          pBTreeIndexer_ = new BTreeIndexer(pConfigurationManager_->indexStrategy_.indexLocation_, degree, cacheSize, maxDataSize);
 
-        openDirectory(storePolicyStr[1]);
-
-        if(managerType_&MANAGER_INDEXING_BTREE)
-        {
-            pBTreeIndexerServer_ = new BTreeIndexerServer(rpcPort, pBTreeIndexer_);
-            boost::thread rpcServerThread(boost::bind(&BTreeIndexerServer::run, pBTreeIndexerServer_));
-            rpcServerThread.detach();
-        }
-
-        pAgent_ = new UDTFSAgent(batchPort, this);
-        boost::thread agentThread(boost::bind(&UDTFSAgent::run, pAgent_));
-        agentThread.join();
-    }
-    else
-    {
-        std::string storagePolicy = pConfigurationManager_->storeStrategy_.param_;
-        openDirectory(storagePolicy);
-
-        if(managerType_&MANAGER_INDEXING_BTREE)
-          if ((!strcasecmp(storagePolicy.c_str(),"file"))||(!strcasecmp(storagePolicy.c_str(),"mmap")))
-              pBTreeIndexer_ = new BTreeIndexer(pConfigurationManager_->indexStrategy_.indexLocation_, degree, cacheSize, maxDataSize);
-
-    }
     pIndexWriter_ = new IndexWriter(this);
     pIndexReader_ = new IndexReader(this);
 
@@ -273,75 +204,6 @@ std::string Indexer::getBasePath()
         path += "/";
     }
     return path;
-}
-
-void Indexer::add_index_process_node(string ip, string batchport, string rpcport)
-{
-    BOOST_ASSERT(managerType_ == MANAGER_TYPE_CLIENTPROCESS);
-    index_process_address_.push_back(make_pair(ip,make_pair(batchport,rpcport)));
-}
-
-pair<string,pair<string, string> >& Indexer::get_curr_index_process()
-{
-    return index_process_address_.front();
-}
-
-bool Indexer::change_curr_index_process()
-{
-    BOOST_ASSERT(managerType_ == MANAGER_TYPE_CLIENTPROCESS);
-
-    pair<string,pair<string, string> > node = index_process_address_.front();
-    index_process_address_.pop_front();
-    index_process_address_.push_back(node);
-    destroy_connection(node);
-    initialize_connection(index_process_address_.front());
-
-    return true;
-}
-
-BTreeIndexerInterface* Indexer::getBTreeIndexer()
-{
-    if (managerType_ == MANAGER_TYPE_CLIENTPROCESS)
-        return pBTreeIndexerClient_;
-    else
-        return pBTreeIndexer_;
-}
-
-bool Indexer::destroy_connection(pair<string,pair<string, string> >& node)
-{
-    BOOST_ASSERT(managerType_ == MANAGER_TYPE_CLIENTPROCESS);
-
-    UDTFile::destroy();
-    return true;
-}
-
-bool Indexer::initialize_connection(pair<string,pair<string, string> >& node, bool wait)
-{
-    BOOST_ASSERT(managerType_ == MANAGER_TYPE_CLIENTPROCESS);
-
-    UDTFile::init(node.first, atoi(node.second.first.c_str()));
-
-    if (wait)
-    {
-        while (true)
-        {
-            if (UDTFSError::OK != UDTFile::try_connect())
-            {
-                cout << "Waiting for Index Process:"<<node.first<< endl;
-                boost::thread::sleep(boost::get_system_time() + boost::posix_time::milliseconds(1000));
-            }
-            else
-                break;
-        }
-    }
-    else
-        if (UDTFSError::OK != UDTFile::try_connect())
-            return false;
-
-    if(managerType_&MANAGER_INDEXING_BTREE)
-        pBTreeIndexerClient_->switchServer(node.first, node.second.second);
-
-    return true;
 }
 
 void Indexer::close()

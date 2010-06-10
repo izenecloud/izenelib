@@ -16,7 +16,7 @@ MultiIndexBarrelReader::MultiIndexBarrelReader(Indexer* pIndexer,BarrelsInfo* pB
     while (pBarrelsInfo_->hasNext())
     {
         pBarrelInfo = pBarrelsInfo_->next();
-        if(pBarrelInfo->hasUpdateDocs)
+        if(pBarrelInfo->isUpdate)
         {
             hasUpdatedBarrel = true;
             break;
@@ -35,7 +35,7 @@ MultiIndexBarrelReader::MultiIndexBarrelReader(Indexer* pIndexer,BarrelsInfo* pB
         if(hasUpdatedBarrel)
         {
             ///bypass old index during updating
-            if(!(pBarrelInfo->hasUpdateDocs))
+            if(!(pBarrelInfo->isUpdate))
                 continue;
         }
 

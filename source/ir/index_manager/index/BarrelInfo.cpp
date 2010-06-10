@@ -182,13 +182,13 @@ void BarrelsInfo::read(Directory* pDirectory, const char* name)
 
                 ///get <is_update></is_update> element
                 pItem = pBarrelItem->getElementByName("is_update");
-                if (!pItem) pBarrelInfo->hasUpdateDocs = false;
+                if (!pItem) pBarrelInfo->isUpdate = false;
                 else
                 {
                     if(pItem->getValue().compare("yes") == 0)
-                        pBarrelInfo->hasUpdateDocs = true;
+                        pBarrelInfo->isUpdate = true;
                     else
-                        pBarrelInfo->hasUpdateDocs = false;
+                        pBarrelInfo->isUpdate = false;
                 }
 
                 barrelInfos.push_back(pBarrelInfo);
@@ -272,7 +272,7 @@ void BarrelsInfo::write(Directory* pDirectory)
         pItem->setValue(str.c_str()); 
         ///add <is_update></is_update>
         pItem = pBarrelItem->addElement("is_update");
-        str = pBarrelInfo->hasUpdateDocs ? "yes":"no";
+        str = pBarrelInfo->isUpdate ? "yes":"no";
         pItem->setValue(str.c_str()); 
 
         iter ++;

@@ -459,21 +459,11 @@ protected:
 
 };
 
-class BTreeIndexerInterface
-{
-public:
-    virtual ~BTreeIndexerInterface() {};
-
-    virtual void add(collectionid_t colID, fieldid_t fid, PropertyType& value, docid_t docid) = 0;
-
-    virtual void remove(collectionid_t colID, fieldid_t fid, PropertyType& value, docid_t docid) = 0;
-};
-
 /**
  * BTreeIndexer
  * @brief BTreeIndexer is a wrapper which takes charges of managing all b-tree handlers.
  */
-class BTreeIndexer:public BTreeIndexerInterface
+class BTreeIndexer
 {
 public:
     BTreeIndexer(string location, int degree, size_t cacheSize, size_t maxDataSize);

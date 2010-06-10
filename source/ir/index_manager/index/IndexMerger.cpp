@@ -104,7 +104,7 @@ void IndexMerger::merge(BarrelsInfo* pBarrels, bool mergeUpdateOnly)
         if(pBaInfo->getWriter())
             continue;
         if(mergeUpdateOnly)
-            if(!(pBaInfo->hasUpdateDocs))
+            if(!(pBaInfo->isUpdate))
                 continue;
         mb.put(new MergeBarrelEntry(pDirectory_,pBaInfo));
     }
@@ -212,8 +212,8 @@ void IndexMerger::mergeBarrel(MergeBarrel* pBarrel)
 
         nNumDocs += pEntry->pBarrelInfo_->getDocCount();
 
-        isNewBarrelUpdateBarrel &= pEntry->pBarrelInfo_->hasUpdateDocs;
-        hasUpdateBarrel |= pEntry->pBarrelInfo_->hasUpdateDocs;
+        isNewBarrelUpdateBarrel &= pEntry->pBarrelInfo_->isUpdate;
+        hasUpdateBarrel |= pEntry->pBarrelInfo_->isUpdate;
 
         if(pEntry->pBarrelInfo_->getMaxDocID() > maxDocOfNewBarrel)
             maxDocOfNewBarrel = pEntry->pBarrelInfo_->getMaxDocID();
@@ -239,7 +239,7 @@ void IndexMerger::mergeBarrel(MergeBarrel* pBarrel)
     pNewBarrelInfo->setDocCount(nNumDocs);
     pNewBarrelInfo->setBaseDocID(newBaseDocIDMap);
     pNewBarrelInfo->updateMaxDoc(maxDocOfNewBarrel);
-    pNewBarrelInfo->hasUpdateDocs = isNewBarrelUpdateBarrel;
+    pNewBarrelInfo->isUpdate = isNewBarrelUpdateBarrel;
     pNewBarrelInfo->setSearchable(false);
 
 

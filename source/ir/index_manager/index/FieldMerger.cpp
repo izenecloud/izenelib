@@ -239,7 +239,7 @@ void FieldMerger::sortingMerge(FieldMergeInfo** ppMergeInfos,int32_t numInfos,Te
         TermPositions* pPosition = new TermPositions(
                                                 ppMergeInfos[i]->pIterator_->termPosting(),
                                                 *(ppMergeInfos[i]->pIterator_->termInfo()));
-        if(ppMergeInfos[i]->pBarrelInfo_->hasUpdateDocs)
+        if(ppMergeInfos[i]->pBarrelInfo_->isUpdate)
             postingIterator.addTermPosition(pPosition);
         else
             postingIterator.addTermPosition(pPosition, pDocFilter_);

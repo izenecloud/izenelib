@@ -27,6 +27,7 @@ IndexWriter::IndexWriter(Indexer* pIndex)
         :pIndexBarrelWriter_(NULL)
         ,pUpdateBarrelWriter_(NULL)
         ,pCurBarrelInfo_(NULL)
+        ,pCurUpdateBarrelInfo_(NULL)
         ,pIndexMerger_(NULL)
         ,pMemCache_(NULL)
         ,pIndexer_(pIndex)
@@ -41,16 +42,15 @@ IndexWriter::IndexWriter(Indexer* pIndex)
 IndexWriter::~IndexWriter()
 {
     if (pMemCache_)
-    {
         delete pMemCache_;
-        pMemCache_ = NULL;
-    }
     if (pIndexBarrelWriter_)
         delete pIndexBarrelWriter_;
     if (pIndexMerger_)
         delete pIndexMerger_;
     if (pIndexMergeManager_)
         delete pIndexMergeManager_;
+    if (pUpdateBarrelWriter_)
+        delete pUpdateBarrelWriter_;
 }
 
 void IndexWriter::flush()
@@ -100,9 +100,23 @@ void IndexWriter::createBarrelWriter(bool update)
     pIndexBarrelWriter_->setCollectionsMeta(pIndexer_->getCollectionsMeta());
     if(update)
     {
-        bool* pHasUpdateDocs = &(pCurBarrelInfo_->hasUpdateDocs);
+        bool* pHasUpdateDocs = &(pCurBarrelInfo_->isUpdate);
         *pHasUpdateDocs = true;
     }
+}
+
+void IndexWriter::createUpdateBarrelWriter()
+{
+    pBarrelsInfo_->addBarrel(pBarrelsInfo_->newBarrel().c_str(),0);
+    pCurUpdateBarrelInfo_ = pBarrelsInfo_->getLastBarrel();
+    pCurUpdateBarrelInfo_->nNumDocs = 0;
+    pCurUpdateBarrelInfo_->isUpdate = true;
+
+    if (!pMemCache_)
+        pMemCache_ = new MemCache((size_t)pIndexer_->getIndexManagerConfig()->indexStrategy_.memory_);
+    pUpdateBarrelWriter_ = new IndexBarrelWriter(pIndexer_,pMemCache_,pCurUpdateBarrelInfo_->getName().c_str());
+    pCurUpdateBarrelInfo_->setWriter(pIndexBarrelWriter_);
+    pUpdateBarrelWriter_->setCollectionsMeta(pIndexer_->getCollectionsMeta());
 }
 
 void IndexWriter::optimizeIndex()
@@ -194,7 +208,7 @@ void IndexWriter::mergeUpdatedBarrel(docid_t currDocId)
     {
         mergeAndWriteCachedIndex(true);
 
-        bool* pHasUpdateDocs =  &(pCurBarrelInfo_->hasUpdateDocs);
+        bool* pHasUpdateDocs =  &(pCurBarrelInfo_->isUpdate);
         *pHasUpdateDocs = true;
     }
     else
@@ -205,7 +219,7 @@ void IndexWriter::mergeUpdatedBarrel(docid_t currDocId)
     if((currDocId > pBarrelsInfo_->maxDocId())||
             (lastSetDoc > pBarrelsInfo_->maxDocId()))
     {
-        bool* pHasUpdateDocs = &(pCurBarrelInfo_->hasUpdateDocs);
+        bool* pHasUpdateDocs = &(pCurBarrelInfo_->isUpdate);
         *pHasUpdateDocs = false;
     }
     pIndexer_->getIndexReader()->delDocFilter();	
@@ -284,10 +298,8 @@ void IndexWriter::writeCachedIndex()
 
 void IndexWriter::indexDocument(IndexerDocument& doc, bool update)
 {
-    if(!pIndexBarrelWriter_)
-        createBarrelWriter(update);
-    if(!pIndexMerger_)
-        createMerger();
+    if(!pIndexBarrelWriter_) createBarrelWriter(update);
+    if(!pIndexMerger_) createMerger();
 
     DocId uniqueID;
     doc.getDocId(uniqueID);
@@ -300,14 +312,13 @@ void IndexWriter::indexDocument(IndexerDocument& doc, bool update)
 
     if (pIndexBarrelWriter_->cacheFull())
     {
-         if(pCurBarrelInfo_->hasUpdateDocs)
+         if(pCurBarrelInfo_->isUpdate)
          {
              mergeUpdatedBarrel(uniqueID.docId);
          }
          else
          {
-            if((pIndexer_->getIndexerType() & MANAGER_TYPE_CLIENTPROCESS)||
-                (pIndexer_->getIndexerType()&MANAGER_INDEXING_STANDALONE_MERGER))
+            if(pIndexer_->getIndexerType()&MANAGER_INDEXING_STANDALONE_MERGER)
                 writeCachedIndex();
             else
                 ///merge index
@@ -326,11 +337,36 @@ void IndexWriter::indexDocument(IndexerDocument& doc, bool update)
 
 void IndexWriter::updateDocument(IndexerDocument& doc)
 {
+    if(!pUpdateBarrelWriter_)  createUpdateBarrelWriter();
+
     DocId uniqueID;
     doc.getDocId(uniqueID);
 
+    if(uniqueID.docId > pBarrelsInfo_->maxDocId()) return;
+
     pIndexer_->getIndexReader()->delDocument(uniqueID.colId,uniqueID.docId);
 
+    if (pUpdateBarrelWriter_->cacheFull())
+    {
+        if(pCurBarrelInfo_->isUpdate)
+        {
+            mergeUpdatedBarrel(uniqueID.docId);
+        }
+        else
+        {
+            if(pIndexer_->getIndexerType()&MANAGER_INDEXING_STANDALONE_MERGER)
+                writeCachedIndex();
+            else
+                ///merge index
+                addToMergeAndWriteCachedIndex();
+        }
+        baseDocIDMap_.clear();
+        baseDocIDMap_[uniqueID.colId] = uniqueID.docId;
+        pUpdateBarrelWriter_->open(pCurUpdateBarrelInfo_->getName().c_str());
+    }
+    pCurUpdateBarrelInfo_->updateMaxDoc(uniqueID.docId);
+    pUpdateBarrelWriter_->addDocument(doc);
+    (*pCurDocCount_)++;
 }
 
 }

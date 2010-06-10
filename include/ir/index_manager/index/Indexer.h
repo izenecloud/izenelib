@@ -31,10 +31,6 @@ NS_IZENELIB_IR_BEGIN
 
 namespace indexmanager{
 
-#define MANAGER_TYPE_LOCAL 0x0100				/// Deployed in a single machine
-#define MANAGER_TYPE_CLIENTPROCESS 0x0200		/// Deployed as the client indexer
-#define MANAGER_TYPE_SERVERPROCESS 0x0400		/// Deployed as the server indexer
-
 #define MANAGER_INDEXING_BTREE 0x0001			///has btree index
 #define MANAGER_INDEXING_STANDALONE_MERGER 0x0002  //merge index in a stand alone thread
 
@@ -60,7 +56,8 @@ class Indexer: private boost::noncopyable
 {
 public:
 
-    Indexer(ManagerType managerType = MANAGER_TYPE_LOCAL|MANAGER_INDEXING_BTREE);
+    Indexer(ManagerType managerType = MANAGER_INDEXING_BTREE
+                                                                       |MANAGER_INDEXING_STANDALONE_MERGER);
 
     virtual ~Indexer();
 public:
@@ -126,16 +123,6 @@ public:
 
     ManagerType getIndexerType() {return managerType_;}
 
-    void add_index_process_node(string ip, string batchport, string rpcport);
-
-    pair<string,pair<string, string> >& get_curr_index_process();
-
-    bool change_curr_index_process();
-
-    bool destroy_connection(pair<string,pair<string, string> >& node);
-
-    bool initialize_connection(pair<string,pair<string, string> >& node, bool wait=false);
-
     const std::string& getVersionString() const { return version_; }
 
     void set_property_name_id_map(const std::map<std::string, IndexerCollectionMeta>& collections);
@@ -159,7 +146,7 @@ public:
     
     IndexReader* getIndexReader() { return pIndexReader_;}
 
-    BTreeIndexerInterface* getBTreeIndexer();
+    BTreeIndexer* getBTreeIndexer() { return pBTreeIndexer_; }
 
     fieldid_t getPropertyIDByName(collectionid_t colID, string property);
 
@@ -191,15 +178,9 @@ protected:
 
     BTreeIndexer* pBTreeIndexer_;
 
-    BTreeIndexerClient* pBTreeIndexerClient_;
-
-    BTreeIndexerServer* pBTreeIndexerServer_;
-
     std::map<collectionid_t, std::map<string, fieldid_t> > property_name_id_map_;
 
     std::deque<pair<string, pair<string, string> > > index_process_address_;
-
-    UDTFSAgent* pAgent_;
 
     std::string version_;
 

@@ -28,6 +28,9 @@ class IndexMerger;
 class IndexMergeManager;
 /**
 * @brief IndexWriter is the manager class which process the index construction and index merging
+* IndexWriter does not support concurrent index construction, because it will lead to many unnecessary 
+* complexity. So we can not index two documents at one time, also, we can not index one document 
+* and update another document at one time,either.
 */
 class IndexWriter
 {
@@ -49,17 +52,19 @@ public:
     /// set schedule 
     void scheduleOptimizeTask(std::string expression, string uuid);
 private:
+    /// optimize index offline
     void lazyOptimizeIndex();
-
-   ///IndexBarrelWriter is the practical class to process indexing procedure.
+    /// IndexBarrelWriter is the practical class to process indexing procedure.
     void createBarrelWriter(bool update = false);
-
+    /// create IndexBarrelWriter for updated documents.
+    void createUpdateBarrelWriter();
+    /// create index merger
     void createMerger();
     ///will be used by mergeIndex
     void mergeAndWriteCachedIndex(bool mergeUpdateOnly = false);
     ///will be used when index documents
     void addToMergeAndWriteCachedIndex();
-
+    /// flush in-memory index to disk
     void writeCachedIndex();	
     ///merge the updated barrel
     void mergeUpdatedBarrel(docid_t currDocId);
@@ -73,6 +78,8 @@ private:
     BarrelsInfo* pBarrelsInfo_;
 
     BarrelInfo* pCurBarrelInfo_;
+
+    BarrelInfo* pCurUpdateBarrelInfo_;
 
     IndexMerger* pIndexMerger_;
 

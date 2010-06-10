@@ -26,7 +26,7 @@ public:
     BarrelInfo()
             : nNumDocs(0)
             , pBarrelWriter(NULL)
-            , hasUpdateDocs(false)
+            , isUpdate(false)
             , maxDocId(0)
             , modified(false)
             , searchable(true)
@@ -38,7 +38,7 @@ public:
             : barrelName(name)
             , nNumDocs(count)
             , pBarrelWriter(NULL)
-            , hasUpdateDocs(false)
+            , isUpdate(false)
             , maxDocId(0)
             , modified(false)
             , searchable(true)
@@ -51,7 +51,7 @@ public:
             , baseDocIDMap(pBarrelInfo->baseDocIDMap)    
             , nNumDocs(pBarrelInfo->nNumDocs)
             , pBarrelWriter(NULL)
-            , hasUpdateDocs(pBarrelInfo->hasUpdateDocs)
+            , isUpdate(pBarrelInfo->isUpdate)
             , maxDocId(pBarrelInfo->maxDocId)
             , modified(pBarrelInfo->modified)
             , searchable(pBarrelInfo->searchable)
@@ -182,7 +182,7 @@ public:
     ///only valid when this barrel is a in-memory barrel,otherwise NULL.
     IndexBarrelWriter* pBarrelWriter;
     ///whether this barrel contains updated documents
-    bool hasUpdateDocs;
+    bool isUpdate;
     ///max doc of this barrel
     docid_t maxDocId;
 
