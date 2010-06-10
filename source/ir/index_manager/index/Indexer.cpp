@@ -23,10 +23,6 @@ static int degree = 16;
 static size_t cacheSize = 5000;
 static size_t maxDataSize = 1000;
 
-#define MAJOR_VERSION "1"
-#define MINOR_VERSION "0"
-#define PATCH_VERSION "20090801" // update date
-
 Indexer::Indexer(ManagerType managerType)
         :managerType_(managerType)
         ,pDirectory_(NULL)
@@ -37,12 +33,6 @@ Indexer::Indexer(ManagerType managerType)
         ,pConfigurationManager_(NULL)
         ,pBTreeIndexer_(NULL)
 {
-    version_ = "Index Manager - ver. alpha ";
-    version_ += MAJOR_VERSION;
-    version_ += ".";
-    version_ += MINOR_VERSION;
-    version_ += ".";
-    version_ += PATCH_VERSION;
 }
 
 Indexer::~Indexer()
@@ -56,15 +46,15 @@ Indexer::~Indexer()
 
 const std::map<std::string, IndexerCollectionMeta>& Indexer::getCollectionsMeta()
 {
-    if (!pConfigurationManager_)
-        SF1V5_THROW(ERROR_FILEIO,"Configuration values have not been set" );
-
     return pConfigurationManager_->getCollectionMetaNameMap();
 }
 
-void Indexer::setIndexManagerConfig(const IndexManagerConfig& config,
-                                    const std::map<std::string, uint32_t>& collectionIdMapping)
+void Indexer::setIndexManagerConfig(
+                                                 const IndexManagerConfig& config,
+                                                 const std::map<std::string, uint32_t>& collectionIdMapping)
 {
+    close();
+
     if (pConfigurationManager_)
         delete pConfigurationManager_;
     pConfigurationManager_ = NULL;
@@ -92,17 +82,6 @@ void Indexer::setIndexManagerConfig(const IndexManagerConfig& config,
     }
     pConfigurationManager_->setCollectionMetaNameMap( collectionList );
 
-    initIndexManager();
-}
-
-void Indexer::initIndexManager()
-{
-    if (pConfigurationManager_==NULL) return;
-
-    close();
-
-    set_property_name_id_map(pConfigurationManager_->getCollectionMetaNameMap());
-
     VariantDataPool::UPTIGHT_ALLOC_CHUNKSIZE = 8;
     VariantDataPool::UPTIGHT_ALLOC_MEMSIZE = 40000;
 
@@ -128,37 +107,6 @@ void Indexer::initIndexManager()
         sprintf(uuidstr,"%d",uuid);
         pIndexWriter_->scheduleOptimizeTask(pConfigurationManager_->indexStrategy_.optimizeSchedule_, uuidstr);
     }
-}
-
-
-void Indexer::set_property_name_id_map(const std::map<std::string, IndexerCollectionMeta>& collections)
-{
-    collectionid_t colID;
-
-    for (std::map<std::string, IndexerCollectionMeta>::const_iterator iter = collections.begin(); iter != collections.end(); ++iter)
-    {
-        colID = iter->second.getColId();
-
-        std::map<std::string, fieldid_t> propertyMap;
-
-        std::set<IndexerPropertyConfig, IndexerPropertyConfigComp> documentSchema = (iter->second).getDocumentSchema();
-
-        for (std::set<IndexerPropertyConfig, IndexerPropertyConfigComp>::const_iterator it = documentSchema.begin(); it != documentSchema.end(); it++ )
-        {
-            if (it->getPropertyId() != BAD_PROPERTY_ID)
-            {
-                propertyMap.insert(make_pair(it->getName(), it->getPropertyId()));
-            }
-        }
-
-        property_name_id_map_.insert(make_pair(colID, propertyMap));
-    }
-}
-
-
-fieldid_t Indexer::getPropertyIDByName(collectionid_t colID, string property)
-{
-    return property_name_id_map_[colID][property];
 }
 
 void Indexer::openDirectory(const std::string& storagePolicy)
@@ -239,11 +187,11 @@ void Indexer::close()
 }
 
 
-void Indexer::setDirty(bool bDirty)
+void Indexer::setDirty(bool dirty)
 {
     izenelib::util::ScopedWriteLock<izenelib::util::ReadWriteLock> lock(mutex_);
-    dirty_ = bDirty;
-    if (bDirty)
+    dirty_ = dirty;
+    if (dirty)
     {
         boost::thread::sleep(boost::get_system_time() + boost::posix_time::milliseconds(100));
         pIndexReader_->reopen();

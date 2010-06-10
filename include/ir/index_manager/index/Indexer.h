@@ -44,9 +44,6 @@ enum IndexStatus
 };
 
 class BarrelsInfo;
-class UDTFSAgent;
-class BTreeIndexerClient;
-class BTreeIndexerServer;
 class IndexReader;
 /**
 *The interface class of IndexManager component in SF1v5.0
@@ -61,7 +58,6 @@ public:
     virtual ~Indexer();
 public:
     /// API for indexing
-	
     ///insert document
     int insertDocument(IndexerDocument& doc);
     ///mark a document as deleted
@@ -78,7 +74,6 @@ public:
 
 public:
     ///API for query
-
     size_t getDistinctNumTermsByProperty(collectionid_t colID, const std::string& property);
 	
     bool getDocsByTermInProperties(termid_t termID, collectionid_t colID, std::vector<std::string> properties, std::deque<docid_t>& docIds);
@@ -115,16 +110,11 @@ public:
 
 public:
     ///API for configuration
-
     void setIndexManagerConfig(const IndexManagerConfig& config,const std::map<std::string, uint32_t>& collectionIdMapping);
 
     IndexManagerConfig* getIndexManagerConfig() { return pConfigurationManager_;}
 
     ManagerType getIndexerType() {return managerType_;}
-
-    const std::string& getVersionString() const { return version_; }
-
-    void set_property_name_id_map(const std::map<std::string, IndexerCollectionMeta>& collections);
 
     const std::map<std::string, IndexerCollectionMeta>& getCollectionsMeta();
 
@@ -137,7 +127,7 @@ public:
 
     void setBasePath(std::string basePath);
 
-    void setDirty(bool bDirty);
+    void setDirty(bool dirty);
 
     bool isDirty() { return dirty_; }
 
@@ -152,7 +142,6 @@ public:
     std::string getBasePath();
 
 protected:
-    void initIndexManager();
 
     void openDirectory(const std::string& storagePolicy);
 
@@ -173,15 +162,9 @@ protected:
 
     IndexManagerConfig* pConfigurationManager_;
 
-    izenelib::util::ReadWriteLock mutex_;
-
     BTreeIndexer* pBTreeIndexer_;
 
-    std::map<collectionid_t, std::map<string, fieldid_t> > property_name_id_map_;
-
-    std::deque<pair<string, pair<string, string> > > index_process_address_;
-
-    std::string version_;
+    izenelib::util::ReadWriteLock mutex_;
 
     friend class IndexWriter;
 
