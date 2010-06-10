@@ -10,7 +10,7 @@ MACRO_CHECK_SHOULD_BUILD(
 
 IF(index_manager_SHOULD_BUILD)
 
-  FILE(GLOB_RECURSE
+  FILE(GLOB
     index_manager_SRC
     RELATIVE
     "${CMAKE_CURRENT_SOURCE_DIR}"
@@ -26,7 +26,7 @@ IF(index_manager_SHOULD_BUILD)
     ${Glog_INCLUDE_DIRS}
     )
 
-  ADD_DEFINITIONS("-fPIC -DUDT3")
+  ADD_DEFINITIONS("-fPIC")
 
   ADD_LIBRARY(index_manager ${index_manager_SRC})
   #INSTALL(TARGETS index_manager DESTINATION lib)
