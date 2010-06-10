@@ -310,7 +310,7 @@ namespace irdb
             
             void initIndexer(boost::shared_ptr<iii::Indexer>& indexer)
             {
-                indexer.reset(new iii::Indexer(MANAGER_TYPE_LOCAL));
+                indexer.reset(new iii::Indexer(MANAGER_PURE_INDEX));
                 iii::IndexManagerConfig indexManagerConfig;
                 indexManagerConfig.indexStrategy_.indexLocation_ = path_;
                 indexManagerConfig.indexStrategy_.memory_ = 30000000;
@@ -763,7 +763,7 @@ namespace irdb
            
             void initIndexer(boost::shared_ptr<iii::Indexer>& indexer)
             {
-                indexer.reset(new iii::Indexer(MANAGER_TYPE_LOCAL));
+                indexer.reset(new iii::Indexer(MANAGER_PURE_INDEX));
                 iii::IndexManagerConfig indexManagerConfig;
                 indexManagerConfig.indexStrategy_.indexLocation_ = path_;
 //                 std::cout<<"Creating indexer on "<<indexManagerConfig.indexStrategy_.indexLocation_<<std::endl;

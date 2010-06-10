@@ -31,6 +31,7 @@ NS_IZENELIB_IR_BEGIN
 
 namespace indexmanager{
 
+#define MANAGER_PURE_INDEX 0x0
 #define MANAGER_INDEXING_BTREE 0x0001			///has btree index
 #define MANAGER_INDEXING_STANDALONE_MERGER 0x0002  //merge index in a stand alone thread
 
