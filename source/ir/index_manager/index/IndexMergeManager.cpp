@@ -54,14 +54,17 @@ void IndexMergeManager::mergeIndex()
     {
         MergeOP op;
         tasks_.pop(op);
-        IndexMerger* pIndexMerger = indexMergers_[op.opType];
         switch(op.opType)
         {
         case ONLINE:
+            {
+            IndexMerger* pIndexMerger = indexMergers_[op.opType];
             pIndexMerger->addToMerge(pBarrelsInfo_, op.pBarrelInfo);
+            }
             break;
         case OFFLINE:
 	    {
+            IndexMerger* pIndexMerger = indexMergers_[op.opType];
             reinterpret_cast<OfflineIndexMerger*>(pIndexMerger)->setBarrels(pBarrelsInfo_->getBarrelCount());
             pIndexMerger->merge(pBarrelsInfo_);
             }

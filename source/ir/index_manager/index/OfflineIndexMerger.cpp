@@ -22,9 +22,9 @@ void OfflineIndexMerger::setBarrels(unsigned int numBarrels)
         if(pMergeBarrel_)
         {
             delete pMergeBarrel_;
-            string s = "_mid_0_";
-            pMergeBarrel_ = new MergeBarrel(s.c_str(),numBarrels+5);
         }
+        string s = "_mid_0_";
+        pMergeBarrel_ = new MergeBarrel(s.c_str(),numBarrels+5);
     }
 }
 

@@ -431,7 +431,6 @@ void BarrelsInfo::sort(Directory* pDirectory)
     {
         pBaInfo = *iter;
         string str = newBarrelsInfo.newBarrel();
-        cout<<"rename from "<<pBaInfo->getName()<<" to "<<str<<endl;
         pBaInfo->rename(pDirectory,str);///update barrel name
         pBaInfo->setSearchable(true);
         iter++;
