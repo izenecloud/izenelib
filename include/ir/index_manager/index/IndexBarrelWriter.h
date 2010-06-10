@@ -44,7 +44,7 @@ public:
      */
     bool cacheFull()
     {
-        return pMemCache->isGrowed();
+        return pMemCache_->isGrowed();
     }
     /**
      * determine if the memory cache for indexing is empty
@@ -52,7 +52,7 @@ public:
      */
     bool cacheEmpty()
     {
-        return pMemCache->isEmpty();
+        return pMemCache_->isEmpty();
     }
     /**
      * write cache to barrels
@@ -65,7 +65,7 @@ public:
     void resetCache(bool bResetPosting = false);
     /**
      * open a index barrel
-     * @param barrelName index barrel name
+     * @param barrelName_ index barrel name
     */
     void open(const char* barrelName);
     /** close barrel writer */
@@ -78,14 +78,14 @@ public:
 
     const string& getBarrelName()
     {
-        return barrelName;
+        return barrelName_;
     }
     /**
     *get collections information of the in-memory index barrel
     */
     CollectionsInfo* getCollectionsInfo()
     {
-        return pCollectionsInfo;
+        return pCollectionsInfo_;
     }
     /**
     *set document schema of all collections, this will initialize different CollectionIndexer, which will proceed relevant document respectively.
@@ -98,7 +98,7 @@ public:
     */
     CollectionIndexer* getCollectionIndexer(collectionid_t colID)
     {
-        return collectionIndexMap[colID];
+        return collectionIndexerMap_[colID];
     }
     /**
     *create an in memory BarrelReader that will read index of this barrel
@@ -112,30 +112,30 @@ public:
     */
     MemCache* getMemCache()
     {
-        return pMemCache;
+        return pMemCache_;
     }
     /**
      * set memory cache for indexing
      */
     void setMemCache(MemCache* pMemCache)
     {
-        this->pMemCache = pMemCache;
+        this->pMemCache_ = pMemCache;
     }
 
 private:
-    string barrelName;
+    string barrelName_;
 
-    Indexer* pIndexer;
+    Indexer* pIndexer_;
 
-    MemCache* pMemCache;
+    MemCache* pMemCache_;
 
-    CollectionIndexerMap collectionIndexMap;
+    CollectionIndexerMap collectionIndexerMap_;
 
-    CollectionsInfo* pCollectionsInfo;
+    CollectionsInfo* pCollectionsInfo_;
 
-    collectionid_t currentColID;
+    collectionid_t currentColID_;
 
-    Directory* pDirectory;
+    Directory* pDirectory_;
 
     friend class InMemoryIndexBarrelReader;
     friend class IndexWriter;

@@ -35,8 +35,8 @@ public:
     void reopen(){}
 
 protected:
-    IndexBarrelWriter* pIndexBarrelWriter;
-    map<collectionid_t, TermReader*> termReaderMap;
+    IndexBarrelWriter* pIndexBarrelWriter_;
+    map<collectionid_t, TermReader*> termReaderMap_;
 };
 
 }

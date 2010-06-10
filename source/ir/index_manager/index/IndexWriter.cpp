@@ -114,7 +114,7 @@ void IndexWriter::flush()
     {
         pIndexBarrelWriter_->close();
         if (pIndexMerger_)
-            pIndexMerger_->flushBarrelToDisk(pIndexBarrelWriter_->barrelName);
+            pIndexMerger_->flushBarrelToDisk(pIndexBarrelWriter_->barrelName_);
     }
     pLastBarrel->setWriter(NULL);
     pBarrelsInfo_->write(pIndexer_->getDirectory());
@@ -296,7 +296,7 @@ void IndexWriter::addToMergeAndWriteCachedIndex()
         pIndexMerger_->addToMerge(pBarrelsInfo_,pBarrelsInfo_->getLastBarrel());
 	
     if (pIndexMerger_)
-        pIndexMerger_->flushBarrelToDisk(pIndexBarrelWriter_->barrelName);
+        pIndexMerger_->flushBarrelToDisk(pIndexBarrelWriter_->barrelName_);
 
     pBarrelsInfo_->addBarrel(pBarrelsInfo_->newBarrel().c_str(),0);
     pCurBarrelInfo_ = pBarrelsInfo_->getLastBarrel();

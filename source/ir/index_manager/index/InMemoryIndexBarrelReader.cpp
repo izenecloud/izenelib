@@ -5,10 +5,10 @@
 
 using namespace izenelib::ir::indexmanager;
 
-InMemoryIndexBarrelReader::InMemoryIndexBarrelReader(IndexBarrelWriter* pIndexBarrelWriter_)
-        :pIndexBarrelWriter(pIndexBarrelWriter_)
+InMemoryIndexBarrelReader::InMemoryIndexBarrelReader(IndexBarrelWriter* pIndexBarrelWriter)
+        :pIndexBarrelWriter_(pIndexBarrelWriter)
 {
-    CollectionsInfo* pCollectionsInfo = pIndexBarrelWriter->pCollectionsInfo;
+    CollectionsInfo* pCollectionsInfo = pIndexBarrelWriter_->pCollectionsInfo_;
     pCollectionsInfo->startIterator();
     CollectionInfo* pColInfo = NULL;
     FieldsInfo* pFieldsInfo = NULL;
@@ -19,7 +19,7 @@ InMemoryIndexBarrelReader::InMemoryIndexBarrelReader(IndexBarrelWriter* pIndexBa
     {
         pColInfo = pCollectionsInfo->next();
         pFieldsInfo = pColInfo->getFieldsInfo();
-        pCollectionIndexer = pIndexBarrelWriter->getCollectionIndexer(pColInfo->getId());
+        pCollectionIndexer = pIndexBarrelWriter_->getCollectionIndexer(pColInfo->getId());
         if (pFieldsInfo->numIndexFields() == 1)
         {
             pFieldsInfo->startIterator();
@@ -49,7 +49,7 @@ InMemoryIndexBarrelReader::InMemoryIndexBarrelReader(IndexBarrelWriter* pIndexBa
             }
         }
 
-        termReaderMap.insert(pair<collectionid_t, TermReader*>(pColInfo->getId(), pTermReader));
+        termReaderMap_.insert(pair<collectionid_t, TermReader*>(pColInfo->getId(), pTermReader));
     }
 }
 
@@ -57,27 +57,27 @@ InMemoryIndexBarrelReader::~InMemoryIndexBarrelReader(void)
 {
     close();
 
-    for (map<collectionid_t, TermReader*>::iterator iter = termReaderMap.begin(); 
-        iter != termReaderMap.end(); ++iter)
+    for (map<collectionid_t, TermReader*>::iterator iter = termReaderMap_.begin(); 
+        iter != termReaderMap_.end(); ++iter)
         delete iter->second;
 
-    termReaderMap.clear();
+    termReaderMap_.clear();
 
-    pIndexBarrelWriter = NULL;
+    pIndexBarrelWriter_ = NULL;
 }
 
 TermReader* InMemoryIndexBarrelReader::termReader(collectionid_t colID)
 {
-    return termReaderMap[colID];//->clone();
+    return termReaderMap_[colID];//->clone();
 }
 
 
 TermReader* InMemoryIndexBarrelReader::termReader(collectionid_t colID, const char* field)
 {
-    TermReader* pTermReader = termReaderMap[colID];
+    TermReader* pTermReader = termReaderMap_[colID];
     if (pTermReader == NULL)
         return NULL;
-    FieldsInfo* pFieldsInfo = pIndexBarrelWriter->pCollectionsInfo->getCollectionInfo(colID)->getFieldsInfo();
+    FieldsInfo* pFieldsInfo = pIndexBarrelWriter_->pCollectionsInfo_->getCollectionInfo(colID)->getFieldsInfo();
     if (pFieldsInfo->numIndexFields() > 1)
         return ((MultiFieldTermReader*)pTermReader)->termReader(field);
     else
@@ -99,7 +99,7 @@ TermReader* InMemoryIndexBarrelReader::termReader(collectionid_t colID, const ch
 
 size_t InMemoryIndexBarrelReader::getDistinctNumTerms(collectionid_t colID, const std::string& property)
 {
-    CollectionsInfo* pCollectionsInfo = pIndexBarrelWriter->pCollectionsInfo;
+    CollectionsInfo* pCollectionsInfo = pIndexBarrelWriter_->pCollectionsInfo_;
     return (*pCollectionsInfo)[colID]->getFieldsInfo()->getField(property.c_str())->distinctNumTerms();
 }
 

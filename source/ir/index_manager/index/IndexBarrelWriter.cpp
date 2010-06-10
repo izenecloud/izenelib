@@ -9,36 +9,36 @@
 using namespace izenelib::ir::indexmanager;
 
 IndexBarrelWriter::IndexBarrelWriter(Indexer* pIndex,MemCache* pCache,const char* name)
-        :barrelName(name)
-        ,pIndexer(pIndex)
-        ,pMemCache(pCache)
+        :barrelName_(name)
+        ,pIndexer_(pIndex)
+        ,pMemCache_(pCache)
 
 {
-    pCollectionsInfo = new CollectionsInfo();
-    pDirectory = pIndexer->getDirectory();
+    pCollectionsInfo_ = new CollectionsInfo();
+    pDirectory_ = pIndexer_->getDirectory();
 }
 
 IndexBarrelWriter::~IndexBarrelWriter(void)
 {
-    pMemCache = NULL;
+    pMemCache_ = NULL;
 
-    if (pCollectionsInfo)
+    if (pCollectionsInfo_)
     {
-        delete pCollectionsInfo;
-        pCollectionsInfo = NULL;
+        delete pCollectionsInfo_;
+        pCollectionsInfo_ = NULL;
     }
 
-    for (CollectionIndexerMap::iterator iter = collectionIndexMap.begin(); iter != collectionIndexMap.end(); ++iter)
+    for (CollectionIndexerMap::iterator iter = collectionIndexerMap_.begin(); iter != collectionIndexerMap_.end(); ++iter)
     {
         delete iter->second;
     }
-    collectionIndexMap.clear();
+    collectionIndexerMap_.clear();
 }
 
-void IndexBarrelWriter::open(const char* barrelName_)
+void IndexBarrelWriter::open(const char* barrelName)
 {
-    barrelName = barrelName_;
-    pCollectionsInfo->reset();
+    barrelName_ = barrelName;
+    pCollectionsInfo_->reset();
 }
 void IndexBarrelWriter::close()
 {
@@ -50,29 +50,29 @@ void IndexBarrelWriter::close()
 }
 void IndexBarrelWriter::rename(const char* newName)
 {
-    pDirectory->renameFiles(barrelName,newName);
-    barrelName = newName;
+    pDirectory_->renameFiles(barrelName_,newName);
+    barrelName_ = newName;
 }
 
 void IndexBarrelWriter::addDocument(IndexerDocument* pDoc)
 {
     DocId uniqueID;
     pDoc->getDocId(uniqueID);
-    CollectionIndexer* pCollectionIndexer = collectionIndexMap[uniqueID.colId];
+    CollectionIndexer* pCollectionIndexer = collectionIndexerMap_[uniqueID.colId];
     if (NULL == pCollectionIndexer)
         SF1V5_THROW(ERROR_OUTOFRANGE,"IndexBarrelWriter::addDocument(): collection id does not belong to the range");
     pCollectionIndexer->addDocument(pDoc);
 }
 
-void IndexBarrelWriter::resetCache(bool bResetPosting /* = false */)
+void IndexBarrelWriter::resetCache(bool bResetPosting)
 {
     if (bResetPosting)
     {
-        for (CollectionIndexerMap::iterator p = collectionIndexMap.begin( ); p != collectionIndexMap.end( ); ++p)
+        for (CollectionIndexerMap::iterator p = collectionIndexerMap_.begin( ); p != collectionIndexerMap_.end( ); ++p)
             (*p).second->reset();
     }
 
-    pMemCache->flushMem();
+    pMemCache_->flushMem();
 }
 
 void IndexBarrelWriter::writeCache()
@@ -81,24 +81,24 @@ void IndexBarrelWriter::writeCache()
     {
         DLOG(INFO) << "Write Index Barrel" << endl;
 
-        string s = barrelName +".voc";
-        IndexOutput* pVocOutput = pDirectory->createOutput(s.c_str());
+        string s = barrelName_ +".voc";
+        IndexOutput* pVocOutput = pDirectory_->createOutput(s.c_str());
 
-        s = barrelName + ".dfp";
-        IndexOutput* pDOutput = pDirectory->createOutput(s.c_str());
+        s = barrelName_ + ".dfp";
+        IndexOutput* pDOutput = pDirectory_->createOutput(s.c_str());
 
-        s = barrelName + ".pop";
-        IndexOutput* pPOutput = pDirectory->createOutput(s.c_str());
+        s = barrelName_ + ".pop";
+        IndexOutput* pPOutput = pDirectory_->createOutput(s.c_str());
 
         OutputDescriptor desc(pVocOutput,pDOutput,pPOutput,true);
 
-        for (CollectionIndexerMap::iterator p = collectionIndexMap.begin(); p != collectionIndexMap.end(); ++p)
+        for (CollectionIndexerMap::iterator p = collectionIndexerMap_.begin(); p != collectionIndexerMap_.end(); ++p)
             p->second->write(&desc);
 
-        s = barrelName + ".fdi";
-        IndexOutput* fdiOutput = pDirectory->createOutput(s.c_str());
+        s = barrelName_ + ".fdi";
+        IndexOutput* fdiOutput = pDirectory_->createOutput(s.c_str());
 
-        pCollectionsInfo->write(fdiOutput);
+        pCollectionsInfo_->write(fdiOutput);
         fdiOutput->flush();
         delete fdiOutput;
     }
@@ -124,12 +124,12 @@ void IndexBarrelWriter::setCollectionsMeta(const std::map<std::string, IndexerCo
     for (iter = collectionsMeta.begin(); iter != collectionsMeta.end(); iter++)
     {
         colID = (iter->second).getColId ();
-        pCollectionIndexer = new CollectionIndexer(colID, pMemCache, pIndexer);
+        pCollectionIndexer = new CollectionIndexer(colID, pMemCache_, pIndexer_);
         pCollectionIndexer->setSchema((iter->second));
         pCollectionIndexer->setFieldIndexers();
-        collectionIndexMap.insert(make_pair(colID,pCollectionIndexer));
+        collectionIndexerMap_.insert(make_pair(colID,pCollectionIndexer));
         pCollectionInfo = new CollectionInfo(colID, pCollectionIndexer->getFieldsInfo());
-        pCollectionsInfo->addCollection(pCollectionInfo);
+        pCollectionsInfo_->addCollection(pCollectionInfo);
     }
 }
 
