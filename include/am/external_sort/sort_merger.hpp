@@ -276,13 +276,13 @@ typedef SortMerger<KEY_TYPE, LEN_TYPE, COMPARE_ALL> self_t;
         std::cout<<"[Warning]: A record is too long, it will be ignored\n";
         fseek(f, *(LEN_TYPE*)(micro_buf_[i])+sizeof(LEN_TYPE)-s, SEEK_CUR);
 
-        if (ftell(f)-run_addr_[i]>=size_run_[i])
+        if (ftell(f)-run_addr_[i] >= (uint64_t)size_run_[i])
         {
           flag = true;
           break;
         }
         
-        s = size_run_[i]-(ftell(f)-run_addr_[i])>PRE_BUF_SIZE_? PRE_BUF_SIZE_:size_run_[i]-(ftell(f)-run_addr_[i]);
+        s = (uint32_t)((uint64_t)size_run_[i]-(ftell(f)-run_addr_[i])>PRE_BUF_SIZE_? PRE_BUF_SIZE_:(uint64_t)size_run_[i]-(ftell(f)-run_addr_[i]));
         size_micro_run_[i] = s;
         IASSERT(fread(micro_buf_[i], s, 1, f)==1);
       }
@@ -297,13 +297,14 @@ typedef SortMerger<KEY_TYPE, LEN_TYPE, COMPARE_ALL> self_t;
       //if size_run_[i]>PRE_BUF_SIZE_, it needs to the end of a run and turn to the next run
       fseek(f, size_run_[i]-s, SEEK_CUR);
     }
-    //std::cout<<"Run number: "<<group_size_<<std::endl;
+    std::cout<<"Run number: "<<group_size_<<std::endl;
     
     //initialize predict heap and records number of every microrun
     for (uint32_t i = 0; i<group_size_; ++i)
     {
       uint32_t pos = 0;
       uint32_t last_pos = -1;
+      assert(i < MAX_GROUP_SIZE_);
       while (size_micro_run_[i])
       {
         LEN_TYPE len = *(LEN_TYPE*)(micro_buf_[i]+pos);
@@ -345,8 +346,9 @@ typedef SortMerger<KEY_TYPE, LEN_TYPE, COMPARE_ALL> self_t;
       while (pre_buf_size_!=0)
         pre_buf_con_.wait(lock);
 
+      assert(idx < MAX_GROUP_SIZE_);
       //get loading size of a microrun
-      uint32_t s = size_run_[idx] - (addr - run_addr_[idx]);
+      uint32_t s = (uint32_t)((uint64_t)size_run_[idx] - (addr - run_addr_[idx]));
       if (s == 0)
       {
         //std::cout<<"==================\n";
@@ -371,7 +373,7 @@ typedef SortMerger<KEY_TYPE, LEN_TYPE, COMPARE_ALL> self_t;
           len = *(LEN_TYPE*)(pre_buf_+last_pos)+sizeof(LEN_TYPE);
           char* tmp = (char*)malloc(len);
           memcpy(tmp, pre_buf_+last_pos, len);
-          pre_heap_.push(KEY_ADDR(tmp, addr+pos, idx));
+          pre_heap_.push(KEY_ADDR(tmp, addr+(uint64_t)pos, idx));
           break;
         }
 
@@ -390,7 +392,7 @@ typedef SortMerger<KEY_TYPE, LEN_TYPE, COMPARE_ALL> self_t;
       pre_buf_con_.notify_one();
     }
 
-    //std::cout<<"\nPredicting is over...\n";
+    std::cout<<"\nPredicting is over...\n";
   }
 
   void merge_()
@@ -404,6 +406,7 @@ typedef SortMerger<KEY_TYPE, LEN_TYPE, COMPARE_ALL> self_t;
       //output
       while(1)
       {
+        assert(out_buf_in_idx_ < OUT_BUF_NUM_);
         boost::mutex::scoped_lock lock(in_out_mtx_[out_buf_in_idx_]);
         while (out_buf_full_[out_buf_in_idx_])
           in_out_con_[out_buf_in_idx_].wait(lock);
@@ -417,9 +420,10 @@ typedef SortMerger<KEY_TYPE, LEN_TYPE, COMPARE_ALL> self_t;
           out_buf_in_idx_ = (++out_buf_in_idx_)%OUT_BUF_NUM_;
           in_out_con_[tmp].notify_one();
           //std::cout<<idx<<"-"<<out_buf_size_[tmp]<<std::endl;
-          continue;
+          continue; 
         }
 
+        assert(out_buf_in_idx_ < OUT_BUF_NUM_);
         memcpy(sub_out_buf_[out_buf_in_idx_]+out_buf_size_[out_buf_in_idx_],
                  top.data, top.LEN()+sizeof(LEN_TYPE));
         out_buf_size_[out_buf_in_idx_] += top.LEN()+sizeof(LEN_TYPE);
@@ -428,6 +432,7 @@ typedef SortMerger<KEY_TYPE, LEN_TYPE, COMPARE_ALL> self_t;
         break;
       }
 
+      assert(idx < MAX_GROUP_SIZE_);
       //reach the end of a microrun
       if (micro_run_idx_[idx] == num_micro_run_[idx])
       {
@@ -444,6 +449,7 @@ typedef SortMerger<KEY_TYPE, LEN_TYPE, COMPARE_ALL> self_t;
 //           continue;
 //         }
 
+        assert(idx < MAX_GROUP_SIZE_);
         memcpy(micro_buf_[idx], pre_buf_, pre_buf_size_);
         size_micro_run_[idx] = pre_buf_size_;
         num_micro_run_[idx] = pre_buf_num_;
@@ -452,11 +458,13 @@ typedef SortMerger<KEY_TYPE, LEN_TYPE, COMPARE_ALL> self_t;
         pre_buf_con_.notify_one();
       }
 
+      assert(idx < MAX_GROUP_SIZE_);
       merge_heap_.push(KEY_ADDR(micro_buf_[idx]+micro_run_pos_[idx], -1, idx));
       ++micro_run_idx_[idx];
       micro_run_pos_[idx] += KEY_ADDR(micro_buf_[idx]+micro_run_pos_[idx], -1, idx).LEN()+sizeof(LEN_TYPE);
     }
-    {
+    { 
+      assert(out_buf_in_idx_ < OUT_BUF_NUM_);
       boost::mutex::scoped_lock lock(in_out_mtx_[out_buf_in_idx_]);
       if (!out_buf_full_[out_buf_in_idx_]
           &&out_buf_size_[out_buf_in_idx_]>0)
@@ -467,7 +475,7 @@ typedef SortMerger<KEY_TYPE, LEN_TYPE, COMPARE_ALL> self_t;
     }
     
 
-    //std::cout<<"\nMerging is over...\n";
+    std::cout<<"\nMerging is over...\n";
   }
 
   void output_(FILE* f, uint32_t idx)
@@ -487,6 +495,7 @@ typedef SortMerger<KEY_TYPE, LEN_TYPE, COMPARE_ALL> self_t;
         break;
       }
       
+      assert(idx < OUT_BUF_NUM_);
       boost::mutex::scoped_lock in_lock(in_out_mtx_[idx]);
       while (!out_buf_full_[idx])
         in_out_con_[idx].wait(in_lock);
@@ -494,6 +503,7 @@ typedef SortMerger<KEY_TYPE, LEN_TYPE, COMPARE_ALL> self_t;
       std::cout<<"\rMerging ..."<<1.*(c-count_)/c*100<<"%"<<std::flush;
       
       IASSERT(out_buf_size_[idx]!=0);
+      assert(idx < OUT_BUF_NUM_);
       for (uint32_t pos=0; pos<out_buf_size_[idx];
            --count_, pos+=*(LEN_TYPE*)(sub_out_buf_[idx]+pos)+sizeof(LEN_TYPE));
 
@@ -507,7 +517,7 @@ typedef SortMerger<KEY_TYPE, LEN_TYPE, COMPARE_ALL> self_t;
       in_out_con_[idx].notify_one();
     }
 
-    //std::cout<<"\nOutputting is over...\n";
+    std::cout<<"\nOutputting is over...\n";
   }
 
   bool t_check_sort_()
@@ -611,8 +621,8 @@ public:
     fclose(out_f);
 
     gettimeofday (&tvafter , &tz);
-    //std::cout<<"\nMerging is done("<<count_
-            // <<"): "<<((tvafter.tv_sec-tvpre.tv_sec)*1000+(tvafter.tv_usec-tvpre.tv_usec)/1000.)/60000<<" min\n";
+    std::cout<<"\nMerging is done("<<count_
+             <<"): "<<((tvafter.tv_sec-tvpre.tv_sec)*1000+(tvafter.tv_usec-tvpre.tv_usec)/1000.)/60000<<" min\n";
     
     if (boost::filesystem::exists(filenm_))
       boost::filesystem::remove(filenm_);

@@ -20,7 +20,7 @@
 #include <am/graph_index/dyn_array.hpp>
 #include <math.h>
 #include <sys/time.h>
-
+ 
 NS_IZENELIB_AM_BEGIN
 
 /**
@@ -146,7 +146,7 @@ typedef SortRunner<KEY_TYPE, LEN_TYPE, COMPARE_ALL> self_t;
       out_buf_ = (char*)malloc(RUN_BUF_SIZE_);
   }
 
-  void quick_sort_(int left, int right)
+  void quick_sort_(int left, int right, int limit)
   {
     int i = left, j = right;
     KEY_PTR tmp;
@@ -155,9 +155,9 @@ typedef SortRunner<KEY_TYPE, LEN_TYPE, COMPARE_ALL> self_t;
     /* partition */
     while (i <= j) {
       
-      while (key_buf_[i].compare(pivot, run_buf_)<0)
+      while (i < limit && key_buf_[i].compare(pivot, run_buf_)<0)
         i++;
-      while (key_buf_[j].compare(pivot, run_buf_)>0)
+      while (j>=0 && key_buf_[j].compare(pivot, run_buf_)>0)
         j--;
 
       if (i <= j) {
@@ -172,10 +172,10 @@ typedef SortRunner<KEY_TYPE, LEN_TYPE, COMPARE_ALL> self_t;
     //IASSERT(i-1==j);
     /* recursion */
     if (left < j)
-      quick_sort_(left, j);
+      quick_sort_(left, j, limit);
 
     if (i < right)
-      quick_sort_(i, right);
+      quick_sort_(i, right, limit);
 
   }
   
@@ -202,7 +202,7 @@ typedef SortRunner<KEY_TYPE, LEN_TYPE, COMPARE_ALL> self_t;
 
     run_num_ = 0;
     uint64_t pos = sizeof(uint64_t);
-    //std::cout<<std::endl;
+    std::cout<<std::endl;
     while(pos < FILE_LEN)
     {
       std::cout<<"\rA runner is processing "<<pos*1./FILE_LEN<<std::flush;
@@ -212,11 +212,11 @@ typedef SortRunner<KEY_TYPE, LEN_TYPE, COMPARE_ALL> self_t;
       while (pre_buf_size_!=0)
         pre_buf_con_.wait(lock);
       
-      uint32_t s = FILE_LEN-pos>RUN_BUF_SIZE_? RUN_BUF_SIZE_: FILE_LEN-pos;
+      uint32_t s = (uint32_t)(FILE_LEN-pos>RUN_BUF_SIZE_? RUN_BUF_SIZE_: FILE_LEN-pos);
       //std::cout<<std::endl<<pos<<"-"<<FILE_LEN<<"-"<<RUN_BUF_SIZE_<<"-"<<s<<std::endl;
       fseek(f, pos, SEEK_SET);
       IASSERT(fread(pre_buf_, s, 1, f)==1);
-      pos += s;
+      pos += (uint64_t)s;
 
       //check the position of the last record
       pre_buf_size_ = 0;
@@ -227,7 +227,7 @@ typedef SortRunner<KEY_TYPE, LEN_TYPE, COMPARE_ALL> self_t;
           break;
         pre_buf_size_ += *(LEN_TYPE*)(pre_buf_+pre_buf_size_)+sizeof(LEN_TYPE);
       }
-      pos -= s- pre_buf_size_;
+      pos -= (uint64_t)(s- pre_buf_size_);
       //std::cout<<pre_buf_size_<<std::endl;
       if (pre_buf_num_ == 0)
       {
@@ -242,7 +242,7 @@ typedef SortRunner<KEY_TYPE, LEN_TYPE, COMPARE_ALL> self_t;
       IASSERT(pre_buf_size_ <= RUN_BUF_SIZE_);
       pre_buf_con_.notify_one();
     }
-    //std::cout<<"Prefetching is over...\n";
+    std::cout<<"Prefetching is over...\n";
   }
 
   void sort_()
@@ -256,7 +256,8 @@ typedef SortRunner<KEY_TYPE, LEN_TYPE, COMPARE_ALL> self_t;
         boost::mutex::scoped_lock lock(pre_buf_mtx_);
         while (pre_buf_size_==0)
           pre_buf_con_.wait(lock);
-        
+
+        assert(pre_buf_size_ <= RUN_BUF_SIZE_);
         memcpy(run_buf_, pre_buf_, pre_buf_size_);
         pre_buf_size = pre_buf_size_;
         pre_buf_num = pre_buf_num_;
@@ -271,12 +272,13 @@ typedef SortRunner<KEY_TYPE, LEN_TYPE, COMPARE_ALL> self_t;
       for (uint32_t i = 0; i<pre_buf_num; ++i)
       {
         key_buf_[i] = KEY_PTR(pos);
+        assert(pos <= RUN_BUF_SIZE_);
         pos += *(LEN_TYPE*)(run_buf_ + pos)+sizeof(LEN_TYPE);
         IASSERT(pos<=pre_buf_size);
       }
       IASSERT(pos==pre_buf_size);
 
-      quick_sort_(0, pre_buf_num-1);
+      quick_sort_(0, pre_buf_num-1, pre_buf_num);
 
       boost::mutex::scoped_lock lock(out_buf_mtx_);
       while (out_buf_size_ != 0)
@@ -286,6 +288,8 @@ typedef SortRunner<KEY_TYPE, LEN_TYPE, COMPARE_ALL> self_t;
       out_buf_num_ = 0;
       for (uint32_t i=0; i<pre_buf_num; ++i, ++out_buf_num_)
       {
+        assert(key_buf_[i].pos <= RUN_BUF_SIZE_);
+        assert(out_buf_size_+key_buf_[i].LEN(run_buf_)+ sizeof(LEN_TYPE) <= RUN_BUF_SIZE_);
         memcpy(out_buf_+out_buf_size_, run_buf_+ key_buf_[i].pos, key_buf_[i].LEN(run_buf_)+ sizeof(LEN_TYPE));
         out_buf_size_ += key_buf_[i].LEN(run_buf_) + sizeof(LEN_TYPE);
       }
@@ -295,7 +299,7 @@ typedef SortRunner<KEY_TYPE, LEN_TYPE, COMPARE_ALL> self_t;
       out_buf_con_.notify_one();
     }
 
-    //std::cout<<"Sorting is over...\n";
+    std::cout<<"Sorting is over...\n";
   }
 
   void output_(FILE* f)
@@ -317,7 +321,7 @@ typedef SortRunner<KEY_TYPE, LEN_TYPE, COMPARE_ALL> self_t;
       out_buf_con_.notify_one();
     }
 
-    //std::cout<<"Outputting is over...\n";
+    std::cout<<"Outputting is over...\n";
   }
 
   bool t_check_sort_()
@@ -401,8 +405,8 @@ public:
       boost::filesystem::rename(filenm_+".out", filenm_);
 
     gettimeofday (&tvafter , &tz);
-    //std::cout<<"A run is over("<<count_
-           //  <<"): "<<((tvafter.tv_sec-tvpre.tv_sec)*1000+(tvafter.tv_usec-tvpre.tv_usec)/1000.)/60000<<" min\n";
+    std::cout<<"A run is over("<<count_
+             <<"): "<<((tvafter.tv_sec-tvpre.tv_sec)*1000+(tvafter.tv_usec-tvpre.tv_usec)/1000.)/60000<<" min\n";
   }
 
   uint32_t run_num()const
