@@ -53,13 +53,6 @@ IndexWriter::~IndexWriter()
         delete pIndexMergeManager_;
 }
 
-void IndexWriter::close()
-{
-    if (!pIndexBarrelWriter_)
-        return;
-    flush();
-}
-
 void IndexWriter::flush()
 {
     if(!pIndexBarrelWriter_)

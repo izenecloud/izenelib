@@ -353,7 +353,7 @@ void Indexer::close()
     }
     if (pIndexWriter_)
     {
-        pIndexWriter_->close();
+        pIndexWriter_->flush();
         delete pIndexWriter_;
         pIndexWriter_ = NULL;
     }

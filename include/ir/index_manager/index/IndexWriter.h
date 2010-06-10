@@ -40,15 +40,13 @@ public:
     void indexDocument(IndexerDocument& doc, bool update = false);
     /// update the document object practically
     void updateDocument(IndexerDocument& doc);
-    ///merge the barrels index manually using an existing IndexMerger
+    /// merge the barrels index manually using an existing IndexMerger
     void mergeIndex(IndexMerger* pIndexMerger);
-
+    /// optimize index
     void optimizeIndex();
-
+    /// flush index
     void flush();
-
-    void close();
-
+    /// set schedule 
     void scheduleOptimizeTask(std::string expression, string uuid);
 private:
     void lazyOptimizeIndex();
