@@ -82,6 +82,23 @@ void Indexer::setIndexManagerConfig(
     }
     pConfigurationManager_->setCollectionMetaNameMap( collectionList );
 
+    collectionid_t colID;
+
+    for (std::map<std::string, IndexerCollectionMeta>::const_iterator iter = collectionList.begin(); iter != collectionList.end(); ++iter)
+    {
+        colID = iter->second.getColId();
+ 
+        std::map<std::string, fieldid_t> propertyMap;
+ 
+        std::set<IndexerPropertyConfig, IndexerPropertyConfigComp> documentSchema = (iter->second).getDocumentSchema();
+ 
+        for (std::set<IndexerPropertyConfig, IndexerPropertyConfigComp>::const_iterator it = 
+                documentSchema.begin(); it != documentSchema.end(); it++ )
+             if (it->getPropertyId() != BAD_PROPERTY_ID)
+                 propertyMap.insert(make_pair(it->getName(), it->getPropertyId()));
+         property_name_id_map_.insert(make_pair(colID, propertyMap));
+    }
+ 
     VariantDataPool::UPTIGHT_ALLOC_CHUNKSIZE = 8;
     VariantDataPool::UPTIGHT_ALLOC_MEMSIZE = 40000;
 

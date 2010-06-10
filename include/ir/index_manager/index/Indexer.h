@@ -138,7 +138,10 @@ public:
 
     BTreeIndexer* getBTreeIndexer() { return pBTreeIndexer_; }
 
-    fieldid_t getPropertyIDByName(collectionid_t colID, string property);
+    fieldid_t getPropertyIDByName(collectionid_t colID, string property)
+    {
+        return property_name_id_map_[colID][property];
+    }
 
     std::string getBasePath();
 
@@ -164,6 +167,8 @@ protected:
     IndexManagerConfig* pConfigurationManager_;
 
     BTreeIndexer* pBTreeIndexer_;
+
+    std::map<collectionid_t, std::map<string, fieldid_t> > property_name_id_map_;
 
     izenelib::util::ReadWriteLock mutex_;
 
