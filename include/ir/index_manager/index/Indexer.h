@@ -54,7 +54,7 @@ class Indexer: private boost::noncopyable
 {
 public:
 
-    Indexer(ManagerType managerType = MANAGER_INDEXING_BTREE);
+    Indexer(ManagerType managerType = MANAGER_INDEXING_BTREE|MANAGER_INDEXING_STANDALONE_MERGER);
 
     virtual ~Indexer();
 public:
