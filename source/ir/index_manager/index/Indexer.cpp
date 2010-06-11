@@ -225,13 +225,13 @@ int Indexer::insertDocument(IndexerDocument& doc)
 
 int Indexer::updateDocument(IndexerDocument& doc)
 {
-    pIndexWriter_->indexDocument(doc,true);
+    pIndexWriter_->updateDocument(doc);
     return 1;
 }
 
 int Indexer::removeDocument(collectionid_t colID, docid_t docId)
 {
-    pIndexReader_->delDocument(colID, docId);
+    pIndexWriter_->removeDocument(colID, docId);
     return 1;
 }
 

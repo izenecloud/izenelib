@@ -75,6 +75,14 @@ public:
         return bits_[bit >> 3] & (1 << (bit & 7));
     }
 
+    bool any()
+    {
+        for (size_t i = 0; i < blockNum_; ++i)
+            if (bits_[i])
+                return true;
+        return false;
+    }
+
     void toggle()
     {
         for(size_t i = 0; i < blockNum_; ++i )

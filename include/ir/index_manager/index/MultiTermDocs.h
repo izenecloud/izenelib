@@ -56,9 +56,9 @@ class MultiTermDocs : public TermDocFreqs
         }
     };
 public:
-    MultiTermDocs(void);
+    MultiTermDocs();
 
-    virtual ~MultiTermDocs(void);
+    virtual ~MultiTermDocs();
 public:
     docid_t doc();
 

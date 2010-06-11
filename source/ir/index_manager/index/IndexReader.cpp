@@ -30,14 +30,14 @@ IndexReader::IndexReader(Indexer* pIndex)
                                 pIndexer_->getDirectory());
 }
 
-IndexReader::~IndexReader(void)
+IndexReader::~IndexReader()
 {
     if (pBarrelReader_)
     {
         delete pBarrelReader_;
         pBarrelReader_ = NULL;
     }
-    if(pDocFilter_)
+    if(pDocFilter_&& pDocFilter_->any())
     {
         if(pIndexer_->getDirectory()->fileExists(DELETED_DOCS))
             pIndexer_->getDirectory()->deleteFile(DELETED_DOCS);
@@ -53,8 +53,7 @@ void IndexReader::delDocFilter()
     {
         if(pIndexer_->getDirectory()->fileExists(DELETED_DOCS))
             pIndexer_->getDirectory()->deleteFile(DELETED_DOCS);
-        delete pDocFilter_;
-        pDocFilter_ = NULL;
+        pDocFilter_->clear();
     }
 }
 
@@ -100,11 +99,11 @@ void IndexReader::createBarrelReader()
         if (pLastBarrel && pLastBarrel->getWriter())
             pBarrelReader_ = pLastBarrel->getWriter()->inMemoryReader();
         else
-            pBarrelReader_ = new SingleIndexBarrelReader(pIndexer_,pLastBarrel);
+            pBarrelReader_ = new SingleIndexBarrelReader(this,pLastBarrel);
     }
     else if (bc > 1)
     {
-        pBarrelReader_ = new MultiIndexBarrelReader(pIndexer_,pBarrelsInfo_);
+        pBarrelReader_ = new MultiIndexBarrelReader(this,pBarrelsInfo_);
     }
     else
         return;
@@ -137,10 +136,6 @@ TermReader* IndexReader::getTermReader(collectionid_t colID)
 
 void IndexReader::reopen()
 {
-    //if(pBarrelReader_)
-        //delete pBarrelReader_;
-    //pBarrelReader_ = NULL;
-    /////pBarrelReader_->reopen();
     {
     boost::mutex::scoped_lock lock(this->mutex_);
     if(pBarrelReader_)

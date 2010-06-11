@@ -33,6 +33,8 @@ TermDocFreqs::TermDocFreqs(TermReader* pReader, InputDescriptor* pInputDescripto
         ,ownPosting_(true)
 {
     pPosting_ = new OnDiskPosting(pInputDescriptor_,termInfo_);
+    if(pReader->getDocFilter())
+        pPosting_->setFilter(pReader->getDocFilter());
 }
 
 TermDocFreqs::TermDocFreqs(TermReader* pReader, Posting* pPosting, const TermInfo& ti)
@@ -48,6 +50,8 @@ TermDocFreqs::TermDocFreqs(TermReader* pReader, Posting* pPosting, const TermInf
         ,pInputDescriptor_(NULL)
         ,ownPosting_(true)
 {
+    if(pReader->getDocFilter())
+        pPosting_->setFilter(pReader->getDocFilter());
 }
 
 TermDocFreqs::TermDocFreqs(Posting* pPosting, const TermInfo& ti)

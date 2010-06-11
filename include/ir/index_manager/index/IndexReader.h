@@ -48,8 +48,6 @@ public:
 
     BarrelsInfo* getBarrelsInfo();
 
-    static int64_t lastModified(Directory* pDirectory);
-
     ///client must delete the returned object
     TermReader* getTermReader(collectionid_t colID);
 
@@ -64,7 +62,6 @@ public:
 
     void reopen();
 
-    //boost::mutex& getGlobalLock() { return pIndexer_->mutex_; }
     izenelib::util::ReadWriteLock& getGlobalLock() { return pIndexer_->mutex_; }
 
     bool isDirty() {return pIndexer_->isDirty(); }
@@ -88,6 +85,7 @@ private:
     DocLengthReader* pDocLengthReader_;
 
     friend class Indexer;
+    friend class SingleIndexBarrelReader;
 };
 inline BarrelsInfo* IndexReader::getBarrelsInfo()
 {

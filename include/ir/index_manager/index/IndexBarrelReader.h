@@ -21,7 +21,7 @@ NS_IZENELIB_IR_BEGIN
 namespace indexmanager{
 
 class TermReader;
-class Indexer;
+class IndexReader;
 /**
 * The base class of SingleIndexBarrelReader and MultiIndexBarrelReader
 * If there is only one barrel, then SingleIndexBarrelReader will be generated
@@ -30,9 +30,11 @@ class Indexer;
 class IndexBarrelReader
 {
 public:
-    IndexBarrelReader(Indexer* pIndex);
-    IndexBarrelReader();
-    virtual ~IndexBarrelReader(void);
+    IndexBarrelReader(IndexReader* pIndexReader):pIndexReader_(pIndexReader){}
+
+    IndexBarrelReader():pIndexReader_(NULL){}
+
+    virtual ~IndexBarrelReader();
 public:
     /**
     * Return the TermReader instance
@@ -47,9 +49,8 @@ public:
 
     virtual void reopen() = 0;
 
-    Indexer* getIndexer() { return pIndexer_; }
 protected:
-    Indexer* pIndexer_;
+    IndexReader* pIndexReader_;
 };
 
 }

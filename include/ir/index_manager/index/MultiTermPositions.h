@@ -57,9 +57,9 @@ class MultiTermPositions : public TermPositions
         }
     };
 public:
-    MultiTermPositions(void);
+    MultiTermPositions();
 
-    ~MultiTermPositions(void);
+    ~MultiTermPositions();
 public:
     docid_t doc();
 

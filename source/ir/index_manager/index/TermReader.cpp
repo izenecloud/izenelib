@@ -6,14 +6,16 @@
 
 using namespace izenelib::ir::indexmanager;
 
-TermReader::TermReader(void)
+TermReader::TermReader()
         : pFieldInfo_(NULL)
+        , pDocFilter_(NULL)
 {
 
 }
 
 TermReader::TermReader(FieldInfo* pFieldInfo)
         : pFieldInfo_(pFieldInfo)
+        , pDocFilter_(NULL)
 {
 
 }
@@ -549,6 +551,7 @@ TermReader* DiskTermReader::clone()
 {
     TermReader* pTermReader = new DiskTermReader(pTermReaderImpl_);
     pTermReader->setFieldInfo(pFieldInfo_);
+    pTermReader->setDocFilter(pDocFilter_);
     return pTermReader;
 }
 

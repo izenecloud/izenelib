@@ -30,6 +30,7 @@ InMemoryIndexBarrelReader::InMemoryIndexBarrelReader(IndexBarrelWriter* pIndexBa
                     break;
             }
             pTermReader = pCollectionIndexer->getFieldIndexer(pFieldInfo->getName())->termReader();
+            pTermReader->setDocFilter(pIndexBarrelWriter_->getDocFilter());
         }
         else if (pFieldsInfo->numIndexFields() > 1)
         {
@@ -47,6 +48,7 @@ InMemoryIndexBarrelReader::InMemoryIndexBarrelReader(IndexBarrelWriter* pIndexBa
                     }
                 }
             }
+            pTermReader->setDocFilter(pIndexBarrelWriter_->getDocFilter());
         }
 
         termReaderMap_.insert(pair<collectionid_t, TermReader*>(pColInfo->getId(), pTermReader));

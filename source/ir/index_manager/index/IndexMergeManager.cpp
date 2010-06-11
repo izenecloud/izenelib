@@ -4,6 +4,7 @@
 #include <ir/index_manager/index/GPartitionMerger.h>
 #include <ir/index_manager/index/MultiWayMerger.h>
 #include <ir/index_manager/index/OfflineIndexMerger.h>
+#include <ir/index_manager/index/IndexReader.h>
 
 NS_IZENELIB_IR_BEGIN
 
@@ -14,7 +15,8 @@ IndexMergeManager::IndexMergeManager(Indexer* pIndexer)
 {
     pBarrelsInfo_ = pIndexer_->getBarrelsInfo();
 
-    indexMergers_[ONLINE] = new MultiWayMerger(pIndexer_);
+    indexMergers_[INDEX] = new MultiWayMerger(pIndexer_);
+    indexMergers_[UPDATE] = new MultiWayMerger(pIndexer_);
     indexMergers_[OFFLINE] = new OfflineIndexMerger(pIndexer_, pBarrelsInfo_->getBarrelCount());
 }
 
@@ -40,10 +42,10 @@ void IndexMergeManager::stop()
     tasks_.push(op);
 }
 
-void IndexMergeManager::triggerMerge(BarrelInfo* pBarrelInfo)
+void IndexMergeManager::triggerMerge(BarrelInfo* pBarrelInfo, bool update)
 {
     MergeOP op;
-    op.opType = ONLINE;
+    op.opType = update? UPDATE : INDEX;
     op.pBarrelInfo = pBarrelInfo;
     tasks_.push(op);
 }
@@ -56,7 +58,8 @@ void IndexMergeManager::mergeIndex()
         tasks_.pop(op);
         switch(op.opType)
         {
-        case ONLINE:
+        case INDEX:
+        case UPDATE:
             {
             IndexMerger* pIndexMerger = indexMergers_[op.opType];
             pIndexMerger->addToMerge(pBarrelsInfo_, op.pBarrelInfo);
@@ -64,9 +67,17 @@ void IndexMergeManager::mergeIndex()
             break;
         case OFFLINE:
 	    {
-            IndexMerger* pIndexMerger = indexMergers_[op.opType];
-            reinterpret_cast<OfflineIndexMerger*>(pIndexMerger)->setBarrels(pBarrelsInfo_->getBarrelCount());
+            OfflineIndexMerger* pIndexMerger = reinterpret_cast<OfflineIndexMerger*>(indexMergers_[op.opType]);
+            pIndexMerger->setBarrels(pBarrelsInfo_->getBarrelCount());
+            pIndexMerger->merge(pBarrelsInfo_, INDEX_ONLY);
+            pIndexMerger->setBarrels(pBarrelsInfo_->getBarrelCount());
+            pIndexMerger->merge(pBarrelsInfo_, UPDATE_ONLY);
+            pIndexMerger->setBarrels(pBarrelsInfo_->getBarrelCount());
+            if(pIndexer_->getIndexReader()->getDocFilter())
+                pIndexMerger->setDocFilter(pIndexer_->getIndexReader()->getDocFilter());
             pIndexMerger->merge(pBarrelsInfo_);
+            pIndexer_->getIndexReader()->delDocFilter();
+            pIndexMerger->setDocFilter(NULL);
             }
             break;
         case NOOP:

@@ -18,6 +18,8 @@
 #include <ir/index_manager/index/InMemoryIndexBarrelReader.h>
 #include <ir/index_manager/index/BTreeIndex.h>
 
+#include <ir/index_manager/utility/BitVector.h>
+
 #include <map>
 
 NS_IZENELIB_IR_BEGIN
@@ -119,8 +121,12 @@ public:
      */
     void setMemCache(MemCache* pMemCache)
     {
-        this->pMemCache_ = pMemCache;
+        pMemCache_ = pMemCache;
     }
+
+    void setDocFilter(BitVector* pFilter) { pDocFilter_ = pFilter;}
+
+    BitVector* getDocFilter() { return pDocFilter_; }
 
 private:
     string barrelName_;
@@ -137,8 +143,10 @@ private:
 
     Directory* pDirectory_;
 
+    BitVector* pDocFilter_;
+
     friend class InMemoryIndexBarrelReader;
-    friend class IndexWriter;
+    friend class IndexWriterWorker;
 };
 
 }

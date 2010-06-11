@@ -14,6 +14,7 @@
 #include <ir/index_manager/index/TermInfo.h>
 #include <ir/index_manager/index/FieldInfo.h>
 #include <ir/index_manager/store/Directory.h>
+#include <ir/index_manager/utility/BitVector.h>
 
 NS_IZENELIB_IR_BEGIN
 
@@ -36,7 +37,7 @@ class TermIterator;
 class TermReader
 {
 public:
-    TermReader(void);
+    TermReader();
 
     TermReader(FieldInfo* pFieldInfo);
 
@@ -51,9 +52,9 @@ public:
     ///Seek whether the query term exist within the vocabulary or not
     virtual bool seek(Term* pTerm) = 0;
     ///Get the TermDocFreqs instance for query
-    virtual TermDocFreqs*	termDocFreqs() = 0;
+    virtual TermDocFreqs* termDocFreqs() = 0;
     ///Get the TermPositions instance for query
-    virtual TermPositions*	termPositions() = 0;
+    virtual TermPositions* termPositions() = 0;
     ///Get DF for a certain term. DF exists on vocabulary, so it could be returned directly
     virtual freq_t docFreq(Term* term) = 0;
 
@@ -66,8 +67,13 @@ public:
     FieldInfo* getFieldInfo() { return pFieldInfo_;}
 
     void setFieldInfo(FieldInfo* pFieldInfo) { pFieldInfo_ = pFieldInfo; }
+
+    virtual void setDocFilter(BitVector* pFilter) { pDocFilter_ = pFilter;}
+
+    BitVector* getDocFilter() { return pDocFilter_; }
 protected:
     FieldInfo* pFieldInfo_;	///reference to field info
+    BitVector* pDocFilter_;
 
     friend class TermDocFreqs;
     friend class MultiFieldTermReader;

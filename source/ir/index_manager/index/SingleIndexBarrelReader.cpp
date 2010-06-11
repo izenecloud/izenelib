@@ -2,14 +2,12 @@
 #include <ir/index_manager/index/MultiFieldTermReader.h>
 #include <ir/index_manager/index/TermReader.h>
 #include <ir/index_manager/index/FieldInfo.h>
-#include <ir/index_manager/index/Indexer.h>
-
-#define MAX_MEM_POOL_SIZE_FOR_ONE_POSTING 10*1024*1024
+#include <ir/index_manager/index/IndexReader.h>
 
 using namespace izenelib::ir::indexmanager;
 
-SingleIndexBarrelReader::SingleIndexBarrelReader(Indexer* pIndex, BarrelInfo* pBarrel)
-        : IndexBarrelReader(pIndex)
+SingleIndexBarrelReader::SingleIndexBarrelReader(IndexReader* pIndexReader, BarrelInfo* pBarrel)
+        : IndexBarrelReader(pIndexReader)
         , pBarrelInfo_(pBarrel)
         , pMemCache_(NULL)
 {
@@ -17,10 +15,11 @@ SingleIndexBarrelReader::SingleIndexBarrelReader(Indexer* pIndex, BarrelInfo* pB
     open(pBarrelInfo_->getName().c_str());
 }
 
-SingleIndexBarrelReader::~SingleIndexBarrelReader(void)
+SingleIndexBarrelReader::~SingleIndexBarrelReader()
 {
     close();
-    for (map<collectionid_t, TermReader*>::iterator iter = termReaderMap_.begin(); iter != termReaderMap_.end(); ++iter)
+    for (map<collectionid_t, TermReader*>::iterator iter
+            = termReaderMap_.begin(); iter != termReaderMap_.end(); ++iter)
         delete iter->second;
     termReaderMap_.clear();
     delete pCollectionsInfo_;
@@ -30,9 +29,9 @@ SingleIndexBarrelReader::~SingleIndexBarrelReader(void)
 
 void SingleIndexBarrelReader::open(const char* name)
 {
-    this->name_ = name;
+    name_ = name;
 
-    Directory* pDirectory = pIndexer_->getDirectory();
+    Directory* pDirectory = pIndexReader_->pIndexer_->getDirectory();
     string s = name;
     s+= ".fdi";
     IndexInput* pIndexInput = pDirectory->openInput(s.c_str());
@@ -76,6 +75,8 @@ void SingleIndexBarrelReader::open(const char* name)
         {
             SF1V5_THROW(ERROR_INDEX_COLLAPSE,"the field number is 0.");
         }
+        if((!pBarrelInfo_->isUpdate) && pIndexReader_->pDocFilter_ && pIndexReader_->pDocFilter_->any())
+            pTermReader->setDocFilter(pIndexReader_->pDocFilter_);
         termReaderMap_.insert(pair<collectionid_t, TermReader*>(pColInfo->getId(),pTermReader));
     }
 

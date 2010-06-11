@@ -28,7 +28,7 @@ public:
 
     MultiFieldTermReader();
 
-    virtual ~MultiFieldTermReader(void);
+    virtual ~MultiFieldTermReader();
 public:
     /**
      * open a index barrel
@@ -38,8 +38,12 @@ public:
      */
     void open(Directory* pDirectory,const char* barrelname,FieldInfo* pFieldInfo);
 
-
     void reopen();
+    /*
+     *  set delete documents filter
+     */
+    void setDocFilter(BitVector* pFilter);
+
     /**
      * get the term iterator
      * @param field field name
@@ -85,7 +89,6 @@ public:
      */
     void close();
 
-
     /**
      * clone the term reader
      * @return term reader, MUST be deleted by caller.
@@ -106,7 +109,6 @@ protected:
      */
     TermInfo* termInfo(Term* term);
 
-    void open(Directory* pDirectory,const char* barrelname,FieldsInfo* pFieldsInfo);
 protected:
     typedef map<string,TermReader*> reader_map;
 

@@ -99,6 +99,13 @@ private:
 *@brief merge index
 */
 class Indexer;
+
+enum MergeType
+{
+    INDEX_ONLY,
+    UPDATE_ONLY,
+    ALL
+};
 class IndexMerger
 {
 public:
@@ -110,14 +117,14 @@ public:
      * merge sub indexes
      * @param pBarrelsInfo barrels of index
      */
-    void merge(BarrelsInfo* pBarrelsInfo,bool mergeUpdateOnly = false);
+    void merge(BarrelsInfo* pBarrelsInfo, MergeType  mergeType = ALL);
 
     /**
      * add a index barrel to merge
      * @param pBarrelsInfo the index
      * @param pBarrelInfo info of barrel need to merge
      */
-    void addToMerge(BarrelsInfo* pBarrelsInfo,BarrelInfo* pBarrelInfo);
+    void addToMerge(BarrelsInfo* pBarrelsInfo, BarrelInfo* pBarrelInfo);
 
     /**
      * set directory of index

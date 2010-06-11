@@ -22,7 +22,7 @@ class InMemoryIndexBarrelReader : public IndexBarrelReader
 {
 public:
     InMemoryIndexBarrelReader(IndexBarrelWriter* pIndexBarrelWriter);
-    virtual ~InMemoryIndexBarrelReader(void);
+    virtual ~InMemoryIndexBarrelReader();
 public:
     TermReader* termReader(collectionid_t colID);
 

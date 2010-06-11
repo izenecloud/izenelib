@@ -54,7 +54,7 @@ class Indexer: private boost::noncopyable
 {
 public:
 
-    Indexer(ManagerType managerType = MANAGER_INDEXING_BTREE );
+    Indexer(ManagerType managerType = MANAGER_INDEXING_BTREE|MANAGER_INDEXING_STANDALONE_MERGER);
 
     virtual ~Indexer();
 public:
@@ -172,7 +172,7 @@ protected:
 
     izenelib::util::ReadWriteLock mutex_;
 
-    friend class IndexWriter;
+    friend class IndexWriterWorker;
 
     friend class IndexReader;
 

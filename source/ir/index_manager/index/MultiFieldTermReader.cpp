@@ -9,7 +9,19 @@ MultiFieldTermReader::MultiFieldTermReader(Directory* pDirectory,const char* bar
         : TermReader()
         , pCurReader_(NULL)
 {
-    open(pDirectory,barrelname,pFieldsInfo);
+    FieldInfo* pInfo = NULL;
+    TermReader* pTermReader = NULL;
+    pFieldsInfo->startIterator();
+    while (pFieldsInfo->hasNext())
+    {
+        pInfo = pFieldsInfo->next();
+
+        if (pInfo->isIndexed()&&pInfo->isForward())
+        {
+            pTermReader = new DiskTermReader(pDirectory,barrelname,pInfo);
+            fieldsTermReaders_.insert(pair<string,TermReader*>(pInfo->getName(),pTermReader));
+        }
+    }
 }
 
 MultiFieldTermReader::MultiFieldTermReader()
@@ -21,6 +33,13 @@ MultiFieldTermReader::MultiFieldTermReader()
 MultiFieldTermReader::~MultiFieldTermReader()
 {
     close();
+}
+
+void MultiFieldTermReader::setDocFilter(BitVector* pFilter) 
+{
+    for(map<string,TermReader*>::iterator iter = fieldsTermReaders_.begin();
+        iter != fieldsTermReaders_.end(); ++iter)
+        iter->second->setDocFilter(pFilter);
 }
 
 void MultiFieldTermReader::open(Directory* pDirectory,const char* barrelname,FieldInfo* pFieldInfo)
@@ -110,23 +129,6 @@ TermReader* MultiFieldTermReader::clone()
         iter++;
     }
     return pReader;
-}
-
-void MultiFieldTermReader::open(Directory* pDirectory,const char* barrelname,FieldsInfo* pFieldsInfo)
-{
-    FieldInfo* pInfo = NULL;
-    TermReader* pTermReader = NULL;
-    pFieldsInfo->startIterator();
-    while (pFieldsInfo->hasNext())
-    {
-        pInfo = pFieldsInfo->next();
-
-        if (pInfo->isIndexed()&&pInfo->isForward())
-        {
-            pTermReader = new DiskTermReader(pDirectory,barrelname,pInfo);
-            fieldsTermReaders_.insert(pair<string,TermReader*>(pInfo->getName(),pTermReader));
-        }
-    }
 }
 
 void MultiFieldTermReader::addTermReader(const char* field,TermReader* pTermReader)

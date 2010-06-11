@@ -13,6 +13,7 @@ MultiTermReader::MultiTermReader(MultiIndexBarrelReader* pReader, collectionid_t
         , pCurReader_(NULL)
 {
 }
+
 MultiTermReader::~MultiTermReader(void)
 {
     pBarrelReader_ = NULL;
@@ -21,7 +22,6 @@ MultiTermReader::~MultiTermReader(void)
 
 void MultiTermReader::open(Directory* pDirectory,const char* barrelname,FieldInfo* pFieldInfo)
 {
-    throw UnsupportedOperationException("Unsupported Operation : MultiTermReader::open.");
 }
 
 void MultiTermReader::reopen()
@@ -36,24 +36,24 @@ void MultiTermReader::reopen()
 
 TermIterator* MultiTermReader::termIterator(const char* field)
 {
-    ReaderCache* pSeList = NULL;
+    ReaderCache* pReaderCache = NULL;
     map<string,ReaderCache*>::iterator iter = readerCache_.find(field);
     if (iter != readerCache_.end())
     {
-        pSeList = iter->second;
+        pReaderCache = iter->second;
     }
     else
     {
-        pSeList = loadReader(field);
+        pReaderCache = loadReader(field);
     }
     MultiTermIterator* pTermIterator = new MultiTermIterator();
     TermIterator* pIt;
-    while (pSeList)
+    while (pReaderCache)
     {
-        pIt = pSeList->pTermReader_->termIterator(field);
+        pIt = pReaderCache->pTermReader_->termIterator(field);
         if (pIt)
             pTermIterator->addIterator(pIt);
-        pSeList = pSeList->next_;
+        pReaderCache = pReaderCache->next_;
     }
     return pTermIterator;
 }
@@ -62,22 +62,22 @@ bool MultiTermReader::seek(Term* term)
 {
     bool bSuc = false;
     string field = term->getField();
-    ReaderCache* pSeList = NULL;
+    ReaderCache* pReaderCache = NULL;
 
     pCurReader_ = NULL;
     map<string,ReaderCache*>::iterator iter = readerCache_.find(field);
     if (iter != readerCache_.end())
     {
-        pCurReader_ = pSeList = iter->second;
+        pCurReader_ = pReaderCache = iter->second;
     }
     else
     {
-        pCurReader_ = pSeList = loadReader(field.c_str());
+        pCurReader_ = pReaderCache = loadReader(field.c_str());
     }
-    while (pSeList)
+    while (pReaderCache)
     {
-        bSuc = (pSeList->pTermReader_->seek(term) || bSuc);
-        pSeList = pSeList->next_;
+        bSuc = (pReaderCache->pTermReader_->seek(term) || bSuc);
+        pReaderCache = pReaderCache->next_;
     }
 
     return bSuc;
@@ -140,23 +140,23 @@ freq_t MultiTermReader::docFreq(Term* term)
 {
     freq_t df = 0;
     string field = term->getField();
-    ReaderCache* pSeList = NULL;
+    ReaderCache* pReaderCache = NULL;
 
     pCurReader_ = NULL;
     map<string,ReaderCache*>::iterator iter = readerCache_.find(field);
     if (iter != readerCache_.end())
     {
-        pCurReader_ = pSeList = iter->second;
+        pCurReader_ = pReaderCache = iter->second;
     }
     else
     {
-        pCurReader_ = pSeList = loadReader(field.c_str());
+        pCurReader_ = pReaderCache = loadReader(field.c_str());
     }
 
-    while (pSeList)
+    while (pReaderCache)
     {
-        df += pSeList->pTermReader_->docFreq(term);
-        pSeList = pSeList->next_;
+        df += pReaderCache->pTermReader_->docFreq(term);
+        pReaderCache = pReaderCache->next_;
     }
 
     return df;

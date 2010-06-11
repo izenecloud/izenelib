@@ -47,6 +47,7 @@ void IndexBarrelWriter::close()
         writeCache();
         resetCache();
     }
+    pDocFilter_ = NULL;
 }
 void IndexBarrelWriter::rename(const char* newName)
 {

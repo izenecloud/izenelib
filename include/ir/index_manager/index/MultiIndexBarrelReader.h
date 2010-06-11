@@ -20,19 +20,19 @@ NS_IZENELIB_IR_BEGIN
 
 namespace indexmanager{
 /**
-* @brief The helper class to make pair between BarrelInfo and SingleIndexBarrelReader, this pair will be stored inside the
-* MultiIndexBarrelReader
+* @brief The helper class to make pair between BarrelInfo and SingleIndexBarrelReader, 
+* this pair will be stored inside the MultiIndexBarrelReader
 */
 class BarrelReaderEntry
 {
 public:
-    BarrelReaderEntry(Indexer* pIndexer,BarrelInfo* pBarrelInfo)
+    BarrelReaderEntry(IndexReader* pIndexReader,BarrelInfo* pBarrelInfo)
     {
         pBarrelInfo_ = pBarrelInfo;
         if (pBarrelInfo->getWriter())
             pBarrelReader_ = pBarrelInfo->getWriter()->inMemoryReader();
         else
-            pBarrelReader_ = new SingleIndexBarrelReader(pIndexer,pBarrelInfo);
+            pBarrelReader_ = new SingleIndexBarrelReader(pIndexReader,pBarrelInfo);
     }
 
     ~BarrelReaderEntry()
@@ -50,15 +50,16 @@ public:
 };
 
 /**
-* @brief Open multi index barrel and return instance of TermReader, each index barrel is opened and read by SingleIndexBarrelReader
+* @brief Open multi index barrel and return instance of TermReader, 
+* each index barrel is opened and read by SingleIndexBarrelReader
 */
 class MultiTermReader;
 class MultiIndexBarrelReader : public IndexBarrelReader
 {
 public:
-    MultiIndexBarrelReader(Indexer* pIndex,BarrelsInfo* pBarrelsInfo);
+    MultiIndexBarrelReader(IndexReader* pIndexReader,BarrelsInfo* pBarrelsInfo);
 
-    virtual ~MultiIndexBarrelReader(void);
+    virtual ~MultiIndexBarrelReader();
 public:
     void open(const char* name);
 
@@ -69,9 +70,6 @@ public:
     size_t getDistinctNumTerms(collectionid_t colID, const std::string& property);
 
     void close();
-
-private:
-    void addReader(BarrelInfo* pBarrelInfo);
 
 private:
     BarrelsInfo* pBarrelsInfo_;

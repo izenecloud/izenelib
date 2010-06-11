@@ -15,7 +15,7 @@
 NS_IZENELIB_IR_BEGIN
 
 namespace indexmanager{
-class Indexer;
+class IndexReader;
 class BarrelInfo;
 /**
 * @brief Open a certain index barrel and return instance of TermReader
@@ -24,8 +24,8 @@ class BarrelInfo;
 class SingleIndexBarrelReader : public IndexBarrelReader
 {
 public:
-    SingleIndexBarrelReader(Indexer* pIndex, BarrelInfo* pBarrelInfo);
-    virtual ~SingleIndexBarrelReader(void);
+    SingleIndexBarrelReader(IndexReader* pIndexReader, BarrelInfo* pBarrelInfo);
+    virtual ~SingleIndexBarrelReader();
 public:
     void open(const char* name);
 
