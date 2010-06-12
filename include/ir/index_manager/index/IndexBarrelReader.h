@@ -34,7 +34,7 @@ public:
 
     IndexBarrelReader():pIndexReader_(NULL){}
 
-    virtual ~IndexBarrelReader();
+    virtual ~IndexBarrelReader(){}
 public:
     /**
     * Return the TermReader instance

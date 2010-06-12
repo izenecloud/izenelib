@@ -24,61 +24,8 @@ NS_IZENELIB_IR_BEGIN
 namespace indexmanager{
 
 class Indexer;
-class IndexWriter;
 class IndexMerger;
 class IndexMergeManager;
-/*
-* Helper classs to proceed the index construction
-*/
-class IndexWriterWorker
-{
-public:
-    IndexWriterWorker(IndexWriter* pIndexWriter, bool update);
-
-    ~IndexWriterWorker();
-public:
-    /// index document
-    void addDocument(IndexerDocument& doc);
-    /// remove document
-    void removeDocument(collectionid_t colID, docid_t docId);
-     /// merge the barrels index manually using an existing IndexMerger
-    void mergeIndex(IndexMerger* pIndexMerger);
-    /// optimize index
-    void optimizeIndex();
-    /// flush index
-    void flush();
-private:
-    void createBarrelWriter();
-     /// create index merger
-    void createMerger();
-    ///will be used by mergeIndex
-    void mergeAndWriteCachedIndex();
-    ///will be used when index documents
-    void addToMergeAndWriteCachedIndex();
-    /// flush in-memory index to disk
-    void writeCachedIndex();	
-    ///merge the updated barrel
-    void mergeUpdatedBarrel(docid_t currDocId);
-private:
-    IndexWriter* pIndexWriter_;
-
-    bool update_; /// true: merge update barrels only  false: merge index barrels only
-
-    IndexBarrelWriter* pIndexBarrelWriter_;
-
-    map<collectionid_t,docid_t> baseDocIDMap_;
-
-    BarrelsInfo* pBarrelsInfo_;
-
-    BarrelInfo* pCurBarrelInfo_;
-
-    IndexMerger* pIndexMerger_;
-
-    Indexer* pIndexer_;
-
-    count_t* pCurDocCount_;
-};
-
 /**
 * @brief IndexWriter is the manager class which process the index construction and index merging
 * IndexWriter does not support concurrent index construction, because it will lead to many unnecessary 
@@ -104,26 +51,41 @@ public:
     void flush();
     /// set schedule 
     void scheduleOptimizeTask(std::string expression, string uuid);
+
 private:
+    void createBarrelWriter();
+     /// create index merger
+    void createMerger();
+    /// mergeIndex
+    void mergeIndex(IndexMerger * pMerger);
+    ///will be used by mergeIndex
+    void mergeAndWriteCachedIndex();
+    ///will be used when index documents
+    void addToMergeAndWriteCachedIndex();
+    /// flush in-memory index to disk
+    void writeCachedIndex();	
     /// optimize index offline
     void lazyOptimizeIndex();
-    /// IndexBarrelWriter is the practical class to process indexing procedure.
 private:
-    IndexWriterWorker* pIndexWorker_;
-
-    IndexWriterWorker* pUpdateWorker_;
-
     MemCache* pMemCache_;
 
     Indexer* pIndexer_;
 
+    IndexBarrelWriter* pIndexBarrelWriter_;
+
     BarrelsInfo* pBarrelsInfo_;
+
+    BarrelInfo* pCurBarrelInfo_;
+
+    count_t* pCurDocCount_;
+
+    IndexMerger* pIndexMerger_;
 
     IndexMergeManager* pIndexMergeManager_;
 
-    izenelib::util::CronExpression scheduleExpression_;
+    map<collectionid_t,docid_t> baseDocIDMap_;
 
-    friend class IndexWriterWorker;
+    izenelib::util::CronExpression scheduleExpression_;
 };
 
 }

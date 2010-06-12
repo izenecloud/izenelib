@@ -37,6 +37,7 @@ MergeBarrelEntry::~MergeBarrelEntry()
 
     pBarrelInfo_ = NULL;
 }
+
 void MergeBarrelEntry::load()
 {
     IndexBarrelWriter* pWriter = pBarrelInfo_->getWriter();
@@ -81,8 +82,7 @@ IndexMerger::~IndexMerger()
     pDocFilter_ = 0;
 }
 
-
-void IndexMerger::merge(BarrelsInfo* pBarrels, MergeType  mergeType)
+void IndexMerger::merge(BarrelsInfo* pBarrels)
 {
     triggerMerge_ = false;
 
@@ -103,19 +103,6 @@ void IndexMerger::merge(BarrelsInfo* pBarrels, MergeType  mergeType)
         pBaInfo = pBarrels->next();
         if(pBaInfo->getWriter())
             continue;
-        switch(mergeType)
-        {
-        case UPDATE_ONLY:
-            if(!(pBaInfo->isUpdate))
-                continue;
-            break;
-        case INDEX_ONLY:
-            if(pBaInfo->isUpdate)
-                continue;
-            break;
-        case ALL:
-            break;
-        }
         mb.put(new MergeBarrelEntry(pDirectory_,pBaInfo));
     }
 

@@ -486,12 +486,13 @@ namespace irdb
                 //did not delete document data here, for update later
             }
             
-            void updateDocument(docid_t docId, IRDocument<DATA_VECTOR_TYPE>& irDocument)
+            void updateDocument(docid_t oldDocId, docid_t docId, IRDocument<DATA_VECTOR_TYPE>& irDocument)
             {
                 if(!isOpen()) return;
                 if(irDocument.termSize()==0) return;
                 irDocument.sortField();
                 iii::IndexerDocument document;
+                document.setId(oldDocId);
                 document.setDocId(docId,C::kCollectionId());
                 std::string propertyName = "";
 
@@ -930,12 +931,13 @@ namespace irdb
                 //did not delete document data here, for update later
             }
             
-            void updateDocument(docid_t docId, PureIRDocument& irDocument)
+            void updateDocument(docid_t oldDocId, docid_t docId, PureIRDocument& irDocument)
             {
                 if(!isOpen()) return;
                 if(irDocument.termSize()==0) return;
                 irDocument.sortField();
                 iii::IndexerDocument document;
+                document.setId(oldDocId);
                 document.setDocId(docId,C::kCollectionId());
                 std::string propertyName = "";
 

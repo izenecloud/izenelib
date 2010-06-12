@@ -210,6 +210,21 @@ public:
     }
 
 	/**
+	 * @brief a member function to get document ID from the vocabulary which matches to the given document name.
+	 * set the document ID to the new value so that it can satisfy the incremental document ID semantic.
+	 *
+	 * @param docName		a unique string of the document which is used to distinguish between documents.
+	 * @param oldId    	    the old document identifier which matches to the document name.
+	 * @param updatedId  the new old old document identifier which matches to the document name.
+	 * @return true  : 	    Document name exists in the dictionary.
+	 * @return false : 	    Document name does not exist in the dictionary.
+	 */
+	bool updateDocIdByDocName(const NameString& docName, NameID& oldId, NameID& updatedId)
+    {
+        return docIdManager_.updateDocIdByDocName(docName, oldId,updatedId);
+    }
+
+	/**
 	 * @brief a member function to get a name of the document by its ID.
 	 *
 	 * @param docId		    a document identifier.

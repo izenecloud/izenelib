@@ -15,14 +15,14 @@ IndexMergeManager::IndexMergeManager(Indexer* pIndexer)
 {
     pBarrelsInfo_ = pIndexer_->getBarrelsInfo();
 
-    indexMergers_[INDEX] = new MultiWayMerger(pIndexer_);
-    indexMergers_[UPDATE] = new MultiWayMerger(pIndexer_);
+    indexMergers_[ONLINE] = new MultiWayMerger(pIndexer_);
     indexMergers_[OFFLINE] = new OfflineIndexMerger(pIndexer_, pBarrelsInfo_->getBarrelCount());
 }
 
 IndexMergeManager::~IndexMergeManager()
 {
     stop();
+    mergethread_->join();
     for(std::map<MergeOPType, IndexMerger*>::iterator iter = indexMergers_.begin();
               iter != indexMergers_.end(); ++iter)
         delete iter->second;
@@ -42,10 +42,10 @@ void IndexMergeManager::stop()
     tasks_.push(op);
 }
 
-void IndexMergeManager::triggerMerge(BarrelInfo* pBarrelInfo, bool update)
+void IndexMergeManager::triggerMerge(BarrelInfo* pBarrelInfo)
 {
     MergeOP op;
-    op.opType = update? UPDATE : INDEX;
+    op.opType = ONLINE;
     op.pBarrelInfo = pBarrelInfo;
     tasks_.push(op);
 }
@@ -58,8 +58,7 @@ void IndexMergeManager::mergeIndex()
         tasks_.pop(op);
         switch(op.opType)
         {
-        case INDEX:
-        case UPDATE:
+        case ONLINE:
             {
             IndexMerger* pIndexMerger = indexMergers_[op.opType];
             pIndexMerger->addToMerge(pBarrelsInfo_, op.pBarrelInfo);
@@ -68,10 +67,6 @@ void IndexMergeManager::mergeIndex()
         case OFFLINE:
 	    {
             OfflineIndexMerger* pIndexMerger = reinterpret_cast<OfflineIndexMerger*>(indexMergers_[op.opType]);
-            pIndexMerger->setBarrels(pBarrelsInfo_->getBarrelCount());
-            pIndexMerger->merge(pBarrelsInfo_, INDEX_ONLY);
-            pIndexMerger->setBarrels(pBarrelsInfo_->getBarrelCount());
-            pIndexMerger->merge(pBarrelsInfo_, UPDATE_ONLY);
             pIndexMerger->setBarrels(pBarrelsInfo_->getBarrelCount());
             if(pIndexer_->getIndexReader()->getDocFilter())
                 pIndexMerger->setDocFilter(pIndexer_->getIndexReader()->getDocFilter());

@@ -70,6 +70,18 @@ namespace idmanager {
 		bool getDocIdByDocName(const NameString& docName, NameID& docId);
 
 		/**
+		 * @brief a member function to get document ID from the vocabulary which matches to the given document name.
+		 * set the document ID to the new value so that it can satisfy the incremental document ID semantic.
+		 *
+		 * @param docName		a unique string of the document which is used to distinguish between documents.
+		 * @param oldId 		the old document identifier which matches to the document name.
+		 * @param updatedId  the new old old document identifier which matches to the document name.
+		 * @return true  :		Document name exists in the dictionary.
+		 * @return false :		Document name does not exist in the dictionary.
+		 */
+		bool updateDocIdByDocName(const NameString& docName, NameID& oldId, NameID& updatedId);
+
+		/**
 		 * @brief a member function to offer a document name according to the ID.
 		 *
 		 * @param docId	        a document identifier which is used to get document name.
@@ -123,6 +135,16 @@ namespace idmanager {
     {
         return idFactory_.getNameIDByNameString(docName, docId);
     } // end - getDocIdByDocName()
+
+	template<typename NameString, typename NameID, typename IDGenerator, typename IDStorage>
+	bool DocIdManager<NameString, NameID, IDGenerator, IDStorage>::updateDocIdByDocName(
+        const NameString& docName,
+        NameID& oldId,
+        NameID& updatedId)
+    {
+        return idFactory_.updateNameIDByNameString(docName, oldId, updatedId);
+    } // end - getDocIdByDocName()
+
 
 	template<typename NameString, typename NameID, typename IDGenerator, typename IDStorage>
 	bool DocIdManager<NameString, NameID, IDGenerator, IDStorage>::getDocNameByDocId(

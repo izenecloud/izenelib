@@ -146,7 +146,7 @@ private:
     BitVector* pDocFilter_;
 
     friend class InMemoryIndexBarrelReader;
-    friend class IndexWriterWorker;
+    friend class IndexWriter;
 };
 
 }

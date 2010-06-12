@@ -63,12 +63,16 @@ public:
 class IndexerDocument
 {
 public:
-    IndexerDocument():docId_(0),colId_(0){}
+    IndexerDocument():id_(0),docId_(0),colId_(0){}
 
-    IndexerDocument(unsigned int docId, unsigned int colId):docId_(docId),colId_(colId){}
+    IndexerDocument(unsigned int docId, unsigned int colId):id_(0),docId_(docId),colId_(colId){}
 	
     ~IndexerDocument(){}
 public:
+    void setId(docid_t id) {id_ = id;}
+
+    docid_t getId() {return id_;}
+
     void setDocId(unsigned int docId, unsigned int colId){docId_ = docId;colId_ = colId;}
 
     void getDocId(DocId& docId){ docId.docId = docId_; docId.colId = colId_;}
@@ -114,10 +118,11 @@ public:
     bool empty() { return propertyList_.empty();}
 private:
 	friend class boost::serialization::access;
+	docid_t id_;
 	
-	unsigned int docId_;
+	docid_t docId_;
 	
-	unsigned int colId_;
+	docid_t colId_;
 	
 	map<IndexerPropertyConfig, IndexerDocumentPropertyType> propertyList_;
 

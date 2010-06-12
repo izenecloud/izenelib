@@ -64,6 +64,17 @@ public:
 	inline bool getNameIDByNameString(const NameString& nameString, NameID& nameID);
 
 	/**
+	 * @brief This function returns an ID given a string and stores <ID,string> pair into sdb.
+	 * set the  ID to the new value so that it can satisfy the incremental ID semantic.
+	 * @param nameString the name string
+	 * @param oldId the old NameID
+	 * @param updatedId the new NameID
+	 * @return true if the name id is successfully returned
+	 * @return false if no more name id is available
+	 */
+	inline bool updateNameIDByNameString(const NameString& nameString, NameID& oldId, NameID& updatedId);
+
+	/**
 	 * @brief This function returns a name string given name ID
 	 * @param nameID the unique Name ID
 	 * @param nameString the name string
@@ -129,6 +140,19 @@ inline bool IDFactory<NameString, NameID, IDGenerator, IDStorage>::getNameIDByNa
     idStorage_.put(nameID, nameString);
     return false;
 } // end - getNameIDByNameString()
+
+template <typename NameString, typename NameID,
+    typename IDGenerator, typename IDStorage>
+inline bool IDFactory<NameString, NameID, IDGenerator, IDStorage>::updateNameIDByNameString(
+        const NameString& nameString,
+        NameID& oldId,
+        NameID& updatedId)
+{
+    bool ret = idGenerator_.conv(nameString, oldId, updatedId);
+    idStorage_.put(updatedId, nameString);
+    return ret;
+} // end - getNameIDByNameString()
+
 
 template <typename NameString, typename NameID,
     typename IDGenerator, typename IDStorage>

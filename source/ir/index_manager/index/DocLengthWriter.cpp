@@ -4,14 +4,17 @@
 
 using namespace izenelib::ir::indexmanager;
 
-DocLengthWriter::DocLengthWriter(const std::set<IndexerPropertyConfig, IndexerPropertyConfigComp> & schema, Directory* pDirectory)
+DocLengthWriter::DocLengthWriter(
+           const std::set<IndexerPropertyConfig, IndexerPropertyConfigComp> & schema, 
+           Directory* pDirectory)
     :numIndexedProperties_(0)
 {
     propertyOffsetMap_ = new unsigned char[MAX_PROPERTIES];
     memset(propertyOffsetMap_, 0, MAX_PROPERTIES);
     size_t i = 0;
     size_t offset = 0;
-    for(std::set<IndexerPropertyConfig, IndexerPropertyConfigComp>::const_iterator iter = schema.begin(); iter != schema.end(); ++iter, ++i)
+    for(std::set<IndexerPropertyConfig, IndexerPropertyConfigComp>::const_iterator iter 
+            = schema.begin(); iter != schema.end(); ++iter, ++i)
     {
         if(iter->isForward()&&iter->isIndex())
         {

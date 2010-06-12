@@ -64,7 +64,7 @@ public:
     ///mark a document as deleted
     int removeDocument(collectionid_t colID, docid_t docId);
     ///update document
-    int updateDocument(IndexerDocument& doc);	
+    int updateDocument(IndexerDocument& doc);
     /// flush in-memory index to disk
     void flush();
     /// merge all index barrels into a single barrel
@@ -172,7 +172,7 @@ protected:
 
     izenelib::util::ReadWriteLock mutex_;
 
-    friend class IndexWriterWorker;
+    friend class IndexWriter;
 
     friend class IndexReader;
 

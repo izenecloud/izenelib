@@ -118,6 +118,17 @@ public:
 	 */
 	inline bool conv(const NameString& nameString, NameID& nameID);
 
+	/**
+	 * @brief This function returns a unique name id given a name string, update old id to 
+	 * satisfy the incremental semantic
+	 * @param nameString the name string
+	 * @param oldID the old unique NameID
+	 * @param updatedID the updated unique NameID
+	 * @return true if DocID already in dictionary
+	 * @return false otherwise
+	 */
+	inline bool conv(const NameString& nameString, NameID& oldID, NameID& updatedID);
+
 	void flush()
 	{
 	    idFinder_.flush();
@@ -211,6 +222,36 @@ inline bool UniqueIDGenerator<NameString, NameID,
     mutex_.release_write_lock();
 	return false;
 } // end - getNameIDByNameString()
+
+template <typename NameString, typename NameID,
+    typename LockType, NameID MinValueID, NameID MaxValueID>
+inline bool UniqueIDGenerator<NameString, NameID,
+    LockType, MinValueID, MaxValueID>::conv(
+        const NameString& nameString,
+        NameID& oldID,
+        NameID& updatedID)
+{
+    mutex_.acquire_write_lock();
+
+	// If name string is found, return the id.
+	bool ret = idFinder_.getValue(nameString, oldID);
+
+	// Because there's no name string in idFinder, create new id according to the string.
+	updatedID = newID_;
+	newID_++;
+
+	// check correctness of input nameID
+	if (newID_> maxID_)
+	{
+	    mutex_.release_write_lock();
+		throw IDFactoryException(SF1_ID_FACTORY_OUT_OF_BOUND, __LINE__, __FILE__);
+	}
+
+	idFinder_.insertValue(nameString, updatedID);
+    mutex_.release_write_lock();
+	return ret;
+} // end - updateNameIDByNameString()
+
 
 }
 // end - namespace idmanager

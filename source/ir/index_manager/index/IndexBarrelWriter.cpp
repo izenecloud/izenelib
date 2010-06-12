@@ -23,16 +23,11 @@ IndexBarrelWriter::~IndexBarrelWriter(void)
     pMemCache_ = NULL;
 
     if (pCollectionsInfo_)
-    {
         delete pCollectionsInfo_;
-        pCollectionsInfo_ = NULL;
-    }
 
-    for (CollectionIndexerMap::iterator iter = collectionIndexerMap_.begin(); iter != collectionIndexerMap_.end(); ++iter)
-    {
+    for (CollectionIndexerMap::iterator iter = collectionIndexerMap_.begin(); 
+        iter != collectionIndexerMap_.end(); ++iter)
         delete iter->second;
-    }
-    collectionIndexerMap_.clear();
 }
 
 void IndexBarrelWriter::open(const char* barrelName)

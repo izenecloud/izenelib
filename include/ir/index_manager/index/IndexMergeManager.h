@@ -29,8 +29,7 @@ namespace indexmanager{
 
 enum MergeOPType
 {
-    INDEX,
-    UPDATE,
+    ONLINE,
     OFFLINE,
     NOOP
 };
@@ -50,7 +49,7 @@ public:
 public:
     void run();
 
-    void triggerMerge(BarrelInfo* pBarrelInfo, bool updateOnly);
+    void triggerMerge(BarrelInfo* pBarrelInfo);
 
     void optimizeIndex();
 
