@@ -239,7 +239,7 @@ void IndexWriter::updateDocument(IndexerDocument& doc)
 
     if(uniqueID.docId > pBarrelsInfo_->maxDocId())
         return;
-    pIndexer_->getIndexReader()->delDocument(uniqueID.colId,uniqueID.docId);
+    pIndexer_->getIndexReader()->delDocument(uniqueID.colId,doc.getId());
     indexDocument(doc);
 }
 
