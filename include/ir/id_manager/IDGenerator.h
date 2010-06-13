@@ -236,6 +236,8 @@ inline bool UniqueIDGenerator<NameString, NameID,
 	// If name string is found, return the id.
 	bool ret = idFinder_.getValue(nameString, oldID);
 
+       if(!ret) oldID = 0;
+
 	// Because there's no name string in idFinder, create new id according to the string.
 	updatedID = newID_;
 	newID_++;
