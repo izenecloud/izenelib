@@ -30,14 +30,14 @@ DocLengthReader::DocLengthReader(const std::set<IndexerPropertyConfig, IndexerPr
 DocLengthReader::~DocLengthReader()
 {
     delete propertyOffsetMap_;
-    if(data_) {delete data_; data_ = NULL;}
+    if(data_) {delete[] data_; data_ = NULL;}
 }
 
 void DocLengthReader::load(docid_t maxDocId)
 {
     boost::mutex::scoped_lock lock(this->mutex_);
 
-    if(data_) {delete data_; data_ = NULL;}
+    if(data_) {delete[] data_; data_ = NULL;}
 
     size_ = maxDocId * numIndexedProperties_;
     data_ = new uint16_t[size_];
