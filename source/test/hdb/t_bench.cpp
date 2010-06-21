@@ -13,12 +13,12 @@
 #include <boost/date_time/posix_time/posix_time.hpp>
 #include <boost/test/unit_test.hpp>
 
-#include <wiselib/ustring/UString.h>
+#include <util/ustring/UString.h>
 #include <hdb/HugeDB.h>
 #include <util/ProcMemInfo.h>
 
 using namespace std;
-using namespace wiselib;
+using namespace izenelib::util;
 using namespace izenelib::am;
 using namespace izenelib::hdb;
 
@@ -41,7 +41,7 @@ BOOST_AUTO_TEST_CASE(bench_insert)
     displayMemInfo();
 
     std::cout << "building hdb" << std::endl;
-    //ordered_hdb_no_delta< wiselib::UString, wiselib::UString> hdb("bench0");
+    //ordered_hdb_no_delta< izenelib::util::UString, izenelib::util::UString> hdb("bench0");
     //ordered_hdb_no_delta< std::string, std::string> hdb("bench0");
 
     ordered_hdb_no_delta< int, int> hdb("bench0");
@@ -58,8 +58,8 @@ BOOST_AUTO_TEST_CASE(bench_insert)
         }
     //	std::string k = boost::lexical_cast<std::string>(myrand() );
     //	std::string v = boost::lexical_cast<std::string>(myrand() );
-    //	wiselib::UString key = k;
-    //	wiselib::UString value = v;
+    //	izenelib::util::UString key = k;
+    //	izenelib::util::UString value = v;
         //hdb.insertValue(key,value);
         //hdb.insertValue(k,v);
         hdb.insertValue(myrand(),myrand());

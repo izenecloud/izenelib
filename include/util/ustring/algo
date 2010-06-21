@@ -1,0 +1,23 @@
+
+#ifndef ALGO
+#define ALGO
+
+#include "istring"
+#include "dstring"
+#include "tstring"
+#include "algo.hpp"
+
+NS_IZENELIB_UTIL_BEGIN
+
+typedef Algorithm<istring> ialgo;
+typedef Algorithm<dstring> dalgo;
+typedef Algorithm<tstring> talgo;
+
+typedef Algorithm<iustring> iualgo;
+typedef Algorithm<dustring> dualgo;
+typedef Algorithm<tustring> tualgo;
+
+NS_IZENELIB_UTIL_END
+
+
+#endif

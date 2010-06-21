@@ -9,17 +9,17 @@
 #include <am/3rdparty/rde_hash.h>
 #include <am/3rdparty/stx_btree.h>
 
-#include <wiselib/ustring/UString.h>
+#include <util/ustring/UString.h>
 namespace rde{
 
 /*
 template<> 
-inline  hash_value_t extract_int_key_value<wiselib::UString>(const wiselib::UString& t){
+inline  hash_value_t extract_int_key_value<izenelib::util::UString>(const izenelib::util::UString& t){
 	uint64_t convkey = 0;
 	
 	char* p = (char*)t.c_str();
-	wiselib::UString::size_t length = t.length();	
-	size_t size = length*sizeof(wiselib::UString::value_type);
+	izenelib::util::UString::size_t length = t.length();	
+	size_t size = length*sizeof(izenelib::util::UString::value_type);
 	for (size_t i = 0; i < size; i++)
 		convkey = 37*convkey + (uint8_t)*p++;
 	return convkey;
@@ -361,19 +361,19 @@ BOOST_AUTO_TEST_CASE(izene_cache_performance_test)
 	
 	trace = 0;
 		{
-			izenelib::cache::IzeneCache<wiselib::UString, ValueType, NullLock, RDE_HASH, LRU> cm(cacheSize*10);
+			izenelib::cache::IzeneCache<izenelib::util::UString, ValueType, NullLock, RDE_HASH, LRU> cm(cacheSize*10);
 
 			int sum =0;
 			int hit =0;
 			clock_t t1 = clock();
 			ifstream inf(inputFile1.c_str());
-			wiselib::UString ystr;
+			izenelib::util::UString ystr;
 			string str;
 			ValueType val = 0;
 			while (inf>>str) {
 				sum++;
 				val++;
-				ystr = wiselib::UString(str, wiselib::UString::CP949);
+				ystr = izenelib::util::UString(str, izenelib::util::UString::CP949);
 				if (cm.getValueWithInsert(ystr, val))
 				hit++;
 				else {
@@ -551,19 +551,19 @@ BOOST_AUTO_TEST_CASE(izene_cache_performance_test)
 			
 			trace = 0;
 				{
-					izenelib::cache::IzeneCache<wiselib::UString, ValueType, NullLock, RDE_HASH, LFU> cm(cacheSize*2);
+					izenelib::cache::IzeneCache<izenelib::util::UString, ValueType, NullLock, RDE_HASH, LFU> cm(cacheSize*2);
 
 					int sum =0;
 					int hit =0;
 					clock_t t1 = clock();
 					ifstream inf(inputFile1.c_str());
-					wiselib::UString ystr;
+					izenelib::util::UString ystr;
 					string str;
 					ValueType val = 0;
 					while (inf>>str) {
 						sum++;
 						val++;
-						ystr = wiselib::UString(str, wiselib::UString::CP949);
+						ystr = izenelib::util::UString(str, izenelib::util::UString::CP949);
 						if (cm.getValueWithInsert(ystr, val))
 						hit++;
 						else {

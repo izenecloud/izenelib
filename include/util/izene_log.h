@@ -2,7 +2,7 @@
 #define IZENE_LOG_H_
 
 #include <glog/logging.h>
-#include <wiselib/profiler/ProfilerGroup.h>
+#include <util/profiler/ProfilerGroup.h>
 
 #include "ProcMemInfo.h"
 #include <sstream>

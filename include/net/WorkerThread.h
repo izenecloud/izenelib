@@ -12,7 +12,7 @@
 
 #include <net/message_framework.h>
 #include <net/ServiceItem.h>
-#include <wiselib/thread-pool/ThreadObject.h>
+#include <util/thread-pool/ThreadObject.h>
 
 #include <exception>
 
@@ -21,7 +21,7 @@ namespace messageframework{
 /// @brief This class is a work thread of all the manager.
 /// And each work thread servers only one request.
 template <typename ServiceHandler>
-class WorkerThread : public wiselib::thread_pool::ThreadObject
+class WorkerThread : public izenelib::util::thread_pool::ThreadObject
 {
 	typedef typename boost::shared_ptr<ServiceHandler> ServiceHandlerPtr;
     private:

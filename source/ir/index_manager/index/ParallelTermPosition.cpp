@@ -2,7 +2,7 @@
 
 //#define SF1_TIME_CHECK
 
-#include <wiselib/profiler/ProfilerGroup.h>
+#include <util/profiler/ProfilerGroup.h>
 
 
 #include <algorithm>

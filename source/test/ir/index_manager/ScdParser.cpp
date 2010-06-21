@@ -3,8 +3,8 @@
 #include <cassert>
 #include <cstdio>
 
-#include <wiselib/ustring/UString.h>
-#include <wiselib/profiler/ProfilerGroup.h>
+#include <util/ustring/UString.h>
+#include <util/profiler/ProfilerGroup.h>
 #include <boost/filesystem/path.hpp>
 
 using namespace boost::filesystem;
@@ -17,7 +17,7 @@ ScdParser::ScdParser()
 {
 }
 
-ScdParser::ScdParser( const wiselib::UString::EncodingType & encodingType )
+ScdParser::ScdParser( const izenelib::util::UString::EncodingType & encodingType )
     :size_(0), encodingType_(encodingType), docOffsetList_(NULL)
 {
 }
@@ -179,13 +179,13 @@ bool ScdParser::load(const string& path)
     return true;
 }
 
-bool ScdParser::getDocIdList( std::vector<wiselib::UString> & list )
+bool ScdParser::getDocIdList( std::vector<izenelib::util::UString> & list )
 {
     if( docOffsetList_ != NULL )
     {
         delete docOffsetList_;
     }
-    docOffsetList_ = new izenelib::am::cccr_hash<wiselib::UString, long>();
+    docOffsetList_ = new izenelib::am::cccr_hash<izenelib::util::UString, long>();
     if( !fs_.is_open() )
         return false;
 
@@ -211,7 +211,7 @@ bool ScdParser::getDocIdList( std::vector<DocIdPair > & list )
     {
         delete docOffsetList_;
     }
-    docOffsetList_ = new izenelib::am::cccr_hash<wiselib::UString, long>();
+    docOffsetList_ = new izenelib::am::cccr_hash<izenelib::util::UString, long>();
     if( !fs_.is_open() )
         return false;
 
@@ -244,7 +244,7 @@ ScdParser::iterator ScdParser::end()
     return iterator(-1);
 }
 
-bool ScdParser::getDoc( const wiselib::UString & docId, SCDDoc& doc )
+bool ScdParser::getDoc( const izenelib::util::UString & docId, SCDDoc& doc )
 {
     long * val = docOffsetList_->find( docId );
     if( val == NULL )
@@ -381,7 +381,7 @@ START_PROFILER ( proScdParsing );
 
         if (name.length() > 0)
         {
-            doc->push_back(FieldPair(wiselib::UString(name, codingType_), wiselib::UString(value, codingType_)));
+            doc->push_back(FieldPair(izenelib::util::UString(name, codingType_), izenelib::util::UString(value, codingType_)));
             name = "";
             value = "";
         }
@@ -408,7 +408,7 @@ START_PROFILER ( proScdParsing );
         value.erase(value.find_last_not_of("\r\n") + 1);
         if (name.length() > 0)
         {
-            doc->push_back(FieldPair(wiselib::UString(name, codingType_), wiselib::UString(value, codingType_)));
+            doc->push_back(FieldPair(izenelib::util::UString(name, codingType_), izenelib::util::UString(value, codingType_)));
         }
 
     }

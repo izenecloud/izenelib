@@ -3,7 +3,7 @@
 
 #include <sf1v5/common/type_defs.h>
 
-#include <wiselib/ustring/UString.h>
+#include <util/ustring/UString.h>
 
 //#include <am/3rdparty/rde_hash.h>
 #include <am/cccr_hash/cccr_hash.h>
@@ -15,10 +15,10 @@
 #include <vector>
 
 
-typedef std::pair<wiselib::UString, wiselib::UString> FieldPair;
+typedef std::pair<izenelib::util::UString, izenelib::util::UString> FieldPair;
 typedef vector< FieldPair > SCDDoc;
 typedef boost::shared_ptr< SCDDoc > SCDDocPtr;
-typedef std::pair<wiselib::UString,sf1v5::docid_t> DocIdPair;
+typedef std::pair<izenelib::util::UString,sf1v5::docid_t> DocIdPair;
 
 enum SCD_TYPE
 {
@@ -34,7 +34,7 @@ class ScdParser
 {
     public:
         ScdParser();
-        ScdParser(const wiselib::UString::EncodingType & encodingType);
+        ScdParser(const izenelib::util::UString::EncodingType & encodingType);
         virtual ~ScdParser();
         
         bool checkSCDFormat( const string & file );
@@ -53,16 +53,16 @@ class ScdParser
         }
 
         /// @brief  A utility function to get all the DOCID values from an SCD
-        bool getDocIdList( std::vector<wiselib::UString> & list );
+        bool getDocIdList( std::vector<izenelib::util::UString> & list );
 
         bool getDocIdList( std::vector<DocIdPair > & list );
         
         /// @brief  Reads a document from the loaded SCD file, when given a DOCID value. 
         //          prerequisites: SCD file must be loaded by load(), and getDocIdList() must be called.
-        bool getDoc( const wiselib::UString & docId, SCDDoc& doc );
+        bool getDoc( const izenelib::util::UString & docId, SCDDoc& doc );
 
         /// @brief gets the encoding type from the config
-        inline wiselib::UString::EncodingType& getEncodingType() {
+        inline izenelib::util::UString::EncodingType& getEncodingType() {
             return encodingType_;
         };
 
@@ -116,7 +116,7 @@ class ScdParser
 
                 SCDDocPtr doc_;
 
-                wiselib::UString::EncodingType codingType_;
+                izenelib::util::UString::EncodingType codingType_;
 
         };  // class iterator
 
@@ -130,11 +130,11 @@ class ScdParser
         
         long size_;
 
-        wiselib::UString::EncodingType encodingType_;
+        izenelib::util::UString::EncodingType encodingType_;
 
-        //izenelib::am::rde_hash<wiselib::UString, long> docOffsetList_;
-        izenelib::am::cccr_hash<wiselib::UString, long> * docOffsetList_;
-        //izenelib::am::LinearHashTable<wiselib::UString, long> docOffsetList_;
+        //izenelib::am::rde_hash<izenelib::util::UString, long> docOffsetList_;
+        izenelib::am::cccr_hash<izenelib::util::UString, long> * docOffsetList_;
+        //izenelib::am::LinearHashTable<izenelib::util::UString, long> docOffsetList_;
 };
 
         

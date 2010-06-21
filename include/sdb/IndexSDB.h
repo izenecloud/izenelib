@@ -15,7 +15,7 @@
 #define INDEXSDB_H_
 
 #include <algorithm>
-#include <wiselib/ustring/UString.h>
+#include <util/ustring/UString.h>
 
 #include "SequentialDB.h"
 
@@ -33,8 +33,8 @@ template<> inline bool isPrefix1<std::string>(const string& sub,
 	return (str.substr(0, sub.length() ) == sub );
 }
 
-template<> inline bool isPrefix1<wiselib::UString>(const wiselib::UString& sub,
-		const wiselib::UString& str) {
+template<> inline bool isPrefix1<izenelib::util::UString>(const izenelib::util::UString& sub,
+		const izenelib::util::UString& str) {
 	return (str.substr(0, sub.length() ) == sub );
 }
 

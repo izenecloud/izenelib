@@ -2,15 +2,15 @@
 #include <vector>
 
 #include <boost/test/unit_test.hpp>
-#include <wiselib/ustring/UString.h>
+#include <util/ustring/UString.h>
 
 #include <sdb/SequentialDB.h>
 #include <util/hashFunction.h>
-//#include <wiselib/ustring/UString.h>
+//#include <util/ustring/UString.h>
 
 
 using namespace std;
-using namespace wiselib;
+using namespace izenelib::util;
 using namespace boost::unit_test;
 //typedef std::string UString;
 namespace TestData

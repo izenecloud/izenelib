@@ -2,7 +2,7 @@
 #include <am/concept/DataType.h>
 #include <util/ProcMemInfo.h>
 #include <util/hashFunction.h>
-#include <wiselib/ustring/UString.h>
+#include <util/ustring/UString.h>
 
 using namespace izenelib::util;
 
@@ -351,7 +351,7 @@ int main() {
 		test_serialization_febird(vvint);
 	}
 
-	wiselib::UString ustr("10K_E", wiselib::UString::CP949);
+	izenelib::util::UString ustr("10K_E", izenelib::util::UString::CP949);
 
 	test_serialization_boost(ustr);
 	cout<<"!!!"<<endl;

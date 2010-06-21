@@ -27,7 +27,7 @@ BOOST_AUTO_TEST_CASE(regular)
 
     {
 
-        MtTrie<wiselib::UString> mtTrie("mtustring", 64);
+        MtTrie<izenelib::util::UString> mtTrie("mtustring", 64);
 	mtTrie.open();
         start = clock();
 	std::ifstream input;
@@ -40,7 +40,7 @@ BOOST_AUTO_TEST_CASE(regular)
 			input.seekg(buffersize, std::ifstream::cur);
 		} else {
 			input.read(buffer, buffersize);
-			wiselib::UString term(std::string(buffer, buffersize) );
+			izenelib::util::UString term(std::string(buffer, buffersize) );
 			mtTrie.insert(term);
 		}
 	}
@@ -55,23 +55,23 @@ BOOST_AUTO_TEST_CASE(regular)
 	input.open("input-ustring", std::ifstream::binary|std::ifstream::in);
 	int buffersize;
 	char buffer[256];
-	std::vector<wiselib::UString> results;
+	std::vector<izenelib::util::UString> results;
 	while(!input.eof()) {
 		input.read((char*)&buffersize, sizeof(int));
 		if(buffersize > 256) {
 			input.seekg(buffersize, std::ifstream::cur);
 		} else {
 			input.read(buffer, buffersize);
-			wiselib::UString term(std::string(buffer, buffersize) );
+			izenelib::util::UString term(std::string(buffer, buffersize) );
 			for(size_t i=0; i<term.length(); i++) {
-				wiselib::UString wildcard = term;
+				izenelib::util::UString wildcard = term;
 				wildcard[i] = '?';
 				results.clear();
 				mtTrie.findRegExp(wildcard, results);
 				BOOST_CHECK(results.size()>0);
 			}
 			for(size_t i=1; i<term.length(); i++) {
-				wiselib::UString wildcard = term;
+				izenelib::util::UString wildcard = term;
 				wildcard[i] = '*';
 				results.clear();
 				mtTrie.findRegExp(wildcard, results);

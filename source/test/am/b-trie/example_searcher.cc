@@ -18,11 +18,11 @@
 #include <am/trie/alphabet.hpp>
 #include <am/map/map.hpp>
 
-#include <wiselib/ustring/UString.h>
+#include <util/ustring/UString.h>
 
 #include <util/izene_log.h>
 
-using namespace wiselib;
+using namespace izenelib::util;
 using namespace izenelib::am;
 using namespace izenelib::util;
 using namespace std;

@@ -7,7 +7,6 @@ MACRO_CHECK_SHOULD_BUILD(
   message_framework
   _NOT_WIN32
   Boost_FOUND
-  wiselib_FOUND
   Glog_FOUND
   )
 
@@ -15,7 +14,6 @@ IF(message_framework_SHOULD_BUILD)
 
   INCLUDE_DIRECTORIES(
     ${Boost_INCLUDE_DIRS}
-    ${wiselib_INCLUDE_DIRS}
     ${Glog_INCLUDE_DIRS}
     )
     

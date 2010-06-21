@@ -81,7 +81,7 @@ void  initMeta(IndexManagerConfig& config)
 }
 
 bool makeForwardIndex_(
-    const wiselib::UString& text,
+    const izenelib::util::UString& text,
     const AnalysisInfo& analysisInfo,
     boost::shared_ptr<ForwardIndex>& forwardIndex
 )
@@ -117,13 +117,13 @@ bool prepareDocument_(const SCDDoc& doc,
     analysisInfo.analyzerId_ = "la_korall";
     analysisInfo.tokenizerNameList_.insert("tok_divide");
 	
-    vector<pair<wiselib::UString, wiselib::UString> >::const_iterator p;
+    vector<pair<izenelib::util::UString, izenelib::util::UString> >::const_iterator p;
 
     for (p = doc.begin(); p != doc.end(); p++)
     {
         bool extraProperty = false;
         std::set<IndexerPropertyConfig, IndexerPropertyConfigComp>::const_iterator iter;
-        p->first.convertString( fieldStr, wiselib::UString::UTF_8 );
+        p->first.convertString( fieldStr, izenelib::util::UString::UTF_8 );
         IndexerPropertyConfig temp;
         temp.setName(fieldStr);
         iter = collectionProperty.find( temp );
@@ -132,7 +132,7 @@ bool prepareDocument_(const SCDDoc& doc,
         if ( iter == collectionProperty.end())
             extraProperty = true;
 
-        const wiselib::UString & propertyValueU = p->second; // preventing copy
+        const izenelib::util::UString & propertyValueU = p->second; // preventing copy
 
         if(!extraProperty)
         {
@@ -143,8 +143,8 @@ bool prepareDocument_(const SCDDoc& doc,
             indexerPropertyConfig.setIsLAInput(false);
         }
 
-        wiselib::UString::EncodingType encoding = wiselib::UString::UTF_8;
-        if ( (p->first == wiselib::UString("DOCID", encoding) ) && (!extraProperty) )
+        izenelib::util::UString::EncodingType encoding = izenelib::util::UString::UTF_8;
+        if ( (p->first == izenelib::util::UString("DOCID", encoding) ) && (!extraProperty) )
         {
             bool ret = idManager_.getDocIdByDocName(propertyValueU, docId);
             if(ret)
@@ -152,7 +152,7 @@ bool prepareDocument_(const SCDDoc& doc,
 
             indexDocument->setDocId(docId, 1);
         }
-        else if ( (p->first == wiselib::UString("DATE", encoding) ) && (!extraProperty) )
+        else if ( (p->first == izenelib::util::UString("DATE", encoding) ) && (!extraProperty) )
         {
             /// format <DATE>20091009163011
             //int64_t time = sf1v5::Utilities::convertDate(propertyValueU);
@@ -223,7 +223,7 @@ void test_run_insert(Indexer* pIndexer, IndexManagerConfig&indexManagerConfig, s
         std::cout << "Create Extractor fail.." << std::endl;
     }
 
-    ScdParser scdparser(wiselib::UString::UTF_8);
+    ScdParser scdparser(izenelib::util::UString::UTF_8);
     if (scdparser.load(scdPath) == false)
     {
         cout<<"parse error"<<endl;
@@ -255,7 +255,7 @@ void test_run_insert(Indexer* pIndexer, IndexManagerConfig&indexManagerConfig, s
 }
 
 
-void test_run_query_singlethread(Indexer* pIndexer, wiselib::UString& term)
+void test_run_query_singlethread(Indexer* pIndexer, izenelib::util::UString& term)
 {
     try
     {
@@ -322,7 +322,7 @@ int main(int argc, char** argv)
     case 2:
 	{
         std::string s(argv[2]);
-        wiselib::UString term(s,wiselib::UString::UTF_8);
+        izenelib::util::UString term(s,izenelib::util::UString::UTF_8);
         test_run_query_singlethread(pIndexer,term);
     	}
         break;

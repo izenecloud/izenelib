@@ -409,9 +409,9 @@ class SeqFileCharCacheHandler
 };
 
 // template < template <class SerialType> class SerialHandler>
-// class SeqFileCharCacheHandler<wiselib::UString, SerialHandler>
+// class SeqFileCharCacheHandler<izenelib::util::UString, SerialHandler>
 // {
-//     typedef SerialHandler<wiselib::UString> SerType;
+//     typedef SerialHandler<izenelib::util::UString> SerType;
 //     typedef std::pair<char*, uint32_t> ValueType;
 //     public:
 //     SeqFileCharCacheHandler():cache_(0), bucketSize_(10000), cacheSize_(0), maxCacheId_(0)
@@ -428,7 +428,7 @@ class SeqFileCharCacheHandler
 //         }
 //     }
 //     
-//     bool insertToCache(std::size_t id, const wiselib::UString& data)
+//     bool insertToCache(std::size_t id, const izenelib::util::UString& data)
 //     {
 //         if( id == 0 ) return false;
 //         if( id > cacheSize_ ) return false;
@@ -466,7 +466,7 @@ class SeqFileCharCacheHandler
 //         return true;
 //     }
 //     
-//     bool getInCache(std::size_t id, wiselib::UString& data)
+//     bool getInCache(std::size_t id, izenelib::util::UString& data)
 //     {
 //         if( id == 0 ) return false;
 //         if( id > maxCacheId_ ) return false;
@@ -474,7 +474,7 @@ class SeqFileCharCacheHandler
 //         {
 //             return false;
 //         }
-//         data = wiselib::UString( (uint16_t*)cache_[id-1].first, cache_[id-1].second);
+//         data = izenelib::util::UString( (uint16_t*)cache_[id-1].first, cache_[id-1].second);
 //         return true;
 //     }
 //     

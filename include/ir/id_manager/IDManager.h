@@ -25,7 +25,7 @@
 
 #include <types.h>
 
-#include <wiselib/ustring/UString.h>
+#include <util/ustring/UString.h>
 
 #include "WildcardQueryManager.h"
 #include "DocIdManager.h"
@@ -327,79 +327,79 @@ private:
  * This version of IDManager supports getTermStringByTermId() and
  * getTermStringListByTermIdList() interface, generated ID are 32bits unsigned integer.
  */
-typedef _IDManager<wiselib::UString, uint32_t> IDManagerDebug32;
+typedef _IDManager<izenelib::util::UString, uint32_t> IDManagerDebug32;
 
 /**
  * This version of IDManager doesn't support getTermStringByTermId() and
  * getTermStringListByTermIdList() interface, generated ID are 32bits unsigned integer.
  */
 /*
-typedef _IDManager<wiselib::UString, uint32_t,
+typedef _IDManager<izenelib::util::UString, uint32_t,
                    izenelib::util::NullLock,
-                   DiskWildcardQueryHandler<wiselib::UString, uint32_t>,
-                   HashIDGenerator<wiselib::UString, uint32_t>,
-                   EmptyIDStorage<wiselib::UString, uint32_t>,
-                   UniqueIDGenerator<wiselib::UString, uint32_t>,
-                   SDBIDStorage<wiselib::UString, uint32_t> > IDManagerRelease32;*/
+                   DiskWildcardQueryHandler<izenelib::util::UString, uint32_t>,
+                   HashIDGenerator<izenelib::util::UString, uint32_t>,
+                   EmptyIDStorage<izenelib::util::UString, uint32_t>,
+                   UniqueIDGenerator<izenelib::util::UString, uint32_t>,
+                   SDBIDStorage<izenelib::util::UString, uint32_t> > IDManagerRelease32;*/
 
-typedef _IDManager<wiselib::UString, uint32_t,
+typedef _IDManager<izenelib::util::UString, uint32_t,
                    izenelib::util::ReadWriteLock,
-                   DiskWildcardQueryHandler<wiselib::UString, uint32_t>,
-                   HashIDGenerator<wiselib::UString, uint32_t>,
-                   EmptyIDStorage<wiselib::UString, uint32_t>,
-                   UniqueIDGenerator<wiselib::UString, uint32_t>,
-                   SDBIDStorage<wiselib::UString, uint32_t> > IDManagerRelease32;
+                   DiskWildcardQueryHandler<izenelib::util::UString, uint32_t>,
+                   HashIDGenerator<izenelib::util::UString, uint32_t>,
+                   EmptyIDStorage<izenelib::util::UString, uint32_t>,
+                   UniqueIDGenerator<izenelib::util::UString, uint32_t>,
+                   SDBIDStorage<izenelib::util::UString, uint32_t> > IDManagerRelease32;
 
 /**
  * This version of IDManager supports getTermStringByTermId() and
  * getTermStringListByTermIdList() interface, generated ID are 64bits unsigned integer.
  */
-typedef _IDManager<wiselib::UString, uint64_t> IDManagerDebug64;
+typedef _IDManager<izenelib::util::UString, uint64_t> IDManagerDebug64;
 
 /**
  * This version of IDManager doesn't support getTermStringByTermId() and
  * getTermStringListByTermIdList() interface, generated ID are 64bits unsigned integer.
  */
-typedef _IDManager<wiselib::UString, uint64_t,
+typedef _IDManager<izenelib::util::UString, uint64_t,
                    izenelib::util::NullLock,
-                   DiskWildcardQueryHandler<wiselib::UString, uint64_t>,
-                   HashIDGenerator<wiselib::UString, uint64_t>,
-                   EmptyIDStorage<wiselib::UString, uint64_t>,
-                   UniqueIDGenerator<wiselib::UString, uint64_t>,
-                   HDBIDStorage<wiselib::UString, uint64_t> > IDManagerRelease64;
+                   DiskWildcardQueryHandler<izenelib::util::UString, uint64_t>,
+                   HashIDGenerator<izenelib::util::UString, uint64_t>,
+                   EmptyIDStorage<izenelib::util::UString, uint64_t>,
+                   UniqueIDGenerator<izenelib::util::UString, uint64_t>,
+                   HDBIDStorage<izenelib::util::UString, uint64_t> > IDManagerRelease64;
 
 /**
  * This version of IDManager is provided for I-classifier, which requires TermID to be
  * uique for different terms, besides it doesn't need generate doc id.
  * Besides, IClassifier requires multi-threads protection.
  */
-//typedef _IDManager<wiselib::UString, uint32_t,
+//typedef _IDManager<izenelib::util::UString, uint32_t,
 //                   izenelib::util::NullLock,
-//                   EmptyWildcardQueryHandler<wiselib::UString, uint32_t>,
-//                   UniqueIDGenerator<wiselib::UString, uint32_t, izenelib::util::ReadWriteLock>,
-//                   HDBIDStorage<wiselib::UString, uint32_t, izenelib::util::ReadWriteLock>,
-//                   EmptyIDGenerator<wiselib::UString, uint32_t>,
-//                   EmptyIDStorage<wiselib::UString, uint32_t> > IDManagerIClassifier;
+//                   EmptyWildcardQueryHandler<izenelib::util::UString, uint32_t>,
+//                   UniqueIDGenerator<izenelib::util::UString, uint32_t, izenelib::util::ReadWriteLock>,
+//                   HDBIDStorage<izenelib::util::UString, uint32_t, izenelib::util::ReadWriteLock>,
+//                   EmptyIDGenerator<izenelib::util::UString, uint32_t>,
+//                   EmptyIDStorage<izenelib::util::UString, uint32_t> > IDManagerIClassifier;
 
-typedef _IDManager<wiselib::UString, uint32_t,
+typedef _IDManager<izenelib::util::UString, uint32_t,
                    izenelib::util::ReadWriteLock,
-                   EmptyWildcardQueryHandler<wiselib::UString, uint32_t>,
-                   HashIDGenerator<wiselib::UString, uint32_t>,
-                   EmptyIDStorage<wiselib::UString, uint32_t>,
-                   EmptyIDGenerator<wiselib::UString, uint32_t>,
-                   EmptyIDStorage<wiselib::UString, uint32_t> > IDManagerIClassifier;
+                   EmptyWildcardQueryHandler<izenelib::util::UString, uint32_t>,
+                   HashIDGenerator<izenelib::util::UString, uint32_t>,
+                   EmptyIDStorage<izenelib::util::UString, uint32_t>,
+                   EmptyIDGenerator<izenelib::util::UString, uint32_t>,
+                   EmptyIDStorage<izenelib::util::UString, uint32_t> > IDManagerIClassifier;
 
 /**
  * This version of IDManager is provided for MIA, which only wants TermID genrated by
  * hash and doesn't permit generating any file.
  */
-typedef _IDManager<wiselib::UString, uint32_t,
+typedef _IDManager<izenelib::util::UString, uint32_t,
                    izenelib::util::NullLock,
-                   EmptyWildcardQueryHandler<wiselib::UString, uint32_t>,
-                   HashIDGenerator<wiselib::UString, uint32_t>,
-                   HDBIDStorage<wiselib::UString, uint32_t>,
-                   EmptyIDGenerator<wiselib::UString, uint32_t>,
-                   EmptyIDStorage<wiselib::UString, uint32_t> > IDManagerMIA;
+                   EmptyWildcardQueryHandler<izenelib::util::UString, uint32_t>,
+                   HashIDGenerator<izenelib::util::UString, uint32_t>,
+                   HDBIDStorage<izenelib::util::UString, uint32_t>,
+                   EmptyIDGenerator<izenelib::util::UString, uint32_t>,
+                   EmptyIDStorage<izenelib::util::UString, uint32_t> > IDManagerMIA;
 /**
  * The default IDManager is IDManagerRelease32, If you want to use a different version,
  * write code like following:

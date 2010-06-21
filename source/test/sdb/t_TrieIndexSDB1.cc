@@ -3,7 +3,7 @@
 
 using namespace std;
 using namespace izenelib::sdb;
-using namespace wiselib;
+using namespace izenelib::util;
 
 const char* indexFile = "indexsdb.dat";
 static string inputFile = "test.txt";
@@ -58,7 +58,7 @@ template< typename V> void run_insert(V& dm) {
 			cout<<" After insert: key="<<ystr<<endl;
 		if (a%10000 == 0)
 			cout<<"idx="<<a<<endl;
-		dm.add_suffix(wiselib::UString(ystr, UString::CP949), wiselib::UString(
+		dm.add_suffix(izenelib::util::UString(ystr, UString::CP949), izenelib::util::UString(
 				ystr, UString::CP949) );
 
 		/*size_t pos = 0;
@@ -93,8 +93,8 @@ template< typename V> void run_get(V& dm) {
 	while (1) {
 		cout<<"input perfix"<<endl;
 		cin>>ystr;
-		vector<wiselib::UString> result;
-		dm.getValuePrefix(wiselib::UString(ystr, UString::CP949), result);
+		vector<izenelib::util::UString> result;
+		dm.getValuePrefix(izenelib::util::UString(ystr, UString::CP949), result);
 		{
 			cout<<"\n prefix="<<ystr<<endl;
 			cout<<"result size: "<<result.size()<<endl;
@@ -106,8 +106,8 @@ template< typename V> void run_get(V& dm) {
 		}
 		cout<<"input suffix"<<endl;
 		cin>>ystr;
-		vector<wiselib::UString> result1;
-		dm.getValueSuffix(wiselib::UString(ystr, UString::CP949), result1);
+		vector<izenelib::util::UString> result1;
+		dm.getValueSuffix(izenelib::util::UString(ystr, UString::CP949), result1);
 		{
 			cout<<"\n suffix="<<ystr<<endl;
 			cout<<"result size: "<<result1.size()<<endl;
@@ -146,16 +146,16 @@ template< typename V> void run_get(V& dm) {
 
 void test() {
 
-	TrieIndexSDB2<wiselib::UString, unsigned int> dm;
+	TrieIndexSDB2<izenelib::util::UString, unsigned int> dm;
 	dm.open();
-	dm.add_suffix(wiselib::UString("abc", UString::CP949), 1);
-	dm.add_suffix(wiselib::UString("ab3d", UString::CP949), 2);
-	dm.add_suffix(wiselib::UString("hello word", UString::CP949), 3);
-	dm.add_suffix(wiselib::UString("word hello", UString::CP949), 4);
-	dm.add_suffix(wiselib::UString("aabbc4do", UString::CP949), 5);
+	dm.add_suffix(izenelib::util::UString("abc", UString::CP949), 1);
+	dm.add_suffix(izenelib::util::UString("ab3d", UString::CP949), 2);
+	dm.add_suffix(izenelib::util::UString("hello word", UString::CP949), 3);
+	dm.add_suffix(izenelib::util::UString("word hello", UString::CP949), 4);
+	dm.add_suffix(izenelib::util::UString("aabbc4do", UString::CP949), 5);
 
 	vector<unsigned int> result;
-	dm.getValuePrefix(wiselib::UString("a", UString::CP949), result);
+	dm.getValuePrefix(izenelib::util::UString("a", UString::CP949), result);
 	{
 		cout<<"\n prefix="<<"a"<<endl;
 		cout<<"result size: "<<result.size()<<endl;
@@ -168,7 +168,7 @@ void test() {
 	cout<<"input suffix"<<endl;
 	vector<unsigned int> result1;
 	
-	dm.getValueSuffix(wiselib::UString("hello", UString::CP949), result1);
+	dm.getValueSuffix(izenelib::util::UString("hello", UString::CP949), result1);
 	{
 		cout<<"\n suffix="<<"hello"<<endl;
 		cout<<"result size: "<<result1.size()<<endl;
@@ -218,7 +218,7 @@ int main(int argc, char *argv[]) {
 		//run_insert(sufSDB);
 
 
-		//TrieIndexSDB2<wiselib::UString, wiselib::UString> sufSDB2;
+		//TrieIndexSDB2<izenelib::util::UString, izenelib::util::UString> sufSDB2;
 		//sufSDB2.open();
 		//sufSDB.initialize(20, degree, 1024*2, cacheSize);
 		//run(sufSDB2);

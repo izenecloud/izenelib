@@ -3,11 +3,11 @@
 #include <iostream>
 #include <sstream>
 #include <am/linear_hash_table/linearHashTable.hpp>
-#include <wiselib/ustring/UString.h>
+#include <util/ustring/UString.h>
 
 #define ENCODE_TYPE UString::UTF_8//EUC_KR//GB2312//
 
-using namespace wiselib;
+using namespace izenelib::util;
 using namespace std;
 using namespace izenelib::am;
 
@@ -30,7 +30,7 @@ class get_input
   static void setEncoding(std::string& str) {
   }
 
-  static void setEncoding(wiselib::UString& str) {
+  static void setEncoding(izenelib::util::UString& str) {
 	str.setSystemEncodingType(ENCODE_TYPE);
   }
 public:
@@ -104,17 +104,17 @@ int main (int argc,char **argv)
   if (size ==0)
   {
     get_input<std::string>::doit("input-string");
-    get_input<wiselib::UString>::doit("input-ustring");
+    get_input<izenelib::util::UString>::doit("input-ustring");
   }
 
   else
   {
     if (maxChars==0) {
       get_input<std::string>::doit("input-string", size);
-      get_input<wiselib::UString>::doit("input-ustring", size);
+      get_input<izenelib::util::UString>::doit("input-ustring", size);
     } else {
       get_input<std::string>::doit("input-string", size, maxChars);
-      get_input<wiselib::UString>::doit("input-ustring", size, maxChars);
+      get_input<izenelib::util::UString>::doit("input-ustring", size, maxChars);
     }
 
   }

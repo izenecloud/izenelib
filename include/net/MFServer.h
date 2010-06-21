@@ -14,7 +14,7 @@
 #include <net/ServiceItem.h>
 #include <net/WorkerThread.h>
 
-#include <wiselib/thread-pool/ThreadObjectPool.h>
+#include <util/thread-pool/ThreadObjectPool.h>
 
 #include <boost/smart_ptr.hpp>
 #include <boost/unordered_map.hpp>
@@ -84,7 +84,7 @@ private:
     unsigned int nThreads_;
 
     ///@brief   The thread pool for the ID services
-    wiselib::thread_pool::ThreadObjectPool threadObjPool_;
+    izenelib::util::thread_pool::ThreadObjectPool threadObjPool_;
 };
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -144,7 +144,7 @@ bool MFServer<ServiceHandle, MapType>::run(void)
 
     bool ret = false;
     boost::system_time wakeupTime;
-    wiselib::thread_pool::ThreadObject* threadObject = NULL;
+    izenelib::util::thread_pool::ThreadObject* threadObject = NULL;
     WorkerThread<ServiceHandle>* workerObject = NULL;
     try
     {
@@ -209,7 +209,7 @@ bool MFServer<ServiceHandle, MapType>::createThreadObjectPool_()
 {
     for (unsigned int i = 0; i < nThreads_; i++)
     {
-        wiselib::thread_pool::ThreadObject* threadObject
+        izenelib::util::thread_pool::ThreadObject* threadObject
             = new WorkerThread<ServiceHandle>();
 
         if (!threadObject)

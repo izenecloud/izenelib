@@ -1,16 +1,6 @@
 #ifndef _ASYNC_STREAM_H_
 #define _ASYNC_STREAM_H_
 
-#include <net/message-framework/PermissionRequester.h>
-#include <net/message-framework/PermissionServer.h>
-#include <net/message-framework/ServiceResultRequester.h>
-#include <net/message-framework/ServiceResultServer.h>
-#include <net/message-framework/ServiceRegistrationServer.h>
-#include <net/message-framework/ServiceRegistrationRequester.h>
-//#include <message-framework/MFSocketBuffer.h>
-#include <net/message-framework/MFSerialization.h>
-#include <net/message-framework/MessageType.h>
-
 #include <boost/bind.hpp>
 #include <boost/smart_ptr.hpp>
 #include <boost/asio.hpp>
@@ -20,6 +10,16 @@
 #include <sstream>
 #include <vector>
 #include <deque>
+
+#include <net/message-framework/PermissionRequester.h>
+#include <net/message-framework/PermissionServer.h>
+#include <net/message-framework/ServiceResultRequester.h>
+#include <net/message-framework/ServiceResultServer.h>
+#include <net/message-framework/ServiceRegistrationServer.h>
+#include <net/message-framework/ServiceRegistrationRequester.h>
+//#include <message-framework/MFSocketBuffer.h>
+#include <net/message-framework/MFSerialization.h>
+#include <net/message-framework/MessageType.h>
 
 using boost::asio::ip::tcp;
 

@@ -13,7 +13,7 @@
 #include <fstream>
 #include <iostream>
 #include <string>
-#include <wiselib/ustring/UString.h>
+#include <util/ustring/UString.h>
 #include <util/hashFunction.h>
 #include <string>
 #include "id_str_table.hpp"
@@ -28,7 +28,7 @@ NS_IZENELIB_IR_BEGIN
  **/
 
 template<
-  wiselib::UString::EncodingType ENCODE_TYPE = wiselib::UString::UTF_8,
+  izenelib::util::UString::EncodingType ENCODE_TYPE = izenelib::util::UString::UTF_8,
   uint8_t ENTRY_POW = 17
   >
 class StrStrTable

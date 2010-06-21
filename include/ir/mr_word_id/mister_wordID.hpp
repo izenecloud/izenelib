@@ -12,7 +12,7 @@
 #include <string>
 #include <vector>
 #include <algorithm>
-#include <wiselib/ustring/UString.h>
+#include <util/ustring/UString.h>
 #include <boost/filesystem/path.hpp>
 #include <boost/filesystem/operations.hpp>
 #include <boost/function.hpp>
@@ -22,7 +22,7 @@
 NS_IZENELIB_IR_BEGIN
 
 template<
-  wiselib::UString::EncodingType ENCODE_TYPE = wiselib::UString::UTF_8,
+  izenelib::util::UString::EncodingType ENCODE_TYPE = izenelib::util::UString::UTF_8,
   uint32_t START_ID = 1
   >
 class MisterWordID
@@ -161,6 +161,19 @@ class MisterWordID
         continue;
 
       std::string nm = item_b->path().file_string();
+      std::size_t dot = nm.find_last_of('.');
+      if (dot!=std::string::npos &&
+          (nm.substr(dot)==".gz" ||nm.substr(dot)==".tar"
+           ||nm.substr(dot)==".zip" || nm.substr(dot)==".rar"
+           ||nm.substr(dot)==".bmp" ||nm.substr(dot)==".png"
+           ||nm.substr(dot)==".jpg" || nm.substr(dot)==".gif"
+           ||nm.substr(dot)==".rmp" ||nm.substr(dot)==".pdf"
+           ||nm.substr(dot)==".ps" ||nm.substr(dot)==".ico" ))
+      {
+        std::cout<<"Skip to scan '"<<nm<<"'\n";
+        continue;
+      }
+      
       std::cout<<"Start to scan '"<<nm<<"'\n";
       FILE* f = fopen(nm.c_str(), "r");
       IASSERT(f!=NULL);

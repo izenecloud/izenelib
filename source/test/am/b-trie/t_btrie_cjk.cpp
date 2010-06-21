@@ -19,10 +19,10 @@
 
 #include <am/trie/b_trie.hpp>
 
-#include <wiselib/ustring/UString.h>
+#include <util/ustring/UString.h>
 
 using namespace std;
-using namespace wiselib;
+using namespace izenelib::util;
 using namespace izenelib::am;
 
 BOOST_AUTO_TEST_SUITE( b_trie_suite )

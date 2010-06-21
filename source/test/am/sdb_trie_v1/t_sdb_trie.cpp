@@ -12,12 +12,12 @@
 
 #include <boost/test/unit_test.hpp>
 
-#include <wiselib/ustring/UString.h>
+#include <util/ustring/UString.h>
 #include <am/sdb_trie_v1/sdb_trie.hpp>
 
 
 using namespace std;
-using namespace wiselib;
+using namespace izenelib::util;
 using namespace izenelib::am;
 
 BOOST_AUTO_TEST_SUITE( sdb_trie_suite )

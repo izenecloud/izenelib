@@ -1,7 +1,7 @@
 #include <ir/index_manager/index/TermPositions.h>
 #include <ir/index_manager/index/InputDescriptor.h>
 
-#include <wiselib/profiler/ProfilerGroup.h>
+#include <util/profiler/ProfilerGroup.h>
 //#define SF1_TIME_CHECK
 
 using namespace izenelib::ir::indexmanager;

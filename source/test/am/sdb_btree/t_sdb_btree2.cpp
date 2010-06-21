@@ -2,7 +2,7 @@
 #include <string>
 #include <ctime>
 #include <util/izene_log.h>
-#include <wiselib/ustring/UString.h>
+#include <util/ustring/UString.h>
 
 //#include <time.h>
 
@@ -11,7 +11,7 @@
 
 using namespace std;
 using namespace izenelib::am;
-using namespace wiselib;
+using namespace izenelib::util;
 
 const char* indexFile = "sdb.dat";
 static string inputFile = "test.txt";
