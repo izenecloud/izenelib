@@ -141,7 +141,7 @@ docid_t TermPositions::skipTo(docid_t target)
         {
             resetDecodingState();
             return pPostingBuffer_[nCurrentPosting_];
-        }				
+        }
         if ( end > (nCurDecodedCount_ - 1) )
             end = nCurDecodedCount_ - 1;
 
@@ -151,9 +151,9 @@ docid_t TermPositions::skipTo(docid_t target)
         for (i = start + 1;i < nCurrentPosting_;i++)
         {
             skip += pPostingBuffer_[nFreqStart_ + i];
-        }				
+        }
         skipPositions(skip);
-        
+
         if(foundDocId >= target)
         {
             resetDecodingState();
@@ -166,7 +166,7 @@ docid_t TermPositions::skipTo(docid_t target)
         nCurDecodedPCountWithinDoc_ = 0;
         nCurrentPPostingWithinDoc_ = 0;
         nCurrentPosting_ = nCurDecodedCount_;///buffer is over
-    }		
+    }
 }
 
 void TermPositions::resetDecodingState()
@@ -217,7 +217,7 @@ void TermPositions::createBuffer()
     {
         nPBufferSize_ = bufSize;
         pPPostingBuffer_ = new uint32_t[bufSize];
-        memset(pPPostingBuffer_, 0, bufSize*sizeof(uint32_t));		
+        memset(pPPostingBuffer_, 0, bufSize*sizeof(uint32_t));
     }
 }
 

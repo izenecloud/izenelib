@@ -144,8 +144,8 @@ docid_t TermDocFreqs::skipTo(docid_t target)
         }
         else if(end < start)
         {
-            return pPostingBuffer_[nCurrentPosting_];			
-        }				
+            return pPostingBuffer_[nCurrentPosting_];
+        }
         if ( end > (nCurDecodedCount_ - 1) )
             end = nCurDecodedCount_ - 1;
         docid_t nRetDocId;
