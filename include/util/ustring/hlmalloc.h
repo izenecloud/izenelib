@@ -611,7 +611,7 @@ static struct malloc_state _gm_;
 
 #define gm  (&_gm_)
 #define is_global(M) ((M) == &_gm_)
-#define is_initialized(M) ((M)->top != 0)
+#define _is_initialized(M) ((M)->top != 0)
 
 #define use_lock(M)  ((M)->mflags & USE_LOCK_BIT)
 #define enable_lock(M) ((M)->mflags |= USE_LOCK_BIT)
@@ -1221,7 +1221,7 @@ static int bin_find(struct malloc_state* m, mchunkptr x)
 static size_t traverse_and_check(struct malloc_state* m)
 {
   size_t sum = 0;
-  if (is_initialized(m))
+  if (_is_initialized(m))
   {
     msegmentptr s = &m->seg;
     sum += m->topsize + TOP_FOOT_SIZE;
@@ -1293,7 +1293,7 @@ static struct mallinfo internal_mallinfo(struct malloc_state* m)
   if(!PREACTION(m))
   {
     check_malloc_state(m);
-    if (is_initialized(m))
+    if (_is_initialized(m))
     {
       size_t nfree = SIZE_T_ONE;
       size_t mfree = m->topsize + TOP_FOOT_SIZE;
@@ -1339,7 +1339,7 @@ static void internal_malloc_stats(struct malloc_state* m)
     size_t fp = 0;
     size_t used = 0;
     check_malloc_state(m);
-    if (is_initialized(m))
+    if (_is_initialized(m))
     {
       msegmentptr s = &m->seg;
       maxfp = m->max_footprint;
@@ -1899,7 +1899,7 @@ static void* sys_alloc(struct malloc_state* m, size_t nb)
     if((m -> footprint += tsize) > m -> max_footprint)
       m -> max_footprint = m -> footprint;
 
-    if(!is_initialized(m))
+    if(!_is_initialized(m))
     {
       m -> seg.base = m -> least_addr = tbase;
       m -> seg.size = tsize;
@@ -2009,7 +2009,7 @@ static size_t release_unused_segments(struct malloc_state* m)
 static int sys_trim(struct malloc_state* m, size_t pad)
 {
   size_t released = 0;
-  if (pad < MAX_REQUEST && is_initialized(m))
+  if (pad < MAX_REQUEST && _is_initialized(m))
   {
     pad += TOP_FOOT_SIZE;
 
