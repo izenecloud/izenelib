@@ -18,6 +18,8 @@ IF(index_manager_SHOULD_BUILD)
     "store/*.cpp"
     "utility/*.cpp"
     )
+  FILE(GLOB mock_index_manager_SRC RELATIVE "${CMAKE_CURRENT_SOURCE_DIR}" "index/Mock*.cpp")
+  LIST(REMOVE_ITEM index_manager_SRC ${mock_index_manager_SRC})
 
   INCLUDE_DIRECTORIES(
     ${Boost_INCLUDE_DIRS}
@@ -29,6 +31,7 @@ IF(index_manager_SHOULD_BUILD)
   ADD_DEFINITIONS("-fPIC")
 
   ADD_LIBRARY(index_manager ${index_manager_SRC})
+  ADD_LIBRARY(mock_index_manager ${mock_index_manager_SRC})
   #INSTALL(TARGETS index_manager DESTINATION lib)
   INSTALL(TARGETS index_manager 
       LIBRARY DESTINATION lib 
