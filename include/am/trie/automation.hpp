@@ -7,10 +7,10 @@
 #define AUTOMATION_HPP
 
 #include <vector>
-#include <wiselib/ustring/UString.h>
+#include <util/ustring/UString.h>
 
 using namespace std;
-using namespace wiselib;
+using namespace izenelib::util;
 
 /**
  *@class Automation

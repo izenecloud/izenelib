@@ -24,7 +24,6 @@ IF(index_manager_SHOULD_BUILD)
   INCLUDE_DIRECTORIES(
     ${Boost_INCLUDE_DIRS}
     ${IZENELIB_SOURCE_DIR}/include/3rdparty/am
-    ${wiselib_INCLUDE_DIRS}
     ${Glog_INCLUDE_DIRS}
     )
 

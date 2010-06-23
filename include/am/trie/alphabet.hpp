@@ -10,9 +10,9 @@
 #include <ostream>
 #include <cctype>
 #include <algorithm>
-#include <wiselib/ustring/UString.h>
+#include <util/ustring/UString.h>
 
-using namespace wiselib;
+using namespace izenelib::util;
 using namespace std;
 
 /**

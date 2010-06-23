@@ -8,12 +8,11 @@ FIND_PACKAGE(Boost ${Boost_FIND_VERSION}
 LIST(FIND REAL_BUILD_COMPONENTS "procmeminfo" _procmeminfo)
 LIST(FIND REAL_BUILD_COMPONENTS "message_framework" _message_framework)
 
-IF(Boost_FOUND AND wiselib_FOUND AND Glog_FOUND AND
+IF(Boost_FOUND AND Glog_FOUND AND
     _procmeminfo GREATER -1 AND _message_framework GREATER -1)
 
 INCLUDE_DIRECTORIES(
   ${Boost_INCLUDE_DIRS}
-  ${wiselib_INCLUDE_DIRS}
   ${Glog_INCLUDE_DIRS}
 )
 
@@ -38,5 +37,5 @@ SET_TARGET_PROPERTIES(t_mf PROPERTIES
 
 ADD_TEST(mf "${IZENELIB_SOURCE_DIR}/testbin/t_mf")
 
-ENDIF(Boost_FOUND AND wiselib_FOUND AND Glog_FOUND AND
+ENDIF(Boost_FOUND AND Glog_FOUND AND
   _procmeminfo GREATER -1 AND _message_framework GREATER -1)

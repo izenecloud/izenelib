@@ -15,7 +15,7 @@
 #include <deque>
 
 using namespace std;
-using namespace wiselib;
+using namespace izenelib::util;
 
 using namespace izenelib::ir::indexmanager;
 

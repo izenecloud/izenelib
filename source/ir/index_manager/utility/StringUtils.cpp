@@ -39,29 +39,29 @@ void trim( string& s )
     trimright( s );
 }
 
-void trimleft(wiselib::UString& s )
+void trimleft(izenelib::util::UString& s )
 {
-    wiselib::UString::iterator it;
+    izenelib::util::UString::iterator it;
 
     for ( it = s.begin(); it != s.end(); it++ )
-        if ( !wiselib::UString::isThisSpaceChar(*it))
+        if ( !izenelib::util::UString::isThisSpaceChar(*it))
             break;
     s.erase( s.begin(), it );
 }
 
-void trimright( wiselib::UString& s )
+void trimright( izenelib::util::UString& s )
 {
-    wiselib::UString::reverse_iterator it = s.rbegin();
+    izenelib::util::UString::reverse_iterator it = s.rbegin();
 
     size_t i = 0;
     for ( ; it != s.rend(); it++, i++ )
-        if ( !wiselib::UString::isThisSpaceChar( *it )  && !wiselib::UString::isThisControlChar( *it ) )
+        if ( !izenelib::util::UString::isThisSpaceChar( *it )  && !izenelib::util::UString::isThisControlChar( *it ) )
             break;
     size_t dt = s.length() - i;
     s.erase( s.begin() + dt, s.end() );
 }
 
-void trim( wiselib::UString& s )
+void trim( izenelib::util::UString& s )
 {
     if(s.empty())
         return;

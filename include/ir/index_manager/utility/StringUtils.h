@@ -10,7 +10,7 @@
 #include <ir/index_manager/utility/system.h>
 #include <string>
 #include <vector>
-#include <wiselib/ustring/UString.h>
+#include <util/ustring/UString.h>
 
 NS_IZENELIB_IR_BEGIN
 
@@ -70,11 +70,11 @@ void trimright( std::string& s );
 
 void trim( std::string& s );
 
-void trimleft(wiselib::UString& s );
+void trimleft(izenelib::util::UString& s );
 
-void trimright( wiselib::UString& s );
+void trimright( izenelib::util::UString& s );
 
-void trim( wiselib::UString& s );
+void trim( izenelib::util::UString& s );
 
 int datetime_to_int(std::string& s);
 

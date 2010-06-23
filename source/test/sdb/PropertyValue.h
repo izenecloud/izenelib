@@ -1,7 +1,7 @@
 #ifndef SF1V5_DOCUMENT_MANAGER_PROPERTY_VALUE_H
 #define SF1V5_DOCUMENT_MANAGER_PROPERTY_VALUE_H
 
-#include <wiselib/ustring/UString.h>
+#include <util/ustring/UString.h>
 #include <util/izene_serialization.h>
 
 #include <boost/variant.hpp>
@@ -35,8 +35,8 @@ public:
         float,
         double,
         std::string,
-        wiselib::UString,
-        std::vector<wiselib::UString>,
+        izenelib::util::UString,
+        std::vector<izenelib::util::UString>,
         std::vector<uint32_t>
     > variant_type;
 

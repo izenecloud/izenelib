@@ -4,11 +4,11 @@
 #include <sstream>
 #include <am/trie/alphabet_en.hpp>
 #include <am/linear_hash_table/linearHashTable.hpp>
-#include <wiselib/ustring/UString.h>
+#include <util/ustring/UString.h>
 
 #define ENCODE_TYPE UString::UTF_8//EUC_KR//GB2312//
 
-using namespace wiselib;
+using namespace izenelib::util;
 using namespace std;
 using namespace izenelib::am;
 

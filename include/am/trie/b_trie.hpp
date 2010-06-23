@@ -9,7 +9,7 @@
 #include <string>
 #include <stdio.h>
 
-#include <wiselib/ustring/UString.h>
+#include <util/ustring/UString.h>
 
 #include <am/map/map.hpp>
 
@@ -238,9 +238,9 @@ protected:
     return str.substr(pos);
   }
 
-  wiselib::UString substr(const wiselib::UString& str, size_t pos, size_t len=(size_t)-1)
+  izenelib::util::UString substr(const izenelib::util::UString& str, size_t pos, size_t len=(size_t)-1)
   {
-    wiselib::UString tmp;
+    izenelib::util::UString tmp;
     if (len != (size_t)-1)
     {
       str.substr(tmp, pos, len);
@@ -875,7 +875,7 @@ protected:
 
 typedef BTrie<std::string, en, en_size> BTrie_En;
 
-typedef BTrie<wiselib::UString, cjk, cjk_size> BTrie_CJK;
+typedef BTrie<izenelib::util::UString, cjk, cjk_size> BTrie_CJK;
 
 NS_IZENELIB_AM_END
 #endif

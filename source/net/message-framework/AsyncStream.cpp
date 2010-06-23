@@ -1,7 +1,3 @@
-#include <net/message-framework/MessageType.h>
-#include <net/message-framework/MessageDispatcher.h>
-#include <net/message-framework/AsyncStream.h>
-
 #include <iomanip>
 #include <string>
 #include <sstream>
@@ -12,6 +8,10 @@
 #include <boost/tuple/tuple.hpp>
 #include <boost/function.hpp>
 #include <boost/asio.hpp>
+
+#include <net/message-framework/AsyncStream.h>
+#include <net/message-framework/MessageType.h>
+#include <net/message-framework/MessageDispatcher.h>
 
 namespace messageframework {
 

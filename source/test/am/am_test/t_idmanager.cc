@@ -1,11 +1,11 @@
 #include <am/am_test/am_test.h>
 #include <am/am_test/am_types.h>
-#include <wiselib/ustring/UString.h>
+#include <util/ustring/UString.h>
 
 using namespace std;
 using namespace izenelib::am;
 using namespace izenelib::am_test;
-using namespace wiselib;
+using namespace izenelib::util;
 
 static string inputFile = "test.txt";
 static string indexFile = "index.dat";

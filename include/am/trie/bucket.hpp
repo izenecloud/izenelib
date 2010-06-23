@@ -14,9 +14,9 @@
 #include "automation.hpp"
 #include <vector>
 #include <util/log.h>
-#include <wiselib/ustring/UString.h>
+#include <util/ustring/UString.h>
 
-using namespace wiselib;
+using namespace izenelib::util;
 using namespace std;
 
 template <
@@ -71,9 +71,9 @@ protected:
     return str.substr(pos);
   }
 
-  static wiselib::UString substr(const wiselib::UString& str, size_t pos)
+  static izenelib::util::UString substr(const izenelib::util::UString& str, size_t pos)
   {
-    wiselib::UString tmp;
+    izenelib::util::UString tmp;
     str.substr(tmp, pos);
 
     return tmp;

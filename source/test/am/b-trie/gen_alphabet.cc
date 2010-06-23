@@ -3,7 +3,7 @@
 #include <iostream>
 #include <am/trie/alphabet.hpp>
 
-using namespace wiselib;
+using namespace izenelib::util;
 using namespace std;
 
 int main (int argc,char **argv)

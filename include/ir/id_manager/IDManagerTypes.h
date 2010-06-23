@@ -15,7 +15,7 @@
 //#include <types.h>
 //#include <am/util/Wrapper.h>
 //#include <sdb/SequentialDB.h>
-//#include <wiselib/ustring/UString.h>
+//#include <util/ustring/UString.h>
 //#include <am/tokyo_cabinet/tc_hash.h>
 
 //#include <am/trie/b_trie.hpp>
@@ -70,7 +70,7 @@
 //
 //using namespace izenelib::ir::idmanager;
 //
-//MAKE_MEMCPY_SERIALIZATION(NameHook<wiselib::UString>);
+//MAKE_MEMCPY_SERIALIZATION(NameHook<izenelib::util::UString>);
 //
 ////for pod types
 //MAKE_MEMCPY_TYPE(IDHook<unsigned int> );
@@ -78,14 +78,14 @@
 //NS_IZENELIB_UTIL_BEGIN
 //
 //
-//template<> inline void read_image_memcpy<NameHook<wiselib::UString> >(NameHook<wiselib::UString>& dat, const char* str, const size_t size) {
+//template<> inline void read_image_memcpy<NameHook<izenelib::util::UString> >(NameHook<izenelib::util::UString>& dat, const char* str, const size_t size) {
 //	char* p = (char*)str;
 //	memcpy(&dat.collId, p, sizeof(unsigned int));
 //	p += sizeof(unsigned int);
 //	read_image_memcpy(dat.docName, p, size-sizeof(unsigned int));
 //}
 //
-//template<> inline void write_image_memcpy<NameHook<wiselib::UString> >(const NameHook<wiselib::UString>& dat, char* &str,
+//template<> inline void write_image_memcpy<NameHook<izenelib::util::UString> >(const NameHook<izenelib::util::UString>& dat, char* &str,
 //		size_t &size){
 //	char* uptr;
 //	size_t usz;
@@ -104,7 +104,7 @@
 //	uptr = 0;
 //
 //	//test read_image, write_image.
-//	/*NameHook<wiselib::UString> dat1;
+//	/*NameHook<izenelib::util::UString> dat1;
 //	read_image_memcpy(dat1, str, size);
 //	assert(dat.compare(dat1) == 0);
 //	cout<<dat1.collId<<endl;*/
@@ -120,7 +120,7 @@ BEGIN_SERIALIZATION
 using namespace idmanager;
 
 
-template<> inline void read_image<NameHook<wiselib::UString> >(NameHook<wiselib::UString>& dat, const DbObjPtr& ptr) {
+template<> inline void read_image<NameHook<izenelib::util::UString> >(NameHook<izenelib::util::UString>& dat, const DbObjPtr& ptr) {
 	char* p = (char*)ptr->getData();
 	memcpy(&dat.collId, p, sizeof(unsigned int));
 	p += sizeof(unsigned int);
@@ -129,7 +129,7 @@ template<> inline void read_image<NameHook<wiselib::UString> >(NameHook<wiselib:
 	read_image(dat.docName, ptr1);
 }
 
-template<> inline void write_image<NameHook<wiselib::UString> >(const NameHook<wiselib::UString>& dat, DbObjPtr& ptr) {
+template<> inline void write_image<NameHook<izenelib::util::UString> >(const NameHook<izenelib::util::UString>& dat, DbObjPtr& ptr) {
 	DbObjPtr ptr1;
 	ptr1.reset(new DbObj);
 	write_image(dat.docName, ptr1);
@@ -144,7 +144,7 @@ template<> inline void write_image<NameHook<wiselib::UString> >(const NameHook<w
 	buf = 0;
 
 	//test read_image, write_image.
-	//NameHook<wiselib::UString> dat1;
+	//NameHook<izenelib::util::UString> dat1;
 	//read_image(dat1, ptr);
 	//assert(dat.compare(dat1) == 0);
 	//cout<<dat1.collId<<endl;

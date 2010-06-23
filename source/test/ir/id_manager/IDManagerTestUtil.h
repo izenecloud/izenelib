@@ -3,11 +3,11 @@
 
 #include <fstream>
 #include <algorithm>
-#include <wiselib/ustring/UString.h>
+#include <util/ustring/UString.h>
 #include <ir/id_manager/IDManager.h>
 
 using namespace std;
-using namespace wiselib;
+using namespace izenelib::util;
 using namespace izenelib::ir::idmanager;
 
 /**

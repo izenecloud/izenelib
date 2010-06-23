@@ -36,8 +36,8 @@
 
 #include <ir/index_manager/utility/Exception.h>
 
-#include <wiselib/ustring/UString.h>
-typedef wiselib::UString String;
+#include <util/ustring/UString.h>
+typedef izenelib::util::UString String;
 
 NS_IZENELIB_IR_BEGIN
 

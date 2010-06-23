@@ -8,7 +8,7 @@ ENDIF(WIN32)
 
 MACRO_CHECK_SHOULD_BUILD(procmeminfo _NOT_WIN32)
 IF(procmeminfo_SHOULD_BUILD)
-  ADD_LIBRARY(procmeminfo ProcMemInfo.cpp)
+  ADD_LIBRARY(procmeminfo ProcMemInfo.cpp MRandom.cpp random.cpp profiler/Profiler.cpp profiler/TimeChecker.cpp profiler/YString.cpp)
   #INSTALL(TARGETS procmeminfo DESTINATION lib)
   INSTALL(TARGETS procmeminfo  
       LIBRARY DESTINATION lib 
@@ -20,13 +20,11 @@ MACRO_CHECK_SHOULD_BUILD(
   izene_log
   procmeminfo_SHOULD_BUILD
   Glog_FOUND
-  wiselib_FOUND
   )
 IF(izene_log_SHOULD_BUILD)
   INCLUDE_DIRECTORIES(
     ${Boost_INCLUDE_DIRS}
     ${Glog_INCLUDE_DIRS}
-    ${wiselib_INCLUDE_DIRS}
     )
 
   ADD_LIBRARY(izene_log izene_log.cpp)
@@ -54,7 +52,6 @@ IF(izene_util_SHOULD_BUILD)
 
   INCLUDE_DIRECTORIES(
     ${Boost_INCLUDE_DIRS}
-    ${wiselib_INCLUDE_DIRS}
     ${Glog_INCLUDE_DIRS}
   )
 
@@ -62,5 +59,10 @@ IF(izene_util_SHOULD_BUILD)
 
   ADD_LIBRARY(izene_util ${util_SRC})
 
-ENDIF(izeneutil_SHOULD_BUILD)
+TARGET_LINK_LIBRARIES(izene_util
+  ${Boost_THREAD_LIBRARY}
+  ${Boost_SERIALIZATION_LIBRARY}
+  ${CMAKE_THREAD_LIBS_INIT}
+  )
 
+ENDIF(izeneutil_SHOULD_BUILD)

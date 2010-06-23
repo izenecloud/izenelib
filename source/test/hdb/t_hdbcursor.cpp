@@ -11,13 +11,13 @@
 
 #include <boost/test/unit_test.hpp>
 
-#include <wiselib/ustring/UString.h>
+#include <util/ustring/UString.h>
 
 #include <hdb/HugeDB.h>
 
 
 using namespace std;
-using namespace wiselib;
+using namespace izenelib::util;
 using namespace izenelib::am;
 using namespace izenelib::hdb;
 
