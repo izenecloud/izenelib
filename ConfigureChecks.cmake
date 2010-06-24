@@ -59,11 +59,6 @@ FIND_PACKAGE(TokyoCabinet 1.4.24)
 FIND_PACKAGE(Glog)
 
 ##################################################
-# wiselib
-#####
-FIND_PACKAGE(wiselib)
-
-##################################################
 # Other common libraries
 #####
 FIND_LIBRARY(DL_LIBRARIES NAMES dl)
