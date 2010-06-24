@@ -33,8 +33,11 @@ IndexWriter::IndexWriter(Indexer* pIndex)
         ,pIndexMergeManager_(NULL)
 {
     pBarrelsInfo_ = pIndexer_->getBarrelsInfo();
-    pIndexMergeManager_ = new IndexMergeManager(pIndex);
-    pIndexMergeManager_->run();
+    if(pIndexer_->getIndexerType()&MANAGER_INDEXING_STANDALONE_MERGER)	
+    {
+        pIndexMergeManager_ = new IndexMergeManager(pIndex);
+        pIndexMergeManager_->run();
+    }
 }
 
 IndexWriter::~IndexWriter()
