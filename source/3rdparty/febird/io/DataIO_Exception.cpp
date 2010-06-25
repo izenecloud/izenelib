@@ -2,6 +2,7 @@
 
 #include <febird/io/DataIO_Exception.h>
 #include <sstream>
+#include <stdio.h>
 
 namespace febird {
 

@@ -1,5 +1,5 @@
-#include <ir/index_manager/index/IndexWriter.h>
 #include <ir/index_manager/index/Indexer.h>
+#include <ir/index_manager/index/IndexWriter.h>
 #include <ir/index_manager/index/IndexReader.h>
 #include <ir/index_manager/index/IndexMerger.h>
 #include <ir/index_manager/index/OfflineIndexMerger.h>

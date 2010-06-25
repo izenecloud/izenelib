@@ -7,15 +7,14 @@
 
 #ifndef BTREEINDEX_H
 #define BTREEINDEX_H
-
-#include <ir/index_manager/index/IndexerDocument.h>
-#include <ir/index_manager/utility/BitVector.h>
-#include <ir/index_manager/utility/StringUtils.h>
-
 #include <sdb/SequentialDB.h>
 #include <sdb/IndexSDB.h>
 #include <sdb/TrieIndexSDB.h>
 #include <util/BoostVariantUtil.h>
+
+#include <ir/index_manager/index/IndexerDocument.h>
+#include <ir/index_manager/utility/BitVector.h>
+#include <ir/index_manager/utility/StringUtils.h>
 
 #include <boost/variant.hpp>
 #include <boost/utility/enable_if.hpp>

@@ -17,7 +17,12 @@
 #include <net/message-framework/ClientIdRequestMessage.h>
 #include <net/message-framework/ClientIdReplyMessage.h>
 #include <boost/archive/archive_exception.hpp>
-#include <boost/exception.hpp>
+#include <boost/version.hpp>
+#if BOOST_VERSION >= 104000
+# include <boost/exception/all.hpp>
+#else
+# include <boost/exception.hpp>
+#endif
 #include <boost/exception/diagnostic_information.hpp>
 
 using namespace std;

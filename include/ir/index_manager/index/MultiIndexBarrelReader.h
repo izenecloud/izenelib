@@ -8,10 +8,10 @@
 #ifndef MULTIINDEXBARRELREADER_H
 #define MULTIINDEXBARRELREADER_H
 
+#include <ir/index_manager/index/IndexBarrelWriter.h>
 #include <ir/index_manager/index/IndexBarrelReader.h>
 #include <ir/index_manager/index/BarrelInfo.h>
 #include <ir/index_manager/index/SingleIndexBarrelReader.h>
-#include <ir/index_manager/index/IndexBarrelWriter.h>
 #include <ir/index_manager/store/Directory.h>
 
 #include <boost/shared_ptr.hpp>

@@ -1,6 +1,6 @@
+#include <ir/index_manager/index/IndexBarrelWriter.h>
 #include <ir/index_manager/index/FieldMerger.h>
 #include <ir/index_manager/index/Posting.h>
-#include <ir/index_manager/index/IndexBarrelWriter.h>
 #include <ir/index_manager/index/TermReader.h>
 #include <ir/index_manager/index/MultiPostingIterator.h>
 

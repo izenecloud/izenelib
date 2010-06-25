@@ -14,13 +14,13 @@
 #ifndef SDB_HASH_H
 #define SDB_HASH_H
 
+#include <util/ClockTimer.h>
 #include <string>
 #include <queue>
 #include <map>
 #include <iostream>
 #include <types.h>
 #include <sys/stat.h>
-#include <util/ClockTimer.h>
 
 //#include <util/log.h>
 #include <stdio.h>

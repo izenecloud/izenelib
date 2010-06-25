@@ -6,6 +6,7 @@
 
 #include <string.h>
 #include <vector>
+#include <iostream>
 
 #include <types.h>
 
@@ -93,7 +94,7 @@ public:
      */
     void init();
 
-    friend ostream& operator << ( ostream& sout, VTrieNode& node );
+    friend std::ostream& operator << ( std::ostream& sout, VTrieNode& node );
 
 public:
     /** the integer value */

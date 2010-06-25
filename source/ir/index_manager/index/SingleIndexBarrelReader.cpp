@@ -1,8 +1,8 @@
+#include <ir/index_manager/index/IndexReader.h>
 #include <ir/index_manager/index/SingleIndexBarrelReader.h>
 #include <ir/index_manager/index/MultiFieldTermReader.h>
 #include <ir/index_manager/index/TermReader.h>
 #include <ir/index_manager/index/FieldInfo.h>
-#include <ir/index_manager/index/IndexReader.h>
 
 using namespace izenelib::ir::indexmanager;
 

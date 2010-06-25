@@ -1,7 +1,7 @@
+#include <ir/index_manager/index/Indexer.h>
 #include <ir/index_manager/index/FieldIndexer.h>
 #include <ir/index_manager/index/TermReader.h>
 #include <ir/index_manager/index/TermPositions.h>
-#include <ir/index_manager/index/Indexer.h>
 
 using namespace std;
 

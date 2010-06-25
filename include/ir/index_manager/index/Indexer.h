@@ -8,11 +8,11 @@
 #ifndef INDEXER_H
 #define INDEXER_H
 
+#include <ir/index_manager/index/BTreeIndex.h>
 #include <ir/index_manager/utility/IndexManagerConfig.h>
 
 #include <ir/index_manager/index/CommonItem.h>
 #include <ir/index_manager/index/IndexWriter.h>
-#include <ir/index_manager/index/BTreeIndex.h>
 #include <ir/index_manager/index/IndexerDocument.h>
 #include <ir/index_manager/store/Directory.h>
 #include <ir/index_manager/utility/BitVector.h>
