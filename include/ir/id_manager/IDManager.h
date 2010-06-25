@@ -23,15 +23,14 @@
 #ifndef _ID_MANAGER_
 #define _ID_MANAGER_
 
-#include <types.h>
-
-#include <util/ustring/UString.h>
-
 #include "WildcardQueryManager.h"
 #include "DocIdManager.h"
 #include "TermIdManager.h"
 #include "IDGenerator.h"
 #include "IDStorage.h"
+
+#include <types.h>
+#include <util/ustring/UString.h>
 
 /**
  * @brief a class to manage all kinds of operations about ID.
