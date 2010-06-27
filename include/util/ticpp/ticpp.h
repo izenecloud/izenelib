@@ -1,3 +1,4 @@
+#include <util/ticpp/ticppconf.h>
 /*
 http://code.google.com/p/ticpp/
 Copyright (c) 2006 Ryan Pusztai, Ryan Mulder
@@ -38,19 +39,12 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 @todo add TYPECOUNT support. See ticpp::NodeFactory.
 @todo Add a quick reference
 */
-
-//## WHEN INCLUDING THIS HEADER FILE, ALWAYS USE TICPP 2008-08-12, MyungHyun(Kent)
-#ifndef TIXML_USE_TICPP     
-#define TIXML_USE_TICPP     
-#endif
-
 #ifdef TIXML_USE_TICPP
 
 #ifndef TICPP_INCLUDED
 #define TICPP_INCLUDED
 
 #include "tinyxml.h"
-
 #include <sstream>
 #include <vector>
 #include <memory>
@@ -67,8 +61,10 @@ If you don't perfer to use some of the concepts just don't use it.
 It is just a wrapper that extends TinyXML. It doesn't actually change
 any of TinyXML.
 */
-namespace ticpp
-{
+namespace izenelib {
+namespace util {
+namespace ticpp {
+
     /**
 	This is a ticpp exception class
 	*/
@@ -623,7 +619,7 @@ namespace ticpp
 		@see LinkEndChild
 		@see TiXmlNode::InsertEndChild
 		*/
-		Node* InsertEndChild( Node& addThis );
+		Node* InsertEndChild( const Node& addThis );
 
 		/**
 		Adds a child past the LastChild.
@@ -648,7 +644,7 @@ namespace ticpp
 		@see InsertAfterChild
 		@see TiXmlNode::InsertBeforeChild
 		*/
-		Node* InsertBeforeChild( Node* beforeThis, Node& addThis );
+		Node* InsertBeforeChild( Node* beforeThis, const Node& addThis );
 
 		/**
 		Adds a child after the specified child.
@@ -661,7 +657,7 @@ namespace ticpp
 		@see InsertBeforeChild
 		@see TiXmlNode::InsertAfterChild
 		*/
-		Node* InsertAfterChild( Node* afterThis, Node& addThis );
+		Node* InsertAfterChild( Node* afterThis, const Node& addThis );
 
 		/**
 		Replace a child of this node.
@@ -673,7 +669,7 @@ namespace ticpp
 
 		@see TiXmlNode::ReplaceChild
 		*/
-		Node* ReplaceChild( Node* replaceThis, Node& withThis );
+		Node* ReplaceChild( Node* replaceThis, const Node& withThis );
 
 		/**
 		Delete a child of this node.
@@ -1006,7 +1002,7 @@ namespace ticpp
  		/**
  		Stream output operator.
  		*/
- 		friend std::ostream& operator <<( std::ostream& out, Node& base )
+ 		friend std::ostream& operator <<( std::ostream& out, const Node& base )
  		{
  			out << *base.GetTiXmlPointer();
  			return out;
@@ -1404,11 +1400,12 @@ namespace ticpp
 		Document( const char* documentName );
 
 		/**
-		Constructor.
-		Create a document with a name. The name of the document is also the filename of the xml.
-
-		@param documentName Name to set in the Document.
-		*/
+		 * Constructor.
+		 * Create a document with a name. The name of the document is also the filename of the xml.
+		 * @param documentName Name to set in the Document.
+		 * @note LoadFile() needs to be called to actually load the data from the file specified by documentName
+		 * 		 SaveFile() needs to be called to save data to file specified by documentName.
+		 */
 		Document( const std::string& documentName );
 
 		/**
@@ -1753,7 +1750,8 @@ namespace ticpp
 			{
 				if ( throwIfNotFound )
 				{
-					TICPPTHROW( "Attribute does not exist" );
+					const std::string error( std::string( "Attribute '" ) + name + std::string( "' does not exist" ) );
+					TICPPTHROW( error );
 				}
 			}
 			else
@@ -1785,7 +1783,8 @@ namespace ticpp
 			{
 				if ( throwIfNotFound )
 				{
-					TICPPTHROW( "Attribute does not exist" );
+					const std::string error( std::string( "Attribute '" ) + name + std::string( "' does not exist" ) );
+					TICPPTHROW( error );
 				}
 				else
 				{
@@ -1902,7 +1901,7 @@ namespace ticpp
 		*/
 		std::string Href() const;
 	};
-}
+}}} // namespace izenelib::util::ticpp
 
 #endif	// TICPP_INCLUDED
 

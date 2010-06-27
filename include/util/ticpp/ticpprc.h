@@ -1,3 +1,4 @@
+#include <util/ticpp/ticppconf.h>
 /*
 http://code.google.com/p/ticpp/
 Copyright (c) 2006 Ryan Pusztai, Ryan Mulder
@@ -28,10 +29,11 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include <vector>
 
 // Forward declare ticpp::Node, so it can be made a friend of TiCppRC
-namespace ticpp
-{
-	class Base;
-}
+namespace izenelib {
+namespace util {
+namespace ticpp {
+
+class Base;
 
 // Forward declare TiCppRCImp so TiCppRC can hold a pointer to it
 class TiCppRCImp;
@@ -55,14 +57,14 @@ public:
 	Spawns new reference counter with a pointer to this
 	*/
 	TiCppRC();
-    
+
 	/**
 	Destructor
 	Nullifies the pointer to this held by the reference counter
 	Decrements reference count
 	*/
 	virtual ~TiCppRC();
-    	
+	
 	std::vector< ticpp::Base* > m_spawnedWrappers; /**< Remember all wrappers that we've created with 'new' - ( e.g. NodeFactory, FirstChildElement, etc. )*/
 
 	/**
@@ -116,6 +118,8 @@ public:
 	*/
 	bool IsNull();
 };
+
+}}} // namespace izenelib::util::ticpp
 
 #endif // TICPP_INCLUDED
 
