@@ -36,7 +36,11 @@
 #include <am/util/Wrapper.h>
 #include <util/izene_serialization.h>
 #endif
-#include <bits/atomicity.h>
+#if __GNUC__ > 4 || (__GNUC__ == 4 && __GNUC_MINOR__ >= 2)
+# include <ext/atomicity.h>
+#else
+# include <bits/atomicity.h>
+#endif
 //#include <boost/thread.hpp>
 #include "ustr_types.h"
 using namespace iconvLibrary;

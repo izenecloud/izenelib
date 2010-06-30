@@ -5,6 +5,7 @@
 #include <am/concept/DataType.h>
 #include <util/ThreadModel.h>
 #include <memory>
+#include <string.h>
 
 NS_IZENELIB_AM_BEGIN
 

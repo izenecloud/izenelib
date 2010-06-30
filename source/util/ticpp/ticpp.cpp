@@ -1,3 +1,4 @@
+#include <util/ticpp/ticppconf.h>
 /*
 http://code.google.com/p/ticpp/
 Copyright (c) 2006 Ryan Pusztai, Ryan Mulder
@@ -20,32 +21,16 @@ IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
 CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
 
-#ifndef TIXML_USE_TICPP
+#ifdef TIXML_USE_TICPP
 
 #include <util/ticpp/ticpp.h>
 #include <util/ticpp/ticpprc.h>
 #include <util/ticpp/tinyxml.h>
-
 #include <sstream>
 
-TiCppRC::TiCppRC()
-{
-  // Spawn reference counter for this object
-  m_tiRC = new TiCppRCImp( this );
-}
-
-TiCppRC::~TiCppRC()
-{
-  DeleteSpawnedWrappers();
-	
-  // Set pointer held by reference counter to NULL
-  this->m_tiRC->Nullify();
-
-  // Decrement reference - so reference counter will delete itself if necessary
-  this->m_tiRC->DecRef();
-}
-
-using namespace ticpp;
+namespace izenelib {
+namespace util {
+namespace ticpp {
 
 // In the following Visitor functions, casting away const should be safe, as the object can only be referred to by a const &
 bool Visitor::VisitEnter( const TiXmlDocument& doc )
@@ -240,7 +225,7 @@ Node* Node::NodeFactory( TiXmlNode* tiXmlNode, bool throwIfNull, bool rememberSp
 	Node* temp;
 	switch ( tiXmlNode->Type() )
 	{
-		case TiXmlNode::DOCUMENT_:
+		case TiXmlNode::DOCUMENT:
 			temp = new Document( tiXmlNode->ToDocument() );
 			break;
 
@@ -387,9 +372,9 @@ Node* Node::IterateChildren( const std::string& value, Node* previous ) const
 	return NodeFactory( pointer, false );
 }
 
-Node* Node::InsertEndChild( Node& addThis )
+Node* Node::InsertEndChild( const Node& addThis )
 {
-	if ( addThis.Type() == TiXmlNode::DOCUMENT_ )
+	if ( addThis.Type() == TiXmlNode::DOCUMENT )
 	{
 		TICPPTHROW( "Node is a Document and can't be inserted" );
 	}
@@ -405,7 +390,7 @@ Node* Node::InsertEndChild( Node& addThis )
 
 Node* Node::LinkEndChild( Node* childNode )
 {
-	if ( childNode->Type() == TiXmlNode::DOCUMENT_ )
+	if ( childNode->Type() == TiXmlNode::DOCUMENT )
 	{
 		TICPPTHROW( "Node is a Document and can't be linked" );
 	}
@@ -421,9 +406,9 @@ Node* Node::LinkEndChild( Node* childNode )
 	return childNode;
 }
 
-Node* Node::InsertBeforeChild( Node* beforeThis, Node& addThis )
+Node* Node::InsertBeforeChild( Node* beforeThis, const Node& addThis )
 {
-	if ( addThis.Type() == TiXmlNode::DOCUMENT_ )
+	if ( addThis.Type() == TiXmlNode::DOCUMENT )
 	{
 		TICPPTHROW( "Node is a Document and can't be inserted" );
 	}
@@ -440,9 +425,9 @@ Node* Node::InsertBeforeChild( Node* beforeThis, Node& addThis )
 	return NodeFactory( pointer );
 }
 
-Node* Node::InsertAfterChild( Node* afterThis, Node& addThis )
+Node* Node::InsertAfterChild( Node* afterThis, const Node& addThis )
 {
-	if ( addThis.Type() == TiXmlNode::DOCUMENT_ )
+	if ( addThis.Type() == TiXmlNode::DOCUMENT )
 	{
 		TICPPTHROW( "Node is a Document and can't be inserted" );
 	}
@@ -459,9 +444,9 @@ Node* Node::InsertAfterChild( Node* afterThis, Node& addThis )
 	return NodeFactory( pointer );
 }
 
-Node* Node::ReplaceChild( Node* replaceThis, Node& withThis )
+Node* Node::ReplaceChild( Node* replaceThis, const Node& withThis )
 {
-	if ( withThis.Type() == TiXmlNode::DOCUMENT_ )
+	if ( withThis.Type() == TiXmlNode::DOCUMENT )
 	{
 		TICPPTHROW( "Node is a Document and can't be inserted" );
 	}
@@ -1096,6 +1081,12 @@ const char* Exception::what() const throw()
 
 //*****************************************************************************
 
+TiCppRC::TiCppRC()
+{
+	// Spawn reference counter for this object
+	m_tiRC = new TiCppRCImp( this );
+}
+
 void TiCppRC::DeleteSpawnedWrappers()
 {
 	std::vector< Base* >::reverse_iterator wrapper;
@@ -1104,6 +1095,17 @@ void TiCppRC::DeleteSpawnedWrappers()
 		delete *wrapper;
 	}
 	m_spawnedWrappers.clear();
+}
+		
+TiCppRC::~TiCppRC()
+{	
+	DeleteSpawnedWrappers();
+	
+	// Set pointer held by reference counter to NULL
+	this->m_tiRC->Nullify();
+
+	// Decrement reference - so reference counter will delete itself if necessary
+	this->m_tiRC->DecRef();
 }
 
 //*****************************************************************************
@@ -1147,5 +1149,7 @@ bool TiCppRCImp::IsNull()
 {
 	return 0 == m_tiCppRC;
 }
+
+}}} // namespace izenelib::util::ticpp
 
 #endif // TIXML_USE_TICPP

@@ -1,5 +1,10 @@
-#include <ir/index_manager/index/IndexWriter.h>
+#include <boost/date_time/posix_time/posix_time.hpp>
+#include <boost/date_time/gregorian/gregorian.hpp>
+#include <boost/date_time/local_time_adjustor.hpp>
+#include <boost/date_time/c_local_time_adjustor.hpp>
+
 #include <ir/index_manager/index/Indexer.h>
+#include <ir/index_manager/index/IndexWriter.h>
 #include <ir/index_manager/index/IndexReader.h>
 #include <ir/index_manager/index/IndexMerger.h>
 #include <ir/index_manager/index/OfflineIndexMerger.h>
@@ -11,11 +16,6 @@
 #include <ir/index_manager/index/IndexMergeManager.h>
 
 #include <util/scheduler.h>
-
-#include <boost/date_time/posix_time/posix_time.hpp>
-#include <boost/date_time/gregorian/gregorian.hpp>
-#include <boost/date_time/local_time_adjustor.hpp>
-#include <boost/date_time/c_local_time_adjustor.hpp>
 
 using namespace std;
 
@@ -33,8 +33,11 @@ IndexWriter::IndexWriter(Indexer* pIndex)
         ,pIndexMergeManager_(NULL)
 {
     pBarrelsInfo_ = pIndexer_->getBarrelsInfo();
-    pIndexMergeManager_ = new IndexMergeManager(pIndex);
-    pIndexMergeManager_->run();
+    if(pIndexer_->getIndexerType()&MANAGER_INDEXING_STANDALONE_MERGER)	
+    {
+        pIndexMergeManager_ = new IndexMergeManager(pIndex);
+        pIndexMergeManager_->run();
+    }
 }
 
 IndexWriter::~IndexWriter()

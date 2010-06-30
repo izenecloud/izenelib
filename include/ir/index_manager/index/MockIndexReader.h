@@ -254,6 +254,19 @@ public:
         return true;
     }
 
+    virtual docid_t skipTo(docid_t target)
+    {
+        docid_t currDoc;
+        do
+        {
+            if(!next())
+                return 0xFFFFFFFF;
+            currDoc = doc();
+        } while(target > currDoc);
+
+        return currDoc;
+    }
+
     docid_t doc() { return boost::get<0>(postings_[cursor_]); }
 
     count_t freq() { return boost::get<1>(postings_[cursor_]); }
@@ -299,6 +312,12 @@ public:
     bool next() {
         posCursor_ = 0;
         return MockTermDocFreqs::next();
+    }
+
+    virtual docid_t skipTo(docid_t target)
+    {
+        posCursor_ = 0;
+        return MockTermDocFreqs::skipTo(target);
     }
 
     loc_t nextPosition()

@@ -1,3 +1,4 @@
+#include <util/ticpp/ticppconf.h>
 /*
 www.sourceforge.net/projects/tinyxml
 Original code (2.0 and earlier )copyright (c) 2000-2002 Lee Thomason (www.grinninglizard.com)
@@ -22,11 +23,10 @@ must not be misrepresented as being the original software.
 distribution.
 */
 
-#include <util/ticpp/tinyxml.h>
-
 #include <ctype.h>
 #include <stddef.h>
-#include <string.h>
+
+#include <util/ticpp/tinyxml.h>
 
 //#define DEBUG_PARSER
 #if defined( DEBUG_PARSER )
@@ -37,6 +37,10 @@ distribution.
 #		define TIXML_LOG printf
 #	endif
 #endif
+
+namespace izenelib {
+namespace util {
+namespace ticpp {
 
 // Note tha "PutString" hardcodes the same list. This
 // is less flexible than it appears. Changing the entries
@@ -355,7 +359,7 @@ const char* TiXmlBase::SkipWhiteSpace( const char* p, TiXmlEncoding encoding )
 	}
 	else
 	{
-		while ( *p && IsWhiteSpace( *p ) || *p == '\n' || *p =='\r' )
+		while ( ( *p && IsWhiteSpace( *p ) ) || *p == '\n' || *p =='\r' )
 			++p;
 	}
 
@@ -1721,3 +1725,5 @@ const char* TiXmlStylesheetReference::Parse( const char* p, TiXmlParsingData* da
 	}
 	return 0;
 }
+
+}}} // namespace izenelib::util::ticpp

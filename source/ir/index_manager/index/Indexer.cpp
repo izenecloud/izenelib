@@ -1,3 +1,8 @@
+#include <boost/timer.hpp>
+#include <boost/date_time/posix_time/posix_time.hpp>
+#include <boost/thread.hpp>
+#include <boost/assert.hpp>
+
 #include <ir/index_manager/index/Indexer.h>
 #include <ir/index_manager/index/IndexReader.h>
 #include <ir/index_manager/index/TermReader.h>
@@ -8,11 +13,6 @@
 #include <ir/index_manager/utility/StringUtils.h>
 
 #include <util/hashFunction.h>
-
-#include <boost/timer.hpp>
-#include <boost/date_time/posix_time/posix_time.hpp>
-#include <boost/thread.hpp>
-#include <boost/assert.hpp>
 
 #include <algorithm>
 

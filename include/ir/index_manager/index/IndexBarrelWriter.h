@@ -7,17 +7,17 @@
 #ifndef INDEXBARRELWRITER_H
 #define INDEXBARRELWRITER_H
 
-#include <ir/index_manager/utility/system.h>
-#include <ir/index_manager/utility/MemCache.h>
-#include <ir/index_manager/store/Directory.h>
-
+#include <ir/index_manager/index/CollectionIndexer.h>
 #include <ir/index_manager/index/IndexerDocument.h>
 #include <ir/index_manager/index/IndexerCollectionMeta.h>
-#include <ir/index_manager/index/CollectionIndexer.h>
 #include <ir/index_manager/index/CollectionInfo.h>
 #include <ir/index_manager/index/InMemoryIndexBarrelReader.h>
 #include <ir/index_manager/index/BTreeIndex.h>
 
+#include <ir/index_manager/store/Directory.h>
+
+#include <ir/index_manager/utility/system.h>
+#include <ir/index_manager/utility/MemCache.h>
 #include <ir/index_manager/utility/BitVector.h>
 
 #include <map>

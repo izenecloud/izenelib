@@ -1,7 +1,7 @@
+#include <ir/index_manager/index/MultiIndexBarrelReader.h>
 #include <ir/index_manager/index/MultiTermReader.h>
 #include <ir/index_manager/index/MultiTermDocs.h>
 #include <ir/index_manager/index/MultiTermPositions.h>
-#include <ir/index_manager/index/MultiIndexBarrelReader.h>
 #include <ir/index_manager/index/MultiTermIterator.h>
 
 

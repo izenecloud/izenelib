@@ -14,6 +14,7 @@
 #include <boost/preprocessor/punctuation.hpp>
 #include <boost/preprocessor/repetition.hpp>
 #include <boost/thread.hpp>
+#include <stdio.h>
 
 //#include "../thread/ConcurrentQueue.h"
 //#include "../thread/thread.h"

@@ -1,3 +1,4 @@
+#include <util/ticpp/ticppconf.h>
 /*
 www.sourceforge.net/projects/tinyxml
 Original code (2.0 and earlier )copyright (c) 2000-2006 Lee Thomason (www.grinninglizard.com)
@@ -43,12 +44,9 @@ distribution.
 #define DEBUG
 #endif
 
-//#define TIXML_USE_STL       //## WE WANT TO USE STL ALWAYS. 2008-08-12, MyungHyun(Kent)
-#ifndef TIXML_USE_TICPP       
-#define TIXML_USE_TICPP       //## WE WANT TO USE STL ALWAYS. 2008-08-12, MyungHyun(Kent)
-#endif
-
 #ifdef TIXML_USE_TICPP
+#include "ticpprc.h"
+
 	#ifndef TIXML_USE_STL
 		#define TIXML_USE_STL
 	#endif
@@ -92,6 +90,10 @@ distribution.
 		#define TIXML_SSCANF   sscanf
 	#endif
 #endif
+
+namespace izenelib {
+namespace util {
+namespace ticpp {
 
 class TiXmlDocument;
 class TiXmlElement;
@@ -207,7 +209,6 @@ const TiXmlEncoding TIXML_DEFAULT_ENCODING = TIXML_ENCODING_UNKNOWN;
 	@endverbatim
 */
 #ifdef TIXML_USE_TICPP
-#include "ticpprc.h"
 class TiXmlBase : public TiCppRC
 #else
 class TiXmlBase
@@ -481,7 +482,7 @@ public:
 	*/
 	enum NodeType
 	{
-		DOCUMENT_,
+		DOCUMENT,
 		ELEMENT,
 		COMMENT,
 		UNKNOWN,
@@ -1832,6 +1833,7 @@ public:
 	virtual bool Visit( const TiXmlText& text );
 	virtual bool Visit( const TiXmlComment& comment );
 	virtual bool Visit( const TiXmlUnknown& unknown );
+	virtual bool Visit( const TiXmlStylesheetReference& stylesheet );
 
 	/** Set the indent characters for printing. By default 4 spaces
 		but tab (\t) is also useful, or null/empty string for no indentation.
@@ -1879,6 +1881,7 @@ private:
 	TIXML_STRING lineBreak;
 };
 
+}}} // namespace izenelib::util::ticpp
 
 #ifdef _MSC_VER
 #pragma warning( pop )

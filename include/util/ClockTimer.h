@@ -4,7 +4,7 @@
  * @file util/ClockTimer.h
  * @author Ian Yang
  * @date Created <2009-05-06 09:34:37>
- * @date Updated <2009-11-24 11:17:45>
+ * @date Updated <2010-06-25 15:06:09>
  * @brief Timer using wall clock instead of CPU ticks.
  *
  * In some performance measurement, the total elapsed time is more important
@@ -14,7 +14,7 @@
  * Because it use the Boost Date Time library, you may need to link that
  * library.
  */
-#include <boost/date_time/posix_time/posix_time.hpp>
+#include <sys/time.h>
 
 namespace izenelib {
 namespace util {
@@ -36,15 +36,17 @@ public:
      * @brief remembers start time during construction
      */
     ClockTimer()
-    : start_(boost::posix_time::microsec_clock::local_time())
-    {}
+    : start_()
+    {
+        gettimeofday(&start_, 0);
+    }
 
     /**
      * @brief resets start time to current time.
      */
     void restart()
     {
-        start_ = boost::posix_time::microsec_clock::local_time();
+        gettimeofday(&start_, 0);
     }
 
     /**
@@ -55,17 +57,17 @@ public:
      */
     double elapsed() const
     {
-        boost::posix_time::time_duration td =
-            boost::posix_time::microsec_clock::local_time() -
-            start_;
+        timeval now;
+        gettimeofday(&now, 0);
 
-        return static_cast<double>(td.fractional_seconds()) /
-            boost::posix_time::time_duration::ticks_per_second()
-            + td.total_seconds();
+        double seconds = now.tv_sec - start_.tv_sec;
+        seconds += (now.tv_usec - start_.tv_usec) / 1000000.0;
+
+        return seconds;
     }
 
 private:
-    boost::posix_time::ptime start_; /**< remembers start time */
+    timeval start_; /**< remembers start time */
 };
 
 }} // namespace izenelib::util

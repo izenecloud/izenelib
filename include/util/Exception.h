@@ -2,7 +2,12 @@
 #define IZENE_UTIL_EXCEPTION_H
 
 #include <boost/assert.hpp>
-#include <boost/exception.hpp>
+#include <boost/version.hpp>
+#if BOOST_VERSION >= 104000
+# include <boost/exception/all.hpp>
+#else
+# include <boost/exception.hpp>
+#endif
 #include <boost/exception/info.hpp>
 #include <exception>
 #include <boost/throw_exception.hpp>

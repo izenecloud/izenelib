@@ -7,8 +7,8 @@
 #ifndef PARALLELTERMPOSITION_H
 #define PARALLELTERMPOSITION_H
 
-#include <ir/index_manager/index/AbsTermReader.h>
 #include <ir/index_manager/index/IndexReader.h>
+#include <ir/index_manager/index/AbsTermReader.h>
 #include <ir/index_manager/index/TermPositions.h>
 #include <ir/index_manager/index/CommonItem.h>
 #include <ir/index_manager/utility/PriorityQueue.h>

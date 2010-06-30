@@ -35,19 +35,46 @@ IF(izene_log_SHOULD_BUILD)
       COMPONENT "izenelib_libraries")
 ENDIF(izene_log_SHOULD_BUILD)
 
+SET(ticpp_SHOULD_BUILD TRUE)
+MACRO_CHECK_SHOULD_BUILD(
+  ticpp
+  ticpp_SHOULD_BUILD
+  )
+
+IF(ticpp_SHOULD_BUILD)
+  SET(ticpp_SRC
+    ticpp/ticpp.cpp
+    ticpp/tinyxmlerror.cpp
+    ticpp/tinystr.cpp
+    ticpp/tinyxml.cpp
+    ticpp/tinyxmlparser.cpp
+    )
+
+  ADD_LIBRARY(ticpp ${ticpp_SRC})
+
+  INSTALL(TARGETS ticpp
+    LIBRARY DESTINATION lib
+    ARCHIVE DESTINATION lib
+    COMPONENT "izenelib_libraries")
+
+ENDIF(ticpp_SHOULD_BUILD)
 
 MACRO_CHECK_SHOULD_BUILD(
   izene_util
   Boost_FOUND
+  Threads_FOUND
   )
 
 IF(izene_util_SHOULD_BUILD)
 
-  FILE(GLOB_RECURSE
-    util_SRC
-    RELATIVE
-    "${CMAKE_CURRENT_SOURCE_DIR}"
-    "*.cpp"
+  SET(util_SRC
+    scheduler.cpp
+    thread-pool/ThreadObject.cpp
+    thread-pool/ThreadObjectPool.cpp
+    cronexpression.cpp
+    timer.cpp
+    CBitArray.cpp
+    singleton.cpp
     )
 
   INCLUDE_DIRECTORIES(
@@ -59,10 +86,15 @@ IF(izene_util_SHOULD_BUILD)
 
   ADD_LIBRARY(izene_util ${util_SRC})
 
-TARGET_LINK_LIBRARIES(izene_util
-  ${Boost_THREAD_LIBRARY}
-  ${Boost_SERIALIZATION_LIBRARY}
-  ${CMAKE_THREAD_LIBS_INIT}
-  )
+  TARGET_LINK_LIBRARIES(izene_util
+    ${Boost_THREAD_LIBRARY}
+    ${Boost_SERIALIZATION_LIBRARY}
+    ${CMAKE_THREAD_LIBS_INIT}
+    )
 
-ENDIF(izeneutil_SHOULD_BUILD)
+  INSTALL(TARGETS izene_util
+    LIBRARY DESTINATION lib
+    ARCHIVE DESTINATION lib
+    COMPONENT "izenelib_libraries")
+
+ENDIF(izene_util_SHOULD_BUILD)

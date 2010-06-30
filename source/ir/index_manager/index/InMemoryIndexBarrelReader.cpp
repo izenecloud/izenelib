@@ -1,5 +1,5 @@
-#include <ir/index_manager/index/InMemoryIndexBarrelReader.h>
 #include <ir/index_manager/index/IndexBarrelWriter.h>
+#include <ir/index_manager/index/InMemoryIndexBarrelReader.h>
 #include <ir/index_manager/index/MultiFieldTermReader.h>
 
 

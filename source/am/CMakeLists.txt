@@ -3,7 +3,6 @@ FIND_PACKAGE(Boost ${Boost_FIND_VERSION}
 
 MACRO_CHECK_SHOULD_BUILD(
   am
-  wiselib_FOUND
   Glog_FOUND
   Boost_FOUND
   )

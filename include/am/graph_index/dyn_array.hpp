@@ -10,6 +10,7 @@
 #include <vector>
 #include <ostream>
 #include <iostream>
+#include <stdio.h>
 #include <boost/archive/binary_iarchive.hpp>
 #include <boost/archive/binary_oarchive.hpp>
 

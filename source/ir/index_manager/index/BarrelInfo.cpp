@@ -1,8 +1,8 @@
+#include <ir/index_manager/index/IndexBarrelWriter.h>
 #include <ir/index_manager/index/BarrelInfo.h>
 #include <ir/index_manager/store/IndexInput.h>
 #include <ir/index_manager/store/IndexOutput.h>
 #include <ir/index_manager/store/Directory.h>
-#include <ir/index_manager/index/IndexBarrelWriter.h>
 #include <ir/index_manager/utility/StringUtils.h>
 #include <ir/index_manager/utility/XML.h>
 

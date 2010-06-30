@@ -4,6 +4,7 @@
 #include <assert.h>
 #include <string.h>
 #include <sstream>
+#include <stdio.h>
 
 #if defined(_WIN32) || defined(WIN32) || defined(_WIN64) || defined(WIN64)
 #	include <io.h>

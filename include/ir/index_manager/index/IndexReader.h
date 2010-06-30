@@ -9,8 +9,8 @@
 
 #include <boost/thread.hpp>
 
-#include <ir/index_manager/utility/system.h>
 #include <ir/index_manager/index/Indexer.h>
+#include <ir/index_manager/utility/system.h>
 #include <ir/index_manager/index/IndexBarrelReader.h>
 #include <ir/index_manager/index/TermInfo.h>
 #include <ir/index_manager/index/BarrelInfo.h>

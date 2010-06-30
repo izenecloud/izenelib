@@ -1,3 +1,5 @@
+#include <boost/date_time/posix_time/posix_time.hpp>
+
 #include <ir/index_manager/index/Indexer.h>
 #include <ir/index_manager/index/IndexMerger.h>
 #include <ir/index_manager/index/FieldMerger.h>
@@ -8,8 +10,6 @@
 
 #include <util/izene_log.h>
 #include <util/ThreadModel.h>
-
-#include <boost/date_time/posix_time/posix_time.hpp>
 
 #include <sstream>
 #include <memory>

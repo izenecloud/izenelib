@@ -1,3 +1,4 @@
+#include <util/ticpp/ticppconf.h>
 /*
 www.sourceforge.net/projects/tinyxml
 Original code (2.0 and earlier )copyright (c) 2000-2006 Lee Thomason (www.grinninglizard.com)
@@ -23,6 +24,10 @@ distribution.
 */
 
 #include <util/ticpp/tinyxml.h>
+
+namespace izenelib {
+namespace util {
+namespace ticpp {
 
 // The goal of the seperate error file is to make the first
 // step towards localization. tinyxml (currently) only supports
@@ -51,3 +56,5 @@ const char* TiXmlBase::errorString[ TIXML_ERROR_STRING_COUNT ] =
 	"Error parsing CDATA.",
 	"Error when TiXmlDocument added to document, because TiXmlDocument can only be at the root.",
 };
+
+}}} // namespace izenelib::util::ticpp

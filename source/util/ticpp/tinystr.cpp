@@ -1,3 +1,4 @@
+#include <util/ticpp/ticppconf.h>
 /*
 www.sourceforge.net/projects/tinyxml
 Original file by Yves Berquin.
@@ -30,6 +31,10 @@ distribution.
 #ifndef TIXML_USE_STL
 
 #include <util/ticpp/tinystr.h>
+
+namespace izenelib {
+namespace util {
+namespace ticpp {
 
 // Error value for find primitive
 const TiXmlString::size_type TiXmlString::npos = static_cast< TiXmlString::size_type >(-1);
@@ -112,5 +117,6 @@ TiXmlString operator + (const char* a, const TiXmlString & b)
 	return tmp;
 }
 
+}}} // namespace izenelib::util::ticpp
 
 #endif	// TIXML_USE_STL

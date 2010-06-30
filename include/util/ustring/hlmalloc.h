@@ -10,5 +10,16 @@ public:
 	{
 		return malloc(bytes);
 	}
+
+	static void hlfree(void* mem)
+	{
+		return free(mem);
+	}
+
+	static void* hlrealloc(void* oldmem, uint32_t bytes)
+	{
+		return realloc(oldmem, bytes);
+	}
+
 };
 #endif

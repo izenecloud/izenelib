@@ -7,22 +7,20 @@
 #ifndef COLLECTIONINDEXER_H
 #define COLLECTIONINDEXER_H
 
-#include <boost/serialization/shared_ptr.hpp>
-
-#include <ir/index_manager/utility/system.h>
-#include <ir/index_manager/utility/MemCache.h>
-
-#include <ir/index_manager/index/IndexerDocument.h>
-
-#include <ir/index_manager/index/IndexerPropertyConfig.h>
-
-#include <ir/index_manager/store/Directory.h>
+#include <ir/index_manager/index/BTreeIndex.h>
 #include <ir/index_manager/index/FieldIndexer.h>
 #include <ir/index_manager/index/FieldInfo.h>
 #include <ir/index_manager/index/OutputDescriptor.h>
-#include <ir/index_manager/index/BTreeIndex.h>
 #include <ir/index_manager/index/LAInput.h>
 #include <ir/index_manager/index/DocLengthWriter.h>
+#include <ir/index_manager/index/IndexerDocument.h>
+#include <ir/index_manager/index/IndexerPropertyConfig.h>
+
+#include <ir/index_manager/store/Directory.h>
+#include <ir/index_manager/utility/system.h>
+#include <ir/index_manager/utility/MemCache.h>
+
+#include <boost/serialization/shared_ptr.hpp>
 
 NS_IZENELIB_IR_BEGIN
 

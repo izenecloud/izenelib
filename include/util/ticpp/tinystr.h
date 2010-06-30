@@ -1,3 +1,4 @@
+#include <util/ticpp/ticppconf.h>
 /*
 www.sourceforge.net/projects/tinyxml
 Original file by Yves Berquin.
@@ -56,6 +57,9 @@ distribution.
 	#define TIXML_EXPLICIT
 #endif
 
+namespace izenelib {
+namespace util {
+namespace ticpp {
 
 /*
    TiXmlString is an emulation of a subset of the std::string template.
@@ -314,6 +318,8 @@ public :
 	}
 
 } ;
+
+}}} // namespace izenelib::util::ticpp
 
 #endif	// TIXML_STRING_INCLUDED
 #endif	// TIXML_USE_STL

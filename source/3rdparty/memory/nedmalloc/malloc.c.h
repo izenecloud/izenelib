@@ -2496,7 +2496,7 @@ static struct malloc_state _gm_;
 
 #endif /* !ONLY_MSPACES */
 
-#define is_initialized(M)  ((M)->top != 0)
+#define _is_initialized(M)  ((M)->top != 0)
 
 /* -------------------------- system alloc setup ------------------------- */
 
@@ -3265,7 +3265,7 @@ static int bin_find(mstate m, mchunkptr x) {
 /* Traverse each chunk and check it; return total */
 static size_t traverse_and_check(mstate m) {
   size_t sum = 0;
-  if (is_initialized(m)) {
+  if (_is_initialized(m)) {
     msegmentptr s = &m->seg;
     sum += m->topsize + TOP_FOOT_SIZE;
     while (s != 0) {
@@ -3331,7 +3331,7 @@ static struct mallinfo internal_mallinfo(mstate m) {
   ensure_initialization();
   if (!PREACTION(m)) {
     check_malloc_state(m);
-    if (is_initialized(m)) {
+    if (_is_initialized(m)) {
       size_t nfree = SIZE_T_ONE; /* top always free */
       size_t mfree = m->topsize + TOP_FOOT_SIZE;
       size_t sum = mfree;
@@ -3373,7 +3373,7 @@ static void internal_malloc_stats(mstate m) {
     size_t fp = 0;
     size_t used = 0;
     check_malloc_state(m);
-    if (is_initialized(m)) {
+    if (_is_initialized(m)) {
       msegmentptr s = &m->seg;
       maxfp = m->max_footprint;
       fp = m->footprint;
@@ -3997,7 +3997,7 @@ static void* sys_alloc(mstate m, size_t nb) {
     if ((m->footprint += tsize) > m->max_footprint)
       m->max_footprint = m->footprint;
 
-    if (!is_initialized(m)) { /* first-time initialization */
+    if (!_is_initialized(m)) { /* first-time initialization */
       m->seg.base = m->least_addr = tbase;
       m->seg.size = tsize;
       m->seg.sflags = mmap_flag;
@@ -4117,7 +4117,7 @@ static size_t release_unused_segments(mstate m) {
 static int sys_trim(mstate m, size_t pad) {
   size_t released = 0;
   ensure_initialization();
-  if (pad < MAX_REQUEST && is_initialized(m)) {
+  if (pad < MAX_REQUEST && _is_initialized(m)) {
     pad += TOP_FOOT_SIZE; /* ensure enough room for segment overhead */
 
     if (m->topsize > pad) {

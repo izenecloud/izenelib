@@ -26,6 +26,7 @@
 #include <string>
 #include <iostream>
 #include <unistd.h>
+#include <stdio.h>
 
 #ifdef DEBUG
 #define error_log(msg) \
