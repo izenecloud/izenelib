@@ -224,7 +224,6 @@ void IndexWriter::indexDocument(IndexerDocument& doc)
     }
     pCurBarrelInfo_->updateMaxDoc(uniqueID.docId);
     pBarrelsInfo_->updateMaxDoc(uniqueID.docId);
-	cout<<"insert doc "<<uniqueID.docId<<endl;
     pIndexBarrelWriter_->addDocument(doc);
     (*pCurDocCount_)++;
 }
