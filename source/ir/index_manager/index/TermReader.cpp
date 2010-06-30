@@ -712,6 +712,9 @@ void InMemoryTermReader::close()
 
 TermReader* InMemoryTermReader::clone()
 {
-    return new InMemoryTermReader(field_.c_str(), pIndexer_);
+    TermReader* pTermReader = new InMemoryTermReader(field_.c_str(), pIndexer_);
+    pTermReader->setFieldInfo(pFieldInfo_);
+    pTermReader->setDocFilter(pDocFilter_);
+    return pTermReader;
 }
 

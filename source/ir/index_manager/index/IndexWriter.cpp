@@ -240,9 +240,9 @@ void IndexWriter::updateDocument(IndexerDocument& doc)
     DocId uniqueID;
     doc.getDocId(uniqueID);
 
-    if(uniqueID.docId > pBarrelsInfo_->maxDocId())
+    if(doc.getId() > pBarrelsInfo_->maxDocId())
         return;
-    pIndexer_->getIndexReader()->delDocument(uniqueID.colId,doc.getId());
+    removeDocument(uniqueID.colId,doc.getId());
     indexDocument(doc);
 }
 

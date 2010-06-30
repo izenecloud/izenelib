@@ -12,6 +12,7 @@ IndexBarrelWriter::IndexBarrelWriter(Indexer* pIndex,MemCache* pCache,const char
         :barrelName_(name)
         ,pIndexer_(pIndex)
         ,pMemCache_(pCache)
+        ,pDocFilter_(0)
 
 {
     pCollectionsInfo_ = new CollectionsInfo();
