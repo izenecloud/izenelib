@@ -58,7 +58,8 @@ void PostingMerger::reset()
 void PostingMerger::init()
 {
     pMemCache_ = new MemCache(POSTINGMERGE_BUFFERSIZE*512);
-    pSkipListMerger_ = new SkipListMerger(Posting::skipInterval_,Posting::maxSkipLevel_,pMemCache_);
+    if(Posting::skipInterval_ > 0)
+        pSkipListMerger_ = new SkipListMerger(Posting::skipInterval_,Posting::maxSkipLevel_,pMemCache_);
 }
 
 void PostingMerger::setOutputDescriptor(OutputDescriptor* pOutputDescriptor)
@@ -316,7 +317,7 @@ void PostingMerger::mergeWith_GC(OnDiskPosting* pOnDiskPosting,BitVector* pFilte
             }
         }
         else ///this document has been deleted
-        {					
+        {
             nCTF += nPCount;
             ///write positions of documents
             while (nPCount > 0)

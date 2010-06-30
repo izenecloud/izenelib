@@ -224,6 +224,7 @@ void IndexWriter::indexDocument(IndexerDocument& doc)
     }
     pCurBarrelInfo_->updateMaxDoc(uniqueID.docId);
     pBarrelsInfo_->updateMaxDoc(uniqueID.docId);
+	cout<<"insert doc "<<uniqueID.docId<<endl;
     pIndexBarrelWriter_->addDocument(doc);
     (*pCurDocCount_)++;
 }
@@ -231,7 +232,7 @@ void IndexWriter::indexDocument(IndexerDocument& doc)
 void IndexWriter::removeDocument(collectionid_t colID, docid_t docId)
 {
     pIndexer_->getIndexReader()->delDocument(colID, docId);
-    if(! pIndexBarrelWriter_->getDocFilter())
+    if(pIndexBarrelWriter_ && (! pIndexBarrelWriter_->getDocFilter()))
         pIndexBarrelWriter_->setDocFilter(pIndexer_->getIndexReader()->getDocFilter());
 }
 
@@ -242,8 +243,8 @@ void IndexWriter::updateDocument(IndexerDocument& doc)
 
     if(doc.getId() > pBarrelsInfo_->maxDocId())
         return;
-    removeDocument(uniqueID.colId,doc.getId());
     indexDocument(doc);
+    removeDocument(uniqueID.colId,doc.getId());
 }
 
 void IndexWriter::optimizeIndex()
