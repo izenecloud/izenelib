@@ -1,5 +1,7 @@
 #include <ir/index_manager/store/MMapIndexInput.h>
 
+#include <sys/mman.h>
+
 using namespace izenelib::ir::indexmanager;
 
 MMapIndexInput::MMapIndexInput(const char* path)
