@@ -145,6 +145,10 @@ public:
 
     std::string getBasePath();
 
+    int getSkipInterval() { return skipInterval_; }
+
+    int getMaxSkipLevel() { return maxSkipLevel_; }
+	
 protected:
 
     void openDirectory(const std::string& storagePolicy);
@@ -167,6 +171,10 @@ protected:
     IndexManagerConfig* pConfigurationManager_;
 
     BTreeIndexer* pBTreeIndexer_;
+
+    int skipInterval_;
+
+    int maxSkipLevel_;
 
     std::map<collectionid_t, std::map<string, fieldid_t> > property_name_id_map_;
 

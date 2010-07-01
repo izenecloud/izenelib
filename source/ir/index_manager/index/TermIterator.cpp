@@ -66,7 +66,7 @@ Posting* VocIterator::termPosting()
         pInputDescriptor_->setDPostingInput(pInput);
         pInput = pTermReader_->getTermReaderImpl()->pInputDescriptor_->getPPostingInput()->clone();
         pInputDescriptor_->setPPostingInput(pInput);
-        pCurTermPosting_ = new OnDiskPosting(pInputDescriptor_,*pCurTermInfo_);
+        pCurTermPosting_ = new OnDiskPosting(skipInterval_, maxSkipLevel_, pInputDescriptor_,*pCurTermInfo_);
     }
     else
     {
@@ -154,7 +154,7 @@ Posting* DiskTermIterator::termPosting()
         pInputDescriptor_ = new InputDescriptor(true);
         pInputDescriptor_->setDPostingInput(pDirectory_->openInput(barrelName_ + ".dfp"));
         pInputDescriptor_->setPPostingInput(pDirectory_->openInput(barrelName_ + ".pop"));
-        pCurTermPosting_ = new OnDiskPosting(pInputDescriptor_,*pCurTermInfo_);
+        pCurTermPosting_ = new OnDiskPosting(skipInterval_, maxSkipLevel_, pInputDescriptor_,*pCurTermInfo_);
     }
     else
     {

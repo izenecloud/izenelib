@@ -4,8 +4,10 @@
 
 using namespace izenelib::ir::indexmanager;
 
-PostingMerger::PostingMerger()
-        :pOutputDescriptor_(NULL)
+PostingMerger::PostingMerger(int skipInterval, int maxSkipLevel)
+        :skipInterval_(skipInterval)
+        ,maxSkipLevel_(maxSkipLevel)
+        ,pOutputDescriptor_(NULL)
         ,pTmpPostingOutput_(NULL)
         ,pTmpPostingInput_(NULL)
         ,nPPostingLength_(0)
@@ -58,8 +60,8 @@ void PostingMerger::reset()
 void PostingMerger::init()
 {
     pMemCache_ = new MemCache(POSTINGMERGE_BUFFERSIZE*512);
-    if(Posting::skipInterval_ > 0)
-        pSkipListMerger_ = new SkipListMerger(Posting::skipInterval_,Posting::maxSkipLevel_,pMemCache_);
+    if(skipInterval_ > 0)
+        pSkipListMerger_ = new SkipListMerger(skipInterval_,maxSkipLevel_,pMemCache_);
 }
 
 void PostingMerger::setOutputDescriptor(OutputDescriptor* pOutputDescriptor)
@@ -88,7 +90,7 @@ void PostingMerger::mergeWith(InMemoryPosting* pInMemoryPosting)
     if (bFirstPosting_)///first posting
     {
         reset();
-        if(Posting::skipInterval_ == 0)
+        if(skipInterval_ == 0)
         {
             termInfo_.docPointer_ = pDOutput->getFilePointer();
             termInfo_.skipPointer_ = -1;
@@ -104,7 +106,7 @@ void PostingMerger::mergeWith(InMemoryPosting* pInMemoryPosting)
 
     IndexOutput* pDocIndexOutput = 0;
 
-    if(Posting::skipInterval_ == 0)
+    if(skipInterval_ == 0)
     {
         pDocIndexOutput = pDOutput;
     }
@@ -182,7 +184,7 @@ void PostingMerger::mergeWith(OnDiskPosting* pOnDiskPosting)
     if (bFirstPosting_)///first posting
     {
         reset();
-        if(Posting::skipInterval_ == 0)
+        if(skipInterval_ == 0)
         {
             termInfo_.docPointer_ = pDOutput->getFilePointer();
             termInfo_.skipPointer_ = -1;
@@ -200,7 +202,7 @@ void PostingMerger::mergeWith(OnDiskPosting* pOnDiskPosting)
 
     IndexOutput* pDocIndexOutput = 0;
 
-    if(Posting::skipInterval_ == 0)
+    if(skipInterval_ == 0)
     {
         pDocIndexOutput = pDOutput;
     }
@@ -261,7 +263,7 @@ void PostingMerger::mergeWith_GC(OnDiskPosting* pOnDiskPosting,BitVector* pFilte
     if (bFirstPosting_)///first posting
     {
         reset();
-        if(Posting::skipInterval_ == 0)
+        if(skipInterval_ == 0)
         {
             termInfo_.docPointer_ = pDOutput->getFilePointer();
             termInfo_.skipPointer_ = -1;
@@ -286,7 +288,7 @@ void PostingMerger::mergeWith_GC(OnDiskPosting* pOnDiskPosting,BitVector* pFilte
 
     IndexOutput* pDocIndexOutput = 0;
 
-    if(Posting::skipInterval_ == 0)
+    if(skipInterval_ == 0)
     {
         pDocIndexOutput = pDOutput;
     }
@@ -367,7 +369,7 @@ fileoffset_t PostingMerger::endMerge()
     termInfo_.lastDocID_ = chunkDesc_.lastdocid;
     termInfo_.positionPostingLen_ = pPOutput->getFilePointer() - postingDesc_.poffset;
 
-    if(Posting::skipInterval_ == 0)
+    if(skipInterval_ == 0)
     {
         termInfo_.skipLevel_ = 0;
         termInfo_.docPostingLen_ = postingDesc_.length;

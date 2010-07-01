@@ -151,7 +151,7 @@ struct MergeTermInfo
 class FieldMerger
 {
 public:
-    FieldMerger(bool sortingMerge);
+    FieldMerger(bool sortingMerge, int skipInterval, int maxSkipLevel);
 
     virtual ~FieldMerger(void);
 public:
@@ -236,6 +236,10 @@ private:
     fileoffset_t endMerge(OutputDescriptor* pOutputDescriptor) ;
 private:
     bool sortingMerge_;
+
+    int skipInterval_;
+
+    int maxSkipLevel_;
 
     FieldMergeQueue* pMergeQueue_;
 

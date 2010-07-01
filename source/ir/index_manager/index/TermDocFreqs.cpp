@@ -32,7 +32,7 @@ TermDocFreqs::TermDocFreqs(TermReader* pReader, InputDescriptor* pInputDescripto
         ,pInputDescriptor_(pInputDescriptor)
         ,ownPosting_(true)
 {
-    pPosting_ = new OnDiskPosting(pInputDescriptor_,termInfo_);
+    pPosting_ = new OnDiskPosting(skipInterval_, maxSkipLevel_, pInputDescriptor_,termInfo_);
     if(pReader->getDocFilter())
         pPosting_->setFilter(pReader->getDocFilter());
 }
@@ -120,7 +120,7 @@ docid_t TermDocFreqs::skipTo(docid_t target)
         if((nCurrentPosting_ == -1) || (nCurrentPosting_ >= nCurDecodedCount_) )
         {
             //if(termInfo_.docFreq_ < 4096)
-            if(Posting::skipInterval_ == 0)
+            if(skipInterval_ == 0)
             {
                 if(!decode())
                     return BAD_DOCID;

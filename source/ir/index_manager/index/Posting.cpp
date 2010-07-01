@@ -13,11 +13,10 @@ using namespace std;
 
 using namespace izenelib::ir::indexmanager;
 
-int Posting::skipInterval_;
-int Posting::maxSkipLevel_;
-
-Posting::Posting()
-    :pDocFilter_(0)
+Posting::Posting(int skipInterval, int maxSkipLevel)
+    :skipInterval_(skipInterval)
+    ,maxSkipLevel_(maxSkipLevel)
+    ,pDocFilter_(0)
 {}
 
 Posting::~Posting()
@@ -26,8 +25,9 @@ Posting::~Posting()
 //////////////////////////////////////////////////////////////////////////
 ///InMemoryPosting
 
-InMemoryPosting::InMemoryPosting(MemCache* pCache)
-        :pMemCache_(pCache)
+InMemoryPosting::InMemoryPosting(MemCache* pCache, int skipInterval, int maxSkipLevel)
+        :Posting(skipInterval, maxSkipLevel)
+        ,pMemCache_(pCache)
         ,nDF_(0)
         ,nLastDocID_(BAD_DOCID)
         ,nLastLoc_(BAD_DOCID)
@@ -41,8 +41,9 @@ InMemoryPosting::InMemoryPosting(MemCache* pCache)
     pLocList_  = new VariantDataPool(pCache);
 }
 
-InMemoryPosting::InMemoryPosting()
-        :pMemCache_(NULL)
+InMemoryPosting::InMemoryPosting(int skipInterval, int maxSkipLevel)
+        :Posting(skipInterval, maxSkipLevel)
+        ,pMemCache_(NULL)
         ,nDF_(0)
         ,nLastDocID_(BAD_DOCID)
         ,nLastLoc_(BAD_DOCID)
@@ -181,7 +182,7 @@ void InMemoryPosting::reset()
 
 Posting* InMemoryPosting::clone()
 {
-    InMemoryPosting* pClone = new InMemoryPosting();
+    InMemoryPosting* pClone = new InMemoryPosting(skipInterval_, maxSkipLevel_);
     if (pDocFreqList_)
     {
         pClone->pDocFreqList_ = new VariantDataPool(*pDocFreqList_);
@@ -498,16 +499,19 @@ docid_t InMemoryPosting::decodeTo(docid_t docID)
 
 //////////////////////////////////////////////////////////////////////////
 ///OnDiskPosting
-OnDiskPosting::OnDiskPosting(InputDescriptor* pInputDescriptor,const TermInfo& termInfo)
-        :pInputDescriptor_(pInputDescriptor)
+OnDiskPosting::OnDiskPosting(int skipInterval, int maxSkipLevel, 
+                                                           InputDescriptor* pInputDescriptor,const TermInfo& termInfo)
+        :Posting(skipInterval, maxSkipLevel)
+        ,pInputDescriptor_(pInputDescriptor)
         ,nBufSize_(0)
         ,pSkipListReader_(0)
 {
     reset(termInfo);
 }
 
-OnDiskPosting::OnDiskPosting()
-        :pSkipListReader_(0)
+OnDiskPosting::OnDiskPosting(int skipInterval, int maxSkipLevel)
+        :Posting(skipInterval, maxSkipLevel)
+        ,pSkipListReader_(0)
 
 {
     reset();

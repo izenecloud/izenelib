@@ -8,8 +8,10 @@
 
 using namespace izenelib::ir::indexmanager;
 
-FieldMerger::FieldMerger(bool sortingMerge)
+FieldMerger::FieldMerger(bool sortingMerge, int skipInterval, int maxSkipLevel)
         :sortingMerge_(sortingMerge)
+        ,skipInterval_(skipInterval)
+        ,maxSkipLevel_(maxSkipLevel)
         ,pMergeQueue_(NULL)
         ,pPostingMerger_(NULL)
         ,nNumTermCached_(0)
@@ -64,7 +66,7 @@ void FieldMerger::addField(BarrelInfo* pBarrelInfo,FieldInfo* pFieldInfo)
 {
     fieldEntries_.push_back(new MergeFieldEntry(pBarrelInfo,pFieldInfo));
     if (pPostingMerger_ == NULL)
-        pPostingMerger_ = new PostingMerger();
+        pPostingMerger_ = new PostingMerger(skipInterval_, maxSkipLevel_);
 
 }
 
@@ -239,12 +241,16 @@ void FieldMerger::sortingMerge(FieldMergeInfo** ppMergeInfos,int32_t numInfos,Te
         TermPositions* pPosition = new TermPositions(
                                                 ppMergeInfos[i]->pIterator_->termPosting(),
                                                 *(ppMergeInfos[i]->pIterator_->termInfo()));
+
+        pPosition->setSkipInterval(skipInterval_);
+        pPosition->setMaxSkipLevel(maxSkipLevel_);
+
         if(ppMergeInfos[i]->pBarrelInfo_->isUpdate)
             postingIterator.addTermPosition(pPosition);
         else
             postingIterator.addTermPosition(pPosition, pDocFilter_);
     }
-    InMemoryPosting* newPosting = new InMemoryPosting(pMemCache_);
+    InMemoryPosting* newPosting = new InMemoryPosting(pMemCache_, skipInterval_, maxSkipLevel_);
 
     docid_t docId = 0;
     while(postingIterator.next())

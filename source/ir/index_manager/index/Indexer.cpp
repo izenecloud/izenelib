@@ -102,8 +102,8 @@ void Indexer::setIndexManagerConfig(
     VariantDataPool::UPTIGHT_ALLOC_CHUNKSIZE = 8;
     VariantDataPool::UPTIGHT_ALLOC_MEMSIZE = 40000;
 
-    Posting::skipInterval_ = 3;//pConfigurationManager_->indexStrategy_.skipInterval_;
-    Posting::maxSkipLevel_ = 8;//pConfigurationManager_->indexStrategy_.maxSkipLevel_;
+    skipInterval_ = pConfigurationManager_->indexStrategy_.skipInterval_;
+    maxSkipLevel_ = pConfigurationManager_->indexStrategy_.maxSkipLevel_;
 
     std::string storagePolicy = pConfigurationManager_->storeStrategy_.param_;
     openDirectory(storagePolicy);

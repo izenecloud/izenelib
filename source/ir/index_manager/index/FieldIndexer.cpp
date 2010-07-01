@@ -31,7 +31,7 @@ void FieldIndexer::addField(docid_t docid, boost::shared_ptr<LAInput> laInput)
         InMemoryPostingMap::iterator postingIter = postingMap_.find(iter->termId_);
         if(postingIter == postingMap_.end())
         {
-            curPosting = new InMemoryPosting(pMemCache_);
+            curPosting = new InMemoryPosting(pMemCache_, pIndexer_->getSkipInterval(), pIndexer_->getMaxSkipLevel());
             postingMap_[iter->termId_] = curPosting;
         }
         else
@@ -50,7 +50,7 @@ void FieldIndexer::addField(docid_t docid, boost::shared_ptr<ForwardIndex> forwa
         InMemoryPostingMap::iterator postingIter = postingMap_.find(iter->first);
         if(postingIter == postingMap_.end())
         {
-            curPosting = new InMemoryPosting(pMemCache_);
+            curPosting = new InMemoryPosting(pMemCache_, pIndexer_->getSkipInterval(), pIndexer_->getMaxSkipLevel());
             postingMap_[iter->first] = curPosting;
         }
         else

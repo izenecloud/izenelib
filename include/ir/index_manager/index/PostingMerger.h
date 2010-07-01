@@ -22,7 +22,7 @@ namespace indexmanager{
 class PostingMerger
 {
 public:
-    PostingMerger();
+    PostingMerger(int skipInterval, int maxSkipLevel);
 
     virtual ~PostingMerger();
 
@@ -49,6 +49,10 @@ private:
 
 private:
     friend class FieldMerger;
+
+    int skipInterval_;
+
+    int maxSkipLevel_;
 
     TermInfo termInfo_;
 

@@ -129,7 +129,11 @@ TermReader* IndexReader::getTermReader(collectionid_t colID)
 	
     TermReader* pTermReader = pBarrelReader_->termReader(colID);
     if (pTermReader)
+    {
+        pTermReader->setSkipInterval(pIndexer_->getSkipInterval());
+        pTermReader->setMaxSkipLevel(pIndexer_->getMaxSkipLevel());
         return pTermReader->clone();
+    }
     else
         return NULL;
 }

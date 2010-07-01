@@ -44,7 +44,7 @@ class SkipListReader;
 class Posting
 {
 public:
-    Posting();
+    Posting(int skipInterval, int maxSkipLevel);
     virtual ~Posting();
 public:
     /**
@@ -132,8 +132,8 @@ public:
     virtual count_t getPPostingLen() = 0;
 
 public:
-    static int skipInterval_;
-    static int maxSkipLevel_;
+    int skipInterval_;
+    int maxSkipLevel_;
 
 protected:
     BitVector* pDocFilter_;
@@ -158,8 +158,8 @@ public:
         int32_t decodedPosCount;
     };
 public:
-    InMemoryPosting();
-    InMemoryPosting(MemCache* pMemCache);
+    InMemoryPosting(int skipInterval, int maxSkipLevel);
+    InMemoryPosting(MemCache* pMemCache, int skipInterval, int maxSkipLevel);
     virtual ~InMemoryPosting();
 public:
     /**
@@ -311,9 +311,9 @@ class OnDiskPosting:public Posting
         int32_t skipPosCount_; 		///position count to be skipped
     };
 public:
-    OnDiskPosting();
+    OnDiskPosting(int skipInterval, int maxSkipLevel);
 
-    OnDiskPosting(InputDescriptor* pInputDescriptor,const TermInfo& termInfo);
+    OnDiskPosting(int skipInterval, int maxSkipLevel, InputDescriptor* pInputDescriptor,const TermInfo& termInfo);
 
     ~OnDiskPosting();
 

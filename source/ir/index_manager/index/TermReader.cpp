@@ -226,14 +226,20 @@ TermDocFreqs* VocReader::termDocFreqs()
 {
     if (pCurTermInfo_ == NULL || pTermReaderImpl_ == NULL )
         return NULL;
-    return new TermDocFreqs(this,pInputDescriptor_->clone(),*pCurTermInfo_);;
+    TermDocFreqs* pTermDoc = new TermDocFreqs(this,pInputDescriptor_->clone(),*pCurTermInfo_);
+    pTermDoc->setSkipInterval(skipInterval_);
+    pTermDoc->setMaxSkipLevel(maxSkipLevel_);
+    return pTermDoc;
 }
 
 TermPositions* VocReader::termPositions()
 {
     if (pCurTermInfo_ == NULL || pTermReaderImpl_ == NULL )
         return NULL;
-    return new TermPositions(this,pInputDescriptor_->clone(),*pCurTermInfo_);
+    TermPositions* pTermPos = new TermPositions(this,pInputDescriptor_->clone(),*pCurTermInfo_);	
+    pTermPos->setSkipInterval(skipInterval_);
+    pTermPos->setMaxSkipLevel(maxSkipLevel_);
+    return pTermPos;
 }
 
 freq_t VocReader::docFreq(Term* term)
@@ -250,8 +256,10 @@ TermIterator* VocReader::termIterator(const char* field)
 {
     if ((field != NULL) && (strcasecmp(getFieldInfo()->getName(),field)))
         return NULL;
-
-    return static_cast<TermIterator*>(new VocIterator(this));
+    TermIterator* pIterator = static_cast<TermIterator*>(new VocIterator(this));
+    pIterator->setSkipInterval(skipInterval_);
+    pIterator->setMaxSkipLevel(maxSkipLevel_);
+    return pIterator;
 }
 
 
@@ -552,6 +560,8 @@ TermReader* DiskTermReader::clone()
     TermReader* pTermReader = new DiskTermReader(pTermReaderImpl_);
     pTermReader->setFieldInfo(pFieldInfo_);
     pTermReader->setDocFilter(pDocFilter_);
+    pTermReader->setSkipInterval(skipInterval_);
+    pTermReader->setMaxSkipLevel(maxSkipLevel_);
     return pTermReader;
 }
 
@@ -560,14 +570,21 @@ TermDocFreqs* DiskTermReader::termDocFreqs()
 {
     if (pCurTermInfo_ == NULL || pTermReaderImpl_ == NULL )
         return NULL;
-    return new TermDocFreqs(this,pTermReaderImpl_->pInputDescriptor_->clone(DOCUMENT_LEVEL),*pCurTermInfo_);
+    TermDocFreqs* pTermDoc = 
+        new TermDocFreqs(this,pTermReaderImpl_->pInputDescriptor_->clone(DOCUMENT_LEVEL),*pCurTermInfo_);
+    pTermDoc->setSkipInterval(skipInterval_);
+    pTermDoc->setMaxSkipLevel(maxSkipLevel_);
+    return pTermDoc;
 }
 
 TermPositions* DiskTermReader::termPositions()
 {
     if (pCurTermInfo_ == NULL || pTermReaderImpl_ == NULL )
         return NULL;
-    return new TermPositions(this,pTermReaderImpl_->pInputDescriptor_->clone(),*pCurTermInfo_);
+    TermPositions* pTermPos =  new TermPositions(this,pTermReaderImpl_->pInputDescriptor_->clone(),*pCurTermInfo_);
+    pTermPos->setSkipInterval(skipInterval_);
+    pTermPos->setMaxSkipLevel(maxSkipLevel_);
+    return pTermPos;
 }
 
 freq_t DiskTermReader::docFreq(Term* term)
@@ -590,9 +607,12 @@ TermIterator* DiskTermReader::termIterator(const char* field)
     if ((field != NULL) && (strcasecmp(getFieldInfo()->getName(),field)))
         return NULL;
 
-    return static_cast<TermIterator*>(new DiskTermIterator(pTermReaderImpl_->pDirectory_,
-                       pTermReaderImpl_->barrelName_.c_str(),
-                       pTermReaderImpl_->pFieldInfo_));
+    TermIterator* pIterator = static_cast<TermIterator*>(new DiskTermIterator(pTermReaderImpl_->pDirectory_,
+                                                             pTermReaderImpl_->barrelName_.c_str(),
+                                                             pTermReaderImpl_->pFieldInfo_));
+    pIterator->setSkipInterval(skipInterval_);
+    pIterator->setMaxSkipLevel(maxSkipLevel_);
+    return pIterator;
 }
 
 
@@ -621,7 +641,11 @@ TermIterator* InMemoryTermReader::termIterator(const char* field)
 {
     if ((field != NULL) && (field_ != field))
         return NULL;
-    return new InMemoryTermIterator(this);
+
+    TermIterator* pIterator = new InMemoryTermIterator(this);
+    pIterator->setSkipInterval(skipInterval_);
+    pIterator->setMaxSkipLevel(maxSkipLevel_);
+    return pIterator;
 }
 
 bool InMemoryTermReader::seek(Term* term)
@@ -642,6 +666,8 @@ TermDocFreqs* InMemoryTermReader::termDocFreqs()
     //InMemoryPosting* pInMem = (InMemoryPosting*)pCurPosting_;
     //pInMem->flushLastDoc(false);
     TermDocFreqs* pTermDocs = new TermDocFreqs(this,pCurPosting_,*pCurTermInfo_);
+    pTermDocs->setSkipInterval(skipInterval_);
+    pTermDocs->setMaxSkipLevel(maxSkipLevel_);
     return pTermDocs;
 }
 
@@ -654,6 +680,8 @@ TermPositions* InMemoryTermReader::termPositions()
     //InMemoryPosting* pInMem = (InMemoryPosting*)pCurPosting_;
     //pInMem->flushLastDoc(false);
     TermPositions* pPositions = new TermPositions(this,pCurPosting_,*pCurTermInfo_);
+    pPositions->setSkipInterval(skipInterval_);
+    pPositions->setMaxSkipLevel(maxSkipLevel_);
     return pPositions;
 }
 freq_t InMemoryTermReader::docFreq(Term* term)
@@ -715,6 +743,8 @@ TermReader* InMemoryTermReader::clone()
     TermReader* pTermReader = new InMemoryTermReader(field_.c_str(), pIndexer_);
     pTermReader->setFieldInfo(pFieldInfo_);
     pTermReader->setDocFilter(pDocFilter_);
+    pTermReader->setSkipInterval(skipInterval_);
+    pTermReader->setMaxSkipLevel(maxSkipLevel_);
     return pTermReader;
 }
 

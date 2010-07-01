@@ -49,6 +49,10 @@ public:
 
     virtual void close();
 
+    void setSkipInterval(int skipInterval) { skipInterval_ = skipInterval; }
+
+    void setMaxSkipLevel(int maxSkipLevel) { maxSkipLevel_ = maxSkipLevel; }
+
 protected:
 
     virtual bool decode();
@@ -79,6 +83,10 @@ protected:
     InputDescriptor* pInputDescriptor_;
 
     bool ownPosting_;
+
+    int skipInterval_;
+
+    int maxSkipLevel_;
 
     static const size_t DEFAULT_BUFFERSIZE = 131072;
 };

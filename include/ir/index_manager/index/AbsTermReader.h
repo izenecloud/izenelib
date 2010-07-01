@@ -71,9 +71,19 @@ public:
     virtual void setDocFilter(BitVector* pFilter) { pDocFilter_ = pFilter;}
 
     BitVector* getDocFilter() { return pDocFilter_; }
+
+    int getSkipInterval() { return skipInterval_; }
+
+    void setSkipInterval(int skipInterval) { skipInterval_ = skipInterval; }
+
+    int getMaxSkipLevel() { return maxSkipLevel_; }
+
+    void setMaxSkipLevel(int maxSkipLevel) { maxSkipLevel_ = maxSkipLevel; }
 protected:
     FieldInfo* pFieldInfo_;	///reference to field info
     BitVector* pDocFilter_;
+    int skipInterval_;
+    int maxSkipLevel_;
 
     friend class TermDocFreqs;
     friend class MultiFieldTermReader;

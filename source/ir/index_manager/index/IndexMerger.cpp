@@ -306,7 +306,9 @@ void IndexMerger::mergeBarrel(MergeBarrel* pBarrel)
                         {
                             if (pFieldMerger == NULL)
                             {
-                                pFieldMerger = new FieldMerger(needSortingMerge);
+                                pFieldMerger = new FieldMerger(needSortingMerge, 
+                                                                                 pIndexer_->getSkipInterval(), 
+                                                                                 pIndexer_->getMaxSkipLevel());
                                 pFieldMerger->setDirectory(pDirectory_);
                                 if(pDocFilter_)
                                     pFieldMerger->setDocFilter(pDocFilter_);

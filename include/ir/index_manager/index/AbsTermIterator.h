@@ -40,6 +40,17 @@ public:
     virtual const TermInfo* termInfo() = 0;
     /// get current term's posting (for merge only)
     virtual Posting* termPosting() = 0;
+
+    int getSkipInterval() { return skipInterval_; }
+
+    void setSkipInterval(int skipInterval) { skipInterval_ = skipInterval; }
+
+    int getMaxSkipLevel() { return maxSkipLevel_; }
+
+    void setMaxSkipLevel(int maxSkipLevel) { maxSkipLevel_ = maxSkipLevel; }
+protected:
+    int skipInterval_;
+    int maxSkipLevel_;
 };
 
 
