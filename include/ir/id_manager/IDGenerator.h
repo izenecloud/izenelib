@@ -249,7 +249,7 @@ inline bool UniqueIDGenerator<NameString, NameID,
 		throw IDFactoryException(SF1_ID_FACTORY_OUT_OF_BOUND, __LINE__, __FILE__);
 	}
 
-	idFinder_.insertValue(nameString, updatedID);
+	idFinder_.update(nameString, updatedID);
     mutex_.release_write_lock();
 	return ret;
 } // end - updateNameIDByNameString()
