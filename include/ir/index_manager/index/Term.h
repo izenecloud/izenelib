@@ -47,7 +47,7 @@ public:
         this->value = value;
     }
 
-    int32_t compare(const Term* pOther);
+    int64_t compare(const Term* pOther);
 
     Term* clone()
     {

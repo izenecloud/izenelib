@@ -123,7 +123,7 @@ private:
      */
     bool lessThan(FieldMergeInfo* a, FieldMergeInfo* b)
     {
-        int32_t ret = a->pCurTerm_->compare(b->pCurTerm_);
+        int64_t ret = a->pCurTerm_->compare(b->pCurTerm_);
         if(ret == 0)
         {
             return a->baseDocId_ < b->baseDocId_;
@@ -275,7 +275,6 @@ inline void FieldMerger::mergeTerms(FieldMergeInfo** ppMergeInfos,int32_t numInf
         return sortingMerge(ppMergeInfos, numInfos, ti);
 
     Posting* pPosting;
-
     for (int32_t i = 0;i< numInfos;i++)
     {
         pPosting = ppMergeInfos[i]->pIterator_->termPosting();

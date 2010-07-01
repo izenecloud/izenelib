@@ -19,10 +19,10 @@ Term::Term(const Term& term)
     value = term.value;
 }
 
-int32_t Term::compare(const Term* pOther)
+int64_t Term::compare(const Term* pOther)
 {
     if (field == pOther->field)
-        return (int32_t)(value - pOther->value);
+        return ((uint64_t)value - (uint64_t)(pOther->value));
 
     return field.compare(pOther->field);
 }
