@@ -185,21 +185,21 @@ public:
 
 		return id;
 	}
-    
-    static ub8 generateHash64BySer (const KeyType& key) {
-        using namespace izenelib::am::util;
-        char* token = 0;
-        size_t len;
-        izene_serialization<KeyType> izs(key);
-        izs.write_image(token, len);
-        ub8 id = 0L;
-        ub8 id1, id2;
-        id1 = calcHash (token, len, init_pattern_1);
-        id2 = calcHash (token, len, init_pattern_2);
-        id = (id1 << 32) | id2;
 
-        return id;
-    }
+	static ub8 generateHash64BySer (const KeyType& key) {
+		using namespace izenelib::am::util;
+		char* token = 0;
+		size_t len;
+		izene_serialization<KeyType> izs(key);
+		izs.write_image(token, len);
+		ub8 id = 0L;
+		ub8 id1, id2;
+		id1 = calcHash (token, len, init_pattern_1);
+		id2 = calcHash (token, len, init_pattern_2);
+		id = (id1 << 32) | id2;
+
+		return id;
+	}
 
 	static ub4 generateHash32 (const KeyType& key) {
 		const char *token = (const char *) key.c_str();
@@ -284,10 +284,80 @@ template<typename KeyType> inline ub4 izene_hashing(const KeyType& key) {
 	return convkey % HashFunction<KeyType>::PRIME;
 }
 
-template<class T> struct izene_HashFunctor {
-	size_t operator()(const T& key) const {
-		return izene_hashing(key);
+uint32_t MurmurHash2(uint8_t* data, int32_t len, uint32_t seed) {
+	// 'm' and 'r' are mixing constants generated offline.
+	// They're not really 'magic', they just happen to work well.
+
+	const uint32_t m = 0x5bd1e995;
+	const int32_t r = 24;
+
+	// Initialize the hash to a 'random' value
+
+	uint32_t h = seed ^ len;
+
+	// Mix 4 bytes at a time into the hash
+
+	while (len >= 4) {
+		uint32_t k = *(uint32_t *)data;
+
+		k *= m;
+		k ^= k >> r;
+		k *= m;
+
+		h *= m;
+		h ^= k;
+
+		data += 4;
+		len -= 4;
 	}
+
+	// Handle the last few bytes of the input array
+
+	switch (len) {
+	case 3:
+		h ^= data[2] << 16;
+	case 2:
+		h ^= data[1] << 8;
+	case 1:
+		h ^= data[0];
+		h *= m;
+	};
+
+	// Do a few final mixes of the hash to ensure the last few
+	// bytes are well-incorporated.
+
+	h ^= h >> 13;
+	h *= m;
+	h ^= h >> 15;
+
+	return h;
+}
+
+uint32_t IncrementalMurmurHash2(uint8_t data, uint32_t h) {
+	// 'm' and 'r' are mixing constants generated offline.
+	// They're not really 'magic', they just happen to work well.
+
+	const uint32_t m = 0x5bd1e995;
+
+	h ^= data;
+	h *= m;
+
+	// Do a few final mixes of the hash to ensure the last few
+	// bytes are well-incorporated.
+
+	h ^= h >> 13;
+	h *= m;
+	h ^= h >> 15;
+
+	return h;
+}
+
+}
+
+template<class T> struct izene_HashFunctor {
+size_t operator()(const T& key) const {
+	return izene_hashing(key);
+}
 };
 
 NS_IZENELIB_UTIL_END
