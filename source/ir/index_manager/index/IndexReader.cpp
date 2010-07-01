@@ -170,7 +170,6 @@ void IndexReader::delDocument(collectionid_t colID,docid_t docId)
     if(NULL == pBarrelInfo)
         return;
     pBarrelInfo->deleteDocument(docId);
-
     if(!pDocFilter_)
     {
         pDocFilter_ = new BitVector(pBarrelsInfo_->getDocCount() + 1);

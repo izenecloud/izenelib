@@ -209,7 +209,11 @@ void IndexWriter::indexDocument(IndexerDocument& doc)
     doc.getDocId(uniqueID);
 
     if (baseDocIDMap_.find(uniqueID.colId) == baseDocIDMap_.end())
+    {
         baseDocIDMap_.insert(make_pair(uniqueID.colId,uniqueID.docId));
+        if(pCurBarrelInfo_->baseDocIDMap.empty())
+            pCurBarrelInfo_->setBaseDocID(baseDocIDMap_);
+    }
 
     if (pIndexBarrelWriter_->cacheFull())
     {
