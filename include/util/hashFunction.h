@@ -284,7 +284,7 @@ template<typename KeyType> inline ub4 izene_hashing(const KeyType& key) {
 	return convkey % HashFunction<KeyType>::PRIME;
 }
 
-uint32_t MurmurHash2(uint8_t* data, int32_t len, uint32_t seed) {
+inline uint32_t MurmurHash2(uint8_t* data, int32_t len, uint32_t seed) {
 	// 'm' and 'r' are mixing constants generated offline.
 	// They're not really 'magic', they just happen to work well.
 
@@ -333,7 +333,7 @@ uint32_t MurmurHash2(uint8_t* data, int32_t len, uint32_t seed) {
 	return h;
 }
 
-uint32_t IncrementalMurmurHash2(uint8_t data, uint32_t h) {
+inline uint32_t IncrementalMurmurHash2(uint8_t data, uint32_t h) {
 	// 'm' and 'r' are mixing constants generated offline.
 	// They're not really 'magic', they just happen to work well.
 
