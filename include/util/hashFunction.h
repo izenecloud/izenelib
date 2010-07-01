@@ -352,7 +352,6 @@ uint32_t IncrementalMurmurHash2(uint8_t data, uint32_t h) {
 	return h;
 }
 
-}
 
 template<class T> struct izene_HashFunctor {
 size_t operator()(const T& key) const {
