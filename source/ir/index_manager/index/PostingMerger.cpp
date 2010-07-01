@@ -254,13 +254,6 @@ void PostingMerger::mergeWith_GC(OnDiskPosting* pOnDiskPosting,BitVector* pFilte
     IndexInput*	pDInput = pOnDiskPosting->getInputDescriptor()->getDPostingInput();
     IndexInput*	pPInput = pOnDiskPosting->getInputDescriptor()->getPPostingInput();
 
-    docid_t nDocID = 0;
-    docid_t nDocIDPrev = 0;
-    docid_t nLastDocID = 0;
-    freq_t	nTF = 0;
-    count_t nCTF = 0;
-    count_t nDF = 0;
-    count_t nPCount = 0;
     count_t nODDF = pOnDiskPosting->postingDesc_.df;
     if(nODDF <= 0)
         return;
@@ -284,6 +277,13 @@ void PostingMerger::mergeWith_GC(OnDiskPosting* pOnDiskPosting,BitVector* pFilte
         postingDesc_.poffset = pPOutput->getFilePointer();
     }
 
+    docid_t nDocID = 0;
+    docid_t nLastDocID = chunkDesc_.lastdocid;
+    freq_t	nTF = 0;
+    count_t nCTF = 0;
+    count_t nDF = 0;
+    count_t nPCount = 0;
+
     IndexOutput* pDocIndexOutput = 0;
 
     if(Posting::skipInterval_ == 0)
@@ -303,10 +303,9 @@ void PostingMerger::mergeWith_GC(OnDiskPosting* pOnDiskPosting,BitVector* pFilte
         nTF = pDInput->readVInt();
         if(!pFilter->test((size_t)nDocID))///the document has not been deleted
         {
-            pDocIndexOutput->writeVInt(nDocID - nDocIDPrev);
+            pDocIndexOutput->writeVInt(nDocID - nLastDocID);
             pDocIndexOutput->writeVInt(nTF);
 
-            nDocIDPrev = nDocID;
             nPCount += nTF;
             nDF++;
             nLastDocID = nDocID;
