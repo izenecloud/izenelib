@@ -142,7 +142,6 @@ protected:
 /**
 *InMemoryPosting
 */
-class FieldIndexer;
 class InMemoryPosting:public Posting
 {
 public:
@@ -282,8 +281,6 @@ public:
     SkipListReader* getSkipListReader();
 
     void setDirty() { dirty_ = true; }
-
-    void setIndexer(FieldIndexer* pIndexer) { pIndexer_ = pIndexer; }
 protected:
     MemCache* pMemCache_;	/// memory cache
     count_t nDF_;			///document frequency of this field
@@ -296,8 +293,7 @@ protected:
     VariantDataPool* pLocList_; 	/// Location list
     SkipListWriter* pSkipListWriter_;   ///skiplist writer
     SkipListReader* pSkipListReader_; ///skiplist reader
-    FieldIndexer* pIndexer_;
-    volatile bool dirty_;
+    bool dirty_;
     friend class PostingMerger;
 };
 

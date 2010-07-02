@@ -718,8 +718,6 @@ TermInfo* InMemoryTermReader::termInfo(Term* term)
     if (!pTermInfo_)
         pTermInfo_ = new TermInfo;
 
-    pCurPosting_->setIndexer(pIndexer_);
-
     pTermInfo_->set(
                                 pCurPosting_->docFreq(),
                                 pCurPosting_->getCTF(),

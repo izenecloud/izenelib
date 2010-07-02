@@ -5,9 +5,6 @@
 #include <ir/index_manager/index/SkipListReader.h>
 #include <ir/index_manager/store/IndexOutput.h>
 #include <ir/index_manager/store/IndexInput.h>
-#include <ir/index_manager/index/FieldIndexer.h>
-
-#include <util/ThreadModel.h>
 
 #include <math.h>
 
@@ -39,7 +36,6 @@ InMemoryPosting::InMemoryPosting(MemCache* pCache, int skipInterval, int maxSkip
         ,pDS_(NULL)
         ,pSkipListWriter_(0)
         ,pSkipListReader_(0)
-        ,dirty_(false)
 {
     pDocFreqList_ = new VariantDataPool(pCache);
     pLocList_  = new VariantDataPool(pCache);
@@ -288,7 +284,7 @@ int32_t InMemoryPosting::decodeNext(uint32_t* pPosting,int32_t length)
     {
         SF1V5_THROW(ERROR_FILEIO,"Index dirty.");
     }
-    izenelib::util::ScopedReadLock<izenelib::util::ReadWriteLock> lock(pIndexer_->rwLock_);
+
     ///flush last document
     flushLastDoc(false);
     if (!pDS_)
@@ -360,7 +356,6 @@ void InMemoryPosting::decodeNextPositions(uint32_t* pPosting,int32_t length)
     {
         SF1V5_THROW(ERROR_FILEIO,"Index dirty.");
     }
-    izenelib::util::ScopedReadLock<izenelib::util::ReadWriteLock> lock(pIndexer_->rwLock_);
 
     uint8_t* pPChunk = &(pDS_->decodingPChunk->data[pDS_->decodingPChunkPos]);
     uint8_t* pPChunkEnd = &(pDS_->decodingPChunk->data[pDS_->decodingPChunk->size-1]);
@@ -398,7 +393,6 @@ void InMemoryPosting::decodeNextPositions(uint32_t* pPosting,uint32_t* pFreqs,in
     {
         SF1V5_THROW(ERROR_FILEIO,"Index dirty.");
     }
-    izenelib::util::ScopedReadLock<izenelib::util::ReadWriteLock> lock(pIndexer_->rwLock_);
 
     uint8_t* pPChunk = &(pDS_->decodingPChunk->data[pDS_->decodingPChunkPos]);
     uint8_t* pPChunkEnd = &(pDS_->decodingPChunk->data[pDS_->decodingPChunk->size-1]);
@@ -457,7 +451,6 @@ docid_t InMemoryPosting::decodeTo(docid_t docID)
     {
         SF1V5_THROW(ERROR_FILEIO,"Index dirty.");
     }
-    izenelib::util::ScopedReadLock<izenelib::util::ReadWriteLock> lock(pIndexer_->rwLock_);
 
     ///skipping for in-memory posting is not that necessary
     ///just pass one by one
