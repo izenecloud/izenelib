@@ -9,9 +9,11 @@
 #define BARRELINFO_H
 
 #include <ir/index_manager/store/Directory.h>
+#include <ir/index_manager/store/IndexInput.h>
 
 #include <vector>
 #include <map>
+#include <set>
 #include <sstream>
 
 #define BARRELS_INFONAME "barrels"
@@ -161,6 +163,12 @@ public:
 
     bool isSearchable() { return searchable; }
 
+    void registerIndexInput(IndexInput* pIndexInput);
+
+    void unRegisterIndexInput(IndexInput* pIndexInput);
+
+    void setDirty();
+
     ///compare function to sort all the barrels, the compare function will be based on the document count of a certain barrel.
     ///we will sort barrels according to base doc id of the first collection.
     static bool greater (BarrelInfo* pElem1, BarrelInfo* pElem2 )
@@ -189,6 +197,9 @@ public:
     bool modified;
 
     bool searchable;
+
+    ///all index input instances generated for this barrel
+    std::set<IndexInput*> indexInputs;
 };
 
 
@@ -304,6 +315,8 @@ private:
     vector<BarrelInfo*> barrelInfos;
 
     vector<BarrelInfo*>::iterator barrelsiterator;
+
+    vector<BarrelInfo*> rubbishBarrelInfos;
 
     docid_t maxDoc;
 

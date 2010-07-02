@@ -1,4 +1,5 @@
 #include <ir/index_manager/store/IndexInput.h>
+#include <ir/index_manager/index/BarrelInfo.h>
 
 using namespace izenelib::ir::indexmanager;
 
@@ -8,6 +9,8 @@ IndexInput::IndexInput(char* buf,size_t buffsize)
     buffer_ = buf;
     bufferSize_ = buffsize;
     bOwnBuff_ = false;
+    dirty_ = false;
+    pBarrelInfo_ = 0;
 
     bufferStart_ = 0;
     bufferLength_ = 0;
@@ -29,6 +32,8 @@ IndexInput::IndexInput(size_t buffsize)
     }
 
     bOwnBuff_ = true;
+    dirty_ = false;
+    pBarrelInfo_ = 0;
 
     bufferStart_ = 0;
     bufferLength_ = 0;
@@ -47,6 +52,8 @@ IndexInput::~IndexInput(void)
             buffer_ = NULL;
         }
     }
+    if(pBarrelInfo_)
+      pBarrelInfo_->unRegisterIndexInput(this);
 }
 
 void IndexInput::reset()
@@ -56,8 +63,18 @@ void IndexInput::reset()
     bufferPosition_ = 0;
 }
 
+void IndexInput::setBarrelInfo(BarrelInfo* pBarrelInfo)
+{
+    pBarrelInfo_ = pBarrelInfo;
+    pBarrelInfo_->registerIndexInput(this);
+}
+
 void IndexInput::read(char* data, size_t length)
 {
+    if(dirty_)
+    {
+        SF1V5_THROW(ERROR_FILEIO,"Index dirty.");
+    }
     if (bufferPosition_ >= (size_t)bufferStart_)
         refill();
     if (length <= (bufferLength_ - bufferPosition_))
@@ -80,6 +97,11 @@ void IndexInput::read(char* data, size_t length)
 }
 void IndexInput::readBytes(uint8_t* b,size_t len)
 {
+    if(dirty_)
+    {
+        SF1V5_THROW(ERROR_FILEIO,"Index dirty.");
+    }
+
     if (len < bufferSize_)
     {
         for (size_t i = 0; i < len; i++)

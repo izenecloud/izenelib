@@ -71,13 +71,13 @@ public:
 class VocReader:public TermReader
 {
 public:
-    VocReader(Directory* pDirectory,const char* barrelname,FieldInfo* pFieldInfo);
+    VocReader(Directory* pDirectory,BarrelInfo* pBarrelInfo,FieldInfo* pFieldInfo);
 
     VocReader(TermReaderImpl* pTermReaderImpl);
 
     virtual ~VocReader(void);
 public:
-    void open(Directory* pDirectory,const char* barrelname,FieldInfo* pFieldInfo);
+    void open(Directory* pDirectory,BarrelInfo* pBarrelInfo,FieldInfo* pFieldInfo);
 
     void reopen();
 
@@ -161,7 +161,7 @@ public:
 class DiskTermReader: public TermReader
 {
 public:
-    DiskTermReader(Directory* pDirectory,const char* barrelname,FieldInfo* pFieldInfo);
+    DiskTermReader(Directory* pDirectory,BarrelInfo* pBarrelInfo,FieldInfo* pFieldInfo);
 
     DiskTermReader(SparseTermReaderImpl* pTermReaderImpl);
 
@@ -224,7 +224,7 @@ public:
 
     virtual ~InMemoryTermReader(void);
 public:
-    void open(Directory* pDirectory,const char* barrelname,FieldInfo* pFieldInfo);
+    void open(Directory* pDirectory,BarrelInfo* pBarrelInfo,FieldInfo* pFieldInfo);
 
     void reopen(){}
 

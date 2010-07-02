@@ -175,7 +175,7 @@ bool FieldMerger::initQueue()
         else
         {
             ///on-disk index barrel
-            pTermReader = new DiskTermReader(pDirectory_,pEntry->pBarrelInfo_->getName().c_str(),pEntry->pFieldInfo_);
+            pTermReader = new DiskTermReader(pDirectory_,pEntry->pBarrelInfo_,pEntry->pFieldInfo_);
         }
         pMI = new FieldMergeInfo(order,pEntry->pFieldInfo_->getColID(),pEntry->pBarrelInfo_,pTermReader);
         if (pMI->next())	///get first term

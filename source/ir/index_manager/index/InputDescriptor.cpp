@@ -1,5 +1,5 @@
 #include <ir/index_manager/index/InputDescriptor.h>
-
+#include <ir/index_manager/index/BarrelInfo.h>
 
 using namespace izenelib::ir::indexmanager;
 
@@ -8,6 +8,7 @@ InputDescriptor::InputDescriptor(bool bDestroy)
         ,pVocInput_(NULL)
         ,pDPostingInput_(NULL)
         ,pPPostingInput_(NULL)
+        ,pBarrelInfo_(NULL)
 {
 
 }
@@ -17,6 +18,7 @@ InputDescriptor::InputDescriptor(IndexInput* pVocInput,IndexInput* pDPostingInpu
         ,pVocInput_(pVocInput)
         ,pDPostingInput_(pDPostingInput)
         ,pPPostingInput_(pPPostingInput)
+        ,pBarrelInfo_(NULL)
 {
 }
 
@@ -43,6 +45,14 @@ InputDescriptor* InputDescriptor::clone(IndexType type)
     IndexInput* pPPostingInput = NULL;
     if(type == WORD_LEVEL)
         pPPostingInput = pPPostingInput_?pPPostingInput_->clone():NULL;
-    return new InputDescriptor(pVocInput, pDPostingInput, pPPostingInput, true);
+
+    if(pBarrelInfo_)
+    {
+        if(pVocInput) pVocInput->setBarrelInfo(pBarrelInfo_);
+        if(pDPostingInput) pDPostingInput->setBarrelInfo(pBarrelInfo_);
+        if(pPPostingInput) pPPostingInput->setBarrelInfo(pBarrelInfo_);
+    }
+    InputDescriptor* pInputDes = new InputDescriptor(pVocInput, pDPostingInput, pPPostingInput, true);
+    return pInputDes;
 }
 

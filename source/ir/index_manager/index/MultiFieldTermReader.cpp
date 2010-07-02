@@ -5,7 +5,7 @@
 
 using namespace izenelib::ir::indexmanager;
 
-MultiFieldTermReader::MultiFieldTermReader(Directory* pDirectory,const char* barrelname,FieldsInfo* pFieldsInfo)
+MultiFieldTermReader::MultiFieldTermReader(Directory* pDirectory,BarrelInfo* pBarrelInfo,FieldsInfo* pFieldsInfo)
         : TermReader()
         , pCurReader_(NULL)
 {
@@ -18,7 +18,7 @@ MultiFieldTermReader::MultiFieldTermReader(Directory* pDirectory,const char* bar
 
         if (pInfo->isIndexed()&&pInfo->isForward())
         {
-            pTermReader = new DiskTermReader(pDirectory,barrelname,pInfo);
+            pTermReader = new DiskTermReader(pDirectory,pBarrelInfo,pInfo);
             fieldsTermReaders_.insert(pair<string,TermReader*>(pInfo->getName(),pTermReader));
         }
     }
@@ -42,7 +42,7 @@ void MultiFieldTermReader::setDocFilter(BitVector* pFilter)
         iter->second->setDocFilter(pFilter);
 }
 
-void MultiFieldTermReader::open(Directory* pDirectory,const char* barrelname,FieldInfo* pFieldInfo)
+void MultiFieldTermReader::open(Directory* pDirectory,BarrelInfo* pBarrelInfo,FieldInfo* pFieldInfo)
 {}
 
 void MultiFieldTermReader::reopen()

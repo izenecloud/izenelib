@@ -18,6 +18,8 @@ enum IndexType
     DOCUMENT_LEVEL,  /// document level posting
     WORD_LEVEL /// word level posting
 };
+
+class BarrelInfo;
 class InputDescriptor
 {
 public:
@@ -57,11 +59,16 @@ public:
     }
     InputDescriptor* clone(IndexType type = WORD_LEVEL);
 
+    void setBarrelInfo(BarrelInfo* pBarrelInfo)
+    {
+        pBarrelInfo_ = pBarrelInfo;
+    }
 private:
     bool bDestroy_;
     IndexInput*	pVocInput_;
     IndexInput*	pDPostingInput_;
     IndexInput*	pPPostingInput_;
+    BarrelInfo* pBarrelInfo_;
 };
 
 }

@@ -20,7 +20,7 @@ MultiTermReader::~MultiTermReader(void)
     close();
 }
 
-void MultiTermReader::open(Directory* pDirectory,const char* barrelname,FieldInfo* pFieldInfo)
+void MultiTermReader::open(Directory* pDirectory,BarrelInfo* pBarrelInfo,FieldInfo* pFieldInfo)
 {
 }
 

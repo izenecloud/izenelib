@@ -19,6 +19,7 @@ NS_IZENELIB_IR_BEGIN
 namespace indexmanager{
 ///IndexInput is a class that is responsible for the index data reading
 ///It provides basic utilites of decoding variable length data
+class BarrelInfo;
 class IndexInput
 {
 public:
@@ -64,6 +65,11 @@ public:
 
     void reset();
 
+    void setDirty(bool dirty) { dirty_ = dirty; }
+
+    bool isDirty() { return dirty_;}
+
+    void setBarrelInfo(BarrelInfo* pBarrelInfo);
 public:
     virtual void readInternal(char* b,size_t length_,bool bCheck = true) = 0;
 
@@ -90,6 +96,9 @@ protected:
 
     bool bOwnBuff_;
 
+    bool dirty_;
+
+    BarrelInfo* pBarrelInfo_;
     friend class IndexOutput;
 };
 
@@ -170,6 +179,11 @@ inline void IndexInput::readChars(char* buffer, size_t start, size_t length)
 }
 inline void IndexInput::refill()
 {
+    if(dirty_)
+    {
+        SF1V5_THROW(ERROR_FILEIO,"Index dirty.");
+    }
+
     int64_t start = bufferStart_ + (int64_t)bufferPosition_;
     int64_t end = start + bufferSize_;
     if (end > length_)

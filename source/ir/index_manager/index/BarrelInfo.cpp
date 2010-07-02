@@ -56,6 +56,23 @@ void BarrelInfo::rename(Directory* pDirectory,const string& newName)
     }
 }
 
+void BarrelInfo::registerIndexInput(IndexInput* pIndexInput)
+{
+    indexInputs.insert(pIndexInput);
+}
+
+void BarrelInfo::unRegisterIndexInput(IndexInput* pIndexInput)
+{
+    indexInputs.erase(pIndexInput);
+}
+
+void BarrelInfo::setDirty()
+{
+    for(std::set<IndexInput*>::iterator iter = indexInputs.begin(); 
+        iter != indexInputs.end(); ++iter)
+        (*iter)->setDirty(true);
+}
+
 //////////////////////////////////////////////////////////////////////////
 //
 BarrelsInfo::BarrelsInfo()
@@ -84,6 +101,11 @@ void BarrelsInfo::setVersion(const char* ver)
 void BarrelsInfo::clear()
 {
     boost::mutex::scoped_lock lock(mutex_);
+
+    for(vector<BarrelInfo*>::iterator iter = rubbishBarrelInfos.begin(); 
+                     iter != barrelInfos.end(); ++iter)
+        delete *iter;
+    rubbishBarrelInfos.clear();
 
     vector<BarrelInfo*>::iterator iter = barrelInfos.begin();
     while (iter != barrelInfos.end())
@@ -330,8 +352,10 @@ void BarrelsInfo::removeBarrel(Directory* pDirectory,const string& barrelname)
         pBInfo = *iter;
         if (pBInfo->getName() == barrelname)
         {
+            pBInfo->setDirty();
             pBInfo->remove(pDirectory);
-            delete pBInfo;
+            rubbishBarrelInfos.push_back(pBInfo);
+            //delete pBInfo;
             barrelInfos.erase(iter);
             break;
         }
@@ -420,6 +444,7 @@ void BarrelsInfo::sort(Directory* pDirectory)
         while (iter != barrelInfos.end())
         {
             pBaInfo = *iter;
+            pBaInfo->setDirty();
             pBaInfo->rename(pDirectory,strPrefix + pBaInfo->getName());///update barrel name
             iter++;
         }
@@ -431,6 +456,7 @@ void BarrelsInfo::sort(Directory* pDirectory)
     {
         pBaInfo = *iter;
         string str = newBarrelsInfo.newBarrel();
+        pBaInfo->setDirty();
         pBaInfo->rename(pDirectory,str);///update barrel name
         pBaInfo->setSearchable(true);
         iter++;

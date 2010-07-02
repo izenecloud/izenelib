@@ -13,6 +13,7 @@
 #include <ir/index_manager/index/TermPositions.h>
 #include <ir/index_manager/index/TermInfo.h>
 #include <ir/index_manager/index/FieldInfo.h>
+#include <ir/index_manager/index/BarrelInfo.h>
 #include <ir/index_manager/store/Directory.h>
 #include <ir/index_manager/utility/BitVector.h>
 
@@ -44,7 +45,7 @@ public:
     virtual ~TermReader(void);
 public:
     ///Open the vocabulary file on disk
-    virtual void open(Directory* pDirectory,const char* barrelname,FieldInfo* pFieldInfo);
+    virtual void open(Directory* pDirectory,BarrelInfo* pBarrelInfo,FieldInfo* pFieldInfo);
 
     virtual void reopen() = 0;
     ///TermIterator instance must be got through TermReader
@@ -79,11 +80,14 @@ public:
     int getMaxSkipLevel() { return maxSkipLevel_; }
 
     void setMaxSkipLevel(int maxSkipLevel) { maxSkipLevel_ = maxSkipLevel; }
+
+    void setBarrelInfo(BarrelInfo* pBarrelInfo) { pBarrelInfo_ = pBarrelInfo; }
 protected:
     FieldInfo* pFieldInfo_;	///reference to field info
     BitVector* pDocFilter_;
     int skipInterval_;
     int maxSkipLevel_;
+    BarrelInfo* pBarrelInfo_;
 
     friend class TermDocFreqs;
     friend class MultiFieldTermReader;

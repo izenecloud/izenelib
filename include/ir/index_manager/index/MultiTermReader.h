@@ -54,7 +54,7 @@ public:
      * @param barrelname index barrel name
      * @param pFieldInfo field information
      */
-    void open(Directory* pDirectory,const char* barrelname,FieldInfo* pFieldInfo);
+    void open(Directory* pDirectory,BarrelInfo* pBarrelInfo,FieldInfo* pFieldInfo);
 
 
     void reopen();

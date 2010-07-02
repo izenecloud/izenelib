@@ -9,6 +9,7 @@ using namespace izenelib::ir::indexmanager;
 TermReader::TermReader()
         : pFieldInfo_(NULL)
         , pDocFilter_(NULL)
+        , pBarrelInfo_(NULL)
 {
 
 }
@@ -16,6 +17,7 @@ TermReader::TermReader()
 TermReader::TermReader(FieldInfo* pFieldInfo)
         : pFieldInfo_(pFieldInfo)
         , pDocFilter_(NULL)
+        , pBarrelInfo_(NULL)
 {
 
 }
@@ -25,7 +27,7 @@ TermReader::~TermReader(void)
 
 }
 
-void TermReader::open(Directory* pDirectory,const char* barrelname,FieldInfo* pFieldInfo)
+void TermReader::open(Directory* pDirectory,BarrelInfo* pBarrelInfo,FieldInfo* pFieldInfo)
 {}
 
 
@@ -154,14 +156,15 @@ TermInfo* TermReaderImpl::termInfo(Term* term)
 
 //////////////////////////////////////////////////////////////////////////
 ///VocReader
-VocReader::VocReader(Directory* pDirectory,const char* barrelname,FieldInfo* pFieldInfo)
+VocReader::VocReader(Directory* pDirectory,BarrelInfo* pBarrelInfo,FieldInfo* pFieldInfo)
         : TermReader()
         , pTermReaderImpl_(NULL)
         , pCurTermInfo_(NULL)
         , ownTermReaderImpl_(true)
         , pInputDescriptor_(NULL)
 {
-    open(pDirectory, barrelname, pFieldInfo);
+    pBarrelInfo_ = pBarrelInfo;
+    open(pDirectory, pBarrelInfo, pFieldInfo);
 }
 
 VocReader::VocReader(TermReaderImpl* pTermReaderImpl)
@@ -182,12 +185,12 @@ VocReader::~VocReader()
         delete pInputDescriptor_;
 }
 
-void VocReader::open(Directory* pDirectory,const char* barrelname,FieldInfo* pFieldInfo)
+void VocReader::open(Directory* pDirectory,BarrelInfo* pBarrelInfo,FieldInfo* pFieldInfo)
 {
     setFieldInfo(pFieldInfo);
 
     pTermReaderImpl_ = new TermReaderImpl(pFieldInfo);
-    pTermReaderImpl_->open(pDirectory, barrelname);
+    pTermReaderImpl_->open(pDirectory, pBarrelInfo->getName().c_str());
     pInputDescriptor_ = pTermReaderImpl_->pInputDescriptor_->clone();
 }
 
@@ -366,14 +369,16 @@ void SparseTermReaderImpl::close()
 
 //////////////////////////////////////////////////////////////////////////
 ///DiskTermReader
-DiskTermReader::DiskTermReader(Directory* pDirectory,const char* barrelname,FieldInfo* pFieldInfo)
+DiskTermReader::DiskTermReader(Directory* pDirectory,BarrelInfo* pBarrelInfo,FieldInfo* pFieldInfo)
         : TermReader()
         , pTermReaderImpl_(NULL)
         , pCurTermInfo_(NULL)
         , ownTermReaderImpl_(true)
         , pVocInput_(NULL)
 {
-    open(pDirectory, barrelname, pFieldInfo);
+    pBarrelInfo_ = pBarrelInfo;
+    open(pDirectory, pBarrelInfo->getName().c_str(), pFieldInfo);
+    pTermReaderImpl_->pInputDescriptor_->setBarrelInfo(pBarrelInfo);
     pVocInput_ = pDirectory->openInput(pTermReaderImpl_->barrelName_ + ".voc",1025*VOC_ENTRY_LENGTH);
     bufferTermTable_ = new TERM_TABLE[1025];
     sparseTermTable_ = pTermReaderImpl_->sparseTermTable_;
@@ -562,6 +567,7 @@ TermReader* DiskTermReader::clone()
     pTermReader->setDocFilter(pDocFilter_);
     pTermReader->setSkipInterval(skipInterval_);
     pTermReader->setMaxSkipLevel(maxSkipLevel_);
+    pTermReader->setBarrelInfo(pBarrelInfo_);
     return pTermReader;
 }
 
@@ -632,7 +638,7 @@ InMemoryTermReader::~InMemoryTermReader(void)
     close();
 }
 
-void InMemoryTermReader::open(Directory* pDirectory,const char* barrelname,FieldInfo* pFieldInfo)
+void InMemoryTermReader::open(Directory* pDirectory,BarrelInfo* pBarrelInfo,FieldInfo* pFieldInfo)
 {
 
 }

@@ -55,7 +55,7 @@ void SingleIndexBarrelReader::open(const char* name)
         pFieldsInfo = pColInfo->getFieldsInfo();
         if (pFieldsInfo->numIndexFields() > 1)
         {
-            pTermReader = new MultiFieldTermReader(pDirectory,name,pFieldsInfo);
+            pTermReader = new MultiFieldTermReader(pDirectory,pBarrelInfo_,pFieldsInfo);
         }
         else if (pFieldsInfo->numIndexFields() == 1)
         {
@@ -66,7 +66,7 @@ void SingleIndexBarrelReader::open(const char* name)
                 pFieldInfo = pFieldsInfo->next();
                 if (pFieldInfo->isIndexed()&&pFieldInfo->isForward())
                 {
-                    pTermReader = new DiskTermReader(pDirectory,name,pFieldInfo);
+                    pTermReader = new DiskTermReader(pDirectory,pBarrelInfo_,pFieldInfo);
                     break;
                 }
             }
