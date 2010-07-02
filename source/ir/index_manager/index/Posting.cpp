@@ -300,6 +300,11 @@ int32_t InMemoryPosting::decodeNext(uint32_t* pPosting,int32_t length)
         pDS_->decodedPosCount = 0;
     }
 
+    if(! pDS_->decodingDChunk)
+    {
+        SF1V5_THROW(ERROR_FILEIO,"Index dirty.");
+    }
+
     uint32_t* pDoc = pPosting;
     uint32_t* pFreq = pPosting + (length >> 1);
 
@@ -347,7 +352,7 @@ int32_t InMemoryPosting::decodeNext(uint32_t* pPosting,int32_t length)
 
 void InMemoryPosting::decodeNextPositions(uint32_t* pPosting,int32_t length)
 {
-    if(dirty_)
+    if(dirty_ || ! pDS_->decodingPChunk)
     {
         SF1V5_THROW(ERROR_FILEIO,"Index dirty.");
     }
@@ -384,7 +389,7 @@ void InMemoryPosting::decodeNextPositions(uint32_t* pPosting,int32_t length)
 
 void InMemoryPosting::decodeNextPositions(uint32_t* pPosting,uint32_t* pFreqs,int32_t nFreqs)
 {
-    if(dirty_)
+    if(dirty_|| ! pDS_->decodingPChunk)
     {
         SF1V5_THROW(ERROR_FILEIO,"Index dirty.");
     }

@@ -293,7 +293,7 @@ protected:
     VariantDataPool* pLocList_; 	/// Location list
     SkipListWriter* pSkipListWriter_;   ///skiplist writer
     SkipListReader* pSkipListReader_; ///skiplist reader
-    bool dirty_;
+    volatile bool dirty_;
     friend class PostingMerger;
 };
 
