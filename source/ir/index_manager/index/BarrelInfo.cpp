@@ -58,11 +58,13 @@ void BarrelInfo::rename(Directory* pDirectory,const string& newName)
 
 void BarrelInfo::registerIndexInput(IndexInput* pIndexInput)
 {
+    boost::mutex::scoped_lock lock(mutex_);
     indexInputs.insert(pIndexInput);
 }
 
 void BarrelInfo::unRegisterIndexInput(IndexInput* pIndexInput)
 {
+    boost::mutex::scoped_lock lock(mutex_);
     indexInputs.erase(pIndexInput);
 }
 
@@ -381,7 +383,7 @@ void BarrelsInfo::addBarrel(BarrelInfo* pBarrelInfo,bool bCopy)
     boost::mutex::scoped_lock lock(mutex_);
     BarrelInfo* barrelInfo ;
     if (bCopy)
-        barrelInfo = new BarrelInfo(*pBarrelInfo);
+        barrelInfo = new BarrelInfo(pBarrelInfo);
     else barrelInfo = pBarrelInfo;
     barrelInfos.push_back(barrelInfo);
 }

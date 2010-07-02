@@ -200,6 +200,8 @@ public:
 
     ///all index input instances generated for this barrel
     std::set<IndexInput*> indexInputs;
+
+    boost::mutex mutex_;
 };
 
 

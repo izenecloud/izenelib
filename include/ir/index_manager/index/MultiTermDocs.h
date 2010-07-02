@@ -20,12 +20,11 @@ class BarrelTermDocsEntry
 public:
     BarrelTermDocsEntry(BarrelInfo* barrelInfo,TermDocFreqs* termDocs)
     {
-        barrelInfo_ = new BarrelInfo(*barrelInfo);
+        barrelInfo_ = barrelInfo;
         termDocs_= termDocs;
     }
     ~BarrelTermDocsEntry()
     {
-        delete barrelInfo_;
         delete termDocs_;
     }
 protected:

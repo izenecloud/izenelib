@@ -36,7 +36,7 @@ void IndexMergerAgent::mergeBarrelsInfo()
     newBarrelsInfo.read(pIndexer_->getDirectory(),"barrels.tmp");
     assert(newBarrelsInfo.getBarrelCount() == 1);
 
-    BarrelInfo* pNewBarrel = new BarrelInfo(*(newBarrelsInfo.getLastBarrel()));
+    BarrelInfo* pNewBarrel = new BarrelInfo(newBarrelsInfo.getLastBarrel());
     pNewBarrel->setName(getCurrentBarrelName());
 
     if(pBarrelsInfo_->getLock())
