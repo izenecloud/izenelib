@@ -132,6 +132,7 @@ TermReader* IndexReader::getTermReader(collectionid_t colID)
     {
         pTermReader->setSkipInterval(pIndexer_->getSkipInterval());
         pTermReader->setMaxSkipLevel(pIndexer_->getMaxSkipLevel());
+        if(pDocFilter_) pTermReader->setDocFilter(pDocFilter_);
         return pTermReader->clone();
     }
     else
