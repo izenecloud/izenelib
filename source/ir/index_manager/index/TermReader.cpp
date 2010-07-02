@@ -460,7 +460,7 @@ TermInfo* DiskTermReader::searchBuffer(termid_t termId, int end)
 int DiskTermReader::fillBuffer(int pos)
 {
     int begin = (pos-SPARSE_FACTOR) > 0 ? (pos-SPARSE_FACTOR) : 0;
-    int end = (pos+SPARSE_FACTOR) >= nTermCount_ ? nTermCount_ : (pos+SPARSE_FACTOR);
+    int end = (pos+SPARSE_FACTOR) >= (nTermCount_-1) ? (nTermCount_-1) : (pos+SPARSE_FACTOR);
     pVocInput_->reset();
     pVocInput_->seekInternal(pTermReaderImpl_->nBeginOfVoc_ + begin*VOC_ENTRY_LENGTH);
     //pVocInput_->seek(pTermReaderImpl_->nBeginOfVoc_ + begin*VOC_ENTRY_LENGTH);
