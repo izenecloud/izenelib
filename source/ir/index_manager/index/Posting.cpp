@@ -442,6 +442,11 @@ void InMemoryPosting::resetPosition()
 
 docid_t InMemoryPosting::decodeTo(docid_t docID)
 {
+    if(dirty_)
+    {
+        SF1V5_THROW(ERROR_FILEIO,"Index dirty.");
+    }
+
     ///skipping for in-memory posting is not that necessary
     ///just pass one by one
 
