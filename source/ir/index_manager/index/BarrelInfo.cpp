@@ -105,7 +105,7 @@ void BarrelsInfo::clear()
     boost::mutex::scoped_lock lock(mutex_);
 
     for(vector<BarrelInfo*>::iterator iter = rubbishBarrelInfos.begin(); 
-                     iter != barrelInfos.end(); ++iter)
+                     iter != rubbishBarrelInfos.end(); ++iter)
         delete *iter;
     rubbishBarrelInfos.clear();
 
