@@ -180,6 +180,8 @@ protected:
 
     izenelib::util::ReadWriteLock mutex_;
 
+    boost::mutex indexMutex_;
+
     friend class IndexWriter;
 
     friend class IndexReader;

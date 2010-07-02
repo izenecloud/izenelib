@@ -219,18 +219,21 @@ void Indexer::setDirty(bool dirty)
 
 int Indexer::insertDocument(IndexerDocument& doc)
 {
+    boost::mutex::scoped_lock lock(indexMutex_);
     pIndexWriter_->indexDocument(doc);
     return 1;
 }
 
 int Indexer::updateDocument(IndexerDocument& doc)
 {
+    boost::mutex::scoped_lock lock(indexMutex_);
     pIndexWriter_->updateDocument(doc);
     return 1;
 }
 
 int Indexer::removeDocument(collectionid_t colID, docid_t docId)
 {
+    boost::mutex::scoped_lock lock(indexMutex_);
     pIndexWriter_->removeDocument(colID, docId);
     return 1;
 }
