@@ -36,6 +36,7 @@ InMemoryPosting::InMemoryPosting(MemCache* pCache, int skipInterval, int maxSkip
         ,pDS_(NULL)
         ,pSkipListWriter_(0)
         ,pSkipListReader_(0)
+        ,dirty_(false)
 {
     pDocFreqList_ = new VariantDataPool(pCache);
     pLocList_  = new VariantDataPool(pCache);
@@ -54,6 +55,7 @@ InMemoryPosting::InMemoryPosting(int skipInterval, int maxSkipLevel)
         ,pLocList_(NULL)
         ,pSkipListWriter_(0)
         ,pSkipListReader_(0)
+        ,dirty_(false)
 {
 }
 
@@ -279,6 +281,10 @@ void InMemoryPosting::flushLastDoc(bool bTruncTail)
 
 int32_t InMemoryPosting::decodeNext(uint32_t* pPosting,int32_t length)
 {
+    if(dirty_)
+    {
+        SF1V5_THROW(ERROR_FILEIO,"Index dirty.");
+    }
     ///flush last document
     flushLastDoc(false);
     if (!pDS_)
@@ -341,6 +347,11 @@ int32_t InMemoryPosting::decodeNext(uint32_t* pPosting,int32_t length)
 
 void InMemoryPosting::decodeNextPositions(uint32_t* pPosting,int32_t length)
 {
+    if(dirty_)
+    {
+        SF1V5_THROW(ERROR_FILEIO,"Index dirty.");
+    }
+
     uint8_t* pPChunk = &(pDS_->decodingPChunk->data[pDS_->decodingPChunkPos]);
     uint8_t* pPChunkEnd = &(pDS_->decodingPChunk->data[pDS_->decodingPChunk->size-1]);
 
@@ -373,6 +384,11 @@ void InMemoryPosting::decodeNextPositions(uint32_t* pPosting,int32_t length)
 
 void InMemoryPosting::decodeNextPositions(uint32_t* pPosting,uint32_t* pFreqs,int32_t nFreqs)
 {
+    if(dirty_)
+    {
+        SF1V5_THROW(ERROR_FILEIO,"Index dirty.");
+    }
+
     uint8_t* pPChunk = &(pDS_->decodingPChunk->data[pDS_->decodingPChunkPos]);
     uint8_t* pPChunkEnd = &(pDS_->decodingPChunk->data[pDS_->decodingPChunk->size-1]);
 

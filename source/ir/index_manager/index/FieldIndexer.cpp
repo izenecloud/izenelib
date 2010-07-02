@@ -91,6 +91,7 @@ fileoffset_t FieldIndexer::write(OutputDescriptor* pWriterDesc)
     for(InMemoryPostingMap::iterator iter = postingMap_.begin(); iter !=postingMap_.end(); ++iter)
     {
         pPosting = iter->second;
+        pPosting->setDirty();
         if (!pPosting->hasNoChunk())
         {
             tid = iter->first;
@@ -105,7 +106,6 @@ fileoffset_t FieldIndexer::write(OutputDescriptor* pWriterDesc)
             pVocWriter->writeInt(termInfo.docPostingLen_);	///write document posting length (without skiplist)
             pVocWriter->writeLong(termInfo.positionPointer_);	///write position posting offset
             pVocWriter->writeInt(termInfo.positionPostingLen_);///write position posting length
-
             pPosting->reset();								///clear posting data
             termInfo.reset();
 

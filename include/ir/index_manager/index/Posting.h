@@ -280,6 +280,7 @@ public:
      */
     SkipListReader* getSkipListReader();
 
+    void setDirty() { dirty_ = true; }
 protected:
     MemCache* pMemCache_;	/// memory cache
     count_t nDF_;			///document frequency of this field
@@ -292,6 +293,7 @@ protected:
     VariantDataPool* pLocList_; 	/// Location list
     SkipListWriter* pSkipListWriter_;   ///skiplist writer
     SkipListReader* pSkipListReader_; ///skiplist reader
+    bool dirty_;
     friend class PostingMerger;
 };
 
