@@ -76,8 +76,6 @@ private:
 
     izenelib::util::ReadWriteLock rwLock_;
 
-    std::deque<InMemoryPosting*> rubbishPosting_;
-
     friend class InMemoryTermReader;
     friend class InMemoryTermIterator;
 };

@@ -18,10 +18,6 @@ FieldIndexer::~FieldIndexer()
     {
         delete iter->second;
     }
-
-    for(std::deque<InMemoryPosting*>::iterator it = rubbishPosting_.begin(); it != rubbishPosting_.end(); ++it)
-        delete (*it);
-
     pMemCache_ = NULL;
 }
 
@@ -114,9 +110,8 @@ fileoffset_t FieldIndexer::write(OutputDescriptor* pWriterDesc)
 
             termCount++;
         }
-        rubbishPosting_.push_back(pPosting);
-        //delete pPosting;
-        //pPosting = NULL;
+        delete pPosting;
+        pPosting = NULL;
     }
 
     boost::thread::sleep(boost::get_system_time() + boost::posix_time::milliseconds(500));
