@@ -5,7 +5,7 @@
 #include <ir/index_manager/index/SkipListReader.h>
 #include <ir/index_manager/store/IndexOutput.h>
 #include <ir/index_manager/store/IndexInput.h>
-#include <ir/index_manager/index/Indexer.h>
+#include <ir/index_manager/index/FieldIndexer.h>
 
 #include <util/ThreadModel.h>
 
