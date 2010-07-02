@@ -78,6 +78,7 @@ private:
 
     friend class InMemoryTermReader;
     friend class InMemoryTermIterator;
+    friend class InMemoryPosting;	
 };
 
 }
