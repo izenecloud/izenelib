@@ -94,7 +94,7 @@ fileoffset_t FieldIndexer::write(OutputDescriptor* pWriterDesc)
     for(InMemoryPostingMap::iterator iter = postingMap_.begin(); iter !=postingMap_.end(); ++iter)
     {
         pPosting = iter->second;
-        pPosting->setDirty();
+        pPosting->setDirty(true);
         if (!pPosting->hasNoChunk())
         {
             tid = iter->first;

@@ -36,6 +36,7 @@ InMemoryPosting::InMemoryPosting(MemCache* pCache, int skipInterval, int maxSkip
         ,pDS_(NULL)
         ,pSkipListWriter_(0)
         ,pSkipListReader_(0)
+	,dirty_(false)
 {
     pDocFreqList_ = new VariantDataPool(pCache);
     pLocList_  = new VariantDataPool(pCache);
@@ -197,6 +198,7 @@ Posting* InMemoryPosting::clone()
     pClone->nCurTermFreq_ = nCurTermFreq_;
     pClone->nLastDocID_ = nLastDocID_;
     pClone->nLastLoc_ = nLastLoc_;
+    pClone->setDirty(dirty_);
     return pClone;
 }
 
@@ -468,6 +470,11 @@ docid_t InMemoryPosting::decodeTo(docid_t docID)
         pDS_->decodingPChunkPos = 0;
         pDS_->lastDecodedPos = 0;
         pDS_->decodedPosCount = 0;
+    }
+
+    if(! pDS_->decodingDChunk || pDS_->decodingPChunk)
+    {
+        SF1V5_THROW(ERROR_FILEIO,"Index dirty.");
     }
 
 
