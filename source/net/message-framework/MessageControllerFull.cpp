@@ -115,6 +115,8 @@ void MessageControllerFull::shutdown() {
     availableServiceList_.flush();
     availableServiceList_.close();
 
+    io_service_.stop();
+
     std::cout << "Controller shutdown" << std::endl;
 }
 
