@@ -112,8 +112,7 @@ docid_t TermPositions::skipTo(docid_t target)
     {
         if((nCurrentPosting_ == -1) || (nCurrentPosting_ >= nCurDecodedCount_) )
         {
-            //if(termInfo_.docFreq_ < 4096)
-            if(skipInterval_ == 0)
+            if((termInfo_.docFreq_ < 4096)||(skipInterval_ == 0))
             {
                 if(!TermDocFreqs::decode())
                     return BAD_DOCID;

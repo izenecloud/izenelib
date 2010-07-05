@@ -589,7 +589,7 @@ void OnDiskPosting::reset(const TermInfo& termInfo)
 
     if(termInfo.skipLevel_ > 0)
     {
-        if(termInfo.skipPointer_ != -1)
+        if((termInfo.docFreq_ >= 4096)&&(termInfo.skipPointer_ != -1))
         {
             pDPInput->seek(termInfo.skipPointer_);
             pSkipListReader_ = new SkipListReader(pDPInput, skipInterval_, termInfo.skipLevel_);
