@@ -188,11 +188,17 @@ bool MFServer<ServiceHandle, MapType>::run(void)
                     }
                     // next request
                     iter++;
+                    boost::this_thread::interruption_point();
                 }
 
             }
             //STOP_PROFILER(proIndexProcess)
         }
+    }
+    catch(const boost::thread_interrupted&)
+    {
+        threadObjPool_.shutdownAllThread();
+        return true;
     }
     catch( ... )
     {
