@@ -35,7 +35,7 @@ oa & dat;
 }
 
 void write_image(char * &ptr, size_t& size) {
-ptr = buf.data();
+ptr = buf.gptr();
 size = buf.size();
 }
 };
@@ -97,7 +97,7 @@ public:
  ~izene_serialization_boost() {
  }
  void write_image(char * &ptr, size_t& size) {
- ptr = ((izene_streambuf *)ostr.rdbuf() )->data();
+ ptr = ((izene_streambuf *)ostr.rdbuf() )->gptr();
  size = size_;
  }
  };
@@ -136,7 +136,7 @@ public:
  ~izene_serialization_boost1() {
  }
  void write_image(char * &ptr, size_t& size) {
- ptr = ((izene_streambuf *)ostr.rdbuf() )->data();
+ ptr = ((izene_streambuf *)ostr.rdbuf() )->gptr();
  size = size_;
  }
  };
@@ -171,7 +171,7 @@ public:
  ~izene_serialization_boost2() {
  }
  void write_image(char * &ptr, size_t& size) {
- ptr = ((izene_streambuf *)ostr.rdbuf() )->data();
+ ptr = ((izene_streambuf *)ostr.rdbuf() )->gptr();
  size = size_;
  }
  };

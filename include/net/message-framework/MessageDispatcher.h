@@ -206,7 +206,7 @@ private:
 		// retrieve stream that is binded to destination
 		AsyncStream& stream = getStreamByNode(destination);
 
-		DLOG(INFO)<<(const char*)archive_stream->data();
+		DLOG(INFO)<<(const char*)archive_stream->gptr();
 
 		// forward data to network layer, the data will be sent
 		// to destination

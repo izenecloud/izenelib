@@ -75,6 +75,7 @@ IF(izene_util_SHOULD_BUILD)
     timer.cpp
     CBitArray.cpp
     singleton.cpp
+    streambuf.cpp
     )
 
   INCLUDE_DIRECTORIES(
