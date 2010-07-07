@@ -58,10 +58,11 @@ public:
 	 * ID may not unique
 	 * @param nameString the name string
 	 * @param nameID the unique NameID
+	 * @param insert whether insert docName to IDManager;
 	 * @return true if the name id is successfully returned
 	 * @return false if no more name id is available
 	 */
-	inline bool getNameIDByNameString(const NameString& nameString, NameID& nameID);
+	inline bool getNameIDByNameString(const NameString& nameString, NameID& nameID, bool insert = true);
 
 	/**
 	 * @brief This function returns an ID given a string and stores <ID,string> pair into sdb.
@@ -132,12 +133,14 @@ template <typename NameString, typename NameID,
     typename IDGenerator, typename IDStorage>
 inline bool IDFactory<NameString, NameID, IDGenerator, IDStorage>::getNameIDByNameString(
         const NameString& nameString,
-        NameID& nameID)
+        NameID& nameID,
+        bool insert)
 {
 	if( idGenerator_.conv(nameString, nameID) )
-        return true;
+           return true;
 
-    idStorage_.put(nameID, nameString);
+    if(insert)
+        idStorage_.put(nameID, nameString);
     return false;
 } // end - getNameIDByNameString()
 

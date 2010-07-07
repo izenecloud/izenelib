@@ -113,10 +113,11 @@ public:
 	 * @brief This function returns a unique name id given a name string.
 	 * @param nameString the name string
 	 * @param nameID the unique NameID
+	 * @param insert whether insert nameString if it does not exist
 	 * @return true if DocID already in dictionary
 	 * @return false otherwise
 	 */
-	inline bool conv(const NameString& nameString, NameID& nameID);
+	inline bool conv(const NameString& nameString, NameID& nameID,bool insert = true);
 
 	/**
 	 * @brief This function returns a unique name id given a name string, update old id to 
@@ -197,7 +198,8 @@ template <typename NameString, typename NameID,
 inline bool UniqueIDGenerator<NameString, NameID,
     LockType, MinValueID, MaxValueID>::conv(
         const NameString& nameString,
-        NameID& nameID)
+        NameID& nameID,
+        bool insert)
 {
     mutex_.acquire_write_lock();
 
@@ -206,6 +208,12 @@ inline bool UniqueIDGenerator<NameString, NameID,
 	    mutex_.release_write_lock();
 		return true;
 	} // end - if
+
+       if(!insert)
+       	{
+       	    mutex_.release_write_lock();
+           return false;
+       	}
 
 	// Because there's no name string in idFinder, create new id according to the string.
 	nameID = newID_;

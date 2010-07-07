@@ -64,10 +64,11 @@ namespace idmanager {
 		 *
 		 * @param docName	    a document name string which is used to find the document ID.
 		 * @param docId         a document identifier which is the result of this interface.
+		 * @param insert	   whether insert docName to IDManager;
 		 * @return true     :   The document ID is in dictionary.
 		 * @return false    :   There is no matched ID in dictionary.
 		 */
-		bool getDocIdByDocName(const NameString& docName, NameID& docId);
+		bool getDocIdByDocName(const NameString& docName, NameID& docId, bool insert = true);
 
 		/**
 		 * @brief a member function to get document ID from the vocabulary which matches to the given document name.
@@ -131,9 +132,10 @@ namespace idmanager {
 	template<typename NameString, typename NameID, typename IDGenerator, typename IDStorage>
 	bool DocIdManager<NameString, NameID, IDGenerator, IDStorage>::getDocIdByDocName(
         const NameString& docName,
-        NameID& docId)
+        NameID& docId,
+        bool insert)
     {
-        return idFactory_.getNameIDByNameString(docName, docId);
+        return idFactory_.getNameIDByNameString(docName, docId, insert);
     } // end - getDocIdByDocName()
 
 	template<typename NameString, typename NameID, typename IDGenerator, typename IDStorage>

@@ -200,12 +200,13 @@ public:
 	 *
 	 * @param docName		a unique string of the document which is used to distinguish between documents.
 	 * @param docId    	    a document identifier which matches to the document name.
+	 * @param insert         whether insert docName to IDManager;
 	 * @return true  : 	    Document name exists in the dictionary.
 	 * @return false : 	    Document name does not exist in the dictionary.
 	 */
-	bool getDocIdByDocName(const NameString& docName, NameID& docId)
+	bool getDocIdByDocName(const NameString& docName, NameID& docId, bool insert = true)
     {
-        return docIdManager_.getDocIdByDocName(docName, docId);
+        return docIdManager_.getDocIdByDocName(docName, docId, insert);
     }
 
 	/**
