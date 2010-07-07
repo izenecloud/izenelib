@@ -198,7 +198,7 @@ Posting* InMemoryPosting::clone()
     pClone->nCurTermFreq_ = nCurTermFreq_;
     pClone->nLastDocID_ = nLastDocID_;
     pClone->nLastLoc_ = nLastLoc_;
-    pClone->setDirty(dirty_);
+    pClone->dirty_ = dirty_;
     return pClone;
 }
 
