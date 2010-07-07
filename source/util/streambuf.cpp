@@ -125,6 +125,58 @@ std::size_t izene_read_until(std::istream& s, izene_streambuf& b, char delim)
   }
 }
 
+std::size_t izene_read_until(std::istream& s, izene_streambuf& b, const boost::regex& expr)
+{
+  std::size_t next_search_start = 0;
+  for (;;)
+  {
+    // Determine the range of the data to be searched.
+    typedef izene_streambuf::const_buffers_type const_buffers_type;
+    typedef boost::asio::buffers_iterator<const_buffers_type> iterator;
+    const_buffers_type buffers = b.data();
+    iterator begin = iterator::begin(buffers);
+    iterator start = begin + next_search_start;
+    iterator end = iterator::end(buffers);
+
+    // Look for a match.
+    boost::match_results<iterator> match_results;
+    if (boost::regex_search(start, end, match_results, expr,
+          boost::match_default | boost::match_partial))
+    {
+      if (match_results[0].matched)
+      {
+        // Full match. We're done.
+        return match_results[0].second - begin;
+      }
+      else
+      {
+        // Partial match. Next search needs to start from beginning of match.
+        next_search_start = match_results[0].first - begin;
+      }
+    }
+    else
+    {
+      // No match. Next search can start with the new data.
+      next_search_start = end - begin;
+    }
+
+    // Check if buffer is full.
+    if (b.size() == b.max_size())
+    {
+      return 0;
+    }
+
+    // Need more data.
+    std::size_t bytes_available =
+      std::min<std::size_t>(512, b.max_size() - b.size());
+
+    b.reserve(bytes_available);
+    std::size_t bytes_read = s.readsome(b.pptr(), bytes_available);
+    if(bytes_read <=0 || (s.rdstate() == std::ios_base::eofbit))
+        return 0;
+    b.commit(bytes_read);
+  }
+}
 
 
 NS_IZENELIB_UTIL_END
