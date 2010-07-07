@@ -236,7 +236,13 @@ inline bool UniqueIDGenerator<NameString, NameID,
 	// If name string is found, return the id.
 	bool ret = idFinder_.getValue(nameString, oldID);
 
-       if(!ret) oldID = 0;
+       if(!ret)
+       	{
+	   	oldID = 0; 
+		///will be removed until MIA can support index unexist documents from Update SCDs
+		mutex_.release_write_lock();
+		return ret;
+       	}
 
 	// Because there's no name string in idFinder, create new id according to the string.
 	updatedID = newID_;
