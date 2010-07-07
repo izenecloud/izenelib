@@ -21,9 +21,17 @@ if( n==0 ) n = 1; \
 for(unsigned int i=0; i<n; i++){ \
 	TYPE1 t1; \
 	FUNCTION(t1); \
-    mf_serialize(t1, request, i); \
-	FUNCTION(t1); \
+        mf_serialize(t1, request, i); \
 } \
+return server.putResultOfService(request); \
+
+
+#define SERVICE_HANDLE_0_2(request, server, FUNCTION, TYPE1, TYPE2) \
+	TYPE1 t1; \
+        TYPE2 t2; \
+	FUNCTION(t1, t2); \
+        mf_serialize(t1, request, 0); \
+        mf_serialize(t2, request, 1); \
 return server.putResultOfService(request); \
 
 
