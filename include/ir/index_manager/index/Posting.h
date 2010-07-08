@@ -280,7 +280,9 @@ public:
      */
     SkipListReader* getSkipListReader();
 
-    void setDirty(bool dirty) { dirty_ = true; }
+    void setDirty(bool dirty) { dirty_ = dirty; }
+
+    bool isDirty() { return dirty_; }
 protected:
     MemCache* pMemCache_;	/// memory cache
     count_t nDF_;			///document frequency of this field
