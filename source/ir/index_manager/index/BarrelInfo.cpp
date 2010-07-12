@@ -267,6 +267,11 @@ void BarrelsInfo::write(Directory* pDirectory)
     while (iter != barrelInfos.end())
     {
         pBarrelInfo = *iter;
+        if(pBarrelInfo->getWriter())
+        {
+            iter ++;
+            continue;
+        }
         pBarrelItem = pBarrelsItem->addElement("barrel");
         ///add <name></name> element
         pItem = pBarrelItem->addElement("name");
