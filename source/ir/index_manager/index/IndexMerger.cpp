@@ -247,7 +247,6 @@ void IndexMerger::mergeBarrel(MergeBarrel* pBarrel)
     FieldMerger* pFieldMerger = NULL;
     fieldid_t fieldid = 0;
     bool bFinish = false;
-    bool bHasPPosting = false;
 
     fileoffset_t vocOff1,vocOff2,dfiOff1,dfiOff2,ptiOff1 = 0,ptiOff2 = 0;
     fileoffset_t voffset = 0;
@@ -338,8 +337,6 @@ void IndexMerger::mergeBarrel(MergeBarrel* pBarrel)
                     pFieldInfo->setDistinctNumTerms(pFieldMerger->numMergedTerms());
 
                     pFieldInfo->setLength(vocOff2-vocOff1,dfiOff2-dfiOff1,ptiOff2-ptiOff1);
-                    if ( (bHasPPosting == false) && ((ptiOff2 - ptiOff1) > 0))
-                        bHasPPosting = true;
 
                     delete pFieldMerger;
                     pFieldMerger = NULL;
@@ -396,13 +393,6 @@ void IndexMerger::mergeBarrel(MergeBarrel* pBarrel)
     collectionsInfo.write(fieldsStream);
     fieldsStream->flush();
     delete fieldsStream;
-
-    if (bHasPPosting == false)
-    {
-        name = newBarrelName + ".pop";
-        pDirectory_->deleteFile(name);
-    }
-
     delete pOutputDesc;
     pOutputDesc = NULL;
 

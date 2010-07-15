@@ -32,8 +32,6 @@ FSIndexOutput::FSIndexOutput(const char* filename, const string& mode)
         SF1V5_THROW(ERROR_FILEIO,"Open file error: " + filename_);
     }
 
-    fflush(fileHandle_);
-
     //setbuf(fileHandle_,NULL);
 }
 
@@ -60,7 +58,6 @@ FSIndexOutput::FSIndexOutput(const char* filename, size_t buffsize, const string
         SF1V5_THROW(ERROR_FILEIO,"Open file error: " + filename_);
     }
 
-    fflush(fileHandle_);
     //setbuf(fileHandle_,NULL);
 }
 
