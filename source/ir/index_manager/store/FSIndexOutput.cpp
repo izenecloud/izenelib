@@ -25,7 +25,7 @@ FSIndexOutput::FSIndexOutput(const char* filename, const string& mode)
         fileHandle_ = fopen(filename, "a+");
     else
         SF1V5_THROW(ERROR_FILEIO,"Open file error: " + filename_);
-
+cout<<"create file "<<filename<<endl;
     if (fileHandle_ == NULL)
     {
         perror("error when opening file");
@@ -51,6 +51,7 @@ FSIndexOutput::FSIndexOutput(const char* filename, size_t buffsize, const string
         fileHandle_ = fopen(filename, "a+");
     else
         SF1V5_THROW(ERROR_FILEIO,"Open file error: " + filename_);
+    fflush(fileHandle_);
 
     if (fileHandle_ == NULL)
     {
