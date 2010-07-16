@@ -19,6 +19,14 @@ MMapIndexInput::MMapIndexInput(const char* path)
             // get length from stat
             length_ = sb.st_size;
 
+            if(length_ == 0)
+            {
+                data_ = 0;
+                pos_ = 0;
+                isClone_ = false;
+                return;
+            }
+
             // mmap the file
             void* address = ::mmap64(0, length_, PROT_READ, MAP_SHARED, handle_, 0);
             if (address == MAP_FAILED){
