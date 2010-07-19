@@ -5,7 +5,7 @@ NS_IZENELIB_IR_BEGIN
 namespace indexmanager
 {
 
-#define NUMDOC_PER_BARREL 3000
+#define NUMDOC_PER_BARREL 10000
 #define MAXLEVEL 30
 #define COLLISION_FACTOR_FOR_LEVEL_1 3
 
@@ -13,14 +13,6 @@ DBTMerger::DBTMerger(Indexer* pIndexer)
         :IndexMerger(pIndexer)
         ,nCurLevelSize_(1)
 {
-    int nC = COLLISION_FACTOR_FOR_LEVEL_1;
-    nCMap_[1] = COLLISION_FACTOR_FOR_LEVEL_1;
-    for(int i = 2; i < MAXLEVEL; i++)
-    {
-        if(i >= 2)
-            nC = 10;
-        nCMap_[i] = nC;
-    }
 }
 
 DBTMerger::~DBTMerger()
@@ -114,7 +106,22 @@ int DBTMerger::getLevel(int64_t nLevelSize)
 {
     if (nLevelSize <= 0)
         return 0;
-    int64_t numDocs = NUMDOC_PER_BARREL;
+
+    if(nCMap_.empty())
+    {
+        num_doc_per_barrel_ = nLevelSize * 3/2;
+        int nC = COLLISION_FACTOR_FOR_LEVEL_1;
+        nCMap_[1] = COLLISION_FACTOR_FOR_LEVEL_1;
+        for(int i = 2; i < MAXLEVEL; i++)
+        {
+            if(i >= 2)
+                nC = 10;
+            nCMap_[i] = nC;
+        }
+        return 1;
+    }
+
+    int64_t numDocs = num_doc_per_barrel_;
     for(int i = 1; i < MAXLEVEL; ++i)
     {
         numDocs *= nCMap_[i];
