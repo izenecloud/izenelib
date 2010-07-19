@@ -25,7 +25,7 @@ public:
                 ,nMergeTimes_(0)
                 ,nLevelSize_(nLevelSize)
         {
-            string s = "_mid_";
+            std::string s = "_mid_";
             s = append(s,l);
             s += "_";
             s = append(s,nMergeTimes_);
@@ -45,7 +45,7 @@ public:
         void	increaseMergeTimes()
         {
             nMergeTimes_++;
-            string s = "_mid_";
+            std::string s = "_mid_";
             s = append(s,nLevel_);
             s += "_";
             s = append(s,nMergeTimes_);
@@ -79,13 +79,16 @@ private:
     int getLevel(int64_t nLevelSize);
 
     void triggerMerge(DBTLayer* pLevel,int nLevel);
+
+    int getC(int nLevel);
 private:
     const static int MAX_TRIGGERS = 5;
 
-    int nC_; ///collision factor, when there are nC_ barrels in a same level, a merge will be trigged.
-    int nCurLevelSize_;	///size of level
+    std::map<int,int> nCMap_; ///collision factor, when there are nC_ barrels in a same level, a merge will be trigged.
 
-    map<int,DBTLayer*> nodesMap_;
+    int nCurLevelSize_; ///size of level
+
+    std::map<int,DBTLayer*> nodesMap_;
 };
 
 }
