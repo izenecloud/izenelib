@@ -89,6 +89,8 @@ private:
     int nCurLevelSize_; ///size of level
 
     std::map<int,DBTLayer*> nodesMap_;
+
+    int num_doc_per_barrel_;
 };
 
 }
