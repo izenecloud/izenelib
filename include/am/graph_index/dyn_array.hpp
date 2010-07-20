@@ -452,7 +452,7 @@ public:
 
   inline void assign(const SelfT& other)
   {
-    IASSERT(this!=&other);
+    //IASSERT(this!=&other);
     
     if (other.length()==0)
     {
