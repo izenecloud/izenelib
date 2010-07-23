@@ -66,7 +66,6 @@ void DBTMerger::triggerMerge(DBTLayer* pLevel,int nLevel)
     DBTLayer* pLevel1 = pLevel;
     int nL = getLevel(pLevel->nLevelSize_);
     int nTriggers = 0;
-
     int i ;
     for ( i = nLevel + 1;(i <= nL)/* && (nTriggers <= MAX_TRIGGERS)*/;i++)
     {
