@@ -1,3 +1,4 @@
+
 #include <ir/index_manager/index/Indexer.h>
 #include <ir/index_manager/index/FieldIndexer.h>
 #include <ir/index_manager/index/TermReader.h>
@@ -21,10 +22,11 @@ FieldIndexer::~FieldIndexer()
     pMemCache_ = NULL;
 }
 
+
 void FieldIndexer::addField(docid_t docid, boost::shared_ptr<LAInput> laInput)
 {
     InMemoryPosting* curPosting;
-
+	
     for(LAInput::iterator iter = laInput->begin(); iter != laInput->end(); ++iter)
     {
         InMemoryPostingMap::iterator postingIter = postingMap_.find(iter->termId_);
@@ -35,7 +37,6 @@ void FieldIndexer::addField(docid_t docid, boost::shared_ptr<LAInput> laInput)
         }
         else
             curPosting = postingIter->second;
-
         curPosting->add(docid, iter->offset_);
     }
 }
@@ -114,7 +115,6 @@ fileoffset_t FieldIndexer::write(OutputDescriptor* pWriterDesc)
         pPosting = NULL;
     }
 
-    boost::thread::sleep(boost::get_system_time() + boost::posix_time::milliseconds(500));
     postingMap_.clear();
 
     fileoffset_t vocDescOffset = pVocWriter->getFilePointer();
