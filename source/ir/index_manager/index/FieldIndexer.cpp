@@ -1,4 +1,3 @@
-
 #include <ir/index_manager/index/Indexer.h>
 #include <ir/index_manager/index/FieldIndexer.h>
 #include <ir/index_manager/index/TermReader.h>
@@ -129,6 +128,7 @@ fileoffset_t FieldIndexer::write(OutputDescriptor* pWriterDesc)
 
 TermReader* FieldIndexer::termReader()
 {
+    izenelib::util::ScopedReadLock<izenelib::util::ReadWriteLock> lock(rwLock_);
     return new InMemoryTermReader(getField(),this);
 }
 
