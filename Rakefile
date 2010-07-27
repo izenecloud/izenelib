@@ -21,7 +21,7 @@ end
 
 IZENESOFT::GITClean.new
 
-IZENESOFT::Test.new
+IZENESOFT::BoostTest.new
 
 task :env do
   sh "/usr/bin/env"

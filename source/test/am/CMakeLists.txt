@@ -1,4 +1,7 @@
-IF (TokyoCabinet_FOUND AND Glog_FOUND)
+LIST(FIND REAL_BUILD_COMPONENTS "febird" _febird)
+
+IF (TokyoCabinet_FOUND AND Glog_FOUND AND _febird GREATER -1)
+
   INCLUDE_DIRECTORIES(${TokyoCabinet_INCLUDE_DIRS})
   INCLUDE_DIRECTORIES(${Glog_INCLUDE_DIRS})
 
@@ -26,11 +29,6 @@ IF (TokyoCabinet_FOUND AND Glog_FOUND)
     ${Glog_LIBRARIES}
     )
 
-  SET_TARGET_PROPERTIES(t_am PROPERTIES
-    COMPILE_FLAGS "-include ${FileTestHelper}"
-    RUNTIME_OUTPUT_DIRECTORY ${IZENELIB_SOURCE_DIR}/testbin
-    )
-
   ADD_EXECUTABLE(t_fmm vsynonym/t_fmm.cpp )
   TARGET_LINK_LIBRARIES(t_fmm
     am
@@ -41,4 +39,4 @@ IF (TokyoCabinet_FOUND AND Glog_FOUND)
     ${Glog_LIBRARIES}
     )
 
-ENDIF (TokyoCabinet_FOUND AND Glog_FOUND)
+ENDIF (TokyoCabinet_FOUND AND Glog_FOUND AND _febird GREATER -1)
