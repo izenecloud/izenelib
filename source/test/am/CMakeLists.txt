@@ -31,8 +31,6 @@ IF (TokyoCabinet_FOUND AND Glog_FOUND)
     RUNTIME_OUTPUT_DIRECTORY ${IZENELIB_SOURCE_DIR}/testbin
     )
 
-  ADD_TEST(am "${IZENELIB_SOURCE_DIR}/testbin/t_am")
-
   ADD_EXECUTABLE(t_fmm vsynonym/t_fmm.cpp )
   TARGET_LINK_LIBRARIES(t_fmm
     am

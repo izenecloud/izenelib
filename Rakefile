@@ -11,8 +11,7 @@ BRANCH = File.read(File.join(File.dirname(__FILE__), ".git/HEAD")).sub(/^.*\//, 
   end
 end
 
-require "izenesoft/cmake"
-require "izenesoft/git"
+require "izenesoft/tasks"
 
 task :default => :cmake
 
@@ -21,3 +20,9 @@ IZENESOFT::CMake.new do |t|
 end
 
 IZENESOFT::GITClean.new
+
+IZENESOFT::BoostTest.new
+
+task :env do
+  sh "/usr/bin/env"
+end

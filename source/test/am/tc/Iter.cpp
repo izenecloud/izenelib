@@ -7,8 +7,7 @@
 #include <string>
 #include <cstdio>
 
-#include "TestDir.h"
-#define DIR_PREFIX TEST_TMP_DIR "/am_tc_Iter_"
+#define DIR_PREFIX "./tmp/am_tc_Iter_"
 
 using namespace boost::unit_test;
 using namespace izenelib::am::tc;

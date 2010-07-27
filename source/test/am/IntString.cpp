@@ -19,8 +19,7 @@
 #include <string>
 #include <cstdio>
 
-#include "TestDir.h"
-#define DIR_PREFIX TEST_TMP_DIR "/am_IntString_"
+#define DIR_PREFIX "./tmp/am_IntString_"
 
 using namespace izenelib::am;
 

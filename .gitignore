@@ -17,3 +17,5 @@ help
 *.orig
 .project
 .cproject
+/env.yml
+/cmake.yml

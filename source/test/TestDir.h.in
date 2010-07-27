@@ -1,6 +1,0 @@
-#ifndef IZENELIB_TEST_DIR_H
-#define IZENELIB_TEST_DIR_H
-
-#define TEST_TMP_DIR "${TEST_TMP_DIR}"
-
-#endif // IZENELIB_TEST_DIR_H
