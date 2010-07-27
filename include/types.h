@@ -8,6 +8,7 @@
 #else
 #include <sys/types.h>
 #include <wchar.h>
+
 typedef signed char       int8_t;
 typedef short             int16_t;
 typedef long              int32_t;
@@ -37,10 +38,11 @@ typedef unsigned __int64  uint64_t;
 #endif // end of TYPES_H
 
 #include <cassert>
+#include <stdexcept>
 #define IASSERT(exp)\
   {              \
     if (!(exp))    \
-    {assert(false);}\
+    {throw std::runtime_error("IO ERROR.\n"); assert(false);}\
   }
 
 #define THROW(exp, info)\

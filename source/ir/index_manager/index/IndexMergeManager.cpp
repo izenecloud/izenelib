@@ -3,6 +3,7 @@
 #include <ir/index_manager/index/IndexMergeManager.h>
 #include <ir/index_manager/index/GPartitionMerger.h>
 #include <ir/index_manager/index/MultiWayMerger.h>
+#include <ir/index_manager/index/DBTMerger.h>
 #include <ir/index_manager/index/OfflineIndexMerger.h>
 #include <ir/index_manager/index/IndexReader.h>
 
@@ -15,7 +16,7 @@ IndexMergeManager::IndexMergeManager(Indexer* pIndexer)
 {
     pBarrelsInfo_ = pIndexer_->getBarrelsInfo();
 
-    indexMergers_[ONLINE] = new MultiWayMerger(pIndexer_);
+    indexMergers_[ONLINE] = new DBTMerger(pIndexer_);
     indexMergers_[OFFLINE] = new OfflineIndexMerger(pIndexer_, pBarrelsInfo_->getBarrelCount());
 }
 

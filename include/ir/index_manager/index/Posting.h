@@ -61,7 +61,7 @@ public:
      * @param pPosing the address to store posting data
      * @param length length of pPosting
      */
-    virtual void decodeNextPositions(uint32_t* pPosting,int32_t length) = 0;
+    virtual bool decodeNextPositions(uint32_t* pPosting,int32_t length) = 0;
 
     /**
      * Get the position posting data
@@ -69,7 +69,7 @@ public:
      * @param pFreqs freqs array
      * @param nFreqs size of freqs array
      */
-    virtual void decodeNextPositions(uint32_t* pPosting,uint32_t* pFreqs,int32_t nFreqs) = 0;
+    virtual bool decodeNextPositions(uint32_t* pPosting,uint32_t* pFreqs,int32_t nFreqs) = 0;
 
     /**
      * reset the base position which used in d-gap encoding
@@ -247,7 +247,7 @@ public:
      * @param the length of pPosting
      * @return true:success,false: error or reach end
      */
-    void decodeNextPositions(uint32_t* pPosting,int32_t length);
+    bool decodeNextPositions(uint32_t* pPosting,int32_t length);
 
     /**
      * Get the position posting data
@@ -255,7 +255,7 @@ public:
      * @param pFreqs freqs array
      * @param nFreqs size of freqs array
      */
-    void decodeNextPositions(uint32_t* pPosting,uint32_t* pFreqs,int32_t nFreqs);
+    bool decodeNextPositions(uint32_t* pPosting,uint32_t* pFreqs,int32_t nFreqs);
 
     /**
      * Decode postings to target docID
@@ -339,7 +339,7 @@ public:
      * @param the length of pPosting
      * @return true:success,false: error or reach end
      */
-    void decodeNextPositions(uint32_t* pPosting,int32_t length);
+    bool decodeNextPositions(uint32_t* pPosting,int32_t length);
 
     /**
      * Get the position posting data
@@ -347,7 +347,7 @@ public:
      * @param pFreqs freqs array
      * @param nFreqs size of freqs array
      */
-    void decodeNextPositions(uint32_t* pPosting,uint32_t* pFreqs,int32_t nFreqs);
+    bool decodeNextPositions(uint32_t* pPosting,uint32_t* pFreqs,int32_t nFreqs);
 
     /**
      * Set file pointer after skipping

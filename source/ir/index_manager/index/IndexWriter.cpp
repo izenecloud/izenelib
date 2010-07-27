@@ -63,9 +63,18 @@ void IndexWriter::flush()
     baseDocIDMap_.clear();
     if (pIndexBarrelWriter_->cacheEmpty() == false)///memory index has not been written to database yet.
     {
-        pIndexBarrelWriter_->close();
-        if (pIndexMerger_)
-            pIndexMerger_->flushBarrelToDisk(pIndexBarrelWriter_->barrelName_);
+        if(pIndexer_->getIndexerType()&MANAGER_INDEXING_STANDALONE_MERGER)
+        {
+            pBarrelsInfo_->wait_for_barrels_ready();
+            pIndexBarrelWriter_->close();
+            pIndexMergeManager_->triggerMerge(pLastBarrel);
+        }
+        else
+        {
+            pIndexBarrelWriter_->close();
+            if (pIndexMerger_)
+                pIndexMerger_->flushBarrelToDisk(pIndexBarrelWriter_->barrelName_);
+        }
     }
     pLastBarrel->setWriter(NULL);
     pBarrelsInfo_->write(pIndexer_->getDirectory());
@@ -134,7 +143,7 @@ void IndexWriter::mergeAndWriteCachedIndex()
 {
     BarrelInfo* pLastBarrel = pBarrelsInfo_->getLastBarrel();
     pLastBarrel->setBaseDocID(baseDocIDMap_);
-
+cout<<"!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! impossible !!!!!!!!!!!!!!!!!!"<<endl;
     if (pIndexBarrelWriter_->cacheEmpty() == false)///memory index has not been written to database yet.
     {
         pIndexBarrelWriter_->close();
@@ -154,7 +163,7 @@ void IndexWriter::addToMergeAndWriteCachedIndex()
 {
     BarrelInfo* pLastBarrel = pBarrelsInfo_->getLastBarrel();
     pLastBarrel->setBaseDocID(baseDocIDMap_);
-
+cout<<"!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! impossible !!!!!"<<endl;
     if (pIndexBarrelWriter_->cacheEmpty() == false)///memory index has not been written to database yet.
     {
         pIndexBarrelWriter_->close();
