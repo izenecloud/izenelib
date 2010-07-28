@@ -45,6 +45,13 @@ private:
 
 bool my_init_unit_test()
 {
+#ifdef BOOST_TEST_MODULE
+    {
+        using namespace ::boost::unit_test;
+        assign_op( framework::master_test_suite().p_name.value, BOOST_TEST_STRINGIZE( BOOST_TEST_MODULE ).trim( "\"" ), 0 );
+    }
+#endif
+
     static std::ofstream ofs;
 
     const char* const gEnvName = "BOOST_TEST_LOG_FILE";
