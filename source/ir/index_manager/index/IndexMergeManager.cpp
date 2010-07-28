@@ -16,7 +16,7 @@ IndexMergeManager::IndexMergeManager(Indexer* pIndexer)
 {
     pBarrelsInfo_ = pIndexer_->getBarrelsInfo();
 
-    indexMergers_[ONLINE] = new DBTMerger(pIndexer_);
+    indexMergers_[ONLINE] = new MultiWayMerger(pIndexer_);
     indexMergers_[OFFLINE] = new OfflineIndexMerger(pIndexer_, pBarrelsInfo_->getBarrelCount());
 }
 
