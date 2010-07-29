@@ -47,6 +47,7 @@ protected:
 
     friend class MergeBarrel;
     friend class IndexMerger;
+    friend class DefaultMerger;
 };
 
 /**
@@ -198,6 +199,7 @@ protected:
 
     friend class IndexWriter;
     friend class Indexer;
+    friend class IndexMergeManager;
 };
 
 }

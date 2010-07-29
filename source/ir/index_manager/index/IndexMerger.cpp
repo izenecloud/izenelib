@@ -150,7 +150,7 @@ void IndexMerger::addToMerge(BarrelsInfo* pBarrelsInfo,BarrelInfo* pBarrelInfo)
  
     pBarrelsInfo->setLock(true);
     updateBarrels(pBarrelsInfo);
-    pBarrelsInfo_ = NULL;
+    //pBarrelsInfo_ = NULL;
 
     pBarrelsInfo->write(pDirectory_);
     pBarrelsInfo->setLock(false);
