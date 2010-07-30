@@ -95,6 +95,18 @@ void IndexMergeManager::mergeIndex()
             pIndexMerger->merge(pBarrelsInfo_);
             pIndexer_->getIndexReader()->delDocFilter();
             pIndexMerger->setDocFilter(NULL);
+            BarrelInfo* pBaInfo;
+            pBarrelsInfo_->startIterator();
+            while (pBarrelsInfo_->hasNext())
+            {
+                pBaInfo = pBarrelsInfo_->next();
+                pBaInfo->setSearchable(true);
+            }
+            pBarrelsInfo_->setLock(true);
+            pIndexMerger->updateBarrels(pBarrelsInfo_);
+
+            pBarrelsInfo_->write(pIndexer_->getDirectory());
+            pBarrelsInfo_->setLock(false);
             }
             break;
         case NOOP:
