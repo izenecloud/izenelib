@@ -19,3 +19,6 @@ help
 .cproject
 /env.yml
 /cmake.yml
+/build
+/pkg
+/include/izenelib-version.h

@@ -54,14 +54,8 @@ IF(udt_SHOULD_BUILD)
     window.cpp
     )
 
-  ADD_LIBRARY(udt ${udt_SRC})
+  MACRO_ADD_LIBRARY(udt SRCS ${udt_SRC})
   TARGET_LINK_LIBRARIES(udt ${CMAKE_THREAD_LIBS_INIT})
-  #INSTALL(TARGETS udt DESTINATION lib)
-  INSTALL(TARGETS udt     
-      LIBRARY DESTINATION lib 
-      ARCHIVE DESTINATION lib 
-      COMPONENT "izenelib_libraries")
-
   # we know the warnings, it's ok to alias void* as char*
   IF(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_COMPILER_IS_GNUC)
     SET_TARGET_PROPERTIES(udt PROPERTIES COMPILE_FLAGS

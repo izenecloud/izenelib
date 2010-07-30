@@ -29,17 +29,12 @@ IF(streamflow_SHOULD_BUILD)
   INCLUDE_DIRECTORIES("${IZENELIB_SOURCE_DIR}/include/3rdparty/memory/streamflow/include-${streamflow_ARCH}")
   ADD_DEFINITIONS("${streamflow_DEFINITIONS}")
 
-  ADD_LIBRARY(streamflow ${streamflow_SRC})
+  MACRO_ADD_LIBRARY(streamflow SRCS ${streamflow_SRC})
   TARGET_LINK_LIBRARIES(
     streamflow
     ${CMAKE_THREAD_LIBS_INIT}
     ${M_LIBRARIES}
     ${DL_LIBRARIES}
     )
-#INSTALL(TARGETS streamflow DESTINATION lib)
-  INSTALL(TARGETS streamflow     
-      LIBRARY DESTINATION lib 
-      ARCHIVE DESTINATION lib 
-      COMPONENT "izenelib_libraries")
 
 ENDIF(streamflow_SHOULD_BUILD)
