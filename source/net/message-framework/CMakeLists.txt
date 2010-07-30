@@ -16,10 +16,8 @@ IF(message_framework_SHOULD_BUILD)
     ${Boost_INCLUDE_DIRS}
     ${Glog_INCLUDE_DIRS}
     )
-    
-  IF(NOT USE_MF_LIGHT)  
 
-   SET(message_framework_SRC 
+  SET(message_framework_SRC
 
     AsyncConnector.cpp
     AsyncStream.cpp
@@ -27,8 +25,8 @@ IF(message_framework_SHOULD_BUILD)
     MessageClientFull.cpp
     MessageControllerFull.cpp
     MessageServerFull.cpp
-    MessageDispatcher.cpp 
-    
+    MessageDispatcher.cpp
+
     MessageFrameworkException.cpp
     MessageFrameworkNode.cpp
     ServiceInfo.cpp
@@ -36,17 +34,15 @@ IF(message_framework_SHOULD_BUILD)
     ServiceRegistrationMessage.cpp
     ThreadPool.cpp
     #MFClient.cpp
-    
+
     MessageServerLight.cpp
     MessageClientLight.cpp
     MessageControllerLight.cpp
     MessageAgentLight.cpp
     )
-    
-  ELSE(NOT USE_MF_LIGHT)    
 
-   SET(message_framework_SRC 
-  
+  SET(message_framework_light_SRC
+
     MessageFrameworkException.cpp
     MessageFrameworkNode.cpp
     ServiceInfo.cpp
@@ -54,20 +50,14 @@ IF(message_framework_SHOULD_BUILD)
     ServiceRegistrationMessage.cpp
     ThreadPool.cpp
     #MFClient.cpp
-    
+
     MessageServerLight.cpp
     MessageClientLight.cpp
     MessageControllerLight.cpp
-    MessageAgentLight.cpp 
-    )  
+    MessageAgentLight.cpp
+    )
 
-  ENDIF(NOT USE_MF_LIGHT)    
-
-  ADD_LIBRARY(message_framework ${message_framework_SRC})
-  #INSTALL(TARGETS message_framework DESTINATION lib)
-  INSTALL(TARGETS message_framework   
-      LIBRARY DESTINATION lib 
-      ARCHIVE DESTINATION lib 
-      COMPONENT "izenelib_libraries")
+  MACRO_ADD_LIBRARY(message_framework SRCS ${message_framework_SRC})
+  MACRO_ADD_LIBRARY(message_framework_light message_framework SRCS ${message_framework_light_SRC})
 
 ENDIF(message_framework_SHOULD_BUILD)

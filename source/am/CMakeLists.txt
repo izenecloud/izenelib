@@ -25,22 +25,12 @@ IF(am_SHOULD_BUILD)
 
   ADD_DEFINITIONS("-fPIC -DUDT3")
 
-  ADD_LIBRARY(am ${am_SRC})
-  #INSTALL(TARGETS am DESTINATION lib)
-  INSTALL(TARGETS am 
-      LIBRARY DESTINATION lib 
-      ARCHIVE DESTINATION lib 
-      COMPONENT "izenelib_libraries")
+  MACRO_ADD_LIBRARY(am SRCS ${am_SRC})
 
 ENDIF(am_SHOULD_BUILD)
 
 MACRO_CHECK_SHOULD_BUILD(filemapper)
 IF(filemapper_SHOULD_BUILD)
-  ADD_LIBRARY(filemapper filemapper/persist.cpp)
-  #INSTALL(TARGETS izene_log DESTINATION lib)
-  INSTALL(TARGETS filemapper  
-      LIBRARY DESTINATION lib 
-      ARCHIVE DESTINATION lib 
-      COMPONENT "izenelib_libraries")
+  MACRO_ADD_LIBRARY(filemapper SRCS filemapper/persist.cpp)
 ENDIF(filemapper_SHOULD_BUILD)
 

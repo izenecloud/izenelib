@@ -6,10 +6,6 @@ IF(json_SHOULD_BUILD)
     json_value.cpp
     json_writer.cpp)
 
-  ADD_LIBRARY(json ${json_SRC})
-  INSTALL(TARGETS json
-    LIBRARY DESTINATION lib 
-    ARCHIVE DESTINATION lib 
-    COMPONENT "izenelib_libraries")
+  MACRO_ADD_LIBRARY(json SRCS ${json_SRC})
 
 ENDIF(json_SHOULD_BUILD)

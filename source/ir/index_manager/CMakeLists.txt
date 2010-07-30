@@ -28,12 +28,7 @@ IF(index_manager_SHOULD_BUILD)
 
   ADD_DEFINITIONS("-fPIC")
 
-  ADD_LIBRARY(index_manager ${index_manager_SRC})
-  ADD_LIBRARY(mock_index_manager ${mock_index_manager_SRC})
-  #INSTALL(TARGETS index_manager DESTINATION lib)
-  INSTALL(TARGETS index_manager 
-      LIBRARY DESTINATION lib 
-      ARCHIVE DESTINATION lib 
-      COMPONENT "izenelib_libraries")
+  MACRO_ADD_LIBRARY(index_manager SRCS ${index_manager_SRC})
+  MACRO_ADD_LIBRARY(mock_index_manager index_manager SRCS ${mock_index_manager_SRC})
 
 ENDIF(index_manager_SHOULD_BUILD)

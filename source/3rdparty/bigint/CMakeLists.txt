@@ -10,11 +10,6 @@ IF(bigint_SHOULD_BUILD)
     BigIntegerUtils.cpp
     )
 
-  ADD_LIBRARY(bigint ${bigint_SRC})
-  #INSTALL(TARGETS bigint DESTINATION lib)
-  INSTALL(TARGETS bigint       
-      LIBRARY DESTINATION lib 
-      ARCHIVE DESTINATION lib 
-      COMPONENT "izenelib_libraries")
+  MACRO_ADD_LIBRARY(bigint SRCS ${bigint_SRC})
 
 ENDIF(bigint_SHOULD_BUILD)

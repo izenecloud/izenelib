@@ -1,30 +1,14 @@
-SET(lzo_DEFINITIONS "-DPIC -fPIC -DMALLOC_PRODUCTION -D__isthreaded=true" )
-
-MACRO_CHECK_SHOULD_BUILD(
-  lzo
-  )
-
+MACRO_CHECK_SHOULD_BUILD(lzo)
 IF(lzo_SHOULD_BUILD)
 
-  MESSAGE(STATUS "Build extra flags ${lzo_DEFINITIONS}")
-  SET(lzo_SRC
-    "minilzo.c"
-    )
-
- INCLUDE_DIRECTORIES(
+  SET(lzo_DEFINITIONS "-DPIC -fPIC -DMALLOC_PRODUCTION -D__isthreaded=true")
+  MESSAGE(STATUS "lzo_DEFINITIONS=${lzo_DEFINITIONS}")
+  ADD_DEFINITIONS("${lzo_DEFINITIONS}")
+  INCLUDE_DIRECTORIES(
     ${IZENELIB_SOURCE_DIR}/include/3rdparty/compression/minilzo
     )
-    
-  ADD_DEFINITIONS("${lzo_DEFINITIONS}")
-  
-  ADD_LIBRARY(lzo ${lzo_SRC})
-
-  TARGET_LINK_LIBRARIES(
-    lzo
+  MACRO_ADD_LIBRARY(lzo
+    SRCS
+    "minilzo.c"
     )
-  INSTALL(TARGETS lzo     
-      LIBRARY DESTINATION lib 
-      ARCHIVE DESTINATION lib 
-      COMPONENT "izenelib_libraries")
-
 ENDIF(lzo_SHOULD_BUILD)
