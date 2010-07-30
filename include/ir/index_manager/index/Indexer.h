@@ -150,11 +150,12 @@ public:
     int getMaxSkipLevel() { return maxSkipLevel_; }
 
     bool isRealTime() { return realTime_; }
+
+    void close();
+
 protected:
 
     void openDirectory(const std::string& storagePolicy);
-
-    void close();
 
 protected:
     ManagerType managerType_;
