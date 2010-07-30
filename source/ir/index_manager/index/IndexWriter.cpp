@@ -43,12 +43,20 @@ IndexWriter::~IndexWriter()
 {
     if (pMemCache_)
         delete pMemCache_;
-    if (pIndexMergeManager_)
-        delete pIndexMergeManager_;
     if (pIndexBarrelWriter_)
         delete pIndexBarrelWriter_;
     if (pIndexMerger_)
         delete pIndexMerger_;
+}
+
+void IndexWriter::close()
+{
+    if (pIndexMergeManager_)
+    {
+        pIndexMergeManager_->stop();
+        delete pIndexMergeManager_;
+        pIndexMergeManager_ = NULL;
+    }
 }
 
 void IndexWriter::flush()

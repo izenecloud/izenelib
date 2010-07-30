@@ -26,11 +26,6 @@ IndexMergeManager::IndexMergeManager(Indexer* pIndexer)
 
 IndexMergeManager::~IndexMergeManager()
 {
-    stop();
-    mergethread_->join();
-    for(std::map<MergeOPType, IndexMerger*>::iterator iter = indexMergers_.begin();
-              iter != indexMergers_.end(); ++iter)
-        delete iter->second;
 }
 
 void IndexMergeManager::run()
@@ -45,6 +40,10 @@ void IndexMergeManager::stop()
     MergeOP op;
     op.opType = NOOP;
     tasks_.push(op);
+    mergethread_->join();
+    for(std::map<MergeOPType, IndexMerger*>::iterator iter = indexMergers_.begin();
+              iter != indexMergers_.end(); ++iter)
+        delete iter->second;
 }
 
 void IndexMergeManager::triggerMerge(BarrelInfo* pBarrelInfo)

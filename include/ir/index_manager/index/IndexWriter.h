@@ -51,7 +51,8 @@ public:
     void flush();
     /// set schedule 
     void scheduleOptimizeTask(std::string expression, string uuid);
-
+    /// close
+    void close();
 private:
     void createBarrelWriter();
      /// create index merger
