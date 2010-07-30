@@ -148,7 +148,8 @@ public:
     int getSkipInterval() { return skipInterval_; }
 
     int getMaxSkipLevel() { return maxSkipLevel_; }
-	
+
+    bool isRealTime() { return realTime_; }
 protected:
 
     void openDirectory(const std::string& storagePolicy);
@@ -175,6 +176,8 @@ protected:
     int skipInterval_;
 
     int maxSkipLevel_;
+
+    bool realTime_;
 
     std::map<collectionid_t, std::map<string, fieldid_t> > property_name_id_map_;
 

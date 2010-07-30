@@ -32,6 +32,7 @@ Indexer::Indexer(ManagerType managerType)
         ,pIndexReader_(NULL)
         ,pConfigurationManager_(NULL)
         ,pBTreeIndexer_(NULL)
+        ,realTime_(false)
 {
 }
 
@@ -123,6 +124,15 @@ void Indexer::setIndexManagerConfig(
         memset(uuidstr,0,10);
         sprintf(uuidstr,"%d",uuid);
         pIndexWriter_->scheduleOptimizeTask(pConfigurationManager_->indexStrategy_.optimizeSchedule_, uuidstr);
+    }
+
+    if(!strcasecmp(pConfigurationManager_->mergeStrategy_.param_.c_str(),"realtime"))
+        realTime_ = true;
+    else
+    {
+        realTime_ = false;
+        skipInterval_ = 0;
+        maxSkipLevel_ = 0;
     }
 }
 
