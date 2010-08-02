@@ -48,15 +48,12 @@ void DefaultMerger::addBarrel(MergeBarrelEntry* pEntry)
 void DefaultMerger::endMerge()
 {
     Layer* pLevel3 = new Layer(3,1,100);
-    Layer* pLevel2 = nodesMap_[2];
-    while (pLevel2->pMergeBarrel_->size() >0)
+    for(std::map<int,Layer*>::iterator iter = nodesMap_.begin(); iter != nodesMap_.end(); ++iter)
     {
-        pLevel3->pMergeBarrel_->put(pLevel2->pMergeBarrel_->pop());
-    }
-    Layer* pLevel1 = nodesMap_[1];
-    while (pLevel1->pMergeBarrel_->size() >0)
-    {
-        pLevel3->pMergeBarrel_->put(pLevel1->pMergeBarrel_->pop());
+        while (iter->second->pMergeBarrel_->size() >0)
+        {
+            pLevel3->pMergeBarrel_->put(iter->second->pMergeBarrel_->pop());
+        }
     }
     mergeBarrel(pLevel3->pMergeBarrel_);
 
