@@ -126,7 +126,7 @@ void Indexer::setIndexManagerConfig(
         pIndexWriter_->scheduleOptimizeTask(pConfigurationManager_->indexStrategy_.optimizeSchedule_, uuidstr);
     }
 
-    if(!strcasecmp(pConfigurationManager_->mergeStrategy_.param_.c_str(),"realtime"))
+    if(!strcasecmp(pConfigurationManager_->indexStrategy_.indexMode_.c_str(),"realtime"))
         realTime_ = true;
     else
     {
@@ -258,12 +258,6 @@ void Indexer::flush()
 void Indexer::optimizeIndex()
 {
     pIndexWriter_->optimizeIndex();
-}
-
-void Indexer::sort_and_merge()
-{
-    BOOST_ASSERT(realTime_ == false);
-    pIndexWriter_->sort_and_merge();
 }
 
 IndexStatus Indexer::checkIntegrity()

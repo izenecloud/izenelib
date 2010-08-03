@@ -16,7 +16,7 @@ IndexMergeManager::IndexMergeManager(Indexer* pIndexer)
 {
     pBarrelsInfo_ = pIndexer_->getBarrelsInfo();
 
-    if(!strcasecmp(pIndexer_->pConfigurationManager_->mergeStrategy_.param_.c_str(),"realtime"))
+    if(!strcasecmp(pIndexer_->pConfigurationManager_->mergeStrategy_.param_.c_str(),"dbt"))
         indexMergers_[ONLINE] = new DBTMerger(pIndexer_);
     else
         indexMergers_[ONLINE] = new DefaultMerger(pIndexer_);
