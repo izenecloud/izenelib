@@ -49,6 +49,8 @@ public:
     void optimizeIndex();
     /// flush index
     void flush();
+    /// sort and merge
+    void sort_and_merge();
     /// set schedule 
     void scheduleOptimizeTask(std::string expression, string uuid);
     /// close

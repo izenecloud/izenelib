@@ -69,6 +69,8 @@ public:
     void flush();
     /// merge all index barrels into a single barrel
     void optimizeIndex();
+    /// only used when real time index is not triggered
+    void sort_and_merge();
 
     ///check whether the integrity of indices, always used when starts up
     IndexStatus checkIntegrity();

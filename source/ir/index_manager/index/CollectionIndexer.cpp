@@ -63,8 +63,7 @@ void CollectionIndexer::setFieldIndexers()
         pFieldInfo = pFieldsInfo_->next();
         if (pFieldInfo->isIndexed()&&pFieldInfo->isForward())
         {
-            FieldIndexer* pFieldIndexer = new FieldIndexer(pMemCache_,pIndexer_);
-            pFieldIndexer->setField(pFieldInfo->getName());
+            FieldIndexer* pFieldIndexer = new FieldIndexer(pFieldInfo->getName(), pMemCache_,pIndexer_);
             fieldIndexerMap_.insert(make_pair(pFieldInfo->getName(),pFieldIndexer));
         }
     }

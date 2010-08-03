@@ -260,6 +260,12 @@ void Indexer::optimizeIndex()
     pIndexWriter_->optimizeIndex();
 }
 
+void Indexer::sort_and_merge()
+{
+    BOOST_ASSERT(realTime_ == false);
+    pIndexWriter_->sort_and_merge();
+}
+
 IndexStatus Indexer::checkIntegrity()
 {
     if (0 == pBarrelsInfo_->getBarrelCount() ||

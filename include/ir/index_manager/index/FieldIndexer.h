@@ -14,11 +14,13 @@
 #include <ir/index_manager/index/LAInput.h>
 #include <ir/index_manager/index/ForwardIndex.h>
 
+#include <am/external_sort/izene_sort.hpp>
 #include <util/ThreadModel.h>
-
+#include <boost/memory.hpp>
 #include <3rdparty/am/stx/btree_map>
 
 #include <boost/thread.hpp>
+
 #include <string>
 #include <deque>
 
@@ -39,13 +41,13 @@ class Indexer;
 class FieldIndexer
 {
 public:
-    FieldIndexer(MemCache* pMemcache,Indexer* pIndexer);
+    FieldIndexer(const char* field, MemCache* pMemcache,Indexer* pIndexer);
 
     ~FieldIndexer();
 public:
-    const char* getField() { return field.c_str(); }
+    const char* getField() { return field_.c_str(); }
 
-     void setField(const char* strfield) { field = strfield;}
+    void setField(const char* strfield) { field_ = strfield;}
 
     void addField(docid_t docid, boost::shared_ptr<LAInput> laInput);
 
@@ -66,7 +68,7 @@ public:
 private:
     InMemoryPostingMap postingMap_;
 
-    std::string field;
+    std::string field_;
 
     MemCache* pMemCache_;
 
@@ -74,7 +76,19 @@ private:
 
     fileoffset_t vocFilePointer_;
 
+    int skipInterval_;
+
+    int maxSkipLevel_;
+
     izenelib::util::ReadWriteLock rwLock_;
+
+    NS_BOOST_MEMORY::block_pool recycle_;
+
+    boost::scoped_alloc* alloc_;
+
+    std::string sorterFullPath_;
+
+    izenelib::am::IzeneSort<uint32_t, uint8_t, true>* sorter_;
 
     friend class InMemoryTermReader;
     friend class InMemoryTermIterator;

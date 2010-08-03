@@ -40,6 +40,7 @@ InMemoryPosting::InMemoryPosting(MemCache* pCache, int skipInterval, int maxSkip
 {
     pDocFreqList_ = new VariantDataPool(pCache);
     pLocList_  = new VariantDataPool(pCache);
+    if(skipInterval_) pSkipListWriter_ = new SkipListWriter(skipInterval_,maxSkipLevel_,pMemCache_);
 }
 
 InMemoryPosting::InMemoryPosting(int skipInterval, int maxSkipLevel)
@@ -227,9 +228,8 @@ void InMemoryPosting::add(docid_t docid, loc_t location)
 
         if(skipInterval_ && nDF_ > 0 && nDF_ % skipInterval_ == 0)
         {
-            if(!pSkipListWriter_)
-                pSkipListWriter_ = new SkipListWriter(skipInterval_,maxSkipLevel_,pMemCache_);
-
+            //if(!pSkipListWriter_)
+                //pSkipListWriter_ = new SkipListWriter(skipInterval_,maxSkipLevel_,pMemCache_);
             pSkipListWriter_->addSkipPoint(nLastDocID_,pDocFreqList_->getLength(),pLocList_->getLength());
         }
 
