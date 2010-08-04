@@ -1,4 +1,5 @@
 #define BOOST_TEST_NO_MAIN
+#define BOOST_TEST_ALTERNATIVE_INIT_API
 #include <boost/test/unit_test.hpp>
 #include <boost/test/output/xml_log_formatter.hpp>
 
