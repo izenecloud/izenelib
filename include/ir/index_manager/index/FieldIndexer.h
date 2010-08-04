@@ -55,7 +55,7 @@ public:
 
     void reset();
 
-    uint64_t distinctNumTerms() {return postingMap_.size();}
+    uint64_t distinctNumTerms() {return termCount_;}
 
     fileoffset_t write(OutputDescriptor* pWriterDesc);
 
@@ -89,6 +89,8 @@ private:
     std::string sorterFullPath_;
 
     izenelib::am::IzeneSort<uint32_t, uint8_t, true>* sorter_;
+
+    uint64_t termCount_;
 
     friend class InMemoryTermReader;
     friend class InMemoryTermIterator;

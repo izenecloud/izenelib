@@ -66,7 +66,7 @@ void IndexWriter::flush()
     BarrelInfo* pLastBarrel = pBarrelsInfo_->getLastBarrel();
     if (pLastBarrel == NULL)
         return;
-    //if(pIndexer_->isRealTime())
+    if(pIndexer_->isRealTime())
     {
         pLastBarrel->setBaseDocID(baseDocIDMap_);
         baseDocIDMap_.clear();
@@ -92,12 +92,10 @@ void IndexWriter::flush()
         delete pIndexBarrelWriter_;
         pIndexBarrelWriter_ = NULL;
     }
-/*
     else
     {
         sort_and_merge();
     }
-*/
 }
 
 void IndexWriter::createMerger()
@@ -240,7 +238,7 @@ void IndexWriter::indexDocument(IndexerDocument& doc)
         pCurBarrelInfo_->setBaseDocID(baseDocIDMap_);
     }
 
-    //if(pIndexer_->isRealTime())
+    if(pIndexer_->isRealTime())
     {
         if (pIndexBarrelWriter_->cacheFull())
         {
@@ -334,7 +332,6 @@ void IndexWriter::sort_and_merge()
 {
     if(!pIndexBarrelWriter_) return;
     pIndexBarrelWriter_->writeCache();
-    pIndexBarrelWriter_->resetCache();
     BarrelInfo* pLastBarrel = pBarrelsInfo_->getLastBarrel();
     pLastBarrel->setSearchable(true);
     pLastBarrel->setWriter(NULL);

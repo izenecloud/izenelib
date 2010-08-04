@@ -167,11 +167,10 @@ void CollectionIndexer::write(OutputDescriptor* desc)
         vocOff1 = pVocOutput->getFilePointer();
         dfiOff1 = pDOutput->getFilePointer();
         ptiOff1 = pPOutput->getFilePointer();
-
-        pFieldsInfo_->setDistinctNumTerms(iter->first,pFieldIndexer->distinctNumTerms());
-
         vocOffset = pFieldIndexer->write(desc);///write field index data
 
+        pFieldsInfo_->setDistinctNumTerms(iter->first,pFieldIndexer->distinctNumTerms());
+        pFieldIndexer->reset();
         pFieldsInfo_->setFieldOffset(iter->first,vocOffset);
 
         vocOff2 = pVocOutput->getFilePointer();

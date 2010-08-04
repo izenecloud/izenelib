@@ -16,11 +16,10 @@ namespace indexmanager
 {
 
 FieldIndexer::FieldIndexer(const char* field, MemCache* pCache, Indexer* pIndexer)
-        :field_(field),pMemCache_(pCache),pIndexer_(pIndexer),vocFilePointer_(0),alloc_(0),sorter_(0)
+        :field_(field),pMemCache_(pCache),pIndexer_(pIndexer),vocFilePointer_(0),alloc_(0),sorter_(0),termCount_(0)
 {
     skipInterval_ = pIndexer_->getSkipInterval();
     maxSkipLevel_ = pIndexer_->getMaxSkipLevel();
-/*
     if (! pIndexer_->isRealTime())
     {
         std::string sorterName = field_+".tmp";
@@ -29,7 +28,6 @@ FieldIndexer::FieldIndexer(const char* field, MemCache* pCache, Indexer* pIndexe
         sorter_=new izenelib::am::IzeneSort<uint32_t, uint8_t, true>(sorterFullPath_.c_str(), 100000000);
     }
     else
-*/		
         alloc_ = new boost::scoped_alloc(recycle_);
 }
 
@@ -60,10 +58,9 @@ void convert(char* data, uint32_t termId, uint32_t docId, uint32_t offset)
 
 void FieldIndexer::addField(docid_t docid, boost::shared_ptr<LAInput> laInput)
 {
-    //if (pIndexer_->isRealTime())
+    if (pIndexer_->isRealTime())
     {
         InMemoryPosting* curPosting;
-
         for (LAInput::iterator iter = laInput->begin(); iter != laInput->end(); ++iter)
         {
             InMemoryPostingMap::iterator postingIter = postingMap_.find(iter->termId_);
@@ -78,7 +75,6 @@ void FieldIndexer::addField(docid_t docid, boost::shared_ptr<LAInput> laInput)
             curPosting->add(docid, iter->offset_);
         }
     }
-/*
     else
     {
         if (!sorter_)
@@ -91,7 +87,6 @@ void FieldIndexer::addField(docid_t docid, boost::shared_ptr<LAInput> laInput)
             sorter_->add_data(12, data);
         }
     }
-*/
 }
 
 void FieldIndexer::addField(docid_t docid, boost::shared_ptr<ForwardIndex> forwardindex)
@@ -127,6 +122,7 @@ void FieldIndexer::reset()
         }
     }
     postingMap_.clear();
+    termCount_ = 0;
 }
 
 void writeTermInfo(IndexOutput* pVocWriter, termid_t tid, const TermInfo& termInfo)
@@ -150,12 +146,11 @@ fileoffset_t FieldIndexer::write(OutputDescriptor* pWriterDesc)
     IndexOutput* pVocWriter = pWriterDesc->getVocOutput();
 
     termid_t tid;
-    int32_t termCount = 0;
     InMemoryPosting* pPosting;
     fileoffset_t vocOffset = pVocWriter->getFilePointer();
     TermInfo termInfo;
 
-    //if (pIndexer_->isRealTime())
+    if (pIndexer_->isRealTime())
     {
         izenelib::util::ScopedWriteLock<izenelib::util::ReadWriteLock> lock(rwLock_);
         for (InMemoryPostingMap::iterator iter = postingMap_.begin(); iter !=postingMap_.end(); ++iter)
@@ -169,7 +164,7 @@ fileoffset_t FieldIndexer::write(OutputDescriptor* pWriterDesc)
                 writeTermInfo(pVocWriter,tid,termInfo);
                 pPosting->reset();								///clear posting data
                 termInfo.reset();
-                termCount++;
+                termCount_++;
             }
             //delete pPosting;
             //pPosting = NULL;
@@ -180,7 +175,6 @@ fileoffset_t FieldIndexer::write(OutputDescriptor* pWriterDesc)
         delete alloc_;
         alloc_ = new boost::scoped_alloc(recycle_);
     }
-/*
     else
     {
         sorter_->sort();
@@ -188,8 +182,9 @@ fileoffset_t FieldIndexer::write(OutputDescriptor* pWriterDesc)
         fseek(f, 0, SEEK_SET);
         uint64_t count;
         fread(&count, sizeof(uint64_t), 1, f);
+
         pPosting = new InMemoryPosting(pMemCache_, skipInterval_, maxSkipLevel_);
-        termid_t lastTerm = 0;
+        termid_t lastTerm = BAD_DOCID;
         try
         {
         for (uint64_t i = 0; i < count; ++i)
@@ -201,21 +196,19 @@ fileoffset_t FieldIndexer::write(OutputDescriptor* pWriterDesc)
             fread(&docId, sizeof(uint32_t), 1, f);
             fread(&offset, sizeof(uint32_t), 1, f);
 
-            if ((lastTerm == 0)||(tid == lastTerm))
-            {
-                pPosting->add(docId, offset);
-            }
-            else
+            if(tid != lastTerm && lastTerm != BAD_DOCID)
             {
                 if (!pPosting->hasNoChunk())
                 {
                     pPosting->write(pWriterDesc, termInfo); 	///write posting data
                     writeTermInfo(pVocWriter, lastTerm, termInfo);
                     pPosting->reset();								///clear posting data
+                    pMemCache_->flushMem();
                     termInfo.reset();
-                    termCount++;
+                    termCount_++;
                 }
             }
+            pPosting->add(docId, offset);
             lastTerm = tid;
         }
         }catch(std::exception& e)
@@ -228,8 +221,9 @@ fileoffset_t FieldIndexer::write(OutputDescriptor* pWriterDesc)
             pPosting->write(pWriterDesc, termInfo);	///write posting data
             writeTermInfo(pVocWriter, lastTerm, termInfo);
             pPosting->reset(); 							///clear posting data
+            pMemCache_->flushMem();
             termInfo.reset();
-            termCount++;
+            termCount_++;
         }
 
         fclose(f);
@@ -238,13 +232,13 @@ fileoffset_t FieldIndexer::write(OutputDescriptor* pWriterDesc)
         sorter_ = NULL;
         delete pPosting;
     }
-*/
 
     fileoffset_t vocDescOffset = pVocWriter->getFilePointer();
     int64_t vocLength = vocDescOffset - vocOffset;
     ///begin write vocabulary descriptor
     pVocWriter->writeLong(vocLength);	///<VocLength(Int64)>
-    pVocWriter->writeLong(termCount);	///<TermCount(Int64)>
+    cout<<"!!!!!!!!!!!!!!!!!!!!!!!!!!!!! field "<<field_<<" termcount "<<termCount_<<endl;
+    pVocWriter->writeLong(termCount_);	///<TermCount(Int64)>
     ///end write vocabulary descriptor
 
     return vocDescOffset;
