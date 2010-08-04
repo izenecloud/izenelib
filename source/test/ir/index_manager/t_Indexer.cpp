@@ -1,3 +1,5 @@
+#include <boost/test/unit_test.hpp>
+
 #include <boost/thread.hpp>
 #include <boost/shared_ptr.hpp>
 #include <boost/ref.hpp>
@@ -5,31 +7,14 @@
 #include <iostream>
 #include <fstream>
 
-#include "ScdParser.h"
-
-#include "XmlConfigParser.h"
-
 #include <ir/index_manager/index/Indexer.h>
 #include <ir/index_manager/index/LAInput.h>
 #include <ir/index_manager/index/IndexerDocument.h>
 
-
-#include <ir/id_manager/IDManager.h>
-
-#include <sf1v5/la-manager/LAManager.h>
-#include <sf1v5/la-manager/LAPool.h>
-#include <sf1v5/configuration-manager/ConfigurationManager.h>
-
 using namespace std;
 using namespace boost;
 
-using namespace sf1v5;
-
-using namespace izenelib::ir::idmanager;
 using namespace izenelib::ir::indexmanager;
-
-IDManager idManager_;
-boost::shared_ptr<LAManager> laManager_;
 
 void ReportUsage(void)
 {
@@ -51,7 +36,7 @@ void ReportUsage(void)
     cout<<"	20 for memory index testing.\n";
     cout<<"	21 test getDocsByTermInProperties.\n";
 }
-
+#if 0
 void  initMeta(IndexManagerConfig& config)
 {
     map<string, IndexerCollectionMeta> collectionList = config.getCollectionMetaNameMap();
@@ -338,4 +323,14 @@ int main(int argc, char** argv)
     delete pIndexer;
     return 1;
 }
+#endif
+
+BOOST_AUTO_TEST_SUITE( t_Indexer )
+
+BOOST_AUTO_TEST_CASE(index)
+{
+    Indexer indexer;
+}
+
+BOOST_AUTO_TEST_SUITE_END()
 
