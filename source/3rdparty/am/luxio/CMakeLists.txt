@@ -1,10 +1,7 @@
 FIND_PACKAGE(Boost ${Boost_FIND_VERSION}
   COMPONENTS thread)
 
-MACRO_CHECK_SHOULD_BUILD(
-  luxio
-  Boost_FOUND
-  )
+MACRO_CHECK_SHOULD_BUILD(luxio Boost_FOUND)
 
 IF(luxio_SHOULD_BUILD)
 
@@ -22,11 +19,7 @@ IF(luxio_SHOULD_BUILD)
 
   ADD_DEFINITIONS("-fPIC")
 
-  ADD_LIBRARY(luxio ${luxio_SRC})
-  INSTALL(TARGETS luxio
-      LIBRARY DESTINATION lib
-      ARCHIVE DESTINATION lib
-      COMPONENT "izenelib_libraries")
+  MACRO_ADD_LIBRARY(luxio SRCS ${luxio_SRC})
 
 ENDIF(luxio_SHOULD_BUILD)
 

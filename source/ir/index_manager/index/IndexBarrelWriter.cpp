@@ -13,6 +13,7 @@ IndexBarrelWriter::IndexBarrelWriter(Indexer* pIndex,MemCache* pCache,const char
         ,pIndexer_(pIndex)
         ,pMemCache_(pCache)
         ,pDocFilter_(0)
+        ,dirty_(false)
 
 {
     pCollectionsInfo_ = new CollectionsInfo();
@@ -59,6 +60,7 @@ void IndexBarrelWriter::addDocument(IndexerDocument& doc)
     if (NULL == pCollectionIndexer)
         SF1V5_THROW(ERROR_OUTOFRANGE,"IndexBarrelWriter::addDocument(): collection id does not belong to the range");
     pCollectionIndexer->addDocument(doc);
+    if(dirty_) dirty_ = false;
 }
 
 void IndexBarrelWriter::resetCache(bool bResetPosting)
@@ -74,6 +76,8 @@ void IndexBarrelWriter::resetCache(bool bResetPosting)
 
 void IndexBarrelWriter::writeCache()
 {
+    dirty_ = true;
+
     try
     {
         DLOG(INFO) << "Write Index Barrel" << endl;

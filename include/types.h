@@ -1,7 +1,7 @@
 #ifndef TYPES_H
 #define TYPES_H
 
-#ifndef WIN32
+#if !defined(WIN32) || defined(__MINGW32__)
 #include <stddef.h>
 #include <sys/types.h>
 #include <stdint.h>
@@ -42,7 +42,7 @@ typedef unsigned __int64  uint64_t;
 #define IASSERT(exp)\
   {              \
     if (!(exp))    \
-    {throw std::runtime_error("IO ERROR.\n"); assert(false);}\
+    {assert(false);}\
   }
 
 #define THROW(exp, info)\

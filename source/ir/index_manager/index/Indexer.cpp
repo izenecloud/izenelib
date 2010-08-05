@@ -32,6 +32,7 @@ Indexer::Indexer(ManagerType managerType)
         ,pIndexReader_(NULL)
         ,pConfigurationManager_(NULL)
         ,pBTreeIndexer_(NULL)
+        ,realTime_(false)
 {
 }
 
@@ -124,6 +125,15 @@ void Indexer::setIndexManagerConfig(
         sprintf(uuidstr,"%d",uuid);
         pIndexWriter_->scheduleOptimizeTask(pConfigurationManager_->indexStrategy_.optimizeSchedule_, uuidstr);
     }
+
+    if(!strcasecmp(pConfigurationManager_->mergeStrategy_.param_.c_str(),"realtime"))
+        realTime_ = true;
+    else
+    {
+        realTime_ = false;
+        skipInterval_ = 0;
+        maxSkipLevel_ = 0;
+    }
 }
 
 void Indexer::openDirectory(const std::string& storagePolicy)
@@ -181,6 +191,7 @@ void Indexer::close()
     if (pIndexWriter_)
     {
         pIndexWriter_->flush();
+        pIndexWriter_->close();
         delete pIndexWriter_;
         pIndexWriter_ = NULL;
     }

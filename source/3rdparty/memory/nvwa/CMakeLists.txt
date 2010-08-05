@@ -46,13 +46,8 @@ IF(nvwa_SHOULD_BUILD)
     static_mem_pool.cpp
     )
 
-  ADD_LIBRARY(nvwa ${nvwa_SRC})
+  MACRO_ADD_LIBRARY(nvwa SRCS ${nvwa_SRC})
   TARGET_LINK_LIBRARIES(nvwa ${CMAKE_THREAD_LIBS_INIT})
-  #INSTALL(TARGETS nvwa DESTINATION lib)
-  INSTALL(TARGETS nvwa     
-      LIBRARY DESTINATION lib 
-      ARCHIVE DESTINATION lib 
-      COMPONENT "izenelib_libraries")
 
   # we know the warnings, it's ok to alias void* as char*
   IF(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_COMPILER_IS_GNUC)

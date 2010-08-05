@@ -23,9 +23,6 @@ BOOST_AUTO_TEST_CASE(ClockTimer_test)
     ClockTimer t;
 
     mySleep(5);
-
-    BOOST_CHECK(t.elapsed() >= 5); // wall clock > cpu time
-
     double e1 = t.elapsed();
 
     mySleep(1);

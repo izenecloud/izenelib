@@ -160,7 +160,8 @@ inline bool TermPositions::decodePositions()
                 nLastUnDecodedPCount_ = 0;
                 nLastPosting_++;
             }
-            pPosting_->decodeNextPositions(pPPostingBuffer,(int32_t)nTotalDecodedPCount_);
+            bool ret = pPosting_->decodeNextPositions(pPPostingBuffer,(int32_t)nTotalDecodedPCount_);
+            if(!ret) return false;
             pPPostingBuffer += nTotalDecodedPCount_;
             if (nLastUnDecodedPCount_ == 0)
                 pPosting_->resetPosition();
@@ -179,13 +180,15 @@ inline bool TermPositions::decodePositions()
             }
             if ((nFreqs - nLastPosting_) > 0)
             {
-                pPosting_->decodeNextPositions(pPPostingBuffer,&(pPostingBuffer_[nFreqStart_ + nLastPosting_]),nFreqs - nLastPosting_);
+                bool ret = pPosting_->decodeNextPositions(pPPostingBuffer,&(pPostingBuffer_[nFreqStart_ + nLastPosting_]),nFreqs - nLastPosting_);
+                if(!ret) return false;
                 nLastPosting_ = nFreqs;
             }
             else if (nTotalDecodedPCount_ == 0)
             {
                 nTotalDecodedPCount_ = nPBufferSize_;
-                pPosting_->decodeNextPositions(pPPostingBuffer,(int32_t)nTotalDecodedPCount_);
+                bool ret = pPosting_->decodeNextPositions(pPPostingBuffer,(int32_t)nTotalDecodedPCount_);
+                if(!ret) return false;
                 nLastUnDecodedPCount_ = pPostingBuffer_[nFreqStart_ + nLastPosting_] - (int32_t)nTotalDecodedPCount_;
             }
         }

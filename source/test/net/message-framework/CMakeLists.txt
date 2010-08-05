@@ -30,12 +30,5 @@ TARGET_LINK_LIBRARIES(t_mf
   ${Glog_LIBRARIES}
 )
 
-SET_TARGET_PROPERTIES(t_mf PROPERTIES
-  COMPILE_FLAGS "-include ${FileTestHelper}"
-  RUNTIME_OUTPUT_DIRECTORY ${IZENELIB_SOURCE_DIR}/testbin
-)
-
-ADD_TEST(mf "${IZENELIB_SOURCE_DIR}/testbin/t_mf")
-
 ENDIF(Boost_FOUND AND Glog_FOUND AND
   _procmeminfo GREATER -1 AND _message_framework GREATER -1)
