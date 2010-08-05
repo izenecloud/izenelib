@@ -54,8 +54,8 @@ void IndexWriter::close()
     if (pIndexMergeManager_)
     {
         pIndexMergeManager_->stop();
-        delete pIndexMergeManager_;
-        pIndexMergeManager_ = NULL;
+        //delete pIndexMergeManager_;
+        //pIndexMergeManager_ = NULL;
     }
 }
 

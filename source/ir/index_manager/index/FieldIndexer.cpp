@@ -237,7 +237,6 @@ fileoffset_t FieldIndexer::write(OutputDescriptor* pWriterDesc)
     int64_t vocLength = vocDescOffset - vocOffset;
     ///begin write vocabulary descriptor
     pVocWriter->writeLong(vocLength);	///<VocLength(Int64)>
-    cout<<"!!!!!!!!!!!!!!!!!!!!!!!!!!!!! field "<<field_<<" termcount "<<termCount_<<endl;
     pVocWriter->writeLong(termCount_);	///<TermCount(Int64)>
     ///end write vocabulary descriptor
 
