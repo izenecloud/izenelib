@@ -46,6 +46,18 @@ public:
 	 * @return true if successfully inserted
 	 * @return false otherwise
      */
+	void put(const NameID& nameID, const char* termStringBuffer, const size_t termStringLength)
+	{
+	    put(nameID, NameString(termStringBuffer, termStringLength));
+	}
+
+	/**
+	 * @brief This function inserts a <ID, String> pair into storage.
+	 * @param nameID the Name ID
+	 * @param nameString the name string
+	 * @return true if successfully inserted
+	 * @return false otherwise
+     */
 	void put(const NameID& nameID, const NameString& nameString);
 
 	/**
@@ -130,6 +142,19 @@ public:
 	HDBIDStorage(const std::string& sdbName);
 
 	virtual ~HDBIDStorage();
+
+
+	/**
+	 * @brief This function inserts a <ID, String> pair into storage.
+	 * @param nameID the Name ID
+	 * @param nameString the name string
+	 * @return true if successfully inserted
+	 * @return false otherwise
+     */
+	void put(const NameID& nameID, const char* termStringBuffer, const size_t termStringLength)
+	{
+	    put(nameID, NameString(termStringBuffer, termStringLength));
+	}
 
 	/**
 	 * @brief This function inserts a <ID, String> pair into storage.
@@ -239,6 +264,19 @@ class TCIDStorage
 
 	virtual ~TCIDStorage();
 
+
+	/**
+	 * @brief This function inserts a <ID, String> pair into storage.
+	 * @param nameID the Name ID
+	 * @param nameString the name string
+	 * @return true if successfully inserted
+	 * @return false otherwise
+     */
+	void put(const NameID& nameID, const char* termStringBuffer, const size_t termStringLength)
+	{
+	    put(nameID, NameString(termStringBuffer, termStringLength));
+	}
+
 	/**
 	* @brief This function inserts a <ID, String> pair into storage.
 	* @param nameID the Name ID
@@ -328,6 +366,10 @@ class EmptyIDStorage
 public:
 
 	EmptyIDStorage(const std::string& ){}
+
+	void put(const NameID& nameID, const char* termStringBuffer, const size_t termStringLength)
+	{
+	}
 
 	void put(const NameID& nameID, const NameString& nameString)
 	{

@@ -60,6 +60,22 @@ public:
 
 public:
 
+
+	/**
+	 * @brief a member function to get term ID from vocabulary which matches to the given term string.
+	 *
+	 * @param termStringBuffer	the content of term string.
+	 * @param termStringLength	the length of term string.
+	 * @param termId	    a term identifier which matches to the term string.
+	 * @return true  : 	Term exists in the dictionary.
+	 * @return false : 	Term does not exist in the dictionary.
+	 */
+	bool getTermIdByTermString(const char* termStringBuffer, const size_t termStringLength, NameID& termId)
+	{
+	    return idFactory_.getTermIdByTermString(termStringBuffer, termStringLength, termId);
+	}
+
+
 	/**
 	 * @brief a member function to offer a termID which exists in the dictionary.
 	 * If it is not in the dictionary, termIdManager will generate new term id and automatically inserts into dictionary.
