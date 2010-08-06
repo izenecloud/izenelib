@@ -100,8 +100,7 @@ void Indexer::setIndexManagerConfig(
          property_name_id_map_.insert(make_pair(colID, propertyMap));
     }
  
-    VariantDataPool::UPTIGHT_ALLOC_CHUNKSIZE = 8;
-    VariantDataPool::UPTIGHT_ALLOC_MEMSIZE = 40000;
+    VariantDataPool::UPTIGHT_ALLOC_MEMSIZE = 10*1024*1024;
 
     skipInterval_ = pConfigurationManager_->indexStrategy_.skipInterval_;
     maxSkipLevel_ = pConfigurationManager_->indexStrategy_.maxSkipLevel_;

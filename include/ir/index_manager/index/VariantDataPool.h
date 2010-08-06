@@ -118,7 +118,6 @@ private:
     friend class PostingMerger;
     friend class VariantDataPoolInput;
 public:
-    static int32_t UPTIGHT_ALLOC_CHUNKSIZE;
     static int32_t UPTIGHT_ALLOC_MEMSIZE;
  };
 
