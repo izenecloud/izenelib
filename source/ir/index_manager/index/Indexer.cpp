@@ -131,8 +131,6 @@ void Indexer::setIndexManagerConfig(
     else
     {
         realTime_ = false;
-        skipInterval_ = 0;
-        maxSkipLevel_ = 0;
     }
 }
 
