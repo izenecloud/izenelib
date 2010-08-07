@@ -25,7 +25,7 @@ FieldIndexer::FieldIndexer(const char* field, MemCache* pCache, Indexer* pIndexe
         std::string sorterName = field_+".tmp";
         bfs::path path(bfs::path(pIndexer->pConfigurationManager_->indexStrategy_.indexLocation_) /bfs::path(sorterName));
         sorterFullPath_= path.string();
-        sorter_=new izenelib::am::IzeneSort<uint32_t, uint8_t, true>(sorterFullPath_.c_str(), 130000000);
+        sorter_=new izenelib::am::IzeneSort<uint32_t, uint8_t, true>(sorterFullPath_.c_str(), 100000000);
     }
     else
         alloc_ = new boost::scoped_alloc(recycle_);
@@ -78,7 +78,7 @@ void FieldIndexer::addField(docid_t docid, boost::shared_ptr<LAInput> laInput)
     else
     {
         if (!sorter_)
-            sorter_=new izenelib::am::IzeneSort<uint32_t, uint8_t, true>(sorterFullPath_.c_str(), 130000000);
+            sorter_=new izenelib::am::IzeneSort<uint32_t, uint8_t, true>(sorterFullPath_.c_str(), 100000000);
 
         char data[12];
         for (LAInput::iterator iter = laInput->begin(); iter != laInput->end(); ++iter)
