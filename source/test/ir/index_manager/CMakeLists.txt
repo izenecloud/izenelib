@@ -13,6 +13,8 @@ IF(Boost_FOUND)
 
 INCLUDE_DIRECTORIES(
   ${Boost_INCLUDE_DIRS}
+  ${TokyoCabinet_INCLUDE_DIRS}
+  ${Glog_INCLUDE_DIRS}
  )
 
 SET(t_indexer_SRC
