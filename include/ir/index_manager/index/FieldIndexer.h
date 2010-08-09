@@ -88,6 +88,8 @@ private:
 
     std::string sorterFullPath_;
 
+    std::string sorterFileName_;
+
     izenelib::am::IzeneSort<uint32_t, uint8_t, true>* sorter_;
 
     uint64_t termCount_;

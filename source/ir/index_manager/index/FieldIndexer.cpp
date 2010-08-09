@@ -2,6 +2,7 @@
 #include <ir/index_manager/index/FieldIndexer.h>
 #include <ir/index_manager/index/TermReader.h>
 #include <ir/index_manager/index/TermPositions.h>
+#include <ir/index_manager/store/IndexInput.h>
 
 #include <boost/filesystem.hpp>
 #include <boost/filesystem/path.hpp>
@@ -22,8 +23,9 @@ FieldIndexer::FieldIndexer(const char* field, MemCache* pCache, Indexer* pIndexe
     maxSkipLevel_ = pIndexer_->getMaxSkipLevel();
     if (! pIndexer_->isRealTime())
     {
-        std::string sorterName = field_+".tmp";
-        bfs::path path(bfs::path(pIndexer->pConfigurationManager_->indexStrategy_.indexLocation_) /bfs::path(sorterName));
+        //std::string sorterName = field_+".tmp";
+        sorterFileName_ = field_+".tmp";
+        bfs::path path(bfs::path(pIndexer->pConfigurationManager_->indexStrategy_.indexLocation_) /bfs::path(sorterFileName_));
         sorterFullPath_= path.string();
         sorter_=new izenelib::am::IzeneSort<uint32_t, uint8_t, true>(sorterFullPath_.c_str(), 100000000);
     }
@@ -85,6 +87,8 @@ void FieldIndexer::addField(docid_t docid, boost::shared_ptr<LAInput> laInput)
         {
             convert(data,iter->termId_,docid,iter->offset_);
             sorter_->add_data(12, data);
+            //uint8_t len = compress(data,iter->termId_,docid,iter->offset_);
+            //sorter_->add_data(len, data);	
         }
     }
 }
@@ -178,6 +182,10 @@ fileoffset_t FieldIndexer::write(OutputDescriptor* pWriterDesc)
     else
     {
         sorter_->sort();
+
+        //IndexInput* pSortedInput = pIndexer_->getDirectory()->openInput(sorterFileName_);
+        //uint64_t count = pSortedInput->readLongBySmallEndian();
+
         FILE* f = fopen(sorterFullPath_.c_str(),"r");
         fseek(f, 0, SEEK_SET);
         uint64_t count;
@@ -195,7 +203,12 @@ fileoffset_t FieldIndexer::write(OutputDescriptor* pWriterDesc)
             fread(&tid, sizeof(uint32_t), 1, f);
             fread(&docId, sizeof(uint32_t), 1, f);
             fread(&offset, sizeof(uint32_t), 1, f);
-
+/*
+            pSortedInput->readByte();
+            tid = pSortedInput->readIntBySmallEndian();
+            uint32_t docId = pSortedInput->readIntBySmallEndian();
+            uint32_t offset = pSortedInput->readIntBySmallEndian();
+*/
             if(tid != lastTerm && lastTerm != BAD_DOCID)
             {
                 if (!pPosting->hasNoChunk())
@@ -227,6 +240,7 @@ fileoffset_t FieldIndexer::write(OutputDescriptor* pWriterDesc)
         }
 
         fclose(f);
+        //delete pSortedInput;
         sorter_->clear_files();
         delete sorter_;
         sorter_ = NULL;

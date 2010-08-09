@@ -45,6 +45,12 @@ public:
 
     int64_t readVLong();
 
+    int32_t readIntBySmallEndian();
+
+    int32_t readVIntByBigEndian();
+
+    int64_t readLongBySmallEndian();
+
     void readString(std::string& s);
 
     void  readChars(char* buffer_, size_t start, size_t length);
@@ -102,7 +108,7 @@ protected:
     friend class IndexOutput;
 };
 
-//////////////////////////////////////////////////////////////////////////
+/////////////////////////////Big Endian By Default/////////////////////////////////////////////
 //
 inline uint8_t IndexInput::readByte()
 {
@@ -177,6 +183,45 @@ inline void IndexInput::readChars(char* buffer, size_t start, size_t length)
             buffer[i] = (char) (((b & 0x0F) << 12) | ((readByte() & 0x3F) << 6) | (readByte() & 0x3F));
     }
 }
+
+/////////////////////////////Small Endian/////////////////////////////////////////////
+//
+inline int32_t IndexInput:: readIntBySmallEndian()
+{
+    uint8_t b1 = readByte();
+    uint8_t b2 = readByte();
+    uint8_t b3 = readByte();
+    uint8_t b4 = readByte();
+    return ((b4 & 0xFF) << 24) | ((b3 & 0xFF) << 16) | ((b2 & 0xFF) <<  8)
+           | (b1 & 0xFF);
+}
+
+inline int32_t IndexInput::readVIntByBigEndian()
+{
+    uint8_t b[5];
+    b[0] = readByte();
+    uint8_t i = 0, shift = 0;
+    for (; (b[i] & 0x80) != 0; shift += 7)
+    {
+        b[++i] = readByte();
+    }
+    int32_t r = 0;
+    shift -= 7;
+    for(uint8_t j = 0; j < i ; ++j, shift -= 7)
+    {
+        r |= (b[j] & 0x7FL) << shift;
+    }
+
+    return r;
+}
+
+inline int64_t IndexInput::readLongBySmallEndian()
+{
+    int32_t i1 = readIntBySmallEndian();
+    int32_t i2 = readIntBySmallEndian();
+    return (((int64_t)i2) << 32) | (i1 & 0xFFFFFFFFL);
+}
+
 inline void IndexInput::refill()
 {
     if(dirty_)
