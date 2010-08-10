@@ -4,7 +4,10 @@
 
 using namespace std;
 
-namespace ylib {
+namespace izenelib {
+namespace util{
+namespace compression {
+
 
 Compressor::Compressor() {
 }
@@ -337,4 +340,4 @@ void Compressor::showCode(const string& inputFile, const string& outputFile) {
 	//cout<<"totalbits = "<<totalbits<<endl;
 }
 
-}
+}}}

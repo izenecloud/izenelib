@@ -3,7 +3,9 @@
 
 #include "TreeAlgorithm.h"
 
-namespace ylib {
+namespace izenelib {
+namespace util{
+namespace compression {
 
 /**
  *     \brief the responsibility is to generate  BitPattern from char frequency info. 
@@ -34,6 +36,6 @@ private:
 	BitPattern bitPattern_;
 };
 
-}
+}}}
 
 #endif /*PatternGenerator_H_*/

@@ -4,7 +4,9 @@
 #include<string>
 using namespace std;
 
-namespace ylib {
+namespace izenelib {
+namespace util{
+namespace compression {
 
 
 /**
@@ -44,5 +46,6 @@ public:
 }; // CompressorException
 
 }
-
+}
+}
 #endif /*COMPRESSOREXCEPTION_H_*/

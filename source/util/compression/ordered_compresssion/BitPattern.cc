@@ -1,6 +1,8 @@
 #include "BitPattern.h"
 
-namespace ylib {
+namespace izenelib {
+namespace util{
+namespace compression {
 
 void BitPattern::fromFile(FILE *fp) {
 
@@ -70,5 +72,5 @@ void BitPattern::toFile(FILE *fp) {
 
 }
 
-}
+}}}
 

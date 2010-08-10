@@ -1,9 +1,9 @@
 #include <boost/test/unit_test.hpp>
 
-#include <compression/util/PseudoMedian.h>
+#include <util/compression/PseudoMedian.h>
 
 using namespace boost::unit_test;
-using namespace izenelib::compression::util;
+using namespace izenelib::util::compression;
 
 BOOST_AUTO_TEST_SUITE(util_PseudoMedian_test)
 

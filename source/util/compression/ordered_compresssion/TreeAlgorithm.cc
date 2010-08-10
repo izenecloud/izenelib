@@ -5,7 +5,10 @@
 
 using namespace std;
 
-namespace ylib {
+namespace izenelib {
+namespace util{
+namespace compression {
+
 
 BitPattern Tree::encode() {
 
@@ -343,5 +346,5 @@ int TreeAlgorithm::minimize2_(vector<char> &alpha,
  return min_idx+1;
  }*/
 
-}
+}}}
 

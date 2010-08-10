@@ -9,9 +9,11 @@
 #include "IntTypes.h"
 #include "CompressorException.h"
 using namespace std;
-using namespace ylib;
+using namespace izenelib::util::compression;
 
-namespace ylib{
+namespace izenelib {
+namespace util{
+namespace compression {
 
 /**
  *    \brief binary code for a char
@@ -51,5 +53,6 @@ private:
 };
 
 }
-
+}
+}
 #endif /*BITPATTERN_H_*/

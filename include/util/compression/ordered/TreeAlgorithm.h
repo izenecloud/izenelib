@@ -10,7 +10,9 @@
 
 using namespace std;
 
-namespace ylib {
+namespace izenelib {
+namespace util{
+namespace compression {
 
 /**
  *  \brief  base class of TreeAlgorithm
@@ -99,5 +101,5 @@ private:
 	int minimize2_(vector<char> &alpha,  map<char, unsigned int>& counter);
 };
 
-}
+}}}
 #endif /*TreeAlgorithm_H_*/

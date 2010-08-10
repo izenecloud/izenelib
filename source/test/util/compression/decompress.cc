@@ -8,7 +8,7 @@
 #include  <ctime>
 
 using namespace std;
-using namespace ylib;
+using namespace izenelib::util::compression;
 
 /** \file decompress.cc
  * \brief Command line driver for order preserving decompressor.

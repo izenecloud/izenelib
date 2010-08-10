@@ -9,8 +9,8 @@
 #define COMPRESSION_UTIL_MEDIAN3_H
 
 namespace izenelib {
+namespace util{
 namespace compression {
-namespace util {
 
 /**
  * @brief Finds median in 3 elements, comparing using \c <.
@@ -101,6 +101,6 @@ const T& median3(const T& a, const T& b, const T& c, CompareT less)
     }
 }
 
-}}} // namespace izenelib::compression::util
+}}} // namespace izenelib::util::compression
 
 #endif // COMPRESSION_UTIL_MEDIAN3_H

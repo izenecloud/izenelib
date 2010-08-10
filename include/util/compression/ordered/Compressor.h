@@ -48,7 +48,9 @@ using namespace std;
  *  This file defines an order preserving compressor.
  */
 
-namespace ylib {
+namespace izenelib {
+namespace compression {
+
 
 struct CompressedString {
 	unsigned int bitlength;
@@ -242,4 +244,5 @@ private:
 	PatternGenerator pg_;//used to generate pattern.
 };
 
+}
 } // namespace

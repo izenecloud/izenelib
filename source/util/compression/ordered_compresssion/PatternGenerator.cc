@@ -3,7 +3,9 @@
 
 using namespace std;
 
-namespace ylib {
+namespace izenelib {
+namespace util{
+namespace compression {
 
 PatternGenerator::PatternGenerator(const string& fileName, bool NOFILE) {
 
@@ -24,4 +26,4 @@ PatternGenerator::PatternGenerator(const string& fileName, bool NOFILE) {
 
 }
 
-}
+}}}

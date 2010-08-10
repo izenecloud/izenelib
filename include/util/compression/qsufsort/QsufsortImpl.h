@@ -8,8 +8,8 @@
 #define COMPRESSION_QSUFSORT_QSUFSORT_IMPL_H
 
 namespace izenelib {
+namespace util{
 namespace compression {
-namespace qsufsort {
 
 template<typename PositionIteratorT
          typename SAIteratorT>
@@ -22,6 +22,6 @@ OutputIteratorT qsufsortImpl(
 
 }
 
-}}} // namespace izenelib::compression::qsufsort
+}}} // namespace izenelib::util::compression
 
 #endif // COMPRESSION_QSUFSORT_QSUFSORT_IMPL_H

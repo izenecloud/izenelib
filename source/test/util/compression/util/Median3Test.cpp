@@ -1,11 +1,11 @@
 #include <boost/test/unit_test.hpp>
 
-#include <compression/util/Median3.h>
+#include <util/compression/Median3.h>
 
 #include <functional>
 
 using namespace boost::unit_test;
-using namespace izenelib::compression::util;
+using namespace izenelib::util::compression;
 
 BOOST_AUTO_TEST_SUITE(util_Median3_test)
 

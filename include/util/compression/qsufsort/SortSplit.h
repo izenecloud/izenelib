@@ -8,10 +8,10 @@
 #define COMPRESSION_QSUFSORT_SORT_SPLIT_H
 
 namespace izenelib {
+namespace util{
 namespace compression {
-namespace qsufsort {
 
 template<typename
-}}} // namespace izenelib::compression::qsufsort
+}}} // namespace izenelib::util::compression
 
 #endif // COMPRESSION_QSUFSORT_SORT_SPLIT_H

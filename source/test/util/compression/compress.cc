@@ -2,7 +2,7 @@
 #include  <ctime>
 
 using namespace std;
-using namespace ylib;
+using namespace izenelib::util::compression;
 
 
 int main (int argc, char *argv[])
