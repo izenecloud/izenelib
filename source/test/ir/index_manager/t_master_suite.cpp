@@ -1,2 +1,2 @@
-#define BOOST_TEST_MODULE message_framework
+#define BOOST_TEST_MODULE index_manager
 #include <TestRunner.inl>
