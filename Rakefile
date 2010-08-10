@@ -20,8 +20,6 @@ IZENESOFT::CMake.new do |t|
   t.source_dir = "."
 end
 
-IZENESOFT::GITClean.new
-
 IZENESOFT::BoostTest.new
 
 task :env do
