@@ -330,6 +330,7 @@ void IndexWriter::scheduleOptimizeTask(std::string expression, string uuid)
 
 void IndexWriter::sort_and_merge()
 {
+    try{
     if(!pIndexBarrelWriter_) return;
     pIndexBarrelWriter_->writeCache();
     BarrelInfo* pLastBarrel = pBarrelsInfo_->getLastBarrel();
@@ -338,6 +339,10 @@ void IndexWriter::sort_and_merge()
     delete pIndexBarrelWriter_;
     pIndexBarrelWriter_ = NULL;
     pBarrelsInfo_->write(pIndexer_->getDirectory());
+    }catch(std::exception& e)
+    {
+        cerr<<e.what()<<endl;
+    }
 }
 
 }

@@ -181,6 +181,10 @@ fileoffset_t FieldIndexer::write(OutputDescriptor* pWriterDesc)
     }
     else
     {
+        if( !boost::filesystem::exists(sorterFullPath_) )
+        {
+            SF1V5_THROW(ERROR_FILEIO,"Open file error: " + sorterFullPath_);
+        }
         sorter_->sort();
 
         //IndexInput* pSortedInput = pIndexer_->getDirectory()->openInput(sorterFileName_);
