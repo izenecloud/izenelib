@@ -1,0 +1,1605 @@
+/// @file   t_UString.cpp
+/// @brief  A test unit for checking if all interfaces is 
+///         available to use.
+/// @author Do Hyun Yun 
+/// @date   2008-07-11
+///  
+/// @brief Test all the interfaces in UString class.
+///
+/// @details
+/// 
+/// - log
+///     - 2008.11.13 : Added tests of getUStringLinesFromFile() and getTokensFromUString()
+///     - 2008.11.17 : Added test of convertEncodingTypeFromStringToEnut()
+///     - 2009.02.23 : Added GCUString usages and test code.
+///     - 2009.03.02 : Added test of substr() between GCUString and ustring.
+///     - 2009.04.18 : Removed scoped_alloc area.
+///     - 2009.04.22 : Remove GCUString part
+///
+/// ==================================== [ Test Schemes ] ====================================
+///
+///
+/// -# Tested basic part of UString according to the certain scenario with simple usage.\n
+/// \n 
+///     -# Create three UString variables in different ways : Default Initializing, Initializing with another UString, and initialize with stl string class.\n\n
+///     -# Check attributes of some characters in UString using is_____Char() interface. With this interface, it is possible to recognize certain character is alphabet or number or something.\n\n
+///     -# Get attribute of certain characters in UString using charType() interface.\n\n
+///     -# Change some characters into upper alphabet or lower alphabet using toUpperChar() and toLowerChar(), and toLowerString() which changes all characters in UString into lower one.\n\n
+///     -# With given pattern string, Get the index of matched position by using find(). \n\n
+///     -# Create the sub-string using substr() with the index number which is the result of find().\n\n
+///     -# Assign string data in different ways using assign(), format() interfaces and "=" "+=" operators.\n\n
+///     -# Export UString data into stl string class according to the encoding type.\n\n
+///     -# Check size, buffer size, and its length. Clear string data and re-check its information including empty().\n\n
+/// \n
+/// -# Tested all the interfaces by using correct and incorrect test sets.
+
+
+#include <boost/test/unit_test.hpp>
+#include <wiselib/profiler/Profiler_h.h>
+
+#include <wiselib/ustring/UString.h>
+
+// For Serialization
+#include <boost/archive/text_oarchive.hpp>
+#include <boost/archive/text_iarchive.hpp>
+#include <sstream>
+
+
+#include <iostream>
+#include <fstream>
+#include <string>
+#include <list>
+#include <wiselib/hlmalloc.h>
+#include <boost/thread/thread.hpp>
+
+#define scoped_alloc NULL_ALLOCATOR
+
+using namespace std;
+
+using namespace boost::unit_test;
+
+using namespace wiselib;
+
+using namespace boost;
+
+#include <util/izene_serialization.h>
+//typedef unsigned int t_size;
+typedef size_t t_size;
+/**********************************************************
+ *
+ *          Start point of t_UString suite - 1
+ *
+ **********************************************************/
+
+// For Time Checking
+Profiler gProfiler("UString TEST SUITE");
+
+BOOST_AUTO_TEST_SUITE( t_UString_suite1 )
+
+
+BOOST_AUTO_TEST_CASE( basic_interface_check )
+{
+    // For Time Checking
+    static Profiler::Profile pro("UString Test1", gProfiler);
+    pro.begin();
+
+
+UString str;
+str.insert( str.begin(), 32 );
+    cerr << int((uint8_t)-2)<<endl;
+    
+    cerr << ":::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::" << endl;
+    cerr << ":::::::::::::::::: [ Test 1 : Basic Check with senario ] ::::::::::::::::::" << endl;
+    cerr << ":::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::" << endl;
+    cerr << endl << "Testing basic interface checking....";
+
+    // ----------------------------------------------- [ Test 1.1 : Creation ]
+
+    //           Index : 0         1         2                  3
+    //           Index : 0123456789012345678901 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 
+    string initString = "12345 !@#$%abcxyABCXY검색질의어단어들의근접성정보를가중치를적용하여더욱세밀";
+
+    // Creation 1 : Default Initializing.
+    UString t1;
+    t1.assign(initString, UString::UTF_8);
+
+    // Creation 2 : Initializing with another UString.
+    UString t2(t1);
+
+    // Creation 3 : Initializing with stl string class.
+    UString t3(initString, UString::UTF_8);
+
+    // Creation 4 : Initializing with const char*.
+    UString t3_1("12345 !@#$%abcxyABCXY검색질의어단어들의근접성정보를가중치를적용하여더욱세밀", UString::UTF_8);
+
+    // Check if three UString values are same.
+    BOOST_CHECK( (t1 == t2) && (t2 == t3) && (t3 == t3_1) );
+    cout<<endl;
+    t1.displayStringInfo(UString::UTF_8);
+    cout<<endl;
+    t2.displayStringInfo(UString::UTF_8);
+    cout<<endl;
+    t3.displayStringInfo(UString::UTF_8);
+    cout<<endl;
+    t3_1.displayStringInfo(UString::UTF_8);
+    cout<<endl;
+
+    // ----------------------------------------------- [ Test 1.2 : Attribute Checking ]
+
+    // Check if t1[0] is a graphcal character.
+    BOOST_CHECK( t1.isGraphChar(0) ); // The 0th character is '1'
+
+    // Check if t1[5] is a spatial character.
+    BOOST_CHECK( t1.isSpaceChar(5) ); // The 5th character is ' '
+
+    // Check if t1[6] is a punctuation mark.
+    BOOST_CHECK( t1.isPunctuationChar(6) ); // The 6th character is '!'
+
+    // Check if t1[11, 16, 21, 26, 31] is an alphabet character.
+    BOOST_CHECK( t1.isAlphaChar(11) ); // The 11th character is 'a'
+    BOOST_CHECK( t1.isAlphaChar(16) ); // The 16th character is 'A'
+    BOOST_CHECK( !t1.isAlphaChar(21) ); // The 21th character is '和'
+    BOOST_CHECK( !t1.isAlphaChar(26) ); // The 26th character is '诗'
+    BOOST_CHECK( !t1.isAlphaChar(31) ); // The 31th character is '�'
+
+    // Check if t1[11, 16] is an upper alphabet character.
+    BOOST_CHECK(!t1.isUpperChar(11) ); // The 11th character is 'a' (no)
+    BOOST_CHECK( t1.isUpperChar(16) ); // The 16th character is 'A'
+
+    // Check if t1[11, 16] is a lower alphabet character.
+    BOOST_CHECK( t1.isLowerChar(11) ); // The 11th character is 'a'
+    BOOST_CHECK(!t1.isLowerChar(16) ); // The 16th character is 'A' (no)
+
+
+    // Check if t1[0] is a numeric character.
+    BOOST_CHECK( t1.isDigitChar(0) ); // The   0th character is '1'
+
+    // Check if t1[0, 11, 16, 21, 26, 31] is an alphabet or numeric character.
+    BOOST_CHECK( t1.isAlnumChar(0)  ); // The  0th character is '1'
+    BOOST_CHECK( t1.isAlnumChar(11) ); // The 11th character is 'a'
+    BOOST_CHECK( t1.isAlnumChar(16) ); // The 16th character is 'A'
+    BOOST_CHECK( t1.isAlnumChar(21) ); // The 21th character is '啊'
+    BOOST_CHECK( t1.isAlnumChar(26) ); // The 26th character is '诗'
+    BOOST_CHECK( t1.isAlnumChar(31) ); // The 31th character is '�'
+
+    // Check if t1[0, 11, 14, 16, 19] is an hexa-decimal character.
+    BOOST_CHECK( t1.isXdigitChar(0)  ); // The  0th character is '1'
+    BOOST_CHECK( t1.isXdigitChar(11) ); // The 11th character is 'a'
+    BOOST_CHECK(!t1.isXdigitChar(14) ); // The 14th character is 'x' (no)
+    BOOST_CHECK( t1.isXdigitChar(16) ); // The 16th character is 'A'
+    BOOST_CHECK(!t1.isXdigitChar(19) ); // The 19th character is 'X' (no)
+
+
+    // ----------------------------------------------- [ Test 1.3 : Character Type Achivement ]
+
+    BOOST_CHECK( t1.charType(0)  == UCS2_DIGIT  ); // The  0th character is '1'
+    BOOST_CHECK( t1.charType(13) == UCS2_ALPHA  ); // The 13th character is 'c'
+    BOOST_CHECK( t1.charType(22) == UCS2_KOREAN ); // The 22th character is '啊'
+
+    // ----------------------------------------------- [ Test 1.4 : Upper Lower Changing ]
+
+    BOOST_CHECK( t1.toUpperChar(11) == t1[16] ); // Check if toUpperChar('a') == 'A'
+    BOOST_CHECK( t1.toLowerChar(17) == t1[12] ); // Check if toUpperChar('B') == 'b'
+
+    // Change all upper characters into lower ones.
+    t1.toLowerString();
+
+    // Check if "AbcxyaBCXY" -> "abcxyabcxy"
+    BOOST_CHECK( t1[11] == t1[16] );
+    BOOST_CHECK( t1[12] == t1[17] );
+    BOOST_CHECK( t1[13] == t1[18] );
+    BOOST_CHECK( t1[14] == t1[19] );
+    BOOST_CHECK( t1[15] == t1[20] );
+
+    wiselib::UString text("Brazil high court lifts stay, allowing boy to return to U.S.",wiselib::UString::UTF_8);
+    wiselib::UString pattern("u.s.", wiselib::UString::UTF_8);
+    BOOST_CHECK(text.find( pattern, 0, SM_IGNORE)==56);
+
+    // ----------------------------------------------- [ Test 1.5 : Pattern Finding ]
+
+    size_t firstIndex, secondIndex, cIndex1, cIndex2;
+    string patternString = "cxy"; // The pattern 'cxy' appears twice in t1.
+
+    firstIndex = t1.find(patternString, 0, UString::UTF_8); // This interface finds pattern from [0]
+    secondIndex = t1.find(patternString, firstIndex + 1, UString::UTF_8); 
+
+    cIndex1 = t1.find((unsigned short)0x32); // find '2'
+
+    cIndex2 = t1.find((unsigned short)0x21, (size_t)2); // find '!"
+
+
+    BOOST_CHECK( firstIndex  == 13 ); // Check the  first occurrence position.
+    BOOST_CHECK( secondIndex == 18 ); // Check the second occurrence position.
+    BOOST_CHECK( cIndex1 == 1  );
+    BOOST_CHECK( cIndex2 == 6  );
+
+    // ----------------------------------------------- [ Test 1.6 : SubString Creation ]
+
+    // Generate substrings in two ways. These sub strings have same string value.
+    // string value : "Y啊唱促扼付诗衍引轧丞�����Λ⒔ヒ"
+
+    UString t4, t5;
+
+    t1.substr(t2, 20);
+    t1.substr(t3, 20, 19);
+    t4 = t1.substr(20, 19);
+
+    // check if two UString is same.
+    BOOST_CHECK( t2 != t3 );
+    BOOST_CHECK( t3 == t4 );
+
+    t1.substr(t2 , 0, UString::npos);
+    t3 = t1.substr(0, UString::npos);
+
+    BOOST_CHECK( t1 == t2 );
+    BOOST_CHECK( t1 == t3 );
+
+
+    // ----------------------------------------------- [ Test 1.7 : Assign ]
+    string assignString = "Do Hyun !!";
+
+    t1.clear();
+    t2.clear();
+    t3.clear();
+
+    BOOST_CHECK( t1.empty() );
+    BOOST_CHECK( t2.empty() );
+    BOOST_CHECK( t3.empty() );
+
+    // Assignment 1 : Using assign()
+    t1.assign( assignString, UString::CP949 );
+    t1[8] = 0x0031;
+
+    // Assignment 2 : Using = operator
+    t2 = t1;
+
+    // Assignment 3 (Attachment) : Using += operator
+    t3 += t2;
+
+
+    // Assignment 4, 5 : Using format()
+    t4.format(UString::CP949, "%s %d!", "Do Hyun", 1);
+    t5.format(UString::CP949, "%s %d!", "Do Hyun", 1);
+
+
+    // Check all UString variables are same.
+    BOOST_CHECK( t1 == t2 );
+    BOOST_CHECK( t2 == t3 );
+    BOOST_CHECK( t3 == t4 ); 
+    BOOST_CHECK( t4 == t5 ); 
+    
+
+    // ----------------------------------------------- [ Test 1.8 : Export into stl string ]
+
+    string exportedString, result = "Do Hyun 1!"; 
+
+    // Copy UString data into stl string class with converting encoding type from UCS2 to CP949
+    t1.convertString(exportedString, UString::CP949);
+
+    // Check two stl strings are same.
+    BOOST_CHECK( exportedString == result );
+
+    // ----------------------------------------------- [ Test 1.9 : Check size ]
+
+    // These Informations should be the same.
+    BOOST_CHECK( t1.size() == t2.size() );
+
+    t2.clear();
+
+    // These Informations should be different.
+    BOOST_CHECK( t1.size() != t2.size() );
+
+    cerr << "OK" << endl << endl;
+
+    // For Time Checking
+    pro.end();
+
+} // end - basic_interface_check()
+
+void thread_func(UString ustr)
+{
+  if (rand()%2==0)
+    sleep(1);
+  UString str = ustr.substr(0, rand()%(ustr.length()+1));
+  UString* p = new UString(ustr);
+  if (p->length()>0)
+    (*p)[0] = 0;
+  delete p;
+}
+
+// BOOST_AUTO_TEST_CASE ( multi_thread_check )
+// {
+//   UString ustr("lkdsjfklsjfklsdlfiolnl;noohiinncjklvnogoernjklncvhioqhklnxcm,nvoierjtjlsa;ajz./.a'fp'aj", UString::UTF_8);
+//   boost::thread* thrd[10000];
+//   for (uint32_t i=0; i<10000; ++i)
+//   {
+//     UString ustr1 = ustr;
+//     thrd[i] = new boost::thread(boost::bind(&thread_func, ustr1));
+//   }
+
+//   for (uint32_t i=0; i<10000; ++i)
+//   {
+//     thrd[i]->join();
+//     delete thrd[i];
+//   }
+  
+// }
+
+
+BOOST_AUTO_TEST_CASE ( interface_correctness_check )
+{
+
+    // For Time Checking
+    static Profiler::Profile pro("UString Test2", gProfiler);
+    pro.begin();
+
+    cerr << ":::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::" << endl;
+    cerr << ":::::::::::::::::: [ Test 2 : Check all the interfaces ] ::::::::::::::::::" << endl;
+    cerr << ":::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::" << endl;
+
+
+    // ------------------ [ Test interfaces which check character attributes ]
+
+    string symbol = "!", space = " ", control = "", punct = ".", lower = "a", upper = "A", num = "1";
+    string japan = "ゆ", chinese = "尹", korean = "준", line = "┼", sigma = "∑";
+
+    UString test_1_1;
+    
+    // test isGraphChar interface 
+    cerr << endl << "Testing isGraphChar   () Interface.....";
+    test_1_1.assign(symbol,  UString::UTF_8); BOOST_CHECK( test_1_1.isGraphChar(0) ); // "!"  is a graphical char
+    test_1_1.assign(space,   UString::UTF_8); BOOST_CHECK(!test_1_1.isGraphChar(0) ); // " "  is not a graphical char
+    test_1_1.assign(control, UString::UTF_8); BOOST_CHECK(!test_1_1.isGraphChar(0) ); // "" is not a graphical char
+    test_1_1.assign(punct,   UString::UTF_8); BOOST_CHECK( test_1_1.isGraphChar(0) ); // "."  is a graphical char
+    test_1_1.assign(lower,   UString::UTF_8); BOOST_CHECK( test_1_1.isGraphChar(0) ); // "a"  is a graphical char
+    test_1_1.assign(upper,   UString::UTF_8); BOOST_CHECK( test_1_1.isGraphChar(0) ); // "A"  is a graphical char
+    test_1_1.assign(num,     UString::UTF_8); BOOST_CHECK( test_1_1.isGraphChar(0) ); // "1"  is a graphical char
+    test_1_1.assign(japan,   UString::UTF_8); BOOST_CHECK( test_1_1.isGraphChar(0) ); // "�" is a graphical char
+    test_1_1.assign(chinese, UString::UTF_8); BOOST_CHECK( test_1_1.isGraphChar(0) ); // "肱" is a graphical char
+    test_1_1.assign(korean,  UString::UTF_8); BOOST_CHECK( test_1_1.isGraphChar(0) ); // "辣" is a graphical char
+    test_1_1.assign(line,    UString::UTF_8); BOOST_CHECK( test_1_1.isGraphChar(0) ); // "Λ" is a graphical char
+    test_1_1.assign(sigma,   UString::UTF_8); BOOST_CHECK( test_1_1.isGraphChar(0) ); // "⒉" is a graphical char
+    cerr << "OK" << endl;
+
+    // test isSpaceChar interface 
+    cerr << "Testing isSpaceChar   () Interface.....";
+    test_1_1.assign(symbol,  UString::UTF_8); BOOST_CHECK(!test_1_1.isSpaceChar(0) ); // "!"  is not a spatial char
+    test_1_1.assign(space,   UString::UTF_8); BOOST_CHECK( test_1_1.isSpaceChar(0) ); // " "  is spatial char
+    test_1_1.assign(control, UString::UTF_8); BOOST_CHECK(!test_1_1.isSpaceChar(0) ); // "" is not a spatial char
+    test_1_1.assign(punct,   UString::UTF_8); BOOST_CHECK(!test_1_1.isSpaceChar(0) ); // "."  is not a spatial char
+    test_1_1.assign(lower,   UString::UTF_8); BOOST_CHECK(!test_1_1.isSpaceChar(0) ); // "a"  is not a spatial char
+    test_1_1.assign(upper,   UString::UTF_8); BOOST_CHECK(!test_1_1.isSpaceChar(0) ); // "A"  is not a spatial char
+    test_1_1.assign(num,     UString::UTF_8); BOOST_CHECK(!test_1_1.isSpaceChar(0) ); // "1"  is not a spatial char
+    test_1_1.assign(japan,   UString::UTF_8); BOOST_CHECK(!test_1_1.isSpaceChar(0) ); // "�" is not a spatial char
+    test_1_1.assign(chinese, UString::UTF_8); BOOST_CHECK(!test_1_1.isSpaceChar(0) ); // "肱" is not a spatial char
+    test_1_1.assign(korean,  UString::UTF_8); BOOST_CHECK(!test_1_1.isSpaceChar(0) ); // "辣" is not a spatial char
+    test_1_1.assign(line,    UString::UTF_8); BOOST_CHECK(!test_1_1.isSpaceChar(0) ); // "Λ" is not a spatial char
+    test_1_1.assign(sigma,   UString::UTF_8); BOOST_CHECK(!test_1_1.isSpaceChar(0) ); // "⒉" is not a spatial char
+    cerr << "OK" << endl;
+
+    // test isControlChar interface
+    cerr << "Testing isControlChar () Interface.....";
+    test_1_1.assign(symbol,  UString::UTF_8); BOOST_CHECK(!test_1_1.isControlChar(0) ); // "!"  is not a Control char
+    test_1_1.assign(space,   UString::UTF_8); BOOST_CHECK(!test_1_1.isControlChar(0) ); // " "  is not a Control char
+    test_1_1.assign(control, UString::UTF_8); BOOST_CHECK( test_1_1.isControlChar(0) ); // "" is a Control char
+    test_1_1.assign(punct,   UString::UTF_8); BOOST_CHECK(!test_1_1.isControlChar(0) ); // "."  is not a Control char
+    test_1_1.assign(lower,   UString::UTF_8); BOOST_CHECK(!test_1_1.isControlChar(0) ); // "a"  is not a Control char
+    test_1_1.assign(upper,   UString::UTF_8); BOOST_CHECK(!test_1_1.isControlChar(0) ); // "A"  is not a Control char
+    test_1_1.assign(num,     UString::UTF_8); BOOST_CHECK(!test_1_1.isControlChar(0) ); // "1"  is not a Control char
+    test_1_1.assign(japan,   UString::UTF_8); BOOST_CHECK(!test_1_1.isControlChar(0) ); // "�" is not a Control char
+    test_1_1.assign(chinese, UString::UTF_8); BOOST_CHECK(!test_1_1.isControlChar(0) ); // "肱" is not a Control char
+    test_1_1.assign(korean,  UString::UTF_8); BOOST_CHECK(!test_1_1.isControlChar(0) ); // "辣" is not a Control char
+    test_1_1.assign(line,    UString::UTF_8); BOOST_CHECK(!test_1_1.isControlChar(0) ); // "Λ" is not a Control char
+    test_1_1.assign(sigma,   UString::UTF_8); BOOST_CHECK(!test_1_1.isControlChar(0) ); // "⒉" is not a Control char
+    cerr << "OK" << endl;
+
+    // test isPuncChar interface
+    cerr << "Testing isPuncChar    () Interface.....";
+    test_1_1.assign(symbol,  UString::UTF_8); BOOST_CHECK( test_1_1.isPunctuationChar(0) ); // "!"  is a punctuation char
+    test_1_1.assign(space,   UString::UTF_8); BOOST_CHECK(!test_1_1.isPunctuationChar(0) ); // " "  is not a punctuation char
+    test_1_1.assign(control, UString::UTF_8); BOOST_CHECK(!test_1_1.isPunctuationChar(0) ); // "" is not a punctuation char
+    test_1_1.assign(punct,   UString::UTF_8); BOOST_CHECK( test_1_1.isPunctuationChar(0) ); // "."  is a punctuation char
+    test_1_1.assign(lower,   UString::UTF_8); BOOST_CHECK(!test_1_1.isPunctuationChar(0) ); // "a"  is not a punctuation char
+    test_1_1.assign(upper,   UString::UTF_8); BOOST_CHECK(!test_1_1.isPunctuationChar(0) ); // "A"  is not a punctuation char
+    test_1_1.assign(num,     UString::UTF_8); BOOST_CHECK(!test_1_1.isPunctuationChar(0) ); // "1"  is not a punctuation char
+    test_1_1.assign(japan,   UString::UTF_8); BOOST_CHECK(!test_1_1.isPunctuationChar(0) ); // "�" is not a punctuation char
+    test_1_1.assign(chinese, UString::UTF_8); BOOST_CHECK(!test_1_1.isPunctuationChar(0) ); // "肱" is not a punctuation char
+    test_1_1.assign(korean,  UString::UTF_8); BOOST_CHECK(!test_1_1.isPunctuationChar(0) ); // "辣" is not a punctuation char
+    test_1_1.assign(line,    UString::UTF_8); BOOST_CHECK( test_1_1.isPunctuationChar(0) ); // "Λ" is a punctuation char
+    test_1_1.assign(sigma,   UString::UTF_8); BOOST_CHECK( test_1_1.isPunctuationChar(0) ); // "⒉" is a punctuation char
+    cerr << "OK" << endl;
+
+    // test isAlphaChar interface
+    cerr << "Testing isAlphaChar   () Interface.....";
+    test_1_1.assign(symbol,  UString::UTF_8); BOOST_CHECK(!test_1_1.isAlphaChar(0) ); // "!"  is not a alphabet char
+    test_1_1.assign(space,   UString::UTF_8); BOOST_CHECK(!test_1_1.isAlphaChar(0) ); // " "  is not a alphabet char
+    test_1_1.assign(control, UString::UTF_8); BOOST_CHECK(!test_1_1.isAlphaChar(0) ); // "" is not a alphabet char
+    test_1_1.assign(punct,   UString::UTF_8); BOOST_CHECK(!test_1_1.isAlphaChar(0) ); // "."  is not a alphabet char
+    test_1_1.assign(lower,   UString::UTF_8); BOOST_CHECK( test_1_1.isAlphaChar(0) ); // "a"  is a alphabet char
+    test_1_1.assign(upper,   UString::UTF_8); BOOST_CHECK( test_1_1.isAlphaChar(0) ); // "A"  is a alphabet char
+    test_1_1.assign(num,     UString::UTF_8); BOOST_CHECK(!test_1_1.isAlphaChar(0) ); // "1"  is not a alphabet char
+    test_1_1.assign(japan,   UString::UTF_8); BOOST_CHECK(!test_1_1.isAlphaChar(0) ); // "�" is a alphabet char
+    test_1_1.assign(chinese, UString::UTF_8); BOOST_CHECK(!test_1_1.isAlphaChar(0) ); // "肱" is a alphabet char
+    test_1_1.assign(korean,  UString::UTF_8); BOOST_CHECK(!test_1_1.isAlphaChar(0) ); // "辣" is a alphabet char
+    test_1_1.assign(line,    UString::UTF_8); BOOST_CHECK(!test_1_1.isAlphaChar(0) ); // "Λ" is not a alphabet char
+    test_1_1.assign(sigma,   UString::UTF_8); BOOST_CHECK(!test_1_1.isAlphaChar(0) ); // "⒉" is not a alphabet char
+    cerr << "OK" << endl;
+
+    // test isUpperChar interface
+    cerr << "Testing isUpperChar   () Interface.....";
+    test_1_1.assign(symbol,  UString::UTF_8); BOOST_CHECK(!test_1_1.isUpperChar(0) ); // "!"  is not a upper char
+    test_1_1.assign(space,   UString::UTF_8); BOOST_CHECK(!test_1_1.isUpperChar(0) ); // " "  is not a upper char
+    test_1_1.assign(control, UString::UTF_8); BOOST_CHECK(!test_1_1.isUpperChar(0) ); // "" is not a upper char
+    test_1_1.assign(punct,   UString::UTF_8); BOOST_CHECK(!test_1_1.isUpperChar(0) ); // "."  is not a upper char
+    test_1_1.assign(lower,   UString::UTF_8); BOOST_CHECK(!test_1_1.isUpperChar(0) ); // "a"  is not a upper char
+    test_1_1.assign(upper,   UString::UTF_8); BOOST_CHECK( test_1_1.isUpperChar(0) ); // "A"  is a upper char
+    test_1_1.assign(num,     UString::UTF_8); BOOST_CHECK(!test_1_1.isUpperChar(0) ); // "1"  is not a upper char
+    test_1_1.assign(japan,   UString::UTF_8); BOOST_CHECK(!test_1_1.isUpperChar(0) ); // "�" is not a upper char
+    test_1_1.assign(chinese, UString::UTF_8); BOOST_CHECK(!test_1_1.isUpperChar(0) ); // "肱" is not a upper char
+    test_1_1.assign(korean,  UString::UTF_8); BOOST_CHECK(!test_1_1.isUpperChar(0) ); // "辣" is not a upper char
+    test_1_1.assign(line,    UString::UTF_8); BOOST_CHECK(!test_1_1.isUpperChar(0) ); // "Λ" is not a upper char
+    test_1_1.assign(sigma,   UString::UTF_8); BOOST_CHECK(!test_1_1.isUpperChar(0) ); // "⒉" is not a upper char
+    cerr << "OK" << endl;
+
+    // test isLowerChar interface
+    cerr << "Testing isLowerChar   () Interface.....";
+    test_1_1.assign(symbol,  UString::UTF_8); BOOST_CHECK(!test_1_1.isLowerChar(0) ); // "!"  is not a lower char
+    test_1_1.assign(space,   UString::UTF_8); BOOST_CHECK(!test_1_1.isLowerChar(0) ); // " "  is not a lower char
+    test_1_1.assign(control, UString::UTF_8); BOOST_CHECK(!test_1_1.isLowerChar(0) ); // "" is not a lower char
+    test_1_1.assign(punct,   UString::UTF_8); BOOST_CHECK(!test_1_1.isLowerChar(0) ); // "."  is not a lower char
+    test_1_1.assign(lower,   UString::UTF_8); BOOST_CHECK( test_1_1.isLowerChar(0) ); // "a"  is a lower char
+    test_1_1.assign(upper,   UString::UTF_8); BOOST_CHECK(!test_1_1.isLowerChar(0) ); // "A"  is not a lower char
+    test_1_1.assign(num,     UString::UTF_8); BOOST_CHECK(!test_1_1.isLowerChar(0) ); // "1"  is not a lower char
+    test_1_1.assign(japan,   UString::UTF_8); BOOST_CHECK(!test_1_1.isLowerChar(0) ); // "�" is not a lower char
+    test_1_1.assign(chinese, UString::UTF_8); BOOST_CHECK(!test_1_1.isLowerChar(0) ); // "肱" is not a lower char
+    test_1_1.assign(korean,  UString::UTF_8); BOOST_CHECK(!test_1_1.isLowerChar(0) ); // "辣" is not a lower char
+    test_1_1.assign(line,    UString::UTF_8); BOOST_CHECK(!test_1_1.isLowerChar(0) ); // "Λ" is not a lower char
+    test_1_1.assign(sigma,   UString::UTF_8); BOOST_CHECK(!test_1_1.isLowerChar(0) ); // "⒉" is not a lower char
+    cerr << "OK" << endl;
+
+    // test isDIgitChar interface
+    cerr << "Testing isDigitChar   () Interface.....";
+    test_1_1.assign(symbol,  UString::UTF_8); BOOST_CHECK(!test_1_1.isDigitChar(0) ); // "!"  is not a numeric char
+    test_1_1.assign(space,   UString::UTF_8); BOOST_CHECK(!test_1_1.isDigitChar(0) ); // " "  is not a numeric char
+    test_1_1.assign(control, UString::UTF_8); BOOST_CHECK(!test_1_1.isDigitChar(0) ); // "" is not a numeric char
+    test_1_1.assign(punct,   UString::UTF_8); BOOST_CHECK(!test_1_1.isDigitChar(0) ); // "."  is not a numeric char
+    test_1_1.assign(lower,   UString::UTF_8); BOOST_CHECK(!test_1_1.isDigitChar(0) ); // "a"  is not a numeric char
+    test_1_1.assign(upper,   UString::UTF_8); BOOST_CHECK(!test_1_1.isDigitChar(0) ); // "A"  is not a numeric char
+    test_1_1.assign(num,     UString::UTF_8); BOOST_CHECK( test_1_1.isDigitChar(0) ); // "1"  is a numeric char
+    test_1_1.assign(japan,   UString::UTF_8); BOOST_CHECK(!test_1_1.isDigitChar(0) ); // "�" is not a numeric char
+    test_1_1.assign(chinese, UString::UTF_8); BOOST_CHECK(!test_1_1.isDigitChar(0) ); // "肱" is not a numeric char
+    test_1_1.assign(korean,  UString::UTF_8); BOOST_CHECK(!test_1_1.isDigitChar(0) ); // "辣" is not a numeric char
+    test_1_1.assign(line,    UString::UTF_8); BOOST_CHECK(!test_1_1.isDigitChar(0) ); // "Λ" is not a numeric char
+    test_1_1.assign(sigma,   UString::UTF_8); BOOST_CHECK(!test_1_1.isDigitChar(0) ); // "⒉" is not a numeric char
+    cerr << "OK" << endl;
+
+    // test isAlnumChar interface
+    cerr << "Testing isUpperChar   () Interface.....";
+    test_1_1.assign(symbol,  UString::UTF_8); BOOST_CHECK(!test_1_1.isAlnumChar(0) ); // "!"  is not a alphabet or numeric char
+    test_1_1.assign(space,   UString::UTF_8); BOOST_CHECK(!test_1_1.isAlnumChar(0) ); // " "  is not a alphabet or numeric char
+    test_1_1.assign(control, UString::UTF_8); BOOST_CHECK(!test_1_1.isAlnumChar(0) ); // "" is not a alphabet or numeric char
+    test_1_1.assign(punct,   UString::UTF_8); BOOST_CHECK(!test_1_1.isAlnumChar(0) ); // "."  is not a alphabet or numeric char
+    test_1_1.assign(lower,   UString::UTF_8); BOOST_CHECK( test_1_1.isAlnumChar(0) ); // "a"  is a alphabet or numeric char
+    test_1_1.assign(upper,   UString::UTF_8); BOOST_CHECK( test_1_1.isAlnumChar(0) ); // "A"  is a alphabet or numeric char
+    test_1_1.assign(num,     UString::UTF_8); BOOST_CHECK( test_1_1.isAlnumChar(0) ); // "1"  is a alphabet or numeric char
+    test_1_1.assign(japan,   UString::UTF_8); BOOST_CHECK( test_1_1.isAlnumChar(0) ); // "�" is a alphabet or numeric char
+    test_1_1.assign(chinese, UString::UTF_8); BOOST_CHECK( test_1_1.isAlnumChar(0) ); // "肱" is a alphabet or numeric char
+    test_1_1.assign(korean,  UString::UTF_8); BOOST_CHECK( test_1_1.isAlnumChar(0) ); // "辣" is a alphabet or numeric char
+    test_1_1.assign(line,    UString::UTF_8); BOOST_CHECK(!test_1_1.isAlnumChar(0) ); // "Λ" is not a alphabet or numeric char
+    test_1_1.assign(sigma,   UString::UTF_8); BOOST_CHECK(!test_1_1.isAlnumChar(0) ); // "⒉" is not a alphabet or numeric char
+    cerr << "OK" << endl;
+
+    // test isXdigitChar interface
+    cerr << "Testing isXdigitChar  () Interface.....";
+    test_1_1.assign(symbol,  UString::UTF_8); BOOST_CHECK(!test_1_1.isXdigitChar(0) ); // "!"  is not a hexa-decimal char
+    test_1_1.assign(space,   UString::UTF_8); BOOST_CHECK(!test_1_1.isXdigitChar(0) ); // " "  is not a hexa-decimal char
+    test_1_1.assign(control, UString::UTF_8); BOOST_CHECK(!test_1_1.isXdigitChar(0) ); // "" is not a hexa-decimal char
+    test_1_1.assign(punct,   UString::UTF_8); BOOST_CHECK(!test_1_1.isXdigitChar(0) ); // "."  is not a hexa-decimal char
+    test_1_1.assign(lower,   UString::UTF_8); BOOST_CHECK( test_1_1.isXdigitChar(0) ); // "a"  is a hexa-decimal char
+    test_1_1.assign(upper,   UString::UTF_8); BOOST_CHECK( test_1_1.isXdigitChar(0) ); // "A"  is a hexa-decimal char
+    test_1_1.assign(num,     UString::UTF_8); BOOST_CHECK( test_1_1.isXdigitChar(0) ); // "1"  is a hexa-decimal char
+    test_1_1.assign(japan,   UString::UTF_8); BOOST_CHECK(!test_1_1.isXdigitChar(0) ); // "�" is not a hexa-decimal char
+    test_1_1.assign(chinese, UString::UTF_8); BOOST_CHECK(!test_1_1.isXdigitChar(0) ); // "肱" is not a hexa-decimal char
+    test_1_1.assign(korean,  UString::UTF_8); BOOST_CHECK(!test_1_1.isXdigitChar(0) ); // "辣" is not a hexa-decimal char
+    test_1_1.assign(line,    UString::UTF_8); BOOST_CHECK(!test_1_1.isXdigitChar(0) ); // "Λ" is not a hexa-decimal char
+    test_1_1.assign(sigma,   UString::UTF_8); BOOST_CHECK(!test_1_1.isXdigitChar(0) ); // "⒉" is not a hexa-decimal char
+    cerr << "OK" << endl;
+
+
+
+    // ------------------ [ Test interfaces which changes upper alphabet character to lower one and vice versa. ]
+
+    UString test_1_2;
+    UCS2Char previousCharacter;
+
+    cerr << "Testing toUpperChar   () Interface.....";
+    test_1_2.assign(symbol,  UString::UTF_8); previousCharacter = test_1_2[0]; test_1_2.toUpperChar(0); BOOST_CHECK( previousCharacter == test_1_2[0] );
+    test_1_2.assign(space,   UString::UTF_8); previousCharacter = test_1_2[0]; test_1_2.toUpperChar(0); BOOST_CHECK( previousCharacter == test_1_2[0] );
+    test_1_2.assign(control, UString::UTF_8); previousCharacter = test_1_2[0]; test_1_2.toUpperChar(0); BOOST_CHECK( previousCharacter == test_1_2[0] );
+    test_1_2.assign(punct,   UString::UTF_8); previousCharacter = test_1_2[0]; test_1_2.toUpperChar(0); BOOST_CHECK( previousCharacter == test_1_2[0] );
+    test_1_2.assign(lower,   UString::UTF_8); previousCharacter = test_1_2[0]; test_1_2.toUpperChar(0); BOOST_CHECK( previousCharacter != test_1_2[0] ); // 'a' -> 'A'
+    test_1_2.assign(upper,   UString::UTF_8); previousCharacter = test_1_2[0]; test_1_2.toUpperChar(0); BOOST_CHECK( previousCharacter == test_1_2[0] );
+    test_1_2.assign(num,     UString::UTF_8); previousCharacter = test_1_2[0]; test_1_2.toUpperChar(0); BOOST_CHECK( previousCharacter == test_1_2[0] );
+    test_1_2.assign(japan,   UString::UTF_8); previousCharacter = test_1_2[0]; test_1_2.toUpperChar(0); BOOST_CHECK( previousCharacter == test_1_2[0] );
+    test_1_2.assign(chinese, UString::UTF_8); previousCharacter = test_1_2[0]; test_1_2.toUpperChar(0); BOOST_CHECK( previousCharacter == test_1_2[0] );
+    test_1_2.assign(korean,  UString::UTF_8); previousCharacter = test_1_2[0]; test_1_2.toUpperChar(0); BOOST_CHECK( previousCharacter == test_1_2[0] );
+    test_1_2.assign(line,    UString::UTF_8); previousCharacter = test_1_2[0]; test_1_2.toUpperChar(0); BOOST_CHECK( previousCharacter == test_1_2[0] );
+    test_1_2.assign(sigma,   UString::UTF_8); previousCharacter = test_1_2[0]; test_1_2.toUpperChar(0); BOOST_CHECK( previousCharacter == test_1_2[0] );
+    cerr << "OK" << endl;
+
+    cerr << "Testing toLowerChar   () Interface.....";
+    test_1_2.assign(symbol,  UString::UTF_8); previousCharacter = test_1_2[0]; test_1_2.toLowerChar(0); BOOST_CHECK( previousCharacter == test_1_2[0] );
+    test_1_2.assign(space,   UString::UTF_8); previousCharacter = test_1_2[0]; test_1_2.toLowerChar(0); BOOST_CHECK( previousCharacter == test_1_2[0] );
+    test_1_2.assign(control, UString::UTF_8); previousCharacter = test_1_2[0]; test_1_2.toLowerChar(0); BOOST_CHECK( previousCharacter == test_1_2[0] );
+    test_1_2.assign(punct,   UString::UTF_8); previousCharacter = test_1_2[0]; test_1_2.toLowerChar(0); BOOST_CHECK( previousCharacter == test_1_2[0] );
+    test_1_2.assign(lower,   UString::UTF_8); previousCharacter = test_1_2[0]; test_1_2.toLowerChar(0); BOOST_CHECK( previousCharacter == test_1_2[0] );
+    test_1_2.assign(upper,   UString::UTF_8); previousCharacter = test_1_2[0]; test_1_2.toLowerChar(0); BOOST_CHECK( previousCharacter != test_1_2[0] ); // 'A' -> 'a'
+    test_1_2.assign(num,     UString::UTF_8); previousCharacter = test_1_2[0]; test_1_2.toLowerChar(0); BOOST_CHECK( previousCharacter == test_1_2[0] );
+    test_1_2.assign(japan,   UString::UTF_8); previousCharacter = test_1_2[0]; test_1_2.toLowerChar(0); BOOST_CHECK( previousCharacter == test_1_2[0] );
+    test_1_2.assign(chinese, UString::UTF_8); previousCharacter = test_1_2[0]; test_1_2.toLowerChar(0); BOOST_CHECK( previousCharacter == test_1_2[0] );
+    test_1_2.assign(korean,  UString::UTF_8); previousCharacter = test_1_2[0]; test_1_2.toLowerChar(0); BOOST_CHECK( previousCharacter == test_1_2[0] );
+    test_1_2.assign(line,    UString::UTF_8); previousCharacter = test_1_2[0]; test_1_2.toLowerChar(0); BOOST_CHECK( previousCharacter == test_1_2[0] );
+    test_1_2.assign(sigma,   UString::UTF_8); previousCharacter = test_1_2[0]; test_1_2.toLowerChar(0); BOOST_CHECK( previousCharacter == test_1_2[0] );
+    cerr << "OK" << endl;
+
+    cerr << "Testing toLowerString () Interface.....";
+    string inputString  = "12345!@#$%abcdeABCDE啊唱促扼付诗衍引轧丞�����"; UString test_1_2_1(inputString, UString::CP949);
+    string resultString = "12345!@#$%abcdeabcde啊唱促扼付诗衍引轧丞�����"; UString test_1_2_2(resultString, UString::CP949); // '...ABCDE...' -> "...abcde...'
+    test_1_2_1.toLowerString(); BOOST_CHECK( test_1_2_1 == test_1_2_2 );
+    cerr << "OK" << endl;
+
+    cerr << endl;
+
+    // ------------------ [ Test find() interface ] 
+
+    cerr << "Testing find          () Interface.....";
+    //                   0         1         2         3         4         5
+    //                   012345678901234567890123456789012345678901234567890123
+    string dataString = "This is the world. The word is the world. world wide web.";
+    string patternString = "world";
+
+    UString test_2_1(dataString, UString::CP949);
+
+    t_size nextIndex = 0;
+    int count = 0;
+
+    while(1)
+    {
+        nextIndex = test_2_1.find(patternString, nextIndex, UString::CP949);
+        
+        if (nextIndex == UString::MAXIMUM_INDEX_SIZE || nextIndex == test_2_1.length() || nextIndex == UString::NOT_FOUND )
+            break;
+        nextIndex++; // Increase Index for the continuous pattern search.
+        count++;
+    }
+    BOOST_CHECK_EQUAL( count , 3 );
+
+    string emptyString("");
+    t_size not_found = UString::NOT_FOUND;
+
+    BOOST_CHECK_EQUAL( test_2_1.find(emptyString, 0, UString::CP949) , not_found );
+
+    UString emptyUString(emptyString, UString::CP949);
+
+    BOOST_CHECK_EQUAL( test_2_1.find(emptyUString, 0) , not_found );
+
+    cerr << "OK" << endl;
+
+    // ------------------ [ Test assign() interface ] 
+
+    cerr << "Testing assign        () Interface....." ;
+    string assignString = "Test Assign() interface";
+    string reassignString = "Test ReAssign() interface";
+    string resultOfReassign;
+    UString test_3_1, test_3_1_result(assignString, UString::CP949);
+
+    test_3_1.assign(assignString, UString::CP949);
+
+    BOOST_CHECK( test_3_1 == test_3_1_result );
+
+    test_3_1.assign(reassignString, UString::CP949);
+
+    test_3_1.convertString(resultOfReassign, UString::CP949);
+
+    BOOST_CHECK( reassignString == resultOfReassign );
+
+    test_3_1.assign(assignString, UString::UNKNOWN); // Make an error
+
+    BOOST_CHECK( test_3_1.length() != test_3_1_result.length() );
+
+    UString test_3_1_1;
+    test_3_1_1.assign("Test ReAssign() interface", UString::CP949);
+
+    BOOST_CHECK( test_3_1 != test_3_1_1 );
+
+    cerr << "OK" << endl;
+
+
+    // ------------------ [ Test convertString() interface ] 
+
+    cerr << "Testing convertString () Interface....." ;
+    {
+        string srcString("内府酒 客捞令秤");
+        string resultString;
+        UString source(srcString, UString::UTF_8);
+
+        source.convertString(resultString, UString::UTF_8);
+
+        BOOST_CHECK( srcString == resultString );
+
+        // UTF-8 bug test
+        ifstream fpin("TEST-DATA/convertString_UTF_8");
+        string utfString;
+        fpin >> utfString;
+        fpin.close();
+        string convertString;
+        UString utfUString( utfString, UString::UTF_8 );
+        UString subUString;
+        utfUString.substr( subUString, 0, utfUString.length() );
+        subUString.convertString( convertString, UString::UTF_8 );
+
+        BOOST_CHECK_EQUAL( utfString , convertString );
+    }
+
+    cerr << "OK" << endl;
+
+    
+    // ------------------- [ Test processKoreanDecomposer() ]
+    // 2008.11.13
+    cerr << "Testing processKoreanDecomposer()......";
+    {
+        string beforeProcess("가나다각");
+        UString srcUString(beforeProcess, UString::UTF_8);
+        UString tarUString, resultUString;
+
+        ustring_tool::processKoreanDecomposer(srcUString, tarUString);
+        resultUString += (UCS2Char)4352; // "ㄱ"
+        resultUString += (UCS2Char)4449; // "ㅏ"
+        resultUString += (UCS2Char)4354; // "ㄴ"
+        resultUString += (UCS2Char)4449; // "ㅏ"
+        resultUString += (UCS2Char)4355; // "ㄷ"
+        resultUString += (UCS2Char)4449; // "ㅏ"
+        resultUString += (UCS2Char)4352; // "ㄱ"
+        resultUString += (UCS2Char)4449; // "ㅏ"
+        resultUString += (UCS2Char)4520; // "ㄱ"
+
+        BOOST_CHECK( tarUString == resultUString );
+
+        tarUString.displayStringInfo(UString::UTF_8);
+        resultUString.displayStringInfo(UString::UTF_8);
+
+        // DEBUG
+        // tarUString.convertString(beforeProcess, UString::UTF_8);
+        // resultUString.convertString(afterProcess, UString::UTF_8);
+        // cout << endl;
+        // cout << "Source : " << beforeProcess << endl;
+        // cout << "Result : " << afterProcess << endl;
+
+    }
+    cerr << "OK" << endl;
+
+    cerr << "Testing processKoreanDecomposerWithCharacterCheck()......";
+    {
+        string beforeProcess("가1나a다.각");
+        UString srcUString(beforeProcess, UString::UTF_8);
+        UString tarUString, resultUString;
+
+        ustring_tool::processKoreanDecomposerWithCharacterCheck(srcUString, tarUString);
+        resultUString += (UCS2Char)4352; // "ㄱ"
+        resultUString += (UCS2Char)4449; // "ㅏ"
+        resultUString += (UCS2Char)  49; // "1"
+        resultUString += (UCS2Char)4354; // "ㄴ"
+        resultUString += (UCS2Char)4449; // "ㅏ"
+        resultUString += (UCS2Char)  97; // "a"
+        resultUString += (UCS2Char)4355; // "ㄷ"
+        resultUString += (UCS2Char)4449; // "ㅏ"
+        resultUString += (UCS2Char)  46; // "."
+        resultUString += (UCS2Char)4352; // "ㄱ"
+        resultUString += (UCS2Char)4449; // "ㅏ"
+        resultUString += (UCS2Char)4520; // "ㄱ"
+
+        BOOST_CHECK( tarUString == resultUString );
+
+        // DEBUG
+        // tarUString.convertString(beforeProcess, UString::UTF_8);
+        // resultUString.convertString(afterProcess, UString::UTF_8);
+        // cout << endl;
+        // cout << "Source : " << beforeProcess << endl;
+        // cout << "Result : " << afterProcess << endl;
+
+    }
+
+    cerr << "OK" << endl;
+
+    // ------------------- [ Test processKoreanDecomposer() ]
+    // 2008.11.13
+    cerr << "Testing processKoreanComposer  ()......";
+    {
+        UString srcUString, tarUString;
+        string solution("가1나a다.각");
+        UString resultUString(solution, UString::UTF_8);
+
+        srcUString += (UCS2Char)4352; // "ㄱ"
+        srcUString += (UCS2Char)4449; // "ㅏ"
+        srcUString += (UCS2Char)  49; // "1"
+        srcUString += (UCS2Char)4354; // "ㄴ"
+        srcUString += (UCS2Char)4449; // "ㅏ"
+        srcUString += (UCS2Char)  97; // "a"
+        srcUString += (UCS2Char)4355; // "ㄷ"
+        srcUString += (UCS2Char)4449; // "ㅏ"
+        srcUString += (UCS2Char)  46; // "."
+        srcUString += (UCS2Char)4352; // "ㄱ"
+        srcUString += (UCS2Char)4449; // "ㅏ"
+        srcUString += (UCS2Char)4520; // "ㄱ"
+        ustring_tool::processKoreanComposer(srcUString, tarUString);
+
+        BOOST_CHECK( tarUString == resultUString );
+
+        srcUString.displayStringInfo(UString::UTF_8);
+        tarUString.displayStringInfo(UString::UTF_8);
+        resultUString.displayStringInfo(UString::UTF_8);
+
+        // DEBUG
+        // tarUString.convertString(beforeProcess, UString::UTF_8);
+        // resultUString.convertString(afterProcess, UString::UTF_8);
+        // cout << endl;
+        // cout << "Source : " << beforeProcess << endl;
+        // cout << "Result : " << afterProcess << endl;
+
+    }
+    cerr << "OK" << endl;
+    
+    // ------------------ [ Test substr() interface ] 
+
+    cerr << "Testing substr     () Interface.....";
+
+    string substrData = "Hello!! Test is so interesting, huh?";
+
+    UString test_3_2(substrData, UString::CP949);
+
+    UString test_3_2_1, test_3_2_2;
+
+    test_3_2.substr(test_3_2_1, 8);        // "Test is so interesing, huh?"
+    test_3_2.substr(test_3_2_2, 8, 28);    // same as test_3_2_1
+
+    BOOST_CHECK( test_3_2_1 == test_3_2_2 );
+
+    test_3_2.substr(test_3_2_2, 8, 100);   // Set n to over-length value.
+
+    BOOST_CHECK( test_3_2_1 == test_3_2_2 );
+
+    { 
+        //                   0 1 2 3 4 5 6 7 89 1011121314
+        //UString srcString("啊唱促扼付官荤酒 磊瞒墨鸥颇窍", UString::CP949);
+        UString srcString("啊唱促扼付官荤酒 磊瞒墨鸥颇窍", UString::UTF_8);
+        UString testSubString;
+        string compare, testString;
+
+        srcString.substr( testSubString, 5, 3); // 官荤酒
+        
+        testSubString.convertString(testString, UString::UTF_8);
+        BOOST_CHECK_EQUAL( testString.c_str() , "官荤酒" );
+
+        srcString.substr( testSubString, 12, 200); // 鸥颇窍
+        testSubString.convertString(testString, UString::UTF_8);
+        BOOST_CHECK_EQUAL( testString.c_str() , "鸥颇窍" );
+    }
+
+    // Log : 2009-04-22
+    // // Log : 2009.03.02
+    // {
+    //     scoped_alloc alloc;
+    //     //                   0         1         2         3         4
+    //     //                   0123456789012345678901234567890123456789012345
+    //     GCUString   src_obj("substr() Test between UString and GCUSTring", GCUString::CP949, &alloc); 
+    //     UString     src_obj2 = src_obj;
+    //     UString     answer("Test between", UString::CP949);
+    //     GCUString   tar_obj(&alloc);
+    //     UString     tar_obj2;
+    //     src_obj2.substr( tar_obj, 12, 12 );
+    //     src_obj.substr( tar_obj2, 12, 12 );
+    //
+    //     BOOST_CHECK( tar_obj == answer );
+    //     BOOST_CHECK( tar_obj == tar_obj2 );
+    // 
+    // }
+
+    cerr << "OK" << endl;
+
+
+    // ------------------ [ Test format() interface ] 
+
+
+    cerr << "Testing format        () Interface.....";
+    string formatData = "12 warlocks summon unholy soul of demon. It takes 2.5 seconds.";
+    string format = "%d warlocks summon %s. It takes %2.1f seconds.";
+    string demonName = "unholy soul of demon";
+    int maxBufferSize = 70;
+
+    UString test_3_3_1, test_3_3_2, test_3_3_3;
+
+    test_3_3_1.format(UString::CP949, format.c_str(), 12, demonName.c_str(), 2.5);
+    test_3_3_2.format(UString::CP949, maxBufferSize, format.c_str(), 12, demonName.c_str(), 2.5);
+    test_3_3_3.format(UString::CP949, maxBufferSize, format.c_str(), 12, demonName.c_str(), 2.5);
+
+    BOOST_CHECK( test_3_3_1 == test_3_3_2 );
+    BOOST_CHECK( test_3_3_2 == test_3_3_3 );
+
+    cerr << "OK" << endl;
+
+    // ------------------ [ Test convertEncodingTypeFromStringToEnum() interface ] 
+    // Added toupper check functionality 2008-11-17
+
+    cerr << "Testing convertEnco...() Interface.....";
+    BOOST_CHECK( test_3_3_1.convertEncodingTypeFromStringToEnum("UNKNOWN")                  == UString::UNKNOWN                 );
+    BOOST_CHECK( test_3_3_1.convertEncodingTypeFromStringToEnum("UTF-8")                    == UString::UTF_8                   );
+    BOOST_CHECK( test_3_3_1.convertEncodingTypeFromStringToEnum("EUC-KR")                   == UString::EUC_KR                  );
+    BOOST_CHECK( test_3_3_1.convertEncodingTypeFromStringToEnum("eUc-kR")                   == UString::EUC_KR                  );
+    BOOST_CHECK( test_3_3_1.convertEncodingTypeFromStringToEnum("CP949")                    == UString::CP949                   );
+    BOOST_CHECK( test_3_3_1.convertEncodingTypeFromStringToEnum("cP949")                    == UString::CP949                   );
+    BOOST_CHECK( test_3_3_1.convertEncodingTypeFromStringToEnum("EUC-JP")                   == UString::EUC_JP                  );
+    BOOST_CHECK( test_3_3_1.convertEncodingTypeFromStringToEnum("EuC-JP")                   == UString::EUC_JP                  );
+    BOOST_CHECK( test_3_3_1.convertEncodingTypeFromStringToEnum("SJIS")                     == UString::SJIS                    );
+    BOOST_CHECK( test_3_3_1.convertEncodingTypeFromStringToEnum("SJiS")                     == UString::SJIS                    );
+    BOOST_CHECK( test_3_3_1.convertEncodingTypeFromStringToEnum("GB2312")                   == UString::GB2312                  );
+    BOOST_CHECK( test_3_3_1.convertEncodingTypeFromStringToEnum("Gb2312")                   == UString::GB2312                  );
+    BOOST_CHECK( test_3_3_1.convertEncodingTypeFromStringToEnum("BIG-5")                    == UString::BIG5                    );
+    BOOST_CHECK( test_3_3_1.convertEncodingTypeFromStringToEnum("ISO8859-15")               == UString::ISO8859_15              );
+    BOOST_CHECK( test_3_3_1.convertEncodingTypeFromStringToEnum("TOTAL_ENCODING_TYPE_NO")   == UString::TOTAL_ENCODING_TYPE_NO  );
+    BOOST_CHECK( test_3_3_1.convertEncodingTypeFromStringToEnum("EUC-KA")                   == UString::UNKNOWN                 );
+
+
+    // Test buffer size check 
+    {
+        string formatString;
+        for(int i = 0; i < UString::DEFAULT_SIZE; i++)
+            formatString += '!';
+        UString test;
+        test.format(UString::CP949, "%s", formatString.c_str());
+        
+        BOOST_CHECK( formatString.length() != test.getBufferSize() );
+    }
+
+    cerr << "OK" << endl;
+
+    // ------------------ [ Test clear() interface ]
+
+    
+       //cerr << "Testing clear         () Interface.....";
+       //UCS2Char testClearChar = 0x0031; // '1'
+       //string testClearStr = "Test Clear() Interface";
+       //UString testClear(testClearStr, UString::CP949);
+       //testClear.clear();
+
+
+
+    // ------------------ [ Test c_str() interface ]
+
+    cerr << "Testing c_str         () Interface.....";
+    string test_3_4_str = "Testing c_str() Interface";
+    UString test_3_4(test_3_4_str, UString::CP949);
+    
+    const char* test_3_4_result = (char*)test_3_4.c_str();
+    const char* test_3_4_result_compare;
+    
+    for(t_size i = 0; i < test_3_4.length(); i++)
+    {
+        test_3_4_result_compare = reinterpret_cast<const char*>(&test_3_4[i]);
+        BOOST_CHECK( test_3_4_result[i*2    ] == test_3_4_result_compare[0] );
+        BOOST_CHECK( test_3_4_result[i*2 + 1] == test_3_4_result_compare[1] );
+    } // end - for;
+    cerr << "OK" << endl;
+
+    // ------------------ [ Test c_str() interface ]
+
+    cerr << "Testing compare       () Interface.....";
+
+    UString original_compare("CDE",UString::CP949);
+    UString compare_compare("ABCDE",UString::CP949);
+    
+    BOOST_CHECK_EQUAL( original_compare.compare(compare_compare) , 1 );
+
+    original_compare.assign("ABCDE" , UString::CP949); 
+    compare_compare.assign ("CAE" , UString::CP949); 
+    BOOST_CHECK_EQUAL( original_compare.compare(compare_compare) , -1 );
+
+    original_compare.assign("ABCDE" , UString::CP949); 
+    compare_compare.assign ("ABXDE" , UString::CP949); 
+    BOOST_CHECK_EQUAL( original_compare.compare(compare_compare) , -1 );
+
+    original_compare.assign("ABXDE" , UString::CP949); 
+    compare_compare.assign ("ABCDE" , UString::CP949); 
+    BOOST_CHECK_EQUAL( original_compare.compare(compare_compare) , 1 );
+
+    original_compare.assign("ABCDE" , UString::CP949); 
+    compare_compare.assign ("ABCDE" , UString::CP949); 
+    BOOST_CHECK_EQUAL( original_compare.compare(compare_compare) , 0 );
+
+
+    cerr << "OK" << endl;
+
+        // Added Memory Allocation problems 2008-11-25
+        vector<UString > lines;
+        ustring_tool::getUStringLinesFromFile( UString::CP949, "../TEST-DATA/cp949.scd", lines );
+        UString b;
+        UString tmp;
+//     // ==================================================================== Operators
+
+        lines.clear();
+        ustring_tool::getUStringLinesFromFile( UString::CP949, "../TEST-DATA/cp949.result", lines );
+
+
+    // ------------------ [ Test operator += UCS2Char ]
+
+    cerr << endl << "Testing operator      += Interface.....";
+    {
+        UCS2Char t = 0x0030;
+        UString test_4_1;
+
+        do
+        {
+            test_4_1 += t;
+        }while(test_4_1.bufferSize() > test_4_1.length() + 1);
+
+//         t_size length = UString::DEFAULT_SIZE - 1;
+//         t_size bufferSize = UString::DEFAULT_SIZE;
+
+//         BOOST_CHECK( test_4_1.length() ==  length );
+//         BOOST_CHECK( test_4_1.bufferSize() == bufferSize );
+
+//         test_4_1 += t; // Overflow test. It will reallocate buffer which size is doubled.
+
+//         length++;
+//         bufferSize = UString::DEFAULT_SIZE * UString::DEFAULT_SIZE 
+//             + UString::FLEXIBLE_FREE_SPACE;
+
+
+//         BOOST_CHECK( test_4_1.length() == length );
+//         BOOST_CHECK( test_4_1.bufferSize() == bufferSize );
+
+
+        // Added Memory Allocation problems 2008-11-25
+        vector<UString > lines;
+        ustring_tool::getUStringLinesFromFile( UString::CP949, "../TEST-DATA/cp949.scd", lines );
+        UString b;
+        UString tmp;
+
+        lines[0].substr(tmp, 0, 404); b += tmp;
+        tmp.assign("<Start Tab>", UString::CP949); b += tmp;
+        lines[0].substr(tmp, 404, 3); b += tmp;
+        tmp.assign("</Start Tab>", UString::CP949); b += tmp;
+        lines[0].substr(tmp, 407); b += tmp;
+
+        lines.clear();
+        ustring_tool::getUStringLinesFromFile( UString::CP949, "../TEST-DATA/cp949.result", lines );
+
+        //lines[0].displayStringInfo( UString::CP949 ); // XXX
+        //b.displayStringInfo( UString::CP949 ); //XXX
+
+        BOOST_CHECK( b == lines[0] );
+
+    }
+    cerr << "OK" << endl;
+
+
+
+    // ------------------ [ Test operator [] UCS2Char ]
+
+    cerr << "Testing operator      [] Interface.....";
+
+    string    str = "abcdefg12345";
+    UString   ustr(str, UString::CP949);
+    UCS2Char* optest1;
+    UCS2Char  optest2;
+
+    optest1 = &ustr[3];
+    optest2 = ustr.at(3);
+
+    BOOST_CHECK_EQUAL( *optest1 , optest2 );
+    for(unsigned short i = 3; i < ustr.length(); i++)
+        BOOST_CHECK( ustr[i] == optest1[i-3] );
+    
+//     // Check the boundary test
+//     // If the boundary area is not initialized by certain value, then it should be 0.
+//     {
+//         UCS2Char out2 = ustr.at(29367);
+//         UCS2Char& out(ustr[29367]); // it will increase the buffer size of ustr.
+//         BOOST_CHECK_EQUAL( out , 0 );
+//         BOOST_CHECK_EQUAL( out2 , static_cast<UCS2Char>(-1) );
+//     }
+
+//     // Check the boundary test
+//     // If the certain place which is out of bound is initialized by certain value, 
+//     // it should be gotten the right value.
+//     // And if the position is very far from previous end of string, the middle area is filled by 0.
+//     // So the previous string is same as the current string.
+//     {
+//         UString prevUString(ustr);
+
+//         UCS2Char& boundaryChar2(ustr[40000]);
+//         boundaryChar2 = (UCS2Char)132;
+
+//         BOOST_CHECK( ustr == prevUString );
+//         //ustr.displayStringInfo(UString::CP949);
+//         //prevUString.displayStringInfo(UString::CP949);
+        
+//         BOOST_CHECK_EQUAL( ustr[40000] , (UCS2Char)132 );
+//     }
+
+
+    cerr << "OK" << endl;
+
+
+
+    // ------------------ [ Test operator == != UCS2Char ]
+    cerr << "Testing operator   == != Interface.....";
+    UString original(str, UString::CP949); // "abcdefg12345"
+    UString same(str, UString::CP949);     // "abcdefg12345"
+    str = "Hello";
+    UString diff(str, UString::CP949);     // "Hello"
+    BOOST_CHECK( original == same );
+    BOOST_CHECK( original != diff );
+    cerr << "OK" << endl;
+
+    // ------------------ [ Test operator < UCS2Char ]
+    cerr << "Testing operator       < Interface.....";
+
+    UString original_greater_op("CDE",UString::CP949);
+    UString compare_greater_op("ABCDE",UString::CP949);
+    BOOST_CHECK_EQUAL( original_greater_op < compare_greater_op , false );
+
+    original_greater_op.assign("ABCDE" , UString::CP949); 
+    compare_greater_op.assign ("CAE" , UString::CP949); 
+    BOOST_CHECK_EQUAL( original_greater_op < compare_greater_op , true );
+
+    original_greater_op.assign("ABCDE" , UString::CP949); 
+    compare_greater_op.assign ("ABXDE" , UString::CP949); 
+    BOOST_CHECK_EQUAL( original_greater_op < compare_greater_op , true );
+
+    original_greater_op.assign("ABXDE" , UString::CP949); 
+    compare_greater_op.assign ("ABCDE" , UString::CP949); 
+    BOOST_CHECK_EQUAL( original_greater_op < compare_greater_op , false );
+
+    original_greater_op.assign("ABCDE" , UString::CP949); 
+    compare_greater_op.assign ("ABCDE" , UString::CP949); 
+    BOOST_CHECK_EQUAL( original_greater_op < compare_greater_op , false );
+    
+    cerr << "OK" << endl;
+
+    // ------------------ [ Test operator < UCS2Char ]
+
+    cerr << "Testing serialization .................";
+    {
+        string serializationString("12345 !@#$%abcxyABCXY啊唱促扼付诗衍引轧丞�����Λ⒔ヒ");
+        UString sourceUString(serializationString, UString::CP949);
+
+
+//         // LOG : 2009.04.18
+//         //NS_BOOST_MEMORY::block_pool recycle;
+//         // scoped_alloc alloc(recycle);
+//         // scoped_alloc alloc;
+
+        string filename = "../TEST-DATA/cp949.scd";
+        UCS2Char CARRIGE_RETURN = 13;
+        ustring_tool::getUStringLinesFromFile( UString::CP949, filename, lines );
+
+
+        // GCUString serializedGCUString(&alloc);
+        UString resultUStringOfSerialization;
+
+        // write the UString into archive of string stream.
+        stringstream ss;
+        {
+            boost::archive::text_oarchive oa( ss );
+            oa & sourceUString;
+        }
+
+        // Log : 2009-04-22
+        // // Get the UString from archive of string stream.
+        //   {
+        //       boost::archive::text_iarchive ia( ss );
+        //       ia & serializedGCUString;
+        //   }
+
+        // Get the UString from archive of string stream.
+        {
+            boost::archive::text_iarchive ia( ss );
+            ia & resultUStringOfSerialization;
+        }
+        BOOST_CHECK( sourceUString == resultUStringOfSerialization );
+    }
+
+    cerr << "OK" << endl;
+    
+    // ------------------- [ Test getUStringLinesFromFile ] 
+    // 2008.11.13
+    cerr << "Testing getUStringLinesFromFile()......";
+    {
+
+        string filename("../TEST-DATA/test_getUStringLinesFromFile.utf8");
+        vector<UString > lines;
+        vector<string> compareString(3);
+        compareString[0] = "가나다";
+        compareString[1] = "123";
+        compareString[2] = "家大多";
+
+        ustring_tool::getUStringLinesFromFile<> ( UString::UTF_8, filename, lines );
+
+        for( size_t i = 0; i < lines.size(); i++)
+        {
+            string resultString;
+            lines[i].convertString( resultString, UString::UTF_8 );
+            cout<<resultString<<endl;
+            BOOST_CHECK_EQUAL( resultString , compareString[i] );
+        } // end - for
+
+
+        // check if the carrige return character is in the string
+        lines.clear();
+
+        filename = "../TEST-DATA/cp949.scd";
+        UCS2Char CARRIGE_RETURN = 13;
+        ustring_tool::getUStringLinesFromFile( UString::CP949, filename, lines );
+
+        for( size_t i = 0; i < lines.size(); i++ )
+        {
+            for( t_size j = 0; j < lines[i].length(); j++)
+            {
+                BOOST_CHECK( lines[i][j] != CARRIGE_RETURN );
+            } // end - for
+        } // end - for
+        
+    }
+
+    cerr << "OK" << endl;
+    
+    // ------------------- [ Test getTokensFromUString() ] 
+    // 2008.11.13
+    cerr << "Testing getUStringLinesFromFile()......";
+    {
+        string tokenTest("啊唱促,123,abc,诗衍引");
+        vector<string> compareString(4);
+        compareString[0] = "啊唱促";
+        compareString[1] = "123";
+        compareString[2] = "abc";
+        compareString[3] = "诗衍引";
+        UString srcUString(tokenTest, UString::UTF_8);
+
+        vector<UString > tokens;
+
+        ustring_tool::getTokensFromUString ( UString::UTF_8,  ',', srcUString, tokens );
+
+        for( size_t i = 0; i < tokens.size(); i++)
+        {
+            string resultString;
+            tokens[i].convertString( resultString, UString::UTF_8);
+            BOOST_CHECK_EQUAL( resultString , compareString[i] );
+        }
+    }
+    cerr << "OK" << endl;
+
+    pro.end();
+    // ------------------- [ Speed Test ] 
+    // 2008.11.13
+
+    
+    cerr << "Speed Testing .........................";
+    {
+
+
+        t_size MAX_TIME = 9000; // MAX_TIME must be more than 1000.
+        
+        // Log : 2009-04-22
+        // scoped_alloc alloc, alloc2;
+
+        cerr << endl << "............ [ Constructor Testing ]";
+
+        {
+            //NS_BOOST_MEMORY::block_pool recycle;
+            //scoped_alloc alloc(recycle);
+            static Profiler::Profile pro3_1("UString Test3 : default alloc - Constructor", gProfiler);
+            pro3_1.begin();
+            for(t_size i = 0; i < MAX_TIME * 1000; i++)
+            {
+                UString test;
+            }
+            pro3_1.end();
+
+            // static Profiler::Profile pro3_2("UString Test3 :  scoped alloc - Constructor", gProfiler);
+            // pro3_2.begin();
+            // for(unsigned int i = 0; i < MAX_TIME * 1000; i++)
+            //   {
+            //       GCUString test(&alloc);
+            //   }
+            //   pro3_2.end();
+
+
+            //scoped_alloc alloc2(recycle);
+            UString originalUString("t", UString::CP949);
+            UString copyUString;
+            for(t_size i = 0; i < 10; i++)
+                copyUString += originalUString;
+            originalUString = copyUString;
+
+            static Profiler::Profile pro3_1_1("UString Test3': default alloc - constructor", gProfiler);
+            pro3_1_1.begin();
+            for(t_size i = 0; i < MAX_TIME * 1000; i++)
+            {
+                UString ustring(originalUString);
+            }
+            pro3_1_1.end();
+
+            // static Profiler::Profile pro3_2_1("UString Test3':  scoped alloc - constructor", gProfiler);
+            // pro3_2_1.begin();
+            // for(unsigned int i = 0; i < MAX_TIME * 1000; i++)
+            // {
+            //     GCUString gcustring(originalUString, &alloc2);
+            // }
+            // pro3_2_1.end();
+        }
+
+
+
+        cerr << endl << "............ [ Operator += Testing ]";
+        {
+            string testString = "abcdefghijklmnopqrstuvwxyz";
+            UString originalUString(testString, UString::CP949);
+            UString subUString;
+
+            static Profiler::Profile pro4_1_1("UString Test4': default alloc - Operator += (small)", gProfiler);
+            pro4_1_1.begin();
+            for(t_size i = 0; i < MAX_TIME * 20; i++)
+            {
+              subUString.clear();
+              for(t_size j = 0; j < 100; j++)
+                    subUString += originalUString;
+            }
+            pro4_1_1.end();
+            
+            testString = "s";
+            originalUString.assign(testString, UString::CP949);
+
+            static Profiler::Profile pro4_1("UString Test4 : default alloc - Operator += (Incremental)", gProfiler);
+            pro4_1.begin();
+            for(t_size i = 0; i < MAX_TIME * 20; i++)
+            {
+              subUString += originalUString;
+            }
+            pro4_1.end();
+        }
+
+
+
+
+        cerr << endl << "............ [ Operator =  Testing ]";
+        {
+            //NS_BOOST_MEMORY::block_pool recycle;
+            //scoped_alloc alloc(recycle);
+            UString originalUString("t", UString::CP949);
+            UString subUString;
+
+            // Log : 2009-04-22
+            // GCUString gcsubUString(&alloc);
+
+            for(t_size i = 0; i < MAX_TIME * 5; i++)
+                subUString += originalUString;
+            originalUString = subUString;
+
+            static Profiler::Profile pro5_1("UString Test5 : default alloc - operator = (large)", gProfiler);
+            pro5_1.begin();
+            for(t_size i = 0; i < MAX_TIME * 5; i++)
+            {
+                subUString = originalUString;
+            }
+            pro5_1.end();
+            
+            // Log : 2009-04-22
+            // static Profiler::Profile pro5_2("UString Test5 :  scoped alloc - operator = (large)", gProfiler);
+            // pro5_2.begin();
+            // for(unsigned int i = 0; i < MAX_TIME * 5; i++)
+            // {
+            //     gcsubUString = originalUString;
+            // }
+            // pro5_2.end();
+            
+            originalUString.assign("abcdefghijklmnopqrstuvwxyz1234567890-==-09876543rlkj;aklja;lkfhn;alwen;", UString::CP949);
+            
+            static Profiler::Profile pro5_1_1("UString Test5': default alloc - operator = (small)", gProfiler);
+            pro5_1_1.begin();
+            for(t_size i = 0; i < MAX_TIME * 5; i++)
+            {
+                subUString.clear();
+                subUString = originalUString;
+            }
+            pro5_1_1.end();
+
+            // Log : 2009-04-22
+            // static Profiler::Profile pro5_2_1("UString Test5':  scoped alloc - operator = (small)", gProfiler);
+            // pro5_2_1.begin();
+            // for(unsigned int i = 0; i < MAX_TIME * 5; i++)
+            // {
+            //     gcsubUString.clear();
+            //     gcsubUString = originalUString;
+            // }
+            // pro5_2_1.end();
+
+        }
+
+
+
+        cerr << endl << "............ [ subUString  Testing ]" << endl;
+        {
+            //NS_BOOST_MEMORY::block_pool recycle;
+            //scoped_alloc alloc(recycle);
+            UString originalUString("t", UString::CP949);
+            UString subUString;
+
+            // Log : 2009-04-22
+            // GCUString gcsubUString(&alloc);
+
+            for(t_size i = 0; i < 3000 ; i++)
+                subUString += originalUString;
+            originalUString = subUString;
+
+            static Profiler::Profile pro6_1("UString Test6 : default alloc - substr()", gProfiler);
+            pro6_1.begin();
+            for(t_size i = 0; i < MAX_TIME; i++)
+            {
+                originalUString.substr( subUString, 10, 1000 );
+            }
+            pro6_1.end();
+
+            // static Profiler::Profile pro6_2("UString Test6 :  scoped alloc - substr()", gProfiler);
+            // pro6_2.begin();
+            // for(unsigned int i = 0; i < MAX_TIME; i++)
+            // {
+            //     originalUString.substr( gcsubUString, 10, 1000 );
+            // }
+            // pro6_2.end();
+        }
+
+        const size_t size = 1000;
+        const size_t scale = 100000;
+        typedef UString::value_type CharT;
+//         cerr << endl << "............ [ const_iterator  Testing ]" << endl;
+//         {
+//           CharT* ch = new CharT[size*100];
+//           for (size_t i=0; i<size*100; i++)
+//             ch[i] = 'a'+rand()%26;
+
+//           UString str(ch, size*100);
+
+//           static Profiler::Profile pro7_1("UString Test7 : const_iterator", gProfiler);
+//           pro7_1.begin();
+//           for (size_t i=0; i<scale; i++)
+//             for (UString::const_iterator j=str.begin(); j!=str.end(); j++)
+//               const CharT c = *j;
+//           pro7_1.end();
+//           delete ch;
+//         }
+
+        cerr << endl << "............ [ operator[]  Testing ]" << endl;
+        {
+          CharT* ch = new CharT[size*100+1];
+          for (size_t i=0; i<size*100; i++)
+            ch[i] = 'a'+rand()%26;
+          ch[size*100] = '\0';
+          std::string s((char*)ch, size*100*sizeof(CharT));
+  
+
+          const UString str(s, UString::CP949);
+  
+          static Profiler::Profile pro8_1("UString Test8 : operator[]", gProfiler);
+          pro8_1.begin();
+          for (size_t i=0; i<scale; i++)
+            for (size_t j=0; j<size*100; j++)
+              const CharT c = str[j];
+          pro8_1.end();
+          
+          delete ch;
+        }
+
+        cerr << endl << "............ [ at()  Testing ]" << endl;
+        {
+          CharT* ch = new CharT[size*100+1];
+          for (size_t i=0; i<size*100; i++)
+            ch[i] = 'a'+rand()%26;
+          ch[size*100] = '\0';
+          std::string s((char*)ch, size*100*sizeof(CharT));
+  
+
+          UString str(s, UString::CP949);
+          cout<<str.length()<<endl;
+  
+          static Profiler::Profile pro8_1("UString Test8 : at()", gProfiler);
+          pro8_1.begin();
+          for (size_t i=0; i<scale; i++)
+            for (size_t j=0; j<size*100; j++)
+              const CharT c = str.at(i);
+          pro8_1.end();
+          
+          delete ch;
+        }
+        
+        cerr << endl << "............ [ append  Testing ]" << endl;
+        {
+          CharT* ch = new CharT[size/20+1];
+          for (size_t i=0; i<size/20; i++)
+            ch[i] = 'a'+rand()%26;
+          ch[size/20] = '\0';
+          std::string ss((char*)ch, size*sizeof(CharT)/20);
+  
+
+          UString str(ss, UString::CP949);
+          UString s(ss, UString::CP949);
+          
+          static Profiler::Profile pro6_1("UString Test9 : append", gProfiler);
+          pro6_1.begin();
+          for (size_t i=0; i<scale; i++)
+            str += s;
+          pro6_1.end();
+          delete ch;
+        }
+                
+        cerr << endl << "............ [ vector Testing ]" << endl;
+        {
+          std::string ss(60, 'p');
+
+          vector<UString> vs;
+
+          static Profiler::Profile pro6_1("UString Test9 : constructure & vector", gProfiler);
+          pro6_1.begin();
+          for (size_t i=0; i<scale; i++)
+          {
+            UString us(ss, UString::CP949);
+            vs.push_back(us);
+          }
+          
+          pro6_1.end();
+        }
+
+        cerr << endl << "............ [ c_str() Testing ]" << endl;
+        {
+          std::string ss(60, 'p');
+
+          static Profiler::Profile pro6_1("UString Test9 : c_str()", gProfiler);
+          pro6_1.begin();
+          for (size_t i=0; i<scale; i++)
+          {
+            UString us(ss, UString::CP949);
+            us.c_str();
+          }
+          
+          pro6_1.end();
+        }
+
+        cerr << endl << "............ [ convertString() Testing ]" << endl;
+        {
+          std::string ss(1000, 'p');
+          UString us(ss, UString::CP949);
+          std::string s;
+
+          static Profiler::Profile pro6_1("UString Test9 : convertString()", gProfiler);
+          pro6_1.begin();
+          for (size_t i=0; i<scale; i++)
+          {
+            s.clear();
+            us.convertString(s, UString::EUC_KR);
+          }
+          pro6_1.end();
+        }
+        
+        cerr << endl << "............ [ vector<pair<size_t, UString> > Testing ]" << endl;
+        {
+          std::string ss(70, 'p');
+          UString us(ss, UString::CP949);
+          vector<pair<size_t, UString> > v;
+
+          static Profiler::Profile pro6_1("UString Test9 : vector<pair<size_t, UString> >", gProfiler);
+          pro6_1.begin();
+          for (size_t i=0; i<scale; i++)
+          {
+            v.push_back(pair<size_t, UString>(22, us));
+          }
+          pro6_1.end();
+        }
+
+        cerr << endl << "............ [ izene-serialize-memcpy Testing ]" << endl;
+        {
+          std::string ss(100, 'p');
+          UString us(ss, UString::CP949);
+          UString us1;
+
+          static Profiler::Profile pro6_1("UString Test9 : izene-serialize-memcpy", gProfiler);
+          pro6_1.begin();
+          for (size_t i=0; i<scale*10; i++)
+          {
+            izenelib::util::izene_serialization_memcpy<UString> isb(us);
+            char* ptr;
+            size_t sz;
+            isb.write_image(ptr, sz);
+
+            izenelib::util::izene_deserialization_memcpy<UString> idb(ptr, sz);
+            idb.read_image(us1);
+
+            BOOST_CHECK_EQUAL( us , us1 );
+          }
+          
+          pro6_1.end();
+        }
+
+        cerr << endl << "............ [ hlmalloc Testing ]" << endl;
+        {
+          vector<int> v;
+          for (int i=0; i<1000000; i++)
+            v.push_back(rand()%100);
+          
+          static Profiler::Profile pro6_1("UString Test 10 : hlmalloc", gProfiler);
+          pro6_1.begin();
+          for (vector<int>::iterator i= v.begin(); i!=v.end(); i++)
+          {
+            char* ch  = (char*)HLmemory::hlmalloc(*i);
+            HLmemory::hlfree(ch);
+            // char* ch = (char*)malloc(*i);
+            //free (ch);
+          }
+          pro6_1.end();
+        }
+
+     }
+    list<UString> li;
+    li.clear();
+    li.push_back(UString ("dfss", UString::CP949));
+    li.push_back(UString ("dfss", UString::CP949));
+    li.push_back(UString ("dfss", UString::CP949));
+    li.push_back(UString ("dfss", UString::CP949));
+
+    list<UString> li1;
+    li1.insert(li1.begin(), li.begin(), li.end());
+    li.clear();
+    li1.clear();
+
+    {
+      wiselib::UString k("dklsdlskldklfljkskldkljflksdklsdkljfklsdjflsdjxn iosdikjkhkfsdklfljlsdjljflsjfsklsksdjklsdfkevinlsdjkljlk", wiselib::UString::UTF_8);
+      wiselib::UString sub;
+      for (uint32_t i=0; i<10000000; ++i)
+      {
+        uint32_t st = rand()%k.length();
+        k.substr(sub, st, st+rand()%(k.length()-st));
+        k.find(sub, rand()%k.length());
+        sub = k.substr(st, st+rand()%(k.length()-st));
+      }
+    }
+    
+
+    // For Time Checking
+    gProfiler.print();
+    
+/***************************************************************************************************************/
+
+} // interface_correctness_check()
+
+
+BOOST_AUTO_TEST_SUITE_END()
+
+#undef scoped_alloc
+/**
+
+[UString TEST SUITE][UString Test1                                                         ][ 0.000236988 , 1 , 1                  ]
+[UString TEST SUITE][UString Test2                                                         ][ 0.00245309 , 1 , 1                   ]
+[UString TEST SUITE][UString Test3 : default alloc - Constructor                           ][ 0.373606 , 1 , 1                     ]
+[UString TEST SUITE][UString Test3': default alloc - constructor                           ][ 0.461152 , 1 , 1                     ]
+[UString TEST SUITE][UString Test4 : default alloc - Operator += (Incremental)             ][ 0.00244999 , 1 , 1                   ]
+[UString TEST SUITE][UString Test4': default alloc - Operator += (small)                   ][ 0.269413 , 1 , 1                     ]
+[UString TEST SUITE][UString Test5 : default alloc - operator = (large)                    ][ 0.495808 , 1 , 1                     ]
+[UString TEST SUITE][UString Test5': default alloc - operator = (small)                    ][ 0.00194001 , 1 , 1                   ]
+[UString TEST SUITE][UString Test6 : default alloc - substr()                              ][ 0.00517488 , 1 , 1                   ]
+[UString TEST SUITE][UString Test8 : at()                                                  ][ 39.1218 , 1 , 1                      ]
+[UString TEST SUITE][UString Test8 : operator[]                                            ][ 8.61033 , 1 , 1                      ]
+[UString TEST SUITE][UString Test9 : append                                                ][ 0.0140491 , 1 , 1                    ]
+[UString TEST SUITE][UString Test9 : c_str()                                               ][ 0.047487 , 1 , 1                     ]
+[UString TEST SUITE][UString Test9 : constructure & vector                                 ][ 0.0904398 , 1 , 1                    ]
+[UString TEST SUITE][UString Test9 : convertString()                                       ][ 0.550526 , 1 , 1                     ]
+[UString TEST SUITE][UString Test9 : vector<pair<size_t, UString> >                        ][ 0.0584612 , 1 , 1
+**/
+

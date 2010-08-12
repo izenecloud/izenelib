@@ -26,3 +26,15 @@ TARGET_LINK_LIBRARIES(t_util
   ${Boost_LIBRARIES}
   bz2
   )
+
+FILE(GLOB_RECURSE t_ustring_SRC "ustring/*.cpp")
+
+ADD_EXECUTABLE(t_ustring
+  Runner.cpp
+  ${t_ustring_SRC}
+  )
+
+TARGET_LINK_LIBRARIES(t_ustring
+  izene_util
+  ${Boost_LIBRARIES}
+  )
