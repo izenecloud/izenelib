@@ -32,4 +32,36 @@ TARGET_LINK_LIBRARIES(t_indexer
   ${Boost_LIBRARIES}
 )
 
+SET(t_mock_indexer_SRC
+  t_MockIndexReader.cpp
+  t_master_suite.cpp
+)
+
+ADD_EXECUTABLE(t_mockindexer ${t_mock_indexer_SRC})
+
+TARGET_LINK_LIBRARIES(t_mockindexer
+  index_manager
+  mock_index_manager
+  boost_memory
+  izene_util
+  ${Glog_LIBRARIES}
+  ${Boost_LIBRARIES}
+)
+
+SET(t_indexer_util_SRC
+  t_priorityqueue.cpp
+  t_bitvector.cpp
+  t_master_suite.cpp
+)
+
+ADD_EXECUTABLE(t_indexer_util ${t_indexer_util_SRC})
+
+TARGET_LINK_LIBRARIES(t_indexer_util
+  index_manager
+  boost_memory
+  izene_util
+  ${Glog_LIBRARIES}
+  ${Boost_LIBRARIES}
+)
+
 ENDIF(Boost_FOUND)
