@@ -22,12 +22,7 @@ IF(Boost_FOUND)
   # ADD_SUBDIRECTORY(am_test)
   # ADD_SUBDIRECTORY(cache)
   # ADD_SUBDIRECTORY(db)
-<<<<<<< HEAD
-  # ADD_SUBDIRECTORY(ir)
   ADD_SUBDIRECTORY(sdb)
-=======
   ADD_SUBDIRECTORY(ir)
-  # ADD_SUBDIRECTORY(sdb)
->>>>>>> b6b30eb0a9f87e6017b53154308acfc57f5aa0c5
 
 ENDIF(Boost_FOUND)
