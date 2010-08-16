@@ -1,27 +1,13 @@
-SET(jemalloc_DEFINITIONS "-DPIC -fPIC -DMALLOC_PRODUCTION -D__isthreaded=true" )
-
-MACRO_CHECK_SHOULD_BUILD(
-  jemalloc
-  )
+MACRO_CHECK_SHOULD_BUILD(jemalloc)
 
 IF(jemalloc_SHOULD_BUILD)
 
-  MESSAGE(STATUS "Build extra flags ${jemalloc_DEFINITIONS}")
-  SET(jemalloc_SRC
-    "jemalloc_linux.c"
-    )
-    
+  SET(jemalloc_DEFINITIONS "-DPIC -fPIC -DMALLOC_PRODUCTION -D__isthreaded=true")
   ADD_DEFINITIONS("${jemalloc_DEFINITIONS}")
-  
-  ADD_LIBRARY(jemalloc ${jemalloc_SRC})
+  MESSAGE(STATUS "jemalloc_DEFINITIONS=${jemalloc_DEFINITIONS}")
 
-  TARGET_LINK_LIBRARIES(
-    jemalloc
-    pthread
-    )
-  INSTALL(TARGETS jemalloc     
-      LIBRARY DESTINATION lib 
-      ARCHIVE DESTINATION lib 
-      COMPONENT "izenelib_libraries")
+  MACRO_ADD_LIBRARY(jemalloc SRCS "jemalloc_linux.c")
+
+  TARGET_LINK_LIBRARIES(jemalloc pthread)
 
 ENDIF(jemalloc_SHOULD_BUILD)

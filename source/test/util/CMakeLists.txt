@@ -8,11 +8,11 @@ FIND_PACKAGE(Boost 1.36 REQUIRED
   unit_test_framework
   )
 
-INCLUDE_DIRECTORIES( 
+INCLUDE_DIRECTORIES(
   ${izenelib_INCLUDE_DIRS}
   ${Boost_INCLUDE_DIRS}
   )
-  
+
 ADD_EXECUTABLE(t_util
   Runner.cpp
   t_ClockTimer.cpp
@@ -23,7 +23,8 @@ ADD_EXECUTABLE(t_util
   t_log.cc
   t_wrapper.cc
   )
-TARGET_LINK_LIBRARIES(t_util 
+
+TARGET_LINK_LIBRARIES(t_util
   izene_util
   ${Boost_LIBRARIES}
   bz2 
@@ -31,9 +32,17 @@ TARGET_LINK_LIBRARIES(t_util
   febird
   procmeminfo
   izene_log
+  bz2
   )
-SET_TARGET_PROPERTIES(t_util PROPERTIES
-  COMPILE_FLAGS "-include ${FileTestHelper}"
-  RUNTIME_OUTPUT_DIRECTORY ${IZENELIB_SOURCE_DIR}/testbin
+
+FILE(GLOB_RECURSE t_ustring_SRC "ustring/*.cpp")
+
+ADD_EXECUTABLE(t_ustring
+  Runner.cpp
+  ${t_ustring_SRC}
   )
-ADD_TEST(util "${IZENELIB_SOURCE_DIR}/testbin/t_util")
+
+TARGET_LINK_LIBRARIES(t_ustring
+  izene_util
+  ${Boost_LIBRARIES}
+  )

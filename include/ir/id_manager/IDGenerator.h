@@ -40,6 +40,14 @@ public:
 	/**
 	 * @brief Always return false, which means failure to generate ID
 	 */
+	inline bool conv(const char* nameStringBuffer, const int nameStringLength, NameID& nameID)
+	{
+        return false;
+	}
+
+	/**
+	 * @brief Always return false, which means failure to generate ID
+	 */
 	inline bool conv(const NameString& nameString, NameID& nameID)
 	{
         return false;
@@ -56,8 +64,7 @@ public:
 
 
 template <typename  NameString,
-          typename  NameID,
-          NameID    (*HashFunc)(const NameString&) = NameIDTraits<NameID>::hash>
+          typename  NameID>
 class HashIDGenerator
 {
 public:
@@ -69,13 +76,27 @@ public:
 
 	/**
 	 * @brief Convert String to ID, ID may be not unique
+	 * @param nameStringBuffer the content of name string
+	 * @param nameStringLength the length of name string
+	 * @param nameID the NameID that may be not unique
+	 * @return always false
+	 */
+	inline bool conv(const char* nameStringBuffer, const size_t nameStringLength, NameID& nameID)
+	{
+        nameID = NameIDTraits<NameID>::template hash<NameString>(nameStringBuffer, nameStringLength);
+        return false;
+	}
+
+
+	/**
+	 * @brief Convert String to ID, ID may be not unique
 	 * @param nameString the name string
 	 * @param nameID the NameID that may be not unique
 	 * @return always false
 	 */
 	inline bool conv(const NameString& nameString, NameID& nameID)
 	{
-        nameID = HashFunc(nameString);
+        nameID = NameIDTraits<NameID>::hash(nameString);
         return false;
 	}
 
@@ -120,7 +141,19 @@ public:
 	inline bool conv(const NameString& nameString, NameID& nameID,bool insert = true);
 
 	/**
-	 * @brief This function returns a unique name id given a name string, update old id to 
+	 * @brief Convert String to ID, ID may be not unique
+	 * @param nameStringBuffer the content of name string
+	 * @param nameStringLength the length of name string
+	 * @param nameID the NameID that may be not unique
+	 * @return always false
+	 */
+	inline bool conv(const char* nameStringBuffer, const int nameStringLength, NameID& nameID)
+	{
+	    return conv(NameString(nameStringBuffer, nameStringLength), nameID);
+	}
+
+	/**
+	 * @brief This function returns a unique name id given a name string, update old id to
 	 * satisfy the incremental semantic
 	 * @param nameString the name string
 	 * @param oldID the old unique NameID
@@ -246,7 +279,7 @@ inline bool UniqueIDGenerator<NameString, NameID,
 
        if(!ret)
        	{
-	   	oldID = 0; 
+	   	oldID = 0;
 		///will be removed until MIA can support index unexist documents from Update SCDs
 		mutex_.release_write_lock();
 		return ret;

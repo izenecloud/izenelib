@@ -313,6 +313,7 @@ namespace irdb
                 indexer.reset(new iii::Indexer(MANAGER_PURE_INDEX));
                 iii::IndexManagerConfig indexManagerConfig;
                 indexManagerConfig.indexStrategy_.indexLocation_ = path_;
+                indexManagerConfig.indexStrategy_.indexMode_ = "default";
                 indexManagerConfig.indexStrategy_.memory_ = 30000000;
                 indexManagerConfig.indexStrategy_.indexDocLength_ = true;
                 indexManagerConfig.indexStrategy_.skipInterval_ = 0;
@@ -767,7 +768,7 @@ namespace irdb
                 indexer.reset(new iii::Indexer(MANAGER_PURE_INDEX));
                 iii::IndexManagerConfig indexManagerConfig;
                 indexManagerConfig.indexStrategy_.indexLocation_ = path_;
-//                 std::cout<<"Creating indexer on "<<indexManagerConfig.indexStrategy_.indexLocation_<<std::endl;
+                indexManagerConfig.indexStrategy_.indexMode_ = "default";
                 indexManagerConfig.indexStrategy_.memory_ = 30000000;
                 indexManagerConfig.indexStrategy_.indexDocLength_ = true;
                 indexManagerConfig.mergeStrategy_.param_ = "default";

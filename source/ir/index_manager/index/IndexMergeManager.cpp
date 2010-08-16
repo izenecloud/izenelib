@@ -2,7 +2,8 @@
 
 #include <ir/index_manager/index/IndexMergeManager.h>
 #include <ir/index_manager/index/GPartitionMerger.h>
-#include <ir/index_manager/index/MultiWayMerger.h>
+#include <ir/index_manager/index/DefaultMerger.h>
+#include <ir/index_manager/index/DBTMerger.h>
 #include <ir/index_manager/index/OfflineIndexMerger.h>
 #include <ir/index_manager/index/IndexReader.h>
 
@@ -15,17 +16,16 @@ IndexMergeManager::IndexMergeManager(Indexer* pIndexer)
 {
     pBarrelsInfo_ = pIndexer_->getBarrelsInfo();
 
-    indexMergers_[ONLINE] = new MultiWayMerger(pIndexer_);
+    if(!strcasecmp(pIndexer_->pConfigurationManager_->mergeStrategy_.param_.c_str(),"dbt"))
+        indexMergers_[ONLINE] = new DBTMerger(pIndexer_);
+    else
+        indexMergers_[ONLINE] = new DefaultMerger(pIndexer_);
+
     indexMergers_[OFFLINE] = new OfflineIndexMerger(pIndexer_, pBarrelsInfo_->getBarrelCount());
 }
 
 IndexMergeManager::~IndexMergeManager()
 {
-    stop();
-    mergethread_->join();
-    for(std::map<MergeOPType, IndexMerger*>::iterator iter = indexMergers_.begin();
-              iter != indexMergers_.end(); ++iter)
-        delete iter->second;
 }
 
 void IndexMergeManager::run()
@@ -40,6 +40,10 @@ void IndexMergeManager::stop()
     MergeOP op;
     op.opType = NOOP;
     tasks_.push(op);
+    mergethread_->join();
+    for(std::map<MergeOPType, IndexMerger*>::iterator iter = indexMergers_.begin();
+              iter != indexMergers_.end(); ++iter)
+        delete iter->second;
 }
 
 void IndexMergeManager::triggerMerge(BarrelInfo* pBarrelInfo)
@@ -64,6 +68,24 @@ void IndexMergeManager::mergeIndex()
             pIndexMerger->addToMerge(pBarrelsInfo_, op.pBarrelInfo);
             }
             break;
+        case FINISH:
+            {
+            IndexMerger* pIndexMerger = indexMergers_[ONLINE];
+            pIndexMerger->endMerge();
+            BarrelInfo* pBaInfo;
+            pBarrelsInfo_->startIterator();
+            while (pBarrelsInfo_->hasNext())
+            {
+                pBaInfo = pBarrelsInfo_->next();
+                pBaInfo->setSearchable(true);
+            }
+            pBarrelsInfo_->setLock(true);
+            pIndexMerger->updateBarrels(pBarrelsInfo_);
+
+            pBarrelsInfo_->write(pIndexer_->getDirectory());
+            pBarrelsInfo_->setLock(false);
+            }
+            break;
         case OFFLINE:
 	    {
             OfflineIndexMerger* pIndexMerger = reinterpret_cast<OfflineIndexMerger*>(indexMergers_[op.opType]);
@@ -73,6 +95,18 @@ void IndexMergeManager::mergeIndex()
             pIndexMerger->merge(pBarrelsInfo_);
             pIndexer_->getIndexReader()->delDocFilter();
             pIndexMerger->setDocFilter(NULL);
+            BarrelInfo* pBaInfo;
+            pBarrelsInfo_->startIterator();
+            while (pBarrelsInfo_->hasNext())
+            {
+                pBaInfo = pBarrelsInfo_->next();
+                pBaInfo->setSearchable(true);
+            }
+            pBarrelsInfo_->setLock(true);
+            pIndexMerger->updateBarrels(pBarrelsInfo_);
+
+            pBarrelsInfo_->write(pIndexer_->getDirectory());
+            pBarrelsInfo_->setLock(false);
             }
             break;
         case NOOP:
@@ -84,7 +118,14 @@ void IndexMergeManager::mergeIndex()
 void IndexMergeManager::optimizeIndex()
 {
     MergeOP op;
-    op.opType = OFFLINE;
+    if(tasks_.empty())
+    {
+        op.opType = OFFLINE;
+    }
+    else
+    {
+        op.opType = FINISH;
+    }
     tasks_.push(op);
 }
 

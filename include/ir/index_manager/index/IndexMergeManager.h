@@ -30,6 +30,7 @@ namespace indexmanager{
 enum MergeOPType
 {
     ONLINE,
+    FINISH,
     OFFLINE,
     NOOP
 };

@@ -54,6 +54,22 @@ public:
 	virtual ~IDFactory();
 
 	/**
+	 * @brief a member function to get term ID from vocabulary which matches to the given term string.
+	 *
+	 * @param termStringBuffer	the content of term string.
+	 * @param termStringLength	the length of term string.
+	 * @param termId	    a term identifier which matches to the term string.
+	 * @return true  : 	Term exists in the dictionary.
+	 * @return false : 	Term does not exist in the dictionary.
+	 */
+	bool getTermIdByTermString(const char* termStringBuffer, const size_t termStringLength, NameID& termId)
+	{
+        bool ret = idGenerator_.conv(termStringBuffer, termStringLength, termId);
+        idStorage_.put(termId, termStringBuffer, termStringLength );
+        return ret;
+	}
+
+	/**
 	 * @brief This function returns an ID given a string and stores <ID,string> pair into sdb.
 	 * ID may not unique
 	 * @param nameString the name string

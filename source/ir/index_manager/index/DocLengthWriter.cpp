@@ -24,7 +24,7 @@ DocLengthWriter::DocLengthWriter(
                 propertyOffsetMap_[iter->getPropertyId()] = offset++;
         }
     }
-    size_t buffersize = 1024*1024;
+    size_t buffersize = 8*1024*1024;
     pOutput_ = pDirectory->createOutput("doclen.map", buffersize, "r+");
 }
 

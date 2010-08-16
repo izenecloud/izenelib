@@ -215,6 +215,17 @@ void BarrelsInfo::read(Directory* pDirectory, const char* name)
                         pBarrelInfo->isUpdate = false;
                 }
 
+                ///get <searchable></searchable> element
+                pItem = pBarrelItem->getElementByName("searchable");
+                if (!pItem) pBarrelInfo->searchable = true;
+                else
+                {
+                    if(pItem->getValue().compare("yes") == 0)
+                        pBarrelInfo->searchable = true;
+                    else
+                        pBarrelInfo->searchable = false;
+                }
+
                 barrelInfos.push_back(pBarrelInfo);
             }
             delete pDatabase;
@@ -302,6 +313,10 @@ void BarrelsInfo::write(Directory* pDirectory)
         ///add <is_update></is_update>
         pItem = pBarrelItem->addElement("is_update");
         str = pBarrelInfo->isUpdate ? "yes":"no";
+        pItem->setValue(str.c_str()); 
+        ///add <searchable></searchable>
+        pItem = pBarrelItem->addElement("searchable");
+        str = pBarrelInfo->searchable ? "yes":"no";
         pItem->setValue(str.c_str()); 
 
         iter ++;
@@ -465,7 +480,6 @@ void BarrelsInfo::sort(Directory* pDirectory)
         string str = newBarrelsInfo.newBarrel();
         pBaInfo->setDirty();
         pBaInfo->rename(pDirectory,str);///update barrel name
-        pBaInfo->setSearchable(true);
         iter++;
     }
 }

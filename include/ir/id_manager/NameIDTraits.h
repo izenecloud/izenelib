@@ -32,6 +32,12 @@ public:
   enum{MinValue = 1, MaxValue = INT_MAX };
 
   template<typename NameString>
+  static int32_t hash(const char * buffer, const size_t length)
+  {
+    return (int32_t)HashFunction<NameString>::generateHash32(buffer,length);
+  }
+
+  template<typename NameString>
   static int32_t hash(const NameString& key)
   {
     return (int32_t)HashFunction<NameString>::generateHash32(key);
@@ -43,6 +49,12 @@ class NameIDTraits<uint32_t>
 {
 public:
   enum{MinValue = 1, MaxValue = UINT_MAX };
+
+  template<typename NameString>
+  static uint32_t hash(const char * buffer, const size_t length)
+  {
+    return HashFunction<NameString>::generateHash32(buffer,length);
+  }
 
   template<typename NameString>
   static uint32_t hash(const NameString& key)
@@ -58,6 +70,12 @@ public:
   enum{MinValue = 1, MaxValue = LONG_MAX };
 
   template<typename NameString>
+  static int64_t hash(const char * buffer, const size_t length)
+  {
+    return (int64_t)HashFunction<NameString>::generateHash64(buffer,length);
+  }
+
+  template<typename NameString>
   static int64_t hash(const NameString& key)
   {
     return (int64_t)HashFunction<NameString>::generateHash64(key);
@@ -69,6 +87,13 @@ class NameIDTraits<uint64_t>
 {
 public:
   enum{MinValue = 1, MaxValue = ULONG_MAX };
+
+  template<typename NameString>
+  static uint64_t hash(const char * buffer, const size_t length)
+  {
+    return HashFunction<NameString>::generateHash64(buffer,length);
+  }
+
 
   template<typename NameString>
   static uint64_t hash(const NameString& key)

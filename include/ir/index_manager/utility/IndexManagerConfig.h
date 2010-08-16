@@ -58,11 +58,12 @@ private:
     public:
         /// @brief  Working directory
         std::string indexLocation_;
-
         /// @brief all working directory candidates
         ///
         /// directory name relative to the base index directory
         std::vector<std::string> indexLocations_;
+        /// @bried index mode
+        std::string indexMode_;
 
         std::string optimizeSchedule_;
         /**

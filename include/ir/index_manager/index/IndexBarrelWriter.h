@@ -128,6 +128,7 @@ public:
 
     BitVector* getDocFilter() { return pDocFilter_; }
 
+    bool isDirty() { return dirty_; }
 private:
     string barrelName_;
 
@@ -144,6 +145,8 @@ private:
     Directory* pDirectory_;
 
     BitVector* pDocFilter_;
+
+    volatile bool dirty_;
 
     friend class InMemoryIndexBarrelReader;
     friend class IndexWriter;

@@ -10,16 +10,16 @@
 enum EncodingType {
   UNKNOWN = 0,
   UTF_8, // unicode
-  EUC_KR, CP949, // korean 
-  EUC_JP, SJIS, // japanese 
-  GB2312, BIG5, // chinese 
-  ISO8859_15, // latin 
+  EUC_KR, CP949, // korean
+  EUC_JP, SJIS, // japanese
+  GB2312, BIG5, // chinese
+  ISO8859_15, // latin
   TOTAL_ENCODING_TYPE_NO // end of charset
 };
 
 /// a string which offers encoding type of the string.
 static const char EncodingTypeString[10][30];
-// Unicode character information table : Each value contains 8 characters' information(Because its data type is unsigned char - 8bits) according to the table name. 
+// Unicode character information table : Each value contains 8 characters' information(Because its data type is unsigned char - 8bits) according to the table name.
 // For example, UCS2_CHAR_GRAPH_TABLE determines if this unicode character is a graphcal character or not. So UCS2_CHAR_GRAPH_TABLE[0] covers unocode characters from
 // 0x0000 to 0x000f. To use this table, you should divide unicode character value into 8 finding block in table. After getting the value of the table, do AND operation
 // between the result of the table and (1 << (7 - (unicode character value % 8))) which indicates the exact character in block. These tables make it possible to reduce
@@ -37,7 +37,7 @@ static const unsigned char UCS2_CHAR_DIGIT_TABLE [8192]; ///< UCS2 character inf
 static const unsigned char UCS2_CHAR_ALNUM_TABLE [8192]; ///< UCS2 character information table which determines if it is the alpha or num character or not.
 static const unsigned char UCS2_CHAR_XDIGIT_TABLE[8192]; ///< UCS2 character information table which determines if it is the hexadecimal  character or not.
 
-// Unicode alphabet character converting tables 
+// Unicode alphabet character converting tables
 static const UCS2Char UCS2_CHAR_UPPER2LOWER_PAGE01[307]; ///< UCS2 alphabet converting table from upper to lower which covers UCS2 characters from 0x0100 to 0x0232.
 static const UCS2Char UCS2_CHAR_UPPER2LOWER_PAGE03[251]; ///< UCS2 alphabet converting table from upper to lower which covers UCS2 characters from 0x0300 to 0x03fa.
 static const UCS2Char UCS2_CHAR_UPPER2LOWER_PAGE04[271]; ///< UCS2 alphabet converting table from upper to lower which covers UCS2 characters from 0x0400 to 0x050e.
@@ -66,7 +66,7 @@ public:
 
 static const int DEFAULT_SIZE = 10; ///< a default size of memory.
 static const int FLEXIBLE_FREE_SPACE = 10; ///< a default size of memory.
-static const size_t NOT_FOUND = -1; ///< a return value of find() when the pattern is not found. 
+static const size_t NOT_FOUND = -1; ///< a return value of find() when the pattern is not found.
 static const size_t MAXIMUM_INDEX_SIZE = -2; ///< Maximum size of index. It is used
 
 protected:
@@ -102,7 +102,7 @@ inline vector_string(const char* initString, EncodingType encodingType)
 public:
 
 /**
- * @brief an interface function which determines if indexed UCS2 character is a 
+ * @brief an interface function which determines if indexed UCS2 character is a
  * graphical character. A graphical character is a character which is visible on the screen.
  *
  * @param index     an index of UString data.
@@ -114,8 +114,8 @@ inline bool isGraphChar(size_t index) const {
 } // end - isGraphChar()
 
 /**
- * @brief an static interface function which determines if given UCS2 character is a 
- * graphical character. 
+ * @brief an static interface function which determines if given UCS2 character is a
+ * graphical character.
  * You can refer comments of UCS2Table.h to get the information of the table.
  *
  * @param ucs2Char  an UCS2 type character.
@@ -130,7 +130,7 @@ static inline  bool isThisGraphChar(UCS2Char ucs2Char) {
 } // end - isThisGraphChar()
 
 /**
- * @brief an interface function which determines indexed UCS2 character is a spatial character. 
+ * @brief an interface function which determines indexed UCS2 character is a spatial character.
  * Space, Tab, Newline, and, other spatial characters are included in it.
  *
  * @param index     an index of UString data.
@@ -264,7 +264,7 @@ static bool isThisModernCJamo(UCS2Char ucs2Char) {
  * @brief an interface to determine given character is korean jamo.
  * @author Dohyun Yun
  */
-bool isJamo(int index) const { 
+bool isJamo(int index) const {
     assert((size_t)index<length_);
     return isThisJamo(str_[index]);
 } // end - isJamo()
@@ -679,7 +679,7 @@ UCS2Char toUpperChar(size_t index) {
     thisChar = UCS2_CHAR_LOWER2UPPER_PAGE1e[thisChar-0x1e00];
 
   //thisChar =  thisChar<<8;
-  
+
   str_[index] = thisChar;
 
   return thisChar;
@@ -758,7 +758,7 @@ void toUpperString(void) {
  * @brief an interface function which offers the first location of matched pattern at the start position in UString.
  *
  * @param patternString a string which is a source to find the location in UString data.
- * @param startOffset   a position where the find operation will be started.  
+ * @param startOffset   a position where the find operation will be started.
  * @param encodingType  an enumerated type which indicates encoding type.
  */
 inline size_t find(const std::string& patternString,
@@ -766,7 +766,7 @@ inline size_t find(const std::string& patternString,
 {
 
   SelfT patternUString(patternString, encodingType);
-  
+
   return find(patternUString, startOffset);
 } // end - find()
 
@@ -803,13 +803,13 @@ inline SelfT& assign(const std::string& initString,
     clear();
     return *this;
   }
-  
+
   derefer();
 
   max_size_ = initString.length()+1;
   length_ = 0;
   is_attached_ = false;
-  
+
   p_ = (char*)HLmemory::hlmalloc(get_total_size(max_size_-1));
   str_ = (CharT*)(p_+sizeof (ReferT));
 
@@ -842,55 +842,44 @@ inline SelfT& assign(const char* initString, EncodingType encodingType)
     clear();
     return *this;
   }
-  
+
   derefer();
-  
+
   max_size_ = len +1;
   length_ = 0;
   is_attached_ = false;
-  
+
   p_ = (char*)HLmemory::hlmalloc(get_total_size(max_size_-1));
   str_ = (CharT*)(p_+sizeof (ReferT));
 
   setUString(initString, encodingType);
 
   clear_reference();
-  
+
   //algo::read_from_encode(EncodingTypeString[encodingType],initString, len, *this);
   return *this;
 } // end - assign()
 
-/**
- * @brief an interface function to serve a certain type of string class
- * which is encoded with given encoding type.
- *
- * @param outputString  a string class which is the result of this function.
- * @param encodingType  an enumerated type which indicates encoding type.
- */
-void convertString(std::string& outputString,
-                   EncodingType encodingType) const {
-  outputString.clear();
+size_t convertString( EncodingType encodingType,
+                     char* const outputBuffer,
+                     const size_t outputBufferLimit) const
+{
   if (length() == 0)
-    return;
+    return 0;
 
   // Terminate converting if encoding type is not right value.
   if (encodingType == SelfT::UNKNOWN || encodingType
       == SelfT::TOTAL_ENCODING_TYPE_NO) {
-    outputString = "";
-    return;
+    return 0;
   } // end - if
+
+//  boost::posix_time::ptime start = boost::posix_time::microsec_clock::local_time();
 
   size_t inputStringIndex = 0;
   size_t inputStringLength = length();
   size_t outputStringIndex = 0;
 
-  size_t outputBufferSize = 3 * length() + 1; // UTF-8 consumes a maximum of 3 bytes.
-
-
-  //char* outputStringBuffer = new char[outputBufferSize + 1];
-  //std::cout<<"malloc "<<outputBufferSize<<std::endl;
-  char* outputStringBuffer = (char*)HLmemory::hlmalloc(outputBufferSize+1);
-  //std::cout<<"malloced...";
+  size_t outputBufferSize = outputBufferLimit;
 
   unsigned int inputUCSCharacter;
 
@@ -906,23 +895,23 @@ void convertString(std::string& outputString,
 
     // If there is no matched character in converting table, insert space character to the output.
     if (returnValue < 0) {
-      outputStringBuffer[outputStringIndex] = 0x20;
+      outputBuffer[outputStringIndex] = 0x20;
       outputStringIndex++;
       outputBufferSize--;
     } // end - if
 
-    // If there is matched character in converting table, insert right converting character to the output. 
+    // If there is matched character in converting table, insert right converting character to the output.
     else {
       // Using converting functions offered by iconv library. It will return byte size of converting character.
       returnValue
         = ConvertFunctionList[encodingType].convertFromUCS(
-                                                           (unsigned char*)&outputStringBuffer[outputStringIndex],
+                                                           (unsigned char*)&outputBuffer[outputStringIndex],
                                                            inputUCSCharacter, outputBufferSize);
 
       // If there is no matched character in converting table, insert space character to the output.
       switch (returnValue) {
       case RET_ILUNI:
-        outputStringBuffer[outputStringIndex] = 0x20; // space character
+        outputBuffer[outputStringIndex] = 0x20; // space character
         outputStringIndex++;
         outputBufferSize--;
         break;
@@ -948,11 +937,44 @@ void convertString(std::string& outputString,
 
   // If there's a space to insert NULL charactor, insert NULL.
   assert(outputBufferSize > 0);
-  assert(outputStringIndex < 3 * length() + 2);
-  outputStringBuffer[outputStringIndex] = '\0';
+  assert(outputStringIndex < outputBufferLimit);
+  outputBuffer[outputStringIndex] = '\0';
 
-  outputString.assign(( char*)outputStringBuffer, outputStringIndex);
-  
+  return outputStringIndex;
+}
+
+/**
+ * @brief an interface function to serve a certain type of string class
+ * which is encoded with given encoding type.
+ *
+ * @param outputString  a string class which is the result of this function.
+ * @param encodingType  an enumerated type which indicates encoding type.
+ */
+void convertString(std::string& outputString,
+                   EncodingType encodingType) const {
+  outputString.clear();
+  if (length() == 0)
+    return;
+
+  // Terminate converting if encoding type is not right value.
+  if (encodingType == SelfT::UNKNOWN || encodingType
+      == SelfT::TOTAL_ENCODING_TYPE_NO) {
+    outputString = "";
+    return;
+  } // end - if
+
+  size_t outputBufferSize = 3 * length() + 1; // UTF-8 consumes a maximum of 3 bytes.
+
+
+  //char* outputStringBuffer = new char[outputBufferSize + 1];
+  //std::cout<<"malloc "<<outputBufferSize<<std::endl;
+  char* outputStringBuffer = (char*)HLmemory::hlmalloc(outputBufferSize+1);
+  //std::cout<<"malloced...";
+
+  size_t length = convertString(encodingType, outputStringBuffer, outputBufferSize+1);
+
+  outputString.assign(( char*)outputStringBuffer, length);
+
   HLmemory::hlfree(outputStringBuffer);
 
 /*   char* buf = NULL; */
@@ -963,6 +985,94 @@ void convertString(std::string& outputString,
 /*   algo::release(buf); */
 } // end - convertString
 
+
+/**
+ * @brief an interface function to transfrom characters of any encoding type into ucs2 characters.
+ * @details This interface is extracted from setUString(), and is added to avoid UString objects allocation
+ * and improve LA's performance, Wei, 2010/08/04.
+ *
+ * @param encodingType      an enumerated type which indicates encoding type of inputString.
+ * @param inputString       an char* array which contains characters of a specific encoding type.
+ * @param inputStringSize   the number of char contained in inputString.
+ * @param outputBuffer      an CharT* array which is used for hold the output ucs2 encoding characters.
+ * @param outputBufferLimit the maximum length of outputBuffer, counted in CharT.
+ */
+static size_t toUcs2( EncodingType encodingType,
+                    const char* const inputString, const size_t inputStringSize,
+                    CharT* const outputBuffer, const size_t outputBufferLimit)
+{
+  // Terminate converting if encoding type is not right value.
+  if (encodingType == SelfT::UNKNOWN || encodingType
+      == SelfT::TOTAL_ENCODING_TYPE_NO) {
+    return 0;
+  } // end - if
+
+  size_t inputStringIndex = 0;
+  size_t inputStringLength = inputStringSize; // Assign the length
+
+  size_t outputStringIndex = 0;
+  size_t outputBufferSize = outputBufferLimit;//*sizeof(CharT);
+
+  unsigned int outputUCSCharacter;
+
+  int returnValue;
+
+  // Coninue converting characters one by one while there is no space in output buffer or there is no character to read.
+  while (outputBufferSize != 0 && inputStringLength != 0) {
+
+    // Using converting functions offered by iconv library. It will return byte size of converting character.
+    assert(inputStringIndex < inputStringSize);
+    returnValue
+      = ConvertFunctionList[encodingType].convertToUCS(
+                                                       &outputUCSCharacter,
+                                                       (unsigned char*)&inputString[inputStringIndex],
+                                                       inputStringLength);
+
+    // If there is no matched character in converting table, insert space character to the output.
+    if (returnValue < 0) {
+      switch (returnValue) {
+      case RET_ILSEQ:
+        outputBuffer[outputStringIndex] = (UCS2Char)0x20; // insert space character to the UCS4 String
+        inputStringLength--;
+        inputStringIndex++;
+        break;
+
+      default: // Illigal return value. Stop converting.
+        inputStringLength = 0;
+        break;
+      } // end - switch
+
+    } // end - if
+
+    // If there is matched character in converting table, insert right converting character to the output.
+    else {
+      // Move to the next position in the input string.
+      inputStringIndex += returnValue;
+      if (inputStringLength > (size_t)returnValue)
+        inputStringLength -= returnValue;
+      else
+        inputStringLength = 0;
+
+      // Convert ucs4 to ucs2
+      returnValue = ucs2_wctomb(&outputBuffer[outputStringIndex],
+								outputUCSCharacter, outputBufferLimit);
+
+      if (returnValue < 0)
+        outputBuffer[outputStringIndex] = (UCS2Char)0x20;
+
+      outputStringIndex++;
+      outputBufferSize--;
+    } // end - else
+
+  } // end - while
+
+  // If there is no characters which needs to be convert, insert NULL into the output.
+  assert(outputBufferSize > 0);
+  assert(outputStringIndex < outputBufferLimit);
+  outputBuffer[outputStringIndex] = '\0';
+
+  return outputStringIndex;
+}
 
 /**
  * @brief an interface function which serves sub string of original one.
@@ -996,7 +1106,7 @@ SelfT substr(SelfT& outputUString, size_t pos, size_t nChar) const
 
 
 /**
- * @brief an default format interface function which offers convinient formatted string insertion like a sprintf(). 
+ * @brief an default format interface function which offers convinient formatted string insertion like a sprintf().
  * It just calls formatProcess() functions. It uses default sized(1024 byte) buffer.
  *
  * @param encodingType  an enumerated type which indicates encoding type.
@@ -1012,7 +1122,7 @@ void format(EncodingType encodingType, const char* formatString,
 
 
 /**
- * @brief an interface which offers convinient formatted string insertion like a sprintf(). 
+ * @brief an interface which offers convinient formatted string insertion like a sprintf().
  * It also calls formatProcess() function to get the format string.
  *
  * @param encodingType  an enumerated type which indicates encoding type.
@@ -1028,11 +1138,12 @@ inline void format(EncodingType encodingType, int maxBufferSize,
                 argumentList);
 } // end - format()
 
+
 private:
 
 /**
- * @brief an format process function which offers convinient formatted string insertion like a sprintf(). 
- * This function is a real processing function. 
+ * @brief an format process function which offers convinient formatted string insertion like a sprintf().
+ * This function is a real processing function.
  *
  * @param encodingType  an enumerated type which indicates encoding type.
  * @param maxBufferSize a maximum size of buffer which will contains the result string.
@@ -1054,8 +1165,10 @@ void formatProcess(EncodingType encodingType, int maxBufferSize,
   HLmemory::hlfree(buffer);
 } // end - formatProcess()
 
+
+
 /**
- * @brief an interface function to set data area of UString with certain encoded string. 
+ * @brief an interface function to set data area of UString with certain encoded string.
  * @details
  * p.s This interface should be called after data_ allocation is finished.
  *
@@ -1065,81 +1178,12 @@ void formatProcess(EncodingType encodingType, int maxBufferSize,
 void setUString(const std::string& inputString,
                 EncodingType encodingType) {
 
-  // Terminate converting if encoding type is not right value.
-  if (encodingType == SelfT::UNKNOWN || encodingType
-      == SelfT::TOTAL_ENCODING_TYPE_NO) {
-    return;
-  } // end - if
+  length_ = toUcs2(encodingType, inputString.c_str(), inputString.size(), str_, max_size_);
 
-  size_t inputStringIndex = 0;
-  size_t inputStringLength = inputString.size(); // Assign the length
-
-  size_t outputStringIndex = 0;
-  size_t outputBufferSize = max_size_;//*sizeof(CharT);
-  
-  unsigned int outputUCSCharacter;
-
-  int returnValue;
-
-  // Coninue converting characters one by one while there is no space in output buffer or there is no character to read.
-  while (outputBufferSize != 0 && inputStringLength != 0) {
-
-    // Using converting functions offered by iconv library. It will return byte size of converting character.
-    assert(inputStringIndex < inputString.size());
-    returnValue
-      = ConvertFunctionList[encodingType].convertToUCS(
-                                                       &outputUCSCharacter,
-                                                       (unsigned char*)&inputString[inputStringIndex],
-                                                       inputStringLength);
-
-    // If there is no matched character in converting table, insert space character to the output.
-    if (returnValue < 0) {
-      switch (returnValue) {
-      case RET_ILSEQ:
-        str_[outputStringIndex] = (UCS2Char)0x20; // insert space character to the UCS4 String
-        inputStringLength--;
-        inputStringIndex++;
-        break;
-
-      default: // Illigal return value. Stop converting.
-        inputStringLength = 0;
-        break;
-      } // end - switch
-
-    } // end - if
-
-    // If there is matched character in converting table, insert right converting character to the output. 
-    else {
-      // Move to the next position in the input string.
-      inputStringIndex += returnValue;
-      if (inputStringLength > (size_t)returnValue)
-        inputStringLength -= returnValue;
-      else
-        inputStringLength = 0;
-
-      // Convert ucs4 to ucs2
-      returnValue = ucs2_wctomb(&str_[outputStringIndex],
-								outputUCSCharacter, max_size_);
-
-      if (returnValue < 0)
-        str_[outputStringIndex] = (UCS2Char)0x20;
-
-      outputStringIndex++;
-      outputBufferSize--;
-    } // end - else
-
-  } // end - while
-
-  // If there is no characters which needs to be convert, insert NULL into the output.
-  assert (outputBufferSize>0);
-  assert(outputStringIndex < max_size_);
-  str_[outputStringIndex] = '\0';
-
-  length_ = outputStringIndex;
   /* 2008.07.31
    * no need to use dataString_ because Sunday support ustring directly.
    */
-  // Set dataString_ 
+  // Set dataString_
   //convertString(dataString_, encodingType);
 
 } // end - setUString()
@@ -1148,7 +1192,7 @@ public:
 
 /**
  * @brief an interface function which shows string value in certain encoding type.
- * 
+ *
  * @param encodingType  an enumerated type which indicates encoding type.
  * @param outputStream  an output stream where the string message is shown. default value is cerr
  */
@@ -1165,7 +1209,7 @@ void displayStringValue(EncodingType encodingType,
 
 /**
  * @brief an interface function which shows class infomation of UString in certain encoding type.
- * 
+ *
  * @param encodingType  an enumerated type which indicates encoding type.
  * @param outputStream  an output stream where the string message is shown. default value is cerr
  */
@@ -1238,7 +1282,7 @@ inline void setBuffer(size_t length, size_t bufferSize,
 static typename SelfT::EncodingType convertEncodingTypeFromStringToEnum(const char* encodingTypeString)
 {
 
-  // Index variables are used for string matching. 
+  // Index variables are used for string matching.
   int stringIndex;
   int encodingTypeIndex;
   char givenCharacter, encodingTypeCharacter;

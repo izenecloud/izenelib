@@ -33,7 +33,7 @@
 #include <am/graph_index/id_transfer.hpp>
 #include <am/graph_index/sorter.hpp>
 #include <am/graph_index/graph.hpp>
-//#include <util/izene_log.h>
+#include <boost/test/unit_test.hpp>
 
 #include <string>
 #include <time.h>
@@ -50,9 +50,11 @@ using namespace std;
 
 uint32_t error_count = 0;
 
+BOOST_AUTO_TEST_SUITE(graph_index_test)
+
 #define CHECK(f)\
   {                                                \
-    if (!(f)){ ++error_count; std::cout<<"ERROR: "<<__FILE__<<": "<<__LINE__<<": "<<__FUNCTION__<<endl;} \
+    if (!(f)){ BOOST_CHECK(false);++error_count; std::cout<<"ERROR: "<<__FILE__<<": "<<__LINE__<<": "<<__FUNCTION__<<endl;} \
   }
 #define ERROR_COUNT {if(error_count>0)cout<<endl<<error_count<<" errors ware found!";else{cout<<"\nNo error detected!\n"}}
 
@@ -169,7 +171,7 @@ void dyn_array_check(const VALUE_TYPE& t = VALUE_TYPE())
 {
   cout<<"DynArray checking....\n";
 
-  system("rm -fr ./tt*");
+  boost::filesystem::remove_all("./tt");
   vector<VALUE_TYPE> v;
   typedef DynArray<VALUE_TYPE> Array;
   {
@@ -294,7 +296,7 @@ void integer_hash_check(const VALUE_TYPE& t = VALUE_TYPE())
 {
   cout<<"IntegerHashTable checking....\n";
 
-  system("rm -fr ./tt*");
+  boost::filesystem::remove_all("./tt");
   
   vector<VALUE_TYPE> v;
   typedef IntegerHashTable<VALUE_TYPE> hash_t;
@@ -348,7 +350,7 @@ void id_transfer_check()
 {
   cout<<"IDtransfer checking ...\n";
 
-  system("rm -fr ./tt*");
+  boost::filesystem::remove_all("./tt");
   typedef IdTransfer<> id_t;
 
   const uint32_t SIZE=1000000;
@@ -408,7 +410,7 @@ void sorter_check()
 {
   typedef DynArray<uint32_t> terms_t;
   {
-    system("rm -fr ./tt*");
+    boost::filesystem::remove_all("./tt");
 
     struct timeval tvafter,tvpre;
     struct timezone tz;
@@ -540,176 +542,12 @@ void graph_check()
 {
   cout<<"Graph checking ...\n";
 
-  system("rm -fr ./tt*");
-
+  boost::filesystem::remove_all("./tt");
   {
-     
-    vector<uint32_t> vs;
-
-
-    Graph<> graph("./tt");
-
-    graph.ready4add();
-    
-    vs.push_back(7);vs.push_back(2);vs.push_back(8);vs.push_back(9);vs.push_back(10);
-    vs.push_back(11);vs.push_back(12);vs.push_back(13);
-    graph.add_terms(vs, 1);
-    vs.clear();
-  
-    vs.push_back(14);vs.push_back(15);vs.push_back(13);
-    graph.add_terms(vs, 1);
-    vs.clear();
-  
-    vs.push_back(1);vs.push_back(2);vs.push_back(3);vs.push_back(4);
-    graph.add_terms(vs, 2);
-    vs.clear();
-  
-    vs.push_back(5);vs.push_back(2);vs.push_back(3);vs.push_back(4);vs.push_back(6);
-    graph.add_terms(vs, 3);
-    vs.clear();
-
-    vs.push_back(3);vs.push_back(5);vs.push_back(3);vs.push_back(7);vs.push_back(6);
-    graph.add_terms(vs, 3);
-    vs.clear();
-
-    vs.push_back(5);vs.push_back(7);vs.push_back(7);vs.push_back(5);vs.push_back(6);
-    graph.add_terms(vs, 4);
-    vs.clear();
-
-    vs.push_back(15);vs.push_back(17);vs.push_back(17);vs.push_back(15);vs.push_back(13);
-    graph.add_terms(vs, 5);
-    vs.clear();
-
-    CHECK(graph.doc_num() == 5 );
-
-    //cout<<"\nStart indexing.............\n";
-    graph.indexing();
-    graph.ratio_load(0.2);
-
-    //test for appending
-    graph.ready4update();
-    
-    vs.push_back(105);vs.push_back(107);vs.push_back(107);vs.push_back(105);vs.push_back(103);
-    graph.append_terms(vs, 6);
-    vs.clear();
-
-    vs.push_back(15);vs.push_back(17);vs.push_back(5);vs.push_back(15);vs.push_back(17);
-    graph.append_terms(vs, 8);
-    vs.clear();
-
-    vs.push_back(17);vs.push_back(4);vs.push_back(5);vs.push_back(2);vs.push_back(3);
-    graph.append_terms(vs, 8);
-    vs.clear();
-
-    //test delete terms
-    vs.push_back(9);vs.push_back(7);vs.push_back(107);vs.push_back(105);vs.push_back(103);
-    graph.append_terms(vs, 9);
-    vs.clear();
-
-    vs.push_back(15);vs.push_back(11);vs.push_back(5);vs.push_back(15);vs.push_back(7);
-    graph.append_terms(vs, 10);
-    vs.clear();
-
-    vs.push_back(8);vs.push_back(4);vs.push_back(5);vs.push_back(2);vs.push_back(3);
-    graph.append_terms(vs, 10);
-    vs.clear();
-
-    vs.push_back(9);vs.push_back(7);vs.push_back(107);vs.push_back(105);vs.push_back(103);
-    graph.del_terms(vs, 9);
-    vs.clear();
-
-    vs.push_back(15);vs.push_back(11);vs.push_back(5);vs.push_back(15);vs.push_back(7);
-    graph.del_terms(vs, 10);
-    vs.clear();
-
-    vs.push_back(8);vs.push_back(4);vs.push_back(5);vs.push_back(2);vs.push_back(3);
-    graph.del_terms(vs, 10);
-    vs.clear();
-
-    graph.flush();
-
-    //graph.compact();
-    
-    graph.ratio_load(0.2);
-    //std::cout<<graph;
-    
-    vs.push_back(7);
-    //std::cout<<graph.get_freq(vs)<<" MMMMMMMMMM\n";
-    CHECK(graph.get_freq(vs)==4);
-    vs.clear();
-
-    vs.push_back(2);
-    //std::cout<<graph.get_freq(vs)<<" MMMMMMMMMM\n";
-    CHECK(graph.get_freq(vs)== 4);
-    vs.clear();
-
-    vs.push_back(5);
-    //std::cout<<graph.get_freq(vs)<<" MMMMMMMMMM\n";
-    CHECK(graph.get_freq(vs)==6);
-    vs.clear();
-
-    vs.push_back(2);
-    vs.push_back(3);
-    //std::cout<<graph.get_freq(vs)<<" MMMMMMMMMM\n";
-    CHECK(graph.get_freq(vs)==3);
-    vs.clear();
-
-    vs.push_back(5);vs.push_back(2);vs.push_back(3);vs.push_back(4);
-    vs.push_back(6);
-    CHECK(graph.get_freq(vs)==1);
-    vs.clear();
-
-    vector<uint32_t> suffix;
-    vector<uint32_t> counts;
-    vs.push_back(15);
-    graph.get_suffix(vs, suffix, counts);
-    CHECK(suffix.size()==2);
-    CHECK(counts.size()==2);
-    for (size_t i=0; i<suffix.size();++i)
-    {
-      if (suffix[i] == 13)
-      {
-        CHECK(counts[i]==2);
-      }    
-      else if(suffix[i]==17)
-      {
-        CHECK(counts[i]==3);
-      }
-      else
-        CHECK(false);
-    }
-    vs.clear();
-
-    vs.push_back(2);vs.push_back(3);
-    graph.get_suffix(vs, suffix, counts);
-    CHECK(suffix.size()==1);
-    CHECK(counts.size()==1);
-    for (size_t i=0; i<suffix.size();++i)
-    {
-      if (suffix[i]==4)
-      {
-        CHECK(counts[i]==2);
-      }
-      else
-        CHECK(false);
-    }
-    vs.clear();
-
-    graph.get_doc_list(suffix, suffix);
-  }
-
-  std::cout<<"kkkkkkkkkkkkkkkkkkkkkkk\n";
-  system("rm -fr ./tt*");
-  {
-    ofstream of("./of");
     Graph<> graph("./tt");
     typedef DynArray<uint32_t> Array;
-    
-    struct timeval tvafter,tvpre;
-    struct timezone tz;
   
-    const uint32_t SIZE = 500000;
-    const uint32_t snip_len = 10;
+    const uint32_t SIZE = 50000;
     vector<vector<uint32_t> > vs;
     
     graph.ready4add();
@@ -739,309 +577,37 @@ void graph_check()
         cout<<"[ERROR]: "<<arr<<endl;
       }
   }
-  
-  system("rm -fr ./tt*");
-  construct_trie("./tt", 1000);
 
-  //std::cout << izenelib::util::getMemInfo() << std::endl;
-  // getchar();
-//   char* kk = (char*)malloc(20000000);//new char[200000000];//
-//   std::cout << izenelib::util::getMemInfo() << std::endl;
-//   getchar();
-//   free(kk);
-//   kk = NULL;
-//   std::cout << izenelib::util::getMemInfo() << std::endl;
-//   getchar();
-
-    
-  {
-    Graph<> graph("./tt");
-    
-    struct timeval tvafter,tvpre;
-    struct timezone tz;
-  
-    const uint32_t SIZE = 1000;
-    const uint32_t snip_len = 10;
-    vector<uint64_t> vs;
-    
-    graph.ready4update();
-
-    gettimeofday (&tvpre , &tz);
-    for (uint32_t p = 0; p<10; ++p)
-    {
-      vs.resize(SIZE);
-      for (uint64_t i=0; i<SIZE; ++i)
-        vs[i] = (rand()%80000);
-
-      uint32_t docid = 0;
-      for (size_t i=0; i<vs.size()-snip_len; i+=snip_len)
-      {
-        vector<uint32_t> terms;
-        for (size_t j=i; j<i+snip_len; ++j)
-        {
-          //cout<<vs[j]<<" ";
-          terms.push_back(vs[j]);
-        }
-        //cout<<endl;
-
-        if (i%(10*snip_len)==0)
-          ++docid;
-
-        graph.append_terms(terms, docid);
-      }
-    }
-
-    graph.flush();
-    gettimeofday (&tvafter , &tz);
-    cout<<"\nAppend into graph ("<<graph.doc_num()<<"): "<<((tvafter.tv_sec-tvpre.tv_sec)*1000+(tvafter.tv_usec-tvpre.tv_usec)/1000)/60000.<<" min\n";
-    //graph.ratio_load();
-  }
+  boost::filesystem::remove_all("./tt");
   
 }
 
-
-void graph_merge_check()
+BOOST_AUTO_TEST_CASE(dyn_array_test)
 {
-  cout<<"Graph checking ...\n";
-
-  system("rm -fr ./tt*");
-
-  vector<uint32_t> vs;
-
-  {
-      
-    Graph<> graph("./tt1");
-
-    graph.ready4add();
-    
-    vs.push_back(7);vs.push_back(2);vs.push_back(8);vs.push_back(9);vs.push_back(10);
-    vs.push_back(11);vs.push_back(12);vs.push_back(13);
-    graph.add_terms(vs, 1);
-    vs.clear();
-  
-    vs.push_back(14);vs.push_back(15);vs.push_back(13);
-    graph.add_terms(vs, 1);
-    vs.clear();
-  
-    vs.push_back(1);vs.push_back(2);vs.push_back(3);vs.push_back(4);
-    graph.add_terms(vs, 2);
-    vs.clear();
-  
-    vs.push_back(5);vs.push_back(2);vs.push_back(3);vs.push_back(4);vs.push_back(6);
-    graph.add_terms(vs, 3);
-    vs.clear();
-
-    vs.push_back(3);vs.push_back(5);vs.push_back(3);vs.push_back(7);vs.push_back(6);
-    graph.add_terms(vs, 3);
-    vs.clear();
-
-    vs.push_back(5);vs.push_back(7);vs.push_back(7);vs.push_back(5);vs.push_back(6);
-    graph.add_terms(vs, 4);
-    vs.clear();
-
-    vs.push_back(15);vs.push_back(17);vs.push_back(17);vs.push_back(15);vs.push_back(13);
-    graph.add_terms(vs, 5);
-    vs.clear();
-
-    CHECK(graph.doc_num() == 5 );
-
-    //cout<<"\nStart indexing.............\n";
-    graph.indexing();
-  }
-  {
-    Graph<> graph("./tt2");
-
-    //test for appending
-    graph.ready4add();
-    
-    vs.push_back(105);vs.push_back(107);vs.push_back(107);vs.push_back(105);vs.push_back(103);
-    graph.add_terms(vs, 6);
-    vs.clear();
-
-    vs.push_back(15);vs.push_back(17);vs.push_back(5);vs.push_back(15);vs.push_back(17);
-    graph.add_terms(vs, 8);
-    vs.clear();
-
-    vs.push_back(17);vs.push_back(4);vs.push_back(5);vs.push_back(2);vs.push_back(3);
-    graph.add_terms(vs, 8);
-    vs.clear();
-    
-    graph.indexing();
-  }
-  {
-    Graph<> graph("./tt3");
-
-    //test for appending
-    graph.ready4add();
-    
-    vs.push_back(1115);vs.push_back(1077);vs.push_back(1077);vs.push_back(1055);vs.push_back(1033);
-    graph.add_terms(vs, 45);
-    vs.clear();
-
-    vs.push_back(155);vs.push_back(177);vs.push_back(55);vs.push_back(15);vs.push_back(127);
-    graph.add_terms(vs, 99);
-    vs.clear();
-
-    vs.push_back(177);vs.push_back(44);vs.push_back(55);vs.push_back(22);vs.push_back(33);
-    graph.add_terms(vs, 99);
-    vs.clear();
-    
-    graph.indexing();
-  }
-  {
-    Graph<> graph("./tt1");
-    Graph<> graph2("./tt2");
-    Graph<> graph3("./tt3");
-
-    // graph.ratio_load(0.2);
-//     std::cout<<graph<<std::endl;
-//     cout<<"-----------------\n";
-//     graph2.ratio_load(0.2);
-//     std::cout<<graph2<<std::endl;
-
-    std::cout<<"Start merging...\n";
-    graph.merge(graph2);
-    
-    {
-      graph2.ratio_load();
-      graph.ratio_load();
-      // cout<<graph<<endl;
-//       cout<<"===========\n";
-//       cout<<graph2<<endl;
-      Graph<>::Node root1 = graph.get_root();
-      Graph<>::Node root2 = graph2.get_root();
-
-      Graph<>::NodeIterator it = root2.children_begin();
-      while(it != root2.children_end())
-      {
-        Graph<>::Node tmp;
-        CHECK(graph2.get_node(root1, (*it).get_term(), tmp));
-        ++it;
-      }
-    }
-    
-    
-    graph.merge(graph3);
-  
-
-    std::cout<<"Start counter-merging...\n";
-    graph.counter_merge(graph3);
-  }
-  {
-    Graph<> graph("./tt1");
-    graph.ratio_load(0.2);
-    //std::cout<<graph<<std::endl;
-    
-    vs.push_back(7);
-    //std::cout<<graph.get_freq(vs)<<" MMMMMMMMMM\n";
-    CHECK(graph.get_freq(vs)==4);
-    vs.clear();
-
-    vs.push_back(2);
-    //std::cout<<graph.get_freq(vs)<<" MMMMMMMMMM\n";
-    CHECK(graph.get_freq(vs)== 4);
-    vs.clear();
-
-    vs.push_back(5);
-    //std::cout<<graph.get_freq(vs)<<" MMMMMMMMMM\n";
-    CHECK(graph.get_freq(vs)==6);
-    vs.clear();
-
-    vs.push_back(2);
-    vs.push_back(3);
-    //std::cout<<graph.get_freq(vs)<<" MMMMMMMMMM\n";
-    CHECK(graph.get_freq(vs)==3);
-    vs.clear();
-
-    vs.push_back(5);vs.push_back(2);vs.push_back(3);vs.push_back(4);
-    vs.push_back(6);
-    CHECK(graph.get_freq(vs)==1);
-    vs.clear();
-
-    vector<uint32_t> suffix;
-    vector<uint32_t> counts;
-    vs.push_back(15);
-    graph.get_suffix(vs, suffix, counts);
-    CHECK(suffix.size()==2);
-    CHECK(counts.size()==2);
-    for (size_t i=0; i<suffix.size();++i)
-    {
-      if (suffix[i] == 13)
-      {
-        CHECK(counts[i]==2);
-      }    
-      else if(suffix[i]==17)
-      {
-        CHECK(counts[i]==3);
-      }
-      else
-        CHECK(false);
-    }
-    vs.clear();
-
-    vs.push_back(2);vs.push_back(3);
-    graph.get_suffix(vs, suffix, counts);
-    CHECK(suffix.size()==1);
-    CHECK(counts.size()==1);
-    for (size_t i=0; i<suffix.size();++i)
-    {
-      if (suffix[i]==4)
-      {
-        CHECK(counts[i]==2);
-      }
-      else
-        CHECK(false);
-    }
-    vs.clear();
-    
-    vector<uint32_t> docids;
-    graph.get_doc_list(suffix, docids);
-    
-  }
-
-  system("rm -fr ./tt*");
-  construct_trie("./tt", 100000);
-  construct_trie("./tt1", 100000);  
-  {
-    Graph<> graph("./tt");
-    Graph<> graph2("./tt1");
-
-    struct timeval tvafter,tvpre;
-    struct timezone tz;
-
-    gettimeofday (&tvpre , &tz);
-    graph.merge(graph2);
-    gettimeofday (&tvafter , &tz);
-    cout<<"\nMerge graph ("<<graph.doc_num()<<"): "<<((tvafter.tv_sec-tvpre.tv_sec)*1000+(tvafter.tv_usec-tvpre.tv_usec)/1000)/60000.<<" min\n";
-
-    
-    gettimeofday (&tvpre , &tz);
-    graph.counter_merge(graph2);
-    gettimeofday (&tvafter , &tz);
-    cout<<"\nCounter-Merge graph ("<<graph.doc_num()<<"): "<<((tvafter.tv_sec-tvpre.tv_sec)*1000+(tvafter.tv_usec-tvpre.tv_usec)/1000)/60000.<<" min\n";
-
-  }
-  
-
-
-}
-
-int main()
-{
-  
    dyn_array_check<uint64_t>();
    dyn_array_check<struct TEST_STRUCT>();
-
-//    integer_hash_check<uint64_t>();
-//    integer_hash_check<struct TEST_STRUCT>();
-
-//    id_transfer_check();
-
-  //sorter_check();
-
-  //graph_merge_check();
-  
-   //graph_check();
 }
 
+BOOST_AUTO_TEST_CASE(integer_hash_test)
+{
+  integer_hash_check<uint64_t>();
+  integer_hash_check<struct TEST_STRUCT>();
+}
+
+BOOST_AUTO_TEST_CASE(id_transfer_test)
+{
+  id_transfer_check();
+}
+
+BOOST_AUTO_TEST_CASE(sorter_test)
+{
+  sorter_check();
+}
+
+BOOST_AUTO_TEST_CASE(graph_test)
+{
+  graph_check();
+}
+
+BOOST_AUTO_TEST_SUITE_END()
  

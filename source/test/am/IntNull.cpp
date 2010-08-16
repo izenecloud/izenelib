@@ -18,8 +18,7 @@
 
 #include <cstdio>
 
-#include "TestDir.h"
-#define DIR_PREFIX TEST_TMP_DIR "/am_IntNull_"
+#define DIR_PREFIX "./tmp/am_IntNull_"
 
 using namespace izenelib::am;
 

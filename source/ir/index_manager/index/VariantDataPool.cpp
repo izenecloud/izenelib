@@ -4,8 +4,7 @@ using namespace izenelib::ir::indexmanager;
 
 //////////////////////////////////////////////////////////////////////////
 ///VariantDataPool
-int32_t VariantDataPool::UPTIGHT_ALLOC_CHUNKSIZE = 8;
-int32_t VariantDataPool::UPTIGHT_ALLOC_MEMSIZE = 40000;
+int32_t VariantDataPool::UPTIGHT_ALLOC_MEMSIZE = 10*1024*1024;
 
 VariantDataPool::VariantDataPool(MemCache* pMemCache)
 		:pMemCache_(pMemCache)
@@ -157,17 +156,16 @@ void VariantDataPool::addChunk()
     if (!begin)
     {
         ///into UPTIGHT state
-        begin = pMemCache_->getMem(UPTIGHT_ALLOC_CHUNKSIZE);
+        begin = pMemCache_->getMem(chunkSize);
         ///allocation failed again, grow memory cache.
         if (!begin)
         {
-            begin  = pMemCache_->grow(UPTIGHT_ALLOC_MEMSIZE)->getMem(UPTIGHT_ALLOC_CHUNKSIZE);
+            begin  = pMemCache_->grow(UPTIGHT_ALLOC_MEMSIZE)->getMem(chunkSize);
             if (!begin)
             {
                 SF1V5_THROW(ERROR_OUTOFMEM,"InMemoryPosting:newChunk() : Allocate memory failed.");
             }
         }
-        chunkSize = UPTIGHT_ALLOC_CHUNKSIZE;
     }
 
     VariantDataChunk* pChunk = (VariantDataChunk*)begin;

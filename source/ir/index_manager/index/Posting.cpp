@@ -40,6 +40,7 @@ InMemoryPosting::InMemoryPosting(MemCache* pCache, int skipInterval, int maxSkip
 {
     pDocFreqList_ = new VariantDataPool(pCache);
     pLocList_  = new VariantDataPool(pCache);
+    if(skipInterval_) pSkipListWriter_ = new SkipListWriter(skipInterval_,maxSkipLevel_,pMemCache_);
 }
 
 InMemoryPosting::InMemoryPosting(int skipInterval, int maxSkipLevel)
@@ -227,9 +228,8 @@ void InMemoryPosting::add(docid_t docid, loc_t location)
 
         if(skipInterval_ && nDF_ > 0 && nDF_ % skipInterval_ == 0)
         {
-            if(!pSkipListWriter_)
-                pSkipListWriter_ = new SkipListWriter(skipInterval_,maxSkipLevel_,pMemCache_);
-
+            //if(!pSkipListWriter_)
+                //pSkipListWriter_ = new SkipListWriter(skipInterval_,maxSkipLevel_,pMemCache_);
             pSkipListWriter_->addSkipPoint(nLastDocID_,pDocFreqList_->getLength(),pLocList_->getLength());
         }
 
@@ -284,7 +284,7 @@ int32_t InMemoryPosting::decodeNext(uint32_t* pPosting,int32_t length)
 {
     if(dirty_)
     {
-        SF1V5_THROW(ERROR_FILEIO,"Index dirty.");
+        return 0;
     }
 
     ///flush last document
@@ -304,7 +304,7 @@ int32_t InMemoryPosting::decodeNext(uint32_t* pPosting,int32_t length)
 
     if(! pDS_->decodingDChunk)
     {
-        SF1V5_THROW(ERROR_FILEIO,"Index dirty.");
+        return 0;
     }
 
     uint32_t* pDoc = pPosting;
@@ -352,11 +352,11 @@ int32_t InMemoryPosting::decodeNext(uint32_t* pPosting,int32_t length)
     return (int32_t)(pDoc - pPosting);
 }
 
-void InMemoryPosting::decodeNextPositions(uint32_t* pPosting,int32_t length)
+bool InMemoryPosting::decodeNextPositions(uint32_t* pPosting,int32_t length)
 {
     if(dirty_ || ! pDS_->decodingPChunk)
     {
-        SF1V5_THROW(ERROR_FILEIO,"Index dirty.");
+        return false;
     }
 
     uint8_t* pPChunk = &(pDS_->decodingPChunk->data[pDS_->decodingPChunkPos]);
@@ -387,13 +387,14 @@ void InMemoryPosting::decodeNextPositions(uint32_t* pPosting,int32_t length)
     }
     pDS_->decodedPosCount += nDecoded;
     pDS_->lastDecodedPos = loc;
+    return true;
 }
 
-void InMemoryPosting::decodeNextPositions(uint32_t* pPosting,uint32_t* pFreqs,int32_t nFreqs)
+bool InMemoryPosting::decodeNextPositions(uint32_t* pPosting,uint32_t* pFreqs,int32_t nFreqs)
 {
     if(dirty_|| ! pDS_->decodingPChunk)
     {
-        SF1V5_THROW(ERROR_FILEIO,"Index dirty.");
+        return false;
     }
 
     uint8_t* pPChunk = &(pDS_->decodingPChunk->data[pDS_->decodingPChunkPos]);
@@ -432,6 +433,7 @@ void InMemoryPosting::decodeNextPositions(uint32_t* pPosting,uint32_t* pFreqs,in
 
     pDS_->decodedPosCount += nTotalDecoded;
     pDS_->lastDecodedPos = loc;
+    return true;
 }
 
 SkipListReader* InMemoryPosting::getSkipListReader()
@@ -715,14 +717,14 @@ int32_t OnDiskPosting::decodeNext(uint32_t* pPosting,int32_t length)
 
     return (int32_t)(pDoc - pPosting);
 }
-void OnDiskPosting::decodeNextPositions(uint32_t* pPosting,int32_t length)
+bool OnDiskPosting::decodeNextPositions(uint32_t* pPosting,int32_t length)
 {
     if (length <= 0)
-        return;
+        return true;
     if(!pPosting)
     {
         ds_.skipPosCount_ += length;///just record the skip number
-        return;
+        return true;
     }
 	
     IndexInput* pPPostingInput = getInputDescriptor()->getPPostingInput();
@@ -747,14 +749,15 @@ void OnDiskPosting::decodeNextPositions(uint32_t* pPosting,int32_t length)
     }
     ds_.decodedPosCount += nDecoded;
     ds_.lastDecodedPos = loc;
+    return true;
 }
-void OnDiskPosting::decodeNextPositions(uint32_t* pPosting,uint32_t* pFreqs,int32_t nFreqs)
+bool OnDiskPosting::decodeNextPositions(uint32_t* pPosting,uint32_t* pFreqs,int32_t nFreqs)
 {
     if(!pPosting)
     {
         for (int nF = 0;nF < nFreqs;nF++)///just record the skip number
             ds_.skipPosCount_ += pFreqs[nF];
-        return;
+        return true;
     }
 
     IndexInput*	pPPostingInput = getInputDescriptor()->getPPostingInput();
@@ -786,6 +789,7 @@ void OnDiskPosting::decodeNextPositions(uint32_t* pPosting,uint32_t* pFreqs,int3
 
     ds_.decodedPosCount += nTotalDecoded;
     ds_.lastDecodedPos = loc;
+    return true;
 }
 void OnDiskPosting::resetPosition()
 {

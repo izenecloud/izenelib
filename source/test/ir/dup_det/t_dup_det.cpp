@@ -39,11 +39,20 @@
 #include <time.h>
 #include <math.h>
 #include <boost/test/unit_test.hpp>
+#include <boost/filesystem/path.hpp> 
+#include <boost/filesystem.hpp>
+#include <boost/filesystem/operations.hpp> 
 #include <sys/time.h>
 #include <fstream>
 #include <iostream>
 #include <vector>
 #include<stdio.h>
+
+#define CHECK(f)\
+  {     \
+    if (!(f)){ BOOST_CHECK(false); std::cout<<"ERROR: "<<__FILE__<<": "<<__LINE__<<": "<<__FUNCTION__<<endl;} \
+  }
+#define ERROR_COUNT {if(error_count>0)cout<<endl<<error_count<<" errors ware found!";else{cout<<"\nNo error detected!\n"}}
 
 //USING_IZENE_LOG();
 
@@ -55,6 +64,30 @@ using namespace std;
 using namespace boost::unit_test;
 
 //
+bool match(const std::string& path, const char* prefix)
+{
+    uint32_t i = path.find_last_of('/');
+    i = path.substr(i+1).find(prefix);
+    if (i != (uint32_t)-1)
+        return true;
+    return false;
+}
+
+void remove(const char* prefix)
+{
+    boost::filesystem::path full_path(   "./"   ,boost::filesystem::native);
+    if (boost::filesystem::exists(full_path))
+         {
+       boost::filesystem::directory_iterator item_begin(full_path);
+       boost::filesystem::directory_iterator item_end;
+       for ( ;item_begin   !=  item_end; item_begin ++ )
+                 {
+           if (match(item_begin ->path().native_file_string(), prefix))
+        		boost::filesystem::remove(item_begin ->path().native_file_string());
+           //cout  << item_begin ->path().native_file_string() << " \t[dir] " << endl;
+                 }
+        }
+}
 
 BOOST_AUTO_TEST_CASE(integer_dyn_array_check )
 {
@@ -117,7 +150,7 @@ BOOST_AUTO_TEST_CASE(integer_dyn_array_check )
   }
 
   for (size_t i=0; i<sa.length()-1; i++)
-    BOOST_CHECK(sa[i]<=sa[i+1]);
+    CHECK(sa[i]<=sa[i+1]);
   
   BOOST_CHECK(sa.find(sa[10])==10);
   BOOST_CHECK(sa.find(sa[5])==5);
@@ -172,7 +205,7 @@ BOOST_AUTO_TEST_CASE(partial_fp_list_check )
     for (size_t i=0; i<docs.doc_num()-TYPES_NUM; i++)
       for (uint8_t j=0; j<docs.unit_len(); j++)
         if(!docs.get_fp(k, i, j)==docs.get_fp(k, i+TYPES_NUM, j))
-          BOOST_CHECK(false);
+          CHECK(false);
   }
   
   finish = clock();
@@ -193,7 +226,7 @@ BOOST_AUTO_TEST_CASE(partial_fp_list_check )
     for (size_t i=0; i<docs.doc_num()-TYPES_NUM; i++)
       for (uint8_t j=0; j<docs.unit_len(); j++)
         if(!docs.get_fp(k, i, j)==docs.get_fp(k, i+TYPES_NUM, j))
-          BOOST_CHECK(false);
+          CHECK(false);
   }
   
   finish = clock();
@@ -261,10 +294,10 @@ BOOST_AUTO_TEST_CASE(group_table_check )
     v.push_back(vv);
   }
 
-  remove("./tt.fp.0");
-  remove("./tt.fp.1");
-  remove("./tt.fp.2");
-  remove("./tt.id");
+  boost::filesystem::remove_all("./tt.fp.0");
+  boost::filesystem::remove_all("./tt.fp.1");
+  boost::filesystem::remove_all("./tt.fp.2");
+  boost::filesystem::remove_all("./tt.id");
   FpList fplist("./tt");
   for (size_t i = 0; i<TYPES_NUM; i++)
   {
@@ -275,7 +308,7 @@ BOOST_AUTO_TEST_CASE(group_table_check )
 
   typedef izenelib::am::IntegerDynArray<uint32_t> Vector32;
   typedef izenelib::ir::GroupTable<> Group;
-  remove("./group");
+  boost::filesystem::remove_all("./group");
 
   {
     Group group("./group");
@@ -335,7 +368,7 @@ BOOST_AUTO_TEST_CASE(fp_hash_table_check )
   const uint32_t FP_LENGTH = 6;
   const size_t TYPES_NUM= 400000;
   
-  typedef FpHashTable<1> FpHT;
+  typedef FpHashTable<> FpHT;
   typedef PartialFpList<> FpList;
   typedef FpList::FpVector FpVector;
   typedef izenelib::am::IntegerDynArray<uint8_t> Vector8;
@@ -356,9 +389,9 @@ BOOST_AUTO_TEST_CASE(fp_hash_table_check )
   cout<<"Data is ready!\n";
 
   
-  remove ("./fp_hash.key");
-  remove ("./fp_hash.fp");
-  remove ("./fp_hash.has");
+  boost::filesystem::remove_all ("./fp_hash.key");
+  boost::filesystem::remove_all ("./fp_hash.fp");
+  boost::filesystem::remove_all ("./fp_hash.has");
   FpHT fp("./fp_hash");
   struct timeval tvafter,tvpre;
   struct timezone tz;
@@ -383,7 +416,7 @@ BOOST_AUTO_TEST_CASE(fp_hash_table_check )
 //     cout<<endl;
     
     if (p==NULL || !(v[i%TYPES_NUM] == p))
-      BOOST_CHECK(i!=i);
+      CHECK(i!=i);
   }
   //cout<<fp;
   gettimeofday (&tvafter , &tz);
@@ -397,7 +430,7 @@ BOOST_AUTO_TEST_CASE(hash_table_check )
   const size_t SIZE= 1000000;
   const size_t TYPES_NUM= 200000;
   
-  typedef FpHashTable<1> FpHT;
+  typedef FpHashTable<> FpHT;
   typedef PartialFpList<> FpList;
   typedef FpList::FpVector FpVector;
   typedef izenelib::am::IntegerDynArray<uint8_t> Vector8;
@@ -415,7 +448,7 @@ BOOST_AUTO_TEST_CASE(hash_table_check )
   struct timeval tvafter,tvpre;
   struct timezone tz;
   
-  remove ("./fp_hash");
+  boost::filesystem::remove_all ("./fp_hash");
   {    
     HashT ht("./fp_hash");
 
@@ -437,9 +470,9 @@ BOOST_AUTO_TEST_CASE(hash_table_check )
     const Vector32 p1 = ht[i];
     const Vector32 p2 = ht[i+TYPES_NUM];
 
-    BOOST_CHECK(p1 == p2);
+    CHECK(p1 == p2);
     
-    BOOST_CHECK(p1.length() == SIZE/TYPES_NUM);
+    CHECK(p1.length() == SIZE/TYPES_NUM);
     
   }
   //cout<<fp;
@@ -451,9 +484,9 @@ BOOST_AUTO_TEST_CASE(hash_table_check )
 BOOST_AUTO_TEST_CASE(overall_performace_check )
 {
   cout<<"Checking performance ...\n";
-  system("rm -f ./tt*");
-  system("rm -f ./fp*");
-  system("rm -f ./group*");
+  boost::filesystem::remove_all("./tt");
+  boost::filesystem::remove_all("./fp");
+  boost::filesystem::remove_all("./group");
   
   const uint32_t  FP_LENGTH = 12;
   const size_t SIZE= 20;//1000000;
@@ -463,7 +496,7 @@ BOOST_AUTO_TEST_CASE(overall_performace_check )
   typedef izenelib::am::IntegerDynArray<uint32_t> Vector32;
   typedef izenelib::am::IntegerDynArray<uint8_t> Vector8;
 
-  vector<Vector64>  v;
+  vector<Vector32>  v;
   v.reserve(TYPES_NUM);
   for (size_t i = 0; i<TYPES_NUM; i++)
   {
@@ -472,12 +505,12 @@ BOOST_AUTO_TEST_CASE(overall_performace_check )
     for (size_t j=0; j<48; j++)
       v8.push_back(rand());
 
-    Vector64 v64((const char*)v8.data(),v8.size());
-    v.push_back(v64);
+    Vector32 v32((const char*)v8.data(),v8.size());
+    v.push_back(v32);
   }
 
   cout<<"Data is ready!\n";
-  system("rm -f ./tt*");
+  boost::filesystem::remove_all("./tt");
 
   struct timeval tvafter,tvpre;
   struct timezone tz;
@@ -523,7 +556,7 @@ BOOST_AUTO_TEST_CASE(overall_performace_check )
     docids.push_back(SIZE+2);
     docids.push_back(SIZE+3);
     docids.push_back(SIZE+4);
-    vector<Vector64> fps;
+    vector<Vector32> fps;
     fps.push_back(v[0]);
     fps.push_back(v[0]);
     fps.push_back(v[0]);
@@ -553,9 +586,9 @@ BOOST_AUTO_TEST_CASE(overall_performace_check )
     const Vector32 p1 = fp_index.find(i+SIZE);
     const Vector32 p2 = fp_index.find(i+SIZE+TYPES_NUM);
 
-    BOOST_CHECK(p1 == p2);
+    CHECK(p1 == p2);
     
-    BOOST_CHECK(p1.length() == SIZE/TYPES_NUM+2);
+    CHECK(p1.length() == SIZE/TYPES_NUM+2);
 
 //     if (!(p1 == p2))
 //     {
@@ -567,8 +600,11 @@ BOOST_AUTO_TEST_CASE(overall_performace_check )
 //     }
     
   }
+    remove("tt");
+    remove("fp_");
 
 }
+
 
 // BOOST_AUTO_TEST_CASE(overall_performace_check )
 // {
@@ -589,7 +625,7 @@ BOOST_AUTO_TEST_CASE(overall_performace_check )
 //   }
 
 //   cout<<"Data is ready!\n";
-//   remove("./tt*");
+//   boost::filesystem::remove_all("./tt*");
 
 //   struct timeval tvafter,tvpre;
 //   struct timezone tz;

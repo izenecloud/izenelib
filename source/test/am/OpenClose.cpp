@@ -14,8 +14,7 @@
 
 #include <cstdio>
 
-#include "TestDir.h"
-#define DIR_PREFIX TEST_TMP_DIR "/am_OpenClose_"
+#define DIR_PREFIX "./tmp/am_OpenClose_"
 
 using namespace izenelib::am;
 

@@ -8,7 +8,6 @@
 #include <ir/index_manager/index/IndexReader.h>
 #include <ir/index_manager/index/IndexMerger.h>
 #include <ir/index_manager/index/OfflineIndexMerger.h>
-#include <ir/index_manager/index/ImmediateMerger.h>
 #include <ir/index_manager/index/MultiWayMerger.h>
 #include <ir/index_manager/index/GPartitionMerger.h>
 #include <ir/index_manager/index/IndexBarrelWriter.h>
@@ -33,7 +32,7 @@ IndexWriter::IndexWriter(Indexer* pIndex)
         ,pIndexMergeManager_(NULL)
 {
     pBarrelsInfo_ = pIndexer_->getBarrelsInfo();
-    if(pIndexer_->getIndexerType()&MANAGER_INDEXING_STANDALONE_MERGER)	
+    if(pIndexer_->getIndexerType()&MANAGER_INDEXING_STANDALONE_MERGER)
     {
         pIndexMergeManager_ = new IndexMergeManager(pIndex);
         pIndexMergeManager_->run();
@@ -44,12 +43,20 @@ IndexWriter::~IndexWriter()
 {
     if (pMemCache_)
         delete pMemCache_;
-    if (pIndexMergeManager_)
-        delete pIndexMergeManager_;
     if (pIndexBarrelWriter_)
         delete pIndexBarrelWriter_;
     if (pIndexMerger_)
         delete pIndexMerger_;
+}
+
+void IndexWriter::close()
+{
+    if (pIndexMergeManager_)
+    {
+        pIndexMergeManager_->stop();
+        //delete pIndexMergeManager_;
+        //pIndexMergeManager_ = NULL;
+    }
 }
 
 void IndexWriter::flush()
@@ -59,26 +66,42 @@ void IndexWriter::flush()
     BarrelInfo* pLastBarrel = pBarrelsInfo_->getLastBarrel();
     if (pLastBarrel == NULL)
         return;
-    pLastBarrel->setBaseDocID(baseDocIDMap_);
-    baseDocIDMap_.clear();
-    if (pIndexBarrelWriter_->cacheEmpty() == false)///memory index has not been written to database yet.
+    if(pIndexer_->isRealTime())
     {
-        pIndexBarrelWriter_->close();
-        if (pIndexMerger_)
-            pIndexMerger_->flushBarrelToDisk(pIndexBarrelWriter_->barrelName_);
+        pLastBarrel->setBaseDocID(baseDocIDMap_);
+        baseDocIDMap_.clear();
+        if(pIndexBarrelWriter_->cacheEmpty() == false)
+        {
+            ///memory index has not been written to database yet.
+            if(pIndexer_->getIndexerType()&MANAGER_INDEXING_STANDALONE_MERGER)
+            {
+                pBarrelsInfo_->wait_for_barrels_ready();
+                pIndexBarrelWriter_->close();
+                pIndexMergeManager_->triggerMerge(pLastBarrel);
+            }
+            else
+            {
+                pIndexBarrelWriter_->close();
+                if (pIndexMerger_)
+                    pIndexMerger_->flushBarrelToDisk(pIndexBarrelWriter_->barrelName_);
+            }
+
+        }
+        pLastBarrel->setWriter(NULL);
+        pBarrelsInfo_->write(pIndexer_->getDirectory());
+        delete pIndexBarrelWriter_;
+        pIndexBarrelWriter_ = NULL;
     }
-    pLastBarrel->setWriter(NULL);
-    pBarrelsInfo_->write(pIndexer_->getDirectory());
-    delete pIndexBarrelWriter_;
-    pIndexBarrelWriter_ = NULL;
+    else
+    {
+        sort_and_merge();
+    }
 }
 
 void IndexWriter::createMerger()
 {
     if(!strcasecmp(pIndexer_->pConfigurationManager_->mergeStrategy_.param_.c_str(),"no"))
         pIndexMerger_ = NULL;
-    else if(!strcasecmp(pIndexer_->pConfigurationManager_->mergeStrategy_.param_.c_str(),"imm"))
-        pIndexMerger_ = new ImmediateMerger(pIndexer_);
     else if(!strcasecmp(pIndexer_->pConfigurationManager_->mergeStrategy_.param_.c_str(),"mway"))
         pIndexMerger_ = new MultiWayMerger(pIndexer_);	
     else
@@ -89,6 +112,7 @@ void IndexWriter::createBarrelWriter()
 {
     pBarrelsInfo_->addBarrel(pBarrelsInfo_->newBarrel().c_str(),0);
     pCurBarrelInfo_ = pBarrelsInfo_->getLastBarrel();
+    pCurBarrelInfo_->setSearchable(pIndexer_->isRealTime());
     pCurDocCount_ = &(pCurBarrelInfo_->nNumDocs);
     *pCurDocCount_ = 0;
 
@@ -134,7 +158,6 @@ void IndexWriter::mergeAndWriteCachedIndex()
 {
     BarrelInfo* pLastBarrel = pBarrelsInfo_->getLastBarrel();
     pLastBarrel->setBaseDocID(baseDocIDMap_);
-
     if (pIndexBarrelWriter_->cacheEmpty() == false)///memory index has not been written to database yet.
     {
         pIndexBarrelWriter_->close();
@@ -154,7 +177,6 @@ void IndexWriter::addToMergeAndWriteCachedIndex()
 {
     BarrelInfo* pLastBarrel = pBarrelsInfo_->getLastBarrel();
     pLastBarrel->setBaseDocID(baseDocIDMap_);
-
     if (pIndexBarrelWriter_->cacheEmpty() == false)///memory index has not been written to database yet.
     {
         pIndexBarrelWriter_->close();
@@ -185,6 +207,7 @@ void IndexWriter::writeCachedIndex()
         pCurBarrelInfo_->setWriter(NULL);
         pBarrelsInfo_->write(pIndexer_->getDirectory());
     }
+	
     pIndexMergeManager_->triggerMerge(pCurBarrelInfo_);
     pBarrelsInfo_->setLock(true);
     if(pIndexer_->getIndexerType()&MANAGER_INDEXING_STANDALONE_MERGER)
@@ -192,8 +215,9 @@ void IndexWriter::writeCachedIndex()
         pBarrelsInfo_->addBarrel(pBarrelsInfo_->newBarrel().c_str(),0);
     }
     pCurBarrelInfo_ = pBarrelsInfo_->getLastBarrel();
-    pCurBarrelInfo_->setSearchable(true);
+    pCurBarrelInfo_->setSearchable(pIndexer_->isRealTime());
     pCurBarrelInfo_->setWriter(pIndexBarrelWriter_);
+	
     pBarrelsInfo_->setLock(false);
 
     pCurDocCount_ = &(pCurBarrelInfo_->nNumDocs);
@@ -214,16 +238,19 @@ void IndexWriter::indexDocument(IndexerDocument& doc)
         pCurBarrelInfo_->setBaseDocID(baseDocIDMap_);
     }
 
-    if (pIndexBarrelWriter_->cacheFull())
+    if(pIndexer_->isRealTime())
     {
-        if(pIndexer_->getIndexerType()&MANAGER_INDEXING_STANDALONE_MERGER)
-            writeCachedIndex();
-        else
-            ///merge index
-            addToMergeAndWriteCachedIndex();
-        baseDocIDMap_.clear();
-        baseDocIDMap_[uniqueID.colId] = uniqueID.docId;
-        pIndexBarrelWriter_->open(pCurBarrelInfo_->getName().c_str());
+        if (pIndexBarrelWriter_->cacheFull())
+        {
+            if(pIndexer_->getIndexerType()&MANAGER_INDEXING_STANDALONE_MERGER)
+                writeCachedIndex();
+            else
+                ///merge index
+                addToMergeAndWriteCachedIndex();
+            baseDocIDMap_.clear();
+            baseDocIDMap_[uniqueID.colId] = uniqueID.docId;
+            pIndexBarrelWriter_->open(pCurBarrelInfo_->getName().c_str());
+        }
     }
     pCurBarrelInfo_->updateMaxDoc(uniqueID.docId);
     pBarrelsInfo_->updateMaxDoc(uniqueID.docId);
@@ -299,6 +326,23 @@ void IndexWriter::scheduleOptimizeTask(std::string expression, string uuid)
     
     boost::function<void (void)> task = boost::bind(&IndexWriter::lazyOptimizeIndex,this);
     Scheduler::addJob(optimizeJob, 60*1000, 0, task);
+}
+
+void IndexWriter::sort_and_merge()
+{
+    try{
+    if(!pIndexBarrelWriter_) return;
+    pIndexBarrelWriter_->writeCache();
+    BarrelInfo* pLastBarrel = pBarrelsInfo_->getLastBarrel();
+    pLastBarrel->setSearchable(true);
+    pLastBarrel->setWriter(NULL);
+    delete pIndexBarrelWriter_;
+    pIndexBarrelWriter_ = NULL;
+    pBarrelsInfo_->write(pIndexer_->getDirectory());
+    }catch(std::exception& e)
+    {
+        cerr<<e.what()<<endl;
+    }
 }
 
 }

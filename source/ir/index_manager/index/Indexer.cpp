@@ -32,6 +32,7 @@ Indexer::Indexer(ManagerType managerType)
         ,pIndexReader_(NULL)
         ,pConfigurationManager_(NULL)
         ,pBTreeIndexer_(NULL)
+        ,realTime_(false)
 {
 }
 
@@ -99,8 +100,7 @@ void Indexer::setIndexManagerConfig(
          property_name_id_map_.insert(make_pair(colID, propertyMap));
     }
  
-    VariantDataPool::UPTIGHT_ALLOC_CHUNKSIZE = 8;
-    VariantDataPool::UPTIGHT_ALLOC_MEMSIZE = 40000;
+    VariantDataPool::UPTIGHT_ALLOC_MEMSIZE = 10*1024*1024;
 
     skipInterval_ = pConfigurationManager_->indexStrategy_.skipInterval_;
     maxSkipLevel_ = pConfigurationManager_->indexStrategy_.maxSkipLevel_;
@@ -123,6 +123,13 @@ void Indexer::setIndexManagerConfig(
         memset(uuidstr,0,10);
         sprintf(uuidstr,"%d",uuid);
         pIndexWriter_->scheduleOptimizeTask(pConfigurationManager_->indexStrategy_.optimizeSchedule_, uuidstr);
+    }
+
+    if(!strcasecmp(pConfigurationManager_->indexStrategy_.indexMode_.c_str(),"realtime"))
+        realTime_ = true;
+    else
+    {
+        realTime_ = false;
     }
 }
 
@@ -181,6 +188,7 @@ void Indexer::close()
     if (pIndexWriter_)
     {
         pIndexWriter_->flush();
+        pIndexWriter_->close();
         delete pIndexWriter_;
         pIndexWriter_ = NULL;
     }

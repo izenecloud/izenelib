@@ -7,8 +7,7 @@
 #include <am/tc/raw/Hash.h>
 #include <am/tc/raw/BTree.h>
 
-#include "TestDir.h"
-#define DIR_PREFIX TEST_TMP_DIR "/am_tc_raw_Db_"
+#define DIR_PREFIX "./tmp/am_tc_raw_Db_"
 
 using namespace boost::unit_test;
 using namespace izenelib::am::tc::raw;

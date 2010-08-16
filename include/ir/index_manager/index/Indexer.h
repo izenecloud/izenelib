@@ -69,7 +69,6 @@ public:
     void flush();
     /// merge all index barrels into a single barrel
     void optimizeIndex();
-
     ///check whether the integrity of indices, always used when starts up
     IndexStatus checkIntegrity();
 
@@ -148,12 +147,14 @@ public:
     int getSkipInterval() { return skipInterval_; }
 
     int getMaxSkipLevel() { return maxSkipLevel_; }
-	
+
+    bool isRealTime() { return realTime_; }
+
+    void close();
+
 protected:
 
     void openDirectory(const std::string& storagePolicy);
-
-    void close();
 
 protected:
     ManagerType managerType_;
@@ -175,6 +176,8 @@ protected:
     int skipInterval_;
 
     int maxSkipLevel_;
+
+    bool realTime_;
 
     std::map<collectionid_t, std::map<string, fieldid_t> > property_name_id_map_;
 

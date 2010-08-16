@@ -39,17 +39,12 @@ IF(febird_SHOULD_BUILD)
     ${Boost_INCLUDE_DIRS}
     )
 
-  ADD_LIBRARY(febird ${febird_SRC})
+  MACRO_ADD_LIBRARY(febird SRCS ${febird_SRC})
   TARGET_LINK_LIBRARIES(
     febird
     ${BZIP2_LIBRARIES}
     ${ZLIB_LIBRARIES}
     ${Boost_LIBRARIES}
     )
-#INSTALL(TARGETS febird DESTINATION lib)
-  INSTALL(TARGETS febird      
-      LIBRARY DESTINATION lib 
-      ARCHIVE DESTINATION lib 
-      COMPONENT "izenelib_libraries")
 
 ENDIF(febird_SHOULD_BUILD)
