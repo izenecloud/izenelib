@@ -1,5 +1,6 @@
 #include <sdb/SequentialDB.h>
-#include <am/btree/BTreeFile.h>
+#include <boost/test/unit_test.hpp>
+//#include <am/btree/BTreeFile.h>
 
 using namespace std;
 
@@ -29,7 +30,7 @@ template<> inline void write_image<Value>(const Value& dat, DbObjPtr& ptr) {
 }
 }
 
-const char* indexFile = "sdb.dat";
+static const char* indexFile = "sdb.dat";
 static string inputFile = "test.txt";
 static int degree = 2;
 static size_t pageSize = 1024;
@@ -43,7 +44,7 @@ typedef SequentialDB<Key, NullType, NullLock> SDB;
 //typedef BTreeFile<Key, NullType, ReadWriteLock> BTF;
 //typedef SequentialDB<Key, NullType, ReadWriteLock, BTF> SDB;
 
-bool trace = 0;
+static bool trace = 0;
 
 /* pseudo random number generator */
 inline int myrand(void) {
@@ -51,7 +52,7 @@ inline int myrand(void) {
 	return (lrand48() + cnt++) & 0x7FFFFFFF;
 }
 
-void ReportUsage(void) {
+static void ReportUsage(void) {
 	cout
 			<<"\nUSAGE:./t_sdb [-T <trace_option>] [-degree <degree>] [-index <index_file>] [-n number] [-rnd <true|false>] [-cache <cache_size>.] <input_file>\n\n";
 
@@ -256,9 +257,11 @@ template<typename T> void run_test4(T& cm) {
 	cout<<"\nnumItem: "<<cm.numItems()<<endl;
 }
 
-int main(int argc, char *argv[]) {
+//int main(int argc, char *argv[]) 
+BOOST_AUTO_TEST_CASE(t_nsdb)
+{
 
-	if (argc < 2) {
+	/*if (argc < 2) {
 		ReportUsage();
 		return 0;
 
@@ -293,7 +296,7 @@ int main(int argc, char *argv[]) {
 			break;
 		}
 	}
-
+*/
 	try {
 		SDB sdb(indexFile);
 		sdb.setDegree(degree);

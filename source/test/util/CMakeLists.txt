@@ -19,11 +19,18 @@ ADD_EXECUTABLE(t_util
   t_IdMapper.cpp
   t_bzip.cpp
   t_scheduler.cpp
+  t_serialization.cc
+  t_log.cc
+  t_wrapper.cc
   )
 TARGET_LINK_LIBRARIES(t_util 
   izene_util
   ${Boost_LIBRARIES}
   bz2 
+  ${Glog_LIBRARIES}
+  febird
+  procmeminfo
+  izene_log
   )
 SET_TARGET_PROPERTIES(t_util PROPERTIES
   COMPILE_FLAGS "-include ${FileTestHelper}"

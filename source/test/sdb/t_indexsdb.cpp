@@ -1,6 +1,5 @@
 #include <sdb/IndexSDB.h>
 #include <sdb/TrieIndexSDB.h>
-
 #include <boost/test/unit_test.hpp>
 
 using namespace izenelib::sdb;

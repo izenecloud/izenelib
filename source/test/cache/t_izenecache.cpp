@@ -1,6 +1,8 @@
 #ifndef T_IZENECACHE_CPP_
 #define T_IZENECACHE_CPP_
 
+#include <cstdio>
+#include <cstdlib>
 #include <cache/IzeneCache.h>
 #include <string>
 #include <boost/test/unit_test.hpp>
@@ -10,6 +12,8 @@
 #include <am/3rdparty/stx_btree.h>
 
 #include <util/ustring/UString.h>
+
+
 namespace rde{
 
 /*

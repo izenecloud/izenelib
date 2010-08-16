@@ -1,4 +1,5 @@
 #include "Document.h"
+#include <boost/test/unit_test.hpp>
 //#include <sdb/SequentialDB.h>
 #include <am/tokyo_cabinet/tc_btree.h>
 #include <util/bzip.h>
@@ -18,16 +19,16 @@ lzo_align_t __LZO_MMODEL wrkmem [ ((LZO1X_1_MEM_COMPRESS) + (sizeof(lzo_align_t)
 using namespace sf1v5;
 using namespace izenelib::am;
 
-bool isDump = false;
-int num = 2031063;
+static bool isDump = false;
+static int num = 2031063;
 static std::string sdb_type = "btree";
 
 std::string filename =
 		"/home/wps/sf1corpus/default-index-dir/DocumentPropertyTable.dat";
 
-izenelib::am::sdb_storage<docid_t, Document> sdb(filename);
+static izenelib::am::sdb_storage<docid_t, Document> sdb(filename);
 //izenelib::am::sdb_storage_mm<docid_t, Document> sdb_mm("/home/wps/sf1corpus/default-index-dir/DocumentPropertyTable_2mm");
-izenelib::am::sdb_storage_mm<docid_t, Document>
+static  izenelib::am::sdb_storage_mm<docid_t, Document>
 		sdb_mm("DocumentPropertyTable_2mm");
 
 namespace izenelib {
@@ -306,7 +307,9 @@ void dump(Lux::IO::Array *in, Lux::IO::Array *out) {
 	printf(" elapsed : %lf seconds\n", timer.elapsed() );
 }
 
-int main(int argc, char* argv[]) {
+//int main(int argc, char* argv[])
+BOOST_AUTO_TEST_CASE(t_dm)
+{
 
 	//	Lux::IO::Array*	ary = new Lux::IO::Array(Lux::IO::NONCLUSTER);
 	//			ary->set_noncluster_params(Lux::IO::Padded);
@@ -374,5 +377,5 @@ int main(int argc, char* argv[]) {
 	//		process(sdb);
 	//	}
 
-	return 1;
+	//return 1;
 }

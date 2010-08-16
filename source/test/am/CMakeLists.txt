@@ -36,6 +36,7 @@ IF (TokyoCabinet_FOUND AND Glog_FOUND)
   ADD_EXECUTABLE(t_fmm vsynonym/t_fmm.cpp )
   TARGET_LINK_LIBRARIES(t_fmm
     am
+    lzo
     febird
     ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY}
     ${Boost_SERIALIZATION_LIBRARY}

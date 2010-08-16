@@ -1,6 +1,7 @@
 #include <am/am_test/am_test.h>
 #include <am/am_test/am_types.h>
 #include <am/3rdparty/stx_btree.h>
+#include <boost/test/unit_test.hpp>
 
 using namespace std;
 
@@ -61,7 +62,7 @@ void test1(){
 		
 }
 
-void test() {	
+static void test() {	
 
 
 
@@ -158,11 +159,13 @@ void test() {
 
 }
 
-int main(int argc, char *argv[]) {
-	if (argv[1])
-		is_insert = atoi(argv[1]);
+//int main(int argc, char *argv[])
+BOOST_AUTO_TEST_CASE(t_sdb_query)
+{
+	//if (argv[1])
+	//	is_insert = atoi(argv[1]);
 	test1();
 	test();
-	return 1;
+	//return 1;
 }
 

@@ -1,10 +1,12 @@
 #include <sdb/SequentialDB.h>
+#include <boost/test/unit_test.hpp>
 //#include <am/btree/BTreeFile.h>
 //#include <am/skip_list_file/SkipListFile.h>
-#include "YString.h"
+//#include "YString.h"
 
 using namespace std;
 using namespace izenelib::sdb;
+typedef string YString;
 
 using namespace boost;
 
@@ -12,12 +14,12 @@ static bool trace = 0; //trace option
 
 //static int maxDataSize = 100;
 
-string indexFile1("msdb1.dat");
-string indexFile2("msdb2.dat");
-string indexFile3("msdb3.dat");
-string indexFile4("msdb4.dat");
-string indexFile5("msdb5.dat");
-string indexFile6("msdb6.dat");
+static string indexFile1("msdb1.dat");
+static string indexFile2("msdb2.dat");
+static string indexFile3("msdb3.dat");
+static string indexFile4("msdb4.dat");
+static string indexFile5("msdb5.dat");
+static string indexFile6("msdb6.dat");
 
 
 //Use YString-YString pair for testing. 
@@ -41,14 +43,14 @@ typedef SequentialDB<Key, NullType, ReadWriteLock, SDBSEQ> SDB_STORAGE;
 
 //SDB_BT cm1(indexFile1);
 //SDB_SL cm2(indexFile2);
-SDB_HASH cm3(indexFile3);
-SDB_BTREE cm4(indexFile4);
-SDB_BPTREE cm5(indexFile5);
-SDB_STORAGE cm6(indexFile6);
+static SDB_HASH cm3(indexFile3);
+static SDB_BTREE cm4(indexFile4);
+static SDB_BPTREE cm5(indexFile5);
+static SDB_STORAGE cm6(indexFile6);
 
-int sum =0;
-int hit =0;
-time_t start = time(0);
+static int sum =0;
+static int hit =0;
+static time_t start = time(0);
 
 boost::mutex io_mutex;
 
@@ -103,7 +105,7 @@ template<typename T> struct run_thread2 {
 				//cm.display();								
 			}
 			MyDataType val;
-			if (cm.getValue(ystr.get_key(), val))
+			if (cm.getValue(ystr, val))
 				hit++;
 
 		}
@@ -392,9 +394,11 @@ template<typename T> void run(T& cm) {
 
 }
 
-int main(int argc, char *argv[]) {
-	if (argv[1])
-		trace = atoi(argv[1]);
+//int main(int argc, char *argv[])
+BOOST_AUTO_TEST_CASE(t_mul_sdb)
+{
+	/*if (argv[1])
+		trace = atoi(argv[1]);*/
 	//cm1.open();
 	//run1(cm1);
 	//run(cm1);
