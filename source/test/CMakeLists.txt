@@ -1,5 +1,5 @@
 FIND_PACKAGE(Boost ${Boost_FIND_VERSION}
-  COMPONENTS unit_test_framework serialization)
+  COMPONENTS unit_test_framework serialization iostreams)
 
 IF(Boost_FOUND)
 
