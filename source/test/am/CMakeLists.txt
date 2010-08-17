@@ -27,6 +27,7 @@ IF (TokyoCabinet_FOUND AND Glog_FOUND AND _febird GREATER -1)
    ${Boost_SYSTEM_LIBRARY}
    ${Boost_FILESYSTEM_LIBRARY}
    ${Boost_THREAD_LIBRARY}    
+   ${Boost_IOSTREAMS_LIBRARY}    
    am
    izene_util
    ${Boost_LIBRARIES}
@@ -36,8 +37,7 @@ IF (TokyoCabinet_FOUND AND Glog_FOUND AND _febird GREATER -1)
    procmeminfo
    luxio
    izene_log
-   ${TokyoCabinet_LIBRARIES}
-   boost_iostreams
+   ${TokyoCabinet_LIBRARIES} 
    lzo    
     )
 
