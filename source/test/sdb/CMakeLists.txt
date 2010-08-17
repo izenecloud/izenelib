@@ -49,7 +49,6 @@ TARGET_LINK_LIBRARIES(t_sdb
   luxio
   izene_log
   ${TokyoCabinet_LIBRARIES}
-  boost_iostreams
   lzo
   )
 
