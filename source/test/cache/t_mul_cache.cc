@@ -1,9 +1,10 @@
+#include <boost/test/unit_test.hpp>
 #include <iostream>
 #include <fstream>
 #include <cstdlib>
 #include <string>
 
-#include "YString.h"
+//#include "YString.h"
 
 #include <cache/MCache.h>
 #include <cache/MLRUCache.h>
@@ -12,10 +13,11 @@
 
 
 using namespace std;
-using namespace ylib;
+//using namespace ylib;
 using namespace izenelib::cache;
 
 
+typedef string YString;
 typedef YString Key;
 typedef YString Value;
 
@@ -31,10 +33,10 @@ static bool trace = 1; //trace option
 static int cacheSize = 2000;
 static double ratio = 0.4;
 enum {LRU=0,LFU, SLRU};
-static string inputFile;
+static string inputFile = "test.txt";
 static string outputFile;
-char* indexFile = "testing-data/index_m.dat";
-char* indexDbFile = "testing-data/index_db.dat";
+static char* indexFile = "index_1m.dat";
+static char* indexDbFile = "index_3db.dat";
 static int dumpOption = 0;
 
 //Use YString-YString pair for testing. 
@@ -48,9 +50,9 @@ MLRUCache<Key, Value, FirstHash> mlrucache(cacheSize);
 CacheDB<Key, Value ,slruCmp<Key>, MCacheType, SecondHash, ReadWriteLock> cachedb(cacheSize,
 		indexDbFile);
 
-int sum =0;
-int hit =0;
-time_t start = time(0);
+static int sum =0;
+static int hit =0;
+static time_t start = time(0);
 
 boost::mutex io_mutex;
 
@@ -167,7 +169,7 @@ struct run_thread_cdb {
 
 };
 
-void run() {
+static void run() {
 #if 1	
 	boost::thread_group threads;
 	for (int i=1; i<=15; i++) {
@@ -232,9 +234,11 @@ void run() {
 
 }
 
-int main(int argc, char *argv[]) {
-	if (argv[1])
-		trace = atoi(argv[1]);
+//int main(int argc, char *argv[]) 
+BOOST_AUTO_TEST_CASE(t_mul_cache)
+{
+	//if (argv[1])
+	//	trace = atoi(argv[1]);
 	run();
 }
 

@@ -9,7 +9,7 @@ using namespace izenelib::sdb;
 typedef string Key;
 typedef DataType<Key,NullType> MyDataType;
 
-static const char* indexFile = "test_sdb.dat";
+static const char* indexFile = "test_sdb32432.dat";
 static string inputFile = "test.txt";
 static int degree = 2;
 static size_t cacheSize = 1000000;

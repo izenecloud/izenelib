@@ -1,3 +1,4 @@
+#include <boost/test/unit_test.hpp>
 #include <iostream>
 #include <fstream>
 #include <cstdlib>
@@ -21,7 +22,7 @@ static int hash2 = 1;
 enum {EXT=0,LIN};
 static int nReplace = 0;
 enum {LRU1=0,LFU1, SLRU1};
-static string inputFile;
+static string inputFile = "test.txt";
 static string indexFile = "index_db.dat";
 
 //Use YString-YString pair for testing. 
@@ -36,7 +37,7 @@ typedef izenelib::am::sdb_btree<Key, Value> extDataHash;
 typedef izenelib::am::sdb_btree<Key, Value> linDataHash;
 //typedef LinearHashFile<YString, YString, NullLock> linDataHash;
 
-void ReportUsage(void) {
+static void ReportUsage(void) {
 	cout
 			<<"\nUSAGE:./t_Cachedb [-T <trace_option>] [-size <cacheSize>]  [-mcache <ext|lin>] [-datahash <ext|lin>]";
 	cout
@@ -116,7 +117,7 @@ template<typename T> void run(T& cm) {
 
 //Top-level 
 
-void run_DataHashTest() {
+static  void run_DataHashTest() {
 
 	cout<<"Testing DataHash....\n";
 	linDataHash lh(indexFile);
@@ -339,9 +340,11 @@ template<typename T> void run_hasKey(T& cm) {
 	cout<<"eclipse:"<< double(clock()- t1)/CLOCKS_PER_SEC<<endl;
 }
 
-int main(int argc, char *argv[]) {
+//int main(int argc, char *argv[])
+BOOST_AUTO_TEST_CASE(t_cachedb)
+{
 
-	if (argc < 2) {
+	/*if (argc < 2) {
 		ReportUsage();
 		return 0;
 
@@ -392,7 +395,7 @@ int main(int argc, char *argv[]) {
 			break;
 		}
 	}
-
+*/
 	//try
 	{
 		//run_DataHashTest();	
@@ -507,6 +510,6 @@ int main(int argc, char *argv[]) {
 		cout<<"OTHER ERROR HAPPENED!"<<endl;
 	}*/
 
-	return 1;
+	//return 1;
 
 }

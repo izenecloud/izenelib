@@ -6,7 +6,7 @@ using namespace std;
 using namespace izenelib::sdb;
 using namespace izenelib::util;
 
-static const char* indexFile = "indexsdb.dat";
+static const char* indexFile = "3indexsdb324.dat";
 static string inputFile = "test.txt";
 static int degree = 8;
 static size_t cacheSize = 1000000;

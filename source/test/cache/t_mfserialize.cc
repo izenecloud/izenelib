@@ -1,3 +1,4 @@
+#include <boost/test/unit_test.hpp>
 #include <iostream>
 #include <fstream>
 #include <cstdlib>
@@ -9,11 +10,11 @@
 #include <cache/MFCache.h>
 #include <cache/CacheDB.h>
 
-#include "YString.h"
+//#include "YString.h"
 
 
 using namespace std;
-using namespace ylib;
+//using namespace ylib;
 using namespace izenelib::cache;
 
 static bool trace = 0; //trace option
@@ -21,12 +22,13 @@ static unsigned int cacheSize = 2000;
 static double ratio =0.4;
 enum {EXT=0,LIN};
 enum {LRU=0,LFU, SLRU};
-static string inputFile = "../db/wordlist.txt";
+static string inputFile  = "test.txt";
 static string indexFile = "mfserialize.dat";
 
 static int dumpOption = 0;
 
 //Use YString-YString pair for testing. 
+typedef string YString;
 typedef YString Key;
 typedef YString Value;
 
@@ -39,9 +41,9 @@ typedef izenelib::am::sdb_hash<Key, Value, NullLock> extSecondHash;
 typedef izenelib::am::sdb_hash<Key, Value, NullLock> linSecondHash;
 
 
-int sum =0;
-int hit =0;
-time_t start;
+static int sum =0;
+static int hit =0;
+static time_t start;
 
 //Top-level 
 
@@ -56,7 +58,7 @@ template<typename T> void run_getValueWithInsert(T& cm) {
 	YString ystr;
 	while (inf>>ystr) {
 		sum++;
-		if (cm.getValueWithInsert(ystr.get_key(), ystr) )
+		if (cm.getValueWithInsert(ystr, ystr) )
 			hit++;
 		if (trace) {
 			cout<< "getValueWithInsert: value="<<ystr<<endl;
@@ -80,7 +82,7 @@ template<typename T> void run_getValueWithInsert(T& cm) {
 
 }
 
-void run() {
+static void run() {
 
 	/*cout<<"load from file."<<endl;
 	 {
@@ -102,7 +104,7 @@ void run() {
 }
 
 
- void run_load() {
+static void run_load() {
 	
 	MFCache<Key, Value, slruCmp<Key>,linFirstHash,extSecondHash, NullLock> cm(cacheSize, ratio, dumpOption, indexFile.c_str());
 	cm.displayHash();
@@ -121,7 +123,8 @@ void run() {
 }
 
 
-int main(int argc, char *argv[])
+//int main(int argc, char *argv[])
+BOOST_AUTO_TEST_CASE(t_mfserialize)
 {		
 	run();	
     run_load();		

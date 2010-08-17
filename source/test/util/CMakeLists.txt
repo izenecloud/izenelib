@@ -19,9 +19,9 @@ ADD_EXECUTABLE(t_util
   t_IdMapper.cpp
   t_bzip.cpp
   t_scheduler.cpp
-  t_serialization.cc
-  t_log.cc
-  t_wrapper.cc
+  t_serialization.cpp
+  t_log.cpp
+  t_wrapper.cpp
   )
 
 TARGET_LINK_LIBRARIES(t_util

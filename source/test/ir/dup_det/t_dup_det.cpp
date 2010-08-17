@@ -27,6 +27,9 @@
 /// \n
 /// -# Tested all the interfaces by using correct and incorrect test sets.
 //#include <util/log.h
+
+#include <cstdio>
+#include <cstdlib>
 #include <ir/dup_det/integer_dyn_array.hpp>
 #include <ir/dup_det/doc_fp_list.hpp>
 #include <ir/dup_det/partial_fp_list.hpp>
@@ -46,7 +49,7 @@
 #include <fstream>
 #include <iostream>
 #include <vector>
-#include<stdio.h>
+
 
 #define CHECK(f)\
   {     \

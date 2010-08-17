@@ -30,7 +30,7 @@ template<> inline void write_image<Value>(const Value& dat, DbObjPtr& ptr) {
 }
 }
 
-static const char* indexFile = "sdb.dat";
+static const char* indexFile = "1s13db.dat";
 static string inputFile = "test.txt";
 static int degree = 2;
 static size_t pageSize = 1024;

@@ -1,3 +1,4 @@
+#include <boost/test/unit_test.hpp>
 #include <iostream>
 #include <fstream>
 #include <cstdlib>
@@ -19,7 +20,7 @@ enum {EXT=0,LIN};
 static int hash1 = 1;
 static int nReplace = 0;
 enum {LRU1=0,LFU1, SLRU1};
-static string inputFile;
+static string inputFile = "test.txt";
 
 typedef string Key;
 typedef izenelib::am::NullType Value;
@@ -29,7 +30,7 @@ typedef izenelib::am::LinearHashTable<Key,Value, NullLock> linHash;
 //typedef ExtendibleHash<Key, NullType, NullLock> extHash;
 typedef izenelib::am::cccr_hash<Key, Value> cccrHash;
 
-void ReportUsage(void) {
+static void ReportUsage(void) {
 	cout
 			<<"\nUSAGE:./t_mcache [-T <trace_option>] [-size <cacheSize>]  [-hash <ext|lin>] [-replace <lru|lfu|slru|...>] <input_file>\n\n";
 
@@ -55,9 +56,9 @@ void ReportUsage(void) {
 	cout<<"\n";
 }
 
-int sum =0;
-int hit =0;
-time_t start;
+static int sum =0;
+static int hit =0;
+static time_t start;
 
 //Top-level 
 template<typename T> void run(T& cm) {
@@ -298,9 +299,11 @@ template<typename T> void run_flush(T& cm) {
  }
  */
 
-int main(int argc, char *argv[]) {
+//int main(int argc, char *argv[])
+BOOST_AUTO_TEST_CASE(t_MLRUCache)
+{
 
-	if (argc < 2) {
+/*	if (argc < 2) {
 		ReportUsage();
 		return 0;
 
@@ -341,7 +344,9 @@ int main(int argc, char *argv[]) {
 			inputFile = str;
 			break;
 		}
-	}
+	}*/
+	
+	
 	try
 	{
 
@@ -368,6 +373,6 @@ int main(int argc, char *argv[]) {
 		cout<<"OTHER ERROR HAPPENED!"<<endl;
 	}
 
-	return 1;
+	//return 1;
 
 }
