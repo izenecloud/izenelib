@@ -23,6 +23,9 @@ end
 IZENESOFT::BoostTest.new do |t|
   t.timeout = 1800
 end
+task "test_clobber" do
+  rm_rf "testbin/*.dat"
+end
 
 task :env do
   sh "/usr/bin/env"
