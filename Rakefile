@@ -20,7 +20,9 @@ IZENESOFT::CMake.new do |t|
   t.source_dir = "."
 end
 
-IZENESOFT::BoostTest.new
+IZENESOFT::BoostTest.new do |t|
+  t.timeout = 1800
+end
 
 task :env do
   sh "/usr/bin/env"
