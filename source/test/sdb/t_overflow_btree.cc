@@ -12,7 +12,7 @@ typedef string YString;
 typedef int Key;
 typedef YString Value;
 
-static const char* indexFile = "osdb.dat";
+static const char* indexFile = "osdb34.dat";
 static string inputFile = "test.txt";
 static int degree = 12;
 static size_t cacheSize = 100000;

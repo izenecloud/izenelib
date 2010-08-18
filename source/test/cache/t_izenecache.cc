@@ -42,8 +42,8 @@ typedef int ValueType;
 //typedef izenelib::cache::IzeneCache<KeyType, ValueType, NullLock, RDE_HASH, LFU> MyCache;
 typedef ILRUCache<KeyType, ValueType> MyCache;
 
-static string inputFile("../db/test2.txt");
-static string inputFile1("../db/wordlist.txt");
+static string inputFile("test.txt");
+static string inputFile1("test1.txt");
 static bool trace = true;
 static size_t cacheSize = 2500;
 

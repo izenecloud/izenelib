@@ -1,16 +1,7 @@
 #include <boost/test/unit_test.hpp>
 #include <boost/test/test_case_template.hpp>
 #include <boost/mpl/list.hpp>
-
-#include <am/tc/Hash.h>
-#include <am/tc/BTree.h>
-#include <am/sdb_hash/sdb_hash.h>
-#include <am/sdb_btree/sdb_btree.h>
-#include <am/sdb_storage/sdb_storage.h>
-
-#include <am/dynamic_perfect_hash/dynamic_perfect_hash.hpp>
-// #include <am/btree/BTreeFile.h>
-// #include <am/skip_list_file/SkipListFile.h>
+#include <am/am_test/am_types.h>
 
 #include <cstdio>
 
@@ -21,11 +12,11 @@ using namespace izenelib::am;
 typedef boost::mpl::list<
     tc::Hash<int, std::string>,
     tc::BTree<int, std::string>
-    //, sdb_hash<int, std::string>
-    //, sdb_btree<int, std::string>
-    //, sdb_storage<int, std::string>
-    //, BTreeFile<int, std::string>
-    //, SkipListFile<int, std::string>
+    , sdb_hash<int, std::string>
+    , sdb_btree<int, std::string>
+    , sdb_fixedhash<int, std::string>
+    , sdb_fixedbtree<int, std::string>
+    , sdb_storage<int, std::string>   
 > test_types;
 
 BOOST_AUTO_TEST_SUITE(OpenClose_test)

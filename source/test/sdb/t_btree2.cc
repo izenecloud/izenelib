@@ -9,7 +9,7 @@ typedef int Value;
 //typedef map<int, int> Value;
 typedef DataType<Key,Value> MyDataType;
 
-static const char* indexFile = "test_sdb.dat";
+static const char* indexFile = "test_sdb_54235.dat";
 static string inputFile = "test.txt";
 static int degree = 2;
 static size_t cacheSize = 1000000;

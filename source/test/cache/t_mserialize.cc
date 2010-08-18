@@ -1,9 +1,10 @@
+#include <boost/test/unit_test.hpp>
 #include <iostream>
 #include <fstream>
 #include <cstdlib>
 #include <string>
 
-#include "YString.h"
+//#include "YString.h"
 
 #include <cache/MCache.h>
 #include <cache/MLRUCache.h>
@@ -12,7 +13,7 @@
 
 
 using namespace std;
-using namespace ylib;
+//using namespace ylib;
 using namespace izenelib::cache;
 
 static bool trace = 0; //trace option
@@ -20,10 +21,10 @@ static unsigned int cacheSize = 2000;
 static double ratio =0.4;
 enum {EXT=0,LIN};
 enum {LRU=0,LFU, SLRU};
-static string inputFile = "../db/test2.txt";
-static string indexFile = "index.dat";
+static string inputFile =  "test.txt";
+static string indexFile = "index234234.dat";
 
-
+typedef string YString;
 //Use YString-YString pair for testing. 
 typedef YString Key;
 typedef YString Value;
@@ -33,14 +34,14 @@ typedef izenelib::am::LinearHashTable<Key,Value, NullLock> linFirstHash;
 //typedef izenelib::am::ExtendibleHashTable<Key,Value, NullLock> extHash;
 typedef izenelib::am::cccr_hash<Key, Value> extFirstHash;
 
-int sum =0;
-int hit =0;
-time_t start;
+static int sum =0;
+static int hit =0;
+static time_t start;
 
 
 template<typename T> void run_getValueWithInsert(T& cm);
 //Top-level 
- void run() {
+static void run() {
 
 	/*cout<<"load from file."<<endl;
 	 {
@@ -87,7 +88,7 @@ template<typename T> void run_getValueWithInsert(T& cm) {
 
 }
 
- void run_load() {	
+static void run_load() {	
 	MCache<Key, Value, slruCmp<Key>, linFirstHash, NullLock> cm(cacheSize);
 	std::ifstream ifs("mcache.bak");
 	{
@@ -103,7 +104,8 @@ template<typename T> void run_getValueWithInsert(T& cm) {
 }
 
 
-int main(int argc, char *argv[])
+//int main(int argc, char *argv[])
+BOOST_AUTO_TEST_CASE(t_mserialize)
 {	
 	run();	
 	run_load();		

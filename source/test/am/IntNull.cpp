@@ -2,21 +2,7 @@
 #include <boost/test/test_case_template.hpp>
 #include <boost/mpl/list.hpp>
 #include <boost/shared_ptr.hpp>
-
-#include <am/tc/Hash.h>
-#include <am/tc/BTree.h>
-#include <am/sdb_hash/sdb_hash.h>
-#include <am/sdb_btree/sdb_btree.h>
-#include <am/sdb_storage/sdb_storage.h>
-// #include <am/btree/BTreeFile.h>
-// #include <am/skip_list_file/SkipListFile.h>
-#include <am/cccr_hash/cccr_hash.h>
-// #include <am/dynamic_perfect_hash/dynamic_perfect_hash.hpp>
-// #include <am/linear_hash_table/linearHashTable.hpp>
-// #include <am/map/map.hpp>
-// #include <am/skip_list/skip_list.hpp>
-
-#include <cstdio>
+#include <am/am_test/am_types.h>
 
 #define DIR_PREFIX "./tmp/am_IntNull_"
 
@@ -28,14 +14,11 @@ typedef boost::mpl::list<
     , tc::BTree<int, NullType, tc::BTreeLessCmp<int> >
     , sdb_hash<int, NullType>
     , sdb_btree<int, NullType>
-    //, BTreeFile<int, NullType>
-    //, cccr_hash<int, NullType>
-    //, sdb_storage<int, NullType>
-    //, SkipListFile<int, NullType>
-    //, DynamicPerfectHash<int, NullType>
-    //, LinearHashTable<int, NullType>
-    //, Map<int, NullType>
-    //, SkipList<NullType, int>
+    , sdb_fixedhash<int, NullType>
+    , sdb_fixedbtree<int, NullType>
+    , sdb_bptree<int, NullType>
+    , sdb_storage<int, NullType>
+    , sdb_storage_mm<int, NullType>
 > test_types;
 
 namespace { // {anonymous}

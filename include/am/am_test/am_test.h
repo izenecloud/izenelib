@@ -307,6 +307,16 @@ template<typename T> void run_am(T& cm) {
 	cout<<"num: "<<cm.num_items()<<endl;
 }
 
+
+template<typename T> void run_crud(T& cm) {
+	cm.run_insert();
+	cout<<"num: "<<cm.num_items()<<endl;
+	cm.run_find();
+	cout<<"num: "<<cm.num_items()<<endl;	
+	cm.run_del();
+	cout<<"num: "<<cm.num_items()<<endl;
+}
+
 template<typename T> void run_am_nod(T& cm) {
 	cm.run_insert();
 	cout<<"num: "<<cm.num_items()<<endl;
