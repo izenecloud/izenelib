@@ -24,7 +24,9 @@ IZENESOFT::BoostTest.new do |t|
   t.timeout = 1800
 end
 task "test_clobber" do
-  rm_rf "testbin/*.dat"
+  Dir["testbin/*.{dat,bak,xml}"].each do |f|
+    rm_rf f
+  end
 end
 
 task :env do
