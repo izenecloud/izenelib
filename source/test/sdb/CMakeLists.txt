@@ -15,20 +15,20 @@ INCLUDE_DIRECTORIES(
 
 ADD_EXECUTABLE(t_sdb
   Runner.cc
-  t_btree_str.cc
-  t_btree1.cc
-  t_btree2.cc
-  t_dm.cc
-  t_IndexSDB.cc
-  t_indexsdb.cc
-  t_IndexSDB1.cc
-  t_mul_sdb.cc
-  t_nsdb.cc
-  t_overflow_btree.cc
-  t_sdb_query.cc
+  #t_btree_str.cc
+  #t_btree1.cc
+  #t_btree2.cc
+  #t_dm.cc
+  #t_IndexSDB.cc
+  #t_indexsdb.cc
+  #t_IndexSDB1.cc
+  #t_mul_sdb.cc
+  #t_nsdb.cc
+  #t_overflow_btree.cc
+  #t_sdb_query.cc
   t_sdb.cc
-  t_TrieIndexSDB.cc
-  t_TrieIndexSDB1.cc
+  #t_TrieIndexSDB.cc
+  #t_TrieIndexSDB1.cc
   )
 
 TARGET_LINK_LIBRARIES(t_sdb
