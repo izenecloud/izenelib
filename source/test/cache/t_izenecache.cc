@@ -1,6 +1,8 @@
 #ifndef T_IZENECACHE_CPP_
 #define T_IZENECACHE_CPP_
 
+#include <cstdio>
+#include <cstdlib>
 #include <cache/IzeneCache.h>
 #include <string>
 #include <boost/test/unit_test.hpp>
@@ -10,6 +12,8 @@
 #include <am/3rdparty/stx_btree.h>
 
 #include <util/ustring/UString.h>
+
+
 namespace rde{
 
 /*
@@ -38,8 +42,8 @@ typedef int ValueType;
 //typedef izenelib::cache::IzeneCache<KeyType, ValueType, NullLock, RDE_HASH, LFU> MyCache;
 typedef ILRUCache<KeyType, ValueType> MyCache;
 
-static string inputFile("../db/test2.txt");
-static string inputFile1("../db/wordlist.txt");
+static string inputFile("test.txt");
+static string inputFile1("test1.txt");
 static bool trace = true;
 static size_t cacheSize = 2500;
 

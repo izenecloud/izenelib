@@ -11,6 +11,7 @@ FIND_PACKAGE(Boost 1.36 REQUIRED
 INCLUDE_DIRECTORIES(
   ${izenelib_INCLUDE_DIRS}
   ${Boost_INCLUDE_DIRS}
+  ${Glog_INCLUDE_DIRS}
   )
 
 ADD_EXECUTABLE(t_util
@@ -19,11 +20,19 @@ ADD_EXECUTABLE(t_util
   t_IdMapper.cpp
   t_bzip.cpp
   t_scheduler.cpp
+  t_serialization.cpp
+  t_log.cpp
+  t_wrapper.cpp
   )
 
 TARGET_LINK_LIBRARIES(t_util
   izene_util
   ${Boost_LIBRARIES}
+  bz2 
+  ${Glog_LIBRARIES}
+  febird
+  procmeminfo
+  izene_log
   bz2
   )
 

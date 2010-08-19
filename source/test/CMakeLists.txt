@@ -1,5 +1,5 @@
 FIND_PACKAGE(Boost ${Boost_FIND_VERSION}
-  COMPONENTS unit_test_framework serialization)
+  COMPONENTS unit_test_framework serialization iostreams)
 
 IF(Boost_FOUND)
 
@@ -15,12 +15,14 @@ IF(Boost_FOUND)
   ADD_SUBDIRECTORY(am)
   ADD_SUBDIRECTORY(util)
   ADD_SUBDIRECTORY(net)
-  ADD_SUBDIRECTORY(string)
+  ADD_SUBDIRECTORY(string) 
+  ADD_SUBDIRECTORY(cache)
+  ADD_SUBDIRECTORY(sdb)
+  ADD_SUBDIRECTORY(ir)
+  
+
   # ADD_SUBDIRECTORY(3rdparty)
   # ADD_SUBDIRECTORY(am_test)
-  # ADD_SUBDIRECTORY(cache)
-  # ADD_SUBDIRECTORY(db)
-  ADD_SUBDIRECTORY(ir)
-  # ADD_SUBDIRECTORY(sdb)
+  # ADD_SUBDIRECTORY(db) 
 
 ENDIF(Boost_FOUND)

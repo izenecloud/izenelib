@@ -1,13 +1,14 @@
+#include <boost/test/unit_test.hpp>
 #include <sdb/SequentialDB.h>
 
 using namespace izenelib::sdb;
 
-const char* indexFile = "test_sdb.dat";
+static const char* indexFile = "test_sdb_str.dat";
 static string inputFile = "test.txt";
 
-bool trace = 0;
+static bool trace = 0;
 
-void ReportUsage(void) {
+static void ReportUsage(void) {
 	cout <<"\nUSAGE:./t_btree_str [-T <trace_option>]  <input_file>\n\n";
 
 	cout <<"Example: /t_btree_str  wordlist.txt\n";
@@ -85,9 +86,11 @@ template<typename T> void run_getPrefix(T& cm) {
 	}
 }
 
-int main(int argc, char *argv[]) {
+//int main(int argc, char *argv[])
+BOOST_AUTO_TEST_CASE(t_btree_str)
+{
 
-	if (argc < 2) {
+	/*if (argc < 2) {
 		ReportUsage();
 		return 0;
 
@@ -109,7 +112,8 @@ int main(int argc, char *argv[]) {
 			inputFile = str;
 			break;
 		}
-	}
+	}*/
+	
 	try
 	{
 		SequentialDB<string> sdb(indexFile);

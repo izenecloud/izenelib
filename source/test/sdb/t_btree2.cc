@@ -1,4 +1,5 @@
 #include <sdb/SequentialDB.h>
+#include <boost/test/unit_test.hpp>
 
 using namespace std;
 using namespace izenelib::sdb;
@@ -8,7 +9,7 @@ typedef int Value;
 //typedef map<int, int> Value;
 typedef DataType<Key,Value> MyDataType;
 
-const char* indexFile = "test_sdb.dat";
+static const char* indexFile = "test_sdb_54235.dat";
 static string inputFile = "test.txt";
 static int degree = 2;
 static size_t cacheSize = 1000000;
@@ -20,7 +21,7 @@ typedef ordered_sdb<Key, Value, ReadWriteLock> SDB1;
 
 typedef ordered_sdb_fixed<Key, Value, ReadWriteLock> SDB2;
 
-bool trace = 0;
+static bool trace = 0;
 
 /*
  namespace izenelib {
@@ -40,7 +41,7 @@ bool trace = 0;
  }
  }*/
 
-void ReportUsage(void) {
+static void ReportUsage(void) {
 	cout
 			<<"\nUSAGE:./t_sdb [-T <trace_option>] [-degree <degree>] [-page <pageSize>][-index <index_file>] [-cache <cache_size>.] <input_file>\n\n";
 
@@ -210,9 +211,11 @@ template<typename T> void run_insert(T& cm) {
 
  }*/
 
-int main(int argc, char *argv[]) {
+//int main(int argc, char *argv[])
+BOOST_AUTO_TEST_CASE(izene_cache_test)
+{
 
-	if (argc < 2) {
+	/*if (argc < 2) {
 		ReportUsage();
 		return 0;
 
@@ -243,7 +246,8 @@ int main(int argc, char *argv[]) {
 			inputFile = str;
 			break;
 		}
-	}
+	}*/
+	
 	try
 	{
 		{

@@ -1,3 +1,4 @@
+#include <boost/test/unit_test.hpp>
 #include <iostream>
 #include <fstream>
 #include <cstdlib>
@@ -22,8 +23,8 @@ static int hash2 = 1;
 enum {EXT=0,LIN};
 static int nReplace = 0;
 enum {LRU1=0,LFU1, SLRU1};
-static string inputFile;
-static string indexFile = "testing-data/mfcache_index.dat";
+static string inputFile = "test.txt";
+static string indexFile = "mfcache_index.dat";
 
 static int dumpOption = 0;
 
@@ -41,7 +42,7 @@ typedef izenelib::am::sdb_hash<Key, Value, NullLock> extSecondHash;
 typedef izenelib::am::sdb_hash<Key, Value, NullLock> linSecondHash;
 
 
-void ReportUsage(void) {
+static void ReportUsage(void) {
 	cout
 			<<"\nUSAGE:./t_mfcache [-T <trace_option>] [-size <cacheSize>] [-ratio <mem_file_proportion>] [-firsthash <ext|lin>] [-secondhash <ext|lin>]";
 	cout
@@ -93,9 +94,9 @@ void ReportUsage(void) {
 	cout<<"\n";
 }
 
-int sum =0;
-int hit =0;
-time_t start;
+static int sum =0;
+static int hit =0;
+static time_t start;
 
 //Top-level 
 template<typename T> void run(T& cm) {
@@ -287,9 +288,11 @@ template<typename T> void run_flush(T& cm) {
 	cout<<"eclipse:"<<time(0)- start<<endl;
 }
 
-int main(int argc, char *argv[]) {
+//int main(int argc, char *argv[])
+BOOST_AUTO_TEST_CASE(t_mfcache)
+{
 
-	if (argc < 2) {
+/*	if (argc < 2) {
 		ReportUsage();
 		return 0;
 
@@ -343,7 +346,7 @@ int main(int argc, char *argv[]) {
 			inputFile = str;
 			break;
 		}
-	}
+	}*/
 
 	try
 	{
@@ -446,6 +449,6 @@ int main(int argc, char *argv[]) {
 		cout<<"OTHER ERROR HAPPENED!"<<endl;
 	}
 
-	return 1;
+	//return 1;
 
 }

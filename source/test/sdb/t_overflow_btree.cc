@@ -1,16 +1,18 @@
 #include <sdb/SequentialDB.h>
 #include <util/ProcMemInfo.h>
+#include <boost/test/unit_test.hpp>
 
-#include  "YString.h"
+//#include  "YString.h"
 
 using namespace std;
-using namespace ylib;
+//using namespace ylib;
 using namespace izenelib::sdb;
 
+typedef string YString;
 typedef int Key;
 typedef YString Value;
 
-const char* indexFile = "osdb.dat";
+static const char* indexFile = "osdb34.dat";
 static string inputFile = "test.txt";
 static int degree = 12;
 static size_t cacheSize = 100000;
@@ -24,9 +26,9 @@ void displayMemInfo(std::ostream& os = std::cout) {
 	os << "vm: " << vm << "bytes rss: " << rss << "bytes" << endl;
 }
 
-bool trace = 0;
+static bool trace = 0;
 
-void ReportUsage(void) {
+static void ReportUsage(void) {
 	cout
 			<<"\nUSAGE:./t_sdb [-T <trace_option>] [-degree <degree>] [-page <pageSize>] [-index <index_file>]  [-dsize <data_size>] [-cache <cache_size>] <input_file>\n\n";
 
@@ -186,9 +188,11 @@ template<typename T> void run_insert(T& cm) {
 
  }*/
 
-int main(int argc, char *argv[]) {
+//int main(int argc, char *argv[])
+BOOST_AUTO_TEST_CASE( t_overflow_btree )
+{
 
-	if (argc < 2) {
+	/*if (argc < 2) {
 		ReportUsage();
 		return 0;
 
@@ -219,7 +223,7 @@ int main(int argc, char *argv[]) {
 			inputFile = str;
 			break;
 		}
-	}
+	}*/
 	//	try
 	{
 		SDB sdb(indexFile);

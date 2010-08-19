@@ -8,9 +8,10 @@
 //To use glog, just include this 
 
 #define SF1_TIME_CHECK 1
-#include <util/izene_log.h>
-#include <nvwa/debug_new.h>
 
+#include <boost/test/unit_test.hpp>
+#include <util/izene_log.h>
+//#include <nvwa/debug_new.h>
 #include <iomanip>
 #include <string>
 
@@ -177,9 +178,10 @@ void TestLogging_memleakage() {
 }
 
 
-int main(int argc, char* argv[]) {
+BOOST_AUTO_TEST_CASE(izene_lob_test)
+{
 	// Initialize Google's logging library.
-	google::InitGoogleLogging(argv[0]);
+	google::InitGoogleLogging( "test" );
 	TestLogging();
 	TestLogging_verbose();
 	TestLogging_debug();

@@ -1,14 +1,15 @@
 #include <sdb/TrieIndexSDB.h>
 #include <iostream>
+#include <boost/test/unit_test.hpp>
 
 using namespace std;
 using namespace izenelib::sdb;
 
-const char* indexFile = "indexsdb.dat";
+static const char* indexFile = "234indexsdb4.dat";
 static string inputFile = "test.txt";
 static int degree = 8;
 static size_t cacheSize = 1000000;
-bool trace = 0;
+static bool trace = 0;
 
 
  struct suffix {
@@ -43,9 +44,9 @@ bool trace = 0;
 
  };
  
- TrieIndexSDB<suffix, string> tddd;
+ static TrieIndexSDB<suffix, string> tddd;
 
-void ReportUsage(void) {
+ static void ReportUsage(void) {
 	cout
 			<<"\nUSAGE:./t_IndexSDB [-T <trace_option>] [-degree <degree>] [-index <index_file>] [-dataSize <maxDataSize> ] [-cache <cache_size>.] <input_file>\n\n";
 
@@ -174,9 +175,11 @@ template< typename V> void run_get(V& dm) {
 	}
 }
 
-int main(int argc, char *argv[]) {
+//int main(int argc, char *argv[]) 
+BOOST_AUTO_TEST_CASE(t_TrieIndexSDB)
+{
 
-	if (argc < 2) {
+	/*if (argc < 2) {
 		ReportUsage();
 		return 0;
 	}
@@ -203,7 +206,7 @@ int main(int argc, char *argv[]) {
 			inputFile = str;
 			break;
 		}
-	}
+	}*/
 
 	try
 	{

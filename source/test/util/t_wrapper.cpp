@@ -1,3 +1,5 @@
+#include <boost/test/unit_test.hpp>
+
 #include <string>
 #include <ctime>
 #include <am/util/Wrapper.h>
@@ -351,8 +353,12 @@ void ReportUsage(void) {
 
 }
 
-int main(int argc, char *argv[]) {
+//int main(int argc, char *argv[])
 
+
+BOOST_AUTO_TEST_CASE(wrapper_test)
+{
+/*
 	if (argc < 2) {
 		ReportUsage();
 		return 0;
@@ -380,6 +386,7 @@ int main(int argc, char *argv[]) {
 			break;
 		}
 	}
+	*/
 	//try
 	{
 		run();

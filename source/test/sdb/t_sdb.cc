@@ -1,6 +1,7 @@
 #include <sdb/SequentialDB.h>
-#include <am/skip_list_file/SkipListFile.h>
-#include <am/btree/BTreeFile.h>
+//#include <am/skip_list_file/SkipListFile.h>
+//#include <am/btree/BTreeFile.h>
+#include <boost/test/unit_test.hpp>
 
 using namespace std;
 using namespace izenelib::sdb;
@@ -8,7 +9,7 @@ using namespace izenelib::sdb;
 typedef string Key;
 typedef DataType<Key,NullType> MyDataType;
 
-const char* indexFile = "test_sdb.dat";
+static const char* indexFile = "test_sdb32432.dat";
 static string inputFile = "test.txt";
 static int degree = 2;
 static size_t cacheSize = 1000000;
@@ -16,14 +17,14 @@ static size_t cacheSize = 1000000;
 enum {BTREE=0, TCHASH, HASH, OBTREE, SKIPLIST};
 static int container = 5;
 
-typedef BTreeFile<Key, NullType, NullLock> BTF;
+//typedef BTreeFile<Key, NullType, NullLock> BTF;
 typedef sdb_btree<Key, NullType,NullLock> SBTREE;
-typedef SkipListFile<Key, NullType, NullLock> SLF;
+//typedef SkipListFile<Key, NullType, NullLock> SLF;
 typedef sdb_hash<Key, NullType, NullLock> SHASH;
 typedef tc_hash<Key, NullType, NullLock> THASH;
 
-typedef SequentialDB<Key, NullType, NullLock, BTF> SDB_BT;
-typedef SequentialDB<Key, NullType, NullLock,SLF> SDB_SL;
+//typedef SequentialDB<Key, NullType, NullLock, BTF> SDB_BT;
+//typedef SequentialDB<Key, NullType, NullLock,SLF> SDB_SL;
 typedef SequentialDB<Key, NullType, NullLock,SHASH> SDB_HASH;
 typedef SequentialDB<Key, NullType, NullLock,SBTREE> SDB_BTREE;
 typedef SequentialDB<Key, NullType, NullLock,THASH> SDB_TCHASH;
@@ -32,10 +33,10 @@ typedef unordered_sdb<Key, NullType> UNORDERED_SDB;
 typedef ordered_sdb<Key, NullType> ORDERED_SDB;
 
 
-bool trace = 0;
+static bool trace = 0;
 static int op = 31;
 
-void ReportUsage(void) {
+static void ReportUsage(void) {
 	cout
 			<<"\nUSAGE:./t_psdb [-T <trace_option>] [-degree <degree>] [-op <1~15> ][-index <index_file>] [-cache <cache_size>.] [-db <tc|btree|hash|skiplist||obtree>.] <input_file>\n\n";
 
@@ -196,9 +197,11 @@ template<typename T> void run_del(T& cm) {
 
 }
 
-int main(int argc, char *argv[]) {
+//int main(int argc, char *argv[])
+BOOST_AUTO_TEST_CASE(t_sdb)
+{
 
-	if (argc < 2) {
+	/*if (argc < 2) {
 		ReportUsage();
 		return 0;
 
@@ -242,11 +245,13 @@ int main(int argc, char *argv[]) {
 			inputFile = str;
 			break;
 		}
-	}
+	}*/
+	
+	
 	try
 	{
 
-		if(container == BTREE)
+		//if(container == BTREE)
 		{
 			SDB_BTREE sdb1(indexFile);
 			sdb1.setDegree(degree);		
@@ -267,12 +272,13 @@ int main(int argc, char *argv[]) {
 			sdb3.open();
 			run(sdb3);
 		}*/
-		else if(container == TCHASH) {
+		//else if(container == TCHASH)
+		{
 			SDB_TCHASH sdb(indexFile);
 			sdb.open();
 			run(sdb);
 		}
-		else //if(container == HASH) 
+		//else //if(container == HASH) 
 		{
 			UNORDERED_SDB sdb4(string("unordered_")+indexFile);			
 			sdb4.open();

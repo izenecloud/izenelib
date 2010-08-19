@@ -3,18 +3,7 @@
 #include <boost/mpl/list.hpp>
 #include <boost/shared_ptr.hpp>
 
-#include <am/tc/Hash.h>
-#include <am/tc/BTree.h>
-#include <am/sdb_hash/sdb_hash.h>
-#include <am/sdb_btree/sdb_btree.h>
-#include <am/sdb_storage/sdb_storage.h>
-// #include <am/btree/BTreeFile.h>
-// #include <am/skip_list_file/SkipListFile.h>
-#include <am/cccr_hash/cccr_hash.h>
-// #include <am/dynamic_perfect_hash/dynamic_perfect_hash.hpp>
-// #include <am/linear_hash_table/linearHashTable.hpp>
-// #include <am/map/map.hpp>
-// #include <am/skip_list/skip_list.hpp>
+#include <am/am_test/am_types.h>
 
 #include <string>
 #include <cstdio>
@@ -29,6 +18,8 @@ typedef boost::mpl::list<
     , tc::BTree<int, std::string, tc::BTreeLessCmp<int> >
     , sdb_hash<int, std::string>
     , sdb_btree<int, std::string>
+    , sdb_bptree<int, std::string>
+    , sdb_storage_mm<int, std::string>
     //, BTreeFile<int, std::string>
     //, cccr_hash<int, std::string>
     //, sdb_storage<int, std::string>

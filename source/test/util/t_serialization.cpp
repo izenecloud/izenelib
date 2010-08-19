@@ -1,3 +1,5 @@
+#include <boost/test/unit_test.hpp>
+
 #include <util/izene_serialization.h>
 #include <am/concept/DataType.h>
 #include <util/ProcMemInfo.h>
@@ -73,7 +75,7 @@ void test_performance() {
 			izene_deserialization_boost<string> idb(ptr, sz);
 			idb.read_image(str1);
 			//cout<<"deserialization: "<<str1<<endl;
-			assert(str == str1);
+			 BOOST_CHECK(str == str1);
 		}
 		cout<<"serialization: "<<(char*)ptr<<" | "<<sz<<endl;
 		printf("izene_serialization_boost elapsed: %lf seconds\n", double(clock()- t1)/CLOCKS_PER_SEC);
@@ -118,7 +120,7 @@ void test_performance() {
 			izene_deserialization_febird<string> idb(ptr, sz);
 			idb.read_image(str1);
 			//cout<<"deserialization: "<<str1<<endl;
-			assert(str == str1);
+			 BOOST_CHECK(str == str1);
 		}
 		cout<<"serialization: "<<(char*)ptr<<" | "<<sz<<endl;
 
@@ -165,8 +167,8 @@ template<typename T> void test_serialization(T &dat) {
 	izene_deserialization<T> idb(ptr, sz);
 	idb.read_image(dat1);
 
-	assert(dat1 == dat);
-	assert(izene_hashing(dat1) == izene_hashing(dat) );
+	 BOOST_CHECK(dat1 == dat);
+	 BOOST_CHECK(izene_hashing(dat1) == izene_hashing(dat) );
 	//cout<<"deserialization: "<<dat1<<endl;
 }
 
@@ -184,7 +186,7 @@ template<typename T> void test_serialization_febird(T &dat) {
 	izene_deserialization_febird<T> idb(ptr, sz);
 	idb.read_image(dat1);
 
-	assert(dat1 == dat);
+	 BOOST_CHECK(dat1 == dat);
 	//cout<<"deserialization: "<<dat1<<endl;
 }
 
@@ -202,8 +204,8 @@ template<typename T> void test_serialization_boost(T &dat) {
 	izene_deserialization_boost<T> idb(ptr, sz);
 	idb.read_image(dat1);
 
-	assert(dat1 == dat);
-	assert(izene_hashing(dat1) == izene_hashing(dat) );
+	 BOOST_CHECK (dat1 == dat);
+	 BOOST_CHECK (izene_hashing(dat1) == izene_hashing(dat) );
 	//cout<<"deserialization: "<<dat1<<endl;
 }
 
@@ -282,10 +284,12 @@ MAKE_MEMCPY_TYPE(SOBJ);
 //MAKE_MEMCPY_SERIALIZATION(vector<SOBJ> );
 //MAKE_MEMCPY_SERIALIZATION(SOBJ)
 
-MAKE_FEBIRD_SERIALIZATION( vector<string> )
+//MAKE_FEBIRD_SERIALIZATION( vector<string> )
 
-int main() {
-	test_performance();
+BOOST_AUTO_TEST_CASE(izene_serialization_test)
+
+{
+	//test_performance();
 
 	testobj dat1(100);
 	test_serialization(dat1);

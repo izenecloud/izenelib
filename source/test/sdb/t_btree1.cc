@@ -1,4 +1,5 @@
 #include <sdb/SequentialDB.h>
+#include <boost/test/unit_test.hpp>
 
 using namespace std;
 using namespace izenelib::sdb;
@@ -6,7 +7,7 @@ using namespace izenelib::sdb;
 typedef string Key;
 typedef DataType<Key,NullType> MyDataType;
 
-const char* indexFile = "test_sdb.dat";
+static const char* indexFile = "test_sdb_124.dat";
 static string inputFile = "test.txt";
 static int degree = 2;
 static size_t cacheSize = 1000000;
@@ -14,7 +15,7 @@ static size_t pageSize = 1024;
 
 typedef SequentialDB<Key, NullType, NullLock> SDB;
 
-bool trace = 0;
+static bool trace = 0;
 
 /*
  namespace izenelib {
@@ -34,7 +35,7 @@ bool trace = 0;
  }
  }*/
 
-void ReportUsage(void) {
+static void ReportUsage(void) {
 	cout
 			<<"\nUSAGE:./t_sdb [-T <trace_option>] [-degree <degree>] [-page <pageSize>][-index <index_file>] [-cache <cache_size>.] <input_file>\n\n";
 
@@ -205,9 +206,11 @@ template<typename T> void run_insert1(T& cm) {
  }
  */
 
-int main(int argc, char *argv[]) {
+//int main(int argc, char *argv[]) 
+BOOST_AUTO_TEST_CASE(t_btree1)
+{
 
-	if (argc < 2) {
+	/*if (argc < 2) {
 		ReportUsage();
 		return 0;
 
@@ -238,7 +241,8 @@ int main(int argc, char *argv[]) {
 			inputFile = str;
 			break;
 		}
-	}
+	}*/
+	
 	try
 	{
 		{
