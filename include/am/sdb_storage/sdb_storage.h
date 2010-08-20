@@ -328,7 +328,7 @@ public:
 	bool close()
 	{
 		if( !isOpen_ )
-		return false;
+		return true;
 		flush();
 		fclose(dataFile_);
 		dataFile_ = 0;
