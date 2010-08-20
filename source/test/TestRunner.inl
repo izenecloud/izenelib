@@ -16,15 +16,28 @@ class MyXmlLogFormatter : public boost::unit_test::output::xml_log_formatter
 
 public:
     MyXmlLogFormatter()
+    : outBackup_(0), errBackup_(0)
     {
-        std::cout.rdbuf(out.rdbuf());
-        std::cerr.rdbuf(err.rdbuf());
+        outBackup_ = std::cout.rdbuf(out_.rdbuf());
+        errBackup_ = std::cerr.rdbuf(err_.rdbuf());
+    }
+
+    ~MyXmlLogFormatter()
+    {
+        if (outBackup_)
+        {
+            std::cout.rdbuf(outBackup_);
+        }
+        if (errBackup_)
+        {
+            std::cerr.rdbuf(errBackup_);
+        }
     }
 
     void test_unit_start(std::ostream& ostr, boost::unit_test::test_unit const& tu)
     {
-        out.str("");
-        err.str("");
+        out_.str("");
+        err_.str("");
         super::test_unit_start(ostr, tu);
     }
 
@@ -32,17 +45,21 @@ public:
     {
         if (tu.p_type == boost::unit_test::tut_case)
         {
-            ostr << "<SystemOut><![CDATA[" << out.str() << "]]></SystemOut>";
-            ostr << "<SystemErr><![CDATA[" << err.str() << "]]></SystemErr>";
+            ostr << "<SystemOut><![CDATA[" << out_.str() << "]]></SystemOut>";
+            ostr << "<SystemErr><![CDATA[" << err_.str() << "]]></SystemErr>";
         }
 
         super::test_unit_finish(ostr, tu, elapsed);
     }
 
 private:
-    std::ostringstream out;
-    std::ostringstream err;
+    std::ostringstream out_;
+    std::ostringstream err_;
+    std::streambuf* outBackup_;
+    std::streambuf* errBackup_;
 };
+
+static std::ofstream* gOutStream = 0;
 
 bool my_init_unit_test()
 {
@@ -53,16 +70,15 @@ bool my_init_unit_test()
     }
 #endif
 
-    static std::ofstream ofs;
-
     const char* const gEnvName = "BOOST_TEST_LOG_FILE";
     const char* const gEnvValue = std::getenv(gEnvName);
 
     if (gEnvValue)
     {
-        ofs.open(gEnvValue);
-        boost::unit_test::unit_test_log.set_stream(ofs);
-        boost::unit_test::unit_test_log.set_formatter(new MyXmlLogFormatter);
+        gOutStream = new std::ofstream(gEnvValue);
+        boost::unit_test::unit_test_log.set_stream(*gOutStream);
+
+        boost::unit_test::unit_test_log.set_formatter(new MyXmlLogFormatter());
     }
 
     return true;
@@ -71,5 +87,10 @@ bool my_init_unit_test()
 int BOOST_TEST_CALL_DECL
 main(int argc, char* argv[])
 {
-    return boost::unit_test::unit_test_main(&my_init_unit_test, argc, argv);
+    int status = boost::unit_test::unit_test_main(&my_init_unit_test, argc, argv);
+
+    // delete global stream to flush
+    delete gOutStream;
+
+    return status;
 }
