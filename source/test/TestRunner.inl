@@ -59,7 +59,6 @@ private:
     std::streambuf* errBackup_;
 };
 
-static MyXmlLogFormatter* gXmlLogger = 0;
 static std::ofstream* gOutStream = 0;
 
 bool my_init_unit_test()
@@ -79,8 +78,7 @@ bool my_init_unit_test()
         gOutStream = new std::ofstream(gEnvValue);
         boost::unit_test::unit_test_log.set_stream(*gOutStream);
 
-        gXmlLogger = new MyXmlLogFormatter();
-        boost::unit_test::unit_test_log.set_formatter(gXmlLogger);
+        boost::unit_test::unit_test_log.set_formatter(new MyXmlLogFormatter());
     }
 
     return true;
@@ -91,9 +89,8 @@ main(int argc, char* argv[])
 {
     int status = boost::unit_test::unit_test_main(&my_init_unit_test, argc, argv);
 
-    // delete global stream to flush and restore original std::cout and std::cerr
+    // delete global stream to flush
     delete gOutStream;
-    delete gXmlLogger;
 
     return status;
 }
