@@ -412,7 +412,7 @@ void VTrie::clear( bool releaseData )
     }
     else if( data_ != NULL )
     {
-        data_;
+        //data_;
         endPtr_ = data_ + VALUE_L + VTCHILDS_L + VTKEY_NUM * VTPTR_L;
         memset( data_, 0x0, curDataSize_ );
     }

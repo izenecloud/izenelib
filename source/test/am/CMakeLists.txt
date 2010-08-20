@@ -11,7 +11,7 @@ IF (TokyoCabinet_FOUND AND Glog_FOUND AND _febird GREATER -1)
     IntString.cpp
     IntNull.cpp
     OpenClose.cpp
-    am_perf.cpp
+   # am_perf.cpp
 
     raw/Buffer.cpp
 
