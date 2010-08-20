@@ -125,9 +125,15 @@ TermReader* MultiFieldTermReader::clone()
     reader_map::iterator iter = fieldsTermReaders_.begin();
     while (iter != fieldsTermReaders_.end())
     {
-        pReader->fieldsTermReaders_.insert(make_pair(iter->first,iter->second->clone()));
+        TermReader* pFieldTermReader = iter->second->clone();
+        pFieldTermReader->setSkipInterval(skipInterval_);
+        pFieldTermReader->setMaxSkipLevel(maxSkipLevel_);
+        pReader->fieldsTermReaders_.insert(make_pair(iter->first,pFieldTermReader));
         iter++;
     }
+    pReader->setSkipInterval(skipInterval_);
+    pReader->setMaxSkipLevel(maxSkipLevel_);
+
     return pReader;
 }
 

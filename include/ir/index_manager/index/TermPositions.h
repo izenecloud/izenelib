@@ -23,7 +23,7 @@ class TermPositions: public TermDocFreqs
 public:
     TermPositions(void);
 
-    TermPositions(TermReader* pReader,InputDescriptor* pInputDescriptor,const TermInfo& ti);
+    TermPositions(TermReader* pReader,InputDescriptor* pInputDescriptor,const TermInfo& ti,int skipInterval, int maxSkipLevel);
 
     TermPositions(TermReader* pReader,Posting* pPosting,const TermInfo& ti);
 

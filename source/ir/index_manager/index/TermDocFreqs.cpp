@@ -20,7 +20,8 @@ TermDocFreqs::TermDocFreqs()
 {
 }
 
-TermDocFreqs::TermDocFreqs(TermReader* pReader, InputDescriptor* pInputDescriptor, const TermInfo& ti)
+TermDocFreqs::TermDocFreqs(TermReader* pReader, InputDescriptor* pInputDescriptor, 
+                                                            const TermInfo& ti, int skipInterval, int maxSkipLevel)
         :termInfo_(ti)
         ,pPostingBuffer_(NULL)
         ,nBufferSize_(0)
@@ -31,6 +32,8 @@ TermDocFreqs::TermDocFreqs(TermReader* pReader, InputDescriptor* pInputDescripto
         ,pTermReader_(pReader)
         ,pInputDescriptor_(pInputDescriptor)
         ,ownPosting_(true)
+        ,skipInterval_(skipInterval)
+        ,maxSkipLevel_(maxSkipLevel)
 {
     pPosting_ = new OnDiskPosting(skipInterval_, maxSkipLevel_, pInputDescriptor_,termInfo_);
     if(pReader->getDocFilter())
@@ -92,6 +95,7 @@ int64_t TermDocFreqs::getCTF()
 
 docid_t TermDocFreqs::doc()
 {
+cout<<"doc "<<pPostingBuffer_[nCurrentPosting_]<<endl;
     return pPostingBuffer_[nCurrentPosting_];
 }
 
@@ -131,6 +135,7 @@ docid_t TermDocFreqs::skipTo(docid_t target)
                 nCurrentPosting_ = 0;
                 nCurDecodedCount_ = 1;
                 pPostingBuffer_[0] = pPosting_->decodeTo(target);
+cout<<"skip to "<<target<<" result "<<pPostingBuffer_[0]<<endl;				
                 pPostingBuffer_[nFreqStart_] = pPosting_->getCurTF();
                 return pPostingBuffer_[0];
             }
