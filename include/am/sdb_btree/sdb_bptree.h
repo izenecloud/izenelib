@@ -188,7 +188,7 @@ public:
 	 *    if we don't call it, it will be automately called in deconstructor
 	 */
 	bool close() {
-		if( isOpen_ = false )
+		if( _isOpen = false )
 			return true;		
 		
 		_isOpen = false;
