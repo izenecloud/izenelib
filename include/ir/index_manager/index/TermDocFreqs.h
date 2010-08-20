@@ -27,7 +27,7 @@ class TermDocFreqs
 public:
     TermDocFreqs();
 
-    TermDocFreqs(TermReader * pReader,InputDescriptor * pInputDescriptor,const TermInfo& ti);
+    TermDocFreqs(TermReader * pReader,InputDescriptor * pInputDescriptor,const TermInfo& ti,int skipInterval, int maxSkipLevel);
 
     TermDocFreqs(TermReader * pReader,Posting * pPosting,const TermInfo& ti);
 

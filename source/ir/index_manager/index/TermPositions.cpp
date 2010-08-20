@@ -20,8 +20,9 @@ TermPositions::TermPositions()
         ,nLastPosting_(-1)
 {}
 
-TermPositions::TermPositions(TermReader* pReader,InputDescriptor* pInputDescriptor,const TermInfo& ti)
-        :TermDocFreqs(pReader,pInputDescriptor,ti)
+TermPositions::TermPositions(TermReader* pReader,InputDescriptor* pInputDescriptor,
+                          const TermInfo& ti,int skipInterval, int maxSkipLevel)
+        :TermDocFreqs(pReader,pInputDescriptor,ti,skipInterval,maxSkipLevel)
         ,pPPostingBuffer_(NULL)
         ,nPBufferSize_(0)
         ,nTotalDecodedPCountWithinDoc_(0)
