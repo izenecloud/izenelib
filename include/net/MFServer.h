@@ -228,7 +228,7 @@ bool MFServer<ServiceHandle, MapType>::createThreadObjectPool_()
         threadObject->createThread(true);
         threadObjPool_.add(threadObject);
         //only one thread for cobra restrict version   
-        COBRA_RESTRICT_BREAK
+       // COBRA_RESTRICT_BREAK
     } // end - for
 
     return true;
