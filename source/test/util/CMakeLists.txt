@@ -47,3 +47,14 @@ TARGET_LINK_LIBRARIES(t_ustring
   izene_util
   ${Boost_LIBRARIES}
   )
+
+ADD_EXECUTABLE(t_compressor 
+  Runner.cpp 
+  t_compressor.cpp
+  ) 
+
+TARGET_LINK_LIBRARIES(t_compressor 
+  izene_util_compression 
+  ${Boost_LIBRARIES}
+  )
+

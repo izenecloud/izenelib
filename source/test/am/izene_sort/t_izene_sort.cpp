@@ -109,9 +109,11 @@ void check_runner(const uint64_t SIZE, uint32_t bs=100000000)
   {
     uint32_t run_num = 0;
     uint32_t run_size = 0;
+    uint64_t next_run_pos = 0;
     fread(&run_size, sizeof(uint32_t), 1, f);
     fread(&run_num, sizeof(uint32_t), 1, f);
-    pos += sizeof(uint32_t)*2;
+    fread(&next_run_pos, sizeof(uint64_t), 1, f);
+    pos += sizeof(uint32_t)*2+sizeof(uint64_t);
     KEY_TYPE last = 0;
     for (uint32_t i=0; i<run_num; ++i)
     {
@@ -161,7 +163,7 @@ void check_merger(const uint64_t SIZE, uint32_t bs=100000000)
   for (uint32_t i=0; i<run_num; ++i)
   {
     uint64_t pos = ftell(f);
-    fseek(f, 2*sizeof(uint32_t), SEEK_CUR);
+    fseek(f, 2*sizeof(uint32_t)+sizeof(uint64_t), SEEK_CUR);
     uint32_t s = 0;
     for (uint32_t j=0; j<SIZE/run_num; ++j)
     {
@@ -173,10 +175,12 @@ void check_merger(const uint64_t SIZE, uint32_t bs=100000000)
 
       //cout<<"\rAdd data: "<<(double)(i*SIZE/run_num+j)/SIZE*100.<<"%"<<std::flush;
     }
+    uint64_t nextRunPos = ftell(f);
     fseek(f, pos, SEEK_SET);
     fwrite(&s, sizeof(uint32_t), 1, f);
     s = SIZE/run_num;
     fwrite(&s, sizeof(uint32_t), 1, f);
+    fwrite(&nextRunPos, sizeof(uint64_t), 1, f);
     fseek(f, 0, SEEK_END);
   }
   fclose(f);  

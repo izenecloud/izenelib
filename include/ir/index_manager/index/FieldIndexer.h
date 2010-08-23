@@ -25,10 +25,296 @@
 #include <deque>
 
 using namespace izenelib::util;
+using namespace izenelib::am;
 
+#define COMPRESSED_SORT 1
 NS_IZENELIB_IR_BEGIN
 
 namespace indexmanager{
+
+class FieldIndexIO
+{
+public:
+    FieldIndexIO(FILE* fd,const string& mode = "r") 
+    {
+        fd_ = fd;
+        bufferSize_ = 4096*4;
+
+        if (mode.compare("w") == 0)
+        {
+            writeBuffer_ = new char[bufferSize_];
+            writeBufferPosition_ = 0;
+            readBuffer_ = 0;
+            length_ = 0;
+        }
+        else if (mode.compare("r") == 0)
+        {
+            readBuffer_ = new char[bufferSize_];
+            readBufferStart_ = 0;
+            readBufferLength_ = 0;
+            readBufferPosition_ = 0;
+
+            writeBuffer_ = 0;
+
+            fseek(fd_, 0, SEEK_END);
+            length_ = ftell(fd_);
+            fseek(fd_, 0, SEEK_SET);
+        }
+        else
+            SF1V5_THROW(ERROR_FILEIO,"Izenesort :not supported IO");
+    }
+
+    ~FieldIndexIO() 
+    {
+        if(readBuffer_) delete[] readBuffer_;
+        if(writeBuffer_) delete[] writeBuffer_;
+    }
+
+public:
+    bool _isCompression() { return true;}
+
+    size_t _write(char* const data, size_t length)
+    {
+        size_t count = RECORD_ALL_LENGTH;
+        char* p = data;
+        uint32_t* q = 0;
+        while(count <= length)
+        {
+            if (writeBufferPosition_ + RECORD_ALL_LENGTH >= bufferSize_)
+                _flush();
+assert(*p == 12);
+            _writeByte(*p++);
+            q = (uint32_t*)p;
+            _writeInt(*q++);
+            _writeVInt(*q++);
+            _writeVInt(*q++);
+            p += RECORD_VALUE_LENGTH;
+            count += RECORD_ALL_LENGTH;
+        }
+        _flush();
+        return 1;
+    }
+
+    size_t _read(char* data, size_t length)
+    {
+        size_t count = RECORD_ALL_LENGTH;
+        uint8_t len;
+        char* p = data;
+        uint32_t* q = 0;
+        while((count <= length)&&(!_isEof()))
+        {
+            len = _readByte();
+			assert(len<=12);
+            *p++ = RECORD_VALUE_LENGTH;
+            q = (uint32_t*)p;
+            *q++ = _readInt();
+            *q++ = _readVInt();
+            *q++ = _readVInt();
+            p += RECORD_VALUE_LENGTH;
+            count += RECORD_ALL_LENGTH;
+        }
+//		cout<<"read length "<<length<<" count "<<count<<endl;
+        return count - RECORD_ALL_LENGTH;
+    }
+
+    size_t _length()
+    {
+        return length_;
+    }
+
+    void _readBytes(char* _b, size_t _len){
+        int32_t len = _len;
+        char* b = _b;
+	
+        if(len <= (readBufferLength_-readBufferPosition_))
+        {
+            // the buffer contains enough data to satisfy this request
+            if(len>0) // to allow b to be null if len is 0...
+                memcpy(b, readBuffer_+ readBufferPosition_, len);
+            readBufferPosition_+=len;
+        }
+        else 
+        {
+            // the buffer does not have enough data. First serve all we've got.
+            int32_t available = readBufferLength_- readBufferPosition_;
+            if(available > 0)
+            {
+                memcpy(b, readBuffer_ + readBufferPosition_, available);
+		  b += available;
+		  len -= available;
+		  readBufferPosition_ += available;
+            }
+            // and now, read the remaining 'len' bytes:
+            if ( len<(int32_t)bufferSize_)
+            {
+                // If the amount left to read is small enough, and
+                // we are allowed to use our buffer, do it in the usual
+                // buffered way: fill the buffer and copy from it:
+                _refill();
+                if(readBufferLength_<len)
+                {
+                    // Throw an exception when refill() could not read len bytes:
+                    memcpy(b, readBuffer_, readBufferLength_);
+                    //_CLTHROWA(CL_ERR_IO, "read past EOF");
+                }
+                else 
+                {
+                    memcpy(b, readBuffer_, len);
+                    readBufferPosition_=len;
+                }
+            } 
+            else 
+            {
+                // The amount left to read is larger than the buffer
+                // or we've been asked to not use our buffer -
+                // there's no performance reason not to read it all
+                // at once. Note that unlike the previous code of
+                // this function, there is no need to do a seek
+                // here, because there's no need to reread what we
+                // had in the buffer.
+                size_t after = readBufferStart_+readBufferPosition_+len;
+                //if(after > length_)
+                    //_CLTHROWA(CL_ERR_IO, "read past EOF");
+                fread(b,len,1,fd_);
+                readBufferStart_ = after;
+                readBufferPosition_ = 0;
+                readBufferLength_ = 0; 				   // trigger refill() on read
+            }
+        }
+    }
+
+    size_t _tell()
+    {
+        return readBufferStart_ + readBufferPosition_;
+    }
+
+    bool _isEof()
+    {
+        return ( (readBufferStart_ + readBufferPosition_) >= length_);
+    }
+
+    void _seek(size_t pos, int origin = SEEK_SET)
+    {
+        if (pos > length_)
+            SF1V5_THROW(ERROR_FILEIO,"Izenesort :pos>length_");
+        if (pos >= readBufferStart_ && pos < (readBufferStart_ + readBufferLength_))
+            readBufferPosition_ = pos - readBufferStart_;
+        else
+        {
+            readBufferStart_ = pos;
+            readBufferPosition_ = 0;
+            readBufferLength_ = 0;
+            fseek(fd_, pos, SEEK_SET);
+        }
+    }
+
+    static void addVInt(char* &data, uint32_t value)
+    {
+        while ((value & ~0x7F) != 0)
+        {
+            *data++ = (uint8_t)((value & 0x7f) | 0x80);
+            value >>= 7;
+        }
+        *data++ = (uint8_t)(value);	
+    }
+
+private:
+    uint8_t _readByte()
+    {
+        if (readBufferPosition_ >= readBufferLength_)
+            _refill();
+        return readBuffer_[readBufferPosition_++];
+    }
+    void _refill()
+    {
+        size_t start = readBufferStart_ + readBufferPosition_;
+        size_t end = start + bufferSize_;
+        if (end > length_)
+            end = length_;
+        readBufferLength_ = end - start;
+        if (readBufferLength_ <= 0)
+           SF1V5_THROW(ERROR_FILEIO,"Izenesort :read past EOF.");
+
+        fread(readBuffer_, readBufferLength_, 1, fd_);
+        readBufferStart_ = start;
+        readBufferPosition_ = 0;
+    }
+
+    uint32_t _readVInt()
+    {
+        uint8_t b = _readByte();
+        int32_t i = b & 0x7F;
+        for (int32_t shift = 7; (b & 0x80) != 0; shift += 7)
+        {
+            b = _readByte();
+            i |= (b & 0x7FL) << shift;
+        }
+        return i;
+    }
+
+    uint32_t _readInt()
+    {
+        uint8_t b1 = _readByte();
+        uint8_t b2 = _readByte();
+        uint8_t b3 = _readByte();
+        uint8_t b4 = _readByte();
+        return ((b4 & 0xFF) << 24) | ((b3 & 0xFF) << 16) | ((b2 & 0xFF) <<  8)
+           | (b1 & 0xFF);
+    }
+
+    void _writeByte(uint8_t b)
+    {
+        writeBuffer_[writeBufferPosition_++] = b;
+    }
+
+    void  _writeInt(uint32_t i)
+    {
+        _writeByte((uint8_t) i);
+        _writeByte((uint8_t) (i >> 8));
+        _writeByte((uint8_t) (i >> 16));
+        _writeByte((uint8_t) (i >> 24));
+    }
+
+    void  _writeVInt(uint32_t ui)
+    {
+        while ((ui & ~0x7F) != 0)
+        {
+            _writeByte((uint8_t)((ui & 0x7f) | 0x80));
+            ui >>= 7;
+        }
+        _writeByte( (uint8_t)ui);
+    }
+
+    void _flush()
+    {
+        fwrite(writeBuffer_, 1, writeBufferPosition_, fd_);
+        writeBufferPosition_ = 0;
+    }
+
+private:
+    FILE* fd_;
+
+    size_t bufferSize_;
+
+    char* readBuffer_;
+
+    size_t readBufferStart_;	 /// position in file of buffer_
+
+    int32_t readBufferLength_; /// end of valid bytes
+
+    int32_t readBufferPosition_; /// next byte to read
+
+    size_t length_;	 /// we only read one file for each FieldIO instance
+
+    char* writeBuffer_;
+
+    size_t writeBufferPosition_;
+
+    static const uint8_t RECORD_ALL_LENGTH = 13;
+    static const uint8_t RECORD_VALUE_LENGTH = 12;
+};
+
+
 //Since TermID is got from hashfunc, DynamicArray is not suitable to be used as the container.
 typedef stx::btree_map<unsigned int, InMemoryPosting* > InMemoryPostingMap;
 
@@ -89,9 +375,11 @@ private:
     std::string sorterFullPath_;
 
     std::string sorterFileName_;
-
+#if COMPRESSED_SORT
+    izenelib::am::IzeneSort<uint32_t, uint8_t, true,SortIO<FieldIndexIO> >* sorter_;
+#else
     izenelib::am::IzeneSort<uint32_t, uint8_t, true>* sorter_;
-
+#endif
     uint64_t termCount_;
 
     friend class InMemoryTermReader;

@@ -27,7 +27,11 @@ FieldIndexer::FieldIndexer(const char* field, MemCache* pCache, Indexer* pIndexe
         sorterFileName_ = field_+".tmp";
         bfs::path path(bfs::path(pIndexer->pConfigurationManager_->indexStrategy_.indexLocation_) /bfs::path(sorterFileName_));
         sorterFullPath_= path.string();
+#if COMPRESSED_SORT
+        sorter_=new izenelib::am::IzeneSort<uint32_t, uint8_t, true,SortIO<FieldIndexIO> >(sorterFullPath_.c_str(), 100000000);
+#else
         sorter_=new izenelib::am::IzeneSort<uint32_t, uint8_t, true>(sorterFullPath_.c_str(), 100000000);
+#endif
     }
     else
         alloc_ = new boost::scoped_alloc(recycle_);
@@ -47,6 +51,17 @@ FieldIndexer::~FieldIndexer()
     if (sorter_) delete sorter_;
 }
 
+#if COMPRESSED_SORT
+uint8_t convert(char* data, uint32_t termId, uint32_t docId, uint32_t offset)
+{
+    char* pData = data;
+    memcpy(pData, &(termId), sizeof(termId));
+    pData += sizeof(uint32_t);
+    FieldIndexIO::addVInt(pData, docId);
+    FieldIndexIO::addVInt(pData, offset);
+    return pData - data;
+}
+#else
 void convert(char* data, uint32_t termId, uint32_t docId, uint32_t offset)
 {
     char* pData = data;
@@ -57,6 +72,7 @@ void convert(char* data, uint32_t termId, uint32_t docId, uint32_t offset)
     memcpy(pData, &(offset), sizeof(offset));
     pData += sizeof(offset);
 }
+#endif
 
 void FieldIndexer::addField(docid_t docid, boost::shared_ptr<LAInput> laInput)
 {
@@ -80,15 +96,22 @@ void FieldIndexer::addField(docid_t docid, boost::shared_ptr<LAInput> laInput)
     else
     {
         if (!sorter_)
+#if COMPRESSED_SORT
+            sorter_=new izenelib::am::IzeneSort<uint32_t, uint8_t, true,SortIO<FieldIndexIO> >(sorterFullPath_.c_str(), 100000000);
+#else
             sorter_=new izenelib::am::IzeneSort<uint32_t, uint8_t, true>(sorterFullPath_.c_str(), 100000000);
+#endif
 
         char data[12];
+        uint8_t len = 12;
         for (LAInput::iterator iter = laInput->begin(); iter != laInput->end(); ++iter)
         {
+#if COMPRESSED_SORT
+            len = convert(data,iter->termId_,docid,iter->offset_);
+#else
             convert(data,iter->termId_,docid,iter->offset_);
-            sorter_->add_data(12, data);
-            //uint8_t len = compress(data,iter->termId_,docid,iter->offset_);
-            //sorter_->add_data(len, data);	
+#endif
+            sorter_->add_data(len,data);
         }
     }
 }
@@ -143,6 +166,16 @@ void writeTermInfo(IndexOutput* pVocWriter, termid_t tid, const TermInfo& termIn
     pVocWriter->writeInt(termInfo.positionPostingLen_);///write position posting length
 }
 
+#pragma pack(push,1)
+struct Record
+{
+    uint8_t len;
+    uint32_t tid;
+    uint32_t docId;
+    uint32_t offset;
+};
+#pragma pack(pop)
+
 fileoffset_t FieldIndexer::write(OutputDescriptor* pWriterDesc)
 {
     vocFilePointer_ = pWriterDesc->getVocOutput()->getFilePointer();
@@ -187,32 +220,45 @@ fileoffset_t FieldIndexer::write(OutputDescriptor* pWriterDesc)
         }
         sorter_->sort();
 
-        //IndexInput* pSortedInput = pIndexer_->getDirectory()->openInput(sorterFileName_);
-        //uint64_t count = pSortedInput->readLongBySmallEndian();
-
+#if COMPRESSED_SORT
         FILE* f = fopen(sorterFullPath_.c_str(),"r");
-        fseek(f, 0, SEEK_SET);
         uint64_t count;
-        fread(&count, sizeof(uint64_t), 1, f);
 
+        FieldIndexIO ioStream(f);
+        Record r;
+        ioStream._readBytes((char*)(&count),sizeof(uint64_t));
+#else
+        IndexInput* pSortedInput = pIndexer_->getDirectory()->openInput(sorterFileName_);
+        uint64_t count = pSortedInput->readLongBySmallEndian();
+#endif
         pPosting = new InMemoryPosting(pMemCache_, skipInterval_, maxSkipLevel_);
         termid_t lastTerm = BAD_DOCID;
         try
         {
         for (uint64_t i = 0; i < count; ++i)
         {
-            uint8_t len;
-            fread(&len, sizeof(uint8_t), 1, f);
-            uint32_t docId,offset;
-            fread(&tid, sizeof(uint32_t), 1, f);
-            fread(&docId, sizeof(uint32_t), 1, f);
-            fread(&offset, sizeof(uint32_t), 1, f);
-/*
+#if COMPRESSED_SORT
+            ioStream._read((char *)(&r), 13);
+            if(r.tid != lastTerm && lastTerm != BAD_DOCID)
+            {
+                if (!pPosting->hasNoChunk())
+                {
+                    pPosting->write(pWriterDesc, termInfo); 	///write posting data
+                    writeTermInfo(pVocWriter, lastTerm, termInfo);
+                    pPosting->reset();								///clear posting data
+                    pMemCache_->flushMem();
+                    termInfo.reset();
+                    termCount_++;
+                }
+            }
+            pPosting->add(r.docId, r.offset);
+            lastTerm = r.tid;
+#else
             pSortedInput->readByte();
             tid = pSortedInput->readIntBySmallEndian();
             uint32_t docId = pSortedInput->readIntBySmallEndian();
             uint32_t offset = pSortedInput->readIntBySmallEndian();
-*/
+
             if(tid != lastTerm && lastTerm != BAD_DOCID)
             {
                 if (!pPosting->hasNoChunk())
@@ -227,6 +273,8 @@ fileoffset_t FieldIndexer::write(OutputDescriptor* pWriterDesc)
             }
             pPosting->add(docId, offset);
             lastTerm = tid;
+
+#endif
         }
         }catch(std::exception& e)
         {
@@ -242,9 +290,11 @@ fileoffset_t FieldIndexer::write(OutputDescriptor* pWriterDesc)
             termInfo.reset();
             termCount_++;
         }
-
+#if COMPRESSED_SORT
         fclose(f);
-        //delete pSortedInput;
+#else
+        delete pSortedInput;
+#endif
         sorter_->clear_files();
         delete sorter_;
         sorter_ = NULL;

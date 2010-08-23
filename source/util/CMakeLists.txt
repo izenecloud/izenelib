@@ -6,6 +6,8 @@ IF(WIN32)
   SET(_NOT_WIN32 FALSE)
 ENDIF(WIN32)
 
+add_subdirectory( compression )
+
 MACRO_CHECK_SHOULD_BUILD(procmeminfo _NOT_WIN32)
 IF(procmeminfo_SHOULD_BUILD)
   MACRO_ADD_LIBRARY(procmeminfo

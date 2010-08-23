@@ -30,14 +30,14 @@ NS_IZENELIB_AM_BEGIN
 template<
   class KEY_TYPE = uint32_t,//pre-key type, indicate the length of the pre-key.
   class LEN_TYPE = uint8_t,//
-  bool  COMPARE_ALL = false
+  bool  COMPARE_ALL = false,
+  typename IO_TYPE = DirectIO
 >
 class SortMerger
 {
-typedef SortMerger<KEY_TYPE, LEN_TYPE, COMPARE_ALL> self_t;
+typedef SortMerger<KEY_TYPE, LEN_TYPE, COMPARE_ALL, IO_TYPE> self_t;
 
   struct KEY_ADDR;
-  
   std::string filenm_;
   const uint32_t MAX_GROUP_SIZE_;//!< max group size
   const uint32_t PRE_BUF_SIZE_;//!< max predict buffer size
@@ -54,7 +54,9 @@ typedef SortMerger<KEY_TYPE, LEN_TYPE, COMPARE_ALL> self_t;
   uint32_t* size_micro_run_;//!< the size of entire microrun
   uint32_t* num_run_;//!< records number of each runs
   uint32_t* size_run_;//!< size of each entire runs
+  uint32_t* size_loaded_run_;//!<size of data that have been read within each entire runs 
   uint64_t* run_addr_;//!< start file address of each runs
+  uint64_t* run_curr_addr_;//!<current file address of each runs
 
   char** micro_buf_;//!< address of every microrun channel buffer
   char** sub_out_buf_;//!< addresses of each output buffer
@@ -83,7 +85,8 @@ typedef SortMerger<KEY_TYPE, LEN_TYPE, COMPARE_ALL> self_t;
 
   uint64_t count_;//!< records number
   uint32_t group_size_;//!< the real run number that can get from the input file.
-  
+
+  uint64_t FILE_LEN_;  
     /**
      @brief pre-key used for sorting
    */
@@ -219,7 +222,7 @@ typedef SortMerger<KEY_TYPE, LEN_TYPE, COMPARE_ALL> self_t;
       out_buf_ = (char*)malloc(OUT_BUF_SIZE_);
   }
   
-  inline void init_(FILE* f)
+  inline void init_(IO_TYPE& ioStream)
   {
     //initialize three buffers
     new_buffer_();
@@ -237,15 +240,6 @@ typedef SortMerger<KEY_TYPE, LEN_TYPE, COMPARE_ALL> self_t;
     out_buf_in_idx_ = 0;
     out_buf_out_idx_ = 0;
 
-    //read the count
-    fseek(f, 0, SEEK_SET);
-    IASSERT(fread(&count_, sizeof(uint64_t), 1, f)==1);
-    std::cout<<"\nCount: "<<count_<<std::endl;
-
-    //get the file length
-    fseek(f, 0, SEEK_END);
-    const uint64_t FILE_LEN = ftell(f);
-    fseek(f, sizeof(uint64_t), SEEK_SET);
 
     //initiate the microrun buffer
     micro_buf_[0] = run_buf_;
@@ -254,48 +248,63 @@ typedef SortMerger<KEY_TYPE, LEN_TYPE, COMPARE_ALL> self_t;
 
     //
     group_size_ = 0;
-    for (uint32_t i = 0; i<MAX_GROUP_SIZE_ && (uint64_t)ftell(f)<FILE_LEN; ++i, ++group_size_)
+    uint64_t nextRunPos = 0;
+    for (uint32_t i = 0; i<MAX_GROUP_SIZE_ && (uint64_t)ioStream.tell()<FILE_LEN_; ++i, ++group_size_)
     {
       //get the size of run
-      IASSERT(fread(size_run_+i, sizeof(uint32_t), 1, f)==1);
+      //IASSERT(fread(size_run_+i, sizeof(uint32_t), 1, f)==1);
+      ioStream.readBytes((char*)(size_run_+i),sizeof(uint32_t));
       //get the records number of a run
-      IASSERT(fread(num_run_+i, sizeof(uint32_t), 1, f)==1);
-      run_addr_[i] = ftell(f);
+      //IASSERT(fread(num_run_+i, sizeof(uint32_t), 1, f)==1);
+      ioStream.readBytes((char*)(num_run_+i),sizeof(uint32_t));
+      //IASSERT(fread(&nextRunPos, sizeof(uint64_t), 1, f)==1);
+      ioStream.readBytes((char*)(&nextRunPos),sizeof(uint64_t));
+
+      run_addr_[i] = ioStream.tell();//ftell(f);
 
       //loading size of a microrun
       uint32_t s = size_run_[i]>PRE_BUF_SIZE_? PRE_BUF_SIZE_:size_run_[i];
-      size_micro_run_[i] = s;
-      IASSERT(fread(micro_buf_[i], s, 1, f)==1);
+      //IASSERT(fread(micro_buf_[i], s, 1, f)==1);
+      size_t ret = ioStream.read(micro_buf_[i], s);
+      size_micro_run_[i] = ret;
+      size_loaded_run_[i] = ret;
+      run_curr_addr_[i] = ioStream.tell();
 
-      //if a record can fit in microrun buffer
-      bool flag = false;
-      while (*(LEN_TYPE*)(micro_buf_[i])+sizeof(LEN_TYPE) > s)
+      if(!ioStream.isCompression())
       {
-        size_micro_run_[i] = 0;
-        --count_;
-        std::cout<<"[Warning]: A record is too long, it will be ignored\n";
-        fseek(f, *(LEN_TYPE*)(micro_buf_[i])+sizeof(LEN_TYPE)-s, SEEK_CUR);
-
-        if (ftell(f)-run_addr_[i] >= (uint64_t)size_run_[i])
+        ///it is not needed for compression, validation will be made within IOStream in that case
+        //if a record can fit in microrun buffer
+        bool flag = false;
+        while (*(LEN_TYPE*)(micro_buf_[i])+sizeof(LEN_TYPE) > s)
         {
-          flag = true;
-          break;
-        }
+          size_micro_run_[i] = 0;
+          --count_;
+          std::cout<<"[Warning]: A record is too long, it will be ignored\n";
+          ioStream.seek(*(LEN_TYPE*)(micro_buf_[i])+sizeof(LEN_TYPE)-s, SEEK_CUR);
+
+          if (ioStream.tell()-run_addr_[i] >= (uint64_t)size_run_[i])
+          {
+            flag = true;
+            break;
+          }
         
-        s = (uint32_t)((uint64_t)size_run_[i]-(ftell(f)-run_addr_[i])>PRE_BUF_SIZE_? PRE_BUF_SIZE_:(uint64_t)size_run_[i]-(ftell(f)-run_addr_[i]));
-        size_micro_run_[i] = s;
-        IASSERT(fread(micro_buf_[i], s, 1, f)==1);
+          s = (uint32_t)((uint64_t)size_run_[i]-(ioStream.tell()-run_addr_[i])>PRE_BUF_SIZE_? PRE_BUF_SIZE_:(uint64_t)size_run_[i]-(ioStream.tell()-run_addr_[i]));
+          size_micro_run_[i] = s;
+          //IASSERT(fread(micro_buf_[i], s, 1, f)==1);
+          ioStream.read(micro_buf_[i], s);
+        }
+        if (flag)
+          continue;
       }
-      if (flag)
-        continue;
-      
       merge_heap_.push(KEY_ADDR(micro_buf_[i], -1, i));
       micro_run_idx_[i] = 1;
       micro_run_pos_[i] = KEY_ADDR(micro_buf_[i], -1, i).LEN()+sizeof(LEN_TYPE);
       num_micro_run_[i] = 0;
 
       //if size_run_[i]>PRE_BUF_SIZE_, it needs to the end of a run and turn to the next run
-      fseek(f, size_run_[i]-s, SEEK_CUR);
+      //fseek(f, size_run_[i]-s, SEEK_CUR);
+      //fseek(f, nextRunPos, SEEK_SET);
+      ioStream.seek(nextRunPos);
     }
     std::cout<<"Run number: "<<group_size_<<std::endl;
     
@@ -315,10 +324,17 @@ typedef SortMerger<KEY_TYPE, LEN_TYPE, COMPARE_ALL> self_t;
           len = *(LEN_TYPE*)(micro_buf_[i]+last_pos)+sizeof(LEN_TYPE);
           char* tmp = (char*)malloc(len);
           memcpy(tmp, micro_buf_[i]+last_pos, len);
-          
-          pre_heap_.push(KEY_ADDR(tmp, run_addr_[i]+pos, i));
-          //std::cout<<i<<":"<<KEY_ADDR(tmp, run_addr_[i]+pos, i).KEY()<<std::endl;
-          size_micro_run_[i] = pos;
+
+          if(ioStream.isCompression())		  
+            pre_heap_.push(KEY_ADDR(tmp, run_curr_addr_[i], i));
+          else
+          {
+            pre_heap_.push(KEY_ADDR(tmp, run_addr_[i]+pos, i));
+            //
+            //std::cout<<i<<":"<<KEY_ADDR(tmp, run_addr_[i]+pos, i).KEY()<<std::endl;
+            //std::cout<<i<<":"<<run_addr_[i]+pos<<":"<<run_curr_addr_[i]<<std::endl;
+            size_micro_run_[i] = pos;
+          }
           break;
         }
         
@@ -330,7 +346,7 @@ typedef SortMerger<KEY_TYPE, LEN_TYPE, COMPARE_ALL> self_t;
     //pre_idx_ = -1;
   }
 
-  void predict_(FILE* f)
+  void predict_(IO_TYPE& ioStream)
   {
     while(pre_heap_.size()>0)
     {
@@ -348,7 +364,13 @@ typedef SortMerger<KEY_TYPE, LEN_TYPE, COMPARE_ALL> self_t;
 
       assert(idx < MAX_GROUP_SIZE_);
       //get loading size of a microrun
-      uint32_t s = (uint32_t)((uint64_t)size_run_[idx] - (addr - run_addr_[idx]));
+      uint32_t s;
+      if(ioStream.isCompression())
+	 s = (uint32_t)((uint64_t)size_run_[idx] - size_loaded_run_[idx]);        
+      else
+	 s = (uint32_t)((uint64_t)size_run_[idx] - (addr - run_addr_[idx]));
+
+
       if (s == 0)
       {
         //std::cout<<"==================\n";
@@ -357,8 +379,12 @@ typedef SortMerger<KEY_TYPE, LEN_TYPE, COMPARE_ALL> self_t;
       s = s > PRE_BUF_SIZE_? PRE_BUF_SIZE_:s;
 
       //load microrun
-      fseek(f, addr, SEEK_SET);
-      IASSERT(fread(pre_buf_, s, 1, f)==1);
+      //fseek(f, addr, SEEK_SET);
+      ioStream.seek(addr);
+      //IASSERT(fread(pre_buf_, s, 1, f)==1);
+      s = ioStream.read(pre_buf_, s);
+      size_loaded_run_[idx] += s;
+      run_curr_addr_[idx] = ioStream.tell();;
 
       uint32_t pos = 0;
       uint32_t last_pos = -1;
@@ -373,7 +399,10 @@ typedef SortMerger<KEY_TYPE, LEN_TYPE, COMPARE_ALL> self_t;
           len = *(LEN_TYPE*)(pre_buf_+last_pos)+sizeof(LEN_TYPE);
           char* tmp = (char*)malloc(len);
           memcpy(tmp, pre_buf_+last_pos, len);
-          pre_heap_.push(KEY_ADDR(tmp, addr+(uint64_t)pos, idx));
+          if(ioStream.isCompression())
+              pre_heap_.push(KEY_ADDR(tmp, run_curr_addr_[idx], idx));
+          else
+              pre_heap_.push(KEY_ADDR(tmp, addr+(uint64_t)pos, idx));
           break;
         }
 
@@ -480,6 +509,8 @@ typedef SortMerger<KEY_TYPE, LEN_TYPE, COMPARE_ALL> self_t;
 
   void output_(FILE* f, uint32_t idx)
   {
+    IO_TYPE ioStream(f,"w");
+
     const uint64_t c = count_;
     while (count_ > 0)
     {
@@ -508,7 +539,8 @@ typedef SortMerger<KEY_TYPE, LEN_TYPE, COMPARE_ALL> self_t;
            --count_, pos+=*(LEN_TYPE*)(sub_out_buf_[idx]+pos)+sizeof(LEN_TYPE));
 
       IASSERT(out_buf_size_[idx]<=OUT_BUF_SIZE_/OUT_BUF_NUM_);
-      IASSERT(fwrite(sub_out_buf_[idx], out_buf_size_[idx], 1, f)==1);
+      //IASSERT(fwrite(sub_out_buf_[idx], out_buf_size_[idx], 1, f)==1);
+      ioStream.write(sub_out_buf_[idx], out_buf_size_[idx]);
       out_buf_full_[idx] = false;
       out_buf_size_[idx] = 0;
       out_buf_out_idx_ = (++out_buf_out_idx_)%OUT_BUF_NUM_;
@@ -544,7 +576,9 @@ public:
     size_micro_run_ = new uint32_t[MAX_GROUP_SIZE_];
     num_run_ = new uint32_t[MAX_GROUP_SIZE_];
     size_run_ = new uint32_t[MAX_GROUP_SIZE_];
+    size_loaded_run_ = new uint32_t[MAX_GROUP_SIZE_];	
     run_addr_ = new uint64_t[MAX_GROUP_SIZE_];
+    run_curr_addr_ = new uint64_t[MAX_GROUP_SIZE_];
 
     micro_buf_ = new char*[MAX_GROUP_SIZE_];
     sub_out_buf_ = new char*[OUT_BUF_NUM_];
@@ -573,7 +607,9 @@ public:
     delete size_micro_run_;
     delete num_run_;
     delete size_run_ ;
+    delete size_loaded_run_;
     delete run_addr_ ;
+    delete run_curr_addr_;
 
     delete micro_buf_;
     delete sub_out_buf_;
@@ -594,10 +630,18 @@ public:
     
     FILE* f = fopen(filenm_.c_str(), "r");
     IASSERT(f);
-    IASSERT(fread(&count_, sizeof(uint64_t), 1, f)==1);
-    init_(f);
+//    IASSERT(fread(&count_, sizeof(uint64_t), 1, f)==1);
 
-    boost::thread predict_thre(boost::bind(&self_t::predict_, this, f));
+    IO_TYPE ioStream(f);
+    FILE_LEN_ = ioStream.length();
+
+    ioStream.readBytes((char*)(&count_),sizeof(uint64_t));
+
+    std::cout<<"\nCount: "<<count_<<std::endl;
+	
+    init_(ioStream);
+
+    boost::thread predict_thre(boost::bind(&self_t::predict_, this, boost::ref(ioStream)));
     boost::thread merge_thre(boost::bind(&self_t::merge_, this));
 
     FILE* out_f = fopen((filenm_+".out").c_str(), "w+");
