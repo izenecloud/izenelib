@@ -1048,7 +1048,7 @@ static size_t toUcs2( EncodingType encodingType,
   while (outputBufferSize != 0 && inputStringLeftLength != 0) {
 
     // Using converting functions offered by iconv library. It will return byte size of converting character.
-    assert(inputStringIndex < inputStringSize);
+    assert(inputStringIndex < inputStringLength);
     returnValue
       = ConvertFunctionList[encodingType].convertToUCS(
                                                        &outputUCSCharacter,
