@@ -95,7 +95,6 @@ int64_t TermDocFreqs::getCTF()
 
 docid_t TermDocFreqs::doc()
 {
-cout<<"doc "<<pPostingBuffer_[nCurrentPosting_]<<endl;
     return pPostingBuffer_[nCurrentPosting_];
 }
 
@@ -135,7 +134,6 @@ docid_t TermDocFreqs::skipTo(docid_t target)
                 nCurrentPosting_ = 0;
                 nCurDecodedCount_ = 1;
                 pPostingBuffer_[0] = pPosting_->decodeTo(target);
-cout<<"skip to "<<target<<" result "<<pPostingBuffer_[0]<<endl;				
                 pPostingBuffer_[nFreqStart_] = pPosting_->getCurTF();
                 return pPostingBuffer_[0];
             }

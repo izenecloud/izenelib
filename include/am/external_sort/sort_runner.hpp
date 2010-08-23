@@ -23,20 +23,116 @@
  
 NS_IZENELIB_AM_BEGIN
 
+struct DirectIOPolicy
+{
+public:
+    DirectIOPolicy(FILE* fd, const std::string& mode = "r")
+      :fd_(fd),length_(0)
+    {
+        if (mode.compare("r") == 0)
+        {
+            fseek(fd_, 0, SEEK_END);
+            length_ = ftell(fd_);
+            fseek(fd_, 0, SEEK_SET);
+        }
+    }
+
+    bool _isCompression() { return false;}
+
+    size_t _write(char* const data, size_t length)
+    {
+        return fwrite(data, length, 1, fd_);
+    }
+
+    size_t _read(char* data, size_t length)
+    {
+        return fread(data, 1, length, fd_);
+    }
+
+    void _readBytes(char* data, size_t len)
+    {
+        fread(data,1,len,fd_);
+    }
+    size_t _tell()
+    {
+        return ftell(fd_);
+    }
+
+    void _seek(size_t pos, int origin = SEEK_SET)
+    {
+        fseek(fd_,pos,origin);
+    }
+
+    size_t _length()
+    {
+        return length_;
+    }
+
+    FILE* fd_;
+    size_t length_;
+};
+
+template<typename SortIOPolicy>
+class SortIO:public SortIOPolicy
+{
+public:
+    SortIO(FILE* fd,const std::string& mode = "r")
+      :SortIOPolicy(fd,mode)
+    {}
+
+    bool isCompression() 
+    {
+        return this->_isCompression();
+    }
+
+    size_t write(char* const data, int length)
+    {
+        return this->_write(data, length);
+    }
+
+    size_t read(char* data, int length)
+    {
+        return this->_read(data, length);
+    }
+
+    void readBytes(char* data, size_t len)
+    {
+        this->_readBytes(data, len);
+    }
+
+    size_t tell()
+    {
+        return this->_tell();
+    }
+
+    void seek(size_t pos,  int origin = SEEK_SET)
+    {
+        this->_seek(pos, origin);
+    }
+
+    size_t length()
+    {
+        return this->_length();
+    }
+
+};
+
+typedef SortIO<DirectIOPolicy> DirectIO;
+
 /**
    @class MultiPassSort
  **/
 template<
   class KEY_TYPE = uint32_t,//pre-key type, indicate the length of the pre-key.
   class LEN_TYPE = uint8_t,//
-  bool  COMPARE_ALL = false
+  bool  COMPARE_ALL = false,
+  typename IO_TYPE = DirectIO
 >
 class SortRunner
 {
-typedef SortRunner<KEY_TYPE, LEN_TYPE, COMPARE_ALL> self_t;
+typedef SortRunner<KEY_TYPE, LEN_TYPE, COMPARE_ALL, IO_TYPE> self_t;
 
   struct KEY_PTR;
-  
   std::string filenm_;
   char* pre_buf_;
   char* run_buf_;
@@ -197,12 +293,13 @@ typedef SortRunner<KEY_TYPE, LEN_TYPE, COMPARE_ALL> self_t;
 
   void prefetch_(FILE* f)
   {
-    fseek(f, 0, SEEK_END);
-    const uint64_t FILE_LEN = ftell(f);
-
+    IO_TYPE ioStream(f);
+    const uint64_t FILE_LEN = ioStream.length();
     run_num_ = 0;
     uint64_t pos = sizeof(uint64_t);
     std::cout<<std::endl;
+    ioStream.seek(pos);
+
     while(pos < FILE_LEN)
     {
       std::cout<<"\rA runner is processing "<<pos*1./FILE_LEN<<std::flush;
@@ -212,11 +309,21 @@ typedef SortRunner<KEY_TYPE, LEN_TYPE, COMPARE_ALL> self_t;
       while (pre_buf_size_!=0)
         pre_buf_con_.wait(lock);
       
-      uint32_t s = (uint32_t)(FILE_LEN-pos>RUN_BUF_SIZE_? RUN_BUF_SIZE_: FILE_LEN-pos);
+      //uint32_t s = (uint32_t)(FILE_LEN-pos>RUN_BUF_SIZE_? RUN_BUF_SIZE_: FILE_LEN-pos);
+      uint32_t s;
+      if(!ioStream.isCompression())
+         s = (uint32_t)(FILE_LEN-pos>RUN_BUF_SIZE_? RUN_BUF_SIZE_: FILE_LEN-pos);	  	
+      else
+         s = RUN_BUF_SIZE_;	  	
       //std::cout<<std::endl<<pos<<"-"<<FILE_LEN<<"-"<<RUN_BUF_SIZE_<<"-"<<s<<std::endl;
-      fseek(f, pos, SEEK_SET);
-      IASSERT(fread(pre_buf_, s, 1, f)==1);
-      pos += (uint64_t)s;
+      if(!ioStream.isCompression())
+        ioStream.seek(pos);
+      //IASSERT(fread(pre_buf_, s, 1, f)==1);
+      s = ioStream.read(pre_buf_, s);
+      if(!ioStream.isCompression())
+        pos += (uint64_t)s;
+      else
+        pos = ioStream.tell();
 
       //check the position of the last record
       pre_buf_size_ = 0;
@@ -228,7 +335,9 @@ typedef SortRunner<KEY_TYPE, LEN_TYPE, COMPARE_ALL> self_t;
         pre_buf_size_ += *(LEN_TYPE*)(pre_buf_+pre_buf_size_)+sizeof(LEN_TYPE);
       }
       pos -= (uint64_t)(s- pre_buf_size_);
-      //std::cout<<pre_buf_size_<<std::endl;
+
+      //std::cout<<"pre_buf_size_ "<<pre_buf_size_<<" pre_buf_num_ "<<pre_buf_num_<<" ret "<<s<<" pos "<<pos<<std::endl;
+
       if (pre_buf_num_ == 0)
       {
         std::cout<<"\n[Warning]: A record is too long, and has been ignored!\n";
@@ -238,8 +347,8 @@ typedef SortRunner<KEY_TYPE, LEN_TYPE, COMPARE_ALL> self_t;
         pre_buf_ = (char*)realloc(pre_buf_, RUN_BUF_SIZE_);
         continue;
       }
-      
-      IASSERT(pre_buf_size_ <= RUN_BUF_SIZE_);
+
+      //IASSERT(pre_buf_size_ <= RUN_BUF_SIZE_);
       pre_buf_con_.notify_one();
     }
     std::cout<<"Prefetching is over...\n";
@@ -304,7 +413,10 @@ typedef SortRunner<KEY_TYPE, LEN_TYPE, COMPARE_ALL> self_t;
 
   void output_(FILE* f)
   {
+    IO_TYPE ioStream(f,"w");
+  
     uint64_t count = 0;
+    uint64_t nextStart = 0;
     while (count< count_)
     {
       boost::mutex::scoped_lock lock(out_buf_mtx_);
@@ -313,7 +425,14 @@ typedef SortRunner<KEY_TYPE, LEN_TYPE, COMPARE_ALL> self_t;
 
       IASSERT(fwrite(&out_buf_size_, sizeof(uint32_t), 1, f)==1);
       IASSERT(fwrite(&out_buf_num_, sizeof(uint32_t), 1, f)==1);
-      IASSERT(fwrite(out_buf_, out_buf_size_, 1, f)==1);
+      uint64_t nextStartPos = ftell(f);
+      IASSERT(fwrite(&nextStart, sizeof(uint64_t), 1, f)==1);
+      //IASSERT(fwrite(out_buf_, out_buf_size_, 1, f)==1);
+      ioStream.write(out_buf_, out_buf_size_);
+      nextStart = ftell(f);
+      fseek(f, nextStartPos, SEEK_SET);
+      IASSERT(fwrite(&nextStart, sizeof(uint64_t), 1, f)==1);
+      fseek(f, nextStart, SEEK_SET);
 
       IASSERT(t_check_sort_());
       count += out_buf_num_;

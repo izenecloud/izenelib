@@ -23,20 +23,22 @@
 
 NS_IZENELIB_AM_BEGIN
 
+
 /**
    @class MultiPassSort
  **/
 template<
   class KEY_TYPE = uint32_t,//pre-key type, indicate the length of the pre-key.
   class LEN_TYPE = uint8_t,//
-  bool  COMPARE_ALL = false
+  bool  COMPARE_ALL = false,
+  typename IO_TYPE = DirectIO
 >
 class IzeneSort
 {
 
-  typedef IzeneSort<KEY_TYPE, LEN_TYPE, COMPARE_ALL> self_t;
-  typedef SortRunner<KEY_TYPE, LEN_TYPE, COMPARE_ALL> run_t;
-  typedef SortMerger<KEY_TYPE, LEN_TYPE, COMPARE_ALL> merge_t;
+  typedef IzeneSort<KEY_TYPE, LEN_TYPE, COMPARE_ALL,IO_TYPE> self_t;
+  typedef SortRunner<KEY_TYPE, LEN_TYPE, COMPARE_ALL,IO_TYPE> run_t;
+  typedef SortMerger<KEY_TYPE, LEN_TYPE, COMPARE_ALL,IO_TYPE> merge_t;
   
   std::string filenm_;
   uint32_t buf_size_;
