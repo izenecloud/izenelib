@@ -84,7 +84,6 @@ struct HugeDBHeader {
 
     ~HugeDBHeader()
     {
-        flush();
     }
 
     /**
