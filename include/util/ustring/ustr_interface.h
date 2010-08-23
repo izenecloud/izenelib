@@ -909,7 +909,7 @@ static size_t convertString( EncodingType encodingType,
 
   while (outputBufferSize != 0 && inputStringLeftLength != 0) {
     // Convert ucs2 -> ucs4
-    assert(inputStringIndex< length());
+    assert(inputStringIndex< inputStringLength);
     returnValue = ucs2_mbtowc(&inputUCSCharacter,
                               &inputString[inputStringIndex], inputStringLeftLength);
 
