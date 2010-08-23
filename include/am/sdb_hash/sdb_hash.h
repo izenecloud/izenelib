@@ -954,6 +954,9 @@ public:
 	 */
 	bool close()
 	{
+		if( isOpen_ == false )
+			return true;
+			
 		isOpen_ = false;
 		flush();
 

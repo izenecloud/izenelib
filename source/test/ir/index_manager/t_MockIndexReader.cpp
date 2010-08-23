@@ -27,11 +27,11 @@ BOOST_AUTO_TEST_CASE(MockIndex)
     BOOST_CHECK_EQUAL(indexer.docFreq(0, &Term("title", 8)), 2U);
     BOOST_CHECK_EQUAL(indexer.docFreq(0, &Term("title", 10)), 3U);
 
-    MockTermReader* reader = indexer.getTermReader(0);
+    MockTermReader* reader = (MockTermReader*)indexer.getTermReader(0);
     reader->seek(&Term("title", 10U));
 
     // Check termdocfreqs
-    MockTermDocFreqs* freqs = reader->termDocFreqs();
+    MockTermDocFreqs* freqs = (MockTermDocFreqs*)reader->termDocFreqs();
     BOOST_CHECK_EQUAL(freqs->docFreq(), 3U);
     BOOST_CHECK_EQUAL(freqs->getCTF(), 6U);
 
@@ -53,7 +53,7 @@ BOOST_AUTO_TEST_CASE(MockIndex)
     BOOST_CHECK_EQUAL(freqs->next(), false);
 
     // Check termpostions
-    MockTermPositions* posts = reader->termPositions();
+    MockTermPositions* posts = (MockTermPositions*)reader->termPositions();
     BOOST_CHECK_EQUAL(posts->next(), true);
     BOOST_CHECK_EQUAL(posts->nextPosition(), 7U);
     BOOST_CHECK_EQUAL(posts->nextPosition(), BAD_POSITION);

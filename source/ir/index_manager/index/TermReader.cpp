@@ -229,9 +229,7 @@ TermDocFreqs* VocReader::termDocFreqs()
 {
     if (pCurTermInfo_ == NULL || pTermReaderImpl_ == NULL )
         return NULL;
-    TermDocFreqs* pTermDoc = new TermDocFreqs(this,pInputDescriptor_->clone(),*pCurTermInfo_);
-    pTermDoc->setSkipInterval(skipInterval_);
-    pTermDoc->setMaxSkipLevel(maxSkipLevel_);
+    TermDocFreqs* pTermDoc = new TermDocFreqs(this,pInputDescriptor_->clone(),*pCurTermInfo_,skipInterval_,maxSkipLevel_);
     return pTermDoc;
 }
 
@@ -239,9 +237,7 @@ TermPositions* VocReader::termPositions()
 {
     if (pCurTermInfo_ == NULL || pTermReaderImpl_ == NULL )
         return NULL;
-    TermPositions* pTermPos = new TermPositions(this,pInputDescriptor_->clone(),*pCurTermInfo_);	
-    pTermPos->setSkipInterval(skipInterval_);
-    pTermPos->setMaxSkipLevel(maxSkipLevel_);
+    TermPositions* pTermPos = new TermPositions(this,pInputDescriptor_->clone(),*pCurTermInfo_,skipInterval_,maxSkipLevel_);	
     return pTermPos;
 }
 
@@ -577,9 +573,7 @@ TermDocFreqs* DiskTermReader::termDocFreqs()
     if (pCurTermInfo_ == NULL || pTermReaderImpl_ == NULL )
         return NULL;
     TermDocFreqs* pTermDoc = 
-        new TermDocFreqs(this,pTermReaderImpl_->pInputDescriptor_->clone(DOCUMENT_LEVEL),*pCurTermInfo_);
-    pTermDoc->setSkipInterval(skipInterval_);
-    pTermDoc->setMaxSkipLevel(maxSkipLevel_);
+        new TermDocFreqs(this,pTermReaderImpl_->pInputDescriptor_->clone(DOCUMENT_LEVEL),*pCurTermInfo_,skipInterval_,maxSkipLevel_);
     return pTermDoc;
 }
 
@@ -587,9 +581,8 @@ TermPositions* DiskTermReader::termPositions()
 {
     if (pCurTermInfo_ == NULL || pTermReaderImpl_ == NULL )
         return NULL;
-    TermPositions* pTermPos =  new TermPositions(this,pTermReaderImpl_->pInputDescriptor_->clone(),*pCurTermInfo_);
-    pTermPos->setSkipInterval(skipInterval_);
-    pTermPos->setMaxSkipLevel(maxSkipLevel_);
+    TermPositions* pTermPos = 
+      new TermPositions(this,pTermReaderImpl_->pInputDescriptor_->clone(),*pCurTermInfo_,skipInterval_,maxSkipLevel_);
     return pTermPos;
 }
 
