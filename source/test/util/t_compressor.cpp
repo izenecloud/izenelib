@@ -77,7 +77,7 @@ void init_small_and_sorted_data(int data_size)
 void init_small_and_unsorted_data(int data_size)
 {
     std::cout<<"generating data... "<<std::endl;
-    int MAXID = 10;
+    int MAXID = 1000;
 
     int_data = new unsigned[data_size];
     srand( (unsigned)time(NULL) );
@@ -165,6 +165,29 @@ BOOST_AUTO_TEST_CASE(pfordelta_compressor_test)
     unsigned * decompressed_data = new unsigned[data_size*2];
     retSize = compressor.decompress(compressed_data, decompressed_data, data_size);
     cout<<"ret size "<<retSize<<" time elapsed: "<<timer.elapsed()<<endl;	
+
+    for(int i = 0; i < data_size; ++i)
+       BOOST_CHECK_EQUAL(int_data[i],decompressed_data[i]);
+
+    delete[] compressed_data;
+    delete[] decompressed_data;
+    delete[] int_data;
+}
+
+BOOST_AUTO_TEST_CASE(turborice_compressor_test)
+{
+    int data_size = 1024;
+    init_small_and_unsorted_data(data_size);
+    unsigned * compressed_data = new unsigned[data_size*2];
+    TurboRice_Compressor compressor;
+    izenelib::util::ClockTimer timer;
+    int retSize = compressor.compress(int_data, compressed_data, data_size);
+    cout<<"turbo rice ret size "<<retSize<<" time elapsed: "<<timer.elapsed()<<endl;	
+    BOOST_CHECK(retSize < data_size);
+
+    unsigned * decompressed_data = new unsigned[data_size*2];
+    retSize = compressor.decompress(compressed_data, decompressed_data, data_size);
+    cout<<"turbo rice ret size "<<retSize<<" time elapsed: "<<timer.elapsed()<<endl;	
 
     for(int i = 0; i < data_size; ++i)
        BOOST_CHECK_EQUAL(int_data[i],decompressed_data[i]);
