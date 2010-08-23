@@ -51,6 +51,10 @@ vtnum_t VSynonym::getSynonymCount( int index )
 {
     if(!start_) return 0;
 
+    // check for first offset
+    if( index >= *reinterpret_cast<vtnum_t*>(start_) )
+        return 0;
+
     uint32_t off = index * VT_OFFSET_LEN + VT_NUM_LEN;
     vtoffset_t offset = *reinterpret_cast<vtoffset_t*>(start_ + off);
     return *reinterpret_cast<vtnum_t*>(start_ + offset);
@@ -60,9 +64,18 @@ vtnum_t VSynonym::getSynonymCount( int index )
 char* VSynonym::getWord( int index, int offset )
 {
     if(!start_) return 0;
+
+    // check for first offset
+    if( index >= *reinterpret_cast<vtnum_t*>(start_) )
+        return 0;
+
     //first offset
     uint32_t off = VT_NUM_LEN + index * VT_OFFSET_LEN;
     vtoffset_t woffset = *reinterpret_cast<vtoffset_t*>(start_ + off);
+
+    // check for second offset
+    if( offset >= *reinterpret_cast<vtnum_t*>(start_ + woffset) )
+        return 0;
 
     //second offset
     off = VT_NUM_LEN + offset * VT_OFFSET_LEN;

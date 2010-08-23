@@ -954,7 +954,7 @@ public:
 	 */
 	bool close()
 	{
-		if( isOpen_ = false )
+		if( isOpen_ == false )
 			return true;
 			
 		isOpen_ = false;

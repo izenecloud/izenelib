@@ -381,7 +381,7 @@ public:
 	 */
 	bool close() {
 		if ( !isOpen_)
-			return true;
+			return false;
 		flush();
 		isOpen_ = false;
 		return true;

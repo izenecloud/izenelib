@@ -250,6 +250,7 @@ public:
 
             // update header
             flush();
+            isOpen_ = false;
         }
     }
 

@@ -54,6 +54,20 @@ NS_IZENELIB_IR_BEGIN
 
 namespace idmanager {
 
+class IDManagerBase {
+
+public:
+
+    virtual ~IDManagerBase(){};
+
+    virtual bool getTermIdByTermString(const char* termStringBuffer,
+        const size_t termStringLength, uint32_t & termId) {return false;}
+
+    virtual bool getTermIdByTermString(const char* termStringBuffer,
+        const size_t termStringLength, uint64_t & termId) {return false;}
+
+};
+
 #define MAJOR_VERSION "1"
 #define MINOR_VERSION "0"
 #define PATCH_VERSION "20091210"
@@ -70,7 +84,7 @@ template<typename NameString,
          typename TermIDStorage = HDBIDStorage<NameString, NameID, LockType>,
          typename DocIDGenerator = UniqueIDGenerator<NameString, NameID, LockType>,
          typename DocIDStorage = HDBIDStorage<NameString, NameID, LockType> >
-class _IDManager
+class _IDManager : public IDManagerBase
 {
 
 public:
@@ -101,7 +115,7 @@ public:
 	 * @return true  : 	Term exists in the dictionary.
 	 * @return false : 	Term does not exist in the dictionary.
 	 */
-	bool getTermIdByTermString(const char* termStringBuffer, const size_t termStringLength, NameID& termId)
+	bool getTermIdByTermString(const typename NameString::CharT* termStringBuffer, const size_t termStringLength, NameID& termId)
 	{
 	    return termIdManager_.getTermIdByTermString(termStringBuffer, termStringLength, termId);
 	}

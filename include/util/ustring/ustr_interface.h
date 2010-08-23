@@ -686,16 +686,15 @@ UCS2Char toUpperChar(size_t index) {
 } // end - toUpperChar
 
 /**
- * @brief an interface function which changes upper alphabet into lower one.
- *
- * @param index     an index of UString data.
- * @return          the result value of converting.
+ * @brief an interface function which changes upper alphabet string into upper one.
  */
-UCS2Char toLowerChar(size_t index) {
+void toUpperString(void) {
+  for (unsigned int i = 0; i < length(); i++)
+    toUpperChar(i);
+} // end - toLowerString()
 
-  assert((size_t)index<length_);
-  UCS2Char thisChar = str_[index];//>>8;
-
+static inline UCS2Char toLowerChar( UCS2Char thisChar)
+{
   if (thisChar >= 0x0041 && thisChar <= 0x005a)
     thisChar += 32;
 
@@ -731,11 +730,38 @@ UCS2Char toLowerChar(size_t index) {
   else if (thisChar >= 0x2100 && thisChar<= 0x212b)
     thisChar= UCS2_CHAR_UPPER2LOWER_PAGE21[thisChar-0x2100];
 
-  //thisChar =  thisChar<<8;
-  str_[index] = thisChar;
   return thisChar;
+}
+
+/**
+ * @brief an interface function which changes upper alphabet into lower one.
+ *
+ * @param index     an index of UString data.
+ * @return          the result value of converting.
+ */
+UCS2Char toLowerChar(size_t index) {
+
+  assert((size_t)index<length_);
+  str_[index] = vector_string::toLowerChar(str_[index]);
+  return str_[index];
 
 } // end - toLowerChar()
+
+/**
+ * @brief an interface function which changes upper alphabet string into lower one.
+ * @return true if output string is different with input string.
+ */
+static bool toLowerString(const CharT* const inputString, const size_t inputStringLength,
+    CharT* const outputBuffer, const size_t outputBufferLimit)
+{
+    bool ret = false;
+    for(size_t i = 0; i < inputStringLength && i < outputBufferLimit; i++ ){
+        outputBuffer[i] = toLowerChar( inputString[i] );
+        if(outputBuffer[i] != inputString[i]) ret = true;
+    }
+    if(outputBufferLimit < inputStringLength) ret = true;
+    return ret;
+}
 
 /**
  * @brief an interface function which changes upper alphabet string into lower one.
@@ -743,14 +769,6 @@ UCS2Char toLowerChar(size_t index) {
 void toLowerString(void) {
   for (unsigned int i = 0; i < length(); i++)
     toLowerChar(i);
-} // end - toLowerString()
-
-/**
- * @brief an interface function which changes upper alphabet string into upper one.
- */
-void toUpperString(void) {
-  for (unsigned int i = 0; i < length(); i++)
-    toUpperChar(i);
 } // end - toLowerString()
 
 
@@ -860,11 +878,13 @@ inline SelfT& assign(const char* initString, EncodingType encodingType)
   return *this;
 } // end - assign()
 
-size_t convertString( EncodingType encodingType,
+static size_t convertString( EncodingType encodingType,
+                     const CharT* const inputString,
+                     const size_t inputStringLength,
                      char* const outputBuffer,
-                     const size_t outputBufferLimit) const
+                     const size_t outputBufferLimit )
 {
-  if (length() == 0)
+  if (inputStringLength == 0)
     return 0;
 
   // Terminate converting if encoding type is not right value.
@@ -876,7 +896,7 @@ size_t convertString( EncodingType encodingType,
 //  boost::posix_time::ptime start = boost::posix_time::microsec_clock::local_time();
 
   size_t inputStringIndex = 0;
-  size_t inputStringLength = length();
+  size_t inputStringLeftLength = inputStringLength;
   size_t outputStringIndex = 0;
 
   size_t outputBufferSize = outputBufferLimit;
@@ -887,11 +907,11 @@ size_t convertString( EncodingType encodingType,
 
   // Coninue converting characters one by one while there is no space in output buffer or there is no character to read.
 
-  while (outputBufferSize != 0 && inputStringLength != 0) {
+  while (outputBufferSize != 0 && inputStringLeftLength != 0) {
     // Convert ucs2 -> ucs4
     assert(inputStringIndex< length());
     returnValue = ucs2_mbtowc(&inputUCSCharacter,
-                              &str_[inputStringIndex], inputStringLength);
+                              &inputString[inputStringIndex], inputStringLeftLength);
 
     // If there is no matched character in converting table, insert space character to the output.
     if (returnValue < 0) {
@@ -917,7 +937,7 @@ size_t convertString( EncodingType encodingType,
         break;
 
       case RET_TOOSMALL: // If input string is shorter than output, stop converting.
-        inputStringLength = 0;
+        inputStringLeftLength = 0;
         break;
 
       default:
@@ -931,7 +951,7 @@ size_t convertString( EncodingType encodingType,
     } // end - else
 
     inputStringIndex++;
-    inputStringLength--;
+    inputStringLeftLength--;
 
   } // end - while()
 
@@ -941,6 +961,13 @@ size_t convertString( EncodingType encodingType,
   outputBuffer[outputStringIndex] = '\0';
 
   return outputStringIndex;
+}
+
+size_t convertString( EncodingType encodingType,
+                     char* const outputBuffer,
+                     const size_t outputBufferLimit) const
+{
+  return convertString(encodingType, str_, length(), outputBuffer, outputBufferLimit);
 }
 
 /**
@@ -998,7 +1025,7 @@ void convertString(std::string& outputString,
  * @param outputBufferLimit the maximum length of outputBuffer, counted in CharT.
  */
 static size_t toUcs2( EncodingType encodingType,
-                    const char* const inputString, const size_t inputStringSize,
+                    const char* const inputString, const size_t inputStringLength,
                     CharT* const outputBuffer, const size_t outputBufferLimit)
 {
   // Terminate converting if encoding type is not right value.
@@ -1008,7 +1035,7 @@ static size_t toUcs2( EncodingType encodingType,
   } // end - if
 
   size_t inputStringIndex = 0;
-  size_t inputStringLength = inputStringSize; // Assign the length
+  size_t inputStringLeftLength = inputStringLength; // Assign the length
 
   size_t outputStringIndex = 0;
   size_t outputBufferSize = outputBufferLimit;//*sizeof(CharT);
@@ -1018,7 +1045,7 @@ static size_t toUcs2( EncodingType encodingType,
   int returnValue;
 
   // Coninue converting characters one by one while there is no space in output buffer or there is no character to read.
-  while (outputBufferSize != 0 && inputStringLength != 0) {
+  while (outputBufferSize != 0 && inputStringLeftLength != 0) {
 
     // Using converting functions offered by iconv library. It will return byte size of converting character.
     assert(inputStringIndex < inputStringSize);
@@ -1026,19 +1053,19 @@ static size_t toUcs2( EncodingType encodingType,
       = ConvertFunctionList[encodingType].convertToUCS(
                                                        &outputUCSCharacter,
                                                        (unsigned char*)&inputString[inputStringIndex],
-                                                       inputStringLength);
+                                                       inputStringLeftLength);
 
     // If there is no matched character in converting table, insert space character to the output.
     if (returnValue < 0) {
       switch (returnValue) {
       case RET_ILSEQ:
         outputBuffer[outputStringIndex] = (UCS2Char)0x20; // insert space character to the UCS4 String
-        inputStringLength--;
+        inputStringLeftLength--;
         inputStringIndex++;
         break;
 
       default: // Illigal return value. Stop converting.
-        inputStringLength = 0;
+        inputStringLeftLength = 0;
         break;
       } // end - switch
 
@@ -1048,10 +1075,10 @@ static size_t toUcs2( EncodingType encodingType,
     else {
       // Move to the next position in the input string.
       inputStringIndex += returnValue;
-      if (inputStringLength > (size_t)returnValue)
-        inputStringLength -= returnValue;
+      if (inputStringLeftLength > (size_t)returnValue)
+        inputStringLeftLength -= returnValue;
       else
-        inputStringLength = 0;
+        inputStringLeftLength = 0;
 
       // Convert ucs4 to ucs2
       returnValue = ucs2_wctomb(&outputBuffer[outputStringIndex],

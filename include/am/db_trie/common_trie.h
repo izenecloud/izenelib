@@ -156,7 +156,7 @@ public:
 
     virtual ~CommonTrie_()
     {
-        flush();
+        close();
     }
 
     void open()

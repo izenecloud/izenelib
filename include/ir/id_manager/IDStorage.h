@@ -46,7 +46,7 @@ public:
 	 * @return true if successfully inserted
 	 * @return false otherwise
      */
-	void put(const NameID& nameID, const char* termStringBuffer, const size_t termStringLength)
+	void put(const NameID& nameID, const typename NameString::CharT* termStringBuffer, const size_t termStringLength)
 	{
 	    put(nameID, NameString(termStringBuffer, termStringLength));
 	}
@@ -151,7 +151,7 @@ public:
 	 * @return true if successfully inserted
 	 * @return false otherwise
      */
-	void put(const NameID& nameID, const char* termStringBuffer, const size_t termStringLength)
+	void put(const NameID& nameID, const typename NameString::CharT* termStringBuffer, const size_t termStringLength)
 	{
 	    put(nameID, NameString(termStringBuffer, termStringLength));
 	}
@@ -272,7 +272,7 @@ class TCIDStorage
 	 * @return true if successfully inserted
 	 * @return false otherwise
      */
-	void put(const NameID& nameID, const char* termStringBuffer, const size_t termStringLength)
+	void put(const NameID& nameID, const typename NameString::CharT* termStringBuffer, const size_t termStringLength)
 	{
 	    put(nameID, NameString(termStringBuffer, termStringLength));
 	}
@@ -367,7 +367,7 @@ public:
 
 	EmptyIDStorage(const std::string& ){}
 
-	void put(const NameID& nameID, const char* termStringBuffer, const size_t termStringLength)
+	void put(const NameID& nameID, const typename NameString::CharT* termStringBuffer, const size_t termStringLength)
 	{
 	}
 

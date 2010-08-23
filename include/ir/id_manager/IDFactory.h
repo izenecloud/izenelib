@@ -62,7 +62,7 @@ public:
 	 * @return true  : 	Term exists in the dictionary.
 	 * @return false : 	Term does not exist in the dictionary.
 	 */
-	bool getTermIdByTermString(const char* termStringBuffer, const size_t termStringLength, NameID& termId)
+	bool getTermIdByTermString(const typename NameString::CharT* termStringBuffer, const size_t termStringLength, NameID& termId)
 	{
         bool ret = idGenerator_.conv(termStringBuffer, termStringLength, termId);
         idStorage_.put(termId, termStringBuffer, termStringLength );
