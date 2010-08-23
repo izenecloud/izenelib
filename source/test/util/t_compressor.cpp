@@ -68,7 +68,7 @@ void init_large_and_unsorted_data(int data_size)
 
 BOOST_AUTO_TEST_CASE(vbyte_compressor_test)
 {
-    int data_size = 1024*1024;
+    int data_size = 1024;
     init_small_and_sorted_data(data_size);
     unsigned * compressed_data = new unsigned[data_size];
     VByte_Compressor compressor;
@@ -92,7 +92,7 @@ BOOST_AUTO_TEST_CASE(vbyte_compressor_test)
 
 BOOST_AUTO_TEST_CASE(pfordelta_mix_compressor_test)
 {
-    int data_size = 1024*1024;
+    int data_size = 1024;
     init_small_and_sorted_data(data_size);
 
     unsigned * compressed_data = new unsigned[data_size];

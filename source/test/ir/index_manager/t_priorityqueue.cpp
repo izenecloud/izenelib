@@ -43,7 +43,7 @@ BOOST_AUTO_TEST_SUITE( t_priorityqueue )
 
 BOOST_AUTO_TEST_CASE(prorityqueue)
 {
-    size_t count = 10000;
+    size_t count = 1000;
     ScoreDocQueue queue(count);
 
     for (size_t i = 0; i < count; i++) 

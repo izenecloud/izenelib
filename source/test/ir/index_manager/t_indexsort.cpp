@@ -50,14 +50,14 @@ void buildup()
     bfs::path path(bfs::path(".") /"Content.tmp");
     file = path.string();
     sorter = new izenelib::am::IzeneSort<uint32_t, uint8_t, true,SortIO<FieldIndexIO> >
-      (file.c_str(), 100000000);
+      (file.c_str(), 10000000);
 
 
         char data[12];
         uint8_t len = 12;
-    for(size_t i = 1; i <= 1000; ++i)
+    for(size_t i = 1; i <= 100; ++i)
     {
-        for (size_t j = 0; j < 500; ++j)
+        for (size_t j = 0; j < 10; ++j)
         {
             len = convert(data,termrandom(),i,offsetrandom());
             sorter->add_data(len,data);
