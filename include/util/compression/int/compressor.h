@@ -11,6 +11,7 @@
 
 #include <util/compression/int/pfordelta_mix_compressor.h>
 #include <util/compression/int/vbyte_compressor.h>
+#include <util/compression/int/s16_compressor.h>
 
 namespace izenelib{namespace util{namespace compression{
 
@@ -40,6 +41,7 @@ public:
 
 typedef Compressor<vbyte_compressor> VByte_Compressor;
 typedef Compressor<pfordelta_mix_compressor> PForDeltaMix_Compressor;
+typedef Compressor<s16_compressor> S16_Compressor;
 
 }}}
 #endif

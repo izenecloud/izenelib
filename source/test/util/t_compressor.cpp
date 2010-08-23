@@ -53,6 +53,22 @@ void init_small_and_sorted_data(int data_size)
     std::cout<<"done!\n";
 }
 
+void init_small_and_unsorted_data(int data_size)
+{
+    std::cout<<"generating data... "<<std::endl;
+    int MAXID = 10;
+
+    int_data = new unsigned[data_size];
+    srand( (unsigned)time(NULL) );
+
+    for (int i = 0; i < data_size; ++i) {
+        int_data[i] = rand() % MAXID;
+    }
+
+    std::cout<<"done!\n";
+}
+
+
 void init_large_and_unsorted_data(int data_size)
 {
     std::cout<<"generating data... "<<std::endl;
@@ -66,10 +82,35 @@ void init_large_and_unsorted_data(int data_size)
     std::cout<<"done!\n";
 }
 
+BOOST_AUTO_TEST_CASE(s16_compressor_test)
+{
+    int data_size = 1024;
+    init_small_and_unsorted_data(data_size);
+    unsigned int * compresseddata = new unsigned int[data_size];
+    S16_Compressor compressor;
+    izenelib::util::ClockTimer timer;
+    int retSize = compressor.compress(int_data, compresseddata, data_size);
+    cout<<"ret size for s16 compression "<<retSize<<" time elapsed: "<<timer.elapsed()<<endl;	
+    BOOST_CHECK(retSize < data_size);
+
+    unsigned int * decompresseddata = new unsigned int[data_size*2];
+
+    retSize = compressor.decompress(compresseddata, decompresseddata, data_size);
+    cout<<"ret size for s16 decompression  "<<retSize<<" time elapsed: "<<timer.elapsed()<<endl;	
+
+    for(int i = 0; i < data_size; ++i)
+       BOOST_CHECK_EQUAL(int_data[i],decompresseddata[i]);
+
+    delete[] int_data;
+    delete[] decompresseddata;
+    delete[] compresseddata;
+}
+
+
 BOOST_AUTO_TEST_CASE(vbyte_compressor_test)
 {
     int data_size = 1024;
-    init_small_and_sorted_data(data_size);
+    init_small_and_unsorted_data(data_size);
     unsigned * compressed_data = new unsigned[data_size];
     VByte_Compressor compressor;
     izenelib::util::ClockTimer timer;
@@ -88,7 +129,6 @@ BOOST_AUTO_TEST_CASE(vbyte_compressor_test)
     delete[] decompressed_data;
     delete[] int_data;
 }
-
 
 BOOST_AUTO_TEST_CASE(pfordelta_mix_compressor_test)
 {
