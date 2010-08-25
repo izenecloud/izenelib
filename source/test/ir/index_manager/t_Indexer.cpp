@@ -104,8 +104,8 @@ void prepareDocument(unsigned int docId, IndexerDocument& document, bool filter 
     for(unsigned int i = 0; i < 1000; ++i)
     {
         LAInputUnit unit;
-        unit.termId_ = myrandom();
-        unit.offset_ = i;
+        unit.termid_ = myrandom();
+        unit.wordOffset_ = i;
         document.add_to_property(unit);
     }
 

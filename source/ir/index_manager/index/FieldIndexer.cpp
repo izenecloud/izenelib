@@ -81,16 +81,16 @@ void FieldIndexer::addField(docid_t docid, boost::shared_ptr<LAInput> laInput)
         InMemoryPosting* curPosting;
         for (LAInput::iterator iter = laInput->begin(); iter != laInput->end(); ++iter)
         {
-            InMemoryPostingMap::iterator postingIter = postingMap_.find(iter->termId_);
+            InMemoryPostingMap::iterator postingIter = postingMap_.find(iter->termid_);
             if (postingIter == postingMap_.end())
             {
                 //curPosting = new InMemoryPosting(pMemCache_, skipInterval_, maxSkipLevel_);
                 curPosting = BOOST_NEW(*alloc_, InMemoryPosting)(pMemCache_, skipInterval_, maxSkipLevel_);
-                postingMap_[iter->termId_] = curPosting;
+                postingMap_[iter->termid_] = curPosting;
             }
             else
                 curPosting = postingIter->second;
-            curPosting->add(docid, iter->offset_);
+            curPosting->add(docid, iter->wordOffset_);
         }
     }
     else
@@ -107,9 +107,9 @@ void FieldIndexer::addField(docid_t docid, boost::shared_ptr<LAInput> laInput)
         for (LAInput::iterator iter = laInput->begin(); iter != laInput->end(); ++iter)
         {
 #if COMPRESSED_SORT
-            len = convert(data,iter->termId_,docid,iter->offset_);
+            len = convert(data,iter->termid_,docid,iter->wordOffset_);
 #else
-            convert(data,iter->termId_,docid,iter->offset_);
+            convert(data,iter->termid_,docid,iter->wordOffset_);
 #endif
             sorter_->add_data(len,data);
         }

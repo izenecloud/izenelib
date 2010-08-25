@@ -463,8 +463,8 @@ namespace irdb
                     termid_t tid = ti->termId_;
                     loc_t pos = (*ti).position_;
                     iii::LAInputUnit unit;
-                    unit.termId_ = tid;
-                    unit.offset_ = pos;
+                    unit.termid_ = tid;
+                    unit.wordOffset_ = pos;
                     document.add_to_property(unit);
                     ti++;
 //                     std::cout<<"ADD TERM "<<tid<<" in DOC "<<docId<<std::endl;
@@ -520,8 +520,8 @@ namespace irdb
                     termid_t tid = ti->termId_;
                     loc_t pos = (*ti).position_;
                     iii::LAInputUnit unit;
-                    unit.termId_ = tid;
-                    unit.offset_ = pos;
+                    unit.termid_ = tid;
+                    unit.wordOffset_ = pos;
                     document.add_to_property(unit);
                     ti++;
 //                     std::cout<<"ADD TERM "<<tid<<" in DOC "<<docId<<std::endl;
@@ -911,8 +911,8 @@ namespace irdb
                     termid_t tid = ti->termId_;
                     loc_t pos = (*ti).position_;
                     iii::LAInputUnit unit;
-                    unit.termId_ = tid;
-                    unit.offset_ = pos;
+                    unit.termid_ = tid;
+                    unit.wordOffset_ = pos;
                     document.add_to_property(unit);
                     ti++;
 //                     std::cout<<"ADD TERM "<<tid<<" in DOC "<<docId<<std::endl;
@@ -965,8 +965,8 @@ namespace irdb
                     termid_t tid = ti->termId_;
                     loc_t pos = (*ti).position_;
                     iii::LAInputUnit unit;
-                    unit.termId_ = tid;
-                    unit.offset_ = pos;
+                    unit.termid_ = tid;
+                    unit.wordOffset_ = pos;
                     document.add_to_property(unit);
                     ti++;
 //                     std::cout<<"ADD TERM "<<tid<<" in DOC "<<docId<<std::endl;

@@ -2,43 +2,77 @@
 * @file        LAInput.h
 * @author     Yingfeng Zhang
 * @version     SF1 v5.0
-* @brief   
+* @brief
 */
 #ifndef LAINPUT_H
 #define LAINPUT_H
 
 #include <types.h>
 
+#include <util/ustring/UString.h>
+
 #include <deque>
+#include <boost/serialization/access.hpp>
 
 NS_IZENELIB_IR_BEGIN
 
-namespace indexmanager{
+namespace indexmanager
+{
 
-/*
-* @brief  This class is an interface class exposed to the user of indexmanager
-* We provide two kinds of input for an analyzed property to set up index:
-* forwardindex, which is refered in ForwardIndex.h, and LAInput.
-* LAInput is nothing more than a series of tokens with their cooresponding 
-* term offset information
-* Using LAInput instead of forwardindex is the input to build the index is faster
-* because it reduces the data replication. However, in some cased, forwardindex
-* is also required by other utilities, such as summarizaion, ... etc, so providing
-* two kinds of input form is necessary
-*/
-class LAInputUnit
+class TermId
 {
 public:
-	LAInputUnit():termId_(0),offset_(0){}
-	LAInputUnit(unsigned int termId, unsigned int offset): termId_(termId),offset_(offset){}
-	LAInputUnit(const LAInputUnit& clone):termId_(clone.termId_),offset_(clone.offset_){}
-	~LAInputUnit(){}
-public:
-	unsigned int termId_;
-	unsigned int offset_;
+
+    unsigned int termid_;
+    unsigned int wordOffset_;
+
+    friend std::ostream & operator<<( std::ostream & out, const TermId & term );
+
+private:
+
+    friend class boost::serialization::access;
+    template<class Archive>
+    void serialize(Archive& ar, const unsigned int version)
+    {
+        ar& termid_;
+        ar& wordOffset_;
+    }
 };
 
-typedef std::deque<LAInputUnit> LAInput;
+class TermIdList : public std::deque<TermId>
+{
+public:
+
+    inline void add( const unsigned int termid, const unsigned int offset )
+    {
+        push_back(globalTemporary_);
+        back().termid_ = termid;
+        back().wordOffset_ = offset;
+    }
+/*
+    template<typename IDManagerType>
+    inline void add( IDManagerType* idm, const Term & term)
+    {
+        push_back(globalTemporary_);
+        idm->getTermIdByTermString(term.text_, back().termid_);
+        back().wordOffset_ = term.wordOffset_;
+    }
+*/
+    template<typename IDManagerType>
+    inline void add( IDManagerType* idm, const UString::CharT* termStr, const size_t termLen, const unsigned int offset )
+    {
+        push_back(globalTemporary_);
+        idm->getTermIdByTermString(termStr, termLen, back().termid_);
+        back().wordOffset_ = offset;
+    }
+
+private:
+
+    TermId globalTemporary_;
+};
+
+typedef TermId LAInputUnit;
+typedef TermIdList LAInput;
 }
 
 NS_IZENELIB_IR_END
