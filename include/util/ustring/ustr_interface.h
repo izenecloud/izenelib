@@ -845,16 +845,13 @@ inline SelfT& assign(const std::string& initString,
  * given encoded string class.
  *
  * @param inputString   an encoded const char* to assign to the UString.
+ * @param len           length of inputString.
  * @param encodingType  an enumerated type which indicates encoding type.
  * @return              Reference of assigned UString.
  */
 
-inline SelfT& assign(const char* initString, EncodingType encodingType)
+inline SelfT& assign(const char* initString, size_t len, EncodingType encodingType)
 {
-  size_t len = 0;//getLen((CharT*)initString);
-  while (initString[len]!='\0')
-    len++;
-
   if (len == 0)
   {
     clear();
@@ -870,13 +867,32 @@ inline SelfT& assign(const char* initString, EncodingType encodingType)
   p_ = (char*)HLmemory::hlmalloc(get_total_size(max_size_-1));
   str_ = (CharT*)(p_+sizeof (ReferT));
 
-  setUString(initString, encodingType);
+  setUString(initString, len, encodingType);
 
   clear_reference();
 
   //algo::read_from_encode(EncodingTypeString[encodingType],initString, len, *this);
   return *this;
 } // end - assign()
+
+/**
+ * @brief an interface function which inserts into internal string data with
+ * given encoded string class.
+ *
+ * @param inputString   an encoded const char* to assign to the UString.
+ * @param encodingType  an enumerated type which indicates encoding type.
+ * @return              Reference of assigned UString.
+ */
+
+inline SelfT& assign(const char* initString, EncodingType encodingType)
+{
+  size_t len = 0;//getLen((CharT*)initString);
+  while (initString[len]!='\0')
+    len++;
+  return assign(initString, len, encodingType);
+} // end - assign()
+
+
 
 static size_t convertString( EncodingType encodingType,
                      const CharT* const inputString,
@@ -1214,6 +1230,22 @@ void setUString(const std::string& inputString,
   //convertString(dataString_, encodingType);
 
 } // end - setUString()
+
+
+/**
+ * @brief an interface function to set data area of UString with certain encoded string.
+ * @details
+ * p.s This interface should be called after data_ allocation is finished.
+ *
+ * @param inputString   a string class which is the input of this function.
+ * @param encodingType  an enumerated type which indicates encoding type.
+ */
+void setUString(const char* inputString, size_t len,
+                EncodingType encodingType) {
+
+  length_ = toUcs2(encodingType, inputString, len, str_, max_size_);
+} // end - setUString()
+
 
 public:
 
