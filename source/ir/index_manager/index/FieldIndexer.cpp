@@ -216,7 +216,15 @@ fileoffset_t FieldIndexer::write(OutputDescriptor* pWriterDesc)
     {
         if( !boost::filesystem::exists(sorterFullPath_) )
         {
-            SF1V5_THROW(ERROR_FILEIO,"Open file error: " + sorterFullPath_);
+            fileoffset_t vocDescOffset = pVocWriter->getFilePointer();
+            int64_t vocLength = vocDescOffset - vocOffset;
+		
+            //SF1V5_THROW(ERROR_FILEIO,"Open file error: " + sorterFullPath_);
+            pVocWriter->writeLong(vocLength);	///<VocLength(Int64)>
+            pVocWriter->writeLong(termCount_);	///<TermCount(Int64)>
+            ///end write vocabulary descriptor
+
+            return vocDescOffset;
         }
         sorter_->sort();
 
