@@ -17,7 +17,7 @@ namespace indexmanager
 {
 
 FieldIndexer::FieldIndexer(const char* field, MemCache* pCache, Indexer* pIndexer)
-        :field_(field),pMemCache_(pCache),pIndexer_(pIndexer),vocFilePointer_(0),alloc_(0)
+        :field_(field),pMemCache_(pCache),pIndexer_(pIndexer),vocFilePointer_(0),alloc_(0),
         termCount_(0),recordCount_(0),run_num_(0),pHits_(0),pHitsMax_(0),flush_(false)
 {
     skipInterval_ = pIndexer_->getSkipInterval();
