@@ -160,11 +160,15 @@ void VariantDataPool::addChunk()
         ///allocation failed again, grow memory cache.
         if (!begin)
         {
-            begin  = pMemCache_->grow(UPTIGHT_ALLOC_MEMSIZE)->getMem(chunkSize);
+            MemCache* pUrgentMemCache = pMemCache_->grow(UPTIGHT_ALLOC_MEMSIZE);
+            size_t urgentChunkSize = min((int32_t)Utilities::LOG2_DOWN(UPTIGHT_ALLOC_MEMSIZE),chunkSize);
+  
+            begin  = pUrgentMemCache->getMem(urgentChunkSize);
             if (!begin)
             {
                 SF1V5_THROW(ERROR_OUTOFMEM,"InMemoryPosting:newChunk() : Allocate memory failed.");
             }
+             chunkSize = urgentChunkSize;
         }
     }
 
