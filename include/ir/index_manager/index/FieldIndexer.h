@@ -27,9 +27,6 @@
 using namespace izenelib::util;
 using namespace izenelib::am;
 
-#define BATCH_COMPRESSION 1
-#define COMPRESSED_SORT 1
-
 NS_IZENELIB_IR_BEGIN
 
 namespace indexmanager{
@@ -371,10 +368,8 @@ public:
 
     ///set memory cache size for izene sort
     void setHitBuffer(size_t size);
-#if COMPRESSED_SORT
 private:
     void writeHitBuffer(int iHits);
-#endif
 private:
     InMemoryPostingMap postingMap_;
 
@@ -401,11 +396,7 @@ private:
     std::string sorterFileName_;
 
     FILE* f_;
-#if COMPRESSED_SORT
-    izenelib::am::IzeneSort<uint32_t, uint8_t, true,SortIO<FieldIndexIO> >* sorter_;
-#else
-    izenelib::am::IzeneSort<uint32_t, uint8_t, true>* sorter_;
-#endif
+
     uint64_t termCount_;
 
     size_t iHitsMax_;
