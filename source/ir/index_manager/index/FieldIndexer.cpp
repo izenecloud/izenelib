@@ -17,7 +17,8 @@ namespace indexmanager
 {
 
 FieldIndexer::FieldIndexer(const char* field, MemCache* pCache, Indexer* pIndexer)
-        :field_(field),pMemCache_(pCache),pIndexer_(pIndexer),vocFilePointer_(0),alloc_(0),sorter_(0),termCount_(0)
+        :field_(field),pMemCache_(pCache),pIndexer_(pIndexer),vocFilePointer_(0),alloc_(0),sorter_(0),
+        termCount_(0),recordCount_(0),run_num_(0),pHits_(0),pHitsMax_(0),flush_(false)
 {
     skipInterval_ = pIndexer_->getSkipInterval();
     maxSkipLevel_ = pIndexer_->getMaxSkipLevel();
@@ -27,10 +28,16 @@ FieldIndexer::FieldIndexer(const char* field, MemCache* pCache, Indexer* pIndexe
         sorterFileName_ = field_+".tmp";
         bfs::path path(bfs::path(pIndexer->pConfigurationManager_->indexStrategy_.indexLocation_) /bfs::path(sorterFileName_));
         sorterFullPath_= path.string();
+#if BATCH_COMPRESSION
+        f_ = fopen(sorterFullPath_.c_str(),"w");
+        uint64_t count = 0;
+        fwrite(&count, sizeof(uint64_t), 1, f_);
+#else
 #if COMPRESSED_SORT
         sorter_=new izenelib::am::IzeneSort<uint32_t, uint8_t, true,SortIO<FieldIndexIO> >(sorterFullPath_.c_str(), 100000000);
 #else
         sorter_=new izenelib::am::IzeneSort<uint32_t, uint8_t, true>(sorterFullPath_.c_str(), 100000000);
+#endif
 #endif
     }
     else
@@ -49,6 +56,17 @@ FieldIndexer::~FieldIndexer()
     if (alloc_) delete alloc_;
     pMemCache_ = NULL;
     if (sorter_) delete sorter_;
+}
+
+void FieldIndexer::setHitBuffer(size_t size) 
+{
+    iHitsMax_ = size;
+    iHitsMax_ = iHitsMax_/sizeof(TermId) ;
+#if BATCH_COMPRESSION
+    hits_.assign(iHitsMax_);
+    pHits_ = hits_;
+    pHitsMax_ = hits_ + iHitsMax_;
+#endif
 }
 
 #if COMPRESSED_SORT
@@ -74,6 +92,43 @@ void convert(char* data, uint32_t termId, uint32_t docId, uint32_t offset)
 }
 #endif
 
+#if COMPRESSED_SORT
+void FieldIndexer::writeHitBuffer(int iHits)
+{
+    recordCount_ += iHits;
+    bufferSort ( &hits_[0], iHits, CmpTermId_fn() );
+/*
+cout<<"sorted results:"<<endl;
+TermId* pHits = hits_;
+    for(int i = 0; i < iHits; ++i)
+    {
+    cout<<"Term "<<pHits[i].termid_<<" doc "<<pHits[i].docId_<<" offset "<<pHits[i].wordOffset_<<endl;
+    }
+cout<<endl;
+*/
+    uint32_t output_buf_size = iHits * (sizeof(TermId)+sizeof(uint8_t));
+    ///buffer size
+    fwrite(&output_buf_size, sizeof(uint32_t), 1, f_);
+    ///number of hits
+    fwrite(&iHits, sizeof(uint32_t), 1, f_);
+
+    uint64_t nextStart = 0;
+    uint64_t nextStartPos = ftell(f_);
+    ///next start
+    fwrite(&nextStart, sizeof(uint64_t), 1, f_);
+    FieldIndexIO ioStream(f_, "w");
+    ioStream.writeRecord(&hits_[0], iHits * sizeof(TermId));
+    nextStart = ftell(f_);
+
+    ///update next start
+    fseek(f_, nextStartPos, SEEK_SET);
+    fwrite(&nextStart, sizeof(uint64_t), 1, f_);
+    fseek(f_, nextStart, SEEK_SET);
+
+    ++run_num_;
+}
+#endif
+
 void FieldIndexer::addField(docid_t docid, boost::shared_ptr<LAInput> laInput)
 {
     if (pIndexer_->isRealTime())
@@ -95,13 +150,40 @@ void FieldIndexer::addField(docid_t docid, boost::shared_ptr<LAInput> laInput)
     }
     else
     {
+#if BATCH_COMPRESSION
+        if(flush_)
+        {
+            hits_.assign(iHitsMax_);
+            pHits_ = hits_;
+            pHitsMax_ = hits_ + iHitsMax_;
+            flush_ = false;
+        }
+
+        int iDocHits = laInput->size();
+        TermId * pDocHits = (TermId*)&(* laInput->begin());
+
+        while( iDocHits > 0)
+        {
+            int iToCopy = iDocHits < (pHitsMax_ - pHits_) ? iDocHits: (pHitsMax_ - pHits_);
+            memcpy(pHits_, pDocHits, iToCopy*sizeof(TermId));
+            pHits_ += iToCopy;
+            pDocHits += iToCopy;
+            iDocHits -= iToCopy;
+
+            if (pHits_ < pHitsMax_)
+                continue;
+
+            int iHits = pHits_ - hits_;
+            writeHitBuffer(iHits);
+            pHits_ = hits_;
+        }
+#else
         if (!sorter_)
 #if COMPRESSED_SORT
             sorter_=new izenelib::am::IzeneSort<uint32_t, uint8_t, true,SortIO<FieldIndexIO> >(sorterFullPath_.c_str(), 100000000);
 #else
             sorter_=new izenelib::am::IzeneSort<uint32_t, uint8_t, true>(sorterFullPath_.c_str(), 100000000);
 #endif
-
         char data[12];
         uint8_t len = 12;
         for (LAInput::iterator iter = laInput->begin(); iter != laInput->end(); ++iter)
@@ -113,6 +195,7 @@ void FieldIndexer::addField(docid_t docid, boost::shared_ptr<LAInput> laInput)
 #endif
             sorter_->add_data(len,data);
         }
+#endif
     }
 }
 
@@ -226,7 +309,36 @@ fileoffset_t FieldIndexer::write(OutputDescriptor* pWriterDesc)
 
             return vocDescOffset;
         }
+#if BATCH_COMPRESSION
+        int iHits = pHits_ - hits_;
+        if(iHits > 0)
+        {
+            writeHitBuffer(iHits);
+        }
+        fseek(f_, 0, SEEK_SET);
+        fwrite(&recordCount_, sizeof(uint64_t), 1, f_);
+        fclose(f_);
+        hits_.reset();
+
+        typedef izenelib::am::SortMerger<uint32_t, uint8_t, true,SortIO<FieldIndexIO> > merge_t;
+
+        struct timeval tvafter, tvpre;
+        struct timezone tz;
+        gettimeofday (&tvpre , &tz);
+
+        merge_t* merger = new merge_t(sorterFullPath_.c_str(), run_num_, 100000000, 2);
+        merger->run();
+
+        gettimeofday (&tvafter , &tz);
+        std::cout<<"\nIt takes "<<((tvafter.tv_sec-tvpre.tv_sec)*1000+(tvafter.tv_usec-tvpre.tv_usec)/1000.)/60000
+		 <<" minutes to sort("<<recordCount_<<")\n";
+        delete merger;
+        recordCount_ = 0;
+        run_num_ = 0;
+        flush_ = true;
+#else
         sorter_->sort();
+#endif
 
 #if COMPRESSED_SORT
         FILE* f = fopen(sorterFullPath_.c_str(),"r");
@@ -298,6 +410,10 @@ fileoffset_t FieldIndexer::write(OutputDescriptor* pWriterDesc)
             termInfo.reset();
             termCount_++;
         }
+#if BATCH_COMPRESSION
+        fclose(f);
+        boost::filesystem::remove(sorterFullPath_);
+#else
 #if COMPRESSED_SORT
         fclose(f);
 #else
@@ -306,6 +422,7 @@ fileoffset_t FieldIndexer::write(OutputDescriptor* pWriterDesc)
         sorter_->clear_files();
         delete sorter_;
         sorter_ = NULL;
+#endif
         delete pPosting;
     }
 

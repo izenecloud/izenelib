@@ -19,11 +19,11 @@ NS_IZENELIB_IR_BEGIN
 namespace indexmanager
 {
 
-class TermId
+struct TermId
 {
-public:
-
+    TermId():termid_(0),docId_(0),wordOffset_(0) {}
     unsigned int termid_;
+    unsigned int docId_;
     unsigned int wordOffset_;
 
     friend std::ostream & operator<<( std::ostream & out, const TermId & term );
@@ -39,9 +39,13 @@ private:
     }
 };
 
-class TermIdList : public std::deque<TermId>
+class TermIdList : public std::vector<TermId>
 {
 public:
+    void setDocId(unsigned docId)
+    {
+        globalTemporary_.docId_ = docId;
+    }
 
     inline void add( const unsigned int termid, const unsigned int offset )
     {

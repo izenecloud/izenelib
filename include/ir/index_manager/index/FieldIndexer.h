@@ -13,7 +13,7 @@
 #include <ir/index_manager/index/Posting.h>
 #include <ir/index_manager/index/LAInput.h>
 #include <ir/index_manager/index/ForwardIndex.h>
-
+#include <ir/index_manager/index/SortHelper.h>
 #include <am/external_sort/izene_sort.hpp>
 #include <util/ThreadModel.h>
 #include <boost/memory.hpp>
@@ -27,7 +27,9 @@
 using namespace izenelib::util;
 using namespace izenelib::am;
 
+#define BATCH_COMPRESSION 1
 #define COMPRESSED_SORT 1
+
 NS_IZENELIB_IR_BEGIN
 
 namespace indexmanager{
@@ -40,20 +42,20 @@ public:
         fd_ = fd;
         bufferSize_ = 4096*4;
 
+        writeBufferPosition_ = 0;
+        readBufferStart_ = 0;
+        readBufferLength_ = 0;
+        readBufferPosition_ = 0;
+
         if (mode.compare("w") == 0)
         {
             writeBuffer_ = new char[bufferSize_];
-            writeBufferPosition_ = 0;
             readBuffer_ = 0;
             length_ = 0;
         }
         else if (mode.compare("r") == 0)
         {
             readBuffer_ = new char[bufferSize_];
-            readBufferStart_ = 0;
-            readBufferLength_ = 0;
-            readBufferPosition_ = 0;
-
             writeBuffer_ = 0;
 
             fseek(fd_, 0, SEEK_END);
@@ -82,7 +84,7 @@ public:
         {
             if (writeBufferPosition_ + RECORD_ALL_LENGTH >= bufferSize_)
                 _flush();
-assert(*p == 12);
+            //assert(*p == 12);
             _writeByte(*p++);
             q = (uint32_t*)p;
             _writeInt(*q++);
@@ -95,6 +97,23 @@ assert(*p == 12);
         return 1;
     }
 
+    void writeRecord(TermId* const data, size_t length)
+    {
+        size_t count = RECORD_VALUE_LENGTH;
+        uint32_t* q = (uint32_t*)data;
+        while(count <= length)
+        {
+            if (writeBufferPosition_ + RECORD_ALL_LENGTH >= bufferSize_)
+                _flush();
+            _writeByte(RECORD_VALUE_LENGTH);
+            _writeInt(*q++);
+            _writeVInt(*q++);
+            _writeVInt(*q++);
+            count += RECORD_VALUE_LENGTH;
+        }
+        _flush();
+    }
+
     size_t _read(char* data, size_t length)
     {
         size_t count = RECORD_ALL_LENGTH;
@@ -104,7 +123,7 @@ assert(*p == 12);
         while((count <= length)&&(!_isEof()))
         {
             len = _readByte();
-			assert(len<=12);
+            //assert(len<=12);
             *p++ = RECORD_VALUE_LENGTH;
             q = (uint32_t*)p;
             *q++ = _readInt();
@@ -113,7 +132,6 @@ assert(*p == 12);
             p += RECORD_VALUE_LENGTH;
             count += RECORD_ALL_LENGTH;
         }
-//		cout<<"read length "<<length<<" count "<<count<<endl;
         return count - RECORD_ALL_LENGTH;
     }
 
@@ -351,6 +369,12 @@ public:
 
     TermReader* termReader();
 
+    ///set memory cache size for izene sort
+    void setHitBuffer(size_t size);
+#if COMPRESSED_SORT
+private:
+    void writeHitBuffer(int iHits);
+#endif
 private:
     InMemoryPostingMap postingMap_;
 
@@ -375,12 +399,28 @@ private:
     std::string sorterFullPath_;
 
     std::string sorterFileName_;
+
+    FILE* f_;
 #if COMPRESSED_SORT
     izenelib::am::IzeneSort<uint32_t, uint8_t, true,SortIO<FieldIndexIO> >* sorter_;
 #else
     izenelib::am::IzeneSort<uint32_t, uint8_t, true>* sorter_;
 #endif
     uint64_t termCount_;
+
+    size_t iHitsMax_;
+
+    size_t recordCount_;
+
+    size_t run_num_;
+
+    AutoArray<TermId> hits_;
+
+    TermId* pHits_;
+
+    TermId* pHitsMax_;
+
+    bool flush_;
 
     friend class InMemoryTermReader;
     friend class InMemoryTermIterator;

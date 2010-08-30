@@ -40,7 +40,7 @@ namespace idmanager {
     template<typename NameString,
              typename NameID,
              typename IDGenerator   = UniqueIDGenerator<NameString, NameID>,
-             typename IDStorage     = SDBIDStorage<NameString, NameID> >
+             typename IDStorage     = TCIDStorage<NameString, NameID> >
     class DocIdManager {
 
         typedef IDFactory<NameString, NameID, IDGenerator, IDStorage> DocIDFactory;
