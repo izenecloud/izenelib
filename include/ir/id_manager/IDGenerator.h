@@ -40,7 +40,7 @@ public:
 	/**
 	 * @brief Always return false, which means failure to generate ID
 	 */
-	inline bool conv(const typename NameString::CharT* nameStringBuffer, const size_t nameStringLength, NameID& nameID)
+	inline bool conv(const typename NameString::value_type* nameStringBuffer, const size_t nameStringLength, NameID& nameID)
 	{
         return false;
 	}
@@ -81,7 +81,7 @@ public:
 	 * @param nameID the NameID that may be not unique
 	 * @return always false
 	 */
-	inline bool conv(const typename NameString::CharT* nameStringBuffer, const size_t nameStringLength, NameID& nameID)
+	inline bool conv(const typename NameString::value_type* nameStringBuffer, const size_t nameStringLength, NameID& nameID)
 	{
         nameID = NameIDTraits<NameID>::template hash<NameString>(nameStringBuffer, nameStringLength);
         return false;
@@ -147,7 +147,7 @@ public:
 	 * @param nameID the NameID that may be not unique
 	 * @return always false
 	 */
-	inline bool conv(const typename NameString::CharT* nameStringBuffer, const size_t nameStringLength, NameID& nameID)
+	inline bool conv(const typename NameString::value_type* nameStringBuffer, const size_t nameStringLength, NameID& nameID)
 	{
 	    return conv(NameString(nameStringBuffer, nameStringLength), nameID);
 	}

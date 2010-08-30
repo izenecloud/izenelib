@@ -32,9 +32,9 @@ public:
   enum{MinValue = 1, MaxValue = INT_MAX };
 
   template<typename NameString>
-  static int32_t hash(const typename NameString::CharT * buffer, const size_t length)
+  static int32_t hash(const typename NameString::value_type * buffer, const size_t length)
   {
-    return (int32_t)HashFunction<NameString>::generateHash32((const char*)buffer,length*sizeof(typename NameString::CharT));
+    return (int32_t)HashFunction<NameString>::generateHash32((const char*)buffer,length*sizeof(typename NameString::value_type));
   }
 
   template<typename NameString>
@@ -51,9 +51,9 @@ public:
   enum{MinValue = 1, MaxValue = UINT_MAX };
 
   template<typename NameString>
-  static uint32_t hash(const typename NameString::CharT * buffer, const size_t length)
+  static uint32_t hash(const typename NameString::value_type * buffer, const size_t length)
   {
-    return HashFunction<NameString>::generateHash32((const char*)buffer,length*sizeof(typename NameString::CharT));
+    return HashFunction<NameString>::generateHash32((const char*)buffer,length*sizeof(typename NameString::value_type));
   }
 
   template<typename NameString>
@@ -70,9 +70,9 @@ public:
   enum{MinValue = 1, MaxValue = LONG_MAX };
 
   template<typename NameString>
-  static int64_t hash(const typename NameString::CharT * buffer, const size_t length)
+  static int64_t hash(const typename NameString::value_type * buffer, const size_t length)
   {
-    return (int64_t)HashFunction<NameString>::generateHash64((const char*)buffer,length*sizeof(typename NameString::CharT));
+    return (int64_t)HashFunction<NameString>::generateHash64((const char*)buffer,length*sizeof(typename NameString::value_type));
   }
 
   template<typename NameString>
@@ -89,9 +89,9 @@ public:
   enum{MinValue = 1, MaxValue = ULONG_MAX };
 
   template<typename NameString>
-  static uint64_t hash(const typename NameString::CharT * buffer, const size_t length)
+  static uint64_t hash(const typename NameString::value_type * buffer, const size_t length)
   {
-    return HashFunction<NameString>::generateHash64((const char*)buffer,length*sizeof(typename NameString::CharT));
+    return HashFunction<NameString>::generateHash64((const char*)buffer,length*sizeof(typename NameString::value_type));
   }
 
 
