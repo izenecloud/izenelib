@@ -457,6 +457,8 @@ namespace irdb
                         propertyConfig.setIsLAInput(true);
                         
                         boost::shared_ptr<iii::LAInput> laInput(new iii::LAInput);
+                        laInput->setDocId(docId);
+                        laInput->reserve(1024);
                         document.insertProperty(propertyConfig, laInput);
                     }
                     
@@ -514,6 +516,8 @@ namespace irdb
                         propertyConfig.setIsLAInput(true);
 
                         boost::shared_ptr<iii::LAInput> laInput(new iii::LAInput);
+                        laInput->setDocId(docId);
+                        laInput->reserve(1024);
                         document.insertProperty(propertyConfig, laInput);
                     }
 
@@ -905,6 +909,8 @@ namespace irdb
                         propertyConfig.setIsLAInput(true);
                         
                         boost::shared_ptr<iii::LAInput> laInput(new iii::LAInput);
+                        laInput->setDocId(docId);
+                        laInput->reserve(1024);
                         document.insertProperty(propertyConfig, laInput);
                     }
                     
@@ -959,6 +965,8 @@ namespace irdb
                         propertyConfig.setIsLAInput(true);
 
                         boost::shared_ptr<iii::LAInput> laInput(new iii::LAInput);
+                        laInput->setDocId(docId);
+                        laInput->reserve(1024);
                         document.insertProperty(propertyConfig, laInput);
                     }
 

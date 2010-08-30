@@ -56,8 +56,23 @@ void CollectionIndexer::setSchema(const IndexerCollectionMeta& schema)
 
 void CollectionIndexer::setFieldIndexers()
 {
+    size_t memCacheSize = (size_t)pIndexer_->getIndexManagerConfig()->indexStrategy_.memory_;
+
     pFieldsInfo_->startIterator();
     FieldInfo* pFieldInfo = NULL;
+    size_t indexedProperties = 0;
+    while (pFieldsInfo_->hasNext())
+    {
+        pFieldInfo = pFieldsInfo_->next();
+        if (pFieldInfo->isIndexed()&&pFieldInfo->isForward())
+            indexedProperties++;
+    }
+
+    memCacheSize = (memCacheSize/indexedProperties) < 50*1024*1024 ? 
+                              50*1024*1024:(memCacheSize/indexedProperties) ;
+
+    pFieldsInfo_->startIterator();
+
     while (pFieldsInfo_->hasNext())
     {
         pFieldInfo = pFieldsInfo_->next();
@@ -65,6 +80,7 @@ void CollectionIndexer::setFieldIndexers()
         {
             FieldIndexer* pFieldIndexer = new FieldIndexer(pFieldInfo->getName(), pMemCache_,pIndexer_);
             fieldIndexerMap_.insert(make_pair(pFieldInfo->getName(),pFieldIndexer));
+            pFieldIndexer->setHitBuffer(memCacheSize);
         }
     }
 }
