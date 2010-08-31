@@ -466,6 +466,7 @@ namespace irdb
                     loc_t pos = (*ti).position_;
                     iii::LAInputUnit unit;
                     unit.termid_ = tid;
+                    unit.docId_ = docId;
                     unit.wordOffset_ = pos;
                     document.add_to_property(unit);
                     ti++;
@@ -525,6 +526,7 @@ namespace irdb
                     loc_t pos = (*ti).position_;
                     iii::LAInputUnit unit;
                     unit.termid_ = tid;
+                    unit.docId_ = docId;
                     unit.wordOffset_ = pos;
                     document.add_to_property(unit);
                     ti++;
@@ -918,6 +920,7 @@ namespace irdb
                     loc_t pos = (*ti).position_;
                     iii::LAInputUnit unit;
                     unit.termid_ = tid;
+                    unit.docId_ = docId;
                     unit.wordOffset_ = pos;
                     document.add_to_property(unit);
                     ti++;
@@ -974,6 +977,7 @@ namespace irdb
                     loc_t pos = (*ti).position_;
                     iii::LAInputUnit unit;
                     unit.termid_ = tid;
+                    unit.docId_ = docId;
                     unit.wordOffset_ = pos;
                     document.add_to_property(unit);
                     ti++;
