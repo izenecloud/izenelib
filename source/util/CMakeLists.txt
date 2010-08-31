@@ -65,6 +65,11 @@ IF(izene_util_SHOULD_BUILD)
     scheduler.cpp
     thread-pool/ThreadObject.cpp
     thread-pool/ThreadObjectPool.cpp
+    io/BufferedInput.cpp
+    io/FSBufferedInput.cpp
+    io/MMapBufferedInput.cpp
+    io/BufferedOutput.cpp
+    io/FSBufferedOutput.cpp
     cronexpression.cpp
     timer.cpp
     CBitArray.cpp
