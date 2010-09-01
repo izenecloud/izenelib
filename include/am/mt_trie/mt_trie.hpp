@@ -9,6 +9,7 @@
 #ifndef _MT_TRIE_H_
 #define _MT_TRIE_H_
 
+#include <cstdio>
 #include <iostream>
 #include <fstream>
 
@@ -16,7 +17,6 @@
 #include <boost/archive/xml_iarchive.hpp>
 #include <boost/serialization/split_member.hpp>
 #include <boost/serialization/nvp.hpp>
-#include <boost/filesystem.hpp>
 
 #include <util/ThreadModel.h>
 
@@ -505,12 +505,10 @@ protected:
             // flush to file in ~config
         }
 
-        // copy and overwrite old config
-        boost::filesystem::copy_file<boost::filesystem::path>(
-            kNewConfigPath,
-            configPath_,
-            boost::filesystem::copy_option::overwrite_if_exists
-        );
+        if (0 != ::rename(kNewConfigPath.c_str(), configPath_.c_str()))
+        {
+            throw std::runtime_error("Failed to rename " + kNewConfigPath);
+        }
     }
 
 private:
