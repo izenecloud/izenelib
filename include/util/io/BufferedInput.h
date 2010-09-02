@@ -10,6 +10,7 @@
 #include <types.h>
 #include <stdio.h>
 #include <string>
+#include <memory.h>
 
 #define BUFFEREDINPUT_BUFFSIZE		4096*4//4096
 
