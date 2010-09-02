@@ -9,6 +9,7 @@
 #ifndef _MT_TRIE_H_
 #define _MT_TRIE_H_
 
+#include <cstdio>
 #include <iostream>
 #include <fstream>
 
@@ -491,10 +492,23 @@ protected:
 
     void sync()
     {
-        std::ofstream config(configPath_.c_str(), std::ifstream::out);
-        boost::archive::xml_oarchive xml(config);
-        xml << boost::serialization::make_nvp("MtTrie", *this);
-        config.flush();
+        std::string kNewConfigPath = configPath_ + ".new";
+
+        // write to new config
+        {
+            std::ofstream config(kNewConfigPath.c_str(), std::ifstream::out);
+            {
+                boost::archive::xml_oarchive xml(config);
+                xml << boost::serialization::make_nvp("MtTrie", *this);
+                // flush archive to ofstream in ~xml
+            }
+            // flush to file in ~config
+        }
+
+        if (0 != ::rename(kNewConfigPath.c_str(), configPath_.c_str()))
+        {
+            throw std::runtime_error("Failed to rename " + kNewConfigPath);
+        }
     }
 
 private:
