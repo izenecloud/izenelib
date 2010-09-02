@@ -8,7 +8,7 @@
 #define BUFFEREDINPUT_H
 
 #include <types.h>
-
+#include <stdio.h>
 #include <string>
 
 #define BUFFEREDINPUT_BUFFSIZE		4096*4//4096
