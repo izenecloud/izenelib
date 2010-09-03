@@ -24,8 +24,21 @@ ADD_EXECUTABLE(t_util
   t_log.cpp
   t_wrapper.cpp
   )
+ADD_EXECUTABLE(t_wrapper
+  wrapper.cpp
+  )
 
 TARGET_LINK_LIBRARIES(t_util
+  izene_util
+  ${Boost_LIBRARIES}
+  bz2 
+  ${Glog_LIBRARIES}
+  febird
+  procmeminfo
+  izene_log
+  bz2
+  )
+TARGET_LINK_LIBRARIES(t_wrapper
   izene_util
   ${Boost_LIBRARIES}
   bz2 
