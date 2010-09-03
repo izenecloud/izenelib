@@ -29,7 +29,7 @@ typedef izenelib::am::LinearHashTable<Key,Value, izenelib::util::NullLock> First
 typedef izenelib::am::sdb_hash<Key, Value, izenelib::util::NullLock> SecondHash;
 typedef izenelib::am::sdb_hash<Key, Value, izenelib::util::NullLock> linSecondHash;
 
-static bool trace = 1; //trace option
+static bool trace = 0; //trace option
 static int cacheSize = 2000;
 static double ratio = 0.4;
 enum {LRU=0,LFU, SLRU};

@@ -45,13 +45,13 @@ typedef ILRUCache<KeyType, ValueType> MyCache;
 static string inputFile("test.txt");
 static string inputFile1("test1.txt");
 static bool trace = true;
-static size_t cacheSize = 2500;
+static size_t cacheSize = 2501;
 
 BOOST_AUTO_TEST_SUITE( izene_cache_suite )
 
 BOOST_AUTO_TEST_CASE(izene_cache_test)
 {
-	trace = 1;
+	trace = 0;
 	MyCache cm(cacheSize);
 	{
 		int sum =0;
@@ -74,7 +74,7 @@ BOOST_AUTO_TEST_CASE(izene_cache_test)
 			else {
 				//	outf<<ystr<<endl;
 			}
-			cm.displayCacheInfos();
+			//cm.displayCacheInfos();
 		}
 
 		cout<<"MCache with "<<"CacheSize="<<cacheSize<<endl;
@@ -113,7 +113,7 @@ BOOST_AUTO_TEST_CASE(izene_cache_test)
 				cm.displayHash();
 				cout<<endl;
 			}
-			cm.displayCacheInfos();
+			//cm.displayCacheInfos();
 		}
 
 		cout<<"MCache with "<<"CacheSize="<<cacheSize<<endl;
