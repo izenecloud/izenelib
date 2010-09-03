@@ -11,7 +11,7 @@ using namespace izenelib::util;
 
 static size_t range= 100;
 static size_t num = 100;
-static bool trace = true;
+static bool trace = 0;
 static string inputFile = "input.txt";
 
 typedef map<int, int>::iterator IT;
@@ -62,12 +62,8 @@ template<> inline void read_image<map<string, int> >(map<string, int>& dat,
 		pair<string, int> a;
 		int len;
 		memcpy(&len, p, sizeof(int));
-		p += sizeof(int);
-		char *buf = new char[len];
-		memcpy(buf, p, len);
-		a.first = (string)buf;
-		delete buf;
-		buf = 0;
+		p += sizeof(int);	
+		a.first = string(p, len);	
 
 		p += len;
 		memcpy(&(a.second), p, sizeof(int));
@@ -337,8 +333,8 @@ void wrapper_test7() {
 }
 
 void run() {
-	wrapper_test1();
-	wrapper_test2();
+	//wrapper_test1();
+    //wrapper_test2();
 	wrapper_test3();
 	wrapper_test4();
 	wrapper_test5();
