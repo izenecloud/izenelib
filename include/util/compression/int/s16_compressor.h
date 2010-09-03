@@ -51,9 +51,9 @@ public:
 
     ~s16_compressor(){}
 
-    int _compress(unsigned int* input, unsigned int* output, int size);
+    int compress(unsigned int* input, unsigned int* output, int size);
 
-    int _decompress(unsigned int* input, unsigned int* output, int size);
+    int decompress(unsigned int* input, unsigned int* output, int size);
 private:
     int s16_encode(unsigned int* _w, unsigned int* _p, unsigned int m);
 
