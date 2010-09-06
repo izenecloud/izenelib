@@ -27,11 +27,9 @@ int MASK[] =
 
 int S16_NUMSIZE = 16;
 int S16_BITSSIZE = 28;
-int S16_NUM[] =
-    {28, 21, 21, 21, 14, 9, 8, 7, 6, 6, 5, 5, 4, 3, 2, 1};
+int S16_NUM[16] = {28, 21, 21, 21, 14, 9, 8, 7, 6, 6, 5, 5, 4, 3, 2, 1};
 
-uint32_t S16_BITS[16][28] =
-{ {1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1},
+const uint32_t S16_BITS[16][28] = { {1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1},
     {2,2,2,2,2,2,2,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,0,0,0,0,0},
     {1,1,1,1,1,1,1,2,2,2,2,2,2,2,1,1,1,1,1,1,1,0,0,0,0,0,0,0},
     {1,1,1,1,1,1,1,1,1,1,1,1,1,1,2,2,2,2,2,2,2,0,0,0,0,0,0,0},
@@ -80,35 +78,15 @@ class  pfordelta_mix_s16_compressor
 
     uint32_t  _EstCompBlock[MAX_EXPECTED_BLOCKSIZE * 2];
 
-    int _expNum;  // the number of exceptions in a block
-
-    int _bits;        // the value of b in the PForDelta algorithm
-
     bool _flagFixedBitExpPos; // indicating if the expPos (positions of excpetions) is encoded in fixed number of bits
-
-    int _compressedBitSize;  // The compressed size in bits of the block
-
-    int _offset;
 
     int _blockSize;
 
 public:
     pfordelta_mix_s16_compressor()
-            :_expNum(0)
-            ,_bits(0)
-            ,_flagFixedBitExpPos(0)
-            ,_compressedBitSize(0)
+            :_flagFixedBitExpPos(false)
             ,_blockSize(DEFAULT_BATCH_SIZE)
     {}
-    /**
-     * Get the compressed size in bits of the block
-     *
-     * @return the compressed size in bits of the block
-     */
-    int getCompressedBitSize()
-    {
-        return _compressedBitSize;
-    }
 
     int compress(unsigned int* input, unsigned int* output, int size)
     {
@@ -164,8 +142,8 @@ public:
     {
         int currentB = POSSIBLE_B[0];   
         int tmpB = currentB;
-        bool flagFixedBitExpPos = false;
-        int compressedBitSize = estimateCompSize(src, blockSize, tmpB, flagFixedBitExpPos);
+        _flagFixedBitExpPos = false;
+        int compressedBitSize = estimateCompSize(src, blockSize, tmpB, _flagFixedBitExpPos);
 
         for (int i = 1; i < 16; ++i)
         {
@@ -175,12 +153,12 @@ public:
             if(curCompressedBitSize < compressedBitSize)
             {
                 currentB = tmpB;
-                flagFixedBitExpPos = currflagFixedBitExpPos;
+                _flagFixedBitExpPos = currflagFixedBitExpPos;
                 compressedBitSize = curCompressedBitSize;
             }
         }
         // return the compressed data achieved from the best b
-        return compressOneBlock(src, des, currentB, blockSize, flagFixedBitExpPos);
+        return compressOneBlock(src, des, currentB, blockSize);
     }
 
     /**
@@ -211,8 +189,8 @@ public:
 
         if (expNum>0)
         {
-            memcpy(_expAux, _expPos, expNum);
-            memcpy(_expAux + expNum, _expHighBits, expNum);
+            memcpy(_expAux, _expPos, expNum*sizeof(uint32_t));
+            memcpy(_expAux + expNum, _expHighBits, expNum*sizeof(uint32_t));
             int compressedBitSize = compressBlockByS16(_EstCompBlock, 0, _expAux, expNum*2); // 2 blocks of expPos and expHighBits
             int compressedHighBitSize = compressBlockByS16(_EstCompBlock, 0, _expHighBits, expNum);
             // choose the better one of using Simple16 or using FixedBitSize to compress expPos
@@ -235,10 +213,9 @@ public:
      * @param inputBlock the integer input array
      * @param outputBlock the integer output array
      * @param bits the value of b in the PForDelta algorithm
-     * @param flagFixedBitExpPos true if fixed bit size is used to encode exception positions
      * @return the compressed size in number of words and the reference to the compressed data
      */
-    int compressOneBlock(uint32_t* inputBlock, uint32_t* outputBlock, int bits, int blockSize, bool flagFixedBitExpPos)
+    int compressOneBlock(uint32_t* inputBlock, uint32_t* outputBlock, int bits, int blockSize)
     {
         // hy: compress a sequence of gaps except the first element (which is the original docId)
         uint32_t maxNoExp = 1<<bits;
@@ -270,7 +247,7 @@ public:
         }
         // The first HEADER stores:  flagFixedBitExpPos | bits | expNum, assuming expNum < 2^10 and bits<2^10
 
-        if (flagFixedBitExpPos) // using fixed bits to encode expPos
+        if (_flagFixedBitExpPos) // using fixed bits to encode expPos
         {
             outputBlock[0] = (1<<20) | ((bits & MASK[10]) << 10) | (expNum & 0x3ff);
         }
@@ -279,12 +256,11 @@ public:
             outputBlock[0] = ((bits & MASK[10]) << 10) | (expNum & 0x3ff);
         }
         int compressedBitSize;
-
         if (expNum>0)
         {
-            memcpy(_expAux, _expPos, expNum);
-            memcpy(_expAux + expNum, _expHighBits, expNum);
-            if (flagFixedBitExpPos)
+            memcpy(_expAux, _expPos, expNum*sizeof(uint32_t));
+            memcpy(_expAux + expNum, _expHighBits, expNum*sizeof(uint32_t));
+            if (_flagFixedBitExpPos)
             {
                 compressedBitSize = compressExpPosFixedBits(outputBlock, outputOffset, _expPos, expNum, POSBITS);
                 outputOffset += compressedBitSize;
@@ -297,10 +273,6 @@ public:
                 outputOffset += compressedBitSize;
             }
         }
-        _compressedBitSize = outputOffset;
-        //uint32_t* sealedCompBlock = new uint32_t[(outputOffset+31)>>5];
-        //System.arraycopy(compressedBlock,0, sealedCompBlock, 0, (outputOffset+31)>>5);
-
         return (outputOffset+31)>>5;
     }
 
@@ -336,7 +308,7 @@ public:
         {
             if (flagFixedBitExpPos)
             {
-                compressedBits =  decompressExpPosFixedBits(_expPos, compBlock, expNum, offset, 8);
+                compressedBits = decompressExpPosFixedBits(_expPos, compBlock, expNum, offset, 8);
                 offset += compressedBits;
                 compressedBits = decompressBlockByS16(_expHighBits, compBlock, expNum, offset);
                 offset += compressedBits;
@@ -364,6 +336,7 @@ public:
                 outDecompBlock[curExpPos] = (outDecompBlock[curExpPos] & MASK[bits]) | ((curHighBits & MASK[32-bits] ) << bits);
             }
         }
+		
         return (offset+31)>>5;
     }
     /**
