@@ -289,6 +289,7 @@ public:
     {
         int expNum = compBlock[0] & 0x3ff;
         int bits = (compBlock[0]>>10) & (0x1f);
+
         bool flagFixedBitExpPos = ((compBlock[0]>>20) & (0x1)) > 0 ? true : false;
         // decompress the b-bit slots
         int offset = HEADER_SIZE;
@@ -472,7 +473,7 @@ public:
      * @param outOffset the offset in the number of bits in the output array, where the integer will be written
      * @param bits the number of bits to be written
      */
-    static void writeBits(uint32_t* out, int val, int outOffset, int bits)
+    static void writeBits(uint32_t* out, uint32_t val, int outOffset, int bits)
     {
         if (bits == 0)
             return;
@@ -494,14 +495,14 @@ public:
      * @param inOffset the offset in the number of bits in the input array, where the integer will be read
      * @param bits the number of bits to be read, unlike writeBits(), readBits() does not deal with bits==0 and thus bits must > 0. When bits ==0, the calling functions will just skip the entire bits-bit slots without decoding them
     */
-    static int readBits(uint32_t* in,  int inOffset, int bits)
+    static uint32_t readBits(uint32_t* in,  int inOffset, int bits)
     {
         int index = inOffset >> 5;
         int skip = inOffset & 0x1f;
-        int val = (int)(in[index] >> skip);
+        uint32_t val = in[index] >> skip;
         if (32 - skip < bits)
         {
-            val |= (int)(in[index + 1] << (32 - skip));
+            val |= in[index + 1] << (32 - skip);
         }
         return val & (0xffffffff >> (32 - bits));
     }

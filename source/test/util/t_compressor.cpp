@@ -103,6 +103,7 @@ void init_large_and_unsorted_data(int data_size)
     std::cout<<"done!\n";
 }
 
+
 BOOST_AUTO_TEST_CASE(s16_compressor_test)
 {
     int data_size = 1024;
@@ -224,44 +225,13 @@ BOOST_AUTO_TEST_CASE(pfordelta_mix_compressor_test2)
     delete[] int_data;
 }
 
-BOOST_AUTO_TEST_CASE(pfordelta_mix_s9_compressor_test)
-{
-    PForDeltaMixS9_Compressor compressor;
-//for(int i = 0; i < 1000; ++i)
-{
-    int data_size = 128;
-    init_large_and_sorted_data(data_size);
-    unsigned * compressed_data = new unsigned[data_size];
-    izenelib::util::ClockTimer timer;
-    int retSize = compressor.compress(int_data, compressed_data, data_size);
-    cout<<"ret size "<<retSize<<" time elapsed: "<<timer.elapsed()<<endl;	
-    BOOST_CHECK(retSize < data_size);
-
-    unsigned * decompressed_data = new unsigned[data_size*2];
-    retSize = compressor.decompress(compressed_data, decompressed_data, data_size);
-    cout<<"ret size "<<retSize<<" time elapsed: "<<timer.elapsed()<<endl;	
-
-    for(int i = 0; i < data_size; ++i)
-    	{
-    	if(int_data[i] != decompressed_data[i])
-           cout<<i<<endl;
-       BOOST_CHECK_EQUAL(int_data[i],decompressed_data[i]);
-    	}
-
-    delete[] compressed_data;
-    delete[] decompressed_data;
-    delete[] int_data;
-}
-}
-/*
 BOOST_AUTO_TEST_CASE(pfordelta_mix_s16_compressor_test)
 {
     PForDeltaMixS16_Compressor compressor;
-for(int i = 0; i < 1000; ++i)
-{
-    int data_size = 128;
+    int data_size = 1024;
     init_large_and_sorted_data(data_size);
     unsigned * compressed_data = new unsigned[data_size];
+    memset(compressed_data,0,data_size*sizeof(unsigned));
     izenelib::util::ClockTimer timer;
     int retSize = compressor.compress(int_data, compressed_data, data_size);
     cout<<"ret size "<<retSize<<" time elapsed: "<<timer.elapsed()<<endl;	
@@ -272,17 +242,10 @@ for(int i = 0; i < 1000; ++i)
     cout<<"ret size "<<retSize<<" time elapsed: "<<timer.elapsed()<<endl;	
 
     for(int i = 0; i < data_size; ++i)
-    	{
-    	if(int_data[i] != decompressed_data[i])
-           cout<<i<<endl;
        BOOST_CHECK_EQUAL(int_data[i],decompressed_data[i]);
-    	}
 
     delete[] compressed_data;
     delete[] decompressed_data;
     delete[] int_data;
 }
-}
-
-*/
 
