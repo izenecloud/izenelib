@@ -4,12 +4,13 @@
 #include <iostream>
 #include <math.h>
 #include <stdexcept>
+#include <algorithm>
 
 #include "newpfor_decompress.h"
 
 namespace izenelib{namespace util{namespace compression{
 
-static int basicMask[] =
+static uint32_t basicMask[] =
     {0x00000000,
      0x00000001, 0x00000003, 0x00000007, 0x0000000f, 0x0000001f, 0x0000003f,
      0x0000007f, 0x000000ff, 0x000001ff, 0x000003ff, 0x000007ff, 0x00000fff,
@@ -28,17 +29,17 @@ class newpfor_mix_s9_compressor
     class S9Compressor
     {
     public:
-        int encodeWithoutDataNumHeader( uint32_t* numbers, uint32_t* output, int blockSize )
+        int encode( uint32_t* numbers, uint32_t* output, int length )
         {
             int currentPos = 0;
             int outputPos = 0;
-            while ( currentPos < blockSize )
+            while ( currentPos < length )
             {
                 for ( int selector = 0 ; selector < 9 ; selector++ )
                 {
-                    int res = 0;
+                    uint32_t res = 0;
                     int compressedNum = codeNum[selector];
-                    if ( blockSize <= currentPos + compressedNum -1 )
+                    if ( length <= currentPos + compressedNum -1 )
                         continue;
                     int b = bitLength[selector];
                     uint32_t max = 1 << b ;
@@ -59,14 +60,15 @@ class newpfor_mix_s9_compressor
             }
             return outputPos;
         }
-        void decode( uint32_t* encodedValue, int offset, int length, uint32_t* decode, int firstExceptionPos )
+        void decode( uint32_t* encodedValue, int length, uint32_t* decode, int firstExceptionPos )
         {
             int correntPos = firstExceptionPos;
-            int head = 0;
+            uint32_t head = 0;
             for ( int i = 0 ; i < length ; i++ )
             {
-                int val = encodedValue[ offset + i ] ;
-                int header = ( val >> 28 ) + head;
+                uint32_t val = encodedValue[i] ;
+                uint32_t header = ( val >> 28 ) + head;
+				
                 switch ( header )
                 {
                 case 0 :
@@ -345,8 +347,9 @@ public:
             {
                 curr_len = size - i;
             }
-            optimizedCompressBits( input, curr_len, b, exceptionNum);
-
+            estimateCompressBits( input, curr_len, b, exceptionNum);
+            b = 20;
+            exceptionNum = 0;
             int compressed_len = compress_block(input, curr_len, output, b, exceptionNum);
 		
             output += compressed_len;
@@ -357,15 +360,6 @@ public:
         return total_comp_len;
     }
 
-    /**
-     * compress integer numbers into frame
-     *
-     * @param numbers
-     * @param length
-     * @param bitFrame
-     * @param exceptionCode
-     * @return compressed length
-     */
 private:
     int compress_block(uint32_t* numbers, int length, uint32_t* outputBlock, int bitFrame, int exceptionNum)
     {
@@ -380,7 +374,6 @@ private:
             }
             return exceptionIntOffset;
         }
-
         int pre = 0;
         uint32_t max = 1 << bitFrame;
         // loop1: find exception
@@ -410,9 +403,10 @@ private:
         //make exception region
         for ( int i = 0 ; i < exceptionNum ; i++ )
             exceptionDatum_[ 2 * i ] = exceptionList_[i];
-        for ( int i = 0 ; i < exceptionNum ; i++ )
+        int exceptionOffsetNum = exceptionNum-1;
+        for ( int i = 0 ; i < exceptionOffsetNum; i++ )
             exceptionDatum_[ 2 * i + 1 ] = exceptionOffset_[i];
-        int exceptionRange = s9compressor_.encodeWithoutDataNumHeader( exceptionDatum_, outputBlock+exceptionIntOffset, exceptionNum*2);
+        int exceptionRange = s9compressor_.encode( exceptionDatum_, outputBlock+exceptionIntOffset, exceptionNum+exceptionOffsetNum);
         int intDataSize = exceptionIntOffset + exceptionRange;
 
         // 1: make header
@@ -434,25 +428,24 @@ private:
      * @param b
      * @param frame
      */
-    void encodeCompressedValue( int i, int val, int b, uint32_t* frame )
+    void encodeCompressedValue( int i, uint32_t val, int b, uint32_t* frame )
     {
-        int _val = val;
-        int totalBitCount = b * i;
-        int intPos = totalBitCount >> 5;
-        int firstBit = totalBitCount % 32;
-        int endBit = firstBit + b;
-        int baseMask = basicMask[b];
-        int mask  = 0;
-        mask = ~( baseMask << firstBit );
-        _val = val << firstBit;
+        uint32_t totalBitCount = b * i;
+        uint32_t intPos = totalBitCount >> 5;
+        uint32_t firstBit = totalBitCount % 32;
+        uint32_t endBit = firstBit + b;
+        uint32_t mask  = 0;
+        mask = ~( basicMask[b] << firstBit );
+        uint32_t _val = val << firstBit;
         frame[ intPos + headerSize_ ] = frame[ intPos + headerSize_ ]
                                        & mask
                                        | _val;
+		
         // over bit-width of integer
         if ( 32 < endBit )
         {
-            int shiftBit = b - ( endBit - 32 );
-            mask = ~( baseMask >> shiftBit );
+            uint32_t shiftBit = b - ( endBit - 32 );
+            mask = ~( basicMask[b] >> shiftBit );
             _val = val >> shiftBit;
             frame[ intPos + headerSize_ + 1] = frame[ intPos + headerSize_ + 1]
                                               & mask
@@ -479,7 +472,7 @@ private:
                     int exceptionIntRange)
     {
         int lastOrNot =  0;
-        return length << 25
+        return (length-1) << 25
                | firstExceptionPos << 17
                | ( b - 1 ) << 12
                | exceptionIntRange << 1
@@ -487,17 +480,19 @@ private:
     }
 
     /**
-     * calculate optimized bit number of frame
+     * calculate estimate bit number of frame
      * it is estimated by prediction of 10% exception
      *
-     * @param numbers, should be sorted!!
+     * @param numbers
      * @param length : data length of this "For"
      * @return 2 value int
      *  ( bitFrame, exceptionNum )
      */
-    void optimizedCompressBits( uint32_t* numbers, int length, int& bitFrame, int& exceptionNum )
+    void estimateCompressBits( uint32_t* numbers, int length, int& bitFrame, int& exceptionNum )
     {
-        int maxValue = numbers[ length - 1 ];
+        memcpy(code_,numbers, length*sizeof(uint32_t));
+        std::sort(code_, code_+ length);
+        uint32_t maxValue = code_[ length - 1 ];
         if ( maxValue <= 1 )
         {
             // bitFrame, exceptionNum, exceptionCode :
@@ -516,12 +511,12 @@ private:
         int bestExceptions = length;
         for (int i = 0; i < length; i++)
         {
-            // determine frameBits so that numbers[i] is no more exception
-            while ( numbers[i] >= (uint32_t)(1 << frameBits) )
+            // determine frameBits so that code_[i] is no more exception
+            while ( code_[i] >= (uint32_t)(1 << frameBits) )
             {
                 if ( frameBits == 30 )
                 { // no point to increase further.
-                    return rebuild( numbers, length, bestFrameBits, length - i - 1, bitFrame, exceptionNum);
+                    return rebuild( code_, length, bestFrameBits, length - i - 1, bitFrame, exceptionNum);
                 }
                 ++frameBits;
                 // increase bytesForFrame and totalBytes to correspond to frameBits
@@ -529,7 +524,7 @@ private:
                 totalBytes += newBytesForFrame - bytesForFrame;
                 bytesForFrame = newBytesForFrame;
             }
-            totalBytes -= bytesPerException; // no more need to store numbers[i] as exception
+            totalBytes -= bytesPerException; // no more need to store code_[i] as exception
             if ( totalBytes <= bestBytes )
             { // <= : prefer fewer exceptions at higher number of frame bits.
                 bestBytes = totalBytes;
@@ -537,7 +532,7 @@ private:
                 bestExceptions = length - i - 1;
             }
         }
-        rebuild( numbers, length, bestFrameBits, bestExceptions, bitFrame, exceptionNum);
+        rebuild( code_, length, bestFrameBits, bestExceptions, bitFrame, exceptionNum);
     }
 
     void rebuild( uint32_t* copy, int length, int bestFrameBits, int bestExceptions, int& bitFrame, int& exceptionNum)
@@ -546,13 +541,6 @@ private:
         {
             bitFrame = bestFrameBits;
             exceptionNum = bestExceptions;
-            return;
-        }
-        int maxValue = copy[ length - 1 ];
-        if ( maxValue <= 1 )
-        {
-            bitFrame = 1;
-            exceptionNum = 0;
             return;
         }
         int searchPos = (int) floor( length * ( 1- exceptionRate_ ) );
@@ -573,7 +561,7 @@ private:
             if ( max < copy[j] )
             {
                 bitFrame = candidateBit;
-                exceptionNum = length - j ;
+                exceptionNum = length - j;
                 return;
             }
         }
@@ -621,7 +609,8 @@ private:
          * 1bit : has next frame or not
          *
          *****************************************************************/
-        int headerValue = encodedValue[0];
+         
+        uint32_t headerValue = encodedValue[0];
         int dataNum  = ( headerValue >> 25 ) + 1 ;
         int firstExceptionPos  = ( headerValue << 7 ) >> 24 ;  // miss[0] + 1 or 0
         int numFrameBit  = ( ( headerValue << 15) >> 27 ) + 1 ; // 1 < numFramebit < 32
@@ -731,9 +720,11 @@ private:
         default :
             throw std::runtime_error("numFramBit is too high ! " + numFrameBit);
         }
+		
         //exception loop
         if ( firstExceptionPos != 0 )
-            s9compressor_.decode( encodedValue, intOffsetForExceptionRange, exceptionIntRange, decode, firstExceptionPos - 1 );
+            s9compressor_.decode( encodedValue+intOffsetForExceptionRange, exceptionIntRange, decode, firstExceptionPos - 1 );
+
 
         return intOffsetForExceptionRange + exceptionIntRange;
     }
