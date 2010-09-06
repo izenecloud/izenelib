@@ -8,7 +8,7 @@
 #ifndef POSTINGMERGER_H
 #define POSTINGMERGER_H
 
-#include <ir/index_manager/index/Posting.h>
+#include <ir/index_manager/index/RTPostingReader.h>
 #include <ir/index_manager/index/OutputDescriptor.h>
 #include <ir/index_manager/index/InputDescriptor.h>
 #include <ir/index_manager/index/SkipListMerger.h>
@@ -31,13 +31,13 @@ public:
 
     OutputDescriptor* getOutputDescriptor() {return pOutputDescriptor_;}
 
-    void mergeWith(InMemoryPosting* pInMemoryPosting);
+    void mergeWith(MemPostingReader* pInMemoryPosting);
 
-    void mergeWith(OnDiskPosting* pOnDiskPosting);
+    void mergeWith(RTDiskPostingReader* pOnDiskPosting);
 
-    void mergeWith(OnDiskPosting* pOnDiskPosting,BitVector* pFilter);
+    void mergeWith(RTDiskPostingReader* pOnDiskPosting,BitVector* pFilter);
 
-    void mergeWith_GC(OnDiskPosting* pOnDiskPosting,BitVector* pFilter);
+    void mergeWith_GC(RTDiskPostingReader* pOnDiskPosting,BitVector* pFilter);
 
     fileoffset_t endMerge();
 

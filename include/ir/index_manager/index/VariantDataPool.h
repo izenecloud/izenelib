@@ -117,6 +117,8 @@ private:
     friend class InMemoryPosting;
     friend class PostingMerger;
     friend class VariantDataPoolInput;
+    friend class RTPostingWriter;
+    friend class MemPostingReader;
 public:
     static int32_t UPTIGHT_ALLOC_MEMSIZE;
  };

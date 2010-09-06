@@ -1,4 +1,5 @@
 #include <ir/index_manager/index/PostingMerger.h>
+#include <ir/index_manager/index/RTPostingWriter.h>
 #include <ir/index_manager/store/FSIndexOutput.h>
 #include <ir/index_manager/store/FSIndexInput.h>
 
@@ -71,7 +72,7 @@ void PostingMerger::setOutputDescriptor(OutputDescriptor* pOutputDescriptor)
     pTmpPostingOutput_ = pOutputDescriptor_->getDirectory()->createOutput(tmpPostingName_);
 }
 
-void PostingMerger::mergeWith(OnDiskPosting* pOnDiskPosting,BitVector* pFilter)
+void PostingMerger::mergeWith(RTDiskPostingReader* pOnDiskPosting,BitVector* pFilter)
 {
     if(pFilter &&  pFilter->hasSmallThan((size_t)pOnDiskPosting->chunkDesc_.lastdocid))
         mergeWith_GC(pOnDiskPosting,pFilter);
@@ -79,10 +80,10 @@ void PostingMerger::mergeWith(OnDiskPosting* pOnDiskPosting,BitVector* pFilter)
         mergeWith(pOnDiskPosting);
 }
 
-void PostingMerger::mergeWith(InMemoryPosting* pInMemoryPosting)
+void PostingMerger::mergeWith(MemPostingReader* pInMemoryPosting)
 {
     ///flush last doc
-    pInMemoryPosting->flushLastDoc(true);
+    pInMemoryPosting->pPostingWriter_->flushLastDoc(true);
 
     IndexOutput* pDOutput = pOutputDescriptor_->getDPostingOutput();
     IndexOutput* pPOutput = pOutputDescriptor_->getPPostingOutput();
@@ -116,7 +117,7 @@ void PostingMerger::mergeWith(InMemoryPosting* pInMemoryPosting)
     fileoffset_t oldDOff = pDocIndexOutput->getFilePointer();
 
     ///write chunk data, update the first doc id
-    VariantDataChunk* pDChunk = pInMemoryPosting->pDocFreqList_->pHeadChunk_;
+    VariantDataChunk* pDChunk = pInMemoryPosting->pPostingWriter_->pDocFreqList_->pHeadChunk_;
 
     ///DPosting start for skip
     int32_t DOffsetStartForSkipping = 0;
@@ -148,7 +149,7 @@ void PostingMerger::mergeWith(InMemoryPosting* pInMemoryPosting)
     chunkDesc_.length += (pDocIndexOutput->getFilePointer() - oldDOff);
 
     ///write position posting
-    VariantDataChunk* pPChunk = pInMemoryPosting->pLocList_->pHeadChunk_;
+    VariantDataChunk* pPChunk = pInMemoryPosting->pPostingWriter_->pLocList_->pHeadChunk_;
     while (pPChunk)
     {
         pPOutput->write((const char*)pPChunk->data,pPChunk->size);
@@ -167,14 +168,14 @@ void PostingMerger::mergeWith(InMemoryPosting* pInMemoryPosting)
         nSkipIntervalBetweenBarrels_ += pInMemoryPosting->docFreq();
 
     ///update descriptors
-    postingDesc_.ctf += pInMemoryPosting->nCTF_;
-    postingDesc_.df += pInMemoryPosting->nDF_;
+    postingDesc_.ctf += pInMemoryPosting->getCTF();
+    postingDesc_.df += pInMemoryPosting->docFreq();
     postingDesc_.length = chunkDesc_.length;
     postingDesc_.plength += pInMemoryPosting->getPPostingLen();
-    chunkDesc_.lastdocid = pInMemoryPosting->nLastDocID_;
+    chunkDesc_.lastdocid = pInMemoryPosting->lastDocID();
 }
 
-void PostingMerger::mergeWith(OnDiskPosting* pOnDiskPosting)
+void PostingMerger::mergeWith(RTDiskPostingReader* pOnDiskPosting)
 {
     IndexOutput* pDOutput = pOutputDescriptor_->getDPostingOutput();
     IndexOutput* pPOutput = pOutputDescriptor_->getPPostingOutput();
@@ -249,7 +250,7 @@ void PostingMerger::mergeWith(OnDiskPosting* pOnDiskPosting)
     chunkDesc_.lastdocid = pOnDiskPosting->chunkDesc_.lastdocid;
 }
 
-void PostingMerger::mergeWith_GC(OnDiskPosting* pOnDiskPosting,BitVector* pFilter)
+void PostingMerger::mergeWith_GC(RTDiskPostingReader* pOnDiskPosting,BitVector* pFilter)
 {
     IndexOutput* pDOutput = pOutputDescriptor_->getDPostingOutput();
     IndexOutput* pPOutput = pOutputDescriptor_->getPPostingOutput();

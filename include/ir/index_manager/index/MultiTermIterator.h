@@ -80,7 +80,7 @@ public:
 
     const TermInfo* termInfo();
 
-    Posting* termPosting();
+    PostingReader* termPosting();
 
     void addIterator(TermIterator* iter);
 

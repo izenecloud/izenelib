@@ -4,7 +4,9 @@
 #include <boost/thread.hpp>
 #include <util/ThreadModel.h>
 
-using namespace izenelib::ir::indexmanager;
+NS_IZENELIB_IR_BEGIN
+
+namespace indexmanager{
 
 TermReader::TermReader()
         : pFieldInfo_(NULL)
@@ -364,8 +366,8 @@ void SparseTermReaderImpl::close()
 }
 
 //////////////////////////////////////////////////////////////////////////
-///DiskTermReader
-DiskTermReader::DiskTermReader(Directory* pDirectory,BarrelInfo* pBarrelInfo,FieldInfo* pFieldInfo)
+///RTDiskTermReader
+RTDiskTermReader::RTDiskTermReader(Directory* pDirectory,BarrelInfo* pBarrelInfo,FieldInfo* pFieldInfo)
         : TermReader()
         , pTermReaderImpl_(NULL)
         , pCurTermInfo_(NULL)
@@ -382,7 +384,7 @@ DiskTermReader::DiskTermReader(Directory* pDirectory,BarrelInfo* pBarrelInfo,Fie
     nBeginOfVoc_ = pTermReaderImpl_->nBeginOfVoc_;
 }
 
-DiskTermReader::DiskTermReader(SparseTermReaderImpl* pTermReaderImpl)
+RTDiskTermReader::RTDiskTermReader(SparseTermReaderImpl* pTermReaderImpl)
         : TermReader()
         , pTermReaderImpl_(pTermReaderImpl)
         , pCurTermInfo_(NULL)
@@ -396,7 +398,7 @@ DiskTermReader::DiskTermReader(SparseTermReaderImpl* pTermReaderImpl)
     nBeginOfVoc_ = pTermReaderImpl_->nBeginOfVoc_;
 }
 
-DiskTermReader::~DiskTermReader()
+RTDiskTermReader::~RTDiskTermReader()
 {
     close();
     if (pTermReaderImpl_&&ownTermReaderImpl_)
@@ -408,7 +410,7 @@ DiskTermReader::~DiskTermReader()
         delete[] bufferTermTable_;
 }
 
-void DiskTermReader::open(Directory* pDirectory,const char* barrelname,FieldInfo* pFieldInfo)
+void RTDiskTermReader::open(Directory* pDirectory,const char* barrelname,FieldInfo* pFieldInfo)
 {
     setFieldInfo(pFieldInfo);
 
@@ -416,17 +418,17 @@ void DiskTermReader::open(Directory* pDirectory,const char* barrelname,FieldInfo
     pTermReaderImpl_->open(pDirectory, barrelname);
 }
 
-void DiskTermReader::reopen()
+void RTDiskTermReader::reopen()
 {
     pTermReaderImpl_->reopen();
 }
 
-void DiskTermReader::close()
+void RTDiskTermReader::close()
 {
     pCurTermInfo_ = NULL;
 }
 
-bool DiskTermReader::seek(Term* term)
+bool RTDiskTermReader::seek(Term* term)
 {
     pCurTermInfo_ = termInfo(term);
     if (pCurTermInfo_&&(pCurTermInfo_->docFreq() > 0))
@@ -434,7 +436,7 @@ bool DiskTermReader::seek(Term* term)
     return false;
 }
 
-TermInfo* DiskTermReader::searchBuffer(termid_t termId, int end)
+TermInfo* RTDiskTermReader::searchBuffer(termid_t termId, int end)
 {
     int32_t start = 0;
     int32_t mid = (start + end)/2;
@@ -458,7 +460,7 @@ TermInfo* DiskTermReader::searchBuffer(termid_t termId, int end)
     return NULL;
 }
 
-int DiskTermReader::fillBuffer(int pos)
+int RTDiskTermReader::fillBuffer(int pos)
 {
     int begin = (pos-SPARSE_FACTOR) > 0 ? (pos-SPARSE_FACTOR) : 0;
     int end = (pos+SPARSE_FACTOR) >= (nTermCount_-1) ? (nTermCount_-1) : (pos+SPARSE_FACTOR);
@@ -496,7 +498,7 @@ int DiskTermReader::fillBuffer(int pos)
     return end - begin;
 }
 
-TermInfo* DiskTermReader::termInfo(Term* term)
+TermInfo* RTDiskTermReader::termInfo(Term* term)
 {
     if (strcmp(term->getField(),pFieldInfo_->getName()))
         return NULL;
@@ -556,9 +558,9 @@ TermInfo* DiskTermReader::termInfo(Term* term)
     return NULL;
 }
 
-TermReader* DiskTermReader::clone()
+TermReader* RTDiskTermReader::clone()
 {
-    TermReader* pTermReader = new DiskTermReader(pTermReaderImpl_);
+    TermReader* pTermReader = new RTDiskTermReader(pTermReaderImpl_);
     pTermReader->setFieldInfo(pFieldInfo_);
     pTermReader->setDocFilter(pDocFilter_);
     pTermReader->setSkipInterval(skipInterval_);
@@ -568,7 +570,7 @@ TermReader* DiskTermReader::clone()
 }
 
 
-TermDocFreqs* DiskTermReader::termDocFreqs()
+TermDocFreqs* RTDiskTermReader::termDocFreqs()
 {
     if (pCurTermInfo_ == NULL || pTermReaderImpl_ == NULL )
         return NULL;
@@ -577,7 +579,7 @@ TermDocFreqs* DiskTermReader::termDocFreqs()
     return pTermDoc;
 }
 
-TermPositions* DiskTermReader::termPositions()
+TermPositions* RTDiskTermReader::termPositions()
 {
     if (pCurTermInfo_ == NULL || pTermReaderImpl_ == NULL )
         return NULL;
@@ -586,7 +588,7 @@ TermPositions* DiskTermReader::termPositions()
     return pTermPos;
 }
 
-freq_t DiskTermReader::docFreq(Term* term)
+freq_t RTDiskTermReader::docFreq(Term* term)
 {
     if(pCurTermInfo_)
     {
@@ -601,12 +603,12 @@ freq_t DiskTermReader::docFreq(Term* term)
     return 0;
 }
 
-TermIterator* DiskTermReader::termIterator(const char* field)
+TermIterator* RTDiskTermReader::termIterator(const char* field)
 {
     if ((field != NULL) && (strcasecmp(getFieldInfo()->getName(),field)))
         return NULL;
 
-    TermIterator* pIterator = static_cast<TermIterator*>(new DiskTermIterator(pTermReaderImpl_->pDirectory_,
+    TermIterator* pIterator = static_cast<TermIterator*>(new RTDiskTermIterator(pTermReaderImpl_->pDirectory_,
                                                              pTermReaderImpl_->barrelName_.c_str(),
                                                              pTermReaderImpl_->pFieldInfo_));
     pIterator->setSkipInterval(skipInterval_);
@@ -616,8 +618,8 @@ TermIterator* DiskTermReader::termIterator(const char* field)
 
 
 //////////////////////////////////////////////////////////////////////////
-///InMemoryTermReader
-InMemoryTermReader::InMemoryTermReader(const char* field,FieldIndexer* pIndexer)
+///MemTermReader
+MemTermReader::MemTermReader(const char* field,FieldIndexer* pIndexer)
         : field_(field)
         , pIndexer_(pIndexer)
         , pCurTermInfo_(NULL)
@@ -626,28 +628,28 @@ InMemoryTermReader::InMemoryTermReader(const char* field,FieldIndexer* pIndexer)
 {
 }
 
-InMemoryTermReader::~InMemoryTermReader(void)
+MemTermReader::~MemTermReader(void)
 {
     close();
 }
 
-void InMemoryTermReader::open(Directory* pDirectory,BarrelInfo* pBarrelInfo,FieldInfo* pFieldInfo)
+void MemTermReader::open(Directory* pDirectory,BarrelInfo* pBarrelInfo,FieldInfo* pFieldInfo)
 {
 
 }
 
-TermIterator* InMemoryTermReader::termIterator(const char* field)
+TermIterator* MemTermReader::termIterator(const char* field)
 {
     if ((field != NULL) && (field_ != field))
         return NULL;
 
-    TermIterator* pIterator = new InMemoryTermIterator(this);
+    TermIterator* pIterator = new MemTermIterator(this);
     pIterator->setSkipInterval(skipInterval_);
     pIterator->setMaxSkipLevel(maxSkipLevel_);
     return pIterator;
 }
 
-bool InMemoryTermReader::seek(Term* term)
+bool MemTermReader::seek(Term* term)
 {
     pCurTermInfo_ = termInfo(term);
     if ((pCurTermInfo_)&&(pCurTermInfo_->docFreq() > 0))
@@ -655,7 +657,7 @@ bool InMemoryTermReader::seek(Term* term)
     return false;
 }
 
-TermDocFreqs* InMemoryTermReader::termDocFreqs()
+TermDocFreqs* MemTermReader::termDocFreqs()
 {
     izenelib::util::ScopedReadLock<izenelib::util::ReadWriteLock> lock(pIndexer_->rwLock_);
 
@@ -664,13 +666,13 @@ TermDocFreqs* InMemoryTermReader::termDocFreqs()
 
     //InMemoryPosting* pInMem = (InMemoryPosting*)pCurPosting_;
     //pInMem->flushLastDoc(false);
-    TermDocFreqs* pTermDocs = new TermDocFreqs(this,pCurPosting_,*pCurTermInfo_);
+    TermDocFreqs* pTermDocs = new TermDocFreqs(this,pCurPosting_->createPostingReader(),*pCurTermInfo_);
     pTermDocs->setSkipInterval(skipInterval_);
     pTermDocs->setMaxSkipLevel(maxSkipLevel_);
     return pTermDocs;
 }
 
-TermPositions* InMemoryTermReader::termPositions()
+TermPositions* MemTermReader::termPositions()
 {
     izenelib::util::ScopedReadLock<izenelib::util::ReadWriteLock> lock(pIndexer_->rwLock_);
 
@@ -678,12 +680,12 @@ TermPositions* InMemoryTermReader::termPositions()
         return NULL;
     //InMemoryPosting* pInMem = (InMemoryPosting*)pCurPosting_;
     //pInMem->flushLastDoc(false);
-    TermPositions* pPositions = new TermPositions(this,pCurPosting_,*pCurTermInfo_);
+    TermPositions* pPositions = new TermPositions(this,pCurPosting_->createPostingReader(),*pCurTermInfo_);
     pPositions->setSkipInterval(skipInterval_);
     pPositions->setMaxSkipLevel(maxSkipLevel_);
     return pPositions;
 }
-freq_t InMemoryTermReader::docFreq(Term* term)
+freq_t MemTermReader::docFreq(Term* term)
 {
     TermInfo* ti = termInfo(term);
     if (ti)
@@ -693,7 +695,7 @@ freq_t InMemoryTermReader::docFreq(Term* term)
     return 0;
 }
 
-TermInfo* InMemoryTermReader::termInfo(Term* term)
+TermInfo* MemTermReader::termInfo(Term* term)
 {
     izenelib::util::ScopedReadLock<izenelib::util::ReadWriteLock> lock(pIndexer_->rwLock_);
 
@@ -706,7 +708,7 @@ TermInfo* InMemoryTermReader::termInfo(Term* term)
     if(postingIter == pIndexer_->postingMap_.end())
         return NULL;
     pCurPosting_ = postingIter->second;
-    if (!pCurPosting_ || (pCurPosting_->hasNoChunk() == true))
+    if (!pCurPosting_ || (pCurPosting_->isEmpty() == true))
         return NULL;
     if (!pTermInfo_)
         pTermInfo_ = new TermInfo;
@@ -720,14 +722,7 @@ TermInfo* InMemoryTermReader::termInfo(Term* term)
     return pTermInfo_;
 }
 
-InMemoryPosting* InMemoryTermReader::inMemoryPosting()
-{
-    if (!pCurPosting_ || (pCurPosting_->hasNoChunk() == true))
-        return NULL;
-    return pCurPosting_;
-}
-
-void InMemoryTermReader::close()
+void MemTermReader::close()
 {
     if (pTermInfo_)
     {
@@ -737,13 +732,17 @@ void InMemoryTermReader::close()
     pCurTermInfo_ = NULL;
 }
 
-TermReader* InMemoryTermReader::clone()
+TermReader* MemTermReader::clone()
 {
-    TermReader* pTermReader = new InMemoryTermReader(field_.c_str(), pIndexer_);
+    TermReader* pTermReader = new MemTermReader(field_.c_str(), pIndexer_);
     pTermReader->setFieldInfo(pFieldInfo_);
     pTermReader->setDocFilter(pDocFilter_);
     pTermReader->setSkipInterval(skipInterval_);
     pTermReader->setMaxSkipLevel(maxSkipLevel_);
     return pTermReader;
 }
+
+}
+
+NS_IZENELIB_IR_END
 

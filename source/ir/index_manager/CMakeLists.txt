@@ -31,8 +31,8 @@ IF(index_manager_SHOULD_BUILD)
   MACRO_ADD_LIBRARY(index_manager SRCS ${index_manager_SRC})
   MACRO_ADD_LIBRARY(mock_index_manager index_manager SRCS ${mock_index_manager_SRC})
 
-#  TARGET_LINK_LIBRARIES(index_manager
-#      izene_util_compression
-#    )
+  TARGET_LINK_LIBRARIES(index_manager
+      izene_util_compression
+    )
 
 ENDIF(index_manager_SHOULD_BUILD)

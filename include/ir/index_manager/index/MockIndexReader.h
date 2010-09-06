@@ -215,7 +215,7 @@ public:
         return &termInfo_;
     };
 
-    Posting* termPosting() {
+    PostingReader* termPosting() {
         return NULL;
     }
 

@@ -120,7 +120,7 @@ const TermInfo* MultiTermIterator::termInfo()
     return pTermInfo_;
 }
 
-Posting* MultiTermIterator::termPosting()
+PostingReader* MultiTermIterator::termPosting()
 {
     return NULL;
 }

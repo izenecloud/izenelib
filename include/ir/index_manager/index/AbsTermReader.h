@@ -27,8 +27,8 @@ class TermIterator;
 * @brief TermReader is used to read vocabulary of index barrel.
 * When open index of a cerntain barrel, TermReader is firstly acquired
 * because all other search utilities will utilize the information got from vocabulary
-* According to the form of indices, we have InMemoryTermReader, which
-* indicates its cooresponding indices lie in memory; DiskTermReader, which
+* According to the form of indices, we have MemTermReader, which
+* indicates its cooresponding indices lie in memory; RTDiskTermReader, which
 * indicates the cooresponding indices lie on disk; and MultiTermReader, which 
 * is used if there exists multiple index barrels
 * For the sake of efficiency, we do not need to read vocabulary whenever 
@@ -92,7 +92,7 @@ protected:
     friend class TermDocFreqs;
     friend class MultiFieldTermReader;
     friend class IndexReader;
-    friend class InMemoryTermReader;
+    friend class MemTermReader;
 };
 
 

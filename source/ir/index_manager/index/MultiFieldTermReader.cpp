@@ -18,7 +18,7 @@ MultiFieldTermReader::MultiFieldTermReader(Directory* pDirectory,BarrelInfo* pBa
 
         if (pInfo->isIndexed()&&pInfo->isForward())
         {
-            pTermReader = new DiskTermReader(pDirectory,pBarrelInfo,pInfo);
+            pTermReader = new RTDiskTermReader(pDirectory,pBarrelInfo,pInfo);
             fieldsTermReaders_.insert(pair<string,TermReader*>(pInfo->getName(),pTermReader));
         }
     }

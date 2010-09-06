@@ -66,7 +66,7 @@ void SingleIndexBarrelReader::open(const char* name)
                 pFieldInfo = pFieldsInfo->next();
                 if (pFieldInfo->isIndexed()&&pFieldInfo->isForward())
                 {
-                    pTermReader = new DiskTermReader(pDirectory,pBarrelInfo_,pFieldInfo);
+                    pTermReader = new RTDiskTermReader(pDirectory,pBarrelInfo_,pFieldInfo);
                     break;
                 }
             }

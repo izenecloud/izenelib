@@ -7,7 +7,6 @@
 #include <ir/index_manager/index/IndexReader.h>
 #include <ir/index_manager/index/TermReader.h>
 #include <ir/index_manager/index/ParallelTermPosition.h>
-#include <ir/index_manager/index/Posting.h>
 #include <ir/index_manager/store/FSDirectory.h>
 #include <ir/index_manager/store/RAMDirectory.h>
 #include <ir/index_manager/utility/StringUtils.h>

@@ -63,7 +63,7 @@ public:
     Directory* pDirectory_;
 };
 /*
-* The difference between VocReader and DiskTermReader
+* The difference between VocReader and RTDiskTermReader
 * is it will load vocabulary all into memory, it is suitable to do
 * so for a small index
 */
@@ -112,13 +112,13 @@ private:
 
     InputDescriptor* pInputDescriptor_;
 
-    friend class DiskTermIterator;
+    friend class RTDiskTermIterator;
     friend class CollectionIndexer;
     friend class SingleIndexBarrelReader;
 };
 
 /**
-* Internal class of DiskTermReader
+* Internal class of RTDiskTermReader
 * We use this class because there would exist concurrent read, without this class,
 * we have to repeat constructing the vocabulary in memory when read the index concurrently
 */
@@ -156,16 +156,16 @@ public:
 };
 
 /**
-* @brief DiskTermReader
+* @brief RTDiskTermReader
 */
-class DiskTermReader: public TermReader
+class RTDiskTermReader: public TermReader
 {
 public:
-    DiskTermReader(Directory* pDirectory,BarrelInfo* pBarrelInfo,FieldInfo* pFieldInfo);
+    RTDiskTermReader(Directory* pDirectory,BarrelInfo* pBarrelInfo,FieldInfo* pFieldInfo);
 
-    DiskTermReader(SparseTermReaderImpl* pTermReaderImpl);
+    RTDiskTermReader(SparseTermReaderImpl* pTermReaderImpl);
 
-    virtual ~DiskTermReader(void);
+    virtual ~RTDiskTermReader(void);
 public:
     void open(Directory* pDirectory,const char* barrelname,FieldInfo* pFieldInfo);
 
@@ -209,20 +209,20 @@ private:
 
     int64_t nBeginOfVoc_;
 
-    friend class DiskTermIterator;
+    friend class RTDiskTermIterator;
     friend class CollectionIndexer;
     friend class SingleIndexBarrelReader;
 };
 
 /**
-* @brief InMemoryTermReader
+* @brief MemTermReader
 */
-class InMemoryTermReader : public TermReader
+class MemTermReader : public TermReader
 {
 public:
-    InMemoryTermReader(const char* field,FieldIndexer* pIndexer);
+    MemTermReader(const char* field,FieldIndexer* pIndexer);
 
-    virtual ~InMemoryTermReader(void);
+    virtual ~MemTermReader(void);
 public:
     void open(Directory* pDirectory,BarrelInfo* pBarrelInfo,FieldInfo* pFieldInfo);
 
@@ -246,7 +246,6 @@ public:
 
     TermInfo* termInfo(Term* term);
 
-    InMemoryPosting* inMemoryPosting();
 private:
     string field_;
 
@@ -254,11 +253,11 @@ private:
 
     TermInfo* pCurTermInfo_;
 
-    InMemoryPosting* pCurPosting_;
+    RTPostingWriter* pCurPosting_;
 
     TermInfo* pTermInfo_;
 
-    friend class InMemoryTermIterator;
+    friend class MemTermIterator;
 };
 
 }

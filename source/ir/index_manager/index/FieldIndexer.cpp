@@ -89,14 +89,14 @@ void FieldIndexer::addField(docid_t docid, boost::shared_ptr<LAInput> laInput)
 {
     if (pIndexer_->isRealTime())
     {
-        InMemoryPosting* curPosting;
+        RTPostingWriter* curPosting;
         for (LAInput::iterator iter = laInput->begin(); iter != laInput->end(); ++iter)
         {
             InMemoryPostingMap::iterator postingIter = postingMap_.find(iter->termid_);
             if (postingIter == postingMap_.end())
             {
-                //curPosting = new InMemoryPosting(pMemCache_, skipInterval_, maxSkipLevel_);
-                curPosting = BOOST_NEW(*alloc_, InMemoryPosting)(pMemCache_, skipInterval_, maxSkipLevel_);
+                //curPosting = new RTPostingWriter(pMemCache_, skipInterval_, maxSkipLevel_);
+                curPosting = BOOST_NEW(*alloc_, RTPostingWriter)(pMemCache_, skipInterval_, maxSkipLevel_);
                 postingMap_[iter->termid_] = curPosting;
             }
             else
@@ -137,14 +137,14 @@ void FieldIndexer::addField(docid_t docid, boost::shared_ptr<LAInput> laInput)
 
 void FieldIndexer::addField(docid_t docid, boost::shared_ptr<ForwardIndex> forwardindex)
 {
-    InMemoryPosting* curPosting;
+    RTPostingWriter* curPosting;
 
     for (ForwardIndex::iterator iter = forwardindex->begin(); iter != forwardindex->end(); ++iter)
     {
         InMemoryPostingMap::iterator postingIter = postingMap_.find(iter->first);
         if (postingIter == postingMap_.end())
         {
-            curPosting = BOOST_NEW(*alloc_, InMemoryPosting)(pMemCache_, skipInterval_, maxSkipLevel_);
+            curPosting = BOOST_NEW(*alloc_, RTPostingWriter)(pMemCache_, skipInterval_, maxSkipLevel_);
             postingMap_[iter->first] = curPosting;
         }
         else
@@ -158,11 +158,11 @@ void FieldIndexer::addField(docid_t docid, boost::shared_ptr<ForwardIndex> forwa
 
 void FieldIndexer::reset()
 {
-    InMemoryPosting* pPosting;
+    RTPostingWriter* pPosting;
     for (InMemoryPostingMap::iterator iter = postingMap_.begin(); iter !=postingMap_.end(); ++iter)
     {
         pPosting = iter->second;
-        if (!pPosting->hasNoChunk())
+        if (!pPosting->isEmpty())
         {
             pPosting->reset();		///clear posting data
         }
@@ -202,7 +202,7 @@ fileoffset_t FieldIndexer::write(OutputDescriptor* pWriterDesc)
     IndexOutput* pVocWriter = pWriterDesc->getVocOutput();
 
     termid_t tid;
-    InMemoryPosting* pPosting;
+    RTPostingWriter* pPosting;
     fileoffset_t vocOffset = pVocWriter->getFilePointer();
     TermInfo termInfo;
 
@@ -213,7 +213,7 @@ fileoffset_t FieldIndexer::write(OutputDescriptor* pWriterDesc)
         {
             pPosting = iter->second;
             pPosting->setDirty(true);
-            if (!pPosting->hasNoChunk())
+            if (!pPosting->isEmpty())
             {
                 tid = iter->first;
                 pPosting->write(pWriterDesc, termInfo);		///write posting data
@@ -278,7 +278,7 @@ fileoffset_t FieldIndexer::write(OutputDescriptor* pWriterDesc)
         FieldIndexIO ioStream(f);
         Record r;
         ioStream._readBytes((char*)(&count),sizeof(uint64_t));
-        pPosting = new InMemoryPosting(pMemCache_, skipInterval_, maxSkipLevel_);
+        pPosting = new RTPostingWriter(pMemCache_, skipInterval_, maxSkipLevel_);
         termid_t lastTerm = BAD_DOCID;
         try
         {
@@ -287,7 +287,7 @@ fileoffset_t FieldIndexer::write(OutputDescriptor* pWriterDesc)
             ioStream._read((char *)(&r), 13);
             if(r.tid != lastTerm && lastTerm != BAD_DOCID)
             {
-                if (!pPosting->hasNoChunk())
+                if (!pPosting->isEmpty())
                 {
                     pPosting->write(pWriterDesc, termInfo); 	///write posting data
                     writeTermInfo(pVocWriter, lastTerm, termInfo);
@@ -305,7 +305,7 @@ fileoffset_t FieldIndexer::write(OutputDescriptor* pWriterDesc)
         cout<<e.what()<<endl;
         }
 
-        if (!pPosting->hasNoChunk())
+        if (!pPosting->isEmpty())
         {
             pPosting->write(pWriterDesc, termInfo);	///write posting data
             writeTermInfo(pVocWriter, lastTerm, termInfo);
@@ -332,7 +332,7 @@ fileoffset_t FieldIndexer::write(OutputDescriptor* pWriterDesc)
 TermReader* FieldIndexer::termReader()
 {
     izenelib::util::ScopedReadLock<izenelib::util::ReadWriteLock> lock(rwLock_);
-    return new InMemoryTermReader(getField(),this);
+    return new MemTermReader(getField(),this);
 }
 
 }

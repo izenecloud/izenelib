@@ -2,7 +2,7 @@
 #include <ir/index_manager/index/InputDescriptor.h>
 #include <ir/index_manager/index/TermReader.h>
 #include <ir/index_manager/index/Term.h>
-
+#include <ir/index_manager/index/RTPostingReader.h>
 
 using namespace izenelib::ir::indexmanager;
 
@@ -35,14 +35,14 @@ TermDocFreqs::TermDocFreqs(TermReader* pReader, InputDescriptor* pInputDescripto
         ,skipInterval_(skipInterval)
         ,maxSkipLevel_(maxSkipLevel)
 {
-    pPosting_ = new OnDiskPosting(skipInterval_, maxSkipLevel_, pInputDescriptor_,termInfo_);
+    pPosting_ = new RTDiskPostingReader(skipInterval_, maxSkipLevel_, pInputDescriptor_,termInfo_);
     if(pReader->getDocFilter())
         pPosting_->setFilter(pReader->getDocFilter());
 }
 
-TermDocFreqs::TermDocFreqs(TermReader* pReader, Posting* pPosting, const TermInfo& ti)
+TermDocFreqs::TermDocFreqs(TermReader* pReader, PostingReader* pPosting, const TermInfo& ti)
         :termInfo_(ti)
-        ,pPosting_(pPosting->clone())
+        ,pPosting_(pPosting)
         ,pPostingBuffer_(NULL)
         ,nBufferSize_(0)
         ,nFreqStart_(0)
@@ -57,7 +57,7 @@ TermDocFreqs::TermDocFreqs(TermReader* pReader, Posting* pPosting, const TermInf
         pPosting_->setFilter(pReader->getDocFilter());
 }
 
-TermDocFreqs::TermDocFreqs(Posting* pPosting, const TermInfo& ti)
+TermDocFreqs::TermDocFreqs(PostingReader* pPosting, const TermInfo& ti)
         :termInfo_(ti)
         ,pPosting_(pPosting)
         ,pPostingBuffer_(NULL)

@@ -10,7 +10,7 @@
 #include <ir/index_manager/utility/system.h>
 #include <ir/index_manager/utility/MemCache.h>
 #include <ir/index_manager/index/OutputDescriptor.h>
-#include <ir/index_manager/index/Posting.h>
+#include <ir/index_manager/index/RTPostingWriter.h>
 #include <ir/index_manager/index/LAInput.h>
 #include <ir/index_manager/index/ForwardIndex.h>
 #include <ir/index_manager/index/SortHelper.h>
@@ -331,7 +331,7 @@ private:
 
 
 //Since TermID is got from hashfunc, DynamicArray is not suitable to be used as the container.
-typedef stx::btree_map<unsigned int, InMemoryPosting* > InMemoryPostingMap;
+typedef stx::btree_map<unsigned int, RTPostingWriter* > InMemoryPostingMap;
 
 class TermReader;
 /**
@@ -413,8 +413,8 @@ private:
 
     bool flush_;
 
-    friend class InMemoryTermReader;
-    friend class InMemoryTermIterator;
+    friend class MemTermReader;
+    friend class MemTermIterator;
 };
 
 }

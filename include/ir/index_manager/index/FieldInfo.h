@@ -10,7 +10,7 @@
 #include <ir/index_manager/utility/system.h>
 #include <ir/index_manager/store/IndexInput.h>
 #include <ir/index_manager/store/IndexOutput.h>
-#include <ir/index_manager/index/Posting.h>
+#include <ir/index_manager/index/PostingReader.h>
 #include <ir/index_manager/index/IndexerPropertyConfig.h>
 #include <ir/index_manager/index/IndexerCollectionMeta.h>
 

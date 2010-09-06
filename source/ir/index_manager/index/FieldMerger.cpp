@@ -1,6 +1,6 @@
 #include <ir/index_manager/index/IndexBarrelWriter.h>
 #include <ir/index_manager/index/FieldMerger.h>
-#include <ir/index_manager/index/Posting.h>
+#include <ir/index_manager/index/PostingWriter.h>
 #include <ir/index_manager/index/TermReader.h>
 #include <ir/index_manager/index/MultiPostingIterator.h>
 
@@ -175,7 +175,7 @@ bool FieldMerger::initQueue()
         else
         {
             ///on-disk index barrel
-            pTermReader = new DiskTermReader(pDirectory_,pEntry->pBarrelInfo_,pEntry->pFieldInfo_);
+            pTermReader = new RTDiskTermReader(pDirectory_,pEntry->pBarrelInfo_,pEntry->pFieldInfo_);
         }
         pTermReader->setSkipInterval(skipInterval_);
         pTermReader->setMaxSkipLevel(maxSkipLevel_);
@@ -253,7 +253,7 @@ void FieldMerger::sortingMerge(FieldMergeInfo** ppMergeInfos,int32_t numInfos,Te
         else
             postingIterator.addTermPosition(pPosition, pDocFilter_);
     }
-    InMemoryPosting* newPosting = new InMemoryPosting(pMemCache_, skipInterval_, maxSkipLevel_);
+    RTPostingWriter* newPosting = new RTPostingWriter(pMemCache_, skipInterval_, maxSkipLevel_);
 
     docid_t docId = 0;
     while(postingIterator.next())

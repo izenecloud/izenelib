@@ -36,7 +36,7 @@ TermPositions::TermPositions(TermReader* pReader,InputDescriptor* pInputDescript
         ,nLastPosting_(-1)
 {}
 
-TermPositions::TermPositions(TermReader* pReader,Posting* pPosting,const TermInfo& ti)
+TermPositions::TermPositions(TermReader* pReader,PostingReader* pPosting,const TermInfo& ti)
         :TermDocFreqs(pReader,pPosting,ti)
         ,pPPostingBuffer_(NULL)
         ,nPBufferSize_(0)
@@ -52,7 +52,7 @@ TermPositions::TermPositions(TermReader* pReader,Posting* pPosting,const TermInf
         ,bOwnPPostingBuffer_(false)
 {}
 
-TermPositions::TermPositions(Posting* pPosting, const TermInfo& ti)
+TermPositions::TermPositions(PostingReader* pPosting, const TermInfo& ti)
         :TermDocFreqs(pPosting,ti)
         ,pPPostingBuffer_(NULL)
         ,nPBufferSize_(0)
