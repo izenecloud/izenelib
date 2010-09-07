@@ -253,7 +253,7 @@ BOOST_AUTO_TEST_CASE(pfordelta_mix_s9_compressor_test)
 {
     PForDeltaMixS9_Compressor compressor;
     int data_size = 1024;
-    init_large_and_sorted_data(data_size);
+    init_small_and_sorted_data(data_size);
 	
     unsigned * compressed_data = new unsigned[data_size];
     izenelib::util::ClockTimer timer;
@@ -267,11 +267,7 @@ BOOST_AUTO_TEST_CASE(pfordelta_mix_s9_compressor_test)
     cout<<"ret size "<<retSize<<" time elapsed: "<<timer.elapsed()<<endl;	
 
     for(int i = 0; i < data_size; ++i)
-    	{
-    	if(int_data[i] != decompressed_data[i])
-           cout<<i<<" "<<int_data[i]<<endl;
        BOOST_CHECK_EQUAL(int_data[i],decompressed_data[i]);
-    	}
 
     delete[] compressed_data;
     delete[] decompressed_data;
