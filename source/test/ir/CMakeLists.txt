@@ -11,4 +11,5 @@ TARGET_LINK_LIBRARIES(t_fp_index
   )
 
 ADD_SUBDIRECTORY(index_manager)
+ADD_SUBDIRECTORY(id_manager)
 
