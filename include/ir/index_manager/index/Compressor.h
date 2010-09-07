@@ -41,6 +41,7 @@ public:
         int num_whole_blocks = num_input_elements / BLOCK_SIZE;
         int encoded_offset = 0;
         int unencoded_offset = 0;
+        memset(input,0,num_input_elements*sizeof(uint32_t));
         while (num_whole_blocks-- > 0)
         {
             encoded_offset += primary_coder_->compress(input + unencoded_offset, output + encoded_offset, BLOCK_SIZE);
@@ -130,6 +131,7 @@ public:
     int compress(uint32_t* input, uint32_t* output, int num_input_elements) const
     {
         int compressed_len = 0;
+        memset(input,0,num_input_elements*sizeof(uint32_t));
         compressed_len = coder_->compress(input, output, num_input_elements);
 
         return compressed_len;
