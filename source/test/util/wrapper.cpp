@@ -1,5 +1,3 @@
-#include <boost/test/unit_test.hpp>
-
 #include <string>
 #include <ctime>
 #include <am/util/Wrapper.h>
@@ -11,12 +9,10 @@ using namespace izenelib::util;
 
 static size_t range= 100;
 static size_t num = 100;
-static bool trace = 0;
+static bool trace = true;
 static string inputFile = "input.txt";
 
 typedef map<int, int>::iterator IT;
-
-#if 1
 
 namespace izenelib {
 namespace am {
@@ -62,8 +58,12 @@ template<> inline void read_image<map<string, int> >(map<string, int>& dat,
 		pair<string, int> a;
 		int len;
 		memcpy(&len, p, sizeof(int));
-		p += sizeof(int);	
-		a.first = string(p, len);	
+		p += sizeof(int);
+		char *buf = new char[len];
+		memcpy(buf, p, len);
+		a.first = (string)buf;
+		delete buf;
+		buf = 0;
 
 		p += len;
 		memcpy(&(a.second), p, sizeof(int));
@@ -97,58 +97,9 @@ template<> inline void write_image<map<string, int> >(
 	delete buf;
 }
 
-#if 0
-template<> inline void read_image<vector<int> >(vector<int>& dat,
-		const DbObjPtr& ptr) {
-	dat.resize(ptr->getSize()/sizeof(int));
-	memcpy(&dat[0], ptr->getData(), ptr->getSize());
-}
-
-template<> inline void write_image<vector<int> >(const vector<int>& dat,
-		DbObjPtr& ptr) {
-	ptr->setData(&dat[0], sizeof(int)*dat.size() );
-
-}
-#endif
-
-#if 0
-template<> inline void read_image<vector<int> >(vector<int>& dat,
-		const DbObjPtr& ptr) {
-	stringstream istr((char*)ptr->getData());
-	{
-		boost::archive::text_iarchive ia(istr);
-		ia & dat;
-	}
-	//make sure oa is deconstructed to avoid stream_error exception.
-
-}
-
-template<> inline void write_image<vector<int> >(const vector<int>& dat,
-		DbObjPtr& ptr) {
-	stringstream ostr;
-	{
-		boost::archive::text_oarchive oa(ostr);
-		oa & dat;
-	}
-
-	//stringstream ostr1;
-	//{
-	//	boost::archive::binary_oarchive oa(ostr1);
-	//	oa & dat;
-	//}
-	//cout<<"text: "<<ostr.str().size()<<endl;
-	//cout<<"binary: "<<ostr1.str().size()<<endl;
-	//make sure oa is deconstructed to avoid stream_error exception.
-	ptr->setData(ostr.str().c_str(), ostr.str().size());
-}
-
-#endif
-
 }
 }
 }
-
-#endif
 
 void wrapper_test1() {
 	clock_t t1 = clock();
@@ -332,13 +283,13 @@ void wrapper_test7() {
 
 }
 
-void run() {
-	//wrapper_test1();
-    //wrapper_test2();
-	//wrapper_test3();
+int main(int argc, char *argv[])
+{
+	wrapper_test1();
+	wrapper_test2();
+	wrapper_test3();
 	wrapper_test4();
 	wrapper_test5();
-	
 	wrapper_test6();
 	wrapper_test7();
 }
@@ -347,57 +298,4 @@ void ReportUsage(void) {
 	cout
 			<<"\nUSAGE: ./t_wrapper [-T <trace_option>] [-n <num>] [-size <sz>] \n\n";
 
-}
-
-//int main(int argc, char *argv[])
-
-
-BOOST_AUTO_TEST_CASE(wrapper_test)
-{
-/*
-	if (argc < 2) {
-		ReportUsage();
-		return 0;
-
-	}
-	argv++;
-	while (*argv != NULL) {
-		string str;
-		str = *argv++;
-
-		if (str[0] == '-') {
-			str = str.substr(1, str.length());
-			if (str == "T") {
-				trace = bool(atoi(*argv++));
-			} else if (str == "n") {
-				num = atoi(*argv++);
-			} else if (str == "size") {
-				range = atoi(*argv++);
-			} else {
-				cout<<"Input parameters error\n";
-				return 0;
-			}
-		} else {
-			inputFile = str;
-			break;
-		}
-	}
-	*/
-	//try
-	{
-		run();
-
-	}
-	/*catch(bad_alloc)
-	 {
-	 cout<<"Memory allocation error!"<<endl;
-	 }
-	 catch(ios_base::failure)
-	 {
-	 cout<<"Reading or writing file error!"<<endl;
-	 }
-	 catch(...)
-	 {
-	 cout<<"OTHER ERROR HAPPENED!"<<endl;
-	 }*/
 }
