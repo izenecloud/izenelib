@@ -114,7 +114,6 @@ private:
     uint32_t nPosInCurChunk_;
     uint32_t nTotalUsed_; ///Total Unused size
 
-    friend class InMemoryPosting;
     friend class PostingMerger;
     friend class VariantDataPoolInput;
     friend class RTPostingWriter;
