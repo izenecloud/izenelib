@@ -234,8 +234,8 @@ public:
 	static ub4 djb2(const KeyType& key) {
 		register ub4 h = 5381;
 		register const char* str = (const char*)key.c_str();
-		for (register size_t i = 0; i < key.size(); i++, str++)
-		h = ((h << 5) + h) + *str++;
+		for (register size_t i = 0; i < key.size(); i++)
+            h = ((h << 5) + h) + *str++;
 		return h;
 	}
 
