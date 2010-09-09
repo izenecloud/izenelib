@@ -146,8 +146,6 @@ void RTPostingWriter::add(docid_t docid, loc_t location)
 
         if(skipInterval_ && nDF_ > 0 && nDF_ % skipInterval_ == 0)
         {
-            //if(!pSkipListWriter_)
-                //pSkipListWriter_ = new SkipListWriter(skipInterval_,maxSkipLevel_,pMemCache_);
             pSkipListWriter_->addSkipPoint(nLastDocID_,pDocFreqList_->getLength(),pLocList_->getLength());
         }
 

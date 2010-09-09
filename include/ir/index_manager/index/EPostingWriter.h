@@ -19,11 +19,11 @@ NS_IZENELIB_IR_BEGIN
 
 namespace indexmanager{
 
-/*
+/*******************************************************************
 * @BlockPostingWriter
 * Block based posting builder:
 *      [skip data][block][block]
-*/
+********************************************************************/
 class BlockPostingWriter:public PostingWriter<BlockPostingWriter>
 {
 public:
@@ -55,7 +55,7 @@ public:
     count_t docFreq() const
     {
         return nDF_;
-    };
+    }
 
     /**
      * get collection's total term frequency
@@ -64,7 +64,7 @@ public:
     count_t getCTF() const
     {
         return nCTF_;
-    };
+    }
 
 
     /** get last added doc id */
@@ -80,7 +80,7 @@ protected:
     ChunkEncoder chunk_;
     MemCache* pMemCache_;	/// memory cache
     BlockDataPool* pBlockDataPool_;
-    PosDataPool* pPosDataPool_;
+    ChunkDataPool* pPosDataPool_;
     FixedBlockSkipListWriter* pSkipListWriter_;
     uint32_t doc_ids_[ChunkEncoder::kChunkSize];
     uint32_t frequencies_[ChunkEncoder::kChunkSize];
@@ -94,6 +94,90 @@ protected:
     count_t nCTF_;			///Collection's total term frequency
     docid_t nLastDocID_;	///current added doc id
 };
+
+
+
+/*******************************************************************
+* @ChunkPostingWriter
+* Chunk based posting builder:
+*      [skip data][chunk][chunk]
+********************************************************************/
+class SkipListWriter;
+class ChunkPostingWriter:public PostingWriter<ChunkPostingWriter>
+{
+public:
+    ChunkPostingWriter(MemCache* pMemCache, int skipInterval, int maxSkipLevel);
+
+    ~ChunkPostingWriter();
+    /**
+     * add data to posting
+     */
+    void add(uint32_t docId, uint32_t pos);
+    /**
+    * whether current posting contains valid data
+    */
+    bool isEmpty();
+    /**
+     * write index data
+     * @param pOutputDescriptor output place
+     * @param termInfo set term info for voc
+     */
+    void write(OutputDescriptor* pOutputDescriptor, TermInfo& termInfo);
+    /**
+     * reset the content of Posting list.
+     */
+    void reset();
+    /**
+     * get document frequency
+     * @return DF value
+     */
+    count_t docFreq() const
+    {
+        return nDF_;
+    }
+
+    /**
+     * get collection's total term frequency
+     * @return CTF value
+     */
+    count_t getCTF() const
+    {
+        return nCTF_;
+    }
+
+    /** get last added doc id */
+    docid_t lastDocID()
+    {
+        return nLastDocID_;
+    }
+
+protected:
+    void flush();
+
+protected:
+    ChunkEncoder chunk_;
+    MemCache* pMemCache_;	/// memory cache
+
+    ChunkDataPool* pDocFreqDataPool_;
+    ChunkDataPool* pPosDataPool_;
+
+    SkipListWriter* pSkipListWriter_;
+    int skipInterval_;              ///skip interval
+    int maxSkipLevel_;           /// max skip level
+
+    uint32_t doc_ids_[ChunkEncoder::kChunkSize];
+    uint32_t frequencies_[ChunkEncoder::kChunkSize];
+    uint32_t current_nocomp_block_pointer_;
+
+    uint32_t* positions_;
+    uint32_t position_buffer_pointer_;
+    uint32_t curr_position_buffer_size_;
+    count_t nDF_;			///document frequency of this field
+    count_t nCurTermFreq_;
+    count_t nCTF_;			///Collection's total term frequency
+    docid_t nLastDocID_;	///current added doc id
+};
+
 
 }
 

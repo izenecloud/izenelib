@@ -169,6 +169,69 @@ private:
     int curr_position_buffer_size_;
 };
 
+/**************************************************************************************************************
+ * ChunkDataPool
+ *
+ * Data pool to manage compressed chunks
+ ***************************************************************************************************************/
+
+#pragma pack(push,1)
+struct ChunkData
+{
+    int32_t size;
+    ChunkData* next;
+    uint8_t data[1];
+};
+#pragma pack(pop)
+
+class ChunkDataPool
+{
+public:
+    ChunkDataPool(MemCache* pMemCache);
+
+    ~ChunkDataPool();
+public:
+    /* add compressed position data */
+    bool addPOSChunk(const ChunkEncoder& chunk);
+
+    /* add compressed did and tf data */
+    bool addDFChunk(const ChunkEncoder& chunk);
+
+    /* add all compressed data */
+    bool addChunk(const ChunkEncoder& chunk);
+
+    /* write all data contained to disk */
+    void write(IndexOutput* pOutput);
+
+    /** get the real size of the list */
+    uint32_t getLength();
+
+    /* reset the list for using at next time*/
+    void reset();
+
+    /** truncation the tail chunk,let chunk size=real used size of this chunk */
+    void truncTailChunk();
+
+private:
+    /* add block */
+    void add_chunk_();
+
+    /* add chunk length  */
+    void add_len_of_len_(uint32_t i);
+private:
+    MemCache* pMemCache_;
+    ChunkData* pHeadChunk_; ///Posting list header
+    ChunkData* pTailChunk_; ///Posting list tail
+    uint32_t nTotalSize_; ///Total size
+    uint32_t nPosInCurChunk_;
+    uint32_t nTotalUsed_; ///Total Unused size
+
+    friend class PostingMerger;
+    friend class BlockPostingWriter;
+
+    static int32_t UPTIGHT_ALLOC_MEMSIZE;
+ };
+
 
 /**************************************************************************************************************************************************************
  * BlockEncoder
@@ -216,14 +279,14 @@ public:
         return num_wasted_space_bytes_;
     }
 
+    int num_doc_ids() const
+    {
+        return num_doc_ids_;
+    }
+
     static const int kBlockSize = BLOCK_SIZE;
 
 private:
-    // Calling this compresses the header.
-    // The header will already be compressed if AddChunk() returned false at one point.
-    // So it's only to be used in the special case if this block was not filled to capacity.
-    void finalize();
-
     void copyChunkData(const ChunkEncoder& chunk);
 
     int compressHeader(uint32_t* header, uint32_t* output, int header_len);
@@ -256,10 +319,17 @@ private:
     int num_frequency_bytes_;
     int num_wasted_space_bytes_;
 
+    int num_doc_ids_;
+
     friend class BlockDataPool;
     friend class BlockPostingWriter;
 };
 
+/**************************************************************************************************************
+ * BlockDataPool
+ *
+ * Data pool to manage block data
+ ***************************************************************************************************************/
 
 #pragma pack(push,1)
 struct BlockData
@@ -269,9 +339,6 @@ struct BlockData
 };
 #pragma pack(pop)
 
-/**
-* BlockDataPool
-*/
 class BlockDataPool
 {
 public:
@@ -290,6 +357,8 @@ public:
     /* reset the list for using at next time*/
     void reset();
 
+    uint32_t num_doc_of_curr_block();
+
 private:
     /* add block */
     void addBlock();
@@ -306,6 +375,7 @@ private:
     uint64_t total_num_doc_ids_bytes_;
     uint64_t total_num_frequency_bytes_;
     uint64_t total_num_wasted_space_bytes_;
+    uint32_t num_doc_of_curr_block_;
 
     friend class PostingMerger;
     friend class BlockPostingWriter;
@@ -313,60 +383,6 @@ private:
     static int32_t UPTIGHT_ALLOC_MEMSIZE;
  };
 
-
-
-#pragma pack(push,1)
-struct PosDataChunk
-{
-    int32_t size;
-    PosDataChunk* next;
-    uint8_t data[1];
-};
-#pragma pack(pop)
-
-/**
-* PosDataPool
-*/
-class PosDataPool
-{
-public:
-    PosDataPool(MemCache* pMemCache);
-
-    ~PosDataPool();
-public:
-    bool addChunk(const ChunkEncoder& chunk);
-
-    /* write all data contained to disk */
-    void write(IndexOutput* pOutput);
-
-    /** get the real size of the list */
-    uint32_t getLength();
-
-    /* reset the list for using at next time*/
-    void reset();
-
-    /** truncation the tail chunk,let chunk size=real used size of this chunk */
-    void truncTailChunk();
-
-private:
-    /* add block */
-    void addChunk();
-
-    /* add chunk length  */
-    void addInt(uint32_t i);
-private:
-    MemCache* pMemCache_;
-    PosDataChunk* pHeadChunk_; ///Posting list header
-    PosDataChunk* pTailChunk_; ///Posting list tail
-    uint32_t nTotalSize_; ///Total size
-    uint32_t nPosInCurChunk_;
-    uint32_t nTotalUsed_; ///Total Unused size
-
-    friend class PostingMerger;
-    friend class BlockPostingWriter;
-
-    static int32_t UPTIGHT_ALLOC_MEMSIZE;
- };
 
 }
 NS_IZENELIB_IR_END

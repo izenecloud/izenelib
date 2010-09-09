@@ -7,6 +7,238 @@ namespace indexmanager{
 const int ChunkEncoder::kChunkSize;      // Initialized in the class definition.
 
 /************************************************************************************************************
+ * ChunkDataPool
+ *
+ *************************************************************************************************************/
+
+int32_t ChunkDataPool::UPTIGHT_ALLOC_MEMSIZE = 10*1024*1024;
+
+ChunkDataPool::ChunkDataPool(MemCache* pMemCache)
+	:pMemCache_(pMemCache)
+	,pHeadChunk_(NULL)
+	,pTailChunk_(NULL)
+	,nTotalSize_(0)
+	,nPosInCurChunk_(0)
+	,nTotalUsed_(0)
+{
+}
+
+ChunkDataPool::~ChunkDataPool()
+{
+}
+
+bool ChunkDataPool::addDFChunk(const ChunkEncoder& chunk)
+{
+    if (pTailChunk_ == NULL)
+    {
+        add_chunk_();
+        return addDFChunk(chunk);
+    }
+
+    // Docids.
+    const uint32_t* doc_ids = chunk.compressed_doc_ids();
+    int doc_ids_len = chunk.compressed_doc_ids_len() * sizeof(uint32_t);
+
+    // Frequencies.
+    const uint32_t* frequencies = chunk.compressed_frequencies();
+    int frequencies_len = chunk.compressed_frequencies_len() * sizeof(uint32_t);
+
+    uint8_t len_of_docid_len = IndexOutput::getVIntLength(doc_ids_len);
+
+    uint8_t len_of_freq_len = IndexOutput::getVIntLength(frequencies_len);
+
+    int left = pTailChunk_->size - nPosInCurChunk_;
+
+    if (left < (doc_ids_len + len_of_docid_len + frequencies_len + len_of_freq_len))
+    {
+        pTailChunk_->size = nPosInCurChunk_;///the real size
+        add_chunk_();
+        return addDFChunk(chunk);
+    }
+
+    {
+        add_len_of_len_(len_of_docid_len);
+        memcpy(pTailChunk_->data + nPosInCurChunk_, doc_ids, doc_ids_len);
+        nTotalUsed_ += frequencies_len;
+    }
+
+    {
+        add_len_of_len_(len_of_freq_len);
+        memcpy(pTailChunk_->data + nPosInCurChunk_, frequencies, frequencies_len);
+        nTotalUsed_ += frequencies_len;
+    }
+    return true;
+}
+
+bool ChunkDataPool::addPOSChunk(const ChunkEncoder& chunk)
+{
+    if (pTailChunk_ == NULL)
+    {
+        add_chunk_();
+        return addPOSChunk(chunk);
+    }
+
+    // Positions.
+    const uint32_t* positions = chunk.compressed_positions();
+    int positions_len = chunk.compressed_positions_len();
+    int num_bytes = positions_len * sizeof(uint32_t);
+
+    uint8_t len_of_len = IndexOutput::getVIntLength(num_bytes);
+
+    int left = pTailChunk_->size - nPosInCurChunk_;
+
+    if (left < (num_bytes + len_of_len))
+    {
+        pTailChunk_->size = nPosInCurChunk_;///the real size
+        add_chunk_();
+        return addPOSChunk(chunk);
+    }
+
+    {
+        add_len_of_len_(num_bytes);
+        memcpy(pTailChunk_->data + nPosInCurChunk_, positions, num_bytes);
+        nTotalUsed_ += num_bytes;
+    }
+
+    return true;
+}
+
+bool ChunkDataPool::addChunk(const ChunkEncoder& chunk)
+{
+    if (pTailChunk_ == NULL)
+    {
+        add_chunk_();
+        return addChunk(chunk);
+    }
+
+    // Docids.
+    const uint32_t* doc_ids = chunk.compressed_doc_ids();
+    int doc_ids_len = chunk.compressed_doc_ids_len() * sizeof(uint32_t);
+
+    // Frequencies.
+    const uint32_t* frequencies = chunk.compressed_frequencies();
+    int frequencies_len = chunk.compressed_frequencies_len() * sizeof(uint32_t);
+
+    uint8_t len_of_docid_len = IndexOutput::getVIntLength(doc_ids_len);
+
+    uint8_t len_of_freq_len = IndexOutput::getVIntLength(frequencies_len);
+
+    // Positions.
+    const uint32_t* positions = chunk.compressed_positions();
+    int positions_len = chunk.compressed_positions_len() * sizeof(uint32_t);
+
+    uint8_t len_of_pos_len = IndexOutput::getVIntLength(positions_len);
+
+    int left = pTailChunk_->size - nPosInCurChunk_;
+
+    if (left < (doc_ids_len + len_of_docid_len + frequencies_len + len_of_freq_len + positions_len + len_of_pos_len))
+    {
+        pTailChunk_->size = nPosInCurChunk_;///the real size
+        add_chunk_();
+        return addChunk(chunk);
+    }
+
+    {
+        add_len_of_len_(len_of_docid_len);
+        memcpy(pTailChunk_->data + nPosInCurChunk_, doc_ids, doc_ids_len);
+        nTotalUsed_ += frequencies_len;
+    }
+
+    {
+        add_len_of_len_(len_of_freq_len);
+        memcpy(pTailChunk_->data + nPosInCurChunk_, frequencies, frequencies_len);
+        nTotalUsed_ += frequencies_len;
+    }
+
+    {
+        add_len_of_len_(len_of_pos_len);
+        memcpy(pTailChunk_->data + nPosInCurChunk_, positions, positions_len);
+        nTotalUsed_ += positions_len;
+    }
+
+    return true;
+}
+
+void ChunkDataPool::add_len_of_len_(uint32_t ui)
+{
+    while ((ui & ~0x7F) != 0)
+    {
+        pTailChunk_->data[nPosInCurChunk_++] = ((uint8_t)((ui & 0x7f) | 0x80));
+        ui >>= 7;
+        nTotalUsed_++;
+    }
+    pTailChunk_->data[nPosInCurChunk_++] = (uint8_t)ui;
+    nTotalUsed_++;
+}
+
+void ChunkDataPool::add_chunk_()
+{
+    int32_t factor = max(32,(int32_t)(nTotalSize_ + 0.5));
+    int32_t chunkSize = (int32_t)Utilities::LOG2_UP(factor);
+
+    uint8_t* begin = pMemCache_->getMem(chunkSize);
+    ///allocate memory failed,decrease chunk size
+    if (!begin)
+    {
+        ///into UPTIGHT state
+        begin = pMemCache_->getMem(chunkSize);
+        ///allocation failed again, grow memory cache.
+        if (!begin)
+        {
+            MemCache* pUrgentMemCache = pMemCache_->grow(UPTIGHT_ALLOC_MEMSIZE);
+            size_t urgentChunkSize = min((int32_t)Utilities::LOG2_DOWN(UPTIGHT_ALLOC_MEMSIZE),chunkSize);
+  
+            begin  = pUrgentMemCache->getMem(urgentChunkSize);
+            if (!begin)
+            {
+                SF1V5_THROW(ERROR_OUTOFMEM,"InMemoryPosting:newChunk() : Allocate memory failed.");
+            }
+             chunkSize = urgentChunkSize;
+        }
+    }
+
+    ChunkData* pChunk = (ChunkData*)begin;
+    pChunk->size = (int32_t)(POW_TABLE[chunkSize] - sizeof(ChunkData*) - sizeof(int32_t));
+    pChunk->next = NULL;
+ 
+    if (pTailChunk_)
+        pTailChunk_->next = pChunk;
+    pTailChunk_ = pChunk;
+    if (!pHeadChunk_)
+        pHeadChunk_ = pTailChunk_;
+    nTotalSize_ += pChunk->size;
+
+    nPosInCurChunk_ = 0;
+}
+
+void ChunkDataPool::write(IndexOutput* pOutput)
+{
+    ChunkData* pChunk = pHeadChunk_;
+    while (pChunk)
+    {
+        pOutput->write((const char*)pChunk->data, BlockEncoder::kBlockSize);
+        pChunk = pChunk->next;
+    }
+}
+
+void ChunkDataPool::truncTailChunk()
+{
+    pTailChunk_->size = nPosInCurChunk_;
+}
+
+uint32_t ChunkDataPool::getLength()
+{
+    return nTotalUsed_;
+}
+
+void ChunkDataPool::reset()
+{
+    pHeadChunk_ = pTailChunk_ = NULL;
+    nTotalSize_ = nPosInCurChunk_ = nTotalUsed_ = 0;
+}
+
+
+/************************************************************************************************************
  * BlockEncoder
  *
  *************************************************************************************************************/
@@ -78,6 +310,7 @@ void BlockEncoder::reset()
     num_doc_ids_bytes_ = 0; 
     num_frequency_bytes_ = 0;
     num_wasted_space_bytes_ = 0;
+    num_doc_ids_ = 0;
 }
 
 void BlockEncoder::copyChunkData(const ChunkEncoder& chunk)
@@ -88,6 +321,8 @@ void BlockEncoder::copyChunkData(const ChunkEncoder& chunk)
 
     int num_bytes;
     int num_words;
+
+    num_doc_ids_ += chunk.num_docs();
 
     // DocIDs.
     const uint32_t* doc_ids = chunk.compressed_doc_ids();
@@ -127,12 +362,6 @@ void BlockEncoder::copyChunkData(const ChunkEncoder& chunk)
 
 }
 
-void BlockEncoder::finalize()
-{
-    const int kNumHeaderInts = 2 * num_chunks_;
-    chunk_data_compressed_len_ = compressHeader(chunk_data_uncompressed_, chunk_data_compressed_, kNumHeaderInts);
-}
-
 // The 'header' array size needs to be a multiple of the block size used by the block header compressor.
 int BlockEncoder::compressHeader(uint32_t* header, uint32_t* output, int header_len)
 {
@@ -143,7 +372,8 @@ void BlockEncoder::getBlockBytes(unsigned char* block_bytes )
 {
     if (chunk_data_compressed_len_ == 0)
     {
-        finalize();
+        const int kNumHeaderInts = 2 * num_chunks_;
+        chunk_data_compressed_len_ = compressHeader(chunk_data_uncompressed_, chunk_data_compressed_, kNumHeaderInts);
     }
     assert(chunk_data_compressed_len_ > 0);
  
@@ -202,9 +432,7 @@ bool BlockDataPool::addChunk(const ChunkEncoder& chunk)
 
     if(!blockEncoder_.addChunk(chunk))
     {
-        addBlock();
-        copyBlockData();
-        blockEncoder_.reset();
+        return false;
     }
     copyBlockData();
     return true;
@@ -260,6 +488,8 @@ void BlockDataPool::addBlock()
         pHeadBlock_ = pTailBlock_;
     nTotalSize_ += BlockEncoder::kBlockSize;
 
+    num_doc_of_curr_block_ = blockEncoder_.num_doc_ids();
+    blockEncoder_.reset();
 }
 
 uint32_t BlockDataPool::getLength()
@@ -277,132 +507,11 @@ void BlockDataPool::reset()
     total_num_wasted_space_bytes_ = 0;
 }
 
-
-
-//////////////////////////////////////////////////////////////////////////
-///PosDataPool
-int32_t PosDataPool::UPTIGHT_ALLOC_MEMSIZE = 10*1024*1024;
-
-PosDataPool::PosDataPool(MemCache* pMemCache)
-	:pMemCache_(pMemCache)
-	,pHeadChunk_(NULL)
-	,pTailChunk_(NULL)
-	,nTotalSize_(0)
-	,nPosInCurChunk_(0)
-	,nTotalUsed_(0)
+uint32_t BlockDataPool::num_doc_of_curr_block()
 {
+    return num_doc_of_curr_block_;
 }
 
-PosDataPool::~PosDataPool()
-{
-}
-
-bool PosDataPool::addChunk(const ChunkEncoder& chunk)
-{
-    if (pTailChunk_ == NULL)
-    {
-        addChunk();
-        return addChunk(chunk);
-    }
-
-    // Positions.
-    const uint32_t* positions = chunk.compressed_positions();
-    int positions_len = chunk.compressed_positions_len();
-    int num_bytes = positions_len * sizeof(uint32_t);
-
-    uint32_t left = pTailChunk_->size - nPosInCurChunk_;
-
-    if (left < (num_bytes + sizeof(uint32_t)))
-    {
-        pTailChunk_->size = nPosInCurChunk_;///the real size
-        addChunk();
-        return addChunk(chunk);
-    }
-
-    if (positions_len != 0)
-    {
-        addInt(num_bytes);
-        memcpy(pTailChunk_->data + nPosInCurChunk_, positions, num_bytes);
-        nTotalUsed_ += num_bytes;
-    }
-
-    return true;
-}
-
-void PosDataPool::addInt(uint32_t i)
-{
-    pTailChunk_->data[nPosInCurChunk_++] = ((uint8_t) (i >> 24));
-    pTailChunk_->data[nPosInCurChunk_++] = ((uint8_t) (i >> 16));
-    pTailChunk_->data[nPosInCurChunk_++] = ((uint8_t) (i >> 8));
-    pTailChunk_->data[nPosInCurChunk_++] = ((uint8_t) i);
-    nTotalUsed_ += 4;
-}
-
-void PosDataPool::write(IndexOutput* pOutput)
-{
-    PosDataChunk* pChunk = pHeadChunk_;
-    while (pChunk)
-    {
-        pOutput->write((const char*)pChunk->data, BlockEncoder::kBlockSize);
-        pChunk = pChunk->next;
-    }
-}
-
-void PosDataPool::addChunk()
-{
-    int32_t factor = max(32,(int32_t)(nTotalSize_ + 0.5));
-    int32_t chunkSize = (int32_t)Utilities::LOG2_UP(factor);
-
-    uint8_t* begin = pMemCache_->getMem(chunkSize);
-    ///allocate memory failed,decrease chunk size
-    if (!begin)
-    {
-        ///into UPTIGHT state
-        begin = pMemCache_->getMem(chunkSize);
-        ///allocation failed again, grow memory cache.
-        if (!begin)
-        {
-            MemCache* pUrgentMemCache = pMemCache_->grow(UPTIGHT_ALLOC_MEMSIZE);
-            size_t urgentChunkSize = min((int32_t)Utilities::LOG2_DOWN(UPTIGHT_ALLOC_MEMSIZE),chunkSize);
-  
-            begin  = pUrgentMemCache->getMem(urgentChunkSize);
-            if (!begin)
-            {
-                SF1V5_THROW(ERROR_OUTOFMEM,"InMemoryPosting:newChunk() : Allocate memory failed.");
-            }
-             chunkSize = urgentChunkSize;
-        }
-    }
-
-    PosDataChunk* pChunk = (PosDataChunk*)begin;
-    pChunk->size = (int32_t)(POW_TABLE[chunkSize] - sizeof(PosDataChunk*) - sizeof(int32_t));
-    pChunk->next = NULL;
- 
-    if (pTailChunk_)
-        pTailChunk_->next = pChunk;
-    pTailChunk_ = pChunk;
-    if (!pHeadChunk_)
-        pHeadChunk_ = pTailChunk_;
-    nTotalSize_ += pChunk->size;
-
-    nPosInCurChunk_ = 0;
-}
-
-void PosDataPool::truncTailChunk()
-{
-    pTailChunk_->size = nPosInCurChunk_;
-}
-
-uint32_t PosDataPool::getLength()
-{
-    return nTotalUsed_;
-}
-
-void PosDataPool::reset()
-{
-    pHeadChunk_ = pTailChunk_ = NULL;
-    nTotalSize_ = nPosInCurChunk_ = nTotalUsed_ = 0;
-}
 
 }
 NS_IZENELIB_IR_END
