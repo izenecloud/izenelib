@@ -34,13 +34,15 @@ public:
   template<typename NameString>
   static int32_t hash(const typename NameString::value_type * buffer, const size_t length)
   {
-    return (int32_t)HashFunction<NameString>::generateHash32((const char*)buffer,length*sizeof(typename NameString::value_type));
+//    return (int32_t)HashFunction<NameString>::generateHash32((const char*)buffer,length*sizeof(typename NameString::value_type));
+    return (int32_t)MurmurHash2((const char*)buffer,length*sizeof(typename NameString::value_type), 0);
   }
 
   template<typename NameString>
   static int32_t hash(const NameString& key)
   {
-    return (int32_t)HashFunction<NameString>::generateHash32(key);
+//    return (int32_t)HashFunction<NameString>::generateHash32(key);
+    return (int32_t)MurmurHash2((const char*)key.c_str(), key.size(), 0);
   }
 };
 
@@ -53,13 +55,15 @@ public:
   template<typename NameString>
   static uint32_t hash(const typename NameString::value_type * buffer, const size_t length)
   {
-    return HashFunction<NameString>::generateHash32((const char*)buffer,length*sizeof(typename NameString::value_type));
+//    return HashFunction<NameString>::generateHash32((const char*)buffer,length*sizeof(typename NameString::value_type));
+    return MurmurHash2((const char*)buffer,length*sizeof(typename NameString::value_type), 0);
   }
 
   template<typename NameString>
   static uint32_t hash(const NameString& key)
   {
-    return HashFunction<NameString>::generateHash32(key);
+//    return HashFunction<NameString>::generateHash32(key);
+    return MurmurHash2((const char*)key.c_str(), key.size(), 0);
   }
 };
 
