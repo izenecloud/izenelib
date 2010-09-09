@@ -41,7 +41,6 @@ public:
         int num_whole_blocks = num_input_elements / BLOCK_SIZE;
         int encoded_offset = 0;
         int unencoded_offset = 0;
-        memset(input,0,num_input_elements*sizeof(uint32_t));
         while (num_whole_blocks-- > 0)
         {
             encoded_offset += primary_coder_->compress(input + unencoded_offset, output + encoded_offset, BLOCK_SIZE);
@@ -131,7 +130,6 @@ public:
     int compress(uint32_t* input, uint32_t* output, int num_input_elements) const
     {
         int compressed_len = 0;
-        memset(input,0,num_input_elements*sizeof(uint32_t));
         compressed_len = coder_->compress(input, output, num_input_elements);
 
         return compressed_len;
@@ -148,11 +146,11 @@ private:
     PrimaryCompressor* coder_;
 };
 
-//typedef CombinedCompressorType<PForDelta_Compressor, S16_Compressor, 128, 96> DIDCompressor;
-typedef CompressorType<PForDeltaMix_Compressor> DIDCompressor;
-typedef CompressorType<S16_Compressor> TFCompressor;
-typedef CompressorType<S16_Compressor> PosCompressor;
-typedef CombinedCompressorType<PForDelta_Compressor, S16_Compressor, 256, 192> HeadCompressor;
+//typedef CombinedCompressorType<PForDelta_Compressor, S16_Compressor, 128, 96> DocIDCompressor;
+typedef CompressorType<PForDeltaMix_Compressor> DocIDCompressor;
+typedef CompressorType<S16_Compressor> TermFreqCompressor;
+typedef CompressorType<S16_Compressor> TermPosCompressor;
+typedef CombinedCompressorType<PForDelta_Compressor, S16_Compressor, 256, 192> BlockHeadCompressor;
 
 }
 NS_IZENELIB_IR_END

@@ -11,6 +11,7 @@ MemCache::MemCache(size_t cachesize)
     {
         SF1V5_THROW(ERROR_OUTOFMEM,"MemCache alloc memory failed.");
     }
+    memset(begin_,0,size_);
     end_ = begin_;
     pGrowCache_ = NULL;
 }

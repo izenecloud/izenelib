@@ -11,6 +11,8 @@ namespace indexmanager{
 // Fixed size in bytes of a block
 #define BLOCK_SIZE 65536
 
+#define INIT_POS_CHUNK_SIZE CHUNK_SIZE*8
+
 // The lower bound size of a single chunk in bytes (one integer per docID, frequency, and position).
 // This is because all our coding methods use at least one word per integer encoded.
 #define MIN_COMPRESSED_CHUNK_SIZE (3 * sizeof(uint32_t))
