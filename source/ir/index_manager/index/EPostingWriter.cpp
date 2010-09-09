@@ -85,6 +85,15 @@ void BlockPostingWriter::add(docid_t docid, loc_t location)
     if(docid == nLastDocID_)
     {
 	///see it before,only position is needed
+	if(position_buffer_pointer_ == curr_position_buffer_size_ - 1)
+	{
+	    uint32_t new_position_buffer_size = curr_position_buffer_size_<<1;
+	    uint32_t* new_positions = new uint32_t[new_position_buffer_size];
+           memcpy(new_positions,positions_,curr_position_buffer_size_ * sizeof(uint32_t));
+           delete[] positions_;
+           positions_ = new_positions;
+           curr_position_buffer_size_ = new_position_buffer_size;
+	}
        positions_[position_buffer_pointer_++] = location;
        nCurTermFreq_++;
     }
