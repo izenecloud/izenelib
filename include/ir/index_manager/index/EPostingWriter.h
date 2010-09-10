@@ -93,6 +93,8 @@ protected:
     count_t nCurTermFreq_;
     count_t nCTF_;			///Collection's total term frequency
     docid_t nLastDocID_;	///current added doc id
+
+    uint32_t current_block_id_;
 };
 
 
