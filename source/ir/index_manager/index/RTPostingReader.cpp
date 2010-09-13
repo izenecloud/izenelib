@@ -353,6 +353,8 @@ RTDiskPostingReader::RTDiskPostingReader(int skipInterval, int maxSkipLevel,
 
 RTDiskPostingReader::~RTDiskPostingReader()
 {
+    delete pInputDescriptor_;
+
     if(pSkipListReader_)
     {
         delete pSkipListReader_;

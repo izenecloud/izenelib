@@ -21,7 +21,7 @@ namespace indexmanager{
 class FixedBlockSkipListReader
 {
 public:
-    FixedBlockSkipListReader(IndexInput* pSkipInput);
+    FixedBlockSkipListReader(IndexInput* pSkipInput, size_t startBlock);
 
     virtual ~FixedBlockSkipListReader();
 
@@ -31,6 +31,8 @@ public:
     bool nextSkip(docid_t docID);
 
     docid_t getDoc() { return lastDoc_;}
+
+	size_t getBlockId() { return currBlockId_;}
 
     fileoffset_t getOffset() { return lastOffset_; }
 	
@@ -43,6 +45,7 @@ private:
 
 private:
     IndexInput* skipStream_;
+	size_t currBlockId_;
 
     int totalSkipped_;
 

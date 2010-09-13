@@ -126,11 +126,6 @@ RTDiskTermIterator::~RTDiskTermIterator()
         delete pCurTermPosting_;
         pCurTermPosting_ = NULL;
     }
-    if (pInputDescriptor_)
-    {
-        delete pInputDescriptor_;
-        pInputDescriptor_ = NULL;
-    }
     if(pCurTermInfo_)
     {
         delete pCurTermInfo_;

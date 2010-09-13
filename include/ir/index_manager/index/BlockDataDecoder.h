@@ -125,6 +125,15 @@ public:
     static const int kChunkSize = CHUNK_SIZE;
 
 private:
+	void post_process_chunk(uint32_t* block, int size)
+	{
+	    for(int i=1; i<size; ++i)
+	    {
+	        block[i] = block[i] + block[i-1] + 1;
+	    }
+	}	
+
+private:
     int num_docs_;  // The number of documents in this chunk.
 
     // These buffers are used for decompression of chunks.

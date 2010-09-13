@@ -4,7 +4,9 @@
 #include <util/profiler/ProfilerGroup.h>
 //#define SF1_TIME_CHECK
 
-using namespace izenelib::ir::indexmanager;
+NS_IZENELIB_IR_BEGIN
+
+namespace indexmanager{
 
 TermPositions::TermPositions()
         :pPPostingBuffer_(NULL)
@@ -20,40 +22,8 @@ TermPositions::TermPositions()
         ,nLastPosting_(-1)
 {}
 
-TermPositions::TermPositions(TermReader* pReader,InputDescriptor* pInputDescriptor,
-                          const TermInfo& ti,int skipInterval, int maxSkipLevel)
-        :TermDocFreqs(pReader,pInputDescriptor,ti,skipInterval,maxSkipLevel)
-        ,pPPostingBuffer_(NULL)
-        ,nPBufferSize_(0)
-        ,nTotalDecodedPCountWithinDoc_(0)
-        ,nCurDecodedPCountWithinDoc_(0)
-        ,nCurrentPPostingWithinDoc_(0)
-        ,nTotalDecodedPCount_(0)
-        ,nCurrentPPosting_(0)
-        ,nLastUnDecodedPCount_(0)
-        ,pPPostingBufferWithinDoc_(NULL)
-        ,nPPostingCountWithinDoc_(0)
-        ,nLastPosting_(-1)
-{}
-
-TermPositions::TermPositions(TermReader* pReader,PostingReader* pPosting,const TermInfo& ti)
-        :TermDocFreqs(pReader,pPosting,ti)
-        ,pPPostingBuffer_(NULL)
-        ,nPBufferSize_(0)
-        ,nTotalDecodedPCountWithinDoc_(0)
-        ,nCurDecodedPCountWithinDoc_(0)
-        ,nCurrentPPostingWithinDoc_(0)
-        ,nTotalDecodedPCount_(0)
-        ,nCurrentPPosting_(0)
-        ,nLastUnDecodedPCount_(0)
-        ,pPPostingBufferWithinDoc_(NULL)
-        ,nPPostingCountWithinDoc_(0)
-        ,nLastPosting_(-1)
-        ,bOwnPPostingBuffer_(false)
-{}
-
-TermPositions::TermPositions(PostingReader* pPosting, const TermInfo& ti)
-        :TermDocFreqs(pPosting,ti)
+TermPositions::TermPositions(PostingReader* pPosting,const TermInfo& ti,bool ownPosting)
+        :TermDocFreqs(pPosting,ti,ownPosting)
         ,pPPostingBuffer_(NULL)
         ,nPBufferSize_(0)
         ,nTotalDecodedPCountWithinDoc_(0)
@@ -220,4 +190,8 @@ void TermPositions::createBuffer()
         memset(pPPostingBuffer_, 0, bufSize*sizeof(uint32_t));
     }
 }
+
+}
+
+NS_IZENELIB_IR_END
 

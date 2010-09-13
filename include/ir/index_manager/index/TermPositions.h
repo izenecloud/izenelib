@@ -23,13 +23,9 @@ class TermPositions: public TermDocFreqs
 public:
     TermPositions();
 
-    TermPositions(TermReader* pReader,InputDescriptor* pInputDescriptor,const TermInfo& ti,int skipInterval, int maxSkipLevel);
+    TermPositions(PostingReader* pPosting,const TermInfo& ti,bool ownPosting = true);
 
-    TermPositions(TermReader* pReader,PostingReader* pPosting,const TermInfo& ti);
-
-    TermPositions(PostingReader* pPosting,const TermInfo& ti);
-
-    virtual ~TermPositions(void);
+    virtual ~TermPositions();
 public:
     /**
      * get document id

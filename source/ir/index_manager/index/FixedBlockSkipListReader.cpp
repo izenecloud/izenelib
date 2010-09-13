@@ -4,14 +4,15 @@ NS_IZENELIB_IR_BEGIN
 
 namespace indexmanager{
 
-FixedBlockSkipListReader::FixedBlockSkipListReader(IndexInput* pSkipInput)
-	:totalSkipped_(0)
-       ,skipDoc_(0)
-       ,lastDoc_(0)
-       ,offset_(0)
-       ,lastOffset_(0)
-       ,pOffset_(0)
-       ,lastPOffset_(0)
+FixedBlockSkipListReader::FixedBlockSkipListReader(IndexInput* pSkipInput, size_t startBlock)
+	:currBlockId_(startBlock)
+	,totalSkipped_(0)
+	,skipDoc_(0)
+	,lastDoc_(0)
+	,offset_(0)
+	,lastOffset_(0)
+	,pOffset_(0)
+	,lastPOffset_(0)
 {
     skipStream_ = pSkipInput->clone();
     fileoffset_t length = skipStream_->readVLong();
@@ -61,6 +62,7 @@ bool FixedBlockSkipListReader::loadNextSkip()
     }
 
     /// read next skip entry
+	++currBlockId_;
     skipDoc_ += skipStream_->readVInt();
     totalSkipped_ += skipStream_->readVInt();
     offset_ += skipStream_->readVLong();

@@ -144,7 +144,7 @@ private:
     {
         for(int i=size-1; i>0; --i)
         {
-	    chunk[i] = chunk[i] - chunk[i-1] - 1; 
+            chunk[i] = chunk[i] - chunk[i-1] - 1; 
         }
     }
 

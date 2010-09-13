@@ -231,7 +231,14 @@ TermDocFreqs* VocReader::termDocFreqs()
 {
     if (pCurTermInfo_ == NULL || pTermReaderImpl_ == NULL )
         return NULL;
-    TermDocFreqs* pTermDoc = new TermDocFreqs(this,pInputDescriptor_->clone(),*pCurTermInfo_,skipInterval_,maxSkipLevel_);
+    RTDiskPostingReader* pPosting = 
+        new RTDiskPostingReader(skipInterval_, maxSkipLevel_, pTermReaderImpl_->pInputDescriptor_->clone(DOCUMENT_LEVEL),*pCurTermInfo_);
+    if(getDocFilter())
+        pPosting->setFilter(getDocFilter());
+
+    TermDocFreqs* pTermDoc = 
+      new TermDocFreqs(pPosting,*pCurTermInfo_);
+	
     return pTermDoc;
 }
 
@@ -239,7 +246,14 @@ TermPositions* VocReader::termPositions()
 {
     if (pCurTermInfo_ == NULL || pTermReaderImpl_ == NULL )
         return NULL;
-    TermPositions* pTermPos = new TermPositions(this,pInputDescriptor_->clone(),*pCurTermInfo_,skipInterval_,maxSkipLevel_);	
+
+    RTDiskPostingReader* pPosting = 
+        new RTDiskPostingReader(skipInterval_, maxSkipLevel_, pTermReaderImpl_->pInputDescriptor_->clone(DOCUMENT_LEVEL),*pCurTermInfo_);
+    if(getDocFilter())
+        pPosting->setFilter(getDocFilter());
+
+    TermPositions* pTermPos = 
+      new TermPositions(pPosting,*pCurTermInfo_);
     return pTermPos;
 }
 
@@ -574,8 +588,13 @@ TermDocFreqs* RTDiskTermReader::termDocFreqs()
 {
     if (pCurTermInfo_ == NULL || pTermReaderImpl_ == NULL )
         return NULL;
+    RTDiskPostingReader* pPosting = 
+        new RTDiskPostingReader(skipInterval_, maxSkipLevel_, pTermReaderImpl_->pInputDescriptor_->clone(DOCUMENT_LEVEL),*pCurTermInfo_);
+    if(getDocFilter())
+        pPosting->setFilter(getDocFilter());
+	
     TermDocFreqs* pTermDoc = 
-        new TermDocFreqs(this,pTermReaderImpl_->pInputDescriptor_->clone(DOCUMENT_LEVEL),*pCurTermInfo_,skipInterval_,maxSkipLevel_);
+        new TermDocFreqs(pPosting,*pCurTermInfo_);
     return pTermDoc;
 }
 
@@ -583,8 +602,14 @@ TermPositions* RTDiskTermReader::termPositions()
 {
     if (pCurTermInfo_ == NULL || pTermReaderImpl_ == NULL )
         return NULL;
+
+    RTDiskPostingReader* pPosting = 
+        new RTDiskPostingReader(skipInterval_, maxSkipLevel_, pTermReaderImpl_->pInputDescriptor_->clone(DOCUMENT_LEVEL),*pCurTermInfo_);
+    if(getDocFilter())
+        pPosting->setFilter(getDocFilter());
+
     TermPositions* pTermPos = 
-      new TermPositions(this,pTermReaderImpl_->pInputDescriptor_->clone(),*pCurTermInfo_,skipInterval_,maxSkipLevel_);
+      new TermPositions(pPosting,*pCurTermInfo_);
     return pTermPos;
 }
 
@@ -666,7 +691,10 @@ TermDocFreqs* MemTermReader::termDocFreqs()
 
     //InMemoryPosting* pInMem = (InMemoryPosting*)pCurPosting_;
     //pInMem->flushLastDoc(false);
-    TermDocFreqs* pTermDocs = new TermDocFreqs(this,pCurPosting_->createPostingReader(),*pCurTermInfo_);
+    PostingReader* pPosting = pCurPosting_->createPostingReader();
+    if(getDocFilter())
+        pPosting->setFilter(getDocFilter());
+    TermDocFreqs* pTermDocs = new TermDocFreqs(pPosting,*pCurTermInfo_);
     pTermDocs->setSkipInterval(skipInterval_);
     pTermDocs->setMaxSkipLevel(maxSkipLevel_);
     return pTermDocs;
@@ -680,7 +708,10 @@ TermPositions* MemTermReader::termPositions()
         return NULL;
     //InMemoryPosting* pInMem = (InMemoryPosting*)pCurPosting_;
     //pInMem->flushLastDoc(false);
-    TermPositions* pPositions = new TermPositions(this,pCurPosting_->createPostingReader(),*pCurTermInfo_);
+    PostingReader* pPosting = pCurPosting_->createPostingReader();
+    if(getDocFilter())
+        pPosting->setFilter(getDocFilter());
+    TermPositions* pPositions = new TermPositions(pPosting,*pCurTermInfo_);
     pPositions->setSkipInterval(skipInterval_);
     pPositions->setMaxSkipLevel(maxSkipLevel_);
     return pPositions;

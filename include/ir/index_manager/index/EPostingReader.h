@@ -126,6 +126,7 @@ public:
 protected:
     void advanceToNextBlock();
 
+	void skipToBlock(size_t targetBlock) ;
 protected:
     BlockDecoder blockDecoder_;
     BitVector* pDocFilter_;
@@ -133,6 +134,7 @@ protected:
     FixedBlockSkipListReader* pSkipListReader_; ///skiplist reader
     ListingCache* pListingCache_;
 
+	size_t start_block_id_;
     size_t curr_block_id_;
     size_t total_block_num_;
     size_t last_block_id_;
@@ -144,7 +146,14 @@ protected:
     fileoffset_t poffset_; ///offset of the position postings in the .pop file
     int64_t plength_;
     docid_t last_doc_id_;
+	count_t num_docs_left_;
+	count_t num_docs_decoded_;
+	loc_t last_pos_decoded_; 		///the latest decoded position posting
+    int32_t num_pos_decoded_;		///decoded position posting count
+	int32_t num_pos_skipped_;
 
+	docid_t prev_block_last_doc_id_;
+	
     uint32_t* urgentBuffer_;
     friend class PostingMerger;
 };

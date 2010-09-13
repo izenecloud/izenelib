@@ -243,7 +243,7 @@ void FieldMerger::sortingMerge(FieldMergeInfo** ppMergeInfos,int32_t numInfos,Te
     {
         TermPositions* pPosition = new TermPositions(
                                                 ppMergeInfos[i]->pIterator_->termPosting(),
-                                                *(ppMergeInfos[i]->pIterator_->termInfo()));
+                                                *(ppMergeInfos[i]->pIterator_->termInfo()),false);
 
         pPosition->setSkipInterval(skipInterval_);
         pPosition->setMaxSkipLevel(maxSkipLevel_);

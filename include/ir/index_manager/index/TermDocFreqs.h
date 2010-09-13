@@ -27,11 +27,7 @@ class TermDocFreqs
 public:
     TermDocFreqs();
 
-    TermDocFreqs(TermReader * pReader,InputDescriptor * pInputDescriptor,const TermInfo& ti,int skipInterval, int maxSkipLevel);
-
-    TermDocFreqs(TermReader * pReader,PostingReader * pPosting,const TermInfo& ti);
-
-    TermDocFreqs(PostingReader* pPosting, const TermInfo& ti);
+    TermDocFreqs(PostingReader * pPosting,const TermInfo& ti,bool ownPosting = true);
 
     virtual ~TermDocFreqs();
 public:
@@ -77,10 +73,6 @@ protected:
     int32_t nCurDecodedCount_;
 
     int32_t nCurrentPosting_;	///position of current posting
-
-    TermReader* pTermReader_;
-
-    InputDescriptor* pInputDescriptor_;
 
     bool ownPosting_;
 
