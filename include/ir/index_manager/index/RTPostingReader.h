@@ -84,6 +84,15 @@ public:
     int32_t decodeNext(uint32_t* pPosting,int32_t length);
 
     /**
+     * Get the posting data. 
+     * @param pPosing the address to store posting data
+     * @param the length of pPosting,also tell us the length of actually decoded data
+     * @param pPPosing the address to store position posting data
+     * @return decoded posting count
+     */
+     int32_t decodeNext(uint32_t* pPosting,int32_t length, uint32_t* &pPPosting, int32_t& pLength);
+
+    /**
      * Get the position posting data
      * @param pPosing the address to store posting data
      * @param the length of pPosting
@@ -171,7 +180,14 @@ public:
      * @return decoded posting count
      */
     int32_t decodeNext(uint32_t* pPosting,int32_t length);
-
+    /**
+     * Get the posting data. 
+     * @param pPosing the address to store posting data
+     * @param the length of pPosting,also tell us the length of actually decoded data
+     * @param pPPosing the address to store position posting data
+     * @return decoded posting count
+     */
+    int32_t decodeNext(uint32_t* pPosting,int32_t length, uint32_t* &pPPosting, int32_t& pLength);
     /**
      * Get the position posting data
     	 * @param pPosing the address to store posting data
@@ -273,6 +289,9 @@ public:
     }
 
 protected:
+    void skipPositions();	
+
+protected:
     int skipInterval_;
     int maxSkipLevel_;
     PostingDescriptor postingDesc_;
@@ -286,7 +305,6 @@ protected:
 
     friend class PostingMerger;
 };
-
 
 }
 

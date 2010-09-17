@@ -14,17 +14,18 @@
 #include <ir/index_manager/index/CompressParameters.h>
 #include <ir/index_manager/store/IndexOutput.h>
 #include <ir/index_manager/store/IndexInput.h>
+#include <ir/index_manager/utility/BitVector.h>
 
 NS_IZENELIB_IR_BEGIN
 
 namespace indexmanager
 {
 
-/**************************************************************************************************************************************************************
+/*********************************************************************************************************
  * ChunkDecoder
  *
  * Responsible for decoding the data contained within a chunk and maintains some state during list traversal.
- **************************************************************************************************************************************************************/
+ *********************************************************************************************************/
 class ChunkDecoder
 {
 public:
@@ -34,13 +35,15 @@ public:
 
     void decodeDocIds();
 
-    int decodeFrequencies(const uint32_t* compressed_frequencies);
+    void decodeFrequencies();
 
     int decodePositions(const uint32_t* compressed_positions);
 
-    // Update the offset of the properties for the current document.
-    // Requires 'frequencies_' to have been already decoded.
-    void UpdatePropertiesOffset();
+    void set_doc_freq_buffer(uint32_t* doc_buffer, uint32_t* freq_buffer);
+	
+    void set_pos_buffer(uint32_t* pos_buffer);
+
+    void updatePositionOffset();
 
     uint32_t doc_id(int doc_id_idx) const
     {
@@ -66,8 +69,6 @@ public:
     }
 
     // Set the offset into the 'doc_ids_' and 'frequencies_' arrays.
-    // This allows us to quickly get to the frequency information for the current
-    // document being processed as well as speed up finding the next document to process in this chunk.
     void set_curr_document_offset(int doc_offset)
     {
         assert(doc_offset >= 0 && doc_offset >= curr_document_offset_);
@@ -80,10 +81,15 @@ public:
         return num_docs_;
     }
 
-    // Returns true when the document properties have been decoded.
-    bool decoded_properties() const
+    int size_of_positions()
     {
-        return decoded_properties_;
+        num_positions_ = 0;
+        // Count the number of positions we have in total by summing up all the frequencies.
+        for (int i = 0; i < num_docs_; ++i)
+        {
+            num_positions_ += frequencies_[i];
+        }
+        return num_positions_;
     }
 
     int curr_document_offset() const
@@ -106,9 +112,9 @@ public:
         prev_decoded_doc_id_ = decoded_doc_id;
     }
 
-    void update_prev_decoded_doc_id(uint32_t doc_id_offset)
+    void update_prev_decoded_doc_id(uint32_t doc_id_gap)
     {
-        prev_decoded_doc_id_ += doc_id_offset;
+        prev_decoded_doc_id_ += doc_id_gap;
     }
 
     bool decoded() const
@@ -119,26 +125,32 @@ public:
     void set_decoded(bool decoded)
     {
         decoded_ = decoded;
+        if(!decoded) doc_deleted_ = false;
     }
 
-    // The maximum number of documents that can be contained within a chunk.
-    static const int kChunkSize = CHUNK_SIZE;
+    bool has_deleted_doc() const
+    {
+        return doc_deleted_;
+    }
+	
+    /// deal with deleted documents
+    void post_process(BitVector* pDocFilter);
 
 private:
-	void post_process_chunk(uint32_t* block, int size)
-	{
-	    for(int i=1; i<size; ++i)
-	    {
-	        block[i] = block[i] + block[i-1] + 1;
-	    }
-	}	
+    void post_process_chunk(uint32_t* block, int size)
+    {
+        for(int i=1; i<size; ++i)
+        {
+            block[i] = block[i] + block[i-1] + prev_decoded_doc_id_;
+        }
+    }	
 
 private:
     int num_docs_;  // The number of documents in this chunk.
 
     // These buffers are used for decompression of chunks.
-    uint32_t doc_ids_[UncompressedOutBufferUpperbound(kChunkSize)];
-    uint32_t frequencies_[UncompressedOutBufferUpperbound(kChunkSize)];
+    uint32_t* doc_ids_;
+    uint32_t* frequencies_;
     uint32_t* positions_;
     // but rather during query processing, if necessary at all.
 
@@ -148,12 +160,13 @@ private:
     uint32_t prev_decoded_doc_id_;  // The previously decoded doc id. This is used during query processing when decoding docID gaps.
 
     int num_positions_;             // Total number of decoded positions in this list.
-    bool decoded_properties_;       // True when we have decoded the document properties (that is, frequencies, positions, etc).
     // Necessary because we don't want to decode the frequencies/contexts/positions until we're certain we actually need them.
 
     const uint32_t* curr_buffer_position_;  // Pointer to the raw data of stuff we have to decode next.
 
     bool decoded_;  // True when we have decoded the docIDs.
+
+    bool doc_deleted_; // True if there are docIDs that are deleted
 
     // Decompressors for various portions of the chunk.
     DocIDCompressor doc_id_decompressor_;
@@ -171,11 +184,8 @@ class BlockDecoder
 public:
     BlockDecoder();
 
-    void init(uint64_t block_num, int starting_chunk, uint32_t* block_data);
+    void init(uint64_t block_num, uint32_t* block_data);
 
-    // Decompresses the block header starting at the 'compressed_header' location in memory.
-    // The last docIDs and sizes of chunks will be stored internally in this class after decoding,
-    // and the memory freed during destruction.
     int decodeHeader(uint32_t* compressed_header);
 
     // Returns the last fully decoded docID of the ('chunk_idx'+1)th chunk in the block.
@@ -207,28 +217,15 @@ public:
     }
 
     // Returns the total number of chunks in this block.
-    // This includes any chunks that are not part of the inverted list for this particular term.
     int num_chunks() const
     {
         return num_chunks_;
-    }
-
-    // Returns the actual number of chunks stored in this block, that are actually part of the inverted list for this particular term.
-    int num_actual_chunks() const
-    {
-        return num_chunks_ - starting_chunk_;
     }
 
     // Returns a pointer to the start of the next raw chunk that needs to be decoded.
     const uint32_t* curr_block_data() const
     {
         return curr_block_data_;
-    }
-
-    // The index of the starting chunk in this block for the inverted list for this particular term.
-    int starting_chunk() const
-    {
-        return starting_chunk_;
     }
 
     // Returns the index of the current chunk being traversed.
@@ -244,26 +241,16 @@ public:
         ++curr_chunk_;
     }
 
-    static const int kBlockSize = BLOCK_SIZE;
-
 private:
-    static const int kChunkSizeLowerBound = MIN_COMPRESSED_CHUNK_SIZE;
+    //decompressed block header
+    uint32_t chunk_properties_[BLOCK_HEADER_DECOMPRESSED_UPPERBOUND];
 
-    // The upper bound on the number of chunk properties in a single block (with upperbounds for proper decompression by various coding policies),
-    // calculated by getting the max number of chunks in a block and multiplying by 2 properties per chunk.
-    static const int kChunkPropertiesDecompressedUpperbound = UncompressedOutBufferUpperbound(2 * (kBlockSize / kChunkSizeLowerBound));
-
-    // For each chunk in the block corresponding to this current BlockDecoder, holds the last docIDs and sizes,
-    // where the size is in words, and a word is sizeof(uint32_t). The last docID is always followed by the size, for every chunk, in this order.
-    uint32_t chunk_properties_[kChunkPropertiesDecompressedUpperbound];  // This will require ~11KiB of memory. Alternative is to make dynamic allocations and resize if necessary.
-
-    uint64_t curr_block_num_;                             // The current block number.
-    int num_chunks_;                                      // The total number of chunks this block holds, regardless of which list it is.
-    int starting_chunk_;                                  // The chunk number of the first chunk in the block of the associated list.
-    int curr_chunk_;                                      // The current actual chunk number we're up to within a block.
-    uint32_t* curr_block_data_;                           // Points to the start of the next chunk to be decoded.
-    ChunkDecoder curr_chunk_decoder_;                     // Decoder for the current chunk we're processing.
-    BlockHeadCompressor block_header_decompressor_;       // Decompressor for the block header.
+    uint64_t curr_block_num_; // The current block number.
+    int num_chunks_; // The total number of chunks this block holds, regardless of which list it is.
+    int curr_chunk_; // The current actual chunk number we're up to within a block.
+    uint32_t* curr_block_data_; // Points to the start of the next chunk to be decoded.
+    ChunkDecoder curr_chunk_decoder_; // Decoder for the current chunk we're processing.
+    BlockHeadCompressor block_header_decompressor_; // Decompressor for the block header.
 };
 
 

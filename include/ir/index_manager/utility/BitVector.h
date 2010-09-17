@@ -147,6 +147,17 @@ public:
         return false;
     }
 
+    bool hasBetween(size_t start, size_t end) const
+    {
+        size_t nStartBlk = start >> 3;
+        size_t nEndBlk = end >> 3;
+        for (size_t i = nStartBlk; i <= nEndBlk; ++i)
+            if (bits_[i])
+                return true;
+
+        return false;
+    }
+
     size_t getMaxSet()
     {
         size_t i;

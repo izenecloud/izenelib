@@ -69,7 +69,9 @@ public:
     * iterate to next block of positions
     */
     virtual int32_t nextPositions(loc_t*& positions);
-private:
+protected:
+    virtual bool decode();
+
     /** decode positions */
     inline bool decodePositions();
 
@@ -80,33 +82,31 @@ private:
     void createBuffer();
 
     void resetDecodingState();
-	
+
 private:
     uint32_t* pPPostingBuffer_;				///buffer for position posting
 
-    size_t nPBufferSize_;					///size of buffer
+    int32_t nPBufferSize_;					///size of buffer
 
-    int32_t nTotalDecodedPCountWithinDoc_;
+    int32_t nTotalDecodedPCountWithinDoc_;   ///number of decoded positions for one doc
 
     int32_t nCurDecodedPCountWithinDoc_;
 
     int32_t nCurrentPPostingWithinDoc_;
 
-    size_t nTotalDecodedPCount_;
+    int32_t nTotalDecodedPCount_;
 
-    size_t nCurrentPPosting_;
+    int32_t nCurrentPPosting_;
 
     int32_t nLastUnDecodedPCount_;
 
     uint32_t* pPPostingBufferWithinDoc_;
 
-    int32_t nPPostingCountWithinDoc_;		///total position posting count
+    int32_t nPPostingCountWithinDoc_;		///total position posting count   TF
 
     int32_t nLastPosting_;
 
-    bool bOwnPPostingBuffer_;			///we own the buffer or not
-
-    static const size_t DEFAULT_BUFFERSIZE = 163840;
+    static const int32_t DEFAULT_BUFFERSIZE = 163840;
 };
 
 //////////////////////////////////////////////////////////////////////////
@@ -116,7 +116,7 @@ inline void TermPositions::skipPositions(int32_t nSkips)
     if (nSkips <= 0)
         return;
 
-    if ((size_t)nSkips <= (nTotalDecodedPCount_ - nCurrentPPosting_))
+    if (nSkips <= (nTotalDecodedPCount_ - nCurrentPPosting_))
         nCurrentPPosting_ += nSkips;
     else
     {
@@ -135,19 +135,22 @@ inline bool TermPositions::decodePositions()
     }
     if (!pPPostingBuffer_)
         createBuffer();
-    if ((size_t)nCurrentPPosting_ >= nTotalDecodedPCount_)///decode position posting to buffer
+    if (nCurrentPPosting_ >= nTotalDecodedPCount_)
     {
+        ///decode position posting to buffer
         uint32_t* pPPostingBuffer = pPPostingBuffer_;
         bool bEnd = false;
         if (nLastPosting_ == -1)
             nLastPosting_ = nCurrentPosting_;
         nTotalDecodedPCount_ = 0;
+
         if (nLastUnDecodedPCount_ > 0)
         {
-            if ((size_t)nLastUnDecodedPCount_ > nPBufferSize_)
+            ///there are still some positions of current document have not decoded
+            if (nLastUnDecodedPCount_ > nPBufferSize_)
             {
                 nTotalDecodedPCount_ = nPBufferSize_;
-                nLastUnDecodedPCount_ -= (int32_t)nPBufferSize_;
+                nLastUnDecodedPCount_ -= nPBufferSize_;
                 bEnd = true;
             }
             else
@@ -156,7 +159,7 @@ inline bool TermPositions::decodePositions()
                 nLastUnDecodedPCount_ = 0;
                 nLastPosting_++;
             }
-            bool ret = pPosting_->decodeNextPositions(pPPostingBuffer,(int32_t)nTotalDecodedPCount_);
+            bool ret = pPosting_->decodeNextPositions(pPPostingBuffer,nTotalDecodedPCount_);
             if(!ret) return false;
             pPPostingBuffer += nTotalDecodedPCount_;
             if (nLastUnDecodedPCount_ == 0)
@@ -165,7 +168,7 @@ inline bool TermPositions::decodePositions()
         if (!bEnd)
         {
             int32_t nFreqs;
-            for (nFreqs = nLastPosting_; nFreqs < nCurDecodedCount_;nFreqs++)
+            for (nFreqs = nLastPosting_; nFreqs < nCurDecodedCount_; nFreqs++)
             {
                 nTotalDecodedPCount_ += pPostingBuffer_[nFreqStart_ + nFreqs];
                 if (nTotalDecodedPCount_ > nPBufferSize_)
@@ -183,9 +186,9 @@ inline bool TermPositions::decodePositions()
             else if (nTotalDecodedPCount_ == 0)
             {
                 nTotalDecodedPCount_ = nPBufferSize_;
-                bool ret = pPosting_->decodeNextPositions(pPPostingBuffer,(int32_t)nTotalDecodedPCount_);
+                bool ret = pPosting_->decodeNextPositions(pPPostingBuffer,nTotalDecodedPCount_);
                 if(!ret) return false;
-                nLastUnDecodedPCount_ = pPostingBuffer_[nFreqStart_ + nLastPosting_] - (int32_t)nTotalDecodedPCount_;
+                nLastUnDecodedPCount_ = pPostingBuffer_[nFreqStart_ + nLastPosting_] - nTotalDecodedPCount_;
             }
         }
         nCurrentPPosting_ = 0;
@@ -196,7 +199,7 @@ inline bool TermPositions::decodePositions()
     nCurrentPPostingWithinDoc_ = 0;
 
     int32_t nNeedDecode = nPPostingCountWithinDoc_ - nTotalDecodedPCountWithinDoc_;
-    if ((size_t)nNeedDecode > (nTotalDecodedPCount_ - nCurrentPPosting_))
+    if (nNeedDecode > (nTotalDecodedPCount_ - nCurrentPPosting_))
         nNeedDecode = (int32_t)(nTotalDecodedPCount_ - nCurrentPPosting_);
 
     nCurDecodedPCountWithinDoc_ = nNeedDecode;

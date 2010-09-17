@@ -14,8 +14,7 @@ namespace indexmanager{
 #define INIT_POS_CHUNK_SIZE CHUNK_SIZE*8
 
 // The lower bound size of a single chunk in bytes (one integer per docID, frequency, and position).
-// This is because all our coding methods use at least one word per integer encoded.
-#define MIN_COMPRESSED_CHUNK_SIZE (3 * sizeof(uint32_t))
+#define MIN_COMPRESSED_CHUNK_SIZE (2 * sizeof(uint32_t))
 
 // Determines the size of the input buffer that will be compressed.
 // It needs to be a multiple of the block size for when we use blockwise codings, because we need to pad the input buffer with 0s until the block size.
@@ -31,6 +30,7 @@ namespace indexmanager{
 // to ensure there is ample room for decompression. Here, we just use 32 instead of 28 for convenience.
 #define UncompressedOutBufferUpperbound(buffer_size) ((((buffer_size) >> 5) + 2) << 5)
 
+#define BLOCK_HEADER_DECOMPRESSED_UPPERBOUND UncompressedOutBufferUpperbound(2*(BLOCK_SIZE/MIN_COMPRESSED_CHUNK_SIZE))
 // Determines size of output buffer for compression.
 // Here we just double it, but it could really be a tighter bound.
 #define CompressedOutBufferUpperbound(buffer_size) ((buffer_size) << 1)

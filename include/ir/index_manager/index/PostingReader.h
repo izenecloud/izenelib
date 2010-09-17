@@ -21,6 +21,8 @@ public:
 
     virtual int32_t decodeNext(uint32_t* pPosting,int32_t length) = 0;
 
+    virtual int32_t decodeNext(uint32_t* pPosting,int32_t length, uint32_t* &pPPosting, int32_t& pLength) = 0;
+
     virtual bool decodeNextPositions(uint32_t* pPosting,int32_t length) = 0;
 
     virtual bool decodeNextPositions(uint32_t* pPosting,uint32_t* pFreqs,int32_t nFreqs) = 0;
@@ -36,6 +38,14 @@ public:
     virtual count_t getCurTF()const = 0;
 
     virtual void setFilter(BitVector* pFilter) = 0;
+
+protected:
+    void growPosBuffer(uint32_t* &pPPosting, int32_t& pLength)
+    {
+        pLength = pLength < 1;
+        pPPosting = (uint32_t*)realloc(pPPosting, pLength * sizeof(uint32_t));
+    }
+
 };
 
 }
