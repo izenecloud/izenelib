@@ -454,16 +454,36 @@ void ChunkPostingReader::reset(const TermInfo& termInfo)
 
 docid_t ChunkPostingReader::decodeTo(docid_t target)
 {
+    docid_t lastDocID = 0;
     if(pSkipListReader_)
     {
-        docid_t lastDocID = pSkipListReader_->skipTo(target);
+        lastDocID = pSkipListReader_->skipTo(target);
         if(lastDocID > last_doc_id_)
         {
             seekTo(pSkipListReader_);
         }
     }
 
-    return BAD_DOCID;
+    IndexInput* pDPostingInput = pInputDescriptor_->getDPostingInput();
+
+    if(! chunkDecoder_.decoded())
+    {
+	int doc_size = pDPostingInput->readVInt();
+	pDPostingInput->readBytes((uint8_t*)compressedBuffer_,doc_size*sizeof(uint32_t));
+	int tf_size = pDPostingInput->readVInt();
+	pDPostingInput->readBytes((uint8_t*)compressedBuffer_ + doc_size, tf_size*sizeof(uint32_t));
+	chunkDecoder_.reset(compressedBuffer_, std::min(CHUNK_SIZE, (int)num_docs_left_));
+	chunkDecoder_.set_doc_freq_buffer(NULL,NULL);
+	chunkDecoder_.update_prev_decoded_doc_id(lastDocID);
+	chunkDecoder_.decodeDocIds();
+	chunkDecoder_.decodeFrequencies();
+
+	if(!pDocFilter_) chunkDecoder_.post_process(pDocFilter_);
+    }
+
+    docid_t nDocID = chunkDecoder_.move_to(target);
+
+    return ( nDocID >= target )? nDocID : -1;
 }
 
 void ChunkPostingReader::seekTo(SkipListReader* pSkipListReader)
@@ -491,6 +511,20 @@ int32_t ChunkPostingReader::decodeNext(uint32_t* pPosting,int32_t length)
     if (length > left*2)
         length = left*2;
     left = (length>>1);
+
+    if(chunkDecoder_.decoded() && chunkDecoder_.use_internal_buffer())
+    {
+        ///process skip to within one chunk
+        int start = chunkDecoder_.curr_document_offset();
+        int end = chunkDecoder_.num_docs();
+        for(int i = start; i < end; ++i)
+        {
+            *pDoc++ = chunkDecoder_.doc_id(i);
+            *pFreq++ = chunkDecoder_.frequencies(i);
+        }
+        left -= (end - start);
+    }
+
 
     int decodedDoc = 0;
 
@@ -531,14 +565,40 @@ int32_t ChunkPostingReader::decodeNext(uint32_t* pPosting,int32_t length, uint32
         length = left*2;
     left = (length>>1);
 
-    int decodedDoc = 0;
-
     IndexInput* pDPostingInput = pInputDescriptor_->getDPostingInput();
     IndexInput* pPPostingInput = pInputDescriptor_->getPPostingInput();
 
+    int decompressed_pos = 0;
+
+    if(chunkDecoder_.decoded() && chunkDecoder_.use_internal_buffer())
+    {
+        ///process skip to within one chunk
+        int start = chunkDecoder_.curr_document_offset();
+        int end = chunkDecoder_.num_docs();
+        for(int i = start; i < end; ++i)
+        {
+            *pDoc++ = chunkDecoder_.doc_id(i);
+            *pFreq++ = chunkDecoder_.frequencies(i);
+        }
+        left -= (end - start);
+
+        int size_of_positions = chunkDecoder_.size_of_positions();
+        if(pLength < size_of_positions) growPosBuffer(pPPosting, pLength);
+        chunkDecoder_.set_pos_buffer(pPPosting);
+	
+        int size = pPPostingInput->readVInt();
+        ensure_pos_buffer(size);
+        pPPostingInput->readBytes((uint8_t*)compressedPos_,size*sizeof(uint32_t));
+        chunkDecoder_.decodePositions(compressedPos_);
+        chunkDecoder_.updatePositionOffset();
+        decompressed_pos = size_of_positions - chunkDecoder_.curr_position_offset();
+        memmove (pPPosting, chunkDecoder_.current_positions(), decompressed_pos);
+    }
+
+    int decodedDoc = 0;
+
     int doc_size = 0;
     int tf_size = 0;
-    int decompressed_pos = 0;
 
     while(left > 0)
     {

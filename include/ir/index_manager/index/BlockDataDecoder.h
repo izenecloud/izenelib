@@ -50,6 +50,11 @@ public:
         return doc_ids_[doc_id_idx];
     }
 
+    uint32_t frequencies(int doc_id_idx) const
+    {
+        return frequencies_[doc_id_idx];
+    }
+
     void set_doc_id(int doc_id_idx, uint32_t doc_id)
     {
         doc_ids_[doc_id_idx] = doc_id;
@@ -132,7 +137,14 @@ public:
     {
         return doc_deleted_;
     }
-	
+
+    bool use_internal_buffer() const
+    {
+        return use_internal_buffer_;
+    }
+
+    uint32_t move_to(uint32_t target);
+
     /// deal with deleted documents
     void post_process(BitVector* pDocFilter);
 
@@ -168,6 +180,11 @@ private:
 
     bool doc_deleted_; // True if there are docIDs that are deleted
 
+    bool use_internal_buffer_; // doc ids and tf will be decompressed into internal buffer
+
+    uint32_t internal_doc_ids_buffer_[UncompressedOutBufferUpperbound(CHUNK_SIZE)];
+
+    uint32_t internal_frequencies_buffer_[UncompressedOutBufferUpperbound(CHUNK_SIZE)];
     // Decompressors for various portions of the chunk.
     DocIDCompressor doc_id_decompressor_;
     TermFreqCompressor frequency_decompressor_;

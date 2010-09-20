@@ -28,8 +28,18 @@ void ChunkDecoder::reset(const uint32_t* buffer, int num_docs)
 
 void ChunkDecoder::set_doc_freq_buffer(uint32_t* doc_buffer, uint32_t* freq_buffer)
 {
-    doc_ids_ = doc_buffer;
-    frequencies_ = freq_buffer;
+    if(!doc_buffer)
+    {
+        use_internal_buffer_ = true;
+        doc_ids_ = internal_doc_ids_buffer_;
+        frequencies_ = internal_frequencies_buffer_;
+    }
+    else
+    {
+        use_internal_buffer_ = false;
+        doc_ids_ = doc_buffer;
+        frequencies_ = freq_buffer;
+    }
 }
 
 void ChunkDecoder::set_pos_buffer(uint32_t* pos_buffer)
@@ -94,6 +104,15 @@ void ChunkDecoder::updatePositionOffset()
         curr_position_offset_ += frequencies_[i];
     }
     prev_document_offset_ = curr_document_offset_;
+}
+
+uint32_t ChunkDecoder::move_to(uint32_t target)
+{
+    while(doc_ids_[curr_document_offset_] >= target)
+    {
+        ++curr_document_offset_;
+    }
+    return doc_ids_[curr_document_offset_];
 }
 
 /**********************************************************************************************************
