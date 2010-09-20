@@ -32,7 +32,7 @@ public:
 
     docid_t getDoc() { return lastDoc_;}
 
-	size_t getBlockId() { return currBlockId_;}
+    size_t getBlockId() { return currBlockId_;}
 
     fileoffset_t getOffset() { return lastOffset_; }
 	
@@ -45,7 +45,7 @@ private:
 
 private:
     IndexInput* skipStream_;
-	size_t currBlockId_;
+    size_t currBlockId_;
 
     int totalSkipped_;
 
