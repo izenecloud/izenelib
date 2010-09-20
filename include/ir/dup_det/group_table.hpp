@@ -22,6 +22,7 @@ template <
   >
 class GroupTable
 {
+public:
   typedef izenelib::am::IntegerDynArray<uint32_t> Vector32;
   typedef izenelib::am::IntegerDynArray<Vector32*> Vector32Ptr;
   typedef Vector32::size_t size_t;
