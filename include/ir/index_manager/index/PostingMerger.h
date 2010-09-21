@@ -9,6 +9,8 @@
 #define POSTINGMERGER_H
 
 #include <ir/index_manager/index/RTPostingReader.h>
+#include <ir/index_manager/index/EPostingReader.h>
+#include <ir/index_manager/index/EPostingWriter.h>
 #include <ir/index_manager/index/OutputDescriptor.h>
 #include <ir/index_manager/index/InputDescriptor.h>
 #include <ir/index_manager/index/SkipListMerger.h>
@@ -39,6 +41,10 @@ public:
 
     void mergeWith_GC(RTDiskPostingReader* pOnDiskPosting,BitVector* pFilter);
 
+    void mergeWith(BlockPostingReader* pPosting,BitVector* pFilter);
+
+    void mergeWith(ChunkPostingReader* pPosting,BitVector* pFilter);
+
     fileoffset_t endMerge();
 
     void reset();
@@ -46,6 +52,30 @@ public:
 private:
     /** create buffer_ for merging */
     void init();
+
+    void ensure_compressed_pos_buffer(int num_of_pos_within_chunk)
+    {
+        if(compressed_position_buffer_size_ < num_of_pos_within_chunk)
+        {
+            compressed_position_buffer_size_  = num_of_pos_within_chunk;
+            compressedPos_ = (uint32_t*)realloc(compressedPos_, compressed_position_buffer_size_ * sizeof(uint32_t));
+        }
+    }
+
+    void ensure_pos_buffer(int num_of_pos_within_chunk)
+    {
+        if((curr_position_buffer_size_ - position_buffer_pointer_) < num_of_pos_within_chunk)
+        {
+            curr_position_buffer_size_  = num_of_pos_within_chunk + position_buffer_pointer_;
+            positions_ = (uint32_t*)realloc(positions_, curr_position_buffer_size_ * sizeof(uint32_t));
+        }
+    }
+
+    fileoffset_t endMerge_RT();
+
+    fileoffset_t endMerge_E_Block();
+
+    fileoffset_t endMerge_E_Chunk();
 
 private:
     friend class FieldMerger;
@@ -58,7 +88,7 @@ private:
 
     OutputDescriptor* pOutputDescriptor_; ///where merged data store
 
-    string tmpPostingName_; 
+    std::string tmpPostingName_; 
 
     IndexOutput* pTmpPostingOutput_; ///used during merging posting
 
@@ -77,6 +107,41 @@ private:
     SkipListMerger* pSkipListMerger_;
 
     MemCache* pMemCache_; /// memory cache
+
+    FixedBlockSkipListWriter* pFixedSkipListWriter_;
+
+    SkipListWriter* pSkipListWriter_;
+
+    uint32_t* compressedPos_;
+
+    int compressed_position_buffer_size_;
+
+    uint32_t doc_ids_[ChunkEncoder::kChunkSize];
+
+    uint32_t frequencies_[ChunkEncoder::kChunkSize];
+
+    int doc_ids_offset_;
+
+    uint32_t* positions_;
+
+    int curr_position_buffer_size_;
+
+    int position_buffer_pointer_;
+
+    ChunkEncoder chunk_;
+
+    BlockEncoder blockEncoder_;
+
+    ChunkDataPool* pPosDataPool_;
+
+    ChunkDataPool* pDocFreqDataPool_;
+
+    uint8_t* block_buffer_;
+
+    uint32_t current_block_id_;
+
+    uint32_t compressedBuffer_[CHUNK_SIZE*2];
+
 };
 
 }

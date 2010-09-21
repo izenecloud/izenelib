@@ -114,6 +114,7 @@ void BlockPostingReader::advanceToNextBlock()
     else
     {
         if(!urgentBuffer_) urgentBuffer_ = (uint32_t*)new char[BLOCK_SIZE];
+        ++curr_block_id_;
         blockDecoder_.init(curr_block_id_, urgentBuffer_);
     }
 }
@@ -263,7 +264,7 @@ int32_t BlockPostingReader::decodeNext(uint32_t* pPosting,int32_t length)
             blockDecoder_.curr_chunk_decoder()->set_decoded(false);
 
             // Can update the number of documents left to process after processing the complete chunk.
-            num_docs_left_ -= chunk->num_docs();;
+            num_docs_left_ -= chunk->num_docs();
             left -= chunk->num_docs();
             decodedDoc += chunk->num_docs();
         } 

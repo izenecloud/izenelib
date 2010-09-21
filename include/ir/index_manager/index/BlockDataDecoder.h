@@ -73,6 +73,16 @@ public:
         return positions_ + curr_position_offset_;
     }
 
+    const uint32_t* doc_ids() const
+    {
+        return doc_ids_ + curr_document_offset_;
+    }
+
+    const uint32_t* frequencies() const
+    {
+        return frequencies_ + curr_document_offset_;
+    }
+
     // Set the offset into the 'doc_ids_' and 'frequencies_' arrays.
     void set_curr_document_offset(int doc_offset)
     {
@@ -86,8 +96,9 @@ public:
         return num_docs_;
     }
 
-    int size_of_positions()
+    int size_of_positions(bool count = true)
     {
+        if(!count) return num_positions_;
         num_positions_ = 0;
         // Count the number of positions we have in total by summing up all the frequencies.
         for (int i = 0; i < num_docs_; ++i)

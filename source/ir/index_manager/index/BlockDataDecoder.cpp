@@ -24,22 +24,17 @@ void ChunkDecoder::reset(const uint32_t* buffer, int num_docs)
     prev_decoded_doc_id_ = 0;
     curr_buffer_position_ = buffer;
     decoded_ = false;
+
+    use_internal_buffer_ = true;
+    doc_ids_ = internal_doc_ids_buffer_;
+    frequencies_ = internal_frequencies_buffer_;
 }
 
 void ChunkDecoder::set_doc_freq_buffer(uint32_t* doc_buffer, uint32_t* freq_buffer)
 {
-    if(!doc_buffer)
-    {
-        use_internal_buffer_ = true;
-        doc_ids_ = internal_doc_ids_buffer_;
-        frequencies_ = internal_frequencies_buffer_;
-    }
-    else
-    {
-        use_internal_buffer_ = false;
-        doc_ids_ = doc_buffer;
-        frequencies_ = freq_buffer;
-    }
+    use_internal_buffer_ = false;
+    doc_ids_ = doc_buffer;
+    frequencies_ = freq_buffer;
 }
 
 void ChunkDecoder::set_pos_buffer(uint32_t* pos_buffer)
