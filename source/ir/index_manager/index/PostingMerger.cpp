@@ -398,39 +398,40 @@ void PostingMerger::mergeWith(BlockPostingReader* pPosting,BitVector* pFilter)
     uint32_t prev_chunk_last_doc_id = 0;
 
     BlockDecoder& blockDecoder = pPosting->blockDecoder_;
+    ChunkDecoder& chunk = blockDecoder.chunk_decoder_;
+
     while(pPosting->curr_block_id_ <= pPosting->last_block_id_)
     {
         while (blockDecoder.curr_chunk() < blockDecoder.num_chunks()) 
         {
-            ChunkDecoder* chunk = blockDecoder.curr_chunk_decoder();
 
             // Check if we previously decoded this chunk and decode if necessary.
             if (blockDecoder.curr_chunk_decoded() == false) 
             {
                 // Create a new chunk and add it to the block.
                 int chunkSize = std::min(CHUNK_SIZE, num_docs_left);
-                chunk->reset(blockDecoder.curr_block_data(), chunkSize);
-                chunk->update_prev_decoded_doc_id(prev_block_last_doc_id);
-                chunk->decodeDocIds();
-                chunk->decodeFrequencies();
+                chunk.reset(blockDecoder.curr_block_data(), chunkSize);
+                chunk.update_prev_decoded_doc_id(prev_block_last_doc_id);
+                chunk.decodeDocIds();
+                chunk.decodeFrequencies();
 
 
-                size_of_positions = chunk->size_of_positions();
+                size_of_positions = chunk.size_of_positions();
                 ensure_pos_buffer(size_of_positions);
-                chunk->set_pos_buffer(positions_ + position_buffer_pointer_);
+                chunk.set_pos_buffer(positions_ + position_buffer_pointer_);
                 int size = pPInput->readVInt();
                 ensure_compressed_pos_buffer(size);
                 pPInput->readBytes((uint8_t*)compressedPos_,size*sizeof(uint32_t));
-                chunk->decodePositions(compressedPos_);
+                chunk.decodePositions(compressedPos_);
 
-                if(!pFilter) chunk->post_process(pFilter);
+                if(!pFilter) chunk.post_process(pFilter);
 
-                num_docs_left -= chunk->num_docs();
+                num_docs_left -= chunk.num_docs();
                 int copySize = std::min(chunkSize, CHUNK_SIZE - doc_ids_offset_);
-                memcpy(doc_ids_ + doc_ids_offset_, chunk->doc_ids(), copySize);
-                memcpy(frequencies_+ doc_ids_offset_, chunk->frequencies(), copySize);
-                chunk->set_curr_document_offset(copySize);
-                chunk->updatePositionOffset();
+                memcpy(doc_ids_ + doc_ids_offset_, chunk.doc_ids(), copySize);
+                memcpy(frequencies_+ doc_ids_offset_, chunk.frequencies(), copySize);
+                chunk.set_curr_document_offset(copySize);
+                chunk.updatePositionOffset();
 
                 if (doc_ids_offset_ == ChunkEncoder::kChunkSize - 1) 
                 {
@@ -451,19 +452,19 @@ void PostingMerger::mergeWith(BlockPostingReader* pPosting,BitVector* pFilter)
                     }
 
                     doc_ids_offset_ = 0;
-                    copySize = std::min(copySize, chunk->num_docs());
-                    memcpy(doc_ids_ + doc_ids_offset_, chunk->doc_ids(), copySize);
-                    memcpy(frequencies_+ doc_ids_offset_, chunk->frequencies(), copySize);
-                    memmove (positions_, positions_+ position_buffer_pointer_ + chunk->curr_position_offset(), 
-                                                        chunk->size_of_positions(false) - chunk->curr_position_offset());
-                    position_buffer_pointer_ = chunk->size_of_positions(false) - chunk->curr_position_offset();
+                    copySize = std::min(copySize, chunk.num_docs());
+                    memcpy(doc_ids_ + doc_ids_offset_, chunk.doc_ids(), copySize);
+                    memcpy(frequencies_+ doc_ids_offset_, chunk.frequencies(), copySize);
+                    memmove (positions_, positions_+ position_buffer_pointer_ + chunk.curr_position_offset(), 
+                                                        chunk.size_of_positions(false) - chunk.curr_position_offset());
+                    position_buffer_pointer_ = chunk.size_of_positions(false) - chunk.curr_position_offset();
                     doc_ids_offset_ = copySize;
                 }
 
             }
 
             blockDecoder.advance_curr_chunk();
-            blockDecoder.curr_chunk_decoder()->set_decoded(false);
+            chunk.set_decoded(false);
         } 
         prev_block_last_doc_id = blockDecoder.chunk_last_doc_id(blockDecoder.num_chunks() - 1);        
         pPosting->advanceToNextBlock();

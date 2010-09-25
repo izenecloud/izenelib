@@ -130,7 +130,7 @@ void BlockDecoder::init(uint64_t block_num, uint32_t* block_data)
 
     curr_block_data_ += decodeHeader(curr_block_data_);
 
-    curr_chunk_decoder_.set_decoded(false);
+    chunk_decoder_.set_decoded(false);
 }
 
 int BlockDecoder::decodeHeader(uint32_t* compressed_header)

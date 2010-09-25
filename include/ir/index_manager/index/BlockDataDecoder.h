@@ -232,16 +232,10 @@ public:
         return chunk_properties_[idx];
     }
 
-    // Returns a pointer to the current chunk decoder, that is, the one currently being traversed.
-    ChunkDecoder* curr_chunk_decoder()
-    {
-        return &curr_chunk_decoder_;
-    }
-
     // Returns true if the current chunk has been decoded (the docIDs were decoded).
     bool curr_chunk_decoded() const
     {
-        return curr_chunk_decoder_.decoded();
+        return chunk_decoder_.decoded();
     }
 
     // Returns the total number of chunks in this block.
@@ -277,8 +271,10 @@ private:
     int num_chunks_; // The total number of chunks this block holds, regardless of which list it is.
     int curr_chunk_; // The current actual chunk number we're up to within a block.
     uint32_t* curr_block_data_; // Points to the start of the next chunk to be decoded.
-    ChunkDecoder curr_chunk_decoder_; // Decoder for the current chunk we're processing.
+    ChunkDecoder chunk_decoder_; // Decoder for the current chunk we're processing.
     BlockHeadCompressor block_header_decompressor_; // Decompressor for the block header.
+    friend class BlockPostingReader;
+    friend class PostingMerger;
 };
 
 

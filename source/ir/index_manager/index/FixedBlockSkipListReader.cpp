@@ -62,7 +62,7 @@ bool FixedBlockSkipListReader::loadNextSkip()
     }
 
     /// read next skip entry
-	++currBlockId_;
+    ++currBlockId_;
     skipDoc_ += skipStream_->readVInt();
     totalSkipped_ += skipStream_->readVInt();
     offset_ += skipStream_->readVLong();
