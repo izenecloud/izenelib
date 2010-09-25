@@ -34,16 +34,13 @@ public:
     ChunkEncoder()
         :num_docs_(0), size_(0), first_doc_id_(0), last_doc_id_(0), last_doc_id_of_last_chunk_(0)
     {
-        if(!compressed_positions_)
-        {
-            curr_position_buffer_size_ = INIT_POS_CHUNK_SIZE;
-            compressed_positions_ = new uint32_t[curr_position_buffer_size_];
-        }
+        curr_position_buffer_size_ = INIT_POS_CHUNK_SIZE;
+        compressed_positions_ = new uint32_t[curr_position_buffer_size_];
     }
 
     ~ChunkEncoder()
     {
-        if(compressed_positions_) delete [] compressed_positions_;
+        delete [] compressed_positions_;
     }
 
     void encode(uint32_t* doc_ids, uint32_t* frequencies, uint32_t* positions, int num_docs)
@@ -149,7 +146,7 @@ private:
     {
         for(int i=size-1; i>0; --i)
         {
-            chunk[i] = chunk[i] - chunk[i-1] - 1; 
+            chunk[i] = chunk[i] - chunk[i-1]; 
         }
     }
 
@@ -235,6 +232,7 @@ private:
 
     friend class PostingMerger;
     friend class BlockPostingWriter;
+    friend class ChunkPostingWriter;
 
     static int32_t UPTIGHT_ALLOC_MEMSIZE;
  };

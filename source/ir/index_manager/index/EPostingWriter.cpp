@@ -37,12 +37,13 @@ BlockPostingWriter::~BlockPostingWriter()
 
 bool BlockPostingWriter::isEmpty()
 {
-    return nDF_ == 0;
+    return (pPosDataPool_->pTailChunk_==NULL);//nDF_ == 0;
 }
 
 void BlockPostingWriter::write(OutputDescriptor* pOutputDescriptor, TermInfo& termInfo)
 {
     flush();
+    pPosDataPool_->truncTailChunk();
 
     termInfo.docFreq_ = nDF_;
     termInfo.ctf_ = nCTF_;
@@ -111,6 +112,7 @@ void BlockPostingWriter::add(docid_t docid, loc_t location)
 
         if(current_nocomp_block_pointer_ == ChunkEncoder::kChunkSize)
         {
+        cout<<"position_buffer_pointer_ "<<position_buffer_pointer_<<endl;
             chunk_.encode(doc_ids_, frequencies_, positions_, current_nocomp_block_pointer_);
             pPosDataPool_->addPOSChunk(chunk_);
             if(!pBlockDataPool_->addChunk(chunk_))
@@ -147,6 +149,7 @@ void BlockPostingWriter::flush()
         if (nCurTermFreq_ > 0)
             frequencies_[current_nocomp_block_pointer_++] = nCurTermFreq_;        
     
+	cout<<"position_buffer_pointer_ "<<position_buffer_pointer_<<endl;
         chunk_.encode(doc_ids_, frequencies_, positions_, current_nocomp_block_pointer_);
         pPosDataPool_->addPOSChunk(chunk_);
 
@@ -202,12 +205,15 @@ ChunkPostingWriter::~ChunkPostingWriter()
 
 bool ChunkPostingWriter::isEmpty()
 {
-    return nDF_ == 0;
+    return (pPosDataPool_->pTailChunk_==NULL);//nDF_ == 0;
 }
 
 void ChunkPostingWriter::write(OutputDescriptor* pOutputDescriptor, TermInfo& termInfo)
 {
     flush();
+    pDocFreqDataPool_->truncTailChunk();
+    pPosDataPool_->truncTailChunk();
+	
     termInfo.docFreq_ = nDF_;
     termInfo.ctf_ = nCTF_;
     termInfo.lastDocID_ = nLastDocID_;

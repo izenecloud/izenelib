@@ -59,13 +59,15 @@ bool ChunkDataPool::addDFChunk(const ChunkEncoder& chunk)
     {
         add_len_of_len_(len_of_docid_len);
         memcpy(pTailChunk_->data + nPosInCurChunk_, doc_ids, doc_ids_len);
-        nTotalUsed_ += frequencies_len;
+        nTotalUsed_ += doc_ids_len;
+        nPosInCurChunk_ += doc_ids_len;
     }
 
     {
         add_len_of_len_(len_of_freq_len);
         memcpy(pTailChunk_->data + nPosInCurChunk_, frequencies, frequencies_len);
         nTotalUsed_ += frequencies_len;
+        nPosInCurChunk_ += frequencies_len;
     }
     return true;
 }
@@ -98,6 +100,7 @@ bool ChunkDataPool::addPOSChunk(const ChunkEncoder& chunk)
         add_len_of_len_(num_bytes);
         memcpy(pTailChunk_->data + nPosInCurChunk_, positions, num_bytes);
         nTotalUsed_ += num_bytes;
+        nPosInCurChunk_ += num_bytes;
     }
 
     return true;
@@ -141,19 +144,22 @@ bool ChunkDataPool::addChunk(const ChunkEncoder& chunk)
     {
         add_len_of_len_(len_of_docid_len);
         memcpy(pTailChunk_->data + nPosInCurChunk_, doc_ids, doc_ids_len);
-        nTotalUsed_ += frequencies_len;
+        nTotalUsed_ += doc_ids_len;
+        nPosInCurChunk_ += doc_ids_len;
     }
 
     {
         add_len_of_len_(len_of_freq_len);
         memcpy(pTailChunk_->data + nPosInCurChunk_, frequencies, frequencies_len);
         nTotalUsed_ += frequencies_len;
+        nPosInCurChunk_ += frequencies_len;
     }
 
     {
         add_len_of_len_(len_of_pos_len);
         memcpy(pTailChunk_->data + nPosInCurChunk_, positions, positions_len);
         nTotalUsed_ += positions_len;
+        nPosInCurChunk_ += positions_len;
     }
 
     return true;
@@ -176,24 +182,24 @@ void ChunkDataPool::add_chunk_()
     int32_t factor = max(32,(int32_t)(nTotalSize_ + 0.5));
     int32_t chunkSize = (int32_t)Utilities::LOG2_UP(factor);
 
-    uint8_t* begin = pMemCache_->getMem(chunkSize);
+    uint8_t* begin = pMemCache_->getMemByLogSize(chunkSize);
     ///allocate memory failed,decrease chunk size
     if (!begin)
     {
         ///into UPTIGHT state
-        begin = pMemCache_->getMem(chunkSize);
+        begin = pMemCache_->getMemByLogSize(chunkSize);
         ///allocation failed again, grow memory cache.
         if (!begin)
         {
             MemCache* pUrgentMemCache = pMemCache_->grow(UPTIGHT_ALLOC_MEMSIZE);
             size_t urgentChunkSize = min((int32_t)Utilities::LOG2_DOWN(UPTIGHT_ALLOC_MEMSIZE),chunkSize);
   
-            begin  = pUrgentMemCache->getMem(urgentChunkSize);
+            begin  = pUrgentMemCache->getMemByLogSize(urgentChunkSize);
             if (!begin)
             {
-                SF1V5_THROW(ERROR_OUTOFMEM,"InMemoryPosting:newChunk() : Allocate memory failed.");
+                SF1V5_THROW(ERROR_OUTOFMEM,"ChunkDataPool:add_chunk_() : Allocate memory failed.");
             }
-             chunkSize = urgentChunkSize;
+            chunkSize = urgentChunkSize;
         }
     }
 
@@ -216,7 +222,7 @@ void ChunkDataPool::write(IndexOutput* pOutput)
     ChunkData* pChunk = pHeadChunk_;
     while (pChunk)
     {
-        pOutput->write((const char*)pChunk->data, BlockEncoder::kBlockSize);
+        pOutput->write((const char*)pChunk->data, pChunk->size);
         pChunk = pChunk->next;
     }
 }
@@ -459,24 +465,16 @@ void BlockDataPool::write(IndexOutput* pOutput)
 
 void BlockDataPool::addBlock()
 {
-    int32_t chunkSize = (int32_t)Utilities::LOG2_UP(BlockEncoder::kBlockSize);
-
-    uint8_t* begin = pMemCache_->getMem(chunkSize);
+    uint8_t* begin = pMemCache_->getMemByRealSize(BlockEncoder::kBlockSize+sizeof(BlockData*));
     ///allocate memory failed,decrease chunk size
     if (!begin)
     {
-        ///into UPTIGHT state
-        begin = pMemCache_->getMem(chunkSize);
-        ///allocation failed again, grow memory cache.
+        MemCache* pUrgentMemCache = pMemCache_->grow(UPTIGHT_ALLOC_MEMSIZE);
+  
+        begin  = pUrgentMemCache->getMemByRealSize(BlockEncoder::kBlockSize+sizeof(BlockData*));
         if (!begin)
         {
-            MemCache* pUrgentMemCache = pMemCache_->grow(UPTIGHT_ALLOC_MEMSIZE);
-  
-            begin  = pUrgentMemCache->getMem(chunkSize);
-            if (!begin)
-            {
-                SF1V5_THROW(ERROR_OUTOFMEM,"InMemoryPosting:newChunk() : Allocate memory failed.");
-            }
+            SF1V5_THROW(ERROR_OUTOFMEM,"BlockDataPool:addBlock() : Allocate memory failed.");
         }
     }
 
