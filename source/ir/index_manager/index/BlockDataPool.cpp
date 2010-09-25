@@ -459,18 +459,20 @@ void BlockDataPool::write(IndexOutput* pOutput)
 
 void BlockDataPool::addBlock()
 {
-    uint8_t* begin = pMemCache_->getMem(BlockEncoder::kBlockSize);
+    int32_t chunkSize = (int32_t)Utilities::LOG2_UP(BlockEncoder::kBlockSize);
+
+    uint8_t* begin = pMemCache_->getMem(chunkSize);
     ///allocate memory failed,decrease chunk size
     if (!begin)
     {
         ///into UPTIGHT state
-        begin = pMemCache_->getMem(BlockEncoder::kBlockSize);
+        begin = pMemCache_->getMem(chunkSize);
         ///allocation failed again, grow memory cache.
         if (!begin)
         {
             MemCache* pUrgentMemCache = pMemCache_->grow(UPTIGHT_ALLOC_MEMSIZE);
   
-            begin  = pUrgentMemCache->getMem(BlockEncoder::kBlockSize);
+            begin  = pUrgentMemCache->getMem(chunkSize);
             if (!begin)
             {
                 SF1V5_THROW(ERROR_OUTOFMEM,"InMemoryPosting:newChunk() : Allocate memory failed.");

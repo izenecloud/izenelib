@@ -23,7 +23,7 @@ BlockPostingWriter::BlockPostingWriter(MemCache* pCache)
     pPosDataPool_ = new ChunkDataPool(pCache) ;
     pSkipListWriter_ = new FixedBlockSkipListWriter(pCache);
     curr_position_buffer_size_ = INIT_POS_CHUNK_SIZE;
-    positions_  = new uint32_t[curr_position_buffer_size_];
+    positions_ = (uint32_t*)malloc(curr_position_buffer_size_*sizeof(uint32_t));
 }
 
 BlockPostingWriter::~BlockPostingWriter()
@@ -32,7 +32,7 @@ BlockPostingWriter::~BlockPostingWriter()
     delete pBlockDataPool_;
     delete pPosDataPool_;
     delete pSkipListWriter_;
-    delete [] positions_;
+    free(positions_);
 }
 
 bool BlockPostingWriter::isEmpty()
@@ -82,6 +82,7 @@ void BlockPostingWriter::reset()
     pSkipListWriter_->reset();
     current_nocomp_block_pointer_ = 0;
     position_buffer_pointer_ = 0;
+    chunk_.reset();
 
     nCTF_ = 0;
     nCurTermFreq_ = 0;
@@ -96,12 +97,8 @@ void BlockPostingWriter::add(docid_t docid, loc_t location)
 	///see it before,only position is needed
 	if(position_buffer_pointer_ == curr_position_buffer_size_ - 1)
 	{
-	    uint32_t new_position_buffer_size = curr_position_buffer_size_<<1;
-	    uint32_t* new_positions = new uint32_t[new_position_buffer_size];
-           memcpy(new_positions,positions_,curr_position_buffer_size_ * sizeof(uint32_t));
-           delete[] positions_;
-           positions_ = new_positions;
-           curr_position_buffer_size_ = new_position_buffer_size;
+           curr_position_buffer_size_ = curr_position_buffer_size_<<1;
+           positions_ = (uint32_t*)realloc(positions_, curr_position_buffer_size_ * sizeof(uint32_t));
 	}
        positions_[position_buffer_pointer_++] = location;
        nCurTermFreq_++;
@@ -110,18 +107,18 @@ void BlockPostingWriter::add(docid_t docid, loc_t location)
     {
         /// new doc id
         if (nCurTermFreq_ > 0)
-            frequencies_[current_nocomp_block_pointer_] = nCurTermFreq_;        
+            frequencies_[current_nocomp_block_pointer_++] = nCurTermFreq_;        
 
-        if(current_nocomp_block_pointer_ == (ChunkEncoder::kChunkSize - 1))
+        if(current_nocomp_block_pointer_ == ChunkEncoder::kChunkSize)
         {
             chunk_.encode(doc_ids_, frequencies_, positions_, current_nocomp_block_pointer_);
             pPosDataPool_->addPOSChunk(chunk_);
             if(!pBlockDataPool_->addChunk(chunk_))
             {
-                pBlockDataPool_->addBlock();
                 current_block_id_++;
                 pSkipListWriter_->addSkipPoint(nLastDocID_,pBlockDataPool_->num_doc_of_curr_block(),
                                                            pBlockDataPool_->getLength(),pPosDataPool_->getLength());
+                pBlockDataPool_->addBlock();
                 pBlockDataPool_->addChunk(chunk_);
             }
 
@@ -131,7 +128,7 @@ void BlockPostingWriter::add(docid_t docid, loc_t location)
 
         nLastDocID_ = docid;
 
-        doc_ids_[current_nocomp_block_pointer_++] = docid;
+        doc_ids_[current_nocomp_block_pointer_] = docid;
         positions_[position_buffer_pointer_++] = location;
 
         nCTF_ += nCurTermFreq_;
@@ -148,22 +145,22 @@ void BlockPostingWriter::flush()
     if(current_nocomp_block_pointer_ > 0)
     {
         if (nCurTermFreq_ > 0)
-            frequencies_[current_nocomp_block_pointer_] = nCurTermFreq_;        
+            frequencies_[current_nocomp_block_pointer_++] = nCurTermFreq_;        
     
-        chunk_.encode(doc_ids_, frequencies_, positions_, current_nocomp_block_pointer_ + 1);
+        chunk_.encode(doc_ids_, frequencies_, positions_, current_nocomp_block_pointer_);
         pPosDataPool_->addPOSChunk(chunk_);
 
         if(!pBlockDataPool_->addChunk(chunk_))
         {
-            pBlockDataPool_->addBlock();
             current_block_id_++;
             pSkipListWriter_->addSkipPoint(nLastDocID_,pBlockDataPool_->num_doc_of_curr_block(),
                                                         pBlockDataPool_->getLength(),pPosDataPool_->getLength());
+            pBlockDataPool_->addBlock();
             pBlockDataPool_->addChunk(chunk_);			
         }
 
         current_block_id_++;
-        pSkipListWriter_->addSkipPoint(nLastDocID_,current_nocomp_block_pointer_+1, 
+        pSkipListWriter_->addSkipPoint(nLastDocID_,pBlockDataPool_->num_doc_of_curr_block(), 
                                                 pBlockDataPool_->getLength(),pPosDataPool_->getLength());
 
     }
@@ -191,7 +188,7 @@ ChunkPostingWriter::ChunkPostingWriter(MemCache* pCache,int skipInterval, int ma
     pPosDataPool_ = new ChunkDataPool(pCache) ;
     if(skipInterval_)  pSkipListWriter_ = new SkipListWriter(skipInterval,maxSkipLevel,pCache);
     curr_position_buffer_size_ = INIT_POS_CHUNK_SIZE;
-    positions_  = new uint32_t[curr_position_buffer_size_];
+    positions_ = (uint32_t*)malloc(curr_position_buffer_size_*sizeof(uint32_t));
 }
 
 ChunkPostingWriter::~ChunkPostingWriter()
@@ -200,7 +197,7 @@ ChunkPostingWriter::~ChunkPostingWriter()
     delete pDocFreqDataPool_;
     delete pPosDataPool_;
     if(pSkipListWriter_) delete pSkipListWriter_;
-    delete [] positions_;
+    free(positions_);
 }
 
 bool ChunkPostingWriter::isEmpty()
@@ -261,6 +258,7 @@ void ChunkPostingWriter::reset()
     pSkipListWriter_->reset();
     current_nocomp_block_pointer_ = 0;
     position_buffer_pointer_ = 0;
+    chunk_.reset();
 
     nCTF_ = 0;
     nCurTermFreq_ = 0;
@@ -275,12 +273,8 @@ void ChunkPostingWriter::add(docid_t docid, loc_t location)
 	///see it before,only position is needed
 	if(position_buffer_pointer_ == curr_position_buffer_size_ - 1)
 	{
-	    uint32_t new_position_buffer_size = curr_position_buffer_size_<<1;
-	    uint32_t* new_positions = new uint32_t[new_position_buffer_size];
-           memcpy(new_positions,positions_,curr_position_buffer_size_ * sizeof(uint32_t));
-           delete[] positions_;
-           positions_ = new_positions;
-           curr_position_buffer_size_ = new_position_buffer_size;
+           curr_position_buffer_size_ = curr_position_buffer_size_<<1;
+           positions_ = (uint32_t*)realloc(positions_, curr_position_buffer_size_ * sizeof(uint32_t));
 	}
        positions_[position_buffer_pointer_++] = location;
        nCurTermFreq_++;
@@ -289,7 +283,7 @@ void ChunkPostingWriter::add(docid_t docid, loc_t location)
     {
         /// new doc id
         if (nCurTermFreq_ > 0)
-            frequencies_[current_nocomp_block_pointer_] = nCurTermFreq_;        
+            frequencies_[current_nocomp_block_pointer_++] = nCurTermFreq_;        
 
         if(skipInterval_ && nDF_ > 0 && nDF_ % skipInterval_ == 0)
         {
@@ -301,7 +295,7 @@ void ChunkPostingWriter::add(docid_t docid, loc_t location)
             position_buffer_pointer_ = 0;
         }
 
-        doc_ids_[current_nocomp_block_pointer_++] = docid;
+        doc_ids_[current_nocomp_block_pointer_] = docid;
         positions_[position_buffer_pointer_++] = location;
 
         nCTF_ += nCurTermFreq_;
@@ -318,9 +312,9 @@ void ChunkPostingWriter::flush()
     if(current_nocomp_block_pointer_ > 0)
     {
         if (nCurTermFreq_ > 0)
-            frequencies_[current_nocomp_block_pointer_] = nCurTermFreq_;        
+            frequencies_[current_nocomp_block_pointer_++] = nCurTermFreq_;        
     
-        chunk_.encode(doc_ids_, frequencies_, positions_, current_nocomp_block_pointer_+1);
+        chunk_.encode(doc_ids_, frequencies_, positions_, current_nocomp_block_pointer_);
         pDocFreqDataPool_->addDFChunk(chunk_);
         pPosDataPool_->addPOSChunk(chunk_);
     }

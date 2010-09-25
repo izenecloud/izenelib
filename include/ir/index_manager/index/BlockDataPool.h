@@ -32,7 +32,7 @@ class ChunkEncoder
 {
 public:
     ChunkEncoder()
-        :num_docs_(0), size_(0), first_doc_id_(0), last_doc_id_(0)
+        :num_docs_(0), size_(0), first_doc_id_(0), last_doc_id_(0), last_doc_id_of_last_chunk_(0)
     {
         if(!compressed_positions_)
         {
@@ -51,15 +51,11 @@ public:
         num_docs_ = num_docs;
         if(first_doc_id_ == 0) first_doc_id_ = doc_ids[0];
         last_doc_id_ = doc_ids[num_docs - 1];
-        for (int i = 0; i < num_docs_; ++i)
-        {
-            // The docIDs are d-gap coded. We need to decode them (and add them to the last docID from the previous chunk) to find the last docID in this chunk.
-            last_doc_id_ += doc_ids[i];
-        }
-
         pre_process_chunk(doc_ids, num_docs);
+        doc_ids[0] -= last_doc_id_of_last_chunk_;
         compressed_doc_ids_len_ = doc_id_compressor_.compress(doc_ids, compressed_doc_ids_, num_docs_);		
         compressed_frequencies_len_ = frequency_compressor_.compress(frequencies, compressed_frequencies_, num_docs_);
+        last_doc_id_of_last_chunk_ = last_doc_id_;
 
         if (positions != NULL)
         {
@@ -85,6 +81,15 @@ public:
         // Calculate total compressed size of this chunk in words.
         size_ = compressed_doc_ids_len_ + compressed_frequencies_len_;
     }	
+
+    void reset()
+    {
+        num_docs_ = 0;
+        size_ = 0;
+        first_doc_id_ = 0;
+        last_doc_id_ = 0;
+        last_doc_id_of_last_chunk_ = 0;
+    }
 
     uint32_t first_doc_id() const
     {
@@ -158,6 +163,8 @@ private:
 
     uint32_t first_doc_id_;  // Decoded first docID in this chunk.
     uint32_t last_doc_id_;   // Decoded last docID in this chunk.
+
+    uint32_t last_doc_id_of_last_chunk_;  //last docID of last chunk
 
     // These buffers are used for compression of chunks.
     uint32_t compressed_doc_ids_[CompressedOutBufferUpperbound(kChunkSize)];                     // Array of compressed docIDs.
