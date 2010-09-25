@@ -29,7 +29,7 @@ class SkipListReader;
 class BlockPostingReader:public PostingReader
 {
 public:
-    BlockPostingReader(InputDescriptor* pInputDescriptor,const TermInfo& termInfo,IndexType type = DOCUMENT_LEVEL);
+    BlockPostingReader(InputDescriptor* pInputDescriptor,const TermInfo& termInfo,IndexType type = WORD_LEVEL);
 
     ~BlockPostingReader();
 
@@ -190,7 +190,7 @@ protected:
 class ChunkPostingReader:public PostingReader
 {
 public:
-    ChunkPostingReader(int skipInterval, int maxSkipLevel, InputDescriptor* pInputDescriptor,const TermInfo& termInfo,IndexType type = DOCUMENT_LEVEL);
+    ChunkPostingReader(int skipInterval, int maxSkipLevel, InputDescriptor* pInputDescriptor,const TermInfo& termInfo,IndexType type = WORD_LEVEL);
 
     ~ChunkPostingReader();
 

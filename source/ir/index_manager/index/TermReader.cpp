@@ -583,7 +583,6 @@ TermReader* RTDiskTermReader::clone()
     return pTermReader;
 }
 
-
 TermDocFreqs* RTDiskTermReader::termDocFreqs()
 {
     if (pCurTermInfo_ == NULL || pTermReaderImpl_ == NULL )
@@ -604,7 +603,7 @@ TermPositions* RTDiskTermReader::termPositions()
         return NULL;
 
     RTDiskPostingReader* pPosting = 
-        new RTDiskPostingReader(skipInterval_, maxSkipLevel_, pTermReaderImpl_->pInputDescriptor_->clone(DOCUMENT_LEVEL),*pCurTermInfo_);
+        new RTDiskPostingReader(skipInterval_, maxSkipLevel_, pTermReaderImpl_->pInputDescriptor_->clone(),*pCurTermInfo_);
     if(getDocFilter())
         pPosting->setFilter(getDocFilter());
 
@@ -771,6 +770,139 @@ TermReader* MemTermReader::clone()
     pTermReader->setSkipInterval(skipInterval_);
     pTermReader->setMaxSkipLevel(maxSkipLevel_);
     return pTermReader;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+///BlockTermReader
+BlockTermReader::BlockTermReader(Directory* pDirectory,BarrelInfo* pBarrelInfo,FieldInfo* pFieldInfo)
+        : RTDiskTermReader(pDirectory,pBarrelInfo,pFieldInfo)
+{
+}
+
+BlockTermReader::BlockTermReader(SparseTermReaderImpl* pTermReaderImpl)
+        : RTDiskTermReader(pTermReaderImpl)
+{
+}
+
+
+TermReader* BlockTermReader::clone()
+{
+    TermReader* pTermReader = new BlockTermReader(pTermReaderImpl_);
+    pTermReader->setFieldInfo(pFieldInfo_);
+    pTermReader->setDocFilter(pDocFilter_);
+    pTermReader->setSkipInterval(skipInterval_);
+    pTermReader->setMaxSkipLevel(maxSkipLevel_);
+    pTermReader->setBarrelInfo(pBarrelInfo_);
+    return pTermReader;
+}
+
+TermDocFreqs* BlockTermReader::termDocFreqs()
+{
+    if (pCurTermInfo_ == NULL || pTermReaderImpl_ == NULL )
+        return NULL;
+    BlockPostingReader* pPosting = 
+        new BlockPostingReader(pTermReaderImpl_->pInputDescriptor_->clone(DOCUMENT_LEVEL),*pCurTermInfo_, DOCUMENT_LEVEL);
+    if(getDocFilter())
+        pPosting->setFilter(getDocFilter());
+	
+    TermDocFreqs* pTermDoc = 
+        new TermDocFreqs(pPosting,*pCurTermInfo_);
+    return pTermDoc;
+}
+
+TermPositions* BlockTermReader::termPositions()
+{
+    if (pCurTermInfo_ == NULL || pTermReaderImpl_ == NULL )
+        return NULL;
+
+    BlockPostingReader* pPosting = 
+        new BlockPostingReader(pTermReaderImpl_->pInputDescriptor_->clone(),*pCurTermInfo_);
+    if(getDocFilter())
+        pPosting->setFilter(getDocFilter());
+
+    TermPositions* pTermPos = 
+      new TermPositions(pPosting,*pCurTermInfo_);
+    return pTermPos;
+}
+
+TermIterator* BlockTermReader::termIterator(const char* field)
+{
+    if ((field != NULL) && (strcasecmp(getFieldInfo()->getName(),field)))
+        return NULL;
+
+    TermIterator* pIterator = static_cast<TermIterator*>(new BlockTermIterator(pTermReaderImpl_->pDirectory_,
+                                                             pTermReaderImpl_->barrelName_.c_str(),
+                                                             pTermReaderImpl_->pFieldInfo_));
+    pIterator->setSkipInterval(skipInterval_);
+    pIterator->setMaxSkipLevel(maxSkipLevel_);
+    return pIterator;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+///ChunkTermReader
+ChunkTermReader::ChunkTermReader(Directory* pDirectory,BarrelInfo* pBarrelInfo,FieldInfo* pFieldInfo)
+        : RTDiskTermReader(pDirectory,pBarrelInfo,pFieldInfo)
+{
+}
+
+ChunkTermReader::ChunkTermReader(SparseTermReaderImpl* pTermReaderImpl)
+        : RTDiskTermReader(pTermReaderImpl)
+{
+}
+
+TermReader* ChunkTermReader::clone()
+{
+    TermReader* pTermReader = new ChunkTermReader(pTermReaderImpl_);
+    pTermReader->setFieldInfo(pFieldInfo_);
+    pTermReader->setDocFilter(pDocFilter_);
+    pTermReader->setSkipInterval(skipInterval_);
+    pTermReader->setMaxSkipLevel(maxSkipLevel_);
+    pTermReader->setBarrelInfo(pBarrelInfo_);
+    return pTermReader;
+}
+
+TermDocFreqs* ChunkTermReader::termDocFreqs()
+{
+    if (pCurTermInfo_ == NULL || pTermReaderImpl_ == NULL )
+        return NULL;
+    ChunkPostingReader* pPosting = 
+        new ChunkPostingReader(skipInterval_, maxSkipLevel_, pTermReaderImpl_->pInputDescriptor_->clone(DOCUMENT_LEVEL),*pCurTermInfo_, DOCUMENT_LEVEL);
+    if(getDocFilter())
+        pPosting->setFilter(getDocFilter());
+	
+    TermDocFreqs* pTermDoc = 
+        new TermDocFreqs(pPosting,*pCurTermInfo_);
+    return pTermDoc;
+}
+
+TermPositions* ChunkTermReader::termPositions()
+{
+    if (pCurTermInfo_ == NULL || pTermReaderImpl_ == NULL )
+        return NULL;
+
+    ChunkPostingReader* pPosting = 
+        new ChunkPostingReader(skipInterval_, maxSkipLevel_, pTermReaderImpl_->pInputDescriptor_->clone(),*pCurTermInfo_);
+    if(getDocFilter())
+        pPosting->setFilter(getDocFilter());
+
+    TermPositions* pTermPos = 
+      new TermPositions(pPosting,*pCurTermInfo_);
+    return pTermPos;
+}
+
+TermIterator* ChunkTermReader::termIterator(const char* field)
+{
+    if ((field != NULL) && (strcasecmp(getFieldInfo()->getName(),field)))
+        return NULL;
+
+    TermIterator* pIterator = static_cast<TermIterator*>(new ChunkTermIterator(pTermReaderImpl_->pDirectory_,
+                                                             pTermReaderImpl_->barrelName_.c_str(),
+                                                             pTermReaderImpl_->pFieldInfo_));
+    pIterator->setSkipInterval(skipInterval_);
+    pIterator->setMaxSkipLevel(maxSkipLevel_);
+    return pIterator;
 }
 
 }

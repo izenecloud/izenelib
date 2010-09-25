@@ -273,6 +273,207 @@ PostingReader* MemTermIterator::termPosting()
     return pCurTermPosting_;
 }
 
+
+
+
+//////////////////////////////////////////////////////////////////////////
+///BlockTermIterator
+BlockTermIterator::BlockTermIterator(Directory* pDirectory,const char* barrelname,FieldInfo* pFieldInfo)
+    :pDirectory_(pDirectory)
+    ,pFieldInfo_(pFieldInfo)
+    ,pCurTerm_(NULL)
+    ,pCurTermInfo_(NULL)
+    ,pCurTermPosting_(NULL)
+    ,pInputDescriptor_(NULL)
+    ,nCurPos_(-1)
+{
+    barrelName_ = barrelname;
+    pVocInput_ = pDirectory->openInput(barrelName_ + ".voc");
+    pVocInput_->seek(pFieldInfo->getIndexOffset());
+    fileoffset_t voffset = pVocInput_->getFilePointer();
+    ///begin read vocabulary descriptor
+    nVocLength_ = pVocInput_->readLong();
+    nTermCount_ = (int32_t)pVocInput_->readLong(); ///get total term count
+    ///end read vocabulary descriptor
+    pVocInput_->seek(voffset - nVocLength_);///seek to begin of vocabulary data
+
+}
+
+BlockTermIterator::~BlockTermIterator()
+{
+    delete pVocInput_;
+    if (pCurTerm_)
+    {
+        delete pCurTerm_;
+        pCurTerm_ = NULL;
+    }
+    if (pCurTermPosting_)
+    {
+        delete pCurTermPosting_;
+        pCurTermPosting_ = NULL;
+    }
+    if(pCurTermInfo_)
+    {
+        delete pCurTermInfo_;
+        pCurTermInfo_ = NULL;
+    }
+}
+
+const Term* BlockTermIterator::term()
+{
+    return pCurTerm_;
+}
+
+const TermInfo* BlockTermIterator::termInfo()
+{
+    return pCurTermInfo_;
+}
+
+PostingReader* BlockTermIterator::termPosting()
+{
+    if (!pCurTermPosting_)
+    {
+        pInputDescriptor_ = new InputDescriptor(true);
+        pInputDescriptor_->setDPostingInput(pDirectory_->openInput(barrelName_ + ".dfp"));
+        pInputDescriptor_->setPPostingInput(pDirectory_->openInput(barrelName_ + ".pop"));
+        pCurTermPosting_ = new BlockPostingReader(pInputDescriptor_,*pCurTermInfo_);
+    }
+    else
+    {
+        ((BlockPostingReader*)pCurTermPosting_)->reset(*pCurTermInfo_);///reset to a new posting
+    }
+    return pCurTermPosting_;
+}
+
+bool BlockTermIterator::next()
+{
+    if(nTermCount_ > nCurPos_+1) 		
+    {
+        ++nCurPos_;
+        termid_t tid = pVocInput_->readInt();
+        freq_t df = pVocInput_->readInt();
+        freq_t ctf = pVocInput_->readInt();
+        docid_t lastdoc = pVocInput_->readInt();
+        freq_t skipLevel = pVocInput_->readInt();
+        fileoffset_t skipPointer = pVocInput_->readLong();
+        fileoffset_t docPointer = pVocInput_->readLong();
+        freq_t docPostingLen = pVocInput_->readInt();
+        fileoffset_t positionPointer = pVocInput_->readLong();
+        freq_t positionPostingLen = pVocInput_->readInt();	
+
+        if(pCurTerm_ == NULL)
+            pCurTerm_ = new Term(pFieldInfo_->getName(),tid);
+        else 
+            pCurTerm_->setValue(tid);
+        if(pCurTermInfo_ == NULL)
+            pCurTermInfo_ = new TermInfo();
+        pCurTermInfo_->set(df,ctf,lastdoc,skipLevel,skipPointer,docPointer,docPostingLen,positionPointer,positionPostingLen);;
+        return true;
+    }
+    else return false;
+}
+
+
+
+//////////////////////////////////////////////////////////////////////////
+///ChunkTermIterator
+ChunkTermIterator::ChunkTermIterator(Directory* pDirectory,const char* barrelname,FieldInfo* pFieldInfo)
+    :pDirectory_(pDirectory)
+    ,pFieldInfo_(pFieldInfo)
+    ,pCurTerm_(NULL)
+    ,pCurTermInfo_(NULL)
+    ,pCurTermPosting_(NULL)
+    ,pInputDescriptor_(NULL)
+    ,nCurPos_(-1)
+{
+    barrelName_ = barrelname;
+    pVocInput_ = pDirectory->openInput(barrelName_ + ".voc");
+    pVocInput_->seek(pFieldInfo->getIndexOffset());
+    fileoffset_t voffset = pVocInput_->getFilePointer();
+    ///begin read vocabulary descriptor
+    nVocLength_ = pVocInput_->readLong();
+    nTermCount_ = (int32_t)pVocInput_->readLong(); ///get total term count
+    ///end read vocabulary descriptor
+    pVocInput_->seek(voffset - nVocLength_);///seek to begin of vocabulary data
+
+}
+
+ChunkTermIterator::~ChunkTermIterator()
+{
+    delete pVocInput_;
+    if (pCurTerm_)
+    {
+        delete pCurTerm_;
+        pCurTerm_ = NULL;
+    }
+    if (pCurTermPosting_)
+    {
+        delete pCurTermPosting_;
+        pCurTermPosting_ = NULL;
+    }
+    if(pCurTermInfo_)
+    {
+        delete pCurTermInfo_;
+        pCurTermInfo_ = NULL;
+    }
+}
+
+const Term* ChunkTermIterator::term()
+{
+    return pCurTerm_;
+}
+
+const TermInfo* ChunkTermIterator::termInfo()
+{
+    return pCurTermInfo_;
+}
+
+PostingReader* ChunkTermIterator::termPosting()
+{
+    if (!pCurTermPosting_)
+    {
+        pInputDescriptor_ = new InputDescriptor(true);
+        pInputDescriptor_->setDPostingInput(pDirectory_->openInput(barrelName_ + ".dfp"));
+        pInputDescriptor_->setPPostingInput(pDirectory_->openInput(barrelName_ + ".pop"));
+        pCurTermPosting_ = new ChunkPostingReader(skipInterval_, maxSkipLevel_, pInputDescriptor_,*pCurTermInfo_);
+    }
+    else
+    {
+        ((RTDiskPostingReader*)pCurTermPosting_)->reset(*pCurTermInfo_);///reset to a new posting
+    }
+    return pCurTermPosting_;
+}
+
+bool ChunkTermIterator::next()
+{
+    if(nTermCount_ > nCurPos_+1) 		
+    {
+        ++nCurPos_;
+        termid_t tid = pVocInput_->readInt();
+        freq_t df = pVocInput_->readInt();
+        freq_t ctf = pVocInput_->readInt();
+        docid_t lastdoc = pVocInput_->readInt();
+        freq_t skipLevel = pVocInput_->readInt();
+        fileoffset_t skipPointer = pVocInput_->readLong();
+        fileoffset_t docPointer = pVocInput_->readLong();
+        freq_t docPostingLen = pVocInput_->readInt();
+        fileoffset_t positionPointer = pVocInput_->readLong();
+        freq_t positionPostingLen = pVocInput_->readInt();	
+
+        if(pCurTerm_ == NULL)
+            pCurTerm_ = new Term(pFieldInfo_->getName(),tid);
+        else 
+            pCurTerm_->setValue(tid);
+        if(pCurTermInfo_ == NULL)
+            pCurTermInfo_ = new TermInfo();
+        pCurTermInfo_->set(df,ctf,lastdoc,skipLevel,skipPointer,docPointer,docPostingLen,positionPointer,positionPostingLen);;
+        return true;
+    }
+    else return false;
+}
+
+
+
 }
 
 NS_IZENELIB_IR_END

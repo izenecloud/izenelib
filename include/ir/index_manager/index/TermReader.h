@@ -165,7 +165,7 @@ public:
 
     RTDiskTermReader(SparseTermReaderImpl* pTermReaderImpl);
 
-    virtual ~RTDiskTermReader(void);
+    virtual ~RTDiskTermReader();
 public:
     void open(Directory* pDirectory,const char* barrelname,FieldInfo* pFieldInfo);
 
@@ -185,14 +185,14 @@ public:
 
     TermReader* clone() ;
 
-private:
+protected:
     TermInfo* termInfo(Term* term);
 
     TermInfo* searchBuffer(termid_t termId, int end);
 
     int fillBuffer(int pos);
 
-private:
+protected:
     SparseTermReaderImpl* pTermReaderImpl_;
 
     TermInfo* pCurTermInfo_;
@@ -222,7 +222,7 @@ class MemTermReader : public TermReader
 public:
     MemTermReader(const char* field,FieldIndexer* pIndexer);
 
-    virtual ~MemTermReader(void);
+    virtual ~MemTermReader();
 public:
     void open(Directory* pDirectory,BarrelInfo* pBarrelInfo,FieldInfo* pFieldInfo);
 
@@ -247,7 +247,7 @@ public:
     TermInfo* termInfo(Term* term);
 
 private:
-    string field_;
+    std::string field_;
 
     FieldIndexer* pIndexer_;
 
@@ -259,6 +259,57 @@ private:
 
     friend class MemTermIterator;
 };
+
+/**
+* @brief BlockTermReader
+*/
+class BlockTermReader: public RTDiskTermReader
+{
+public:
+    BlockTermReader(Directory* pDirectory,BarrelInfo* pBarrelInfo,FieldInfo* pFieldInfo);
+
+    BlockTermReader(SparseTermReaderImpl* pTermReaderImpl);
+
+public:
+    TermIterator* termIterator(const char* field);
+
+    TermDocFreqs* termDocFreqs();
+
+    TermPositions* termPositions();
+
+    TermReader* clone() ;
+
+protected:
+    friend class BlockTermIterator;
+    friend class CollectionIndexer;
+    friend class SingleIndexBarrelReader;
+};
+
+/**
+* @brief ChunkTermReader
+*/
+class ChunkTermReader: public RTDiskTermReader
+{
+public:
+    ChunkTermReader(Directory* pDirectory,BarrelInfo* pBarrelInfo,FieldInfo* pFieldInfo);
+
+    ChunkTermReader(SparseTermReaderImpl* pTermReaderImpl);
+
+public:
+    TermIterator* termIterator(const char* field);
+
+    TermDocFreqs* termDocFreqs();
+
+    TermPositions* termPositions();
+
+    TermReader* clone() ;
+
+protected:
+    friend class ChunkTermIterator;
+    friend class CollectionIndexer;
+    friend class SingleIndexBarrelReader;
+};
+
 
 }
 

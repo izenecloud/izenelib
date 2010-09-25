@@ -12,13 +12,13 @@
 #include <ir/index_manager/index/FieldIndexer.h>
 #include <ir/index_manager/index/TermInfo.h>
 #include <ir/index_manager/index/AbsTermIterator.h>
+#include <ir/index_manager/index/EPostingReader.h>
 
 NS_IZENELIB_IR_BEGIN
 
 namespace indexmanager{
 class PostingReader;
 class InputDescriptor;
-class RTDiskTermReader;
 class VocReader;
 /**
 * Iterate terms from index barrel files(*.voc), the vocabulary should
@@ -131,6 +131,94 @@ protected:
     InMemoryPostingMap::iterator postingIterator_;
 
     InMemoryPostingMap::iterator postingIteratorEnd_;
+};
+
+
+/*
+* Disk Term Iterator that does not need to load vocabulary into memory
+* it is only used for index merging
+*/
+class BlockTermIterator : public TermIterator
+{
+public:
+    BlockTermIterator(Directory* pDirectory,const char* barrelname,FieldInfo* pFieldInfo);
+
+    ~BlockTermIterator();
+
+    bool next();
+
+    const Term* term();
+
+    const TermInfo* termInfo();
+
+    PostingReader* termPosting();
+
+private:
+    Directory* pDirectory_;	
+
+    FieldInfo* pFieldInfo_;
+	
+    IndexInput* pVocInput_;
+
+    int32_t nTermCount_;
+
+    int64_t nVocLength_;
+
+    std::string barrelName_;
+	
+    Term* pCurTerm_;		 ///current term in this iterator
+
+    TermInfo* pCurTermInfo_;	  ///current term info in this iterator
+
+    BlockPostingReader* pCurTermPosting_;   ///current term's posting in this iterator
+
+    InputDescriptor* pInputDescriptor_;
+
+    int32_t nCurPos_;
+};
+
+
+/*
+* Disk Term Iterator that does not need to load vocabulary into memory
+* it is only used for index merging
+*/
+class ChunkTermIterator : public TermIterator
+{
+public:
+    ChunkTermIterator(Directory* pDirectory,const char* barrelname,FieldInfo* pFieldInfo);
+
+    ~ChunkTermIterator();
+
+    bool next();
+
+    const Term* term();
+
+    const TermInfo* termInfo();
+
+    PostingReader* termPosting();
+
+private:
+    Directory* pDirectory_;	
+
+    FieldInfo* pFieldInfo_;
+	
+    IndexInput* pVocInput_;
+
+    int32_t nTermCount_;
+
+    int64_t nVocLength_;
+
+    std::string barrelName_;
+	
+    Term* pCurTerm_;		 ///current term in this iterator
+
+    TermInfo* pCurTermInfo_;	  ///current term info in this iterator
+
+    ChunkPostingReader* pCurTermPosting_;   ///current term's posting in this iterator
+
+    InputDescriptor* pInputDescriptor_;
+
+    int32_t nCurPos_;
 };
 
 }

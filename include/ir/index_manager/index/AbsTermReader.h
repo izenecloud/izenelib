@@ -42,7 +42,7 @@ public:
 
     TermReader(FieldInfo* pFieldInfo);
 
-    virtual ~TermReader(void);
+    virtual ~TermReader();
 public:
     ///Open the vocabulary file on disk
     virtual void open(Directory* pDirectory,BarrelInfo* pBarrelInfo,FieldInfo* pFieldInfo);
