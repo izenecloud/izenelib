@@ -54,12 +54,27 @@ void ChunkDecoder::decodeDocIds()
 void ChunkDecoder::decodeFrequencies()
 {
     curr_buffer_position_ += frequency_decompressor_.decompress(const_cast<uint32_t*> (curr_buffer_position_), frequencies_, num_docs_);
+
+    // Count the number of positions we have in total by summing up all the frequencies.
+    num_positions_ = 0;
+    for (int i = 0; i < num_docs_; ++i)
+    {
+        num_positions_ += frequencies_[i];
+    }
 }
 
 int ChunkDecoder::decodePositions(const uint32_t* compressed_positions)
 {
     // A word is meant to be sizeof(uint32_t) bytes in this context.
     int num_words_consumed = position_decompressor_.decompress(const_cast<uint32_t*> (compressed_positions), positions_, num_positions_);
+
+    uint32_t* pos = positions_;
+    for(int i = 0; i < num_docs_; ++i)
+    {
+        for(uint32_t j = 1; j < frequencies_[i]; ++j)
+          pos[j] += pos[j-1];
+        pos += frequencies_[i];
+    }
     return num_words_consumed;
 }
 

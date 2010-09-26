@@ -42,7 +42,7 @@ public:
 protected:
     void growPosBuffer(uint32_t* &pPPosting, int32_t& pLength)
     {
-        pLength = pLength < 1;
+        pLength = pLength << 1;
         pPPosting = (uint32_t*)realloc(pPPosting, pLength * sizeof(uint32_t));
     }
 

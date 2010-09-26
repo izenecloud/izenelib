@@ -146,7 +146,7 @@ void BlockPostingWriter::flush()
 //    if(current_nocomp_block_pointer_ > 0)
     {
         frequencies_[current_nocomp_block_pointer_++] = nCurTermFreq_;        
-    
+
         chunk_.encode(doc_ids_, frequencies_, positions_, current_nocomp_block_pointer_);
 
         pPosDataPool_->addPOSChunk(chunk_);

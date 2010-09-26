@@ -73,6 +73,7 @@ public:
             }
 
             compressed_positions_len_ = position_compressor_.compress(positions, compressed_positions_, num_pos);
+            assert(compressed_positions_len_ < curr_position_buffer_size_);
         }
 
         // Calculate total compressed size of this chunk in words.

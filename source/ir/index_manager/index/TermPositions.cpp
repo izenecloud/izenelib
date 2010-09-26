@@ -57,10 +57,14 @@ count_t TermPositions::freq()
 
 bool TermPositions::next()
 {
+    if(nCurrentPosting_ > 0)
+        nCurrentPPosting_ += pPostingBuffer_[nFreqStart_ + nCurrentPosting_];
+
     if (TermDocFreqs::next())
     {
         nCurDecodedPCountWithinDoc_ = freq();
         nCurrentPPostingWithinDoc_ = 0;
+        pPPostingBufferWithinDoc_ = pPPostingBuffer_ + nCurrentPPosting_;
         return true;
     }
     return false;
@@ -192,6 +196,8 @@ int32_t TermPositions::nextPositions(loc_t*& positions)
 
 void TermPositions::createBuffer()
 {
+    TermDocFreqs::createBuffer();
+
     size_t bufSize = TermPositions::DEFAULT_BUFFERSIZE;
     if ((int64_t)bufSize > getCTF())
         bufSize = (size_t)getCTF();

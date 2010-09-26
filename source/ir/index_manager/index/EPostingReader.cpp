@@ -47,7 +47,6 @@ void BlockPostingReader::reset(const TermInfo& termInfo)
     start_block_id_ = termInfo.skipLevel_;
     total_block_num_ = termInfo.docPostingLen_/BLOCK_SIZE;
     last_block_id_ = curr_block_id_ + total_block_num_ - 1;
-cout<<"curr_block_id_ "<<curr_block_id_<<" total_block_num_ "<<total_block_num_<<endl;
     postingOffset_ = termInfo.docPointer_;
 
     IndexInput* pDPInput = pInputDescriptor_->getDPostingInput();
@@ -113,7 +112,6 @@ void BlockPostingReader::advanceToNextBlock()
     else
     {
         if(!urgentBuffer_) urgentBuffer_ = (uint32_t*)new char[BLOCK_SIZE];
-cout<<"curr block id "<<curr_block_id_<<endl;		
         pDPInput->seek(postingOffset_ + (curr_block_id_ - start_block_id_)* BLOCK_SIZE);
         pDPInput->read((char *)urgentBuffer_, BLOCK_SIZE);
         blockDecoder_.init(curr_block_id_, urgentBuffer_);
@@ -177,7 +175,6 @@ docid_t BlockPostingReader::decodeTo(docid_t target)
             {
                 // Create a new chunk and add it to the block.
                 chunk.reset(blockDecoder_.curr_block_data(), std::min(CHUNK_SIZE, (int)num_docs_left_));
-                chunk.set_prev_decoded_doc_id(prev_block_last_doc_id_);
                 chunk.decodeDocIds();
                 chunk.decodeFrequencies();
 
@@ -299,7 +296,6 @@ int32_t BlockPostingReader::decodeNext(uint32_t* pPosting,int32_t length, uint32
     int decodedDoc = 0;
     int decompressed_pos = 0;
     int size_of_positions = 0;
-
     ChunkDecoder& chunk = blockDecoder_.chunk_decoder_;
 
     while(left > 0)
@@ -318,13 +314,14 @@ int32_t BlockPostingReader::decodeNext(uint32_t* pPosting,int32_t length, uint32
 
                 size_of_positions = chunk.size_of_positions();
                 if((pLength - decompressed_pos) < size_of_positions) growPosBuffer(pPPosting, pLength);
+
                 chunk.set_pos_buffer(pPPosting + decompressed_pos);
 
                 int size = pPPostingInput->readVInt();
-                ensure_pos_buffer(size);
-                pPPostingInput->readBytes((uint8_t*)compressedPos_,size*sizeof(uint32_t));
+                ensure_pos_buffer(size>>2);
+                pPPostingInput->readBytes((uint8_t*)compressedPos_,size);
                 chunk.decodePositions(compressedPos_);
-                if(!pDocFilter_) chunk.post_process(pDocFilter_);
+                if(pDocFilter_) chunk.post_process(pDocFilter_);
             }
 
             blockDecoder_.advance_curr_chunk();
@@ -469,16 +466,16 @@ docid_t ChunkPostingReader::decodeTo(docid_t target)
     if(! chunkDecoder_.decoded())
     {
 	int doc_size = pDPostingInput->readVInt();
-	pDPostingInput->readBytes((uint8_t*)compressedBuffer_,doc_size*sizeof(uint32_t));
+	pDPostingInput->readBytes((uint8_t*)compressedBuffer_,doc_size);
 	int tf_size = pDPostingInput->readVInt();
-	pDPostingInput->readBytes((uint8_t*)compressedBuffer_ + doc_size, tf_size*sizeof(uint32_t));
+	pDPostingInput->readBytes((uint8_t*)compressedBuffer_ + doc_size, tf_size);
 	chunkDecoder_.reset(compressedBuffer_, std::min(CHUNK_SIZE, (int)num_docs_left_));
 	chunkDecoder_.set_doc_freq_buffer(NULL,NULL);
 	chunkDecoder_.set_prev_decoded_doc_id(lastDocID);
 	chunkDecoder_.decodeDocIds();
 	chunkDecoder_.decodeFrequencies();
 
-	if(!pDocFilter_) chunkDecoder_.post_process(pDocFilter_);
+	if(pDocFilter_) chunkDecoder_.post_process(pDocFilter_);
     }
 
     docid_t nDocID = chunkDecoder_.move_to(target);
@@ -536,9 +533,9 @@ int32_t ChunkPostingReader::decodeNext(uint32_t* pPosting,int32_t length)
     while(left > 0)
     {
         doc_size = pDPostingInput->readVInt();
-        pDPostingInput->readBytes((uint8_t*)compressedBuffer_,doc_size*sizeof(uint32_t));
+        pDPostingInput->readBytes((uint8_t*)compressedBuffer_,doc_size);
         tf_size = pDPostingInput->readVInt();
-        pDPostingInput->readBytes((uint8_t*)compressedBuffer_ + doc_size, tf_size*sizeof(uint32_t));
+        pDPostingInput->readBytes((uint8_t*)compressedBuffer_ + doc_size, tf_size);
         chunkDecoder_.reset(compressedBuffer_, std::min(CHUNK_SIZE, (int)num_docs_left_));
         chunkDecoder_.set_doc_freq_buffer(pDoc,pFreq);
         chunkDecoder_.set_prev_decoded_doc_id(prev_block_last_doc_id_);
@@ -587,8 +584,8 @@ int32_t ChunkPostingReader::decodeNext(uint32_t* pPosting,int32_t length, uint32
         chunkDecoder_.set_pos_buffer(pPPosting);
 	
         int size = pPPostingInput->readVInt();
-        ensure_pos_buffer(size);
-        pPPostingInput->readBytes((uint8_t*)compressedPos_,size*sizeof(uint32_t));
+        ensure_pos_buffer(size>>2);
+        pPPostingInput->readBytes((uint8_t*)compressedPos_,size);
         chunkDecoder_.decodePositions(compressedPos_);
         chunkDecoder_.updatePositionOffset();
         decompressed_pos = size_of_positions - chunkDecoder_.curr_position_offset();
@@ -603,9 +600,9 @@ int32_t ChunkPostingReader::decodeNext(uint32_t* pPosting,int32_t length, uint32
     while(left > 0)
     {
         doc_size = pDPostingInput->readVInt();
-        pDPostingInput->readBytes((uint8_t*)compressedBuffer_,doc_size*sizeof(uint32_t));
+        pDPostingInput->readBytes((uint8_t*)compressedBuffer_,doc_size);
         tf_size = pDPostingInput->readVInt();
-        pDPostingInput->readBytes((uint8_t*)compressedBuffer_ + doc_size, tf_size*sizeof(uint32_t));
+        pDPostingInput->readBytes((uint8_t*)compressedBuffer_ + doc_size, tf_size);
         chunkDecoder_.reset(compressedBuffer_, std::min(CHUNK_SIZE, (int)num_docs_left_));
         chunkDecoder_.set_doc_freq_buffer(pDoc,pFreq);
         chunkDecoder_.set_prev_decoded_doc_id(prev_block_last_doc_id_);
@@ -617,8 +614,8 @@ int32_t ChunkPostingReader::decodeNext(uint32_t* pPosting,int32_t length, uint32
         chunkDecoder_.set_pos_buffer(pPPosting + decompressed_pos);
 
         int size = pPPostingInput->readVInt();
-        ensure_pos_buffer(size);
-        pPPostingInput->readBytes((uint8_t*)compressedPos_,size*sizeof(uint32_t));
+        ensure_pos_buffer(size>>2);
+        pPPostingInput->readBytes((uint8_t*)compressedPos_,size);
         chunkDecoder_.decodePositions(compressedPos_);
         if(!pDocFilter_) chunkDecoder_.post_process(pDocFilter_);
 

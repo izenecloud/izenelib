@@ -456,8 +456,8 @@ void PostingMerger::mergeWith(BlockPostingReader* pPosting,BitVector* pFilter)
                     memcpy(doc_ids_ + doc_ids_offset_, chunk.doc_ids(), copySize);
                     memcpy(frequencies_+ doc_ids_offset_, chunk.frequencies(), copySize);
                     memmove (positions_, positions_+ position_buffer_pointer_ + chunk.curr_position_offset(), 
-                                                        chunk.size_of_positions(false) - chunk.curr_position_offset());
-                    position_buffer_pointer_ = chunk.size_of_positions(false) - chunk.curr_position_offset();
+                                                        chunk.size_of_positions() - chunk.curr_position_offset());
+                    position_buffer_pointer_ = chunk.size_of_positions() - chunk.curr_position_offset();
                     doc_ids_offset_ = copySize;
                 }
 
@@ -543,8 +543,8 @@ void PostingMerger::mergeWith(ChunkPostingReader* pPosting,BitVector* pFilter)
             memcpy(doc_ids_ + doc_ids_offset_, chunk.doc_ids(), copySize);
             memcpy(frequencies_+ doc_ids_offset_, chunk.frequencies(), copySize);
             memmove (positions_, positions_+ position_buffer_pointer_ + chunk.curr_position_offset(), 
-                                                chunk.size_of_positions(false) - chunk.curr_position_offset());
-            position_buffer_pointer_ = chunk.size_of_positions(false) - chunk.curr_position_offset();
+                                                chunk.size_of_positions() - chunk.curr_position_offset());
+            position_buffer_pointer_ = chunk.size_of_positions() - chunk.curr_position_offset();
             doc_ids_offset_ = copySize;
         }
     }

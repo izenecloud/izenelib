@@ -96,15 +96,8 @@ public:
         return num_docs_;
     }
 
-    int size_of_positions(bool count = true)
+    int size_of_positions()
     {
-        if(!count) return num_positions_;
-        num_positions_ = 0;
-        // Count the number of positions we have in total by summing up all the frequencies.
-        for (int i = 0; i < num_docs_; ++i)
-        {
-            num_positions_ += frequencies_[i];
-        }
         return num_positions_;
     }
 
