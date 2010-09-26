@@ -805,7 +805,6 @@ TermDocFreqs* BlockTermReader::termDocFreqs()
         new BlockPostingReader(pTermReaderImpl_->pInputDescriptor_->clone(DOCUMENT_LEVEL),*pCurTermInfo_, DOCUMENT_LEVEL);
     if(getDocFilter())
         pPosting->setFilter(getDocFilter());
-	
     TermDocFreqs* pTermDoc = 
         new TermDocFreqs(pPosting,*pCurTermInfo_);
     return pTermDoc;

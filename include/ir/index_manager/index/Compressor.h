@@ -147,7 +147,7 @@ private:
 };
 
 //typedef CombinedCompressorType<PForDelta_Compressor, S16_Compressor, 128, 96> DocIDCompressor;
-typedef CompressorType<PForDeltaMix_Compressor> DocIDCompressor;
+typedef CompressorType<PForDelta_Compressor> DocIDCompressor;
 typedef CompressorType<S16_Compressor> TermFreqCompressor;
 typedef CompressorType<S16_Compressor> TermPosCompressor;
 typedef CombinedCompressorType<PForDelta_Compressor, S16_Compressor, 256, 192> BlockHeadCompressor;

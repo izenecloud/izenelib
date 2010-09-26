@@ -411,7 +411,7 @@ void PostingMerger::mergeWith(BlockPostingReader* pPosting,BitVector* pFilter)
                 // Create a new chunk and add it to the block.
                 int chunkSize = std::min(CHUNK_SIZE, num_docs_left);
                 chunk.reset(blockDecoder.curr_block_data(), chunkSize);
-                chunk.update_prev_decoded_doc_id(prev_block_last_doc_id);
+                chunk.set_prev_decoded_doc_id(prev_block_last_doc_id);
                 chunk.decodeDocIds();
                 chunk.decodeFrequencies();
 
@@ -507,7 +507,7 @@ void PostingMerger::mergeWith(ChunkPostingReader* pPosting,BitVector* pFilter)
 
         int chunkSize = std::min(CHUNK_SIZE, num_docs_left);
         chunk.reset(compressedBuffer_, chunkSize);
-        chunk.update_prev_decoded_doc_id(prev_chunk_last_doc_id);
+        chunk.set_prev_decoded_doc_id(prev_chunk_last_doc_id);
         chunk.decodeDocIds();
         chunk.decodeFrequencies();
 

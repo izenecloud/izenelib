@@ -21,7 +21,7 @@ void ChunkDecoder::reset(const uint32_t* buffer, int num_docs)
     curr_document_offset_ = -1;  // -1 signals that we haven't had an intersection yet.
     prev_document_offset_ = 0;
     curr_position_offset_ = 0;
-    prev_decoded_doc_id_ = 0;
+    //prev_decoded_doc_id_ = 0;
     curr_buffer_position_ = buffer;
     decoded_ = false;
 
@@ -46,7 +46,6 @@ void ChunkDecoder::decodeDocIds()
 {
     // A word is meant to be sizeof(uint32_t) bytes in this context.
     int num_words_consumed = doc_id_decompressor_.decompress(const_cast<uint32_t*> (curr_buffer_position_), doc_ids_, num_docs_);
-    post_process_chunk(doc_ids_, num_docs_);
     curr_buffer_position_ += num_words_consumed;
     decoded_ = true;
 }
@@ -115,6 +114,7 @@ uint32_t ChunkDecoder::move_to(uint32_t target)
  **********************************************************************************************************/
 BlockDecoder::BlockDecoder() :curr_block_num_(0), num_chunks_(0), curr_chunk_(0), curr_block_data_(NULL)
 {
+    memset(chunk_properties_,0,BLOCK_HEADER_DECOMPRESSED_UPPERBOUND*sizeof(uint32_t));
 }
 
 void BlockDecoder::init(uint64_t block_num, uint32_t* block_data)
@@ -125,6 +125,7 @@ void BlockDecoder::init(uint64_t block_num, uint32_t* block_data)
     uint32_t num_chunks;
     memcpy(&num_chunks, curr_block_data_, sizeof(num_chunks));
     num_chunks_ = num_chunks;
+cout<<"num_chunks_ "<<num_chunks_<<endl;	
     assert(num_chunks_ > 0);
     curr_block_data_ += 1;
 

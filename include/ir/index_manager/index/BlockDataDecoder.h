@@ -128,11 +128,6 @@ public:
         prev_decoded_doc_id_ = decoded_doc_id;
     }
 
-    void update_prev_decoded_doc_id(uint32_t doc_id_gap)
-    {
-        prev_decoded_doc_id_ += doc_id_gap;
-    }
-
     bool decoded() const
     {
         return decoded_;
@@ -162,10 +157,13 @@ public:
 private:
     void post_process_chunk(uint32_t* block, int size)
     {
+        block[0] += prev_decoded_doc_id_;
+    
         for(int i=1; i<size; ++i)
         {
-            block[i] = block[i] + block[i-1] + prev_decoded_doc_id_;
+            block[i] = block[i] + block[i-1];
         }
+        prev_decoded_doc_id_ = block[size - 1];
     }	
 
 private:

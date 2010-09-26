@@ -177,7 +177,6 @@ protected:
 	
     uint32_t* urgentBuffer_;
     uint32_t* compressedPos_;
-    uint32_t* doc_freq_decode_buffer_;
 
     friend class PostingMerger;
 };

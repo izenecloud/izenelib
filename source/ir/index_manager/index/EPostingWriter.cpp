@@ -37,7 +37,7 @@ BlockPostingWriter::~BlockPostingWriter()
 
 bool BlockPostingWriter::isEmpty()
 {
-    return (pPosDataPool_->pTailChunk_==NULL);//nDF_ == 0;
+    return nDF_ == 0;
 }
 
 void BlockPostingWriter::write(OutputDescriptor* pOutputDescriptor, TermInfo& termInfo)
@@ -112,7 +112,6 @@ void BlockPostingWriter::add(docid_t docid, loc_t location)
 
         if(current_nocomp_block_pointer_ == ChunkEncoder::kChunkSize)
         {
-        cout<<"position_buffer_pointer_ "<<position_buffer_pointer_<<endl;
             chunk_.encode(doc_ids_, frequencies_, positions_, current_nocomp_block_pointer_);
             pPosDataPool_->addPOSChunk(chunk_);
             if(!pBlockDataPool_->addChunk(chunk_))
@@ -144,13 +143,12 @@ void BlockPostingWriter::add(docid_t docid, loc_t location)
 
 void BlockPostingWriter::flush()
 {
-    if(current_nocomp_block_pointer_ > 0)
+//    if(current_nocomp_block_pointer_ > 0)
     {
-        if (nCurTermFreq_ > 0)
-            frequencies_[current_nocomp_block_pointer_++] = nCurTermFreq_;        
+        frequencies_[current_nocomp_block_pointer_++] = nCurTermFreq_;        
     
-	cout<<"position_buffer_pointer_ "<<position_buffer_pointer_<<endl;
         chunk_.encode(doc_ids_, frequencies_, positions_, current_nocomp_block_pointer_);
+
         pPosDataPool_->addPOSChunk(chunk_);
 
         if(!pBlockDataPool_->addChunk(chunk_))
@@ -205,7 +203,7 @@ ChunkPostingWriter::~ChunkPostingWriter()
 
 bool ChunkPostingWriter::isEmpty()
 {
-    return (pPosDataPool_->pTailChunk_==NULL);//nDF_ == 0;
+    return nDF_ == 0;
 }
 
 void ChunkPostingWriter::write(OutputDescriptor* pOutputDescriptor, TermInfo& termInfo)
@@ -315,10 +313,9 @@ void ChunkPostingWriter::add(docid_t docid, loc_t location)
 
 void ChunkPostingWriter::flush()
 {
-    if(current_nocomp_block_pointer_ > 0)
+    //if(current_nocomp_block_pointer_ > 0)
     {
-        if (nCurTermFreq_ > 0)
-            frequencies_[current_nocomp_block_pointer_++] = nCurTermFreq_;        
+        frequencies_[current_nocomp_block_pointer_++] = nCurTermFreq_;        
     
         chunk_.encode(doc_ids_, frequencies_, positions_, current_nocomp_block_pointer_);
         pDocFreqDataPool_->addDFChunk(chunk_);
