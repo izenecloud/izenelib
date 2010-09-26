@@ -289,7 +289,7 @@ bool BlockEncoder::addChunk(const ChunkEncoder& chunk)
     {
         int curr_chunk_properties_compressed_len = compressHeader(chunk_data_uncompressed_, chunk_data_compressed_, kNumHeaderInts);
 
-        if ((curr_block_data_size + num_chunks_size + (curr_chunk_properties_compressed_len * sizeof(uint32_t))) <= kBlockSize)
+        if ((curr_block_data_size + num_chunks_size + (curr_chunk_properties_compressed_len * static_cast<int>(sizeof(uint32_t)))) <= kBlockSize)
         {
             chunk_data_compressed_len_ = curr_chunk_properties_compressed_len;
         }

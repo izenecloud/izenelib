@@ -46,19 +46,7 @@ void ChunkDecoder::decodeDocIds()
 {
     // A word is meant to be sizeof(uint32_t) bytes in this context.
     int num_words_consumed = doc_id_decompressor_.decompress(const_cast<uint32_t*> (curr_buffer_position_), doc_ids_, num_docs_);
-	cout<<"before decoded doc ids: ";
-		for(int i=0; i<num_docs_; ++i)
-		{
-			cout<<doc_ids_[i]<<",";
-		}
-		cout<<endl;
     post_process_chunk(doc_ids_, num_docs_);
-cout<<"after decoded doc ids: ";
-	for(int i=0; i<num_docs_; ++i)
-	{
-		cout<<doc_ids_[i]<<",";
-	}
-	cout<<endl;
     curr_buffer_position_ += num_words_consumed;
     decoded_ = true;
 }
