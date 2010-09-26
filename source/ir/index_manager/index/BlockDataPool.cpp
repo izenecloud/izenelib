@@ -289,7 +289,7 @@ bool BlockEncoder::addChunk(const ChunkEncoder& chunk)
     {
         int curr_chunk_properties_compressed_len = compressHeader(chunk_data_uncompressed_, chunk_data_compressed_, kNumHeaderInts);
 
-        if ((curr_block_data_size + num_chunks_size + (curr_chunk_properties_compressed_len * static_cast<int> (sizeof(*chunk_data_compressed_)))) <= kBlockSize)
+        if ((curr_block_data_size + num_chunks_size + (curr_chunk_properties_compressed_len * sizeof(uint32_t))) <= kBlockSize)
         {
             chunk_data_compressed_len_ = curr_chunk_properties_compressed_len;
         }
@@ -432,7 +432,7 @@ bool BlockDataPool::addChunk(const ChunkEncoder& chunk)
 {
     if (pTailBlock_ == NULL)
     {
-        addBlock();
+        addBlock(false);
         return addChunk(chunk);
     }
 
@@ -440,7 +440,6 @@ bool BlockDataPool::addChunk(const ChunkEncoder& chunk)
     {
         return false;
     }
-    copyBlockData();
     return true;
 }
 
@@ -455,6 +454,8 @@ void BlockDataPool::copyBlockData()
 
 void BlockDataPool::write(IndexOutput* pOutput)
 {
+    copyBlockData();
+
     BlockData* pChunk = pHeadBlock_;
     while (pChunk)
     {
@@ -463,7 +464,7 @@ void BlockDataPool::write(IndexOutput* pOutput)
     }
 }
 
-void BlockDataPool::addBlock()
+void BlockDataPool::addBlock(bool copyData)
 {
     uint8_t* begin = pMemCache_->getMemByRealSize(BlockEncoder::kBlockSize+sizeof(BlockData*));
     ///allocate memory failed,decrease chunk size
@@ -489,6 +490,8 @@ void BlockDataPool::addBlock()
     nTotalSize_ += BlockEncoder::kBlockSize;
 
     num_doc_of_curr_block_ = blockEncoder_.num_doc_ids();
+
+    if(copyData) copyBlockData();
     blockEncoder_.reset();
 }
 

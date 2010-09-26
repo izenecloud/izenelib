@@ -47,6 +47,7 @@ void BlockPostingReader::reset(const TermInfo& termInfo)
     start_block_id_ = termInfo.skipLevel_;
     total_block_num_ = termInfo.docPostingLen_/BLOCK_SIZE;
     last_block_id_ = curr_block_id_ + total_block_num_ - 1;
+cout<<"curr_block_id_ "<<curr_block_id_<<" total_block_num_ "<<total_block_num_<<endl;
     postingOffset_ = termInfo.docPointer_;
 
     IndexInput* pDPInput = pInputDescriptor_->getDPostingInput();
@@ -112,6 +113,7 @@ void BlockPostingReader::advanceToNextBlock()
     else
     {
         if(!urgentBuffer_) urgentBuffer_ = (uint32_t*)new char[BLOCK_SIZE];
+cout<<"curr block id "<<curr_block_id_<<endl;		
         pDPInput->seek(postingOffset_ + (curr_block_id_ - start_block_id_)* BLOCK_SIZE);
         pDPInput->read((char *)urgentBuffer_, BLOCK_SIZE);
         blockDecoder_.init(curr_block_id_, urgentBuffer_);
@@ -311,7 +313,6 @@ int32_t BlockPostingReader::decodeNext(uint32_t* pPosting,int32_t length, uint32
                 // Create a new chunk and add it to the block.
                 chunk.reset(blockDecoder_.curr_block_data(), std::min(CHUNK_SIZE, (int)num_docs_left_));
                 chunk.set_doc_freq_buffer(pDoc,pFreq);
-                chunk.set_prev_decoded_doc_id(prev_block_last_doc_id_);
                 chunk.decodeDocIds();
                 chunk.decodeFrequencies();
 
