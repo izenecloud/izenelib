@@ -52,11 +52,11 @@ public:
 
     /**
      * Get the position posting data
-    	 * @param pPosing the address to store posting data
+     * @param pPosing the address to store posting data
      * @param the length of pPosting
      * @return true:success,false: error or reach end
      */
-    bool decodeNextPositions(uint32_t* pPosting,int32_t length);
+    bool decodeNextPositions(uint32_t* pPosting,int32_t length) { return true; }
 
     /**
      * Get the position posting data
@@ -64,7 +64,7 @@ public:
      * @param pFreqs freqs array
      * @param nFreqs size of freqs array
      */
-    bool decodeNextPositions(uint32_t* pPosting,uint32_t* pFreqs,int32_t nFreqs);
+    bool decodeNextPositions(uint32_t* pPosting,uint32_t* pFreqs,int32_t nFreqs) { return true; }
 
     /**
      * Decode postings to target docID
@@ -76,7 +76,7 @@ public:
     /**
      * reset the base position which used in d-gap encoding
      */
-    void resetPosition();
+    void resetPosition(){}
 
     /**
      * reset the content of Posting list.
@@ -163,9 +163,6 @@ protected:
     docid_t last_doc_id_;
     count_t num_docs_left_;
     count_t num_docs_decoded_;
-    loc_t last_pos_decoded_; 		///the latest decoded position posting
-    int32_t num_pos_decoded_;		///decoded position posting count
-    int32_t num_pos_chunk_skipped_;
     int32_t curr_pos_buffer_size_;
 
     docid_t prev_block_last_doc_id_;
@@ -207,11 +204,11 @@ public:
 
     /**
      * Get the position posting data
-    	 * @param pPosing the address to store posting data
+     * @param pPosing the address to store posting data
      * @param the length of pPosting
      * @return true:success,false: error or reach end
      */
-    bool decodeNextPositions(uint32_t* pPosting,int32_t length);
+    bool decodeNextPositions(uint32_t* pPosting,int32_t length) { return true; }
 
     /**
      * Get the position posting data
@@ -219,12 +216,8 @@ public:
      * @param pFreqs freqs array
      * @param nFreqs size of freqs array
      */
-    bool decodeNextPositions(uint32_t* pPosting,uint32_t* pFreqs,int32_t nFreqs);
+    bool decodeNextPositions(uint32_t* pPosting,uint32_t* pFreqs,int32_t nFreqs)  { return true; }
 
-    /**
-     * Set file pointer after skipping
-     */
-    void seekTo(SkipListReader* pSkipListReader);
 
     /**
      * Decode postings to target docID
@@ -236,7 +229,7 @@ public:
     /**
      * reset the base position which used in d-gap encoding
      */
-    void resetPosition();
+    void resetPosition(){}
 
     /**
      * reset the content of Posting list.
@@ -315,9 +308,6 @@ protected:
     docid_t last_doc_id_;
     count_t num_docs_left_;
     count_t num_docs_decoded_;
-    loc_t last_pos_decoded_; 		///the latest decoded position posting
-    int32_t num_pos_decoded_;		///decoded position posting count
-    int32_t num_pos_chunk_skipped_;
     int32_t curr_pos_buffer_size_;
 
     docid_t prev_block_last_doc_id_;

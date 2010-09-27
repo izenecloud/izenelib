@@ -126,7 +126,8 @@ uint32_t ChunkDecoder::move_to(uint32_t target, bool computePos)
     }
     if(computePos)
     {
-        for (int i = 0; i <= curr_document_offset_; ++i)
+        num_positions_ = 0;
+        for (int i = 0; i < curr_document_offset_; ++i)
         {
             num_positions_ += frequencies_[i];
         }

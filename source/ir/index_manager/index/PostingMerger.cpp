@@ -387,7 +387,6 @@ void PostingMerger::mergeWith(BlockPostingReader* pPosting,BitVector* pFilter)
     if (bFirstPosting_)///first posting
     {
         reset();
-	
         nPPostingLength_ = 0;
         bFirstPosting_ = false;
     }
@@ -411,17 +410,15 @@ void PostingMerger::mergeWith(BlockPostingReader* pPosting,BitVector* pFilter)
                 // Create a new chunk and add it to the block.
                 int chunkSize = std::min(CHUNK_SIZE, num_docs_left);
                 chunk.reset(blockDecoder.curr_block_data(), chunkSize);
-                chunk.set_prev_decoded_doc_id(prev_block_last_doc_id);
                 chunk.decodeDocIds();
                 chunk.decodeFrequencies();
-
 
                 size_of_positions = chunk.size_of_positions();
                 ensure_pos_buffer(size_of_positions);
                 chunk.set_pos_buffer(positions_ + position_buffer_pointer_);
                 int size = pPInput->readVInt();
-                ensure_compressed_pos_buffer(size);
-                pPInput->readBytes((uint8_t*)compressedPos_,size*sizeof(uint32_t));
+                ensure_compressed_pos_buffer(size>>2);
+                pPInput->readBytes((uint8_t*)compressedPos_,size);
                 chunk.decodePositions(compressedPos_);
 
                 if(!pFilter) chunk.post_process(pFilter);
@@ -501,13 +498,12 @@ void PostingMerger::mergeWith(ChunkPostingReader* pPosting,BitVector* pFilter)
     while(num_docs_left)
     {
         doc_size = pDInput->readVInt();
-        pDInput->readBytes((uint8_t*)compressedBuffer_,doc_size*sizeof(uint32_t));
+        pDInput->readBytes((uint8_t*)compressedBuffer_,doc_size);
         tf_size = pDInput->readVInt();
-        pDInput->readBytes((uint8_t*)compressedBuffer_ + doc_size, tf_size*sizeof(uint32_t));
+        pDInput->readBytes((uint8_t*)compressedBuffer_ + doc_size, tf_size);
 
         int chunkSize = std::min(CHUNK_SIZE, num_docs_left);
         chunk.reset(compressedBuffer_, chunkSize);
-        chunk.set_prev_decoded_doc_id(prev_chunk_last_doc_id);
         chunk.decodeDocIds();
         chunk.decodeFrequencies();
 
@@ -515,8 +511,8 @@ void PostingMerger::mergeWith(ChunkPostingReader* pPosting,BitVector* pFilter)
         ensure_pos_buffer(size_of_positions);
         chunk.set_pos_buffer(positions_ + position_buffer_pointer_);
         int size = pPInput->readVInt();
-        ensure_compressed_pos_buffer(size);
-        pPInput->readBytes((uint8_t*)compressedPos_,size*sizeof(uint32_t));
+        ensure_compressed_pos_buffer(size>>2);
+        pPInput->readBytes((uint8_t*)compressedPos_,size);
         chunk.decodePositions(compressedPos_);
 
         if(!pFilter) chunk.post_process(pFilter);

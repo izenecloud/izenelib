@@ -47,6 +47,7 @@ void BlockPostingReader::reset(const TermInfo& termInfo)
     start_block_id_ = termInfo.skipLevel_;
     total_block_num_ = termInfo.docPostingLen_/BLOCK_SIZE;
     last_block_id_ = curr_block_id_ + total_block_num_ - 1;
+cout<<"curr_block_id_ "<<curr_block_id_<<" total_block_num_ "<<total_block_num_<<endl;
     postingOffset_ = termInfo.docPointer_;
 
     IndexInput* pDPInput = pInputDescriptor_->getDPostingInput();
@@ -61,9 +62,6 @@ void BlockPostingReader::reset(const TermInfo& termInfo)
     last_doc_id_ = termInfo.lastDocID_;
     num_docs_left_ = df_;
     num_docs_decoded_ = 0;
-    last_pos_decoded_ = 0;
-    num_pos_decoded_ = 0;
-    num_pos_chunk_skipped_ = 0;
 
     prev_block_last_doc_id_ = 0;
 
@@ -160,7 +158,6 @@ docid_t BlockPostingReader::decodeTo(docid_t target)
         if(pPPostingInput)
         {
             pPPostingInput->seek(poffset_ + pSkipListReader_->getPOffset());
-            last_pos_decoded_ = 0;///reset position
         }
     }
 
@@ -253,7 +250,6 @@ int32_t BlockPostingReader::decodeNext(uint32_t* pPosting,int32_t length)
             }
             blockDecoder_.advance_curr_chunk();
             chunk.set_decoded(false);
-
         } 
         else 
         {
@@ -261,6 +257,8 @@ int32_t BlockPostingReader::decodeNext(uint32_t* pPosting,int32_t length)
             advanceToNextBlock();
         }        
     }
+
+    num_docs_decoded_ += decodedDoc;
 
     return decodedDoc;
 }
@@ -347,7 +345,6 @@ int32_t BlockPostingReader::decodeNext(uint32_t* pPosting,int32_t length, uint32
 
             blockDecoder_.advance_curr_chunk();
             chunk.set_decoded(false);
-
         } 
         else 
         {
@@ -355,23 +352,10 @@ int32_t BlockPostingReader::decodeNext(uint32_t* pPosting,int32_t length, uint32
             advanceToNextBlock();
         }        
     }
+
+    num_docs_decoded_ += decodedDoc;
+
     return decodedDoc;
-
-}
-
-bool BlockPostingReader::decodeNextPositions(uint32_t* pPosting,int32_t length)
-{
-    return true;
-}
-
-bool BlockPostingReader::decodeNextPositions(uint32_t* pPosting,uint32_t* pFreqs,int32_t nFreqs)
-{
-    return true;
-}
-
-void BlockPostingReader::resetPosition()
-{
-    last_pos_decoded_ = 0;
 }
 
 void BlockPostingReader::reset()
@@ -385,8 +369,6 @@ void BlockPostingReader::reset()
     plength_ = 0;
     last_doc_id_ = 0;
 }
-
-
 
 //////////////////////////////////////////////////////////////////////////
 ///ChunkPostingReader
@@ -434,9 +416,6 @@ void ChunkPostingReader::reset(const TermInfo& termInfo)
     last_doc_id_ = termInfo.lastDocID_;
     num_docs_left_ = df_;
     num_docs_decoded_ = 0;
-    last_pos_decoded_ = 0;
-    num_pos_decoded_ = 0;
-    num_pos_chunk_skipped_ = 0;
 
     prev_block_last_doc_id_ = 0;
 
@@ -466,12 +445,23 @@ void ChunkPostingReader::reset(const TermInfo& termInfo)
 docid_t ChunkPostingReader::decodeTo(docid_t target)
 {
     docid_t lastDocID = 0;
+
+    IndexInput* pPPostingInput = pInputDescriptor_->getPPostingInput();
+    bool computePos = (pPPostingInput == NULL)? false:true;
+
     if(pSkipListReader_)
     {
         lastDocID = pSkipListReader_->skipTo(target);
         if(lastDocID > last_doc_id_)
         {
-            seekTo(pSkipListReader_);
+            IndexInput* pDPostingInput = pInputDescriptor_->getDPostingInput();
+            pDPostingInput->seek(postingOffset_ + pSkipListReader_->getOffset());
+            last_doc_id_ = pSkipListReader_->getDoc();
+            num_docs_decoded_ = pSkipListReader_->getNumSkipped();
+            if(pPPostingInput)
+            {
+                pPPostingInput->seek(poffset_ + pSkipListReader_->getPOffset());
+            }
         }
     }
 
@@ -484,31 +474,15 @@ docid_t ChunkPostingReader::decodeTo(docid_t target)
 	int tf_size = pDPostingInput->readVInt();
 	pDPostingInput->readBytes((uint8_t*)compressedBuffer_ + doc_size, tf_size);
 	chunkDecoder_.reset(compressedBuffer_, std::min(CHUNK_SIZE, (int)num_docs_left_));
-	chunkDecoder_.set_doc_freq_buffer(NULL,NULL);
-	chunkDecoder_.set_prev_decoded_doc_id(lastDocID);
 	chunkDecoder_.decodeDocIds();
-	chunkDecoder_.decodeFrequencies();
+	chunkDecoder_.decodeFrequencies(computePos);
 
 	if(pDocFilter_) chunkDecoder_.post_process(pDocFilter_);
     }
 
-    docid_t nDocID = chunkDecoder_.move_to(target);
+    docid_t nDocID = chunkDecoder_.move_to(target,computePos);
 
     return ( nDocID >= target )? nDocID : -1;
-}
-
-void ChunkPostingReader::seekTo(SkipListReader* pSkipListReader)
-{
-    IndexInput* pDPostingInput = pInputDescriptor_->getDPostingInput();
-    pDPostingInput->seek(postingOffset_ + pSkipListReader->getOffset());
-    last_doc_id_ = pSkipListReader->getDoc();
-    num_docs_decoded_ = pSkipListReader->getNumSkipped();
-    IndexInput* pPPostingInput = pInputDescriptor_->getPPostingInput();
-    if(pPPostingInput)
-    {
-        pPPostingInput->seek(poffset_ + pSkipListReader->getPOffset());
-        last_pos_decoded_ = 0;///reset position
-    }
 }
 
 int32_t ChunkPostingReader::decodeNext(uint32_t* pPosting,int32_t length)
@@ -536,7 +510,6 @@ int32_t ChunkPostingReader::decodeNext(uint32_t* pPosting,int32_t length)
         left -= (end - start);
     }
 
-
     int decodedDoc = 0;
 
     IndexInput* pDPostingInput = pInputDescriptor_->getDPostingInput();
@@ -552,14 +525,17 @@ int32_t ChunkPostingReader::decodeNext(uint32_t* pPosting,int32_t length)
         pDPostingInput->readBytes((uint8_t*)compressedBuffer_ + doc_size, tf_size);
         chunkDecoder_.reset(compressedBuffer_, std::min(CHUNK_SIZE, (int)num_docs_left_));
         chunkDecoder_.set_doc_freq_buffer(pDoc,pFreq);
-        chunkDecoder_.set_prev_decoded_doc_id(prev_block_last_doc_id_);
         chunkDecoder_.decodeDocIds();
         chunkDecoder_.decodeFrequencies(false);
         if(!pDocFilter_) chunkDecoder_.post_process(pDocFilter_);
         num_docs_left_ -= chunkDecoder_.num_docs();;
         left -= chunkDecoder_.num_docs();
         decodedDoc += chunkDecoder_.num_docs();
+        pDoc += chunkDecoder_.num_docs();
+        pFreq += chunkDecoder_.num_docs();
     }
+
+    num_docs_decoded_ += decodedDoc;
 
     return decodedDoc;
 }
@@ -619,7 +595,6 @@ int32_t ChunkPostingReader::decodeNext(uint32_t* pPosting,int32_t length, uint32
         pDPostingInput->readBytes((uint8_t*)compressedBuffer_ + doc_size, tf_size);
         chunkDecoder_.reset(compressedBuffer_, std::min(CHUNK_SIZE, (int)num_docs_left_));
         chunkDecoder_.set_doc_freq_buffer(pDoc,pFreq);
-        chunkDecoder_.set_prev_decoded_doc_id(prev_block_last_doc_id_);
         chunkDecoder_.decodeDocIds();
         chunkDecoder_.decodeFrequencies();
 
@@ -638,24 +613,15 @@ int32_t ChunkPostingReader::decodeNext(uint32_t* pPosting,int32_t length, uint32
         decodedDoc += chunkDecoder_.num_docs();
         if(chunkDecoder_.has_deleted_doc()) size_of_positions = chunkDecoder_.size_of_positions();
         decompressed_pos += size_of_positions;
+
+	pDoc += chunkDecoder_.num_docs();
+	pFreq += chunkDecoder_.num_docs();
+
     }
 
+    num_docs_decoded_ += decodedDoc;
+
     return decodedDoc;
-}
-
-bool ChunkPostingReader::decodeNextPositions(uint32_t* pPosting,int32_t length)
-{
-    return true;
-}
-
-bool ChunkPostingReader::decodeNextPositions(uint32_t* pPosting,uint32_t* pFreqs,int32_t nFreqs)
-{
-    return true;
-}
-
-void ChunkPostingReader::resetPosition()
-{
-    last_pos_decoded_ = 0;
 }
 
 void ChunkPostingReader::reset()
