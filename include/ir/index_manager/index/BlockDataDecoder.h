@@ -35,7 +35,7 @@ public:
 
     void decodeDocIds();
 
-    void decodeFrequencies();
+    void decodeFrequencies(bool computePos = true);
 
     int decodePositions(const uint32_t* compressed_positions);
 
@@ -96,8 +96,14 @@ public:
         return num_docs_;
     }
 
-    int size_of_positions()
+    int size_of_positions(bool count = false)
     {
+        if(!count) return num_positions_;
+        num_positions_ = 0;
+        for (int i = 0; i < num_docs_; ++i)
+        {
+            num_positions_ += frequencies_[i];
+        }
         return num_positions_;
     }
 
@@ -142,7 +148,7 @@ public:
         return use_internal_buffer_;
     }
 
-    uint32_t move_to(uint32_t target);
+    uint32_t move_to(uint32_t target, bool computePos = false);
 
     /// deal with deleted documents
     void post_process(BitVector* pDocFilter);

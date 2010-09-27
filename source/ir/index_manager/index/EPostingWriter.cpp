@@ -117,7 +117,7 @@ void BlockPostingWriter::add(docid_t docid, loc_t location)
             if(!pBlockDataPool_->addChunk(chunk_))
             {
                 current_block_id_++;
-                pSkipListWriter_->addSkipPoint(nLastDocID_,pBlockDataPool_->num_doc_of_curr_block(),
+                pSkipListWriter_->addSkipPoint(pBlockDataPool_->blockEncoder_.last_doc_id_, pBlockDataPool_->num_doc_of_curr_block(),
                                                            pBlockDataPool_->getLength(),pPosDataPool_->getLength());
                 pBlockDataPool_->addBlock();
                 pBlockDataPool_->addChunk(chunk_);
@@ -154,14 +154,14 @@ void BlockPostingWriter::flush()
         if(!pBlockDataPool_->addChunk(chunk_))
         {
             current_block_id_++;
-            pSkipListWriter_->addSkipPoint(nLastDocID_,pBlockDataPool_->num_doc_of_curr_block(),
+            pSkipListWriter_->addSkipPoint(pBlockDataPool_->blockEncoder_.last_doc_id_, pBlockDataPool_->num_doc_of_curr_block(),
                                                         pBlockDataPool_->getLength(),pPosDataPool_->getLength());
             pBlockDataPool_->addBlock();
             pBlockDataPool_->addChunk(chunk_);			
         }
 
         current_block_id_++;
-        pSkipListWriter_->addSkipPoint(nLastDocID_,pBlockDataPool_->num_doc_of_curr_block(), 
+        pSkipListWriter_->addSkipPoint(chunk_.last_doc_id(), pBlockDataPool_->num_doc_of_curr_block(), 
                                                 pBlockDataPool_->getLength(),pPosDataPool_->getLength());
 
     }

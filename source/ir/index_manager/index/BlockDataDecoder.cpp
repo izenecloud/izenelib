@@ -10,7 +10,7 @@ namespace indexmanager
  *
  **************************************************************************************************************************************************************/
 ChunkDecoder::ChunkDecoder() :
-        num_docs_(0), curr_document_offset_(-1), prev_document_offset_(0), curr_position_offset_(0), prev_decoded_doc_id_(0), num_positions_(0),
+        num_docs_(0), curr_document_offset_(0), prev_document_offset_(0), curr_position_offset_(0), prev_decoded_doc_id_(0), num_positions_(0),
         curr_buffer_position_(NULL), decoded_(false), doc_deleted_(false)
 {
 }
@@ -18,7 +18,7 @@ ChunkDecoder::ChunkDecoder() :
 void ChunkDecoder::reset(const uint32_t* buffer, int num_docs)
 {
     num_docs_ = num_docs;
-    curr_document_offset_ = -1;  // -1 signals that we haven't had an intersection yet.
+    curr_document_offset_ = 0;
     prev_document_offset_ = 0;
     curr_position_offset_ = 0;
     //prev_decoded_doc_id_ = 0;
@@ -51,15 +51,17 @@ void ChunkDecoder::decodeDocIds()
     decoded_ = true;
 }
 
-void ChunkDecoder::decodeFrequencies()
+void ChunkDecoder::decodeFrequencies(bool computePos)
 {
     curr_buffer_position_ += frequency_decompressor_.decompress(const_cast<uint32_t*> (curr_buffer_position_), frequencies_, num_docs_);
 
-    // Count the number of positions we have in total by summing up all the frequencies.
-    num_positions_ = 0;
-    for (int i = 0; i < num_docs_; ++i)
+    if(computePos)
     {
-        num_positions_ += frequencies_[i];
+        num_positions_ = 0;
+        for (int i = 0; i < num_docs_; ++i)
+        {
+            num_positions_ += frequencies_[i];
+        }
     }
 }
 
@@ -116,11 +118,18 @@ void ChunkDecoder::updatePositionOffset()
     prev_document_offset_ = curr_document_offset_;
 }
 
-uint32_t ChunkDecoder::move_to(uint32_t target)
+uint32_t ChunkDecoder::move_to(uint32_t target, bool computePos)
 {
-    while(doc_ids_[curr_document_offset_] >= target)
+    while(doc_ids_[curr_document_offset_] < target)
     {
         ++curr_document_offset_;
+    }
+    if(computePos)
+    {
+        for (int i = 0; i <= curr_document_offset_; ++i)
+        {
+            num_positions_ += frequencies_[i];
+        }
     }
     return doc_ids_[curr_document_offset_];
 }

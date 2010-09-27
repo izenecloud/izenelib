@@ -317,6 +317,8 @@ void BlockEncoder::reset()
     num_frequency_bytes_ = 0;
     num_wasted_space_bytes_ = 0;
     num_doc_ids_ = 0;
+    first_doc_id_ = 0;
+    last_doc_id_ = 0;
 }
 
 void BlockEncoder::copyChunkData(const ChunkEncoder& chunk)
@@ -366,6 +368,8 @@ void BlockEncoder::copyChunkData(const ChunkEncoder& chunk)
         assert(false);  // Frequencies should always be present.
     }
 
+    if(first_doc_id_ == 0) first_doc_id_ = chunk.first_doc_id();
+    last_doc_id_ = chunk.last_doc_id();
 }
 
 // The 'header' array size needs to be a multiple of the block size used by the block header compressor.

@@ -73,11 +73,8 @@ void BlockPostingReader::reset(const TermInfo& termInfo)
         pSkipListReader_ = 0;	
     }
 
-    if((termInfo.docFreq_ >= 4096)&&(termInfo.skipPointer_ != -1))
-    {
-        pDPInput->seek(termInfo.skipPointer_);
-        pSkipListReader_ = new FixedBlockSkipListReader(pDPInput, start_block_id_);
-    }
+    pDPInput->seek(termInfo.skipPointer_);
+    pSkipListReader_ = new FixedBlockSkipListReader(pDPInput, start_block_id_);
 
     pDPInput->seek(postingOffset_);
 
@@ -141,7 +138,7 @@ void BlockPostingReader::skipToBlock(size_t targetBlock)
     else
     {
         if(!urgentBuffer_) urgentBuffer_ = (uint32_t*)new char[BLOCK_SIZE];
-        for(; curr_block_id_ <= targetBlock; ++curr_block_id_){}
+        curr_block_id_ = targetBlock;
         pDPInput->seek(postingOffset_ + (curr_block_id_ - start_block_id_) * BLOCK_SIZE);
         pDPInput->read((char *)urgentBuffer_, BLOCK_SIZE);
         blockDecoder_.init(curr_block_id_, urgentBuffer_);
@@ -150,85 +147,55 @@ void BlockPostingReader::skipToBlock(size_t targetBlock)
 
 docid_t BlockPostingReader::decodeTo(docid_t target)
 {
-    if(pSkipListReader_)
+    docid_t lastDocID = pSkipListReader_->skipTo(target);
+    if(lastDocID == (docid_t)-1) return -1;
+
+    IndexInput* pPPostingInput = pInputDescriptor_->getPPostingInput();
+    if(lastDocID > last_doc_id_)
     {
-        docid_t lastDocID = pSkipListReader_->skipTo(target);
-        if(lastDocID > last_doc_id_)
-        {
-            seekTo(pSkipListReader_);
-        }
         size_t currBlock = pSkipListReader_->getBlockId();
-        skipToBlock(currBlock);
+        skipToBlock(currBlock - 1);
+        last_doc_id_ = pSkipListReader_->getDoc();
+        num_docs_decoded_ = pSkipListReader_->getNumSkipped();
+        if(pPPostingInput)
+        {
+            pPPostingInput->seek(poffset_ + pSkipListReader_->getPOffset());
+            last_pos_decoded_ = 0;///reset position
+        }
     }
 
-    int curr_chunk_num = blockDecoder_.curr_chunk();
-    if (curr_chunk_num < blockDecoder_.num_chunks()) 
+    ChunkDecoder& chunk = blockDecoder_.chunk_decoder_;
+    bool computePos = (pPPostingInput == NULL)? false:true;
+    while (blockDecoder_.curr_chunk() < blockDecoder_.num_chunks()) 
     {
         // Check the last doc id of the chunk against the current doc id
         // we're looking for and skip the chunk if possible.
-        if (target <= blockDecoder_.chunk_last_doc_id(curr_chunk_num)) 
+        if (target <= blockDecoder_.chunk_last_doc_id(blockDecoder_.curr_chunk())) 
         {
-            ChunkDecoder& chunk = blockDecoder_.chunk_decoder_;
-
             // Check if we previously decoded this chunk and decode if necessary.
             if (chunk.decoded() == false) 
             {
                 // Create a new chunk and add it to the block.
                 chunk.reset(blockDecoder_.curr_block_data(), std::min(CHUNK_SIZE, (int)num_docs_left_));
                 chunk.decodeDocIds();
-                chunk.decodeFrequencies();
-
-                // We need offset from previous chunk if this is not the first chunk in the list.
-                if (curr_chunk_num > 0) 
-                {
-                    uint32_t doc_id_offset = blockDecoder_.chunk_last_doc_id(curr_chunk_num - 1);
-                    chunk.set_prev_decoded_doc_id(doc_id_offset);
-                }
+                chunk.decodeFrequencies(computePos);
             }
-
-            uint32_t curr_doc_id = chunk.prev_decoded_doc_id();
-
-            // The current document offset was the last docID processed, so we increment by 1 in order to not process it again. But not for the first chunk processed.
-            int curr_document_offset = chunk.curr_document_offset() == -1 ? 0 : chunk.curr_document_offset() + 1;
-            for (int k = curr_document_offset; k < chunk.num_docs(); ++k) 
-            {
-                // Found the docID we're looking for.
-                if (curr_doc_id >= target) 
-                {
-                    chunk.set_curr_document_offset(k);
-                    chunk.set_prev_decoded_doc_id(curr_doc_id);
-                    return curr_doc_id;
-                }
-            }
+            return chunk.move_to(target,computePos);
         }
 
         blockDecoder_.advance_curr_chunk();
         blockDecoder_.chunk_decoder_.set_decoded(false);
-
-        // Can update the number of documents left to process after processing the complete chunk.
-        num_docs_left_ -= CHUNK_SIZE;
+        if(pPPostingInput)
+       	{
+       	    int size = pPPostingInput->readVInt();
+       	    ensure_pos_buffer(size>>2);
+       	    pPPostingInput->readBytes((uint8_t*)compressedPos_,size);
+        }
+        num_docs_left_ -= chunk.num_docs();
         
     } 
-    else 
-    {
-        prev_block_last_doc_id_ = blockDecoder_.chunk_last_doc_id(blockDecoder_.num_chunks() - 1);
-        advanceToNextBlock();
-    }
-    return BAD_DOCID;
-}
 
-void BlockPostingReader::seekTo(FixedBlockSkipListReader* pSkipListReader)
-{
-    IndexInput* pDPostingInput = pInputDescriptor_->getDPostingInput();
-    pDPostingInput->seek(postingOffset_ + pSkipListReader->getOffset());
-    last_doc_id_ = pSkipListReader->getDoc();
-    num_docs_decoded_ = pSkipListReader->getNumSkipped();
-    IndexInput* pPPostingInput = pInputDescriptor_->getPPostingInput();
-    if(pPPostingInput)
-    {
-        pPPostingInput->seek(poffset_ + pSkipListReader->getPOffset());
-        last_pos_decoded_ = 0;///reset position
-    }
+    return BAD_DOCID;
 }
 
 int32_t BlockPostingReader::decodeNext(uint32_t* pPosting,int32_t length)
@@ -259,17 +226,34 @@ int32_t BlockPostingReader::decodeNext(uint32_t* pPosting,int32_t length)
                 chunk.reset(blockDecoder_.curr_block_data(), std::min(CHUNK_SIZE, (int)num_docs_left_));
                 chunk.set_doc_freq_buffer(pDoc,pFreq);
                 chunk.decodeDocIds();
-                chunk.decodeFrequencies();
+                chunk.decodeFrequencies(false);
                 if(pDocFilter_) chunk.post_process(pDocFilter_);
-            }
 
+                // Can update the number of documents left to process after processing the complete chunk.
+                num_docs_left_ -= chunk.num_docs();
+                left -= chunk.num_docs();
+                decodedDoc += chunk.num_docs();
+                pDoc += chunk.num_docs();
+                pFreq += chunk.num_docs();
+            }
+            else
+            {
+                ///decodeTo has happened in this chunk, so this chunk has already been decoded
+                for(int i = chunk.curr_document_offset(); i < chunk.num_docs(); ++i)
+                {
+                    *pDoc++ = chunk.doc_id(i);
+                    *pFreq++ = chunk.frequencies(i);
+                }
+
+                // Can update the number of documents left to process after processing the complete chunk.
+                int num_doc = chunk.num_docs() - chunk.curr_document_offset();
+                num_docs_left_ -= num_doc;
+                left -= num_doc;
+                decodedDoc += num_doc;
+            }
             blockDecoder_.advance_curr_chunk();
             chunk.set_decoded(false);
 
-            // Can update the number of documents left to process after processing the complete chunk.
-            num_docs_left_ -= chunk.num_docs();
-            left -= chunk.num_docs();
-            decodedDoc += chunk.num_docs();
         } 
         else 
         {
@@ -288,6 +272,7 @@ int32_t BlockPostingReader::decodeNext(uint32_t* pPosting,int32_t length, uint32
         return -1;
     uint32_t* pDoc = pPosting;
     uint32_t* pFreq = pPosting + (length>>1);
+
     if (length > left*2)
         length = left*2;
     left = (length>>1);
@@ -322,17 +307,47 @@ int32_t BlockPostingReader::decodeNext(uint32_t* pPosting,int32_t length, uint32
                 pPPostingInput->readBytes((uint8_t*)compressedPos_,size);
                 chunk.decodePositions(compressedPos_);
                 if(pDocFilter_) chunk.post_process(pDocFilter_);
+
+                num_docs_left_ -= chunk.num_docs();;
+                left -= chunk.num_docs();
+                decodedDoc += chunk.num_docs();
+                if(chunk.has_deleted_doc()) size_of_positions = chunk.size_of_positions();
+                decompressed_pos += size_of_positions;
+
+                pDoc += chunk.num_docs();
+                pFreq += chunk.num_docs();
+            }
+            else
+            {
+                ///decodeTo has happened in this chunk, so this chunk has already been decoded
+                for(int i = chunk.curr_document_offset(); i < chunk.num_docs(); ++i)
+                {
+                    *pDoc++ = chunk.doc_id(i);
+                    *pFreq++ = chunk.frequencies(i);
+                }
+
+                size_of_positions = chunk.size_of_positions(true);
+                if((pLength - decompressed_pos) < size_of_positions) growPosBuffer(pPPosting, pLength);
+
+                chunk.set_pos_buffer(pPPosting + decompressed_pos);
+
+                int size = pPPostingInput->readVInt();
+                ensure_pos_buffer(size>>2);
+                pPPostingInput->readBytes((uint8_t*)compressedPos_,size);
+                chunk.decodePositions(compressedPos_);
+                memmove (pPPosting, pPPosting + chunk.curr_position_offset(), (size_of_positions - chunk.curr_position_offset())*sizeof(uint32_t));
+
+                // Can update the number of documents left to process after processing the complete chunk.
+                int num_doc = chunk.num_docs() - chunk.curr_document_offset();
+                num_docs_left_ -= num_doc;
+                left -= num_doc;
+                decodedDoc += num_doc;
+                decompressed_pos += (size_of_positions - chunk.curr_position_offset());
             }
 
             blockDecoder_.advance_curr_chunk();
             chunk.set_decoded(false);
 
-            // Can update the number of documents left to process after processing the complete chunk.
-            num_docs_left_ -= chunk.num_docs();;
-            left -= chunk.num_docs();
-            decodedDoc += chunk.num_docs();
-            if(chunk.has_deleted_doc()) size_of_positions = chunk.size_of_positions();
-            decompressed_pos += size_of_positions;
         } 
         else 
         {
@@ -340,7 +355,6 @@ int32_t BlockPostingReader::decodeNext(uint32_t* pPosting,int32_t length, uint32
             advanceToNextBlock();
         }        
     }
-
     return decodedDoc;
 
 }
@@ -540,7 +554,7 @@ int32_t ChunkPostingReader::decodeNext(uint32_t* pPosting,int32_t length)
         chunkDecoder_.set_doc_freq_buffer(pDoc,pFreq);
         chunkDecoder_.set_prev_decoded_doc_id(prev_block_last_doc_id_);
         chunkDecoder_.decodeDocIds();
-        chunkDecoder_.decodeFrequencies();
+        chunkDecoder_.decodeFrequencies(false);
         if(!pDocFilter_) chunkDecoder_.post_process(pDocFilter_);
         num_docs_left_ -= chunkDecoder_.num_docs();;
         left -= chunkDecoder_.num_docs();

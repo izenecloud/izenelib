@@ -327,6 +327,9 @@ private:
 
     int num_doc_ids_;
 
+    uint32_t first_doc_id_;
+    uint32_t last_doc_id_;
+
     friend class BlockDataPool;
     friend class BlockPostingWriter;
 };

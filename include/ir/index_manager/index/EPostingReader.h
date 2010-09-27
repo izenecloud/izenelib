@@ -67,11 +67,6 @@ public:
     bool decodeNextPositions(uint32_t* pPosting,uint32_t* pFreqs,int32_t nFreqs);
 
     /**
-     * Set file pointer after skipping
-     */
-    void seekTo(FixedBlockSkipListReader* pSkipListReader);
-
-    /**
      * Decode postings to target docID
      * @param docID target docID 
      * @return last decoded docID
