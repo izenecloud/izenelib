@@ -2,6 +2,7 @@
 #include <ir/index_manager/index/FieldIndexer.h>
 #include <ir/index_manager/index/TermReader.h>
 #include <ir/index_manager/index/TermPositions.h>
+#include <ir/index_manager/index/EPostingWriter.h>
 #include <ir/index_manager/store/IndexInput.h>
 
 #include <boost/filesystem.hpp>
@@ -202,12 +203,12 @@ fileoffset_t FieldIndexer::write(OutputDescriptor* pWriterDesc)
     IndexOutput* pVocWriter = pWriterDesc->getVocOutput();
 
     termid_t tid;
-    RTPostingWriter* pPosting;
     fileoffset_t vocOffset = pVocWriter->getFilePointer();
     TermInfo termInfo;
 
     if (pIndexer_->isRealTime())
     {
+        RTPostingWriter* pPosting;
         izenelib::util::ScopedWriteLock<izenelib::util::ReadWriteLock> lock(rwLock_);
         for (InMemoryPostingMap::iterator iter = postingMap_.begin(); iter !=postingMap_.end(); ++iter)
         {
@@ -278,7 +279,23 @@ fileoffset_t FieldIndexer::write(OutputDescriptor* pWriterDesc)
         FieldIndexIO ioStream(f);
         Record r;
         ioStream._readBytes((char*)(&count),sizeof(uint64_t));
-        pPosting = new RTPostingWriter(pMemCache_, skipInterval_, maxSkipLevel_);
+
+        PostingWriter* pPosting = NULL;
+        switch(pIndexer_->getIndexingType())
+        {
+        case BYTE:
+            pPosting = new RTPostingWriter(pMemCache_, skipInterval_, maxSkipLevel_);
+            break;
+        case BLOCK:
+            pPosting = new BlockPostingWriter(pMemCache_);
+            break;
+        case CHUNK:
+            pPosting = new ChunkPostingWriter(pMemCache_, skipInterval_, maxSkipLevel_);
+            break;
+        default:
+            assert(false);
+        }
+
         termid_t lastTerm = BAD_DOCID;
         try
         {

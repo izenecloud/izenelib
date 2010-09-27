@@ -8,9 +8,10 @@ NS_IZENELIB_IR_BEGIN
 
 namespace indexmanager{
 
-PostingMerger::PostingMerger(int skipInterval, int maxSkipLevel)
+PostingMerger::PostingMerger(int skipInterval, int maxSkipLevel,CompressionType compressType)
         :skipInterval_(skipInterval)
         ,maxSkipLevel_(maxSkipLevel)
+        ,compressType_(compressType)
         ,pOutputDescriptor_(NULL)
         ,pTmpPostingOutput_(NULL)
         ,pTmpPostingInput_(NULL)
@@ -548,7 +549,17 @@ void PostingMerger::mergeWith(ChunkPostingReader* pPosting,BitVector* pFilter)
 
 fileoffset_t PostingMerger::endMerge()
 {
-    return endMerge_RT();
+    switch(compressType_)
+    {
+    case BYTE:
+        return endMerge_RT();
+    case BLOCK:
+        return endMerge_E_Block();
+    case CHUNK:
+        return endMerge_E_Chunk();
+    default:
+        assert(false);
+    }
 }
 
 fileoffset_t PostingMerger::endMerge_RT()

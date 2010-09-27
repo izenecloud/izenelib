@@ -286,10 +286,23 @@ inline void FieldMerger::mergeTerms(FieldMergeInfo** ppMergeInfos,int32_t numInf
             pPostingMerger_->mergeWith((MemPostingReader*)pPosting);
         else
         {
-            if(pDocFilter_)
-                pPostingMerger_->mergeWith((RTDiskPostingReader*)pPosting, pDocFilter_);
-            else
-                pPostingMerger_->mergeWith((RTDiskPostingReader*)pPosting);
+            switch(ppMergeInfos[i]->pBarrelInfo_->compressType)
+            {
+            case BYTE:
+                if(pDocFilter_)
+                    pPostingMerger_->mergeWith((RTDiskPostingReader*)pPosting, pDocFilter_);
+                else
+                    pPostingMerger_->mergeWith((RTDiskPostingReader*)pPosting);
+                break;
+            case BLOCK:
+                pPostingMerger_->mergeWith((BlockPostingReader*)pPosting, pDocFilter_);
+                break;
+            case CHUNK:
+                pPostingMerger_->mergeWith((ChunkPostingReader*)pPosting, pDocFilter_);
+                break;
+            default:
+                assert(false);
+            }
         }
     }
     pPostingMerger_->endMerge();	

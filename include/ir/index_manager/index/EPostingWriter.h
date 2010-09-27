@@ -24,7 +24,7 @@ namespace indexmanager{
 * Block based posting builder:
 *      [skip data][block][block]
 ********************************************************************/
-class BlockPostingWriter:public PostingWriter<BlockPostingWriter>
+class BlockPostingWriter:public PostingWriter
 {
 public:
     BlockPostingWriter(MemCache* pMemCache);
@@ -105,7 +105,7 @@ protected:
 *      [skip data][chunk][chunk]
 ********************************************************************/
 class SkipListWriter;
-class ChunkPostingWriter:public PostingWriter<ChunkPostingWriter>
+class ChunkPostingWriter:public PostingWriter
 {
 public:
     ChunkPostingWriter(MemCache* pMemCache, int skipInterval, int maxSkipLevel);

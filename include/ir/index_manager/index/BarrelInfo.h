@@ -22,6 +22,13 @@ NS_IZENELIB_IR_BEGIN
 namespace indexmanager{
 class IndexBarrelWriter;
 ///barrel information, description of index barrel
+enum CompressionType
+{
+    BYTE,  /// byte-aligned compression, vint + d-gap compression
+    BLOCK, /// block based compression
+    CHUNK /// chunk based compression
+};
+
 class BarrelInfo
 {
 public:
@@ -32,6 +39,7 @@ public:
             , maxDocId(0)
             , modified(false)
             , searchable(true)
+            , compressType(BYTE)
  
     {
     }
@@ -44,6 +52,7 @@ public:
             , maxDocId(0)
             , modified(false)
             , searchable(true)
+            , compressType(BYTE)
     {
     }
 
@@ -57,6 +66,7 @@ public:
             , maxDocId(pBarrelInfo->maxDocId)
             , modified(pBarrelInfo->modified)
             , searchable(pBarrelInfo->searchable)
+            , compressType(pBarrelInfo->compressType)
     {
     }
 
@@ -200,6 +210,8 @@ public:
 
     ///all index input instances generated for this barrel
     std::set<IndexInput*> indexInputs;
+
+    CompressionType compressType;
 
     boost::mutex mutex_;
 };

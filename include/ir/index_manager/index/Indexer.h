@@ -150,6 +150,8 @@ public:
 
     bool isRealTime() { return realTime_; }
 
+    CompressionType getIndexingType() { return indexingType_; }
+
     void close();
 
 protected:
@@ -178,6 +180,8 @@ protected:
     int maxSkipLevel_;
 
     bool realTime_;
+
+    CompressionType indexingType_;
 
     std::map<collectionid_t, std::map<string, fieldid_t> > property_name_id_map_;
 

@@ -1,6 +1,6 @@
 #include <ir/index_manager/index/IndexBarrelWriter.h>
 #include <ir/index_manager/index/FieldMerger.h>
-#include <ir/index_manager/index/PostingWriter.h>
+#include <ir/index_manager/index/EPostingWriter.h>
 #include <ir/index_manager/index/TermReader.h>
 #include <ir/index_manager/index/MultiPostingIterator.h>
 
@@ -66,7 +66,7 @@ void FieldMerger::addField(BarrelInfo* pBarrelInfo,FieldInfo* pFieldInfo)
 {
     fieldEntries_.push_back(new MergeFieldEntry(pBarrelInfo,pFieldInfo));
     if (pPostingMerger_ == NULL)
-        pPostingMerger_ = new PostingMerger(skipInterval_, maxSkipLevel_);
+        pPostingMerger_ = new PostingMerger(skipInterval_, maxSkipLevel_, pBarrelInfo->compressType);
 
 }
 
@@ -175,7 +175,21 @@ bool FieldMerger::initQueue()
         else
         {
             ///on-disk index barrel
-            pTermReader = new RTDiskTermReader(pDirectory_,pEntry->pBarrelInfo_,pEntry->pFieldInfo_);
+            switch(pEntry->pBarrelInfo_->compressType)
+            {
+            case BYTE:
+                pTermReader = new RTDiskTermReader(pDirectory_,pEntry->pBarrelInfo_,pEntry->pFieldInfo_);
+                break;
+            case BLOCK:
+                pTermReader = new BlockTermReader(pDirectory_,pEntry->pBarrelInfo_,pEntry->pFieldInfo_);
+                break;
+            case CHUNK:
+                pTermReader = new ChunkTermReader(pDirectory_,pEntry->pBarrelInfo_,pEntry->pFieldInfo_);
+                break;
+            default:
+                assert(false);
+            }
+
         }
         pTermReader->setSkipInterval(skipInterval_);
         pTermReader->setMaxSkipLevel(maxSkipLevel_);

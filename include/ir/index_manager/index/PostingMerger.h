@@ -14,6 +14,7 @@
 #include <ir/index_manager/index/OutputDescriptor.h>
 #include <ir/index_manager/index/InputDescriptor.h>
 #include <ir/index_manager/index/SkipListMerger.h>
+#include <ir/index_manager/index/BarrelInfo.h>
 #include <ir/index_manager/utility/BitVector.h>
 
 NS_IZENELIB_IR_BEGIN
@@ -24,7 +25,7 @@ namespace indexmanager{
 class PostingMerger
 {
 public:
-    PostingMerger(int skipInterval, int maxSkipLevel);
+    PostingMerger(int skipInterval, int maxSkipLevel,CompressionType compressType = BYTE);
 
     virtual ~PostingMerger();
 
@@ -83,6 +84,8 @@ private:
     int skipInterval_;
 
     int maxSkipLevel_;
+
+    CompressionType compressType_;
 
     TermInfo termInfo_;
 

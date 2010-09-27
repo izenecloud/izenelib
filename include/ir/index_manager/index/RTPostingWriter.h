@@ -19,7 +19,7 @@ NS_IZENELIB_IR_BEGIN
 namespace indexmanager{
 
 class SkipListWriter;
-class RTPostingWriter:public PostingWriter<RTPostingWriter>
+class RTPostingWriter:public PostingWriter
 {
 public:
     RTPostingWriter(MemCache* pMemCache, int skipInterval, int maxSkipLevel);

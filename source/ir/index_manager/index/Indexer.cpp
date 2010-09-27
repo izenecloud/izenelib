@@ -125,10 +125,27 @@ void Indexer::setIndexManagerConfig(
     }
 
     if(!strcasecmp(pConfigurationManager_->indexStrategy_.indexMode_.c_str(),"realtime"))
+    {
         realTime_ = true;
+        indexingType_ = BYTE;
+    }
     else
     {
         realTime_ = false;
+        std::vector<std::string> indexingParams = izenelib::ir::indexmanager::split(pConfigurationManager_->indexStrategy_.indexMode_,":");
+        ///  default:block  or default:chunk
+        if(indexingParams.size() == 2)
+      	{
+            if(!strcasecmp(indexingParams[1].c_str(),"block"))
+                indexingType_ = BLOCK;
+            else if(!strcasecmp(indexingParams[1].c_str(),"chunk"))
+            {
+                indexingType_ = CHUNK;
+                skipInterval_ = CHUNK_SIZE;
+            }
+            else
+                assert(false);
+       	}
     }
 }
 

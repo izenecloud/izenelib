@@ -66,7 +66,20 @@ void SingleIndexBarrelReader::open(const char* name)
                 pFieldInfo = pFieldsInfo->next();
                 if (pFieldInfo->isIndexed()&&pFieldInfo->isForward())
                 {
-                    pTermReader = new RTDiskTermReader(pDirectory,pBarrelInfo_,pFieldInfo);
+                    switch(pBarrelInfo_->compressType)
+                    {
+                    case BYTE:
+                        pTermReader = new RTDiskTermReader(pDirectory,pBarrelInfo_,pFieldInfo);
+                        break;
+                    case BLOCK:
+                        pTermReader = new BlockTermReader(pDirectory,pBarrelInfo_,pFieldInfo);
+                        break;
+                    case CHUNK:
+                        pTermReader = new ChunkTermReader(pDirectory,pBarrelInfo_,pFieldInfo);
+                        break;
+                    default:
+                        assert(false);
+                    }
                     break;
                 }
             }

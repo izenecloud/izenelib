@@ -12,26 +12,19 @@
 NS_IZENELIB_IR_BEGIN
 
 namespace indexmanager{
-
-template<typename CompressedPostingWriter>
-class PostingWriter
+class OutputDescriptor;
+class TermInfo;
+struct PostingWriter
 {
-public:
-    void add(uint32_t docId, uint32_t pos)
-    {
-        downcast()->add(docId,pos);
-    }
+    virtual ~PostingWriter(){}
 
-protected:
-    inline CompressedPostingWriter * downcast()
-    {
-        return static_cast<CompressedPostingWriter *>(this);
-    };
-    inline const CompressedPostingWriter * downcast()const
-    {
-        return static_cast<const CompressedPostingWriter *>(this);
-    };
+    virtual void add(uint32_t docId, uint32_t pos) = 0;
 
+    virtual bool isEmpty() = 0;
+
+    virtual void write(OutputDescriptor* pOutputDescriptor, TermInfo& termInfo) = 0;
+
+    virtual void reset() = 0;
 };
 
 }

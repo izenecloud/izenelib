@@ -226,6 +226,19 @@ void BarrelsInfo::read(Directory* pDirectory, const char* name)
                         pBarrelInfo->searchable = false;
                 }
 
+                ///get <compress></compress> element
+                pItem = pBarrelItem->getElementByName("compress");
+                if (!pItem) pBarrelInfo->compressType = BYTE;
+                else
+                {
+                    if(pItem->getValue().compare("byte") == 0)
+                        pBarrelInfo->compressType = BYTE;
+                    else if(pItem->getValue().compare("block") == 0)
+                        pBarrelInfo->compressType = BLOCK;
+                    else if(pItem->getValue().compare("chunk") == 0)
+                        pBarrelInfo->compressType = CHUNK;
+                }
+
                 barrelInfos.push_back(pBarrelInfo);
             }
             delete pDatabase;
@@ -317,6 +330,24 @@ void BarrelsInfo::write(Directory* pDirectory)
         ///add <searchable></searchable>
         pItem = pBarrelItem->addElement("searchable");
         str = pBarrelInfo->searchable ? "yes":"no";
+        pItem->setValue(str.c_str()); 
+
+        ///add <compress></compress>
+        pItem = pBarrelItem->addElement("compress");
+        switch(pBarrelInfo->compressType)
+        {
+        case BYTE:
+            str = "byte";
+            break;
+        case BLOCK:
+            str = "block";
+            break;
+        case CHUNK:
+            str = "chunk";
+            break;
+        default:
+            assert(false);
+         }
         pItem->setValue(str.c_str()); 
 
         iter ++;
