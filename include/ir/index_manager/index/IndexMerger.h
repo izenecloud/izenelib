@@ -149,6 +149,12 @@ public:
      */
     void flushBarrelToDisk(const std::string& barrelName);
 
+
+    void setOptimize(bool optimize)
+    {
+        optimize_ = optimize;
+    }
+
 protected:
     /**
      * add new index barrel to merge,derived classes implement it,and could apply some merge strategies.
@@ -196,6 +202,8 @@ protected:
     BitVector* pDocFilter_;
 
     bool triggerMerge_;
+
+    bool optimize_;  /// whether optimize BYTEALIGN index into BLOCK or CHUNK index
 
     friend class IndexWriter;
     friend class Indexer;

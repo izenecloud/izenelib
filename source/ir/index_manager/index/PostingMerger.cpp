@@ -8,10 +8,10 @@ NS_IZENELIB_IR_BEGIN
 
 namespace indexmanager{
 
-PostingMerger::PostingMerger(int skipInterval, int maxSkipLevel,CompressionType compressType)
+PostingMerger::PostingMerger(int skipInterval, int maxSkipLevel)
         :skipInterval_(skipInterval)
         ,maxSkipLevel_(maxSkipLevel)
-        ,compressType_(compressType)
+        ,compressType_(BYTEALIGN)
         ,pOutputDescriptor_(NULL)
         ,pTmpPostingOutput_(NULL)
         ,pTmpPostingInput_(NULL)
@@ -22,6 +22,7 @@ PostingMerger::PostingMerger(int skipInterval, int maxSkipLevel,CompressionType 
         ,pMemCache_(NULL)
         ,compressedPos_(NULL)
         ,block_buffer_(NULL)
+        ,optimize_(false)
 {
     init();
     reset();
@@ -100,10 +101,17 @@ void PostingMerger::setOutputDescriptor(OutputDescriptor* pOutputDescriptor)
 
 void PostingMerger::mergeWith(RTDiskPostingReader* pOnDiskPosting,BitVector* pFilter)
 {
-    if(pFilter &&  pFilter->hasSmallThan((size_t)pOnDiskPosting->chunkDesc_.lastdocid))
-        mergeWith_GC(pOnDiskPosting,pFilter);
+    if(optimize_)
+    {
+        optimize(pOnDiskPosting, pFilter);
+    }
     else
-        mergeWith(pOnDiskPosting);
+    {
+        if(pFilter &&  pFilter->hasSmallThan((size_t)pOnDiskPosting->chunkDesc_.lastdocid))
+            mergeWith_GC(pOnDiskPosting,pFilter);
+        else
+            mergeWith(pOnDiskPosting);
+    }
 }
 
 void PostingMerger::mergeWith(MemPostingReader* pInMemoryPosting)
@@ -545,6 +553,10 @@ void PostingMerger::mergeWith(ChunkPostingReader* pPosting,BitVector* pFilter)
             doc_ids_offset_ = copySize;
         }
     }
+}
+
+void PostingMerger::optimize(RTDiskPostingReader* pOnDiskPosting,BitVector* pFilter)
+{
 }
 
 fileoffset_t PostingMerger::endMerge()

@@ -207,6 +207,11 @@ public:
     {
         pDocFilter_ = pFilter;
     }
+
+    void setPostingCompressionType(CompressionType compressType);
+
+    void setOptimize(bool optimize);
+
 private:
     /** initialize merge queue */
     bool initQueue();
@@ -289,10 +294,7 @@ inline void FieldMerger::mergeTerms(FieldMergeInfo** ppMergeInfos,int32_t numInf
             switch(ppMergeInfos[i]->pBarrelInfo_->compressType)
             {
             case BYTEALIGN:
-                if(pDocFilter_)
-                    pPostingMerger_->mergeWith((RTDiskPostingReader*)pPosting, pDocFilter_);
-                else
-                    pPostingMerger_->mergeWith((RTDiskPostingReader*)pPosting);
+                pPostingMerger_->mergeWith((RTDiskPostingReader*)pPosting, pDocFilter_);
                 break;
             case BLOCK:
                 pPostingMerger_->mergeWith((BlockPostingReader*)pPosting, pDocFilter_);

@@ -66,8 +66,17 @@ void FieldMerger::addField(BarrelInfo* pBarrelInfo,FieldInfo* pFieldInfo)
 {
     fieldEntries_.push_back(new MergeFieldEntry(pBarrelInfo,pFieldInfo));
     if (pPostingMerger_ == NULL)
-        pPostingMerger_ = new PostingMerger(skipInterval_, maxSkipLevel_, pBarrelInfo->compressType);
+        pPostingMerger_ = new PostingMerger(skipInterval_, maxSkipLevel_);
+}
 
+void FieldMerger::setPostingCompressionType(CompressionType compressType)
+{
+    pPostingMerger_->setCompressionType(compressType);
+}
+
+void FieldMerger::setOptimize(bool optimize)
+{
+    pPostingMerger_->optimize_ = optimize;
 }
 
 fileoffset_t FieldMerger::merge(OutputDescriptor* pOutputDescriptor)

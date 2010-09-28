@@ -25,11 +25,13 @@ namespace indexmanager{
 class PostingMerger
 {
 public:
-    PostingMerger(int skipInterval, int maxSkipLevel,CompressionType compressType = BYTEALIGN);
+    PostingMerger(int skipInterval, int maxSkipLevel);
 
     virtual ~PostingMerger();
 
 public:
+    void setCompressionType(CompressionType compressType) { compressType_ = compressType;}
+
     void setOutputDescriptor(OutputDescriptor* pOutputDescriptor);
 
     OutputDescriptor* getOutputDescriptor() {return pOutputDescriptor_;}
@@ -45,6 +47,8 @@ public:
     void mergeWith(BlockPostingReader* pPosting,BitVector* pFilter);
 
     void mergeWith(ChunkPostingReader* pPosting,BitVector* pFilter);
+
+    void optimize(RTDiskPostingReader* pOnDiskPosting,BitVector* pFilter);
 
     fileoffset_t endMerge();
 
@@ -145,6 +149,7 @@ private:
 
     uint32_t compressedBuffer_[CHUNK_SIZE*2];
 
+    bool optimize_; /// converting BYTEALIGN  to BLOCK or CHUNK when TRUE
 };
 
 }

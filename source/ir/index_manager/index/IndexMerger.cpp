@@ -66,6 +66,7 @@ IndexMerger::IndexMerger(Indexer* pIndexer)
         ,pMergeBarrels_(NULL)
 	,pDocFilter_(NULL)
 	,triggerMerge_(false)
+	,optimize_(false)
 {
 }
 
@@ -309,6 +310,9 @@ void IndexMerger::mergeBarrel(MergeBarrel* pBarrel)
                                                                                  pIndexer_->getSkipInterval(), 
                                                                                  pIndexer_->getMaxSkipLevel());
                                 pFieldMerger->setDirectory(pDirectory_);
+                                pFieldMerger->setPostingCompressionType(pIndexer_->getIndexingType());
+                                if(optimize_)
+                                    pFieldMerger->setOptimize(true);
                                 if(pDocFilter_)
                                     pFieldMerger->setDocFilter(pDocFilter_);
                             }
