@@ -332,6 +332,7 @@ private:
 
     friend class BlockDataPool;
     friend class BlockPostingWriter;
+    friend class PostingMerger;
 };
 
 /**************************************************************************************************************
