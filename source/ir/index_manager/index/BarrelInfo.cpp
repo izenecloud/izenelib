@@ -228,11 +228,11 @@ void BarrelsInfo::read(Directory* pDirectory, const char* name)
 
                 ///get <compress></compress> element
                 pItem = pBarrelItem->getElementByName("compress");
-                if (!pItem) pBarrelInfo->compressType = BYTE;
+                if (!pItem) pBarrelInfo->compressType = BYTEALIGN;
                 else
                 {
                     if(pItem->getValue().compare("byte") == 0)
-                        pBarrelInfo->compressType = BYTE;
+                        pBarrelInfo->compressType = BYTEALIGN;
                     else if(pItem->getValue().compare("block") == 0)
                         pBarrelInfo->compressType = BLOCK;
                     else if(pItem->getValue().compare("chunk") == 0)
@@ -336,7 +336,7 @@ void BarrelsInfo::write(Directory* pDirectory)
         pItem = pBarrelItem->addElement("compress");
         switch(pBarrelInfo->compressType)
         {
-        case BYTE:
+        case BYTEALIGN:
             str = "byte";
             break;
         case BLOCK:

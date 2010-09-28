@@ -24,7 +24,7 @@ class IndexBarrelWriter;
 ///barrel information, description of index barrel
 enum CompressionType
 {
-    BYTE,  /// byte-aligned compression, vint + d-gap compression
+    BYTEALIGN,  /// byte-aligned compression, vint + d-gap compression
     BLOCK, /// block based compression
     CHUNK /// chunk based compression
 };
@@ -39,7 +39,7 @@ public:
             , maxDocId(0)
             , modified(false)
             , searchable(true)
-            , compressType(BYTE)
+            , compressType(BYTEALIGN)
  
     {
     }
@@ -52,7 +52,7 @@ public:
             , maxDocId(0)
             , modified(false)
             , searchable(true)
-            , compressType(BYTE)
+            , compressType(BYTEALIGN)
     {
     }
 

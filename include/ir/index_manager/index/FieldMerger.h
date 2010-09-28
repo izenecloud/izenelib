@@ -288,7 +288,7 @@ inline void FieldMerger::mergeTerms(FieldMergeInfo** ppMergeInfos,int32_t numInf
         {
             switch(ppMergeInfos[i]->pBarrelInfo_->compressType)
             {
-            case BYTE:
+            case BYTEALIGN:
                 if(pDocFilter_)
                     pPostingMerger_->mergeWith((RTDiskPostingReader*)pPosting, pDocFilter_);
                 else

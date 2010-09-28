@@ -177,7 +177,7 @@ bool FieldMerger::initQueue()
             ///on-disk index barrel
             switch(pEntry->pBarrelInfo_->compressType)
             {
-            case BYTE:
+            case BYTEALIGN:
                 pTermReader = new RTDiskTermReader(pDirectory_,pEntry->pBarrelInfo_,pEntry->pFieldInfo_);
                 break;
             case BLOCK:

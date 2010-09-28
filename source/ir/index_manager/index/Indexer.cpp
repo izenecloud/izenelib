@@ -127,7 +127,7 @@ void Indexer::setIndexManagerConfig(
     if(!strcasecmp(pConfigurationManager_->indexStrategy_.indexMode_.c_str(),"realtime"))
     {
         realTime_ = true;
-        indexingType_ = BYTE;
+        indexingType_ = BYTEALIGN;
     }
     else
     {
@@ -144,7 +144,7 @@ void Indexer::setIndexManagerConfig(
                 skipInterval_ = CHUNK_SIZE;
             }
             else
-                assert(false);
+                indexingType_ = BYTEALIGN;;
        	}
     }
 }

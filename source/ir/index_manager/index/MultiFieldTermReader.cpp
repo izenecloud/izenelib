@@ -20,7 +20,7 @@ MultiFieldTermReader::MultiFieldTermReader(Directory* pDirectory,BarrelInfo* pBa
         {
             switch(pBarrelInfo->compressType)
             {
-            case BYTE:
+            case BYTEALIGN:
                 pTermReader = new RTDiskTermReader(pDirectory,pBarrelInfo,pInfo);
                 break;
             case BLOCK:

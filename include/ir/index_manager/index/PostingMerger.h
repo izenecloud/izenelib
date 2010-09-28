@@ -25,7 +25,7 @@ namespace indexmanager{
 class PostingMerger
 {
 public:
-    PostingMerger(int skipInterval, int maxSkipLevel,CompressionType compressType = BYTE);
+    PostingMerger(int skipInterval, int maxSkipLevel,CompressionType compressType = BYTEALIGN);
 
     virtual ~PostingMerger();
 

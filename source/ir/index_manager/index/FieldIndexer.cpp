@@ -283,7 +283,7 @@ fileoffset_t FieldIndexer::write(OutputDescriptor* pWriterDesc)
         PostingWriter* pPosting = NULL;
         switch(pIndexer_->getIndexingType())
         {
-        case BYTE:
+        case BYTEALIGN:
             pPosting = new RTPostingWriter(pMemCache_, skipInterval_, maxSkipLevel_);
             break;
         case BLOCK:

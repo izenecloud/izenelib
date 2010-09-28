@@ -551,7 +551,7 @@ fileoffset_t PostingMerger::endMerge()
 {
     switch(compressType_)
     {
-    case BYTE:
+    case BYTEALIGN:
         return endMerge_RT();
     case BLOCK:
         return endMerge_E_Block();

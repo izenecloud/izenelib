@@ -68,7 +68,7 @@ void SingleIndexBarrelReader::open(const char* name)
                 {
                     switch(pBarrelInfo_->compressType)
                     {
-                    case BYTE:
+                    case BYTEALIGN:
                         pTermReader = new RTDiskTermReader(pDirectory,pBarrelInfo_,pFieldInfo);
                         break;
                     case BLOCK:
