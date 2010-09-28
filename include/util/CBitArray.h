@@ -267,7 +267,7 @@ class CBitArray
       ResetBit(p, nBit);
   }
 
-  inline static int GetBitsValue(uint8_t *p, int nStartBit, int nBitCount) {
+  inline static int GetBitsValue(const uint8_t *p, int nStartBit, int nBitCount) {
     int nValue = 0;
     for (int nBit = nStartBit; nBitCount--; nBit++)
       if (GetBit(p, nBit))

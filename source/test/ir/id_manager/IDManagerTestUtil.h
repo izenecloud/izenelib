@@ -5,8 +5,11 @@
 #include <algorithm>
 #include <util/ustring/UString.h>
 #include <ir/id_manager/IDManager.h>
+#include <boost/filesystem.hpp>
 
 using namespace std;
+using namespace boost::filesystem;
+
 using namespace izenelib::util;
 using namespace izenelib::ir::idmanager;
 
@@ -25,13 +28,23 @@ public:
 
     vector<unsigned int> termIdList2_; ///< The list of 2400 term id.
 
-
     IDManagerFixture()
     {
         // generate two term lists
-		BOOST_CHECK_EQUAL(generateTermLists(termUStringList1_, termIdList1_, termUStringList2_, termIdList2_), true);
+		BOOST_CHECK_EQUAL(generateTermLists(termUStringList1_, termUStringList2_), true);
 
     } // end - TermIdManagerFixture()
+
+
+    void clean(const string & prefix)
+    {
+        directory_iterator end_itr; // default construction yields past-the-end
+        for ( directory_iterator itr("."); itr != end_itr; ++itr )
+        {
+            if(itr->leaf().compare(0, prefix.length(), prefix)  == 0)
+                remove_all(itr->path());
+        }
+    }
 
     /**
  	 * @brief This function loads a file that is a list of terms into a memory. This function is implementeded by TuanQuang Nguyen.
@@ -82,47 +95,26 @@ public:
 	 * @param
 	 * 	termIdList2 - list 2 of term ids
 	 */
-	bool generateTermLists(vector<UString>& termUStringList1, vector<unsigned int>& termIdList1,
-            vector<UString>& termUStringList2, vector<unsigned int>& termIdList2)
+	bool generateTermLists(vector<UString>& termUStringList1,
+        vector<UString>& termUStringList2)
     {
         vector<string> termStringList1;
         vector<string> termStringList2;
-        unsigned int termId, i;
 
         // load term list
-        if(!loadTermList("./test-data/100WordList.txt", termStringList1) ||
-                !loadTermList("./test-data/2400WordList.txt", termStringList2))
+        if(!loadTermList("./test-data/100WordList.txt", termStringList1))
             return false;
-
+        if(!loadTermList("./test-data/2400WordList.txt", termStringList2))
+            return false;
 
         // convert term list of strings into term list of UStrings
         termUStringList1.resize(termStringList1.size());
-        for(i = 0; i < termStringList1.size(); i++)
+        for(size_t i = 0; i < termStringList1.size(); i++)
             termUStringList1[i].assign(termStringList1[i], UString::CP949);
 
         termUStringList2.resize(termStringList2.size());
-        for(i = 0; i < termStringList2.size(); i++)
+        for(size_t i = 0; i < termStringList2.size(); i++)
             termUStringList2[i].assign(termStringList2[i], UString::CP949);
-
-
-
-        // generate termId  for each term in the lists
-        // generate termId  for each term in the list1
-        termIdList1.clear();
-        termIdList1.resize(termStringList1.size());
-        termId = 0;
-        for(i = 0; i < termUStringList1.size(); i++)
-        {
-            termIdList1[i] = termId++;
-        }
-
-        // generate termId  for each term in the list2
-        termIdList2.clear();
-        termIdList2.resize(termStringList2.size());
-        for(i = 0; i < termUStringList2.size(); i++)
-        {
-            termIdList2[i] = termId++;
-        }
 
         return true;
 
@@ -135,7 +127,8 @@ public:
  * @brief Check function which ckecks if all the ids are corretly generated.
  */
 
-inline bool isIdListCorrect(const vector<unsigned int>& termIdList,const vector<UString>& termStringList, IDManager& idManager)
+template<typename IDManagerType>
+inline bool isIdListCorrect(const vector<unsigned int>& termIdList,const vector<UString>& termStringList, IDManagerType& idManager)
 {
     UString compare;
 

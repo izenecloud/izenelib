@@ -67,17 +67,13 @@ BOOST_FIXTURE_TEST_SUITE( t_IDManager, IDManagerFixture )
  */
 BOOST_AUTO_TEST_CASE( TestCase1 )
 {
-	// Clear data of previous test case
-	remove("IDManagerData.dat");
-
-    cerr << endl;
     cerr << "[ IDManager ] Test Case 1 : Check getTermIdByTermString() ................";
 
     // remove previous index file
     // remove(TermIdManager::TERM_ID_MANAGER_INDEX_FILE.c_str());
 
 
-    IDManager idManager("idm1");
+    IDManagerDebug32 idManager("idm1");
     unsigned int i;
     UString compare;
 
@@ -99,8 +95,10 @@ BOOST_AUTO_TEST_CASE( TestCase1 )
     BOOST_CHECK_EQUAL( isIdListCorrect( termIdList1_, termUStringList1_, idManager ) , true );
     BOOST_CHECK_EQUAL( isIdListCorrect( termIdList2_, termUStringList2_, idManager ) , true );
 
-	// Clear data of this test case
-	remove("IDManagerData.dat");
+    idManager.flush();
+    idManager.close();
+
+    clean("idm1");
     cerr << "OK" << endl;
 
 } // end - BOOST_AUTO_TEST_CASE( TestCase1 )
@@ -118,15 +116,13 @@ BOOST_AUTO_TEST_CASE( TestCase1 )
  */
 BOOST_AUTO_TEST_CASE( TestCase2 )
 {
-	// Clear data of previous test case
-	remove("IDManagerData.dat");
     cerr << "[ IDManager ] Test Case 2 : Check getTermIdListByTermStringList() ........";
 
     // remove previous index file
     // remove(TermIdManager::TERM_ID_MANAGER_INDEX_FILE.c_str());
 
 
-    IDManager idManager("idm2");
+    IDManagerDebug32 idManager("idm2");
 
     // termUStringList1_ (100 terms) and termUStringList2_ (2500 terms) are already generated.
 
@@ -141,8 +137,10 @@ BOOST_AUTO_TEST_CASE( TestCase2 )
     BOOST_CHECK_EQUAL( isIdListCorrect( termIdList1_, termUStringList1_, idManager ) , true );
     BOOST_CHECK_EQUAL( isIdListCorrect( termIdList2_, termUStringList2_, idManager ) , true );
 
-	// Clear data of this test case
-	remove("IDManagerData.dat");
+    idManager.flush();
+    idManager.close();
+
+    clean("idm2");
     cerr << "OK"<< endl;
 
 } // end - BOOST_AUTO_TEST_CASE( TestCase2 )
@@ -159,8 +157,6 @@ BOOST_AUTO_TEST_CASE( TestCase2 )
  */
 BOOST_AUTO_TEST_CASE( TestCase4 )
 {
-	// Clear data of previous test case
-	remove("IDManagerData.dat");
     cerr << "[ IDManager ] Test Case 4 : Simple Document Id Manager check .............";
 
     // remove previous index file
@@ -168,7 +164,7 @@ BOOST_AUTO_TEST_CASE( TestCase4 )
     // remove(CollectionIdManager<UString, unsigned int><UString, unsigned int>::COLLECTION_ID_MANAGER_INDEX_FILE.c_str());
 
 
-    IDManager idManager("idm4");
+    IDManagerDebug32 idManager("idm4");
 
     string insertString("Test DocIdManager");
     UString insertUString(insertString, UString::CP949);
@@ -182,9 +178,7 @@ BOOST_AUTO_TEST_CASE( TestCase4 )
     // Check if the ustring is correctly inserted using getDocNameByDocId() interface.
     BOOST_CHECK_EQUAL( idManager.getDocNameByDocId(id, resultUString ) , true );
 
-    // Check again if the id is found in the document indexer using getDocIdByDocName() interface.
     BOOST_CHECK_EQUAL( idManager.getDocIdByDocName(insertUString, id ) , true );
-
 
     // Check if the resultUString is the same as insertUString.
     BOOST_CHECK ( insertUString == resultUString );
@@ -193,9 +187,8 @@ BOOST_AUTO_TEST_CASE( TestCase4 )
     idManager.close();
 
 	// Clear data of this test case
-	remove("IDManagerData.dat");
+    clean("idm4");
     cerr << "OK" << endl;
-
 } // end - BOOST_AUTO_TEST_CASE( TestCase4 )
 
 
