@@ -8,10 +8,10 @@ NS_IZENELIB_IR_BEGIN
 
 namespace indexmanager{
 
-PostingMerger::PostingMerger(int skipInterval, int maxSkipLevel)
+PostingMerger::PostingMerger(int skipInterval, int maxSkipLevel, CompressionType compressType, bool optimize, MemCache* pMemCache)
         :skipInterval_(skipInterval)
         ,maxSkipLevel_(maxSkipLevel)
-        ,compressType_(BYTEALIGN)
+        ,compressType_(compressType)
         ,pOutputDescriptor_(NULL)
         ,pTmpPostingOutput_(NULL)
         ,pTmpPostingInput_(NULL)
@@ -22,15 +22,24 @@ PostingMerger::PostingMerger(int skipInterval, int maxSkipLevel)
         ,pMemCache_(NULL)
         ,compressedPos_(NULL)
         ,block_buffer_(NULL)
-        ,optimize_(false)
+        ,optimize_(optimize)
+        ,ownMemCache_(false)
 {
+    if(optimize_||(compressType_ != BYTEALIGN))
+    {
+        pMemCache_ = pMemCache;
+        ownMemCache_ = true;
+    }
+    else
+        pMemCache_ = new MemCache(POSTINGMERGE_BUFFERSIZE*512);
+
     init();
     reset();
 }
 
 PostingMerger::~PostingMerger()
 {
-    if(pMemCache_)
+    if(pMemCache_&&ownMemCache_)
         delete pMemCache_;
     if(pSkipListMerger_)
         delete pSkipListMerger_;
@@ -78,9 +87,8 @@ void PostingMerger::reset()
 
 void PostingMerger::init()
 {
-    pMemCache_ = new MemCache(POSTINGMERGE_BUFFERSIZE*512);
     if(skipInterval_ > 0)
-        pSkipListMerger_ = new SkipListMerger(skipInterval_,maxSkipLevel_,pMemCache_);
+        pSkipListMerger_ = new SkipListMerger(skipInterval_,maxSkipLevel_,pMergeMemCache_);
 
     compressed_position_buffer_size_ = INIT_POS_CHUNK_SIZE;
     compressedPos_ = new uint32_t[compressed_position_buffer_size_];
@@ -412,7 +420,6 @@ void PostingMerger::mergeWith(BlockPostingReader* pPosting,BitVector* pFilter)
     {
         while (blockDecoder.curr_chunk() < blockDecoder.num_chunks()) 
         {
-
             // Check if we previously decoded this chunk and decode if necessary.
             if (blockDecoder.curr_chunk_decoded() == false) 
             {
@@ -556,6 +563,16 @@ void PostingMerger::mergeWith(ChunkPostingReader* pPosting,BitVector* pFilter)
 }
 
 void PostingMerger::optimize(RTDiskPostingReader* pOnDiskPosting,BitVector* pFilter)
+{
+    if(compressType_ == BLOCK) optimize_to_Block(pOnDiskPosting, pFilter);
+    else optimize_to_Chunk(pOnDiskPosting, pFilter);
+}
+
+void PostingMerger::optimize_to_Block(RTDiskPostingReader* pOnDiskPosting,BitVector* pFilter)
+{
+}
+
+void PostingMerger::optimize_to_Chunk(RTDiskPostingReader* pOnDiskPosting,BitVector* pFilter)
 {
 }
 

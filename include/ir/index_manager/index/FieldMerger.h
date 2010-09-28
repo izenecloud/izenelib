@@ -208,9 +208,7 @@ public:
         pDocFilter_ = pFilter;
     }
 
-    void setPostingCompressionType(CompressionType compressType);
-
-    void setOptimize(bool optimize);
+    void initPostingMerger(CompressionType compressType, bool optimize, MemCache* pMemCache);
 
 private:
     /** initialize merge queue */

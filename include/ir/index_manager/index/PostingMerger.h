@@ -20,12 +20,12 @@
 NS_IZENELIB_IR_BEGIN
 
 namespace indexmanager{
-#define POSTINGMERGE_BUFFERSIZE	32768
+#define POSTINGMERGE_BUFFERSIZE 32768
 ///Posting Merger
 class PostingMerger
 {
 public:
-    PostingMerger(int skipInterval, int maxSkipLevel);
+    PostingMerger(int skipInterval, int maxSkipLevel, CompressionType compressType, bool optimize, MemCache* pMemCache);
 
     virtual ~PostingMerger();
 
@@ -38,11 +38,7 @@ public:
 
     void mergeWith(MemPostingReader* pInMemoryPosting);
 
-    void mergeWith(RTDiskPostingReader* pOnDiskPosting);
-
     void mergeWith(RTDiskPostingReader* pOnDiskPosting,BitVector* pFilter);
-
-    void mergeWith_GC(RTDiskPostingReader* pOnDiskPosting,BitVector* pFilter);
 
     void mergeWith(BlockPostingReader* pPosting,BitVector* pFilter);
 
@@ -75,6 +71,14 @@ private:
             positions_ = (uint32_t*)realloc(positions_, curr_position_buffer_size_ * sizeof(uint32_t));
         }
     }
+
+    void mergeWith(RTDiskPostingReader* pOnDiskPosting);
+
+    void mergeWith_GC(RTDiskPostingReader* pOnDiskPosting,BitVector* pFilter);
+
+    void optimize_to_Block(RTDiskPostingReader* pOnDiskPosting,BitVector* pFilter);
+	
+    void optimize_to_Chunk(RTDiskPostingReader* pOnDiskPosting,BitVector* pFilter);
 
     fileoffset_t endMerge_RT();
 
@@ -150,6 +154,8 @@ private:
     uint32_t compressedBuffer_[CHUNK_SIZE*2];
 
     bool optimize_; /// converting BYTEALIGN  to BLOCK or CHUNK when TRUE
+
+    bool ownMemCache_;
 };
 
 }

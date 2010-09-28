@@ -89,6 +89,8 @@ private:
     map<collectionid_t,docid_t> baseDocIDMap_;
 
     izenelib::util::CronExpression scheduleExpression_;
+
+    friend class IndexMerger;
 };
 
 }
