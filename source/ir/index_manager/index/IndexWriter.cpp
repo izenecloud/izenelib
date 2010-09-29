@@ -110,7 +110,7 @@ void IndexWriter::createMerger()
 
 void IndexWriter::createBarrelWriter()
 {
-    pBarrelsInfo_->addBarrel(pBarrelsInfo_->newBarrel().c_str(),0);
+    pBarrelsInfo_->addBarrel(pBarrelsInfo_->newBarrel().c_str(),0,pIndexer_->getIndexCompressType());
     pCurBarrelInfo_ = pBarrelsInfo_->getLastBarrel();
     pCurBarrelInfo_->setSearchable(pIndexer_->isRealTime());
     pCurDocCount_ = &(pCurBarrelInfo_->nNumDocs);
@@ -166,7 +166,7 @@ void IndexWriter::mergeAndWriteCachedIndex()
     }
     pIndexMerger_->merge(pBarrelsInfo_);
 
-    pBarrelsInfo_->addBarrel(pBarrelsInfo_->newBarrel().c_str(),0);
+    pBarrelsInfo_->addBarrel(pBarrelsInfo_->newBarrel().c_str(),0,pIndexer_->getIndexCompressType());
     pCurBarrelInfo_ = pBarrelsInfo_->getLastBarrel();
     pCurBarrelInfo_->setWriter(pIndexBarrelWriter_);
     pCurDocCount_ = &(pCurBarrelInfo_->nNumDocs);
@@ -190,7 +190,7 @@ void IndexWriter::addToMergeAndWriteCachedIndex()
     if (pIndexMerger_)
         pIndexMerger_->flushBarrelToDisk(pIndexBarrelWriter_->barrelName_);
 
-    pBarrelsInfo_->addBarrel(pBarrelsInfo_->newBarrel().c_str(),0);
+    pBarrelsInfo_->addBarrel(pBarrelsInfo_->newBarrel().c_str(),0,pIndexer_->getIndexCompressType());
     pCurBarrelInfo_ = pBarrelsInfo_->getLastBarrel();
     pCurBarrelInfo_->setWriter(pIndexBarrelWriter_);
     pCurDocCount_ = &(pCurBarrelInfo_->nNumDocs);
@@ -212,7 +212,7 @@ void IndexWriter::writeCachedIndex()
     pBarrelsInfo_->setLock(true);
     if(pIndexer_->getIndexerType()&MANAGER_INDEXING_STANDALONE_MERGER)
     {
-        pBarrelsInfo_->addBarrel(pBarrelsInfo_->newBarrel().c_str(),0);
+        pBarrelsInfo_->addBarrel(pBarrelsInfo_->newBarrel().c_str(),0,pIndexer_->getIndexCompressType());
     }
     pCurBarrelInfo_ = pBarrelsInfo_->getLastBarrel();
     pCurBarrelInfo_->setSearchable(pIndexer_->isRealTime());

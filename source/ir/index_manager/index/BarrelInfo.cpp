@@ -423,10 +423,10 @@ const string BarrelsInfo::newBarrel()
     nBarrelCounter ++;
     return sName;
 }
-void BarrelsInfo::addBarrel(const char* name,count_t docCount)
+void BarrelsInfo::addBarrel(const char* name,count_t docCount,CompressionType compressType)
 {
     boost::mutex::scoped_lock lock(mutex_);
-    BarrelInfo* barrelInfo = new BarrelInfo(name,docCount);
+    BarrelInfo* barrelInfo = new BarrelInfo(name,docCount,compressType);
     barrelInfos.push_back(barrelInfo);
 }
 void BarrelsInfo::addBarrel(BarrelInfo* pBarrelInfo,bool bCopy)

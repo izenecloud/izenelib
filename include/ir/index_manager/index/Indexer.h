@@ -150,7 +150,7 @@ public:
 
     bool isRealTime() { return realTime_; }
 
-    CompressionType getIndexingType() { return indexingType_; }
+    CompressionType getIndexCompressType() { return indexingType_; }
 
     void close();
 

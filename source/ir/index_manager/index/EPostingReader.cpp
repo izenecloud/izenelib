@@ -397,11 +397,6 @@ ChunkPostingReader::~ChunkPostingReader()
 
 void ChunkPostingReader::reset(const TermInfo& termInfo)
 {
-    curr_block_id_ = termInfo.skipLevel_; ///we reuse "skiplevel" to store start block id
-    start_block_id_ = termInfo.skipLevel_;
-    total_block_num_ = termInfo.docPostingLen_/BLOCK_SIZE;
-    last_block_id_ = curr_block_id_ + total_block_num_ - 1;
-
     postingOffset_ = termInfo.docPointer_;
 
     IndexInput* pDPInput = pInputDescriptor_->getDPostingInput();
@@ -416,8 +411,6 @@ void ChunkPostingReader::reset(const TermInfo& termInfo)
     last_doc_id_ = termInfo.lastDocID_;
     num_docs_left_ = df_;
     num_docs_decoded_ = 0;
-
-    prev_block_last_doc_id_ = 0;
 
     if(pSkipListReader_)
     {
@@ -521,13 +514,14 @@ int32_t ChunkPostingReader::decodeNext(uint32_t* pPosting,int32_t length)
     {
         doc_size = pDPostingInput->readVInt();
         pDPostingInput->readBytes((uint8_t*)compressedBuffer_,doc_size);
+
         tf_size = pDPostingInput->readVInt();
         pDPostingInput->readBytes((uint8_t*)compressedBuffer_ + doc_size, tf_size);
         chunkDecoder_.reset(compressedBuffer_, std::min(CHUNK_SIZE, (int)num_docs_left_));
         chunkDecoder_.set_doc_freq_buffer(pDoc,pFreq);
         chunkDecoder_.decodeDocIds();
         chunkDecoder_.decodeFrequencies(false);
-        if(!pDocFilter_) chunkDecoder_.post_process(pDocFilter_);
+        if(pDocFilter_) chunkDecoder_.post_process(pDocFilter_);
         num_docs_left_ -= chunkDecoder_.num_docs();;
         left -= chunkDecoder_.num_docs();
         decodedDoc += chunkDecoder_.num_docs();
@@ -606,7 +600,7 @@ int32_t ChunkPostingReader::decodeNext(uint32_t* pPosting,int32_t length, uint32
         ensure_pos_buffer(size>>2);
         pPPostingInput->readBytes((uint8_t*)compressedPos_,size);
         chunkDecoder_.decodePositions(compressedPos_);
-        if(!pDocFilter_) chunkDecoder_.post_process(pDocFilter_);
+        if(pDocFilter_) chunkDecoder_.post_process(pDocFilter_);
 
         num_docs_left_ -= chunkDecoder_.num_docs();;
         left -= chunkDecoder_.num_docs();

@@ -281,7 +281,7 @@ fileoffset_t FieldIndexer::write(OutputDescriptor* pWriterDesc)
         ioStream._readBytes((char*)(&count),sizeof(uint64_t));
 
         PostingWriter* pPosting = NULL;
-        switch(pIndexer_->getIndexingType())
+        switch(pIndexer_->getIndexCompressType())
         {
         case BYTEALIGN:
             pPosting = new RTPostingWriter(pMemCache_, skipInterval_, maxSkipLevel_);

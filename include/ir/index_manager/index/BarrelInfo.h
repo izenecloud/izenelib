@@ -44,7 +44,7 @@ public:
     {
     }
 
-    BarrelInfo(const string& name,count_t count)
+    BarrelInfo(const string& name,count_t count,CompressionType compresstype = BYTEALIGN)
             : barrelName(name)
             , nNumDocs(count)
             , pBarrelWriter(NULL)
@@ -52,7 +52,7 @@ public:
             , maxDocId(0)
             , modified(false)
             , searchable(true)
-            , compressType(BYTEALIGN)
+            , compressType(compresstype)
     {
     }
 
@@ -260,7 +260,7 @@ public:
 public:
     const string newBarrel();
 
-    void addBarrel(const char* name,count_t docCount);
+    void addBarrel(const char* name,count_t docCount,CompressionType compressType = BYTEALIGN);
 
     void addBarrel(BarrelInfo* pBarrelInfo,bool bCopy = true);
 

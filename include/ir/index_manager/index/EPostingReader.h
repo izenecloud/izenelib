@@ -294,11 +294,6 @@ protected:
     SkipListReader* pSkipListReader_; ///skiplist reader
     BitVector* pDocFilter_;
 
-    size_t start_block_id_;
-    size_t curr_block_id_;
-    size_t total_block_num_;
-    size_t last_block_id_;
-
     fileoffset_t postingOffset_;
     int64_t dlength_;
     count_t df_;

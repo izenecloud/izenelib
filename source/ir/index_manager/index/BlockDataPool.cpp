@@ -44,7 +44,6 @@ bool ChunkDataPool::addDFChunk(const ChunkEncoder& chunk)
     int frequencies_len = chunk.compressed_frequencies_len() * sizeof(uint32_t);
 
     uint8_t len_of_docid_len = IndexOutput::getVIntLength(doc_ids_len);
-
     uint8_t len_of_freq_len = IndexOutput::getVIntLength(frequencies_len);
 
     int left = pTailChunk_->size - nPosInCurChunk_;
@@ -57,14 +56,14 @@ bool ChunkDataPool::addDFChunk(const ChunkEncoder& chunk)
     }
 
     {
-        add_len_of_len_(len_of_docid_len);
+        add_len_of_len_(doc_ids_len);
         memcpy(pTailChunk_->data + nPosInCurChunk_, doc_ids, doc_ids_len);
         nTotalUsed_ += doc_ids_len;
         nPosInCurChunk_ += doc_ids_len;
     }
 
     {
-        add_len_of_len_(len_of_freq_len);
+        add_len_of_len_(frequencies_len);
         memcpy(pTailChunk_->data + nPosInCurChunk_, frequencies, frequencies_len);
         nTotalUsed_ += frequencies_len;
         nPosInCurChunk_ += frequencies_len;
@@ -142,21 +141,21 @@ bool ChunkDataPool::addChunk(const ChunkEncoder& chunk)
     }
 
     {
-        add_len_of_len_(len_of_docid_len);
+        add_len_of_len_(doc_ids_len);
         memcpy(pTailChunk_->data + nPosInCurChunk_, doc_ids, doc_ids_len);
         nTotalUsed_ += doc_ids_len;
         nPosInCurChunk_ += doc_ids_len;
     }
 
     {
-        add_len_of_len_(len_of_freq_len);
+        add_len_of_len_(frequencies_len);
         memcpy(pTailChunk_->data + nPosInCurChunk_, frequencies, frequencies_len);
         nTotalUsed_ += frequencies_len;
         nPosInCurChunk_ += frequencies_len;
     }
 
     {
-        add_len_of_len_(len_of_pos_len);
+        add_len_of_len_(positions_len);
         memcpy(pTailChunk_->data + nPosInCurChunk_, positions, positions_len);
         nTotalUsed_ += positions_len;
         nPosInCurChunk_ += positions_len;

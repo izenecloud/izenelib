@@ -310,7 +310,7 @@ void IndexMerger::mergeBarrel(MergeBarrel* pBarrel)
                                                                                  pIndexer_->getSkipInterval(), 
                                                                                  pIndexer_->getMaxSkipLevel());
                                 pFieldMerger->setDirectory(pDirectory_);
-                                pFieldMerger->initPostingMerger(pIndexer_->getIndexingType(), optimize_, pIndexer_->getIndexWriter()->pMemCache_);
+                                pFieldMerger->initPostingMerger(pIndexer_->getIndexCompressType(), optimize_, pIndexer_->getIndexWriter()->pMemCache_);
                                 if(pDocFilter_)
                                     pFieldMerger->setDocFilter(pDocFilter_);
                             }
