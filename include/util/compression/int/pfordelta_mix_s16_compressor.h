@@ -2,7 +2,7 @@
 #define IZENE_UTIL_COMPRESSION_INT_PFORDELTA_MIX_S16_COMPRESSOR_H
 
 #include <stdint.h>
-#include <stdlib.h>
+#include <cassert>
 
 #include <iostream>
 #include "pfordelta_unpack.h"
