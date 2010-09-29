@@ -55,6 +55,9 @@ public:
     void scheduleOptimizeTask(std::string expression, string uuid);
     /// close
     void close();
+
+    void createMemCache();
+
 private:
     void createBarrelWriter();
      /// create index merger

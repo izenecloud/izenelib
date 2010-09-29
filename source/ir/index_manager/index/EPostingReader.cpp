@@ -432,7 +432,7 @@ void ChunkPostingReader::reset(const TermInfo& termInfo)
         pPPInput->reset();
         pPPInput->seek(termInfo.positionPointer_);
     }
-
+    chunkDecoder_.set_prev_decoded_doc_id(0);
 }
 
 docid_t ChunkPostingReader::decodeTo(docid_t target)

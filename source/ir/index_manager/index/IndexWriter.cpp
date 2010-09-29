@@ -108,6 +108,13 @@ void IndexWriter::createMerger()
         pIndexMerger_ = new GPartitionMerger(pIndexer_);
 }
 
+void IndexWriter::createMemCache()
+{
+    if (!pMemCache_)
+        pMemCache_ = 
+            new MemCache((size_t)pIndexer_->getIndexManagerConfig()->indexStrategy_.memory_);
+}
+
 void IndexWriter::createBarrelWriter()
 {
     pBarrelsInfo_->addBarrel(pBarrelsInfo_->newBarrel().c_str(),0,pIndexer_->getIndexCompressType());
@@ -116,9 +123,8 @@ void IndexWriter::createBarrelWriter()
     pCurDocCount_ = &(pCurBarrelInfo_->nNumDocs);
     *pCurDocCount_ = 0;
 
-    if (!pMemCache_)
-        pMemCache_ = 
-            new MemCache((size_t)pIndexer_->getIndexManagerConfig()->indexStrategy_.memory_);
+    createMemCache();
+
     pIndexBarrelWriter_ = new IndexBarrelWriter(pIndexer_,
                                                  pMemCache_,pCurBarrelInfo_->getName().c_str());
     pCurBarrelInfo_->setWriter(pIndexBarrelWriter_);

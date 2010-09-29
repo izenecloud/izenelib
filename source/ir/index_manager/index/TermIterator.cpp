@@ -439,7 +439,7 @@ PostingReader* ChunkTermIterator::termPosting()
     }
     else
     {
-        ((RTDiskPostingReader*)pCurTermPosting_)->reset(*pCurTermInfo_);///reset to a new posting
+        ((ChunkPostingReader*)pCurTermPosting_)->reset(*pCurTermInfo_);///reset to a new posting
     }
     return pCurTermPosting_;
 }

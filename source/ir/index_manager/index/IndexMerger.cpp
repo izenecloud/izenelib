@@ -182,7 +182,7 @@ void IndexMerger::mergeBarrel(MergeBarrel* pBarrel)
     triggerMerge_ = true;
     pBarrel->load();
     string newBarrelName = pBarrel->getIdentifier();
-    BarrelInfo* pNewBarrelInfo = new BarrelInfo(newBarrelName,0);
+    BarrelInfo* pNewBarrelInfo = new BarrelInfo(newBarrelName,0,pIndexer_->getIndexCompressType());
 
     string name = newBarrelName + ".voc";///the file name of new index barrel
     IndexOutput* pVocStream = pDirectory_->createOutput(name);
@@ -310,6 +310,7 @@ void IndexMerger::mergeBarrel(MergeBarrel* pBarrel)
                                                                                  pIndexer_->getSkipInterval(), 
                                                                                  pIndexer_->getMaxSkipLevel());
                                 pFieldMerger->setDirectory(pDirectory_);
+                                if(NULL == pIndexer_->getIndexWriter()->pMemCache_) pIndexer_->getIndexWriter()->createMemCache();
                                 pFieldMerger->initPostingMerger(pIndexer_->getIndexCompressType(), optimize_, pIndexer_->getIndexWriter()->pMemCache_);
                                 if(pDocFilter_)
                                     pFieldMerger->setDocFilter(pDocFilter_);

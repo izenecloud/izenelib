@@ -96,13 +96,13 @@ docid_t TermPositions::skipTo(docid_t target)
         {
             if((termInfo_.docFreq_ < 4096)||(skipInterval_ == 0))
             {
-                if(!TermDocFreqs::decode())
+                if(!decode())
                     return BAD_DOCID;
             }
             else
             {
                 if(!pPostingBuffer_)
-                    TermDocFreqs::createBuffer();
+                    createBuffer();
                 nCurrentPosting_ = 0;
                 nCurDecodedCount_ = 1;
                 pPostingBuffer_[0] = pPosting_->decodeTo(target);

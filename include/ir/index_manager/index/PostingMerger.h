@@ -65,9 +65,9 @@ private:
 
     void ensure_pos_buffer(int num_of_pos_within_chunk)
     {
-        if((curr_position_buffer_size_ - position_buffer_pointer_) < num_of_pos_within_chunk)
+        if((curr_position_buffer_size_ - position_buffer_pointer_) <= num_of_pos_within_chunk)
         {
-            curr_position_buffer_size_  = num_of_pos_within_chunk + position_buffer_pointer_;
+            curr_position_buffer_size_  = (num_of_pos_within_chunk + position_buffer_pointer_) << 1;
             positions_ = (uint32_t*)realloc(positions_, curr_position_buffer_size_ * sizeof(uint32_t));
         }
     }

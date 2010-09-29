@@ -94,7 +94,7 @@ public:
      */
     count_t docFreq()const
     {
-        return 0;
+        return df_;
     }
 
     /**
@@ -103,7 +103,7 @@ public:
      */
     int64_t getCTF()const
     {
-        return 0;
+        return ctf_;
     }
 
     /*
@@ -247,7 +247,7 @@ public:
      */
     count_t docFreq()const
     {
-        return 0;
+        return df_;
     }
 
     /**
@@ -256,7 +256,7 @@ public:
      */
     int64_t getCTF()const
     {
-        return 0;
+        return ctf_;
     }
 
     /*

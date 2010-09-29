@@ -86,7 +86,6 @@ public:
     // Set the offset into the 'doc_ids_' and 'frequencies_' arrays.
     void set_curr_document_offset(int doc_offset)
     {
-        assert(doc_offset >= 0 && doc_offset >= curr_document_offset_);
         curr_document_offset_ = doc_offset;
     }
 
