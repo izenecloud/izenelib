@@ -568,8 +568,6 @@ void PostingMerger::optimize(RTDiskPostingReader* pOnDiskPosting,BitVector* pFil
 
 void PostingMerger::optimize_to_Block(RTDiskPostingReader* pOnDiskPosting,BitVector* pFilter)
 {
-    IndexOutput* pPOutput = pOutputDescriptor_->getPPostingOutput();
-
     IndexInput*	pDInput = pOnDiskPosting->getInputDescriptor()->getDPostingInput();
     IndexInput*	pPInput = pOnDiskPosting->getInputDescriptor()->getPPostingInput();
 
@@ -580,13 +578,7 @@ void PostingMerger::optimize_to_Block(RTDiskPostingReader* pOnDiskPosting,BitVec
     if (bFirstPosting_)///first posting
     {
         reset();
-        termInfo_.positionPointer_ = pPOutput->getFilePointer();
-		
-        nPPostingLength_ = 0;
         bFirstPosting_ = false;
-
-        ///save position offset
-        postingDesc_.poffset = pPOutput->getFilePointer();
     }
 
     docid_t nDocID = 0;
@@ -594,12 +586,6 @@ void PostingMerger::optimize_to_Block(RTDiskPostingReader* pOnDiskPosting,BitVec
     count_t nCTF = 0;
     count_t nDF = 0;
     count_t nPCount = 0;
-
-    IndexOutput* pDocIndexOutput = pTmpPostingOutput_;
-	
-    fileoffset_t oldDOff = pDocIndexOutput->getFilePointer();
-    fileoffset_t oldPOff = pPOutput->getFilePointer();
-
 
     while (nODDF > 0)
     {
@@ -654,20 +640,14 @@ void PostingMerger::optimize_to_Block(RTDiskPostingReader* pOnDiskPosting,BitVec
         }
     }	
 
-    chunkDesc_.length += (pDocIndexOutput->getFilePointer() - oldDOff);
-
     ///update descriptors
     postingDesc_.ctf += nCTF;
     postingDesc_.df += nDF;
-    postingDesc_.length = chunkDesc_.length; ///currently,it's only one chunk 
-    postingDesc_.plength += pPOutput->getFilePointer() - oldPOff;
     chunkDesc_.lastdocid = nDocID;
 }
 
 void PostingMerger::optimize_to_Chunk(RTDiskPostingReader* pOnDiskPosting,BitVector* pFilter)
 {
-    IndexOutput* pPOutput = pOutputDescriptor_->getPPostingOutput();
-
     IndexInput* pDInput = pOnDiskPosting->getInputDescriptor()->getDPostingInput();
     IndexInput* pPInput = pOnDiskPosting->getInputDescriptor()->getPPostingInput();
 
@@ -678,13 +658,7 @@ void PostingMerger::optimize_to_Chunk(RTDiskPostingReader* pOnDiskPosting,BitVec
     if (bFirstPosting_)///first posting
     {
         reset();
-        termInfo_.positionPointer_ = pPOutput->getFilePointer();
-
-        nPPostingLength_ = 0;
         bFirstPosting_ = false;
-
-        ///save position offset
-        postingDesc_.poffset = pPOutput->getFilePointer();
     }
 
     docid_t nDocID = 0;
@@ -693,11 +667,6 @@ void PostingMerger::optimize_to_Chunk(RTDiskPostingReader* pOnDiskPosting,BitVec
     count_t nDF = 0;
     count_t nPCount = 0;
     uint32_t prev_chunk_last_doc_id = 0;
-
-    IndexOutput* pDocIndexOutput = pTmpPostingOutput_;
-
-    fileoffset_t oldDOff = pDocIndexOutput->getFilePointer();
-    fileoffset_t oldPOff = pPOutput->getFilePointer();
 
     while (nODDF > 0)
     {
@@ -743,13 +712,9 @@ void PostingMerger::optimize_to_Chunk(RTDiskPostingReader* pOnDiskPosting,BitVec
         }
     }	
 
-    chunkDesc_.length += (pDocIndexOutput->getFilePointer() - oldDOff);
-
     ///update descriptors
     postingDesc_.ctf += nCTF;
     postingDesc_.df += nDF;
-    postingDesc_.length = chunkDesc_.length; ///currently,it's only one chunk 
-    postingDesc_.plength += pPOutput->getFilePointer() - oldPOff;
     chunkDesc_.lastdocid = nDocID;
 }
 
@@ -758,17 +723,17 @@ fileoffset_t PostingMerger::endMerge()
     switch(compressType_)
     {
     case BYTEALIGN:
-        return endMerge_RT();
+        return endMerge_ByteAlign();
     case BLOCK:
-        return endMerge_E_Block();
+        return endMerge_Block();
     case CHUNK:
-        return endMerge_E_Chunk();
+        return endMerge_Chunk();
     default:
         assert(false);
     }
 }
 
-fileoffset_t PostingMerger::endMerge_RT()
+fileoffset_t PostingMerger::endMerge_ByteAlign()
 {
     bFirstPosting_ = true;
     if (postingDesc_.df <= 0)
@@ -809,7 +774,7 @@ fileoffset_t PostingMerger::endMerge_RT()
 }
 
 
-fileoffset_t PostingMerger::endMerge_E_Block()
+fileoffset_t PostingMerger::endMerge_Block()
 {
     bFirstPosting_ = true;
     if (postingDesc_.df <= 0)
@@ -880,7 +845,7 @@ fileoffset_t PostingMerger::endMerge_E_Block()
 }
 
 
-fileoffset_t PostingMerger::endMerge_E_Chunk()
+fileoffset_t PostingMerger::endMerge_Chunk()
 {
     bFirstPosting_ = true;
     if (postingDesc_.df <= 0)

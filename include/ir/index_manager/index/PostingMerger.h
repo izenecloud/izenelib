@@ -80,11 +80,11 @@ private:
 	
     void optimize_to_Chunk(RTDiskPostingReader* pOnDiskPosting,BitVector* pFilter);
 
-    fileoffset_t endMerge_RT();
+    fileoffset_t endMerge_ByteAlign();
 
-    fileoffset_t endMerge_E_Block();
+    fileoffset_t endMerge_Block();
 
-    fileoffset_t endMerge_E_Chunk();
+    fileoffset_t endMerge_Chunk();
 
 private:
     friend class FieldMerger;
