@@ -436,8 +436,8 @@ void PostingMerger::mergeWith(BlockPostingReader* pPosting,BitVector* pFilter)
             if (blockDecoder.curr_chunk_decoded() == false) 
             {
                 // Create a new chunk and add it to the block.
-                int chunkSize = std::min(CHUNK_SIZE, num_docs_left);
-                chunk.reset(blockDecoder.curr_block_data(), chunkSize);
+                int num_doc = std::min(CHUNK_SIZE, num_docs_left);
+                chunk.reset(blockDecoder.curr_block_data(), num_doc);
                 chunk.decodeDocIds();
                 chunk.decodeFrequencies();
 
@@ -452,15 +452,15 @@ void PostingMerger::mergeWith(BlockPostingReader* pPosting,BitVector* pFilter)
                 if(pFilter) chunk.post_process(pFilter);
 
                 num_docs_left -= chunk.num_docs();
-                int copySize = std::min(chunkSize, CHUNK_SIZE - doc_ids_offset_);
+                int copySize = std::min(chunk.num_docs(), CHUNK_SIZE - doc_ids_offset_);
                 memcpy(doc_ids_ + doc_ids_offset_, chunk.doc_ids(), copySize);
                 memcpy(frequencies_+ doc_ids_offset_, chunk.frequencies(), copySize);
-                chunk.set_curr_document_offset(copySize);
-                chunk.updatePositionOffset();
+                doc_ids_offset_ += copySize;
+                position_buffer_pointer_ += size_of_positions;
 
-                if (doc_ids_offset_ == ChunkEncoder::kChunkSize - 1) 
+                if (doc_ids_offset_ == CHUNK_SIZE) 
                 {
-                    chunk_.encode(doc_ids_, frequencies_, positions_, ChunkEncoder::kChunkSize);
+                    chunk_.encode(doc_ids_, frequencies_, positions_, CHUNK_SIZE);
                     prev_chunk_last_doc_id = chunk_.last_doc_id();
                     pPosDataPool_->addPOSChunk(chunk_);
                     if(!blockEncoder_.addChunk(chunk_))
@@ -477,15 +477,22 @@ void PostingMerger::mergeWith(BlockPostingReader* pPosting,BitVector* pFilter)
                     }
 
                     doc_ids_offset_ = 0;
-                    copySize = std::min(copySize, chunk.num_docs());
-                    memcpy(doc_ids_ + doc_ids_offset_, chunk.doc_ids(), copySize*sizeof(uint32_t));
-                    memcpy(frequencies_+ doc_ids_offset_, chunk.frequencies(), copySize*sizeof(uint32_t));
-                    memmove (positions_, positions_+ position_buffer_pointer_ + chunk.curr_position_offset(), 
-                                                        (chunk.size_of_positions() - chunk.curr_position_offset())*sizeof(uint32_t));
-                    position_buffer_pointer_ = chunk.size_of_positions() - chunk.curr_position_offset();
-                    doc_ids_offset_ = copySize;
-                }
+                    position_buffer_pointer_ = 0;
 
+                    int left = chunk.num_docs() - copySize;
+                    if(left > 0)
+                    {
+                        chunk.set_curr_document_offset(copySize);
+                        chunk.updatePositionOffset();
+                        memcpy(doc_ids_, chunk.doc_ids(), left*sizeof(uint32_t));
+                        memcpy(frequencies_, chunk.frequencies(), left*sizeof(uint32_t));
+                        memmove (positions_, positions_ + position_buffer_pointer_ + chunk.curr_position_offset(), 
+                                                           (chunk.size_of_positions() - chunk.curr_position_offset())*sizeof(uint32_t));
+                        position_buffer_pointer_ = chunk.size_of_positions() - chunk.curr_position_offset();
+                        doc_ids_offset_ = left;
+                        chunk.set_curr_document_offset(0);
+                    }
+                }
             }
 
             blockDecoder.advance_curr_chunk();
