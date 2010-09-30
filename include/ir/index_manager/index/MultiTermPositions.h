@@ -77,8 +77,6 @@ public:
 
     loc_t nextPosition();
 
-    int32_t nextPositions(loc_t*& positions);
-
     void add(BarrelInfo* pBarrelInfo,TermPositions* pTermPositions);
 private:
 

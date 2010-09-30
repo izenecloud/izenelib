@@ -94,13 +94,13 @@ docid_t TermPositions::skipTo(docid_t target)
     {
         if((nCurrentPosting_ == -1) || (nCurrentPosting_ >= nCurDecodedCount_) )
         {
-            if((termInfo_.docFreq_ < 4096)||(skipInterval_ == 0))
+/*            if((termInfo_.docFreq_ < 4096)||(skipInterval_ == 0))
             {
                 if(!decode())
                     return BAD_DOCID;
             }
             else
-            {
+*/            {
                 if(!pPostingBuffer_)
                     createBuffer();
                 nCurrentPosting_ = 0;
@@ -156,6 +156,8 @@ void TermPositions::resetDecodingState()
     nCurDecodedPCountWithinDoc_ = 0;
     nTotalDecodedPCountWithinDoc_ = 0;
     nCurrentPPostingWithinDoc_ = 0;
+    nCurrentPPosting_ = 0;
+    pPPostingBufferWithinDoc_ = pPPostingBuffer_;
     pPosting_->resetPosition();
 }
 
@@ -168,30 +170,30 @@ loc_t TermPositions::nextPosition()
 {
     if (nCurrentPPostingWithinDoc_ >= nCurDecodedPCountWithinDoc_)
     {
-        return BAD_POSITION;
-/*    
-        if (!decodePositions())
+        if(nCurrentPPostingWithinDoc_ == 0 && nCurDecodedPCountWithinDoc_ == 0)
+        {
+            if (!decodePosForCurrDoc())
+                return BAD_POSITION;
+            return pPPostingBufferWithinDoc_[nCurrentPPostingWithinDoc_++];
+        }
+        else
             return BAD_POSITION;
-        return pPPostingBufferWithinDoc_[nCurrentPPostingWithinDoc_++];
-*/
     }
 
     return pPPostingBufferWithinDoc_[nCurrentPPostingWithinDoc_++];
 }
 
-int32_t TermPositions::nextPositions(loc_t*& positions)
+bool TermPositions::decodePosForCurrDoc()
 {
-    if (nCurrentPPostingWithinDoc_ >= nCurDecodedPCountWithinDoc_)
-    {
-        return BAD_POSITION;
-/*    
-        if (!decodePositions())
-            return -1;
-*/
-    }
+    if(!pPPostingBuffer_)
+        createBuffer();
 
-    positions = pPPostingBufferWithinDoc_;
-    return nCurDecodedPCountWithinDoc_;
+    if(nPBufferSize_ < nPPostingCountWithinDoc_)
+    {
+        nPBufferSize_ = nPPostingCountWithinDoc_ << 1;
+        pPPostingBuffer_ = (uint32_t*)realloc(pPPostingBuffer_, nPBufferSize_ * sizeof(uint32_t));
+    }
+    return pPosting_->decodeNextPositions(pPPostingBuffer_, nPPostingCountWithinDoc_);
 }
 
 void TermPositions::createBuffer()

@@ -53,10 +53,10 @@ public:
     /**
      * Get the position posting data
      * @param pPosing the address to store posting data
-     * @param the length of pPosting
+     * @param the length of pPosting. This function is only useful for to decode positions for skipTo target
      * @return true:success,false: error or reach end
      */
-    bool decodeNextPositions(uint32_t* pPosting,int32_t length) { return true; }
+    bool decodeNextPositions(uint32_t* pPosting,int32_t length);
 
     /**
      * Get the position posting data
@@ -111,7 +111,7 @@ public:
     */
     count_t getCurTF() const
     {
-        return 0;
+        return blockDecoder_.chunk_decoder_.frequencies(blockDecoder_.chunk_decoder_.curr_document_offset());		
     }
 
     docid_t lastDocID()
@@ -167,8 +167,10 @@ protected:
 
     docid_t prev_block_last_doc_id_;
 	
-    uint32_t* urgentBuffer_;
+    uint32_t* urgentBuffer_; ///used  when ListingCache is enabled, and cache is missed.
     uint32_t* compressedPos_;
+    uint32_t* uncompressed_pos_buffer_for_skipto_;
+    int32_t uncompressed_pos_buffer_size_;
 
     friend class PostingMerger;
 };
@@ -205,10 +207,10 @@ public:
     /**
      * Get the position posting data
      * @param pPosing the address to store posting data
-     * @param the length of pPosting
+     * @param the length of pPosting. This function is only useful for to decode positions for skipTo target
      * @return true:success,false: error or reach end
      */
-    bool decodeNextPositions(uint32_t* pPosting,int32_t length) { return true; }
+    bool decodeNextPositions(uint32_t* pPosting,int32_t length);
 
     /**
      * Get the position posting data
@@ -264,7 +266,7 @@ public:
     */
     count_t getCurTF() const
     {
-        return 0;
+        return chunkDecoder_.frequencies(chunkDecoder_.curr_document_offset());
     }
 
     docid_t lastDocID()
@@ -309,6 +311,8 @@ protected:
 	
     uint32_t compressedBuffer_[CHUNK_SIZE*2];
     uint32_t* compressedPos_;
+    uint32_t* uncompressed_pos_buffer_for_skipto_;
+    int32_t uncompressed_pos_buffer_size_;
 
     friend class PostingMerger;
 };

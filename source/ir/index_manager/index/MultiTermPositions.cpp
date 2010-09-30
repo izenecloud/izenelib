@@ -131,10 +131,6 @@ loc_t MultiTermPositions::nextPosition()
     return current_->termPositions_->nextPosition();
 }
 
-int32_t MultiTermPositions::nextPositions(loc_t*& positions)
-{
-    return current_->termPositions_->nextPositions(positions);
-}
 void MultiTermPositions::add(BarrelInfo* pBarrelInfo,TermPositions* pTermPositions)
 {
     termPositionsList_.push_back(new BarrelTermPositionsEntry(pBarrelInfo,pTermPositions));

@@ -37,7 +37,7 @@ public:
     /**
      * move to the next documents block
      */
-    virtual bool	next();
+    virtual bool next();
     /*
     * move to the first document whose id is greater than or equal to target
     */
@@ -60,20 +60,18 @@ public:
         return TermDocFreqs::getCTF();
     };
 
-    virtual void	close();
+    virtual void close();
     /**
     * iterate to next position
     */
-    virtual loc_t	nextPosition();
-    /**
-    * iterate to next block of positions
-    */
-    virtual int32_t nextPositions(loc_t*& positions);
+    loc_t nextPosition();
 protected:
     virtual bool decode();
 
     /** decode positions */
     inline bool decodePositions();
+
+    bool decodePosForCurrDoc();
 
     /** skip some positions */
     inline void skipPositions(int32_t nSkips);

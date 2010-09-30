@@ -11,7 +11,7 @@ namespace indexmanager
  **************************************************************************************************************************************************************/
 ChunkDecoder::ChunkDecoder() :
         num_docs_(0), curr_document_offset_(0), prev_document_offset_(0), curr_position_offset_(0), prev_decoded_doc_id_(0), num_positions_(0),
-        curr_buffer_position_(NULL), decoded_(false), doc_deleted_(false)
+        curr_buffer_position_(NULL), decoded_(false), pos_decoded_(false), doc_deleted_(false)
 {
 }
 
@@ -24,6 +24,7 @@ void ChunkDecoder::reset(const uint32_t* buffer, int num_docs)
     //prev_decoded_doc_id_ = 0;
     curr_buffer_position_ = buffer;
     decoded_ = false;
+    pos_decoded_ = false;
 
     use_internal_buffer_ = true;
     doc_ids_ = internal_doc_ids_buffer_;
@@ -77,6 +78,7 @@ int ChunkDecoder::decodePositions(const uint32_t* compressed_positions)
           pos[j] += pos[j-1];
         pos += frequencies_[i];
     }
+    pos_decoded_ = true;
     return num_words_consumed;
 }
 
@@ -120,7 +122,7 @@ void ChunkDecoder::updatePositionOffset()
 
 uint32_t ChunkDecoder::move_to(uint32_t target, bool computePos)
 {
-    while(doc_ids_[curr_document_offset_] < target)
+    while((doc_ids_[curr_document_offset_] < target)&&(curr_document_offset_ < num_docs_))
     {
         ++curr_document_offset_;
     }
@@ -131,8 +133,10 @@ uint32_t ChunkDecoder::move_to(uint32_t target, bool computePos)
         {
             num_positions_ += frequencies_[i];
         }
+        updatePositionOffset();
     }
-    return doc_ids_[curr_document_offset_];
+	
+    return doc_ids_[curr_document_offset_] >= target ? doc_ids_[curr_document_offset_] : -1;
 }
 
 /**********************************************************************************************************

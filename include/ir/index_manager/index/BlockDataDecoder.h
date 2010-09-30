@@ -137,6 +137,16 @@ public:
         if(!decoded) doc_deleted_ = false;
     }
 
+    bool pos_decoded() const
+    {
+        return pos_decoded_;
+    }
+
+    void set_pos_decoded(bool pos_decoded)
+    {
+        pos_decoded_ = pos_decoded;
+    }
+
     bool has_deleted_doc() const
     {
         return doc_deleted_;
@@ -184,6 +194,8 @@ private:
     const uint32_t* curr_buffer_position_;  // Pointer to the raw data of stuff we have to decode next.
 
     bool decoded_;  // True when we have decoded the docIDs.
+
+    bool pos_decoded_; // True when we have decoded the positions;
 
     bool doc_deleted_; // True if there are docIDs that are deleted
 
