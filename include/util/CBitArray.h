@@ -274,6 +274,34 @@ class CBitArray
         SetBit(&nValue, nBit-nStartBit);
     return nValue;
   }
+  
+  template<typename IntType>
+  inline static IntType GetBitsValue(const uint8_t *p, int nStartBit, int nBitCount) {
+    IntType nValue = 0;
+    for (int nBit = nStartBit; nBitCount--; nBit++)
+      if (GetBit(p, nBit))
+        SetBit(&nValue, nBit-nStartBit);
+    return nValue;
+  }
+  
+  
+  template<typename IntType>
+  inline static IntType GetBitsValue(const uint8_t *p, const std::vector<std::pair<int, int> >& nStartCount) {
+    IntType nValue = 0;
+    int pos = 0;
+    for ( uint32_t i=0; i<nStartCount.size(); i++)
+    {
+      int nStartBit = nStartCount[i].first;
+      int nBitCount = nStartCount[i].second;
+      for (int nBit = nStartBit; nBitCount--; nBit++)
+      {
+        if (GetBit(p, nBit))
+          SetBit(&nValue, pos);
+        ++pos;
+      }
+    }
+    return nValue;
+  }
 
   inline static void SetAt(uint8_t *src, int nSrcStartBit, uint8_t *des,
                            int nDesStartBit, int nBitCount) {
