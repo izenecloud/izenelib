@@ -511,6 +511,7 @@ docid_t ChunkPostingReader::decodeTo(docid_t target)
             {
                 pPPostingInput->seek(poffset_ + pSkipListReader_->getPOffset());
             }
+            chunkDecoder_.reset(NULL, 0);
         }
     }
 
@@ -680,13 +681,20 @@ bool ChunkPostingReader::decodeNextPositions(uint32_t* pPosting,int32_t length)
 
     IndexInput* pPPostingInput = pInputDescriptor_->getPPostingInput();
 
-    assert(chunkDecoder_.decoded());
+    assert(chunkDecoder_.decoded() == true);
     assert(chunkDecoder_.curr_document_offset() < chunkDecoder_.num_docs());
 
     if(chunkDecoder_.pos_decoded())
     {
-        uint32_t* decoded_pos = uncompressed_pos_buffer_for_skipto_ + chunkDecoder_.curr_position_offset();
-
+        uint32_t* decoded_pos = NULL;
+        if(!uncompressed_pos_buffer_for_skipto_)
+        {
+            decoded_pos = const_cast<uint32_t*>(chunkDecoder_.current_positions());
+        }
+        else
+        {
+            decoded_pos = uncompressed_pos_buffer_for_skipto_ + chunkDecoder_.curr_position_offset();
+        }
         for(int i = 0; i < length; ++i)
             *pPosting++ = decoded_pos[i];
     }
