@@ -194,7 +194,7 @@ IndexOutput* FSDirectory::createOutput(const string& name, const string& mode)
 IndexOutput* FSDirectory::createOutput(const string& name, size_t buffersize, const string& mode)
 {
     string fullpath = directoryName_ + "/" + name;
-    return new FSIndexOutput(fullpath.c_str(), buffersize, mode);
+    return new FSIndexOutput(fullpath.c_str(), mode, buffersize);
 }
 
 void FSDirectory::close()

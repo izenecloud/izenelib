@@ -102,7 +102,6 @@ public:
     RAMIndexOutput(RAMFile* ramFile);
     virtual ~RAMIndexOutput();
 public:
-    void seek(int64_t pos);
     int64_t length()
     {
         return file->length;
@@ -111,6 +110,8 @@ public:
     void writeTo(IndexOutput* pOutput);
 protected:
     void flushBuffer(char* b, size_t len);
+    void  seekInternal(int64_t pos);
+
 protected:
     RAMFile* file;
     bool bDeleteFile;

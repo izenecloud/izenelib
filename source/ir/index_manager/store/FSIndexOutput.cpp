@@ -9,34 +9,9 @@ using namespace std;
 
 using namespace izenelib::ir::indexmanager;
 
-FSIndexOutput::FSIndexOutput(const char* filename, const string& mode)
-    :IndexOutput(0)
-    ,filename_(filename)
-{
-    if (mode.compare("w+b") == 0)
-        fileHandle_ = fopen(filename, "w+b");
-    else if(mode.compare("r+") == 0)
-    {
-        fileHandle_ = fopen(filename, "r+");
-        if(fileHandle_ == NULL)
-            fileHandle_ = fopen(filename, "a+");
-    }
-    else if(mode.compare("a+") == 0)
-        fileHandle_ = fopen(filename, "a+");
-    else
-        SF1V5_THROW(ERROR_FILEIO,"Open file error: " + filename_);
-
-    if (fileHandle_ == NULL)
-    {
-        perror("error when opening file");
-        SF1V5_THROW(ERROR_FILEIO,"Open file error: " + filename_);
-    }
-
-    //setbuf(fileHandle_,NULL);
-}
-
-FSIndexOutput::FSIndexOutput(const char* filename, size_t buffsize, const string& mode)
+FSIndexOutput::FSIndexOutput(const char* filename, const string& mode, size_t buffsize)
     :IndexOutput(buffsize)
+    ,fileHandle_(NULL)
     ,filename_(filename)
 {
     if (mode.compare("w+b") == 0)
@@ -45,10 +20,8 @@ FSIndexOutput::FSIndexOutput(const char* filename, size_t buffsize, const string
     {
         fileHandle_ = fopen(filename, "r+");
         if(fileHandle_ == NULL)
-            fileHandle_ = fopen(filename, "a+");
+            fileHandle_ = fopen(filename, "w+b");
     }
-    else if(mode.compare("a+") == 0)
-        fileHandle_ = fopen(filename, "a+");
     else
         SF1V5_THROW(ERROR_FILEIO,"Open file error: " + filename_);
 
@@ -77,9 +50,8 @@ void FSIndexOutput::flushBuffer(char* b, size_t len)
     }
 }
 
-void FSIndexOutput::seek(int64_t pos)
+void FSIndexOutput::seekInternal(int64_t pos)
 {
-    IndexOutput::seek(pos);
     if (0 != fseek(fileHandle_, pos, SEEK_SET))
     {
         close();

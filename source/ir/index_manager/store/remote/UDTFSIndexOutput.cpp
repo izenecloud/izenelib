@@ -43,9 +43,8 @@ void UDTFSIndexOutput::flushBuffer(char* b, size_t len)
     }
 }
 
-void UDTFSIndexOutput::seek(int64_t pos)
+void UDTFSIndexOutput::seekInternal(int64_t pos)
 {
-    IndexOutput::seek(pos);
     fileHandle_.seek(pos);
 }
 

@@ -62,7 +62,10 @@ public:
 
     virtual void  close();
 
-    virtual void  seek(int64_t pos);
+    void seek(int64_t pos);
+
+protected:
+    virtual void seekInternal(int64_t pos) = 0;
 
 protected:
     char* buffer_;
