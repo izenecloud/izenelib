@@ -107,11 +107,11 @@ public:
                     }
                     if (code_ < NUM_ERRORS)
                     {
-                        imp_->what = s_errorStrings[code_];
+                        imp_->what += s_errorStrings[code_];
                     }
                     else
                     {
-                        imp_->what = s_errorStrings[ERROR_UNKNOWN];
+                        imp_->what += s_errorStrings[ERROR_UNKNOWN];
                     }
                     if (!imp_->file.empty())
                     {
