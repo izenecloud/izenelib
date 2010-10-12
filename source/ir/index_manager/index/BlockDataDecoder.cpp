@@ -122,7 +122,7 @@ void ChunkDecoder::updatePositionOffset()
 
 uint32_t ChunkDecoder::move_to(uint32_t target, bool computePos)
 {
-    while((doc_ids_[curr_document_offset_] < target)&&(curr_document_offset_ < num_docs_))
+    while((doc_ids_[curr_document_offset_] < target)&&(curr_document_offset_ < (num_docs_-1)))
     {
         ++curr_document_offset_;
     }

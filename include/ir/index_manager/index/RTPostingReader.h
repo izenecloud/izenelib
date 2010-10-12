@@ -90,7 +90,7 @@ public:
      * @param pPPosing the address to store position posting data
      * @return decoded posting count
      */
-     int32_t decodeNext(uint32_t* pPosting,int32_t length, uint32_t* &pPPosting, int32_t& pLength);
+     int32_t decodeNext(uint32_t* pPosting,int32_t length, uint32_t* &pPPosting, int32_t& posBufLength, int32_t& posLength);
 
     /**
      * Get the position posting data
@@ -187,7 +187,7 @@ public:
      * @param pPPosing the address to store position posting data
      * @return decoded posting count
      */
-    int32_t decodeNext(uint32_t* pPosting,int32_t length, uint32_t* &pPPosting, int32_t& pLength);
+    int32_t decodeNext(uint32_t* pPosting,int32_t length, uint32_t* &pPPosting, int32_t& posBufLength, int32_t& posLength);
     /**
      * Get the position posting data
     	 * @param pPosing the address to store posting data

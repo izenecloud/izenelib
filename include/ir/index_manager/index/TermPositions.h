@@ -104,6 +104,8 @@ private:
 
     int32_t nLastPosting_;
 
+    bool is_last_skipto_; /// last operation is skipto
+
     static const int32_t DEFAULT_BUFFERSIZE = 163840;
 };
 

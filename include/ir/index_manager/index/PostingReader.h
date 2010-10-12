@@ -21,7 +21,7 @@ public:
 
     virtual int32_t decodeNext(uint32_t* pPosting,int32_t length) = 0;
 
-    virtual int32_t decodeNext(uint32_t* pPosting,int32_t length, uint32_t* &pPPosting, int32_t& pLength) = 0;
+    virtual int32_t decodeNext(uint32_t* pPosting,int32_t length, uint32_t* &pPPosting, int32_t& posBufLength, int32_t& posLength) = 0;
 
     virtual bool decodeNextPositions(uint32_t* pPosting,int32_t length) = 0;
 
@@ -40,10 +40,10 @@ public:
     virtual void setFilter(BitVector* pFilter) = 0;
 
 protected:
-    void growPosBuffer(uint32_t* &pPPosting, int32_t& pLength)
+    void growPosBuffer(uint32_t* &pPPosting, int32_t& posBufLength)
     {
-        pLength = pLength << 1;
-        pPPosting = (uint32_t*)realloc(pPPosting, pLength * sizeof(uint32_t));
+        posBufLength = posBufLength << 1;
+        pPPosting = (uint32_t*)realloc(pPPosting, posBufLength * sizeof(uint32_t));
     }
 
 };

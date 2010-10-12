@@ -158,7 +158,7 @@ int32_t MemPostingReader::decodeNext(uint32_t* pPosting,int32_t length)
     return (int32_t)(pDoc - pPosting);
 }
 
-int32_t MemPostingReader::decodeNext(uint32_t* pPosting,int32_t length, uint32_t* &pPPosting, int32_t& pLength)
+int32_t MemPostingReader::decodeNext(uint32_t* pPosting,int32_t length, uint32_t* &pPPosting, int32_t& posBufLength, int32_t& posLength)
 {
     if(pPostingWriter_->dirty_|| ! pDS_->decodingPChunk)
     {
@@ -225,7 +225,7 @@ int32_t MemPostingReader::decodeNext(uint32_t* pPosting,int32_t length, uint32_t
             *pFreq++ = nCurTF;
 
             nFreqs += nCurTF;
-            if(nFreqs >= pLength) growPosBuffer(pPPosting, pLength);
+            if(nFreqs >= posBufLength) growPosBuffer(pPPosting, posBufLength);
 
             nCurDecoded = 0;
             while (nCurDecoded < nCurTF)
@@ -277,6 +277,7 @@ int32_t MemPostingReader::decodeNext(uint32_t* pPosting,int32_t length, uint32_t
     pDS_->decodedDocCount += count;
     pDS_->lastDecodedDocID = did;
     pDS_->decodingDChunkPos = (int32_t)(pDChunk - pDS_->decodingDChunk->data);
+    posLength = pPos - pPPosting;
 
     return (int32_t)(pDoc - pPosting);
 }
@@ -637,7 +638,7 @@ int32_t RTDiskPostingReader::decodeNext(uint32_t* pPosting,int32_t length)
     return (int32_t)(pDoc - pPosting);
 }
 
-int32_t RTDiskPostingReader::decodeNext(uint32_t* pPosting,int32_t length, uint32_t* &pPPosting, int32_t& pLength)
+int32_t RTDiskPostingReader::decodeNext(uint32_t* pPosting,int32_t length, uint32_t* &pPPosting, int32_t& posBufLength, int32_t& posLength)
 {
     int32_t left = postingDesc_.df - ds_.decodedDocCount;
     if (left <= 0)
@@ -672,7 +673,7 @@ int32_t RTDiskPostingReader::decodeNext(uint32_t* pPosting,int32_t length, uint3
             *pFreq++ = nCurTF;
 
             nFreqs += nCurTF;
-            if(nFreqs >= pLength) growPosBuffer(pPPosting, pLength);
+            if(nFreqs >= posBufLength) growPosBuffer(pPPosting, posBufLength);
 
             nCurDecoded = 0;
             while (nCurDecoded < nCurTF)
@@ -701,6 +702,7 @@ int32_t RTDiskPostingReader::decodeNext(uint32_t* pPosting,int32_t length, uint3
     ds_.decodedDocCount += count;
     ds_.lastDecodedDocID = did;
 
+    posLength = pPos - pPPosting;
     return (int32_t)(pDoc - pPosting);
 }
 
