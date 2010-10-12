@@ -1,6 +1,8 @@
 #include <ir/index_manager/index/DocLengthReader.h>
+#include <util/izene_log.h>
 
 #include <iostream>
+#include <boost/scoped_ptr.hpp>
 
 #define MAX_PROPERTIES    100
 
@@ -44,14 +46,12 @@ void DocLengthReader::load(docid_t maxDocId)
     size_ = (maxDocId+1) * numIndexedProperties_;
     data_ = new uint16_t[size_];
     memset(data_, 0, size_*2);
-    IndexInput* pInput = 0;
     try{
-    pInput = pDirectory_->openInput("doclen.map");
-    pInput->readBytes((unsigned char*)data_, size_*2);
-    delete pInput;
+        boost::scoped_ptr<IndexInput> pInput(pDirectory_->openInput("doclen.map"));
+        pInput->readBytes((unsigned char*)data_, size_*2);
     }catch(std::exception& e)
     {
-        if(pInput) delete pInput;
+        LOG(WARNING) << e.what();
     }
 }
 
