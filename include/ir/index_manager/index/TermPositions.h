@@ -64,7 +64,7 @@ public:
     /**
     * iterate to next position
     */
-    loc_t nextPosition();
+    virtual loc_t nextPosition();
 protected:
     virtual bool decode();
 
