@@ -66,10 +66,14 @@ void IndexWriter::flush()
     BarrelInfo* pLastBarrel = pBarrelsInfo_->getLastBarrel();
     if (pLastBarrel == NULL)
         return;
+
+    // clear baseDocIDMap_ so that when next time IndexWriter::indexDocument() is called,
+    // new doc id could be inserted into baseDocIDMap_
+    pLastBarrel->setBaseDocID(baseDocIDMap_);
+    baseDocIDMap_.clear();
+
     if(pIndexer_->isRealTime())
     {
-        pLastBarrel->setBaseDocID(baseDocIDMap_);
-        baseDocIDMap_.clear();
         if(pIndexBarrelWriter_->cacheEmpty() == false)
         {
             ///memory index has not been written to database yet.
@@ -87,15 +91,23 @@ void IndexWriter::flush()
             }
 
         }
-        pLastBarrel->setWriter(NULL);
-        pBarrelsInfo_->write(pIndexer_->getDirectory());
-        delete pIndexBarrelWriter_;
-        pIndexBarrelWriter_ = NULL;
     }
     else
     {
-        sort_and_merge();
+        try
+        {
+            pIndexBarrelWriter_->writeCache();
+            pLastBarrel->setSearchable(true);
+        }catch(std::exception& e)
+        {
+            cerr << e.what() << endl;
+        }
     }
+
+    pLastBarrel->setWriter(NULL);
+    pBarrelsInfo_->write(pIndexer_->getDirectory());
+    delete pIndexBarrelWriter_;
+    pIndexBarrelWriter_ = NULL;
 }
 
 void IndexWriter::createMerger()
@@ -326,23 +338,6 @@ void IndexWriter::scheduleOptimizeTask(std::string expression, string uuid)
     
     boost::function<void (void)> task = boost::bind(&IndexWriter::lazyOptimizeIndex,this);
     Scheduler::addJob(optimizeJob, 60*1000, 0, task);
-}
-
-void IndexWriter::sort_and_merge()
-{
-    try{
-    if(!pIndexBarrelWriter_) return;
-    pIndexBarrelWriter_->writeCache();
-    BarrelInfo* pLastBarrel = pBarrelsInfo_->getLastBarrel();
-    pLastBarrel->setSearchable(true);
-    pLastBarrel->setWriter(NULL);
-    delete pIndexBarrelWriter_;
-    pIndexBarrelWriter_ = NULL;
-    pBarrelsInfo_->write(pIndexer_->getDirectory());
-    }catch(std::exception& e)
-    {
-        cerr<<e.what()<<endl;
-    }
 }
 
 }

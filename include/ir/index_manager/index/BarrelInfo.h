@@ -266,8 +266,6 @@ public:
 
     int32_t getDocCount();
 
-    count_t numDeletedDocs();
-
     const char* getVersion() { return version.c_str();  }
 
     void setLock(bool lock_)
