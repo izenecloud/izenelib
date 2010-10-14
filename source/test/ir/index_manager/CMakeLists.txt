@@ -40,8 +40,8 @@ SET(t_mock_indexer_SRC
 ADD_EXECUTABLE(t_mockindexer ${t_mock_indexer_SRC})
 
 TARGET_LINK_LIBRARIES(t_mockindexer
-  index_manager
   mock_index_manager
+  index_manager
   boost_memory
   izene_util
   ${Glog_LIBRARIES}
@@ -72,6 +72,21 @@ SET(t_indexsort_SRC
 ADD_EXECUTABLE(t_indexsort ${t_indexsort_SRC})
 
 TARGET_LINK_LIBRARIES(t_indexsort
+  index_manager
+  boost_memory
+  izene_util
+  ${Glog_LIBRARIES}
+  ${Boost_LIBRARIES}
+)
+
+SET(t_IndexReader_SRC
+  t_IndexReader.cpp
+  t_master_suite.cpp
+)
+
+ADD_EXECUTABLE(t_IndexReader ${t_IndexReader_SRC})
+
+TARGET_LINK_LIBRARIES(t_IndexReader
   index_manager
   boost_memory
   izene_util
