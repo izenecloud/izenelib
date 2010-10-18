@@ -106,14 +106,18 @@ public:
      * @param pFreqs freqs array
      * @param nFreqs size of freqs array
      */
-    bool decodeNextPositions(uint32_t* pPosting,uint32_t* pFreqs,int32_t nFreqs);
+    bool decodeNextPositions(uint32_t* &pPosting, int32_t& posBufLength, uint32_t* pFreqs,int32_t nFreqs, int32_t& nCurrentPPosting);
 
     /**
      * Decode postings to target docID
      * @param docID target docID 
+     * @param pPosting posting buffer that store decoded doc. 
+     * @length buffer length for pPosting
+     * @decodedCount decoded doc count, always = 1 for RT posting reader
+     * @nCurrentPosting posting pointer, always = 0 for RT posting reader
      * @return last decoded docID
      */
-    docid_t decodeTo(docid_t docID);
+    docid_t decodeTo(docid_t target, uint32_t* pPosting, int32_t length, int32_t& decodedCount, int32_t& nCurrentPosting);
 
     /**
      * reset the base position which used in d-gap encoding
@@ -202,7 +206,7 @@ public:
      * @param pFreqs freqs array
      * @param nFreqs size of freqs array
      */
-    bool decodeNextPositions(uint32_t* pPosting,uint32_t* pFreqs,int32_t nFreqs);
+    bool decodeNextPositions(uint32_t* &pPosting, int32_t& posBufLength, uint32_t* pFreqs,int32_t nFreqs, int32_t& nCurrentPPosting);
 
     /**
      * Set file pointer after skipping
@@ -212,9 +216,13 @@ public:
     /**
      * Decode postings to target docID
      * @param docID target docID 
+     * @param pPosting posting buffer that store decoded doc. 
+     * @length buffer length for pPosting
+     * @decodedCount decoded doc count, always = 1 for RT posting reader
+     * @nCurrentPosting posting pointer, always = 0 for RT posting reader
      * @return last decoded docID
      */
-    docid_t decodeTo(docid_t docID);
+    docid_t decodeTo(docid_t target, uint32_t* pPosting, int32_t length, int32_t& decodedCount, int32_t& nCurrentPosting);
 
     /**
      * reset the base position which used in d-gap encoding

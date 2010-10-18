@@ -92,11 +92,7 @@ docid_t TermDocFreqs::skipTo(docid_t target)
             {
                 if(!pPostingBuffer_)
                     createBuffer();
-                nCurrentPosting_ = 0;
-                nCurDecodedCount_ = 1;
-                pPostingBuffer_[0] = pPosting_->decodeTo(target);
-                pPostingBuffer_[nFreqStart_] = pPosting_->getCurTF();
-                return pPostingBuffer_[0];
+                return pPosting_->decodeTo(target,pPostingBuffer_,nBufferSize_,nCurDecodedCount_,nCurrentPosting_);
             }
        }
         start = nCurrentPosting_;

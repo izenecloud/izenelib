@@ -25,11 +25,11 @@ public:
 
     virtual bool decodeNextPositions(uint32_t* pPosting,int32_t length) = 0;
 
-    virtual bool decodeNextPositions(uint32_t* pPosting,uint32_t* pFreqs,int32_t nFreqs) = 0;
+    virtual bool decodeNextPositions(uint32_t* &pPosting, int32_t& posBufLength, uint32_t* pFreqs,int32_t nFreqs, int32_t& nCurrentPPosting) = 0;
 
     virtual void resetPosition() = 0;
 
-    virtual docid_t decodeTo(docid_t docID) = 0;
+    virtual docid_t decodeTo(docid_t target, uint32_t* pPosting, int32_t length, int32_t& decodedCount, int32_t& nCurrentPosting) = 0;
 
     virtual count_t docFreq()const = 0;
 

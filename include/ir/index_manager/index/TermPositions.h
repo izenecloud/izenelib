@@ -65,13 +65,20 @@ public:
     * iterate to next position
     */
     virtual loc_t nextPosition();
+
+    void setUseFixedPosBuffer(bool useFixedBuf)
+    {
+        fixed_pos_buffer_ = useFixedBuf;
+    }
 protected:
     virtual bool decode();
 
     /** decode positions */
     inline bool decodePositions();
 
-    bool decodePosForCurrDoc();
+    bool decodePositionsUsingFixedBuf();
+
+    bool decodePositionsUsingUnFixedBuf();
 
     /** skip some positions */
     inline void skipPositions(int32_t nSkips);
@@ -106,6 +113,8 @@ private:
 
     bool is_last_skipto_; /// last operation is skipto
 
+    bool fixed_pos_buffer_; ///whether using fixed position buffer to decode term positions
+
     static const int32_t DEFAULT_BUFFERSIZE = 163840;
 };
 
@@ -115,7 +124,6 @@ inline void TermPositions::skipPositions(int32_t nSkips)
 {
     if (nSkips <= 0)
         return;
-
     if (nSkips <= (nTotalDecodedPCount_ - nCurrentPPosting_))
         nCurrentPPosting_ += nSkips;
     else
@@ -128,86 +136,8 @@ inline void TermPositions::skipPositions(int32_t nSkips)
 
 inline bool TermPositions::decodePositions()
 {
-    if (nTotalDecodedPCountWithinDoc_ >= nPPostingCountWithinDoc_)
-    {
-        ///reach to the end
-        return false;
-    }
-    if (!pPPostingBuffer_)
-        createBuffer();
-    if (nCurrentPPosting_ >= nTotalDecodedPCount_)
-    {
-        ///decode position posting to buffer
-        uint32_t* pPPostingBuffer = pPPostingBuffer_;
-        bool bEnd = false;
-        if (nLastPosting_ == -1)
-            nLastPosting_ = nCurrentPosting_;
-        nTotalDecodedPCount_ = 0;
-
-        if (nLastUnDecodedPCount_ > 0)
-        {
-            ///there are still some positions of current document have not decoded
-            if (nLastUnDecodedPCount_ > nPBufferSize_)
-            {
-                nTotalDecodedPCount_ = nPBufferSize_;
-                nLastUnDecodedPCount_ -= nPBufferSize_;
-                bEnd = true;
-            }
-            else
-            {
-                nTotalDecodedPCount_ = nLastUnDecodedPCount_;
-                nLastUnDecodedPCount_ = 0;
-                nLastPosting_++;
-            }
-            bool ret = pPosting_->decodeNextPositions(pPPostingBuffer,nTotalDecodedPCount_);
-            if(!ret) return false;
-            pPPostingBuffer += nTotalDecodedPCount_;
-            if (nLastUnDecodedPCount_ == 0)
-                pPosting_->resetPosition();
-        }
-        if (!bEnd)
-        {
-            int32_t nFreqs;
-            for (nFreqs = nLastPosting_; nFreqs < nCurDecodedCount_; nFreqs++)
-            {
-                nTotalDecodedPCount_ += pPostingBuffer_[nFreqStart_ + nFreqs];
-                if (nTotalDecodedPCount_ > nPBufferSize_)
-                {
-                    nTotalDecodedPCount_ -= pPostingBuffer_[nFreqStart_+ nFreqs];
-                    break;
-                }
-            }
-            if ((nFreqs - nLastPosting_) > 0)
-            {
-                bool ret = pPosting_->decodeNextPositions(pPPostingBuffer,&(pPostingBuffer_[nFreqStart_ + nLastPosting_]),nFreqs - nLastPosting_);
-                if(!ret) return false;
-                nLastPosting_ = nFreqs;
-            }
-            else if (nTotalDecodedPCount_ == 0)
-            {
-                nTotalDecodedPCount_ = nPBufferSize_;
-                bool ret = pPosting_->decodeNextPositions(pPPostingBuffer,nTotalDecodedPCount_);
-                if(!ret) return false;
-                nLastUnDecodedPCount_ = pPostingBuffer_[nFreqStart_ + nLastPosting_] - nTotalDecodedPCount_;
-            }
-        }
-        nCurrentPPosting_ = 0;
-        if (nLastPosting_ >= nCurDecodedCount_)
-            nLastPosting_ = -1;
-    }
-
-    nCurrentPPostingWithinDoc_ = 0;
-
-    int32_t nNeedDecode = nPPostingCountWithinDoc_ - nTotalDecodedPCountWithinDoc_;
-    if (nNeedDecode > (nTotalDecodedPCount_ - nCurrentPPosting_))
-        nNeedDecode = (int32_t)(nTotalDecodedPCount_ - nCurrentPPosting_);
-
-    nCurDecodedPCountWithinDoc_ = nNeedDecode;
-    nTotalDecodedPCountWithinDoc_ += nNeedDecode;
-    pPPostingBufferWithinDoc_ = pPPostingBuffer_ + nCurrentPPosting_;
-    nCurrentPPosting_ += nNeedDecode;
-
-    return true;
+    if(fixed_pos_buffer_) return decodePositionsUsingFixedBuf();
+    else return decodePositionsUsingUnFixedBuf();
 }
 
 }

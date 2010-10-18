@@ -822,6 +822,7 @@ TermPositions* BlockTermReader::termPositions()
 
     TermPositions* pTermPos = 
       new TermPositions(pPosting,*pCurTermInfo_);
+    pTermPos->setUseFixedPosBuffer(false);/// for block based encoding, we can not use fixed buffer to decode positions
     return pTermPos;
 }
 
@@ -888,6 +889,7 @@ TermPositions* ChunkTermReader::termPositions()
 
     TermPositions* pTermPos = 
       new TermPositions(pPosting,*pCurTermInfo_);
+    pTermPos->setUseFixedPosBuffer(false);/// for block based encoding, we can not use fixed buffer to decode positions
     return pTermPos;
 }
 

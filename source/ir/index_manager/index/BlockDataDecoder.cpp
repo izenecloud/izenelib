@@ -1,4 +1,5 @@
 #include <ir/index_manager/index/BlockDataDecoder.h>
+#define DEBUG 1
 
 NS_IZENELIB_IR_BEGIN
 
@@ -45,11 +46,16 @@ void ChunkDecoder::set_pos_buffer(uint32_t* pos_buffer)
 
 void ChunkDecoder::decodeDocIds()
 {
-    // A word is meant to be sizeof(uint32_t) bytes in this context.
     int num_words_consumed = doc_id_decompressor_.decompress(const_cast<uint32_t*> (curr_buffer_position_), doc_ids_, num_docs_);
     post_process_chunk(doc_ids_, num_docs_);
     curr_buffer_position_ += num_words_consumed;
     decoded_ = true;
+#ifdef DEBUG
+    cout<<this<<" doc ids: ";
+    for (int i = 0; i < num_docs_; ++i)
+        cout<<doc_ids_[i]<<",";
+    cout<<endl;
+#endif
 }
 
 void ChunkDecoder::decodeFrequencies(bool computePos)
@@ -68,10 +74,10 @@ void ChunkDecoder::decodeFrequencies(bool computePos)
 
 int ChunkDecoder::decodePositions(const uint32_t* compressed_positions)
 {
-    // A word is meant to be sizeof(uint32_t) bytes in this context.
     int num_words_consumed = position_decompressor_.decompress(const_cast<uint32_t*> (compressed_positions), positions_, num_positions_);
 
     uint32_t* pos = positions_;
+	
     for(int i = 0; i < num_docs_; ++i)
     {
         for(uint32_t j = 1; j < frequencies_[i]; ++j)
@@ -120,7 +126,7 @@ void ChunkDecoder::updatePositionOffset()
     prev_document_offset_ = curr_document_offset_;
 }
 
-uint32_t ChunkDecoder::move_to(uint32_t target, bool computePos)
+uint32_t ChunkDecoder::move_to(uint32_t target, int32_t& currentBufferPointer, bool computePos)
 {
     while((doc_ids_[curr_document_offset_] < target)&&(curr_document_offset_ < (num_docs_-1)))
     {
@@ -128,14 +134,17 @@ uint32_t ChunkDecoder::move_to(uint32_t target, bool computePos)
     }
     if(computePos)
     {
-        num_positions_ = 0;
+        curr_position_offset_ = 0;
         for (int i = 0; i < curr_document_offset_; ++i)
         {
-            num_positions_ += frequencies_[i];
+            curr_position_offset_ += frequencies_[i];
         }
-        updatePositionOffset();
+        prev_document_offset_ = curr_document_offset_;
     }
-	
+#ifdef DEBUG
+    cout<<this<<"!! move to "<<target<<" "<<doc_ids_[curr_document_offset_]<<" curr_position_offset_ "<<curr_position_offset_<<endl;
+#endif
+    currentBufferPointer = curr_document_offset_;
     return doc_ids_[curr_document_offset_] >= target ? doc_ids_[curr_document_offset_] : -1;
 }
 

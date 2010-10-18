@@ -89,6 +89,11 @@ public:
         curr_document_offset_ = doc_offset;
     }
 
+    void set_curr_position_offset(int pos_offset)
+    {
+        curr_document_offset_ = pos_offset;
+    }
+
     // Returns the number of documents in this chunk.
     int num_docs() const
     {
@@ -157,7 +162,7 @@ public:
         return use_internal_buffer_;
     }
 
-    uint32_t move_to(uint32_t target, bool computePos = false);
+    uint32_t move_to(uint32_t target, int32_t& currentBufferPointer, bool computePos = false);
 
     /// deal with deleted documents
     void post_process(BitVector* pDocFilter);
