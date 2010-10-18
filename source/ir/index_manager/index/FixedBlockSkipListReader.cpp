@@ -31,8 +31,6 @@ docid_t FixedBlockSkipListReader::skipTo(docid_t target)
 	if (!loadNextSkip()) 
            break;
     }
-    if((skipDoc_ == (docid_t)-1)&&(lastDoc_ < target))
-        return -1;
     return lastDoc_;
 }
 

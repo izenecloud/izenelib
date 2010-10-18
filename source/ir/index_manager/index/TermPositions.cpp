@@ -98,6 +98,7 @@ docid_t TermPositions::skipTo(docid_t target)
                     createBuffer();
                 docid_t ret = pPosting_->decodeTo(target,pPostingBuffer_,nBufferSize_,nCurDecodedCount_,nCurrentPosting_);
                 resetDecodingState();
+                nTotalDecodedPCount_ = 0;
                 is_last_skipto_ = true;
                 return ret;
             }
@@ -185,16 +186,13 @@ bool TermPositions::decodePositionsUsingUnFixedBuf()
         }
        else
 	{
-/*
             nTotalDecodedPCount_ = 0;
-
             int32_t nFreqs;
-	
             for (nFreqs = 0; nFreqs < nCurDecodedCount_; nFreqs++)
             {
                 nTotalDecodedPCount_ += pPostingBuffer_[nFreqStart_ + nFreqs];
             }
-*/	
+
             pPosting_->decodeNextPositions(pPPostingBuffer_,nPBufferSize_ ,NULL,0,nCurrentPPosting_);
 	}
 		

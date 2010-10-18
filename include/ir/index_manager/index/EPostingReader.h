@@ -173,8 +173,7 @@ protected:
 	
     uint32_t* urgentBuffer_; ///used  when ListingCache is enabled, and cache is missed.
     uint32_t* compressedPos_;
-    uint32_t* uncompressed_pos_buffer_for_skipto_;
-    int32_t uncompressed_pos_buffer_size_;
+    int32_t skipPosCount_;
 
     friend class PostingMerger;
 };

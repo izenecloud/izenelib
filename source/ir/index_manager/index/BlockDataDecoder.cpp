@@ -1,5 +1,5 @@
 #include <ir/index_manager/index/BlockDataDecoder.h>
-#define DEBUG 1
+//#define DEBUG 1
 
 NS_IZENELIB_IR_BEGIN
 
@@ -26,15 +26,10 @@ void ChunkDecoder::reset(const uint32_t* buffer, int num_docs)
     curr_buffer_position_ = buffer;
     decoded_ = false;
     pos_decoded_ = false;
-
-    use_internal_buffer_ = true;
-    doc_ids_ = internal_doc_ids_buffer_;
-    frequencies_ = internal_frequencies_buffer_;
 }
 
 void ChunkDecoder::set_doc_freq_buffer(uint32_t* doc_buffer, uint32_t* freq_buffer)
 {
-    use_internal_buffer_ = false;
     doc_ids_ = doc_buffer;
     frequencies_ = freq_buffer;
 }
