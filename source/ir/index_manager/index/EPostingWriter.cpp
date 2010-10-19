@@ -143,9 +143,9 @@ void BlockPostingWriter::add(docid_t docid, loc_t location)
 
 void BlockPostingWriter::flush()
 {
-//    if(current_nocomp_block_pointer_ > 0)
+    if(nCurTermFreq_ > 0)
     {
-        frequencies_[current_nocomp_block_pointer_++] = nCurTermFreq_;        
+        frequencies_[current_nocomp_block_pointer_] = nCurTermFreq_;        
 
         chunk_.encode(doc_ids_, frequencies_, positions_, current_nocomp_block_pointer_);
 
@@ -215,13 +215,6 @@ void ChunkPostingWriter::write(OutputDescriptor* pOutputDescriptor, TermInfo& te
     termInfo.docFreq_ = nDF_;
     termInfo.ctf_ = nCTF_;
     termInfo.lastDocID_ = nLastDocID_;
-    if(skipInterval_ && nDF_ > 0 && nDF_ % skipInterval_ == 0)
-    {
-        if(pSkipListWriter_)
-        {
-            pSkipListWriter_->addSkipPoint(nLastDocID_,pDocFreqDataPool_->getLength(),pPosDataPool_->getLength());
-        }
-    }
 
     IndexOutput* pDOutput = pOutputDescriptor->getDPostingOutput();
 
@@ -294,7 +287,7 @@ void ChunkPostingWriter::add(docid_t docid, loc_t location)
             chunk_.encode(doc_ids_, frequencies_, positions_, ChunkEncoder::kChunkSize);
             pDocFreqDataPool_->addDFChunk(chunk_);
             pPosDataPool_->addPOSChunk(chunk_);
-            pSkipListWriter_->addSkipPoint(nLastDocID_,pDocFreqDataPool_->getLength(),pPosDataPool_->getLength());
+            pSkipListWriter_->addSkipPoint(chunk_.last_doc_id(),pDocFreqDataPool_->getLength(),pPosDataPool_->getLength());
             current_nocomp_block_pointer_ = 0;
             position_buffer_pointer_ = 0;
         }
@@ -313,13 +306,20 @@ void ChunkPostingWriter::add(docid_t docid, loc_t location)
 
 void ChunkPostingWriter::flush()
 {
-    //if(current_nocomp_block_pointer_ > 0)
+    if(nCurTermFreq_ > 0)
     {
-        frequencies_[current_nocomp_block_pointer_++] = nCurTermFreq_;        
-    
+        frequencies_[current_nocomp_block_pointer_] = nCurTermFreq_;        
         chunk_.encode(doc_ids_, frequencies_, positions_, current_nocomp_block_pointer_);
         pDocFreqDataPool_->addDFChunk(chunk_);
         pPosDataPool_->addPOSChunk(chunk_);
+
+        if(skipInterval_ && nDF_ > 0 && nDF_ % skipInterval_ == 0)
+        {
+            if(pSkipListWriter_)
+            {
+                pSkipListWriter_->addSkipPoint(chunk_.last_doc_id(),pDocFreqDataPool_->getLength(),pPosDataPool_->getLength());
+            }
+        }
     }
 }
 
