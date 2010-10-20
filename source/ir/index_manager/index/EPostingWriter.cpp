@@ -145,10 +145,8 @@ void BlockPostingWriter::flush()
 {
     if(nCurTermFreq_ > 0)
     {
-        frequencies_[current_nocomp_block_pointer_] = nCurTermFreq_;        
-
+        frequencies_[current_nocomp_block_pointer_++] = nCurTermFreq_;        
         chunk_.encode(doc_ids_, frequencies_, positions_, current_nocomp_block_pointer_);
-
         pPosDataPool_->addPOSChunk(chunk_);
 
         if(!pBlockDataPool_->addChunk(chunk_))
@@ -308,7 +306,7 @@ void ChunkPostingWriter::flush()
 {
     if(nCurTermFreq_ > 0)
     {
-        frequencies_[current_nocomp_block_pointer_] = nCurTermFreq_;        
+        frequencies_[current_nocomp_block_pointer_++] = nCurTermFreq_; 
         chunk_.encode(doc_ids_, frequencies_, positions_, current_nocomp_block_pointer_);
         pDocFreqDataPool_->addDFChunk(chunk_);
         pPosDataPool_->addPOSChunk(chunk_);
