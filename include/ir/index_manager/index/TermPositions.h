@@ -124,7 +124,12 @@ inline void TermPositions::skipPositions(int32_t nSkips)
 {
     if (nSkips <= 0)
         return;
-    if (nSkips <= (nTotalDecodedPCount_ - nCurrentPPosting_))
+    if(nTotalDecodedPCount_ == 0)
+    {
+        pPosting_->decodeNextPositions(NULL,nSkips);
+        nCurrentPPosting_ = nTotalDecodedPCount_;
+    }
+    else if (nSkips <= (nTotalDecodedPCount_ - nCurrentPPosting_))
         nCurrentPPosting_ += nSkips;
     else
     {
