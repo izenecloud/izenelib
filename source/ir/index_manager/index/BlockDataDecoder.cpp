@@ -71,12 +71,19 @@ int ChunkDecoder::decodePositions(const uint32_t* compressed_positions)
     int num_words_consumed = position_decompressor_.decompress(const_cast<uint32_t*> (compressed_positions), positions_, num_positions_);
 
     uint32_t* pos = positions_;
+    cout<<this<<" pos: ";
     for(int i = 0; i < num_docs_; ++i)
     {
+    cout<<pos[0]<<",";
         for(uint32_t j = 1; j < frequencies_[i]; ++j)
-          pos[j] += pos[j-1];
+        {
+            pos[j] += pos[j-1];
+            cout<<pos[j]<<",";
+        }
+    cout<<"|";
         pos += frequencies_[i];
     }
+    cout<<endl;
     pos_decoded_ = true;
     return num_words_consumed;
 }
@@ -147,6 +154,7 @@ uint32_t ChunkDecoder::move_to(uint32_t target, int32_t& currentBufferPointer, b
 BlockDecoder::BlockDecoder() :curr_block_num_(0), num_chunks_(0), curr_chunk_(0), curr_block_data_(NULL)
 {
     memset(chunk_properties_,0,BLOCK_HEADER_DECOMPRESSED_UPPERBOUND*sizeof(uint32_t));
+    memset(chunk_pos_properties_,0,BLOCK_HEADER_DECOMPRESSED_UPPERBOUND/2*sizeof(bool));
 }
 
 void BlockDecoder::init(uint64_t block_num, uint32_t* block_data)
@@ -161,6 +169,7 @@ void BlockDecoder::init(uint64_t block_num, uint32_t* block_data)
     curr_block_data_ += 1;
 
     curr_block_data_ += decodeHeader(curr_block_data_);
+    memset(chunk_pos_properties_,0,BLOCK_HEADER_DECOMPRESSED_UPPERBOUND/2*sizeof(bool));
 
     curr_chunk_ = 0;
     chunk_decoder_.reset(NULL,0);

@@ -113,7 +113,6 @@ void BlockPostingWriter::add(docid_t docid, loc_t location)
         if(current_nocomp_block_pointer_ == ChunkEncoder::kChunkSize)
         {
             chunk_.encode(doc_ids_, frequencies_, positions_, current_nocomp_block_pointer_);
-            pPosDataPool_->addPOSChunk(chunk_);
             if(!pBlockDataPool_->addChunk(chunk_))
             {
                 current_block_id_++;
@@ -123,7 +122,7 @@ void BlockPostingWriter::add(docid_t docid, loc_t location)
                 pBlockDataPool_->addBlock();
                 pBlockDataPool_->addChunk(chunk_);
             }
-
+            pPosDataPool_->addPOSChunk(chunk_);
             current_nocomp_block_pointer_ = 0;
             position_buffer_pointer_ = 0;
         }
@@ -148,7 +147,6 @@ void BlockPostingWriter::flush()
     {
         frequencies_[current_nocomp_block_pointer_++] = nCurTermFreq_;        
         chunk_.encode(doc_ids_, frequencies_, positions_, current_nocomp_block_pointer_);
-        pPosDataPool_->addPOSChunk(chunk_);
 
         if(!pBlockDataPool_->addChunk(chunk_))
         {
@@ -164,6 +162,7 @@ void BlockPostingWriter::flush()
 
         current_block_id_++;
         pBlockDataPool_->copyBlockData();
+        pPosDataPool_->addPOSChunk(chunk_);
         pSkipListWriter_->addSkipPoint(chunk_.last_doc_id(), pBlockDataPool_->num_doc_of_curr_block(), 
                                                 pBlockDataPool_->getLength(),pPosDataPool_->getLength());
 

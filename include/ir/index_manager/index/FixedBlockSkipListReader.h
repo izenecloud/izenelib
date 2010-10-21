@@ -32,7 +32,7 @@ public:
 
     docid_t getDoc() { return lastDoc_;}
 
-    size_t getBlockId() { return currBlockId_;}
+    size_t getBlockId() { return lastBlockId_;}
 
     fileoffset_t getOffset() { return lastOffset_; }
 	
@@ -52,6 +52,7 @@ private:
 
     docid_t skipDoc_;
     docid_t lastDoc_; 
+    size_t lastBlockId_;
     fileoffset_t offset_;
     fileoffset_t lastOffset_;
     fileoffset_t pOffset_;

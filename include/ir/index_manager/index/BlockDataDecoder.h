@@ -235,6 +235,17 @@ public:
         return chunk_properties_[idx];
     }
 
+    // Returns true if the position of current chunk has been loaded from index file.
+    bool curr_chunk_pos_loaded(int chunk_idx) const
+    {
+        return chunk_pos_properties_[chunk_idx];
+    }
+
+    void set_curr_chunk_pos_loaded(int chunk_idx)
+    {
+        chunk_pos_properties_[chunk_idx] = true;
+    }
+
     // Returns true if the current chunk has been decoded (the docIDs were decoded).
     bool curr_chunk_decoded() const
     {
@@ -270,6 +281,7 @@ public:
 private:
     //decompressed block header
     uint32_t chunk_properties_[BLOCK_HEADER_DECOMPRESSED_UPPERBOUND];
+    bool chunk_pos_properties_[BLOCK_HEADER_DECOMPRESSED_UPPERBOUND/2];
 
     uint64_t curr_block_num_; // The current block number.
     int num_chunks_; // The total number of chunks this block holds, regardless of which list it is.

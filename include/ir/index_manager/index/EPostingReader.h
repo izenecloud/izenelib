@@ -170,6 +170,9 @@ protected:
     int32_t curr_pos_buffer_size_;
 
     docid_t prev_block_last_doc_id_;
+
+    size_t prev_block_id_; ///previously accessed block
+    int prev_chunk_; ///previously accessed chunk
 	
     uint32_t* urgentBuffer_; ///used  when ListingCache is enabled, and cache is missed.
     uint32_t* compressedPos_;
