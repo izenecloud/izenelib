@@ -371,7 +371,7 @@ public:
 
 private:
     /* add block */
-    void addBlock(bool copyBlockData = true);
+    void addBlock();
 
     /* copy compressed data from block encoder to memory pool */
     void copyBlockData();

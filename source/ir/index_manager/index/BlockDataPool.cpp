@@ -388,7 +388,6 @@ void BlockEncoder::getBlockBytes(unsigned char* block_bytes )
  
     int block_bytes_offset = 0;
     int num_bytes;
-
     // Number of chunks.
     num_bytes = sizeof(num_chunks_);
     assert(block_bytes_offset + num_bytes <= kBlockSize);
@@ -435,7 +434,7 @@ bool BlockDataPool::addChunk(const ChunkEncoder& chunk)
 {
     if (pTailBlock_ == NULL)
     {
-        addBlock(false);
+        addBlock();
         return addChunk(chunk);
     }
 
@@ -453,12 +452,11 @@ void BlockDataPool::copyBlockData()
     total_num_doc_ids_bytes_ += blockEncoder_.num_doc_ids_bytes();
     total_num_frequency_bytes_ += blockEncoder_.num_frequency_bytes();
     total_num_wasted_space_bytes_ += blockEncoder_.num_wasted_space_bytes();
+    num_doc_of_curr_block_ = blockEncoder_.num_doc_ids();
 }
 
 void BlockDataPool::write(IndexOutput* pOutput)
 {
-    copyBlockData();
-
     BlockData* pChunk = pHeadBlock_;
     while (pChunk)
     {
@@ -467,7 +465,7 @@ void BlockDataPool::write(IndexOutput* pOutput)
     }
 }
 
-void BlockDataPool::addBlock(bool copyData)
+void BlockDataPool::addBlock()
 {
     uint8_t* begin = pMemCache_->getMemByRealSize(BlockEncoder::kBlockSize+sizeof(BlockData*));
     ///allocate memory failed,decrease chunk size
@@ -491,10 +489,6 @@ void BlockDataPool::addBlock(bool copyData)
     if (!pHeadBlock_)
         pHeadBlock_ = pTailBlock_;
     nTotalSize_ += BlockEncoder::kBlockSize;
-
-    num_doc_of_curr_block_ = blockEncoder_.num_doc_ids();
-
-    if(copyData) copyBlockData();
     blockEncoder_.reset();
 }
 
@@ -511,6 +505,7 @@ void BlockDataPool::reset()
     total_num_doc_ids_bytes_ = 0;
     total_num_frequency_bytes_ = 0;
     total_num_wasted_space_bytes_ = 0;
+    blockEncoder_.reset();
 }
 
 uint32_t BlockDataPool::num_doc_of_curr_block()

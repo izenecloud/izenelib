@@ -9,7 +9,7 @@ namespace indexmanager{
 #define CHUNK_SIZE 128
 
 // Fixed size in bytes of a block
-#define BLOCK_SIZE 65536
+#define BLOCK_SIZE 8192
 
 #define INIT_POS_CHUNK_SIZE CHUNK_SIZE*8
 

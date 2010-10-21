@@ -262,6 +262,7 @@ public:
     // Updates 'curr_block_data_' to point to the next chunk in the raw data block for decoding.
     void advance_curr_chunk()
     {
+        chunk_decoder_.set_prev_decoded_doc_id(chunk_last_doc_id(curr_chunk_));
         curr_block_data_ += chunk_size(curr_chunk_);
         ++curr_chunk_;
     }

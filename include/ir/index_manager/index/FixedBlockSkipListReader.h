@@ -48,6 +48,7 @@ private:
     size_t currBlockId_;
 
     int totalSkipped_;
+    int numSkipped_;
 
     docid_t skipDoc_;
     docid_t lastDoc_; 

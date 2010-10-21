@@ -22,7 +22,6 @@ void ChunkDecoder::reset(const uint32_t* buffer, int num_docs)
     curr_document_offset_ = 0;
     prev_document_offset_ = 0;
     curr_position_offset_ = 0;
-    //prev_decoded_doc_id_ = 0;
     curr_buffer_position_ = buffer;
     decoded_ = false;
     pos_decoded_ = false;
@@ -163,7 +162,8 @@ void BlockDecoder::init(uint64_t block_num, uint32_t* block_data)
 
     curr_block_data_ += decodeHeader(curr_block_data_);
 
-    chunk_decoder_.set_decoded(false);
+    curr_chunk_ = 0;
+    chunk_decoder_.reset(NULL,0);
 }
 
 int BlockDecoder::decodeHeader(uint32_t* compressed_header)

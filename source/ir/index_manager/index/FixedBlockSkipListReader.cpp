@@ -54,6 +54,7 @@ bool FixedBlockSkipListReader::loadNextSkip()
     lastDoc_ = skipDoc_;
     lastOffset_ = offset_;
     lastPOffset_ = pOffset_;
+    totalSkipped_ = numSkipped_;
     if (skipStream_->isEof()) 
     {
         /// this skip list is exhausted
@@ -64,7 +65,7 @@ bool FixedBlockSkipListReader::loadNextSkip()
     /// read next skip entry
     ++currBlockId_;
     skipDoc_ += skipStream_->readVInt();
-    totalSkipped_ += skipStream_->readVInt();
+    numSkipped_ += skipStream_->readVInt();
     offset_ += skipStream_->readVLong();
     pOffset_ += skipStream_->readVLong();
     return true;

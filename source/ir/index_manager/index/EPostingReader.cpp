@@ -91,7 +91,10 @@ void BlockPostingReader::reset(const TermInfo& termInfo)
 
 void BlockPostingReader::advanceToNextBlock() 
 {
-    if(0 == curr_block_id_) curr_block_id_ = start_block_id_;
+    if(0 == curr_block_id_) 
+        curr_block_id_ = start_block_id_;
+    else
+        prev_block_last_doc_id_ = blockDecoder_.chunk_last_doc_id(blockDecoder_.num_chunks() - 1);
 
     IndexInput* pDPInput = pInputDescriptor_->getDPostingInput();
     if(pListingCache_)
@@ -113,6 +116,9 @@ void BlockPostingReader::advanceToNextBlock()
         pDPInput->read((char *)urgentBuffer_, BLOCK_SIZE);
         blockDecoder_.init(curr_block_id_, urgentBuffer_);
     }
+	
+    blockDecoder_.chunk_decoder_.set_prev_decoded_doc_id(prev_block_last_doc_id_);
+
     ++curr_block_id_;
 }
 
@@ -140,6 +146,7 @@ void BlockPostingReader::skipToBlock(size_t targetBlock)
     {
         if(!urgentBuffer_) urgentBuffer_ = (uint32_t*)new char[BLOCK_SIZE];
         curr_block_id_ = targetBlock;
+		
         pDPInput->seek(postingOffset_ + (curr_block_id_ - start_block_id_) * BLOCK_SIZE);
         pDPInput->read((char *)urgentBuffer_, BLOCK_SIZE);
         blockDecoder_.init(curr_block_id_, urgentBuffer_);
@@ -150,6 +157,7 @@ docid_t BlockPostingReader::decodeTo(docid_t target, uint32_t* pPosting, int32_t
 {
     docid_t lastDocID = pSkipListReader_->skipTo(target);
     IndexInput* pPPostingInput = pInputDescriptor_->getPPostingInput();
+    ChunkDecoder& chunk = blockDecoder_.chunk_decoder_;
     if(lastDocID > last_doc_id_)
     {
         size_t currBlock = pSkipListReader_->getBlockId();
@@ -157,7 +165,8 @@ docid_t BlockPostingReader::decodeTo(docid_t target, uint32_t* pPosting, int32_t
         last_doc_id_ = pSkipListReader_->getDoc();
         num_docs_decoded_ = pSkipListReader_->getNumSkipped();
         num_docs_left_ = df_ - num_docs_decoded_;
-		
+        chunk.set_prev_decoded_doc_id(last_doc_id_);
+
         if(pPPostingInput)
         {
             pPPostingInput->seek(poffset_ + pSkipListReader_->getPOffset());
@@ -168,13 +177,12 @@ docid_t BlockPostingReader::decodeTo(docid_t target, uint32_t* pPosting, int32_t
         skipToBlock(start_block_id_);
     }
 
-    ChunkDecoder& chunk = blockDecoder_.chunk_decoder_;
     bool computePos = (pPPostingInput == NULL)? false:true;
     while (blockDecoder_.curr_chunk() < blockDecoder_.num_chunks()) 
     {
         // Check the last doc id of the chunk against the current doc id
         // we're looking for and skip the chunk if possible.
-        if (target <= blockDecoder_.chunk_last_doc_id(blockDecoder_.curr_chunk())) 
+        if (target <= blockDecoder_.chunk_last_doc_id(blockDecoder_.curr_chunk()))
         {
             // Check if we previously decoded this chunk and decode if necessary.
             if (chunk.decoded() == false) 
@@ -185,23 +193,22 @@ docid_t BlockPostingReader::decodeTo(docid_t target, uint32_t* pPosting, int32_t
                 chunk.decodeDocIds();
                 chunk.decodeFrequencies(computePos);
                 if(pDocFilter_) chunk.post_process(pDocFilter_);
+                num_docs_left_ -= chunk.num_docs();
+                num_docs_decoded_ += chunk.num_docs();
+                decodedCount = chunk.num_docs();
             }
-            decodedCount = chunk.num_docs();
             skipPosCount_ = 0;
-            num_docs_decoded_ += chunk.num_docs();
             return chunk.move_to(target,nCurrentPosting,computePos);
         }
-
         blockDecoder_.advance_curr_chunk();
         blockDecoder_.chunk_decoder_.set_decoded(false);
+
         if(pPPostingInput)
        	{
        	    int size = pPPostingInput->readVInt();
        	    ensure_pos_buffer(size>>2);
        	    pPPostingInput->readBytes((uint8_t*)compressedPos_,size);
         }
-        num_docs_left_ -= chunk.num_docs();
-        
     } 
 
     return BAD_DOCID;
@@ -250,7 +257,6 @@ int32_t BlockPostingReader::decodeNext(uint32_t* pPosting,int32_t length)
         } 
         else 
         {
-            prev_block_last_doc_id_ = blockDecoder_.chunk_last_doc_id(blockDecoder_.num_chunks() - 1);
             advanceToNextBlock();
         }        
     }
@@ -281,7 +287,7 @@ int32_t BlockPostingReader::decodeNext(uint32_t* pPosting,int32_t length, uint32
     while(left > 0)
     {
         int curr_chunk_num = blockDecoder_.curr_chunk();
-        if (curr_chunk_num < blockDecoder_.num_chunks()) 
+        if (curr_chunk_num < blockDecoder_.num_chunks())
         {
             // Check if we previously decoded this chunk and decode if necessary.
             if (chunk.decoded() == false) 
@@ -318,7 +324,6 @@ int32_t BlockPostingReader::decodeNext(uint32_t* pPosting,int32_t length, uint32
         } 
         else 
         {
-            prev_block_last_doc_id_ = blockDecoder_.chunk_last_doc_id(blockDecoder_.num_chunks() - 1);
             advanceToNextBlock();
         }        
     }
