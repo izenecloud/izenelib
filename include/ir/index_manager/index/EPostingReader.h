@@ -136,7 +136,7 @@ public:
 protected:
     void advanceToNextBlock();
 
-    void skipToBlock(size_t targetBlock) ;
+    void skipToBlock(int targetBlock) ;
 
     void ensure_pos_buffer(int num_of_pos_within_chunk)
     {
@@ -153,10 +153,10 @@ protected:
     ListingCache* pListingCache_;
     BitVector* pDocFilter_;
 
-    size_t start_block_id_;
-    size_t curr_block_id_;
+    int start_block_id_;
+    int curr_block_id_;
     size_t total_block_num_;
-    size_t last_block_id_;
+    int last_block_id_;
 
     fileoffset_t postingOffset_;
     int64_t dlength_;
@@ -171,7 +171,7 @@ protected:
 
     docid_t prev_block_last_doc_id_;
 
-    size_t prev_block_id_; ///previously accessed block
+    int prev_block_id_; ///previously accessed block
     int prev_chunk_; ///previously accessed chunk
 	
     uint32_t* urgentBuffer_; ///used  when ListingCache is enabled, and cache is missed.

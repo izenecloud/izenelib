@@ -43,7 +43,7 @@ BlockPostingReader::~BlockPostingReader()
 
 void BlockPostingReader::reset(const TermInfo& termInfo)
 {
-    curr_block_id_ = 0;
+    curr_block_id_ = -1;
     start_block_id_ = termInfo.skipLevel_; ///we reuse "skiplevel" to store start block id
     total_block_num_ = termInfo.docPostingLen_/BLOCK_SIZE;
     last_block_id_ = start_block_id_ + total_block_num_ - 1;
@@ -64,7 +64,7 @@ void BlockPostingReader::reset(const TermInfo& termInfo)
 
     prev_block_last_doc_id_ = 0;
 
-    prev_block_id_ = 0;
+    prev_block_id_ = -1;
     prev_chunk_ = 0;
 
     skipPosCount_ = 0;
@@ -94,11 +94,12 @@ void BlockPostingReader::reset(const TermInfo& termInfo)
 
 void BlockPostingReader::advanceToNextBlock() 
 {
-    if(0 == curr_block_id_) 
+    if(-1 == curr_block_id_) 
         curr_block_id_ = start_block_id_;
     else
     {
         ++curr_block_id_;
+        if(curr_block_id_ > last_block_id_) return;
         prev_block_last_doc_id_ = blockDecoder_.chunk_last_doc_id(blockDecoder_.num_chunks() - 1);
     }
 
@@ -122,12 +123,11 @@ void BlockPostingReader::advanceToNextBlock()
         pDPInput->read((char *)urgentBuffer_, BLOCK_SIZE);
         blockDecoder_.init(curr_block_id_, urgentBuffer_);
     }
-	
     blockDecoder_.chunk_decoder_.set_prev_decoded_doc_id(prev_block_last_doc_id_);
 
 }
 
-void BlockPostingReader::skipToBlock(size_t targetBlock) 
+void BlockPostingReader::skipToBlock(int targetBlock) 
 {
     if(targetBlock <= curr_block_id_) return;
     IndexInput* pDPInput = pInputDescriptor_->getDPostingInput();
@@ -164,7 +164,7 @@ docid_t BlockPostingReader::decodeTo(docid_t target, uint32_t* pPosting, int32_t
     ChunkDecoder& chunk = blockDecoder_.chunk_decoder_;
     if(lastDocID > last_doc_id_)
     {
-        size_t currBlock = pSkipListReader_->getBlockId();
+        int currBlock = pSkipListReader_->getBlockId();
         if(currBlock > last_block_id_) return BAD_DOCID;
         skipToBlock(currBlock);
         last_doc_id_ = pSkipListReader_->getDoc();

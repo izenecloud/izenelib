@@ -4,9 +4,10 @@ NS_IZENELIB_IR_BEGIN
 
 namespace indexmanager{
 
-FixedBlockSkipListReader::FixedBlockSkipListReader(IndexInput* pSkipInput, size_t startBlock)
+FixedBlockSkipListReader::FixedBlockSkipListReader(IndexInput* pSkipInput, int startBlock)
 	:currBlockId_(startBlock)
 	,totalSkipped_(0)
+	,numSkipped_(0)
 	,skipDoc_(0)
 	,lastDoc_(0)
 	,lastBlockId_(0)

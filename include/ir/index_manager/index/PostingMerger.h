@@ -153,6 +153,10 @@ private:
 
     uint32_t compressedBuffer_[CHUNK_SIZE*2];
 
+    uint32_t internal_doc_ids_buffer_[UncompressedOutBufferUpperbound(CHUNK_SIZE)];
+
+    uint32_t internal_freqs_buffer_[UncompressedOutBufferUpperbound(CHUNK_SIZE)];
+
     bool optimize_; /// converting BYTEALIGN  to BLOCK or CHUNK when TRUE
 
     bool ownMemCache_;

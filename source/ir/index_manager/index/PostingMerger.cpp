@@ -22,6 +22,7 @@ PostingMerger::PostingMerger(int skipInterval, int maxSkipLevel, CompressionType
         ,pMemCache_(NULL)
         ,compressedPos_(NULL)
         ,block_buffer_(NULL)
+        ,current_block_id_(0)
         ,optimize_(optimize)
         ,ownMemCache_(false)
 {
@@ -94,7 +95,7 @@ void PostingMerger::reset()
     doc_ids_offset_ = 0;
     position_buffer_pointer_ = 0;
     blockEncoder_.reset();
-    current_block_id_ = 0;
+    //current_block_id_ = 0;
 }
 
 void PostingMerger::init()
@@ -418,16 +419,17 @@ void PostingMerger::mergeWith(BlockPostingReader* pPosting,BitVector* pFilter)
         reset();
         nPPostingLength_ = 0;
         bFirstPosting_ = false;
+        if(! block_buffer_) block_buffer_ = new uint8_t[BLOCK_SIZE];
     }
 
     int num_docs_left = pPosting->df_;
     int prev_block_last_doc_id = 0;
     int size_of_positions = 0;
-    uint32_t prev_chunk_last_doc_id = 0;
 
     BlockDecoder& blockDecoder = pPosting->blockDecoder_;
     ChunkDecoder& chunk = blockDecoder.chunk_decoder_;
 
+    pPosting->advanceToNextBlock();
     while(pPosting->curr_block_id_ <= pPosting->last_block_id_)
     {
         while (blockDecoder.curr_chunk() < blockDecoder.num_chunks()) 
@@ -438,6 +440,7 @@ void PostingMerger::mergeWith(BlockPostingReader* pPosting,BitVector* pFilter)
                 // Create a new chunk and add it to the block.
                 int num_doc = std::min(CHUNK_SIZE, num_docs_left);
                 chunk.reset(blockDecoder.curr_block_data(), num_doc);
+                chunk.set_doc_freq_buffer(internal_doc_ids_buffer_, internal_freqs_buffer_);
                 chunk.decodeDocIds();
                 chunk.decodeFrequencies();
 
@@ -457,15 +460,11 @@ void PostingMerger::mergeWith(BlockPostingReader* pPosting,BitVector* pFilter)
                 memcpy(frequencies_+ doc_ids_offset_, chunk.frequencies(), copySize);
                 doc_ids_offset_ += copySize;
                 position_buffer_pointer_ += size_of_positions;
-
                 if (doc_ids_offset_ == CHUNK_SIZE) 
                 {
                     chunk_.encode(doc_ids_, frequencies_, positions_, CHUNK_SIZE);
-                    prev_chunk_last_doc_id = chunk_.last_doc_id();
-                    pPosDataPool_->addPOSChunk(chunk_);
                     if(!blockEncoder_.addChunk(chunk_))
                     {
-                        if(! block_buffer_) block_buffer_ = new uint8_t[BLOCK_SIZE];
                         blockEncoder_.getBlockBytes(block_buffer_);
                         pTmpPostingOutput_->writeBytes(block_buffer_, BLOCK_SIZE);
                         ++current_block_id_;
@@ -474,6 +473,7 @@ void PostingMerger::mergeWith(BlockPostingReader* pPosting,BitVector* pFilter)
                         blockEncoder_.reset();
                         blockEncoder_.addChunk(chunk_);
                     }
+                    pPosDataPool_->addPOSChunk(chunk_);
 
                     doc_ids_offset_ = 0;
                     position_buffer_pointer_ = 0;
@@ -493,11 +493,10 @@ void PostingMerger::mergeWith(BlockPostingReader* pPosting,BitVector* pFilter)
                     }
                 }
             }
-
             blockDecoder.advance_curr_chunk();
             chunk.set_decoded(false);
         } 
-        prev_block_last_doc_id = blockDecoder.chunk_last_doc_id(blockDecoder.num_chunks() - 1);        
+        prev_block_last_doc_id = blockDecoder.chunk_last_doc_id(blockDecoder.num_chunks() - 1);      
         pPosting->advanceToNextBlock();
     }
 
@@ -536,6 +535,7 @@ void PostingMerger::mergeWith(ChunkPostingReader* pPosting,BitVector* pFilter)
 
         int num_doc = std::min(CHUNK_SIZE, num_docs_left);
         chunk.reset(compressedBuffer_, num_doc);
+        chunk.set_doc_freq_buffer(internal_doc_ids_buffer_, internal_freqs_buffer_);
         chunk.decodeDocIds();
         chunk.decodeFrequencies();
 
@@ -639,7 +639,6 @@ void PostingMerger::optimize_to_Block(RTDiskPostingReader* pOnDiskPosting,BitVec
             if (doc_ids_offset_ == ChunkEncoder::kChunkSize - 1) 
             {
                 chunk_.encode(doc_ids_, frequencies_, positions_, ChunkEncoder::kChunkSize);
-                pPosDataPool_->addPOSChunk(chunk_);
                 if(!blockEncoder_.addChunk(chunk_))
                 {
                     if(! block_buffer_) block_buffer_ = new uint8_t[BLOCK_SIZE];
@@ -651,6 +650,7 @@ void PostingMerger::optimize_to_Block(RTDiskPostingReader* pOnDiskPosting,BitVec
                     blockEncoder_.reset();
                     blockEncoder_.addChunk(chunk_);
                 }
+                pPosDataPool_->addPOSChunk(chunk_);
 		
                 doc_ids_offset_ = 0;
                 position_buffer_pointer_ = 0;
@@ -804,26 +804,24 @@ fileoffset_t PostingMerger::endMerge_Block()
     bFirstPosting_ = true;
     if (postingDesc_.df <= 0)
         return -1;
-
     if(doc_ids_offset_> 0)
     {
-        chunk_.encode(doc_ids_, frequencies_, positions_, doc_ids_offset_ + 1);
-        pPosDataPool_->addPOSChunk(chunk_);
-
+        chunk_.encode(doc_ids_, frequencies_, positions_, doc_ids_offset_);
         if(!blockEncoder_.addChunk(chunk_))
         {
             blockEncoder_.getBlockBytes(block_buffer_);
             pTmpPostingOutput_->writeBytes(block_buffer_, BLOCK_SIZE);
             ++current_block_id_;
 		
-            pFixedSkipListWriter_->addSkipPoint(chunkDesc_.lastdocid, blockEncoder_.num_doc_ids(), pPosDataPool_->getLength());
+            pFixedSkipListWriter_->addSkipPoint(blockEncoder_.last_doc_id_, blockEncoder_.num_doc_ids(), pPosDataPool_->getLength());
             blockEncoder_.reset();
             blockEncoder_.addChunk(chunk_);
     	}
+    	blockEncoder_.getBlockBytes(block_buffer_);
     	pTmpPostingOutput_->writeBytes(block_buffer_, BLOCK_SIZE);
     	++current_block_id_;
-		
-    	pFixedSkipListWriter_->addSkipPoint(chunk_.first_doc_id(), blockEncoder_.num_doc_ids(),pPosDataPool_->getLength());
+    	pPosDataPool_->addPOSChunk(chunk_);
+    	pFixedSkipListWriter_->addSkipPoint(chunkDesc_.lastdocid, blockEncoder_.num_doc_ids(),pPosDataPool_->getLength());
     	blockEncoder_.reset();
     }
 

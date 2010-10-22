@@ -46,6 +46,7 @@ public:
     void encode(uint32_t* doc_ids, uint32_t* frequencies, uint32_t* positions, int num_docs)
     {
         num_docs_ = num_docs;
+        assert(num_docs>0);
         if(first_doc_id_ == 0) first_doc_id_ = doc_ids[0];
         last_doc_id_ = doc_ids[num_docs - 1];
         pre_process_chunk(doc_ids, num_docs);
@@ -64,6 +65,7 @@ public:
                 pos += frequencies[i];
             }
             num_pos = pos - positions;
+            assert(num_pos>0);
 
             if(curr_position_buffer_size_ < num_pos)
             {

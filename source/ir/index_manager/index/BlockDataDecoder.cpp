@@ -160,9 +160,7 @@ void BlockDecoder::init(uint64_t block_num, uint32_t* block_data)
     uint32_t num_chunks;
     memcpy(&num_chunks, curr_block_data_, sizeof(num_chunks));
     num_chunks_ = num_chunks;
-    assert(num_chunks_ > 0);
     curr_block_data_ += 1;
-
     curr_block_data_ += decodeHeader(curr_block_data_);
     memset(chunk_pos_properties_,0,BLOCK_HEADER_DECOMPRESSED_UPPERBOUND/2*sizeof(bool));
 
