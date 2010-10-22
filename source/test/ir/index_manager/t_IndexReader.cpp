@@ -1,9 +1,9 @@
 #include <boost/test/unit_test.hpp>
 
-#include <boost/thread.hpp>
 #include <boost/filesystem.hpp>
 #include <boost/filesystem/path.hpp>
 #include <boost/random.hpp>
+#include <boost/thread.hpp>
 #include <boost/date_time/posix_time/posix_time.hpp>
 
 #include <iostream>
@@ -42,6 +42,7 @@ private:
     boost::variate_generator<mt19937, uniform_int<> > docLenRand_;
     boost::variate_generator<mt19937, uniform_int<> > termIDRand_;
     boost::variate_generator<mt19937, uniform_int<> > docIDSkipRand_;
+    boost::variate_generator<mt19937, uniform_int<> > docNumRand_;
 
     typedef map<docid_t, size_t> DocIdLenMapT;
     DocIdLenMapT mapDocIdLen_;
@@ -60,6 +61,7 @@ public:
           ,docLenRand_(randEngine_, uniform_int<>(1, 40*newDocNum_))
           ,termIDRand_(randEngine_, uniform_int<>(1, 400*newDocNum_))
           ,docIDSkipRand_(randEngine_, uniform_int<>(1, docIDSkipMax))
+          ,docNumRand_(randEngine_, uniform_int<>(1, newDocNum_))
           ,maxDocID_(0)
     {}
 
@@ -94,6 +96,7 @@ public:
     void createDocument() {
         docid_t docID = maxDocID_;
         for(unsigned int i = 1; i <= newDocNum_; i++)
+            //for(int i = 1; i <= docNumRand_(); i++)
         {
             docID += docIDSkipRand_();
             cout << "create doc id: " << docID << endl;
@@ -203,9 +206,9 @@ public:
      * Create barrels and check barrel status.
      * @param barrelNum the number of barrels to create
      */
-    void checkBarrelInfo(int barrelNum) {
-        for(int i=0; i<barrelNum; ++i)
-            createDocument(); // create barrel i
+    //void checkBarrelInfo(int barrelNum) {
+        //for(int i=0; i<barrelNum; ++i)
+            //createDocument(); // create barrel i
 
         //IndexReader* pIndexReader = indexer_->getIndexReader();
         //BarrelsInfo* pBarrelsInfo = pIndexReader->getBarrelsInfo();
@@ -223,6 +226,34 @@ public:
             //BOOST_CHECK_EQUAL(pBarrelInfo->getBaseDocID(), i*newDocNum_+1);
             //BOOST_CHECK_EQUAL(pBarrelInfo->getMaxDocID(), (i+1)*newDocNum_);
         //}
+        //}
+
+    /**
+     * Create barrels and check barrel status.
+     * @param barrelNum the number of barrels to create
+     */
+    void checkBarrelInfo(int barrelNum) {
+        for(int i=0; i<barrelNum; ++i)
+            createDocument(); // create barrel i
+
+        cout << "finish create docs..." << endl;
+
+        //IndexReader* pIndexReader = indexer_->getIndexReader();
+        //BarrelsInfo* pBarrelsInfo = pIndexReader->getBarrelsInfo();
+
+        //BOOST_CHECK_EQUAL(pBarrelsInfo->getBarrelCount(), 1);
+        //BOOST_CHECK_EQUAL(pBarrelsInfo->getBarrelCounter(), barrelNum);
+        //BOOST_CHECK_EQUAL(pBarrelsInfo->getDocCount(), barrelNum*newDocNum_);
+        //BOOST_CHECK(pBarrelsInfo->getLastBarrel() == (*pBarrelsInfo)[0]);
+        //BOOST_CHECK_EQUAL(pBarrelsInfo->maxDocId(), maxDocID_);
+
+        //for(int i=0; i<1; ++i)
+        //{
+            //BarrelInfo* pBarrelInfo = (*pBarrelsInfo)[i];
+            //BOOST_CHECK_EQUAL(pBarrelInfo->getDocCount(), barrelNum*newDocNum_);
+            //BOOST_CHECK_EQUAL(pBarrelInfo->getBaseDocID(), i*newDocNum_+1);
+            //BOOST_CHECK_EQUAL(pBarrelInfo->getMaxDocID(), maxDocID_);
+        //}
     }
 
 private:
@@ -233,7 +264,7 @@ private:
 
     void initIndexer(const string& indexmode, bool btree = true, int skipinterval = 0, int skiplevel = 0) {
         if (btree)
-            indexer_ = new Indexer;
+            indexer_ = new Indexer();
         else
             indexer_ = new Indexer(MANAGER_PURE_INDEX);
 
@@ -397,12 +428,19 @@ BOOST_AUTO_TEST_SUITE( t_IndexReader )
 
 BOOST_AUTO_TEST_CASE(barrelInfo_realtime)
 {
-    IndexerTest indexerTest(10);
+    google::InitGoogleLogging("t_IndexReader");
 
-    indexerTest.setUp(true, "realtime");
+    //for(int i=10; i<=10; ++i)
+    //{
+        IndexerTest indexerTest(100);
+        indexerTest.setUp(true, "realtime");
+        indexerTest.checkBarrelInfo(100);
+        indexerTest.tearDown();
+     //}
 
-    indexerTest.checkBarrelInfo(3);
-    indexerTest.tearDown();
+    //indexerTest.checkDocLength();
+    //indexerTest.createDocument();
+    //indexerTest.checkDocLength();
 }
 
 BOOST_AUTO_TEST_SUITE_END()
