@@ -112,6 +112,11 @@ void Indexer::setIndexManagerConfig(
       if ((!strcasecmp(storagePolicy.c_str(),"file"))||(!strcasecmp(storagePolicy.c_str(),"mmap")))
           pBTreeIndexer_ = new BTreeIndexer(pConfigurationManager_->indexStrategy_.indexLocation_, degree, cacheSize, maxDataSize);
 
+    if(!strcasecmp(pConfigurationManager_->indexStrategy_.indexMode_.c_str(),"realtime"))
+        realTime_ = true;
+    else
+        realTime_ = false;
+
     pIndexWriter_ = new IndexWriter(this);
     pIndexReader_ = new IndexReader(this);
 
@@ -123,13 +128,6 @@ void Indexer::setIndexManagerConfig(
         memset(uuidstr,0,10);
         sprintf(uuidstr,"%d",uuid);
         pIndexWriter_->scheduleOptimizeTask(pConfigurationManager_->indexStrategy_.optimizeSchedule_, uuidstr);
-    }
-
-    if(!strcasecmp(pConfigurationManager_->indexStrategy_.indexMode_.c_str(),"realtime"))
-        realTime_ = true;
-    else
-    {
-        realTime_ = false;
     }
 }
 

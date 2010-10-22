@@ -26,11 +26,16 @@ IndexWriter::IndexWriter(Indexer* pIndex)
         :pMemCache_(NULL)
         ,pIndexer_(pIndex)
         ,pIndexBarrelWriter_(NULL)
+        ,pBarrelsInfo_(NULL)
         ,pCurBarrelInfo_(NULL)
         ,pIndexMerger_(NULL)
         ,pIndexMergeManager_(NULL)
 {
     pBarrelsInfo_ = pIndexer_->getBarrelsInfo();
+    pMemCache_ = new MemCache((size_t)pIndexer_->getIndexManagerConfig()->indexStrategy_.memory_);
+    pIndexBarrelWriter_ = new IndexBarrelWriter(pIndexer_, pMemCache_);
+    pIndexBarrelWriter_->setCollectionsMeta(pIndexer_->getCollectionsMeta());
+
     if(pIndexer_->getIndexerType()&MANAGER_INDEXING_STANDALONE_MERGER)
     {
         pIndexMergeManager_ = new IndexMergeManager(pIndex);
@@ -61,8 +66,6 @@ void IndexWriter::close()
 void IndexWriter::flush()
 {
     DVLOG(2) << "=> IndexWriter::flush()...";
-    if(!pIndexBarrelWriter_)
-        return;
     if(pCurBarrelInfo_ == NULL)
         return;
 
@@ -98,8 +101,7 @@ void IndexWriter::flush()
     }
 
     pBarrelsInfo_->write(pIndexer_->getDirectory());
-    delete pIndexBarrelWriter_;
-    pIndexBarrelWriter_ = NULL;
+    pCurBarrelInfo_ = NULL;
     DVLOG(2) << "<= IndexWriter::flush()";
 }
 
@@ -113,21 +115,17 @@ void IndexWriter::createMerger()
         pIndexMerger_ = new GPartitionMerger(pIndexer_);
 }
 
-void IndexWriter::createBarrelWriter()
+void IndexWriter::createBarrelInfo()
 {
-    DVLOG(2) << "=> IndexWriter::createBarrelWriter()...";
+    DVLOG(2) << "=> IndexWriter::createBarrelInfo()...";
+
     pCurBarrelInfo_ = new BarrelInfo(pBarrelsInfo_->newBarrel(),0);
     pCurBarrelInfo_->setSearchable(pIndexer_->isRealTime());
-
-    if (!pMemCache_)
-        pMemCache_ = 
-            new MemCache((size_t)pIndexer_->getIndexManagerConfig()->indexStrategy_.memory_);
-    pIndexBarrelWriter_ = new IndexBarrelWriter(pIndexer_,
-                                                 pMemCache_,pCurBarrelInfo_);
     pCurBarrelInfo_->setWriter(pIndexBarrelWriter_);
-    pIndexBarrelWriter_->setCollectionsMeta(pIndexer_->getCollectionsMeta());
+    pIndexBarrelWriter_->open(pCurBarrelInfo_);
     pBarrelsInfo_->addBarrel(pCurBarrelInfo_,false);
-    DVLOG(2) << "<= IndexWriter::createBarrelWriter()";
+
+    DVLOG(2) << "<= IndexWriter::createBarrelInfo()";
 }
 
 void IndexWriter::mergeIndex(IndexMerger* pMerger)
@@ -137,7 +135,7 @@ void IndexWriter::mergeIndex(IndexMerger* pMerger)
     if(pIndexer_->getIndexReader()->getDocFilter())
         pMerger->setDocFilter(pIndexer_->getIndexReader()->getDocFilter());
     ///there is a in-memory index
-    if (pIndexBarrelWriter_ && pCurBarrelInfo_ && pCurBarrelInfo_->nNumDocs > 0)
+    if (pCurBarrelInfo_ && pCurBarrelInfo_->nNumDocs > 0)
     {
         IndexMerger* pTmp = pIndexMerger_;
         pIndexMerger_ = pMerger;
@@ -167,9 +165,7 @@ void IndexWriter::mergeAndWriteCachedIndex()
     }
     pIndexMerger_->merge(pBarrelsInfo_);
 
-    pCurBarrelInfo_ = new BarrelInfo(pBarrelsInfo_->newBarrel(),0);
-    pCurBarrelInfo_->setWriter(pIndexBarrelWriter_);
-    pBarrelsInfo_->addBarrel(pCurBarrelInfo_,false);
+    createBarrelInfo();
 }
 
 void IndexWriter::addToMergeAndWriteCachedIndex()
@@ -186,9 +182,7 @@ void IndexWriter::addToMergeAndWriteCachedIndex()
     if (pIndexMerger_)
         pIndexMerger_->flushBarrelToDisk(pCurBarrelInfo_->getName());
 
-    pCurBarrelInfo_ = new BarrelInfo(pBarrelsInfo_->newBarrel(),0);
-    pCurBarrelInfo_->setWriter(pIndexBarrelWriter_);
-    pBarrelsInfo_->addBarrel(pCurBarrelInfo_,false);
+    createBarrelInfo();
 }
 
 void IndexWriter::writeCachedIndex()
@@ -204,17 +198,14 @@ void IndexWriter::writeCachedIndex()
 
     pBarrelsInfo_->setLock(true);
 
-    pCurBarrelInfo_ = new BarrelInfo(pBarrelsInfo_->newBarrel(),0);
-    pCurBarrelInfo_->setSearchable(pIndexer_->isRealTime());
-    pCurBarrelInfo_->setWriter(pIndexBarrelWriter_);
-    pBarrelsInfo_->addBarrel(pCurBarrelInfo_,false);
+    createBarrelInfo();
 
     pBarrelsInfo_->setLock(false);
 }
 
 void IndexWriter::indexDocument(IndexerDocument& doc)
 {
-    if(!pIndexBarrelWriter_) createBarrelWriter();
+    if(!pCurBarrelInfo_) createBarrelInfo();
     if(!pIndexMerger_) createMerger();
 
     if(pIndexer_->isRealTime())
@@ -226,7 +217,6 @@ void IndexWriter::indexDocument(IndexerDocument& doc)
             else
                 ///merge index
                 addToMergeAndWriteCachedIndex();
-            pIndexBarrelWriter_->open(pCurBarrelInfo_);
         }
     }
 
@@ -245,7 +235,7 @@ void IndexWriter::indexDocument(IndexerDocument& doc)
 void IndexWriter::removeDocument(collectionid_t colID, docid_t docId)
 {
     pIndexer_->getIndexReader()->delDocument(colID, docId);
-    if(pIndexBarrelWriter_ && (! pIndexBarrelWriter_->getDocFilter()))
+    if(! pIndexBarrelWriter_->getDocFilter())
         pIndexBarrelWriter_->setDocFilter(pIndexer_->getIndexReader()->getDocFilter());
 }
 

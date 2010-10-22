@@ -11,8 +11,8 @@
 
 using namespace izenelib::ir::indexmanager;
 
-IndexBarrelWriter::IndexBarrelWriter(Indexer* pIndex,MemCache* pCache,BarrelInfo* pInfo)
-        :pBarrelInfo_(pInfo)
+IndexBarrelWriter::IndexBarrelWriter(Indexer* pIndex,MemCache* pCache)
+        :pBarrelInfo_(NULL)
         ,pIndexer_(pIndex)
         ,pMemCache_(pCache)
         ,pCollectionsInfo_(NULL)
@@ -76,7 +76,8 @@ void IndexBarrelWriter::resetCache(bool bResetPosting)
 
 void IndexBarrelWriter::writeCache()
 {
-    assert(pBarrelInfo_);
+    if(! pBarrelInfo_)
+        return;
 
     dirty_ = true;
     pBarrelInfo_->write(pDirectory_);

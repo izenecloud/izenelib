@@ -34,7 +34,7 @@ class BarrelInfo;
 class IndexBarrelWriter
 {
 public:
-    IndexBarrelWriter(Indexer* pIndexer,MemCache* pCache,BarrelInfo* pInfo);
+    IndexBarrelWriter(Indexer* pIndexer,MemCache* pCache);
 
     ~IndexBarrelWriter();
 public:

@@ -53,7 +53,7 @@ public:
     /// close
     void close();
 private:
-    void createBarrelWriter();
+    void createBarrelInfo();
      /// create index merger
     void createMerger();
     /// mergeIndex
