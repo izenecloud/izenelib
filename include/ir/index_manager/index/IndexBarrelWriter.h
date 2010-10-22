@@ -19,6 +19,7 @@
 #include <ir/index_manager/utility/system.h>
 #include <ir/index_manager/utility/MemCache.h>
 #include <ir/index_manager/utility/BitVector.h>
+#include <util/izene_log.h>
 
 #include <map>
 
@@ -28,10 +29,12 @@ namespace indexmanager{
 
 typedef map<collectionid_t, CollectionIndexer*> CollectionIndexerMap;
 class Indexer;
+class BarrelInfo;
+
 class IndexBarrelWriter
 {
 public:
-    IndexBarrelWriter(Indexer* pIndexer,MemCache* pCache,const char* name);
+    IndexBarrelWriter(Indexer* pIndexer,MemCache* pCache,BarrelInfo* pInfo);
 
     ~IndexBarrelWriter();
 public:
@@ -67,21 +70,11 @@ public:
     void resetCache(bool bResetPosting = false);
     /**
      * open a index barrel
-     * @param barrelName_ index barrel name
+     * @param pInfo index barrel info
     */
-    void open(const char* barrelName);
+    void open(BarrelInfo* pInfo);
     /** close barrel writer */
     void close();
-    /**
-    * set a new name of the barrel
-    * @param newName new name of the barrel
-    */
-    void rename(const char* newName);
-
-    const string& getBarrelName()
-    {
-        return barrelName_;
-    }
     /**
     *get collections information of the in-memory index barrel
     */
@@ -130,7 +123,7 @@ public:
 
     bool isDirty() { return dirty_; }
 private:
-    string barrelName_;
+    BarrelInfo* pBarrelInfo_;
 
     Indexer* pIndexer_;
 
@@ -140,8 +133,6 @@ private:
 
     CollectionsInfo* pCollectionsInfo_;
 
-    collectionid_t currentColID_;
-
     Directory* pDirectory_;
 
     BitVector* pDocFilter_;
@@ -149,7 +140,6 @@ private:
     volatile bool dirty_;
 
     friend class InMemoryIndexBarrelReader;
-    friend class IndexWriter;
 };
 
 }

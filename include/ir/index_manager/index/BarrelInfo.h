@@ -10,6 +10,7 @@
 
 #include <ir/index_manager/store/Directory.h>
 #include <ir/index_manager/store/IndexInput.h>
+#include <util/izene_log.h>
 
 #include <vector>
 #include <map>
@@ -117,7 +118,7 @@ public:
     docid_t getBaseDocID()
     {
         if(baseDocIDMap.empty())
-            return -1;
+            return BAD_DOCID;
         else
             return baseDocIDMap.begin()->second;
     }
@@ -131,7 +132,11 @@ public:
     /**
      * Set IndexBarrelWriter, then the writer will index the documents within this barrel
      */
-     void setWriter(IndexBarrelWriter* pWriter) { pBarrelWriter = pWriter; }
+     void setWriter(IndexBarrelWriter* pWriter) {
+        DVLOG(2) << "BarrelInfo::setWriter(), barrel: " << getName() << ", pWriter: " << pWriter;
+        pBarrelWriter = pWriter;
+     }
+
     /**
      * after delete a document from a certain barrel, the document counter should be updated
      */
@@ -153,6 +158,10 @@ public:
      * rename the barrel name, it is used when index merge happens.
      */
     void rename(Directory* pDirectory,const string& newName);
+    /**
+     * write in-memory barrel into disk files such as ".voc", ".dfp", ".pop" and ".fdi".
+     */
+    void write(Directory* pDirectory);
 
     bool isModified() { return modified; }
 
@@ -201,6 +210,7 @@ public:
     ///all index input instances generated for this barrel
     std::set<IndexInput*> indexInputs;
 
+private:
     boost::mutex mutex_;
 };
 

@@ -169,6 +169,7 @@ bool FieldMerger::initQueue()
         ppFieldInfos_[order] = pEntry;
         if (pEntry->pBarrelInfo_->getWriter()) ///in-memory index barrel
         {
+            LOG(WARNING)<< "FieldMerger::initQueue(), the in-memory index brarel " << pEntry->pBarrelInfo_->getName() << " should have been flushed to disk";
             pTermReader = pEntry->pBarrelInfo_->getWriter()->getCollectionIndexer(pEntry->pFieldInfo_->getColID())
 				->getFieldIndexer(pEntry->pFieldInfo_->getName())->termReader();
         }

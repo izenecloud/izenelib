@@ -180,17 +180,20 @@ std::string Indexer::getBasePath()
 
 void Indexer::close()
 {
-    if (pIndexReader_)
-    {
-        delete pIndexReader_;
-        pIndexReader_ = NULL;
-    }
+    // in case of merge thread is using IndexReader,
+    // IndexWriter::close(), which waits for the end of merge thread,
+    // is called before deleting IndexReader
     if (pIndexWriter_)
     {
         pIndexWriter_->flush();
         pIndexWriter_->close();
         delete pIndexWriter_;
         pIndexWriter_ = NULL;
+    }
+    if (pIndexReader_)
+    {
+        delete pIndexReader_;
+        pIndexReader_ = NULL;
     }
     if (pBarrelsInfo_)
     {
@@ -218,9 +221,9 @@ void Indexer::setDirty(bool dirty)
     dirty_ = dirty;
     if (dirty)
     {
-        boost::thread::sleep(boost::get_system_time() + boost::posix_time::milliseconds(100));
+        //boost::thread::sleep(boost::get_system_time() + boost::posix_time::milliseconds(100));
         pIndexReader_->reopen();
-        boost::thread::sleep(boost::get_system_time() + boost::posix_time::milliseconds(500));
+        //boost::thread::sleep(boost::get_system_time() + boost::posix_time::milliseconds(500));
         dirty_ = false;
     }
 }

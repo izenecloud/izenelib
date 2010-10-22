@@ -91,7 +91,7 @@ void FieldsInfo::read(IndexInput* pIndexInput)
 
         if (count <= 0)
         {
-            DLOG(INFO) << "FieldsInfo::read():field count <=0." << endl;
+            DVLOG(3) << "FieldsInfo::read():field count <=0.";
             return ;
         }
         nNumFieldInfo_ = count;
@@ -116,7 +116,7 @@ void FieldsInfo::read(IndexInput* pIndexInput)
                 pInfo->dfiLength_ = pIndexInput->readLong();
                 pInfo->ptiLength_ = pIndexInput->readLong();
 
-                DLOG(INFO)<<"FieldInfo:"<<"indexoffset "<<pInfo->getIndexOffset()<<" distinctnumterms "<<pInfo->distinctNumTerms()<<" voclength "<<pInfo->vocLength_<<" dfilength "<<pInfo->dfiLength_<<" ptilength "<<pInfo->ptiLength_<<endl;
+                DVLOG(3)<<"FieldInfo:"<<"indexoffset "<<pInfo->getIndexOffset()<<" distinctnumterms "<<pInfo->distinctNumTerms()<<" voclength "<<pInfo->vocLength_<<" dfilength "<<pInfo->dfiLength_<<" ptilength "<<pInfo->ptiLength_;
             }
 
             ppFieldsInfo_[i] = pInfo;
