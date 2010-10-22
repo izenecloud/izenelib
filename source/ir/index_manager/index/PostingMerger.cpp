@@ -470,8 +470,7 @@ void PostingMerger::mergeWith(BlockPostingReader* pPosting,BitVector* pFilter)
                         pTmpPostingOutput_->writeBytes(block_buffer_, BLOCK_SIZE);
                         ++current_block_id_;
 
-                        pFixedSkipListWriter_->addSkipPoint(prev_block_last_doc_id,blockEncoder_.num_doc_ids(),
-                                                        current_block_id_ * BLOCK_SIZE, pPosDataPool_->getLength());
+                        pFixedSkipListWriter_->addSkipPoint(prev_block_last_doc_id,blockEncoder_.num_doc_ids(),pPosDataPool_->getLength());
                         blockEncoder_.reset();
                         blockEncoder_.addChunk(chunk_);
                     }
@@ -648,8 +647,7 @@ void PostingMerger::optimize_to_Block(RTDiskPostingReader* pOnDiskPosting,BitVec
                     pTmpPostingOutput_->writeBytes(block_buffer_, BLOCK_SIZE);
                     ++current_block_id_;
 		
-                    pFixedSkipListWriter_->addSkipPoint(blockEncoder_.last_doc_id_,blockEncoder_.num_doc_ids(),
-                                                                          current_block_id_ * BLOCK_SIZE, pPosDataPool_->getLength());
+                    pFixedSkipListWriter_->addSkipPoint(blockEncoder_.last_doc_id_,blockEncoder_.num_doc_ids(),pPosDataPool_->getLength());
                     blockEncoder_.reset();
                     blockEncoder_.addChunk(chunk_);
                 }
@@ -818,16 +816,14 @@ fileoffset_t PostingMerger::endMerge_Block()
             pTmpPostingOutput_->writeBytes(block_buffer_, BLOCK_SIZE);
             ++current_block_id_;
 		
-            pFixedSkipListWriter_->addSkipPoint(chunkDesc_.lastdocid, blockEncoder_.num_doc_ids(),
-    	    	    	    	    	    	current_block_id_ * BLOCK_SIZE, pPosDataPool_->getLength());
+            pFixedSkipListWriter_->addSkipPoint(chunkDesc_.lastdocid, blockEncoder_.num_doc_ids(), pPosDataPool_->getLength());
             blockEncoder_.reset();
             blockEncoder_.addChunk(chunk_);
     	}
     	pTmpPostingOutput_->writeBytes(block_buffer_, BLOCK_SIZE);
     	++current_block_id_;
 		
-    	pFixedSkipListWriter_->addSkipPoint(chunk_.first_doc_id(), blockEncoder_.num_doc_ids(),
-    	    	    	    	    	    	current_block_id_ * BLOCK_SIZE, pPosDataPool_->getLength());
+    	pFixedSkipListWriter_->addSkipPoint(chunk_.first_doc_id(), blockEncoder_.num_doc_ids(),pPosDataPool_->getLength());
     	blockEncoder_.reset();
     }
 

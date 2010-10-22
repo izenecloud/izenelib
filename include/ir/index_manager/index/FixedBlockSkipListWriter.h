@@ -23,7 +23,7 @@ public:
     virtual ~FixedBlockSkipListWriter();
 
 public:
-    void addSkipPoint(docid_t docId,uint32_t numSkipped,fileoffset_t offset,fileoffset_t pOffset);
+    void addSkipPoint(docid_t docId,uint32_t numSkipped,fileoffset_t pOffset);
 
     fileoffset_t getRealLength();
 
@@ -36,11 +36,9 @@ protected:
 
     ///each level should record the last doc id, last fileoffset of both dfp and pos postings
     docid_t lastDoc_; 
-    fileoffset_t lastOffset_;
     fileoffset_t lastPOffset_;
 
     docid_t curDoc_;
-    fileoffset_t curOffset_;
     fileoffset_t curPOffset_;
 };
 }

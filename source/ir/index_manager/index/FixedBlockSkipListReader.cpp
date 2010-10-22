@@ -10,8 +10,6 @@ FixedBlockSkipListReader::FixedBlockSkipListReader(IndexInput* pSkipInput, size_
 	,skipDoc_(0)
 	,lastDoc_(0)
 	,lastBlockId_(0)
-	,offset_(0)
-	,lastOffset_(0)
 	,pOffset_(0)
 	,lastPOffset_(0)
 {
@@ -53,7 +51,6 @@ bool FixedBlockSkipListReader::nextSkip(docid_t docID)
 bool FixedBlockSkipListReader::loadNextSkip()
 {
     lastDoc_ = skipDoc_;
-    lastOffset_ = offset_;
     lastPOffset_ = pOffset_;
     totalSkipped_ = numSkipped_;
     lastBlockId_ = currBlockId_;
@@ -68,7 +65,6 @@ bool FixedBlockSkipListReader::loadNextSkip()
     ++currBlockId_;
     skipDoc_ += skipStream_->readVInt();
     numSkipped_ += skipStream_->readVInt();
-    offset_ += skipStream_->readVLong();
     pOffset_ += skipStream_->readVLong();
     return true;
 }

@@ -34,8 +34,6 @@ public:
 
     size_t getBlockId() { return lastBlockId_;}
 
-    fileoffset_t getOffset() { return lastOffset_; }
-	
     fileoffset_t getPOffset() { return lastPOffset_; }
 
     int getNumSkipped() { return totalSkipped_; }
@@ -53,8 +51,6 @@ private:
     docid_t skipDoc_;
     docid_t lastDoc_; 
     size_t lastBlockId_;
-    fileoffset_t offset_;
-    fileoffset_t lastOffset_;
     fileoffset_t pOffset_;
     fileoffset_t lastPOffset_;
 };

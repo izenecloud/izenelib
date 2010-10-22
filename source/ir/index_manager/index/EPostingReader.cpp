@@ -215,10 +215,7 @@ docid_t BlockPostingReader::decodeTo(docid_t target, uint32_t* pPosting, int32_t
         if(pPPostingInput)
        	{
        	    ///skip positions
-       	    if(blockDecoder_.curr_chunk_pos_loaded(blockDecoder_.curr_chunk()))
-       	    {
-       	    }
-            else
+       	    if(!blockDecoder_.curr_chunk_pos_loaded(blockDecoder_.curr_chunk()))
        	    {
        	        int size = pPPostingInput->readVInt();
        	        ensure_pos_buffer(size>>2);
@@ -226,7 +223,6 @@ docid_t BlockPostingReader::decodeTo(docid_t target, uint32_t* pPosting, int32_t
        	        blockDecoder_.set_curr_chunk_pos_loaded(blockDecoder_.curr_chunk());
        	    }
         }
-
         blockDecoder_.advance_curr_chunk();
         blockDecoder_.chunk_decoder_.set_decoded(false);
     } 
@@ -380,10 +376,7 @@ bool BlockPostingReader::decodeNextPositions(uint32_t* &pPosting, int32_t& posBu
         if(posBufLength < size_of_positions) growPosBuffer(pPosting, posBufLength);
         chunk.set_pos_buffer(pPosting);
 
-        if(blockDecoder_.curr_chunk_pos_loaded(blockDecoder_.curr_chunk()))
-        {
-        }
-        else
+        if(!blockDecoder_.curr_chunk_pos_loaded(blockDecoder_.curr_chunk()))
         {
             int size = pPPostingInput->readVInt();
             ensure_pos_buffer(size>>2);

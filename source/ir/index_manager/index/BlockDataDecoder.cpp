@@ -71,19 +71,14 @@ int ChunkDecoder::decodePositions(const uint32_t* compressed_positions)
     int num_words_consumed = position_decompressor_.decompress(const_cast<uint32_t*> (compressed_positions), positions_, num_positions_);
 
     uint32_t* pos = positions_;
-    cout<<this<<" pos: ";
     for(int i = 0; i < num_docs_; ++i)
     {
-    cout<<pos[0]<<",";
         for(uint32_t j = 1; j < frequencies_[i]; ++j)
         {
             pos[j] += pos[j-1];
-            cout<<pos[j]<<",";
         }
-    cout<<"|";
         pos += frequencies_[i];
     }
-    cout<<endl;
     pos_decoded_ = true;
     return num_words_consumed;
 }
