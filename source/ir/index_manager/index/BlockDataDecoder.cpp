@@ -113,7 +113,8 @@ void ChunkDecoder::post_process(BitVector* pDocFilter)
 
 void ChunkDecoder::updatePositionOffset()
 {
-    for (int i = prev_document_offset_; i < curr_document_offset_; ++i)
+    curr_position_offset_ = 0;
+    for (int i = 0; i < curr_document_offset_; ++i)
     {
         assert(frequencies_[i] != 0);  // This indicates a bug in the program.
         curr_position_offset_ += frequencies_[i];
