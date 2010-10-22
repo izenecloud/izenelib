@@ -834,7 +834,7 @@ fileoffset_t PostingMerger::endMerge_Block()
 
     termInfo_.skipPointer_ = pDOutput->getFilePointer();
 
-    if(blockEncoder_.num_chunks_() > 0)
+    if(blockEncoder_.num_chunks() > 0)
         pTmpPostingOutput_->writeBytes(block_buffer_, BLOCK_SIZE);
 
     pFixedSkipListWriter_->write(pDOutput);	///write skip list data
