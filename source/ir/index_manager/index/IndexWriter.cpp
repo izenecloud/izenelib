@@ -32,9 +32,6 @@ IndexWriter::IndexWriter(Indexer* pIndex)
         ,pIndexMergeManager_(NULL)
 {
     pBarrelsInfo_ = pIndexer_->getBarrelsInfo();
-    pMemCache_ = new MemCache((size_t)pIndexer_->getIndexManagerConfig()->indexStrategy_.memory_);
-    pIndexBarrelWriter_ = new IndexBarrelWriter(pIndexer_, pMemCache_);
-    pIndexBarrelWriter_->setCollectionsMeta(pIndexer_->getCollectionsMeta());
 
     if(pIndexer_->getIndexerType()&MANAGER_INDEXING_STANDALONE_MERGER)
     {
@@ -118,8 +115,7 @@ void IndexWriter::createMerger()
 void IndexWriter::createMemCache()
 {
     if (!pMemCache_)
-        pMemCache_ = 
-            new MemCache((size_t)pIndexer_->getIndexManagerConfig()->indexStrategy_.memory_);
+        pMemCache_ = new MemCache((size_t)pIndexer_->getIndexManagerConfig()->indexStrategy_.memory_);
 }
 
 void IndexWriter::createBarrelInfo()
@@ -128,6 +124,15 @@ void IndexWriter::createBarrelInfo()
 
     pCurBarrelInfo_ = new BarrelInfo(pBarrelsInfo_->newBarrel(),0);
     pCurBarrelInfo_->setSearchable(pIndexer_->isRealTime());
+
+    if(!pMemCache_)
+        createMemCache();
+    if(!pIndexBarrelWriter_)
+    {
+        pIndexBarrelWriter_ = new IndexBarrelWriter(pIndexer_, pMemCache_);
+        pIndexBarrelWriter_->setCollectionsMeta(pIndexer_->getCollectionsMeta());
+    }
+
     pCurBarrelInfo_->setWriter(pIndexBarrelWriter_);
     pIndexBarrelWriter_->open(pCurBarrelInfo_);
     pBarrelsInfo_->addBarrel(pCurBarrelInfo_,false);
