@@ -10,6 +10,8 @@
 #include <sstream>
 #include <cstdlib>
 
+#include <util/izene_log.h>
+
 class MyXmlLogFormatter : public boost::unit_test::output::xml_log_formatter
 {
     typedef boost::unit_test::output::xml_log_formatter super;
@@ -87,6 +89,9 @@ bool my_init_unit_test()
 int BOOST_TEST_CALL_DECL
 main(int argc, char* argv[])
 {
+#ifdef INIT_GLOG
+    google::InitGoogleLogging(argv[0]);
+#endif
     int status = boost::unit_test::unit_test_main(&my_init_unit_test, argc, argv);
 
     // delete global stream to flush
