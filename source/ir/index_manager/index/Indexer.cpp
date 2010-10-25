@@ -149,8 +149,10 @@ void Indexer::setIndexManagerConfig(
                 skipInterval_ = CHUNK_SIZE;
             }
             else
-                indexingType_ = BYTEALIGN;;
+                indexingType_ = BYTEALIGN;
        	}
+       else
+           indexingType_ = BYTEALIGN;
     }
 }
 
