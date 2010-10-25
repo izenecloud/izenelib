@@ -162,8 +162,10 @@ BarrelInfo* IndexReader::findDocumentInBarrels(collectionid_t colID, docid_t doc
     for (int i = pBarrelsInfo_->getBarrelCount() - 1; i >= 0; i--)
     {
         BarrelInfo* pBarrelInfo = (*pBarrelsInfo_)[i];
-        if ((pBarrelInfo->baseDocIDMap.find(colID) != pBarrelInfo->baseDocIDMap.end())&&
-                (pBarrelInfo->baseDocIDMap[colID] <= docID))
+        if (pBarrelInfo->baseDocIDMap.find(colID) != pBarrelInfo->baseDocIDMap.end()
+                && pBarrelInfo->baseDocIDMap[colID] <= docID
+                && pBarrelInfo->getMaxDocID() >= docID
+                && pBarrelInfo->getDocCount() > 0)
             return pBarrelInfo;
     }
     return NULL;
