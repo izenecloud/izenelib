@@ -137,6 +137,7 @@ void IndexMerger::merge(BarrelsInfo* pBarrels)
 
 void IndexMerger::addToMerge(BarrelsInfo* pBarrelsInfo,BarrelInfo* pBarrelInfo)
 {
+    DVLOG(2) << "=> IndexMerger::addToMerge(), barrel name: " << pBarrelInfo->barrelName << " ...";
     if (!pMergeBarrels_)
     {
         pMergeBarrels_ = new vector<MergeBarrelEntry*>();
@@ -146,7 +147,7 @@ void IndexMerger::addToMerge(BarrelsInfo* pBarrelsInfo,BarrelInfo* pBarrelInfo)
     pBarrelsInfo_ = pBarrelsInfo;
     pEntry = new MergeBarrelEntry(pDirectory_,pBarrelInfo);
     pMergeBarrels_->push_back(pEntry);
-	
+
     addBarrel(pEntry);
  
     pBarrelsInfo->setLock(true);
@@ -155,6 +156,7 @@ void IndexMerger::addToMerge(BarrelsInfo* pBarrelsInfo,BarrelInfo* pBarrelInfo)
 
     pBarrelsInfo->write(pDirectory_);
     pBarrelsInfo->setLock(false);
+    DVLOG(2) << "<= IndexMerger::addToMerge()";
 }
 
 void IndexMerger::updateBarrels(BarrelsInfo* pBarrelsInfo)
@@ -163,22 +165,13 @@ void IndexMerger::updateBarrels(BarrelsInfo* pBarrelsInfo)
     izenelib::util::ScopedWriteLock<izenelib::util::ReadWriteLock> lock(pIndexer_->mutex_);
     ///sort barrels
     pBarrelsInfo->sort(pDirectory_);
-/*	
-    BarrelInfo* pBaInfo;
-    pBarrelsInfo->startIterator();
-    while (pBarrelsInfo->hasNext())
-    {
-        pBaInfo = pBarrelsInfo->next();
-        pBaInfo->setWriter(NULL);///clear writer
-    }
-*/	
     }
     pIndexer_->setDirty(true);	
 }
 
 void IndexMerger::mergeBarrel(MergeBarrel* pBarrel)
 {
-    DLOG(INFO)<< "Begin merge: " << endl;
+    DVLOG(2)<< "=> IndexMerger::mergeBarrel(), barrel name: " << pBarrel->getIdentifier() << " ...";
     triggerMerge_ = true;
     pBarrel->load();
     string newBarrelName = pBarrel->getIdentifier();
@@ -361,10 +354,11 @@ void IndexMerger::mergeBarrel(MergeBarrel* pBarrel)
         collectionsInfo.addCollection(pCollectionInfo);
     } // for
 
-    //deleted all merged barrels
+    {
+    //delete all merged barrels
     pBarrelsInfo_->wait_for_barrels_ready();
     pBarrelsInfo_->setLock(true);
-    {
+
     //boost::mutex::scoped_lock lock(pIndexer_->mutex_);
     izenelib::util::ScopedWriteLock<izenelib::util::ReadWriteLock> lock(pIndexer_->mutex_);
     for (nEntry = 0;nEntry < nEntryCount;nEntry++)
@@ -377,14 +371,7 @@ void IndexMerger::mergeBarrel(MergeBarrel* pBarrel)
         }
         pBarrelsInfo_->removeBarrel(pDirectory_,pEntry->pBarrelInfo_->getName());///delete merged barrels
     }
-    pBarrelsInfo_->addBarrel(pNewBarrelInfo,false);
-    pBarrelsInfo_->setLock(false);
-    ///sleep is necessary because if a query get termreader before this lock,
-    ///the query has not been finished even the index file/term dictionary info has been changed
-    ///500ms is used to let these queries finish their flow.
-    if(pIndexer_->isRealTime())
-        boost::thread::sleep(boost::get_system_time() + boost::posix_time::milliseconds(5000));
-    }
+
     if (pMergeBarrels_)
     {
         removeMergedBarrels(pBarrel);
@@ -400,8 +387,19 @@ void IndexMerger::mergeBarrel(MergeBarrel* pBarrel)
     delete pOutputDesc;
     pOutputDesc = NULL;
 
+    pNewBarrelInfo->setSearchable(true);
+    pBarrelsInfo_->addBarrel(pNewBarrelInfo,false);
+
+    pBarrelsInfo_->setLock(false);
+    ///sleep is necessary because if a query get termreader before this lock,
+    ///the query has not been finished even the index file/term dictionary info has been changed
+    ///500ms is used to let these queries finish their flow.
+    //if(pIndexer_->isRealTime())
+        //boost::thread::sleep(boost::get_system_time() + boost::posix_time::milliseconds(5000));
+    }
+
     //////////////////////////////////////////////////////////////////////////
-    DLOG(INFO) << "End merge: " << pNewBarrelInfo->getDocCount() << endl;
+    DVLOG(2)<< "<= IndexMerger::mergeBarrel(), barrel name: " << pBarrel->getIdentifier() << ", doc count: " << pNewBarrelInfo->getDocCount();
 
     MergeBarrelEntry* pNewEntry = new MergeBarrelEntry(pDirectory_,pNewBarrelInfo);
     addBarrel(pNewEntry);

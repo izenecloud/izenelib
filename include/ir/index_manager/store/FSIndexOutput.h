@@ -23,22 +23,22 @@ namespace indexmanager{
 class FSIndexOutput : public IndexOutput
 {
 public:
-    FSIndexOutput(const char* filename, const string& mode);
-
-    FSIndexOutput(const char* filename, size_t buffsize, const string& mode);
+    FSIndexOutput(const char* filename, const string& mode, size_t buffsize = 0);
 
     virtual ~FSIndexOutput(void);
 
 public:
     void flushBuffer(char* b, size_t len);
 
-    void seek(int64_t pos);
-
     int64_t length();
 
     void close();
 
     void trunc();
+
+protected:
+    void  seekInternal(int64_t pos);
+
 private:
     FILE* fileHandle_;
 

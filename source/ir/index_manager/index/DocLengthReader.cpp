@@ -1,6 +1,8 @@
 #include <ir/index_manager/index/DocLengthReader.h>
+#include <util/izene_log.h>
 
 #include <iostream>
+#include <boost/scoped_ptr.hpp>
 
 #define MAX_PROPERTIES    100
 
@@ -39,25 +41,26 @@ void DocLengthReader::load(docid_t maxDocId)
 
     if(data_) {delete[] data_; data_ = NULL;}
 
-    size_ = maxDocId * numIndexedProperties_;
+    // although doc id 0 is not used, its space data_[0] is reserved,
+    // so that for doc id i, we can access its data_ by data_[i]
+    size_ = (maxDocId+1) * numIndexedProperties_;
     data_ = new uint16_t[size_];
     memset(data_, 0, size_*2);
-    IndexInput* pInput = 0;
     try{
-    pInput = pDirectory_->openInput("doclen.map");
-    pInput->readBytes((unsigned char*)data_, size_*2);
-    delete pInput;
+        boost::scoped_ptr<IndexInput> pInput(pDirectory_->openInput("doclen.map"));
+        pInput->readBytes((unsigned char*)data_, size_*2);
     }catch(std::exception& e)
     {
-        if(pInput) delete pInput;
+        LOG(WARNING) << e.what();
     }
 }
 
 size_t DocLengthReader::docLength(docid_t docId, fieldid_t fid)
 {
-    if(docId*numIndexedProperties_ > size_|| !data_)
+    size_t pos = docId*numIndexedProperties_+propertyOffsetMap_[fid];
+    if(pos >= size_ || !data_)
         return 0;
-    return data_[docId*numIndexedProperties_+propertyOffsetMap_[fid]];
+    return data_[pos];
 }
 
 double DocLengthReader::averagePropertyLength(fieldid_t fid)

@@ -9,11 +9,9 @@ MultiIndexBarrelReader::MultiIndexBarrelReader(IndexReader* pIndexReader,Barrels
         :IndexBarrelReader(pIndexReader)
         ,pBarrelsInfo_(pBarrelsInfo)
 {
-    pBarrelsInfo_->startIterator();
     BarrelInfo* pBarrelInfo;
 
     pBarrelsInfo_->startIterator();
-
     while (pBarrelsInfo_->hasNext())
     {
         pBarrelInfo = pBarrelsInfo_->next();

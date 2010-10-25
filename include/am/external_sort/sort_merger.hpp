@@ -6,7 +6,7 @@
 #ifndef SORT_MERGER_HPP
 #define SORT_MERGER_HPP
 
-#include <util/log.h>
+#include <util/izene_log.h>
 #include <vector>
 #include <string>
 #include <types.h>
@@ -279,7 +279,7 @@ typedef SortMerger<KEY_TYPE, LEN_TYPE, COMPARE_ALL, IO_TYPE> self_t;
         {
           size_micro_run_[i] = 0;
           --count_;
-          std::cout<<"[Warning]: A record is too long, it will be ignored\n";
+          LOG(WARNING) << "[Warning]: A record is too long, it will be ignored";
           ioStream.seek(*(LEN_TYPE*)(micro_buf_[i])+sizeof(LEN_TYPE)-s, SEEK_CUR);
 
           if (ioStream.tell()-run_addr_[i] >= (uint64_t)size_run_[i])
@@ -306,7 +306,7 @@ typedef SortMerger<KEY_TYPE, LEN_TYPE, COMPARE_ALL, IO_TYPE> self_t;
       //fseek(f, nextRunPos, SEEK_SET);
       ioStream.seek(nextRunPos);
     }
-    std::cout<<"Run number: "<<group_size_<<std::endl;
+    LOG(INFO) << "Run number: " << group_size_;
     
     //initialize predict heap and records number of every microrun
     for (uint32_t i = 0; i<group_size_; ++i)
@@ -421,7 +421,7 @@ typedef SortMerger<KEY_TYPE, LEN_TYPE, COMPARE_ALL, IO_TYPE> self_t;
       pre_buf_con_.notify_one();
     }
 
-    std::cout<<"\nPredicting is over...\n";
+    LOG(INFO) << "Predicting is over...";
   }
 
   void merge_()
@@ -504,7 +504,7 @@ typedef SortMerger<KEY_TYPE, LEN_TYPE, COMPARE_ALL, IO_TYPE> self_t;
     }
     
 
-    std::cout<<"\nMerging is over...\n";
+    LOG(INFO) << "Merging is over...";
   }
 
   void output_(FILE* f, uint32_t idx)
@@ -531,7 +531,8 @@ typedef SortMerger<KEY_TYPE, LEN_TYPE, COMPARE_ALL, IO_TYPE> self_t;
       while (!out_buf_full_[idx])
         in_out_con_[idx].wait(in_lock);
 
-      std::cout<<"\rMerging ..."<<1.*(c-count_)/c*100<<"%"<<std::flush;
+      //std::cout<<"\rMerging ..."<<1.*(c-count_)/c*100<<"%"<<std::flush;
+      LOG(INFO) << "Merging ..." << 1.*(c-count_)/c*100 << "%";
       
       IASSERT(out_buf_size_[idx]!=0);
       assert(idx < OUT_BUF_NUM_);
@@ -549,7 +550,7 @@ typedef SortMerger<KEY_TYPE, LEN_TYPE, COMPARE_ALL, IO_TYPE> self_t;
       in_out_con_[idx].notify_one();
     }
 
-    std::cout<<"\nOutputting is over...\n";
+    LOG(INFO) << "Outputting is over...";
   }
 
   bool t_check_sort_()
@@ -637,7 +638,7 @@ public:
 
     ioStream.readBytes((char*)(&count_),sizeof(uint64_t));
 
-    std::cout<<"\nCount: "<<count_<<std::endl;
+    LOG(INFO) << "Count: " << count_;
 	
     init_(ioStream);
 
@@ -665,8 +666,8 @@ public:
     fclose(out_f);
 
     gettimeofday (&tvafter , &tz);
-    std::cout<<"\nMerging is done("<<count_
-             <<"): "<<((tvafter.tv_sec-tvpre.tv_sec)*1000+(tvafter.tv_usec-tvpre.tv_usec)/1000.)/60000<<" min\n";
+    LOG(INFO) << "Merging is done(" << count_
+             << "): " << ((tvafter.tv_sec-tvpre.tv_sec)*1000+(tvafter.tv_usec-tvpre.tv_usec)/1000.)/60000 << " min";
     
     if (boost::filesystem::exists(filenm_))
       boost::filesystem::remove(filenm_);

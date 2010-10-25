@@ -30,14 +30,16 @@ public:
 public:
     void flushBuffer(char* b, size_t len);
 
-    void seek(int64_t pos);
-
     int64_t length()
     {
         return 0;
     }
 
     void close();
+
+protected:
+    void  seekInternal(int64_t pos);
+
 private:
     UDTFile fileHandle_;
 

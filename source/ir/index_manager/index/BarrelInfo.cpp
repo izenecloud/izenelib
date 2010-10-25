@@ -9,6 +9,7 @@
 #include <sstream>
 #include <fstream>
 #include <iostream>
+#include <cassert>
 
 
 using namespace izenelib::ir::indexmanager;
@@ -17,6 +18,7 @@ void BarrelInfo::remove(Directory* pDirectory)
 {
     try
     {
+        boost::mutex::scoped_lock lock(mutex_);
         pDirectory->deleteFiles(barrelName);
     }
     catch (IndexManagerException& fe)
@@ -31,20 +33,20 @@ void BarrelInfo::remove(Directory* pDirectory)
 
 void BarrelInfo::rename(Directory* pDirectory,const string& newName)
 {
+    if (barrelName == newName)
+        return;
+
     try
     {
-        if (barrelName == newName)
-            return ;
-        if (pBarrelWriter)///in-memory index barrel
-        {
-            pBarrelWriter->rename(newName.c_str());
-        }
-        else
-        {
+        boost::mutex::scoped_lock lock(mutex_);
+        DVLOG(2) << "=> BarrelInfo::rename(), " << barrelName << " => " << newName << " ...";
+
+        if (pBarrelWriter == NULL)/// not in-memory index barrel
             pDirectory->renameFiles(barrelName,newName);
-        }
+
         barrelName = newName;
         modified = true;
+        DVLOG(2) << "<= BarrelInfo::rename(), => " << barrelName;
     }
     catch (IndexManagerException& fe)
     {
@@ -53,6 +55,67 @@ void BarrelInfo::rename(Directory* pDirectory,const string& newName)
     catch (...)
     {
         SF1V5_THROW(ERROR_FILEIO,"BarrelInfo::rename():rename failed.");
+    }
+}
+
+void BarrelInfo::write(Directory* pDirectory)
+{
+    if(pBarrelWriter == NULL)
+    {
+        LOG(WARNING) << "barrel " << barrelName << " could not be written without a IndexBarrelWriter";
+        return;
+    }
+
+    if(baseDocIDMap.empty())
+    {
+        LOG(WARNING) << "barrel " << barrelName << " could not be written without base doc id";
+        return;
+    }
+
+    collectionid_t colID = baseDocIDMap.begin()->first;
+    CollectionIndexer* pColIndexer = pBarrelWriter->getCollectionIndexer(colID);
+    CollectionsInfo* pColInfo = pBarrelWriter->getCollectionsInfo();
+    if(pColIndexer == NULL || pColInfo == NULL)
+    {
+        LOG(WARNING) << "barrel " << barrelName << " could not be written without CollectionIndexer or CollectionsInfo";
+        return;
+    }
+
+    try
+    {
+        boost::mutex::scoped_lock lock(mutex_);
+        DVLOG(2) << "=> BarrelInfo::write(), barrel name: " << barrelName << " ...";
+
+        string s = barrelName +".voc";
+        IndexOutput* pVocOutput = pDirectory->createOutput(s.c_str());
+
+        s = barrelName + ".dfp";
+        IndexOutput* pDOutput = pDirectory->createOutput(s.c_str());
+
+        s = barrelName + ".pop";
+        IndexOutput* pPOutput = pDirectory->createOutput(s.c_str());
+
+        OutputDescriptor desc(pVocOutput,pDOutput,pPOutput,true);
+        pColIndexer->write(&desc);
+
+        s = barrelName + ".fdi";
+        IndexOutput* fdiOutput = pDirectory->createOutput(s.c_str());
+        pColInfo->write(fdiOutput);
+        fdiOutput->flush();
+        delete fdiOutput;
+
+        // after written into disk, it would not be in-memory barrel
+        setWriter(NULL);
+        DVLOG(2) << "<= BarrelInfo::write(), barrel name: " << barrelName;
+    }
+    catch (const FileIOException& e)
+    {
+        SF1V5_RETHROW(e);
+    }
+    catch (std::bad_alloc& be)
+    {
+        string serror = be.what();
+        SF1V5_THROW(ERROR_OUTOFMEM,"BarrelInfo::write():alloc memory failed.-" + serror);
     }
 }
 
@@ -259,6 +322,7 @@ void BarrelsInfo::read(Directory* pDirectory, const char* name)
 void BarrelsInfo::write(Directory* pDirectory)
 {
     boost::mutex::scoped_lock lock(mutex_);
+    DVLOG(2) << "=> BarrelsInfo::write(), barrel count: " << barrelInfos.size() << ", max doc: " << maxDoc << " ...";
 
     string str;
     XMLElement* pDatabase = new XMLElement(NULL,"database");
@@ -293,6 +357,7 @@ void BarrelsInfo::write(Directory* pDirectory)
         pBarrelInfo = *iter;
         if(pBarrelInfo->getWriter())
         {
+            DVLOG(2) << "ignore in-memory barrel " << pBarrelInfo->getName() << " in writing file \"barrels\"";
             iter ++;
             continue;
         }
@@ -358,6 +423,7 @@ void BarrelsInfo::write(Directory* pDirectory)
     pIndexOutput->write((const char*)str.c_str(),str.length());
     delete pIndexOutput;
     delete pDatabase;
+    DVLOG(2) << "<= BarrelsInfo::write()";
 }
 
 void BarrelsInfo::remove(Directory* pDirectory)
@@ -410,6 +476,7 @@ void BarrelsInfo::removeBarrel(Directory* pDirectory,const string& barrelname)
             rubbishBarrelInfos.push_back(pBInfo);
             //delete pBInfo;
             barrelInfos.erase(iter);
+            DVLOG(2) << "BarrelsInfo::removeBarrel(), barrel name: " << barrelname;
             break;
         }
         iter++;
@@ -428,6 +495,7 @@ void BarrelsInfo::addBarrel(const char* name,count_t docCount,CompressionType co
     boost::mutex::scoped_lock lock(mutex_);
     BarrelInfo* barrelInfo = new BarrelInfo(name,docCount,compressType);
     barrelInfos.push_back(barrelInfo);
+    DVLOG(2) << "BarrelsInfo::addBarrel(), barrel name: " << name << ", doc count: " << docCount;
 }
 void BarrelsInfo::addBarrel(BarrelInfo* pBarrelInfo,bool bCopy)
 {
@@ -437,6 +505,7 @@ void BarrelsInfo::addBarrel(BarrelInfo* pBarrelInfo,bool bCopy)
         barrelInfo = new BarrelInfo(pBarrelInfo);
     else barrelInfo = pBarrelInfo;
     barrelInfos.push_back(barrelInfo);
+    DVLOG(2) << "BarrelsInfo::addBarrel(), barrel name: " << pBarrelInfo->getName() << ", doc count: " << pBarrelInfo->getDocCount();
 }
 
 int32_t BarrelsInfo::getDocCount()
@@ -482,6 +551,8 @@ void BarrelsInfo::sort(Directory* pDirectory)
 {
     boost::mutex::scoped_lock lock(mutex_);
 
+    DVLOG(2) << "=> BarrelsInfo::sort(), barrel count: " << barrelInfos.size() << ", max doc: " << maxDoc << " ...";
+
     BarrelInfo* pBaInfo;
     BarrelsInfo newBarrelsInfo;
 
@@ -513,6 +584,8 @@ void BarrelsInfo::sort(Directory* pDirectory)
         pBaInfo->rename(pDirectory,str);///update barrel name
         iter++;
     }
+
+    DVLOG(2) << "<= BarrelsInfo::sort(), barrel count: " << barrelInfos.size() << ", max doc: " << maxDoc;
 }
 
 void BarrelsInfo::wait_for_barrels_ready()

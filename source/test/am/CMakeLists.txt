@@ -65,6 +65,7 @@ TARGET_LINK_LIBRARIES(t_izenesort
     ${Boost_THREAD_LIBRARY}
     ${Boost_FILESYSTEM_LIBRARY}
     ${Boost_SYSTEM_LIBRARY}
+    ${Glog_LIBRARIES}
   )
 
 ADD_EXECUTABLE(t_graph_index
@@ -78,4 +79,5 @@ TARGET_LINK_LIBRARIES(t_graph_index
     ${Boost_THREAD_LIBRARY}
     ${Boost_FILESYSTEM_LIBRARY}
     ${Boost_SYSTEM_LIBRARY}
+    ${Glog_LIBRARIES}
   )

@@ -7,6 +7,7 @@
 
 #include <boost/filesystem.hpp>
 #include <boost/filesystem/path.hpp>
+#include <util/izene_log.h>
 
 using namespace std;
 
@@ -266,8 +267,8 @@ fileoffset_t FieldIndexer::write(OutputDescriptor* pWriterDesc)
         merger->run();
 
         gettimeofday (&tvafter , &tz);
-        std::cout<<"\nIt takes "<<((tvafter.tv_sec-tvpre.tv_sec)*1000+(tvafter.tv_usec-tvpre.tv_usec)/1000.)/60000
-		 <<" minutes to sort("<<recordCount_<<")\n";
+        LOG(INFO) << "It takes " << ((tvafter.tv_sec-tvpre.tv_sec)*1000+(tvafter.tv_usec-tvpre.tv_usec)/1000.)/60000
+            << " minutes to sort(" << recordCount_ << ")";
         delete merger;
         recordCount_ = 0;
         run_num_ = 0;
@@ -319,7 +320,7 @@ fileoffset_t FieldIndexer::write(OutputDescriptor* pWriterDesc)
         }
         }catch(std::exception& e)
         {
-        cout<<e.what()<<endl;
+            LOG(WARNING) << e.what();
         }
 
         if (!pPosting->isEmpty())

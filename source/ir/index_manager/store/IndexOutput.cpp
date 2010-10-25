@@ -249,8 +249,14 @@ void IndexOutput::write(IndexInput* pInput,int64_t length)
 
 void IndexOutput::seek(int64_t pos)
 {
+    // avoid to seek operation if already pointing to destination
+    if(getFilePointer() == pos)
+        return;
+
     flush();
     bufferStart_ = pos;
+
+    seekInternal(pos);
 }
 
 void IndexOutput::close()

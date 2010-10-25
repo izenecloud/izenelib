@@ -15,7 +15,6 @@
 
 #include <iostream>
 #include <fstream>
-#include <map>
 #include <string>
 
 
@@ -49,8 +48,6 @@ public:
     void optimizeIndex();
     /// flush index
     void flush();
-    /// sort and merge
-    void sort_and_merge();
     /// set schedule 
     void scheduleOptimizeTask(std::string expression, string uuid);
     /// close
@@ -59,7 +56,7 @@ public:
     void createMemCache();
 
 private:
-    void createBarrelWriter();
+    void createBarrelInfo();
      /// create index merger
     void createMerger();
     /// mergeIndex
@@ -83,13 +80,9 @@ private:
 
     BarrelInfo* pCurBarrelInfo_;
 
-    count_t* pCurDocCount_;
-
     IndexMerger* pIndexMerger_;
 
     IndexMergeManager* pIndexMergeManager_;
-
-    map<collectionid_t,docid_t> baseDocIDMap_;
 
     izenelib::util::CronExpression scheduleExpression_;
 

@@ -3,6 +3,7 @@
 #include <ir/index_manager/store/MMapIndexInput.h>
 #include <ir/index_manager/store/FSIndexOutput.h>
 #include <ir/index_manager/utility/Utilities.h>
+#include <util/izene_log.h>
 
 #include <dirent.h>
 #include <map>
@@ -54,6 +55,7 @@ void FSDirectory::create()
 
 void FSDirectory::deleteFile(const string& filename,bool throwError)
 {
+    DVLOG(3) << "FSDirectory::deleteFile(" << filename << ")";
     string fullpath = directoryName_ + "/" + filename;
     if ( unlink(fullpath.c_str()) == -1 && throwError)
     {
@@ -64,6 +66,7 @@ void FSDirectory::deleteFile(const string& filename,bool throwError)
 }
 void FSDirectory::renameFile(const string& from, const string& to)
 {
+    DVLOG(3) << "FSDirectory::renameFile(" << from << ", " << to << ")";
     string tofullpath = directoryName_ + "/" + to;
     string fromfullpath = directoryName_ + "/" + from;
     if ( fileExists(to.c_str()) )
@@ -88,6 +91,7 @@ void FSDirectory::renameFile(const string& from, const string& to)
 }
 void FSDirectory::deleteFiles(const string& filename,bool throwError)
 {
+    DVLOG(3) << "FSDirectory::deleteFiles(" << filename << ")";
     DIR* dir = opendir(directoryName_.c_str());
     struct dirent* fl = readdir(dir);
     struct stat64 buf;
@@ -129,6 +133,7 @@ void FSDirectory::deleteFiles(const string& filename,bool throwError)
 }
 void FSDirectory::renameFiles(const string& from, const string& to)
 {
+    DVLOG(3) << "FSDirectory::renameFiles(" << from << ", " << to << ")";
     DIR* dir = opendir(directoryName_.c_str());
     struct dirent* fl = readdir(dir);
     struct stat64 buf;
@@ -170,31 +175,36 @@ bool FSDirectory::fileExists(const string& name) const
 }
 IndexInput* FSDirectory::openInput(const string& name)
 {
+    DVLOG(3) << "FSDirectory::openInput(" << name << ")";
     string fullpath = directoryName_ + "/" + name;
     return new FSIndexInput(fullpath.c_str());
 }
 IndexInput* FSDirectory::openInput(const string& name, size_t bufsize)
 {
+    DVLOG(3) << "FSDirectory::openInput(" << name << ", " << bufsize << ")";
     string fullpath = directoryName_ + "/" + name;
     return new FSIndexInput(fullpath.c_str(),bufsize);
 }
 
 IndexInput* FSDirectory::openMMapInput(const string& name)
 {
+    DVLOG(3) << "FSDirectory::openMMapInput(" << name << ")";
     string fullpath = directoryName_ + "/" + name;
     return new MMapIndexInput(fullpath.c_str());
 }
 
 IndexOutput* FSDirectory::createOutput(const string& name, const string& mode)
 {
+    DVLOG(3) << "FSDirectory::createOutput(" << name << ")";
     string fullpath = directoryName_ + "/" + name;
     return new FSIndexOutput(fullpath.c_str(), mode);
 }
 
 IndexOutput* FSDirectory::createOutput(const string& name, size_t buffersize, const string& mode)
 {
+    DVLOG(3) << "FSDirectory::createOutput(" << name << ", " << buffersize << ")";
     string fullpath = directoryName_ + "/" + name;
-    return new FSIndexOutput(fullpath.c_str(), buffersize, mode);
+    return new FSIndexOutput(fullpath.c_str(), mode, buffersize);
 }
 
 void FSDirectory::close()

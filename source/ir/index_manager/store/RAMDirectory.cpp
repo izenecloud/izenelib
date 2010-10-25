@@ -131,9 +131,8 @@ void RAMIndexOutput::flushBuffer(char* b, size_t len)
 
     file->lastModified = Utilities::currentTimeMillis();
 }
-void RAMIndexOutput::seek(int64_t pos)
+void RAMIndexOutput::seekInternal(int64_t pos)
 {
-    IndexOutput::seek(pos);
     pointer = pos;
 }
 
