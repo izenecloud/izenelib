@@ -327,6 +327,10 @@ public:
     BarrelInfo* next();
 
     void wait_for_barrels_ready();
+
+    boost::mutex& getMutex() { return mutex_; }
+
+    void setSearchable();
 private:
     //lock means index is under merging and can not serve the query requests.
     bool lock;

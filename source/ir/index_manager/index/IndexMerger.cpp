@@ -11,6 +11,8 @@
 #include <util/izene_log.h>
 #include <util/ThreadModel.h>
 
+#include <boost/thread.hpp>
+
 #include <sstream>
 #include <memory>
 #include <algorithm>
@@ -95,10 +97,11 @@ void IndexMerger::merge(BarrelsInfo* pBarrels)
 
     pBarrelsInfo_ = pBarrels;
 
+    BarrelInfo* pBaInfo;
+    boost::mutex::scoped_lock lock(pBarrels->getMutex());
     MergeBarrel mb(pBarrels->getBarrelCount());
     ///put all index barrel into mb
     pBarrels->startIterator();
-    BarrelInfo* pBaInfo;
     while (pBarrels->hasNext())
     {
         pBaInfo = pBarrels->next();
@@ -106,6 +109,7 @@ void IndexMerger::merge(BarrelsInfo* pBarrels)
             continue;
         mb.put(new MergeBarrelEntry(pDirectory_,pBaInfo));
     }
+    lock.unlock();
 
     while (mb.size() > 0)
     {
@@ -121,6 +125,7 @@ void IndexMerger::merge(BarrelsInfo* pBarrels)
     updateBarrels(pBarrels); 
     pBarrelsInfo_ = NULL;
 
+    lock.lock();
     pBarrels->startIterator();
     docid_t maxDoc = 0;
     while (pBarrels->hasNext())
@@ -129,6 +134,8 @@ void IndexMerger::merge(BarrelsInfo* pBarrels)
         if(pBaInfo->getMaxDocID() > maxDoc)
             maxDoc = pBaInfo->getMaxDocID();
     }
+    lock.unlock();
+
     if(maxDoc < pBarrels->maxDocId())
         pBarrels->resetMaxDocId(maxDoc);
     pBarrels->write(pDirectory_);
@@ -138,10 +145,10 @@ void IndexMerger::merge(BarrelsInfo* pBarrels)
 void IndexMerger::addToMerge(BarrelsInfo* pBarrelsInfo,BarrelInfo* pBarrelInfo)
 {
     DVLOG(2) << "=> IndexMerger::addToMerge(), barrel name: " << pBarrelInfo->barrelName << " ...";
+
+    triggerMerge_ = false;
     if (!pMergeBarrels_)
-    {
         pMergeBarrels_ = new vector<MergeBarrelEntry*>();
-    }
 
     MergeBarrelEntry* pEntry = NULL;
     pBarrelsInfo_ = pBarrelsInfo;
@@ -150,9 +157,14 @@ void IndexMerger::addToMerge(BarrelsInfo* pBarrelsInfo,BarrelInfo* pBarrelInfo)
 
     addBarrel(pEntry);
  
+    if(!triggerMerge_)
+    {
+        DVLOG(2) << "<= IndexMerger::addToMerge(), no merge triggered";
+        return;
+    }
+
     pBarrelsInfo->setLock(true);
     updateBarrels(pBarrelsInfo);
-    //pBarrelsInfo_ = NULL;
 
     pBarrelsInfo->write(pDirectory_);
     pBarrelsInfo->setLock(false);

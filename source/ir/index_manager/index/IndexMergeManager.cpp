@@ -74,13 +74,7 @@ void IndexMergeManager::mergeIndex()
             {
             IndexMerger* pIndexMerger = indexMergers_[ONLINE];
             pIndexMerger->endMerge();
-            BarrelInfo* pBaInfo;
-            pBarrelsInfo_->startIterator();
-            while (pBarrelsInfo_->hasNext())
-            {
-                pBaInfo = pBarrelsInfo_->next();
-                pBaInfo->setSearchable(true);
-            }
+            pBarrelsInfo_->setSearchable();
             pBarrelsInfo_->setLock(true);
             pIndexMerger->updateBarrels(pBarrelsInfo_);
 
@@ -97,13 +91,7 @@ void IndexMergeManager::mergeIndex()
             pIndexMerger->merge(pBarrelsInfo_);
             pIndexer_->getIndexReader()->delDocFilter();
             pIndexMerger->setDocFilter(NULL);
-            BarrelInfo* pBaInfo;
-            pBarrelsInfo_->startIterator();
-            while (pBarrelsInfo_->hasNext())
-            {
-                pBaInfo = pBarrelsInfo_->next();
-                pBaInfo->setSearchable(true);
-            }
+            pBarrelsInfo_->setSearchable();
             pBarrelsInfo_->setLock(true);
             pIndexMerger->updateBarrels(pBarrelsInfo_);
 

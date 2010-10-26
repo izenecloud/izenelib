@@ -597,3 +597,11 @@ void BarrelsInfo::wait_for_barrels_ready()
     }
 }
 
+void BarrelsInfo::setSearchable()
+{
+    boost::mutex::scoped_lock lock(mutex_);
+    for(vector<BarrelInfo*>::iterator iter=barrelInfos.begin();
+            iter != barrelInfos.end();
+            ++iter)
+        (*iter)->setSearchable(true);
+}

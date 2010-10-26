@@ -205,7 +205,7 @@ void IndexWriter::writeCachedIndex()
         pIndexBarrelWriter_->close();
         pBarrelsInfo_->write(pIndexer_->getDirectory());
     }
-	
+
     pIndexMergeManager_->triggerMerge(pCurBarrelInfo_);
 
     pBarrelsInfo_->setLock(true);
