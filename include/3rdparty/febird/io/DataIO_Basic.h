@@ -207,7 +207,7 @@ struct DataIO_is_realdump
 // if real_dumpable, DataIO_is_dump can be any, because '&' operator can not deduce DataIO_is_dump
 #define DATA_IO_OPT_TRAITS_VERIFY(DataIO, T, Real_Dumpable) \
 	BOOST_STATIC_ASSERT(Real_Dumpable::value \
-					|| !Real_Dumpable::value && !(DataIO_is_dump<DataIO, T>::value))
+					|| (!Real_Dumpable::value && !(DataIO_is_dump<DataIO, T>::value)))
 
 //////////////////////////////////////////////////////////////////////////////////////
 

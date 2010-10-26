@@ -152,7 +152,8 @@ public:
      */
     void deleteDocument(docid_t docId)
     {
-        nNumDocs--;
+        if(nNumDocs > 0)
+            --nNumDocs;
         ///TODO  maxDocId issue
     }
 

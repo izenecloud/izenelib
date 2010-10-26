@@ -437,9 +437,7 @@ private:
         uint32_t mask  = 0;
         mask = ~( basicMask[b] << firstBit );
         uint32_t _val = val << firstBit;
-        frame[ intPos + headerSize_ ] = frame[ intPos + headerSize_ ]
-                                       & mask
-                                       | _val;
+        frame[ intPos + headerSize_ ] = (frame[ intPos + headerSize_ ] & mask) | _val;
 		
         // over bit-width of integer
         if ( 32 < endBit )
@@ -447,9 +445,7 @@ private:
             uint32_t shiftBit = b - ( endBit - 32 );
             mask = ~( basicMask[b] >> shiftBit );
             _val = val >> shiftBit;
-            frame[ intPos + headerSize_ + 1] = frame[ intPos + headerSize_ + 1]
-                                              & mask
-                                              | _val;
+            frame[ intPos + headerSize_ + 1] = (frame[ intPos + headerSize_ + 1] & mask) | _val;
         }
     }
     /**
