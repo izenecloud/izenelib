@@ -451,9 +451,12 @@ void PostingMerger::mergeWith(BlockPostingReader* pPosting,BitVector* pFilter)
                 pPInput->readBytes((uint8_t*)compressedPos_,size);
                 chunk.decodePositions(compressedPos_);
 
+                num_docs_left -= chunk.num_docs();
+
+                ///num_docs_left should record the practical overall doc ids
+                ///after post_process, the deleted doc ids will be removed from the decoding buffer
                 if(pFilter) chunk.post_process(pFilter);
 
-                num_docs_left -= chunk.num_docs();
                 int copySize = std::min(chunk.num_docs(), CHUNK_SIZE - doc_ids_offset_);
                 memcpy(doc_ids_ + doc_ids_offset_, chunk.doc_ids(), copySize*sizeof(uint32_t));
                 memcpy(frequencies_+ doc_ids_offset_, chunk.frequencies(), copySize*sizeof(uint32_t));
@@ -548,6 +551,8 @@ void PostingMerger::mergeWith(ChunkPostingReader* pPosting,BitVector* pFilter)
 
         num_docs_left -= chunk.num_docs();
 
+        ///num_docs_left should record the practical overall doc ids
+        ///after post_process, the deleted doc ids will be removed from the decoding buffer
         if(pFilter) chunk.post_process(pFilter);
 
         int copySize = std::min(chunk.num_docs(), CHUNK_SIZE - doc_ids_offset_);
