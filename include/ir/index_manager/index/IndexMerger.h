@@ -143,13 +143,6 @@ public:
         pDocFilter_ = pFilter;
     }
 
-    /**
-     * transfer in-memory barrel to disk
-     * @param pszBarrelName barrel name
-     */
-    void flushBarrelToDisk(const std::string& barrelName);
-
-
     void setOptimize(bool optimize)
     {
         optimize_ = optimize;

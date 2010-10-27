@@ -444,23 +444,3 @@ void IndexMerger::removeMergedBarrels(MergeBarrel * pBarrel)
     }
 }
 
-void IndexMerger::flushBarrelToDisk(const std::string& barrelName)
-{
-    if (!pMergeBarrels_)
-        return;
-
-    vector<MergeBarrelEntry*>::iterator iter = pMergeBarrels_->begin();
-    MergeBarrelEntry* pEntry = NULL;
-
-    while (iter != pMergeBarrels_->end())
-    {
-        if(!barrelName.compare((*iter)->pBarrelInfo_->getName()))
-        {
-            pEntry = (*iter);
-            pEntry->load();
-            break;
-        }
-        iter++;
-    }
-}
-

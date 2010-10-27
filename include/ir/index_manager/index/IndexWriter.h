@@ -57,14 +57,10 @@ public:
 
 private:
     void createBarrelInfo();
-     /// create index merger
-    void createMerger();
     /// mergeIndex
     void mergeIndex(IndexMerger * pMerger);
     ///will be used by mergeIndex
     void mergeAndWriteCachedIndex();
-    ///will be used when index documents
-    void addToMergeAndWriteCachedIndex();
     /// flush in-memory index to disk
     void writeCachedIndex();	
     /// optimize index offline
