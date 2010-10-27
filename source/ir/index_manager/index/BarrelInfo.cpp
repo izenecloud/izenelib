@@ -510,6 +510,7 @@ void BarrelsInfo::addBarrel(BarrelInfo* pBarrelInfo,bool bCopy)
 
 int32_t BarrelsInfo::getDocCount()
 {
+    boost::mutex::scoped_lock lock(mutex_);
     int32_t count = 0;
     vector<BarrelInfo*>::iterator iter = barrelInfos.begin();
     while (iter != barrelInfos.end())
@@ -518,33 +519,6 @@ int32_t BarrelsInfo::getDocCount()
         iter++;
     }
     return count;
-}
-
-BarrelInfo* BarrelsInfo::getBarrelInfo(const char* barrel)
-{
-    vector<BarrelInfo*>::iterator iter = barrelInfos.begin();
-    while (iter != barrelInfos.end())
-    {
-        if (!strcasecmp((*iter)->getName().c_str(),barrel))
-            return (*iter);
-        iter++;
-    }
-    return NULL;
-}
-BarrelInfo* BarrelsInfo::getLastBarrel()
-{
-    if (barrelInfos.size() <= 0)
-        return NULL;
-    return barrelInfos[barrelInfos.size() - 1];
-}
-void BarrelsInfo::deleteLastBarrel()
-{
-    boost::mutex::scoped_lock lock(mutex_);
-
-    if (barrelInfos.size() <= 0)
-        return ;
-    delete barrelInfos[barrelInfos.size() - 1];
-    barrelInfos.pop_back();
 }
 
 void BarrelsInfo::sort(Directory* pDirectory)

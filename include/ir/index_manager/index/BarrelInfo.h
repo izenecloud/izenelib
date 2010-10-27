@@ -302,12 +302,6 @@ public:
 
     void setVersion(const char* ver);
 
-    BarrelInfo* getBarrelInfo(const char* barrel);
-
-    BarrelInfo* getLastBarrel();
-
-    void deleteLastBarrel();
-
     void sort(Directory* pDirectory);
 
     void clear();
