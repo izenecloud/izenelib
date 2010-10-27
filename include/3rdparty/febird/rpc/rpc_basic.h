@@ -134,7 +134,7 @@ public:
 	void set_flags(unsigned flags)
 	{
 		assert((flags & ~3u) == 0);
-		m_flag_ptr = m_flag_ptr & ~(uintptr_t)3u | flags & 3u;
+		m_flag_ptr = (m_flag_ptr & ~(uintptr_t)3u) | (flags & 3u);
 	}
 	uintptr_t test_flags(uintptr_t flags) const
 	{
@@ -147,7 +147,7 @@ public:
 	}
 	void  set_ext_ptr(void* p)
 	{
-		m_flag_ptr = (uintptr_t)p | m_flag_ptr & 3u;
+		m_flag_ptr = (uintptr_t)p | (m_flag_ptr & 3u);
 	}
 
 	virtual const char* getClassName() const = 0;

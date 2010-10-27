@@ -2,6 +2,7 @@
 #include <ir/index_manager/index/TermReader.h>
 #include <ir/index_manager/index/Indexer.h>
 #include <ir/index_manager/index/MultiIndexBarrelReader.h>
+#include <util/izene_log.h>
 
 #include <util/ThreadModel.h>
 
@@ -83,23 +84,21 @@ void IndexReader::createBarrelReader()
 
     if (pBarrelReader_)
         return;
-    //    delete pBarrelReader_;
+
     int32_t bc = pBarrelsInfo_->getBarrelCount();
-    BarrelInfo* pLastBarrel = pBarrelsInfo_->getLastBarrel();
-    if ( (bc > 0) && pLastBarrel)
-    {
-        if (pLastBarrel->getDocCount() <= 0)///skip empty barrel
-            bc--;
-        if(bc > 0)
-            pLastBarrel = (*pBarrelsInfo_)[bc - 1];
-    }
+    DVLOG(2) << "=> IndexReader::createBarrelReader(), " << bc << " barrels...";
 
     if (bc == 1)
     {
-        if (pLastBarrel && pLastBarrel->getWriter())
-            pBarrelReader_ = pLastBarrel->getWriter()->inMemoryReader();
-        else
-            pBarrelReader_ = new SingleIndexBarrelReader(this,pLastBarrel);
+        BarrelInfo* pLastBarrel = (*pBarrelsInfo_)[0];
+
+        if(pLastBarrel && pLastBarrel->getDocCount() > 0) ///skip empty barrel
+        {
+            if (pLastBarrel->getWriter() && pLastBarrel->isSearchable())
+                pBarrelReader_ = pLastBarrel->getWriter()->inMemoryReader();
+            else
+                pBarrelReader_ = new SingleIndexBarrelReader(this,pLastBarrel);
+        }
     }
     else if (bc > 1)
     {
@@ -113,6 +112,7 @@ void IndexReader::createBarrelReader()
 
     //pIndexer_->setDirty(false);///clear dirty_ flag
 
+    DVLOG(2) << "<= IndexReader::createBarrelReader()";
 }
 
 TermReader* IndexReader::getTermReader(collectionid_t colID)
@@ -162,8 +162,10 @@ BarrelInfo* IndexReader::findDocumentInBarrels(collectionid_t colID, docid_t doc
     for (int i = pBarrelsInfo_->getBarrelCount() - 1; i >= 0; i--)
     {
         BarrelInfo* pBarrelInfo = (*pBarrelsInfo_)[i];
-        if ((pBarrelInfo->baseDocIDMap.find(colID) != pBarrelInfo->baseDocIDMap.end())&&
-                (pBarrelInfo->baseDocIDMap[colID] <= docID))
+        if (pBarrelInfo->baseDocIDMap.find(colID) != pBarrelInfo->baseDocIDMap.end()
+                && pBarrelInfo->baseDocIDMap[colID] <= docID
+                && pBarrelInfo->getMaxDocID() >= docID
+                && pBarrelInfo->getDocCount() > 0)
             return pBarrelInfo;
     }
     return NULL;

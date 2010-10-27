@@ -35,8 +35,8 @@ static double ratio = 0.4;
 enum {LRU=0,LFU, SLRU};
 static string inputFile = "test.txt";
 static string outputFile;
-static char* indexFile = "index_1m.dat";
-static char* indexDbFile = "index_3db.dat";
+static const char* indexFile = "index_1m.dat";
+static const char* indexDbFile = "index_3db.dat";
 static int dumpOption = 0;
 
 //Use YString-YString pair for testing. 

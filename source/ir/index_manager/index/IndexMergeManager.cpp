@@ -31,7 +31,6 @@ IndexMergeManager::~IndexMergeManager()
 void IndexMergeManager::run()
 {
     mergethread_.reset(new boost::thread(boost::bind(&IndexMergeManager::mergeIndex, this)));
-    mergethread_->detach();
 }
 
 void IndexMergeManager::stop()
@@ -40,7 +39,9 @@ void IndexMergeManager::stop()
     MergeOP op;
     op.opType = NOOP;
     tasks_.push(op);
+    DVLOG(2) << "IndexMergeManager::stop() => mergethread_->join()...";
     mergethread_->join();
+    DVLOG(2) << "IndexMergeManager::stop() <= mergethread_->join()";
     for(std::map<MergeOPType, IndexMerger*>::iterator iter = indexMergers_.begin();
               iter != indexMergers_.end(); ++iter)
         delete iter->second;
@@ -60,6 +61,7 @@ void IndexMergeManager::mergeIndex()
     {
         MergeOP op;
         tasks_.pop(op);
+        DVLOG(2) << "IndexMergeManager::mergeIndex(), opType: " << op.opType;
         switch(op.opType)
         {
         case ONLINE:

@@ -463,26 +463,28 @@ bool CBitArray::SetAt(uint8_t *&src, int &nSrcLen, int nBit)
 		  if(GetBit(src+nByte, nBit&7))
 		    return false;
 		  SetBit(src+nByte, nBit&7);
-		  if(src[nByte] == 0xff)
-		    if(nRunLength != COMPRESS_COUNT && byType == 0xff)
-            {// increment previous runlength only
-              memmove(src+nByte, src+nByte+1, nSrcLen-nByte-1);
-              src[--nSrcLen] = 0;
-              *(COMPRESS_TYPE*)(src+nByte-COMPRESS_SIZE) = nRunLength+1;
-            }
-		    else if(nByte+2 < nSrcLen && src[nByte+1] == 0xff && *(COMPRESS_TYPE*)(src+nByte+2) != COMPRESS_COUNT)
-            {// increment next runlength only
-              memmove(src+nByte, src+nByte+1, nSrcLen-nByte-1);
-              src[--nSrcLen] = 0;
-              *(COMPRESS_TYPE*)(src+nByte+2) += 1;
-            }
-		    else
-            {
-              src = (uint8_t*)ReAllocPtr(src, nSrcLen+COMPRESS_SIZE);
-              memmove(src+nByte+1+COMPRESS_SIZE, src+nByte+1, nSrcLen-nByte-1);
-              *(COMPRESS_TYPE*)(src+nByte+1) = 1;
-              nSrcLen += COMPRESS_SIZE;
-            }
+                  if(src[nByte] == 0xff)
+                  {
+                      if(nRunLength != COMPRESS_COUNT && byType == 0xff)
+                      {// increment previous runlength only
+                          memmove(src+nByte, src+nByte+1, nSrcLen-nByte-1);
+                          src[--nSrcLen] = 0;
+                          *(COMPRESS_TYPE*)(src+nByte-COMPRESS_SIZE) = nRunLength+1;
+                      }
+                      else if(nByte+2 < nSrcLen && src[nByte+1] == 0xff && *(COMPRESS_TYPE*)(src+nByte+2) != COMPRESS_COUNT)
+                      {// increment next runlength only
+                          memmove(src+nByte, src+nByte+1, nSrcLen-nByte-1);
+                          src[--nSrcLen] = 0;
+                          *(COMPRESS_TYPE*)(src+nByte+2) += 1;
+                      }
+                      else
+                      {
+                          src = (uint8_t*)ReAllocPtr(src, nSrcLen+COMPRESS_SIZE);
+                          memmove(src+nByte+1+COMPRESS_SIZE, src+nByte+1, nSrcLen-nByte-1);
+                          *(COMPRESS_TYPE*)(src+nByte+1) = 1;
+                          nSrcLen += COMPRESS_SIZE;
+                      }
+                  }
 		  return true;
 		}
         nByte++;

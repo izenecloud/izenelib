@@ -72,7 +72,14 @@ public:
 
   static bool equal_ignore_case(CHAR_T c1, CHAR_T c2)
   {
-    return c1==c2 || ((c1>='A'&&c1<='Z'||c1>='a'&&c1<='z')&&(c2>='A'&&c2<='Z'||c2>='a'&&c2<='z'))&&(c1-c2=='A'-'a' || c1 - c2=='a'-'A');
+    // normalize to lowercase first
+    if(c1 >= 'A' && c1 <= 'Z')
+        c1 += 'a' - 'A';
+
+    if(c2 >= 'A' && c2 <= 'Z')
+        c2 += 'a' - 'A';
+
+    return c1 == c2;
   }
 
   static bool is_space(CHAR_T c)
@@ -169,8 +176,8 @@ public:
     while ( j < s.length()-1 )
     {
       if (k == (uint64_t)-1 
-          || caseChk==SM_SENSITIVE && s[j]== s[k]
-         || caseChk==SM_IGNORE && IS_ALPHABET::equal_ignore_case(s[j], s[k]) )
+          || (caseChk==SM_SENSITIVE && s[j]== s[k])
+         || (caseChk==SM_IGNORE && IS_ALPHABET::equal_ignore_case(s[j], s[k])) )
       {
         if (k != (uint64_t)-1 )
           IASSERT(k<s.length());
@@ -178,8 +185,8 @@ public:
         ++j; ++k;
         
         IASSERT(k<s.length());
-        if (caseChk==SM_SENSITIVE && s[j]!= s[k]
-            ||caseChk==SM_IGNORE && !IS_ALPHABET::equal_ignore_case(s[j], s[k]) )
+        if ((caseChk==SM_SENSITIVE && s[j]!= s[k])
+            || (caseChk==SM_IGNORE && !IS_ALPHABET::equal_ignore_case(s[j], s[k])) )
           next[j] = k;
         else
         {
@@ -215,8 +222,8 @@ public:
 
     while(i < text.length() && j < pattern.length())
     {
-      if(caseChk==SM_SENSITIVE && text[i]== pattern[j]
-         || caseChk==SM_IGNORE && IS_ALPHABET::equal_ignore_case(text[i], pattern[j]) )
+      if((caseChk==SM_SENSITIVE && text[i]== pattern[j])
+         || (caseChk==SM_IGNORE && IS_ALPHABET::equal_ignore_case(text[i], pattern[j])) )
       {
         ++i;// 继续比较后继字符
         ++j;

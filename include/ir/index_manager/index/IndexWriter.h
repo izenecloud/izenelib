@@ -15,7 +15,6 @@
 
 #include <iostream>
 #include <fstream>
-#include <map>
 #include <string>
 
 
@@ -54,7 +53,7 @@ public:
     /// close
     void close();
 private:
-    void createBarrelWriter();
+    void createBarrelInfo();
      /// create index merger
     void createMerger();
     /// mergeIndex
@@ -78,13 +77,9 @@ private:
 
     BarrelInfo* pCurBarrelInfo_;
 
-    count_t* pCurDocCount_;
-
     IndexMerger* pIndexMerger_;
 
     IndexMergeManager* pIndexMergeManager_;
-
-    map<collectionid_t,docid_t> baseDocIDMap_;
 
     izenelib::util::CronExpression scheduleExpression_;
 };
