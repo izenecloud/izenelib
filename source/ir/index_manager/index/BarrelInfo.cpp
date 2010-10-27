@@ -141,8 +141,7 @@ void BarrelInfo::setDirty()
 //////////////////////////////////////////////////////////////////////////
 //
 BarrelsInfo::BarrelsInfo()
-        :lock(false) 
-        ,version(SF1_VERSION)
+        :version(SF1_VERSION)
         ,nBarrelCounter(0)
         ,maxDoc(0)
 {
@@ -560,15 +559,6 @@ void BarrelsInfo::sort(Directory* pDirectory)
     }
 
     DVLOG(2) << "<= BarrelsInfo::sort(), barrel count: " << barrelInfos.size() << ", max doc: " << maxDoc;
-}
-
-void BarrelsInfo::wait_for_barrels_ready()
-{
-    boost::unique_lock<boost::mutex> waitlock(mutex_);
-    while(lock)
-    {
-        modifyBarrelsEvent_.wait(waitlock);
-    }
 }
 
 void BarrelsInfo::setSearchable()

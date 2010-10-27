@@ -121,7 +121,6 @@ void IndexMerger::merge(BarrelsInfo* pBarrels)
     if(!triggerMerge_)
         return;
 
-    pBarrels->setLock(true);
     updateBarrels(pBarrels); 
     pBarrelsInfo_ = NULL;
 
@@ -139,7 +138,6 @@ void IndexMerger::merge(BarrelsInfo* pBarrels)
     if(maxDoc < pBarrels->maxDocId())
         pBarrels->resetMaxDocId(maxDoc);
     pBarrels->write(pDirectory_);
-    pBarrels->setLock(false);
 }
 
 void IndexMerger::addToMerge(BarrelsInfo* pBarrelsInfo,BarrelInfo* pBarrelInfo)
@@ -163,11 +161,9 @@ void IndexMerger::addToMerge(BarrelsInfo* pBarrelsInfo,BarrelInfo* pBarrelInfo)
         return;
     }
 
-    pBarrelsInfo->setLock(true);
     updateBarrels(pBarrelsInfo);
 
     pBarrelsInfo->write(pDirectory_);
-    pBarrelsInfo->setLock(false);
     DVLOG(2) << "<= IndexMerger::addToMerge()";
 }
 
@@ -368,10 +364,6 @@ void IndexMerger::mergeBarrel(MergeBarrel* pBarrel)
 
     {
     //delete all merged barrels
-    pBarrelsInfo_->wait_for_barrels_ready();
-    pBarrelsInfo_->setLock(true);
-
-    //boost::mutex::scoped_lock lock(pIndexer_->mutex_);
     izenelib::util::ScopedWriteLock<izenelib::util::ReadWriteLock> lock(pIndexer_->mutex_);
     for (nEntry = 0;nEntry < nEntryCount;nEntry++)
     {
@@ -402,7 +394,6 @@ void IndexMerger::mergeBarrel(MergeBarrel* pBarrel)
     pNewBarrelInfo->setSearchable(true);
     pBarrelsInfo_->addBarrel(pNewBarrelInfo,false);
 
-    pBarrelsInfo_->setLock(false);
     ///sleep is necessary because if a query get termreader before this lock,
     ///the query has not been finished even the index file/term dictionary info has been changed
     ///500ms is used to let these queries finish their flow.

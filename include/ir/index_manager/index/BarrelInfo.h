@@ -291,15 +291,6 @@ public:
 
     const char* getVersion() { return version.c_str();  }
 
-    void setLock(bool lock_)
-    {
-        lock = lock_; 
-        if(!lock)
-            modifyBarrelsEvent_.notify_all();
-    }
-
-    bool getLock() {return lock; }
-
     void setVersion(const char* ver);
 
     void sort(Directory* pDirectory);
@@ -320,15 +311,10 @@ public:
 
     BarrelInfo* next();
 
-    void wait_for_barrels_ready();
-
     boost::mutex& getMutex() { return mutex_; }
 
     void setSearchable();
 private:
-    //lock means index is under merging and can not serve the query requests.
-    bool lock;
-
     string version;
 
     int32_t nBarrelCounter; ///barrel counter
@@ -340,8 +326,6 @@ private:
     vector<BarrelInfo*> rubbishBarrelInfos;
 
     docid_t maxDoc;
-
-    boost::condition_variable modifyBarrelsEvent_;
 
     boost::mutex mutex_;
 };

@@ -75,11 +75,8 @@ void IndexMergeManager::mergeIndex()
             IndexMerger* pIndexMerger = indexMergers_[ONLINE];
             pIndexMerger->endMerge();
             pBarrelsInfo_->setSearchable();
-            pBarrelsInfo_->setLock(true);
             pIndexMerger->updateBarrels(pBarrelsInfo_);
-
             pBarrelsInfo_->write(pIndexer_->getDirectory());
-            pBarrelsInfo_->setLock(false);
             }
             break;
         case OFFLINE:
@@ -92,11 +89,9 @@ void IndexMergeManager::mergeIndex()
             pIndexer_->getIndexReader()->delDocFilter();
             pIndexMerger->setDocFilter(NULL);
             pBarrelsInfo_->setSearchable();
-            pBarrelsInfo_->setLock(true);
             pIndexMerger->updateBarrels(pBarrelsInfo_);
 
             pBarrelsInfo_->write(pIndexer_->getDirectory());
-            pBarrelsInfo_->setLock(false);
             }
             break;
         case NOOP:

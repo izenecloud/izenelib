@@ -164,16 +164,14 @@ void IndexWriter::writeCachedIndex()
 {
     if(pIndexBarrelWriter_->cacheEmpty() == false)
     {
-        ///memory index has not been written to database yet.
+        pIndexBarrelWriter_->close();
+
         if(pIndexer_->getIndexerType()&MANAGER_INDEXING_STANDALONE_MERGER)
         {
-            pBarrelsInfo_->wait_for_barrels_ready();
-            pIndexBarrelWriter_->close();
             pIndexMergeManager_->triggerMerge(pCurBarrelInfo_);
         }
         else
         {
-            pIndexBarrelWriter_->close();
             if (pIndexMerger_)
                 pIndexMerger_->addToMerge(pBarrelsInfo_,pCurBarrelInfo_);
         }
