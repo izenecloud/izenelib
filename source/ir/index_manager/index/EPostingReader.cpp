@@ -201,11 +201,15 @@ docid_t BlockPostingReader::decodeTo(docid_t target, uint32_t* pPosting, int32_t
                 chunk.set_doc_freq_buffer(pPosting,pPosting+(length>>1));
                 chunk.decodeDocIds();
                 chunk.decodeFrequencies(computePos);
-                if(pDocFilter_) chunk.post_process(pDocFilter_);
-                decodedCount = chunk.num_docs();
+
                 decoded_num_docs_in_this_block += chunk.num_docs();
                 num_docs_left_ -= chunk.num_docs();
                 num_docs_decoded_ += decoded_num_docs_in_this_block;
+
+                ///num_docs_decoded_ should record the practical overall doc ids
+                ///after post_process, the deleted doc ids will be removed from the decoding buffer
+                if(pDocFilter_) chunk.post_process(pDocFilter_);
+                decodedCount = chunk.num_docs();
             }
             skipPosCount_ = 0;
             prev_block_id_ = curr_block_id_;
@@ -259,11 +263,14 @@ int32_t BlockPostingReader::decodeNext(uint32_t* pPosting,int32_t length)
                 chunk.set_doc_freq_buffer(pDoc,pFreq);
                 chunk.decodeDocIds();
                 chunk.decodeFrequencies(false);
-                if(pDocFilter_) chunk.post_process(pDocFilter_);
 
-                // Can update the number of documents left to process after processing the complete chunk.
                 num_docs_left_ -= chunk.num_docs();
                 left -= chunk.num_docs();
+                num_docs_decoded_ += chunk.num_docs();
+                ///num_docs_decoded_ should record the practical overall doc ids
+                ///after post_process, the deleted doc ids will be removed from the decoding buffer
+                if(pDocFilter_) chunk.post_process(pDocFilter_);
+
                 decodedDoc += chunk.num_docs();
                 pDoc += chunk.num_docs();
                 pFreq += chunk.num_docs();
@@ -277,7 +284,6 @@ int32_t BlockPostingReader::decodeNext(uint32_t* pPosting,int32_t length)
         }        
     }
 
-    num_docs_decoded_ += decodedDoc;
     prev_block_id_ = blockDecoder_.curr_block_num_;
     prev_chunk_ = blockDecoder_.curr_chunk();
     return decodedDoc;
@@ -326,10 +332,14 @@ int32_t BlockPostingReader::decodeNext(uint32_t* pPosting,int32_t length, uint32
                 ensure_pos_buffer(size>>2);
                 pPPostingInput->readBytes((uint8_t*)compressedPos_,size);
                 chunk.decodePositions(compressedPos_);
-                if(pDocFilter_) chunk.post_process(pDocFilter_);
 
                 num_docs_left_ -= chunk.num_docs();
                 left -= chunk.num_docs();
+                num_docs_decoded_ += chunk.num_docs();
+                ///num_docs_decoded_ should record the practical overall doc ids
+                ///after post_process, the deleted doc ids will be removed from the decoding buffer
+                if(pDocFilter_) chunk.post_process(pDocFilter_);
+
                 decodedDoc += chunk.num_docs();
                 if(chunk.has_deleted_doc()) size_of_positions = chunk.size_of_positions();
                 decompressed_pos += size_of_positions;
@@ -347,7 +357,6 @@ int32_t BlockPostingReader::decodeNext(uint32_t* pPosting,int32_t length, uint32
         }        
     }
 
-    num_docs_decoded_ += decodedDoc;
     posLength = decompressed_pos;
 
     prev_block_id_ = blockDecoder_.curr_block_num_;
@@ -515,10 +524,13 @@ docid_t ChunkPostingReader::decodeTo(docid_t target, uint32_t* pPosting, int32_t
         chunkDecoder_.set_doc_freq_buffer(pPosting,pPosting+(length>>1));
         chunkDecoder_.decodeDocIds();
         chunkDecoder_.decodeFrequencies(computePos);
-        if(pDocFilter_) chunkDecoder_.post_process(pDocFilter_);
-        decodedCount = chunkDecoder_.num_docs();
+
         num_docs_decoded_ += chunkDecoder_.num_docs();
         num_docs_left_ -= chunkDecoder_.num_docs();
+        ///num_docs_decoded_ should record the practical overall doc ids
+        ///after post_process, the deleted doc ids will be removed from the decoding buffer
+        if(pDocFilter_) chunkDecoder_.post_process(pDocFilter_);
+        decodedCount = chunkDecoder_.num_docs();
     }
 
     return chunkDecoder_.move_to(target,nCurrentPosting,computePos);
@@ -554,15 +566,19 @@ int32_t ChunkPostingReader::decodeNext(uint32_t* pPosting,int32_t length)
         chunkDecoder_.set_doc_freq_buffer(pDoc,pFreq);
         chunkDecoder_.decodeDocIds();
         chunkDecoder_.decodeFrequencies(false);
-        if(pDocFilter_) chunkDecoder_.post_process(pDocFilter_);
-        left -= chunkDecoder_.num_docs();
+
+        num_docs_decoded_ += chunkDecoder_.num_docs();
         num_docs_left_ -= chunkDecoder_.num_docs();
+        left -= chunkDecoder_.num_docs();
+        ///num_docs_decoded_ should record the practical overall doc ids
+        ///after post_process, the deleted doc ids will be removed from the decoding buffer
+        if(pDocFilter_) chunkDecoder_.post_process(pDocFilter_);
+
         decodedDoc += chunkDecoder_.num_docs();
         pDoc += chunkDecoder_.num_docs();
         pFreq += chunkDecoder_.num_docs();
     }
 
-    num_docs_decoded_ += decodedDoc;
 
     return decodedDoc;
 }
@@ -608,10 +624,14 @@ int32_t ChunkPostingReader::decodeNext(uint32_t* pPosting,int32_t length, uint32
         ensure_pos_buffer(size>>2);
         pPPostingInput->readBytes((uint8_t*)compressedPos_,size);
         chunkDecoder_.decodePositions(compressedPos_);
-        if(pDocFilter_) chunkDecoder_.post_process(pDocFilter_);
 
         num_docs_left_ -= chunkDecoder_.num_docs();
+        num_docs_decoded_ += chunkDecoder_.num_docs();
         left -= chunkDecoder_.num_docs();
+        ///num_docs_decoded_ should record the practical overall doc ids
+        ///after post_process, the deleted doc ids will be removed from the decoding buffer
+        if(pDocFilter_) chunkDecoder_.post_process(pDocFilter_);
+
         decodedDoc += chunkDecoder_.num_docs();
         if(chunkDecoder_.has_deleted_doc()) size_of_positions = chunkDecoder_.size_of_positions();
         decompressed_pos += size_of_positions;
