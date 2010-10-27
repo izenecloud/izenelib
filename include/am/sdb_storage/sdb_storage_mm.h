@@ -24,11 +24,13 @@
 
 #include <am/sdb_btree/sdb_btree.h>
 #include <am/sdb_hash/sdb_fixedhash.h>
+#include <util/ThreadModel.h>
 #include <cache/IzeneCache.h>
-
+#include <3rdparty/compression/minilzo/minilzo.h>
 #include <boost/iostreams/device/mapped_file.hpp>
-#include <boost/filesystem/operations.hpp>  
+#include <boost/filesystem/operations.hpp>
 #include <boost/filesystem.hpp>
+#include <boost/shared_array.hpp>
 
 NS_IZENELIB_AM_BEGIN
 
@@ -44,9 +46,14 @@ public:
 	m_file_(path, ios_base::in | ios_base::out, mapSize, offSet) {
 	}
 
+	~memory_map(){
+		m_file_.close();
+	}
+
 	size_t read (long offSet, void * buf, size_t num_bytes) {
-		if(offSet + num_bytes> mapSize_)
-		return size_t(-1);
+		if(offSet + num_bytes> mapSize_){			
+		  return size_t(-1);
+		}
 		memcpy(buf, m_file_.data()+offSet, num_bytes);
 		return num_bytes;
 	}
@@ -57,6 +64,7 @@ public:
 			offSet_ += num_bytes;
 			return num_bytes;
 		}
+		assert(offSet_+num_bytes <= mapSize_  );
 		return size_t(-1);
 	}
 
@@ -84,9 +92,10 @@ struct mm_header {
 	size_t mapSize;
 	long offset;
 	size_t tsz;
+	size_t maxdatasize;
 
 	mm_header() :
-		idx(0), offset(sizeof(mm_header)), tsz(sizeof(mm_header)) {
+	idx(0), offset(sizeof(mm_header)), tsz(sizeof(mm_header)), maxdatasize(0) {
 		mapSize =128*1024*1024;
 	}
 	void read(void* fileBuffer) {
@@ -102,7 +111,7 @@ struct mm_header {
 		cout<<"mapSize: "<<mapSize<<endl;
 		cout<<"offset: "<<offset<<endl;
 		cout<<"tsz: "<<tsz<<endl;
-
+		cout<<"maxdatasize: "<<maxdatasize<<endl;
 	}
 };
 
@@ -116,11 +125,13 @@ struct mm_header {
  *   
  * 
  */
+static lzo_align_t __LZO_MMODEL
+wrkmem [((LZO1X_1_MEM_COMPRESS<<4)+(sizeof(lzo_align_t)-1))/sizeof(lzo_align_t)];
 
 template< typename KeyType, typename ValueType, typename LockType =NullLock,
-		typename AmType=sdb_hash<KeyType, unsigned int, LockType>,
-		bool UseCompress = true > class sdb_storage_mm :
-	public AccessMethod<KeyType, ValueType, LockType> {
+typename AmType=sdb_hash<KeyType, long, LockType>,
+bool UseCompress = true > class sdb_storage_mm :
+public AccessMethod<KeyType, ValueType, LockType> {
 public:
 	typedef AmType KeyHash;
 	typedef typename AmType::SDBCursor SDBCursor;
@@ -129,8 +140,8 @@ public:
 	 *   constructor
 	 */
 	sdb_storage_mm(const string& fileName = "sdb_storage") :
-		ssh_(), fileName_(fileName+"_value.dat"),
-				keyHash_(fileName+ "_key.dat") {
+	ssh_(), fileName_(fileName+"_value.dat"),
+	keyHash_(fileName+ "_key.dat") {
 		//dataFile_ = 0;
 		isOpen_ = false;
 	}
@@ -187,7 +198,7 @@ public:
 	bool insert(const KeyType& key, const ValueType& val) {
 		SDBCursor locn;
 		if (keyHash_.search(key, locn))
-			return false;
+		return false;
 		else {
 			keyHash_.insert(key, ssh_.tsz);
 			return appendValue_(key, val);
@@ -201,13 +212,13 @@ public:
 	 *  Note that, there will be memory leak if not delete the value 
 	 */
 	ValueType* find(const KeyType & key) {
-		unsigned int npos;
+		long npos;
 		if ( !keyHash_.get(key, npos) )
-			return NULL;
+		return NULL;
 		else {
 			ValueType *pv = new ValueType;
 			if (readValue_(npos, *pv) )
-				return pv;
+			return pv;
 			else {
 				delete pv;
 				pv = 0;
@@ -218,9 +229,10 @@ public:
 	}
 
 	bool get(const KeyType& key, ValueType& val) {
-		unsigned int npos;
+		long npos;
+		
 		if ( !keyHash_.get(key, npos) )
-			return false;
+		return false;
 		else {
 			return readValue_(npos, val);
 		}
@@ -245,9 +257,9 @@ public:
 	 *  update  an item by key/value pair
 	 */
 	bool update(const KeyType& key, const ValueType& val) {
-		unsigned int npos;
+		long npos;
 		if ( !keyHash_.get(key, npos) )
-			return insert(key, val);
+		return insert(key, val);
 		else {
 			keyHash_.update(key, ssh_.tsz);
 			appendValue_(key, val);
@@ -284,7 +296,7 @@ public:
 	}
 
 	bool get(const SDBCursor& locn, KeyType& key, ValueType& value) {
-		unsigned int npos;
+		long npos;
 		bool ret =keyHash_.get(locn, key, npos);
 		if (ret) {
 			readValue_(npos, value);
@@ -311,17 +323,17 @@ public:
 	}
 
 	bool seq(SDBCursor& locn, KeyType& key, ESeqDirection sdir=ESD_FORWARD) {
-		unsigned int npos;
+		long npos;
 		return keyHash_.seq(locn, key, npos, sdir);
 	}
 
 	bool seq(SDBCursor& locn, KeyType& key, ValueType& value,
 			ESeqDirection sdir=ESD_FORWARD) {
-		unsigned int npos;
+		long npos;
 		if (keyHash_.seq(locn, key, npos, sdir) )
-			return readValue_(npos, value);
+		return readValue_(npos, value);
 		else
-			return false;
+		return false;
 	}
 
 	bool seq(SDBCursor& locn, DataType<KeyType,ValueType> & rec,
@@ -350,7 +362,7 @@ public:
 	 */
 	bool open() {
 		if (isOpen_)
-			return true;
+		return true;
 
 		keyHash_.open();
 		if (boost::filesystem::exists(fileName_) ) {
@@ -358,7 +370,7 @@ public:
 			mms_.reset(new memory_map(fileName_, 0, ssh_.mapSize));
 			ssh_.read(mms_->header() );
 			if (ssh_.idx > 0)
-				mms_.reset(new memory_map(fileName_, 0, ssh_.mapSize*(ssh_.idx+1) ));
+			mms_.reset(new memory_map(fileName_, 0, ssh_.mapSize*(ssh_.idx+1) ));
 			mms_->setOffset(ssh_.offset);
 		} else {
 			DLOG(INFO)<<"creat new "<<fileName_<<" ...\n"<<endl;
@@ -373,6 +385,11 @@ public:
 #ifdef DEBUG 
 		ssh_.display();
 #endif
+
+		if( ssh_.maxdatasize > 0){
+		workmem1_.reset(new unsigned char[ssh_.maxdatasize*2] );
+		workmem2_.reset(new unsigned char[ssh_.maxdatasize] );
+		}
 		isOpen_ = true;
 		return true;
 	}
@@ -381,7 +398,7 @@ public:
 	 */
 	bool close() {
 		if ( !isOpen_)
-			return false;
+		return false;
 		flush();
 		isOpen_ = false;
 		return true;
@@ -414,7 +431,6 @@ private:
 	///SsHeader ssh_;
 	mm_header ssh_;
 	string fileName_;
-	//FILE* dataFile_;
 	KeyHash keyHash_;
 	bool isOpen_;
 
@@ -422,7 +438,8 @@ private:
 	LockType fileLock_;
 	izenelib::cache::ILRUCache<unsigned int, DbObjPtr, ReadWriteLock> binCache_;
 	boost::shared_ptr<memory_map> mms_;
-
+	boost::shared_array<unsigned char> workmem1_;
+	boost::shared_array<unsigned char> workmem2_;
 private:
 	void syncHeader_() {
 		memcpy(mms_->header(), &ssh_, sizeof(ssh_));
@@ -444,17 +461,28 @@ private:
 		char* ptr;
 		size_t vsize;
 
+		izenelib::util::ScopedWriteLock<LockType> lock(fileLock_);
+
 		izene_serialization<ValueType> izs(val);
 		izs.write_image(ptr, vsize);
 
-		if (UseCompress) {
-			int vsz = 0;
-			ptr = (char*)_tc_bzcompress(ptr, vsize, &vsz);
-			vsize = vsz;
+		if (UseCompress) {		
+			if( vsize > ssh_.maxdatasize ) {
+				ssh_.maxdatasize = vsize;
+				workmem1_.reset(new unsigned char[ssh_.maxdatasize*2] );
+				workmem2_.reset(new unsigned char[ssh_.maxdatasize] );
+			}
+			lzo_uint tmpTarLen;		
+			int ret = lzo1x_1_compress((unsigned char*)ptr, vsize, workmem1_.get(), &tmpTarLen, wrkmem);
+			assert(tmpTarLen < ssh_.maxdatasize*2);
+			if ( ret != LZO_E_OK )
+			return false;	
+			ptr = (char*)workmem1_.get();			
+			vsize = tmpTarLen;
 		}
 
-		if ( (size_t)ssh_.offset+sizeof(size_t)+vsize >= ssh_.mapSize*(ssh_.idx
-				+1)) {
+		if ( (size_t)ssh_.offset+2*sizeof(size_t)+vsize >= ssh_.mapSize*(ssh_.idx
+						+1)) {						
 			++ssh_.idx;
 			expandFile_(ssh_.idx);
 			mms_.reset(new memory_map(fileName_, 0, ssh_.mapSize*(ssh_.idx+1) ));
@@ -462,61 +490,53 @@ private:
 		}
 
 		{
-			mms_->write(&vsize, sizeof(size_t));
+			mms_->write(&vsize, sizeof(size_t));		
 			mms_->write(ptr, vsize);
 			ssh_.tsz += sizeof(size_t) + vsize;
 			ssh_.offset += sizeof(size_t) + vsize;
 		}
-
 		syncHeader_();
-
-		if (UseCompress) {
-			free(ptr);
-		}
 		return true;
 	}
 
-	inline bool readValue_(unsigned int npos, ValueType& val) {
+	inline bool readValue_(long npos, ValueType& val) {
 
 		DbObjPtr dp;
 		char* ptr;
 		size_t vsize = 0;
 		bool cached = false;
 
-		if (binCache_.getValue(npos, dp) ) {
+		izenelib::util::ScopedWriteLock<LockType> lock(fileLock_);
+		
+		if ( binCache_.getValue(npos, dp) )
+		{
 			vsize = dp->getSize();
-			//ptr = new char[vsize];
-			//mempcpy(ptr, dp->getData(), vsize);
 			ptr = (char*)dp->getData();
 			cached = true;
-		} else {
-			mms_->read(npos, &vsize, sizeof(size_t));
+		} else {		  
+			mms_->read(npos, &vsize, sizeof(size_t));			
 			assert(vsize> 0);
 			ptr = new char[vsize];
 			mms_->read(npos+sizeof(size_t), ptr, vsize);
 			dp.reset(new DbObj(ptr, vsize));
 			binCache_.insertValue(npos, dp);
+			delete ptr;			
 		}
-
+		
 		if (UseCompress) {
-			int vsz=0;
-			char *p =(char*)_tc_bzdecompress(ptr, vsize, &vsz);
-			vsize = vsz;
-			if ( !cached)
-				delete ptr;
-			ptr = p;
+			//char *p =(char*)_tc_bzdecompress(ptr, vsize, &vsz);	
+			lzo_uint tmpTarLen;
+			int ret = lzo1x_decompress( (const unsigned char*) dp->getData(), vsize, workmem2_.get(), &tmpTarLen, NULL);
+			assert(tmpTarLen <= ssh_.maxdatasize );
+			if ( ret != LZO_E_OK )
+			return false;
+			vsize = tmpTarLen;			
+			ptr = (char*)workmem2_.get();
 		}
 
-		izene_deserialization<ValueType> izd(ptr, vsize);
+		izene_deserialization<ValueType> izd( (char*)ptr, vsize);
 		izd.read_image(val);
-
-		if (UseCompress) {
-			free(ptr);
-		} else {
-			delete ptr;
-			ptr = 0;
-		}
-
+		
 		return true;
 	}
 

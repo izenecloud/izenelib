@@ -19,15 +19,70 @@
 #include <sys/stat.h>
 #include <stdio.h>
 
-#include "sdb_storage_header.h"
+//#include "sdb_storage_header.h"
 #include "sdb_storage_types.h"
 
 #include <am/sdb_btree/sdb_btree.h>
 #include <am/sdb_hash/sdb_hash.h>
+#include <boost/shared_array.hpp>
+#include <3rdparty/compression/minilzo/minilzo.h>
 
 using namespace std;
 
 NS_IZENELIB_AM_BEGIN
+
+struct SsHeader {
+	int magic; //set it as 0x061561, check consistence.
+	size_t pageSize;
+	size_t cacheSize;
+	size_t nPage;
+	size_t dPage; //deleted pages
+	size_t maxdatasize;
+
+	SsHeader()
+	{
+		magic = 0x061561;
+		pageSize = 8;
+		cacheSize = 100000;
+		nPage = 0;
+		dPage = 0;
+		maxdatasize = 0;
+	}
+
+	void display(std::ostream& os = std::cout) {
+		os<<"magic: "<<magic<<endl;
+		os<<"pageSize: "<<pageSize<<endl;
+		os<<"cacheSize: "<<cacheSize<<endl;
+		os<<"nPage: "<<nPage<<endl;
+		cout<<"maxdatasize: "<<maxdatasize<<endl;
+
+		os<<endl;
+		os<<"Data file size: "<<nPage*pageSize + sizeof(SsHeader)<<" bytes"<<endl;
+		if(nPage != 0) {
+			os<<"density: "<<double(dPage)/double(nPage)<<endl;
+
+		}
+	}
+
+	bool toFile(FILE* f)
+	{
+		if ( 0 != fseek(f, 0, SEEK_SET) )
+		return false;
+
+		fwrite(this, sizeof(SsHeader), 1, f);
+		return true;
+
+	}
+
+	bool fromFile(FILE* f)
+	{
+		if ( 0 != fseek(f, 0, SEEK_SET) )
+		return false;
+		fread(this, sizeof(SsHeader), 1, f);
+		return true;
+	}
+};
+
 
 /**
  *  \brief  file version of array hash using Cache-Conscious Collision Resolution.
@@ -39,12 +94,14 @@ NS_IZENELIB_AM_BEGIN
  *   
  * 
  */
+static lzo_align_t __LZO_MMODEL
+wrkmem1 [((LZO1X_1_MEM_COMPRESS<<4)+(sizeof(lzo_align_t)-1))/sizeof(lzo_align_t)];
 
 template<
 typename KeyType,
 typename ValueType,
 typename LockType =NullLock,
-typename AmType=sdb_btree<KeyType, unsigned int, LockType>,
+typename AmType=sdb_hash<KeyType, unsigned int, LockType>,
 bool UseCompress = true
 >class sdb_storage :public AccessMethod<KeyType, ValueType, LockType>
 {
@@ -319,6 +376,11 @@ public:
 #ifdef DEBUG 
 		ssh_.display();
 #endif
+		if( ssh_.maxdatasize > 0){
+				workmem1_.reset(new unsigned char[ssh_.maxdatasize*2] );
+				workmem2_.reset(new unsigned char[ssh_.maxdatasize] );
+		}
+
 		isOpen_ = true;
 		return true;
 	}
@@ -390,6 +452,8 @@ private:
 	bool isOpen_;
 private:
 	LockType fileLock_;
+	boost::shared_array<unsigned char> workmem1_;
+	boost::shared_array<unsigned char> workmem2_;
 	map<unsigned int, ValueType> readCache_;
 
 	/**
@@ -403,66 +467,65 @@ private:
 		izs.write_image(ptr, vsize);
 
 		if( UseCompress ) {
+			if( vsize > ssh_.maxdatasize ) {
+								ssh_.maxdatasize = vsize;
+								workmem1_.reset(new unsigned char[ssh_.maxdatasize*2] );
+								workmem2_.reset(new unsigned char[ssh_.maxdatasize] );
+			}
 			int vsz = 0;
-			ptr = (char*)_tc_bzcompress(ptr, vsize, &vsz);
-			vsize = vsz;
+			lzo_uint tmpTarLen;
+			int ret = lzo1x_1_compress((unsigned char*)ptr, vsize, workmem1_.get(), &tmpTarLen, wrkmem1);
+			assert(tmpTarLen < ssh_.maxdatasize*2);
+			if ( ret != LZO_E_OK )
+			return false;		
+			ptr = (char*)workmem1_.get();
+			vsize = tmpTarLen;
 		}
+
+
 
 		ScopedWriteLock<LockType> lock(fileLock_);
 		if ( 0 != fseek(dataFile_, ssh_.nPage*ssh_.pageSize+sizeof(SsHeader), SEEK_SET) ) {
-			if( UseCompress ) {
-				free(ptr);
-			}
 			return false;
 		}
 		if( 1 != fwrite(&vsize, sizeof(size_t), 1, dataFile_) ) {
-			if( UseCompress ) {
-				free(ptr);
-			}
 			return false;
 		}
 		if( 1 != fwrite(ptr, vsize, 1, dataFile_) ) {
-			if( UseCompress ) {
-				free(ptr);
-			}
 			return false;
 		}
 
 		ssh_.nPage += (sizeof(size_t)+vsize)/ssh_.pageSize + 1;
-
-		if( UseCompress ) {
-			free(ptr);
-		}
 		return true;
 	}
 
-	inline bool readValue_(const KeyType& key, unsigned int npos, ValueType& val) {
-		typename map<unsigned int, ValueType>::iterator iter;
-		iter = readCache_.find(npos);
-		if( iter != readCache_.end() )
-		val = iter->second;
-		else {
-			if(readCache_.size() >= BATCH_READ_NUM * 1024 )
-			readCache_.clear();
-			readValue_(npos, val);
-			readCache_.insert( make_pair(npos, val) );
-
-			SDBCursor locn = keyHash_.search(key);
-			for(unsigned int i=1; i<BATCH_READ_NUM; i++ ) {
-				KeyType key;
-				ValueType temp;
-				unsigned int off = 0;
-				keyHash_.seq(locn);
-				if( keyHash_.get(locn, key, off) ) {
-					readValue_(off, temp);
-					readCache_.insert( make_pair(off, temp) );
-				} else
-				break;
-			}
-		}
-		return true;
-
-	}
+//	inline bool readValue_(const KeyType& key, unsigned int npos, ValueType& val) {
+//		typename map<unsigned int, ValueType>::iterator iter;
+//		iter = readCache_.find(npos);
+//		if( iter != readCache_.end() )
+//		val = iter->second;
+//		else {
+//			if(readCache_.size() >= BATCH_READ_NUM * 1024 )
+//			readCache_.clear();
+//			readValue_(npos, val);
+//			readCache_.insert( make_pair(npos, val) );
+//
+//			SDBCursor locn = keyHash_.search(key);
+//			for(unsigned int i=1; i<BATCH_READ_NUM; i++ ) {
+//				KeyType key;
+//				ValueType temp;
+//				unsigned int off = 0;
+//				keyHash_.seq(locn);
+//				if( keyHash_.get(locn, key, off) ) {
+//					readValue_(off, temp);
+//					readCache_.insert( make_pair(off, temp) );
+//				} else
+//				break;
+//			}
+//		}
+//		return true;
+//
+//	}
 
 	inline bool readValue_(unsigned int npos, ValueType& val) {
 		ScopedWriteLock<LockType> lock(fileLock_);
@@ -478,22 +541,21 @@ private:
 		return false;
 
 		if( UseCompress ) {			
-			int vsz=0;
-			char *p =(char*)_tc_bzdecompress(ptr, vsize, &vsz);
-			vsize = vsz;
+			int vsz=0;		
+			lzo_uint tmpTarLen;
+			int ret = lzo1x_decompress( (const unsigned char*) ptr, vsize, workmem2_.get(), &tmpTarLen, NULL);
+			assert(tmpTarLen <= ssh_.maxdatasize );
+			if ( ret != LZO_E_OK )
+			return false;
+			vsize = tmpTarLen;		
 			delete ptr;
-			ptr = p;
+			ptr = (char*)workmem2_.get();
 		}
 
 		izene_deserialization<ValueType> izd(ptr, vsize);
 		izd.read_image(val);
 
-		if( UseCompress ) {
-			free(ptr);
-		} else {
-			delete ptr;
-			ptr = 0;
-		}
+
 		return true;
 	}
 

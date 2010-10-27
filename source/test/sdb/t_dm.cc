@@ -120,6 +120,8 @@ template<typename T1, typename T2> void dump(T1& t1, T2& t2, int num=100000) {
 	//if ( !t2.is_open() )
 	t2.open();
 
+	cout<<"num: "<<t1.numItems()<<endl;
+
 	typename T1::SDBCursor locn = t1.get_first_locn();
 	docid_t key;
 	Document value;
@@ -140,11 +142,12 @@ template<typename T1, typename T2> void dump(T1& t1, T2& t2, int num=100000) {
 template<typename SDB> void query_test(SDB& sdb) {
 	sdb.open();
 	Document doc;
+	docNum = sdb.numItems()
 
 	izenelib::util::ClockTimer timer;
 	for (int i=0; i<1000; i++) {
 		for (int j=0; j<10; j++) {
-			sdb.get(rand()%num+1, doc);
+			sdb.get(rand()%docNum, doc);
 			//			izene_serialization<Document> izs(doc);
 			//			char* str;
 			//			size_t sz;
@@ -155,7 +158,7 @@ template<typename SDB> void query_test(SDB& sdb) {
 	printf(" elapsed : %lf seconds\n", timer.elapsed() );
 	
 	izenelib::util::ClockTimer timer1;
-	for (int i=0; i<num; i++) {
+	for (int i=1; i<sdb.numItems(); i++) {
 		sdb.get(i, doc);
 	}
 	printf(" elapsed : %lf seconds\n", timer1.elapsed() );

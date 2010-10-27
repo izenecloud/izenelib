@@ -1,5 +1,6 @@
 #include <ctime>
 #include <am/sdb_storage/sdb_storage.h>
+#include <am/sdb_storage/sdb_storage_mm.h>
 #include <am/am_test/am_test.h>
 
 int rnd = 1;
@@ -7,7 +8,7 @@ int rnd = 1;
 using namespace izenelib::am_test;
 using namespace izenelib::am;
 
-static int num = 1000000;
+static int num = 100000000;
 
 
 int main()
@@ -15,7 +16,7 @@ int main()
 	
 	{
 		cout<<"\nsdb_storage<int, string>"<<endl;
-		typedef sdb_storage<int, string> SDB_STRING_INT;
+		typedef sdb_storage_mm<int, string> SDB_STRING_INT;
 		AmTest<int, string , SDB_STRING_INT, true> am;		
 		am.setRandom(rnd);	
 		am.setNum(num);

@@ -8,11 +8,8 @@ INC_PATH=    -I /usr/local/include/  -I  ../../../../izenelib/include/ -I  ../..
    -I ../../../../wiselib/include -I ../../../../izenelib/include/3rdparty/ -I /usr/local/include/boost-1_36  
 
 
-LIBS =      /usr/local/lib/libboost_thread-gcc41-mt.so \
-           /usr/local/lib/libtokyocabinet.so   /usr/local/lib/libboost_serialization-gcc41-mt.so \
-             ../../../../izenelib/lib/libprocmeminfo.so -L ../../../ \
-           -L ../../../../izenelib/lib -llzo -lluxio -L /usr/local/lib -lfebird -lizene_log -lglog -lbz2 -lboost_iostreams-gcc41-mt -lboost_filesystem-gcc41-mt
-            
+LIBS =  -L  /usr/local/lib -lboost_thread -ltokyocabinet  -lboost_serialization  -lboost_unit_test_framework      ../../../../izenelib/lib/libprocmeminfo.so -L ../../../ \
+           -L ../../../../izenelib/lib -llzo -lluxio  -lfebird -lizene_log -lglog -lbz2 -lboost_iostreams -lboost_filesystem            
 .cc.o:
 
 	$(GPP) $(INC_PATH) $(CC_OPTIONS) $< 
@@ -48,7 +45,7 @@ obj12 = t_TrieIndexSDB1.o
 
 obj13 = t_sdb_query.o
 
-obj14 = t_dm.o
+obj14 = t_dm1.o t_master_suite.o
 
 all: t_dm #t_mul_sdb #t_sdb_query #t_IndexSDB1 t_IndexSDB t_TrieIndexSDB1  t_TrieIndexSDB  t_btree2  t_btree1  t_sdb t_btree2 t_nsdb t_IndexSDB t_IndexSDB1 t_mul_sdb  t_btree_str \
      # t_btree1 t_mul_sdb  t_nsdb t_overflow_btree 
