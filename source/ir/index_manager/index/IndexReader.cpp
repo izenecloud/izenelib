@@ -110,8 +110,6 @@ void IndexReader::createBarrelReader()
     if(pDocLengthReader_)
         pDocLengthReader_->load(pBarrelsInfo_->maxDocId());
 
-    //pIndexer_->setDirty(false);///clear dirty_ flag
-
     DVLOG(2) << "<= IndexReader::createBarrelReader()";
 }
 

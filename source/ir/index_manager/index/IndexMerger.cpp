@@ -174,7 +174,7 @@ void IndexMerger::updateBarrels(BarrelsInfo* pBarrelsInfo)
     ///sort barrels
     pBarrelsInfo->sort(pDirectory_);
     }
-    pIndexer_->setDirty(true);	
+    pIndexer_->setDirty();
 }
 
 void IndexMerger::mergeBarrel(MergeBarrel* pBarrel)

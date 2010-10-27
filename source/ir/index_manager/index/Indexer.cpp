@@ -237,18 +237,26 @@ void Indexer::close()
     }
 }
 
+IndexReader* Indexer::getIndexReader()
+{
+    if (dirty_)
+    {
+        izenelib::util::ScopedWriteLock<izenelib::util::ReadWriteLock> lock(mutex_);
+        // double check in case of another thread has reset the flag
+        if (dirty_)
+        {
+            pIndexReader_->reopen();
+            dirty_ = false;
+        }
+    }
 
-void Indexer::setDirty(bool dirty)
+    return pIndexReader_;
+}
+
+void Indexer::setDirty()
 {
     izenelib::util::ScopedWriteLock<izenelib::util::ReadWriteLock> lock(mutex_);
-    dirty_ = dirty;
-    if (dirty)
-    {
-        //boost::thread::sleep(boost::get_system_time() + boost::posix_time::milliseconds(100));
-        pIndexReader_->reopen();
-        //boost::thread::sleep(boost::get_system_time() + boost::posix_time::milliseconds(500));
-        dirty_ = false;
-    }
+    dirty_ = true;
 }
 
 int Indexer::insertDocument(IndexerDocument& doc)

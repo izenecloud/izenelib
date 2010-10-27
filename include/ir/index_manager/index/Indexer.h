@@ -127,13 +127,13 @@ public:
 
     void setBasePath(std::string basePath);
 
-    void setDirty(bool dirty);
+    void setDirty();
 
     bool isDirty() { return dirty_; }
 
     IndexWriter* getIndexWriter(){return pIndexWriter_;}
     
-    IndexReader* getIndexReader() { return pIndexReader_;}
+    IndexReader* getIndexReader();
 
     BTreeIndexer* getBTreeIndexer() { return pBTreeIndexer_; }
 
