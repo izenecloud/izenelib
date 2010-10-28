@@ -38,10 +38,9 @@ public:
             , pBarrelWriter(NULL)
             , isUpdate(false)
             , maxDocId(0)
-            , modified(false)
             , searchable(true)
             , compressType(BYTEALIGN)
- 
+            , isRemoved_(false)
     {
     }
 
@@ -51,9 +50,9 @@ public:
             , pBarrelWriter(NULL)
             , isUpdate(false)
             , maxDocId(0)
-            , modified(false)
             , searchable(true)
             , compressType(compresstype)
+            , isRemoved_(false)
     {
     }
 
@@ -65,9 +64,9 @@ public:
             , pBarrelWriter(NULL)
             , isUpdate(pBarrelInfo->isUpdate)
             , maxDocId(pBarrelInfo->maxDocId)
-            , modified(pBarrelInfo->modified)
             , searchable(pBarrelInfo->searchable)
             , compressType(pBarrelInfo->compressType)
+            , isRemoved_(pBarrelInfo->isRemoved_)
     {
     }
 
@@ -174,7 +173,10 @@ public:
      */
     void write(Directory* pDirectory);
 
-    bool isModified() { return modified; }
+    /**
+     * whether this barrel is removed because of merge.
+     */
+    bool isRemoved() { return isRemoved_; }
 
     void setSearchable(bool cansearch)
     {
@@ -214,8 +216,6 @@ public:
     ///max doc of this barrel
     docid_t maxDocId;
 
-    bool modified;
-
     bool searchable;
 
     ///all index input instances generated for this barrel
@@ -225,6 +225,9 @@ public:
 
 private:
     boost::mutex mutex_;
+
+    ///whether this barrel is removed because of merge
+    bool isRemoved_;
 };
 
 

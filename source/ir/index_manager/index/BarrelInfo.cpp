@@ -19,6 +19,7 @@ void BarrelInfo::remove(Directory* pDirectory)
     try
     {
         boost::mutex::scoped_lock lock(mutex_);
+        isRemoved_ = true;
         pDirectory->deleteFiles(barrelName);
     }
     catch (IndexManagerException& fe)
@@ -45,7 +46,6 @@ void BarrelInfo::rename(Directory* pDirectory,const string& newName)
             pDirectory->renameFiles(barrelName,newName);
 
         barrelName = newName;
-        modified = true;
         DVLOG(2) << "<= BarrelInfo::rename(), => " << barrelName;
     }
     catch (IndexManagerException& fe)

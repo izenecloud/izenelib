@@ -1,4 +1,5 @@
 #include <boost/thread.hpp>
+#include <cassert>
 
 #include <ir/index_manager/index/IndexMergeManager.h>
 #include <ir/index_manager/index/GPartitionMerger.h>
@@ -36,8 +37,7 @@ void IndexMergeManager::run()
 void IndexMergeManager::stop()
 {
     tasks_.clear();
-    MergeOP op;
-    op.opType = NOOP;
+    MergeOP op(NOOP);
     tasks_.push(op);
     DVLOG(2) << "IndexMergeManager::stop() => mergethread_->join()...";
     mergethread_->join();
@@ -49,8 +49,7 @@ void IndexMergeManager::stop()
 
 void IndexMergeManager::triggerMerge(BarrelInfo* pBarrelInfo)
 {
-    MergeOP op;
-    op.opType = ONLINE;
+    MergeOP op(ONLINE);
     op.pBarrelInfo = pBarrelInfo;
     tasks_.push(op);
 }
@@ -66,32 +65,28 @@ void IndexMergeManager::mergeIndex()
         {
         case ONLINE:
             {
+            assert(op.pBarrelInfo);
+
             IndexMerger* pIndexMerger = indexMergers_[op.opType];
             pIndexMerger->addToMerge(pBarrelsInfo_, op.pBarrelInfo);
             }
             break;
-        case FINISH:
-            {
-            IndexMerger* pIndexMerger = indexMergers_[ONLINE];
-            pIndexMerger->endMerge();
-            pBarrelsInfo_->setSearchable();
-            pIndexMerger->updateBarrels(pBarrelsInfo_);
-            pBarrelsInfo_->write(pIndexer_->getDirectory());
-            }
-            break;
         case OFFLINE:
 	    {
-            OfflineIndexMerger* pIndexMerger = reinterpret_cast<OfflineIndexMerger*>(indexMergers_[op.opType]);
-            pIndexMerger->setBarrels(pBarrelsInfo_->getBarrelCount());
-            if(pIndexer_->getIndexReader()->getDocFilter())
-                pIndexMerger->setDocFilter(pIndexer_->getIndexReader()->getDocFilter());
-            pIndexMerger->merge(pBarrelsInfo_);
-            pIndexer_->getIndexReader()->delDocFilter();
-            pIndexMerger->setDocFilter(NULL);
-            pBarrelsInfo_->setSearchable();
-            pIndexMerger->updateBarrels(pBarrelsInfo_);
+            // clear the status of online merger
+            IndexMerger* pOnlineMerger = indexMergers_[ONLINE];
+            pOnlineMerger->endMerge();
 
-            pBarrelsInfo_->write(pIndexer_->getDirectory());
+            // merge all barrels into one
+            OfflineIndexMerger* pOfflineMerger = dynamic_cast<OfflineIndexMerger*>(indexMergers_[op.opType]);
+            assert(pOfflineMerger);
+
+            pOfflineMerger->setBarrels(pBarrelsInfo_->getBarrelCount());
+            if(pIndexer_->getIndexReader()->getDocFilter())
+                pOfflineMerger->setDocFilter(pIndexer_->getIndexReader()->getDocFilter());
+            pOfflineMerger->merge(pBarrelsInfo_);
+            pIndexer_->getIndexReader()->delDocFilter();
+            pOfflineMerger->setDocFilter(NULL);
             }
             break;
         case NOOP:
@@ -102,15 +97,9 @@ void IndexMergeManager::mergeIndex()
 
 void IndexMergeManager::optimizeIndex()
 {
-    MergeOP op;
-    if(tasks_.empty())
-    {
-        op.opType = OFFLINE;
-    }
-    else
-    {
-        op.opType = FINISH;
-    }
+    tasks_.clear();
+
+    MergeOP op(OFFLINE);
     tasks_.push(op);
 }
 

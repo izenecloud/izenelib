@@ -112,24 +112,6 @@ void Indexer::setIndexManagerConfig(
           pBTreeIndexer_ = new BTreeIndexer(pConfigurationManager_->indexStrategy_.indexLocation_, degree, cacheSize, maxDataSize);
 
     if(!strcasecmp(pConfigurationManager_->indexStrategy_.indexMode_.c_str(),"realtime"))
-        realTime_ = true;
-    else
-        realTime_ = false;
-
-    pIndexWriter_ = new IndexWriter(this);
-    pIndexReader_ = new IndexReader(this);
-
-    if(! pConfigurationManager_->indexStrategy_.optimizeSchedule_.empty())
-    {
-        using namespace izenelib::util;
-        int32_t uuid =  (int32_t)HashFunction<std::string>::generateHash32(pConfigurationManager_->indexStrategy_.indexLocation_);
-        char uuidstr[10];
-        memset(uuidstr,0,10);
-        sprintf(uuidstr,"%d",uuid);
-        pIndexWriter_->scheduleOptimizeTask(pConfigurationManager_->indexStrategy_.optimizeSchedule_, uuidstr);
-    }
-
-    if(!strcasecmp(pConfigurationManager_->indexStrategy_.indexMode_.c_str(),"realtime"))
     {
         realTime_ = true;
         indexingType_ = BYTEALIGN;
@@ -153,6 +135,19 @@ void Indexer::setIndexManagerConfig(
        	}
        else
            indexingType_ = BYTEALIGN;
+    }
+
+    pIndexWriter_ = new IndexWriter(this);
+    pIndexReader_ = new IndexReader(this);
+
+    if(! pConfigurationManager_->indexStrategy_.optimizeSchedule_.empty())
+    {
+        using namespace izenelib::util;
+        int32_t uuid =  (int32_t)HashFunction<std::string>::generateHash32(pConfigurationManager_->indexStrategy_.indexLocation_);
+        char uuidstr[10];
+        memset(uuidstr,0,10);
+        sprintf(uuidstr,"%d",uuid);
+        pIndexWriter_->scheduleOptimizeTask(pConfigurationManager_->indexStrategy_.optimizeSchedule_, uuidstr);
     }
 }
 
@@ -284,6 +279,8 @@ void Indexer::flush()
 {
     pIndexWriter_->flush();
     pBTreeIndexer_->flush();
+
+    setDirty();
 }
 
 void Indexer::optimizeIndex()

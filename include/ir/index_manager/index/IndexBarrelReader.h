@@ -47,8 +47,6 @@ public:
 	
     virtual void close() = 0;
 
-    virtual void reopen() = 0;
-
 protected:
     IndexReader* pIndexReader_;
 };

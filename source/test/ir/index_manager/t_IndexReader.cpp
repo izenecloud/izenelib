@@ -109,7 +109,6 @@ public:
         }
 
         indexer_->flush();
-        indexer_->setDirty();
     }
 
     /** Update all exsting documents. */
@@ -130,7 +129,6 @@ public:
         }
 
         indexer_->flush();
-        indexer_->setDirty();
     }
 
     /**
@@ -166,7 +164,6 @@ public:
         indexer_->removeDocument(COLLECTION_ID, overId);
 
         indexer_->flush();
-        indexer_->setDirty();
     }
 
     void checkDocLength() {
@@ -194,10 +191,13 @@ public:
      * Create barrels and check barrel status.
      * @param barrelNum the number of barrels to create
      */
-    void checkBarrel(int barrelNum, bool isRealTime) {
+    void checkBarrel(int barrelNum, bool isRealTime, bool isOptimize = false) {
         for(int i=0; i<barrelNum; ++i)
             createDocument(false); // create barrel i
-        //createDocument(isRealTime); // create barrel i
+            //createDocument(isRealTime); // create barrel i
+
+        if(isOptimize)
+            indexer_->optimizeIndex();
 
         IndexReader* pIndexReader = indexer_->getIndexReader();
         BarrelsInfo* pBarrelsInfo = pIndexReader->getBarrelsInfo();
@@ -205,7 +205,13 @@ public:
         BOOST_CHECK_EQUAL(pBarrelsInfo->getDocCount(), mapDocIdLen_.size());
         BOOST_CHECK_EQUAL(pBarrelsInfo->maxDocId(), maxDocID_);
 
-        if(! isRealTime)
+        if(isOptimize)
+        {
+            // wait for merge finish
+            boost::thread::sleep(boost::get_system_time() + boost::posix_time::milliseconds(1000));
+            BOOST_CHECK_EQUAL(pBarrelsInfo->getBarrelCount(), 1);
+        }
+        else if(! isRealTime)
         {
             BOOST_CHECK_EQUAL(pBarrelsInfo->getBarrelCount(), barrelNum);
 
@@ -217,6 +223,8 @@ public:
                 BOOST_CHECK_EQUAL(pBarrelInfo->getMaxDocID(), (i+1)*newDocNum_);
             }
         }
+
+        DVLOG(2) << "<= t_IndexReader.cpp::checkBarrel()";
     }
 
 private:
@@ -393,18 +401,23 @@ BOOST_AUTO_TEST_SUITE( t_IndexReader )
     //indexerTest.tearDown();
 //}
 
-BOOST_AUTO_TEST_CASE(barrelInfo_realtime)
+BOOST_AUTO_TEST_CASE(barrelInfo_optimize)
 {
-    //IndexerTest indexerTest(30);
-    //indexerTest.setUp(true, "realtime");
-    //indexerTest.checkBarrel(30, true);
-    //indexerTest.tearDown();
+    IndexerTest indexerTest(10);
 
-    IndexerTest indexerTest(1000);
-    indexerTest.setUp(true, "realtime");
-    indexerTest.checkBarrel(10, true);
+    indexerTest.setUp();
+
+    indexerTest.checkBarrel(10, false, true);
     indexerTest.tearDown();
 }
+
+//BOOST_AUTO_TEST_CASE(barrelInfo_realtime)
+//{
+    //IndexerTest indexerTest(100);
+    //indexerTest.setUp(true, "realtime");
+    //indexerTest.checkBarrel(10, true);
+    //indexerTest.tearDown();
+//}
 
 BOOST_AUTO_TEST_SUITE_END()
 

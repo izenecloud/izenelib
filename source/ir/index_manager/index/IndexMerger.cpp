@@ -144,6 +144,12 @@ void IndexMerger::addToMerge(BarrelsInfo* pBarrelsInfo,BarrelInfo* pBarrelInfo)
 {
     DVLOG(2) << "=> IndexMerger::addToMerge(), barrel name: " << pBarrelInfo->barrelName << " ...";
 
+    if(pBarrelInfo->isRemoved())
+    {
+        DVLOG(2) << "<= IndexMerger::addToMerge(), barrel already removed";
+        return;
+    }
+
     triggerMerge_ = false;
     if (!pMergeBarrels_)
         pMergeBarrels_ = new vector<MergeBarrelEntry*>();

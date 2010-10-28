@@ -30,7 +30,6 @@ namespace indexmanager{
 enum MergeOPType
 {
     ONLINE,
-    FINISH,
     OFFLINE,
     NOOP
 };
@@ -39,6 +38,8 @@ struct MergeOP
 {
     MergeOPType opType;
     BarrelInfo* pBarrelInfo;
+
+    MergeOP(MergeOPType type = ONLINE) : opType(type), pBarrelInfo(NULL) {}
 };
 
 class IndexMergeManager
@@ -52,6 +53,9 @@ public:
 
     void triggerMerge(BarrelInfo* pBarrelInfo);
 
+    /**
+     * Clear current appending merge requests, and merge all barrels into one.
+     */
     void optimizeIndex();
 
     void stop();

@@ -165,6 +165,7 @@ void IndexWriter::writeCachedIndex()
     if(pIndexBarrelWriter_->cacheEmpty() == false)
     {
         pIndexBarrelWriter_->close();
+        pIndexer_->setDirty();
 
         if(pIndexer_->getIndexerType()&MANAGER_INDEXING_STANDALONE_MERGER)
         {

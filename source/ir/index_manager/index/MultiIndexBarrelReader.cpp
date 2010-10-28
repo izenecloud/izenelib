@@ -33,12 +33,6 @@ void MultiIndexBarrelReader::open(const char* name)
 {
 }
 
-void MultiIndexBarrelReader::reopen()
-{
-    for(vector<BarrelReaderEntry*>::iterator iter = readers_.begin(); iter != readers_.end(); ++iter)
-        (*iter)->pBarrelReader_->reopen();
-}
-
 TermReader* MultiIndexBarrelReader::termReader(collectionid_t colID)
 {
     if (termReaderMap_.find(colID) == termReaderMap_.end())
