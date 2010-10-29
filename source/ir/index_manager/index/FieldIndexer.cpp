@@ -9,6 +9,8 @@
 #include <boost/filesystem/path.hpp>
 #include <util/izene_log.h>
 
+#include <cassert>
+
 using namespace std;
 
 namespace bfs = boost::filesystem;
@@ -20,22 +22,16 @@ namespace indexmanager
 
 FieldIndexer::FieldIndexer(const char* field, MemCache* pCache, Indexer* pIndexer)
         :field_(field),pMemCache_(pCache),pIndexer_(pIndexer),vocFilePointer_(0),alloc_(0),
-        termCount_(0),recordCount_(0),run_num_(0),pHits_(0),pHitsMax_(0),flush_(false)
+        f_(0),termCount_(0),iHitsMax_(0),recordCount_(0),run_num_(0),pHits_(0),pHitsMax_(0),flush_(false)
 {
     skipInterval_ = pIndexer_->getSkipInterval();
     maxSkipLevel_ = pIndexer_->getMaxSkipLevel();
-    if (! pIndexer_->isRealTime())
-    {
-        //std::string sorterName = field_+".tmp";
-        sorterFileName_ = field_+".tmp";
-        bfs::path path(bfs::path(pIndexer->pConfigurationManager_->indexStrategy_.indexLocation_) /bfs::path(sorterFileName_));
-        sorterFullPath_= path.string();
-        f_ = fopen(sorterFullPath_.c_str(),"w");
-        uint64_t count = 0;
-        fwrite(&count, sizeof(uint64_t), 1, f_);
-    }
-    else
-        alloc_ = new boost::scoped_alloc(recycle_);
+
+    sorterFileName_ = field_+".tmp";
+    bfs::path path(bfs::path(pIndexer_->pConfigurationManager_->indexStrategy_.indexLocation_) /bfs::path(sorterFileName_));
+    sorterFullPath_ = path.string();
+
+    reset();
 }
 
 FieldIndexer::~FieldIndexer()
@@ -48,6 +44,7 @@ FieldIndexer::~FieldIndexer()
         }
     */
     if (alloc_) delete alloc_;
+    if (f_) fclose(f_);
     pMemCache_ = NULL;
 }
 
@@ -98,6 +95,7 @@ void FieldIndexer::addField(docid_t docid, boost::shared_ptr<LAInput> laInput)
             if (postingIter == postingMap_.end())
             {
                 //curPosting = new RTPostingWriter(pMemCache_, skipInterval_, maxSkipLevel_);
+                assert(alloc_);
                 curPosting = BOOST_NEW(*alloc_, RTPostingWriter)(pMemCache_, skipInterval_, maxSkipLevel_);
                 postingMap_[iter->termid_] = curPosting;
             }
@@ -146,6 +144,7 @@ void FieldIndexer::addField(docid_t docid, boost::shared_ptr<ForwardIndex> forwa
         InMemoryPostingMap::iterator postingIter = postingMap_.find(iter->first);
         if (postingIter == postingMap_.end())
         {
+            assert(alloc_);
             curPosting = BOOST_NEW(*alloc_, RTPostingWriter)(pMemCache_, skipInterval_, maxSkipLevel_);
             postingMap_[iter->first] = curPosting;
         }
@@ -171,6 +170,15 @@ void FieldIndexer::reset()
     }
     postingMap_.clear();
     termCount_ = 0;
+
+    if (! pIndexer_->isRealTime())
+    {
+        f_ = fopen(sorterFullPath_.c_str(),"w");
+        uint64_t count = 0;
+        fwrite(&count, sizeof(uint64_t), 1, f_);
+    }
+    else
+        alloc_ = new boost::scoped_alloc(recycle_);
 }
 
 void writeTermInfo(IndexOutput* pVocWriter, termid_t tid, const TermInfo& termInfo)
@@ -231,7 +239,7 @@ fileoffset_t FieldIndexer::write(OutputDescriptor* pWriterDesc)
         postingMap_.clear();
 
         delete alloc_;
-        alloc_ = new boost::scoped_alloc(recycle_);
+        alloc_ = NULL;
     }
     else
     {
@@ -255,6 +263,7 @@ fileoffset_t FieldIndexer::write(OutputDescriptor* pWriterDesc)
         fseek(f_, 0, SEEK_SET);
         fwrite(&recordCount_, sizeof(uint64_t), 1, f_);
         fclose(f_);
+        f_ = NULL;
         hits_.reset();
 
         typedef izenelib::am::SortMerger<uint32_t, uint8_t, true,SortIO<FieldIndexIO> > merge_t;

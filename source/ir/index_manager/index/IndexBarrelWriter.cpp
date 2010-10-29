@@ -37,18 +37,11 @@ IndexBarrelWriter::~IndexBarrelWriter(void)
         delete iter->second;
 }
 
-void IndexBarrelWriter::open(BarrelInfo* pInfo)
-{
-    pBarrelInfo_ = pInfo;
-    pCollectionsInfo_->reset();
-}
 void IndexBarrelWriter::close()
 {
-    if (cacheEmpty() == false)
-    {
-        writeCache();
-        resetCache();
-    }
+    writeCache();
+    resetCache();
+
     pDocFilter_ = NULL;
 }
 
@@ -63,14 +56,12 @@ void IndexBarrelWriter::addDocument(IndexerDocument& doc)
     if(dirty_) dirty_ = false;
 }
 
-void IndexBarrelWriter::resetCache(bool bResetPosting)
+void IndexBarrelWriter::resetCache()
 {
-    if (bResetPosting)
-    {
-        for (CollectionIndexerMap::iterator p = collectionIndexerMap_.begin( ); p != collectionIndexerMap_.end( ); ++p)
-            (*p).second->reset();
-    }
+    for (CollectionIndexerMap::iterator p = collectionIndexerMap_.begin( ); p != collectionIndexerMap_.end( ); ++p)
+        (*p).second->reset();
 
+    pCollectionsInfo_->reset();
     pMemCache_->flushMem();
 }
 

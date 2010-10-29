@@ -81,7 +81,7 @@ void IndexWriter::flush()
     {
         try
         {
-            pIndexBarrelWriter_->writeCache();
+            pIndexBarrelWriter_->close();
             pCurBarrelInfo_->setSearchable(true);
         }catch(std::exception& e)
         {
@@ -116,7 +116,7 @@ void IndexWriter::createBarrelInfo()
     }
 
     pCurBarrelInfo_->setWriter(pIndexBarrelWriter_);
-    pIndexBarrelWriter_->open(pCurBarrelInfo_);
+    pIndexBarrelWriter_->setBarrelInfo(pCurBarrelInfo_);
     pBarrelsInfo_->addBarrel(pCurBarrelInfo_,false);
 
     DVLOG(2) << "<= IndexWriter::createBarrelInfo()";

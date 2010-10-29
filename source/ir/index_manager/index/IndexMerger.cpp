@@ -374,11 +374,6 @@ void IndexMerger::mergeBarrel(MergeBarrel* pBarrel)
     for (nEntry = 0;nEntry < nEntryCount;nEntry++)
     {
         pEntry = pBarrel->getAt(nEntry);
-        IndexBarrelWriter* pWriter = pEntry->pBarrelInfo_->getWriter();
-        if (pWriter)///clear in-memory index
-        {
-            pWriter->resetCache(true);
-        }
         pBarrelsInfo_->removeBarrel(pDirectory_,pEntry->pBarrelInfo_->getName());///delete merged barrels
     }
 
