@@ -30,6 +30,12 @@ namespace
 const char* INDEX_FILE_DIR = "./index";
 
 const unsigned int COLLECTION_ID = 1;
+
+const char* INDEX_MODE_REALTIME = "realtime";
+
+const int TEST_DOC_NUM = 3000;
+
+const int TEST_BARREL_NUM = 10;
 };
 
 class IndexerTest
@@ -39,7 +45,8 @@ private:
 
     Indexer* indexer_;
 
-    unsigned int newDocNum_; ///< the number of documents created when each time createDocument() is called
+    unsigned int newDocNum_; ///< the max number of documents created in createDocument()
+    bool isDocNumRand_; ///< true for doc number range [1, rand(newDocNum_)], false for range [1, newDocNum_]
     boost::mt19937 randEngine_;
     boost::variate_generator<mt19937, uniform_int<> > docLenRand_;
     boost::variate_generator<mt19937, uniform_int<> > termIDRand_;
@@ -57,9 +64,10 @@ private:
     docid_t maxDocID_;
 
 public:
-    IndexerTest(unsigned int docNum, unsigned int docIDSkipMax = 1)
+    IndexerTest(unsigned int docNum, bool isDocNumRand = false, unsigned int docIDSkipMax = 1)
         : indexer_(0)
           ,newDocNum_(docNum)
+          ,isDocNumRand_(isDocNumRand)
           ,docLenRand_(randEngine_, uniform_int<>(1, 40*newDocNum_))
           ,termIDRand_(randEngine_, uniform_int<>(1, 400*newDocNum_))
           ,docIDSkipRand_(randEngine_, uniform_int<>(1, docIDSkipMax))
@@ -95,9 +103,11 @@ public:
     }
 
     /** Only create \e newDocNum_ documents. */
-    void createDocument(bool isRandom = false) {
+    void createDocument() {
+        DVLOG(2) << "=> IndexerTest::createDocument()";
+
         docid_t docID = maxDocID_;
-        for(unsigned int i = 1; i <= (isRandom ? docNumRand_() : newDocNum_); i++)
+        for(unsigned int i = 1; i <= (isDocNumRand_ ? docNumRand_() : newDocNum_); i++)
         {
             docID += docIDSkipRand_();
 #ifdef LOG_DOC_OPERATION
@@ -109,10 +119,13 @@ public:
         }
 
         indexer_->flush();
+        DVLOG(2) << "<= IndexerTest::createDocument()";
     }
 
     /** Update all exsting documents. */
     void updateDocument() {
+        DVLOG(2) << "=> IndexerTest::updateDocument()";
+
         docid_t newDocID = maxDocID_;
         DocIdLenMapT oldMap;
         oldMap.swap(mapDocIdLen_);
@@ -129,12 +142,15 @@ public:
         }
 
         indexer_->flush();
+        DVLOG(2) << "<= IndexerTest::updateDocument()";
     }
 
     /**
      * Remove random number of documents, and also remove documents exceed max doc id.
      */
     void removeDocument() {
+        DVLOG(2) << "=> IndexerTest::removeDocument()";
+
         if(mapDocIdLen_.empty())
             return;
 
@@ -164,9 +180,12 @@ public:
         indexer_->removeDocument(COLLECTION_ID, overId);
 
         indexer_->flush();
+        DVLOG(2) << "<= IndexerTest::removeDocument()";
     }
 
     void checkDocLength() {
+        DVLOG(2) << "=> IndexerTest::checkDocLength()";
+
         IndexReader* pIndexReader = indexer_->getIndexReader();
 
         BOOST_CHECK_EQUAL(pIndexReader->numDocs(), mapDocIdLen_.size());
@@ -185,35 +204,29 @@ public:
 
         //TermReader* pTermReader = pIndexReader->getTermReader(COLLECTION_ID);
         //delete pTermReader;
+
+        DVLOG(2) << "<= IndexerTest::checkDocLength()";
     }
 
     /**
      * Create barrels and check barrel status.
      * @param barrelNum the number of barrels to create
      */
-    void checkBarrel(int barrelNum, bool isRealTime, bool isOptimize = false) {
-        for(int i=0; i<barrelNum; ++i)
-            createDocument(false); // create barrel i
-            //createDocument(isRealTime); // create barrel i
+    void checkBarrel(int barrelNum) {
+        DVLOG(2) << "=> IndexerTest::checkBarrel()";
 
-        if(isOptimize)
-            indexer_->optimizeIndex();
+        for(int i=0; i<barrelNum; ++i)
+            createDocument(); // create barrel i
 
         IndexReader* pIndexReader = indexer_->getIndexReader();
         BarrelsInfo* pBarrelsInfo = pIndexReader->getBarrelsInfo();
 
-        BOOST_CHECK_EQUAL(pBarrelsInfo->getDocCount(), mapDocIdLen_.size());
         BOOST_CHECK_EQUAL(pBarrelsInfo->maxDocId(), maxDocID_);
 
-        if(isOptimize)
-        {
-            // wait for merge finish
-            boost::thread::sleep(boost::get_system_time() + boost::posix_time::milliseconds(1000));
-            BOOST_CHECK_EQUAL(pBarrelsInfo->getBarrelCount(), 1);
-        }
-        else if(! isRealTime)
+        if(indexer_->getIndexManagerConfig()->indexStrategy_.indexMode_ != INDEX_MODE_REALTIME)
         {
             BOOST_CHECK_EQUAL(pBarrelsInfo->getBarrelCount(), barrelNum);
+            BOOST_CHECK_EQUAL(pBarrelsInfo->getDocCount(), mapDocIdLen_.size());
 
             for(int i=0; i<barrelNum; ++i)
             {
@@ -224,7 +237,69 @@ public:
             }
         }
 
-        DVLOG(2) << "<= t_IndexReader.cpp::checkBarrel()";
+        DVLOG(2) << "<= IndexerTest::checkBarrel()";
+    }
+
+    /**
+     * Create barrels, optimize barrels (merge them into one), and check barrel status.
+     * @param barrelNum the number of barrels to create
+     */
+    void optimizeBarrel(int barrelNum) {
+        DVLOG(2) << "=> IndexerTest::optimizeBarrel()";
+
+        for(int i=0; i<barrelNum; ++i)
+            createDocument(); // create barrel i
+
+        indexer_->optimizeIndex();
+
+        IndexReader* pIndexReader = indexer_->getIndexReader();
+        BarrelsInfo* pBarrelsInfo = pIndexReader->getBarrelsInfo();
+
+        BOOST_CHECK_EQUAL(pBarrelsInfo->maxDocId(), maxDocID_);
+        BOOST_CHECK_EQUAL(pBarrelsInfo->getDocCount(), mapDocIdLen_.size());
+
+        DVLOG(2) << "<= IndexerTest::optimizeBarrel()";
+    }
+
+    /**
+     * Check optimize barrels result.
+     */
+    void checkOptimize() {
+        DVLOG(2) << "=> IndexerTest::checkOptimize()";
+
+        IndexReader* pIndexReader = indexer_->getIndexReader();
+        BarrelsInfo* pBarrelsInfo = pIndexReader->getBarrelsInfo();
+
+        BOOST_CHECK_EQUAL(pBarrelsInfo->maxDocId(), maxDocID_);
+        BOOST_CHECK_EQUAL(pBarrelsInfo->getBarrelCount(), 1);
+        BOOST_CHECK_EQUAL(pBarrelsInfo->getDocCount(), mapDocIdLen_.size());
+
+        DVLOG(2) << "<= IndexerTest::checkOptimize()";
+    }
+
+    /**
+     * Create barrels, optimize barrels (merge them into one), and check barrel status.
+     * @param barrelNum the number of barrels to create
+     */
+    void createAfterOptimizeBarrel(int barrelNum) {
+        DVLOG(2) << "=> IndexerTest::createAfterOptimizeBarrel()";
+
+        for(int i=0; i<barrelNum; ++i)
+            createDocument(); // create barrel i
+
+        indexer_->optimizeIndex();
+
+        for(int i=0; i<barrelNum; ++i)
+            createDocument(); // create barrel i
+
+        IndexReader* pIndexReader = indexer_->getIndexReader();
+        BarrelsInfo* pBarrelsInfo = pIndexReader->getBarrelsInfo();
+
+        BOOST_CHECK_EQUAL(pBarrelsInfo->maxDocId(), maxDocID_);
+        BOOST_CHECK(pBarrelsInfo->getBarrelCount() >= 1 && pBarrelsInfo->getBarrelCount() <= 2*barrelNum);
+        BOOST_CHECK_EQUAL(pBarrelsInfo->getDocCount(), mapDocIdLen_.size());
+
+        DVLOG(2) << "<= IndexerTest::createAfterOptimizeBarrel()";
     }
 
 private:
@@ -330,94 +405,125 @@ private:
 
 BOOST_AUTO_TEST_SUITE( t_IndexReader )
 
-//BOOST_AUTO_TEST_CASE(index)
-//{
-    //IndexerTest indexerTest(10);
-
-    //indexerTest.setUp();
-
-    //// create barrel 0
-    //indexerTest.createDocument();
-    //indexerTest.checkDocLength();
-
-    //// create barrel 1, 2, 3
-    //for(int i=0; i<3; ++i)
-    //{
-        //indexerTest.createDocument();
-        //indexerTest.checkDocLength();
-    //}
-    //indexerTest.tearDown();
-
-    //// new Indexer instance, create barrel 4, 5, 6
-    //indexerTest.setUp(false);
-    //indexerTest.checkDocLength();
-    //for(int i=0; i<3; ++i)
-    //{
-        //indexerTest.createDocument();
-        //indexerTest.checkDocLength();
-    //}
-    //indexerTest.tearDown();
-//}
-
-//BOOST_AUTO_TEST_CASE(update)
-//{
-    //IndexerTest indexerTest(10);
-
-    //indexerTest.setUp();
-    //indexerTest.createDocument();
-
-    //for(int i=0; i<2; ++i)
-    //{
-        //indexerTest.updateDocument();
-        //indexerTest.checkDocLength();
-    //}
-    //indexerTest.tearDown();
-//}
-
-//BOOST_AUTO_TEST_CASE(remove)
-//{
-    //IndexerTest indexerTest(10);
-
-    //indexerTest.setUp();
-    //indexerTest.createDocument();
-
-    //while(! indexerTest.isDocEmpty())
-    //{
-        //indexerTest.removeDocument();
-        //indexerTest.checkDocLength();
-    //}
-    //indexerTest.checkDocLength();
-
-    //indexerTest.tearDown();
-//}
-
-//BOOST_AUTO_TEST_CASE(barrelInfo_offline)
-//{
-    //IndexerTest indexerTest(10);
-
-    //indexerTest.setUp();
-
-    //indexerTest.checkBarrel(10, false);
-    //indexerTest.tearDown();
-//}
-
-BOOST_AUTO_TEST_CASE(barrelInfo_optimize)
+BOOST_AUTO_TEST_CASE(index)
 {
-    IndexerTest indexerTest(10);
+    IndexerTest indexerTest(TEST_DOC_NUM);
 
     indexerTest.setUp();
 
-    indexerTest.checkBarrel(10, false, true);
+    // create barrel 0
+    indexerTest.createDocument();
+    indexerTest.checkDocLength();
+
+    // create barrel 1, 2, 3
+    for(int i=0; i<TEST_BARREL_NUM; ++i)
+    {
+        indexerTest.createDocument();
+        indexerTest.checkDocLength();
+    }
+    indexerTest.tearDown();
+
+    // new Indexer instance, create barrel 4, 5, 6
+    indexerTest.setUp(false);
+    indexerTest.checkDocLength();
+    for(int i=0; i<TEST_BARREL_NUM; ++i)
+    {
+        indexerTest.createDocument();
+        indexerTest.checkDocLength();
+    }
     indexerTest.tearDown();
 }
 
-//BOOST_AUTO_TEST_CASE(barrelInfo_realtime)
-//{
-    //IndexerTest indexerTest(100);
-    //indexerTest.setUp(true, "realtime");
-    //indexerTest.checkBarrel(10, true);
-    //indexerTest.tearDown();
-//}
+BOOST_AUTO_TEST_CASE(update)
+{
+    IndexerTest indexerTest(TEST_DOC_NUM);
+
+    indexerTest.setUp();
+    indexerTest.createDocument();
+
+    for(int i=0; i<TEST_BARREL_NUM; ++i)
+    {
+        indexerTest.updateDocument();
+        indexerTest.checkDocLength();
+    }
+    indexerTest.tearDown();
+}
+
+BOOST_AUTO_TEST_CASE(remove)
+{
+    IndexerTest indexerTest(TEST_DOC_NUM);
+
+    indexerTest.setUp();
+    indexerTest.createDocument();
+
+    while(! indexerTest.isDocEmpty())
+    {
+        indexerTest.removeDocument();
+        indexerTest.checkDocLength();
+    }
+    indexerTest.checkDocLength();
+
+    indexerTest.tearDown();
+}
+
+BOOST_AUTO_TEST_CASE(barrelInfo_check)
+{
+    {
+        IndexerTest indexerTest(TEST_DOC_NUM);
+        indexerTest.setUp();
+        indexerTest.checkBarrel(TEST_BARREL_NUM);
+        indexerTest.tearDown();
+    }
+
+    {
+        IndexerTest indexerTest(TEST_DOC_NUM);
+        indexerTest.setUp(true, INDEX_MODE_REALTIME);
+        indexerTest.checkBarrel(TEST_BARREL_NUM);
+        indexerTest.tearDown();
+    }
+}
+
+BOOST_AUTO_TEST_CASE(barrelInfo_optimize)
+{
+    {
+        IndexerTest indexerTest(TEST_DOC_NUM);
+        indexerTest.setUp();
+        indexerTest.optimizeBarrel(TEST_BARREL_NUM);
+        indexerTest.tearDown();
+
+        indexerTest.setUp(false);
+        indexerTest.checkOptimize();
+        indexerTest.tearDown();
+    }
+
+    {
+        IndexerTest indexerTest(TEST_DOC_NUM);
+        indexerTest.setUp(true, INDEX_MODE_REALTIME);
+        indexerTest.optimizeBarrel(TEST_BARREL_NUM);
+        indexerTest.tearDown();
+
+        indexerTest.setUp(false);
+        indexerTest.checkOptimize();
+        indexerTest.tearDown();
+    }
+}
+
+BOOST_AUTO_TEST_CASE(barrelInfo_create_after_optimize)
+{
+    {
+        IndexerTest indexerTest(TEST_DOC_NUM);
+        indexerTest.setUp();
+        indexerTest.createAfterOptimizeBarrel(TEST_BARREL_NUM);
+        indexerTest.tearDown();
+    }
+
+    {
+        IndexerTest indexerTest(TEST_DOC_NUM);
+        indexerTest.setUp(true, INDEX_MODE_REALTIME);
+        indexerTest.createAfterOptimizeBarrel(TEST_BARREL_NUM);
+        indexerTest.tearDown();
+    }
+}
 
 BOOST_AUTO_TEST_SUITE_END()
 
