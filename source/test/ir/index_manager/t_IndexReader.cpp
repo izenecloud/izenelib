@@ -33,9 +33,9 @@ const unsigned int COLLECTION_ID = 1;
 
 const char* INDEX_MODE_REALTIME = "realtime";
 
-const int TEST_DOC_NUM = 3000;
+const int TEST_DOC_NUM = 30;
 
-const int TEST_BARREL_NUM = 10;
+const int TEST_BARREL_NUM = 3;
 };
 
 class IndexerTest
@@ -256,7 +256,6 @@ public:
         BarrelsInfo* pBarrelsInfo = pIndexReader->getBarrelsInfo();
 
         BOOST_CHECK_EQUAL(pBarrelsInfo->maxDocId(), maxDocID_);
-        BOOST_CHECK_EQUAL(pBarrelsInfo->getDocCount(), mapDocIdLen_.size());
 
         DVLOG(2) << "<= IndexerTest::optimizeBarrel()";
     }
@@ -297,7 +296,11 @@ public:
 
         BOOST_CHECK_EQUAL(pBarrelsInfo->maxDocId(), maxDocID_);
         BOOST_CHECK(pBarrelsInfo->getBarrelCount() >= 1 && pBarrelsInfo->getBarrelCount() <= 2*barrelNum);
-        BOOST_CHECK_EQUAL(pBarrelsInfo->getDocCount(), mapDocIdLen_.size());
+
+        if(indexer_->getIndexManagerConfig()->indexStrategy_.indexMode_ != INDEX_MODE_REALTIME)
+        {
+            BOOST_CHECK_EQUAL(pBarrelsInfo->getDocCount(), mapDocIdLen_.size());
+        }
 
         DVLOG(2) << "<= IndexerTest::createAfterOptimizeBarrel()";
     }
@@ -407,6 +410,7 @@ BOOST_AUTO_TEST_SUITE( t_IndexReader )
 
 BOOST_AUTO_TEST_CASE(index)
 {
+    DVLOG(2) << "=> TEST_CASE::index";
     IndexerTest indexerTest(TEST_DOC_NUM);
 
     indexerTest.setUp();
@@ -432,10 +436,12 @@ BOOST_AUTO_TEST_CASE(index)
         indexerTest.checkDocLength();
     }
     indexerTest.tearDown();
+    DVLOG(2) << "<= TEST_CASE::index";
 }
 
 BOOST_AUTO_TEST_CASE(update)
 {
+    DVLOG(2) << "=> TEST_CASE::update";
     IndexerTest indexerTest(TEST_DOC_NUM);
 
     indexerTest.setUp();
@@ -447,10 +453,12 @@ BOOST_AUTO_TEST_CASE(update)
         indexerTest.checkDocLength();
     }
     indexerTest.tearDown();
+    DVLOG(2) << "<= TEST_CASE::update";
 }
 
 BOOST_AUTO_TEST_CASE(remove)
 {
+    DVLOG(2) << "=> TEST_CASE::remove";
     IndexerTest indexerTest(TEST_DOC_NUM);
 
     indexerTest.setUp();
@@ -464,10 +472,12 @@ BOOST_AUTO_TEST_CASE(remove)
     indexerTest.checkDocLength();
 
     indexerTest.tearDown();
+    DVLOG(2) << "<= TEST_CASE::remove";
 }
 
 BOOST_AUTO_TEST_CASE(barrelInfo_check)
 {
+    DVLOG(2) << "=> TEST_CASE::barrelInfo_check";
     {
         IndexerTest indexerTest(TEST_DOC_NUM);
         indexerTest.setUp();
@@ -481,10 +491,12 @@ BOOST_AUTO_TEST_CASE(barrelInfo_check)
         indexerTest.checkBarrel(TEST_BARREL_NUM);
         indexerTest.tearDown();
     }
+    DVLOG(2) << "<= TEST_CASE::barrelInfo_check";
 }
 
 BOOST_AUTO_TEST_CASE(barrelInfo_optimize)
 {
+    DVLOG(2) << "=> TEST_CASE::barrelInfo_optimize";
     {
         IndexerTest indexerTest(TEST_DOC_NUM);
         indexerTest.setUp();
@@ -506,10 +518,12 @@ BOOST_AUTO_TEST_CASE(barrelInfo_optimize)
         indexerTest.checkOptimize();
         indexerTest.tearDown();
     }
+    DVLOG(2) << "<= TEST_CASE::barrelInfo_optimize";
 }
 
 BOOST_AUTO_TEST_CASE(barrelInfo_create_after_optimize)
 {
+    DVLOG(2) << "=> TEST_CASE::barrelInfo_create_after_optimize";
     {
         IndexerTest indexerTest(TEST_DOC_NUM);
         indexerTest.setUp();
@@ -523,6 +537,7 @@ BOOST_AUTO_TEST_CASE(barrelInfo_create_after_optimize)
         indexerTest.createAfterOptimizeBarrel(TEST_BARREL_NUM);
         indexerTest.tearDown();
     }
+    DVLOG(2) << "<= TEST_CASE::barrelInfo_create_after_optimize";
 }
 
 BOOST_AUTO_TEST_SUITE_END()

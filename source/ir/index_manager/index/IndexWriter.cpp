@@ -49,6 +49,8 @@ IndexWriter::IndexWriter(Indexer* pIndex)
 
 IndexWriter::~IndexWriter()
 {
+    close();
+
     if (pMemCache_)
         delete pMemCache_;
     if (pIndexBarrelWriter_)
@@ -62,8 +64,8 @@ void IndexWriter::close()
     if (pIndexMergeManager_)
     {
         pIndexMergeManager_->stop();
-        //delete pIndexMergeManager_;
-        //pIndexMergeManager_ = NULL;
+        delete pIndexMergeManager_;
+        pIndexMergeManager_ = NULL;
     }
 }
 

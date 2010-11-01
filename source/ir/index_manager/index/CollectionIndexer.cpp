@@ -186,7 +186,6 @@ void CollectionIndexer::write(OutputDescriptor* desc)
         vocOffset = pFieldIndexer->write(desc);///write field index data
 
         pFieldsInfo_->setDistinctNumTerms(iter->first,pFieldIndexer->distinctNumTerms());
-        pFieldIndexer->reset();
         pFieldsInfo_->setFieldOffset(iter->first,vocOffset);
 
         vocOff2 = pVocOutput->getFilePointer();

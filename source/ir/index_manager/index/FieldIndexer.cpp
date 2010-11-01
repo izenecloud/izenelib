@@ -44,7 +44,12 @@ FieldIndexer::~FieldIndexer()
         }
     */
     if (alloc_) delete alloc_;
-    if (f_) fclose(f_);
+    if (f_)
+    {
+        fclose(f_);
+        if(! boost::filesystem::remove(sorterFullPath_))
+            LOG(WARNING) << "FieldIndexer::~FieldIndexer(): failed to remove file " << sorterFullPath_;
+    }
     pMemCache_ = NULL;
 }
 
@@ -178,7 +183,10 @@ void FieldIndexer::reset()
         fwrite(&count, sizeof(uint64_t), 1, f_);
     }
     else
+    {
+        delete alloc_;
         alloc_ = new boost::scoped_alloc(recycle_);
+    }
 }
 
 void writeTermInfo(IndexOutput* pVocWriter, termid_t tid, const TermInfo& termInfo)
@@ -237,9 +245,6 @@ fileoffset_t FieldIndexer::write(OutputDescriptor* pWriterDesc)
         }
 
         postingMap_.clear();
-
-        delete alloc_;
-        alloc_ = NULL;
     }
     else
     {

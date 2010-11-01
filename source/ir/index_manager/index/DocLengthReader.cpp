@@ -31,7 +31,7 @@ DocLengthReader::DocLengthReader(const std::set<IndexerPropertyConfig, IndexerPr
 
 DocLengthReader::~DocLengthReader()
 {
-    delete propertyOffsetMap_;
+    delete[] propertyOffsetMap_;
     if(data_) {delete[] data_; data_ = NULL;}
 }
 

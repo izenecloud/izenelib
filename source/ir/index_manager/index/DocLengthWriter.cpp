@@ -30,7 +30,7 @@ DocLengthWriter::DocLengthWriter(
 
 DocLengthWriter::~DocLengthWriter()
 {
-    delete propertyOffsetMap_;
+    delete[] propertyOffsetMap_;
     delete pOutput_;
 }
 
