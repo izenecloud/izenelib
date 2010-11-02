@@ -177,7 +177,7 @@ private:
         unsigned char* newBits_ = new unsigned char[newBlockNum];
         memset(newBits_,0,newBlockNum*sizeof(unsigned char));
         memcpy(newBits_,bits_,blockNum_*sizeof(unsigned char));
-        delete bits_;
+        delete[] bits_;
         bits_ = newBits_;
         blockNum_ = newBlockNum;
     }
