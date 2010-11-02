@@ -93,7 +93,7 @@ void CollectionIndexer::addDocument(IndexerDocument& doc)
     map<IndexerPropertyConfig, IndexerDocumentPropertyType> propertyValueList;
     doc.getPropertyList(propertyValueList);
 
-    uint16_t docLength[docLengthWidth_];
+    count_t docLength[docLengthWidth_];
     for (map<IndexerPropertyConfig, IndexerDocumentPropertyType>::iterator iter 
                             = propertyValueList.begin(); iter != propertyValueList.end(); ++iter)
     {
