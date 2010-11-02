@@ -602,24 +602,24 @@ public:
     if (out_buf_)
       free(out_buf_);
 
-    delete micro_run_idx_;
-    delete micro_run_pos_;
-    delete num_micro_run_;
-    delete size_micro_run_;
-    delete num_run_;
-    delete size_run_ ;
-    delete size_loaded_run_;
-    delete run_addr_ ;
-    delete run_curr_addr_;
+    delete[] micro_run_idx_;
+    delete[] micro_run_pos_;
+    delete[] num_micro_run_;
+    delete[] size_micro_run_;
+    delete[] num_run_;
+    delete[] size_run_ ;
+    delete[] size_loaded_run_;
+    delete[] run_addr_ ;
+    delete[] run_curr_addr_;
 
-    delete micro_buf_;
-    delete sub_out_buf_;
+    delete[] micro_buf_;
+    delete[] sub_out_buf_;
 
     delete[] in_out_mtx_;
     delete[] in_out_con_;
 
-    delete out_buf_size_;
-    delete out_buf_full_;
+    delete[] out_buf_size_;
+    delete[] out_buf_full_;
   }
 
   void run()
