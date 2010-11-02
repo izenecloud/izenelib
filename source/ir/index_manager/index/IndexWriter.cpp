@@ -6,10 +6,6 @@
 #include <ir/index_manager/index/Indexer.h>
 #include <ir/index_manager/index/IndexWriter.h>
 #include <ir/index_manager/index/IndexReader.h>
-#include <ir/index_manager/index/IndexMerger.h>
-#include <ir/index_manager/index/OfflineIndexMerger.h>
-#include <ir/index_manager/index/MultiWayMerger.h>
-#include <ir/index_manager/index/GPartitionMerger.h>
 #include <ir/index_manager/index/IndexBarrelWriter.h>
 #include <ir/index_manager/index/IndexerPropertyConfig.h>
 #include <ir/index_manager/index/IndexMergeManager.h>
@@ -28,23 +24,15 @@ IndexWriter::IndexWriter(Indexer* pIndex)
         ,pIndexBarrelWriter_(NULL)
         ,pBarrelsInfo_(NULL)
         ,pCurBarrelInfo_(NULL)
-        ,pIndexMerger_(NULL)
         ,pIndexMergeManager_(NULL)
 {
     pBarrelsInfo_ = pIndexer_->getBarrelsInfo();
 
-    if(!strcasecmp(pIndexer_->pConfigurationManager_->mergeStrategy_.param_.c_str(),"no"))
-        pIndexMerger_ = NULL;
-    else if(!strcasecmp(pIndexer_->pConfigurationManager_->mergeStrategy_.param_.c_str(),"mway"))
-        pIndexMerger_ = new MultiWayMerger(pIndexer_);	
-    else
-        pIndexMerger_ = new GPartitionMerger(pIndexer_);
-
+    bool isMergeAsync = false;
     if(pIndexer_->getIndexerType()&MANAGER_INDEXING_STANDALONE_MERGER)
-    {
-        pIndexMergeManager_ = new IndexMergeManager(pIndex);
-        pIndexMergeManager_->run();
-    }
+        isMergeAsync = true;
+
+    pIndexMergeManager_ = new IndexMergeManager(pIndex, isMergeAsync);
 }
 
 IndexWriter::~IndexWriter()
@@ -55,14 +43,11 @@ IndexWriter::~IndexWriter()
         delete pMemCache_;
     if (pIndexBarrelWriter_)
         delete pIndexBarrelWriter_;
-    if (pIndexMerger_)
-        delete pIndexMerger_;
 }
 
 void IndexWriter::waitForMergeFinish()
 {
-    if (pIndexMergeManager_)
-        pIndexMergeManager_->waitForMergeFinish();
+    pIndexMergeManager_->waitForMergeFinish();
 }
 
 void IndexWriter::flush()
@@ -120,44 +105,6 @@ void IndexWriter::createBarrelInfo()
     DVLOG(2) << "<= IndexWriter::createBarrelInfo()";
 }
 
-void IndexWriter::mergeIndex(IndexMerger* pMerger)
-{
-    pMerger->setDirectory(pIndexer_->getDirectory());
-
-    if(pIndexer_->getIndexReader()->getDocFilter())
-        pMerger->setDocFilter(pIndexer_->getIndexReader()->getDocFilter());
-    ///there is a in-memory index
-    if (pCurBarrelInfo_ && pCurBarrelInfo_->nNumDocs > 0)
-    {
-        IndexMerger* pTmp = pIndexMerger_;
-        pIndexMerger_ = pMerger;
-        mergeAndWriteCachedIndex();
-        pIndexMerger_ = pTmp;
-    }
-    else
-    {
-        if(pCurBarrelInfo_)
-            pCurBarrelInfo_ = NULL;
-
-        pMerger->merge(pBarrelsInfo_);
-    }
-    pIndexer_->getIndexReader()->delDocFilter();
-    delete pIndexMerger_;
-    pIndexMerger_ = NULL;
-}
-
-void IndexWriter::mergeAndWriteCachedIndex()
-{
-    if (pIndexBarrelWriter_->cacheEmpty() == false)///memory index has not been written to database yet.
-    {
-        pIndexBarrelWriter_->close();
-        pBarrelsInfo_->write(pIndexer_->getDirectory());
-    }
-    pIndexMerger_->merge(pBarrelsInfo_);
-
-    createBarrelInfo();
-}
-
 void IndexWriter::writeCachedIndex()
 {
     if(pIndexBarrelWriter_->cacheEmpty() == false)
@@ -165,15 +112,7 @@ void IndexWriter::writeCachedIndex()
         pIndexBarrelWriter_->close();
         pIndexer_->setDirty();
 
-        if(pIndexer_->getIndexerType()&MANAGER_INDEXING_STANDALONE_MERGER)
-        {
-            pIndexMergeManager_->triggerMerge(pCurBarrelInfo_);
-        }
-        else
-        {
-            if (pIndexMerger_)
-                pIndexMerger_->addToMerge(pBarrelsInfo_,pCurBarrelInfo_);
-        }
+        pIndexMergeManager_->addToMerge(pCurBarrelInfo_);
     }
 }
 
@@ -220,22 +159,7 @@ void IndexWriter::updateDocument(IndexerDocument& doc)
 
 void IndexWriter::optimizeIndex()
 {
-    if(pIndexer_->getIndexerType()&MANAGER_INDEXING_STANDALONE_MERGER)
-    {
-        ///optimize asynchronously
-        pIndexMergeManager_->optimizeIndex();
-    }
-    else
-    {
-        ///optimize synchronously
-        IndexMerger* pIndexMerger = new OfflineIndexMerger(pIndexer_, pBarrelsInfo_->getBarrelCount());
-        pIndexMerger->setDirectory(pIndexer_->getDirectory());
-        if(pIndexer_->getIndexReader()->getDocFilter())
-            pIndexMerger->setDocFilter(pIndexer_->getIndexReader()->getDocFilter());
-        pIndexMerger->merge(pBarrelsInfo_);
-        pIndexer_->getIndexReader()->delDocFilter();
-        delete pIndexMerger;
-    }
+    pIndexMergeManager_->optimizeIndex();
 }
 
 void IndexWriter::lazyOptimizeIndex()

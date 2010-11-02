@@ -62,10 +62,6 @@ public:
 
 private:
     void createBarrelInfo();
-    /// mergeIndex
-    void mergeIndex(IndexMerger * pMerger);
-    ///will be used by mergeIndex
-    void mergeAndWriteCachedIndex();
     /// flush in-memory index to disk
     void writeCachedIndex();	
     /// optimize index offline
@@ -80,8 +76,6 @@ private:
     BarrelsInfo* pBarrelsInfo_;
 
     BarrelInfo* pCurBarrelInfo_;
-
-    IndexMerger* pIndexMerger_;
 
     IndexMergeManager* pIndexMergeManager_;
 

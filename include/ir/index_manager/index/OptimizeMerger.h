@@ -1,5 +1,5 @@
 /**
-* @file        OfflineIndexMergerMergerr.h
+* @file        OptimizeMerger.h
 * @version     SF1 v5.0
 * @brief OPT index merge algorithm
 */
@@ -15,11 +15,11 @@ namespace indexmanager{
 /**
 * This class has implemented the optimize index merge algorithm that will merge all the barrels into a single index barrel
 */
-class OfflineIndexMerger : public IndexMerger
+class OptimizeMerger : public IndexMerger
 {
 public:
-    OfflineIndexMerger(Indexer* pIndexer, unsigned int numBarrels);
-    virtual ~OfflineIndexMerger(void);
+    OptimizeMerger(Indexer* pIndexer, unsigned int numBarrels);
+    virtual ~OptimizeMerger(void);
 public:
     void setBarrels(unsigned int numBarrels);
 
