@@ -204,7 +204,6 @@ void Indexer::close()
     if (pIndexWriter_)
     {
         pIndexWriter_->flush();
-        pIndexWriter_->close();
         delete pIndexWriter_;
         pIndexWriter_ = NULL;
     }

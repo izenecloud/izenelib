@@ -8,7 +8,6 @@
 #define INDEXMERGER_MANAGER_H
 
 #include <boost/thread.hpp>
-#include <boost/shared_ptr.hpp>
 
 #include <string>
 #include <vector>
@@ -58,9 +57,29 @@ public:
      */
     void optimizeIndex();
 
+    /**
+     * Clear current appending merge requests, and block the calling thread
+     * until the merge thread finishes its current task.
+     * Notes: this function only works when \p run() is called beforehand.
+     */
     void stop();
+
+    /**
+     * Block the calling thread until the merge thread finishes its all tasks,
+     * and create a new thread for future merge request.
+     * Notes: this function only works when \p run() is called beforehand.
+     */
+    void waitForMergeFinish();
+
 private:
     void mergeIndex();
+
+    /**
+     * Block the calling thread until the merge thread finishes its all tasks,
+     * and delete the merge thread.
+     * Notes: this function only works when \p run() is called beforehand.
+     */
+    void joinMergeThread();
 
 private:
     Indexer* pIndexer_;
@@ -71,7 +90,7 @@ private:
 
     std::map<MergeOPType, IndexMerger*> indexMergers_;
 
-    boost::shared_ptr<boost::thread> mergethread_;
+    boost::thread* pMergeThread_;
 };
 
 }

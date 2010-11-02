@@ -14,6 +14,8 @@ namespace indexmanager{
 
 IndexMergeManager::IndexMergeManager(Indexer* pIndexer)
     :pIndexer_(pIndexer)
+    ,pBarrelsInfo_(NULL)
+    ,pMergeThread_(NULL)
 {
     pBarrelsInfo_ = pIndexer_->getBarrelsInfo();
 
@@ -27,24 +29,49 @@ IndexMergeManager::IndexMergeManager(Indexer* pIndexer)
 
 IndexMergeManager::~IndexMergeManager()
 {
+    stop();
+    delete pMergeThread_;
+
+    for(std::map<MergeOPType, IndexMerger*>::iterator iter = indexMergers_.begin();
+              iter != indexMergers_.end(); ++iter)
+        delete iter->second;
 }
 
 void IndexMergeManager::run()
 {
-    mergethread_.reset(new boost::thread(boost::bind(&IndexMergeManager::mergeIndex, this)));
+    if(! pMergeThread_)
+        pMergeThread_ = new boost::thread(boost::bind(&IndexMergeManager::mergeIndex, this));
 }
 
 void IndexMergeManager::stop()
 {
     tasks_.clear();
-    MergeOP op(NOOP);
-    tasks_.push(op);
-    DVLOG(2) << "IndexMergeManager::stop() => mergethread_->join()...";
-    mergethread_->join();
-    DVLOG(2) << "IndexMergeManager::stop() <= mergethread_->join()";
-    for(std::map<MergeOPType, IndexMerger*>::iterator iter = indexMergers_.begin();
-              iter != indexMergers_.end(); ++iter)
-        delete iter->second;
+    joinMergeThread();
+}
+
+void IndexMergeManager::joinMergeThread()
+{
+    if(pMergeThread_)
+    {
+        MergeOP op(NOOP);
+        tasks_.push(op);
+
+        DVLOG(2) << "IndexMergeManager::joinMergeThread() => pMergeThread_->join()...";
+        pMergeThread_->join();
+        DVLOG(2) << "IndexMergeManager::joinMergeThread() <= pMergeThread_->join()";
+
+        delete pMergeThread_;
+        pMergeThread_ = NULL;
+    }
+}
+
+void IndexMergeManager::waitForMergeFinish()
+{
+    if(pMergeThread_)
+    {
+        joinMergeThread();
+        run();
+    }
 }
 
 void IndexMergeManager::triggerMerge(BarrelInfo* pBarrelInfo)

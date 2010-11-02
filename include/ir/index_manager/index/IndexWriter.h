@@ -50,10 +50,15 @@ public:
     void flush();
     /// set schedule 
     void scheduleOptimizeTask(std::string expression, string uuid);
-    /// close
-    void close();
 
     void createMemCache();
+
+    /**
+     * Block the calling thread until the merge thread finishes its all tasks,
+     * and create a new thread for future merge request.
+     * Notes: this function only works when Indexer type is MANAGER_INDEXING_STANDALONE_MERGER.
+     */
+    void waitForMergeFinish();
 
 private:
     void createBarrelInfo();
