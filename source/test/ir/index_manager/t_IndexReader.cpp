@@ -306,14 +306,10 @@ private:
         boost::filesystem::remove_all(indexPath);
     }
 
-    void initIndexer(const string& indexmode, bool btree = true, int skipinterval = 0, int skiplevel = 0) {
-        if (btree)
-            indexer_ = new Indexer();
-        else
-            indexer_ = new Indexer(MANAGER_PURE_INDEX);
+    void initIndexer(const string& indexmode, int skipinterval = 0, int skiplevel = 0) {
+        indexer_ = new Indexer;
 
         IndexManagerConfig indexManagerConfig;
-
         boost::filesystem::path path(INDEX_FILE_DIR);
 
         indexManagerConfig.indexStrategy_.indexLocation_ = path.string();
@@ -327,14 +323,11 @@ private:
         std::map<std::string, unsigned int> collectionIdMapping;
         collectionIdMapping.insert(std::pair<std::string, unsigned int>("testcoll", COLLECTION_ID));
 
-        std::vector<std::string> propertyList(1, "content");
-        if(btree)
-        {
-            std::string date("date");
-            propertyList.push_back(date);
-            std::string url("provider");
-            propertyList.push_back(url);
-        }
+        std::vector<std::string> propertyList;
+        propertyList.push_back("content");
+        propertyList.push_back("date");
+        propertyList.push_back("provider");
+
         std::sort(propertyList.begin(),propertyList.end());
         IndexerCollectionMeta indexCollectionMeta;
         indexCollectionMeta.setName("testcoll");

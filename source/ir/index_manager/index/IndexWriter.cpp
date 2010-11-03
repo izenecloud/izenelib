@@ -28,11 +28,7 @@ IndexWriter::IndexWriter(Indexer* pIndex)
 {
     pBarrelsInfo_ = pIndexer_->getBarrelsInfo();
 
-    bool isMergeAsync = false;
-    if(pIndexer_->getIndexerType()&MANAGER_INDEXING_STANDALONE_MERGER)
-        isMergeAsync = true;
-
-    pIndexMergeManager_ = new IndexMergeManager(pIndex, isMergeAsync);
+    pIndexMergeManager_ = new IndexMergeManager(pIndex);
 }
 
 IndexWriter::~IndexWriter()

@@ -31,12 +31,6 @@ NS_IZENELIB_IR_BEGIN
 
 namespace indexmanager{
 
-#define MANAGER_PURE_INDEX 0x0
-#define MANAGER_INDEXING_BTREE 0x0001			///has btree index
-#define MANAGER_INDEXING_STANDALONE_MERGER 0x0002  //merge index in a stand alone thread
-
-typedef uint16_t ManagerType;
-
 enum IndexStatus
 {
     EMPTY,  /// There are no index files in the directory
@@ -54,7 +48,7 @@ class Indexer: private boost::noncopyable
 {
 public:
 
-    Indexer(ManagerType managerType = MANAGER_INDEXING_BTREE|MANAGER_INDEXING_STANDALONE_MERGER);
+    Indexer();
 
     virtual ~Indexer();
 public:
@@ -114,8 +108,6 @@ public:
 
     IndexManagerConfig* getIndexManagerConfig() { return pConfigurationManager_;}
 
-    ManagerType getIndexerType() {return managerType_;}
-
     const std::map<std::string, IndexerCollectionMeta>& getCollectionsMeta();
 
     izenelib::util::ReadWriteLock& getLock() { return mutex_; }
@@ -159,8 +151,6 @@ protected:
     void openDirectory(const std::string& storagePolicy);
 
 protected:
-    ManagerType managerType_;
-
     Directory* pDirectory_;
 
     volatile bool dirty_;

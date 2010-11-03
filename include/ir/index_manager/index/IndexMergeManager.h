@@ -49,9 +49,8 @@ public:
     /**
      * Constructor.
      * @param pIndexer the indexer
-     * @param isAsyncMerge true for merge asynchronously, false for merge synchronously
      */
-    IndexMergeManager(Indexer* pIndexer, bool isAsyncMerge);
+    IndexMergeManager(Indexer* pIndexer);
 
     ~IndexMergeManager();
 public:

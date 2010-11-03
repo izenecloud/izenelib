@@ -310,7 +310,7 @@ namespace irdb
             
             void initIndexer(boost::shared_ptr<iii::Indexer>& indexer)
             {
-                indexer.reset(new iii::Indexer(MANAGER_PURE_INDEX));
+                indexer.reset(new iii::Indexer;
                 iii::IndexManagerConfig indexManagerConfig;
                 indexManagerConfig.indexStrategy_.indexLocation_ = path_;
                 indexManagerConfig.indexStrategy_.indexMode_ = "default";
@@ -318,7 +318,9 @@ namespace irdb
                 indexManagerConfig.indexStrategy_.indexDocLength_ = true;
                 indexManagerConfig.indexStrategy_.skipInterval_ = 0;
                 indexManagerConfig.indexStrategy_.maxSkipLevel_ = 0;
+                indexManagerConfig.indexStrategy_.isIndexBTree_ = false;
                 indexManagerConfig.mergeStrategy_.param_ = "default";
+                indexManagerConfig.mergeStrategy_.isAsync_ = false;
                 if(inMemory_)
                 {
                     indexManagerConfig.storeStrategy_.param_ = "memory";
@@ -771,13 +773,15 @@ namespace irdb
            
             void initIndexer(boost::shared_ptr<iii::Indexer>& indexer)
             {
-                indexer.reset(new iii::Indexer(MANAGER_PURE_INDEX));
+                indexer.reset(new iii::Indexer);
                 iii::IndexManagerConfig indexManagerConfig;
                 indexManagerConfig.indexStrategy_.indexLocation_ = path_;
                 indexManagerConfig.indexStrategy_.indexMode_ = "default";
                 indexManagerConfig.indexStrategy_.memory_ = 30000000;
                 indexManagerConfig.indexStrategy_.indexDocLength_ = true;
+                indexManagerConfig.indexStrategy_.isIndexBTree_ = false;
                 indexManagerConfig.mergeStrategy_.param_ = "default";
+                indexManagerConfig.mergeStrategy_.isAsync_ = false;
                 if(inMemory_)
                 {
                     indexManagerConfig.storeStrategy_.param_ = "memory";

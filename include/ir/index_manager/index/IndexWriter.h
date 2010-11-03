@@ -56,7 +56,7 @@ public:
     /**
      * Block the calling thread until the merge thread finishes its all tasks,
      * and create a new thread for future merge request.
-     * Notes: this function only works when Indexer type is MANAGER_INDEXING_STANDALONE_MERGER.
+     * Notes: this function only works when IndexManagerConfig.mergeStrategy_.isAsync_ is true.
      */
     void waitForMergeFinish();
 

@@ -37,16 +37,12 @@ void clearIndices()
 }
 
 void initIndexer(boost::shared_ptr<Indexer>& indexer, 
-                                    bool btree = true, 
                                     std::string indexmode = "default", 
                                     int skipinterval = 0, 
                                     int skiplevel = 0
                                     )
 {
-    if (btree)
-        indexer.reset(new Indexer);
-    else
-        indexer.reset(new Indexer(MANAGER_PURE_INDEX));
+    indexer.reset(new Indexer);
     IndexManagerConfig indexManagerConfig;
 
     bfs::path path(bfs::path(".") /"index");
@@ -63,14 +59,11 @@ void initIndexer(boost::shared_ptr<Indexer>& indexer,
     std::map<std::string, unsigned int> collectionIdMapping;
     collectionIdMapping.insert(std::pair<std::string, unsigned int>("testcoll", collectionId));
 
-    std::vector<std::string> propertyList(1, "content");
-    if(btree)
-    {
-        std::string date("date");
-        propertyList.push_back(date);
-        std::string url("provider");
-        propertyList.push_back(url);
-    }
+    std::vector<std::string> propertyList;
+    propertyList.push_back("content");
+    propertyList.push_back("date");
+    propertyList.push_back("provider");
+
     std::sort(propertyList.begin(),propertyList.end());
     IndexerCollectionMeta indexCollectionMeta;
     indexCollectionMeta.setName("testcoll");
