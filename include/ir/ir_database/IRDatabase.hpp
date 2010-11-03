@@ -310,7 +310,7 @@ namespace irdb
             
             void initIndexer(boost::shared_ptr<iii::Indexer>& indexer)
             {
-                indexer.reset(new iii::Indexer;
+                indexer.reset(new iii::Indexer);
                 iii::IndexManagerConfig indexManagerConfig;
                 indexManagerConfig.indexStrategy_.indexLocation_ = path_;
                 indexManagerConfig.indexStrategy_.indexMode_ = "default";
