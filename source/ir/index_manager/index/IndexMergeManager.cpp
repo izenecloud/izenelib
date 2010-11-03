@@ -66,7 +66,7 @@ void IndexMergeManager::joinMergeThread()
 {
     if(pMergeThread_)
     {
-        MergeOP op(NOOP);
+        MergeOP op(EXIT_MERGE);
         tasks_.push(op);
 
         DVLOG(2) << "IndexMergeManager::joinMergeThread() => pMergeThread_->join()...";
@@ -91,7 +91,7 @@ void IndexMergeManager::addToMerge(BarrelInfo* pBarrelInfo)
 {
     if(pMergeThread_)
     {
-        MergeOP op(ADD);
+        MergeOP op(ADD_BARREL);
         op.pBarrelInfo = pBarrelInfo;
         tasks_.push(op);
     }
@@ -106,7 +106,7 @@ void IndexMergeManager::optimizeIndex()
     if(pMergeThread_)
     {
         tasks_.clear();
-        MergeOP op(OPTIMIZE);
+        MergeOP op(OPTIMIZE_ALL);
         tasks_.push(op);
     }
     else
@@ -134,14 +134,14 @@ void IndexMergeManager::mergeIndex()
         DVLOG(2) << "IndexMergeManager::mergeIndex(), opType: " << op.opType;
         switch(op.opType)
         {
-        case ADD:
+        case ADD_BARREL:
             {
             assert(op.pBarrelInfo);
 
             pAddMerger_->addToMerge(pBarrelsInfo_, op.pBarrelInfo);
             }
             break;
-        case OPTIMIZE:
+        case OPTIMIZE_ALL:
 	    {
             // clear the status of add merger
             pAddMerger_->endMerge();
@@ -149,7 +149,7 @@ void IndexMergeManager::mergeIndex()
             optimizeIndexImpl();
             }
             break;
-        case NOOP:
+        case EXIT_MERGE:
             return;
         }
     }

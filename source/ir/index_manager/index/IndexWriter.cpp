@@ -54,7 +54,10 @@ void IndexWriter::flush()
 {
     DVLOG(2) << "=> IndexWriter::flush()...";
     if(pCurBarrelInfo_ == NULL)
+    {
+        DVLOG(2) << "<= IndexWriter::flush(), pCurBarrelInfo_ is NULL";
         return;
+    }
 
     if(pIndexer_->isRealTime())
     {

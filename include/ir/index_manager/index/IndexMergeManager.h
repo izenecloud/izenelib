@@ -27,9 +27,9 @@ namespace indexmanager{
 
 enum MergeOPType
 {
-    ADD,
-    OPTIMIZE,
-    NOOP
+    ADD_BARREL,
+    OPTIMIZE_ALL,
+    EXIT_MERGE
 };
 
 struct MergeOP
@@ -37,7 +37,7 @@ struct MergeOP
     MergeOPType opType;
     BarrelInfo* pBarrelInfo;
 
-    MergeOP(MergeOPType type = ADD) : opType(type), pBarrelInfo(NULL) {}
+    MergeOP(MergeOPType type = ADD_BARREL) : opType(type), pBarrelInfo(NULL) {}
 };
 
 class IndexMerger;
