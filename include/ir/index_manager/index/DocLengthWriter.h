@@ -11,6 +11,7 @@
 #include <ir/index_manager/index/IndexerCollectionMeta.h>
 #include <ir/index_manager/store/Directory.h>
 #include <ir/index_manager/store/IndexOutput.h>
+#include <ir/index_manager/utility/system.h>
 
 #include <string>
 
@@ -33,9 +34,9 @@ public:
     ///Since each document has multiple properties, when indexing a document, it's better
     ///to collect all property length of that document, and fill them into buffer property
     ///by property, and write to disk in the end. This api is used to fill the buffer
-    void fill(fieldid_t fid, size_t len, uint16_t* docLength);
+    void fill(fieldid_t fid, size_t len, count_t* docLength);
     ///Write the buffer that contains all property length of a document into disk.
-    void add(docid_t docID, const uint16_t* docLength);
+    void add(docid_t docID, const count_t* docLength);
 
     void flush();
 

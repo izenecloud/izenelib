@@ -1,21 +1,21 @@
-#include <ir/index_manager/index/OfflineIndexMerger.h>
+#include <ir/index_manager/index/OptimizeMerger.h>
 
 using namespace izenelib::ir::indexmanager;
 
-OfflineIndexMerger::OfflineIndexMerger(Indexer* pIndexer, unsigned int numBarrels)
+OptimizeMerger::OptimizeMerger(Indexer* pIndexer, unsigned int numBarrels)
         :IndexMerger(pIndexer)
         ,pMergeBarrel_(NULL)
 {
     setBarrels(numBarrels);
 }
 
-OfflineIndexMerger::~OfflineIndexMerger(void)
+OptimizeMerger::~OptimizeMerger(void)
 {
     if(pMergeBarrel_)
         delete pMergeBarrel_;
 }
 
-void OfflineIndexMerger::setBarrels(unsigned int numBarrels)
+void OptimizeMerger::setBarrels(unsigned int numBarrels)
 {
     if(numBarrels > 0)
     {
@@ -28,11 +28,11 @@ void OfflineIndexMerger::setBarrels(unsigned int numBarrels)
     }
 }
 
-void OfflineIndexMerger::addBarrel(MergeBarrelEntry* pEntry)
+void OptimizeMerger::addBarrel(MergeBarrelEntry* pEntry)
 {
     pMergeBarrel_->put(pEntry);
 }
-void OfflineIndexMerger::endMerge()
+void OptimizeMerger::endMerge()
 {
     mergeBarrel(pMergeBarrel_);
 }

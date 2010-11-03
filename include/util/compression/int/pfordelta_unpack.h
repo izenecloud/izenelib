@@ -1,3 +1,8 @@
+#ifndef IZENE_UTIL_COMPRESSION_INT_PFORDELTA_UNPACK_H
+#define IZENE_UTIL_COMPRESSION_INT_PFORDELTA_UNPACK_H
+
+namespace izenelib{namespace util{namespace compression{
+
 class  PForDeltaUnpack
 {
 public:
@@ -54,7 +59,8 @@ public:
             break;
         }
     }
-    static  void unpack1(uint32_t* out, uint32_t* in)
+
+    static void unpack1(uint32_t* out, uint32_t* in)
     {
         out[0] = ((in[2]) & 1);
         out[1] = ((in[2] >> 1) & 1);
@@ -186,7 +192,7 @@ public:
         out[127] = ((in[5] >> 31) & 1);
     }
 
-    static  void unpack2(uint32_t* out, uint32_t* in)
+    static void unpack2(uint32_t* out, uint32_t* in)
     {
         out[0] = ((in[2]) & 3);
         out[1] = ((in[2] >> 2) & 3);
@@ -318,7 +324,7 @@ public:
         out[127] = ((in[9] >> 30) & 3);
     }
 
-    static  void unpack3(uint32_t* out, uint32_t* in)
+    static void unpack3(uint32_t* out, uint32_t* in)
     {
         out[0] = ((in[2]) & 7);
         out[1] = ((in[2] >> 3) & 7);
@@ -458,7 +464,7 @@ public:
         out[127] = ((in[13] >> 29) & 7);
     }
 
-    static  void unpack4(uint32_t* out, uint32_t* in)
+    static void unpack4(uint32_t* out, uint32_t* in)
     {
         out[0] = ((in[2]) & 15);
         out[1] = ((in[2] >> 4) & 15);
@@ -590,7 +596,7 @@ public:
         out[127] = ((in[17] >> 28) & 15);
     }
 
-    static  void unpack5(uint32_t* out, uint32_t* in)
+    static void unpack5(uint32_t* out, uint32_t* in)
     {
         out[0] = ((in[2]) & 31);
         out[1] = ((in[2] >> 5) & 31);
@@ -738,7 +744,7 @@ public:
         out[127] = ((in[21] >> 27) & 31);
     }
 
-    static  void unpack6(uint32_t* out, uint32_t* in)
+    static void unpack6(uint32_t* out, uint32_t* in)
     {
         out[0] = ((in[2]) & 63);
         out[1] = ((in[2] >> 6) & 63);
@@ -886,7 +892,7 @@ public:
         out[127] = ((in[25] >> 26) & 63);
     }
 
-    static  void unpack7(uint32_t* out, uint32_t* in)
+    static void unpack7(uint32_t* out, uint32_t* in)
     {
         out[0] = ((in[2]) & 127);
         out[1] = ((in[2] >> 7) & 127);
@@ -1042,7 +1048,7 @@ public:
         out[127] = ((in[29] >> 25) & 127);
     }
 
-    static  void unpack8(uint32_t* out, uint32_t* in)
+    static void unpack8(uint32_t* out, uint32_t* in)
     {
         out[0] = ((in[2]) & 255);
         out[1] = ((in[2] >> 8) & 255);
@@ -1174,7 +1180,7 @@ public:
         out[127] = ((in[33] >> 24) & 255);
     }
 
-    static  void unpack9(uint32_t* out, uint32_t* in)
+    static void unpack9(uint32_t* out, uint32_t* in)
     {
         out[0] = ((in[2]) & 511);
         out[1] = ((in[2] >> 9) & 511);
@@ -1338,7 +1344,7 @@ public:
         out[127] = ((in[37] >> 23) & 511);
     }
 
-    static  void unpack10(uint32_t* out, uint32_t* in)
+    static void unpack10(uint32_t* out, uint32_t* in)
     {
         out[0] = ((in[2]) & 1023);
         out[1] = ((in[2] >> 10) & 1023);
@@ -1502,7 +1508,7 @@ public:
         out[127] = ((in[41] >> 22) & 1023);
     }
 
-    static  void unpack11(uint32_t* out, uint32_t* in)
+    static void unpack11(uint32_t* out, uint32_t* in)
     {
         out[0] = ((in[2]) & 2047);
         out[1] = ((in[2] >> 11) & 2047);
@@ -1674,7 +1680,7 @@ public:
         out[127] = ((in[45] >> 21) & 2047);
     }
 
-    static  void unpack12(uint32_t* out, uint32_t* in)
+    static void unpack12(uint32_t* out, uint32_t* in)
     {
         out[0] = ((in[2]) & 4095);
         out[1] = ((in[2] >> 12) & 4095);
@@ -1838,7 +1844,7 @@ public:
         out[127] = ((in[49] >> 20) & 4095);
     }
 
-    static  void unpack13(uint32_t* out, uint32_t* in)
+    static void unpack13(uint32_t* out, uint32_t* in)
     {
         out[0] = ((in[2]) & 8191);
         out[1] = ((in[2] >> 13) & 8191);
@@ -2018,7 +2024,7 @@ public:
         out[127] = ((in[53] >> 19) & 8191);
     }
 
-    static  void unpack16(uint32_t* out, uint32_t* in)
+    static void unpack16(uint32_t* out, uint32_t* in)
     {
         out[0] = ((in[2]) & 65535);
         out[1] = ((in[2] >> 16) & 65535);
@@ -2150,7 +2156,7 @@ public:
         out[127] = ((in[65] >> 16) & 65535);
     }
 
-    static  void unpack20(uint32_t* out, uint32_t* in)
+    static void unpack20(uint32_t* out, uint32_t* in)
     {
         out[0] = ((in[2]) & 1048575);
         out[1] = ((in[2] >> 20) & 1048575);
@@ -2346,3 +2352,8 @@ public:
         out[127] = ((in[81] >> 12) & 1048575);
     }
 };
+
+}}}
+
+#endif
+

@@ -11,9 +11,9 @@ public:
 
     ~vbyte_compressor();
 
-    int _compress(unsigned int* input, unsigned int* output, int size);
+    int compress(unsigned int* input, unsigned int* output, int size);
 
-    int _decompress(unsigned int* input, unsigned int* output, int size);
+    int decompress(unsigned int* input, unsigned int* output, int size);
 };
 
 }}}

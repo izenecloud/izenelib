@@ -31,12 +31,6 @@ NS_IZENELIB_IR_BEGIN
 
 namespace indexmanager{
 
-#define MANAGER_PURE_INDEX 0x0
-#define MANAGER_INDEXING_BTREE 0x0001			///has btree index
-#define MANAGER_INDEXING_STANDALONE_MERGER 0x0002  //merge index in a stand alone thread
-
-typedef uint16_t ManagerType;
-
 enum IndexStatus
 {
     EMPTY,  /// There are no index files in the directory
@@ -54,7 +48,7 @@ class Indexer: private boost::noncopyable
 {
 public:
 
-    Indexer(ManagerType managerType = MANAGER_INDEXING_BTREE|MANAGER_INDEXING_STANDALONE_MERGER);
+    Indexer();
 
     virtual ~Indexer();
 public:
@@ -114,8 +108,6 @@ public:
 
     IndexManagerConfig* getIndexManagerConfig() { return pConfigurationManager_;}
 
-    ManagerType getIndexerType() {return managerType_;}
-
     const std::map<std::string, IndexerCollectionMeta>& getCollectionsMeta();
 
     izenelib::util::ReadWriteLock& getLock() { return mutex_; }
@@ -127,13 +119,13 @@ public:
 
     void setBasePath(std::string basePath);
 
-    void setDirty(bool dirty);
+    void setDirty();
 
     bool isDirty() { return dirty_; }
 
     IndexWriter* getIndexWriter(){return pIndexWriter_;}
     
-    IndexReader* getIndexReader() { return pIndexReader_;}
+    IndexReader* getIndexReader();
 
     BTreeIndexer* getBTreeIndexer() { return pBTreeIndexer_; }
 
@@ -150,6 +142,8 @@ public:
 
     bool isRealTime() { return realTime_; }
 
+    CompressionType getIndexCompressType() { return indexingType_; }
+
     void close();
 
 protected:
@@ -157,8 +151,6 @@ protected:
     void openDirectory(const std::string& storagePolicy);
 
 protected:
-    ManagerType managerType_;
-
     Directory* pDirectory_;
 
     volatile bool dirty_;
@@ -178,6 +170,8 @@ protected:
     int maxSkipLevel_;
 
     bool realTime_;
+
+    CompressionType indexingType_;
 
     std::map<collectionid_t, std::map<string, fieldid_t> > property_name_id_map_;
 

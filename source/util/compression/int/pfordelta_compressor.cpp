@@ -41,7 +41,7 @@ void pfordelta_compressor::set_blocksize(int blockSize)
 }
 
 
-int pfordelta_compressor::_compress(unsigned int* input, unsigned int* output, int size)
+int pfordelta_compressor::compress(unsigned int* input, unsigned int* output, int size)
 {
     int total_comp_len = 0;
 
@@ -169,7 +169,7 @@ int pfordelta_compressor::pfor_encode(unsigned int** w, unsigned int* p, int num
     return -1;
 }
 
-int pfordelta_compressor::_decompress(unsigned int* input, unsigned int* output, int size)
+int pfordelta_compressor::decompress(unsigned int* input, unsigned int* output, int size)
 {
     int total_decom_len = 0;
 

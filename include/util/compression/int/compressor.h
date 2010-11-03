@@ -13,7 +13,8 @@
 #include <util/compression/int/vbyte_compressor.h>
 #include <util/compression/int/s16_compressor.h>
 #include <util/compression/int/pfordelta_compressor.h>
-#include <util/compression/int/turborice_compressor.h>
+#include <util/compression/int/pfordelta_mix_s16_compressor.h>
+#include <util/compression/int/newpfor_s9_compressor.h>
 
 namespace izenelib{namespace util{namespace compression{
 
@@ -23,29 +24,52 @@ class Compressor:public CompressorPolicy
 public:
     int compress(unsigned int* input, unsigned int* output, int size)
     {
-        return this->_compress(input,output,size);
+        return upcast()->compress(input,output,size);
     }
-
+    /*
+    * param: size: size of umpressed data
+    * @return compressed size
+    */
     int decompress(unsigned int* input, unsigned int* output, int size)
     {
-        return this->_decompress(input,output,size);
-    }
-    int compress(uint32_t* const src, char* des, int length)
-    {
-        return this->_compress(src, des, length);
+        return upcast()->decompress(input,output,size);
     }
 
+    ///////////////////////////////////////////////////////////
+    ///There are two kinds of compress and decompress interfaces.
+    ///The major difference is the decompress
+    ///////////////////////////////////////////////////////////
+    int compress(uint32_t* const src, char* des, int length)
+    {
+        return upcast()->compress(src, des, length);
+    }
+    /*
+    * param: length: length of compressed data
+    * @return decompressed size
+    */
     int decompress(char* const src, uint32_t* des, int length)
     {
-        return this->_decompress(src, des, length);
+        return upcast()->decompress(src, des, length);
     }
+
+protected:
+    inline CompressorPolicy * upcast()
+    {
+        return static_cast<CompressorPolicy *>(this);
+    };
+    inline const CompressorPolicy * upcast()const
+    {
+        return static_cast<const CompressorPolicy *>(this);
+    };
+
 };
 
 typedef Compressor<vbyte_compressor> VByte_Compressor;
+typedef Compressor<pfordelta_mix_s16_compressor> PForDeltaMixS16_Compressor;
 typedef Compressor<pfordelta_mix_compressor> PForDeltaMix_Compressor;
 typedef Compressor<s16_compressor> S16_Compressor;
 typedef Compressor<pfordelta_compressor> PForDelta_Compressor;
-typedef Compressor<turborice_compressor> TurboRice_Compressor;
+typedef Compressor<newpfor_mix_s9_compressor> PForDeltaMixS9_Compressor;
 
 }}}
 #endif

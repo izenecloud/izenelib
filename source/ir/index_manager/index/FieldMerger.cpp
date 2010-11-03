@@ -1,6 +1,6 @@
 #include <ir/index_manager/index/IndexBarrelWriter.h>
 #include <ir/index_manager/index/FieldMerger.h>
-#include <ir/index_manager/index/Posting.h>
+#include <ir/index_manager/index/EPostingWriter.h>
 #include <ir/index_manager/index/TermReader.h>
 #include <ir/index_manager/index/MultiPostingIterator.h>
 
@@ -65,9 +65,12 @@ FieldMerger::~FieldMerger()
 void FieldMerger::addField(BarrelInfo* pBarrelInfo,FieldInfo* pFieldInfo)
 {
     fieldEntries_.push_back(new MergeFieldEntry(pBarrelInfo,pFieldInfo));
-    if (pPostingMerger_ == NULL)
-        pPostingMerger_ = new PostingMerger(skipInterval_, maxSkipLevel_);
+}
 
+void FieldMerger::initPostingMerger(CompressionType compressType, bool optimize, MemCache* pMemCache)
+{
+    if (pPostingMerger_ == NULL)
+        pPostingMerger_ = new PostingMerger(skipInterval_, maxSkipLevel_, compressType, optimize, pMemCache);
 }
 
 fileoffset_t FieldMerger::merge(OutputDescriptor* pOutputDescriptor)
@@ -176,7 +179,21 @@ bool FieldMerger::initQueue()
         else
         {
             ///on-disk index barrel
-            pTermReader = new DiskTermReader(pDirectory_,pEntry->pBarrelInfo_,pEntry->pFieldInfo_);
+            switch(pEntry->pBarrelInfo_->compressType)
+            {
+            case BYTEALIGN:
+                pTermReader = new RTDiskTermReader(pDirectory_,pEntry->pBarrelInfo_,pEntry->pFieldInfo_);
+                break;
+            case BLOCK:
+                pTermReader = new BlockTermReader(pDirectory_,pEntry->pBarrelInfo_,pEntry->pFieldInfo_);
+                break;
+            case CHUNK:
+                pTermReader = new ChunkTermReader(pDirectory_,pEntry->pBarrelInfo_,pEntry->pFieldInfo_);
+                break;
+            default:
+                assert(false);
+            }
+
         }
         pTermReader->setSkipInterval(skipInterval_);
         pTermReader->setMaxSkipLevel(maxSkipLevel_);
@@ -244,7 +261,7 @@ void FieldMerger::sortingMerge(FieldMergeInfo** ppMergeInfos,int32_t numInfos,Te
     {
         TermPositions* pPosition = new TermPositions(
                                                 ppMergeInfos[i]->pIterator_->termPosting(),
-                                                *(ppMergeInfos[i]->pIterator_->termInfo()));
+                                                *(ppMergeInfos[i]->pIterator_->termInfo()),false);
 
         pPosition->setSkipInterval(skipInterval_);
         pPosition->setMaxSkipLevel(maxSkipLevel_);
@@ -254,7 +271,7 @@ void FieldMerger::sortingMerge(FieldMergeInfo** ppMergeInfos,int32_t numInfos,Te
         else
             postingIterator.addTermPosition(pPosition, pDocFilter_);
     }
-    InMemoryPosting* newPosting = new InMemoryPosting(pMemCache_, skipInterval_, maxSkipLevel_);
+    RTPostingWriter* newPosting = new RTPostingWriter(pMemCache_, skipInterval_, maxSkipLevel_);
 
     docid_t docId = 0;
     while(postingIterator.next())

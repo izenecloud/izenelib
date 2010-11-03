@@ -15,10 +15,10 @@ NS_IZENELIB_IR_BEGIN
 
 namespace indexmanager{
 
-class Posting;
+class PostingReader;
 /**
 * @brief TermIterator is used to iterate terms, if necessary, it could provide the posting relevant to the term iterated.
-* It is the base class of InMemoryTermIterator and DiskTermIterator.
+* It is the base class of MemTermIterator and RTDiskTermIterator.
 * currently SkipList has not been added, it could be an improvement in future.
 * After the IndexManager API has been modified, the Indexer does not need such an utility, however, The existence of
 * TermIterator should be reasonable, and perhaps will be needed in future, therefore it is reserved, although currently
@@ -39,7 +39,7 @@ public:
     /// get current term info
     virtual const TermInfo* termInfo() = 0;
     /// get current term's posting (for merge only)
-    virtual Posting* termPosting() = 0;
+    virtual PostingReader* termPosting() = 0;
 
     int getSkipInterval() { return skipInterval_; }
 

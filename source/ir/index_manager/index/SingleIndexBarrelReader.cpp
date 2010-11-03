@@ -66,7 +66,20 @@ void SingleIndexBarrelReader::open(const char* name)
                 pFieldInfo = pFieldsInfo->next();
                 if (pFieldInfo->isIndexed()&&pFieldInfo->isForward())
                 {
-                    pTermReader = new DiskTermReader(pDirectory,pBarrelInfo_,pFieldInfo);
+                    switch(pBarrelInfo_->compressType)
+                    {
+                    case BYTEALIGN:
+                        pTermReader = new RTDiskTermReader(pDirectory,pBarrelInfo_,pFieldInfo);
+                        break;
+                    case BLOCK:
+                        pTermReader = new BlockTermReader(pDirectory,pBarrelInfo_,pFieldInfo);
+                        break;
+                    case CHUNK:
+                        pTermReader = new ChunkTermReader(pDirectory,pBarrelInfo_,pFieldInfo);
+                        break;
+                    default:
+                        assert(false);
+                    }
                     break;
                 }
             }
@@ -80,16 +93,6 @@ void SingleIndexBarrelReader::open(const char* name)
         termReaderMap_.insert(pair<collectionid_t, TermReader*>(pColInfo->getId(),pTermReader));
     }
 
-}
-
-void SingleIndexBarrelReader::reopen()
-{
-    if(pBarrelInfo_->isModified())
-    {
-        for (map<collectionid_t, TermReader*>::iterator iter = termReaderMap_.begin(); 
-                iter != termReaderMap_.end(); ++iter)
-            iter->second->reopen();
-    }
 }
 
 TermReader* SingleIndexBarrelReader::termReader(collectionid_t colID, const char* field)

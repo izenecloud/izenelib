@@ -11,7 +11,7 @@
 #include <ir/index_manager/index/TermInfo.h>
 #include <ir/index_manager/index/InputDescriptor.h>
 #include <ir/index_manager/index/TermInfo.h>
-#include <ir/index_manager/index/Posting.h>
+#include <ir/index_manager/index/PostingReader.h>
 
 NS_IZENELIB_IR_BEGIN
 
@@ -27,11 +27,7 @@ class TermDocFreqs
 public:
     TermDocFreqs();
 
-    TermDocFreqs(TermReader * pReader,InputDescriptor * pInputDescriptor,const TermInfo& ti,int skipInterval, int maxSkipLevel);
-
-    TermDocFreqs(TermReader * pReader,Posting * pPosting,const TermInfo& ti);
-
-    TermDocFreqs(Posting* pPosting, const TermInfo& ti);
+    TermDocFreqs(PostingReader * pPosting,const TermInfo& ti,bool ownPosting = true);
 
     virtual ~TermDocFreqs();
 public:
@@ -64,7 +60,7 @@ protected:
 protected:
     TermInfo termInfo_;
 
-    Posting* pPosting_;
+    PostingReader* pPosting_;
 
     uint32_t* pPostingBuffer_;	///buffer for store decoded postings
 
@@ -77,10 +73,6 @@ protected:
     int32_t nCurDecodedCount_;
 
     int32_t nCurrentPosting_;	///position of current posting
-
-    TermReader* pTermReader_;
-
-    InputDescriptor* pInputDescriptor_;
 
     bool ownPosting_;
 

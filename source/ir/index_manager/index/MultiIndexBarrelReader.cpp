@@ -2,6 +2,7 @@
 #include <ir/index_manager/index/MultiTermReader.h>
 #include <ir/index_manager/index/Indexer.h>
 
+#include <boost/thread.hpp>
 
 using namespace izenelib::ir::indexmanager;
 
@@ -9,12 +10,12 @@ MultiIndexBarrelReader::MultiIndexBarrelReader(IndexReader* pIndexReader,Barrels
         :IndexBarrelReader(pIndexReader)
         ,pBarrelsInfo_(pBarrelsInfo)
 {
-    BarrelInfo* pBarrelInfo;
+    boost::mutex::scoped_lock lock(pBarrelsInfo_->getMutex());
 
     pBarrelsInfo_->startIterator();
     while (pBarrelsInfo_->hasNext())
     {
-        pBarrelInfo = pBarrelsInfo_->next();
+        BarrelInfo* pBarrelInfo = pBarrelsInfo_->next();
         if(!pBarrelInfo->isSearchable())
             continue;
         if (pBarrelInfo->getDocCount() > 0)
@@ -30,12 +31,6 @@ MultiIndexBarrelReader::~MultiIndexBarrelReader(void)
 
 void MultiIndexBarrelReader::open(const char* name)
 {
-}
-
-void MultiIndexBarrelReader::reopen()
-{
-    for(vector<BarrelReaderEntry*>::iterator iter = readers_.begin(); iter != readers_.end(); ++iter)
-        (*iter)->pBarrelReader_->reopen();
 }
 
 TermReader* MultiIndexBarrelReader::termReader(collectionid_t colID)

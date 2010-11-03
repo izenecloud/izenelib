@@ -8,14 +8,14 @@ NS_IZENELIB_IR_BEGIN
 namespace indexmanager{
 
 SkipListReader::SkipListReader(IndexInput* pSkipInput, int skipInterval, int numSkipLevels)
-	: loaded_(false)
-	, defaultSkipInterval_(skipInterval)
-	, numSkipLevels_(numSkipLevels)
-	, numSkipped_(0)
-	, totalSkipped_(0)
-	, lastDoc_(0)
-	, lastSkipInterval_(0)
-	, lastChildPointer_(0)
+        : loaded_(false)
+        , defaultSkipInterval_(skipInterval)
+        , numSkipLevels_(numSkipLevels)
+        , numSkipped_(0)
+        , totalSkipped_(0)
+        , lastDoc_(0)
+        , lastSkipInterval_(0)
+        , lastChildPointer_(0)
 {
     init();
     skipStream_[0] = pSkipInput->clone();

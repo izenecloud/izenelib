@@ -10,7 +10,7 @@ vbyte_compressor::vbyte_compressor()
 vbyte_compressor::~vbyte_compressor()
 {}
 
-int vbyte_compressor::_compress(unsigned int* input, unsigned int* output, int size)
+int vbyte_compressor::compress(unsigned int* input, unsigned int* output, int size)
 {
     unsigned char* curr_byte = reinterpret_cast<unsigned char*> (output);
 
@@ -52,7 +52,7 @@ int vbyte_compressor::_compress(unsigned int* input, unsigned int* output, int s
     return (bp >> 2) + ((bp & 3) != 0 ? 1 : 0);
 }
 
-int vbyte_compressor::_decompress(unsigned int* input, unsigned int* output, int size)
+int vbyte_compressor::decompress(unsigned int* input, unsigned int* output, int size)
 {
     unsigned char* curr_byte = reinterpret_cast<unsigned char*> (input);
     unsigned int n;

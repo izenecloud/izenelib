@@ -18,7 +18,20 @@ MultiFieldTermReader::MultiFieldTermReader(Directory* pDirectory,BarrelInfo* pBa
 
         if (pInfo->isIndexed()&&pInfo->isForward())
         {
-            pTermReader = new DiskTermReader(pDirectory,pBarrelInfo,pInfo);
+            switch(pBarrelInfo->compressType)
+            {
+            case BYTEALIGN:
+                pTermReader = new RTDiskTermReader(pDirectory,pBarrelInfo,pInfo);
+                break;
+            case BLOCK:
+                pTermReader = new BlockTermReader(pDirectory,pBarrelInfo,pInfo);
+                break;
+            case CHUNK:
+                pTermReader = new ChunkTermReader(pDirectory,pBarrelInfo,pInfo);
+                break;
+            default:
+                assert(false);
+            }
             fieldsTermReaders_.insert(pair<string,TermReader*>(pInfo->getName(),pTermReader));
         }
     }

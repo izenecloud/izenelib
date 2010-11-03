@@ -60,19 +60,14 @@ public:
         return pMemCache_->isEmpty();
     }
     /**
-     * write cache to barrels
-     */
-    void writeCache();
-    /**
-     * reset cache content
-     * @param bResetPosting reset postings of indexer or not
-     */
-    void resetCache(bool bResetPosting = false);
-    /**
-     * open a index barrel
+     * set a index barrel
      * @param pInfo index barrel info
     */
-    void open(BarrelInfo* pInfo);
+    void setBarrelInfo(BarrelInfo* pInfo)
+    {
+        pBarrelInfo_ = pInfo;
+    }
+
     /** close barrel writer */
     void close();
     /**
@@ -122,6 +117,17 @@ public:
     BitVector* getDocFilter() { return pDocFilter_; }
 
     bool isDirty() { return dirty_; }
+
+private:
+    /**
+     * write cache to barrels
+     */
+    void writeCache();
+    /**
+     * reset cache content
+     */
+    void resetCache();
+
 private:
     BarrelInfo* pBarrelInfo_;
 

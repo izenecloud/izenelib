@@ -44,7 +44,7 @@ s16_compressor::s16_compressor()
     cnum[15] = 1;
 }
 
-int s16_compressor::_compress(unsigned int* input, unsigned int* output, int size)
+int s16_compressor::compress(unsigned int* input, unsigned int* output, int size)
 {
     int left = size;
     unsigned int* tmp = output;
@@ -86,7 +86,7 @@ int s16_compressor::s16_encode(unsigned int* _w, unsigned int* _p, unsigned int 
     return _m;
 }
 
-int s16_compressor::_decompress(unsigned int* input, unsigned int* output, int size)
+int s16_compressor::decompress(unsigned int* input, unsigned int* output, int size)
 {
     _p = output;
     int num;

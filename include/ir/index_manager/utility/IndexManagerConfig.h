@@ -37,7 +37,8 @@ private:
                 memory_(0),
                 indexDocLength_(false),
                 skipInterval_(8),
-                maxSkipLevel_(3)
+                maxSkipLevel_(3),
+                isIndexBTree_(true)
         {}
     private:
         friend class boost::serialization::access;
@@ -47,11 +48,13 @@ private:
         {
             ar & indexLocation_;
             ar & indexLocations_;
+            ar & indexMode_;
             ar & optimizeSchedule_;
             ar & memory_;
             ar & indexDocLength_;
             ar & skipInterval_;
             ar & maxSkipLevel_;
+            ar & isIndexBTree_;
         }
 
 
@@ -79,6 +82,9 @@ private:
         int skipInterval_;
 
         int maxSkipLevel_;
+
+        /// true for generate BTree index, false for not to generate.
+        bool isIndexBTree_;
     };
 
     /**
@@ -86,6 +92,10 @@ private:
      */
     class _mergestrategy
     {
+    public:
+        _mergestrategy()
+            :isAsync_(true)
+        {}
 
     private:
         friend class boost::serialization::access;
@@ -93,19 +103,22 @@ private:
         template <typename Archive>
         void serialize( Archive & ar, const unsigned int version )
         {
-            ar & strategy_;
             ar & param_;
+            ar & isAsync_;
         }
     public:
-        /// It could be :
+        /// @brief  param of merge method:
         /// NO - no merge
         /// IMM - immediate
         /// MWAY - m-way
         /// DEFAULT - online
-        std::string strategy_;
-
-        /// @brief  param of merge method
         std::string param_;
+
+        /**
+         * true for merge asynchronously (merge index in a separated thread),
+         * false for merge synchronously (single thread for both build index and merge index).
+         */
+        bool isAsync_;
     };
 
     /**

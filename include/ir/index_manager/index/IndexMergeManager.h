@@ -8,14 +8,12 @@
 #define INDEXMERGER_MANAGER_H
 
 #include <boost/thread.hpp>
-#include <boost/shared_ptr.hpp>
 
 #include <string>
 #include <vector>
 #include <map>
 
 #include <ir/index_manager/index/Indexer.h>
-#include <ir/index_manager/index/IndexMerger.h>
 #include <ir/index_manager/index/BarrelInfo.h>
 
 #include <util/concurrent_queue.h>
@@ -29,34 +27,77 @@ namespace indexmanager{
 
 enum MergeOPType
 {
-    ONLINE,
-    FINISH,
-    OFFLINE,
-    NOOP
+    ADD_BARREL,
+    OPTIMIZE_ALL,
+    EXIT_MERGE
 };
 
 struct MergeOP
 {
     MergeOPType opType;
     BarrelInfo* pBarrelInfo;
+
+    MergeOP(MergeOPType type = ADD_BARREL) : opType(type), pBarrelInfo(NULL) {}
 };
+
+class IndexMerger;
+class OptimizeMerger;
 
 class IndexMergeManager
 {
 public:
+    /**
+     * Constructor.
+     * @param pIndexer the indexer
+     */
     IndexMergeManager(Indexer* pIndexer);
 
     ~IndexMergeManager();
 public:
-    void run();
+    /**
+     * add an index barrel to merge
+     * @param pBarrelInfo the barrel need to merge
+     */
+    void addToMerge(BarrelInfo* pBarrelInfo);
 
-    void triggerMerge(BarrelInfo* pBarrelInfo);
-
+    /**
+     * Clear current appending merge requests, and merge all barrels into one.
+     */
     void optimizeIndex();
 
-    void stop();
+    /**
+     * Block the calling thread until the merge thread finishes its all tasks,
+     * and create a new thread for future merge request.
+     * Notes: this function only works when @p isAsyncMerge is true.
+     */
+    void waitForMergeFinish();
+
 private:
     void mergeIndex();
+
+    /**
+     * Block the calling thread until the merge thread finishes its all tasks,
+     * and delete the merge thread.
+     * Notes: this function only works when @p isAsyncMerge is true.
+     */
+    void joinMergeThread();
+
+    /**
+     * Implementation to merge all barrels into one.
+     */
+    void optimizeIndexImpl();
+
+    /**
+     * Create the merge thread and run it.
+     */
+    void run();
+
+    /**
+     * Clear current appending merge requests, and block the calling thread
+     * until the merge thread finishes its current task.
+     * Notes: this function only works when @p isAsyncMerge is true.
+     */
+    void stop();
 
 private:
     Indexer* pIndexer_;
@@ -65,9 +106,11 @@ private:
 
     izenelib::util::concurrent_queue<MergeOP> tasks_;
 
-    std::map<MergeOPType, IndexMerger*> indexMergers_;
+    IndexMerger* pAddMerger_; ///< the merger called when new barrel is added
 
-    boost::shared_ptr<boost::thread> mergethread_;
+    OptimizeMerger* pOptimizeMerger_; ///< the merger called when to optimize all barrels
+
+    boost::thread* pMergeThread_;
 };
 
 }

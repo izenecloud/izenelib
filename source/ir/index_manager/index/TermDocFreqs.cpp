@@ -2,9 +2,11 @@
 #include <ir/index_manager/index/InputDescriptor.h>
 #include <ir/index_manager/index/TermReader.h>
 #include <ir/index_manager/index/Term.h>
+#include <ir/index_manager/index/RTPostingReader.h>
 
+NS_IZENELIB_IR_BEGIN
 
-using namespace izenelib::ir::indexmanager;
+namespace indexmanager{
 
 TermDocFreqs::TermDocFreqs()
         :pPosting_(NULL)
@@ -14,50 +16,11 @@ TermDocFreqs::TermDocFreqs()
         ,nTotalDecodedCount_(0)
         ,nCurDecodedCount_(0)
         ,nCurrentPosting_(-1)
-        ,pTermReader_(NULL)
-        ,pInputDescriptor_(NULL)
         ,ownPosting_(true)
 {
 }
 
-TermDocFreqs::TermDocFreqs(TermReader* pReader, InputDescriptor* pInputDescriptor, 
-                                                            const TermInfo& ti, int skipInterval, int maxSkipLevel)
-        :termInfo_(ti)
-        ,pPostingBuffer_(NULL)
-        ,nBufferSize_(0)
-        ,nFreqStart_(0)
-        ,nTotalDecodedCount_(0)
-        ,nCurDecodedCount_(0)
-        ,nCurrentPosting_(-1)
-        ,pTermReader_(pReader)
-        ,pInputDescriptor_(pInputDescriptor)
-        ,ownPosting_(true)
-        ,skipInterval_(skipInterval)
-        ,maxSkipLevel_(maxSkipLevel)
-{
-    pPosting_ = new OnDiskPosting(skipInterval_, maxSkipLevel_, pInputDescriptor_,termInfo_);
-    if(pReader->getDocFilter())
-        pPosting_->setFilter(pReader->getDocFilter());
-}
-
-TermDocFreqs::TermDocFreqs(TermReader* pReader, Posting* pPosting, const TermInfo& ti)
-        :termInfo_(ti)
-        ,pPosting_(pPosting->clone())
-        ,pPostingBuffer_(NULL)
-        ,nBufferSize_(0)
-        ,nFreqStart_(0)
-        ,nTotalDecodedCount_(0)
-        ,nCurDecodedCount_(0)
-        ,nCurrentPosting_(-1)
-        ,pTermReader_(pReader)
-        ,pInputDescriptor_(NULL)
-        ,ownPosting_(true)
-{
-    if(pReader->getDocFilter())
-        pPosting_->setFilter(pReader->getDocFilter());
-}
-
-TermDocFreqs::TermDocFreqs(Posting* pPosting, const TermInfo& ti)
+TermDocFreqs::TermDocFreqs(PostingReader* pPosting, const TermInfo& ti, bool ownPosting)
         :termInfo_(ti)
         ,pPosting_(pPosting)
         ,pPostingBuffer_(NULL)
@@ -66,13 +29,11 @@ TermDocFreqs::TermDocFreqs(Posting* pPosting, const TermInfo& ti)
         ,nTotalDecodedCount_(0)
         ,nCurDecodedCount_(0)
         ,nCurrentPosting_(-1)
-        ,pTermReader_(NULL)
-        ,pInputDescriptor_(NULL)
-        ,ownPosting_(false)
+        ,ownPosting_(ownPosting)
 {
 }
 
-TermDocFreqs::~TermDocFreqs(void)
+TermDocFreqs::~TermDocFreqs()
 {
     close();
     if (pPostingBuffer_)
@@ -131,11 +92,7 @@ docid_t TermDocFreqs::skipTo(docid_t target)
             {
                 if(!pPostingBuffer_)
                     createBuffer();
-                nCurrentPosting_ = 0;
-                nCurDecodedCount_ = 1;
-                pPostingBuffer_[0] = pPosting_->decodeTo(target);
-                pPostingBuffer_[nFreqStart_] = pPosting_->getCurTF();
-                return pPostingBuffer_[0];
+                return pPosting_->decodeTo(target,pPostingBuffer_,nBufferSize_,nCurDecodedCount_,nCurrentPosting_);
             }
        }
         start = nCurrentPosting_;
@@ -195,12 +152,6 @@ int32_t TermDocFreqs::bsearch(docid_t docs[],int32_t start,int32_t end,docid_t k
 
 void TermDocFreqs::close()
 {
-    if (pInputDescriptor_)
-    {
-        delete pInputDescriptor_;
-        pInputDescriptor_ = NULL;
-        pTermReader_ = NULL;
-    }
     if (pPosting_)
     {
         if(ownPosting_)
@@ -238,4 +189,8 @@ void TermDocFreqs::createBuffer()
         memset(pPostingBuffer_, 0, nBufferSize_*sizeof(uint32_t));
     }
 }
+
+}
+
+NS_IZENELIB_IR_END
 

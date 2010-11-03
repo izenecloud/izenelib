@@ -151,19 +151,19 @@ void VariantDataPool::addChunk()
     int32_t factor = max(32,(int32_t)(nTotalSize_ + 0.5));
     int32_t chunkSize = (int32_t)Utilities::LOG2_UP(factor);
 
-    uint8_t* begin = pMemCache_->getMem(chunkSize);
+    uint8_t* begin = pMemCache_->getMemByLogSize(chunkSize);
     ///allocate memory failed,decrease chunk size
     if (!begin)
     {
         ///into UPTIGHT state
-        begin = pMemCache_->getMem(chunkSize);
+        begin = pMemCache_->getMemByLogSize(chunkSize);
         ///allocation failed again, grow memory cache.
         if (!begin)
         {
             MemCache* pUrgentMemCache = pMemCache_->grow(UPTIGHT_ALLOC_MEMSIZE);
             size_t urgentChunkSize = min((int32_t)Utilities::LOG2_DOWN(UPTIGHT_ALLOC_MEMSIZE),chunkSize);
   
-            begin  = pUrgentMemCache->getMem(urgentChunkSize);
+            begin  = pUrgentMemCache->getMemByLogSize(urgentChunkSize);
             if (!begin)
             {
                 SF1V5_THROW(ERROR_OUTOFMEM,"InMemoryPosting:newChunk() : Allocate memory failed.");

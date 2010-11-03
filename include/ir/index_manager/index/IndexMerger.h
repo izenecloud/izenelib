@@ -143,11 +143,10 @@ public:
         pDocFilter_ = pFilter;
     }
 
-    /**
-     * transfer in-memory barrel to disk
-     * @param pszBarrelName barrel name
-     */
-    void flushBarrelToDisk(const std::string& barrelName);
+    void setOptimize(bool optimize)
+    {
+        optimize_ = optimize;
+    }
 
 protected:
     /**
@@ -196,6 +195,8 @@ protected:
     BitVector* pDocFilter_;
 
     bool triggerMerge_;
+
+    bool optimize_;  /// whether optimize BYTEALIGN index into BLOCK or CHUNK index
 
     friend class IndexWriter;
     friend class Indexer;

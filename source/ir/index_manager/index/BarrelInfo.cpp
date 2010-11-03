@@ -19,6 +19,7 @@ void BarrelInfo::remove(Directory* pDirectory)
     try
     {
         boost::mutex::scoped_lock lock(mutex_);
+        isRemoved_ = true;
         pDirectory->deleteFiles(barrelName);
     }
     catch (IndexManagerException& fe)
@@ -45,7 +46,6 @@ void BarrelInfo::rename(Directory* pDirectory,const string& newName)
             pDirectory->renameFiles(barrelName,newName);
 
         barrelName = newName;
-        modified = true;
         DVLOG(2) << "<= BarrelInfo::rename(), => " << barrelName;
     }
     catch (IndexManagerException& fe)
@@ -141,8 +141,7 @@ void BarrelInfo::setDirty()
 //////////////////////////////////////////////////////////////////////////
 //
 BarrelsInfo::BarrelsInfo()
-        :lock(false) 
-        ,version(SF1_VERSION)
+        :version(SF1_VERSION)
         ,nBarrelCounter(0)
         ,maxDoc(0)
 {
@@ -289,6 +288,19 @@ void BarrelsInfo::read(Directory* pDirectory, const char* name)
                         pBarrelInfo->searchable = false;
                 }
 
+                ///get <compress></compress> element
+                pItem = pBarrelItem->getElementByName("compress");
+                if (!pItem) pBarrelInfo->compressType = BYTEALIGN;
+                else
+                {
+                    if(pItem->getValue().compare("byte") == 0)
+                        pBarrelInfo->compressType = BYTEALIGN;
+                    else if(pItem->getValue().compare("block") == 0)
+                        pBarrelInfo->compressType = BLOCK;
+                    else if(pItem->getValue().compare("chunk") == 0)
+                        pBarrelInfo->compressType = CHUNK;
+                }
+
                 barrelInfos.push_back(pBarrelInfo);
             }
             delete pDatabase;
@@ -384,6 +396,24 @@ void BarrelsInfo::write(Directory* pDirectory)
         str = pBarrelInfo->searchable ? "yes":"no";
         pItem->setValue(str.c_str()); 
 
+        ///add <compress></compress>
+        pItem = pBarrelItem->addElement("compress");
+        switch(pBarrelInfo->compressType)
+        {
+        case BYTEALIGN:
+            str = "byte";
+            break;
+        case BLOCK:
+            str = "block";
+            break;
+        case CHUNK:
+            str = "chunk";
+            break;
+        default:
+            assert(false);
+         }
+        pItem->setValue(str.c_str()); 
+
         iter ++;
     }
 
@@ -459,10 +489,10 @@ const string BarrelsInfo::newBarrel()
     nBarrelCounter ++;
     return sName;
 }
-void BarrelsInfo::addBarrel(const char* name,count_t docCount)
+void BarrelsInfo::addBarrel(const char* name,count_t docCount,CompressionType compressType)
 {
     boost::mutex::scoped_lock lock(mutex_);
-    BarrelInfo* barrelInfo = new BarrelInfo(name,docCount);
+    BarrelInfo* barrelInfo = new BarrelInfo(name,docCount,compressType);
     barrelInfos.push_back(barrelInfo);
     DVLOG(2) << "BarrelsInfo::addBarrel(), barrel name: " << name << ", doc count: " << docCount;
 }
@@ -479,6 +509,7 @@ void BarrelsInfo::addBarrel(BarrelInfo* pBarrelInfo,bool bCopy)
 
 int32_t BarrelsInfo::getDocCount()
 {
+    boost::mutex::scoped_lock lock(mutex_);
     int32_t count = 0;
     vector<BarrelInfo*>::iterator iter = barrelInfos.begin();
     while (iter != barrelInfos.end())
@@ -487,33 +518,6 @@ int32_t BarrelsInfo::getDocCount()
         iter++;
     }
     return count;
-}
-
-BarrelInfo* BarrelsInfo::getBarrelInfo(const char* barrel)
-{
-    vector<BarrelInfo*>::iterator iter = barrelInfos.begin();
-    while (iter != barrelInfos.end())
-    {
-        if (!strcasecmp((*iter)->getName().c_str(),barrel))
-            return (*iter);
-        iter++;
-    }
-    return NULL;
-}
-BarrelInfo* BarrelsInfo::getLastBarrel()
-{
-    if (barrelInfos.size() <= 0)
-        return NULL;
-    return barrelInfos[barrelInfos.size() - 1];
-}
-void BarrelsInfo::deleteLastBarrel()
-{
-    boost::mutex::scoped_lock lock(mutex_);
-
-    if (barrelInfos.size() <= 0)
-        return ;
-    delete barrelInfos[barrelInfos.size() - 1];
-    barrelInfos.pop_back();
 }
 
 void BarrelsInfo::sort(Directory* pDirectory)
@@ -557,12 +561,11 @@ void BarrelsInfo::sort(Directory* pDirectory)
     DVLOG(2) << "<= BarrelsInfo::sort(), barrel count: " << barrelInfos.size() << ", max doc: " << maxDoc;
 }
 
-void BarrelsInfo::wait_for_barrels_ready()
+void BarrelsInfo::setSearchable()
 {
-    boost::unique_lock<boost::mutex> waitlock(mutex_);
-    while(lock)
-    {
-        modifyBarrelsEvent_.wait(waitlock);
-    }
+    boost::mutex::scoped_lock lock(mutex_);
+    for(vector<BarrelInfo*>::iterator iter=barrelInfos.begin();
+            iter != barrelInfos.end();
+            ++iter)
+        (*iter)->setSearchable(true);
 }
-

@@ -12,13 +12,13 @@
 #include <ir/index_manager/index/FieldIndexer.h>
 #include <ir/index_manager/index/TermInfo.h>
 #include <ir/index_manager/index/AbsTermIterator.h>
+#include <ir/index_manager/index/EPostingReader.h>
 
 NS_IZENELIB_IR_BEGIN
 
 namespace indexmanager{
-class Posting;
+class PostingReader;
 class InputDescriptor;
-class DiskTermReader;
 class VocReader;
 /**
 * Iterate terms from index barrel files(*.voc), the vocabulary should
@@ -37,7 +37,7 @@ public:
 
     const TermInfo* termInfo();
 
-    Posting* termPosting();
+    PostingReader* termPosting();
 
 private:
     VocReader* pTermReader_;      ///parent term reader
@@ -46,7 +46,7 @@ private:
 
     TermInfo* pCurTermInfo_;      ///current term info in this iterator
 
-    Posting* pCurTermPosting_;   ///current term's posting in this iterator
+    PostingReader* pCurTermPosting_;   ///current term's posting in this iterator
 
     InputDescriptor* pInputDescriptor_;
 
@@ -59,12 +59,12 @@ class FieldInfo;
 * Disk Term Iterator that does not need to load vocabulary into memory
 * it is only used for index merging
 */
-class DiskTermIterator : public TermIterator
+class RTDiskTermIterator : public TermIterator
 {
 public:
-    DiskTermIterator(Directory* pDirectory,const char* barrelname,FieldInfo* pFieldInfo);
+    RTDiskTermIterator(Directory* pDirectory,const char* barrelname,FieldInfo* pFieldInfo);
 
-    ~DiskTermIterator();
+    ~RTDiskTermIterator();
 
     bool next();
 
@@ -72,7 +72,7 @@ public:
 
     const TermInfo* termInfo();
 
-    Posting* termPosting();
+    PostingReader* termPosting();
 
 private:
     Directory* pDirectory_;	
@@ -91,7 +91,7 @@ private:
 
     TermInfo* pCurTermInfo_;	  ///current term info in this iterator
 
-    Posting* pCurTermPosting_;   ///current term's posting in this iterator
+    RTDiskPostingReader* pCurTermPosting_;   ///current term's posting in this iterator
 
     InputDescriptor* pInputDescriptor_;
 
@@ -99,16 +99,16 @@ private:
 };
 
 
-class InMemoryTermReader;
+class MemTermReader;
 /**
 * Iterator terms from memory
 */
-class InMemoryTermIterator : public TermIterator
+class MemTermIterator : public TermIterator
 {
 public:
-    InMemoryTermIterator(InMemoryTermReader* pTermReader);
+    MemTermIterator(MemTermReader* pTermReader);
 
-    virtual ~InMemoryTermIterator();
+    virtual ~MemTermIterator();
 public:
 
     bool next();
@@ -117,20 +117,108 @@ public:
 
     const TermInfo* termInfo();
 
-    Posting* termPosting();
+    PostingReader* termPosting();
 
 protected:
-    InMemoryTermReader* pTermReader_;
+    MemTermReader* pTermReader_;
 
     Term* pCurTerm_;         ///current term in this iterator
 
     TermInfo* pCurTermInfo_;      ///current term info in this iterator
 
-    InMemoryPosting* pCurTermPosting_;   ///current term's posting in this iterator
+    MemPostingReader* pCurTermPosting_;   ///current term's posting in this iterator
 
     InMemoryPostingMap::iterator postingIterator_;
 
     InMemoryPostingMap::iterator postingIteratorEnd_;
+};
+
+
+/*
+* Disk Term Iterator that does not need to load vocabulary into memory
+* it is only used for index merging
+*/
+class BlockTermIterator : public TermIterator
+{
+public:
+    BlockTermIterator(Directory* pDirectory,const char* barrelname,FieldInfo* pFieldInfo);
+
+    ~BlockTermIterator();
+
+    bool next();
+
+    const Term* term();
+
+    const TermInfo* termInfo();
+
+    PostingReader* termPosting();
+
+private:
+    Directory* pDirectory_;	
+
+    FieldInfo* pFieldInfo_;
+	
+    IndexInput* pVocInput_;
+
+    int32_t nTermCount_;
+
+    int64_t nVocLength_;
+
+    std::string barrelName_;
+	
+    Term* pCurTerm_;		 ///current term in this iterator
+
+    TermInfo* pCurTermInfo_;	  ///current term info in this iterator
+
+    BlockPostingReader* pCurTermPosting_;   ///current term's posting in this iterator
+
+    InputDescriptor* pInputDescriptor_;
+
+    int32_t nCurPos_;
+};
+
+
+/*
+* Disk Term Iterator that does not need to load vocabulary into memory
+* it is only used for index merging
+*/
+class ChunkTermIterator : public TermIterator
+{
+public:
+    ChunkTermIterator(Directory* pDirectory,const char* barrelname,FieldInfo* pFieldInfo);
+
+    ~ChunkTermIterator();
+
+    bool next();
+
+    const Term* term();
+
+    const TermInfo* termInfo();
+
+    PostingReader* termPosting();
+
+private:
+    Directory* pDirectory_;	
+
+    FieldInfo* pFieldInfo_;
+	
+    IndexInput* pVocInput_;
+
+    int32_t nTermCount_;
+
+    int64_t nVocLength_;
+
+    std::string barrelName_;
+	
+    Term* pCurTerm_;		 ///current term in this iterator
+
+    TermInfo* pCurTermInfo_;	  ///current term info in this iterator
+
+    ChunkPostingReader* pCurTermPosting_;   ///current term's posting in this iterator
+
+    InputDescriptor* pInputDescriptor_;
+
+    int32_t nCurPos_;
 };
 
 }

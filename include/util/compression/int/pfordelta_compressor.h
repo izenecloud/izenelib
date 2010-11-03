@@ -52,9 +52,9 @@ public:
 
     ~pfordelta_compressor(){}
 public:
-    int _compress(unsigned int* input, unsigned int* output, int size);
+    int compress(unsigned int* input, unsigned int* output, int size);
 
-    int _decompress(unsigned int* input, unsigned int* output, int size);
+    int decompress(unsigned int* input, unsigned int* output, int size);
 
     void set_blocksize(int blockSize);
 private:

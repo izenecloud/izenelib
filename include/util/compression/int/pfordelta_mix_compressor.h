@@ -32,15 +32,18 @@ public:
     ~pfordelta_mix_compressor();
 
 public:
+    int compress(unsigned int* input, unsigned int* output, int size);
+
+    int decompress(unsigned int* input, unsigned int* output, int size);
     /**
      * fixme: preserve "length * sizeof(uint32_t) * 2" space for des
      */
-    int _compress(uint32_t* const src, char* des, int length);
+    int compress(uint32_t* const src, char* des, int length);
 
     /**
      * fixme: preserve more 32 word space for dest
      */
-    int _decompress(char* const src, uint32_t* des, int length);
+    int decompress(char* const src, uint32_t* des, int length);
 
 public:
     void setDivision(float div)
@@ -123,11 +126,19 @@ protected:
     template<typename T>
     int vint_decode_p(T* des, char* const src, int length);
 
+    int vint_encode_p(uint32_t* const input, uint32_t* output, int size);
+
+    int vint_decode_p(uint32_t* const input, uint32_t* output, int size);
+
     template<typename T>
     int pfor_encode_p(char* des, T* const src, int length);
 
     template<typename T>
     int pfor_decode_p(T* des, char* const src, int& srcLen);
+
+    int encode_block(uint32_t* des, uint32_t* const src, int length);
+
+    int decode_block(uint32_t* des, uint32_t* const src);
 
     template<typename T>
     unsigned int compressFunc(T value, char * buf, unsigned int & len);

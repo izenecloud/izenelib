@@ -23,6 +23,13 @@ NS_IZENELIB_IR_BEGIN
 namespace indexmanager{
 class IndexBarrelWriter;
 ///barrel information, description of index barrel
+enum CompressionType
+{
+    BYTEALIGN,  /// byte-aligned compression, vint + d-gap compression
+    BLOCK, /// block based compression
+    CHUNK /// chunk based compression
+};
+
 class BarrelInfo
 {
 public:
@@ -31,20 +38,21 @@ public:
             , pBarrelWriter(NULL)
             , isUpdate(false)
             , maxDocId(0)
-            , modified(false)
             , searchable(true)
- 
+            , compressType(BYTEALIGN)
+            , isRemoved_(false)
     {
     }
 
-    BarrelInfo(const string& name,count_t count)
+    BarrelInfo(const string& name,count_t count,CompressionType compresstype = BYTEALIGN)
             : barrelName(name)
             , nNumDocs(count)
             , pBarrelWriter(NULL)
             , isUpdate(false)
             , maxDocId(0)
-            , modified(false)
             , searchable(true)
+            , compressType(compresstype)
+            , isRemoved_(false)
     {
     }
 
@@ -56,8 +64,9 @@ public:
             , pBarrelWriter(NULL)
             , isUpdate(pBarrelInfo->isUpdate)
             , maxDocId(pBarrelInfo->maxDocId)
-            , modified(pBarrelInfo->modified)
             , searchable(pBarrelInfo->searchable)
+            , compressType(pBarrelInfo->compressType)
+            , isRemoved_(pBarrelInfo->isRemoved_)
     {
     }
 
@@ -164,7 +173,10 @@ public:
      */
     void write(Directory* pDirectory);
 
-    bool isModified() { return modified; }
+    /**
+     * whether this barrel is removed because of merge.
+     */
+    bool isRemoved() { return isRemoved_; }
 
     void setSearchable(bool cansearch)
     {
@@ -204,15 +216,18 @@ public:
     ///max doc of this barrel
     docid_t maxDocId;
 
-    bool modified;
-
     bool searchable;
 
     ///all index input instances generated for this barrel
     std::set<IndexInput*> indexInputs;
 
+    CompressionType compressType;
+
 private:
     boost::mutex mutex_;
+
+    ///whether this barrel is removed because of merge
+    bool isRemoved_;
 };
 
 
@@ -259,7 +274,7 @@ public:
 public:
     const string newBarrel();
 
-    void addBarrel(const char* name,count_t docCount);
+    void addBarrel(const char* name,count_t docCount,CompressionType compressType = BYTEALIGN);
 
     void addBarrel(BarrelInfo* pBarrelInfo,bool bCopy = true);
 
@@ -279,22 +294,7 @@ public:
 
     const char* getVersion() { return version.c_str();  }
 
-    void setLock(bool lock_)
-    {
-        lock = lock_; 
-        if(!lock)
-            modifyBarrelsEvent_.notify_all();
-    }
-
-    bool getLock() {return lock; }
-
     void setVersion(const char* ver);
-
-    BarrelInfo* getBarrelInfo(const char* barrel);
-
-    BarrelInfo* getLastBarrel();
-
-    void deleteLastBarrel();
 
     void sort(Directory* pDirectory);
 
@@ -314,11 +314,10 @@ public:
 
     BarrelInfo* next();
 
-    void wait_for_barrels_ready();
-private:
-    //lock means index is under merging and can not serve the query requests.
-    bool lock;
+    boost::mutex& getMutex() { return mutex_; }
 
+    void setSearchable();
+private:
     string version;
 
     int32_t nBarrelCounter; ///barrel counter
@@ -330,8 +329,6 @@ private:
     vector<BarrelInfo*> rubbishBarrelInfos;
 
     docid_t maxDoc;
-
-    boost::condition_variable modifyBarrelsEvent_;
 
     boost::mutex mutex_;
 };

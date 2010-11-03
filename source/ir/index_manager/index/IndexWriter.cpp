@@ -6,10 +6,6 @@
 #include <ir/index_manager/index/Indexer.h>
 #include <ir/index_manager/index/IndexWriter.h>
 #include <ir/index_manager/index/IndexReader.h>
-#include <ir/index_manager/index/IndexMerger.h>
-#include <ir/index_manager/index/OfflineIndexMerger.h>
-#include <ir/index_manager/index/MultiWayMerger.h>
-#include <ir/index_manager/index/GPartitionMerger.h>
 #include <ir/index_manager/index/IndexBarrelWriter.h>
 #include <ir/index_manager/index/IndexerPropertyConfig.h>
 #include <ir/index_manager/index/IndexMergeManager.h>
@@ -28,71 +24,46 @@ IndexWriter::IndexWriter(Indexer* pIndex)
         ,pIndexBarrelWriter_(NULL)
         ,pBarrelsInfo_(NULL)
         ,pCurBarrelInfo_(NULL)
-        ,pIndexMerger_(NULL)
         ,pIndexMergeManager_(NULL)
 {
     pBarrelsInfo_ = pIndexer_->getBarrelsInfo();
-    pMemCache_ = new MemCache((size_t)pIndexer_->getIndexManagerConfig()->indexStrategy_.memory_);
-    pIndexBarrelWriter_ = new IndexBarrelWriter(pIndexer_, pMemCache_);
-    pIndexBarrelWriter_->setCollectionsMeta(pIndexer_->getCollectionsMeta());
 
-    if(pIndexer_->getIndexerType()&MANAGER_INDEXING_STANDALONE_MERGER)
-    {
-        pIndexMergeManager_ = new IndexMergeManager(pIndex);
-        pIndexMergeManager_->run();
-    }
+    pIndexMergeManager_ = new IndexMergeManager(pIndex);
 }
 
 IndexWriter::~IndexWriter()
 {
+    if (pIndexMergeManager_)
+        delete pIndexMergeManager_;
     if (pMemCache_)
         delete pMemCache_;
     if (pIndexBarrelWriter_)
         delete pIndexBarrelWriter_;
-    if (pIndexMerger_)
-        delete pIndexMerger_;
 }
 
-void IndexWriter::close()
+void IndexWriter::waitForMergeFinish()
 {
-    if (pIndexMergeManager_)
-    {
-        pIndexMergeManager_->stop();
-        //delete pIndexMergeManager_;
-        //pIndexMergeManager_ = NULL;
-    }
+    pIndexMergeManager_->waitForMergeFinish();
 }
 
 void IndexWriter::flush()
 {
     DVLOG(2) << "=> IndexWriter::flush()...";
     if(pCurBarrelInfo_ == NULL)
+    {
+        DVLOG(2) << "<= IndexWriter::flush(), pCurBarrelInfo_ is NULL";
         return;
+    }
 
     if(pIndexer_->isRealTime())
     {
-        if(pIndexBarrelWriter_->cacheEmpty() == false)
-        {
-            ///memory index has not been written to database yet.
-            if(pIndexer_->getIndexerType()&MANAGER_INDEXING_STANDALONE_MERGER)
-            {
-                pBarrelsInfo_->wait_for_barrels_ready();
-                pIndexBarrelWriter_->close();
-                pIndexMergeManager_->triggerMerge(pCurBarrelInfo_);
-            }
-            else
-            {
-                pIndexBarrelWriter_->close();
-                if (pIndexMerger_)
-                    pIndexMerger_->flushBarrelToDisk(pCurBarrelInfo_->getName());
-            }
-        }
+        writeCachedIndex();
     }
     else
     {
         try
         {
-            pIndexBarrelWriter_->writeCache();
+            pIndexBarrelWriter_->close();
             pCurBarrelInfo_->setSearchable(true);
         }catch(std::exception& e)
         {
@@ -105,14 +76,10 @@ void IndexWriter::flush()
     DVLOG(2) << "<= IndexWriter::flush()";
 }
 
-void IndexWriter::createMerger()
+void IndexWriter::createMemCache()
 {
-    if(!strcasecmp(pIndexer_->pConfigurationManager_->mergeStrategy_.param_.c_str(),"no"))
-        pIndexMerger_ = NULL;
-    else if(!strcasecmp(pIndexer_->pConfigurationManager_->mergeStrategy_.param_.c_str(),"mway"))
-        pIndexMerger_ = new MultiWayMerger(pIndexer_);	
-    else
-        pIndexMerger_ = new GPartitionMerger(pIndexer_);
+    if (!pMemCache_)
+        pMemCache_ = new MemCache((size_t)pIndexer_->getIndexManagerConfig()->indexStrategy_.memory_);
 }
 
 void IndexWriter::createBarrelInfo()
@@ -121,103 +88,42 @@ void IndexWriter::createBarrelInfo()
 
     pCurBarrelInfo_ = new BarrelInfo(pBarrelsInfo_->newBarrel(),0);
     pCurBarrelInfo_->setSearchable(pIndexer_->isRealTime());
+
+    if(!pMemCache_)
+        createMemCache();
+    if(!pIndexBarrelWriter_)
+    {
+        pIndexBarrelWriter_ = new IndexBarrelWriter(pIndexer_, pMemCache_);
+        pIndexBarrelWriter_->setCollectionsMeta(pIndexer_->getCollectionsMeta());
+    }
+
     pCurBarrelInfo_->setWriter(pIndexBarrelWriter_);
-    pIndexBarrelWriter_->open(pCurBarrelInfo_);
+    pIndexBarrelWriter_->setBarrelInfo(pCurBarrelInfo_);
     pBarrelsInfo_->addBarrel(pCurBarrelInfo_,false);
 
     DVLOG(2) << "<= IndexWriter::createBarrelInfo()";
 }
 
-void IndexWriter::mergeIndex(IndexMerger* pMerger)
-{
-    pMerger->setDirectory(pIndexer_->getDirectory());
-
-    if(pIndexer_->getIndexReader()->getDocFilter())
-        pMerger->setDocFilter(pIndexer_->getIndexReader()->getDocFilter());
-    ///there is a in-memory index
-    if (pCurBarrelInfo_ && pCurBarrelInfo_->nNumDocs > 0)
-    {
-        IndexMerger* pTmp = pIndexMerger_;
-        pIndexMerger_ = pMerger;
-        mergeAndWriteCachedIndex();
-        pIndexMerger_ = pTmp;
-    }
-    else
-    {
-        if(pCurBarrelInfo_)
-        {
-            //pBarrelsInfo_->deleteLastBarrel();
-            pCurBarrelInfo_ = NULL;
-        }
-        pMerger->merge(pBarrelsInfo_);
-    }
-    pIndexer_->getIndexReader()->delDocFilter();
-    delete pIndexMerger_;
-    pIndexMerger_ = NULL;
-}
-
-void IndexWriter::mergeAndWriteCachedIndex()
-{
-    if (pIndexBarrelWriter_->cacheEmpty() == false)///memory index has not been written to database yet.
-    {
-        pIndexBarrelWriter_->close();
-        pBarrelsInfo_->write(pIndexer_->getDirectory());
-    }
-    pIndexMerger_->merge(pBarrelsInfo_);
-
-    createBarrelInfo();
-}
-
-void IndexWriter::addToMergeAndWriteCachedIndex()
-{
-    if (pIndexBarrelWriter_->cacheEmpty() == false)///memory index has not been written to database yet.
-    {
-        pIndexBarrelWriter_->close();
-        pBarrelsInfo_->write(pIndexer_->getDirectory());
-    }
-
-    if (pIndexMerger_)
-        pIndexMerger_->addToMerge(pBarrelsInfo_,pCurBarrelInfo_);
-	
-    if (pIndexMerger_)
-        pIndexMerger_->flushBarrelToDisk(pCurBarrelInfo_->getName());
-
-    createBarrelInfo();
-}
-
 void IndexWriter::writeCachedIndex()
 {
-    pBarrelsInfo_->wait_for_barrels_ready();
-    if (pIndexBarrelWriter_->cacheEmpty() == false)
+    if(pIndexBarrelWriter_->cacheEmpty() == false)
     {
         pIndexBarrelWriter_->close();
-        pBarrelsInfo_->write(pIndexer_->getDirectory());
+        pIndexer_->setDirty();
+
+        pIndexMergeManager_->addToMerge(pCurBarrelInfo_);
     }
-	
-    pIndexMergeManager_->triggerMerge(pCurBarrelInfo_);
-
-    pBarrelsInfo_->setLock(true);
-
-    createBarrelInfo();
-
-    pBarrelsInfo_->setLock(false);
 }
 
 void IndexWriter::indexDocument(IndexerDocument& doc)
 {
     if(!pCurBarrelInfo_) createBarrelInfo();
-    if(!pIndexMerger_) createMerger();
 
-    if(pIndexer_->isRealTime())
+    if(pIndexer_->isRealTime() && pIndexBarrelWriter_->cacheFull())
     {
-        if (pIndexBarrelWriter_->cacheFull())
-        {
-            if(pIndexer_->getIndexerType()&MANAGER_INDEXING_STANDALONE_MERGER)
-                writeCachedIndex();
-            else
-                ///merge index
-                addToMergeAndWriteCachedIndex();
-        }
+        writeCachedIndex();
+        pBarrelsInfo_->write(pIndexer_->getDirectory());
+        createBarrelInfo();
     }
 
     DocId uniqueID;
@@ -252,22 +158,7 @@ void IndexWriter::updateDocument(IndexerDocument& doc)
 
 void IndexWriter::optimizeIndex()
 {
-    if(pIndexer_->getIndexerType()&MANAGER_INDEXING_STANDALONE_MERGER)
-    {
-        ///optimize asynchronously
-        pIndexMergeManager_->optimizeIndex();
-    }
-    else
-    {
-        ///optimize synchronously
-        IndexMerger* pIndexMerger = new OfflineIndexMerger(pIndexer_, pBarrelsInfo_->getBarrelCount());
-        pIndexMerger->setDirectory(pIndexer_->getDirectory());
-        if(pIndexer_->getIndexReader()->getDocFilter())
-            pIndexMerger->setDocFilter(pIndexer_->getIndexReader()->getDocFilter());
-        pIndexMerger->merge(pBarrelsInfo_);
-        pIndexer_->getIndexReader()->delDocFilter();
-        delete pIndexMerger;
-    }
+    pIndexMergeManager_->optimizeIndex();
 }
 
 void IndexWriter::lazyOptimizeIndex()

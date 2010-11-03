@@ -11,6 +11,7 @@ MemCache::MemCache(size_t cachesize)
     {
         SF1V5_THROW(ERROR_OUTOFMEM,"MemCache alloc memory failed.");
     }
+    memset(begin_,0,size_);
     end_ = begin_;
     pGrowCache_ = NULL;
 }
@@ -27,7 +28,7 @@ MemCache::~MemCache()
     }
 }
 
-uint8_t* MemCache::getMem(size_t chunksize)
+uint8_t* MemCache::getMemByLogSize(size_t chunksize)
 {
     if ((chunksize < MINPOW) || (chunksize > MAXPOW))
         return NULL;
@@ -37,7 +38,7 @@ uint8_t* MemCache::getMem(size_t chunksize)
     if ((end_ - begin_) + size > size_)
     {
         if (pGrowCache_)
-            return pGrowCache_->getMem(chunksize);
+            return pGrowCache_->getMemByLogSize(chunksize);
         return NULL;
     }
     uint8_t* curr_ = end_;
@@ -47,6 +48,20 @@ uint8_t* MemCache::getMem(size_t chunksize)
     return curr_;
 }
 
+uint8_t* MemCache::getMemByRealSize(size_t size)
+{
+    if ((end_ - begin_) + size > size_)
+    {
+        if (pGrowCache_)
+            return pGrowCache_->getMemByRealSize(size);
+        return NULL;
+    }
+    uint8_t* curr_ = end_;
+
+    end_ += size;
+
+    return curr_;
+}
 
 void MemCache::flushMem()
 {

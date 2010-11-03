@@ -207,6 +207,9 @@ public:
     {
         pDocFilter_ = pFilter;
     }
+
+    void initPostingMerger(CompressionType compressType, bool optimize, MemCache* pMemCache);
+
 private:
     /** initialize merge queue */
     bool initQueue();
@@ -278,18 +281,28 @@ inline void FieldMerger::mergeTerms(FieldMergeInfo** ppMergeInfos,int32_t numInf
     if(sortingMerge_)
         return sortingMerge(ppMergeInfos, numInfos, ti);
 
-    Posting* pPosting;
+    PostingReader* pPosting;
     for (int32_t i = 0;i< numInfos;i++)
     {
         pPosting = ppMergeInfos[i]->pIterator_->termPosting();
         if (ppMergeInfos[i]->pBarrelInfo_->getWriter())///in-memory posting
-            pPostingMerger_->mergeWith((InMemoryPosting*)pPosting);
+            pPostingMerger_->mergeWith((MemPostingReader*)pPosting);
         else
         {
-            if(pDocFilter_)
-                pPostingMerger_->mergeWith((OnDiskPosting*)pPosting, pDocFilter_);
-            else
-                pPostingMerger_->mergeWith((OnDiskPosting*)pPosting);
+            switch(ppMergeInfos[i]->pBarrelInfo_->compressType)
+            {
+            case BYTEALIGN:
+                pPostingMerger_->mergeWith((RTDiskPostingReader*)pPosting, pDocFilter_);
+                break;
+            case BLOCK:
+                pPostingMerger_->mergeWith((BlockPostingReader*)pPosting, pDocFilter_);
+                break;
+            case CHUNK:
+                pPostingMerger_->mergeWith((ChunkPostingReader*)pPosting, pDocFilter_);
+                break;
+            default:
+                assert(false);
+            }
         }
     }
     pPostingMerger_->endMerge();	

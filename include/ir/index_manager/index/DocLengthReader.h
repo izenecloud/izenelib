@@ -11,6 +11,7 @@
 #include <ir/index_manager/index/IndexerCollectionMeta.h>
 #include <ir/index_manager/store/Directory.h>
 #include <ir/index_manager/store/IndexInput.h>
+#include <ir/index_manager/utility/system.h>
 
 #include <boost/thread.hpp>
 
@@ -46,9 +47,9 @@ private:
 
     unsigned char* propertyOffsetMap_;
 
-    ///used to store bitmap, each property length occupy 16bit, which indicates the
-    ///max property length is limited to 65535
-    uint16_t* data_;
+    ///used to store bitmap, each property length occupy 32 bits, which indicates the
+    ///max property value is limited to 4G
+    count_t* data_;
 
     size_t numIndexedProperties_;
 

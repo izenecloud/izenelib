@@ -10,7 +10,7 @@
 #include <ir/index_manager/utility/system.h>
 #include <ir/index_manager/utility/MemCache.h>
 #include <ir/index_manager/index/OutputDescriptor.h>
-#include <ir/index_manager/index/Posting.h>
+#include <ir/index_manager/index/RTPostingWriter.h>
 #include <ir/index_manager/index/LAInput.h>
 #include <ir/index_manager/index/ForwardIndex.h>
 #include <ir/index_manager/index/SortHelper.h>
@@ -26,9 +26,6 @@
 
 using namespace izenelib::util;
 using namespace izenelib::am;
-
-#define BATCH_COMPRESSION 1
-#define COMPRESSED_SORT 1
 
 NS_IZENELIB_IR_BEGIN
 
@@ -334,7 +331,7 @@ private:
 
 
 //Since TermID is got from hashfunc, DynamicArray is not suitable to be used as the container.
-typedef stx::btree_map<unsigned int, InMemoryPosting* > InMemoryPostingMap;
+typedef stx::btree_map<unsigned int, RTPostingWriter* > InMemoryPostingMap;
 
 class TermReader;
 /**
@@ -371,10 +368,8 @@ public:
 
     ///set memory cache size for izene sort
     void setHitBuffer(size_t size);
-#if COMPRESSED_SORT
 private:
     void writeHitBuffer(int iHits);
-#endif
 private:
     InMemoryPostingMap postingMap_;
 
@@ -401,11 +396,7 @@ private:
     std::string sorterFileName_;
 
     FILE* f_;
-#if COMPRESSED_SORT
-    izenelib::am::IzeneSort<uint32_t, uint8_t, true,SortIO<FieldIndexIO> >* sorter_;
-#else
-    izenelib::am::IzeneSort<uint32_t, uint8_t, true>* sorter_;
-#endif
+
     uint64_t termCount_;
 
     size_t iHitsMax_;
@@ -422,8 +413,8 @@ private:
 
     bool flush_;
 
-    friend class InMemoryTermReader;
-    friend class InMemoryTermIterator;
+    friend class MemTermReader;
+    friend class MemTermIterator;
 };
 
 }

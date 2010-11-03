@@ -112,7 +112,8 @@ void SkipListWriter::write(IndexOutput* pOutput)
             pOutput->writeVLong(nLength);
             ppSkipLevels_[i]->write(pOutput);
         }
-    }			
+    }
+    numPointsInLowestLevel_ = 0;
 }
 
 void SkipListWriter::reset()

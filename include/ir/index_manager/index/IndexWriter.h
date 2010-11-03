@@ -50,18 +50,18 @@ public:
     void flush();
     /// set schedule 
     void scheduleOptimizeTask(std::string expression, string uuid);
-    /// close
-    void close();
+
+    void createMemCache();
+
+    /**
+     * Block the calling thread until the merge thread finishes its all tasks,
+     * and create a new thread for future merge request.
+     * Notes: this function only works when IndexManagerConfig.mergeStrategy_.isAsync_ is true.
+     */
+    void waitForMergeFinish();
+
 private:
     void createBarrelInfo();
-     /// create index merger
-    void createMerger();
-    /// mergeIndex
-    void mergeIndex(IndexMerger * pMerger);
-    ///will be used by mergeIndex
-    void mergeAndWriteCachedIndex();
-    ///will be used when index documents
-    void addToMergeAndWriteCachedIndex();
     /// flush in-memory index to disk
     void writeCachedIndex();	
     /// optimize index offline
@@ -77,11 +77,11 @@ private:
 
     BarrelInfo* pCurBarrelInfo_;
 
-    IndexMerger* pIndexMerger_;
-
     IndexMergeManager* pIndexMergeManager_;
 
     izenelib::util::CronExpression scheduleExpression_;
+
+    friend class IndexMerger;
 };
 
 }

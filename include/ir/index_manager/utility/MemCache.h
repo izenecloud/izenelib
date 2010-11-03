@@ -27,7 +27,9 @@ public:
 
     ~MemCache();
 public:
-    uint8_t* getMem(size_t chunksize);
+    uint8_t* getMemByLogSize(size_t chunksize);
+
+    uint8_t* getMemByRealSize(size_t size);
 
     void flushMem();
 
