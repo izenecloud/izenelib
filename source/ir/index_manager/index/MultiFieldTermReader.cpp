@@ -16,7 +16,7 @@ MultiFieldTermReader::MultiFieldTermReader(Directory* pDirectory,BarrelInfo* pBa
     {
         pInfo = pFieldsInfo->next();
 
-        if (pInfo->isIndexed()&&pInfo->isForward())
+        if (pInfo->isIndexed()&&pInfo->isAnalyzed())
         {
             switch(pBarrelInfo->compressType)
             {

@@ -456,8 +456,7 @@ namespace irdb
                         propertyName = (*ti).field_;
                         
                         iii::IndexerPropertyConfig propertyConfig(*propertyId,propertyName,true,true);
-                        propertyConfig.setIsLAInput(true);
-                        
+
                         boost::shared_ptr<iii::LAInput> laInput(new iii::LAInput);
                         laInput->setDocId(docId);
                         laInput->reserve(1024);
@@ -516,7 +515,6 @@ namespace irdb
                         propertyName = (*ti).field_;
 
                         iii::IndexerPropertyConfig propertyConfig(*propertyId,propertyName,true,true);
-                        propertyConfig.setIsLAInput(true);
 
                         boost::shared_ptr<iii::LAInput> laInput(new iii::LAInput);
                         laInput->setDocId(docId);
@@ -912,8 +910,7 @@ namespace irdb
                         propertyName = (*ti).field_;
                         
                         iii::IndexerPropertyConfig propertyConfig(*propertyId,propertyName,true,true);
-                        propertyConfig.setIsLAInput(true);
-                        
+
                         boost::shared_ptr<iii::LAInput> laInput(new iii::LAInput);
                         laInput->setDocId(docId);
                         laInput->reserve(1024);
@@ -969,7 +966,6 @@ namespace irdb
                         propertyName = (*ti).field_;
 
                         iii::IndexerPropertyConfig propertyConfig(*propertyId,propertyName,true,true);
-                        propertyConfig.setIsLAInput(true);
 
                         boost::shared_ptr<iii::LAInput> laInput(new iii::LAInput);
                         laInput->setDocId(docId);

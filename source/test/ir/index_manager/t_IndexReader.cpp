@@ -34,9 +34,11 @@ const unsigned int COLLECTION_ID = 1;
 
 const char* INDEX_MODE_REALTIME = "realtime";
 
-const int TEST_DOC_NUM = 300;
-
+const int TEST_DOC_NUM = 100;
 const int TEST_BARREL_NUM = 10;
+
+const int TEST_DOC_LEN_RANGE = 40 * TEST_DOC_NUM;
+const int TEST_TERM_ID_RANGE = 400 * TEST_DOC_NUM;
 };
 
 class IndexerTest
@@ -69,8 +71,8 @@ public:
         : indexer_(0)
           ,newDocNum_(docNum)
           ,isDocNumRand_(isDocNumRand)
-          ,docLenRand_(randEngine_, uniform_int<>(1, 40*newDocNum_))
-          ,termIDRand_(randEngine_, uniform_int<>(1, 400*newDocNum_))
+          ,docLenRand_(randEngine_, uniform_int<>(1, TEST_DOC_LEN_RANGE))
+          ,termIDRand_(randEngine_, uniform_int<>(1, TEST_TERM_ID_RANGE))
           ,docIDSkipRand_(randEngine_, uniform_int<>(1, docIDSkipMax))
           ,docNumRand_(randEngine_, uniform_int<>(1, newDocNum_))
           ,maxDocID_(0)
@@ -337,7 +339,7 @@ private:
             propertyMap_[propertyList[i]] = 1+i;
             if(propertyList[i] != "content")
             {
-                indexerPropertyConfig.setIsForward(false);
+                indexerPropertyConfig.setIsAnalyzed(false);
                 indexerPropertyConfig.setIsFilter(true);
             }
             indexCollectionMeta.addPropertyConfig(indexerPropertyConfig);
@@ -351,7 +353,6 @@ private:
         document.setDocId(docId, COLLECTION_ID);
 
         IndexerPropertyConfig propertyConfig(propertyMap_["content"],"content",true,true);
-        propertyConfig.setIsLAInput(true);
 
         boost::shared_ptr<LAInput> laInput(new LAInput);
         document.insertProperty(propertyConfig, laInput);
@@ -380,9 +381,8 @@ private:
 
             propertyConfig.setPropertyId(propertyMap_["date"]);
             propertyConfig.setName("date");
-            propertyConfig.setIsForward(false);
+            propertyConfig.setIsAnalyzed(false);
             propertyConfig.setIsFilter(true);
-            propertyConfig.setIsLAInput(false);
 
             struct tm atm;
             ptime now = second_clock::local_time();

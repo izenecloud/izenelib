@@ -19,7 +19,7 @@ DocLengthReader::DocLengthReader(const std::set<IndexerPropertyConfig, IndexerPr
     size_t offset = 0;
     for(std::set<IndexerPropertyConfig, IndexerPropertyConfigComp>::const_iterator iter = schema.begin(); iter != schema.end(); ++iter, ++i)
     {
-        if(iter->isForward()&&iter->isIndex())
+        if(iter->isIndex() && iter->isAnalyzed())
         {
             numIndexedProperties_++;
             ///This judgement is necessary because aliased properties have the same property id

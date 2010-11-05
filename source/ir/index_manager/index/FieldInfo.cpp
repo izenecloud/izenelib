@@ -52,7 +52,7 @@ void FieldsInfo::setSchema(const IndexerCollectionMeta& collectionMeta)
 	{
 	    ppFieldsInfo_[n] = new FieldInfo(it->getPropertyId(),
                                                            it->getName().c_str(),
-                                                           it->isForward(),
+                                                           it->isAnalyzed(),
                                                            it->isIndex());
            ppFieldsInfo_[n]->setColID(colId_);
            fdInfosByName_.insert(make_pair(ppFieldsInfo_[n]->getName(),ppFieldsInfo_[n]));
@@ -108,7 +108,7 @@ void FieldsInfo::read(IndexInput* pIndexInput)
             pInfo->setName(str.c_str());
             pInfo->setID(pIndexInput->readInt());
             pInfo->setFieldFlag(pIndexInput->readByte()); //IsIndexed(Bool) and IsForward(Bool)
-            if (pInfo->isIndexed()&&pInfo->isForward())
+            if (pInfo->isIndexed()&&pInfo->isAnalyzed())
             {
                 pInfo->setDistinctNumTerms(pIndexInput->readLong());
                 pInfo->setIndexOffset(pIndexInput->readLong());
@@ -151,7 +151,7 @@ void FieldsInfo::write(IndexOutput* pIndexOutput)
             pIndexOutput->writeString(pInfo->getName());	///<FieldName(String)>
             pIndexOutput->writeInt(pInfo->getID());	///<Field id(int)>            
             pIndexOutput->writeByte(pInfo->getFieldFlag());		///<IsIndexed(Bool) and IsForward(Bool)>(Byte)
-            if (pInfo->isIndexed()&&pInfo->isForward())
+            if (pInfo->isIndexed()&&pInfo->isAnalyzed())
             {
                 pIndexOutput->writeLong(pInfo->distinctNumTerms());
                 pIndexOutput->writeLong(pInfo->getIndexOffset());

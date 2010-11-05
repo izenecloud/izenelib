@@ -314,7 +314,7 @@ IndexStatus Indexer::checkIntegrity()
         std::set<IndexerPropertyConfig, IndexerPropertyConfigComp>::const_iterator it;
         for ( it = schema.begin(); it != schema.end(); it++ )
         {
-            if (it->isIndex() && it->isForward())
+            if (it->isIndex() && it->isAnalyzed())
             {
                 property = it->getName();
                 continue;

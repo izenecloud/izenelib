@@ -26,7 +26,7 @@ InMemoryIndexBarrelReader::InMemoryIndexBarrelReader(IndexBarrelWriter* pIndexBa
             while (pFieldsInfo->hasNext())
             {
                 pFieldInfo = pFieldsInfo->next();
-                if (pFieldInfo->isIndexed()&&pFieldInfo->isForward())
+                if (pFieldInfo->isIndexed()&&pFieldInfo->isAnalyzed())
                     break;
             }
             pTermReader = pCollectionIndexer->getFieldIndexer(pFieldInfo->getName())->termReader();
@@ -39,7 +39,7 @@ InMemoryIndexBarrelReader::InMemoryIndexBarrelReader(IndexBarrelWriter* pIndexBa
             while (pFieldsInfo->hasNext())
             {
                 pFieldInfo = pFieldsInfo->next();
-                if (pFieldInfo->isIndexed()&&pFieldInfo->isForward())
+                if (pFieldInfo->isIndexed()&&pFieldInfo->isAnalyzed())
                 {
                     FieldIndexer* pFieldIndexer = pCollectionIndexer->getFieldIndexer(pFieldInfo->getName());
                     if (pFieldIndexer)
@@ -92,7 +92,7 @@ TermReader* InMemoryIndexBarrelReader::termReader(collectionid_t colID, const ch
         while (pFieldsInfo->hasNext())
         {
             pFieldInfo = pFieldsInfo->next();
-            if (pFieldInfo->isIndexed()&&pFieldInfo->isForward())
+            if (pFieldInfo->isIndexed()&&pFieldInfo->isAnalyzed())
             {
                 if (!strcasecmp(field,pFieldInfo->getName()))
                     return pTermReader;//->clone();

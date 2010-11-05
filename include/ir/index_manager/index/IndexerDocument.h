@@ -12,8 +12,6 @@
 
 #include <ir/index_manager/index/IndexerPropertyConfig.h>
 #include <ir/index_manager/index/LAInput.h>
-#include <ir/index_manager/index/ForwardIndex.h>
-
 #include <util/BoostVariantUtil.h>
 
 #include <boost/variant.hpp>
@@ -32,13 +30,12 @@ NS_IZENELIB_IR_BEGIN
 namespace indexmanager{
 ///PropertyType is the data supported to set up BTree index
 typedef boost::variant<int64_t,uint64_t, float, double, String> PropertyType;
-///Besides the type for building BTree index, we have two other kinds of type dedicated for analyzed properties,
-///which means inverted indices would be built
 
-///A property that both BTreeIndex and inverted index will be built
+///A property that both inverted index and BTree index will be built
 typedef std::pair<boost::shared_ptr<LAInput>, PropertyType >  IndexPropertyType;
 
-typedef boost::variant<PropertyType, IndexPropertyType, boost::shared_ptr<LAInput>, boost::shared_ptr<ForwardIndex> > IndexerDocumentPropertyType;
+///A ptoperty type that support inverted index, BTree index, and both index (inverted and BTree)
+typedef boost::variant<boost::shared_ptr<LAInput>, PropertyType, IndexPropertyType> IndexerDocumentPropertyType;
 
 struct DocId
 {

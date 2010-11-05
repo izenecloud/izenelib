@@ -26,27 +26,24 @@ public:
     IndexerPropertyConfig()
             :propertyId_(0),
             index_(false),
-            forward_(false),
-            filter_(false),
-            laInput_(false)
+            analyzed_(false),
+            filter_(false)
     { }
 
     IndexerPropertyConfig(const IndexerPropertyConfig& other)
             :propertyId_(other.propertyId_),
              propertyName_(other.propertyName_),
              index_(other.index_),
-             forward_(other.forward_),
-             filter_(other.filter_),
-             laInput_(other.laInput_)
+             analyzed_(other.analyzed_),
+             filter_(other.filter_)
     {}
 
-    IndexerPropertyConfig(unsigned int propertyid, std::string propertyname, bool index, bool forward, bool filter = false)
+    IndexerPropertyConfig(unsigned int propertyid, std::string propertyname, bool index, bool analyzed, bool filter = false)
 		:propertyId_(propertyid)
 		,propertyName_(propertyname)
 		,index_(index)
-		,forward_(forward)
+		,analyzed_(analyzed)
 		,filter_(filter)
-		,laInput_(true)
     { }
 
 public:
@@ -80,14 +77,14 @@ public:
         return index_;
     }
 
-    void setIsForward( const bool isForward)
+    void setIsAnalyzed( const bool isAnalyzed)
     {
-        forward_ = isForward;
+        analyzed_ = isAnalyzed;
     }
 
-    bool isForward() const
+    bool isAnalyzed() const
     {
-        return forward_;
+        return analyzed_;
     }
 
     void setIsFilter( const bool isFilter)
@@ -100,16 +97,6 @@ public:
         return filter_;
     }
 		
-    void setIsLAInput( bool isLAInput)
-    {
-        laInput_ = isLAInput;
-    }
-
-    bool isLAInput() const
-    {
-        return laInput_;
-    }
-
     std::string toString() const
     {
         std::stringstream sStream;
@@ -119,7 +106,7 @@ public:
 
 
         sStream << " @index=" << ( index_ ? "yes" : "no" )
-        << " @forward=" << ( forward_ ? "yes" : "no" );
+        << " @analyzed=" << ( analyzed_ ? "yes" : "no" );
 
         return sStream.str();
     }
@@ -134,7 +121,7 @@ public:
         ar & propertyId_;
         ar & propertyName_;
         ar & index_;
-        ar & forward_;
+        ar & analyzed_;
     }
 
     bool operator<(const IndexerPropertyConfig & other) const
@@ -148,17 +135,14 @@ protected:
     uint32_t propertyId_;
 
     std::string propertyName_;
-    /// if only index_ is true, then BTree index will be built
+    /// if only true, then inverted or BTree index will be built
     bool index_;
-    ///whether this property is analyzed
-    ///inverted index will only be built when both index_ and forward_ are true
-    bool forward_;
-    ///whether filter index is going to be built on this property
+    ///whether this property is analyzed by LA,
+    ///inverted index will only be built when both index_ and analyzed_ are true
+    bool analyzed_;
+    ///whether filter index is going to be built on this property,
+    ///BTree index will only be built when both index_ and filter_ are true
     bool filter_;
-    ///This field is for compatabile with SF1
-    ///IndexManager permits two kinds of inputs:LAInput, or ForwardIndex
-    ///The latter means the forwardindex of a document is generated outside IndexManager.
-    bool laInput_;
 };
 
 struct IndexerPropertyConfigComp

@@ -73,7 +73,7 @@ void initIndexer(boost::shared_ptr<Indexer>& indexer,
         propertyMap[propertyList[i]] = 1+i;
         if(propertyList[i] != "content")
         {
-            indexerPropertyConfig.setIsForward(false);
+            indexerPropertyConfig.setIsAnalyzed(false);
             indexerPropertyConfig.setIsFilter(true);
         }
         indexCollectionMeta.addPropertyConfig(indexerPropertyConfig);
@@ -89,7 +89,6 @@ void prepareDocument(unsigned int docId, IndexerDocument& document, bool filter 
     document.setDocId(docId, 1);
 
     IndexerPropertyConfig propertyConfig(propertyMap["content"],"content",true,true);
-    propertyConfig.setIsLAInput(true);
 
     boost::shared_ptr<LAInput> laInput(new LAInput);
     document.insertProperty(propertyConfig, laInput);
@@ -109,9 +108,8 @@ void prepareDocument(unsigned int docId, IndexerDocument& document, bool filter 
 
         propertyConfig.setPropertyId(propertyMap["date"]);
         propertyConfig.setName("date");
-        propertyConfig.setIsForward(false);
+        propertyConfig.setIsAnalyzed(false);
         propertyConfig.setIsFilter(true);
-        propertyConfig.setIsLAInput(false);
 
         struct tm atm;
         ptime now = second_clock::local_time();

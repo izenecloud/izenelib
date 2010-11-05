@@ -41,7 +41,8 @@ friend class MockTermPositions;
 
 public:
 
-    typedef boost::tuple<docid_t, count_t, freq_t, std::vector<loc_t> > MockPosting;
+    /// docid, tf, docLen, positions
+    typedef boost::tuple<docid_t, freq_t, count_t, std::vector<loc_t> > MockPosting;
 
     typedef std::vector<MockPosting> MockPostings;
 

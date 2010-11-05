@@ -140,28 +140,6 @@ void FieldIndexer::addField(docid_t docid, boost::shared_ptr<LAInput> laInput)
     }
 }
 
-void FieldIndexer::addField(docid_t docid, boost::shared_ptr<ForwardIndex> forwardindex)
-{
-    RTPostingWriter* curPosting;
-
-    for (ForwardIndex::iterator iter = forwardindex->begin(); iter != forwardindex->end(); ++iter)
-    {
-        InMemoryPostingMap::iterator postingIter = postingMap_.find(iter->first);
-        if (postingIter == postingMap_.end())
-        {
-            assert(alloc_);
-            curPosting = BOOST_NEW(*alloc_, RTPostingWriter)(pMemCache_, skipInterval_, maxSkipLevel_);
-            postingMap_[iter->first] = curPosting;
-        }
-        else
-            curPosting = postingIter->second;
-
-        ForwardIndexOffset::iterator	endit = iter->second->end();
-        for (ForwardIndexOffset::iterator it = iter->second->begin(); it != endit; ++it)
-            curPosting->add(docid, *it);
-    }
-}
-
 void FieldIndexer::reset()
 {
     RTPostingWriter* pPosting;

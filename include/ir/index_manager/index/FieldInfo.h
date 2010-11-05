@@ -29,11 +29,11 @@ namespace indexmanager{
 */
 
 ///----------------------------------------------------------------------//
-/// FieldFlag information include isForward and isIndexed
-/// FieldFlag = |4bit isIndexed|4Bit isForward|
+/// FieldFlag information include isIndexed and isAnalyzed
+/// FieldFlag = |4bit isIndexed|4Bit isAnalyzed|
 ///----------------------------------------------------------------------//
 #define FIELD_INDEXED(flag) (bool)((flag)>>4)
-#define FIELD_FORWARD(flag) (bool)((flag)&0x0F)
+#define FIELD_ANALYZED(flag) (bool)((flag)&0x0F)
 
 class FieldInfo
 {
@@ -45,13 +45,13 @@ public:
     {
         reset();
     }
-    FieldInfo(fieldid_t fid,const char* name,bool isforward,bool indexed)
+    FieldInfo(fieldid_t fid,const char* name,bool analyzed,bool indexed)
             :id_(fid)
             ,name_(name)
             ,fieldFlag_(0)
     {
         reset();
-        fieldFlag_ |= isforward;
+        fieldFlag_ |= analyzed;
         fieldFlag_ |= indexed<<4;
     }
     FieldInfo(const FieldInfo& src)
@@ -136,11 +136,11 @@ public:
     */
     void getLength(int64_t* pNVocLen,int64_t* pNDLen,int64_t* pNPLen);
     /**
-    * @brief Whether this field is indexed,only for PropertyType of ForwardIndex
+    * @brief Whether this field is indexed
     */
     bool isIndexed() { return FIELD_INDEXED(fieldFlag_);}
 
-    bool isForward() { return FIELD_FORWARD(fieldFlag_); }
+    bool isAnalyzed() { return FIELD_ANALYZED(fieldFlag_); }
 
     void reset()
     {

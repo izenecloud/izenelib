@@ -12,7 +12,6 @@
 #include <ir/index_manager/index/OutputDescriptor.h>
 #include <ir/index_manager/index/RTPostingWriter.h>
 #include <ir/index_manager/index/LAInput.h>
-#include <ir/index_manager/index/ForwardIndex.h>
 #include <ir/index_manager/index/SortHelper.h>
 #include <am/external_sort/izene_sort.hpp>
 #include <util/ThreadModel.h>
@@ -351,8 +350,6 @@ public:
     void setField(const char* strfield) { field_ = strfield;}
 
     void addField(docid_t docid, boost::shared_ptr<LAInput> laInput);
-
-    void addField(docid_t docid, boost::shared_ptr<ForwardIndex> forwardindex);
 
     void reset();
 

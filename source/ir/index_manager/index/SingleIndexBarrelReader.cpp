@@ -64,7 +64,7 @@ void SingleIndexBarrelReader::open(const char* name)
             while (pFieldsInfo->hasNext())
             {
                 pFieldInfo = pFieldsInfo->next();
-                if (pFieldInfo->isIndexed()&&pFieldInfo->isForward())
+                if (pFieldInfo->isIndexed()&&pFieldInfo->isAnalyzed())
                 {
                     switch(pBarrelInfo_->compressType)
                     {
@@ -110,7 +110,7 @@ TermReader* SingleIndexBarrelReader::termReader(collectionid_t colID, const char
         while (pFieldsInfo->hasNext())
         {
             pFieldInfo = pFieldsInfo->next();
-            if (pFieldInfo->isIndexed()&&pFieldInfo->isForward())
+            if (pFieldInfo->isIndexed()&&pFieldInfo->isAnalyzed())
             {
                 if (!strcasecmp(field,pFieldInfo->getName()))
                     return pTermReader;//->clone();

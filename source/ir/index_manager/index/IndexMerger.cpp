@@ -309,7 +309,7 @@ void IndexMerger::mergeBarrel(MergeBarrel* pBarrel)
                     pFieldInfo = pColInfo->getFieldsInfo()->next();
                     if (pFieldInfo)
                     {
-                        if (pFieldInfo->isIndexed()&&pFieldInfo->isForward())///it's a index field
+                        if (pFieldInfo->isIndexed()&&pFieldInfo->isAnalyzed())///it's a index field
                         {
                             if (pFieldMerger == NULL)
                             {
