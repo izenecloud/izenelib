@@ -104,6 +104,7 @@ void IndexWriter::indexDocument(IndexerDocument& doc)
     {
         DVLOG(2) << "IndexWriter::indexDocument() => realtime cache full...";
         flush();
+        createBarrelInfo();
     }
 
     DocId uniqueID;
