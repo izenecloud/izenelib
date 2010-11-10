@@ -55,21 +55,13 @@ void IndexWriter::flush()
         return;
     }
 
-    if(pIndexer_->isRealTime())
-    {
-        writeCachedIndex();
-    }
-    else
-    {
-        try
-        {
-            pIndexBarrelWriter_->close();
-            pCurBarrelInfo_->setSearchable(true);
-        }catch(std::exception& e)
-        {
-            cerr << e.what() << endl;
-        }
-    }
+    pIndexBarrelWriter_->close();
+    pIndexer_->setDirty();
+
+    if(! pIndexer_->isRealTime())
+        pCurBarrelInfo_->setSearchable(true);
+
+    pIndexMergeManager_->addToMerge(pCurBarrelInfo_);
 
     pBarrelsInfo_->write(pIndexer_->getDirectory());
     pCurBarrelInfo_ = NULL;
@@ -104,26 +96,14 @@ void IndexWriter::createBarrelInfo()
     DVLOG(2) << "<= IndexWriter::createBarrelInfo()";
 }
 
-void IndexWriter::writeCachedIndex()
-{
-    if(pIndexBarrelWriter_->cacheEmpty() == false)
-    {
-        pIndexBarrelWriter_->close();
-        pIndexer_->setDirty();
-
-        pIndexMergeManager_->addToMerge(pCurBarrelInfo_);
-    }
-}
-
 void IndexWriter::indexDocument(IndexerDocument& doc)
 {
     if(!pCurBarrelInfo_) createBarrelInfo();
 
     if(pIndexer_->isRealTime() && pIndexBarrelWriter_->cacheFull())
     {
-        writeCachedIndex();
-        pBarrelsInfo_->write(pIndexer_->getDirectory());
-        createBarrelInfo();
+        DVLOG(2) << "IndexWriter::indexDocument() => realtime cache full...";
+        flush();
     }
 
     DocId uniqueID;
