@@ -52,9 +52,17 @@ public:
     virtual TermIterator* termIterator(const char* field) = 0;
     ///Seek whether the query term exist within the vocabulary or not
     virtual bool seek(Term* pTerm) = 0;
-    ///Get the TermDocFreqs instance for query
+    /**
+     * Get the TermDocFreqs instance for query.
+     * @return the newly created TermDocFreqs instance
+     * @note client must delete the instance returned
+     */
     virtual TermDocFreqs* termDocFreqs() = 0;
-    ///Get the TermPositions instance for query
+    /**
+     * Get the TermPositions instance for query.
+     * @return the newly created TermPositions instance
+     * @note client must delete the instance returned
+     */
     virtual TermPositions* termPositions() = 0;
     ///Get DF for a certain term. DF exists on vocabulary, so it could be returned directly
     virtual freq_t docFreq(Term* term) = 0;

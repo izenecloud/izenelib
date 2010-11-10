@@ -5,6 +5,7 @@
 #include <boost/random.hpp>
 #include <boost/thread.hpp>
 #include <boost/date_time/posix_time/posix_time.hpp>
+#include <boost/scoped_ptr.hpp>
 
 #include <iostream>
 #include <fstream>
@@ -21,7 +22,8 @@
 
 #define LOG_DOC_OPERATION
 //#define LOG_CHECK_OPERATION
-#define LOG_TERM_ID
+//#define LOG_TERM_ID
+#define LOG_QUERY_OPERATION
 
 using namespace std;
 using namespace boost;
@@ -38,7 +40,7 @@ const char* INDEX_MODE_REALTIME = "realtime";
 const char* INVERTED_FIELD = "content";
 
 const int TEST_DOC_NUM = 10;
-const int TEST_BARREL_NUM = 1; //10
+const int TEST_BARREL_NUM = 3;
 
 const int TEST_DOC_LEN_RANGE = 10 * TEST_DOC_NUM;
 const int TEST_TERM_ID_RANGE = 100 * TEST_DOC_NUM;
@@ -58,6 +60,8 @@ private:
     boost::variate_generator<mt19937, uniform_int<> > termIDRand_;
     boost::variate_generator<mt19937, uniform_int<> > docIDSkipRand_;
     boost::variate_generator<mt19937, uniform_int<> > docNumRand_;
+    ///< in @p nextOrSkipTo(), 1 to use @p TermDocFreqs::next(), 0 to use @p TermDocFreqs::skipTo()
+    boost::variate_generator<mt19937, uniform_int<> > skipToRand_; 
 
     /**
      * as the max doc id in indexer is the max doc id ever indexed,
@@ -88,6 +92,7 @@ public:
           ,termIDRand_(randEngine_, uniform_int<>(1, TEST_TERM_ID_RANGE))
           ,docIDSkipRand_(randEngine_, uniform_int<>(1, docIDSkipMax))
           ,docNumRand_(randEngine_, uniform_int<>(1, newDocNum_))
+          ,skipToRand_(randEngine_, uniform_int<>(0, 1))
           ,maxDocID_(0)
     {}
 
@@ -104,6 +109,30 @@ public:
 
     bool isDocEmpty() const {
         return mapDocIdLen_.empty();
+    }
+
+    /**
+     * Print below statistics:
+     * - doc count
+     * - unique term count
+     * - sum of doc length in collection.
+     */
+    void printStats() const {
+        cout << endl;
+        cout << "printing statistics..." << endl;
+        cout << "doc count: " << mapDocIdLen_.size() << endl;
+        cout << "unique term count: " << mapCTermId_.size() << endl;
+
+        int64_t docLenSum = 0;
+        for(CTermIdMapT::const_iterator it = mapCTermId_.begin();
+            it != mapCTermId_.end();
+            ++it)
+        {
+            docLenSum += it->second.second;
+        }
+
+        cout << "sum of doc length: " << docLenSum << endl;
+        cout << endl;
     }
 
     /**
@@ -223,19 +252,34 @@ public:
         DVLOG(2) << "=> IndexerTest::checkTermDocFreqs()";
 
         IndexReader* pIndexReader = indexer_->getIndexReader();
-        TermReader* pTermReader = pIndexReader->getTermReader(COLLECTION_ID);
+        boost::scoped_ptr<TermReader> pTermReader(pIndexReader->getTermReader(COLLECTION_ID));
 
+#ifdef LOG_QUERY_OPERATION
+        cout << "check TermDocFreqs::docFreq(), getCTF() on " << mapCTermId_.size() << " terms." << endl;
+#endif
         Term term(INVERTED_FIELD);
         for(CTermIdMapT::const_iterator termIt = mapCTermId_.begin();
             termIt != mapCTermId_.end(); ++termIt)
         {
             term.setValue(termIt->first);
+#ifdef LOG_TERM_ID
+            cout << "check term id: " << termIt->first << endl;
+#endif
             BOOST_CHECK(pTermReader->seek(&term));
 
-            TermDocFreqs* pTermDocFreqs = pTermReader->termDocFreqs();
-            //BOOST_CHECK_EQUAL(pTermDocFreqs->docFreq(), termIt->second.first);
+            boost::scoped_ptr<TermDocFreqs> pTermDocFreqs(pTermReader->termDocFreqs());
+            BOOST_CHECK_EQUAL(pTermDocFreqs->docFreq(), termIt->second.first);
             BOOST_CHECK_EQUAL(pTermDocFreqs->getCTF(), termIt->second.second);
         }
+
+        DVLOG(2) << "<= IndexerTest::checkTermDocFreqs()";
+    }
+
+    void checkNextSkipTo() {
+        DVLOG(2) << "=> IndexerTest::checkNextSkipTo()";
+
+        IndexReader* pIndexReader = indexer_->getIndexReader();
+        boost::scoped_ptr<TermReader> pTermReader(pIndexReader->getTermReader(COLLECTION_ID));
 
         // regenerate term ids for each doc
         boost::mt19937 randEngine;
@@ -249,10 +293,6 @@ public:
         {
             docID += docIDSkipRand();
             DTermIdMapT docTermIdMap;
-
-#ifdef LOG_TERM_ID
-            cout << "create doc id: " << docID << endl;
-#endif
 
             const unsigned int docLen = docLenRand();
             for(unsigned int j = 0; j < docLen; ++j)
@@ -268,39 +308,35 @@ public:
             cout << endl;
 #endif
 
+#ifdef LOG_QUERY_OPERATION
+            cout << "check TermDocFreqs for doc id: " << docID << ", doc length: " << docLen << ", unique terms: " << docTermIdMap.size() << endl;
+#endif
             Term term(INVERTED_FIELD);
             for(DTermIdMapT::const_iterator termIt = docTermIdMap.begin();
-                    termIt != docTermIdMap.end(); ++termIt)
+                    termIt != docTermIdMap.end();
+                    ++termIt)
             {
                 term.setValue(termIt->first);
                 BOOST_CHECK(pTermReader->seek(&term));
 
-                TermDocFreqs* pTermDocFreqs = pTermReader->termDocFreqs();
-                //BOOST_CHECK_EQUAL(pTermDocFreqs->skipTo(docID), docID);
-                while(pTermDocFreqs->next())
-                {
-                    if(pTermDocFreqs->doc() == docID)
-                        break;
-                }
-                BOOST_CHECK_EQUAL(pTermDocFreqs->doc(), docID);
+                boost::scoped_ptr<TermDocFreqs> pTermDocFreqs(pTermReader->termDocFreqs());
+                nextOrSkipTo(pTermDocFreqs.get(), docID);
                 BOOST_CHECK_EQUAL(pTermDocFreqs->freq(), termIt->second.size());
 
-                //TermPositions* pTermPositions = pTermReader->termPositions();
-                //BOOST_CHECK_EQUAL(pTermPositions->skipTo(docID), docID);
-                //BOOST_CHECK_EQUAL(pTermPositions->doc(), docID);
-                //BOOST_CHECK_EQUAL(pTermPositions->freq(), termIt->second.size());
-                //for(LocListT::const_iterator locIter = termIt->second.begin();
-                    //locIter != termIt->second.end(); ++locIter)
-                //{
-                    //BOOST_CHECK_EQUAL(pTermPositions->nextPosition(), *locIter);
-                //}
-                //BOOST_CHECK_EQUAL(pTermPositions->nextPosition(), BAD_POSITION);
+                boost::scoped_ptr<TermPositions> pTermPositions(pTermReader->termPositions());
+                nextOrSkipTo(pTermPositions.get(), docID);
+                BOOST_CHECK_EQUAL(pTermPositions->freq(), termIt->second.size());
+                for(LocListT::const_iterator locIter = termIt->second.begin();
+                        locIter != termIt->second.end();
+                        ++locIter)
+                {
+                    BOOST_CHECK_EQUAL(pTermPositions->nextPosition(), *locIter);
+                }
+                BOOST_CHECK_EQUAL(pTermPositions->nextPosition(), BAD_POSITION);
             }
         }
 
-        delete pTermReader;
-
-        DVLOG(2) << "<= IndexerTest::checkTermDocFreqs()";
+        DVLOG(2) << "<= IndexerTest::checkNextSkipTo()";
     }
 
     /**
@@ -395,6 +431,27 @@ public:
     }
 
 private:
+    /**
+     * Move the cursor to @p docID using either @p TermDocFreqs::next() or @p TermDocFreqs::skipTo(),
+     * these two methods are selected randomly.
+     */
+    void nextOrSkipTo(TermDocFreqs* pTermDocFreqs, docid_t docID) {
+        if(skipToRand_())
+        {
+            while(pTermDocFreqs->next())
+            {
+                if(pTermDocFreqs->doc() == docID)
+                    break;
+            }
+        }
+        else
+        {
+            BOOST_CHECK_EQUAL(pTermDocFreqs->skipTo(docID), docID);
+        }
+
+        BOOST_CHECK_EQUAL(pTermDocFreqs->doc(), docID);
+    }
+
     void removeIndexFiles() {
         boost::filesystem::path indexPath(INDEX_FILE_DIR);
         boost::filesystem::remove_all(indexPath);
@@ -457,11 +514,12 @@ private:
         for(unsigned int i = 0; i < docLen; ++i)
         {
             LAInputUnit unit;
+            unit.docId_ = docId;
             unit.termid_ = termIDRand_();
+            unit.wordOffset_ = i;
 #ifdef LOG_TERM_ID
             cout << "term id: " << unit.termid_ << endl;
 #endif
-            unit.wordOffset_ = i;
             document.add_to_property(unit);
 
             docTermIdMap[unit.termid_].push_back(i);
@@ -635,7 +693,9 @@ BOOST_AUTO_TEST_CASE(TermDocFreqs_check)
         indexerTest.createDocument();
         indexerTest.checkDocLength();
     }
+    indexerTest.printStats();
     indexerTest.checkTermDocFreqs();
+    indexerTest.checkNextSkipTo();
     indexerTest.tearDown();
 
     DVLOG(2) << "<= TEST_CASE::TermDocFreqs_check";
