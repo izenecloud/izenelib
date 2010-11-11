@@ -51,9 +51,9 @@ void IndexWriter::flush()
     DVLOG(2) << "=> IndexWriter::flush()...";
     if(pCurBarrelInfo_ == NULL)
     {
-        DVLOG(2) << "<= IndexWriter::flush(), pCurBarrelInfo_ is NULL";
         // write file "barrels" to update the doc count of each barrel
         pBarrelsInfo_->write(pIndexer_->getDirectory());
+        DVLOG(2) << "<= IndexWriter::flush(), pCurBarrelInfo_ is NULL";
         return;
     }
 

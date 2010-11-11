@@ -177,7 +177,7 @@ void IndexReader::delDocument(collectionid_t colID,docid_t docId)
     BarrelInfo* pBarrelInfo = findDocumentInBarrels(colID, docId);
     if(NULL == pBarrelInfo)
     {
-        DVLOG(2) << "IndexReader::findDocumentInBarrels(), no BarrelInfo found";
+        DVLOG(2) << "IndexReader::findDocumentInBarrels(), no BarrelInfo found for collection id: " << colID << ", doc id: " << docId;
         return;
     }
     pBarrelInfo->deleteDocument(docId);
