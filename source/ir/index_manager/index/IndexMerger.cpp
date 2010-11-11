@@ -189,7 +189,6 @@ void IndexMerger::mergeBarrel(MergeBarrel* pBarrel)
     triggerMerge_ = true;
     pBarrel->load();
     string newBarrelName = pBarrel->getIdentifier();
-    BarrelInfo* pNewBarrelInfo = new BarrelInfo(newBarrelName,0,pIndexer_->getIndexCompressType());
 
     string name = newBarrelName + ".voc";///the file name of new index barrel
     IndexOutput* pVocStream = pDirectory_->createOutput(name);
@@ -204,50 +203,19 @@ void IndexMerger::mergeBarrel(MergeBarrel* pBarrel)
 
     int32_t nEntry;
     MergeBarrelEntry* pEntry = NULL;
-    count_t nNumDocs = 0;
     int32_t nEntryCount = (int32_t)pBarrel->size();
-    ///update min doc id of index barrels,let doc id continuous
-    map<collectionid_t,docid_t> newBaseDocIDMap;
-    docid_t maxDocOfNewBarrel = 0;
     bool isNewBarrelUpdateBarrel = true;
     bool hasUpdateBarrel = false;
     for (nEntry = 0;nEntry < nEntryCount;nEntry++)
     {
         pEntry = pBarrel->getAt(nEntry);
 
-        nNumDocs += pEntry->pBarrelInfo_->getDocCount();
-
         isNewBarrelUpdateBarrel &= pEntry->pBarrelInfo_->isUpdate;
         hasUpdateBarrel |= pEntry->pBarrelInfo_->isUpdate;
 
-        if(pEntry->pBarrelInfo_->getMaxDocID() > maxDocOfNewBarrel)
-            maxDocOfNewBarrel = pEntry->pBarrelInfo_->getMaxDocID();
-
-        for (map<collectionid_t,docid_t>::iterator iter = pEntry->pBarrelInfo_->baseDocIDMap.begin();
-                iter != pEntry->pBarrelInfo_->baseDocIDMap.end(); ++iter)
-        {
-            if (newBaseDocIDMap.find(iter->first) == newBaseDocIDMap.end())
-            {
-                newBaseDocIDMap.insert(make_pair(iter->first,iter->second));
-            }
-            else
-            {
-                if (newBaseDocIDMap[iter->first] > iter->second)
-                {
-                    newBaseDocIDMap[iter->first] = iter->second;
-                }
-            }
-        }
     }
     bool needSortingMerge = hasUpdateBarrel&&(!isNewBarrelUpdateBarrel);
 	
-    pNewBarrelInfo->setDocCount(nNumDocs);
-    pNewBarrelInfo->setBaseDocID(newBaseDocIDMap);
-    pNewBarrelInfo->updateMaxDoc(maxDocOfNewBarrel);
-    pNewBarrelInfo->isUpdate = isNewBarrelUpdateBarrel;
-    pNewBarrelInfo->setSearchable(false);
-
-
     FieldsInfo* pFieldsInfo = NULL;
     CollectionsInfo collectionsInfo;
     CollectionInfo* pColInfo = NULL;
@@ -368,12 +336,36 @@ void IndexMerger::mergeBarrel(MergeBarrel* pBarrel)
         collectionsInfo.addCollection(pCollectionInfo);
     } // for
 
+    BarrelInfo* pNewBarrelInfo = NULL;
     {
     //delete all merged barrels
     izenelib::util::ScopedWriteLock<izenelib::util::ReadWriteLock> lock(pIndexer_->mutex_);
+
+    count_t nNumDocs = 0;
+    ///update min doc id of index barrels,let doc id continuous
+    map<collectionid_t,docid_t> newBaseDocIDMap;
+    docid_t maxDocOfNewBarrel = 0;
+
     for (nEntry = 0;nEntry < nEntryCount;nEntry++)
     {
         pEntry = pBarrel->getAt(nEntry);
+
+        nNumDocs += pEntry->pBarrelInfo_->getDocCount();
+        if(pEntry->pBarrelInfo_->getMaxDocID() > maxDocOfNewBarrel)
+            maxDocOfNewBarrel = pEntry->pBarrelInfo_->getMaxDocID();
+
+        for (map<collectionid_t,docid_t>::iterator iter = pEntry->pBarrelInfo_->baseDocIDMap.begin();
+                iter != pEntry->pBarrelInfo_->baseDocIDMap.end(); ++iter)
+        {
+            if (newBaseDocIDMap.find(iter->first) == newBaseDocIDMap.end())
+                newBaseDocIDMap.insert(make_pair(iter->first,iter->second));
+            else
+            {
+                if (newBaseDocIDMap[iter->first] > iter->second)
+                    newBaseDocIDMap[iter->first] = iter->second;
+            }
+        }
+
         pBarrelsInfo_->removeBarrel(pDirectory_,pEntry->pBarrelInfo_->getName());///delete merged barrels
     }
 
@@ -392,7 +384,10 @@ void IndexMerger::mergeBarrel(MergeBarrel* pBarrel)
     delete pOutputDesc;
     pOutputDesc = NULL;
 
-    pNewBarrelInfo->setSearchable(true);
+    pNewBarrelInfo = new BarrelInfo(newBarrelName,nNumDocs,pIndexer_->getIndexCompressType());
+    pNewBarrelInfo->setBaseDocID(newBaseDocIDMap);
+    pNewBarrelInfo->updateMaxDoc(maxDocOfNewBarrel);
+    pNewBarrelInfo->isUpdate = isNewBarrelUpdateBarrel;
     pBarrelsInfo_->addBarrel(pNewBarrelInfo,false);
 
     ///sleep is necessary because if a query get termreader before this lock,
@@ -402,7 +397,6 @@ void IndexMerger::mergeBarrel(MergeBarrel* pBarrel)
         //boost::thread::sleep(boost::get_system_time() + boost::posix_time::milliseconds(5000));
     }
 
-    //////////////////////////////////////////////////////////////////////////
     DVLOG(2)<< "<= IndexMerger::mergeBarrel(), barrel name: " << pBarrel->getIdentifier() << ", doc count: " << pNewBarrelInfo->getDocCount();
 
     MergeBarrelEntry* pNewEntry = new MergeBarrelEntry(pDirectory_,pNewBarrelInfo);

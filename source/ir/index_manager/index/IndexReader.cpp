@@ -171,15 +171,22 @@ BarrelInfo* IndexReader::findDocumentInBarrels(collectionid_t colID, docid_t doc
 
 void IndexReader::delDocument(collectionid_t colID,docid_t docId)
 {
+    DVLOG(4) << "=> IndexReader::delDocument(), collection id: " << colID << ", doc id: " << docId << " ...";
+
+    izenelib::util::ScopedReadLock<izenelib::util::ReadWriteLock> lock(pIndexer_->mutex_);
     BarrelInfo* pBarrelInfo = findDocumentInBarrels(colID, docId);
     if(NULL == pBarrelInfo)
+    {
+        DVLOG(2) << "IndexReader::findDocumentInBarrels(), no BarrelInfo found";
         return;
+    }
     pBarrelInfo->deleteDocument(docId);
     if(!pDocFilter_)
     {
         pDocFilter_ = new BitVector(pBarrelsInfo_->getDocCount() + 1);
     }
     pDocFilter_->set(docId);
+    DVLOG(4) << "<= IndexReader::delDocument()";
 }
 
 freq_t IndexReader::docFreq(collectionid_t colID, Term* term)
