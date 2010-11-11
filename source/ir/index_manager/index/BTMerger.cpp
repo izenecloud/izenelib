@@ -1,4 +1,4 @@
-#include <ir/index_manager/index/DBTMerger.h>
+#include <ir/index_manager/index/BTMerger.h>
 
 NS_IZENELIB_IR_BEGIN
 
@@ -9,29 +9,29 @@ namespace indexmanager
 #define MAXLEVEL 30
 #define COLLISION_FACTOR_FOR_LEVEL_1 3
 
-DBTMerger::DBTMerger(Indexer* pIndexer)
+BTMerger::BTMerger(Indexer* pIndexer)
         :IndexMerger(pIndexer)
         ,nCurLevelSize_(1)
 {
 }
 
-DBTMerger::~DBTMerger()
+BTMerger::~BTMerger()
 {
     endMerge();
 }
 
-int DBTMerger::getC(int nLevel)
+int BTMerger::getC(int nLevel)
 {
     return nCMap_[nLevel];
 }
 
-void DBTMerger::addBarrel(MergeBarrelEntry* pEntry)
+void BTMerger::addBarrel(MergeBarrelEntry* pEntry)
 {
     nCurLevelSize_ = pEntry->numDocs();
     int nLevel = getLevel(nCurLevelSize_);
     int nC = getC(nLevel);
-    DBTLayer* pLevel = NULL;
-    std::map<int,DBTLayer*>::iterator iter = nodesMap_.find(nLevel);
+    BTLayer* pLevel = NULL;
+    std::map<int,BTLayer*>::iterator iter = nodesMap_.find(nLevel);
     if (iter != nodesMap_.end())
     {
         pLevel = iter->second;
@@ -44,15 +44,15 @@ void DBTMerger::addBarrel(MergeBarrelEntry* pEntry)
     }
     else
     {
-        pLevel = new DBTLayer(nLevel,nCurLevelSize_,nC*MAX_TRIGGERS);
+        pLevel = new BTLayer(nLevel,nCurLevelSize_,nC*MAX_TRIGGERS);
         pLevel->add(pEntry);
         nodesMap_.insert(make_pair(nLevel,pLevel));
     }
 }
 
-void DBTMerger::endMerge()
+void BTMerger::endMerge()
 {
-    std::map<int,DBTLayer*>::iterator iter = nodesMap_.begin();
+    std::map<int,BTLayer*>::iterator iter = nodesMap_.begin();
     while (iter != nodesMap_.end())
     {
         delete iter->second;
@@ -61,18 +61,18 @@ void DBTMerger::endMerge()
     nodesMap_.clear();
 }
 
-void DBTMerger::triggerMerge(DBTLayer* pLevel,int nLevel)
+void BTMerger::triggerMerge(BTLayer* pLevel,int nLevel)
 {
-    DBTLayer* pLevel1 = pLevel;
+    BTLayer* pLevel1 = pLevel;
     int nL = getLevel(pLevel->nLevelSize_);
     int nTriggers = 0;
     int i ;
     for ( i = nLevel + 1;(i <= nL)/* && (nTriggers <= MAX_TRIGGERS)*/;i++)
     {
-        std::map<int,DBTLayer*>::iterator iter2 = nodesMap_.find(i);
+        std::map<int,BTLayer*>::iterator iter2 = nodesMap_.find(i);
         if (iter2 != nodesMap_.end())
         {
-            DBTLayer* pLevel2 = iter2->second;
+            BTLayer* pLevel2 = iter2->second;
             int nC = getC(i);
             if ((int)pLevel2->pMergeBarrel_->size() + 1 >= nC)	///will trigger another merge event in upper level
             {
@@ -101,7 +101,7 @@ void DBTMerger::triggerMerge(DBTLayer* pLevel,int nLevel)
         nCurLevelSize_ = 1;
     }
 }
-int DBTMerger::getLevel(int64_t nLevelSize)
+int BTMerger::getLevel(int64_t nLevelSize)
 {
     if (nLevelSize <= 0)
         return 0;

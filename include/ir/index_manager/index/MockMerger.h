@@ -17,10 +17,10 @@ namespace indexmanager
 class MockMerger
 {
 public:
-    class DBTLayer
+    class BTLayer
     {
     public:
-        DBTLayer(int l,int nLevelSize,int nMaxSize)
+        BTLayer(int l,int nLevelSize,int nMaxSize)
                 :nLevel_(l)
                 ,nMergeTimes_(0)
                 ,nLevelSize_(nLevelSize)
@@ -31,7 +31,7 @@ public:
             s = append(s,nMergeTimes_);
             pMergeBarrel_ = new MergeBarrel(s.c_str(),nMaxSize);
         }
-        ~DBTLayer()
+        ~BTLayer()
         {
             delete pMergeBarrel_;
             pMergeBarrel_ = NULL;
@@ -72,6 +72,7 @@ public:
 public:
     void addToMerge(BarrelInfo* pBarrelInfo);
 
+    void merge();
 private:
 
     void addBarrel(MergeBarrelEntry* pEntry);
@@ -80,15 +81,13 @@ private:
 
     int getLevel(int64_t nLevelSize);
 
-    void triggerMerge(DBTLayer* pLevel,int nLevel);
+    void triggerMerge(BTLayer* pLevel,int nLevel);
 
     int getC(int nLevel);
 
     void mergeBarrel(MergeBarrel* pBarrel);
 
 private:
-    const static int MAX_TRIGGERS = 5;
-
     BarrelsInfo* pBarrelsInfo_;
 
     Directory* pDirectory_;
@@ -101,7 +100,7 @@ private:
 
     int nCurLevelSize_; ///size of level
 
-    std::map<int,DBTLayer*> nodesMap_;
+    std::map<int,BTLayer*> nodesMap_;
 
     int num_doc_per_barrel_;
 };

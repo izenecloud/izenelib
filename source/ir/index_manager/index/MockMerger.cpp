@@ -11,6 +11,7 @@ namespace indexmanager
 
 #define NUMDOC_PER_BARREL 10000
 #define MAXLEVEL 30
+#define LAZY_MERGE_START_LEVEL 10
 #define COLLISION_FACTOR_FOR_LEVEL_1 3
 
 MockMerger::MockMerger(BarrelsInfo* pBarrelsInfo,Directory* pDirectory)
@@ -40,12 +41,12 @@ int MockMerger::getC(int nLevel)
 
 void MockMerger::addBarrel(MergeBarrelEntry* pEntry)
 {
-cout<<"add barrel "<<pEntry->pBarrelInfo_->barrelName<<" num doc "<<pEntry->pBarrelInfo_->nNumDocs<<endl;
+    cout<<"add barrel "<<pEntry->pBarrelInfo_->barrelName<<" num doc "<<pEntry->pBarrelInfo_->nNumDocs<<endl;
     nCurLevelSize_ = pEntry->numDocs();
     int nLevel = getLevel(nCurLevelSize_);
     int nC = getC(nLevel);
-    DBTLayer* pLevel = NULL;
-    std::map<int,DBTLayer*>::iterator iter = nodesMap_.find(nLevel);
+    BTLayer* pLevel = NULL;
+    std::map<int,BTLayer*>::iterator iter = nodesMap_.find(nLevel);
     if (iter != nodesMap_.end())
     {
         pLevel = iter->second;
@@ -58,7 +59,7 @@ cout<<"add barrel "<<pEntry->pBarrelInfo_->barrelName<<" num doc "<<pEntry->pBar
     }
     else
     {
-        pLevel = new DBTLayer(nLevel,nCurLevelSize_,nC*MAX_TRIGGERS);
+        pLevel = new BTLayer(nLevel,nCurLevelSize_,nC*2);
         pLevel->add(pEntry);
         nodesMap_.insert(make_pair(nLevel,pLevel));
     }
@@ -66,7 +67,7 @@ cout<<"add barrel "<<pEntry->pBarrelInfo_->barrelName<<" num doc "<<pEntry->pBar
 
 void MockMerger::endMerge()
 {
-    std::map<int,DBTLayer*>::iterator iter = nodesMap_.begin();
+    std::map<int,BTLayer*>::iterator iter = nodesMap_.begin();
     while (iter != nodesMap_.end())
     {
         delete iter->second;
@@ -75,20 +76,19 @@ void MockMerger::endMerge()
     nodesMap_.clear();
 }
 
-void MockMerger::triggerMerge(DBTLayer* pLevel,int nLevel)
+void MockMerger::triggerMerge(BTLayer* pLevel,int nLevel)
 {
-    DBTLayer* pLevel1 = pLevel;
+    BTLayer* pLevel1 = pLevel;
     int nL = getLevel(pLevel->nLevelSize_);
     int nTriggers = 0;
-    int i ;
-    for ( i = nLevel + 1;(i <= nL)/* && (nTriggers <= MAX_TRIGGERS)*/;i++)
+    for ( int i = nLevel + 1;i <= nL;i++)
     {
-        std::map<int,DBTLayer*>::iterator iter2 = nodesMap_.find(i);
+        std::map<int,BTLayer*>::iterator iter2 = nodesMap_.find(i);
         if (iter2 != nodesMap_.end())
         {
-            DBTLayer* pLevel2 = iter2->second;
+            BTLayer* pLevel2 = iter2->second;
             int nC = getC(i);
-            if ((int)pLevel2->pMergeBarrel_->size() + 1 >= nC)	///will trigger another merge event in upper level
+            if ((int)pLevel2->pMergeBarrel_->size() + 1 >= nC) ///will trigger another merge event in upper level
             {
                 ///copy elements to upper level
                 while (pLevel1->pMergeBarrel_->size() >0)
@@ -106,6 +106,54 @@ void MockMerger::triggerMerge(DBTLayer* pLevel,int nLevel)
         else break;
     }
 
+    ///whether is it possible to merge barrels from upper layer to avoid of error
+    for(int i = nL + 1; i < MAXLEVEL; i++)
+    {
+        std::map<int,BTLayer*>::iterator iter2 = nodesMap_.find(i);
+        if(iter2 != nodesMap_.end())
+        {
+            ///find the base doc id range for merged barrels
+            docid_t startDoc = -1;
+            docid_t endDoc = 0;
+            int nEntryCount = (int)pLevel1->pMergeBarrel_->size();
+            for (int nEntry = 0;nEntry < nEntryCount;nEntry++)
+            {
+                docid_t baseDoc = pLevel1->pMergeBarrel_->getAt(nEntry)->baseDocID();
+                startDoc = baseDoc < startDoc ? baseDoc : startDoc; 	
+                endDoc = baseDoc > endDoc ? baseDoc : endDoc;
+            }
+
+            ///juge the base doc id range of upper layer
+            BTLayer* pLevel2 = iter2->second;
+            nEntryCount = (int)pLevel2->pMergeBarrel_->size();
+            bool needToMergeUpperLayer = false;
+            for (int nEntry = 0;nEntry < nEntryCount;nEntry++)
+            {
+                docid_t baseDoc = pLevel2->pMergeBarrel_->getAt(nEntry)->baseDocID();
+                if((baseDoc > startDoc) && (baseDoc < endDoc))
+                {
+                    needToMergeUpperLayer = true;
+                    break;
+                }
+            }
+            if(needToMergeUpperLayer)
+            {
+                ///copy elements to upper level
+                while (pLevel1->pMergeBarrel_->size() >0)
+                {
+                    pLevel2->pMergeBarrel_->put(pLevel1->pMergeBarrel_->pop());
+                }
+                pLevel2->nLevelSize_ += pLevel1->nLevelSize_;
+                pLevel1->nLevelSize_ = 0;
+                nL = getLevel(pLevel2->nLevelSize_);
+                pLevel1 = pLevel2;
+                nTriggers++;
+            }
+        }
+    }
+
+
+    ///merge
     if (pLevel1->pMergeBarrel_->size() > 0)
     {
         nCurLevelSize_ = pLevel1->nLevelSize_;
@@ -120,20 +168,27 @@ int MockMerger::getLevel(int64_t nLevelSize)
     if (nLevelSize <= 0)
         return 0;
 
+    int level = 0;
+    while( ( level < MAXLEVEL) && (nLevelSize >= (int)pow(3.0,(double)(level + 1)) ) )
+    {
+        level++;
+    }
+
     if(nCMap_.empty())
     {
-        num_doc_per_barrel_ = nLevelSize * 3/2;
+//        num_doc_per_barrel_ = nLevelSize * 3/2;
         int nC = COLLISION_FACTOR_FOR_LEVEL_1;
         nCMap_[1] = COLLISION_FACTOR_FOR_LEVEL_1;
         for(int i = 2; i < MAXLEVEL; i++)
         {
-            if(i >= 2)
-                nC = 10;
+//            if(i >= 2)
+//                nC = 10;
             nCMap_[i] = nC;
         }
-        return 1;
+//        return 1;
     }
-
+    return level;
+/*
     int64_t numDocs = num_doc_per_barrel_;
     for(int i = 1; i < MAXLEVEL; ++i)
     {
@@ -142,14 +197,53 @@ int MockMerger::getLevel(int64_t nLevelSize)
             return i;
     }
     return MAXLEVEL;
+*/	
+}
+
+void MockMerger::merge()
+{
+    triggerMerge_ = false;
+
+    if (pBarrelsInfo_->getBarrelCount() <= 1) return;
+
+    BarrelInfo* pBaInfo;
+    MergeBarrel mb(pBarrelsInfo_->getBarrelCount());
+    ///put all index barrel into mb
+    pBarrelsInfo_->startIterator();
+    while (pBarrelsInfo_->hasNext())
+    {
+        pBaInfo = pBarrelsInfo_->next();
+        mb.put(new MergeBarrelEntry(NULL,pBaInfo));
+    }
+
+    while (mb.size() > 0)
+    {
+        addBarrel(mb.pop());
+    }
+
+    endMerge();
+
+    if(!triggerMerge_) return;
+
+    pBarrelsInfo_->sort(pDirectory_);
+
+    pBarrelsInfo_->startIterator();
+    docid_t maxDoc = 0;
+    while (pBarrelsInfo_->hasNext())
+    {
+        pBaInfo = pBarrelsInfo_->next();
+        if(pBaInfo->getMaxDocID() > maxDoc)
+            maxDoc = pBaInfo->getMaxDocID();
+    }
+
+    if(maxDoc < pBarrelsInfo_->maxDocId())
+        pBarrelsInfo_->resetMaxDocId(maxDoc);
+    pBarrelsInfo_->write(pDirectory_);
 }
 
 void MockMerger::addToMerge(BarrelInfo* pBarrelInfo)
 {
-    if(pBarrelInfo->isRemoved())
-    {
-        return;
-    }
+    if(pBarrelInfo->isRemoved()) return;
 
     triggerMerge_ = false;
 
@@ -159,10 +253,7 @@ void MockMerger::addToMerge(BarrelInfo* pBarrelInfo)
 
     addBarrel(pEntry);
 
-    if(!triggerMerge_)
-    {
-        return;
-    }
+    if(!triggerMerge_) return;
 
     pBarrelsInfo_->sort(pDirectory_);
 }
