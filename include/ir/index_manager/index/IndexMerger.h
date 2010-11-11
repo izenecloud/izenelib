@@ -48,6 +48,7 @@ protected:
     friend class MergeBarrel;
     friend class IndexMerger;
     friend class DefaultMerger;
+    friend class MockMerger;
 };
 
 /**
