@@ -40,8 +40,8 @@ const unsigned int COLLECTION_ID = 1;
 const char* INDEX_MODE_REALTIME = "realtime";
 const char* INVERTED_FIELD = "content";
 
-const int TEST_DOC_NUM = 10;
-const int TEST_BARREL_NUM = 1;
+const int TEST_DOC_NUM = 100;
+const int TEST_BARREL_NUM = 3;
 
 const int TEST_DOC_LEN_RANGE = 10 * TEST_DOC_NUM;
 const int TEST_TERM_ID_RANGE = 100 * TEST_DOC_NUM;
@@ -93,7 +93,7 @@ public:
           ,termIDRand_(randEngine_, uniform_int<>(1, TEST_TERM_ID_RANGE))
           ,docIDSkipRand_(randEngine_, uniform_int<>(1, docIDSkipMax))
           ,docNumRand_(randEngine_, uniform_int<>(1, newDocNum_))
-          ,skipToRand_(randEngine_, uniform_int<>(0, 0))
+          ,skipToRand_(randEngine_, uniform_int<>(0, 1))
           ,maxDocID_(0)
     {}
 
