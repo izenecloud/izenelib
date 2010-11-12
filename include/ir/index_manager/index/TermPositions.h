@@ -113,7 +113,12 @@ private:
 
     bool is_last_skipto_; /// last operation is skipto
 
-    bool fixed_pos_buffer_; ///whether using fixed position buffer to decode term positions
+    /**
+     * whether using fixed position buffer to decode term positions,
+     * this flag is not used as RTDiskPostingReader::decodeNextPositions()
+     * has bugs when this flag is true.
+     */
+    bool fixed_pos_buffer_; 
 
     static const int32_t DEFAULT_BUFFERSIZE = 163840;
 };
@@ -141,8 +146,8 @@ inline void TermPositions::skipPositions(int32_t nSkips)
 
 inline bool TermPositions::decodePositions()
 {
-    if(fixed_pos_buffer_) return decodePositionsUsingFixedBuf();
-    else return decodePositionsUsingUnFixedBuf();
+    /*if(fixed_pos_buffer_) return decodePositionsUsingFixedBuf();*/
+    return decodePositionsUsingUnFixedBuf();
 }
 
 }

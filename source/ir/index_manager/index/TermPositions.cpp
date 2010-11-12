@@ -18,7 +18,7 @@ TermPositions::TermPositions()
         ,nPPostingCountWithinDoc_(0)
         ,nLastPosting_(-1)
         ,is_last_skipto_(false)
-        ,fixed_pos_buffer_(false) // default value is changed to false for the bug in RTDiskPostingReader::decodeNext()
+        ,fixed_pos_buffer_(false)
 {}
 
 TermPositions::TermPositions(PostingReader* pPosting,const TermInfo& ti,bool ownPosting)
@@ -35,7 +35,7 @@ TermPositions::TermPositions(PostingReader* pPosting,const TermInfo& ti,bool own
         ,nPPostingCountWithinDoc_(0)
         ,nLastPosting_(-1)
         ,is_last_skipto_(false)
-        ,fixed_pos_buffer_(false) // default value is changed to false for the bug in RTDiskPostingReader::decodeNext()
+        ,fixed_pos_buffer_(false)
 {}
 
 TermPositions::~TermPositions()
@@ -309,7 +309,7 @@ void TermPositions::createBuffer()
 
 bool TermPositions::decode()
 {
-    if(fixed_pos_buffer_) return TermDocFreqs::decode();
+    //if(fixed_pos_buffer_) return TermDocFreqs::decode();
     count_t df = termInfo_.docFreq();
     if ((count_t)nTotalDecodedCount_ == df)
     {
