@@ -101,7 +101,7 @@ template<
 typename KeyType,
 typename ValueType,
 typename LockType =NullLock,
-typename AmType=sdb_hash<KeyType, unsigned int, LockType>,
+typename AmType=sdb_hash<KeyType, long, LockType>,
 bool UseCompress = true
 >class sdb_storage :public AccessMethod<KeyType, ValueType, LockType>
 {
@@ -189,7 +189,7 @@ public:
 	 *  Note that, there will be memory leak if not delete the value 
 	 */
 	ValueType* find(const KeyType & key) {
-		unsigned int npos;
+		long npos;
 		if( ! keyHash_.get(key, npos) )
 		return NULL;
 		else {
@@ -207,7 +207,7 @@ public:
 
 	bool get(const KeyType& key, ValueType& val)
 	{
-		unsigned int npos;
+		long npos;
 		if( ! keyHash_.get(key, npos) )
 		return false;
 		else {
@@ -236,7 +236,7 @@ public:
 	 *  update  an item by key/value pair
 	 */
 	bool update(const KeyType& key, const ValueType& val) {
-		unsigned int npos;
+		long npos;
 		if( ! keyHash_.get(key, npos) )
 		return insert(key, val);
 		else {
@@ -280,7 +280,7 @@ public:
 
 	bool get(const SDBCursor& locn, KeyType& key, ValueType& value)
 	{
-		unsigned int npos;
+		long npos;
 		bool ret =keyHash_.get(locn, key, npos);
 		if(ret) {
 			readValue_(npos, value);
@@ -309,13 +309,13 @@ public:
 
 	bool seq(SDBCursor& locn, KeyType& key, ESeqDirection sdir=ESD_FORWARD)
 	{
-		unsigned int npos;
+		long npos;
 		return keyHash_.seq(locn, key, npos, sdir);
 	}
 
 	bool seq(SDBCursor& locn, KeyType& key, ValueType& value, ESeqDirection sdir=ESD_FORWARD)
 	{
-		unsigned int npos;
+		long npos;
 		if( keyHash_.seq(locn, key, npos, sdir) )
 		return readValue_(npos, value);
 		else
@@ -499,7 +499,7 @@ private:
 		return true;
 	}
 
-//	inline bool readValue_(const KeyType& key, unsigned int npos, ValueType& val) {
+//	inline bool readValue_(const KeyType& key, long npos, ValueType& val) {
 //		typename map<unsigned int, ValueType>::iterator iter;
 //		iter = readCache_.find(npos);
 //		if( iter != readCache_.end() )
@@ -527,7 +527,7 @@ private:
 //
 //	}
 
-	inline bool readValue_(unsigned int npos, ValueType& val) {
+	inline bool readValue_(long npos, ValueType& val) {
 		ScopedWriteLock<LockType> lock(fileLock_);
 
 		if ( 0 != fseek(dataFile_, npos*ssh_.pageSize+sizeof(SsHeader), SEEK_SET) )
