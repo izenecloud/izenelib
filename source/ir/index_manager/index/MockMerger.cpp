@@ -107,7 +107,7 @@ void MockMerger::triggerMerge(BTLayer* pLevel,int nLevel)
     }
 
     ///whether is it possible to merge barrels from upper layer to avoid of error
-    for(int i = nL + 1; i < MAXLEVEL; i++)
+    for(int i = 1; i < MAXLEVEL; i++)
     {
         std::map<int,BTLayer*>::iterator iter2 = nodesMap_.find(i);
         if(iter2 != nodesMap_.end())
@@ -122,7 +122,6 @@ void MockMerger::triggerMerge(BTLayer* pLevel,int nLevel)
                 startDoc = baseDoc < startDoc ? baseDoc : startDoc; 	
                 endDoc = baseDoc > endDoc ? baseDoc : endDoc;
             }
-
             ///juge the base doc id range of upper layer
             BTLayer* pLevel2 = iter2->second;
             nEntryCount = (int)pLevel2->pMergeBarrel_->size();
@@ -145,7 +144,6 @@ void MockMerger::triggerMerge(BTLayer* pLevel,int nLevel)
                 }
                 pLevel2->nLevelSize_ += pLevel1->nLevelSize_;
                 pLevel1->nLevelSize_ = 0;
-                nL = getLevel(pLevel2->nLevelSize_);
                 pLevel1 = pLevel2;
                 nTriggers++;
             }
@@ -261,7 +259,7 @@ void MockMerger::addToMerge(BarrelInfo* pBarrelInfo)
 void MockMerger::mergeBarrel(MergeBarrel* pBarrel)
 {
     triggerMerge_ = true;
-    cout<< "=> IndexMerger::mergeBarrel(), barrel name: " << pBarrel->getIdentifier() << endl;
+    cout<< "=> IndexMerger::mergeBarrel(), barrel name: " << pBarrel->getIdentifier() << " barrels:";
 
     std::string newBarrelName = pBarrel->getIdentifier();
     BarrelInfo* pNewBarrelInfo = new BarrelInfo(newBarrelName,0);
@@ -274,7 +272,7 @@ void MockMerger::mergeBarrel(MergeBarrel* pBarrel)
     for (int nEntry = 0;nEntry < nEntryCount;nEntry++)
     {
         pEntry = pBarrel->getAt(nEntry);
-
+        cout<<pEntry->pBarrelInfo_->barrelName<<"...";
         nNumDocs += pEntry->pBarrelInfo_->getDocCount();
 
         if(pEntry->pBarrelInfo_->getMaxDocID() > maxDocOfNewBarrel)
@@ -296,7 +294,7 @@ void MockMerger::mergeBarrel(MergeBarrel* pBarrel)
             }
         }
     }
-
+    cout<<endl;
 
     for (int nEntry = 0;nEntry < nEntryCount;nEntry++)
     {

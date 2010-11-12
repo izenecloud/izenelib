@@ -93,7 +93,7 @@ void BTMerger::triggerMerge(BTLayer* pLevel,int nLevel)
     }
 
     ///whether is it possible to merge barrels from upper layer to avoid of error
-    for(int i = nL + 1; i < MAXLEVEL; i++)
+    for(int i = 1; i < MAXLEVEL; i++)
     {
         std::map<int,BTLayer*>::iterator iter2 = nodesMap_.find(i);
         if(iter2 != nodesMap_.end())
@@ -131,7 +131,6 @@ void BTMerger::triggerMerge(BTLayer* pLevel,int nLevel)
                 }
                 pLevel2->nLevelSize_ += pLevel1->nLevelSize_;
                 pLevel1->nLevelSize_ = 0;
-                nL = getLevel(pLevel2->nLevelSize_);
                 pLevel1 = pLevel2;
                 nTriggers++;
             }

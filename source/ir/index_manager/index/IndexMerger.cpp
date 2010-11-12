@@ -26,7 +26,7 @@ MergeBarrelEntry::MergeBarrelEntry(Directory* pDirectory,BarrelInfo* pBarrelInfo
         :pDirectory_(pDirectory)
         ,pBarrelInfo_(pBarrelInfo)
         ,pCollectionsInfo_(NULL)
-        ,currColID_(-1)
+        ,currColID_(1)
 {
 }
 MergeBarrelEntry::~MergeBarrelEntry()
