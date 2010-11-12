@@ -1,5 +1,5 @@
 /**
-* @file        DBTMerger.h
+* @file        BTMerger.h
 * @version     SF1 v5.0
 * @brief DBT index merge algorithm
 */
@@ -14,13 +14,13 @@ NS_IZENELIB_IR_BEGIN
 namespace indexmanager
 {
 
-class DBTMerger : public IndexMerger
+class BTMerger : public IndexMerger
 {
 public:
-    class DBTLayer
+    class BTLayer
     {
     public:
-        DBTLayer(int l,int nLevelSize,int nMaxSize)
+        BTLayer(int l,int nLevelSize,int nMaxSize)
                 :nLevel_(l)
                 ,nMergeTimes_(0)
                 ,nLevelSize_(nLevelSize)
@@ -31,7 +31,7 @@ public:
             s = append(s,nMergeTimes_);
             pMergeBarrel_ = new MergeBarrel(s.c_str(),nMaxSize);
         }
-        ~DBTLayer()
+        ~BTLayer()
         {
             delete pMergeBarrel_;
             pMergeBarrel_ = NULL;
@@ -60,14 +60,14 @@ public:
 
         int nLevelSize_;			///size of level
 
-        friend class DBTMerger;
+        friend class BTMerger;
     };
 
 public:
 
-    DBTMerger(Indexer* pIndexer);
+    BTMerger(Indexer* pIndexer);
 
-    virtual ~DBTMerger();
+    virtual ~BTMerger();
 public:
 
     void addBarrel(MergeBarrelEntry* pEntry);
@@ -78,7 +78,7 @@ private:
 
     int getLevel(int64_t nLevelSize);
 
-    void triggerMerge(DBTLayer* pLevel,int nLevel);
+    void triggerMerge(BTLayer* pLevel,int nLevel);
 
     int getC(int nLevel);
 private:
@@ -89,7 +89,7 @@ private:
 
     int nCurLevelSize_; ///size of level
 
-    std::map<int,DBTLayer*> nodesMap_;
+    std::map<int,BTLayer*> nodesMap_;
 
     int num_doc_per_barrel_;
 };

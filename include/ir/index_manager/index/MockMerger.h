@@ -1,10 +1,10 @@
 /**
-* @file        DefaultMerger.h
-* @version     SF1 v5.0
-* @brief Default index merge algorithm
-*/
-#ifndef DEFAULT_MERGER_H
-#define DEFAULT_MERGER_H
+ * @brief mock index merger to test index merge policies
+ * @author Yingfeng Zhang
+ * @date 2010-11-10
+ */
+#ifndef MOCK_MERGER_H
+#define MOCK_MERGER_H
 
 #include <ir/index_manager/index/IndexMerger.h>
 #include <ir/index_manager/utility/StringUtils.h>
@@ -14,13 +14,13 @@ NS_IZENELIB_IR_BEGIN
 namespace indexmanager
 {
 
-class DefaultMerger : public IndexMerger
+class MockMerger
 {
 public:
-    class Layer
+    class BTLayer
     {
     public:
-        Layer(int l,int nLevelSize,int nMaxSize)
+        BTLayer(int l,int nLevelSize,int nMaxSize)
                 :nLevel_(l)
                 ,nMergeTimes_(0)
                 ,nLevelSize_(nLevelSize)
@@ -31,7 +31,7 @@ public:
             s = append(s,nMergeTimes_);
             pMergeBarrel_ = new MergeBarrel(s.c_str(),nMaxSize);
         }
-        ~Layer()
+        ~BTLayer()
         {
             delete pMergeBarrel_;
             pMergeBarrel_ = NULL;
@@ -60,32 +60,47 @@ public:
 
         int nLevelSize_;			///size of level
 
-        friend class DefaultMerger;
+        friend class MockMerger;
     };
 
 public:
 
-    DefaultMerger(Indexer* pIndexer);
+    MockMerger(BarrelsInfo* pBarrelsInfo,Directory* pDirectory);
 
-    virtual ~DefaultMerger();
+    virtual ~MockMerger();
+
 public:
+    void addToMerge(BarrelInfo* pBarrelInfo);
+
+    void merge();
+private:
 
     void addBarrel(MergeBarrelEntry* pEntry);
 
     void endMerge();
 
-private:
-
     int getLevel(int64_t nLevelSize);
 
-    void triggerMerge(Layer* pLevel,int nLevel);
+    void triggerMerge(BTLayer* pLevel,int nLevel);
+
+    int getC(int nLevel);
+
+    void mergeBarrel(MergeBarrel* pBarrel);
 
 private:
+    BarrelsInfo* pBarrelsInfo_;
+
+    Directory* pDirectory_;
+
+    std::vector<MergeBarrelEntry*>* pMergeBarrels_;
+
+    bool triggerMerge_;
+
     std::map<int,int> nCMap_; ///collision factor, when there are nC_ barrels in a same level, a merge will be trigged.
 
     int nCurLevelSize_; ///size of level
 
-    std::map<int,Layer*> nodesMap_;
+    std::map<int,BTLayer*> nodesMap_;
 
     int num_doc_per_barrel_;
 };
@@ -93,7 +108,6 @@ private:
 }
 
 NS_IZENELIB_IR_END
-
 
 #endif
 

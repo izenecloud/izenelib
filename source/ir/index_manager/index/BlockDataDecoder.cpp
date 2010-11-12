@@ -89,7 +89,8 @@ void ChunkDecoder::post_process(BitVector* pDocFilter)
     if(! pDocFilter->hasBetween(doc_ids_[0], doc_ids_[num_doc]))
         return;
 
-    uint32_t* pPos = positions_;
+    uint32_t* pPos = 0;
+    if(pos_decoded_) pPos = positions_;
 
     for (int i = 0; i < num_doc; ++i)
     {
@@ -98,7 +99,7 @@ void ChunkDecoder::post_process(BitVector* pDocFilter)
             --num_docs_;
             doc_ids_[i] = doc_ids_[i + 1];
             ///skip positions
-            memmove (pPos, pPos + frequencies_[i], frequencies_[i]);
+            if(pos_decoded_) memmove (pPos, pPos + frequencies_[i], frequencies_[i]);
             frequencies_[i] = frequencies_[i + 1];
             pPos += frequencies_[i];
             doc_deleted_ = true;

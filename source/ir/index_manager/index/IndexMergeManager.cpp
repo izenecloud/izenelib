@@ -3,10 +3,7 @@
 
 #include <ir/index_manager/index/IndexMergeManager.h>
 #include <ir/index_manager/index/IndexMerger.h>
-#include <ir/index_manager/index/GPartitionMerger.h>
-#include <ir/index_manager/index/MultiWayMerger.h>
-#include <ir/index_manager/index/DefaultMerger.h>
-#include <ir/index_manager/index/DBTMerger.h>
+#include <ir/index_manager/index/BTMerger.h>
 #include <ir/index_manager/index/OptimizeMerger.h>
 #include <ir/index_manager/index/IndexReader.h>
 #include <ir/index_manager/index/IndexerPropertyConfig.h>
@@ -25,18 +22,8 @@ IndexMergeManager::IndexMergeManager(Indexer* pIndexer)
     pBarrelsInfo_ = pIndexer_->getBarrelsInfo();
 
     IndexManagerConfig* pConfig = pIndexer_->getIndexManagerConfig();
-    const char* mergeStrategyStr = pConfig->mergeStrategy_.param_.c_str();
 
-    if(!strcasecmp(mergeStrategyStr,"no"))
-        pAddMerger_ = NULL;
-    else if(!strcasecmp(mergeStrategyStr,"dbt"))
-        pAddMerger_ = new DBTMerger(pIndexer_);
-    else if(!strcasecmp(mergeStrategyStr,"mway"))
-        pAddMerger_ = new MultiWayMerger(pIndexer_);	
-    else if(!strcasecmp(mergeStrategyStr,"gpart"))
-        pAddMerger_ = new GPartitionMerger(pIndexer_);
-    else
-        pAddMerger_ = new DefaultMerger(pIndexer_);
+    pAddMerger_ = new BTMerger(pIndexer_);
 
     pOptimizeMerger_ = new OptimizeMerger(pIndexer_, pBarrelsInfo_->getBarrelCount());
 

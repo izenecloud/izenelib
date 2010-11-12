@@ -34,6 +34,7 @@ TARGET_LINK_LIBRARIES(t_indexer
 
 SET(t_mock_indexer_SRC
   t_MockIndexReader.cpp
+  t_mergepolicy.cpp
   t_master_suite.cpp
 )
 
