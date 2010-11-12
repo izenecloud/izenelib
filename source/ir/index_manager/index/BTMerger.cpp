@@ -44,7 +44,7 @@ void BTMerger::addBarrel(MergeBarrelEntry* pEntry)
     }
     else
     {
-        pLevel = new BTLayer(nLevel,nCurLevelSize_,nC*MAX_TRIGGERS);
+        pLevel = new BTLayer(nLevel,nCurLevelSize_,MAX_LAYER_SIZE);
         pLevel->add(pEntry);
         nodesMap_.insert(make_pair(nLevel,pLevel));
     }
