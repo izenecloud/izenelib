@@ -48,7 +48,12 @@ public:
 
     BarrelsInfo* getBarrelsInfo();
 
-    ///client must delete the returned object
+    /**
+     * Get the TermReader instance for query.
+     * @param colID collection id
+     * @return the newly created TermReader instance
+     * @note client must delete the instance returned
+     */
     TermReader* getTermReader(collectionid_t colID);
 
     /// mark a document as deleted;

@@ -62,8 +62,6 @@ public:
 
 private:
     void createBarrelInfo();
-    /// flush in-memory index to disk
-    void writeCachedIndex();	
     /// optimize index offline
     void lazyOptimizeIndex();
 private:

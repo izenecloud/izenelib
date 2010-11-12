@@ -44,7 +44,7 @@ void DBTMerger::addBarrel(MergeBarrelEntry* pEntry)
     }
     else
     {
-        pLevel = new DBTLayer(nLevel,nCurLevelSize_,nC*MAX_TRIGGERS);
+        pLevel = new DBTLayer(nLevel,nCurLevelSize_,MAX_LAYER_SIZE); /// MAX_LAYER_SIZE is used instead of (nC*MAX_TRIGGERS) to avoid zero max size
         pLevel->add(pEntry);
         nodesMap_.insert(make_pair(nLevel,pLevel));
     }
