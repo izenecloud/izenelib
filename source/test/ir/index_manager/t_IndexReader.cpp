@@ -23,8 +23,8 @@
 
 #define LOG_DOC_OPERATION
 //#define LOG_CHECK_OPERATION
-#define LOG_TERM_ID
-#define LOG_QUERY_OPERATION
+//#define LOG_TERM_ID
+//#define LOG_QUERY_OPERATION
 
 using namespace std;
 using namespace boost;
@@ -40,7 +40,7 @@ const unsigned int COLLECTION_ID = 1;
 const char* INDEX_MODE_REALTIME = "realtime";
 const char* INVERTED_FIELD = "content";
 
-const int TEST_DOC_NUM = 100;
+const int TEST_DOC_NUM = 10;
 const int TEST_BARREL_NUM = 3;
 
 const int TEST_DOC_LEN_RANGE = 10 * TEST_DOC_NUM;
@@ -295,45 +295,18 @@ public:
     void checkNextSkipTo() {
         LOG(ERROR) << "=> IndexerTest::checkNextSkipTo()";
 
-        IndexReader* pIndexReader = indexer_->getIndexReader();
-        boost::scoped_ptr<TermReader> pTermReader(pIndexReader->getTermReader(COLLECTION_ID));
-
-        if(mapDocIdLen_.empty())
+        bool isQueryFailed = true;
+        while(isQueryFailed)
         {
-            // TermReader should be NULL when no doc exists
-            BOOST_CHECK(pTermReader.get() == NULL);
-            LOG(ERROR) << "<= IndexerTest::checkNextSkipTo(), no doc exists";
-            return;
-        }
-
-        // regenerate term ids for each doc
-        boost::mt19937 randEngine;
-        boost::variate_generator<mt19937, uniform_int<> > docLenRand(randEngine, uniform_int<>(1, TEST_DOC_LEN_RANGE));
-        boost::variate_generator<mt19937, uniform_int<> > termIDRand(randEngine, uniform_int<>(1, TEST_TERM_ID_RANGE));
-        boost::variate_generator<mt19937, uniform_int<> > docIDSkipRand(randEngine, uniform_int<>(1, 1));
-        boost::variate_generator<mt19937, uniform_int<> > docNumRand(randEngine, uniform_int<>(1, newDocNum_));
-
-        docid_t docID = 0;
-        for(unsigned int i = 1; i <= (isDocNumRand_ ? docNumRand() : maxDocID_); i++)
-        {
-            docID += docIDSkipRand();
-            DTermIdMapT docTermIdMap;
-
-            const unsigned int docLen = docLenRand();
-            for(unsigned int j = 0; j < docLen; ++j)
+            try
             {
-                unsigned int termId = termIDRand();
-#ifdef LOG_TERM_ID
-                //cout << "term id: " << termId << endl;
-#endif
-
-                docTermIdMap[termId].push_back(j);
+                checkNextSkipToImpl();
+                isQueryFailed = false;
             }
-#ifdef LOG_TERM_ID
-            cout << endl;
-#endif
-
-            checkNextSkipToImpl(pTermReader.get(), docID, docTermIdMap);
+            catch(IndexManagerException& e)
+            {
+                LOG(ERROR) << "start query again as exception found: " << e.what();
+            }
         }
 
         LOG(ERROR) << "<= IndexerTest::checkNextSkipTo()";
@@ -497,7 +470,60 @@ private:
         }
     }
 
-    void checkNextSkipToImpl(TermReader* pTermReader, docid_t docID, const DTermIdMapT& docTermIdMap) {
+    void checkNextSkipToImpl() {
+        LOG(ERROR) << "=> IndexerTest::checkNextSkipToImpl()";
+
+        IndexReader* pIndexReader = indexer_->getIndexReader();
+        boost::scoped_ptr<TermReader> pTermReader(pIndexReader->getTermReader(COLLECTION_ID));
+
+        if(mapDocIdLen_.empty())
+        {
+            // TermReader should be NULL when no doc exists
+            BOOST_CHECK(pTermReader.get() == NULL);
+            LOG(ERROR) << "<= IndexerTest::checkNextSkipTo(), no doc exists";
+            return;
+        }
+
+        // regenerate term ids for each doc
+        boost::mt19937 randEngine;
+        boost::variate_generator<mt19937, uniform_int<> > docLenRand(randEngine, uniform_int<>(1, TEST_DOC_LEN_RANGE));
+        boost::variate_generator<mt19937, uniform_int<> > termIDRand(randEngine, uniform_int<>(1, TEST_TERM_ID_RANGE));
+        boost::variate_generator<mt19937, uniform_int<> > docIDSkipRand(randEngine, uniform_int<>(1, 1));
+        boost::variate_generator<mt19937, uniform_int<> > docNumRand(randEngine, uniform_int<>(1, newDocNum_));
+
+        docid_t docID = 0;
+        for(unsigned int i = 1; i <= (isDocNumRand_ ? docNumRand() : maxDocID_); i++)
+        {
+            docID += docIDSkipRand();
+            DTermIdMapT docTermIdMap;
+
+            const unsigned int docLen = docLenRand();
+            for(unsigned int j = 0; j < docLen; ++j)
+            {
+                unsigned int termId = termIDRand();
+#ifdef LOG_TERM_ID
+                //cout << "term id: " << termId << endl;
+#endif
+
+                docTermIdMap[termId].push_back(j);
+            }
+#ifdef LOG_TERM_ID
+            cout << endl;
+#endif
+
+            checkNextSkipToDoc(pTermReader.get(), docID, docTermIdMap);
+        }
+
+        LOG(ERROR) << "<= IndexerTest::checkNextSkipToImpl()";
+    }
+
+    /**
+     * Check query on a doc.
+     * @param pTermReader TermReader instance
+     * @param docID the doc to query
+     * @param docTermIdMap the term ids in that doc
+     */
+    void checkNextSkipToDoc(TermReader* pTermReader, docid_t docID, const DTermIdMapT& docTermIdMap) {
         bool isDocRemoved = (mapDocIdLen_.find(docID) == mapDocIdLen_.end());
 
 #ifdef LOG_QUERY_OPERATION
@@ -516,19 +542,27 @@ private:
             cout << "check term id: " << termIt->first << endl;
 #endif
             term.setValue(termIt->first);
-            BOOST_CHECK(pTermReader->seek(&term));
 
-            boost::scoped_ptr<TermDocFreqs> pTermDocFreqs(pTermReader->termDocFreqs());
             // this term is already removed from the whole collection
             if(mapCTermId_.find(term.getValue()) == mapCTermId_.end())
             {
-                if(skipToRand_())
-                    BOOST_CHECK_EQUAL(pTermDocFreqs->skipTo(docID), BAD_DOCID);
-                else
-                    BOOST_CHECK_EQUAL(pTermDocFreqs->next(), false);
+                // TermReader::seek() returns false in 2 cases:
+                // 1. merge finished
+                // 2. barrel count is 0
+                if(pTermReader->seek(&term))
+                {
+                    boost::scoped_ptr<TermDocFreqs> pTermDocFreqs(pTermReader->termDocFreqs());
+                    if(skipToRand_())
+                        BOOST_CHECK_EQUAL(pTermDocFreqs->skipTo(docID), BAD_DOCID);
+                    else
+                        BOOST_CHECK_EQUAL(pTermDocFreqs->next(), false);
+                }
             }
             else
             {
+                BOOST_CHECK(pTermReader->seek(&term));
+                boost::scoped_ptr<TermDocFreqs> pTermDocFreqs(pTermReader->termDocFreqs());
+
                 nextOrSkipTo(pTermDocFreqs.get(), docID, isDocRemoved);
                 if(! isDocRemoved)
                     BOOST_CHECK_EQUAL(pTermDocFreqs->freq(), termIt->second.size());
@@ -704,163 +738,163 @@ private:
 
 BOOST_AUTO_TEST_SUITE( t_IndexReader )
 
-//BOOST_AUTO_TEST_CASE(index)
-//{
-    //LOG(ERROR) << "=> TEST_CASE::index";
-    //IndexerTest indexerTest(TEST_DOC_NUM);
+BOOST_AUTO_TEST_CASE(index)
+{
+    LOG(ERROR) << "=> TEST_CASE::index";
+    IndexerTest indexerTest(TEST_DOC_NUM);
 
-    //indexerTest.setUp();
+    indexerTest.setUp();
 
-    //// create barrel 0
-    //indexerTest.createDocument();
-    //indexerTest.checkDocLength();
+    // create barrel 0
+    indexerTest.createDocument();
+    indexerTest.checkDocLength();
 
-    //// create more barrels
-    //for(int i=0; i<TEST_BARREL_NUM; ++i)
-    //{
-        //indexerTest.createDocument();
-        //indexerTest.checkDocLength();
-    //}
-    //indexerTest.tearDown();
+    // create more barrels
+    for(int i=0; i<TEST_BARREL_NUM; ++i)
+    {
+        indexerTest.createDocument();
+        indexerTest.checkDocLength();
+    }
+    indexerTest.tearDown();
 
-    //// new Indexer instance, create more barrels
-    //indexerTest.setUp(false);
-    //indexerTest.checkDocLength();
-    //for(int i=0; i<TEST_BARREL_NUM; ++i)
-    //{
-        //indexerTest.createDocument();
-        //indexerTest.checkDocLength();
-    //}
-    //indexerTest.tearDown();
-    //LOG(ERROR) << "<= TEST_CASE::index";
-//}
+    // new Indexer instance, create more barrels
+    indexerTest.setUp(false);
+    indexerTest.checkDocLength();
+    for(int i=0; i<TEST_BARREL_NUM; ++i)
+    {
+        indexerTest.createDocument();
+        indexerTest.checkDocLength();
+    }
+    indexerTest.tearDown();
+    LOG(ERROR) << "<= TEST_CASE::index";
+}
 
-//BOOST_AUTO_TEST_CASE(update)
-//{
-    //LOG(ERROR) << "=> TEST_CASE::update";
+BOOST_AUTO_TEST_CASE(update)
+{
+    LOG(ERROR) << "=> TEST_CASE::update";
 
-    //{
-        //IndexerTest indexerTest(TEST_DOC_NUM);
-        //indexerTest.setUp();
-        //indexerTest.createDocument();
+    {
+        IndexerTest indexerTest(TEST_DOC_NUM);
+        indexerTest.setUp();
+        indexerTest.createDocument();
 
-        //for(int i=0; i<TEST_BARREL_NUM; ++i)
-        //{
-            //indexerTest.updateDocument();
-            //indexerTest.checkDocLength();
-        //}
-        //indexerTest.tearDown();
-    //}
+        for(int i=0; i<TEST_BARREL_NUM; ++i)
+        {
+            indexerTest.updateDocument();
+            indexerTest.checkDocLength();
+        }
+        indexerTest.tearDown();
+    }
 
-    //{
-        //IndexerTest indexerTest(TEST_DOC_NUM);
-        //indexerTest.setUp(true, INDEX_MODE_REALTIME);
-        //indexerTest.createDocument();
+    {
+        IndexerTest indexerTest(TEST_DOC_NUM);
+        indexerTest.setUp(true, INDEX_MODE_REALTIME);
+        indexerTest.createDocument();
 
-        //for(int i=0; i<TEST_BARREL_NUM; ++i)
-        //{
-            //indexerTest.updateDocument();
-            //indexerTest.checkDocLength();
-        //}
-        //indexerTest.tearDown();
-    //}
-    //LOG(ERROR) << "<= TEST_CASE::update";
-//}
+        for(int i=0; i<TEST_BARREL_NUM; ++i)
+        {
+            indexerTest.updateDocument();
+            indexerTest.checkDocLength();
+        }
+        indexerTest.tearDown();
+    }
+    LOG(ERROR) << "<= TEST_CASE::update";
+}
 
-//BOOST_AUTO_TEST_CASE(remove)
-//{
-    //LOG(ERROR) << "=> TEST_CASE::remove";
+BOOST_AUTO_TEST_CASE(remove)
+{
+    LOG(ERROR) << "=> TEST_CASE::remove";
 
-    //{
-        //IndexerTest indexerTest(TEST_DOC_NUM);
-        //indexerTest.setUp();
-        //indexerTest.createDocument();
+    {
+        IndexerTest indexerTest(TEST_DOC_NUM);
+        indexerTest.setUp();
+        indexerTest.createDocument();
 
-        //while(! indexerTest.isDocEmpty())
-        //{
-            //indexerTest.removeDocument();
-            //indexerTest.checkDocLength();
-        //}
-        //indexerTest.checkDocLength();
-        //indexerTest.tearDown();
-    //}
+        while(! indexerTest.isDocEmpty())
+        {
+            indexerTest.removeDocument();
+            indexerTest.checkDocLength();
+        }
+        indexerTest.checkDocLength();
+        indexerTest.tearDown();
+    }
 
-    //{
-        //IndexerTest indexerTest(TEST_DOC_NUM);
-        //indexerTest.setUp(true, INDEX_MODE_REALTIME);
-        //indexerTest.createDocument();
+    {
+        IndexerTest indexerTest(TEST_DOC_NUM);
+        indexerTest.setUp(true, INDEX_MODE_REALTIME);
+        indexerTest.createDocument();
 
-        //while(! indexerTest.isDocEmpty())
-        //{
-            //indexerTest.removeDocument();
-            //indexerTest.checkDocLength();
-        //}
-        //indexerTest.checkDocLength();
-        //indexerTest.tearDown();
-    //}
+        while(! indexerTest.isDocEmpty())
+        {
+            indexerTest.removeDocument();
+            indexerTest.checkDocLength();
+        }
+        indexerTest.checkDocLength();
+        indexerTest.tearDown();
+    }
 
-    //LOG(ERROR) << "<= TEST_CASE::remove";
-//}
+    LOG(ERROR) << "<= TEST_CASE::remove";
+}
 
-//BOOST_AUTO_TEST_CASE(barrelInfo_check)
-//{
-    //LOG(ERROR) << "=> TEST_CASE::barrelInfo_check";
+BOOST_AUTO_TEST_CASE(barrelInfo_check)
+{
+    LOG(ERROR) << "=> TEST_CASE::barrelInfo_check";
 
-    //{
-        //IndexerTest indexerTest(TEST_DOC_NUM);
-        //indexerTest.setUp();
-        //indexerTest.checkBarrel(TEST_BARREL_NUM);
-        //indexerTest.tearDown();
-    //}
+    {
+        IndexerTest indexerTest(TEST_DOC_NUM);
+        indexerTest.setUp();
+        indexerTest.checkBarrel(TEST_BARREL_NUM);
+        indexerTest.tearDown();
+    }
 
-    //{
-        //IndexerTest indexerTest(TEST_DOC_NUM);
-        //indexerTest.setUp(true, INDEX_MODE_REALTIME);
-        //indexerTest.checkBarrel(TEST_BARREL_NUM);
-        //indexerTest.tearDown();
-    //}
-    //LOG(ERROR) << "<= TEST_CASE::barrelInfo_check";
-//}
+    {
+        IndexerTest indexerTest(TEST_DOC_NUM);
+        indexerTest.setUp(true, INDEX_MODE_REALTIME);
+        indexerTest.checkBarrel(TEST_BARREL_NUM);
+        indexerTest.tearDown();
+    }
+    LOG(ERROR) << "<= TEST_CASE::barrelInfo_check";
+}
 
-//BOOST_AUTO_TEST_CASE(barrelInfo_optimize)
-//{
-    //LOG(ERROR) << "=> TEST_CASE::barrelInfo_optimize";
+BOOST_AUTO_TEST_CASE(barrelInfo_optimize)
+{
+    LOG(ERROR) << "=> TEST_CASE::barrelInfo_optimize";
 
-    //{
-        //IndexerTest indexerTest(TEST_DOC_NUM);
-        //indexerTest.setUp();
-        //indexerTest.optimizeBarrel(TEST_BARREL_NUM);
-        //indexerTest.tearDown();
-    //}
+    {
+        IndexerTest indexerTest(TEST_DOC_NUM);
+        indexerTest.setUp();
+        indexerTest.optimizeBarrel(TEST_BARREL_NUM);
+        indexerTest.tearDown();
+    }
 
-    //{
-        //IndexerTest indexerTest(TEST_DOC_NUM);
-        //indexerTest.setUp(true, INDEX_MODE_REALTIME);
-        //indexerTest.optimizeBarrel(TEST_BARREL_NUM);
-        //indexerTest.tearDown();
-    //}
-    //LOG(ERROR) << "<= TEST_CASE::barrelInfo_optimize";
-//}
+    {
+        IndexerTest indexerTest(TEST_DOC_NUM);
+        indexerTest.setUp(true, INDEX_MODE_REALTIME);
+        indexerTest.optimizeBarrel(TEST_BARREL_NUM);
+        indexerTest.tearDown();
+    }
+    LOG(ERROR) << "<= TEST_CASE::barrelInfo_optimize";
+}
 
-//BOOST_AUTO_TEST_CASE(barrelInfo_create_after_optimize)
-//{
-    //LOG(ERROR) << "=> TEST_CASE::barrelInfo_create_after_optimize";
+BOOST_AUTO_TEST_CASE(barrelInfo_create_after_optimize)
+{
+    LOG(ERROR) << "=> TEST_CASE::barrelInfo_create_after_optimize";
 
-    //{
-        //IndexerTest indexerTest(TEST_DOC_NUM);
-        //indexerTest.setUp();
-        //indexerTest.createAfterOptimizeBarrel(TEST_BARREL_NUM);
-        //indexerTest.tearDown();
-    //}
+    {
+        IndexerTest indexerTest(TEST_DOC_NUM);
+        indexerTest.setUp();
+        indexerTest.createAfterOptimizeBarrel(TEST_BARREL_NUM);
+        indexerTest.tearDown();
+    }
 
-    //{
-        //IndexerTest indexerTest(TEST_DOC_NUM);
-        //indexerTest.setUp(true, INDEX_MODE_REALTIME);
-        //indexerTest.createAfterOptimizeBarrel(TEST_BARREL_NUM);
-        //indexerTest.tearDown();
-    //}
-    //LOG(ERROR) << "<= TEST_CASE::barrelInfo_create_after_optimize";
-//}
+    {
+        IndexerTest indexerTest(TEST_DOC_NUM);
+        indexerTest.setUp(true, INDEX_MODE_REALTIME);
+        indexerTest.createAfterOptimizeBarrel(TEST_BARREL_NUM);
+        indexerTest.tearDown();
+    }
+    LOG(ERROR) << "<= TEST_CASE::barrelInfo_create_after_optimize";
+}
 
 BOOST_AUTO_TEST_CASE(TermDocFreqs_check)
 {
