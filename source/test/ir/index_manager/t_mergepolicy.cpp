@@ -20,44 +20,74 @@ namespace bfs = boost::filesystem;
 
 using namespace izenelib::ir::indexmanager;
 
+class MergePolicy
+{
+public:
+    MergePolicy(BarrelsInfo* pBarrelsInfo, Directory* pDirectory)
+        :pBarrelsInfo_(pBarrelsInfo)
+        ,colID_(1)
+    {
+        pMerger_ = new MockMerger(pBarrelsInfo,pDirectory);
+        pMerger_->merge();
+        currMaxDocID_ = pBarrelsInfo->maxDocId();
+    }
+    ~MergePolicy()
+    {
+        delete pMerger_;
+    }
+
+public:
+    void addToMerge(int docNumInBarrel)
+    {
+        BarrelInfo* pCurBarrelInfo = new BarrelInfo(pBarrelsInfo_->newBarrel(),docNumInBarrel);
+        docid_t currBaseDocID = currMaxDocID_ + 1;
+        currMaxDocID_ = currBaseDocID + docNumInBarrel - 1;
+        pCurBarrelInfo->baseDocIDMap[colID_] = currBaseDocID;
+        pCurBarrelInfo->maxDocId = currMaxDocID_;
+        pCurBarrelInfo->setSearchable(true);
+        pCurBarrelInfo->setWriter(NULL);
+        pBarrelsInfo_->addBarrel(pCurBarrelInfo,false);
+        pBarrelsInfo_->updateMaxDoc(currMaxDocID_);
+
+        pMerger_->addToMerge(pCurBarrelInfo);
+    }
+
+private:
+    BarrelsInfo* pBarrelsInfo_;
+    MockMerger* pMerger_;
+    collectionid_t colID_;
+    docid_t currMaxDocID_;
+};
+
 BOOST_AUTO_TEST_SUITE( t_MergePolicy )
+
 
 BOOST_AUTO_TEST_CASE(merge)
 {
-    collectionid_t colID = 1;
-
     bfs::path path(bfs::path(".") /"index");
     FSDirectory* pDirectory = new FSDirectory(path.string(),true);
     BarrelsInfo* pBarrelsInfo = new BarrelsInfo;
     pBarrelsInfo->read(pDirectory);
+    MergePolicy merger(pBarrelsInfo, pDirectory);
 
-    MockMerger* pMerger = new MockMerger(pBarrelsInfo,pDirectory);
-    pMerger->merge();
-
-    docid_t currMaxDocID = pBarrelsInfo->maxDocId();
-
-    int numBarrels = 10;
+    int barrels[] = {
+        100000,
+        10000,
+        10000,
+        4000,
+        10000
+    };
+    int numBarrels = sizeof(barrels)/sizeof(int);
 
     for(int i = 0; i < numBarrels; ++i)
     {
-        int docNum = 1000;
-        BarrelInfo* pCurBarrelInfo = new BarrelInfo(pBarrelsInfo->newBarrel(),docNum);
-        docid_t currBaseDocID = currMaxDocID + 1;
-        currMaxDocID = currBaseDocID + docNum - 1;
-        pCurBarrelInfo->baseDocIDMap[colID] = currBaseDocID;
-        pCurBarrelInfo->maxDocId = currMaxDocID;
-        pCurBarrelInfo->setSearchable(true);
-        pCurBarrelInfo->setWriter(NULL);
-        pBarrelsInfo->addBarrel(pCurBarrelInfo,false);
-        pBarrelsInfo->updateMaxDoc(currMaxDocID);
-
-        pMerger->addToMerge(pCurBarrelInfo);
+        merger.addToMerge(barrels[i]);
     }
+
     pBarrelsInfo->write(pDirectory);
 
     delete pDirectory;
     delete pBarrelsInfo;
-    delete pMerger;
 }
 
 BOOST_AUTO_TEST_SUITE_END()
