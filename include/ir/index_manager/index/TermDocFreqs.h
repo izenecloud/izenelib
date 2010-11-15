@@ -79,8 +79,6 @@ protected:
     int skipInterval_;
 
     int maxSkipLevel_;
-
-    static const size_t DEFAULT_BUFFERSIZE = 131072;
 };
 
 }

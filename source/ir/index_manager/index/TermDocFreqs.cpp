@@ -3,10 +3,13 @@
 #include <ir/index_manager/index/TermReader.h>
 #include <ir/index_manager/index/Term.h>
 #include <ir/index_manager/index/RTPostingReader.h>
+#include <ir/index_manager/index/CompressParameters.h>
 
 NS_IZENELIB_IR_BEGIN
 
 namespace indexmanager{
+
+#define TERM_DOCFREQ_BUFFER_SIZE (CHUNK_SIZE << 1)
 
 TermDocFreqs::TermDocFreqs()
         :pPosting_(NULL)
@@ -180,7 +183,7 @@ bool TermDocFreqs::decode()
 }
 void TermDocFreqs::createBuffer()
 {
-    size_t bufSize = TermDocFreqs::DEFAULT_BUFFERSIZE;
+    size_t bufSize = TERM_DOCFREQ_BUFFER_SIZE;
     if (pPostingBuffer_ == NULL)
     {
         nBufferSize_ = bufSize;
