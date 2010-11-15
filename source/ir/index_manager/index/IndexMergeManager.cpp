@@ -24,9 +24,7 @@ IndexMergeManager::IndexMergeManager(Indexer* pIndexer)
     IndexManagerConfig* pConfig = pIndexer_->getIndexManagerConfig();
     const char* mergeStrategyStr = pConfig->mergeStrategy_.param_.c_str();
 
-    if(!strcasecmp(mergeStrategyStr,"no"))
-        pAddMerger_ = NULL;
-    else
+    if(strcasecmp(mergeStrategyStr,"no"))
         pAddMerger_ = new BTMerger(pIndexer_);
 
     pOptimizeMerger_ = new OptimizeMerger(pIndexer_, pBarrelsInfo_->getBarrelCount());
@@ -91,7 +89,8 @@ void IndexMergeManager::addToMerge(BarrelInfo* pBarrelInfo)
     }
     else
     {
-        pAddMerger_->addToMerge(pBarrelsInfo_, pBarrelInfo);
+        if(pAddMerger_)
+            pAddMerger_->addToMerge(pBarrelsInfo_, pBarrelInfo);
     }
 }
 
@@ -132,13 +131,15 @@ void IndexMergeManager::mergeIndex()
             {
             assert(op.pBarrelInfo);
 
-            pAddMerger_->addToMerge(pBarrelsInfo_, op.pBarrelInfo);
+            if(pAddMerger_)
+                pAddMerger_->addToMerge(pBarrelsInfo_, op.pBarrelInfo);
             }
             break;
         case OPTIMIZE_ALL:
 	    {
             // clear the status of add merger
-            pAddMerger_->endMerge();
+            if(pAddMerger_)
+                pAddMerger_->endMerge();
 
             optimizeIndexImpl();
             }

@@ -96,7 +96,7 @@ void BTMerger::triggerMerge(BTLayer* pLevel,int nLevel)
     for(int i = 1; i < MAXLEVEL; i++)
     {
         std::map<int,BTLayer*>::iterator iter2 = nodesMap_.find(i);
-        if(iter2 != nodesMap_.end())
+        if(iter2 != nodesMap_.end() && iter2->second != pLevel1) // ignore current level
         {
             ///find the base doc id range for merged barrels
             docid_t startDoc = -1;

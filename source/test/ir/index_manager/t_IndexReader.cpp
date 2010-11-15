@@ -37,11 +37,12 @@ const char* INDEX_FILE_DIR = "./index";
 
 const unsigned int COLLECTION_ID = 1;
 
+const char* INDEX_MODE_OFFLINE = "default";
 const char* INDEX_MODE_REALTIME = "realtime";
 const char* INVERTED_FIELD = "content";
 
-const int TEST_DOC_NUM = 10;
-const int TEST_BARREL_NUM = 3;
+const int TEST_DOC_NUM = 100;
+const int TEST_BARREL_NUM = 10;
 
 const int TEST_DOC_LEN_RANGE = 10 * TEST_DOC_NUM;
 const int TEST_TERM_ID_RANGE = 100 * TEST_DOC_NUM;
@@ -97,15 +98,17 @@ public:
           ,maxDocID_(0)
     {}
 
-    void setUp(bool isRemoveIndexFiles = true, const string& indexmode = "default") {
+    void setUp(bool isRemoveIndexFiles = true, const string& indexmode = "default", bool isMerge = true) {
         if(isRemoveIndexFiles)
             removeIndexFiles();
 
-        initIndexer(indexmode);
+        initIndexer(indexmode, isMerge);
     }
 
     void tearDown() {
+        LOG(ERROR) << "=> IndexerTest::tearDown()";
         delete indexer_;
+        LOG(ERROR) << "<= IndexerTest::tearDown()";
     }
 
     bool isDocEmpty() const {
@@ -638,7 +641,8 @@ private:
         boost::filesystem::remove_all(indexPath);
     }
 
-    void initIndexer(const string& indexmode, int skipinterval = 0, int skiplevel = 0) {
+    void initIndexer(const string& indexmode, bool isMerge = true, int skipinterval = 0, int skiplevel = 0) {
+        LOG(ERROR) << "=> IndexerTest::initIndexer(), index mode: " << indexmode << ", is merge: " << isMerge;
         indexer_ = new Indexer;
 
         IndexManagerConfig indexManagerConfig;
@@ -650,7 +654,7 @@ private:
         indexManagerConfig.indexStrategy_.indexDocLength_ = true;
         indexManagerConfig.indexStrategy_.skipInterval_ = skipinterval;
         indexManagerConfig.indexStrategy_.maxSkipLevel_ = skiplevel;
-        indexManagerConfig.mergeStrategy_.param_ = "dbt";
+        indexManagerConfig.mergeStrategy_.param_ = isMerge ? "default" : "no";
         indexManagerConfig.storeStrategy_.param_ = "mmap";
         std::map<std::string, unsigned int> collectionIdMapping;
         collectionIdMapping.insert(std::pair<std::string, unsigned int>("testcoll", COLLECTION_ID));
@@ -677,6 +681,7 @@ private:
         indexManagerConfig.addCollectionMeta(indexCollectionMeta);
 
         indexer_->setIndexManagerConfig(indexManagerConfig, collectionIdMapping);
+        LOG(ERROR) << "<= IndexerTest::initIndexer()";
     }
 
     void prepareDocument(IndexerDocument& document, unsigned int docId, bool filter = true) {
@@ -842,7 +847,8 @@ BOOST_AUTO_TEST_CASE(barrelInfo_check)
 
     {
         IndexerTest indexerTest(TEST_DOC_NUM);
-        indexerTest.setUp();
+        // not to merge in order to check each barrel
+        indexerTest.setUp(true, INDEX_MODE_OFFLINE, false);
         indexerTest.checkBarrel(TEST_BARREL_NUM);
         indexerTest.tearDown();
     }
@@ -896,9 +902,9 @@ BOOST_AUTO_TEST_CASE(barrelInfo_create_after_optimize)
     LOG(ERROR) << "<= TEST_CASE::barrelInfo_create_after_optimize";
 }
 
-BOOST_AUTO_TEST_CASE(TermDocFreqs_check)
+BOOST_AUTO_TEST_CASE(TermDocFreqs_check_index)
 {
-    LOG(ERROR) << "=> TEST_CASE::TermDocFreqs_check";
+    LOG(ERROR) << "=> TEST_CASE::TermDocFreqs_check_index";
 
     IndexerTest indexerTest(TEST_DOC_NUM);
     indexerTest.setUp();
@@ -913,7 +919,7 @@ BOOST_AUTO_TEST_CASE(TermDocFreqs_check)
     indexerTest.checkNextSkipTo();
     indexerTest.tearDown();
 
-    LOG(ERROR) << "<= TEST_CASE::TermDocFreqs_check";
+    LOG(ERROR) << "<= TEST_CASE::TermDocFreqs_check_index";
 }
 
 BOOST_AUTO_TEST_CASE(TermDocFreqs_check_remove)

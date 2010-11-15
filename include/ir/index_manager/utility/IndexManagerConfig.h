@@ -109,9 +109,7 @@ private:
     public:
         /// @brief  param of merge method:
         /// NO - no merge
-        /// IMM - immediate
-        /// MWAY - m-way
-        /// DEFAULT - online
+        /// DEFAULT - use the merge strategy defined by IndexManager
         std::string param_;
 
         /**

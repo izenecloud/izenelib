@@ -53,7 +53,7 @@ void initIndexer(boost::shared_ptr<Indexer>& indexer,
     indexManagerConfig.indexStrategy_.indexDocLength_ = true;
     indexManagerConfig.indexStrategy_.skipInterval_ = skipinterval;
     indexManagerConfig.indexStrategy_.maxSkipLevel_ = skiplevel;
-    indexManagerConfig.mergeStrategy_.param_ = "dbt";
+    indexManagerConfig.mergeStrategy_.param_ = "default";
     indexManagerConfig.storeStrategy_.param_ = "mmap";
     unsigned int collectionId = 1;
     std::map<std::string, unsigned int> collectionIdMapping;
