@@ -22,8 +22,12 @@ IndexMergeManager::IndexMergeManager(Indexer* pIndexer)
     pBarrelsInfo_ = pIndexer_->getBarrelsInfo();
 
     IndexManagerConfig* pConfig = pIndexer_->getIndexManagerConfig();
+    const char* mergeStrategyStr = pConfig->mergeStrategy_.param_.c_str();
 
-    pAddMerger_ = new BTMerger(pIndexer_);
+    if(!strcasecmp(mergeStrategyStr,"no"))
+        pAddMerger_ = NULL;
+    else
+        pAddMerger_ = new BTMerger(pIndexer_);
 
     pOptimizeMerger_ = new OptimizeMerger(pIndexer_, pBarrelsInfo_->getBarrelCount());
 
