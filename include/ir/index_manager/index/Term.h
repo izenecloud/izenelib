@@ -47,6 +47,12 @@ public:
         this->value = value;
     }
 
+    void copy(const Term& term)
+    {
+        field = term.field;
+        value = term.value;
+    }
+
     int64_t compare(const Term* pOther);
 
     Term* clone()

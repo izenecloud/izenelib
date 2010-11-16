@@ -2,18 +2,21 @@
 
 using namespace std;
 
-using namespace izenelib::ir::indexmanager;
+NS_IZENELIB_IR_BEGIN
+
+namespace indexmanager {
 
 MultiTermIterator::MultiTermIterator(void)
         :termIteratorsQueue_(NULL)
         ,pTerm_(NULL)
         ,docFreq_(0)
+        ,pTermInfo_(NULL)
 {
 }
 
 MultiTermIterator::~MultiTermIterator(void)
 {
-    vector<TermIteratorEntry*>::iterator iter = termIterators_.begin();
+    std::vector<TermIteratorEntry*>::iterator iter = termIterators_.begin();
     while (iter != termIterators_.end())
     {
         delete (*iter);
@@ -63,15 +66,13 @@ bool MultiTermIterator::next()
     if(pTermInfo_)
         pTermInfo_->reset();
 
-    if (pTerm_)
-    {
-        delete pTerm_;
-        pTerm_ = NULL;
-    }
+    if (!pTerm_)
+        pTerm_ = top->term_->clone();
+    else
+        pTerm_->copy(*(top->term_));
 
-    pTerm_ = top->term_->clone();
-
-    for(vector<TermIteratorEntry*>::iterator iter = termIterators_.begin(); iter != termIterators_.end(); ++iter)
+    std::vector<TermIteratorEntry*>::iterator iter = termIterators_.begin();
+    for(;iter != termIterators_.end(); ++iter)
         (*iter)->setCurrent(false);
 
     while (top != NULL && pTerm_->compare(top->term_) == 0)
@@ -95,7 +96,6 @@ const Term* MultiTermIterator::term()
 
 const TermInfo* MultiTermIterator::termInfo()
 {
-    ///TODO
     if(!pTermInfo_)
         pTermInfo_ = new TermInfo();
     if(pTermInfo_->docFreq() == 0)
@@ -122,6 +122,7 @@ const TermInfo* MultiTermIterator::termInfo()
 
 PostingReader* MultiTermIterator::termPosting()
 {
+    ///TODO  not used at current
     return NULL;
 }
 
@@ -134,8 +135,13 @@ void MultiTermIterator::initQueue()
     if (termIteratorsQueue_ || termIterators_.size()==0)
         return ;
     termIteratorsQueue_ = new TermIteratorQueue(termIterators_.size());
-    for(vector<TermIteratorEntry*>::iterator iter = termIterators_.begin(); iter != termIterators_.end(); ++iter)
+    for(std::vector<TermIteratorEntry*>::iterator iter = termIterators_.begin(); iter != termIterators_.end(); ++iter)
         if ((*iter)->next())
             termIteratorsQueue_->insert(*iter);
 }
+
+
+}
+
+NS_IZENELIB_IR_END
 
