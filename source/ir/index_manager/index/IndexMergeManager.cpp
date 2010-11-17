@@ -1,4 +1,4 @@
-#include <boost/thread.hpp>
+#include <boost/thread/locks.hpp>
 #include <cassert>
 
 #include <ir/index_manager/index/IndexMergeManager.h>
@@ -18,6 +18,7 @@ IndexMergeManager::IndexMergeManager(Indexer* pIndexer)
     ,pAddMerger_(NULL)
     ,pOptimizeMerger_(NULL)
     ,pMergeThread_(NULL)
+    ,isPauseMerge_(false)
 {
     pBarrelsInfo_ = pIndexer_->getBarrelsInfo();
 
@@ -35,6 +36,9 @@ IndexMergeManager::IndexMergeManager(Indexer* pIndexer)
 
 IndexMergeManager::~IndexMergeManager()
 {
+    // notify the merge thread in case of it was paused
+    pauseMergeCond_.notify_all();
+
     stop();
 
     delete pMergeThread_;
@@ -72,11 +76,13 @@ void IndexMergeManager::joinMergeThread()
 
 void IndexMergeManager::waitForMergeFinish()
 {
+    DVLOG(2) << "=> IndexMergeManager::waitForMergeFinish()";
     if(pMergeThread_)
     {
         joinMergeThread();
         run();
     }
+    DVLOG(2) << "<= IndexMergeManager::waitForMergeFinish()";
 }
 
 void IndexMergeManager::addToMerge(BarrelInfo* pBarrelInfo)
@@ -148,6 +154,31 @@ void IndexMergeManager::mergeIndex()
             return;
         }
     }
+}
+
+void IndexMergeManager::pauseMerge()
+{
+    DVLOG(2) << "=> IndexMergeManager::pauseMerge()";
+    if(pMergeThread_)
+    {
+        boost::lock_guard<boost::mutex> lock(pauseMergeMutex_);
+        isPauseMerge_ = true;
+    }
+    DVLOG(2) << "<= IndexMergeManager::pauseMerge()";
+}
+
+void IndexMergeManager::resumeMerge()
+{
+    DVLOG(2) << "=> IndexMergeManager::resumeMerge()";
+    if(pMergeThread_)
+    {
+        {
+            boost::lock_guard<boost::mutex> lock(pauseMergeMutex_);
+            isPauseMerge_ = false;
+        }
+        pauseMergeCond_.notify_all();
+    }
+    DVLOG(2) << "<= IndexMergeManager::resumeMerge()";
 }
 
 }

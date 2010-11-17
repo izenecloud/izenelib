@@ -53,12 +53,7 @@ public:
 
     void createMemCache();
 
-    /**
-     * Block the calling thread until the merge thread finishes its all tasks,
-     * and create a new thread for future merge request.
-     * Notes: this function only works when IndexManagerConfig.mergeStrategy_.isAsync_ is true.
-     */
-    void waitForMergeFinish();
+    IndexMergeManager* getMergeManager() { return pIndexMergeManager_; }
 
 private:
     void createBarrelInfo();

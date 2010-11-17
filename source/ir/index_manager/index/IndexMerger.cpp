@@ -2,6 +2,7 @@
 
 #include <ir/index_manager/index/Indexer.h>
 #include <ir/index_manager/index/IndexMerger.h>
+#include <ir/index_manager/index/IndexMergeManager.h>
 #include <ir/index_manager/index/FieldMerger.h>
 #include <ir/index_manager/store/Directory.h>
 #include <ir/index_manager/index/IndexWriter.h>
@@ -12,6 +13,9 @@
 #include <util/ThreadModel.h>
 
 #include <boost/thread.hpp>
+#include <boost/thread/locks.hpp>
+#include <boost/thread/condition_variable.hpp>
+#include <boost/thread/mutex.hpp>
 
 #include <sstream>
 #include <memory>
@@ -338,14 +342,27 @@ void IndexMerger::mergeBarrel(MergeBarrel* pBarrel)
 
     BarrelInfo* pNewBarrelInfo = NULL;
     {
-    //delete all merged barrels
+    DVLOG(2)<< "IndexMerger::mergeBarrel() => enter barrel removal section ...";
+
+    DVLOG(2)<< "IndexMerger::mergeBarrel() => checking is to pause merge ...";
+    IndexMergeManager* pMergeManager = pIndexer_->getIndexWriter()->getMergeManager();
+    boost::unique_lock<boost::mutex> pauseLock(pMergeManager->getPauseMergeMutex());
+    while(pMergeManager->isPauseMerge())
+    {
+        // wait until resume merge
+        pMergeManager->getPauseMergeCond().wait(pauseLock);
+    }
+
+    DVLOG(2)<< "IndexMerger::mergeBarrel() => acquiring lock of Indexer::mutex_ ...";
     izenelib::util::ScopedWriteLock<izenelib::util::ReadWriteLock> lock(pIndexer_->mutex_);
+    DVLOG(2)<< "IndexMerger::mergeBarrel() <= acquired lock of Indexer::mutex_";
 
     count_t nNumDocs = 0;
     ///update min doc id of index barrels,let doc id continuous
     map<collectionid_t,docid_t> newBaseDocIDMap;
     docid_t maxDocOfNewBarrel = 0;
 
+    // delete all merged barrels
     for (nEntry = 0;nEntry < nEntryCount;nEntry++)
     {
         pEntry = pBarrel->getAt(nEntry);
@@ -375,6 +392,7 @@ void IndexMerger::mergeBarrel(MergeBarrel* pBarrel)
     }
     pBarrel->clear();
 
+    DVLOG(2)<< "IndexMerger::mergeBarrel() => flush new barrel files ...";
     name = newBarrelName + ".fdi";
     IndexOutput* fieldsStream = pDirectory_->createOutput(name);
     //fieldsInfo.write(fieldsStream);//field information
@@ -384,11 +402,14 @@ void IndexMerger::mergeBarrel(MergeBarrel* pBarrel)
     delete pOutputDesc;
     pOutputDesc = NULL;
 
+    DVLOG(2)<< "IndexMerger::mergeBarrel() => add new BarrelInfo ...";
     pNewBarrelInfo = new BarrelInfo(newBarrelName,nNumDocs,pIndexer_->getIndexCompressType());
     pNewBarrelInfo->setBaseDocID(newBaseDocIDMap);
     pNewBarrelInfo->updateMaxDoc(maxDocOfNewBarrel);
     pNewBarrelInfo->isUpdate = isNewBarrelUpdateBarrel;
     pBarrelsInfo_->addBarrel(pNewBarrelInfo,false);
+
+    DVLOG(2)<< "IndexMerger::mergeBarrel() <= leave barrel removal section, new barrel: " << pNewBarrelInfo->getName() << ", doc count: " << pNewBarrelInfo->getDocCount();
 
     ///sleep is necessary because if a query get termreader before this lock,
     ///the query has not been finished even the index file/term dictionary info has been changed
@@ -397,10 +418,10 @@ void IndexMerger::mergeBarrel(MergeBarrel* pBarrel)
         //boost::thread::sleep(boost::get_system_time() + boost::posix_time::milliseconds(5000));
     }
 
-    DVLOG(2)<< "<= IndexMerger::mergeBarrel(), barrel name: " << pBarrel->getIdentifier() << ", doc count: " << pNewBarrelInfo->getDocCount();
-
     MergeBarrelEntry* pNewEntry = new MergeBarrelEntry(pDirectory_,pNewBarrelInfo);
     addBarrel(pNewEntry);
+
+    DVLOG(2)<< "<= IndexMerger::mergeBarrel()";
 }
 
 void IndexMerger::removeMergedBarrels(MergeBarrel * pBarrel)

@@ -161,7 +161,7 @@ int BTMerger::getLevel(int64_t nLevelSize)
     if(nCMap_.empty())
     {
         int nC = COLLISION_FACTOR_FOR_LEVEL_1;
-        for(int i = 1; i < MAXLEVEL; i++)
+        for(int i = 0; i < MAXLEVEL; i++)
         {
             nCMap_[i] = nC;
         }

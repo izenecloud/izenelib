@@ -41,7 +41,7 @@ const char* INDEX_MODE_OFFLINE = "default";
 const char* INDEX_MODE_REALTIME = "realtime";
 const char* INVERTED_FIELD = "content";
 
-const int TEST_DOC_NUM = 100;
+const int TEST_DOC_NUM = 10;
 const int TEST_BARREL_NUM = 10;
 
 const int TEST_DOC_LEN_RANGE = 10 * TEST_DOC_NUM;
@@ -360,8 +360,7 @@ public:
         indexer_->optimizeIndex();
 
         // wait for merge finish
-        IndexWriter* pWriter = indexer_->getIndexWriter();
-        pWriter->waitForMergeFinish();
+        indexer_->waitForMergeFinish();
 
         IndexReader* pIndexReader = indexer_->getIndexReader();
         BarrelsInfo* pBarrelsInfo = pIndexReader->getBarrelsInfo();
@@ -389,8 +388,7 @@ public:
             createDocument(); // create barrel i
 
         // wait for merge finish
-        IndexWriter* pWriter = indexer_->getIndexWriter();
-        pWriter->waitForMergeFinish();
+        indexer_->waitForMergeFinish();
 
         IndexReader* pIndexReader = indexer_->getIndexReader();
         BarrelsInfo* pBarrelsInfo = pIndexReader->getBarrelsInfo();
@@ -404,6 +402,40 @@ public:
         }
 
         LOG(ERROR) << "<= IndexerTest::createAfterOptimizeBarrel()";
+    }
+
+    /**
+     * Pause and resume the merge.
+     * @param barrelNum the number of barrels to create
+     */
+    void pauseResumeMerge(int barrelNum) {
+        LOG(ERROR) << "=> IndexerTest::pauseResumeMerge()";
+
+        indexer_->pauseMerge();
+
+        for(int i=0; i<barrelNum; ++i)
+            createDocument(); // create barrel i
+
+        IndexReader* pIndexReader = indexer_->getIndexReader();
+        BarrelsInfo* pBarrelsInfo = pIndexReader->getBarrelsInfo();
+        BOOST_CHECK_EQUAL(pBarrelsInfo->getBarrelCount(), barrelNum);
+        BOOST_CHECK_EQUAL(pBarrelsInfo->maxDocId(), maxDocID_);
+        BOOST_CHECK_EQUAL(pBarrelsInfo->getDocCount(), mapDocIdLen_.size());
+
+        indexer_->resumeMerge();
+        indexer_->optimizeIndex();
+
+        // wait for merge finish
+        indexer_->waitForMergeFinish();
+
+        pIndexReader = indexer_->getIndexReader();
+        pBarrelsInfo = pIndexReader->getBarrelsInfo();
+
+        BOOST_CHECK_EQUAL(pBarrelsInfo->getBarrelCount(), 1);
+        BOOST_CHECK_EQUAL(pBarrelsInfo->maxDocId(), maxDocID_);
+        BOOST_CHECK_EQUAL(pBarrelsInfo->getDocCount(), mapDocIdLen_.size());
+
+        LOG(ERROR) << "<= IndexerTest::pauseResumeMerge()";
     }
 
 private:
@@ -968,6 +1000,27 @@ BOOST_AUTO_TEST_CASE(TermDocFreqs_check_update)
     indexerTest.tearDown();
 
     LOG(ERROR) << "<= TEST_CASE::TermDocFreqs_check_update";
+}
+
+BOOST_AUTO_TEST_CASE(pause_resume_merge)
+{
+    LOG(ERROR) << "=> TEST_CASE::pause_resume_merge";
+
+    {
+        IndexerTest indexerTest(TEST_DOC_NUM);
+        indexerTest.setUp();
+        indexerTest.pauseResumeMerge(TEST_BARREL_NUM);
+        indexerTest.tearDown();
+    }
+
+    {
+        IndexerTest indexerTest(TEST_DOC_NUM);
+        indexerTest.setUp(true, INDEX_MODE_REALTIME);
+        indexerTest.pauseResumeMerge(TEST_BARREL_NUM);
+        indexerTest.tearDown();
+    }
+
+    LOG(ERROR) << "<= TEST_CASE::pause_resume_merge";
 }
 
 BOOST_AUTO_TEST_SUITE_END()

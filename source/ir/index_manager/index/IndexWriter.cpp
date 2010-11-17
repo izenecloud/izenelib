@@ -41,11 +41,6 @@ IndexWriter::~IndexWriter()
         delete pIndexBarrelWriter_;
 }
 
-void IndexWriter::waitForMergeFinish()
-{
-    pIndexMergeManager_->waitForMergeFinish();
-}
-
 void IndexWriter::flush()
 {
     DVLOG(2) << "=> IndexWriter::flush()...";

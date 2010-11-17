@@ -101,6 +101,7 @@ private:
 *@brief merge index
 */
 class Indexer;
+
 class IndexMerger
 {
 public:
@@ -120,6 +121,11 @@ public:
      * @param pBarrelInfo info of barrel need to merge
      */
     void addToMerge(BarrelsInfo* pBarrelsInfo, BarrelInfo* pBarrelInfo);
+
+    /**
+     * the merge is over,derived classes implement it,and could clear some resources for merging.
+     */
+    virtual void endMerge() = 0;
 
     /**
      * set directory of index
@@ -155,11 +161,6 @@ protected:
      * @param pEntry the index barrel,derived classes are responsible for deleting
      */
     virtual void addBarrel(MergeBarrelEntry* pEntry) = 0;
-
-    /**
-     * the merge is over,derived classes implement it,and could clear some resources for merging.
-     */
-    virtual void endMerge() = 0;
 
     /**
      * set parameter of merger
@@ -201,7 +202,6 @@ protected:
 
     friend class IndexWriter;
     friend class Indexer;
-    friend class IndexMergeManager;
 };
 
 }

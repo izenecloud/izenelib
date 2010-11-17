@@ -66,6 +66,27 @@ public:
     ///check whether the integrity of indices, always used when starts up
     IndexStatus checkIntegrity();
 
+    /**
+     * Pause current merging activity.
+     * Notes: this function only works when IndexManagerConfig.mergeStrategy_.isAsync_ is true.
+     * Notes: if merging thread is removing barrel files currently, which might make query functions return no result,
+     *        this function would wait until the end of barrels removal and merged barrel creation.
+     */
+    void pauseMerge();
+
+    /**
+     * Continue the merging activity, which is paused by previous call of @p pauseMerge().
+     * Notes: this function only works when IndexManagerConfig.mergeStrategy_.isAsync_ is true.
+     */
+    void resumeMerge();
+
+    /**
+     * Block the calling thread until the merge thread finishes its all tasks,
+     * and create a new thread for future merge request.
+     * Notes: this function only works when IndexManagerConfig.mergeStrategy_.isAsync_ is true.
+     */
+    void waitForMergeFinish();
+
 public:
     ///API for query
     size_t getDistinctNumTermsByProperty(collectionid_t colID, const std::string& property);

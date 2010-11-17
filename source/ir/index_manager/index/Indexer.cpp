@@ -7,6 +7,7 @@
 #include <ir/index_manager/index/IndexReader.h>
 #include <ir/index_manager/index/TermReader.h>
 #include <ir/index_manager/index/ParallelTermPosition.h>
+#include <ir/index_manager/index/IndexMergeManager.h>
 #include <ir/index_manager/store/FSDirectory.h>
 #include <ir/index_manager/store/RAMDirectory.h>
 #include <ir/index_manager/utility/StringUtils.h>
@@ -605,5 +606,23 @@ bool Indexer::getDocsByPropertyValueSubString(collectionid_t colID, string prope
     fieldid_t fid = getPropertyIDByName(colID,property);
     pBTreeIndexer_->getValueSubString(colID, fid, value, docList);
     return true;
+}
+
+void Indexer::pauseMerge()
+{
+    IndexMergeManager* pMergeManager = pIndexWriter_->getMergeManager();
+    pMergeManager->pauseMerge();
+}
+
+void Indexer::resumeMerge()
+{
+    IndexMergeManager* pMergeManager = pIndexWriter_->getMergeManager();
+    pMergeManager->resumeMerge();
+}
+
+void Indexer::waitForMergeFinish()
+{
+    IndexMergeManager* pMergeManager = pIndexWriter_->getMergeManager();
+    pMergeManager->waitForMergeFinish();
 }
 
