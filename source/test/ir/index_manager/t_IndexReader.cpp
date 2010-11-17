@@ -48,7 +48,7 @@ const int TEST_DOC_LEN_RANGE = 10 * TEST_DOC_NUM;
 const int TEST_TERM_ID_RANGE = 100 * TEST_DOC_NUM;
 };
 
-class IndexerTest
+class IndexerTestFixture
 {
 private:
     std::map<std::string, unsigned int> propertyMap_;
@@ -86,8 +86,8 @@ private:
     typedef map<termid_t, LocListT> DTermIdMapT;
 
 public:
-    IndexerTest(unsigned int docNum, bool isDocNumRand = false, unsigned int docIDSkipMax = 1)
-        : indexer_(0)
+    IndexerTestFixture(unsigned int docNum = TEST_DOC_NUM, bool isDocNumRand = false, unsigned int docIDSkipMax = 1)
+        : indexer_(new Indexer)
           ,newDocNum_(docNum)
           ,isDocNumRand_(isDocNumRand)
           ,docLenRand_(randEngine_, uniform_int<>(1, TEST_DOC_LEN_RANGE))
@@ -96,19 +96,63 @@ public:
           ,docNumRand_(randEngine_, uniform_int<>(1, newDocNum_))
           ,skipToRand_(randEngine_, uniform_int<>(0, 1))
           ,maxDocID_(0)
-    {}
-
-    void setUp(bool isRemoveIndexFiles = true, const string& indexmode = "default", bool isMerge = true) {
-        if(isRemoveIndexFiles)
-            removeIndexFiles();
-
-        initIndexer(indexmode, isMerge);
+    {
+        removeIndexFiles();
+        config();
     }
 
-    void tearDown() {
-        VLOG(2) << "=> IndexerTest::tearDown()";
+    ~IndexerTestFixture() {
+        VLOG(2) << "=> IndexerTestFixture::~IndexerTestFixture()";
         delete indexer_;
-        VLOG(2) << "<= IndexerTest::tearDown()";
+        VLOG(2) << "<= IndexerTestFixture::~IndexerTestFixture()";
+    }
+
+    void renew() {
+        delete indexer_;
+        indexer_ = new Indexer;
+        config();
+    }
+
+    void config(const string& indexmode = "default", bool isMerge = true, int skipinterval = 0, int skiplevel = 0) {
+        VLOG(2) << "=> IndexerTestFixture::config(), index mode: " << indexmode << ", is merge: " << isMerge;
+
+        IndexManagerConfig indexManagerConfig;
+        boost::filesystem::path path(INDEX_FILE_DIR);
+
+        indexManagerConfig.indexStrategy_.indexLocation_ = path.string();
+        indexManagerConfig.indexStrategy_.indexMode_ = indexmode;
+        indexManagerConfig.indexStrategy_.memory_ = 30000000;
+        indexManagerConfig.indexStrategy_.indexDocLength_ = true;
+        indexManagerConfig.indexStrategy_.skipInterval_ = skipinterval;
+        indexManagerConfig.indexStrategy_.maxSkipLevel_ = skiplevel;
+        indexManagerConfig.mergeStrategy_.param_ = isMerge ? "default" : "no";
+        indexManagerConfig.storeStrategy_.param_ = "mmap";
+        std::map<std::string, unsigned int> collectionIdMapping;
+        collectionIdMapping.insert(std::pair<std::string, unsigned int>("testcoll", COLLECTION_ID));
+
+        std::vector<std::string> propertyList;
+        propertyList.push_back(INVERTED_FIELD);
+        propertyList.push_back("date");
+        propertyList.push_back("provider");
+
+        std::sort(propertyList.begin(),propertyList.end());
+        IndexerCollectionMeta indexCollectionMeta;
+        indexCollectionMeta.setName("testcoll");
+        for (std::size_t i=0;i<propertyList.size();i++)
+        {
+            IndexerPropertyConfig indexerPropertyConfig(1+i, propertyList[i], true, true);
+            propertyMap_[propertyList[i]] = 1+i;
+            if(propertyList[i] != INVERTED_FIELD)
+            {
+                indexerPropertyConfig.setIsAnalyzed(false);
+                indexerPropertyConfig.setIsFilter(true);
+            }
+            indexCollectionMeta.addPropertyConfig(indexerPropertyConfig);
+        }
+        indexManagerConfig.addCollectionMeta(indexCollectionMeta);
+
+        indexer_->setIndexManagerConfig(indexManagerConfig, collectionIdMapping);
+        VLOG(2) << "<= IndexerTestFixture::config()";
     }
 
     bool isDocEmpty() const {
@@ -139,7 +183,7 @@ public:
 
     /** Only create \e newDocNum_ documents. */
     void createDocument() {
-        VLOG(2) << "=> IndexerTest::createDocument()";
+        VLOG(2) << "=> IndexerTestFixture::createDocument()";
 
         docid_t docID = maxDocID_;
         for(unsigned int i = 1; i <= (isDocNumRand_ ? docNumRand_() : newDocNum_); i++)
@@ -154,12 +198,12 @@ public:
         }
 
         indexer_->flush();
-        VLOG(2) << "<= IndexerTest::createDocument()";
+        VLOG(2) << "<= IndexerTestFixture::createDocument()";
     }
 
     /** Update random number of documents. */
     void updateDocument() {
-        VLOG(2) << "=> IndexerTest::updateDocument()";
+        VLOG(2) << "=> IndexerTestFixture::updateDocument()";
 
         if(mapDocIdLen_.empty())
             return;
@@ -197,14 +241,14 @@ public:
         removeDocTerms(removeDocList);
 
         indexer_->flush();
-        VLOG(2) << "<= IndexerTest::updateDocument()";
+        VLOG(2) << "<= IndexerTestFixture::updateDocument()";
     }
 
     /**
      * Remove random number of documents, and also remove documents exceed max doc id.
      */
     void removeDocument() {
-        VLOG(2) << "=> IndexerTest::removeDocument()";
+        VLOG(2) << "=> IndexerTestFixture::removeDocument()";
 
         if(mapDocIdLen_.empty())
             return;
@@ -243,11 +287,11 @@ public:
         indexer_->removeDocument(COLLECTION_ID, overId);
 
         indexer_->flush();
-        VLOG(2) << "<= IndexerTest::removeDocument()";
+        VLOG(2) << "<= IndexerTestFixture::removeDocument()";
     }
 
     void checkDocLength() {
-        VLOG(2) << "=> IndexerTest::checkDocLength()";
+        VLOG(2) << "=> IndexerTestFixture::checkDocLength()";
 
         IndexReader* pIndexReader = indexer_->getIndexReader();
 
@@ -263,11 +307,11 @@ public:
             BOOST_CHECK_EQUAL(pIndexReader->docLength(lenMapIt->first, indexer_->getPropertyIDByName(COLLECTION_ID, INVERTED_FIELD)), lenMapIt->second);
         }
 
-        VLOG(2) << "<= IndexerTest::checkDocLength()";
+        VLOG(2) << "<= IndexerTestFixture::checkDocLength()";
     }
 
     void checkTermDocFreqs() {
-        VLOG(2) << "=> IndexerTest::checkTermDocFreqs()";
+        VLOG(2) << "=> IndexerTestFixture::checkTermDocFreqs()";
 
         IndexReader* pIndexReader = indexer_->getIndexReader();
         boost::scoped_ptr<TermReader> pTermReader(pIndexReader->getTermReader(COLLECTION_ID));
@@ -290,11 +334,11 @@ public:
             BOOST_CHECK_EQUAL(pTermDocFreqs->getCTF(), termIt->second.second);
         }
 
-        VLOG(2) << "<= IndexerTest::checkTermDocFreqs()";
+        VLOG(2) << "<= IndexerTestFixture::checkTermDocFreqs()";
     }
 
     void checkNextSkipTo() {
-        VLOG(2) << "=> IndexerTest::checkNextSkipTo()";
+        VLOG(2) << "=> IndexerTestFixture::checkNextSkipTo()";
 
         bool isQueryFailed = true;
         while(isQueryFailed)
@@ -310,7 +354,7 @@ public:
             }
         }
 
-        VLOG(2) << "<= IndexerTest::checkNextSkipTo()";
+        VLOG(2) << "<= IndexerTestFixture::checkNextSkipTo()";
     }
 
     /**
@@ -318,7 +362,7 @@ public:
      * @param barrelNum the number of barrels to create
      */
     void checkBarrel(int barrelNum) {
-        VLOG(2) << "=> IndexerTest::checkBarrel()";
+        VLOG(2) << "=> IndexerTestFixture::checkBarrel()";
 
         for(int i=0; i<barrelNum; ++i)
             createDocument(); // create barrel i
@@ -342,7 +386,7 @@ public:
             }
         }
 
-        VLOG(2) << "<= IndexerTest::checkBarrel()";
+        VLOG(2) << "<= IndexerTestFixture::checkBarrel()";
     }
 
     /**
@@ -350,7 +394,7 @@ public:
      * @param barrelNum the number of barrels to create
      */
     void optimizeBarrel(int barrelNum) {
-        VLOG(2) << "=> IndexerTest::optimizeBarrel()";
+        VLOG(2) << "=> IndexerTestFixture::optimizeBarrel()";
 
         for(int i=0; i<barrelNum; ++i)
             createDocument(); // create barrel i
@@ -367,7 +411,7 @@ public:
         BOOST_CHECK_EQUAL(pBarrelsInfo->getBarrelCount(), 1);
         BOOST_CHECK_EQUAL(pBarrelsInfo->getDocCount(), mapDocIdLen_.size());
 
-        VLOG(2) << "<= IndexerTest::optimizeBarrel()";
+        VLOG(2) << "<= IndexerTestFixture::optimizeBarrel()";
     }
 
     /**
@@ -375,7 +419,7 @@ public:
      * @param barrelNum the number of barrels to create
      */
     void createAfterOptimizeBarrel(int barrelNum) {
-        VLOG(2) << "=> IndexerTest::createAfterOptimizeBarrel()";
+        VLOG(2) << "=> IndexerTestFixture::createAfterOptimizeBarrel()";
 
         for(int i=0; i<barrelNum; ++i)
             createDocument(); // create barrel i
@@ -399,7 +443,7 @@ public:
             BOOST_CHECK(pBarrelsInfo->getBarrelCount() >= 1 && pBarrelsInfo->getBarrelCount() <= barrelNum+1);
         }
 
-        VLOG(2) << "<= IndexerTest::createAfterOptimizeBarrel()";
+        VLOG(2) << "<= IndexerTestFixture::createAfterOptimizeBarrel()";
     }
 
     /**
@@ -407,7 +451,7 @@ public:
      * @param barrelNum the number of barrels to create
      */
     void pauseResumeMerge(int barrelNum) {
-        VLOG(2) << "=> IndexerTest::pauseResumeMerge()";
+        VLOG(2) << "=> IndexerTestFixture::pauseResumeMerge()";
 
         indexer_->pauseMerge();
 
@@ -433,7 +477,7 @@ public:
         BOOST_CHECK_EQUAL(pBarrelsInfo->maxDocId(), maxDocID_);
         BOOST_CHECK_EQUAL(pBarrelsInfo->getDocCount(), mapDocIdLen_.size());
 
-        VLOG(2) << "<= IndexerTest::pauseResumeMerge()";
+        VLOG(2) << "<= IndexerTestFixture::pauseResumeMerge()";
     }
 
 private:
@@ -504,7 +548,7 @@ private:
     }
 
     void checkNextSkipToImpl() {
-        VLOG(2) << "=> IndexerTest::checkNextSkipToImpl()";
+        VLOG(2) << "=> IndexerTestFixture::checkNextSkipToImpl()";
 
         IndexReader* pIndexReader = indexer_->getIndexReader();
         boost::scoped_ptr<TermReader> pTermReader(pIndexReader->getTermReader(COLLECTION_ID));
@@ -513,7 +557,7 @@ private:
         {
             // TermReader should be NULL when no doc exists
             BOOST_CHECK(pTermReader.get() == NULL);
-            VLOG(2) << "<= IndexerTest::checkNextSkipToImpl(), no doc exists";
+            VLOG(2) << "<= IndexerTestFixture::checkNextSkipToImpl(), no doc exists";
             return;
         }
 
@@ -540,7 +584,7 @@ private:
             checkNextSkipToDoc(pTermReader.get(), docID, docTermIdMap);
         }
 
-        VLOG(2) << "<= IndexerTest::checkNextSkipToImpl()";
+        VLOG(2) << "<= IndexerTestFixture::checkNextSkipToImpl()";
     }
 
     /**
@@ -663,49 +707,6 @@ private:
         boost::filesystem::remove_all(indexPath);
     }
 
-    void initIndexer(const string& indexmode, bool isMerge = true, int skipinterval = 0, int skiplevel = 0) {
-        VLOG(2) << "=> IndexerTest::initIndexer(), index mode: " << indexmode << ", is merge: " << isMerge;
-        indexer_ = new Indexer;
-
-        IndexManagerConfig indexManagerConfig;
-        boost::filesystem::path path(INDEX_FILE_DIR);
-
-        indexManagerConfig.indexStrategy_.indexLocation_ = path.string();
-        indexManagerConfig.indexStrategy_.indexMode_ = indexmode;
-        indexManagerConfig.indexStrategy_.memory_ = 30000000;
-        indexManagerConfig.indexStrategy_.indexDocLength_ = true;
-        indexManagerConfig.indexStrategy_.skipInterval_ = skipinterval;
-        indexManagerConfig.indexStrategy_.maxSkipLevel_ = skiplevel;
-        indexManagerConfig.mergeStrategy_.param_ = isMerge ? "default" : "no";
-        indexManagerConfig.storeStrategy_.param_ = "mmap";
-        std::map<std::string, unsigned int> collectionIdMapping;
-        collectionIdMapping.insert(std::pair<std::string, unsigned int>("testcoll", COLLECTION_ID));
-
-        std::vector<std::string> propertyList;
-        propertyList.push_back(INVERTED_FIELD);
-        propertyList.push_back("date");
-        propertyList.push_back("provider");
-
-        std::sort(propertyList.begin(),propertyList.end());
-        IndexerCollectionMeta indexCollectionMeta;
-        indexCollectionMeta.setName("testcoll");
-        for (std::size_t i=0;i<propertyList.size();i++)
-        {
-            IndexerPropertyConfig indexerPropertyConfig(1+i, propertyList[i], true, true);
-            propertyMap_[propertyList[i]] = 1+i;
-            if(propertyList[i] != INVERTED_FIELD)
-            {
-                indexerPropertyConfig.setIsAnalyzed(false);
-                indexerPropertyConfig.setIsFilter(true);
-            }
-            indexCollectionMeta.addPropertyConfig(indexerPropertyConfig);
-        }
-        indexManagerConfig.addCollectionMeta(indexCollectionMeta);
-
-        indexer_->setIndexManagerConfig(indexManagerConfig, collectionIdMapping);
-        VLOG(2) << "<= IndexerTest::initIndexer()";
-    }
-
     void prepareDocument(IndexerDocument& document, unsigned int docId, bool filter = true) {
         DTermIdMapT docTermIdMap;
 
@@ -763,203 +764,185 @@ private:
     }
 };
 
-BOOST_AUTO_TEST_SUITE( t_IndexReader )
+BOOST_FIXTURE_TEST_SUITE(t_IndexReader, IndexerTestFixture)
 
 BOOST_AUTO_TEST_CASE(index)
 {
     VLOG(2) << "=> TEST_CASE::index";
-    IndexerTest indexerTest(TEST_DOC_NUM);
-
-    indexerTest.setUp();
 
     // create barrel 0
-    indexerTest.createDocument();
-    indexerTest.checkDocLength();
+    createDocument();
+    checkDocLength();
 
     // create more barrels
     for(int i=0; i<TEST_BARREL_NUM; ++i)
     {
-        indexerTest.createDocument();
-        indexerTest.checkDocLength();
+        createDocument();
+        checkDocLength();
     }
-    indexerTest.tearDown();
 
     // new Indexer instance, create more barrels
-    indexerTest.setUp(false);
-    indexerTest.checkDocLength();
+    renew();
+    checkDocLength();
     for(int i=0; i<TEST_BARREL_NUM; ++i)
     {
-        indexerTest.createDocument();
-        indexerTest.checkDocLength();
+        createDocument();
+        checkDocLength();
     }
-    indexerTest.tearDown();
     VLOG(2) << "<= TEST_CASE::index";
 }
 
-BOOST_AUTO_TEST_CASE(update)
+BOOST_AUTO_TEST_CASE(update_offline)
 {
-    VLOG(2) << "=> TEST_CASE::update";
+    VLOG(2) << "=> TEST_CASE::update_offline";
 
+    createDocument();
+
+    for(int i=0; i<TEST_BARREL_NUM; ++i)
     {
-        IndexerTest indexerTest(TEST_DOC_NUM);
-        indexerTest.setUp();
-        indexerTest.createDocument();
-
-        for(int i=0; i<TEST_BARREL_NUM; ++i)
-        {
-            indexerTest.updateDocument();
-            indexerTest.checkDocLength();
-        }
-        indexerTest.tearDown();
+        updateDocument();
+        checkDocLength();
     }
 
-    {
-        IndexerTest indexerTest(TEST_DOC_NUM);
-        indexerTest.setUp(true, INDEX_MODE_REALTIME);
-        indexerTest.createDocument();
-
-        for(int i=0; i<TEST_BARREL_NUM; ++i)
-        {
-            indexerTest.updateDocument();
-            indexerTest.checkDocLength();
-        }
-        indexerTest.tearDown();
-    }
-    VLOG(2) << "<= TEST_CASE::update";
+    VLOG(2) << "<= TEST_CASE::update_offline";
 }
 
-BOOST_AUTO_TEST_CASE(remove)
+BOOST_AUTO_TEST_CASE(update_realtime)
 {
-    VLOG(2) << "=> TEST_CASE::remove";
+    VLOG(2) << "=> TEST_CASE::update_realtime";
 
+    config(INDEX_MODE_REALTIME);
+    createDocument();
+
+    for(int i=0; i<TEST_BARREL_NUM; ++i)
     {
-        IndexerTest indexerTest(TEST_DOC_NUM);
-        indexerTest.setUp();
-        indexerTest.createDocument();
-
-        while(! indexerTest.isDocEmpty())
-        {
-            indexerTest.removeDocument();
-            indexerTest.checkDocLength();
-        }
-        indexerTest.checkDocLength();
-        indexerTest.tearDown();
+        updateDocument();
+        checkDocLength();
     }
 
-    {
-        IndexerTest indexerTest(TEST_DOC_NUM);
-        indexerTest.setUp(true, INDEX_MODE_REALTIME);
-        indexerTest.createDocument();
-
-        while(! indexerTest.isDocEmpty())
-        {
-            indexerTest.removeDocument();
-            indexerTest.checkDocLength();
-        }
-        indexerTest.checkDocLength();
-        indexerTest.tearDown();
-    }
-
-    VLOG(2) << "<= TEST_CASE::remove";
+    VLOG(2) << "<= TEST_CASE::update_realtime";
 }
 
-BOOST_AUTO_TEST_CASE(barrelInfo_check)
+BOOST_AUTO_TEST_CASE(remove_offline)
 {
-    VLOG(2) << "=> TEST_CASE::barrelInfo_check";
+    VLOG(2) << "=> TEST_CASE::remove_offline";
 
-    {
-        IndexerTest indexerTest(TEST_DOC_NUM);
-        // not to merge in order to check each barrel
-        indexerTest.setUp(true, INDEX_MODE_OFFLINE, false);
-        indexerTest.checkBarrel(TEST_BARREL_NUM);
-        indexerTest.tearDown();
-    }
+    createDocument();
 
+    while(! isDocEmpty())
     {
-        IndexerTest indexerTest(TEST_DOC_NUM);
-        indexerTest.setUp(true, INDEX_MODE_REALTIME);
-        indexerTest.checkBarrel(TEST_BARREL_NUM);
-        indexerTest.tearDown();
+        removeDocument();
+        checkDocLength();
     }
-    VLOG(2) << "<= TEST_CASE::barrelInfo_check";
+    checkDocLength();
+
+    VLOG(2) << "<= TEST_CASE::remove_offline";
 }
 
-BOOST_AUTO_TEST_CASE(barrelInfo_optimize)
+BOOST_AUTO_TEST_CASE(remove_realtime)
 {
-    VLOG(2) << "=> TEST_CASE::barrelInfo_optimize";
+    VLOG(2) << "=> TEST_CASE::remove_realtime";
 
-    {
-        IndexerTest indexerTest(TEST_DOC_NUM);
-        indexerTest.setUp();
-        indexerTest.optimizeBarrel(TEST_BARREL_NUM);
-        indexerTest.tearDown();
-    }
+    config(INDEX_MODE_REALTIME);
+    createDocument();
 
+    while(! isDocEmpty())
     {
-        IndexerTest indexerTest(TEST_DOC_NUM);
-        indexerTest.setUp(true, INDEX_MODE_REALTIME);
-        indexerTest.optimizeBarrel(TEST_BARREL_NUM);
-        indexerTest.tearDown();
+        removeDocument();
+        checkDocLength();
     }
-    VLOG(2) << "<= TEST_CASE::barrelInfo_optimize";
+    checkDocLength();
+
+    VLOG(2) << "<= TEST_CASE::remove_realtime";
 }
 
-BOOST_AUTO_TEST_CASE(barrelInfo_create_after_optimize)
+BOOST_AUTO_TEST_CASE(barrelInfo_check_offline)
 {
-    VLOG(2) << "=> TEST_CASE::barrelInfo_create_after_optimize";
+    VLOG(2) << "=> TEST_CASE::barrelInfo_check_offline";
 
-    {
-        IndexerTest indexerTest(TEST_DOC_NUM);
-        indexerTest.setUp();
-        indexerTest.createAfterOptimizeBarrel(TEST_BARREL_NUM);
-        indexerTest.tearDown();
-    }
+    // not to merge in order to check each barrel
+    config(INDEX_MODE_OFFLINE, false);
+    checkBarrel(TEST_BARREL_NUM);
 
-    {
-        IndexerTest indexerTest(TEST_DOC_NUM);
-        indexerTest.setUp(true, INDEX_MODE_REALTIME);
-        indexerTest.createAfterOptimizeBarrel(TEST_BARREL_NUM);
-        indexerTest.tearDown();
-    }
-    VLOG(2) << "<= TEST_CASE::barrelInfo_create_after_optimize";
+    VLOG(2) << "<= TEST_CASE::barrelInfo_check_offline";
 }
 
-BOOST_AUTO_TEST_CASE(pause_resume_merge)
+BOOST_AUTO_TEST_CASE(barrelInfo_check_realtime)
 {
-    VLOG(2) << "=> TEST_CASE::pause_resume_merge";
+    VLOG(2) << "=> TEST_CASE::barrelInfo_check_realtime";
 
-    {
-        IndexerTest indexerTest(TEST_DOC_NUM);
-        indexerTest.setUp();
-        indexerTest.pauseResumeMerge(TEST_BARREL_NUM);
-        indexerTest.tearDown();
-    }
+    config(INDEX_MODE_REALTIME);
+    checkBarrel(TEST_BARREL_NUM);
 
-    {
-        IndexerTest indexerTest(TEST_DOC_NUM);
-        indexerTest.setUp(true, INDEX_MODE_REALTIME);
-        indexerTest.pauseResumeMerge(TEST_BARREL_NUM);
-        indexerTest.tearDown();
-    }
+    VLOG(2) << "<= TEST_CASE::barrelInfo_check_realtime";
+}
 
-    VLOG(2) << "<= TEST_CASE::pause_resume_merge";
+BOOST_AUTO_TEST_CASE(barrelInfo_optimize_offline)
+{
+    VLOG(2) << "=> TEST_CASE::barrelInfo_optimize_offline";
+
+    optimizeBarrel(TEST_BARREL_NUM);
+
+    VLOG(2) << "<= TEST_CASE::barrelInfo_optimize_offline";
+}
+
+BOOST_AUTO_TEST_CASE(barrelInfo_optimize_realtime)
+{
+    VLOG(2) << "=> TEST_CASE::barrelInfo_optimize_realtime";
+
+    config(INDEX_MODE_REALTIME);
+    optimizeBarrel(TEST_BARREL_NUM);
+
+    VLOG(2) << "<= TEST_CASE::barrelInfo_optimize_realtime";
+}
+
+BOOST_AUTO_TEST_CASE(barrelInfo_create_after_optimize_offline)
+{
+    VLOG(2) << "=> TEST_CASE::barrelInfo_create_after_optimize_offline";
+
+    createAfterOptimizeBarrel(TEST_BARREL_NUM);
+
+    VLOG(2) << "<= TEST_CASE::barrelInfo_create_after_optimize_offline";
+}
+
+BOOST_AUTO_TEST_CASE(barrelInfo_create_after_optimize_realtime)
+{
+    VLOG(2) << "=> TEST_CASE::barrelInfo_create_after_optimize_realtime";
+
+    config(INDEX_MODE_REALTIME);
+    createAfterOptimizeBarrel(TEST_BARREL_NUM);
+
+    VLOG(2) << "<= TEST_CASE::barrelInfo_create_after_optimize_realtime";
+}
+
+BOOST_AUTO_TEST_CASE(pause_resume_merge_offline)
+{
+    VLOG(2) << "=> TEST_CASE::pause_resume_merge_offline";
+
+    pauseResumeMerge(TEST_BARREL_NUM);
+
+    VLOG(2) << "<= TEST_CASE::pause_resume_merge_offline";
+}
+
+BOOST_AUTO_TEST_CASE(pause_resume_merge_realtime)
+{
+    VLOG(2) << "=> TEST_CASE::pause_resume_merge_realtime";
+
+    config(INDEX_MODE_REALTIME);
+    pauseResumeMerge(TEST_BARREL_NUM);
+
+    VLOG(2) << "<= TEST_CASE::pause_resume_merge_realtime";
 }
 BOOST_AUTO_TEST_CASE(TermDocFreqs_check_index)
 {
     VLOG(2) << "=> TEST_CASE::TermDocFreqs_check_index";
 
-    IndexerTest indexerTest(TEST_DOC_NUM);
-    indexerTest.setUp();
-
     for(int i=0; i<TEST_BARREL_NUM; ++i)
-    {
-        indexerTest.createDocument();
-    }
+        createDocument();
 
-    indexerTest.printStats();
-    indexerTest.checkTermDocFreqs();
-    indexerTest.checkNextSkipTo();
-    indexerTest.tearDown();
+    printStats();
+    checkTermDocFreqs();
+    checkNextSkipTo();
 
     VLOG(2) << "<= TEST_CASE::TermDocFreqs_check_index";
 }
@@ -968,22 +951,19 @@ BOOST_AUTO_TEST_CASE(TermDocFreqs_check_remove)
 {
     VLOG(2) << "=> TEST_CASE::TermDocFreqs_check_remove";
 
-    IndexerTest indexerTest(TEST_DOC_NUM);
-    indexerTest.setUp();
-    indexerTest.createDocument();
+    createDocument();
 
-    while(! indexerTest.isDocEmpty())
+    while(! isDocEmpty())
     {
-        indexerTest.removeDocument();
+        removeDocument();
 
         // as TermDocFreqs::docFreq(), getCTF() fails to update after doc is removed
         // below test is commented out
-        //indexerTest.checkTermDocFreqs();
+        //checkTermDocFreqs();
 
-        indexerTest.checkNextSkipTo();
+        checkNextSkipTo();
     }
 
-    indexerTest.tearDown();
     VLOG(2) << "<= TEST_CASE::TermDocFreqs_check_remove";
 }
 
@@ -991,22 +971,18 @@ BOOST_AUTO_TEST_CASE(TermDocFreqs_check_update)
 {
     VLOG(2) << "=> TEST_CASE::TermDocFreqs_check_update";
 
-    IndexerTest indexerTest(TEST_DOC_NUM);
-    indexerTest.setUp();
-    indexerTest.createDocument();
+    createDocument();
 
     for(int i=0; i<TEST_BARREL_NUM; ++i)
     {
-        indexerTest.updateDocument();
+        updateDocument();
 
         // as TermDocFreqs::docFreq(), getCTF() fails to update after doc is removed
         // below test is commented out
-        //indexerTest.checkTermDocFreqs();
+        //checkTermDocFreqs();
 
-        indexerTest.checkNextSkipTo();
+        checkNextSkipTo();
     }
-
-    indexerTest.tearDown();
 
     VLOG(2) << "<= TEST_CASE::TermDocFreqs_check_update";
 }
