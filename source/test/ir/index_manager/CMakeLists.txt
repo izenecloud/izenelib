@@ -80,14 +80,14 @@ TARGET_LINK_LIBRARIES(t_indexsort
   ${Boost_LIBRARIES}
 )
 
-SET(t_IndexReader_SRC
+SET(t_integration_Indexer_SRC
   t_IndexReader.cpp
   t_master_suite.cpp
 )
 
-ADD_EXECUTABLE(t_IndexReader ${t_IndexReader_SRC})
+ADD_EXECUTABLE(t_integration_Indexer ${t_integration_Indexer_SRC})
 
-TARGET_LINK_LIBRARIES(t_IndexReader
+TARGET_LINK_LIBRARIES(t_integration_Indexer
   index_manager
   boost_memory
   izene_util

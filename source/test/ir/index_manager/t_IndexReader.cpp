@@ -122,10 +122,9 @@ public:
      * - sum of doc length in collection.
      */
     void printStats() const {
-        cout << endl;
-        cout << "printing statistics..." << endl;
-        cout << "doc count: " << mapDocIdLen_.size() << endl;
-        cout << "unique term count: " << mapCTermId_.size() << endl;
+        BOOST_TEST_MESSAGE("\nprinting statistics...");
+        BOOST_TEST_MESSAGE("doc count: " << mapDocIdLen_.size());
+        BOOST_TEST_MESSAGE("unique term count: " << mapCTermId_.size());
 
         int64_t docLenSum = 0;
         for(CTermIdMapT::const_iterator it = mapCTermId_.begin();
@@ -135,8 +134,7 @@ public:
             docLenSum += it->second.second;
         }
 
-        cout << "sum of doc length: " << docLenSum << endl;
-        cout << endl;
+        BOOST_TEST_MESSAGE("sum of doc length: " << docLenSum << "\n");
     }
 
     /** Only create \e newDocNum_ documents. */
@@ -148,7 +146,7 @@ public:
         {
             docID += docIDSkipRand_();
 #ifdef LOG_DOC_OPERATION
-            cout << "create doc id: " << docID << endl;
+            BOOST_TEST_MESSAGE("create doc id: " << docID);
 #endif
             IndexerDocument document;
             prepareDocument(document, docID);
@@ -172,7 +170,7 @@ public:
         const int updateNum = randDocNum(); // range [1, size]
         list<docid_t> removeDocList;
 #ifdef LOG_DOC_OPERATION
-        cout << "start updating " << updateNum << " docs..." << endl;
+        BOOST_TEST_MESSAGE("start updating " << updateNum << " docs...");
 #endif
         docid_t newDocID = maxDocID_;
         for(int i=0; i<updateNum; ++i)
@@ -184,7 +182,7 @@ public:
 
             newDocID += docIDSkipRand_();
 #ifdef LOG_DOC_OPERATION
-            cout << "update doc id: " << it->first << " to new doc id: " << newDocID << endl;
+            BOOST_TEST_MESSAGE("update doc id: " << it->first << " to new doc id: " << newDocID);
 #endif
             IndexerDocument document;
             document.setId(it->first);
@@ -217,7 +215,7 @@ public:
         const int removeNum = randDocNum(); // range [1, size]
         list<docid_t> removeDocList;
 #ifdef LOG_DOC_OPERATION
-        cout << "start removing " << removeNum << " docs..." << endl;
+        BOOST_TEST_MESSAGE("start removing " << removeNum << " docs...");
 #endif
         for(int i=0; i<removeNum; ++i)
         {
@@ -227,7 +225,7 @@ public:
                 ++it;
 
 #ifdef LOG_DOC_OPERATION
-            cout << "remove doc id: " << it->first << endl;
+            BOOST_TEST_MESSAGE("remove doc id: " << it->first);
 #endif
             indexer_->removeDocument(COLLECTION_ID, it->first);
             removeDocList.push_back(it->first);
@@ -240,7 +238,7 @@ public:
         // remove doc id exceed the range
         docid_t overId = maxDocID_ + 1;
 #ifdef LOG_DOC_OPERATION
-        cout << "remove exceed doc id: " << overId << endl;
+        BOOST_TEST_MESSAGE("remove exceed doc id: " << overId);
 #endif
         indexer_->removeDocument(COLLECTION_ID, overId);
 
@@ -260,7 +258,7 @@ public:
             lenMapIt != mapDocIdLen_.end(); ++lenMapIt)
         {
 #ifdef LOG_CHECK_OPERATION
-            cout << "check: " << lenMapIt->first << endl;
+            BOOST_TEST_MESSAGE("check: " << lenMapIt->first);
 #endif
             BOOST_CHECK_EQUAL(pIndexReader->docLength(lenMapIt->first, indexer_->getPropertyIDByName(COLLECTION_ID, INVERTED_FIELD)), lenMapIt->second);
         }
@@ -275,7 +273,7 @@ public:
         boost::scoped_ptr<TermReader> pTermReader(pIndexReader->getTermReader(COLLECTION_ID));
 
 #ifdef LOG_QUERY_OPERATION
-        cout << "check TermDocFreqs::docFreq(), getCTF() on " << mapCTermId_.size() << " terms." << endl;
+        BOOST_TEST_MESSAGE("check TermDocFreqs::docFreq(), getCTF() on " << mapCTermId_.size() << " terms.");
 #endif
         Term term(INVERTED_FIELD);
         for(CTermIdMapT::const_iterator termIt = mapCTermId_.begin();
@@ -283,7 +281,7 @@ public:
         {
             term.setValue(termIt->first);
 #ifdef LOG_TERM_ID
-            cout << "check term id: " << termIt->first << endl;
+            BOOST_TEST_MESSAGE("check term id: " << termIt->first);
 #endif
             BOOST_CHECK(pTermReader->seek(&term));
 
@@ -464,7 +462,7 @@ private:
             bool isDocRemoved = (docID == *removeIt);
 #ifdef LOG_TERM_ID
             if(isDocRemoved)
-                cout << "remove term id for doc id: " << docID << endl;
+                BOOST_TEST_MESSAGE("remove term id for doc id: " << docID);
 #endif
 
             const unsigned int docLen = docLenRand();
@@ -473,14 +471,14 @@ private:
                 unsigned int termId = termIDRand();
 #ifdef LOG_TERM_ID
                 if(isDocRemoved)
-                    cout << "remove term id: " << termId << endl;
+                    BOOST_TEST_MESSAGE("remove term id: " << termId);
 #endif
 
                 if(isDocRemoved)
                     docTermIdMap[termId].push_back(j);
             }
 #ifdef LOG_TERM_ID
-            cout << endl;
+            BOOST_TEST_MESSAG("");
 #endif
 
             if(isDocRemoved)
@@ -536,15 +534,8 @@ private:
             for(unsigned int j = 0; j < docLen; ++j)
             {
                 unsigned int termId = termIDRand();
-#ifdef LOG_TERM_ID
-                //cout << "term id: " << termId << endl;
-#endif
-
                 docTermIdMap[termId].push_back(j);
             }
-#ifdef LOG_TERM_ID
-            cout << endl;
-#endif
 
             checkNextSkipToDoc(pTermReader.get(), docID, docTermIdMap);
         }
@@ -562,10 +553,9 @@ private:
         bool isDocRemoved = (mapDocIdLen_.find(docID) == mapDocIdLen_.end());
 
 #ifdef LOG_QUERY_OPERATION
-        cout << "check TermDocFreqs for doc id: " << docID << ", unique terms: " << docTermIdMap.size();
-        if(isDocRemoved)
-            cout << ", doc is removed";
-        cout << endl;
+        BOOST_TEST_MESSAGE("check TermDocFreqs for doc id: " << docID
+                << ", unique terms: " << docTermIdMap.size()
+                << ", doc is removed: " << isDocRemoved);
 #endif
 
         Term term(INVERTED_FIELD);
@@ -574,7 +564,7 @@ private:
                 ++termIt)
         {
 #ifdef LOG_TERM_ID
-            cout << "check term id: " << termIt->first << endl;
+            BOOST_TEST_MESSAGE("check term id: " << termIt->first);
 #endif
             term.setValue(termIt->first);
 
@@ -612,7 +602,7 @@ private:
                             ++locIter)
                     {
 #ifdef LOG_TERM_ID
-                        cout << "check term position: " << *locIter << endl;
+                        BOOST_TEST_MESSAGE("check term position: " << *locIter);
 #endif
                         BOOST_CHECK_EQUAL(pTermPositions->nextPosition(), *locIter);
                     }
@@ -736,14 +726,14 @@ private:
             unit.termid_ = termIDRand_();
             unit.wordOffset_ = i;
 #ifdef LOG_TERM_ID
-            cout << "term id: " << unit.termid_ << endl;
+            BOOST_TEST_MESSAGE("term id: " << unit.termid_);
 #endif
             document.add_to_property(unit);
 
             docTermIdMap[unit.termid_].push_back(i);
         }
 #ifdef LOG_TERM_ID
-        cout << endl;
+        BOOST_TEST_MESSAG("");
 #endif
 
         for(DTermIdMapT::const_iterator it=docTermIdMap.begin();
@@ -934,6 +924,26 @@ BOOST_AUTO_TEST_CASE(barrelInfo_create_after_optimize)
     VLOG(2) << "<= TEST_CASE::barrelInfo_create_after_optimize";
 }
 
+BOOST_AUTO_TEST_CASE(pause_resume_merge)
+{
+    VLOG(2) << "=> TEST_CASE::pause_resume_merge";
+
+    {
+        IndexerTest indexerTest(TEST_DOC_NUM);
+        indexerTest.setUp();
+        indexerTest.pauseResumeMerge(TEST_BARREL_NUM);
+        indexerTest.tearDown();
+    }
+
+    {
+        IndexerTest indexerTest(TEST_DOC_NUM);
+        indexerTest.setUp(true, INDEX_MODE_REALTIME);
+        indexerTest.pauseResumeMerge(TEST_BARREL_NUM);
+        indexerTest.tearDown();
+    }
+
+    VLOG(2) << "<= TEST_CASE::pause_resume_merge";
+}
 BOOST_AUTO_TEST_CASE(TermDocFreqs_check_index)
 {
     VLOG(2) << "=> TEST_CASE::TermDocFreqs_check_index";
@@ -972,7 +982,6 @@ BOOST_AUTO_TEST_CASE(TermDocFreqs_check_remove)
 
         indexerTest.checkNextSkipTo();
     }
-    indexerTest.checkDocLength();
 
     indexerTest.tearDown();
     VLOG(2) << "<= TEST_CASE::TermDocFreqs_check_remove";
@@ -1000,27 +1009,6 @@ BOOST_AUTO_TEST_CASE(TermDocFreqs_check_update)
     indexerTest.tearDown();
 
     VLOG(2) << "<= TEST_CASE::TermDocFreqs_check_update";
-}
-
-BOOST_AUTO_TEST_CASE(pause_resume_merge)
-{
-    VLOG(2) << "=> TEST_CASE::pause_resume_merge";
-
-    {
-        IndexerTest indexerTest(TEST_DOC_NUM);
-        indexerTest.setUp();
-        indexerTest.pauseResumeMerge(TEST_BARREL_NUM);
-        indexerTest.tearDown();
-    }
-
-    {
-        IndexerTest indexerTest(TEST_DOC_NUM);
-        indexerTest.setUp(true, INDEX_MODE_REALTIME);
-        indexerTest.pauseResumeMerge(TEST_BARREL_NUM);
-        indexerTest.tearDown();
-    }
-
-    VLOG(2) << "<= TEST_CASE::pause_resume_merge";
 }
 
 BOOST_AUTO_TEST_SUITE_END()
