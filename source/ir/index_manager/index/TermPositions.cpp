@@ -194,7 +194,8 @@ bool TermPositions::decodePositionsUsingUnFixedBuf()
                 nTotalDecodedPCount_ += pPostingBuffer_[nFreqStart_ + nFreqs];
             }
 
-            pPosting_->decodeNextPositions(pPPostingBuffer_,nTotalDecodedPCount_);
+            //pPosting_->decodeNextPositions(pPPostingBuffer_, nPBufferSize_, NULL, 0, nCurrentPPosting_);
+            pPosting_->decodeNextPositions(pPPostingBuffer_,nPBufferSize_, nTotalDecodedPCount_, nCurrentPPosting_);
 	}
 		
     }
