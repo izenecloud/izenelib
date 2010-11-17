@@ -106,9 +106,9 @@ public:
     }
 
     void tearDown() {
-        LOG(ERROR) << "=> IndexerTest::tearDown()";
+        VLOG(2) << "=> IndexerTest::tearDown()";
         delete indexer_;
-        LOG(ERROR) << "<= IndexerTest::tearDown()";
+        VLOG(2) << "<= IndexerTest::tearDown()";
     }
 
     bool isDocEmpty() const {
@@ -141,7 +141,7 @@ public:
 
     /** Only create \e newDocNum_ documents. */
     void createDocument() {
-        LOG(ERROR) << "=> IndexerTest::createDocument()";
+        VLOG(2) << "=> IndexerTest::createDocument()";
 
         docid_t docID = maxDocID_;
         for(unsigned int i = 1; i <= (isDocNumRand_ ? docNumRand_() : newDocNum_); i++)
@@ -156,12 +156,12 @@ public:
         }
 
         indexer_->flush();
-        LOG(ERROR) << "<= IndexerTest::createDocument()";
+        VLOG(2) << "<= IndexerTest::createDocument()";
     }
 
     /** Update random number of documents. */
     void updateDocument() {
-        LOG(ERROR) << "=> IndexerTest::updateDocument()";
+        VLOG(2) << "=> IndexerTest::updateDocument()";
 
         if(mapDocIdLen_.empty())
             return;
@@ -199,14 +199,14 @@ public:
         removeDocTerms(removeDocList);
 
         indexer_->flush();
-        LOG(ERROR) << "<= IndexerTest::updateDocument()";
+        VLOG(2) << "<= IndexerTest::updateDocument()";
     }
 
     /**
      * Remove random number of documents, and also remove documents exceed max doc id.
      */
     void removeDocument() {
-        LOG(ERROR) << "=> IndexerTest::removeDocument()";
+        VLOG(2) << "=> IndexerTest::removeDocument()";
 
         if(mapDocIdLen_.empty())
             return;
@@ -245,11 +245,11 @@ public:
         indexer_->removeDocument(COLLECTION_ID, overId);
 
         indexer_->flush();
-        LOG(ERROR) << "<= IndexerTest::removeDocument()";
+        VLOG(2) << "<= IndexerTest::removeDocument()";
     }
 
     void checkDocLength() {
-        LOG(ERROR) << "=> IndexerTest::checkDocLength()";
+        VLOG(2) << "=> IndexerTest::checkDocLength()";
 
         IndexReader* pIndexReader = indexer_->getIndexReader();
 
@@ -265,11 +265,11 @@ public:
             BOOST_CHECK_EQUAL(pIndexReader->docLength(lenMapIt->first, indexer_->getPropertyIDByName(COLLECTION_ID, INVERTED_FIELD)), lenMapIt->second);
         }
 
-        LOG(ERROR) << "<= IndexerTest::checkDocLength()";
+        VLOG(2) << "<= IndexerTest::checkDocLength()";
     }
 
     void checkTermDocFreqs() {
-        LOG(ERROR) << "=> IndexerTest::checkTermDocFreqs()";
+        VLOG(2) << "=> IndexerTest::checkTermDocFreqs()";
 
         IndexReader* pIndexReader = indexer_->getIndexReader();
         boost::scoped_ptr<TermReader> pTermReader(pIndexReader->getTermReader(COLLECTION_ID));
@@ -292,11 +292,11 @@ public:
             BOOST_CHECK_EQUAL(pTermDocFreqs->getCTF(), termIt->second.second);
         }
 
-        LOG(ERROR) << "<= IndexerTest::checkTermDocFreqs()";
+        VLOG(2) << "<= IndexerTest::checkTermDocFreqs()";
     }
 
     void checkNextSkipTo() {
-        LOG(ERROR) << "=> IndexerTest::checkNextSkipTo()";
+        VLOG(2) << "=> IndexerTest::checkNextSkipTo()";
 
         bool isQueryFailed = true;
         while(isQueryFailed)
@@ -312,7 +312,7 @@ public:
             }
         }
 
-        LOG(ERROR) << "<= IndexerTest::checkNextSkipTo()";
+        VLOG(2) << "<= IndexerTest::checkNextSkipTo()";
     }
 
     /**
@@ -320,7 +320,7 @@ public:
      * @param barrelNum the number of barrels to create
      */
     void checkBarrel(int barrelNum) {
-        LOG(ERROR) << "=> IndexerTest::checkBarrel()";
+        VLOG(2) << "=> IndexerTest::checkBarrel()";
 
         for(int i=0; i<barrelNum; ++i)
             createDocument(); // create barrel i
@@ -344,7 +344,7 @@ public:
             }
         }
 
-        LOG(ERROR) << "<= IndexerTest::checkBarrel()";
+        VLOG(2) << "<= IndexerTest::checkBarrel()";
     }
 
     /**
@@ -352,7 +352,7 @@ public:
      * @param barrelNum the number of barrels to create
      */
     void optimizeBarrel(int barrelNum) {
-        LOG(ERROR) << "=> IndexerTest::optimizeBarrel()";
+        VLOG(2) << "=> IndexerTest::optimizeBarrel()";
 
         for(int i=0; i<barrelNum; ++i)
             createDocument(); // create barrel i
@@ -369,7 +369,7 @@ public:
         BOOST_CHECK_EQUAL(pBarrelsInfo->getBarrelCount(), 1);
         BOOST_CHECK_EQUAL(pBarrelsInfo->getDocCount(), mapDocIdLen_.size());
 
-        LOG(ERROR) << "<= IndexerTest::optimizeBarrel()";
+        VLOG(2) << "<= IndexerTest::optimizeBarrel()";
     }
 
     /**
@@ -377,7 +377,7 @@ public:
      * @param barrelNum the number of barrels to create
      */
     void createAfterOptimizeBarrel(int barrelNum) {
-        LOG(ERROR) << "=> IndexerTest::createAfterOptimizeBarrel()";
+        VLOG(2) << "=> IndexerTest::createAfterOptimizeBarrel()";
 
         for(int i=0; i<barrelNum; ++i)
             createDocument(); // create barrel i
@@ -401,7 +401,7 @@ public:
             BOOST_CHECK(pBarrelsInfo->getBarrelCount() >= 1 && pBarrelsInfo->getBarrelCount() <= barrelNum+1);
         }
 
-        LOG(ERROR) << "<= IndexerTest::createAfterOptimizeBarrel()";
+        VLOG(2) << "<= IndexerTest::createAfterOptimizeBarrel()";
     }
 
     /**
@@ -409,7 +409,7 @@ public:
      * @param barrelNum the number of barrels to create
      */
     void pauseResumeMerge(int barrelNum) {
-        LOG(ERROR) << "=> IndexerTest::pauseResumeMerge()";
+        VLOG(2) << "=> IndexerTest::pauseResumeMerge()";
 
         indexer_->pauseMerge();
 
@@ -435,7 +435,7 @@ public:
         BOOST_CHECK_EQUAL(pBarrelsInfo->maxDocId(), maxDocID_);
         BOOST_CHECK_EQUAL(pBarrelsInfo->getDocCount(), mapDocIdLen_.size());
 
-        LOG(ERROR) << "<= IndexerTest::pauseResumeMerge()";
+        VLOG(2) << "<= IndexerTest::pauseResumeMerge()";
     }
 
 private:
@@ -506,7 +506,7 @@ private:
     }
 
     void checkNextSkipToImpl() {
-        LOG(ERROR) << "=> IndexerTest::checkNextSkipToImpl()";
+        VLOG(2) << "=> IndexerTest::checkNextSkipToImpl()";
 
         IndexReader* pIndexReader = indexer_->getIndexReader();
         boost::scoped_ptr<TermReader> pTermReader(pIndexReader->getTermReader(COLLECTION_ID));
@@ -515,7 +515,7 @@ private:
         {
             // TermReader should be NULL when no doc exists
             BOOST_CHECK(pTermReader.get() == NULL);
-            LOG(ERROR) << "<= IndexerTest::checkNextSkipTo(), no doc exists";
+            VLOG(2) << "<= IndexerTest::checkNextSkipToImpl(), no doc exists";
             return;
         }
 
@@ -549,7 +549,7 @@ private:
             checkNextSkipToDoc(pTermReader.get(), docID, docTermIdMap);
         }
 
-        LOG(ERROR) << "<= IndexerTest::checkNextSkipToImpl()";
+        VLOG(2) << "<= IndexerTest::checkNextSkipToImpl()";
     }
 
     /**
@@ -674,7 +674,7 @@ private:
     }
 
     void initIndexer(const string& indexmode, bool isMerge = true, int skipinterval = 0, int skiplevel = 0) {
-        LOG(ERROR) << "=> IndexerTest::initIndexer(), index mode: " << indexmode << ", is merge: " << isMerge;
+        VLOG(2) << "=> IndexerTest::initIndexer(), index mode: " << indexmode << ", is merge: " << isMerge;
         indexer_ = new Indexer;
 
         IndexManagerConfig indexManagerConfig;
@@ -713,7 +713,7 @@ private:
         indexManagerConfig.addCollectionMeta(indexCollectionMeta);
 
         indexer_->setIndexManagerConfig(indexManagerConfig, collectionIdMapping);
-        LOG(ERROR) << "<= IndexerTest::initIndexer()";
+        VLOG(2) << "<= IndexerTest::initIndexer()";
     }
 
     void prepareDocument(IndexerDocument& document, unsigned int docId, bool filter = true) {
@@ -777,7 +777,7 @@ BOOST_AUTO_TEST_SUITE( t_IndexReader )
 
 BOOST_AUTO_TEST_CASE(index)
 {
-    LOG(ERROR) << "=> TEST_CASE::index";
+    VLOG(2) << "=> TEST_CASE::index";
     IndexerTest indexerTest(TEST_DOC_NUM);
 
     indexerTest.setUp();
@@ -803,12 +803,12 @@ BOOST_AUTO_TEST_CASE(index)
         indexerTest.checkDocLength();
     }
     indexerTest.tearDown();
-    LOG(ERROR) << "<= TEST_CASE::index";
+    VLOG(2) << "<= TEST_CASE::index";
 }
 
 BOOST_AUTO_TEST_CASE(update)
 {
-    LOG(ERROR) << "=> TEST_CASE::update";
+    VLOG(2) << "=> TEST_CASE::update";
 
     {
         IndexerTest indexerTest(TEST_DOC_NUM);
@@ -835,12 +835,12 @@ BOOST_AUTO_TEST_CASE(update)
         }
         indexerTest.tearDown();
     }
-    LOG(ERROR) << "<= TEST_CASE::update";
+    VLOG(2) << "<= TEST_CASE::update";
 }
 
 BOOST_AUTO_TEST_CASE(remove)
 {
-    LOG(ERROR) << "=> TEST_CASE::remove";
+    VLOG(2) << "=> TEST_CASE::remove";
 
     {
         IndexerTest indexerTest(TEST_DOC_NUM);
@@ -870,12 +870,12 @@ BOOST_AUTO_TEST_CASE(remove)
         indexerTest.tearDown();
     }
 
-    LOG(ERROR) << "<= TEST_CASE::remove";
+    VLOG(2) << "<= TEST_CASE::remove";
 }
 
 BOOST_AUTO_TEST_CASE(barrelInfo_check)
 {
-    LOG(ERROR) << "=> TEST_CASE::barrelInfo_check";
+    VLOG(2) << "=> TEST_CASE::barrelInfo_check";
 
     {
         IndexerTest indexerTest(TEST_DOC_NUM);
@@ -891,12 +891,12 @@ BOOST_AUTO_TEST_CASE(barrelInfo_check)
         indexerTest.checkBarrel(TEST_BARREL_NUM);
         indexerTest.tearDown();
     }
-    LOG(ERROR) << "<= TEST_CASE::barrelInfo_check";
+    VLOG(2) << "<= TEST_CASE::barrelInfo_check";
 }
 
 BOOST_AUTO_TEST_CASE(barrelInfo_optimize)
 {
-    LOG(ERROR) << "=> TEST_CASE::barrelInfo_optimize";
+    VLOG(2) << "=> TEST_CASE::barrelInfo_optimize";
 
     {
         IndexerTest indexerTest(TEST_DOC_NUM);
@@ -911,12 +911,12 @@ BOOST_AUTO_TEST_CASE(barrelInfo_optimize)
         indexerTest.optimizeBarrel(TEST_BARREL_NUM);
         indexerTest.tearDown();
     }
-    LOG(ERROR) << "<= TEST_CASE::barrelInfo_optimize";
+    VLOG(2) << "<= TEST_CASE::barrelInfo_optimize";
 }
 
 BOOST_AUTO_TEST_CASE(barrelInfo_create_after_optimize)
 {
-    LOG(ERROR) << "=> TEST_CASE::barrelInfo_create_after_optimize";
+    VLOG(2) << "=> TEST_CASE::barrelInfo_create_after_optimize";
 
     {
         IndexerTest indexerTest(TEST_DOC_NUM);
@@ -931,12 +931,12 @@ BOOST_AUTO_TEST_CASE(barrelInfo_create_after_optimize)
         indexerTest.createAfterOptimizeBarrel(TEST_BARREL_NUM);
         indexerTest.tearDown();
     }
-    LOG(ERROR) << "<= TEST_CASE::barrelInfo_create_after_optimize";
+    VLOG(2) << "<= TEST_CASE::barrelInfo_create_after_optimize";
 }
 
 BOOST_AUTO_TEST_CASE(TermDocFreqs_check_index)
 {
-    LOG(ERROR) << "=> TEST_CASE::TermDocFreqs_check_index";
+    VLOG(2) << "=> TEST_CASE::TermDocFreqs_check_index";
 
     IndexerTest indexerTest(TEST_DOC_NUM);
     indexerTest.setUp();
@@ -951,12 +951,12 @@ BOOST_AUTO_TEST_CASE(TermDocFreqs_check_index)
     indexerTest.checkNextSkipTo();
     indexerTest.tearDown();
 
-    LOG(ERROR) << "<= TEST_CASE::TermDocFreqs_check_index";
+    VLOG(2) << "<= TEST_CASE::TermDocFreqs_check_index";
 }
 
 BOOST_AUTO_TEST_CASE(TermDocFreqs_check_remove)
 {
-    LOG(ERROR) << "=> TEST_CASE::TermDocFreqs_check_remove";
+    VLOG(2) << "=> TEST_CASE::TermDocFreqs_check_remove";
 
     IndexerTest indexerTest(TEST_DOC_NUM);
     indexerTest.setUp();
@@ -975,12 +975,12 @@ BOOST_AUTO_TEST_CASE(TermDocFreqs_check_remove)
     indexerTest.checkDocLength();
 
     indexerTest.tearDown();
-    LOG(ERROR) << "<= TEST_CASE::TermDocFreqs_check_remove";
+    VLOG(2) << "<= TEST_CASE::TermDocFreqs_check_remove";
 }
 
 BOOST_AUTO_TEST_CASE(TermDocFreqs_check_update)
 {
-    LOG(ERROR) << "=> TEST_CASE::TermDocFreqs_check_update";
+    VLOG(2) << "=> TEST_CASE::TermDocFreqs_check_update";
 
     IndexerTest indexerTest(TEST_DOC_NUM);
     indexerTest.setUp();
@@ -999,12 +999,12 @@ BOOST_AUTO_TEST_CASE(TermDocFreqs_check_update)
 
     indexerTest.tearDown();
 
-    LOG(ERROR) << "<= TEST_CASE::TermDocFreqs_check_update";
+    VLOG(2) << "<= TEST_CASE::TermDocFreqs_check_update";
 }
 
 BOOST_AUTO_TEST_CASE(pause_resume_merge)
 {
-    LOG(ERROR) << "=> TEST_CASE::pause_resume_merge";
+    VLOG(2) << "=> TEST_CASE::pause_resume_merge";
 
     {
         IndexerTest indexerTest(TEST_DOC_NUM);
@@ -1020,7 +1020,7 @@ BOOST_AUTO_TEST_CASE(pause_resume_merge)
         indexerTest.tearDown();
     }
 
-    LOG(ERROR) << "<= TEST_CASE::pause_resume_merge";
+    VLOG(2) << "<= TEST_CASE::pause_resume_merge";
 }
 
 BOOST_AUTO_TEST_SUITE_END()
