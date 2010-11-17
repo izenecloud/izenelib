@@ -25,6 +25,8 @@ public:
 
     virtual bool decodeNextPositions(uint32_t* pPosting,int32_t length) = 0;
 
+    virtual bool decodeNextPositions(uint32_t* &pPosting, int32_t& posBufLength, int32_t decodeLength, int32_t& nCurrentPPosting) = 0;
+
     virtual bool decodeNextPositions(uint32_t* &pPosting, int32_t& posBufLength, uint32_t* pFreqs,int32_t nFreqs, int32_t& nCurrentPPosting) = 0;
 
     virtual void resetPosition() = 0;

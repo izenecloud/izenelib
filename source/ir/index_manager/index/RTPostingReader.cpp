@@ -327,6 +327,45 @@ bool MemPostingReader::decodeNextPositions(uint32_t* pPosting,int32_t length)
     return true;
 }
 
+bool MemPostingReader::decodeNextPositions(uint32_t* &pPosting, int32_t& posBufLength, int32_t decodeLength, int32_t& nCurrentPPosting)
+{
+    if(pPostingWriter_->dirty_ || ! pDS_->decodingPChunk)
+    {
+        return false;
+    }
+
+    uint8_t* pPChunk = &(pDS_->decodingPChunk->data[pDS_->decodingPChunkPos]);
+    uint8_t* pPChunkEnd = &(pDS_->decodingPChunk->data[pDS_->decodingPChunk->size-1]);
+
+    uint32_t* pPos = pPosting;
+    loc_t loc = pDS_->lastDecodedPos;
+    int32_t  nDecoded = 0;
+    while (nDecoded < decodeLength)
+    {
+        if (pPChunk > pPChunkEnd)
+        {
+            pDS_->decodingPChunk = pDS_->decodingPChunk->next;
+            if (!pDS_->decodingPChunk)
+                break;
+            pDS_->decodingPChunkPos = 0;
+            pPChunk = &(pDS_->decodingPChunk->data[pDS_->decodingPChunkPos]);
+            pPChunkEnd = &(pDS_->decodingPChunk->data[pDS_->decodingPChunk->size-1]);
+        }
+
+        loc += VariantDataPool::decodeVData32(pPChunk);
+        if (pPos)
+        {
+            *pPos = loc;
+            pPos++;
+        }
+        nDecoded++;
+    }
+    pDS_->decodedPosCount += nDecoded;
+    pDS_->lastDecodedPos = loc;
+    nCurrentPPosting = 0;
+    return true;
+}
+
 bool MemPostingReader::decodeNextPositions(uint32_t* &pPosting, int32_t& posBufLength, uint32_t* pFreqs,int32_t nFreqs, int32_t& nCurrentPPosting)
 {
     if(pPostingWriter_->dirty_|| ! pDS_->decodingPChunk)
@@ -754,6 +793,36 @@ bool RTDiskPostingReader::decodeNextPositions(uint32_t* pPosting,int32_t length)
     }
     ds_.decodedPosCount += nDecoded;
     ds_.lastDecodedPos = loc;
+    return true;
+}
+
+bool RTDiskPostingReader::decodeNextPositions(uint32_t* &pPosting, int32_t& posBufLength, int32_t decodeLength, int32_t& nCurrentPPosting)
+{
+    if (decodeLength <= 0)
+        return true;
+    if(!pPosting)
+    {
+        ds_.skipPosCount_ += decodeLength;///just record the skip number
+        return true;
+    }
+	
+    IndexInput* pPPostingInput = pInputDescriptor_->getPPostingInput();
+
+    skipPositions();
+
+    int32_t nDecoded = 0;
+    loc_t loc = ds_.lastDecodedPos;
+
+    uint32_t* pPos = pPosting;
+    while (nDecoded < decodeLength)
+    {
+        loc += pPPostingInput->readVInt();
+        *pPos++ = loc;
+        nDecoded++;
+    }
+    ds_.decodedPosCount += nDecoded;
+    ds_.lastDecodedPos = loc;
+    nCurrentPPosting = 0;
     return true;
 }
 

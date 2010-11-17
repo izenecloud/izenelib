@@ -61,6 +61,15 @@ public:
     /**
      * Get the position posting data
      * @param pPosing the address to store posting data
+     * @param posBufLength buffer length to store posting data
+     * @param decodeLength the length of decoded posting wanted.Only useful for BYTE-aligned posting
+     * @return true:success,false: error or reach end
+     */
+    bool decodeNextPositions(uint32_t* &pPosting, int32_t& posBufLength, int32_t decodeLength, int32_t& nCurrentPPosting);
+
+    /**
+     * Get the position posting data
+     * @param pPosing the address to store posting data
      * @param pFreqs freqs array
      * @param nFreqs size of freqs array
      */
@@ -217,6 +226,15 @@ public:
      * @return true:success,false: error or reach end
      */
     bool decodeNextPositions(uint32_t* pPosting,int32_t length);
+
+    /**
+     * Get the position posting data
+     * @param pPosing the address to store posting data
+     * @param posBufLength buffer length to store posting data
+     * @param decodeLength the length of decoded posting wanted.Only useful for BYTE-aligned posting
+     * @return true:success,false: error or reach end
+     */
+    bool decodeNextPositions(uint32_t* &pPosting, int32_t& posBufLength, int32_t decodeLength, int32_t& nCurrentPPosting);
 
     /**
      * Get the position posting data

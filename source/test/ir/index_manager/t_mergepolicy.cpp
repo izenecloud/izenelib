@@ -71,11 +71,8 @@ BOOST_AUTO_TEST_CASE(merge)
     MergePolicy merger(pBarrelsInfo, pDirectory);
 
     int barrels[] = {
-        100000,
-        10000,
-        10000,
-        4000,
-        10000
+        1,
+        1000
     };
     int numBarrels = sizeof(barrels)/sizeof(int);
 

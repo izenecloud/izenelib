@@ -371,6 +371,41 @@ bool BlockPostingReader::decodeNextPositions(uint32_t* pPosting,int32_t length)
     return true;
 }
 
+bool BlockPostingReader::decodeNextPositions(uint32_t* &pPosting, int32_t& posBufLength, int32_t decodeLength, int32_t& nCurrentPPosting)
+{
+    if(!pPosting)
+    {
+        skipPosCount_ += decodeLength;
+        return true;
+    }
+    IndexInput* pPPostingInput = pInputDescriptor_->getPPostingInput();
+
+    ChunkDecoder& chunk = blockDecoder_.chunk_decoder_;
+    assert(chunk.decoded());
+    assert(chunk.curr_document_offset() < chunk.num_docs());
+
+    if(! chunk.pos_decoded())
+    {
+        int size_of_positions = chunk.size_of_positions();
+        if(posBufLength < size_of_positions) growPosBuffer(pPosting, posBufLength);
+        chunk.set_pos_buffer(pPosting);
+
+        if(!blockDecoder_.curr_chunk_pos_loaded(blockDecoder_.curr_chunk()))
+        {
+            int size = pPPostingInput->readVInt();
+            ensure_pos_buffer(size>>2);
+            pPPostingInput->readBytes((uint8_t*)compressedPos_,size);
+            blockDecoder_.set_curr_chunk_pos_loaded(blockDecoder_.curr_chunk());
+        }
+        chunk.decodePositions(compressedPos_);
+    }
+
+    nCurrentPPosting = skipPosCount_ + chunk.curr_position_offset();
+    skipPosCount_ = 0;
+
+    return true;
+}
+
 bool BlockPostingReader::decodeNextPositions(uint32_t* &pPosting, int32_t& posBufLength, uint32_t* pFreqs,int32_t nFreqs, int32_t& nCurrentPPosting)
 {
     IndexInput* pPPostingInput = pInputDescriptor_->getPPostingInput();
@@ -652,7 +687,39 @@ int32_t ChunkPostingReader::decodeNext(uint32_t* pPosting,int32_t length, uint32
 
 bool ChunkPostingReader::decodeNextPositions(uint32_t* pPosting,int32_t length)
 {
-    skipPosCount_ += length;
+    if(!pPosting)
+    {
+        skipPosCount_ += length;
+        return true;
+    }
+    
+
+    return true;
+}
+
+bool ChunkPostingReader::decodeNextPositions(uint32_t* &pPosting, int32_t& posBufLength, int32_t decodeLength, int32_t& nCurrentPPosting)
+{
+    if(!pPosting)
+    {
+        skipPosCount_ += decodeLength;
+        return true;
+    }
+    assert(chunkDecoder_.decoded() == true);
+    assert(chunkDecoder_.curr_document_offset() < chunkDecoder_.num_docs());
+    if(! chunkDecoder_.pos_decoded())
+    {
+        int size_of_positions = chunkDecoder_.size_of_positions();
+        if(posBufLength < size_of_positions) growPosBuffer(pPosting, posBufLength);
+    
+        chunkDecoder_.set_pos_buffer(pPosting);
+        IndexInput* pPPostingInput = pInputDescriptor_->getPPostingInput();
+        int size = pPPostingInput->readVInt();
+        ensure_pos_buffer(size>>2);
+        pPPostingInput->readBytes((uint8_t*)compressedPos_,size);
+        chunkDecoder_.decodePositions(compressedPos_);
+    }
+    nCurrentPPosting = skipPosCount_ + chunkDecoder_.curr_position_offset();
+    skipPosCount_ = 0;
     return true;
 }
 
