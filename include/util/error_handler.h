@@ -15,16 +15,20 @@ public:
   ~ErrorHandler()
   {}
   
+  bool GetLastError() const
+  {
+    if(last_error_id_==0) return false;
+    return true;
+  }
   
-  
-  bool GetLastError(uint8_t& id)
+  bool GetLastError(uint8_t& id) const
   {
     if(last_error_id_==0) return false;
     id = last_error_id_;
     return true;
   }
   
-  bool GetLastError(uint8_t& id, std::string& msg)
+  bool GetLastError(uint8_t& id, std::string& msg) const
   {
     if(last_error_id_==0) return false;
     id = last_error_id_;
