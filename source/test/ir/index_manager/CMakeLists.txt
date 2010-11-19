@@ -81,8 +81,8 @@ TARGET_LINK_LIBRARIES(t_indexsort
 )
 
 SET(t_integration_Indexer_SRC
-  t_IndexReader.cpp
-  t_master_suite.cpp
+  t_integration_Indexer.cpp
+  IndexerTestFixture.cpp
 )
 
 ADD_EXECUTABLE(t_integration_Indexer ${t_integration_Indexer_SRC})
