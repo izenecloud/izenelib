@@ -129,7 +129,7 @@ static lzo_align_t __LZO_MMODEL
 wrkmem [((LZO1X_1_MEM_COMPRESS<<4)+(sizeof(lzo_align_t)-1))/sizeof(lzo_align_t)];
 
 template< typename KeyType, typename ValueType, typename LockType =NullLock,
-typename AmType=sdb_hash<KeyType, long, LockType>,
+typename AmType=sdb_btree<KeyType, long, LockType>,
 bool UseCompress = true > class sdb_storage_mm :
 public AccessMethod<KeyType, ValueType, LockType> {
 public:
@@ -292,7 +292,7 @@ public:
 	}
 
 	SDBCursor get_last_locn() {
-		//	return keyHash_.get_last_locn();
+		return keyHash_.get_last_locn();
 	}
 
 	bool get(const SDBCursor& locn, KeyType& key, ValueType& value) {
