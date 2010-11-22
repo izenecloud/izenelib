@@ -5,6 +5,7 @@ FIND_PACKAGE(Boost ${Boost_FIND_VERSION}
   filesystem
   serialization
   unit_test_framework
+  program_options
   )
 LIST(FIND REAL_BUILD_COMPONENTS "boost_memory" _boostmemory)
 LIST(FIND REAL_BUILD_COMPONENTS "index_manager" _indexmanager)

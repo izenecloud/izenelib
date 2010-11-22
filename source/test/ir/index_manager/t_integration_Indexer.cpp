@@ -1,5 +1,8 @@
+#include <vector>
+#include <sstream> // std::ostringstream
 #include <boost/test/unit_test.hpp>
 #include <boost/test/parameterized_test.hpp>
+#include <boost/program_options.hpp>
 
 #include <glog/logging.h>
 
@@ -8,7 +11,9 @@
 #include "t_BarrelsInfo.h"
 #include "t_TermDocFreqs.h"
 
+using namespace std;
 using namespace boost::unit_test;
+namespace po = boost::program_options;
 
 bool my_init_unit_test()
 {
@@ -26,23 +31,74 @@ bool my_init_unit_test()
     };
     const int configNum = sizeof(configs) / sizeof(IndexerTestConfig);
 
+    // load command line option
+    vector<IndexerTestConfig> configVec;
+    try
+    {
+        std::vector<int> runConfigVec;
+        po::options_description optDesp("Allowed options");
+        optDesp.add_options()
+            ("run_config,n", po::value<std::vector<int> >(&runConfigVec)->multitoken(), "specify the range of config parameters to run")
+            ;
+
+        po::options_description cmdline_options;
+        cmdline_options.add(optDesp);
+
+        po::variables_map vm;
+        store(po::command_line_parser(framework::master_test_suite().argc, framework::master_test_suite().argv).options(cmdline_options).run(), vm);
+        po::notify(vm);    
+
+        if(vm.count("run_config"))
+        {
+            cout << "run_config: ";
+            for(std::vector<int>::const_iterator it = runConfigVec.begin();
+                    it != runConfigVec.end();
+                    ++it)
+            {
+                cout << *it << ", ";
+                if(*it >= 0 && *it < configNum)
+                    configVec.push_back(configs[*it]);
+                else
+                {
+                    ostringstream oss;
+                    oss << "unknown config number " << *it;
+                    throw std::runtime_error(oss.str());
+                }
+            }
+            cout << endl;
+        }
+        else
+        {
+            cout << "run all configs" << endl;
+            configVec.insert(configVec.begin(), configs, configs+configNum);
+        }
+    }
+    catch(std::exception& e)
+    {
+        cerr << "error: " << e.what() << "\n";
+        return false;
+    }
+
+    const IndexerTestConfig* const pConfigStart = &configVec[0];
+    const IndexerTestConfig* const pConfigEnd = pConfigStart + configVec.size();
+
     test_suite* tsIndexReader = BOOST_TEST_SUITE("t_IndexReader");
-    tsIndexReader->add(BOOST_PARAM_TEST_CASE(&t_IndexReader::index, configs, configs+configNum));
-    tsIndexReader->add(BOOST_PARAM_TEST_CASE(&t_IndexReader::update, configs, configs+configNum));
-    tsIndexReader->add(BOOST_PARAM_TEST_CASE(&t_IndexReader::remove, configs, configs+configNum));
+    tsIndexReader->add(BOOST_PARAM_TEST_CASE(&t_IndexReader::index, pConfigStart, pConfigEnd));
+    tsIndexReader->add(BOOST_PARAM_TEST_CASE(&t_IndexReader::update, pConfigStart, pConfigEnd));
+    tsIndexReader->add(BOOST_PARAM_TEST_CASE(&t_IndexReader::remove, pConfigStart, pConfigEnd));
     framework::master_test_suite().add(tsIndexReader);
 
     test_suite* tsBarrelsInfo = BOOST_TEST_SUITE("t_BarrelsInfo");
-    tsBarrelsInfo->add(BOOST_PARAM_TEST_CASE(&t_BarrelsInfo::index, configs, configs+configNum));
-    tsBarrelsInfo->add(BOOST_PARAM_TEST_CASE(&t_BarrelsInfo::optimize, configs, configs+configNum));
-    tsBarrelsInfo->add(BOOST_PARAM_TEST_CASE(&t_BarrelsInfo::createAfterOptimize, configs, configs+configNum));
-    tsBarrelsInfo->add(BOOST_PARAM_TEST_CASE(&t_BarrelsInfo::pauseResumeMerge, configs, configs+configNum));
+    tsBarrelsInfo->add(BOOST_PARAM_TEST_CASE(&t_BarrelsInfo::index, pConfigStart, pConfigEnd));
+    tsBarrelsInfo->add(BOOST_PARAM_TEST_CASE(&t_BarrelsInfo::optimize, pConfigStart, pConfigEnd));
+    tsBarrelsInfo->add(BOOST_PARAM_TEST_CASE(&t_BarrelsInfo::createAfterOptimize, pConfigStart, pConfigEnd));
+    tsBarrelsInfo->add(BOOST_PARAM_TEST_CASE(&t_BarrelsInfo::pauseResumeMerge, pConfigStart, pConfigEnd));
     framework::master_test_suite().add(tsBarrelsInfo);
 
     test_suite* tsTermDocFreqs = BOOST_TEST_SUITE("t_TermDocFreqs");
-    tsTermDocFreqs->add(BOOST_PARAM_TEST_CASE(&t_TermDocFreqs::index, configs, configs+configNum));
-    tsTermDocFreqs->add(BOOST_PARAM_TEST_CASE(&t_TermDocFreqs::update, configs, configs+configNum));
-    tsTermDocFreqs->add(BOOST_PARAM_TEST_CASE(&t_TermDocFreqs::remove, configs, configs+configNum));
+    tsTermDocFreqs->add(BOOST_PARAM_TEST_CASE(&t_TermDocFreqs::index, pConfigStart, pConfigEnd));
+    tsTermDocFreqs->add(BOOST_PARAM_TEST_CASE(&t_TermDocFreqs::update, pConfigStart, pConfigEnd));
+    tsTermDocFreqs->add(BOOST_PARAM_TEST_CASE(&t_TermDocFreqs::remove, pConfigStart, pConfigEnd));
     framework::master_test_suite().add(tsTermDocFreqs);
 
     return true;
