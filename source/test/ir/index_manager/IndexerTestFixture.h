@@ -59,6 +59,12 @@ struct IndexerTestConfig
  */
 class IndexerTestFixture
 {
+public:
+    static const char* INDEX_FILE_DIR;
+    static const unsigned int COLLECTION_ID;
+    static const char* INDEX_MODE_REALTIME;
+    static const char* INVERTED_FIELD;
+
 protected:
     Indexer* indexer_;
 
@@ -84,10 +90,6 @@ protected:
     ///< docid => doc length
     typedef map<docid_t, size_t> DocIdLenMapT;
     DocIdLenMapT mapDocIdLen_;
-
-    ///< termid => (doc freq, collection term freq)
-    typedef map<termid_t, pair<freq_t, int64_t> > CTermIdMapT;
-    CTermIdMapT mapCTermId_;
 
     ///< term position list
     typedef vector<loc_t> LocListT;
@@ -133,14 +135,6 @@ public:
      */
     bool isDocEmpty() const { return mapDocIdLen_.empty(); }
 
-    /**
-     * Print below statistics:
-     * - doc count
-     * - unique term count
-     * - sum of doc length in collection.
-     */
-    void printStats() const;
-
     /** Only create \e newDocNum_ documents. */
     void createDocument();
 
@@ -150,41 +144,29 @@ public:
     /** Remove random number of documents, and also remove documents exceed max doc id. */
     void removeDocument();
 
-    /** Check document length. */
-    void checkDocLength();
+    Indexer* getIndexer() { return indexer_; }
+    docid_t getMaxDocID() const { return maxDocID_; }
+    unsigned int getDocCount() const { return mapDocIdLen_.size(); }
 
-    /** Check @c TermReader::seek() and @c TermDocFreqs interfaces, such as <tt>docFreq, getCTF</tt>. */
-    void checkTermDocFreqs();
+protected:
+    /**
+     * This function denotes the doc ids in @p removeDocList have been removed,
+     * it is called in @c updateDocument() and @c removeDocument(),
+     * it is implemented as empty method in this class,
+     * while those classes inheriting from it could override this method.
+     * @p removeDocument the doc ids which have been removed
+     * @pre @p removeDocList should be sorted by docid increasingly
+     */
+    virtual void removeFixtureDocs(const std::list<docid_t>& removeDocList) {}
 
     /**
-     * Check @c TermReader::seek() and @c TermDocFreqs interfaces, such as <tt>next, skipTo, freq, doc, nextPosition</tt>.
-     * If @c IndexManagerException is thrown during query, it would catch it and query again.
+     * This function denotes the doc containing terms in @p docTermIdMap has been added,
+     * it is called in @c prepareDocument(),
+     * it is implemented as empty method in this class,
+     * while those classes inheriting from it could override this method.
+     * @p docTermIdMap the map of term id and its position list in the doc
      */
-    void checkNextSkipTo();
-
-    /**
-     * Create barrels and check barrel status.
-     * @param barrelNum the number of barrels to create
-     */
-    void checkBarrel(int barrelNum);
-
-    /**
-     * Create barrels, optimize barrels (merge them into one), and check barrel status.
-     * @param barrelNum the number of barrels to create
-     */
-    void optimizeBarrel(int barrelNum);
-
-    /**
-     * Create barrels, optimize barrels (merge them into one), and check barrel status.
-     * @param barrelNum the number of barrels to create
-     */
-    void createAfterOptimizeBarrel(int barrelNum);
-
-    /**
-     * Pause and resume the merge.
-     * @param barrelNum the number of barrels to create
-     */
-    void pauseResumeMerge(int barrelNum);
+    virtual void addFixtureDoc(const DTermIdMapT& docTermIdMap) {}
 
 private:
     /**
@@ -192,37 +174,6 @@ private:
      * @return the random doc number
      */
     int randDocNum();
-
-    /**
-     * For each doc in @p removeDocList, remove all its terms in @p mapCTermId_.
-     * @pre @p removeDocList should be sorted by docid increasingly
-     */
-    void removeDocTerms(const list<docid_t>& removeDocList);
-
-    /**
-     * The implementation for @c checkNextSkipTo(),
-     * it would throw @c IndexManagerException if query failed.
-     */
-    void checkNextSkipToImpl();
-
-    /**
-     * Check query on a doc.
-     * @param pTermReader TermReader instance
-     * @param docID the doc to query
-     * @param docTermIdMap the term ids in that doc
-     */
-    void checkNextSkipToDoc(TermReader* pTermReader, docid_t docID, const DTermIdMapT& docTermIdMap);
-
-    /**
-     * Move the cursor to @p docID using either @p TermDocFreqs::next() or @p TermDocFreqs::skipTo(),
-     * these two methods are selected randomly.
-     * @param pTermDocFreqs TermDocFreqs instance
-     * @param docID move the cursor to the 1st doc id >= @p docID
-     * @param isDocRemoved whether @p docID is removed,
-     *                     if true, move the cursor to doc id > @p docID or BAD_DOCID,
-     *                     if false, move the cursor to doc id == @p docID.
-     */
-    void nextOrSkipTo(TermDocFreqs* pTermDocFreqs, docid_t docID, bool isDocRemoved);
 
     void removeIndexFiles();
 

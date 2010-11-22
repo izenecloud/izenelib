@@ -13,12 +13,81 @@
 
 namespace t_TermDocFreqs
 {
+/**
+ * The fixture used in cases testing TermDocFreqs module.
+ */
+class TermDocFreqsTestFixture: public IndexerTestFixture
+{
+public:
+    /**
+     * Print below statistics:
+     * - doc count
+     * - unique term count
+     * - sum of doc length in collection.
+     */
+    void printStats() const;
+
+    /** Check @c TermReader::seek() and @c TermDocFreqs interfaces, such as <tt>docFreq, getCTF</tt>. */
+    void checkTermDocFreqs();
+
+    /**
+     * Check @c TermReader::seek() and @c TermDocFreqs interfaces, such as <tt>next, skipTo, freq, doc, nextPosition</tt>.
+     * If @c IndexManagerException is thrown during query, it would catch it and query again.
+     */
+    void checkNextSkipTo();
+
+protected:
+    /**
+     * remove @p removeDocList terms in @c mapCTermId_.
+     * @p removeDocument the doc ids which have been removed
+     * @pre @p removeDocList should be sorted by docid increasingly
+     */
+    virtual void removeFixtureDocs(const std::list<docid_t>& removeDocList);
+
+    /**
+     * add @p docTermIdMap terms in @c mapCTermId_.
+     * @p docTermIdMap the map of term id and its position list in the doc
+     */
+    virtual void addFixtureDoc(const DTermIdMapT& docTermIdMap);
+
+private:
+    /**
+     * The implementation for @c checkNextSkipTo(),
+     * it would throw @c IndexManagerException if query failed.
+     */
+    void checkNextSkipToImpl();
+
+    /**
+     * Check query on a doc.
+     * @param pTermReader TermReader instance
+     * @param docID the doc to query
+     * @param docTermIdMap the term ids in that doc
+     */
+    void checkNextSkipToDoc(TermReader* pTermReader, docid_t docID, const DTermIdMapT& docTermIdMap);
+
+    /**
+     * Move the cursor to @p docID using either @p TermDocFreqs::next() or @p TermDocFreqs::skipTo(),
+     * these two methods are selected randomly.
+     * @param pTermDocFreqs TermDocFreqs instance
+     * @param docID move the cursor to the 1st doc id >= @p docID
+     * @param isDocRemoved whether @p docID is removed,
+     *                     if true, move the cursor to doc id > @p docID or BAD_DOCID,
+     *                     if false, move the cursor to doc id == @p docID.
+     */
+    void nextOrSkipTo(TermDocFreqs* pTermDocFreqs, docid_t docID, bool isDocRemoved);
+
+private:
+    ///< termid => (doc freq, collection term freq)
+    typedef map<termid_t, pair<freq_t, int64_t> > CTermIdMapT;
+    CTermIdMapT mapCTermId_;
+};
+
 
 inline void index(const IndexerTestConfig& config)
 {
     VLOG(2) << "=> t_TermDocFreqs::index";
 
-    IndexerTestFixture fixture;
+    TermDocFreqsTestFixture fixture;
     fixture.configTest(config);
 
     for(int i=0; i<config.iterNum_; ++i)
@@ -35,7 +104,7 @@ inline void remove(const IndexerTestConfig& config)
 {
     VLOG(2) << "=> t_TermDocFreqs::remove";
 
-    IndexerTestFixture fixture;
+    TermDocFreqsTestFixture fixture;
     fixture.configTest(config);
 
     fixture.createDocument();
@@ -58,7 +127,7 @@ inline void update(const IndexerTestConfig& config)
 {
     VLOG(2) << "=> t_TermDocFreqs::update";
 
-    IndexerTestFixture fixture;
+    TermDocFreqsTestFixture fixture;
     fixture.configTest(config);
 
     fixture.createDocument();
