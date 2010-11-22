@@ -15,8 +15,14 @@ bool my_init_unit_test()
     IndexerTestConfig configs[] = {
         {0, 1, 1, "default", true},
         {1, 1, 1, "realtime", true},
-        {2, 5, 5, "default", true},
-        {3, 5, 5, "realtime", true},
+        {2, 5, 3, "default", true},
+        {3, 5, 3, "realtime", true},
+        {4, 10, 6, "default", true},
+        {5, 10, 6, "realtime", true},
+        //{5, 100, 23, "default", true},
+        //{6, 100, 23, "realtime", true},
+        //{7, 1000, 10, "default", true},
+        //{8, 1000, 10, "realtime", true},
     };
     const int configNum = sizeof(configs) / sizeof(IndexerTestConfig);
 

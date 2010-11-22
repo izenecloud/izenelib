@@ -31,6 +31,7 @@ IndexerTestFixture::IndexerTestFixture()
     ,newDocNum_(0)
     ,docLenRand_(randEngine_, uniform_int<>(1, 1))
     ,termIDRand_(randEngine_, uniform_int<>(1, 1))
+    ,docNumRand_(randEngine_, uniform_int<>(1, 1))
     ,skipToRand_(randEngine_, uniform_int<>(0, 1))
     ,maxDocID_(0)
 {
@@ -142,6 +143,14 @@ void IndexerTestFixture::createDocument()
     VLOG(2) << "<= IndexerTestFixture::createDocument()";
 }
 
+int IndexerTestFixture::randDocNum()
+{
+    if(static_cast<unsigned int>(docNumRand_.distribution().max()) != mapDocIdLen_.size())
+        docNumRand_.distribution() = uniform_int<>(1, mapDocIdLen_.size());
+
+    return docNumRand_();
+}
+
 void IndexerTestFixture::updateDocument()
 {
     VLOG(2) << "=> IndexerTestFixture::updateDocument()";
@@ -149,9 +158,7 @@ void IndexerTestFixture::updateDocument()
     if(mapDocIdLen_.empty())
         return;
 
-    RandGeneratorT randDocNum(randEngine_, uniform_int<>(1, mapDocIdLen_.size()));
-
-    const int updateNum = randDocNum(); // range [1, size]
+    const int updateNum = randDocNum();
     list<docid_t> removeDocList;
 #ifdef LOG_DOC_OPERATION
     BOOST_TEST_MESSAGE("start updating " << updateNum << " docs...");
@@ -159,7 +166,7 @@ void IndexerTestFixture::updateDocument()
     docid_t newDocID = maxDocID_ + 1;
     for(int i=0; i<updateNum; ++i, ++newDocID)
     {
-        const int updatePos = randDocNum() % mapDocIdLen_.size();
+        const int updatePos = randDocNum() - 1; // position starts from 0
         DocIdLenMapT::iterator it = mapDocIdLen_.begin();
         for(int j=0; j<updatePos; ++j)
             ++it;
@@ -190,16 +197,14 @@ void IndexerTestFixture::removeDocument()
     if(mapDocIdLen_.empty())
         return;
 
-    RandGeneratorT randDocNum(randEngine_, uniform_int<>(1, mapDocIdLen_.size()));
-
-    const int removeNum = randDocNum(); // range [1, size]
+    const int removeNum = randDocNum();
     list<docid_t> removeDocList;
 #ifdef LOG_DOC_OPERATION
     BOOST_TEST_MESSAGE("start removing " << removeNum << " docs...");
 #endif
     for(int i=0; i<removeNum; ++i)
     {
-        const int removePos = randDocNum() % mapDocIdLen_.size();
+        const int removePos = randDocNum() - 1; // position starts from 0
         DocIdLenMapT::iterator it = mapDocIdLen_.begin();
         for(int j=0; j<removePos; ++j)
             ++it;
@@ -307,11 +312,11 @@ void IndexerTestFixture::checkBarrel(int barrelNum)
     BarrelsInfo* pBarrelsInfo = pIndexReader->getBarrelsInfo();
 
     BOOST_CHECK_EQUAL(pBarrelsInfo->maxDocId(), maxDocID_);
+    BOOST_CHECK_EQUAL(pBarrelsInfo->getDocCount(), mapDocIdLen_.size());
 
     if(indexer_->getIndexManagerConfig()->indexStrategy_.indexMode_ != INDEX_MODE_REALTIME)
     {
         BOOST_CHECK_EQUAL(pBarrelsInfo->getBarrelCount(), barrelNum);
-        BOOST_CHECK_EQUAL(pBarrelsInfo->getDocCount(), mapDocIdLen_.size());
 
         for(int i=0; i<barrelNum; ++i)
         {
@@ -387,9 +392,13 @@ void IndexerTestFixture::pauseResumeMerge(int barrelNum)
 
     IndexReader* pIndexReader = indexer_->getIndexReader();
     BarrelsInfo* pBarrelsInfo = pIndexReader->getBarrelsInfo();
-    BOOST_CHECK_EQUAL(pBarrelsInfo->getBarrelCount(), barrelNum);
     BOOST_CHECK_EQUAL(pBarrelsInfo->maxDocId(), maxDocID_);
     BOOST_CHECK_EQUAL(pBarrelsInfo->getDocCount(), mapDocIdLen_.size());
+
+    if(indexer_->getIndexManagerConfig()->indexStrategy_.indexMode_ == INDEX_MODE_REALTIME)
+        BOOST_CHECK_GE(pBarrelsInfo->getBarrelCount(), barrelNum);
+    else
+        BOOST_CHECK_EQUAL(pBarrelsInfo->getBarrelCount(), barrelNum);
 
     indexer_->resumeMerge();
     indexer_->optimizeIndex();
