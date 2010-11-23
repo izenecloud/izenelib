@@ -10,7 +10,7 @@
 using namespace std;
 using namespace boost;
 
-#define LOG_DOC_OPERATION
+//#define LOG_DOC_OPERATION
 
 const char* IndexerTestFixture::INDEX_FILE_DIR = "./index";
 const unsigned int IndexerTestFixture::COLLECTION_ID = 1;
