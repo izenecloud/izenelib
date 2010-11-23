@@ -34,6 +34,9 @@ const IndexerTestConfig INDEXER_TEST_CONFIGS[] = {
 /** the parameter number */
 const int INDEXER_TEST_CONFIG_NUM = sizeof(INDEXER_TEST_CONFIGS) / sizeof(IndexerTestConfig);
 
+/** if the command options of "--run_config_list" or "--run_config_range" are not specified, run configs of range [0, DEFAULT_CONFIG_RANGE] */
+const int DEFAULT_CONFIG_RANGE = 5;
+
 /** the command option to specify a list of config numbers, such as "--run_config_list 0 1 2 3" */
 const char* OPTION_CONFIG_LIST = "run_config_list";
 
@@ -105,9 +108,9 @@ bool loadConfigOption(vector<IndexerTestConfig>& configVec)
         }
         else
         {
-            cout << "run all configs" << endl;
+            cout << "run default configs range: [0, " << DEFAULT_CONFIG_RANGE << "]" << endl;
             configVec.insert(configVec.begin(), INDEXER_TEST_CONFIGS,
-                                                INDEXER_TEST_CONFIGS + INDEXER_TEST_CONFIG_NUM);
+                                                INDEXER_TEST_CONFIGS + DEFAULT_CONFIG_RANGE + 1);
         }
     }
     catch(std::exception& e)
@@ -132,25 +135,28 @@ bool my_init_unit_test()
     const IndexerTestConfig* const pConfigStart = &configVec[0];
     const IndexerTestConfig* const pConfigEnd = pConfigStart + configVec.size();
 
+    test_suite* tsIndexManager = BOOST_TEST_SUITE("index_manager");
+
     test_suite* tsIndexReader = BOOST_TEST_SUITE("t_IndexReader");
     tsIndexReader->add(BOOST_PARAM_TEST_CASE(&t_IndexReader::index, pConfigStart, pConfigEnd));
     tsIndexReader->add(BOOST_PARAM_TEST_CASE(&t_IndexReader::update, pConfigStart, pConfigEnd));
     tsIndexReader->add(BOOST_PARAM_TEST_CASE(&t_IndexReader::remove, pConfigStart, pConfigEnd));
-    framework::master_test_suite().add(tsIndexReader);
+    tsIndexManager->add(tsIndexReader);
 
     test_suite* tsBarrelsInfo = BOOST_TEST_SUITE("t_BarrelsInfo");
     tsBarrelsInfo->add(BOOST_PARAM_TEST_CASE(&t_BarrelsInfo::index, pConfigStart, pConfigEnd));
     tsBarrelsInfo->add(BOOST_PARAM_TEST_CASE(&t_BarrelsInfo::optimize, pConfigStart, pConfigEnd));
     tsBarrelsInfo->add(BOOST_PARAM_TEST_CASE(&t_BarrelsInfo::createAfterOptimize, pConfigStart, pConfigEnd));
     tsBarrelsInfo->add(BOOST_PARAM_TEST_CASE(&t_BarrelsInfo::pauseResumeMerge, pConfigStart, pConfigEnd));
-    framework::master_test_suite().add(tsBarrelsInfo);
+    tsIndexManager->add(tsBarrelsInfo);
 
     test_suite* tsTermDocFreqs = BOOST_TEST_SUITE("t_TermDocFreqs");
     tsTermDocFreqs->add(BOOST_PARAM_TEST_CASE(&t_TermDocFreqs::index, pConfigStart, pConfigEnd));
     tsTermDocFreqs->add(BOOST_PARAM_TEST_CASE(&t_TermDocFreqs::update, pConfigStart, pConfigEnd));
     tsTermDocFreqs->add(BOOST_PARAM_TEST_CASE(&t_TermDocFreqs::remove, pConfigStart, pConfigEnd));
-    framework::master_test_suite().add(tsTermDocFreqs);
+    tsIndexManager->add(tsTermDocFreqs);
 
+    framework::master_test_suite().add(tsIndexManager);
     return true;
 }
 
