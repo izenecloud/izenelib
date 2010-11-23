@@ -146,7 +146,7 @@ public:
 
     Indexer* getIndexer() { return indexer_; }
     docid_t getMaxDocID() const { return maxDocID_; }
-    unsigned int getDocCount() const { return mapDocIdLen_.size(); }
+    int getDocCount() const { return mapDocIdLen_.size(); }
 
 protected:
     /**
