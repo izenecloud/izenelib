@@ -104,7 +104,7 @@ public:
     IndexerTestFixture();
 
     /** Destroy Indexer resource. */
-    ~IndexerTestFixture();
+    virtual ~IndexerTestFixture();
 
     /**
      * Configure test parameters.
