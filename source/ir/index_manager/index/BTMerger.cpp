@@ -66,8 +66,7 @@ void BTMerger::triggerMerge(BTLayer* pLevel,int nLevel)
     BTLayer* pLevel1 = pLevel;
     int nL = getLevel(pLevel->nLevelSize_);
     int nTriggers = 0;
-    int i ;
-    for ( i = nLevel + 1;(i <= nL);i++)
+    for (int i = nLevel + 1;(i <= nL);i++)
     {
         std::map<int,BTLayer*>::iterator iter2 = nodesMap_.find(i);
         if (iter2 != nodesMap_.end())
