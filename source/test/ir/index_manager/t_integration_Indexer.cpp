@@ -57,7 +57,7 @@ bool loadConfigOption(vector<IndexerTestConfig>& configVec)
         vector<int> runConfigRangeVec;
         po::options_description desp("Allowed options");
         desp.add_options()
-            ("build_info,i", po::value<bool>(), "this option is not used, it is just in case of boost test didn't filter out this option")
+            ("build_info,i", "this option is not used, it is just in case of boost test didn't filter out this option")
             (OPTION_CONFIG_LIST, po::value<std::vector<int> >(&runConfigListVec)->multitoken(), "specify the list of config parameters to run")
             (OPTION_CONFIG_RANGE, po::value<std::vector<int> >(&runConfigRangeVec)->multitoken(), "specify the range of config parameters to run")
             ;
