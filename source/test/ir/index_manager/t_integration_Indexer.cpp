@@ -1,3 +1,11 @@
+/**
+* @file       t_integration_Indexer.cpp
+* @author     Jun
+* @version    SF1 v5.0
+* @brief Integration test suites for index manager.
+*
+*/
+
 #include <vector>
 #include <sstream> // std::ostringstream
 #include <cstdlib> //getenv
@@ -152,7 +160,7 @@ bool my_init_unit_test()
     if(! loadConfigOption(configVec))
         return false;
 
-    framework::master_test_suite().p_name.value = "index_manager";
+    framework::master_test_suite().p_name.value = "t_integration_Indexer";
 
     const IndexerTestConfig* const pConfigStart = &configVec[0];
     const IndexerTestConfig* const pConfigEnd = pConfigStart + configVec.size();

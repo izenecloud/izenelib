@@ -1,3 +1,11 @@
+/**
+* @file       IndexerTestFixture.cpp
+* @author     Jun
+* @version    SF1 v5.0
+* @brief Fixture implementation to test Indexer module.
+*
+*/
+
 #include <boost/test/unit_test.hpp>
 #include <boost/filesystem.hpp>
 #include <boost/filesystem/path.hpp>
