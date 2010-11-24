@@ -1,12 +1,15 @@
 #include <vector>
 #include <sstream> // std::ostringstream
+#include <cstdlib> //getenv
 #include <boost/test/unit_test.hpp>
 #include <boost/test/parameterized_test.hpp>
 #include <boost/program_options.hpp>
 #include <boost/foreach.hpp>
+#include <boost/test/output/xml_log_formatter.hpp>
 
 #include <glog/logging.h>
 
+#include <TestHelper.h> //MyXmlLogFormatter
 #include "IndexerTestFixture.h"
 #include "t_IndexReader.h"
 #include "t_BarrelsInfo.h"
@@ -29,6 +32,8 @@ const IndexerTestConfig INDEXER_TEST_CONFIGS[] = {
     {7, 100, 23, "realtime", true},
     {8, 1000, 10, "default", true},
     {9, 1000, 10, "realtime", true},
+    {10, 1, 1, "default:block", true},
+    {11, 1, 1, "default:chunk", true},
 };
 
 /** the parameter number */
@@ -42,7 +47,12 @@ const char* OPTION_CONFIG_LIST = "run_config_list";
 
 /** the command option to specify a range of config numbers, such as "--run_config_range 4 7" */
 const char* OPTION_CONFIG_RANGE = "run_config_range";
+
+/** the environment variable name for boost test log */
+const char* ENV_NAME_LOG_FILE = "BOOST_TEST_LOG_FILE";
 }
+
+static std::ofstream* gOutStream = 0;
 
 /**
  * Load command line option "run_config_list" or "run_config_range" to decide which configs to run.
@@ -51,6 +61,7 @@ const char* OPTION_CONFIG_RANGE = "run_config_range";
  */
 bool loadConfigOption(vector<IndexerTestConfig>& configVec)
 {
+    cout << "hello world" << endl;
     try
     {
         vector<int> runConfigListVec;
@@ -129,6 +140,14 @@ bool loadConfigOption(vector<IndexerTestConfig>& configVec)
  */
 bool my_init_unit_test()
 {
+    if(const char* const gEnvValue = std::getenv(ENV_NAME_LOG_FILE))
+    {
+        cout << ENV_NAME_LOG_FILE << ": " << gEnvValue << endl;
+        gOutStream = new std::ofstream(gEnvValue);
+        boost::unit_test::unit_test_log.set_stream(*gOutStream);
+        boost::unit_test::unit_test_log.set_formatter(new MyXmlLogFormatter());
+    }
+
     vector<IndexerTestConfig> configVec;
     if(! loadConfigOption(configVec))
         return false;
@@ -164,5 +183,10 @@ int main( int argc, char* argv[] )
 {
     google::InitGoogleLogging(argv[0]);
 
-    return ::boost::unit_test::unit_test_main( &my_init_unit_test, argc, argv );
+    int status = ::boost::unit_test::unit_test_main( &my_init_unit_test, argc, argv );
+
+    // delete global stream to flush
+    delete gOutStream;
+
+    return status;
 }

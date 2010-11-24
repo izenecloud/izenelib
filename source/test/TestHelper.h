@@ -38,4 +38,56 @@ struct ignore_unused_variable_warnings_in_boost_test
 
 #endif
 
+#include <boost/test/output/xml_log_formatter.hpp>
+#include <boost/test/unit_test.hpp>
+#include <iostream>
+
+class MyXmlLogFormatter : public boost::unit_test::output::xml_log_formatter
+{
+    typedef boost::unit_test::output::xml_log_formatter super;
+
+public:
+    MyXmlLogFormatter()
+    : outBackup_(0), errBackup_(0)
+    {
+        outBackup_ = std::cout.rdbuf(out_.rdbuf());
+        errBackup_ = std::cerr.rdbuf(err_.rdbuf());
+    }
+
+    ~MyXmlLogFormatter()
+    {
+        if (outBackup_)
+        {
+            std::cout.rdbuf(outBackup_);
+        }
+        if (errBackup_)
+        {
+            std::cerr.rdbuf(errBackup_);
+        }
+    }
+
+    void test_unit_start(std::ostream& ostr, boost::unit_test::test_unit const& tu)
+    {
+        out_.str("");
+        err_.str("");
+        super::test_unit_start(ostr, tu);
+    }
+
+    void test_unit_finish(std::ostream& ostr, boost::unit_test::test_unit const& tu, unsigned long elapsed)
+    {
+        if (tu.p_type == boost::unit_test::tut_case)
+        {
+            ostr << "<SystemOut><![CDATA[" << out_.str() << "]]></SystemOut>";
+            ostr << "<SystemErr><![CDATA[" << err_.str() << "]]></SystemErr>";
+        }
+
+        super::test_unit_finish(ostr, tu, elapsed);
+    }
+
+private:
+    std::ostringstream out_;
+    std::ostringstream err_;
+    std::streambuf* outBackup_;
+    std::streambuf* errBackup_;
+};
 #endif // INCLUDED_TEST_HELPER_H
