@@ -16,7 +16,6 @@ IndexMergeManager::IndexMergeManager(Indexer* pIndexer)
     :pIndexer_(pIndexer)
     ,pBarrelsInfo_(NULL)
     ,pAddMerger_(NULL)
-    ,pOptimizeMerger_(NULL)
     ,pMergeThread_(NULL)
     ,isPauseMerge_(false)
 {
@@ -27,8 +26,6 @@ IndexMergeManager::IndexMergeManager(Indexer* pIndexer)
 
     if(strcasecmp(mergeStrategyStr,"no"))
         pAddMerger_ = new BTMerger(pIndexer_);
-
-    pOptimizeMerger_ = new OptimizeMerger(pIndexer_, pBarrelsInfo_->getBarrelCount());
 
     if(pConfig->mergeStrategy_.isAsync_)
         run();
@@ -43,7 +40,6 @@ IndexMergeManager::~IndexMergeManager()
 
     delete pMergeThread_;
     delete pAddMerger_;
-    delete pOptimizeMerger_;
 }
 
 void IndexMergeManager::run()
@@ -116,12 +112,14 @@ void IndexMergeManager::optimizeIndex()
 
 void IndexMergeManager::optimizeIndexImpl()
 {
-    pOptimizeMerger_->setBarrels(pBarrelsInfo_->getBarrelCount());
-    if(pIndexer_->getIndexReader()->getDocFilter())
-        pOptimizeMerger_->setDocFilter(pIndexer_->getIndexReader()->getDocFilter());
-    pOptimizeMerger_->merge(pBarrelsInfo_);
-    pIndexer_->getIndexReader()->delDocFilter();
-    pOptimizeMerger_->setDocFilter(NULL);
+    OptimizeMerger optimizeMerger(pIndexer_, pBarrelsInfo_->getBarrelCount());
+
+    IndexReader* pIndexReader = pIndexer_->getIndexReader();
+    if(BitVector* pBitVector = pIndexReader->getDocFilter())
+        optimizeMerger.setDocFilter(pBitVector);
+    optimizeMerger.merge(pBarrelsInfo_);
+
+    pIndexReader->delDocFilter();
 }
 
 void IndexMergeManager::mergeIndex()

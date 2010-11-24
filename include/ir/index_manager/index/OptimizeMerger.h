@@ -21,8 +21,6 @@ public:
     OptimizeMerger(Indexer* pIndexer, unsigned int numBarrels);
     virtual ~OptimizeMerger(void);
 public:
-    void setBarrels(unsigned int numBarrels);
-
     void addBarrel(MergeBarrelEntry* pEntry);
 
     void endMerge();
