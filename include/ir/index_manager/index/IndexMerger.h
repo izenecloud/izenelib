@@ -181,6 +181,22 @@ protected:
     void mergeBarrel(MergeBarrel* pBarrel);
 
     /**
+     * output new barrel contents merged from @p pBarrel.
+     * @param pBarrel the barrels to merge
+     * @param newBarrelName new barrel name
+     */
+    void outputNewBarrel(MergeBarrel* pBarrel, const string& newBarrelName);
+
+    /**
+     * Remove merged barrels and create new barrel.
+     * @param pBarrel the merged barrels
+     * @param newBarrelName new barrel name
+     * @return new barrel instance
+     * @note this function is in the lock scope of @c IndexMergeManager::pauseMergeMutex_ and @c Indexer::mutex_.
+     */
+    BarrelInfo* createNewBarrelInfo(MergeBarrel* pBarrel, const string& newBarrelName);
+
+    /**
      * remove merged barrels from pMergeBarrels
      * @param pBarrel container of barrels
      */
