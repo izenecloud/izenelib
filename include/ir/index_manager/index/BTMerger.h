@@ -6,6 +6,7 @@
 #ifndef DBT_MERGER_H
 #define DBT_MERGER_H
 
+#include <ir/index_manager/index/IndexMergePolicy.h>
 #include <ir/index_manager/index/IndexMerger.h>
 #include <ir/index_manager/utility/StringUtils.h>
 
@@ -14,7 +15,7 @@ NS_IZENELIB_IR_BEGIN
 namespace indexmanager
 {
 
-class BTMerger : public IndexMerger
+class BTMerger : public IndexMergePolicy
 {
 public:
     class BTLayer
@@ -64,23 +65,21 @@ public:
     };
 
 public:
-
-    BTMerger(Indexer* pIndexer);
+    BTMerger();
 
     virtual ~BTMerger();
-public:
 
-    void addBarrel(MergeBarrelEntry* pEntry);
+    virtual void addBarrel(MergeBarrelEntry* pEntry);
 
-    void endMerge();
+    virtual void endMerge();
 
 private:
-
     int getLevel(int64_t nLevelSize);
 
     void triggerMerge(BTLayer* pLevel,int nLevel);
 
     int getC(int nLevel);
+
 private:
     const static int MAX_TRIGGERS = 5;
     const static int MAX_LAYER_SIZE = 100; ///< max size for each layer
@@ -90,8 +89,6 @@ private:
     int nCurLevelSize_; ///size of level
 
     std::map<int,BTLayer*> nodesMap_;
-
-    int num_doc_per_barrel_;
 };
 
 }

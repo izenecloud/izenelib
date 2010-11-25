@@ -69,7 +69,6 @@ static std::ofstream* gOutStream = 0;
  */
 bool loadConfigOption(vector<IndexerTestConfig>& configVec)
 {
-    cout << "hello world" << endl;
     try
     {
         vector<int> runConfigListVec;

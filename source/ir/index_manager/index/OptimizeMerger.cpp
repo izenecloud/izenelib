@@ -1,10 +1,10 @@
 #include <ir/index_manager/index/OptimizeMerger.h>
+#include <ir/index_manager/index/IndexMerger.h>
 
 using namespace izenelib::ir::indexmanager;
 
-OptimizeMerger::OptimizeMerger(Indexer* pIndexer, unsigned int numBarrels)
-        :IndexMerger(pIndexer)
-        ,pMergeBarrel_(new MergeBarrel("_mid_0_",numBarrels+5))
+OptimizeMerger::OptimizeMerger(unsigned int numBarrels)
+        :pMergeBarrel_(new MergeBarrel("_mid_0_",numBarrels+5))
 {
 }
 
@@ -19,6 +19,6 @@ void OptimizeMerger::addBarrel(MergeBarrelEntry* pEntry)
 }
 void OptimizeMerger::endMerge()
 {
-    mergeBarrel(pMergeBarrel_);
+    pIndexMerger_->mergeBarrel(pMergeBarrel_);
 }
 

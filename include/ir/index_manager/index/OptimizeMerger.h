@@ -6,24 +6,26 @@
 #ifndef OPTIMIZEINDEXMERGER_H
 #define OPTIMIZEINDEXMERGER_H
 
-#include <ir/index_manager/index/IndexMerger.h>
-#include <ir/index_manager/utility/StringUtils.h>
+#include <ir/index_manager/index/IndexMergePolicy.h>
 
 NS_IZENELIB_IR_BEGIN
 
 namespace indexmanager{
+
+class MergeBarrel;
+
 /**
 * This class has implemented the optimize index merge algorithm that will merge all the barrels into a single index barrel
 */
-class OptimizeMerger : public IndexMerger
+class OptimizeMerger : public IndexMergePolicy
 {
 public:
-    OptimizeMerger(Indexer* pIndexer, unsigned int numBarrels);
+    OptimizeMerger(unsigned int numBarrels);
     virtual ~OptimizeMerger(void);
 public:
-    void addBarrel(MergeBarrelEntry* pEntry);
+    virtual void addBarrel(MergeBarrelEntry* pEntry);
 
-    void endMerge();
+    virtual void endMerge();
 protected:
     MergeBarrel* pMergeBarrel_;
 };

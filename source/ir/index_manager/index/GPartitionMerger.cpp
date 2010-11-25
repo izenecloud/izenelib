@@ -2,9 +2,8 @@
 
 using namespace izenelib::ir::indexmanager;
 
-GPartitionMerger::GPartitionMerger(Indexer* pIndexer)
-        :IndexMerger(pIndexer)
-        ,nR_(3)
+GPartitionMerger::GPartitionMerger()
+        :nR_(3)
         ,nP_(0)
         ,curPartitionSize_(1)
 {
@@ -80,7 +79,7 @@ void GPartitionMerger::triggerMerge(Partition* pPartition,int32_t p)
     {
         curPartitionSize_ = pPartition1->nPartitionSize_;
         pPartition1->nPartitionSize_ = 0;
-        mergeBarrel(pPartition1->pMergeBarrel_);
+        pIndexMerger_->mergeBarrel(pPartition1->pMergeBarrel_);
         pPartition1->increaseMergeTimes();
         curPartitionSize_ = 1;
     }

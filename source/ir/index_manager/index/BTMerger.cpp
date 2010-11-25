@@ -9,9 +9,8 @@ namespace indexmanager
 #define MAXLEVEL 30
 #define COLLISION_FACTOR_FOR_LEVEL_1 3
 
-BTMerger::BTMerger(Indexer* pIndexer)
-        :IndexMerger(pIndexer)
-        ,nCurLevelSize_(1)
+BTMerger::BTMerger()
+        :nCurLevelSize_(1)
 {
 }
 
@@ -141,7 +140,7 @@ void BTMerger::triggerMerge(BTLayer* pLevel,int nLevel)
     {
         nCurLevelSize_ = pLevel1->nLevelSize_;
         pLevel1->nLevelSize_ = 0;
-        mergeBarrel(pLevel1->pMergeBarrel_);
+        pIndexMerger_->mergeBarrel(pLevel1->pMergeBarrel_);
         pLevel1->increaseMergeTimes();
         nCurLevelSize_ = 1;
     }

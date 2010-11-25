@@ -1,8 +1,9 @@
 /**
-* @file        IndexMerge.h
+* @file        IndexMerger.h
 * @author     Yingfeng Zhang
 * @version     SF1 v5.0
 * @brief Process the index merging process
+*
 */
 #ifndef INDEXMERGER_H
 #define INDEXMERGER_H
@@ -47,8 +48,6 @@ protected:
 
     friend class MergeBarrel;
     friend class IndexMerger;
-    friend class DefaultMerger;
-    friend class MockMerger;
 };
 
 /**
@@ -101,14 +100,21 @@ private:
 *@brief merge index
 */
 class Indexer;
+class IndexMergePolicy;
 
 class IndexMerger
 {
 public:
-    IndexMerger(Indexer* pIndexer);
-public:
+    /**
+     * Constructor.
+     * @param pIndexer Indexer instance
+     * @param pMergePolicy IndexMergePolicy instance
+     * @note IndexMerger is responsible to delete @p pMergePolicy
+     */
+    IndexMerger(Indexer* pIndexer, IndexMergePolicy* pMergePolicy);
+
     virtual ~IndexMerger();
-public:
+
     /**
      * merge sub indexes
      * @param pBarrelsInfo barrels of index
@@ -123,9 +129,10 @@ public:
     void addToMerge(BarrelsInfo* pBarrelsInfo, BarrelInfo* pBarrelInfo);
 
     /**
-     * the merge is over,derived classes implement it,and could clear some resources for merging.
+     * merge a merge barrel which contains more than one index barrels
+     * @param pBarrel merge barrel
      */
-    virtual void endMerge() = 0;
+    virtual void mergeBarrel(MergeBarrel* pBarrel);
 
     /**
      * set directory of index
@@ -157,28 +164,16 @@ public:
 
 protected:
     /**
-     * add new index barrel to merge,derived classes implement it,and could apply some merge strategies.
-     * @param pEntry the index barrel,derived classes are responsible for deleting
-     */
-    virtual void addBarrel(MergeBarrelEntry* pEntry) = 0;
-
-    /**
      * set parameter of merger
      * @param pszParam parameter string, format:name1=value1;param2=value2
      */
     virtual void setParam(const char* pszParam) {}
-protected:
+
     /**
      * update barrel name and its base document id after merging.
      * @param pBarrelsInfo barrels of index
      */
-    virtual void updateBarrels(BarrelsInfo* pBarrelsInfo);
-
-    /**
-     * merge a merge barrel which contains more than one index barrels
-     * @param pBarrel merge barrel
-     */
-    void mergeBarrel(MergeBarrel* pBarrel);
+    void updateBarrels(BarrelsInfo* pBarrelsInfo);
 
     /**
      * output new barrel contents merged from @p pBarrel.
@@ -201,8 +196,11 @@ protected:
      * @param pBarrel container of barrels
      */
     void removeMergedBarrels(MergeBarrel* pBarrel);
+
 protected:
     Indexer* pIndexer_;
+
+    IndexMergePolicy* pMergePolicy_;
 
     Directory* pDirectory_;				///index data source
 

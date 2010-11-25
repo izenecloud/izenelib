@@ -35,7 +35,6 @@ TARGET_LINK_LIBRARIES(t_indexer
 
 SET(t_mock_indexer_SRC
   t_MockIndexReader.cpp
-  t_mergepolicy.cpp
   t_master_suite.cpp
 )
 
@@ -74,6 +73,22 @@ SET(t_indexsort_SRC
 ADD_EXECUTABLE(t_indexsort ${t_indexsort_SRC})
 
 TARGET_LINK_LIBRARIES(t_indexsort
+  index_manager
+  boost_memory
+  izene_util
+  ${Glog_LIBRARIES}
+  ${Boost_LIBRARIES}
+)
+
+SET(t_IndexMergePolicy_SRC
+  t_IndexMergePolicy.cpp
+  IndexerTestFixture.cpp
+  t_master_suite.cpp
+)
+
+ADD_EXECUTABLE(t_IndexMergePolicy ${t_IndexMergePolicy_SRC})
+
+TARGET_LINK_LIBRARIES(t_IndexMergePolicy
   index_manager
   boost_memory
   izene_util

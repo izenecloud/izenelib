@@ -2,6 +2,7 @@
 
 #include <ir/index_manager/index/Indexer.h>
 #include <ir/index_manager/index/IndexMerger.h>
+#include <ir/index_manager/index/IndexMergePolicy.h>
 #include <ir/index_manager/index/IndexMergeManager.h>
 #include <ir/index_manager/index/FieldMerger.h>
 #include <ir/index_manager/store/Directory.h>
@@ -66,14 +67,16 @@ void MergeBarrelEntry::load()
     }
 }
 
-IndexMerger::IndexMerger(Indexer* pIndexer)
+IndexMerger::IndexMerger(Indexer* pIndexer, IndexMergePolicy* pMergePolicy)
         :pIndexer_(pIndexer)
+        ,pMergePolicy_(pMergePolicy)
         ,pDirectory_(pIndexer->getDirectory())
         ,pMergeBarrels_(NULL)
 	,pDocFilter_(NULL)
 	,triggerMerge_(false)
 	,optimize_(false)
 {
+    pMergePolicy_->setIndexMerger(this);
 }
 
 IndexMerger::~IndexMerger()
@@ -87,6 +90,8 @@ IndexMerger::~IndexMerger()
         pMergeBarrels_ = NULL;
     }
     pDocFilter_ = 0;
+
+    delete pMergePolicy_;
 }
 
 void IndexMerger::merge(BarrelsInfo* pBarrels)
@@ -117,10 +122,10 @@ void IndexMerger::merge(BarrelsInfo* pBarrels)
 
     while (mb.size() > 0)
     {
-        addBarrel(mb.pop());
+        pMergePolicy_->addBarrel(mb.pop());
     }
 
-    endMerge();
+    pMergePolicy_->endMerge();
 
     if(!triggerMerge_)
         return;
@@ -163,7 +168,7 @@ void IndexMerger::addToMerge(BarrelsInfo* pBarrelsInfo,BarrelInfo* pBarrelInfo)
     pEntry = new MergeBarrelEntry(pDirectory_,pBarrelInfo);
     pMergeBarrels_->push_back(pEntry);
 
-    addBarrel(pEntry);
+    pMergePolicy_->addBarrel(pEntry);
  
     if(!triggerMerge_)
     {
@@ -436,7 +441,7 @@ void IndexMerger::mergeBarrel(MergeBarrel* pBarrel)
     BarrelInfo* pNewBarrelInfo = createNewBarrelInfo(pBarrel, newBarrelName);
 
     MergeBarrelEntry* pNewEntry = new MergeBarrelEntry(pDirectory_, pNewBarrelInfo);
-    addBarrel(pNewEntry);
+    pMergePolicy_->addBarrel(pNewEntry);
 
     DVLOG(2)<< "<= IndexMerger::mergeBarrel()";
 }

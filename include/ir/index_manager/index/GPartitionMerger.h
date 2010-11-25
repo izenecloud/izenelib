@@ -6,6 +6,7 @@
 #ifndef GP_MERGER_H
 #define GP_MERGER_H
 
+#include <ir/index_manager/index/IndexMergePolicy.h>
 #include <ir/index_manager/index/IndexMerger.h>
 #include <ir/index_manager/utility/StringUtils.h>
 
@@ -13,7 +14,7 @@ NS_IZENELIB_IR_BEGIN
 
 namespace indexmanager{
 
-class GPartitionMerger : public IndexMerger
+class GPartitionMerger : public IndexMergePolicy
 {
 public:
     class Partition
@@ -58,13 +59,13 @@ public:
         friend class GPartitionMerger;
     };
 public:
-    GPartitionMerger(Indexer* pIndexer);
+    GPartitionMerger();
 
     virtual ~GPartitionMerger(void);
 public:
-    void addBarrel(MergeBarrelEntry* pEntry);
+    virtual void addBarrel(MergeBarrelEntry* pEntry);
 
-    void endMerge();
+    virtual void endMerge();
 
 protected:
     int32_t getPartition(int32_t nPartSize);

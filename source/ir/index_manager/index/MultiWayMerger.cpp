@@ -2,9 +2,8 @@
 
 using namespace izenelib::ir::indexmanager;
 
-MultiWayMerger::MultiWayMerger(Indexer* pIndexer)
-        :IndexMerger(pIndexer)
-        ,curGeneration_(0)
+MultiWayMerger::MultiWayMerger()
+        :curGeneration_(0)
 {
 }
 
@@ -71,7 +70,7 @@ void MultiWayMerger::triggerMerge(MultiWayMerger::Generation* pGen,int nGen)
     if (pGen1->pMergeBarrel_->size() > 0)
     {
         curGeneration_ = nCurGen + 1;
-        mergeBarrel(pGen1->pMergeBarrel_);
+        pIndexMerger_->mergeBarrel(pGen1->pMergeBarrel_);
         pGen1->increaseMergeTimes();
         curGeneration_ = 0;
     }

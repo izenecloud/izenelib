@@ -6,6 +6,7 @@
 #ifndef LOG_MERGER_H
 #define LOG_MERGER_H
 
+#include <ir/index_manager/index/IndexMergePolicy.h>
 #include <ir/index_manager/index/IndexMerger.h>
 #include <ir/index_manager/utility/StringUtils.h>
 
@@ -13,7 +14,7 @@ NS_IZENELIB_IR_BEGIN
 
 namespace indexmanager{
 
-class MultiWayMerger : public IndexMerger
+class MultiWayMerger : public IndexMergePolicy
 {
 public:
     class Generation
@@ -57,12 +58,12 @@ public:
     }; 
 	
 public:
-    MultiWayMerger(Indexer* pIndexer);
+    MultiWayMerger();
     virtual ~MultiWayMerger(void);
 public:
-    void addBarrel(MergeBarrelEntry* pEntry);
+    virtual void addBarrel(MergeBarrelEntry* pEntry);
 
-    void endMerge();
+    virtual void endMerge();
 protected:
     void triggerMerge(Generation* pGen,int nGen);
 

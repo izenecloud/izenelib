@@ -59,8 +59,11 @@ void IndexerTestFixture::configTest(const IndexerTestConfig& testConfig)
 
     // set random generators range
     newDocNum_ = testConfig_.docNum_;
-    docLenRand_.distribution() = uniform_int<>(1, 10 * newDocNum_);
-    termIDRand_.distribution() = uniform_int<>(1, 100 * newDocNum_);
+    if(newDocNum_ > 0)
+    {
+        docLenRand_.distribution() = uniform_int<>(1, 10 * newDocNum_);
+        termIDRand_.distribution() = uniform_int<>(1, 100 * newDocNum_);
+    }
 
     IndexManagerConfig indexManagerConfig;
     boost::filesystem::path path(INDEX_FILE_DIR);

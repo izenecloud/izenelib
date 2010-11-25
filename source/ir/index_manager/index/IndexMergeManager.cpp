@@ -25,7 +25,7 @@ IndexMergeManager::IndexMergeManager(Indexer* pIndexer)
     const char* mergeStrategyStr = pConfig->mergeStrategy_.param_.c_str();
 
     if(strcasecmp(mergeStrategyStr,"no"))
-        pAddMerger_ = new BTMerger(pIndexer_);
+        pAddMerger_ = new IndexMerger(pIndexer_, new BTMerger);
 
     if(pConfig->mergeStrategy_.isAsync_)
         run();
@@ -112,7 +112,7 @@ void IndexMergeManager::optimizeIndex()
 
 void IndexMergeManager::optimizeIndexImpl()
 {
-    OptimizeMerger optimizeMerger(pIndexer_, pBarrelsInfo_->getBarrelCount());
+    IndexMerger optimizeMerger(pIndexer_, new OptimizeMerger(pBarrelsInfo_->getBarrelCount()));
 
     IndexReader* pIndexReader = pIndexer_->getIndexReader();
     if(BitVector* pBitVector = pIndexReader->getDocFilter())
@@ -141,9 +141,12 @@ void IndexMergeManager::mergeIndex()
             break;
         case OPTIMIZE_ALL:
 	    {
-            // clear the status of add merger
+            // to clear the status of add merger, renew it
             if(pAddMerger_)
-                pAddMerger_->endMerge();
+            {
+                delete pAddMerger_;
+                pAddMerger_ = new IndexMerger(pIndexer_, new BTMerger);
+            }
 
             optimizeIndexImpl();
             }
