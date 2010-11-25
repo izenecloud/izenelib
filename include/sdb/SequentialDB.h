@@ -782,11 +782,11 @@ public:
 
 template< typename KeyType =string, typename ValueType=NullType,
 		typename LockType =NullLock > class ordered_sdb_storage :
-	public SequentialDB<KeyType, ValueType, LockType, sdb_storage<KeyType, ValueType, LockType> > {
+	public SequentialDB<KeyType, ValueType, LockType, sdb_storage<KeyType, ValueType, LockType, sdb_btree<KeyType, long, NullLock> >  > {
 public:
 	ordered_sdb_storage(const string& sdbname="ordered_sdb_storage.dat") :
 		SequentialDB<KeyType, ValueType, LockType,
-				sdb_storage<KeyType, ValueType, LockType> >(sdbname) {
+				sdb_storage<KeyType, ValueType, LockType, sdb_btree<KeyType, long, NullLock> >  >(sdbname) {
 
 	}
 };

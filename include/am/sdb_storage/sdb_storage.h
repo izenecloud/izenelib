@@ -101,7 +101,7 @@ template<
 typename KeyType,
 typename ValueType,
 typename LockType =NullLock,
-typename AmType=sdb_hash<KeyType, long, LockType>,
+typename AmType=sdb_btree<KeyType, long, LockType>,
 bool UseCompress = true
 >class sdb_storage :public AccessMethod<KeyType, ValueType, LockType>
 {
@@ -454,7 +454,7 @@ private:
 	LockType fileLock_;
 	boost::shared_array<unsigned char> workmem1_;
 	boost::shared_array<unsigned char> workmem2_;
-	map<unsigned int, ValueType> readCache_;
+	map<long, ValueType> readCache_;
 
 	/**
 	 *   Allocate an bucket_chain element 
