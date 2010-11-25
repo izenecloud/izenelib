@@ -1,20 +1,19 @@
-#include <ir/index_manager/index/GPartitionMerger.h>
+#include <ir/index_manager/index/GPartitionPolicy.h>
 
 using namespace izenelib::ir::indexmanager;
 
-GPartitionMerger::GPartitionMerger(Indexer* pIndexer)
-        :IndexMerger(pIndexer)
-        ,nR_(3)
+GPartitionPolicy::GPartitionPolicy()
+        :nR_(3)
         ,nP_(0)
         ,curPartitionSize_(1)
 {
 }
 
-GPartitionMerger::~GPartitionMerger(void)
+GPartitionPolicy::~GPartitionPolicy(void)
 {
     endMerge();
 }
-void GPartitionMerger::addBarrel(MergeBarrelEntry* pEntry)
+void GPartitionPolicy::addBarrel(MergeBarrelEntry* pEntry)
 {
     Partition* pPartition = NULL;
     int32_t nPartition = getPartition(curPartitionSize_);
@@ -36,7 +35,7 @@ void GPartitionMerger::addBarrel(MergeBarrelEntry* pEntry)
         partitionMap_.insert(make_pair(nPartition,pPartition));
     }
 }
-void GPartitionMerger::endMerge()
+void GPartitionPolicy::endMerge()
 {
     map<int32_t,Partition*>::iterator iter = partitionMap_.begin();
     while (iter != partitionMap_.end())
@@ -47,7 +46,7 @@ void GPartitionMerger::endMerge()
     partitionMap_.clear();
 }
 
-void GPartitionMerger::triggerMerge(Partition* pPartition,int32_t p)
+void GPartitionPolicy::triggerMerge(Partition* pPartition,int32_t p)
 {
     Partition* pPartition1 = pPartition;
     int32_t nP = this->getPartition(pPartition->nPartitionSize_);
@@ -80,12 +79,12 @@ void GPartitionMerger::triggerMerge(Partition* pPartition,int32_t p)
     {
         curPartitionSize_ = pPartition1->nPartitionSize_;
         pPartition1->nPartitionSize_ = 0;
-        mergeBarrel(pPartition1->pMergeBarrel_);
+        pIndexMerger_->mergeBarrel(pPartition1->pMergeBarrel_);
         pPartition1->increaseMergeTimes();
         curPartitionSize_ = 1;
     }
 }
-int32_t GPartitionMerger::getPartition(int32_t nPartSize)
+int32_t GPartitionPolicy::getPartition(int32_t nPartSize)
 {
     if (nPartSize <= 0)
         return 0;

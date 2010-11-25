@@ -1,11 +1,12 @@
 /**
- * @brief mock index merger to test index merge policies
- * @author Yingfeng Zhang
- * @date 2010-11-10
- */
-#ifndef MOCK_MERGER_H
-#define MOCK_MERGER_H
+* @file        BTPolicy.h
+* @version     SF1 v5.0
+* @brief BT index merge algorithm
+*/
+#ifndef BT_POLICY_H
+#define BT_POLICY_H
 
+#include <ir/index_manager/index/IndexMergePolicy.h>
 #include <ir/index_manager/index/IndexMerger.h>
 #include <ir/index_manager/utility/StringUtils.h>
 
@@ -14,7 +15,7 @@ NS_IZENELIB_IR_BEGIN
 namespace indexmanager
 {
 
-class MockMerger
+class BTPolicy : public IndexMergePolicy
 {
 public:
     class BTLayer
@@ -60,54 +61,40 @@ public:
 
         int nLevelSize_;			///size of level
 
-        friend class MockMerger;
+        friend class BTPolicy;
     };
 
 public:
+    BTPolicy();
 
-    MockMerger(BarrelsInfo* pBarrelsInfo,Directory* pDirectory);
+    virtual ~BTPolicy();
 
-    virtual ~MockMerger();
+    virtual void addBarrel(MergeBarrelEntry* pEntry);
 
-public:
-    void addToMerge(BarrelInfo* pBarrelInfo);
+    virtual void endMerge();
 
-    void merge();
 private:
-
-    void addBarrel(MergeBarrelEntry* pEntry);
-
-    void endMerge();
-
     int getLevel(int64_t nLevelSize);
 
     void triggerMerge(BTLayer* pLevel,int nLevel);
 
     int getC(int nLevel);
 
-    void mergeBarrel(MergeBarrel* pBarrel);
-
 private:
-    BarrelsInfo* pBarrelsInfo_;
-
-    Directory* pDirectory_;
-
-    std::vector<MergeBarrelEntry*>* pMergeBarrels_;
-
-    bool triggerMerge_;
+    const static int MAX_TRIGGERS = 5;
+    const static int MAX_LAYER_SIZE = 100; ///< max size for each layer
 
     std::map<int,int> nCMap_; ///collision factor, when there are nC_ barrels in a same level, a merge will be trigged.
 
     int nCurLevelSize_; ///size of level
 
     std::map<int,BTLayer*> nodesMap_;
-
-    int num_doc_per_barrel_;
 };
 
 }
 
 NS_IZENELIB_IR_END
+
 
 #endif
 

@@ -1,11 +1,12 @@
 /**
-* @file        MultiWayMerger.h
+* @file        MultiWayPolicy.h
 * @author     Yingfeng Zhang
-* @brief   MultiWayMerger with log merge policy
+* @brief   MultiWayPolicy with log merge policy
 */
-#ifndef LOG_MERGER_H
-#define LOG_MERGER_H
+#ifndef MULTIWAY_POLICY_H
+#define MULTIWAY_POLICY_H
 
+#include <ir/index_manager/index/IndexMergePolicy.h>
 #include <ir/index_manager/index/IndexMerger.h>
 #include <ir/index_manager/utility/StringUtils.h>
 
@@ -13,7 +14,7 @@ NS_IZENELIB_IR_BEGIN
 
 namespace indexmanager{
 
-class MultiWayMerger : public IndexMerger
+class MultiWayPolicy : public IndexMergePolicy
 {
 public:
     class Generation
@@ -53,16 +54,16 @@ public:
         int generation_; ///generation of this sub-index
         MergeBarrel* pMergeBarrel_; ///index merge barrel
         int mergeTimes_;	 ///merge times
-        friend class MultiWayMerger;
+        friend class MultiWayPolicy;
     }; 
 	
 public:
-    MultiWayMerger(Indexer* pIndexer);
-    virtual ~MultiWayMerger(void);
+    MultiWayPolicy();
+    virtual ~MultiWayPolicy(void);
 public:
-    void addBarrel(MergeBarrelEntry* pEntry);
+    virtual void addBarrel(MergeBarrelEntry* pEntry);
 
-    void endMerge();
+    virtual void endMerge();
 protected:
     void triggerMerge(Generation* pGen,int nGen);
 

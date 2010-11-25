@@ -44,7 +44,7 @@ struct IndexerTestConfig
      */
     std::string str() const {
         std::ostringstream oss;
-        oss << "config " << configNum_ << " (docNum_: " << docNum_
+        oss << "IndexerTestConfig " << configNum_ << " (docNum_: " << docNum_
             << ", iterNum_: " << iterNum_ << ", indexMode_: " << indexMode_
             << ", isMerge_: " << isMerge_ << ")";
 

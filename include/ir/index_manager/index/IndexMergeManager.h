@@ -43,7 +43,6 @@ struct MergeOP
 };
 
 class IndexMerger;
-class OptimizeMerger;
 
 class IndexMergeManager
 {
@@ -133,8 +132,6 @@ private:
     izenelib::util::concurrent_queue<MergeOP> tasks_;
 
     IndexMerger* pAddMerger_; ///< the merger called when new barrel is added
-
-    OptimizeMerger* pOptimizeMerger_; ///< the merger called when to optimize all barrels
 
     boost::thread* pMergeThread_;
 

@@ -1,4 +1,4 @@
-#include <ir/index_manager/index/BTMerger.h>
+#include <ir/index_manager/index/BTPolicy.h>
 
 NS_IZENELIB_IR_BEGIN
 
@@ -9,23 +9,22 @@ namespace indexmanager
 #define MAXLEVEL 30
 #define COLLISION_FACTOR_FOR_LEVEL_1 3
 
-BTMerger::BTMerger(Indexer* pIndexer)
-        :IndexMerger(pIndexer)
-        ,nCurLevelSize_(1)
+BTPolicy::BTPolicy()
+        :nCurLevelSize_(1)
 {
 }
 
-BTMerger::~BTMerger()
+BTPolicy::~BTPolicy()
 {
     endMerge();
 }
 
-int BTMerger::getC(int nLevel)
+int BTPolicy::getC(int nLevel)
 {
     return nCMap_[nLevel];
 }
 
-void BTMerger::addBarrel(MergeBarrelEntry* pEntry)
+void BTPolicy::addBarrel(MergeBarrelEntry* pEntry)
 {
     nCurLevelSize_ = pEntry->numDocs();
     int nLevel = getLevel(nCurLevelSize_);
@@ -50,7 +49,7 @@ void BTMerger::addBarrel(MergeBarrelEntry* pEntry)
     }
 }
 
-void BTMerger::endMerge()
+void BTPolicy::endMerge()
 {
     std::map<int,BTLayer*>::iterator iter = nodesMap_.begin();
     while (iter != nodesMap_.end())
@@ -61,7 +60,7 @@ void BTMerger::endMerge()
     nodesMap_.clear();
 }
 
-void BTMerger::triggerMerge(BTLayer* pLevel,int nLevel)
+void BTPolicy::triggerMerge(BTLayer* pLevel,int nLevel)
 {
     BTLayer* pLevel1 = pLevel;
     int nL = getLevel(pLevel->nLevelSize_);
@@ -141,12 +140,12 @@ void BTMerger::triggerMerge(BTLayer* pLevel,int nLevel)
     {
         nCurLevelSize_ = pLevel1->nLevelSize_;
         pLevel1->nLevelSize_ = 0;
-        mergeBarrel(pLevel1->pMergeBarrel_);
+        pIndexMerger_->mergeBarrel(pLevel1->pMergeBarrel_);
         pLevel1->increaseMergeTimes();
         nCurLevelSize_ = 1;
     }
 }
-int BTMerger::getLevel(int64_t nLevelSize)
+int BTPolicy::getLevel(int64_t nLevelSize)
 {
     if (nLevelSize <= 0)
         return 0;

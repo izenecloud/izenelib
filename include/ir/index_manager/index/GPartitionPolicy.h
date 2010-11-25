@@ -1,11 +1,12 @@
 /**
-* @file        GPartitionMerger.h
+* @file        GPartitionPolicy.h
 * @author     Yingfeng Zhang
-* @brief   GPartitionMerger 
+* @brief   GPartitionPolicy 
 */
-#ifndef GP_MERGER_H
-#define GP_MERGER_H
+#ifndef GPARTITION_POLICY_H
+#define GPARTITION_POLICY_H
 
+#include <ir/index_manager/index/IndexMergePolicy.h>
 #include <ir/index_manager/index/IndexMerger.h>
 #include <ir/index_manager/utility/StringUtils.h>
 
@@ -13,7 +14,7 @@ NS_IZENELIB_IR_BEGIN
 
 namespace indexmanager{
 
-class GPartitionMerger : public IndexMerger
+class GPartitionPolicy : public IndexMergePolicy
 {
 public:
     class Partition
@@ -55,16 +56,16 @@ public:
         int32_t mergeTimes_;		///merge times
         int32_t nPartitionSize_;	///size of partition
 
-        friend class GPartitionMerger;
+        friend class GPartitionPolicy;
     };
 public:
-    GPartitionMerger(Indexer* pIndexer);
+    GPartitionPolicy();
 
-    virtual ~GPartitionMerger(void);
+    virtual ~GPartitionPolicy(void);
 public:
-    void addBarrel(MergeBarrelEntry* pEntry);
+    virtual void addBarrel(MergeBarrelEntry* pEntry);
 
-    void endMerge();
+    virtual void endMerge();
 
 protected:
     int32_t getPartition(int32_t nPartSize);

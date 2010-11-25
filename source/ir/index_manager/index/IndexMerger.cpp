@@ -2,6 +2,7 @@
 
 #include <ir/index_manager/index/Indexer.h>
 #include <ir/index_manager/index/IndexMerger.h>
+#include <ir/index_manager/index/IndexMergePolicy.h>
 #include <ir/index_manager/index/IndexMergeManager.h>
 #include <ir/index_manager/index/FieldMerger.h>
 #include <ir/index_manager/store/Directory.h>
@@ -66,14 +67,16 @@ void MergeBarrelEntry::load()
     }
 }
 
-IndexMerger::IndexMerger(Indexer* pIndexer)
+IndexMerger::IndexMerger(Indexer* pIndexer, IndexMergePolicy* pMergePolicy)
         :pIndexer_(pIndexer)
+        ,pMergePolicy_(pMergePolicy)
         ,pDirectory_(pIndexer->getDirectory())
         ,pMergeBarrels_(NULL)
 	,pDocFilter_(NULL)
 	,triggerMerge_(false)
 	,optimize_(false)
 {
+    pMergePolicy_->setIndexMerger(this);
 }
 
 IndexMerger::~IndexMerger()
@@ -87,6 +90,8 @@ IndexMerger::~IndexMerger()
         pMergeBarrels_ = NULL;
     }
     pDocFilter_ = 0;
+
+    delete pMergePolicy_;
 }
 
 void IndexMerger::merge(BarrelsInfo* pBarrels)
@@ -117,10 +122,10 @@ void IndexMerger::merge(BarrelsInfo* pBarrels)
 
     while (mb.size() > 0)
     {
-        addBarrel(mb.pop());
+        pMergePolicy_->addBarrel(mb.pop());
     }
 
-    endMerge();
+    pMergePolicy_->endMerge();
 
     if(!triggerMerge_)
         return;
@@ -163,7 +168,7 @@ void IndexMerger::addToMerge(BarrelsInfo* pBarrelsInfo,BarrelInfo* pBarrelInfo)
     pEntry = new MergeBarrelEntry(pDirectory_,pBarrelInfo);
     pMergeBarrels_->push_back(pEntry);
 
-    addBarrel(pEntry);
+    pMergePolicy_->addBarrel(pEntry);
  
     if(!triggerMerge_)
     {
@@ -187,12 +192,9 @@ void IndexMerger::updateBarrels(BarrelsInfo* pBarrelsInfo)
     pIndexer_->setDirty();
 }
 
-void IndexMerger::mergeBarrel(MergeBarrel* pBarrel)
+void IndexMerger::outputNewBarrel(MergeBarrel* pBarrel, const string& newBarrelName)
 {
-    DVLOG(2)<< "=> IndexMerger::mergeBarrel(), barrel name: " << pBarrel->getIdentifier() << " ...";
-    triggerMerge_ = true;
-    pBarrel->load();
-    string newBarrelName = pBarrel->getIdentifier();
+    DVLOG(2)<< "=> IndexMerger::outputNewBarrel(), newBarrelName: " << newBarrelName;
 
     string name = newBarrelName + ".voc";///the file name of new index barrel
     IndexOutput* pVocStream = pDirectory_->createOutput(name);
@@ -219,7 +221,7 @@ void IndexMerger::mergeBarrel(MergeBarrel* pBarrel)
 
     }
     bool needSortingMerge = hasUpdateBarrel&&(!isNewBarrelUpdateBarrel);
-	
+
     FieldsInfo* pFieldsInfo = NULL;
     CollectionsInfo collectionsInfo;
     CollectionInfo* pColInfo = NULL;
@@ -340,11 +342,24 @@ void IndexMerger::mergeBarrel(MergeBarrel* pBarrel)
         collectionsInfo.addCollection(pCollectionInfo);
     } // for
 
-    BarrelInfo* pNewBarrelInfo = NULL;
-    {
-    DVLOG(2)<< "IndexMerger::mergeBarrel() => enter barrel removal section ...";
+    DVLOG(2)<< "IndexMerger::outputNewBarrel() => flush files ...";
+    delete pOutputDesc;
 
-    DVLOG(2)<< "IndexMerger::mergeBarrel() => checking is to pause merge ...";
+    name = newBarrelName + ".fdi";
+    IndexOutput* fieldsStream = pDirectory_->createOutput(name);
+    //fieldsInfo.write(fieldsStream);//field information
+    collectionsInfo.write(fieldsStream);
+    fieldsStream->flush();
+    delete fieldsStream;
+
+    DVLOG(2)<< "<= IndexMerger::outputNewBarrel()";
+}
+
+BarrelInfo* IndexMerger::createNewBarrelInfo(MergeBarrel* pBarrel, const string& newBarrelName)
+{
+    DVLOG(2)<< "=> IndexMerger::createNewBarrelInfo(), newBarrelName: " << newBarrelName;
+
+    DVLOG(2)<< "IndexMerger::createNewBarrelInfo() => checking whether is to pause merge ...";
     IndexMergeManager* pMergeManager = pIndexer_->getIndexWriter()->getMergeManager();
     boost::unique_lock<boost::mutex> pauseLock(pMergeManager->getPauseMergeMutex());
     while(pMergeManager->isPauseMerge())
@@ -353,9 +368,9 @@ void IndexMerger::mergeBarrel(MergeBarrel* pBarrel)
         pMergeManager->getPauseMergeCond().wait(pauseLock);
     }
 
-    DVLOG(2)<< "IndexMerger::mergeBarrel() => acquiring lock of Indexer::mutex_ ...";
+    DVLOG(2)<< "IndexMerger::createNewBarrelInfo() => acquiring lock of Indexer::mutex_ ...";
     izenelib::util::ScopedWriteLock<izenelib::util::ReadWriteLock> lock(pIndexer_->mutex_);
-    DVLOG(2)<< "IndexMerger::mergeBarrel() <= acquired lock of Indexer::mutex_";
+    DVLOG(2)<< "IndexMerger::createNewBarrelInfo() <= acquired lock of Indexer::mutex_";
 
     count_t nNumDocs = 0;
     ///update min doc id of index barrels,let doc id continuous
@@ -363,11 +378,14 @@ void IndexMerger::mergeBarrel(MergeBarrel* pBarrel)
     docid_t maxDocOfNewBarrel = 0;
 
     // delete all merged barrels
-    for (nEntry = 0;nEntry < nEntryCount;nEntry++)
+    int32_t nEntryCount = (int32_t)pBarrel->size();
+    bool isNewBarrelUpdateBarrel = true;
+    for (int32_t nEntry = 0;nEntry < nEntryCount;nEntry++)
     {
-        pEntry = pBarrel->getAt(nEntry);
+        MergeBarrelEntry* pEntry = pBarrel->getAt(nEntry);
 
         nNumDocs += pEntry->pBarrelInfo_->getDocCount();
+        isNewBarrelUpdateBarrel &= pEntry->pBarrelInfo_->isUpdate;
         if(pEntry->pBarrelInfo_->getMaxDocID() > maxDocOfNewBarrel)
             maxDocOfNewBarrel = pEntry->pBarrelInfo_->getMaxDocID();
 
@@ -392,34 +410,38 @@ void IndexMerger::mergeBarrel(MergeBarrel* pBarrel)
     }
     pBarrel->clear();
 
-    DVLOG(2)<< "IndexMerger::mergeBarrel() => flush new barrel files ...";
-    name = newBarrelName + ".fdi";
-    IndexOutput* fieldsStream = pDirectory_->createOutput(name);
-    //fieldsInfo.write(fieldsStream);//field information
-    collectionsInfo.write(fieldsStream);
-    fieldsStream->flush();
-    delete fieldsStream;
-    delete pOutputDesc;
-    pOutputDesc = NULL;
-
-    DVLOG(2)<< "IndexMerger::mergeBarrel() => add new BarrelInfo ...";
-    pNewBarrelInfo = new BarrelInfo(newBarrelName,nNumDocs,pIndexer_->getIndexCompressType());
+    DVLOG(2)<< "IndexMerger::createNewBarrelInfo() => add new BarrelInfo ...";
+    BarrelInfo* pNewBarrelInfo = new BarrelInfo(newBarrelName,nNumDocs,pIndexer_->getIndexCompressType());
     pNewBarrelInfo->setBaseDocID(newBaseDocIDMap);
     pNewBarrelInfo->updateMaxDoc(maxDocOfNewBarrel);
     pNewBarrelInfo->isUpdate = isNewBarrelUpdateBarrel;
     pBarrelsInfo_->addBarrel(pNewBarrelInfo,false);
 
-    DVLOG(2)<< "IndexMerger::mergeBarrel() <= leave barrel removal section, new barrel: " << pNewBarrelInfo->getName() << ", doc count: " << pNewBarrelInfo->getDocCount();
+    DVLOG(2)<< "<= IndexMerger::createNewBarrelInfo(), new barrel doc count: " << pNewBarrelInfo->getDocCount();
 
     ///sleep is necessary because if a query get termreader before this lock,
     ///the query has not been finished even the index file/term dictionary info has been changed
     ///500ms is used to let these queries finish their flow.
     //if(pIndexer_->isRealTime())
         //boost::thread::sleep(boost::get_system_time() + boost::posix_time::milliseconds(5000));
-    }
 
-    MergeBarrelEntry* pNewEntry = new MergeBarrelEntry(pDirectory_,pNewBarrelInfo);
-    addBarrel(pNewEntry);
+    return pNewBarrelInfo;
+}
+
+void IndexMerger::mergeBarrel(MergeBarrel* pBarrel)
+{
+    DVLOG(2)<< "=> IndexMerger::mergeBarrel()";
+
+    triggerMerge_ = true;
+    pBarrel->load();
+    string newBarrelName = pBarrel->getIdentifier();
+
+    outputNewBarrel(pBarrel, newBarrelName);
+
+    BarrelInfo* pNewBarrelInfo = createNewBarrelInfo(pBarrel, newBarrelName);
+
+    MergeBarrelEntry* pNewEntry = new MergeBarrelEntry(pDirectory_, pNewBarrelInfo);
+    pMergePolicy_->addBarrel(pNewEntry);
 
     DVLOG(2)<< "<= IndexMerger::mergeBarrel()";
 }
