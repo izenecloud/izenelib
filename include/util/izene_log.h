@@ -15,12 +15,15 @@
 #define DEBUG_NEW new
 #endif
 
-using namespace std;
 
 NS_IZENELIB_UTIL_BEGIN
 
-string  getMemInfo();
-string getProfilingInfo();
+
+std::string  getMemInfo();
+std::string getProfilingInfo();
+unsigned long GetMemNum();
+
+
 
 
 NS_IZENELIB_UTIL_END

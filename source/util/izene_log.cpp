@@ -3,7 +3,7 @@
 
 NS_IZENELIB_UTIL_BEGIN
 
-string  getMemInfo() {
+std::string  getMemInfo() {
 	std::stringstream ss;
 	unsigned long rlimit;
 	static unsigned long  vm = 0, rss;
@@ -28,8 +28,14 @@ string  getMemInfo() {
 	return ss.str();
 }
 
+unsigned long GetMemNum()
+{
+  unsigned long rlimit =0, vm = 0, rss =0;
+  ProcMemInfo::getProcMemInfo(vm, rss, rlimit);
+  return rss;
+}
 
-string getProfilingInfo(){
+std::string getProfilingInfo(){
 	std::stringstream ss;
 #ifdef SF1_TIME_CHECK
 	REPORT_PROFILE_TO_SS( ss );
