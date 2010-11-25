@@ -1,10 +1,10 @@
 /**
-* @file        OptimizeMerger.h
+* @file        OptimizePolicy.h
 * @version     SF1 v5.0
 * @brief OPT index merge algorithm
 */
-#ifndef OPTIMIZEINDEXMERGER_H
-#define OPTIMIZEINDEXMERGER_H
+#ifndef OPTIMIZE_POLICY_H
+#define OPTIMIZE_POLICY_H
 
 #include <ir/index_manager/index/IndexMergePolicy.h>
 
@@ -17,11 +17,11 @@ class MergeBarrel;
 /**
 * This class has implemented the optimize index merge algorithm that will merge all the barrels into a single index barrel
 */
-class OptimizeMerger : public IndexMergePolicy
+class OptimizePolicy : public IndexMergePolicy
 {
 public:
-    OptimizeMerger(unsigned int numBarrels);
-    virtual ~OptimizeMerger(void);
+    OptimizePolicy(unsigned int numBarrels);
+    virtual ~OptimizePolicy(void);
 public:
     virtual void addBarrel(MergeBarrelEntry* pEntry);
 

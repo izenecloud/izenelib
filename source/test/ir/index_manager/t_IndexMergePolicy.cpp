@@ -3,8 +3,8 @@
 
 #include "IndexerTestFixture.h"
 #include <ir/index_manager/index/MockIndexMerger.h>
-#include <ir/index_manager/index/BTMerger.h>
-#include <ir/index_manager/index/OptimizeMerger.h>
+#include <ir/index_manager/index/BTPolicy.h>
+#include <ir/index_manager/index/OptimizePolicy.h>
 #include <ir/index_manager/index/BarrelInfo.h>
 
 #include <string>
@@ -110,7 +110,7 @@ void checkAddToMerge(IndexMergePolicy* pIndexMergePolicy, const BarrelConfig& ba
 }
 
 /**
- * check function @c IndexMerger::merge using @c OptimizeMerger policy.
+ * check function @c IndexMerger::merge using @c OptimizePolicy policy.
  * @p barrelConfig the parameter of barrels to merge
  */
 void checkOptimizeMerge(const BarrelConfig& barrelConfig)
@@ -134,7 +134,7 @@ void checkOptimizeMerge(const BarrelConfig& barrelConfig)
         docNumSum += docNum;
     }
 
-    MockIndexMerger mockIndexMerger(pIndexer, new OptimizeMerger(pBarrelsInfo->getBarrelCount()));
+    MockIndexMerger mockIndexMerger(pIndexer, new OptimizePolicy(pBarrelsInfo->getBarrelCount()));
     mockIndexMerger.merge(pBarrelsInfo);
 
     BOOST_CHECK_EQUAL(pBarrelsInfo->getBarrelCount(), barrelConfig.mergedBarrelNum_);
@@ -159,7 +159,7 @@ BOOST_AUTO_TEST_CASE(addToMerge)
     const int configNum = sizeof(barrelConfigs)/sizeof(BarrelConfig);
 
     for(int i=0; i<configNum; ++i)
-        checkAddToMerge(new BTMerger, barrelConfigs[i]);
+        checkAddToMerge(new BTPolicy, barrelConfigs[i]);
 }
 
 BOOST_AUTO_TEST_CASE(optimizeMerge)

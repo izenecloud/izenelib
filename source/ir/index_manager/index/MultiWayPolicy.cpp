@@ -1,20 +1,20 @@
-#include <ir/index_manager/index/MultiWayMerger.h>
+#include <ir/index_manager/index/MultiWayPolicy.h>
 
 using namespace izenelib::ir::indexmanager;
 
-MultiWayMerger::MultiWayMerger()
+MultiWayPolicy::MultiWayPolicy()
         :curGeneration_(0)
 {
 }
 
-MultiWayMerger::~MultiWayMerger(void)
+MultiWayPolicy::~MultiWayPolicy(void)
 {
     endMerge();
 }
-void MultiWayMerger::addBarrel(MergeBarrelEntry* pEntry)
+void MultiWayPolicy::addBarrel(MergeBarrelEntry* pEntry)
 {
-    MultiWayMerger::Generation* pGen = NULL;
-    map<int,MultiWayMerger::Generation*>::iterator iter = generationMap_.find(curGeneration_);
+    MultiWayPolicy::Generation* pGen = NULL;
+    map<int,MultiWayPolicy::Generation*>::iterator iter = generationMap_.find(curGeneration_);
     if (iter != generationMap_.end())
     {
         pGen = iter->second;
@@ -26,14 +26,14 @@ void MultiWayMerger::addBarrel(MergeBarrelEntry* pEntry)
     }
     else
     {
-        pGen = new MultiWayMerger::Generation(curGeneration_,2*MAX_TRIGGERS);
+        pGen = new MultiWayPolicy::Generation(curGeneration_,2*MAX_TRIGGERS);
         pGen->add(pEntry);
         generationMap_.insert(make_pair(curGeneration_,pGen));
     }
 }
-void MultiWayMerger::endMerge()
+void MultiWayPolicy::endMerge()
 {
-    map<int,MultiWayMerger::Generation*>::iterator iter = generationMap_.begin();
+    map<int,MultiWayPolicy::Generation*>::iterator iter = generationMap_.begin();
     while (iter != generationMap_.end())
     {
         delete iter->second;
@@ -42,16 +42,16 @@ void MultiWayMerger::endMerge()
     generationMap_.clear();
 }
 
-void MultiWayMerger::triggerMerge(MultiWayMerger::Generation* pGen,int nGen)
+void MultiWayPolicy::triggerMerge(MultiWayPolicy::Generation* pGen,int nGen)
 {
-    MultiWayMerger::Generation* pGen1 = pGen;
+    MultiWayPolicy::Generation* pGen1 = pGen;
     int nCurGen = nGen;
     for (int i = nGen + 1;i <= (nGen + MAX_TRIGGERS);i++)
     {
-        map<int,MultiWayMerger::Generation*>::iterator iter2 = generationMap_.find(i);
+        map<int,MultiWayPolicy::Generation*>::iterator iter2 = generationMap_.find(i);
         if (iter2 != generationMap_.end())
         {
-            MultiWayMerger::Generation* pGen2 = iter2->second;
+            MultiWayPolicy::Generation* pGen2 = iter2->second;
             if ((int)pGen2->pMergeBarrel_->size() + 1 >= 2)	///will trigger a merge event in upper generation
             {
                 ///copy elements to upper generation

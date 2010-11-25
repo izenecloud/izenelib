@@ -3,8 +3,8 @@
 
 #include <ir/index_manager/index/IndexMergeManager.h>
 #include <ir/index_manager/index/IndexMerger.h>
-#include <ir/index_manager/index/BTMerger.h>
-#include <ir/index_manager/index/OptimizeMerger.h>
+#include <ir/index_manager/index/BTPolicy.h>
+#include <ir/index_manager/index/OptimizePolicy.h>
 #include <ir/index_manager/index/IndexReader.h>
 #include <ir/index_manager/index/IndexerPropertyConfig.h>
 
@@ -25,7 +25,7 @@ IndexMergeManager::IndexMergeManager(Indexer* pIndexer)
     const char* mergeStrategyStr = pConfig->mergeStrategy_.param_.c_str();
 
     if(strcasecmp(mergeStrategyStr,"no"))
-        pAddMerger_ = new IndexMerger(pIndexer_, new BTMerger);
+        pAddMerger_ = new IndexMerger(pIndexer_, new BTPolicy);
 
     if(pConfig->mergeStrategy_.isAsync_)
         run();
@@ -112,7 +112,7 @@ void IndexMergeManager::optimizeIndex()
 
 void IndexMergeManager::optimizeIndexImpl()
 {
-    IndexMerger optimizeMerger(pIndexer_, new OptimizeMerger(pBarrelsInfo_->getBarrelCount()));
+    IndexMerger optimizeMerger(pIndexer_, new OptimizePolicy(pBarrelsInfo_->getBarrelCount()));
 
     IndexReader* pIndexReader = pIndexer_->getIndexReader();
     if(BitVector* pBitVector = pIndexReader->getDocFilter())
@@ -145,7 +145,7 @@ void IndexMergeManager::mergeIndex()
             if(pAddMerger_)
             {
                 delete pAddMerger_;
-                pAddMerger_ = new IndexMerger(pIndexer_, new BTMerger);
+                pAddMerger_ = new IndexMerger(pIndexer_, new BTPolicy);
             }
 
             optimizeIndexImpl();

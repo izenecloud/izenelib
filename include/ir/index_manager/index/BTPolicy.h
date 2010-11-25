@@ -1,10 +1,10 @@
 /**
-* @file        BTMerger.h
+* @file        BTPolicy.h
 * @version     SF1 v5.0
-* @brief DBT index merge algorithm
+* @brief BT index merge algorithm
 */
-#ifndef DBT_MERGER_H
-#define DBT_MERGER_H
+#ifndef BT_POLICY_H
+#define BT_POLICY_H
 
 #include <ir/index_manager/index/IndexMergePolicy.h>
 #include <ir/index_manager/index/IndexMerger.h>
@@ -15,7 +15,7 @@ NS_IZENELIB_IR_BEGIN
 namespace indexmanager
 {
 
-class BTMerger : public IndexMergePolicy
+class BTPolicy : public IndexMergePolicy
 {
 public:
     class BTLayer
@@ -61,13 +61,13 @@ public:
 
         int nLevelSize_;			///size of level
 
-        friend class BTMerger;
+        friend class BTPolicy;
     };
 
 public:
-    BTMerger();
+    BTPolicy();
 
-    virtual ~BTMerger();
+    virtual ~BTPolicy();
 
     virtual void addBarrel(MergeBarrelEntry* pEntry);
 
