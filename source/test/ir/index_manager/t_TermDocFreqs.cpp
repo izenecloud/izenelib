@@ -112,9 +112,35 @@ void TermDocFreqsTestFixture::printStats() const
     BOOST_TEST_MESSAGE("sum of doc length: " << docLenSum << "\n");
 }
 
+void TermDocFreqsTestFixture::runToSuccess(PMF_T pmf)
+{
+    bool isFailed = true;
+    while(isFailed)
+    {
+        try
+        {
+            (this->*pmf)();
+            isFailed = false;
+        }
+        catch(IndexManagerException& e)
+        {
+            LOG(ERROR) << "start query again as exception found: " << e.what();
+        }
+    }
+}
+
 void TermDocFreqsTestFixture::checkTermDocFreqs()
 {
     VLOG(2) << "=> TermDocFreqsTestFixture::checkTermDocFreqs()";
+
+    runToSuccess(&TermDocFreqsTestFixture::checkTermDocFreqsImpl);
+
+    VLOG(2) << "<= TermDocFreqsTestFixture::checkTermDocFreqs()";
+}
+
+void TermDocFreqsTestFixture::checkTermDocFreqsImpl()
+{
+    VLOG(2) << "=> TermDocFreqsTestFixture::checkTermDocFreqsImpl()";
 
     IndexReader* pIndexReader = indexer_->getIndexReader();
     boost::scoped_ptr<TermReader> pTermReader(pIndexReader->getTermReader(COLLECTION_ID));
@@ -137,26 +163,14 @@ void TermDocFreqsTestFixture::checkTermDocFreqs()
         BOOST_CHECK_EQUAL(pTermDocFreqs->getCTF(), termIt->second.second);
     }
 
-    VLOG(2) << "<= TermDocFreqsTestFixture::checkTermDocFreqs()";
+    VLOG(2) << "<= TermDocFreqsTestFixture::checkTermDocFreqsImpl()";
 }
 
 void TermDocFreqsTestFixture::checkNextSkipTo()
 {
     VLOG(2) << "=> TermDocFreqsTestFixture::checkNextSkipTo()";
 
-    bool isQueryFailed = true;
-    while(isQueryFailed)
-    {
-        try
-        {
-            checkNextSkipToImpl();
-            isQueryFailed = false;
-        }
-        catch(IndexManagerException& e)
-        {
-            LOG(ERROR) << "start query again as exception found: " << e.what();
-        }
-    }
+    runToSuccess(&TermDocFreqsTestFixture::checkNextSkipToImpl);
 
     VLOG(2) << "<= TermDocFreqsTestFixture::checkNextSkipTo()";
 }
