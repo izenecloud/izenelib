@@ -28,11 +28,11 @@ std::string  getMemInfo() {
 	return ss.str();
 }
 
-unsigned long GetMemNum()
+int GetMemNum()
 {
   unsigned long rlimit =0, vm = 0, rss =0;
   ProcMemInfo::getProcMemInfo(vm, rss, rlimit);
-  return rss;
+  return (int)(rss/1024/1024);
 }
 
 std::string getProfilingInfo(){
