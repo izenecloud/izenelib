@@ -16,15 +16,23 @@
 #endif
 
 
+#define MEMLOG(...) \
+{ \
+char c[500]; \
+sprintf(c, __VA_ARGS__ ); \
+std::string output(c); \
+sprintf(c, " /MEM: %d/", izenelib::util::GetMemNum()); \
+std::string mem(c); \
+output += mem; \
+LOG(INFO)<<output; \
+} \
+
 NS_IZENELIB_UTIL_BEGIN
 
 
 std::string  getMemInfo();
 std::string getProfilingInfo();
-unsigned long GetMemNum();
-
-
-
+int GetMemNum();
 
 NS_IZENELIB_UTIL_END
 
