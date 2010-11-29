@@ -75,6 +75,7 @@ IF(izene_util_SHOULD_BUILD)
     CBitArray.cpp
     singleton.cpp
     streambuf.cpp
+    scd_parser.cpp
     )
 
   INCLUDE_DIRECTORIES(
