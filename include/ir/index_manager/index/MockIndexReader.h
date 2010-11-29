@@ -60,6 +60,8 @@ public:
 
     bool isDirty() {return false;}
 
+    void reopen() {}
+
     size_t docLength(docid_t docId, fieldid_t fid) {return 1;}
     /**
      * @param colID ignored
