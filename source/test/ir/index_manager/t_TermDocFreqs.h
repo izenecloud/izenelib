@@ -27,7 +27,10 @@ public:
      */
     void printStats() const;
 
-    /** Check @c TermReader::seek() and @c TermDocFreqs interfaces, such as <tt>docFreq, getCTF</tt>. */
+    /**
+     * Check @c TermReader::seek() and @c TermDocFreqs interfaces, such as <tt>docFreq, getCTF</tt>.
+     * If @c IndexManagerException is thrown during query, it would catch it and query again.
+     */
     void checkTermDocFreqs();
 
     /**
@@ -51,6 +54,21 @@ protected:
     virtual void addFixtureDoc(const DTermIdMapT& docTermIdMap);
 
 private:
+    /** the type of pointer to member function */
+    typedef void (TermDocFreqsTestFixture::*PMF_T)();
+
+    /**
+     * run @p pmf until no @c IndexManagerException exception is thrown.
+     * @param pmf pointer to member function to run
+     */
+    void runToSuccess(PMF_T pmf);
+
+    /**
+     * The implementation for @c checkTermDocFreqs(),
+     * it would throw @c IndexManagerException if query failed.
+     */
+    void checkTermDocFreqsImpl();
+
     /**
      * The implementation for @c checkNextSkipTo(),
      * it would throw @c IndexManagerException if query failed.

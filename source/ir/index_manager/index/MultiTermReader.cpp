@@ -4,6 +4,7 @@
 #include <ir/index_manager/index/MultiTermPositions.h>
 #include <ir/index_manager/index/MultiTermIterator.h>
 
+#include <memory> // auto_ptr
 
 using namespace izenelib::ir::indexmanager;
 
@@ -179,13 +180,14 @@ ReaderCache* MultiTermReader::loadReader(const char* field)
 {
     ReaderCache* pTailList = NULL;
     ReaderCache* pPreList = NULL;
-    ReaderCache* pHeadList = NULL;
+    // use auto_ptr in case of memory leak when exception is thrown in below for loop
+    std::auto_ptr<ReaderCache> headListPtr;
     TermReader* pSe = NULL;
 
     BarrelReaderEntry* pEntry = NULL;
 
     for(vector<BarrelReaderEntry*>::iterator iter = pBarrelReader_->readers_.begin(); 
-        iter != pBarrelReader_->readers_.end(); ++iter)	
+            iter != pBarrelReader_->readers_.end(); ++iter)	
     {
         pEntry = (*iter);
         TermReader* pTermReader = pEntry->pBarrelReader_->termReader(colID_, field);
@@ -194,9 +196,9 @@ ReaderCache* MultiTermReader::loadReader(const char* field)
         if (pSe)
         {
             pTailList = new ReaderCache(pEntry->pBarrelInfo_,pSe);
-            if (pHeadList == NULL)
+            if (headListPtr.get() == NULL)
             {
-                pHeadList = pTailList;
+                headListPtr.reset(pTailList);
                 pPreList = pTailList;
             }
             else
@@ -206,10 +208,11 @@ ReaderCache* MultiTermReader::loadReader(const char* field)
             }
         }
     }
+
+    ReaderCache* pHeadList = headListPtr.release();
     if (pHeadList)
-    {
-        readerCache_.insert(make_pair(field,pHeadList));
-    }
+        readerCache_.insert(make_pair(field, pHeadList));
+
     return pHeadList;
 }
 

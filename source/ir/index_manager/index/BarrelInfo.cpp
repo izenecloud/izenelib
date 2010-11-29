@@ -133,6 +133,7 @@ void BarrelInfo::unRegisterIndexInput(IndexInput* pIndexInput)
 
 void BarrelInfo::setDirty()
 {
+    boost::mutex::scoped_lock lock(mutex_);
     for(std::set<IndexInput*>::iterator iter = indexInputs.begin(); 
         iter != indexInputs.end(); ++iter)
         (*iter)->setDirty(true);
