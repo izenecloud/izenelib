@@ -12,7 +12,7 @@ NS_IZENELIB_IR_BEGIN
 
 namespace indexmanager{
 
-class MergeBarrel;
+class MergeBarrelQueue;
 
 /**
 * This class has implemented the optimize index merge algorithm that will merge all the barrels into a single index barrel
@@ -27,7 +27,7 @@ public:
 
     virtual void endMerge();
 protected:
-    MergeBarrel* pMergeBarrel_;
+    MergeBarrelQueue* pBarrelQueue_;
 };
 
 }

@@ -29,17 +29,17 @@ public:
             s = append(s,p);
             s += "_";
             s = append(s,mergeTimes_);
-            pMergeBarrel_ = new MergeBarrel(s.c_str(),nMaxSize);
+            pBarrelQueue_ = new MergeBarrelQueue(s.c_str(),nMaxSize);
         }
         ~Partition()
         {
-            delete pMergeBarrel_;
-            pMergeBarrel_ = NULL;
+            delete pBarrelQueue_;
+            pBarrelQueue_ = NULL;
         }
     public:
         void add(MergeBarrelEntry* pEntry)
         {
-            pMergeBarrel_->put(pEntry);
+            pBarrelQueue_->put(pEntry);
         }
         void	increaseMergeTimes()
         {
@@ -48,11 +48,11 @@ public:
             s = append(s,partition_);
             s += "_";
             s = append(s,mergeTimes_);
-            pMergeBarrel_->setIdentifier(s);
+            pBarrelQueue_->setIdentifier(s);
         }
     protected:
         int32_t partition_;		///partition of this sub-index
-        MergeBarrel* pMergeBarrel_;		///index merge barrel
+        MergeBarrelQueue* pBarrelQueue_;		///index merge barrel
         int32_t mergeTimes_;		///merge times
         int32_t nPartitionSize_;	///size of partition
 

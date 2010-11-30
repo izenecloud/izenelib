@@ -19,7 +19,7 @@ void MultiWayPolicy::addBarrel(MergeBarrelEntry* pEntry)
     {
         pGen = iter->second;
         pGen->add(pEntry);
-        if ((int)pGen->pMergeBarrel_->size() >= 2) ///collision,trigger a merge event
+        if ((int)pGen->pBarrelQueue_->size() >= 2) ///collision,trigger a merge event
         {
             triggerMerge(pGen,curGeneration_);
         }
@@ -52,12 +52,12 @@ void MultiWayPolicy::triggerMerge(MultiWayPolicy::Generation* pGen,int nGen)
         if (iter2 != generationMap_.end())
         {
             MultiWayPolicy::Generation* pGen2 = iter2->second;
-            if ((int)pGen2->pMergeBarrel_->size() + 1 >= 2)	///will trigger a merge event in upper generation
+            if ((int)pGen2->pBarrelQueue_->size() + 1 >= 2)	///will trigger a merge event in upper generation
             {
                 ///copy elements to upper generation
-                while (pGen1->pMergeBarrel_->size() >0)
+                while (pGen1->pBarrelQueue_->size() >0)
                 {
-                    pGen2->pMergeBarrel_->put(pGen1->pMergeBarrel_->pop());
+                    pGen2->pBarrelQueue_->put(pGen1->pBarrelQueue_->pop());
                 }
                 pGen1 = pGen2;
                 nCurGen = i;
@@ -67,10 +67,10 @@ void MultiWayPolicy::triggerMerge(MultiWayPolicy::Generation* pGen,int nGen)
         else break;
     }
 
-    if (pGen1->pMergeBarrel_->size() > 0)
+    if (pGen1->pBarrelQueue_->size() > 0)
     {
         curGeneration_ = nCurGen + 1;
-        pIndexMerger_->mergeBarrel(pGen1->pMergeBarrel_);
+        pIndexMerger_->mergeBarrel(pGen1->pBarrelQueue_);
         pGen1->increaseMergeTimes();
         curGeneration_ = 0;
     }

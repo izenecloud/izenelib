@@ -100,21 +100,21 @@ void IndexMerger::merge(BarrelsInfo* pBarrels)
 
     BarrelInfo* pBaInfo;
     boost::mutex::scoped_lock lock(pBarrels->getMutex());
-    MergeBarrel mb(pBarrels->getBarrelCount());
-    ///put all index barrel into mb
+    MergeBarrelQueue mbQueue(pBarrels->getBarrelCount());
+    ///put all index barrel into mbQueue
     pBarrels->startIterator();
     while (pBarrels->hasNext())
     {
         pBaInfo = pBarrels->next();
         if(pBaInfo->getWriter())
             continue;
-        mb.put(new MergeBarrelEntry(pDirectory_,pBaInfo));
+        mbQueue.put(new MergeBarrelEntry(pDirectory_,pBaInfo));
     }
     lock.unlock();
 
-    while (mb.size() > 0)
+    while (mbQueue.size() > 0)
     {
-        pMergePolicy_->addBarrel(mb.pop());
+        pMergePolicy_->addBarrel(mbQueue.pop());
     }
 
     pMergePolicy_->endMerge();
@@ -181,7 +181,7 @@ void IndexMerger::updateBarrels(BarrelsInfo* pBarrelsInfo)
     pIndexer_->setDirty();
 }
 
-void IndexMerger::outputNewBarrel(MergeBarrel* pBarrel, const string& newBarrelName)
+void IndexMerger::outputNewBarrel(MergeBarrelQueue* pBarrelQueue, const string& newBarrelName)
 {
     DVLOG(2)<< "=> IndexMerger::outputNewBarrel(), newBarrelName: " << newBarrelName;
 
@@ -198,12 +198,12 @@ void IndexMerger::outputNewBarrel(MergeBarrel* pBarrel, const string& newBarrelN
 
     int32_t nEntry;
     MergeBarrelEntry* pEntry = NULL;
-    int32_t nEntryCount = (int32_t)pBarrel->size();
+    int32_t nEntryCount = (int32_t)pBarrelQueue->size();
     bool isNewBarrelUpdateBarrel = true;
     bool hasUpdateBarrel = false;
     for (nEntry = 0;nEntry < nEntryCount;nEntry++)
     {
-        pEntry = pBarrel->getAt(nEntry);
+        pEntry = pBarrelQueue->getAt(nEntry);
 
         isNewBarrelUpdateBarrel &= pEntry->pBarrelInfo_->isUpdate;
         hasUpdateBarrel |= pEntry->pBarrelInfo_->isUpdate;
@@ -228,7 +228,7 @@ void IndexMerger::outputNewBarrel(MergeBarrel* pBarrel, const string& newBarrelN
 
     for (nEntry = 0; nEntry < nEntryCount; nEntry++)
     {
-        pColsInfo = pBarrel->getAt(nEntry)->pCollectionsInfo_;
+        pColsInfo = pBarrelQueue->getAt(nEntry)->pCollectionsInfo_;
         pColsInfo->startIterator();
         while (pColsInfo->hasNext())
             colIDSet.push_back(pColsInfo->next()->getId());
@@ -245,7 +245,7 @@ void IndexMerger::outputNewBarrel(MergeBarrel* pBarrel, const string& newBarrelN
 
         for (nEntry = 0;nEntry < nEntryCount;nEntry++)
         {
-            pEntry = pBarrel->getAt(nEntry);
+            pEntry = pBarrelQueue->getAt(nEntry);
             pEntry->setCurrColID(*p);
             pColInfo = pEntry->pCollectionsInfo_->getCollectionInfo(*p);
             pColInfo->getFieldsInfo()->startIterator();
@@ -256,7 +256,7 @@ void IndexMerger::outputNewBarrel(MergeBarrel* pBarrel, const string& newBarrelN
         
             for (nEntry = 0;nEntry < nEntryCount;nEntry++)
             {
-                pEntry = pBarrel->getAt(nEntry);
+                pEntry = pBarrelQueue->getAt(nEntry);
                 pColInfo = pEntry->pCollectionsInfo_->getCollectionInfo(*p);
 
                 if (NULL == pColInfo)
@@ -344,7 +344,7 @@ void IndexMerger::outputNewBarrel(MergeBarrel* pBarrel, const string& newBarrelN
     DVLOG(2)<< "<= IndexMerger::outputNewBarrel()";
 }
 
-BarrelInfo* IndexMerger::createNewBarrelInfo(MergeBarrel* pBarrel, const string& newBarrelName)
+BarrelInfo* IndexMerger::createNewBarrelInfo(MergeBarrelQueue* pBarrelQueue, const string& newBarrelName)
 {
     DVLOG(2)<< "=> IndexMerger::createNewBarrelInfo(), newBarrelName: " << newBarrelName;
 
@@ -367,11 +367,11 @@ BarrelInfo* IndexMerger::createNewBarrelInfo(MergeBarrel* pBarrel, const string&
     docid_t maxDocOfNewBarrel = 0;
 
     // delete all merged barrels
-    int32_t nEntryCount = (int32_t)pBarrel->size();
+    int32_t nEntryCount = (int32_t)pBarrelQueue->size();
     bool isNewBarrelUpdateBarrel = true;
     for (int32_t nEntry = 0;nEntry < nEntryCount;nEntry++)
     {
-        MergeBarrelEntry* pEntry = pBarrel->getAt(nEntry);
+        MergeBarrelEntry* pEntry = pBarrelQueue->getAt(nEntry);
 
         nNumDocs += pEntry->pBarrelInfo_->getDocCount();
         isNewBarrelUpdateBarrel &= pEntry->pBarrelInfo_->isUpdate;
@@ -393,8 +393,8 @@ BarrelInfo* IndexMerger::createNewBarrelInfo(MergeBarrel* pBarrel, const string&
         pBarrelsInfo_->removeBarrel(pDirectory_,pEntry->pBarrelInfo_->getName());///delete merged barrels
     }
 
-    removeMergedBarrels(pBarrel);
-    pBarrel->clear();
+    removeMergedBarrels(pBarrelQueue);
+    pBarrelQueue->clear();
 
     DVLOG(2)<< "IndexMerger::createNewBarrelInfo() => add new BarrelInfo ...";
     BarrelInfo* pNewBarrelInfo = new BarrelInfo(newBarrelName,nNumDocs,pIndexer_->getIndexCompressType());
@@ -414,17 +414,17 @@ BarrelInfo* IndexMerger::createNewBarrelInfo(MergeBarrel* pBarrel, const string&
     return pNewBarrelInfo;
 }
 
-void IndexMerger::mergeBarrel(MergeBarrel* pBarrel)
+void IndexMerger::mergeBarrel(MergeBarrelQueue* pBarrelQueue)
 {
     DVLOG(2)<< "=> IndexMerger::mergeBarrel()";
 
     triggerMerge_ = true;
-    pBarrel->load();
-    string newBarrelName = pBarrel->getIdentifier();
+    pBarrelQueue->load();
+    string newBarrelName = pBarrelQueue->getIdentifier();
 
-    outputNewBarrel(pBarrel, newBarrelName);
+    outputNewBarrel(pBarrelQueue, newBarrelName);
 
-    BarrelInfo* pNewBarrelInfo = createNewBarrelInfo(pBarrel, newBarrelName);
+    BarrelInfo* pNewBarrelInfo = createNewBarrelInfo(pBarrelQueue, newBarrelName);
 
     MergeBarrelEntry* pNewEntry = new MergeBarrelEntry(pDirectory_, pNewBarrelInfo);
     pMergePolicy_->addBarrel(pNewEntry);
@@ -432,23 +432,23 @@ void IndexMerger::mergeBarrel(MergeBarrel* pBarrel)
     DVLOG(2)<< "<= IndexMerger::mergeBarrel()";
 }
 
-void IndexMerger::removeMergedBarrels(MergeBarrel * pBarrel)
+void IndexMerger::removeMergedBarrels(MergeBarrelQueue* pBarrelQueue)
 {
     uint32_t nRemoved = 0;
     vector<MergeBarrelEntry*>::iterator iter = mergeBarrelVec_.begin();
     while (iter != mergeBarrelVec_.end())
     {
         bool bRemoved = false;
-        for (size_t nEntry = 0;nEntry < pBarrel->size();nEntry++)
+        for (size_t nEntry = 0;nEntry* pBarrelQueue->size();nEntry++)
         {
-            if ((*iter) == pBarrel->getAt(nEntry))
+            if ((*iter) == pBarrelQueue->getAt(nEntry))
             {
                 iter = mergeBarrelVec_.erase(iter);
                 bRemoved = true;
                 nRemoved++;
             }
         }
-        if (nRemoved == pBarrel->size())
+        if (nRemoved == pBarrelQueue->size())
             break;
         if (!bRemoved)
             iter++;

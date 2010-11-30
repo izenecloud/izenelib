@@ -46,25 +46,25 @@ protected:
 
     int currColID_;
 
-    friend class MergeBarrel;
+    friend class MergeBarrelQueue;
     friend class IndexMerger;
 };
 
 /**
 *@brief A priority queue with element type of MergeBarrelEntry
 */
-class MergeBarrel : public PriorityQueue<MergeBarrelEntry*>
+class MergeBarrelQueue : public PriorityQueue<MergeBarrelEntry*>
 {
 public:
-    MergeBarrel(size_t maxSize)
+    MergeBarrelQueue(size_t maxSize)
     {
         initialize(maxSize,true);
     }
-    MergeBarrel(const string& id,size_t maxSize) : identifier(id)
+    MergeBarrelQueue(const string& id,size_t maxSize) : identifier(id)
     {
         initialize(maxSize,true);
     }
-    ~MergeBarrel()
+    ~MergeBarrelQueue()
     {
     }
 public:
@@ -130,9 +130,9 @@ public:
 
     /**
      * merge a merge barrel which contains more than one index barrels
-     * @param pBarrel merge barrel
+     * @param pBarrelQueue merge barrel queue
      */
-    virtual void mergeBarrel(MergeBarrel* pBarrel);
+    virtual void mergeBarrel(MergeBarrelQueue* pBarrelQueue);
 
     /**
      * set directory of index
@@ -176,26 +176,26 @@ protected:
     void updateBarrels(BarrelsInfo* pBarrelsInfo);
 
     /**
-     * output new barrel contents merged from @p pBarrel.
-     * @param pBarrel the barrels to merge
+     * output new barrel contents merged from @p pBarrelQueue.
+     * @param pBarrelQueue the barrels to merge
      * @param newBarrelName new barrel name
      */
-    void outputNewBarrel(MergeBarrel* pBarrel, const string& newBarrelName);
+    void outputNewBarrel(MergeBarrelQueue* pBarrelQueue, const string& newBarrelName);
 
     /**
      * Remove merged barrels and create new barrel.
-     * @param pBarrel the merged barrels
+     * @param pBarrelQueue the merged barrels
      * @param newBarrelName new barrel name
      * @return new barrel instance
      * @note this function is in the lock scope of @c IndexMergeManager::pauseMergeMutex_ and @c Indexer::mutex_.
      */
-    BarrelInfo* createNewBarrelInfo(MergeBarrel* pBarrel, const string& newBarrelName);
+    BarrelInfo* createNewBarrelInfo(MergeBarrelQueue* pBarrelQueue, const string& newBarrelName);
 
     /**
      * remove merged barrels from pMergeBarrels
-     * @param pBarrel container of barrels
+     * @param pBarrelQueue container of barrels
      */
-    void removeMergedBarrels(MergeBarrel* pBarrel);
+    void removeMergedBarrels(MergeBarrelQueue* pBarrelQueue);
 
 protected:
     Indexer* pIndexer_;

@@ -33,20 +33,20 @@ public:
 protected:
     /**
      * merge a merge barrel which contains more than one index barrels
-     * @param pBarrel merge barrel
+     * @param pBarrelQueue merge barrel queue
      * @note in this overriding function, the calls of barrel files loading
      * and writing are committed out deliberately for mock purpose.
      */
-    virtual void mergeBarrel(MergeBarrel* pBarrel) {
+    virtual void mergeBarrel(MergeBarrelQueue* pBarrelQueue) {
         DVLOG(2)<< "=> MockIndexMerger::mergeBarrel()";
 
         triggerMerge_ = true;
-        //pBarrel->load();
-        std::string newBarrelName = pBarrel->getIdentifier();
+        //pBarrelQueue->load();
+        std::string newBarrelName = pBarrelQueue->getIdentifier();
 
-        //outputNewBarrel(pBarrel, newBarrelName);
+        //outputNewBarrel(pBarrelQueue, newBarrelName);
 
-        BarrelInfo* pNewBarrelInfo = createNewBarrelInfo(pBarrel, newBarrelName);
+        BarrelInfo* pNewBarrelInfo = createNewBarrelInfo(pBarrelQueue, newBarrelName);
 
         MergeBarrelEntry* pNewEntry = new MergeBarrelEntry(pDirectory_, pNewBarrelInfo);
         pMergePolicy_->addBarrel(pNewEntry);

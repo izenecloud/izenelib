@@ -36,7 +36,7 @@ void BTPolicy::addBarrel(MergeBarrelEntry* pEntry)
         pLevel = iter->second;
         pLevel->nLevelSize_ += nCurLevelSize_;
         pLevel->add(pEntry);
-        if ((int)pLevel->pMergeBarrel_->size() >= nC) ///collision,trigger a merge event
+        if ((int)pLevel->pBarrelQueue_->size() >= nC) ///collision,trigger a merge event
         {
             triggerMerge(pLevel,nLevel);
         }
@@ -72,12 +72,12 @@ void BTPolicy::triggerMerge(BTLayer* pLevel,int nLevel)
         {
             BTLayer* pLevel2 = iter2->second;
             int nC = getC(i);
-            if ((int)pLevel2->pMergeBarrel_->size() + 1 >= nC)	///will trigger another merge event in upper level
+            if ((int)pLevel2->pBarrelQueue_->size() + 1 >= nC)	///will trigger another merge event in upper level
             {
                 ///copy elements to upper level
-                while (pLevel1->pMergeBarrel_->size() >0)
+                while (pLevel1->pBarrelQueue_->size() >0)
                 {
-                    pLevel2->pMergeBarrel_->put(pLevel1->pMergeBarrel_->pop());
+                    pLevel2->pBarrelQueue_->put(pLevel1->pBarrelQueue_->pop());
                 }
                 pLevel2->nLevelSize_ += pLevel1->nLevelSize_;
                 pLevel1->nLevelSize_ = 0;
@@ -99,21 +99,21 @@ void BTPolicy::triggerMerge(BTLayer* pLevel,int nLevel)
             ///find the base doc id range for merged barrels
             docid_t startDoc = -1;
             docid_t endDoc = 0;
-            int nEntryCount = (int)pLevel1->pMergeBarrel_->size();
+            int nEntryCount = (int)pLevel1->pBarrelQueue_->size();
             for (int nEntry = 0;nEntry < nEntryCount;nEntry++)
             {
-                docid_t baseDoc = pLevel1->pMergeBarrel_->getAt(nEntry)->baseDocID();
+                docid_t baseDoc = pLevel1->pBarrelQueue_->getAt(nEntry)->baseDocID();
                 startDoc = baseDoc < startDoc ? baseDoc : startDoc; 	
                 endDoc = baseDoc > endDoc ? baseDoc : endDoc;
             }
 
             ///juge the base doc id range of upper layer
             BTLayer* pLevel2 = iter2->second;
-            nEntryCount = (int)pLevel2->pMergeBarrel_->size();
+            nEntryCount = (int)pLevel2->pBarrelQueue_->size();
             bool needToMergeUpperLayer = false;
             for (int nEntry = 0;nEntry < nEntryCount;nEntry++)
             {
-                docid_t baseDoc = pLevel2->pMergeBarrel_->getAt(nEntry)->baseDocID();
+                docid_t baseDoc = pLevel2->pBarrelQueue_->getAt(nEntry)->baseDocID();
                 if((baseDoc > startDoc) && (baseDoc < endDoc))
                 {
                     needToMergeUpperLayer = true;
@@ -123,9 +123,9 @@ void BTPolicy::triggerMerge(BTLayer* pLevel,int nLevel)
             if(needToMergeUpperLayer)
             {
                 ///copy elements to upper level
-                while (pLevel1->pMergeBarrel_->size() >0)
+                while (pLevel1->pBarrelQueue_->size() >0)
                 {
-                    pLevel2->pMergeBarrel_->put(pLevel1->pMergeBarrel_->pop());
+                    pLevel2->pBarrelQueue_->put(pLevel1->pBarrelQueue_->pop());
                 }
                 pLevel2->nLevelSize_ += pLevel1->nLevelSize_;
                 pLevel1->nLevelSize_ = 0;
@@ -136,11 +136,11 @@ void BTPolicy::triggerMerge(BTLayer* pLevel,int nLevel)
     }
 
     ///merge
-    if (pLevel1->pMergeBarrel_->size() > 0)
+    if (pLevel1->pBarrelQueue_->size() > 0)
     {
         nCurLevelSize_ = pLevel1->nLevelSize_;
         pLevel1->nLevelSize_ = 0;
-        pIndexMerger_->mergeBarrel(pLevel1->pMergeBarrel_);
+        pIndexMerger_->mergeBarrel(pLevel1->pBarrelQueue_);
         pLevel1->increaseMergeTimes();
         nCurLevelSize_ = 1;
     }

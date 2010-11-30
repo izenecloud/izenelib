@@ -28,17 +28,17 @@ public:
             s = append(s,generation_);
             s += "_";
             s = append(s,mergeTimes_);
-            pMergeBarrel_ = new MergeBarrel(s.c_str(),nMaxSize);
+            pBarrelQueue_ = new MergeBarrelQueue(s.c_str(),nMaxSize);
         }
         ~Generation()
         {
-                delete pMergeBarrel_;
-                pMergeBarrel_ = NULL;
+                delete pBarrelQueue_;
+                pBarrelQueue_ = NULL;
         }
     public:
         void add(MergeBarrelEntry* pEntry)
         {
-            pMergeBarrel_->put(pEntry);
+            pBarrelQueue_->put(pEntry);
         }				
 
         void increaseMergeTimes()
@@ -48,11 +48,11 @@ public:
             s = append(s,generation_);
             s += "_";
             s = append(s,mergeTimes_);
-            pMergeBarrel_->setIdentifier(s);
+            pBarrelQueue_->setIdentifier(s);
        }
     private:
         int generation_; ///generation of this sub-index
-        MergeBarrel* pMergeBarrel_; ///index merge barrel
+        MergeBarrelQueue* pBarrelQueue_; ///index merge barrel
         int mergeTimes_;	 ///merge times
         friend class MultiWayPolicy;
     }; 

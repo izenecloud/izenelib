@@ -4,21 +4,21 @@
 using namespace izenelib::ir::indexmanager;
 
 OptimizePolicy::OptimizePolicy(unsigned int numBarrels)
-        :pMergeBarrel_(new MergeBarrel("_mid_0_",numBarrels+5))
+        :pBarrelQueue_(new MergeBarrelQueue("_mid_0_",numBarrels+5))
 {
 }
 
 OptimizePolicy::~OptimizePolicy(void)
 {
-    delete pMergeBarrel_;
+    delete pBarrelQueue_;
 }
 
 void OptimizePolicy::addBarrel(MergeBarrelEntry* pEntry)
 {
-    pMergeBarrel_->put(pEntry);
+    pBarrelQueue_->put(pEntry);
 }
 void OptimizePolicy::endMerge()
 {
-    pIndexMerger_->mergeBarrel(pMergeBarrel_);
+    pIndexMerger_->mergeBarrel(pBarrelQueue_);
 }
 
