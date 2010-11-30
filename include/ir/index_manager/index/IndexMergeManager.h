@@ -53,6 +53,12 @@ public:
      */
     IndexMergeManager(Indexer* pIndexer);
 
+    /**
+     * Destructor.
+     * If @c isAsync_ is true, it clears current appending
+     * merge requests, and block the calling thread
+     * until the merge thread finishes its current task.
+     */
     ~IndexMergeManager();
 public:
     /**
@@ -68,7 +74,7 @@ public:
 
     /**
      * Pause current merging activity.
-     * Notes: this function only works when IndexManagerConfig.mergeStrategy_.isAsync_ is true.
+     * Notes: this function only works when @c isAsync_ is true.
      * Notes: if merging thread is removing barrel files currently, which might make query functions return no result,
      *        this function would wait until the end of barrels removal and merged barrel creation.
      */
@@ -76,14 +82,14 @@ public:
 
     /**
      * Continue the merging activity, which is paused by previous call of @p pauseMerge().
-     * Notes: this function only works when IndexManagerConfig.mergeStrategy_.isAsync_ is true.
+     * Notes: this function only works when @c isAsync_ is true.
      */
     void resumeMerge();
 
     /**
      * Block the calling thread until the merge thread finishes its all tasks,
      * and create a new thread for future merge request.
-     * Notes: this function only works when IndexManagerConfig.mergeStrategy_.isAsync_ is true.
+     * Notes: this function only works when @c isAsync_ is true.
      */
     void waitForMergeFinish();
 
@@ -103,7 +109,7 @@ private:
     /**
      * Block the calling thread until the merge thread finishes its all tasks,
      * and delete the merge thread.
-     * Notes: this function only works when IndexManagerConfig.mergeStrategy_.isAsync_ is true.
+     * Notes: this function assumes @c isAsync_ is true.
      */
     void joinMergeThread();
 
@@ -116,13 +122,6 @@ private:
      * Create the merge thread and run it.
      */
     void run();
-
-    /**
-     * Clear current appending merge requests, and block the calling thread
-     * until the merge thread finishes its current task.
-     * Notes: this function only works when IndexManagerConfig.mergeStrategy_.isAsync_ is true.
-     */
-    void stop();
 
 private:
     Indexer* pIndexer_;
@@ -140,6 +139,19 @@ private:
     boost::condition_variable pauseMergeCond_; ///< condition variable to pause merge
     
     boost::mutex pauseMergeMutex_; ///< mutex used for @p isPauseMerge_ and @p pauseMergeCond_
+
+    /**
+     * true for merge asynchronously (merge index in a separated thread),
+     * false for merge synchronously (single thread for both build index and merge index).
+     */
+    const bool isAsync_;
+
+    /**
+     * mutex used for manage @p pMergeThread_.
+     * It's used to avoid concurrent execution of @c waitForMergeFinish()
+     * and @c ~IndexMergeManager().
+     */
+    boost::mutex mergeThreadMutex_;
 };
 
 }

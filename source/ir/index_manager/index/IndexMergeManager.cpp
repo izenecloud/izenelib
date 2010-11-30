@@ -18,6 +18,7 @@ IndexMergeManager::IndexMergeManager(Indexer* pIndexer)
     ,pAddMerger_(NULL)
     ,pMergeThread_(NULL)
     ,isPauseMerge_(false)
+    ,isAsync_(pIndexer->getIndexManagerConfig()->mergeStrategy_.isAsync_)
 {
     pBarrelsInfo_ = pIndexer_->getBarrelsInfo();
 
@@ -27,7 +28,7 @@ IndexMergeManager::IndexMergeManager(Indexer* pIndexer)
     if(strcasecmp(mergeStrategyStr,"no"))
         pAddMerger_ = new IndexMerger(pIndexer_, new BTPolicy);
 
-    if(pConfig->mergeStrategy_.isAsync_)
+    if(isAsync_)
         run();
 }
 
@@ -36,45 +37,44 @@ IndexMergeManager::~IndexMergeManager()
     // notify the merge thread in case of it was paused
     pauseMergeCond_.notify_all();
 
-    stop();
+    if(isAsync_)
+    {
+        boost::lock_guard<boost::mutex> lock(mergeThreadMutex_);
+        tasks_.clear();
+        joinMergeThread();
+    }
 
-    delete pMergeThread_;
     delete pAddMerger_;
 }
 
 void IndexMergeManager::run()
 {
+    assert(isAsync_ && "to create the merge thread, IndexManagerConfig._mergestrategy.isAsync_ should be configured to true");
     assert(! pMergeThread_ && "the merge thread should not be running before");
     pMergeThread_ = new boost::thread(boost::bind(&IndexMergeManager::mergeIndex, this));
 }
 
-void IndexMergeManager::stop()
-{
-    tasks_.clear();
-    joinMergeThread();
-}
-
 void IndexMergeManager::joinMergeThread()
 {
-    if(pMergeThread_)
-    {
-        MergeOP op(EXIT_MERGE);
-        tasks_.push(op);
+    assert(isAsync_);
 
-        DVLOG(2) << "IndexMergeManager::joinMergeThread() => pMergeThread_->join()...";
-        pMergeThread_->join();
-        DVLOG(2) << "IndexMergeManager::joinMergeThread() <= pMergeThread_->join()";
+    MergeOP op(EXIT_MERGE);
+    tasks_.push(op);
 
-        delete pMergeThread_;
-        pMergeThread_ = NULL;
-    }
+    DVLOG(2) << "IndexMergeManager::joinMergeThreadImpl() => pMergeThread_->join()...";
+    pMergeThread_->join();
+    DVLOG(2) << "IndexMergeManager::joinMergeThreadImpl() <= pMergeThread_->join()";
+
+    delete pMergeThread_;
+    pMergeThread_ = NULL;
 }
 
 void IndexMergeManager::waitForMergeFinish()
 {
     DVLOG(2) << "=> IndexMergeManager::waitForMergeFinish()";
-    if(pMergeThread_)
+    if(isAsync_)
     {
+        boost::lock_guard<boost::mutex> lock(mergeThreadMutex_);
         joinMergeThread();
         run();
     }
@@ -83,7 +83,7 @@ void IndexMergeManager::waitForMergeFinish()
 
 void IndexMergeManager::addToMerge(BarrelInfo* pBarrelInfo)
 {
-    if(pMergeThread_)
+    if(isAsync_)
     {
         MergeOP op(ADD_BARREL);
         op.pBarrelInfo = pBarrelInfo;
@@ -98,7 +98,7 @@ void IndexMergeManager::addToMerge(BarrelInfo* pBarrelInfo)
 
 void IndexMergeManager::optimizeIndex()
 {
-    if(pMergeThread_)
+    if(isAsync_)
     {
         tasks_.clear();
         MergeOP op(OPTIMIZE_ALL);
@@ -160,7 +160,7 @@ void IndexMergeManager::mergeIndex()
 void IndexMergeManager::pauseMerge()
 {
     DVLOG(2) << "=> IndexMergeManager::pauseMerge()";
-    if(pMergeThread_)
+    if(isAsync_)
     {
         boost::lock_guard<boost::mutex> lock(pauseMergeMutex_);
         isPauseMerge_ = true;
@@ -171,7 +171,7 @@ void IndexMergeManager::pauseMerge()
 void IndexMergeManager::resumeMerge()
 {
     DVLOG(2) << "=> IndexMergeManager::resumeMerge()";
-    if(pMergeThread_)
+    if(isAsync_)
     {
         {
             boost::lock_guard<boost::mutex> lock(pauseMergeMutex_);
