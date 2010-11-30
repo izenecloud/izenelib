@@ -84,7 +84,9 @@ void BarrelInfo::write(Directory* pDirectory)
     try
     {
         boost::mutex::scoped_lock lock(mutex_);
-        DVLOG(2) << "=> BarrelInfo::write(), barrel name: " << barrelName << " ...";
+        DVLOG(2) << "=> BarrelInfo::write(), barrel name: " << barrelName
+                 << ", doc range: [" << baseDocIDMap.begin()->second << ", " << maxDocId << "]"
+                 << ", nNumDocs: " << nNumDocs << " ...";
 
         string s = barrelName +".voc";
         IndexOutput* pVocOutput = pDirectory->createOutput(s.c_str());
