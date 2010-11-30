@@ -206,7 +206,7 @@ protected:
 
     BarrelsInfo* pBarrelsInfo_;			///reference to Index's barrels information
 
-    vector<MergeBarrelEntry*>* pMergeBarrels_;
+    vector<MergeBarrelEntry*> mergeBarrelVec_;
 
     BitVector* pDocFilter_;
 

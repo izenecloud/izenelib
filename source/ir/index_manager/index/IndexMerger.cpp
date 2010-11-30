@@ -71,7 +71,6 @@ IndexMerger::IndexMerger(Indexer* pIndexer, IndexMergePolicy* pMergePolicy)
         :pIndexer_(pIndexer)
         ,pMergePolicy_(pMergePolicy)
         ,pDirectory_(pIndexer->getDirectory())
-        ,pMergeBarrels_(NULL)
 	,pDocFilter_(NULL)
 	,triggerMerge_(false)
 	,optimize_(false)
@@ -82,13 +81,6 @@ IndexMerger::IndexMerger(Indexer* pIndexer, IndexMergePolicy* pMergePolicy)
 IndexMerger::~IndexMerger()
 {
     pIndexer_ = 0;
-
-    if (pMergeBarrels_)
-    {
-        pMergeBarrels_->clear();
-        delete pMergeBarrels_;
-        pMergeBarrels_ = NULL;
-    }
     pDocFilter_ = 0;
 
     delete pMergePolicy_;
@@ -160,13 +152,10 @@ void IndexMerger::addToMerge(BarrelsInfo* pBarrelsInfo,BarrelInfo* pBarrelInfo)
     }
 
     triggerMerge_ = false;
-    if (!pMergeBarrels_)
-        pMergeBarrels_ = new vector<MergeBarrelEntry*>();
 
-    MergeBarrelEntry* pEntry = NULL;
     pBarrelsInfo_ = pBarrelsInfo;
-    pEntry = new MergeBarrelEntry(pDirectory_,pBarrelInfo);
-    pMergeBarrels_->push_back(pEntry);
+    MergeBarrelEntry* pEntry = new MergeBarrelEntry(pDirectory_,pBarrelInfo);
+    mergeBarrelVec_.push_back(pEntry);
 
     pMergePolicy_->addBarrel(pEntry);
  
@@ -404,10 +393,7 @@ BarrelInfo* IndexMerger::createNewBarrelInfo(MergeBarrel* pBarrel, const string&
         pBarrelsInfo_->removeBarrel(pDirectory_,pEntry->pBarrelInfo_->getName());///delete merged barrels
     }
 
-    if (pMergeBarrels_)
-    {
-        removeMergedBarrels(pBarrel);
-    }
+    removeMergedBarrels(pBarrel);
     pBarrel->clear();
 
     DVLOG(2)<< "IndexMerger::createNewBarrelInfo() => add new BarrelInfo ...";
@@ -448,20 +434,16 @@ void IndexMerger::mergeBarrel(MergeBarrel* pBarrel)
 
 void IndexMerger::removeMergedBarrels(MergeBarrel * pBarrel)
 {
-    if (!pMergeBarrels_)
-        return;
-    vector<MergeBarrelEntry*>::iterator iter = pMergeBarrels_->begin();
-    size_t nEntry = 0;
-    bool bRemoved = false;
     uint32_t nRemoved = 0;
-    while (iter != pMergeBarrels_->end())
+    vector<MergeBarrelEntry*>::iterator iter = mergeBarrelVec_.begin();
+    while (iter != mergeBarrelVec_.end())
     {
-        bRemoved = false;
-        for (nEntry = 0;nEntry < pBarrel->size();nEntry++)
+        bool bRemoved = false;
+        for (size_t nEntry = 0;nEntry < pBarrel->size();nEntry++)
         {
             if ((*iter) == pBarrel->getAt(nEntry))
             {
-                iter = pMergeBarrels_->erase(iter);
+                iter = mergeBarrelVec_.erase(iter);
                 bRemoved = true;
                 nRemoved++;
             }
