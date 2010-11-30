@@ -18,6 +18,7 @@
 #include <boost/thread/condition_variable.hpp>
 #include <boost/thread/mutex.hpp>
 
+#include <vector>
 #include <sstream>
 #include <memory>
 #include <algorithm>
@@ -154,10 +155,7 @@ void IndexMerger::addToMerge(BarrelsInfo* pBarrelsInfo,BarrelInfo* pBarrelInfo)
     triggerMerge_ = false;
 
     pBarrelsInfo_ = pBarrelsInfo;
-    MergeBarrelEntry* pEntry = new MergeBarrelEntry(pDirectory_,pBarrelInfo);
-    mergeBarrelVec_.push_back(pEntry);
-
-    pMergePolicy_->addBarrel(pEntry);
+    pMergePolicy_->addBarrel(new MergeBarrelEntry(pDirectory_,pBarrelInfo));
  
     if(!triggerMerge_)
     {
@@ -393,7 +391,6 @@ BarrelInfo* IndexMerger::createNewBarrelInfo(MergeBarrelQueue* pBarrelQueue, con
         pBarrelsInfo_->removeBarrel(pDirectory_,pEntry->pBarrelInfo_->getName());///delete merged barrels
     }
 
-    removeMergedBarrels(pBarrelQueue);
     pBarrelQueue->clear();
 
     DVLOG(2)<< "IndexMerger::createNewBarrelInfo() => add new BarrelInfo ...";
@@ -431,27 +428,3 @@ void IndexMerger::mergeBarrel(MergeBarrelQueue* pBarrelQueue)
 
     DVLOG(2)<< "<= IndexMerger::mergeBarrel()";
 }
-
-void IndexMerger::removeMergedBarrels(MergeBarrelQueue* pBarrelQueue)
-{
-    uint32_t nRemoved = 0;
-    vector<MergeBarrelEntry*>::iterator iter = mergeBarrelVec_.begin();
-    while (iter != mergeBarrelVec_.end())
-    {
-        bool bRemoved = false;
-        for (size_t nEntry = 0;nEntry* pBarrelQueue->size();nEntry++)
-        {
-            if ((*iter) == pBarrelQueue->getAt(nEntry))
-            {
-                iter = mergeBarrelVec_.erase(iter);
-                bRemoved = true;
-                nRemoved++;
-            }
-        }
-        if (nRemoved == pBarrelQueue->size())
-            break;
-        if (!bRemoved)
-            iter++;
-    }
-}
-

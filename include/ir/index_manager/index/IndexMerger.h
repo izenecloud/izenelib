@@ -13,7 +13,6 @@
 #include <ir/index_manager/index/BarrelInfo.h>
 #include <ir/index_manager/index/CollectionInfo.h>
 #include <ir/index_manager/utility/BitVector.h>
-#include <vector>
 
 NS_IZENELIB_IR_BEGIN
 
@@ -191,12 +190,6 @@ protected:
      */
     BarrelInfo* createNewBarrelInfo(MergeBarrelQueue* pBarrelQueue, const string& newBarrelName);
 
-    /**
-     * remove merged barrels from pMergeBarrels
-     * @param pBarrelQueue container of barrels
-     */
-    void removeMergedBarrels(MergeBarrelQueue* pBarrelQueue);
-
 protected:
     Indexer* pIndexer_;
 
@@ -205,8 +198,6 @@ protected:
     Directory* pDirectory_;				///index data source
 
     BarrelsInfo* pBarrelsInfo_;			///reference to Index's barrels information
-
-    vector<MergeBarrelEntry*> mergeBarrelVec_;
 
     BitVector* pDocFilter_;
 
