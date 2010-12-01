@@ -9,10 +9,10 @@
 
 #include <string>
 #include <sstream> // std::ostringstream
+#include <iostream>
 
 using namespace std;
 using namespace boost;
-
 using namespace izenelib::ir::indexmanager;
 
 /**
@@ -21,14 +21,13 @@ using namespace izenelib::ir::indexmanager;
 struct BarrelConfig
 {
     enum {
-        MAX_BARREL_NUM = 100 ///< maximum barrels number allowed
+        MAX_BARREL_NUM = 100, ///< maximum barrels number allowed
+        END_DOC_NUM = -1 ///< the end value of barrel sequence
     };
 
     /**
      * doc number in each barrel.
-     * if docNums_[k] is the 1st element of value 0,
-     * then k barrels each with doc number of docNums_[i] would be created,
-     * the values of element starting from k are ignored.
+     * value -1 denotes the end of barrel sequence.
      */
     int docNums_[MAX_BARREL_NUM]; 
 
@@ -47,7 +46,7 @@ struct BarrelConfig
         oss << "BarrelConfig, docNums_: (";
         BOOST_FOREACH(int docNum, docNums_)
         {
-            if(docNum == 0)
+            if(docNum == END_DOC_NUM)
                 break;
             oss << docNum << ", ";
         }
@@ -56,6 +55,51 @@ struct BarrelConfig
         return oss.str();
     }
 };
+
+namespace
+{
+/**
+ * barrel parameters.
+ * the last number in each line is the barrel number after merge,
+ * it would be checked against in @c checkAddToMerge(),
+ * while in @c checkOptimizeMerge(), the barrel number after merge is always 1.
+ */
+const BarrelConfig BARREL_CONFIGS[] = {
+    {{1,-1}, 1}
+    ,{{1,1,-1}, 2}
+    ,{{1,1,1,-1}, 1}
+    ,{{10,10,10,10,-1}, 2} // combine to {10,10,10}, {10}
+    ,{{10,10,10,30,30,-1}, 1}
+    ,{{10,10,10,30,30,30,-1}, 2}
+    ,{{10,10,10,30,30,90,90,-1}, 1}
+    ,{{10,50,20,30,30,-1}, 1}
+    ,{{10,100,20,3000,30,50,25,-1}, 1}
+    ,{{1000,10,100,30,30,90,90,-1}, 3} // combine to {1000}, {10}, {100,30,30,90,90}
+    ,{{1,1,1,3,3,9,9,100,1000,-1}, 3} // combine to {1,1,1,3,3,9,9}, {100}, {1000}
+    ,{{1,1,3,100,3,9,9,1,1000,-1}, 2} // combine to {1,1,3,100,3,9,9,1}, {1000}
+    ,{{1,100,1,1,3,1000,3,9,9,3,-1}, 2} // combine to {1,100,1,1}, {3,1000,3,9,9,3}
+    ,{{10,5,1,2,5,-1}, 5} // no combine
+    ,{{10,5,1,2,5,6,-1}, 2} // combine to {10}, {5,1,2,5,6}
+    ,{{10,5,1,2,5,6,5,-1}, 3} // combine to {10}, {5,1,2,5,6}, {5}
+    // check empty barrel below
+    ,{{0,0,0,-1}, 1}
+    ,{{1,0,0,-1}, 1}
+    ,{{0,1,0,-1}, 1}
+    ,{{0,0,1,-1}, 1}
+    ,{{1,1,0,-1}, 1}
+    ,{{1,0,1,-1}, 1}
+    ,{{0,1,1,-1}, 1}
+    ,{{0,1,2,-1}, 1}
+    ,{{0,3,1,2,-1}, 1}
+    ,{{1,0,3,2,-1}, 1}
+    ,{{3,1,0,2,-1}, 2} // combine to {3}, {1,0,2}
+    ,{{2,0,1,3,-1}, 2} // combine to {2,0,1}, {3}
+    ,{{10,5,1,2,5,0,-1}, 2} // combine to {10}, {5,1,2,5,0}
+    ,{{10,5,1,0,5,2,-1}, 2} // combine to {10}, {5,1,0,5,2}
+};
+
+const int CONFIG_NUM = sizeof(BARREL_CONFIGS)/sizeof(BarrelConfig);
+}
 
 /**
  * create a new @c BarrelInfo.
@@ -96,7 +140,7 @@ void checkAddToMerge(IndexMergePolicy* pIndexMergePolicy, const BarrelConfig& ba
     int docNumSum = 0;
     BOOST_FOREACH(int docNum, barrelConfig.docNums_)
     {
-        if(docNum == 0)
+        if(docNum == BarrelConfig::END_DOC_NUM)
             break;
 
         BarrelInfo* pNewBarrelInfo = newBarrelInfo(pBarrelsInfo, docNum);
@@ -112,6 +156,7 @@ void checkAddToMerge(IndexMergePolicy* pIndexMergePolicy, const BarrelConfig& ba
 /**
  * check function @c IndexMerger::merge using @c OptimizePolicy policy.
  * @p barrelConfig the parameter of barrels to merge
+ * @note @p barrelConfig.mergedBarrelNum_ is ignored, as this function always check against 1.
  */
 void checkOptimizeMerge(const BarrelConfig& barrelConfig)
 {
@@ -119,15 +164,18 @@ void checkOptimizeMerge(const BarrelConfig& barrelConfig)
 
     IndexerTestFixture fixture;
     fixture.configTest(config);
-    BOOST_TEST_MESSAGE(barrelConfig.str());
+
+    BarrelConfig newBarrelConfig(barrelConfig);
+    newBarrelConfig.mergedBarrelNum_ = 1; // barrel number after optimize should be 1
+    BOOST_TEST_MESSAGE(newBarrelConfig.str());
 
     Indexer* pIndexer = fixture.getIndexer();
 
     BarrelsInfo* pBarrelsInfo = pIndexer->getBarrelsInfo();
     int docNumSum = 0;
-    BOOST_FOREACH(int docNum, barrelConfig.docNums_)
+    BOOST_FOREACH(int docNum, newBarrelConfig.docNums_)
     {
-        if(docNum == 0)
+        if(docNum == BarrelConfig::END_DOC_NUM)
             break;
 
         newBarrelInfo(pBarrelsInfo, docNum);
@@ -137,7 +185,7 @@ void checkOptimizeMerge(const BarrelConfig& barrelConfig)
     MockIndexMerger mockIndexMerger(pIndexer, new OptimizePolicy(pBarrelsInfo->getBarrelCount()));
     mockIndexMerger.merge(pBarrelsInfo);
 
-    BOOST_CHECK_EQUAL(pBarrelsInfo->getBarrelCount(), barrelConfig.mergedBarrelNum_);
+    BOOST_CHECK_EQUAL(pBarrelsInfo->getBarrelCount(), newBarrelConfig.mergedBarrelNum_);
     BOOST_CHECK_EQUAL(pBarrelsInfo->maxDocId(), docNumSum);
     BOOST_CHECK_EQUAL(pBarrelsInfo->getDocCount(), docNumSum);
 }
@@ -146,38 +194,14 @@ BOOST_AUTO_TEST_SUITE( t_IndexMergePolicy )
 
 BOOST_AUTO_TEST_CASE(addToMerge)
 {
-    const BarrelConfig barrelConfigs[] = {
-        {{1}, 1}
-        ,{{1,1}, 2}
-        ,{{1,1,1}, 1}
-        ,{{10,10,10,10}, 2}
-        ,{{10,10,10,30,30}, 1}
-        ,{{10,10,10,30,30,30}, 2}
-        ,{{10,10,10,30,30,90,90}, 1}
-        ,{{1,1,1,3,3,9,9,100,1000}, 3}
-    };
-    const int configNum = sizeof(barrelConfigs)/sizeof(BarrelConfig);
-
-    for(int i=0; i<configNum; ++i)
-        checkAddToMerge(new BTPolicy, barrelConfigs[i]);
+    for(int i=0; i<CONFIG_NUM; ++i)
+        checkAddToMerge(new BTPolicy, BARREL_CONFIGS[i]);
 }
 
 BOOST_AUTO_TEST_CASE(optimizeMerge)
 {
-    const BarrelConfig barrelConfigs[] = {
-        {{1}, 1}
-        ,{{1,2}, 1}
-        ,{{1,3,1}, 1}
-        ,{{10,10,10,10}, 1}
-        ,{{10,50,20,30,30}, 1}
-        ,{{10,100,10,3000,30,30}, 1}
-        ,{{1000,10,100,30,30,90,90}, 1}
-        ,{{1,1,1,3,3,9,9,100,1000}, 1}
-    };
-    const int configNum = sizeof(barrelConfigs)/sizeof(BarrelConfig);
-
-    for(int i=0; i<configNum; ++i)
-        checkOptimizeMerge(barrelConfigs[i]);
+    for(int i=0; i<CONFIG_NUM; ++i)
+        checkOptimizeMerge(BARREL_CONFIGS[i]);
 }
 
 BOOST_AUTO_TEST_SUITE_END()

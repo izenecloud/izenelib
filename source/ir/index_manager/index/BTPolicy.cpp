@@ -1,5 +1,9 @@
 #include <ir/index_manager/index/BTPolicy.h>
 
+#include <algorithm>
+
+using namespace std;
+
 NS_IZENELIB_IR_BEGIN
 
 namespace indexmanager
@@ -10,8 +14,9 @@ namespace indexmanager
 #define COLLISION_FACTOR_FOR_LEVEL_1 3
 
 BTPolicy::BTPolicy()
-        :nCurLevelSize_(1)
 {
+    for(int i = 0; i < MAXLEVEL; i++)
+        nCMap_[i] = COLLISION_FACTOR_FOR_LEVEL_1;
 }
 
 BTPolicy::~BTPolicy()
@@ -21,29 +26,28 @@ BTPolicy::~BTPolicy()
 
 int BTPolicy::getC(int nLevel)
 {
+    assert(nLevel < MAXLEVEL);
     return nCMap_[nLevel];
 }
 
 void BTPolicy::addBarrel(MergeBarrelEntry* pEntry)
 {
-    nCurLevelSize_ = pEntry->numDocs();
-    int nLevel = getLevel(nCurLevelSize_);
+    int nLevelSize = pEntry->numDocs();
+    int nLevel = getLevel(nLevelSize);
     int nC = getC(nLevel);
     BTLayer* pLevel = NULL;
     std::map<int,BTLayer*>::iterator iter = nodesMap_.find(nLevel);
     if (iter != nodesMap_.end())
     {
         pLevel = iter->second;
-        pLevel->nLevelSize_ += nCurLevelSize_;
+        pLevel->nLevelSize_ += nLevelSize;
         pLevel->add(pEntry);
         if ((int)pLevel->pBarrelQueue_->size() >= nC) ///collision,trigger a merge event
-        {
-            triggerMerge(pLevel,nLevel);
-        }
+            triggerMerge(pLevel);
     }
     else
     {
-        pLevel = new BTLayer(nLevel,nCurLevelSize_,MAX_LAYER_SIZE);
+        pLevel = new BTLayer(nLevel,nLevelSize,MAX_LAYER_SIZE);
         pLevel->add(pEntry);
         nodesMap_.insert(make_pair(nLevel,pLevel));
     }
@@ -60,111 +64,98 @@ void BTPolicy::endMerge()
     nodesMap_.clear();
 }
 
-void BTPolicy::triggerMerge(BTLayer* pLevel,int nLevel)
+void BTPolicy::triggerMerge(BTLayer* pLevel)
 {
     BTLayer* pLevel1 = pLevel;
-    int nL = getLevel(pLevel->nLevelSize_);
-    int nTriggers = 0;
-    for (int i = nLevel + 1;(i <= nL);i++)
+    std::map<int,BTLayer*>::iterator iter2;
+
+    // if it would trigger another merge event in upper level,
+    // combine them directly
+    int newLevel = getLevel(pLevel1->nLevelSize_);
+    while(newLevel > pLevel1->nLevel_
+            && (iter2 = nodesMap_.find(newLevel)) != nodesMap_.end())
     {
-        std::map<int,BTLayer*>::iterator iter2 = nodesMap_.find(i);
-        if (iter2 != nodesMap_.end())
-        {
-            BTLayer* pLevel2 = iter2->second;
-            int nC = getC(i);
-            if ((int)pLevel2->pBarrelQueue_->size() + 1 >= nC)	///will trigger another merge event in upper level
-            {
-                ///copy elements to upper level
-                while (pLevel1->pBarrelQueue_->size() >0)
-                {
-                    pLevel2->pBarrelQueue_->put(pLevel1->pBarrelQueue_->pop());
-                }
-                pLevel2->nLevelSize_ += pLevel1->nLevelSize_;
-                pLevel1->nLevelSize_ = 0;
-                nL = getLevel(pLevel2->nLevelSize_);
-                pLevel1 = pLevel2;
-                nTriggers++;
-            }
-            else break;
-        }
-        else break;
+        BTLayer* pLevel2 = iter2->second;
+        if ((int)pLevel2->pBarrelQueue_->size() + 1 < getC(newLevel))
+            break;
+
+        pLevel1 = combineLayer(pLevel1, pLevel2);
+        newLevel = getLevel(pLevel1->nLevelSize_);
     }
 
-    ///whether is it possible to merge barrels from upper layer to avoid of error
-    for(int i = 1; i < MAXLEVEL; i++)
+    // iterate barrels in other layer, merge them if within the base doc id range
+    pair<docid_t, docid_t> range1 = pLevel1->getBaseDocIDRange();
+    for(iter2 = nodesMap_.begin(); iter2 != nodesMap_.end(); ++iter2)
     {
-        std::map<int,BTLayer*>::iterator iter2 = nodesMap_.find(i);
-        if(iter2 != nodesMap_.end() && iter2->second != pLevel1) // ignore current level
-        {
-            ///find the base doc id range for merged barrels
-            docid_t startDoc = -1;
-            docid_t endDoc = 0;
-            int nEntryCount = (int)pLevel1->pBarrelQueue_->size();
-            for (int nEntry = 0;nEntry < nEntryCount;nEntry++)
-            {
-                docid_t baseDoc = pLevel1->pBarrelQueue_->getAt(nEntry)->baseDocID();
-                startDoc = baseDoc < startDoc ? baseDoc : startDoc; 	
-                endDoc = baseDoc > endDoc ? baseDoc : endDoc;
-            }
+        // ignore current level
+        if(iter2->second == pLevel1)
+            continue;
 
-            ///juge the base doc id range of upper layer
-            BTLayer* pLevel2 = iter2->second;
-            nEntryCount = (int)pLevel2->pBarrelQueue_->size();
-            bool needToMergeUpperLayer = false;
-            for (int nEntry = 0;nEntry < nEntryCount;nEntry++)
+        // check the base doc id of other layer
+        BTLayer* pLevel2 = iter2->second;
+        const size_t count = (int)pLevel2->pBarrelQueue_->size();
+        bool isCombineLayer = false;
+        for (size_t i=0; i<count; ++i)
+        {
+            docid_t baseDoc = pLevel2->pBarrelQueue_->getAt(i)->baseDocID();
+            // equal is used in case of some barrel is empty
+            if((baseDoc >= range1.first) && (baseDoc <= range1.second))
             {
-                docid_t baseDoc = pLevel2->pBarrelQueue_->getAt(nEntry)->baseDocID();
-                if((baseDoc > startDoc) && (baseDoc < endDoc))
-                {
-                    needToMergeUpperLayer = true;
-                    break;
-                }
+                isCombineLayer = true;
+                break;
             }
-            if(needToMergeUpperLayer)
-            {
-                ///copy elements to upper level
-                while (pLevel1->pBarrelQueue_->size() >0)
-                {
-                    pLevel2->pBarrelQueue_->put(pLevel1->pBarrelQueue_->pop());
-                }
-                pLevel2->nLevelSize_ += pLevel1->nLevelSize_;
-                pLevel1->nLevelSize_ = 0;
-                pLevel1 = pLevel2;
-                nTriggers++;
-            }
+        }
+        if(isCombineLayer)
+        {
+            pLevel1 = combineLayer(pLevel1, pLevel2);
+            range1 = pLevel1->getBaseDocIDRange();
         }
     }
 
-    ///merge
+    // merge and clear the level
     if (pLevel1->pBarrelQueue_->size() > 0)
     {
-        nCurLevelSize_ = pLevel1->nLevelSize_;
         pLevel1->nLevelSize_ = 0;
         pIndexMerger_->mergeBarrel(pLevel1->pBarrelQueue_);
         pLevel1->increaseMergeTimes();
-        nCurLevelSize_ = 1;
     }
 }
+
 int BTPolicy::getLevel(int64_t nLevelSize)
 {
     if (nLevelSize <= 0)
         return 0;
 
     int level = 0;
-    while( ( level < MAXLEVEL) && (nLevelSize >= (int)pow(3.0,(double)(level + 1)) ) )
+    int maxSize = 1;
+    for(; level < MAXLEVEL; ++level)
     {
-        level++;
+        maxSize *= 3;
+        if(nLevelSize < maxSize)
+            break;
     }
 
-    if(nCMap_.empty())
-    {
-        int nC = COLLISION_FACTOR_FOR_LEVEL_1;
-        for(int i = 0; i < MAXLEVEL; i++)
-        {
-            nCMap_[i] = nC;
-        }
-    }
     return level;
+}
+
+BTPolicy::BTLayer* BTPolicy::combineLayer(BTLayer* pLayer1, BTLayer* pLayer2) const
+{
+    assert(pLayer1 != pLayer2
+        && pLayer1->nLevel_ != pLayer2->nLevel_);
+
+    BTLayer* pLower = pLayer1;
+    BTLayer* pHigher = pLayer2;
+    if(pLower->nLevel_ > pHigher->nLevel_)
+        swap(pLower, pHigher);
+
+    // copy elements to upper level
+    while (pLower->pBarrelQueue_->size() >0)
+        pHigher->pBarrelQueue_->put(pLower->pBarrelQueue_->pop());
+
+    pHigher->nLevelSize_ += pLower->nLevelSize_;
+    pLower->nLevelSize_ = 0;
+
+    return pHigher;
 }
 
 }
