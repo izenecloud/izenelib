@@ -168,6 +168,7 @@ bool my_init_unit_test()
     tsIndexReader->add(BOOST_PARAM_TEST_CASE(&t_IndexReader::index, pConfigStart, pConfigEnd));
     tsIndexReader->add(BOOST_PARAM_TEST_CASE(&t_IndexReader::update, pConfigStart, pConfigEnd));
     tsIndexReader->add(BOOST_PARAM_TEST_CASE(&t_IndexReader::remove, pConfigStart, pConfigEnd));
+    tsIndexReader->add(BOOST_PARAM_TEST_CASE(&t_IndexReader::empty, pConfigStart, pConfigEnd));
     framework::master_test_suite().add(tsIndexReader);
 
     test_suite* tsBarrelsInfo = BOOST_TEST_SUITE("t_BarrelsInfo");
@@ -175,12 +176,14 @@ bool my_init_unit_test()
     tsBarrelsInfo->add(BOOST_PARAM_TEST_CASE(&t_BarrelsInfo::optimize, pConfigStart, pConfigEnd));
     tsBarrelsInfo->add(BOOST_PARAM_TEST_CASE(&t_BarrelsInfo::createAfterOptimize, pConfigStart, pConfigEnd));
     tsBarrelsInfo->add(BOOST_PARAM_TEST_CASE(&t_BarrelsInfo::pauseResumeMerge, pConfigStart, pConfigEnd));
+    tsBarrelsInfo->add(BOOST_PARAM_TEST_CASE(&t_BarrelsInfo::empty, pConfigStart, pConfigEnd));
     framework::master_test_suite().add(tsBarrelsInfo);
 
     test_suite* tsTermDocFreqs = BOOST_TEST_SUITE("t_TermDocFreqs");
     tsTermDocFreqs->add(BOOST_PARAM_TEST_CASE(&t_TermDocFreqs::index, pConfigStart, pConfigEnd));
-    tsTermDocFreqs->add(BOOST_PARAM_TEST_CASE(&t_TermDocFreqs::update, pConfigStart, pConfigEnd));
     tsTermDocFreqs->add(BOOST_PARAM_TEST_CASE(&t_TermDocFreqs::remove, pConfigStart, pConfigEnd));
+    tsTermDocFreqs->add(BOOST_PARAM_TEST_CASE(&t_TermDocFreqs::update, pConfigStart, pConfigEnd));
+    tsTermDocFreqs->add(BOOST_PARAM_TEST_CASE(&t_TermDocFreqs::empty, pConfigStart, pConfigEnd));
     framework::master_test_suite().add(tsTermDocFreqs);
 
     return true;

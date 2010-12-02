@@ -171,5 +171,27 @@ inline void pauseResumeMerge(const IndexerTestConfig& config)
     VLOG(2) << "<= t_BarrelsInfo::pauseResumeMerge";
 }
 
+/**
+ * Check empty barrel status.
+ */
+inline void empty(const IndexerTestConfig& config)
+{
+    VLOG(2) << "=> t_BarrelsInfo::empty";
+
+    IndexerTestFixture fixture;
+    fixture.configTest(config);
+
+    Indexer* pIndexer = fixture.getIndexer();
+
+    IndexReader* pIndexReader = pIndexer->getIndexReader();
+    BarrelsInfo* pBarrelsInfo = pIndexReader->getBarrelsInfo();
+
+    BOOST_CHECK_EQUAL(pBarrelsInfo->maxDocId(), 0);
+    BOOST_CHECK_EQUAL(pBarrelsInfo->getDocCount(), 0);
+    BOOST_CHECK_EQUAL(pBarrelsInfo->getBarrelCount(), 0);
+
+    VLOG(2) << "<= t_BarrelsInfo::empty";
+}
+
 }
 #endif

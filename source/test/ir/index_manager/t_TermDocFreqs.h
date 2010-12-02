@@ -20,6 +20,11 @@ class TermDocFreqsTestFixture: public IndexerTestFixture
 {
 public:
     /**
+     * Default Constructor.
+     */
+    TermDocFreqsTestFixture();
+
+    /**
      * Print below statistics:
      * - doc count
      * - unique term count
@@ -94,12 +99,19 @@ private:
      */
     void nextOrSkipTo(TermDocFreqs* pTermDocFreqs, docid_t docID, bool isDocRemoved);
 
+    /**
+     * Reset random number generator @c docLenRand2_ and @c termIDRand2_.
+     */
+    void resetRand2();
+
 private:
     ///< termid => (doc freq, collection term freq)
     typedef map<termid_t, pair<freq_t, int64_t> > CTermIdMapT;
     CTermIdMapT mapCTermId_;
-};
 
+    RandGeneratorT docLenRand2_; ///< regenerate how many docs in @c checkNextSkipToImpl() and @c removeFixtureDocs()
+    RandGeneratorT termIDRand2_; ///< regenerate the term ids in @c checkNextSkipToImpl() and @c removeFixtureDocs()
+};
 
 inline void index(const IndexerTestConfig& config)
 {
@@ -162,6 +174,19 @@ inline void update(const IndexerTestConfig& config)
     }
 
     VLOG(2) << "<= t_TermDocFreqs::update";
+}
+
+inline void empty(const IndexerTestConfig& config)
+{
+    VLOG(2) << "=> t_TermDocFreqs::empty";
+
+    TermDocFreqsTestFixture fixture;
+    fixture.configTest(config);
+
+    fixture.checkTermDocFreqs();
+    fixture.checkNextSkipTo();
+
+    VLOG(2) << "<= t_TermDocFreqs::empty";
 }
 
 }

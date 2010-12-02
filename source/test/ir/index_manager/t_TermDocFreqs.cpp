@@ -13,16 +13,29 @@
 
 namespace t_TermDocFreqs
 {
+TermDocFreqsTestFixture::TermDocFreqsTestFixture()
+    :docLenRand2_(docLenRand_)
+    ,termIDRand2_(termIDRand_)
+{
+}
+
+void TermDocFreqsTestFixture::resetRand2()
+{
+    boost::mt19937 newEngine;
+
+    docLenRand2_ = docLenRand_;
+    docLenRand2_.engine() = newEngine;
+    termIDRand2_ = termIDRand_;
+    termIDRand2_.engine() = newEngine;
+}
+
 void TermDocFreqsTestFixture::removeFixtureDocs(const std::list<docid_t>& removeDocList)
 {
     if(removeDocList.empty())
         return;
 
     // regenerate term ids for each doc
-    boost::mt19937 randEngine;
-    RandGeneratorT docLenRand(randEngine, docLenRand_.distribution());
-    RandGeneratorT termIDRand(randEngine, termIDRand_.distribution());
-
+    resetRand2();
     list<docid_t>::const_iterator removeIt = removeDocList.begin();
     for(docid_t docID = 1; docID <= maxDocID_; ++docID)
     {
@@ -34,10 +47,10 @@ void TermDocFreqsTestFixture::removeFixtureDocs(const std::list<docid_t>& remove
             BOOST_TEST_MESSAGE("remove term id for doc id: " << docID);
 #endif
 
-        const unsigned int docLen = docLenRand();
+        const unsigned int docLen = docLenRand2_();
         for(unsigned int j = 0; j < docLen; ++j)
         {
-            unsigned int termId = termIDRand();
+            unsigned int termId = termIDRand2_();
 #ifdef LOG_TERM_ID
             if(isDocRemoved)
                 BOOST_TEST_MESSAGE("remove term id: " << termId);
@@ -145,6 +158,14 @@ void TermDocFreqsTestFixture::checkTermDocFreqsImpl()
     IndexReader* pIndexReader = indexer_->getIndexReader();
     boost::scoped_ptr<TermReader> pTermReader(pIndexReader->getTermReader(COLLECTION_ID));
 
+    if(mapDocIdLen_.empty())
+    {
+        // TermReader should be NULL when no doc exists
+        BOOST_CHECK(pTermReader.get() == NULL);
+        VLOG(2) << "<= TermDocFreqsTestFixture::checkTermDocFreqsImpl(), no doc exists";
+        return;
+    }
+
 #ifdef LOG_QUERY_OPERATION
     BOOST_TEST_MESSAGE("check TermDocFreqs::docFreq(), getCTF() on " << mapCTermId_.size() << " terms.");
 #endif
@@ -191,18 +212,15 @@ void TermDocFreqsTestFixture::checkNextSkipToImpl()
     }
 
     // regenerate term ids for each doc
-    boost::mt19937 randEngine;
-    RandGeneratorT docLenRand(randEngine, docLenRand_.distribution());
-    RandGeneratorT termIDRand(randEngine, termIDRand_.distribution());
-
+    resetRand2();
     for(docid_t docID = 1; docID <= maxDocID_; ++docID)
     {
         DTermIdMapT docTermIdMap;
 
-        const unsigned int docLen = docLenRand();
+        const unsigned int docLen = docLenRand2_();
         for(unsigned int j = 0; j < docLen; ++j)
         {
-            unsigned int termId = termIDRand();
+            unsigned int termId = termIDRand2_();
             docTermIdMap[termId].push_back(j);
         }
 

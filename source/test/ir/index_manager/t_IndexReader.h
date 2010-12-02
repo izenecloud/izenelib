@@ -113,5 +113,17 @@ inline void remove(const IndexerTestConfig& config)
     VLOG(2) << "<= t_IndexReader::remove";
 }
 
+inline void empty(const IndexerTestConfig& config)
+{
+    VLOG(2) << "=> t_IndexReader::empty";
+
+    IndexReaderTestFixture fixture;
+    fixture.configTest(config);
+
+    fixture.checkDocLength();
+
+    VLOG(2) << "<= t_IndexReader::empty";
+}
+
 }
 #endif
