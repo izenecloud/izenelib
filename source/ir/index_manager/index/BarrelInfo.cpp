@@ -461,9 +461,12 @@ void BarrelsInfo::remove(Directory* pDirectory)
         SF1V5_THROW(ERROR_FILEIO,"BarrelsInfo::remove():remove failed.");
     }
 }
-void BarrelsInfo::removeBarrel(Directory* pDirectory,const string& barrelname)
+void BarrelsInfo::removeBarrel(Directory* pDirectory,const string& barrelname, bool bLock)
 {
-    boost::mutex::scoped_lock lock(mutex_);
+    boost::defer_lock_t defer_lock;
+    boost::mutex::scoped_lock lock(mutex_, defer_lock);
+    if(bLock)
+        lock.lock();
 
     BarrelInfo* pBInfo = NULL;
 
@@ -484,6 +487,7 @@ void BarrelsInfo::removeBarrel(Directory* pDirectory,const string& barrelname)
         iter++;
     }
 }
+
 const string BarrelsInfo::newBarrel()
 {
     boost::mutex::scoped_lock lock(mutex_);
@@ -492,21 +496,16 @@ const string BarrelsInfo::newBarrel()
     nBarrelCounter ++;
     return sName;
 }
-void BarrelsInfo::addBarrel(const char* name,count_t docCount,CompressionType compressType)
+
+void BarrelsInfo::addBarrel(BarrelInfo* pBarrelInfo, bool bLock)
 {
-    boost::mutex::scoped_lock lock(mutex_);
-    BarrelInfo* barrelInfo = new BarrelInfo(name,docCount,compressType);
-    barrelInfos.push_back(barrelInfo);
-    DVLOG(2) << "BarrelsInfo::addBarrel(), barrel name: " << name << ", doc count: " << docCount;
-}
-void BarrelsInfo::addBarrel(BarrelInfo* pBarrelInfo,bool bCopy)
-{
-    boost::mutex::scoped_lock lock(mutex_);
-    BarrelInfo* barrelInfo ;
-    if (bCopy)
-        barrelInfo = new BarrelInfo(pBarrelInfo);
-    else barrelInfo = pBarrelInfo;
-    barrelInfos.push_back(barrelInfo);
+    boost::defer_lock_t defer_lock;
+    boost::mutex::scoped_lock lock(mutex_, defer_lock);
+    if(bLock)
+        lock.lock();
+
+    barrelInfos.push_back(pBarrelInfo);
+
     DVLOG(2) << "BarrelsInfo::addBarrel(), barrel name: " << pBarrelInfo->getName() << ", doc count: " << pBarrelInfo->getDocCount();
 }
 

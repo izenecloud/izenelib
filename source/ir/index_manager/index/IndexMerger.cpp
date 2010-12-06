@@ -356,8 +356,7 @@ BarrelInfo* IndexMerger::createNewBarrelInfo(MergeBarrelQueue* pBarrelQueue, con
     }
 
     DVLOG(2)<< "IndexMerger::createNewBarrelInfo() => acquiring lock of Indexer::mutex_ ...";
-    izenelib::util::ScopedWriteLock<izenelib::util::ReadWriteLock> lock(pIndexer_->mutex_);
-    DVLOG(2)<< "IndexMerger::createNewBarrelInfo() <= acquired lock of Indexer::mutex_";
+    izenelib::util::ScopedWriteLock<izenelib::util::ReadWriteLock> indexerLock(pIndexer_->mutex_);
 
     count_t nNumDocs = 0;
     ///update min doc id of index barrels,let doc id continuous
@@ -365,6 +364,9 @@ BarrelInfo* IndexMerger::createNewBarrelInfo(MergeBarrelQueue* pBarrelQueue, con
     docid_t maxDocOfNewBarrel = 0;
 
     // delete all merged barrels
+    DVLOG(2)<< "IndexMerger::createNewBarrelInfo() => acquiring lock of BarrelsInfo::mutex_ ...";
+    boost::mutex::scoped_lock barrelLock(pBarrelsInfo_->getMutex());
+
     int32_t nEntryCount = (int32_t)pBarrelQueue->size();
     bool isNewBarrelUpdateBarrel = true;
     for (int32_t nEntry = 0;nEntry < nEntryCount;nEntry++)
@@ -388,7 +390,8 @@ BarrelInfo* IndexMerger::createNewBarrelInfo(MergeBarrelQueue* pBarrelQueue, con
             }
         }
 
-        pBarrelsInfo_->removeBarrel(pDirectory_,pEntry->pBarrelInfo_->getName());///delete merged barrels
+        ///delete merged barrels
+        pBarrelsInfo_->removeBarrel(pDirectory_, pEntry->pBarrelInfo_->getName(), false);
     }
 
     pBarrelQueue->clear();
@@ -398,7 +401,7 @@ BarrelInfo* IndexMerger::createNewBarrelInfo(MergeBarrelQueue* pBarrelQueue, con
     pNewBarrelInfo->setBaseDocID(newBaseDocIDMap);
     pNewBarrelInfo->updateMaxDoc(maxDocOfNewBarrel);
     pNewBarrelInfo->isUpdate = isNewBarrelUpdateBarrel;
-    pBarrelsInfo_->addBarrel(pNewBarrelInfo,false);
+    pBarrelsInfo_->addBarrel(pNewBarrelInfo, false);
 
     DVLOG(2)<< "<= IndexMerger::createNewBarrelInfo(), new barrel doc count: " << pNewBarrelInfo->getDocCount();
 

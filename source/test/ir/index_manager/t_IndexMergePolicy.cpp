@@ -114,7 +114,7 @@ BarrelInfo* newBarrelInfo(BarrelsInfo* pBarrelsInfo, int docNum)
     pNewBarrelInfo->maxDocId = pBarrelsInfo->maxDocId() + docNum;
     pNewBarrelInfo->setSearchable(true);
     pNewBarrelInfo->setWriter(NULL);
-    pBarrelsInfo->addBarrel(pNewBarrelInfo,false);
+    pBarrelsInfo->addBarrel(pNewBarrelInfo);
     pBarrelsInfo->updateMaxDoc(pNewBarrelInfo->maxDocId);
 
     return pNewBarrelInfo;
