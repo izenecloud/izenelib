@@ -52,29 +52,42 @@ inline void index(const IndexerTestConfig& config)
 {
     VLOG(2) << "=> t_IndexReader::index";
 
-    IndexReaderTestFixture fixture;
-    fixture.configTest(config);
-
-    // create barrels
-    for(int i=0; i<config.iterNum_; ++i)
     {
-        fixture.createDocument();
-        fixture.checkDocLength();
+        IndexReaderTestFixture fixture;
+        fixture.configTest(config);
+
+        // create barrels
+        for(int i=0; i<config.iterNum_; ++i)
+        {
+            fixture.createDocument();
+            fixture.checkDocLength();
+        }
     }
 
-    // new Indexer instance
-    fixture.renewIndexer();
-    //using "realtime" mode
-    IndexerTestConfig newConfig = config;
-    newConfig.indexMode_ = "realtime";
-    fixture.configTest(newConfig);
-
-    fixture.checkDocLength();
-    for(int i=0; i<config.iterNum_; ++i)
     {
-        fixture.createDocument();
+        // new Indexer instance,
+        // while keep original index files
+        IndexReaderTestFixture fixture;
+        fixture.setRealIndex(false);
+
+        IndexerTestConfig newConfig = config;
+        newConfig.indexMode_ = "realtime"; //using "realtime" mode
+        fixture.configTest(newConfig);
+
+        // re-generate random numbers to check
+        for(int i=0; i<config.iterNum_; ++i)
+            fixture.createDocument();
         fixture.checkDocLength();
+
+        // create new index files
+        fixture.setRealIndex(true);
+        for(int i=0; i<config.iterNum_; ++i)
+        {
+            fixture.createDocument();
+            fixture.checkDocLength();
+        }
     }
+
     VLOG(2) << "<= t_IndexReader::index";
 }
 

@@ -33,8 +33,8 @@ IndexerTestFixture::IndexerTestFixture()
     ,docNumRand_(randEngine_, uniform_int<>(1, 1))
     ,skipToRand_(randEngine_, uniform_int<>(0, 1))
     ,maxDocID_(0)
+    ,isRealIndex_(true)
 {
-    removeIndexFiles();
 }
 
 IndexerTestFixture::~IndexerTestFixture()
@@ -42,12 +42,6 @@ IndexerTestFixture::~IndexerTestFixture()
     VLOG(2) << "=> IndexerTestFixture::~IndexerTestFixture()";
     delete indexer_;
     VLOG(2) << "<= IndexerTestFixture::~IndexerTestFixture()";
-}
-
-void IndexerTestFixture::renewIndexer()
-{
-    delete indexer_;
-    indexer_ = new Indexer;
 }
 
 void IndexerTestFixture::configTest(const IndexerTestConfig& testConfig)
@@ -64,6 +58,9 @@ void IndexerTestFixture::configTest(const IndexerTestConfig& testConfig)
         docLenRand_.distribution() = uniform_int<>(1, 10 * newDocNum_);
         termIDRand_.distribution() = uniform_int<>(1, 100 * newDocNum_);
     }
+
+    if(isRealIndex_)
+        removeIndexFiles();
 
     IndexManagerConfig indexManagerConfig;
     boost::filesystem::path path(INDEX_FILE_DIR);
@@ -118,10 +115,13 @@ void IndexerTestFixture::createDocument()
 #endif
         IndexerDocument document;
         prepareDocument(document, docID);
-        BOOST_CHECK_EQUAL(indexer_->insertDocument(document), 1);
+
+        if(isRealIndex_)
+            BOOST_CHECK_EQUAL(indexer_->insertDocument(document), 1);
     }
 
-    indexer_->flush();
+    if(isRealIndex_)
+        indexer_->flush();
     VLOG(2) << "<= IndexerTestFixture::createDocument()";
 }
 
@@ -159,7 +159,9 @@ void IndexerTestFixture::updateDocument()
         IndexerDocument document;
         document.setId(it->first);
         prepareDocument(document, newDocID);
-        BOOST_CHECK_EQUAL(indexer_->updateDocument(document), 1);
+
+        if(isRealIndex_)
+            BOOST_CHECK_EQUAL(indexer_->updateDocument(document), 1);
 
         removeDocList.push_back(it->first);
         mapDocIdLen_.erase(it);
@@ -168,7 +170,8 @@ void IndexerTestFixture::updateDocument()
     removeDocList.sort();
     removeFixtureDocs(removeDocList);
 
-    indexer_->flush();
+    if(isRealIndex_)
+        indexer_->flush();
     VLOG(2) << "<= IndexerTestFixture::updateDocument()";
 }
 
@@ -194,7 +197,10 @@ void IndexerTestFixture::removeDocument()
 #ifdef LOG_DOC_OPERATION
         BOOST_TEST_MESSAGE("remove doc id: " << it->first);
 #endif
-        indexer_->removeDocument(COLLECTION_ID, it->first);
+
+        if(isRealIndex_)
+            indexer_->removeDocument(COLLECTION_ID, it->first);
+
         removeDocList.push_back(it->first);
         mapDocIdLen_.erase(it);
     }
@@ -203,13 +209,18 @@ void IndexerTestFixture::removeDocument()
     removeFixtureDocs(removeDocList);
 
     // remove doc id exceed the range
-    docid_t overId = maxDocID_ + 1;
+    if(isRealIndex_)
+    {
+        docid_t overId = maxDocID_ + 1;
 #ifdef LOG_DOC_OPERATION
-    BOOST_TEST_MESSAGE("remove exceed doc id: " << overId);
+        BOOST_TEST_MESSAGE("remove exceed doc id: " << overId);
 #endif
-    indexer_->removeDocument(COLLECTION_ID, overId);
+        indexer_->removeDocument(COLLECTION_ID, overId);
+    }
 
-    indexer_->flush();
+    if(isRealIndex_)
+        indexer_->flush();
+
     VLOG(2) << "<= IndexerTestFixture::removeDocument()";
 }
 

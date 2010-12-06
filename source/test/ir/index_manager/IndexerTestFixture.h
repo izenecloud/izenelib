@@ -96,6 +96,13 @@ protected:
     ///< termid => term position list of one doc
     typedef map<termid_t, LocListT> DTermIdMapT;
 
+    /**
+     * True to clear index files in @c configTest() and create true index files,
+     * false to keep original index files in and not create true index files,
+     * it just re-generates the random numbers to check.
+     */
+    bool isRealIndex_;
+
 public:
     /**
      * Default Constructor.
@@ -124,10 +131,16 @@ public:
     const IndexerTestConfig& getTestConfig() const { return testConfig_; }
 
     /**
-     * Destroy the Indexer instance, and create a new one.
-     * This function is used to simulate restarting Indexer.
+     * Set the flag of @c isRealIndex_.
+     * @param isReal true for real index, false for not real index.
      */
-    void renewIndexer();
+    void setRealIndex(bool isReal) { isRealIndex_ = isReal; }
+
+    /**
+     * Get the flag of @c isRealIndex_.
+     * @return true for real index, false for not real index.
+     */
+    bool isRealIndex() const { return isRealIndex_; }
 
     /**
      * Whether documents exist in current test status.
