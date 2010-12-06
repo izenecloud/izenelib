@@ -14,6 +14,8 @@
 #include <ir/index_manager/index/CollectionInfo.h>
 #include <ir/index_manager/utility/BitVector.h>
 
+#include <string>
+
 NS_IZENELIB_IR_BEGIN
 
 namespace indexmanager{
@@ -29,6 +31,7 @@ public:
 
 public:
     inline count_t numDocs() { return pBarrelInfo_->getDocCount();}
+    const std::string& barrelName() { return pBarrelInfo_->getName(); }
     ///load barrel info from both memory or disk index files
     void load();
 

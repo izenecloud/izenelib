@@ -9,6 +9,7 @@
 #include <ir/index_manager/index/IndexMergePolicy.h>
 #include <ir/index_manager/index/IndexMerger.h>
 #include <ir/index_manager/utility/StringUtils.h>
+#include <util/izene_log.h>
 
 #include <utility> //pair
 #include <cassert>
@@ -44,6 +45,11 @@ public:
 
         void add(MergeBarrelEntry* pEntry)
         {
+            DVLOG(2) << "BTLayer::add() => pEntry barrel name: " << pEntry->barrelName()
+                     << ", pEntry doc count: " << pEntry->numDocs()
+                     << ", nLevel_: " << nLevel_
+                     << ", nLevelSize_: " << nLevelSize_
+                     << ", nMergeTimes_: " << nMergeTimes_;
             pBarrelQueue_->put(pEntry);
         }
 
