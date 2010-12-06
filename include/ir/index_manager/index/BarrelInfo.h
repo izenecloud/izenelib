@@ -274,9 +274,17 @@ public:
 public:
     const string newBarrel();
 
-    void addBarrel(const char* name,count_t docCount,CompressionType compressType = BYTEALIGN);
-
-    void addBarrel(BarrelInfo* pBarrelInfo,bool bCopy = true);
+    /**
+     * Add @p pBarrelInfo into @c barrelInfos.
+     * @p pBarrelInfo pointer to the BarrelInfo to add
+     * @p bLock whether to acquire the lock of @c mutex_ before add @p pBarrelInfo
+     * @note this function might be called with @c next() concurrently,
+     * to avoid invalidate @c barrelsiterator,
+     * if @p bLock is true, this function would first acquire the lock of @c mutex_,
+     * if @p bLock is false, the caller should ensure the lock of @c mutex_
+     * has been acquired before calling this function.
+     */
+    void addBarrel(BarrelInfo* pBarrelInfo, bool bLock = true);
 
     void read(Directory* pDirectory, const char* name = BARRELS_INFONAME);
 
@@ -284,7 +292,13 @@ public:
 
     void remove(Directory* pDirectory);
 
-    void removeBarrel(Directory* pDirectory,const string& barrelname);
+    /**
+     * Remove the BarrelInfo and its files of barrel @p barrelname.
+     * @p pDirectory pointer to file system interface used to remove files
+     * @p barrelname the name of barrel to remove
+     * @note the same to the note of @c addBarrel().
+     */
+    void removeBarrel(Directory* pDirectory, const string& barrelname, bool bLock = true);
     /// get number of barrels
     int32_t getBarrelCount();
     /// counter of barrel name
@@ -308,6 +322,12 @@ public:
 
     BarrelInfo* operator [](int32_t i) { return barrelInfos[i];}
 
+    /**
+     * Move the iterator of BarrelInfo to the first one.
+     * @note as @c next() might be called with @c addBarrel() or @c removeBarrel() concurrently,
+     * to avoid invalidate @c barrelsiterator, the caller should ensure the lock of @c mutex_
+     * has been acquired before calling this function.
+     */
     void startIterator();
 
     bool hasNext();

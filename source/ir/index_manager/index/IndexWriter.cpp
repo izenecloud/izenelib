@@ -88,7 +88,7 @@ void IndexWriter::createBarrelInfo()
 
     pCurBarrelInfo_->setWriter(pIndexBarrelWriter_);
     pIndexBarrelWriter_->setBarrelInfo(pCurBarrelInfo_);
-    pBarrelsInfo_->addBarrel(pCurBarrelInfo_,false);
+    pBarrelsInfo_->addBarrel(pCurBarrelInfo_);
 
     DVLOG(2) << "<= IndexWriter::createBarrelInfo()";
 }
