@@ -1,5 +1,7 @@
 #include <sstream> // std::ostringstream
 #include <boost/test/unit_test.hpp>
+#include <boost/bind.hpp>
+#include <boost/ref.hpp>
 
 #include <ir/index_manager/index/IndexReader.h>
 #include <ir/index_manager/index/TermDocFreqs.h>
@@ -10,6 +12,29 @@
 
 //#define LOG_TERM_ID
 //#define LOG_QUERY_OPERATION
+
+namespace
+{
+/**
+ * run @p func until no @c IndexManagerException exception is thrown.
+ * @param func function object to run
+ */
+template<class Function> void runToSuccess(Function func) {
+    bool isSuccess = false;
+    while(! isSuccess)
+    {
+        try
+        {
+            func();
+            isSuccess = true;
+        }
+        catch(IndexManagerException& e)
+        {
+            LOG(ERROR) << "start query again as exception found: " << e.what();
+        }
+    }
+}
+}
 
 namespace t_TermDocFreqs
 {
@@ -108,6 +133,59 @@ void TermDocFreqsTestFixture::addFixtureDoc(const DTermIdMapT& docTermIdMap)
 #endif
 }
 
+void TermDocFreqsTestFixture::checkUpdateDocs(const std::list<docid_t>& updateDocList)
+{
+    VLOG(2) << "=> TermDocFreqsTestFixture::checkUpdateDocs()";
+
+    runToSuccess(boost::bind(&TermDocFreqsTestFixture::checkUpdateDocsImpl,
+                             this,
+                             cref(updateDocList)));
+
+    VLOG(2) << "<= TermDocFreqsTestFixture::checkUpdateDocs()";
+}
+
+void TermDocFreqsTestFixture::checkUpdateDocsImpl(const std::list<docid_t>& updateDocList)
+{
+    VLOG(2) << "=> TermDocFreqsTestFixture::checkUpdateDocsImpl()";
+
+    if(updateDocList.empty())
+    {
+        VLOG(2) << "<= TermDocFreqsTestFixture::checkUpdateDocsImpl(), updateDocList is empty";
+        return;
+    }
+
+    IndexReader* pIndexReader = indexer_->getIndexReader();
+    boost::scoped_ptr<TermReader> pTermReader(pIndexReader->getTermReader(COLLECTION_ID));
+
+    // regenerate term ids for each doc
+    resetRand2();
+    list<docid_t>::const_iterator updateIt = updateDocList.begin();
+    for(docid_t docID = 1; docID <= maxDocID_; ++docID)
+    {
+        DTermIdMapT docTermIdMap;
+
+        bool isDocUpdated = (docID == *updateIt);
+        const unsigned int docLen = docLenRand2_();
+        for(unsigned int j = 0; j < docLen; ++j)
+        {
+            unsigned int termId = termIDRand2_();
+
+            if(isDocUpdated)
+                docTermIdMap[termId].push_back(j);
+        }
+
+        if(isDocUpdated)
+        {
+            checkNextSkipToDoc(pTermReader.get(), docID, docTermIdMap);
+
+            if(++updateIt == updateDocList.end())
+                break;
+        }
+    }
+
+    VLOG(2) << "<= TermDocFreqsTestFixture::checkUpdateDocsImpl()";
+}
+
 void TermDocFreqsTestFixture::printStats() const
 {
     BOOST_TEST_MESSAGE("\nprinting statistics...");
@@ -125,28 +203,11 @@ void TermDocFreqsTestFixture::printStats() const
     BOOST_TEST_MESSAGE("sum of doc length: " << docLenSum << "\n");
 }
 
-void TermDocFreqsTestFixture::runToSuccess(PMF_T pmf)
-{
-    bool isFailed = true;
-    while(isFailed)
-    {
-        try
-        {
-            (this->*pmf)();
-            isFailed = false;
-        }
-        catch(IndexManagerException& e)
-        {
-            LOG(ERROR) << "start query again as exception found: " << e.what();
-        }
-    }
-}
-
 void TermDocFreqsTestFixture::checkTermDocFreqs()
 {
     VLOG(2) << "=> TermDocFreqsTestFixture::checkTermDocFreqs()";
 
-    runToSuccess(&TermDocFreqsTestFixture::checkTermDocFreqsImpl);
+    runToSuccess(boost::bind(&TermDocFreqsTestFixture::checkTermDocFreqsImpl, this));
 
     VLOG(2) << "<= TermDocFreqsTestFixture::checkTermDocFreqs()";
 }
@@ -191,7 +252,7 @@ void TermDocFreqsTestFixture::checkNextSkipTo()
 {
     VLOG(2) << "=> TermDocFreqsTestFixture::checkNextSkipTo()";
 
-    runToSuccess(&TermDocFreqsTestFixture::checkNextSkipToImpl);
+    runToSuccess(boost::bind(&TermDocFreqsTestFixture::checkNextSkipToImpl, this));
 
     VLOG(2) << "<= TermDocFreqsTestFixture::checkNextSkipTo()";
 }

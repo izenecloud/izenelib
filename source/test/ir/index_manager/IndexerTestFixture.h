@@ -167,7 +167,7 @@ protected:
      * it is called in @c updateDocument() and @c removeDocument(),
      * it is implemented as empty method in this class,
      * while those classes inheriting from it could override this method.
-     * @p removeDocument the doc ids which have been removed
+     * @param removeDocList the doc ids which have been removed
      * @pre @p removeDocList should be sorted by docid increasingly
      */
     virtual void removeFixtureDocs(const std::list<docid_t>& removeDocList) {}
@@ -177,9 +177,19 @@ protected:
      * it is called in @c prepareDocument(),
      * it is implemented as empty method in this class,
      * while those classes inheriting from it could override this method.
-     * @p docTermIdMap the map of term id and its position list in the doc
+     * @param docTermIdMap the map of term id and its position list in the doc
      */
     virtual void addFixtureDoc(const DTermIdMapT& docTermIdMap) {}
+
+    /**
+     * This function is used to check the doc ids in @p updateDocList have been removed or added,
+     * It is called in @c updateDocument(),
+     * it is implemented as empty method in this class,
+     * while those classes inheriting from it could override this method.
+     * @param updateDocList the doc ids which have been removed or added
+     * @pre @p updateDocList should be sorted by docid increasingly
+     */
+    virtual void checkUpdateDocs(const std::list<docid_t>& updateDocList) {}
 
 private:
     /**

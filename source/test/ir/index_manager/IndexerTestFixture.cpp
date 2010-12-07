@@ -9,6 +9,7 @@
 #include <boost/test/unit_test.hpp>
 #include <boost/filesystem.hpp>
 #include <boost/filesystem/path.hpp>
+#include <iterator> // advance
 
 #include "IndexerTestFixture.h"
 #include <ir/index_manager/index/LAInput.h>
@@ -122,6 +123,7 @@ void IndexerTestFixture::createDocument()
 
     if(isRealIndex_)
         indexer_->flush();
+
     VLOG(2) << "<= IndexerTestFixture::createDocument()";
 }
 
@@ -141,7 +143,7 @@ void IndexerTestFixture::updateDocument()
         return;
 
     const int updateNum = randDocNum();
-    list<docid_t> removeDocList;
+    list<docid_t> removeDocList, newDocList;
 #ifdef LOG_DOC_OPERATION
     BOOST_TEST_MESSAGE("start updating " << updateNum << " docs...");
 #endif
@@ -150,8 +152,7 @@ void IndexerTestFixture::updateDocument()
     {
         const int updatePos = randDocNum() - 1; // position starts from 0
         DocIdLenMapT::iterator it = mapDocIdLen_.begin();
-        for(int j=0; j<updatePos; ++j)
-            ++it;
+        advance(it, updatePos);
 
 #ifdef LOG_DOC_OPERATION
         BOOST_TEST_MESSAGE("update doc id: " << it->first << " to new doc id: " << newDocID);
@@ -164,14 +165,20 @@ void IndexerTestFixture::updateDocument()
             BOOST_CHECK_EQUAL(indexer_->updateDocument(document), 1);
 
         removeDocList.push_back(it->first);
+        newDocList.push_back(newDocID);
         mapDocIdLen_.erase(it);
     }
+
+    if(isRealIndex_)
+        indexer_->flush();
 
     removeDocList.sort();
     removeFixtureDocs(removeDocList);
 
-    if(isRealIndex_)
-        indexer_->flush();
+    list<docid_t> updateDocList(removeDocList);
+    updateDocList.splice(updateDocList.end(), newDocList);
+    checkUpdateDocs(updateDocList);
+
     VLOG(2) << "<= IndexerTestFixture::updateDocument()";
 }
 
@@ -191,8 +198,7 @@ void IndexerTestFixture::removeDocument()
     {
         const int removePos = randDocNum() - 1; // position starts from 0
         DocIdLenMapT::iterator it = mapDocIdLen_.begin();
-        for(int j=0; j<removePos; ++j)
-            ++it;
+        advance(it, removePos);
 
 #ifdef LOG_DOC_OPERATION
         BOOST_TEST_MESSAGE("remove doc id: " << it->first);
@@ -204,9 +210,6 @@ void IndexerTestFixture::removeDocument()
         removeDocList.push_back(it->first);
         mapDocIdLen_.erase(it);
     }
-
-    removeDocList.sort();
-    removeFixtureDocs(removeDocList);
 
     // remove doc id exceed the range
     if(isRealIndex_)
@@ -220,6 +223,9 @@ void IndexerTestFixture::removeDocument()
 
     if(isRealIndex_)
         indexer_->flush();
+
+    removeDocList.sort();
+    removeFixtureDocs(removeDocList);
 
     VLOG(2) << "<= IndexerTestFixture::removeDocument()";
 }

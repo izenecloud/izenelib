@@ -58,15 +58,16 @@ protected:
      */
     virtual void addFixtureDoc(const DTermIdMapT& docTermIdMap);
 
+    /**
+     * This function is used to check the doc ids in @p updateDocList have been removed or added.
+     * @param updateDocList the doc ids which have been removed or added
+     * @pre @p updateDocList should be sorted by docid increasingly
+     */
+    virtual void checkUpdateDocs(const std::list<docid_t>& updateDocList);
+
 private:
     /** the type of pointer to member function */
     typedef void (TermDocFreqsTestFixture::*PMF_T)();
-
-    /**
-     * run @p pmf until no @c IndexManagerException exception is thrown.
-     * @param pmf pointer to member function to run
-     */
-    void runToSuccess(PMF_T pmf);
 
     /**
      * The implementation for @c checkTermDocFreqs(),
@@ -103,6 +104,14 @@ private:
      * Reset random number generator @c docLenRand2_ and @c termIDRand2_.
      */
     void resetRand2();
+
+    /**
+     * This implementation for @c checkUpdateDocs(),
+     * it would throw @c IndexManagerException if query failed.
+     * @param updateDocList the doc ids which have been removed or added
+     * @pre @p updateDocList should be sorted by docid increasingly
+     */
+    void checkUpdateDocsImpl(const std::list<docid_t>& updateDocList);
 
 private:
     ///< termid => (doc freq, collection term freq)
@@ -164,14 +173,17 @@ inline void update(const IndexerTestConfig& config)
 
     for(int i=0; i<config.iterNum_; ++i)
     {
+        // each update is checked by TermDocFreqsTestFixture::checkUpdateDocs(),
+        // which is called by IndexerTestFixture::updateDocument() below
         fixture.updateDocument();
 
         // as TermDocFreqs::docFreq(), getCTF() fails to update after doc is removed
         // below test is commented out
         //fixture.checkTermDocFreqs();
-
-        fixture.checkNextSkipTo();
     }
+
+    // check whole collection
+    fixture.checkNextSkipTo();
 
     VLOG(2) << "<= t_TermDocFreqs::update";
 }
