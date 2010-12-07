@@ -149,7 +149,7 @@ void checkAddToMerge(IndexMergePolicy* pIndexMergePolicy, const BarrelConfig& ba
     }
 
     BOOST_CHECK_EQUAL(pBarrelsInfo->getBarrelCount(), barrelConfig.mergedBarrelNum_);
-    BOOST_CHECK_EQUAL(pBarrelsInfo->maxDocId(), docNumSum);
+    BOOST_CHECK_EQUAL(pBarrelsInfo->maxDocId(), static_cast<unsigned int>(docNumSum));
     BOOST_CHECK_EQUAL(pBarrelsInfo->getDocCount(), docNumSum);
 }
 
@@ -186,7 +186,7 @@ void checkOptimizeMerge(const BarrelConfig& barrelConfig)
     mockIndexMerger.merge(pBarrelsInfo);
 
     BOOST_CHECK_EQUAL(pBarrelsInfo->getBarrelCount(), newBarrelConfig.mergedBarrelNum_);
-    BOOST_CHECK_EQUAL(pBarrelsInfo->maxDocId(), docNumSum);
+    BOOST_CHECK_EQUAL(pBarrelsInfo->maxDocId(), static_cast<unsigned int>(docNumSum));
     BOOST_CHECK_EQUAL(pBarrelsInfo->getDocCount(), docNumSum);
 }
 

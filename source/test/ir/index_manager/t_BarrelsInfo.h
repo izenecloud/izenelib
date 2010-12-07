@@ -186,7 +186,7 @@ inline void empty(const IndexerTestConfig& config)
     IndexReader* pIndexReader = pIndexer->getIndexReader();
     BarrelsInfo* pBarrelsInfo = pIndexReader->getBarrelsInfo();
 
-    BOOST_CHECK_EQUAL(pBarrelsInfo->maxDocId(), 0);
+    BOOST_CHECK_EQUAL(pBarrelsInfo->maxDocId(), 0U);
     BOOST_CHECK_EQUAL(pBarrelsInfo->getDocCount(), 0);
     BOOST_CHECK_EQUAL(pBarrelsInfo->getBarrelCount(), 0);
 
