@@ -278,6 +278,7 @@ void Indexer::flush()
 {
     pIndexWriter_->flush();
     pBTreeIndexer_->flush();
+    pIndexReader_->flush();
 
     setDirty();
 }

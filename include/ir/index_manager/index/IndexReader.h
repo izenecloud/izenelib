@@ -70,6 +70,13 @@ public:
     izenelib::util::ReadWriteLock& getGlobalLock() { return pIndexer_->mutex_; }
 
     bool isDirty() {return pIndexer_->isDirty(); }
+
+    /**
+     * If the BitVector recording which docs are removed exists and any bit is set,
+     * write it to disk.
+     */
+    void flush();
+
 private:
     void createBarrelReader();
 

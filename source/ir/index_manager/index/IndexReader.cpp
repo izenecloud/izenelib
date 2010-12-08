@@ -38,14 +38,16 @@ IndexReader::~IndexReader()
         delete pBarrelReader_;
         pBarrelReader_ = NULL;
     }
-    if(pDocFilter_&& pDocFilter_->any())
+
+    flush();
+    delete pDocFilter_;
+    pDocFilter_ = NULL;
+
+    if(pDocLengthReader_)
     {
-        if(pIndexer_->getDirectory()->fileExists(DELETED_DOCS))
-            pIndexer_->getDirectory()->deleteFile(DELETED_DOCS);
-        pDocFilter_->write(pIndexer_->getDirectory(), DELETED_DOCS);
-        delete pDocFilter_;
+        delete pDocLengthReader_;
+        pDocLengthReader_ = NULL;
     }
-    if(pDocLengthReader_) {delete pDocLengthReader_; pDocLengthReader_ = NULL;}
 }
 
 void IndexReader::delDocFilter()
@@ -56,6 +58,12 @@ void IndexReader::delDocFilter()
             pIndexer_->getDirectory()->deleteFile(DELETED_DOCS);
         pDocFilter_->clear();
     }
+}
+
+void IndexReader::flush()
+{
+    if(pDocFilter_&& pDocFilter_->any())
+        pDocFilter_->write(pIndexer_->getDirectory(), DELETED_DOCS);
 }
 
 docid_t IndexReader::maxDoc()

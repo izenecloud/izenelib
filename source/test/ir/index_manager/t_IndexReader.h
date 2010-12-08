@@ -66,7 +66,7 @@ public:
         else
         {
             // file "docs.del" should exist
-            /*BOOST_CHECK(pDirectory->fileExists(DELETED_DOCS));*/
+            BOOST_CHECK(pDirectory->fileExists(DELETED_DOCS));
             // BitVector instance should be created
             BOOST_CHECK(pDocFilter != NULL);
             // BitVector size should be <= (maxDocID + 4), in case of BitVector::grow()
