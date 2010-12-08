@@ -70,7 +70,7 @@ public:
             // BitVector instance should be created
             BOOST_CHECK(pDocFilter != NULL);
             // BitVector size should be <= (maxDocID + 4), in case of BitVector::grow()
-            BOOST_CHECK_GT(pDocFilter->size(), 0);
+            BOOST_CHECK_GT(pDocFilter->size(), 0U);
             BOOST_CHECK_LE(pDocFilter->size(), getMaxDocID() + 4);
         }
 
