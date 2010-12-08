@@ -46,6 +46,36 @@ public:
 
         VLOG(2) << "<= IndexReaderTestFixture::checkDocLength()";
     }
+
+    /** Check @c BitVector, it is used to record which doc is removed. */
+    void checkDocFilter() {
+        VLOG(2) << "=> IndexReaderTestFixture::checkDocFilter()";
+
+        IndexReader* pIndexReader = indexer_->getIndexReader();
+        BitVector* pDocFilter = pIndexReader->getDocFilter();
+        Directory* pDirectory = indexer_->getDirectory();
+
+        // no doc is deleted
+        if(getMaxDocID() == static_cast<unsigned int>(getDocCount()))
+        {
+            // file "docs.del" should not exist
+            BOOST_CHECK(! pDirectory->fileExists(DELETED_DOCS));
+            // BitVector instance should not be created
+            BOOST_CHECK(pDocFilter == NULL);
+        }
+        else
+        {
+            // file "docs.del" should exist
+            /*BOOST_CHECK(pDirectory->fileExists(DELETED_DOCS));*/
+            // BitVector instance should be created
+            BOOST_CHECK(pDocFilter != NULL);
+            // BitVector size should be <= (maxDocID + 4), in case of BitVector::grow()
+            BOOST_CHECK_GT(pDocFilter->size(), 0);
+            BOOST_CHECK_LE(pDocFilter->size(), getMaxDocID() + 4);
+        }
+
+        VLOG(2) << "<= IndexReaderTestFixture::checkDocFilter()";
+    }
 };
 
 inline void index(const IndexerTestConfig& config)
@@ -61,6 +91,7 @@ inline void index(const IndexerTestConfig& config)
         {
             fixture.createDocument();
             fixture.checkDocLength();
+            fixture.checkDocFilter();
         }
     }
 
@@ -78,6 +109,7 @@ inline void index(const IndexerTestConfig& config)
         for(int i=0; i<config.iterNum_; ++i)
             fixture.createDocument();
         fixture.checkDocLength();
+        fixture.checkDocFilter();
 
         // create new index files
         fixture.setRealIndex(true);
@@ -85,6 +117,7 @@ inline void index(const IndexerTestConfig& config)
         {
             fixture.createDocument();
             fixture.checkDocLength();
+            fixture.checkDocFilter();
         }
     }
 
@@ -103,6 +136,7 @@ inline void update(const IndexerTestConfig& config)
     {
         fixture.updateDocument();
         fixture.checkDocLength();
+        fixture.checkDocFilter();
     }
 
     VLOG(2) << "<= t_IndexReader::update";
@@ -120,8 +154,8 @@ inline void remove(const IndexerTestConfig& config)
     {
         fixture.removeDocument();
         fixture.checkDocLength();
+        fixture.checkDocFilter();
     }
-    fixture.checkDocLength();
 
     VLOG(2) << "<= t_IndexReader::remove";
 }
@@ -134,6 +168,7 @@ inline void empty(const IndexerTestConfig& config)
     fixture.configTest(config);
 
     fixture.checkDocLength();
+    fixture.checkDocFilter();
 
     VLOG(2) << "<= t_IndexReader::empty";
 }

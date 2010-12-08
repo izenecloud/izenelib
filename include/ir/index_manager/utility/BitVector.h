@@ -183,9 +183,9 @@ private:
     }
 
 private:
-    unsigned char* bits_;
-    size_t size_;
-    size_t blockNum_;
+    unsigned char* bits_; ///< bit vector, each continuous 8 bits are represented as one byte
+    size_t size_; ///< size in bits
+    size_t blockNum_; ///< size in bytes
 };
 
 

@@ -180,12 +180,16 @@ void IndexReader::delDocument(collectionid_t colID,docid_t docId)
         DVLOG(2) << "IndexReader::findDocumentInBarrels(), no BarrelInfo found for collection id: " << colID << ", doc id: " << docId;
         return;
     }
-    pBarrelInfo->deleteDocument(docId);
+
     if(!pDocFilter_)
     {
-        pDocFilter_ = new BitVector(pBarrelsInfo_->getDocCount() + 1);
+        // bit 0 is reserved, so that for doc id i, we can access it just using bit i
+        pDocFilter_ = new BitVector(pBarrelsInfo_->maxDocId() + 1);
     }
+
+    pBarrelInfo->deleteDocument(docId);
     pDocFilter_->set(docId);
+
     DVLOG(4) << "<= IndexReader::delDocument()";
 }
 
