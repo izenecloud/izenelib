@@ -2,6 +2,9 @@
 #include <boost/date_time/gregorian/gregorian.hpp>
 #include <boost/date_time/local_time_adjustor.hpp>
 #include <boost/date_time/c_local_time_adjustor.hpp>
+#include <boost/thread.hpp>
+
+#include <cassert>
 
 #include <ir/index_manager/index/Indexer.h>
 #include <ir/index_manager/index/IndexWriter.h>
@@ -29,6 +32,18 @@ IndexWriter::IndexWriter(Indexer* pIndex)
     pBarrelsInfo_ = pIndexer_->getBarrelsInfo();
 
     pIndexMergeManager_ = new IndexMergeManager(pIndex);
+
+    // in order to resume merging previous barrels,
+    // add them into pIndexMergeManager_
+    BarrelInfo* pBarrelInfo = NULL;
+    boost::mutex::scoped_lock lock(pBarrelsInfo_->getMutex());
+    pBarrelsInfo_->startIterator();
+    while(pBarrelsInfo_->hasNext())
+    {
+        pBarrelInfo = pBarrelsInfo_->next();
+        assert(pBarrelInfo->getWriter() == NULL && "the loaded BarrelInfo should not be in-memory barrel");
+        pIndexMergeManager_->addToMerge(pBarrelInfo);
+    }
 }
 
 IndexWriter::~IndexWriter()

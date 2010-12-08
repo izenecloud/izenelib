@@ -177,6 +177,7 @@ bool my_init_unit_test()
     tsBarrelsInfo->add(BOOST_PARAM_TEST_CASE(&t_BarrelsInfo::createAfterOptimize, pConfigStart, pConfigEnd));
     tsBarrelsInfo->add(BOOST_PARAM_TEST_CASE(&t_BarrelsInfo::pauseResumeMerge, pConfigStart, pConfigEnd));
     tsBarrelsInfo->add(BOOST_PARAM_TEST_CASE(&t_BarrelsInfo::empty, pConfigStart, pConfigEnd));
+    tsBarrelsInfo->add(BOOST_PARAM_TEST_CASE(&t_BarrelsInfo::resumeMergeAtStartUp, pConfigStart, pConfigEnd));
     framework::master_test_suite().add(tsBarrelsInfo);
 
     test_suite* tsTermDocFreqs = BOOST_TEST_SUITE("t_TermDocFreqs");

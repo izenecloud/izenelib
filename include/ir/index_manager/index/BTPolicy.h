@@ -134,7 +134,6 @@ private:
     BTLayer* combineLayer(BTLayer* pLayer1, BTLayer* pLayer2) const;
 
 private:
-    const static int MAX_TRIGGERS = 5;
     const static int MAX_LAYER_SIZE = 100; ///< max size for each layer
 
     std::map<int,int> nCMap_; ///collision factor, when there are nC_ barrels in a same level, a merge will be trigged.

@@ -30,7 +30,7 @@ inline void index(const IndexerTestConfig& config)
     IndexerTestFixture fixture;
     IndexerTestConfig newConfig(config);
     // not to merge when offline mode, in order to check each barrel
-    if(newConfig.indexMode_.find("default") != std::string::npos)
+    if(newConfig.indexMode_ != IndexerTestFixture::INDEX_MODE_REALTIME)
         newConfig.isMerge_ = false;
     fixture.configTest(newConfig);
 
@@ -191,6 +191,93 @@ inline void empty(const IndexerTestConfig& config)
     BOOST_CHECK_EQUAL(pBarrelsInfo->getBarrelCount(), 0);
 
     VLOG(2) << "<= t_BarrelsInfo::empty";
+}
+
+/**
+ * At Indexer starting up, resume merging barrels created before.
+ */
+inline void resumeMergeAtStartUp(const IndexerTestConfig& config)
+{
+    VLOG(2) << "=> t_BarrelsInfo::resumeMergeAtStartUp";
+
+    IndexerTestConfig newConfig(config);
+
+    {
+        IndexerTestFixture fixture;
+        // turn off merge, in order to keep each barrel
+        newConfig.isMerge_ = false;
+        fixture.configTest(newConfig);
+
+        const int barrelNum = config.iterNum_;
+        for(int i=0; i<barrelNum; ++i)
+            fixture.createDocument(); // create barrel i
+
+        Indexer* pIndexer = fixture.getIndexer();
+        IndexReader* pIndexReader = pIndexer->getIndexReader();
+        BarrelsInfo* pBarrelsInfo = pIndexReader->getBarrelsInfo();
+
+        BOOST_CHECK_EQUAL(pBarrelsInfo->maxDocId(), fixture.getMaxDocID());
+        BOOST_CHECK_EQUAL(pBarrelsInfo->getDocCount(), fixture.getDocCount());
+
+        if(newConfig.indexMode_ != IndexerTestFixture::INDEX_MODE_REALTIME)
+            BOOST_CHECK_EQUAL(pBarrelsInfo->getBarrelCount(), barrelNum);
+    }
+
+    {
+        // new Indexer instance,
+        // while keep original index files
+        IndexerTestFixture fixture;
+        fixture.setRealIndex(false);
+
+        // turn on merge, in order to resume merge
+        newConfig.isMerge_ = true;
+        fixture.configTest(newConfig);
+
+        // re-generate random numbers to check
+        const int barrelNum = config.iterNum_;
+        for(int i=0; i<barrelNum; ++i)
+            fixture.createDocument();
+
+        Indexer* pIndexer = fixture.getIndexer();
+        // wait for merge finish
+        pIndexer->waitForMergeFinish();
+
+        IndexReader* pIndexReader = pIndexer->getIndexReader();
+        BarrelsInfo* pBarrelsInfo = pIndexReader->getBarrelsInfo();
+
+        BOOST_CHECK_EQUAL(pBarrelsInfo->maxDocId(), fixture.getMaxDocID());
+        BOOST_CHECK_EQUAL(pBarrelsInfo->getDocCount(), fixture.getDocCount());
+
+        if(newConfig.indexMode_ != IndexerTestFixture::INDEX_MODE_REALTIME)
+        {
+            // when merge is triggered
+            if(barrelNum >= 3)
+                BOOST_CHECK_LT(pBarrelsInfo->getBarrelCount(), barrelNum);
+        }
+
+        // create new index files
+        fixture.setRealIndex(true);
+        for(int i=0; i<barrelNum; ++i)
+            fixture.createDocument();
+
+        // wait for merge finish
+        pIndexer->waitForMergeFinish();
+
+        pIndexReader = pIndexer->getIndexReader();
+        pBarrelsInfo = pIndexReader->getBarrelsInfo();
+
+        BOOST_CHECK_EQUAL(pBarrelsInfo->maxDocId(), fixture.getMaxDocID());
+        BOOST_CHECK_EQUAL(pBarrelsInfo->getDocCount(), fixture.getDocCount());
+
+        if(newConfig.indexMode_ != IndexerTestFixture::INDEX_MODE_REALTIME)
+        {
+            // when merge is triggered
+            if(barrelNum >= 3)
+                BOOST_CHECK_LT(pBarrelsInfo->getBarrelCount(), 2 * barrelNum);
+        }
+    }
+
+    VLOG(2) << "<= t_BarrelsInfo::resumeMergeAtStartUp";
 }
 
 }

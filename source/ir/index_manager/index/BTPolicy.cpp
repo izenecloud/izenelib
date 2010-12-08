@@ -9,7 +9,6 @@ NS_IZENELIB_IR_BEGIN
 namespace indexmanager
 {
 
-#define NUMDOC_PER_BARREL 10000
 #define MAXLEVEL 30
 #define COLLISION_FACTOR_FOR_LEVEL_1 3
 
