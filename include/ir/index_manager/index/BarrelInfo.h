@@ -16,6 +16,7 @@
 #include <map>
 #include <set>
 #include <sstream>
+#include <cassert>
 
 #define BARRELS_INFONAME "barrels"
 
@@ -147,12 +148,23 @@ public:
      }
 
     /**
-     * after delete a document from a certain barrel, the document counter should be updated
+     * Decrease the document counter @c nNumDocs.
+     * @param docId doc id to delete
+     * @return true for success, false for fail (document counter is already 0)
      */
-    void deleteDocument(docid_t docId)
+    bool deleteDocument(docid_t docId)
     {
+        assert(getBaseDocID() <= docId && getMaxDocID() >= docId);
+
         if(nNumDocs > 0)
+        {
             --nNumDocs;
+            return true;
+        }
+
+        DVLOG(2) << "BarrelInfo::deleteDocument() failed, nNumDocs: " << nNumDocs;
+        return false;
+
         ///TODO  maxDocId issue
     }
 
@@ -337,6 +349,16 @@ public:
     boost::mutex& getMutex() { return mutex_; }
 
     void setSearchable();
+
+    /**
+     * Find the barrel which doc range includes @p docId to delete,
+     * then decrease the document counter of that barrel.
+     * @param colId collection id
+     * @param docId doc id to delete
+     * @return true for success, false for fail (no barrel is found to include @p docId)
+     */
+    bool deleteDocument(collectionid_t colId, docid_t docId);
+
 private:
     string version;
 

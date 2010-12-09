@@ -69,6 +69,8 @@ public:
 
     izenelib::util::ReadWriteLock& getGlobalLock() { return pIndexer_->mutex_; }
 
+    boost::mutex& getDocFilterMutex() { return docFilterMutex_; }
+
     bool isDirty() {return pIndexer_->isDirty(); }
 
     /**
@@ -80,9 +82,6 @@ public:
 private:
     void createBarrelReader();
 
-    ///find which barrel the document lies
-    BarrelInfo* findDocumentInBarrels(collectionid_t colID, docid_t docID);
-
 private:
     Indexer* pIndexer_; ///reference to index object
 
@@ -93,6 +92,8 @@ private:
     mutable boost::mutex mutex_;
 
     BitVector* pDocFilter_;
+
+    boost::mutex docFilterMutex_; /// mutex for pDocFilter_
 
     DocLengthReader* pDocLengthReader_;
 

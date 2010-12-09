@@ -52,12 +52,14 @@ IndexReader::~IndexReader()
 
 void IndexReader::delDocFilter()
 {
+    DVLOG(2) << "=> IndexReader::delDocFilter(), pDocFilter_: " << pDocFilter_;
     if(pDocFilter_)
     {
         if(pIndexer_->getDirectory()->fileExists(DELETED_DOCS))
             pIndexer_->getDirectory()->deleteFile(DELETED_DOCS);
         pDocFilter_->clear();
     }
+    DVLOG(2) << "<= IndexReader::delDocFilter()";
 }
 
 void IndexReader::flush()
@@ -163,40 +165,22 @@ count_t IndexReader::numDocs()
     return pBarrelsInfo_->getDocCount();
 }
 
-BarrelInfo* IndexReader::findDocumentInBarrels(collectionid_t colID, docid_t docID)
-{
-    for (int i = pBarrelsInfo_->getBarrelCount() - 1; i >= 0; i--)
-    {
-        BarrelInfo* pBarrelInfo = (*pBarrelsInfo_)[i];
-        if (pBarrelInfo->baseDocIDMap.find(colID) != pBarrelInfo->baseDocIDMap.end()
-                && pBarrelInfo->baseDocIDMap[colID] <= docID
-                && pBarrelInfo->getMaxDocID() >= docID
-                && pBarrelInfo->getDocCount() > 0)
-            return pBarrelInfo;
-    }
-    return NULL;
-}
-
 void IndexReader::delDocument(collectionid_t colID,docid_t docId)
 {
     DVLOG(4) << "=> IndexReader::delDocument(), collection id: " << colID << ", doc id: " << docId << " ...";
 
-    izenelib::util::ScopedReadLock<izenelib::util::ReadWriteLock> lock(pIndexer_->mutex_);
-    BarrelInfo* pBarrelInfo = findDocumentInBarrels(colID, docId);
-    if(NULL == pBarrelInfo)
+    if(pBarrelsInfo_->deleteDocument(colID, docId))
     {
-        DVLOG(2) << "IndexReader::findDocumentInBarrels(), no BarrelInfo found for collection id: " << colID << ", doc id: " << docId;
-        return;
-    }
+        boost::mutex::scoped_lock docFilterLock(docFilterMutex_);
 
-    if(!pDocFilter_)
-    {
-        // bit 0 is reserved, so that for doc id i, we can access it just using bit i
-        pDocFilter_ = new BitVector(pBarrelsInfo_->maxDocId() + 1);
-    }
+        if(!pDocFilter_)
+        {
+            // bit 0 is reserved, so that for doc id i, we can access it just using bit i
+            pDocFilter_ = new BitVector(pBarrelsInfo_->maxDocId() + 1);
+        }
 
-    pBarrelInfo->deleteDocument(docId);
-    pDocFilter_->set(docId);
+        pDocFilter_->set(docId);
+    }
 
     DVLOG(4) << "<= IndexReader::delDocument()";
 }

@@ -8,6 +8,7 @@
 #include <ir/index_manager/store/Directory.h>
 #include <ir/index_manager/index/IndexWriter.h>
 #include <ir/index_manager/index/IndexBarrelWriter.h>
+#include <ir/index_manager/index/IndexReader.h>
 #include <ir/index_manager/utility/StringUtils.h>
 
 #include <util/izene_log.h>
@@ -19,7 +20,7 @@
 #include <sstream>
 #include <memory>
 #include <algorithm>
-
+#include <cassert>
 
 using namespace izenelib::ir::indexmanager;
 
@@ -69,6 +70,7 @@ IndexMerger::IndexMerger(Indexer* pIndexer, IndexMergePolicy* pMergePolicy)
         :pIndexer_(pIndexer)
         ,pMergePolicy_(pMergePolicy)
         ,pDirectory_(pIndexer->getDirectory())
+        ,pBarrelsInfo_(NULL)
 	,pDocFilter_(NULL)
 	,triggerMerge_(false)
 	,optimize_(false)
@@ -86,36 +88,40 @@ IndexMerger::~IndexMerger()
 
 void IndexMerger::merge(BarrelsInfo* pBarrels)
 {
+    assert(pBarrels);
+
     triggerMerge_ = false;
+    IndexReader* pIndexReader = pIndexer_->getIndexReader();
 
-    if (!pBarrels || ((pBarrels->getBarrelCount() <= 1)&&!pDocFilter_))
     {
-        //updateBarrels(pBarrels);
-        return ;
+        // lock the scope until IndexReader::delDocFilter() is called
+        boost::mutex::scoped_lock docFilterLock(pIndexReader->getDocFilterMutex());
+
+        pDocFilter_ = pIndexReader->getDocFilter();
+        if (pBarrels->getBarrelCount() <= 1 && !pDocFilter_)
+            return;
+
+        pBarrelsInfo_ = pBarrels;
+
+        boost::mutex::scoped_lock lock(pBarrels->getMutex());
+        MergeBarrelQueue mbQueue(pBarrels->getBarrelCount());
+        ///put all index barrel into mbQueue
+        pBarrels->startIterator();
+        while (pBarrels->hasNext())
+        {
+            BarrelInfo* pBaInfo = pBarrels->next();
+            if(pBaInfo->getWriter())
+                continue;
+            mbQueue.put(new MergeBarrelEntry(pDirectory_,pBaInfo));
+        }
+        lock.unlock();
+
+        while (mbQueue.size() > 0)
+            pMergePolicy_->addBarrel(mbQueue.pop());
+
+        pMergePolicy_->endMerge();
+        pIndexReader->delDocFilter();
     }
-
-    pBarrelsInfo_ = pBarrels;
-
-    BarrelInfo* pBaInfo;
-    boost::mutex::scoped_lock lock(pBarrels->getMutex());
-    MergeBarrelQueue mbQueue(pBarrels->getBarrelCount());
-    ///put all index barrel into mbQueue
-    pBarrels->startIterator();
-    while (pBarrels->hasNext())
-    {
-        pBaInfo = pBarrels->next();
-        if(pBaInfo->getWriter())
-            continue;
-        mbQueue.put(new MergeBarrelEntry(pDirectory_,pBaInfo));
-    }
-    lock.unlock();
-
-    while (mbQueue.size() > 0)
-    {
-        pMergePolicy_->addBarrel(mbQueue.pop());
-    }
-
-    pMergePolicy_->endMerge();
 
     if(!triggerMerge_)
         return;
@@ -123,19 +129,21 @@ void IndexMerger::merge(BarrelsInfo* pBarrels)
     updateBarrels(pBarrels); 
     pBarrelsInfo_ = NULL;
 
-    lock.lock();
-    pBarrels->startIterator();
-    docid_t maxDoc = 0;
-    while (pBarrels->hasNext())
     {
-        pBaInfo = pBarrels->next();
-        if(pBaInfo->getMaxDocID() > maxDoc)
-            maxDoc = pBaInfo->getMaxDocID();
-    }
-    lock.unlock();
+        docid_t maxDoc = 0;
+        boost::mutex::scoped_lock lock(pBarrels->getMutex());
+        pBarrels->startIterator();
+        while (pBarrels->hasNext())
+        {
+            BarrelInfo* pBaInfo = pBarrels->next();
+            if(pBaInfo->getMaxDocID() > maxDoc)
+                maxDoc = pBaInfo->getMaxDocID();
+        }
 
-    if(maxDoc < pBarrels->maxDocId())
-        pBarrels->resetMaxDocId(maxDoc);
+        if(maxDoc < pBarrels->maxDocId())
+            pBarrels->resetMaxDocId(maxDoc);
+    }
+
     pBarrels->write(pDirectory_);
 }
 

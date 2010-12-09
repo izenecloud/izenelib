@@ -201,5 +201,40 @@ inline void empty(const IndexerTestConfig& config)
     VLOG(2) << "<= t_TermDocFreqs::empty";
 }
 
+/**
+ * Create barrels, optimize barrels (it would clear BitVector),
+ * and remove document (it would set BitVector),
+ * then check BitVector
+ */
+inline void optimizeAndRemoveDoc(const IndexerTestConfig& config)
+{
+    VLOG(2) << "=> t_TermDocFreqs::optimizeAndRemoveDoc";
+
+    TermDocFreqsTestFixture fixture;
+    fixture.configTest(config);
+
+    const int barrelNum = config.iterNum_;
+    for(int i=0; i<barrelNum; ++i)
+        fixture.createDocument(); // create barrel i
+
+    Indexer* pIndexer = fixture.getIndexer();
+    pIndexer->optimizeIndex();
+
+    fixture.removeDocument();
+
+    // wait for merge finish
+    pIndexer->waitForMergeFinish();
+
+    fixture.checkNextSkipTo();
+
+    IndexReader* pIndexReader = pIndexer->getIndexReader();
+    BarrelsInfo* pBarrelsInfo = pIndexReader->getBarrelsInfo();
+
+    BOOST_CHECK_EQUAL(pBarrelsInfo->maxDocId(), fixture.getMaxDocID());
+    BOOST_CHECK_EQUAL(pBarrelsInfo->getDocCount(), fixture.getDocCount());
+    BOOST_CHECK_EQUAL(pBarrelsInfo->getBarrelCount(), 1);
+
+    VLOG(2) << "<= t_TermDocFreqs::optimizeAndRemoveDoc";
+}
 }
 #endif

@@ -1,4 +1,4 @@
-#include <boost/thread/locks.hpp>
+#include <boost/thread.hpp>
 #include <cassert>
 
 #include <ir/index_manager/index/IndexMergeManager.h>
@@ -112,14 +112,10 @@ void IndexMergeManager::optimizeIndex()
 
 void IndexMergeManager::optimizeIndexImpl()
 {
-    IndexMerger optimizeMerger(pIndexer_, new OptimizePolicy(pBarrelsInfo_->getBarrelCount()));
+    IndexMerger optimizeMerger(pIndexer_,
+                               new OptimizePolicy(pBarrelsInfo_->getBarrelCount()));
 
-    IndexReader* pIndexReader = pIndexer_->getIndexReader();
-    if(BitVector* pBitVector = pIndexReader->getDocFilter())
-        optimizeMerger.setDocFilter(pBitVector);
     optimizeMerger.merge(pBarrelsInfo_);
-
-    pIndexReader->delDocFilter();
 }
 
 void IndexMergeManager::mergeIndex()

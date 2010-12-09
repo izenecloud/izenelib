@@ -566,8 +566,29 @@ void BarrelsInfo::sort(Directory* pDirectory)
 void BarrelsInfo::setSearchable()
 {
     boost::mutex::scoped_lock lock(mutex_);
-    for(vector<BarrelInfo*>::iterator iter=barrelInfos.begin();
+    for(vector<BarrelInfo*>::iterator iter = barrelInfos.begin();
             iter != barrelInfos.end();
             ++iter)
         (*iter)->setSearchable(true);
+}
+
+bool BarrelsInfo::deleteDocument(collectionid_t colId, docid_t docId)
+{
+    boost::mutex::scoped_lock lock(mutex_);
+
+    for(vector<BarrelInfo*>::reverse_iterator rit = barrelInfos.rbegin();
+            rit != barrelInfos.rend();
+            ++rit)
+    {
+        BarrelInfo* pBarrelInfo = *rit;
+        map<collectionid_t,docid_t>::const_iterator baseDocIt = pBarrelInfo->baseDocIDMap.find(colId);
+        if(baseDocIt != pBarrelInfo->baseDocIDMap.end())
+        {
+            if(baseDocIt->second <= docId && pBarrelInfo->getMaxDocID() >= docId)
+                return pBarrelInfo->deleteDocument(docId);
+        }
+    }
+
+    DVLOG(2) << "BarrelsInfo::deleteDocument(), no BarrelInfo found for collection id: " << colId << ", doc id: " << docId;
+    return false;
 }
