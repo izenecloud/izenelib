@@ -64,8 +64,13 @@ void IndexReader::delDocFilter()
 
 void IndexReader::flush()
 {
-    if(pDocFilter_&& pDocFilter_->any())
-        pDocFilter_->write(pIndexer_->getDirectory(), DELETED_DOCS);
+    if(pDocFilter_)
+    {
+        boost::mutex::scoped_lock docFilterLock(docFilterMutex_);
+
+        if(pDocFilter_->any())
+            pDocFilter_->write(pIndexer_->getDirectory(), DELETED_DOCS);
+    }
 }
 
 docid_t IndexReader::maxDoc()
@@ -140,7 +145,8 @@ TermReader* IndexReader::getTermReader(collectionid_t colID)
     {
         pTermReader->setSkipInterval(pIndexer_->getSkipInterval());
         pTermReader->setMaxSkipLevel(pIndexer_->getMaxSkipLevel());
-        if(pDocFilter_) pTermReader->setDocFilter(pDocFilter_);
+        if(pDocFilter_)
+            pTermReader->setDocFilter(pDocFilter_);
         return pTermReader->clone();
     }
     else
