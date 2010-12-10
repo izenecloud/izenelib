@@ -20,16 +20,8 @@ IndexInput::IndexInput(char* buf,size_t buffsize)
 }
 IndexInput::IndexInput(size_t buffsize)
 {
-    if (buffsize > 0)
-    {
-        buffer_ = NULL;
-        bufferSize_ = buffsize;
-    }
-    else
-    {
-        buffer_ = NULL;
-        bufferSize_ = INDEXINPUT_BUFFSIZE;
-    }
+    buffer_ = NULL;
+    bufferSize_ = buffsize > 0 ? buffsize : INDEXINPUT_BUFFSIZE;
 
     bOwnBuff_ = true;
     dirty_ = false;
@@ -75,7 +67,7 @@ void IndexInput::read(char* data, size_t length)
     {
         SF1V5_THROW(ERROR_FILEIO,"Index dirty.");
     }
-    if (bufferPosition_ >= (size_t)bufferStart_)
+    if (bufferPosition_ >= (size_t)bufferLength_)
         refill();
     if (length <= (bufferLength_ - bufferPosition_))
     {
@@ -90,9 +82,9 @@ void IndexInput::read(char* data, size_t length)
             memcpy(data,buffer_ + bufferPosition_,start);
         }
 
-        //readInternal(data,start,length - start);
         readInternal(data + start,length - start);
-        bufferStart_ += length;
+        bufferStart_ += bufferPosition_ + length;
+        bufferPosition_ = bufferLength_ = 0;
     }
 }
 void IndexInput::readBytes(uint8_t* b,size_t len)

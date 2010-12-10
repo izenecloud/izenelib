@@ -112,4 +112,18 @@ TARGET_LINK_LIBRARIES(t_integration_Indexer
   ${Boost_LIBRARIES}
 )
 
+SET(t_FSIndexInput_SRC
+  t_FSIndexInput.cpp
+  t_master_suite.cpp
+)
+
+ADD_EXECUTABLE(t_FSIndexInput ${t_FSIndexInput_SRC})
+
+TARGET_LINK_LIBRARIES(t_FSIndexInput
+  index_manager
+  izene_util
+  ${Glog_LIBRARIES}
+  ${Boost_LIBRARIES}
+)
+
 ENDIF(Boost_FOUND)

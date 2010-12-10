@@ -225,24 +225,23 @@ inline int64_t IndexInput::readLongBySmallEndian()
 inline void IndexInput::refill()
 {
     if(dirty_)
-    {
         SF1V5_THROW(ERROR_FILEIO,"Index dirty.");
-    }
 
-    int64_t start = bufferStart_ + (int64_t)bufferPosition_;
-    int64_t end = start + bufferSize_;
-    if (end > length_)
-        end = length_;
-    bufferLength_ = (size_t)(end - start);
-    if (bufferLength_ <= 0)
+    bufferStart_ += bufferPosition_;
+    bufferPosition_ = bufferLength_ = 0;
+
+    if(bufferStart_ >= length_)
         SF1V5_THROW(ERROR_FILEIO,"IndexInput:read past EOF.");
+
+    if(bufferStart_ + static_cast<int64_t>(bufferSize_) > length_)
+        bufferLength_ = length_ - bufferStart_;
+    else
+        bufferLength_ = bufferSize_;
 
     if (buffer_ == NULL)
         buffer_ = new char[bufferSize_]; // allocate buffer_ lazily
-    readInternal(buffer_,bufferLength_);
 
-    bufferStart_ = start;
-    bufferPosition_ = 0;
+    readInternal(buffer_,bufferLength_);
 }
 inline void IndexInput::skipVInt(size_t nNum)
 {
