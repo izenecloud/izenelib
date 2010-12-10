@@ -58,7 +58,7 @@ BOOST_AUTO_TEST_CASE(bitvector)
     BOOST_CHECK(bitvector.hasSmallThan(mid));
     BOOST_CHECK(! bitvector.hasSmallThan(mid - 1)); //bug expected, need to check bit?
     BOOST_CHECK(bitvector.hasBetween(0, count - 1));
-    BOOST_CHECK_EQUAL(bitvector.getMaxSet(), mid);
+    BOOST_CHECK_EQUAL(bitvector.getMaxSet(), static_cast<size_t>(mid));
 
     bitvector.setAll();
     BitVector bitvector2(count);
