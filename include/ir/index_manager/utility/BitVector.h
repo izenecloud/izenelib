@@ -23,12 +23,12 @@ namespace indexmanager{
 class BitVector
 {
 public:
-    BitVector():bits_(0), size_(0) {}
+    BitVector():bits_(0), size_(0), blockNum_(0) {}
 
     BitVector(const BitVector& other)
         :size_(other.size_)
     {
-        blockNum_ = (size_ >> 3) + 1;
+        blockNum_ = getBlockNum(size_);
         bits_ = new unsigned char[blockNum_];
         clear();
     }
@@ -36,7 +36,7 @@ public:
     BitVector(size_t n)
         :size_(n)
     {
-        blockNum_ = (size_ >> 3) + 1;
+        blockNum_ = getBlockNum(size_);
         bits_ = new unsigned char[blockNum_];
         clear();
     }
@@ -116,7 +116,7 @@ public:
     {
         IndexInput* pInput = pDirectory->openInput(name);
         size_= (size_t)pInput->readInt();
-        blockNum_ = (size_ >> 3) + 1;
+        blockNum_ = getBlockNum(size_);
         bits_ = new unsigned char[blockNum_];
         clear();
         pInput->read((char*)bits_,blockNum_*sizeof(unsigned char));
@@ -131,55 +131,87 @@ public:
         delete pOutput;
     }
 
+    /**
+     * Check whether there is any bit in the range [0, @p bit] is set to 1.
+     * @param bit it would check the range of bits [0, bit]
+     * @return true for the bit is found, false for no bit in the range is set to 1
+     */
     bool hasSmallThan(size_t bit) const
     {
-        if(bit >= size_)
+        size_t endBlk = 0;
+        if(bit < size_)
         {
-            for (size_t i = 0; i < blockNum_; ++i)
-                if (bits_[i])
-                    return true;
-            return false;
+            endBlk = bit >> 3;
+            unsigned char headMask = (1 << ((bit & 7) + 1)) - 1;
+            if(bits_[endBlk] & headMask)
+                return true;
         }
-        size_t nTestBlk = bit >> 3;
-        for (size_t i = 0; i <= nTestBlk; ++i)
+        else
+            endBlk = blockNum_;
+
+        for (size_t i = 0; i < endBlk; ++i)
             if (bits_[i])
                 return true;
         return false;
     }
 
+    /**
+     * Check whether there is any bit in the range [@p start, @p end] is set to 1.
+     * @param start start position
+     * @param end end position, it would check the range of bits [start, end]
+     * @return true for the bit is found, false for no bit in the range is set to 1
+     * @pre @p start <= @p end
+     */
     bool hasBetween(size_t start, size_t end) const
     {
-        size_t nStartBlk = start >> 3;
-        size_t nEndBlk = end >> 3;
-        for (size_t i = nStartBlk; i <= nEndBlk; ++i)
+        assert(start <= end);
+
+        if(start >= size_)
+            return false;
+        if(end >= size_)
+            end = size_ - 1;
+
+        unsigned char startMask = ~((1 << (start & 7)) - 1);
+        size_t startBlk = start >> 3;
+        if(bits_[startBlk] & startMask)
+            return true;
+
+        unsigned char endMask = (1 << ((end & 7) + 1)) - 1;
+        size_t endBlk = end >> 3;
+        if(bits_[endBlk] & endMask)
+            return true;
+
+        for (size_t i = startBlk+1; i < endBlk; ++i)
             if (bits_[i])
                 return true;
 
         return false;
-    }
-
-    size_t getMaxSet()
-    {
-        size_t i;
-        for(i = size_-1; i >=0; --i)
-        {
-            if(test(i))
-                return i;
-        }
-        return i;
     }
 
 private:
     void grow(size_t length)
     {
         size_ = length;
-        size_t newBlockNum = (size_ >> 3) + 1;
+        size_t newBlockNum = getBlockNum(size_);
         unsigned char* newBits_ = new unsigned char[newBlockNum];
         memset(newBits_,0,newBlockNum*sizeof(unsigned char));
         memcpy(newBits_,bits_,blockNum_*sizeof(unsigned char));
         delete[] bits_;
         bits_ = newBits_;
         blockNum_ = newBlockNum;
+    }
+
+    /**
+     * Get the number of bytes to contain @p bitNum bits.
+     * @param bitNum the number of bits
+     * @return the number of bytes
+     */
+    size_t getBlockNum(size_t bitNum) const
+    {
+        if(bitNum == 0)
+            return 0;
+
+        return ((bitNum - 1) >> 3) + 1;
     }
 
 private:

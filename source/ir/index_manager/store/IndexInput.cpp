@@ -67,6 +67,10 @@ void IndexInput::read(char* data, size_t length)
     {
         SF1V5_THROW(ERROR_FILEIO,"Index dirty.");
     }
+
+    if(length == 0)
+        return;
+
     if (bufferPosition_ >= (size_t)bufferLength_)
         refill();
     if (length <= (bufferLength_ - bufferPosition_))
