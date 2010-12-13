@@ -98,6 +98,10 @@ BOOST_AUTO_TEST_CASE(bitvector)
     bitvector.setAll();
     BOOST_CHECK(bitvector.test(count));
     BOOST_CHECK(! bitvector.test(count + 1));
+    bitvector.set(count + 4);
+    BOOST_CHECK(bitvector.test(count + 4));
+    BOOST_CHECK(! bitvector.test(count + 2));
+    BOOST_CHECK(! bitvector.test(count + 3));
 }
 
 BOOST_AUTO_TEST_CASE(bitvector_empty)

@@ -23,89 +23,118 @@ namespace indexmanager{
 class BitVector
 {
 public:
-    BitVector():bits_(0), size_(0), blockNum_(0) {}
+    BitVector()
+        : bits_(0), size_(0), maxBytesNum_(MAX_BYTES_NUM_INIT)
+    {
+        bits_ = new unsigned char[maxBytesNum_];
+        memset(bits_, 0 , maxBytesNum_);
+    }
 
     BitVector(const BitVector& other)
-        :size_(other.size_)
+        : bits_(0), size_(other.size_), maxBytesNum_(other.maxBytesNum_)
     {
-        blockNum_ = getBlockNum(size_);
-        bits_ = new unsigned char[blockNum_];
-        clear();
+        bits_ = new unsigned char[maxBytesNum_];
+        memset(bits_, 0 , maxBytesNum_);
     }
 
     BitVector(size_t n)
-        :size_(n)
+        : bits_(0), size_(n), maxBytesNum_(getMaxBytesNum(size_))
     {
-        blockNum_ = getBlockNum(size_);
-        bits_ = new unsigned char[blockNum_];
-        clear();
+        bits_ = new unsigned char[maxBytesNum_];
+        memset(bits_, 0 , maxBytesNum_);
     }
+
     ~BitVector()
     {
-        if(bits_)
-        {
-            delete[] bits_;
-            bits_ = 0;
-        }
+        delete[] bits_;
     }
 
 public:
     void set(size_t bit) 
     {
+        const size_t byte = bit >> 3;
+        if(byte >= maxBytesNum_)
+            grow(bit + 1);
         if(bit >= size_)
-            grow(bit+4);
-        bits_[bit >> 3] |= 1 << (bit & 7);
+            size_ = bit + 1;
+
+        bits_[byte] |= 1 << (bit & 7);
     }
 
     void clear(size_t bit) 
     {
+        const size_t byte = bit >> 3;
+        if(byte >= maxBytesNum_)
+            grow(bit + 1);
         if(bit >= size_)
-            grow(bit+4);
-        bits_[bit >> 3] &= ~(1 << (bit & 7));
+            size_ = bit + 1;
+
+        bits_[byte] &= ~(1 << (bit & 7));
     }
 
-    void clear() { memset(bits_, 0 , blockNum_); }
+    void clear()
+    {
+        memset(bits_, 0 , getBytesNum(size_));
+    }
 
-    void setAll() { memset(bits_, 0xFF, blockNum_);}
+    void setAll()
+    {
+        if(size_ == 0)
+            return;
+
+        const size_t fullByteNum = getBytesNum(size_) - 1;
+        memset(bits_, 0xFF, fullByteNum);
+
+        const size_t endBit = size_ - 1;
+        unsigned char endMask = (1 << ((endBit & 7) + 1)) - 1;
+        bits_[endBit >> 3] |= endMask;
+    }
 
     bool test(size_t bit)
     {
         if(bit >= size_)
             return false;
+
         return bits_[bit >> 3] & (1 << (bit & 7));
     }
 
     bool any()
     {
-        for (size_t i = 0; i < blockNum_; ++i)
-            if (bits_[i])
+        const size_t byteNum = getBytesNum(size_);
+        for(size_t i = 0; i < byteNum; ++i)
+            if(bits_[i])
                 return true;
+
         return false;
     }
 
     void toggle()
     {
-        for(size_t i = 0; i < blockNum_; ++i )
+        const size_t byteNum = getBytesNum(size_);
+        for(size_t i = 0; i < byteNum; ++i )
             bits_[i] = ~bits_[i];
     }
 
     BitVector& operator&=(const BitVector& b)
     {
-        for(size_t i = 0; i < blockNum_; ++i )
+        const size_t byteNum = getBytesNum(size_);
+        for(size_t i = 0; i < byteNum; ++i )
             bits_[i] &= b.bits_[i];
         return *this;
     }
 
     BitVector& operator|=(const BitVector& b)
     {
-        for(size_t i = 0; i < blockNum_; ++i )
+        const size_t byteNum = getBytesNum(size_);
+        for(size_t i = 0; i < byteNum; ++i )
             bits_[i] |= b.bits_[i];
         return *this;
     }
 
     BitVector& operator^=(const BitVector& b)
     {
-        for(size_t i = 0; i < blockNum_; ++i )
+        const size_t byteNum = getBytesNum(size_);
+        for(size_t i = 0; i < byteNum; ++i )
             bits_[i] ^= b.bits_[i];
         return *this;
     }
@@ -116,10 +145,10 @@ public:
     {
         IndexInput* pInput = pDirectory->openInput(name);
         size_= (size_t)pInput->readInt();
-        blockNum_ = getBlockNum(size_);
-        bits_ = new unsigned char[blockNum_];
-        clear();
-        pInput->read((char*)bits_,blockNum_*sizeof(unsigned char));
+        maxBytesNum_ = getMaxBytesNum(size_);
+        bits_ = new unsigned char[maxBytesNum_];
+        memset(bits_, 0 , maxBytesNum_);
+        pInput->read((char*)bits_, getBytesNum(size_) * sizeof(unsigned char));
         delete pInput;
     }
 
@@ -127,7 +156,7 @@ public:
     {
         IndexOutput* pOutput = pDirectory->createOutput(name);
         pOutput->writeInt((int32_t)size_);
-        pOutput->write((const char*)bits_,blockNum_*sizeof(unsigned char));
+        pOutput->write((const char*)bits_, getBytesNum(size_) * sizeof(unsigned char));
         delete pOutput;
     }
 
@@ -138,18 +167,18 @@ public:
      */
     bool hasSmallThan(size_t bit) const
     {
-        size_t endBlk = 0;
+        size_t endByte = 0;
         if(bit < size_)
         {
-            endBlk = bit >> 3;
-            unsigned char headMask = (1 << ((bit & 7) + 1)) - 1;
-            if(bits_[endBlk] & headMask)
+            endByte = bit >> 3;
+            unsigned char endMask = (1 << ((bit & 7) + 1)) - 1;
+            if(bits_[endByte] & endMask)
                 return true;
         }
         else
-            endBlk = blockNum_;
+            endByte = getBytesNum(size_);
 
-        for (size_t i = 0; i < endBlk; ++i)
+        for (size_t i = 0; i < endByte; ++i)
             if (bits_[i])
                 return true;
         return false;
@@ -172,16 +201,16 @@ public:
             end = size_ - 1;
 
         unsigned char startMask = ~((1 << (start & 7)) - 1);
-        size_t startBlk = start >> 3;
-        if(bits_[startBlk] & startMask)
+        size_t startByte = start >> 3;
+        if(bits_[startByte] & startMask)
             return true;
 
         unsigned char endMask = (1 << ((end & 7) + 1)) - 1;
-        size_t endBlk = end >> 3;
-        if(bits_[endBlk] & endMask)
+        size_t endByte = end >> 3;
+        if(bits_[endByte] & endMask)
             return true;
 
-        for (size_t i = startBlk+1; i < endBlk; ++i)
+        for (size_t i = startByte+1; i < endByte; ++i)
             if (bits_[i])
                 return true;
 
@@ -189,24 +218,12 @@ public:
     }
 
 private:
-    void grow(size_t length)
-    {
-        size_ = length;
-        size_t newBlockNum = getBlockNum(size_);
-        unsigned char* newBits_ = new unsigned char[newBlockNum];
-        memset(newBits_,0,newBlockNum*sizeof(unsigned char));
-        memcpy(newBits_,bits_,blockNum_*sizeof(unsigned char));
-        delete[] bits_;
-        bits_ = newBits_;
-        blockNum_ = newBlockNum;
-    }
-
     /**
      * Get the number of bytes to contain @p bitNum bits.
      * @param bitNum the number of bits
      * @return the number of bytes
      */
-    size_t getBlockNum(size_t bitNum) const
+    size_t getBytesNum(size_t bitNum) const
     {
         if(bitNum == 0)
             return 0;
@@ -214,10 +231,63 @@ private:
         return ((bitNum - 1) >> 3) + 1;
     }
 
+    /**
+     * Get the max number of bytes to contain @p bitNum bits.
+     * The initial value is @c MAX_BYTES_NUM_INIT,
+     * and it's doubled until @p bitNum is reached.
+     * @param bitNum the number of bits
+     * @return the max number of bytes
+     */
+    size_t getMaxBytesNum(size_t bitNum) const
+    {
+        const size_t bytesNum = getBytesNum(bitNum);
+        size_t result = MAX_BYTES_NUM_INIT;
+
+        while(result < bytesNum)
+            result <<= 1;
+
+        return result;
+    }
+
+    /**
+     * Grow @p bits_ to contain @p bitNum bits.
+     * @param bitNum the number of bits
+     */
+    void grow(size_t bitNum)
+    {
+        const size_t newBytesNum = getBytesNum(bitNum);
+        assert(newBytesNum > maxBytesNum_);
+        size_t newMax = maxBytesNum_;
+        while(newMax < newBytesNum)
+            newMax <<= 1;
+
+        unsigned char* newBits = new unsigned char[maxBytesNum_];
+        memset(newBits, 0, maxBytesNum_);
+        memcpy(newBits, bits_, getBytesNum(size_));
+        delete[] bits_;
+        bits_ = newBits;
+        maxBytesNum_ = newMax;
+    }
+
 private:
     unsigned char* bits_; ///< bit vector, each continuous 8 bits are represented as one byte
-    size_t size_; ///< size in bits
-    size_t blockNum_; ///< size in bytes
+    size_t size_; ///< the number of bits
+    size_t maxBytesNum_; ///< the number of bytes allocated
+
+    enum
+    {
+        /**
+         * the initial number of bytes to allocate.
+         * This value is defined to allocate 10M bits at initial time,
+         * and the number of bytes would be doubled if necessary.
+         *
+         * The number "10M" is selected to suffice the collection size of 10M documents.
+         * In that case, memory re-allocation would not happen.
+         * If "set()" and "test()" are called by multi-threads,
+         * the problem of concurrent write and read to @p bits_ could be avoided.
+         */
+        MAX_BYTES_NUM_INIT = (10 * 1024 * 1024) / 8,
+    };
 };
 
 
