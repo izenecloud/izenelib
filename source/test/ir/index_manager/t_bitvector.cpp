@@ -110,7 +110,7 @@ BOOST_AUTO_TEST_CASE(bitvector_empty)
     bitvector.setAll();
     bitvector.clear();
 
-    BOOST_CHECK_EQUAL(bitvector.size(), 0);
+    BOOST_CHECK_EQUAL(bitvector.size(), 0U);
     BOOST_CHECK(! bitvector.test(0));
     BOOST_CHECK(! bitvector.test(1));
     BOOST_CHECK(! bitvector.test(10));
@@ -126,7 +126,7 @@ BOOST_AUTO_TEST_CASE(bitvector_empty)
     BitVector bitvector1;
     bitvector1.read(pDirectory, fileStr);
     bitvector1.write(pDirectory, "empty_1.bits");
-    BOOST_CHECK_EQUAL(bitvector1.size(), 0);
+    BOOST_CHECK_EQUAL(bitvector1.size(), 0U);
     BOOST_CHECK(! bitvector1.test(0));
     BOOST_CHECK(! bitvector1.test(1));
     BOOST_CHECK(! bitvector1.test(10));
