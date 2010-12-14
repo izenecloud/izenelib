@@ -70,7 +70,7 @@ IndexMerger::IndexMerger(Indexer* pIndexer, IndexMergePolicy* pMergePolicy)
         :pIndexer_(pIndexer)
         ,pMergePolicy_(pMergePolicy)
         ,pDirectory_(pIndexer->getDirectory())
-        ,pBarrelsInfo_(NULL)
+        ,pBarrelsInfo_(pIndexer->getBarrelsInfo())
 	,pDocFilter_(NULL)
 	,triggerMerge_(false)
 	,optimize_(false)
@@ -86,10 +86,8 @@ IndexMerger::~IndexMerger()
     delete pMergePolicy_;
 }
 
-void IndexMerger::merge(BarrelsInfo* pBarrels)
+void IndexMerger::mergeBarrels()
 {
-    assert(pBarrels);
-
     triggerMerge_ = false;
     IndexReader* pIndexReader = pIndexer_->getIndexReader();
 
@@ -98,18 +96,16 @@ void IndexMerger::merge(BarrelsInfo* pBarrels)
         boost::mutex::scoped_lock docFilterLock(pIndexReader->getDocFilterMutex());
 
         pDocFilter_ = pIndexReader->getDocFilter();
-        if (pBarrels->getBarrelCount() <= 1 && !pDocFilter_)
+        if (pBarrelsInfo_->getBarrelCount() <= 1 && !pDocFilter_)
             return;
 
-        pBarrelsInfo_ = pBarrels;
-
-        boost::mutex::scoped_lock lock(pBarrels->getMutex());
-        MergeBarrelQueue mbQueue(pBarrels->getBarrelCount());
+        boost::mutex::scoped_lock lock(pBarrelsInfo_->getMutex());
+        MergeBarrelQueue mbQueue(pBarrelsInfo_->getBarrelCount());
         ///put all index barrel into mbQueue
-        pBarrels->startIterator();
-        while (pBarrels->hasNext())
+        pBarrelsInfo_->startIterator();
+        while (pBarrelsInfo_->hasNext())
         {
-            BarrelInfo* pBaInfo = pBarrels->next();
+            BarrelInfo* pBaInfo = pBarrelsInfo_->next();
             if(pBaInfo->getWriter())
                 continue;
             mbQueue.put(new MergeBarrelEntry(pDirectory_,pBaInfo));
@@ -126,28 +122,27 @@ void IndexMerger::merge(BarrelsInfo* pBarrels)
     if(!triggerMerge_)
         return;
 
-    updateBarrels(pBarrels); 
-    pBarrelsInfo_ = NULL;
+    updateBarrels(); 
 
     {
         docid_t maxDoc = 0;
-        boost::mutex::scoped_lock lock(pBarrels->getMutex());
-        pBarrels->startIterator();
-        while (pBarrels->hasNext())
+        boost::mutex::scoped_lock lock(pBarrelsInfo_->getMutex());
+        pBarrelsInfo_->startIterator();
+        while (pBarrelsInfo_->hasNext())
         {
-            BarrelInfo* pBaInfo = pBarrels->next();
+            BarrelInfo* pBaInfo = pBarrelsInfo_->next();
             if(pBaInfo->getMaxDocID() > maxDoc)
                 maxDoc = pBaInfo->getMaxDocID();
         }
 
-        if(maxDoc < pBarrels->maxDocId())
-            pBarrels->resetMaxDocId(maxDoc);
+        if(maxDoc < pBarrelsInfo_->maxDocId())
+            pBarrelsInfo_->resetMaxDocId(maxDoc);
     }
 
-    pBarrels->write(pDirectory_);
+    pBarrelsInfo_->write(pDirectory_);
 }
 
-void IndexMerger::addToMerge(BarrelsInfo* pBarrelsInfo,BarrelInfo* pBarrelInfo)
+void IndexMerger::addToMerge(BarrelInfo* pBarrelInfo)
 {
     DVLOG(2) << "=> IndexMerger::addToMerge(), barrel name: " << pBarrelInfo->barrelName << " ...";
 
@@ -158,8 +153,6 @@ void IndexMerger::addToMerge(BarrelsInfo* pBarrelsInfo,BarrelInfo* pBarrelInfo)
     }
 
     triggerMerge_ = false;
-
-    pBarrelsInfo_ = pBarrelsInfo;
     pMergePolicy_->addBarrel(new MergeBarrelEntry(pDirectory_,pBarrelInfo));
  
     if(!triggerMerge_)
@@ -168,18 +161,17 @@ void IndexMerger::addToMerge(BarrelsInfo* pBarrelsInfo,BarrelInfo* pBarrelInfo)
         return;
     }
 
-    updateBarrels(pBarrelsInfo);
+    updateBarrels();
 
-    pBarrelsInfo->write(pDirectory_);
+    pBarrelsInfo_->write(pDirectory_);
     DVLOG(2) << "<= IndexMerger::addToMerge()";
 }
 
-void IndexMerger::updateBarrels(BarrelsInfo* pBarrelsInfo)
+void IndexMerger::updateBarrels()
 {
     {
-    izenelib::util::ScopedWriteLock<izenelib::util::ReadWriteLock> lock(pIndexer_->mutex_);
-    ///sort barrels
-    pBarrelsInfo->sort(pDirectory_);
+        izenelib::util::ScopedWriteLock<izenelib::util::ReadWriteLock> lock(pIndexer_->mutex_);
+        pBarrelsInfo_->sort(pDirectory_);
     }
     pIndexer_->setDirty();
 }
@@ -279,9 +271,7 @@ void IndexMerger::outputNewBarrel(MergeBarrelQueue* pBarrelQueue, const string& 
                         {
                             if (pFieldMerger == NULL)
                             {
-                                pFieldMerger = new FieldMerger(needSortingMerge, 
-                                                                                 pIndexer_->getSkipInterval(), 
-                                                                                 pIndexer_->getMaxSkipLevel());
+                                pFieldMerger = new FieldMerger(needSortingMerge, pIndexer_->getSkipInterval(), pIndexer_->getMaxSkipLevel());
                                 pFieldMerger->setDirectory(pDirectory_);
                                 if(NULL == pIndexer_->getIndexWriter()->pMemCache_) pIndexer_->getIndexWriter()->createMemCache();
                                 pFieldMerger->initPostingMerger(pIndexer_->getIndexCompressType(), optimize_, pIndexer_->getIndexWriter()->pMemCache_);

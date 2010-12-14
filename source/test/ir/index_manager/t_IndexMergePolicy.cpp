@@ -144,7 +144,7 @@ void checkAddToMerge(IndexMergePolicy* pIndexMergePolicy, const BarrelConfig& ba
             break;
 
         BarrelInfo* pNewBarrelInfo = newBarrelInfo(pBarrelsInfo, docNum);
-        mockIndexMerger.addToMerge(pBarrelsInfo, pNewBarrelInfo);
+        mockIndexMerger.addToMerge(pNewBarrelInfo);
         docNumSum += docNum;
     }
 
@@ -183,7 +183,7 @@ void checkOptimizeMerge(const BarrelConfig& barrelConfig)
     }
 
     MockIndexMerger mockIndexMerger(pIndexer, new OptimizePolicy(pBarrelsInfo->getBarrelCount()));
-    mockIndexMerger.merge(pBarrelsInfo);
+    mockIndexMerger.mergeBarrels();
 
     BOOST_CHECK_EQUAL(pBarrelsInfo->getBarrelCount(), newBarrelConfig.mergedBarrelNum_);
     BOOST_CHECK_EQUAL(pBarrelsInfo->maxDocId(), static_cast<unsigned int>(docNumSum));

@@ -92,7 +92,7 @@ void IndexMergeManager::addToMerge(BarrelInfo* pBarrelInfo)
     else
     {
         if(pAddMerger_)
-            pAddMerger_->addToMerge(pBarrelsInfo_, pBarrelInfo);
+            pAddMerger_->addToMerge(pBarrelInfo);
     }
 }
 
@@ -115,7 +115,7 @@ void IndexMergeManager::optimizeIndexImpl()
     IndexMerger optimizeMerger(pIndexer_,
                                new OptimizePolicy(pBarrelsInfo_->getBarrelCount()));
 
-    optimizeMerger.merge(pBarrelsInfo_);
+    optimizeMerger.mergeBarrels();
 }
 
 void IndexMergeManager::mergeIndex()
@@ -132,7 +132,7 @@ void IndexMergeManager::mergeIndex()
             assert(op.pBarrelInfo);
 
             if(pAddMerger_)
-                pAddMerger_->addToMerge(pBarrelsInfo_, op.pBarrelInfo);
+                pAddMerger_->addToMerge(op.pBarrelInfo);
             }
             break;
         case OPTIMIZE_ALL:

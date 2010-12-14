@@ -118,17 +118,15 @@ public:
     virtual ~IndexMerger();
 
     /**
-     * merge sub indexes
-     * @param pBarrelsInfo barrels of index
+     * merge all barrels into one barrel.
      */
-    void merge(BarrelsInfo* pBarrelsInfo);
+    void mergeBarrels();
 
     /**
      * add a index barrel to merge
-     * @param pBarrelsInfo the index
-     * @param pBarrelInfo info of barrel need to merge
+     * @param pBarrelInfo info of barrel to merge
      */
-    void addToMerge(BarrelsInfo* pBarrelsInfo, BarrelInfo* pBarrelInfo);
+    void addToMerge(BarrelInfo* pBarrelInfo);
 
     /**
      * merge a merge barrel which contains more than one index barrels
@@ -172,10 +170,9 @@ protected:
     virtual void setParam(const char* pszParam) {}
 
     /**
-     * update barrel name and its base document id after merging.
-     * @param pBarrelsInfo barrels of index
+     * update all barrel names according to their base document ids.
      */
-    void updateBarrels(BarrelsInfo* pBarrelsInfo);
+    void updateBarrels();
 
     /**
      * output new barrel contents merged from @p pBarrelQueue.
