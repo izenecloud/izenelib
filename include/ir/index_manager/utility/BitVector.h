@@ -201,18 +201,24 @@ public:
             end = size_ - 1;
 
         unsigned char startMask = ~((1 << (start & 7)) - 1);
-        size_t startByte = start >> 3;
-        if(bits_[startByte] & startMask)
-            return true;
-
         unsigned char endMask = (1 << ((end & 7) + 1)) - 1;
+        size_t startByte = start >> 3;
         size_t endByte = end >> 3;
-        if(bits_[endByte] & endMask)
-            return true;
 
-        for (size_t i = startByte+1; i < endByte; ++i)
-            if (bits_[i])
+        if(startByte == endByte)
+        {
+            if(bits_[startByte] & (startMask & endMask))
                 return true;
+        }
+        else
+        {
+            if((bits_[startByte] & startMask) || (bits_[endByte] & endMask))
+                return true;
+
+            for (size_t i = startByte+1; i < endByte; ++i)
+                if (bits_[i])
+                    return true;
+        }
 
         return false;
     }
