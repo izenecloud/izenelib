@@ -100,30 +100,17 @@ void IndexReader::createBarrelReader()
     if (pBarrelReader_)
         return;
 
-    int32_t bc = pBarrelsInfo_->getBarrelCount();
-    DVLOG(2) << "=> IndexReader::createBarrelReader(), " << bc << " barrels...";
+    DVLOG(2) << "=> IndexReader::createBarrelReader()";
 
-    if (bc == 1)
+    if(int32_t bc = pBarrelsInfo_->getBarrelCount())
     {
-        BarrelInfo* pLastBarrel = (*pBarrelsInfo_)[0];
+        DVLOG(2) << "IndexReader::createBarrelReader() => " << bc << " barrels...";
 
-        if(pLastBarrel && pLastBarrel->getDocCount() > 0) ///skip empty barrel
-        {
-            if (pLastBarrel->getWriter() && pLastBarrel->isSearchable())
-                pBarrelReader_ = pLastBarrel->getWriter()->inMemoryReader();
-            else
-                pBarrelReader_ = new SingleIndexBarrelReader(this,pLastBarrel);
-        }
-    }
-    else if (bc > 1)
-    {
-        pBarrelReader_ = new MultiIndexBarrelReader(this,pBarrelsInfo_);
-    }
-    else
-        return;
+        pBarrelReader_ = new MultiIndexBarrelReader(this, pBarrelsInfo_);
 
-    if(pDocLengthReader_)
-        pDocLengthReader_->load(pBarrelsInfo_->maxDocId());
+        if(pDocLengthReader_)
+            pDocLengthReader_->load(pBarrelsInfo_->maxDocId());
+    }
 
     DVLOG(2) << "<= IndexReader::createBarrelReader()";
 }

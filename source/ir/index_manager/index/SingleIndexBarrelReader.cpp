@@ -4,6 +4,8 @@
 #include <ir/index_manager/index/TermReader.h>
 #include <ir/index_manager/index/FieldInfo.h>
 
+#include <boost/thread.hpp>
+
 using namespace izenelib::ir::indexmanager;
 
 SingleIndexBarrelReader::SingleIndexBarrelReader(IndexReader* pIndexReader, BarrelInfo* pBarrel)
@@ -30,6 +32,8 @@ SingleIndexBarrelReader::~SingleIndexBarrelReader()
 void SingleIndexBarrelReader::open(const char* name)
 {
     name_ = name;
+
+    boost::mutex::scoped_lock lock(pBarrelInfo_->getMutex());
 
     Directory* pDirectory = pIndexReader_->pIndexer_->getDirectory();
     string s = name;

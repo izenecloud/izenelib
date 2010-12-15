@@ -213,6 +213,7 @@ public:
             return pElem1->getDocCount() > pElem2->getDocCount();
     }
 
+    boost::mutex& getMutex() { return mutex_; }
 
 public:
     ///barrel name

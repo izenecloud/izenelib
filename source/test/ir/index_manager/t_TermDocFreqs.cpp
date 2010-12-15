@@ -266,8 +266,6 @@ void TermDocFreqsTestFixture::checkNextSkipToImpl()
 
     if(mapDocIdLen_.empty())
     {
-        // TermReader should be NULL when no doc exists
-        BOOST_CHECK(pTermReader.get() == NULL);
         VLOG(2) << "<= TermDocFreqsTestFixture::checkNextSkipToImpl(), no doc exists";
         return;
     }
