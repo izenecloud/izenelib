@@ -136,9 +136,9 @@ BOOST_AUTO_TEST_CASE(bitvector)
     for(size_t i=0; i<70; ++i)
         checkBitVector(i);
 
-    checkBitVector(100);
-    checkBitVector(1000);
-    checkBitVector(100000);
+    checkBitVector(100, false);
+    checkBitVector(1000, false);
+    checkBitVector(100000, false);
     checkBitVector(10000000, false); // 10M
     checkBitVector(134217728, false); // 128M
     checkBitVector(1073741825, false); // 1G + 1
