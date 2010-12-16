@@ -236,5 +236,34 @@ inline void optimizeAndRemoveDoc(const IndexerTestConfig& config)
 
     VLOG(2) << "<= t_TermDocFreqs::optimizeAndRemoveDoc";
 }
+
+/**
+ * this case is to test:
+ * create documents containing only one term "1",
+ * then remove all of them.
+ */
+inline void removeOneTerm(const IndexerTestConfig& config)
+{
+    VLOG(2) << "=> t_TermDocFreqs::removeOneTerm, config.docNum_: " << config.docNum_;
+    BOOST_TEST_MESSAGE("config.docNum_: " << config.docNum_);
+
+    IndexerTestConfig newConfig(config);
+    unsigned int docNum = config.docNum_;
+    newConfig.docNum_ = 0; // to make each doc created containing only one term "1"
+
+    TermDocFreqsTestFixture fixture;
+    fixture.configTest(newConfig);
+
+    fixture.createDocument(docNum);
+    while(! fixture.isDocEmpty())
+    {
+        fixture.removeDocument();
+
+        fixture.checkNextSkipTo();
+    }
+
+    VLOG(2) << "<= t_TermDocFreqs::removeOneTerm";
+}
+
 }
 #endif

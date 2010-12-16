@@ -104,12 +104,15 @@ void IndexerTestFixture::configTest(const IndexerTestConfig& testConfig)
     VLOG(2) << "<= IndexerTestFixture::configTest()";
 }
 
-void IndexerTestFixture::createDocument()
+void IndexerTestFixture::createDocument(unsigned int docNum)
 {
     VLOG(2) << "=> IndexerTestFixture::createDocument()";
 
+    if(docNum == 0)
+        docNum = newDocNum_;
+
     docid_t docID = maxDocID_ + 1;
-    for(unsigned int i = 1; i <= newDocNum_; i++, ++docID)
+    for(unsigned int i = 1; i <= docNum; i++, ++docID)
     {
 #ifdef LOG_DOC_OPERATION
         BOOST_TEST_MESSAGE("create doc id: " << docID);

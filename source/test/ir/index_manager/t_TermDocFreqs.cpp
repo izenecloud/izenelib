@@ -264,9 +264,10 @@ void TermDocFreqsTestFixture::checkNextSkipToImpl()
     IndexReader* pIndexReader = indexer_->getIndexReader();
     boost::scoped_ptr<TermReader> pTermReader(pIndexReader->getTermReader(COLLECTION_ID));
 
-    if(mapDocIdLen_.empty())
+    if(pTermReader.get() == NULL)
     {
-        VLOG(2) << "<= TermDocFreqsTestFixture::checkNextSkipToImpl(), no doc exists";
+        BOOST_CHECK(isDocEmpty());
+        VLOG(2) << "<= TermDocFreqsTestFixture::checkNextSkipToImpl(), no doc exists and TermReader is NULL";
         return;
     }
 

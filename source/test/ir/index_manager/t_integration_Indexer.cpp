@@ -36,12 +36,14 @@ const IndexerTestConfig INDEXER_TEST_CONFIGS[] = {
     {3, 5, 3, "realtime", true},
     {4, 10, 6, "default", true},
     {5, 10, 6, "realtime", true},
-    {6, 100, 23, "default", true},
-    {7, 100, 23, "realtime", true},
-    {8, 1000, 10, "default", true},
-    {9, 1000, 10, "realtime", true},
-    {10, 1, 1, "default:block", true},
-    {11, 1, 1, "default:chunk", true},
+    {6, 300, 1, "default", true},
+    {7, 300, 1, "realtime", true},
+    {8, 100, 23, "default", true},
+    {9, 100, 23, "realtime", true},
+    {10, 1000, 10, "default", true},
+    {11, 1000, 10, "realtime", true},
+    {12, 1, 1, "default:block", true},
+    {13, 1, 1, "default:chunk", true},
 };
 
 /** the parameter number */
@@ -186,6 +188,7 @@ bool my_init_unit_test()
     tsTermDocFreqs->add(BOOST_PARAM_TEST_CASE(&t_TermDocFreqs::update, pConfigStart, pConfigEnd));
     tsTermDocFreqs->add(BOOST_PARAM_TEST_CASE(&t_TermDocFreqs::empty, pConfigStart, pConfigEnd));
     tsTermDocFreqs->add(BOOST_PARAM_TEST_CASE(&t_TermDocFreqs::optimizeAndRemoveDoc, pConfigStart, pConfigEnd));
+    tsTermDocFreqs->add(BOOST_PARAM_TEST_CASE(&t_TermDocFreqs::removeOneTerm, pConfigStart, pConfigEnd));
     framework::master_test_suite().add(tsTermDocFreqs);
 
     return true;

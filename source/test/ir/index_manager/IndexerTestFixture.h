@@ -148,8 +148,12 @@ public:
      */
     bool isDocEmpty() const { return mapDocIdLen_.empty(); }
 
-    /** Only create \e newDocNum_ documents. */
-    void createDocument();
+    /**
+     * Create @p docNum documents.
+     * @param docNum the number of docs to create
+     * @note if @p docNum is 0, @c IndexerTestConfig::docNum_ would be used as @p docNum instead
+     */
+    void createDocument(unsigned int docNum = 0);
 
     /** Update random number of documents. */
     void updateDocument();
