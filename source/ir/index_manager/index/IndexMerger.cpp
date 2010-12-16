@@ -88,6 +88,8 @@ IndexMerger::~IndexMerger()
 
 void IndexMerger::mergeBarrels()
 {
+    DVLOG(2) << "=> IndexMerger::mergeBarrels(), barrels count: " << pBarrelsInfo_->getBarrelCount() << " ...";
+
     triggerMerge_ = false;
     IndexReader* pIndexReader = pIndexer_->getIndexReader();
 
@@ -97,7 +99,10 @@ void IndexMerger::mergeBarrels()
 
         pDocFilter_ = pIndexReader->getDocFilter();
         if (pBarrelsInfo_->getBarrelCount() <= 1 && !pDocFilter_)
+        {
+            DVLOG(2) << "<= IndexMerger::mergeBarrels(), only one barrel with no doc ever removed";
             return;
+        }
 
         boost::mutex::scoped_lock lock(pBarrelsInfo_->getMutex());
         MergeBarrelQueue mbQueue(pBarrelsInfo_->getBarrelCount());
@@ -120,7 +125,10 @@ void IndexMerger::mergeBarrels()
     }
 
     if(!triggerMerge_)
+    {
+        DVLOG(2) << "<= IndexMerger::mergeBarrels(), no merge triggered";
         return;
+    }
 
     updateBarrels(); 
 
@@ -140,6 +148,8 @@ void IndexMerger::mergeBarrels()
     }
 
     pBarrelsInfo_->write(pDirectory_);
+
+    DVLOG(2) << "<= IndexMerger::mergeBarrels()";
 }
 
 void IndexMerger::addToMerge(BarrelInfo* pBarrelInfo)
