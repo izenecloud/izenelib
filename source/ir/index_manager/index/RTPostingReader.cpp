@@ -729,7 +729,7 @@ int32_t RTDiskPostingReader::decodeNext(uint32_t* pPosting,int32_t length, uint3
             ++copiedCount;
 
             nFreqs += nCurTF;
-            if(nFreqs > posBufLength)
+            while(nFreqs > posBufLength)
             {
                 uint32_t pos_offset = pPos - pPPosting;
                 growPosBuffer(pPPosting, posBufLength);
