@@ -114,22 +114,21 @@ int32_t MemPostingReader::decodeNext(uint32_t* pPosting,int32_t length)
         return 0;
     }
 
+    const int32_t docBufferSize = length >> 1;
     uint32_t* pDoc = pPosting;
-    uint32_t* pFreq = pPosting + (length >> 1);
+    uint32_t* pFreq = pPosting + docBufferSize;
 
     int32_t left = pPostingWriter_->nDF_ - pDS_->decodedDocCount;
     if (left <= 0)
         return -1;
-    if (length > left*2)
-        length = left*2;
-    left = (length>>1);
 
     uint8_t* pDChunk = &(pDS_->decodingDChunk->data[pDS_->decodingDChunkPos]);
     uint8_t* pDChunkEnd = &(pDS_->decodingDChunk->data[pDS_->decodingDChunk->size-1]);
 
-    int32_t count = 0;
+    int32_t docCount = 0; // docs decoded from pDChunk
+    int32_t copiedCount = 0; // docs copied into pDoc
     docid_t did = pDS_->lastDecodedDocID;
-    while (count < left)
+    while (copiedCount < docBufferSize && docCount < left)
     {
         ISCHUNKOVER_D();
         did += VariantDataPool::decodeVData32(pDChunk);
@@ -141,6 +140,7 @@ int32_t MemPostingReader::decodeNext(uint32_t* pPosting,int32_t length)
             ISCHUNKOVER_D();
 		
             *pFreq++ = VariantDataPool::decodeVData32(pDChunk);					
+            ++copiedCount;
         }
         else
         {
@@ -149,14 +149,14 @@ int32_t MemPostingReader::decodeNext(uint32_t* pPosting,int32_t length)
             VariantDataPool::decodeVData32(pDChunk);
         }
 
-        count++;
+        ++docCount;
     }
     ///update state
-    pDS_->decodedDocCount += count;
+    pDS_->decodedDocCount += docCount;
     pDS_->lastDecodedDocID = did;
     pDS_->decodingDChunkPos = (int32_t)(pDChunk - pDS_->decodingDChunk->data);
 
-    return (int32_t)(pDoc - pPosting);
+    return copiedCount;
 }
 
 int32_t MemPostingReader::decodeNext(uint32_t* pPosting,int32_t length, uint32_t* &pPPosting, int32_t& posBufLength, int32_t& posLength)
@@ -186,8 +186,9 @@ int32_t MemPostingReader::decodeNext(uint32_t* pPosting,int32_t length, uint32_t
         return 0;
     }
 
+    const int32_t docBufferSize = length >> 1;
     uint32_t* pDoc = pPosting;
-    uint32_t* pFreq = pPosting + (length >> 1);
+    uint32_t* pFreq = pPosting + docBufferSize;
 
     uint8_t* pPChunk = &(pDS_->decodingPChunk->data[pDS_->decodingPChunkPos]);
     uint8_t* pPChunkEnd = &(pDS_->decodingPChunk->data[pDS_->decodingPChunk->size-1]);
@@ -195,14 +196,12 @@ int32_t MemPostingReader::decodeNext(uint32_t* pPosting,int32_t length, uint32_t
     int32_t left = pPostingWriter_->nDF_ - pDS_->decodedDocCount;
     if (left <= 0)
         return -1;
-    if (length > left*2)
-        length = left*2;
-    left = (length>>1);
 
     uint8_t* pDChunk = &(pDS_->decodingDChunk->data[pDS_->decodingDChunkPos]);
     uint8_t* pDChunkEnd = &(pDS_->decodingDChunk->data[pDS_->decodingDChunk->size-1]);
 
-    int32_t count = 0;
+    int32_t docCount = 0; // docs decoded from pDChunk
+    int32_t copiedCount = 0; // docs copied into pDoc
     docid_t did = pDS_->lastDecodedDocID;
     uint32_t nCurTF;
     uint32_t nCurDecoded = 0;
@@ -210,7 +209,7 @@ int32_t MemPostingReader::decodeNext(uint32_t* pPosting,int32_t length, uint32_t
     loc_t loc = 0;
     int32_t nFreqs = 0;
 	
-    while (count < left)
+    while (copiedCount < docBufferSize && docCount < left)
     {
         ISCHUNKOVER_D();
         did += VariantDataPool::decodeVData32(pDChunk);
@@ -224,6 +223,7 @@ int32_t MemPostingReader::decodeNext(uint32_t* pPosting,int32_t length, uint32_t
             nCurTF = VariantDataPool::decodeVData32(pDChunk);
 
             *pFreq++ = nCurTF;
+            ++copiedCount;
 
             nFreqs += nCurTF;
             if(nFreqs > posBufLength)
@@ -278,15 +278,15 @@ int32_t MemPostingReader::decodeNext(uint32_t* pPosting,int32_t length, uint32_t
 
         }
 
-        count++;
+        ++docCount;
     }
     ///update state
-    pDS_->decodedDocCount += count;
+    pDS_->decodedDocCount += docCount;
     pDS_->lastDecodedDocID = did;
     pDS_->decodingDChunkPos = (int32_t)(pDChunk - pDS_->decodingDChunk->data);
     posLength = pPos - pPPosting;
 
-    return (int32_t)(pDoc - pPosting);
+    return copiedCount;
 }
 
 bool MemPostingReader::decodeNextPositions(uint32_t* pPosting,int32_t length)
