@@ -189,6 +189,7 @@ bool my_init_unit_test()
     tsTermDocFreqs->add(BOOST_PARAM_TEST_CASE(&t_TermDocFreqs::empty, pConfigStart, pConfigEnd));
     tsTermDocFreqs->add(BOOST_PARAM_TEST_CASE(&t_TermDocFreqs::optimizeAndRemoveDoc, pConfigStart, pConfigEnd));
     tsTermDocFreqs->add(BOOST_PARAM_TEST_CASE(&t_TermDocFreqs::removeOneTerm, pConfigStart, pConfigEnd));
+    tsTermDocFreqs->add(BOOST_PARAM_TEST_CASE(&t_TermDocFreqs::checkRemoveAtStartUp, pConfigStart, pConfigEnd));
     framework::master_test_suite().add(tsTermDocFreqs);
 
     return true;

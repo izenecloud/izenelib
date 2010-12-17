@@ -265,5 +265,51 @@ inline void removeOneTerm(const IndexerTestConfig& config)
     VLOG(2) << "<= t_TermDocFreqs::removeOneTerm";
 }
 
+/**
+ * this case is to test:
+ * remove documents,
+ * start index manager again,
+ * check documents are removed
+ */
+inline void checkRemoveAtStartUp(const IndexerTestConfig& config)
+{
+    VLOG(2) << "=> t_TermDocFreqs::checkRemoveAtStartUp";
+
+    {
+        TermDocFreqsTestFixture fixture;
+        fixture.configTest(config);
+
+        fixture.createDocument();
+        fixture.removeDocument();
+
+        fixture.checkNextSkipTo();
+    }
+
+    {
+        // new Indexer instance,
+        // while keep original index files
+        TermDocFreqsTestFixture fixture;
+        fixture.setRealIndex(false);
+        fixture.configTest(config);
+
+        // re-generate random numbers to check
+        fixture.createDocument();
+        fixture.removeDocument();
+
+        fixture.checkNextSkipTo();
+
+        // create new index files
+        fixture.setRealIndex(true);
+        // remove until empty
+        while(! fixture.isDocEmpty())
+        {
+            fixture.removeDocument();
+            fixture.checkNextSkipTo();
+        }
+    }
+
+    VLOG(2) << "<= t_TermDocFreqs::checkRemoveAtStartUp";
+}
+
 }
 #endif

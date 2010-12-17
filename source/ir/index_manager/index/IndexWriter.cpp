@@ -66,6 +66,7 @@ void IndexWriter::flush()
         DVLOG(2) << "<= IndexWriter::flush(), pCurBarrelInfo_ is NULL";
         return;
     }
+    assert(pIndexBarrelWriter_ && "pIndexBarrelWriter_ should have been created with pCurBarrelInfo_ together in IndexWriter::createBarrelInfo()");
 
     pIndexBarrelWriter_->close();
     pIndexer_->setDirty();
@@ -134,7 +135,7 @@ void IndexWriter::indexDocument(IndexerDocument& doc)
 void IndexWriter::removeDocument(collectionid_t colID, docid_t docId)
 {
     pIndexer_->getIndexReader()->delDocument(colID, docId);
-    if(! pIndexBarrelWriter_->getDocFilter())
+    if(pIndexBarrelWriter_ && ! pIndexBarrelWriter_->getDocFilter())
         pIndexBarrelWriter_->setDocFilter(pIndexer_->getIndexReader()->getDocFilter());
 }
 
