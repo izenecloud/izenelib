@@ -656,26 +656,26 @@ int32_t RTDiskPostingReader::decodeNext(uint32_t* pPosting,int32_t length)
     int32_t left = postingDesc_.df - ds_.decodedDocCount;
     if (left <= 0)
         return -1;
-    uint32_t* pDoc = pPosting;
-    uint32_t* pFreq = pPosting + (length>>1);
 
-    if (length > left*2)
-        length = left*2;
-    left = (length>>1);
+    const int32_t docBufferSize = length >> 1;
+    uint32_t* pDoc = pPosting;
+    uint32_t* pFreq = pPosting + docBufferSize;
 
     IndexInput* pDPostingInput = pInputDescriptor_->getDPostingInput();
 
-    int32_t count = 0;
+    int32_t docCount = 0; // docs decoded from pDPostingInput
+    int32_t copiedCount = 0; // docs copied into pDoc
     docid_t did = ds_.lastDecodedDocID;
     count_t nSkipPCount = 0;
 
-    while (count < left)
+    while (copiedCount < docBufferSize && docCount < left)
     {
         did += pDPostingInput->readVInt();
         if(!pDocFilter_ || !pDocFilter_->test((size_t)did))
         {
             *pDoc++ = did;
             *pFreq++ = pDPostingInput->readVInt();
+            ++copiedCount;
          }
         else
         {
@@ -683,15 +683,15 @@ int32_t RTDiskPostingReader::decodeNext(uint32_t* pPosting,int32_t length)
             nSkipPCount += pDPostingInput->readVInt();
         }				
 
-        count++;
+        ++docCount;
     }
 
     ///update state
-    ds_.decodedDocCount += count;
+    ds_.decodedDocCount += docCount;
     ds_.lastDecodedDocID = did;
     ds_.skipPosCount_ += nSkipPCount;
 
-    return (int32_t)(pDoc - pPosting);
+    return copiedCount;
 }
 
 int32_t RTDiskPostingReader::decodeNext(uint32_t* pPosting,int32_t length, uint32_t* &pPPosting, int32_t& posBufLength, int32_t& posLength)
@@ -699,19 +699,18 @@ int32_t RTDiskPostingReader::decodeNext(uint32_t* pPosting,int32_t length, uint3
     int32_t left = postingDesc_.df - ds_.decodedDocCount;
     if (left <= 0)
         return -1;
-    uint32_t* pDoc = pPosting;
-    uint32_t* pFreq = pPosting + (length>>1);
 
-    if (length > left*2)
-        length = left*2;
-    left = (length>>1);
+    const int32_t docBufferSize = length >> 1;
+    uint32_t* pDoc = pPosting;
+    uint32_t* pFreq = pPosting + docBufferSize;
 
     skipPositions();
 
     IndexInput* pDPostingInput = pInputDescriptor_->getDPostingInput();
     IndexInput*	pPPostingInput = pInputDescriptor_->getPPostingInput();
 
-    int32_t count = 0;
+    int32_t docCount = 0; // docs decoded from pDPostingInput
+    int32_t copiedCount = 0; // docs copied into pDoc
     docid_t did = ds_.lastDecodedDocID;
     uint32_t nCurTF;
     uint32_t nCurDecoded = 0;
@@ -719,7 +718,7 @@ int32_t RTDiskPostingReader::decodeNext(uint32_t* pPosting,int32_t length, uint3
     loc_t loc = 0;
     int32_t nFreqs = 0;
 
-    while (count < left)
+    while (copiedCount < docBufferSize && docCount < left)
     {
         did += pDPostingInput->readVInt();
         if(!pDocFilter_ || !pDocFilter_->test((size_t)did))
@@ -727,6 +726,7 @@ int32_t RTDiskPostingReader::decodeNext(uint32_t* pPosting,int32_t length, uint3
             *pDoc++ = did;
             nCurTF = pDPostingInput->readVInt();
             *pFreq++ = nCurTF;
+            ++copiedCount;
 
             nFreqs += nCurTF;
             if(nFreqs > posBufLength)
@@ -756,15 +756,15 @@ int32_t RTDiskPostingReader::decodeNext(uint32_t* pPosting,int32_t length, uint3
             }
         }				
 
-        count++;
+        ++docCount;
     }
 
     ///update state
-    ds_.decodedDocCount += count;
+    ds_.decodedDocCount += docCount;
     ds_.lastDecodedDocID = did;
 
     posLength = pPos - pPPosting;
-    return (int32_t)(pDoc - pPosting);
+    return copiedCount;
 }
 
 bool RTDiskPostingReader::decodeNextPositions(uint32_t* pPosting,int32_t length)
