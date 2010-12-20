@@ -10,6 +10,8 @@
 
 #include <ir/index_manager/utility/BitVector.h>
 
+#include <cassert>
+
 NS_IZENELIB_IR_BEGIN
 
 namespace indexmanager{
@@ -42,10 +44,22 @@ public:
     virtual void setFilter(BitVector* pFilter) = 0;
 
 protected:
-    void growPosBuffer(uint32_t* &pPPosting, int32_t& posBufLength)
+    /**
+     * Grow the position buffer size until @p minBufLength is reached.
+     * @param pPPosting reference to position buffer, it stores the grown buffer on return
+     * @param posBufLength position buffer length, it stores grown buffer size on return
+     * @param minBufLength minimum buffer length, the buffer size would not be less than this value on return
+     */
+    void growPosBuffer(uint32_t* &pPPosting, int32_t& posBufLength, int32_t minBufLength)
     {
-        posBufLength = posBufLength << 1;
+        assert(posBufLength < minBufLength);
+
+        while(posBufLength < minBufLength)
+            posBufLength <<= 1;
+
         pPPosting = (uint32_t*)realloc(pPPosting, posBufLength * sizeof(uint32_t));
+
+        assert(posBufLength >= minBufLength);
     }
 
 };

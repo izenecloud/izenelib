@@ -221,8 +221,8 @@ int32_t MemPostingReader::decodeNext(uint32_t* pPosting,int32_t length, uint32_t
             ++copiedCount;
 
             nFreqs += nCurTF;
-            if(nFreqs > posBufLength)
-                growPosBuffer(pPPosting, posBufLength);
+            if(posBufLength < nFreqs)
+                growPosBuffer(pPPosting, posBufLength, nFreqs);
 
             loc_t loc = 0;
             for(uint32_t i = 0; i < nCurTF; ++i)
@@ -705,8 +705,8 @@ int32_t RTDiskPostingReader::decodeNext(uint32_t* pPosting,int32_t length, uint3
             ++copiedCount;
 
             nFreqs += nCurTF;
-            while(nFreqs > posBufLength)
-                growPosBuffer(pPPosting, posBufLength);
+            if(posBufLength < nFreqs)
+                growPosBuffer(pPPosting, posBufLength, nFreqs);
 
             loc_t loc = 0;
             for(uint32_t i = 0; i < nCurTF; ++i)
