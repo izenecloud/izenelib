@@ -125,10 +125,10 @@ int32_t MemPostingReader::decodeNext(uint32_t* pPosting,int32_t length)
     uint8_t* pDChunk = &(pDS_->decodingDChunk->data[pDS_->decodingDChunkPos]);
     uint8_t* pDChunkEnd = &(pDS_->decodingDChunk->data[pDS_->decodingDChunk->size-1]);
 
+    docid_t did = pDS_->lastDecodedDocID;
     int32_t docCount = 0; // docs decoded from pDChunk
     int32_t copiedCount = 0; // docs copied into pDoc
-    docid_t did = pDS_->lastDecodedDocID;
-    while (copiedCount < docBufferSize && docCount < left)
+    for(; copiedCount < docBufferSize && docCount < left; ++docCount)
     {
         ISCHUNKOVER_D();
         did += VariantDataPool::decodeVData32(pDChunk);
@@ -148,9 +148,8 @@ int32_t MemPostingReader::decodeNext(uint32_t* pPosting,int32_t length)
             ISCHUNKOVER_D();
             VariantDataPool::decodeVData32(pDChunk);
         }
-
-        ++docCount;
     }
+
     ///update state
     pDS_->decodedDocCount += docCount;
     pDS_->lastDecodedDocID = did;
@@ -200,16 +199,13 @@ int32_t MemPostingReader::decodeNext(uint32_t* pPosting,int32_t length, uint32_t
     uint8_t* pDChunk = &(pDS_->decodingDChunk->data[pDS_->decodingDChunkPos]);
     uint8_t* pDChunkEnd = &(pDS_->decodingDChunk->data[pDS_->decodingDChunk->size-1]);
 
+    docid_t did = pDS_->lastDecodedDocID;
+    int32_t nFreqs = 0;
+
+    posLength = 0;
     int32_t docCount = 0; // docs decoded from pDChunk
     int32_t copiedCount = 0; // docs copied into pDoc
-    docid_t did = pDS_->lastDecodedDocID;
-    uint32_t nCurTF;
-    uint32_t nCurDecoded = 0;
-    uint32_t* pPos = pPPosting;
-    loc_t loc = 0;
-    int32_t nFreqs = 0;
-	
-    while (copiedCount < docBufferSize && docCount < left)
+    for(; copiedCount < docBufferSize && docCount < left; ++docCount)
     {
         ISCHUNKOVER_D();
         did += VariantDataPool::decodeVData32(pDChunk);
@@ -220,22 +216,16 @@ int32_t MemPostingReader::decodeNext(uint32_t* pPosting,int32_t length, uint32_t
 			
             ISCHUNKOVER_D();
 
-            nCurTF = VariantDataPool::decodeVData32(pDChunk);
-
+            uint32_t nCurTF = VariantDataPool::decodeVData32(pDChunk);
             *pFreq++ = nCurTF;
             ++copiedCount;
 
             nFreqs += nCurTF;
             if(nFreqs > posBufLength)
-            {
-                uint32_t pos_offset = pPos - pPPosting;
                 growPosBuffer(pPPosting, posBufLength);
-                pPos = pPPosting + pos_offset;
-            }
 
-
-            nCurDecoded = 0;
-            while (nCurDecoded < nCurTF)
+            loc_t loc = 0;
+            for(uint32_t i = 0; i < nCurTF; ++i)
             {
                 if (pPChunk > pPChunkEnd)
                 {
@@ -248,20 +238,15 @@ int32_t MemPostingReader::decodeNext(uint32_t* pPosting,int32_t length, uint32_t
                 }
 
                 loc += VariantDataPool::decodeVData32(pPChunk);
-                *pPos = loc;
-                pPos++;
-                nCurDecoded++;
+                pPPosting[posLength++] = loc;
             }
-            loc = 0;
-
         }
         else
         {
             ///this doc is deleted
             ISCHUNKOVER_D();
-            nCurTF = VariantDataPool::decodeVData32(pDChunk);
-
-            while (nCurTF)
+            uint32_t nCurTF = VariantDataPool::decodeVData32(pDChunk);
+            for(uint32_t i = 0; i < nCurTF; ++i) 
             {
                 if (pPChunk > pPChunkEnd)
                 {
@@ -273,18 +258,14 @@ int32_t MemPostingReader::decodeNext(uint32_t* pPosting,int32_t length, uint32_t
                     pPChunkEnd = &(pDS_->decodingPChunk->data[pDS_->decodingPChunk->size-1]);
                 }
                 VariantDataPool::decodeVData32(pPChunk);
-                --nCurTF;
             }
-
         }
-
-        ++docCount;
     }
+
     ///update state
     pDS_->decodedDocCount += docCount;
     pDS_->lastDecodedDocID = did;
     pDS_->decodingDChunkPos = (int32_t)(pDChunk - pDS_->decodingDChunk->data);
-    posLength = pPos - pPPosting;
 
     return copiedCount;
 }
@@ -663,12 +644,12 @@ int32_t RTDiskPostingReader::decodeNext(uint32_t* pPosting,int32_t length)
 
     IndexInput* pDPostingInput = pInputDescriptor_->getDPostingInput();
 
-    int32_t docCount = 0; // docs decoded from pDPostingInput
-    int32_t copiedCount = 0; // docs copied into pDoc
     docid_t did = ds_.lastDecodedDocID;
     count_t nSkipPCount = 0;
 
-    while (copiedCount < docBufferSize && docCount < left)
+    int32_t docCount = 0; // docs decoded from pDPostingInput
+    int32_t copiedCount = 0; // docs copied into pDoc
+    for(; copiedCount < docBufferSize && docCount < left; ++docCount)
     {
         did += pDPostingInput->readVInt();
         if(!pDocFilter_ || !pDocFilter_->test((size_t)did))
@@ -682,8 +663,6 @@ int32_t RTDiskPostingReader::decodeNext(uint32_t* pPosting,int32_t length)
             ///this doc is deleted
             nSkipPCount += pDPostingInput->readVInt();
         }				
-
-        ++docCount;
     }
 
     ///update state
@@ -709,61 +688,46 @@ int32_t RTDiskPostingReader::decodeNext(uint32_t* pPosting,int32_t length, uint3
     IndexInput* pDPostingInput = pInputDescriptor_->getDPostingInput();
     IndexInput*	pPPostingInput = pInputDescriptor_->getPPostingInput();
 
-    int32_t docCount = 0; // docs decoded from pDPostingInput
-    int32_t copiedCount = 0; // docs copied into pDoc
     docid_t did = ds_.lastDecodedDocID;
-    uint32_t nCurTF;
-    uint32_t nCurDecoded = 0;
-    uint32_t* pPos = pPPosting;
-    loc_t loc = 0;
     int32_t nFreqs = 0;
 
-    while (copiedCount < docBufferSize && docCount < left)
+    posLength = 0;
+    int32_t docCount = 0; // docs decoded from pDPostingInput
+    int32_t copiedCount = 0; // docs copied into pDoc
+    for(; copiedCount < docBufferSize && docCount < left; ++docCount)
     {
         did += pDPostingInput->readVInt();
         if(!pDocFilter_ || !pDocFilter_->test((size_t)did))
         {
             *pDoc++ = did;
-            nCurTF = pDPostingInput->readVInt();
+            uint32_t nCurTF = pDPostingInput->readVInt();
             *pFreq++ = nCurTF;
             ++copiedCount;
 
             nFreqs += nCurTF;
             while(nFreqs > posBufLength)
-            {
-                uint32_t pos_offset = pPos - pPPosting;
                 growPosBuffer(pPPosting, posBufLength);
-                pPos = pPPosting + pos_offset;
-            }
 
-            nCurDecoded = 0;
-            while (nCurDecoded < nCurTF)
+            loc_t loc = 0;
+            for(uint32_t i = 0; i < nCurTF; ++i)
             {
                 loc += pPPostingInput->readVInt();
-                *pPos++ = loc;
-                nCurDecoded++;
+                pPPosting[posLength++] = loc;
             }
-            loc = 0;
-         }
+        }
         else
         {
-            ///this doc is deleted
-            nCurTF = pDPostingInput->readVInt();
-            while(nCurTF > 0) ///skip positions
-            {
+            ///this doc is deleted, skip positions
+            uint32_t nCurTF = pDPostingInput->readVInt();
+            for(uint32_t i = 0; i < nCurTF; ++i) 
                 pPPostingInput->readVInt();
-                nCurTF--;
-            }
         }				
-
-        ++docCount;
     }
 
     ///update state
     ds_.decodedDocCount += docCount;
     ds_.lastDecodedDocID = did;
 
-    posLength = pPos - pPPosting;
     return copiedCount;
 }
 
