@@ -155,6 +155,15 @@ protected:
             compressedPos_ = (uint32_t*)realloc(compressedPos_, curr_pos_buffer_size_ * sizeof(uint32_t));
         }
     }
+
+    /**
+     * Get the number of docs left to decode.
+     * @return left docs number
+     */
+    count_t leftDocsNum() const {
+        return df_ - num_docs_decoded_;
+    }
+
 protected:
     BlockDecoder blockDecoder_;
     InputDescriptor* pInputDescriptor_;
@@ -174,7 +183,6 @@ protected:
     fileoffset_t poffset_; ///offset of the position postings in the .pop file
     int64_t plength_;
     docid_t last_doc_id_;
-    count_t num_docs_left_;
     count_t num_docs_decoded_;
     int32_t curr_pos_buffer_size_;
 
@@ -315,6 +323,15 @@ protected:
             compressedPos_ = (uint32_t*)realloc(compressedPos_, curr_pos_buffer_size_ * sizeof(uint32_t));
         }
     }
+
+    /**
+     * Get the number of docs left to decode.
+     * @return left docs number
+     */
+    count_t leftDocsNum() const {
+        return df_ - num_docs_decoded_;
+    }
+
 protected:
     int skipInterval_;
     int maxSkipLevel_;
@@ -330,7 +347,6 @@ protected:
     fileoffset_t poffset_; ///offset of the position postings in the .pop file
     int64_t plength_;
     docid_t last_doc_id_;
-    count_t num_docs_left_;
     count_t num_docs_decoded_;
     int32_t curr_pos_buffer_size_;
 
