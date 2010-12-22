@@ -110,17 +110,18 @@ BOOST_AUTO_TEST_CASE(s16_compressor_test)
     unsigned int * compresseddata = new unsigned int[data_size];
     S16_Compressor compressor;
     izenelib::util::ClockTimer timer;
-    int retSize = compressor.compress(int_data, compresseddata, data_size);
-    cout<<"ret size for s16 compression "<<retSize<<" time elapsed: "<<timer.elapsed()<<endl;	
-    BOOST_CHECK(retSize < data_size);
+    const int compressNum = compressor.compress(int_data, compresseddata, data_size);
+    cout<<"ret size for s16 compression "<<compressNum<<" time elapsed: "<<timer.elapsed()<<endl;	
+    BOOST_CHECK_LE(compressNum, data_size);
 
     unsigned int * decompresseddata = new unsigned int[data_size*2];
 
-    retSize = compressor.decompress(compresseddata, decompresseddata, data_size);
-    cout<<"ret size for s16 decompression  "<<retSize<<" time elapsed: "<<timer.elapsed()<<endl;	
+    const int decompressNum = compressor.decompress(compresseddata, decompresseddata, data_size);
+    BOOST_CHECK_EQUAL(decompressNum, compressNum);
+    cout<<"ret size for s16 decompression  "<<decompressNum<<" time elapsed: "<<timer.elapsed()<<endl;	
 
     for(int i = 0; i < data_size; ++i)
-       BOOST_CHECK_EQUAL(int_data[i],decompresseddata[i]);
+        BOOST_CHECK_EQUAL(int_data[i],decompresseddata[i]);
 
     delete[] int_data;
     delete[] decompresseddata;
