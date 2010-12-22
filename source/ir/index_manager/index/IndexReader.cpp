@@ -2,6 +2,7 @@
 #include <ir/index_manager/index/TermReader.h>
 #include <ir/index_manager/index/Indexer.h>
 #include <ir/index_manager/index/MultiIndexBarrelReader.h>
+#include <ir/index_manager/index/IndexBarrelWriter.h>
 #include <util/izene_log.h>
 
 #include <util/ThreadModel.h>
@@ -97,7 +98,7 @@ void IndexReader::createBarrelReader()
 {
     boost::mutex::scoped_lock lock(this->mutex_);
 
-    if (pBarrelReader_)
+    if(pBarrelReader_)
         return;
 
     DVLOG(2) << "=> IndexReader::createBarrelReader()";
@@ -106,7 +107,25 @@ void IndexReader::createBarrelReader()
     {
         DVLOG(2) << "IndexReader::createBarrelReader() => " << bc << " barrels...";
 
-        pBarrelReader_ = new MultiIndexBarrelReader(this, pBarrelsInfo_);
+        if(bc == 1)
+        {
+            boost::mutex::scoped_lock lock(pBarrelsInfo_->getMutex());
+
+            pBarrelsInfo_->startIterator();
+            if(pBarrelsInfo_->hasNext())
+            {
+                BarrelInfo* pBarrelInfo = pBarrelsInfo_->next();
+                if(pBarrelInfo->isSearchable() && pBarrelInfo->getDocCount() > 0)
+                {
+                    if(IndexBarrelWriter* pBarrelWriter = pBarrelInfo->getWriter())
+                        pBarrelReader_ = pBarrelWriter->inMemoryReader();
+                    else
+                        pBarrelReader_ = new SingleIndexBarrelReader(this, pBarrelInfo);
+                }
+            }
+        }
+        else if(bc > 1)
+            pBarrelReader_ = new MultiIndexBarrelReader(this, pBarrelsInfo_);
 
         if(pDocLengthReader_)
             pDocLengthReader_->load(pBarrelsInfo_->maxDocId());
