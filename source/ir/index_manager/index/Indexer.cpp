@@ -132,7 +132,7 @@ void Indexer::setIndexManagerConfig(const IndexManagerConfig& config,
             else
                 indexingType_ = BYTEALIGN;
        	}
-       else
+        else
            indexingType_ = BYTEALIGN;
     }
 

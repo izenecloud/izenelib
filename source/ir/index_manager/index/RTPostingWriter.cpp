@@ -64,9 +64,7 @@ void RTPostingWriter::write(OutputDescriptor* pOutputDescriptor, TermInfo& termI
     flushLastDoc(true);
 
     termInfo.docFreq_ = nDF_;
-
     termInfo.ctf_ = nCTF_;
-
     termInfo.lastDocID_ = nLastDocID_;
 
     if(skipInterval_ && nDF_ > 0 && nDF_ % skipInterval_ == 0)

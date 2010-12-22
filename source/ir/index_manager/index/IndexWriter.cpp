@@ -91,7 +91,7 @@ void IndexWriter::createBarrelInfo()
 {
     DVLOG(2) << "=> IndexWriter::createBarrelInfo()...";
 
-    pCurBarrelInfo_ = new BarrelInfo(pBarrelsInfo_->newBarrel(),0);
+    pCurBarrelInfo_ = new BarrelInfo(pBarrelsInfo_->newBarrel(), 0, pIndexer_->getIndexCompressType());
     pCurBarrelInfo_->setSearchable(pIndexer_->isRealTime());
 
     if(!pMemCache_)
