@@ -1,5 +1,14 @@
 #include <ir/index_manager/index/TermPositions.h>
 #include <ir/index_manager/index/InputDescriptor.h>
+#include <ir/index_manager/index/CompressParameters.h>
+
+#include <algorithm>
+
+namespace
+{
+/** maximum value for position buffer size. */
+const int32_t MAX_POS_BUFFER_SIZE = 163840;
+}
 
 NS_IZENELIB_IR_BEGIN
 
@@ -40,8 +49,6 @@ TermPositions::TermPositions(PostingReader* pPosting,const TermInfo& ti,bool own
 
 TermPositions::~TermPositions()
 {
-    TermDocFreqs::close();
-
     if (pPPostingBuffer_)
         free(pPPostingBuffer_);
     pPPostingBuffer_ = NULL;
@@ -150,11 +157,6 @@ void TermPositions::resetDecodingState()
     nTotalDecodedPCountWithinDoc_ = 0;
     nCurrentPPostingWithinDoc_ = 0;
     pPosting_->resetPosition();
-}
-
-void TermPositions::close()
-{
-    TermDocFreqs::close();
 }
 
 loc_t TermPositions::nextPosition()
@@ -298,14 +300,18 @@ void TermPositions::createBuffer()
 {
     TermDocFreqs::createBuffer();
 
-    size_t bufSize = TermPositions::DEFAULT_BUFFERSIZE;
-    if ((int64_t)bufSize > getCTF())
-        bufSize = (size_t)getCTF();
     if (pPPostingBuffer_ == NULL)
     {
-        nPBufferSize_ = bufSize;
-        pPPostingBuffer_ = (uint32_t*)malloc(bufSize*sizeof(uint32_t));		
-        memset(pPPostingBuffer_, 0, bufSize*sizeof(uint32_t));
+        // as some block decompression method such as s16_compressor::s16_decode()
+        // need a minimum buffer size to store decompressed data,
+        // set the minimum position buffer size to CHUNK_SIZE
+        nPBufferSize_ = std::max(getCTF(), static_cast<int64_t>(CHUNK_SIZE));
+        // set the maximum position buffer size
+        if(nPBufferSize_ > MAX_POS_BUFFER_SIZE)
+            nPBufferSize_ = MAX_POS_BUFFER_SIZE;
+
+        pPPostingBuffer_ = (uint32_t*)malloc(nPBufferSize_*sizeof(uint32_t));		
+        memset(pPPostingBuffer_, 0, nPBufferSize_*sizeof(uint32_t));
     }
 }
 

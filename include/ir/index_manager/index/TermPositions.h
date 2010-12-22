@@ -60,7 +60,6 @@ public:
         return TermDocFreqs::getCTF();
     };
 
-    virtual void close();
     /**
     * iterate to next position
     */
@@ -119,8 +118,6 @@ private:
      * has bugs when this flag is true.
      */
     bool fixed_pos_buffer_; 
-
-    static const int32_t DEFAULT_BUFFERSIZE = 163840;
 };
 
 //////////////////////////////////////////////////////////////////////////
