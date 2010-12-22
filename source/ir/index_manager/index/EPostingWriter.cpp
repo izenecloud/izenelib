@@ -127,8 +127,6 @@ void BlockPostingWriter::add(docid_t docid, loc_t location)
             position_buffer_pointer_ = 0;
         }
 
-        nLastDocID_ = docid;
-
         doc_ids_[current_nocomp_block_pointer_] = docid;
         positions_[position_buffer_pointer_++] = location;
 
@@ -163,6 +161,8 @@ void BlockPostingWriter::flush()
         pPosDataPool_->addPOSChunk(chunk_);
         pSkipListWriter_->addSkipPoint(chunk_.last_doc_id(), pBlockDataPool_->num_doc_of_curr_block(), pPosDataPool_->getLength());
 
+        nCTF_ += nCurTermFreq_;
+        nCurTermFreq_ = 0;
     }
 }
 
@@ -319,6 +319,9 @@ void ChunkPostingWriter::flush()
                 pSkipListWriter_->addSkipPoint(chunk_.last_doc_id(),pDocFreqDataPool_->getLength(),pPosDataPool_->getLength());
             }
         }
+
+        nCTF_ += nCurTermFreq_;
+        nCurTermFreq_ = 0;
     }
 }
 
