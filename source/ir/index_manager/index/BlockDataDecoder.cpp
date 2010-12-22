@@ -85,31 +85,41 @@ int ChunkDecoder::decodePositions(const uint32_t* compressed_positions)
 
 void ChunkDecoder::post_process(BitVector* pDocFilter)
 {
-    int num_doc = num_docs_ - 1;
-    if(! pDocFilter->hasBetween(doc_ids_[0], doc_ids_[num_doc]))
+    if(! pDocFilter->hasBetween(doc_ids_[0], doc_ids_[num_docs_-1]))
         return;
 
-    uint32_t* pPos = 0;
-    if(pos_decoded_) pPos = positions_;
+    uint32_t srcFreq = 0;
+    uint32_t destFreq = 0;
 
-    for (int i = 0; i < num_doc; ++i)
+    int dest = 0; // copy to the destination
+    for(int i = 0; i < num_docs_; ++i)
     {
-        if(pDocFilter->test(doc_ids_[i]))
+        if(! pDocFilter->test(doc_ids_[i]))
         {
-            --num_docs_;
-            doc_ids_[i] = doc_ids_[i + 1];
-            ///skip positions
-            if(pos_decoded_) memmove (pPos, pPos + frequencies_[i], frequencies_[i]);
-            frequencies_[i] = frequencies_[i + 1];
-            pPos += frequencies_[i];
-            doc_deleted_ = true;
+            // avoid copy if destination is the same to source
+            if(dest != i)
+            {
+                doc_ids_[dest] = doc_ids_[i];
+                frequencies_[dest] = frequencies_[i];
+
+                // copy positions
+                if(pos_decoded_)
+                    memmove(positions_ + destFreq, positions_ + srcFreq, frequencies_[i] * sizeof(uint32_t));
+            }
+
+            if(pos_decoded_)
+                destFreq += frequencies_[dest];
+
+            ++dest;
         }
+
+        if(pos_decoded_)
+            srcFreq += frequencies_[i];
     }
 
-    if(pDocFilter->test(num_doc - 1))
-    {
-	--num_docs_;
-    }
+    assert(dest < num_docs_ && "some docs should have been skipped in post process.");
+    doc_deleted_ = true;
+    num_docs_ = dest;
 }
 
 void ChunkDecoder::updatePositionOffset()
