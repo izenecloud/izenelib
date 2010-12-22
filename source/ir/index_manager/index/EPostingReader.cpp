@@ -8,6 +8,7 @@
 
 #include <math.h>
 #include <algorithm>
+#include <cassert>
 
 using namespace std;
 
@@ -232,21 +233,20 @@ docid_t BlockPostingReader::decodeTo(docid_t target, uint32_t* pPosting, int32_t
 
 int32_t BlockPostingReader::decodeNext(uint32_t* pPosting,int32_t length)
 {
-    int32_t left = df_ - num_docs_decoded_;
-    if (left <= 0)
+    if (num_docs_decoded_ == df_)
         return -1;
+
+    assert(num_docs_decoded_ < df_);
+
+    const int32_t docBufferSize = length >> 1;
+    int32_t decodedDoc = 0;
+
     uint32_t* pDoc = pPosting;
-    uint32_t* pFreq = pPosting + (length>>1);
-
-    if (length > left*2)
-        length = left*2;
-    left = (length>>1);
-
-    int decodedDoc = 0;
+    uint32_t* pFreq = pPosting + docBufferSize;
 
     ChunkDecoder& chunk = blockDecoder_.chunk_decoder_;
 
-    while(left > 0)
+    while(decodedDoc < docBufferSize && num_docs_decoded_ < df_)
     {
         int curr_chunk_num = blockDecoder_.curr_chunk();
         if (curr_chunk_num < blockDecoder_.num_chunks()) 
@@ -260,11 +260,12 @@ int32_t BlockPostingReader::decodeNext(uint32_t* pPosting,int32_t length)
                 chunk.decodeDocIds();
                 chunk.decodeFrequencies(false);
 
-                left -= chunk.num_docs();
                 num_docs_decoded_ += chunk.num_docs();
+
                 ///num_docs_decoded_ should record the practical overall doc ids
                 ///after post_process, the deleted doc ids will be removed from the decoding buffer
-                if(pDocFilter_) chunk.post_process(pDocFilter_);
+                if(pDocFilter_)
+                    chunk.post_process(pDocFilter_);
 
                 decodedDoc += chunk.num_docs();
                 pDoc += chunk.num_docs();
@@ -286,23 +287,23 @@ int32_t BlockPostingReader::decodeNext(uint32_t* pPosting,int32_t length)
 
 int32_t BlockPostingReader::decodeNext(uint32_t* pPosting,int32_t length, uint32_t* &pPPosting, int32_t& posBufLength, int32_t& posLength)
 {
-    int32_t left = df_ - num_docs_decoded_;
-    if (left <= 0)
+    if (num_docs_decoded_ == df_)
         return -1;
-    uint32_t* pDoc = pPosting;
-    uint32_t* pFreq = pPosting + (length>>1);
 
-    if (length > left*2)
-        length = left*2;
-    left = (length>>1);
+    assert(num_docs_decoded_ < df_);
+
+    const int32_t docBufferSize = length >> 1;
+    int32_t decodedDoc = 0;
+
+    uint32_t* pDoc = pPosting;
+    uint32_t* pFreq = pPosting + docBufferSize;
 
     IndexInput*	pPPostingInput = pInputDescriptor_->getPPostingInput();
-    int decodedDoc = 0;
     int decompressed_pos = 0;
     int size_of_positions = 0;
     ChunkDecoder& chunk = blockDecoder_.chunk_decoder_;
 
-    while(left > 0)
+    while(decodedDoc < docBufferSize && num_docs_decoded_ < df_)
     {
         int curr_chunk_num = blockDecoder_.curr_chunk();
         if (curr_chunk_num < blockDecoder_.num_chunks())
@@ -329,11 +330,12 @@ int32_t BlockPostingReader::decodeNext(uint32_t* pPosting,int32_t length, uint32
                 pPPostingInput->readBytes((uint8_t*)compressedPos_,size);
                 chunk.decodePositions(compressedPos_);
 
-                left -= chunk.num_docs();
                 num_docs_decoded_ += chunk.num_docs();
+
                 ///num_docs_decoded_ should record the practical overall doc ids
                 ///after post_process, the deleted doc ids will be removed from the decoding buffer
-                if(pDocFilter_) chunk.post_process(pDocFilter_);
+                if(pDocFilter_)
+                    chunk.post_process(pDocFilter_);
 
                 decodedDoc += chunk.num_docs();
                 if(chunk.has_deleted_doc()) size_of_positions = chunk.size_of_positions();
@@ -567,24 +569,23 @@ docid_t ChunkPostingReader::decodeTo(docid_t target, uint32_t* pPosting, int32_t
 
 int32_t ChunkPostingReader::decodeNext(uint32_t* pPosting,int32_t length)
 {
-    int32_t left = df_ - num_docs_decoded_;
-    if (left <= 0)
+    if (num_docs_decoded_ == df_)
         return -1;
+
+    assert(num_docs_decoded_ < df_);
+
+    const int32_t docBufferSize = length >> 1;
+    int32_t decodedDoc = 0;
+
     uint32_t* pDoc = pPosting;
-    uint32_t* pFreq = pPosting + (length>>1);
-
-    if (length > left*2)
-        length = left*2;
-    left = (length>>1);
-
-    int decodedDoc = 0;
+    uint32_t* pFreq = pPosting + docBufferSize;
 
     IndexInput* pDPostingInput = pInputDescriptor_->getDPostingInput();
 
     int doc_size = 0;
     int tf_size = 0;
 
-    while(left > 0)
+    while(decodedDoc < docBufferSize && num_docs_decoded_ < df_)
     {
         doc_size = pDPostingInput->readVInt();
         pDPostingInput->readBytes((uint8_t*)compressedBuffer_,doc_size);
@@ -597,43 +598,41 @@ int32_t ChunkPostingReader::decodeNext(uint32_t* pPosting,int32_t length)
         chunkDecoder_.decodeFrequencies(false);
 
         num_docs_decoded_ += chunkDecoder_.num_docs();
-        left -= chunkDecoder_.num_docs();
+
         ///num_docs_decoded_ should record the practical overall doc ids
         ///after post_process, the deleted doc ids will be removed from the decoding buffer
-        if(pDocFilter_) chunkDecoder_.post_process(pDocFilter_);
+        if(pDocFilter_)
+            chunkDecoder_.post_process(pDocFilter_);
 
         decodedDoc += chunkDecoder_.num_docs();
         pDoc += chunkDecoder_.num_docs();
         pFreq += chunkDecoder_.num_docs();
     }
 
-
     return decodedDoc;
 }
 
 int32_t ChunkPostingReader::decodeNext(uint32_t* pPosting,int32_t length, uint32_t* &pPPosting, int32_t& posBufLength, int32_t& posLength)
 {
-    int32_t left = df_ - num_docs_decoded_;
-    if (left <= 0)
+    if (num_docs_decoded_ == df_)
         return -1;
-    uint32_t* pDoc = pPosting;
-    uint32_t* pFreq = pPosting + (length>>1);
 
-    if (length > left*2)
-        length = left*2;
-    left = (length>>1);
+    assert(num_docs_decoded_ < df_);
+
+    const int32_t docBufferSize = length >> 1;
+    int32_t decodedDoc = 0;
+
+    uint32_t* pDoc = pPosting;
+    uint32_t* pFreq = pPosting + docBufferSize;
 
     IndexInput* pDPostingInput = pInputDescriptor_->getDPostingInput();
     IndexInput* pPPostingInput = pInputDescriptor_->getPPostingInput();
 
     int decompressed_pos = 0;
-
-    int decodedDoc = 0;
-
     int doc_size = 0;
     int tf_size = 0;
 
-    while(left > 0)
+    while(decodedDoc < docBufferSize && num_docs_decoded_ < df_)
     {
         doc_size = pDPostingInput->readVInt();
         pDPostingInput->readBytes((uint8_t*)compressedBuffer_,doc_size);
@@ -655,22 +654,21 @@ int32_t ChunkPostingReader::decodeNext(uint32_t* pPosting,int32_t length, uint32
         chunkDecoder_.decodePositions(compressedPos_);
 
         num_docs_decoded_ += chunkDecoder_.num_docs();
-        left -= chunkDecoder_.num_docs();
+
         ///num_docs_decoded_ should record the practical overall doc ids
         ///after post_process, the deleted doc ids will be removed from the decoding buffer
-        if(pDocFilter_) chunkDecoder_.post_process(pDocFilter_);
+        if(pDocFilter_)
+            chunkDecoder_.post_process(pDocFilter_);
 
         decodedDoc += chunkDecoder_.num_docs();
-        if(chunkDecoder_.has_deleted_doc()) size_of_positions = chunkDecoder_.size_of_positions();
+        if(chunkDecoder_.has_deleted_doc())
+            size_of_positions = chunkDecoder_.size_of_positions();
         decompressed_pos += size_of_positions;
 
 	pDoc += chunkDecoder_.num_docs();
 	pFreq += chunkDecoder_.num_docs();
-
     }
 
-
-    num_docs_decoded_ += decodedDoc;
     posLength = decompressed_pos;
     chunkDecoder_.reset(NULL, 0);
     skipPosCount_ = 0;
