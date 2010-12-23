@@ -70,6 +70,8 @@ IF(izene_util_SHOULD_BUILD)
     io/MMapBufferedInput.cpp
     io/BufferedOutput.cpp
     io/FSBufferedOutput.cpp
+    sysinfo/commandparser.cpp
+    sysinfo/dmiparser.cpp
     cronexpression.cpp
     timer.cpp
     CBitArray.cpp
