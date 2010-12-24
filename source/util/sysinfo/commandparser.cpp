@@ -2,6 +2,7 @@
 #include <iostream>
 
 #include <util/sysinfo/commandparser.h>
+#include <cstdio>
 
 NS_IZENELIB_UTIL_BEGIN
 
