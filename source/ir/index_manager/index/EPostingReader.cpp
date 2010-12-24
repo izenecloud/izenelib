@@ -37,6 +37,8 @@ BlockPostingReader::BlockPostingReader(InputDescriptor* pInputDescriptor, const 
 
 BlockPostingReader::~BlockPostingReader()
 {
+    delete pInputDescriptor_;
+
     if(pSkipListReader_) delete pSkipListReader_;
     if(urgentBuffer_) delete[] urgentBuffer_;
     if(compressedPos_) free(compressedPos_);
@@ -338,7 +340,8 @@ int32_t BlockPostingReader::decodeNext(uint32_t* pPosting,int32_t length, uint32
                     chunk.post_process(pDocFilter_);
 
                 decodedDoc += chunk.num_docs();
-                if(chunk.has_deleted_doc()) size_of_positions = chunk.size_of_positions();
+                if(chunk.has_deleted_doc())
+                    size_of_positions = chunk.size_of_positions();
                 decompressed_pos += size_of_positions;
 
                 pDoc += chunk.num_docs();
@@ -473,6 +476,8 @@ ChunkPostingReader::ChunkPostingReader(int skipInterval, int maxSkipLevel, Input
 
 ChunkPostingReader::~ChunkPostingReader()
 {
+    delete pInputDescriptor_;
+
     if(pSkipListReader_) delete pSkipListReader_;
     if(compressedPos_) free(compressedPos_);
 }
