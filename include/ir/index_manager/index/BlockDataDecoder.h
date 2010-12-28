@@ -100,14 +100,8 @@ public:
         return num_docs_;
     }
 
-    int size_of_positions(bool count = false)
+    int size_of_positions() const
     {
-        if(!count) return num_positions_;
-        num_positions_ = 0;
-        for (int i = 0; i < num_docs_; ++i)
-        {
-            num_positions_ += frequencies_[i];
-        }
         return num_positions_;
     }
 
