@@ -764,6 +764,8 @@ void PostingMerger::optimize_to_Chunk(RTDiskPostingReader* pOnDiskPosting,BitVec
 
 fileoffset_t PostingMerger::endMerge()
 {
+    bFirstPosting_ = true;
+
     switch(compressType_)
     {
     case BYTEALIGN:
@@ -779,7 +781,6 @@ fileoffset_t PostingMerger::endMerge()
 
 fileoffset_t PostingMerger::endMerge_ByteAlign()
 {
-    bFirstPosting_ = true;
     if (postingDesc_.df <= 0)
         return -1;
 
@@ -820,7 +821,6 @@ fileoffset_t PostingMerger::endMerge_ByteAlign()
 
 fileoffset_t PostingMerger::endMerge_Block()
 {
-    bFirstPosting_ = true;
     if (postingDesc_.df <= 0)
         return -1;
     if(doc_ids_offset_> 0)
@@ -887,8 +887,6 @@ fileoffset_t PostingMerger::endMerge_Block()
 
 fileoffset_t PostingMerger::endMerge_Chunk()
 {
-    bFirstPosting_ = true;
-
     if (postingDesc_.df <= 0)
         return -1;
 
