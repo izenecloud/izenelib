@@ -102,7 +102,11 @@ inline void index(const IndexerTestConfig& config)
         fixture.setRealIndex(false);
 
         IndexerTestConfig newConfig = config;
-        newConfig.indexMode_ = "realtime"; //using "realtime" mode
+
+        // change from offline mode to realtime mode,
+        // only VInt type is supported for realtime mode
+        if(config.indexMode_ == "default")
+            newConfig.indexMode_ = "realtime";
         fixture.configTest(newConfig);
 
         // re-generate random numbers to check

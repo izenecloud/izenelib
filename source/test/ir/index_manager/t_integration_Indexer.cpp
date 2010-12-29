@@ -42,8 +42,16 @@ const IndexerTestConfig INDEXER_TEST_CONFIGS[] = {
     {9, 100, 23, "realtime", true},
     {10, 1000, 10, "default", true},
     {11, 1000, 10, "realtime", true},
-    {12, 1, 1, "default:block", true},
-    {13, 1, 1, "default:chunk", true},
+    {12, 1, 1, "default:chunk", true},
+    {13, 5, 3, "default:chunk", true},
+    {14, 10, 6, "default:chunk", true},
+    {15, 300, 1, "default:chunk", true},
+    {16, 100, 23, "default:chunk", true},
+    {17, 1, 1, "default:block", true},
+    {18, 5, 3, "default:block", true},
+    {19, 10, 6, "default:block", true},
+    {20, 300, 1, "default:block", true},
+    {21, 100, 23, "default:block", true},
 };
 
 /** the parameter number */
@@ -187,6 +195,7 @@ bool my_init_unit_test()
     tsTermDocFreqs->add(BOOST_PARAM_TEST_CASE(&t_TermDocFreqs::remove, pConfigStart, pConfigEnd));
     tsTermDocFreqs->add(BOOST_PARAM_TEST_CASE(&t_TermDocFreqs::update, pConfigStart, pConfigEnd));
     tsTermDocFreqs->add(BOOST_PARAM_TEST_CASE(&t_TermDocFreqs::empty, pConfigStart, pConfigEnd));
+    tsTermDocFreqs->add(BOOST_PARAM_TEST_CASE(&t_TermDocFreqs::removeDocAndOptimize, pConfigStart, pConfigEnd));
     tsTermDocFreqs->add(BOOST_PARAM_TEST_CASE(&t_TermDocFreqs::optimizeAndRemoveDoc, pConfigStart, pConfigEnd));
     tsTermDocFreqs->add(BOOST_PARAM_TEST_CASE(&t_TermDocFreqs::removeOneTerm, pConfigStart, pConfigEnd));
     tsTermDocFreqs->add(BOOST_PARAM_TEST_CASE(&t_TermDocFreqs::checkRemoveAtStartUp, pConfigStart, pConfigEnd));
