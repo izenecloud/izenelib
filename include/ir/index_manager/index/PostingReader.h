@@ -51,7 +51,7 @@ protected:
      * @param posBufLength position buffer length, it stores grown buffer size on return
      * @param minBufLength minimum buffer length, @p posBufLength would not be less than this value on return
      */
-    void growPosBuffer(uint32_t* &pPPosting, int32_t& posBufLength, int32_t minBufLength) const
+    static void growPosBuffer(uint32_t* &pPPosting, int32_t& posBufLength, int32_t minBufLength)
     {
         assert(posBufLength < minBufLength);
 
@@ -70,7 +70,7 @@ protected:
      * @param minBufLength minimum buffer length, @p posBufLength would not be less than the upper bound of this value on return
      * @note the upper bound is met as S9 and S16 decoding need at least 28 extra bytes for decompression.
      */
-    void ensurePosBufferUpperBound(uint32_t* &pPPosting, int32_t& posBufLength, int32_t minBufLength) const
+    static void ensurePosBufferUpperBound(uint32_t* &pPPosting, int32_t& posBufLength, int32_t minBufLength)
     {
         const int32_t upperBound = UncompressedOutBufferUpperbound(minBufLength);
         if(posBufLength < upperBound)

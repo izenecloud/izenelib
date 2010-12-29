@@ -453,7 +453,7 @@ void PostingMerger::mergeWith(BlockPostingReader* pPosting,BitVector* pFilter)
                 chunk.decodeFrequencies();
 
                 size_of_positions = chunk.size_of_positions();
-                ensure_pos_buffer(size_of_positions);
+                ensure_decompressed_pos_buffer(size_of_positions);
                 chunk.set_pos_buffer(positions_ + position_buffer_pointer_);
                 int size = pPInput->readVInt();
                 ensure_compressed_pos_buffer(size>>2);
@@ -555,7 +555,7 @@ void PostingMerger::mergeWith(ChunkPostingReader* pPosting,BitVector* pFilter)
         chunk.decodeFrequencies();
 
         size_of_positions = chunk.size_of_positions();
-        ensure_pos_buffer(size_of_positions);
+        ensure_decompressed_pos_buffer(size_of_positions);
         chunk.set_pos_buffer(positions_ + position_buffer_pointer_);
         int size = pPInput->readVInt();
         ensure_compressed_pos_buffer(size>>2);
@@ -655,7 +655,7 @@ void PostingMerger::optimize_to_Block(RTDiskPostingReader* pOnDiskPosting,BitVec
             nDF ++;
             nCTF += nTF;
             doc_ids_offset_++;
-            ensure_pos_buffer(nPCount);
+            ensure_decompressed_pos_buffer(nPCount);
             uint32_t pos = 0;
             while(nTF > 0)
             {
@@ -733,7 +733,7 @@ void PostingMerger::optimize_to_Chunk(RTDiskPostingReader* pOnDiskPosting,BitVec
             nPCount += nTF;
             nDF ++;
             nCTF += nTF;
-            ensure_pos_buffer(nPCount);
+            ensure_decompressed_pos_buffer(nPCount);
             uint32_t pos = 0;
             doc_ids_offset_++;
             while(nTF > 0)

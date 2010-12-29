@@ -63,13 +63,14 @@ private:
         }
     }
 
-    void ensure_pos_buffer(int num_of_pos_within_chunk)
+    /**
+     * ensure the buffer size of @p positions_ is enough to store @p newPosNum decompressed position values.
+     * @param newPosNum the number of position values to decompress
+     */
+    void ensure_decompressed_pos_buffer(int newPosNum)
     {
-        if((curr_position_buffer_size_ - position_buffer_pointer_) <= num_of_pos_within_chunk)
-        {
-            curr_position_buffer_size_  = (num_of_pos_within_chunk + position_buffer_pointer_) << 1;
-            positions_ = (uint32_t*)realloc(positions_, curr_position_buffer_size_ * sizeof(uint32_t));
-        }
+        PostingReader::ensurePosBufferUpperBound(positions_, curr_position_buffer_size_,
+                                                 position_buffer_pointer_ + newPosNum);
     }
 
     void mergeWith(RTDiskPostingReader* pOnDiskPosting);
