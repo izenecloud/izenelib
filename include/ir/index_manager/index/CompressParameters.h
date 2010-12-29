@@ -28,7 +28,6 @@ namespace indexmanager{
 // for all the 28 integers, even if some of those 28 integers are garbage which we haven't really compressed (but this was the case used to encode them).
 // So we need to make sure there is ample room for decompression (at least 28 extra space at the end of the array),
 // and round the number of compressed integers to a multiple of 32 for word alignment.
-    /*#define UncompressedOutBufferUpperbound(buffer_size) ((((buffer_size) >> 5) + 2) << 5)*/
 #define UncompressedOutBufferUpperbound(buffer_size) (((buffer_size) + 28 + 31) & -32)
 
 #define BLOCK_HEADER_DECOMPRESSED_UPPERBOUND UncompressedOutBufferUpperbound(2*(BLOCK_SIZE/MIN_COMPRESSED_CHUNK_SIZE))
