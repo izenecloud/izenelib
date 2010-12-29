@@ -24,15 +24,12 @@ PostingMerger::PostingMerger(int skipInterval, int maxSkipLevel, CompressionType
         ,block_buffer_(NULL)
         ,current_block_id_(0)
         ,optimize_(optimize)
-        ,ownMemCache_(false)
+        ,ownMemCache_(true)
 {
-    if(optimize_||(compressType_ != BYTEALIGN))
-        pMemCache_ = pMemCache;
-    else
-    {
-        pMemCache_ = new MemCache(POSTINGMERGE_BUFFERSIZE*512);
-        ownMemCache_ = true;
-    }
+    // to avoid concurrent memory request,
+    // such as by ChunkPostingWriter::pDocFreqDataPool_ in another thread,
+    // use memory pool exclusively
+    pMemCache_ = new MemCache(POSTINGMERGE_BUFFERSIZE*512);
 
     init();
     reset();
