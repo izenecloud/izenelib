@@ -147,7 +147,7 @@ protected:
 
     void skipToBlock(int targetBlock) ;
 
-    void ensure_pos_buffer(int num_of_pos_within_chunk)
+    void ensure_compressed_pos_buffer(int num_of_pos_within_chunk)
     {
         if(curr_pos_buffer_size_ < num_of_pos_within_chunk)
         {
@@ -315,7 +315,7 @@ public:
     }
 
 protected:
-    void ensure_pos_buffer(int num_of_pos_within_chunk)
+    void ensure_compressed_pos_buffer(int num_of_pos_within_chunk)
     {
         if(curr_pos_buffer_size_ < num_of_pos_within_chunk)
         {

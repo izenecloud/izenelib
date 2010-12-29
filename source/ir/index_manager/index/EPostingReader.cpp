@@ -221,7 +221,7 @@ docid_t BlockPostingReader::decodeTo(docid_t target, uint32_t* pPosting, int32_t
        	    if(!blockDecoder_.curr_chunk_pos_loaded(blockDecoder_.curr_chunk()))
        	    {
        	        int size = pPPostingInput->readVInt();
-       	        ensure_pos_buffer(size>>2);
+       	        ensure_compressed_pos_buffer(size>>2);
        	        pPPostingInput->readBytes((uint8_t*)compressedPos_,size);
        	        blockDecoder_.set_curr_chunk_pos_loaded(blockDecoder_.curr_chunk());
        	    }
@@ -318,16 +318,15 @@ int32_t BlockPostingReader::decodeNext(uint32_t* pPosting,int32_t length, uint32
                 chunk.decodeDocIds();
                 chunk.decodeFrequencies();
 
-                const int32_t posBufUpBound = UncompressedOutBufferUpperbound(decompressed_pos + chunk.size_of_positions());
-                if(posBufLength < posBufUpBound)
-                    growPosBuffer(pPPosting, posBufLength, posBufUpBound);
+                ensurePosBufferUpperBound(pPPosting, posBufLength,
+                                          decompressed_pos + chunk.size_of_positions());
 
                 chunk.set_pos_buffer(pPPosting + decompressed_pos);
 
                 blockDecoder_.set_curr_chunk_pos_loaded(blockDecoder_.curr_chunk());
 
                 int size = pPPostingInput->readVInt();
-                ensure_pos_buffer(size>>2);
+                ensure_compressed_pos_buffer(size>>2);
                 pPPostingInput->readBytes((uint8_t*)compressedPos_,size);
                 chunk.decodePositions(compressedPos_);
 
@@ -383,15 +382,13 @@ bool BlockPostingReader::decodeNextPositions(uint32_t* &pPosting, int32_t& posBu
 
     if(! chunk.pos_decoded())
     {
-        const int32_t posBufUpBound = UncompressedOutBufferUpperbound(chunk.size_of_positions());
-        if(posBufLength < posBufUpBound)
-            growPosBuffer(pPosting, posBufLength, posBufUpBound);
+        ensurePosBufferUpperBound(pPosting, posBufLength, chunk.size_of_positions());
         chunk.set_pos_buffer(pPosting);
 
         if(!blockDecoder_.curr_chunk_pos_loaded(blockDecoder_.curr_chunk()))
         {
             int size = pPPostingInput->readVInt();
-            ensure_pos_buffer(size>>2);
+            ensure_compressed_pos_buffer(size>>2);
             pPPostingInput->readBytes((uint8_t*)compressedPos_,size);
             blockDecoder_.set_curr_chunk_pos_loaded(blockDecoder_.curr_chunk());
         }
@@ -414,15 +411,13 @@ bool BlockPostingReader::decodeNextPositions(uint32_t* &pPosting, int32_t& posBu
 
     if(! chunk.pos_decoded())
     {
-        const int32_t posBufUpBound = UncompressedOutBufferUpperbound(chunk.size_of_positions());
-        if(posBufLength < posBufUpBound)
-            growPosBuffer(pPosting, posBufLength, posBufUpBound);
+        ensurePosBufferUpperBound(pPosting, posBufLength, chunk.size_of_positions());
         chunk.set_pos_buffer(pPosting);
 
         if(!blockDecoder_.curr_chunk_pos_loaded(blockDecoder_.curr_chunk()))
         {
             int size = pPPostingInput->readVInt();
-            ensure_pos_buffer(size>>2);
+            ensure_compressed_pos_buffer(size>>2);
             pPPostingInput->readBytes((uint8_t*)compressedPos_,size);
             blockDecoder_.set_curr_chunk_pos_loaded(blockDecoder_.curr_chunk());
         }
@@ -645,13 +640,12 @@ int32_t ChunkPostingReader::decodeNext(uint32_t* pPosting,int32_t length, uint32
         chunkDecoder_.decodeDocIds();
         chunkDecoder_.decodeFrequencies();
 
-        const int32_t posBufUpBound = UncompressedOutBufferUpperbound(decompressed_pos + chunkDecoder_.size_of_positions());
-        if(posBufLength < posBufUpBound)
-            growPosBuffer(pPPosting, posBufLength, posBufUpBound);
+        ensurePosBufferUpperBound(pPPosting, posBufLength,
+                                  decompressed_pos + chunkDecoder_.size_of_positions());
         chunkDecoder_.set_pos_buffer(pPPosting + decompressed_pos);
 
         int size = pPPostingInput->readVInt();
-        ensure_pos_buffer(size>>2);
+        ensure_compressed_pos_buffer(size>>2);
         pPPostingInput->readBytes((uint8_t*)compressedPos_,size);
         chunkDecoder_.decodePositions(compressedPos_);
 
@@ -699,14 +693,12 @@ bool ChunkPostingReader::decodeNextPositions(uint32_t* &pPosting, int32_t& posBu
     assert(chunkDecoder_.curr_document_offset() < chunkDecoder_.num_docs());
     if(! chunkDecoder_.pos_decoded())
     {
-        const int32_t posBufUpBound = UncompressedOutBufferUpperbound(chunkDecoder_.size_of_positions());
-        if(posBufLength < posBufUpBound)
-            growPosBuffer(pPosting, posBufLength, posBufUpBound);
+        ensurePosBufferUpperBound(pPosting, posBufLength, chunkDecoder_.size_of_positions());
     
         chunkDecoder_.set_pos_buffer(pPosting);
         IndexInput* pPPostingInput = pInputDescriptor_->getPPostingInput();
         int size = pPPostingInput->readVInt();
-        ensure_pos_buffer(size>>2);
+        ensure_compressed_pos_buffer(size>>2);
         pPPostingInput->readBytes((uint8_t*)compressedPos_,size);
         chunkDecoder_.decodePositions(compressedPos_);
     }
@@ -721,14 +713,12 @@ bool ChunkPostingReader::decodeNextPositions(uint32_t* &pPosting, int32_t& posBu
     assert(chunkDecoder_.curr_document_offset() < chunkDecoder_.num_docs());
     if(! chunkDecoder_.pos_decoded())
     {
-        const int32_t posBufUpBound = UncompressedOutBufferUpperbound(chunkDecoder_.size_of_positions());
-        if(posBufLength < posBufUpBound)
-            growPosBuffer(pPosting, posBufLength, posBufUpBound);
+        ensurePosBufferUpperBound(pPosting, posBufLength, chunkDecoder_.size_of_positions());
     
         chunkDecoder_.set_pos_buffer(pPosting);
         IndexInput* pPPostingInput = pInputDescriptor_->getPPostingInput();
         int size = pPPostingInput->readVInt();
-        ensure_pos_buffer(size>>2);
+        ensure_compressed_pos_buffer(size>>2);
         pPPostingInput->readBytes((uint8_t*)compressedPos_,size);
         chunkDecoder_.decodePositions(compressedPos_);
     }
