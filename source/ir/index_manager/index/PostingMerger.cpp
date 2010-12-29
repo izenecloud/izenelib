@@ -537,6 +537,10 @@ void PostingMerger::mergeWith(ChunkPostingReader* pPosting,BitVector* pFilter)
     int doc_size = 0;
     int tf_size = 0;
 
+    docid_t nLastDocID = chunkDesc_.lastdocid;
+    count_t nDF = 0;
+    count_t nCTF = 0;
+
     while(num_docs_left)
     {
         doc_size = pDInput->readVInt();
@@ -562,13 +566,21 @@ void PostingMerger::mergeWith(ChunkPostingReader* pPosting,BitVector* pFilter)
 
         ///num_docs_left should record the practical overall doc ids
         ///after post_process, the deleted doc ids will be removed from the decoding buffer
-        if(pFilter) chunk.post_process(pFilter);
+        if(pFilter)
+            chunk.post_process(pFilter);
 
-        int copySize = std::min(chunk.num_docs(), CHUNK_SIZE - doc_ids_offset_);
+        const int realDocNum = chunk.num_docs(); // real docs number after removing docs
+        int copySize = std::min(realDocNum, CHUNK_SIZE - doc_ids_offset_);
         memcpy(doc_ids_ + doc_ids_offset_, chunk.doc_ids(), copySize*sizeof(uint32_t));
         memcpy(frequencies_+ doc_ids_offset_, chunk.frequencies(), copySize*sizeof(uint32_t));
         doc_ids_offset_ += copySize;
+        size_of_positions = chunk.size_of_positions(); // get position number again as some docs might be removed
+        nDF += realDocNum; // real docs number
+        nCTF += size_of_positions; // real term frequency number
+        if(realDocNum > 0)
+            nLastDocID = chunk.doc_ids()[realDocNum - 1];
         position_buffer_pointer_ += size_of_positions;
+
         if (doc_ids_offset_ == CHUNK_SIZE) 
         {
             chunk_.encode(doc_ids_, frequencies_, positions_, ChunkEncoder::kChunkSize);
@@ -581,7 +593,7 @@ void PostingMerger::mergeWith(ChunkPostingReader* pPosting,BitVector* pFilter)
             doc_ids_offset_ = 0;
             position_buffer_pointer_ = 0;
 
-            int left = chunk.num_docs() - copySize;
+            int left = realDocNum - copySize;
             if(left > 0)
             {
                 chunk.set_curr_document_offset(copySize);
@@ -595,12 +607,12 @@ void PostingMerger::mergeWith(ChunkPostingReader* pPosting,BitVector* pFilter)
                 chunk.set_curr_document_offset(0);
             }
         }
-
     }
 
     ///update descriptors
-    postingDesc_.ctf += pPosting->getCTF();
-    postingDesc_.df += pPosting->docFreq();
+    postingDesc_.ctf += nCTF;
+    postingDesc_.df += nDF;
+    chunkDesc_.lastdocid = nLastDocID;
 }
 
 void PostingMerger::optimize(RTDiskPostingReader* pOnDiskPosting,BitVector* pFilter)
@@ -890,11 +902,14 @@ fileoffset_t PostingMerger::endMerge_Chunk()
     if (postingDesc_.df <= 0)
         return -1;
 
-    if(doc_ids_offset_> 0)
+    if(doc_ids_offset_ > 0)
     {
         chunk_.encode(doc_ids_, frequencies_, positions_, doc_ids_offset_);
         pDocFreqDataPool_->addDFChunk(chunk_);
         pPosDataPool_->addPOSChunk(chunk_);
+
+        pDocFreqDataPool_->truncTailChunk();
+        pPosDataPool_->truncTailChunk();
     }
 
     if(pSkipListWriter_ && postingDesc_.df > 0 && postingDesc_.df % skipInterval_ == 0)
@@ -914,9 +929,6 @@ fileoffset_t PostingMerger::endMerge_Chunk()
         termInfo_.skipPointer_ = -1;
         termInfo_.skipLevel_ = 0;
     }
-
-    pDocFreqDataPool_->truncTailChunk();
-    pPosDataPool_->truncTailChunk();
 
     termInfo_.docFreq_ = postingDesc_.df;
     termInfo_.ctf_ = postingDesc_.ctf;
