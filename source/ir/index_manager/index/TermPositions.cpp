@@ -302,10 +302,10 @@ void TermPositions::createBuffer()
 
     if (pPPostingBuffer_ == NULL)
     {
-        // as some block decompression method such as s16_compressor::s16_decode()
-        // need a minimum buffer size to store decompressed data,
-        // set the minimum position buffer size to CHUNK_SIZE
-        nPBufferSize_ = std::max(getCTF(), static_cast<int64_t>(CHUNK_SIZE));
+        // as some block decompression methods such as s16_compressor::s16_decode()
+        // need extra 28 bytes to store decompressed data,
+        // set an upper bound for buffer size
+        nPBufferSize_ = UncompressedOutBufferUpperbound(getCTF());
         // set the maximum position buffer size
         if(nPBufferSize_ > MAX_POS_BUFFER_SIZE)
             nPBufferSize_ = MAX_POS_BUFFER_SIZE;
