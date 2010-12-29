@@ -198,7 +198,7 @@ void IndexOutput::setBuffer(char* buf,size_t bufSize)
     buffersize_ = bufSize;
     bOwnBuff_ = false;
 }
-void IndexOutput:: flush()
+void IndexOutput::flush()
 {
     flushBuffer(buffer_, bufferPosition_);
     bufferStart_ += bufferPosition_;
