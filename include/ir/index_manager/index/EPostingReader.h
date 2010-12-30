@@ -33,22 +33,9 @@ public:
 
     ~BlockPostingReader();
 
-    /**
-     * Get the posting data
-     * @param pPosing the address to store posting data
-     * @param the length of pPosting,also tell us the length of actually decoded data
-     * @return decoded posting count
-     */
-    int32_t decodeNext(uint32_t* pPosting,int32_t length);
+    int32_t decodeNext(uint32_t* pPosting, int32_t length, int32_t nMaxDocs);
 
-    /**
-     * Get the posting data. 
-     * @param pPosing the address to store posting data
-     * @param the length of pPosting,also tell us the length of actually decoded data
-     * @param pPPosing the address to store position posting data
-     * @return decoded posting count
-     */
-    int32_t decodeNext(uint32_t* pPosting,int32_t length, uint32_t* &pPPosting, int32_t& posBufLength, int32_t& posLength);
+    int32_t decodeNext(uint32_t* pPosting, int32_t length, int32_t nMaxDocs, uint32_t* &pPPosting, int32_t& posBufLength, int32_t& posLength);
 
     /**
      * Get the position posting data
@@ -75,16 +62,7 @@ public:
      */
     bool decodeNextPositions(uint32_t* &pPosting, int32_t& posBufLength, uint32_t* pFreqs,int32_t nFreqs, int32_t& nCurrentPPosting);
 
-    /**
-     * Decode postings to target docID
-     * @param docID target docID 
-     * @param pPosting posting buffer that store decoded doc. 
-     * @length buffer length for pPosting
-     * @decodedCount decoded doc count, always = 1 for RT posting reader
-     * @nCurrentPosting posting pointer, always = 0 for RT posting reader
-     * @return last decoded docID
-     */
-    docid_t decodeTo(docid_t target, uint32_t* pPosting, int32_t length, int32_t& decodedCount, int32_t& nCurrentPosting);
+    docid_t decodeTo(docid_t target, uint32_t* pPosting, int32_t length, int32_t nMaxDocs, int32_t& decodedCount, int32_t& nCurrentPosting);
 
     /**
      * reset the base position which used in d-gap encoding
@@ -156,14 +134,6 @@ protected:
         }
     }
 
-    /**
-     * Get the number of docs left to decode.
-     * @return left docs number
-     */
-    count_t leftDocsNum() const {
-        return df_ - num_docs_decoded_;
-    }
-
 protected:
     BlockDecoder blockDecoder_;
     InputDescriptor* pInputDescriptor_;
@@ -210,37 +180,24 @@ public:
 
     ~ChunkPostingReader();
 
-    /**
-     * Get the posting data
-     * @param pPosing the address to store posting data
-     * @param the length of pPosting,also tell us the length of actually decoded data
-     * @return decoded posting count
-     */
-    int32_t decodeNext(uint32_t* pPosting,int32_t length);
+    int32_t decodeNext(uint32_t* pPosting, int32_t length, int32_t nMaxDocs);
 
-    /**
-     * Get the posting data. 
-     * @param pPosing the address to store posting data
-     * @param the length of pPosting,also tell us the length of actually decoded data
-     * @param pPPosing the address to store position posting data
-     * @return decoded posting count
-     */
-    int32_t decodeNext(uint32_t* pPosting,int32_t length, uint32_t* &pPPosting, int32_t& posBufLength, int32_t& posLength);
+    int32_t decodeNext(uint32_t* pPosting, int32_t length, int32_t nMaxDocs, uint32_t* &pPPosting, int32_t& posBufLength, int32_t& posLength);
 
     /**
      * Get the position posting data
-     * @param pPosing the address to store posting data
-     * @param the length of pPosting. This function is only useful for to decode positions for skipTo target
-     * @return true:success,false: error or reach end
+     * @param pPosting the address to store posting data
+     * @param length the length of @p pPosting. This function is only useful to decode positions for skipTo target
+     * @return true for success, false for error or reach end
      */
     bool decodeNextPositions(uint32_t* pPosting,int32_t length);
 
     /**
      * Get the position posting data
-     * @param pPosing the address to store posting data
+     * @param pPosting the address to store posting data
      * @param posBufLength buffer length to store posting data
-     * @param decodeLength the length of decoded posting wanted.Only useful for BYTE-aligned posting
-     * @return true:success,false: error or reach end
+     * @param decodeLength the length of decoded posting wanted. Only useful for BYTE-aligned posting
+     * @return true for success, false for error or reach end
      */
     bool decodeNextPositions(uint32_t* &pPosting, int32_t& posBufLength, int32_t decodeLength, int32_t& nCurrentPPosting);
 
@@ -252,16 +209,7 @@ public:
      */
     bool decodeNextPositions(uint32_t* &pPosting, int32_t& posBufLength, uint32_t* pFreqs,int32_t nFreqs, int32_t& nCurrentPPosting);
 
-    /**
-     * Decode postings to target docID
-     * @param docID target docID 
-     * @param pPosting posting buffer that store decoded doc. 
-     * @length buffer length for pPosting
-     * @decodedCount decoded doc count, always = 1 for RT posting reader
-     * @nCurrentPosting posting pointer, always = 0 for RT posting reader
-     * @return last decoded docID
-     */
-    docid_t decodeTo(docid_t target, uint32_t* pPosting, int32_t length, int32_t& decodedCount, int32_t& nCurrentPosting);
+    docid_t decodeTo(docid_t target, uint32_t* pPosting, int32_t length, int32_t nMaxDocs, int32_t& decodedCount, int32_t& nCurrentPosting);
 
     /**
      * reset the base position which used in d-gap encoding
@@ -322,14 +270,6 @@ protected:
             curr_pos_buffer_size_  = num_of_pos_within_chunk;
             compressedPos_ = (uint32_t*)realloc(compressedPos_, curr_pos_buffer_size_ * sizeof(uint32_t));
         }
-    }
-
-    /**
-     * Get the number of docs left to decode.
-     * @return left docs number
-     */
-    count_t leftDocsNum() const {
-        return df_ - num_docs_decoded_;
     }
 
 protected:
