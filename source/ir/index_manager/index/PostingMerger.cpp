@@ -4,6 +4,8 @@
 #include <ir/index_manager/store/FSIndexOutput.h>
 #include <ir/index_manager/store/FSIndexInput.h>
 
+#include <cassert>
+
 NS_IZENELIB_IR_BEGIN
 
 namespace indexmanager{
@@ -570,19 +572,26 @@ void PostingMerger::mergeWith(ChunkPostingReader* pPosting,BitVector* pFilter)
             chunk.post_process(pFilter);
 
         const int realDocNum = chunk.num_docs(); // real docs number after removing docs
-        int copySize = std::min(realDocNum, CHUNK_SIZE - doc_ids_offset_);
-        memcpy(doc_ids_ + doc_ids_offset_, chunk.doc_ids(), copySize*sizeof(uint32_t));
-        memcpy(frequencies_+ doc_ids_offset_, chunk.frequencies(), copySize*sizeof(uint32_t));
-        doc_ids_offset_ += copySize;
         size_of_positions = chunk.size_of_positions(); // get position number again as some docs might be removed
         nDF += realDocNum; // real docs number
         nCTF += size_of_positions; // real term frequency number
         if(realDocNum > 0)
             nLastDocID = chunk.doc_ids()[realDocNum - 1];
-        position_buffer_pointer_ += size_of_positions;
 
-        if (doc_ids_offset_ == CHUNK_SIZE) 
+        if(doc_ids_offset_ + realDocNum < CHUNK_SIZE) 
         {
+            memcpy(doc_ids_ + doc_ids_offset_, chunk.doc_ids(), realDocNum*sizeof(uint32_t));
+            memcpy(frequencies_+ doc_ids_offset_, chunk.frequencies(), realDocNum*sizeof(uint32_t));
+
+            doc_ids_offset_ += realDocNum;
+            position_buffer_pointer_ += size_of_positions;
+        }
+        else
+        {
+            const int copySize = CHUNK_SIZE - doc_ids_offset_;
+            memcpy(doc_ids_ + doc_ids_offset_, chunk.doc_ids(), copySize*sizeof(uint32_t));
+            memcpy(frequencies_+ doc_ids_offset_, chunk.frequencies(), copySize*sizeof(uint32_t));
+
             chunk_.encode(doc_ids_, frequencies_, positions_, ChunkEncoder::kChunkSize);
             pDocFreqDataPool_->addDFChunk(chunk_);
             pPosDataPool_->addPOSChunk(chunk_);
@@ -590,21 +599,23 @@ void PostingMerger::mergeWith(ChunkPostingReader* pPosting,BitVector* pFilter)
             if(pSkipListWriter_)
                 pSkipListWriter_->addSkipPoint(chunk_.last_doc_id(),pDocFreqDataPool_->getLength(),pPosDataPool_->getLength());
 
-            doc_ids_offset_ = 0;
-            position_buffer_pointer_ = 0;
-
-            int left = realDocNum - copySize;
+            const int left = realDocNum - copySize;
             if(left > 0)
             {
                 chunk.set_curr_document_offset(copySize);
                 chunk.updatePositionOffset();
                 memcpy(doc_ids_, chunk.doc_ids(), left*sizeof(uint32_t));
                 memcpy(frequencies_, chunk.frequencies(), left*sizeof(uint32_t));
-                memmove (positions_, positions_ + position_buffer_pointer_ + chunk.curr_position_offset(), 
-                                                    (chunk.size_of_positions() - chunk.curr_position_offset())*sizeof(uint32_t));
-                position_buffer_pointer_ = chunk.size_of_positions() - chunk.curr_position_offset();
-                doc_ids_offset_ = left;
+                memmove(positions_, positions_ + position_buffer_pointer_ + chunk.curr_position_offset(), 
+                        (size_of_positions - chunk.curr_position_offset())*sizeof(uint32_t));
                 chunk.set_curr_document_offset(0);
+                doc_ids_offset_ = left;
+                position_buffer_pointer_ = size_of_positions - chunk.curr_position_offset();
+            }
+            else
+            {
+                doc_ids_offset_ = 0;
+                position_buffer_pointer_ = 0;
             }
         }
     }
