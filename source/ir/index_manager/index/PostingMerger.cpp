@@ -425,12 +425,14 @@ void PostingMerger::mergeWith_GC(RTDiskPostingReader* pOnDiskPosting,BitVector* 
 void PostingMerger::mergeWith(BlockPostingReader* pPosting,BitVector* pFilter)
 {
     IndexInput* pPInput = pPosting->pInputDescriptor_->getPPostingInput();
+
     if (bFirstPosting_)///first posting
     {
         reset();
         nPPostingLength_ = 0;
         bFirstPosting_ = false;
-        if(! block_buffer_) block_buffer_ = new uint8_t[BLOCK_SIZE];
+        if(! block_buffer_)
+            block_buffer_ = new uint8_t[BLOCK_SIZE];
     }
 
     int num_docs_left = pPosting->df_;
@@ -438,6 +440,10 @@ void PostingMerger::mergeWith(BlockPostingReader* pPosting,BitVector* pFilter)
 
     BlockDecoder& blockDecoder = pPosting->blockDecoder_;
     ChunkDecoder& chunk = blockDecoder.chunk_decoder_;
+
+    docid_t nLastDocID = chunkDesc_.lastdocid;
+    count_t nDF = 0;
+    count_t nCTF = 0;
 
     pPosting->advanceToNextBlock();
     while(pPosting->curr_block_id_ <= pPosting->last_block_id_)
@@ -466,13 +472,22 @@ void PostingMerger::mergeWith(BlockPostingReader* pPosting,BitVector* pFilter)
 
                 ///num_docs_left should record the practical overall doc ids
                 ///after post_process, the deleted doc ids will be removed from the decoding buffer
-                if(pFilter) chunk.post_process(pFilter);
+                if(pFilter)
+                    chunk.post_process(pFilter);
 
-                int copySize = std::min(chunk.num_docs(), CHUNK_SIZE - doc_ids_offset_);
+                const int realDocNum = chunk.num_docs(); // real docs number after removing docs
+                size_of_positions = chunk.size_of_positions(); // get position number again as some docs might be removed
+                nDF += realDocNum; // real docs number
+                nCTF += size_of_positions; // real term frequency number
+                if(realDocNum > 0)
+                    nLastDocID = chunk.doc_ids()[realDocNum - 1];
+
+                int copySize = std::min(realDocNum, CHUNK_SIZE - doc_ids_offset_);
                 memcpy(doc_ids_ + doc_ids_offset_, chunk.doc_ids(), copySize*sizeof(uint32_t));
                 memcpy(frequencies_+ doc_ids_offset_, chunk.frequencies(), copySize*sizeof(uint32_t));
                 doc_ids_offset_ += copySize;
                 position_buffer_pointer_ += size_of_positions;
+
                 if (doc_ids_offset_ == CHUNK_SIZE) 
                 {
                     chunk_.encode(doc_ids_, frequencies_, positions_, CHUNK_SIZE);
@@ -491,7 +506,7 @@ void PostingMerger::mergeWith(BlockPostingReader* pPosting,BitVector* pFilter)
                     doc_ids_offset_ = 0;
                     position_buffer_pointer_ = 0;
 
-                    int left = chunk.num_docs() - copySize;
+                    int left = realDocNum - copySize;
                     if(left > 0)
                     {
                         chunk.set_curr_document_offset(copySize);
@@ -513,10 +528,9 @@ void PostingMerger::mergeWith(BlockPostingReader* pPosting,BitVector* pFilter)
     }
 
     ///update descriptors
-    postingDesc_.ctf += pPosting->getCTF();
-    postingDesc_.df += pPosting->docFreq();
-	
-    chunkDesc_.lastdocid = pPosting->prev_block_last_doc_id_;
+    postingDesc_.ctf += nCTF;
+    postingDesc_.df += nDF;
+    chunkDesc_.lastdocid = nLastDocID;
 }
 
 void PostingMerger::mergeWith(ChunkPostingReader* pPosting,BitVector* pFilter)
@@ -846,6 +860,7 @@ fileoffset_t PostingMerger::endMerge_Block()
 {
     if (postingDesc_.df <= 0)
         return -1;
+
     if(doc_ids_offset_> 0)
     {
         chunk_.encode(doc_ids_, frequencies_, positions_, doc_ids_offset_);
@@ -862,6 +877,7 @@ fileoffset_t PostingMerger::endMerge_Block()
     	blockEncoder_.getBlockBytes(block_buffer_);
     	++current_block_id_;
     	pPosDataPool_->addPOSChunk(chunk_);
+        pPosDataPool_->truncTailChunk();
     	pFixedSkipListWriter_->addSkipPoint(blockEncoder_.last_doc_id_, blockEncoder_.num_doc_ids(),pPosDataPool_->getLength());
     }
 
@@ -898,7 +914,6 @@ fileoffset_t PostingMerger::endMerge_Block()
     termInfo_.positionPointer_ = pPOutput->getFilePointer();
 
     ///write position posting data
-    pPosDataPool_->truncTailChunk();
     pPosDataPool_->write(pPOutput);
 
     termInfo_.positionPostingLen_ = pPOutput->getFilePointer() - termInfo_.positionPointer_;
