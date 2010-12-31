@@ -169,7 +169,7 @@ protected:
 
     uint32_t doc_ids_[ChunkEncoder::kChunkSize];
     uint32_t frequencies_[ChunkEncoder::kChunkSize];
-    uint32_t current_nocomp_block_pointer_;
+    int current_nocomp_block_pointer_;
 
     uint32_t* positions_;
     uint32_t position_buffer_pointer_;
