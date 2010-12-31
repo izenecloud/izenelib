@@ -1,11 +1,15 @@
 #include <ir/index_manager/utility/MemCache.h>
 
+#include <cassert>
 
 using namespace izenelib::ir::indexmanager;
 
 MemCache::MemCache(size_t cachesize)
+    :begin_(NULL)
+    ,end_(NULL)
+    ,size_(cachesize)
+    ,pGrowCache_(NULL)
 {
-    size_ = cachesize;
     begin_ = (uint8_t*) malloc(size_);
     if (begin_ == NULL)
     {
@@ -13,7 +17,6 @@ MemCache::MemCache(size_t cachesize)
     }
     memset(begin_,0,size_);
     end_ = begin_;
-    pGrowCache_ = NULL;
 }
 
 
@@ -30,6 +33,8 @@ MemCache::~MemCache()
 
 uint8_t* MemCache::getMemByLogSize(size_t chunksize)
 {
+    assert(end_ >= begin_);
+
     if ((chunksize < MINPOW) || (chunksize > MAXPOW))
         return NULL;
 
@@ -41,30 +46,34 @@ uint8_t* MemCache::getMemByLogSize(size_t chunksize)
             return pGrowCache_->getMemByLogSize(chunksize);
         return NULL;
     }
-    uint8_t* curr_ = end_;
+    uint8_t* curr = end_;
 
     end_ += size;
 
-    return curr_;
+    return curr;
 }
 
 uint8_t* MemCache::getMemByRealSize(size_t size)
 {
+    assert(end_ >= begin_);
+
     if ((end_ - begin_) + size > size_)
     {
         if (pGrowCache_)
             return pGrowCache_->getMemByRealSize(size);
         return NULL;
     }
-    uint8_t* curr_ = end_;
+    uint8_t* curr = end_;
 
     end_ += size;
 
-    return curr_;
+    return curr;
 }
 
 void MemCache::flushMem()
 {
+    assert(end_ >= begin_);
+
     end_ = begin_;
 
     if (pGrowCache_)
