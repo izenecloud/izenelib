@@ -1,4 +1,5 @@
 #include <sstream> // std::ostringstream
+#include <iostream>
 #include <boost/test/unit_test.hpp>
 #include <boost/bind.hpp>
 #include <boost/ref.hpp>
@@ -12,6 +13,7 @@
 
 //#define LOG_TERM_ID
 //#define LOG_QUERY_OPERATION
+//#define QUERY_ON_STDIN_DOCID
 
 namespace
 {
@@ -271,6 +273,33 @@ void TermDocFreqsTestFixture::checkNextSkipToImpl()
         return;
     }
 
+#ifdef QUERY_ON_STDIN_DOCID
+    docid_t targetID = 0;
+    while(true)
+    {
+        cout << "please input doc id to query:" << endl;
+        cin >> targetID;
+        // regenerate term ids for each doc
+        resetRand2();
+        for(docid_t docID = 1; docID <= maxDocID_; ++docID)
+        {
+            DTermIdMapT docTermIdMap;
+
+            const unsigned int docLen = docLenRand2_();
+            for(unsigned int j = 0; j < docLen; ++j)
+            {
+                unsigned int termId = termIDRand2_();
+                docTermIdMap[termId].push_back(j);
+            }
+
+            if(docID == targetID)
+            {
+                checkNextSkipToDoc(pTermReader.get(), docID, docTermIdMap);
+                break;
+            }
+        }
+    }
+#else
     // regenerate term ids for each doc
     resetRand2();
     for(docid_t docID = 1; docID <= maxDocID_; ++docID)
@@ -286,6 +315,7 @@ void TermDocFreqsTestFixture::checkNextSkipToImpl()
 
         checkNextSkipToDoc(pTermReader.get(), docID, docTermIdMap);
     }
+#endif
 
     VLOG(2) << "<= TermDocFreqsTestFixture::checkNextSkipToImpl()";
 }
