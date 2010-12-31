@@ -32,33 +32,35 @@ namespace {
 const IndexerTestConfig INDEXER_TEST_CONFIGS[] = {
     {0, 1, 1, "default", true},
     {1, 1, 1, "realtime", true},
-    {2, 5, 3, "default", true},
-    {3, 5, 3, "realtime", true},
-    {4, 10, 6, "default", true},
-    {5, 10, 6, "realtime", true},
-    {6, 300, 1, "default", true},
-    {7, 300, 1, "realtime", true},
-    {8, 100, 23, "default", true},
-    {9, 100, 23, "realtime", true},
-    {10, 1000, 10, "default", true},
-    {11, 1000, 10, "realtime", true},
-    {12, 1, 1, "default:chunk", true},
-    {13, 5, 3, "default:chunk", true},
-    {14, 10, 6, "default:chunk", true},
-    {15, 300, 1, "default:chunk", true},
-    {16, 100, 23, "default:chunk", true},
-    {17, 1, 1, "default:block", true},
-    {18, 5, 3, "default:block", true},
-    {19, 10, 6, "default:block", true},
-    {20, 300, 1, "default:block", true},
-    {21, 100, 23, "default:block", true},
+    {2, 1, 1, "default:chunk", true},
+    {3, 1, 1, "default:block", true},
+    {4, 5, 3, "default", true},
+    {5, 5, 3, "realtime", true},
+    {6, 5, 3, "default:chunk", true},
+    {7, 5, 3, "default:block", true},
+    {8, 10, 6, "default", true},
+    {9, 10, 6, "realtime", true},
+    {10, 10, 6, "default:chunk", true},
+    {11, 10, 6, "default:block", true},
+    {12, 300, 1, "default", true},
+    {13, 300, 1, "realtime", true},
+    {14, 300, 1, "default:chunk", true},
+    {15, 300, 1, "default:block", true},
+    {16, 100, 23, "default", true},
+    {17, 100, 23, "realtime", true},
+    {18, 100, 23, "default:chunk", true},
+    {19, 100, 23, "default:block", true},
+    {20, 1000, 10, "default", true},
+    {21, 1000, 10, "realtime", true},
+    {22, 1000, 10, "default:chunk", true},
+    {23, 1000, 10, "default:block", true},
 };
 
 /** the parameter number */
 const int INDEXER_TEST_CONFIG_NUM = sizeof(INDEXER_TEST_CONFIGS) / sizeof(IndexerTestConfig);
 
 /** if the command options of "--run_config_list" or "--run_config_range" are not specified, run configs of range [0, DEFAULT_CONFIG_RANGE] */
-const int DEFAULT_CONFIG_RANGE = 5;
+const int DEFAULT_CONFIG_RANGE = 7;
 
 /** the command option to specify a list of config numbers, such as "--run_config_list 0 1 2 3" */
 const char* OPTION_CONFIG_LIST = "run_config_list";
