@@ -9,7 +9,6 @@
 #define POSTING_READER_H
 
 #include <ir/index_manager/utility/BitVector.h>
-#include <ir/index_manager/index/CompressParameters.h>
 
 #include <cassert>
 
@@ -109,12 +108,7 @@ protected:
      * @param minBufLength minimum buffer length, @p posBufLength would not be less than the upper bound of this value on return
      * @note the upper bound is met as S9 and S16 decoding need at least 28 extra bytes for decompression.
      */
-    static void ensurePosBufferUpperBound(uint32_t* &pPPosting, int32_t& posBufLength, int32_t minBufLength)
-    {
-        const int32_t upperBound = UncompressedOutBufferUpperbound(minBufLength);
-        if(posBufLength < upperBound)
-            growPosBuffer(pPPosting, posBufLength, upperBound);
-    }
+    static void ensurePosBufferUpperBound(uint32_t* &pPPosting, int32_t& posBufLength, int32_t minBufLength);
 };
 
 }
