@@ -482,20 +482,26 @@ void PostingMerger::mergeWith(BlockPostingReader* pPosting,BitVector* pFilter)
                 if(realDocNum > 0)
                     nLastDocID = chunk.doc_ids()[realDocNum - 1];
 
-                int copySize = std::min(realDocNum, CHUNK_SIZE - doc_ids_offset_);
-                memcpy(doc_ids_ + doc_ids_offset_, chunk.doc_ids(), copySize*sizeof(uint32_t));
-                memcpy(frequencies_+ doc_ids_offset_, chunk.frequencies(), copySize*sizeof(uint32_t));
-                doc_ids_offset_ += copySize;
-                position_buffer_pointer_ += size_of_positions;
-
-                if (doc_ids_offset_ == CHUNK_SIZE) 
+                if(doc_ids_offset_ + realDocNum < CHUNK_SIZE) 
                 {
+                    memcpy(doc_ids_ + doc_ids_offset_, chunk.doc_ids(), realDocNum*sizeof(uint32_t));
+                    memcpy(frequencies_+ doc_ids_offset_, chunk.frequencies(), realDocNum*sizeof(uint32_t));
+
+                    doc_ids_offset_ += realDocNum;
+                    position_buffer_pointer_ += size_of_positions;
+                }
+                else
+                {
+                    const int copySize = CHUNK_SIZE - doc_ids_offset_;
+                    memcpy(doc_ids_ + doc_ids_offset_, chunk.doc_ids(), copySize*sizeof(uint32_t));
+                    memcpy(frequencies_+ doc_ids_offset_, chunk.frequencies(), copySize*sizeof(uint32_t));
+
                     chunk_.encode(doc_ids_, frequencies_, positions_, CHUNK_SIZE);
                     if(!blockEncoder_.addChunk(chunk_))
                     {
                         blockEncoder_.getBlockBytes(block_buffer_);
                         pTmpPostingOutput_->writeBytes(block_buffer_, BLOCK_SIZE);
-						
+
                         ++current_block_id_;
                         pFixedSkipListWriter_->addSkipPoint(blockEncoder_.last_doc_id_,blockEncoder_.num_doc_ids(),pPosDataPool_->getLength());
                         blockEncoder_.reset();
@@ -503,10 +509,7 @@ void PostingMerger::mergeWith(BlockPostingReader* pPosting,BitVector* pFilter)
                     }
                     pPosDataPool_->addPOSChunk(chunk_);
 
-                    doc_ids_offset_ = 0;
-                    position_buffer_pointer_ = 0;
-
-                    int left = realDocNum - copySize;
+                    const int left = realDocNum - copySize;
                     if(left > 0)
                     {
                         chunk.set_curr_document_offset(copySize);
@@ -514,16 +517,21 @@ void PostingMerger::mergeWith(BlockPostingReader* pPosting,BitVector* pFilter)
                         memcpy(doc_ids_, chunk.doc_ids(), left*sizeof(uint32_t));
                         memcpy(frequencies_, chunk.frequencies(), left*sizeof(uint32_t));
                         memmove (positions_, positions_ + position_buffer_pointer_ + chunk.curr_position_offset(), 
-                                                           (chunk.size_of_positions() - chunk.curr_position_offset())*sizeof(uint32_t));
-                        position_buffer_pointer_ = chunk.size_of_positions() - chunk.curr_position_offset();
-                        doc_ids_offset_ = left;
+                                (size_of_positions - chunk.curr_position_offset())*sizeof(uint32_t));
                         chunk.set_curr_document_offset(0);
+                        doc_ids_offset_ = left;
+                        position_buffer_pointer_ = size_of_positions - chunk.curr_position_offset();
+                    }
+                    else
+                    {
+                        doc_ids_offset_ = 0;
+                        position_buffer_pointer_ = 0;
                     }
                 }
             }
             blockDecoder.advance_curr_chunk();
             chunk.set_decoded(false);
-        } 
+        }
         pPosting->advanceToNextBlock();
     }
 
