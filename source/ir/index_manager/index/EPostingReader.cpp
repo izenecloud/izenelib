@@ -162,6 +162,7 @@ void BlockPostingReader::skipToBlock(int targetBlock)
 docid_t BlockPostingReader::decodeTo(docid_t target, uint32_t* pPosting, int32_t length, int32_t nMaxDocs, int32_t& decodedCount, int32_t& nCurrentPosting)
 {
     assert(nMaxDocs > 0 && nMaxDocs <= length >> 1);
+    assert(nMaxDocs >= CHUNK_SIZE);
 
     docid_t lastDocID = pSkipListReader_->skipTo(target);
 
@@ -203,7 +204,7 @@ docid_t BlockPostingReader::decodeTo(docid_t target, uint32_t* pPosting, int32_t
                     decoded_num_docs_in_this_block += CHUNK_SIZE;
                 num_docs_decoded_ += decoded_num_docs_in_this_block;
                 chunk.reset(blockDecoder_.curr_block_data(),
-                            std::min(nMaxDocs, static_cast<int32_t>(df_ - num_docs_decoded_)));
+                            std::min(CHUNK_SIZE, static_cast<int32_t>(df_ - num_docs_decoded_)));
                 chunk.set_doc_freq_buffer(pPosting,pPosting+(length>>1));
                 chunk.decodeDocIds();
                 chunk.decodeFrequencies(computePos);
@@ -243,20 +244,20 @@ docid_t BlockPostingReader::decodeTo(docid_t target, uint32_t* pPosting, int32_t
 int32_t BlockPostingReader::decodeNext(uint32_t* pPosting, int32_t length, int32_t nMaxDocs)
 {
     assert(nMaxDocs > 0 && nMaxDocs <= length >> 1);
+    assert(nMaxDocs >= CHUNK_SIZE);
 
     if (num_docs_decoded_ == df_)
         return -1;
 
     assert(num_docs_decoded_ < df_);
 
-    int32_t decodedDoc = 0;
-
     uint32_t* pDoc = pPosting;
     uint32_t* pFreq = pPosting + (length >> 1);
 
     ChunkDecoder& chunk = blockDecoder_.chunk_decoder_;
 
-    while(decodedDoc < nMaxDocs && num_docs_decoded_ < df_)
+    int32_t decodedDoc = 0;
+    while(decodedDoc == 0 && num_docs_decoded_ < df_)
     {
         int curr_chunk_num = blockDecoder_.curr_chunk();
         if (curr_chunk_num < blockDecoder_.num_chunks()) 
@@ -266,7 +267,7 @@ int32_t BlockPostingReader::decodeNext(uint32_t* pPosting, int32_t length, int32
             {
                 // Create a new chunk and add it to the block.
                 chunk.reset(blockDecoder_.curr_block_data(),
-                            std::min((nMaxDocs - decodedDoc), static_cast<int32_t>(df_ - num_docs_decoded_)));
+                            std::min(CHUNK_SIZE, static_cast<int32_t>(df_ - num_docs_decoded_)));
                 chunk.set_doc_freq_buffer(pDoc,pFreq);
                 chunk.decodeDocIds();
                 chunk.decodeFrequencies(false);
@@ -299,13 +300,12 @@ int32_t BlockPostingReader::decodeNext(uint32_t* pPosting, int32_t length, int32
 int32_t BlockPostingReader::decodeNext(uint32_t* pPosting, int32_t length, int32_t nMaxDocs, uint32_t* &pPPosting, int32_t& posBufLength, int32_t& posLength)
 {
     assert(nMaxDocs > 0 && nMaxDocs <= length >> 1);
+    assert(nMaxDocs >= CHUNK_SIZE);
 
     if (num_docs_decoded_ == df_)
         return -1;
 
     assert(num_docs_decoded_ < df_);
-
-    int32_t decodedDoc = 0;
 
     uint32_t* pDoc = pPosting;
     uint32_t* pFreq = pPosting + (length >> 1);
@@ -314,7 +314,8 @@ int32_t BlockPostingReader::decodeNext(uint32_t* pPosting, int32_t length, int32
     int decompressed_pos = 0;
     ChunkDecoder& chunk = blockDecoder_.chunk_decoder_;
 
-    while(decodedDoc < nMaxDocs && num_docs_decoded_ < df_)
+    int32_t decodedDoc = 0;
+    while(decodedDoc == 0 && num_docs_decoded_ < df_)
     {
         int curr_chunk_num = blockDecoder_.curr_chunk();
         if (curr_chunk_num < blockDecoder_.num_chunks())
@@ -324,7 +325,7 @@ int32_t BlockPostingReader::decodeNext(uint32_t* pPosting, int32_t length, int32
             {
                 // Create a new chunk and add it to the block.
                 chunk.reset(blockDecoder_.curr_block_data(),
-                            std::min((nMaxDocs - decodedDoc), static_cast<int32_t>(df_ - num_docs_decoded_)));
+                            std::min(CHUNK_SIZE, static_cast<int32_t>(df_ - num_docs_decoded_)));
                 chunk.set_doc_freq_buffer(pDoc,pFreq);
                 chunk.decodeDocIds();
                 chunk.decodeFrequencies();
@@ -529,6 +530,7 @@ void ChunkPostingReader::reset(const TermInfo& termInfo)
 docid_t ChunkPostingReader::decodeTo(docid_t target, uint32_t* pPosting, int32_t length, int32_t nMaxDocs, int32_t& decodedCount, int32_t& nCurrentPosting)
 {
     assert(nMaxDocs > 0 && nMaxDocs <= length >> 1);
+    assert(nMaxDocs >= CHUNK_SIZE);
 
     docid_t lastDocID = 0;
 
@@ -562,7 +564,7 @@ docid_t ChunkPostingReader::decodeTo(docid_t target, uint32_t* pPosting, int32_t
         int tf_size = pDPostingInput->readVInt();
         pDPostingInput->readBytes((uint8_t*)compressedBuffer_ + doc_size, tf_size);
         chunkDecoder_.reset(compressedBuffer_,
-                            std::min(nMaxDocs, static_cast<int32_t>(df_ - num_docs_decoded_)));
+                            std::min(CHUNK_SIZE, static_cast<int32_t>(df_ - num_docs_decoded_)));
         skipPosCount_ = 0;
         chunkDecoder_.set_doc_freq_buffer(pPosting,pPosting+(length>>1));
         chunkDecoder_.decodeDocIds();
@@ -584,13 +586,12 @@ docid_t ChunkPostingReader::decodeTo(docid_t target, uint32_t* pPosting, int32_t
 int32_t ChunkPostingReader::decodeNext(uint32_t* pPosting, int32_t length, int32_t nMaxDocs)
 {
     assert(nMaxDocs > 0 && nMaxDocs <= length >> 1);
+    assert(nMaxDocs >= CHUNK_SIZE);
 
     if (num_docs_decoded_ == df_)
         return -1;
 
     assert(num_docs_decoded_ < df_);
-
-    int32_t decodedDoc = 0;
 
     uint32_t* pDoc = pPosting;
     uint32_t* pFreq = pPosting + (length >> 1);
@@ -600,7 +601,8 @@ int32_t ChunkPostingReader::decodeNext(uint32_t* pPosting, int32_t length, int32
     int doc_size = 0;
     int tf_size = 0;
 
-    while(decodedDoc < nMaxDocs && num_docs_decoded_ < df_)
+    int32_t decodedDoc = 0;
+    while(decodedDoc == 0 && num_docs_decoded_ < df_)
     {
         doc_size = pDPostingInput->readVInt();
         pDPostingInput->readBytes((uint8_t*)compressedBuffer_,doc_size);
@@ -608,7 +610,7 @@ int32_t ChunkPostingReader::decodeNext(uint32_t* pPosting, int32_t length, int32
         tf_size = pDPostingInput->readVInt();
         pDPostingInput->readBytes((uint8_t*)compressedBuffer_ + doc_size, tf_size);
         chunkDecoder_.reset(compressedBuffer_,
-                            std::min((nMaxDocs - decodedDoc), static_cast<int32_t>(df_ - num_docs_decoded_)));
+                            std::min(CHUNK_SIZE, static_cast<int32_t>(df_ - num_docs_decoded_)));
         chunkDecoder_.set_doc_freq_buffer(pDoc,pFreq);
         chunkDecoder_.decodeDocIds();
         chunkDecoder_.decodeFrequencies(false);
@@ -631,13 +633,12 @@ int32_t ChunkPostingReader::decodeNext(uint32_t* pPosting, int32_t length, int32
 int32_t ChunkPostingReader::decodeNext(uint32_t* pPosting, int32_t length, int32_t nMaxDocs, uint32_t* &pPPosting, int32_t& posBufLength, int32_t& posLength)
 {
     assert(nMaxDocs > 0 && nMaxDocs <= length >> 1);
+    assert(nMaxDocs >= CHUNK_SIZE);
 
     if (num_docs_decoded_ == df_)
         return -1;
 
     assert(num_docs_decoded_ < df_);
-
-    int32_t decodedDoc = 0;
 
     uint32_t* pDoc = pPosting;
     uint32_t* pFreq = pPosting + (length >> 1);
@@ -649,14 +650,15 @@ int32_t ChunkPostingReader::decodeNext(uint32_t* pPosting, int32_t length, int32
     int doc_size = 0;
     int tf_size = 0;
 
-    while(decodedDoc < nMaxDocs && num_docs_decoded_ < df_)
+    int32_t decodedDoc = 0;
+    while(decodedDoc == 0 && num_docs_decoded_ < df_)
     {
         doc_size = pDPostingInput->readVInt();
         pDPostingInput->readBytes((uint8_t*)compressedBuffer_,doc_size);
         tf_size = pDPostingInput->readVInt();
         pDPostingInput->readBytes((uint8_t*)compressedBuffer_ + doc_size, tf_size);
         chunkDecoder_.reset(compressedBuffer_,
-                            std::min((nMaxDocs - decodedDoc), static_cast<int32_t>(df_ - num_docs_decoded_)));
+                            std::min(CHUNK_SIZE, static_cast<int32_t>(df_ - num_docs_decoded_)));
         chunkDecoder_.set_doc_freq_buffer(pDoc,pFreq);
         chunkDecoder_.decodeDocIds();
         chunkDecoder_.decodeFrequencies();

@@ -33,8 +33,16 @@ public:
 
     ~BlockPostingReader();
 
+    /**
+     * @pre @p nMaxDocs >= @c CHUNK_SIZE, as @c CHUNK_SIZE docs are decoded
+     *      altogether each time @c ChunkDecoder::decodeDocIds() is called.
+     */
     int32_t decodeNext(uint32_t* pPosting, int32_t length, int32_t nMaxDocs);
 
+    /**
+     * @pre @p nMaxDocs >= @c CHUNK_SIZE, as @c CHUNK_SIZE docs are decoded
+     *      altogether each time @c ChunkDecoder::decodeDocIds() is called.
+     */
     int32_t decodeNext(uint32_t* pPosting, int32_t length, int32_t nMaxDocs, uint32_t* &pPPosting, int32_t& posBufLength, int32_t& posLength);
 
     /**
@@ -62,6 +70,10 @@ public:
      */
     bool decodeNextPositions(uint32_t* &pPosting, int32_t& posBufLength, uint32_t* pFreqs,int32_t nFreqs, int32_t& nCurrentPPosting);
 
+    /**
+     * @pre @p nMaxDocs >= @c CHUNK_SIZE, as @c CHUNK_SIZE docs are decoded
+     *      altogether each time @c ChunkDecoder::decodeDocIds() is called.
+     */
     docid_t decodeTo(docid_t target, uint32_t* pPosting, int32_t length, int32_t nMaxDocs, int32_t& decodedCount, int32_t& nCurrentPosting);
 
     /**
@@ -180,8 +192,16 @@ public:
 
     ~ChunkPostingReader();
 
+    /**
+     * @pre @p nMaxDocs >= @c CHUNK_SIZE, as @c CHUNK_SIZE docs are decoded
+     *      altogether each time @c ChunkDecoder::decodeDocIds() is called.
+     */
     int32_t decodeNext(uint32_t* pPosting, int32_t length, int32_t nMaxDocs);
 
+    /**
+     * @pre @p nMaxDocs >= @c CHUNK_SIZE, as @c CHUNK_SIZE docs are decoded
+     *      altogether each time @c ChunkDecoder::decodeDocIds() is called.
+     */
     int32_t decodeNext(uint32_t* pPosting, int32_t length, int32_t nMaxDocs, uint32_t* &pPPosting, int32_t& posBufLength, int32_t& posLength);
 
     /**
@@ -209,6 +229,10 @@ public:
      */
     bool decodeNextPositions(uint32_t* &pPosting, int32_t& posBufLength, uint32_t* pFreqs,int32_t nFreqs, int32_t& nCurrentPPosting);
 
+    /**
+     * @pre @p nMaxDocs >= @c CHUNK_SIZE, as @c CHUNK_SIZE docs are decoded
+     *      altogether each time @c ChunkDecoder::decodeDocIds() is called.
+     */
     docid_t decodeTo(docid_t target, uint32_t* pPosting, int32_t length, int32_t nMaxDocs, int32_t& decodedCount, int32_t& nCurrentPosting);
 
     /**
