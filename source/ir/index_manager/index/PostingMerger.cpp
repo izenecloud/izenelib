@@ -445,14 +445,18 @@ void PostingMerger::mergeWith(BlockPostingReader* pPosting,BitVector* pFilter)
     count_t nDF = 0;
     count_t nCTF = 0;
 
-    pPosting->advanceToNextBlock();
-    while(pPosting->curr_block_id_ <= pPosting->last_block_id_)
+    for(pPosting->advanceToNextBlock();
+            pPosting->curr_block_id_ <= pPosting->last_block_id_;
+            pPosting->advanceToNextBlock())
     {
-        while (blockDecoder.curr_chunk() < blockDecoder.num_chunks()) 
+        for(; blockDecoder.curr_chunk() < blockDecoder.num_chunks();
+                blockDecoder.advance_curr_chunk())
         {
             // Check if we previously decoded this chunk and decode if necessary.
             if (blockDecoder.curr_chunk_decoded() == false) 
             {
+                assert(num_docs_left);
+
                 // Create a new chunk and add it to the block.
                 int num_doc = std::min(CHUNK_SIZE, num_docs_left);
                 chunk.reset(blockDecoder.curr_block_data(), num_doc);
@@ -529,10 +533,9 @@ void PostingMerger::mergeWith(BlockPostingReader* pPosting,BitVector* pFilter)
                     }
                 }
             }
-            blockDecoder.advance_curr_chunk();
+
             chunk.set_decoded(false);
         }
-        pPosting->advanceToNextBlock();
     }
 
     ///update descriptors
@@ -869,7 +872,7 @@ fileoffset_t PostingMerger::endMerge_Block()
     if (postingDesc_.df <= 0)
         return -1;
 
-    if(doc_ids_offset_> 0)
+    if(doc_ids_offset_ > 0)
     {
         chunk_.encode(doc_ids_, frequencies_, positions_, doc_ids_offset_);
         if(!blockEncoder_.addChunk(chunk_))
@@ -882,7 +885,7 @@ fileoffset_t PostingMerger::endMerge_Block()
             blockEncoder_.reset();
             blockEncoder_.addChunk(chunk_);
     	}
-    	blockEncoder_.getBlockBytes(block_buffer_);
+
     	++current_block_id_;
     	pPosDataPool_->addPOSChunk(chunk_);
         pPosDataPool_->truncTailChunk();
@@ -896,11 +899,13 @@ fileoffset_t PostingMerger::endMerge_Block()
     termInfo_.ctf_ = postingDesc_.ctf;
     termInfo_.lastDocID_ = chunkDesc_.lastdocid;
     termInfo_.positionPostingLen_ = pPOutput->getFilePointer() - postingDesc_.poffset;
-
     termInfo_.skipPointer_ = pDOutput->getFilePointer();
 
     if(blockEncoder_.num_chunks() > 0)
+    {
+        blockEncoder_.getBlockBytes(block_buffer_);
         pTmpPostingOutput_->writeBytes(block_buffer_, BLOCK_SIZE);
+    }
 
     pFixedSkipListWriter_->write(pDOutput);	///write skip list data
 
