@@ -397,9 +397,9 @@ bool MemPostingReader::decodeNextPositions(uint32_t* &pPosting, int32_t& posBufL
 
 SkipListReader* MemPostingReader::getSkipListReader()
 {
-    if(!pSkipListReader_)
-        if(pPostingWriter_->pSkipListWriter_)
+    if(!pSkipListReader_ && pPostingWriter_->pSkipListWriter_)
         pSkipListReader_ = pPostingWriter_->pSkipListWriter_->getSkipListReader();
+
     return pSkipListReader_;
 }
 

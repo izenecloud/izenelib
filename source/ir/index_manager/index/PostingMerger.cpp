@@ -108,17 +108,17 @@ void PostingMerger::reset()
 
 void PostingMerger::init()
 {
-    if(skipInterval_ > 0)
+    if(isSkipParamValid())
+    {
         pSkipListMerger_ = new SkipListMerger(skipInterval_,maxSkipLevel_,pMemCache_);
+        pSkipListWriter_ = new SkipListWriter(skipInterval_,maxSkipLevel_,pMemCache_);
+    }
 
     compressed_position_buffer_size_ = INIT_POS_CHUNK_SIZE;
     compressedPos_ = new uint32_t[compressed_position_buffer_size_];
     curr_position_buffer_size_ = INIT_POS_CHUNK_SIZE << 1;
     positions_ = new uint32_t[curr_position_buffer_size_];
     pFixedSkipListWriter_ = new FixedBlockSkipListWriter(pMemCache_);
-
-    if(skipInterval_ > 0 && maxSkipLevel_ > 0)
-        pSkipListWriter_ = new SkipListWriter(skipInterval_,maxSkipLevel_,pMemCache_);
 
     pPosDataPool_ = new ChunkDataPool(pMemCache_) ;
     pDocFreqDataPool_ = new ChunkDataPool(pMemCache_);
@@ -157,13 +157,15 @@ void PostingMerger::mergeWith(MemPostingReader* pInMemoryPosting)
     if (bFirstPosting_)///first posting
     {
         reset();
-        if(skipInterval_ == 0)
+        if(isSkipParamValid())
+        {
+            termInfo_.skipPointer_ = pDOutput->getFilePointer();
+        }
+        else
         {
             termInfo_.docPointer_ = pDOutput->getFilePointer();
             termInfo_.skipPointer_ = -1;
         }
-        else
-            termInfo_.skipPointer_ = pDOutput->getFilePointer();
         termInfo_.positionPointer_ = pPOutput->getFilePointer();
         nPPostingLength_ = 0;
         bFirstPosting_ = false;
@@ -173,12 +175,10 @@ void PostingMerger::mergeWith(MemPostingReader* pInMemoryPosting)
 
     IndexOutput* pDocIndexOutput = 0;
 
-    if(skipInterval_ == 0)
-    {
-        pDocIndexOutput = pDOutput;
-    }
-    else
+    if(isSkipParamValid())
         pDocIndexOutput = pTmpPostingOutput_;
+    else
+        pDocIndexOutput = pDOutput;
 
     fileoffset_t oldDOff = pDocIndexOutput->getFilePointer();
 
@@ -226,6 +226,8 @@ void PostingMerger::mergeWith(MemPostingReader* pInMemoryPosting)
     SkipListReader* pSkipReader = pInMemoryPosting->getSkipListReader();
     if(pSkipReader)
     {
+        assert(isSkipParamValid() && pSkipListMerger_);
+
         pSkipListMerger_->setBasePoint(0, DOffsetStartForSkipping, postingDesc_.plength);
         pSkipListMerger_->addToMerge(pSkipReader,pInMemoryPosting->lastDocID(), nSkipIntervalBetweenBarrels_);
         nSkipIntervalBetweenBarrels_ = pInMemoryPosting->docFreq() - pSkipReader->getNumSkipped();
@@ -251,13 +253,15 @@ void PostingMerger::mergeWith(RTDiskPostingReader* pOnDiskPosting)
     if (bFirstPosting_)///first posting
     {
         reset();
-        if(skipInterval_ == 0)
+        if(isSkipParamValid())
+        {
+            termInfo_.skipPointer_ = pDOutput->getFilePointer();
+        }
+        else
         {
             termInfo_.docPointer_ = pDOutput->getFilePointer();
             termInfo_.skipPointer_ = -1;
         }
-        else
-            termInfo_.skipPointer_ = pDOutput->getFilePointer();
         termInfo_.positionPointer_ = pPOutput->getFilePointer();
 		
         nPPostingLength_ = 0;
@@ -269,12 +273,10 @@ void PostingMerger::mergeWith(RTDiskPostingReader* pOnDiskPosting)
 
     IndexOutput* pDocIndexOutput = 0;
 
-    if(skipInterval_ == 0)
-    {
-        pDocIndexOutput = pDOutput;
-    }
-    else
+    if(isSkipParamValid())
         pDocIndexOutput = pTmpPostingOutput_;
+    else
+        pDocIndexOutput = pDOutput;
 
     fileoffset_t oldDOff = pDocIndexOutput->getFilePointer();
     docid_t firstDocID = pDInput->readVInt() - chunkDesc_.lastdocid;
@@ -301,6 +303,8 @@ void PostingMerger::mergeWith(RTDiskPostingReader* pOnDiskPosting)
 
     if(pSkipReader)
     {
+        assert(isSkipParamValid() && pSkipListMerger_);
+
         pSkipListMerger_->setBasePoint(0, DOffsetStartForSkipping, postingDesc_.plength);
         pSkipListMerger_->addToMerge(pSkipReader,pOnDiskPosting->chunkDesc_.lastdocid, nSkipIntervalBetweenBarrels_);
         nSkipIntervalBetweenBarrels_ = pOnDiskPosting->docFreq() - pSkipReader->getNumSkipped();
@@ -330,13 +334,15 @@ void PostingMerger::mergeWith_GC(RTDiskPostingReader* pOnDiskPosting,BitVector* 
     if (bFirstPosting_)///first posting
     {
         reset();
-        if(skipInterval_ == 0)
+        if(isSkipParamValid())
+        {
+            termInfo_.skipPointer_ = pDOutput->getFilePointer();
+        }
+        else
         {
             termInfo_.docPointer_ = pDOutput->getFilePointer();
             termInfo_.skipPointer_ = -1;
         }
-        else
-            termInfo_.skipPointer_ = pDOutput->getFilePointer();
         termInfo_.positionPointer_ = pPOutput->getFilePointer();
 		
         nPPostingLength_ = 0;
@@ -355,12 +361,10 @@ void PostingMerger::mergeWith_GC(RTDiskPostingReader* pOnDiskPosting,BitVector* 
 
     IndexOutput* pDocIndexOutput = 0;
 
-    if(skipInterval_ == 0)
-    {
-        pDocIndexOutput = pDOutput;
-    }
-    else
+    if(isSkipParamValid())
         pDocIndexOutput = pTmpPostingOutput_;
+    else
+        pDocIndexOutput = pDOutput;
 	
     fileoffset_t oldDOff = pDocIndexOutput->getFilePointer();
     fileoffset_t oldPOff = pPOutput->getFilePointer();
@@ -840,12 +844,7 @@ fileoffset_t PostingMerger::endMerge_ByteAlign()
     termInfo_.lastDocID_ = chunkDesc_.lastdocid;
     termInfo_.positionPostingLen_ = pPOutput->getFilePointer() - postingDesc_.poffset;
 
-    if(skipInterval_ == 0)
-    {
-        termInfo_.skipLevel_ = 0;
-        termInfo_.docPostingLen_ = postingDesc_.length;
-    }
-    else
+    if(isSkipParamValid())
     {
         pSkipListMerger_->write(pDOutput);
         termInfo_.skipLevel_ = pSkipListMerger_->getNumLevels();
@@ -859,6 +858,11 @@ fileoffset_t PostingMerger::endMerge_ByteAlign()
             reinterpret_cast<FSIndexInput*>(pTmpPostingInput_)->reopen();
         pDOutput->write(pTmpPostingInput_, pTmpPostingOutput_->length());
 
+        termInfo_.docPostingLen_ = postingDesc_.length;
+    }
+    else
+    {
+        termInfo_.skipLevel_ = 0;
         termInfo_.docPostingLen_ = postingDesc_.length;
     }
 

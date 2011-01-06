@@ -87,6 +87,15 @@ private:
 
     fileoffset_t endMerge_Chunk();
 
+    /**
+     * Check whether @c skipInterval_ and @c maxSkipLevel_ are both positive value.
+     * @return true for valid, false for invalid (no skip data to merge)
+     */
+    bool isSkipParamValid() const
+    {
+        return skipInterval_ > 0 && maxSkipLevel_ > 0;
+    }
+
 private:
     friend class FieldMerger;
 
