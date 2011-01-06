@@ -39,6 +39,20 @@ struct IndexerTestConfig
     bool isMerge_; ///< true for merge index in stand-alone thread, false for not to merge at all
 
     /**
+     * skip interval.
+     * for chunk type, it is fixed to CHUNK_SIZE (128) docs,
+     * for block type, it is fixed to BLOCK_SIZE (8192) bytes.
+     */
+    int skipInterval_; ///< 
+
+    /**
+     * max skip level.
+     * for vint and chunk type, 0 for no skip data generated, positive value for the number of skip levels,
+     * for block type, it always uses one level skip list.
+     */
+    int maxSkipLevel_; ///< max skip level
+
+    /**
      * Get string which outputs each parameters.
      * @return output string
      */
@@ -46,7 +60,10 @@ struct IndexerTestConfig
         std::ostringstream oss;
         oss << "IndexerTestConfig " << configNum_ << " (docNum_: " << docNum_
             << ", iterNum_: " << iterNum_ << ", indexMode_: " << indexMode_
-            << ", isMerge_: " << isMerge_ << ")";
+            << ", isMerge_: " << isMerge_
+            << ", skipInterval_: " << skipInterval_
+            << ", maxSkipLevel_: " << maxSkipLevel_
+            << ")";
 
         return oss.str();
     }

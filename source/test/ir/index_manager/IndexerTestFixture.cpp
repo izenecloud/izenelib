@@ -70,8 +70,8 @@ void IndexerTestFixture::configTest(const IndexerTestConfig& testConfig)
     indexManagerConfig.indexStrategy_.indexMode_ = testConfig_.indexMode_;
     indexManagerConfig.indexStrategy_.memory_ = 30000000;
     indexManagerConfig.indexStrategy_.indexDocLength_ = true;
-    indexManagerConfig.indexStrategy_.skipInterval_ = 0;
-    indexManagerConfig.indexStrategy_.maxSkipLevel_ = 0;
+    indexManagerConfig.indexStrategy_.skipInterval_ = testConfig_.skipInterval_;
+    indexManagerConfig.indexStrategy_.maxSkipLevel_ = testConfig_.maxSkipLevel_;
     indexManagerConfig.mergeStrategy_.param_ = testConfig_.isMerge_ ? "default" : "no";
     indexManagerConfig.storeStrategy_.param_ = "mmap";
 
