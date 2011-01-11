@@ -41,7 +41,8 @@ template<class Function> void runToSuccess(Function func) {
 namespace t_TermDocFreqs
 {
 TermDocFreqsTestFixture::TermDocFreqsTestFixture()
-    :docLenRand2_(docLenRand_)
+    :skipToRand_(randEngine_, bernoulli_distribution<>())
+    ,docLenRand2_(docLenRand_)
     ,termIDRand2_(termIDRand_)
 {
 }

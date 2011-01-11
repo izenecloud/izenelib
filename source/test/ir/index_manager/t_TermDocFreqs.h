@@ -118,6 +118,9 @@ private:
     typedef map<termid_t, pair<freq_t, int64_t> > CTermIdMapT;
     CTermIdMapT mapCTermId_;
 
+    typedef boost::variate_generator<mt19937, bernoulli_distribution<> > BoolGeneratorT;
+    BoolGeneratorT skipToRand_; ///< in @c nextOrSkipTo(), true to use @c TermDocFreqs::skipTo(), false to use @c TermDocFreqs::next()
+
     RandGeneratorT docLenRand2_; ///< regenerate how many docs in @c checkNextSkipToImpl() and @c removeFixtureDocs()
     RandGeneratorT termIDRand2_; ///< regenerate the term ids in @c checkNextSkipToImpl() and @c removeFixtureDocs()
 };

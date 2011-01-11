@@ -32,7 +32,6 @@ IndexerTestFixture::IndexerTestFixture()
     ,docLenRand_(randEngine_, uniform_int<>(1, 1))
     ,termIDRand_(randEngine_, uniform_int<>(1, 1))
     ,docNumRand_(randEngine_, uniform_int<>(1, 1))
-    ,skipToRand_(randEngine_, uniform_int<>(0, 1))
     ,maxDocID_(0)
     ,isRealIndex_(true)
 {
@@ -73,7 +72,8 @@ void IndexerTestFixture::configTest(const IndexerTestConfig& testConfig)
     indexManagerConfig.indexStrategy_.skipInterval_ = testConfig_.skipInterval_;
     indexManagerConfig.indexStrategy_.maxSkipLevel_ = testConfig_.maxSkipLevel_;
     indexManagerConfig.mergeStrategy_.param_ = testConfig_.isMerge_ ? "default" : "no";
-    indexManagerConfig.storeStrategy_.param_ = "mmap";
+    //indexManagerConfig.storeStrategy_.param_ = "mmap";
+    indexManagerConfig.storeStrategy_.param_ = "file";
 
     std::vector<std::string> propertyList;
     propertyList.push_back(INVERTED_FIELD);

@@ -92,10 +92,9 @@ protected:
     unsigned int newDocNum_; ///< the max number of documents created in createDocument()
     boost::mt19937 randEngine_;
     typedef boost::variate_generator<mt19937, uniform_int<> > RandGeneratorT;
-    RandGeneratorT docLenRand_; ///< decide how many docs are created in @c prepareDocument()
-    RandGeneratorT termIDRand_; ///< decide the term ids in creating docs in @c prepareDocument()
+    RandGeneratorT docLenRand_; ///< decide how many terms are created in each doc of @c prepareDocument()
+    RandGeneratorT termIDRand_; ///< decide the term ids in each doc of @c prepareDocument()
     RandGeneratorT docNumRand_; ///< decide how many docs are updated in @c updateDocument() and how many docs are removed in @c removeDocument()
-    RandGeneratorT skipToRand_; ///< in @c nextOrSkipTo(), 1 to use @c TermDocFreqs::skipTo(), 0 to use @c TermDocFreqs::next()
 
     /**
      * as the max doc id in indexer is the max doc id ever indexed,
