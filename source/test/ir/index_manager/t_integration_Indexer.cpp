@@ -98,6 +98,15 @@ const char* OPTION_CONFIG_LIST = "run_config_list";
 /** the command option to specify a range of config numbers, such as "--run_config_range 4 7" */
 const char* OPTION_CONFIG_RANGE = "run_config_range";
 
+/**
+ * the command option to specify a percentage of check statements to execute when @c IndexerTestConfig::docNum_ is not less than 1000.
+ * such as "--check_percent 0.2", it would sample 20% check statements to execute.
+ */
+const char* OPTION_CHECK_PERCENT = "check_percent";
+
+/** the default value for @c OPTION_CHECK_PERCENT. */
+const double DEFAULT_CHECK_PERCENT = 0.2;
+
 /** the environment variable name for boost test log */
 const char* ENV_NAME_LOG_FILE = "BOOST_TEST_LOG_FILE";
 }
@@ -115,11 +124,13 @@ bool loadConfigOption(vector<IndexerTestConfig>& configVec)
     {
         vector<int> runConfigListVec;
         vector<int> runConfigRangeVec;
+        double checkPercent = DEFAULT_CHECK_PERCENT;
         po::options_description desp("Allowed options");
         desp.add_options()
             ("build_info,i", "this option is not used, it is just in case of boost test didn't filter out this option")
             (OPTION_CONFIG_LIST, po::value<std::vector<int> >(&runConfigListVec)->multitoken(), "specify the list of config parameters to run")
             (OPTION_CONFIG_RANGE, po::value<std::vector<int> >(&runConfigRangeVec)->multitoken(), "specify the range of config parameters to run")
+            (OPTION_CHECK_PERCENT, po::value<double >(&checkPercent), "specify the percentage of check statements to execute for large data size (1000 docs)")
             ;
 
         po::options_description cmdline_options;
@@ -173,6 +184,10 @@ bool loadConfigOption(vector<IndexerTestConfig>& configVec)
             configVec.insert(configVec.begin(), INDEXER_TEST_CONFIGS,
                                                 INDEXER_TEST_CONFIGS + DEFAULT_CONFIG_RANGE + 1);
         }
+
+        cout << OPTION_CHECK_PERCENT << ": " << checkPercent << endl;
+        BOOST_FOREACH(IndexerTestConfig& config, configVec)
+            config.checkPercent_ = config.isDocNumLarge() ? checkPercent : 1.0;
     }
     catch(std::exception& e)
     {

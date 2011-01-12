@@ -118,11 +118,10 @@ private:
     typedef map<termid_t, pair<freq_t, int64_t> > CTermIdMapT;
     CTermIdMapT mapCTermId_;
 
-    typedef boost::variate_generator<mt19937, bernoulli_distribution<> > BoolGeneratorT;
-    BoolGeneratorT skipToRand_; ///< in @c nextOrSkipTo(), true to use @c TermDocFreqs::skipTo(), false to use @c TermDocFreqs::next()
+    BoolRandGeneratorT isSkipToRand_; ///< in @c nextOrSkipTo(), true to use @c TermDocFreqs::skipTo(), false to use @c TermDocFreqs::next()
 
-    RandGeneratorT docLenRand2_; ///< regenerate how many docs in @c checkNextSkipToImpl() and @c removeFixtureDocs()
-    RandGeneratorT termIDRand2_; ///< regenerate the term ids in @c checkNextSkipToImpl() and @c removeFixtureDocs()
+    IntRandGeneratorT docLenRand2_; ///< regenerate how many docs in @c checkNextSkipToImpl() and @c removeFixtureDocs()
+    IntRandGeneratorT termIDRand2_; ///< regenerate the term ids in @c checkNextSkipToImpl() and @c removeFixtureDocs()
 };
 
 inline void index(const IndexerTestConfig& config)
@@ -151,7 +150,7 @@ inline void remove(const IndexerTestConfig& config)
 
     fixture.createDocument();
 
-    while(! fixture.isDocEmpty())
+    for(int i=0; i<config.iterNum_ && !fixture.isDocEmpty(); ++i)
     {
         fixture.removeDocument();
 
@@ -338,12 +337,9 @@ inline void checkRemoveAtStartUp(const IndexerTestConfig& config)
 
         // create new index files
         fixture.setRealIndex(true);
-        // remove until empty
-        while(! fixture.isDocEmpty())
-        {
-            fixture.removeDocument();
-            fixture.checkNextSkipTo();
-        }
+        // remove again
+        fixture.removeDocument();
+        fixture.checkNextSkipTo();
     }
 
     VLOG(2) << "<= t_TermDocFreqs::checkRemoveAtStartUp";

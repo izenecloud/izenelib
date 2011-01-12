@@ -41,7 +41,7 @@ template<class Function> void runToSuccess(Function func) {
 namespace t_TermDocFreqs
 {
 TermDocFreqsTestFixture::TermDocFreqsTestFixture()
-    :skipToRand_(randEngine_, bernoulli_distribution<>())
+    :isSkipToRand_(randEngine_, bernoulli_distribution<>())
     ,docLenRand2_(docLenRand_)
     ,termIDRand2_(termIDRand_)
 {
@@ -284,19 +284,21 @@ void TermDocFreqsTestFixture::checkNextSkipToImpl()
         resetRand2();
         for(docid_t docID = 1; docID <= maxDocID_; ++docID)
         {
-            DTermIdMapT docTermIdMap;
-
             const unsigned int docLen = docLenRand2_();
-            for(unsigned int j = 0; j < docLen; ++j)
-            {
-                unsigned int termId = termIDRand2_();
-                docTermIdMap[termId].push_back(j);
-            }
 
             if(docID == targetID)
             {
+                DTermIdMapT docTermIdMap;
+                for(unsigned int j = 0; j < docLen; ++j)
+                    docTermIdMap[termIDRand2_()].push_back(j);
+
                 checkNextSkipToDoc(pTermReader.get(), docID, docTermIdMap);
                 break;
+            }
+            else
+            {
+                for(unsigned int j = 0; j < docLen; ++j)
+                    termIDRand2_(); // skip random term ids
             }
         }
     }
@@ -309,10 +311,7 @@ void TermDocFreqsTestFixture::checkNextSkipToImpl()
 
         const unsigned int docLen = docLenRand2_();
         for(unsigned int j = 0; j < docLen; ++j)
-        {
-            unsigned int termId = termIDRand2_();
-            docTermIdMap[termId].push_back(j);
-        }
+            docTermIdMap[termIDRand2_()].push_back(j);
 
         checkNextSkipToDoc(pTermReader.get(), docID, docTermIdMap);
     }
@@ -336,6 +335,9 @@ void TermDocFreqsTestFixture::checkNextSkipToDoc(TermReader* pTermReader, docid_
             termIt != docTermIdMap.end();
             ++termIt)
     {
+        if(! isCheckRand_())
+            continue;
+
 #ifdef LOG_TERM_ID
         BOOST_TEST_MESSAGE("check term id: " << termIt->first);
 #endif
@@ -350,7 +352,7 @@ void TermDocFreqsTestFixture::checkNextSkipToDoc(TermReader* pTermReader, docid_
             if(pTermReader->seek(&term))
             {
                 boost::scoped_ptr<TermDocFreqs> pTermDocFreqs(pTermReader->termDocFreqs());
-                if(skipToRand_())
+                if(isSkipToRand_())
                     BOOST_CHECK_EQUAL(pTermDocFreqs->skipTo(docID), BAD_DOCID);
                 else
                     BOOST_CHECK_EQUAL(pTermDocFreqs->next(), false);
@@ -389,7 +391,7 @@ void TermDocFreqsTestFixture::nextOrSkipTo(TermDocFreqs* pTermDocFreqs, docid_t 
 {
     if(isDocRemoved)
     {
-        if(skipToRand_())
+        if(isSkipToRand_())
         {
             docid_t skipToResult = pTermDocFreqs->skipTo(docID);
             BOOST_CHECK(skipToResult > docID || skipToResult == BAD_DOCID);
@@ -408,7 +410,7 @@ void TermDocFreqsTestFixture::nextOrSkipTo(TermDocFreqs* pTermDocFreqs, docid_t 
     }
     else
     {
-        if(skipToRand_())
+        if(isSkipToRand_())
             BOOST_CHECK_EQUAL(pTermDocFreqs->skipTo(docID), docID);
         else
         {
