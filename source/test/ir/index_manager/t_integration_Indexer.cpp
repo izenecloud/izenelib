@@ -28,8 +28,9 @@ using namespace boost::unit_test;
 namespace po = boost::program_options;
 
 namespace {
-/** the parameters for each test case */
+/** the parameters for test cases on different data size */
 const IndexerTestConfig INDEXER_TEST_CONFIGS[] = {
+    // 1
     {0,  1, 1, "default", true},
     {1,  1, 1, "default", true, 8, 3},
     {2,  1, 1, "default", true, 128, 3},
@@ -39,6 +40,8 @@ const IndexerTestConfig INDEXER_TEST_CONFIGS[] = {
     {6,  1, 1, "default:chunk", true},
     {7,  1, 1, "default:chunk", true, 128, 3},
     {8,  1, 1, "default:block", true},
+
+    // 5
     {9,  5, 3, "default", true},
     {10, 5, 3, "default", true, 8, 3},
     {11, 5, 3, "default", true, 128, 3},
@@ -48,42 +51,83 @@ const IndexerTestConfig INDEXER_TEST_CONFIGS[] = {
     {15, 5, 3, "default:chunk", true},
     {16, 5, 3, "default:chunk", true, 128, 3},
     {17, 5, 3, "default:block", true},
-    {18, 10, 6, "default", true},
-    {19, 10, 6, "default", true, 8, 3},
-    {20, 10, 6, "default", true, 128, 3},
-    {21, 10, 6, "realtime", true},
-    {22, 10, 6, "realtime", true, 8, 3},
-    {23, 10, 6, "realtime", true, 128, 3},
-    {24, 10, 6, "default:chunk", true},
-    {25, 10, 6, "default:chunk", true, 128, 3},
-    {26, 10, 6, "default:block", true},
-    {27, 300, 1, "default", true},
-    {28, 300, 1, "default", true, 8, 3},
-    {29, 300, 1, "default", true, 128, 3},
-    {30, 300, 1, "realtime", true},
-    {31, 300, 1, "realtime", true, 8, 3},
-    {32, 300, 1, "realtime", true, 128, 3},
-    {33, 300, 1, "default:chunk", true},
-    {34, 300, 1, "default:chunk", true, 128, 3},
-    {35, 300, 1, "default:block", true},
-    {36, 100, 23, "default", true},
-    {37, 100, 23, "default", true, 8, 3},
-    {38, 100, 23, "default", true, 128, 3},
-    {39, 100, 23, "realtime", true},
-    {40, 100, 23, "realtime", true, 8, 3},
-    {41, 100, 23, "realtime", true, 128, 3},
-    {42, 100, 23, "default:chunk", true},
-    {43, 100, 23, "default:chunk", true, 128, 3},
-    {44, 100, 23, "default:block", true},
-    {45, 1000, 10, "default", true},
-    {46, 1000, 10, "default", true, 8, 3},
-    {47, 1000, 10, "default", true, 128, 3},
-    {48, 1000, 10, "realtime", true},
-    {49, 1000, 10, "realtime", true, 8, 3},
-    {50, 1000, 10, "realtime", true, 128, 3},
-    {51, 1000, 10, "default:chunk", true},
-    {52, 1000, 10, "default:chunk", true, 128, 3},
-    {53, 1000, 10, "default:block", true},
+
+    // 10
+    {18, 10, 10, "default", true},
+    {19, 10, 10, "default", true, 8, 3},
+    {20, 10, 10, "default", true, 128, 3},
+    {21, 10, 10, "realtime", true},
+    {22, 10, 10, "realtime", true, 8, 3},
+    {23, 10, 10, "realtime", true, 128, 3},
+    {24, 10, 10, "default:chunk", true},
+    {25, 10, 10, "default:chunk", true, 128, 3},
+    {26, 10, 10, "default:block", true},
+
+    // 100
+    {27, 100, 10, "default", true},
+    {28, 100, 10, "default", true, 8, 3},
+    {29, 100, 10, "default", true, 128, 3},
+    {30, 100, 10, "realtime", true},
+    {31, 100, 10, "realtime", true, 8, 3},
+    {32, 100, 10, "realtime", true, 128, 3},
+    {33, 100, 10, "default:chunk", true},
+    {34, 100, 10, "default:chunk", true, 128, 3},
+    {35, 100, 10, "default:block", true},
+
+    // 1K
+    {36, 1000, 10, "default", true},
+    {37, 1000, 10, "default", true, 8, 3},
+    {38, 1000, 10, "default", true, 128, 3},
+    {39, 1000, 10, "realtime", true},
+    {40, 1000, 10, "realtime", true, 8, 3},
+    {41, 1000, 10, "realtime", true, 128, 3},
+    {42, 1000, 10, "default:chunk", true},
+    {43, 1000, 10, "default:chunk", true, 128, 3},
+    {44, 1000, 10, "default:block", true},
+
+    // 10K
+    {45, 10000, 10, "default", true},
+    {46, 10000, 10, "default", true, 8, 3},
+    {47, 10000, 10, "default", true, 128, 3},
+    {48, 10000, 10, "realtime", true},
+    {49, 10000, 10, "realtime", true, 8, 3},
+    {50, 10000, 10, "realtime", true, 128, 3},
+    {51, 10000, 10, "default:chunk", true},
+    {52, 10000, 10, "default:chunk", true, 128, 3},
+    {53, 10000, 10, "default:block", true},
+
+    // 100K
+    {54, 100000, 10, "default", true},
+    {55, 100000, 10, "default", true, 8, 3},
+    {56, 100000, 10, "default", true, 128, 3},
+    {57, 100000, 10, "realtime", true},
+    {58, 100000, 10, "realtime", true, 8, 3},
+    {59, 100000, 10, "realtime", true, 128, 3},
+    {60, 100000, 10, "default:chunk", true},
+    {61, 100000, 10, "default:chunk", true, 128, 3},
+    {62, 100000, 10, "default:block", true},
+
+    // 1M
+    {63, 1000000, 10, "default", true},
+    {64, 1000000, 10, "default", true, 8, 3},
+    {65, 1000000, 10, "default", true, 128, 3},
+    {66, 1000000, 10, "realtime", true},
+    {67, 1000000, 10, "realtime", true, 8, 3},
+    {68, 1000000, 10, "realtime", true, 128, 3},
+    {69, 1000000, 10, "default:chunk", true},
+    {70, 1000000, 10, "default:chunk", true, 128, 3},
+    {71, 1000000, 10, "default:block", true},
+
+    // 10M
+    {72, 10000000, 10, "default", true},
+    {73, 10000000, 10, "default", true, 8, 3},
+    {74, 10000000, 10, "default", true, 128, 3},
+    {75, 10000000, 10, "realtime", true},
+    {76, 10000000, 10, "realtime", true, 8, 3},
+    {77, 10000000, 10, "realtime", true, 128, 3},
+    {78, 10000000, 10, "default:chunk", true},
+    {79, 10000000, 10, "default:chunk", true, 128, 3},
+    {80, 10000000, 10, "default:block", true},
 };
 
 /** the parameter number */
