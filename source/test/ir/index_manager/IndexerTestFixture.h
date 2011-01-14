@@ -39,6 +39,29 @@ struct IndexerTestConfig
     bool isMerge_; ///< true for merge index in stand-alone thread, false for not to merge at all
 
     /**
+     * skip interval.
+     * for chunk type, it is fixed to CHUNK_SIZE (128) docs,
+     * for block type, it is fixed to BLOCK_SIZE (8192) bytes.
+     */
+    int skipInterval_; ///< 
+
+    /**
+     * max skip level.
+     * for vint and chunk type, 0 for no skip data generated, positive value for the number of skip levels,
+     * for block type, it always uses one level skip list.
+     */
+    int maxSkipLevel_; ///< max skip level
+
+    /**
+     * the percentage of check statements executed, such as @c BOOST_CHECK_* etc.
+     * it is a real value in [0..1], used to sample the check statements to save testing time on large data size.
+     * example:
+     * value 1.0 for all check statements would be executed,
+     * value 0.5 for half of check statments would be chosen randomly,
+     */
+    double checkPercent_;
+
+    /**
      * Get string which outputs each parameters.
      * @return output string
      */
@@ -46,9 +69,22 @@ struct IndexerTestConfig
         std::ostringstream oss;
         oss << "IndexerTestConfig " << configNum_ << " (docNum_: " << docNum_
             << ", iterNum_: " << iterNum_ << ", indexMode_: " << indexMode_
-            << ", isMerge_: " << isMerge_ << ")";
+            << ", isMerge_: " << isMerge_
+            << ", skipInterval_: " << skipInterval_
+            << ", maxSkipLevel_: " << maxSkipLevel_
+            << ", checkPercent_: " << checkPercent_
+            << ")";
 
         return oss.str();
+    }
+
+    /**
+     * Whether @c docNum_ is large,
+     * so that we need set an upper bound for doc length, sample check statements, etc.
+     * @return true for large, false for small.
+     */
+    bool isDocNumLarge() const {
+        return docNum_ >= 1000;
     }
 };
 
@@ -74,11 +110,13 @@ protected:
 
     unsigned int newDocNum_; ///< the max number of documents created in createDocument()
     boost::mt19937 randEngine_;
-    typedef boost::variate_generator<mt19937, uniform_int<> > RandGeneratorT;
-    RandGeneratorT docLenRand_; ///< decide how many docs are created in @c prepareDocument()
-    RandGeneratorT termIDRand_; ///< decide the term ids in creating docs in @c prepareDocument()
-    RandGeneratorT docNumRand_; ///< decide how many docs are updated in @c updateDocument() and how many docs are removed in @c removeDocument()
-    RandGeneratorT skipToRand_; ///< in @c nextOrSkipTo(), 1 to use @c TermDocFreqs::skipTo(), 0 to use @c TermDocFreqs::next()
+    typedef boost::variate_generator<mt19937, uniform_int<> > IntRandGeneratorT;
+    IntRandGeneratorT docLenRand_; ///< decide how many terms are created in each doc of @c prepareDocument()
+    IntRandGeneratorT termIDRand_; ///< decide the term ids in each doc of @c prepareDocument()
+    IntRandGeneratorT docNumRand_; ///< decide how many docs are updated in @c updateDocument() and how many docs are removed in @c removeDocument()
+
+    typedef boost::variate_generator<mt19937, bernoulli_distribution<> > BoolRandGeneratorT;
+    BoolRandGeneratorT isCheckRand_; ///< decide whether to execute check statements for large data size, true for execute, false for not to execute
 
     /**
      * as the max doc id in indexer is the max doc id ever indexed,

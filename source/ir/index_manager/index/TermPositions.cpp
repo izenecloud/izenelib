@@ -103,7 +103,7 @@ docid_t TermPositions::skipTo(docid_t target)
             {
                 if(!pPostingBuffer_)
                     createBuffer();
-                docid_t ret = pPosting_->decodeTo(target,pPostingBuffer_,nBufferSize_,nCurDecodedCount_,nCurrentPosting_);
+                docid_t ret = pPosting_->decodeTo(target,pPostingBuffer_,nBufferSize_,nMaxDocCount_,nCurDecodedCount_,nCurrentPosting_);
                 resetDecodingState();
                 nCurrentPPosting_ = 0;
                 nTotalDecodedPCount_ = 0;
@@ -302,10 +302,10 @@ void TermPositions::createBuffer()
 
     if (pPPostingBuffer_ == NULL)
     {
-        // as some block decompression method such as s16_compressor::s16_decode()
-        // need a minimum buffer size to store decompressed data,
-        // set the minimum position buffer size to CHUNK_SIZE
-        nPBufferSize_ = std::max(getCTF(), static_cast<int64_t>(CHUNK_SIZE));
+        // as some block decompression methods such as s16_compressor::s16_decode()
+        // need extra 28 bytes to store decompressed data,
+        // set an upper bound for buffer size
+        nPBufferSize_ = UncompressedOutBufferUpperbound(getCTF());
         // set the maximum position buffer size
         if(nPBufferSize_ > MAX_POS_BUFFER_SIZE)
             nPBufferSize_ = MAX_POS_BUFFER_SIZE;
@@ -329,7 +329,7 @@ bool TermPositions::decode()
 
     nCurrentPosting_ = 0;
     nCurrentPPosting_ = 0;
-    nCurDecodedCount_ = pPosting_->decodeNext(pPostingBuffer_,nBufferSize_, pPPostingBuffer_, nPBufferSize_, nTotalDecodedPCount_);
+    nCurDecodedCount_ = pPosting_->decodeNext(pPostingBuffer_, nBufferSize_, nMaxDocCount_, pPPostingBuffer_, nPBufferSize_, nTotalDecodedPCount_);
     if (nCurDecodedCount_ <= 0)
         return false;
     nTotalDecodedCount_ += nCurDecodedCount_;

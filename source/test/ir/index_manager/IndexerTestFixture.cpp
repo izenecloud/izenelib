@@ -32,7 +32,7 @@ IndexerTestFixture::IndexerTestFixture()
     ,docLenRand_(randEngine_, uniform_int<>(1, 1))
     ,termIDRand_(randEngine_, uniform_int<>(1, 1))
     ,docNumRand_(randEngine_, uniform_int<>(1, 1))
-    ,skipToRand_(randEngine_, uniform_int<>(0, 1))
+    ,isCheckRand_(randEngine_, bernoulli_distribution<>(1.0))
     ,maxDocID_(0)
     ,isRealIndex_(true)
 {
@@ -53,8 +53,16 @@ void IndexerTestFixture::configTest(const IndexerTestConfig& testConfig)
     BOOST_TEST_MESSAGE(testConfig_.str());
 
     // set random generators range
+    isCheckRand_.distribution() = bernoulli_distribution<>(testConfig_.checkPercent_);
     newDocNum_ = testConfig_.docNum_;
-    if(newDocNum_ > 0)
+    // limit upper bound for large data size
+    if(testConfig_.isDocNumLarge())
+    {
+        docLenRand_.distribution() = uniform_int<>(1, 3 * 1024); // average doc length: 1.5K
+        termIDRand_.distribution() = uniform_int<>(1, 1024 * 1024); // term range: 1M
+    }
+    // let doc size scale for small data size
+    else if(newDocNum_ > 0)
     {
         docLenRand_.distribution() = uniform_int<>(1, 10 * newDocNum_);
         termIDRand_.distribution() = uniform_int<>(1, 100 * newDocNum_);
@@ -70,10 +78,11 @@ void IndexerTestFixture::configTest(const IndexerTestConfig& testConfig)
     indexManagerConfig.indexStrategy_.indexMode_ = testConfig_.indexMode_;
     indexManagerConfig.indexStrategy_.memory_ = 30000000;
     indexManagerConfig.indexStrategy_.indexDocLength_ = true;
-    indexManagerConfig.indexStrategy_.skipInterval_ = 0;
-    indexManagerConfig.indexStrategy_.maxSkipLevel_ = 0;
+    indexManagerConfig.indexStrategy_.skipInterval_ = testConfig_.skipInterval_;
+    indexManagerConfig.indexStrategy_.maxSkipLevel_ = testConfig_.maxSkipLevel_;
     indexManagerConfig.mergeStrategy_.param_ = testConfig_.isMerge_ ? "default" : "no";
-    indexManagerConfig.storeStrategy_.param_ = "mmap";
+    //indexManagerConfig.storeStrategy_.param_ = "mmap";
+    indexManagerConfig.storeStrategy_.param_ = "file";
 
     std::vector<std::string> propertyList;
     propertyList.push_back(INVERTED_FIELD);

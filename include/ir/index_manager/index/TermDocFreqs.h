@@ -62,11 +62,13 @@ protected:
 
     PostingReader* pPosting_;
 
-    uint32_t* pPostingBuffer_;	///buffer for store decoded postings
+    uint32_t* pPostingBuffer_;  ///buffer for store decoded postings
 
-    size_t nBufferSize_;		///the size of buffer.
+    size_t nBufferSize_;        ///the buffer size allocated for @p pPostingBuffer_
 
-    size_t nFreqStart_;
+    size_t nMaxDocCount_;       /// max number of decoded docs @p pPostingBuffer_ could store
+
+    size_t nFreqStart_;         /// the start position of decoded frequency in @p pPostingBuffer_
 
     int32_t nTotalDecodedCount_;	///size of decoded postings
 

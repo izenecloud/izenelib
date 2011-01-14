@@ -118,8 +118,10 @@ private:
     typedef map<termid_t, pair<freq_t, int64_t> > CTermIdMapT;
     CTermIdMapT mapCTermId_;
 
-    RandGeneratorT docLenRand2_; ///< regenerate how many docs in @c checkNextSkipToImpl() and @c removeFixtureDocs()
-    RandGeneratorT termIDRand2_; ///< regenerate the term ids in @c checkNextSkipToImpl() and @c removeFixtureDocs()
+    BoolRandGeneratorT isSkipToRand_; ///< in @c nextOrSkipTo(), true to use @c TermDocFreqs::skipTo(), false to use @c TermDocFreqs::next()
+
+    IntRandGeneratorT docLenRand2_; ///< regenerate how many docs in @c checkNextSkipToImpl() and @c removeFixtureDocs()
+    IntRandGeneratorT termIDRand2_; ///< regenerate the term ids in @c checkNextSkipToImpl() and @c removeFixtureDocs()
 };
 
 inline void index(const IndexerTestConfig& config)
@@ -148,7 +150,7 @@ inline void remove(const IndexerTestConfig& config)
 
     fixture.createDocument();
 
-    while(! fixture.isDocEmpty())
+    for(int i=0; i<config.iterNum_ && !fixture.isDocEmpty(); ++i)
     {
         fixture.removeDocument();
 
@@ -201,6 +203,41 @@ inline void empty(const IndexerTestConfig& config)
     VLOG(2) << "<= t_TermDocFreqs::empty";
 }
 
+/**
+ * this case is to test:
+ * remove some documents,
+ * then merge all barrels into one.
+ */
+inline void removeDocAndOptimize(const IndexerTestConfig& config)
+{
+    VLOG(2) << "=> t_TermDocFreqs::removeDocAndOptimize";
+
+    TermDocFreqsTestFixture fixture;
+    fixture.configTest(config);
+
+    const int barrelNum = config.iterNum_;
+    for(int i=0; i<barrelNum; ++i)
+        fixture.createDocument(); // create barrel i
+
+    fixture.removeDocument();
+
+    Indexer* pIndexer = fixture.getIndexer();
+    pIndexer->optimizeIndex();
+
+    // wait for merge finish
+    pIndexer->waitForMergeFinish();
+
+    fixture.checkNextSkipTo();
+
+    IndexReader* pIndexReader = pIndexer->getIndexReader();
+    BarrelsInfo* pBarrelsInfo = pIndexReader->getBarrelsInfo();
+
+    BOOST_CHECK_EQUAL(pBarrelsInfo->maxDocId(), fixture.getMaxDocID());
+    BOOST_CHECK_EQUAL(pBarrelsInfo->getDocCount(), fixture.getDocCount());
+    BOOST_CHECK_EQUAL(pBarrelsInfo->getBarrelCount(), 1);
+
+    VLOG(2) << "<= t_TermDocFreqs::removeDocAndOptimize";
+}
 /**
  * Create barrels, optimize barrels (it would clear BitVector),
  * and remove document (it would set BitVector),
@@ -300,12 +337,9 @@ inline void checkRemoveAtStartUp(const IndexerTestConfig& config)
 
         // create new index files
         fixture.setRealIndex(true);
-        // remove until empty
-        while(! fixture.isDocEmpty())
-        {
-            fixture.removeDocument();
-            fixture.checkNextSkipTo();
-        }
+        // remove again
+        fixture.removeDocument();
+        fixture.checkNextSkipTo();
     }
 
     VLOG(2) << "<= t_TermDocFreqs::checkRemoveAtStartUp";

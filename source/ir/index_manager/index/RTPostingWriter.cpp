@@ -29,7 +29,8 @@ RTPostingWriter::RTPostingWriter(MemCache* pCache, int skipInterval, int maxSkip
 {
     pDocFreqList_ = new VariantDataPool(pCache);
     pLocList_  = new VariantDataPool(pCache);
-    if(skipInterval_) pSkipListWriter_ = new SkipListWriter(skipInterval_,maxSkipLevel_,pMemCache_);
+    if(skipInterval_> 0 && maxSkipLevel_ > 0)
+        pSkipListWriter_ = new SkipListWriter(skipInterval_,maxSkipLevel_,pMemCache_);
 }
 
 RTPostingWriter::~RTPostingWriter()
@@ -67,13 +68,8 @@ void RTPostingWriter::write(OutputDescriptor* pOutputDescriptor, TermInfo& termI
     termInfo.ctf_ = nCTF_;
     termInfo.lastDocID_ = nLastDocID_;
 
-    if(skipInterval_ && nDF_ > 0 && nDF_ % skipInterval_ == 0)
-    {
-        if(pSkipListWriter_)
-        {
-            pSkipListWriter_->addSkipPoint(nLastDocID_,pDocFreqList_->getLength(),pLocList_->getLength());
-        }
-    }
+    if(pSkipListWriter_ && nDF_ > 0 && nDF_ % skipInterval_ == 0)
+        pSkipListWriter_->addSkipPoint(nLastDocID_,pDocFreqList_->getLength(),pLocList_->getLength());
 
     IndexOutput* pDOutput = pOutputDescriptor->getDPostingOutput();
 
@@ -142,10 +138,8 @@ void RTPostingWriter::add(docid_t docid, loc_t location)
             nLastDocID_ = 0;
         }
 
-        if(skipInterval_ && nDF_ > 0 && nDF_ % skipInterval_ == 0)
-        {
+        if(pSkipListWriter_ && nDF_ > 0 && nDF_ % skipInterval_ == 0)
             pSkipListWriter_->addSkipPoint(nLastDocID_,pDocFreqList_->getLength(),pLocList_->getLength());
-        }
 
         pDocFreqList_->addVData32(docid - nLastDocID_);
         pLocList_->addVData32(location);

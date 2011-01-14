@@ -186,7 +186,8 @@ ChunkPostingWriter::ChunkPostingWriter(MemCache* pCache,int skipInterval, int ma
     assert(ChunkEncoder::kChunkSize == skipInterval);
     pDocFreqDataPool_ = new ChunkDataPool(pCache);
     pPosDataPool_ = new ChunkDataPool(pCache) ;
-    if(skipInterval_)  pSkipListWriter_ = new SkipListWriter(skipInterval,maxSkipLevel,pCache);
+    if(skipInterval_ > 0 && maxSkipLevel_ > 0)
+        pSkipListWriter_ = new SkipListWriter(skipInterval_,maxSkipLevel_,pMemCache_);
     curr_position_buffer_size_ = INIT_POS_CHUNK_SIZE;
     positions_ = (uint32_t*)malloc(curr_position_buffer_size_*sizeof(uint32_t));
 }
@@ -251,7 +252,8 @@ void ChunkPostingWriter::reset()
 {
     pDocFreqDataPool_->reset();
     pPosDataPool_->reset();
-    pSkipListWriter_->reset();
+    if(pSkipListWriter_)
+        pSkipListWriter_->reset();
     current_nocomp_block_pointer_ = 0;
     position_buffer_pointer_ = 0;
     chunk_.reset();
@@ -281,12 +283,13 @@ void ChunkPostingWriter::add(docid_t docid, loc_t location)
         if (nCurTermFreq_ > 0)
             frequencies_[current_nocomp_block_pointer_++] = nCurTermFreq_;        
 
-        if(skipInterval_ && nDF_ > 0 && nDF_ % skipInterval_ == 0)
+        if(current_nocomp_block_pointer_ == ChunkEncoder::kChunkSize)
         {
             chunk_.encode(doc_ids_, frequencies_, positions_, ChunkEncoder::kChunkSize);
             pDocFreqDataPool_->addDFChunk(chunk_);
             pPosDataPool_->addPOSChunk(chunk_);
-            pSkipListWriter_->addSkipPoint(chunk_.last_doc_id(),pDocFreqDataPool_->getLength(),pPosDataPool_->getLength());
+            if(pSkipListWriter_)
+                pSkipListWriter_->addSkipPoint(chunk_.last_doc_id(),pDocFreqDataPool_->getLength(),pPosDataPool_->getLength());
             current_nocomp_block_pointer_ = 0;
             position_buffer_pointer_ = 0;
         }
@@ -312,13 +315,8 @@ void ChunkPostingWriter::flush()
         pDocFreqDataPool_->addDFChunk(chunk_);
         pPosDataPool_->addPOSChunk(chunk_);
 
-        if(skipInterval_ && nDF_ > 0 && nDF_ % skipInterval_ == 0)
-        {
-            if(pSkipListWriter_)
-            {
-                pSkipListWriter_->addSkipPoint(chunk_.last_doc_id(),pDocFreqDataPool_->getLength(),pPosDataPool_->getLength());
-            }
-        }
+        if(pSkipListWriter_ && nDF_ > 0 && nDF_ % skipInterval_ == 0)
+            pSkipListWriter_->addSkipPoint(chunk_.last_doc_id(),pDocFreqDataPool_->getLength(),pPosDataPool_->getLength());
 
         nCTF_ += nCurTermFreq_;
         nCurTermFreq_ = 0;

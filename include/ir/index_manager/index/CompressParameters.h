@@ -26,9 +26,9 @@ namespace indexmanager{
 // However, S9 and S16 codings have a quirk that requires the output buffer array (to which we decompress) to have at least 28 empty slots;
 // this is because there is a case where a word will have a max of 28 integers compressed within, and we will access the output buffer
 // for all the 28 integers, even if some of those 28 integers are garbage which we haven't really compressed (but this was the case used to encode them).
-// So we need to round the number of compressed integers to a multiple of 28 and make sure there is at least 28 extra space at the end of the array
-// to ensure there is ample room for decompression. Here, we just use 32 instead of 28 for convenience.
-#define UncompressedOutBufferUpperbound(buffer_size) ((((buffer_size) >> 5) + 2) << 5)
+// So we need to make sure there is ample room for decompression (at least 28 extra space at the end of the array),
+// and round the number of compressed integers to a multiple of 32 for word alignment.
+#define UncompressedOutBufferUpperbound(buffer_size) (((buffer_size) + 28 + 31) & -32)
 
 #define BLOCK_HEADER_DECOMPRESSED_UPPERBOUND UncompressedOutBufferUpperbound(2*(BLOCK_SIZE/MIN_COMPRESSED_CHUNK_SIZE))
 // Determines size of output buffer for compression.

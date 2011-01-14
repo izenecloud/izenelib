@@ -85,6 +85,8 @@ int ChunkDecoder::decodePositions(const uint32_t* compressed_positions)
 
 void ChunkDecoder::post_process(BitVector* pDocFilter)
 {
+    assert(num_docs_ > 0);
+
     if(! pDocFilter->hasBetween(doc_ids_[0], doc_ids_[num_docs_-1]))
         return;
 
@@ -117,9 +119,14 @@ void ChunkDecoder::post_process(BitVector* pDocFilter)
             srcFreq += frequencies_[i];
     }
 
-    assert(dest < num_docs_ && "some docs should have been skipped in post process.");
-    doc_deleted_ = true;
-    num_docs_ = dest;
+    if(dest < num_docs_)
+    {
+        doc_deleted_ = true;
+        num_docs_ = dest;
+
+        if(pos_decoded_)
+            num_positions_ = destFreq;
+    }
 }
 
 void ChunkDecoder::updatePositionOffset()

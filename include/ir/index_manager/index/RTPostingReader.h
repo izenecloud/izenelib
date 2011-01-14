@@ -74,23 +74,9 @@ public:
         pDocFilter_ = pFilter;
     }
 
-    /**
-     * Get the posting data
-     * @param ppState the state of decode process
-     * @param pPosing the address to store posting data
-     * @param the length of pPosting,also tell us the length of actually decoded data
-     * @return decoded posting count
-     */
-    int32_t decodeNext(uint32_t* pPosting,int32_t length);
+    int32_t decodeNext(uint32_t* pPosting, int32_t length, int32_t nMaxDocs);
 
-    /**
-     * Get the posting data. 
-     * @param pPosing the address to store posting data
-     * @param the length of pPosting,also tell us the length of actually decoded data
-     * @param pPPosing the address to store position posting data
-     * @return decoded posting count
-     */
-     int32_t decodeNext(uint32_t* pPosting,int32_t length, uint32_t* &pPPosting, int32_t& posBufLength, int32_t& posLength);
+    int32_t decodeNext(uint32_t* pPosting, int32_t length, int32_t nMaxDocs, uint32_t* &pPPosting, int32_t& posBufLength, int32_t& posLength);
 
     /**
      * Get the position posting data
@@ -118,22 +104,16 @@ public:
     bool decodeNextPositions(uint32_t* &pPosting, int32_t& posBufLength, uint32_t* pFreqs,int32_t nFreqs, int32_t& nCurrentPPosting);
 
     /**
-     * Decode postings to target docID
-     * @param docID target docID 
-     * @param pPosting posting buffer that store decoded doc. 
-     * @length buffer length for pPosting
-     * @decodedCount decoded doc count, always = 1 for RT posting reader
-     * @nCurrentPosting posting pointer, always = 0 for RT posting reader
-     * @return last decoded docID
+     * @post as RT posting reader, @p decodedCount is always 1, @p nCurrentPosting is always 0
      */
-    docid_t decodeTo(docid_t target, uint32_t* pPosting, int32_t length, int32_t& decodedCount, int32_t& nCurrentPosting);
+    docid_t decodeTo(docid_t target, uint32_t* pPosting, int32_t length, int32_t nMaxDocs, int32_t& decodedCount, int32_t& nCurrentPosting);
 
     /**
      * reset the base position which used in d-gap encoding
      */
     void resetPosition();
 
-    /*
+    /**
      * get skiplist reader
      */
     SkipListReader* getSkipListReader();
@@ -186,21 +166,10 @@ public:
 
     ~RTDiskPostingReader();
 
-    /**
-     * Get the posting data
-     * @param pPosing the address to store posting data
-     * @param the length of pPosting,also tell us the length of actually decoded data
-     * @return decoded posting count
-     */
-    int32_t decodeNext(uint32_t* pPosting,int32_t length);
-    /**
-     * Get the posting data. 
-     * @param pPosing the address to store posting data
-     * @param the length of pPosting,also tell us the length of actually decoded data
-     * @param pPPosing the address to store position posting data
-     * @return decoded posting count
-     */
-    int32_t decodeNext(uint32_t* pPosting,int32_t length, uint32_t* &pPPosting, int32_t& posBufLength, int32_t& posLength);
+    int32_t decodeNext(uint32_t* pPosting, int32_t length, int32_t nMaxDocs);
+
+    int32_t decodeNext(uint32_t* pPosting, int32_t length, int32_t nMaxDocs, uint32_t* &pPPosting, int32_t& posBufLength, int32_t& posLength);
+
     /**
      * Get the position posting data
      * @param pPosing the address to store posting data
@@ -232,15 +201,9 @@ public:
     void seekTo(SkipListReader* pSkipListReader);
 
     /**
-     * Decode postings to target docID
-     * @param docID target docID 
-     * @param pPosting posting buffer that store decoded doc. 
-     * @length buffer length for pPosting
-     * @decodedCount decoded doc count, always = 1 for RT posting reader
-     * @nCurrentPosting posting pointer, always = 0 for RT posting reader
-     * @return last decoded docID
+     * @post as RT posting reader, @p decodedCount is always 1, @p nCurrentPosting is always 0
      */
-    docid_t decodeTo(docid_t target, uint32_t* pPosting, int32_t length, int32_t& decodedCount, int32_t& nCurrentPosting);
+    docid_t decodeTo(docid_t target, uint32_t* pPosting, int32_t length, int32_t nMaxDocs, int32_t& decodedCount, int32_t& nCurrentPosting);
 
     /**
      * reset the base position which used in d-gap encoding
@@ -276,9 +239,9 @@ public:
         return postingDesc_.ctf;
     };
 
-    /*
+    /**
      * get current tf
-    */
+     */
     count_t getCurTF() const
     {
         return ds_.lastDecodedDocTF;

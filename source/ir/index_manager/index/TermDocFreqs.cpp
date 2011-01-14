@@ -9,12 +9,11 @@ NS_IZENELIB_IR_BEGIN
 
 namespace indexmanager{
 
-#define TERM_DOCFREQ_BUFFER_SIZE (CHUNK_SIZE << 1)
-
 TermDocFreqs::TermDocFreqs()
         :pPosting_(NULL)
         ,pPostingBuffer_(0)
         ,nBufferSize_(0)
+        ,nMaxDocCount_(0)
         ,nFreqStart_(0)
         ,nTotalDecodedCount_(0)
         ,nCurDecodedCount_(0)
@@ -28,6 +27,7 @@ TermDocFreqs::TermDocFreqs(PostingReader* pPosting, const TermInfo& ti, bool own
         ,pPosting_(pPosting)
         ,pPostingBuffer_(NULL)
         ,nBufferSize_(0)
+        ,nMaxDocCount_(0)
         ,nFreqStart_(0)
         ,nTotalDecodedCount_(0)
         ,nCurDecodedCount_(0)
@@ -95,7 +95,7 @@ docid_t TermDocFreqs::skipTo(docid_t target)
             {
                 if(!pPostingBuffer_)
                     createBuffer();
-                return pPosting_->decodeTo(target,pPostingBuffer_,nBufferSize_,nCurDecodedCount_,nCurrentPosting_);
+                return pPosting_->decodeTo(target,pPostingBuffer_,nBufferSize_,nMaxDocCount_,nCurDecodedCount_,nCurrentPosting_);
             }
        }
         start = nCurrentPosting_;
@@ -174,7 +174,7 @@ bool TermDocFreqs::decode()
         createBuffer();
 
     nCurrentPosting_ = 0;
-    nCurDecodedCount_ = pPosting_->decodeNext(pPostingBuffer_,nBufferSize_);
+    nCurDecodedCount_ = pPosting_->decodeNext(pPostingBuffer_,nBufferSize_, nMaxDocCount_);
     if (nCurDecodedCount_ <= 0)
         return false;
     nTotalDecodedCount_ += nCurDecodedCount_;
@@ -183,11 +183,11 @@ bool TermDocFreqs::decode()
 }
 void TermDocFreqs::createBuffer()
 {
-    size_t bufSize = TERM_DOCFREQ_BUFFER_SIZE;
     if (pPostingBuffer_ == NULL)
     {
-        nBufferSize_ = bufSize;
-        nFreqStart_ = nBufferSize_/2;
+        nMaxDocCount_ = CHUNK_SIZE;
+        nFreqStart_ = UncompressedOutBufferUpperbound(CHUNK_SIZE);
+        nBufferSize_ = nFreqStart_ << 1;
         pPostingBuffer_ = new uint32_t[nBufferSize_];
         memset(pPostingBuffer_, 0, nBufferSize_*sizeof(uint32_t));
     }
