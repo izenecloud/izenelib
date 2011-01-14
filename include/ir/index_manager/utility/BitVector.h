@@ -148,9 +148,10 @@ public:
         const size_t newBytesNum = getMaxBytesNum(size_);
         if(newBytesNum > maxBytesNum_)
         {
+            unsigned char* newBits = new unsigned char[newBytesNum];
             delete[] bits_;
+            bits_ = newBits;
             maxBytesNum_ = newBytesNum;
-            bits_ = new unsigned char[maxBytesNum_];
         }
         memset(bits_, 0 , maxBytesNum_);
         pInput->read((char*)bits_, getBytesNum(size_) * sizeof(unsigned char));
