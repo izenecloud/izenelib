@@ -63,6 +63,14 @@ public:
     {
         pBarrelInfo_ = pBarrelInfo;
     }
+
+private:
+    /**
+     * if @c pBarrelInfo::isRemoved() is true,
+     * throw exception @c IndexManagerException.
+     */
+    void checkBarrelExist();
+
 private:
     bool bDestroy_;
     IndexInput*	pVocInput_;

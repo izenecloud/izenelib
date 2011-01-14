@@ -240,7 +240,7 @@ private:
     boost::mutex mutex_;
 
     ///whether this barrel is removed because of merge
-    bool isRemoved_;
+    volatile bool isRemoved_;
 };
 
 
