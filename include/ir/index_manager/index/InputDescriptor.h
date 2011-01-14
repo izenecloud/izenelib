@@ -59,17 +59,7 @@ public:
     }
     InputDescriptor* clone(IndexType type = WORD_LEVEL);
 
-    void setBarrelInfo(BarrelInfo* pBarrelInfo)
-    {
-        pBarrelInfo_ = pBarrelInfo;
-    }
-
-private:
-    /**
-     * if @c pBarrelInfo::isRemoved() is true,
-     * throw exception @c IndexManagerException.
-     */
-    void checkBarrelExist();
+    void setBarrelInfo(BarrelInfo* pBarrelInfo);
 
 private:
     bool bDestroy_;

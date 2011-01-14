@@ -33,8 +33,6 @@ void SingleIndexBarrelReader::open(const char* name)
 {
     name_ = name;
 
-    boost::mutex::scoped_lock lock(pBarrelInfo_->getMutex());
-
     Directory* pDirectory = pIndexReader_->pIndexer_->getDirectory();
     string s = name;
     s+= ".fdi";

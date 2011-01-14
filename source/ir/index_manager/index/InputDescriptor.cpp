@@ -1,6 +1,5 @@
 #include <ir/index_manager/index/InputDescriptor.h>
 #include <ir/index_manager/index/BarrelInfo.h>
-#include <ir/index_manager/utility/Exception.h>
 #include <util/izene_log.h>
 
 #include <memory> // auto_ptr
@@ -46,12 +45,7 @@ InputDescriptor* InputDescriptor::clone(IndexType type)
 {
     DVLOG(4) << "=> InputDescriptor::clone(), type: " << type << ", pBarrelInfo_: " << pBarrelInfo_;
 
-    // to avoid opening new merged barrel file,
-    // throw exception if old barrel instance is removed
-    checkBarrelExist();
-
-    // use auto_ptr in case of memory leak when exception
-    // is thrown in checkBarrelExist()
+    // use auto_ptr in case of memory leak when exception is thrown in IndexInput::clone()
     std::auto_ptr<IndexInput> vocInputPtr, dPostingInputPtr, pPostingInputPtr;
     if(pVocInput_)
         vocInputPtr.reset(pVocInput_->clone());
@@ -60,21 +54,10 @@ InputDescriptor* InputDescriptor::clone(IndexType type)
     if(type == WORD_LEVEL && pPPostingInput_)
         pPostingInputPtr.reset(pPPostingInput_->clone());
 
-    // to avoid the files opened in previous IndexInput::clone() are new merged barrel files,
-    // check again whether old barrel instance is removed
-    checkBarrelExist();
+    InputDescriptor* pInputDes = new InputDescriptor(vocInputPtr.get(), dPostingInputPtr.get(), pPostingInputPtr.get(), true);
 
     if(pBarrelInfo_)
-    {
-        if(vocInputPtr.get())
-            vocInputPtr->setBarrelInfo(pBarrelInfo_);
-        if(dPostingInputPtr.get())
-            dPostingInputPtr->setBarrelInfo(pBarrelInfo_);
-        if(pPostingInputPtr.get())
-            pPostingInputPtr->setBarrelInfo(pBarrelInfo_);
-    }
-
-    InputDescriptor* pInputDes = new InputDescriptor(vocInputPtr.get(), dPostingInputPtr.get(), pPostingInputPtr.get(), true);
+        pInputDes->setBarrelInfo(pBarrelInfo_);
 
     vocInputPtr.release();
     dPostingInputPtr.release();
@@ -84,8 +67,14 @@ InputDescriptor* InputDescriptor::clone(IndexType type)
     return pInputDes;
 }
 
-void InputDescriptor::checkBarrelExist()
+void InputDescriptor::setBarrelInfo(BarrelInfo* pBarrelInfo)
 {
-    if(pBarrelInfo_ && pBarrelInfo_->isRemoved())
-        SF1V5_THROW(ERROR_FILEIO, "Index dirty.");
+    pBarrelInfo_ = pBarrelInfo;
+
+    if(pVocInput_)
+        pVocInput_->setBarrelInfo(pBarrelInfo_);
+    if(pDPostingInput_)
+        pDPostingInput_->setBarrelInfo(pBarrelInfo_);
+    if(pPPostingInput_)
+        pPPostingInput_->setBarrelInfo(pBarrelInfo_);
 }

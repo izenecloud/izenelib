@@ -213,8 +213,6 @@ public:
             return pElem1->getDocCount() > pElem2->getDocCount();
     }
 
-    boost::mutex& getMutex() { return mutex_; }
-
 public:
     ///barrel name
     string barrelName;
@@ -240,7 +238,7 @@ private:
     boost::mutex mutex_;
 
     ///whether this barrel is removed because of merge
-    volatile bool isRemoved_;
+    bool isRemoved_;
 };
 
 
