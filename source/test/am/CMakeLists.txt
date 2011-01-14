@@ -38,8 +38,8 @@ IF (TokyoCabinet_FOUND AND Glog_FOUND AND _febird GREATER -1)
    luxio
    izene_log
    ${TokyoCabinet_LIBRARIES} 
-   lzo
-   )
+   lzo 
+    )
 
   ADD_EXECUTABLE(manual_t_fmm vsynonym/t_fmm.cpp )
   TARGET_LINK_LIBRARIES(manual_t_fmm

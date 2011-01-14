@@ -58,9 +58,6 @@ FIND_PACKAGE(TokyoCabinet 1.4.24)
 #####
 FIND_PACKAGE(Glog)
 
-FIND_PACKAGE(xml2 REQUIRED)
-# FIND_PACKAGE(xslt REQUIRED)
-
 ##################################################
 # Other common libraries
 #####
