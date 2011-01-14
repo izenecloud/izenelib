@@ -71,3 +71,11 @@ TARGET_LINK_LIBRARIES(t_compressor
   ${Boost_LIBRARIES}
   )
 
+ADD_EXECUTABLE(rdf_parser_tool
+  rdf_parser_tool.cc
+  ) 
+
+TARGET_LINK_LIBRARIES(rdf_parser_tool 
+  rdf
+  )
+
