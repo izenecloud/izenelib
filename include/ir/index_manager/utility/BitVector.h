@@ -145,8 +145,14 @@ public:
     {
         IndexInput* pInput = pDirectory->openInput(name);
         size_= (size_t)pInput->readInt();
-        maxBytesNum_ = getMaxBytesNum(size_);
-        bits_ = new unsigned char[maxBytesNum_];
+        const size_t newBytesNum = getMaxBytesNum(size_);
+        if(newBytesNum > maxBytesNum_)
+        {
+            unsigned char* newBits = new unsigned char[newBytesNum];
+            delete[] bits_;
+            bits_ = newBits;
+            maxBytesNum_ = newBytesNum;
+        }
         memset(bits_, 0 , maxBytesNum_);
         pInput->read((char*)bits_, getBytesNum(size_) * sizeof(unsigned char));
         delete pInput;

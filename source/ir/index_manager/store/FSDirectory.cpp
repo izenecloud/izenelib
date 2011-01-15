@@ -55,7 +55,7 @@ void FSDirectory::create()
 
 void FSDirectory::deleteFile(const string& filename,bool throwError)
 {
-    DVLOG(3) << "FSDirectory::deleteFile(" << filename << ")";
+    DVLOG(5) << "FSDirectory::deleteFile(" << filename << ")";
     string fullpath = directoryName_ + "/" + filename;
     if ( unlink(fullpath.c_str()) == -1 && throwError)
     {
@@ -66,7 +66,7 @@ void FSDirectory::deleteFile(const string& filename,bool throwError)
 }
 void FSDirectory::renameFile(const string& from, const string& to)
 {
-    DVLOG(3) << "FSDirectory::renameFile(" << from << ", " << to << ")";
+    DVLOG(5) << "FSDirectory::renameFile(" << from << ", " << to << ")";
     string tofullpath = directoryName_ + "/" + to;
     string fromfullpath = directoryName_ + "/" + from;
     if ( fileExists(to.c_str()) )
@@ -78,6 +78,7 @@ void FSDirectory::renameFile(const string& from, const string& to)
     }
     else
     {
+        DVLOG(5) << "=> rename(), fromfullpath: " << fromfullpath << ", tofullpath: " << tofullpath;
         if ( rename(fromfullpath.c_str(),tofullpath.c_str()) != 0 )
         {
             string s;
@@ -87,11 +88,12 @@ void FSDirectory::renameFile(const string& from, const string& to)
             s += tofullpath;
             throw FileIOException(s);
         }
+        DVLOG(5) << "<= rename()";
     }
 }
 void FSDirectory::deleteFiles(const string& filename,bool throwError)
 {
-    DVLOG(3) << "FSDirectory::deleteFiles(" << filename << ")";
+    DVLOG(5) << "FSDirectory::deleteFiles(" << filename << ")";
     DIR* dir = opendir(directoryName_.c_str());
     struct dirent* fl = readdir(dir);
     struct stat64 buf;
@@ -115,6 +117,7 @@ void FSDirectory::deleteFiles(const string& filename,bool throwError)
                     fname = fname.substr(0,pos);
                 if (fname == filename)
                 {
+                    DVLOG(5) << "=> unlink(), path: " << path;
                     if ( ( unlink( path.c_str() ) == -1 ) && (throwError) )
                     {
                         closedir(dir);
@@ -123,6 +126,7 @@ void FSDirectory::deleteFiles(const string& filename,bool throwError)
                         s += path;
                         SF1V5_THROW(ERROR_FILEIO,s);
                     }
+                    DVLOG(5) << "<= unlink()";
                     fname.clear();
                 }
             }
@@ -133,7 +137,7 @@ void FSDirectory::deleteFiles(const string& filename,bool throwError)
 }
 void FSDirectory::renameFiles(const string& from, const string& to)
 {
-    DVLOG(3) << "FSDirectory::renameFiles(" << from << ", " << to << ")";
+    DVLOG(5) << "FSDirectory::renameFiles(" << from << ", " << to << ")";
     DIR* dir = opendir(directoryName_.c_str());
     struct dirent* fl = readdir(dir);
     struct stat64 buf;
@@ -175,34 +179,34 @@ bool FSDirectory::fileExists(const string& name) const
 }
 IndexInput* FSDirectory::openInput(const string& name)
 {
-    DVLOG(3) << "FSDirectory::openInput(" << name << ")";
+    DVLOG(5) << "FSDirectory::openInput(" << name << ")";
     string fullpath = directoryName_ + "/" + name;
     return new FSIndexInput(fullpath.c_str());
 }
 IndexInput* FSDirectory::openInput(const string& name, size_t bufsize)
 {
-    DVLOG(3) << "FSDirectory::openInput(" << name << ", " << bufsize << ")";
+    DVLOG(5) << "FSDirectory::openInput(" << name << ", " << bufsize << ")";
     string fullpath = directoryName_ + "/" + name;
     return new FSIndexInput(fullpath.c_str(),bufsize);
 }
 
 IndexInput* FSDirectory::openMMapInput(const string& name)
 {
-    DVLOG(3) << "FSDirectory::openMMapInput(" << name << ")";
+    DVLOG(5) << "FSDirectory::openMMapInput(" << name << ")";
     string fullpath = directoryName_ + "/" + name;
     return new MMapIndexInput(fullpath.c_str());
 }
 
 IndexOutput* FSDirectory::createOutput(const string& name, const string& mode)
 {
-    DVLOG(3) << "FSDirectory::createOutput(" << name << ")";
+    DVLOG(5) << "FSDirectory::createOutput(" << name << ")";
     string fullpath = directoryName_ + "/" + name;
     return new FSIndexOutput(fullpath.c_str(), mode);
 }
 
 IndexOutput* FSDirectory::createOutput(const string& name, size_t buffersize, const string& mode)
 {
-    DVLOG(3) << "FSDirectory::createOutput(" << name << ", " << buffersize << ")";
+    DVLOG(5) << "FSDirectory::createOutput(" << name << ", " << buffersize << ")";
     string fullpath = directoryName_ + "/" + name;
     return new FSIndexOutput(fullpath.c_str(), mode, buffersize);
 }

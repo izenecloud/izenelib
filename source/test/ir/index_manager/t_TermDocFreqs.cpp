@@ -389,9 +389,14 @@ void TermDocFreqsTestFixture::checkNextSkipToDoc(TermReader* pTermReader, docid_
 
 void TermDocFreqsTestFixture::nextOrSkipTo(TermDocFreqs* pTermDocFreqs, docid_t docID, bool isDocRemoved)
 {
+    const bool isSkipTo = isSkipToRand_();
+    VLOG(5) << "=> TermDocFreqsTestFixture::nextOrSkipTo(), docID: " << docID
+            << ", isDocRemoved: " << isDocRemoved
+            << ", isSkipTo: " << isSkipTo;
+
     if(isDocRemoved)
     {
-        if(isSkipToRand_())
+        if(isSkipTo)
         {
             docid_t skipToResult = pTermDocFreqs->skipTo(docID);
             BOOST_CHECK(skipToResult > docID || skipToResult == BAD_DOCID);
@@ -402,7 +407,7 @@ void TermDocFreqsTestFixture::nextOrSkipTo(TermDocFreqs* pTermDocFreqs, docid_t 
             {
                 if(pTermDocFreqs->doc() >= docID)
                 {
-                    BOOST_CHECK(pTermDocFreqs->doc() > docID);
+                    BOOST_CHECK_NE(pTermDocFreqs->doc(), docID);
                     break;
                 }
             }
@@ -410,7 +415,7 @@ void TermDocFreqsTestFixture::nextOrSkipTo(TermDocFreqs* pTermDocFreqs, docid_t 
     }
     else
     {
-        if(isSkipToRand_())
+        if(isSkipTo)
             BOOST_CHECK_EQUAL(pTermDocFreqs->skipTo(docID), docID);
         else
         {
@@ -423,6 +428,8 @@ void TermDocFreqsTestFixture::nextOrSkipTo(TermDocFreqs* pTermDocFreqs, docid_t 
 
         BOOST_CHECK_EQUAL(pTermDocFreqs->doc(), docID);
     }
+
+    VLOG(5) << "<= TermDocFreqsTestFixture::nextOrSkipTo()";
 }
 
 }

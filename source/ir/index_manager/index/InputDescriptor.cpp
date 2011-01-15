@@ -1,5 +1,8 @@
 #include <ir/index_manager/index/InputDescriptor.h>
 #include <ir/index_manager/index/BarrelInfo.h>
+#include <util/izene_log.h>
+
+#include <memory> // auto_ptr
 
 using namespace izenelib::ir::indexmanager;
 
@@ -40,19 +43,38 @@ InputDescriptor::~InputDescriptor()
 
 InputDescriptor* InputDescriptor::clone(IndexType type)
 {
-    IndexInput* pVocInput = pVocInput_?pVocInput_->clone():NULL;
-    IndexInput* pDPostingInput = pDPostingInput_?pDPostingInput_->clone():NULL;
-    IndexInput* pPPostingInput = NULL;
-    if(type == WORD_LEVEL)
-        pPPostingInput = pPPostingInput_?pPPostingInput_->clone():NULL;
+    DVLOG(4) << "=> InputDescriptor::clone(), type: " << type << ", pBarrelInfo_: " << pBarrelInfo_;
+
+    // use auto_ptr in case of memory leak when exception is thrown in IndexInput::clone()
+    std::auto_ptr<IndexInput> vocInputPtr, dPostingInputPtr, pPostingInputPtr;
+    if(pVocInput_)
+        vocInputPtr.reset(pVocInput_->clone());
+    if(pDPostingInput_)
+        dPostingInputPtr.reset(pDPostingInput_->clone());
+    if(type == WORD_LEVEL && pPPostingInput_)
+        pPostingInputPtr.reset(pPPostingInput_->clone());
+
+    InputDescriptor* pInputDes = new InputDescriptor(vocInputPtr.get(), dPostingInputPtr.get(), pPostingInputPtr.get(), true);
 
     if(pBarrelInfo_)
-    {
-        if(pVocInput) pVocInput->setBarrelInfo(pBarrelInfo_);
-        if(pDPostingInput) pDPostingInput->setBarrelInfo(pBarrelInfo_);
-        if(pPPostingInput) pPPostingInput->setBarrelInfo(pBarrelInfo_);
-    }
-    InputDescriptor* pInputDes = new InputDescriptor(pVocInput, pDPostingInput, pPPostingInput, true);
+        pInputDes->setBarrelInfo(pBarrelInfo_);
+
+    vocInputPtr.release();
+    dPostingInputPtr.release();
+    pPostingInputPtr.release();
+
+    DVLOG(4) << "<= InputDescriptor::clone()";
     return pInputDes;
 }
 
+void InputDescriptor::setBarrelInfo(BarrelInfo* pBarrelInfo)
+{
+    pBarrelInfo_ = pBarrelInfo;
+
+    if(pVocInput_)
+        pVocInput_->setBarrelInfo(pBarrelInfo_);
+    if(pDPostingInput_)
+        pDPostingInput_->setBarrelInfo(pBarrelInfo_);
+    if(pPPostingInput_)
+        pPPostingInput_->setBarrelInfo(pBarrelInfo_);
+}

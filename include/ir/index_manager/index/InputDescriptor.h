@@ -59,10 +59,8 @@ public:
     }
     InputDescriptor* clone(IndexType type = WORD_LEVEL);
 
-    void setBarrelInfo(BarrelInfo* pBarrelInfo)
-    {
-        pBarrelInfo_ = pBarrelInfo;
-    }
+    void setBarrelInfo(BarrelInfo* pBarrelInfo);
+
 private:
     bool bDestroy_;
     IndexInput*	pVocInput_;

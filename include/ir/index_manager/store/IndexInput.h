@@ -116,7 +116,7 @@ inline uint8_t IndexInput::readByte()
         refill();
     return buffer_[bufferPosition_++];
 }
-inline int32_t IndexInput:: readInt()
+inline int32_t IndexInput::readInt()
 {
     uint8_t b1 = readByte();
     uint8_t b2 = readByte();

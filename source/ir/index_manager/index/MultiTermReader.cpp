@@ -89,7 +89,8 @@ TermDocFreqs* MultiTermReader::termDocFreqs()
     if (!pCurReader_)
         return NULL;
 
-    MultiTermDocs* pTermDocs = new MultiTermDocs();
+    // use auto_ptr in case of memory leak when exception is thrown in below TermReader::termDocFreqs()
+    std::auto_ptr<MultiTermDocs> termDocsPtr(new MultiTermDocs());
     bool bAdd = false;
     TermDocFreqs* pTmpTermDocs = NULL;
     ReaderCache* pList = pCurReader_;
@@ -98,24 +99,25 @@ TermDocFreqs* MultiTermReader::termDocFreqs()
         pTmpTermDocs = pList->pTermReader_->termDocFreqs();
         if (pTmpTermDocs)
         {
-            pTermDocs->add(pList->pBarrelInfo_,pTmpTermDocs);
+            termDocsPtr->add(pList->pBarrelInfo_,pTmpTermDocs);
             bAdd = true;
         }
         pList = pList->next_;
     }
+
     if (bAdd == false)
-    {
-        delete pTermDocs;
         return NULL;
-    }
-    return pTermDocs;
+
+    return termDocsPtr.release();
 }
 
 TermPositions* MultiTermReader::termPositions()
 {
     if (!pCurReader_)
         return NULL;
-    MultiTermPositions* pTermPositions = new MultiTermPositions();
+
+    // use auto_ptr in case of memory leak when exception is thrown in below TermReader::termPositions()
+    std::auto_ptr<MultiTermPositions> termPositionsPtr(new MultiTermPositions());
     bool bAdd = false;
     TermPositions* pTmpTermPositions = NULL;
     ReaderCache* pList = pCurReader_;
@@ -124,17 +126,16 @@ TermPositions* MultiTermReader::termPositions()
         pTmpTermPositions = pList->pTermReader_->termPositions();
         if (pTmpTermPositions)
         {
-            pTermPositions->add(pList->pBarrelInfo_, pTmpTermPositions);
+            termPositionsPtr->add(pList->pBarrelInfo_, pTmpTermPositions);
             bAdd = true;
         }
         pList = pList->next_;
     }
+
     if (bAdd == false)
-    {
-        delete pTermPositions;
         return NULL;
-    }
-    return pTermPositions;
+
+    return termPositionsPtr.release();
 }
 
 freq_t MultiTermReader::docFreq(Term* term)
