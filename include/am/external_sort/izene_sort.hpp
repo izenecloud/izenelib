@@ -35,11 +35,11 @@ template<
 >
 class IzeneSort
 {
-
+public:
   typedef IzeneSort<KEY_TYPE, LEN_TYPE, COMPARE_ALL,IO_TYPE> self_t;
   typedef SortRunner<KEY_TYPE, LEN_TYPE, COMPARE_ALL,IO_TYPE> run_t;
   typedef SortMerger<KEY_TYPE, LEN_TYPE, COMPARE_ALL,IO_TYPE> merge_t;
-  
+private:
   std::string filenm_;
   uint32_t buf_size_;
   uint32_t buf_num_;

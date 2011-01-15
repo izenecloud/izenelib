@@ -550,11 +550,10 @@ class SimpleSequenceFileSorter {
         {
         }
         
-        void sort(const std::string& file)
+        void sort(const std::string& file, uint32_t buf_times = 1)
         {
-            izenelib::am::IzeneSort<KeyType, LenType, COMPARE_ALL> sorter("");
+            izenelib::am::IzeneSort<KeyType, LenType, COMPARE_ALL> sorter("", 100000000*buf_times);
             sorter.sort(file);
-            
         }
         
         void merge(const std::vector<std::string>& inputFileList, const std::string& outputFile)
