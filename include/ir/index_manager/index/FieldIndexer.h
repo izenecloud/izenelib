@@ -324,6 +324,7 @@ private:
 
     size_t writeBufferPosition_;
 
+friend class FieldIndexer;
     static const uint8_t RECORD_ALL_LENGTH = 13;
     static const uint8_t RECORD_VALUE_LENGTH = 12;
 };

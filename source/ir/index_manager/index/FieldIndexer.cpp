@@ -62,6 +62,13 @@ void FieldIndexer::setHitBuffer(size_t size)
     pHitsMax_ = hits_ + iHitsMax_;
 }
 
+/***********************************
+*  Format within single group for merged sort
+*  uint32 size
+*  uint32 number
+*  uint64 nextstart (file offset to location of next group)
+*  sorted records
+************************************/
 void FieldIndexer::writeHitBuffer(int iHits)
 {
     recordCount_ += iHits;

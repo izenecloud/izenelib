@@ -40,9 +40,10 @@ typedef SortMerger<KEY_TYPE, LEN_TYPE, COMPARE_ALL, IO_TYPE> self_t;
   struct KEY_ADDR;
   std::string filenm_;
   const uint32_t MAX_GROUP_SIZE_;//!< max group size
-  const uint32_t PRE_BUF_SIZE_;//!< max predict buffer size
-  const uint32_t RUN_BUF_SIZE_;//!< max run buffer size
-  const uint32_t OUT_BUF_SIZE_;//!< max size of output buffer
+  const uint32_t BS_SIZE_;//!< in fact it equals to memory size
+  uint32_t PRE_BUF_SIZE_;//!< max predict buffer size
+  uint32_t RUN_BUF_SIZE_;//!< max run buffer size
+  uint32_t OUT_BUF_SIZE_;//!< max size of output buffer
   const uint32_t OUT_BUF_NUM_;//!< output threads number
 
   std::priority_queue<struct KEY_ADDR> pre_heap_;//!<predict heap
@@ -561,6 +562,7 @@ typedef SortMerger<KEY_TYPE, LEN_TYPE, COMPARE_ALL, IO_TYPE> self_t;
 public:
   SortMerger(const char* filenm, uint32_t group_size = 4, uint32_t bs=100000000, uint32_t output_num = 2)
     :filenm_(filenm), MAX_GROUP_SIZE_(group_size),
+     BS_SIZE_(bs),
      PRE_BUF_SIZE_((uint32_t)(1.*bs*0.8/(group_size+1))),
      RUN_BUF_SIZE_(PRE_BUF_SIZE_*group_size),
      OUT_BUF_SIZE_(bs - RUN_BUF_SIZE_ - PRE_BUF_SIZE_),
@@ -620,6 +622,26 @@ public:
 
     delete[] out_buf_size_;
     delete[] out_buf_full_;
+  }
+
+  void set_params(uint32_t max_record_len)
+  {
+      if(max_record_len > PRE_BUF_SIZE_)
+      {
+        PRE_BUF_SIZE_ = max_record_len;
+        RUN_BUF_SIZE_ = PRE_BUF_SIZE_*MAX_GROUP_SIZE_;
+        //OUT_BUF_SIZE_ = BS_SIZE_ - RUN_BUF_SIZE_ - PRE_BUF_SIZE_; ///we do not change OUT_BUF_SIZE_
+      }
+  }
+
+  void set_params(uint32_t max_record_len, uint32_t min_buff_size_required)
+  {
+      if(max_record_len > PRE_BUF_SIZE_)
+        PRE_BUF_SIZE_ = max_record_len;
+      if(RUN_BUF_SIZE_ < min_buff_size_required)		
+        RUN_BUF_SIZE_ = min_buff_size_required;
+      if(OUT_BUF_SIZE_ < min_buff_size_required)
+        OUT_BUF_SIZE_ = min_buff_size_required;
   }
 
   void run()
