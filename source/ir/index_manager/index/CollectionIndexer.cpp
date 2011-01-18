@@ -94,8 +94,8 @@ void CollectionIndexer::addDocument(IndexerDocument& doc)
     map<IndexerPropertyConfig, IndexerDocumentPropertyType> propertyValueList;
     doc.getPropertyList(propertyValueList);
 
-    count_t docLength[docLengthWidth_];
-    memset(docLength, 0, docLengthWidth_*sizeof(count_t));
+    uint16_t docLength[docLengthWidth_];
+    memset(docLength, 0, docLengthWidth_*sizeof(uint16_t));
 
     for (map<IndexerPropertyConfig, IndexerDocumentPropertyType>::iterator iter 
                             = propertyValueList.begin(); iter != propertyValueList.end(); ++iter)
