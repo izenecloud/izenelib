@@ -176,6 +176,7 @@ public:
     run_->run();
     
     merge_ = new merge_t(filenm_.c_str(), run_->run_num(), buf_size_, buf_num_);
+    merge_->set_params(run_->max_record_len(),run_->min_run_buf_size_for_merger());
     delete run_;
     run_ = NULL;
     merge_->run();

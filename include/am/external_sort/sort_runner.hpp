@@ -152,7 +152,10 @@ typedef SortRunner<KEY_TYPE, LEN_TYPE, COMPARE_ALL, IO_TYPE> self_t;
   uint32_t out_buf_num_;
   uint64_t count_;
   uint32_t run_num_;
-  
+
+  uint32_t max_record_len_;
+  uint32_t max_record_len_of_this_run_;
+  uint32_t min_run_buff_size_for_merger_;
     /**
      @brief pre-key used for sorting
    */
@@ -395,13 +398,20 @@ typedef SortRunner<KEY_TYPE, LEN_TYPE, COMPARE_ALL, IO_TYPE> self_t;
 
       out_buf_size_ = 0;
       out_buf_num_ = 0;
+      LEN_TYPE max_len_of_this_run = (LEN_TYPE)0;
       for (uint32_t i=0; i<pre_buf_num; ++i, ++out_buf_num_)
       {
         assert(key_buf_[i].pos <= RUN_BUF_SIZE_);
         assert(out_buf_size_+key_buf_[i].LEN(run_buf_)+ sizeof(LEN_TYPE) <= RUN_BUF_SIZE_);
         memcpy(out_buf_+out_buf_size_, run_buf_+ key_buf_[i].pos, key_buf_[i].LEN(run_buf_)+ sizeof(LEN_TYPE));
-        out_buf_size_ += key_buf_[i].LEN(run_buf_) + sizeof(LEN_TYPE);
+        LEN_TYPE len = key_buf_[i].LEN(run_buf_) + sizeof(LEN_TYPE);
+        out_buf_size_ += len;
+        if(len > max_len_of_this_run) max_len_of_this_run = len;
       }
+      max_record_len_of_this_run_ = max_len_of_this_run;
+      min_run_buff_size_for_merger_ += max_record_len_of_this_run_;
+      if(max_len_of_this_run > max_record_len_) max_record_len_ = (uint32_t)max_len_of_this_run;
+
       IASSERT(out_buf_num_ == pre_buf_num);
       IASSERT(out_buf_size_ == pre_buf_size);
 
@@ -425,6 +435,7 @@ typedef SortRunner<KEY_TYPE, LEN_TYPE, COMPARE_ALL, IO_TYPE> self_t;
 
       IASSERT(fwrite(&out_buf_size_, sizeof(uint32_t), 1, f)==1);
       IASSERT(fwrite(&out_buf_num_, sizeof(uint32_t), 1, f)==1);
+      //IASSERT(fwrite(&max_record_len_of_this_run_, sizeof(uint32_t), 1, f)==1);	  //TODO 
       uint64_t nextStartPos = ftell(f);
       IASSERT(fwrite(&nextStart, sizeof(uint64_t), 1, f)==1);
       //IASSERT(fwrite(out_buf_, out_buf_size_, 1, f)==1);
@@ -466,7 +477,10 @@ public:
     key_buf_ = NULL;
 
     pre_buf_size_ = pre_buf_num_ = out_buf_size_ = out_buf_num_ = count_ = run_num_ = 0;
-  
+
+    max_record_len_ = 0;
+    max_record_len_of_this_run_ = 0;
+    min_run_buff_size_for_merger_ = 0;   
   }
 
   ~SortRunner()
@@ -533,6 +547,16 @@ public:
     return run_num_;
   }
   
+  uint32_t max_record_len()const
+  {
+    return max_record_len_;
+  }
+
+  uint32_t min_run_buf_size_for_merger()const
+  {
+    return min_run_buff_size_for_merger_;
+  }
+
 }
   ;
 
