@@ -11,6 +11,7 @@
 #include <ir/index_manager/index/IndexerCollectionMeta.h>
 #include <ir/index_manager/store/Directory.h>
 #include <ir/index_manager/store/IndexInput.h>
+#include <ir/index_manager/utility/system.h>
 
 #include <boost/thread.hpp>
 
@@ -48,7 +49,7 @@ private:
 
     ///used to store bitmap, each property length occupy 16bit, which indicates the
     ///max property length is limited to 65535
-    uint16_t* data_;
+    doclen_t* data_;
 
     size_t numIndexedProperties_;
 

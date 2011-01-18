@@ -71,6 +71,8 @@ typedef count_t freq_t;
 // Added by dohyun 2009.04.22
 typedef uint8_t byte;
 
+// document length
+typedef uint16_t doclen_t;
 
 #define BAD_POSITION 0xFFFFFFFF
 #define BAD_DOCID 0xFFFFFFFF

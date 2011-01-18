@@ -34,16 +34,16 @@ DocLengthWriter::~DocLengthWriter()
     delete pOutput_;
 }
 
-void DocLengthWriter::fill(fieldid_t fid, size_t len, uint16_t* docLength)
+void DocLengthWriter::fill(fieldid_t fid, size_t len, doclen_t* docLength)
 {
     size_t offset = propertyOffsetMap_[fid];
-    docLength[offset] = (uint16_t) len;
+    docLength[offset] = (doclen_t)len;
 }
 
-void DocLengthWriter::add(docid_t docID, const uint16_t* docLength)
+void DocLengthWriter::add(docid_t docID, const doclen_t* docLength)
 {
-    pOutput_->seek(docID*numIndexedProperties_*sizeof(uint16_t));
-    pOutput_->writeBytes((unsigned char*)docLength,numIndexedProperties_*sizeof(uint16_t));
+    pOutput_->seek(docID*numIndexedProperties_*sizeof(doclen_t));
+    pOutput_->writeBytes((unsigned char*)docLength,numIndexedProperties_*sizeof(doclen_t));
 }
 
 void DocLengthWriter::flush()

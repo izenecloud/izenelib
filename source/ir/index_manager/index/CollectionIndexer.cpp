@@ -20,9 +20,7 @@ using namespace izenelib::util;
 
 using namespace izenelib::ir::indexmanager;
 
-CollectionIndexer::CollectionIndexer(collectionid_t id,
-                                                                        MemCache* pCache,
-                                                                        Indexer* pIndexer)
+CollectionIndexer::CollectionIndexer(collectionid_t id, MemCache* pCache, Indexer* pIndexer)
         :colID_(id)
         ,pMemCache_(pCache)
         ,pIndexer_(pIndexer)
@@ -49,8 +47,7 @@ void CollectionIndexer::setSchema(const IndexerCollectionMeta& schema)
     pFieldsInfo_->setSchema(schema);
     if (pIndexer_->getIndexManagerConfig()->indexStrategy_.indexDocLength_)
     {
-        pDocLengthWriter_ = new DocLengthWriter(schema.getDocumentSchema(), 
-                                                                          pIndexer_->getDirectory());
+        pDocLengthWriter_ = new DocLengthWriter(schema.getDocumentSchema(), pIndexer_->getDirectory());
         docLengthWidth_ = pDocLengthWriter_->get_num_properties();
     }
 }
@@ -94,8 +91,8 @@ void CollectionIndexer::addDocument(IndexerDocument& doc)
     map<IndexerPropertyConfig, IndexerDocumentPropertyType> propertyValueList;
     doc.getPropertyList(propertyValueList);
 
-    uint16_t docLength[docLengthWidth_];
-    memset(docLength, 0, docLengthWidth_*sizeof(uint16_t));
+    doclen_t docLength[docLengthWidth_];
+    memset(docLength, 0, docLengthWidth_*sizeof(doclen_t));
 
     for (map<IndexerPropertyConfig, IndexerDocumentPropertyType>::iterator iter 
                             = propertyValueList.begin(); iter != propertyValueList.end(); ++iter)

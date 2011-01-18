@@ -44,11 +44,11 @@ void DocLengthReader::load(docid_t maxDocId)
     // although doc id 0 is not used, its space data_[0] is reserved,
     // so that for doc id i, we can access its data_ by data_[i]
     size_ = (maxDocId+1) * numIndexedProperties_;
-    data_ = new uint16_t[size_];
-    memset(data_, 0, size_*2);
+    data_ = new doclen_t[size_];
+    memset(data_, 0, size_*sizeof(doclen_t));
     try{
         boost::scoped_ptr<IndexInput> pInput(pDirectory_->openInput("doclen.map"));
-        pInput->readBytes((unsigned char*)data_, size_*2);
+        pInput->readBytes((unsigned char*)data_, size_*sizeof(doclen_t));
     }catch(std::exception& e)
     {
         LOG(WARNING) << e.what();
