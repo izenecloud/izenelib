@@ -39,10 +39,19 @@ public:
     void checkTermDocFreqs();
 
     /**
-     * Check @c TermReader::seek() and @c TermDocFreqs interfaces, such as <tt>next, skipTo, freq, doc, nextPosition</tt>.
-     * If @c IndexManagerException is thrown during query, it would catch it and query again.
+     * Query the whole collection by multiple threads,
+     * each thread would query its own doc range.
+     * @param threadNum the number of threads
+     * @note if @p threadNum is 1, it would query the collection in main thread
+     * @note this function waits until the query is finished
      */
-    void checkNextSkipTo();
+    void queryCollection(int threadNum = 10);
+
+    /**
+     * It executes in a while loop,
+     * in each loop, it gets a doc id from stdin input, and query the terms in that doc id.
+     */
+    void queryInputDocID();
 
 protected:
     /**
@@ -76,10 +85,19 @@ private:
     void checkTermDocFreqsImpl();
 
     /**
-     * The implementation for @c checkNextSkipTo(),
+     * Query the docs range from @p startDocID to @p endDocID.
+     * Check @c TermReader::seek() and @c TermDocFreqs interfaces, such as <tt>next, skipTo, freq, doc, nextPosition</tt>.
+     * If @c IndexManagerException is thrown during query, it would catch it and query again.
+     * @param startDocID start of the doc id range to query
+     * @param endDocID end of the doc id range to query
+     */
+    void queryDocs(docid_t startDocID, docid_t endDocID);
+
+    /**
+     * The implementation for @c queryDocs(),
      * it would throw @c IndexManagerException if query failed.
      */
-    void checkNextSkipToImpl();
+    void queryDocsImpl(docid_t startDocID, docid_t endDocID);
 
     /**
      * Check query on a doc.
@@ -87,7 +105,8 @@ private:
      * @param docID the doc to query
      * @param docTermIdMap the term ids in that doc
      */
-    void checkNextSkipToDoc(TermReader* pTermReader, docid_t docID, const DTermIdMapT& docTermIdMap);
+    void queryOneDoc(TermReader* pTermReader, docid_t docID, const DTermIdMapT& docTermIdMap,
+                     BoolRandGeneratorT& isSkipToRand, BoolRandGeneratorT& isCheckRand) const;
 
     /**
      * Move the cursor to @p docID using either @p TermDocFreqs::next() or @p TermDocFreqs::skipTo(),
@@ -97,8 +116,9 @@ private:
      * @param isDocRemoved whether @p docID is removed,
      *                     if true, move the cursor to doc id > @p docID or BAD_DOCID,
      *                     if false, move the cursor to doc id == @p docID.
+     * @param isSkipTo true to use @c TermDocFreqs::skipTo(), false to use @c TermDocFreqs::next()
      */
-    void nextOrSkipTo(TermDocFreqs* pTermDocFreqs, docid_t docID, bool isDocRemoved);
+    void moveToDoc(TermDocFreqs* pTermDocFreqs, docid_t docID, bool isDocRemoved, bool isSkipTo) const;
 
     /**
      * Reset random number generator @c docLenRand2_ and @c termIDRand2_.
@@ -118,10 +138,10 @@ private:
     typedef map<termid_t, pair<freq_t, int64_t> > CTermIdMapT;
     CTermIdMapT mapCTermId_;
 
-    BoolRandGeneratorT isSkipToRand_; ///< in @c nextOrSkipTo(), true to use @c TermDocFreqs::skipTo(), false to use @c TermDocFreqs::next()
+    BoolRandGeneratorT isSkipToRand_; ///< in @c moveToDoc(), true to use @c TermDocFreqs::skipTo(), false to use @c TermDocFreqs::next()
 
-    IntRandGeneratorT docLenRand2_; ///< regenerate how many docs in @c checkNextSkipToImpl() and @c removeFixtureDocs()
-    IntRandGeneratorT termIDRand2_; ///< regenerate the term ids in @c checkNextSkipToImpl() and @c removeFixtureDocs()
+    IntRandGeneratorT docLenRand2_; ///< regenerate how many docs in @c queryDocsImpl() and @c removeFixtureDocs()
+    IntRandGeneratorT termIDRand2_; ///< regenerate the term ids in @c queryDocsImpl() and @c removeFixtureDocs()
 };
 
 inline void index(const IndexerTestConfig& config)
@@ -136,7 +156,7 @@ inline void index(const IndexerTestConfig& config)
 
     fixture.printStats();
     fixture.checkTermDocFreqs();
-    fixture.checkNextSkipTo();
+    fixture.queryCollection();
 
     VLOG(2) << "<= t_TermDocFreqs::index";
 }
@@ -158,7 +178,7 @@ inline void remove(const IndexerTestConfig& config)
         // below test is commented out
         //fixture.checkTermDocFreqs();
 
-        fixture.checkNextSkipTo();
+        fixture.queryCollection();
     }
 
     VLOG(2) << "<= t_TermDocFreqs::remove";
@@ -185,7 +205,7 @@ inline void update(const IndexerTestConfig& config)
     }
 
     // check whole collection
-    fixture.checkNextSkipTo();
+    fixture.queryCollection();
 
     VLOG(2) << "<= t_TermDocFreqs::update";
 }
@@ -198,7 +218,7 @@ inline void empty(const IndexerTestConfig& config)
     fixture.configTest(config);
 
     fixture.checkTermDocFreqs();
-    fixture.checkNextSkipTo();
+    fixture.queryCollection();
 
     VLOG(2) << "<= t_TermDocFreqs::empty";
 }
@@ -227,7 +247,7 @@ inline void removeDocAndOptimize(const IndexerTestConfig& config)
     // wait for merge finish
     pIndexer->waitForMergeFinish();
 
-    fixture.checkNextSkipTo();
+    fixture.queryCollection();
 
     IndexReader* pIndexReader = pIndexer->getIndexReader();
     BarrelsInfo* pBarrelsInfo = pIndexReader->getBarrelsInfo();
@@ -262,7 +282,7 @@ inline void optimizeAndRemoveDoc(const IndexerTestConfig& config)
     // wait for merge finish
     pIndexer->waitForMergeFinish();
 
-    fixture.checkNextSkipTo();
+    fixture.queryCollection();
 
     IndexReader* pIndexReader = pIndexer->getIndexReader();
     BarrelsInfo* pBarrelsInfo = pIndexReader->getBarrelsInfo();
@@ -296,7 +316,7 @@ inline void removeOneTerm(const IndexerTestConfig& config)
     {
         fixture.removeDocument();
 
-        fixture.checkNextSkipTo();
+        fixture.queryCollection();
     }
 
     VLOG(2) << "<= t_TermDocFreqs::removeOneTerm";
@@ -319,7 +339,7 @@ inline void checkRemoveAtStartUp(const IndexerTestConfig& config)
         fixture.createDocument();
         fixture.removeDocument();
 
-        fixture.checkNextSkipTo();
+        fixture.queryCollection();
     }
 
     {
@@ -333,13 +353,13 @@ inline void checkRemoveAtStartUp(const IndexerTestConfig& config)
         fixture.createDocument();
         fixture.removeDocument();
 
-        fixture.checkNextSkipTo();
+        fixture.queryCollection();
 
         // create new index files
         fixture.setRealIndex(true);
         // remove again
         fixture.removeDocument();
-        fixture.checkNextSkipTo();
+        fixture.queryCollection();
     }
 
     VLOG(2) << "<= t_TermDocFreqs::checkRemoveAtStartUp";

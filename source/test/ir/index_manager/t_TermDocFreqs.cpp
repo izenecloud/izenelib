@@ -3,6 +3,7 @@
 #include <boost/test/unit_test.hpp>
 #include <boost/bind.hpp>
 #include <boost/ref.hpp>
+#include <boost/thread.hpp>
 
 #include <ir/index_manager/index/IndexReader.h>
 #include <ir/index_manager/index/TermDocFreqs.h>
@@ -10,10 +11,10 @@
 #include <ir/index_manager/index/AbsTermReader.h>
 
 #include "t_TermDocFreqs.h"
+#include "BoostTestThreadSafety.h"
 
 //#define LOG_TERM_ID
 //#define LOG_QUERY_OPERATION
-//#define QUERY_ON_STDIN_DOCID
 
 namespace
 {
@@ -179,7 +180,7 @@ void TermDocFreqsTestFixture::checkUpdateDocsImpl(const std::list<docid_t>& upda
 
         if(isDocUpdated)
         {
-            checkNextSkipToDoc(pTermReader.get(), docID, docTermIdMap);
+            queryOneDoc(pTermReader.get(), docID, docTermIdMap, isSkipToRand_, isCheckRand_);
 
             if(++updateIt == updateDocList.end())
                 break;
@@ -251,95 +252,166 @@ void TermDocFreqsTestFixture::checkTermDocFreqsImpl()
     VLOG(2) << "<= TermDocFreqsTestFixture::checkTermDocFreqsImpl()";
 }
 
-void TermDocFreqsTestFixture::checkNextSkipTo()
+void TermDocFreqsTestFixture::queryCollection(int threadNum)
 {
-    VLOG(2) << "=> TermDocFreqsTestFixture::checkNextSkipTo()";
+    assert(threadNum > 0);
 
-    runToSuccess(boost::bind(&TermDocFreqsTestFixture::checkNextSkipToImpl, this));
+    VLOG(2) << "=> TermDocFreqsTestFixture::queryCollection(), threadNum: " << threadNum;
 
-    VLOG(2) << "<= TermDocFreqsTestFixture::checkNextSkipTo()";
+    if(maxDocID_ == 0)
+    {
+        BOOST_CHECK(isDocEmpty());
+        return;
+    }
+
+    if(threadNum == 1)
+    {
+        queryDocs(1, maxDocID_);
+        return;
+    }
+
+    vector<boost::thread*> threadVec;
+    // launch threads
+    const docid_t avgDocNum = ceil(static_cast<double>(maxDocID_) / threadNum);
+    for(int i=0; i<threadNum; ++i)
+    {
+        docid_t startDocID = avgDocNum * i + 1;
+        docid_t endDocID = avgDocNum * (i+1);
+
+        if(startDocID > maxDocID_)
+            break;
+        else if(endDocID > maxDocID_)
+            endDocID = maxDocID_; // limit the doc range for the last thread
+
+        boost::thread* pThread = new boost::thread(boost::bind(&TermDocFreqsTestFixture::queryDocs, this, startDocID, endDocID));
+        threadVec.push_back(pThread);
+    }
+
+    // wait for threads ending
+    for(unsigned int i=0; i<threadVec.size(); ++i)
+    {
+        threadVec[i]->join();
+        delete threadVec[i];
+    }
+
+#ifdef LOG_QUERY_OPERATION
+    BOOST_TEST_MESSAGE("TermDocFreqsTestFixture::queryCollection() created " << threadVec.size() << " threads in collection query.");
+#endif
+
+    VLOG(2) << "<= TermDocFreqsTestFixture::queryCollection()";
 }
 
-void TermDocFreqsTestFixture::checkNextSkipToImpl()
+void TermDocFreqsTestFixture::queryDocs(docid_t startDocID, docid_t endDocID)
 {
-    VLOG(2) << "=> TermDocFreqsTestFixture::checkNextSkipToImpl()";
+    VLOG(2) << "=> TermDocFreqsTestFixture::queryDocs()";
+
+    runToSuccess(boost::bind(&TermDocFreqsTestFixture::queryDocsImpl, this, startDocID, endDocID));
+
+    VLOG(2) << "<= TermDocFreqsTestFixture::queryDocs()";
+}
+
+void TermDocFreqsTestFixture::queryInputDocID()
+{
+    VLOG(2) << "=> TermDocFreqsTestFixture::queryInputDocID()";
+
+    docid_t targetID = 0;
+    while(true)
+    {
+        cout << "please input doc id to query:" << endl;
+        cin >> targetID;
+
+        runToSuccess(boost::bind(&TermDocFreqsTestFixture::queryDocsImpl, this, targetID, targetID));
+    }
+
+    VLOG(2) << "<= TermDocFreqsTestFixture::queryInputDocID()";
+}
+
+void TermDocFreqsTestFixture::queryDocsImpl(docid_t startDocID, docid_t endDocID)
+{
+    VLOG(2) << "=> TermDocFreqsTestFixture::queryDocsImpl()"
+            << ", startDocID: " << startDocID
+            << ", endDocID: " << endDocID;
+
+    if(startDocID < 1 || startDocID > endDocID || endDocID > maxDocID_)
+    {
+        cerr << "invalid doc range to query: [" << startDocID << ", " << endDocID << "]" << endl;
+        VLOG(2) << "<= TermDocFreqsTestFixture::queryDocsImpl(), invalid doc range to query";
+        return;
+    }
 
     IndexReader* pIndexReader = indexer_->getIndexReader();
     boost::scoped_ptr<TermReader> pTermReader(pIndexReader->getTermReader(COLLECTION_ID));
 
     if(pTermReader.get() == NULL)
     {
-        BOOST_CHECK(isDocEmpty());
-        VLOG(2) << "<= TermDocFreqsTestFixture::checkNextSkipToImpl(), no doc exists and TermReader is NULL";
+        BOOST_CHECK_TS(isDocEmpty());
+        VLOG(2) << "<= TermDocFreqsTestFixture::queryDocsImpl(), no doc exists and TermReader is NULL";
         return;
     }
 
-#ifdef QUERY_ON_STDIN_DOCID
-    docid_t targetID = 0;
-    while(true)
-    {
-        cout << "please input doc id to query:" << endl;
-        cin >> targetID;
-        // regenerate term ids for each doc
-        resetRand2();
-        for(docid_t docID = 1; docID <= maxDocID_; ++docID)
-        {
-            const unsigned int docLen = docLenRand2_();
-
-            if(docID == targetID)
-            {
-                DTermIdMapT docTermIdMap;
-                for(unsigned int j = 0; j < docLen; ++j)
-                    docTermIdMap[termIDRand2_()].push_back(j);
-
-                checkNextSkipToDoc(pTermReader.get(), docID, docTermIdMap);
-                break;
-            }
-            else
-            {
-                for(unsigned int j = 0; j < docLen; ++j)
-                    termIDRand2_(); // skip random term ids
-            }
-        }
-    }
-#else
     // regenerate term ids for each doc
-    resetRand2();
-    for(docid_t docID = 1; docID <= maxDocID_; ++docID)
+    boost::mt19937 newEngine;
+
+    IntRandGeneratorT docLenRand2(docLenRand_);
+    docLenRand2.engine() = newEngine;
+
+    IntRandGeneratorT termIDRand2(termIDRand_);
+    termIDRand2.engine() = newEngine;
+
+    BoolRandGeneratorT isSkipToRand2(isSkipToRand_);
+    isSkipToRand2.engine() = newEngine;
+
+    BoolRandGeneratorT isCheckRand2(isCheckRand_);
+    isCheckRand2.engine() = newEngine;
+
+    // skip random term ids of docs before the range
+    for(docid_t docID = 1; docID < startDocID; ++docID)
     {
-        DTermIdMapT docTermIdMap;
-
-        const unsigned int docLen = docLenRand2_();
+        const unsigned int docLen = docLenRand2();
         for(unsigned int j = 0; j < docLen; ++j)
-            docTermIdMap[termIDRand2_()].push_back(j);
-
-        checkNextSkipToDoc(pTermReader.get(), docID, docTermIdMap);
+            termIDRand2();
     }
-#endif
 
-    VLOG(2) << "<= TermDocFreqsTestFixture::checkNextSkipToImpl()";
+    // query the range
+    for(docid_t docID = startDocID; docID <= endDocID; ++docID)
+    {
+        const unsigned int docLen = docLenRand2();
+        DTermIdMapT docTermIdMap;
+        for(unsigned int j = 0; j < docLen; ++j)
+            docTermIdMap[termIDRand2()].push_back(j);
+
+        queryOneDoc(pTermReader.get(), docID, docTermIdMap, isSkipToRand2, isCheckRand2);
+    }
+
+    VLOG(2) << "<= TermDocFreqsTestFixture::queryDocsImpl()";
 }
 
-void TermDocFreqsTestFixture::checkNextSkipToDoc(TermReader* pTermReader, docid_t docID, const DTermIdMapT& docTermIdMap)
+void TermDocFreqsTestFixture::queryOneDoc(TermReader* pTermReader, docid_t docID, const DTermIdMapT& docTermIdMap,
+                                          BoolRandGeneratorT& isSkipToRand, BoolRandGeneratorT& isCheckRand) const
 {
     bool isDocRemoved = (mapDocIdLen_.find(docID) == mapDocIdLen_.end());
 
 #ifdef LOG_QUERY_OPERATION
-    BOOST_TEST_MESSAGE("check TermDocFreqs for doc id: " << docID
+    BOOST_TEST_MESSAGE_TS("check TermDocFreqs for doc id: " << docID
             << ", unique terms: " << docTermIdMap.size()
-            << ", doc is removed: " << isDocRemoved);
+            << ", doc is removed: " << isDocRemoved
+            << ", thread id: " << boost::this_thread::get_id());
 #endif
+
+    VLOG(5) << "=> TermDocFreqsTestFixture::queryOneDoc(), docID: " << docID
+            << ", unique terms: " << docTermIdMap.size()
+            << ", doc is removed: " << isDocRemoved;
 
     Term term(INVERTED_FIELD);
     for(DTermIdMapT::const_iterator termIt = docTermIdMap.begin();
             termIt != docTermIdMap.end();
             ++termIt)
     {
-        if(! isCheckRand_())
+        if(! isCheckRand())
             continue;
 
 #ifdef LOG_TERM_ID
-        BOOST_TEST_MESSAGE("check term id: " << termIt->first);
+        BOOST_TEST_MESSAGE_TS("check term id: " << termIt->first);
 #endif
         term.setValue(termIt->first);
 
@@ -352,45 +424,46 @@ void TermDocFreqsTestFixture::checkNextSkipToDoc(TermReader* pTermReader, docid_
             if(pTermReader->seek(&term))
             {
                 boost::scoped_ptr<TermDocFreqs> pTermDocFreqs(pTermReader->termDocFreqs());
-                if(isSkipToRand_())
-                    BOOST_CHECK_EQUAL(pTermDocFreqs->skipTo(docID), BAD_DOCID);
+                if(isSkipToRand())
+                    BOOST_CHECK_EQUAL_TS(pTermDocFreqs->skipTo(docID), BAD_DOCID);
                 else
-                    BOOST_CHECK_EQUAL(pTermDocFreqs->next(), false);
+                    BOOST_CHECK_EQUAL_TS(pTermDocFreqs->next(), false);
             }
         }
         else
         {
-            BOOST_CHECK(pTermReader->seek(&term));
+            BOOST_CHECK_TS(pTermReader->seek(&term));
             boost::scoped_ptr<TermDocFreqs> pTermDocFreqs(pTermReader->termDocFreqs());
 
-            nextOrSkipTo(pTermDocFreqs.get(), docID, isDocRemoved);
+            moveToDoc(pTermDocFreqs.get(), docID, isDocRemoved, isSkipToRand());
             if(! isDocRemoved)
-                BOOST_CHECK_EQUAL(pTermDocFreqs->freq(), termIt->second.size());
+                BOOST_CHECK_EQUAL_TS(pTermDocFreqs->freq(), termIt->second.size());
 
             boost::scoped_ptr<TermPositions> pTermPositions(pTermReader->termPositions());
-            nextOrSkipTo(pTermPositions.get(), docID, isDocRemoved);
+            moveToDoc(pTermPositions.get(), docID, isDocRemoved, isSkipToRand());
             if(! isDocRemoved)
             {
-                BOOST_CHECK_EQUAL(pTermPositions->freq(), termIt->second.size());
+                BOOST_CHECK_EQUAL_TS(pTermPositions->freq(), termIt->second.size());
                 for(LocListT::const_iterator locIter = termIt->second.begin();
                         locIter != termIt->second.end();
                         ++locIter)
                 {
 #ifdef LOG_TERM_ID
-                    BOOST_TEST_MESSAGE("check term position: " << *locIter);
+                    BOOST_TEST_MESSAGE_TS("check term position: " << *locIter);
 #endif
-                    BOOST_CHECK_EQUAL(pTermPositions->nextPosition(), *locIter);
+                    BOOST_CHECK_EQUAL_TS(pTermPositions->nextPosition(), *locIter);
                 }
-                BOOST_CHECK_EQUAL(pTermPositions->nextPosition(), BAD_POSITION);
+                BOOST_CHECK_EQUAL_TS(pTermPositions->nextPosition(), BAD_POSITION);
             }
         }
     }
+
+    VLOG(5) << "<= TermDocFreqsTestFixture::queryOneDoc()";
 }
 
-void TermDocFreqsTestFixture::nextOrSkipTo(TermDocFreqs* pTermDocFreqs, docid_t docID, bool isDocRemoved)
+void TermDocFreqsTestFixture::moveToDoc(TermDocFreqs* pTermDocFreqs, docid_t docID, bool isDocRemoved, bool isSkipTo) const
 {
-    const bool isSkipTo = isSkipToRand_();
-    VLOG(5) << "=> TermDocFreqsTestFixture::nextOrSkipTo(), docID: " << docID
+    VLOG(5) << "=> TermDocFreqsTestFixture::moveToDoc(), docID: " << docID
             << ", isDocRemoved: " << isDocRemoved
             << ", isSkipTo: " << isSkipTo;
 
@@ -399,7 +472,7 @@ void TermDocFreqsTestFixture::nextOrSkipTo(TermDocFreqs* pTermDocFreqs, docid_t 
         if(isSkipTo)
         {
             docid_t skipToResult = pTermDocFreqs->skipTo(docID);
-            BOOST_CHECK(skipToResult > docID || skipToResult == BAD_DOCID);
+            BOOST_CHECK_TS(skipToResult > docID || skipToResult == BAD_DOCID);
         }
         else
         {
@@ -407,7 +480,7 @@ void TermDocFreqsTestFixture::nextOrSkipTo(TermDocFreqs* pTermDocFreqs, docid_t 
             {
                 if(pTermDocFreqs->doc() >= docID)
                 {
-                    BOOST_CHECK_NE(pTermDocFreqs->doc(), docID);
+                    BOOST_CHECK_NE_TS(pTermDocFreqs->doc(), docID);
                     break;
                 }
             }
@@ -416,7 +489,7 @@ void TermDocFreqsTestFixture::nextOrSkipTo(TermDocFreqs* pTermDocFreqs, docid_t 
     else
     {
         if(isSkipTo)
-            BOOST_CHECK_EQUAL(pTermDocFreqs->skipTo(docID), docID);
+            BOOST_CHECK_EQUAL_TS(pTermDocFreqs->skipTo(docID), docID);
         else
         {
             while(pTermDocFreqs->next())
@@ -426,10 +499,10 @@ void TermDocFreqsTestFixture::nextOrSkipTo(TermDocFreqs* pTermDocFreqs, docid_t 
             }
         }
 
-        BOOST_CHECK_EQUAL(pTermDocFreqs->doc(), docID);
+        BOOST_CHECK_EQUAL_TS(pTermDocFreqs->doc(), docID);
     }
 
-    VLOG(5) << "<= TermDocFreqsTestFixture::nextOrSkipTo()";
+    VLOG(5) << "<= TermDocFreqsTestFixture::moveToDoc()";
 }
 
 }
