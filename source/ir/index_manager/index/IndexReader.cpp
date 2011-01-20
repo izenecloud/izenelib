@@ -161,15 +161,23 @@ TermReader* IndexReader::getTermReader(collectionid_t colID)
 
 void IndexReader::reopen()
 {
+    DVLOG(2) << "=> IndexReader::reopen()";
+
     {
-    boost::mutex::scoped_lock lock(this->mutex_);
-    if(pBarrelReader_)
-    {
-        delete pBarrelReader_;
-        pBarrelReader_ = NULL;
-    }
+        boost::mutex::scoped_lock lock(this->mutex_);
+        if(pBarrelReader_)
+        {
+            DVLOG(2) << "IndexReader::reopen() => delete pBarrelReader_: " << pBarrelReader_;
+
+            delete pBarrelReader_;
+            pBarrelReader_ = NULL;
+
+            DVLOG(2) << "IndexReader::reopen() <= delete pBarrelReader_";
+        }
     }
     createBarrelReader();
+
+    DVLOG(2) << "<= IndexReader::reopen(), pBarrelReader_: " << pBarrelReader_;
 }
 
 count_t IndexReader::numDocs()

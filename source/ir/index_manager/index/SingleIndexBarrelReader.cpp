@@ -20,8 +20,8 @@ SingleIndexBarrelReader::SingleIndexBarrelReader(IndexReader* pIndexReader, Barr
 SingleIndexBarrelReader::~SingleIndexBarrelReader()
 {
     close();
-    for (map<collectionid_t, TermReader*>::iterator iter
-            = termReaderMap_.begin(); iter != termReaderMap_.end(); ++iter)
+    for (map<collectionid_t, TermReader*>::iterator iter = termReaderMap_.begin();
+            iter != termReaderMap_.end(); ++iter)
         delete iter->second;
     termReaderMap_.clear();
     delete pCollectionsInfo_;
@@ -115,7 +115,7 @@ TermReader* SingleIndexBarrelReader::termReader(collectionid_t colID, const char
             if (pFieldInfo->isIndexed()&&pFieldInfo->isAnalyzed())
             {
                 if (!strcasecmp(field,pFieldInfo->getName()))
-                    return pTermReader;//->clone();
+                    return pTermReader;
             }
         }
     }
@@ -124,7 +124,7 @@ TermReader* SingleIndexBarrelReader::termReader(collectionid_t colID, const char
 
 TermReader* SingleIndexBarrelReader::termReader(collectionid_t colID)
 {
-    return termReaderMap_[colID];//->clone();
+    return termReaderMap_[colID];
 }
 
 size_t SingleIndexBarrelReader::getDistinctNumTerms(collectionid_t colID, const std::string& property)

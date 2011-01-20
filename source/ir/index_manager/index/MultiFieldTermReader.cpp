@@ -70,7 +70,7 @@ TermReader* MultiFieldTermReader::termReader(const char* field)
     reader_map::iterator iter = fieldsTermReaders_.find(field);
     if (iter != fieldsTermReaders_.end())
     {
-        return iter->second;//->clone();
+        return iter->second;
     }
     return NULL;
 }

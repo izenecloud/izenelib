@@ -179,41 +179,40 @@ TermReader* MultiTermReader::clone()
 
 ReaderCache* MultiTermReader::loadReader(const char* field)
 {
-    ReaderCache* pTailList = NULL;
-    ReaderCache* pPreList = NULL;
-    // use auto_ptr in case of memory leak when exception is thrown in below for loop
-    std::auto_ptr<ReaderCache> headListPtr;
-    TermReader* pSe = NULL;
+    DVLOG(5) << "=> MultiTermReader::loadReader(), field: " << field
+             << ", pBarrelReader_: " << pBarrelReader_;
 
-    BarrelReaderEntry* pEntry = NULL;
+    ReaderCache* pTail = NULL;
+    // use auto_ptr in case of memory leak when exception is thrown in below for loop
+    std::auto_ptr<ReaderCache> headPtr;
 
     for(vector<BarrelReaderEntry*>::iterator iter = pBarrelReader_->readers_.begin(); 
             iter != pBarrelReader_->readers_.end(); ++iter)	
     {
-        pEntry = (*iter);
-        TermReader* pTermReader = pEntry->pBarrelReader_->termReader(colID_, field);
-        if(pTermReader)
-            pSe =  pTermReader->clone();
-        if (pSe)
+        if(TermReader* pTermReader = (*iter)->pBarrelReader_->termReader(colID_, field))
         {
-            pTailList = new ReaderCache(pEntry->pBarrelInfo_,pSe);
-            if (headListPtr.get() == NULL)
+            if(TermReader* pSe = pTermReader->clone())
             {
-                headListPtr.reset(pTailList);
-                pPreList = pTailList;
-            }
-            else
-            {
-                pPreList->next_ = pTailList;
-                pPreList = pTailList;
+                ReaderCache* pReaderCache = new ReaderCache((*iter)->pBarrelInfo_,pSe);
+                if (headPtr.get() == NULL)
+                {
+                    headPtr.reset(pReaderCache);
+                    pTail = pReaderCache;
+                }
+                else
+                {
+                    pTail->next_ = pReaderCache;
+                    pTail = pReaderCache;
+                }
             }
         }
     }
 
-    ReaderCache* pHeadList = headListPtr.release();
-    if (pHeadList)
-        readerCache_.insert(make_pair(field, pHeadList));
+    ReaderCache* pHead = headPtr.release();
+    if (pHead)
+        readerCache_.insert(make_pair(field, pHead));
 
-    return pHeadList;
+    DVLOG(5) << "<= MultiTermReader::loadReader()";
+    return pHead;
 }
 
