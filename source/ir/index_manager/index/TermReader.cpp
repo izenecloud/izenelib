@@ -383,7 +383,6 @@ void SparseTermReaderImpl::close()
 ///RTDiskTermReader
 RTDiskTermReader::RTDiskTermReader(Directory* pDirectory,BarrelInfo* pBarrelInfo,FieldInfo* pFieldInfo)
         : TermReader()
-        , pTermReaderImpl_(NULL)
         , pCurTermInfo_(NULL)
         , ownTermReaderImpl_(true)
         , pVocInput_(NULL)
@@ -398,7 +397,7 @@ RTDiskTermReader::RTDiskTermReader(Directory* pDirectory,BarrelInfo* pBarrelInfo
     nBeginOfVoc_ = pTermReaderImpl_->nBeginOfVoc_;
 }
 
-RTDiskTermReader::RTDiskTermReader(SparseTermReaderImpl* pTermReaderImpl)
+RTDiskTermReader::RTDiskTermReader(const boost::shared_ptr<SparseTermReaderImpl>& pTermReaderImpl)
         : TermReader()
         , pTermReaderImpl_(pTermReaderImpl)
         , pCurTermInfo_(NULL)
@@ -415,8 +414,6 @@ RTDiskTermReader::RTDiskTermReader(SparseTermReaderImpl* pTermReaderImpl)
 RTDiskTermReader::~RTDiskTermReader()
 {
     close();
-    if (pTermReaderImpl_&&ownTermReaderImpl_)
-        delete pTermReaderImpl_;
     sparseTermTable_ = NULL;
     if(pVocInput_)
         delete pVocInput_;
@@ -428,7 +425,7 @@ void RTDiskTermReader::open(Directory* pDirectory,const char* barrelname,FieldIn
 {
     setFieldInfo(pFieldInfo);
 
-    pTermReaderImpl_ = new SparseTermReaderImpl(pFieldInfo);
+    pTermReaderImpl_.reset(new SparseTermReaderImpl(pFieldInfo));
     pTermReaderImpl_->open(pDirectory, barrelname);
 }
 
@@ -583,7 +580,7 @@ TermReader* RTDiskTermReader::clone()
 
 TermDocFreqs* RTDiskTermReader::termDocFreqs()
 {
-    if (pCurTermInfo_ == NULL || pTermReaderImpl_ == NULL )
+    if (pCurTermInfo_ == NULL || pTermReaderImpl_.get() == NULL )
         return NULL;
     RTDiskPostingReader* pPosting = 
         new RTDiskPostingReader(skipInterval_, maxSkipLevel_, pTermReaderImpl_->pInputDescriptor_->clone(DOCUMENT_LEVEL),*pCurTermInfo_);
@@ -597,7 +594,7 @@ TermDocFreqs* RTDiskTermReader::termDocFreqs()
 
 TermPositions* RTDiskTermReader::termPositions()
 {
-    if (pCurTermInfo_ == NULL || pTermReaderImpl_ == NULL )
+    if (pCurTermInfo_ == NULL || pTermReaderImpl_.get() == NULL )
         return NULL;
 
     RTDiskPostingReader* pPosting = 
@@ -778,7 +775,7 @@ BlockTermReader::BlockTermReader(Directory* pDirectory,BarrelInfo* pBarrelInfo,F
 {
 }
 
-BlockTermReader::BlockTermReader(SparseTermReaderImpl* pTermReaderImpl)
+BlockTermReader::BlockTermReader(const boost::shared_ptr<SparseTermReaderImpl>& pTermReaderImpl)
         : RTDiskTermReader(pTermReaderImpl)
 {
 }
@@ -797,7 +794,7 @@ TermReader* BlockTermReader::clone()
 
 TermDocFreqs* BlockTermReader::termDocFreqs()
 {
-    if (pCurTermInfo_ == NULL || pTermReaderImpl_ == NULL )
+    if (pCurTermInfo_ == NULL || pTermReaderImpl_.get() == NULL )
         return NULL;
     BlockPostingReader* pPosting = 
         new BlockPostingReader(pTermReaderImpl_->pInputDescriptor_->clone(DOCUMENT_LEVEL),*pCurTermInfo_, DOCUMENT_LEVEL);
@@ -810,7 +807,7 @@ TermDocFreqs* BlockTermReader::termDocFreqs()
 
 TermPositions* BlockTermReader::termPositions()
 {
-    if (pCurTermInfo_ == NULL || pTermReaderImpl_ == NULL )
+    if (pCurTermInfo_ == NULL || pTermReaderImpl_.get() == NULL )
         return NULL;
 
     BlockPostingReader* pPosting = 
@@ -845,7 +842,7 @@ ChunkTermReader::ChunkTermReader(Directory* pDirectory,BarrelInfo* pBarrelInfo,F
 {
 }
 
-ChunkTermReader::ChunkTermReader(SparseTermReaderImpl* pTermReaderImpl)
+ChunkTermReader::ChunkTermReader(const boost::shared_ptr<SparseTermReaderImpl>& pTermReaderImpl)
         : RTDiskTermReader(pTermReaderImpl)
 {
 }
@@ -863,7 +860,7 @@ TermReader* ChunkTermReader::clone()
 
 TermDocFreqs* ChunkTermReader::termDocFreqs()
 {
-    if (pCurTermInfo_ == NULL || pTermReaderImpl_ == NULL )
+    if (pCurTermInfo_ == NULL || pTermReaderImpl_.get() == NULL )
         return NULL;
     ChunkPostingReader* pPosting = 
         new ChunkPostingReader(skipInterval_, maxSkipLevel_, pTermReaderImpl_->pInputDescriptor_->clone(DOCUMENT_LEVEL),*pCurTermInfo_, DOCUMENT_LEVEL);
@@ -877,7 +874,7 @@ TermDocFreqs* ChunkTermReader::termDocFreqs()
 
 TermPositions* ChunkTermReader::termPositions()
 {
-    if (pCurTermInfo_ == NULL || pTermReaderImpl_ == NULL )
+    if (pCurTermInfo_ == NULL || pTermReaderImpl_.get() == NULL )
         return NULL;
 
     ChunkPostingReader* pPosting = 

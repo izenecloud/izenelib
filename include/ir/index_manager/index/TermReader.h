@@ -13,6 +13,7 @@
 
 #include <string>
 
+#include <boost/shared_ptr.hpp>
 
 NS_IZENELIB_IR_BEGIN
 
@@ -163,7 +164,7 @@ class RTDiskTermReader: public TermReader
 public:
     RTDiskTermReader(Directory* pDirectory,BarrelInfo* pBarrelInfo,FieldInfo* pFieldInfo);
 
-    RTDiskTermReader(SparseTermReaderImpl* pTermReaderImpl);
+    RTDiskTermReader(const boost::shared_ptr<SparseTermReaderImpl>& pTermReaderImpl);
 
     virtual ~RTDiskTermReader();
 public:
@@ -193,7 +194,7 @@ protected:
     int fillBuffer(int pos);
 
 protected:
-    SparseTermReaderImpl* pTermReaderImpl_;
+    boost::shared_ptr<SparseTermReaderImpl> pTermReaderImpl_;
 
     TermInfo* pCurTermInfo_;
 
@@ -268,7 +269,7 @@ class BlockTermReader: public RTDiskTermReader
 public:
     BlockTermReader(Directory* pDirectory,BarrelInfo* pBarrelInfo,FieldInfo* pFieldInfo);
 
-    BlockTermReader(SparseTermReaderImpl* pTermReaderImpl);
+    BlockTermReader(const boost::shared_ptr<SparseTermReaderImpl>& pTermReaderImpl);
 
 public:
     TermIterator* termIterator(const char* field);
@@ -293,7 +294,7 @@ class ChunkTermReader: public RTDiskTermReader
 public:
     ChunkTermReader(Directory* pDirectory,BarrelInfo* pBarrelInfo,FieldInfo* pFieldInfo);
 
-    ChunkTermReader(SparseTermReaderImpl* pTermReaderImpl);
+    ChunkTermReader(const boost::shared_ptr<SparseTermReaderImpl>& pTermReaderImpl);
 
 public:
     TermIterator* termIterator(const char* field);
