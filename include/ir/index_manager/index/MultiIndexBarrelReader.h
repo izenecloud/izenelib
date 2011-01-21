@@ -14,8 +14,6 @@
 #include <ir/index_manager/index/SingleIndexBarrelReader.h>
 #include <ir/index_manager/store/Directory.h>
 
-#include <boost/shared_ptr.hpp>
-
 NS_IZENELIB_IR_BEGIN
 
 namespace indexmanager{
@@ -53,7 +51,7 @@ public:
 * @brief Open multi index barrel and return instance of TermReader, 
 * each index barrel is opened and read by SingleIndexBarrelReader
 */
-class MultiTermReader;
+class TermReader;
 class MultiIndexBarrelReader : public IndexBarrelReader
 {
 public:
@@ -72,7 +70,7 @@ public:
 private:
     BarrelsInfo* pBarrelsInfo_;
 
-    map<collectionid_t, boost::shared_ptr<MultiTermReader > > termReaderMap_;
+    map<collectionid_t, TermReader*> termReaderMap_;
 
     vector<BarrelReaderEntry*> readers_;
 

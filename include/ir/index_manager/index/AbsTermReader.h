@@ -12,7 +12,6 @@
 #include <ir/index_manager/index/TermDocFreqs.h>
 #include <ir/index_manager/index/TermPositions.h>
 #include <ir/index_manager/index/TermInfo.h>
-#include <ir/index_manager/index/FieldInfo.h>
 #include <ir/index_manager/index/BarrelInfo.h>
 #include <ir/index_manager/store/Directory.h>
 #include <ir/index_manager/utility/BitVector.h>
@@ -22,6 +21,7 @@ NS_IZENELIB_IR_BEGIN
 namespace indexmanager{
 
 class TermIterator;
+class FieldInfo;
 
 /*
 * @brief TermReader is used to read vocabulary of index barrel.
@@ -39,8 +39,6 @@ class TermReader
 {
 public:
     TermReader();
-
-    TermReader(FieldInfo* pFieldInfo);
 
     virtual ~TermReader();
 public:
@@ -73,10 +71,6 @@ public:
     ///Return all the information of a certain term on the vocabulary
     virtual TermInfo* termInfo(Term* term) { return NULL;};
 
-    FieldInfo* getFieldInfo() { return pFieldInfo_;}
-
-    void setFieldInfo(FieldInfo* pFieldInfo) { pFieldInfo_ = pFieldInfo; }
-
     virtual void setDocFilter(BitVector* pFilter) { pDocFilter_ = pFilter;}
 
     BitVector* getDocFilter() { return pDocFilter_; }
@@ -91,7 +85,6 @@ public:
 
     void setBarrelInfo(BarrelInfo* pBarrelInfo) { pBarrelInfo_ = pBarrelInfo; }
 protected:
-    FieldInfo* pFieldInfo_;	///reference to field info
     BitVector* pDocFilter_;
     int skipInterval_;
     int maxSkipLevel_;

@@ -27,6 +27,10 @@ MultiIndexBarrelReader::~MultiIndexBarrelReader(void)
 {
     pBarrelsInfo_ = NULL;
     close();
+    for (map<collectionid_t, TermReader*>::iterator iter = termReaderMap_.begin();
+            iter != termReaderMap_.end(); ++iter)
+        delete iter->second;
+    termReaderMap_.clear();
 }
 
 void MultiIndexBarrelReader::open(const char* name)
@@ -35,12 +39,13 @@ void MultiIndexBarrelReader::open(const char* name)
 
 TermReader* MultiIndexBarrelReader::termReader(collectionid_t colID)
 {
-    if (termReaderMap_.find(colID) == termReaderMap_.end())
-    {
-        boost::shared_ptr<MultiTermReader > pTermReader(new MultiTermReader(this, colID));
-        termReaderMap_[colID] = pTermReader;
-    }
-    return termReaderMap_[colID].get();
+    map<collectionid_t, TermReader*>::iterator iter = termReaderMap_.find(colID);
+    if(iter != termReaderMap_.end())
+        return iter->second;
+
+    TermReader* pTermReader = new MultiTermReader(this, colID);
+    termReaderMap_.insert(pair<collectionid_t, TermReader*>(colID, pTermReader));
+    return pTermReader;
 }
 
 void MultiIndexBarrelReader::close()

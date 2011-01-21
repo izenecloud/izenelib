@@ -42,6 +42,28 @@ inline void boostCheckNETS(const S& a, const T& b, const char* expA, const char*
     }
 }
 
+template<typename S, typename T>
+inline void boostRequireEqualTS(const S& a, const T& b, const char* expA, const char* expB)
+{
+    if(static_cast<T>(a) != b)
+    {
+        boost::mutex::scoped_lock lock(izenelib::test::boost_test_lock_);
+        BOOST_FAIL("check " << expA << " == " << expB << " failed"
+                    << " [" << a << " != " << b << "]");
+    }
+}
+
+template<typename S, typename T>
+inline void boostRequireNETS(const S& a, const T& b, const char* expA, const char* expB)
+{
+    if(static_cast<T>(a) == b)
+    {
+        boost::mutex::scoped_lock lock(izenelib::test::boost_test_lock_);
+        BOOST_FAIL("check " << expA << " != " << expB << " failed"
+                    << " [" << a << " == " << b << "]");
+    }
+}
+
 #define BOOST_CHECK_EQUAL_TS(a,b) \
 do { \
     boostCheckEqualTS((a), (b), #a, #b); \
@@ -58,6 +80,25 @@ do { \
     { \
         boost::mutex::scoped_lock lock(izenelib::test::boost_test_lock_); \
         BOOST_ERROR("check " << #exp << " failed"); \
+    } \
+} while(false)
+
+#define BOOST_REQUIRE_EQUAL_TS(a,b) \
+do { \
+    boostRequireEqualTS((a), (b), #a, #b); \
+} while(false)
+
+#define BOOST_REQUIRE_NE_TS(a,b) \
+do { \
+    boostRequireNETS((a), (b), #a, #b); \
+} while(false)
+
+#define BOOST_REQUIRE_TS(exp) \
+do { \
+    if(! (exp)) \
+    { \
+        boost::mutex::scoped_lock lock(izenelib::test::boost_test_lock_); \
+        BOOST_FAIL("check " << #exp << " failed"); \
     } \
 } while(false)
 

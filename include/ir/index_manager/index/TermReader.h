@@ -10,9 +10,11 @@
 
 #include <ir/index_manager/index/AbsTermReader.h>
 #include <ir/index_manager/index/TermIterator.h>
+#include <ir/index_manager/index/FieldInfo.h>
 
 #include <string>
 
+#include <boost/shared_ptr.hpp>
 
 NS_IZENELIB_IR_BEGIN
 
@@ -35,7 +37,7 @@ struct TERM_TABLE
 class TermReaderImpl
 {
 public:
-    TermReaderImpl(FieldInfo* pFieldInfo);
+    TermReaderImpl(const FieldInfo& fieldInfo);
 
     ~TermReaderImpl();
 public:
@@ -48,7 +50,7 @@ public:
     TermInfo* termInfo(Term* term);
 
 public:
-    FieldInfo* pFieldInfo_;
+    FieldInfo fieldInfo_;
 
     TERM_TABLE* pTermTable_;
 
@@ -73,7 +75,7 @@ class VocReader:public TermReader
 public:
     VocReader(Directory* pDirectory,BarrelInfo* pBarrelInfo,FieldInfo* pFieldInfo);
 
-    VocReader(TermReaderImpl* pTermReaderImpl);
+    VocReader(const boost::shared_ptr<TermReaderImpl>& pTermReaderImpl);
 
     virtual ~VocReader(void);
 public:
@@ -98,17 +100,17 @@ public:
 
     TermReader* clone() ;
 
-    TermReaderImpl* getTermReaderImpl(){ return pTermReaderImpl_;}
+    TermReaderImpl* getTermReaderImpl(){ return pTermReaderImpl_.get();}
+
+    FieldInfo* getFieldInfo() { return &pTermReaderImpl_->fieldInfo_; }
 
 private:
     TermInfo* termInfo(Term* term);
 
 private:
-    TermReaderImpl* pTermReaderImpl_;
+    boost::shared_ptr<TermReaderImpl> pTermReaderImpl_;
 
     TermInfo* pCurTermInfo_;
-
-    bool ownTermReaderImpl_;
 
     InputDescriptor* pInputDescriptor_;
 
@@ -125,7 +127,7 @@ private:
 class SparseTermReaderImpl
 {
 public:
-    SparseTermReaderImpl(FieldInfo* pFieldInfo);
+    SparseTermReaderImpl(const FieldInfo& fieldInfo);
 
     ~SparseTermReaderImpl();
 public:
@@ -136,7 +138,7 @@ public:
     void close() ;
 
 public:
-    FieldInfo* pFieldInfo_;
+    FieldInfo fieldInfo_;
 
     TERM_TABLE* sparseTermTable_;
 
@@ -163,7 +165,7 @@ class RTDiskTermReader: public TermReader
 public:
     RTDiskTermReader(Directory* pDirectory,BarrelInfo* pBarrelInfo,FieldInfo* pFieldInfo);
 
-    RTDiskTermReader(SparseTermReaderImpl* pTermReaderImpl);
+    RTDiskTermReader(const boost::shared_ptr<SparseTermReaderImpl>& pTermReaderImpl);
 
     virtual ~RTDiskTermReader();
 public:
@@ -192,12 +194,12 @@ protected:
 
     int fillBuffer(int pos);
 
+    FieldInfo* getFieldInfo() { return &pTermReaderImpl_->fieldInfo_; }
+
 protected:
-    SparseTermReaderImpl* pTermReaderImpl_;
+    boost::shared_ptr<SparseTermReaderImpl> pTermReaderImpl_;
 
     TermInfo* pCurTermInfo_;
-
-    bool ownTermReaderImpl_;
 
     IndexInput* pVocInput_;
 
@@ -268,7 +270,7 @@ class BlockTermReader: public RTDiskTermReader
 public:
     BlockTermReader(Directory* pDirectory,BarrelInfo* pBarrelInfo,FieldInfo* pFieldInfo);
 
-    BlockTermReader(SparseTermReaderImpl* pTermReaderImpl);
+    BlockTermReader(const boost::shared_ptr<SparseTermReaderImpl>& pTermReaderImpl);
 
 public:
     TermIterator* termIterator(const char* field);
@@ -293,7 +295,7 @@ class ChunkTermReader: public RTDiskTermReader
 public:
     ChunkTermReader(Directory* pDirectory,BarrelInfo* pBarrelInfo,FieldInfo* pFieldInfo);
 
-    ChunkTermReader(SparseTermReaderImpl* pTermReaderImpl);
+    ChunkTermReader(const boost::shared_ptr<SparseTermReaderImpl>& pTermReaderImpl);
 
 public:
     TermIterator* termIterator(const char* field);

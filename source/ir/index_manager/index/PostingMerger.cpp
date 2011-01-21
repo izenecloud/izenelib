@@ -428,7 +428,7 @@ void PostingMerger::mergeWith_GC(RTDiskPostingReader* pOnDiskPosting,BitVector* 
 
 void PostingMerger::mergeWith(BlockPostingReader* pPosting,BitVector* pFilter)
 {
-    IndexInput* pPInput = pPosting->pInputDescriptor_->getPPostingInput();
+    IndexInput* pPInput = pPosting->inputDescriptorPtr_->getPPostingInput();
 
     if (bFirstPosting_)///first posting
     {
@@ -550,8 +550,8 @@ void PostingMerger::mergeWith(BlockPostingReader* pPosting,BitVector* pFilter)
 
 void PostingMerger::mergeWith(ChunkPostingReader* pPosting,BitVector* pFilter)
 {
-    IndexInput*	pDInput = pPosting->pInputDescriptor_->getDPostingInput();
-    IndexInput*	pPInput = pPosting->pInputDescriptor_->getPPostingInput();
+    IndexInput*	pDInput = pPosting->inputDescriptorPtr_->getDPostingInput();
+    IndexInput*	pPInput = pPosting->inputDescriptorPtr_->getPPostingInput();
 
     if (bFirstPosting_)///first posting
     {

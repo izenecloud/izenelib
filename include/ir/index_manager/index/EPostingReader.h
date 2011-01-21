@@ -15,6 +15,8 @@
 #include <ir/index_manager/index/InputDescriptor.h>
 #include <ir/index_manager/utility/BitVector.h>
 
+#include <boost/scoped_ptr.hpp>
+
 NS_IZENELIB_IR_BEGIN
 
 namespace indexmanager{
@@ -148,8 +150,8 @@ protected:
 
 protected:
     BlockDecoder blockDecoder_;
-    InputDescriptor* pInputDescriptor_;
-    FixedBlockSkipListReader* pSkipListReader_; ///skiplist reader
+    boost::scoped_ptr<InputDescriptor> inputDescriptorPtr_;
+    boost::scoped_ptr<FixedBlockSkipListReader> skipListReaderPtr_; ///skiplist reader
     ListingCache* pListingCache_;
     BitVector* pDocFilter_;
 
@@ -300,8 +302,8 @@ protected:
     int skipInterval_;
     int maxSkipLevel_;
     ChunkDecoder chunkDecoder_;
-    InputDescriptor* pInputDescriptor_;
-    SkipListReader* pSkipListReader_; ///skiplist reader
+    boost::scoped_ptr<InputDescriptor> inputDescriptorPtr_;
+    boost::scoped_ptr<SkipListReader> skipListReaderPtr_; ///skiplist reader
     BitVector* pDocFilter_;
 
     fileoffset_t postingOffset_;
