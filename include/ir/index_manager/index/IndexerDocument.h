@@ -42,7 +42,7 @@ typedef std::pair<boost::shared_ptr<LAInput>, PropertyType >  IndexPropertyType;
 typedef std::pair<boost::shared_ptr<LAInput>, MultiValuePropertyType >  MultiValueIndexPropertyType;
 
 ///A ptoperty type that support inverted index, BTree index, and both index (inverted and BTree)
-typedef boost::variant<boost::shared_ptr<LAInput>, PropertyType, IndexPropertyType, MultiValueIndexPropertyType > IndexerDocumentPropertyType;
+typedef boost::variant<boost::shared_ptr<LAInput>, PropertyType, MultiValuePropertyType, IndexPropertyType, MultiValueIndexPropertyType > IndexerDocumentPropertyType;
 
 struct DocId
 {
