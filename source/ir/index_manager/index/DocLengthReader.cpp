@@ -26,10 +26,12 @@ DocLengthReader::DocLengthReader(const std::set<IndexerPropertyConfig, IndexerPr
         {
             if(iter->isStoreDocLen())
             {
-                numIndexedProperties_++;
                 ///This judgement is necessary because aliased properties have the same property id
                 if(0 == propertyOffsetMap_[iter->getPropertyId()])
+                {
+                    numIndexedProperties_++;
                     propertyOffsetMap_[iter->getPropertyId()] = offset++;
+                }
             }
             else
               propertyDocLenMap_[iter->getPropertyId()] = 1;
