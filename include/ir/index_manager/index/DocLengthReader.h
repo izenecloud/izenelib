@@ -47,9 +47,6 @@ private:
 
     unsigned char* propertyOffsetMap_;
 
-    ///used to store indexed property that does not need to store doc length value
-    unsigned char* propertyDocLenMap_;
-
     ///used to store bitmap, each property length occupy 16bit, which indicates the
     ///max property length is limited to 65535
     doclen_t* data_;

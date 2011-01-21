@@ -102,27 +102,13 @@ void CollectionIndexer::addDocument(IndexerDocument& doc)
 
         if (iter->first.isFilter())
         {
-            if(iter->first.isMultiValue())
-            {
-                MultiValuePropertyType prop;
-                if (iter->first.isAnalyzed())
-                    prop = boost::get<MultiValueIndexPropertyType >(iter->second).second;
-                else
-                    prop = boost::get<MultiValuePropertyType>(iter->second);
-
-                for(MultiValuePropertyType::iterator it = prop.begin(); it != prop.end(); ++it)
-                    pIndexer_->getBTreeIndexer()->add(uniqueID.colId, iter->first.getPropertyId(), *it, uniqueID.docId);
-            }
+            PropertyType prop;
+            if (iter->first.isAnalyzed())
+                prop = boost::get<IndexPropertyType >(iter->second).second;
             else
-            {
-                PropertyType prop;
-                if (iter->first.isAnalyzed())
-                    prop = boost::get<IndexPropertyType >(iter->second).second;
-                else
-                    prop = boost::get<PropertyType>(iter->second);
+                prop = boost::get<PropertyType>(iter->second);
 
-                pIndexer_->getBTreeIndexer()->add(uniqueID.colId, iter->first.getPropertyId(), prop, uniqueID.docId);
-            }
+            pIndexer_->getBTreeIndexer()->add(uniqueID.colId, iter->first.getPropertyId(), prop, uniqueID.docId);
         }
 
         if (iter->first.isAnalyzed())
@@ -134,16 +120,13 @@ void CollectionIndexer::addDocument(IndexerDocument& doc)
 
             boost::shared_ptr<LAInput> laInput;
             if (iter->first.isFilter())
-                if(iter->first.isMultiValue())
-                    laInput = boost::get<MultiValueIndexPropertyType >(iter->second).first;
-                else
-                    laInput = boost::get<IndexPropertyType >(iter->second).first;
+                laInput = boost::get<IndexPropertyType >(iter->second).first;
             else
                 laInput = boost::get<boost::shared_ptr<LAInput> >(iter->second);
 
             it->second->addField(uniqueID.docId, laInput);
 
-            if (pDocLengthWriter_ && iter->first.isStoreDocLen())
+            if (pDocLengthWriter_)
                 pDocLengthWriter_->fill(iter->first.getPropertyId(), laInput->size(), docLength);
         }
     }
