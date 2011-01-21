@@ -4,47 +4,20 @@
 #include <ir/index_manager/index/AbsTermReader.h>
 #include <ir/index_manager/index/BarrelInfo.h>
 
-#include <map>
+#include <utility> // std::pair
 #include <vector>
 
 NS_IZENELIB_IR_BEGIN
 
 namespace indexmanager{
 
-class ReaderCache
-{
-public:
-    ReaderCache()
-    {
-        pTermReader_ = NULL;
-        next_ = NULL;
-    }
-    ReaderCache(BarrelInfo* pBarrelInfo,TermReader* pSe)
-    {
-        pBarrelInfo_ = pBarrelInfo;
-        pTermReader_ = pSe;
-        next_ = NULL;
-    }
-    ~ReaderCache()
-    {
-        pBarrelInfo_ = NULL;
-        delete pTermReader_;
-        pTermReader_ = NULL;
-        delete next_;
-        next_ = NULL;
-    }
-private:
-    BarrelInfo* pBarrelInfo_;
-    TermReader* pTermReader_;
-    ReaderCache* next_;
-    friend class MultiTermReader;
-};
-
 class MultiIndexBarrelReader;
 class MultiTermReader : public TermReader
 {
 public:
     MultiTermReader(MultiIndexBarrelReader* pBarrelReader, collectionid_t colID);
+
+    MultiTermReader(const MultiTermReader& multiTermReader);
 
     virtual ~MultiTermReader(void);
 public:
@@ -104,17 +77,12 @@ public:
     TermReader* clone() ;
 
 private:
-
-    ReaderCache* loadReader(const char* field);
-
-private:
     collectionid_t colID_;
 
-    MultiIndexBarrelReader* pBarrelReader_;
+    typedef std::pair<BarrelInfo*, TermReader*> BarrelTermReaderEntry;
+    std::vector<BarrelTermReaderEntry> termReaders_;
 
-    ReaderCache* pCurReader_;
-
-    map<string,ReaderCache*> readerCache_;
+    bool isOwnTermReaders_;
 };
 
 }
