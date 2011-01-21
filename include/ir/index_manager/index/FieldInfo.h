@@ -55,17 +55,16 @@ public:
         fieldFlag_ |= indexed<<4;
     }
     FieldInfo(const FieldInfo& src)
-    {
-        colid_ = src.colid_;
-        fieldFlag_ = src.fieldFlag_;
-        id_ = src.id_;
-        name_ = src.name_;
-        distTerms_ = src.distTerms_;
-        indexOffset_ = src.indexOffset_;
-        vocLength_ = src.vocLength_;
-        dfiLength_ = src.dfiLength_;
-        ptiLength_ = src.ptiLength_;
-    }
+        :id_(src.id_)
+        ,colid_(src.colid_)
+        ,name_(src.name_)
+        ,fieldFlag_(src.fieldFlag_)
+        ,distTerms_(src.distTerms_)
+        ,indexOffset_(src.indexOffset_)
+        ,vocLength_(src.vocLength_)
+        ,dfiLength_(src.dfiLength_)
+        ,ptiLength_(src.ptiLength_)
+    {}
     ~FieldInfo(){}
 public:
     /**
