@@ -499,8 +499,7 @@ RTDiskPostingReader::RTDiskPostingReader(int skipInterval, int maxSkipLevel,
                                             InputDescriptor* pInputDescriptor, const TermInfo& termInfo)
         :skipInterval_(skipInterval)
         ,maxSkipLevel_(maxSkipLevel)
-        ,pInputDescriptor_(pInputDescriptor)
-        ,pSkipListReader_(0)
+        ,inputDescriptorPtr_(pInputDescriptor)
         ,pDocFilter_(0)
 {
     reset(termInfo);
@@ -508,20 +507,13 @@ RTDiskPostingReader::RTDiskPostingReader(int skipInterval, int maxSkipLevel,
 
 RTDiskPostingReader::~RTDiskPostingReader()
 {
-    delete pInputDescriptor_;
-
-    if(pSkipListReader_)
-    {
-        delete pSkipListReader_;
-        pSkipListReader_ = 0;
-    }
 }
 
 void RTDiskPostingReader::reset(const TermInfo& termInfo)
 {
     postingOffset_ = termInfo.docPointer_;
 
-    IndexInput* pDPInput = pInputDescriptor_->getDPostingInput();
+    IndexInput* pDPInput = inputDescriptorPtr_->getDPostingInput();
     //IndexInput should be reset because the internal buffer should be clear when a new posting is needed to be read
     pDPInput->reset();
 
@@ -534,24 +526,19 @@ void RTDiskPostingReader::reset(const TermInfo& termInfo)
     chunkDesc_.length = termInfo.docPostingLen_;	///<ChunkLength(VInt64)>
     chunkDesc_.lastdocid = termInfo.lastDocID_;		///<LastDocID(VInt32)>
 
-    if(pSkipListReader_)
-    {
-        delete pSkipListReader_;
-        pSkipListReader_ = 0;	
-    }
-
+    skipListReaderPtr_.reset();
     if(termInfo.skipLevel_ > 0)
     {
         if((termInfo.docFreq_ >= 4096)&&(termInfo.skipPointer_ != -1))
         {
             pDPInput->seek(termInfo.skipPointer_);
-            pSkipListReader_ = new SkipListReader(pDPInput, skipInterval_, termInfo.skipLevel_);
+            skipListReaderPtr_.reset(new SkipListReader(pDPInput, skipInterval_, termInfo.skipLevel_));
         }
     }
 
     pDPInput->seek(postingOffset_);
 
-    IndexInput* pPPInput = pInputDescriptor_->getPPostingInput();
+    IndexInput* pPPInput = inputDescriptorPtr_->getPPostingInput();
     if (pPPInput)
     {
         pPPInput->reset();
@@ -578,12 +565,12 @@ docid_t RTDiskPostingReader::decodeTo(docid_t target, uint32_t* pPosting, int32_
     if((count_t)(ds_.decodedDocCount) >= postingDesc_.df)		
         return -1;
 
-    if(pSkipListReader_)
+    if(skipListReaderPtr_.get())
     {
-        docid_t lastDocID = pSkipListReader_->skipTo(target);
+        docid_t lastDocID = skipListReaderPtr_->skipTo(target);
         if(lastDocID > ds_.lastDecodedDocID)
         {
-            seekTo(pSkipListReader_);
+            seekTo(skipListReaderPtr_.get());
         }
     }
 
@@ -593,7 +580,7 @@ docid_t RTDiskPostingReader::decodeTo(docid_t target, uint32_t* pPosting, int32_
     count_t nDF = postingDesc_.df;
     count_t nDecodedCount = ds_.decodedDocCount;
 
-    IndexInput* pDPostingInput = pInputDescriptor_->getDPostingInput();
+    IndexInput* pDPostingInput = inputDescriptorPtr_->getDPostingInput();
     for(; nDecodedCount < nDF; ++nDecodedCount)
     {
         nDocID += pDPostingInput->readVInt();
@@ -621,11 +608,11 @@ docid_t RTDiskPostingReader::decodeTo(docid_t target, uint32_t* pPosting, int32_
 
 void RTDiskPostingReader::seekTo(SkipListReader* pSkipListReader)
 {
-    IndexInput* pDPostingInput = pInputDescriptor_->getDPostingInput();
+    IndexInput* pDPostingInput = inputDescriptorPtr_->getDPostingInput();
     pDPostingInput->seek(postingOffset_ + pSkipListReader->getOffset());
     ds_.lastDecodedDocID = pSkipListReader->getDoc();
     ds_.decodedDocCount = pSkipListReader->getNumSkipped();
-    IndexInput* pPPostingInput = pInputDescriptor_->getPPostingInput();
+    IndexInput* pPPostingInput = inputDescriptorPtr_->getPPostingInput();
     if(pPPostingInput)
     {
         pPPostingInput->seek(postingDesc_.poffset + pSkipListReader->getPOffset());
@@ -645,7 +632,7 @@ int32_t RTDiskPostingReader::decodeNext(uint32_t* pPosting, int32_t length, int3
     uint32_t* pDoc = pPosting;
     uint32_t* pFreq = pPosting + (length >> 1);
 
-    IndexInput* pDPostingInput = pInputDescriptor_->getDPostingInput();
+    IndexInput* pDPostingInput = inputDescriptorPtr_->getDPostingInput();
 
     docid_t did = ds_.lastDecodedDocID;
     count_t nSkipPCount = 0;
@@ -689,8 +676,8 @@ int32_t RTDiskPostingReader::decodeNext(uint32_t* pPosting, int32_t length, int3
 
     skipPositions();
 
-    IndexInput* pDPostingInput = pInputDescriptor_->getDPostingInput();
-    IndexInput*	pPPostingInput = pInputDescriptor_->getPPostingInput();
+    IndexInput* pDPostingInput = inputDescriptorPtr_->getDPostingInput();
+    IndexInput*	pPPostingInput = inputDescriptorPtr_->getPPostingInput();
 
     docid_t did = ds_.lastDecodedDocID;
     int32_t nFreqs = 0;
@@ -745,7 +732,7 @@ bool RTDiskPostingReader::decodeNextPositions(uint32_t* pPosting,int32_t length)
         return true;
     }
 	
-    IndexInput* pPPostingInput = pInputDescriptor_->getPPostingInput();
+    IndexInput* pPPostingInput = inputDescriptorPtr_->getPPostingInput();
 
     skipPositions();
 
@@ -774,7 +761,7 @@ bool RTDiskPostingReader::decodeNextPositions(uint32_t* &pPosting, int32_t& posB
         return true;
     }
 	
-    IndexInput* pPPostingInput = pInputDescriptor_->getPPostingInput();
+    IndexInput* pPPostingInput = inputDescriptorPtr_->getPPostingInput();
 
     skipPositions();
 
@@ -803,7 +790,7 @@ bool RTDiskPostingReader::decodeNextPositions(uint32_t* &pPosting, int32_t& posB
         return true;
     }
 
-    IndexInput*	pPPostingInput = pInputDescriptor_->getPPostingInput();
+    IndexInput*	pPPostingInput = inputDescriptorPtr_->getPPostingInput();
 
     skipPositions();
 
@@ -859,7 +846,7 @@ void RTDiskPostingReader::skipPositions()
 {			
     if(ds_.skipPosCount_ > 0)
     {
-        IndexInput* pPPostingInput = pInputDescriptor_->getPPostingInput();
+        IndexInput* pPPostingInput = inputDescriptorPtr_->getPPostingInput();
         if(pPPostingInput)
         {
             size_t nSkipPCount = ds_.skipPosCount_;

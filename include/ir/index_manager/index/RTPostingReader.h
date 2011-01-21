@@ -13,6 +13,8 @@
 #include <ir/index_manager/index/TermInfo.h>
 #include <ir/index_manager/utility/BitVector.h>
 
+#include <boost/scoped_ptr.hpp>
+
 NS_IZENELIB_IR_BEGIN
 
 namespace indexmanager{
@@ -249,7 +251,7 @@ public:
 
     SkipListReader* getSkipListReader()
     {
-        return pSkipListReader_;
+        return skipListReaderPtr_.get();
     }
 
     docid_t lastDocID()
@@ -274,7 +276,7 @@ public:
 
     InputDescriptor* getInputDescriptor()
     {
-        return pInputDescriptor_;
+        return inputDescriptorPtr_.get();
     }
 
 protected:
@@ -287,9 +289,9 @@ protected:
     ChunkDescriptor chunkDesc_;
     fileoffset_t postingOffset_;
     int64_t nPPostingLength_;
-    InputDescriptor* pInputDescriptor_;
+    boost::scoped_ptr<InputDescriptor> inputDescriptorPtr_;
     RTDiskPostingReader::DecodeState ds_;
-    SkipListReader* pSkipListReader_; ///skiplist reader
+    boost::scoped_ptr<SkipListReader> skipListReaderPtr_; ///skiplist reader
     BitVector* pDocFilter_;
 
     friend class PostingMerger;
