@@ -14,17 +14,25 @@ DocLengthReader::DocLengthReader(const std::set<IndexerPropertyConfig, IndexerPr
     ,numIndexedProperties_(0)
 {
     propertyOffsetMap_ = new unsigned char[MAX_PROPERTIES];
+    propertyDocLenMap_  = new unsigned char[MAX_PROPERTIES];
     memset(propertyOffsetMap_, 0, MAX_PROPERTIES);
+    memset(propertyDocLenMap_, 0, MAX_PROPERTIES);
+
     size_t i = 0;
     size_t offset = 0;
     for(std::set<IndexerPropertyConfig, IndexerPropertyConfigComp>::const_iterator iter = schema.begin(); iter != schema.end(); ++iter, ++i)
     {
-        if(iter->isIndex() && iter->isAnalyzed())
+        if(iter->isIndex() && iter->isAnalyzed() )
         {
-            numIndexedProperties_++;
-            ///This judgement is necessary because aliased properties have the same property id
-            if(0 == propertyOffsetMap_[iter->getPropertyId()])
-                propertyOffsetMap_[iter->getPropertyId()] = offset++;
+            if(iter->isStoreDocLen())
+            {
+                numIndexedProperties_++;
+                ///This judgement is necessary because aliased properties have the same property id
+                if(0 == propertyOffsetMap_[iter->getPropertyId()])
+                    propertyOffsetMap_[iter->getPropertyId()] = offset++;
+            }
+            else
+              propertyDocLenMap_[iter->getPropertyId()] = 1;
         }
     }
 }
@@ -57,10 +65,15 @@ void DocLengthReader::load(docid_t maxDocId)
 
 size_t DocLengthReader::docLength(docid_t docId, fieldid_t fid)
 {
-    size_t pos = docId*numIndexedProperties_+propertyOffsetMap_[fid];
-    if(pos >= size_ || !data_)
-        return 0;
-    return data_[pos];
+    if(!propertyDocLenMap_[fid])
+    {
+        size_t pos = docId*numIndexedProperties_+propertyOffsetMap_[fid];
+        if(pos >= size_ || !data_)
+            return 0;
+        return data_[pos];
+    }
+    else
+        return propertyDocLenMap_[fid];
 }
 
 double DocLengthReader::averagePropertyLength(fieldid_t fid)

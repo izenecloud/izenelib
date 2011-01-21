@@ -27,7 +27,9 @@ public:
             :propertyId_(0),
             index_(false),
             analyzed_(false),
-            filter_(false)
+            filter_(false),
+            multiValue_(false),
+            storeDocLen_(false)
     { }
 
     IndexerPropertyConfig(const IndexerPropertyConfig& other)
@@ -35,7 +37,9 @@ public:
              propertyName_(other.propertyName_),
              index_(other.index_),
              analyzed_(other.analyzed_),
-             filter_(other.filter_)
+             filter_(other.filter_),
+             multiValue_(other.multiValue_),
+             storeDocLen_(other.storeDocLen_)
     {}
 
     IndexerPropertyConfig(unsigned int propertyid, std::string propertyname, bool index, bool analyzed, bool filter = false)
@@ -44,6 +48,8 @@ public:
 		,index_(index)
 		,analyzed_(analyzed)
 		,filter_(filter)
+		,multiValue_(false)
+		,storeDocLen_(false)
     { }
 
 public:
@@ -96,7 +102,27 @@ public:
     {
         return filter_;
     }
-		
+
+    void setIsMultiValue( const bool isMultiValue)
+    {
+        multiValue_ = isMultiValue;
+    }
+
+    bool isMultiValue() const
+    {
+        return multiValue_;
+    }
+
+    void setIsStoreDocLen( const bool isStoreDocLen)
+    {
+        storeDocLen_ = isStoreDocLen;
+    }
+
+    bool isStoreDocLen() const
+    {
+        return storeDocLen_;
+    }
+
     std::string toString() const
     {
         std::stringstream sStream;
@@ -143,6 +169,10 @@ protected:
     ///whether filter index is going to be built on this property,
     ///BTree index will only be built when both index_ and filter_ are true
     bool filter_;
+    ///only used for filter
+    bool multiValue_;
+    /// whether store doclen;
+    bool storeDocLen_;
 };
 
 struct IndexerPropertyConfigComp
