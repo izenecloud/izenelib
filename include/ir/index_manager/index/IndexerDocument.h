@@ -24,7 +24,6 @@
 #include <boost/shared_ptr.hpp>
 
 #include <map>
-#include <list>
 
 NS_IZENELIB_IR_BEGIN
 
@@ -32,17 +31,11 @@ namespace indexmanager{
 ///PropertyType is the data supported to set up BTree index
 typedef boost::variant<int64_t,uint64_t, float, double, String> PropertyType;
 
-///MultiValuePropertyType is splitted by ","
-typedef std::list<PropertyType > MultiValuePropertyType;
-
 ///A property that both inverted index and BTree index will be built
 typedef std::pair<boost::shared_ptr<LAInput>, PropertyType >  IndexPropertyType;
 
-///A multivalueproperty that both inverted index and BTree index will be built
-typedef std::pair<boost::shared_ptr<LAInput>, MultiValuePropertyType >  MultiValueIndexPropertyType;
-
 ///A ptoperty type that support inverted index, BTree index, and both index (inverted and BTree)
-typedef boost::variant<boost::shared_ptr<LAInput>, PropertyType, IndexPropertyType, MultiValueIndexPropertyType > IndexerDocumentPropertyType;
+typedef boost::variant<boost::shared_ptr<LAInput>, PropertyType, IndexPropertyType> IndexerDocumentPropertyType;
 
 struct DocId
 {
