@@ -160,20 +160,17 @@ TermInfo* TermReaderImpl::termInfo(Term* term)
 ///VocReader
 VocReader::VocReader(Directory* pDirectory,BarrelInfo* pBarrelInfo,FieldInfo* pFieldInfo)
         : TermReader()
-        , pTermReaderImpl_(NULL)
         , pCurTermInfo_(NULL)
-        , ownTermReaderImpl_(true)
         , pInputDescriptor_(NULL)
 {
     pBarrelInfo_ = pBarrelInfo;
     open(pDirectory, pBarrelInfo, pFieldInfo);
 }
 
-VocReader::VocReader(TermReaderImpl* pTermReaderImpl)
+VocReader::VocReader(const boost::shared_ptr<TermReaderImpl>& pTermReaderImpl)
         : TermReader()
         , pTermReaderImpl_(pTermReaderImpl)
         , pCurTermInfo_(NULL)
-        , ownTermReaderImpl_(false)
         , pInputDescriptor_(pTermReaderImpl->pInputDescriptor_->clone())
 {
 }
@@ -181,8 +178,6 @@ VocReader::VocReader(TermReaderImpl* pTermReaderImpl)
 VocReader::~VocReader()
 {
     close();
-    if ((pTermReaderImpl_)&&(ownTermReaderImpl_))
-        delete pTermReaderImpl_;
     if (pInputDescriptor_)
         delete pInputDescriptor_;
 }
@@ -191,7 +186,7 @@ void VocReader::open(Directory* pDirectory,BarrelInfo* pBarrelInfo,FieldInfo* pF
 {
     setFieldInfo(pFieldInfo);
 
-    pTermReaderImpl_ = new TermReaderImpl(pFieldInfo);
+    pTermReaderImpl_.reset(new TermReaderImpl(pFieldInfo));
     pTermReaderImpl_->open(pDirectory, pBarrelInfo->getName().c_str());
     pInputDescriptor_ = pTermReaderImpl_->pInputDescriptor_->clone();
 }
@@ -229,7 +224,7 @@ TermReader* VocReader::clone()
 
 TermDocFreqs* VocReader::termDocFreqs()
 {
-    if (pCurTermInfo_ == NULL || pTermReaderImpl_ == NULL )
+    if (pCurTermInfo_ == NULL || pTermReaderImpl_.get() == NULL )
         return NULL;
     RTDiskPostingReader* pPosting = 
         new RTDiskPostingReader(skipInterval_, maxSkipLevel_, pTermReaderImpl_->pInputDescriptor_->clone(DOCUMENT_LEVEL),*pCurTermInfo_);
@@ -244,7 +239,7 @@ TermDocFreqs* VocReader::termDocFreqs()
 
 TermPositions* VocReader::termPositions()
 {
-    if (pCurTermInfo_ == NULL || pTermReaderImpl_ == NULL )
+    if (pCurTermInfo_ == NULL || pTermReaderImpl_.get() == NULL )
         return NULL;
 
     RTDiskPostingReader* pPosting = 
@@ -365,6 +360,8 @@ void SparseTermReaderImpl::reopen()
 
 void SparseTermReaderImpl::close()
 {
+    DVLOG(4) << "=> SparseTermReaderImpl::close(), sparseTermTable_: " << sparseTermTable_;
+
     if (pInputDescriptor_)
     {
         delete pInputDescriptor_;
@@ -377,6 +374,8 @@ void SparseTermReaderImpl::close()
         sparseTermTable_ = NULL;
         nTermCount_ = 0;
     }
+
+    DVLOG(4) << "<= SparseTermReaderImpl::close()";
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -384,7 +383,6 @@ void SparseTermReaderImpl::close()
 RTDiskTermReader::RTDiskTermReader(Directory* pDirectory,BarrelInfo* pBarrelInfo,FieldInfo* pFieldInfo)
         : TermReader()
         , pCurTermInfo_(NULL)
-        , ownTermReaderImpl_(true)
         , pVocInput_(NULL)
 {
     pBarrelInfo_ = pBarrelInfo;
@@ -401,7 +399,6 @@ RTDiskTermReader::RTDiskTermReader(const boost::shared_ptr<SparseTermReaderImpl>
         : TermReader()
         , pTermReaderImpl_(pTermReaderImpl)
         , pCurTermInfo_(NULL)
-        , ownTermReaderImpl_(false)
         , pVocInput_(NULL)
 {
     pVocInput_ = pTermReaderImpl_->pDirectory_->openInput(pTermReaderImpl_->barrelName_ + ".voc",1025*VOC_ENTRY_LENGTH);

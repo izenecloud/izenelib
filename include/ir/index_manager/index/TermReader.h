@@ -74,7 +74,7 @@ class VocReader:public TermReader
 public:
     VocReader(Directory* pDirectory,BarrelInfo* pBarrelInfo,FieldInfo* pFieldInfo);
 
-    VocReader(TermReaderImpl* pTermReaderImpl);
+    VocReader(const boost::shared_ptr<TermReaderImpl>& pTermReaderImpl);
 
     virtual ~VocReader(void);
 public:
@@ -99,17 +99,15 @@ public:
 
     TermReader* clone() ;
 
-    TermReaderImpl* getTermReaderImpl(){ return pTermReaderImpl_;}
+    TermReaderImpl* getTermReaderImpl(){ return pTermReaderImpl_.get();}
 
 private:
     TermInfo* termInfo(Term* term);
 
 private:
-    TermReaderImpl* pTermReaderImpl_;
+    boost::shared_ptr<TermReaderImpl> pTermReaderImpl_;
 
     TermInfo* pCurTermInfo_;
-
-    bool ownTermReaderImpl_;
 
     InputDescriptor* pInputDescriptor_;
 
@@ -197,8 +195,6 @@ protected:
     boost::shared_ptr<SparseTermReaderImpl> pTermReaderImpl_;
 
     TermInfo* pCurTermInfo_;
-
-    bool ownTermReaderImpl_;
 
     IndexInput* pVocInput_;
 
