@@ -10,6 +10,7 @@
 
 #include <ir/index_manager/index/AbsTermReader.h>
 #include <ir/index_manager/index/TermIterator.h>
+#include <ir/index_manager/index/FieldInfo.h>
 
 #include <string>
 
@@ -36,7 +37,7 @@ struct TERM_TABLE
 class TermReaderImpl
 {
 public:
-    TermReaderImpl(FieldInfo* pFieldInfo);
+    TermReaderImpl(const FieldInfo& fieldInfo);
 
     ~TermReaderImpl();
 public:
@@ -49,7 +50,7 @@ public:
     TermInfo* termInfo(Term* term);
 
 public:
-    FieldInfo* pFieldInfo_;
+    FieldInfo fieldInfo_;
 
     TERM_TABLE* pTermTable_;
 
@@ -101,6 +102,8 @@ public:
 
     TermReaderImpl* getTermReaderImpl(){ return pTermReaderImpl_.get();}
 
+    FieldInfo* getFieldInfo() { return &pTermReaderImpl_->fieldInfo_; }
+
 private:
     TermInfo* termInfo(Term* term);
 
@@ -124,7 +127,7 @@ private:
 class SparseTermReaderImpl
 {
 public:
-    SparseTermReaderImpl(FieldInfo* pFieldInfo);
+    SparseTermReaderImpl(const FieldInfo& fieldInfo);
 
     ~SparseTermReaderImpl();
 public:
@@ -135,7 +138,7 @@ public:
     void close() ;
 
 public:
-    FieldInfo* pFieldInfo_;
+    FieldInfo fieldInfo_;
 
     TERM_TABLE* sparseTermTable_;
 
@@ -190,6 +193,8 @@ protected:
     TermInfo* searchBuffer(termid_t termId, int end);
 
     int fillBuffer(int pos);
+
+    FieldInfo* getFieldInfo() { return &pTermReaderImpl_->fieldInfo_; }
 
 protected:
     boost::shared_ptr<SparseTermReaderImpl> pTermReaderImpl_;
