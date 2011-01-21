@@ -80,6 +80,8 @@ size_t DocLengthReader::docLength(docid_t docId, fieldid_t fid)
 
 double DocLengthReader::averagePropertyLength(fieldid_t fid)
 {
+    if(0 == numIndexedProperties_) return 1;
+
     size_t totalLen = 0;
     size_t maxDoc = size_/numIndexedProperties_;
     unsigned char offset = propertyOffsetMap_[fid];

@@ -18,10 +18,12 @@ DocLengthWriter::DocLengthWriter(
     {
         if(iter->isIndex() && iter->isAnalyzed() && iter->isStoreDocLen() )
         {
-            numIndexedProperties_++;
             ///This judgement is necessary because aliased properties have the same property id
             if(0 == propertyOffsetMap_[iter->getPropertyId()])
+            {
+                numIndexedProperties_++;
                 propertyOffsetMap_[iter->getPropertyId()] = offset++;
+            }
         }
     }
     size_t buffersize = 8*1024*1024;
