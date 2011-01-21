@@ -35,7 +35,7 @@ static std::string vector_dump(std::vector<int> &iv)
     return tmp;
 }
 
-CronExpression::CronExpression(std::string job)
+CronExpression::CronExpression(const std::string& job)
 {
     setExpression(job);
 }
@@ -44,7 +44,7 @@ CronExpression::~CronExpression()
 {
 }
 
-void CronExpression::setExpression(std::string expression)
+bool CronExpression::setExpression(const std::string& expression)
 {
     typedef boost::tokenizer<boost::char_separator<char> > ExpTokenizer;
 
@@ -59,7 +59,7 @@ void CronExpression::setExpression(std::string expression)
     {
         toks.push_back(*tok_iter);
     }
-    if(toks.size() < 5) return;
+    if(toks.size() < 5) return false;
     // hokey dokey.  now we have six strings and we need five arrays of ints and one string out of them.
     minutes = parseTimeList(toks[0], 0, 59);
     hours = parseTimeList(toks[1], 0, 23);
@@ -80,6 +80,7 @@ void CronExpression::setExpression(std::string expression)
         std::cout << "expression weekdays: " << vector_dump(weekdays) << std::endl;
     }
 #endif
+  return true;
 }
 
 std::vector<int> CronExpression::parseTimeList(const std::string in, const int min, const int max)
@@ -161,6 +162,23 @@ bool CronExpression::matches(int n, int h, int d, int m, int w) const
             isInVector(days, d) &&
             isInVector(months, m) &&
             isInVector(weekdays, w));
+}
+
+bool CronExpression::matches_now() const
+{
+  using namespace boost::posix_time;
+  using namespace boost::gregorian;
+  using namespace izenelib::util;
+
+  boost::posix_time::ptime now = second_clock::local_time();
+  boost::gregorian::date date = now.date();
+  boost::posix_time::time_duration du = now.time_of_day();
+  int dow = date.day_of_week();
+  int month = date.month();
+  int day = date.day();
+  int hour = du.hours();
+  int minute = du.minutes();
+  return matches(minute, hour, day, month, dow);
 }
 
 bool CronExpression::isInVector(const std::vector<int> &iv, const int x)

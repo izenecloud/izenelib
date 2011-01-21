@@ -127,13 +127,14 @@ class CronExpression
 public:
     CronExpression(){};
 
-    CronExpression(std::string job);
+    CronExpression(const std::string& job);
 
     ~CronExpression();
 
-    void setExpression(std::string job);
+    bool setExpression(const std::string& job);
 
     bool matches(int n, int h, int d, int m, int w) const;
+    bool matches_now() const;
 
     static int day_of_week(int m, int d, int y);
 private:
