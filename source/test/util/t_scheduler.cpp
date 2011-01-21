@@ -29,10 +29,11 @@ void TestFuncOk2() {
   ++g_counter2;
 }
 
-CronExpression job("0,15,30,45	7-23	*	*	*");
 
 void TestCronExpression()
 {
+    CronExpression job;
+    job.setExpression("0,15,30,45  7-23    *       *       *");
     using namespace boost::posix_time;
     using namespace boost::gregorian;
 

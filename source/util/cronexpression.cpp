@@ -10,6 +10,10 @@
 #include <math.h>
 
 #include <boost/tokenizer.hpp>
+#include <boost/date_time/posix_time/posix_time.hpp>
+#include <boost/date_time/gregorian/gregorian.hpp>
+#include <boost/date_time/local_time_adjustor.hpp>
+#include <boost/date_time/c_local_time_adjustor.hpp>
 
 namespace izenelib{
 namespace util{
@@ -35,51 +39,45 @@ static std::string vector_dump(std::vector<int> &iv)
     return tmp;
 }
 
-CronExpression::CronExpression(const std::string& job)
-{
-    setExpression(job);
-}
-
 CronExpression::~CronExpression()
 {
 }
 
-bool CronExpression::setExpression(const std::string& expression)
+bool CronExpression::setExpression(const std::string& expression, bool show)
 {
-    typedef boost::tokenizer<boost::char_separator<char> > ExpTokenizer;
+  typedef boost::tokenizer<boost::char_separator<char> > ExpTokenizer;
 
-    // parse the string we're given into five vectors of n ints and a command
-    // note: this is rather expensive
-    // first bust it up into tokens based on whitespace.
-    // the first five are the timing values and the 'sixth through nth' is the command.
-    boost::char_separator<char> sep(" \t");
-    ExpTokenizer tokens(expression, sep);
-    std::vector<std::string> toks;
-    for (ExpTokenizer::iterator tok_iter = tokens.begin();tok_iter != tokens.end(); ++tok_iter)
-    {
-        toks.push_back(*tok_iter);
-    }
-    if(toks.size() < 5) return false;
-    // hokey dokey.  now we have six strings and we need five arrays of ints and one string out of them.
-    minutes = parseTimeList(toks[0], 0, 59);
-    hours = parseTimeList(toks[1], 0, 23);
-    days = parseTimeList(toks[2], 1, 31);
-    months = parseTimeList(toks[3], 1, 12);
-    weekdays = parseTimeList(toks[4], 0, 7);
+  // parse the string we're given into five vectors of n ints and a command
+  // note: this is rather expensive
+  // first bust it up into tokens based on whitespace.
+  // the first five are the timing values and the 'sixth through nth' is the command.
+  boost::char_separator<char> sep(" \t");
+  ExpTokenizer tokens(expression, sep);
+  std::vector<std::string> toks;
+  for (ExpTokenizer::iterator tok_iter = tokens.begin();tok_iter != tokens.end(); ++tok_iter)
+  {
+      toks.push_back(*tok_iter);
+  }
+  if(toks.size() < 5) return false;
+  // hokey dokey.  now we have six strings and we need five arrays of ints and one string out of them.
+  minutes = parseTimeList(toks[0], 0, 59);
+  hours = parseTimeList(toks[1], 0, 23);
+  days = parseTimeList(toks[2], 1, 31);
+  months = parseTimeList(toks[3], 1, 12);
+  weekdays = parseTimeList(toks[4], 0, 7);
 
-#if 1
-    // sunday is both 7 and 0, make sure we have both or neither
-    if (isInVector(weekdays, 0) && !isInVector(weekdays, 7)) weekdays.push_back(7);
-    else if (isInVector(weekdays, 7) && !isInVector(weekdays, 0)) weekdays.push_back(0);
+  // sunday is both 7 and 0, make sure we have both or neither
+  if (isInVector(weekdays, 0) && !isInVector(weekdays, 7)) weekdays.push_back(7);
+  else if (isInVector(weekdays, 7) && !isInVector(weekdays, 0)) weekdays.push_back(0);
+  if(show)
+  {
+      std::cout << "expression minutes: " << vector_dump(minutes) << std::endl;
+      std::cout << "expression hours: " << vector_dump(hours) << std::endl;
+      std::cout << "expression days: " << vector_dump(days) << std::endl;
+      std::cout << "expression months: " << vector_dump(months) << std::endl;
+      std::cout << "expression weekdays: " << vector_dump(weekdays) << std::endl;
+  }
 
-    {
-        std::cout << "expression minutes: " << vector_dump(minutes) << std::endl;
-        std::cout << "expression hours: " << vector_dump(hours) << std::endl;
-        std::cout << "expression days: " << vector_dump(days) << std::endl;
-        std::cout << "expression months: " << vector_dump(months) << std::endl;
-        std::cout << "expression weekdays: " << vector_dump(weekdays) << std::endl;
-    }
-#endif
   return true;
 }
 

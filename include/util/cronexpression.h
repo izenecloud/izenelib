@@ -127,11 +127,9 @@ class CronExpression
 public:
     CronExpression(){};
 
-    CronExpression(const std::string& job);
-
     ~CronExpression();
 
-    bool setExpression(const std::string& job);
+    bool setExpression(const std::string& job, bool show=false);
 
     bool matches(int n, int h, int d, int m, int w) const;
     bool matches_now() const;
