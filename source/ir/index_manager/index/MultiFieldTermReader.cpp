@@ -2,6 +2,7 @@
 #include <ir/index_manager/index/TermReader.h>
 #include <ir/index_manager/index/FieldInfo.h>
 
+#include <memory> // auto_ptr
 
 using namespace izenelib::ir::indexmanager;
 
@@ -133,21 +134,21 @@ void MultiFieldTermReader::close()
 
 TermReader* MultiFieldTermReader::clone()
 {
-    MultiFieldTermReader* pReader = new MultiFieldTermReader();
+    // use auto_ptr in case of memory leak when exception is thrown in TermReader::clone()
+    std::auto_ptr<MultiFieldTermReader> readerPtr(new MultiFieldTermReader());
 
-    reader_map::iterator iter = fieldsTermReaders_.begin();
-    while (iter != fieldsTermReaders_.end())
+    for(reader_map::iterator iter = fieldsTermReaders_.begin();
+            iter != fieldsTermReaders_.end(); ++iter)
     {
         TermReader* pFieldTermReader = iter->second->clone();
         pFieldTermReader->setSkipInterval(skipInterval_);
         pFieldTermReader->setMaxSkipLevel(maxSkipLevel_);
-        pReader->fieldsTermReaders_.insert(make_pair(iter->first,pFieldTermReader));
-        iter++;
+        readerPtr->fieldsTermReaders_.insert(make_pair(iter->first,pFieldTermReader));
     }
-    pReader->setSkipInterval(skipInterval_);
-    pReader->setMaxSkipLevel(maxSkipLevel_);
+    readerPtr->setSkipInterval(skipInterval_);
+    readerPtr->setMaxSkipLevel(maxSkipLevel_);
 
-    return pReader;
+    return readerPtr.release();
 }
 
 void MultiFieldTermReader::addTermReader(const char* field,TermReader* pTermReader)
