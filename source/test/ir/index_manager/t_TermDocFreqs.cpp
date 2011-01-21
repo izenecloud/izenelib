@@ -434,12 +434,15 @@ void TermDocFreqsTestFixture::queryOneDoc(TermReader* pTermReader, docid_t docID
         {
             BOOST_CHECK_TS(pTermReader->seek(&term));
             boost::scoped_ptr<TermDocFreqs> pTermDocFreqs(pTermReader->termDocFreqs());
+            BOOST_REQUIRE_TS(pTermDocFreqs.get());
 
             moveToDoc(pTermDocFreqs.get(), docID, isDocRemoved, isSkipToRand());
             if(! isDocRemoved)
                 BOOST_CHECK_EQUAL_TS(pTermDocFreqs->freq(), termIt->second.size());
 
             boost::scoped_ptr<TermPositions> pTermPositions(pTermReader->termPositions());
+            BOOST_REQUIRE_TS(pTermPositions.get());
+
             moveToDoc(pTermPositions.get(), docID, isDocRemoved, isSkipToRand());
             if(! isDocRemoved)
             {
