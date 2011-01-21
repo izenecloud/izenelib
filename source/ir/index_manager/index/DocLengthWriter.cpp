@@ -16,7 +16,7 @@ DocLengthWriter::DocLengthWriter(
     for(std::set<IndexerPropertyConfig, IndexerPropertyConfigComp>::const_iterator iter 
             = schema.begin(); iter != schema.end(); ++iter, ++i)
     {
-        if(iter->isIndex() && iter->isAnalyzed())
+        if(iter->isIndex() && iter->isAnalyzed() && iter->isStoreDocLen() )
         {
             numIndexedProperties_++;
             ///This judgement is necessary because aliased properties have the same property id
