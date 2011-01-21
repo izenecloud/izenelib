@@ -97,7 +97,11 @@ void IndexerTestFixture::configTest(const IndexerTestConfig& testConfig)
     {
         IndexerPropertyConfig indexerPropertyConfig(1+i, propertyList[i], true, true);
         propertyMap_[propertyList[i]] = 1+i;
-        if(propertyList[i] != INVERTED_FIELD)
+        if(propertyList[i] == INVERTED_FIELD)
+        {
+            indexerPropertyConfig.setIsStoreDocLen(true);
+        }
+        else
         {
             indexerPropertyConfig.setIsAnalyzed(false);
             indexerPropertyConfig.setIsFilter(true);
@@ -255,6 +259,7 @@ void IndexerTestFixture::prepareDocument(IndexerDocument& document, unsigned int
     document.setDocId(docId, COLLECTION_ID);
 
     IndexerPropertyConfig propertyConfig(propertyMap_[INVERTED_FIELD],INVERTED_FIELD,true,true);
+    propertyConfig.setIsStoreDocLen(true);
 
     boost::shared_ptr<LAInput> laInput(new LAInput);
     document.insertProperty(propertyConfig, laInput);
