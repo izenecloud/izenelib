@@ -10,8 +10,11 @@ using namespace izenelib::ir::indexmanager;
 
 DocLengthReader::DocLengthReader(const std::set<IndexerPropertyConfig, IndexerPropertyConfigComp> & schema, Directory* pDirectory)
     :pDirectory_(pDirectory)
+    ,propertyOffsetMap_(NULL)
+    ,propertyDocLenMap_(NULL)
     ,data_(NULL)
     ,numIndexedProperties_(0)
+    ,size_(0)
 {
     propertyOffsetMap_ = new unsigned char[MAX_PROPERTIES];
     propertyDocLenMap_  = new unsigned char[MAX_PROPERTIES];
@@ -42,6 +45,7 @@ DocLengthReader::DocLengthReader(const std::set<IndexerPropertyConfig, IndexerPr
 DocLengthReader::~DocLengthReader()
 {
     delete[] propertyOffsetMap_;
+    delete[] propertyDocLenMap_;
     if(data_) {delete[] data_; data_ = NULL;}
 }
 
