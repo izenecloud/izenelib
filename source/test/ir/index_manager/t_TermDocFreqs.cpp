@@ -272,7 +272,7 @@ void TermDocFreqsTestFixture::queryCollection(int threadNum)
 
     vector<boost::thread*> threadVec;
     // launch threads
-    const docid_t avgDocNum = ceil(static_cast<double>(maxDocID_) / threadNum);
+    const docid_t avgDocNum = static_cast<docid_t>(ceil(static_cast<double>(maxDocID_) / threadNum));
     for(int i=0; i<threadNum; ++i)
     {
         docid_t startDocID = avgDocNum * i + 1;
