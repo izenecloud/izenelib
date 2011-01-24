@@ -15,6 +15,7 @@
 #include <util/ThreadModel.h>
 
 #include <boost/thread.hpp>
+#include <boost/scoped_ptr.hpp>
 
 #include <vector>
 #include <sstream>
@@ -197,9 +198,9 @@ void IndexMerger::outputNewBarrel(MergeBarrelQueue* pBarrelQueue, const string& 
     name = newBarrelName + ".pop";
     IndexOutput* pPStream = pDirectory_->createOutput(name);
 
-    OutputDescriptor* pOutputDesc = new OutputDescriptor(pVocStream,pDStream,pPStream,true);
-    pOutputDesc->setBarrelName(newBarrelName);
-    pOutputDesc->setDirectory(pDirectory_);
+    OutputDescriptor outputDesc(pVocStream,pDStream,pPStream,true);
+    outputDesc.setBarrelName(newBarrelName);
+    outputDesc.setDirectory(pDirectory_);
 
     int32_t nEntry;
     MergeBarrelEntry* pEntry = NULL;
@@ -301,15 +302,15 @@ void IndexMerger::outputNewBarrel(MergeBarrelQueue* pBarrelQueue, const string& 
                 {
                     vocOff1 = pVocStream->getFilePointer();
                     dfiOff1 = pDStream->getFilePointer();
-                    if (pOutputDesc->getPPostingOutput())
-                        ptiOff1 = pOutputDesc->getPPostingOutput()->getFilePointer();
+                    if (outputDesc.getPPostingOutput())
+                        ptiOff1 = outputDesc.getPPostingOutput()->getFilePointer();
 
-                    voffset = pFieldMerger->merge(pOutputDesc);
+                    voffset = pFieldMerger->merge(&outputDesc);
                     pFieldInfo->setIndexOffset(voffset);///set offset of this field's index data
 
                     vocOff2 = pVocStream->getFilePointer();
                     dfiOff2 = pDStream->getFilePointer();
-                    ptiOff2 = pOutputDesc->getPPostingOutput()->getFilePointer();
+                    ptiOff2 = outputDesc.getPPostingOutput()->getFilePointer();
                     pFieldInfo->setDistinctNumTerms(pFieldMerger->numMergedTerms());
 
                     pFieldInfo->setLength(vocOff2-vocOff1,dfiOff2-dfiOff1,ptiOff2-ptiOff1);
@@ -335,14 +336,12 @@ void IndexMerger::outputNewBarrel(MergeBarrelQueue* pBarrelQueue, const string& 
     } // for
 
     DVLOG(2)<< "IndexMerger::outputNewBarrel() => flush files ...";
-    delete pOutputDesc;
+    outputDesc.flush();
 
     name = newBarrelName + ".fdi";
-    IndexOutput* fieldsStream = pDirectory_->createOutput(name);
-    //fieldsInfo.write(fieldsStream);//field information
-    collectionsInfo.write(fieldsStream);
-    fieldsStream->flush();
-    delete fieldsStream;
+    boost::scoped_ptr<IndexOutput> fieldsStreamPtr(pDirectory_->createOutput(name));
+    collectionsInfo.write(fieldsStreamPtr.get());
+    fieldsStreamPtr->flush();
 
     DVLOG(2)<< "<= IndexMerger::outputNewBarrel()";
 }

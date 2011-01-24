@@ -1,5 +1,7 @@
 #include <ir/index_manager/index/OutputDescriptor.h>
 
+#include <cassert>
+
 using namespace izenelib::ir::indexmanager;
 
 OutputDescriptor::OutputDescriptor()
@@ -21,10 +23,6 @@ OutputDescriptor::OutputDescriptor(IndexOutput* pVocOutput,IndexOutput* pDPostin
 
 OutputDescriptor::~OutputDescriptor()
 {
-    pVocOutput_->flush();
-    pDPostingOutput_->flush();
-    pPPostingOutput_->flush();
-
     if (bDestroy_)
     {
         if (pVocOutput_)
@@ -39,3 +37,11 @@ OutputDescriptor::~OutputDescriptor()
     pPPostingOutput_ = NULL;
 }
 
+void OutputDescriptor::flush()
+{
+    assert(pVocOutput_ && pDPostingOutput_ && pPPostingOutput_);
+
+    pVocOutput_->flush();
+    pDPostingOutput_->flush();
+    pPPostingOutput_->flush();
+}

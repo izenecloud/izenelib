@@ -11,6 +11,7 @@
 #include <iostream>
 #include <cassert>
 
+#include <boost/scoped_ptr.hpp>
 
 using namespace izenelib::ir::indexmanager;
 
@@ -98,13 +99,15 @@ void BarrelInfo::write(Directory* pDirectory)
         IndexOutput* pPOutput = pDirectory->createOutput(s.c_str());
 
         OutputDescriptor desc(pVocOutput,pDOutput,pPOutput,true);
+        // write ".bti" and "doclen.map"
         pColIndexer->write(&desc);
+        // flush ".voc", ".dfp" and ".pop"
+        desc.flush();
 
         s = barrelName + ".fdi";
-        IndexOutput* fdiOutput = pDirectory->createOutput(s.c_str());
-        pColInfo->write(fdiOutput);
-        fdiOutput->flush();
-        delete fdiOutput;
+        boost::scoped_ptr<IndexOutput> fdiOutputPtr(pDirectory->createOutput(s.c_str()));
+        pColInfo->write(fdiOutputPtr.get());
+        fdiOutputPtr->flush();
 
         // after written into disk, it would not be in-memory barrel
         setWriter(NULL);

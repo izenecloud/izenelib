@@ -62,6 +62,10 @@ public:
     {
         return pDirectory_;
     }
+    /**
+     * flush the output of files ".voc", ".dfp" and ".pop".
+     */
+    void flush();
 protected:
     IndexOutput* pVocOutput_;
     IndexOutput* pDPostingOutput_;
