@@ -96,24 +96,24 @@ void Profiler0::print(ostream & os) const {
 		str2.replace( 0, sstmp.str().length(), sstmp.str() );
 		ss << "[" << name_ << "][" << str << "][ " << str2 << " ]" << endl;
 	}
-	ss<<"\n   sorted by called Sequence\n"<<endl;
-	displayProfiles_(ss, vpro);
+	//ss<<"\n   sorted by called Sequence\n"<<endl;
+	//displayProfiles_(ss, vpro);
 
-	ss<<"\n   sorted by name \n"<<endl;
-	sort(vpro.begin(), vpro.end(), compareByName);
-	displayProfiles_(ss, vpro);
+	//ss<<"\n   sorted by name \n"<<endl;
+	//sort(vpro.begin(), vpro.end(), compareByName);
+	//displayProfiles_(ss, vpro);
 
-	ss<<"\n   sorted by total time  \n"<<endl;
-	sort(vpro.begin(), vpro.end(), compareByTotalTime);
-	displayProfiles_(ss, vpro);
+	//ss<<"\n   sorted by total time  \n"<<endl;
+	//sort(vpro.begin(), vpro.end(), compareByTotalTime);
+	//displayProfiles_(ss, vpro);
 
-	ss<<"\n   sorted by count  \n"<<endl;
-	sort(vpro.begin(), vpro.end(), compareByCount);
-	displayProfiles_(ss, vpro);
+	//ss<<"\n   sorted by count  \n"<<endl;
+	//sort(vpro.begin(), vpro.end(), compareByCount);
+	//displayProfiles_(ss, vpro);
 
-	ss<<"\n   sorted by memory  \n"<<endl;
-	sort(vpro.begin(), vpro.end(), compareByRss);
-	displayProfiles_(ss, vpro);
+	//ss<<"\n   sorted by memory  \n"<<endl;
+	//sort(vpro.begin(), vpro.end(), compareByRss);
+	//displayProfiles_(ss, vpro);
 
 	ss<<"\n   sorted by current time  \n"<<endl;
 	sort(vpro.begin(), vpro.end(), compareByCurrentTime);
@@ -339,24 +339,24 @@ void Profiler1::print(ostream & os) const {
 		str2.replace( 0, sstmp.str().length(), sstmp.str() );
 		ss << "[" << name_ << "][" << str << "][ " << str2 << " ]" << endl;
 	}
-	ss<<"\n   sorted by called Sequence\n"<<endl;
-	displayProfiles_(ss, vpro);
+	//ss<<"\n   sorted by called Sequence\n"<<endl;
+	//displayProfiles_(ss, vpro);
 
-	ss<<"\n   sorted by name \n"<<endl;
-	sort(vpro.begin(), vpro.end(), compareByName1);
-	displayProfiles_(ss, vpro);
+	//ss<<"\n   sorted by name \n"<<endl;
+	//sort(vpro.begin(), vpro.end(), compareByName1);
+	//displayProfiles_(ss, vpro);
 
-	ss<<"\n   sorted by total time  \n"<<endl;
-	sort(vpro.begin(), vpro.end(), compareByTotalTime1);
-	displayProfiles_(ss, vpro);
+	//ss<<"\n   sorted by total time  \n"<<endl;
+	//sort(vpro.begin(), vpro.end(), compareByTotalTime1);
+	//displayProfiles_(ss, vpro);
 
-	ss<<"\n   sorted by count  \n"<<endl;
-	sort(vpro.begin(), vpro.end(), compareByCount1);
-	displayProfiles_(ss, vpro);
+	//ss<<"\n   sorted by count  \n"<<endl;
+	//sort(vpro.begin(), vpro.end(), compareByCount1);
+	//displayProfiles_(ss, vpro);
 
-	ss<<"\n   sorted by memory  \n"<<endl;
-	sort(vpro.begin(), vpro.end(), compareByRss1);
-	displayProfiles_(ss, vpro);
+	//ss<<"\n   sorted by memory  \n"<<endl;
+	//sort(vpro.begin(), vpro.end(), compareByRss1);
+	//displayProfiles_(ss, vpro);
 
 	ss<<"\n   sorted by current time  \n"<<endl;
 	sort(vpro.begin(), vpro.end(), compareByCurrentTime1);
