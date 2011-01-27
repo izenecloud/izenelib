@@ -640,6 +640,8 @@ public:
         PRE_BUF_SIZE_ = max_record_len;
       if(RUN_BUF_SIZE_ < min_buff_size_required)		
         RUN_BUF_SIZE_ = min_buff_size_required;
+      if(RUN_BUF_SIZE_ < PRE_BUF_SIZE_*MAX_GROUP_SIZE_)
+        RUN_BUF_SIZE_ = PRE_BUF_SIZE_*MAX_GROUP_SIZE_;
       if(OUT_BUF_SIZE_ < min_buff_size_required)
         OUT_BUF_SIZE_ = min_buff_size_required;
   }
