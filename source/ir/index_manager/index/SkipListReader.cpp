@@ -60,7 +60,7 @@ docid_t SkipListReader::skipTo(docid_t target)
 
     while (level >= 0) 
     {
-        if (target > skipDoc_[level]) 
+        if (target >= skipDoc_[level]) 
         {
 #ifdef SKIP_DEBUG
         cout<<"in level "<<level<<":";
