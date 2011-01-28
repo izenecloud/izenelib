@@ -581,9 +581,10 @@ docid_t RTDiskPostingReader::decodeTo(docid_t target, uint32_t* pPosting, int32_
     count_t nDecodedCount = ds_.decodedDocCount;
 
     IndexInput* pDPostingInput = inputDescriptorPtr_->getDPostingInput();
-    for(; nDecodedCount < nDF; ++nDecodedCount)
+    while(nDecodedCount < nDF)
     {
         nDocID += pDPostingInput->readVInt();
+        ++nDecodedCount;
         
         if(nDocID >= target)
         {
