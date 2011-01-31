@@ -63,21 +63,48 @@ IF(izene_util_SHOULD_BUILD)
 
   SET(util_SRC
     scheduler.cpp
+
     thread-pool/ThreadObject.cpp
     thread-pool/ThreadObjectPool.cpp
+
     io/BufferedInput.cpp
     io/FSBufferedInput.cpp
     io/MMapBufferedInput.cpp
     io/BufferedOutput.cpp
     io/FSBufferedOutput.cpp
+
     sysinfo/commandparser.cpp
     sysinfo/dmiparser.cpp
+
     cronexpression.cpp
     timer.cpp
     CBitArray.cpp
     singleton.cpp
     streambuf.cpp
     scd_parser.cpp
+
+    driver/Keys.cpp
+    driver/Request.cpp
+    driver/Response.cpp
+    driver/RestrictedObjectValue.cpp
+    driver/Router.cpp
+    driver/value/Value.cpp
+    driver/value/ValueTypeHelper.cpp
+    driver/value/formatters.cpp
+    driver/Reader.cpp
+    driver/readers/JsonReader.cpp
+    driver/Writer.cpp
+    driver/writers/DriverValue2JsonValue.cpp
+    driver/writers/JsonWriter.cpp
+    driver/writers/PrettyJsonWriter.cpp
+    driver/Parser.cpp
+    driver/parsers/PageInfoParser.cpp
+    driver/parsers/ConditionParser.cpp
+    driver/parsers/ConditionOperatorTable.cpp
+    driver/parsers/ConditionArrayParser.cpp
+    driver/parsers/OrderParser.cpp
+    driver/parsers/OrderArrayParser.cpp     
+
     )
 
   INCLUDE_DIRECTORIES(
@@ -93,6 +120,7 @@ IF(izene_util_SHOULD_BUILD)
     ${Boost_THREAD_LIBRARY}
     ${Boost_SERIALIZATION_LIBRARY}
     ${Boost_REGEX_LIBRARY}
+    json
     ${CMAKE_THREAD_LIBS_INIT}
     )
 

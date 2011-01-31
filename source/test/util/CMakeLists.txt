@@ -71,3 +71,23 @@ TARGET_LINK_LIBRARIES(t_compressor
   ${Boost_LIBRARIES}
   )
 
+  ADD_EXECUTABLE(t_driver
+    driver/Runner.cpp
+    driver/value/t_as.cpp
+    driver/value/t_boost_serialization.cpp
+    driver/value/t_clear.cpp
+    driver/value/t_compare.cpp
+    driver/value/t_febird_serialization.cpp
+    driver/value/t_get.cpp
+    driver/value/t_size.cpp
+    driver/value/t_Value.cpp
+    driver/value/t_ValueTypeHelper.cpp
+    )
+  TARGET_LINK_LIBRARIES(t_driver
+    ${Boost_LIBRARIES}
+    json
+    febird
+    izene_util
+    )
+
+
