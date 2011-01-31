@@ -82,7 +82,8 @@ IF(izene_util_SHOULD_BUILD)
     singleton.cpp
     streambuf.cpp
     scd_parser.cpp
-
+    DynamicLibrary.cpp
+    
     driver/Keys.cpp
     driver/Request.cpp
     driver/Response.cpp
@@ -122,6 +123,7 @@ IF(izene_util_SHOULD_BUILD)
     ${Boost_REGEX_LIBRARY}
     json
     ${CMAKE_THREAD_LIBS_INIT}
+    dl
     )
 
 ENDIF(izene_util_SHOULD_BUILD)
