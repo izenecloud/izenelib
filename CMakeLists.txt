@@ -142,7 +142,7 @@ GET_PROPERTY(REAL_NON_BUILD_COMPONENTS GLOBAL PROPERTY NON_BUILD_COMPONENTS)
 
 # Test cases and applications
 IF(ENABLE_TEST)
-  ADD_SUBDIRECTORY(source/test test)
+  ADD_SUBDIRECTORY(test test)
 ENDIF(ENABLE_TEST)
 
 ##################################################
