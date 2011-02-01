@@ -106,6 +106,34 @@ IF(izene_util_SHOULD_BUILD)
     driver/parsers/OrderParser.cpp
     driver/parsers/OrderArrayParser.cpp     
 
+    osgi/BundleConfiguration.cpp
+    osgi/IBundleContextImpl.cpp
+    osgi/ConfigFileReader.cpp
+    osgi/ServiceEvent.cpp
+    osgi/ServiceListenerInfo.cpp
+    osgi/BundleInfo.cpp
+    osgi/OSGIException.cpp
+    osgi/ServiceInfo.cpp
+    osgi/ConfigurationException.cpp
+    osgi/IServiceRegistrationImpl.cpp
+    osgi/ServiceTracker.cpp
+    osgi/BundleInfoBase.cpp
+    osgi/Properties.cpp
+    osgi/ServiceReference.cpp
+    osgi/ObjectCreationException.cpp
+    osgi/admin/StartBundleFromDLLCmd.cpp
+    osgi/admin/IAdministrationServiceImpl.cpp
+    osgi/admin/StartBundlesFromFileCmd.cpp
+    osgi/admin/StartBundleCmd.cpp
+    osgi/admin/AdministrationActivator.cpp
+    osgi/admin/DumpAllBundlesCmd.cpp
+    osgi/admin/StopBundleCmd.cpp
+    osgi/admin/DumpBundleInfoCmd.cpp
+    osgi/admin/StopAllBundlesCmd.cpp
+    osgi/util/LoggerImpl.cpp
+    osgi/util/StringTokenizer.cpp
+    osgi/util/LoggerFactory.cpp
+
     )
 
   INCLUDE_DIRECTORIES(
