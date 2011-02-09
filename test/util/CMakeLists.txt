@@ -90,9 +90,15 @@ TARGET_LINK_LIBRARIES(t_driver
     izene_util
     )
 SET(CMAKE_LIBRARY_OUTPUT_DIRECTORY "${IZENELIB_SOURCE_DIR}/testbin")
+
 ADD_LIBRARY(bundle1
     osgi/bundle1/BundleActivator1.cpp
     osgi/bundle1/Library.cpp
+    )
+
+ADD_LIBRARY(bundle2
+    osgi/bundle2/BundleActivator2.cpp
+    osgi/bundle2/Library.cpp
     )
 
 ADD_EXECUTABLE(t_osgi

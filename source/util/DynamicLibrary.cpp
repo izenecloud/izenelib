@@ -1,7 +1,7 @@
 #include <util/DynamicLibrary.h>
 
 #include <stdexcept>
-
+#include <iostream>
 namespace izenelib{ namespace util{
 
 HDynamicLib osLoadLibrary( const std::string& sLibraryName, bool bRawName )
@@ -13,14 +13,15 @@ HDynamicLib osLoadLibrary( const std::string& sLibraryName, bool bRawName )
       return LoadLibrary((sLibraryName + IZENE_LIBRARY_EXT).c_str());
 #else
     if(bRawName)
-        return dlopen(sLibraryName.c_str(), RTLD_LAZY);
+        return dlopen(sLibraryName.c_str(), RTLD_NOW | RTLD_GLOBAL);
     else
     {
         std::string::size_type nPos = sLibraryName.find_last_of('/');
         if(nPos == std::string::npos)
-            return dlopen((IZENE_LIBRARY_PREFIX + sLibraryName + IZENE_LIBRARY_EXT).c_str(), RTLD_LAZY);
+            return dlopen((IZENE_LIBRARY_PREFIX + sLibraryName + IZENE_LIBRARY_EXT).c_str(), RTLD_NOW | RTLD_GLOBAL);
         else
-            return dlopen((sLibraryName.substr(nPos) + IZENE_LIBRARY_PREFIX + sLibraryName.substr(nPos + 1) + IZENE_LIBRARY_EXT).c_str(), RTLD_LAZY);
+            //return dlopen((sLibraryName.substr(nPos) + IZENE_LIBRARY_PREFIX + sLibraryName.substr(nPos + 1) + IZENE_LIBRARY_EXT).c_str(), RTLD_LAZY);		
+            return dlopen(sLibraryName.c_str(), RTLD_NOW | RTLD_GLOBAL);
     }
 #endif
 }
@@ -37,6 +38,8 @@ PLibSymbol osGetSymbol( HDynamicLib hDynamicLib, const std::string& sSymName )
 
 bool osFreeLibrary(HDynamicLib hDynamicLib)
 {
+std::cout<<"osFreeLibrary !!! "<<std::endl;
+
     return 
 #ifdef WIN32
     FreeLibrary(hDynamicLib) == TRUE;
@@ -94,24 +97,29 @@ std::string osGetLastLibraryErrorStr()
 //
 /////////////////////////////////////////////////////
 
-DynamicLibrary::DynamicLibrary()
+DynamicLibrary::DynamicLibrary(bool unload_when_destroy)
     :hDynLib_(NULL)
-{}
+    ,unload_when_destroy_(unload_when_destroy)
+{
+}
 
 DynamicLibrary::~DynamicLibrary()
 {
-    try 
+    if(unload_when_destroy_)
     {
-        if ( hDynLib_ )
+        try 
         {
-            unloadLibrary();
-        }
-    } catch (...) {}
+            if ( hDynLib_ )
+            {
+                unloadLibrary();
+            }
+        } catch (...) {}
+    }
 }
 
 void DynamicLibrary::load( const std::string& sLibName, bool bRawName /*= false*/ )
 {
-    if(!hDynLib_) throw std::runtime_error("library has already been initialized");	
+    if(hDynLib_) throw std::runtime_error("library has already been initialized");	
     hDynLib_ = osLoadLibrary(sLibName, bRawName);
     if(!hDynLib_) throw std::runtime_error("library load exception:"+osGetLastLibraryErrorStr());	
     name_ = sLibName;

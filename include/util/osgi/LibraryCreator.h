@@ -61,9 +61,9 @@ Logger& LibraryCreator<BaseT>::getLogger()
 template <typename BaseT>
 BaseT* LibraryCreator<BaseT>::createObjectFromLibrary( const std::string &path, const std::string &libraryName, const std::string &className )
 {
-    typedef BaseT* (*LIBPROC) ( const std::string& );
+    typedef BaseT* (*LIBPROC) ( const char* );
 
-    std::auto_ptr<DynamicLibrary> pDynLib(new DynamicLibrary);
+    std::auto_ptr<DynamicLibrary> pDynLib(new DynamicLibrary(false));
 
     LIBPROC pFunc = NULL;
 
@@ -87,6 +87,7 @@ BaseT* LibraryCreator<BaseT>::createObjectFromLibrary( const std::string &path, 
     }
     catch ( std::runtime_error &exc )
     {
+        pDynLib->unloadLibrary();		 
         getLogger().log( Logger::LOG_ERROR, "[LibraryCreator#createObjectFromLibrary] Error occurred during loading library: %1", exc.what() );
     }
 
@@ -96,6 +97,7 @@ BaseT* LibraryCreator<BaseT>::createObjectFromLibrary( const std::string &path, 
     }
     catch ( std::runtime_error &exc)
     {
+        pDynLib->unloadLibrary();
         getLogger().log( Logger::LOG_ERROR, "[LibraryCreator#createObjectFromLibrary] Error occurred during calling library entry method, %1", exc.what() );
         pFunc = NULL;
     }
@@ -105,7 +107,7 @@ BaseT* LibraryCreator<BaseT>::createObjectFromLibrary( const std::string &path, 
         ObjectCreationException exc( "Error during loading object from library." );
         throw exc;
     }
-    return ((*pFunc)(className));
+    return ((*pFunc)(className.c_str()));
 }
 
 

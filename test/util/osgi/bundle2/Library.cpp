@@ -46,13 +46,13 @@ BOOL APIENTRY DllMain( HANDLE hModule, DWORD  ul_reason_for_call, LPVOID lpReser
 
 
 #else
-#define DLL
+#define DLL extern "C" 
 #endif
 
-DLL IBundleActivator* createObject( const string &className )
+DLL IBundleActivator* createObject( const char* className )
 {
     ObjectCreator<IBundleActivator> OC_BUNDLE_ACTIVATOR;
-    LoggerFactory::getLogger( "Test" ).log( Logger::LOG_DEBUG, "[bundle2_so#createObject] Loading instance of class '%1'.", className );
+    LoggerFactory::getLogger( "Test" ).log( Logger::LOG_DEBUG, "[bundle2_so#createObject] Loading instance of class %1", std::string(className) );
     return OC_BUNDLE_ACTIVATOR.createObject( className );
 }
 
