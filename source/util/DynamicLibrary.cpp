@@ -2,6 +2,8 @@
 
 #include <stdexcept>
 #include <iostream>
+#include <cstring> // strerror
+
 namespace izenelib{ namespace util{
 
 HDynamicLib osLoadLibrary( const std::string& sLibraryName, bool bRawName )
@@ -38,8 +40,6 @@ PLibSymbol osGetSymbol( HDynamicLib hDynamicLib, const std::string& sSymName )
 
 bool osFreeLibrary(HDynamicLib hDynamicLib)
 {
-std::cout<<"osFreeLibrary !!! "<<std::endl;
-
     return 
 #ifdef WIN32
     FreeLibrary(hDynamicLib) == TRUE;
