@@ -1,6 +1,7 @@
 #include <util/DynamicLibrary.h>
 
 #include <stdexcept>
+#include <cstring> // strerror
 
 namespace izenelib{ namespace util{
 
