@@ -71,7 +71,7 @@ TARGET_LINK_LIBRARIES(t_compressor
   ${Boost_LIBRARIES}
   )
 
-  ADD_EXECUTABLE(t_driver
+ADD_EXECUTABLE(t_driver
     driver/Runner.cpp
     driver/value/t_as.cpp
     driver/value/t_boost_serialization.cpp
@@ -83,11 +83,34 @@ TARGET_LINK_LIBRARIES(t_compressor
     driver/value/t_Value.cpp
     driver/value/t_ValueTypeHelper.cpp
     )
-  TARGET_LINK_LIBRARIES(t_driver
+TARGET_LINK_LIBRARIES(t_driver
     ${Boost_LIBRARIES}
     json
     febird
     izene_util
     )
+SET(CMAKE_LIBRARY_OUTPUT_DIRECTORY "${IZENELIB_SOURCE_DIR}/testbin")
 
+ADD_LIBRARY(bundle1
+    osgi/bundle1/BundleActivator1.cpp
+    osgi/bundle1/Library.cpp
+    )
+
+ADD_LIBRARY(bundle2
+    osgi/bundle2/BundleActivator2.cpp
+    osgi/bundle2/Library.cpp
+    )
+
+ADD_EXECUTABLE(t_osgi
+    osgi/Runner.cpp
+    osgi/TestHelper.cpp
+    osgi/IServiceBImpl.cpp
+    osgi/TestBundleActivator.cpp
+    osgi/LauncherTest.cpp
+    )
+TARGET_LINK_LIBRARIES(t_osgi
+    ${Boost_LIBRARIES}
+    json
+    izene_util
+    )
 

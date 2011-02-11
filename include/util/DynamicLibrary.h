@@ -105,7 +105,7 @@ class IZENE_EXPORT DynamicLibrary
 {
 public:
 
-    DynamicLibrary();
+    DynamicLibrary(bool unload_when_destroy = true);
 
     virtual ~DynamicLibrary();
       
@@ -133,6 +133,7 @@ public:
 private:
     HDynamicLib hDynLib_; //!< library handle
     std::string name_;   //!< library name
+    bool unload_when_destroy_; //! <unload library when destroy this class 
 };
 
   }}
