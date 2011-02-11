@@ -4,6 +4,7 @@
 #include <iostream>
 #include <vector>
 #include <sstream>
+#include <climits> // UINT_MAX
 
 using namespace std;
 using namespace izenelib::osgi::logging;
