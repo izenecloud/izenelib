@@ -13,6 +13,12 @@ IBundleContext* TestBundleActivator::context = 0;
 IServiceRegistration* TestBundleActivator::serviceReg = 0;
 ServiceTracker* TestBundleActivator::tracker = 0;
 
+TestBundleActivator::TestBundleActivator()
+{
+    serviceReg = 0;
+    tracker = 0;
+}
+
 void TestBundleActivator::start( IBundleContext::ConstPtr ctxt )
 {
     context = ctxt;
@@ -38,11 +44,16 @@ TestBundleActivator::~TestBundleActivator()
 void TestBundleActivator::stop( IBundleContext::ConstPtr context )
 {
     cout<< "[TestBundleActivator#stop] Called." <<endl;
-    serviceReg->unregister();
-    delete serviceReg;
-
-    tracker->stopTracking();
-    delete tracker;
+    if(serviceReg)
+    {
+        serviceReg->unregister();
+        delete serviceReg;
+    }
+    if(tracker)
+    {
+        tracker->stopTracking();
+        delete tracker;
+    }
 }
 
 void TestBundleActivator::unregisterServiceB()
@@ -50,6 +61,7 @@ void TestBundleActivator::unregisterServiceB()
     cout<< "[TestBundleActivator#unregisterServiceB] Called." <<endl;
     serviceReg->unregister();
     delete serviceReg;
+    serviceReg = 0;
 }
 
 void TestBundleActivator::stopServiceListener()

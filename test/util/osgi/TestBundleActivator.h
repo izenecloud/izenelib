@@ -19,6 +19,7 @@ private:
     IServiceBImpl serviceB;
 
 public:
+    TestBundleActivator();
     virtual ~TestBundleActivator();
     virtual void start( IBundleContext::ConstPtr context );
     virtual void stop( IBundleContext::ConstPtr context );
