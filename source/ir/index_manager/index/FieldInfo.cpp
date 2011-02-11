@@ -116,7 +116,12 @@ void FieldsInfo::read(IndexInput* pIndexInput)
                 pInfo->dfiLength_ = pIndexInput->readLong();
                 pInfo->ptiLength_ = pIndexInput->readLong();
 
-                DVLOG(3)<<"FieldInfo:"<<"indexoffset "<<pInfo->getIndexOffset()<<" distinctnumterms "<<pInfo->distinctNumTerms()<<" voclength "<<pInfo->vocLength_<<" dfilength "<<pInfo->dfiLength_<<" ptilength "<<pInfo->ptiLength_;
+                VLOG(3) << "field name: " << pInfo->getName()
+                        << ", distinctNumTerms: " << pInfo->distinctNumTerms()
+                        << ", indexOffset: " << pInfo->getIndexOffset()
+                        << ", vocLength_: " << pInfo->vocLength_
+                        << ", dfiLength_: " << pInfo->dfiLength_
+                        << ", ptiLength_: " << pInfo->ptiLength_;
             }
 
             ppFieldsInfo_[i] = pInfo;
