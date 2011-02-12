@@ -17,7 +17,6 @@ BundleActivator1::BundleActivator1()
 
 BundleActivator1::~BundleActivator1()
 {
-    // Deallocate memory
 }
 
 void BundleActivator1::start(IBundleContext::ConstPtr context)

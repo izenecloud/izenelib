@@ -61,6 +61,9 @@ public:
      */
     AdministrationActivator();
 
+
+    ~AdministrationActivator();
+
     /**
      * Starts the administration bundle by creating
      * a console and waits for user input.

@@ -33,6 +33,7 @@ BOOST_AUTO_TEST_CASE(load_test)
 
     Launcher<SingleThreaded,LibraryCreator> launcher;
     launcher.start( bundleConfVec );
+    launcher.stop();	
 }
 
 /**
@@ -54,6 +55,8 @@ BOOST_AUTO_TEST_CASE(register_test)
     BOOST_CHECK(TestHelper::isServiceRegisteredByBundle( registry, "bundle1", "IMultiplier", 1 ) == 1);
 
     BOOST_CHECK(TestHelper::isServiceListenerRegisteredByBundle( registry, "bundle2", "ServiceA" ) == 1);
+
+    launcher.stop();
 }
 
 
@@ -76,6 +79,8 @@ BOOST_AUTO_TEST_CASE(unregisterservice_test)
     BOOST_CHECK( TestHelper::isServiceRegisteredByBundle( registry, "bundle2", "ServiceB", 1 ) == 0);
 
     BOOST_CHECK( TestHelper::isServiceListenerRegisteredByBundle( registry, "bundle2", "ServiceA" ) == 1);
+
+    launcher.stop();
 }
 
 /**
@@ -112,7 +117,8 @@ BOOST_AUTO_TEST_CASE(unregisterlistener_test)
     BOOST_CHECK( TestHelper::isBundleStarted( registry, "bundle2" ) == false );
 
     BOOST_CHECK( TestHelper::isServiceUsedByBundle( registry, "bundle1", "IMultiplier", 1 ) == 0 );
-    
+
+    launcher.stop();    
 }
 
 /**

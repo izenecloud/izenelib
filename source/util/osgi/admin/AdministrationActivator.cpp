@@ -19,6 +19,14 @@ AdministrationActivator::AdministrationActivator()
     this->serviceReg = 0;
 }
 
+AdministrationActivator::~AdministrationActivator()
+{
+    if(! this->serviceReg)
+        delete this->serviceReg;
+    if(! this->adminService)
+        delete this->adminService;
+}
+
 void AdministrationActivator::start( IBundleContext::ConstPtr context )
 {
     log.log( Logger::LOG_DEBUG, "[AdministrationActivator#start] Called." );

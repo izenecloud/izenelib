@@ -5,6 +5,15 @@ template<class ThreadingModel>
 IRegistryImpl<ThreadingModel>::~IRegistryImpl()
 {
     logger.log( Logger::LOG_DEBUG, "[IRegistryImpl#destructor] Called." );
+
+    std::map<std::string, std::vector<ServiceInfoPtr>* >::iterator serviceInfoMapIt = this->serviceInfoMap.begin();
+    for( ; serviceInfoMapIt != this->serviceInfoMap.end(); ++serviceInfoMapIt)
+        delete serviceInfoMapIt->second;
+    
+    std::map<std::string, std::vector<ServiceListenerInfoPtr>* >::iterator serviceListenerMapIt = this->serviceListenerMap.begin();
+    for( ; serviceListenerMapIt != this->serviceListenerMap.end(); ++serviceListenerMapIt)
+        delete serviceListenerMapIt->second;
+
 }
 
 template<class ThreadingModel>
@@ -82,6 +91,10 @@ void IRegistryImpl<ThreadingModel>::removeBundleInfo( const std::string &bundleN
 
     logger.log( Logger::LOG_DEBUG, "[IRegistryImpl#removeBundleInfo] Called, bundleName: %1", bundleName );
 
+    std::map<std::string,BundleInfoBase*>::iterator bundleInfoMapIt = this->bundleInfoMap.find(bundleName);
+    if(bundleInfoMapIt == this->bundleInfoMap.end())
+        return;
+
     BundleInfoBase* bi = this->bundleInfoMap[bundleName];
 
     if ( bi->isFrameworkBundle() )
@@ -90,7 +103,7 @@ void IRegistryImpl<ThreadingModel>::removeBundleInfo( const std::string &bundleN
         return;
     }
 
-    this->stopActivator( (*bi) );
+    this->deleteActivator( (*bi) );
 
     bi->removeAllUsedServices();
 
@@ -134,6 +147,7 @@ void IRegistryImpl<ThreadingModel>::deleteActivator( const BundleInfoBase& bi )
     BundleInfoBase* info = const_cast<BundleInfoBase*>( &bi );
     BundleInfo* bundleInfo = dynamic_cast<BundleInfo*>( info );
     IBundleActivator* act = bundleInfo->getBundleActivator();
+    act->stop( bundleInfo->getBundleContext() );
     delete act;
 }
 
