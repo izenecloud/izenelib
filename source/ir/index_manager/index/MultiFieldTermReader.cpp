@@ -110,12 +110,16 @@ TermPositions* MultiFieldTermReader::termPositions()
 
 freq_t MultiFieldTermReader::docFreq(Term* term)
 {
-    return pCurReader_->docFreq(term);
+    if(TermReader* pTermReader = termReader(term->getField()))
+        return pTermReader->docFreq(term);
+    return NULL;
 }
 
 TermInfo* MultiFieldTermReader::termInfo(Term* term)
 {
-    return pCurReader_->termInfo(term);
+    if(TermReader* pTermReader = termReader(term->getField()))
+        return pTermReader->termInfo(term);
+    return NULL;
 }
 
 void MultiFieldTermReader::close()
