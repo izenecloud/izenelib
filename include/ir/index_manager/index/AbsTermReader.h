@@ -69,7 +69,7 @@ public:
 
     virtual TermReader*	clone() = 0;
     ///Return all the information of a certain term on the vocabulary
-    virtual TermInfo* termInfo(Term* term) { return NULL;};
+    virtual TermInfo* termInfo(Term* term) { return NULL;}
 
     virtual void setDocFilter(BitVector* pFilter) { pDocFilter_ = pFilter;}
 

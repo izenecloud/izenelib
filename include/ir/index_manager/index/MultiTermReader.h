@@ -3,6 +3,7 @@
 
 #include <ir/index_manager/index/AbsTermReader.h>
 #include <ir/index_manager/index/BarrelInfo.h>
+#include <ir/index_manager/index/TermInfo.h>
 
 #include <utility> // std::pair
 #include <vector>
@@ -66,6 +67,15 @@ public:
     freq_t docFreq(Term* term);
 
     /**
+     * get term information of a term
+     * @param term term
+     * @return term information
+     * @note as there are multiple barrels, in return value,
+     * only @c docFreq_, @c ctf_ and @c lastDocID_ is valid.
+     */
+    TermInfo* termInfo(Term* term);
+
+    /**
      * close term reader
      */
     void close();
@@ -83,6 +93,8 @@ private:
     std::vector<BarrelTermReaderEntry> termReaders_;
 
     bool isOwnTermReaders_;
+
+    TermInfo termInfo_;
 };
 
 }

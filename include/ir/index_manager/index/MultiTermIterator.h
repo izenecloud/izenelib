@@ -73,6 +73,12 @@ public:
 
     const Term* term();
 
+    /**
+     * get term information.
+     * @return term information
+     * @note as there are multiple barrels, in return value,
+     * only @c docFreq_, @c ctf_ and @c lastDocID_ is valid.
+     */
     const TermInfo* termInfo();
 
     PostingReader* termPosting();

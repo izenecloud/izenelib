@@ -132,6 +132,27 @@ freq_t MultiTermReader::docFreq(Term* term)
     return df;
 }
 
+TermInfo* MultiTermReader::termInfo(Term* term)
+{
+    termInfo_.reset();
+
+    for(vector<BarrelTermReaderEntry>::iterator iter = termReaders_.begin();
+            iter != termReaders_.end(); ++iter)
+    {
+        if(const TermInfo* pTermInfo = iter->second->termInfo(term))
+        {
+            termInfo_.docFreq_ += pTermInfo->docFreq_;
+            termInfo_.ctf_ += pTermInfo->ctf_;
+            if(termInfo_.lastDocID_ == BAD_DOCID || termInfo_.lastDocID_ < pTermInfo->lastDocID_)
+                termInfo_.lastDocID_ = pTermInfo->lastDocID_;
+        }
+    }
+
+    if(termInfo_.docFreq() > 0)
+        return &termInfo_;
+    return NULL;
+}
+
 void MultiTermReader::close()
 {
     if(isOwnTermReaders_)

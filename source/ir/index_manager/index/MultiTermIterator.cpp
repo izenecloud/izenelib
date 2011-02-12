@@ -1,5 +1,7 @@
 #include <ir/index_manager/index/MultiTermIterator.h>
 
+#include <cassert>
+
 using namespace std;
 
 NS_IZENELIB_IR_BEGIN
@@ -76,6 +78,8 @@ bool MultiTermIterator::next()
     while (top != NULL && pTerm_->compare(top->term_) == 0)
     {
         const TermInfo* termInfo = top->termIterator_->termInfo();
+        assert(termInfo);
+
         pTermInfo_->docFreq_ += termInfo->docFreq_;
         pTermInfo_->ctf_ += termInfo->ctf_;
         if(pTermInfo_->lastDocID_ == BAD_DOCID || pTermInfo_->lastDocID_ < termInfo->lastDocID_)
