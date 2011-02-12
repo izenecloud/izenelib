@@ -2,6 +2,7 @@
 #include <util/izene_log.h>
 
 #include <iostream>
+#include <cassert>
 #include <boost/scoped_ptr.hpp>
 
 #define MAX_PROPERTIES    100
@@ -84,18 +85,22 @@ size_t DocLengthReader::docLength(docid_t docId, fieldid_t fid)
 
 double DocLengthReader::averagePropertyLength(fieldid_t fid)
 {
-    if(0 == numIndexedProperties_) return 1;
+    if(0 == numIndexedProperties_ || size_ <= numIndexedProperties_)
+        return 1;
+
+    // count the doc num without id 0
+    const size_t maxDoc = size_ / numIndexedProperties_ - 1;
+    assert(maxDoc > 0);
 
     size_t totalLen = 0;
-    size_t maxDoc = size_/numIndexedProperties_;
-    unsigned char offset = propertyOffsetMap_[fid];
-    for(size_t i = 0; i < maxDoc; ++i)
+    unsigned int offset = numIndexedProperties_ + propertyOffsetMap_[fid];
+    for(size_t i = 1; i <= maxDoc; ++i)
     {
-       unsigned int docOffset = i*numIndexedProperties_;
-       if(docOffset <= size_)
-           totalLen+= data_[docOffset + offset];
+        totalLen += data_[offset];
+        offset += numIndexedProperties_;
     }
-    return (double)totalLen/(double)maxDoc;
+
+    return (double)totalLen / maxDoc;
 }
 
 
