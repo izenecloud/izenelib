@@ -25,12 +25,15 @@ public:
     TermDocFreqsTestFixture();
 
     /**
-     * Print below statistics:
+     * Check below statistics.
      * - doc count
-     * - unique term count
-     * - sum of doc length in collection.
+     * - total term count
+     * - average doc length
+     * - unique term count (before checking it, all barrels would be merged into one)
+     * @note this function could not be called when any doc is removed or updated,
+     * as term stastistics (such as term count and average doc length) are not updated in those situations.
      */
-    void printStats() const;
+    void checkStats();
 
     /**
      * Check @c TermReader::seek() and @c TermDocFreqs interfaces, such as <tt>docFreq, getCTF</tt>.
@@ -54,8 +57,11 @@ public:
     void queryInputDocID();
 
     /**
-     * Check @c TermIterator interfaces, such as <tt>next, term, termInfo</tt>.
+     * Check @c TermIterator interfaces, such as <tt>next, term, termInfo</tt>,
+     * and also check @c TermReader::termInfo().
      * If @c IndexManagerException is thrown during query, it would catch it and query again.
+     * @note this function could not be called when any doc is removed or updated,
+     * as term stastistics (such as df and ctf) are not updated in those situations.
      */
     void checkTermIterator();
 
@@ -166,7 +172,7 @@ inline void index(const IndexerTestConfig& config)
     for(int i=0; i<config.iterNum_; ++i)
         fixture.createDocument();
 
-    fixture.printStats();
+    fixture.checkStats();
     fixture.checkTermDocFreqs();
     fixture.checkTermIterator();
     fixture.queryCollection();
@@ -230,8 +236,8 @@ inline void empty(const IndexerTestConfig& config)
     TermDocFreqsTestFixture fixture;
     fixture.configTest(config);
 
+    fixture.checkStats();
     fixture.checkTermDocFreqs();
-    fixture.checkTermIterator();
     fixture.queryCollection();
 
     VLOG(2) << "<= t_TermDocFreqs::empty";

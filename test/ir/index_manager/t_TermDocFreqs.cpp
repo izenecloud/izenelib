@@ -192,21 +192,54 @@ void TermDocFreqsTestFixture::checkUpdateDocsImpl(const std::list<docid_t>& upda
     VLOG(2) << "<= TermDocFreqsTestFixture::checkUpdateDocsImpl()";
 }
 
-void TermDocFreqsTestFixture::printStats() const
+void TermDocFreqsTestFixture::checkStats()
 {
-    BOOST_TEST_MESSAGE("\nprinting statistics...");
-    BOOST_TEST_MESSAGE("doc count: " << getDocCount());
-    BOOST_TEST_MESSAGE("unique term count: " << mapCTermId_.size());
+    BOOST_TEST_MESSAGE("\nchecking statistics...");
 
-    int64_t docLenSum = 0;
+    const int docCount = getDocCount();
+    // doc count
+    BOOST_TEST_MESSAGE("doc count: " << docCount);
+    IndexReader* pIndexReader = indexer_->getIndexReader();
+    BOOST_CHECK_EQUAL(pIndexReader->numDocs(), docCount);
+
+    // total term count
+    int64_t totalTermNum = 0;
     for(CTermIdMapT::const_iterator it = mapCTermId_.begin();
-            it != mapCTermId_.end();
-            ++it)
+            it != mapCTermId_.end(); ++it)
     {
-        docLenSum += it->second.second;
+        totalTermNum += it->second.second;
+    }
+    BOOST_TEST_MESSAGE("total term count: " << totalTermNum);
+    int64_t docLenSum = 0;
+    for(DocIdLenMapT::const_iterator lenMapIt = mapDocIdLen_.begin();
+            lenMapIt != mapDocIdLen_.end(); ++lenMapIt)
+    {
+        docLenSum += pIndexReader->docLength(lenMapIt->first, indexer_->getPropertyIDByName(COLLECTION_ID, INVERTED_FIELD));
+    }
+    BOOST_CHECK_EQUAL(docLenSum, totalTermNum);
+
+    // average doc length
+    if(docCount > 0)
+    {
+        double avgDocLen = (double)docLenSum / docCount;
+        BOOST_TEST_MESSAGE("average doc length: " << avgDocLen);
+        BOOST_CHECK_CLOSE(pIndexReader->getAveragePropertyLength(indexer_->getPropertyIDByName(COLLECTION_ID, INVERTED_FIELD)),
+                avgDocLen, 0.0001);
+    }
+    else
+    {
+        // average doc length is 1 if the collection is empty
+        BOOST_CHECK_EQUAL(pIndexReader->getAveragePropertyLength(indexer_->getPropertyIDByName(COLLECTION_ID, INVERTED_FIELD)), 1);
     }
 
-    BOOST_TEST_MESSAGE("sum of doc length: " << docLenSum << "\n");
+    // unique term count
+    BOOST_TEST_MESSAGE("unique term count: " << mapCTermId_.size());
+    // wait for merge finish
+    indexer_->optimizeIndex();
+    indexer_->waitForMergeFinish();
+    // reopen index reader
+    pIndexReader = indexer_->getIndexReader();
+    BOOST_CHECK_EQUAL(pIndexReader->getDistinctNumTerms(COLLECTION_ID, INVERTED_FIELD), mapCTermId_.size());
 }
 
 void TermDocFreqsTestFixture::checkTermDocFreqs()
@@ -283,6 +316,7 @@ void TermDocFreqsTestFixture::checkTermIteratorImpl()
 #endif
 
     boost::scoped_ptr<TermIterator> pTermIterator(pTermReader->termIterator(INVERTED_FIELD));
+    Term term(INVERTED_FIELD);
     for(CTermIdMapT::const_iterator termIt = mapCTermId_.begin();
             termIt != mapCTermId_.end(); ++termIt)
     {
@@ -299,6 +333,16 @@ void TermDocFreqsTestFixture::checkTermIteratorImpl()
                            << ", ctf: " << pTermInfo->ctf_);
 #endif
         BOOST_CHECK_EQUAL(pTerm->value, termIt->first);
+        BOOST_CHECK_EQUAL(pTerm->field, INVERTED_FIELD);
+        BOOST_CHECK_EQUAL(pTermInfo->docFreq_, termIt->second.first);
+        BOOST_CHECK_EQUAL(pTermInfo->ctf_, termIt->second.second);
+
+        term.setValue(termIt->first);
+        BOOST_CHECK_EQUAL(pTermReader->docFreq(&term), termIt->second.first);
+
+        pTermInfo = pTermReader->termInfo(&term);
+        BOOST_REQUIRE(pTermInfo);
+
         BOOST_CHECK_EQUAL(pTermInfo->docFreq_, termIt->second.first);
         BOOST_CHECK_EQUAL(pTermInfo->ctf_, termIt->second.second);
     }
