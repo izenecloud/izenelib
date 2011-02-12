@@ -63,26 +63,29 @@ bool MultiTermIterator::next()
         return false;
     }
 
-    if(pTermInfo_)
-        pTermInfo_->reset();
-
     if (!pTerm_)
         pTerm_ = top->term_->clone();
     else
         pTerm_->copy(*(top->term_));
 
-    std::vector<TermIteratorEntry*>::iterator iter = termIterators_.begin();
-    for(;iter != termIterators_.end(); ++iter)
-        (*iter)->setCurrent(false);
+    if (!pTermInfo_)
+        pTermInfo_ = new TermInfo();
+    else
+        pTermInfo_->reset();
 
     while (top != NULL && pTerm_->compare(top->term_) == 0)
     {
-        top->setCurrent(true);
+        const TermInfo* termInfo = top->termIterator_->termInfo();
+        pTermInfo_->docFreq_ += termInfo->docFreq_;
+        pTermInfo_->ctf_ += termInfo->ctf_;
+        if(pTermInfo_->lastDocID_ == BAD_DOCID || pTermInfo_->lastDocID_ < termInfo->lastDocID_)
+            pTermInfo_->lastDocID_ = termInfo->lastDocID_;
+
         if (top->next())
-        {
             termIteratorsQueue_->adjustTop();
-        }
-        else termIteratorsQueue_->pop();
+        else
+            termIteratorsQueue_->pop();
+
         top = termIteratorsQueue_->top();
     }
 
@@ -96,27 +99,9 @@ const Term* MultiTermIterator::term()
 
 const TermInfo* MultiTermIterator::termInfo()
 {
-    if(!pTermInfo_)
-        pTermInfo_ = new TermInfo();
-    if(pTermInfo_->docFreq() == 0)
-    {
-        fileoffset_t nOffset = -1;
-        count_t nDF = 0;
-        MultiTermIterator::TermIteratorEntry* pEntry;
-        for(std::vector<MultiTermIterator::TermIteratorEntry*>::iterator iter = termIterators_.begin();
-            iter != termIterators_.end(); ++iter)
-        {
-            pEntry = (*iter);
-            if(pEntry->isCurrent())
-            {
-                const TermInfo* termInfo = pEntry->termIterator_->termInfo();
-                if(nOffset == -1)
-                    nOffset = const_cast<TermInfo*>(termInfo)->docPointer();
-                nDF += termInfo->docFreq();
-                pTermInfo_->set(*termInfo);
-            }					
-        }
-    }
+    if(!pTerm_)
+        return NULL;
+
     return pTermInfo_;
 }
 

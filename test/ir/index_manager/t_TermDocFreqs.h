@@ -53,6 +53,12 @@ public:
      */
     void queryInputDocID();
 
+    /**
+     * Check @c TermIterator interfaces, such as <tt>next, term, termInfo</tt>.
+     * If @c IndexManagerException is thrown during query, it would catch it and query again.
+     */
+    void checkTermIterator();
+
 protected:
     /**
      * remove @p removeDocList terms in @c mapCTermId_.
@@ -83,6 +89,12 @@ private:
      * it would throw @c IndexManagerException if query failed.
      */
     void checkTermDocFreqsImpl();
+
+    /**
+     * The implementation for @c checkTermIterator(),
+     * it would throw @c IndexManagerException if query failed.
+     */
+    void checkTermIteratorImpl();
 
     /**
      * Query the docs range from @p startDocID to @p endDocID.
@@ -156,6 +168,7 @@ inline void index(const IndexerTestConfig& config)
 
     fixture.printStats();
     fixture.checkTermDocFreqs();
+    fixture.checkTermIterator();
     fixture.queryCollection();
 
     VLOG(2) << "<= t_TermDocFreqs::index";
@@ -218,6 +231,7 @@ inline void empty(const IndexerTestConfig& config)
     fixture.configTest(config);
 
     fixture.checkTermDocFreqs();
+    fixture.checkTermIterator();
     fixture.queryCollection();
 
     VLOG(2) << "<= t_TermDocFreqs::empty";

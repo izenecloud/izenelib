@@ -9,12 +9,14 @@
 #include <ir/index_manager/index/TermDocFreqs.h>
 #include <ir/index_manager/index/Term.h>
 #include <ir/index_manager/index/AbsTermReader.h>
+#include <ir/index_manager/index/AbsTermIterator.h>
 
 #include "t_TermDocFreqs.h"
 #include "BoostTestThreadSafety.h"
 
 //#define LOG_TERM_ID
 //#define LOG_QUERY_OPERATION
+//#define LOG_TERM_ITERATE
 
 namespace
 {
@@ -250,6 +252,58 @@ void TermDocFreqsTestFixture::checkTermDocFreqsImpl()
     }
 
     VLOG(2) << "<= TermDocFreqsTestFixture::checkTermDocFreqsImpl()";
+}
+
+void TermDocFreqsTestFixture::checkTermIterator()
+{
+    VLOG(2) << "=> TermDocFreqsTestFixture::checkTermIterator()";
+
+    runToSuccess(boost::bind(&TermDocFreqsTestFixture::checkTermIteratorImpl, this));
+
+    VLOG(2) << "<= TermDocFreqsTestFixture::checkTermIterator()";
+}
+
+void TermDocFreqsTestFixture::checkTermIteratorImpl()
+{
+    VLOG(2) << "=> TermDocFreqsTestFixture::checkTermIteratorImpl()";
+
+    IndexReader* pIndexReader = indexer_->getIndexReader();
+    boost::scoped_ptr<TermReader> pTermReader(pIndexReader->getTermReader(COLLECTION_ID));
+
+    if(mapDocIdLen_.empty())
+    {
+        // TermReader should be NULL when no doc exists
+        BOOST_CHECK(pTermReader.get() == NULL);
+        VLOG(2) << "<= TermDocFreqsTestFixture::checkTermIteratorImpl(), no doc exists";
+        return;
+    }
+
+#ifdef LOG_TERM_ITERATE
+    BOOST_TEST_MESSAGE("check TermIterator on " << mapCTermId_.size() << " terms.");
+#endif
+
+    boost::scoped_ptr<TermIterator> pTermIterator(pTermReader->termIterator(INVERTED_FIELD));
+    for(CTermIdMapT::const_iterator termIt = mapCTermId_.begin();
+            termIt != mapCTermId_.end(); ++termIt)
+    {
+        BOOST_CHECK(pTermIterator->next());
+
+        const Term* pTerm = pTermIterator->term();
+        BOOST_REQUIRE(pTerm);
+        const TermInfo* pTermInfo = pTermIterator->termInfo();
+        BOOST_REQUIRE(pTermInfo);
+
+#ifdef LOG_TERM_ITERATE
+        BOOST_TEST_MESSAGE("term id: " << pTerm->value
+                           << ", df: " << pTermInfo->docFreq_
+                           << ", ctf: " << pTermInfo->ctf_);
+#endif
+        BOOST_CHECK_EQUAL(pTerm->value, termIt->first);
+        BOOST_CHECK_EQUAL(pTermInfo->docFreq_, termIt->second.first);
+        BOOST_CHECK_EQUAL(pTermInfo->ctf_, termIt->second.second);
+    }
+
+    VLOG(2) << "<= TermDocFreqsTestFixture::checkTermIteratorImpl()";
 }
 
 void TermDocFreqsTestFixture::queryCollection(int threadNum)

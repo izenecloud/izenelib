@@ -45,14 +45,9 @@ class MultiTermIterator : public TermIterator
             return true;
         }
 
-	void setCurrent(bool current){current_ = current;}
-	
-	bool isCurrent(){return current_;}
-		
     public:
         TermIterator* termIterator_;
         Term* term_;
-        bool current_;
     };
 
     class TermIteratorQueue : public PriorityQueue<MultiTermIterator::TermIteratorEntry*>
