@@ -172,10 +172,10 @@ inline void index(const IndexerTestConfig& config)
     for(int i=0; i<config.iterNum_; ++i)
         fixture.createDocument();
 
-    fixture.checkStats();
     fixture.checkTermDocFreqs();
     fixture.checkTermIterator();
     fixture.queryCollection();
+    fixture.checkStats();
 
     VLOG(2) << "<= t_TermDocFreqs::index";
 }
@@ -236,9 +236,9 @@ inline void empty(const IndexerTestConfig& config)
     TermDocFreqsTestFixture fixture;
     fixture.configTest(config);
 
-    fixture.checkStats();
     fixture.checkTermDocFreqs();
     fixture.queryCollection();
+    fixture.checkStats();
 
     VLOG(2) << "<= t_TermDocFreqs::empty";
 }
