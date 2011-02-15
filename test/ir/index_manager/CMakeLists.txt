@@ -127,4 +127,13 @@ TARGET_LINK_LIBRARIES(t_FSIndexInput
   ${Boost_LIBRARIES}
 )
 
+ADD_EXECUTABLE(r_IndexStats r_IndexStats.cpp)
+
+TARGET_LINK_LIBRARIES(r_IndexStats
+  index_manager
+  izene_util
+  ${Glog_LIBRARIES}
+  ${Boost_LIBRARIES}
+)
+
 ENDIF(Boost_FOUND)

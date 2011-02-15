@@ -11,7 +11,8 @@ dump.*
 *.log
 *.gz
 /cmake
-/testbin
+/testbin/*
+!/testbin/r_IndexStats.config
 help
 *.save
 *.orig
