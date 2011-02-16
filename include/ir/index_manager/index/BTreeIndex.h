@@ -499,20 +499,7 @@ public:
 
     void flush();
 
-    template<typename T>
-    struct BTreeIndexerFactory
-    {
-        static BTreeIndex<IndexKeyType<T> >* get()
-        {
-            return NULL;
-        }
-    };
-
-    template<typename T> static BTreeIndex<IndexKeyType<T> >* getIndexer()
-    {
-        return BTreeIndexerFactory<T>::get();
-    }
-
+    template<typename T> BTreeIndex<IndexKeyType<T> >* getIndexer();
 
 //    static BTreeTrieIndex<String>* getTrieIndexer()
 //    {
@@ -521,97 +508,28 @@ public:
 
 private:
 
-    static BTreeIndex<IndexKeyType<int64_t> >* pBTreeIntIndexer_;
+    BTreeIndex<IndexKeyType<int64_t> >* pBTreeIntIndexer_;
 
-    static BTreeIndex<IndexKeyType<uint64_t> >* pBTreeUIntIndexer_;
+    BTreeIndex<IndexKeyType<uint64_t> >* pBTreeUIntIndexer_;
 
-    static BTreeIndex<IndexKeyType<float> >* pBTreeFloatIndexer_;
+    BTreeIndex<IndexKeyType<float> >* pBTreeFloatIndexer_;
 
-    static BTreeIndex<IndexKeyType<double> >* pBTreeDoubleIndexer_;
+    BTreeIndex<IndexKeyType<double> >* pBTreeDoubleIndexer_;
 
-    static BTreeIndex<IndexKeyType<String> >* pBTreeUStrIndexer_;
+    BTreeIndex<IndexKeyType<String> >* pBTreeUStrIndexer_;
 
 //    static BTreeTrieIndex<String>* pBTreeUStrSuffixIndexer_;
 
-};
-
-template<>
-struct BTreeIndexer::BTreeIndexerFactory<int64_t>
-{
-    static BTreeIndex<IndexKeyType<int64_t> >* get()
-    {
-        return BTreeIndexer::pBTreeIntIndexer_;
-    };
-};
-
-template<>
-struct BTreeIndexer::BTreeIndexerFactory<uint64_t>
-{
-    static BTreeIndex<IndexKeyType<uint64_t> >* get()
-    {
-        return BTreeIndexer::pBTreeUIntIndexer_;
-    };
-};
-
-template<>
-struct BTreeIndexer::BTreeIndexerFactory<float>
-{
-    static BTreeIndex<IndexKeyType<float> >* get()
-    {
-        return BTreeIndexer::pBTreeFloatIndexer_;
-    };
-};
-
-template<>
-struct BTreeIndexer::BTreeIndexerFactory<double>
-{
-    static BTreeIndex<IndexKeyType<double> >* get()
-    {
-        return BTreeIndexer::pBTreeDoubleIndexer_;
-    };
-};
-
-template<>
-struct BTreeIndexer::BTreeIndexerFactory<String>
-{
-    static BTreeIndex<IndexKeyType<String> >* get()
-    {
-        return BTreeIndexer::pBTreeUStrIndexer_;
-    };
 };
 
 class add_visitor : public boost::static_visitor<void>
 {
 public:
     template<typename T>
-    void operator()(collectionid_t colid,fieldid_t fid, T& v, docid_t docid)
+    void operator()(BTreeIndexer* pIndexer, collectionid_t colid,fieldid_t fid, T& v, docid_t docid)
     {
-        __operator<T>::apply(colid, fid, v, docid);
-    }
-
-private:
-
-    template<typename T>
-    struct __operator
-    {
-        static void apply(collectionid_t& colid, fieldid_t& fid, T& v, docid_t& docid)
-        {
-            IndexKeyType<T> key(colid, fid, v);
-            BTreeIndexer::getIndexer<T>()->add_nodup(key, docid);
-        }
-    };
-
-};
-
-template<>
-struct add_visitor::__operator<String>
-{
-    static void apply(collectionid_t& colid, fieldid_t& fid, String& v, docid_t& docid)
-    {
-        trim(v);
-        IndexKeyType<String> key(colid, fid, v);
-        BTreeIndexer::getIndexer<String>()->add_nodup(key, docid);
-        //BTreeIndexer::getTrieIndexer()->add_suffix(v, fid, docid);
+        IndexKeyType<T> key(colid, fid, v);
+        pIndexer->getIndexer<T>()->add_nodup(key, docid);
     }
 };
 
@@ -619,10 +537,10 @@ class remove_visitor : public boost::static_visitor<void>
 {
 public:
     template<typename T>
-    void operator()(collectionid_t colid,fieldid_t fid,T& v, docid_t docid)
+    void operator()(BTreeIndexer* pIndexer, collectionid_t colid,fieldid_t fid,T& v, docid_t docid)
     {
         IndexKeyType<T> key(colid, fid, v);
-        BTreeIndexer::getIndexer<T>()->remove(key, docid);
+        pIndexer->getIndexer<T>()->remove(key, docid);
     }
 };
 
@@ -630,10 +548,10 @@ class get_visitor : public boost::static_visitor<void>
 {
 public:
     template<typename T>
-    void operator()(collectionid_t colid, fieldid_t fid, T& v, BitVector& docids)
+    void operator()(BTreeIndexer* pIndexer, collectionid_t colid, fieldid_t fid, T& v, BitVector& docids)
     {
         IndexKeyType<T> key(colid, fid, v);
-        BTreeIndexer::getIndexer<T>()->get(key, docids);
+        pIndexer->getIndexer<T>()->get(key, docids);
     }
 };
 
@@ -641,10 +559,10 @@ class get_without_visitor : public boost::static_visitor<void>
 {
 public:
     template<typename T>
-    void operator()(collectionid_t colid, fieldid_t fid, T& v, BitVector& docids)
+    void operator()(BTreeIndexer* pIndexer, collectionid_t colid, fieldid_t fid, T& v, BitVector& docids)
     {
         IndexKeyType<T> key(colid, fid, v);
-        BTreeIndexer::getIndexer<T>()->get_without(key, docids);
+        pIndexer->getIndexer<T>()->get_without(key, docids);
     }
 };
 
@@ -652,14 +570,14 @@ class get_between_visitor : public boost::static_visitor<void>
 {
 public:
     template<typename T>
-    void operator()(collectionid_t colid,fieldid_t fid, T& v1, T& v2, BitVector& docids)
+    void operator()(BTreeIndexer* pIndexer, collectionid_t colid,fieldid_t fid, T& v1, T& v2, BitVector& docids)
     {
         IndexKeyType<T> key1(colid, fid,v1);
         IndexKeyType<T> key2(colid, fid,v2);
-        BTreeIndexer::getIndexer<T>()->get_between(key1,key2,docids);
+        pIndexer->getIndexer<T>()->get_between(key1,key2,docids);
     }
     template<typename T1, typename T2>
-    void operator()(collectionid_t colid,fieldid_t fid, T1& v1, T2& v2, BitVector& docids)
+    void operator()(BTreeIndexer* pIndexer, collectionid_t colid,fieldid_t fid, T1& v1, T2& v2, BitVector& docids)
     {
     }
 };
@@ -668,10 +586,10 @@ class get_less_visitor : public boost::static_visitor<void>
 {
 public:
     template<typename T>
-    void operator()(collectionid_t colid, fieldid_t fid, T& v, BitVector& docids)
+    void operator()(BTreeIndexer* pIndexer, collectionid_t colid, fieldid_t fid, T& v, BitVector& docids)
     {
         IndexKeyType<T> key(colid, fid, v);
-        BTreeIndexer::getIndexer<T>()->getLess(key, docids);
+        pIndexer->getIndexer<T>()->getLess(key, docids);
     }
 };
 
@@ -679,10 +597,10 @@ class get_less_equal_visitor : public boost::static_visitor<void>
 {
 public:
     template<typename T>
-    void operator()(collectionid_t colid, fieldid_t fid, T& v, BitVector& docids)
+    void operator()(BTreeIndexer* pIndexer, collectionid_t colid, fieldid_t fid, T& v, BitVector& docids)
     {
         IndexKeyType<T> key(colid, fid, v);
-        BTreeIndexer::getIndexer<T>()->getLessEqual(key, docids);
+        pIndexer->getIndexer<T>()->getLessEqual(key, docids);
     }
 };
 
@@ -690,10 +608,10 @@ class get_great_visitor : public boost::static_visitor<void>
 {
 public:
     template<typename T>
-    void operator()(collectionid_t colid, fieldid_t fid, T& v, BitVector& docids)
+    void operator()(BTreeIndexer* pIndexer, collectionid_t colid, fieldid_t fid, T& v, BitVector& docids)
     {
         IndexKeyType<T> key(colid, fid, v);
-        BTreeIndexer::getIndexer<T>()->getGreat(key, docids);
+        pIndexer->getIndexer<T>()->getGreat(key, docids);
     }
 };
 
@@ -701,10 +619,10 @@ class get_great_equal_visitor : public boost::static_visitor<void>
 {
 public:
     template<typename T>
-    void operator()(collectionid_t colid, fieldid_t fid, T& v, BitVector& docids)
+    void operator()(BTreeIndexer* pIndexer, collectionid_t colid, fieldid_t fid, T& v, BitVector& docids)
     {
         IndexKeyType<T> key(colid, fid, v);
-        BTreeIndexer::getIndexer<T>()->getGreatEqual(key, docids);
+        pIndexer->getIndexer<T>()->getGreatEqual(key, docids);
     }
 };
 

@@ -7,18 +7,6 @@ using namespace izenelib::util;
 
 using namespace izenelib::ir::indexmanager;
 
-BTreeIndex<IndexKeyType<int64_t> >* BTreeIndexer::pBTreeIntIndexer_ = NULL;
-
-BTreeIndex<IndexKeyType<uint64_t> >* BTreeIndexer::pBTreeUIntIndexer_  = NULL;
-
-BTreeIndex<IndexKeyType<float> >* BTreeIndexer::pBTreeFloatIndexer_  = NULL;
-
-BTreeIndex<IndexKeyType<double> >* BTreeIndexer::pBTreeDoubleIndexer_  = NULL;
-
-BTreeIndex<IndexKeyType<String> >* BTreeIndexer::pBTreeUStrIndexer_  = NULL;
-
-//BTreeTrieIndex<String>* BTreeIndexer::pBTreeUStrSuffixIndexer_  = NULL;
-
 namespace izenelib{ namespace ir{ namespace indexmanager{
 template <>
 void BTreeIndex<IndexKeyType<String> >::getSuffix(const IndexKeyType<String>& key, BitVector& result)
@@ -66,6 +54,51 @@ void BTreeIndex<IndexKeyType<String> >::getSubString(const IndexKeyType<String>&
     }
 }
 
+template<typename T> 
+BTreeIndex<IndexKeyType<T> >* BTreeIndexer::getIndexer()
+{
+    return NULL;
+}
+
+template<> 
+BTreeIndex<IndexKeyType<int64_t> >* BTreeIndexer::getIndexer()
+{
+    return pBTreeIntIndexer_;
+}
+
+template<> 
+BTreeIndex<IndexKeyType<uint64_t> >* BTreeIndexer::getIndexer()
+{
+    return pBTreeUIntIndexer_;
+}
+
+template<> 
+BTreeIndex<IndexKeyType<float> >* BTreeIndexer::getIndexer()
+{
+    return pBTreeFloatIndexer_;
+}
+
+template<> 
+BTreeIndex<IndexKeyType<double> >* BTreeIndexer::getIndexer()
+{
+    return pBTreeDoubleIndexer_;
+}
+
+template<> 
+BTreeIndex<IndexKeyType<String> >* BTreeIndexer::getIndexer()
+{
+    return pBTreeUStrIndexer_;
+}
+
+template<>
+void add_visitor::operator()(BTreeIndexer* pIndexer, collectionid_t colid,fieldid_t fid, String& v, docid_t docid)
+{
+    trim(v);
+    IndexKeyType<String> key(colid, fid, v);
+    pIndexer->getIndexer<String>()->add_nodup(key, docid);
+    //BTreeIndexer::getTrieIndexer()->add_suffix(v, fid, docid);
+};
+	
 }}}
 
 BTreeIndexer::BTreeIndexer(string location, int degree, size_t cacheSize, size_t maxDataSize)
@@ -143,53 +176,53 @@ BTreeIndexer::~BTreeIndexer()
 
 void BTreeIndexer::add(collectionid_t colID, fieldid_t fid, PropertyType& value, docid_t docid)
 {
-    izenelib::util::boost_variant_visit(boost::bind(add_visitor(), colID, fid, _1, docid), value);
+    izenelib::util::boost_variant_visit(boost::bind(add_visitor(), this, colID, fid, _1, docid), value);
 }
 
 void BTreeIndexer::remove(collectionid_t colID, fieldid_t fid, PropertyType& value, docid_t docid)
 {
-    izenelib::util::boost_variant_visit(boost::bind(remove_visitor(), colID, fid, _1, docid), value);
+    izenelib::util::boost_variant_visit(boost::bind(remove_visitor(), this, colID, fid, _1, docid), value);
 }
 
 void BTreeIndexer::getValue(collectionid_t colID, fieldid_t fid, PropertyType& value,BitVector& docs)
 {
-    izenelib::util::boost_variant_visit(boost::bind(get_visitor(), colID, fid, _1, boost::ref(docs)), value);
+    izenelib::util::boost_variant_visit(boost::bind(get_visitor(), this, colID, fid, _1, boost::ref(docs)), value);
 }
 
 void BTreeIndexer::getValueNotEqual(collectionid_t colID, fieldid_t fid, PropertyType& value,BitVector& docs)
 {
-    izenelib::util::boost_variant_visit(boost::bind(get_without_visitor(), colID, fid, _1, boost::ref(docs)), value);
+    izenelib::util::boost_variant_visit(boost::bind(get_without_visitor(), this, colID, fid, _1, boost::ref(docs)), value);
 }
 
 void BTreeIndexer::getValueBetween(collectionid_t colID, fieldid_t fid, PropertyType& value1, PropertyType& value2, BitVector& docs)
 {
-    izenelib::util::boost_variant_visit(boost::bind(get_between_visitor(), colID, fid, _1, _2, boost::ref(docs)),value1,value2);	
+    izenelib::util::boost_variant_visit(boost::bind(get_between_visitor(), this, colID, fid, _1, _2, boost::ref(docs)),value1,value2);	
 }
 
 void BTreeIndexer::getValueLess(collectionid_t colID, fieldid_t fid, PropertyType& value,BitVector& docs)
 {
-    izenelib::util::boost_variant_visit(boost::bind(get_less_visitor(), colID, fid, _1, boost::ref(docs)), value);
+    izenelib::util::boost_variant_visit(boost::bind(get_less_visitor(), this, colID, fid, _1, boost::ref(docs)), value);
 }
 
 void BTreeIndexer::getValueLessEqual(collectionid_t colID, fieldid_t fid, PropertyType& value,BitVector& docs)
 {
-    izenelib::util::boost_variant_visit(boost::bind(get_less_equal_visitor(), colID, fid, _1, boost::ref(docs)), value);
+    izenelib::util::boost_variant_visit(boost::bind(get_less_equal_visitor(), this, colID, fid, _1, boost::ref(docs)), value);
 }
 
 void BTreeIndexer::getValueGreat(collectionid_t colID, fieldid_t fid, PropertyType& value,BitVector& docs)
 {
-    izenelib::util::boost_variant_visit(boost::bind(get_great_visitor(), colID, fid, _1, boost::ref(docs)), value);
+    izenelib::util::boost_variant_visit(boost::bind(get_great_visitor(), this, colID, fid, _1, boost::ref(docs)), value);
 }
 
 void BTreeIndexer::getValueGreatEqual(collectionid_t colID, fieldid_t fid, PropertyType& value,BitVector& docs)
 {
-    izenelib::util::boost_variant_visit(boost::bind(get_great_equal_visitor(), colID, fid, _1, boost::ref(docs)), value);
+    izenelib::util::boost_variant_visit(boost::bind(get_great_equal_visitor(), this, colID, fid, _1, boost::ref(docs)), value);
 }
 
 void BTreeIndexer::getValueIn(collectionid_t colID, fieldid_t fid, vector<PropertyType>& values,BitVector& docs)
 {
     for (size_t i = 0; i < values.size(); i++)
-        izenelib::util::boost_variant_visit(boost::bind(get_visitor(), colID, fid, _1, boost::ref(docs)), values[i]);
+        izenelib::util::boost_variant_visit(boost::bind(get_visitor(), this, colID, fid, _1, boost::ref(docs)), values[i]);
 }
 
 void BTreeIndexer::getValueNotIn(collectionid_t colID, fieldid_t fid, vector<PropertyType>& values,BitVector& docs)
