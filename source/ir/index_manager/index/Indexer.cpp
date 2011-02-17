@@ -276,7 +276,7 @@ int Indexer::removeDocument(collectionid_t colID, docid_t docId)
 void Indexer::flush()
 {
     pIndexWriter_->flush();
-    pBTreeIndexer_->flush();
+    if(pBTreeIndexer_) pBTreeIndexer_->flush();
     pIndexReader_->flush();
 
     setDirty();
