@@ -15,6 +15,7 @@ namespace izenelib{namespace osgi{
  *
  * @author magr74
  */
+class IRegistry; 
 class IServiceRegistration
 {
 public:
@@ -28,6 +29,11 @@ public:
      * Deletes the object.
      */
     virtual ~IServiceRegistration() {};
+
+    /**
+      * Get Registry 
+      */
+    virtual IRegistry* getRegistry() = 0;
 
     /**
      * Unregisters a service object with the framework.

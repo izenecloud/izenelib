@@ -17,25 +17,25 @@ private:
     /**
      * Represents the name of the bundle, e.g. 'test_bundle'.
      */
-    std::string bundleName;
+    std::string bundleName_;
 
     /**
      * Indicates the class name of the bundle activator.
      */
-    std::string className;
+    std::string className_;
 
     /**
      * Represents the library path where the bundle is located as
      * library, e.g. as DLL on windows systems.<br>
      * Example for library path: 'c:/temp/libraries'.
      */
-    std::string libraryPath;
+    std::string libraryPath_;
 
     /**
      * Specifies the name of the library which contains the bundle, e.g.
      * 'test_bundle.dll'
      */
-    std::string libraryName;
+    std::string libraryName_;
 
 public:
 
@@ -52,26 +52,26 @@ public:
     /**
      * Creates instances of class <code>BundleConfiguration</code>.
      *
-     * @param bundleName
+     * @param bundleName_
      *         The name of the bundle.
-     * @param className
+     * @param className_
      *         The name of the bundle activator class.
      * @param libPath
      *         The path to the bundle library.
      * @param libName
      *         The name of the bundle library.
      */
-    BundleConfiguration( const std::string &bundleName, const std::string &className, const std::string &libPath, const std::string &libName );
+    BundleConfiguration( const std::string &bundleName_, const std::string &className_, const std::string &libPath, const std::string &libName );
 
     /**
      * Creates instances of class <code>BundleConfiguration</code>.
      *
-      * @param bundleName
+      * @param bundleName_
      *         The name of the bundle.
-     * @param className
+     * @param className_
      *         The name of the bundle activator class.
      */
-    BundleConfiguration( const std::string &bundleName, const std::string &className );
+    BundleConfiguration( const std::string &bundleName_, const std::string &className_ );
 
     /**
      * Returns the name of the bundle.

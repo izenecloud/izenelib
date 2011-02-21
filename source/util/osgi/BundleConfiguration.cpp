@@ -9,45 +9,45 @@ const string BundleConfiguration::NO_LIB_PATH = "";
 const string BundleConfiguration::NO_LIB_NAME = "";
 
 BundleConfiguration::BundleConfiguration( const string &bundle, const string& clName, const string &libPath, const string &libName ) :
-        bundleName( bundle ), className(clName), libraryPath( libPath ), libraryName( libName )
+        bundleName_( bundle ), className_(clName), libraryPath_( libPath ), libraryName_( libName )
 {
 
 }
 
 BundleConfiguration::BundleConfiguration( const string &bundle, const string& clName ) :
-        bundleName( bundle ), className(clName), libraryPath( NO_LIB_PATH ), libraryName( NO_LIB_NAME )
+        bundleName_( bundle ), className_(clName), libraryPath_( NO_LIB_PATH ), libraryName_( NO_LIB_NAME )
 {
 
 }
 
 string BundleConfiguration::getBundleName()
 {
-    return this->bundleName;
+    return this->bundleName_;
 }
 
 string BundleConfiguration::getClassName()
 {
-    return this->className;
+    return this->className_;
 }
 
 string BundleConfiguration::getLibraryPath()
 {
-    return this->libraryPath;
+    return this->libraryPath_;
 }
 
 string BundleConfiguration::getLibraryName()
 {
-    return this->libraryName;
+    return this->libraryName_;
 }
 
 string BundleConfiguration::toString()
 {
     ostringstream infoStream;
     infoStream << "bundleConfig={";
-    infoStream << "bundleName=" << this->bundleName << ", ";
-    infoStream << "className=" << this->className << ", ";
-    infoStream << "libraryName=" << this->libraryName << ", ";
-    infoStream << "libraryPath=" << this->libraryPath << "}";
+    infoStream << "bundleName_=" << this->bundleName_ << ", ";
+    infoStream << "className_=" << this->className_ << ", ";
+    infoStream << "libraryName_=" << this->libraryName_ << ", ";
+    infoStream << "libraryPath_=" << this->libraryPath_ << "}";
     return infoStream.str();
 }
 

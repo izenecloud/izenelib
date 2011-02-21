@@ -175,7 +175,7 @@ template<class ThreadingModel>
 IServiceRegistration::ConstPtr IRegistryImpl<ThreadingModel>::createServiceRegistrationObject( const std::string& bundleName, ServiceInfoPtr serviceInfo )
 {
     logger_.log( Logger::LOG_DEBUG, "[IRegistryImpl#createServiceRegistrationObject] Called" );
-    return new IServiceRegistrationImpl( bundleName, (*this), serviceInfo );
+    return new IServiceRegistrationImpl( bundleName, this, serviceInfo );
 }
 
 template<class ThreadingModel>

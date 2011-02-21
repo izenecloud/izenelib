@@ -24,47 +24,51 @@ class IServiceRegistrationImpl : public IServiceRegistration
 private:
 
     /**
-     * The registry object which stores all bundle relevant data.
+     * The registry_ object which stores all bundle relevant data.
      */
-    IRegistry& registry;
+    IRegistry* registry_;
 
     /**
      * The <code>ServiceInfo</code> describing the service which can
      * be unregistered by this service registration object.
      */
-    ServiceInfoPtr serviceInfo;
+    ServiceInfoPtr serviceInfo_;
 
     /**
      * The name of the bundle which registered the service object.
      */
-    std::string bundleName;
+    std::string bundleName_;
 
     /**
-     * The logger instance.
+     * The logger_ instance.
      */
-    static Logger& logger;
+    static Logger& logger_;
 
 public:
 
     /**
      * Creates instances of class <code>IServiceRegistrationImpl</code>.
      *
-     * @param bundleName
+     * @param bundleName_
      *         The name of the bundle.
      *
      * @param reg
-     *         The framework registry which holds all bundle relevant data.
+     *         The framework registry_ which holds all bundle relevant data.
      *
-     * @param serviceInfo
+     * @param serviceInfo_
      *         The service info object.
      */
-    IServiceRegistrationImpl( const std::string& bundleName, IRegistry& reg, ServiceInfoPtr serviceInfo );
+    IServiceRegistrationImpl( const std::string& bundleName, IRegistry* reg, ServiceInfoPtr serviceInfo );
 
     /**
      * Deletes the object.
      */
     ~IServiceRegistrationImpl();
 
+    /**
+      * Get Registry 
+      */
+    virtual IRegistry* getRegistry();
     /**
      * Unregisters the service object with the framework.
      */

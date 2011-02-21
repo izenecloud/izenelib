@@ -3,23 +3,28 @@
 using namespace izenelib::osgi;
 using namespace izenelib::osgi::logging;
 
-Logger& IServiceRegistrationImpl::logger = LoggerFactory::getLogger( "Framework" );
+Logger& IServiceRegistrationImpl::logger_ = LoggerFactory::getLogger( "Framework" );
 
-IServiceRegistrationImpl::IServiceRegistrationImpl( const string& bName, IRegistry& reg, ServiceInfoPtr info ) 
-    :registry( reg ), 
-     serviceInfo( info ),
-     bundleName( bName )
+IServiceRegistrationImpl::IServiceRegistrationImpl( const string& bName, IRegistry* reg, ServiceInfoPtr info ) 
+    :registry_( reg ), 
+     serviceInfo_( info ),
+     bundleName_( bName )
 {
-    logger.log( Logger::LOG_DEBUG, "[IServiceRegistrationImpl#ctor] Called." );
+    logger_.log( Logger::LOG_DEBUG, "[IServiceRegistrationImpl#ctor] Called." );
 }
 
 IServiceRegistrationImpl::~IServiceRegistrationImpl()
 {
-    logger.log( Logger::LOG_DEBUG, "[IServiceRegistrationImpl#destructor] Called." );
+    logger_.log( Logger::LOG_DEBUG, "[IServiceRegistrationImpl#destructor] Called." );
+}
+
+IRegistry* IServiceRegistrationImpl::getRegistry()
+{
+    return registry_;
 }
 
 void IServiceRegistrationImpl::unregister()
 {
-    logger.log( Logger::LOG_DEBUG, "[IServiceRegistrationImpl#unregister] Called, service info: %1", this->serviceInfo->toString() );
-    this->registry.removeServiceInfo( this->bundleName, this->serviceInfo );
+    logger_.log( Logger::LOG_DEBUG, "[IServiceRegistrationImpl#unregister] Called, service info: %1", this->serviceInfo_->toString() );
+    registry_->removeServiceInfo( this->bundleName_, this->serviceInfo_ );
 }
