@@ -1,23 +1,23 @@
 
 
 template<
-class ThreadingModel,
+class LockType,
 template <class> class CreationPolicy>
-Logger& Launcher<ThreadingModel, CreationPolicy>::logger_ = LoggerFactory::getLogger( "Framework" );
+Logger& Launcher<LockType, CreationPolicy>::logger_ = LoggerFactory::getLogger( "Framework" );
 
 template<
-class ThreadingModel,
+class LockType,
 template <class> class CreationPolicy>
-Launcher<ThreadingModel, CreationPolicy>::Launcher()
+Launcher<LockType, CreationPolicy>::Launcher()
 {
     logger_.log( Logger::LOG_DEBUG, "[Launcher#ctor] Called." );
     this->registry_ = this->createRegistry();
 }
 
 template<
-class ThreadingModel,
+class LockType,
 template <class> class CreationPolicy>
-Launcher<ThreadingModel, CreationPolicy>::~Launcher()
+Launcher<LockType, CreationPolicy>::~Launcher()
 {
     logger_.log( Logger::LOG_DEBUG, "[Launcher#destructor] Called." );
     delete (this->registry_);
@@ -25,43 +25,43 @@ Launcher<ThreadingModel, CreationPolicy>::~Launcher()
 
 
 template<
-class ThreadingModel,
+class LockType,
 template <class> class CreationPolicy>
-IRegistry& Launcher<ThreadingModel, CreationPolicy>::getRegistry()
+IRegistry& Launcher<LockType, CreationPolicy>::getRegistry()
 {
     return (*(this->registry_));
 }
 
 template<
-class ThreadingModel,
+class LockType,
 template <class> class CreationPolicy>
-void Launcher<ThreadingModel, CreationPolicy>::setLogLevel( Logger::LogLevel level )
+void Launcher<LockType, CreationPolicy>::setLogLevel( Logger::LogLevel level )
 {
     LoggerFactory::setLogLevel( level );
 }
 
 template<
-class ThreadingModel,
+class LockType,
 template <class> class CreationPolicy>
-IRegistry* Launcher<ThreadingModel, CreationPolicy>::createRegistry()
+IRegistry* Launcher<LockType, CreationPolicy>::createRegistry()
 {
     logger_.log( Logger::LOG_DEBUG, "[Launcher#createRegistry] Called." );
-    return new IRegistryImpl<ThreadingModel>;
+    return new IRegistryImpl<LockType>;
 }
 
 template<
-class ThreadingModel,
+class LockType,
 template <class> class CreationPolicy>
-IBundleContext* Launcher<ThreadingModel, CreationPolicy>::createBundleContext( const std::string& bundleName )
+IBundleContext* Launcher<LockType, CreationPolicy>::createBundleContext( const std::string& bundleName )
 {
     logger_.log( Logger::LOG_DEBUG, "[Launcher#createBundleContext] Called." );
     return new IBundleContextImpl( bundleName, (*(this->registry_)) );
 }
 
 template<
-class ThreadingModel,
+class LockType,
 template <class> class CreationPolicy>
-void Launcher<ThreadingModel, CreationPolicy>::start( std::vector<BundleConfiguration> &configVector )
+void Launcher<LockType, CreationPolicy>::start( std::vector<BundleConfiguration> &configVector )
 {
     logger_.log( Logger::LOG_DEBUG, "[Launcher#start] Called." );
 
@@ -104,9 +104,9 @@ void Launcher<ThreadingModel, CreationPolicy>::start( std::vector<BundleConfigur
 }
 
 template<
-class ThreadingModel,
+class LockType,
 template <class> class CreationPolicy>
-void Launcher<ThreadingModel, CreationPolicy>::startAdministrationBundle()
+void Launcher<LockType, CreationPolicy>::startAdministrationBundle()
 {
     logger_.log( Logger::LOG_DEBUG, "[Launcher#startAdministrationBundle] Called." );
     IBundleActivator* adminBundleActivator = this->objectCreator_.createObject( "sof::services::admin::AdministrationActivator" );
@@ -123,18 +123,18 @@ void Launcher<ThreadingModel, CreationPolicy>::startAdministrationBundle()
 }
 
 template<
-class ThreadingModel,
+class LockType,
 template <class> class CreationPolicy>
-void Launcher<ThreadingModel, CreationPolicy>::stop()
+void Launcher<LockType, CreationPolicy>::stop()
 {
     logger_.log( Logger::LOG_DEBUG, "[Launcher#stop] Called." );
     this->registry_->removeAllBundleInfos();
 }
 
 template<
-class ThreadingModel,
+class LockType,
 template <class> class CreationPolicy>
-void Launcher<ThreadingModel, CreationPolicy>::startBundle( BundleConfiguration bundleConfig )
+void Launcher<LockType, CreationPolicy>::startBundle( BundleConfiguration bundleConfig )
 {
     logger_.log( Logger::LOG_DEBUG, "[Launcher#startBundle] Called, bundle config: %1", bundleConfig.toString() );
     std::vector<BundleConfiguration> vec;
@@ -143,18 +143,18 @@ void Launcher<ThreadingModel, CreationPolicy>::startBundle( BundleConfiguration 
 }
 
 template<
-class ThreadingModel,
+class LockType,
 template <class> class CreationPolicy>
-void Launcher<ThreadingModel, CreationPolicy>::stopBundle( const std::string& bundleName )
+void Launcher<LockType, CreationPolicy>::stopBundle( const std::string& bundleName )
 {
     logger_.log( Logger::LOG_DEBUG, "[Launcher#stopBundle] Called, bundle name: %1", bundleName );
     this->registry_->removeBundleInfo( bundleName );
 }
 
 template<
-class ThreadingModel,
+class LockType,
 template <class> class CreationPolicy>
-std::vector<std::string> Launcher<ThreadingModel, CreationPolicy>::getBundleNames()
+std::vector<std::string> Launcher<LockType, CreationPolicy>::getBundleNames()
 {
     std::vector<std::string> bundleNameVec;
     std::vector<BundleInfoBase*> vec = this->registry_->getBundleInfos();
@@ -167,9 +167,9 @@ std::vector<std::string> Launcher<ThreadingModel, CreationPolicy>::getBundleName
 }
 
 template<
-class ThreadingModel,
+class LockType,
 template <class> class CreationPolicy>
-std::string Launcher<ThreadingModel, CreationPolicy>::dumpBundleInfo( const std::string& bundleName )
+std::string Launcher<LockType, CreationPolicy>::dumpBundleInfo( const std::string& bundleName )
 {
     BundleInfoBase* bi = this->registry_->getBundleInfo( bundleName );
     if ( bi == 0 )
@@ -183,9 +183,9 @@ std::string Launcher<ThreadingModel, CreationPolicy>::dumpBundleInfo( const std:
 }
 
 template<
-class ThreadingModel,
+class LockType,
 template <class> class CreationPolicy>
-std::string Launcher<ThreadingModel, CreationPolicy>::dumpAllBundleNames()
+std::string Launcher<LockType, CreationPolicy>::dumpAllBundleNames()
 {
     std::vector<BundleInfoBase*> vec = this->registry_->getBundleInfos();
     std::vector<BundleInfoBase*>::iterator it;
@@ -202,9 +202,9 @@ std::string Launcher<ThreadingModel, CreationPolicy>::dumpAllBundleNames()
 }
 
 template<
-class ThreadingModel,
+class LockType,
 template <class> class CreationPolicy>
-BundleInfoBase& Launcher<ThreadingModel, CreationPolicy>::getBundleInfo( const std::string& bundleName )
+BundleInfoBase& Launcher<LockType, CreationPolicy>::getBundleInfo( const std::string& bundleName )
 {
     return ( * ( this->registry_->getBundleInfo( bundleName ) ) );
 }

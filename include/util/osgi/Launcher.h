@@ -18,14 +18,14 @@
 #include "ObjectCreator.h"
 #include "util/Logger.h"
 #include "util/LoggerFactory.h"
-#include "util/SingleThreaded.h"
+#include <util/ThreadModel.h>
 
 
 namespace izenelib{namespace osgi{
 
 using namespace izenelib::osgi::logging;
 using namespace izenelib::osgi::admin;
-
+using namespace izenelib::util;
 /**
  * The <code>Launcher</code> class is the entry point for
  * running the SOF framework.<br>
@@ -35,7 +35,7 @@ using namespace izenelib::osgi::admin;
  * @author magr74
  */
 template<
-class ThreadingModel = SingleThreaded,
+class LockType = NullLock,
 template <class> class CreationPolicy = NullCreator>
 class Launcher : public IAdministrationProvider
 {

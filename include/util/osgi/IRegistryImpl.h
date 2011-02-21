@@ -20,13 +20,13 @@
 
 #include "util/Logger.h"
 #include "util/LoggerFactory.h"
-#include "util/SingleThreaded.h"
+#include <util/ThreadModel.h>
 
 
 namespace izenelib{namespace osgi{
 
 using namespace izenelib::osgi::logging;
-
+using namespace izenelib::util;
 /**
  * The central class (the 'brain') of the SOF framework which
  * stores and holds all relevant data of the bundles.<br>
@@ -44,12 +44,12 @@ using namespace izenelib::osgi::logging;
  *
  * @author magr74
  */
-template<class ThreadingModel=SingleThreaded>
+template<class LockType=NullLock>
 class IRegistryImpl : public IRegistry
 {
 
 protected:
-
+    LockType registryLock_;
     /**
      * The logger_ instance.
      */
@@ -181,17 +181,6 @@ protected:
      */
     virtual void notifyListenersAboutDeregisteredService( const std::string& bundleName, ServiceInfoPtr serviceInfo, std::vector<ServiceListenerInfoPtr>* serviceListenerInfoVec );
 
-    /**
-     * All registered service are cached by using <code>ServiceInfo</code> objects. This method
-     * adds a new <code>ServiceInfo</code> object to the internal storage.
-     *
-     * @param serviceName
-     *         The name of the service whose <code>ServiceInfo</code> object must be stored.
-     *
-     * @param serviceInfo
-     *         The object of type <code>ServiceInfo</code>.
-     */
-    virtual void addToServiceInfoVector( const std::string& bundleName, const std::string& serviceName, ServiceInfoPtr serviceInfo ) ;
 
     /**
      * Removes a <code>ServiceInfo</code> object from the internal storage.
@@ -220,19 +209,6 @@ protected:
      *         The service listener object.
      */
     virtual void removeFromServiceListenerInfoVector( const std::string& bundleName, ServiceListenerInfoPtr info );
-
-    /**
-     * Adds a <code>ServiceInfo</code> object to the bundle info storage.<br>
-     * The <code>BundleInfo</code> object contains all relevant information of
-     * a bundle (like information about registered services).
-     *
-     * @param bundleName
-     *         The name of the bundle the registered service belongs to.
-     *
-     * @param serviceInfo
-     *         The service info object which is stored.
-     */
-    virtual void addRegisteredServiceToBundleInfo( const std::string& bundleName, ServiceInfoPtr serviceInfo ) ;
 
     /**
      * Removes a <code>ServiceInfo</code> object from the bundle info storage.<br>

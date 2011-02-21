@@ -9,7 +9,7 @@
 #include <util/osgi/util/Logger.h>
 #include <util/osgi/util/LoggerFactory.h>
 #include <util/osgi/LibraryCreator.h>
-#include <util/osgi/util/SingleThreaded.h>
+#include <util/ThreadModel.h>
 
 #include "TestBundleActivator.h"
 #include "TestHelper.h"
@@ -31,7 +31,7 @@ BOOST_AUTO_TEST_CASE(load_test)
     bundleConfVec.push_back( bundleConf1 );
     bundleConfVec.push_back( bundleConf2 );
 
-    Launcher<SingleThreaded,LibraryCreator> launcher;
+    Launcher<ReadWriteLock,LibraryCreator> launcher;
     launcher.start( bundleConfVec );
     launcher.stop();	
 }
@@ -47,7 +47,7 @@ BOOST_AUTO_TEST_CASE(register_test)
     bundleConfVec.push_back( bundleConf1 );
     bundleConfVec.push_back( bundleConf2 );
 
-    Launcher<SingleThreaded,LibraryCreator> launcher;
+    Launcher<ReadWriteLock,LibraryCreator> launcher;
     launcher.start( bundleConfVec );
 
     IRegistry& registry = launcher.getRegistry();
@@ -70,7 +70,7 @@ BOOST_AUTO_TEST_CASE(unregisterservice_test)
     vector<BundleConfiguration> bundleConfVec;
     bundleConfVec.push_back( bundleConf2 );
 
-    Launcher<SingleThreaded,LibraryCreator>  launcher;
+    Launcher<ReadWriteLock,LibraryCreator>  launcher;
     launcher.start( bundleConfVec );
 
     TestBundleActivator::unregisterServiceB();
@@ -98,7 +98,7 @@ BOOST_AUTO_TEST_CASE(unregisterlistener_test)
     bundleConfVec.push_back( bundleConf1 );
     bundleConfVec.push_back( bundleConf2 );
 
-    Launcher<SingleThreaded,LibraryCreator>  launcher;
+    Launcher<ReadWriteLock,LibraryCreator>  launcher;
     launcher.start( bundleConfVec );
 
     IRegistry& registry = launcher.getRegistry();
@@ -132,7 +132,7 @@ BOOST_AUTO_TEST_CASE(stopall_test)
     bundleConfVec.push_back( bundleConf1 );
     bundleConfVec.push_back( bundleConf2 );
 
-    Launcher<SingleThreaded,LibraryCreator>  launcher;
+    Launcher<ReadWriteLock,LibraryCreator>  launcher;
     launcher.start( bundleConfVec );
 
     IRegistry& registry = launcher.getRegistry();

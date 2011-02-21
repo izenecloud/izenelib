@@ -1,8 +1,8 @@
-template<class ThreadingModel>
-Logger& IRegistryImpl<ThreadingModel>::logger_ = LoggerFactory::getLogger( "Framework" );
+template<class LockType>
+Logger& IRegistryImpl<LockType>::logger_ = LoggerFactory::getLogger( "Framework" );
 
-template<class ThreadingModel>
-IRegistryImpl<ThreadingModel>::~IRegistryImpl()
+template<class LockType>
+IRegistryImpl<LockType>::~IRegistryImpl()
 {
     logger_.log( Logger::LOG_DEBUG, "[IRegistryImpl#destructor] Called." );
 
@@ -16,11 +16,12 @@ IRegistryImpl<ThreadingModel>::~IRegistryImpl()
 
 }
 
-template<class ThreadingModel>
-void IRegistryImpl<ThreadingModel>::addBundleInfo( BundleInfoBase& bundleInfo )
+template<class LockType>
+void IRegistryImpl<LockType>::addBundleInfo( BundleInfoBase& bundleInfo )
 {
     // !!! synchronized access !!!
-    typename ThreadingModel::Lock lock;
+    //typename LockType::Lock lock;
+    ScopedWriteLock<LockType> lock(registryLock_);
 
     logger_.log( Logger::LOG_DEBUG, "[IRegistryImpl#addBundleInfo] Called, bundleName: %1", bundleInfo.getBundleName() );
     this->bundleInfoMap_[bundleInfo.getBundleName()] = &bundleInfo;
@@ -29,11 +30,12 @@ void IRegistryImpl<ThreadingModel>::addBundleInfo( BundleInfoBase& bundleInfo )
     this->bundleNames_.push_back( bundleInfo.getBundleName() );
 }
 
-template<class ThreadingModel>
-BundleInfoBase* IRegistryImpl<ThreadingModel>::getBundleInfo( const std::string &bundleName )
+template<class LockType>
+BundleInfoBase* IRegistryImpl<LockType>::getBundleInfo( const std::string &bundleName )
 {
     // !!! synchronized access !!!
-    typename ThreadingModel::Lock lock;
+    //typename LockType::Lock lock;
+    //ScopedReadLock<LockType> lock(registryLock_);
 
     logger_.log( Logger::LOG_DEBUG, "[IRegistryImpl#getBundleInfo] Called, bundleName: %1", bundleName );
     std::map<std::string,BundleInfoBase*>::iterator iter = this->bundleInfoMap_.find( bundleName );
@@ -49,12 +51,13 @@ BundleInfoBase* IRegistryImpl<ThreadingModel>::getBundleInfo( const std::string 
     }
 }
 
-template<class ThreadingModel>
-std::vector<BundleInfoBase*> IRegistryImpl<ThreadingModel>::getBundleInfos()
+template<class LockType>
+std::vector<BundleInfoBase*> IRegistryImpl<LockType>::getBundleInfos()
 {
     logger_.log( Logger::LOG_DEBUG, "[IRegistryImpl#getBundleInfos] Called." );
     // !!! synchronized access !!!
-    typename ThreadingModel::Lock lock;
+    //typename LockType::Lock lock;
+    ScopedReadLock<LockType> lock(registryLock_);
 
     std::map<std::string, BundleInfoBase*>::iterator it;
     std::vector<BundleInfoBase*> vec;
@@ -66,12 +69,9 @@ std::vector<BundleInfoBase*> IRegistryImpl<ThreadingModel>::getBundleInfos()
     return vec;
 }
 
-template<class ThreadingModel>
-void IRegistryImpl<ThreadingModel>::removeAllBundleInfos()
+template<class LockType>
+void IRegistryImpl<LockType>::removeAllBundleInfos()
 {
-    // !!! synchronized access !!!
-    typename ThreadingModel::Lock lock;
-
     logger_.log( Logger::LOG_DEBUG, "[IRegistryImpl#removeAllBundleInfos] Called." );
 
     std::vector<std::string>::reverse_iterator strIterator;
@@ -83,11 +83,11 @@ void IRegistryImpl<ThreadingModel>::removeAllBundleInfos()
     logger_.log( Logger::LOG_DEBUG, "[IRegistryImpl#removeAllBundleInfos] Left." );
 }
 
-template<class ThreadingModel>
-void IRegistryImpl<ThreadingModel>::removeBundleInfo( const std::string &bundleName )
+template<class LockType>
+void IRegistryImpl<LockType>::removeBundleInfo( const std::string &bundleName )
 {
     // !!! synchronized access !!!
-    typename ThreadingModel::Lock lock;
+    //typename LockType::Lock lock;
 
     logger_.log( Logger::LOG_DEBUG, "[IRegistryImpl#removeBundleInfo] Called, bundleName: %1", bundleName );
 
@@ -103,7 +103,7 @@ void IRegistryImpl<ThreadingModel>::removeBundleInfo( const std::string &bundleN
         return;
     }
 
-    this->deleteActivator( (*bi) );
+    deleteActivator( (*bi) );
 
     bi->removeAllUsedServices();
 
@@ -123,6 +123,7 @@ void IRegistryImpl<ThreadingModel>::removeBundleInfo( const std::string &bundleN
         this->removeServiceListener( bundleName, (*listenerIter) );
     }
 
+    ScopedWriteLock<LockType> lock(registryLock_);
     delete (bi->getBundleContext());
     delete bi;
     logger_.log( Logger::LOG_DEBUG, "[IRegistryImpl#removeBundleInfo] Erase bundle info." );
@@ -130,8 +131,8 @@ void IRegistryImpl<ThreadingModel>::removeBundleInfo( const std::string &bundleN
     logger_.log( Logger::LOG_DEBUG, "[IRegistryImpl#removeBundleInfo] Left" );
 }
 
-template<class ThreadingModel>
-void IRegistryImpl<ThreadingModel>::stopActivator( const BundleInfoBase& bi )
+template<class LockType>
+void IRegistryImpl<LockType>::stopActivator( const BundleInfoBase& bi )
 {
     logger_.log( Logger::LOG_DEBUG, "[IRegistryImpl#stopActivator] Called." );
     BundleInfoBase* info = const_cast<BundleInfoBase*>( &bi );
@@ -140,8 +141,8 @@ void IRegistryImpl<ThreadingModel>::stopActivator( const BundleInfoBase& bi )
     act->stop( bundleInfo->getBundleContext() );
 }
 
-template<class ThreadingModel>
-void IRegistryImpl<ThreadingModel>::deleteActivator( const BundleInfoBase& bi )
+template<class LockType>
+void IRegistryImpl<LockType>::deleteActivator( const BundleInfoBase& bi )
 {
     logger_.log( Logger::LOG_DEBUG, "[IRegistryImpl#deleteActivator] Called." );
     BundleInfoBase* info = const_cast<BundleInfoBase*>( &bi );
@@ -151,19 +152,31 @@ void IRegistryImpl<ThreadingModel>::deleteActivator( const BundleInfoBase& bi )
     delete act;
 }
 
-template<class ThreadingModel>
-IServiceRegistration::ConstPtr IRegistryImpl<ThreadingModel>::addServiceInfo( const std::string& bundleName, ServiceInfoPtr serviceInfo )
+template<class LockType>
+IServiceRegistration::ConstPtr IRegistryImpl<LockType>::addServiceInfo( const std::string& bundleName, ServiceInfoPtr serviceInfo )
 {
-    // !!! synchronized access !!!
-    typename ThreadingModel::Lock lock;
-
     std::string serviceName = serviceInfo->getServiceName();
+    // !!! synchronized access !!!
+    ScopedWriteLock<LockType> lock(registryLock_);
+
     logger_.log( Logger::LOG_DEBUG, "[IRegistryImpl#addServiceInfo] Called, bundle name: %1, service name: %2", bundleName, serviceName );
 
-    this->addToServiceInfoVector( bundleName, serviceName, serviceInfo );
+    // adding ServiceInfo to ServiceInfoVector
+    std::vector<ServiceInfoPtr>* serviceVec = this->getServiceInfo( serviceName );
+
+    serviceVec->push_back( serviceInfo );
 
     // adding ServiceInfo object to BundleInfo object
-    this->addRegisteredServiceToBundleInfo( bundleName, serviceInfo );
+    BundleInfoBase* bundleInfo = this->getBundleInfo( bundleName );
+    if ( bundleInfo == 0 )
+    {
+        logger_.log( Logger::LOG_DEBUG, "[IRegistryImpl#addServiceInfo] No bundle info available, do nothing." );
+    }
+    else
+    {
+        logger_.log( Logger::LOG_DEBUG, "[IRegistryImpl#addServiceInfo] Add registered service to bundle info." );
+        bundleInfo->addRegisteredService( serviceInfo );
+    }
 
     // notifying all Listeners about new registered service
     std::vector<ServiceListenerInfoPtr>* serviceListenerInfoVec = this->getServiceListenerInfoVector( serviceName );
@@ -171,18 +184,19 @@ IServiceRegistration::ConstPtr IRegistryImpl<ThreadingModel>::addServiceInfo( co
     return this->createServiceRegistrationObject( bundleName, serviceInfo );
 }
 
-template<class ThreadingModel>
-IServiceRegistration::ConstPtr IRegistryImpl<ThreadingModel>::createServiceRegistrationObject( const std::string& bundleName, ServiceInfoPtr serviceInfo )
+template<class LockType>
+IServiceRegistration::ConstPtr IRegistryImpl<LockType>::createServiceRegistrationObject( const std::string& bundleName, ServiceInfoPtr serviceInfo )
 {
     logger_.log( Logger::LOG_DEBUG, "[IRegistryImpl#createServiceRegistrationObject] Called" );
     return new IServiceRegistrationImpl( bundleName, this, serviceInfo );
 }
 
-template<class ThreadingModel>
-void IRegistryImpl<ThreadingModel>::removeServiceInfo( const std::string& bundleName, ServiceInfoPtr serviceInfo )
+template<class LockType>
+void IRegistryImpl<LockType>::removeServiceInfo( const std::string& bundleName, ServiceInfoPtr serviceInfo )
 {
     // !!! synchronized access !!!
-    typename ThreadingModel::Lock lock;
+    //typename LockType::Lock lock;
+    ScopedWriteLock<LockType> lock(registryLock_);
 
     logger_.log( Logger::LOG_DEBUG, "[IRegistryImpl#removeServiceInfo] Called, serviceInfo: %1",
                 serviceInfo->toString() );
@@ -193,25 +207,8 @@ void IRegistryImpl<ThreadingModel>::removeServiceInfo( const std::string& bundle
     logger_.log( Logger::LOG_DEBUG, "[IRegistryImpl#removeServiceInfo] Left." );
 }
 
-template<class ThreadingModel>
-void IRegistryImpl<ThreadingModel>::addRegisteredServiceToBundleInfo( const std::string& bundleName, ServiceInfoPtr serviceInfo )
-{
-    logger_.log( Logger::LOG_DEBUG, "[IRegistryImpl#addRegisteredServiceToBundleInfo] Called, bundle name: %1, service info: %2",
-                bundleName, serviceInfo->toString() );
-    BundleInfoBase* bundleInfo = this->getBundleInfo( bundleName );
-    if ( bundleInfo == 0 )
-    {
-        logger_.log( Logger::LOG_DEBUG, "[IRegistryImpl#addRegisteredServiceToBundleInfo] No bundle info available, do nothing." );
-    }
-    else
-    {
-        logger_.log( Logger::LOG_DEBUG, "[IRegistryImpl#addRegisteredServiceToBundleInfo] Add registered service to bundle info." );
-        bundleInfo->addRegisteredService( serviceInfo );
-    }
-}
-
-template<class ThreadingModel>
-void IRegistryImpl<ThreadingModel>::removeDeregisteredServiceFromBundleInfo( const std::string& bundleName, ServiceInfoPtr serviceInfo )
+template<class LockType>
+void IRegistryImpl<LockType>::removeDeregisteredServiceFromBundleInfo( const std::string& bundleName, ServiceInfoPtr serviceInfo )
 {
     logger_.log( Logger::LOG_DEBUG, "[IRegistryImpl#removeDeregisteredServiceFromBundleInfo] Called, bundle name: %1, service info: %2",
                 bundleName, serviceInfo->toString() );
@@ -227,8 +224,8 @@ void IRegistryImpl<ThreadingModel>::removeDeregisteredServiceFromBundleInfo( con
     }
 }
 
-template<class ThreadingModel>
-void IRegistryImpl<ThreadingModel>::addUsedService( const std::string& bundleName, ServiceInfoPtr serviceInfo )
+template<class LockType>
+void IRegistryImpl<LockType>::addUsedService( const std::string& bundleName, ServiceInfoPtr serviceInfo )
 {
     logger_.log( Logger::LOG_DEBUG, "[IRegistryImpl#addUsedService] Called, bundle name: %1, service info: %2",
                 bundleName, serviceInfo->toString() );
@@ -243,8 +240,8 @@ void IRegistryImpl<ThreadingModel>::addUsedService( const std::string& bundleNam
     }
 }
 
-template<class ThreadingModel>
-void IRegistryImpl<ThreadingModel>::removeUsedService( const std::string& bundleName, ServiceInfoPtr serviceInfo )
+template<class LockType>
+void IRegistryImpl<LockType>::removeUsedService( const std::string& bundleName, ServiceInfoPtr serviceInfo )
 {
     logger_.log( Logger::LOG_DEBUG, "[IRegistryImpl#removeUsedService] Called, bundle name: %1, service info: %2",
                 bundleName, serviceInfo->toString() );
@@ -259,27 +256,8 @@ void IRegistryImpl<ThreadingModel>::removeUsedService( const std::string& bundle
     }
 }
 
-template<class ThreadingModel>
-void IRegistryImpl<ThreadingModel>::addToServiceInfoVector( const std::string& bundleName, const std::string& serviceName, ServiceInfoPtr serviceInfo )
-{
-    logger_.log( Logger::LOG_DEBUG, "[IRegistryImpl#addToServiceInfoVector] Called, bundle name: %1, service name: %2", bundleName, serviceName );
-
-    BundleInfoBase* bundleInfo = this->getBundleInfo( bundleName );
-    if ( bundleInfo == 0 )
-    {
-        logger_.log( Logger::LOG_DEBUG, "[IRegistryImpl#addToServiceInfoVector] No bundle info available, do not add service." );
-        return;
-    }
-
-    std::vector<ServiceInfoPtr>* serviceVec = this->getServiceInfo( serviceName );
-
-    serviceVec->push_back( serviceInfo );
-
-    logger_.log( Logger::LOG_DEBUG, "[IRegistryImpl#addToServiceInfoVector] Left." );
-}
-
-template<class ThreadingModel>
-void IRegistryImpl<ThreadingModel>::removeFromServiceInfoVector( ServiceInfoPtr serviceInfo )
+template<class LockType>
+void IRegistryImpl<LockType>::removeFromServiceInfoVector( ServiceInfoPtr serviceInfo )
 {
     logger_.log( Logger::LOG_DEBUG, "[IRegistryImpl#removeFromServiceInfoVector] Called, service name: %1", serviceInfo->getServiceName() );
 
@@ -303,8 +281,8 @@ void IRegistryImpl<ThreadingModel>::removeFromServiceInfoVector( ServiceInfoPtr 
 }
 
 
-template<class ThreadingModel>
-void IRegistryImpl<ThreadingModel>::notifyListenersAboutRegisteredService( const std::string& bundleName, std::vector<ServiceInfoPtr>* serviceVec, std::vector<ServiceListenerInfoPtr>* serviceListenerInfoVec, const std::string& serviceName )
+template<class LockType>
+void IRegistryImpl<LockType>::notifyListenersAboutRegisteredService( const std::string& bundleName, std::vector<ServiceInfoPtr>* serviceVec, std::vector<ServiceListenerInfoPtr>* serviceListenerInfoVec, const std::string& serviceName )
 {
     logger_.log( Logger::LOG_DEBUG, "[IRegistryImpl#notifyListenersAboutRegisteredService] Called." );
 
@@ -333,8 +311,8 @@ void IRegistryImpl<ThreadingModel>::notifyListenersAboutRegisteredService( const
     logger_.log( Logger::LOG_DEBUG, "[IRegistryImpl#notifyListenersAboutRegisteredService] Left." );
 }
 
-template<class ThreadingModel>
-void IRegistryImpl<ThreadingModel>::notifyListenersAboutRegisteredService( const std::string& bundleName, ServiceInfoPtr serviceInfo, std::vector<ServiceListenerInfoPtr>* serviceListenerInfoVec, const std::string& serviceName )
+template<class LockType>
+void IRegistryImpl<LockType>::notifyListenersAboutRegisteredService( const std::string& bundleName, ServiceInfoPtr serviceInfo, std::vector<ServiceListenerInfoPtr>* serviceListenerInfoVec, const std::string& serviceName )
 {
 
     logger_.log( Logger::LOG_DEBUG, "[IRegistryImpl#notifyListenersAboutRegisteredService] Called." );
@@ -361,8 +339,8 @@ void IRegistryImpl<ThreadingModel>::notifyListenersAboutRegisteredService( const
 
 }
 
-template<class ThreadingModel>
-void IRegistryImpl<ThreadingModel>::notifyListenerAboutRegisteredService( const std::string& bundleName, std::vector<ServiceInfoPtr>* serviceVec, const ServiceListenerInfoPtr serviceListenerInfo, const std::string& serviceName )
+template<class LockType>
+void IRegistryImpl<LockType>::notifyListenerAboutRegisteredService( const std::string& bundleName, std::vector<ServiceInfoPtr>* serviceVec, const ServiceListenerInfoPtr serviceListenerInfo, const std::string& serviceName )
 {
     logger_.log( Logger::LOG_DEBUG, "[IRegistryImpl#notifyListenerAboutRegisteredService] Called." );
 
@@ -390,8 +368,8 @@ void IRegistryImpl<ThreadingModel>::notifyListenerAboutRegisteredService( const 
     logger_.log( Logger::LOG_DEBUG, "[IRegistryImpl#notifyListenerAboutRegisteredService] Left." );
 }
 
-template<class ThreadingModel>
-void IRegistryImpl<ThreadingModel>::notifyListenersAboutDeregisteredService( const std::string& bundleName, ServiceInfoPtr serviceInfo, std::vector<ServiceListenerInfoPtr>* serviceListenerInfoVec )
+template<class LockType>
+void IRegistryImpl<LockType>::notifyListenersAboutDeregisteredService( const std::string& bundleName, ServiceInfoPtr serviceInfo, std::vector<ServiceListenerInfoPtr>* serviceListenerInfoVec )
 {
     logger_.log( Logger::LOG_DEBUG, "[IRegistryImpl#notifyListenersAboutDeregisteredService] Called." );
 
@@ -415,11 +393,11 @@ void IRegistryImpl<ThreadingModel>::notifyListenersAboutDeregisteredService( con
     logger_.log( Logger::LOG_DEBUG, "[IRegistryImpl#notifyListenersAboutDeregisteredService] Left." );
 }
 
-template<class ThreadingModel>
-std::vector<ServiceInfoPtr>* IRegistryImpl<ThreadingModel>::getServiceInfo( const std::string& serviceName )
+template<class LockType>
+std::vector<ServiceInfoPtr>* IRegistryImpl<LockType>::getServiceInfo( const std::string& serviceName )
 {
     // !!! synchronized access !!!
-    typename ThreadingModel::Lock lock;
+    //typename LockType::Lock lock;
 
     logger_.log( Logger::LOG_DEBUG, "[IRegistryImpl#getServiceInfo] Called, service name: %1", serviceName );
     std::vector<ServiceInfoPtr>* vec = this->serviceInfoMap_[serviceName];
@@ -433,8 +411,8 @@ std::vector<ServiceInfoPtr>* IRegistryImpl<ThreadingModel>::getServiceInfo( cons
     return vec;
 }
 
-template<class ThreadingModel>
-std::vector<ServiceListenerInfoPtr>* IRegistryImpl<ThreadingModel>::getServiceListenerInfoVector( const std::string& serviceName )
+template<class LockType>
+std::vector<ServiceListenerInfoPtr>* IRegistryImpl<LockType>::getServiceListenerInfoVector( const std::string& serviceName )
 {
     logger_.log( Logger::LOG_DEBUG, "[IRegistryImpl#getServiceListenerInfoVector] Called, service name: %1", serviceName );
     std::vector<ServiceListenerInfoPtr>* vec = this->serviceListenerMap_[serviceName];
@@ -448,11 +426,12 @@ std::vector<ServiceListenerInfoPtr>* IRegistryImpl<ThreadingModel>::getServiceLi
     return vec;
 }
 
-template<class ThreadingModel>
-void IRegistryImpl<ThreadingModel>::addServiceListener( const std::string& bundleName, ServiceListenerInfoPtr listenerInfo )
+template<class LockType>
+void IRegistryImpl<LockType>::addServiceListener( const std::string& bundleName, ServiceListenerInfoPtr listenerInfo )
 {
     // !!! synchronized access !!!
-    typename ThreadingModel::Lock lock;
+    //typename LockType::Lock lock;
+    ScopedWriteLock<LockType> lock(registryLock_);
 
     std::string serviceName = listenerInfo->getServiceName();
     logger_.log( Logger::LOG_DEBUG, "[IRegistryImpl#addServiceListener] Called, bundle name: %1, service name: %2", bundleName, serviceName );
@@ -478,19 +457,20 @@ void IRegistryImpl<ThreadingModel>::addServiceListener( const std::string& bundl
     logger_.log( Logger::LOG_DEBUG, "[IRegistryImpl#addServiceListener] Left." );
 }
 
-template<class ThreadingModel>
-void IRegistryImpl<ThreadingModel>::removeServiceListener( const std::string& bundleName, ServiceListenerInfoPtr serviceListener )
+template<class LockType>
+void IRegistryImpl<LockType>::removeServiceListener( const std::string& bundleName, ServiceListenerInfoPtr serviceListener )
 {
     // !!! synchronized access !!!
-    typename ThreadingModel::Lock lock;
+    //typename LockType::Lock lock;
+    ScopedWriteLock<LockType> lock(registryLock_);
 
     logger_.log( Logger::LOG_DEBUG, "[IRegistryImpl#removeServiceListener] Called, bundle name: %1", bundleName );
     this->removeFromServiceListenerInfoVector( bundleName, serviceListener );
     logger_.log( Logger::LOG_DEBUG, "[IRegistryImpl#removeServiceListener] Left" );
 }
 
-template<class ThreadingModel>
-void IRegistryImpl<ThreadingModel>::removeFromServiceListenerInfoVector( const std::string& bundleName, ServiceListenerInfoPtr serviceListener )
+template<class LockType>
+void IRegistryImpl<LockType>::removeFromServiceListenerInfoVector( const std::string& bundleName, ServiceListenerInfoPtr serviceListener )
 {
     logger_.log( Logger::LOG_DEBUG, "[IRegistryImpl#removeFromServiceListenerInfoVector] Called." );
     std::map<std::string, std::vector<ServiceListenerInfoPtr>* >::iterator iter;
@@ -523,8 +503,8 @@ void IRegistryImpl<ThreadingModel>::removeFromServiceListenerInfoVector( const s
     logger_.log( Logger::LOG_DEBUG, "[IRegistryImpl#removeFromServiceListenerInfoVector] Left." );
 }
 
-template<class ThreadingModel>
-bool IRegistryImpl<ThreadingModel>::areServiceListenerObjectsEqual( ServiceListenerInfoPtr info1, ServiceListenerInfoPtr info2 )
+template<class LockType>
+bool IRegistryImpl<LockType>::areServiceListenerObjectsEqual( ServiceListenerInfoPtr info1, ServiceListenerInfoPtr info2 )
 {
     logger_.log( Logger::LOG_DEBUG, "[IRegistryImpl#areServiceListenerObjectsEqual] Called, info1: %1, info2: %2", info1->toString(), info2->toString() );
     if ( info1->getServiceListenerObj() == info2->getServiceListenerObj() )
@@ -539,8 +519,8 @@ bool IRegistryImpl<ThreadingModel>::areServiceListenerObjectsEqual( ServiceListe
     }
 }
 
-template<class ThreadingModel>
-bool IRegistryImpl<ThreadingModel>::callServiceListenerObject( ServiceListenerInfoPtr info, ServiceInfoPtr serviceInfo, const ServiceEvent::EventType& eventType )
+template<class LockType>
+bool IRegistryImpl<LockType>::callServiceListenerObject( ServiceListenerInfoPtr info, ServiceInfoPtr serviceInfo, const ServiceEvent::EventType& eventType )
 {
     logger_.log( Logger::LOG_DEBUG, "[IRegistryImpl#callServiceListenerObject] Called, serviceInfo: %1",
                 serviceInfo->toString() );
