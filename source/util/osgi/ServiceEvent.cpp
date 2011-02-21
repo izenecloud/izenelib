@@ -4,7 +4,6 @@ using namespace izenelib::osgi;
 
 ServiceEvent::ServiceEvent( int eventType, const ServiceReference& ref ) : type_( eventType ), reference_( ref )
 {
-
 }
 
 int ServiceEvent::getType() const

@@ -162,7 +162,7 @@ protected:
      * @param serviceName
      *         The name of the service which is registered.
      */
-    virtual void notifyListenersAboutRegisteredService( const std::string& bundleName, ServiceInfoPtr, std::vector<ServiceListenerInfoPtr>* serviceListenerInfoVec, const std::string& serviceName );
+    virtual void notifyListenersAboutRegisteredService( const std::string& bundleName, ServiceInfoPtr serviceInfo, std::vector<ServiceListenerInfoPtr>* serviceListenerInfoVec, const std::string& serviceName );
 
     /**
      * Notifies service listener objects about a specific service which is
@@ -179,7 +179,7 @@ protected:
      *         A std::vector of <code>ServiceListenerInfo</code> objects containing the
      *         service listener objects which must be notified.
      */
-    virtual void notifyListenersAboutDeregisteredService( const std::string& bundleName, ServiceInfoPtr, std::vector<ServiceListenerInfoPtr>* serviceListenerInfoVec );
+    virtual void notifyListenersAboutDeregisteredService( const std::string& bundleName, ServiceInfoPtr serviceInfo, std::vector<ServiceListenerInfoPtr>* serviceListenerInfoVec );
 
     /**
      * All registered service are cached by using <code>ServiceInfo</code> objects. This method

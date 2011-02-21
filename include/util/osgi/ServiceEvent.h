@@ -13,10 +13,8 @@ namespace izenelib{namespace osgi{
  * a change in the lifecycle of a service.<br>
  * Currently there are two events defined:<br>
  * <ul>
- * <li>REGISTER: Service is registered with the
- *                 framework.
- * <li>UNREGISTER: Service is unregistered with the
- *                 framework.
+ * <li>REGISTER: Service is registered with the framework.
+ * <li>UNREGISTER: Service is unregistered with the framework.
  * </ul>
  *
  * @author magr74
@@ -28,7 +26,7 @@ public:
     /**
      * Definition of the events.
      */
-    enum EventType { REGISTER, UNREGISTER };
+    enum EventType { REGISTER, UNREGISTER};
 
 private:
 
@@ -55,7 +53,7 @@ public:
      * @param reference_
      *         Describes the service.
      */
-    ServiceEvent( int type_, const ServiceReference& reference_ );
+    ServiceEvent( int type, const ServiceReference& reference );
 
     /**
      * Returns the type_ of the event.
