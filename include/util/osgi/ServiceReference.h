@@ -16,8 +16,8 @@ using namespace izenelib::osgi::logging;
 
 /**
  * The <code>ServiceReference</code> represents a
- * service and holds all important information regarding
- * a service object.
+ * service_ and holds all important information regarding
+ * a service_ object.
  *
  * @author magr74
  */
@@ -26,24 +26,24 @@ class ServiceReference
 protected:
 
     /**
-     * The name of the service.
+     * The name of the service_.
      */
-    std::string serviceName;
+    std::string serviceName_;
 
     /**
-     * The properties describing the service object.
+     * The properties describing the service_ object.
      */
-    Properties props;
+    Properties props_;
 
     /**
-     * The constant pointer to the service object.
+     * The constant pointer to the service_ object.
      */
-    IService* service;
+    IService* service_;
 
     /**
-     * The logger instance.
+     * The logger_ instance.
      */
-    static Logger& logger;
+    static Logger& logger_;
 
 public:
 
@@ -57,13 +57,13 @@ public:
      * Creates instances of class <code>ServiceReference</code>.
      *
      * @param name
-     *     The service name.
+     *     The service_ name.
      *
      * @param properties
-     *     The properties object describing the service object.
+     *     The properties object describing the service_ object.
      *
      * @param serv
-     *     The service object.
+     *     The service_ object.
      */
     ServiceReference( const std::string &name, const Properties &properties, const IService::ConstPtr serv );
 
@@ -90,34 +90,34 @@ public:
     virtual ~ServiceReference();
 
     /**
-     * Sets the name of the service.
+     * Sets the name of the service_.
      *
      * @param name
-     *     The service name.
+     *     The service_ name.
      */
     virtual void setServiceName( const std::string& name );
 
     /**
-     * Sets the properties of the service.
+     * Sets the properties of the service_.
      *
-     * @param props
-     *     The service properties.
+     * @param props_
+     *     The service_ properties.
      */
-    virtual void setServiceProperties( const Properties& props );
+    virtual void setServiceProperties( const Properties& props_ );
 
     /**
-     * Sets the service object.
+     * Sets the service_ object.
      *
-     * @param service
-     *         The service object.
+     * @param service_
+     *         The service_ object.
      */
-    virtual void setService( IService::ConstPtr service );
+    virtual void setService( IService::ConstPtr service_ );
 
     /**
-     * Returns the service name.
+     * Returns the service_ name.
      *
      * @return
-     * The name of the service.
+     * The name of the service_.
      */
     virtual std::string getServiceName() const;
 
@@ -125,15 +125,15 @@ public:
      * Returns the properties object.
      *
      * @return
-     * The properties describing the service object.
+     * The properties describing the service_ object.
      */
     virtual Properties getServiceProperties() const;
 
     /**
-     * Returns a constant pointer to the service object.
+     * Returns a constant pointer to the service_ object.
      *
      * @return
-     * The constant pointer to the service object.
+     * The constant pointer to the service_ object.
      */
     virtual IService::ConstPtr getService() const;
 

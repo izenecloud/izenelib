@@ -6,52 +6,52 @@ using namespace std;
 
 using namespace izenelib::osgi;
 
-Logger& ServiceListenerInfo::logger = LoggerFactory::getLogger( "Framework" );
+Logger& ServiceListenerInfo::logger_ = LoggerFactory::getLogger( "Framework" );
 
-ServiceListenerInfo::ServiceListenerInfo( const string& bdleName, const string& servName, IServiceListener::ConstPtr serviceListener ) : bundleName( bdleName ), serviceName( servName ), serviceListenerObj( serviceListener )
+ServiceListenerInfo::ServiceListenerInfo( const string& bdleName, const string& servName, IServiceListener::ConstPtr serviceListener ) : bundleName_( bdleName ), serviceName_( servName ), serviceListenerObj_( serviceListener )
 {
-    logger.log( Logger::LOG_DEBUG, "[ServiceListenerInfo#ctor] Called." );
+    logger_.log( Logger::LOG_DEBUG, "[ServiceListenerInfo#ctor] Called." );
 }
 
 ServiceListenerInfo::~ServiceListenerInfo()
 {
-    logger.log( Logger::LOG_DEBUG, "[ServiceListenerInfo#destructor] Called." );
+    logger_.log( Logger::LOG_DEBUG, "[ServiceListenerInfo#destructor] Called." );
 }
 
-ServiceListenerInfo::ServiceListenerInfo( const ServiceListenerInfo& info ) : serviceListenerObj( info.serviceListenerObj )
+ServiceListenerInfo::ServiceListenerInfo( const ServiceListenerInfo& info ) : serviceListenerObj_( info.serviceListenerObj_ )
 {
-    logger.log( Logger::LOG_DEBUG, "[ServiceListenerInfo#copy-ctor] Called." );
+    logger_.log( Logger::LOG_DEBUG, "[ServiceListenerInfo#copy-ctor] Called." );
 
-    this->bundleName = info.bundleName;
-    this->serviceName = info.serviceName;
+    this->bundleName_ = info.bundleName_;
+    this->serviceName_ = info.serviceName_;
 }
 
 ServiceListenerInfo& ServiceListenerInfo::operator=( const ServiceListenerInfo &serviceListenerInfo )
 {
-    logger.log( Logger::LOG_DEBUG, "[ServiceListenerInfo#operator=] Called." );
+    logger_.log( Logger::LOG_DEBUG, "[ServiceListenerInfo#operator=] Called." );
 
     if (this != &serviceListenerInfo)
     {
-        this->bundleName = serviceListenerInfo.bundleName;
-        this->serviceName = serviceListenerInfo.serviceName;
-        this->serviceListenerObj = serviceListenerInfo.serviceListenerObj;
+        this->bundleName_ = serviceListenerInfo.bundleName_;
+        this->serviceName_ = serviceListenerInfo.serviceName_;
+        this->serviceListenerObj_ = serviceListenerInfo.serviceListenerObj_;
     }
     return *this;
 }
 
 string ServiceListenerInfo::getBundleName() const
 {
-    return this->bundleName;
+    return this->bundleName_;
 }
 
 string ServiceListenerInfo::getServiceName() const
 {
-    return this->serviceName;
+    return this->serviceName_;
 }
 
 IServiceListener::ConstPtr ServiceListenerInfo::getServiceListenerObj() const
 {
-    return this->serviceListenerObj;
+    return this->serviceListenerObj_;
 }
 
 bool ServiceListenerInfo::operator==( const ServiceListenerInfo& info1 )
@@ -77,8 +77,8 @@ string ServiceListenerInfo::toString() const
 {
     ostringstream infoStream;
     infoStream << "serviceListenerInfo={";
-    infoStream << "bundleName=" << this->bundleName << ", ";
-    infoStream << "serviceName=" << this->serviceName;
+    infoStream << "bundleName_=" << this->bundleName_ << ", ";
+    infoStream << "serviceName_=" << this->serviceName_;
     infoStream << "}";
     return infoStream.str();
 }

@@ -19,7 +19,7 @@ using namespace izenelib::osgi::logging;
  * The <code>ServiceInfo</code> object is a helper class
  * for internal use of the framework.<br>
  * A <code>ServiceInfo</code> object holds all important
- * information about a service object.
+ * information about a service_ object.
  *
  * @author magr74
  */
@@ -28,24 +28,24 @@ class ServiceInfo
 protected:
 
     /**
-     * Defines a constant pointer to the service object.
+     * Defines a constant pointer to the service_ object.
      */
-    IService* service;
+    IService* service_;
 
     /**
-     * The name of the service object.
+     * The name of the service_ object.
      */
-    std::string serviceName;
+    std::string serviceName_;
 
     /**
-     * Holds the properties of a service object.
+     * Holds the properties of a service_ object.
      */
-    Properties props;
+    Properties props_;
 
     /**
-     * The logger instance.
+     * The logger_ instance.
      */
-    static Logger& logger;
+    static Logger& logger_;
 
 public:
 
@@ -55,21 +55,21 @@ public:
      * Creates instances of class <code>ServiceInfo</code>.
      *
      * @param servName
-     *         The service name.
+     *         The service_ name.
      *
-     * @param service
-     *         The constant pointer to the service object.
+     * @param service_
+     *         The constant pointer to the service_ object.
      *
      * @param properties
-     *         The properties describing the service object.
+     *         The properties describing the service_ object.
      */
-    ServiceInfo( const std::string &servName, IService::ConstPtr service, const Properties &properties );
+    ServiceInfo( const std::string &servName, IService::ConstPtr service_, const Properties &properties );
 
     /**
      * Copys instances of class <code>ServiceInfo</code>.
      *
      * @param serviceInfo
-     *         The service info object which is copied.
+     *         The service_ info object which is copied.
      */
     ServiceInfo( const ServiceInfo &serviceInfo );
 
@@ -79,15 +79,15 @@ public:
     virtual ~ServiceInfo();
 
     /**
-     * Returns the service name.
+     * Returns the service_ name.
      *
      * @return
-     * The name of the service.
+     * The name of the service_.
      */
     virtual std::string getServiceName() const;
 
     /**
-     * Returns the properties of the service.
+     * Returns the properties of the service_.
      *
      * @return
      *     The properties object.
@@ -95,10 +95,10 @@ public:
     virtual Properties getProperties() const;
 
     /**
-     * Returns a constant pointer to the service object.
+     * Returns a constant pointer to the service_ object.
      *
      * @return
-     *     The service object.
+     *     The service_ object.
      */
     virtual IService::ConstPtr getService() const;
 
@@ -116,10 +116,10 @@ public:
      * Assigns the passed <code>ServiceInfo</code> object to this object.
      *
      * @param serviceInfo
-     *         The service info object which is assigned to this.
+     *         The service_ info object which is assigned to this.
      *
      * @return
-     *         This service info object.
+     *         This service_ info object.
      */
     virtual ServiceInfo& operator=( const ServiceInfo &serviceInfo );
 
@@ -127,7 +127,7 @@ public:
      * Compares two <code>ServiceInfo</code> objects.
      *
      * @return
-     * True, if the passed service info object
+     * True, if the passed service_ info object
      * is equal to this object, otherwise false.
      */
     virtual bool operator==( const ServiceInfo& serviceInfo1 );

@@ -3,15 +3,15 @@
 template<
 class ThreadingModel,
 template <class> class CreationPolicy>
-Logger& Launcher<ThreadingModel, CreationPolicy>::logger = LoggerFactory::getLogger( "Framework" );
+Logger& Launcher<ThreadingModel, CreationPolicy>::logger_ = LoggerFactory::getLogger( "Framework" );
 
 template<
 class ThreadingModel,
 template <class> class CreationPolicy>
 Launcher<ThreadingModel, CreationPolicy>::Launcher()
 {
-    logger.log( Logger::LOG_DEBUG, "[Launcher#ctor] Called." );
-    this->registry = this->createRegistry();
+    logger_.log( Logger::LOG_DEBUG, "[Launcher#ctor] Called." );
+    this->registry_ = this->createRegistry();
 }
 
 template<
@@ -19,8 +19,8 @@ class ThreadingModel,
 template <class> class CreationPolicy>
 Launcher<ThreadingModel, CreationPolicy>::~Launcher()
 {
-    logger.log( Logger::LOG_DEBUG, "[Launcher#destructor] Called." );
-    delete (this->registry);
+    logger_.log( Logger::LOG_DEBUG, "[Launcher#destructor] Called." );
+    delete (this->registry_);
 }
 
 
@@ -29,7 +29,7 @@ class ThreadingModel,
 template <class> class CreationPolicy>
 IRegistry& Launcher<ThreadingModel, CreationPolicy>::getRegistry()
 {
-    return (*(this->registry));
+    return (*(this->registry_));
 }
 
 template<
@@ -45,7 +45,7 @@ class ThreadingModel,
 template <class> class CreationPolicy>
 IRegistry* Launcher<ThreadingModel, CreationPolicy>::createRegistry()
 {
-    logger.log( Logger::LOG_DEBUG, "[Launcher#createRegistry] Called." );
+    logger_.log( Logger::LOG_DEBUG, "[Launcher#createRegistry] Called." );
     return new IRegistryImpl<ThreadingModel>;
 }
 
@@ -54,8 +54,8 @@ class ThreadingModel,
 template <class> class CreationPolicy>
 IBundleContext* Launcher<ThreadingModel, CreationPolicy>::createBundleContext( const std::string& bundleName )
 {
-    logger.log( Logger::LOG_DEBUG, "[Launcher#createBundleContext] Called." );
-    return new IBundleContextImpl( bundleName, (*(this->registry)) );
+    logger_.log( Logger::LOG_DEBUG, "[Launcher#createBundleContext] Called." );
+    return new IBundleContextImpl( bundleName, (*(this->registry_)) );
 }
 
 template<
@@ -63,31 +63,31 @@ class ThreadingModel,
 template <class> class CreationPolicy>
 void Launcher<ThreadingModel, CreationPolicy>::start( std::vector<BundleConfiguration> &configVector )
 {
-    logger.log( Logger::LOG_DEBUG, "[Launcher#start] Called." );
+    logger_.log( Logger::LOG_DEBUG, "[Launcher#start] Called." );
 
     std::vector<BundleConfiguration>::iterator itVectorData;
     itVectorData = configVector.begin();
     for (itVectorData = configVector.begin(); itVectorData != configVector.end(); itVectorData++)
     {
         BundleConfiguration bundleConfig = *(itVectorData);
-        this->objectCreator.setSearchConfiguration( true,
+        this->objectCreator_.setSearchConfiguration( true,
                 bundleConfig.getLibraryPath(), bundleConfig.getLibraryName() );
 
-        logger.log( Logger::LOG_DEBUG, "[Launcher#start] Reading configuration: Library path: %1, class name: %2",
+        logger_.log( Logger::LOG_DEBUG, "[Launcher#start] Reading configuration: Library path: %1, class name: %2",
                     bundleConfig.getLibraryPath(), bundleConfig.getClassName() );
 
-        logger.log( Logger::LOG_DEBUG, "[Launcher#start] Loading bundle activator: Library path: %1, class name: %2",
+        logger_.log( Logger::LOG_DEBUG, "[Launcher#start] Loading bundle activator: Library path: %1, class name: %2",
                     bundleConfig.getLibraryPath(), bundleConfig.getClassName() );
 
         IBundleActivator* bundleActivator;
         try
         {
-            bundleActivator = this->objectCreator.createObject( bundleConfig.getClassName() );
+            bundleActivator = this->objectCreator_.createObject( bundleConfig.getClassName() );
         }
         catch ( ObjectCreationException &exc )
         {
             std::string msg( exc.what() );
-            logger.log( Logger::LOG_ERROR, "[Launcher#start] Error during loading bundle activator, exc: %1", msg );
+            logger_.log( Logger::LOG_ERROR, "[Launcher#start] Error during loading bundle activator, exc: %1", msg );
             continue;
         }
 
@@ -95,9 +95,9 @@ void Launcher<ThreadingModel, CreationPolicy>::start( std::vector<BundleConfigur
         ///!!Yingfeng
         ///We could add configuration reader here for IBundleContext
         BundleInfoBase* bundleInfo = new BundleInfo( bundleConfig.getBundleName(), false, bundleActivator, bundleCtxt );
-        this->registry->addBundleInfo( (*bundleInfo) );
+        this->registry_->addBundleInfo( (*bundleInfo) );
 
-        logger.log( Logger::LOG_DEBUG, "[Launcher#start] Start bundle." );
+        logger_.log( Logger::LOG_DEBUG, "[Launcher#start] Start bundle." );
 
         bundleActivator->start( bundleCtxt );
     }
@@ -108,14 +108,14 @@ class ThreadingModel,
 template <class> class CreationPolicy>
 void Launcher<ThreadingModel, CreationPolicy>::startAdministrationBundle()
 {
-    logger.log( Logger::LOG_DEBUG, "[Launcher#startAdministrationBundle] Called." );
-    IBundleActivator* adminBundleActivator = this->objectCreator.createObject( "sof::services::admin::AdministrationActivator" );
+    logger_.log( Logger::LOG_DEBUG, "[Launcher#startAdministrationBundle] Called." );
+    IBundleActivator* adminBundleActivator = this->objectCreator_.createObject( "sof::services::admin::AdministrationActivator" );
     IBundleContext* bundleCtxt = this->createBundleContext( "AdministrationBundle" );
 
     BundleInfoBase* bundleInfo = new BundleInfo( "AdministrationBundle", true, adminBundleActivator, bundleCtxt );
-    this->registry->addBundleInfo( (*bundleInfo) );
+    this->registry_->addBundleInfo( (*bundleInfo) );
 
-    logger.log( Logger::LOG_DEBUG, "[Launcher#start] Start bundle." );
+    logger_.log( Logger::LOG_DEBUG, "[Launcher#start] Start bundle." );
 
     AdministrationActivator* adminActivator = static_cast<AdministrationActivator*> (adminBundleActivator);
     adminActivator->setAdministrationProvider( this );
@@ -127,8 +127,8 @@ class ThreadingModel,
 template <class> class CreationPolicy>
 void Launcher<ThreadingModel, CreationPolicy>::stop()
 {
-    logger.log( Logger::LOG_DEBUG, "[Launcher#stop] Called." );
-    this->registry->removeAllBundleInfos();
+    logger_.log( Logger::LOG_DEBUG, "[Launcher#stop] Called." );
+    this->registry_->removeAllBundleInfos();
 }
 
 template<
@@ -136,7 +136,7 @@ class ThreadingModel,
 template <class> class CreationPolicy>
 void Launcher<ThreadingModel, CreationPolicy>::startBundle( BundleConfiguration bundleConfig )
 {
-    logger.log( Logger::LOG_DEBUG, "[Launcher#startBundle] Called, bundle config: %1", bundleConfig.toString() );
+    logger_.log( Logger::LOG_DEBUG, "[Launcher#startBundle] Called, bundle config: %1", bundleConfig.toString() );
     std::vector<BundleConfiguration> vec;
     vec.push_back( bundleConfig );
     this->start( vec );
@@ -147,8 +147,8 @@ class ThreadingModel,
 template <class> class CreationPolicy>
 void Launcher<ThreadingModel, CreationPolicy>::stopBundle( const std::string& bundleName )
 {
-    logger.log( Logger::LOG_DEBUG, "[Launcher#stopBundle] Called, bundle name: %1", bundleName );
-    this->registry->removeBundleInfo( bundleName );
+    logger_.log( Logger::LOG_DEBUG, "[Launcher#stopBundle] Called, bundle name: %1", bundleName );
+    this->registry_->removeBundleInfo( bundleName );
 }
 
 template<
@@ -157,7 +157,7 @@ template <class> class CreationPolicy>
 std::vector<std::string> Launcher<ThreadingModel, CreationPolicy>::getBundleNames()
 {
     std::vector<std::string> bundleNameVec;
-    std::vector<BundleInfoBase*> vec = this->registry->getBundleInfos();
+    std::vector<BundleInfoBase*> vec = this->registry_->getBundleInfos();
     std::vector<BundleInfoBase*>::iterator iter;
     for ( iter = vec.begin(); iter != vec.end(); iter++ )
     {
@@ -171,7 +171,7 @@ class ThreadingModel,
 template <class> class CreationPolicy>
 std::string Launcher<ThreadingModel, CreationPolicy>::dumpBundleInfo( const std::string& bundleName )
 {
-    BundleInfoBase* bi = this->registry->getBundleInfo( bundleName );
+    BundleInfoBase* bi = this->registry_->getBundleInfo( bundleName );
     if ( bi == 0 )
     {
         return "Bundle not available!";
@@ -187,7 +187,7 @@ class ThreadingModel,
 template <class> class CreationPolicy>
 std::string Launcher<ThreadingModel, CreationPolicy>::dumpAllBundleNames()
 {
-    std::vector<BundleInfoBase*> vec = this->registry->getBundleInfos();
+    std::vector<BundleInfoBase*> vec = this->registry_->getBundleInfos();
     std::vector<BundleInfoBase*>::iterator it;
 
     std::ostringstream stream;
@@ -206,5 +206,5 @@ class ThreadingModel,
 template <class> class CreationPolicy>
 BundleInfoBase& Launcher<ThreadingModel, CreationPolicy>::getBundleInfo( const std::string& bundleName )
 {
-    return ( * ( this->registry->getBundleInfo( bundleName ) ) );
+    return ( * ( this->registry_->getBundleInfo( bundleName ) ) );
 }

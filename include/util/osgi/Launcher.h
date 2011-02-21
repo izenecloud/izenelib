@@ -46,24 +46,24 @@ protected:
      * for instantiating the <code>IBundleActivator</code>
      * objects.
      */
-    ObjectCreator<IBundleActivator,CreationPolicy> objectCreator;
+    ObjectCreator<IBundleActivator,CreationPolicy> objectCreator_;
 
     /**
-     * The registry object which holds all relevant data of
+     * The registry_ object which holds all relevant data of
      * all bundles. It is the central administration object.
      */
-    IRegistry* registry;
+    IRegistry* registry_;
 
     /**
-     * The logger instance.
+     * The logger_ instance.
      */
-    static Logger& logger;
+    static Logger& logger_;
 
     /**
-     * Creates the registry instance.
+     * Creates the registry_ instance.
      *
      * @return
-     * The registry instance.
+     * The registry_ instance.
      */
     virtual IRegistry* createRegistry();
 
@@ -184,10 +184,10 @@ public:
     virtual BundleInfoBase& getBundleInfo( const std::string& bundleName );
 
     /**
-     * Returns the registry object.
+     * Returns the registry_ object.
      *
      * @return
-     *     The registry object.
+     *     The registry_ object.
      */
     virtual IRegistry& getRegistry();
 };

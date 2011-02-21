@@ -33,7 +33,7 @@ private:
     /**
      * The bundle activator instance.
      */
-    IBundleActivator* activator;
+    IBundleActivator* activator_;
 
 
 public:

@@ -8,41 +8,41 @@ using namespace std;
 using namespace izenelib::osgi;
 using namespace izenelib::osgi::logging;
 
-Logger& IBundleContextImpl::logger = LoggerFactory::getLogger( "Framework" );
+Logger& IBundleContextImpl::logger_ = LoggerFactory::getLogger( "Framework" );
 
-IBundleContextImpl::IBundleContextImpl( const string& bdleName, IRegistry& reg ) : bundleName( bdleName ), registry( reg )
+IBundleContextImpl::IBundleContextImpl( const string& bdleName, IRegistry& reg ) : bundleName_( bdleName ), registry_( reg )
 {
-    logger.log( Logger::LOG_DEBUG, "[IBundleContextImpl#ctor] Called, bundle name: %1", bdleName );
+    logger_.log( Logger::LOG_DEBUG, "[IBundleContextImpl#ctor] Called, bundle name: %1", bdleName );
 }
 
 IBundleContextImpl::~IBundleContextImpl()
 {
-    logger.log( Logger::LOG_DEBUG, "[IBundleContextImpl#destructor] Called." );
+    logger_.log( Logger::LOG_DEBUG, "[IBundleContextImpl#destructor] Called." );
 }
 
 string IBundleContextImpl::getBundleName()
 {
-    return this->bundleName;
+    return this->bundleName_;
 }
 
 IServiceRegistration* IBundleContextImpl::registerService( const string& className, IService::ConstPtr service, const Properties &dict )
 {
-    logger.log( Logger::LOG_DEBUG, "[IBundleContextImpl#registerService] Called, bundle name: %1, service name: %2", this->bundleName, className );
+    logger_.log( Logger::LOG_DEBUG, "[IBundleContextImpl#registerService] Called, bundle name: %1, service name: %2", this->bundleName_, className );
     ServiceInfoPtr serviceInfo( new ServiceInfo( className, service, dict ) );
-    return this->registry.addServiceInfo( this->bundleName, serviceInfo );
+    return this->registry_.addServiceInfo( this->bundleName_, serviceInfo );
 }
 
 void IBundleContextImpl::addServiceListener( IServiceListener::ConstPtr serviceListener, const string &serviceName )
 {
-    logger.log( Logger::LOG_DEBUG, "[IBundleContextImpl#addServiceListener] Called, bundle name: %1, service name: %2", this->bundleName, serviceName );
-    ServiceListenerInfoPtr listenerInfo( new ServiceListenerInfo( bundleName, serviceName, serviceListener ) );
-    this->registry.addServiceListener( this->bundleName, listenerInfo );
+    logger_.log( Logger::LOG_DEBUG, "[IBundleContextImpl#addServiceListener] Called, bundle name: %1, service name: %2", this->bundleName_, serviceName );
+    ServiceListenerInfoPtr listenerInfo( new ServiceListenerInfo( bundleName_, serviceName, serviceListener ) );
+    this->registry_.addServiceListener( this->bundleName_, listenerInfo );
 }
 
 void IBundleContextImpl::removeServiceListener( IServiceListener::ConstPtr serviceListener )
 {
-    logger.log( Logger::LOG_DEBUG, "[IBundleContextImpl#removeServiceListener] Called, bundle name: %1", this->bundleName );
-    ServiceListenerInfoPtr info( new ServiceListenerInfo( bundleName, "", serviceListener ) );
-    this->registry.removeServiceListener( this->bundleName, info );
+    logger_.log( Logger::LOG_DEBUG, "[IBundleContextImpl#removeServiceListener] Called, bundle name: %1", this->bundleName_ );
+    ServiceListenerInfoPtr info( new ServiceListenerInfo( bundleName_, "", serviceListener ) );
+    this->registry_.removeServiceListener( this->bundleName_, info );
 }
 

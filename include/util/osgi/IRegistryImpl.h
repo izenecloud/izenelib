@@ -51,21 +51,21 @@ class IRegistryImpl : public IRegistry
 protected:
 
     /**
-     * The logger instance.
+     * The logger_ instance.
      */
-    static Logger &logger;
+    static Logger &logger_;
 
     /**
      * The std::vector storing <code>BundleInfo</code> objects
      * which hold all bundle relevant data.
      */
-    std::map<std::string,BundleInfoBase*> bundleInfoMap;
+    std::map<std::string,BundleInfoBase*> bundleInfoMap_;
 
     /**
      * This std::vector is only necessary for storing the starting order of the bundles, because
-     * the <code>bundleInfoMap</code> does not.
+     * the <code>bundleInfoMap_</code> does not.
      */
-    std::vector<std::string> bundleNames;
+    std::vector<std::string> bundleNames_;
 
     /**
      * Stores vectors of <code>ServiceInfo</code> objects
@@ -76,14 +76,14 @@ protected:
      * service name.
      *
      */
-    std::map<std::string, std::vector<ServiceInfoPtr>* > serviceInfoMap;
+    std::map<std::string, std::vector<ServiceInfoPtr>* > serviceInfoMap_;
 
     /**
      * Maps <code>ServiceListenerInfo</code>  objects to the
      * service name. <code>ServiceListenerInfo</code> objects contain
      * the service name they are listen for.
      */
-    std::map<std::string, std::vector<ServiceListenerInfoPtr>* > serviceListenerMap;
+    std::map<std::string, std::vector<ServiceListenerInfoPtr>* > serviceListenerMap_;
 
     /**
      * Stops the activator object.

@@ -7,79 +7,79 @@ using namespace std;
 using namespace izenelib::osgi;
 using namespace izenelib::osgi::logging;
 
-Logger& ServiceReference::logger = LoggerFactory::getLogger( "Framework" );
+Logger& ServiceReference::logger_ = LoggerFactory::getLogger( "Framework" );
 
 ServiceReference::ServiceReference()
 {
-    logger.log( Logger::LOG_DEBUG, "[ServiceReference#ctor] Default ctor called." );
+    logger_.log( Logger::LOG_DEBUG, "[ServiceReference#ctor] Default ctor called." );
 }
 
-ServiceReference::ServiceReference( const string &name, const Properties &properties, const IService::ConstPtr serv ) : serviceName( name ), props( properties ), service( serv )
+ServiceReference::ServiceReference( const string &name, const Properties &properties, const IService::ConstPtr serv ) : serviceName_( name ), props_( properties ), service_( serv )
 {
-    logger.log( Logger::LOG_DEBUG, "[ServiceReference#ctor] Called." );
+    logger_.log( Logger::LOG_DEBUG, "[ServiceReference#ctor] Called." );
 }
 
 ServiceReference::ServiceReference( const ServiceReference& serviceRef )
 {
-    logger.log( Logger::LOG_DEBUG, "[ServiceReference#copy-ctor] Called." );
-    this->serviceName = serviceRef.serviceName;
-    this->props = serviceRef.props;
-    this->service = serviceRef.service;
+    logger_.log( Logger::LOG_DEBUG, "[ServiceReference#copy-ctor] Called." );
+    this->serviceName_ = serviceRef.serviceName_;
+    this->props_ = serviceRef.props_;
+    this->service_ = serviceRef.service_;
 }
 
 ServiceReference& ServiceReference::operator=( const ServiceReference &serviceRef )
 {
-    logger.log( Logger::LOG_DEBUG, "[ServiceReference#operator=] Called." );
+    logger_.log( Logger::LOG_DEBUG, "[ServiceReference#operator=] Called." );
     if (this != &serviceRef)
     {
-        this->serviceName = serviceRef.serviceName;
-        this->props = serviceRef.props;
-        this->service = serviceRef.service;
+        this->serviceName_ = serviceRef.serviceName_;
+        this->props_ = serviceRef.props_;
+        this->service_ = serviceRef.service_;
     }
     return *this;
 }
 
 ServiceReference::~ServiceReference()
 {
-    logger.log( Logger::LOG_DEBUG, "[ServiceReference#destructor] Called." );
+    logger_.log( Logger::LOG_DEBUG, "[ServiceReference#destructor] Called." );
 }
 
 string ServiceReference::getServiceName() const
 {
-    return this->serviceName;
+    return this->serviceName_;
 }
 
 Properties ServiceReference::getServiceProperties() const
 {
-    return this->props;
+    return this->props_;
 }
 
 IService::ConstPtr ServiceReference::getService() const
 {
-    return this->service;
+    return this->service_;
 }
 
 void ServiceReference::setService( IService::ConstPtr serv )
 {
-    this->service = serv;
+    this->service_ = serv;
 }
 
 void ServiceReference::setServiceProperties( const Properties& properties )
 {
-    this->props = properties;
+    this->props_ = properties;
 }
 
 void ServiceReference::setServiceName( const string& name )
 {
-    this->serviceName = name;
+    this->serviceName_ = name;
 }
 
 string ServiceReference::toString() const
 {
     ostringstream refStream;
     refStream << "ServiceReference={";
-    refStream << "serviceName=" << this->serviceName << ", ";
-    refStream << this->props.toString();
+    refStream << "serviceName_=" << this->serviceName_ << ", ";
+    refStream << this->props_.toString();
     refStream << "}";
     return refStream.str();
 }

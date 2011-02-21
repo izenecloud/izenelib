@@ -2,19 +2,19 @@
 
 using namespace izenelib::osgi;
 
-ServiceEvent::ServiceEvent( int eventType, const ServiceReference& ref ) : type( eventType ), reference( ref )
+ServiceEvent::ServiceEvent( int eventType, const ServiceReference& ref ) : type_( eventType ), reference_( ref )
 {
 
 }
 
 int ServiceEvent::getType() const
 {
-    return this->type;
+    return this->type_;
 }
 
 ServiceReference ServiceEvent::getReference() const
 {
-    return this->reference;
+    return this->reference_;
 }
 
 
@@ -22,8 +22,8 @@ string ServiceEvent::toString() const
 {
     ostringstream eventStream;
     eventStream << "ServiceEvent={";
-    eventStream << "type=" << this->type << ", ";
-    eventStream << this->reference.toString();
+    eventStream << "type_=" << this->type_ << ", ";
+    eventStream << this->reference_.toString();
     eventStream << "}";
     return eventStream.str();
 }

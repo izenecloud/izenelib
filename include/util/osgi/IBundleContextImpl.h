@@ -29,34 +29,34 @@ protected:
      * Each bundle gets its own bundle context object. This is the
      * name of the bundle the bundle context belongs to.
      */
-    std::string bundleName;
+    std::string bundleName_;
 
 private:
 
     /**
-     * The registry which stores all relevant information
+     * The registry_ which stores all relevant information
      * about the bundles (registered services, registered listeners etc.)
      */
-    IRegistry& registry;
+    IRegistry& registry_;
 
     /**
-     * The logger instance.
+     * The logger_ instance.
      */
-    static Logger& logger;
+    static Logger& logger_;
 
 public:
 
     /**
      * Creates instances of class <code>IBundleContextImpl</code>.
      *
-     * @param bundleName
+     * @param bundleName_
      *         The name of the bundle the context object belongs to.
      *
      * @param reg
-     *         The registry which stores bundle information of all
+     *         The registry_ which stores bundle information of all
      *         bundles.
      */
-    IBundleContextImpl( const std::string& bundleName, IRegistry& reg );
+    IBundleContextImpl( const std::string& bundleName_, IRegistry& reg );
 
     /**
      * The destructor of the bundle context.

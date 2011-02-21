@@ -32,28 +32,28 @@ private:
     /**
      * Indicates that service tracking is active.
      */
-    bool isTrackingActive;
+    bool isTrackingActive_;
 
     /**
      * The bundle context.
      */
-    IBundleContext::ConstPtr bundleCtxt;
+    IBundleContext::ConstPtr bundleCtxt_;
 
     /**
      * The customized service tracker which is notified
      * when a service is registered or deregistered.
      */
-    IServiceTrackerCustomizer::ConstPtr serviceTracker;
+    IServiceTrackerCustomizer::ConstPtr serviceTracker_;
 
     /**
      * The name of the service the service tracker listens for.
      */
-    std::string serviceName;
+    std::string serviceName_;
 
     /**
-     * The logger instance.
+     * The logger_ instance.
      */
-    static Logger& logger;
+    static Logger& logger_;
 
 public:
 

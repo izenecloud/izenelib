@@ -33,40 +33,40 @@ public:
 private:
 
     /**
-     * The type of the event.
+     * The type_ of the event.
      */
-    int type;
+    int type_;
 
     /**
-     * The service reference which represents
+     * The service reference_ which represents
      * the service whose lifecycle changed.
      */
-    ServiceReference reference;
+    ServiceReference reference_;
 
 public:
 
     /**
      * Creates instances of class <code>ServiceEvent</code>.
      *
-     * @param type
-     *         The type of the event. Has to be of type integer due to compatibility to
+     * @param type_
+     *         The type_ of the event. Has to be of type_ integer due to compatibility to
      *         CORBA::short.
      *
-     * @param reference
+     * @param reference_
      *         Describes the service.
      */
-    ServiceEvent( int type, const ServiceReference& reference );
+    ServiceEvent( int type_, const ServiceReference& reference_ );
 
     /**
-     * Returns the type of the event.
+     * Returns the type_ of the event.
      *
      * @return
-     *     The event type.
+     *     The event type_.
      */
     int getType() const;
 
     /**
-     * Returns the service reference.
+     * Returns the service reference_.
      *
      * @return
      *     The <code>ServiceReference</code> object.

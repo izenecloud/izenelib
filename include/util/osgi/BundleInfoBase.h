@@ -36,53 +36,53 @@ private:
     /**
      * The name of the bundle.
      */
-    std::string bundleName;
+    std::string bundleName_;
 
     /**
      * The bundle context.
      */
-    IBundleContext::ConstPtr bundleContext;
+    IBundleContext::ConstPtr bundleContext_;
 
     /**
      * Contains <code>ServiceInfo</code> objects of all registered services.
      */
-    std::vector<ServiceInfoPtr> registeredServices;
+    std::vector<ServiceInfoPtr> registeredServices_;
 
     /**
      * Contains <code>ServiceInfo</code> objects of all used services.
      */
-    std::vector<ServiceInfoPtr> usedServices;
+    std::vector<ServiceInfoPtr> usedServices_;
 
     /**
      * Contains the registered service listeners.
      */
-    std::vector<ServiceListenerInfoPtr> registeredListeners;
+    std::vector<ServiceListenerInfoPtr> registeredListeners_;
 
     /**
      * Indicates if bundle is a SOF bundle or user bundle.
      */
-    bool isFwBundle;
+    bool isFwBundle_;
 
 protected:
 
     /**
-     * The logger instance.
+     * The logger_ instance.
      */
-    static Logger& logger;
+    static Logger& logger_;
 
 public:
 
     /**
      * Creates instances of class <code>BundleInfo</code>.
      *
-     * @param bundleName
+     * @param bundleName_
      *     The name of the bundle.
-     * @param isFwBundle
+     * @param isFwBundle_
      *     Indicates if bundle is a SOF or user bundle.
      * @param bundleCtxt
      *     The bundle context.
      */
-    BundleInfoBase( const std::string& bundleName, bool isFwBundle, IBundleContext::ConstPtr bundleCtxt );
+    BundleInfoBase( const std::string& bundleName_, bool isFwBundle_, IBundleContext::ConstPtr bundleCtxt );
 
     /**
      * The destructor for cleaning resources.

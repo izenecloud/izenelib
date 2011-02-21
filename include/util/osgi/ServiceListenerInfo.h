@@ -27,38 +27,38 @@ protected:
     /**
      * The name of the bundle the service listener belongs to.
      */
-    std::string bundleName;
+    std::string bundleName_;
 
     /**
      * The name of the service the service listener listens for.
      */
-    std::string serviceName;
+    std::string serviceName_;
 
     /**
      * The constant pointer to the service listener object.
      */
-    IServiceListener* serviceListenerObj;
+    IServiceListener* serviceListenerObj_;
 
     /**
-     * The logger instance.
+     * The logger_ instance.
      */
-    static Logger& logger;
+    static Logger& logger_;
 
 public:
 
     /**
      * Creates instances of class <code>ServiceListenerInfo</code>.
      *
-     * @param bundleName
+     * @param bundleName_
      *         The name of the bundle the service listener belongs to.
      *
-     * @param serviceName
+     * @param serviceName_
      *         The name of the service the service listener listens to.
      *
      * @param serviceListener
      *         The service listener.
      */
-    ServiceListenerInfo( const std::string& bundleName, const std::string& serviceName, IServiceListener::ConstPtr serviceListener );
+    ServiceListenerInfo( const std::string& bundleName_, const std::string& serviceName_, IServiceListener::ConstPtr serviceListener );
 
     /**
      * Copy constructor.
