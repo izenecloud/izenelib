@@ -14,6 +14,8 @@
 #include <ir/index_manager/index/IndexReader.h>
 #include <ir/index_manager/index/AbsTermReader.h>
 #include <ir/index_manager/index/AbsTermIterator.h>
+#include <ir/id_manager/IDManager.h>
+#include <util/ustring/UString.h>
 
 #include <iostream>
 #include <fstream>
@@ -43,6 +45,7 @@ const unsigned int COLLECTION_ID = 1;
 const char* CONFIG_OPTION = "-c";
 const char* COLLECTION_NAME = "collection-name";
 const char* INDEX_PATH = "index-path";
+const char* ID_PATH = "id-path";
 const char* DOCLEN_PROPS = "doclen-properties";
 const char* STATS_PROPS = "stats-properties";
 
@@ -50,6 +53,7 @@ struct StatsConfig
 {
     string collectionName_;
     string indexPath_;
+    string idPath_;
     vector<string> docLenProps_;
     vector<string> statsProps_;
 
@@ -106,6 +110,17 @@ bool StatsConfig::load(const char* fileName)
     else
         indexPath_ = it->second.front();
 
+    it = configMap.find(ID_PATH);
+    if(it == configMap.end())
+        idPath_.clear();
+    else if (it->second.size() != 1)
+    {
+        cerr << "invalid config value for " << ID_PATH << endl;
+        return false;
+    }
+    else
+        idPath_ = it->second.front();
+
     it = configMap.find(DOCLEN_PROPS);
     if(it == configMap.end() || it->second.empty())
     {
@@ -140,6 +155,8 @@ bool StatsConfig::load(const char* fileName)
     cout << "loaded config file " << fileName << endl;
     cout << COLLECTION_NAME << ": " << collectionName_ << endl;
     cout << INDEX_PATH << ": " << indexPath_ << endl;
+    if(! idPath_.empty())
+        cout << ID_PATH << ": " << idPath_ << endl;
     cout << DOCLEN_PROPS << ": ";
     for(vector<string>::const_iterator it=docLenProps_.begin(); it!=docLenProps_.end(); ++it)
         cout << *it << " ";
@@ -225,6 +242,10 @@ void printTerms(Indexer* pIndexer, const StatsConfig& statsConfig)
     IndexReader* pIndexReader = pIndexer->getIndexReader();
     boost::scoped_ptr<TermReader> pTermReader(pIndexReader->getTermReader(COLLECTION_ID));
 
+    izenelib::ir::idmanager::IDManager* pIDManager = NULL;
+    if(! statsConfig.idPath_.empty())
+        pIDManager = new izenelib::ir::idmanager::IDManager(statsConfig.idPath_);
+
     for(vector<string>::const_iterator it = statsConfig.statsProps_.begin();
         it != statsConfig.statsProps_.end(); ++it)
     {
@@ -245,11 +266,30 @@ void printTerms(Indexer* pIndexer, const StatsConfig& statsConfig)
 
             ofs << "term id: " << pTerm->value
                 << ", df: " << pTermInfo->docFreq_
-                << ", ctf: " << pTermInfo->ctf_ << endl;
+                << ", ctf: " << pTermInfo->ctf_
+                << ", dfpLen: " << pTermInfo->docPostingLen_
+                << ", popLen: " << pTermInfo->positionPostingLen_;
+
+            if(pIDManager)
+            {
+                izenelib::util::UString termStr("abc", UString::UTF_8);
+                if(pIDManager->getTermStringByTermId(pTerm->value, termStr))
+                {
+                    string utf8Str;
+                    termStr.convertString(utf8Str, UString::UTF_8);
+                    ofs << ", string: " << utf8Str;
+                }
+                else
+                    ofs << ", no term string";
+            }
+
+            ofs << endl;
         }
 
         cout << "term statistics are written into " << fileName << endl;
     }
+
+    delete pIDManager;
 }
 
 }
