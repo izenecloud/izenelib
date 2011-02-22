@@ -15,6 +15,9 @@
 #include <boost/tokenizer.hpp>
 #include <boost/lexical_cast.hpp>
 
+#include <cstdio> // sprintf
+#include <cstring> // memcpy
+
 using std::cout;
 using std::cerr;
 using std::endl;
