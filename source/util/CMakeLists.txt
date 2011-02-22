@@ -105,6 +105,11 @@ IF(izene_util_SHOULD_BUILD)
     driver/parsers/ConditionArrayParser.cpp
     driver/parsers/OrderParser.cpp
     driver/parsers/OrderArrayParser.cpp     
+    driver/DriverConnection.cpp
+    driver/DriverConnectionContext.cpp
+    driver/DriverConnectionFirewall.cpp
+    driver/DriverServer.cpp
+    driver/IPRestrictor.cpp
 
     osgi/BundleConfiguration.cpp
     osgi/IBundleContextImpl.cpp

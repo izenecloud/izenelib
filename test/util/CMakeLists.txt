@@ -59,6 +59,7 @@ ADD_EXECUTABLE(t_ustring
 TARGET_LINK_LIBRARIES(t_ustring
   izene_util
   ${Boost_LIBRARIES}
+  ${Glog_LIBRARIES}
   )
 
 ADD_EXECUTABLE(t_compressor 
@@ -85,6 +86,7 @@ ADD_EXECUTABLE(t_driver
     )
 TARGET_LINK_LIBRARIES(t_driver
     ${Boost_LIBRARIES}
+    ${Glog_LIBRARIES}
     json
     febird
     izene_util
@@ -110,6 +112,7 @@ ADD_EXECUTABLE(t_osgi
     )
 TARGET_LINK_LIBRARIES(t_osgi
     ${Boost_LIBRARIES}
+    ${Glog_LIBRARIES}    
     json
     izene_util
     )

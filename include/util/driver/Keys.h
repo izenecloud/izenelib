@@ -15,19 +15,19 @@
 namespace izenelib {
 namespace driver {
 
-#define SF1_DRIVER_KEYS_DECL(z,i,l) \
+#define IZENLIB_DRIVER_KEYS_DECL(z,i,l) \
     static const std::string BOOST_PP_SEQ_ELEM(i, l);
 
 struct Keys
 {
     BOOST_PP_REPEAT(
-        BOOST_PP_SEQ_SIZE(SF1_DRIVER_KEYS),
-        SF1_DRIVER_KEYS_DECL,
-        SF1_DRIVER_KEYS
+        BOOST_PP_SEQ_SIZE(IZENELIB_DRIVER_KEYS),
+        IZENLIB_DRIVER_KEYS_DECL,
+        IZENELIB_DRIVER_KEYS
     )
 };
 
-#undef SF1_DRIVER_KEYS_DECL
+#undef IZENLIB_DRIVER_KEYS_DECL
 }} // namespace izenelib::driver
 
 #endif // IZENELIB_DRIVER_KEYS_H
