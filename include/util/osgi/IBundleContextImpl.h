@@ -31,6 +31,8 @@ protected:
      */
     std::string bundleName_;
 
+    BundleConfigurationPtr bundleConfigPtr_;
+
 private:
 
     /**
@@ -70,6 +72,24 @@ public:
      * The name of the bundle.
      */
     virtual std::string getBundleName();
+
+    /**
+     * Bind BundleConfiguration to Context
+     * @return 
+     */
+    virtual void bindConfiguration(BundleConfigurationPtr bundleConfigPtr)
+    {
+        bundleConfigPtr_ = bundleConfigPtr;
+    }
+
+    /**
+     * Return BundleConfiguration
+     * @return 
+     */
+    virtual BundleConfigurationPtr getBundleConfig()
+    {
+        return bundleConfigPtr_;
+    }
 
     /**
      * Registers a service.

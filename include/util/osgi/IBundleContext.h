@@ -7,6 +7,9 @@
 #include "Properties.h"
 #include "IServiceListener.h"
 #include "IServiceRegistration.h"
+#include "BundleConfiguration.h"
+
+#include <boost/shared_ptr.hpp>
 
 namespace izenelib{namespace osgi{
 
@@ -28,6 +31,7 @@ public:
      * Type definition for a constant pointer.
      */
     typedef IBundleContext* const ConstPtr;
+    typedef boost::shared_ptr<BundleConfiguration> BundleConfigurationPtr;
 
     /**
      * Desctructor which is called when object is deleted.
@@ -42,6 +46,17 @@ public:
      */
     virtual std::string getBundleName() = 0;
 
+    /**
+     * Bind BundleConfiguration to Context
+     * @return 
+     */
+    virtual void bindConfiguration(BundleConfigurationPtr bundleConfigPtr) = 0;
+
+    /**
+     * Return BundleConfiguration
+     * @return 
+     */
+    virtual BundleConfigurationPtr getBundleConfig() = 0;
     /**
      * Registers a service with the SOF framework. Bundles which track this service
      * are notified as soon as this service is registered.
