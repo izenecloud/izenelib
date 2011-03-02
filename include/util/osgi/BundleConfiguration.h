@@ -13,7 +13,7 @@ namespace izenelib{namespace osgi{
  */
 class BundleConfiguration
 {
-private:
+protected:
     /**
      * Represents the name of the bundle, e.g. 'test_bundle'.
      */
@@ -61,7 +61,7 @@ public:
      * @param libName
      *         The name of the bundle library.
      */
-    BundleConfiguration( const std::string &bundleName_, const std::string &className_, const std::string &libPath, const std::string &libName );
+    BundleConfiguration( const std::string &bundleName, const std::string &className, const std::string &libPath, const std::string &libName );
 
     /**
      * Creates instances of class <code>BundleConfiguration</code>.
@@ -71,7 +71,7 @@ public:
      * @param className_
      *         The name of the bundle activator class.
      */
-    BundleConfiguration( const std::string &bundleName_, const std::string &className_ );
+    BundleConfiguration( const std::string &bundleName, const std::string &className );
 
     /**
      * Returns the name of the bundle.

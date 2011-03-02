@@ -92,8 +92,6 @@ void Launcher<LockType, CreationPolicy>::start( std::vector<BundleConfiguration>
         }
 
         IBundleContext* bundleCtxt = this->createBundleContext( bundleConfig.getBundleName() );
-        ///!!Yingfeng
-        ///We could add configuration reader here for IBundleContext
         BundleInfoBase* bundleInfo = new BundleInfo( bundleConfig.getBundleName(), false, bundleActivator, bundleCtxt );
         this->registry_->addBundleInfo( (*bundleInfo) );
 
