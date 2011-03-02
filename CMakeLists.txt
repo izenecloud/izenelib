@@ -56,7 +56,7 @@ IF (CMAKE_COMPILER_IS_GNUCXX)
   INCLUDE(MacroSetBuildTypes)
   MACRO_SET_BUILD_TYPES(
     RelWithDebInfo
-    "-O2 -g"
+    "-O2 -g -DNDEBUG"
     "Flags used by the compiler during Release with Debug Info builds."
 
     Release
