@@ -167,15 +167,10 @@ public:
 		unsigned long checkCount_;
 		double currentTime_;
 		double totalTime_;
-
 		unsigned long totalRss_;
 		unsigned long totalVm_; 
 #endif
 		
-                double realTime_;
-                double userTime_;
-                double systemTime_;
-
 	};
 
 public:

@@ -68,7 +68,7 @@ void Profiler0::print(ostream & os) const {
 	str.assign(INFO_LENGTH, ' ');
 	str.replace( 0, strlen("PROFILE NAME"), "PROFILE NAME");
 	ss << "[" << str << "]["
-			<< "CURREN TIME, TOTAL TIME , CALL COUNT, NUMBER OF THREADS, RSS, VM]"
+			<< "CURRENTIME, TOTAL TIME , CALL COUNT, NUMBER OF THREADS, RSS, VM]"
 			<< endl;
 
 	vector<Profile*> vpro;
@@ -311,9 +311,7 @@ void Profiler1::print(ostream & os) const {
 	str.assign(INFO_LENGTH, ' ');
 	str.replace( 0, strlen("PROFILE NAME"), "PROFILE NAME");
 	ss << "[" << str << "]["
-			<< "CURRENTIME, TOTAL TIME , CALL COUNT, "
-                        << "REAL TIME, USER TIME, SYSTEM TIME, "
-                        << "NUMBER OF THREADS, RSS, VM]"
+			<< "CURREN TIME, TOTAL TIME , CALL COUNT, NUMBER OF THREADS, RSS, VM]"
 			<< endl;
 
 	vector<Profile*> vpro;
@@ -402,8 +400,7 @@ void Profiler1::print_detailed() const {
 //================================== Profiler1::Profile ====================================
 
 Profiler1::Profile::Profile(const string& name, const Profiler1& profiler) :
-	checkCount_( 0), currentTime_(0.0), totalTime_(0.0),
-        realTime_(0.0), userTime_(0.0), systemTime_(0.0) {
+	checkCount_( 0), currentTime_(0.0), totalTime_(0.0) {
 	// set name
 	name_ = name;
 	// attach this to profiler
@@ -444,18 +441,13 @@ void Profiler1::Profile::end(void) {
 
 #ifdef ATOMIC
 	currentTime_.store(it->second.first.diff());
-        double t = totalTime_.load();
-        t += it->second.first.diff();
-        totalTime_.exchange(t);
+	double t = totalTime_.load();
+	t += it->second.first.diff();
+	totalTime_.exchange(t);
 #else	
 	currentTime_ = it->second.first.diff();
 	totalTime_ += it->second.first.diff();
 #endif	
-
-        realTime_ += it->second.first.real_diff();
-        userTime_ += it->second.first.user_diff();
-        systemTime_ += it->second.first.system_diff();
-
 	totalRss_ += it->second.first.rss_diff();
 	totalVm_ += it->second.first.vm_diff();
 	checkCount_++;
@@ -468,9 +460,8 @@ void Profiler1::displayProfiles_(stringstream &ss, const vector<Profile*>& vp) c
 		str.assign(INFO_LENGTH, ' ');
 		str.replace( 0, (*pit)->name_.length(), (*pit)->name_);
 		stringstream sstmp;
-		sstmp << (*pit)->currentTime_ << " , "<< (*pit)->totalTime_ << " , " << (*pit)->checkCount_ << " , "
-                      << (*pit)->realTime_ << " , " << (*pit)->userTime_ << " , " << (*pit)->systemTime_ << " , "
-                      << (*pit)->thread_.size() << " , " << (*pit)->totalRss_ << " , " << (*pit)->totalVm_;
+		sstmp << (*pit)->currentTime_ << " , "<<(*pit)->totalTime_ << " , " << (*pit)->checkCount_ << " , " << (*pit)->thread_.size();
+		sstmp <<" , "<< (*pit)->totalRss_ << " , " << (*pit)->totalVm_;
 
 		str2.assign(TIME_LENGTH, ' ');
 		str2.replace( 0, sstmp.str().length(), sstmp.str() );

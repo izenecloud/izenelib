@@ -17,7 +17,6 @@ using namespace std;
 #	include <windows.h>
 #else
 #	include <sys/time.h>
-#	include <sys/times.h>
 #endif
 
 // Ÿ�̸� Ŭ����
@@ -114,10 +113,6 @@ public:
 	 **/
 	double diff(void);
 
-        double real_diff(void);
-        double user_diff(void);
-        double system_diff(void);
-
 	unsigned long vm_diff(void);
 	unsigned long rss_diff(void);
 
@@ -128,11 +123,6 @@ private:
 #else
 	struct timeval begin_; // ���� �ð�
 	struct timeval end_; // ~�� �ð�
-
-        clock_t srt_; // start real time
-        clock_t ert_; // end real time
-        struct tms stms_; // start tms
-        struct tms etms_; // end tms
 #endif
 	unsigned long svm_, srss_;
 	unsigned long evm_, erss_;
