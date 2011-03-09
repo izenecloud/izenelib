@@ -120,9 +120,9 @@ template<typename T> void run_getValueWithInsert(T& cm) {
 	cout<<"MCache with "<<"CacheSize="<<cacheSize<<endl;
 	cout<<"Hit ratio: "<<hit<<" / "<<sum<<endl;
 	cout<<"eclipse:"<< double(clock()- t1)/CLOCKS_PER_SEC<<endl;
-	unsigned long rlimit = 0, vm = 0, rss = 0;
+	unsigned long vm = 0, rss = 0;
 
-	ProcMemInfo::getProcMemInfo(vm, rss, rlimit);
+	ProcMemInfo::getProcMemInfo(vm, rss);
 
 	//cout<<"memory usage: "<<cm.getMemSizeOfValue()<<"bytes"<<endl;	
 	cout << "vm: " << vm << "bytes rss: " << rss << "bytes" << endl;

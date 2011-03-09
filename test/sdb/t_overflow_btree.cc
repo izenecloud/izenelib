@@ -21,8 +21,8 @@ static size_t pageSize = 1024;
 typedef SequentialDB<Key, Value, NullLock> SDB;
 
 void displayMemInfo(std::ostream& os = std::cout) {
-	unsigned long rlimit = 0, vm = 0, rss = 0;
-	ProcMemInfo::getProcMemInfo(vm, rss, rlimit);
+	unsigned long vm = 0, rss = 0;
+	ProcMemInfo::getProcMemInfo(vm, rss);
 	os << "vm: " << vm << "bytes rss: " << rss << "bytes" << endl;
 }
 

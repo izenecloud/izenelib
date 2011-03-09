@@ -2,18 +2,16 @@
 
 NS_IZENELIB_UTIL_BEGIN
 
-void ProcMemInfo::getProcMemInfo(unsigned long & virtualMem, unsigned long & realMem, unsigned long & procMaxMem)
+void ProcMemInfo::getProcMemInfo(unsigned long & virtualMem, unsigned long & realMem)
     throw (ios_base::failure)
 {
     char temp[50] = {0,};
     string buffer;
-    //sprintf( temp, "/proc/%d/stat", getpid() );
     sprintf( temp, "/proc/%d/statm", getpid() );
-    //sprintf( temp, "/proc/%d/status", getpid() );
 
     try{        
         getStatFile(temp, buffer);
-        readProcStatus(buffer, virtualMem, realMem, procMaxMem);
+        readProcStatus(buffer, virtualMem, realMem);
 
         realMem = realMem << 12;    //each page is 4K, so multiply by 4
         virtualMem = virtualMem << 12;    //each page is 4K, so multiply by 4
@@ -25,27 +23,10 @@ void ProcMemInfo::getProcMemInfo(unsigned long & virtualMem, unsigned long & rea
 
 }
 
-void ProcMemInfo::getProcMemInfo(pid_t pid, unsigned long & virtualMem, unsigned long & realMem, unsigned long & procMaxMem)
+void ProcMemInfo::getProcMemInfo(pid_t pid, unsigned long & virtualMem, unsigned long & realMem)
     throw (ios_base::failure)
 {
-    char temp[50] = {0,};
-    string buffer;
-    //sprintf( temp, "/proc/%d/stat", pid );
-    sprintf( temp, "/proc/%d/statm", pid );
-    //sprintf( temp, "/proc/%d/status", getpid() );
-
-    try{
-        getStatFile(temp, buffer);
-        readProcStatus(buffer, virtualMem, realMem, procMaxMem);
-
-        realMem = realMem << 12;    //each page is 4K, so multiply by 4
-        virtualMem = virtualMem << 12;    //each page is 4K, so multiply by 4
-    }
-    catch (ios_base::failure e)
-    {
-        throw e;
-    }
-
+    getProcMemInfo(getpid(), virtualMem, realMem);
 }
 
 void ProcMemInfo::getStatFile(const string path, string & buffer)
@@ -78,65 +59,12 @@ void ProcMemInfo::getStatFile(const string path, string & buffer)
 void ProcMemInfo::readProcStatus(
         const string & buffer,
         unsigned long & virtualMem,
-        unsigned long & realMem,
-        unsigned long & procMaxMem
+        unsigned long & realMem
         )
 {
+    const char *pBuf = buffer.c_str();
 
-//     const char *pBuf = buffer.c_str();
-//     int count = 1;
-//     int i = 0;
-
-//     while(count != 23)
-//     {
-//         if(pBuf[i] == ' ')
-//         {
-//             count++;
-//         }
-//         i++;
-//     }
-
-//     pBuf = pBuf + i;
-
-
-//     sscanf(pBuf, "%lu %lu %lu", &virtualMem, &realMem, &procMaxMem);
-    
-//--------------------------------------------------------------
-  const char *pBuf = buffer.c_str();
-
-    sscanf(pBuf, "%lu %lu %lu %lu %lu %lu", &virtualMem, &procMaxMem, &procMaxMem, &procMaxMem, &procMaxMem, &realMem);
-
-//   const char *pBuf = buffer.c_str();
-//   std::cout<<buffer<<std::endl;
-//   int count = 1;
-//   int i = 0;
-  
-//   while(count != 12)
-//   {
-//     if(pBuf[i] == '\n')
-//     {
-//       count++;
-//       //std::cout<<pBuf+i+1<<std::endl;
-//     }
-//     i++;
-//   }
-
-//   pBuf = pBuf + i;
-//   sscanf(pBuf, "VmSize:\t%lu kB", &virtualMem);
-
-//   i = 0;
-//   while(count != 15)
-//   {
-//     if(pBuf[i] == '\n')
-//     {
-//       count++;
-//     }
-//     i++;
-//   }
-
-//   pBuf = pBuf + i;
-//   sscanf(pBuf, "VmRSS:\t%lu kB", &realMem);
-
+    sscanf(pBuf, "%lu %lu", &virtualMem, &realMem);
 }
 
 
