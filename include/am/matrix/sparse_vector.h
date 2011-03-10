@@ -4,9 +4,9 @@
 
 #include <string>
 #include <iostream>
-#include <idmlib/idm_types.h>
+#include <types.h>
 
-NS_IDMLIB_SSP_BEGIN
+NS_IZENELIB_AM_BEGIN
 
 template <typename V, typename K = uint16_t>
 class SparseVector
@@ -15,7 +15,7 @@ class SparseVector
 };
 
    
-NS_IDMLIB_SSP_END
+NS_IZENELIB_AM_END
 
 
 
