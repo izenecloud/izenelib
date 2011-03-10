@@ -9,6 +9,7 @@
 
 NS_IZENELIB_AM_BEGIN
 
+/// starts with id = 1
 template <typename VT, typename I = uint32_t>
 class MatrixFileFLIo
 {
@@ -59,6 +60,11 @@ public:
   {
     storage_->update(id, vec);
     return true;
+  }
+  
+  I VectorCount()
+  {
+    return storage_->getItemCount();
   }
   
  
