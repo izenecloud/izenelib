@@ -72,8 +72,7 @@ private:
 	unsigned long evm_, erss_;
 
 	void getMemInfo_(unsigned long &vm, unsigned long &rss) {		
-			unsigned long rlimit;		
-			ProcMemInfo::getProcMemInfo(vm, rss, rlimit);
+			ProcMemInfo::getProcMemInfo(vm, rss);
 	}
 };
 

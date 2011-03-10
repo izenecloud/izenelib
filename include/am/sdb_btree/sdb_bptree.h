@@ -806,8 +806,7 @@ template<typename KeyType, typename ValueType, typename LockType, bool fixed,
 
 	if (unloadbyRss) {
 		unsigned long vm = 0;
-		unsigned long rlimit;
-		ProcMemInfo::getProcMemInfo(vm, _initRss, rlimit);
+		ProcMemInfo::getProcMemInfo(vm, _initRss);
 	}
 	_flushCount = 0;
 

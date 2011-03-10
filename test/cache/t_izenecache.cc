@@ -81,8 +81,8 @@ BOOST_AUTO_TEST_CASE(izene_cache_test)
 		cout<<"Hit ratio: "<<hit<<" / "<<sum<<endl;
 		cout<<"eclipse:"<< double(clock()- t1)/CLOCKS_PER_SEC<<endl;
 
-		unsigned long rlimit = 0, vm = 0, rss = 0;
-		ProcMemInfo::getProcMemInfo(vm, rss, rlimit);
+		unsigned long vm = 0, rss = 0;
+		ProcMemInfo::getProcMemInfo(vm, rss);
 
 		cout << "vm: " << vm << "bytes rss: " << rss << "bytes" << endl;
 		double hitRatio, workload;
@@ -243,9 +243,9 @@ BOOST_AUTO_TEST_CASE(izene_cache_performance_test)
 		cout<<"RDE_HASH with "<<"CacheSize="<<cacheSize*10<<endl;
 		cout<<"Hit ratio: "<<hit<<" / "<<sum<<endl;
 		cout<<"eclipse:"<< double(clock()- t1)/CLOCKS_PER_SEC<<endl;
-		unsigned long rlimit = 0, vm = 0, rss = 0;
+		unsigned long vm = 0, rss = 0;
 
-		ProcMemInfo::getProcMemInfo(vm, rss, rlimit);
+		ProcMemInfo::getProcMemInfo(vm, rss);
 
 		//cout<<"memory usage: "<<cm.getMemSizeOfValue()<<"bytes"<<endl;	
 		cout << "vm: " << vm << "bytes rss: " << rss << "bytes" << endl;
@@ -280,9 +280,9 @@ BOOST_AUTO_TEST_CASE(izene_cache_performance_test)
 		cout<<"LINEAR_HASH with "<<"CacheSize="<<cacheSize<<endl;
 		cout<<"Hit ratio: "<<hit<<" / "<<sum<<endl;
 		cout<<"eclipse:"<< double(clock()- t1)/CLOCKS_PER_SEC<<endl;
-		unsigned long rlimit = 0, vm = 0, rss = 0;
+		unsigned long vm = 0, rss = 0;
 
-		ProcMemInfo::getProcMemInfo(vm, rss, rlimit);
+		ProcMemInfo::getProcMemInfo(vm, rss);
 
 		//cout<<"memory usage: "<<cm.getMemSizeOfValue()<<"bytes"<<endl;	
 		cout << "vm: " << vm << "bytes rss: " << rss << "bytes" << endl;
@@ -317,9 +317,9 @@ BOOST_AUTO_TEST_CASE(izene_cache_performance_test)
 		cout<<"STX_BTREE with "<<"CacheSize="<<cacheSize<<endl;
 		cout<<"Hit ratio: "<<hit<<" / "<<sum<<endl;
 		cout<<"eclipse:"<< double(clock()- t1)/CLOCKS_PER_SEC<<endl;
-		unsigned long rlimit = 0, vm = 0, rss = 0;
+		unsigned long vm = 0, rss = 0;
 
-		ProcMemInfo::getProcMemInfo(vm, rss, rlimit);
+		ProcMemInfo::getProcMemInfo(vm, rss);
 
 		//cout<<"memory usage: "<<cm.getMemSizeOfValue()<<"bytes"<<endl;	
 		cout << "vm: " << vm << "bytes rss: " << rss << "bytes" << endl;
@@ -354,9 +354,9 @@ BOOST_AUTO_TEST_CASE(izene_cache_performance_test)
 		cout<<"CCCR_HASH with "<<"CacheSize="<<cacheSize<<endl;
 		cout<<"Hit ratio: "<<hit<<" / "<<sum<<endl;
 		cout<<"eclipse:"<< double(clock()- t1)/CLOCKS_PER_SEC<<endl;
-		unsigned long rlimit = 0, vm = 0, rss = 0;
+		unsigned long vm = 0, rss = 0;
 
-		ProcMemInfo::getProcMemInfo(vm, rss, rlimit);
+		ProcMemInfo::getProcMemInfo(vm, rss);
 
 		//cout<<"memory usage: "<<cm.getMemSizeOfValue()<<"bytes"<<endl;	
 		cout << "vm: " << vm << "bytes rss: " << rss << "bytes" << endl;
@@ -394,9 +394,9 @@ BOOST_AUTO_TEST_CASE(izene_cache_performance_test)
 			cout<<"RDE_HASH(UString->int) with "<<"CacheSize="<<cacheSize*10<<endl;
 			cout<<"Hit ratio: "<<hit<<" / "<<sum<<endl;
 			cout<<"eclipse:"<< double(clock()- t1)/CLOCKS_PER_SEC<<endl;
-			unsigned long rlimit = 0, vm = 0, rss = 0;
+			unsigned long vm = 0, rss = 0;
 
-			ProcMemInfo::getProcMemInfo(vm, rss, rlimit);
+			ProcMemInfo::getProcMemInfo(vm, rss);
 
 			//cout<<"memory usage: "<<cm.getMemSizeOfValue()<<"bytes"<<endl;	
 			cout << "vm: " << vm << "bytes rss: " << rss << "bytes" << endl;
@@ -433,9 +433,9 @@ BOOST_AUTO_TEST_CASE(izene_cache_performance_test)
 				cout<<"RDE_HASH with "<<"CacheSize="<<cacheSize*2<<endl;
 				cout<<"Hit ratio: "<<hit<<" / "<<sum<<endl;
 				cout<<"eclipse:"<< double(clock()- t1)/CLOCKS_PER_SEC<<endl;
-				unsigned long rlimit = 0, vm = 0, rss = 0;
+				unsigned long vm = 0, rss = 0;
 
-				ProcMemInfo::getProcMemInfo(vm, rss, rlimit);
+				ProcMemInfo::getProcMemInfo(vm, rss);
 
 				//cout<<"memory usage: "<<cm.getMemSizeOfValue()<<"bytes"<<endl;	
 				cout << "vm: " << vm << "bytes rss: " << rss << "bytes" << endl;
@@ -470,9 +470,9 @@ BOOST_AUTO_TEST_CASE(izene_cache_performance_test)
 				cout<<"LINEAR_HASH with "<<"CacheSize="<<cacheSize<<endl;
 				cout<<"Hit ratio: "<<hit<<" / "<<sum<<endl;
 				cout<<"eclipse:"<< double(clock()- t1)/CLOCKS_PER_SEC<<endl;
-				unsigned long rlimit = 0, vm = 0, rss = 0;
+				unsigned long vm = 0, rss = 0;
 
-				ProcMemInfo::getProcMemInfo(vm, rss, rlimit);
+				ProcMemInfo::getProcMemInfo(vm, rss);
 
 				//cout<<"memory usage: "<<cm.getMemSizeOfValue()<<"bytes"<<endl;	
 				cout << "vm: " << vm << "bytes rss: " << rss << "bytes" << endl;
@@ -507,9 +507,9 @@ BOOST_AUTO_TEST_CASE(izene_cache_performance_test)
 				cout<<"STX_BTREE with "<<"CacheSize="<<cacheSize<<endl;
 				cout<<"Hit ratio: "<<hit<<" / "<<sum<<endl;
 				cout<<"eclipse:"<< double(clock()- t1)/CLOCKS_PER_SEC<<endl;
-				unsigned long rlimit = 0, vm = 0, rss = 0;
+				unsigned long vm = 0, rss = 0;
 
-				ProcMemInfo::getProcMemInfo(vm, rss, rlimit);
+				ProcMemInfo::getProcMemInfo(vm, rss);
 
 				//cout<<"memory usage: "<<cm.getMemSizeOfValue()<<"bytes"<<endl;	
 				cout << "vm: " << vm << "bytes rss: " << rss << "bytes" << endl;
@@ -544,9 +544,9 @@ BOOST_AUTO_TEST_CASE(izene_cache_performance_test)
 				cout<<"CCCR_HASH with "<<"CacheSize="<<cacheSize<<endl;
 				cout<<"Hit ratio: "<<hit<<" / "<<sum<<endl;
 				cout<<"eclipse:"<< double(clock()- t1)/CLOCKS_PER_SEC<<endl;
-				unsigned long rlimit = 0, vm = 0, rss = 0;
+				unsigned long vm = 0, rss = 0;
 
-				ProcMemInfo::getProcMemInfo(vm, rss, rlimit);
+				ProcMemInfo::getProcMemInfo(vm, rss);
 
 				//cout<<"memory usage: "<<cm.getMemSizeOfValue()<<"bytes"<<endl;	
 				cout << "vm: " << vm << "bytes rss: " << rss << "bytes" << endl;
@@ -584,9 +584,9 @@ BOOST_AUTO_TEST_CASE(izene_cache_performance_test)
 					cout<<"RDE_HASH(UString->int) with "<<"CacheSize="<<cacheSize*2<<endl;
 					cout<<"Hit ratio: "<<hit<<" / "<<sum<<endl;
 					cout<<"eclipse:"<< double(clock()- t1)/CLOCKS_PER_SEC<<endl;
-					unsigned long rlimit = 0, vm = 0, rss = 0;
+					unsigned long vm = 0, rss = 0;
 
-					ProcMemInfo::getProcMemInfo(vm, rss, rlimit);
+					ProcMemInfo::getProcMemInfo(vm, rss);
 
 					//cout<<"memory usage: "<<cm.getMemSizeOfValue()<<"bytes"<<endl;	
 					cout << "vm: " << vm << "bytes rss: " << rss << "bytes" << endl;
