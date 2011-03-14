@@ -51,10 +51,6 @@ public:
   {
     try
     {
-      if(!boost::filesystem::exists(file_))
-      {
-        return true;
-      }
       std::ifstream ifs(file_.c_str(), std::ios::binary);
       if( ifs.fail()) return false;
       {

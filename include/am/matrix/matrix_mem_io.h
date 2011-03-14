@@ -35,10 +35,7 @@ public:
       boost::filesystem::create_directories(dir_);
       std::string storage_file = dir_+"/storage";
       storage_ = new izenelib::util::FileObject<std::vector<VT> >(storage_file);
-      if(!storage_->Load())
-      {
-        return false;
-      }
+      storage_->Load();
     }
     catch(std::exception& ex)
     {
