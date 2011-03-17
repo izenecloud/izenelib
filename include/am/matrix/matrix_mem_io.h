@@ -50,6 +50,10 @@ public:
     return storage_->Save();
   }
   
+  VT& GetVector(I id)
+  {
+    return storage_->value[id-1];
+  }
   
   bool GetVector(I id, VT& vec)
   {
@@ -73,6 +77,7 @@ public:
     return true;
   }
   
+  
   void Resize(I isize)
   {
     storage_->value.resize(isize);
@@ -84,11 +89,12 @@ public:
   }
   
  
- private: 
+ protected: 
   std::string dir_;
   izenelib::util::FileObject<std::vector<VT> >* storage_;
 //   FunctionType callback_;
 };
+
 
    
 NS_IZENELIB_AM_END
