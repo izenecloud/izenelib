@@ -182,14 +182,15 @@ public:
 		myValueType ival;
 		IndexSDBCursor locn;
 		_sdb.search(ikey, locn);
-		while (_sdb.get(locn, ikey, ival) ) {
-			if (comp_(ikey.key, key)> 0) {
-				for (size_t i=0; i<ival.size(); i++) {
-					result.push_back(ival[i]);
+		do{
+			if(_sdb.get(locn, ikey, ival) ) 
+				if (comp_(ikey.key, key)> 0) {
+					for (size_t i=0; i<ival.size(); i++) {
+						result.push_back(ival[i]);
+					}
 				}
-			}
-			_sdb.seq(locn, ESD_FORWARD);
-		}
+				else break;
+		}while(_sdb.seq(locn, ESD_FORWARD));
 
 	}
 	void getValueGreatEqual(const KeyType& key, vector<ElementType>& result) {
@@ -197,14 +198,15 @@ public:
 		myValueType ival;
 		IndexSDBCursor locn;
 		_sdb.search(ikey, locn);
-		while (_sdb.get(locn, ikey, ival) ) {
-			if (comp_(ikey.key, key) >= 0) {
-				for (size_t i=0; i<ival.size(); i++) {
-					result.push_back(ival[i]);
+		do {
+			if(_sdb.get(locn, ikey, ival))
+				if (comp_(ikey.key, key) >= 0) {
+					for (size_t i=0; i<ival.size(); i++) {
+						result.push_back(ival[i]);
+					}
 				}
-			}
-			_sdb.seq(locn, ESD_FORWARD);
-		}
+				else break;
+		}while(_sdb.seq(locn, ESD_FORWARD));
 	}
 
 	void getValueLess(const KeyType& key, vector<ElementType>& result) {
@@ -212,14 +214,15 @@ public:
 		myValueType ival;
 		IndexSDBCursor locn;
 		_sdb.search(ikey, locn);
-		while (_sdb.get(locn, ikey, ival) ) {
-			if (comp_(ikey.key, key) < 0) {
-				for (size_t i=0; i<ival.size(); i++) {
-					result.push_back(ival[i]);
+		do {
+			if(_sdb.get(locn, ikey, ival))
+				if (comp_(ikey.key, key) < 0) {
+					for (size_t i=0; i<ival.size(); i++) {
+						result.push_back(ival[i]);
+					}
 				}
-			}
-			_sdb.seq(locn, ESD_BACKWARD);
-		}
+				else break;
+		}while(_sdb.seq(locn, ESD_BACKWARD));
 
 	}
 	void getValueLessEqual(const KeyType& key, vector<ElementType>& result) {
@@ -227,14 +230,15 @@ public:
 		myValueType ival;
 		IndexSDBCursor locn;
 		_sdb.search(ikey, locn);
-		while (_sdb.get(locn, ikey, ival) ) {
-			if (comp_(ikey.key, key) <= 0) {
-				for (size_t i=0; i<ival.size(); i++) {
-					result.push_back(ival[i]);
+		do{
+			if(_sdb.get(locn, ikey, ival) )
+				if (comp_(ikey.key, key) <= 0) {
+					for (size_t i=0; i<ival.size(); i++) {
+						result.push_back(ival[i]);
+					}
 				}
-			}
-			_sdb.seq(locn, ESD_BACKWARD);
-		}
+				else break;
+		}while(_sdb.seq(locn, ESD_BACKWARD));
 	}
 
 	void getValuePrefix(const KeyType& key, vector<ElementType>& result) {
@@ -242,17 +246,16 @@ public:
 		myValueType ival;
 		IndexSDBCursor locn;
 		_sdb.search(ikey, locn);
-		while (_sdb.get(locn, ikey, ival) ) {
-			ikey.display();
-			if (isPrefix1(key, ikey.key) ) {
-				for (size_t i=0; i<ival.size(); i++) {
+		do{
+			if(_sdb.get(locn, ikey, ival))
+				if (isPrefix1(key, ikey.key) ) {
+					for (size_t i=0; i<ival.size(); i++) {
 					//if (find(result.begin(), result.end(), vdat[i]) == result.end() )				
-					result.push_back(ival[i]);
-				}
-				_sdb.seq(locn, ESD_FORWARD);
-			} else
-				break;
-		}
+						result.push_back(ival[i]);
+					}
+				
+				} else break;
+		}while(_sdb.seq(locn, ESD_FORWARD));
 	}
 
 	bool add(const KeyType& key, const ElementType& item) {

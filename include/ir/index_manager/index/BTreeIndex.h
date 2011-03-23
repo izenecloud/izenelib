@@ -170,29 +170,30 @@ public:
         IndexSDBCursor locn;
         this->_sdb.search(ikey, locn);
         docid_t currDoc;
-        while (this->_sdb.get(locn, ikey, ival) )
+
+        do
         {
-            if (comp_(ikey.key, highKey) <= 0)
-            {
-                for (size_t i=0; i<ival.size(); i++)
+            if (this->_sdb.get(locn, ikey, ival))
+                if(comp_(ikey.key, highKey) <= 0)
                 {
-                    currDoc = ival[i];
-                    if (currDoc >= maxDoc)
+                    for (size_t i=0; i<ival.size(); i++)
                     {
-                        KeyValueType* ppBytes = new KeyValueType[maxDoc + MAX_NUMERICSIZER];
-                        memcpy(ppBytes, data, maxDoc * sizeof(KeyValueType));
-                        memset(ppBytes+maxDoc, 0, maxDoc * sizeof(KeyValueType));
-                        delete[] data;
-                        data = ppBytes;
-                        maxDoc = maxDoc + MAX_NUMERICSIZER;
+                        currDoc = ival[i];
+                        if (currDoc >= maxDoc)
+                        {
+                            KeyValueType* ppBytes = new KeyValueType[maxDoc + MAX_NUMERICSIZER];
+                            memcpy(ppBytes, data, maxDoc * sizeof(KeyValueType));
+                            memset(ppBytes+maxDoc, 0, maxDoc * sizeof(KeyValueType));
+                            delete[] data;
+                            data = ppBytes;
+                            maxDoc = maxDoc + MAX_NUMERICSIZER;
+                        }
+                        data[currDoc] = ikey.key.value;
                     }
-                    data[currDoc] = ikey.key.value;
                 }
-                this->_sdb.seq(locn, ESD_FORWARD);
-            }
-            else
-                break;
-        }
+                else
+                    break;
+        }while (this->_sdb.seq(locn, ESD_FORWARD));
     }
 
     void get_between(const KeyType& lowKey, const KeyType& highKey, BitVector& result)
@@ -205,15 +206,23 @@ public:
         myValueType ival;
         IndexSDBCursor locn;
         this->_sdb.search(ikey, locn);
-        while (this->_sdb.get(locn, ikey, ival) )
+
+        if(this->_sdb.get(locn, ikey, ival) && comp_(ikey.key, highKey) <= 0 && ikey.key.fid == highKey.fid)
         {
-            if (comp_(ikey.key, highKey) <= 0)
-            {
-                for (size_t i=0; i<ival.size(); i++)
-                    result.set(ival[i]);
-            }
-            this->_sdb.seq(locn, ESD_FORWARD);
+            for (size_t i=0; i<ival.size(); i++)
+                result.set(ival[i]);
         }
+		
+        do
+        {
+            if(this->_sdb.get(locn, ikey, ival))
+                if (comp_(ikey.key, highKey) <= 0 && ikey.key.fid == highKey.fid)
+                {
+                    for (size_t i=0; i<ival.size(); i++)
+                        result.set(ival[i]);
+                }
+                else break;
+        }while(this->_sdb.seq(locn, ESD_FORWARD));
     }
 
     bool get_without(const KeyType& key,BitVector& result)
@@ -243,17 +252,17 @@ public:
         myValueType ival;
         IndexSDBCursor locn;
         this->_sdb.search(ikey, locn);
-        while (this->_sdb.get(locn, ikey, ival) )
+
+        do
         {
-            if (ikey.key.fid != key.fid)
-                break;
-            if (comp_(ikey.key, key) > 0)
-            {
-                for (size_t i=0; i<ival.size(); i++)
-                    result.set(ival[i]);
-            }
-            this->_sdb.seq(locn, ESD_FORWARD);
-        }
+            if(this->_sdb.get(locn, ikey, ival))
+                if(comp_(ikey.key, key) > 0 && ikey.key.fid == key.fid )
+                {
+                    for (size_t i=0; i<ival.size(); i++)
+                        result.set(ival[i]);
+                }
+                else break;
+        }while (this->_sdb.seq(locn, ESD_FORWARD));
     }
 
     void getGreatEqual(const KeyType& key, BitVector& result)
@@ -262,17 +271,16 @@ public:
         myValueType ival;
         IndexSDBCursor locn;
         this->_sdb.search(ikey, locn);
-        while (this->_sdb.get(locn, ikey, ival) )
+        do
         {
-            if (ikey.key.fid != key.fid)
-                break;
-            if (comp_(ikey.key, key) >= 0)
-            {
-                for (size_t i=0; i<ival.size(); i++)
-                    result.set(ival[i]);
-            }
-            this->_sdb.seq(locn, ESD_FORWARD);
-        }
+            if(this->_sdb.get(locn, ikey, ival))
+                if(comp_(ikey.key, key) >= 0 && ikey.key.fid == key.fid)
+                {
+                    for (size_t i=0; i<ival.size(); i++)
+                        result.set(ival[i]);
+                }
+                else break;
+        }while (this->_sdb.seq(locn, ESD_FORWARD));
 
 
     }
@@ -283,17 +291,16 @@ public:
         myValueType ival;
         IndexSDBCursor locn;
         this->_sdb.search(ikey, locn);
-        while (this->_sdb.get(locn, ikey, ival) )
+        do
         {
-            if (ikey.key.fid != key.fid)
-                break;
-            if (comp_(ikey.key, key) < 0)
-            {
-                for (size_t i=0; i<ival.size(); i++)
-                    result.set(ival[i]);
-            }
-            this->_sdb.seq(locn, ESD_BACKWARD);
-        }
+            if(this->_sdb.get(locn, ikey, ival))
+                if (comp_(ikey.key, key) < 0 && ikey.key.fid == key.fid )
+                {
+                    for (size_t i=0; i<ival.size(); i++)
+                        result.set(ival[i]);
+                }
+                else break;
+        }while (this->_sdb.seq(locn, ESD_BACKWARD));
     }
 
     void getLessEqual(const KeyType& key, BitVector& result)
@@ -302,17 +309,16 @@ public:
         myValueType ival;
         IndexSDBCursor locn;
         this->_sdb.search(ikey, locn);
-        while (this->_sdb.get(locn, ikey, ival) )
+        do
         {
-            if (ikey.key.fid != key.fid)
-                break;
-            if (comp_(ikey.key, key) <= 0)
-            {
-                for (size_t i=0; i<ival.size(); i++)
-                    result.set(ival[i]);
-            }
-            this->_sdb.seq(locn, ESD_BACKWARD);
-        }
+            if(this->_sdb.get(locn, ikey, ival))
+                if (comp_(ikey.key, key) <= 0 && ikey.key.fid == key.fid )
+                {
+                    for (size_t i=0; i<ival.size(); i++)
+                        result.set(ival[i]);
+                }
+                else break;
+        }while (this->_sdb.seq(locn, ESD_BACKWARD));
     }
 
     void getPrefix(const KeyType& key, BitVector& result)
@@ -321,19 +327,16 @@ public:
         myValueType ival;
 
         IndexSDBCursor locn= this->_sdb.search(ikey);
-        while (this->_sdb.get(locn, ikey, ival) )
+        do 
         {
-            if (ikey.key.fid != key.fid)
-                break;
-            if ( isPrefix1(key, ikey.key) )
-            {
-                for (size_t i=0; i<ival.size(); i++)
-                    result.set(ival[i]);
-                this->_sdb.seq(locn);
-            }
-            else
-                break;
-        }
+            if(this->_sdb.get(locn, ikey, ival) )
+                if ( isPrefix1(key, ikey.key) && ikey.key.fid == key.fid )
+                {
+                    for (size_t i=0; i<ival.size(); i++)
+                        result.set(ival[i]);
+                }
+            else break;
+        }while(this->_sdb.seq(locn));
     }
 
 
