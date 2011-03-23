@@ -174,7 +174,7 @@ public:
         do
         {
             if (this->_sdb.get(locn, ikey, ival))
-                if(comp_(ikey.key, highKey) <= 0 && ikey.key.fid == highKey.fid)
+                if(comp_(ikey.key, highKey) <= 0)
                 {
                     for (size_t i=0; i<ival.size(); i++)
                     {
