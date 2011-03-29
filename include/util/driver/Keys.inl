@@ -13,17 +13,11 @@
 (controller)\
 (errors)\
 (header)\
-(limit)\
-(offset)\
-(operator_)\
-(order)\
 (process_time)\
-(property)\
 (remote_ip)\
 (success)\
 (timers)\
 (total_server_time)\
-(value)\
 (warnings)
 
 
@@ -48,26 +42,8 @@ header
   driver/Request.h:86
   driver/Response.h:80
 
-limit
-  driver/parsers/PageInfoParser.cpp:21
-  driver/parsers/PageInfoParser.cpp:23
-
-offset
-  driver/parsers/PageInfoParser.cpp:16
-  driver/parsers/PageInfoParser.cpp:18
-
-operator_
-  driver/parsers/ConditionParser.cpp:67
-
-order
-  driver/parsers/OrderParser.cpp:24
-
 process_time
   driver/DriverConnection.cpp:176
-
-property
-  driver/parsers/OrderParser.cpp:23
-  driver/parsers/ConditionParser.cpp:42
 
 remote_ip
   driver/DriverConnection.cpp:162
@@ -82,11 +58,6 @@ timers
 
 total_server_time
   driver/DriverConnection.cpp:214
-
-value
-  driver/parsers/ConditionParser.cpp:49
-  driver/parsers/ConditionParser.cpp:56
-  driver/parsers/ConditionParser.cpp:63
 
 warnings
   driver/Response.h:44

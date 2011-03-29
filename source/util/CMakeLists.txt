@@ -99,12 +99,6 @@ IF(izene_util_SHOULD_BUILD)
     driver/writers/JsonWriter.cpp
     driver/writers/PrettyJsonWriter.cpp
     driver/Parser.cpp
-    driver/parsers/PageInfoParser.cpp
-    driver/parsers/ConditionParser.cpp
-    driver/parsers/ConditionOperatorTable.cpp
-    driver/parsers/ConditionArrayParser.cpp
-    driver/parsers/OrderParser.cpp
-    driver/parsers/OrderArrayParser.cpp     
     driver/DriverConnection.cpp
     driver/DriverConnectionContext.cpp
     driver/DriverConnectionFirewall.cpp
