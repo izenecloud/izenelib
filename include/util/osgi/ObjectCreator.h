@@ -315,6 +315,9 @@ BaseT* ObjectCreator<BaseT,CreationPolicy>::createObjectFromLibrary( const std::
 
 #define REGISTER_BUNDLE_ACTIVATOR_CLASS(key,subType) REGISTER_CLASS(key,IBundleActivator,subType)
 
+#define DYNAMIC_REGISTER_BUNDLE_ACTIVATOR_CLASS(key,subType) \
+    ObjectCreator<IBundleActivator,NullCreator>::addFactory( key, new Factory<IBundleActivator,subType> );
+
 #define REGISTER_CLASS(key,baseType,subType) \
 class Register##baseType##with##subType \
     { \
