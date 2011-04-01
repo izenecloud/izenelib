@@ -79,7 +79,7 @@ void Launcher<LockType, CreationPolicy>::start( std::vector<BundleConfiguration>
         logger_.log( Logger::LOG_DEBUG, "[Launcher#start] Loading bundle activator: Library path: %1, class name: %2",
                     bundleConfig.getLibraryPath(), bundleConfig.getClassName() );
 
-        IBundleActivator* bundleActivator;
+        IBundleActivator* bundleActivator = NULL;
         try
         {
             bundleActivator = this->objectCreator_.createObject( bundleConfig.getClassName() );
@@ -88,7 +88,14 @@ void Launcher<LockType, CreationPolicy>::start( std::vector<BundleConfiguration>
         {
             std::string msg( exc.what() );
             logger_.log( Logger::LOG_ERROR, "[Launcher#start] Error during loading bundle activator, exc: %1", msg );
-            continue;
+            try{
+                bundleActivator = this->objectCreator_.createObject( bundleConfig.getBundleName() );
+            }catch ( ObjectCreationException &exc )
+            {
+                std::string msg( exc.what() );
+                logger_.log( Logger::LOG_ERROR, "[Launcher#start] Error during loading bundle activator, exc: %1", msg );
+                continue;
+            }
         }
 
         IBundleContext* bundleCtxt = this->createBundleContext( bundleConfig.getBundleName() );
