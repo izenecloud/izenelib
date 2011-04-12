@@ -97,6 +97,4 @@ void TestBundleActivator::removedService( const ServiceReference& ref )
     cout<< "[TestBundleActivator#removedService] Called." <<endl;
 }
 
-REGISTER_BUNDLE_ACTIVATOR_CLASS( "TestBundleActivator", TestBundleActivator )
-
 

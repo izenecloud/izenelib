@@ -27,6 +27,8 @@ BOOST_AUTO_TEST_CASE(load_test)
 {
     BundleConfiguration bundleConf1( "bundle1", "BundleActivator2", ".", "libbundle2.so" );
     BundleConfiguration bundleConf2( "bundle2", "TestBundleActivator" );
+    DYNAMIC_REGISTER_BUNDLE_ACTIVATOR_CLASS("TestBundleActivator", TestBundleActivator);
+	
     vector<BundleConfiguration> bundleConfVec;
     bundleConfVec.push_back( bundleConf1 );
     bundleConfVec.push_back( bundleConf2 );

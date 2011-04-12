@@ -19,10 +19,13 @@ void BTreeIndex<IndexKeyType<String> >::getSuffix(const IndexKeyType<String>& ke
     do
     {
         if(this->_sdb.get(locn, ikey, ival) )
-            if ( IsSuffix(key.value, ikey.key.value) && ikey.key.fid == key.fid)
+            if(ikey.key.fid == key.fid)			
             {
-                for (size_t i=0; i<ival.size(); i++)
-                    result.set(ival[i]);
+                if ( IsSuffix(key.value, ikey.key.value) )
+                {
+                    for (size_t i=0; i<ival.size(); i++)
+                        result.set(ival[i]);
+                }
             }
             else break;
     }while(this->_sdb.seq(locn));
@@ -42,10 +45,13 @@ void BTreeIndex<IndexKeyType<String> >::getSubString(const IndexKeyType<String>&
     do
     {
         if(this->_sdb.get(locn, ikey, ival) )
-            if ( IsSubString(key.value, ikey.key.value) && ikey.key.fid == key.fid)
+            if(ikey.key.fid == key.fid)
             {
-                for (size_t i=0; i<ival.size(); i++)
-                    result.set(ival[i]);
+                if ( IsSubString(key.value, ikey.key.value) )
+                {
+                    for (size_t i=0; i<ival.size(); i++)
+                        result.set(ival[i]);
+                }
             }
             else break;
     }while (this->_sdb.seq(locn));

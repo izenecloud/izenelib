@@ -3,6 +3,8 @@
 
 #include <boost/noncopyable.hpp>
 #include <boost/thread/shared_mutex.hpp>
+#include <boost/thread/recursive_mutex.hpp>
+
 #include <types.h>
 
 NS_IZENELIB_UTIL_BEGIN
@@ -71,6 +73,46 @@ public:
 	 */
 	inline int release_write_lock() {
 		rwMutex_.unlock();
+		return 0;
+	}
+};
+
+class RecursiveLock : private boost::noncopyable {
+private:
+	boost::recursive_mutex recurMutex_;
+public:
+	RecursiveLock() {
+	}
+
+	~RecursiveLock() {
+	}
+
+	/** 
+	 * @ brief Attempts to get the read lock. 
+	 */
+	inline int acquire_read_lock() {
+		recurMutex_.lock();
+		return 0;
+	}
+	/** 
+	 *  @ brief Attempts to get the write lock. 
+	 */
+	inline int acquire_write_lock() {
+		recurMutex_.lock();
+		return 0;
+	}
+	/** 
+	 *  @ brief Attempts to release the  read lock . 
+	 */
+	inline int release_read_lock() {
+		recurMutex_.unlock();
+		return 0;
+	}
+	/** 
+	 * @ brief Attempts to release the write lock. 
+	 */
+	inline int release_write_lock() {
+		recurMutex_.unlock();
 		return 0;
 	}
 };

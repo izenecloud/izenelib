@@ -14,7 +14,7 @@
 #include <boost/serialization/utility.hpp>//for std pair
 NS_IZENELIB_AM_BEGIN
 
-template <typename V, typename K = uint16_t, template <typename VV> class Container = std::vector>
+template <typename V, typename K = uint16_t, template <typename VV, typename KK = std::allocator<VV> > class Container = std::vector>
 class SparseVector
 {
 

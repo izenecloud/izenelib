@@ -66,8 +66,8 @@ void CollectionIndexer::setFieldIndexers()
             indexedProperties++;
     }
 
-    memCacheSize = (memCacheSize/indexedProperties) < 50*1024*1024 ? 
-                              50*1024*1024:(memCacheSize/indexedProperties) ;
+    memCacheSize = (memCacheSize/indexedProperties) < 10*1024*1024 ? 
+                              10*1024*1024:(memCacheSize/indexedProperties) ;
 
     pFieldsInfo_->startIterator();
 

@@ -207,19 +207,16 @@ public:
         IndexSDBCursor locn;
         this->_sdb.search(ikey, locn);
 
-        if(this->_sdb.get(locn, ikey, ival) && comp_(ikey.key, highKey) <= 0 && ikey.key.fid == highKey.fid)
-        {
-            for (size_t i=0; i<ival.size(); i++)
-                result.set(ival[i]);
-        }
-		
         do
         {
             if(this->_sdb.get(locn, ikey, ival))
-                if (comp_(ikey.key, highKey) <= 0 && ikey.key.fid == highKey.fid)
+                if(ikey.key.fid == highKey.fid)	
                 {
-                    for (size_t i=0; i<ival.size(); i++)
-                        result.set(ival[i]);
+                    if (comp_(ikey.key, highKey) <= 0)
+                    {
+                        for (size_t i=0; i<ival.size(); i++)
+                            result.set(ival[i]);
+                    }
                 }
                 else break;
         }while(this->_sdb.seq(locn, ESD_FORWARD));
@@ -256,10 +253,13 @@ public:
         do
         {
             if(this->_sdb.get(locn, ikey, ival))
-                if(comp_(ikey.key, key) > 0 && ikey.key.fid == key.fid )
+                if(ikey.key.fid == key.fid)
                 {
-                    for (size_t i=0; i<ival.size(); i++)
-                        result.set(ival[i]);
+                    if(comp_(ikey.key, key) > 0)
+                    {
+                        for (size_t i=0; i<ival.size(); i++)
+                            result.set(ival[i]);
+                    }
                 }
                 else break;
         }while (this->_sdb.seq(locn, ESD_FORWARD));
@@ -274,10 +274,13 @@ public:
         do
         {
             if(this->_sdb.get(locn, ikey, ival))
-                if(comp_(ikey.key, key) >= 0 && ikey.key.fid == key.fid)
+                if(ikey.key.fid == key.fid)				
                 {
-                    for (size_t i=0; i<ival.size(); i++)
-                        result.set(ival[i]);
+                    if(comp_(ikey.key, key) >= 0)
+                    {
+                        for (size_t i=0; i<ival.size(); i++)
+                            result.set(ival[i]);
+                    }
                 }
                 else break;
         }while (this->_sdb.seq(locn, ESD_FORWARD));
@@ -294,10 +297,13 @@ public:
         do
         {
             if(this->_sdb.get(locn, ikey, ival))
-                if (comp_(ikey.key, key) < 0 && ikey.key.fid == key.fid )
+                if(ikey.key.fid == key.fid)
                 {
-                    for (size_t i=0; i<ival.size(); i++)
-                        result.set(ival[i]);
+                    if (comp_(ikey.key, key) < 0)
+                    {
+                        for (size_t i=0; i<ival.size(); i++)
+                            result.set(ival[i]);
+                    }
                 }
                 else break;
         }while (this->_sdb.seq(locn, ESD_BACKWARD));
@@ -312,12 +318,17 @@ public:
         do
         {
             if(this->_sdb.get(locn, ikey, ival))
-                if (comp_(ikey.key, key) <= 0 && ikey.key.fid == key.fid )
+            {
+                if(ikey.key.fid == key.fid)
                 {
-                    for (size_t i=0; i<ival.size(); i++)
-                        result.set(ival[i]);
+                    if (comp_(ikey.key, key) <= 0)
+                    {
+                        for (size_t i=0; i<ival.size(); i++)
+                            result.set(ival[i]);
+                    }
                 }
                 else break;
+            }
         }while (this->_sdb.seq(locn, ESD_BACKWARD));
     }
 
@@ -330,10 +341,13 @@ public:
         do 
         {
             if(this->_sdb.get(locn, ikey, ival) )
-                if ( isPrefix1(key, ikey.key) && ikey.key.fid == key.fid )
+                if(ikey.key.fid == key.fid)
                 {
-                    for (size_t i=0; i<ival.size(); i++)
-                        result.set(ival[i]);
+                    if ( isPrefix1(key, ikey.key))
+                    {
+                        for (size_t i=0; i<ival.size(); i++)
+                            result.set(ival[i]);
+                    }
                 }
             else break;
         }while(this->_sdb.seq(locn));

@@ -8,6 +8,8 @@
 #ifndef _IPRESTRICTOR_H_
 #define _IPRESTRICTOR_H_
 
+#include <util/singleton.h>
+
 #include <boost/array.hpp>
 #include <iostream>
 #include <vector>
@@ -55,6 +57,10 @@ private:
     static const int    CLASS_D_TYPE    = 4; ///< Class D : XXX.XXX.XXX.XXX
 
 public:
+    static IPRestrictor* getInstance()
+    {
+        return ::izenelib::util::Singleton<IPRestrictor>::get();
+    }
 
     // -------------------------------------------- [ Interfaces ]
     ///
