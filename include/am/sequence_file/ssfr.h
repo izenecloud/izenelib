@@ -424,6 +424,222 @@ class Sorter {
         
 };
 
+template <typename LenType=uint32_t>
+class Util {
+public:
+  
+  template <class T>
+  static bool Load(const std::string& file, std::vector<T>& value)
+  {
+    Reader<LenType> reader(file);
+    if(!reader.Open())
+    {
+      return false;
+    }
+    if(reader.Count()==0) return false;
+    value.resize(reader.Count());
+    std::size_t i=0;
+    while(reader.Next(value[i]))
+    {
+      ++i;
+    }
+    return true;
+  }
+  
+  template <class T>
+  static bool Load(const std::string& file, T& value)
+  {
+    std::vector<T> value_list;
+    if(!Load(file, value_list)) return false;
+    if(value_list.size()!=1) return false;
+    value = value_list[0];
+    return true;
+  }
+  template <class T>
+  static bool Save(const std::string& file, const std::vector<T>& value)
+  {
+    try
+    {
+      boost::filesystem::remove_all(file);
+    }
+    catch(std::exception& ex)
+    {
+      std::cerr<<ex.what()<<std::endl;
+      return false;
+    }
+    Writer<LenType> writer(file);
+    if(!writer.Open())
+    {
+      return false;
+    }
+    for(std::size_t i=0;i<value.size();i++)
+    {
+      if(!writer.Append(value[i])) return false;
+    }
+    writer.Close();
+    return true;
+  }
+  
+  template <class T>
+  static bool Save(const std::string& file, const T& value)
+  {
+    std::vector<T> value_list(1, value);
+    return Save(file, value_list);
+  }
+  
+  
+};
+
+template <typename LenType, typename KeyType, class ValueType>
+class Joiner {
+public:
+  Joiner(const std::string& file)
+  :reader_(new Reader<LenType>(file)), b_(false)
+  {
+  }
+  
+  ~Joiner()
+  {
+    delete reader_;
+  }
+  
+  bool Open()
+  {
+    if(!reader_->Open()) return false;
+    if(reader_->Next(pair_.first, pair_.second))
+    {
+      b_ = true;
+    }
+    return true;
+  }
+  
+  bool Next(KeyType& key, std::vector<ValueType>& value_list)
+  {
+    if(!b_) return false;
+    key = pair_.first;
+    value_list.resize(0);
+    while(b_)
+    {
+      if( pair_.first == key )
+      {
+        value_list.push_back(pair_.second);
+        if(!reader_->Next(pair_.first, pair_.second))
+        {
+          b_ = false;
+          break;
+        }
+      }
+      else
+      {
+        break;
+      }
+    }
+    return true;
+  }
+  
+private:
+  Reader<LenType>* reader_;
+  bool b_;
+  std::pair<KeyType, ValueType> pair_;
+//   std::vector<ValueType> value_list_;
+  
+  
+};
+
+template <typename LenType, typename KeyType, class ValueType1, class ValueType2>
+class Merger {
+public:
+  Merger(Reader<LenType>* reader1, Reader<LenType>* reader2)
+  :reader1_(reader1), reader2_(reader2), b1_(false), b2_(false)
+  {
+    if(reader1_->Next(pair1_.first, pair1_.second))
+    {
+      b1_ = true;
+    }
+    if(reader2_->Next(pair2_.first, pair2_.second))
+    {
+      b2_ = true;
+    }
+  }
+  
+  bool Next(KeyType& key, std::vector<ValueType1>& value_list1, std::vector<ValueType2>& value_list2)
+  {
+    bool key_set = false;
+    if( b1_ )
+    {
+      key = pair1_.first;
+      key_set = true;
+    }
+    if( b2_ )
+    {
+      if( key_set )
+      {
+        if( pair2_.first< key )
+        {
+          key = pair2_.first;
+        }
+      }
+      else
+      {
+        key = pair2_.first;
+        key_set = true;
+      }
+    }
+    if( !key_set )
+    {
+      return false;
+    }
+    value_list1.resize(0);
+    value_list2.resize(0);
+    while( b1_ )
+    {
+      if( pair1_.first == key )
+      {
+        value_list1.push_back(pair1_.second);
+        if(!reader1_->Next(pair1_.first, pair1_.second))
+        {
+          b1_ = false;
+          break;
+        }
+      }
+      else
+      {
+        break;
+      }
+    }
+    while( b2_ )
+    {
+      if( pair2_.first == key )
+      {
+        value_list2.push_back(pair2_.second);
+        if(!reader2_->Next(pair2_.first, pair2_.second))
+        {
+          b2_ = false;
+          break;
+        }
+      }
+      else
+      {
+        break;
+      }
+    }
+    
+    
+    return true;
+  }
+  
+private:
+  
+    
+private:
+  Reader<LenType>* reader1_;
+  Reader<LenType>* reader2_;
+  bool b1_;
+  bool b2_;
+  std::pair<KeyType, ValueType1> pair1_;
+  std::pair<KeyType, ValueType2> pair2_;
+};
+
 }
 
 NS_IZENELIB_AM_END

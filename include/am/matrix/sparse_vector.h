@@ -30,7 +30,17 @@ class SparseVector
     ValueType value;
 };
 
-   
+template <typename V, typename K>
+std::ostream& operator<<(std::ostream& stream, const SparseVector<V,K>& vec)
+{
+  for(uint32_t i=0;i<vec.value.size();i++)
+  {
+    if(i>0) stream<<" ";
+    stream<<"["<<vec.value[i].first<<","<<vec.value[i].second<<"]";
+  }
+  return stream;
+}
+
 NS_IZENELIB_AM_END
 
 #endif 
