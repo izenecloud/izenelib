@@ -1,1 +1,2 @@
 ADD_SUBDIRECTORY(luxio)
+ADD_SUBDIRECTORY(beansdb)

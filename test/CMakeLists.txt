@@ -22,7 +22,7 @@ IF(Boost_FOUND)
   ADD_SUBDIRECTORY(ir)
   
 
-  # ADD_SUBDIRECTORY(3rdparty)
+  ADD_SUBDIRECTORY(3rdparty)
   # ADD_SUBDIRECTORY(am_test)
   # ADD_SUBDIRECTORY(db) 
 
