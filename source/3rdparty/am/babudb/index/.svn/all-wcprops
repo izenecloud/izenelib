@@ -1,0 +1,53 @@
+K 25
+svn:wc:ra_dav:version-url
+V 37
+/svn/!svn/ver/361/trunk/cpp/src/index
+END
+merger.cpp
+K 25
+svn:wc:ra_dav:version-url
+V 48
+/svn/!svn/ver/172/trunk/cpp/src/index/merger.cpp
+END
+index_writer_test.cpp
+K 25
+svn:wc:ra_dav:version-url
+V 59
+/svn/!svn/ver/333/trunk/cpp/src/index/index_writer_test.cpp
+END
+index_writer.cpp
+K 25
+svn:wc:ra_dav:version-url
+V 54
+/svn/!svn/ver/361/trunk/cpp/src/index/index_writer.cpp
+END
+index_test.cpp
+K 25
+svn:wc:ra_dav:version-url
+V 52
+/svn/!svn/ver/333/trunk/cpp/src/index/index_test.cpp
+END
+merger.h
+K 25
+svn:wc:ra_dav:version-url
+V 46
+/svn/!svn/ver/334/trunk/cpp/src/index/merger.h
+END
+index.cpp
+K 25
+svn:wc:ra_dav:version-url
+V 47
+/svn/!svn/ver/361/trunk/cpp/src/index/index.cpp
+END
+index_writer.h
+K 25
+svn:wc:ra_dav:version-url
+V 52
+/svn/!svn/ver/334/trunk/cpp/src/index/index_writer.h
+END
+index.h
+K 25
+svn:wc:ra_dav:version-url
+V 45
+/svn/!svn/ver/334/trunk/cpp/src/index/index.h
+END
