@@ -346,11 +346,11 @@ bool isChineseChar(int index) const {
 } // end - isKoreanChar()
 
 static bool isThisChineseChar(UCS2Char ucs2Char) {
-  if (ucs2Char>=0x2E80 && ucs2Char<=0x2EF3
-      || ucs2Char>=0x2F00 && ucs2Char<=0x2FD5
-      || ucs2Char>=0x3400 && ucs2Char<=0x4DB5
-      || ucs2Char>=0x4E00 && ucs2Char<=0x9FC3
-      || ucs2Char>=0xF900 && ucs2Char<=0xFAD9)
+  if ((ucs2Char>=0x2E80 && ucs2Char<=0x2EF3)
+      || (ucs2Char>=0x2F00 && ucs2Char<=0x2FD5)
+      || (ucs2Char>=0x3400 && ucs2Char<=0x4DB5)
+      || (ucs2Char>=0x4E00 && ucs2Char<=0x9FC3)
+      || (ucs2Char>=0xF900 && ucs2Char<=0xFAD9))
     return true;
 
   return false;
@@ -365,10 +365,10 @@ bool isJapaneseChar(int index) const {
 } // end - isKoreanChar()
 
 static bool isThisJapaneseChar(UCS2Char ucs2Char) {
-  if (ucs2Char>=0x3041 && ucs2Char<=0x309F
-      || ucs2Char>=0x30A1 && ucs2Char<=0x30FF
-      || ucs2Char>=0x31F0 && ucs2Char<=0x31FF
-      || ucs2Char>=0xFF66 && ucs2Char<=0xFF9F)
+  if ((ucs2Char>=0x3041 && ucs2Char<=0x309F)
+      || (ucs2Char>=0x30A1 && ucs2Char<=0x30FF)
+      || (ucs2Char>=0x31F0 && ucs2Char<=0x31FF)
+      || (ucs2Char>=0xFF66 && ucs2Char<=0xFF9F))
     return true;
 
   return false;
