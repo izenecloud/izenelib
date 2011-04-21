@@ -184,12 +184,14 @@ public:
 		_sdb.search(ikey, locn);
 		do{
 			if(_sdb.get(locn, ikey, ival) ) 
+			{
 				if (comp_(ikey.key, key)> 0) {
 					for (size_t i=0; i<ival.size(); i++) {
 						result.push_back(ival[i]);
 					}
 				}
 				else break;
+			}
 		}while(_sdb.seq(locn, ESD_FORWARD));
 
 	}
@@ -200,12 +202,14 @@ public:
 		_sdb.search(ikey, locn);
 		do {
 			if(_sdb.get(locn, ikey, ival))
+			{
 				if (comp_(ikey.key, key) >= 0) {
 					for (size_t i=0; i<ival.size(); i++) {
 						result.push_back(ival[i]);
 					}
 				}
 				else break;
+			}
 		}while(_sdb.seq(locn, ESD_FORWARD));
 	}
 
@@ -216,12 +220,14 @@ public:
 		_sdb.search(ikey, locn);
 		do {
 			if(_sdb.get(locn, ikey, ival))
+			{
 				if (comp_(ikey.key, key) < 0) {
 					for (size_t i=0; i<ival.size(); i++) {
 						result.push_back(ival[i]);
 					}
 				}
 				else break;
+			}
 		}while(_sdb.seq(locn, ESD_BACKWARD));
 
 	}
@@ -232,12 +238,14 @@ public:
 		_sdb.search(ikey, locn);
 		do{
 			if(_sdb.get(locn, ikey, ival) )
+			{
 				if (comp_(ikey.key, key) <= 0) {
 					for (size_t i=0; i<ival.size(); i++) {
 						result.push_back(ival[i]);
 					}
 				}
 				else break;
+			}
 		}while(_sdb.seq(locn, ESD_BACKWARD));
 	}
 
@@ -248,6 +256,7 @@ public:
 		_sdb.search(ikey, locn);
 		do{
 			if(_sdb.get(locn, ikey, ival))
+			{
 				if (isPrefix1(key, ikey.key) ) {
 					for (size_t i=0; i<ival.size(); i++) {
 					//if (find(result.begin(), result.end(), vdat[i]) == result.end() )				
@@ -255,6 +264,7 @@ public:
 					}
 				
 				} else break;
+			}
 		}while(_sdb.seq(locn, ESD_FORWARD));
 	}
 
