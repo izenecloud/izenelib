@@ -15,6 +15,8 @@
 #ifndef __HSTORE_H__
 #define __HSTORE_H__
 
+#include <inttypes.h> // uint32_t, uint64_t
+
 #ifdef __cplusplus
 extern "C" {
 #endif
