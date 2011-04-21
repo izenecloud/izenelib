@@ -17,6 +17,8 @@
 #include <am/sdb_storage/sdb_storage.h>
 #include <am/sdb_storage/sdb_storage_mm.h>
 
+#include <util/ThreadModel.h>
+
 /*#ifdef EXTERNAL_TOKYO_CABINET
  #include <am/tokyo_cabinet/tc_hash.h>
  #endif*/
@@ -58,6 +60,8 @@ public:
 	typedef KeyType SDBKeyType;
 	typedef ValueType SDBValueType;
 
+        typedef izenelib::util::ScopedReadLock<LockType> ScopedReadLockType;
+        typedef izenelib::util::ScopedWriteLock<LockType> ScopedWriteLockType;
 public:
 	/**
 	 *  \brief constructor1, the default fileName is "SeqentialDB.dat"
@@ -221,17 +225,15 @@ public:
 	}
 
 	bool dump(SequentialDB& other) {
-		lock_.acquire_write_lock();
+		ScopedWriteLockType lock(lock_);
 		ContainerType &otherContainer = other.getContainer();
 		bool ret = container_.dump(otherContainer);
-		lock_.release_write_lock();
 		return ret;
 	}
 
 	bool dump(const string& fileName) {
-		lock_.acquire_write_lock();
+		ScopedWriteLockType lock(lock_);
 		bool ret = container_.dump(fileName);
-		lock_.release_write_lock();
 		return ret;
 	}
 
@@ -240,22 +242,19 @@ public:
 	 *
 	 */
 	void commit() {
-		lock_.acquire_write_lock();
+		ScopedWriteLockType lock(lock_);
 		container_.commit();
-		lock_.release_write_lock();
 	}
 
 	SDBCursor get_first_locn() {
-		lock_.acquire_read_lock();
+		ScopedReadLockType lock(lock_);
 		SDBCursor locn = container_.get_first_locn();
-		lock_.release_read_lock();
 		return locn;
 	}
 
 	SDBCursor get_last_locn() {
-		lock_.acquire_read_lock();
+		ScopedReadLockType lock(lock_);
 		SDBCursor locn = container_.get_last_locn();
-		lock_.release_read_lock();
 		return locn;
 	}
 
@@ -278,10 +277,8 @@ public:
 	}
 
 	bool seq(SDBCursor& locn, ESeqDirection sdir = ESD_FORWARD) {
-		//ScopedReadLock<LockType>(lock_);
-		lock_.acquire_read_lock();
+		ScopedReadLockType lock(lock_);
 		bool ret = container_.seq(locn, sdir);
-		lock_.release_read_lock();
 		return ret;
 	}
 
@@ -293,9 +290,8 @@ public:
 	 *
 	 */
 	bool search(const KeyType& key, SDBCursor& locn) {
-		lock_.acquire_read_lock();
+		ScopedReadLockType lock(lock_);
 		bool ret = container_.search(key, locn);
-		lock_.release_read_lock();
 		return ret;
 	}
 
@@ -315,9 +311,8 @@ public:
 	 *  \brief get the item of given Locn.	 *
 	 */
 	bool get(const SDBCursor& locn, KeyType& key, ValueType& value) {
-		lock_.acquire_read_lock();
+		ScopedReadLockType lock(lock_);
 		bool ret = container_.get(locn, key, value);
-		lock_.release_read_lock();
 		return ret;
 	}
 
@@ -325,9 +320,8 @@ public:
 	 *  \brief get an item of given Locn.	 *
 	 */
 	bool get(const SDBCursor& locn, DataType<KeyType,ValueType> & dat) {
-		lock_.acquire_read_lock();
+		ScopedReadLockType lock(lock_);
 		bool ret = container_.get(locn, dat);
-		lock_.release_read_lock();
 		return ret;
 	}
 
@@ -347,17 +341,15 @@ public:
 	 * 	\brief It display some infomation of SequentialDB.
 	 */
 	void display(std::ostream& os = std::cout) {
-		lock_.acquire_read_lock();
+		ScopedReadLockType lock(lock_);
 		container_.display(os);
-		lock_.release_read_lock();
 	}
 	/**
 	 * 	\brief clear the memeory and write the dirty page back to disk.
 	 */
 	void flush() {
-		lock_.acquire_write_lock();
+		ScopedWriteLockType lock(lock_);
 		container_.flush();
-		lock_.release_write_lock();
 	}
 
 	/// Note that,  getnext, getPrev, getNearest, getValueForwar,getValueBackWard, getValuePrefix, getValueBetween
@@ -370,17 +362,15 @@ public:
 		SDBCursor locn;
 		DataType<KeyType,ValueType> dat;
 		KeyType rk;
-		lock_.acquire_read_lock();
+		ScopedReadLockType lock(lock_);
 		if (container_.search(key, locn) ) {
 			if (container_.seq(locn, ESD_FORWARD) ) {
 				container_.get(locn, dat);
 			}
-			lock_.release_read_lock();
 			return dat.key;
 		} else {
 			container_.get(locn, dat);
 			rk = dat.get_key();
-			lock_.release_read_lock();
 			return rk;
 		}
 	}
@@ -392,13 +382,12 @@ public:
 		SDBCursor locn;
 		DataType<KeyType,ValueType> dat;
 		KeyType rk;
-		lock_.acquire_read_lock();
+		ScopedReadLockType lock(lock_);
 		container_.search(key, locn);
 		if (container_.seq(locn, ESD_BACKWARD) ) {
 			container_.get(locn, dat);
 			rk = dat.get_key();
 		}
-		lock_.release_read_lock();
 		return rk;
 	}
 
@@ -409,12 +398,11 @@ public:
 	 */
 	KeyType getNearest(const KeyType& key) {
 		SDBCursor locn;
-		lock_.acquire_read_lock();
+		ScopedReadLockType lock(lock_);
 		container_.search(key, locn);
 		DataType<KeyType,ValueType> dat;
 		container_.get(locn, dat);
 		KeyType rk = dat.get_key();
-		lock_.release_read_lock();
 		return rk;
 	}
 
@@ -473,7 +461,7 @@ public:
 		SDBCursor locn;
 		search(key, locn);
 		DataType<KeyType,ValueType> dat;
-		lock_.acquire_read_lock();
+		ScopedReadLockType lock(lock_);
 		while (container_.get(locn, dat) ) {
 			if (key.isPrefix(dat.get_key() ) ) {
 				result.push_back(dat);
@@ -481,14 +469,13 @@ public:
 			} else
 				break;
 		}
-		lock_.release_read_lock();
 	}
 
 	void getValuePrefix(const KeyType& key, vector<KeyType>& result) {
 		SDBCursor locn;
 		search(key, locn);
 		DataType<KeyType,ValueType> dat;
-		lock_.acquire_read_lock();
+		ScopedReadLockType lock(lock_);
 		while (container_.get(locn, dat) ) {
 			if (key.isPrefix(dat.get_key() ) ) {
 				result.push_back(dat.get_key() );
@@ -496,7 +483,6 @@ public:
 			} else
 				break;
 		}
-		lock_.release_read_lock();
 	}
 
 	ContainerType& getContainer() {
@@ -527,13 +513,11 @@ template<typename KeyType, typename ValueType, typename LockType,
 		typename ContainerType, typename Alloc> bool SequentialDB< KeyType,
 		ValueType, LockType, ContainerType, Alloc>::getValue(
 		const KeyType& key, ValueType& val) {
-	lock_.acquire_read_lock();
+	ScopedReadLockType lock(lock_);
 	bool ret = container_.get(key, val);
 	if (ret) {
-		lock_.release_read_lock();
 		return true;
 	}
-	lock_.release_read_lock();
 	return false;
 }
 
@@ -541,18 +525,16 @@ template<typename KeyType, typename ValueType, typename LockType,
 		typename ContainerType, typename Alloc> bool SequentialDB< KeyType,
 		ValueType, LockType, ContainerType, Alloc>::insertValue(
 		const DataType<KeyType,ValueType> & data) {
-	lock_.acquire_write_lock();
+	ScopedWriteLockType lock(lock_);
 	bool ret = container_.insert(data);
-	lock_.release_write_lock();
 	return ret;
 }
 
 template<typename KeyType, typename ValueType, typename LockType,
 		typename ContainerType, typename Alloc> bool SequentialDB< KeyType,
 		ValueType, LockType, ContainerType, Alloc>::del(const KeyType& key) {
-	lock_.acquire_write_lock();
+	ScopedWriteLockType lock(lock_);
 	bool ret = container_.del(key);
-	lock_.release_write_lock();
 	return ret;
 }
 
@@ -560,19 +542,17 @@ template<typename KeyType, typename ValueType, typename LockType,
 		typename ContainerType, typename Alloc> bool SequentialDB< KeyType,
 		ValueType, LockType, ContainerType, Alloc>::update(
 		const DataType<KeyType,ValueType> & data) {
-	lock_.acquire_write_lock();
+	ScopedWriteLockType lock(lock_);
 	bool ret = container_.update(data);
-	lock_.release_write_lock();
 	return ret;
 }
 
 template<typename KeyType, typename ValueType, typename LockType,
 		typename ContainerType, typename Alloc> bool SequentialDB< KeyType,
 		ValueType, LockType, ContainerType, Alloc>::hasKey(const KeyType& key) {
-	lock_.acquire_read_lock();
+	ScopedReadLockType lock(lock_);
 	SDBCursor locn;
 	bool ret = container_.search(key, locn);
-	lock_.release_read_lock();
 	return ret;
 
 }
@@ -580,9 +560,8 @@ template<typename KeyType, typename ValueType, typename LockType,
 template<typename KeyType, typename ValueType, typename LockType,
 		typename ContainerType, typename Alloc> int SequentialDB< KeyType,
 		ValueType, LockType, ContainerType, Alloc>::numItems() {
-	lock_.acquire_read_lock();
+	ScopedReadLockType lock(lock_);
 	int num = container_.num_items();
-	lock_.release_read_lock();
 	return num;
 }
 
@@ -596,7 +575,7 @@ template<typename KeyType, typename ValueType, typename LockType,
 	DataType<KeyType,ValueType> rec;
 	int i =0;
 	SDBCursor locn;
-	lock_.acquire_read_lock();
+	ScopedReadLockType lock(lock_);
 	container_.search(key, locn);
 	if (container_.get(locn, rec)) {
 		result.push_back(rec);
@@ -608,12 +587,10 @@ template<typename KeyType, typename ValueType, typename LockType,
 			if (container_.get(locn, rec) )
 				result.push_back(rec);
 		} else {
-			lock_.release_read_lock();
 			return false;
 		}
 	}
-	lock_.release_read_lock();
-	return 1;
+	return true;
 
 }
 
@@ -626,7 +603,7 @@ template<typename KeyType, typename ValueType, typename LockType,
 	int i=0;
 	SDBCursor locn;
 	KeyType temp = getPrev(key);
-	lock_.acquire_read_lock();
+	ScopedReadLockType lock(lock_);
 	if (container_.search(key, locn) ) {
 		if (container_.get(locn, rec)) {
 			result.push_back(rec);
@@ -634,7 +611,6 @@ template<typename KeyType, typename ValueType, typename LockType,
 		}
 	} else {
 		if ( !container_.search(temp, locn) ) {
-			lock_.release_read_lock();
 			return false;
 		} else {
 			if (container_.get(locn, rec)) {
@@ -648,12 +624,10 @@ template<typename KeyType, typename ValueType, typename LockType,
 			if (container_.get(locn, rec))
 				result.push_back(rec);
 		} else {
-			lock_.release_read_lock();
 			return false;
 		}
 	}
-	lock_.release_read_lock();
-	return 1;
+	return true;
 
 }
 
@@ -669,7 +643,7 @@ template<typename KeyType, typename ValueType, typename LockType,
 	SDBCursor locn;
 	DataType<KeyType,ValueType> rec;
 
-	lock_.acquire_read_lock();
+	ScopedReadLockType lock(lock_);
 
 	container_.search(lowKey, locn);
 	if (container_.get(locn, rec)) {
@@ -677,7 +651,6 @@ template<typename KeyType, typename ValueType, typename LockType,
 			result.push_back(rec);
 			ret = true;
 		} else {
-			lock_.release_read_lock();
 			return ret;
 		}
 	}
@@ -695,11 +668,9 @@ template<typename KeyType, typename ValueType, typename LockType,
 				}
 			}
 		} else {
-			lock_.release_read_lock();
 			return ret;
 		}
 	} while (true);
-	lock_.release_read_lock();
 	return ret;
 }
 
