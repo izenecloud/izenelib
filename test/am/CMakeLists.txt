@@ -81,3 +81,18 @@ TARGET_LINK_LIBRARIES(t_graph_index
     ${Boost_SYSTEM_LIBRARY}
     ${Glog_LIBRARIES}
   )
+
+ADD_EXECUTABLE(t_hashtable
+  Runner.cpp
+  hashtable/t_hashtable.cpp
+  )
+
+TARGET_LINK_LIBRARIES(t_hashtable
+  am
+    ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY}
+    ${Boost_THREAD_LIBRARY}
+    ${Boost_FILESYSTEM_LIBRARY}
+    ${Boost_SYSTEM_LIBRARY}
+    ${Glog_LIBRARIES}
+  )
+  

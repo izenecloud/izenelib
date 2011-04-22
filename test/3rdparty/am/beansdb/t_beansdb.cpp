@@ -25,19 +25,30 @@ void test_beansdb(int N)
     char key[256];
 
     srand48(11);
+
+    unsigned flag = 0;
+    int rlen = 0;
 	
     for (i = 0; i < N; ++i)
     {
         unsigned intdata = i;//(N * drand48() / 4) * 271828183u;
         sprintf(key, "%x", intdata);    
         //hs_append(store, key, (char*)&i, sizeof(int));
-        hs_set(store, key, (char*)&i, sizeof(int), 0, 1);
+        char *body = hs_get(store, key, &rlen, &flag);
+        int v = i;
+        if(body != NULL)
+        {
+            v = *((int*)body);
+            flag-=1;
+            v = (v*2);
+            free(body);
+        }
+        hs_set(store, key, (char*)&v, sizeof(int), flag, 0);
     }
+
     int flush_limit = 1024 * 2;
     hs_flush(store, flush_limit);
 
-    int rlen = 0;
-    unsigned flag;
     for (i = 0; i < N; ++i)
     {
         unsigned intdata = i;//(N * drand48() / 4) * 271828183u;
@@ -46,7 +57,7 @@ void test_beansdb(int N)
         if(body != NULL)
         {
             unsigned int v = *((unsigned int*)body);
-            cout<<"value "<<v<<" vlen "<<rlen<<endl;
+            cout<<"value "<<v<<" vlen "<<rlen<<" flag "<<flag<<endl;
             free(body);
         }
         //hs_set(store, key, (char*)&i, sizeof(int), 0, 1);
@@ -57,5 +68,5 @@ void test_beansdb(int N)
 /// Speed test them!
 int main()
 {
-    test_beansdb(1000);
+    test_beansdb(100);
 }
