@@ -84,6 +84,7 @@ IF(izene_util_SHOULD_BUILD)
     scd_parser.cpp
     DynamicLibrary.cpp
     modp_numtoa.cpp
+    timestamp.cpp
     
     driver/Keys.cpp
     driver/Request.cpp
