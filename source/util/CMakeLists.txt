@@ -83,6 +83,7 @@ IF(izene_util_SHOULD_BUILD)
     streambuf.cpp
     scd_parser.cpp
     DynamicLibrary.cpp
+    modp_numtoa.cpp
     
     driver/Keys.cpp
     driver/Request.cpp
