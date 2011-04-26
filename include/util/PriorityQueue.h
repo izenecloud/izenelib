@@ -10,9 +10,8 @@
 namespace izenelib{ namespace util{
 
 /**
- * A PriorityQueue maintains a partial ordering of its elements such that the
- * least element can always be found in constant time.  Put()'s and pop()'s
- *  require log(size) time.
+* This priorityqueue is used temporarily because it does not need to allocate
+* memory on heap.
  */
 template <class Type>
 class PriorityQueue
@@ -21,7 +20,6 @@ class PriorityQueue
 private:
     Type*	heap_;
     size_t	size_;
-    bool bDelete_;
     size_t	maxSize_;
 
     void upHeap()
@@ -65,7 +63,6 @@ protected:
     PriorityQueue()
     {
         size_ = 0;
-        bDelete_ = false;
         heap_ = NULL;
         maxSize_ = 0;
     }
@@ -79,10 +76,9 @@ protected:
     /**
      * Subclass constructors must call this.
      */
-    void initialize(const size_t maxSize, bool deleteOnClear)
+    void initialize(const size_t maxSize)
     {
         size_ = 0;
-        bDelete_ = deleteOnClear;
         maxSize_ = maxSize;
         size_t heapSize = maxSize_ + 1;
         heap_ = new Type[heapSize];
@@ -91,7 +87,6 @@ protected:
 public:
     virtual ~PriorityQueue()
     {
-        clear();
         delete[] heap_;
     }
 
@@ -102,9 +97,6 @@ public:
      */
     void put(Type element)
     {
-        if (size_ >= maxSize_)
-            throw std::runtime_error("PriorityQueue::put():add is out of bounds");
-
         size_++;
         heap_[size_] = element;
         upHeap();
@@ -125,10 +117,6 @@ public:
         }
         else if (size_ > 0 && !lessThan(element, top()))
         {
-            if ( bDelete_ )
-            {
-                delete heap_[1];
-            }
             heap_[1] = element;
             adjustTop();
             return true;
@@ -145,7 +133,7 @@ public:
         if (size_ > 0)
             return heap_[1];
         else
-            return NULL;
+            return Type();
     }
 
     /**
@@ -164,7 +152,7 @@ public:
             return result;
         }
         else
-            return (Type)NULL;
+            return Type();
     }
 
     /**
@@ -189,20 +177,6 @@ public:
         return size_;
     }
 
-    /**
-     * Removes all entries from the PriorityQueue.
-     */
-    void clear()
-    {
-        for (size_t i = 1; i <= size_; i++)
-        {
-            if ( bDelete_ )
-            {
-                delete heap_[i];
-            }
-        }
-        size_ = 0;
-    }
     /** return element by position */
     Type operator [](size_t _pos)
     {
@@ -211,12 +185,6 @@ public:
     Type getAt(size_t _pos)
     {
         return heap_[_pos+1];
-    }
-
-
-    void setDel(bool bDel)
-    {
-        bDelete_ = bDel;
     }
 
 };
