@@ -20,11 +20,6 @@ namespace beansdb {
 namespace raw {
 
 using izenelib::am::raw::Buffer;
-
-void freebuffer(void* buffer)
-{
-    free(buffer);
-}
 	
 class Hash
     : boost::noncopyable
@@ -164,7 +159,7 @@ public:
         {
             value.attach(buffer,
                          static_cast<std::size_t>(size),
-                         &freebuffer);
+                         &std::free);
 
             return true;
         }
