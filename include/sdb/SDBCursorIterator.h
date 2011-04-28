@@ -14,7 +14,7 @@
  *   typedef int KeyType;
  *   typedef string ValueType;
  *   typedef izenelib::sdb::unordered_sdb_tc<KeyType, ValueType> SDBType;
- *   typedef SDBCursorIterator<SDBType> SDBIterator;
+ *   typedef izenelib::sdb::SDBCursorIterator<SDBType> SDBIterator;
  *
  *   SDBType container;
  *   SDBIterator begin = SDBIterator(container);
