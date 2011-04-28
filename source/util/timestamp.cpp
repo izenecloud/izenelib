@@ -1,5 +1,7 @@
 #include <time.h>
 #include <sys/time.h>
+#include <stdio.h> // snprintf
+#include <stdlib.h> // getenv
 
 #include <util/timestamp.h>
 

@@ -1,7 +1,8 @@
 #ifndef CUCKOO_HASH_TABLE_HPP
 #define CUCKOO_HASH_TABLE_HPP
 
-#include<types.h>
+#include <types.h>
+#include <cstring> // memset
 
 #define CHT_MAX_LG_TABLE_SIZE_IN_BINS 20
 
