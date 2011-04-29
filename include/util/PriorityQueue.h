@@ -146,7 +146,7 @@ public:
             Type result = heap_[1];			  // save first value
             heap_[1] = heap_[size_];			  // move last to first
 
-            heap_[size_] = (Type)0;			  // permit GC of objects
+            heap_[size_] = Type();			  // permit GC of objects
             size_--;
             downHeap();				  // adjust heap_
             return result;
