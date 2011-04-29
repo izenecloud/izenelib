@@ -78,7 +78,10 @@ struct SsHeader {
 	{
 		if ( 0 != fseek(f, 0, SEEK_SET) )
 		return false;
-		fread(this, sizeof(SsHeader), 1, f);
+
+		if ( 1 != fread(this, sizeof(SsHeader), 1, f) )
+		return false;
+
 		return true;
 	}
 };
