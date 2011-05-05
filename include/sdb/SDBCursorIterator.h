@@ -22,8 +22,8 @@
  *
  *   for (SDBIterator it = begin; it != end; ++it)
  *   {
- *      KeyType& key = it->first;
- *      ValueType& value = it->second;
+ *      const KeyType& key = it->first;
+ *      const ValueType& value = it->second;
  *   }
  */
 #include <boost/iterator/iterator_facade.hpp>
