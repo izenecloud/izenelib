@@ -10,8 +10,8 @@
 //  ARM Code by Phil Endecott, based on other architectures.
 
 #include <boost/memory_order.hpp>
-#include "base.hpp"
-#include "builder.hpp"
+#include <boost/atomic/detail/base.hpp>
+#include <boost/atomic/detail/builder.hpp>
 
 namespace boost {
 namespace detail {

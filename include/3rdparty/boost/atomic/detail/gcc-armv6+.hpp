@@ -11,8 +11,8 @@
 
 
 #include <boost/memory_order.hpp>
-#include "base.hpp"
-#include "builder.hpp"
+#include <boost/atomic/detail/base.hpp>
+#include <boost/atomic/detail/builder.hpp>
 
 // From the ARM Architecture Reference Manual for architecture v6:
 // 

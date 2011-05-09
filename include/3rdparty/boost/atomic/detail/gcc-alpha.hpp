@@ -7,8 +7,8 @@
 //  See accompanying file LICENSE_1_0.txt or copy at
 //  http://www.boost.org/LICENSE_1_0.txt)
 
-#include "base.hpp"
-#include "builder.hpp"
+#include <boost/atomic/detail/base.hpp>
+#include <boost/atomic/detail/builder.hpp>
 
 /*
   Refer to http://h71000.www7.hp.com/doc/82final/5601/5601pro_004.html
@@ -68,7 +68,7 @@ static inline void fence_after(memory_order order)
 }
 
 template<>
-void platform_atomic_thread_fence(memory_order order)
+inline void platform_atomic_thread_fence(memory_order order)
 {
 	switch(order) {
 		case memory_order_acquire:
