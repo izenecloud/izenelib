@@ -1,1 +1,2 @@
 ADD_SUBDIRECTORY(beansdb)
+ADD_SUBDIRECTORY(leveldb)

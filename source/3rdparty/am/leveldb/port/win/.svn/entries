@@ -1,0 +1,41 @@
+8
+
+dir
+27
+http://leveldb.googlecode.com/svn/trunk/port/win
+http://leveldb.googlecode.com/svn
+
+
+
+2011-04-19T23:11:15.377003Z
+23
+dgrogan@chromium.org
+
+
+svn:special svn:externals svn:needs-lock
+
+
+
+
+
+
+
+
+
+
+
+62dab493-f737-651d-591e-8d6aee1b9529
+
+stdint.h
+file
+
+
+
+
+2011-05-09T03:26:37.000000Z
+60cad66d17b9e898744ec33d2689072d
+2011-04-19T23:11:15.377003Z
+23
+dgrogan@chromium.org
+has-props
+
