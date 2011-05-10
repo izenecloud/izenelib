@@ -111,6 +111,13 @@ public:
         }
     }
 
+    void attach()
+    {
+        data_ = const_cast<char*>(str_.data());
+        size_ = str_.size();
+        deleter_ = 0;
+    }
+
     void attach(char* data,
                 size_type size,
                 deleter_type deleter = 0)
@@ -244,6 +251,11 @@ public:
         return data_;
     }
 
+    std::string& strbuffer()
+    {
+        return str_;
+    }
+
     void assign(char value)
     {
         if (data_)
@@ -266,6 +278,8 @@ private:
     char* data_;
     size_type size_;
     deleter_type deleter_;
+
+    std::string str_; ///for the usage of attach std::string
 
     template<typename T>
     friend void write_image(

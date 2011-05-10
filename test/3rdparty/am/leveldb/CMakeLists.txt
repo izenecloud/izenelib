@@ -20,6 +20,7 @@ SET(t_leveldb_SRC
   ADD_EXECUTABLE(t_leveldb ${t_leveldb_SRC})
   TARGET_LINK_LIBRARIES(t_leveldb
    leveldb
+   izene_util
    ${Boost_LIBRARIES}
    ${Glog_LIBRARIES}
    procmeminfo
