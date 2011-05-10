@@ -11,7 +11,7 @@
 #include <pthread.h>
 #include <stdint.h>
 #include <string>
-#include <boost/atomic.hpp>
+#include "atomicops.h"
 
 namespace leveldb {
 namespace port {
@@ -53,6 +53,30 @@ class CondVar {
 // Storage for a lock-free pointer
 class AtomicPointer {
  private:
+  typedef base::subtle::AtomicWord Rep;
+  Rep rep_;
+ public:
+  AtomicPointer() { }
+  explicit AtomicPointer(void* p) : rep_(reinterpret_cast<Rep>(p)) {}
+  inline void* Acquire_Load() const {
+    return reinterpret_cast<void*>(::base::subtle::Acquire_Load(&rep_));
+  }
+  inline void Release_Store(void* v) {
+    ::base::subtle::Release_Store(&rep_, reinterpret_cast<Rep>(v));
+  }
+  inline void* NoBarrier_Load() const {
+    return reinterpret_cast<void*>(::base::subtle::NoBarrier_Load(&rep_));
+  }
+  inline void NoBarrier_Store(void* v) {
+    ::base::subtle::NoBarrier_Store(&rep_, reinterpret_cast<Rep>(v));
+  }
+};
+
+
+/*
+///boost::atomic can not work
+class AtomicPointer {
+ private:
   boost::atomic<void*> rep_;
  public:
   AtomicPointer() { }
@@ -70,6 +94,7 @@ class AtomicPointer {
     rep_.store(v, boost::memory_order_relaxed);
   }
 };
+*/
 
 // TODO(gabor): Implement actual compress
 inline bool Snappy_Compress(const char* input, size_t input_length,
