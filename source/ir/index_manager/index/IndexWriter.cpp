@@ -150,6 +150,16 @@ void IndexWriter::updateDocument(IndexerDocument& doc)
     removeDocument(uniqueID.colId,doc.getId());
 }
 
+void IndexWriter::updateRtypeDocument(const map<std::string, izenelib::util::UString>& propertyName2Value, IndexerDocument& doc)
+{
+    DocId uniqueID;
+    doc.getDocId(uniqueID);
+
+    if(doc.getId() > pBarrelsInfo_->maxDocId())
+        return;
+    pIndexBarrelWriter_->updateDocument(propertyName2Value, doc);
+}
+
 void IndexWriter::optimizeIndex()
 {
     pIndexMergeManager_->optimizeIndex();

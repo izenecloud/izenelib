@@ -57,8 +57,10 @@ public:
     int insertDocument(IndexerDocument& doc);
     ///mark a document as deleted
     int removeDocument(collectionid_t colID, docid_t docId);
-    ///update document
+    ///update not R-type document
     int updateDocument(IndexerDocument& doc);
+    //update R-type document
+    int updateRtypeDocument(const map<std::string, izenelib::util::UString>& propertyName2Value, IndexerDocument& doc);
     /// flush in-memory index to disk
     void flush();
     /// merge all index barrels into a single barrel

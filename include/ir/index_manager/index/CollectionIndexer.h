@@ -20,6 +20,8 @@
 #include <ir/index_manager/utility/system.h>
 #include <ir/index_manager/utility/MemCache.h>
 
+#include <util/ustring/UString.h>
+
 #include <boost/serialization/shared_ptr.hpp>
 
 NS_IZENELIB_IR_BEGIN
@@ -44,6 +46,8 @@ public:
     void setFieldIndexers();
 
     void addDocument(IndexerDocument& doc);
+
+    void updateDocument(const map<std::string, izenelib::util::UString>& propertyName2Value, IndexerDocument& doc);
 
     void write(OutputDescriptor* desc);
 

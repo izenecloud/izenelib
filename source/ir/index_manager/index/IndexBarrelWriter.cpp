@@ -56,6 +56,17 @@ void IndexBarrelWriter::addDocument(IndexerDocument& doc)
     if(dirty_) dirty_ = false;
 }
 
+void IndexBarrelWriter::updateDocument(const map<std::string, izenelib::util::UString>& propertyName2Value, IndexerDocument& doc)
+{
+    DocId uniqueID;
+    doc.getDocId(uniqueID);
+    CollectionIndexer* pCollectionIndexer = collectionIndexerMap_[uniqueID.colId];
+    if (NULL == pCollectionIndexer)
+        SF1V5_THROW(ERROR_OUTOFRANGE,"IndexBarrelWriter::addDocument(): collection id does not belong to the range");
+    pCollectionIndexer->updateDocument(propertyName2Value, doc);
+    if(dirty_) dirty_ = false;
+}
+
 void IndexBarrelWriter::resetCache()
 {
     for (CollectionIndexerMap::iterator p = collectionIndexerMap_.begin( ); p != collectionIndexerMap_.end( ); ++p)

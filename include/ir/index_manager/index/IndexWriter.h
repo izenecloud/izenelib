@@ -42,9 +42,11 @@ public:
     void indexDocument(IndexerDocument& doc);
     /// remove the document
     void removeDocument(collectionid_t colID, docid_t docId);
-    /// update the document object
+    /// update not R-type document object
     void updateDocument(IndexerDocument& doc);
-     /// optimize index
+    /// update R-type document object
+    void updateRtypeDocument(const map<std::string, izenelib::util::UString>& propertyName2Value, IndexerDocument& doc);
+    /// optimize index
     void optimizeIndex();
     /// flush index
     void flush();
