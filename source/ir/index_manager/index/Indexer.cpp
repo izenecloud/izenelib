@@ -266,10 +266,10 @@ int Indexer::updateDocument(IndexerDocument& doc)
     return 1;
 }
 
-int Indexer::updateRtypeDocument(const map<std::string, izenelib::util::UString>& propertyName2Value, IndexerDocument& doc)
+int Indexer::updateRtypeDocument(IndexerDocument& oldDoc, IndexerDocument& doc)
 {
     boost::mutex::scoped_lock lock(indexMutex_);
-    pIndexWriter_->updateRtypeDocument(propertyName2Value, doc);
+    pIndexWriter_->updateRtypeDocument(oldDoc, doc);
     return 1;
 }
 

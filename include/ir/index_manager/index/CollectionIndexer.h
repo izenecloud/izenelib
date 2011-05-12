@@ -47,7 +47,7 @@ public:
 
     void addDocument(IndexerDocument& doc);
 
-    void updateDocument(const map<std::string, izenelib::util::UString>& propertyName2Value, IndexerDocument& doc);
+    void updateDocument(IndexerDocument& oldDoc, IndexerDocument& doc);
 
     void write(OutputDescriptor* desc);
 

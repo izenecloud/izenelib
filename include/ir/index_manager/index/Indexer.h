@@ -60,7 +60,7 @@ public:
     ///update not R-type document
     int updateDocument(IndexerDocument& doc);
     //update R-type document
-    int updateRtypeDocument(const map<std::string, izenelib::util::UString>& propertyName2Value, IndexerDocument& doc);
+    int updateRtypeDocument(IndexerDocument& oldDoc, IndexerDocument& doc);
     /// flush in-memory index to disk
     void flush();
     /// merge all index barrels into a single barrel

@@ -46,10 +46,10 @@ public:
 
     /**
      * update IndexerDocument
-     * @param propertyName2Value the field that is needed to update
-     * @param doc unanalyzed document
+     * @param oldDoc the old document
+     * @param doc the new document
      */
-    void updateDocument(const map<std::string, izenelib::util::UString>& propertyName2Value, IndexerDocument& doc);
+    void updateDocument(IndexerDocument& oldDoc, IndexerDocument& doc);
     /**
      * determine if the memory cache for indexing is full
      * @return true if cache is full otherwise false.

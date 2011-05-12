@@ -35,7 +35,6 @@ public:
     IndexerPropertyConfig(const IndexerPropertyConfig& other)
             :propertyId_(other.propertyId_),
              propertyName_(other.propertyName_),
-             propertyType_(other.propertyType_),
              index_(other.index_),
              analyzed_(other.analyzed_),
              filter_(other.filter_),
@@ -46,7 +45,6 @@ public:
     IndexerPropertyConfig(unsigned int propertyid, std::string propertyname, bool index, bool analyzed, bool filter = false)
 		:propertyId_(propertyid)
 		,propertyName_(propertyname)
-        ,propertyType_("")
 		,index_(index)
 		,analyzed_(analyzed)
 		,filter_(filter)
@@ -73,16 +71,6 @@ public:
     std::string getName() const
     {
         return propertyName_;
-    }
-
-    void setType( std::string propertyType)
-    {
-        propertyType_ = propertyType;
-    }
-
-    std::string getType() const
-    {
-        return propertyType_;
     }
 
     void setIsIndex( const bool isIndex )
@@ -140,7 +128,7 @@ public:
         std::stringstream sStream;
         sStream << "[IndexerPropertyConfig] @id=" << propertyId_
         << " @name=" << propertyName_
-        << " @type=" << propertyType_;
+        << " @type=";
 
 
         sStream << " @index=" << ( index_ ? "yes" : "no" )
@@ -158,7 +146,6 @@ public:
     {
         ar & propertyId_;
         ar & propertyName_;
-        ar & propertyType_;
         ar & index_;
         ar & analyzed_;
     }
@@ -174,9 +161,6 @@ protected:
     uint32_t propertyId_;
 
     std::string propertyName_;
-
-    /// @brief  The data type of this property.
-    std::string propertyType_;
 
     /// if only true, then inverted or BTree index will be built
     bool index_;
