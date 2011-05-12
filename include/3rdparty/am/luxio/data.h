@@ -558,8 +558,10 @@ namespace IO {
 
     virtual data_ptr_t *append(data_ptr_t *data_ptr, data_t *data)
     {
-      assert(data->data != NULL && 
-             data_ptr->id >= 1 && data_ptr->id <= dh_->num_blocks);
+      assert(data->data != NULL);
+      if (data_ptr->id == 0 || data_ptr->id > dh_->num_blocks) {
+        return NULL;
+      }
       data_ptr_t *ptr;
       record_header_t h;
       off_t off = calc_off(data_ptr->id, data_ptr->off);
@@ -610,8 +612,10 @@ namespace IO {
 
     virtual data_ptr_t *update(data_ptr_t *data_ptr, data_t *data)
     {
-      assert(data->data != NULL && 
-             data_ptr->id >= 1 && data_ptr->id <= dh_->num_blocks);
+      assert(data->data != NULL);
+      if (data_ptr->id == 0 || data_ptr->id > dh_->num_blocks) {
+        return NULL;
+      }
       data_ptr_t *ptr;
       record_header_t h;
       off_t off = calc_off(data_ptr->id, data_ptr->off);
@@ -649,7 +653,9 @@ namespace IO {
 
     virtual bool del(data_ptr_t *data_ptr)
     {
-      assert(data_ptr->id >= 1 && data_ptr->id <= dh_->num_blocks);
+      if (data_ptr->id == 0 || data_ptr->id > dh_->num_blocks) {
+        return false;
+      }
       // deleted chunk is put into free pools
       record_header_t h;
       off_t off = calc_off(data_ptr->id, data_ptr->off);
@@ -666,7 +672,9 @@ namespace IO {
 
     virtual data_t *get(data_ptr_t *data_ptr)
     {
-      assert(data_ptr->id >= 1 && data_ptr->id <= dh_->num_blocks);
+      if (data_ptr->id == 0 || data_ptr->id > dh_->num_blocks) {
+        return NULL;
+      }
       record_header_t h;
       off_t off = calc_off(data_ptr->id, data_ptr->off);
       if (!_pread(fd_, &h, sizeof(record_header_t), off)) {
@@ -689,7 +697,9 @@ namespace IO {
 
     virtual bool get(data_ptr_t *data_ptr, data_t **data, alloc_type_t atype)
     {
-      assert(data_ptr->id >= 1 && data_ptr->id <= dh_->num_blocks);
+      if (data_ptr->id == 0 || data_ptr->id > dh_->num_blocks) {
+        return false;
+      }
       record_header_t h;
       off_t off = calc_off(data_ptr->id, data_ptr->off);
       if (!_pread(fd_, &h, sizeof(record_header_t), off)) {
@@ -812,8 +822,10 @@ namespace IO {
 
     virtual data_ptr_t *append(data_ptr_t *data_ptr, data_t *data)
     {
-      assert(data->data != NULL && 
-             data_ptr->id >= 1 && data_ptr->id <= dh_->num_blocks);
+      assert(data->data != NULL);
+      if (data_ptr->id == 0 || data_ptr->id > dh_->num_blocks) {
+        return NULL;
+      }
       record_header_t h;
       off_t off = calc_off(data_ptr->id, data_ptr->off);
       if (!_pread(fd_, &h, sizeof(record_header_t), off)) {
@@ -890,8 +902,10 @@ namespace IO {
 
     virtual data_ptr_t *update(data_ptr_t *data_ptr, data_t *data)
     {
-      assert(data->data != NULL && 
-             data_ptr->id >= 1 && data_ptr->id <= dh_->num_blocks);
+      assert(data->data != NULL);
+      if (data_ptr->id == 0 || data_ptr->id > dh_->num_blocks) {
+        return NULL;
+      }
       data_ptr_t *ptr;
       record_header_t h;
       off_t off = calc_off(data_ptr->id, data_ptr->off);
@@ -935,7 +949,9 @@ namespace IO {
 
     virtual bool del(data_ptr_t *data_ptr)
     {
-      assert(data_ptr->id >= 1 && data_ptr->id <= dh_->num_blocks);
+      if (data_ptr->id == 0 || data_ptr->id > dh_->num_blocks) {
+        return false;
+      }
       record_header_t h;
       off_t g_off = calc_off(data_ptr->id, data_ptr->off);
       if (!_pread(fd_, &h, sizeof(record_header_t), g_off)) {
@@ -971,7 +987,9 @@ namespace IO {
 
     virtual data_t *get(data_ptr_t *data_ptr)
     {
-      assert(data_ptr->id >= 1 && data_ptr->id <= dh_->num_blocks);
+      if (data_ptr->id == 0 || data_ptr->id > dh_->num_blocks) {
+        return NULL;
+      }
       record_header_t h;
       off_t off = calc_off(data_ptr->id, data_ptr->off);
       if (!_pread(fd_, &h, sizeof(record_header_t), off)) {
@@ -1055,7 +1073,9 @@ namespace IO {
 
     virtual bool get(data_ptr_t *data_ptr, data_t **data, alloc_type_t atype)
     {
-      assert(data_ptr->id >= 1 && data_ptr->id <= dh_->num_blocks);
+      if (data_ptr->id == 0 || data_ptr->id > dh_->num_blocks) {
+        return false;
+      }
       record_header_t h;
       off_t off = calc_off(data_ptr->id, data_ptr->off);
       if (!_pread(fd_, &h, sizeof(record_header_t), off)) {
