@@ -152,52 +152,25 @@ void CollectionIndexer::addDocument(IndexerDocument& doc)
         pDocLengthWriter_->add(uniqueID.docId, docLength);
 }
 
-void CollectionIndexer::updateDocument(const map<std::string, izenelib::util::UString>& propertyName2Value, IndexerDocument& doc)
+void CollectionIndexer::updateDocument(IndexerDocument& oldDoc, IndexerDocument& doc)
 {
     DocId uniqueID;
     doc.getDocId(uniqueID);
 
     map<IndexerPropertyConfig, IndexerDocumentPropertyType> propertyValueList;
     doc.getPropertyList(propertyValueList);
-
+    map<IndexerPropertyConfig, IndexerDocumentPropertyType> oldPropertyValueList;
+    oldDoc.getPropertyList(oldPropertyValueList);
     for (map<IndexerPropertyConfig, IndexerDocumentPropertyType>::iterator iter
                 = propertyValueList.begin(); iter != propertyValueList.end(); ++iter)
     {
         if (iter->first.isFilter())
         {
-            string propertyName = iter->first.getName();
-            map<std::string, izenelib::util::UString>::const_iterator it = propertyName2Value.find(propertyName);
-            if (it != propertyName2Value.end())
+            map<IndexerPropertyConfig, IndexerDocumentPropertyType>::iterator it;
+            if( (it = oldPropertyValueList.find(iter->first)) != oldPropertyValueList.end() )
             {
                 PropertyType oldProp;
-                std::string str("");
-                (it->second).convertString(str, izenelib::util::UString::UTF_8);
-                //set property type
-                std::string propertyType = iter->first.getType();
-                if ( propertyType == "INT_PROPERTY_TYPE")
-                {
-                    int64_t value = 0;
-                    value = boost::lexical_cast< int64_t >( str );
-                    oldProp = value;
-                }
-                else if ( propertyType == "UNSIGNED_INT_PROPERTY_TYPE")
-                {
-                    uint64_t value = 0;
-                    value = boost::lexical_cast< uint64_t >( str );
-                    oldProp = value;
-                }
-                else if ( propertyType == "FLOAT_PROPERTY_TYPE" )
-                {
-                    float value = 0.0;
-                    value = boost::lexical_cast< float >( str );
-                    oldProp = value;
-                }
-                else if ( propertyType == "DOUBLE_PROPERTY_TYPE")
-                {
-                    double value = 0.0;
-                    value = boost::lexical_cast< double >( str );
-                    oldProp = value;
-                }
+                oldProp = boost::get<PropertyType>(it->second);
                 pIndexer_->getBTreeIndexer()->remove(uniqueID.colId, iter->first.getPropertyId(), oldProp, uniqueID.docId);
             }
             PropertyType prop;

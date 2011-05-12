@@ -45,7 +45,7 @@ public:
     /// update not R-type document object
     void updateDocument(IndexerDocument& doc);
     /// update R-type document object
-    void updateRtypeDocument(const map<std::string, izenelib::util::UString>& propertyName2Value, IndexerDocument& doc);
+    void updateRtypeDocument(IndexerDocument& oldDoc, IndexerDocument& doc);
     /// optimize index
     void optimizeIndex();
     /// flush index
