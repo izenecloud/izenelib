@@ -5,6 +5,7 @@
 *.so
 *.swp
 *.swo
+.svn
 tags
 dump
 dump.*
