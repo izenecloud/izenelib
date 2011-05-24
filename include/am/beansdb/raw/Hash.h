@@ -41,6 +41,11 @@ public:
         close();
     }
 
+    bool open()
+    {
+        return true;
+    }
+
     void close()
     {
         if (hdb_ && isOpened_)
