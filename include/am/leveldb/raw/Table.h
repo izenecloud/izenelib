@@ -31,7 +31,6 @@ public:
     explicit Table(const std::string& file = "")
     : db_(NULL), isOpened_(false), file_(file)
     {
-        open(file);
     }
 
     ~Table()
@@ -39,9 +38,8 @@ public:
         close();
     }
 
-    bool open(const std::string& file)
+    bool open()
     {
-        file_ = file;
         close(); // close first if opened
 
         ::leveldb::Options options;

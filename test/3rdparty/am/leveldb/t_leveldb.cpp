@@ -66,6 +66,7 @@ BOOST_AUTO_TEST_CASE(index)
     init_data();
 
     izenelib::am::leveldb::Table<int, int> table(HOME_STR);
+    table.open();
     int size = 100;
     int i;
     for (i = 1; i < size; ++i) {
