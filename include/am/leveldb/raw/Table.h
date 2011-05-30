@@ -9,6 +9,8 @@
 
 #include <am/concept/DataType.h>
 #include <am/raw/Buffer.h>
+#include <am/range/IterNextRange.h>
+#include <am/range/GetNextRange.h>
 
 #include <3rdparty/am/leveldb/db.h>
 #include <iostream>
@@ -27,9 +29,11 @@ public:
     typedef Buffer value_type;
     typedef DataType<Buffer, Buffer> data_type;
     typedef int size_type;
+    typedef IterNextRange<Table> exclusive_range_type;
+    typedef IterNextRange<Table> range_type;
 
     explicit Table(const std::string& file = "")
-    : db_(NULL), isOpened_(false), file_(file)
+    : db_(NULL), dbIt_(NULL), isOpened_(false), file_(file)
     {
     }
 
@@ -63,6 +67,11 @@ public:
         if (db_ && isOpened_)
         {
             flush();
+            if(dbIt_) 
+            {
+                delete dbIt_;
+                dbIt_ = NULL;
+            }
             delete db_;
             db_ = NULL;
             isOpened_ = false;
@@ -190,6 +199,90 @@ public:
             ::leveldb::Slice(key.data(),key.size())).ok());
     }
 
+    bool iterInit()
+    {
+	if(checkHandle_(db_) && isOpened())
+	{
+            if(dbIt_) 
+	    {
+	        delete dbIt_;
+               dbIt_ = NULL;
+	    }
+	    ::leveldb::ReadOptions options;
+	    options.fill_cache = false;
+	    dbIt_ = db_->NewIterator(options);
+	    dbIt_->SeekToFirst();
+           return true;		
+	}
+	else return false;
+    }
+
+    bool iterInit(const Buffer& key)
+    {
+	if(checkHandle_(db_) && isOpened())
+	{
+            if(dbIt_) 
+            {
+                delete dbIt_;
+                dbIt_ = NULL;
+            }
+            ::leveldb::ReadOptions options;
+            options.fill_cache = false;
+            dbIt_ = db_->NewIterator(options);
+            dbIt_->Seek(::leveldb::Slice(key.data(),key.size()));
+            return true;	
+	}
+	else return false;
+    }
+
+    bool iterNext(Buffer& key)
+    {
+        if (! (checkHandle_(db_) && isOpened() && dbIt_))
+        {
+            return false;
+        }
+        if(dbIt_->Valid())
+        {
+            key.attach(const_cast<char*>(dbIt_->key().data()),
+                             static_cast<std::size_t>(dbIt_->key().size()));
+            dbIt_->Next();
+            return true;
+        }
+        return false;
+    }
+
+    bool iterNext(Buffer& key, Buffer& value)
+    {
+        if (! (checkHandle_(db_) && isOpened() && dbIt_))
+        {
+            return false;
+        }
+        if(dbIt_->Valid())
+        {
+            key.attach(const_cast<char*>(dbIt_->key().data()),
+                             static_cast<std::size_t>(dbIt_->key().size()));
+            value.attach(const_cast<char*>(dbIt_->value().data()),
+                             static_cast<std::size_t>(dbIt_->value().size()));
+            dbIt_->Next();
+            return true;
+        }
+        return false;
+    }
+
+    bool iterNext(data_type& data)
+    {
+	return iterNext(data.get_key(), data.get_value());
+    }
+
+    void all(range_type& range)
+    {
+        range.attach(*this);
+    }
+
+    void exclusiveAll(exclusive_range_type& range)
+    {
+        range.attach(*this);
+    }
 
 private:
 
@@ -201,6 +294,7 @@ private:
     }
 
     ::leveldb::DB* db_;
+    ::leveldb::Iterator* dbIt_; 
     bool isOpened_;
     std::string file_;
 };

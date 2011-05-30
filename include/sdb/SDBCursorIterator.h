@@ -27,24 +27,36 @@
  *   }
  */
 #include <boost/iterator/iterator_facade.hpp>
-
+#include <boost/utility/enable_if.hpp>
+#include <boost/mpl/bool.hpp>
+#include <iostream>
 namespace izenelib
 {
 
 namespace sdb
 {
 
-template<typename AM>
+template<typename AM, typename AMTraits>
 class SDBCursorIterator;
 
 namespace detail
 {
-template<typename AM>
+template<typename AM, typename AMTraits>
 struct SDBCursorIteratorBase
 {
     typedef std::pair<typename AM::SDBKeyType, typename AM::SDBValueType> data_type;
 
-    typedef boost::iterator_facade<SDBCursorIterator<AM> , data_type,
+    typedef boost::iterator_facade<SDBCursorIterator<AM, AMTraits> , data_type,
+                                   boost::forward_traversal_tag, const data_type&> type;
+};
+
+template<typename AM>
+struct SDBCursorIteratorBase<AM, typename boost::enable_if<boost::mpl::bool_<AM::AMWrapperType> >::type>
+{
+    typedef std::pair<typename AM::key_type, typename AM::value_type> data_type;
+
+    typedef boost::iterator_facade<SDBCursorIterator<AM,  typename boost::enable_if<boost::mpl::bool_<AM::AMWrapperType> >::type > , 
+                                   data_type,
                                    boost::forward_traversal_tag, const data_type&> type;
 };
 
@@ -54,11 +66,11 @@ struct SDBCursorIteratorBase
  * @brief forward iterator wrapper of SDBCursor used in AccessMethod
  * iteration.
  */
-template<typename AM>
-class SDBCursorIterator: public detail::SDBCursorIteratorBase<AM>::type
+template<typename AM, typename AMTraits=void>
+class SDBCursorIterator: public detail::SDBCursorIteratorBase<AM, AMTraits>::type
 {
     friend class boost::iterator_core_access;
-    typedef typename detail::SDBCursorIteratorBase<AM>::type super;
+    typedef typename detail::SDBCursorIteratorBase<AM, AMTraits>::type super;
 
 public:
     /**
@@ -110,6 +122,69 @@ private:
 
     AM* am_;
     typename AM::SDBCursor cur_;
+    typename super::value_type data_;
+};
+
+template<typename AM>
+class SDBCursorIterator<AM, typename boost::enable_if<boost::mpl::bool_<AM::AMWrapperType> >::type>
+    : public detail::SDBCursorIteratorBase<AM,typename boost::enable_if<boost::mpl::bool_<AM::AMWrapperType> >::type>::type
+{
+    friend class boost::iterator_core_access;
+    typedef typename detail::SDBCursorIteratorBase<AM,typename boost::enable_if<boost::mpl::bool_<AM::AMWrapperType> >::type>::type super;
+
+public:
+    /**
+     * @brief constructs a end sentry
+     * @return iterator as end
+     */
+    SDBCursorIterator() :
+            am_(0), data_()
+    {
+    }
+
+    /**
+     * @brief begin iterator
+     * @param am AccessMethod object supporting SDBCursor
+     * @return iterator as begin
+     */
+    explicit SDBCursorIterator(AM& am) 
+    {
+        attach(am);
+    }
+
+private:
+    typename super::reference dereference() const
+    {
+        return data_;
+    }
+
+    void attach(AM& am)
+    {
+        am_ = &am;
+        if (! (am_->iterInit() && am_->iterNext(data_.first)))
+        {
+            am_ = 0;
+        }
+    }
+
+    void increment()
+    {
+        if (am_)
+        {
+            if (! am_->iterNext(data_.first, data_.second))
+            {
+                am_ = 0;
+            }
+        }
+    }
+
+    bool equal(const SDBCursorIterator<AM>& rhs) const
+    {
+        return (this == &rhs) || (am_ == 0 && rhs.am_ == 0)
+               || (am_ == rhs.am_ );
+    }
+
+    AM* am_;
     typename super::value_type data_;
 };
 

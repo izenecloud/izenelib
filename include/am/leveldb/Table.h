@@ -82,6 +82,8 @@ public:
     typedef typename raw::Table::size_type size_type;
 
     typedef raw::Table raw_am_type;
+    typedef IterNextRange<self_type> exclusive_range_type;
+    typedef IterNextRange<self_type> range_type;
 
     explicit Table(const std::string& file = "")
     : hash_(file), comp_()
@@ -94,6 +96,16 @@ public:
     {
         Comp* pHash = static_cast<Comp*>(p);
         return pHash->compare(dataA, sizeA, dataB, sizeB);
+    }
+
+    void all(range_type& range)
+    {
+        range.attach(*this);
+    }
+
+    void exclusiveAll(exclusive_range_type& range)
+    {
+        range.attach(*this);
     }
 
 private:

@@ -1,5 +1,6 @@
 #include <leveldb/db.h>
 #include <am/leveldb/Table.h>
+#include <sdb/SDBCursorIterator.h>
 
 #include <util/Int2String.h>
 
@@ -62,10 +63,17 @@ BOOST_AUTO_TEST_CASE(index)
     std::string valuestr("value");
     leveldb::Slice value(valuestr);
     db->Put(leveldb::WriteOptions(), key, value);
+    leveldb::ReadOptions itOptions;
+    itOptions.fill_cache = false;
+    leveldb::Iterator* dbIt = db->NewIterator(itOptions);
+    dbIt->SeekToFirst();
+    delete dbIt;
+    delete db;
 */
     init_data();
 
-    izenelib::am::leveldb::Table<int, int> table(HOME_STR);
+    typedef izenelib::am::leveldb::Table<int, int> LevelDBType;
+    LevelDBType table(HOME_STR);
     table.open();
     int size = 100;
     int i;
@@ -75,7 +83,6 @@ BOOST_AUTO_TEST_CASE(index)
         table.insert(i,i*100);
     }
     cout<<"insert finished"<<endl;
-
     for (i = 1; i < size; ++i) {
         //Int2String key(i);
         int value;
@@ -84,7 +91,38 @@ BOOST_AUTO_TEST_CASE(index)
 	   //cout<<"i "<<i<<" value "<<value<<" data "<<int_data[i]<<endl;
 	cout<<"i "<<i<<" value "<<value<<endl;			 
     }
+    cout<<"start iterating"<<endl;
+
+
+    LevelDBType::range_type range;
+    
+    for (table.all(range); !range.empty(); range.popFront())
+    {
+        //cout<<"key "<<range.frontKey()<<" value "<<range.frontValue()<<endl;
+    }
+/*
+    table.iterInit();
+	
+
+    int key,value;
+    while(table.iterNext(key,value))
+    {
+        cout<<"i "<<i<<" value "<<value<<endl;
+    }
     table.flush();
+*/
+
+    typedef izenelib::sdb::SDBCursorIterator<LevelDBType> SDBIterator;
+    SDBIterator dbBegin(table);
+    SDBIterator dbEnd;
+     for (SDBIterator tableIt = dbBegin;
+        tableIt != dbEnd; 
+	++tableIt)
+    {
+        cout<<"key "<<tableIt->first<<" value "<<tableIt->second<<endl;;
+    }
+
+    cout<<"end iterating"<<endl;
 
     destroy_data();
 }

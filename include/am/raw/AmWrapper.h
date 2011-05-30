@@ -13,11 +13,15 @@
 
 #include <am/concept/DataType.h>
 
-namespace izenelib {
-namespace am {
-namespace raw {
+namespace izenelib
+{
+namespace am
+{
+namespace raw
+{
 
-namespace detail {
+namespace detail
+{
 struct AmWrapperAccess
 {
     template<typename RawAm, typename Derived>
@@ -36,11 +40,11 @@ struct AmWrapperAccess
 
 
 template<
-    typename Derived,
-    typename RawAm,
-    typename KeyType,
-    typename ValueType,
-    typename SizeType = typename RawAm::size_type
+typename Derived,
+typename RawAm,
+typename KeyType,
+typename ValueType,
+typename SizeType = typename RawAm::size_type
 >
 class AmWrapper
 {
@@ -51,6 +55,8 @@ public:
     typedef ValueType value_type;
     typedef DataType<KeyType, ValueType> data_type;
     typedef SizeType size_type;
+
+    enum{ AMWrapperType = true };
 
     bool open()
     {
@@ -179,22 +185,182 @@ public:
         return rawAm().del(keyBuffer);
     }
 
+
+    bool iterInit()
+    {
+        return rawAm().iterInit();
+    }
+
+    bool iterInit(const KeyType& key)
+    {
+        izenelib::am::raw::Buffer keyBuffer;
+        izenelib::util::izene_serialization<key_type> izsKey(key);
+        write_image(izsKey, keyBuffer);
+
+        return rawAm().iterInit(keyBuffer);
+    }
+
+    bool iterNext(KeyType& key)
+    {
+        izenelib::am::raw::Buffer keyBuffer;
+        izenelib::util::izene_serialization<KeyType> izsKey(key);
+        write_image(izsKey, keyBuffer);
+
+        if (rawAm().iterNext(keyBuffer))
+        {
+            izenelib::util::izene_deserialization<KeyType> izdKey(
+                keyBuffer.data(), keyBuffer.size()
+            );
+            izdKey.read_image(key);
+
+            return true;
+        }
+
+        return false;
+    }
+
+    bool iterNext(KeyType& key, ValueType& value)
+    {
+        izenelib::am::raw::Buffer keyBuffer;
+        izenelib::util::izene_serialization<KeyType> izsKey(key);
+        write_image(izsKey, keyBuffer);
+        izenelib::am::raw::Buffer valueBuffer;
+
+        if (rawAm().iterNext(keyBuffer, valueBuffer))
+        {
+            izenelib::util::izene_deserialization<KeyType> izdKey(
+                keyBuffer.data(), keyBuffer.size()
+            );
+            izdKey.read_image(key);
+
+            izenelib::util::izene_deserialization<ValueType> izdValue(
+                valueBuffer.data(), valueBuffer.size()
+            );
+            izdValue.read_image(value);
+
+            return true;
+        }
+
+        return false;
+    }
+
+    bool iterNext(data_type& data)
+    {
+        return iterNext(data.get_key(), data.get_value());
+    }
+
+    bool getFirst(KeyType& key) const
+    {
+        izenelib::am::raw::Buffer keyBuffer;
+
+        if (rawAm().getFirst(keyBuffer))
+        {
+            izenelib::util::izene_deserialization<KeyType> izdKey(
+                keyBuffer.data(), keyBuffer.size()
+            );
+            izdKey.read_image(key);
+
+            return true;
+        }
+
+        return false;
+    }
+    bool getFirst(KeyType& key, ValueType& value) const
+    {
+        izenelib::am::raw::Buffer keyBuffer;
+        izenelib::am::raw::Buffer valueBuffer;
+
+        if (rawAm().getFirst(keyBuffer, valueBuffer))
+        {
+            izenelib::util::izene_deserialization<KeyType> izdKey(
+                keyBuffer.data(), keyBuffer.size()
+            );
+            izdKey.read_image(key);
+
+            izenelib::util::izene_deserialization<ValueType> izdValue(
+                valueBuffer.data(), valueBuffer.size()
+            );
+            izdValue.read_image(value);
+
+            return true;
+        }
+
+        return false;
+    }
+    bool getFirst(data_type& data) const
+    {
+        return getFirst(data.get_key(), data.get_value());
+    }
+
+    bool getNext(KeyType& key) const
+    {
+        izenelib::am::raw::Buffer keyBuffer;
+        izenelib::util::izene_serialization<KeyType> izsKey(key);
+        write_image(izsKey, keyBuffer);
+
+        if (rawAm().getNext(keyBuffer))
+        {
+            izenelib::util::izene_deserialization<KeyType> izdKey(
+                keyBuffer.data(), keyBuffer.size()
+            );
+            izdKey.read_image(key);
+
+            return true;
+        }
+
+        return false;
+    }
+
+    bool getNext(KeyType& key, ValueType& value) const
+    {
+        izenelib::am::raw::Buffer keyBuffer;
+        izenelib::util::izene_serialization<KeyType> izsKey(key);
+        write_image(izsKey, keyBuffer);
+
+        izenelib::am::raw::Buffer valueBuffer;
+
+        if (rawAm().getNext(keyBuffer, valueBuffer))
+        {
+            izenelib::util::izene_deserialization<KeyType> izdKey(
+                keyBuffer.data(), keyBuffer.size()
+            );
+            izdKey.read_image(key);
+
+            izenelib::util::izene_deserialization<ValueType> izdValue(
+                valueBuffer.data(), valueBuffer.size()
+            );
+            izdValue.read_image(value);
+
+            return true;
+        }
+
+        return false;
+    }
+
+    bool getNext(data_type& data) const
+    {
+        return getNext(data.get_key(), data.get_value());
+    }
+
+
 private:
     const raw_am_type& rawAm() const
     {
         return detail::AmWrapperAccess::rawAm<raw_am_type>(
-            *(static_cast<const Derived*>(this))
-        );
+                   *(static_cast<const Derived*>(this))
+               );
     }
 
     raw_am_type& rawAm()
     {
         return detail::AmWrapperAccess::rawAm<raw_am_type>(
-            *(static_cast<Derived*>(this))
-        );
+                   *(static_cast<Derived*>(this))
+               );
     }
 };
 
-}}} // namespace izenelib::am::raw
+}
+}
+} // namespace izenelib::am::raw
 
 #endif // AM_RAW_AM_WRAPPER_H
