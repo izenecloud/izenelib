@@ -2,8 +2,17 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file. See the AUTHORS file for names of contributors.
 
+#if defined(LEVELDB_PLATFORM_POSIX) || defined(LEVELDB_PLATFORM_ANDROID)
 //#include <unordered_set>
-#include <boost/unordered_set.hpp>
+#include <ext/hash_set>
+
+#elif defined(LEVELDB_PLATFORM_OSX)
+#include <ext/hash_set>
+#elif defined(LEVELDB_PLATFORM_CHROMIUM)
+#include "base/hash_tables.h"
+#else
+#include <ext/hash_set> // TODO(sanjay): Switch to unordered_set when possible.
+#endif
 
 #include <assert.h>
 
@@ -78,8 +87,7 @@ struct LRUHandle {
 //#  elif defined(LEVELDB_PLATFORM_POSIX) || defined(LEVELDB_PLATFORM_ANDROID)
 //    typedef std::unordered_set<LRUHandle*, HandleHash, HandleEq> HandleTable;
 //#  else
-//    typedef __gnu_cxx::hash_set<LRUHandle*, HandleHash, HandleEq> HandleTable;
-        typedef boost::unordered_set<LRUHandle*, HandleHash, HandleEq> HandleTable;
+    typedef __gnu_cxx::hash_set<LRUHandle*, HandleHash, HandleEq> HandleTable;
 //#  endif
 #endif
 
