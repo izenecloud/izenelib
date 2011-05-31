@@ -101,6 +101,12 @@ int main()
         //table.insert(key,int_data[i]);
         table.insert(key,i*100);
     }
+
+    for (i = 1; i < size; ++i) {
+        Int2String key(i);
+        //table.insert(key,int_data[i]);
+        table.update(key,i*200);
+    }
     cout<<"insert finished"<<endl;
     for (i = 1; i < size; ++i) {
        Int2String key(i);
