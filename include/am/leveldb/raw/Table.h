@@ -13,6 +13,8 @@
 #include <am/range/GetNextRange.h>
 
 #include <3rdparty/am/leveldb/db.h>
+#include <3rdparty/am/leveldb/comparator.h>
+
 #include <iostream>
 namespace izenelib {
 namespace am {
@@ -21,6 +23,7 @@ namespace raw {
 
 using izenelib::am::raw::Buffer;
 
+template<typename Comp>
 class Table
     : boost::noncopyable
 {
@@ -33,7 +36,7 @@ public:
     typedef IterNextRange<Table> range_type;
 
     explicit Table(const std::string& file = "")
-    : db_(NULL), dbIt_(NULL), isOpened_(false), file_(file)
+    : db_(NULL), dbIt_(NULL),comp_(), isOpened_(false), file_(file)
     {
     }
 
@@ -48,6 +51,7 @@ public:
 
         ::leveldb::Options options;
         options.create_if_missing = true;
+        options.comparator = &comp_;
 
         ::leveldb::Status status;
 
@@ -295,6 +299,9 @@ private:
 
     ::leveldb::DB* db_;
     ::leveldb::Iterator* dbIt_; 
+
+    Comp comp_;
+
     bool isOpened_;
     std::string file_;
 };

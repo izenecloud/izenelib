@@ -100,6 +100,8 @@ BOOST_AUTO_TEST_CASE(raw_index)
 
 BOOST_AUTO_TEST_CASE(index)
 {
+    bfs::remove_all(HOME_STR);
+
     init_data();
 
     typedef izenelib::am::leveldb::Table<int, int> LevelDBType;

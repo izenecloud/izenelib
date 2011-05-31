@@ -22,8 +22,16 @@ namespace izenelib {
 namespace am {
 namespace leveldb {
 
-struct BTreeLexicalCmp
-{
+class TwoPartComparator : public ::leveldb::Comparator {
+public:
+    // Three-way comparison function:
+    //   if a < b: negative result
+    //   if a > b: positive result
+    //   else: zero result
+    int Compare(const ::leveldb::Slice& a, const ::leveldb::Slice& b) const {
+        return a.compare(b);
+    }
+
     int compare(const char* dataA, int sizeA,
                 const char* dataB, int sizeB) const
     {
@@ -31,45 +39,19 @@ struct BTreeLexicalCmp
         BOOST_ASSERT(false);
         return 0;
     }
-};
-
-template<typename KeyType>
-struct BTreeLessCmp
-{
-    int compare(const char* dataA, int sizeA,
-                const char* dataB, int sizeB) const
-    {
-        KeyType a;
-        izenelib::util::izene_deserialization<KeyType> izdA(
-            dataA, sizeA
-        );
-        izdA.read_image(a);
-
-        KeyType b;
-        izenelib::util::izene_deserialization<KeyType> izdB(
-            dataB, sizeB
-        );
-        izdB.read_image(b);
-
-        if (a < b)
-        {
-            return -1;
-        }
-        else if (b < a)
-        {
-            return 1;
-        }
-
-        return 0;
-    }
+	
+    // Ignore the following methods for now:
+    const char* Name() const { return "TwoPartComparator"; }
+    void FindShortestSeparator(std::string*, const ::leveldb::Slice&) const { }
+    void FindShortSuccessor(std::string*) const { }
 };
 
 template<typename KeyType,
          typename ValueType,
-         typename Comp=BTreeLexicalCmp >
+         typename Comp=TwoPartComparator >
 class Table
     : public izenelib::am::raw::AmWrapper<Table<KeyType, ValueType, Comp>,
-                                          raw::Table,
+                                          raw::Table<Comp>,
                                           KeyType,
                                           ValueType>
 {
@@ -79,9 +61,9 @@ public:
     typedef KeyType key_type;
     typedef ValueType value_type;
     typedef DataType<KeyType, ValueType> data_type;
-    typedef typename raw::Table::size_type size_type;
+    typedef typename raw::Table<Comp>::size_type size_type;
 
-    typedef raw::Table raw_am_type;
+    typedef raw::Table<Comp> raw_am_type;
     typedef IterNextRange<self_type> exclusive_range_type;
     typedef IterNextRange<self_type> range_type;
 
@@ -109,14 +91,14 @@ public:
     }
 
 private:
-    raw::Table hash_;
+    raw::Table<Comp> hash_;
     Comp comp_;
 
-    raw::Table& rawAm()
+    raw::Table<Comp>& rawAm()
     {
         return hash_;
     }
-    const raw::Table& rawAm() const
+    const raw::Table<Comp>& rawAm() const
     {
         return hash_;
     }
