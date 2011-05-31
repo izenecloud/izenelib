@@ -8,6 +8,11 @@
 #include <assert.h>
 #include <sys/time.h>
 
+#include <cstdlib>   // for rand()
+#include <cctype>    // for isalnum()   
+#include <algorithm> // for back_inserter
+
+
 #include <boost/timer.hpp>
 #include <boost/filesystem.hpp>
 #include <boost/filesystem/path.hpp>
@@ -46,30 +51,55 @@ void destroy_data()
 
 const char* HOME_STR = "leveldb";
 
+char rand_alnum()
+{
+    char c;
+    while (!std::isalnum(c = static_cast<char>(std::rand()))) ;
+    return c;
+}
+
+
+std::string rand_alnum_str (std::string::size_type sz)
+{
+    std::string s;
+    s.reserve  (sz);
+    generate_n (std::back_inserter(s), sz, rand_alnum);
+    return s;
+}
+
 BOOST_AUTO_TEST_SUITE( t_leveldb )
 
-BOOST_AUTO_TEST_CASE(index)
+BOOST_AUTO_TEST_CASE(raw_index)
 {
     bfs::remove_all(HOME_STR);
-/*
+
     leveldb::DB* db;
     leveldb::Options options;
     options.create_if_missing = true;
     leveldb::Status status = leveldb::DB::Open(options, "leveldb", &db);
     BOOST_CHECK(status.ok());
 
-    std::string keystr("key");
-    leveldb::Slice key(keystr);
-    std::string valuestr("value");
-    leveldb::Slice value(valuestr);
-    db->Put(leveldb::WriteOptions(), key, value);
+    for (int i = 1; i < 100; ++i) {
+        std::string keystr = rand_alnum_str(4);
+        leveldb::Slice key(keystr);
+        std::string valuestr = rand_alnum_str(10);
+        leveldb::Slice value(valuestr);
+        db->Put(leveldb::WriteOptions(), key, value);
+    }
+    leveldb::Slice property("leveldb.stats");
+    std::string propertyValue;
+    db->GetProperty(property,  &propertyValue);
+    cout<<propertyValue<<endl;
     leveldb::ReadOptions itOptions;
     itOptions.fill_cache = false;
     leveldb::Iterator* dbIt = db->NewIterator(itOptions);
     dbIt->SeekToFirst();
     delete dbIt;
     delete db;
-*/
+}
+
+BOOST_AUTO_TEST_CASE(index)
+{
     init_data();
 
     typedef izenelib::am::leveldb::Table<int, int> LevelDBType;
@@ -100,17 +130,16 @@ BOOST_AUTO_TEST_CASE(index)
     {
         //cout<<"key "<<range.frontKey()<<" value "<<range.frontValue()<<endl;
     }
-/*
+
     table.iterInit();
 	
 
     int key,value;
     while(table.iterNext(key,value))
     {
-        cout<<"i "<<i<<" value "<<value<<endl;
+        //cout<<"i "<<i<<" value "<<value<<endl;
     }
     table.flush();
-*/
 
     typedef izenelib::sdb::SDBCursorIterator<LevelDBType> SDBIterator;
     SDBIterator dbBegin(table);
