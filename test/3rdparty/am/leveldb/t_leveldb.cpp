@@ -77,19 +77,20 @@ BOOST_AUTO_TEST_CASE(index)
     table.open();
     int size = 100;
     int i;
-    for (i = 1; i < size; ++i) {
+    for (i = 1; i <= size; ++i) {
         //Int2String key(i);
         //table.insert(key,int_data[i]);
         table.insert(i,i*100);
     }
     cout<<"insert finished"<<endl;
-    for (i = 1; i < size; ++i) {
+    for (i = 1; i <= size; ++i) {
         //Int2String key(i);
         int value;
         table.get(i, value);
     //if(value != int_data[i])
 	   //cout<<"i "<<i<<" value "<<value<<" data "<<int_data[i]<<endl;
 	cout<<"i "<<i<<" value "<<value<<endl;			 
+        BOOST_CHECK_EQUAL(value, i*100);
     }
     cout<<"start iterating"<<endl;
 
@@ -115,12 +116,16 @@ BOOST_AUTO_TEST_CASE(index)
     typedef izenelib::sdb::SDBCursorIterator<LevelDBType> SDBIterator;
     SDBIterator dbBegin(table);
     SDBIterator dbEnd;
-     for (SDBIterator tableIt = dbBegin;
+    int iterStep = 0;
+    for (SDBIterator tableIt = dbBegin;
         tableIt != dbEnd; 
 	++tableIt)
     {
         cout<<"key "<<tableIt->first<<" value "<<tableIt->second<<endl;;
+        BOOST_CHECK_EQUAL(tableIt->second, tableIt->first*100);
+        ++iterStep;
     }
+    BOOST_CHECK_EQUAL(iterStep, size);
 
     cout<<"end iterating"<<endl;
 
