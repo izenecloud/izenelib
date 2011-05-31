@@ -24,7 +24,9 @@
 #define HAVE_MEMCPY 1
 
 /* Define to 1 if you have the <stdint.h> header file. */
-#define HAVE_STDINT_H 1
+#ifndef HAVE_STDINT_H
+#define HAVE_STDINT_H
+#endif
 
 /* Define to 1 if you have the <sys/types.h> header file. */
 #ifndef HAVE_SYS_TYPES_H
