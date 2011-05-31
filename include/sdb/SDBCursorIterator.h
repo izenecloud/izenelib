@@ -161,7 +161,7 @@ private:
     void attach(AM& am)
     {
         am_ = &am;
-        if (! (am_->iterInit() && am_->iterNext(data_.first)))
+        if (! (am_->iterInit() && am_->iterNext(data_.first, data_.second)))
         {
             am_ = 0;
         }
