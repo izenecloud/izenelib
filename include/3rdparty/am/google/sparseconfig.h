@@ -13,7 +13,9 @@
 #define HASH_NAMESPACE __gnu_cxx
 
 /* Define to 1 if you have the <inttypes.h> header file. */
-#define HAVE_INTTYPES_H 1
+#ifndef HAVE_INTTYPES_H
+#define HAVE_INTTYPES_H
+#endif
 
 /* Define to 1 if the system has the type `long long'. */
 #define HAVE_LONG_LONG 1
@@ -25,7 +27,9 @@
 #define HAVE_STDINT_H 1
 
 /* Define to 1 if you have the <sys/types.h> header file. */
-#define HAVE_SYS_TYPES_H 1
+#ifndef HAVE_SYS_TYPES_H
+#define HAVE_SYS_TYPES_H
+#endif
 
 /* Define to 1 if the system has the type `uint16_t'. */
 #define HAVE_UINT16_T 1
