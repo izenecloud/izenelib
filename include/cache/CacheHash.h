@@ -357,7 +357,7 @@ KeyType, ValueType, FirstHash, SecondHash>::find(const KeyType& key,
  *	\brief Insert an element to the Hybrid hash.
  *
  *	@param data the content want to cache.
- *	@return TRUE if succeeds, otherwise return FALSE when insert failed, eg. when hash is full.
+ *	@return true if succeeds, otherwise return false when insert failed, eg. when hash is full.
  */
 
 template <class KeyType, class ValueType, class FirstHash, class SecondHash> bool CacheExtHash<
@@ -372,7 +372,7 @@ KeyType, ValueType, FirstHash, SecondHash>::insert(const DataType<KeyType,ValueT
 
     const KeyType& key = data.get_key();
     if (find(key) )
-        return TRUE;
+        return true;
 
     if (memHash_.num_items()+1 <= hashSize_ * ratio_)
     {
@@ -388,7 +388,7 @@ KeyType, ValueType, FirstHash, SecondHash>::insert(const DataType<KeyType,ValueT
         }
         else
         {
-            return FALSE;
+            return false;
         }
     }
 
@@ -397,7 +397,7 @@ KeyType, ValueType, FirstHash, SecondHash>::insert(const DataType<KeyType,ValueT
 /**
  *	\brief Delete an element from the Hybrid hash.
  *
- *	@return TRUE if succeeds, otherwise return FALSE when insert failed, eg. when hash is empty.
+ *	@return true if succeeds, otherwise return false when insert failed, eg. when hash is empty.
  */
 template <class KeyType, class ValueType, class FirstHash, class SecondHash> bool CacheExtHash<
 KeyType, ValueType, FirstHash, SecondHash>::del(const KeyType& key)

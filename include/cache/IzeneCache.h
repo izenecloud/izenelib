@@ -211,7 +211,7 @@ private:
 /**
  *  	\brief Get an item from MCache
  *
- *	@return TRUE if found, otherwise return faulse
+ *	@return true if found, otherwise return faulse
  */
 template < class KeyType, class ValueType, class ThreadSafeLock,
 HASH_TYPE hash_type, REPLACEMENT_TYPE policy > bool IzeneCache<
@@ -224,11 +224,11 @@ KeyType, ValueType, ThreadSafeLock, hash_type, policy>::getValue(
     {
         cache_.replace_(key); //Update the corresponding  CacheInfo.
         nHit_++;
-        return TRUE;
+        return true;
     }
     else
     {
-        return FALSE;
+        return false;
     }
 }
 
@@ -279,7 +279,7 @@ ValueType, ThreadSafeLock, hash_type, policy>::getValueNoInsert(
 /**
  *	\brief  insert if not found
  *
- *         @return TRUE if hits, othewise reture False and insert into the new item.
+ *         @return true if hits, othewise reture False and insert into the new item.
  */
 template < class KeyType, class ValueType, class ThreadSafeLock,
 HASH_TYPE hash_type, REPLACEMENT_TYPE policy > bool IzeneCache<KeyType,
@@ -287,11 +287,11 @@ ValueType, ThreadSafeLock, hash_type, policy>::getValueWithInsert(
     const KeyType& key, ValueType& value)
 {
     if (getValue(key, value) )
-        return TRUE;
+        return true;
     else
     {
         insertValue(key, value);
-        return FALSE;
+        return false;
     }
 
 }
