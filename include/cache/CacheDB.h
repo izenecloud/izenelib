@@ -153,7 +153,7 @@ protected:
 /**
  *  	\brief Get an item from CacheDB
  *
- *	@return TRUE if found, otherwise return faulse
+ *	@return true if found, otherwise return faulse
  */
 template <class KeyType, class ValueType, class ReplacementPolicy,
 class MCache, class DataHash, class LockType> bool CacheDB<KeyType,
@@ -164,7 +164,7 @@ ValueType, ReplacementPolicy, MCache, DataHash, LockType>::getValue(
     if (mCache_.getValue(key, value) )
     {
         lock.release_write_lock();
-        return TRUE;
+        return true;
     }
     else
     {
@@ -175,7 +175,7 @@ ValueType, ReplacementPolicy, MCache, DataHash, LockType>::getValue(
             return true;
         }
         lock.release_write_lock();
-        return FALSE;
+        return false;
     }
 
 }
@@ -210,7 +210,7 @@ ValueType, ReplacementPolicy, MCache, DataHash, LockType>::getValueNoInsert(
 /**
  *	 \brief insert if not found
  *
- *         @return TRUE if hits, othewise reture False and insert into the new item.
+ *         @return true if hits, othewise reture False and insert into the new item.
  */
 template <class KeyType, class ValueType, class ReplacementPolicy,
 class MCache, class DataHash, class LockType> bool CacheDB<KeyType,
@@ -219,11 +219,11 @@ ValueType, ReplacementPolicy, MCache, DataHash, LockType>::getValueWithInsert(
 {
 
     if (getValue(key, value) )
-        return TRUE;
+        return true;
     else
     {
         insertValue(key, value);
-        return FALSE;
+        return false;
     }
 
 }

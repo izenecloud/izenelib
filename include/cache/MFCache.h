@@ -309,7 +309,7 @@ private:
 /**
  *  	\brief Get an item from MFCache
  *
- *	@return TRUE if found, otherwise return faulse
+ *	@return true if found, otherwise return faulse
  */
 template <class KeyType, class ValueType, class ReplacementPolicy,
 class FirstHash, class SecondHash, class LockType> bool MFCache<
@@ -329,7 +329,7 @@ LockType>::getValue(const KeyType& key, ValueType& value)
             cout<<"Error, unconsistence between CacheInfo and CacheHash"<<endl;
 
             lock.release_write_lock();
-            return FALSE;
+            return false;
             //exit(1);
         }
         if (result == FOUND_IN_FILE)
@@ -342,19 +342,19 @@ LockType>::getValue(const KeyType& key, ValueType& value)
         cacheContainer_.replace(key); //Update the corresponding  CacheInfo.
         nHit_++;
         lock.release_write_lock();
-        return TRUE;
+        return true;
     } //else if (isArchive_ && hash_.find(key) )
     else if ( hash_.find(key) )
     {
         cacheContainer_.firstInsert(key); //Update the corresponding  CacheInfo.
         nHit_++;
         lock.release_write_lock();
-        return TRUE;
+        return true;
     }
     else
     {
         lock.release_write_lock();
-        return FALSE;
+        return false;
     }
 }
 
@@ -419,7 +419,7 @@ LockType>::getValueNoInsert(const KeyType& key, ValueType& value)
 /**
  *	 \brief insert if not found
  *
- *         @return TRUE if hits, othewise reture False and insert into the new item.
+ *         @return true if hits, othewise reture False and insert into the new item.
  */
 template <class KeyType, class ValueType, class ReplacementPolicy,
 class FirstHash, class SecondHash, class LockType> bool MFCache<
@@ -428,11 +428,11 @@ LockType>::getValueWithInsert(const KeyType& key, ValueType& value)
 {
 
     if (getValue(key, value) )
-        return TRUE;
+        return true;
     else
     {
         insertValue(key, value);
-        return FALSE;
+        return false;
     }
 
 }

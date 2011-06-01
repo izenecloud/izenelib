@@ -243,7 +243,7 @@ private:
 /**
  *  	\brief Get an item from MCache
  *
- *	@return TRUE if found, otherwise return faulse
+ *	@return true if found, otherwise return faulse
  */
 template <class KeyType, class ValueType, class Hash, class ThreadSafeLock> bool MLRUCache<
 KeyType, ValueType, Hash, ThreadSafeLock>::getValue(const KeyType& key,
@@ -259,12 +259,12 @@ KeyType, ValueType, Hash, ThreadSafeLock>::getValue(const KeyType& key,
         replace_(key); //Update the corresponding  CacheInfo.
         nHit_++;
         lock.release_write_lock();
-        return TRUE;
+        return true;
     }
     else
     {
         lock.release_write_lock();
-        return FALSE;
+        return false;
     }
 }
 
@@ -314,18 +314,18 @@ KeyType, ValueType, Hash, ThreadSafeLock>::getValueNoInsert(
 /**
  *	\brief  insert if not found
  *
- *         @return TRUE if hits, othewise reture False and insert into the new item.
+ *         @return true if hits, othewise reture False and insert into the new item.
  */
 template <class KeyType, class ValueType, class Hash, class ThreadSafeLock> bool MLRUCache<
 KeyType, ValueType, Hash, ThreadSafeLock>::getValueWithInsert(
     const KeyType& key, ValueType& value)
 {
     if (getValue(key, value) )
-        return TRUE;
+        return true;
     else
     {
         insertValue(key, value);
-        return FALSE;
+        return false;
     }
 
 }

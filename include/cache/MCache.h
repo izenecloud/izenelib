@@ -253,7 +253,7 @@ private:
 /**
  *  	\brief Get an item from MCache
  *
- *	@return TRUE if found, otherwise return faulse
+ *	@return true if found, otherwise return faulse
  */
 template <class KeyType, class ValueType, class ReplacementPolicy, class Hash,
 class LockType> bool MCache<KeyType, ValueType, ReplacementPolicy,
@@ -269,19 +269,19 @@ Hash, LockType>::getValue(const KeyType& key, ValueType& value)
         cacheContainer_.replace(key); //Update the corresponding  CacheInfo.
         nHit_++;
         lock.release_write_lock();
-        return TRUE;
+        return true;
     }
     else if (isArchive_ && hash_.find(key) )
     {
         cacheContainer_.firstInsert(key); //Update the corresponding  CacheInfo.
         nHit_++;
         lock.release_write_lock();
-        return TRUE;
+        return true;
     }
     else
     {
         lock.release_write_lock();
-        return FALSE;
+        return false;
     }
 }
 
@@ -339,7 +339,7 @@ Hash, LockType>::getValueNoInsert(const KeyType& key, ValueType& value)
 /**
  *	\brief  insert if not found
  *
- *         @return TRUE if hits, othewise reture False and insert into the new item.
+ *         @return true if hits, othewise reture False and insert into the new item.
  */
 template <class KeyType, class ValueType, class ReplacementPolicy, class Hash,
 class LockType> bool MCache<KeyType, ValueType, ReplacementPolicy,
@@ -347,11 +347,11 @@ Hash, LockType>::getValueWithInsert(const KeyType& key, ValueType& value)
 {
 
     if (getValue(key, value) )
-        return TRUE;
+        return true;
     else
     {
         insertValue(key, value);
-        return FALSE;
+        return false;
     }
 
 }
