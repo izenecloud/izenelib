@@ -1,7 +1,7 @@
 /**
  *
  * @file cm_basics.h
- * @brief It provides besical definition of DATA TYPE used in namespace sf1lib. 
+ * @brief It provides besical definition of DATA TYPE used in namespace sf1lib.
  *
  * This file defines basical Data Type and HashFun for Hash_Map.
  */
@@ -48,26 +48,30 @@ using namespace std;
  *	\brief namespace for Search Formula 1(product SF-1) library.
  */
 
-namespace izenelib{
-namespace cache{
+namespace izenelib
+{
+namespace cache
+{
 
 typedef enum {NOT_FOUND=0, FOUND_IN_MEM, FOUND_IN_FILE} FOUND_RESULT;
 typedef enum {BOTH_FULL=0, FILE_FULL, MEM_FULL, BOTH_NOT_FULL} HASH_STATUS;
 typedef enum {DUMP_FAILED=-1, NO_DUMP,DUMP_M2F,DUMP_F2M} DUMP_RESULT;
 typedef enum {NONE=0, ONLY_DUMP, DUMP_EVICT, ONLY_EVICT, DUMP_LATER}
-		DUMP_OPTION;
+DUMP_OPTION;
 
 /*
  *	Hash function object for hash_map. For different KeyType,
- *	should have different hash function object. It is used in Class CacheDB, MCache, and MFCache.  	
- *	
+ *	should have different hash function object. It is used in Class CacheDB, MCache, and MFCache.
+ *
  */
 
-template<class T> struct HashFun {
-	size_t operator()(const T& key) const {	
-		return izenelib::util::izene_hashing(key);
-		//return izenelib::util::HashFunction<T>::convert_key(key) % HashFunction<T>::PRIME;
-	}
+template<class T> struct HashFun
+{
+    size_t operator()(const T& key) const
+    {
+        return izenelib::util::izene_hashing(key);
+        //return izenelib::util::HashFunction<T>::convert_key(key) % HashFunction<T>::PRIME;
+    }
 };
 
 }
