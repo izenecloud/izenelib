@@ -435,7 +435,7 @@ docid_t MemPostingReader::decodeTo(docid_t target, uint32_t* pPosting, int32_t l
         pDS_->decodedPosCount = 0;
     }
 
-    if(! pDS_->decodingDChunk || pDS_->decodingPChunk)
+    if(! pDS_->decodingDChunk || ! pDS_->decodingPChunk)
     {
         SF1V5_THROW(ERROR_FILEIO,"Index dirty.");
     }
