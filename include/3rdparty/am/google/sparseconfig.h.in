@@ -17,8 +17,10 @@
 
 #ifdef HAVE_EXT_HASH_FUN_H
 #define HASH_FUN_H <ext/hash_fun.h>
-#elif HAVE_BACKWARD_HASH_FUN_H
+#else
+#ifdef HAVE_BACKWARD_HASH_FUN_H
 #define HASH_FUN_H <backward/hash_fun.h>
+#endif
 #endif
 /* the namespace of the hash<> function */
 #define HASH_NAMESPACE __gnu_cxx
