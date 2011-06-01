@@ -221,6 +221,10 @@ IF(VERBOSE)
 
 ENDIF(VERBOSE)
 
+CONFIGURE_FILE( "${CMAKE_SOURCE_DIR}/include/3rdparty/am/google/sparseconfig.h.in"
+  "${CMAKE_SOURCE_DIR}/include/3rdparty/am/google/sparseconfig.h"
+  ESCAPE_QUOTES @ONLY)
+
 ##################################################
 # CPack
 #####
