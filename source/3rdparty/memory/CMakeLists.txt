@@ -1,5 +1,3 @@
 ADD_SUBDIRECTORY(streamflow)
 ADD_SUBDIRECTORY(nvwa)
 ADD_SUBDIRECTORY(jemalloc_linux)
-#ADD_SUBDIRECTORY(bsdmalloc)
-#ADD_SUBDIRECTORY(nedmalloc)
