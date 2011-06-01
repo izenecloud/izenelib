@@ -58,7 +58,6 @@ void testTlsScopedAlloc()
 
 void simpleExamples()
 {
-	boost::enableMemoryLeakCheck();
 	testAutoAlloc();
 	testScopedAlloc();
 	testTlsScopedAlloc();

@@ -7,7 +7,6 @@ FIND_PACKAGE(Boost ${Boost_FIND_VERSION}
   unit_test_framework
   program_options
   )
-LIST(FIND REAL_BUILD_COMPONENTS "boost_memory" _boostmemory)
 LIST(FIND REAL_BUILD_COMPONENTS "index_manager" _indexmanager)
 
 IF(Boost_FOUND)
@@ -27,7 +26,6 @@ ADD_EXECUTABLE(t_indexer ${t_indexer_SRC})
 
 TARGET_LINK_LIBRARIES(t_indexer
   index_manager
-  boost_memory
   izene_util
   ${Glog_LIBRARIES}
   ${Boost_LIBRARIES}
@@ -43,7 +41,6 @@ ADD_EXECUTABLE(t_mockindexer ${t_mock_indexer_SRC})
 TARGET_LINK_LIBRARIES(t_mockindexer
   mock_index_manager
   index_manager
-  boost_memory
   izene_util
   ${Glog_LIBRARIES}
   ${Boost_LIBRARIES}
@@ -59,7 +56,6 @@ ADD_EXECUTABLE(t_indexer_util ${t_indexer_util_SRC})
 
 TARGET_LINK_LIBRARIES(t_indexer_util
   index_manager
-  boost_memory
   izene_util
   ${Glog_LIBRARIES}
   ${Boost_LIBRARIES}
@@ -74,7 +70,6 @@ ADD_EXECUTABLE(t_indexsort ${t_indexsort_SRC})
 
 TARGET_LINK_LIBRARIES(t_indexsort
   index_manager
-  boost_memory
   izene_util
   ${Glog_LIBRARIES}
   ${Boost_LIBRARIES}
@@ -90,7 +85,6 @@ ADD_EXECUTABLE(t_IndexMergePolicy ${t_IndexMergePolicy_SRC})
 
 TARGET_LINK_LIBRARIES(t_IndexMergePolicy
   index_manager
-  boost_memory
   izene_util
   ${Glog_LIBRARIES}
   ${Boost_LIBRARIES}
@@ -107,7 +101,6 @@ ADD_EXECUTABLE(t_integration_Indexer ${t_integration_Indexer_SRC})
 
 TARGET_LINK_LIBRARIES(t_integration_Indexer
   index_manager
-  boost_memory
   izene_util
   ${Glog_LIBRARIES}
   ${Boost_LIBRARIES}

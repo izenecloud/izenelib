@@ -26,10 +26,6 @@
 #include <malloc.h>	// _alloca
 #endif
 
-#ifndef BOOST_DETAIL_DEBUG_HPP
-#include <boost/detail/debug.hpp>
-#endif
-
 #ifndef __APPLE__
 #pragma pack() // default pack
 #endif
@@ -38,45 +34,16 @@
 #endif
 // warning: identifier was truncated to '255' characters in the debug information
 
-// =========================================================================
-
-#ifndef BOOST_MEMORY_CALL
-#define BOOST_MEMORY_CALL
-#endif
-
 // -------------------------------------------------------------------------
 
 #ifndef NS_BOOST_MEMORY_BEGIN
 #define NS_BOOST_MEMORY_BEGIN	namespace boost { namespace memory {
-#define NS_BOOST_MEMORY_END		} }
-#define NS_BOOST_MEMORY			boost::memory
+#define NS_BOOST_MEMORY_END } }
+#define NS_BOOST_MEMORY boost::memory
 #endif
 
-// -------------------------------------------------------------------------
-
-#ifndef BOOST_MEMORY_ASSERT
-#define BOOST_MEMORY_ASSERT(e)	BOOST_DETAIL_ASSERT(e)
-#endif
-
-// -------------------------------------------------------------------------
-
-#if defined(BOOST_NO_PARTIAL_SPECIAILIZATION)
-	#define BOOST_MEMORY_NO_PARTIAL_SPECIAILIZATION
-#elif defined(_MSC_VER)
-	#if (_MSC_VER <= 1200)
-	#define BOOST_MEMORY_NO_PARTIAL_SPECIAILIZATION
-	#endif
-#endif
-
-// -------------------------------------------------------------------------
-
-#if !defined(_MSC_VER)
-#ifndef __forceinline
-#define __forceinline inline
-#endif
 #ifndef __stdcall
 #define __stdcall
-#endif
 #endif
 
 // =========================================================================
@@ -91,7 +58,7 @@
 #endif
 
 #ifndef BOOST_MEMORY_BLOCK_SIZE
-#define BOOST_MEMORY_BLOCK_SIZE		(BOOST_MEMORY_BLOCK_TOTAL - BOOST_MEMORY_ALLOC_PADDING)
+#define BOOST_MEMORY_BLOCK_SIZE (BOOST_MEMORY_BLOCK_TOTAL - BOOST_MEMORY_ALLOC_PADDING)
 #endif
 
 // =========================================================================
@@ -99,164 +66,87 @@
 
 NS_BOOST_MEMORY_BEGIN
 
-typedef void BOOST_MEMORY_CALL BOOST_FnDestructor(void* data);
+typedef void BOOST_FnDestructor(void* data);
 typedef BOOST_FnDestructor* destructor_t;
 
 template <class Type>
 struct constructor_traits
 {
-	static Type* BOOST_MEMORY_CALL construct(void* data)
-	{
-		return new(data) Type;
-	}
+    static Type* construct(void* data)
+    {
+        return new(data) Type;
+    }
 
-	static Type* BOOST_MEMORY_CALL constructArray(Type* array, size_t count)
-	{
-		for (size_t i = 0; i < count; ++i)
-			new(array + i) Type;
-		return array;
-	}
+    static Type* constructArray(Type* array, size_t count)
+    {
+        for (size_t i = 0; i < count; ++i)
+            new(array + i) Type;
+        return array;
+    }
 };
 
 template <class Type>
 struct destructor_traits
 {
-	enum { HasDestructor = 1 };
+    enum { HasDestructor = 1 };
 
-	typedef destructor_t destructor_type;
+    typedef destructor_t destructor_type;
 
-	struct array_destructor_header
-	{
-		size_t count;
-	};
-	
-	static void BOOST_MEMORY_CALL destruct(void* data)
-	{
-		((Type*)data)->~Type();
-	}
+    struct array_destructor_header
+    {
+        size_t count;
+    };
 
-	static void BOOST_MEMORY_CALL destructArrayN(Type* array, size_t count)
-	{
-		for (size_t i = 0; i < count; ++i)
-			array[i].~Type();
-	}
+    static void destruct(void* data)
+    {
+        ((Type*)data)->~Type();
+    }
 
-	static void BOOST_MEMORY_CALL destructArray(void* data)
-	{
-		array_destructor_header* hdr = (array_destructor_header*)data;
-		destructArrayN((Type*)(hdr + 1), hdr->count);
-	}
+    static void destructArrayN(Type* array, size_t count)
+    {
+        for (size_t i = 0; i < count; ++i)
+            array[i].~Type();
+    }
 
-	static size_t BOOST_MEMORY_CALL getArrayAllocSize(size_t count)
-	{
-		return sizeof(array_destructor_header) + sizeof(Type)*count;
-	}
+    static void destructArray(void* data)
+    {
+        array_destructor_header* hdr = (array_destructor_header*)data;
+        destructArrayN((Type*)(hdr + 1), hdr->count);
+    }
 
-	template <class AllocT>
-	static void* BOOST_MEMORY_CALL allocArray(AllocT& alloc, size_t count)
-	{
-		array_destructor_header* hdr =
-			(array_destructor_header*)alloc.allocate(
-				sizeof(array_destructor_header)+sizeof(Type)*count, destructArray);
-		hdr->count = count;
-		return hdr + 1;
-	}
+    static size_t getArrayAllocSize(size_t count)
+    {
+        return sizeof(array_destructor_header) + sizeof(Type)*count;
+    }
 
-    static char* BOOST_MEMORY_CALL getArrayBuffer(void* array)
-	{
-		return (char*)array - sizeof(array_destructor_header);
-	}
+    template <class AllocT>
+    static void* allocArray(AllocT& alloc, size_t count)
+    {
+        array_destructor_header* hdr =
+            (array_destructor_header*)alloc.allocate(
+                sizeof(array_destructor_header)+sizeof(Type)*count, destructArray);
+        hdr->count = count;
+        return hdr + 1;
+    }
 
-    static size_t BOOST_MEMORY_CALL getArraySize(void* array)
-	{
-		return ((array_destructor_header*)array - 1)->count;
-	}
+    static char* getArrayBuffer(void* array)
+    {
+        return (char*)array - sizeof(array_destructor_header);
+    }
+
+    static size_t getArraySize(void* array)
+    {
+        return ((array_destructor_header*)array - 1)->count;
+    }
 };
 
 template <class Type>
-inline void BOOST_MEMORY_CALL destroyArray(Type* array, size_t count)
+inline void destroyArray(Type* array, size_t count)
 {
-	destructor_traits<Type>::destructArrayN(array, count);
+    destructor_traits<Type>::destructArrayN(array, count);
 }
 
 NS_BOOST_MEMORY_END
-
-// =========================================================================
-// BOOST_MEMORY_NO_DESTRUCTOR
-
-#define BOOST_MEMORY_NO_DESTRUCTOR(Type)									\
-NS_BOOST_MEMORY_BEGIN														\
-template <>																	\
-struct destructor_traits< Type >											\
-{																			\
-	enum { HasDestructor = 0 };												\
-																			\
-	typedef int destructor_type;											\
-																			\
-	enum { destruct = 0 };													\
-	enum { destructArray = 0 };												\
-																			\
-	static void BOOST_MEMORY_CALL destructArrayN(Type* array, size_t count) {} \
-																			\
-	static size_t BOOST_MEMORY_CALL getArrayAllocSize(size_t count) {		\
-		return sizeof(Type)*count;											\
-	}																		\
-																			\
-	template <class AllocT>													\
-	static void* BOOST_MEMORY_CALL allocArray(AllocT& alloc, size_t count) {\
-		return alloc.allocate(sizeof(Type)*count);							\
-	}																		\
-																			\
-	static char* BOOST_MEMORY_CALL getArrayBuffer(void* array) {			\
-		return (char*)array;												\
-	}																		\
-																			\
-	static size_t BOOST_MEMORY_CALL getArraySize(void* array) {				\
-		BOOST_MEMORY_ASSERT( !"Don't call me!!!" );							\
-		return 0;															\
-	}																		\
-};																			\
-NS_BOOST_MEMORY_END
-
-// -------------------------------------------------------------------------
-// BOOST_MEMORY_NO_CONSTRUCTOR
-
-#define BOOST_MEMORY_NO_CONSTRUCTOR(Type)									\
-NS_BOOST_MEMORY_BEGIN														\
-template <>																	\
-struct constructor_traits< Type >											\
-{																			\
-	static Type* BOOST_MEMORY_CALL construct(void* data) {					\
-		return (Type*)data;													\
-	}																		\
-	static Type* BOOST_MEMORY_CALL constructArray(Type* array, size_t count) { \
-		return array;														\
-	}																		\
-};																			\
-NS_BOOST_MEMORY_END
-
-// -------------------------------------------------------------------------
-// C Standard Types Support
-
-#define BOOST_MEMORY_DECL_CTYPE(Type)										\
-	BOOST_MEMORY_NO_CONSTRUCTOR(Type);										\
-	BOOST_MEMORY_NO_DESTRUCTOR(Type)
-
-BOOST_MEMORY_DECL_CTYPE(bool);
-BOOST_MEMORY_DECL_CTYPE(float);
-BOOST_MEMORY_DECL_CTYPE(double);
-
-BOOST_MEMORY_DECL_CTYPE(int);
-BOOST_MEMORY_DECL_CTYPE(unsigned int);
-
-BOOST_MEMORY_DECL_CTYPE(char);
-BOOST_MEMORY_DECL_CTYPE(unsigned char);
-
-BOOST_MEMORY_DECL_CTYPE(short);
-BOOST_MEMORY_DECL_CTYPE(unsigned short);
-
-BOOST_MEMORY_DECL_CTYPE(long);
-BOOST_MEMORY_DECL_CTYPE(unsigned long);
 
 // =========================================================================
 // NEW, NEW_ARRAY, ALLOC, ALLOC_ARRAY
@@ -266,40 +156,40 @@ NS_BOOST_MEMORY_BEGIN
 class _unmanaged
 {
 public:
-	template <class Type>
-	__forceinline Type* BOOST_MEMORY_CALL operator->*(Type* p) const
-	{
-		return p;
-	}
+    template <class Type>
+    inline Type* operator->*(Type* p) const
+    {
+        return p;
+    }
 };
 
 template <class AllocT>
 class _managed
 {
 private:
-	AllocT& m_alloc;
+    AllocT& m_alloc;
 
 public:
-	explicit _managed(AllocT& alloc) : m_alloc(alloc) {}
+    explicit _managed(AllocT& alloc) : m_alloc(alloc) {}
 
-	template <class Type>
-	__forceinline Type* BOOST_MEMORY_CALL operator->*(Type* p) const
-	{
-		return (Type*)m_alloc.manage(p, destructor_traits<Type>::destruct);
-	}
+    template <class Type>
+    inline Type* operator->*(Type* p) const
+    {
+        return (Type*)m_alloc.manage(p, destructor_traits<Type>::destruct);
+    }
 };
 
 template <class AllocT>
-__forceinline _unmanaged BOOST_MEMORY_CALL _get_managed(AllocT& alloc, int fnZero)
+inline _unmanaged _get_managed(AllocT& alloc, int fnZero)
 {
-	return _unmanaged();
+    return _unmanaged();
 }
 
 template <class AllocT>
-__forceinline 
-_managed<AllocT> BOOST_MEMORY_CALL _get_managed(AllocT& alloc, destructor_t fn)
+inline
+_managed<AllocT> _get_managed(AllocT& alloc, destructor_t fn)
 {
-	return _managed<AllocT>(alloc);
+    return _managed<AllocT>(alloc);
 }
 
 NS_BOOST_MEMORY_END
@@ -341,22 +231,6 @@ NS_BOOST_MEMORY_END
 	BOOST_MEMORY_GET_MANAGED_(alloc, Type) ->* BOOST_MEMORY_UNMANAGED_NEW_(alloc, Type)
 
 #endif
-
-// =========================================================================
-
-NS_BOOST_MEMORY_BEGIN
-
-inline void BOOST_MEMORY_CALL enableMemoryLeakCheck()
-{
-#if defined(_MSC_VER)
-	_CrtSetDbgFlag(_CrtSetDbgFlag(_CRTDBG_REPORT_FLAG) | _CRTDBG_LEAK_CHECK_DF);
-#endif
-}
-
-NS_BOOST_MEMORY_END
-
-// =========================================================================
-// $Log: basic.hpp,v $
 
 #endif /* BOOST_MEMORY_BASIC_HPP */
 
