@@ -10,8 +10,8 @@
 #include <stdint.h>
 
 #include <boost/memory_order.hpp>
-#include "base.hpp"
-#include "builder.hpp"
+#include <boost/atomic/detail/base.hpp>
+#include <boost/atomic/detail/builder.hpp>
 
 /* fallback implementation for various compilation targets;
 this is *not* efficient, particularly because all operations

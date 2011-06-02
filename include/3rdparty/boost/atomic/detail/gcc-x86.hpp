@@ -7,8 +7,8 @@
 //  See accompanying file LICENSE_1_0.txt or copy at
 //  http://www.boost.org/LICENSE_1_0.txt)
 
-#include "base.hpp"
-#include "builder.hpp"
+#include <boost/atomic/detail/base.hpp>
+#include <boost/atomic/detail/builder.hpp>
 
 namespace boost {
 namespace detail {
@@ -127,7 +127,7 @@ public:
 		__asm__ __volatile__("lock; xaddb %0, %1" : "+q" (c), "+m" (i) :: "memory");
 		return c;
 	}
-	
+
 	bool is_lock_free(void) const volatile {return true;}
 protected:
 	typedef T integral_type;
@@ -196,7 +196,7 @@ public:
 		__asm__ __volatile__("lock; xaddw %0, %1" : "+r" (c), "+m" (i) :: "memory");
 		return c;
 	}
-	
+
 	bool is_lock_free(void) const volatile {return true;}
 protected:
 	typedef T integral_type;
@@ -265,7 +265,7 @@ public:
 		__asm__ __volatile__("lock; xaddl %0, %1" : "+r" (c), "+m" (i) :: "memory");
 		return c;
 	}
-	
+
 	bool is_lock_free(void) const volatile {return true;}
 protected:
 	typedef T integral_type;
@@ -335,7 +335,7 @@ public:
 		__asm__ __volatile__("lock; xaddq %0, %1" : "+r" (c), "+m" (i) :: "memory");
 		return c;
 	}
-	
+
 	bool is_lock_free(void) const volatile {return true;}
 protected:
 	typedef T integral_type;
@@ -352,7 +352,7 @@ private:
 public:
 	explicit atomic_x86_64(T v) : i(v) {}
 	atomic_x86_64() {}
-	
+
 	bool compare_exchange_strong(
 		T &expected,
 		T desired,
@@ -404,7 +404,7 @@ public:
 		do {} while(!compare_exchange_strong(prev, r, order, memory_order_relaxed));
 		return prev;
 	}
-	
+
 	T load(memory_order order=memory_order_seq_cst) const volatile
 	{
 		/* this is a bit problematic -- there is no other
@@ -427,7 +427,7 @@ public:
 		} while(!compare_exchange_strong(expected, desired, order, memory_order_relaxed));
 		return expected;
 	}
-	
+
 	bool is_lock_free(void) const volatile {return true;}
 protected:
 	typedef T integral_type;
@@ -445,6 +445,78 @@ public:
 	explicit platform_atomic_integral(T v) : super(v) {}
 	platform_atomic_integral(void) {}
 };
+#endif
+
+#if defined(__amd64__) && defined(__GCC_HAVE_SYNC_COMPARE_AND_SWAP_16)
+template<typename T>
+class atomic_x86_128 {
+public:
+    explicit atomic_x86_128(T v) : i(v) {}
+    atomic_x86_128() {}
+    T load(memory_order order=memory_order_seq_cst) const volatile
+    {
+        T v=*reinterpret_cast<volatile const T *>(&i);
+        fence_after_load(order);
+        return v;
+    }
+    void store(T v, memory_order order=memory_order_seq_cst) volatile
+    {
+        if (order!=memory_order_seq_cst) {
+            fence_before(order);
+            *reinterpret_cast<volatile T *>(&i)=v;
+        } else {
+            exchange(v);
+        }
+    }
+    bool compare_exchange_strong(
+        T &expected,
+        T desired,
+        memory_order success_order,
+        memory_order failure_order) volatile
+    {
+        T prev = __sync_val_compare_and_swap_16(&i, expected, desired);
+        bool success=(prev==expected);
+        if (success) fence_after(success_order);
+        else fence_after(failure_order);
+        expected=prev;
+        return success;
+    }
+    bool compare_exchange_weak(
+        T &expected,
+        T desired,
+        memory_order success_order,
+        memory_order failure_order) volatile
+    {
+        return compare_exchange_strong(expected, desired, success_order, failure_order);
+    }
+    T exchange(T r, memory_order order=memory_order_seq_cst) volatile
+    {
+        while (!__sync_bool_compare_and_swap_16(&i, i, r))
+        {};
+
+        return r;
+    }
+    T fetch_add(T c, memory_order order=memory_order_seq_cst) volatile
+    {
+        __sync_fetch_and_add(&i, c);
+        return c;
+    }
+
+    bool is_lock_free(void) const volatile {return true;}
+protected:
+    typedef T integral_type;
+private:
+    T i;
+} __attribute__((aligned(16)));
+
+template<typename T>
+class platform_atomic_integral<T, 16> : public build_atomic_from_add<atomic_x86_128<T> >{
+public:
+    typedef build_atomic_from_add<atomic_x86_128<T> > super;
+    explicit platform_atomic_integral(T v) : super(v) {}
+    platform_atomic_integral(void) {}
+};
+
 #endif
 
 }

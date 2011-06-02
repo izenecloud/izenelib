@@ -9,8 +9,8 @@
 
 #include <boost/detail/interlocked.hpp>
 
-#include "base.hpp"
-#include "builder.hpp"
+#include <boost/atomic/detail/base.hpp>
+#include <boost/atomic/detail/builder.hpp>
 
 namespace boost {
 namespace detail {

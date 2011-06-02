@@ -8,7 +8,7 @@
 //  http://www.boost.org/LICENSE_1_0.txt)
 
 #include <boost/detail/endian.hpp>
-#include "valid_integral_types.hpp"
+#include <boost/atomic/detail/valid_integral_types.hpp>
 
 namespace boost {
 namespace detail {
