@@ -15,6 +15,7 @@
 #include "basic.hpp"
 
 #include "auto_alloc.hpp"
+#include <util/singleton.h>
 
 #include <boost/assert.hpp>
 
@@ -30,7 +31,7 @@ class block_alloc
 {
 private:
     typedef typename PolicyT::allocator_type AllocT;
-    enum { m_cbBlock = PolicyT::MemBlockSize };
+    enum { CbBlock = PolicyT::MemBlockSize };
 
 #pragma pack(1)
     struct Block
@@ -39,16 +40,18 @@ private:
     };
 #pragma pack()
 
-    Block* m_freeList;
+    Block* freeList_;
 
-    int m_nFree;
-    const int m_nFreeLimit;
-
+    int nFree_;
+    const int nFreeLimit_;
+private:
+    block_alloc(const block_alloc& other);
+    block_alloc& operator=(const block_alloc& other);
 public:
 
     block_alloc(int cbFreeLimit = INT_MAX)
-            : m_freeList(NULL), m_nFree(0),
-            m_nFreeLimit(cbFreeLimit / m_cbBlock + 1)
+            : freeList_(NULL), nFree_(0),
+            nFreeLimit_(cbFreeLimit / CbBlock + 1)
     {
     }
     ~block_alloc()
@@ -59,36 +62,36 @@ public:
 public:
     void* allocate(size_t cb)
     {
-        BOOST_ASSERT(cb >= (size_t)m_cbBlock);
+        BOOST_ASSERT(cb >= (size_t)CbBlock);
 
-        if (cb > (size_t)m_cbBlock)
+        if (cb > (size_t)CbBlock)
             return AllocT::allocate(cb);
         else
         {
-            if (m_freeList)
+            if (freeList_)
             {
-                BOOST_ASSERT(AllocT::alloc_size(m_freeList) >= cb);
-                Block* blk = m_freeList;
-                m_freeList = blk->next;
-                --m_nFree;
+                BOOST_ASSERT(AllocT::alloc_size(freeList_) >= cb);
+                Block* blk = freeList_;
+                freeList_ = blk->next;
+                --nFree_;
                 return blk;
             }
-            return AllocT::allocate(m_cbBlock);
+            return AllocT::allocate(CbBlock);
         }
     }
 
     void deallocate(void* p)
     {
-        if (m_nFree >= m_nFreeLimit)
+        if (nFree_ >= nFreeLimit_)
         {
             AllocT::deallocate(p);
         }
         else
         {
             Block* blk = (Block*)p;
-            blk->next = m_freeList;
-            m_freeList = blk;
-            ++m_nFree;
+            blk->next = freeList_;
+            freeList_ = blk;
+            ++nFree_;
         }
     }
 
@@ -99,24 +102,51 @@ public:
 
     void clear()
     {
-        while (m_freeList)
+        while (freeList_)
         {
-            Block* blk = m_freeList;
-            m_freeList = blk->next;
+            Block* blk = freeList_;
+            freeList_ = blk->next;
             AllocT::deallocate(blk);
         }
-        m_nFree = 0;
+        nFree_ = 0;
     }
+
 };
 
+#pragma pack(1)
+
+template <class AllocT>
+class proxy_alloc
+{
+private:
+  AllocT* alloc_;
+public:
+  proxy_alloc() : alloc_(::izenelib::util::Singleton<AllocT>::get()) {}
+  proxy_alloc(AllocT& alloc) : alloc_(&alloc){}
+public:
+  typedef size_t size_type;
+                                        
+public:
+  inline void* allocate(size_type cb)    { return alloc_->allocate(cb); }
+  inline void deallocate(void* p) { alloc_->deallocate(p); }
+  inline void swap(proxy_alloc& o) { std::swap(alloc_, o.alloc_); }
+  inline size_type alloc_size(void* p) const { return alloc_->alloc_size(p); }
+  inline AllocT& instance() const { return *alloc_; }
+  inline AllocT* operator&() const { return alloc_; }
+  inline operator AllocT&() const { return *alloc_; }
+};
+
+#pragma pack()
+
 typedef block_alloc<NS_BOOST_MEMORY_POLICY::sys> block_pool;
+typedef proxy_alloc<block_pool> proxy_block_pool;
 
 NS_BOOST_MEMORY_POLICY_BEGIN
 
 class pool : public sys
 {
 public:
-    typedef block_pool allocator_type;
+    typedef proxy_block_pool allocator_type;
 };
 
 NS_BOOST_MEMORY_POLICY_END

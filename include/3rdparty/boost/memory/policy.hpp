@@ -35,33 +35,33 @@ private:
     };
 #pragma pack()
 
-    MemBlock* m_memChain;
-    DestroyNode* m_destroyChain;
+    MemBlock* memChain_;
+    DestroyNode* destroyChain_;
 
 public:
     simple_gc_alloc()
-        : m_memChain(NULL), m_destroyChain(NULL)
+        : memChain_(NULL), destroyChain_(NULL)
     {
     }
 
     void swap(simple_gc_alloc& o)
     {
-        std::swap(m_memChain, o.m_memChain);
-        std::swap(m_destroyChain, o.m_destroyChain);
+        std::swap(memChain_, o.memChain_);
+        std::swap(destroyChain_, o.destroyChain_);
     }
 
     void clear()
     {
-        while (m_destroyChain)
+        while (destroyChain_)
         {
-            DestroyNode* curr = m_destroyChain;
-            m_destroyChain = m_destroyChain->pPrev;
+            DestroyNode* curr = destroyChain_;
+            destroyChain_ = destroyChain_->pPrev;
             curr->fnDestroy(curr + 1);
         }
-        while (m_memChain)
+        while (memChain_)
         {
-            MemBlock* curr = m_memChain;
-            m_memChain = m_memChain->pPrev;
+            MemBlock* curr = memChain_;
+            memChain_ = memChain_->pPrev;
             SysAllocT::deallocate(curr);
         }
     }
@@ -88,8 +88,8 @@ public:
     void* allocate(size_t cb)
     {
         MemBlock* p = (MemBlock*)SysAllocT::allocate(cb + sizeof(MemBlock));
-        p->pPrev = m_memChain;
-        m_memChain = p;
+        p->pPrev = memChain_;
+        memChain_ = p;
         return p + 1;
     }
 
@@ -97,8 +97,8 @@ public:
     {
         DestroyNode* pNode = (DestroyNode*)allocate(cb + sizeof(DestroyNode));
         pNode->fnDestroy = fn;
-        pNode->pPrev = m_destroyChain;
-        m_destroyChain = pNode;
+        pNode->pPrev = destroyChain_;
+        destroyChain_ = pNode;
         return pNode + 1;
     }
 

@@ -54,38 +54,38 @@ private:
     };
 #pragma pack()
 
-    char* m_begin;
-    char* m_end;
-    AllocT m_alloc;
-    DestroyNode* m_destroyChain;
+    char* begin_;
+    char* end_;
+    AllocT alloc_;
+    DestroyNode* destroyChain_;
 
 private:
     const region_alloc& operator=(const region_alloc&);
 
     MemBlock* _chainHeader() const
     {
-        return (MemBlock*)(m_begin - HeaderSize);
+        return (MemBlock*)(begin_ - HeaderSize);
     }
 
     void _init()
     {
-        MemBlock* pNew = (MemBlock*)m_alloc.allocate(sizeof(MemBlock));
+        MemBlock* pNew = (MemBlock*)alloc_.allocate(sizeof(MemBlock));
         pNew->pPrev = NULL;
-        m_begin = pNew->buffer;
-        m_end = (char*)pNew + m_alloc.alloc_size(pNew);
+        begin_ = pNew->buffer;
+        end_ = (char*)pNew + alloc_.alloc_size(pNew);
     }
 
 public:
-    region_alloc() : m_destroyChain(NULL)
+    region_alloc() : destroyChain_(NULL)
     {
         _init();
     }
-    explicit region_alloc(AllocT alloc) : m_alloc(alloc), m_destroyChain(NULL)
+    explicit region_alloc(AllocT alloc) : alloc_(alloc), destroyChain_(NULL)
     {
         _init();
     }
     explicit region_alloc(region_alloc& owner)
-            : m_alloc(owner.m_alloc), m_destroyChain(NULL)
+            : alloc_(owner.alloc_), destroyChain_(NULL)
     {
         _init();
     }
@@ -97,18 +97,18 @@ public:
 
     void swap(region_alloc& o)
     {
-        std::swap(m_begin, o.m_begin);
-        std::swap(m_end, o.m_end);
-        std::swap(m_destroyChain, o.m_destroyChain);
-        m_alloc.swap(o.m_alloc);
+        std::swap(begin_, o.begin_);
+        std::swap(end_, o.end_);
+        std::swap(destroyChain_, o.destroyChain_);
+        alloc_.swap(o.alloc_);
     }
 
     void clear()
     {
-        while (m_destroyChain)
+        while (destroyChain_)
         {
-            DestroyNode* curr = m_destroyChain;
-            m_destroyChain = m_destroyChain->pPrev;
+            DestroyNode* curr = destroyChain_;
+            destroyChain_ = destroyChain_->pPrev;
             curr->fnDestroy(curr + 1);
         }
         MemBlock* pHeader = _chainHeader();
@@ -116,9 +116,9 @@ public:
         {
             MemBlock* curr = pHeader;
             pHeader = pHeader->pPrev;
-            m_alloc.deallocate(curr);
+            alloc_.deallocate(curr);
         }
-        m_begin = m_end = (char*)HeaderSize;
+        begin_ = end_ = (char*)HeaderSize;
     }
 
 private:
@@ -127,7 +127,7 @@ private:
         if (cb >= BlockSize)
         {
             MemBlock* pHeader = _chainHeader();
-            MemBlock* pNew = (MemBlock*)m_alloc.allocate(HeaderSize + cb);
+            MemBlock* pNew = (MemBlock*)alloc_.allocate(HeaderSize + cb);
             if (pHeader)
             {
                 pNew->pPrev = pHeader->pPrev;
@@ -135,27 +135,27 @@ private:
             }
             else
             {
-                m_end = m_begin = pNew->buffer;
+                end_ = begin_ = pNew->buffer;
                 pNew->pPrev = NULL;
             }
             return pNew->buffer;
         }
         else
         {
-            MemBlock* pNew = (MemBlock*)m_alloc.allocate(sizeof(MemBlock));
+            MemBlock* pNew = (MemBlock*)alloc_.allocate(sizeof(MemBlock));
             pNew->pPrev = _chainHeader();
-            m_begin = pNew->buffer;
-            m_end = (char*)pNew + m_alloc.alloc_size(pNew);
-            return m_end -= cb;
+            begin_ = pNew->buffer;
+            end_ = (char*)pNew + alloc_.alloc_size(pNew);
+            return end_ -= cb;
         }
     }
 
 public:
     inline void* allocate(size_t cb)
     {
-        if ((size_t)(m_end - m_begin) >= cb)
+        if ((size_t)(end_ - begin_) >= cb)
         {
-            return m_end -= cb;
+            return end_ -= cb;
         }
         return _do_allocate(cb);
     }
@@ -169,8 +169,8 @@ public:
     {
         DestroyNode* pNode = (DestroyNode*)allocate(sizeof(DestroyNode) + cb);
         pNode->fnDestroy = fn;
-        pNode->pPrev = m_destroyChain;
-        m_destroyChain = pNode;
+        pNode->pPrev = destroyChain_;
+        destroyChain_ = pNode;
         return pNode + 1;
     }
 
@@ -186,8 +186,8 @@ public:
         DestroyNode* pNode = (DestroyNode*)p - 1;
         BOOST_ASSERT(pNode->fnDestroy == fn);
 
-        pNode->pPrev = m_destroyChain;
-        m_destroyChain = pNode;
+        pNode->pPrev = destroyChain_;
+        destroyChain_ = pNode;
         return p;
     }
 
