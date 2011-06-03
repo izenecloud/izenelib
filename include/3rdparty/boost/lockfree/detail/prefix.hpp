@@ -1,4 +1,4 @@
-//  Copyright (C) 2009 Tim Blechmann
+//  Copyright (C) 2007, 2008, 2009 Tim Blechmann & Thomas Grill
 //
 //  Distributed under the Boost Software License, Version 1.0. (See
 //  accompanying file LICENSE_1_0.txt or copy at
@@ -9,17 +9,27 @@
 #ifndef BOOST_LOCKFREE_PREFIX_HPP_INCLUDED
 #define BOOST_LOCKFREE_PREFIX_HPP_INCLUDED
 
-/* this file defines the following macros:
-   BOOST_LOCKFREE_CACHELINE_BYTES: size of a cache line
-   BOOST_LOCKFREE_PTR_COMPRESSION: use tag/pointer compression to utilize parts
-                                   of the virtual address space as tag (at least 16bit)
-   BOOST_LOCKFREE_DCAS_ALIGNMENT:  symbol used for aligning structs at cache line
-                                   boundaries
-*/
+#include <cassert>
+
+
+#ifdef _WIN32
+    #include <windows.h>
+#endif
+
+#ifdef __APPLE__
+    #include <libkern/OSAtomic.h>
+
+//    #include <bits/atomicity.h>
+#endif
 
 #define BOOST_LOCKFREE_CACHELINE_BYTES 64
 
 #ifdef _MSC_VER
+// \note: Must use /Oi option for VC++ to enable intrinsics
+    extern "C" {
+        void __cdecl _ReadWriteBarrier();
+        LONG __cdecl _InterlockedCompareExchange(LONG volatile* Dest,LONG Exchange, LONG Comp);
+    }
 
 #define BOOST_LOCKFREE_CACHELINE_ALIGNMENT __declspec(align(BOOST_LOCKFREE_CACHELINE_BYTES))
 
@@ -34,17 +44,32 @@
 
 #ifdef __GNUC__
 
-#define BOOST_LOCKFREE_CACHELINE_ALIGNMENT __attribute__((aligned(BOOST_LOCKFREE_CACHELINE_BYTES)))
+//#define BOOST_LOCKFREE_CACHELINE_ALIGNMENT __attribute__((aligned(BOOST_LOCKFREE_CACHELINE_ALIGNMENT)))
+#define BOOST_LOCKFREE_CACHELINE_ALIGNMENT __attribute__((aligned(64)))
 
-#if defined(__i386__) || defined(__ppc__)
+#ifdef __i386__
+    #define BOOST_LOCKFREE_DCAS_ALIGNMENT
+#elif defined(__ppc__)
     #define BOOST_LOCKFREE_DCAS_ALIGNMENT
 #elif defined(__x86_64__)
-    #define BOOST_LOCKFREE_PTR_COMPRESSION 1
+
+    #if !(defined (__GCC_HAVE_SYNC_COMPARE_AND_SWAP_16))
+        #define BOOST_LOCKFREE_PTR_COMPRESSION 1
+    #endif
     #define BOOST_LOCKFREE_DCAS_ALIGNMENT __attribute__((aligned(16)))
-#elif defined(__alpha__)
-    // LATER: alpha may benefit from pointer compression. but what is the maximum size of the address space?
-    #define BOOST_LOCKFREE_DCAS_ALIGNMENT
 #endif
+
 #endif /* __GNUC__ */
+
+
+#ifdef USE_ATOMIC_OPS
+    #define AO_REQUIRE_CAS
+    #define AO_USE_PENTIUM4_INSTRS
+
+    extern "C" {
+        #include "../libatomic_ops/src/atomic_ops.h"
+    }
+#endif
+
 
 #endif /* BOOST_LOCKFREE_PREFIX_HPP_INCLUDED */

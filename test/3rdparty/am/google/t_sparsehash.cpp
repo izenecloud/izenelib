@@ -124,7 +124,29 @@ BOOST_AUTO_TEST_CASE(index)
     }
 
     }
+#if 0
+    izenelib::util::MemPool memPool(1024*1024);
+    izenelib::util::BlockAlloc blockAlloc(memPool);
+    izenelib::util::RegionAlloc regionAlloc(blockAlloc);
 
+    typedef izenelib::util::MemPoolAllocator<pair<const int, int> > SparseAlloc;
+
+    SparseAlloc alloc(regionAlloc);
+
+    typedef sparse_hash_map<int,int,SPARSEHASH_HASH<int>,STL_NAMESPACE::equal_to<int>,SparseAlloc > SparseHashType;
+
+    SparseHashType hashmap(0, SparseHashType::hasher(), SparseHashType::key_equal(), alloc);
+    for (int i = 0; i < size; ++i) 
+    {
+        hashmap[i] = int_data[i];
+    }
+
+    for (int i = 0; i < size; ++i) 
+    {
+        BOOST_CHECK_EQUAL(hashmap[i] , int_data[i]);
+    }
+
+#endif
     destroy_data();
 
 }

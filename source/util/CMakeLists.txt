@@ -85,7 +85,8 @@ IF(izene_util_SHOULD_BUILD)
     DynamicLibrary.cpp
     modp_numtoa.cpp
     timestamp.cpp
-    
+    MemPool.cpp
+
     driver/Keys.cpp
     driver/Request.cpp
     driver/Response.cpp

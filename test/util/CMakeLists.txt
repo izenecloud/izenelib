@@ -62,6 +62,17 @@ TARGET_LINK_LIBRARIES(t_ustring
   ${Glog_LIBRARIES}
   )
 
+ADD_EXECUTABLE(t_mempool
+  Runner.cpp
+  t_mempool.cpp
+  )
+
+TARGET_LINK_LIBRARIES(t_mempool
+  izene_util
+  ${Boost_LIBRARIES}
+  ${Glog_LIBRARIES}
+  )
+
 ADD_EXECUTABLE(t_compressor 
   Runner.cpp 
   t_compressor.cpp
