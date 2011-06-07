@@ -95,4 +95,26 @@ TARGET_LINK_LIBRARIES(t_hashtable
     ${Boost_SYSTEM_LIBRARY}
     ${Glog_LIBRARIES}
   )
+
+ADD_EXECUTABLE(t_matrix
+  Runner.cpp
+  matrix/t_matrix_db.cpp
+  )
+
+TARGET_LINK_LIBRARIES(t_matrix
+    am
+   ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY}
+   ${Boost_SYSTEM_LIBRARY}
+   ${Boost_FILESYSTEM_LIBRARY}
+   ${Boost_THREAD_LIBRARY}    
+   ${Boost_IOSTREAMS_LIBRARY}    
+   ${TokyoCabinet_LIBRARIES}
+   ${Boost_LIBRARIES}
+   ${Glog_LIBRARIES}
+   febird
+   procmeminfo
+   izene_log
+   leveldb
+   izene_util
+  )
   
