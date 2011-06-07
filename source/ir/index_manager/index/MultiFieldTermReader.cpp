@@ -112,7 +112,7 @@ freq_t MultiFieldTermReader::docFreq(Term* term)
 {
     if(TermReader* pTermReader = termReader(term->getField()))
         return pTermReader->docFreq(term);
-    return NULL;
+    return 0;
 }
 
 TermInfo* MultiFieldTermReader::termInfo(Term* term)
