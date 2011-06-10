@@ -17,6 +17,7 @@
 #include <boost/unordered_map.hpp>
 
 #include <set>
+#include <map>
 #include <list>
 #include <iostream>
 
@@ -32,61 +33,32 @@ class policy_lfu
     entry_type _entries;
     backentry_type _backEntries;
 public:
-    policy_lfu() {}
-
     void insert(const KeyType& _k)
     {
-        keyset_type pad=_entries[1];
+        keyset_type& pad=_entries[1];
         pad.insert(_k);
-        if (!_backEntries.insert(std::pair<KeyType,unsigned long long>(_k,1)).second)
-        {
-            return;
-        }
-        _entries.erase(1);
-        _entries.insert(std::pair<unsigned long long, keyset_type>(1,pad));
+        _backEntries.insert(std::pair<KeyType,unsigned long long>(_k,1));
     }
 
     void remove(const KeyType& _k)
     {
-        keyset_type pad = _entries[_backEntries[_k]];
-
+        keyset_type& pad = _entries[_backEntries[_k]];
         pad.erase(_k);
-        _entries.erase(_backEntries[_k]);
-        if (pad.size()>0)
-        {
-            _entries.insert(std::pair<unsigned long long, keyset_type>(_backEntries[_k],pad));
-        }
-
         _backEntries.erase(_k);
     }
 
     void touch(const KeyType& _k)
     {
-        unsigned long long ref = _backEntries[_k];
+        unsigned long long& ref = _backEntries[_k];
 
-        keyset_type pad = _entries[ref];
-        pad.erase(_k);
-        _entries.erase(ref);
-        if (!pad.empty())
+        if(ref > 0)
         {
-            _entries.insert(std::pair<unsigned long long, keyset_type>(ref,pad));
+            keyset_type& pad = _entries[ref];
+            pad.erase(_k);
         }
-
         ref++;
-        if (_entries.find(ref)!=_entries.end())
-        {
-            pad = _entries[ref];
-        }
-        else
-        {
-            pad = keyset_type();
-        }
-        pad.insert(_k);
-        _entries.erase(ref);
-        _entries.insert(std::pair<unsigned long long, keyset_type>(ref,pad));
-
-        _backEntries.erase(_k);
-        _backEntries[_k]=ref;
+        keyset_type& new_pad =  _entries[ref];
+        new_pad.insert(_k);
     }
 
     void clear()
@@ -113,17 +85,54 @@ public:
 
     bool evict(KeyType& k)
     {
-        if (_entries.begin()==_entries.end())
+        for(typename entry_type::iterator iter = _entries.begin(); iter != _entries.end(); ++iter)
         {
-            return false;
+            if(! iter->second.empty())
+            {
+                k = *(iter->second.begin());
+                remove(k);
+                return true;				
+            }
         }
-        keyset_type pad=(*(_entries.begin())).second; //Begin returns entry with lowest id, just what we need:)
+        return false;
+    }
+};
 
-        if (pad.begin()==pad.end())
-        {
-            return false;
-        }
-        k = *(pad.begin());
+template <class KeyType> 
+class policy_lru 
+{
+    std::list<KeyType> _entries;
+public:
+    void insert(const KeyType& _k) 
+    {
+        _entries.push_front(_k);
+    }
+
+    void remove(const KeyType& _k)
+    {
+       _entries.remove(_k);
+    }
+
+    void touch(const KeyType& _k)
+    { 
+        _entries.remove(_k);
+        _entries.push_front(_k);
+    }
+    void clear()
+    {
+        _entries.clear();
+    }
+
+    size_t size()
+    {
+        return _entries.size() * sizeof(KeyType);
+    }
+
+    bool evict(KeyType& k)
+    {
+        if(_entries.empty()) return false;
+        k = _entries.back();
+        _entries.remove(k);
         return true;
     }
 };
@@ -174,7 +183,6 @@ public:
             _currEntries = (_currEntries <= row_size)?0:(_currEntries - row_size);
             _db_storage.update(x, *row_data);
             _cache_storage.erase(x);
-            _policy.remove(x);
             _set_row_dirty_flag(x,false);
             return true;
         }
@@ -261,7 +269,6 @@ public:
 
     boost::shared_ptr<RowType > row(KeyType x)
     {
-        _touch(x);
         boost::shared_ptr<RowType > row_data;
         typename CacheStorageType::iterator cit = _cache_storage.find(x);		
         if(cit == _cache_storage.end())
@@ -277,6 +284,7 @@ public:
         else
             row_data = cit->second;
 
+        _touch(x);
         return row_data;
     }
 
@@ -317,13 +325,15 @@ public:
 private:
     void _touch(const KeyType& x)
     {
+        _policy.touch(x);
         while (this->_currEntries >= this->_maxEntries)
         {
             KeyType evict;
-            _policy.evict(evict);
-            if(!erase(evict)) break;
+            if(_policy.evict(evict))
+                erase(evict);
+            else
+                break;
         }
-        _policy.insert(x);
     }
 
     void _set_row_dirty_flag(const KeyType& x, bool flag)
