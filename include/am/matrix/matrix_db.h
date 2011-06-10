@@ -269,6 +269,8 @@ public:
 
     boost::shared_ptr<RowType > row(KeyType x)
     {
+        _evict();
+
         boost::shared_ptr<RowType > row_data;
         typename CacheStorageType::iterator cit = _cache_storage.find(x);		
         if(cit == _cache_storage.end())
@@ -284,7 +286,8 @@ public:
         else
             row_data = cit->second;
 
-        _touch(x);
+        _policy.touch(x);
+
         return row_data;
     }
 
@@ -323,9 +326,8 @@ public:
     }
 
 private:
-    void _touch(const KeyType& x)
+    void _evict()
     {
-        _policy.touch(x);
         while (this->_currEntries >= this->_maxEntries)
         {
             KeyType evict;
