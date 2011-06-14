@@ -153,6 +153,20 @@ TermInfo* MultiTermReader::termInfo(Term* term)
     return NULL;
 }
 
+void MultiTermReader::setSkipInterval(int skipInterval)
+{
+    std::vector<BarrelTermReaderEntry>::iterator iter = termReaders_.begin();
+    for(;iter != termReaders_.end(); ++iter)
+        iter->second->setSkipInterval(skipInterval);
+}
+
+void MultiTermReader::setMaxSkipLevel(int maxSkipLevel)
+{
+    std::vector<BarrelTermReaderEntry>::iterator iter = termReaders_.begin();
+    for(;iter != termReaders_.end(); ++iter)
+        iter->second->setMaxSkipLevel(maxSkipLevel);
+}
+
 void MultiTermReader::close()
 {
     if(isOwnTermReaders_)

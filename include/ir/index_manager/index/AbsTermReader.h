@@ -77,11 +77,11 @@ public:
 
     int getSkipInterval() { return skipInterval_; }
 
-    void setSkipInterval(int skipInterval) { skipInterval_ = skipInterval; }
+    virtual void setSkipInterval(int skipInterval) { skipInterval_ = skipInterval; }
 
     int getMaxSkipLevel() { return maxSkipLevel_; }
 
-    void setMaxSkipLevel(int maxSkipLevel) { maxSkipLevel_ = maxSkipLevel; }
+    virtual void setMaxSkipLevel(int maxSkipLevel) { maxSkipLevel_ = maxSkipLevel; }
 
     void setBarrelInfo(BarrelInfo* pBarrelInfo) { pBarrelInfo_ = pBarrelInfo; }
 protected:

@@ -49,6 +49,20 @@ MultiFieldTermReader::~MultiFieldTermReader()
     close();
 }
 
+void MultiFieldTermReader::setSkipInterval(int skipInterval)
+{
+    reader_map::iterator iter = fieldsTermReaders_.begin();
+    for(;iter != fieldsTermReaders_.end(); ++iter)
+        iter->second->setSkipInterval(skipInterval);
+}
+
+void MultiFieldTermReader::setMaxSkipLevel(int maxSkipLevel)
+{
+    reader_map::iterator iter = fieldsTermReaders_.begin();
+    for(;iter != fieldsTermReaders_.end(); ++iter)
+        iter->second->setMaxSkipLevel(maxSkipLevel);
+}
+
 void MultiFieldTermReader::setDocFilter(BitVector* pFilter) 
 {
     for(map<string,TermReader*>::iterator iter = fieldsTermReaders_.begin();

@@ -101,6 +101,11 @@ public:
      * @param pTermReader term reader
      */
     void addTermReader(const char* field,TermReader* pTermReader);
+
+    void setSkipInterval(int skipInterval);
+
+    void setMaxSkipLevel(int maxSkipLevel);
+
 protected:
     /**
      * get term information of a term

@@ -86,6 +86,10 @@ public:
      */
     TermReader* clone() ;
 
+    void setSkipInterval(int skipInterval);
+
+    void setMaxSkipLevel(int maxSkipLevel);
+
 private:
     collectionid_t colID_;
 
