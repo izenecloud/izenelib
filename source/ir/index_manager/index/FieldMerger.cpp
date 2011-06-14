@@ -263,9 +263,6 @@ void FieldMerger::sortingMerge(FieldMergeInfo** ppMergeInfos,int32_t numInfos,Te
                                                 ppMergeInfos[i]->pIterator_->termPosting(),
                                                 *(ppMergeInfos[i]->pIterator_->termInfo()),false);
 
-        pPosition->setSkipInterval(skipInterval_);
-        pPosition->setMaxSkipLevel(maxSkipLevel_);
-
         if(ppMergeInfos[i]->pBarrelInfo_->isUpdate)
             postingIterator.addTermPosition(pPosition);
         else

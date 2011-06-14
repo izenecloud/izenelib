@@ -45,10 +45,6 @@ public:
 
     virtual void close();
 
-    void setSkipInterval(int skipInterval) { skipInterval_ = skipInterval; }
-
-    void setMaxSkipLevel(int maxSkipLevel) { maxSkipLevel_ = maxSkipLevel; }
-
 protected:
 
     virtual bool decode();
@@ -77,10 +73,6 @@ protected:
     int32_t nCurrentPosting_;	///position of current posting
 
     bool ownPosting_;
-
-    int skipInterval_;
-
-    int maxSkipLevel_;
 };
 
 }
