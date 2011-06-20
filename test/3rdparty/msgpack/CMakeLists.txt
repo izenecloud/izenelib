@@ -17,6 +17,14 @@ INCLUDE_DIRECTORIES(
     #${IZENELIB_SOURCE_DIR}/include/3rdparty/msgpack/mp
     ${IZENELIB_SOURCE_DIR}/include/3rdparty/msgpack/mpsrc
     )
+    
+SET(libs
+   msgpack
+   izene_util
+   ${Boost_LIBRARIES}
+   ${Glog_LIBRARIES}
+   procmeminfo
+)
 
 SET(t_msgpack_SRC
   t_msgpack.cc
@@ -24,10 +32,11 @@ SET(t_msgpack_SRC
 
   ADD_EXECUTABLE(t_msgpack ${t_msgpack_SRC})
   TARGET_LINK_LIBRARIES(t_msgpack
-   msgpack
-   izene_util
-   ${Boost_LIBRARIES}
-   ${Glog_LIBRARIES}
-   procmeminfo
+   ${libs}
     )
 
+ADD_EXECUTABLE(t_msgpack_server t_msgpack_server.cc)
+TARGET_LINK_LIBRARIES(t_msgpack_server ${libs})
+
+ADD_EXECUTABLE(t_msgpack_client t_msgpack_client.cc)
+TARGET_LINK_LIBRARIES(t_msgpack_client ${libs})

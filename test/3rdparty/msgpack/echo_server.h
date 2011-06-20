@@ -83,7 +83,10 @@ public:
     
     void echo_a(request req, const A& a)
     {
-        req.result(a);
+        A a2 = a;
+        a2.s += "-added-by-server";
+        a2.i *= 2;
+        req.result(a2);
     }
 
 	void echo_huge(request req, const msgpack::type::raw_ref& msg)
