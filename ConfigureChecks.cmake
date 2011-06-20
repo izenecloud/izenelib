@@ -6,10 +6,13 @@ INCLUDE(CheckIncludeFileCXX)
 ##################################################
 # Int Types
 #####
+
 CHECK_INCLUDE_FILE(inttypes.h HAVE_INTTYPES_H)
 CHECK_INCLUDE_FILE(stdint.h HAVE_STDINT_H)
 CHECK_INCLUDE_FILE(sys/types.h HAVE_SYS_TYPES_H)
 CHECK_INCLUDE_FILE(sys/stat.h HAVE_SYS_STAT_H)
+CHECK_INCLUDE_FILE(sys/timerfd.h HAVE_SYS_TIMERFD_H)
+CHECK_INCLUDE_FILE(sys/signalfd.h HAVE_SYS_SIGNALFD_H)
 CHECK_INCLUDE_FILE(stddef.h HAVE_STDDEF_H)
 CHECK_INCLUDE_FILE_CXX(ext/hash_fun.h HAVE_EXT_HASH_FUN_H)
 CHECK_INCLUDE_FILE_CXX(backward/hash_fun.h HAVE_BACKWARD_HASH_FUN_H)
