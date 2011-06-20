@@ -10,6 +10,8 @@ namespace indexmanager{
 
 TermReader::TermReader()
         : pDocFilter_(NULL)
+        , skipInterval_(0)
+        , maxSkipLevel_(0)
         , pBarrelInfo_(NULL)
 {
 
@@ -669,8 +671,6 @@ TermDocFreqs* MemTermReader::termDocFreqs()
     if(getDocFilter())
         pPosting->setFilter(getDocFilter());
     TermDocFreqs* pTermDocs = new TermDocFreqs(pPosting,*pCurTermInfo_);
-    pTermDocs->setSkipInterval(skipInterval_);
-    pTermDocs->setMaxSkipLevel(maxSkipLevel_);
     return pTermDocs;
 }
 
@@ -686,8 +686,6 @@ TermPositions* MemTermReader::termPositions()
     if(getDocFilter())
         pPosting->setFilter(getDocFilter());
     TermPositions* pPositions = new TermPositions(pPosting,*pCurTermInfo_);
-    pPositions->setSkipInterval(skipInterval_);
-    pPositions->setMaxSkipLevel(maxSkipLevel_);
     return pPositions;
 }
 freq_t MemTermReader::docFreq(Term* term)
