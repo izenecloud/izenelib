@@ -76,6 +76,8 @@ private:
 
     izenelib::util::CronExpression scheduleExpression_;
 
+    std::string optimizeJobDesc_;
+
     friend class IndexMerger;
 };
 

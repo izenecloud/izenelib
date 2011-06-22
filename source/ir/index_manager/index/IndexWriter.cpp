@@ -48,6 +48,8 @@ IndexWriter::IndexWriter(Indexer* pIndex)
 
 IndexWriter::~IndexWriter()
 {
+    if(!optimizeJobDesc_.empty())
+        Scheduler::removeJob(optimizeJobDesc_);
     if (pIndexMergeManager_)
         delete pIndexMergeManager_;
     if (pMemCache_)
@@ -192,7 +194,8 @@ void IndexWriter::scheduleOptimizeTask(std::string expression, string uuid)
     const string optimizeJob = "optimizeindex"+uuid;
     ///we need an uuid here because scheduler is an singleton in the system
     Scheduler::removeJob(optimizeJob);
-    
+
+    optimizeJobDesc_ = optimizeJob;
     boost::function<void (void)> task = boost::bind(&IndexWriter::lazyOptimizeIndex,this);
     Scheduler::addJob(optimizeJob, 60*1000, 0, task);
 }
