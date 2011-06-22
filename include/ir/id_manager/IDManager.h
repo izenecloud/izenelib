@@ -418,6 +418,18 @@ typedef _IDManager<izenelib::util::UString, uint32_t,
                    EmptyIDStorage<izenelib::util::UString, uint32_t> > IDManagerIClassifier;
 
 /**
+ * This version of IDManager is provided for ESA, which requires TermId and DocId,
+ * it dose not generate any file.
+ */
+typedef _IDManager<izenelib::util::UString, uint32_t,
+		           izenelib::util::NullLock,
+                   EmptyWildcardQueryHandler<izenelib::util::UString, uint32_t>,
+                   HashIDGenerator<izenelib::util::UString, uint32_t>,
+                   EmptyIDStorage<izenelib::util::UString, uint32_t>,
+                   UniqueIDGenerator<izenelib::util::UString, uint32_t>,
+                   EmptyIDStorage<izenelib::util::UString, uint32_t> > IDManagerESA;
+
+/**
  * This version of IDManager is provided for MIA, which only wants TermID genrated by
  * hash and doesn't permit generating any file.
  */
