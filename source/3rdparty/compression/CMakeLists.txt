@@ -1,1 +1,2 @@
+ADD_SUBDIRECTORY(snappy)
 ADD_SUBDIRECTORY(minilzo)

@@ -20,9 +20,11 @@ IF(leveldb_SHOULD_BUILD)
     ${CMAKE_CURRENT_SOURCE_DIR}
     )
 
+#  ADD_DEFINITIONS("-fPIC -DSNAPPY")
   ADD_DEFINITIONS("-fPIC")
 
   MACRO_ADD_LIBRARY(leveldb SRCS ${leveldb_SRC})
+#  TARGET_LINK_LIBRARIES(leveldb snappy)
 
 ENDIF(leveldb_SHOULD_BUILD)
 

@@ -21,6 +21,7 @@ SET(t_leveldb_SRC
   TARGET_LINK_LIBRARIES(t_leveldb
    leveldb
    izene_util
+   snappy
    ${Boost_LIBRARIES}
    ${Glog_LIBRARIES}
    procmeminfo
