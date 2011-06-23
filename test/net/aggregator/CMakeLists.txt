@@ -1,0 +1,27 @@
+FIND_PACKAGE(Boost ${Boost_FIND_VERSION}
+  COMPONENTS
+  system
+  thread
+  filesystem
+  serialization
+  unit_test_framework
+  program_options
+)
+
+INCLUDE_DIRECTORIES(
+    ${Boost_INCLUDE_DIRS}
+    ${IZENELIB_SOURCE_DIR}/include/3rdparty/
+)
+
+SET(libs
+   msgpack
+   izene_util
+   ${Boost_LIBRARIES}
+   ${Glog_LIBRARIES}
+)
+
+ADD_EXECUTABLE(t_aggregator t_aggregator.cpp)
+TARGET_LINK_LIBRARIES(t_aggregator ${libs})
+
+ADD_EXECUTABLE(t_worker t_worker.cpp)
+TARGET_LINK_LIBRARIES(t_worker ${libs})

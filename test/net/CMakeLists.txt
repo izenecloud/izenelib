@@ -1,3 +1,5 @@
 IF( NOT USE_MF_LIGHT )
   ADD_SUBDIRECTORY(message-framework)
 ENDIF( NOT USE_MF_LIGHT )
+
+ADD_SUBDIRECTORY(aggregator)
