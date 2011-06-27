@@ -27,6 +27,7 @@ public:
 
     virtual ~TermPositions();
 public:
+    virtual void reset(PostingReader * pPosting,const TermInfo& ti,bool ownPosting = true);
     /**
      * get document id
      * @return document id

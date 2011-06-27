@@ -31,21 +31,9 @@ TermPositions::TermPositions()
 {}
 
 TermPositions::TermPositions(PostingReader* pPosting,const TermInfo& ti,bool ownPosting)
-        :TermDocFreqs(pPosting,ti,ownPosting)
-        ,pPPostingBuffer_(NULL)
-        ,nPBufferSize_(0)
-        ,nTotalDecodedPCountWithinDoc_(0)
-        ,nCurDecodedPCountWithinDoc_(0)
-        ,nCurrentPPostingWithinDoc_(0)
-        ,nTotalDecodedPCount_(0)
-        ,nCurrentPPosting_(0)
-        ,nLastUnDecodedPCount_(0)
-        ,pPPostingBufferWithinDoc_(NULL)
-        ,nPPostingCountWithinDoc_(0)
-        ,nLastPosting_(-1)
-        ,is_last_skipto_(false)
-        ,fixed_pos_buffer_(false)
-{}
+{
+    reset(pPosting,ti,ownPosting)	;
+}
 
 TermPositions::~TermPositions()
 {
@@ -54,6 +42,24 @@ TermPositions::~TermPositions()
     pPPostingBuffer_ = NULL;
     nPBufferSize_ = 0;
     pPPostingBufferWithinDoc_ = NULL;
+}
+
+void TermPositions::reset(PostingReader * pPosting,const TermInfo& ti,bool ownPosting)
+{
+    TermDocFreqs::reset(pPosting,ti,ownPosting);
+    pPPostingBuffer_ = NULL;
+    nPBufferSize_ = 0;
+    nTotalDecodedPCountWithinDoc_ = 0;
+    nCurDecodedPCountWithinDoc_ = 0;
+    nCurrentPPostingWithinDoc_ = 0;
+    nTotalDecodedPCount_ = 0;
+    nCurrentPPosting_ = 0;
+    nLastUnDecodedPCount_ = 0;
+    pPPostingBufferWithinDoc_ = NULL;
+    nPPostingCountWithinDoc_ = 0;
+    nLastPosting_ = -1;
+    is_last_skipto_ = false;
+    fixed_pos_buffer_ = false;
 }
 
 docid_t TermPositions::doc()

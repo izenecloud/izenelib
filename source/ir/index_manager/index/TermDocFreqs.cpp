@@ -23,17 +23,8 @@ TermDocFreqs::TermDocFreqs()
 }
 
 TermDocFreqs::TermDocFreqs(PostingReader* pPosting, const TermInfo& ti, bool ownPosting)
-        :termInfo_(ti)
-        ,pPosting_(pPosting)
-        ,pPostingBuffer_(NULL)
-        ,nBufferSize_(0)
-        ,nMaxDocCount_(0)
-        ,nFreqStart_(0)
-        ,nTotalDecodedCount_(0)
-        ,nCurDecodedCount_(0)
-        ,nCurrentPosting_(-1)
-        ,ownPosting_(ownPosting)
 {
+    reset(pPosting,ti,ownPosting)	;
 }
 
 TermDocFreqs::~TermDocFreqs()
@@ -45,6 +36,20 @@ TermDocFreqs::~TermDocFreqs()
         pPostingBuffer_ = NULL;
     }
     nBufferSize_ = 0;
+}
+
+void TermDocFreqs::reset(PostingReader * pPosting,const TermInfo& ti,bool ownPosting)
+{
+    termInfo_ = ti;
+    pPosting_ = pPosting;
+    pPostingBuffer_ = NULL;
+    nBufferSize_ = 0;
+    nMaxDocCount_ = 0;
+    nFreqStart_ = 0;
+    nTotalDecodedCount_ = 0;
+    nCurDecodedCount_ = 0;
+    nCurrentPosting_ = -1;
+    ownPosting_ = ownPosting;
 }
 
 freq_t TermDocFreqs::docFreq()

@@ -31,6 +31,8 @@ public:
 
     virtual ~TermDocFreqs();
 public:
+    virtual void reset(PostingReader * pPosting,const TermInfo& ti,bool ownPosting = true);
+
     virtual freq_t docFreq();
 
     virtual int64_t getCTF();
