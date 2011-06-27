@@ -7,6 +7,10 @@
 #ifndef AGGREGATOR_CONFIG_H_
 #define AGGREGATOR_CONFIG_H_
 
+#include <stdint.h>
+#include <string>
+#include <vector>
+
 namespace net{
 namespace aggregator{
 

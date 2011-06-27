@@ -11,17 +11,27 @@
 #include <3rdparty/msgpack/rpc/client.h>
 
 #include "AggregatorConfig.h"
+#include "JobInfo.h"
 
 
 namespace net{
 namespace aggregator{
 
+/**
+ * Job Aggregator base class
+ * @brief Implement a concrete aggregator using inheritance, the following function must be implemented:
+ * join_impl(DataType& result, const DataType& singleWorkerResult);
+ * join_impl() used to merge result incrementally, it's not virtual, because base class won't known the DataType
+ * of a concrete aggregator.
+ */
+template <typename ConcreteAggregator>
 class JobAggregator
 {
     typedef msgpack::rpc::client RPCClient;
     typedef msgpack::rpc::future RPCFutureReply;
 
 public:
+    /// todo, remove
     JobAggregator()
     {
     }
@@ -42,23 +52,19 @@ public:
         }
     }
 
-    /**
-     *
-     */
-//    template<typename DataT, typename MethodT = std::string>
-//    void call(const MethodT& method, const DataT DataObject)
-//    {
-//
-//    }
-
-    void request(const std::string& func)
+    template <typename RequestParamType, typename ResultParamType>
+    void processRequest(
+            const std::string& func,
+            const RequestParamType& request,
+            ResultParamType& result,
+            unsigned int timeout = 2) // xxx
     {
-        async_call();
+        async_call(func, request, timeout);
 
-        join();
+        join(result);
     }
 
-private:
+protected:
     void init()
     {
 
@@ -67,7 +73,7 @@ private:
     void registerWorker(const ServerInfo& srvInfo)
     {
         if (isLocalWorker(srvInfo)) {
-            //
+            // xxx
         }
         else {
             createWorkerClient(srvInfo);
@@ -76,16 +82,19 @@ private:
 
     bool isLocalWorker(const ServerInfo& srvInfo)
     {
-        return false; // XXX
+        if (srvInfo.host_ == srvInfo_.host_
+                && srvInfo.port_ == srvInfo.port_)
+        {
+            return true;
+        }
+        return false;
     }
 
     void createWorkerClient(const ServerInfo& srvInfo)
     {
         try
         {
-            boost::shared_ptr<RPCClient> workerClt(
-                    new RPCClient(srvInfo.host_, srvInfo.port_)
-            );
+            boost::shared_ptr<RPCClient> workerClt( new RPCClient(srvInfo.host_, srvInfo.port_) );
             workerClientList_.push_back(workerClt);
         }
         catch(std::exception& e)
@@ -95,34 +104,35 @@ private:
         }
     }
 
-private:
-    void async_call()
+protected:
+    template <typename RequestParamType>
+    void async_call(const std::string& func, const RequestParamType& param, unsigned int timeout)
     {
         workerReplyList_.clear();
 
         worker_iterator witer = workerClientList_.begin();
         for (; witer != workerClientList_.end(); witer++)
         {
-            RPCFutureReply frep = (*witer)->call("add", 1, 1);
+            (*witer)->set_timeout(timeout);
+            RPCFutureReply frep = (*witer)->call(func, param);
             workerReplyList_.push_back( frep );
         }
     }
 
-    void join()
+    template <typename ResultParamType>
+    void join(ResultParamType& result)
     {
-        int ret = 0;
-
-        worker_ret_iterator writer = workerReplyList_.begin();
-        for (; writer != workerReplyList_.end(); writer++)
+        worker_ret_iterator wrIter = workerReplyList_.begin();
+        for (; wrIter != workerReplyList_.end(); wrIter++)
         {
             try
             {
-                ret += writer->get<int>(); // inner join
+                ResultParamType workerResult = wrIter->get<ResultParamType>(); // inner join
+                static_cast<ConcreteAggregator*>(this)->join_impl(result, workerResult);
             }
             catch (msgpack::rpc::connect_error& e)
             {
                 // "connect failed", XXX
-
             }
             catch (msgpack::rpc::timeout_error& e)
             {
@@ -131,10 +141,12 @@ private:
             catch (msgpack::rpc::no_method_error& e)
             {
                 // "method not found"
+                cout << "method not found!" <<endl;
             }
             catch (msgpack::rpc::argument_error& e)
             {
                 // "argument mismatch"
+                cout << "argument mismatch!" <<endl;
             }
             catch (msgpack::rpc::remote_error& e)
             {
@@ -145,8 +157,6 @@ private:
                 std::cerr<<e.what()<<std::endl;
             }
         }
-
-        std::cout << "join: "<<ret << std::endl;
     }
 
 private:

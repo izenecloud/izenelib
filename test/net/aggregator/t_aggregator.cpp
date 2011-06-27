@@ -1,8 +1,26 @@
 #include <net/aggregator/JobAggregator.h>
 #include <net/aggregator/AggregatorConfig.h>
+#include "data_type.h"
 
 using namespace net::aggregator;
 
+
+class SearchAggregator : public JobAggregator<SearchAggregator>
+{
+public:
+    void join_impl(Data& res, const Data& workerRes)
+    {
+        cout << "join_impl" <<endl;
+        res.s += workerRes.s;
+    }
+
+    void join_impl(DataResult& res, const DataResult& workerRes)
+    {
+        cout << "join_impl 2" <<endl;
+        res.s += workerRes.s;
+        //sleep(6);
+    }
+};
 
 int main( int argc, char * argv[])
 {
@@ -10,9 +28,14 @@ int main( int argc, char * argv[])
     config.addWorker("0.0.0.0", 18111);
     config.addWorker("0.0.0.0", 18112);
 
-    JobAggregator ja;
-    ja.setWorkerListConfig(config);
+    SearchAggregator ag;
+    ag.setWorkerListConfig(config);
 
-    ja.request("add");
+    Data req;
+    //Data ret;
+    DataResult ret;
+    ag.processRequest<Data, DataResult>("getKeywordSearchResult", req, ret);
+
+    std::cout << "join: "<<ret.i << "/" <<ret.s<< std::endl;
 }
 
