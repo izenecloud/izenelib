@@ -291,6 +291,18 @@ public:
         return row_data;
     }
 
+    bool row_without_cache(KeyType x, RowType& row_data)
+    {
+        return _db_storage.get(x,row_data);
+    }
+
+    void clear()
+    {
+        dump();
+        _cache_storage.clear();
+        _cache_row_dirty_flag.clear();
+    }
+
     void dump()
     {
         typename CacheDirtyFlagType::iterator it = _cache_row_dirty_flag.begin();
