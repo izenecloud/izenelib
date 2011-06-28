@@ -39,7 +39,7 @@ int main( int argc, char * argv[])
     Data req;
     //Data ret;
     DataResult ret;
-    ag.processRequest<Data, DataResult>("getKeywordSearchResult", req, ret);
+    ag.sendRequest<Data, DataResult>("getKeywordSearchResult", req, ret);
 
     std::cout << "join: "<<ret.i << "/" <<ret.s<< std::endl;
 }

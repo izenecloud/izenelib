@@ -38,9 +38,6 @@ public:
 template <typename ConcreteAggregator>
 class JobAggregator
 {
-    typedef msgpack::rpc::client RPCClient;
-    typedef msgpack::rpc::future RPCFutureReply;
-
 public:
     /// todo, remove
     JobAggregator()
@@ -64,13 +61,18 @@ public:
     }
 
     template <typename RequestParamType, typename ResultParamType>
-    void processRequest(
+    void sendRequest(
             const std::string& func,
             const RequestParamType& request,
             ResultParamType& result,
             unsigned int timeout = 2) // xxx
     {
-        async_call(func, request, timeout);
+        //request_all(func, request, timeout);
+        worker_iterator_t worker = workerSessionPool_.begin();
+        for ( ; worker != workerSessionPool_.end(); worker++ )
+        {
+            (*worker)->sendRequest(func, request);
+        }
 
         join(result);
     }
@@ -105,8 +107,8 @@ protected:
     {
         try
         {
-            boost::shared_ptr<RPCClient> workerClt( new RPCClient(srvInfo.host_, srvInfo.port_) );
-            workerClientList_.push_back(workerClt);
+            WorkerSessionPtr workerSession(new WorkerSession(srvInfo.host_, srvInfo.port_));
+            workerSessionPool_.push_back(workerSession);
         }
         catch(std::exception& e)
         {
@@ -116,31 +118,17 @@ protected:
     }
 
 protected:
-    template <typename RequestParamType>
-    void async_call(const std::string& func, const RequestParamType& param, unsigned int timeout)
-    {
-        workerReplyList_.clear();
-
-        worker_iterator witer = workerClientList_.begin();
-        for (; witer != workerClientList_.end(); witer++)
-        {
-            (*witer)->set_timeout(timeout);
-            RPCFutureReply frep = (*witer)->call(func, param);
-            workerReplyList_.push_back( frep );
-        }
-    }
-
     template <typename ResultParamType>
     void join(ResultParamType& result)
     {
         std::vector<ResultParamType> resultList;
 
-        worker_ret_iterator wrIter = workerReplyList_.begin();
-        for (; wrIter != workerReplyList_.end(); wrIter++)
+        worker_iterator_t worker = workerSessionPool_.begin();
+        for (; worker != workerSessionPool_.end(); worker++)
         {
             try
             {
-                ResultParamType workerResult = wrIter->get<ResultParamType>(); // inner join
+                ResultParamType workerResult = (*worker)->getResult<ResultParamType>();
                 resultList.push_back(workerResult);
                 //static_cast<ConcreteAggregator*>(this)->join_impl(result, workerResult);
             }
@@ -185,11 +173,8 @@ protected:
 private:
     ServerInfo srvInfo_;
 
-    typedef std::vector<boost::shared_ptr<RPCClient> >::iterator worker_iterator;
-    typedef std::vector<RPCFutureReply>::iterator worker_ret_iterator;
-    std::vector<boost::shared_ptr<RPCClient> > workerClientList_;
-    std::vector<RPCFutureReply> workerReplyList_;
-
+    typedef std::vector<WorkerSessionPtr>::iterator worker_iterator_t;
+    std::vector<WorkerSessionPtr> workerSessionPool_;
 };
 
 }} // end - namespace
