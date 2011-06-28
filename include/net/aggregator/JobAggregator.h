@@ -20,9 +20,20 @@ namespace aggregator{
 /**
  * Job Aggregator base class
  * @brief Implement a concrete aggregator using inheritance, the following function must be implemented:
- * join_impl(DataType& result, const DataType& singleWorkerResult);
- * join_impl() used to merge result incrementally, it's not virtual, because base class won't known the DataType
+ * join_impl(DataType& result, const std::vector<DataType>& resultList);
+ * join_impl() used to merge result, it's not virtual, because base class won't known the DataType
  * of a concrete aggregator.
+ * @example
+
+class SearchAggregator : public JobAggregator<SearchAggregator>
+{
+public:
+    void join_impl(ResultType& result, const ResultType& singleWorkerResult)
+    {
+        // merge singleWorkerResult to result
+    }
+};
+
  */
 template <typename ConcreteAggregator>
 class JobAggregator
@@ -122,13 +133,16 @@ protected:
     template <typename ResultParamType>
     void join(ResultParamType& result)
     {
+        std::vector<ResultParamType> resultList;
+
         worker_ret_iterator wrIter = workerReplyList_.begin();
         for (; wrIter != workerReplyList_.end(); wrIter++)
         {
             try
             {
                 ResultParamType workerResult = wrIter->get<ResultParamType>(); // inner join
-                static_cast<ConcreteAggregator*>(this)->join_impl(result, workerResult);
+                resultList.push_back(workerResult);
+                //static_cast<ConcreteAggregator*>(this)->join_impl(result, workerResult);
             }
             catch (msgpack::rpc::connect_error& e)
             {
@@ -156,6 +170,15 @@ protected:
             {
                 std::cerr<<e.what()<<std::endl;
             }
+        }
+
+        if (resultList.size() > 0)
+        {
+            static_cast<ConcreteAggregator*>(this)->join_impl(result, resultList);
+        }
+        else
+        {
+            ;
         }
     }
 

@@ -14,10 +14,14 @@ public:
         res.s += workerRes.s;
     }
 
-    void join_impl(DataResult& res, const DataResult& workerRes)
+    void join_impl(DataResult& res, const std::vector<DataResult>& resList)
     {
         cout << "join_impl 2" <<endl;
-        res.s += workerRes.s;
+
+        for (size_t i = 0; i < resList.size(); i++)
+        {
+            res.s += resList[i].s;
+        }
         //sleep(6);
     }
 };
@@ -27,6 +31,7 @@ int main( int argc, char * argv[])
     AggregatorConfig config;
     config.addWorker("0.0.0.0", 18111);
     config.addWorker("0.0.0.0", 18112);
+    config.addWorker("0.0.0.0", 18113);
 
     SearchAggregator ag;
     ag.setWorkerListConfig(config);

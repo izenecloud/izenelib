@@ -44,42 +44,36 @@ public:
     /*pure virtual*/
     void addHandlers()
     {
-        {
-            WorkerHandler<SearchWorker> handler(&SearchWorker::getKeywordSearchResult);
-            addHandler("getKeywordSearchResult", handler);
-        }
+        ADD_WORKER_HANDLER_LIST_BEGIN( SearchWorker )
 
-        {
-            WorkerHandler<SearchWorker> handler(&SearchWorker::add);
-            addHandler("add", handler);
-        }
+        ADD_WORKER_HANDLER( getKeywordSearchResult )
+        ADD_WORKER_HANDLER( add )
+
+        ADD_WORKER_HANDLER_LIST_END()
     }
 
     bool getKeywordSearchResult(JobRequest& req)
     {
-        // get request param
-        msgpack::type::tuple<Data> params;
-        req.params().convert(&params);
-        Data request = params.get<0>();
-
-        DataResult result;
-        searchService_->getKeywordSearchResult(request.s, result.s);
-
-        req.result(result);
+        WORKER_HANDLE_1_1(req, Data, processGetKeywordSearchResult, DataResult)
         return true;
     }
 
     bool add(JobRequest& req)
     {
-        msgpack::type::tuple<Data> params;
-        req.params().convert(&params);
-        Data request = params.get<0>();
-
-        DataResult result;
-        result.i = request.i * 2;
-
-        req.result(result);
+        WORKER_HANDLE_1_1(req, Data, processAdd, DataResult)
         return true;
+    }
+
+private:
+
+    void processGetKeywordSearchResult(const Data& param, DataResult& result)
+    {
+        searchService_->getKeywordSearchResult(param.s, result.s);
+    }
+
+    void processAdd(const Data& param, DataResult& result)
+    {
+        result.i = param.i + result.i;
     }
 
 private:

@@ -22,7 +22,55 @@ namespace aggregator{
 
 /**
  * Job Worker Base class
- * @brief In subclass, addHandlers() must be implemented to extend service APIs.
+ * @brief In subclass, function addHandlers() must be implemented to extend service APIs,
+ * we can use help macros to add handle functions which are defined in subclass.
+ * @example
+ *
+class ConcreteWorker : public JobWorker<ConcreteWorker>
+{
+public:
+    ConcreteWorker(const std::string& host, uint16_t port, ...)
+    :JobWorker<SearchWorker>(host, port)
+    , ...
+    {
+    }
+
+public:
+    //pure virtual
+    void addHandlers()
+    {
+        ADD_WORKER_HANDLER_LIST_BEGIN( ConcreteWorker )
+
+        ADD_WORKER_HANDLER( functionName1 )
+        ADD_WORKER_HANDLER( functionName2 )
+
+        ADD_WORKER_HANDLER_LIST_END()
+    }
+
+    bool functionName1 (JobRequest& req)
+    {
+        WORKER_HANDLE_1_1(req, Data, processFunction1, DataResult)
+        return true;
+    }
+
+    bool functionName2 (JobRequest& req)
+    {
+        WORKER_HANDLE_1_1(req, Data, processFunction2, DataResult)
+        return true;
+    }
+
+private:
+    void  processFunction1(Data& param, DataResult& res)
+    {
+        // do something
+    }
+
+    void  processFunction2(Data& param, DataResult& res)
+    {
+        // do something
+    }
+};
+
  */
 template <
 typename ConcreteWorker,
