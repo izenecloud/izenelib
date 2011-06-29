@@ -2,6 +2,8 @@
 #include <net/aggregator/AggregatorConfig.h>
 #include "data_type.h"
 
+#include <sstream>
+
 using namespace net::aggregator;
 
 
@@ -9,13 +11,16 @@ class SearchAggregator : public JobAggregator<SearchAggregator>
 {
 public:
 
-    void join_impl(DataResult& res, const std::vector<DataResult>& resList)
+    void join_impl(DataResult& res, const std::vector<std::pair<workerid_t, DataResult> >& resList)
     {
+        std::stringstream ss;
         for (size_t i = 0; i < resList.size(); i++)
         {
-            res.s += resList[i].s;
+
+            ss <<"(worker"<<resList[i].first<< ": "<<resList[i].second.s<<")";
         }
-        //sleep(6);
+
+        res.s = ss.str();
     }
 };
 
@@ -34,6 +39,6 @@ int main( int argc, char * argv[])
     DataResult ret;
     ag.sendRequest<Data, DataResult>("getKeywordSearchResult", req, ret);
 
-    std::cout << "join: "<<ret.i << "/" <<ret.s<< std::endl;
+    std::cout << "result: "<<ret.i << " / " <<ret.s<< std::endl;
 }
 

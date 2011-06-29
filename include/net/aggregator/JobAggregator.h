@@ -20,8 +20,8 @@ namespace aggregator{
 /**
  * Job Aggregator base class
  * @brief Implement a concrete aggregator using inheritance, the following function must be implemented:
- * join_impl(DataType& result, const std::vector<DataType>& resultList);
- * join_impl() used to merge result, it's not virtual, because base class won't known the DataType
+ * join_impl(DataType& result, const std::vector<std::pair<workerid_t, ResultType> >& resultList);
+ * join_impl() used to merge result, it's not virtual, because base class won't known the ResultType
  * of a concrete aggregator.
  * @example
 
@@ -52,13 +52,23 @@ public:
 public:
     void setWorkerListConfig(AggregatorConfig& aggregatorConfig)
     {
+        // assign unique id for each worker, 0 for local worker
+        workerid_t workerId = 1;
+
         const std::vector<ServerInfo>& workerInfoList = aggregatorConfig.getWorkerList();
 
         for (size_t i = 0; i < workerInfoList.size(); i ++)
         {
-            registerWorker(workerInfoList[i]);
+            if (isLocalWorker(workerInfoList[i])) {
+                // xxx
+            }
+            else {
+                createWorkerClient(workerInfoList[i], workerId);
+                workerId ++;
+            }
         }
     }
+
 
     template <typename RequestParamType, typename ResultParamType>
     void sendRequest(
@@ -82,6 +92,7 @@ protected:
 
     }
 
+    /// reserved
     void registerWorker(const ServerInfo& srvInfo)
     {
         if (isLocalWorker(srvInfo)) {
@@ -95,18 +106,18 @@ protected:
     bool isLocalWorker(const ServerInfo& srvInfo)
     {
         if (srvInfo.host_ == srvInfo_.host_
-                && srvInfo.port_ == srvInfo.port_)
+                && srvInfo.port_ == srvInfo_.port_)
         {
             return true;
         }
         return false;
     }
 
-    void createWorkerClient(const ServerInfo& srvInfo)
+    void createWorkerClient(const ServerInfo& srvInfo, const workerid_t workerId)
     {
         try
         {
-            WorkerSessionPtr workerSession(new WorkerSession(srvInfo.host_, srvInfo.port_));
+            WorkerSessionPtr workerSession(new WorkerSession(srvInfo.host_, srvInfo.port_, workerId));
             workerSessionPool_.push_back(workerSession);
         }
         catch(std::exception& e)
@@ -117,19 +128,19 @@ protected:
     }
 
 protected:
-    template <typename ResultParamType>
-    void join(ResultParamType& result)
+    template <typename ResultType>
+    void join(ResultType& result)
     {
-        std::vector<ResultParamType> resultList;
+        std::vector<std::pair<workerid_t, ResultType> > resultList;
 
         worker_iterator_t worker = workerSessionPool_.begin();
         for (; worker != workerSessionPool_.end(); worker++)
         {
             try
             {
-                ResultParamType workerResult = (*worker)->getResult<ResultParamType>();
-                resultList.push_back(workerResult);
-                //static_cast<ConcreteAggregator*>(this)->join_impl(result, workerResult);
+                ResultType workerResult = (*worker)->getResult<ResultType>();
+                unsigned int workerId = (*worker)->getWorkerId();
+                resultList.push_back(std::make_pair(workerId,workerResult));
             }
             catch (msgpack::rpc::connect_error& e)
             {

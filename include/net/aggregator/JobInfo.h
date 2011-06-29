@@ -20,6 +20,7 @@ namespace aggregator{
 
 /// job request type
 typedef msgpack::rpc::request JobRequest;
+typedef unsigned int workerid_t;
 
 /// server info
 struct ServerInfo
@@ -41,6 +42,7 @@ struct ServerInfo
 class WorkerSession
 {
     ServerInfo workerSrv_;
+    workerid_t workerId_;   // unique id for each worker server
 
     msgpack::rpc::client client_;
     msgpack::rpc::future reply_;
@@ -49,8 +51,9 @@ class WorkerSession
     std::string error_;
 
 public:
-    WorkerSession(const std::string& host, uint16_t port)
+    WorkerSession(const std::string& host, uint16_t port, const workerid_t workerId)
     : workerSrv_(host, port)
+    , workerId_(workerId)
     , client_(host, port)
     , state_(true)
     , error_()
@@ -72,6 +75,11 @@ public:
     ResultType getResult()
     {
         return reply_.get<ResultType>();
+    }
+
+    uint16_t getWorkerId() const
+    {
+        return workerId_;
     }
 
     bool getState()

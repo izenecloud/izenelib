@@ -128,8 +128,8 @@ public:
     }
 
     /**
-     * @brief Implement this function to add external apis (Handlers) which provide services, using addHandler().
-     * TODO, define some Macros to simplify adding handlers.
+     * @brief Implement this function to add external apis (Handlers) which provide services,
+     * using addHandler(), or using Macros to simplify adding handlers.
      */
     virtual void addHandlers() = 0;
 
