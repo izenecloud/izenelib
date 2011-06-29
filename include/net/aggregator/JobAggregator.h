@@ -67,7 +67,6 @@ public:
             ResultParamType& result,
             unsigned int timeout = 2) // xxx
     {
-        //request_all(func, request, timeout);
         worker_iterator_t worker = workerSessionPool_.begin();
         for ( ; worker != workerSessionPool_.end(); worker++ )
         {
@@ -134,29 +133,35 @@ protected:
             }
             catch (msgpack::rpc::connect_error& e)
             {
-                // "connect failed", XXX
+                // xxx
+                (*worker)->setError("connecting failed!");
             }
             catch (msgpack::rpc::timeout_error& e)
             {
-                // "request timed out"
+                (*worker)->setError("request timed out!");
             }
             catch (msgpack::rpc::no_method_error& e)
             {
-                // "method not found"
-                cout << "method not found!" <<endl;
+                (*worker)->setError("method not found!");
             }
             catch (msgpack::rpc::argument_error& e)
             {
-                // "argument mismatch"
-                cout << "argument mismatch!" <<endl;
+                (*worker)->setError("argument mismatch!");
             }
             catch (msgpack::rpc::remote_error& e)
             {
-                // "remote_error"
+                (*worker)->setError("remote_error");
             }
             catch (std::exception& e)
             {
-                std::cerr<<e.what()<<std::endl;
+                (*worker)->setError(e.what());
+            }
+
+            if ( !(*worker)->getState() )
+            {
+                cout <<"["<<(*worker)->getServerInfo().host_
+                     <<":"<<(*worker)->getServerInfo().port_
+                     <<"] "<< (*worker)->getError() << endl;
             }
         }
 

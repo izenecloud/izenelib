@@ -30,7 +30,7 @@ class ConcreteWorker : public JobWorker<ConcreteWorker>
 {
 public:
     ConcreteWorker(const std::string& host, uint16_t port, ...)
-    :JobWorker<SearchWorker>(host, port)
+    :JobWorker<ConcreteWorker>(host, port)
     , ...
     {
     }
