@@ -8,16 +8,9 @@ using namespace net::aggregator;
 class SearchAggregator : public JobAggregator<SearchAggregator>
 {
 public:
-    void join_impl(Data& res, const Data& workerRes)
-    {
-        cout << "join_impl" <<endl;
-        res.s += workerRes.s;
-    }
 
     void join_impl(DataResult& res, const std::vector<DataResult>& resList)
     {
-        cout << "join_impl 2" <<endl;
-
         for (size_t i = 0; i < resList.size(); i++)
         {
             res.s += resList[i].s;

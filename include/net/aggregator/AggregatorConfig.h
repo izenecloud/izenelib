@@ -11,21 +11,10 @@
 #include <string>
 #include <vector>
 
+#include "JobInfo.h"
+
 namespace net{
 namespace aggregator{
-
-struct ServerInfo
-{
-    std::string host_;
-    uint16_t port_;
-
-    ServerInfo(const std::string& host, uint16_t port)
-    :host_(host), port_(port)
-    {
-    }
-
-    ServerInfo(){}
-};
 
 class AggregatorConfig
 {
