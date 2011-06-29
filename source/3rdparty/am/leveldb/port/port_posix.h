@@ -7,20 +7,46 @@
 #ifndef STORAGE_LEVELDB_PORT_PORT_POSIX_H_
 #define STORAGE_LEVELDB_PORT_PORT_POSIX_H_
 
-#include <endian.h>
+#if defined(OS_MACOSX)
+  #include <machine/endian.h>
+#elif defined(OS_SOLARIS)
+  #include <sys/isa_defs.h>
+  #ifdef _LITTLE_ENDIAN
+    #define LITTLE_ENDIAN
+  #else
+    #define BIG_ENDIAN
+  #endif
+#else
+  #include <endian.h>
+#endif
 #include <pthread.h>
-#include <stdint.h>
-#include <string>
-#include "atomicops.h"
-
 #ifdef SNAPPY
 #include <3rdparty/compression/snappy/snappy.h>
+#endif
+#include <stdint.h>
+#include <string>
+#include "atomic_pointer.h"
+
+#ifdef LITTLE_ENDIAN
+#define IS_LITTLE_ENDIAN true
+#else
+#define IS_LITTLE_ENDIAN (__BYTE_ORDER == __LITTLE_ENDIAN)
+#endif
+
+#if defined(OS_MACOSX) || defined(OS_SOLARIS)
+#define fread_unlocked fread
+#define fwrite_unlocked fwrite
+#define fflush_unlocked fflush
+#endif
+
+#if defined(OS_MACOSX)
+#define fdatasync fsync
 #endif
 
 namespace leveldb {
 namespace port {
 
-static const bool kLittleEndian = (__BYTE_ORDER == __LITTLE_ENDIAN);
+static const bool kLittleEndian = IS_LITTLE_ENDIAN;
 
 class CondVar;
 
@@ -54,54 +80,8 @@ class CondVar {
   Mutex* mu_;
 };
 
-// Storage for a lock-free pointer
-class AtomicPointer {
- private:
-  typedef base::subtle::AtomicWord Rep;
-  Rep rep_;
- public:
-  AtomicPointer() { }
-  explicit AtomicPointer(void* p) : rep_(reinterpret_cast<Rep>(p)) {}
-  inline void* Acquire_Load() const {
-    return reinterpret_cast<void*>(::base::subtle::Acquire_Load(&rep_));
-  }
-  inline void Release_Store(void* v) {
-    ::base::subtle::Release_Store(&rep_, reinterpret_cast<Rep>(v));
-  }
-  inline void* NoBarrier_Load() const {
-    return reinterpret_cast<void*>(::base::subtle::NoBarrier_Load(&rep_));
-  }
-  inline void NoBarrier_Store(void* v) {
-    ::base::subtle::NoBarrier_Store(&rep_, reinterpret_cast<Rep>(v));
-  }
-};
-
-
-/*
-///boost::atomic can not work
-class AtomicPointer {
- private:
-  boost::atomic<void*> rep_;
- public:
-  AtomicPointer() { }
-  explicit AtomicPointer(void* v) { }
-  inline void* Acquire_Load() const {
-    return rep_.load(boost::memory_order_acquire);
-  }
-  inline void Release_Store(void* v) {
-    rep_.store(v, boost::memory_order_release);
-  }
-  inline void* NoBarrier_Load() const {
-    return rep_.load(boost::memory_order_relaxed);
-  }
-  inline void NoBarrier_Store(void* v) {
-    rep_.store(v, boost::memory_order_relaxed);
-  }
-};
-*/
-
 inline bool Snappy_Compress(const char* input, size_t input_length,
-                            std::string* output) {
+                            ::std::string* output) {
 #ifdef SNAPPY
   output->resize(snappy::MaxCompressedLength(input_length));
   size_t outlen;
@@ -114,7 +94,7 @@ inline bool Snappy_Compress(const char* input, size_t input_length,
 }
 
 inline bool Snappy_Uncompress(const char* input_data, size_t input_length,
-                              std::string* output) {
+                              ::std::string* output) {
 #ifdef SNAPPY
   size_t ulength;
   if (!snappy::GetUncompressedLength(input_data, ulength, &ulength)) {
@@ -131,7 +111,7 @@ inline bool GetHeapProfile(void (*func)(void*, const char*, int), void* arg) {
   return false;
 }
 
-}
-}
+} // namespace port
+} // namespace leveldb
 
 #endif  // STORAGE_LEVELDB_PORT_PORT_POSIX_H_
