@@ -84,6 +84,24 @@ public:
     : srvInfo_(host, port)
     {}
 
+    /// local worker
+    JobWorker()
+    {}
+
+
+public:
+    /**
+     * @brief implement this function using concrete data type, if worker need to be called locally.
+     * if it's not work as a server, no need to Start().
+     *
+         bool call(
+            const std::string& func,
+            const Data& request,
+            DataResult& result,
+            std::string& error) ;
+     *
+     */
+
 public:
     void Start()
     {
@@ -91,6 +109,11 @@ public:
 
         instance.listen(srvInfo_.host_, srvInfo_.port_);
         instance.run(4); //xxx
+    }
+
+    const ServerInfo& getServerInfo() const
+    {
+        return srvInfo_;
     }
 
     /*virtual*/

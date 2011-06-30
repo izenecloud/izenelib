@@ -6,80 +6,9 @@
 #include <boost/shared_ptr.hpp>
 
 #include "data_type.h"
+#include "worker_define.h"
 
 using namespace net::aggregator;
-
-
-class SearchService
-{
-public:
-    SearchService()
-    {
-        data_ = "abc 中国 ";
-    }
-
-public:
-    void getKeywordSearchResult(const string& request, string& result)
-    {
-        result.assign(data_);
-    }
-
-private:
-    string data_;
-};
-
-
-class SearchWorker : public JobWorker<SearchWorker>
-{
-
-public:
-    SearchWorker(const std::string& host, uint16_t port, boost::shared_ptr<SearchService> searchService)
-    :JobWorker<SearchWorker>(host, port)
-    ,searchService_(searchService)
-    {
-    }
-
-public:
-
-    /*pure virtual*/
-    void addHandlers()
-    {
-        ADD_WORKER_HANDLER_LIST_BEGIN( SearchWorker )
-
-        ADD_WORKER_HANDLER( getKeywordSearchResult )
-        ADD_WORKER_HANDLER( add )
-
-        ADD_WORKER_HANDLER_LIST_END()
-    }
-
-    bool getKeywordSearchResult(JobRequest& req)
-    {
-        WORKER_HANDLE_1_1(req, Data, processGetKeywordSearchResult, DataResult)
-        return true;
-    }
-
-    bool add(JobRequest& req)
-    {
-        WORKER_HANDLE_1_1(req, AddData, processAdd, int)
-        return true;
-    }
-
-private:
-
-    void processGetKeywordSearchResult(const Data& param, DataResult& result)
-    {
-        searchService_->getKeywordSearchResult(param.s, result.s);
-        //sleep(5);
-    }
-
-    void processAdd(const AddData& param, int& result)
-    {
-        result = param.i + param.j;
-    }
-
-private:
-    boost::shared_ptr<SearchService> searchService_;
-};
 
 
 int main( int argc, char * argv[])

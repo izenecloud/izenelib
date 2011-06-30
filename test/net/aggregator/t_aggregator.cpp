@@ -2,6 +2,7 @@
 #include <net/aggregator/JobAggregator.h>
 #include <net/aggregator/AggregatorConfig.h>
 #include "data_type.h"
+#include "worker_define.h"
 
 #include <sstream>
 
@@ -32,6 +33,33 @@ public:
            res += resList[i].second;
         }
     }
+
+public:
+    /// the following shows examples to integrate local worker.
+    template <typename RequestType, typename ResultType>
+    bool get_local_result(
+            const std::string& func,
+            const RequestType& request,
+            ResultType& result,
+            std::string& error)
+    {
+        if (localWorker_)
+        {
+            return localWorker_->call(func, request, result, error);
+        }
+
+        error = "unknown";
+        return false;
+    }
+
+    void setLocalWorker(boost::shared_ptr<SearchWorker>& localWorker)
+    {
+        localWorker_ = localWorker;
+        srvInfo_ = localWorker->getServerInfo();
+    }
+
+private:
+    boost::shared_ptr<SearchWorker> localWorker_;
 };
 
 int main( int argc, char * argv[])
@@ -41,7 +69,12 @@ int main( int argc, char * argv[])
     config.addWorker("0.0.0.0", 18112);
     config.addWorker("0.0.0.0", 18113);
 
+    // local worker
+    boost::shared_ptr<SearchService> searchService(new SearchService());
+    boost::shared_ptr<SearchWorker> localWorker(new SearchWorker("0.0.0.0", 18110, searchService));
+
     SearchAggregator ag;
+    ag.setLocalWorker(localWorker);
     ag.setWorkerListConfig(config);
 
     /// asynchronous requests
@@ -55,11 +88,11 @@ int main( int argc, char * argv[])
 
     // join results
     DataResult result;
-    ag.getResult<DataResult>(futureHolder, result);
+    ag.getResult<Data, DataResult>(futureHolder, "getKeywordSearchResult", req, result);
     std::cout << "keyword result: "<<result.i << " / " <<result.s<< std::endl;
 
     int result2 = 0;
-    ag.getResult<int>(futureHolder2, result2);
+    ag.getResult<AddData, int>(futureHolder2, "add", req2, result2);
     std::cout << "add result: "<<result2<< std::endl;
 
     /// synchronous

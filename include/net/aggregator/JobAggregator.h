@@ -26,8 +26,13 @@ const static std::vector<workerid_t> NullWorkeridList;
  * join_impl(DataType& result, const std::vector<std::pair<workerid_t, ResultType> >& resultList);
  * join_impl() used to merge result, it's not virtual, because base class won't known the ResultType
  * of a concrete aggregator.
+ *
+ * Implement get_local_result(), in which call local worker, if needed.
+ * template <typename RequestType, typename ResultType>
+ * bool get_local_result(const std::string& func, const RequestType& request, ResultType& result, std::string& error)
+ *
  * @example
-
+ *
 class SearchAggregator : public JobAggregator<SearchAggregator>
 {
 public:
@@ -36,7 +41,7 @@ public:
         // merge singleWorkerResult to result
     }
 };
-
+ *
  */
 template <typename ConcreteAggregator>
 class JobAggregator
@@ -116,13 +121,18 @@ public:
      * @brief ResultType have to be serializable using MsgPack
      * @param futureHolder[IN] holder for getting results
      * @param result[OUT] aggregated result
+     * @param workeridList[IN] WARN: make sure this parameter is consistent with sendRequest.
      */
-    template <typename ResultType>
+    template <typename RequestType, typename ResultType>
     void getResult(
             WorkerFutureHolder& futureHolder,
-            ResultType& result)
+            const std::string& func,
+            const RequestType& request,
+            ResultType& result,
+            const std::vector<workerid_t>& workeridList = NullWorkeridList)
     {
-        join(futureHolder, result);
+
+        join(futureHolder, func, request, result, checkWorkerById(workeridList, 0));
     }
 
 
@@ -144,7 +154,7 @@ public:
         sendRequest(futureHolder, func, request, workeridList, timeout);
 
         // get result
-        join(futureHolder, result);
+        join(futureHolder, func, request, result, checkWorkerById(workeridList, 0));
     }
 
 protected:
@@ -192,12 +202,40 @@ protected:
     }
 
 protected:
-    template <typename ResultType>
-    void join(WorkerFutureHolder& futureHolder, ResultType& result)
+    template <typename RequestType, typename ResultType>
+    void join(WorkerFutureHolder& futureHolder,
+              const std::string& func,
+              const RequestType& request,
+              ResultType& result,
+              bool isCallLocalWorker)
     {
-        cout << "---- join " << endl;
         std::vector<std::pair<workerid_t, ResultType> > resultList;
 
+        cout << "---- join " << endl;
+        // local worker
+        try
+        {
+            if (isCallLocalWorker)
+            {
+                cout << "worker0 [local] ";
+                ResultType result;
+                std::string error;
+                if (static_cast<ConcreteAggregator*>(this)->get_local_result(func, request, result, error))
+                {
+                    resultList.push_back(std::make_pair(0, result));
+                    cout << "fine" << endl;
+                }
+                else {
+                    cout << error << endl;
+                }
+            }
+        }
+        catch(std::exception& e)
+        {
+            cout << e.what() <<endl;
+        }
+
+        // remote worker
         std::vector<WorkerFuture>& futureList = futureHolder.getFutureList();
         std::vector<WorkerFuture>::iterator workerFuture = futureList.begin();
         for (; workerFuture != futureList.end(); workerFuture++)
@@ -236,7 +274,7 @@ protected:
 
             //if ( !workerFuture->getState() )
             {
-                cout <<"woker"<<workerFuture->getWorkerId()
+                cout <<"worker"<<workerFuture->getWorkerId()
                      <<" ["<<workerFuture->getServerInfo().host_
                      <<":"<<workerFuture->getServerInfo().port_
                      <<"] "<<workerFuture->getError() << endl;
@@ -253,7 +291,7 @@ protected:
         }
     }
 
-private:
+protected:
     ServerInfo srvInfo_;
 
     typedef std::vector<WorkerSessionPtr>::iterator worker_iterator_t;

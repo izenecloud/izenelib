@@ -42,5 +42,23 @@ struct DataResult
     MSGPACK_DEFINE(i, s, err);
 };
 
+class SearchService
+{
+public:
+    SearchService()
+    {
+        data_ = "abc 中国 ";
+    }
+
+public:
+    void getKeywordSearchResult(const string& request, string& result)
+    {
+        result.assign(data_);
+    }
+
+private:
+    string data_;
+};
+
 
 #endif /* DATA_TYPE_H_ */
