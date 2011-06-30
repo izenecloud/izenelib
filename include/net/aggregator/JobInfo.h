@@ -100,7 +100,7 @@ public:
     , workerSrv_(workerSrv)
     , future_(future)
     , state_(true)
-    , error_()
+    , error_("fine")
     {
 
     }

@@ -17,6 +17,9 @@
 namespace net{
 namespace aggregator{
 
+// for default parameter value
+const static std::vector<workerid_t> NullWorkeridList;
+
 /**
  * Job Aggregator base class
  * @brief Implement a concrete aggregator using inheritance, the following function must be implemented:
@@ -28,7 +31,7 @@ namespace aggregator{
 class SearchAggregator : public JobAggregator<SearchAggregator>
 {
 public:
-    void join_impl(ResultType& result, const ResultType& singleWorkerResult)
+    void join_impl(ResultType& result, const std::vector<std::pair<workerid_t, ResultType> >& resultList)
     {
         // merge singleWorkerResult to result
     }
@@ -69,27 +72,44 @@ public:
         }
     }
 
-
+    /**
+     * asynchronous interface
+     * @brief RequestType have to be serializable using MsgPack
+     */
     template <typename RequestType>
     void sendRequest(
             WorkerFutureHolder& futureHolder,
             const std::string& func,
             const RequestType& request,
-            unsigned int timeout = 2) // xxx
+            const std::vector<workerid_t>& workeridList = NullWorkeridList,
+            unsigned int timeout = 2)
     {
+        cout << "---> " << func << endl;
         worker_iterator_t worker = workerSessionPool_.begin();
         for ( ; worker != workerSessionPool_.end(); worker++ )
         {
+            workerid_t workerid = (*worker)->getWorkerId();
+            if ( !checkWorkerById(workeridList, workerid) )
+                continue;
+
+            cout << "send to worker" << workerid <<" ["
+                 << (*worker)->getServerInfo().host_<<":"<<(*worker)->getServerInfo().port_
+                 <<"]"<<endl;
+
+            (*worker)->setTimeOut(timeout);
             WorkerFuture workerFuture(
-                    (*worker)->getWorkerId(),
+                    workerid,
                     (*worker)->getServerInfo(),
                     (*worker)->sendRequest(func, request));
 
             futureHolder.addWorkerFuture(workerFuture);
         }
-
     }
 
+    /**
+     * get result after asynchronous call
+     * @brief ResultType have to be serializable using MsgPack
+     */
     template <typename ResultType>
     void getResult(
             WorkerFutureHolder& futureHolder,
@@ -98,21 +118,32 @@ public:
         join(futureHolder, result);
     }
 
+
+    /**
+     * synchronous interface
+     * @brief a merged interface for sendRequest & getResult
+     */
+    template <typename RequestType, typename ResultType>
+    void sendRequest(
+            const std::string& func,
+            const RequestType& request,
+            ResultType& result,
+            const std::vector<workerid_t>& workeridList = NullWorkeridList,
+            unsigned int timeout = 2)
+    {
+        WorkerFutureHolder futureHolder;
+
+        // send requests
+        sendRequest(futureHolder, func, request, workeridList, timeout);
+
+        // get result
+        join(futureHolder, result);
+    }
+
 protected:
     void init()
     {
 
-    }
-
-    /// reserved
-    void registerWorker(const ServerInfo& srvInfo)
-    {
-        if (isLocalWorker(srvInfo)) {
-            // xxx
-        }
-        else {
-            createWorkerClient(srvInfo);
-        }
     }
 
     bool isLocalWorker(const ServerInfo& srvInfo)
@@ -139,10 +170,25 @@ protected:
         }
     }
 
+    bool checkWorkerById(const std::vector<workerid_t>& workeridList, workerid_t workerid)
+    {
+        if (workeridList.size() == 0)
+            return true;
+
+        for (size_t i = 0; i < workeridList.size(); i++)
+        {
+            if (workerid == workeridList[i])
+                return true;
+        }
+
+        return false;
+    }
+
 protected:
     template <typename ResultType>
     void join(WorkerFutureHolder& futureHolder, ResultType& result)
     {
+        cout << "---- join " << endl;
         std::vector<std::pair<workerid_t, ResultType> > resultList;
 
         std::vector<WorkerFuture>& futureList = futureHolder.getFutureList();
@@ -181,9 +227,10 @@ protected:
                 workerFuture->setError(e.what());
             }
 
-            if ( !workerFuture->getState() )
+            //if ( !workerFuture->getState() )
             {
-                cout <<"["<<workerFuture->getServerInfo().host_
+                cout <<"woker"<<workerFuture->getWorkerId()
+                     <<" ["<<workerFuture->getServerInfo().host_
                      <<":"<<workerFuture->getServerInfo().port_
                      <<"] "<<workerFuture->getError() << endl;
             }
@@ -205,6 +252,7 @@ private:
     typedef std::vector<WorkerSessionPtr>::iterator worker_iterator_t;
     std::vector<WorkerSessionPtr> workerSessionPool_;
 };
+
 
 }} // end - namespace
 

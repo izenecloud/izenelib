@@ -60,7 +60,7 @@ public:
 
     bool add(JobRequest& req)
     {
-        WORKER_HANDLE_1_1(req, Data, processAdd, DataResult)
+        WORKER_HANDLE_1_1(req, AddData, processAdd, int)
         return true;
     }
 
@@ -69,11 +69,12 @@ private:
     void processGetKeywordSearchResult(const Data& param, DataResult& result)
     {
         searchService_->getKeywordSearchResult(param.s, result.s);
+        //sleep(5);
     }
 
-    void processAdd(const Data& param, DataResult& result)
+    void processAdd(const AddData& param, int& result)
     {
-        result.i = param.i + result.i;
+        result = param.i + param.j;
     }
 
 private:
