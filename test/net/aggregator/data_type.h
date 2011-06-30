@@ -21,6 +21,14 @@ struct Data
     MSGPACK_DEFINE(s, i);
 };
 
+struct AddData
+{
+    int i;
+    int j;
+
+    MSGPACK_DEFINE(i, j);
+};
+
 struct DataResult
 {
     int i;

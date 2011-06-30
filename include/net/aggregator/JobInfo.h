@@ -20,6 +20,8 @@ namespace aggregator{
 
 /// job request type
 typedef msgpack::rpc::request JobRequest;
+typedef unsigned int workerid_t;
+typedef msgpack::rpc::future future_t;
 
 /// server info
 struct ServerInfo
@@ -40,20 +42,16 @@ struct ServerInfo
  */
 class WorkerSession
 {
+    workerid_t workerId_;   // unique id for each worker server
     ServerInfo workerSrv_;
 
     msgpack::rpc::client client_;
-    msgpack::rpc::future reply_;
-
-    bool state_;
-    std::string error_;
 
 public:
-    WorkerSession(const std::string& host, uint16_t port)
-    : workerSrv_(host, port)
+    WorkerSession(const std::string& host, uint16_t port, const workerid_t workerId)
+    : workerId_(workerId)
+    , workerSrv_(host, port)
     , client_(host, port)
-    , state_(true)
-    , error_()
     {}
 
     void setTimeOut(unsigned int sec)
@@ -62,16 +60,65 @@ public:
     }
 
     template <typename RequestType>
-    void sendRequest(const std::string& func, const RequestType& param)
+    msgpack::rpc::future sendRequest(const std::string& func, const RequestType& param)
     {
-        state_ = true;
-        reply_ = client_.call(func, param);
+        return client_.call(func, param);
+    }
+
+    workerid_t getWorkerId() const
+    {
+        return workerId_;
+    }
+
+    const ServerInfo& getServerInfo() const
+    {
+        return workerSrv_;
+    }
+};
+
+typedef boost::shared_ptr<WorkerSession> WorkerSessionPtr;
+
+/**
+ * worker future reply
+ */
+class WorkerFuture
+{
+    workerid_t workerId_;
+    ServerInfo workerSrv_;
+
+    future_t future_;
+
+    bool state_;
+    std::string error_;
+
+public:
+    WorkerFuture(
+            const workerid_t workerid,
+            const ServerInfo workerSrv,
+            const future_t& future)
+    : workerId_(workerid)
+    , workerSrv_(workerSrv)
+    , future_(future)
+    , state_(true)
+    , error_("fine")
+    {
+
     }
 
     template <typename ResultType>
     ResultType getResult()
     {
-        return reply_.get<ResultType>();
+        return future_.get<ResultType>();
+    }
+
+    workerid_t getWorkerId() const
+    {
+        return workerId_;
+    }
+
+    const ServerInfo& getServerInfo() const
+    {
+        return workerSrv_;
     }
 
     bool getState()
@@ -89,14 +136,30 @@ public:
     {
         return error_;
     }
-
-    const ServerInfo& getServerInfo() const
-    {
-        return workerSrv_;
-    }
 };
 
-typedef boost::shared_ptr<WorkerSession> WorkerSessionPtr;
+/**
+ * manage woker futures for 1 request
+ */
+class WorkerFutureHolder
+{
+    std::vector<WorkerFuture> futureList_;
+public:
+    void clear()
+    {
+        futureList_.clear();
+    }
+
+    void addWorkerFuture(const WorkerFuture& workerFuture)
+    {
+        futureList_.push_back(workerFuture);
+    }
+
+    std::vector<WorkerFuture>& getFutureList()
+    {
+        return futureList_;
+    }
+};
 
 }} // end - namespace
 
