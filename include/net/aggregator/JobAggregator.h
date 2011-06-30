@@ -75,6 +75,11 @@ public:
     /**
      * asynchronous interface
      * @brief RequestType have to be serializable using MsgPack
+     * @param futureHolder[OUT] request holder for getting results in the future
+     * @param func[IN] function name to be requested
+     * @param request[IN] request data
+     * @param workeridList[IN] spedified workers to request, request all if empty.
+     * @param timeout[IN] timeout in seconds
      */
     template <typename RequestType>
     void sendRequest(
@@ -109,6 +114,8 @@ public:
     /**
      * get result after asynchronous call
      * @brief ResultType have to be serializable using MsgPack
+     * @param futureHolder[IN] holder for getting results
+     * @param result[OUT] aggregated result
      */
     template <typename ResultType>
     void getResult(
