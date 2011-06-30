@@ -20,6 +20,44 @@ class SparseVector
 
   public:
     typedef Container<std::pair<K, V> > ValueType;
+    typedef SparseVector<V, K, Container> SelfType;
+    
+    SelfType& operator+=(const SelfType& from)
+    {
+      std::vector<std::pair<K, V> > new_value(value.size()+from.value.size());
+      K p = 0;
+      for(uint32_t i=0;i<value.size();i++)
+      {
+        new_value[p] = value[i];
+        ++p;
+      }
+      for(uint32_t i=0;i<from.value.size();i++)
+      {
+        new_value[p] = from.value[i];
+        ++p;
+      }
+
+      std::sort(new_value.begin(), new_value.end());
+      K key = 0;
+      V value = 0;
+      value.resize(0);
+      for(uint32_t i=0;i<new_value.size();i++)
+      {
+        K current_key = new_value[i].first;
+        if(current_key!=key && value!=0)
+        {
+          value.push_back(std::make_pair(key, value) );
+          value = 0;
+        }
+        value += new_value[i].second;
+        key = current_key;
+      }
+      if(value!=0)
+      {
+        value.push_back(std::make_pair(key, value) );
+      }
+      return *this;
+    }
     
     friend class boost::serialization::access;
     template<class Archive>

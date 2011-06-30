@@ -23,6 +23,7 @@ ADD_EXECUTABLE(t_util
   t_serialization.cpp
   t_log.cpp
   t_wrapper.cpp
+  t_url_util.cpp
   )
 ADD_EXECUTABLE(t_wrapper
   wrapper.cpp
