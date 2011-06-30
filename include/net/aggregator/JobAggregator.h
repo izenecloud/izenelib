@@ -70,20 +70,32 @@ public:
     }
 
 
-    template <typename RequestParamType, typename ResultParamType>
+    template <typename RequestType>
     void sendRequest(
+            WorkerFutureHolder& futureHolder,
             const std::string& func,
-            const RequestParamType& request,
-            ResultParamType& result,
+            const RequestType& request,
             unsigned int timeout = 2) // xxx
     {
         worker_iterator_t worker = workerSessionPool_.begin();
         for ( ; worker != workerSessionPool_.end(); worker++ )
         {
-            (*worker)->sendRequest(func, request);
+            WorkerFuture workerFuture(
+                    (*worker)->getWorkerId(),
+                    (*worker)->getServerInfo(),
+                    (*worker)->sendRequest(func, request));
+
+            futureHolder.addWorkerFuture(workerFuture);
         }
 
-        join(result);
+    }
+
+    template <typename ResultType>
+    void getResult(
+            WorkerFutureHolder& futureHolder,
+            ResultType& result)
+    {
+        join(futureHolder, result);
     }
 
 protected:
@@ -129,50 +141,51 @@ protected:
 
 protected:
     template <typename ResultType>
-    void join(ResultType& result)
+    void join(WorkerFutureHolder& futureHolder, ResultType& result)
     {
         std::vector<std::pair<workerid_t, ResultType> > resultList;
 
-        worker_iterator_t worker = workerSessionPool_.begin();
-        for (; worker != workerSessionPool_.end(); worker++)
+        std::vector<WorkerFuture>& futureList = futureHolder.getFutureList();
+        std::vector<WorkerFuture>::iterator workerFuture = futureList.begin();
+        for (; workerFuture != futureList.end(); workerFuture++)
         {
             try
             {
-                ResultType workerResult = (*worker)->getResult<ResultType>();
-                unsigned int workerId = (*worker)->getWorkerId();
-                resultList.push_back(std::make_pair(workerId,workerResult));
+                ResultType workerResult = workerFuture->getResult<ResultType>();
+                unsigned int workerId = workerFuture->getWorkerId();
+                resultList.push_back(std::make_pair(workerId, workerResult));
             }
             catch (msgpack::rpc::connect_error& e)
             {
                 // xxx
-                (*worker)->setError("connecting failed!");
+                workerFuture->setError("connecting failed!");
             }
             catch (msgpack::rpc::timeout_error& e)
             {
-                (*worker)->setError("request timed out!");
+                workerFuture->setError("request timed out!");
             }
             catch (msgpack::rpc::no_method_error& e)
             {
-                (*worker)->setError("method not found!");
+                workerFuture->setError("method not found!");
             }
             catch (msgpack::rpc::argument_error& e)
             {
-                (*worker)->setError("argument mismatch!");
+                workerFuture->setError("argument mismatch!");
             }
             catch (msgpack::rpc::remote_error& e)
             {
-                (*worker)->setError("remote_error");
+                workerFuture->setError("remote_error");
             }
             catch (std::exception& e)
             {
-                (*worker)->setError(e.what());
+                workerFuture->setError(e.what());
             }
 
-            if ( !(*worker)->getState() )
+            if ( !workerFuture->getState() )
             {
-                cout <<"["<<(*worker)->getServerInfo().host_
-                     <<":"<<(*worker)->getServerInfo().port_
-                     <<"] "<< (*worker)->getError() << endl;
+                cout <<"["<<workerFuture->getServerInfo().host_
+                     <<":"<<workerFuture->getServerInfo().port_
+                     <<"] "<<workerFuture->getError() << endl;
             }
         }
 

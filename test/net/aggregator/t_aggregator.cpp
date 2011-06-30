@@ -1,3 +1,4 @@
+#include <net/aggregator/JobInfo.h>
 #include <net/aggregator/JobAggregator.h>
 #include <net/aggregator/AggregatorConfig.h>
 #include "data_type.h"
@@ -34,11 +35,13 @@ int main( int argc, char * argv[])
     SearchAggregator ag;
     ag.setWorkerListConfig(config);
 
+    // distributed works
+    WorkerFutureHolder futureHolder;
     Data req;
-    //Data ret;
-    DataResult ret;
-    ag.sendRequest<Data, DataResult>("getKeywordSearchResult", req, ret);
+    ag.sendRequest<Data>(futureHolder, "getKeywordSearchResult", req);
+    DataResult result;
+    ag.getResult<DataResult>(futureHolder, result);
 
-    std::cout << "result: "<<ret.i << " / " <<ret.s<< std::endl;
+    std::cout << "result: "<<result.i << " / " <<result.s<< std::endl;
 }
 
