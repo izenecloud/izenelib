@@ -92,7 +92,7 @@ public:
             const std::string& func,
             const RequestType& request,
             const std::vector<workerid_t>& workeridList = NullWorkeridList,
-            unsigned int timeout = 2)
+            unsigned int timeout = 7)
     {
         cout << "---> " << func << endl;
         worker_iterator_t worker = workerSessionPool_.begin();
@@ -109,7 +109,7 @@ public:
             WorkerFuture workerFuture(
                     workerid,
                     (*worker)->getServerInfo(),
-                    (*worker)->sendRequest(func, request, timeout));
+                    (*worker)->sendRequest(futureHolder.getSessionPool(), func, request, timeout));
 
             futureHolder.addWorkerFuture(workerFuture);
         }
@@ -145,7 +145,7 @@ public:
             const RequestType& request,
             ResultType& result,
             const std::vector<workerid_t>& workeridList = NullWorkeridList,
-            unsigned int timeout = 2)
+            unsigned int timeout = 10)
     {
         WorkerFutureHolder futureHolder;
 
@@ -237,8 +237,10 @@ protected:
         // remote worker
         std::vector<WorkerFuture>& futureList = futureHolder.getFutureList();
         std::vector<WorkerFuture>::iterator workerFuture = futureList.begin();
+        time_t t1 = time(NULL);
         for (; workerFuture != futureList.end(); workerFuture++)
         {
+            time_t t1 = time(NULL); //test
             try
             {
                 ResultType workerResult = workerFuture->getResult<ResultType>();
@@ -271,14 +273,19 @@ protected:
                 workerFuture->setError(e.what());
             }
 
+            time_t t2 = time(NULL); //test
+
             //if ( !workerFuture->getState() )
             {
                 cout <<"worker"<<workerFuture->getWorkerId()
                      <<" ["<<workerFuture->getServerInfo().host_
                      <<":"<<workerFuture->getServerInfo().port_
-                     <<"] "<<workerFuture->getError() << endl;
+                     <<"] "<<workerFuture->getError()
+                     <<" , cost "<<(t2-t1)<< endl;
             }
         }
+        time_t t2 = time(NULL);
+        cout << "---- join end, cost(s): " << (t2-t1) << endl;
 
         if (resultList.size() > 0)
         {

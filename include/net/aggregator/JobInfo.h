@@ -22,6 +22,7 @@ namespace aggregator{
 /// job request type
 typedef msgpack::rpc::request JobRequest;
 typedef unsigned int workerid_t;
+typedef msgpack::rpc::session_pool session_pool_t;
 typedef msgpack::rpc::future future_t;
 
 /// server info
@@ -46,29 +47,21 @@ class WorkerSession
     workerid_t workerId_;   // unique id for each worker server
     ServerInfo workerSrv_;
 
-//    msgpack::rpc::client client_;
-    msgpack::rpc::session_pool sessionPool_;
-
 public:
     WorkerSession(const std::string& host, uint16_t port, const workerid_t workerId)
     : workerId_(workerId)
     , workerSrv_(host, port)
-//    , client_(host, port)
     {}
 
-//    void setTimeOut(unsigned int sec)
-//    {
-//        client_.set_timeout(sec);
-//    }
-
     template <typename RequestType>
-    msgpack::rpc::future sendRequest(const std::string& func, const RequestType& param, unsigned int sec)
+    msgpack::rpc::future sendRequest(
+            session_pool_t& sessionPool,
+            const std::string& func, const RequestType& param, unsigned int sec)
     {
         msgpack::rpc::session session =
-                sessionPool_.get_session(workerSrv_.host_, workerSrv_.port_);
+                sessionPool.get_session(workerSrv_.host_, workerSrv_.port_);
         session.set_timeout(sec);
         return session.call(func, param);
-//        return client_.call(func, param);
     }
 
     workerid_t getWorkerId() const
@@ -149,12 +142,20 @@ public:
  */
 class WorkerFutureHolder
 {
-    std::vector<WorkerFuture> futureList_;
+    std::vector<WorkerFuture> futureList_; // pipeline
+    session_pool_t sessionPool_;
+
 public:
     void clear()
     {
         futureList_.clear();
     }
+
+    session_pool_t& getSessionPool()
+    {
+        return sessionPool_;
+    }
+
 
     void addWorkerFuture(const WorkerFuture& workerFuture)
     {
