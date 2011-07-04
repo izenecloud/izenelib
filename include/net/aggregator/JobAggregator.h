@@ -106,11 +106,10 @@ public:
                  << (*worker)->getServerInfo().host_<<":"<<(*worker)->getServerInfo().port_
                  <<"]"<<endl;
 
-            (*worker)->setTimeOut(timeout);
             WorkerFuture workerFuture(
                     workerid,
                     (*worker)->getServerInfo(),
-                    (*worker)->sendRequest(func, request));
+                    (*worker)->sendRequest(func, request, timeout));
 
             futureHolder.addWorkerFuture(workerFuture);
         }

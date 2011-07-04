@@ -13,6 +13,7 @@ using namespace std;
 #include <boost/shared_ptr.hpp>
 #include <3rdparty/msgpack/msgpack.hpp>
 #include <3rdparty/msgpack/rpc/client.h>
+#include <3rdparty/msgpack/rpc/session_pool.h>
 #include <3rdparty/msgpack/rpc/request.h>
 
 namespace net{
@@ -45,24 +46,29 @@ class WorkerSession
     workerid_t workerId_;   // unique id for each worker server
     ServerInfo workerSrv_;
 
-    msgpack::rpc::client client_;
+//    msgpack::rpc::client client_;
+    msgpack::rpc::session_pool sessionPool_;
 
 public:
     WorkerSession(const std::string& host, uint16_t port, const workerid_t workerId)
     : workerId_(workerId)
     , workerSrv_(host, port)
-    , client_(host, port)
+//    , client_(host, port)
     {}
 
-    void setTimeOut(unsigned int sec)
-    {
-        client_.set_timeout(sec);
-    }
+//    void setTimeOut(unsigned int sec)
+//    {
+//        client_.set_timeout(sec);
+//    }
 
     template <typename RequestType>
-    msgpack::rpc::future sendRequest(const std::string& func, const RequestType& param)
+    msgpack::rpc::future sendRequest(const std::string& func, const RequestType& param, unsigned int sec)
     {
-        return client_.call(func, param);
+        msgpack::rpc::session session =
+                sessionPool_.get_session(workerSrv_.host_, workerSrv_.port_);
+        session.set_timeout(sec);
+        return session.call(func, param);
+//        return client_.call(func, param);
     }
 
     workerid_t getWorkerId() const
