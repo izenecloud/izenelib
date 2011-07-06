@@ -29,7 +29,7 @@ class policy_lfu
 {
     typedef ::stx::btree_set<KeyType> keyset_type;
     typedef ::stx::btree_map<unsigned long long,keyset_type > entry_type;
-    typedef ::stx::btree_map<KeyType, unsigned long long> backentry_type;
+    typedef ::rde::hash_map<KeyType, unsigned long long> backentry_type;
     entry_type _entries;
     backentry_type _backEntries;
 public:
@@ -37,14 +37,22 @@ public:
     {
         keyset_type& pad=_entries[1];
         pad.insert(_k);
-        _backEntries.insert(std::pair<KeyType,unsigned long long>(_k,1));
+        _backEntries.insert(rde::pair<KeyType,unsigned long long>(_k,1));
     }
 
     void remove(const KeyType& _k)
     {
-        keyset_type& pad = _entries[_backEntries[_k]];
-        pad.erase(_k);
-        _backEntries.erase(_k);
+        unsigned long long ref = _backEntries[_k];
+        if(ref > 0 )
+        {
+            keyset_type& pad = _entries[_backEntries[_k]];
+            pad.erase(_k);
+            if(pad.empty())
+            {
+                _entries.erase(_backEntries[_k]);
+            }
+            _backEntries.erase(_k);
+        }
     }
 
     void touch(const KeyType& _k)
@@ -55,10 +63,26 @@ public:
         {
             keyset_type& pad = _entries[ref];
             pad.erase(_k);
+            if(pad.empty())
+            {
+                _entries.erase(ref);
+            }
+/*
+            typename entry_type::iterator eit = _entries.find(ref);
+            if (eit != _entries.end())
+            {
+                eit->second.erase(_k);
+                if (eit->second.empty())
+                {
+                    _entries.erase(eit);
+                }
+            }
+*/
         }
         ref++;
         keyset_type& new_pad =  _entries[ref];
         new_pad.insert(_k);
+
     }
 
     void clear()
@@ -72,7 +96,7 @@ public:
         size_t count = 0;
         for(typename entry_type::iterator it = _entries.begin(); it != _entries.end(); ++it)
         {
-            count += sizeof(KeyType)*it->second.size();
+            count += sizeof(KeyType)*it.data().size();
             count += sizeof(unsigned long long);
         }
         for(typename backentry_type::iterator it = _backEntries.begin(); it != _backEntries.end(); ++it)
@@ -87,12 +111,28 @@ public:
     {
         for(typename entry_type::iterator iter = _entries.begin(); iter != _entries.end(); ++iter)
         {
-            if(! iter->second.empty())
+            keyset_type& pad = iter.data();
+            k = *(pad.begin());
+            pad.erase(k);
+            if(pad.empty())
+                _entries.erase(iter.key());
+            _backEntries.erase(k);
+            return true;
+
+/*			
+            typename keyset_type::iterator kit = iter->second.begin();
+            if(kit != iter->second.end())
             {
-                k = *(iter->second.begin());
-                remove(k);
-                return true;				
+                k = *kit;
+                iter->second.erase(kit);
+                if (iter->second.empty())
+                {
+                    _entries.erase(iter);
+                }
+                _backEntries.erase(k);
+                return true;    
             }
+*/
         }
         return false;
     }
@@ -355,10 +395,16 @@ private:
         typename CacheDirtyFlagType::iterator it = _cache_row_dirty_flag.find(x);
         if(it == _cache_row_dirty_flag.end())
         {
-            _cache_row_dirty_flag.insert( rde::pair<KeyType, bool>(x, flag) );
+            if(flag)
+                _cache_row_dirty_flag.insert( rde::pair<KeyType, bool>(x, flag) );
         }
         else
-            it->second = flag;
+        {
+            if(flag)
+                it->second = flag;
+            else
+                _cache_row_dirty_flag.erase(it);
+        }
     }
 };
 
