@@ -53,6 +53,15 @@ public:
     , workerSrv_(host, port)
     {}
 
+    /**
+     *
+     * @param sessionPool session pool shared for the worker session.
+     * one session pool should be shared with all worker sessions for one request.
+     * @param func remote function
+     * @param param parameter for remote function
+     * @param sec session timeout in seconds
+     * @return future delayed reply.
+     */
     template <typename RequestType>
     msgpack::rpc::future sendRequest(
             session_pool_t& sessionPool,
@@ -60,6 +69,11 @@ public:
     {
         msgpack::rpc::session session =
                 sessionPool.get_session(workerSrv_.host_, workerSrv_.port_);
+
+        // timeout is set for session, i.e., if send 2 or more requests through the same session, the time for timeout
+        // is the total time for processing these 2 or more requests, but not for processing each request respectively.
+        // For the sessions for a worker got from a same session pool are the same session, each request should share
+        // a different session pool.
         session.set_timeout(sec);
         return session.call(func, param);
     }
@@ -78,7 +92,8 @@ public:
 typedef boost::shared_ptr<WorkerSession> WorkerSessionPtr;
 
 /**
- * worker future reply
+ * A future object, returned immediately after sent a request through a worker session,
+ * is used to get result from the worker in the future.
  */
 class WorkerFuture
 {
@@ -138,7 +153,8 @@ public:
 };
 
 /**
- * manage woker futures for 1 request
+ * Manage all worker futures returned by worker sessions for one request.
+ * A session pool will be shared for all worker sessions in one request, so that their can be processed concurrently.
  */
 class WorkerFutureHolder
 {

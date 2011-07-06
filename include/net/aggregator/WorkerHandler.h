@@ -33,7 +33,8 @@ struct WorkerHandler
 
 #define ADD_WORKER_HANDLER(handlerFunction)                \
     {                                                      \
-        WorkerHandler<ConcreteWorkerType> handler(&ConcreteWorkerType::handlerFunction); \
+        WorkerHandler<ConcreteWorkerType>                  \
+            handler(&ConcreteWorkerType::handlerFunction); \
         addHandler(#handlerFunction, handler);             \
     }
 
