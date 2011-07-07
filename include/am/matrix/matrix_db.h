@@ -190,8 +190,8 @@ class MatrixDB
 {
     typedef ::rde::hash_map<KeyType, boost::shared_ptr<RowType > > CacheStorageType;
     CacheStorageType _cache_storage;
-    typedef ::rde::hash_map<KeyType, bool > CacheDirtyFlagType;
-    CacheDirtyFlagType _cache_row_dirty_flag;
+    typedef ::stx::btree_set<KeyType> CacheDirtyFlagSet;
+    CacheDirtyFlagSet _cache_row_dirty_flag;
     enum { ElementSize = sizeof(KeyType)+sizeof(ElementType) };
     std::size_t _maxEntries;
     std::size_t _currEntries;
@@ -221,9 +221,13 @@ public:
             row_data = cit->second;
             size_t row_size = row_data->size();
             _currEntries = (_currEntries <= row_size)?0:(_currEntries - row_size);
-            _db_storage.update(x, *row_data);
-            _cache_storage.erase(x);
-            _set_row_dirty_flag(x,false);
+            typename CacheDirtyFlagSet::iterator fit = _cache_row_dirty_flag.find(x);
+            if (fit != _cache_row_dirty_flag.end())
+            {
+                _db_storage.update(x, *row_data);
+                _cache_row_dirty_flag.erase(fit);
+            }
+            _cache_storage.erase(cit);
             return true;
         }
         return false;
@@ -231,8 +235,8 @@ public:
 
     void coeff(KeyType x, KeyType y, ElementType d)
     {
-        boost::shared_ptr<RowType> row_data = row(x);
-        _set_row_dirty_flag(x,true);		
+        boost::shared_ptr<RowType> row_data = _row(x);
+        _cache_row_dirty_flag.insert(x);
         typename RowType::iterator it = row_data->find(y); 
         if(it == row_data->end())
         {
@@ -247,8 +251,8 @@ public:
 
     void incre(KeyType x, KeyType y, ElementType inc)
     {
-        boost::shared_ptr<RowType> row_data = row(x);
-        _set_row_dirty_flag(x,true);
+        boost::shared_ptr<RowType> row_data = _row(x);
+        _cache_row_dirty_flag.insert(x);
         typename RowType::iterator it = row_data->find(y); 
         if(it == row_data->end())
         {
@@ -263,8 +267,8 @@ public:
 
     void incre(KeyType x, KeyType y)
     {
-        boost::shared_ptr<RowType> row_data = row(x);
-        _set_row_dirty_flag(x,true);
+        boost::shared_ptr<RowType> row_data = _row(x);
+        _cache_row_dirty_flag.insert(x);
         typename RowType::iterator it = row_data->find(y); 
         if(it == row_data->end())
         {
@@ -280,8 +284,8 @@ public:
 
     void row_incre(KeyType x, const std::list<KeyType>& cols)
     {
-        boost::shared_ptr<RowType> row_data = row(x);
-        _set_row_dirty_flag(x,true);		
+        boost::shared_ptr<RowType> row_data = _row(x);
+        _cache_row_dirty_flag.insert(x);
         for(typename std::list<KeyType>::const_iterator iter = cols.begin();
             iter != cols.end(); ++iter)
         {
@@ -301,34 +305,15 @@ public:
 
     ElementType coeff(KeyType x, KeyType y)
     {
-        boost::shared_ptr<RowType> row_data = row(x);
+        boost::shared_ptr<RowType> row_data = _row(x);
         typename RowType::iterator it = row_data->find(y); 
         if(it == row_data->end()) return ElementType();
         return it->second;
     }
 
-    boost::shared_ptr<RowType > row(KeyType x)
+    boost::shared_ptr<const RowType> row(KeyType x)
     {
-        _evict();
-
-        boost::shared_ptr<RowType > row_data;
-        typename CacheStorageType::iterator cit = _cache_storage.find(x);		
-        if(cit == _cache_storage.end())
-        {
-            row_data.reset(new RowType);
-            if(_db_storage.get(x,*row_data))
-            {
-                _currEntries+=row_data->size();
-            }
-            _cache_storage.insert(rde::make_pair(x,row_data));
-            _set_row_dirty_flag(x,false);
-        }
-        else
-            row_data = cit->second;
-
-        _policy.touch(x);
-
-        return row_data;
+        return _row(x);
     }
 
     bool row_without_cache(KeyType x, RowType& row_data)
@@ -340,24 +325,20 @@ public:
     {
         dump();
         _cache_storage.clear();
-        _cache_row_dirty_flag.clear();
     }
 
     void dump()
     {
-        typename CacheDirtyFlagType::iterator it = _cache_row_dirty_flag.begin();
+        typename CacheDirtyFlagSet::iterator it = _cache_row_dirty_flag.begin();
         for(; it != _cache_row_dirty_flag.end(); ++it)
         {
-            if(it->second)
+            typename CacheStorageType::iterator cit = _cache_storage.find(*it);
+            if(cit != _cache_storage.end())
             {
-                typename CacheStorageType::iterator cit = _cache_storage.find(it->first);
-                if(cit != _cache_storage.end())
-                {
-                    _db_storage.update(it->first, *(cit->second));
-                    it->second = false;
-                }
+                _db_storage.update(*it, *(cit->second));
             }
         }
+        _cache_row_dirty_flag.clear();
     }
 
     void status(std::ostream& ostream)
@@ -371,7 +352,7 @@ public:
             ++i;
         }
         size_t policycount = _policy.size();
-        size_t flagcount = (sizeof(KeyType)+sizeof(bool))*_cache_row_dirty_flag.size();
+        size_t flagcount = (sizeof(KeyType))*_cache_row_dirty_flag.size();
         size_t cachecount = (sizeof(KeyType)+sizeof(void*))*_cache_storage.size();
         size_t count = policycount + flagcount + cachecount + poolcount;
         ostream<<"_cache_storage size "<<_cache_storage.size()<<" poolcount "<<poolcount<<" policycount "<<policycount<<" flagcount "<<flagcount<<" cachecount "<<cachecount<<" count "<<count<<std::endl;
@@ -390,22 +371,29 @@ private:
         }
     }
 
-    void _set_row_dirty_flag(const KeyType& x, bool flag)
+    boost::shared_ptr<RowType> _row(KeyType x)
     {
-        typename CacheDirtyFlagType::iterator it = _cache_row_dirty_flag.find(x);
-        if(it == _cache_row_dirty_flag.end())
+        _evict();
+
+        boost::shared_ptr<RowType > row_data;
+        typename CacheStorageType::iterator cit = _cache_storage.find(x);		
+        if(cit == _cache_storage.end())
         {
-            if(flag)
-                _cache_row_dirty_flag.insert( rde::pair<KeyType, bool>(x, flag) );
+            row_data.reset(new RowType);
+            if(_db_storage.get(x,*row_data))
+            {
+                _currEntries+=row_data->size();
+            }
+            _cache_storage.insert(rde::make_pair(x,row_data));
         }
         else
-        {
-            if(flag)
-                it->second = flag;
-            else
-                _cache_row_dirty_flag.erase(it);
-        }
+            row_data = cit->second;
+
+        _policy.touch(x);
+
+        return row_data;
     }
+
 };
 
 
