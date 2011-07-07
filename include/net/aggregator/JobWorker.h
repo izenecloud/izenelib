@@ -103,12 +103,31 @@ public:
      */
 
 public:
-    void Start()
+    void start(unsigned int threadnum=4)
     {
         addHandlers(); // add before run
 
         instance.listen(srvInfo_.host_, srvInfo_.port_);
-        instance.run(4); //xxx
+        instance.start(threadnum);
+    }
+
+    void startServer(const std::string& host, uint16_t port, unsigned int threadnum=4)
+    {
+        addHandlers(); // add before run
+
+        instance.listen(host, port);
+        instance.start(threadnum);
+    }
+
+    void run(unsigned int threadnum=4)
+    {
+        start(threadnum);
+        join();
+    }
+
+    void join()
+    {
+        instance.join();
     }
 
     const ServerInfo& getServerInfo() const

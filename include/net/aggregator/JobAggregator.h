@@ -23,9 +23,9 @@ const static std::vector<workerid_t> NullWorkeridList;
 /**
  * Job Aggregator base class
  * @brief Implement a concrete aggregator using inheritance, the following function must be implemented:
- * join_impl(DataType& result, const std::vector<std::pair<workerid_t, ResultType> >& resultList);
+ * join_impl(ResultType& result, const std::vector<std::pair<workerid_t, ResultType> >& resultList);
  * join_impl() used to merge result, it's not virtual, because base class won't known the ResultType
- * of a concrete aggregator.
+ * of a concrete aggregator. (Overload this function with different ResultTypes)
  *
  * Implement get_local_result(), in which call local worker, if needed.
  * template <typename RequestType, typename ResultType>
@@ -36,10 +36,17 @@ const static std::vector<workerid_t> NullWorkeridList;
 class SearchAggregator : public JobAggregator<SearchAggregator>
 {
 public:
-    void join_impl(ResultType& result, const std::vector<std::pair<workerid_t, ResultType> >& resultList)
+    void join_impl(ResultType1& result, const std::vector<std::pair<workerid_t, ResultType1> >& resultList)
     {
-        // merge singleWorkerResult to result
+        // merge resultList to result
     }
+
+    void join_impl(ResultType2& result, const std::vector<std::pair<workerid_t, ResultType2> >& resultList)
+    {
+        // merge resultList to result
+    }
+
+    ...
 };
  *
  */
@@ -95,8 +102,8 @@ public:
             unsigned int timeout = 7)
     {
         cout << "---> " << func << endl;
-        worker_iterator_t worker = workerSessionPool_.begin();
-        for ( ; worker != workerSessionPool_.end(); worker++ )
+        worker_iterator_t worker = workerSessionList_.begin();
+        for ( ; worker != workerSessionList_.end(); worker++ )
         {
             workerid_t workerid = (*worker)->getWorkerId();
             if ( !checkWorkerById(workeridList, workerid) )
@@ -177,7 +184,7 @@ protected:
         try
         {
             WorkerSessionPtr workerSession(new WorkerSession(srvInfo.host_, srvInfo.port_, workerId));
-            workerSessionPool_.push_back(workerSession);
+            workerSessionList_.push_back(workerSession);
         }
         catch(std::exception& e)
         {
@@ -301,7 +308,7 @@ protected:
     ServerInfo srvInfo_;
 
     typedef std::vector<WorkerSessionPtr>::iterator worker_iterator_t;
-    std::vector<WorkerSessionPtr> workerSessionPool_;
+    std::vector<WorkerSessionPtr> workerSessionList_;
 };
 
 
