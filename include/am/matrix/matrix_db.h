@@ -4,6 +4,7 @@
 #include <types.h>
 #include <am/leveldb/Table.h>
 #include <sdb/SequentialDB.h>
+#include <sdb/SDBCursorIterator.h>
 
 #include <3rdparty/am/google/sparse_hash_map>
 #include <3rdparty/am/stx/btree_map>
@@ -183,7 +184,8 @@ template<
 typename KeyType,
 typename ElementType,
 typename RowType = ::google::sparse_hash_map<KeyType, ElementType >,
-typename StorageType =izenelib::sdb::unordered_sdb_tc<KeyType, RowType, ReadWriteLock >,
+typename StorageType = izenelib::sdb::unordered_sdb_tc<KeyType, RowType, ReadWriteLock >,
+typename IteratorType = izenelib::sdb::SDBCursorIterator<StorageType>,
 typename Policy = detail::policy_lfu<KeyType> 
 >
 class MatrixDB
@@ -199,6 +201,8 @@ class MatrixDB
     Policy _policy;
 public:
     typedef RowType row_type;
+    typedef IteratorType iterator; // first is KeyType, second is RowType
+
     explicit MatrixDB(size_t size, const std::string& path)
         :_maxEntries(size/ElementSize), _currEntries(0), _db_storage(path)
     {
@@ -212,13 +216,26 @@ public:
         _db_storage.close();
     }
 
+    iterator begin()
+    {
+        // before iterating db on disk,
+        // the dirty caches in memeory need to be flushed to disk
+        dump();
+
+        return iterator(_db_storage);
+    }
+
+    iterator end()
+    {
+        return iterator();
+    }
+
     bool erase ( const KeyType& x )
     {
-        boost::shared_ptr<RowType > row_data;
         typename CacheStorageType::iterator cit = _cache_storage.find(x);
         if(cit != _cache_storage.end())
         {
-            row_data = cit->second;
+            boost::shared_ptr<RowType > row_data(cit->second);
             size_t row_size = row_data->size();
             _currEntries = (_currEntries <= row_size)?0:(_currEntries - row_size);
             typename CacheDirtyFlagSet::iterator fit = _cache_row_dirty_flag.find(x);
@@ -316,6 +333,37 @@ public:
         return _row(x);
     }
 
+    /**
+     * update @p row_data to db storage,
+     * if there is old data in cache, replace it with @p row_data.
+     * @param x row number
+     * @param row_data new row data to update
+     */
+    void update_row_without_cache(KeyType x, const RowType& row_data)
+    {
+        typename CacheStorageType::iterator cit = _cache_storage.find(x);
+        if(cit != _cache_storage.end())
+        {
+            // update entry count
+            boost::shared_ptr<RowType > old_row_data(cit->second);
+            size_t old_row_size = old_row_data->size();
+            _currEntries = (_currEntries <= old_row_size)?0:(_currEntries - old_row_size);
+            _currEntries += row_data.size();
+
+            // replace cache
+            cit->second.reset(new RowType(row_data));
+
+            // remove dirty flag
+            typename CacheDirtyFlagSet::iterator fit = _cache_row_dirty_flag.find(x);
+            if (fit != _cache_row_dirty_flag.end())
+            {
+                _cache_row_dirty_flag.erase(fit);
+            }
+        }
+
+        _db_storage.update(x, row_data);
+    }
+
     bool row_without_cache(KeyType x, RowType& row_data)
     {
         return _db_storage.get(x,row_data);
@@ -395,7 +443,6 @@ private:
     }
 
 };
-
 
 NS_IZENELIB_AM_END
 
