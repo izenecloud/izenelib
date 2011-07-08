@@ -27,7 +27,7 @@ template <typename  NameString,
           typename  LockType    = izenelib::util::NullLock>
 class SDBIDStorage
 {
-	typedef izenelib::sdb::ordered_sdb<NameID, NameString, LockType> NameFinder;
+	typedef izenelib::sdb::unordered_sdb_tc<NameID, NameString, LockType> NameFinder;
 public:
 
 	/**
@@ -99,7 +99,7 @@ SDBIDStorage<NameString, NameID, LockType>::SDBIDStorage(
     nameFinder_(sdbName_ + "_id.sdb")
 {
   	nameFinder_.open();
-	nameFinder_.setCacheSize(1000);
+	//nameFinder_.setCacheSize(1000);
 } // end - SDBIDStorage()
 
 template <typename NameString, typename NameID, typename LockType>
