@@ -9,7 +9,9 @@
 
 #ifndef _ID_GENERATOR_H_
 #define _ID_GENERATOR_H_
-
+#include <boost/archive/xml_oarchive.hpp>
+#include <boost/archive/xml_iarchive.hpp>
+#include <boost/archive/archive_exception.hpp>
 #include <types.h>
 
 #include <util/hashFunction.h>
