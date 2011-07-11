@@ -165,11 +165,13 @@ public:
 
 	void flush()
 	{
+        saveNewId_();
 	    idFinder_.flush();
 	}
 
 	void close()
 	{
+        flush();
 	    idFinder_.close();
 	}
 
@@ -177,6 +179,50 @@ public:
 	{
 		idFinder_.display();
 	}
+    
+protected:
+    
+    bool saveNewId_() const
+    {
+        try
+        {
+            std::ofstream ofs(newIdFile_.c_str());
+            if (ofs)
+            {
+                boost::archive::xml_oarchive oa(ofs);
+                oa << boost::serialization::make_nvp(
+                    "NewID", newID_
+                );
+            }
+
+            return ofs;
+        }
+        catch (boost::archive::archive_exception& e)
+        {
+            return false;
+        }
+    }
+    
+    bool restoreNewId_()
+    {
+        try
+        {
+            std::ifstream ifs(newIdFile_.c_str());
+            if (ifs)
+            {
+                boost::archive::xml_iarchive ia(ifs);
+                ia >> boost::serialization::make_nvp(
+                    "NewID", newID_
+                );
+            }
+            return ifs;
+        }
+        catch (boost::archive::archive_exception& e)
+        {
+            newID_ = minID_;
+            return false;
+        }
+    }
 
 protected:
 
@@ -184,6 +230,7 @@ protected:
 	NameID maxID_; ///< An maximum ID.
 	NameID newID_; ///< An ID for new name.
 	string sdbName_;
+    string newIdFile_;
 
 	LockType mutex_;
 
@@ -200,23 +247,24 @@ UniqueIDGenerator<NameString, NameID,
     maxID_(MaxValueID),
     newID_(MinValueID),
     sdbName_(sdbName),
+    newIdFile_(sdbName_+"_newid.xml"),
     idFinder_(sdbName_ + "_name.sdb")
 {
 	idFinder_.open();
-
+    restoreNewId_();
     // reset newID_
-	if(idFinder_.numItems() > 0)
-	{
-	    NameID maxValue = MinValueID;
-        NameString k; NameID v;
-        typename IdFinder::SDBCursor locn = idFinder_.get_first_locn();
-        while (idFinder_.get(locn, k, v) ) {
-            if(maxValue < v)
-                maxValue = v;
-            idFinder_.seq(locn);
-        }
-        newID_ = maxValue + 1;
-	}
+// 	if(idFinder_.numItems() > 0)
+// 	{
+// 	    NameID maxValue = MinValueID;
+//         NameString k; NameID v;
+//         typename IdFinder::SDBCursor locn = idFinder_.get_first_locn();
+//         while (idFinder_.get(locn, k, v) ) {
+//             if(maxValue < v)
+//                 maxValue = v;
+//             idFinder_.seq(locn);
+//         }
+//         newID_ = maxValue + 1;
+// 	}
 } // end - SequentialIDFactory()
 
 template <typename NameString, typename NameID,
