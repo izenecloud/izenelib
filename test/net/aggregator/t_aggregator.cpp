@@ -65,9 +65,9 @@ private:
 int main( int argc, char * argv[])
 {
     AggregatorConfig config;
-    config.addWorker("0.0.0.0", 18111);
-    config.addWorker("0.0.0.0", 18112);
     config.addWorker("0.0.0.0", 18113);
+    config.addWorker("0.0.0.0", 18112);
+    config.addWorker("0.0.0.0", 18111);
 
     // local worker
     boost::shared_ptr<SearchService> searchService(new SearchService());
@@ -96,11 +96,11 @@ int main( int argc, char * argv[])
     std::cout << "add result: "<<result2<< std::endl;
 
     /// synchronous
-    req2.i = 1;
-    result2 = 0;
-    std::vector<workerid_t> workeridList;
-    workeridList.push_back(2);
-    ag.sendRequest<AddData, int>("add", req2, result2, workeridList);
-    std::cout << "syn add result: "<<result2<< std::endl;
+//    req2.i = 1;
+//    result2 = 0;
+//    std::vector<workerid_t> workeridList;
+//    workeridList.push_back(2);
+//    ag.sendRequest<AddData, int>("add", req2, result2, workeridList);
+//    std::cout << "syn add result: "<<result2<< std::endl;
 }
 

@@ -376,7 +376,7 @@ typedef _IDManager<izenelib::util::UString, uint32_t,
                    HashIDGenerator<izenelib::util::UString, uint32_t>,
                    EmptyIDStorage<izenelib::util::UString, uint32_t>,
                    UniqueIDGenerator<izenelib::util::UString, uint32_t>,
-                   SDBIDStorage<izenelib::util::UString, uint32_t> > IDManagerRelease32;
+                   EmptyIDStorage<izenelib::util::UString, uint32_t> > IDManagerRelease32;
 
 /**
  * This version of IDManager supports getTermStringByTermId() and

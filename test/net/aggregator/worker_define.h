@@ -86,13 +86,21 @@ private:
     bool processGetKeywordSearchResult(const Data& param, DataResult& result)
     {
         searchService_->getKeywordSearchResult(param.s, result.s);
-        //sleep(5);
+
+        time_t t = srvInfo_.port_-18110;
+        t *= 3;
+        //t > 0 ? t -= 1 : t ;
+        cout << "sleep "<<t<<endl;
+        sleep(t);
         return true;
     }
 
     bool processAdd(const AddData& param, int& result)
     {
         result = param.i + param.j;
+        time_t t = srvInfo_.port_-18110;
+        cout << "sleep "<<t<<endl;
+        sleep(t);
         return true;
     }
 

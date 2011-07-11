@@ -27,7 +27,7 @@ int main( int argc, char * argv[])
     boost::shared_ptr<SearchService> searchService(new SearchService());
 
     SearchWorker worker(host, port, searchService);
-    worker.Start();
-
+    worker.start();
+    worker.join();
     return 0;
 }

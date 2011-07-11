@@ -117,7 +117,7 @@ template <
           NameID    MaxIDValue  = NameIDTraits<NameID>::MaxValue>
 class UniqueIDGenerator
 {
-	typedef izenelib::sdb::ordered_sdb<NameString, NameID, LockType> IdFinder;
+	typedef izenelib::sdb::unordered_sdb_tc<NameString, NameID, LockType> IdFinder;
 
 public:
 

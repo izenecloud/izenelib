@@ -126,6 +126,7 @@ TARGET_LINK_LIBRARIES(r_IndexStats
   index_manager
   izene_util
   ${Glog_LIBRARIES}
+  ${TokyoCabinet_LIBRARIES}
   ${Boost_LIBRARIES}
 )
 

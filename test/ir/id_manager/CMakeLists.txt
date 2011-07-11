@@ -29,6 +29,7 @@ TARGET_LINK_LIBRARIES(t_idm
   izene_util
   febird
   ${Glog_LIBRARIES}
+  ${TokyoCabinet_LIBRARIES}
   ${Boost_LIBRARIES}
 )
 

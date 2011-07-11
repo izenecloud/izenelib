@@ -144,7 +144,7 @@ void LoggerImpl::logMessage( const vector<string>& messageParts, LogLevel level 
     ostringstream logStream;
     logStream << "<" << this->logCh << "> <" <<
     levels[level] << "> " << message;
-    cout << logStream.str() << endl;
+    //cout << logStream.str() << endl;
 }
 
 void LoggerImpl::logMessage( const string& msgStr, const vector<int>& messageParts, LogLevel level )
@@ -171,7 +171,7 @@ void LoggerImpl::logMessage( const string& msgStr, const vector<int>& messagePar
     ostringstream logStream;
     logStream << "<" << this->logCh << "> <" <<
     levels[level] << "> " << msg;
-    cout << logStream.str() << endl;
+    //cout << logStream.str() << endl;
 }
 
 void LoggerImpl::logMessage( const string& msgStr, const vector<bool>& messageParts, LogLevel level )
@@ -198,7 +198,7 @@ void LoggerImpl::logMessage( const string& msgStr, const vector<bool>& messagePa
     ostringstream logStream;
     logStream << "<" << this->logCh << "> <" <<
     levels[level] << "> " << msg;
-    cout << logStream.str() << endl;
+    //cout << logStream.str() << endl;
 }
 
 
