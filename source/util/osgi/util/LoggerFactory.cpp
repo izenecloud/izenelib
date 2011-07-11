@@ -8,7 +8,7 @@ using namespace izenelib::osgi::logging;
 using namespace std;
 
 map<string,Logger*>* LoggerFactory::loggerMap;
-Logger::LogLevel LoggerFactory::level = Logger::LOG_DEBUG;
+Logger::LogLevel LoggerFactory::level = Logger::LOG_ERROR;
 
 LoggerFactory::LoggerFactory()
 {
