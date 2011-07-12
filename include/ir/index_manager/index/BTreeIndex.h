@@ -159,6 +159,26 @@ public:
         return true;
     }
 
+    bool get(const KeyType& key,std::vector<docid_t>& result)
+    {
+        myValueType vdat;
+        unsigned int offset = 0;
+        myKeyType firstKey(key, 0);
+        if ( !this->_sdb.hasKey(firstKey) )
+            return false;
+        do
+        {
+            myKeyType ikey(key, offset++);
+            if (this->_sdb.getValue(ikey, vdat))
+                for (size_t i=0; i<vdat.size(); i++)
+                    result.push_back(vdat[i]);
+            else
+                break;
+        }
+        while (true);
+        return true;
+    }
+
     void get_between(const KeyType& lowKey, const KeyType& highKey, KeyValueType* & data, size_t maxDoc )
     {
         if (comp_(lowKey, highKey) > 0)
@@ -504,6 +524,8 @@ public:
 
     void getValue(collectionid_t colID, fieldid_t fid, PropertyType& value, BitVector& docs);
 
+    void getValue(collectionid_t colID, fieldid_t fid, PropertyType& value, std::vector<docid_t>& docList);
+
     void getValueBetween(collectionid_t colID, fieldid_t fid, PropertyType& value1, PropertyType& value2, BitVector& docs);
 
     void getValueLess(collectionid_t colID, fieldid_t fid, PropertyType& value, BitVector& docs);
@@ -581,6 +603,17 @@ public:
     {
         IndexKeyType<T> key(colid, fid, v);
         pIndexer->getIndexer<T>()->get(key, docids);
+    }
+};
+
+class get_back_visitor : public boost::static_visitor<void>
+{
+public:
+    template<typename T>
+    void operator()(BTreeIndexer* pIndexer, collectionid_t colid, fieldid_t fid, T& v, std::vector<docid_t>& docidList)
+    {
+        IndexKeyType<T> key(colid, fid, v);
+        pIndexer->getIndexer<T>()->get(key, docidList);
     }
 };
 

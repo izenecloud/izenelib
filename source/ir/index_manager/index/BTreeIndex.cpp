@@ -196,6 +196,11 @@ void BTreeIndexer::getValue(collectionid_t colID, fieldid_t fid, PropertyType& v
     izenelib::util::boost_variant_visit(boost::bind(get_visitor(), this, colID, fid, _1, boost::ref(docs)), value);
 }
 
+void BTreeIndexer::getValue(collectionid_t colID, fieldid_t fid, PropertyType& value,std::vector<docid_t>& docList)
+{
+    izenelib::util::boost_variant_visit(boost::bind(get_back_visitor(), this, colID, fid, _1, boost::ref(docList)), value);
+}
+
 void BTreeIndexer::getValueNotEqual(collectionid_t colID, fieldid_t fid, PropertyType& value,BitVector& docs)
 {
     izenelib::util::boost_variant_visit(boost::bind(get_without_visitor(), this, colID, fid, _1, boost::ref(docs)), value);

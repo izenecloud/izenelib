@@ -103,6 +103,8 @@ public:
     ///API for BTreeIndex
     bool getDocsByPropertyValue(collectionid_t colID, std::string property, PropertyType value, BitVector& docs);
 
+    bool getDocsByPropertyValue(collectionid_t colID, std::string property, PropertyType value, std::vector<docid_t>& docList);
+
     bool getDocsByPropertyValueRange(collectionid_t colID, std::string property, PropertyType value1, PropertyType value2, BitVector& docs);
 
     bool getDocsByPropertyValueLessThan(collectionid_t colID, std::string property, PropertyType value, BitVector&docList);
