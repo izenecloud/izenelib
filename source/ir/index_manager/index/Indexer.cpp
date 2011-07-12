@@ -527,6 +527,14 @@ bool Indexer::getDocsByPropertyValue(collectionid_t colID, string property, Prop
     return true;
 }
 
+bool Indexer::getDocsByPropertyValue(collectionid_t colID, std::string property, PropertyType value, std::vector<docid_t>& docList)
+{
+    BOOST_ASSERT(pConfigurationManager_->indexStrategy_.isIndexBTree_);
+    fieldid_t fid = getPropertyIDByName(colID,property);
+    pBTreeIndexer_->getValue(colID, fid, value, docList);
+    return true;
+}
+
 bool Indexer::getDocsByPropertyValueRange(collectionid_t colID, string property, PropertyType value1, PropertyType value2, BitVector&docs)
 {
     BOOST_ASSERT(pConfigurationManager_->indexStrategy_.isIndexBTree_);
