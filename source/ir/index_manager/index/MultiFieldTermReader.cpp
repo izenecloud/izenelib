@@ -51,6 +51,7 @@ MultiFieldTermReader::~MultiFieldTermReader()
 
 void MultiFieldTermReader::setSkipInterval(int skipInterval)
 {
+    skipInterval_ = skipInterval;
     reader_map::iterator iter = fieldsTermReaders_.begin();
     for(;iter != fieldsTermReaders_.end(); ++iter)
         iter->second->setSkipInterval(skipInterval);
@@ -58,6 +59,7 @@ void MultiFieldTermReader::setSkipInterval(int skipInterval)
 
 void MultiFieldTermReader::setMaxSkipLevel(int maxSkipLevel)
 {
+    maxSkipLevel_ = maxSkipLevel;
     reader_map::iterator iter = fieldsTermReaders_.begin();
     for(;iter != fieldsTermReaders_.end(); ++iter)
         iter->second->setMaxSkipLevel(maxSkipLevel);

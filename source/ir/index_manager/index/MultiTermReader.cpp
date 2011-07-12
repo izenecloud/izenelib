@@ -155,6 +155,7 @@ TermInfo* MultiTermReader::termInfo(Term* term)
 
 void MultiTermReader::setSkipInterval(int skipInterval)
 {
+    skipInterval_ = skipInterval;
     std::vector<BarrelTermReaderEntry>::iterator iter = termReaders_.begin();
     for(;iter != termReaders_.end(); ++iter)
         iter->second->setSkipInterval(skipInterval);
@@ -162,6 +163,7 @@ void MultiTermReader::setSkipInterval(int skipInterval)
 
 void MultiTermReader::setMaxSkipLevel(int maxSkipLevel)
 {
+    maxSkipLevel_ = maxSkipLevel;
     std::vector<BarrelTermReaderEntry>::iterator iter = termReaders_.begin();
     for(;iter != termReaders_.end(); ++iter)
         iter->second->setMaxSkipLevel(maxSkipLevel);

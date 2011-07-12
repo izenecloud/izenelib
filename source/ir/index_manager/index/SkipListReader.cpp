@@ -110,7 +110,7 @@ void SkipListReader::seekChild(int level)
     skipDoc_[level] = lastDoc_;
     offsets_[level] = lastOffset_;
     pOffsets_[level] = lastPOffset_;
-    numSkipped_[level] = totalSkipped_;
+    numSkipped_[level] = totalSkipped_;//numSkipped_[level];
     if (level > 0)
     {
         childPointer_[level] = skipStream_[level]->readVLong() + skipPointer_[level - 1];
