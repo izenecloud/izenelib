@@ -336,10 +336,11 @@ public:
     /**
      * update @p row_data to db storage,
      * if there is old data in cache, replace it with @p row_data.
+     * otherwise, update db storage directly.
      * @param x row number
      * @param row_data new row data to update
      */
-    void update_row_without_cache(KeyType x, const RowType& row_data)
+    void update_row(KeyType x, const RowType& row_data)
     {
         typename CacheStorageType::iterator cit = _cache_storage.find(x);
         if(cit != _cache_storage.end())
@@ -353,15 +354,13 @@ public:
             // replace cache
             cit->second.reset(new RowType(row_data));
 
-            // remove dirty flag
-            typename CacheDirtyFlagSet::iterator fit = _cache_row_dirty_flag.find(x);
-            if (fit != _cache_row_dirty_flag.end())
-            {
-                _cache_row_dirty_flag.erase(fit);
-            }
+            // set dirty flag
+            _cache_row_dirty_flag.insert(x);
         }
-
-        _db_storage.update(x, row_data);
+        else
+        {
+            _db_storage.update(x, row_data);
+        }
     }
 
     bool row_without_cache(KeyType x, RowType& row_data)
