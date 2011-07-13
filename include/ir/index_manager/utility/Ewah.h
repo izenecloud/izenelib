@@ -536,8 +536,6 @@ class EWAHBoolArray {
 
         EWAHBoolArrayBitIterator<uword> bit_iterator() const;
 
-        bool test(ulong rowid);
-
         void iterator_sanity_check();
 
         /*
@@ -925,29 +923,6 @@ ulong EWAHBoolArray<uword>::numberOfOnes() {
     return c;
 
 }
-
-template <class uword>
-bool EWAHBoolArray<uword>::test(ulong rowid) {
-    if (rowid > sizeinbits -1)
-        return false;
-    bool returnvalue (false);
-    EWAHBoolArrayIterator<uword> i = uncompress();
-    ulong position = 0;
-    while(i.hasNext()) {
-        const uword currentword = i.next();
-        if ( (rowid >= position) && (rowid < position + wordinbits) )
-        {
-            if ( (currentword & (static_cast<uword>(1) << (rowid - position))) == 0)
-                returnvalue = false;
-            else
-                returnvalue = true;
-            break;
-        }
-        position += wordinbits;
-    }
-    return returnvalue;
-}
-
 
 template <class uword>
 void EWAHBoolArray<uword>::appendRowIDs(vector<ulong> & out, const ulong offset) const {
