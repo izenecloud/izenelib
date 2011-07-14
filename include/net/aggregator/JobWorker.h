@@ -113,8 +113,10 @@ public:
 
     void startServer(const std::string& host, uint16_t port, unsigned int threadnum=4)
     {
-        addHandlers(); // add before run
+        addHandlers(); // add before started
 
+        srvInfo_.host_ = host;
+        srvInfo_.port_ = port;
         instance.listen(host, port);
         instance.start(threadnum);
     }
@@ -128,6 +130,11 @@ public:
     void join()
     {
         instance.join();
+    }
+
+    void end()
+    {
+        instance.end();
     }
 
     const ServerInfo& getServerInfo() const
@@ -144,7 +151,7 @@ public:
             std::string method;
             req.method().convert(&method);
 
-            cout << "worker dispatch --> " << method << endl;
+            cout << "#[Worker:"<<srvInfo_.port_<<"] dispatch request: " << method << endl;
 
             typename Maptype::iterator handler = handlerList_.find(method);
             if (handler != handlerList_.end())
@@ -169,11 +176,13 @@ public:
         }
     }
 
+public:
     /**
      * @brief Implement this function to add external apis (Handlers) which provide services,
      * using addHandler(), or using Macros to simplify adding handlers.
      */
     virtual void addHandlers() = 0;
+
 
 protected:
     void addHandler(const string& method, WorkerHandler<ConcreteWorker> handler)

@@ -13,7 +13,7 @@ class SearchAggregator : public JobAggregator<SearchAggregator>
 {
 public:
 
-    void join_impl(DataResult& res, const std::vector<std::pair<workerid_t, DataResult> >& resList)
+    void join_impl(const std::string& func, DataResult& res, const std::vector<std::pair<workerid_t, DataResult> >& resList)
     {
         std::stringstream ss;
         for (size_t i = 0; i < resList.size(); i++)
@@ -25,7 +25,7 @@ public:
         res.s = ss.str();
     }
 
-    void join_impl(int& res, const std::vector<std::pair<workerid_t, int> >& resList)
+    void join_impl(const std::string& func, int& res, const std::vector<std::pair<workerid_t, int> >& resList)
     {
         res = 0;
         for (size_t i = 0; i < resList.size(); i++)
