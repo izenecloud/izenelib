@@ -65,7 +65,7 @@ public:
     }
 
 public:
-    void setWorkerListConfig(AggregatorConfig& aggregatorConfig)
+    void setWorkerListConfig(const AggregatorConfig& aggregatorConfig)
     {
         // assign unique id for each worker, 0 for local worker
         workerid_t workerId = 1;
@@ -101,7 +101,7 @@ public:
             const std::vector<workerid_t>& workeridList = NullWorkeridList,
             unsigned int timeout = 7)
     {
-        cout << "---> " << func << endl;
+        cout << "#[Aggregator] send request: " << func << endl;
         worker_iterator_t worker = workerSessionList_.begin();
         for ( ; worker != workerSessionList_.end(); worker++ )
         {
@@ -109,7 +109,7 @@ public:
             if ( !checkWorkerById(workeridList, workerid) )
                 continue;
 
-            cout << "send to worker" << workerid <<" ["
+            cout << "#[Aggregator] send to worker" << workerid <<" ["
                  << (*worker)->getServerInfo().host_<<":"<<(*worker)->getServerInfo().port_
                  <<"]"<<endl;
 
@@ -217,22 +217,21 @@ protected:
     {
         std::vector<std::pair<workerid_t, ResultType> > resultList;
 
-        cout << "---- join " << endl;
+        //cout << "#[Aggregator] join " << endl;
         // local worker
         try
         {
             if (isCallLocalWorker)
             {
-                cout << "worker0 [local] ";
+                cout << "#[Aggregator] call worker0 (local)" << endl;
                 ResultType result;
                 std::string error;
                 if (static_cast<ConcreteAggregator*>(this)->get_local_result(func, request, result, error))
                 {
                     resultList.push_back(std::make_pair(0, result));
-                    cout << "fine" << endl;
                 }
                 else {
-                    cout << error << endl;
+                    cout << "#[Aggregator:error] worker0 " << error << endl;
                 }
             }
         }
@@ -247,7 +246,7 @@ protected:
         time_t t1 = time(NULL);
         for (; workerFuture != futureList.end(); workerFuture++)
         {
-            time_t t1 = time(NULL); //test
+            ///time_t t1 = time(NULL); //test
             try
             {
                 ResultType workerResult = workerFuture->getResult<ResultType>();
@@ -280,23 +279,24 @@ protected:
                 workerFuture->setError(e.what());
             }
 
-            time_t t2 = time(NULL); //test
+            ///time_t t2 = time(NULL); //test
 
-            //if ( !workerFuture->getState() )
+            if ( !workerFuture->getState() )
             {
-                cout <<"worker"<<workerFuture->getWorkerId()
+                cout <<"#[Aggregator:error] worker"<<workerFuture->getWorkerId()
                      <<" ["<<workerFuture->getServerInfo().host_
                      <<":"<<workerFuture->getServerInfo().port_
                      <<"] "<<workerFuture->getError()
-                     <<" , cost "<<(t2-t1)<< endl;
+                     ///<<" , cost "<<(t2-t1)
+                     << endl;
             }
         }
         time_t t2 = time(NULL);
-        cout << "---- join end, cost(s): " << (t2-t1) << endl;
+        cout << "#[Aggregator] got remote worker results, cost(s): " << (t2-t1) << endl;
 
         if (resultList.size() > 0)
         {
-            static_cast<ConcreteAggregator*>(this)->join_impl(result, resultList);
+            static_cast<ConcreteAggregator*>(this)->join_impl(func, result, resultList);
         }
         else
         {
