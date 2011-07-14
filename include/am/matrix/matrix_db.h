@@ -299,18 +299,41 @@ public:
         }
     }
 
-    void row_incre(KeyType x, const std::list<KeyType>& cols)
+    /**
+     * For the row @p x, increment each column in @p cols1 and @p cols2.
+     * @param x the row number
+     * @param cols1 column list 1
+     * @param cols2 column list 2
+     */
+    void row_incre(
+        KeyType x,
+        const std::list<KeyType>& cols1,
+        const std::list<KeyType>& cols2
+    )
     {
         boost::shared_ptr<RowType> row_data = _row(x);
         _cache_row_dirty_flag.insert(x);
-        for(typename std::list<KeyType>::const_iterator iter = cols.begin();
-            iter != cols.end(); ++iter)
+
+        typename std::list<KeyType>::const_iterator cit;
+        for(cit = cols1.begin(); cit != cols1.end(); ++cit)
         {
-            typename RowType::iterator it = row_data->find(*iter); 
+            typename RowType::iterator it = row_data->find(*cit);
             if(it == row_data->end())
             {
-                ElementType& e = (*row_data)[*iter];
-                e.update();
+                (*row_data)[*cit].update();
+                _currEntries++;
+            }
+            else
+            {
+                it->second.update();
+            }
+        }
+        for(cit = cols2.begin(); cit != cols2.end(); ++cit)
+        {
+            typename RowType::iterator it = row_data->find(*cit);
+            if(it == row_data->end())
+            {
+                (*row_data)[*cit].update();
                 _currEntries++;
             }
             else
@@ -334,9 +357,7 @@ public:
     }
 
     /**
-     * update @p row_data to db storage,
-     * if there is old data in cache, replace it with @p row_data.
-     * otherwise, update db storage directly.
+     * update row @p x with @p row_data.
      * @param x row number
      * @param row_data new row data to update
      */
@@ -345,22 +366,31 @@ public:
         typename CacheStorageType::iterator cit = _cache_storage.find(x);
         if(cit != _cache_storage.end())
         {
-            // update entry count
-            boost::shared_ptr<RowType > old_row_data(cit->second);
+            // remove old entry count
+            boost::shared_ptr<RowType> old_row_data(cit->second);
             size_t old_row_size = old_row_data->size();
             _currEntries = (_currEntries <= old_row_size)?0:(_currEntries - old_row_size);
+
+            // add new entry count
+            _evict();
             _currEntries += row_data.size();
 
             // replace cache
             cit->second.reset(new RowType(row_data));
-
-            // set dirty flag
-            _cache_row_dirty_flag.insert(x);
         }
         else
         {
-            _db_storage.update(x, row_data);
+            // add new entry count
+            _evict();
+            _currEntries += row_data.size();
+
+            // insert cache
+            boost::shared_ptr<RowType> new_row_data(new RowType(row_data));
+            _cache_storage.insert(rde::make_pair(x,new_row_data));
         }
+
+        _policy.touch(x);
+        _cache_row_dirty_flag.insert(x);
     }
 
     bool row_without_cache(KeyType x, RowType& row_data)
