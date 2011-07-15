@@ -27,6 +27,7 @@ namespace rpc {
 
 class dispatcher {
 public:
+	virtual ~dispatcher();
 	virtual void dispatch(request req) = 0;
 };
 
@@ -61,7 +62,7 @@ public:
 	base(const builder& b, loop lo = loop()) :
 		instance(b, lo) { instance.serve(this); }
 
-	~base() { }
+	virtual ~base() { }
 
 	rpc::server instance;
 };
