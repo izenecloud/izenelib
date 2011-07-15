@@ -1,0 +1,58 @@
+#ifndef MSGPACK_TYPE_USTRING_HPP__
+#define MSGPACK_TYPE_USTRING_HPP__
+
+#include "../object.hpp"
+#include <string>
+#include <util/ustring/UString.h>
+
+
+using namespace izenelib::util;
+
+namespace msgpack {
+
+inline UString& operator>> (object o, UString& uv)
+{
+    std::string v;
+    if(o.type != type::RAW) { throw type_error(); }
+    v.assign(o.via.raw.ptr, o.via.raw.size);
+
+    uv.assign(v, UString::UTF_8); // Fix encoding, by define new object type
+    return uv;
+}
+
+template <typename Stream>
+inline packer<Stream>& operator<< (packer<Stream>& o, const UString& uv)
+{
+    std::string v;
+    uv.convertString(v, UString::UTF_8);
+
+    o.pack_raw(v.size());
+    o.pack_raw_body(v.data(), v.size());
+    return o;
+}
+
+inline void operator<< (object::with_zone& o, const UString& uv)
+{
+    std::string v;
+    uv.convertString(v, UString::UTF_8);
+
+    o.type = type::RAW;
+    char* ptr = (char*)o.zone->malloc(v.size());
+    o.via.raw.ptr = ptr;
+    o.via.raw.size = (uint32_t)v.size();
+    memcpy(ptr, v.data(), v.size());
+}
+
+inline void operator<< (object& o, const UString& uv)
+{
+    std::string v;
+    uv.convertString(v, UString::UTF_8);
+
+    o.type = type::RAW;
+    o.via.raw.ptr = v.data();
+    o.via.raw.size = (uint32_t)v.size();
+}
+
+}
+
+#endif /* MSGPACK_TYPE_USTRING_HPP__ */

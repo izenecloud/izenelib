@@ -18,6 +18,9 @@
 #ifndef MP_FUNCTIONAL_H__
 #define MP_FUNCTIONAL_H__
 
+// Added, consistent with izenelib to prevent conflict
+#define MP_FUNCTIONAL_BOOST_ORG
+
 #ifdef MP_FUNCTIONAL_BOOST
 #include <boost/tr1/functional.hpp>
 namespace mp {

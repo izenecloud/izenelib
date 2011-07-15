@@ -10,7 +10,9 @@
 #include "type/raw.hpp"
 #include "type/set.hpp"
 #include "type/string.hpp"
+#include "type/UString.hpp"
 #include "type/vector.hpp"
 #include "type/tuple.hpp"
 #include "type/define.hpp"
+
 
