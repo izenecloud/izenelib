@@ -17,9 +17,6 @@
 namespace net{
 namespace aggregator{
 
-// for default parameter value
-const static std::vector<workerid_t> NullWorkeridList;
-
 /**
  * Job Aggregator base class
  * @brief Implement a concrete aggregator using inheritance, the following function must be implemented:
@@ -309,7 +306,12 @@ protected:
 
     typedef std::vector<WorkerSessionPtr>::iterator worker_iterator_t;
     std::vector<WorkerSessionPtr> workerSessionList_;
+
+    static const std::vector<workerid_t> NullWorkeridList;
 };
+
+template <typename ConcreteAggregator>
+const std::vector<workerid_t> JobAggregator<ConcreteAggregator>::NullWorkeridList;
 
 
 }} // end - namespace
