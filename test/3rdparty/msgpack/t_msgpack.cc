@@ -14,10 +14,11 @@ struct Data
     int iv;
     std::string sv;
     izenelib::util::UString usv;
+    izenelib::util::UString::EncodingType encoding;
     std::vector<int> ivList;
     std::vector<std::pair<int, std::string> > isvList;
 
-    MSGPACK_DEFINE(bv,iv,sv,usv,ivList,isvList);
+    MSGPACK_DEFINE(bv,iv,sv,usv,encoding,ivList,isvList);
 
     friend std::ostream& operator<<(std::ostream& out, Data& data);
 };
@@ -30,7 +31,8 @@ std::ostream& operator<<(std::ostream& out, Data& data)
 
     std::string str;
     data.usv.convertString(str, izenelib::util::UString::UTF_8);
-    out  << str <<std::endl;
+    out << str <<std::endl;
+    out << data.encoding<<std::endl;
 
     for (size_t i =0; i<data.ivList.size(); i ++)
     {
@@ -54,6 +56,7 @@ void pack_unpack()
     data.iv = 23;
     data.sv = "hello ";
     data.usv = izenelib::util::UString("hello 中文@#￥", izenelib::util::UString::UTF_8);
+    data.encoding = izenelib::util::UString::CP949;
     data.ivList.push_back(3);
     data.ivList.push_back(43);
     data.ivList.push_back(366);
