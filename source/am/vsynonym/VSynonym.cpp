@@ -394,7 +394,6 @@ int VSynonymContainer::loadSynonym(const char* pathDic)
     }
 
     string line;
-    lengthMap_ = new map<string, size_t>();
 
     const char* synoDelim = synonymDelim_.c_str();
 
@@ -402,6 +401,7 @@ int VSynonymContainer::loadSynonym(const char* pathDic)
     while( !fin.eof() )
     {
         getline(fin, line);
+		
         trimSelf(line);
         if(line.size() <= 0)
             continue;
@@ -510,6 +510,7 @@ void VSynonymContainer::init()
     //reserve the first TRIE
     endValPtr_ = value_ + 1;
     trie_ = new VTrie();
+    lengthMap_ = new map<string, size_t>();
 }
 
 
