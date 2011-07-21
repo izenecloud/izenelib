@@ -1,4 +1,4 @@
-#ifndef MSGPACK_TYPE_SF1TYPES_HPP_
+#ifdef MSGPACK_TYPE_SF1TYPES_HPP_
 #define MSGPACK_TYPE_SF1TYPES_HPP_
 
 #include "../object.hpp"
