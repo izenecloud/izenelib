@@ -44,6 +44,18 @@ namespace type {
 		ARRAY				= MSGPACK_OBJECT_ARRAY,
 		MAP					= MSGPACK_OBJECT_MAP,
 	};
+
+	// extended for sf1
+	enum raw_type {
+	    RAW_INT64   = MAP + 1,
+	    RAW_UINT64,
+	    RAW_FLOAT,
+	    RAW_DOUBLE,
+	    RAW_STRING,
+	    RAW_USTRING,
+	    RAW_STRING_VECTOR,
+	    RAW_USTRING_VECTOR,
+	};
 }
 
 
@@ -78,6 +90,7 @@ struct object {
 	};
 
 	type::object_type type;
+	type::raw_type raw_type;
 	union_type via;
 
 	bool is_nil() const { return type == type::NIL; }

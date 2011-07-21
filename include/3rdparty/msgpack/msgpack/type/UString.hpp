@@ -37,6 +37,7 @@ inline void operator<< (object::with_zone& o, const izenelib::util::UString& uv)
     uv.convertString(v, izenelib::util::UString::UTF_8);
 
     o.type = type::RAW;
+    o.raw_type = type::RAW_USTRING;
     char* ptr = (char*)o.zone->malloc(v.size());
     o.via.raw.ptr = ptr;
     o.via.raw.size = (uint32_t)v.size();
@@ -49,6 +50,7 @@ inline void operator<< (object& o, const izenelib::util::UString& uv)
     uv.convertString(v, izenelib::util::UString::UTF_8);
 
     o.type = type::RAW;
+    o.raw_type = type::RAW_USTRING;
     o.via.raw.ptr = v.data();
     o.via.raw.size = (uint32_t)v.size();
 }

@@ -8,6 +8,53 @@
 #include <signal.h>
 #include <util/ustring/UString.h>
 
+#include <boost/variant.hpp>
+
+typedef boost::variant<
+    int64_t,
+    uint64_t,
+    float,
+    double,
+    std::string,
+    izenelib::util::UString,
+    std::vector<izenelib::util::UString>,
+    std::vector<uint32_t>
+> variant_type;
+
+std::ostream& operator<<(std::ostream& out, variant_type& v)
+{
+    if (int64_t* p = boost::get<int64_t>(&v))
+    {
+        out << *p ;
+    }
+    else if (uint64_t* p = boost::get<uint64_t>(&v))
+    {
+        out << *p ;
+    }
+    else if (float* p = boost::get<float>(&v))
+    {
+        out << *p ;
+    }
+    else if (double* p = boost::get<double>(&v))
+    {
+        out << *p ;
+    }
+    else if (std::string* p = boost::get<std::string>(&v))
+    {
+        out << *p ;
+    }
+    else if (izenelib::util::UString* p = boost::get<izenelib::util::UString>(&v))
+    {
+        std::string str;
+        (*p).convertString(str, izenelib::util::UString::UTF_8);
+        out << str ;
+    }
+    else
+        out << "unknow type ";
+
+    return out;
+}
+
 struct Data
 {
     bool bv;
@@ -17,8 +64,9 @@ struct Data
     izenelib::util::UString::EncodingType encoding;
     std::vector<int> ivList;
     std::vector<std::pair<int, std::string> > isvList;
+    variant_type variant;
 
-    MSGPACK_DEFINE(bv,iv,sv,usv,encoding,ivList,isvList);
+    MSGPACK_DEFINE(bv,iv,sv,usv,encoding,ivList,isvList,variant);
 
     friend std::ostream& operator<<(std::ostream& out, Data& data);
 };
@@ -46,6 +94,9 @@ std::ostream& operator<<(std::ostream& out, Data& data)
     }
     out << std::endl;
 
+    cout << "variant: " << data.variant <<endl;
+
+
     return out;
 }
 
@@ -63,7 +114,14 @@ void pack_unpack()
     data.isvList.push_back(std::make_pair(1,"yaya"));
     data.isvList.push_back(std::make_pair(2,"yoyo"));
     data.isvList.push_back(std::make_pair(3,"yyyy"));
-    std::cout <<"pack: \n" << data <<std::endl;
+    int64_t i64 = 64;
+    uint64_t ui64 = 64;
+    float fv = .0225;
+    double dv = 3.01;
+    izenelib::util::UString ustr("中文 243#%……& ", izenelib::util::UString::UTF_8);
+    string str("abc 中文");
+    data.variant = ustr;
+    std::cout <<"------ pack: \n" << data <<std::endl;
 
     msgpack::sbuffer sbuf;
     msgpack::pack(sbuf, data);
@@ -75,7 +133,17 @@ void pack_unpack()
     Data data2;
     data2 = result.get().as<Data>();
 
-    std::cout <<"unpack: \n" << data2 <<std::endl;
+    if (std::string* p = boost::get<std::string>(&data2.variant))
+    {
+        cout << "v string " << *p <<endl;
+        std::string str = *p;
+        izenelib::util::UString ustr = izenelib::util::UString(str, izenelib::util::UString::UTF_8);
+        std::string out;
+        ustr.convertString(out, izenelib::util::UString::UTF_8);
+        cout << out <<endl;
+    }
+
+    std::cout <<"------ unpack: \n" << data2 <<std::endl;
 }
 
 int main(void)
@@ -84,6 +152,7 @@ int main(void)
 
     return 0;
 
+    /*
     cclog::reset(new cclog_tty(cclog::TRACE, std::cout));
     signal(SIGPIPE, SIG_IGN);
 
@@ -111,5 +180,5 @@ int main(void)
     A ret = cli.call("echo_a", a).get<A>();
     std::cout << "call: echo(\"MessagePack-RPC\") = " << ret << std::endl;
 
-    return 0;
+    return 0; */
 }
