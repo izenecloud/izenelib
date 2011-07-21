@@ -64,9 +64,9 @@ struct Data
     izenelib::util::UString::EncodingType encoding;
     std::vector<int> ivList;
     std::vector<std::pair<int, std::string> > isvList;
-    variant_type variant;
+    //variant_type variant;
 
-    MSGPACK_DEFINE(bv,iv,sv,usv,encoding,ivList,isvList,variant);
+    MSGPACK_DEFINE(bv,iv,sv,usv,encoding,ivList,isvList);
 
     friend std::ostream& operator<<(std::ostream& out, Data& data);
 };
@@ -94,7 +94,7 @@ std::ostream& operator<<(std::ostream& out, Data& data)
     }
     out << std::endl;
 
-    cout << "variant: " << data.variant <<endl;
+    //cout << "variant: " << data.variant <<endl;
 
 
     return out;
@@ -120,7 +120,7 @@ void pack_unpack()
     double dv = 3.01;
     izenelib::util::UString ustr("中文 243#%……& ", izenelib::util::UString::UTF_8);
     string str("abc 中文");
-    data.variant = ustr;
+    //data.variant = ustr;
     std::cout <<"------ pack: \n" << data <<std::endl;
 
     msgpack::sbuffer sbuf;
@@ -132,16 +132,16 @@ void pack_unpack()
 
     Data data2;
     data2 = result.get().as<Data>();
-
-    if (std::string* p = boost::get<std::string>(&data2.variant))
-    {
-        cout << "v string " << *p <<endl;
-        std::string str = *p;
-        izenelib::util::UString ustr = izenelib::util::UString(str, izenelib::util::UString::UTF_8);
-        std::string out;
-        ustr.convertString(out, izenelib::util::UString::UTF_8);
-        cout << out <<endl;
-    }
+//
+//    if (std::string* p = boost::get<std::string>(&data2.variant))
+//    {
+//        cout << "v string " << *p <<endl;
+//        std::string str = *p;
+//        izenelib::util::UString ustr = izenelib::util::UString(str, izenelib::util::UString::UTF_8);
+//        std::string out;
+//        ustr.convertString(out, izenelib::util::UString::UTF_8);
+//        cout << out <<endl;
+//    }
 
     std::cout <<"------ unpack: \n" << data2 <<std::endl;
 }
