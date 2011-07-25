@@ -26,12 +26,12 @@ private:
     {
         size_t i = size_;
         Type node = heap_[i];			  // save bottom node (WAS object)
-        int32_t j = ((uint32_t)i) >> 1;
+        size_t j = i >> 1;
         while (j > 0 && lessThan(node,heap_[j]))
         {
             heap_[i] = heap_[j];			  // shift parents down
             i = j;
-            j = ((uint32_t)j) >> 1;
+            j = j >> 1;
         }
         heap_[i] = node;				  // install saved node
     }
