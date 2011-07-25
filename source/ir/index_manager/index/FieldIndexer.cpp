@@ -98,6 +98,7 @@ void FieldIndexer::writeHitBuffer(int iHits)
 
 void FieldIndexer::addField(docid_t docid, boost::shared_ptr<LAInput> laInput)
 {
+    if(laInput->empty()) return;
     if (pIndexer_->isRealTime())
     {
         RTPostingWriter* curPosting;
