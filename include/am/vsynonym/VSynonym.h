@@ -231,6 +231,15 @@ public:
     bool searchNgetSynonym( const char* query, VSynonym* synonym );
 
     /**
+     * Set synonym data, after searching reached node.
+     * This interface can be called after a outside search on trie was performed.
+     *
+     * @param synonym
+     * @param node
+     */
+    void setSynonym(VSynonym* synonym, const VTrieNode* node);
+
+    /**
      * Get the synonyms with specific key, if found nothing, return NULL.
      * \param key specific key to find the synonyms
      * \return synonym VSynonym object to store the data; return NULL if the

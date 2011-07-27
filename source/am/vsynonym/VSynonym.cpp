@@ -303,6 +303,12 @@ bool VSynonymContainer::searchNgetSynonym( const char* query, VSynonym* synonym 
     }
 }
 
+void VSynonymContainer::setSynonym(VSynonym* synonym, const VTrieNode* node)
+{
+    synonym->setData(value_ + node->data);
+    synonym->setMoreLong(node->moreLong);
+}
+
 
 VSynonym* VSynonymContainer::get_synonyms(const string& key)
 {
