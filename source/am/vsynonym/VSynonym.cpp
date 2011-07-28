@@ -413,6 +413,7 @@ int VSynonymContainer::loadSynonym(const char* pathDic)
             continue;
 
         replaceAll(line, wordDelim_, ",");
+        replaceAll(line, "，", ",");
         vector<string> synvec;
         tokenizeAndLowerCase(synvec, line, synoDelim);
 

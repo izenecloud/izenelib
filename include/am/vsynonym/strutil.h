@@ -66,6 +66,35 @@ inline void trimSelf (string & d, const string & t = SPACES)
     trimLeftSelf (d, t);
 }
 
+inline void normalizeSpace(string& s)
+{
+    string norm;
+
+    size_t i = 0;
+    size_t n = s.length();
+
+    // remove head spaces
+    while (i < n && s[i] == ' ')
+        i ++;
+
+    while (i < n)
+    {
+        if (s[i] != ' ')
+        {
+            norm.push_back(s[i++]);
+        }
+        else
+        {
+            // remove end spaces, change middle spaces to one
+            while (i < n && s[i] == ' ')
+                i ++;
+            if (i < n) norm.push_back(' ');
+        }
+    }
+
+    s.swap(norm);
+}
+
 // returns a lower case version of the string
 inline string toLower (const string & s)
 {
@@ -278,6 +307,7 @@ inline void tokenizeAndLowerCase(vector<string>& vec, string& text, const char* 
         }
         string tmp = text.substr(last, next-last);
         trimSelf(tmp);
+        //normalizeSpace(tmp);
         if(tmp.size() > 0){
             toLowerSelf(tmp);
             vec.push_back(tmp);
