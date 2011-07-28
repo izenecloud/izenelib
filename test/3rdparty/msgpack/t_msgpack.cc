@@ -114,10 +114,10 @@ void pack_unpack()
     data.isvList.push_back(std::make_pair(1,"yaya"));
     data.isvList.push_back(std::make_pair(2,"yoyo"));
     data.isvList.push_back(std::make_pair(3,"yyyy"));
-    int64_t i64 = 64;
-    uint64_t ui64 = 64;
-    float fv = .0225;
-    double dv = 3.01;
+//    int64_t i64 = 64;
+//    uint64_t ui64 = 64;
+//    float fv = .0225;
+//    double dv = 3.01;
     izenelib::util::UString ustr("中文 243#%……& ", izenelib::util::UString::UTF_8);
     string str("abc 中文");
     //data.variant = ustr;
