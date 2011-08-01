@@ -333,6 +333,8 @@ int VTrie::search( const char* key, VTrieNode* node)
 
 int VTrie::find( char ch, VTrieNode* node )
 {
+    if(!data_) return 0;
+
     //not has more length any more
     if(!node->moreLong){
         node->data = 0;
