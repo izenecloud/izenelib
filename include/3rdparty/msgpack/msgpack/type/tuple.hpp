@@ -12894,6 +12894,48 @@ inline void operator<< (
 	o.via.array.ptr[31] = object(v.template get<31>(), o.zone);
 }
 
+template <typename A0, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10, typename A11, typename A12, typename A13, typename A14, typename A15, typename A16, typename A17, typename A18, typename A19, typename A20, typename A21, typename A22, typename A23, typename A24, typename A25, typename A26, typename A27, typename A28, typename A29, typename A30, typename A31, typename A32>
+inline void operator<< (
+        object::with_zone& o,
+        const type::tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32>& v) {
+    o.type = type::ARRAY;
+    o.via.array.ptr = (object*)o.zone->malloc(sizeof(object)*33);
+    o.via.array.size = 33;
+
+    o.via.array.ptr[0] = object(v.template get<0>(), o.zone);
+    o.via.array.ptr[1] = object(v.template get<1>(), o.zone);
+    o.via.array.ptr[2] = object(v.template get<2>(), o.zone);
+    o.via.array.ptr[3] = object(v.template get<3>(), o.zone);
+    o.via.array.ptr[4] = object(v.template get<4>(), o.zone);
+    o.via.array.ptr[5] = object(v.template get<5>(), o.zone);
+    o.via.array.ptr[6] = object(v.template get<6>(), o.zone);
+    o.via.array.ptr[7] = object(v.template get<7>(), o.zone);
+    o.via.array.ptr[8] = object(v.template get<8>(), o.zone);
+    o.via.array.ptr[9] = object(v.template get<9>(), o.zone);
+    o.via.array.ptr[10] = object(v.template get<10>(), o.zone);
+    o.via.array.ptr[11] = object(v.template get<11>(), o.zone);
+    o.via.array.ptr[12] = object(v.template get<12>(), o.zone);
+    o.via.array.ptr[13] = object(v.template get<13>(), o.zone);
+    o.via.array.ptr[14] = object(v.template get<14>(), o.zone);
+    o.via.array.ptr[15] = object(v.template get<15>(), o.zone);
+    o.via.array.ptr[16] = object(v.template get<16>(), o.zone);
+    o.via.array.ptr[17] = object(v.template get<17>(), o.zone);
+    o.via.array.ptr[18] = object(v.template get<18>(), o.zone);
+    o.via.array.ptr[19] = object(v.template get<19>(), o.zone);
+    o.via.array.ptr[20] = object(v.template get<20>(), o.zone);
+    o.via.array.ptr[21] = object(v.template get<21>(), o.zone);
+    o.via.array.ptr[22] = object(v.template get<22>(), o.zone);
+    o.via.array.ptr[23] = object(v.template get<23>(), o.zone);
+    o.via.array.ptr[24] = object(v.template get<24>(), o.zone);
+    o.via.array.ptr[25] = object(v.template get<25>(), o.zone);
+    o.via.array.ptr[26] = object(v.template get<26>(), o.zone);
+    o.via.array.ptr[27] = object(v.template get<27>(), o.zone);
+    o.via.array.ptr[28] = object(v.template get<28>(), o.zone);
+    o.via.array.ptr[29] = object(v.template get<29>(), o.zone);
+    o.via.array.ptr[30] = object(v.template get<30>(), o.zone);
+    o.via.array.ptr[31] = object(v.template get<31>(), o.zone);
+    o.via.array.ptr[32] = object(v.template get<32>(), o.zone);
+}
 
 }  // namespace msgpack
 
