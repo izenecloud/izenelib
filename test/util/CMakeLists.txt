@@ -24,6 +24,7 @@ ADD_EXECUTABLE(t_util
   t_log.cpp
   t_wrapper.cpp
   t_url_util.cpp
+  t_id_util.cpp
   )
 ADD_EXECUTABLE(t_wrapper
   wrapper.cpp
