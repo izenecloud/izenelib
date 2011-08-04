@@ -80,14 +80,14 @@ int main( int argc, char * argv[])
     /// asynchronous requests
     WorkerFutureHolder futureHolder;
     Data req;
-    ag.sendRequest<Data>(futureHolder, "getKeywordSearchResult", req);
+    DataResult result;
+    ag.sendRequest<Data>(futureHolder, "getKeywordSearchResult", req, result);
 
     WorkerFutureHolder futureHolder2;
     AddData req2; req2.i = 5; req2.j = 100;
-    ag.sendRequest<AddData>(futureHolder2, "add", req2);
+    ag.sendRequest<AddData>(futureHolder2, "add", req2, result);
 
     // join results
-    DataResult result;
     ag.getResult<Data, DataResult>(futureHolder, "getKeywordSearchResult", req, result);
     std::cout << "keyword result: "<<result.i << " / " <<result.s<< std::endl;
 

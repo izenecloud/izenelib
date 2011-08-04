@@ -90,11 +90,12 @@ public:
      * @param workeridList[IN] spedified workers to request, request all if empty.
      * @param timeout[IN] timeout in seconds
      */
-    template <typename RequestType>
+    template <typename RequestType, typename ResultType>
     void sendRequest(
             WorkerFutureHolder& futureHolder,
             const std::string& func,
             const RequestType& request,
+            const ResultType& result,
             const std::vector<workerid_t>& workeridList = NullWorkeridList,
             unsigned int timeout = 7)
     {
@@ -113,7 +114,7 @@ public:
             WorkerFuture workerFuture(
                     workerid,
                     (*worker)->getServerInfo(),
-                    (*worker)->sendRequest(futureHolder.getSessionPool(), func, request, timeout));
+                    (*worker)->sendRequest(futureHolder.getSessionPool(), func, request, result, timeout));
 
             futureHolder.addWorkerFuture(workerFuture);
         }
@@ -154,7 +155,7 @@ public:
         WorkerFutureHolder futureHolder;
 
         // send requests
-        sendRequest(futureHolder, func, request, workeridList, timeout);
+        sendRequest(futureHolder, func, request, result, workeridList, timeout);
 
         // get result
         join(futureHolder, func, request, result, checkWorkerById(workeridList, 0));
