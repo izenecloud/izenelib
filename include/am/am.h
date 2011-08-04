@@ -6,6 +6,7 @@
 #include <util/ThreadModel.h>
 #include <memory>
 #include <string.h>
+#include <cstdio>
 
 NS_IZENELIB_AM_BEGIN
 

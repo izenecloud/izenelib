@@ -46,14 +46,15 @@ struct WorkerHandler
 
 #define WORKER_HANDLE_1_1(request, ParamT1, FUNCTION, ResultT1)  \
 {                                                                \
-        msgpack::type::tuple<ParamT1> params;                    \
+        msgpack::type::tuple<ParamT1, ResultT1> params;          \
         req.params().convert(&params);                           \
         ParamT1 param = params.get<0>();                         \
-        ResultT1 result;                                         \
+        ResultT1 result = params.get<1>();                       \
         FUNCTION(param, result);                                 \
         req.result(result);                                      \
 }
 
+/*
 #define WORKER_HANDLE_2_1(request, ParamT1, ParamT2, FUNCTION, ResultT1)  \
 {                                                                \
         msgpack::type::tuple<ParamT1, ParamT2> params;           \
@@ -64,7 +65,7 @@ struct WorkerHandler
         FUNCTION(param1, param2, result);                        \
         req.result(result);                                      \
 }
-
+*/
 
 }} // end - namespace
 

@@ -59,23 +59,24 @@ public:
      * one session pool should be shared with all worker sessions for one request.
      * @param func remote function
      * @param param parameter for remote function
+     * @param result [INOUT]
      * @param sec session timeout in seconds
      * @return future delayed reply.
      */
-    template <typename RequestType>
+    template <typename RequestType, typename ResultType>
     msgpack::rpc::future sendRequest(
             session_pool_t& sessionPool,
-            const std::string& func, const RequestType& param, unsigned int sec)
+            const std::string& func, const RequestType& param, const ResultType& result, unsigned int sec)
     {
         msgpack::rpc::session session =
                 sessionPool.get_session(workerSrv_.host_, workerSrv_.port_);
 
         // timeout is set for session, i.e., if send 2 or more requests through the same session, the time for timeout
         // is the total time for processing these 2 or more requests, but not for processing each request respectively.
-        // For the sessions for a worker got from a same session pool are the same session, each request should share
+        // Because the sessions for a worker got from a same session pool are the same session, each request should share
         // a different session pool.
         session.set_timeout(sec);
-        return session.call(func, param);
+        return session.call(func, param, result);
     }
 
     workerid_t getWorkerId() const
