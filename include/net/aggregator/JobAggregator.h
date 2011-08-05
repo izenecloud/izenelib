@@ -183,6 +183,7 @@ protected:
         {
             WorkerSessionPtr workerSession(new WorkerSession(srvInfo.host_, srvInfo.port_, workerId));
             workerSessionList_.push_back(workerSession);
+            std::cout << "#[Aggregator] set session to worker: " <<srvInfo.host_<<":"<<srvInfo.port_<<std::endl;
         }
         catch(std::exception& e)
         {
@@ -222,7 +223,6 @@ protected:
             if (isCallLocalWorker)
             {
                 cout << "#[Aggregator] call worker0 (local)" << endl;
-                ResultType result;
                 std::string error;
                 if (static_cast<ConcreteAggregator*>(this)->get_local_result(func, request, result, error))
                 {
