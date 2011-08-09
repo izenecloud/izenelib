@@ -80,40 +80,22 @@ class JobWorker : public msgpack::rpc::server::base
 {
 
 public:
-    JobWorker(const std::string& host, uint16_t port)
-    : srvInfo_(host, port)
+    JobWorker(const std::string& host, uint16_t port, unsigned int threadNum=4)
+    : srvInfo_(host, port), threadNum_(threadNum)
     {}
 
-    /// local worker
-    JobWorker()
-    {}
-
-
 public:
-    /**
-     * @brief implement this function using concrete data type, if worker need to be called locally.
-     * if it's not work as a server, no need to Start().
-     *
-         bool call(
-            const std::string& func,
-            const Data& request,
-            DataResult& result,
-            std::string& error) ;
-     *
-     */
-
-public:
-    void start(unsigned int threadnum=4)
+    void start()
     {
-        addHandlers(); // add before run
+        addHandlers(); // add before start
 
         instance.listen(srvInfo_.host_, srvInfo_.port_);
-        instance.start(threadnum);
+        instance.start(threadNum_);
     }
 
     void startServer(const std::string& host, uint16_t port, unsigned int threadnum=4)
     {
-        addHandlers(); // add before started
+        addHandlers(); // add before start
 
         srvInfo_.host_ = host;
         srvInfo_.port_ = port;
@@ -121,9 +103,9 @@ public:
         instance.start(threadnum);
     }
 
-    void run(unsigned int threadnum=4)
+    void run()
     {
-        start(threadnum);
+        start(threadNum_);
         join();
     }
 
@@ -167,7 +149,6 @@ public:
                 key = method_plus.substr(0,pos);
                 if (pos+1 < method_plus.size())
                     method = method_plus.substr(pos+1);
-                cout <<method_plus<< " key: " << key<<", method: "<<method<<endl;
             }
 
             if (!preHandle(key))
@@ -219,6 +200,7 @@ protected:
 
 protected:
     ServerInfo srvInfo_;
+    unsigned int threadNum_;
 
     Maptype handlerList_;
 };
