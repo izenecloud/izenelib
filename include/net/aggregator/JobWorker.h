@@ -142,6 +142,11 @@ public:
         return srvInfo_;
     }
 
+    virtual bool preHandle(const std::string& key)
+    {
+        return true;
+    }
+
     /*virtual*/
     void dispatch(msgpack::rpc::request req)
     {
@@ -155,6 +160,7 @@ public:
             if (pos == string::npos)
             {
                 req.error(std::string("method error!"));
+                return;
             }
             else
             {
@@ -162,6 +168,13 @@ public:
                 if (pos+1 < method_plus.size())
                     method = method_plus.substr(pos+1);
                 cout <<method_plus<< " key: " << key<<", method: "<<method<<endl;
+            }
+
+            if (!preHandle(key))
+            {
+                std::string error = "Failed to handle: " + key + "";
+                req.error(error);
+                return;
             }
 
             cout << "#[Worker:"<<srvInfo_.port_<<"] dispatch request: " << method << endl;

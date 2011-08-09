@@ -159,7 +159,7 @@ public:
         WorkerFutureHolder futureHolder;
 
         // send requests
-        sendRequest(futureHolder, func, request, result, workeridList, timeout);
+        sendRequest(futureHolder, key, func, request, result, workeridList, timeout);
 
         // get result
         join(futureHolder, func, request, result, checkWorkerById(workeridList, 0));
