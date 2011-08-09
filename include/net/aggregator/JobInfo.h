@@ -19,9 +19,11 @@ using namespace std;
 namespace net{
 namespace aggregator{
 
+const static char REQUEST_FUNC_DELIMETER = '#';
+
 /// job request type
 typedef msgpack::rpc::request JobRequest;
-typedef unsigned int workerid_t;
+typedef uint32_t workerid_t;
 typedef msgpack::rpc::session_pool session_pool_t;
 typedef msgpack::rpc::future future_t;
 

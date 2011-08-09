@@ -81,11 +81,11 @@ int main( int argc, char * argv[])
     WorkerFutureHolder futureHolder;
     Data req;
     DataResult result;
-    ag.sendRequest<Data>(futureHolder, "getKeywordSearchResult", req, result);
+    ag.sendRequest<Data>(futureHolder, "key","getKeywordSearchResult", req, result);
 
     WorkerFutureHolder futureHolder2;
     AddData req2; req2.i = 5; req2.j = 100;
-    ag.sendRequest<AddData>(futureHolder2, "add", req2, result);
+    ag.sendRequest<AddData>(futureHolder2, "","add", req2, result);
 
     // join results
     ag.getResult<Data, DataResult>(futureHolder, "getKeywordSearchResult", req, result);

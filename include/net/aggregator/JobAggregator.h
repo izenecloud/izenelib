@@ -93,13 +93,16 @@ public:
     template <typename RequestType, typename ResultType>
     void sendRequest(
             WorkerFutureHolder& futureHolder,
+            const std::string& key,
             const std::string& func,
             const RequestType& request,
             const ResultType& result,
             const std::vector<workerid_t>& workeridList = NullWorkeridList,
             unsigned int timeout = 7)
     {
-        cout << "#[Aggregator] send request: " << func << endl;
+        std::string func_plus = key+REQUEST_FUNC_DELIMETER+func;
+        cout << "#[Aggregator] send request: " << func_plus << endl;
+
         worker_iterator_t worker = workerSessionList_.begin();
         for ( ; worker != workerSessionList_.end(); worker++ )
         {
@@ -114,7 +117,7 @@ public:
             WorkerFuture workerFuture(
                     workerid,
                     (*worker)->getServerInfo(),
-                    (*worker)->sendRequest(futureHolder.getSessionPool(), func, request, result, timeout));
+                    (*worker)->sendRequest(futureHolder.getSessionPool(), func_plus, request, result, timeout));
 
             futureHolder.addWorkerFuture(workerFuture);
         }
@@ -146,6 +149,7 @@ public:
      */
     template <typename RequestType, typename ResultType>
     void sendRequest(
+            const std::string& key,
             const std::string& func,
             const RequestType& request,
             ResultType& result,

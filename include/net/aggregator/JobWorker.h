@@ -148,8 +148,21 @@ public:
         try
         {
             // get requested service
-            std::string method;
-            req.method().convert(&method);
+            std::string method_plus;
+            req.method().convert(&method_plus);
+            std::string key, method;
+            size_t pos = method_plus.find(REQUEST_FUNC_DELIMETER);
+            if (pos == string::npos)
+            {
+                req.error(std::string("method error!"));
+            }
+            else
+            {
+                key = method_plus.substr(0,pos);
+                if (pos+1 < method_plus.size())
+                    method = method_plus.substr(pos+1);
+                cout <<method_plus<< " key: " << key<<", method: "<<method<<endl;
+            }
 
             cout << "#[Worker:"<<srvInfo_.port_<<"] dispatch request: " << method << endl;
 
