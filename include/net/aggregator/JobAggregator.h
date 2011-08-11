@@ -228,10 +228,10 @@ protected:
             {
                 cout << "#[Aggregator] call worker0 (local)" << endl;
                 std::string error;
-                ResultType resultCopy = result;
+                ResultType resultCopy = result; // avoid to change result
                 if (static_cast<ConcreteAggregator*>(this)->get_local_result(func, request, resultCopy, error))
                 {
-                    resultList.push_back(std::make_pair(0, result));
+                    resultList.push_back(std::make_pair(0, resultCopy));
                 }
                 else {
                     cout << "#[Aggregator:error] worker0 " << error << endl;
