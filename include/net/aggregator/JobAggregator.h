@@ -228,7 +228,8 @@ protected:
             {
                 cout << "#[Aggregator] call worker0 (local)" << endl;
                 std::string error;
-                if (static_cast<ConcreteAggregator*>(this)->get_local_result(func, request, result, error))
+                ResultType resultCopy = result;
+                if (static_cast<ConcreteAggregator*>(this)->get_local_result(func, request, resultCopy, error))
                 {
                     resultList.push_back(std::make_pair(0, result));
                 }
