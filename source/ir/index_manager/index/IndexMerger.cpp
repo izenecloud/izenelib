@@ -285,7 +285,11 @@ void IndexMerger::outputNewBarrel(MergeBarrelQueue* pBarrelQueue, const string& 
                                 pFieldMerger = new FieldMerger(needSortingMerge, pIndexer_->getSkipInterval(), pIndexer_->getMaxSkipLevel());
                                 pFieldMerger->setDirectory(pDirectory_);
                                 if(NULL == pIndexer_->getIndexWriter()->pMemCache_) pIndexer_->getIndexWriter()->createMemCache();
-                                pFieldMerger->initPostingMerger(pIndexer_->getIndexCompressType(), optimize_, pIndexer_->getIndexWriter()->pMemCache_);
+                                pFieldMerger->initPostingMerger(
+                                                        pIndexer_->getIndexCompressType(), 
+                                                        optimize_, 
+                                                        pIndexer_->getIndexManagerConfig()->mergeStrategy_.requireIntermediateFileForMerging_,
+                                                        pIndexer_->getIndexWriter()->pMemCache_);
                                 if(pDocFilter_)
                                     pFieldMerger->setDocFilter(pDocFilter_);
                             }

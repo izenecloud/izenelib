@@ -208,7 +208,12 @@ public:
         pDocFilter_ = pFilter;
     }
 
-    void initPostingMerger(CompressionType compressType, bool optimize, MemCache* pMemCache);
+    void initPostingMerger(
+        CompressionType compressType, 
+        bool optimize, 
+        bool requireIntermediateFileForMerging,
+        MemCache* pMemCache
+    );
 
 private:
     /** initialize merge queue */
