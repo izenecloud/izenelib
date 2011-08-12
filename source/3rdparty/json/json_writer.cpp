@@ -27,7 +27,7 @@ static bool containsControlCharacter( const char* str )
    }
    return false;
 }
-static void uintToString( unsigned int value, 
+static void uintToString( UInt value,
                           char *&current )
 {
    *--current = 0;
