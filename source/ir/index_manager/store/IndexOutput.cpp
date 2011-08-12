@@ -210,6 +210,11 @@ int64_t IndexOutput::getFilePointer()
     return bufferStart_ + (int64_t)bufferPosition_;
 }
 
+int64_t IndexOutput::getLength()
+{
+    return bufferStart_ + (int64_t)bufferPosition_;
+}
+
 void IndexOutput::write(IndexInput* pInput,int64_t length)
 {
     if ( (bufferPosition_ + length) >= buffersize_)

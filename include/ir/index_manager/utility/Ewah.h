@@ -245,7 +245,7 @@ template <class uword>
 class EWAHBoolArrayBitIterator;
 
 template <class uword=uword32>
-class EWAHBoolArrayIterator {
+class EWAHBoolArrayIterator{
     public:
         bool hasNext()  const {
             return pointer < myparent.size();
@@ -345,11 +345,16 @@ class EWAHBoolArraySparseIterator {
 };
 
 template <class uword=uword32>
-class EWAHBoolArrayBitIterator {
+class EWAHBoolArrayBitIterator{
     public:
-        ulong next() {
+
+        docid_t doc() { return (docid_t)curdoc; }
+
+        bool next() {
             if (currentword == zero)
-                return 0;
+            {
+                return false;
+            }
             if(iscleanword)
             {
                 ++bitoffsetinword;
@@ -373,36 +378,47 @@ class EWAHBoolArrayBitIterator {
             {
                  readNewWord();
             }
-            return currentbit - 1;
+            curdoc = currentbit - 1;
+            return true;
         }
 
         EWAHBoolArrayBitIterator(const EWAHBoolArrayBitIterator<uword> & other):i(other.i),
         currentword(other.currentword),
         iscleanword(other.iscleanword),
         currentbit(other.currentbit),
-        bitoffsetinword(other.bitoffsetinword){}
+        bitoffsetinword(other.bitoffsetinword),
+        numones(other.numones),
+        curdoc(other.curdoc){}
 
         static const uword zero = 0;
         static const uword notzero=~zero;
         enum{ wordinbits =  sizeof(uword) * 8 };
+
     private:
-        EWAHBoolArrayBitIterator(const vector<uword> & parent):
+        EWAHBoolArrayBitIterator(const vector<uword> & parent, const uint& ones):
             i(parent),
             currentword(0),
             iscleanword(false),
             currentbit(0),
-            bitoffsetinword(0)
+            bitoffsetinword(0),
+            numones(ones),
+            curdoc(0)
         {
             readNewWord();
         }
         void readNewWord() ;
+
+    private:
         friend class EWAHBoolArray<uword>;
         EWAHBoolArrayIterator<uword> i;
         uword currentword;
         bool iscleanword;
-        ulong currentbit;
+        uint currentbit;
         uint bitoffsetinword;
+        uint numones;
+        uint curdoc;
 };
+
 
 class BitmapStatistics {
 public:
@@ -550,8 +566,8 @@ class EWAHBoolArray {
         BitmapStatistics computeStatistics() const;
 
         BoolArray<uword> toBoolArray() const;
-        void appendRowIDs(vector<ulong> & out, const ulong offset = 0) const;
-        ulong numberOfOnes();
+        void appendRowIDs(vector<uint> & out, const uint offset = 0) const;
+        uint numberOfOnes();
         void swap(EWAHBoolArray & x);
         const vector<uword> & getBuffer() const {return buffer; };
         enum { wordinbits =  sizeof(uword) * 8, sanitychecks = false};
@@ -910,8 +926,8 @@ BoolArray<uword> EWAHBoolArray<uword>::toBoolArray() const {
 }
 
 template <class uword>
-ulong EWAHBoolArray<uword>::numberOfOnes() {
-    ulong c (0);
+uint EWAHBoolArray<uword>::numberOfOnes() {
+    uint c (0);
     EWAHBoolArraySparseIterator<uword> i = sparse_uncompress();
     while(i.hasNext()) {
         const uword currentword = i.next();
@@ -925,14 +941,14 @@ ulong EWAHBoolArray<uword>::numberOfOnes() {
 }
 
 template <class uword>
-void EWAHBoolArray<uword>::appendRowIDs(vector<ulong> & out, const ulong offset) const {
+void EWAHBoolArray<uword>::appendRowIDs(vector<uint> & out, const uint offset) const {
     uint pointer(0);
-    ulong currentoffset(offset);
+    uint currentoffset(offset);
     if(RESERVEMEMORY) out.reserve(buffer.size()+64);// trading memory for speed.
     while(pointer <buffer.size()) {
         ConstRunningLengthWord<uword> rlw(buffer[pointer]);
         if(rlw.getRunningBit()) {
-            for(ulong x = 0; x<  static_cast<ulong>(rlw.getRunningLength()*wordinbits);++x) {
+            for(uint x = 0; x<  static_cast<uint>(rlw.getRunningLength()*wordinbits);++x) {
                 out.push_back(currentoffset + x);
             }
         }

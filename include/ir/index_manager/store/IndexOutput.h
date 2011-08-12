@@ -15,9 +15,24 @@
 NS_IZENELIB_IR_BEGIN
 
 namespace indexmanager{
+
+class OutputStream
+{
+public:
+    virtual ~OutputStream(){}
+
+    virtual void writeVInt(int32_t i) = 0;
+
+    virtual void write(const char* data,size_t length) = 0;	
+
+    virtual void write(IndexInput* pInput,int64_t length) = 0;
+
+    virtual int64_t getLength() = 0;
+};
+
 ///IndexOutput is a class that is responsible for the index data writing
 ///It provides basic utilites of encoding variable length data
-class IndexOutput
+class IndexOutput : public OutputStream
 {
 public:
     IndexOutput(char* buffer,size_t buffsize);
@@ -53,6 +68,8 @@ public:
     void setBuffer(char* buf,size_t bufSize);
 
     int64_t getFilePointer();
+
+    int64_t getLength();
 
     void flush();
 public:

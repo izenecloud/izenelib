@@ -137,6 +137,7 @@ void IndexWriter::indexDocument(IndexerDocument& doc)
 void IndexWriter::removeDocument(collectionid_t colID, docid_t docId)
 {
     pIndexer_->getIndexReader()->delDocument(colID, docId);
+    pIndexer_->pBTreeIndexer_->delDocument(pIndexer_->getBarrelsInfo()->maxDocId() + 1, docId);
     if(pIndexBarrelWriter_ && ! pIndexBarrelWriter_->getDocFilter())
         pIndexBarrelWriter_->setDocFilter(pIndexer_->getIndexReader()->getDocFilter());
 }

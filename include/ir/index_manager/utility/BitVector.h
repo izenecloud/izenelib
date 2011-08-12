@@ -165,6 +165,19 @@ public:
         return *this;
     }
 
+    void logicalnot(BitVector& b)
+    {
+        const size_t byteNum = getBytesNum(size_);
+        for(size_t i = 0; i < byteNum; ++i )
+            b.bits_[i] = ~bits_[i];
+     }
+
+    void printout(ostream &o = cout) {
+          for(uint k = 1; k < size_; ++k)
+              o << test(k) << " ";
+          o << endl;
+      }
+
     size_t size() { return size_; }
 
     void read(Directory* pDirectory,const char* name)

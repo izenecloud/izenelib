@@ -25,7 +25,14 @@ namespace indexmanager{
 class PostingMerger
 {
 public:
-    PostingMerger(int skipInterval, int maxSkipLevel, CompressionType compressType, bool optimize, MemCache* pMemCache);
+    PostingMerger(
+        int skipInterval, 
+        int maxSkipLevel, 
+        CompressionType compressType, 
+        bool optimize, 
+        bool requireIntermediateFileForMerging,
+        MemCache* pMemCache
+    );
 
     virtual ~PostingMerger();
 
@@ -114,6 +121,10 @@ private:
     IndexOutput* pTmpPostingOutput_; ///used during merging posting
 
     IndexInput* pTmpPostingInput_; ///used during merging posting
+
+    VariantDataPool* pVIntDataOutput_; ///used during merging vint posting using memory
+
+    bool requireIntermediateFileForMerging_;  // switch between pTmpPostingOutput_ and pVIntDataOutput_
 
     PostingDescriptor postingDesc_;
 
