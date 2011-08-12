@@ -86,6 +86,78 @@ bool VariantDataPool::addVData64(uint64_t vdata64)
     return true;
 }
 
+void VariantDataPool::writeVInt(int32_t i)
+{
+    addVData32(i);
+}
+
+void VariantDataPool::write(IndexInput* pInput,int64_t length)
+{
+    size_t memSize = length + sizeof(int32_t) + sizeof(VariantDataChunk*);
+    uint8_t* begin = pMemCache_->getMemByRealSize(memSize);
+    if (!begin)
+    {
+        MemCache* pUrgentMemCache = pMemCache_->grow(memSize);
+  
+        begin  = pUrgentMemCache->getMemByRealSize(memSize);
+        if (!begin)
+        {
+            SF1V5_THROW(ERROR_OUTOFMEM,"VariantDataPool:write() : Allocate memory failed.");
+        }
+    }
+    VariantDataChunk* pChunk = (VariantDataChunk*)begin;
+    pChunk->size = (int32_t)length;
+    pChunk->next = NULL;
+    pInput->readBytes(pChunk->data,(size_t)length);
+ 
+    if (pTailChunk_)
+    {
+        pTailChunk_->next = pChunk;
+        pTailChunk_->size = nPosInCurChunk_;
+    }
+    pTailChunk_ = pChunk;
+    if (!pHeadChunk_)
+        pHeadChunk_ = pTailChunk_;
+    nTotalSize_ += length;
+    nTotalUsed_ += length; 
+
+    nPosInCurChunk_ = length;
+}
+
+void VariantDataPool::write(const char* data,size_t length)
+{
+    size_t memSize = length + sizeof(int32_t) + sizeof(VariantDataChunk*);
+    uint8_t* begin = pMemCache_->getMemByRealSize(memSize);
+    if (!begin)
+    {
+        MemCache* pUrgentMemCache = pMemCache_->grow(memSize);
+  
+        begin  = pUrgentMemCache->getMemByRealSize(memSize);
+        if (!begin)
+        {
+            SF1V5_THROW(ERROR_OUTOFMEM,"VariantDataPool:write() : Allocate memory failed.");
+        }
+    }
+    VariantDataChunk* pChunk = (VariantDataChunk*)begin;
+    pChunk->size = (int32_t)length;
+    pChunk->next = NULL;
+
+    memcpy(pChunk->data,data,length);
+ 
+    if (pTailChunk_)
+    {
+        pTailChunk_->next = pChunk;
+        pTailChunk_->size = nPosInCurChunk_;
+    }
+    pTailChunk_ = pChunk;
+    if (!pHeadChunk_)
+        pHeadChunk_ = pTailChunk_;
+    nTotalSize_ += length;
+    nTotalUsed_ += length; 
+
+    nPosInCurChunk_ = length;
+}
+
 void VariantDataPool::write(IndexOutput* pOutput)
 {
     VariantDataChunk* pChunk = pHeadChunk_;
@@ -186,9 +258,9 @@ void VariantDataPool::addChunk()
     nPosInCurChunk_ = 0;
 }
 
-uint32_t VariantDataPool::getLength()
+int64_t VariantDataPool::getLength()
 {
-    return nTotalUsed_;
+    return (int64_t)nTotalUsed_;
 }
 
 void VariantDataPool::reset()
@@ -272,8 +344,10 @@ void VariantDataPoolInput::readInternal(char* b,size_t length,bool bCheck)
     }
     if(nLen > 0)
     {
-        SF1V5_THROW(ERROR_FILEIO,"VariantDataPoolInput::readInternal():read past EOF" );
+        //SF1V5_THROW(ERROR_FILEIO,"VariantDataPoolInput::readInternal():read past EOF" );
+        currPos_ += (length - nLen);
     }
+    else
     currPos_ += length;
 }
 

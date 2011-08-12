@@ -44,13 +44,16 @@ Indexer::~Indexer()
     pConfigurationManager_ = NULL;
 }
 
-const std::map<std::string, IndexerCollectionMeta>& Indexer::getCollectionsMeta()
+const std::map<std::string, IndexerCollectionMeta>& 
+Indexer::getCollectionsMeta()
 {
     return pConfigurationManager_->getCollectionMetaNameMap();
 }
 
-void Indexer::setIndexManagerConfig(const IndexManagerConfig& config,
-                                    const std::map<std::string, uint32_t>& collectionIdMapping)
+void Indexer::setIndexManagerConfig(
+    const IndexManagerConfig& config,
+    const std::map<std::string, uint32_t>& collectionIdMapping
+)
 {
     close();
 

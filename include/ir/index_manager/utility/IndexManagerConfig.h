@@ -94,7 +94,8 @@ private:
     {
     public:
         _mergestrategy()
-            :isAsync_(true)
+            :isAsync_(true),
+            requireIntermediateFileForMerging_(true)
         {}
 
     private:
@@ -105,6 +106,7 @@ private:
         {
             ar & param_;
             ar & isAsync_;
+            ar & requireIntermediateFileForMerging_;
         }
     public:
         /// @brief  param of merge method:
@@ -117,6 +119,14 @@ private:
          * false for merge synchronously (single thread for both build index and merge index).
          */
         bool isAsync_;
+
+	/// when merging postings on disks(not SSD), if skiplist is enabled,
+	/// we need an extra storage space to store merged posting. 
+	/// in some cases, such an extra storage could not be file, because it will lead to 
+	/// low efficiency caused by too many random read, and it will be much more serious
+	/// when there exist mutiple disks with huge capacity.
+	bool requireIntermediateFileForMerging_;
+		
     };
 
     /**

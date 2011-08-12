@@ -67,10 +67,14 @@ void FieldMerger::addField(BarrelInfo* pBarrelInfo,FieldInfo* pFieldInfo)
     fieldEntries_.push_back(new MergeFieldEntry(pBarrelInfo,pFieldInfo));
 }
 
-void FieldMerger::initPostingMerger(CompressionType compressType, bool optimize, MemCache* pMemCache)
+void FieldMerger::initPostingMerger(
+    CompressionType compressType, 
+    bool optimize, 
+    bool requireIntermediateFileForMerging,
+    MemCache* pMemCache)
 {
     if (pPostingMerger_ == NULL)
-        pPostingMerger_ = new PostingMerger(skipInterval_, maxSkipLevel_, compressType, optimize, pMemCache);
+        pPostingMerger_ = new PostingMerger(skipInterval_, maxSkipLevel_, compressType, optimize, requireIntermediateFileForMerging, pMemCache);
 }
 
 fileoffset_t FieldMerger::merge(OutputDescriptor* pOutputDescriptor)

@@ -31,7 +31,7 @@ struct VariantDataChunk
 /**
 * VariantDataPool
 */
-class VariantDataPool
+class VariantDataPool : public OutputStream
 {
 public:
     VariantDataPool(MemCache* pMemCache);
@@ -55,9 +55,25 @@ public:
     bool addVData64(uint64_t vdata64);
 
     /**
+     * virtual interface from OutputStream, same as addVData32
+     */
+    void writeVInt(int32_t i);
+
+    /**
      * write all data contained to disk;
+     * TODO the function name is required to be refactored
      */
     void write(IndexOutput* pOutput);
+
+    /**
+     * add data from external buffer
+     */
+    void write(const char* data,size_t length);
+
+    /**
+     * add data from IndexInput
+     */
+    void write(IndexInput* pInput,int64_t length);
 
     /**
      * decode 32bit vdata
@@ -91,7 +107,7 @@ public:
     void truncTailChunk();
 
     /** get the real size of the list */
-    uint32_t getLength();
+    int64_t getLength();
 
     /**
      * reset the list for using at next time
