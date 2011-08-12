@@ -181,6 +181,16 @@ BTreeIndexer::~BTreeIndexer()
 */	
 }
 
+void BTreeIndexer::setFilter(boost::shared_ptr<BitVector> pBitVector)
+{
+       pFilter = pBitVector;
+}
+
+boost::shared_ptr<BitVector> BTreeIndexer::getFilter()
+{
+    return pFilter;
+}
+
 void BTreeIndexer::add(collectionid_t colID, fieldid_t fid, PropertyType& value, docid_t docid)
 {
     izenelib::util::boost_variant_visit(boost::bind(add_visitor(), this, colID, fid, _1, docid), value);
@@ -194,6 +204,12 @@ void BTreeIndexer::remove(collectionid_t colID, fieldid_t fid, PropertyType& val
 void BTreeIndexer::getValue(collectionid_t colID, fieldid_t fid, PropertyType& value,BitVector& docs)
 {
     izenelib::util::boost_variant_visit(boost::bind(get_visitor(), this, colID, fid, _1, boost::ref(docs)), value);
+    if (pFilter)
+    {
+        boost::shared_ptr<BitVector> filterNot(new BitVector(pFilter->size()));
+        pFilter->logicalnot(*filterNot);
+        docs &= *filterNot;
+    }
 }
 
 void BTreeIndexer::getValue(collectionid_t colID, fieldid_t fid, PropertyType& value,std::vector<docid_t>& docList)
@@ -204,37 +220,79 @@ void BTreeIndexer::getValue(collectionid_t colID, fieldid_t fid, PropertyType& v
 void BTreeIndexer::getValueNotEqual(collectionid_t colID, fieldid_t fid, PropertyType& value,BitVector& docs)
 {
     izenelib::util::boost_variant_visit(boost::bind(get_without_visitor(), this, colID, fid, _1, boost::ref(docs)), value);
+    if(pFilter)
+    {
+        boost::shared_ptr<BitVector> filterNot(new BitVector(pFilter->size()));
+        pFilter->logicalnot(*fiterNot);
+        docs &= *fiterNot;
+    }
 }
 
 void BTreeIndexer::getValueBetween(collectionid_t colID, fieldid_t fid, PropertyType& value1, PropertyType& value2, BitVector& docs)
 {
-    izenelib::util::boost_variant_visit(boost::bind(get_between_visitor(), this, colID, fid, _1, _2, boost::ref(docs)),value1,value2);	
+    izenelib::util::boost_variant_visit(boost::bind(get_between_visitor(), this, colID, fid, _1, _2, boost::ref(docs)),value1,value2);
+    if(pFilter)
+    {
+        boost::shared_ptr<BitVector> filterNot(new BitVector(pFilter->size()));
+        pFilter->logicalnot(*fiterNot);
+        docs &= *fiterNot;
+    }
 }
 
 void BTreeIndexer::getValueLess(collectionid_t colID, fieldid_t fid, PropertyType& value,BitVector& docs)
 {
     izenelib::util::boost_variant_visit(boost::bind(get_less_visitor(), this, colID, fid, _1, boost::ref(docs)), value);
+    if(pFilter)
+    {
+        boost::shared_ptr<BitVector> filterNot(new BitVector(pFilter->size()));
+        pFilter->logicalnot(*fiterNot);
+        docs &= *fiterNot;
+    }
 }
 
 void BTreeIndexer::getValueLessEqual(collectionid_t colID, fieldid_t fid, PropertyType& value,BitVector& docs)
 {
     izenelib::util::boost_variant_visit(boost::bind(get_less_equal_visitor(), this, colID, fid, _1, boost::ref(docs)), value);
+    if(pFilter)
+    {
+        boost::shared_ptr<BitVector> filterNot(new BitVector(pFilter->size()));
+        pFilter->logicalnot(*fiterNot);
+        docs &= *fiterNot;
+    }
 }
 
 void BTreeIndexer::getValueGreat(collectionid_t colID, fieldid_t fid, PropertyType& value,BitVector& docs)
 {
     izenelib::util::boost_variant_visit(boost::bind(get_great_visitor(), this, colID, fid, _1, boost::ref(docs)), value);
+    if(pFilter)
+    {
+        boost::shared_ptr<BitVector> filterNot(new BitVector(pFilter->size()));
+        pFilter->logicalnot(*fiterNot);
+        docs &= *fiterNot;
+    }
 }
 
 void BTreeIndexer::getValueGreatEqual(collectionid_t colID, fieldid_t fid, PropertyType& value,BitVector& docs)
 {
     izenelib::util::boost_variant_visit(boost::bind(get_great_equal_visitor(), this, colID, fid, _1, boost::ref(docs)), value);
+    if(pFilter)
+    {
+        boost::shared_ptr<BitVector> filterNot(new BitVector(pFilter->size()));
+        pFilter->logicalnot(*fiterNot);
+        docs &= *fiterNot;
+    }
 }
 
 void BTreeIndexer::getValueIn(collectionid_t colID, fieldid_t fid, vector<PropertyType>& values,BitVector& docs)
 {
     for (size_t i = 0; i < values.size(); i++)
         izenelib::util::boost_variant_visit(boost::bind(get_visitor(), this, colID, fid, _1, boost::ref(docs)), values[i]);
+    if(pFilter)
+    {
+        boost::shared_ptr<BitVector> filterNot(new BitVector(pFilter->size()));
+        pFilter->logicalnot(*fiterNot);
+        docs &= *fiterNot;
+    }
 }
 
 void BTreeIndexer::getValueNotIn(collectionid_t colID, fieldid_t fid, vector<PropertyType>& values,BitVector& docs)
@@ -242,6 +300,12 @@ void BTreeIndexer::getValueNotIn(collectionid_t colID, fieldid_t fid, vector<Pro
     for (size_t i = 0; i < values.size(); i++)
         getValue(colID, fid, values[i], docs);
     docs.toggle();
+    if(pFilter)
+    {
+        boost::shared_ptr<BitVector> filterNot(new BitVector(pFilter->size()));
+        pFilter->logicalnot(*fiterNot);
+        docs &= *fiterNot;
+    }
 }
 
 void BTreeIndexer::getValueStart(collectionid_t colID, fieldid_t fid, PropertyType& value,BitVector& docs)
@@ -250,6 +314,12 @@ void BTreeIndexer::getValueStart(collectionid_t colID, fieldid_t fid, PropertyTy
     {
         IndexKeyType<String> key(colID,fid,boost::get<String>(value));
         pBTreeUStrIndexer_->getPrefix(key,docs);
+        if(pFilter)
+        {
+            boost::shared_ptr<BitVector> filterNot(new BitVector(pFilter->size()));
+            pFilter->logicalnot(*fiterNot);
+            docs &= *fiterNot;
+        }
     }
     catch (...)
     {
@@ -264,6 +334,12 @@ void BTreeIndexer::getValueEnd(collectionid_t colID, fieldid_t fid, PropertyType
         //pBTreeUStrSuffixIndexer_->getValueSuffix(boost::get<String>(value),fid, docs);
         IndexKeyType<String> key(colID,fid,boost::get<String>(value));
         pBTreeUStrIndexer_->getSuffix(key,docs);
+        if(pFilter)
+        {
+            boost::shared_ptr<BitVector> filterNot(new BitVector(pFilter->size()));
+            pFilter->logicalnot(*fiterNot);
+            docs &= *fiterNot;
+        }
     }
     catch (...)
     {
@@ -278,6 +354,12 @@ void BTreeIndexer::getValueSubString(collectionid_t colID, fieldid_t fid, Proper
         //pBTreeUStrSuffixIndexer_->getValuePrefix(boost::get<String>(value), fid, docs);
         IndexKeyType<String> key(colID,fid,boost::get<String>(value));
         pBTreeUStrIndexer_->getSubString(key,docs);
+        if(pFilter)
+        {
+            boost::shared_ptr<BitVector> filterNot(new BitVector(pFilter->size()));
+            pFilter->logicalnot(*fiterNot);
+            docs &= *fiterNot;
+        }
     }
     catch (...)
     {
@@ -293,5 +375,14 @@ void BTreeIndexer::flush()
     if (pBTreeDoubleIndexer_) pBTreeDoubleIndexer_->commit();
     if (pBTreeUStrIndexer_) pBTreeUStrIndexer_->commit();
     //if (pBTreeUStrSuffixIndexer_) pBTreeUStrSuffixIndexer_->flush();
+}
+
+void BTreeIndexer::delDocument(size_t max_doc, docid_t docId)
+{
+    if(!pFilter)
+    {
+        pFilter.reset(new BitVector(max_doc));
+    }
+    pFilter->set(docId);
 }
 

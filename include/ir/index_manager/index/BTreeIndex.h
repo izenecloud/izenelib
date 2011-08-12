@@ -550,6 +550,12 @@ public:
 
     void flush();
 
+    void setFilter(boost::shared_ptr<BitVector> pBitVector);
+
+    boost::shared_ptr<BitVector> getFilter();
+
+    void delDocument(size_t max_doc, docid_t docId);
+
     template<typename T> BTreeIndex<IndexKeyType<T> >* getIndexer();
 
 //    static BTreeTrieIndex<String>* getTrieIndexer()
@@ -568,6 +574,8 @@ private:
     BTreeIndex<IndexKeyType<double> >* pBTreeDoubleIndexer_;
 
     BTreeIndex<IndexKeyType<String> >* pBTreeUStrIndexer_;
+
+    boost::shared_ptr<BitVector> pFilter;
 
 //    static BTreeTrieIndex<String>* pBTreeUStrSuffixIndexer_;
 

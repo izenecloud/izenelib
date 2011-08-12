@@ -88,6 +88,7 @@ typedef uint16_t doclen_t;
 #endif
 
 #define DELETED_DOCS "docs.del"
+#define BTREE_DELETED_DOCS "btree.del"
 
 } // namespace indexmanager
 
