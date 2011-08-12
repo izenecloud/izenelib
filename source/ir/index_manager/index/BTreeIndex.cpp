@@ -223,8 +223,8 @@ void BTreeIndexer::getValueNotEqual(collectionid_t colID, fieldid_t fid, Propert
     if(pFilter)
     {
         boost::shared_ptr<BitVector> filterNot(new BitVector(pFilter->size()));
-        pFilter->logicalnot(*fiterNot);
-        docs &= *fiterNot;
+        pFilter->logicalnot(*filterNot);
+        docs &= *filterNot;
     }
 }
 
@@ -234,8 +234,8 @@ void BTreeIndexer::getValueBetween(collectionid_t colID, fieldid_t fid, Property
     if(pFilter)
     {
         boost::shared_ptr<BitVector> filterNot(new BitVector(pFilter->size()));
-        pFilter->logicalnot(*fiterNot);
-        docs &= *fiterNot;
+        pFilter->logicalnot(*filterNot);
+        docs &= *filterNot;
     }
 }
 
@@ -245,8 +245,8 @@ void BTreeIndexer::getValueLess(collectionid_t colID, fieldid_t fid, PropertyTyp
     if(pFilter)
     {
         boost::shared_ptr<BitVector> filterNot(new BitVector(pFilter->size()));
-        pFilter->logicalnot(*fiterNot);
-        docs &= *fiterNot;
+        pFilter->logicalnot(*filterNot);
+        docs &= *filterNot;
     }
 }
 
@@ -256,8 +256,8 @@ void BTreeIndexer::getValueLessEqual(collectionid_t colID, fieldid_t fid, Proper
     if(pFilter)
     {
         boost::shared_ptr<BitVector> filterNot(new BitVector(pFilter->size()));
-        pFilter->logicalnot(*fiterNot);
-        docs &= *fiterNot;
+        pFilter->logicalnot(*filterNot);
+        docs &= *filterNot;
     }
 }
 
@@ -267,8 +267,8 @@ void BTreeIndexer::getValueGreat(collectionid_t colID, fieldid_t fid, PropertyTy
     if(pFilter)
     {
         boost::shared_ptr<BitVector> filterNot(new BitVector(pFilter->size()));
-        pFilter->logicalnot(*fiterNot);
-        docs &= *fiterNot;
+        pFilter->logicalnot(*filterNot);
+        docs &= *filterNot;
     }
 }
 
@@ -278,8 +278,8 @@ void BTreeIndexer::getValueGreatEqual(collectionid_t colID, fieldid_t fid, Prope
     if(pFilter)
     {
         boost::shared_ptr<BitVector> filterNot(new BitVector(pFilter->size()));
-        pFilter->logicalnot(*fiterNot);
-        docs &= *fiterNot;
+        pFilter->logicalnot(*filterNot);
+        docs &= *filterNot;
     }
 }
 
@@ -290,8 +290,8 @@ void BTreeIndexer::getValueIn(collectionid_t colID, fieldid_t fid, vector<Proper
     if(pFilter)
     {
         boost::shared_ptr<BitVector> filterNot(new BitVector(pFilter->size()));
-        pFilter->logicalnot(*fiterNot);
-        docs &= *fiterNot;
+        pFilter->logicalnot(*filterNot);
+        docs &= *filterNot;
     }
 }
 
@@ -303,8 +303,8 @@ void BTreeIndexer::getValueNotIn(collectionid_t colID, fieldid_t fid, vector<Pro
     if(pFilter)
     {
         boost::shared_ptr<BitVector> filterNot(new BitVector(pFilter->size()));
-        pFilter->logicalnot(*fiterNot);
-        docs &= *fiterNot;
+        pFilter->logicalnot(*filterNot);
+        docs &= *filterNot;
     }
 }
 
@@ -317,8 +317,8 @@ void BTreeIndexer::getValueStart(collectionid_t colID, fieldid_t fid, PropertyTy
         if(pFilter)
         {
             boost::shared_ptr<BitVector> filterNot(new BitVector(pFilter->size()));
-            pFilter->logicalnot(*fiterNot);
-            docs &= *fiterNot;
+            pFilter->logicalnot(*filterNot);
+            docs &= *filterNot;
         }
     }
     catch (...)
@@ -337,8 +337,8 @@ void BTreeIndexer::getValueEnd(collectionid_t colID, fieldid_t fid, PropertyType
         if(pFilter)
         {
             boost::shared_ptr<BitVector> filterNot(new BitVector(pFilter->size()));
-            pFilter->logicalnot(*fiterNot);
-            docs &= *fiterNot;
+            pFilter->logicalnot(*filterNot);
+            docs &= *filterNot;
         }
     }
     catch (...)
@@ -357,8 +357,8 @@ void BTreeIndexer::getValueSubString(collectionid_t colID, fieldid_t fid, Proper
         if(pFilter)
         {
             boost::shared_ptr<BitVector> filterNot(new BitVector(pFilter->size()));
-            pFilter->logicalnot(*fiterNot);
-            docs &= *fiterNot;
+            pFilter->logicalnot(*filterNot);
+            docs &= *filterNot;
         }
     }
     catch (...)
