@@ -184,11 +184,29 @@ BTreeIndexer::~BTreeIndexer()
 void BTreeIndexer::setFilter(boost::shared_ptr<BitVector> pBitVector)
 {
        pFilter_ = pBitVector;
+       pFilterNot_.reset(new BitVector(pFilter_->size()));
+       pFilter_->logicalnot(*pFilterNot_);
 }
 
 boost::shared_ptr<BitVector> BTreeIndexer::getFilter()
 {
     return pFilter_;
+}
+
+bool BTreeIndexer::seek(collectionid_t colID, fieldid_t fid, PropertyType& value)
+{
+    bool find = false;
+    izenelib::util::boost_variant_visit(boost::bind(seek_visitor(), this, colID, fid, _1, find), value);
+    return find;
+}
+
+void BTreeIndexer::getNoneEmptyList(collectionid_t colID, fieldid_t fid, PropertyType& value,BitVector& docs)
+{
+    izenelib::util::boost_variant_visit(boost::bind(get_value_visitor(), this, colID, fid, _1, boost::ref(docs)), value);
+    if (pFilter_)
+    {
+        docs &= *pFilterNot_;
+    }
 }
 
 void BTreeIndexer::add(collectionid_t colID, fieldid_t fid, PropertyType& value, docid_t docid)
@@ -206,9 +224,7 @@ void BTreeIndexer::getValue(collectionid_t colID, fieldid_t fid, PropertyType& v
     izenelib::util::boost_variant_visit(boost::bind(get_visitor(), this, colID, fid, _1, boost::ref(docs)), value);
     if (pFilter_)
     {
-        boost::shared_ptr<BitVector> filterNot(new BitVector(pFilter_->size()));
-        pFilter_->logicalnot(*filterNot);
-        docs &= *filterNot;
+        docs &= *pFilterNot_;
     }
 }
 
@@ -316,7 +332,10 @@ void BTreeIndexer::delDocument(size_t max_doc, docid_t docId)
     if(!pFilter_)
     {
         pFilter_.reset(new BitVector(max_doc));
+        pFilterNot_.reset(new BitVector(max_doc));
+        pFilterNot_->setAll();
     }
     pFilter_->set(docId);
+    pFilterNot_->clear(docId);
 }
 
