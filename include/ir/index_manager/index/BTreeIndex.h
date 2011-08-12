@@ -575,7 +575,7 @@ private:
 
     BTreeIndex<IndexKeyType<String> >* pBTreeUStrIndexer_;
 
-    boost::shared_ptr<BitVector> pFilter;
+    boost::shared_ptr<BitVector> pFilter_;
 
 //    static BTreeTrieIndex<String>* pBTreeUStrSuffixIndexer_;
 
