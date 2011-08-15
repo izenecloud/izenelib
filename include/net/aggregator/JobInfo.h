@@ -41,6 +41,38 @@ struct ServerInfo
     ServerInfo(){}
 };
 
+
+template <typename RequestType, typename ResultType>
+class RequestGroup
+{
+public:
+    typedef boost::shared_ptr<RequestType> RequestParamPtr;
+    typedef boost::shared_ptr<ResultType> ResultParamPtr;
+    typedef typename std::vector<std::pair<workerid_t, RequestParamPtr> >::iterator request_iterator_t;
+
+    std::vector<std::pair<workerid_t, RequestParamPtr> > requestList_;
+    ResultParamPtr resultItem_; // to which all sub results will be merged.
+
+    void addRequest(workerid_t workerid, RequestParamPtr& request)
+    {
+        requestList_.push_back(std::make_pair(workerid, request));
+    }
+
+    void setResultItem(ResultParamPtr& result)
+    {
+        resultItem_ = result;
+    }
+
+    bool check()
+    {
+        if (requestList_.size() > 0 && resultItem_.get())
+            return true;
+
+        return false;
+    }
+};
+
+
 /**
  * A connection to a worker.
  */

@@ -165,6 +165,79 @@ public:
         join(futureHolder, func, request, result, checkWorkerById(workeridList, 0));
     }
 
+    /**
+     * Send a group of requests, requests may be have different values to different workers,
+     * but the results will be merged to a same resultItem set to requestGroup.
+     * @param key
+     * @param func
+     * @param requestGroup
+     * @param timeout
+     */
+    template <typename RequestType, typename ResultType>
+    void sendRequest(
+            const std::string& key,
+            const std::string& func,
+            RequestGroup<RequestType, ResultType>& requestGroup,
+            unsigned int timeout = 10)
+    {
+        if (!requestGroup.check())
+        {
+            cout << "#[Aggregator:error] requestGroup may not fully initialized." <<endl;
+            return;
+        }
+
+        std::string func_plus = key+REQUEST_FUNC_DELIMETER+func;
+        cout << "#[Aggregator] send request: " << func_plus << endl;
+
+        WorkerFutureHolder futureHolder;
+        boost::shared_ptr<ResultType>& resultItem = requestGroup.resultItem_;
+
+        boost::shared_ptr<RequestType> localRequest;
+
+        typename RequestGroup<RequestType, ResultType>::request_iterator_t it;
+        for (it = requestGroup.requestList_.begin(); it != requestGroup.requestList_.end(); it++)
+        {
+            workerid_t workerid = it->first;
+            boost::shared_ptr<RequestType>& request = it->second;
+
+            // request for local worker
+            if (workerid == 0)
+            {
+                localRequest = request;
+                continue;
+            }
+
+            // request for remote workers
+            WorkerSessionPtr& workerSession = getWorkerSession(workerid);
+            if (!workerSession.get())
+            {
+                cout << "#[Aggregator:error] Not found worker" << workerid <<endl;
+                continue;
+            }
+
+            cout << "#[Aggregator] send to worker" << workerid <<" ["
+                 << workerSession->getServerInfo().host_<<":"<<workerSession->getServerInfo().port_
+                 <<"]"<<endl;
+
+            WorkerFuture workerFuture(
+                    workerid,
+                    workerSession->getServerInfo(),
+                    workerSession->sendRequest(futureHolder.getSessionPool(), func_plus, *request, *resultItem, timeout));
+
+            futureHolder.addWorkerFuture(workerFuture);
+        }
+
+        if (localRequest.get())
+        {
+            join(futureHolder, func, *localRequest, *resultItem, true);
+        }
+        else
+        {
+            localRequest.reset(new RequestType()); // fake
+            join(futureHolder, func, *localRequest, *resultItem, false);
+        }
+    }
+
 protected:
     void init()
     {
@@ -307,6 +380,21 @@ protected:
         }
     }
 
+public:
+    WorkerSessionPtr& getWorkerSession(const workerid_t workerid)
+    {
+        worker_iterator_t worker = workerSessionList_.begin();
+        for ( ; worker != workerSessionList_.end(); worker++ )
+        {
+            if ( (*worker)->getWorkerId() == workerid )
+            {
+                return *worker;
+            }
+        }
+
+        return kDefaultWorkerSession_;
+    }
+
 protected:
     ServerInfo srvInfo_;
 
@@ -314,10 +402,14 @@ protected:
     std::vector<WorkerSessionPtr> workerSessionList_;
 
     static const std::vector<workerid_t> NullWorkeridList;
+    static WorkerSessionPtr kDefaultWorkerSession_;
 };
 
 template <typename ConcreteAggregator>
 const std::vector<workerid_t> JobAggregator<ConcreteAggregator>::NullWorkeridList;
+
+template <typename ConcreteAggregator>
+WorkerSessionPtr JobAggregator<ConcreteAggregator>::kDefaultWorkerSession_;
 
 
 }} // end - namespace
