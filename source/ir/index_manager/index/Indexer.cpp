@@ -237,7 +237,7 @@ void Indexer::close()
     {
         pBTreeIndexer_->flush();
         boost::shared_ptr<BitVector> pBTreeFilter = pBTreeIndexer_->getFilter();
-        if(pBTreeFilter->any())
+        if(pBTreeFilter && pBTreeFilter->any())
             pBTreeFilter->write(pDirectory_, BTREE_DELETED_DOCS);
         delete pBTreeIndexer_;
         pBTreeIndexer_ = NULL;
