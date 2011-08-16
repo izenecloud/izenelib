@@ -112,7 +112,7 @@ void Indexer::setIndexManagerConfig(
     if(pConfigurationManager_->indexStrategy_.isIndexBTree_)
       if ((!strcasecmp(storagePolicy.c_str(),"file"))||(!strcasecmp(storagePolicy.c_str(),"mmap")))
       {
-          pBTreeIndexer_ = new BTreeIndexer(pConfigurationManager_->indexStrategy_.indexLocation_, degree, cacheSize, maxDataSize);
+          pBTreeIndexer_ = new BTreeIndexer(pDirectory_, pConfigurationManager_->indexStrategy_.indexLocation_, degree, cacheSize, maxDataSize);
           if (pDirectory_->fileExists(BTREE_DELETED_DOCS))
           {
                 boost::shared_ptr<BitVector> pBTreeFilter(new BitVector);
@@ -236,9 +236,6 @@ void Indexer::close()
     if (pBTreeIndexer_)
     {
         pBTreeIndexer_->flush();
-        boost::shared_ptr<BitVector> pBTreeFilter = pBTreeIndexer_->getFilter();
-        if(pBTreeFilter && pBTreeFilter->any())
-            pBTreeFilter->write(pDirectory_, BTREE_DELETED_DOCS);
         delete pBTreeIndexer_;
         pBTreeIndexer_ = NULL;
     }
