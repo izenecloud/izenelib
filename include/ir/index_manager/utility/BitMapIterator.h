@@ -63,7 +63,7 @@ public:
         bool next()
         {
             curPos_++;
-            if (curPos_ < docIdList_.size())
+            if (curPos_ < (int)docIdList_.size())
             {
                 return true;
             }

@@ -15,6 +15,7 @@
 #include <ir/index_manager/index/IndexerDocument.h>
 #include <ir/index_manager/utility/BitVector.h>
 #include <ir/index_manager/utility/StringUtils.h>
+#include <ir/index_manager/store/Directory.h>
 
 #include <boost/variant.hpp>
 #include <boost/utility/enable_if.hpp>
@@ -538,7 +539,7 @@ protected:
 class BTreeIndexer
 {
 public:
-    BTreeIndexer(string location, int degree, size_t cacheSize, size_t maxDataSize);
+    BTreeIndexer(Directory* pDirectory, string location, int degree, size_t cacheSize, size_t maxDataSize);
 
     virtual ~BTreeIndexer();
 public:
@@ -606,6 +607,8 @@ private:
     boost::shared_ptr<BitVector> pFilter_;
 
     boost::shared_ptr<BitVector> pFilterNot_;
+
+    Directory* pDirectory_;
 
 //    static BTreeTrieIndex<String>* pBTreeUStrSuffixIndexer_;
 

@@ -108,8 +108,9 @@ void add_visitor::operator()(BTreeIndexer* pIndexer, collectionid_t colid,fieldi
 	
 }}}
 
-BTreeIndexer::BTreeIndexer(string location, int degree, size_t cacheSize, size_t maxDataSize)
+BTreeIndexer::BTreeIndexer(Directory* pDirectory, string location, int degree, size_t cacheSize, size_t maxDataSize)
 {
+    pDirectory_ = pDirectory;
     string path(location);
     path.append("/int.bti");
     pBTreeIntIndexer_ = new BTreeIndex<IndexKeyType<int64_t> >(path);
@@ -200,7 +201,7 @@ bool BTreeIndexer::seek(collectionid_t colID, fieldid_t fid, PropertyType& value
     return find;
 }
 
-void BTreeIndexer::getNoneEmptyList(collectionid_t colID, fieldid_t fid, PropertyType& value,BitVector& docs)
+void BTreeIndexer::getNoneEmptyList(collectionid_t colID, fieldid_t fid, PropertyType& value, BitVector& docs)
 {
     izenelib::util::boost_variant_visit(boost::bind(get_value_visitor(), this, colID, fid, _1, boost::ref(docs)), value);
     if (pFilter_)
@@ -325,6 +326,9 @@ void BTreeIndexer::flush()
     if (pBTreeDoubleIndexer_) pBTreeDoubleIndexer_->commit();
     if (pBTreeUStrIndexer_) pBTreeUStrIndexer_->commit();
     //if (pBTreeUStrSuffixIndexer_) pBTreeUStrSuffixIndexer_->flush();
+
+    if(pFilter_ && pFilter_->any())
+        pFilter_->write(pDirectory_, BTREE_DELETED_DOCS);
 }
 
 void BTreeIndexer::delDocument(size_t max_doc, docid_t docId)
