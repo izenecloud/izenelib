@@ -111,6 +111,7 @@ void add_visitor::operator()(BTreeIndexer* pIndexer, collectionid_t colid,fieldi
 BTreeIndexer::BTreeIndexer(Directory* pDirectory, string location, int degree, size_t cacheSize, size_t maxDataSize)
 {
     pDirectory_ = pDirectory;
+
     string path(location);
     path.append("/int.bti");
     pBTreeIntIndexer_ = new BTreeIndex<IndexKeyType<int64_t> >(path);
@@ -328,7 +329,9 @@ void BTreeIndexer::flush()
     //if (pBTreeUStrSuffixIndexer_) pBTreeUStrSuffixIndexer_->flush();
 
     if(pFilter_ && pFilter_->any())
+    {
         pFilter_->write(pDirectory_, BTREE_DELETED_DOCS);
+    }
 }
 
 void BTreeIndexer::delDocument(size_t max_doc, docid_t docId)
@@ -340,6 +343,6 @@ void BTreeIndexer::delDocument(size_t max_doc, docid_t docId)
         pFilterNot_->setAll();
     }
     pFilter_->set(docId);
-    pFilter_->clear(docId);
+    pFilterNot_->clear(docId);
 }
 
