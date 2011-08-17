@@ -227,18 +227,18 @@ void Indexer::close()
         delete pBarrelsInfo_;
         pBarrelsInfo_ = NULL;
     }
-    if (pDirectory_)
-    {
-        delete pDirectory_;
-        pDirectory_ = NULL;
-    }
-    dirty_ = false;
     if (pBTreeIndexer_)
     {
         pBTreeIndexer_->flush();
         delete pBTreeIndexer_;
         pBTreeIndexer_ = NULL;
     }
+    if (pDirectory_)
+    {
+        delete pDirectory_;
+        pDirectory_ = NULL;
+    }
+    dirty_ = false;
 }
 
 IndexReader* Indexer::getIndexReader()

@@ -313,7 +313,9 @@ void BTreeIndexer::flush()
     //if (pBTreeUStrSuffixIndexer_) pBTreeUStrSuffixIndexer_->flush();
 
     if(pFilter_ && pFilter_->any())
+    {
         pFilter_->write(pDirectory_, BTREE_DELETED_DOCS);
+    }
 }
 
 void BTreeIndexer::delDocument(size_t max_doc, docid_t docId)
@@ -325,6 +327,6 @@ void BTreeIndexer::delDocument(size_t max_doc, docid_t docId)
         pFilterNot_->setAll();
     }
     pFilter_->set(docId);
-    pFilter_->clear(docId);
+    pFilterNot_->clear(docId);
 }
 
