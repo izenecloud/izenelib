@@ -190,15 +190,17 @@ public:
         cout << "#[Aggregator] send request: " << func_plus << endl;
 
         WorkerFutureHolder futureHolder;
-        boost::shared_ptr<ResultType>& resultItem = requestGroup.resultItem_;
+        ResultType* resultItem = requestGroup.resultItem_;
 
-        boost::shared_ptr<RequestType> localRequest;
+        RequestType* localRequest = NULL;
 
-        typename RequestGroup<RequestType, ResultType>::request_iterator_t it;
-        for (it = requestGroup.requestList_.begin(); it != requestGroup.requestList_.end(); it++)
+        for (size_t i = 0; i < requestGroup.workeridList_.size(); i++)
         {
-            workerid_t workerid = it->first;
-            boost::shared_ptr<RequestType>& request = it->second;
+            workerid_t workerid = requestGroup.workeridList_[i];
+            RequestType* request = requestGroup.requestList_[i];
+            ResultType* result = requestGroup.resultList_[i];
+            if (result == NULL)
+                result = resultItem;
 
             // request for local worker
             if (workerid == 0)
@@ -222,18 +224,18 @@ public:
             WorkerFuture workerFuture(
                     workerid,
                     workerSession->getServerInfo(),
-                    workerSession->sendRequest(futureHolder.getSessionPool(), func_plus, *request, *resultItem, timeout));
+                    workerSession->sendRequest(futureHolder.getSessionPool(), func_plus, *request, *result, timeout));
 
             futureHolder.addWorkerFuture(workerFuture);
         }
 
-        if (localRequest.get())
+        if (localRequest != NULL)
         {
             join(futureHolder, func, *localRequest, *resultItem, true);
         }
         else
         {
-            localRequest.reset(new RequestType()); // fake
+            localRequest = new RequestType; // fake
             join(futureHolder, func, *localRequest, *resultItem, false);
         }
     }
