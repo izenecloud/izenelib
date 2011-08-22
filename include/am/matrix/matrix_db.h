@@ -379,7 +379,7 @@ typename ElementType,
 typename RowType = ::google::sparse_hash_map<KeyType, ElementType >,
 typename StorageType = izenelib::sdb::unordered_sdb_tc<KeyType, RowType, ReadWriteLock >,
 typename IteratorType = izenelib::sdb::SDBCursorIterator<StorageType>,
-typename Policy = detail::policy_lfu_nouveau<KeyType> 
+typename Policy = detail::policy_lfu<KeyType> 
 >
 class MatrixDB
 {
