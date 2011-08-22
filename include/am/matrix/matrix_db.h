@@ -102,8 +102,10 @@ class policy_lfu_nouveau
     backentry_type _backEntries;
 
 public:
-    policy_lfu_nouveau() : _freq_list_head(NULL)
-    {}
+    policy_lfu_nouveau()
+    {
+        _freq_list_head = NULL;
+    }
 
     ~policy_lfu_nouveau()
     {
