@@ -43,6 +43,15 @@ struct ServerInfo
 
 
 template <typename RequestType, typename ResultType>
+class RequestItem
+{
+public:
+    workerid_t workerid_;
+    RequestType* requestParam_;
+    ResultType* resultParam_;
+};
+
+template <typename RequestType, typename ResultType>
 class RequestGroup
 {
 public:

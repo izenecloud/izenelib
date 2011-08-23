@@ -139,7 +139,7 @@ public:
             const std::vector<workerid_t>& workeridList = NullWorkeridList)
     {
 
-        join(futureHolder, func, request, result, checkWorkerById(workeridList, 0));
+        join(futureHolder, func, request, result, result, checkWorkerById(workeridList, 0));
     }
 
 
@@ -162,7 +162,7 @@ public:
         sendRequest(futureHolder, key, func, request, result, workeridList, timeout);
 
         // get result
-        join(futureHolder, func, request, result, checkWorkerById(workeridList, 0));
+        join(futureHolder, func, request, result, result, checkWorkerById(workeridList, 0));
     }
 
     /**
@@ -193,6 +193,7 @@ public:
         ResultType* resultItem = requestGroup.resultItem_;
 
         RequestType* localRequest = NULL;
+        ResultType* localResult = NULL;
 
         for (size_t i = 0; i < requestGroup.workeridList_.size(); i++)
         {
@@ -200,12 +201,15 @@ public:
             RequestType* request = requestGroup.requestList_[i];
             ResultType* result = requestGroup.resultList_[i];
             if (result == NULL)
+            {
                 result = resultItem;
+            }
 
             // request for local worker
             if (workerid == 0)
             {
                 localRequest = request;
+                localResult = result;
                 continue;
             }
 
@@ -231,12 +235,13 @@ public:
 
         if (localRequest != NULL)
         {
-            join(futureHolder, func, *localRequest, *resultItem, true);
+            join(futureHolder, func, *localRequest, *localResult, *resultItem, true);
         }
         else
         {
             localRequest = new RequestType; // fake
-            join(futureHolder, func, *localRequest, *resultItem, false);
+            localResult = new ResultType;
+            join(futureHolder, func, *localRequest, *localResult, *resultItem, false);
         }
     }
 
@@ -289,7 +294,8 @@ protected:
     template <typename RequestType, typename ResultType>
     void join(WorkerFutureHolder& futureHolder,
               const std::string& func,
-              const RequestType& request,
+              const RequestType& locRequest,
+              const ResultType& locResult,
               ResultType& result,
               bool isCallLocalWorker)
     {
@@ -303,8 +309,8 @@ protected:
             {
                 cout << "#[Aggregator] call worker0 (local)" << endl;
                 std::string error;
-                ResultType resultCopy = result; // avoid to change result
-                if (static_cast<ConcreteAggregator*>(this)->get_local_result(func, request, resultCopy, error))
+                ResultType resultCopy = locResult; // avoid to modify result param
+                if (static_cast<ConcreteAggregator*>(this)->get_local_result(func, locRequest, resultCopy, error))
                 {
                     resultList.push_back(std::make_pair(0, resultCopy));
                 }
