@@ -102,6 +102,16 @@ class policy_lfu_nouveau
     backentry_type _backEntries;
 
 public:
+    policy_lfu_nouveau()
+    {
+        _freq_list_head = NULL;
+    }
+
+    ~policy_lfu_nouveau()
+    {
+        clear();
+    }
+
     void insert(const KeyType& k)
     {
         struct cache_entry *new_entry = new cache_entry(k);
@@ -120,9 +130,9 @@ public:
 
     void remove(const KeyType& k)
     {
-        struct cache_entry *ref = _backEntries[k];
-        if (ref)
+        if (_backEntries.find(k) != _backEntries.end())
         {
+            struct cache_entry *ref = _backEntries[k];
             struct freq_node *parent = ref->_parent;
             if (ref->_newer)
                 ref->_newer->_older = ref->_older;
@@ -155,10 +165,15 @@ public:
 
     void touch(const KeyType& k)
     {
-        struct cache_entry *ref = _backEntries[k];
-        if (ref)
+        if (_backEntries.find(k) != _backEntries.end())
         {
+            struct cache_entry *ref = _backEntries[k];
             struct freq_node *parent = ref->_parent;
+            if (parent->_count == 1 && (!parent->_hotter || parent->_hotter->_freq != parent->_freq + 1))
+            {
+                parent->_freq++;
+                return;
+            }
             if (ref->_newer)
                 ref->_newer->_older = ref->_older;
             else
@@ -169,17 +184,17 @@ public:
             else
                 parent->_oldest = ref->_newer;
 
-            struct freq_node *hotter = parent->_hotter;
-            if (!hotter || (hotter->_freq != parent->_freq + 1))
+            if (!parent->_hotter || (parent->_hotter->_freq != parent->_freq + 1))
             {
                 struct freq_node *hotter = new freq_node(parent->_freq + 1);
                 hotter->_colder = parent;
                 hotter->_hotter = parent->_hotter;
                 if (parent->_hotter)
                     parent->_hotter->_colder = hotter;
+                parent->_hotter = hotter;
             }
-            hotter->insert(ref);
-            ref->_parent = hotter;
+            parent->_hotter->insert(ref);
+            ref->_parent = parent->_hotter;
             if (!parent->_newest)
             {
                 if (parent->_hotter)
@@ -204,7 +219,7 @@ public:
         while (_freq_list_head)
         {
             _freq_list_head->clear();
-            struct freq_node *freq_list_head = _freq_list_head->hotter;
+            struct freq_node *freq_list_head = _freq_list_head->_hotter;
             delete _freq_list_head;
             _freq_list_head = freq_list_head;
         }
