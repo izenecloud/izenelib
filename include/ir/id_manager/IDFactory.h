@@ -152,7 +152,7 @@ inline bool IDFactory<NameString, NameID, IDGenerator, IDStorage>::getNameIDByNa
         NameID& nameID,
         bool insert)
 {
-	if( idGenerator_.conv(nameString, nameID) )
+	if( idGenerator_.conv(nameString, nameID, insert) )
            return true;
 
     if(insert)

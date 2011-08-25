@@ -50,7 +50,7 @@ public:
 	/**
 	 * @brief Always return false, which means failure to generate ID
 	 */
-	inline bool conv(const NameString& nameString, NameID& nameID)
+	inline bool conv(const NameString& nameString, NameID& nameID, bool insert = false)
 	{
         return false;
 	}
@@ -96,7 +96,7 @@ public:
 	 * @param nameID the NameID that may be not unique
 	 * @return always false
 	 */
-	inline bool conv(const NameString& nameString, NameID& nameID)
+	inline bool conv(const NameString& nameString, NameID& nameID, bool insert = false)
 	{
         nameID = NameIDTraits<NameID>::hash(nameString);
         return false;
@@ -140,7 +140,7 @@ public:
 	 * @return true if DocID already in dictionary
 	 * @return false otherwise
 	 */
-	inline bool conv(const NameString& nameString, NameID& nameID,bool insert = true);
+	inline bool conv(const NameString& nameString, NameID& nameID, bool insert = true);
 
 	/**
 	 * @brief Convert String to ID, ID may be not unique
