@@ -81,7 +81,7 @@ class JobWorker : public msgpack::rpc::server::base
 
 public:
     JobWorker(const std::string& host, uint16_t port, unsigned int threadNum=4)
-    : srvInfo_(host, port), threadNum_(threadNum)
+    : srvInfo_(host, port), threadNum_(threadNum), debug_(false)
     {}
 
 public:
@@ -124,9 +124,15 @@ public:
         return srvInfo_;
     }
 
-    virtual bool preHandle(const std::string& key)
+    //xxx
+    virtual bool preHandle(const std::string& identity)
     {
         return true;
+    }
+
+    virtual bool preHandle(const std::string& identity, std::string& error)
+    {
+        return preHandle(identity);
     }
 
     /*virtual*/
@@ -137,7 +143,7 @@ public:
             // get requested service
             std::string method_plus;
             req.method().convert(&method_plus);
-            std::string key, method;
+            std::string identity, method;
             size_t pos = method_plus.find(REQUEST_FUNC_DELIMETER);
             if (pos == string::npos)
             {
@@ -146,19 +152,20 @@ public:
             }
             else
             {
-                key = method_plus.substr(0,pos);
+                identity = method_plus.substr(0,pos);
                 if (pos+1 < method_plus.size())
                     method = method_plus.substr(pos+1);
             }
 
-            if (!preHandle(key))
+            std::string error;
+            if (!preHandle(identity, error))
             {
-                std::string error = "Failed to handle: " + key + "";
                 req.error(error);
                 return;
             }
 
-            cout << "#[Worker:"<<srvInfo_.port_<<"] dispatch request: " << method << endl;
+            if (debug_)
+                cout << "#[Worker:"<<srvInfo_.port_<<"] dispatch request: " << method << endl;
 
             typename Maptype::iterator handler = handlerList_.find(method);
             if (handler != handlerList_.end())
@@ -203,6 +210,10 @@ protected:
     unsigned int threadNum_;
 
     Maptype handlerList_;
+
+public:
+    bool debug_;
+
 };
 
 }} // end - namespace

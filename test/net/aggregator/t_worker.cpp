@@ -5,8 +5,8 @@
 
 #include <boost/shared_ptr.hpp>
 
-#include "data_type.h"
-#include "worker_define.h"
+#include "worker_service.h"
+#include "worker_server.h"
 
 using namespace net::aggregator;
 
@@ -26,7 +26,8 @@ int main( int argc, char * argv[])
 
     boost::shared_ptr<SearchService> searchService(new SearchService());
 
-    SearchWorker worker(host, port, searchService);
+    WorkerServer worker(host, port, searchService);
+    worker.debug_ = true;
     worker.start();
     worker.join();
     return 0;

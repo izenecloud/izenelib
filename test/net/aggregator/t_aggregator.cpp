@@ -1,11 +1,18 @@
+#include <boost/test/unit_test.hpp>
+#include <boost/lambda/lambda.hpp>
+#include <boost/lambda/bind.hpp>
+
 #include <net/aggregator/JobInfo.h>
 #include <net/aggregator/JobAggregator.h>
 #include <net/aggregator/AggregatorConfig.h>
-#include "data_type.h"
-#include "worker_define.h"
+
+#include "worker_service.h"
+#include "worker_server.h"
 
 #include <sstream>
 
+using namespace boost;
+using namespace boost::lambda;
 using namespace net::aggregator;
 
 
@@ -13,94 +20,98 @@ class SearchAggregator : public JobAggregator<SearchAggregator>
 {
 public:
 
-    void join_impl(const std::string& func, DataResult& res, const std::vector<std::pair<workerid_t, DataResult> >& resList)
+    bool aggregate(const std::string& func, SearchResult& res, const std::vector<std::pair<workerid_t, SearchResult> >& resList)
     {
-        std::stringstream ss;
+        res.state = false;
+        res.content = "";
+        //std::stringstream ss;
         for (size_t i = 0; i < resList.size(); i++)
         {
-
-            ss <<"(worker"<<resList[i].first<< ": "<<resList[i].second.s<<")";
+            res.state |= resList[i].second.state;
+            res.content += resList[i].second.content;
         }
 
-        res.s = ss.str();
+        return res.state;
     }
 
-    void join_impl(const std::string& func, int& res, const std::vector<std::pair<workerid_t, int> >& resList)
+    bool aggregate(const std::string& func, AddResult& res, const std::vector<std::pair<workerid_t, AddResult> >& resList)
     {
-        res = 0;
+        res.i = 0;
         for (size_t i = 0; i < resList.size(); i++)
         {
-           res += resList[i].second;
+           res.i += resList[i].second.i;
         }
+
+        return true;
     }
 
 public:
-    /// the following shows examples to integrate local worker.
-    template <typename RequestType, typename ResultType>
-    bool get_local_result(
-            const std::string& func,
-            const RequestType& request,
-            ResultType& result,
-            std::string& error)
-    {
-        if (localWorker_)
-        {
-            return localWorker_->call(func, request, result, error);
-        }
 
-        error = "unknown";
-        return false;
-    }
-
-    void setLocalWorker(boost::shared_ptr<SearchWorker>& localWorker)
-    {
-        localWorker_ = localWorker;
-        srvInfo_ = localWorker->getServerInfo();
-    }
 
 private:
-    boost::shared_ptr<SearchWorker> localWorker_;
+
 };
 
-int main( int argc, char * argv[])
-{
-    AggregatorConfig config;
-    config.addWorker("0.0.0.0", 18113);
-    config.addWorker("0.0.0.0", 18112);
-    config.addWorker("0.0.0.0", 18111);
 
-    // local worker
-    boost::shared_ptr<SearchService> searchService(new SearchService());
-    boost::shared_ptr<SearchWorker> localWorker(new SearchWorker("0.0.0.0", 18110, searchService));
+BOOST_AUTO_TEST_SUITE( t_aggregator )
+
+//BOOST_AUTO_TEST_CASE( start_workers )
+//{
+//    std::cout << "Start Workers" << std::endl;
+//
+//    std::string host = "0.0.0.0";
+//    uint16_t port = 18151;
+//    boost::shared_ptr<SearchService> searchService(new SearchService());
+//    WorkerServer worker(host, port, searchService);
+//    thread t(lambda::bind(&WorkerServer::start, var(worker)));
+//
+//    t.join();
+//}
+
+BOOST_AUTO_TEST_CASE( aggregator_remote_all )
+{
+    std::cout << "--- Aggregator Remote All" << std::endl;
+
+    AggregatorConfig config;
+    config.enableLocalWorker_ = false;
+    config.addWorker("0.0.0.0", 18111);
+    config.addWorker("0.0.0.0", 18112);
 
     SearchAggregator ag;
-    ag.setLocalWorker(localWorker);
-    ag.setWorkerListConfig(config);
+    ag.debug_ = true;
+    ag.setAggregatorConfig(config);
 
-    /// asynchronous requests
-    WorkerFutureHolder futureHolder;
-    Data req;
-    DataResult result;
-    ag.sendRequest<Data>(futureHolder, "key","getKeywordSearchResult", req, result);
+    SearchRequest req;
+    req.keyword = TERM_ABC;
+    SearchResult res;
+    ag.distributeRequest("", "getKeywordSearchResult", req, res);
 
-    WorkerFutureHolder futureHolder2;
-    AddData req2; req2.i = 5; req2.j = 100;
-    ag.sendRequest<AddData>(futureHolder2, "","add", req2, result);
-
-    // join results
-    ag.getResult<Data, DataResult>(futureHolder, "getKeywordSearchResult", req, result);
-    std::cout << "keyword result: "<<result.i << " / " <<result.s<< std::endl;
-
-    int result2 = 0;
-    ag.getResult<AddData, int>(futureHolder2, "add", req2, result2);
-    std::cout << "add result: "<<result2<< std::endl;
-
-    /// synchronous
-//    req2.i = 1;
-//    result2 = 0;
-//    std::vector<workerid_t> workeridList;
-//    workeridList.push_back(2);
-//    ag.sendRequest<AddData, int>("add", req2, result2, workeridList);
-//    std::cout << "syn add result: "<<result2<< std::endl;
+    BOOST_CHECK_EQUAL(res.state, true);
+    BOOST_CHECK_EQUAL(res.content, (ABC_DOC+ABC_DOC));
 }
 
+BOOST_AUTO_TEST_CASE( aggregator_local_remote )
+{
+    std::cout << "--- Aggregator Local and Remote" << std::endl;
+
+    AggregatorConfig config;
+    config.enableLocalWorker_ = true;
+    config.addWorker("0.0.0.0", 18111);
+
+
+    SearchAggregator ag;
+    boost::shared_ptr<MockWorkerCaller> localWorkerCaller(new MockWorkerCaller);
+    ag.debug_ = true;
+    ag.setAggregatorConfig(config);
+    ag.setLocalWorkerCaller(localWorkerCaller);
+
+    SearchRequest req;
+    req.keyword = TERM_ABC;
+    SearchResult res;
+    ag.distributeRequest("", "getKeywordSearchResult", req, res);
+
+    BOOST_CHECK_EQUAL(res.state, true);
+    BOOST_CHECK_EQUAL(res.content, (ABC_DOC+ABC_DOC));
+}
+
+BOOST_AUTO_TEST_SUITE_END()

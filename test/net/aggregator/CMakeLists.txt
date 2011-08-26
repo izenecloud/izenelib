@@ -20,8 +20,16 @@ SET(libs
    ${Glog_LIBRARIES}
 )
 
-ADD_EXECUTABLE(t_aggregator t_aggregator.cpp)
-TARGET_LINK_LIBRARIES(t_aggregator ${libs})
+#ADD_EXECUTABLE(t_aggregator t_aggregator.cpp)
+#TARGET_LINK_LIBRARIES(t_aggregator ${libs})
 
 ADD_EXECUTABLE(t_worker t_worker.cpp)
 TARGET_LINK_LIBRARIES(t_worker ${libs})
+
+SET(t_agg_SRC
+  Runner.cpp
+  t_aggregator.cpp
+)
+
+ADD_EXECUTABLE(t_aggregator ${t_agg_SRC})
+TARGET_LINK_LIBRARIES(t_aggregator ${libs})

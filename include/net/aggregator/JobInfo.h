@@ -19,13 +19,37 @@ using namespace std;
 namespace net{
 namespace aggregator{
 
-const static char REQUEST_FUNC_DELIMETER = '#';
-
-/// job request type
-typedef msgpack::rpc::request JobRequest;
+/// types
 typedef uint32_t workerid_t;
+typedef unsigned int timeout_t;
+typedef msgpack::rpc::request JobRequest;
 typedef msgpack::rpc::session_pool session_pool_t;
+typedef msgpack::rpc::session session_t;
 typedef msgpack::rpc::future future_t;
+
+/// constants
+const static char REQUEST_FUNC_DELIMETER = '#';
+const static workerid_t LOCAL_WORKER_ID = 0;
+const static workerid_t REMOTE_WORKER_ID_START = LOCAL_WORKER_ID + 1;
+const static timeout_t DEFAULT_TIME_OUT = 8; // seconds
+
+/// Perform in-procedure call for local worker
+//template <typename RealWorkerCaller = void>
+class MockWorkerCaller
+{
+public:
+
+    template <typename RequestType, typename ResultType>
+    bool call(
+            const std::string& func,
+            const RequestType& request,
+            ResultType& result,
+            std::string& error)
+    {
+        cout << "WorkerCaller::call() no action! "<<endl;
+        return false;
+    }
+};
 
 /// server info
 struct ServerInfo
@@ -41,16 +65,6 @@ struct ServerInfo
     ServerInfo(){}
 };
 
-
-template <typename RequestType, typename ResultType>
-class RequestItem
-{
-public:
-    workerid_t workerid_;
-    RequestType* requestParam_;
-    ResultType* resultParam_;
-};
-
 template <typename RequestType, typename ResultType>
 class RequestGroup
 {
@@ -64,7 +78,7 @@ public:
     std::vector<workerid_t> workeridList_;
     std::vector<RequestType*> requestList_;
     std::vector<ResultType*> resultList_;
-    ResultType* resultItem_; // to which all sub results will be merged.
+    ResultType* resultItem_; // to which all sub results will be merged. xxx
 
     void addRequest(workerid_t workerid, RequestType* request, ResultType* result = NULL)
     {
@@ -74,6 +88,7 @@ public:
         resultList_.push_back(result);
     }
 
+    // remove, xxx
     void setResultItemForMerging(ResultType* result)
     {
         resultItem_ = result;
@@ -90,11 +105,11 @@ public:
 
 
 /**
- * A connection to a worker.
+ * A worker session is a client of a worker server.
  */
 class WorkerSession
 {
-    workerid_t workerId_;   // unique id for each worker server
+    workerid_t workerId_;
     ServerInfo workerSrv_;
 
 public:
@@ -209,7 +224,7 @@ public:
  */
 class WorkerFutureHolder
 {
-    std::vector<WorkerFuture> futureList_; // pipeline
+    std::vector<WorkerFuture> futureList_;
     session_pool_t sessionPool_;
 
 public:
@@ -234,6 +249,8 @@ public:
         return futureList_;
     }
 };
+
+typedef boost::shared_ptr<WorkerFutureHolder> WorkerFutureHolderPtr;
 
 }} // end - namespace
 

@@ -19,6 +19,10 @@ namespace aggregator{
 class AggregatorConfig
 {
 public:
+    AggregatorConfig()
+    :enableLocalWorker_(true)
+    {}
+
     void addWorker(const std::string& host, uint16_t port)
     {
         ServerInfo workerInfo(host, port);
@@ -30,7 +34,9 @@ public:
         return workerInfoList_;
     }
 
-private:
+public:
+    bool enableLocalWorker_;
+
     std::vector<ServerInfo> workerInfoList_;
 };
 
