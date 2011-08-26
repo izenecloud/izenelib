@@ -155,6 +155,15 @@ void IndexWriter::updateDocument(IndexerDocument& doc)
 
 void IndexWriter::updateRtypeDocument(IndexerDocument& oldDoc, IndexerDocument& doc)
 {
+    if(!pCurBarrelInfo_) createBarrelInfo();
+
+    if(pIndexer_->isRealTime() && pIndexBarrelWriter_->cacheFull())
+    {
+        DVLOG(2) << "IndexWriter::indexDocument() => realtime cache full...";
+        flush();
+        createBarrelInfo();
+    }
+
     DocId uniqueID;
     doc.getDocId(uniqueID);
 
