@@ -33,23 +33,62 @@ const static workerid_t LOCAL_WORKER_ID = 0;
 const static workerid_t REMOTE_WORKER_ID_START = LOCAL_WORKER_ID + 1;
 const static timeout_t DEFAULT_TIME_OUT = 8; // seconds
 
-/// Perform in-procedure call for local worker
-//template <typename RealWorkerCaller = void>
-class MockWorkerCaller
+/// WorkerCaller performs in-procedure call to local worker,
+/// pass a suitable class type as invoker.
+template <typename Invoker>
+class WorkerCaller
 {
 public:
+    typedef void(Invoker::*func_t)(void);
+
+public:
+    void setInvoker(Invoker* invoker)
+    {
+        invoker_ = invoker;
+    }
+
+    void addMethod(const std::string& func_name, func_t func)
+    {
+        // func_name should be unique
+        funcMap_.insert(std::make_pair(func_name, func));
+    }
 
     template <typename RequestType, typename ResultType>
     bool call(
-            const std::string& func,
+            const std::string& func_name,
             const RequestType& request,
             ResultType& result,
             std::string& error)
     {
-        cout << "WorkerCaller::call() no action! "<<endl;
-        return false;
+        typedef bool(Invoker::*real_func_t)(const RequestType& , ResultType&);
+
+        cout << "WorkerCaller::call "<<func_name<<endl;
+
+        if (!invoker_)
+        {
+            cout << "WorkerCaller: empty invoker!"<<endl;
+            return false;
+        }
+
+        if (funcMap_.find(func_name) != funcMap_.end())
+        {
+            real_func_t func = (real_func_t) funcMap_[func_name];
+            return (invoker_->*func)(request, result);
+        }
+        else
+        {
+            cout << "WorkerCaller: not found method "<<func_name<<endl;
+            return false;
+        }
     }
+
+private:
+    std::map<std::string, func_t> funcMap_;
+    Invoker* invoker_;
 };
+
+class EmptyInvoker {};
+typedef WorkerCaller<EmptyInvoker> MockWorkerCaller;
 
 /// server info
 struct ServerInfo

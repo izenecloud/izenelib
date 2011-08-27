@@ -75,11 +75,6 @@ public:
         }
     }
 
-    void setLocalWorkerCaller(boost::shared_ptr<LocalWorkerCaller> localWorkerCaller)
-    {
-        localWorkerCaller_ = localWorkerCaller;
-    }
-
     std::vector<workerid_t>& getWorkerIdList()
     {
         return workeridList_;
@@ -529,22 +524,18 @@ bool JobAggregator<ConcreteAggregator, LocalWorkerCaller>::distributeRequest(
     }
 
     // join (aggregate)
-    if (localWorkerEnabled_)
+    if (localWorkerEnabled_ && localWorkerCaller_)
     {
-        if (!localWorkerCaller_)
+        ResultType localResult = resultItem;
+        std::string error;
+        if (localWorkerCaller_->call(func, requestItem, localResult, error))
         {
-            std::cerr << "#[Aggregator] Error: localWorkerCaller was not initialized."<<endl;
-            return join(func, futureList, resultItem);
+            return join(func, futureList, resultItem, &localResult);
         }
         else
         {
-            ResultType localResult = resultItem;
-            // get local result here, xxx
-            std::string error;
-            localWorkerCaller_->call(func, requestItem, localResult, error);
-            return join(func, futureList, resultItem, &localResult);
+            return join(func, futureList, resultItem);
         }
-
     }
     else
     {
@@ -566,6 +557,7 @@ bool JobAggregator<ConcreteAggregator, LocalWorkerCaller>::distributeRequest(
 
     // distribute group of requests to remote workers
     RequestType* pLocalRequest = NULL;
+    ResultType* pLoacalResult = NULL;
     std::vector<std::pair<workerid_t, future_t> > futureList;
     session_pool_t sessionPool; // shared sessoin pool
     for (size_t i = 0; i < requestGroup.workeridList_.size(); i++)
@@ -581,6 +573,7 @@ bool JobAggregator<ConcreteAggregator, LocalWorkerCaller>::distributeRequest(
         if (workerid == LOCAL_WORKER_ID)
         {
             pLocalRequest = pRequest;
+            pLoacalResult = pResult;
             continue;
         }
 
@@ -591,7 +584,7 @@ bool JobAggregator<ConcreteAggregator, LocalWorkerCaller>::distributeRequest(
             continue;
         }
 
-        ServerInfo& workerSrv = workerSession->getServerInfo();
+        const ServerInfo& workerSrv = workerSession->getServerInfo();
         session_t session = sessionPool.get_session(workerSrv.host_, workerSrv.port_);
         session.set_timeout(timeoutSec);
 
@@ -604,14 +597,24 @@ bool JobAggregator<ConcreteAggregator, LocalWorkerCaller>::distributeRequest(
     }
 
     // join (aggregate)
-    if (pLocalRequest != NULL)
+    if (pLocalRequest != NULL && localWorkerEnabled_ && localWorkerCaller_)
     {
-        ResultType localResult = resultItem;
-        // get local result here, xxx
-        return join(func, futureList, resultItem, &localResult);
+        std::string error;
+        if (localWorkerCaller_->call(func, *pLocalRequest, *pLoacalResult, error))
+        {
+            return join(func, futureList, resultItem, pLoacalResult);
+        }
+        else
+        {
+            return join(func, futureList, resultItem);
+        }
     }
     else
     {
+        if (!localWorkerEnabled_) {
+            std::cerr << "#[Aggregator] Error: local worker was required but not enabled." <<endl;
+        }
+
         return join(func, futureList, resultItem);
     }
 }
@@ -632,8 +635,16 @@ bool JobAggregator<ConcreteAggregator, LocalWorkerCaller>::singleRequest(
 
     if (workerid == LOCAL_WORKER_ID)
     {
-        // xxx
-        return false;
+        if (localWorkerEnabled_ && localWorkerCaller_)
+        {
+            std::string error;
+            return localWorkerCaller_->call(func, requestItem, resultItem, error);
+        }
+        else
+        {
+            std::cerr << "#[Aggregator] Error: local worker was required but not enabled." <<endl;
+            return false;
+        }
     }
 
     WorkerSessionPtr& workerSession = getWorkerSessionById(workerid);
