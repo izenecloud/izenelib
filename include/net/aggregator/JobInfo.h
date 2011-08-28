@@ -90,6 +90,12 @@ private:
 class EmptyInvoker {};
 typedef WorkerCaller<EmptyInvoker> MockWorkerCaller;
 
+#define ADD_WORKER_CALLER_METHOD(WorkerCallerType, WorkerCallerObj, InvokerType, Method) \
+{                                                                                         \
+    WorkerCallerType::func_t func = (WorkerCallerType::func_t) &InvokerType::Method;      \
+    WorkerCallerObj->addMethod(#Method,  func);                                         \
+}
+
 /// server info
 struct ServerInfo
 {

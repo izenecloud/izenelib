@@ -55,6 +55,7 @@ public:
     : debug_(false)
     , localWorkerEnabled_(true)
     {
+        init();
     }
 
 public:
@@ -155,7 +156,6 @@ public:
             timeout_t timeoutSec = DEFAULT_TIME_OUT);
 
 public:
-
     /**
      * asynchronous interface XXX
      * @brief RequestType have to be serializable using MsgPack
@@ -332,7 +332,6 @@ public:
 protected:
     void init()
     {
-
     }
 
     void createWorkerClient(const workerid_t workerId, const ServerInfo& srvInfo)

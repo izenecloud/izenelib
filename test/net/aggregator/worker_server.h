@@ -15,7 +15,6 @@
 
 using namespace net::aggregator;
 
-typedef WorkerCaller<SearchService> LocalWorkerCaller;
 
 class WorkerServer : public JobWorker<WorkerServer>
 {
@@ -60,37 +59,5 @@ private:
 private:
     boost::shared_ptr<SearchService> searchService_;
 };
-
-//class LocalWorkerCaller : public SearchService
-//{
-//public:
-//    LocalWorkerCaller()
-//    {
-//    	funcMap_["getKeywordSearchResult"] = (func_t) &LocalWorkerCaller::getKeywordSearchResult;
-//
-//    }
-//
-//    template <typename RequestType, typename ResultType>
-//    bool call(
-//            const std::string& func,
-//            const RequestType& request,
-//            ResultType& result,
-//            std::string& error)
-//    {
-//    	typedef void(LocalWorkerCaller::*real_func_t)(const RequestType& , ResultType&);
-//
-//        cout << "LocalWorkerCaller::call "<<func<<endl;
-//        if (func == "getKeywordSearchResult")
-//        {
-//        	real_func_t f = (real_func_t) funcMap_["getKeywordSearchResult"];
-//        	(this->*f)(request, result);
-//        }
-//        return true;
-//    }
-//
-//    typedef void(LocalWorkerCaller::*func_t)(void);
-//
-//    std::map<std::string, func_t> funcMap_;
-//};
 
 #endif /* WORKER_SERVER_H_ */

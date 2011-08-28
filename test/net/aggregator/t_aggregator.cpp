@@ -15,6 +15,7 @@ using namespace boost;
 using namespace boost::lambda;
 using namespace net::aggregator;
 
+typedef WorkerCaller<SearchService> LocalWorkerCaller;
 
 class SearchAggregator : public JobAggregator<SearchAggregator, LocalWorkerCaller>
 {
@@ -25,8 +26,7 @@ public:
         localWorkerCaller_.reset(new LocalWorkerCaller);
         localWorkerCaller_->setInvoker(searchService.get());
 
-        LocalWorkerCaller::func_t func = (LocalWorkerCaller::func_t) &SearchService::getKeywordSearchResult;
-        localWorkerCaller_->addMethod("getKeywordSearchResult", func);
+        ADD_WORKER_CALLER_METHOD(LocalWorkerCaller, localWorkerCaller_, SearchService, getKeywordSearchResult);
     }
 
     bool aggregate(const std::string& func, SearchResult& res, const std::vector<std::pair<workerid_t, SearchResult> >& resList)
