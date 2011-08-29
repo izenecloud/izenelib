@@ -527,6 +527,8 @@ bool JobAggregator<ConcreteAggregator, LocalWorkerCaller>::distributeRequest(
     {
         ResultType localResult = resultItem;
         std::string error;
+        if (debug_)
+            cout << "#[Aggregator] call local worker0"<<endl;
         if (localWorkerCaller_->call(func, requestItem, localResult, error))
         {
             return join(func, futureList, resultItem, &localResult);
@@ -599,6 +601,8 @@ bool JobAggregator<ConcreteAggregator, LocalWorkerCaller>::distributeRequest(
     if (pLocalRequest != NULL && localWorkerEnabled_ && localWorkerCaller_)
     {
         std::string error;
+        if (debug_)
+            cout << "#[Aggregator] call local worker0"<<endl;
         if (localWorkerCaller_->call(func, *pLocalRequest, *pLoacalResult, error))
         {
             return join(func, futureList, resultItem, pLoacalResult);
