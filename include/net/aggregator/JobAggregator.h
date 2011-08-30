@@ -124,6 +124,15 @@ public:
             ResultType& resultItem,
             timeout_t timeoutSec = DEFAULT_TIME_OUT);
 
+    template <typename RequestType0, typename RequestType1, typename ResultType>
+    bool distributeRequest(
+            const std::string& identity,
+            const std::string& func,
+            const RequestType0& requestItem0,
+            const RequestType1& requestItem1,
+            ResultType& resultItem,
+            timeout_t timeoutSec = DEFAULT_TIME_OUT);
+
     /**
      * Send a group of requests in same type to corresponding workers, each request may carry different request data,
      * their results will be \b aggregated to resultItem.
@@ -142,15 +151,24 @@ public:
             ResultType& resultItem,
             timeout_t timeoutSec = DEFAULT_TIME_OUT);
 
-
     /**
      * Send request to a specified worker, without aggregating action.
      */
-    template <typename RequestType, typename ResultType>
+    template<typename RequestType, typename ResultType>
     bool singleRequest(
             const std::string& identity,
             const std::string& func,
             const RequestType& requestItem,
+            ResultType& resultItem,
+            workerid_t workerid,
+            timeout_t timeoutSec  = DEFAULT_TIME_OUT);
+
+    template <typename RequestType0, typename RequestType1, typename ResultType>
+    bool singleRequest(
+            const std::string& identity,
+            const std::string& func,
+            const RequestType0& requestItem0,
+            const RequestType1& requestItem1,
             ResultType& resultItem,
             workerid_t workerid,
             timeout_t timeoutSec = DEFAULT_TIME_OUT);
@@ -544,6 +562,61 @@ bool JobAggregator<ConcreteAggregator, LocalWorkerCaller>::distributeRequest(
     }
 }
 
+template <class ConcreteAggregator, class LocalWorkerCaller> template<typename RequestType0, typename RequestType1, typename ResultType>
+bool JobAggregator<ConcreteAggregator, LocalWorkerCaller>::distributeRequest(
+        const std::string& identity,
+        const std::string& func,
+        const RequestType0& requestItem0,
+        const RequestType1& requestItem1,
+        ResultType& resultItem,
+        timeout_t timeoutSec)
+{
+    std::string func_plus = identity+REQUEST_FUNC_DELIMETER+func;
+    if (debug_)
+        cout << "#[Aggregator] distribute request: " << func_plus << endl;
+
+    // distribute request to remote workers
+    std::vector<std::pair<workerid_t, future_t> > futureList;
+    session_pool_t sessionPool; // shared sessoin pool
+    worker_iterator_t worker;
+    for (worker = workerSessionList_.begin(); worker != workerSessionList_.end(); worker++)
+    {
+        workerid_t workerid = (*worker)->getWorkerId();
+        const ServerInfo& workerSrv = (*worker)->getServerInfo();
+
+        session_t session = sessionPool.get_session(workerSrv.host_, workerSrv.port_);
+        session.set_timeout(timeoutSec);
+
+        future_t future = session.call(func_plus, requestItem0, requestItem1, resultItem);
+        futureList.push_back(std::make_pair(workerid, future));
+
+        if (debug_)
+            cout << "#[Aggregator] send to worker" << workerid <<" ["
+                 << workerSrv.host_<<":"<<workerSrv.port_<<"]"<<endl;
+    }
+
+    // join (aggregate)
+    if (localWorkerEnabled_ && localWorkerCaller_)
+    {
+        ResultType localResult = resultItem;
+        std::string error;
+        if (debug_)
+            cout << "#[Aggregator] call local worker0"<<endl;
+        if (localWorkerCaller_->call(func, requestItem0, requestItem1, localResult, error))
+        {
+            return join(func, futureList, resultItem, &localResult);
+        }
+        else
+        {
+            return join(func, futureList, resultItem);
+        }
+    }
+    else
+    {
+        return join(func, futureList, resultItem);
+    }
+}
+
 template <class ConcreteAggregator, class LocalWorkerCaller> template<typename RequestType, typename ResultType>
 bool JobAggregator<ConcreteAggregator, LocalWorkerCaller>::distributeRequest(
         const std::string& identity,
@@ -663,6 +736,53 @@ bool JobAggregator<ConcreteAggregator, LocalWorkerCaller>::singleRequest(
     session.set_timeout(timeoutSec);
 
     future_t future = session.call(func_plus, requestItem, resultItem);
+    resultItem = future.get<ResultType>();
+
+    return true;
+}
+
+
+template <class ConcreteAggregator, class LocalWorkerCaller> template <typename RequestType0, typename RequestType1, typename ResultType>
+bool JobAggregator<ConcreteAggregator, LocalWorkerCaller>::singleRequest(
+        const std::string& identity,
+        const std::string& func,
+        const RequestType0& requestItem0,
+        const RequestType1& requestItem1,
+        ResultType& resultItem,
+        workerid_t workerid,
+        timeout_t timeoutSec)
+{
+    if (workerid == LOCAL_WORKER_ID)
+    {
+        if (localWorkerEnabled_ && localWorkerCaller_)
+        {
+            std::string error;
+            return localWorkerCaller_->call(func, requestItem0, requestItem1, resultItem, error);
+        }
+        else
+        {
+            std::cerr << "#[Aggregator] Error: local worker was required but not enabled." <<endl;
+            return false;
+        }
+    }
+
+    std::string func_plus = identity+REQUEST_FUNC_DELIMETER+func;
+    if (debug_)
+        cout << "#[Aggregator] distribute request: " << func_plus << endl;
+
+    WorkerSessionPtr& workerSession = getWorkerSessionById(workerid);
+    if (!workerSession.get())
+    {
+        cout << "#[Aggregator] Error: not found worker" << workerid <<endl;
+        return false;
+    }
+
+    session_pool_t sessionPool;
+    const ServerInfo& workerSrv = workerSession->getServerInfo();
+    session_t session = sessionPool.get_session(workerSrv.host_, workerSrv.port_);
+    session.set_timeout(timeoutSec);
+
+    future_t future = session.call(func_plus, requestItem0, requestItem1, resultItem);
     resultItem = future.get<ResultType>();
 
     return true;

@@ -82,6 +82,36 @@ public:
         }
     }
 
+    template <typename RequestType0, typename RequestType1, typename ResultType>
+    bool call(
+            const std::string& func_name,
+            RequestType0& request0,
+            RequestType1& request1,
+            ResultType& result,
+            std::string& error)
+    {
+        typedef bool(Invoker::*real_func_t)(RequestType0&, RequestType1&, ResultType&);
+
+        cout << "WorkerCaller::call "<<func_name<<endl;
+
+        if (!invoker_)
+        {
+            cout << "WorkerCaller: empty invoker!"<<endl;
+            return false;
+        }
+
+        if (funcMap_.find(func_name) != funcMap_.end())
+        {
+            real_func_t func = (real_func_t) funcMap_[func_name];
+            return (invoker_->*func)(request0, request1, result);
+        }
+        else
+        {
+            cout << "WorkerCaller: not found method "<<func_name<<endl;
+            return false;
+        }
+    }
+
 private:
     std::map<std::string, func_t> funcMap_;
     Invoker* invoker_;

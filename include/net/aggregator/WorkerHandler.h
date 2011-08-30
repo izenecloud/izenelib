@@ -60,7 +60,28 @@ struct WorkerHandler
         req.params().convert(&params);                           \
         ParamT1 param = params.get<0>();                         \
         ResultT1 result = params.get<1>();                       \
-        SERVICE->FUNCTION(param, result);                                 \
+        SERVICE->FUNCTION(param, result);                        \
+        req.result(result);                                      \
+}
+
+#define WORKER_HANDLE_REQUEST_1_1_(request, ParamT1, FUNCTION, ResultT1)  \
+{                                                                \
+        msgpack::type::tuple<ParamT1, ResultT1> params;          \
+        req.params().convert(&params);                           \
+        ParamT1 param = params.get<0>();                         \
+        ResultT1 result = params.get<1>();                       \
+        FUNCTION(param, result);                                 \
+        req.result(result);                                      \
+}
+
+#define WORKER_HANDLE_REQUEST_2_1(request, ParamT1, ParamT2, FUNCTION, ResultT1)  \
+{                                                                \
+        msgpack::type::tuple<ParamT1, ParamT2, ResultT1> params; \
+        req.params().convert(&params);                           \
+        ParamT1 param1 = params.get<0>();                        \
+        ParamT2 param2 = params.get<1>();                        \
+        ResultT1 result = params.get<2>();                       \
+        FUNCTION(param1, param2, result);                        \
         req.result(result);                                      \
 }
 
