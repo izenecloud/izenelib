@@ -658,7 +658,7 @@ bool JobAggregator<ConcreteAggregator, LocalWorkerCaller>::singleRequest(
     }
 
     session_pool_t sessionPool;
-    ServerInfo& workerSrv = workerSession->getServerInfo();
+    const ServerInfo& workerSrv = workerSession->getServerInfo();
     session_t session = sessionPool.get_session(workerSrv.host_, workerSrv.port_);
     session.set_timeout(timeoutSec);
 
