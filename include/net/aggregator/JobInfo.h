@@ -232,100 +232,101 @@ public:
 
 typedef boost::shared_ptr<WorkerSession> WorkerSessionPtr;
 
-/**
- * A future object, returned immediately after sent a request through a worker session,
- * is used to get result from the worker in the future.
- */
-class WorkerFuture
-{
-    workerid_t workerId_;
-    ServerInfo workerSrv_;
 
-    future_t future_;
-
-    bool state_;
-    std::string error_;
-
-public:
-    WorkerFuture(
-            const workerid_t workerid,
-            const ServerInfo workerSrv,
-            const future_t& future)
-    : workerId_(workerid)
-    , workerSrv_(workerSrv)
-    , future_(future)
-    , state_(true)
-    , error_("fine")
-    {
-
-    }
-
-    template <typename ResultType>
-    ResultType getResult()
-    {
-        return future_.get<ResultType>();
-    }
-
-    workerid_t getWorkerId() const
-    {
-        return workerId_;
-    }
-
-    const ServerInfo& getServerInfo() const
-    {
-        return workerSrv_;
-    }
-
-    bool getState()
-    {
-        return state_;
-    }
-
-    void setError(const std::string& err, bool state=false)
-    {
-        state_ = state;
-        error_ = err;
-    }
-
-    const std::string& getError() const
-    {
-        return error_;
-    }
-};
-
-/**
- * Manage all worker futures returned by worker sessions for one request.
- * A session pool will be shared for all worker sessions in one request, so that their can be processed concurrently.
- */
-class WorkerFutureHolder
-{
-    std::vector<WorkerFuture> futureList_;
-    session_pool_t sessionPool_;
-
-public:
-    void clear()
-    {
-        futureList_.clear();
-    }
-
-    session_pool_t& getSessionPool()
-    {
-        return sessionPool_;
-    }
-
-
-    void addWorkerFuture(const WorkerFuture& workerFuture)
-    {
-        futureList_.push_back(workerFuture);
-    }
-
-    std::vector<WorkerFuture>& getFutureList()
-    {
-        return futureList_;
-    }
-};
-
-typedef boost::shared_ptr<WorkerFutureHolder> WorkerFutureHolderPtr;
+///**
+// * A future object, returned immediately after sent a request through a worker session,
+// * is used to get result from the worker in the future.
+// */
+//class WorkerFuture
+//{
+//    workerid_t workerId_;
+//    ServerInfo workerSrv_;
+//
+//    future_t future_;
+//
+//    bool state_;
+//    std::string error_;
+//
+//public:
+//    WorkerFuture(
+//            const workerid_t workerid,
+//            const ServerInfo workerSrv,
+//            const future_t& future)
+//    : workerId_(workerid)
+//    , workerSrv_(workerSrv)
+//    , future_(future)
+//    , state_(true)
+//    , error_("fine")
+//    {
+//
+//    }
+//
+//    template <typename ResultType>
+//    ResultType getResult()
+//    {
+//        return future_.get<ResultType>();
+//    }
+//
+//    workerid_t getWorkerId() const
+//    {
+//        return workerId_;
+//    }
+//
+//    const ServerInfo& getServerInfo() const
+//    {
+//        return workerSrv_;
+//    }
+//
+//    bool getState()
+//    {
+//        return state_;
+//    }
+//
+//    void setError(const std::string& err, bool state=false)
+//    {
+//        state_ = state;
+//        error_ = err;
+//    }
+//
+//    const std::string& getError() const
+//    {
+//        return error_;
+//    }
+//};
+//
+///**
+// * Manage all worker futures returned by worker sessions for one request.
+// * A session pool will be shared for all worker sessions in one request, so that their can be processed concurrently.
+// */
+//class WorkerFutureHolder
+//{
+//    std::vector<WorkerFuture> futureList_;
+//    session_pool_t sessionPool_;
+//
+//public:
+//    void clear()
+//    {
+//        futureList_.clear();
+//    }
+//
+//    session_pool_t& getSessionPool()
+//    {
+//        return sessionPool_;
+//    }
+//
+//
+//    void addWorkerFuture(const WorkerFuture& workerFuture)
+//    {
+//        futureList_.push_back(workerFuture);
+//    }
+//
+//    std::vector<WorkerFuture>& getFutureList()
+//    {
+//        return futureList_;
+//    }
+//};
+//
+//typedef boost::shared_ptr<WorkerFutureHolder> WorkerFutureHolderPtr;
 
 }} // end - namespace
 
