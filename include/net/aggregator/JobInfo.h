@@ -146,32 +146,21 @@ class RequestGroup
 public:
     typedef boost::shared_ptr<RequestType> RequestParamPtr;
     typedef boost::shared_ptr<ResultType> ResultParamPtr;
-    typedef typename std::vector<std::pair<workerid_t, RequestParamPtr> >::iterator request_iterator_t;
-
-    //std::vector<std::pair<workerid_t, RequestParamPtr> > requestList_;
 
     std::vector<workerid_t> workeridList_;
     std::vector<RequestType*> requestList_;
     std::vector<ResultType*> resultList_;
-    ResultType* resultItem_; // to which all sub results will be merged. xxx
 
     void addRequest(workerid_t workerid, RequestType* request, ResultType* result = NULL)
     {
-        //requestList_.push_back(std::make_pair(workerid, request));
         workeridList_.push_back(workerid);
         requestList_.push_back(request);
         resultList_.push_back(result);
     }
 
-    // remove, xxx
-    void setResultItemForMerging(ResultType* result)
-    {
-        resultItem_ = result;
-    }
-
     bool check()
     {
-        if (requestList_.size() > 0 && resultItem_)
+        if (requestList_.size() > 0)
             return true;
 
         return false;

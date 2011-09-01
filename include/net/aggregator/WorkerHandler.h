@@ -42,7 +42,7 @@ struct WorkerHandler
 
 
 
-/// Help macros for handling request, todo add more
+/// Help macros for handling request, xxx
 
 #define WORKER_HANDLE_1_1(request, ParamT1, FUNCTION, ResultT1)  \
 {                                                                \

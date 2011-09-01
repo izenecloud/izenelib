@@ -19,31 +19,37 @@ namespace aggregator{
 
 /**
  * Job Aggregator base class
- * @brief Implement a concrete aggregator using inheritance, the following function must be implemented:
- * join_impl(ResultType& result, const std::vector<std::pair<workerid_t, ResultType> >& resultList);
- * join_impl() used to merge result, it's not virtual, because base class won't known the ResultType
- * of a concrete aggregator. (Overload this function with different ResultTypes)
+ * @brief Implement a concrete aggregator using inheritance, the \b aggregate function should be defined
+ * and implemented (overload) with concrete types, for aggregating results in distrbuted requests:
+ * aggregate(ResultType& result, const std::vector<std::pair<workerid_t, ResultType> >& resultList);
  *
- * Implement get_local_result(), in which call local worker, if needed.
- * template <typename RequestType, typename ResultType>
- * bool get_local_result(const std::string& func, const RequestType& request, ResultType& result, std::string& error)
+ * To support calling local worker, we can define a LocalWorkerCaller with suitable Invoker(typically WorkerService),
+ * and initialize it in derived Aggregator.
  *
  * @example
- *
-class SearchAggregator : public JobAggregator<SearchAggregator>
+typedef WorkerCaller<WorkerService> LocalWorkerCaller;
+class SearchAggregator : public JobAggregator<SearchAggregator, LocalWorkerCaller>
 {
 public:
-    void join_impl(ResultType1& result, const std::vector<std::pair<workerid_t, ResultType1> >& resultList)
+    void initLocalWorkerCaller(WorkerService* localWorkerService)
+    {
+        localWorkerCaller_.reset(new LocalWorkerCaller);
+        localWorkerCaller_->setInvoker(localWorkerService);
+
+        ADD_WORKER_CALLER_METHOD(LocalWorkerCaller, localWorkerCaller_, WorkerService, getDistSearchResult);
+        ...
+    }
+
+public:
+    void aggregate(const std::string& func, ResultType1& result, const std::vector<std::pair<workerid_t, ResultType1> >& resultList)
     {
         // merge resultList to result
     }
 
-    void join_impl(ResultType2& result, const std::vector<std::pair<workerid_t, ResultType2> >& resultList)
+    void aggregate(const std::string& func, ResultType2& result, const std::vector<std::pair<workerid_t, ResultType2> >& resultList)
     {
         // merge resultList to result
     }
-
-    ...
 };
  *
  */

@@ -22,16 +22,15 @@ namespace aggregator{
 
 /**
  * Job Worker Base class
- * @brief In subclass, function addHandlers() must be implemented to extend service APIs,
- * we can use help macros to add handle functions which are defined in subclass.
- * @example
+ * @brief In subclass, function addHandlers() must be implemented to register handlers,
+ * we can use help macros to add handler which are defined as member fucntion of subclass.
  *
+ * @example
 class ConcreteWorker : public JobWorker<ConcreteWorker>
 {
 public:
-    ConcreteWorker(const std::string& host, uint16_t port, ...)
-    :JobWorker<ConcreteWorker>(host, port)
-    , ...
+    ConcreteWorker WorkerServer(const std::string& host, uint16_t port, unsigned int threadNum)
+    : JobWorker<ConcreteWorker>(host, port, threadNum)
     {
     }
 
@@ -41,36 +40,27 @@ public:
     {
         ADD_WORKER_HANDLER_LIST_BEGIN( ConcreteWorker )
 
-        ADD_WORKER_HANDLER( functionName1 )
-        ADD_WORKER_HANDLER( functionName2 )
+        ADD_WORKER_HANDLER( Function1 )
+        ADD_WORKER_HANDLER( Function2 )
 
         ADD_WORKER_HANDLER_LIST_END()
     }
 
-    bool functionName1 (JobRequest& req)
+    bool Function1 (JobRequest& req)
     {
-        WORKER_HANDLE_1_1(req, Data, processFunction1, DataResult)
+        WORKER_HANDLE_REQUEST_1_1_(req, Data, service_->Function1, DataResult)
         return true;
     }
 
-    bool functionName2 (JobRequest& req)
+    bool Function1 (JobRequest& req)
     {
-        WORKER_HANDLE_1_1(req, Data, processFunction2, DataResult)
+        WORKER_HANDLE_REQUEST_1_1_(req, Data, service_->Function2, DataResult)
         return true;
     }
 
 private:
-    void  processFunction1(Data& param, DataResult& res)
-    {
-        // do something
-    }
-
-    void  processFunction2(Data& param, DataResult& res)
-    {
-        // do something
-    }
+    WorkerServiceBase* service_;
 };
-
  */
 template <
 typename ConcreteWorker,
@@ -124,15 +114,10 @@ public:
         return srvInfo_;
     }
 
-    //xxx
-    virtual bool preHandle(const std::string& identity)
-    {
-        return true;
-    }
 
     virtual bool preHandle(const std::string& identity, std::string& error)
     {
-        return preHandle(identity);
+        return true;
     }
 
     /*virtual*/
