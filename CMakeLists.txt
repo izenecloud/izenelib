@@ -225,6 +225,10 @@ CONFIGURE_FILE( "${CMAKE_SOURCE_DIR}/include/3rdparty/am/google/sparseconfig.h.i
   "${CMAKE_SOURCE_DIR}/include/3rdparty/am/google/sparseconfig.h"
   ESCAPE_QUOTES @ONLY)
 
+CONFIGURE_FILE( "${CMAKE_SOURCE_DIR}/include/3rdparty/zookeeper/config.h.in"
+  "${CMAKE_SOURCE_DIR}/include/3rdparty/zookeeper/config.h"
+  ESCAPE_QUOTES @ONLY)
+
 ##################################################
 # CPack
 #####
