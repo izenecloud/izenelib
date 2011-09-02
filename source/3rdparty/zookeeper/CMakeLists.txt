@@ -10,7 +10,7 @@
     ${IZENELIB_SOURCE_DIR}/include/3rdparty/zookeeper
     )
 
-  ADD_DEFINITIONS("-fPIC -DTHREADED")
+  ADD_DEFINITIONS("-fPIC -DTHREADED -D_GNU_SOURCE")
 
   MACRO_ADD_LIBRARY(zookeeper SRCS ${zookeeper_SRC})
 
