@@ -130,3 +130,12 @@ TARGET_LINK_LIBRARIES(t_osgi
     izene_util
     )
 
+ADD_EXECUTABLE(t_class_register
+  Runner.cpp
+  t_class_register
+  )
+
+TARGET_LINK_LIBRARIES(t_class_register
+    ${Boost_LIBRARIES}
+  )
+

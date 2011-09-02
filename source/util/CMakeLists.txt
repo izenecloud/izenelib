@@ -81,6 +81,7 @@ IF(izene_util_SHOULD_BUILD)
     CBitArray.cpp
     singleton.cpp
     streambuf.cpp
+    stringprintf.cpp
     scd_parser.cpp
     DynamicLibrary.cpp
     modp_numtoa.cpp
