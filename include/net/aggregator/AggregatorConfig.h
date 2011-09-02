@@ -10,6 +10,7 @@
 #include <stdint.h>
 #include <string>
 #include <vector>
+#include <sstream>
 
 #include "JobInfo.h"
 
@@ -32,6 +33,19 @@ public:
     const std::vector<ServerInfo>& getWorkerList() const
     {
         return workerInfoList_;
+    }
+
+    std::string toString()
+    {
+        std::stringstream ss;
+        ss <<"[AggregatorConfig] localWorker enabled ? "<<enableLocalWorker_<<endl;
+
+        for (size_t i = 0; i < workerInfoList_.size(); i++)
+        {
+            ss << "worker="<<workerInfoList_[i].host_<<":"<<workerInfoList_[i].port_<<endl;
+        }
+
+        return ss.str();
     }
 
 public:
