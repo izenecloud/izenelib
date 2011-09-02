@@ -3,6 +3,7 @@
     RELATIVE
     "${CMAKE_CURRENT_SOURCE_DIR}"
     "*.c"
+    "*.cc"
     )
 
   INCLUDE_DIRECTORIES(
