@@ -64,7 +64,7 @@ protected:
     uint16_t port_;
 };
 
-typedef Singleton<Notifier> NotifierSingleton;
+typedef Singleton<Notifier> MasterNotifierSingleton;
 
 class MasterServerBase : public msgpack::rpc::server::base
 {
