@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-#include <ZkAdaptor.h>
+#include <ZkAdaptor.hpp>
 #include <string.h>
 #include <sstream>
 #include <iostream>
