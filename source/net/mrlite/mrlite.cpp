@@ -364,7 +364,10 @@ void MRWorker::Finalize()
     // longer output anything.  For reduce workers,
     // Communicator::Finalize() releases binding and listening of TCP
     // sockets.
-    communicator_->Finalize();
+    if (!workerConfig_.batchReduction)
+    {
+        communicator_->Finalize();
+    }
 
     LOG(INFO) << "MapReduce Lite job finalized.";
 }
