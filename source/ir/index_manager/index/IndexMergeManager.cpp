@@ -116,6 +116,7 @@ void IndexMergeManager::optimizeIndexImpl()
                                new OptimizePolicy(pBarrelsInfo_->getBarrelCount()));
 
     optimizeMerger.mergeBarrels();
+    pIndexer_->getIndexReader();
 }
 
 void IndexMergeManager::mergeIndex()
