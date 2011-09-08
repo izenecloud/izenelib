@@ -6,6 +6,7 @@
 
 #include "string.h" // memset
 #include <algorithm>
+#include <sstream>
 
 
 using namespace zookeeper;
@@ -16,8 +17,11 @@ using namespace std;
 
 void watcher_callback(zhandle_t *zh, int type, int state, const char *path, void *watcherCtx)
 {
-    ZooKeeperWatcher* zkWatcher = static_cast<ZooKeeperWatcher*>(watcherCtx);
-    zkWatcher->eventHandle(type, state, path);
+    if (watcherCtx != NULL)
+    {
+        ZooKeeperWatcher* zkWatcher = static_cast<ZooKeeperWatcher*>(watcherCtx);
+        zkWatcher->handleEvent(type, state, path);
+    }
 }
 
 }
@@ -37,7 +41,7 @@ ZooKeeper::~ZooKeeper()
     disconnect();
 }
 
-void ZooKeeper::setZNodeWatcher(const std::string &path, ZooKeeperWatcher* zkWatcher)
+void ZooKeeper::setWatcher(ZooKeeperWatcher* zkWatcher)
 {
     zoo_set_context(zk_, zkWatcher);
 }
@@ -124,7 +128,7 @@ bool ZooKeeper::createZNode(const std::string &path, const std::string &data, in
     return false;
 }
 
-bool ZooKeeper::deleteZNode(const string &path, int version)
+bool ZooKeeper::deleteZNode(const string &path, bool recursive, int version)
 {
     int rc = zoo_delete(zk_, path.c_str(), version);
 
@@ -144,6 +148,17 @@ bool ZooKeeper::deleteZNode(const string &path, int version)
         break;
     case ZNOTEMPTY:
         //children are present; node cannot be deleted.
+        if (recursive)
+        {
+            std::vector<std::string> children;
+            getZNodeChildren(path, children);
+            for (size_t i = 0; i < children.size(); i++)
+            {
+                deleteZNode(children[i], true);
+            }
+
+            return deleteZNode(path);
+        }
         break;
     case ZBADARGUMENTS:
         //invalid input parameters
@@ -161,12 +176,12 @@ bool ZooKeeper::deleteZNode(const string &path, int version)
     return false;
 }
 
-bool ZooKeeper::isZNodeExists(const std::string &path)
+bool ZooKeeper::isZNodeExists(const std::string &path, int watch)
 {
     struct Stat stat;
     memset(&stat, 0, sizeof(Stat));
 
-    int rc = zoo_exists(zk_, path.c_str(), 0, &stat);
+    int rc = zoo_exists(zk_, path.c_str(), watch, &stat);
 
     if (rc == ZOK)
     {
@@ -176,7 +191,7 @@ bool ZooKeeper::isZNodeExists(const std::string &path)
     return false;
 }
 
-bool ZooKeeper::getZNodeData(const std::string &path, std::string& data)
+bool ZooKeeper::getZNodeData(const std::string &path, std::string& data, int watch)
 {
     memset( buffer_, 0, MAX_DATA_LENGTH );
     struct Stat stat; // xxx, return to caller
@@ -186,7 +201,7 @@ bool ZooKeeper::getZNodeData(const std::string &path, std::string& data)
     int rc = zoo_get(
             zk_,
             path.c_str(),
-            0,
+            watch,
             buffer_,
             &buffer_len,
             &stat );
@@ -217,7 +232,7 @@ bool ZooKeeper::setZNodeData(const std::string &path, const std::string& data, i
     return false;
 }
 
-void ZooKeeper::getZNodeChildren(const std::string &path, std::vector<std::string>& childrens)
+void ZooKeeper::getZNodeChildren(const std::string &path, std::vector<std::string>& childrenList, int watch)
 {
     String_vector children;
     memset( &children, 0, sizeof(children) );
@@ -225,7 +240,7 @@ void ZooKeeper::getZNodeChildren(const std::string &path, std::vector<std::strin
     int rc = zoo_get_children(
                     zk_,
                     path.c_str(),
-                    0,
+                    watch,
                     &children );
 
     if (rc == ZOK)
@@ -239,15 +254,44 @@ void ZooKeeper::getZNodeChildren(const std::string &path, std::vector<std::strin
                 absPath.append( "/" );
             }
             absPath.append( children.data[i] );
-            childrens.push_back( absPath );
+            childrenList.push_back( absPath );
         }
 
         //make sure the order is always deterministic
-        std::sort( childrens.begin(), childrens.end() );
+        std::sort( childrenList.begin(), childrenList.end() );
     }
 }
 
 
 
+void ZooKeeper::showZKNamespace(const std::string& path, int level, std::ostream& out)
+{
+    if (level == 0) {
+        out << "=== ZooKeeper's Hierarchical Namespace for ("<<path<<") ==="<<std::endl;
+    }
+
+    // znode path
+    out <<std::string(level, ' ')<< path;
+
+    // znode data
+    std::string data;
+    getZNodeData(path, data);
+    if (!data.empty())
+        out<<" ["<<data<<"]";
+
+    out << std::endl;
+
+    // children nodes
+    std::vector<std::string> children;
+    getZNodeChildren(path, children);
+    for (size_t i = 0; i < children.size(); i++)
+    {
+        showZKNamespace(children[i], level+1, out);
+    }
+
+    if (level == 0) {
+        out << "======================================="<<std::endl;
+    }
+}
 
 

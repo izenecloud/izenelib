@@ -22,7 +22,7 @@ public:
 
     ~ZooKeeperWatcher();
 
-    void eventHandle(int eventType, int connState, const char *znodePath);
+    void handleEvent(int eventType, int connState, const char *znodePath);
 
     void registerEventHandler(ZooKeeperEventHandler* evtHandler);
 

@@ -17,10 +17,10 @@ ZooKeeperWatcher::~ZooKeeperWatcher()
 
 }
 
-void ZooKeeperWatcher::eventHandle(int eventType, int connState, const char *znodePath)
+void ZooKeeperWatcher::handleEvent(int eventType, int connState, const char *znodePath)
 {
-    cout <<"ZooKeeperWatcher::eventHandle ( state="<< state2String(connState)
-            << " event="<<watcherEvent2String(eventType)<<" path="<<znodePath<<" )"<<endl;
+    //cout <<"ZooKeeperWatcher::handleEvent ( state="<< state2String(connState)
+    //        << " event="<<watcherEvent2String(eventType)<<" path="<<znodePath<<" )"<<endl;
 
     if (eventType == ZOO_CREATED_EVENT)
     {
@@ -44,7 +44,27 @@ void ZooKeeperWatcher::eventHandle(int eventType, int connState, const char *zno
     }
     else if (eventType == ZOO_SESSION_EVENT)
     {
-        // xxx
+        if (connState == 0)
+        {
+            for (unsigned int i = 0; i < eventHandlerList.size(); i++)
+                eventHandlerList[i]->onSessionClosed();
+        }
+        else if (connState == ZOO_CONNECTED_STATE)
+        {
+            for (unsigned int i = 0; i < eventHandlerList.size(); i++)
+                eventHandlerList[i]->onSessionConnected();
+        }
+        else if (connState == ZOO_EXPIRED_SESSION_STATE)
+        {
+            for (unsigned int i = 0; i < eventHandlerList.size(); i++)
+                eventHandlerList[i]->onSessionExpired();
+        }
+        else if (connState == ZOO_AUTH_FAILED_STATE)
+        {
+            for (unsigned int i = 0; i < eventHandlerList.size(); i++)
+                eventHandlerList[i]->onAuthFailed();
+        }
+
     }
     else if (eventType == ZOO_NOTWATCHING_EVENT)
     {
