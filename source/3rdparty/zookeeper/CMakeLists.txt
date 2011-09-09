@@ -4,7 +4,6 @@
     "${CMAKE_CURRENT_SOURCE_DIR}"
     "*.c"
     "*.cpp"
-    "dsync/*.cpp"
     )
 
   INCLUDE_DIRECTORIES(

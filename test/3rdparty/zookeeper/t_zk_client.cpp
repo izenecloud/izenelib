@@ -7,7 +7,7 @@
 #include <3rdparty/zookeeper/ZooKeeperWatcher.hpp>
 #include <3rdparty/zookeeper/ZooKeeperEvent.hpp>
 
-#include <3rdparty/zookeeper/dsync/DoubleBarrier.h>
+#include <3rdparty/zookeeper/DoubleBarrier.h>
 
 using namespace std;
 using namespace boost;

@@ -7,9 +7,9 @@
 #ifndef DOUBLE_BARRIER_H_
 #define DOUBLE_BARRIER_H_
 
-#include <3rdparty/zookeeper/ZooKeeper.hpp>
-#include <3rdparty/zookeeper/ZooKeeperWatcher.hpp>
-#include <3rdparty/zookeeper/ZooKeeperEvent.hpp>
+#include "ZooKeeper.hpp"
+#include "ZooKeeperWatcher.hpp"
+#include "ZooKeeperEvent.hpp"
 
 #include <boost/thread/mutex.hpp>
 #include <boost/thread/condition_variable.hpp>

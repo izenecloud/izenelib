@@ -1,4 +1,4 @@
-#include <3rdparty/zookeeper/dsync/DoubleBarrier.h>
+#include <3rdparty/zookeeper/DoubleBarrier.h>
 
 #include <unistd.h>
 
