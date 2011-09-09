@@ -180,17 +180,18 @@ public:
         return true;
     }
 
-    void get_between(const KeyType& lowKey, const KeyType& highKey, KeyValueType* & data, size_t maxDoc )
+    size_t get_between(const KeyType& lowKey, const KeyType& highKey, KeyValueType* & data, size_t maxDoc )
     {
         if (comp_(lowKey, highKey) > 0)
         {
-            return;
+            return 0;
         }
         myKeyType ikey(lowKey, 0);
         myValueType ival;
         IndexSDBCursor locn;
         this->_sdb.search(ikey, locn);
         docid_t currDoc;
+        size_t count = 0;
 
         do
         {
@@ -205,18 +206,21 @@ public:
                         {
                             KeyValueType* ppBytes = new KeyValueType[maxDoc + MAX_NUMERICSIZER];
                             memcpy(ppBytes, data, maxDoc * sizeof(KeyValueType));
-                            memset(ppBytes+maxDoc, 0, maxDoc * sizeof(KeyValueType));
+                            memset(ppBytes+maxDoc, 0, MAX_NUMERICSIZER * sizeof(KeyValueType));
                             delete[] data;
                             data = ppBytes;
                             maxDoc = maxDoc + MAX_NUMERICSIZER;
                         }
                         data[currDoc] = ikey.key.value;
                     }
+                    count += ival.size();
                 }
                 else
                     break;
             }
         }while (this->_sdb.seq(locn, ESD_FORWARD));
+
+        return count;
     }
 
     void get_between(const KeyType& lowKey, const KeyType& highKey, BitVector& result)
