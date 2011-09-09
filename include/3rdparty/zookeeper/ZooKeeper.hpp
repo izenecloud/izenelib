@@ -16,6 +16,7 @@
 namespace zookeeper {
 
 class ZooKeeperWatcher;
+class ZooKeeperEventHandler;
 
 /**
  * ZooKeeper Client
@@ -27,17 +28,16 @@ public:
      * @param host comma separated host:port pairs, each corresponding to a zk server.
      *             e.g. "127.0.0.1:3000,127.0.0.1:3001,127.0.0.1:3002"
      * @param recvTimeout
-     * @param watcher reference to the watcher object for the client.
      */
-    ZooKeeper(const std::string& hosts, const int recvTimeout, void* watcher = NULL);
+    ZooKeeper(const std::string& hosts, const int recvTimeout);
 
     ~ZooKeeper();
 
     /**
-     * Set watcher for a client (only one watcher can be set at a time)
-     * @param zkWatcher reference to the watcher object for the client.
+     * Register EventHandler which will be notified when watched a event.
+     * @param evtHandler
      */
-    void setWatcher(ZooKeeperWatcher* zkWatcher);
+    void registerEventHandler(ZooKeeperEventHandler* evtHandler);
 
     /**
      * @return true if this client has been connected to Zookeeper server, or false.

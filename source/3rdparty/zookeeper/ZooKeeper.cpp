@@ -26,13 +26,15 @@ void watcher_callback(zhandle_t *zh, int type, int state, const char *path, void
 
 }
 
-ZooKeeper::ZooKeeper(const std::string& hosts, const int recvTimeout, void* watcher)
+ZooKeeper::ZooKeeper(const std::string& hosts, const int recvTimeout)
 :hosts_(hosts)
 ,recvTimeout_(recvTimeout)
 ,sessionId_(0)
-,context_(watcher)
 ,flags_(0)
 {
+    // only one watcher can be set at a time, so set a unique watcher.
+    context_ = UniqueZooKeeperWatcher::Instance();
+
     connect();
 }
 
@@ -41,9 +43,9 @@ ZooKeeper::~ZooKeeper()
     disconnect();
 }
 
-void ZooKeeper::setWatcher(ZooKeeperWatcher* zkWatcher)
+void ZooKeeper::registerEventHandler(ZooKeeperEventHandler* evtHandler)
 {
-    zoo_set_context(zk_, zkWatcher);
+    UniqueZooKeeperWatcher::Instance()->registerEventHandler(evtHandler);
 }
 
 bool ZooKeeper::isConnected()

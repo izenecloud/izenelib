@@ -10,6 +10,7 @@
 #include <iostream>
 #include <string>
 #include <vector>
+//#include <auto_ptr.h>
 
 namespace zookeeper{
 
@@ -26,14 +27,26 @@ public:
 
     void registerEventHandler(ZooKeeperEventHandler* evtHandler);
 
-private:
-    std::string state2String(int state);
-
-    std::string watcherEvent2String(int ev);
-
-private:
+protected:
     std::vector<ZooKeeperEventHandler*> eventHandlerList;
 };
+
+
+class UniqueZooKeeperWatcher : public ZooKeeperWatcher
+{
+public:
+    static UniqueZooKeeperWatcher* Instance()
+    {
+        return &instance_;
+    }
+
+private:
+    UniqueZooKeeperWatcher() {}
+    UniqueZooKeeperWatcher(const UniqueZooKeeperWatcher&);
+
+    static UniqueZooKeeperWatcher instance_;
+};
+
 
 }
 

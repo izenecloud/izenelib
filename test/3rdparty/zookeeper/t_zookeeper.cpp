@@ -15,7 +15,7 @@ using namespace boost::lambda;
 using namespace zookeeper;
 
 
-class Master : public ZooKeeperEventHandler
+class WorkerSearch : public ZooKeeperEventHandler
 {
 public:
     virtual void onSessionConnected()
@@ -24,25 +24,25 @@ public:
 
     virtual void onNodeCreated(const std::string& path)
     {
-        cout << "[Master] onNodeCreated " << path <<endl;
+        cout << "[WorkerSearch] onNodeCreated " << path <<endl;
         path_ = path;
     }
 
     virtual void onNodeDeleted(const std::string& path)
     {
-        cout << "[Master] onNodeDeleted " << path <<endl;
+        cout << "[WorkerSearch] onNodeDeleted " << path <<endl;
     }
 
     virtual void onDataChanged(const std::string& path)
     {
-        cout << "[Master] onDataChanged " << path <<endl;
+        cout << "[WorkerSearch] onDataChanged " << path <<endl;
         path_ = path;
     }
 
     std::string path_;
 };
 
-class Worker : public ZooKeeperEventHandler
+class WorkerMining : public ZooKeeperEventHandler
 {
 public:
     virtual void onSessionConnected()
@@ -51,17 +51,17 @@ public:
 
     virtual void onNodeCreated(const std::string& path)
     {
-        cout << "[Worker] onNodeCreated " << path <<endl;
+        cout << "[WorkerMining] onNodeCreated " << path <<endl;
     }
 
     virtual void onNodeDeleted(const std::string& path)
     {
-        cout << "[Worker] onNodeDeleted " << path <<endl;
+        cout << "[WorkerMining] onNodeDeleted " << path <<endl;
     }
 
     virtual void onDataChanged(const std::string& path)
     {
-        cout << "[Worker] onDataChanged " << path <<endl;
+        cout << "[WorkerMining] onDataChanged " << path <<endl;
     }
 };
 
@@ -127,18 +127,17 @@ BOOST_AUTO_TEST_CASE( zookeeper_watch )
 {
     std::cout << "---> Test ZooKeeper Watcher" << std::endl;
 
-    // Watcher
-    ZooKeeperWatcher watcher;
-    Master masterNode;
-    Worker workerNode1;
-    watcher.registerEventHandler(&masterNode);
-    watcher.registerEventHandler(&workerNode1);
-
     // Client
     std::string hosts = "127.0.0.1:2181,127.0.0.1:2182,127.0.0.1:2183";
     int recvTimeout = 2000;
-    ZooKeeper cli(hosts, recvTimeout, &watcher);
+    ZooKeeper cli(hosts, recvTimeout);
     sleep(1);
+
+    // set event handlers for watcher
+    WorkerSearch wkSearch;
+    WorkerMining wkMining;
+    cli.registerEventHandler(&wkSearch);
+    cli.registerEventHandler(&wkMining);
 
     // 1. get and watch znode for changes
     std::string path = "/SF1/Master";
@@ -150,8 +149,8 @@ BOOST_AUTO_TEST_CASE( zookeeper_watch )
     sleep(1);
 
     // master was notified by watcher on znode changed
-    BOOST_CHECK_EQUAL(masterNode.path_, path);
-    cli.getZNodeData(masterNode.path_, data_get);
+    BOOST_CHECK_EQUAL(wkSearch.path_, path);
+    cli.getZNodeData(wkSearch.path_, data_get);
     BOOST_CHECK_EQUAL(data_get, "master data changed!");
 
     // 2. check exists and watch znode for creation
@@ -163,8 +162,8 @@ BOOST_AUTO_TEST_CASE( zookeeper_watch )
     sleep(1);
 
     // master was notified by watcher on znode created
-    BOOST_CHECK_EQUAL(masterNode.path_, path2);
-    cli.getZNodeData(masterNode.path_, data_get);
+    BOOST_CHECK_EQUAL(wkSearch.path_, path2);
+    cli.getZNodeData(wkSearch.path_, data_get);
     BOOST_CHECK_EQUAL(data_get, "nodata");
 }
 
