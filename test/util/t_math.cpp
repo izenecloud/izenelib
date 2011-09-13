@@ -20,7 +20,7 @@ BOOST_AUTO_TEST_CASE(math_test)
     for(int i = 0; i < size; ++i)
     {
         int r = random();
-        std::cout<<log10(r)<<" "<<fastlog10(r)<<std::endl;
+        std::cout<<log10(r)<<" "<<fastlog10(r)<<" "<<fasterlog10(r)<<std::endl;
     }
 }
 
