@@ -30,12 +30,12 @@ public:
     static boost::condition_variable condition_;
 };
 
-class Barrier : public SyncPrimitive
+class DoubleBarrier : public SyncPrimitive
 {
 public:
-    Barrier(const std::string& host, const std::string& zpath, size_t size, const std::string& name);
+    DoubleBarrier(const std::string& host, const std::string& zpath, size_t size, const std::string& name);
 
-    virtual ~Barrier();
+    virtual ~DoubleBarrier();
 
     bool enter();
 

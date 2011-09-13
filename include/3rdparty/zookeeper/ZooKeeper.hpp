@@ -60,7 +60,7 @@ public:
      * @param flags this parameter can be set to 0 for normal create or an OR of the Create Flags..xxx
      * @return true if success, or false.
      */
-    bool createZNode(const std::string &path, const std::string &data, int flags = 0);
+    bool createZNode(const std::string &path, const std::string &data="", int flags = 0);
 
     /**
      * Delete a znode

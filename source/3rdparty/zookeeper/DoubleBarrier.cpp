@@ -23,7 +23,7 @@ SyncPrimitive::~SyncPrimitive()
 }
 
 
-Barrier::Barrier(const std::string& host, const std::string& root, size_t size, const std::string& name)
+DoubleBarrier::DoubleBarrier(const std::string& host, const std::string& root, size_t size, const std::string& name)
 : SyncPrimitive(host), size_(size)
 {
     if (zk_.get())
@@ -41,11 +41,11 @@ Barrier::Barrier(const std::string& host, const std::string& root, size_t size, 
     name_ = root+"/"+name;
 }
 
-Barrier::~Barrier()
+DoubleBarrier::~DoubleBarrier()
 {
 }
 
-bool Barrier::enter()
+bool DoubleBarrier::enter()
 {
     zk_->createZNode(name_, "");
 
@@ -66,7 +66,7 @@ bool Barrier::enter()
     return true;
 }
 
-bool Barrier::leave()
+bool DoubleBarrier::leave()
 {
     zk_->deleteZNode(name_);
 
@@ -87,7 +87,7 @@ bool Barrier::leave()
     return false;
 }
 
-void Barrier::process(ZooKeeperEvent& zkEvent)
+void DoubleBarrier::process(ZooKeeperEvent& zkEvent)
 {
     std::cout << "notified!"<<std::endl;
     condition_.notify_all();
