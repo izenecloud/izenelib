@@ -5,6 +5,36 @@
 
 NS_IZENELIB_UTIL_BEGIN
 
+//////////////////////////////////////////////////////////////////////////////
+///http://www.machinedlearnings.com/2011/06/fast-approximate-logarithm-exponential.html
+//////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////
+///Note:Recommended GCC flags:  -O3 -finline-functions -ffast-math
+///Performance comparison references:
+///fastlog2 relative accuracy = 2.09352e-05
+///fastlog relative accuracy = 2.09348e-05
+///fasterlog2 relative accuracy = 0.0130367
+///fasterlog relative accuracy = 0.0130367
+///fastlog2 million calls per second = 160.141
+///fastlog million calls per second = 143.552
+///fasterlog2 million calls per second = 218.345
+///fasterlog million calls per second = 210.435
+///log2f million calls per second = 40.8511
+
+///fastpow2 relative accuracy (positive p) = 1.58868e-05
+///fastexp relative accuracy (positive p) = 1.60712e-05
+///fasterpow2 relative accuracy (positive p) = 0.0152579
+///fasterexp relative accuracy (positive p) = 0.0152574
+///fastpow2 relative accuracy (inverse root p) = 1.43517e-05
+///fastexp relative accuracy (inverse root p) = 1.7255e-05
+///fasterpow2 relative accuracy (inverse root p) = 0.013501
+///fasterexp relative accuracy (inverse root p) = 0.0111832
+///fastpow2 million calls per second = 153.561
+///fastexp million calls per second = 143.311
+///fasterpow2 million calls per second = 215.006
+///fasterexp million calls per second = 214.44
+///expf million calls per second = 4.16527
+
 static inline float fastlog2 (float x)
 {
     union { float f;
@@ -68,6 +98,39 @@ static inline float fastexp (float p)
 static inline float fastpow (float x, float p)
 {
     return fastpow2 (p * fastlog2 (x));
+}
+
+static inline float fasterpow2 (float p)
+{
+    union { uint32_t i; float f; } v = { (1 << 23) * (p + 126.94269504f) };
+    return v.f;
+}
+ 
+static inline float fasterexp (float p)
+{
+   return fasterpow2 (1.442695040f * p);
+}
+
+//////////////////////////////////////////////////////////////
+/// y=pow(x,-(1/p)) where p>=1
+///Fast inverse square root 
+static inline float fasterinvproot (float x, float p)
+{
+    union { float f; uint32_t i; } v = { x };
+    unsigned int R = 0x5F375A84U;   // R = (3/2) (B - sigma) L
+    unsigned int pR = (unsigned int)(((2 * (p + 1)) / (3 * p)) * R);
+    unsigned int sub = (unsigned int)(v.i / p);
+    v.i = pR - sub;
+    return v.f;
+}
+
+static inline float fastinvproot (float x, float p)
+{
+    float y = fasterinvproot (x, p);
+    float log2x = fastlog2 (x);
+    float log2y = fastlog2 (y);
+    float err = 1.0 - 0.34657359f * (log2x / p + log2y);
+    return y * err * err;
 }
 
 //////////////////////////////////////////////////////////////
