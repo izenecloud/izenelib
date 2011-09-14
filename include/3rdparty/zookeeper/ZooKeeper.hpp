@@ -24,6 +24,13 @@ class ZooKeeperEventHandler;
 class ZooKeeper
 {
 public:
+    enum ZNodeWatchType
+    {
+        NOT_WATCH = 0,
+        WATCH = 1
+    };
+
+public:
     /**
      * @param host comma separated host:port pairs, each corresponding to a zk server.
      *             e.g. "127.0.0.1:3000,127.0.0.1:3001,127.0.0.1:3002"
@@ -77,7 +84,7 @@ public:
      * @param watch If nonzero, a watch will be set at the server to notify the client if the node changes.
      * @return true if exists, or false.
      */
-    bool isZNodeExists(const std::string &path, int watch = 1);
+    bool isZNodeExists(const std::string &path, ZNodeWatchType watch = NOT_WATCH);
 
     /**
      * Get data of a znode
@@ -86,7 +93,7 @@ public:
      * @param watch If nonzero, a watch will be set at the server to notify the client if the node changes.
      * @return true if success, or false;
      */
-    bool getZNodeData(const std::string &path, std::string& data, int watch = 1);
+    bool getZNodeData(const std::string &path, std::string& data, ZNodeWatchType watch = NOT_WATCH);
 
     /**
      * Set data for a znode
@@ -103,7 +110,7 @@ public:
      * @param watch If nonzero, a watch will be set at the server to notify the client if the node changes.
      * @param childrenList[OUT] return children of the znode
      */
-    void getZNodeChildren(const std::string &path, std::vector<std::string>& childrenList, int watch = 1);
+    void getZNodeChildren(const std::string &path, std::vector<std::string>& childrenList, ZNodeWatchType watch = NOT_WATCH);
 
     /**
      * @}

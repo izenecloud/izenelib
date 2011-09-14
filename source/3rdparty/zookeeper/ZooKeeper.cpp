@@ -178,7 +178,7 @@ bool ZooKeeper::deleteZNode(const string &path, bool recursive, int version)
     return false;
 }
 
-bool ZooKeeper::isZNodeExists(const std::string &path, int watch)
+bool ZooKeeper::isZNodeExists(const std::string &path, ZNodeWatchType watch)
 {
     struct Stat stat;
     memset(&stat, 0, sizeof(Stat));
@@ -193,7 +193,7 @@ bool ZooKeeper::isZNodeExists(const std::string &path, int watch)
     return false;
 }
 
-bool ZooKeeper::getZNodeData(const std::string &path, std::string& data, int watch)
+bool ZooKeeper::getZNodeData(const std::string &path, std::string& data, ZNodeWatchType watch)
 {
     memset( buffer_, 0, MAX_DATA_LENGTH );
     struct Stat stat; // xxx, return to caller
@@ -234,7 +234,7 @@ bool ZooKeeper::setZNodeData(const std::string &path, const std::string& data, i
     return false;
 }
 
-void ZooKeeper::getZNodeChildren(const std::string &path, std::vector<std::string>& childrenList, int watch)
+void ZooKeeper::getZNodeChildren(const std::string &path, std::vector<std::string>& childrenList, ZNodeWatchType watch)
 {
     String_vector children;
     memset( &children, 0, sizeof(children) );

@@ -142,7 +142,7 @@ BOOST_AUTO_TEST_CASE( zookeeper_watch )
     // 1. get and watch znode for changes
     std::string path = "/SF1/Master";
     std::string data_get;
-    cli.getZNodeData(path, data_get);
+    cli.getZNodeData(path, data_get, ZooKeeper::WATCH);
     BOOST_CHECK_EQUAL(data_get, "this is master node"); // set in former test case
 
     cli.setZNodeData(path, "master data changed!");
@@ -156,7 +156,7 @@ BOOST_AUTO_TEST_CASE( zookeeper_watch )
     // 2. check exists and watch znode for creation
     std::string path2 = "/NotExistedNode";
     cli.deleteZNode(path2, true);
-    BOOST_CHECK_EQUAL(cli.isZNodeExists(path2), false);
+    BOOST_CHECK_EQUAL(cli.isZNodeExists(path2, ZooKeeper::WATCH), false);
 
     cli.createZNode(path2, "nodata");
     sleep(1);
