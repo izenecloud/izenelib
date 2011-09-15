@@ -33,7 +33,7 @@ public:
 class DoubleBarrier : public SyncPrimitive
 {
 public:
-    DoubleBarrier(const std::string& host, const std::string& zpath, size_t size, const std::string& name);
+    DoubleBarrier(const std::string& host, const std::string& zpath, size_t size, const std::string& name="");
 
     virtual ~DoubleBarrier();
 

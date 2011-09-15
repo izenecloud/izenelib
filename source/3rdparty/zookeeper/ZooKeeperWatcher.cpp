@@ -16,8 +16,8 @@ ZooKeeperWatcher::~ZooKeeperWatcher()
 
 void ZooKeeperWatcher::handleEvent(int eventType, int connState, const char *znodePath)
 {
-    //cout <<"ZooKeeperWatcher::handleEvent ( state="<< state2String(connState)
-    //        << " event="<<watcherEvent2String(eventType)<<" path="<<znodePath<<" )"<<endl;
+    //cout <<"ZooKeeperWatcher::handleEvent ( state="<< ZooKeeperEvent::state2String(connState)
+    //        << " event="<<ZooKeeperEvent::watcherEvent2String(eventType)<<" path="<<znodePath<<" )"<<endl;
 
     ZooKeeperEvent evt(eventType, connState, znodePath);
     for (unsigned int i = 0; i < eventHandlerList.size(); i++)

@@ -24,6 +24,16 @@ class ZooKeeperEventHandler;
 class ZooKeeper
 {
 public:
+    enum ZNodeCreateType
+    {
+       ZNODE_NORMAL = 0,
+       ZNODE_EPHEMERAL = 1 << 0, // equal to ZOO_EPHEMERAL,
+                                 // ephemeral znode, not allowed to have children.
+       ZNODE_SEQUENCE = 1 << 1,  // equal to ZOO_SEQUENCE,
+                                 // sequence znode, will be appended a monotonically increasing counter to the end of path.
+                                 // i.e., creating "/node" mutliple times, will get "/node0000000001", "/node0000000002" ..
+    };
+
     enum ZNodeWatchType
     {
         NOT_WATCH = 0,
@@ -52,6 +62,19 @@ public:
     bool isConnected();
 
     /**
+     * Set debug level
+     * @param logLevel see enum {ZOO_LOG_LEVEL_ERROR=1,ZOO_LOG_LEVEL_WARN=2,ZOO_LOG_LEVEL_INFO=3,ZOO_LOG_LEVEL_DEBUG=4}
+     */
+    static void setDebugLevel(ZooLogLevel logLevel);
+
+    /**
+     * Set log output stream
+     * @param logFile
+     */
+    static void setLogFile(const std::string& logFile);
+
+public:
+    /**
      * Synchronous API
      * @{
      */
@@ -67,7 +90,10 @@ public:
      * @param flags this parameter can be set to 0 for normal create or an OR of the Create Flags..xxx
      * @return true if success, or false.
      */
-    bool createZNode(const std::string &path, const std::string &data="", int flags = 0);
+    bool createZNode(const std::string &path, const std::string &data="", ZNodeCreateType flags = ZNODE_NORMAL);
+
+    /// Note: this function may be available for the last call of createZNode with flags = ZNODE_SEQUENCE
+    std::string getLastCreatedNodePath();
 
     /**
      * Delete a znode
@@ -107,15 +133,20 @@ public:
     /**
      * Get children of a znode
      * @param path path of the znode
-     * @param watch If nonzero, a watch will be set at the server to notify the client if the node changes.
      * @param childrenList[OUT] return children of the znode
+     * @param watch If nonzero, a watch will be set at the server to notify the client if the node changes.
+     * @param inAbsPath  Whether get children in absolute path or relative path
      */
-    void getZNodeChildren(const std::string &path, std::vector<std::string>& childrenList, ZNodeWatchType watch = NOT_WATCH);
+    void getZNodeChildren(
+            const std::string &path, std::vector<std::string>& childrenList,
+            ZNodeWatchType watch = NOT_WATCH,
+            bool inAbsPath = true);
 
     /**
      * @}
      */
 
+public:
     /**
      * Asynchronous API
      * @{
@@ -146,7 +177,7 @@ private:
     zhandle_t* zk_;
 
     static const int MAX_PATH_LENGTH = 1024;
-    char newNodePath_[MAX_PATH_LENGTH];
+    char realNodePath_[MAX_PATH_LENGTH];
 
     static const int MAX_DATA_LENGTH = 128 * 1024;
     char buffer_[MAX_DATA_LENGTH];

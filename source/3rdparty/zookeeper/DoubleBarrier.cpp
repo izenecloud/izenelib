@@ -30,15 +30,22 @@ DoubleBarrier::DoubleBarrier(const std::string& host, const std::string& root, s
     {
         if (!zk_->isZNodeExists(root))
         {
-           zk_->createZNode(root, "barrier");
+           zk_->createZNode(root);
         }
     }
 
     root_ = root;
 
-    //char name[32];
-    //gethostname(name, sizeof name);
-    name_ = root+"/"+name;
+    if (name == "")
+    {
+        char nodename[32];
+        gethostname(nodename, sizeof(nodename));
+        name_ = root+"/"+nodename;
+    }
+    else
+    {
+        name_ = root+"/"+name;
+    }
 }
 
 DoubleBarrier::~DoubleBarrier()

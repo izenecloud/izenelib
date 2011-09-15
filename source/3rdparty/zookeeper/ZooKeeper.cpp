@@ -1,5 +1,6 @@
 #include <ZooKeeper.hpp>
 #include <ZooKeeperWatcher.hpp>
+#include <ZooKeeperEvent.hpp>
 
 #include <zk_adaptor.h>
 #include <zookeeper.jute.h>
@@ -26,6 +27,8 @@ void watcher_callback(zhandle_t *zh, int type, int state, const char *path, void
 
 }
 
+static FILE* gs_logFile = 0;
+
 ZooKeeper::ZooKeeper(const std::string& hosts, const int recvTimeout)
 :hosts_(hosts)
 ,recvTimeout_(recvTimeout)
@@ -35,12 +38,19 @@ ZooKeeper::ZooKeeper(const std::string& hosts, const int recvTimeout)
     // only one watcher can be set at a time, so set a unique watcher.
     context_ = UniqueZooKeeperWatcher::Instance();
 
+    memset( realNodePath_, 0, MAX_PATH_LENGTH );
+    memset( buffer_, 0, MAX_DATA_LENGTH );
+
+    setLogFile("./zookeeper.log"); //output to file, or stderr
+
     connect();
 }
 
 ZooKeeper::~ZooKeeper()
 {
     disconnect();
+
+    remove("./zookeeper.log");  //xxx
 }
 
 void ZooKeeper::registerEventHandler(ZooKeeperEventHandler* evtHandler)
@@ -50,12 +60,25 @@ void ZooKeeper::registerEventHandler(ZooKeeperEventHandler* evtHandler)
 
 bool ZooKeeper::isConnected()
 {
+    cout << "isConnected " << ZooKeeperEvent::state2String(zk_->state);
+
     if (zk_ && zk_->state == ZOO_CONNECTED_STATE)
     {
         return true;
     }
 
     return false;
+}
+
+void ZooKeeper::setDebugLevel(ZooLogLevel logLevel)
+{
+    zoo_set_debug_level(logLevel);
+}
+
+void ZooKeeper::setLogFile(const std::string& logFile)
+{
+    gs_logFile = fopen(logFile.c_str(), "w");
+    zoo_set_log_stream(gs_logFile);
 }
 
 bool ZooKeeper::connect()
@@ -83,9 +106,9 @@ void ZooKeeper::disconnect()
     }
 }
 
-bool ZooKeeper::createZNode(const std::string &path, const std::string &data, int flags)
+bool ZooKeeper::createZNode(const std::string &path, const std::string &data, ZNodeCreateType flags)
 {
-    memset( newNodePath_, 0, MAX_PATH_LENGTH );
+    memset( realNodePath_, 0, MAX_PATH_LENGTH );
 
     int rc = zoo_create(
                  zk_,
@@ -94,7 +117,7 @@ bool ZooKeeper::createZNode(const std::string &path, const std::string &data, in
                  data.length(),
                  &ZOO_OPEN_ACL_UNSAFE,
                  flags,
-                 newNodePath_,
+                 realNodePath_,
                  MAX_PATH_LENGTH );
 
     switch (rc)
@@ -107,6 +130,7 @@ bool ZooKeeper::createZNode(const std::string &path, const std::string &data, in
         break;
     case ZNODEEXISTS:
         //the node already exists
+        //cout << "create error: existed!" <<endl;
         break;
     case ZNOAUTH:
         //the client does not have permission.
@@ -128,6 +152,11 @@ bool ZooKeeper::createZNode(const std::string &path, const std::string &data, in
     }
 
     return false;
+}
+
+std::string ZooKeeper::getLastCreatedNodePath()
+{
+    return std::string(realNodePath_);
 }
 
 bool ZooKeeper::deleteZNode(const string &path, bool recursive, int version)
@@ -234,7 +263,7 @@ bool ZooKeeper::setZNodeData(const std::string &path, const std::string& data, i
     return false;
 }
 
-void ZooKeeper::getZNodeChildren(const std::string &path, std::vector<std::string>& childrenList, ZNodeWatchType watch)
+void ZooKeeper::getZNodeChildren(const std::string &path, std::vector<std::string>& childrenList, ZNodeWatchType watch, bool inAbsPath)
 {
     String_vector children;
     memset( &children, 0, sizeof(children) );
@@ -249,14 +278,21 @@ void ZooKeeper::getZNodeChildren(const std::string &path, std::vector<std::strin
     {
         for (int i = 0; i < children.count; ++i)
         {
-            //convert each child's path from relative to absolute
-            std::string absPath(path);
-            if (path != "/")
+            if (inAbsPath)
             {
-                absPath.append( "/" );
+                //convert each child's path from relative to absolute
+                std::string absPath(path);
+                if (path != "/")
+                {
+                    absPath.append( "/" );
+                }
+                absPath.append( children.data[i] );
+                childrenList.push_back( absPath );
             }
-            absPath.append( children.data[i] );
-            childrenList.push_back( absPath );
+            else
+            {
+                childrenList.push_back(children.data[i]);
+            }
         }
 
         //make sure the order is always deterministic
@@ -269,17 +305,23 @@ void ZooKeeper::getZNodeChildren(const std::string &path, std::vector<std::strin
 void ZooKeeper::showZKNamespace(const std::string& path, int level, std::ostream& out)
 {
     if (level == 0) {
-        out << "=== ZooKeeper's Hierarchical Namespace for ("<<path<<") ==="<<std::endl;
+        out << "=== ZooKeeper's Hierarchical Namespace from root \""<<path<<"\" ==="<<std::endl;
     }
 
     // znode path
-    out <<std::string(level, ' ')<< path;
+    if (level <= 0)
+        out << path;
+    else
+    {
+        size_t pos = path.find_last_of('/');
+        out<<std::string((level-1)*4, ' ')<<"|-- "<<path.substr(pos+1);
+    }
 
     // znode data
     std::string data;
     getZNodeData(path, data);
     if (!data.empty())
-        out<<" ["<<data<<"]";
+        out<<"  ["<<data<<"]";
 
     out << std::endl;
 
