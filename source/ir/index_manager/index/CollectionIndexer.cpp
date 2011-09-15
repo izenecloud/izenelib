@@ -169,13 +169,33 @@ void CollectionIndexer::updateDocument(IndexerDocument& oldDoc, IndexerDocument&
             map<IndexerPropertyConfig, IndexerDocumentPropertyType>::iterator it;
             if( (it = oldPropertyValueList.find(iter->first)) != oldPropertyValueList.end() )
             {
-                PropertyType oldProp;
-                oldProp = boost::get<PropertyType>(it->second);
-                pIndexer_->getBTreeIndexer()->remove(uniqueID.colId, iter->first.getPropertyId(), oldProp, uniqueID.docId);
+                if(it->first.isMultiValue())
+                {
+                    MultiValuePropertyType oldProp;
+                    oldProp = boost::get<MultiValuePropertyType>(it->second);
+                    for(MultiValuePropertyType::iterator multiIt = oldProp.begin(); multiIt != oldProp.end(); ++multiIt)
+                       pIndexer_->getBTreeIndexer()->remove(uniqueID.colId, iter->first.getPropertyId(), *multiIt, uniqueID.docId);
+                }
+                else
+                {
+                    PropertyType oldProp;
+                    oldProp = boost::get<PropertyType>(it->second);
+                    pIndexer_->getBTreeIndexer()->remove(uniqueID.colId, iter->first.getPropertyId(), oldProp, uniqueID.docId);
+                }
             }
-            PropertyType prop;
-            prop = boost::get<PropertyType>(iter->second);
-            pIndexer_->getBTreeIndexer()->add(uniqueID.colId, iter->first.getPropertyId(), prop, uniqueID.docId);
+            if(iter->first.isMultiValue())
+            {
+                MultiValuePropertyType prop;
+                prop = boost::get<MultiValuePropertyType>(iter->second);
+                for(MultiValuePropertyType::iterator multiIt = prop.begin(); multiIt != prop.end(); ++multiIt)
+                    pIndexer_->getBTreeIndexer()->add(uniqueID.colId, iter->first.getPropertyId(), *multiIt, uniqueID.docId);
+            }
+            else
+            {
+                PropertyType prop;
+                prop = boost::get<PropertyType>(iter->second);
+                pIndexer_->getBTreeIndexer()->add(uniqueID.colId, iter->first.getPropertyId(), prop, uniqueID.docId);
+            }
         }
     }
 }

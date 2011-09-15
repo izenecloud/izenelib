@@ -529,6 +529,20 @@ bool Indexer::getTermFrequencyInCollectionByTermId( const vector<termid_t>& term
     return true;
 }
 
+bool Indexer::seek(collectionid_t colID, string property, PropertyType value)
+{
+    BOOST_ASSERT(pConfigurationManager_->indexStrategy_.isIndexBTree_);
+    fieldid_t fid = getPropertyIDByName(colID,property);
+    return pBTreeIndexer_->seek(colID, fid, value);
+}
+
+bool Indexer::getDocList(collectionid_t colID, std::string property, PropertyType value, BitVector& docs)
+{
+    BOOST_ASSERT(pConfigurationManager_->indexStrategy_.isIndexBTree_);
+    fieldid_t fid = getPropertyIDByName(colID,property);
+    pBTreeIndexer_->getNoneEmptyList(colID, fid, value, docs);
+    return true;
+}
 
 bool Indexer::getDocsByPropertyValue(collectionid_t colID, string property, PropertyType value, BitVector&docs)
 {

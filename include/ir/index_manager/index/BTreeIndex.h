@@ -140,6 +140,30 @@ public:
     }
     bool remove(const KeyType& key, docid_t docID);
 
+    bool seek(const KeyType& key)
+    {
+        myKeyType firstKey(key, 0);
+        if ( !this->_sdb.hasKey(firstKey) )
+            return false;
+        return true;
+    }
+
+    void getDocList(const KeyType& key,BitVector& result)
+    {
+        myValueType vdat;
+        unsigned int offset = 0;
+        do
+        {
+            myKeyType ikey(key, offset++);
+            if (this->_sdb.getValue(ikey, vdat))
+                for (size_t i=0; i<vdat.size(); i++)
+                    result.set(vdat[i]);
+            else
+                break;
+        }
+        while (true);
+    }
+
     bool get(const KeyType& key,BitVector& result)
     {
         myValueType vdat;
@@ -523,6 +547,10 @@ public:
 
     virtual ~BTreeIndexer();
 public:
+    bool seek(collectionid_t colID, fieldid_t fid, PropertyType& value);
+
+    void getNoneEmptyList(collectionid_t colID, fieldid_t fid, PropertyType& value, BitVector& docs);
+
     void add(collectionid_t colID, fieldid_t fid, PropertyType& value, docid_t docid);
 
     void remove(collectionid_t colID, fieldid_t fid, PropertyType& value, docid_t docid);
@@ -609,6 +637,28 @@ public:
     {
         IndexKeyType<T> key(colid, fid, v);
         pIndexer->getIndexer<T>()->remove(key, docid);
+    }
+};
+
+class seek_visitor : public boost::static_visitor<void>
+{
+public:
+    template<typename T>
+    void operator()(BTreeIndexer* pIndexer, collectionid_t colid, fieldid_t fid, T& v, bool& find)
+    {
+        IndexKeyType<T> key(colid, fid, v);
+        find = pIndexer->getIndexer<T>()->seek(key);
+    }
+};
+
+class get_value_visitor : public boost::static_visitor<void>
+{
+public:
+    template<typename T>
+    void operator()(BTreeIndexer* pIndexer, collectionid_t colid, fieldid_t fid, T& v, BitVector& docids)
+    {
+        IndexKeyType<T> key(colid, fid, v);
+        pIndexer->getIndexer<T>()->getDocList(key, docids);
     }
 };
 

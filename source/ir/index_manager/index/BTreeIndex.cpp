@@ -195,6 +195,22 @@ boost::shared_ptr<BitVector> BTreeIndexer::getFilter()
     return pFilter_;
 }
 
+bool BTreeIndexer::seek(collectionid_t colID, fieldid_t fid, PropertyType& value)
+{
+    bool find = false;
+    izenelib::util::boost_variant_visit(boost::bind(seek_visitor(), this, colID, fid, _1, boost::ref(find)), value);
+    return find;
+}
+
+void BTreeIndexer::getNoneEmptyList(collectionid_t colID, fieldid_t fid, PropertyType& value, BitVector& docs)
+{
+    izenelib::util::boost_variant_visit(boost::bind(get_value_visitor(), this, colID, fid, _1, boost::ref(docs)), value);
+    if (pFilter_)
+    {
+        docs &= *pFilterNot_;
+    }
+}
+
 void BTreeIndexer::add(collectionid_t colID, fieldid_t fid, PropertyType& value, docid_t docid)
 {
     izenelib::util::boost_variant_visit(boost::bind(add_visitor(), this, colID, fid, _1, docid), value);
