@@ -610,8 +610,6 @@ private:
 
     boost::shared_ptr<BitVector> pFilter_;
 
-    boost::shared_ptr<BitVector> pFilterNot_;
-
     Directory* pDirectory_;
 
 //    static BTreeTrieIndex<String>* pBTreeUStrSuffixIndexer_;
