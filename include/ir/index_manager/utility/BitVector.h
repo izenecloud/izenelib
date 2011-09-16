@@ -165,12 +165,21 @@ public:
         return *this;
     }
 
-    void logicalnot(BitVector& b)
+    void logicalNot(BitVector& b)
     {
         const size_t byteNum = getBytesNum(size_);
         for(size_t i = 0; i < byteNum; ++i )
             b.bits_[i] = ~bits_[i];
      }
+
+    void logicalNotAnd(const BitVector& b)
+    {
+        const size_t byteNum = getBytesNum(size_);
+        for( size_t i = 0; i < byteNum; ++i )
+        {
+            bits_[i] &= ~b.bits_[i];
+        }
+    }
 
     void printout(ostream &o = cout) {
           for(uint k = 1; k < size_; ++k)
