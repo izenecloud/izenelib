@@ -203,7 +203,7 @@ bool BTreeIndexer::seek(collectionid_t colID, fieldid_t fid, PropertyType& value
 void BTreeIndexer::getNoneEmptyList(collectionid_t colID, fieldid_t fid, PropertyType& value, BitVector& docs)
 {
     izenelib::util::boost_variant_visit(boost::bind(get_value_visitor(), this, colID, fid, _1, boost::ref(docs)), value);
-    if (pFilter_)
+    if ( pFilter_&& pFilter_->any() )
     {
         docs.logicalNotAnd(*pFilter_);
     }
@@ -222,7 +222,7 @@ void BTreeIndexer::remove(collectionid_t colID, fieldid_t fid, PropertyType& val
 void BTreeIndexer::getValue(collectionid_t colID, fieldid_t fid, PropertyType& value,BitVector& docs)
 {
     izenelib::util::boost_variant_visit(boost::bind(get_visitor(), this, colID, fid, _1, boost::ref(docs)), value);
-    if (pFilter_)
+    if ( pFilter_ && pFilter_->any() )
     {
         docs.logicalNotAnd(*pFilter_);
     }

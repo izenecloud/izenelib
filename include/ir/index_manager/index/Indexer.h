@@ -101,9 +101,9 @@ public:
 
 public:
     ///API for BTreeIndex
-    bool seek(collectionid_t colID, std::string property, PropertyType value);
+    bool seekTermFromBTreeIndex(collectionid_t colID, std::string property, PropertyType value);
 
-    bool getDocList(collectionid_t colID, std::string property, PropertyType value, BitVector& docs);
+    bool getDocsByNumericValue(collectionid_t colID, std::string property, PropertyType value, BitVector& docs);
 
     bool getDocsByPropertyValue(collectionid_t colID, std::string property, PropertyType value, BitVector& docs);
 
