@@ -436,7 +436,6 @@ public:
     {
       return false;
     }
-    if(reader.Count()==0) return false;
     value.resize(reader.Count());
     std::size_t i=0;
     while(reader.Next(value[i]))
