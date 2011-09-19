@@ -31,6 +31,8 @@ struct NotifyMSG
 class Notifier
 {
 public:
+    Notifier() :hasMaster_(false) {}
+
     bool notify(NotifyMSG& msg)
     {
         if (!hasMaster_)
