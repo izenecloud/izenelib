@@ -1,3 +1,6 @@
+FIND_PACKAGE(Boost ${Boost_FIND_VERSION}
+  COMPONENTS serialization filesystem system thread)
+  
   FILE(GLOB_RECURSE
     zookeeper_SRC
     RELATIVE
@@ -8,6 +11,7 @@
 
   INCLUDE_DIRECTORIES(
     "${CMAKE_CURRENT_SOURCE_DIR}"
+    ${Boost_INCLUDE_DIRS}
     ${IZENELIB_SOURCE_DIR}/include/3rdparty/zookeeper
     )
 

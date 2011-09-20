@@ -41,7 +41,7 @@ IndexReader::~IndexReader()
     }
 
     flush();
-    delete pDocFilter_;
+    if(pDocFilter_) delete pDocFilter_;
     pDocFilter_ = NULL;
 
     if(pDocLengthReader_)

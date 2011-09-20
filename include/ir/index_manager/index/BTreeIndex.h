@@ -140,6 +140,30 @@ public:
     }
     bool remove(const KeyType& key, docid_t docID);
 
+    bool seek(const KeyType& key)
+    {
+        myKeyType firstKey(key, 0);
+        if ( !this->_sdb.hasKey(firstKey) )
+            return false;
+        return true;
+    }
+
+    void getDocList(const KeyType& key,BitVector& result)
+    {
+        myValueType vdat;
+        unsigned int offset = 0;
+        do
+        {
+            myKeyType ikey(key, offset++);
+            if (this->_sdb.getValue(ikey, vdat))
+                for (size_t i=0; i<vdat.size(); i++)
+                    result.set(vdat[i]);
+            else
+                break;
+        }
+        while (true);
+    }
+
     bool get(const KeyType& key,BitVector& result)
     {
         myValueType vdat;
@@ -180,17 +204,18 @@ public:
         return true;
     }
 
-    void get_between(const KeyType& lowKey, const KeyType& highKey, KeyValueType* & data, size_t maxDoc )
+    size_t get_between(const KeyType& lowKey, const KeyType& highKey, KeyValueType* & data, size_t maxDoc )
     {
         if (comp_(lowKey, highKey) > 0)
         {
-            return;
+            return 0;
         }
         myKeyType ikey(lowKey, 0);
         myValueType ival;
         IndexSDBCursor locn;
         this->_sdb.search(ikey, locn);
         docid_t currDoc;
+        size_t count = 0;
 
         do
         {
@@ -205,18 +230,21 @@ public:
                         {
                             KeyValueType* ppBytes = new KeyValueType[maxDoc + MAX_NUMERICSIZER];
                             memcpy(ppBytes, data, maxDoc * sizeof(KeyValueType));
-                            memset(ppBytes+maxDoc, 0, maxDoc * sizeof(KeyValueType));
+                            memset(ppBytes+maxDoc, 0, MAX_NUMERICSIZER * sizeof(KeyValueType));
                             delete[] data;
                             data = ppBytes;
                             maxDoc = maxDoc + MAX_NUMERICSIZER;
                         }
                         data[currDoc] = ikey.key.value;
                     }
+                    count += ival.size();
                 }
                 else
                     break;
             }
         }while (this->_sdb.seq(locn, ESD_FORWARD));
+
+        return count;
     }
 
     void get_between(const KeyType& lowKey, const KeyType& highKey, BitVector& result)
@@ -519,6 +547,10 @@ public:
 
     virtual ~BTreeIndexer();
 public:
+    bool seek(collectionid_t colID, fieldid_t fid, PropertyType& value);
+
+    void getNoneEmptyList(collectionid_t colID, fieldid_t fid, PropertyType& value, BitVector& docs);
+
     void add(collectionid_t colID, fieldid_t fid, PropertyType& value, docid_t docid);
 
     void remove(collectionid_t colID, fieldid_t fid, PropertyType& value, docid_t docid);
@@ -578,8 +610,6 @@ private:
 
     boost::shared_ptr<BitVector> pFilter_;
 
-    boost::shared_ptr<BitVector> pFilterNot_;
-
     Directory* pDirectory_;
 
 //    static BTreeTrieIndex<String>* pBTreeUStrSuffixIndexer_;
@@ -605,6 +635,28 @@ public:
     {
         IndexKeyType<T> key(colid, fid, v);
         pIndexer->getIndexer<T>()->remove(key, docid);
+    }
+};
+
+class seek_visitor : public boost::static_visitor<void>
+{
+public:
+    template<typename T>
+    void operator()(BTreeIndexer* pIndexer, collectionid_t colid, fieldid_t fid, T& v, bool& find)
+    {
+        IndexKeyType<T> key(colid, fid, v);
+        find = pIndexer->getIndexer<T>()->seek(key);
+    }
+};
+
+class get_value_visitor : public boost::static_visitor<void>
+{
+public:
+    template<typename T>
+    void operator()(BTreeIndexer* pIndexer, collectionid_t colid, fieldid_t fid, T& v, BitVector& docids)
+    {
+        IndexKeyType<T> key(colid, fid, v);
+        pIndexer->getIndexer<T>()->getDocList(key, docids);
     }
 };
 

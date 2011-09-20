@@ -9,6 +9,7 @@
 tags
 dump
 dump.*
+!dump.h
 *.log
 *.gz
 /cmake

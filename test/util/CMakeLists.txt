@@ -20,11 +20,12 @@ ADD_EXECUTABLE(t_util
   t_IdMapper.cpp
   t_bzip.cpp
   t_scheduler.cpp
-  t_serialization.cpp
-  t_log.cpp
-  t_wrapper.cpp
+  #t_serialization.cpp
+  #t_log.cpp
+  #t_wrapper.cpp
   t_url_util.cpp
   t_id_util.cpp
+  t_math.cpp
   )
 ADD_EXECUTABLE(t_wrapper
   wrapper.cpp

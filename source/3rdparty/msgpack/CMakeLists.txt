@@ -31,7 +31,7 @@ IF(NOT HAVE_SYS_SIGNALFD_H)
   ADD_DEFINITIONS("-DDISABLE_SIGNALFD")
 ENDIF(NOT HAVE_SYS_SIGNALFD_H)
 
-  ADD_DEFINITIONS("-fPIC -fno-strict-aliasing")
+  ADD_DEFINITIONS("-fPIC -fno-strict-aliasing -Wno-sign-compare")
 
   MACRO_ADD_LIBRARY(msgpack SRCS ${msgpack_SRC})
 

@@ -189,8 +189,9 @@ protected:
         WorkerSessionPtr workerSession(new WorkerSession(srvInfo.host_, srvInfo.port_, workerId));
         workerSessionList_.push_back(workerSession);
 
-        std::cout << "#[Aggregator] set up session to worker"<<workerId<<" ["
-                <<srvInfo.host_<<":"<<srvInfo.port_<<"]"<<std::endl;
+        if (debug_)
+            std::cout << "#[Aggregator] set up session to worker"<<workerId<<" ["
+                      <<srvInfo.host_<<":"<<srvInfo.port_<<"]"<<std::endl;
     }
 
 protected:
