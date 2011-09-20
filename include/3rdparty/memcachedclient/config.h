@@ -624,14 +624,9 @@
       
 
 
-
-#if defined(__cplusplus) 
-#include CSTDINT_H 
-#include CINTTYPES_H 
-#else 
 #include <stdint.h> 
 #include <inttypes.h> 
-#endif
+
 
 #if !defined(HAVE_ULONG) && !defined(__USE_MISC)
 # define HAVE_ULONG 1
