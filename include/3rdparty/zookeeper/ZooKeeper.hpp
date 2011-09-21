@@ -176,6 +176,8 @@ private:
 
     zhandle_t* zk_;
 
+    ZooKeeperWatcher* uniqueWatcher_;
+
     static const int MAX_PATH_LENGTH = 1024;
     char realNodePath_[MAX_PATH_LENGTH];
 

@@ -35,8 +35,9 @@ ZooKeeper::ZooKeeper(const std::string& hosts, const int recvTimeout)
 ,sessionId_(0)
 ,flags_(0)
 {
-    // only one watcher can be set at a time, so set a unique watcher.
-    context_ = UniqueZooKeeperWatcher::Instance();
+    // only one watcher can be set at a time for a client.
+    uniqueWatcher_ = new ZooKeeperWatcher();
+    context_ = uniqueWatcher_;
 
     memset( realNodePath_, 0, MAX_PATH_LENGTH );
     memset( buffer_, 0, MAX_DATA_LENGTH );
@@ -50,17 +51,20 @@ ZooKeeper::~ZooKeeper()
 {
     disconnect();
 
+    if (uniqueWatcher_)
+        delete uniqueWatcher_;
+
     remove("./zookeeper.log");  //xxx
 }
 
 void ZooKeeper::registerEventHandler(ZooKeeperEventHandler* evtHandler)
 {
-    UniqueZooKeeperWatcher::Instance()->registerEventHandler(evtHandler);
+    uniqueWatcher_->registerEventHandler(evtHandler);
 }
 
 bool ZooKeeper::isConnected()
 {
-    cout << "isConnected " << ZooKeeperEvent::state2String(zk_->state);
+    //cout << "isConnected " << ZooKeeperEvent::state2String(zk_->state) <<end;
 
     if (zk_ && zk_->state == ZOO_CONNECTED_STATE)
     {
