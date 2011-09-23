@@ -32,6 +32,7 @@ public:
        ZNODE_SEQUENCE = 1 << 1,  // equal to ZOO_SEQUENCE,
                                  // sequence znode, will be appended a monotonically increasing counter to the end of path.
                                  // i.e., creating "/node" mutliple times, will get "/node0000000001", "/node0000000002" ..
+       ZNODE_EPHEMERAL_SEQUENCE = (ZNODE_EPHEMERAL | ZNODE_SEQUENCE)
     };
 
     enum ZNodeWatchType
