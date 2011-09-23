@@ -8,6 +8,7 @@
 #define ZOO_KEEPER_EVENT_HPP_
 
 #include <3rdparty/zookeeper/zookeeper.h>
+#include <sstream>
 
 namespace zookeeper{
 
@@ -27,6 +28,13 @@ public:
     ZooKeeperEvent(int type, int state, const std::string path)
     : type_(type), state_(state), path_(path)
     {
+    }
+
+    std::string toString()
+    {
+        std::stringstream ss;
+        ss << "[ZooKeeperEvent] "<<path_<<" - "<<watcherEvent2String(type_)<<" - "<<state2String(state_)<<std::endl;
+        return ss.str();
     }
 
     static std::string state2String(int state)
