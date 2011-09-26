@@ -34,6 +34,7 @@ ZooKeeper::ZooKeeper(const std::string& hosts, const int recvTimeout)
 ,recvTimeout_(recvTimeout)
 ,sessionId_(0)
 ,flags_(0)
+,zkError_(ZERR_OK)
 {
     // only one watcher can be set at a time for a client.
     uniqueWatcher_ = new ZooKeeperWatcher();
@@ -124,6 +125,8 @@ bool ZooKeeper::createZNode(const std::string &path, const std::string &data, ZN
                  realNodePath_,
                  MAX_PATH_LENGTH );
 
+    zkError_ = ZooKeeper::ZKErrorType(rc);
+
     switch (rc)
     {
     case ZOK:
@@ -166,6 +169,8 @@ std::string ZooKeeper::getLastCreatedNodePath()
 bool ZooKeeper::deleteZNode(const string &path, bool recursive, int version)
 {
     int rc = zoo_delete(zk_, path.c_str(), version);
+
+    zkError_ = ZooKeeper::ZKErrorType(rc);
 
     switch (rc)
     {
@@ -218,6 +223,8 @@ bool ZooKeeper::isZNodeExists(const std::string &path, ZNodeWatchType watch)
 
     int rc = zoo_exists(zk_, path.c_str(), watch, &stat);
 
+    zkError_ = ZooKeeper::ZKErrorType(rc);
+
     if (rc == ZOK)
     {
         return true;
@@ -241,6 +248,8 @@ bool ZooKeeper::getZNodeData(const std::string &path, std::string& data, ZNodeWa
             &buffer_len,
             &stat );
 
+    zkError_ = ZooKeeper::ZKErrorType(rc);
+
     if (rc != ZOK)
     {
         return false;
@@ -258,6 +267,8 @@ bool ZooKeeper::setZNodeData(const std::string &path, const std::string& data, i
                   data.c_str(),
                   data.length(),
                   version );
+
+    zkError_ = ZooKeeper::ZKErrorType(rc);
 
     if (rc == ZOK)
     {
@@ -277,6 +288,8 @@ void ZooKeeper::getZNodeChildren(const std::string &path, std::vector<std::strin
                     path.c_str(),
                     watch,
                     &children );
+
+    zkError_ = ZooKeeper::ZKErrorType(rc);
 
     if (rc == ZOK)
     {

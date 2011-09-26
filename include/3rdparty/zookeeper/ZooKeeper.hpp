@@ -41,6 +41,39 @@ public:
         WATCH = 1
     };
 
+    /// refer to enum ZOO_ERRORS.
+    enum ZKErrorType
+    {
+        ZERR_OK = ZOK,
+
+        /// System and server-side errors.
+        ZERR_ZSYSTEMERROR = ZSYSTEMERROR,
+        ZERR_ZRUNTIMEINCONSISTENCY = ZRUNTIMEINCONSISTENCY,  /*!< A runtime inconsistency was found */
+        ZERR_ZDATAINCONSISTENCY = ZDATAINCONSISTENCY,        /*!< A data inconsistency was found */
+        ZERR_ZCONNECTIONLOSS = ZCONNECTIONLOSS,              /*!< Connection to the server has been lost */
+        ZERR_ZMARSHALLINGERROR = ZMARSHALLINGERROR,          /*!< Error while marshalling or unmarshalling data */
+        ZERR_ZUNIMPLEMENTED = ZUNIMPLEMENTED,                /*!< Operation is unimplemented */
+        ZERR_ZOPERATIONTIMEOUT = ZOPERATIONTIMEOUT,          /*!< Operation timeout */
+        ZERR_ZBADARGUMENTS = ZBADARGUMENTS,                  /*!< Invalid arguments */
+        ZERR_ZINVALIDSTATE = ZINVALIDSTATE,                  /*!< Invliad zhandle state */
+
+        /// API errors.
+        ZERR_ZAPIERROR = ZAPIERROR,
+        ZERR_ZNONODE = ZNONODE,                                  /*!< Node does not exist */
+        ZERR_ZNOAUTH = ZNOAUTH,                                  /*!< Not authenticated */
+        ZERR_ZBADVERSION = ZBADVERSION,                          /*!< Version conflict */
+        ZERR_ZNOCHILDRENFOREPHEMERALS = ZNOCHILDRENFOREPHEMERALS,/*!< Ephemeral nodes may not have children */
+        ZERR_ZNODEEXISTS = ZNODEEXISTS,                          /*!< The node already exists */
+        ZERR_ZNOTEMPTY = ZNOTEMPTY,                              /*!< The node has children */
+        ZERR_ZSESSIONEXPIRED = ZSESSIONEXPIRED,                  /*!< The session has been expired by the server */
+        ZERR_ZINVALIDCALLBACK = ZINVALIDCALLBACK,                /*!< Invalid callback specified */
+        ZERR_ZINVALIDACL = ZINVALIDACL,                          /*!< Invalid ACL specified */
+        ZERR_ZAUTHFAILED = ZAUTHFAILED,                          /*!< Client authentication failed */
+        ZERR_ZCLOSING = ZCLOSING,                                /*!< ZooKeeper is closing */
+        ZERR_ZNOTHING = ZNOTHING,                                /*!< (not error) no server responses to process */
+        ZERR_ZSESSIONMOVED = ZSESSIONMOVED                       /*!<session moved to another server, so operation is ignored */
+    };
+
 public:
     /**
      * @param host comma separated host:port pairs, each corresponding to a zk server.
@@ -73,6 +106,23 @@ public:
      * @param logFile
      */
     static void setLogFile(const std::string& logFile);
+
+    /**
+     * @param zkerror
+     * @return error string
+     */
+    static std::string error2String(ZKErrorType zkerror);
+
+    /**
+     * Get error code for the latest operation
+     * @return error
+     */
+    ZKErrorType getErrorCode()
+    {
+        return zkError_;
+    }
+
+
 
 public:
     /**
@@ -176,8 +226,8 @@ private:
     int flags_;            //reserved, set to 0.
 
     zhandle_t* zk_;
-
     ZooKeeperWatcher* uniqueWatcher_;
+    ZKErrorType zkError_;
 
     static const int MAX_PATH_LENGTH = 1024;
     char realNodePath_[MAX_PATH_LENGTH];
