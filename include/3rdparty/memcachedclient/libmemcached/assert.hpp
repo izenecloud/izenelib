@@ -40,8 +40,9 @@
 #include <cstdlib>
 #include <cstdio>
 
+
 #ifdef NDEBUG
-#define	assert(__expr, __mesg)	((void)0)
+#define	assert_msg(__expr, __mesg)	((void)0)
 #else
 
 #define assert_msg(__expr, __mesg) \

@@ -1,4 +1,4 @@
-#include "common.h"
+#include <libmemcached/common.h>
 
 memcached_return_t memcached_purge(memcached_server_write_instance_st ptr)
 {

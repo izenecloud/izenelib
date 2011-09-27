@@ -1,16 +1,19 @@
 FIND_PACKAGE(Boost ${Boost_FIND_VERSION}
   COMPONENTS serialization filesystem system thread)
   
-  FILE(GLOB_RECURSE
+  FILE(GLOB
     memcachedclient_SRC
     RELATIVE
     "${CMAKE_CURRENT_SOURCE_DIR}"
-    "util/*.c"
+    "util/*.cc"
     "libhashkit/*.cc"
     "libmemcached/csl/*.cc"
     "libmemcached/protocol/*.c"
     "libmemcached/util/*.cc"
+    "libmemcached/*.cc"
+    "libmemcached/*.c"
     "clients/utilities.cc"
+    "*.cc"
     )
 
   INCLUDE_DIRECTORIES(

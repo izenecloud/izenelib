@@ -36,6 +36,11 @@
  */
 
 #include <libmemcached/common.h>
+#include <inttypes.h>
+
+#ifndef PRIu64
+#define PRIu64       "lu"
+#endif
 
 static memcached_return_t text_incr_decr(memcached_st *ptr,
                                          const char *verb,

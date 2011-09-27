@@ -1,7 +1,7 @@
 /*
 */
 
-#include "common.h"
+#include <libmemcached/common.h>
 
 static const char *memcached_stat_keys[] = {
   "pid",
