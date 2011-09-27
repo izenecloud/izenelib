@@ -21,8 +21,13 @@ class AggregatorConfig
 {
 public:
     AggregatorConfig()
-    :enableLocalWorker_(true)
+    :enableLocalWorker_(false)
     {}
+
+    void reset()
+    {
+        workerInfoList_.clear();
+    }
 
     void addWorker(const std::string& host, uint16_t port)
     {

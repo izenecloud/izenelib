@@ -74,6 +74,8 @@ public:
 
         const std::vector<ServerInfo>& remoteWorkerList = aggregatorConfig.getWorkerList();
 
+        workeridList_.clear();
+        workerSessionList_.clear();
         for (size_t i = 0; i < remoteWorkerList.size(); i ++)
         {
             createWorkerClient(workerId, remoteWorkerList[i]);
