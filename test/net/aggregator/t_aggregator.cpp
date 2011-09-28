@@ -56,27 +56,58 @@ public:
 };
 
 
-BOOST_AUTO_TEST_SUITE( t_aggregator )
-
-BOOST_AUTO_TEST_CASE( start_workers )
+class WorkersFixture
 {
-    std::cout << "Before test, worker servers have to be started firstly :" << std::endl;
-    std::cout << " testbin$ ./t_worker localhost 18111 " << std::endl;
-    std::cout << " testbin$ ./t_worker localhost 18112 " << std::endl;
+public:
+    WorkersFixture()
+    {
+    }
 
-//    std::string host = "0.0.0.0";
-//    uint16_t port = 18111;
-//    boost::shared_ptr<SearchService> searchService(new SearchService());
-//    WorkerServer worker(host, port, searchService);
-//    thread t(lambda::bind(&WorkerServer::start, var(worker)));
-//
-//    t.join();
-}
+    ~WorkersFixture()
+    {
+    }
+
+    void startWorkers()
+    {
+        searchService1.reset(new SearchService());
+        worker1.reset(new WorkerServer("localhost", 18111, searchService1));
+        t1.reset( new thread(lambda::bind(&WorkerServer::start, var(*worker1))) );
+
+        searchService2.reset(new SearchService());
+        worker2.reset(new WorkerServer("localhost", 18112, searchService2));
+        t2.reset( new thread(lambda::bind(&WorkerServer::start, var(*worker2))) );
+
+        sleep(1);
+    }
+
+    void stopWorkers()
+    {
+        worker1->end();
+        worker1->join();
+        worker2->end();
+        worker2->join();
+        t1->join();
+        t2->join();
+    }
+
+    boost::shared_ptr<SearchService> searchService1;
+    boost::shared_ptr<WorkerServer> worker1;
+    boost::shared_ptr<thread> t1;
+
+    boost::shared_ptr<SearchService> searchService2;
+    boost::shared_ptr<WorkerServer> worker2;
+    boost::shared_ptr<thread> t2;
+};
+
+BOOST_FIXTURE_TEST_SUITE( t_aggregator, WorkersFixture )
 
 BOOST_AUTO_TEST_CASE( aggregator_remote_workers )
 {
     std::cout << "--- Aggregate data from remote workers" << std::endl;
 
+    startWorkers();
+
+    // aggregator
     AggregatorConfig config;
     config.enableLocalWorker_ = false; // disable local
     config.addWorker("0.0.0.0", 18111);
@@ -93,14 +124,19 @@ BOOST_AUTO_TEST_CASE( aggregator_remote_workers )
 
     BOOST_CHECK_EQUAL(res.state, true);
     BOOST_CHECK_EQUAL(res.content, (ABC_DOC+ABC_DOC));
+
+    stopWorkers();
 }
 
 BOOST_AUTO_TEST_CASE( aggregator_local_remote_workers )
 {
     std::cout << "--- Aggregate data from local and remote workers." << std::endl;
 
-    boost::shared_ptr<SearchService> workerService(new SearchService);
+    startWorkers();
 
+    boost::shared_ptr<SearchService> localWorkerService(new SearchService);
+
+    // aggregator
     AggregatorConfig config;
     config.enableLocalWorker_ = true;
     config.addWorker("0.0.0.0", 18111);
@@ -108,7 +144,7 @@ BOOST_AUTO_TEST_CASE( aggregator_local_remote_workers )
     SearchAggregator ag;
     ag.debug_ = true;
     ag.setAggregatorConfig(config);
-    ag.initLocalWorkerCaller(workerService);
+    ag.initLocalWorkerCaller(localWorkerService);
 
     SearchRequest req;
     req.keyword = TERM_ABC;
@@ -117,14 +153,19 @@ BOOST_AUTO_TEST_CASE( aggregator_local_remote_workers )
 
     BOOST_CHECK_EQUAL(res.state, true);
     BOOST_CHECK_EQUAL(res.content, (ABC_DOC+ABC_DOC));
+
+    stopWorkers();
 }
 
 BOOST_AUTO_TEST_CASE( aggregator_group_requests )
 {
     std::cout << "--- Aggregator send a group of requests." << std::endl;
 
-    boost::shared_ptr<SearchService> workerService(new SearchService);
+    startWorkers();
 
+    boost::shared_ptr<SearchService> localWorkerService(new SearchService);
+
+    // aggregator
     AggregatorConfig config;
     config.enableLocalWorker_ = true;
     config.addWorker("0.0.0.0", 18111);
@@ -133,7 +174,7 @@ BOOST_AUTO_TEST_CASE( aggregator_group_requests )
     SearchAggregator aggregator;
     aggregator.debug_ = true;
     aggregator.setAggregatorConfig(config);
-    aggregator.initLocalWorkerCaller(workerService);
+    aggregator.initLocalWorkerCaller(localWorkerService);
 
     SearchRequest req0;
     req0.keyword = TERM_ABC;
@@ -153,6 +194,8 @@ BOOST_AUTO_TEST_CASE( aggregator_group_requests )
 
     BOOST_CHECK_EQUAL(res.state, true);
     BOOST_CHECK_EQUAL(res.content, ABC_DOC+CHINESE_DOC+ABC_DOC);
+
+    stopWorkers();
 }
 
 BOOST_AUTO_TEST_SUITE_END()

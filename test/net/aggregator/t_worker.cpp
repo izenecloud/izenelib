@@ -16,7 +16,7 @@ int main( int argc, char * argv[])
     if (argc < 3)
     {
         std::cout << "Usage: t_worker <host> <port>" << std::endl;
-        return -1;
+        return 0;
     }
 
     std::string host = argv[1];
