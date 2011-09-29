@@ -234,6 +234,7 @@ fileoffset_t FieldIndexer::write(OutputDescriptor* pWriterDesc)
     }
     else
     {
+        if(hits_.size() == 0) SF1V5_THROW(ERROR_FILEIO,"FieldIndexer::write empty fields");
         if( !boost::filesystem::exists(sorterFullPath_) )
         {
             fileoffset_t vocDescOffset = pVocWriter->getFilePointer();

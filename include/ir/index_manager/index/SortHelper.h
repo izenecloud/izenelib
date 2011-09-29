@@ -16,9 +16,11 @@ template < typename T > class AutoArray
 protected:
     T * pData_;
 
+    int iSize_;
 public:
     AutoArray ()
         :pData_(0)
+        ,iSize_(0)
     {
     }
     ~AutoArray ()
@@ -29,12 +31,14 @@ public:
     void assign(int iCount)
     {
         pData_ = ( iCount>0 ) ? new T [ iCount ] : NULL;
+        iSize_ = iCount;
     }
 
     void reset()
     {
-	if (pData_) delete[] pData_;
-	pData_ = NULL;
+        if (pData_) delete[] pData_;
+        pData_ = NULL;
+        iSize_ = 0;
     }
 
     const AutoArray & operator = ( const AutoArray & ) { assert(0); return *this; }
@@ -42,6 +46,11 @@ public:
     operator T * ()
     {
         return pData_;
+    }
+
+    int size()
+    {
+        return iSize_;
     }
 };
 
