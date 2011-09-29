@@ -12,47 +12,35 @@ namespace msgpack {
 
 inline izenelib::util::UString& operator>> (object o, izenelib::util::UString& uv)
 {
-    std::string v;
     if(o.type != type::RAW) { throw type_error(); }
-    v.assign(o.via.raw.ptr, o.via.raw.size);
-
-    uv.assign(v, izenelib::util::UString::UTF_8); // Fix encoding, by define new object type
+    uv.assign(o.via.raw.size / sizeof(uint16_t), (uint16_t *)o.via.raw.ptr);
     return uv;
 }
 
 template <typename Stream>
 inline packer<Stream>& operator<< (packer<Stream>& o, const izenelib::util::UString& uv)
 {
-    std::string v;
-    uv.convertString(v, izenelib::util::UString::UTF_8);
-
-    o.pack_raw(v.size());
-    o.pack_raw_body(v.data(), v.size());
+    o.pack_raw(uv.size());
+    o.pack_raw_body((char *)uv.data(), uv.size());
     return o;
 }
 
 inline void operator<< (object::with_zone& o, const izenelib::util::UString& uv)
 {
-    std::string v;
-    uv.convertString(v, izenelib::util::UString::UTF_8);
-
     o.type = type::RAW;
     o.raw_type = type::RAW_USTRING;
-    char* ptr = (char*)o.zone->malloc(v.size());
+    char* ptr = (char*)o.zone->malloc(uv.size());
     o.via.raw.ptr = ptr;
-    o.via.raw.size = (uint32_t)v.size();
-    memcpy(ptr, v.data(), v.size());
+    o.via.raw.size = (uint32_t)uv.size();
+    memcpy(ptr, uv.data(), uv.size());
 }
 
 inline void operator<< (object& o, const izenelib::util::UString& uv)
 {
-    std::string v;
-    uv.convertString(v, izenelib::util::UString::UTF_8);
-
     o.type = type::RAW;
     o.raw_type = type::RAW_USTRING;
-    o.via.raw.ptr = v.data();
-    o.via.raw.size = (uint32_t)v.size();
+    o.via.raw.ptr = (char *)uv.data();
+    o.via.raw.size = (uint32_t)uv.size();
 }
 
 
