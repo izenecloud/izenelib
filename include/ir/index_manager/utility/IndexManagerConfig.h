@@ -51,6 +51,7 @@ private:
             ar & indexMode_;
             ar & optimizeSchedule_;
             ar & memory_;
+            ar & indexLevel_;
             ar & indexDocLength_;
             ar & skipInterval_;
             ar & maxSkipLevel_;
@@ -76,6 +77,8 @@ private:
          * flushed into one barrel and a new barrel will be generated
          */
         int64_t memory_;
+
+        std::string indexLevel_;
 
         bool indexDocLength_;
 
