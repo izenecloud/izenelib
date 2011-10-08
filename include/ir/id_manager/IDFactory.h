@@ -170,7 +170,7 @@ inline bool IDFactory<NameString, NameID, IDGenerator, IDStorage>::updateNameIDB
     bool ret = idGenerator_.conv(nameString, oldId, updatedId);
     idStorage_.put(updatedId, nameString);
     return ret;
-} // end - getNameIDByNameString()
+} // end - updateNameIDByNameString()
 
 
 template <typename NameString, typename NameID,

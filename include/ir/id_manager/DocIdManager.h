@@ -145,7 +145,7 @@ namespace idmanager {
         NameID& updatedId)
     {
         return idFactory_.updateNameIDByNameString(docName, oldId, updatedId);
-    } // end - getDocIdByDocName()
+    } // end - updateDocIdByDocName()
 
 
 	template<typename NameString, typename NameID, typename IDGenerator, typename IDStorage>
