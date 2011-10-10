@@ -420,16 +420,21 @@ public:
 
     ~MatrixDB()
     {
-        dump();
-        _db_storage.flush();
+        flush();
         _db_storage.close();
+    }
+
+    void flush()
+    {
+        _dump();
+        _db_storage.flush();
     }
 
     iterator begin()
     {
         // before iterating db on disk,
         // the dirty caches in memeory need to be flushed to disk
-        dump();
+        _dump();
 
         return iterator(_db_storage);
     }
@@ -609,22 +614,8 @@ public:
 
     void clear()
     {
-        dump();
+        _dump();
         _cache_storage.clear();
-    }
-
-    void dump()
-    {
-        typename CacheDirtyFlagSet::iterator it = _cache_row_dirty_flag.begin();
-        for(; it != _cache_row_dirty_flag.end(); ++it)
-        {
-            typename CacheStorageType::iterator cit = _cache_storage.find(*it);
-            if(cit != _cache_storage.end())
-            {
-                _db_storage.update(*it, *(cit->second));
-            }
-        }
-        _cache_row_dirty_flag.clear();
     }
 
     void status(std::ostream& ostream)
@@ -645,6 +636,20 @@ public:
     }
 
 private:
+    void _dump()
+    {
+        typename CacheDirtyFlagSet::iterator it = _cache_row_dirty_flag.begin();
+        for(; it != _cache_row_dirty_flag.end(); ++it)
+        {
+            typename CacheStorageType::iterator cit = _cache_storage.find(*it);
+            if(cit != _cache_storage.end())
+            {
+                _db_storage.update(*it, *(cit->second));
+            }
+        }
+        _cache_row_dirty_flag.clear();
+    }
+
     void _evict()
     {
         while (this->_currEntries >= this->_maxEntries)
