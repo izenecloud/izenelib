@@ -61,7 +61,7 @@ public:
 
 	void display(){}
 
-}; // end - template SequentialIDFactory
+}; // end - template EmptyIDGenerator
 
 
 
@@ -108,7 +108,7 @@ public:
 
 	void display(){}
 
-}; // end - template SequentialIDFactory
+}; // end - template HashIDGenerator
 
 
 template <
@@ -237,7 +237,7 @@ protected:
 	LockType mutex_;
 
 	IdFinder idFinder_; ///< an indexer which gives ids according to the name.
-}; // end - template SequentialIDFactory
+}; // end - template UniqueIDGenerator
 
 template <typename NameString, typename NameID,
     typename LockType, NameID MinValueID, NameID MaxValueID>
@@ -267,14 +267,14 @@ UniqueIDGenerator<NameString, NameID,
 //         }
 //         newID_ = maxValue + 1;
 // 	}
-} // end - SequentialIDFactory()
+} // end - UniqueIDGenerator()
 
 template <typename NameString, typename NameID,
     typename LockType, NameID MinValueID, NameID MaxValueID>
 UniqueIDGenerator<NameString, NameID,
     LockType, MinValueID, MaxValueID>::~UniqueIDGenerator()
 {
-} // end - ~SequentialIDFactory()
+} // end - ~UniqueIDGenerator()
 
 template <typename NameString, typename NameID,
     typename LockType, NameID MinValueID, NameID MaxValueID>
@@ -312,7 +312,7 @@ inline bool UniqueIDGenerator<NameString, NameID,
 	idFinder_.insertValue(nameString, nameID);
     mutex_.release_write_lock();
 	return false;
-} // end - getNameIDByNameString()
+} // end - conv()
 
 template <typename NameString, typename NameID,
     typename LockType, NameID MinValueID, NameID MaxValueID>
@@ -349,7 +349,7 @@ inline bool UniqueIDGenerator<NameString, NameID,
 	idFinder_.update(nameString, updatedID);
     mutex_.release_write_lock();
 	return ret;
-} // end - updateNameIDByNameString()
+} // end - conv()
 
 
 }
