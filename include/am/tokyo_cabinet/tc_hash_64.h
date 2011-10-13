@@ -297,33 +297,18 @@ public:
 
     }
 
-	/**
-	 *  search an item
-	 *
-	 *   @return SDBCursor
-	 */
-	SDBCursor search(const KeyType& key)
-	{
-		SDBCursor cur;
-		if( find(key) ) {
-			cur = key;
-		}
-		return cur;
-	}
-
-	/**
-	 *    another search function, flushCache_() will be called at the beginning,
-	 *
-	 */
-
 	bool search(const KeyType&key, SDBCursor& locn)
 	{
-        if( !isOpen() ) return false;
-		if( find(key) ) {
-			locn = key;
-			return true;
-		}
-		return false;
+            if( !isOpen() )
+                return false;
+
+            if( hasKey_(key) )
+            {
+                locn = key;
+                return true;
+            }
+
+            return false;
 	}
 
 	/**
@@ -609,6 +594,24 @@ private:
             tchdbdel(hdb_);
             hdb_ = NULL;
         }
+    }
+
+    bool hasKey_(const KeyType & key)
+    {
+        char* ptr;
+        size_t ksize;
+        izene_serialization<KeyType> izs(key);
+        izs.write_image(ptr, ksize);
+
+        int sp;
+        void* value = tchdbget(hdb_, ptr, ksize, &sp);
+        if( value )
+        {
+            free(value);
+            return true;
+        }
+
+        return false;
     }
 
 private:
