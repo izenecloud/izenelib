@@ -137,6 +137,8 @@ public:
 
     IndexManagerConfig* getIndexManagerConfig() { return pConfigurationManager_;}
 
+    void setIndexMode(const std::string& mode);
+
     const std::map<std::string, IndexerCollectionMeta>& getCollectionsMeta();
 
     izenelib::util::ReadWriteLock& getLock() { return mutex_; }

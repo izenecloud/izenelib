@@ -120,32 +120,7 @@ void Indexer::setIndexManagerConfig(
                 pBTreeIndexer_->setFilter(pBTreeFilter);
            }
       }
-
-    if(!strcasecmp(pConfigurationManager_->indexStrategy_.indexMode_.c_str(),"realtime"))
-    {
-        realTime_ = true;
-        indexingType_ = BYTEALIGN;
-    }
-    else
-    {
-        realTime_ = false;
-        std::vector<std::string> indexingParams = izenelib::ir::indexmanager::split(pConfigurationManager_->indexStrategy_.indexMode_,":");
-        ///  default:block  or default:chunk
-        if(indexingParams.size() == 2)
-      	{
-            if(!strcasecmp(indexingParams[1].c_str(),"block"))
-                indexingType_ = BLOCK;
-            else if(!strcasecmp(indexingParams[1].c_str(),"chunk"))
-            {
-                indexingType_ = CHUNK;
-                skipInterval_ = CHUNK_SIZE;
-            }
-            else
-                indexingType_ = BYTEALIGN;
-       	}
-        else
-           indexingType_ = BYTEALIGN;
-    }
+    setIndexMode(pConfigurationManager_->indexStrategy_.indexMode_);
 
     pIndexWriter_ = new IndexWriter(this);
     pIndexReader_ = new IndexReader(this);
@@ -159,6 +134,36 @@ void Indexer::setIndexManagerConfig(
         sprintf(uuidstr,"%d",uuid);
         pIndexWriter_->scheduleOptimizeTask(pConfigurationManager_->indexStrategy_.optimizeSchedule_, uuidstr);
     }
+}
+
+void Indexer::setIndexMode(const std::string& mode)
+{
+    if(!strcasecmp(mode.c_str(),"realtime"))
+    {
+        realTime_ = true;
+        indexingType_ = BYTEALIGN;
+    }
+    else
+    {
+        realTime_ = false;
+        std::vector<std::string> indexingParams = izenelib::ir::indexmanager::split(mode,":");
+        ///  default:block	or default:chunk
+        if(indexingParams.size() == 2)
+        {
+            if(!strcasecmp(indexingParams[1].c_str(),"block"))
+                indexingType_ = BLOCK;
+            else if(!strcasecmp(indexingParams[1].c_str(),"chunk"))
+            {
+                indexingType_ = CHUNK;
+                skipInterval_ = CHUNK_SIZE;
+            }
+            else
+                indexingType_ = BYTEALIGN;
+        }
+        else
+            indexingType_ = BYTEALIGN;
+    }
+
 }
 
 void Indexer::openDirectory(const std::string& storagePolicy)
