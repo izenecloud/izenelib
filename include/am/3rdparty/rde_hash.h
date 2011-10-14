@@ -14,56 +14,66 @@ typename KeyType,
 typename ValueType = NullType,
 class HashFunc = rde::hash<KeyType>
 > class rde_hash: public AccessMethod<KeyType, ValueType>
-{	
-	typedef  rde::hash_map<KeyType, ValueType, HashFunc> ContainerType;
-	typedef typename rde::hash_map<KeyType, ValueType, HashFunc>::iterator
-	IT;
-	typedef rde::pair<IT, bool> PAIR;
+{
+    typedef  rde::hash_map<KeyType, ValueType, HashFunc> ContainerType;
+    typedef typename rde::hash_map<KeyType, ValueType, HashFunc>::iterator
+    IT;
+    typedef rde::pair<IT, bool> PAIR;
 public:
-	bool insert(const KeyType& key, const ValueType& value) {
-		PAIR ret = map_.insert( rde::pair<KeyType, ValueType>(key, value) );
-		return ret.second;
-	}
-	
-	bool insert(const DataType<KeyType,ValueType>& rec)
-	{
-		return insert(rec.key, rec.value);
-	}
-	
+    bool insert(const KeyType& key, const ValueType& value)
+    {
+        PAIR ret = map_.insert( rde::pair<KeyType, ValueType>(key, value) );
+        return ret.second;
+    }
 
-	bool get(const KeyType&key, ValueType& value) {
-		IT it = map_.find(key);
-		if (it != map_.end() ) {
-			value = it->second;
-			return true;
-		}
-		return false;
+    bool insert(const DataType<KeyType,ValueType>& rec)
+    {
+        return insert(rec.key, rec.value);
+    }
 
-	}
 
-	bool del(const KeyType& key) {
-		size_t ret = map_.erase(key);
-		return ret;
-	}
-	int num_items() {
-		return map_.size();
-	}
-	
-	ValueType* find(const KeyType& key){
-		IT it = map_.find(key);
-		if (it != map_.end()) {
-			return &(it->second);			
-		} else {
-			return NULL;
-		}
-	}
-	
-	void clear(){
-		map_.clear();
-	}
-	
+    bool get(const KeyType&key, ValueType& value)
+    {
+        IT it = map_.find(key);
+        if (it != map_.end() )
+        {
+            value = it->second;
+            return true;
+        }
+        return false;
+
+    }
+
+    bool del(const KeyType& key)
+    {
+        size_t ret = map_.erase(key);
+        return ret;
+    }
+    int num_items()
+    {
+        return map_.size();
+    }
+
+    ValueType* find(const KeyType& key)
+    {
+        IT it = map_.find(key);
+        if (it != map_.end())
+        {
+            return &(it->second);
+        }
+        else
+        {
+            return NULL;
+        }
+    }
+
+    void clear()
+    {
+        map_.clear();
+    }
+
 private:
-	ContainerType 		map_;
+    ContainerType 		map_;
 };
 
 

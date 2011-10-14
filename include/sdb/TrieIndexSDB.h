@@ -4,11 +4,11 @@
  * @author Peisheng Wang
  *
  * This file defines clas IndexSDB.
- * 
+ *
  * @history
  *  - 11.27 Peisheng Wnag
- *  
- * 
+ *
+ *
  *
  * */
 
@@ -21,171 +21,202 @@
 #include <util/hashFunction.h>
 using namespace std;
 
-namespace izenelib {
-namespace sdb {
+namespace izenelib
+{
+namespace sdb
+{
 
 
 /**
- * 
- *  \brief TrieIndexSDB 
- * 
+ *
+ *  \brief TrieIndexSDB
+ *
  *   It wraps both IndexSDB and Trie into a TrieIndexSDB, using for triexdexing,
  *   suffix  -> <doc_id list>
- *  
+ *
  */
 template <typename StringType, typename ElementType,
-		typename LockType =izenelib::util::NullLock> class TrieIndexSDB {
+typename LockType =izenelib::util::NullLock> class TrieIndexSDB
+{
 public:
-	typedef uint32_t KeyType;
-	typedef typename StringType::value_type CharType;
-	typedef iKeyType<KeyType> myKeyType;
-	typedef vector<ElementType> myValueType;
-	typedef DataType<myKeyType, myValueType> myDataType;
+    typedef uint32_t KeyType;
+    typedef typename StringType::value_type CharType;
+    typedef iKeyType<KeyType> myKeyType;
+    typedef vector<ElementType> myValueType;
+    typedef DataType<myKeyType, myValueType> myDataType;
 
-	typedef IndexSDB<uint32_t, ElementType, LockType> IndexSDBType;
+    typedef IndexSDB<uint32_t, ElementType, LockType> IndexSDBType;
 
-	typedef izenelib::am::HDBTrie2<StringType, uint32_t, uint64_t, LockType>
-			TrieType;
+    typedef izenelib::am::HDBTrie2<StringType, uint32_t, uint64_t, LockType>
+    TrieType;
 public:
-	TrieIndexSDB(const string& fileName = "trie_index") :
-		indexsdb_(fileName+".isdb"), triedb_(fileName + ".triedb") {
-	}
-	bool open() {
-		indexsdb_.initialize(100, 12, 1024, 200*1024);
-		triedb_.open();
-		return true;
-	}
+    TrieIndexSDB(const string& fileName = "trie_index") :
+            indexsdb_(fileName+".isdb"), triedb_(fileName + ".triedb")
+    {
+    }
+    bool open()
+    {
+        indexsdb_.initialize(100, 12, 1024, 200*1024);
+        triedb_.open();
+        return true;
+    }
 
-	void getValuePrefix(const StringType& key, vector<ElementType>& result) {
-		vector<uint32_t> hooks;
-		triedb_.findPrefix(key, hooks);
-		indexsdb_.getValueIn(hooks, result);
-	}
+    void getValuePrefix(const StringType& key, vector<ElementType>& result)
+    {
+        vector<uint32_t> hooks;
+        triedb_.findPrefix(key, hooks);
+        indexsdb_.getValueIn(hooks, result);
+    }
 
-	void getValueSuffix(const StringType& key, vector<ElementType>& result) {
-		uint32_t hashval =
-				(int32_t)HashFunction<StringType>::generateHash32(key);
-		indexsdb_.getValue(hashval, result);
-	}
+    void getValueSuffix(const StringType& key, vector<ElementType>& result)
+    {
+        uint32_t hashval =
+            (int32_t)HashFunction<StringType>::generateHash32(key);
+        indexsdb_.getValue(hashval, result);
+    }
 
-	bool add_suffix(const StringType& key, const ElementType& item) {
-		uint32_t t;
-		if ( !triedb_.get(key, t) ) {
-			size_t pos = 0;
-			for (; pos<key.length(); pos++) {
-				StringType suf = key.substr(pos);
-				add(suf, item);
-			}
-		}
-		return false;
-	}
+    bool add_suffix(const StringType& key, const ElementType& item)
+    {
+        uint32_t t;
+        if ( !triedb_.get(key, t) )
+        {
+            size_t pos = 0;
+            for (; pos<key.length(); pos++)
+            {
+                StringType suf = key.substr(pos);
+                add(suf, item);
+            }
+        }
+        return false;
+    }
 
-	bool add(const StringType& key, const ElementType& item) {
-		uint32_t hashval =
-				(int32_t)HashFunction<StringType>::generateHash32(key);
-		triedb_.insert(key, hashval);
-		indexsdb_.add_nodup(hashval, item);
-		return false;
-	}
-	void display() {
-		indexsdb_.display();
-	}
+    bool add(const StringType& key, const ElementType& item)
+    {
+        uint32_t hashval =
+            (int32_t)HashFunction<StringType>::generateHash32(key);
+        triedb_.insert(key, hashval);
+        indexsdb_.add_nodup(hashval, item);
+        return false;
+    }
+    void display()
+    {
+        indexsdb_.display();
+    }
 
-	void commit() {
+    void commit()
+    {
 
-	}
+    }
 
-	void flush() {
-		indexsdb_.flush();
-		triedb_.flush();
-	}
+    void flush()
+    {
+        indexsdb_.flush();
+        triedb_.flush();
+    }
 private:
-	IndexSDBType indexsdb_;
-	TrieType triedb_;
+    IndexSDBType indexsdb_;
+    TrieType triedb_;
 };
 
 
 /**
- * 
- *  \brief TrieIndexSDB2 
- * 
- *   It use only a SDB to function as TrieIndexSDB. More fast with small data set 
- *  
+ *
+ *  \brief TrieIndexSDB2
+ *
+ *   It use only a SDB to function as TrieIndexSDB. More fast with small data set
+ *
  */
 template <typename StringType, typename ElementType,
-		typename LockType =izenelib::util::NullLock> class TrieIndexSDB2 {
+typename LockType =izenelib::util::NullLock> class TrieIndexSDB2
+{
 public:
-	typedef SequentialDB<std::pair<StringType, ElementType>, NullType> SDBTYPE;
-	typedef typename SDBTYPE::SDBCursor SDBCursor;
+    typedef SequentialDB<std::pair<StringType, ElementType>, NullType> SDBTYPE;
+    typedef typename SDBTYPE::SDBCursor SDBCursor;
 public:
-	TrieIndexSDB2(const string& fileName = "trie_index2.dat") :
-		sdb_(fileName) {
+    TrieIndexSDB2(const string& fileName = "trie_index2.dat") :
+            sdb_(fileName)
+    {
 
-	}
-	bool open() {
-		return sdb_.open();
-	}
+    }
+    bool open()
+    {
+        return sdb_.open();
+    }
 
-	void getValuePrefix(const StringType& key, vector<ElementType>& result) {
-		SDBCursor locn = sdb_.search(make_pair(key, ElementType() ) );
-		std::pair<StringType, ElementType> skey;
-		StringType lstr;
-		NullType sval;
-		while (sdb_.get(locn, skey, sval) ) {
-			if (isPrefix1(key, skey.first) ) {
-				//cout<<skey.first<<"+"<<skey.second<<endl;	
-				result.push_back(skey.second);
-				sdb_.seq(locn);
-			} else
-				break;
-		}
-	}
+    void getValuePrefix(const StringType& key, vector<ElementType>& result)
+    {
+        SDBCursor locn = sdb_.search(make_pair(key, ElementType() ) );
+        std::pair<StringType, ElementType> skey;
+        StringType lstr;
+        NullType sval;
+        while (sdb_.get(locn, skey, sval) )
+        {
+            if (isPrefix1(key, skey.first) )
+            {
+                //cout<<skey.first<<"+"<<skey.second<<endl;
+                result.push_back(skey.second);
+                sdb_.seq(locn);
+            }
+            else
+                break;
+        }
+    }
 
-	void getValueSuffix(const StringType& key, vector<ElementType>& result) {
-		SDBCursor locn = sdb_.search(make_pair(key, ElementType() ) );
-		std::pair<StringType, ElementType> skey;
-		StringType lstr;
-		NullType sval;
-		while (sdb_.get(locn, skey, sval) ) {
-			if (key == skey.first) {
-				//cout<<skey.first<<"+"<<skey.second<<endl;
-				result.push_back(skey.second);
-				sdb_.seq(locn);
-			} else
-				break;
-		}
+    void getValueSuffix(const StringType& key, vector<ElementType>& result)
+    {
+        SDBCursor locn = sdb_.search(make_pair(key, ElementType() ) );
+        std::pair<StringType, ElementType> skey;
+        StringType lstr;
+        NullType sval;
+        while (sdb_.get(locn, skey, sval) )
+        {
+            if (key == skey.first)
+            {
+                //cout<<skey.first<<"+"<<skey.second<<endl;
+                result.push_back(skey.second);
+                sdb_.seq(locn);
+            }
+            else
+                break;
+        }
 
-	}
+    }
 
-	bool add_suffix(const StringType& key, const ElementType& item) {
-		if (sdb_.hasKey(make_pair(key, item) ) )
-			return false;
-		size_t pos = 0;
-		for (; pos<key.length(); pos++) {
-			StringType suf = key.substr(pos);
-			add(suf, item);
-		}
-		return false;
-	}
+    bool add_suffix(const StringType& key, const ElementType& item)
+    {
+        if (sdb_.hasKey(make_pair(key, item) ) )
+            return false;
+        size_t pos = 0;
+        for (; pos<key.length(); pos++)
+        {
+            StringType suf = key.substr(pos);
+            add(suf, item);
+        }
+        return false;
+    }
 
-	bool add(const StringType& key, const ElementType& item) {
-		sdb_.insertValue(make_pair(key, item) );
-		return false;
-	}
+    bool add(const StringType& key, const ElementType& item)
+    {
+        sdb_.insertValue(make_pair(key, item) );
+        return false;
+    }
 
-	void display() {
-		sdb_.display();
-	}
+    void display()
+    {
+        sdb_.display();
+    }
 
-	void commit() {
-		sdb_.commit();
-	}
+    void commit()
+    {
+        sdb_.commit();
+    }
 
-	void flush() {
-		sdb_.flush();
-	}
+    void flush()
+    {
+        sdb_.flush();
+    }
 protected:
-	SDBTYPE sdb_;
+    SDBTYPE sdb_;
 
 };
 

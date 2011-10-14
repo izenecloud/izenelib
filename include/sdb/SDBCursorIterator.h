@@ -47,7 +47,7 @@ struct SDBCursorIteratorBase
     typedef std::pair<typename AM::SDBKeyType, typename AM::SDBValueType> data_type;
 
     typedef boost::iterator_facade<SDBCursorIterator<AM, AMTraits> , data_type,
-                                   boost::forward_traversal_tag, const data_type&> type;
+    boost::forward_traversal_tag, const data_type&> type;
 };
 
 template<typename AM>
@@ -55,9 +55,9 @@ struct SDBCursorIteratorBase<AM, typename boost::enable_if<boost::mpl::bool_<AM:
 {
     typedef std::pair<typename AM::key_type, typename AM::value_type> data_type;
 
-    typedef boost::iterator_facade<SDBCursorIterator<AM,  typename boost::enable_if<boost::mpl::bool_<AM::AMWrapperType> >::type > , 
-                                   data_type,
-                                   boost::forward_traversal_tag, const data_type&> type;
+    typedef boost::iterator_facade<SDBCursorIterator<AM,  typename boost::enable_if<boost::mpl::bool_<AM::AMWrapperType> >::type > ,
+    data_type,
+    boost::forward_traversal_tag, const data_type&> type;
 };
 
 } // namespace detail
@@ -127,7 +127,7 @@ private:
 
 template<typename AM>
 class SDBCursorIterator<AM, typename boost::enable_if<boost::mpl::bool_<AM::AMWrapperType> >::type>
-    : public detail::SDBCursorIteratorBase<AM,typename boost::enable_if<boost::mpl::bool_<AM::AMWrapperType> >::type>::type
+            : public detail::SDBCursorIteratorBase<AM,typename boost::enable_if<boost::mpl::bool_<AM::AMWrapperType> >::type>::type
 {
     friend class boost::iterator_core_access;
     typedef typename detail::SDBCursorIteratorBase<AM,typename boost::enable_if<boost::mpl::bool_<AM::AMWrapperType> >::type>::type super;
@@ -147,7 +147,7 @@ public:
      * @param am AccessMethod object supporting SDBCursor
      * @return iterator as begin
      */
-    explicit SDBCursorIterator(AM& am) 
+    explicit SDBCursorIterator(AM& am)
     {
         attach(am);
     }

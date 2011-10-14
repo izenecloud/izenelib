@@ -22,8 +22,8 @@ NS_IZENELIB_AM_BEGIN
  */
 
 
-template<typename ValueType, typename LockType =NullLock> 
-class tc_fixdb 
+template<typename ValueType, typename LockType =NullLock>
+class tc_fixdb
 {
 
 
@@ -40,50 +40,54 @@ public:
     /**
      *   deconstructor, close() will also be called here.
      */
-    virtual ~tc_fixdb() {
-        if( isOpen() )
+    virtual ~tc_fixdb()
+    {
+        if ( isOpen() )
         {
-            try{
+            try
+            {
                 close();
             }
-            catch(std::exception& ex)
+            catch (std::exception& ex)
             {
                 std::cout<<"error while close tc_fixdb : "<<fileName_<<std::endl;
             }
         }
         freeHandle_();
     }
-    
+
     bool isOpen() const
     {
         return isOpen_;
     }
 
-    
+
     void tune(int32_t width = sizeof(ValueType), int64_t limsiz = std::numeric_limits< uint32_t >::max())
     {
-/*        bool op = tchdbtune(fdb_, width, limsiz);
-        if( !op )
-        {
-            int errcode = ecode();
-            IZENELIB_THROW("tc_fixdb tune on "+fileName_+" : "+tchdberrmsg(errcode));
-        }*/
-        
+        /*        bool op = tchdbtune(fdb_, width, limsiz);
+                if( !op )
+                {
+                    int errcode = ecode();
+                    IZENELIB_THROW("tc_fixdb tune on "+fileName_+" : "+tchdberrmsg(errcode));
+                }*/
+
     }
 
 
     /**
      *  \brief return the file name of the SequentialDB
      */
-    std::string getFileName() const {
+    std::string getFileName() const
+    {
         return fileName_;
     }
 
     /**
      *  insert an item in key/value pair
      */
-    bool insert(int64_t key, const ValueType& value) {
-        if( !isOpen() ) return false;
+    bool insert(int64_t key, const ValueType& value)
+    {
+        if ( !isOpen() ) return false;
 
         char* ptr1;
         size_t vsize;
@@ -91,21 +95,22 @@ public:
         izs1.write_image(ptr1, vsize);
 
         bool op = tchdbputkeep(fdb_, &key, sizeof(int64_t), ptr1, vsize);
-        
-        if( !op )
+
+        if ( !op )
         {
             int errcode = ecode();
             IZENELIB_THROW("tc_fixdb insert on "+fileName_+" : "+tchdberrmsg(errcode));
         }
         return op;
     }
-    
-    bool insert(int64_t key, char* value, std::size_t vsize) {
-        if( !isOpen() ) return false;
+
+    bool insert(int64_t key, char* value, std::size_t vsize)
+    {
+        if ( !isOpen() ) return false;
 
         bool op = tchdbputkeep(fdb_, &key, sizeof(int64_t), value, vsize);
-        
-        if( !op )
+
+        if ( !op )
         {
             int errcode = ecode();
             IZENELIB_THROW("tc_fixdb insert on "+fileName_+" : "+tchdberrmsg(errcode));
@@ -115,44 +120,46 @@ public:
 
     bool get(int64_t key, ValueType& value)
     {
-        if( !isOpen() ) return false;
+        if ( !isOpen() ) return false;
 
         int sp;
         void* pv = tchdbget(fdb_, &key, sizeof(int64_t), &sp);
-        if( pv == NULL )
+        if ( pv == NULL )
         {
             int errcode = ecode();
-            if( errcode != TCENOREC )
+            if ( errcode != TCENOREC )
             {
                 IZENELIB_THROW("tc_fixdb get on "+fileName_+" : "+tchdberrmsg(errcode));
             }
             return false;
         }
-        else {
+        else
+        {
             izene_deserialization<ValueType> izd((char*)pv, (size_t)sp);
             izd.read_image(value);
             free(pv);
             return true;
         }
     }
-    
+
     char* get(int64_t key, int& sp)
     {
-        if( !isOpen() ) return false;
+        if ( !isOpen() ) return false;
 
         void* pv = tchdbget(fdb_, &key, sizeof(int64_t), &sp);
-        if( pv == NULL )
+        if ( pv == NULL )
         {
             int errcode = ecode();
-            if( errcode != TCENOREC )
+            if ( errcode != TCENOREC )
             {
                 IZENELIB_THROW("tc_fixdb get on "+fileName_+" : "+tchdberrmsg(errcode));
             }
             return NULL;
         }
-        else {
+        else
+        {
             return (char*)pv;
-            
+
         }
     }
 
@@ -160,16 +167,17 @@ public:
     /**
      *  update  an item by key/value pair
      */
-    bool update(int64_t key, const ValueType& value) {
-        if( !isOpen() ) return false;
+    bool update(int64_t key, const ValueType& value)
+    {
+        if ( !isOpen() ) return false;
         char* ptr1;
         size_t vsize;
         izene_serialization<ValueType> izs1(value);
         izs1.write_image(ptr1, vsize);
 
         bool op = tchdbput(fdb_, &key, sizeof(int64_t),  ptr1, vsize);
-        
-        if( !op )
+
+        if ( !op )
         {
             int errcode = ecode();
             IZENELIB_THROW("tc_fixdb update on "+fileName_+" : "+tchdberrmsg(errcode));
@@ -177,13 +185,14 @@ public:
         return op;
 
     }
-    
-    bool update(int64_t key, char* value, std::size_t vsize) {
-        if( !isOpen() ) return false;
+
+    bool update(int64_t key, char* value, std::size_t vsize)
+    {
+        if ( !isOpen() ) return false;
 
         bool op = tchdbput(fdb_, &key, sizeof(int64_t), value, vsize);
-        
-        if( !op )
+
+        if ( !op )
         {
             int errcode = ecode();
             IZENELIB_THROW("tc_fixdb update on "+fileName_+" : "+tchdberrmsg(errcode));
@@ -192,17 +201,19 @@ public:
 
     }
 
-    
+
     /**
      *   get the num of items
      */
-    uint64_t num_items() const{
-        if( !isOpen() ) return 0;
+    uint64_t num_items() const
+    {
+        if ( !isOpen() ) return 0;
         uint64_t r = tchdbrnum(fdb_);
         return r;
     }
-    
-    uint64_t numItems() const{
+
+    uint64_t numItems() const
+    {
         return num_items();
     }
 
@@ -210,13 +221,14 @@ public:
     /**
      *   db must be opened to be used.
      */
-    bool open() {
-        if( isOpen() ) return false;
+    bool open()
+    {
+        if ( isOpen() ) return false;
         bool ret = tchdbopen(fdb_, fileName_.c_str(), HDBOCREAT | HDBOWRITER);
-        if( !ret )
+        if ( !ret )
         {
             int errcode = ecode();
-            if( errcode != TCESUCCESS )
+            if ( errcode != TCESUCCESS )
             {
                 IZENELIB_THROW("tc_fixdb open on "+fileName_+" : "+tchdberrmsg(errcode));
             }
@@ -229,13 +241,13 @@ public:
      */
     bool close()
     {
-        if( !isOpen() ) return false;
+        if ( !isOpen() ) return false;
         commit();
         bool ret = tchdbclose(fdb_);
-        if( !ret )
+        if ( !ret )
         {
             int errcode = ecode();
-            if( errcode != TCESUCCESS )
+            if ( errcode != TCESUCCESS )
             {
                 IZENELIB_THROW("tc_fixdb close on "+fileName_+" : "+tchdberrmsg(errcode));
             }
@@ -248,14 +260,14 @@ public:
     *  write the dirty buckets to disk, not release the memory
     *
     */
-    void commit() 
+    void commit()
     {
-        if( !isOpen() ) return;
+        if ( !isOpen() ) return;
         bool ret = tchdbsync(fdb_);
-        if( !ret )
+        if ( !ret )
         {
             int errcode = ecode();
-            if( errcode != TCESUCCESS )
+            if ( errcode != TCESUCCESS )
             {
                 IZENELIB_THROW("tc_fixdb commit on "+fileName_+" : "+tchdberrmsg(errcode));
             }
@@ -264,12 +276,12 @@ public:
     /**
     *   Write the dirty buckets to disk.
     */
-    void flush() 
+    void flush()
     {
-        if( !isOpen() ) return;
+        if ( !isOpen() ) return;
         commit();
     }
-    
+
     int ecode()
     {
         return tchdbecode(fdb_);
@@ -278,26 +290,27 @@ public:
     /**
      *  We can directly process fdb_ by this handle.
      */
-    TCHDB* getHandle() {
+    TCHDB* getHandle()
+    {
         return fdb_;
     }
-    
+
 private:
     void initHandle_()
     {
-        if( fdb_ == NULL )
+        if ( fdb_ == NULL )
         {
             fdb_ = tchdbnew();
-            if( fdb_ == NULL )
+            if ( fdb_ == NULL )
             {
                 int errcode = ecode();
-                if( errcode != TCESUCCESS )
+                if ( errcode != TCESUCCESS )
                 {
                     IZENELIB_THROW("tc_fixdb new on "+fileName_+" : "+tchdberrmsg(errcode));
                 }
             }
             bool op = tchdbsetxmsiz(fdb_, 0);
-            if( !op )
+            if ( !op )
             {
                 int errcode = ecode();
                 IZENELIB_THROW("tc_fixdb setXMSize on "+fileName_+" : "+tchdberrmsg(errcode));
@@ -305,10 +318,10 @@ private:
 
         }
     }
-    
+
     void freeHandle_()
     {
-        if( fdb_ != NULL )
+        if ( fdb_ != NULL )
         {
             tchdbdel(fdb_);
             fdb_ = NULL;
@@ -317,10 +330,10 @@ private:
 
 private:
     string fileName_;
-    
+
     TCHDB* fdb_;
     bool isOpen_;
-    
+
 };
 
 NS_IZENELIB_AM_END

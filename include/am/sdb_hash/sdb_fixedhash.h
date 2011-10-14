@@ -1,12 +1,12 @@
 /**
  * @file sdb_fixedhash.h
  * @brief The header file of sdb_fixedhash.
- * @author peisheng wang 
- * 
+ * @author peisheng wang
+ *
  * @history
  * ==========================
  * 1. 2009-02-16 first version.
- * 
+ *
  *
  * This file defines class sdb_fixedhash.
  */
@@ -32,14 +32,15 @@ NS_IZENELIB_AM_BEGIN
 
 template<typename KeyType,typename ValueType=NullType,typename LockType=NullLock>
 class sdb_fixedhash
-: public sdb_hash<KeyType, ValueType, LockType, true>
+            : public sdb_hash<KeyType, ValueType, LockType, true>
 {
 public:
-	sdb_fixedhash(const std::string& fileName = "sdb_fixedhash.dat")
-	:sdb_hash<KeyType, ValueType, LockType, true>(fileName){
-		
-	}
-	
+    sdb_fixedhash(const std::string& fileName = "sdb_fixedhash.dat")
+            :sdb_hash<KeyType, ValueType, LockType, true>(fileName)
+    {
+
+    }
+
 };
 
 

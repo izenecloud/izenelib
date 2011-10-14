@@ -7,14 +7,15 @@ NS_IZENELIB_AM_BEGIN
 
 template<typename KeyType,typename ValueType=NullType,typename LockType=NullLock>
 class sdb_fixedbtree
-: public sdb_btree<KeyType, ValueType, LockType, true>
+            : public sdb_btree<KeyType, ValueType, LockType, true>
 {
 public:
-	sdb_fixedbtree(const std::string& fileName = "sdb_fixedbtree.dat#")
-	:sdb_btree<KeyType, ValueType, LockType, true>(fileName){
-		
-	}
-	
+    sdb_fixedbtree(const std::string& fileName = "sdb_fixedbtree.dat#")
+            :sdb_btree<KeyType, ValueType, LockType, true>(fileName)
+    {
+
+    }
+
 };
 
 NS_IZENELIB_AM_END

@@ -6,12 +6,12 @@
 *	SequentialDB
 *
 *       @htmlonly  <img src="SequentialDB.jpg">  @endhtmlonly
-*        
+*
 *
 *       SequentialDB is very important infrastructure.  On contrast to other Database, SequentialDB is a simplistic
-*    	data storage. Although it doesn't support transaction and SQL, it is light,  fast and easy to use.  
+*    	data storage. Although it doesn't support transaction and SQL, it is light,  fast and easy to use.
 *
-*       It stores key-value pair, where key and value can be variable length and different types. It can support range 
+*       It stores key-value pair, where key and value can be variable length and different types. It can support range
 *	    search and index search.  It also supports multi-thread access by thread-safe policy.
 *
 *       SDB was designed to be policy-based, it can use either sdb/btree, sdb/hash,

@@ -17,51 +17,60 @@ typename KeyType,
 typename ValueType,
 typename Compare = less<KeyType>
 > class stl_map: public AccessMethod<KeyType, ValueType>
-{	
-	typedef typename map<KeyType, ValueType, Compare>::iterator
-	IT;
-	typedef pair<IT, bool> PAIR;
+{
+    typedef typename map<KeyType, ValueType, Compare>::iterator
+    IT;
+    typedef pair<IT, bool> PAIR;
 public:
-	bool insert(const KeyType& key, const ValueType& value) {
-		PAIR ret = map_.insert(make_pair(key, value) );
-		return ret.second;
-	}
-	
-	bool insert(const DataType<KeyType,ValueType>& rec)
-	{
-		return insert(rec.key, rec.value);
-	}
-	
+    bool insert(const KeyType& key, const ValueType& value)
+    {
+        PAIR ret = map_.insert(make_pair(key, value) );
+        return ret.second;
+    }
 
-	bool get(const KeyType&key, ValueType& value) {
-		IT it = map_.find(key);
-		if (it != map_.end() ) {
-			value = it->second;
-			return true;
-		}
-		return false;
+    bool insert(const DataType<KeyType,ValueType>& rec)
+    {
+        return insert(rec.key, rec.value);
+    }
 
-	}
 
-	bool del(const KeyType& key) {
-		size_t ret = map_.erase(key);
-		return ret;
-	}
-	int num_items() {
-		return map_.size();
-	}
-	
-	ValueType* find(const KeyType& key)  {
-		IT it = map_.find(key);
-		if (it != map_.end()) {
-			return &(it->second);	
-		} else {
-			return NULL;
-		}
-	}
-	
+    bool get(const KeyType&key, ValueType& value)
+    {
+        IT it = map_.find(key);
+        if (it != map_.end() )
+        {
+            value = it->second;
+            return true;
+        }
+        return false;
+
+    }
+
+    bool del(const KeyType& key)
+    {
+        size_t ret = map_.erase(key);
+        return ret;
+    }
+    int num_items()
+    {
+        return map_.size();
+    }
+
+    ValueType* find(const KeyType& key)
+    {
+        IT it = map_.find(key);
+        if (it != map_.end())
+        {
+            return &(it->second);
+        }
+        else
+        {
+            return NULL;
+        }
+    }
+
 private:
-	map<KeyType, ValueType, Compare> 		map_;
+    map<KeyType, ValueType, Compare> 		map_;
 };
 
 
