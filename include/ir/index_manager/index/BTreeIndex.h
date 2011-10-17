@@ -227,14 +227,8 @@ public:
                     {
                         currDoc = ival[i];
                         if (currDoc >= maxDoc)
-                        {
-                            KeyValueType* ppBytes = new KeyValueType[maxDoc + MAX_NUMERICSIZER];
-                            memcpy(ppBytes, data, maxDoc * sizeof(KeyValueType));
-                            memset(ppBytes+maxDoc, 0, MAX_NUMERICSIZER * sizeof(KeyValueType));
-                            delete[] data;
-                            data = ppBytes;
-                            maxDoc = maxDoc + MAX_NUMERICSIZER;
-                        }
+                            continue;
+
                         data[currDoc] = ikey.key.value;
                     }
                     count += ival.size();
