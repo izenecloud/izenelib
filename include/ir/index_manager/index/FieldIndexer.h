@@ -411,6 +411,8 @@ private:
 
     bool flush_;
 
+    string indexLevel_;
+
     friend class MemTermReader;
     friend class MemTermIterator;
 };

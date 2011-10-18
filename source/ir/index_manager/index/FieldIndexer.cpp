@@ -26,6 +26,7 @@ FieldIndexer::FieldIndexer(const char* field, MemCache* pCache, Indexer* pIndexe
 {
     skipInterval_ = pIndexer_->getSkipInterval();
     maxSkipLevel_ = pIndexer_->getMaxSkipLevel();
+    indexLevel_ = pIndexer_->pConfigurationManager_->indexStrategy_.indexLevel_;
 
     sorterFileName_ = field_+".tmp";
     bfs::path path(bfs::path(pIndexer_->pConfigurationManager_->indexStrategy_.indexLocation_) /bfs::path(sorterFileName_));
@@ -109,7 +110,7 @@ void FieldIndexer::addField(docid_t docid, boost::shared_ptr<LAInput> laInput)
             {
                 //curPosting = new RTPostingWriter(pMemCache_, skipInterval_, maxSkipLevel_);
                 assert(alloc_);
-                curPosting = BOOST_NEW(*alloc_, RTPostingWriter)(pMemCache_, skipInterval_, maxSkipLevel_);
+                curPosting = BOOST_NEW(*alloc_, RTPostingWriter)(pMemCache_, skipInterval_, maxSkipLevel_, indexLevel_);
                 postingMap_[iter->termid_] = curPosting;
             }
             else
@@ -286,13 +287,13 @@ fileoffset_t FieldIndexer::write(OutputDescriptor* pWriterDesc)
         switch(pIndexer_->getIndexCompressType())
         {
         case BYTEALIGN:
-            pPosting = new RTPostingWriter(pMemCache_, skipInterval_, maxSkipLevel_);
+            pPosting = new RTPostingWriter(pMemCache_, skipInterval_, maxSkipLevel_, indexLevel_);
             break;
         case BLOCK:
-            pPosting = new BlockPostingWriter(pMemCache_);
+            pPosting = new BlockPostingWriter(pMemCache_, indexLevel_);
             break;
         case CHUNK:
-            pPosting = new ChunkPostingWriter(pMemCache_, skipInterval_, maxSkipLevel_);
+            pPosting = new ChunkPostingWriter(pMemCache_, skipInterval_, maxSkipLevel_, indexLevel_);
             break;
         default:
             assert(false);

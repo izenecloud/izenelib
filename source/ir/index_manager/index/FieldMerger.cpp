@@ -272,7 +272,7 @@ void FieldMerger::sortingMerge(FieldMergeInfo** ppMergeInfos,int32_t numInfos,Te
         else
             postingIterator.addTermPosition(pPosition, pDocFilter_);
     }
-    RTPostingWriter* newPosting = new RTPostingWriter(pMemCache_, skipInterval_, maxSkipLevel_);
+    RTPostingWriter* newPosting = new RTPostingWriter(pMemCache_, skipInterval_, maxSkipLevel_, "wordlevel");
 
     docid_t docId = 0;
     while(postingIterator.next())

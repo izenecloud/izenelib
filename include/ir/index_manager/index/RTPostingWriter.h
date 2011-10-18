@@ -22,7 +22,7 @@ class SkipListWriter;
 class RTPostingWriter:public PostingWriter
 {
 public:
-    RTPostingWriter(MemCache* pMemCache, int skipInterval, int maxSkipLevel);
+    RTPostingWriter(MemCache* pMemCache, int skipInterval, int maxSkipLevel, const string& indexLevel);
 
     ~RTPostingWriter();
     /**
@@ -102,6 +102,7 @@ private:
     VariantDataPool* pLocList_; 	/// Location list
     SkipListWriter* pSkipListWriter_;	///skiplist writer
     volatile bool dirty_;
+    string indexLevel_;
     friend class MemPostingReader;
     friend class PostingMerger;
 };

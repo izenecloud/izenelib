@@ -27,7 +27,7 @@ namespace indexmanager{
 class BlockPostingWriter:public PostingWriter
 {
 public:
-    BlockPostingWriter(MemCache* pMemCache);
+    BlockPostingWriter(MemCache* pMemCache, const string& indexLevel);
 
     ~BlockPostingWriter();
     /**
@@ -95,6 +95,8 @@ protected:
     docid_t nLastDocID_;	///current added doc id
 
     uint32_t current_block_id_;
+
+    string indexLevel_;
 };
 
 
@@ -108,7 +110,7 @@ class SkipListWriter;
 class ChunkPostingWriter:public PostingWriter
 {
 public:
-    ChunkPostingWriter(MemCache* pMemCache, int skipInterval, int maxSkipLevel);
+    ChunkPostingWriter(MemCache* pMemCache, int skipInterval, int maxSkipLevel, const string& indexLevel);
 
     ~ChunkPostingWriter();
     /**
@@ -178,6 +180,8 @@ protected:
     count_t nCurTermFreq_;
     count_t nCTF_;			///Collection's total term frequency
     docid_t nLastDocID_;	///current added doc id
+
+    string indexLevel_;
 };
 
 
