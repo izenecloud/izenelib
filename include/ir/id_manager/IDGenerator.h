@@ -274,6 +274,7 @@ template <typename NameString, typename NameID,
 UniqueIDGenerator<NameString, NameID,
     LockType, MinValueID, MaxValueID>::~UniqueIDGenerator()
 {
+    close();
 } // end - ~UniqueIDGenerator()
 
 template <typename NameString, typename NameID,
