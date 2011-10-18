@@ -388,6 +388,14 @@ public:
 
 }
 
+////////////////////////////////////////////////////////////////////////////////
+//
+//MatrixDB: Persistent matrix data with two features:
+// 1. Parametering cache size according to all matrix elements, instead of row numbers
+// 2. Write-back (or Write-behind) cache instead of Write through, which means writing is done 
+//     only to the cache. A modified cache block is written back to the store, just before it is replaced.
+//
+////////////////////////////////////////////////////////////////////////////////
 template<
 typename KeyType,
 typename ElementType,
