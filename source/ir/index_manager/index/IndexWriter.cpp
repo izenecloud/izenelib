@@ -167,7 +167,7 @@ void IndexWriter::updateRtypeDocument(IndexerDocument& oldDoc, IndexerDocument& 
     DocId uniqueID;
     doc.getDocId(uniqueID);
 
-    if(doc.getId() > pBarrelsInfo_->maxDocId())
+    if(uniqueID.docId > pBarrelsInfo_->maxDocId())
         return;
     pIndexBarrelWriter_->updateDocument(oldDoc, doc);
 }
