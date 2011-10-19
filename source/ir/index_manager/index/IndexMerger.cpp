@@ -195,8 +195,16 @@ void IndexMerger::outputNewBarrel(MergeBarrelQueue* pBarrelQueue, const string& 
     IndexOutput* pVocStream = pDirectory_->createOutput(name);
     name = newBarrelName + ".dfp";
     IndexOutput* pDStream = pDirectory_->createOutput(name);
-    name = newBarrelName + ".pop";
-    IndexOutput* pPStream = pDirectory_->createOutput(name);
+    IndexOutput* pPStream;
+    if(pIndexer_->pConfigurationManager_->indexStrategy_.indexLevel_ == "wordlevel")
+    {
+        name = newBarrelName + ".pop";
+        pPStream = pDirectory_->createOutput(name);
+    }
+    else
+    {
+        pPStream = NULL;
+    }
 
     OutputDescriptor outputDesc(pVocStream,pDStream,pPStream,true);
     outputDesc.setBarrelName(newBarrelName);
@@ -282,7 +290,7 @@ void IndexMerger::outputNewBarrel(MergeBarrelQueue* pBarrelQueue, const string& 
                         {
                             if (pFieldMerger == NULL)
                             {
-                                pFieldMerger = new FieldMerger(needSortingMerge, pIndexer_->getSkipInterval(), pIndexer_->getMaxSkipLevel());
+                                pFieldMerger = new FieldMerger(needSortingMerge, pIndexer_->getSkipInterval(), pIndexer_->getMaxSkipLevel(), pIndexer_->pConfigurationManager_->indexStrategy_.indexLevel_);
                                 pFieldMerger->setDirectory(pDirectory_);
                                 if(NULL == pIndexer_->getIndexWriter()->pMemCache_) pIndexer_->getIndexWriter()->createMemCache();
                                 pFieldMerger->initPostingMerger(
@@ -314,7 +322,8 @@ void IndexMerger::outputNewBarrel(MergeBarrelQueue* pBarrelQueue, const string& 
 
                     vocOff2 = pVocStream->getFilePointer();
                     dfiOff2 = pDStream->getFilePointer();
-                    ptiOff2 = outputDesc.getPPostingOutput()->getFilePointer();
+                    if (outputDesc.getPPostingOutput())
+                        ptiOff2 = outputDesc.getPPostingOutput()->getFilePointer();
                     pFieldInfo->setDistinctNumTerms(pFieldMerger->numMergedTerms());
 
                     pFieldInfo->setLength(vocOff2-vocOff1,dfiOff2-dfiOff1,ptiOff2-ptiOff1);

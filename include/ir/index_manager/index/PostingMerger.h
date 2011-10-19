@@ -31,7 +31,8 @@ public:
         CompressionType compressType, 
         bool optimize, 
         bool requireIntermediateFileForMerging,
-        MemCache* pMemCache
+        MemCache* pMemCache,
+        const string& indexLevel
     );
 
     virtual ~PostingMerger();
@@ -181,6 +182,8 @@ private:
     bool optimize_; /// converting BYTEALIGN  to BLOCK or CHUNK when TRUE
 
     bool ownMemCache_;
+
+    string indexLevel_;
 };
 
 }

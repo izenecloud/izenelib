@@ -8,7 +8,7 @@
 
 using namespace izenelib::ir::indexmanager;
 
-FieldMerger::FieldMerger(bool sortingMerge, int skipInterval, int maxSkipLevel)
+FieldMerger::FieldMerger(bool sortingMerge, int skipInterval, int maxSkipLevel, const string& indexLevel)
         :sortingMerge_(sortingMerge)
         ,skipInterval_(skipInterval)
         ,maxSkipLevel_(maxSkipLevel)
@@ -25,6 +25,7 @@ FieldMerger::FieldMerger(bool sortingMerge, int skipInterval, int maxSkipLevel)
         ,nMergedTerms_(0)
         ,pDocFilter_(0)
         ,pMemCache_(0)
+        ,indexLevel_(indexLevel)
 {
 }
 
@@ -74,7 +75,7 @@ void FieldMerger::initPostingMerger(
     MemCache* pMemCache)
 {
     if (pPostingMerger_ == NULL)
-        pPostingMerger_ = new PostingMerger(skipInterval_, maxSkipLevel_, compressType, optimize, requireIntermediateFileForMerging, pMemCache);
+        pPostingMerger_ = new PostingMerger(skipInterval_, maxSkipLevel_, compressType, optimize, requireIntermediateFileForMerging, pMemCache, indexLevel_);
 }
 
 fileoffset_t FieldMerger::merge(OutputDescriptor* pOutputDescriptor)
@@ -272,7 +273,7 @@ void FieldMerger::sortingMerge(FieldMergeInfo** ppMergeInfos,int32_t numInfos,Te
         else
             postingIterator.addTermPosition(pPosition, pDocFilter_);
     }
-    RTPostingWriter* newPosting = new RTPostingWriter(pMemCache_, skipInterval_, maxSkipLevel_, "wordlevel");
+    RTPostingWriter* newPosting = new RTPostingWriter(pMemCache_, skipInterval_, maxSkipLevel_, indexLevel_);
 
     docid_t docId = 0;
     while(postingIterator.next())
