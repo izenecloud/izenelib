@@ -195,15 +195,11 @@ void IndexMerger::outputNewBarrel(MergeBarrelQueue* pBarrelQueue, const string& 
     IndexOutput* pVocStream = pDirectory_->createOutput(name);
     name = newBarrelName + ".dfp";
     IndexOutput* pDStream = pDirectory_->createOutput(name);
-    IndexOutput* pPStream;
+    IndexOutput* pPStream = NULL;
     if(pIndexer_->pConfigurationManager_->indexStrategy_.indexLevel_ == "wordlevel")
     {
         name = newBarrelName + ".pop";
         pPStream = pDirectory_->createOutput(name);
-    }
-    else
-    {
-        pPStream = NULL;
     }
 
     OutputDescriptor outputDesc(pVocStream,pDStream,pPStream,true);

@@ -174,11 +174,9 @@ void PostingMerger::mergeWith(MemPostingReader* pInMemoryPosting)
     pInMemoryPosting->pPostingWriter_->flushLastDoc(true);
 
     IndexOutput* pDOutput = pOutputDescriptor_->getDPostingOutput();
-    IndexOutput* pPOutput;
+    IndexOutput* pPOutput = NULL;
     if (pOutputDescriptor_->getPPostingOutput())
         pPOutput = pOutputDescriptor_->getPPostingOutput();
-    else
-        pPOutput = NULL;
 
     if (bFirstPosting_)///first posting
     {
@@ -283,17 +281,13 @@ void PostingMerger::mergeWith(MemPostingReader* pInMemoryPosting)
 void PostingMerger::mergeWith(RTDiskPostingReader* pOnDiskPosting)
 {
     IndexOutput* pDOutput = pOutputDescriptor_->getDPostingOutput();
-    IndexOutput* pPOutput;
+    IndexOutput* pPOutput = NULL;
     if(pOutputDescriptor_->getPPostingOutput())
         pPOutput = pOutputDescriptor_->getPPostingOutput();
-    else
-        pPOutput = NULL;
     IndexInput*	pDInput = pOnDiskPosting->getInputDescriptor()->getDPostingInput();
-    IndexInput* pPInput;
+    IndexInput* pPInput = NULL;
     if (pOnDiskPosting->getInputDescriptor()->getPPostingInput())
         pPInput = pOnDiskPosting->getInputDescriptor()->getPPostingInput();
-    else
-        pPInput = NULL;
 
     if (bFirstPosting_)///first posting
     {
@@ -378,17 +372,13 @@ void PostingMerger::mergeWith(RTDiskPostingReader* pOnDiskPosting)
 void PostingMerger::mergeWith_GC(RTDiskPostingReader* pOnDiskPosting,BitVector* pFilter)
 {
     IndexOutput* pDOutput = pOutputDescriptor_->getDPostingOutput();
-    IndexOutput* pPOutput;
+    IndexOutput* pPOutput = NULL;
     if (pOutputDescriptor_->getPPostingOutput())
         pPOutput = pOutputDescriptor_->getPPostingOutput();
-    else
-        pPOutput = NULL;
     IndexInput*	pDInput = pOnDiskPosting->getInputDescriptor()->getDPostingInput();
-    IndexInput* pPInput;
+    IndexInput* pPInput = NULL;
     if(pOnDiskPosting->getInputDescriptor()->getPPostingInput())
         pPInput = pOnDiskPosting->getInputDescriptor()->getPPostingInput();
-    else
-        pPInput = NULL;
 
     count_t nODDF = pOnDiskPosting->postingDesc_.df;
     if(nODDF <= 0)
@@ -438,11 +428,9 @@ void PostingMerger::mergeWith_GC(RTDiskPostingReader* pOnDiskPosting,BitVector* 
         pDocIndexOutput = pDOutput;
 	
     fileoffset_t oldDOff = pDocIndexOutput->getLength();
-    fileoffset_t oldPOff;
+    fileoffset_t oldPOff = -1;
     if (pPOutput)
         oldPOff = pPOutput->getFilePointer();
-    else
-        oldPOff = 0;
 
     while (nODDF > 0)
     {
@@ -459,7 +447,10 @@ void PostingMerger::mergeWith_GC(RTDiskPostingReader* pOnDiskPosting,BitVector* 
             if(pSkipListMerger_)
             {
                 pSkipListMerger_->setBasePoint(0, postingDesc_.length, postingDesc_.plength);
-                pSkipListMerger_->addSkipPoint(nLastDocID,pDocIndexOutput->getLength(),pPOutput->getFilePointer()-postingDesc_.poffset);
+                if(pPOutput)
+                    pSkipListMerger_->addSkipPoint(nLastDocID,pDocIndexOutput->getLength(),pPOutput->getFilePointer()-postingDesc_.poffset);
+                else
+                    pSkipListMerger_->addSkipPoint(nLastDocID,pDocIndexOutput->getLength(),-1);
             }
         }
         else ///this document has been deleted
@@ -506,11 +497,9 @@ void PostingMerger::mergeWith_GC(RTDiskPostingReader* pOnDiskPosting,BitVector* 
 
 void PostingMerger::mergeWith(BlockPostingReader* pPosting,BitVector* pFilter)
 {
-    IndexInput* pPInput;
+    IndexInput* pPInput = NULL;
     if ( pPosting->inputDescriptorPtr_->getPPostingInput())
         pPInput = pPosting->inputDescriptorPtr_->getPPostingInput();
-    else
-        pPInput = NULL;
 
     if (bFirstPosting_)///first posting
     {
@@ -640,11 +629,9 @@ void PostingMerger::mergeWith(BlockPostingReader* pPosting,BitVector* pFilter)
 void PostingMerger::mergeWith(ChunkPostingReader* pPosting,BitVector* pFilter)
 {
     IndexInput*	pDInput = pPosting->inputDescriptorPtr_->getDPostingInput();
-    IndexInput*	pPInput;
+    IndexInput*	pPInput = NULL;
     if(pPosting->inputDescriptorPtr_->getPPostingInput())
         pPInput = pPosting->inputDescriptorPtr_->getPPostingInput();
-    else
-        pPInput = NULL;
 
     if (bFirstPosting_)///first posting
     {
@@ -1024,8 +1011,8 @@ fileoffset_t PostingMerger::endMerge_Block()
     	}
 
     	++current_block_id_;
-    	if(pPosDataPool_)
-    	{
+        if(pPosDataPool_)
+        {
             pPosDataPool_->addPOSChunk(chunk_);
             pPosDataPool_->truncTailChunk();
             pFixedSkipListWriter_->addSkipPoint(blockEncoder_.last_doc_id_, blockEncoder_.num_doc_ids(),pPosDataPool_->getLength());

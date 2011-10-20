@@ -209,7 +209,7 @@ void CollectionIndexer::write(OutputDescriptor* desc)
     if (desc->getPPostingOutput())
         pPOutput = desc->getPPostingOutput();
 
-    fileoffset_t vocOff1,vocOff2,dfiOff1,dfiOff2,ptiOff1 = 0,ptiOff2 = 0;
+    fileoffset_t vocOff1,vocOff2,dfiOff1,dfiOff2,ptiOff1 = -1,ptiOff2 = -1;
     fileoffset_t vocOffset;
 
     FieldIndexer* pFieldIndexer;
