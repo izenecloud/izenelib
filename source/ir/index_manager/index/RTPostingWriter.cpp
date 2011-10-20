@@ -29,10 +29,9 @@ RTPostingWriter::RTPostingWriter(MemCache* pCache, int skipInterval, int maxSkip
         ,indexLevel_(indexLevel)
 {
     pDocFreqList_ = new VariantDataPool(pCache);
+    pLocList_ = NULL;
     if(indexLevel == "wordlevel")
         pLocList_  = new VariantDataPool(pCache);
-    else
-        pLocList_ = NULL;
     if(skipInterval_> 0 && maxSkipLevel_ > 0)
         pSkipListWriter_ = new SkipListWriter(skipInterval_,maxSkipLevel_,pMemCache_);
 }
@@ -73,7 +72,12 @@ void RTPostingWriter::write(OutputDescriptor* pOutputDescriptor, TermInfo& termI
     termInfo.lastDocID_ = nLastDocID_;
 
     if(pSkipListWriter_ && nDF_ > 0 && nDF_ % skipInterval_ == 0)
-        pSkipListWriter_->addSkipPoint(nLastDocID_,pDocFreqList_->getLength(),pLocList_->getLength());
+    {
+        if (pLocList_)
+            pSkipListWriter_->addSkipPoint(nLastDocID_,pDocFreqList_->getLength(),pLocList_->getLength());
+        else
+            pSkipListWriter_->addSkipPoint(nLastDocID_,pDocFreqList_->getLength(),0);
+    }
 
     IndexOutput* pDOutput = pOutputDescriptor->getDPostingOutput();
 
@@ -104,8 +108,7 @@ void RTPostingWriter::write(OutputDescriptor* pOutputDescriptor, TermInfo& termI
         termInfo.positionPointer_ = pPOutput->getFilePointer();
 
         ///write position posting data
-        if (pLocList_)
-            pLocList_->write(pPOutput);
+        pLocList_->write(pPOutput);
 
         termInfo.positionPostingLen_ = pPOutput->getFilePointer() - termInfo.positionPointer_;
     }
@@ -114,7 +117,7 @@ void RTPostingWriter::write(OutputDescriptor* pOutputDescriptor, TermInfo& termI
 void RTPostingWriter::reset()
 {
     pDocFreqList_->reset();
-    if(indexLevel_ == "wordlevel" && pLocList_)
+    if(pLocList_)
         pLocList_->reset();
 
     nCTF_ = 0;
@@ -132,7 +135,7 @@ void RTPostingWriter::add(docid_t docid, loc_t location)
     if (docid == nLastDocID_)
     {
         ///see it before,only position is needed
-        if(indexLevel_ == "wordlevel" && pLocList_)
+        if(pLocList_)
             pLocList_->addVData32(location - nLastLoc_);
         nCurTermFreq_++;
         nLastLoc_ = location;
@@ -156,10 +159,8 @@ void RTPostingWriter::add(docid_t docid, loc_t location)
                 pSkipListWriter_->addSkipPoint(nLastDocID_,pDocFreqList_->getLength(),0);
         }
 
-
         pDocFreqList_->addVData32(docid - nLastDocID_);
-
-        if(indexLevel_ == "wordlevel" && pLocList_)
+        if(pLocList_)
             pLocList_->addVData32(location);
 
         nCTF_ += nCurTermFreq_;
@@ -191,7 +192,7 @@ void RTPostingWriter::flushLastDoc(bool bTruncTail)
         if (bTruncTail)
         {
             pDocFreqList_->truncTailChunk();///update real size
-            if( indexLevel_ == "wordlevel" && pLocList_ )
+            if( pLocList_ )
                 pLocList_->truncTailChunk();///update real size
         }
         nCTF_ += nCurTermFreq_;
@@ -200,7 +201,7 @@ void RTPostingWriter::flushLastDoc(bool bTruncTail)
     else if (bTruncTail)
     {
         pDocFreqList_->truncTailChunk();///update real size
-        if(indexLevel_ == "wordlevel" && pLocList_)
+        if( pLocList_ )
             pLocList_->truncTailChunk();///update real size
     }
 }
