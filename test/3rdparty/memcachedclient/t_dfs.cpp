@@ -1,6 +1,5 @@
 #include <iostream>
 #include <fstream>
-#include <libmemcached/memcached.h>
 
 #include <cstdio>
 #include <sys/time.h>
@@ -189,53 +188,5 @@ int main(int argv, char** argc)
         copyfile(argc[2], argc[3], buffer_size);
     }
 
-    return 0;
-
-    // --------
-
-    const char *config_string = "--SERVER=localhost";
-
-    memcached_st * memc = memcached(config_string, strlen(config_string));
-
-    // Adding a value to the server
-    const char* key = "food";
-    const char* value = "value";
-
-    memcached_return_t rc= memcached_set(memc, key, strlen(key), value, strlen(value), (time_t)0, (uint32_t)0);
-
-    if (rc != MEMCACHED_SUCCESS)
-    {
-        cout << "Failed to add value" <<endl;
-    }
-    else
-    {
-        cout << "Successed to add value." <<endl;
-    }
-
-    // fetch
-    //memcached_return_t rc;
-    const char *keys[]= {"fudge", "son", "food"};
-    size_t key_length[]= {5, 3, 4};
-    unsigned int x;
-    uint32_t flags;
-
-    char return_key[MEMCACHED_MAX_KEY];
-    size_t return_key_length;
-    char *return_value;
-    size_t return_value_length;
-
-    rc= memcached_mget(memc, keys, key_length, 3);
-
-    x= 0;
-    while ((return_value= memcached_fetch(memc, return_key, &return_key_length,
-                                          &return_value_length, &flags, &rc)))
-    {
-      cout << return_value <<endl;
-      free(return_value);
-      x++;
-    }
-
-
-    memcached_free(memc);
     return 0;
 }
