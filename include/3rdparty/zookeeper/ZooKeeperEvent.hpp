@@ -48,6 +48,10 @@ public:
         else if (state == ZOO_ASSOCIATING_STATE) {
             return "ZOO_ASSOCIATING_STATE";
         }
+        else if(state == ZOO_CONNECTED_STATE)
+        {
+            return "ZOO_CONNECTED_STATE";
+        }
         else if (state == ZOO_EXPIRED_SESSION_STATE) {
             return "ZOO_EXPIRED_SESSION_STATE";
         }

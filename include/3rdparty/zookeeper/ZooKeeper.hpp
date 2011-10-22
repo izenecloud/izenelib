@@ -122,6 +122,10 @@ public:
         return zkError_;
     }
 
+    int getTimeOut()
+    {
+        return recvTimeout_;
+    }
 
 
 public:
