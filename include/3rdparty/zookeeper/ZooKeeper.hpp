@@ -122,6 +122,11 @@ public:
         return zkError_;
     }
 
+    std::string& getHosts()
+    {
+        return hosts_;
+    }
+
     int getTimeOut()
     {
         return recvTimeout_;
