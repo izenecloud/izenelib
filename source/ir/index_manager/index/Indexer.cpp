@@ -298,7 +298,12 @@ int Indexer::removeDocument(collectionid_t colID, docid_t docId)
 
 void Indexer::flush()
 {
-    pIndexWriter_->flush();
+    try{
+        pIndexWriter_->flush();
+    }catch(EmptyBarrelException& e)
+    {
+        LOG(WARNING) << "Empty barrels "<<e.what() ;
+    }
     if(pBTreeIndexer_) pBTreeIndexer_->flush();
     pIndexReader_->flush();
 

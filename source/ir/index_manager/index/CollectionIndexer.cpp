@@ -222,7 +222,7 @@ void CollectionIndexer::write(OutputDescriptor* desc)
             emptyBarrel = false;
         }
     }
-    if(emptyBarrel) SF1V5_THROW(ERROR_FILEIO,"CollectionIndexer::write empty barrels");
+    if(emptyBarrel)  throw EmptyBarrelException("CollectionIndexer::write empty barrels");
     for (map<string, boost::shared_ptr<FieldIndexer> >::iterator iter = 
                     fieldIndexerMap_.begin(); iter != fieldIndexerMap_.end(); ++iter)
     {

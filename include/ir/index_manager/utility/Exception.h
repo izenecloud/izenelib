@@ -38,8 +38,7 @@ enum ExceptionCode
     ERROR_INDEX_COLLAPSE,
     ERROR_VERSION,
     ERROR_ASSERT,
-    ERROR_NETWORK,
-    ERROR_DATANODE,
+    ERROR_EMPTY_BARREL,
     NUM_ERRORS
 };
 
@@ -179,11 +178,11 @@ public:
     : IndexManagerException(ERROR_OUTOFMEM, msg)
     {}
 };
-class NetworkException : public IndexManagerException
+class EmptyBarrelException : public IndexManagerException
 {
 public:
-    NetworkException(const std::string& msg)
-    : IndexManagerException(ERROR_NETWORK, msg)
+    EmptyBarrelException(const std::string& msg)
+    : IndexManagerException(ERROR_EMPTY_BARREL, msg, __FILE__, __LINE__)
     {}
 };
 
