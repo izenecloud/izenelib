@@ -53,6 +53,26 @@ FieldIndexer::~FieldIndexer()
     pMemCache_ = NULL;
 }
 
+bool FieldIndexer::isEmpty()
+{
+    if (pIndexer_->isRealTime())
+        return postingMap_.size() == 0;
+    else
+        return isBatchEmpty_();
+}
+
+bool FieldIndexer::isBatchEmpty_()
+{
+    if(hits_.size() == 0) return true;
+
+    if(recordCount_ == 0)
+    {
+        int iHits = pHits_ - hits_;
+        if(iHits == 0) return true;
+    }
+    return false;
+}
+
 void FieldIndexer::setHitBuffer(size_t size) 
 {
     iHitsMax_ = size;
@@ -69,7 +89,7 @@ void FieldIndexer::setHitBuffer(size_t size)
 *  uint64 nextstart (file offset to location of next group)
 *  sorted records
 ************************************/
-void FieldIndexer::writeHitBuffer(int iHits)
+void FieldIndexer::writeHitBuffer_(int iHits)
 {
     recordCount_ += iHits;
     bufferSort ( &hits_[0], iHits, CmpTermId_fn() );
@@ -142,7 +162,7 @@ void FieldIndexer::addField(docid_t docid, boost::shared_ptr<LAInput> laInput)
                 continue;
 
             int iHits = pHits_ - hits_;
-            writeHitBuffer(iHits);
+            writeHitBuffer_(iHits);
             pHits_ = hits_;
         }
     }
@@ -234,13 +254,11 @@ fileoffset_t FieldIndexer::write(OutputDescriptor* pWriterDesc)
     }
     else
     {
-        if(hits_.size() == 0) SF1V5_THROW(ERROR_FILEIO,"FieldIndexer::write empty fields");
-        if( !boost::filesystem::exists(sorterFullPath_) )
+        if( !boost::filesystem::exists(sorterFullPath_) || isBatchEmpty_())
         {
             fileoffset_t vocDescOffset = pVocWriter->getFilePointer();
             int64_t vocLength = vocDescOffset - vocOffset;
 		
-            //SF1V5_THROW(ERROR_FILEIO,"Open file error: " + sorterFullPath_);
             pVocWriter->writeLong(vocLength);	///<VocLength(Int64)>
             pVocWriter->writeLong(termCount_);	///<TermCount(Int64)>
             ///end write vocabulary descriptor
@@ -250,7 +268,7 @@ fileoffset_t FieldIndexer::write(OutputDescriptor* pWriterDesc)
         int iHits = pHits_ - hits_;
         if(iHits > 0)
         {
-            writeHitBuffer(iHits);
+            writeHitBuffer_(iHits);
         }
         fseek(f_, 0, SEEK_SET);
         fwrite(&recordCount_, sizeof(uint64_t), 1, f_);

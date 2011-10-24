@@ -19,7 +19,6 @@ string IndexManagerException::s_errorStrings[NUM_ERRORS] =
     "Index file collpased",			//INDEX_COLLAPSE_ERROR
     "Version error",				//VERSION_ERROR
     "Assert error",				//ASSERT_ERROR
-    "Network error",				//NETWORK_ERROR
-    "Datanode error"				//DATANODE_ERROR
+    "Empty index barrel"			//EMPTY_BARREL_ERROR
 };
 
