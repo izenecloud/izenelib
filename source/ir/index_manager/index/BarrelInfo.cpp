@@ -95,8 +95,12 @@ void BarrelInfo::write(Directory* pDirectory)
         s = barrelName + ".dfp";
         IndexOutput* pDOutput = pDirectory->createOutput(s.c_str());
 
-        s = barrelName + ".pop";
-        IndexOutput* pPOutput = pDirectory->createOutput(s.c_str());
+        IndexOutput* pPOutput = NULL;
+        if (indexLevel_ == WORDLEVEL)
+        {
+            s = barrelName + ".pop";
+            pPOutput = pDirectory->createOutput(s.c_str());
+        }
 
         OutputDescriptor desc(pVocOutput,pDOutput,pPOutput,true);
         // write ".bti" and "doclen.map"
@@ -146,10 +150,11 @@ void BarrelInfo::setDirty()
 
 //////////////////////////////////////////////////////////////////////////
 //
-BarrelsInfo::BarrelsInfo()
+BarrelsInfo::BarrelsInfo(IndexLevel indexLevel)
         :version(SF1_VERSION)
         ,nBarrelCounter(0)
         ,maxDoc(0)
+        ,indexLevel_(indexLevel)
 {
 }
 
@@ -241,7 +246,7 @@ void BarrelsInfo::read(Directory* pDirectory, const char* name)
             while (pBarrelsItem->hasNextElement(iter))
             {
                 pBarrelItem = pBarrelsItem->getNextElement(iter);
-                pBarrelInfo = new BarrelInfo();
+                pBarrelInfo = new BarrelInfo(indexLevel_);
 
                 ///get <name></name> element
                 pItem = pBarrelItem->getElementByName("name");
@@ -532,7 +537,7 @@ void BarrelsInfo::sort(Directory* pDirectory)
     DVLOG(2) << "=> BarrelsInfo::sort(), barrel count: " << barrelInfos.size() << ", max doc: " << maxDoc << " ...";
 
     BarrelInfo* pBaInfo;
-    BarrelsInfo newBarrelsInfo;
+    BarrelsInfo newBarrelsInfo(indexLevel_);
 
     vector<BarrelInfo*>::iterator iter;
     if (barrelInfos.size() > 1)

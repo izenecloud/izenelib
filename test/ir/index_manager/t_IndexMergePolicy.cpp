@@ -6,6 +6,7 @@
 #include <ir/index_manager/index/BTPolicy.h>
 #include <ir/index_manager/index/OptimizePolicy.h>
 #include <ir/index_manager/index/BarrelInfo.h>
+#include <ir/index_manager/utility/IndexManagerConfig.h>
 
 #include <string>
 #include <sstream> // std::ostringstream
@@ -107,9 +108,9 @@ const int CONFIG_NUM = sizeof(BARREL_CONFIGS)/sizeof(BarrelConfig);
  * @param docNum the number of doc contained in new @c BarrelInfo
  * @return the new created instance
  */
-BarrelInfo* newBarrelInfo(BarrelsInfo* pBarrelsInfo, int docNum)
+BarrelInfo* newBarrelInfo(BarrelsInfo* pBarrelsInfo, int docNum, IndexLevel indexLevel)
 {
-    BarrelInfo* pNewBarrelInfo = new BarrelInfo(pBarrelsInfo->newBarrel(), docNum);
+    BarrelInfo* pNewBarrelInfo = new BarrelInfo(pBarrelsInfo->newBarrel(), docNum, indexLevel);
     pNewBarrelInfo->baseDocIDMap[IndexerTestFixture::COLLECTION_ID] = pBarrelsInfo->maxDocId() + 1;
     pNewBarrelInfo->maxDocId = pBarrelsInfo->maxDocId() + docNum;
     pNewBarrelInfo->setSearchable(true);
@@ -125,7 +126,7 @@ BarrelInfo* newBarrelInfo(BarrelsInfo* pBarrelsInfo, int docNum)
  * @p pIndexMergePolicy the instance of merge policy
  * @p barrelConfig the parameter of barrels to merge
  */
-void checkAddToMerge(IndexMergePolicy* pIndexMergePolicy, const BarrelConfig& barrelConfig)
+void checkAddToMerge(IndexMergePolicy* pIndexMergePolicy, const BarrelConfig& barrelConfig, IndexLevel indexLevel)
 {
     IndexerTestConfig config = {0, 0, 0, "default", true};
 
@@ -143,7 +144,7 @@ void checkAddToMerge(IndexMergePolicy* pIndexMergePolicy, const BarrelConfig& ba
         if(docNum == BarrelConfig::END_DOC_NUM)
             break;
 
-        BarrelInfo* pNewBarrelInfo = newBarrelInfo(pBarrelsInfo, docNum);
+        BarrelInfo* pNewBarrelInfo = newBarrelInfo(pBarrelsInfo, docNum, indexLevel);
         mockIndexMerger.addToMerge(pNewBarrelInfo);
         docNumSum += docNum;
     }
@@ -158,7 +159,7 @@ void checkAddToMerge(IndexMergePolicy* pIndexMergePolicy, const BarrelConfig& ba
  * @p barrelConfig the parameter of barrels to merge
  * @note @p barrelConfig.mergedBarrelNum_ is ignored, as this function always check against 1.
  */
-void checkOptimizeMerge(const BarrelConfig& barrelConfig)
+void checkOptimizeMerge(const BarrelConfig& barrelConfig, IndexLevel indexLevel)
 {
     IndexerTestConfig config = {0, 0, 0, "default", true};
 
@@ -178,7 +179,7 @@ void checkOptimizeMerge(const BarrelConfig& barrelConfig)
         if(docNum == BarrelConfig::END_DOC_NUM)
             break;
 
-        newBarrelInfo(pBarrelsInfo, docNum);
+        newBarrelInfo(pBarrelsInfo, docNum, indexLevel);
         docNumSum += docNum;
     }
 
@@ -194,14 +195,16 @@ BOOST_AUTO_TEST_SUITE( t_IndexMergePolicy )
 
 BOOST_AUTO_TEST_CASE(addToMerge)
 {
+    IndexLevel indexl = WORDLEVEL;
     for(int i=0; i<CONFIG_NUM; ++i)
-        checkAddToMerge(new BTPolicy, BARREL_CONFIGS[i]);
+        checkAddToMerge(new BTPolicy, BARREL_CONFIGS[i], indexl);
 }
 
 BOOST_AUTO_TEST_CASE(optimizeMerge)
 {
+    IndexLevel indexl = WORDLEVEL;
     for(int i=0; i<CONFIG_NUM; ++i)
-        checkOptimizeMerge(BARREL_CONFIGS[i]);
+        checkOptimizeMerge(BARREL_CONFIGS[i], indexl);
 }
 
 BOOST_AUTO_TEST_SUITE_END()

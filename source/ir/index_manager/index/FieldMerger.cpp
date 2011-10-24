@@ -8,7 +8,7 @@
 
 using namespace izenelib::ir::indexmanager;
 
-FieldMerger::FieldMerger(bool sortingMerge, int skipInterval, int maxSkipLevel, const string& indexLevel)
+FieldMerger::FieldMerger(bool sortingMerge, int skipInterval, int maxSkipLevel, IndexLevel indexLevel)
         :sortingMerge_(sortingMerge)
         ,skipInterval_(skipInterval)
         ,maxSkipLevel_(maxSkipLevel)

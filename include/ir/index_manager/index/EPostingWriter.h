@@ -14,6 +14,7 @@
 #include <ir/index_manager/index/PostingWriter.h>
 #include <ir/index_manager/index/BlockDataPool.h>
 #include <ir/index_manager/index/FixedBlockSkipListWriter.h>
+#include <ir/index_manager/utility/IndexManagerConfig.h>
 
 NS_IZENELIB_IR_BEGIN
 
@@ -27,7 +28,7 @@ namespace indexmanager{
 class BlockPostingWriter:public PostingWriter
 {
 public:
-    BlockPostingWriter(MemCache* pMemCache, const string& indexLevel);
+    BlockPostingWriter(MemCache* pMemCache, IndexLevel indexLevel);
 
     ~BlockPostingWriter();
     /**
@@ -96,7 +97,7 @@ protected:
 
     uint32_t current_block_id_;
 
-    string indexLevel_;
+    IndexLevel indexLevel_;
 };
 
 
@@ -110,7 +111,7 @@ class SkipListWriter;
 class ChunkPostingWriter:public PostingWriter
 {
 public:
-    ChunkPostingWriter(MemCache* pMemCache, int skipInterval, int maxSkipLevel, const string& indexLevel);
+    ChunkPostingWriter(MemCache* pMemCache, int skipInterval, int maxSkipLevel, IndexLevel indexLevel);
 
     ~ChunkPostingWriter();
     /**
@@ -181,7 +182,7 @@ protected:
     count_t nCTF_;			///Collection's total term frequency
     docid_t nLastDocID_;	///current added doc id
 
-    string indexLevel_;
+    IndexLevel indexLevel_;
 };
 
 

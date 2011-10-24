@@ -15,7 +15,7 @@ NS_IZENELIB_IR_BEGIN
 
 namespace indexmanager{
 
-RTPostingWriter::RTPostingWriter(MemCache* pCache, int skipInterval, int maxSkipLevel, const string& indexLevel)
+RTPostingWriter::RTPostingWriter(MemCache* pCache, int skipInterval, int maxSkipLevel, IndexLevel indexLevel)
         :pMemCache_(pCache)
         ,skipInterval_(skipInterval)
         ,maxSkipLevel_(maxSkipLevel)
@@ -30,7 +30,7 @@ RTPostingWriter::RTPostingWriter(MemCache* pCache, int skipInterval, int maxSkip
 {
     pDocFreqList_ = new VariantDataPool(pCache);
     pLocList_ = NULL;
-    if(indexLevel == "wordlevel")
+    if(indexLevel == WORDLEVEL)
         pLocList_  = new VariantDataPool(pCache);
     if(skipInterval_> 0 && maxSkipLevel_ > 0)
         pSkipListWriter_ = new SkipListWriter(skipInterval_,maxSkipLevel_,pMemCache_);
@@ -101,7 +101,7 @@ void RTPostingWriter::write(OutputDescriptor* pOutputDescriptor, TermInfo& termI
 	
     termInfo.docPostingLen_ = pDOutput->getFilePointer() - termInfo.docPointer_;
 
-    if(indexLevel_ == "wordlevel")
+    if(indexLevel_ == WORDLEVEL)
     {
         IndexOutput* pPOutput = pOutputDescriptor->getPPostingOutput();
 

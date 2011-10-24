@@ -9,7 +9,7 @@ namespace indexmanager{
 //BlockPostingWriter
 ///////////////////////////////////////////////////////////////////////////////////
 
-BlockPostingWriter::BlockPostingWriter(MemCache* pCache, const string& indexLevel)
+BlockPostingWriter::BlockPostingWriter(MemCache* pCache, IndexLevel indexLevel)
         :pMemCache_(pCache)
         ,current_nocomp_block_pointer_(0)
         ,position_buffer_pointer_(0)
@@ -21,10 +21,9 @@ BlockPostingWriter::BlockPostingWriter(MemCache* pCache, const string& indexLeve
     ,indexLevel_(indexLevel)
 {
     pBlockDataPool_ = new BlockDataPool(pCache);
-    if(indexLevel == "wordlevel")
-        pPosDataPool_ = new ChunkDataPool(pCache) ;
-    else
-        pPosDataPool_ = NULL;
+    pPosDataPool_ = NULL;
+    if(indexLevel == WORDLEVEL)
+        pPosDataPool_ = new ChunkDataPool(pCache);
     pSkipListWriter_ = new FixedBlockSkipListWriter(pCache);
     curr_position_buffer_size_ = INIT_POS_CHUNK_SIZE;
     positions_ = (uint32_t*)malloc(curr_position_buffer_size_*sizeof(uint32_t));
@@ -48,7 +47,7 @@ bool BlockPostingWriter::isEmpty()
 void BlockPostingWriter::write(OutputDescriptor* pOutputDescriptor, TermInfo& termInfo)
 {
     flush();
-    if (indexLevel_ == "wordlevel" && pPosDataPool_)
+    if (pPosDataPool_)
         pPosDataPool_->truncTailChunk();
 
     termInfo.docFreq_ = nDF_;
@@ -68,7 +67,7 @@ void BlockPostingWriter::write(OutputDescriptor* pOutputDescriptor, TermInfo& te
 
     termInfo.docPostingLen_ = pDOutput->getFilePointer() - termInfo.docPointer_;
 
-    if (indexLevel_ == "wordlevel")
+    if (indexLevel_ == WORDLEVEL)
     {
         uint32_t num_blocks = termInfo.docPostingLen_ / BLOCK_SIZE;
         ///we reuse "skiplevel " to store the start block id for this posting.
@@ -89,7 +88,7 @@ void BlockPostingWriter::write(OutputDescriptor* pOutputDescriptor, TermInfo& te
 void BlockPostingWriter::reset()
 {
     pBlockDataPool_->reset();
-    if (indexLevel_ == "wordlevel" && pPosDataPool_)
+    if (pPosDataPool_)
         pPosDataPool_->reset();
     pSkipListWriter_->reset();
     current_nocomp_block_pointer_ = 0;
@@ -128,12 +127,16 @@ void BlockPostingWriter::add(docid_t docid, loc_t location)
             {
                 current_block_id_++;
                 pBlockDataPool_->copyBlockData();
-                pSkipListWriter_->addSkipPoint(pBlockDataPool_->blockEncoder_.last_doc_id_, 
+                if(pPosDataPool_)
+                    pSkipListWriter_->addSkipPoint(pBlockDataPool_->blockEncoder_.last_doc_id_,
                                pBlockDataPool_->num_doc_of_curr_block(),pPosDataPool_->getLength());
+                else
+                    pSkipListWriter_->addSkipPoint(pBlockDataPool_->blockEncoder_.last_doc_id_,
+                               pBlockDataPool_->num_doc_of_curr_block(),0);
                 pBlockDataPool_->addBlock();
                 pBlockDataPool_->addChunk(chunk_);
             }
-            if (indexLevel_ == "wordlevel")
+            if (pPosDataPool_)
                 pPosDataPool_->addPOSChunk(chunk_);
             current_nocomp_block_pointer_ = 0;
             position_buffer_pointer_ = 0;
@@ -175,7 +178,7 @@ void BlockPostingWriter::flush()
 
         current_block_id_++;
         pBlockDataPool_->copyBlockData();
-        if (indexLevel_ == "wordlevel")
+        if (pPosDataPool_)
         {
             pPosDataPool_->addPOSChunk(chunk_);
         }
@@ -194,7 +197,7 @@ void BlockPostingWriter::flush()
 //ChunkPostingWriter
 ///////////////////////////////////////////////////////////////////////////////////
 
-ChunkPostingWriter::ChunkPostingWriter(MemCache* pCache,int skipInterval, int maxSkipLevel, const string& indexLevel)
+ChunkPostingWriter::ChunkPostingWriter(MemCache* pCache,int skipInterval, int maxSkipLevel, IndexLevel indexLevel)
         :pMemCache_(pCache)
         ,pSkipListWriter_(0)
         ,skipInterval_(skipInterval)
@@ -209,7 +212,8 @@ ChunkPostingWriter::ChunkPostingWriter(MemCache* pCache,int skipInterval, int ma
 {
     assert(ChunkEncoder::kChunkSize == skipInterval);
     pDocFreqDataPool_ = new ChunkDataPool(pCache);
-    if(indexLevel == "wordlevel")
+    pPosDataPool_ = NULL;
+    if(indexLevel == WORDLEVEL)
         pPosDataPool_ = new ChunkDataPool(pCache) ;
     if(skipInterval_ > 0 && maxSkipLevel_ > 0)
         pSkipListWriter_ = new SkipListWriter(skipInterval_,maxSkipLevel_,pMemCache_);
@@ -236,7 +240,7 @@ void ChunkPostingWriter::write(OutputDescriptor* pOutputDescriptor, TermInfo& te
 {
     flush();
     pDocFreqDataPool_->truncTailChunk();
-    if (indexLevel_ == "wordlevel" && pPosDataPool_)
+    if (pPosDataPool_)
         pPosDataPool_->truncTailChunk();
 	
     termInfo.docFreq_ = nDF_;
@@ -265,7 +269,7 @@ void ChunkPostingWriter::write(OutputDescriptor* pOutputDescriptor, TermInfo& te
 
     termInfo.docPostingLen_ = pDOutput->getFilePointer() - termInfo.docPointer_;
 
-    if(indexLevel_ == "wordlevel")
+    if(indexLevel_ == WORDLEVEL)
     {
         IndexOutput* pPOutput = pOutputDescriptor->getPPostingOutput();
 
@@ -281,7 +285,7 @@ void ChunkPostingWriter::write(OutputDescriptor* pOutputDescriptor, TermInfo& te
 void ChunkPostingWriter::reset()
 {
     pDocFreqDataPool_->reset();
-    if (indexLevel_ == "wordlevel" && pPosDataPool_)
+    if (pPosDataPool_)
         pPosDataPool_->reset();
     if(pSkipListWriter_)
         pSkipListWriter_->reset();
@@ -318,7 +322,7 @@ void ChunkPostingWriter::add(docid_t docid, loc_t location)
         {
             chunk_.encode(doc_ids_, frequencies_, positions_, ChunkEncoder::kChunkSize);
             pDocFreqDataPool_->addDFChunk(chunk_);
-            if (indexLevel_ == "wordlevel" && pPosDataPool_)
+            if (pPosDataPool_)
                 pPosDataPool_->addPOSChunk(chunk_);
             if(pSkipListWriter_)
             {
@@ -350,7 +354,7 @@ void ChunkPostingWriter::flush()
         frequencies_[current_nocomp_block_pointer_++] = nCurTermFreq_; 
         chunk_.encode(doc_ids_, frequencies_, positions_, current_nocomp_block_pointer_);
         pDocFreqDataPool_->addDFChunk(chunk_);
-        if (indexLevel_ == "wordlevel")
+        if (pPosDataPool_)
             pPosDataPool_->addPOSChunk(chunk_);
 
         if(pSkipListWriter_ && nDF_ > 0 && nDF_ % skipInterval_ == 0)

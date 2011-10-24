@@ -17,7 +17,7 @@ PostingMerger::PostingMerger(
     bool optimize, 
     bool requireIntermediateFileForMerging,
     MemCache* pMemCache,
-    const string& indexLevel
+    IndexLevel indexLevel
 )
         :skipInterval_(skipInterval)
         ,maxSkipLevel_(maxSkipLevel)
@@ -141,7 +141,7 @@ void PostingMerger::init()
     positions_ = new uint32_t[curr_position_buffer_size_];
     pFixedSkipListWriter_ = new FixedBlockSkipListWriter(pMemCache_);
 
-    if (indexLevel_ == "wordlevel")
+    if (pPosDataPool_)
         pPosDataPool_ = new ChunkDataPool(pMemCache_) ;
     pDocFreqDataPool_ = new ChunkDataPool(pMemCache_);
 }
@@ -247,7 +247,7 @@ void PostingMerger::mergeWith(MemPostingReader* pInMemoryPosting)
     chunkDesc_.length += (pDocIndexOutput->getLength() - oldDOff);
 
     ///write position posting
-    if (indexLevel_ == "wordlevel")
+    if (indexLevel_ == WORDLEVEL)
     {
         VariantDataChunk* pPChunk = pInMemoryPosting->pPostingWriter_->pLocList_->pHeadChunk_;
         while (pPChunk)
@@ -450,7 +450,7 @@ void PostingMerger::mergeWith_GC(RTDiskPostingReader* pOnDiskPosting,BitVector* 
                 if(pPOutput)
                     pSkipListMerger_->addSkipPoint(nLastDocID,pDocIndexOutput->getLength(),pPOutput->getFilePointer()-postingDesc_.poffset);
                 else
-                    pSkipListMerger_->addSkipPoint(nLastDocID,pDocIndexOutput->getLength(),-1);
+                    pSkipListMerger_->addSkipPoint(nLastDocID,pDocIndexOutput->getLength(),0);
             }
         }
         else ///this document has been deleted
@@ -945,11 +945,9 @@ fileoffset_t PostingMerger::endMerge_ByteAlign()
         return -1;
 
     IndexOutput* pDOutput = pOutputDescriptor_->getDPostingOutput();
-    IndexOutput* pPOutput;
+    IndexOutput* pPOutput = NULL;
     if (pOutputDescriptor_->getPPostingOutput())
         pPOutput = pOutputDescriptor_->getPPostingOutput();
-    else
-        pPOutput = NULL;
 
     termInfo_.docFreq_ = postingDesc_.df;
     termInfo_.ctf_ = postingDesc_.ctf;
@@ -1005,7 +1003,10 @@ fileoffset_t PostingMerger::endMerge_Block()
             pTmpPostingOutput_->writeBytes(block_buffer_, BLOCK_SIZE);
             ++current_block_id_;
 		
-            pFixedSkipListWriter_->addSkipPoint(blockEncoder_.last_doc_id_, blockEncoder_.num_doc_ids(), pPosDataPool_->getLength());
+            if(pPosDataPool_)
+                pFixedSkipListWriter_->addSkipPoint(blockEncoder_.last_doc_id_, blockEncoder_.num_doc_ids(), pPosDataPool_->getLength());
+            else
+                pFixedSkipListWriter_->addSkipPoint(blockEncoder_.last_doc_id_, blockEncoder_.num_doc_ids(), 0);
             blockEncoder_.reset();
             blockEncoder_.addChunk(chunk_);
     	}
@@ -1024,11 +1025,9 @@ fileoffset_t PostingMerger::endMerge_Block()
     }
 
     IndexOutput* pDOutput = pOutputDescriptor_->getDPostingOutput();
-    IndexOutput* pPOutput;
+    IndexOutput* pPOutput = NULL;
     if (pOutputDescriptor_->getPPostingOutput())
         pPOutput = pOutputDescriptor_->getPPostingOutput();
-    else
-        pPOutput = NULL;
 
     termInfo_.docFreq_ = postingDesc_.df;
     termInfo_.ctf_ = postingDesc_.ctf;
@@ -1059,7 +1058,7 @@ fileoffset_t PostingMerger::endMerge_Block()
     ///we reuse "skiplevel " to store the start block id for this posting. 
     termInfo_.skipLevel_ = current_block_id_ - num_blocks; 
 
-    if (indexLevel_ == "wordlevel")
+    if (indexLevel_ == WORDLEVEL)
     {
         termInfo_.positionPointer_ = pPOutput->getFilePointer();
 
@@ -1129,7 +1128,7 @@ fileoffset_t PostingMerger::endMerge_Chunk()
 
     termInfo_.docPostingLen_ = pDOutput->getFilePointer() - termInfo_.docPointer_;
 
-    if (indexLevel_ == "wordlevel")
+    if (indexLevel_ == WORDLEVEL)
     {
         termInfo_.positionPointer_ = pPOutput->getFilePointer();
 

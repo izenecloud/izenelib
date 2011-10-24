@@ -32,7 +32,7 @@ public:
         bool optimize, 
         bool requireIntermediateFileForMerging,
         MemCache* pMemCache,
-        const string& indexLevel
+        IndexLevel indexLevel
     );
 
     virtual ~PostingMerger();
@@ -183,7 +183,7 @@ private:
 
     bool ownMemCache_;
 
-    string indexLevel_;
+    IndexLevel indexLevel_;
 };
 
 }

@@ -17,6 +17,12 @@ NS_IZENELIB_IR_BEGIN
 
 namespace indexmanager{
 
+enum IndexLevel
+{
+    DOCLEVEL,  /// position posting does not create
+    WORDLEVEL ///  position postings create
+};
+
 /**
  * @brief   IndexManagerConfig Holds the configuration data of IndexManager and provides interfaces for the IndexManager
  *          to retrieve the data.
@@ -78,7 +84,7 @@ private:
          */
         int64_t memory_;
 
-        std::string indexLevel_;
+        IndexLevel indexLevel_;
 
         bool indexDocLength_;
 

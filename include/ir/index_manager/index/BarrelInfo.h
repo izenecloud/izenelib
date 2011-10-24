@@ -8,6 +8,7 @@
 #ifndef BARRELINFO_H
 #define BARRELINFO_H
 
+#include <ir/index_manager/utility/IndexManagerConfig.h>
 #include <ir/index_manager/store/Directory.h>
 #include <ir/index_manager/store/IndexInput.h>
 #include <util/izene_log.h>
@@ -34,24 +35,26 @@ enum CompressionType
 class BarrelInfo
 {
 public:
-    BarrelInfo()
+    BarrelInfo(IndexLevel indexLevel)
             : nNumDocs(0)
             , pBarrelWriter(NULL)
             , isUpdate(false)
             , maxDocId(0)
             , searchable(true)
+            , indexLevel_(indexLevel)
             , compressType(BYTEALIGN)
             , isRemoved_(false)
     {
     }
 
-    BarrelInfo(const string& name,count_t count,CompressionType compresstype = BYTEALIGN)
+    BarrelInfo(const string& name,count_t count,IndexLevel indexLevel,CompressionType compresstype = BYTEALIGN)
             : barrelName(name)
             , nNumDocs(count)
             , pBarrelWriter(NULL)
             , isUpdate(false)
             , maxDocId(0)
             , searchable(true)
+            , indexLevel_(indexLevel)
             , compressType(compresstype)
             , isRemoved_(false)
     {
@@ -66,6 +69,7 @@ public:
             , isUpdate(pBarrelInfo->isUpdate)
             , maxDocId(pBarrelInfo->maxDocId)
             , searchable(pBarrelInfo->searchable)
+            , indexLevel_(pBarrelInfo->indexLevel_)
             , compressType(pBarrelInfo->compressType)
             , isRemoved_(pBarrelInfo->isRemoved_)
     {
@@ -232,6 +236,8 @@ public:
     ///all index input instances generated for this barrel
     std::set<IndexInput*> indexInputs;
 
+    IndexLevel indexLevel_;
+
     CompressionType compressType;
 
 private:
@@ -279,7 +285,7 @@ private:
 class BarrelsInfo
 {
 public:
-    BarrelsInfo();
+    BarrelsInfo(IndexLevel indexLevel);
 
     ~BarrelsInfo(void);
 public:
@@ -372,6 +378,8 @@ private:
     docid_t maxDoc;
 
     boost::mutex mutex_;
+
+    IndexLevel indexLevel_;
 };
 
 //////////////////////////////////////////////////////////////////////////

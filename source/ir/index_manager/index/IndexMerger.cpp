@@ -196,7 +196,7 @@ void IndexMerger::outputNewBarrel(MergeBarrelQueue* pBarrelQueue, const string& 
     name = newBarrelName + ".dfp";
     IndexOutput* pDStream = pDirectory_->createOutput(name);
     IndexOutput* pPStream = NULL;
-    if(pIndexer_->pConfigurationManager_->indexStrategy_.indexLevel_ == "wordlevel")
+    if(pIndexer_->pConfigurationManager_->indexStrategy_.indexLevel_ == WORDLEVEL)
     {
         name = newBarrelName + ".pop";
         pPStream = pDirectory_->createOutput(name);
@@ -410,7 +410,7 @@ BarrelInfo* IndexMerger::createNewBarrelInfo(MergeBarrelQueue* pBarrelQueue, con
     pBarrelQueue->clear();
 
     DVLOG(2)<< "IndexMerger::createNewBarrelInfo() => add new BarrelInfo ...";
-    BarrelInfo* pNewBarrelInfo = new BarrelInfo(newBarrelName,nNumDocs,pIndexer_->getIndexCompressType());
+    BarrelInfo* pNewBarrelInfo = new BarrelInfo(newBarrelName,nNumDocs,pIndexer_->pConfigurationManager_->indexStrategy_.indexLevel_, pIndexer_->getIndexCompressType());
     pNewBarrelInfo->setBaseDocID(newBaseDocIDMap);
     pNewBarrelInfo->updateMaxDoc(maxDocOfNewBarrel);
     pNewBarrelInfo->isUpdate = isNewBarrelUpdateBarrel;
