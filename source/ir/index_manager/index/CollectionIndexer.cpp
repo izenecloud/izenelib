@@ -211,6 +211,18 @@ void CollectionIndexer::write(OutputDescriptor* desc)
     fileoffset_t vocOffset;
 
     FieldIndexer* pFieldIndexer;
+
+    bool emptyBarrel = true;
+    for (map<string, boost::shared_ptr<FieldIndexer> >::iterator iter = 
+                    fieldIndexerMap_.begin(); iter != fieldIndexerMap_.end(); ++iter)
+    {
+        pFieldIndexer = iter->second.get();
+        if(pFieldIndexer && !pFieldIndexer->isEmpty())
+        {
+            emptyBarrel = false;
+        }
+    }
+    if(emptyBarrel) SF1V5_THROW(ERROR_FILEIO,"CollectionIndexer::write empty barrels");
     for (map<string, boost::shared_ptr<FieldIndexer> >::iterator iter = 
                     fieldIndexerMap_.begin(); iter != fieldIndexerMap_.end(); ++iter)
     {

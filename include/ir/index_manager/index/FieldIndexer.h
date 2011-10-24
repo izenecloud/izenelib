@@ -366,8 +366,13 @@ public:
 
     ///set memory cache size for izene sort
     void setHitBuffer(size_t size);
+
+    /// whether indices for this field is empty
+    bool isEmpty();
 private:
-    void writeHitBuffer(int iHits);
+    void writeHitBuffer_(int iHits);
+    /// whether indices for this field is empty when indexing under batch mode
+    bool isBatchEmpty_();
 private:
     InMemoryPostingMap postingMap_;
 
