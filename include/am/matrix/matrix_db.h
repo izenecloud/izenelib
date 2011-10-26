@@ -13,6 +13,7 @@
 
 #include <util/timestamp.h>
 #include <util/izene_serialization.h>
+#include <util/ThreadModel.h>
 
 #include <boost/shared_ptr.hpp>
 #include <boost/unordered_map.hpp>
@@ -415,7 +416,7 @@ class MatrixDB
     std::size_t _currEntries;
     StorageType _db_storage;
     Policy _policy;
-
+    izenelib::util::ReadWriteLock _cache_access_lock;
 public:
     typedef RowType row_type;
     typedef IteratorType iterator; // first is KeyType, second is RowType
@@ -475,6 +476,7 @@ public:
     void coeff(KeyType x, KeyType y, ElementType d)
     {
         boost::shared_ptr<RowType> row_data = _row(x);
+        izenelib::util::ScopedWriteLock<izenelib::util::ReadWriteLock> lock(_cache_access_lock);
         _cache_row_dirty_flag.insert(x);
         typename RowType::iterator it = row_data->find(y); 
         if(it == row_data->end())
@@ -491,6 +493,7 @@ public:
     void incre(KeyType x, KeyType y, ElementType inc)
     {
         boost::shared_ptr<RowType> row_data = _row(x);
+        izenelib::util::ScopedWriteLock<izenelib::util::ReadWriteLock> lock(_cache_access_lock);
         _cache_row_dirty_flag.insert(x);
         typename RowType::iterator it = row_data->find(y); 
         if(it == row_data->end())
@@ -507,6 +510,7 @@ public:
     void incre(KeyType x, KeyType y)
     {
         boost::shared_ptr<RowType> row_data = _row(x);
+        izenelib::util::ScopedWriteLock<izenelib::util::ReadWriteLock> lock(_cache_access_lock);
         _cache_row_dirty_flag.insert(x);
         typename RowType::iterator it = row_data->find(y); 
         if(it == row_data->end())
@@ -534,9 +538,8 @@ public:
     )
     {
         boost::shared_ptr<RowType> row_data = _row(x);
-        _cache_row_dirty_flag.insert(x);
-
         typename std::list<KeyType>::const_iterator cit;
+        ///RowType is not thread-safe, so caller of row_incre requires to make thread-safe by itself
         for(cit = cols1.begin(); cit != cols1.end(); ++cit)
         {
             typename RowType::iterator it = row_data->find(*cit);
@@ -563,6 +566,7 @@ public:
                 it->second.update();
             }
         }
+        update_row(x,(*row_data));
     }
 
     ElementType coeff(KeyType x, KeyType y)
@@ -586,6 +590,7 @@ public:
     void update_row(KeyType x, const RowType& row_data)
     {
         typename CacheStorageType::iterator cit = _cache_storage.find(x);
+        izenelib::util::ScopedWriteLock<izenelib::util::ReadWriteLock> lock(_cache_access_lock);
         if(cit != _cache_storage.end())
         {
             // remove old entry count
@@ -655,6 +660,7 @@ private:
                 _db_storage.update(*it, *(cit->second));
             }
         }
+        izenelib::util::ScopedWriteLock<izenelib::util::ReadWriteLock> lock(_cache_access_lock);
         _cache_row_dirty_flag.clear();
     }
 
@@ -672,8 +678,11 @@ private:
 
     boost::shared_ptr<RowType> _row(KeyType x)
     {
+    	{
+        izenelib::util::ScopedWriteLock<izenelib::util::ReadWriteLock> lock(_cache_access_lock);
         _evict();
-
+        _policy.touch(x);
+    	}
         boost::shared_ptr<RowType > row_data;
         typename CacheStorageType::iterator cit = _cache_storage.find(x);		
         if(cit == _cache_storage.end())
@@ -683,12 +692,11 @@ private:
             {
                 _currEntries+=row_data->size();
             }
+            izenelib::util::ScopedWriteLock<izenelib::util::ReadWriteLock> lock(_cache_access_lock);			
             _cache_storage.insert(rde::make_pair(x,row_data));
         }
         else
             row_data = cit->second;
-
-        _policy.touch(x);
 
         return row_data;
     }
