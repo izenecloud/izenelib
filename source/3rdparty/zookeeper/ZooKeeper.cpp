@@ -29,7 +29,7 @@ void watcher_callback(zhandle_t *zh, int type, int state, const char *path, void
 
 static FILE* gs_logFile = 0;
 
-ZooKeeper::ZooKeeper(const std::string& hosts, const int recvTimeout)
+ZooKeeper::ZooKeeper(const std::string& hosts, const int recvTimeout, bool isAutoReconnect)
 :hosts_(hosts)
 ,recvTimeout_(recvTimeout)
 ,sessionId_(0)
@@ -45,7 +45,7 @@ ZooKeeper::ZooKeeper(const std::string& hosts, const int recvTimeout)
 
     setLogFile("./zookeeper.log"); //output to file, or stderr
 
-    connect();
+    connect(isAutoReconnect);
 }
 
 ZooKeeper::~ZooKeeper()
@@ -86,7 +86,7 @@ void ZooKeeper::setLogFile(const std::string& logFile)
     zoo_set_log_stream(gs_logFile);
 }
 
-bool ZooKeeper::connect()
+void ZooKeeper::connect(bool isAutoReconnect)
 {
     zk_ = zookeeper_init(
                 hosts_.c_str(),
@@ -97,9 +97,38 @@ bool ZooKeeper::connect()
                 flags_ );
 
     if (zk_ == NULL)
-        return false;
+    {
+        std::string ex = "Unable to connect to ZooKeeper running at: ";
+        ex += hosts_;
+        if (hosts_.empty())
+            ex += "(uninitialized address)";
+        throw ZooKeeperException (ex);
+    }
 
-    return true;
+    if (!isAutoReconnect)
+    {
+        return;
+    }
+
+    // xxx, reconnect, microseconds (us)
+    int32_t timeout = 4000000;
+    int32_t step = 500000;
+    int32_t wait = 0;
+    while(1)
+    {
+        if (zk_->state == ZOO_CONNECTED_STATE)
+            return;
+
+        if (wait >= timeout)
+            break;
+
+        usleep(step);
+        wait += step;
+    }
+
+    // Timeout !!
+    //std::cout<<"Timeout when connecting to ZooKeeper."<<std::endl;
+    return;
 }
 
 void ZooKeeper::disconnect()

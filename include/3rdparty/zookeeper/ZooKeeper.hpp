@@ -18,6 +18,68 @@ namespace zookeeper {
 class ZooKeeperWatcher;
 class ZooKeeperEventHandler;
 
+class ZooKeeperException : public std::exception
+{
+public:
+
+    /**
+     * \brief Constructor.
+     *
+     * @param msg the detailed message associated with this exception
+     */
+    ZooKeeperException(const std::string& msg) :
+            message_(msg),
+            zkErrorCode_(0) {}
+
+    /**
+     * \brief Constructor.
+     *
+     * @param msg the detailed message associated with this exception
+     * @param errorCode the ZK error code associated with this exception
+     */
+    ZooKeeperException(const std::string &msg, int errorCode) :
+            zkErrorCode_(errorCode)
+    {
+        char tmp[100];
+        sprintf( tmp, " (ZK error code: %d)", errorCode );
+        message_ = msg + tmp;
+    }
+
+    /**
+     * \brief Destructor.
+     */
+    ~ZooKeeperException() throw() {}
+
+    /**
+     * \brief Returns detailed description of the exception.
+     */
+    const char *what() const throw()
+    {
+        return message_.c_str();
+    }
+
+    /**
+     * \brief Returns the ZK error code.
+     */
+    int getZKErrorCode() const
+    {
+        return zkErrorCode_;
+    }
+
+private:
+
+    /**
+     * The detailed message associated with this exception.
+     */
+    std::string message_;
+
+    /**
+     * The optional error code received from ZK.
+     */
+    int zkErrorCode_;
+
+};
+
 /**
  * ZooKeeper Client
  */
@@ -80,7 +142,7 @@ public:
      *             e.g. "127.0.0.1:3000,127.0.0.1:3001,127.0.0.1:3002"
      * @param recvTimeout
      */
-    ZooKeeper(const std::string& hosts, const int recvTimeout);
+    ZooKeeper(const std::string& hosts, const int recvTimeout, bool isAutoReconnect = false);
 
     ~ZooKeeper();
 
@@ -139,7 +201,7 @@ public:
      * @{
      */
 
-    bool connect();
+    void connect(bool isAutoReconnect = false);
 
     void disconnect();
 
