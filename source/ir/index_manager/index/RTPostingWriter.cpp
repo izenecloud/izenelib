@@ -105,12 +105,15 @@ void RTPostingWriter::write(OutputDescriptor* pOutputDescriptor, TermInfo& termI
     {
         IndexOutput* pPOutput = pOutputDescriptor->getPPostingOutput();
 
-        termInfo.positionPointer_ = pPOutput->getFilePointer();
+        if (pPOutput)
+        {
+            termInfo.positionPointer_ = pPOutput->getFilePointer();
 
-        ///write position posting data
-        pLocList_->write(pPOutput);
+            ///write position posting data
+            pLocList_->write(pPOutput);
 
-        termInfo.positionPostingLen_ = pPOutput->getFilePointer() - termInfo.positionPointer_;
+            termInfo.positionPostingLen_ = pPOutput->getFilePointer() - termInfo.positionPointer_;
+        }
     }
 }
 
