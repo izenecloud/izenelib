@@ -703,8 +703,11 @@ int32_t RTDiskPostingReader::decodeNext(uint32_t* pPosting, int32_t length, int3
             loc_t loc = 0;
             for(uint32_t i = 0; i < nCurTF; ++i)
             {
-                loc += pPPostingInput->readVInt();
-                pPPosting[posLength++] = loc;
+                if (pPPostingInput)
+                {
+                    loc += pPPostingInput->readVInt();
+                    pPPosting[posLength++] = loc;
+                }
             }
         }
         else
@@ -712,7 +715,10 @@ int32_t RTDiskPostingReader::decodeNext(uint32_t* pPosting, int32_t length, int3
             ///this doc is deleted, skip positions
             uint32_t nCurTF = pDPostingInput->readVInt();
             for(uint32_t i = 0; i < nCurTF; ++i) 
-                pPPostingInput->readVInt();
+            {
+                if (pPPostingInput)
+                    pPPostingInput->readVInt();
+            }
         }				
     }
 
@@ -743,8 +749,11 @@ bool RTDiskPostingReader::decodeNextPositions(uint32_t* pPosting,int32_t length)
     uint32_t* pPos = pPosting;
     while (nDecoded < length)
     {
-        loc += pPPostingInput->readVInt();
-        *pPos++ = loc;
+        if (pPPostingInput)
+        {
+            loc += pPPostingInput->readVInt();
+            *pPos++ = loc;
+        }
         nDecoded++;
     }
     ds_.decodedPosCount += nDecoded;
@@ -772,8 +781,11 @@ bool RTDiskPostingReader::decodeNextPositions(uint32_t* &pPosting, int32_t& posB
     uint32_t* pPos = pPosting;
     while (nDecoded < decodeLength)
     {
-        loc += pPPostingInput->readVInt();
-        *pPos++ = loc;
+        if(pPPostingInput)
+        {
+            loc += pPPostingInput->readVInt();
+            *pPos++ = loc;
+        }
         nDecoded++;
     }
     ds_.decodedPosCount += nDecoded;
@@ -804,8 +816,11 @@ bool RTDiskPostingReader::decodeNextPositions(uint32_t* &pPosting, int32_t& posB
         nCurDecoded = 0;
         while (nCurDecoded < pFreqs[nF])
         {
-            loc += pPPostingInput->readVInt();
-            *pPos++ = loc;
+            if(pPPostingInput)
+            {
+                loc += pPPostingInput->readVInt();
+                *pPos++ = loc;
+            }
             nCurDecoded++;
         }
         nTotalDecoded += nCurDecoded;

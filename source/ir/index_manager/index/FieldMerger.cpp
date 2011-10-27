@@ -187,13 +187,13 @@ bool FieldMerger::initQueue()
             switch(pEntry->pBarrelInfo_->compressType)
             {
             case BYTEALIGN:
-                pTermReader = new RTDiskTermReader(pDirectory_,pEntry->pBarrelInfo_,pEntry->pFieldInfo_);
+                pTermReader = new RTDiskTermReader(pDirectory_,pEntry->pBarrelInfo_,pEntry->pFieldInfo_, indexLevel_);
                 break;
             case BLOCK:
-                pTermReader = new BlockTermReader(pDirectory_,pEntry->pBarrelInfo_,pEntry->pFieldInfo_);
+                pTermReader = new BlockTermReader(pDirectory_,pEntry->pBarrelInfo_,pEntry->pFieldInfo_, indexLevel_);
                 break;
             case CHUNK:
-                pTermReader = new ChunkTermReader(pDirectory_,pEntry->pBarrelInfo_,pEntry->pFieldInfo_);
+                pTermReader = new ChunkTermReader(pDirectory_,pEntry->pBarrelInfo_,pEntry->pFieldInfo_, indexLevel_);
                 break;
             default:
                 assert(false);

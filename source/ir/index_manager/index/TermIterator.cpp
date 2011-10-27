@@ -92,7 +92,7 @@ bool VocIterator::next()
 
 //////////////////////////////////////////////////////////////////////////
 ///RTDiskTermIterator
-RTDiskTermIterator::RTDiskTermIterator(Directory* pDirectory,const char* barrelname,FieldInfo* pFieldInfo)
+RTDiskTermIterator::RTDiskTermIterator(Directory* pDirectory,const char* barrelname,FieldInfo* pFieldInfo, IndexLevel indexLevel)
     :pDirectory_(pDirectory)
     ,pFieldInfo_(pFieldInfo)
     ,pCurTerm_(NULL)
@@ -101,6 +101,7 @@ RTDiskTermIterator::RTDiskTermIterator(Directory* pDirectory,const char* barreln
     ,pInputDescriptor_(NULL)
     ,nCurPos_(-1)
 {
+    indexLevel_ = indexLevel;
     barrelName_ = barrelname;
     pVocInput_ = pDirectory->openInput(barrelName_ + ".voc");
     pVocInput_->seek(pFieldInfo->getIndexOffset());
@@ -149,7 +150,8 @@ PostingReader* RTDiskTermIterator::termPosting()
     {
         pInputDescriptor_ = new InputDescriptor(true);
         pInputDescriptor_->setDPostingInput(pDirectory_->openInput(barrelName_ + ".dfp"));
-        pInputDescriptor_->setPPostingInput(pDirectory_->openInput(barrelName_ + ".pop"));
+        if(indexLevel_ == WORDLEVEL)
+            pInputDescriptor_->setPPostingInput(pDirectory_->openInput(barrelName_ + ".pop"));
         pCurTermPosting_ = new RTDiskPostingReader(skipInterval_, maxSkipLevel_, pInputDescriptor_,*pCurTermInfo_);
     }
     else
@@ -278,7 +280,7 @@ PostingReader* MemTermIterator::termPosting()
 
 //////////////////////////////////////////////////////////////////////////
 ///BlockTermIterator
-BlockTermIterator::BlockTermIterator(Directory* pDirectory,const char* barrelname,FieldInfo* pFieldInfo)
+BlockTermIterator::BlockTermIterator(Directory* pDirectory,const char* barrelname,FieldInfo* pFieldInfo, IndexLevel indexLevel)
     :pDirectory_(pDirectory)
     ,pFieldInfo_(pFieldInfo)
     ,pCurTerm_(NULL)
@@ -287,6 +289,7 @@ BlockTermIterator::BlockTermIterator(Directory* pDirectory,const char* barrelnam
     ,pInputDescriptor_(NULL)
     ,nCurPos_(-1)
 {
+    indexLevel_ = indexLevel;
     barrelName_ = barrelname;
     pVocInput_ = pDirectory->openInput(barrelName_ + ".voc");
     pVocInput_->seek(pFieldInfo->getIndexOffset());
@@ -335,7 +338,8 @@ PostingReader* BlockTermIterator::termPosting()
     {
         pInputDescriptor_ = new InputDescriptor(true);
         pInputDescriptor_->setDPostingInput(pDirectory_->openInput(barrelName_ + ".dfp"));
-        pInputDescriptor_->setPPostingInput(pDirectory_->openInput(barrelName_ + ".pop"));
+        if(indexLevel_ == WORDLEVEL)
+            pInputDescriptor_->setPPostingInput(pDirectory_->openInput(barrelName_ + ".pop"));
         pCurTermPosting_ = new BlockPostingReader(pInputDescriptor_,*pCurTermInfo_);
     }
     else
@@ -377,7 +381,7 @@ bool BlockTermIterator::next()
 
 //////////////////////////////////////////////////////////////////////////
 ///ChunkTermIterator
-ChunkTermIterator::ChunkTermIterator(Directory* pDirectory,const char* barrelname,FieldInfo* pFieldInfo)
+ChunkTermIterator::ChunkTermIterator(Directory* pDirectory,const char* barrelname,FieldInfo* pFieldInfo, IndexLevel indexLevel)
     :pDirectory_(pDirectory)
     ,pFieldInfo_(pFieldInfo)
     ,pCurTerm_(NULL)
@@ -386,6 +390,7 @@ ChunkTermIterator::ChunkTermIterator(Directory* pDirectory,const char* barrelnam
     ,pInputDescriptor_(NULL)
     ,nCurPos_(-1)
 {
+    indexLevel_ = indexLevel;
     barrelName_ = barrelname;
     pVocInput_ = pDirectory->openInput(barrelName_ + ".voc");
     pVocInput_->seek(pFieldInfo->getIndexOffset());
@@ -434,7 +439,8 @@ PostingReader* ChunkTermIterator::termPosting()
     {
         pInputDescriptor_ = new InputDescriptor(true);
         pInputDescriptor_->setDPostingInput(pDirectory_->openInput(barrelName_ + ".dfp"));
-        pInputDescriptor_->setPPostingInput(pDirectory_->openInput(barrelName_ + ".pop"));
+        if(indexLevel_ == WORDLEVEL)
+            pInputDescriptor_->setPPostingInput(pDirectory_->openInput(barrelName_ + ".pop"));
         pCurTermPosting_ = new ChunkPostingReader(skipInterval_, maxSkipLevel_, pInputDescriptor_,*pCurTermInfo_);
     }
     else

@@ -57,7 +57,7 @@ void SingleIndexBarrelReader::open(const char* name)
         pFieldsInfo = pColInfo->getFieldsInfo();
         if (pFieldsInfo->numIndexFields() > 1)
         {
-            pTermReader = new MultiFieldTermReader(pDirectory,pBarrelInfo_,pFieldsInfo);
+            pTermReader = new MultiFieldTermReader(pDirectory,pBarrelInfo_,pFieldsInfo, pIndexReader_->getIndexLevel());
         }
         else if (pFieldsInfo->numIndexFields() == 1)
         {
@@ -71,13 +71,13 @@ void SingleIndexBarrelReader::open(const char* name)
                     switch(pBarrelInfo_->compressType)
                     {
                     case BYTEALIGN:
-                        pTermReader = new RTDiskTermReader(pDirectory,pBarrelInfo_,pFieldInfo);
+                        pTermReader = new RTDiskTermReader(pDirectory,pBarrelInfo_,pFieldInfo, pIndexReader_->getIndexLevel());
                         break;
                     case BLOCK:
-                        pTermReader = new BlockTermReader(pDirectory,pBarrelInfo_,pFieldInfo);
+                        pTermReader = new BlockTermReader(pDirectory,pBarrelInfo_,pFieldInfo, pIndexReader_->getIndexLevel());
                         break;
                     case CHUNK:
-                        pTermReader = new ChunkTermReader(pDirectory,pBarrelInfo_,pFieldInfo);
+                        pTermReader = new ChunkTermReader(pDirectory,pBarrelInfo_,pFieldInfo, pIndexReader_->getIndexLevel());
                         break;
                     default:
                         assert(false);

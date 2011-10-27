@@ -28,11 +28,12 @@ void TermReader::open(Directory* pDirectory,BarrelInfo* pBarrelInfo,FieldInfo* p
 
 //////////////////////////////////////////////////////////////////////////
 ///TermReaderImpl
-TermReaderImpl::TermReaderImpl(const FieldInfo& fieldInfo)
+TermReaderImpl::TermReaderImpl(const FieldInfo& fieldInfo, IndexLevel indexLevel)
         :fieldInfo_(fieldInfo)
         ,pTermTable_(NULL)
         ,pInputDescriptor_(NULL)
         ,pDirectory_(NULL)
+        ,indexLevel_(indexLevel)
 {}
 
 TermReaderImpl::~TermReaderImpl()
@@ -90,7 +91,8 @@ void TermReaderImpl::open(Directory* pDirectory,const char* barrelname)
 
     pInputDescriptor_ = new InputDescriptor(true);
     pInputDescriptor_->setDPostingInput(pDirectory->openInput(bn + ".dfp"));
-    pInputDescriptor_->setPPostingInput(pDirectory->openInput(bn + ".pop"));
+    if(indexLevel_ == WORDLEVEL)
+        pInputDescriptor_->setPPostingInput(pDirectory->openInput(bn + ".pop"));
 
 }
 
@@ -151,12 +153,13 @@ TermInfo* TermReaderImpl::termInfo(Term* term)
 
 //////////////////////////////////////////////////////////////////////////
 ///VocReader
-VocReader::VocReader(Directory* pDirectory,BarrelInfo* pBarrelInfo,FieldInfo* pFieldInfo)
+VocReader::VocReader(Directory* pDirectory,BarrelInfo* pBarrelInfo,FieldInfo* pFieldInfo, IndexLevel indexLevel)
         : TermReader()
         , pCurTermInfo_(NULL)
         , pInputDescriptor_(NULL)
 {
     pBarrelInfo_ = pBarrelInfo;
+    indexLevel_ = indexLevel;
     open(pDirectory, pBarrelInfo, pFieldInfo);
 }
 
@@ -177,7 +180,7 @@ VocReader::~VocReader()
 
 void VocReader::open(Directory* pDirectory,BarrelInfo* pBarrelInfo,FieldInfo* pFieldInfo)
 {
-    pTermReaderImpl_.reset(new TermReaderImpl(*pFieldInfo));
+    pTermReaderImpl_.reset(new TermReaderImpl(*pFieldInfo, indexLevel_));
     pTermReaderImpl_->open(pDirectory, pBarrelInfo->getName().c_str());
     pInputDescriptor_ = pTermReaderImpl_->pInputDescriptor_->clone();
 }
@@ -208,6 +211,7 @@ TermInfo* VocReader::termInfo(Term* term)
 TermReader* VocReader::clone()
 {
     TermReader* pTermReader = new VocReader(pTermReaderImpl_);
+    pTermReader->setIndexLevel(indexLevel_);
     return pTermReader;
 }
 
@@ -264,11 +268,12 @@ TermIterator* VocReader::termIterator(const char* field)
 
 //////////////////////////////////////////////////////////////////////////
 ///SparseTermReaderImpl
-SparseTermReaderImpl::SparseTermReaderImpl(const FieldInfo& fieldInfo)
+SparseTermReaderImpl::SparseTermReaderImpl(const FieldInfo& fieldInfo, IndexLevel indexLevel)
         :fieldInfo_(fieldInfo)
         ,sparseTermTable_(NULL)
         ,pInputDescriptor_(NULL)
         ,pDirectory_(NULL)
+        ,indexLevel_(indexLevel)
 {}
 
 SparseTermReaderImpl::~SparseTermReaderImpl()
@@ -331,12 +336,14 @@ void SparseTermReaderImpl::open(Directory* pDirectory,const char* barrelname)
     if(dynamic_cast<FSDirectory*>(pDirectory)->isMMapEnable())
     {
         pInputDescriptor_->setDPostingInput(dynamic_cast<FSDirectory*>(pDirectory)->openMMapInput(barrelName_ + ".dfp"));
-        pInputDescriptor_->setPPostingInput(dynamic_cast<FSDirectory*>(pDirectory)->openMMapInput(barrelName_ + ".pop"));
+        if(indexLevel_ == WORDLEVEL)
+            pInputDescriptor_->setPPostingInput(dynamic_cast<FSDirectory*>(pDirectory)->openMMapInput(barrelName_ + ".pop"));
     }
     else
     {
         pInputDescriptor_->setDPostingInput(pDirectory->openInput(barrelName_ + ".dfp"));
-        pInputDescriptor_->setPPostingInput(pDirectory->openInput(barrelName_ + ".pop"));
+        if(indexLevel_ == WORDLEVEL)
+            pInputDescriptor_->setPPostingInput(pDirectory->openInput(barrelName_ + ".pop"));
     }
 
 }
@@ -369,12 +376,13 @@ void SparseTermReaderImpl::close()
 
 //////////////////////////////////////////////////////////////////////////
 ///RTDiskTermReader
-RTDiskTermReader::RTDiskTermReader(Directory* pDirectory,BarrelInfo* pBarrelInfo,FieldInfo* pFieldInfo)
+RTDiskTermReader::RTDiskTermReader(Directory* pDirectory,BarrelInfo* pBarrelInfo,FieldInfo* pFieldInfo, IndexLevel indexLevel)
         : TermReader()
         , pCurTermInfo_(NULL)
         , pVocInput_(NULL)
 {
     pBarrelInfo_ = pBarrelInfo;
+    indexLevel_ = indexLevel;
     open(pDirectory, pBarrelInfo->getName().c_str(), pFieldInfo);
     pTermReaderImpl_->pInputDescriptor_->setBarrelInfo(pBarrelInfo);
     pVocInput_ = pDirectory->openInput(pTermReaderImpl_->barrelName_ + ".voc",1025*VOC_ENTRY_LENGTH);
@@ -409,7 +417,7 @@ RTDiskTermReader::~RTDiskTermReader()
 
 void RTDiskTermReader::open(Directory* pDirectory,const char* barrelname,FieldInfo* pFieldInfo)
 {
-    pTermReaderImpl_.reset(new SparseTermReaderImpl(*pFieldInfo));
+    pTermReaderImpl_.reset(new SparseTermReaderImpl(*pFieldInfo, indexLevel_));
     pTermReaderImpl_->open(pDirectory, barrelname);
 }
 
@@ -558,6 +566,7 @@ TermReader* RTDiskTermReader::clone()
     pTermReader->setSkipInterval(skipInterval_);
     pTermReader->setMaxSkipLevel(maxSkipLevel_);
     pTermReader->setBarrelInfo(pBarrelInfo_);
+    pTermReader->setIndexLevel(indexLevel_);
     return pTermReader;
 }
 
@@ -612,7 +621,7 @@ TermIterator* RTDiskTermReader::termIterator(const char* field)
 
     TermIterator* pIterator = static_cast<TermIterator*>(new RTDiskTermIterator(pTermReaderImpl_->pDirectory_,
                                                              pTermReaderImpl_->barrelName_.c_str(),
-                                                             getFieldInfo()));
+                                                             getFieldInfo(), indexLevel_));
     pIterator->setSkipInterval(skipInterval_);
     pIterator->setMaxSkipLevel(maxSkipLevel_);
     return pIterator;
@@ -747,8 +756,8 @@ TermReader* MemTermReader::clone()
 
 //////////////////////////////////////////////////////////////////////////
 ///BlockTermReader
-BlockTermReader::BlockTermReader(Directory* pDirectory,BarrelInfo* pBarrelInfo,FieldInfo* pFieldInfo)
-        : RTDiskTermReader(pDirectory,pBarrelInfo,pFieldInfo)
+BlockTermReader::BlockTermReader(Directory* pDirectory,BarrelInfo* pBarrelInfo,FieldInfo* pFieldInfo, IndexLevel indexLevel)
+        : RTDiskTermReader(pDirectory,pBarrelInfo,pFieldInfo, indexLevel)
 {
 }
 
@@ -765,6 +774,7 @@ TermReader* BlockTermReader::clone()
     pTermReader->setSkipInterval(skipInterval_);
     pTermReader->setMaxSkipLevel(maxSkipLevel_);
     pTermReader->setBarrelInfo(pBarrelInfo_);
+    pTermReader->setIndexLevel(indexLevel_);
     return pTermReader;
 }
 
@@ -804,7 +814,7 @@ TermIterator* BlockTermReader::termIterator(const char* field)
 
     TermIterator* pIterator = static_cast<TermIterator*>(new BlockTermIterator(pTermReaderImpl_->pDirectory_,
                                                              pTermReaderImpl_->barrelName_.c_str(),
-                                                             getFieldInfo()));
+                                                             getFieldInfo(), indexLevel_));
     pIterator->setSkipInterval(skipInterval_);
     pIterator->setMaxSkipLevel(maxSkipLevel_);
     return pIterator;
@@ -813,8 +823,8 @@ TermIterator* BlockTermReader::termIterator(const char* field)
 
 //////////////////////////////////////////////////////////////////////////
 ///ChunkTermReader
-ChunkTermReader::ChunkTermReader(Directory* pDirectory,BarrelInfo* pBarrelInfo,FieldInfo* pFieldInfo)
-        : RTDiskTermReader(pDirectory,pBarrelInfo,pFieldInfo)
+ChunkTermReader::ChunkTermReader(Directory* pDirectory,BarrelInfo* pBarrelInfo,FieldInfo* pFieldInfo, IndexLevel indexLevel)
+        : RTDiskTermReader(pDirectory,pBarrelInfo,pFieldInfo, indexLevel)
 {
 }
 
@@ -830,6 +840,7 @@ TermReader* ChunkTermReader::clone()
     pTermReader->setSkipInterval(skipInterval_);
     pTermReader->setMaxSkipLevel(maxSkipLevel_);
     pTermReader->setBarrelInfo(pBarrelInfo_);
+    pTermReader->setIndexLevel(indexLevel_);
     return pTermReader;
 }
 
@@ -870,7 +881,7 @@ TermIterator* ChunkTermReader::termIterator(const char* field)
 
     TermIterator* pIterator = static_cast<TermIterator*>(new ChunkTermIterator(pTermReaderImpl_->pDirectory_,
                                                              pTermReaderImpl_->barrelName_.c_str(),
-                                                             getFieldInfo()));
+                                                             getFieldInfo(), indexLevel_));
     pIterator->setSkipInterval(skipInterval_);
     pIterator->setMaxSkipLevel(maxSkipLevel_);
     return pIterator;

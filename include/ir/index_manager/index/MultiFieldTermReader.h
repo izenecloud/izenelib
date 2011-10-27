@@ -24,7 +24,7 @@ namespace indexmanager{
 class MultiFieldTermReader : public TermReader
 {
 public:
-    MultiFieldTermReader(Directory* pDirectory,BarrelInfo* pBarrelInfo,FieldsInfo* pFieldsInfo);
+    MultiFieldTermReader(Directory* pDirectory,BarrelInfo* pBarrelInfo,FieldsInfo* pFieldsInfo, IndexLevel indexLevel);
 
     MultiFieldTermReader();
 

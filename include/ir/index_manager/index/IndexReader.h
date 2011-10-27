@@ -79,6 +79,8 @@ public:
      */
     void flush();
 
+    IndexLevel getIndexLevel() { return pIndexer_->pConfigurationManager_->indexStrategy_.indexLevel_; }
+
 private:
     void createBarrelReader();
 

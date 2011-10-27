@@ -10,6 +10,7 @@
 #include <ir/index_manager/utility/system.h>
 #include <ir/index_manager/index/Term.h>
 #include <ir/index_manager/index/TermInfo.h>
+#include <ir/index_manager/utility/IndexManagerConfig.h>
 
 NS_IZENELIB_IR_BEGIN
 
@@ -51,6 +52,7 @@ public:
 protected:
     int skipInterval_;
     int maxSkipLevel_;
+    IndexLevel indexLevel_;
 };
 
 

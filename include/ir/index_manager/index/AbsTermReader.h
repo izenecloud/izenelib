@@ -15,6 +15,7 @@
 #include <ir/index_manager/index/BarrelInfo.h>
 #include <ir/index_manager/store/Directory.h>
 #include <ir/index_manager/utility/BitVector.h>
+#include <ir/index_manager/utility/IndexManagerConfig.h>
 
 NS_IZENELIB_IR_BEGIN
 
@@ -84,11 +85,16 @@ public:
     virtual void setMaxSkipLevel(int maxSkipLevel) { maxSkipLevel_ = maxSkipLevel; }
 
     void setBarrelInfo(BarrelInfo* pBarrelInfo) { pBarrelInfo_ = pBarrelInfo; }
+
+    void setIndexLevel(IndexLevel indexLevel) { indexLevel_ = indexLevel; }
+
+    IndexLevel getIndexLevel() { return indexLevel_; }
 protected:
     BitVector* pDocFilter_;
     int skipInterval_;
     int maxSkipLevel_;
     BarrelInfo* pBarrelInfo_;
+    IndexLevel indexLevel_;
 
     friend class TermDocFreqs;
     friend class MultiFieldTermReader;
