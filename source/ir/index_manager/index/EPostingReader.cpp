@@ -390,12 +390,15 @@ bool BlockPostingReader::decodeNextPositions(uint32_t* &pPosting, int32_t& posBu
         ensurePosBufferUpperBound(pPosting, posBufLength, chunk.size_of_positions());
         chunk.set_pos_buffer(pPosting);
 
-        if(!blockDecoder_.curr_chunk_pos_loaded(blockDecoder_.curr_chunk()))
+        if(pPPostingInput)
         {
-            int size = pPPostingInput->readVInt();
-            ensure_compressed_pos_buffer(size>>2);
-            pPPostingInput->readBytes((uint8_t*)compressedPos_,size);
-            blockDecoder_.set_curr_chunk_pos_loaded(blockDecoder_.curr_chunk());
+            if(!blockDecoder_.curr_chunk_pos_loaded(blockDecoder_.curr_chunk()))
+            {
+                int size = pPPostingInput->readVInt();
+                ensure_compressed_pos_buffer(size>>2);
+                pPPostingInput->readBytes((uint8_t*)compressedPos_,size);
+                blockDecoder_.set_curr_chunk_pos_loaded(blockDecoder_.curr_chunk());
+            }
         }
         chunk.decodePositions(compressedPos_);
     }
@@ -419,12 +422,15 @@ bool BlockPostingReader::decodeNextPositions(uint32_t* &pPosting, int32_t& posBu
         ensurePosBufferUpperBound(pPosting, posBufLength, chunk.size_of_positions());
         chunk.set_pos_buffer(pPosting);
 
-        if(!blockDecoder_.curr_chunk_pos_loaded(blockDecoder_.curr_chunk()))
+        if(pPPostingInput)
         {
-            int size = pPPostingInput->readVInt();
-            ensure_compressed_pos_buffer(size>>2);
-            pPPostingInput->readBytes((uint8_t*)compressedPos_,size);
-            blockDecoder_.set_curr_chunk_pos_loaded(blockDecoder_.curr_chunk());
+            if(!blockDecoder_.curr_chunk_pos_loaded(blockDecoder_.curr_chunk()))
+            {
+                int size = pPPostingInput->readVInt();
+                ensure_compressed_pos_buffer(size>>2);
+                pPPostingInput->readBytes((uint8_t*)compressedPos_,size);
+                blockDecoder_.set_curr_chunk_pos_loaded(blockDecoder_.curr_chunk());
+            }
         }
         chunk.decodePositions(compressedPos_);
     }
@@ -707,10 +713,13 @@ bool ChunkPostingReader::decodeNextPositions(uint32_t* &pPosting, int32_t& posBu
     
         chunkDecoder_.set_pos_buffer(pPosting);
         IndexInput* pPPostingInput = inputDescriptorPtr_->getPPostingInput();
-        int size = pPPostingInput->readVInt();
-        ensure_compressed_pos_buffer(size>>2);
-        pPPostingInput->readBytes((uint8_t*)compressedPos_,size);
-        chunkDecoder_.decodePositions(compressedPos_);
+        if(pPPostingInput)
+        {
+            int size = pPPostingInput->readVInt();
+            ensure_compressed_pos_buffer(size>>2);
+            pPPostingInput->readBytes((uint8_t*)compressedPos_,size);
+            chunkDecoder_.decodePositions(compressedPos_);
+        }
     }
     nCurrentPPosting = skipPosCount_ + chunkDecoder_.curr_position_offset();
     skipPosCount_ = 0;
@@ -727,10 +736,13 @@ bool ChunkPostingReader::decodeNextPositions(uint32_t* &pPosting, int32_t& posBu
     
         chunkDecoder_.set_pos_buffer(pPosting);
         IndexInput* pPPostingInput = inputDescriptorPtr_->getPPostingInput();
-        int size = pPPostingInput->readVInt();
-        ensure_compressed_pos_buffer(size>>2);
-        pPPostingInput->readBytes((uint8_t*)compressedPos_,size);
-        chunkDecoder_.decodePositions(compressedPos_);
+        if(pPPostingInput)
+        {
+            int size = pPPostingInput->readVInt();
+            ensure_compressed_pos_buffer(size>>2);
+            pPPostingInput->readBytes((uint8_t*)compressedPos_,size);
+            chunkDecoder_.decodePositions(compressedPos_);
+        }
     }
     nCurrentPPosting = skipPosCount_ + chunkDecoder_.curr_position_offset();
     skipPosCount_ = 0;
