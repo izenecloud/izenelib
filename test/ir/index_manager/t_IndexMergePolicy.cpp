@@ -128,7 +128,7 @@ BarrelInfo* newBarrelInfo(BarrelsInfo* pBarrelsInfo, int docNum, IndexLevel inde
  */
 void checkAddToMerge(IndexMergePolicy* pIndexMergePolicy, const BarrelConfig& barrelConfig, IndexLevel indexLevel)
 {
-    IndexerTestConfig config = {0, 0, 0, "default", true};
+    IndexerTestConfig config = {0, 0, 0, indexLevel, "default", true};
 
     IndexerTestFixture fixture;
     fixture.configTest(config);
@@ -161,7 +161,7 @@ void checkAddToMerge(IndexMergePolicy* pIndexMergePolicy, const BarrelConfig& ba
  */
 void checkOptimizeMerge(const BarrelConfig& barrelConfig, IndexLevel indexLevel)
 {
-    IndexerTestConfig config = {0, 0, 0, "default", true};
+    IndexerTestConfig config = {0, 0, 0, indexLevel, "default", true};
 
     IndexerTestFixture fixture;
     fixture.configTest(config);

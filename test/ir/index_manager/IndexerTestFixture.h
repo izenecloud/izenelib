@@ -34,6 +34,8 @@ struct IndexerTestConfig
 
     int iterNum_; ///< the iteration number used in test case, such as iterate calling @c IndexerTestFixture::createDocument()
 
+    IndexLevel indexLevel_;
+
     std::string indexMode_; ///< "default" (for offline), "realtime", "default:block", "default:chunk"
 
     bool isMerge_; ///< true for merge index in stand-alone thread, false for not to merge at all
@@ -68,7 +70,7 @@ struct IndexerTestConfig
     std::string str() const {
         std::ostringstream oss;
         oss << "IndexerTestConfig " << configNum_ << " (docNum_: " << docNum_
-            << ", iterNum_: " << iterNum_ << ", indexMode_: " << indexMode_
+            << ", iterNum_: " << iterNum_ << ", indexLevel_: "<< indexLevel_<<", indexMode_: " << indexMode_
             << ", isMerge_: " << isMerge_
             << ", skipInterval_: " << skipInterval_
             << ", maxSkipLevel_: " << maxSkipLevel_
