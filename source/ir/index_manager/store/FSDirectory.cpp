@@ -179,16 +179,12 @@ bool FSDirectory::fileExists(const string& name) const
 }
 IndexInput* FSDirectory::openInput(const string& name)
 {
-    if(!fileExists(name))
-        return NULL;
     DVLOG(5) << "FSDirectory::openInput(" << name << ")";
     string fullpath = directoryName_ + "/" + name;
     return new FSIndexInput(fullpath.c_str());
 }
 IndexInput* FSDirectory::openInput(const string& name, size_t bufsize)
 {
-    if(!fileExists(name))
-        return NULL;
     DVLOG(5) << "FSDirectory::openInput(" << name << ", " << bufsize << ")";
     string fullpath = directoryName_ + "/" + name;
     return new FSIndexInput(fullpath.c_str(),bufsize);
@@ -196,8 +192,6 @@ IndexInput* FSDirectory::openInput(const string& name, size_t bufsize)
 
 IndexInput* FSDirectory::openMMapInput(const string& name)
 {
-    if(!fileExists(name))
-        return NULL;
     DVLOG(5) << "FSDirectory::openMMapInput(" << name << ")";
     string fullpath = directoryName_ + "/" + name;
     return new MMapIndexInput(fullpath.c_str());
