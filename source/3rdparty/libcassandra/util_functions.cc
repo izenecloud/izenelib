@@ -213,27 +213,27 @@ SlicePredicate createSlicePredicateObject(const IndexedSlicesQuery& query)
 }
 
 
-vector<Column> getColumnList(vector<ColumnOrSuperColumn>& cols)
+vector<Column> getColumnList(const vector<ColumnOrSuperColumn>& cols)
 {
     vector<Column> ret(cols.size());
-    for (vector<ColumnOrSuperColumn>::iterator it= cols.begin();
+    for (vector<ColumnOrSuperColumn>::const_iterator it= cols.begin();
             it != cols.end();
             ++it)
     {
-        ret.push_back((*it).column);
+        ret.push_back(it->column);
     }
     return ret;
 }
 
 
-vector<SuperColumn> getSuperColumnList(vector<ColumnOrSuperColumn>& cols)
+vector<SuperColumn> getSuperColumnList(const vector<ColumnOrSuperColumn>& cols)
 {
     vector<SuperColumn> ret(cols.size());
-    for (vector<ColumnOrSuperColumn>::iterator it= cols.begin();
+    for (vector<ColumnOrSuperColumn>::const_iterator it= cols.begin();
             it != cols.end();
             ++it)
     {
-        ret.push_back((*it).super_column);
+        ret.push_back(it->super_column);
     }
     return ret;
 }

@@ -411,7 +411,7 @@ map<string, vector<Column> > Cassandra::getRangeSlice(const ColumnParent& col_pa
                                     level);
     if (! key_slices.empty())
     {
-        for (vector<KeySlice>::iterator it= key_slices.begin();
+        for (vector<KeySlice>::const_iterator it= key_slices.begin();
                 it != key_slices.end();
                 ++it)
         {
@@ -452,7 +452,7 @@ map<string, vector<SuperColumn> > Cassandra::getSuperRangeSlice(const ColumnPare
                                     level);
     if (! key_slices.empty())
     {
-        for (vector<KeySlice>::iterator it= key_slices.begin();
+        for (vector<KeySlice>::const_iterator it= key_slices.begin();
                 it != key_slices.end();
                 ++it)
         {
@@ -488,7 +488,7 @@ Cassandra::getIndexedSlices(const IndexedSlicesQuery& query)
                                       thrift_slice_pred,
                                       query.getConsistencyLevel());
 
-    for (vector<KeySlice>::iterator it= ret.begin();
+    for (vector<KeySlice>::const_iterator it= ret.begin();
             it != ret.end();
             ++it)
     {

@@ -74,7 +74,7 @@ org::apache::cassandra::SlicePredicate createSlicePredicateObject(const IndexedS
  * @return vector of Column objects
  */
 std::vector<org::apache::cassandra::Column>
-getColumnList(std::vector<org::apache::cassandra::ColumnOrSuperColumn>& cols);
+getColumnList(const std::vector<org::apache::cassandra::ColumnOrSuperColumn>& cols);
 
 /**
  * Extract the super columns from the vector of columns or super columns
@@ -82,7 +82,7 @@ getColumnList(std::vector<org::apache::cassandra::ColumnOrSuperColumn>& cols);
  * @return vector of SuperColumn objects
  */
 std::vector<org::apache::cassandra::SuperColumn>
-getSuperColumnList(std::vector<org::apache::cassandra::ColumnOrSuperColumn>& cols);
+getSuperColumnList(const std::vector<org::apache::cassandra::ColumnOrSuperColumn>& cols);
 
 /**
  * @return a timestamp in micro-seconds
