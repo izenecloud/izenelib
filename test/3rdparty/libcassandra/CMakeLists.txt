@@ -5,4 +5,4 @@ INCLUDE_DIRECTORIES(
     ${Glog_INCLUDE_DIRS}
 )
 ADD_EXECUTABLE(simple simple.cc) 
-TARGET_LINK_LIBRARIES(simple libcassandra ${Thrift_LIBS}) 
+TARGET_LINK_LIBRARIES(simple cassandra ${Thrift_LIBS}) 
