@@ -108,6 +108,7 @@ int32_t MemPostingReader::decodeNext(uint32_t* pPosting, int32_t length, int32_t
         pDS_->decodingDChunkPos = 0;
         pDS_->lastDecodedDocID = 0;
         pDS_->decodedDocCount = 0;
+        pDS_->decodingPChunk = NULL;
         if(pPostingWriter_->pLocList_)
             pDS_->decodingPChunk = pPostingWriter_->pLocList_->pHeadChunk_;
         pDS_->decodingPChunkPos = 0;
@@ -181,6 +182,7 @@ int32_t MemPostingReader::decodeNext(uint32_t* pPosting, int32_t length, int32_t
         pDS_->decodingDChunkPos = 0;
         pDS_->lastDecodedDocID = 0;
         pDS_->decodedDocCount = 0;
+        pDS_->decodingPChunk = NULL;
         if(pPostingWriter_->pLocList_)
             pDS_->decodingPChunk = pPostingWriter_->pLocList_->pHeadChunk_;
         pDS_->decodingPChunkPos = 0;
@@ -195,8 +197,8 @@ int32_t MemPostingReader::decodeNext(uint32_t* pPosting, int32_t length, int32_t
 
     uint32_t* pDoc = pPosting;
     uint32_t* pFreq = pPosting + (length >> 1);
-    uint8_t* pPChunk;
-    uint8_t* pPChunkEnd;
+    uint8_t* pPChunk = NULL;
+    uint8_t* pPChunkEnd = NULL;
     if(pDS_->decodingPChunk)
     {
         pPChunk = &(pDS_->decodingPChunk->data[pDS_->decodingPChunkPos]);
@@ -264,7 +266,7 @@ int32_t MemPostingReader::decodeNext(uint32_t* pPosting, int32_t length, int32_t
             {
                 for(uint32_t i = 0; i < nCurTF; ++i)
                 {
-                    if (pDS_->decodingPChunk && pPChunk > pPChunkEnd)
+                    if (pPChunk > pPChunkEnd)
                     {
                         pDS_->decodingPChunk = pDS_->decodingPChunk->next;
                         if (!pDS_->decodingPChunk)
@@ -444,6 +446,7 @@ docid_t MemPostingReader::decodeTo(docid_t target, uint32_t* pPosting, int32_t l
         pDS_->decodingDChunkPos = 0;
         pDS_->lastDecodedDocID = 0;
         pDS_->decodedDocCount = 0;
+        pDS_->decodingPChunk = NULL;
         if(pPostingWriter_->pLocList_)
             pDS_->decodingPChunk = pPostingWriter_->pLocList_->pHeadChunk_;
         pDS_->decodingPChunkPos = 0;
@@ -451,7 +454,7 @@ docid_t MemPostingReader::decodeTo(docid_t target, uint32_t* pPosting, int32_t l
         pDS_->decodedPosCount = 0;
     }
 
-    if(! pDS_->decodingDChunk || ! pDS_->decodingPChunk)
+    if(! pDS_->decodingDChunk)
     {
         SF1V5_THROW(ERROR_FILEIO,"Index dirty.");
     }
@@ -479,8 +482,8 @@ docid_t MemPostingReader::decodeTo(docid_t target, uint32_t* pPosting, int32_t l
     pDS_->lastDecodedDocID = did;
     pDS_->decodingDChunkPos = (int32_t)(pDChunk - pDS_->decodingDChunk->data);
 
-    uint8_t* pPChunk;
-    uint8_t* pPChunkEnd;
+    uint8_t* pPChunk = NULL;
+    uint8_t* pPChunkEnd = NULL;
     if(pDS_->decodingPChunk)
     {
         pPChunk = &(pDS_->decodingPChunk->data[pDS_->decodingPChunkPos]);
@@ -725,9 +728,9 @@ int32_t RTDiskPostingReader::decodeNext(uint32_t* pPosting, int32_t length, int3
                 growPosBuffer(pPPosting, posBufLength, nFreqs);
 
             loc_t loc = 0;
-            for(uint32_t i = 0; i < nCurTF; ++i)
+            if(pPPostingInput)
             {
-                if (pPPostingInput)
+                for(uint32_t i = 0; i < nCurTF; ++i)
                 {
                     loc += pPPostingInput->readVInt();
                     pPPosting[posLength++] = loc;
@@ -738,10 +741,12 @@ int32_t RTDiskPostingReader::decodeNext(uint32_t* pPosting, int32_t length, int3
         {
             ///this doc is deleted, skip positions
             uint32_t nCurTF = pDPostingInput->readVInt();
-            for(uint32_t i = 0; i < nCurTF; ++i) 
+            if(pPPostingInput)
             {
-                if (pPPostingInput)
+                for(uint32_t i = 0; i < nCurTF; ++i)
+                {
                     pPPostingInput->readVInt();
+                }
             }
         }				
     }
@@ -771,14 +776,14 @@ bool RTDiskPostingReader::decodeNextPositions(uint32_t* pPosting,int32_t length)
     loc_t loc = ds_.lastDecodedPos;
 
     uint32_t* pPos = pPosting;
-    while (nDecoded < length)
+    if(pPPostingInput)
     {
-        if (pPPostingInput)
+        while (nDecoded < length)
         {
             loc += pPPostingInput->readVInt();
             *pPos++ = loc;
+            nDecoded++;
         }
-        nDecoded++;
     }
     ds_.decodedPosCount += nDecoded;
     ds_.lastDecodedPos = loc;
@@ -803,14 +808,14 @@ bool RTDiskPostingReader::decodeNextPositions(uint32_t* &pPosting, int32_t& posB
     loc_t loc = ds_.lastDecodedPos;
 
     uint32_t* pPos = pPosting;
-    while (nDecoded < decodeLength)
+    if(pPPostingInput)
     {
-        if(pPPostingInput)
+        while (nDecoded < decodeLength)
         {
             loc += pPPostingInput->readVInt();
             *pPos++ = loc;
+            nDecoded++;
         }
-        nDecoded++;
     }
     ds_.decodedPosCount += nDecoded;
     ds_.lastDecodedPos = loc;
@@ -835,20 +840,20 @@ bool RTDiskPostingReader::decodeNextPositions(uint32_t* &pPosting, int32_t& posB
     uint32_t nCurDecoded = 0;
     loc_t loc = ds_.lastDecodedPos;
     uint32_t* pPos = pPosting;
-    for (int32_t nF = 0;nF < nFreqs;nF++)
+    if(pPPostingInput)
     {
-        nCurDecoded = 0;
-        while (nCurDecoded < pFreqs[nF])
+        for (int32_t nF = 0;nF < nFreqs;nF++)
         {
-            if(pPPostingInput)
+            nCurDecoded = 0;
+            while (nCurDecoded < pFreqs[nF])
             {
                 loc += pPPostingInput->readVInt();
                 *pPos++ = loc;
+                nCurDecoded++;
             }
-            nCurDecoded++;
+            nTotalDecoded += nCurDecoded;
+            loc = 0;
         }
-        nTotalDecoded += nCurDecoded;
-        loc = 0;
     }
 
     ds_.decodedPosCount += nTotalDecoded;
