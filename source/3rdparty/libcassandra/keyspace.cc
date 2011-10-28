@@ -52,4 +52,3 @@ ConsistencyLevel::type Keyspace::getConsistencyLevel() const
 {
     return level;
 }
-

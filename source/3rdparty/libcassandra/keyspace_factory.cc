@@ -43,4 +43,3 @@ boost::shared_ptr<Keyspace> KeyspaceFactory::create(Cassandra *client,
     boost::shared_ptr<Keyspace> ret(new Keyspace(client, name, def, level));
     return ret;
 }
-

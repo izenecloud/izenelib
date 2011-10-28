@@ -53,7 +53,7 @@ ColumnFamilyDefinition::ColumnFamilyDefinition(const string& in_keyspace_name,
         const double in_row_cache_size,
         const double in_key_cache_size,
         const double in_read_repair_chance,
-        vector<ColumnDef>& in_column_metadata,
+        const vector<ColumnDef>& in_column_metadata,
         const int32_t in_gc_grace_seconds,
         const string& in_default_validation_class,
         const int32_t in_id,
@@ -86,11 +86,11 @@ ColumnFamilyDefinition::ColumnFamilyDefinition(const string& in_keyspace_name,
         //memtable_operations_in_millions(in_memtable_operations_in_millions),
         column_metadata()
 {
-    for (vector<ColumnDef>::iterator it= in_column_metadata.begin();
+    for (vector<ColumnDef>::const_iterator it= in_column_metadata.begin();
             it != in_column_metadata.end();
             ++it)
     {
-        ColumnDef thrift_entry= *it;
+        const ColumnDef& thrift_entry= *it;
         ColumnDefinition entry(thrift_entry.name,
                                thrift_entry.validation_class,
                                thrift_entry.index_type,
@@ -440,4 +440,3 @@ bool ColumnFamilyDefinition::isColumnMetadataSet() const
 {
     return (! column_metadata.empty());
 }
-

@@ -33,7 +33,7 @@ public:
                        const std::string& in_strategy_class,
                        const std::map<std::string, std::string>& in_strategy_options,
                        const int32_t in_replication_factor,
-                       std::vector<org::apache::cassandra::CfDef>& in_cf_defs);
+                       const std::vector<org::apache::cassandra::CfDef>& in_cf_defs);
     ~KeyspaceDefinition() {}
 
     /**

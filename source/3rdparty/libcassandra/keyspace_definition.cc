@@ -33,7 +33,7 @@ KeyspaceDefinition::KeyspaceDefinition(const string& in_name,
                                        const string& in_strategy_class,
                                        const map<string, string>& in_strategy_options,
                                        const int32_t in_replication_factor,
-                                       vector<CfDef>& in_cf_defs)
+                                       const vector<CfDef>& in_cf_defs)
         :
         name(in_name),
         strategy_class(in_strategy_class),
@@ -41,11 +41,11 @@ KeyspaceDefinition::KeyspaceDefinition(const string& in_name,
         replication_factor(in_replication_factor),
         col_family_defs()
 {
-    for (vector<CfDef>::iterator it= in_cf_defs.begin();
+    for (vector<CfDef>::const_iterator it= in_cf_defs.begin();
             it != in_cf_defs.end();
             ++it)
     {
-        CfDef thrift_entry= *it;
+        const CfDef& thrift_entry= *it;
         ColumnFamilyDefinition entry(thrift_entry.keyspace,
                                      thrift_entry.name,
                                      thrift_entry.column_type,
@@ -135,4 +135,3 @@ void KeyspaceDefinition::setColumnFamilies(vector<ColumnFamilyDefinition>& cfs)
         col_family_defs.push_back(*it);
     }
 }
-

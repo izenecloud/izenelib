@@ -11058,4 +11058,3 @@ void CassandraProcessor::process_execute_cql_query(int32_t seqid, ::apache::thri
 }
 
 }}} // namespace
-

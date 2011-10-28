@@ -15,4 +15,3 @@ cassandraConstants::cassandraConstants() {
 }
 
 }}} // namespace
-

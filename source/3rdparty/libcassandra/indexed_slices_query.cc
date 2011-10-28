@@ -263,4 +263,3 @@ ConsistencyLevel::type IndexedSlicesQuery::getConsistencyLevel() const
 {
     return level;
 }
-

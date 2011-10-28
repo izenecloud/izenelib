@@ -74,7 +74,7 @@ public:
     /**
      * @return the keyspace associated with this session
      */
-    std::string getCurrentKeyspace() const;
+    const std::string& getCurrentKeyspace() const;
 
     /**
      * set the keyspace for the current connection
@@ -83,9 +83,14 @@ public:
     void setKeyspace(const std::string& ks_name);
 
     /**
+     * load all the keyspace definitions.
+     */
+    void loadKeyspaces();
+
+    /**
      * @return all the keyspace definitions.
      */
-    std::vector<KeyspaceDefinition> getKeyspaces();
+    const std::vector<KeyspaceDefinition>& getKeyspaces();
 
     /**
      * Insert a column, possibly inside a supercolumn
@@ -399,12 +404,12 @@ public:
     /**
      * @return the target server cluster name.
      */
-    std::string getClusterName();
+    const std::string& getClusterName();
 
     /**
      * @return the server version.
      */
-    std::string getServerVersion();
+    const std::string& getServerVersion();
 
     /**
      * @return a string property from the server
@@ -414,20 +419,20 @@ public:
     /**
      * @return hostname
      */
-    std::string getHost();
+    const std::string& getHost() const;
 
     /**
      * @return port number
      */
     int getPort() const;
 
-private:
-
     /**
      * Finds the given keyspace in the list of keyspace definitions
      * @return true if found; false otherwise
      */
-    bool findKeyspace(const std::string& name);
+    bool findKeyspace(const std::string& name) const;
+
+private:
 
     org::apache::cassandra::CassandraClient *thrift_client;
     std::string host;

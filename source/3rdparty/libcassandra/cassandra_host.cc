@@ -86,4 +86,3 @@ int CassandraHost::getPort() const
 {
     return port;
 }
-

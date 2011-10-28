@@ -38,7 +38,7 @@ public:
                            const double in_row_cache_size,
                            const double in_key_cache_size,
                            const double in_read_repair_chance,
-                           std::vector<org::apache::cassandra::ColumnDef>& in_column_metadata,
+                           const std::vector<org::apache::cassandra::ColumnDef>& in_column_metadata,
                            const int32_t in_gc_grace_seconds,
                            const std::string& in_default_validation_class,
                            const int32_t in_id,

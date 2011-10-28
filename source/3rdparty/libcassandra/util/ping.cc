@@ -50,4 +50,3 @@ bool util::pingCassandraServer(const string& hostname, int port)
 
 
 } /* end namespace libcassandra */
-

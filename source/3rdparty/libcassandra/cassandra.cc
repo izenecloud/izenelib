@@ -39,6 +39,7 @@ Cassandra::Cassandra()
      key_spaces(),
      token_map()
 {
+    loadKeyspaces();
 }
 
 
@@ -55,7 +56,9 @@ Cassandra::Cassandra(
      current_keyspace(),
      key_spaces(),
      token_map()
-{}
+{
+    loadKeyspaces();
+}
 
 
 Cassandra::Cassandra(
@@ -72,7 +75,9 @@ Cassandra::Cassandra(
      current_keyspace(keyspace),
      key_spaces(),
      token_map()
-{}
+{
+    loadKeyspaces();
+}
 
 
 Cassandra::~Cassandra()
@@ -105,7 +110,7 @@ void Cassandra::setKeyspace(const string& ks_name)
 }
 
 
-string Cassandra::getCurrentKeyspace() const
+const string& Cassandra::getCurrentKeyspace() const
 {
     return current_keyspace;
 }
@@ -326,13 +331,13 @@ vector<Column> Cassandra::getSliceNames(const string& key,
     /* damn you thrift! */
     pred.__isset.column_names= true;
     thrift_client->get_slice(ret_cosc, key, col_parent, pred, level);
-    for (vector<ColumnOrSuperColumn>::iterator it= ret_cosc.begin();
+    for (vector<ColumnOrSuperColumn>::const_iterator it= ret_cosc.begin();
             it != ret_cosc.end();
             ++it)
     {
-        if (! (*it).column.name.empty())
+        if (! it->column.name.empty())
         {
-            result.push_back((*it).column);
+            result.push_back(it->column);
         }
     }
     return result;
@@ -357,13 +362,13 @@ vector<Column> Cassandra::getSliceRange(const string& key,
     /* damn you thrift! */
     pred.__isset.slice_range= true;
     thrift_client->get_slice(ret_cosc, key, col_parent, pred, level);
-    for (vector<ColumnOrSuperColumn>::iterator it= ret_cosc.begin();
+    for (vector<ColumnOrSuperColumn>::const_iterator it= ret_cosc.begin();
             it != ret_cosc.end();
             ++it)
     {
-        if (! (*it).column.name.empty())
+        if (! it->column.name.empty())
         {
-            result.push_back((*it).column);
+            result.push_back(it->column);
         }
     }
     return result;
@@ -402,7 +407,7 @@ map<string, vector<Column> > Cassandra::getRangeSlice(const ColumnParent& col_pa
                 it != key_slices.end();
                 ++it)
         {
-            ret.insert(make_pair((*it).key, getColumnList((*it).columns)));
+            ret.insert(make_pair(it->key, getColumnList(it->columns)));
         }
     }
     return ret;
@@ -443,7 +448,7 @@ map<string, vector<SuperColumn> > Cassandra::getSuperRangeSlice(const ColumnPare
                 it != key_slices.end();
                 ++it)
         {
-            ret.insert(make_pair((*it).key, getSuperColumnList((*it).columns)));
+            ret.insert(make_pair(it->key, getSuperColumnList(it->columns)));
         }
     }
     return ret;
@@ -479,15 +484,15 @@ Cassandra::getIndexedSlices(const IndexedSlicesQuery& query)
             it != ret.end();
             ++it)
     {
-        vector<Column> thrift_cols= getColumnList((*it).columns);
+        vector<Column> thrift_cols= getColumnList(it->columns);
         map<string, string> rows;
-        for (vector<Column>::iterator inner_it= thrift_cols.begin();
+        for (vector<Column>::const_iterator inner_it= thrift_cols.begin();
                 inner_it != thrift_cols.end();
                 ++inner_it)
         {
-            rows.insert(make_pair((*inner_it).name, (*inner_it).value));
+            rows.insert(make_pair(inner_it->name, inner_it->value));
         }
-        ret_map.insert(make_pair((*it).key, rows));
+        ret_map.insert(make_pair(it->key, rows));
     }
 
     return ret_map;
@@ -511,17 +516,17 @@ int32_t Cassandra::getCount(const string& key,
 }
 
 
-vector<KeyspaceDefinition> Cassandra::getKeyspaces()
+void Cassandra::loadKeyspaces()
 {
     if (key_spaces.empty())
     {
         vector<KsDef> thrift_ks_defs;
         thrift_client->describe_keyspaces(thrift_ks_defs);
-        for (vector<KsDef>::iterator it= thrift_ks_defs.begin();
+        for (vector<KsDef>::const_iterator it= thrift_ks_defs.begin();
                 it != thrift_ks_defs.end();
                 ++it)
         {
-            KsDef thrift_entry= *it;
+            const KsDef& thrift_entry= *it;
             KeyspaceDefinition entry(thrift_entry.name,
                                      thrift_entry.strategy_class,
                                      thrift_entry.strategy_options,
@@ -530,6 +535,11 @@ vector<KeyspaceDefinition> Cassandra::getKeyspaces()
             key_spaces.push_back(entry);
         }
     }
+}
+
+
+const vector<KeyspaceDefinition>& Cassandra::getKeyspaces()
+{
     return key_spaces;
 }
 
@@ -556,6 +566,10 @@ string Cassandra::createKeyspace(const KeyspaceDefinition& ks_def)
     string ret;
     KsDef thrift_ks_def= createKsDefObject(ks_def);
     thrift_client->system_add_keyspace(ret, thrift_ks_def);
+    if (!findKeyspace(ks_def.getName()))
+    {
+        key_spaces.push_back(ks_def);
+    }
     return ret;
 }
 
@@ -564,11 +578,25 @@ string Cassandra::dropKeyspace(const string& ks_name)
 {
     string ret;
     thrift_client->system_drop_keyspace(ret, ks_name);
+    for (vector<KeyspaceDefinition>::iterator it= key_spaces.begin();
+            it != key_spaces.end();
+            ++it)
+    {
+        if (ks_name == it->getName())
+        {
+            key_spaces.erase(it);
+            break;
+        }
+    }
+    if (current_keyspace == ks_name)
+    {
+        current_keyspace.clear();
+    }
     return ret;
 }
 
 
-string Cassandra::getClusterName()
+const string& Cassandra::getClusterName()
 {
     if (cluster_name.empty())
     {
@@ -578,7 +606,7 @@ string Cassandra::getClusterName()
 }
 
 
-string Cassandra::getServerVersion()
+const string& Cassandra::getServerVersion()
 {
     if (server_version.empty())
     {
@@ -588,7 +616,7 @@ string Cassandra::getServerVersion()
 }
 
 
-string Cassandra::getHost()
+const string& Cassandra::getHost() const
 {
     return host;
 }
@@ -600,9 +628,9 @@ int Cassandra::getPort() const
 }
 
 
-bool Cassandra::findKeyspace(const string& name)
+bool Cassandra::findKeyspace(const string& name) const
 {
-    for (vector<KeyspaceDefinition>::iterator it= key_spaces.begin();
+    for (vector<KeyspaceDefinition>::const_iterator it= key_spaces.begin();
             it != key_spaces.end();
             ++it)
     {
@@ -613,5 +641,3 @@ bool Cassandra::findKeyspace(const string& name)
     }
     return false;
 }
-
-
