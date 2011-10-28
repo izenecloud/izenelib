@@ -174,9 +174,7 @@ void PostingMerger::mergeWith(MemPostingReader* pInMemoryPosting)
     pInMemoryPosting->pPostingWriter_->flushLastDoc(true);
 
     IndexOutput* pDOutput = pOutputDescriptor_->getDPostingOutput();
-    IndexOutput* pPOutput = NULL;
-    if (pOutputDescriptor_->getPPostingOutput())
-        pPOutput = pOutputDescriptor_->getPPostingOutput();
+    IndexOutput* pPOutput = pOutputDescriptor_->getPPostingOutput();
 
     if (bFirstPosting_)///first posting
     {
@@ -247,7 +245,7 @@ void PostingMerger::mergeWith(MemPostingReader* pInMemoryPosting)
     chunkDesc_.length += (pDocIndexOutput->getLength() - oldDOff);
 
     ///write position posting
-    if (indexLevel_ == WORDLEVEL)
+    if (indexLevel_ == WORDLEVEL && pInMemoryPosting->pPostingWriter_->pLocList_)
     {
         VariantDataChunk* pPChunk = pInMemoryPosting->pPostingWriter_->pLocList_->pHeadChunk_;
         while (pPChunk)
@@ -281,13 +279,9 @@ void PostingMerger::mergeWith(MemPostingReader* pInMemoryPosting)
 void PostingMerger::mergeWith(RTDiskPostingReader* pOnDiskPosting)
 {
     IndexOutput* pDOutput = pOutputDescriptor_->getDPostingOutput();
-    IndexOutput* pPOutput = NULL;
-    if(pOutputDescriptor_->getPPostingOutput())
-        pPOutput = pOutputDescriptor_->getPPostingOutput();
+    IndexOutput* pPOutput = pOutputDescriptor_->getPPostingOutput();
     IndexInput*	pDInput = pOnDiskPosting->getInputDescriptor()->getDPostingInput();
-    IndexInput* pPInput = NULL;
-    if (pOnDiskPosting->getInputDescriptor()->getPPostingInput())
-        pPInput = pOnDiskPosting->getInputDescriptor()->getPPostingInput();
+    IndexInput* pPInput = pOnDiskPosting->getInputDescriptor()->getPPostingInput();
 
     if (bFirstPosting_)///first posting
     {
@@ -372,13 +366,9 @@ void PostingMerger::mergeWith(RTDiskPostingReader* pOnDiskPosting)
 void PostingMerger::mergeWith_GC(RTDiskPostingReader* pOnDiskPosting,BitVector* pFilter)
 {
     IndexOutput* pDOutput = pOutputDescriptor_->getDPostingOutput();
-    IndexOutput* pPOutput = NULL;
-    if (pOutputDescriptor_->getPPostingOutput())
-        pPOutput = pOutputDescriptor_->getPPostingOutput();
+    IndexOutput* pPOutput = pOutputDescriptor_->getPPostingOutput();
     IndexInput*	pDInput = pOnDiskPosting->getInputDescriptor()->getDPostingInput();
-    IndexInput* pPInput = NULL;
-    if(pOnDiskPosting->getInputDescriptor()->getPPostingInput())
-        pPInput = pOnDiskPosting->getInputDescriptor()->getPPostingInput();
+    IndexInput* pPInput = pOnDiskPosting->getInputDescriptor()->getPPostingInput();
 
     count_t nODDF = pOnDiskPosting->postingDesc_.df;
     if(nODDF <= 0)
@@ -497,9 +487,7 @@ void PostingMerger::mergeWith_GC(RTDiskPostingReader* pOnDiskPosting,BitVector* 
 
 void PostingMerger::mergeWith(BlockPostingReader* pPosting,BitVector* pFilter)
 {
-    IndexInput* pPInput = NULL;
-    if ( pPosting->inputDescriptorPtr_->getPPostingInput())
-        pPInput = pPosting->inputDescriptorPtr_->getPPostingInput();
+    IndexInput* pPInput = pPosting->inputDescriptorPtr_->getPPostingInput();
 
     if (bFirstPosting_)///first posting
     {
@@ -629,9 +617,7 @@ void PostingMerger::mergeWith(BlockPostingReader* pPosting,BitVector* pFilter)
 void PostingMerger::mergeWith(ChunkPostingReader* pPosting,BitVector* pFilter)
 {
     IndexInput*	pDInput = pPosting->inputDescriptorPtr_->getDPostingInput();
-    IndexInput*	pPInput = NULL;
-    if(pPosting->inputDescriptorPtr_->getPPostingInput())
-        pPInput = pPosting->inputDescriptorPtr_->getPPostingInput();
+    IndexInput*	pPInput = pPosting->inputDescriptorPtr_->getPPostingInput();
 
     if (bFirstPosting_)///first posting
     {
@@ -753,9 +739,7 @@ void PostingMerger::optimize(RTDiskPostingReader* pOnDiskPosting,BitVector* pFil
 void PostingMerger::optimize_to_Block(RTDiskPostingReader* pOnDiskPosting,BitVector* pFilter)
 {
     IndexInput*	pDInput = pOnDiskPosting->getInputDescriptor()->getDPostingInput();
-    IndexInput*	pPInput = NULL;
-    if (pOnDiskPosting->getInputDescriptor()->getPPostingInput())
-        pPInput = pOnDiskPosting->getInputDescriptor()->getPPostingInput();
+    IndexInput*	pPInput = pOnDiskPosting->getInputDescriptor()->getPPostingInput();
 
     count_t nODDF = pOnDiskPosting->postingDesc_.df;
     if(nODDF <= 0)
@@ -788,14 +772,14 @@ void PostingMerger::optimize_to_Block(RTDiskPostingReader* pOnDiskPosting,BitVec
             doc_ids_offset_++;
             ensure_decompressed_pos_buffer(nPCount);
             uint32_t pos = 0;
-            while(nTF > 0)
+            if(pPInput)
             {
-                if(pPInput)
+                while(nTF > 0)
                 {
                     pos += pPInput->readVInt();
                     positions_[position_buffer_pointer_++] = pos;
+                    nTF --;
                 }
-                nTF --;
             }
 
             if (doc_ids_offset_ == ChunkEncoder::kChunkSize) 
@@ -825,11 +809,13 @@ void PostingMerger::optimize_to_Block(RTDiskPostingReader* pOnDiskPosting,BitVec
         }
         else ///this document has been deleted
         {
-            while (nTF > 0)
-            {		
-                if(pPInput)
+            if(pPInput)
+            {
+                while (nTF > 0)
+                {
                     pPInput->readVInt();
-                nTF--;							
+                    nTF--;
+                }
             }
         }
     }	
@@ -843,9 +829,7 @@ void PostingMerger::optimize_to_Block(RTDiskPostingReader* pOnDiskPosting,BitVec
 void PostingMerger::optimize_to_Chunk(RTDiskPostingReader* pOnDiskPosting,BitVector* pFilter)
 {
     IndexInput* pDInput = pOnDiskPosting->getInputDescriptor()->getDPostingInput();
-    IndexInput* pPInput = NULL;
-    if (pOnDiskPosting->getInputDescriptor()->getPPostingInput())
-        pPInput = pOnDiskPosting->getInputDescriptor()->getPPostingInput();
+    IndexInput* pPInput = pOnDiskPosting->getInputDescriptor()->getPPostingInput();
 
     count_t nODDF = pOnDiskPosting->postingDesc_.df;
     if(nODDF <= 0)
@@ -877,14 +861,14 @@ void PostingMerger::optimize_to_Chunk(RTDiskPostingReader* pOnDiskPosting,BitVec
             ensure_decompressed_pos_buffer(nPCount);
             uint32_t pos = 0;
             doc_ids_offset_++;
-            while(nTF > 0)
+            if(pPInput)
             {
-                if(pPInput)
+                while(nTF > 0)
                 {
                     pos += pPInput->readVInt();
                     positions_[position_buffer_pointer_++] = pos;
+                    nTF --;
                 }
-                nTF --;
             }
 
             if (doc_ids_offset_ == ChunkEncoder::kChunkSize) 
@@ -910,11 +894,13 @@ void PostingMerger::optimize_to_Chunk(RTDiskPostingReader* pOnDiskPosting,BitVec
         }
         else ///this document has been deleted
         {
-            while (nTF > 0)
+            if(pPInput)
             {
-                if(pPInput)
+                while (nTF > 0)
+                {
                     pPInput->readVInt();
-                nTF--;							
+                    nTF--;
+                }
             }
         }
     }	
@@ -949,9 +935,7 @@ fileoffset_t PostingMerger::endMerge_ByteAlign()
         return -1;
 
     IndexOutput* pDOutput = pOutputDescriptor_->getDPostingOutput();
-    IndexOutput* pPOutput = NULL;
-    if (pOutputDescriptor_->getPPostingOutput())
-        pPOutput = pOutputDescriptor_->getPPostingOutput();
+    IndexOutput* pPOutput = pOutputDescriptor_->getPPostingOutput();
 
     termInfo_.docFreq_ = postingDesc_.df;
     termInfo_.ctf_ = postingDesc_.ctf;
@@ -1029,9 +1013,7 @@ fileoffset_t PostingMerger::endMerge_Block()
     }
 
     IndexOutput* pDOutput = pOutputDescriptor_->getDPostingOutput();
-    IndexOutput* pPOutput = NULL;
-    if (pOutputDescriptor_->getPPostingOutput())
-        pPOutput = pOutputDescriptor_->getPPostingOutput();
+    IndexOutput* pPOutput = pOutputDescriptor_->getPPostingOutput();
 
     termInfo_.docFreq_ = postingDesc_.df;
     termInfo_.ctf_ = postingDesc_.ctf;
@@ -1104,9 +1086,7 @@ fileoffset_t PostingMerger::endMerge_Chunk()
     }
 
     IndexOutput* pDOutput = pOutputDescriptor_->getDPostingOutput();
-    IndexOutput* pPOutput = NULL;
-    if (pOutputDescriptor_->getPPostingOutput())
-        pPOutput = pOutputDescriptor_->getPPostingOutput();
+    IndexOutput* pPOutput = pOutputDescriptor_->getPPostingOutput();
 
     if(pSkipListWriter_ && pSkipListWriter_->getNumLevels() > 0) ///nDF_ > SkipInterval
     {
