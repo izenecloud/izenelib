@@ -78,6 +78,11 @@ FIND_PACKAGE(TokyoCabinet 1.4.24)
 FIND_PACKAGE(Glog)
 
 ##################################################
+# Thrift
+#####
+FIND_PACKAGE(Thrift)
+
+##################################################
 # Other common libraries
 #####
 FIND_LIBRARY(DL_LIBRARIES NAMES dl)
