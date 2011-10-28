@@ -218,6 +218,14 @@ void Cassandra::removeColumn(const string& key,
 }
 
 
+void Cassandra::removeColumn(const string& key,
+                             const string& column_family,
+                             const string& column_name)
+{
+    remove(key, column_family, "", column_name);
+}
+
+
 void Cassandra::removeSuperColumn(const string& key,
                                   const string& column_family,
                                   const string& super_column_name)

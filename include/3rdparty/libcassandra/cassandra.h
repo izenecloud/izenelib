@@ -201,6 +201,17 @@ public:
 
 
     /**
+     * Remove a column
+     *
+     * @param[in] key the column key
+     * @param[in] column_family the column family
+     * @param[in] column_name the column name (optional)
+     */
+    void removeColumn(const std::string& key,
+                const std::string& column_family,
+                const std::string& column_name);
+
+    /**
      * Remove a super column and all columns under it
      *
      * @param[in] key the column key

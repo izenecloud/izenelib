@@ -13,6 +13,7 @@
 #include <libcassandra/keyspace_definition.h>
 
 using namespace std;
+using namespace org::apache::cassandra;
 using namespace libcassandra;
 
 static string host("127.0.0.1");
@@ -28,44 +29,62 @@ int main()
 
     try
     {
-        const string ks_name("drizzle");
-        const string cl_value("this is data being inserted!");
+        const string ks_name("___drizzle___");
+        const string key("sarah");
+        const string col_value("this is data being inserted!");
+        const string col_family("Data");
+        const string col_name("third");
+        ColumnParent col_parent;
+        col_parent.__set_column_family(col_family);
+        SlicePredicate pred;
 
         /* create keyspace */
         cout << "Create keyspaces: " << ks_name << endl;
         KeyspaceDefinition ks_def;
         ks_def.setName(ks_name);
+        if (client->findKeyspace(ks_name))
+        {
+            client->dropKeyspace(ks_name);
+        }
         client->createKeyspace(ks_def);
         client->setKeyspace(ks_def.getName());
 
-        cout << "Current keyspaces are:" << endl;
+        cout << endl << "Current keyspaces are:" << endl;
         vector<KeyspaceDefinition> key_out= client->getKeyspaces();
         for (vector<KeyspaceDefinition>::iterator it = key_out.begin(); it != key_out.end(); ++it)
         {
             cout << (*it).getName() << endl;
         }
+        cout << endl;
 
         /* create standard column family */
         ColumnFamilyDefinition cf_def;
-        cf_def.setName("Data");
+        cf_def.setName(col_family);
         cf_def.setKeyspaceName(ks_def.getName());
         client->createColumnFamily(cf_def);
+        cout << "Now we have " << client->getCount(key, col_parent, pred) << " column(s) in the column family." << endl << endl;
 
         /* insert data */
-        client->insertColumn("sarah", "Data", "third", cl_value);
-        cout << "Value will be inserting is: " << cl_value << endl;
+        cout << "Value will be inserting is: " << col_value << endl;
+        client->insertColumn(key, col_family, col_name, col_value);
+        cout << endl << "Inserting...." << endl;
+
         /* retrieve that data */
-        cout << "Inserting...." << endl;
-        string res= client->getColumnValue("sarah", "Data", "third");
+        cout << "Now we have " << client->getCount(key, col_parent, pred) << " column(s) in the column family." << endl << endl;
+        string res= client->getColumnValue(key, col_family, col_name);
         cout << "Value in column retrieved is: " << res << endl;
 
-        /* clear */
-        client->removeColumn("sarah", "Data", "", "third");
-        client->dropColumnFamily("Data");
+        /* delete data */
+        cout << endl << "Deleting...." << endl;
+        client->removeColumn(key, col_family, col_name);
+        cout << "Now we have " << client->getCount(key, col_parent, pred) << " column(s) in the column family." << endl << endl;
+
+        /* drop column family and keyspace */
+        client->dropColumnFamily(col_family);
         cout << "Drop keyspaces: " << ks_name << endl;
         client->dropKeyspace(ks_name);
 
-        cout << "Current keyspaces are:" << endl;
+        cout << endl << "Current keyspaces are:" << endl;
         key_out= client->getKeyspaces();
         for (vector<KeyspaceDefinition>::iterator it = key_out.begin(); it != key_out.end(); ++it)
         {
