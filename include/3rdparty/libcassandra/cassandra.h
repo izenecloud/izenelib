@@ -399,18 +399,32 @@ public:
     std::string dropKeyspace(const std::string& ks_name);
 
     /**
-     * Create a keyspace
-     * @param[in] ks_def object representing defintion for keyspace to create
+     * Create a column family
+     * @param[in] cf_name the name of the column family to create
      * @return the schema ID for the column family created
      */
     std::string createColumnFamily(const ColumnFamilyDefinition& cf_def);
 
     /**
-     * drop a column family
+     * Drop a column family
      * @param[in] cf_name the name of the column family to drop
      * @return the schema ID for the column family dropped
      */
     std::string dropColumnFamily(const std::string& cf_name);
+
+    /**
+     * Update a column family
+     * @param[in] cf_name the name of the column family to update
+     * @return the schema ID for the column family updated
+     */
+    std::string updateColumnFamily(const ColumnFamilyDefinition& cf_def);
+
+    /**
+     * Removes all the rows from the given column family. 
+     * @param[in] cf_name the name of the column family to truncate
+     */
+    void truncateColumnFamily(const std::string& cf_name);
+
 
     /**
      * @return the target server cluster name.

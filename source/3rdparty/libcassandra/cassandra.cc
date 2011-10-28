@@ -574,6 +574,13 @@ string Cassandra::dropColumnFamily(const string& cf_name)
     return schema_id;
 }
 
+std::string Cassandra::updateColumnFamily(const ColumnFamilyDefinition& cf_def)
+{
+    string schema_id;
+    CfDef thrift_cf_def= createCfDefObject(cf_def);
+    thrift_client->system_update_column_family(schema_id, thrift_cf_def);
+    return schema_id;
+}
 
 string Cassandra::createKeyspace(const KeyspaceDefinition& ks_def)
 {
@@ -587,6 +594,10 @@ string Cassandra::createKeyspace(const KeyspaceDefinition& ks_def)
     return ret;
 }
 
+void Cassandra::truncateColumnFamily(const string& cf_name)
+{
+    thrift_client->truncate(cf_name);
+}
 
 string Cassandra::dropKeyspace(const string& ks_name)
 {
