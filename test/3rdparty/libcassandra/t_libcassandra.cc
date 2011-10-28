@@ -39,7 +39,7 @@ int main()
         SlicePredicate pred;
 
         /* create keyspace */
-        cout << "Create keyspaces: " << ks_name << endl;
+        cout << "Create keyspace: " << ks_name << endl;
         KeyspaceDefinition ks_def;
         ks_def.setName(ks_name);
         if (client->findKeyspace(ks_name))
@@ -49,7 +49,7 @@ int main()
         client->createKeyspace(ks_def);
         client->setKeyspace(ks_def.getName());
 
-        cout << endl << "Current keyspaces are:" << endl;
+        cout << "Current keyspaces are:" << endl;
         vector<KeyspaceDefinition> key_out= client->getKeyspaces();
         for (vector<KeyspaceDefinition>::iterator it = key_out.begin(); it != key_out.end(); ++it)
         {
@@ -65,7 +65,7 @@ int main()
         cout << "Now we have " << client->getCount(key, col_parent, pred) << " column(s) in the column family." << endl << endl;
 
         /* insert data */
-        cout << "Value will be inserting is: " << col_value << endl;
+        cout << "Value will be inserted is: " << col_value << endl;
         client->insertColumn(key, col_family, col_name, col_value);
         cout << endl << "Inserting...." << endl;
 
@@ -81,10 +81,10 @@ int main()
 
         /* drop column family and keyspace */
         client->dropColumnFamily(col_family);
-        cout << "Drop keyspaces: " << ks_name << endl;
+        cout << "Drop keyspace: " << ks_name << endl;
         client->dropKeyspace(ks_name);
 
-        cout << endl << "Current keyspaces are:" << endl;
+        cout << "Current keyspaces are:" << endl;
         key_out= client->getKeyspaces();
         for (vector<KeyspaceDefinition>::iterator it = key_out.begin(); it != key_out.end(); ++it)
         {
