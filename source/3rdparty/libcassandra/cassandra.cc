@@ -39,7 +39,7 @@ Cassandra::Cassandra()
      key_spaces(),
      token_map()
 {
-    loadKeyspaces();
+    reloadKeyspaces();
 }
 
 
@@ -57,7 +57,7 @@ Cassandra::Cassandra(
      key_spaces(),
      token_map()
 {
-    loadKeyspaces();
+    reloadKeyspaces();
 }
 
 
@@ -76,7 +76,7 @@ Cassandra::Cassandra(
      key_spaces(),
      token_map()
 {
-    loadKeyspaces();
+    reloadKeyspaces();
 }
 
 
@@ -516,24 +516,23 @@ int32_t Cassandra::getCount(const string& key,
 }
 
 
-void Cassandra::loadKeyspaces()
+void Cassandra::reloadKeyspaces()
 {
-    if (key_spaces.empty())
+    key_spaces.clear();
+
+    vector<KsDef> thrift_ks_defs;
+    thrift_client->describe_keyspaces(thrift_ks_defs);
+    for (vector<KsDef>::const_iterator it= thrift_ks_defs.begin();
+            it != thrift_ks_defs.end();
+            ++it)
     {
-        vector<KsDef> thrift_ks_defs;
-        thrift_client->describe_keyspaces(thrift_ks_defs);
-        for (vector<KsDef>::const_iterator it= thrift_ks_defs.begin();
-                it != thrift_ks_defs.end();
-                ++it)
-        {
-            const KsDef& thrift_entry= *it;
-            KeyspaceDefinition entry(thrift_entry.name,
-                                     thrift_entry.strategy_class,
-                                     thrift_entry.strategy_options,
-                                     thrift_entry.replication_factor,
-                                     thrift_entry.cf_defs);
-            key_spaces.push_back(entry);
-        }
+        const KsDef& thrift_entry= *it;
+        KeyspaceDefinition entry(thrift_entry.name,
+                thrift_entry.strategy_class,
+                thrift_entry.strategy_options,
+                thrift_entry.replication_factor,
+                thrift_entry.cf_defs);
+        key_spaces.push_back(entry);
     }
 }
 

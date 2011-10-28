@@ -83,9 +83,9 @@ public:
     void setKeyspace(const std::string& ks_name);
 
     /**
-     * load all the keyspace definitions.
+     * reload all the keyspace definitions
      */
-    void loadKeyspaces();
+    void reloadKeyspaces();
 
     /**
      * @return all the keyspace definitions.
