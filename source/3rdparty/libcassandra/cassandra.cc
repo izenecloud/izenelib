@@ -522,11 +522,16 @@ void Cassandra::reloadKeyspaces()
 
     vector<KsDef> thrift_ks_defs;
     thrift_client->describe_keyspaces(thrift_ks_defs);
+    bool current_valid = false;
+
     for (vector<KsDef>::const_iterator it= thrift_ks_defs.begin();
             it != thrift_ks_defs.end();
             ++it)
     {
         const KsDef& thrift_entry= *it;
+        if (thrift_entry.name == current_keyspace)
+            current_valid = true;
+
         KeyspaceDefinition entry(thrift_entry.name,
                 thrift_entry.strategy_class,
                 thrift_entry.strategy_options,
@@ -534,6 +539,8 @@ void Cassandra::reloadKeyspaces()
                 thrift_entry.cf_defs);
         key_spaces.push_back(entry);
     }
+    if (!current_valid)
+        current_keyspace.clear();
 }
 
 
@@ -588,9 +595,8 @@ string Cassandra::dropKeyspace(const string& ks_name)
         }
     }
     if (current_keyspace == ks_name)
-    {
         current_keyspace.clear();
-    }
+
     return ret;
 }
 
