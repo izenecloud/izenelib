@@ -113,7 +113,7 @@ void Cassandra::insertColumn(const string& value,
                              const string& super_column_name,
                              const string& column_name,
                              int64_t time_stamp,
-                             ConsistencyLevel::type level,
+                             const ConsistencyLevel::type level,
                              int32_t ttl)
 {
     ColumnParent col_parent;
@@ -146,7 +146,7 @@ void Cassandra::insertColumn(const string& value,
                              const string& column_family,
                              const string& column_name,
                              int64_t time_stamp,
-                             ConsistencyLevel::type level,
+                             const ConsistencyLevel::type level,
                              int32_t ttl)
 {
     insertColumn(value, key, column_family, "", column_name, time_stamp, level, ttl);
@@ -158,7 +158,7 @@ void Cassandra::insertColumn(const int64_t value,
                              const string& super_column_name,
                              const string& column_name,
                              int64_t time_stamp,
-                             ConsistencyLevel::type level,
+                             const ConsistencyLevel::type level,
                              int32_t ttl)
 {
     insertColumn(serializeLong(value), key, column_family, super_column_name, column_name, time_stamp, level, ttl);
@@ -169,7 +169,7 @@ void Cassandra::insertColumn(const int64_t value,
                              const string& column_family,
                              const string& column_name,
                              int64_t time_stamp,
-                             ConsistencyLevel::type level,
+                             const ConsistencyLevel::type level,
                              int32_t ttl)
 {
     insertColumn(serializeLong(value), key, column_family, "", column_name, time_stamp, level, ttl);
@@ -177,7 +177,7 @@ void Cassandra::insertColumn(const int64_t value,
 
 void Cassandra::remove(const string &key,
                        const ColumnPath &col_path,
-                       ConsistencyLevel::type level)
+                       const ConsistencyLevel::type level)
 {
     thrift_client->remove(key, col_path, createTimestamp(), level);
 }
@@ -186,7 +186,7 @@ void Cassandra::remove(const string& key,
                        const string& column_family,
                        const string& super_column_name,
                        const string& column_name,
-                       ConsistencyLevel::type level)
+                       const ConsistencyLevel::type level)
 {
     ColumnPath col_path;
     col_path.__set_column_family(column_family);
@@ -205,7 +205,7 @@ void Cassandra::removeColumn(const string& key,
                        const string& column_family,
                        const string& super_column_name,
                        const string& column_name,
-                       ConsistencyLevel::type level)
+                       const ConsistencyLevel::type level)
 {
     remove(key, column_family, super_column_name, column_name, level);
 }
@@ -213,7 +213,7 @@ void Cassandra::removeColumn(const string& key,
 void Cassandra::removeColumn(const string& key,
                              const string& column_family,
                              const string& column_name,
-                             ConsistencyLevel::type level)
+                             const ConsistencyLevel::type level)
 {
     remove(key, column_family, "", column_name, level);
 }
@@ -221,7 +221,7 @@ void Cassandra::removeColumn(const string& key,
 void Cassandra::removeSuperColumn(const string& key,
                                   const string& column_family,
                                   const string& super_column_name,
-                                  ConsistencyLevel::type level)
+                                  const ConsistencyLevel::type level)
 {
     remove(key, column_family, super_column_name, "", level);
 }
@@ -230,7 +230,7 @@ Column Cassandra::getColumn(const string& key,
                             const string& column_family,
                             const string& super_column_name,
                             const string& column_name,
-                            ConsistencyLevel::type level)
+                            const ConsistencyLevel::type level)
 {
     ColumnPath col_path;
     col_path.__set_column_family(column_family);
@@ -253,7 +253,7 @@ Column Cassandra::getColumn(const string& key,
 Column Cassandra::getColumn(const string& key,
                             const string& column_family,
                             const string& column_name,
-                            ConsistencyLevel::type level)
+                            const ConsistencyLevel::type level)
 {
     return getColumn(key, column_family, "", column_name, level);
 }
@@ -293,7 +293,7 @@ int64_t Cassandra::getIntegerColumnValue(const string& key,
 SuperColumn Cassandra::getSuperColumn(const string& key,
                                       const string& column_family,
                                       const string& super_column_name,
-                                      ConsistencyLevel::type level)
+                                      const ConsistencyLevel::type level)
 {
     ColumnPath col_path;
     col_path.__set_column_family(column_family);
@@ -312,7 +312,7 @@ SuperColumn Cassandra::getSuperColumn(const string& key,
 vector<Column> Cassandra::getSliceNames(const string& key,
                                         const ColumnParent& col_parent,
                                         SlicePredicate& pred,
-                                        ConsistencyLevel::type level)
+                                        const ConsistencyLevel::type level)
 {
     vector<ColumnOrSuperColumn> ret_cosc;
     vector<Column> result;
@@ -334,7 +334,7 @@ vector<Column> Cassandra::getSliceNames(const string& key,
 vector<Column> Cassandra::getSliceRange(const string& key,
                                         const ColumnParent& col_parent,
                                         SlicePredicate& pred,
-                                        ConsistencyLevel::type level)
+                                        const ConsistencyLevel::type level)
 {
     vector<ColumnOrSuperColumn> ret_cosc;
     vector<Column> result;
@@ -358,7 +358,7 @@ map<string, vector<Column> > Cassandra::getRangeSlice(const ColumnParent& col_pa
         const string& start,
         const string& finish,
         const int32_t row_count,
-        ConsistencyLevel::type level)
+        const ConsistencyLevel::type level)
 {
     map<string, vector<Column> > ret;
     vector<KeySlice> key_slices;
@@ -388,7 +388,7 @@ map<string, vector<SuperColumn> > Cassandra::getSuperRangeSlice(const ColumnPare
         const string& start,
         const string& finish,
         const int32_t row_count,
-        ConsistencyLevel::type level)
+        const ConsistencyLevel::type level)
 {
     map<string, vector<SuperColumn> > ret;
     vector<KeySlice> key_slices;
@@ -448,7 +448,7 @@ Cassandra::getIndexedSlices(const IndexedSlicesQuery& query)
 int32_t Cassandra::getCount(const string& key,
                             const ColumnParent& col_parent,
                             const SlicePredicate& pred,
-                            ConsistencyLevel::type level)
+                            const ConsistencyLevel::type level)
 {
     return (thrift_client->get_count(key, col_parent, pred, level));
 }
@@ -525,7 +525,7 @@ void Cassandra::truncateColumnFamily(const string& cf_name)
     thrift_client->truncate(cf_name);
 }
 
-void Cassandra::executeCqlQuery(CqlResult& result, const string& query, Compression::type compression)
+void Cassandra::executeCqlQuery(CqlResult& result, const string& query, const Compression::type compression)
 {
     thrift_client->execute_cql_query(result, query, compression);
 }
