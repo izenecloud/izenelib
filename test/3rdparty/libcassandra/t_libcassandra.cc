@@ -66,7 +66,7 @@ int main()
 
         /* insert data */
         cout << "Value will be inserted is: " << col_value << endl;
-        client->insertColumn(key, col_family, col_name, col_value);
+        client->insertColumn(col_value, key, col_family, col_name);
         cout << endl << "Inserting...." << endl;
 
         /* retrieve that data */
