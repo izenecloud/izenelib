@@ -327,31 +327,38 @@ public:
             const std::string& super_column_name,
             const org::apache::cassandra::ConsistencyLevel::type level = org::apache::cassandra::ConsistencyLevel::QUORUM);
 
-    std::vector<org::apache::cassandra::Column> getSliceNames(const std::string& key,
+    std::vector<org::apache::cassandra::Column> getSlice(const std::string& key,
             const org::apache::cassandra::ColumnParent& col_parent,
-            org::apache::cassandra::SlicePredicate& pred,
-            const org::apache::cassandra::ConsistencyLevel::type level = org::apache::cassandra::ConsistencyLevel::QUORUM);
-
-    std::vector<org::apache::cassandra::Column> getSliceRange(const std::string& key,
-            const org::apache::cassandra::ColumnParent& col_parent,
-            org::apache::cassandra::SlicePredicate& pred,
+            const org::apache::cassandra::SlicePredicate& pred,
             const org::apache::cassandra::ConsistencyLevel::type level = org::apache::cassandra::ConsistencyLevel::QUORUM);
 
     std::map<std::string, std::vector<org::apache::cassandra::Column> >
-    getRangeSlice(const org::apache::cassandra::ColumnParent& col_parent,
-                  const org::apache::cassandra::SlicePredicate& pred,
-                  const std::string& start,
-                  const std::string& finish,
-                  const int32_t row_count,
-                  const org::apache::cassandra::ConsistencyLevel::type level = org::apache::cassandra::ConsistencyLevel::QUORUM);
+    getRangeSlices(const org::apache::cassandra::ColumnParent& col_parent,
+                   const org::apache::cassandra::SlicePredicate& pred,
+                   const org::apache::cassandra::KeyRange& range,
+                   const org::apache::cassandra::ConsistencyLevel::type level = org::apache::cassandra::ConsistencyLevel::QUORUM);
+
+    std::map<std::string, std::vector<org::apache::cassandra::Column> >
+    getRangeSlices(const org::apache::cassandra::ColumnParent& col_parent,
+                   const org::apache::cassandra::SlicePredicate& pred,
+                   const std::string& start,
+                   const std::string& finish,
+                   const int32_t row_count,
+                   const org::apache::cassandra::ConsistencyLevel::type level = org::apache::cassandra::ConsistencyLevel::QUORUM);
 
     std::map<std::string, std::vector<org::apache::cassandra::SuperColumn> >
-    getSuperRangeSlice(const org::apache::cassandra::ColumnParent& col_parent,
-                       const org::apache::cassandra::SlicePredicate& pred,
-                       const std::string& start,
-                       const std::string& finish,
-                       const int32_t count,
-                       const org::apache::cassandra::ConsistencyLevel::type level = org::apache::cassandra::ConsistencyLevel::QUORUM);
+    getSuperRangeSlices(const org::apache::cassandra::ColumnParent& col_parent,
+                        const org::apache::cassandra::SlicePredicate& pred,
+                        const org::apache::cassandra::KeyRange& range,
+                        const org::apache::cassandra::ConsistencyLevel::type level = org::apache::cassandra::ConsistencyLevel::QUORUM);
+
+    std::map<std::string, std::vector<org::apache::cassandra::SuperColumn> >
+    getSuperRangeSlices(const org::apache::cassandra::ColumnParent& col_parent,
+                        const org::apache::cassandra::SlicePredicate& pred,
+                        const std::string& start,
+                        const std::string& finish,
+                        const int32_t count,
+                        const org::apache::cassandra::ConsistencyLevel::type level = org::apache::cassandra::ConsistencyLevel::QUORUM);
 
     /**
      * Return a list of slices using the given query object

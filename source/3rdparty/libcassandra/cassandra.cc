@@ -309,15 +309,13 @@ SuperColumn Cassandra::getSuperColumn(const string& key,
     return cosc.super_column;
 }
 
-vector<Column> Cassandra::getSliceNames(const string& key,
-                                        const ColumnParent& col_parent,
-                                        SlicePredicate& pred,
-                                        const ConsistencyLevel::type level)
+vector<Column> Cassandra::getSlice(const string& key,
+                                   const ColumnParent& col_parent,
+                                   const SlicePredicate& pred,
+                                   const ConsistencyLevel::type level)
 {
     vector<ColumnOrSuperColumn> ret_cosc;
     vector<Column> result;
-    /* damn you thrift! */
-    pred.__isset.column_names= true;
     thrift_client->get_slice(ret_cosc, key, col_parent, pred, level);
     for (vector<ColumnOrSuperColumn>::const_iterator it= ret_cosc.begin();
             it != ret_cosc.end();
@@ -331,29 +329,31 @@ vector<Column> Cassandra::getSliceNames(const string& key,
     return result;
 }
 
-vector<Column> Cassandra::getSliceRange(const string& key,
-                                        const ColumnParent& col_parent,
-                                        SlicePredicate& pred,
-                                        const ConsistencyLevel::type level)
+map<string, vector<Column> > Cassandra::getRangeSlices(const ColumnParent& col_parent,
+        const SlicePredicate& pred,
+        const KeyRange& range,
+        const ConsistencyLevel::type level)
 {
-    vector<ColumnOrSuperColumn> ret_cosc;
-    vector<Column> result;
-    /* damn you thrift! */
-    pred.__isset.slice_range= true;
-    thrift_client->get_slice(ret_cosc, key, col_parent, pred, level);
-    for (vector<ColumnOrSuperColumn>::const_iterator it= ret_cosc.begin();
-            it != ret_cosc.end();
-            ++it)
+    map<string, vector<Column> > ret;
+    vector<KeySlice> key_slices;
+    thrift_client->get_range_slices(key_slices,
+                                    col_parent,
+                                    pred,
+                                    range,
+                                    level);
+    if (! key_slices.empty())
     {
-        if (! it->column.name.empty())
+        for (vector<KeySlice>::const_iterator it= key_slices.begin();
+                it != key_slices.end();
+                ++it)
         {
-            result.push_back(it->column);
+            ret.insert(make_pair(it->key, getColumnList(it->columns)));
         }
     }
-    return result;
+    return ret;
 }
 
-map<string, vector<Column> > Cassandra::getRangeSlice(const ColumnParent& col_parent,
+map<string, vector<Column> > Cassandra::getRangeSlices(const ColumnParent& col_parent,
         const SlicePredicate& pred,
         const string& start,
         const string& finish,
@@ -383,7 +383,31 @@ map<string, vector<Column> > Cassandra::getRangeSlice(const ColumnParent& col_pa
     return ret;
 }
 
-map<string, vector<SuperColumn> > Cassandra::getSuperRangeSlice(const ColumnParent& col_parent,
+map<string, vector<SuperColumn> > Cassandra::getSuperRangeSlices(const ColumnParent& col_parent,
+        const SlicePredicate& pred,
+        const KeyRange& range,
+        const ConsistencyLevel::type level)
+{
+    map<string, vector<SuperColumn> > ret;
+    vector<KeySlice> key_slices;
+    thrift_client->get_range_slices(key_slices,
+                                    col_parent,
+                                    pred,
+                                    range,
+                                    level);
+    if (! key_slices.empty())
+    {
+        for (vector<KeySlice>::const_iterator it= key_slices.begin();
+                it != key_slices.end();
+                ++it)
+        {
+            ret.insert(make_pair(it->key, getSuperColumnList(it->columns)));
+        }
+    }
+    return ret;
+}
+
+map<string, vector<SuperColumn> > Cassandra::getSuperRangeSlices(const ColumnParent& col_parent,
         const SlicePredicate& pred,
         const string& start,
         const string& finish,
