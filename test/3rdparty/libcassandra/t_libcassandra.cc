@@ -71,7 +71,8 @@ int main()
 
         /* retrieve that data */
         cout << "Now we have " << client->getCount(key, col_parent, pred) << " column(s) in the column family." << endl << endl;
-        string res= client->getColumnValue(key, col_family, col_name);
+        string res;
+        client->getColumnValue(res, key, col_family, col_name);
         cout << "Value in column retrieved is: " << res << endl;
 
         /* delete data */
