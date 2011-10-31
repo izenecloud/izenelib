@@ -28,7 +28,6 @@ using namespace std;
 using namespace org::apache::cassandra;
 using namespace libcassandra;
 
-
 Cassandra::Cassandra()
     :thrift_client(NULL),
      host(),
@@ -41,7 +40,6 @@ Cassandra::Cassandra()
 {
     reloadKeyspaces();
 }
-
 
 Cassandra::Cassandra(
     CassandraClient *in_thrift_client,
@@ -59,7 +57,6 @@ Cassandra::Cassandra(
 {
     reloadKeyspaces();
 }
-
 
 Cassandra::Cassandra(
     CassandraClient *in_thrift_client,
@@ -79,18 +76,15 @@ Cassandra::Cassandra(
     reloadKeyspaces();
 }
 
-
 Cassandra::~Cassandra()
 {
     delete thrift_client;
 }
 
-
 CassandraClient *Cassandra::getCassandra()
 {
     return thrift_client;
 }
-
 
 void Cassandra::login(const string& user, const string& password)
 {
@@ -102,19 +96,16 @@ void Cassandra::login(const string& user, const string& password)
     thrift_client->login(req);
 }
 
-
 void Cassandra::setKeyspace(const string& ks_name)
 {
     current_keyspace.assign(ks_name);
     thrift_client->set_keyspace(ks_name);
 }
 
-
 const string& Cassandra::getCurrentKeyspace() const
 {
     return current_keyspace;
 }
-
 
 void Cassandra::insertColumn(const string& value,
                              const string& key,
@@ -150,7 +141,6 @@ void Cassandra::insertColumn(const string& value,
     thrift_client->insert(key, col_parent, col, level);
 }
 
-
 void Cassandra::insertColumn(const string& value,
                              const string& key,
                              const string& column_family,
@@ -161,7 +151,6 @@ void Cassandra::insertColumn(const string& value,
 {
     insertColumn(value, key, column_family, "", column_name, time_stamp, level, ttl);
 }
-
 
 void Cassandra::insertColumn(const int64_t value,
                              const string& key,
@@ -175,7 +164,6 @@ void Cassandra::insertColumn(const int64_t value,
     insertColumn(serializeLong(value), key, column_family, super_column_name, column_name, time_stamp, level, ttl);
 }
 
-
 void Cassandra::insertColumn(const int64_t value,
                              const string& key,
                              const string& column_family,
@@ -187,14 +175,12 @@ void Cassandra::insertColumn(const int64_t value,
     insertColumn(serializeLong(value), key, column_family, "", column_name, time_stamp, level, ttl);
 }
 
-
 void Cassandra::remove(const string &key,
                        const ColumnPath &col_path,
                        ConsistencyLevel::type level)
 {
     thrift_client->remove(key, col_path, createTimestamp(), level);
 }
-
 
 void Cassandra::remove(const string& key,
                        const string& column_family,
@@ -215,7 +201,6 @@ void Cassandra::remove(const string& key,
     remove(key, col_path, level);
 }
 
-
 void Cassandra::removeColumn(const string& key,
                        const string& column_family,
                        const string& super_column_name,
@@ -225,7 +210,6 @@ void Cassandra::removeColumn(const string& key,
     remove(key, column_family, super_column_name, column_name, level);
 }
 
-
 void Cassandra::removeColumn(const string& key,
                              const string& column_family,
                              const string& column_name,
@@ -234,7 +218,6 @@ void Cassandra::removeColumn(const string& key,
     remove(key, column_family, "", column_name, level);
 }
 
-
 void Cassandra::removeSuperColumn(const string& key,
                                   const string& column_family,
                                   const string& super_column_name,
@@ -242,7 +225,6 @@ void Cassandra::removeSuperColumn(const string& key,
 {
     remove(key, column_family, super_column_name, "", level);
 }
-
 
 Column Cassandra::getColumn(const string& key,
                             const string& column_family,
@@ -268,7 +250,6 @@ Column Cassandra::getColumn(const string& key,
     return cosc.column;
 }
 
-
 Column Cassandra::getColumn(const string& key,
                             const string& column_family,
                             const string& column_name,
@@ -276,7 +257,6 @@ Column Cassandra::getColumn(const string& key,
 {
     return getColumn(key, column_family, "", column_name, level);
 }
-
 
 string Cassandra::getColumnValue(const string& key,
                                  const string& column_family,
@@ -286,14 +266,12 @@ string Cassandra::getColumnValue(const string& key,
     return getColumn(key, column_family, super_column_name, column_name).value;
 }
 
-
 string Cassandra::getColumnValue(const string& key,
                                  const string& column_family,
                                  const string& column_name)
 {
     return getColumn(key, column_family, column_name).value;
 }
-
 
 int64_t Cassandra::getIntegerColumnValue(const string& key,
         const string& column_family,
@@ -304,7 +282,6 @@ int64_t Cassandra::getIntegerColumnValue(const string& key,
     return deserializeLong(ret);
 }
 
-
 int64_t Cassandra::getIntegerColumnValue(const string& key,
         const string& column_family,
         const string& column_name)
@@ -312,7 +289,6 @@ int64_t Cassandra::getIntegerColumnValue(const string& key,
     string ret= getColumn(key, column_family, column_name).value;
     return deserializeLong(ret);
 }
-
 
 SuperColumn Cassandra::getSuperColumn(const string& key,
                                       const string& column_family,
@@ -332,7 +308,6 @@ SuperColumn Cassandra::getSuperColumn(const string& key,
     }
     return cosc.super_column;
 }
-
 
 vector<Column> Cassandra::getSliceNames(const string& key,
                                         const ColumnParent& col_parent,
@@ -356,7 +331,6 @@ vector<Column> Cassandra::getSliceNames(const string& key,
     return result;
 }
 
-
 vector<Column> Cassandra::getSliceRange(const string& key,
                                         const ColumnParent& col_parent,
                                         SlicePredicate& pred,
@@ -378,7 +352,6 @@ vector<Column> Cassandra::getSliceRange(const string& key,
     }
     return result;
 }
-
 
 map<string, vector<Column> > Cassandra::getRangeSlice(const ColumnParent& col_parent,
         const SlicePredicate& pred,
@@ -410,7 +383,6 @@ map<string, vector<Column> > Cassandra::getRangeSlice(const ColumnParent& col_pa
     return ret;
 }
 
-
 map<string, vector<SuperColumn> > Cassandra::getSuperRangeSlice(const ColumnParent& col_parent,
         const SlicePredicate& pred,
         const string& start,
@@ -440,7 +412,6 @@ map<string, vector<SuperColumn> > Cassandra::getSuperRangeSlice(const ColumnPare
     }
     return ret;
 }
-
 
 map<string, map<string, string> >
 Cassandra::getIndexedSlices(const IndexedSlicesQuery& query)
@@ -474,7 +445,6 @@ Cassandra::getIndexedSlices(const IndexedSlicesQuery& query)
     return ret_map;
 }
 
-
 int32_t Cassandra::getCount(const string& key,
                             const ColumnParent& col_parent,
                             const SlicePredicate& pred,
@@ -482,7 +452,6 @@ int32_t Cassandra::getCount(const string& key,
 {
     return (thrift_client->get_count(key, col_parent, pred, level));
 }
-
 
 void Cassandra::reloadKeyspaces()
 {
@@ -511,12 +480,10 @@ void Cassandra::reloadKeyspaces()
         current_keyspace.clear();
 }
 
-
 const vector<KeyspaceDefinition>& Cassandra::getKeyspaces()
 {
     return key_spaces;
 }
-
 
 string Cassandra::createColumnFamily(const ColumnFamilyDefinition& cf_def)
 {
@@ -525,7 +492,6 @@ string Cassandra::createColumnFamily(const ColumnFamilyDefinition& cf_def)
     thrift_client->system_add_column_family(schema_id, thrift_cf_def);
     return schema_id;
 }
-
 
 string Cassandra::dropColumnFamily(const string& cf_name)
 {
@@ -559,6 +525,11 @@ void Cassandra::truncateColumnFamily(const string& cf_name)
     thrift_client->truncate(cf_name);
 }
 
+void Cassandra::executeCqlQuery(CqlResult& result, const string& query, Compression::type compression)
+{
+    thrift_client->execute_cql_query(result, query, compression);
+}
+
 string Cassandra::dropKeyspace(const string& ks_name)
 {
     string ret;
@@ -579,7 +550,6 @@ string Cassandra::dropKeyspace(const string& ks_name)
     return ret;
 }
 
-
 const string& Cassandra::getClusterName()
 {
     if (cluster_name.empty())
@@ -588,7 +558,6 @@ const string& Cassandra::getClusterName()
     }
     return cluster_name;
 }
-
 
 const string& Cassandra::getServerVersion()
 {
@@ -599,18 +568,15 @@ const string& Cassandra::getServerVersion()
     return server_version;
 }
 
-
 const string& Cassandra::getHost() const
 {
     return host;
 }
 
-
 int Cassandra::getPort() const
 {
     return port;
 }
-
 
 bool Cassandra::findKeyspace(const string& name) const
 {

@@ -406,11 +406,18 @@ public:
     std::string updateColumnFamily(const ColumnFamilyDefinition& cf_def);
 
     /**
-     * Removes all the rows from the given column family. 
+     * Removes all the rows from the given column family.
      * @param[in] cf_name the name of the column family to truncate
      */
     void truncateColumnFamily(const std::string& cf_name);
 
+    /**
+     * Execute the CQL query.
+     * @param[in] result the result returned for the query
+     * @param[in] query the CQL sentence
+     * @param[in] compression the compression type
+     */
+    void executeCqlQuery(org::apache::cassandra::CqlResult& result, const std::string& query, org::apache::cassandra::Compression::type compression = org::apache::cassandra::Compression::NONE);
 
     /**
      * @return the target server cluster name.
