@@ -1,5 +1,3 @@
-#include "libcassandra/genthrift/Cassandra.h"
-
 #include "libcassandra/connection_manager.h"
 #include "libcassandra/cassandra_client.h"
 

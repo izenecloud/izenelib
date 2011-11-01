@@ -12,7 +12,6 @@
 #include <map>
 
 #include "libcassandra/keyspace_definition.h"
-#include "libcassandra/column_family_definition.h"
 
 using namespace libcassandra;
 using namespace std;

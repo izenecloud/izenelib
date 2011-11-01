@@ -9,11 +9,6 @@
 
 #include <sys/time.h>
 
-#include <string>
-#include <sstream>
-#include <iostream>
-
-#include "libcassandra/cassandra_host.h"
 #include "libcassandra/util_functions.h"
 
 using namespace std;
@@ -21,31 +16,6 @@ using namespace org::apache::cassandra;
 
 namespace libcassandra
 {
-
-int parsePortFromURL(const string &url)
-{
-    size_t pos= url.find_first_of(":");
-    int found_port= CassandraHost::DEFAULT_PORT;
-    if (pos == string::npos)
-    {
-        return found_port;
-    }
-    istringstream port_stream(url.substr(pos + 1));
-    port_stream >> found_port;
-    return found_port;
-}
-
-
-string parseHostFromURL(const string &url)
-{
-    size_t pos= url.find_first_of(":");
-    if (pos == string::npos)
-    {
-        return url;
-    }
-    return url.substr(0, pos);
-}
-
 
 void createColumnDefObject(ColumnDef& thrift_col_def, const ColumnDefinition& col_def)
 {

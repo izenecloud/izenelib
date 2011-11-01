@@ -12,16 +12,12 @@
 
 #include <string>
 #include <set>
-#include <sstream>
-#include <iostream>
 
 #include "libcassandra/cassandra.h"
 #include "libcassandra/connection_manager.h"
 #include "libcassandra/cassandra_client.h"
 #include "libcassandra/exception.h"
-#include "libcassandra/indexed_slices_query.h"
 #include "libcassandra/keyspace.h"
-#include "libcassandra/keyspace_definition.h"
 #include "libcassandra/util_functions.h"
 
 using namespace std;

@@ -7,14 +7,6 @@
  * the COPYING file in the parent directory for full text.
  */
 
-#include <string>
-#include <map>
-#include <boost/shared_ptr.hpp>
-
-#include "libcassandra/genthrift/Cassandra.h"
-
-#include "libcassandra/cassandra.h"
-#include "libcassandra/cassandra_host.h"
 #include "libcassandra/indexed_slices_query.h"
 #include "libcassandra/util_functions.h"
 

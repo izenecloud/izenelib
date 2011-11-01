@@ -11,8 +11,6 @@
 #define __LIBCASSANDRA_KEYSPACE_H
 
 #include <string>
-#include <map>
-#include <vector>
 
 #include "genthrift/cassandra_types.h"
 

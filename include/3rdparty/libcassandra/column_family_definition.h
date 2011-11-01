@@ -11,7 +11,6 @@
 #define __LIBCASSANDRA_COLUMN_FAMILY_DEFINITION_H
 
 #include <string>
-#include <map>
 #include <vector>
 
 #include "genthrift/cassandra_types.h"

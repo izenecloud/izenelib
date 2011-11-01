@@ -7,27 +7,11 @@
  * the COPYING file in the parent directory for full text.
  */
 
-#include <iostream>
-#include <string>
-#include <map>
-
-#include <protocol/TBinaryProtocol.h>
-#include <transport/TSocket.h>
-#include <transport/TTransportUtils.h>
-
-#include "libcassandra/genthrift/Cassandra.h"
-
-#include "libcassandra/cassandra.h"
 #include "libcassandra/keyspace.h"
-#include "libcassandra/exception.h"
 
 using namespace libcassandra;
 using namespace std;
-using namespace apache::thrift;
-using namespace apache::thrift::protocol;
-using namespace apache::thrift::transport;
 using namespace org::apache::cassandra;
-using namespace boost;
 
 
 Keyspace::Keyspace(Cassandra *in_client,

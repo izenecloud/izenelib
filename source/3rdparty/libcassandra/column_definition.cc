@@ -7,10 +7,6 @@
  * the COPYING file in the parent directory for full text.
  */
 
-#include <string>
-#include <vector>
-#include <map>
-
 #include "libcassandra/column_definition.h"
 
 using namespace libcassandra;

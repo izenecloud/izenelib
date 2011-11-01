@@ -12,14 +12,8 @@
 
 #include <string>
 #include <vector>
-#include <map>
-#include <boost/shared_ptr.hpp>
 
 #include "genthrift/cassandra_types.h"
-
-#include "column_family_definition.h"
-#include "keyspace_definition.h"
-
 
 namespace libcassandra
 {

@@ -23,13 +23,13 @@ public:
 
     ~CassandraConnectionManager();
 
-    /// for singleton 
+    /// for singleton
     static CassandraConnectionManager* instance()
     {
         return ::izenelib::util::Singleton<CassandraConnectionManager>::get();
     }
 
-    void init(const std::string& host, int port,size_t pool_size);
+    void init(const std::string& host = "localhost", int port = 9160, size_t pool_size = 50);
 
     void clear();
 
