@@ -50,10 +50,12 @@ int main()
         client->setKeyspace(ks_def.getName());
 
         cout << "Current keyspaces are:" << endl;
-        vector<KeyspaceDefinition> key_out= client->getKeyspaces();
-        for (vector<KeyspaceDefinition>::iterator it = key_out.begin(); it != key_out.end(); ++it)
         {
-            cout << (*it).getName() << endl;
+            const map<string, KeyspaceDefinition>& key_out= client->getKeyspaces();
+            for (map<string, KeyspaceDefinition>::const_iterator it = key_out.begin(); it != key_out.end(); ++it)
+            {
+                cout << it->first << endl;
+            }
         }
         cout << endl;
 
@@ -86,10 +88,12 @@ int main()
         client->dropKeyspace(ks_name);
 
         cout << "Current keyspaces are:" << endl;
-        key_out= client->getKeyspaces();
-        for (vector<KeyspaceDefinition>::iterator it = key_out.begin(); it != key_out.end(); ++it)
         {
-            cout << (*it).getName() << endl;
+            const map<string, KeyspaceDefinition>& key_out= client->getKeyspaces();
+            for (map<string, KeyspaceDefinition>::const_iterator it = key_out.begin(); it != key_out.end(); ++it)
+            {
+                cout << it->first << endl;
+            }
         }
     }
     catch (org::apache::cassandra::InvalidRequestException &ire)

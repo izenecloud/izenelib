@@ -13,6 +13,7 @@ CassandraConnectionManager::CassandraConnectionManager()
 
 CassandraConnectionManager::~CassandraConnectionManager()
 {
+    clear();
 }
 
 void CassandraConnectionManager::init(
@@ -59,4 +60,3 @@ void CassandraConnectionManager::releaseClient(MyCassandraClient * client)
 }
 
 }
-

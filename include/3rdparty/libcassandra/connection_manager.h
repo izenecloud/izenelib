@@ -16,7 +16,7 @@ namespace libcassandra
 {
 
 class MyCassandraClient;
-class CassandraConnectionManager : private boost::noncopyable
+class CassandraConnectionManager
 {
 public:
     CassandraConnectionManager();
@@ -49,4 +49,3 @@ private:
 
 }
 #endif
-
