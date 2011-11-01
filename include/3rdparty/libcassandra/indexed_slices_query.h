@@ -57,7 +57,7 @@ public:
 
     void setColumns(std::vector<std::string>& columns);
 
-    std::vector<std::string> getColumns() const;
+    const std::vector<std::string>& getColumns() const;
 
     bool isColumnsSet() const;
 
@@ -65,7 +65,7 @@ public:
 
     void setColumnFamily(const std::string& column_family_name);
 
-    std::string getColumnFamily() const;
+    const std::string& getColumnFamily() const;
 
     void setStartKey(const std::string& new_start_key);
 
@@ -86,11 +86,11 @@ public:
                   bool reversed,
                   int32_t range_count);
 
-    std::string getStartColumn() const;
+    const std::string& getStartColumn() const;
 
-    std::string getEndColumn() const;
+    const std::string& getEndColumn() const;
 
-    org::apache::cassandra::IndexClause getIndexClause() const;
+    const org::apache::cassandra::IndexClause& getIndexClause() const;
 
 private:
 

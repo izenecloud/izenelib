@@ -38,8 +38,7 @@ KeyspaceDefinition::KeyspaceDefinition(const string& in_name,
         name(in_name),
         strategy_class(in_strategy_class),
         strategy_options(in_strategy_options),
-        replication_factor(in_replication_factor),
-        col_family_defs()
+        replication_factor(in_replication_factor)
 {
     for (vector<CfDef>::const_iterator it= in_cf_defs.begin();
             it != in_cf_defs.end();
@@ -71,7 +70,7 @@ KeyspaceDefinition::KeyspaceDefinition(const string& in_name,
 }
 
 
-string KeyspaceDefinition::getName() const
+const string& KeyspaceDefinition::getName() const
 {
     return name;
 }
@@ -83,7 +82,7 @@ void KeyspaceDefinition::setName(const string& ks_name)
 }
 
 
-string KeyspaceDefinition::getStrategyClass() const
+const string& KeyspaceDefinition::getStrategyClass() const
 {
     return strategy_class;
 }
@@ -95,7 +94,7 @@ void KeyspaceDefinition::setStrategyClass(const string& strat_class)
 }
 
 
-map<string, string> KeyspaceDefinition::getStrategyOptions() const
+const map<string, string>& KeyspaceDefinition::getStrategyOptions() const
 {
     return strategy_options;
 }
@@ -103,7 +102,7 @@ map<string, string> KeyspaceDefinition::getStrategyOptions() const
 
 void KeyspaceDefinition::setStrategyOptions(const map<string, string>& opts)
 {
-    (void) opts;
+    strategy_options = opts;
 }
 
 
@@ -115,23 +114,17 @@ int32_t KeyspaceDefinition::getReplicationFactor() const
 
 void KeyspaceDefinition::setReplicationFactor(int32_t rep_factor)
 {
-    replication_factor= rep_factor;
+    replication_factor = rep_factor;
 }
 
 
-vector<ColumnFamilyDefinition> KeyspaceDefinition::getColumnFamilies() const
+const vector<ColumnFamilyDefinition>& KeyspaceDefinition::getColumnFamilies() const
 {
     return col_family_defs;
 }
 
 
-void KeyspaceDefinition::setColumnFamilies(vector<ColumnFamilyDefinition>& cfs)
+void KeyspaceDefinition::setColumnFamilies(const vector<ColumnFamilyDefinition>& cfs)
 {
-    col_family_defs.clear();
-    for (vector<ColumnFamilyDefinition>::iterator it= cfs.begin();
-            it != cfs.end();
-            ++it)
-    {
-        col_family_defs.push_back(*it);
-    }
+    col_family_defs = cfs;
 }

@@ -18,33 +18,12 @@ using namespace std;
 using namespace libcassandra;
 
 
-CassandraHost::CassandraHost()
-    :name(),
-     host(),
-     ip_address(),
-     url(),
-     port(0)
-{
-}
-
-
-CassandraHost::CassandraHost(const string &in_url)
-    :name(),
-     host(),
-     ip_address(),
-     url(in_url),
-     port(0)
-{
-    host= parseHostFromURL(url);
-    port= parsePortFromURL(url);
-}
-
+const std::string CassandraHost::DEFAULT_HOST("localhost");
 
 CassandraHost::CassandraHost(const string &in_host, int in_port)
     :name(),
      host(in_host),
      ip_address(),
-     url(),
      port(in_port)
 {
     url.append(host);
@@ -52,6 +31,16 @@ CassandraHost::CassandraHost(const string &in_host, int in_port)
     ostringstream port_str;
     port_str << port;
     url.append(port_str.str());
+}
+
+
+CassandraHost::CassandraHost(const string &in_url)
+    :name(),
+     host(parseHostFromURL(url)),
+     ip_address(),
+     url(in_url),
+     port(parsePortFromURL(url))
+{
 }
 
 

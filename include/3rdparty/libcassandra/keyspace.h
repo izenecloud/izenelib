@@ -37,7 +37,7 @@ public:
     /**
      * @return name of this keyspace
      */
-    std::string getName();
+    const std::string& getName();
 
     /**
      * @return the consistency level for this keyspace
@@ -47,7 +47,7 @@ public:
     /**
      * @return the keyspace definition
      */
-    KeyspaceDefinition getDefinition();
+    const KeyspaceDefinition& getDefinition();
 
 private:
 

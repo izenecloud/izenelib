@@ -27,9 +27,14 @@ class CassandraHost
 public:
 
     /**
+     * default host on which we will connect.
+     */
+    static const std::string DEFAULT_HOST;
+
+    /**
      * default port on which we will connect.
      */
-    static const int DEFAULT_PORT= 9160;
+    static const int DEFAULT_PORT = 9160;
 
     /**
      * default maximum active clients.
@@ -42,9 +47,8 @@ public:
      */
     static const bool FRAMED_TRANSPORT_BY_DEFAULT = false;
 
-    CassandraHost();
+    CassandraHost(const std::string &in_host = DEFAULT_HOST, int in_port = DEFAULT_PORT);
     CassandraHost(const std::string &in_url);
-    CassandraHost(const std::string &in_host, int in_port);
     ~CassandraHost();
 
     const std::string &getName() const;

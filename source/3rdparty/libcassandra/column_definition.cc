@@ -41,7 +41,7 @@ ColumnDefinition::ColumnDefinition(const string& in_name,
 {}
 
 
-string ColumnDefinition::getName() const
+const string& ColumnDefinition::getName() const
 {
     return name;
 }
@@ -53,7 +53,7 @@ void ColumnDefinition::setName(const string& new_name)
 }
 
 
-string ColumnDefinition::getValidationClass() const
+const string& ColumnDefinition::getValidationClass() const
 {
     return validation_class;
 }
@@ -84,7 +84,7 @@ bool ColumnDefinition::isIndexTypeSet() const
 }
 
 
-string ColumnDefinition::getIndexName() const
+const string& ColumnDefinition::getIndexName() const
 {
     return index_name;
 }

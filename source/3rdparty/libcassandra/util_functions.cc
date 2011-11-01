@@ -47,9 +47,8 @@ string parseHostFromURL(const string &url)
 }
 
 
-ColumnDef createColumnDefObject(const ColumnDefinition& col_def)
+void createColumnDefObject(ColumnDef& thrift_col_def, const ColumnDefinition& col_def)
 {
-    ColumnDef thrift_col_def;
     thrift_col_def.name.assign(col_def.getName());
     thrift_col_def.validation_class.assign(col_def.getValidationClass());
     if (col_def.isIndexTypeSet())
@@ -62,13 +61,11 @@ ColumnDef createColumnDefObject(const ColumnDefinition& col_def)
         thrift_col_def.index_name.assign(col_def.getIndexName());
         thrift_col_def.__isset.index_name= true;
     }
-    return thrift_col_def;
 }
 
 
-KsDef createKsDefObject(const KeyspaceDefinition& ks_def)
+void createKsDefObject(KsDef& thrift_ks_def, const KeyspaceDefinition& ks_def)
 {
-    KsDef thrift_ks_def;
     thrift_ks_def.name.assign(ks_def.getName());
     thrift_ks_def.strategy_class.assign(ks_def.getStrategyClass());
     vector<ColumnFamilyDefinition> cf_defs= ks_def.getColumnFamilies();
@@ -76,17 +73,15 @@ KsDef createKsDefObject(const KeyspaceDefinition& ks_def)
             it != cf_defs.end();
             ++it)
     {
-        CfDef entry= createCfDefObject(*it);
-        thrift_ks_def.cf_defs.push_back(entry);
+        thrift_ks_def.cf_defs.push_back(CfDef());
+        createCfDefObject(thrift_ks_def.cf_defs.back(), *it);
     }
     thrift_ks_def.__set_replication_factor(ks_def.getReplicationFactor());
-    return thrift_ks_def;
 }
 
 
-CfDef createCfDefObject(const ColumnFamilyDefinition& cf_def)
+void createCfDefObject(CfDef& thrift_cf_def, const ColumnFamilyDefinition& cf_def)
 {
-    CfDef thrift_cf_def;
     /*
      * keyspace name and cf name are required
      * TODO - throw an exception if these are not present
@@ -176,18 +171,16 @@ CfDef createCfDefObject(const ColumnFamilyDefinition& cf_def)
                 it != cols.end();
                 ++it)
         {
-            ColumnDef thrift_col= createColumnDefObject(*it);
-            thrift_cf_def.column_metadata.push_back(thrift_col);
+            thrift_cf_def.column_metadata.push_back(ColumnDef());
+            createColumnDefObject(thrift_cf_def.column_metadata.back(), *it);
         }
         thrift_cf_def.__isset.column_metadata= true;
     }
-    return thrift_cf_def;
 }
 
 
-SlicePredicate createSlicePredicateObject(const IndexedSlicesQuery& query)
+void createSlicePredicateObject(SlicePredicate& thrift_slice_pred, const IndexedSlicesQuery& query)
 {
-    SlicePredicate thrift_slice_pred;
     if (query.isColumnsSet())
     {
         thrift_slice_pred.__isset.column_names= true;
@@ -209,11 +202,10 @@ SlicePredicate createSlicePredicateObject(const IndexedSlicesQuery& query)
         thrift_slice_pred.__isset.slice_range= true;
         thrift_slice_pred.slice_range= thrift_slice_range;
     }
-    return thrift_slice_pred;
 }
 
 
-vector<Column> getColumnList(const vector<ColumnOrSuperColumn>& cols)
+void getColumnList(vector<Column>& thrift_cols, const vector<ColumnOrSuperColumn>& cols)
 {
     vector<Column> ret(cols.size());
     for (vector<ColumnOrSuperColumn>::const_iterator it= cols.begin();
@@ -222,11 +214,11 @@ vector<Column> getColumnList(const vector<ColumnOrSuperColumn>& cols)
     {
         ret.push_back(it->column);
     }
-    return ret;
+    thrift_cols.swap(ret);
 }
 
 
-vector<SuperColumn> getSuperColumnList(const vector<ColumnOrSuperColumn>& cols)
+void getSuperColumnList(vector<SuperColumn>& thrift_cols, const vector<ColumnOrSuperColumn>& cols)
 {
     vector<SuperColumn> ret(cols.size());
     for (vector<ColumnOrSuperColumn>::const_iterator it= cols.begin();
@@ -235,7 +227,7 @@ vector<SuperColumn> getSuperColumnList(const vector<ColumnOrSuperColumn>& cols)
     {
         ret.push_back(it->super_column);
     }
-    return ret;
+    thrift_cols.swap(ret);
 }
 
 

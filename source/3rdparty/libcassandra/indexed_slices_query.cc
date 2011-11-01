@@ -40,102 +40,101 @@ IndexedSlicesQuery::IndexedSlicesQuery()
 
 void IndexedSlicesQuery::addEqualsExpression(const string& column, const string& value)
 {
-    IndexExpression new_expr;
+    index_clause.expressions.push_back(IndexExpression());
+    IndexExpression& new_expr = index_clause.expressions.back();
     new_expr.column_name.assign(column);
     new_expr.value.assign(value);
     new_expr.op= IndexOperator::EQ;
-    index_clause.expressions.push_back(new_expr);
 }
-
 
 
 void IndexedSlicesQuery::addEqualsExpression(const string& column, const int64_t value)
 {
-    IndexExpression new_expr;
+    index_clause.expressions.push_back(IndexExpression());
+    IndexExpression& new_expr = index_clause.expressions.back();
     new_expr.column_name.assign(column);
     new_expr.value.assign(serializeLong(value));
     new_expr.op= IndexOperator::EQ;
-    index_clause.expressions.push_back(new_expr);
 }
 
 
 void IndexedSlicesQuery::addGtExpression(const string& column, const string& value)
 {
-    IndexExpression new_expr;
+    index_clause.expressions.push_back(IndexExpression());
+    IndexExpression& new_expr = index_clause.expressions.back();
     new_expr.column_name.assign(column);
     new_expr.value.assign(value);
     new_expr.op= IndexOperator::GT;
-    index_clause.expressions.push_back(new_expr);
 }
 
 
 void IndexedSlicesQuery::addGtExpression(const string& column, const int64_t value)
 {
-    IndexExpression new_expr;
+    index_clause.expressions.push_back(IndexExpression());
+    IndexExpression& new_expr = index_clause.expressions.back();
     new_expr.column_name.assign(column);
     new_expr.value.assign(serializeLong(value));
     new_expr.op= IndexOperator::GT;
-    index_clause.expressions.push_back(new_expr);
 }
 
 
 void IndexedSlicesQuery::addGtEqualsExpression(const string& column, const string& value)
 {
-    IndexExpression new_expr;
+    index_clause.expressions.push_back(IndexExpression());
+    IndexExpression& new_expr = index_clause.expressions.back();
     new_expr.column_name.assign(column);
     new_expr.value.assign(value);
     new_expr.op= IndexOperator::GTE;
-    index_clause.expressions.push_back(new_expr);
 }
 
 
 void IndexedSlicesQuery::addGtEqualsExpression(const string& column, const int64_t value)
 {
-    IndexExpression new_expr;
+    index_clause.expressions.push_back(IndexExpression());
+    IndexExpression& new_expr = index_clause.expressions.back();
     new_expr.column_name.assign(column);
     new_expr.value.assign(serializeLong(value));
     new_expr.op= IndexOperator::GTE;
-    index_clause.expressions.push_back(new_expr);
 }
 
 
 void IndexedSlicesQuery::addLtExpression(const string& column, const string& value)
 {
-    IndexExpression new_expr;
+    index_clause.expressions.push_back(IndexExpression());
+    IndexExpression& new_expr = index_clause.expressions.back();
     new_expr.column_name.assign(column);
     new_expr.value.assign(value);
     new_expr.op= IndexOperator::LT;
-    index_clause.expressions.push_back(new_expr);
 }
 
 
 void IndexedSlicesQuery::addLtExpression(const string& column, const int64_t value)
 {
-    IndexExpression new_expr;
+    index_clause.expressions.push_back(IndexExpression());
+    IndexExpression& new_expr = index_clause.expressions.back();
     new_expr.column_name.assign(column);
     new_expr.value.assign(serializeLong(value));
     new_expr.op= IndexOperator::LT;
-    index_clause.expressions.push_back(new_expr);
 }
 
 
 void IndexedSlicesQuery::addLtEqualsExpression(const string& column, const string& value)
 {
-    IndexExpression new_expr;
+    index_clause.expressions.push_back(IndexExpression());
+    IndexExpression& new_expr = index_clause.expressions.back();
     new_expr.column_name.assign(column);
     new_expr.value.assign(value);
     new_expr.op= IndexOperator::LT;
-    index_clause.expressions.push_back(new_expr);
 }
 
 
 void IndexedSlicesQuery::addLtEqualsExpression(const string& column, const int64_t value)
 {
-    IndexExpression new_expr;
+    index_clause.expressions.push_back(IndexExpression());
+    IndexExpression& new_expr = index_clause.expressions.back();
     new_expr.column_name.assign(column);
     new_expr.value.assign(serializeLong(value));
     new_expr.op= IndexOperator::LT;
-    index_clause.expressions.push_back(new_expr);
 }
 
 
@@ -143,11 +142,11 @@ void IndexedSlicesQuery::addIndexExpression(const string& column,
         const string& value,
         IndexOperator::type op_type)
 {
-    IndexExpression new_expr;
+    index_clause.expressions.push_back(IndexExpression());
+    IndexExpression& new_expr = index_clause.expressions.back();
     new_expr.column_name.assign(column);
     new_expr.value.assign(value);
     new_expr.op= op_type;
-    index_clause.expressions.push_back(new_expr);
 }
 
 
@@ -162,7 +161,7 @@ void IndexedSlicesQuery::setColumns(vector<string>& columns)
 }
 
 
-vector<string> IndexedSlicesQuery::getColumns() const
+const vector<string>& IndexedSlicesQuery::getColumns() const
 {
     return column_names;
 }
@@ -180,7 +179,7 @@ void IndexedSlicesQuery::setColumnFamily(const string& column_family_name)
 }
 
 
-string IndexedSlicesQuery::getColumnFamily() const
+const string& IndexedSlicesQuery::getColumnFamily() const
 {
     return column_family;
 }
@@ -205,7 +204,7 @@ int32_t IndexedSlicesQuery::getRowCount() const
 }
 
 
-IndexClause IndexedSlicesQuery::getIndexClause() const
+const IndexClause& IndexedSlicesQuery::getIndexClause() const
 {
     return index_clause;
 }
@@ -241,13 +240,13 @@ bool IndexedSlicesQuery::isRangeSet() const
 }
 
 
-string IndexedSlicesQuery::getStartColumn() const
+const string& IndexedSlicesQuery::getStartColumn() const
 {
     return start_column;
 }
 
 
-string IndexedSlicesQuery::getEndColumn() const
+const string& IndexedSlicesQuery::getEndColumn() const
 {
     return end_column;
 }
