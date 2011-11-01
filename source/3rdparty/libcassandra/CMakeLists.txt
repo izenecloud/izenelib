@@ -8,7 +8,10 @@ INCLUDE_DIRECTORIES(
 
 # third party libraries
 # put it first, they may be referred in other components
-FILE(GLOB_RECURSE libcassandra_SRC 
+FILE(GLOB 
+  libcassandra_SRC 
+  RELATIVE
+  "${CMAKE_CURRENT_SOURCE_DIR}"
   "genthrift/*.cpp"
   "*.cc" )
 FILE(GLOB cassandra_server_SRC RELATIVE "${CMAKE_CURRENT_SOURCE_DIR}" "genthrift/Cassandra_server.skeleton.cpp")   
