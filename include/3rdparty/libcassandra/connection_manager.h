@@ -18,7 +18,7 @@ class CassandraConnectionManager
 {
 public:
     CassandraConnectionManager(
-        const std::string& host, 
+        const std::string& host,
         int port,
         size_t pool_size);
 
@@ -40,4 +40,3 @@ private:
 
 }
 #endif
-

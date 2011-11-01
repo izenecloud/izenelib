@@ -12,7 +12,6 @@
 
 #include <string>
 #include <vector>
-#include <set>
 #include <map>
 #include <boost/shared_ptr.hpp>
 
@@ -71,7 +70,7 @@ public:
     /**
      * @return all the keyspace definitions.
      */
-    const std::vector<KeyspaceDefinition>& getKeyspaces();
+    const std::map<std::string, KeyspaceDefinition>& getKeyspaces();
 
     /**
      * Insert a column, possibly inside a supercolumn
@@ -467,12 +466,8 @@ private:
     std::string cluster_name_;
     std::string server_version_;
     std::string current_keyspace_;
-    std::vector<KeyspaceDefinition> key_spaces_;
+    std::map<std::string, KeyspaceDefinition> key_spaces_;
     std::map<std::string, std::string> token_map_;
-
-    Cassandra(const Cassandra&);
-    Cassandra &operator=(const Cassandra&);
-
 };
 
 } /* end namespace libcassandra */

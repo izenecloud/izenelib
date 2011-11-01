@@ -9,7 +9,7 @@ namespace libcassandra
 {
 
 CassandraConnectionManager::CassandraConnectionManager(
-    const std::string& host, 
+    const std::string& host,
     int port,
     size_t pool_size)
     :pool_size_(pool_size)
@@ -52,4 +52,3 @@ void CassandraConnectionManager::releaseClient(MyCassandraClient * client)
 }
 
 }
-

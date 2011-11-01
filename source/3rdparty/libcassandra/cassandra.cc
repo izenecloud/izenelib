@@ -126,7 +126,7 @@ void Cassandra::insertColumn(
      */
     BORROW_CLIENT
     thrift_client->insert(key, col_parent, col, level);
-    RELEASE_CLIENT	
+    RELEASE_CLIENT
 }
 
 void Cassandra::insertColumn(
@@ -241,7 +241,7 @@ void Cassandra::getColumn(
     col_path.__set_column(column_name);
     ColumnOrSuperColumn cosc;
     /* TODO - validate column path */
-    BORROW_CLIENT	
+    BORROW_CLIENT
     thrift_client->get(cosc, key, col_path, level);
     RELEASE_CLIENT
 
@@ -317,7 +317,7 @@ void Cassandra::getSuperColumn(
     col_path.__set_super_column(super_column_name);
     ColumnOrSuperColumn cosc;
     /* TODO - validate super column path */
-    BORROW_CLIENT	
+    BORROW_CLIENT
     thrift_client->get(cosc, key, col_path, level);
     RELEASE_CLIENT
 
@@ -337,7 +337,7 @@ void Cassandra::getSlice(
         const ConsistencyLevel::type level)
 {
     vector<ColumnOrSuperColumn> ret_cosc;
-    BORROW_CLIENT	
+    BORROW_CLIENT
     thrift_client->get_slice(ret_cosc, key, col_parent, pred, level);
     RELEASE_CLIENT
 
@@ -360,7 +360,7 @@ void Cassandra::getRangeSlices(
         const ConsistencyLevel::type level)
 {
     vector<KeySlice> key_slices;
-    BORROW_CLIENT	
+    BORROW_CLIENT
     thrift_client->get_range_slices(key_slices,
             col_parent,
             pred,
@@ -404,7 +404,7 @@ void Cassandra::getSuperRangeSlices(
         const ConsistencyLevel::type level)
 {
     vector<KeySlice> key_slices;
-    BORROW_CLIENT	
+    BORROW_CLIENT
     thrift_client->get_range_slices(key_slices,
                                     col_parent,
                                     pred,
@@ -449,7 +449,7 @@ void Cassandra::getIndexedSlices(
     createSlicePredicateObject(thrift_slice_pred, query);
     ColumnParent thrift_col_parent;
     thrift_col_parent.column_family.assign(query.getColumnFamily());
-    BORROW_CLIENT	
+    BORROW_CLIENT
     thrift_client->get_indexed_slices(ret_vec,
                                       thrift_col_parent,
                                       query.getIndexClause(),
@@ -483,7 +483,7 @@ int32_t Cassandra::getCount(
 {
     BORROW_CLIENT
     int32_t ret = thrift_client->get_count(key, col_parent, pred, level);
-    RELEASE_CLIENT	
+    RELEASE_CLIENT
     return ret;
 }
 
@@ -492,9 +492,9 @@ void Cassandra::reloadKeyspaces()
     key_spaces_.clear();
 
     vector<KsDef> thrift_ks_defs;
-    BORROW_CLIENT	
+    BORROW_CLIENT
     thrift_client->describe_keyspaces(thrift_ks_defs);
-    RELEASE_CLIENT	
+    RELEASE_CLIENT
     bool current_valid = false;
 
     for (vector<KsDef>::const_iterator it= thrift_ks_defs.begin();
@@ -510,13 +510,13 @@ void Cassandra::reloadKeyspaces()
                 thrift_entry.strategy_options,
                 thrift_entry.replication_factor,
                 thrift_entry.cf_defs);
-        key_spaces_.push_back(entry);
+        key_spaces_[thrift_entry.name] = entry;
     }
     if (!current_valid)
         current_keyspace_.clear();
 }
 
-const vector<KeyspaceDefinition>& Cassandra::getKeyspaces()
+const map<string, KeyspaceDefinition>& Cassandra::getKeyspaces()
 {
     return key_spaces_;
 }
@@ -526,18 +526,18 @@ string Cassandra::createColumnFamily(const ColumnFamilyDefinition& cf_def)
     string schema_id;
     CfDef thrift_cf_def;
     createCfDefObject(thrift_cf_def, cf_def);
-    BORROW_CLIENT	
+    BORROW_CLIENT
     thrift_client->system_add_column_family(schema_id, thrift_cf_def);
-    RELEASE_CLIENT	
+    RELEASE_CLIENT
     return schema_id;
 }
 
 string Cassandra::dropColumnFamily(const string& cf_name)
 {
     string schema_id;
-    BORROW_CLIENT	
+    BORROW_CLIENT
     thrift_client->system_drop_column_family(schema_id, cf_name);
-    RELEASE_CLIENT	
+    RELEASE_CLIENT
     return schema_id;
 }
 
@@ -546,9 +546,9 @@ string Cassandra::updateColumnFamily(const ColumnFamilyDefinition& cf_def)
     string schema_id;
     CfDef thrift_cf_def;
     createCfDefObject(thrift_cf_def, cf_def);
-    BORROW_CLIENT	
+    BORROW_CLIENT
     thrift_client->system_update_column_family(schema_id, thrift_cf_def);
-    RELEASE_CLIENT	
+    RELEASE_CLIENT
     return schema_id;
 }
 
@@ -557,13 +557,10 @@ string Cassandra::createKeyspace(const KeyspaceDefinition& ks_def)
     string ret;
     KsDef thrift_ks_def;
     createKsDefObject(thrift_ks_def, ks_def);
-    BORROW_CLIENT	
+    BORROW_CLIENT
     thrift_client->system_add_keyspace(ret, thrift_ks_def);
-    RELEASE_CLIENT	
-    if (!findKeyspace(ks_def.getName()))
-    {
-        key_spaces_.push_back(ks_def);
-    }
+    RELEASE_CLIENT
+    key_spaces_[ks_def.getName()] = ks_def;
     return ret;
 }
 
@@ -571,32 +568,23 @@ void Cassandra::truncateColumnFamily(const string& cf_name)
 {
     BORROW_CLIENT
     thrift_client->truncate(cf_name);
-    RELEASE_CLIENT	
+    RELEASE_CLIENT
 }
 
 void Cassandra::executeCqlQuery(CqlResult& result, const string& query, const Compression::type compression)
 {
     BORROW_CLIENT
     thrift_client->execute_cql_query(result, query, compression);
-    RELEASE_CLIENT	
+    RELEASE_CLIENT
 }
 
 string Cassandra::dropKeyspace(const string& ks_name)
 {
     string ret;
-    BORROW_CLIENT	
+    BORROW_CLIENT
     thrift_client->system_drop_keyspace(ret, ks_name);
-    RELEASE_CLIENT	
-    for (vector<KeyspaceDefinition>::iterator it= key_spaces_.begin();
-            it != key_spaces_.end();
-            ++it)
-    {
-        if (ks_name == it->getName())
-        {
-            key_spaces_.erase(it);
-            break;
-        }
-    }
+    RELEASE_CLIENT
+    key_spaces_.erase(ks_name);
     if (current_keyspace_ == ks_name)
         current_keyspace_.clear();
 
@@ -607,9 +595,9 @@ const string& Cassandra::getClusterName()
 {
     if (cluster_name_.empty())
     {
-        BORROW_CLIENT    
+        BORROW_CLIENT
         thrift_client->describe_cluster_name(cluster_name_);
-        RELEASE_CLIENT		
+        RELEASE_CLIENT
     }
     return cluster_name_;
 }
@@ -618,25 +606,16 @@ const string& Cassandra::getServerVersion()
 {
     if (server_version_.empty())
     {
-        BORROW_CLIENT    
+        BORROW_CLIENT
         thrift_client->describe_version(server_version_);
-        RELEASE_CLIENT		
+        RELEASE_CLIENT
     }
     return server_version_;
 }
 
 bool Cassandra::findKeyspace(const string& name) const
 {
-    for (vector<KeyspaceDefinition>::const_iterator it= key_spaces_.begin();
-            it != key_spaces_.end();
-            ++it)
-    {
-        if (name == it->getName())
-        {
-            return true;
-        }
-    }
-    return false;
+    return (key_spaces_.find(name) != key_spaces_.end());
 }
 
 }
