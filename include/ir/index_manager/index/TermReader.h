@@ -37,7 +37,7 @@ struct TERM_TABLE
 class TermReaderImpl
 {
 public:
-    TermReaderImpl(const FieldInfo& fieldInfo);
+    TermReaderImpl(const FieldInfo& fieldInfo, IndexLevel indexLevel);
 
     ~TermReaderImpl();
 public:
@@ -63,6 +63,8 @@ public:
     std::string barrelName_;
 
     Directory* pDirectory_;
+
+    IndexLevel indexLevel_;
 };
 /*
 * The difference between VocReader and RTDiskTermReader
@@ -73,7 +75,7 @@ public:
 class VocReader:public TermReader
 {
 public:
-    VocReader(Directory* pDirectory,BarrelInfo* pBarrelInfo,FieldInfo* pFieldInfo);
+    VocReader(Directory* pDirectory,BarrelInfo* pBarrelInfo,FieldInfo* pFieldInfo, IndexLevel indexLevel);
 
     VocReader(const boost::shared_ptr<TermReaderImpl>& pTermReaderImpl);
 
@@ -127,7 +129,7 @@ private:
 class SparseTermReaderImpl
 {
 public:
-    SparseTermReaderImpl(const FieldInfo& fieldInfo);
+    SparseTermReaderImpl(const FieldInfo& fieldInfo, IndexLevel indexLevel);
 
     ~SparseTermReaderImpl();
 public:
@@ -155,6 +157,8 @@ public:
     std::string barrelName_;
 
     Directory* pDirectory_;
+
+    IndexLevel indexLevel_;
 };
 
 /**
@@ -163,7 +167,7 @@ public:
 class RTDiskTermReader: public TermReader
 {
 public:
-    RTDiskTermReader(Directory* pDirectory,BarrelInfo* pBarrelInfo,FieldInfo* pFieldInfo);
+    RTDiskTermReader(Directory* pDirectory,BarrelInfo* pBarrelInfo,FieldInfo* pFieldInfo, IndexLevel indexLevel);
 
     RTDiskTermReader(const boost::shared_ptr<SparseTermReaderImpl>& pTermReaderImpl);
 
@@ -268,7 +272,7 @@ private:
 class BlockTermReader: public RTDiskTermReader
 {
 public:
-    BlockTermReader(Directory* pDirectory,BarrelInfo* pBarrelInfo,FieldInfo* pFieldInfo);
+    BlockTermReader(Directory* pDirectory,BarrelInfo* pBarrelInfo,FieldInfo* pFieldInfo, IndexLevel indexLevel);
 
     BlockTermReader(const boost::shared_ptr<SparseTermReaderImpl>& pTermReaderImpl);
 
@@ -293,7 +297,7 @@ protected:
 class ChunkTermReader: public RTDiskTermReader
 {
 public:
-    ChunkTermReader(Directory* pDirectory,BarrelInfo* pBarrelInfo,FieldInfo* pFieldInfo);
+    ChunkTermReader(Directory* pDirectory,BarrelInfo* pBarrelInfo,FieldInfo* pFieldInfo, IndexLevel indexLevel);
 
     ChunkTermReader(const boost::shared_ptr<SparseTermReaderImpl>& pTermReaderImpl);
 

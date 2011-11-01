@@ -62,7 +62,7 @@ class FieldInfo;
 class RTDiskTermIterator : public TermIterator
 {
 public:
-    RTDiskTermIterator(Directory* pDirectory,const char* barrelname,FieldInfo* pFieldInfo);
+    RTDiskTermIterator(Directory* pDirectory,const char* barrelname,FieldInfo* pFieldInfo, IndexLevel indexLevel);
 
     ~RTDiskTermIterator();
 
@@ -141,7 +141,7 @@ protected:
 class BlockTermIterator : public TermIterator
 {
 public:
-    BlockTermIterator(Directory* pDirectory,const char* barrelname,FieldInfo* pFieldInfo);
+    BlockTermIterator(Directory* pDirectory,const char* barrelname,FieldInfo* pFieldInfo, IndexLevel indexLevel);
 
     ~BlockTermIterator();
 
@@ -185,7 +185,7 @@ private:
 class ChunkTermIterator : public TermIterator
 {
 public:
-    ChunkTermIterator(Directory* pDirectory,const char* barrelname,FieldInfo* pFieldInfo);
+    ChunkTermIterator(Directory* pDirectory,const char* barrelname,FieldInfo* pFieldInfo, IndexLevel indexLevel);
 
     ~ChunkTermIterator();
 

@@ -15,7 +15,7 @@ NS_IZENELIB_IR_BEGIN
 
 namespace indexmanager{
 
-RTPostingWriter::RTPostingWriter(MemCache* pCache, int skipInterval, int maxSkipLevel)
+RTPostingWriter::RTPostingWriter(MemCache* pCache, int skipInterval, int maxSkipLevel, IndexLevel indexLevel)
         :pMemCache_(pCache)
         ,skipInterval_(skipInterval)
         ,maxSkipLevel_(maxSkipLevel)
@@ -25,10 +25,13 @@ RTPostingWriter::RTPostingWriter(MemCache* pCache, int skipInterval, int maxSkip
         ,nCurTermFreq_(0)
         ,nCTF_(0)
         ,pSkipListWriter_(0)
-	,dirty_(false)
+        ,dirty_(false)
+        ,indexLevel_(indexLevel)
 {
     pDocFreqList_ = new VariantDataPool(pCache);
-    pLocList_  = new VariantDataPool(pCache);
+    pLocList_ = NULL;
+    if(indexLevel == WORDLEVEL)
+        pLocList_  = new VariantDataPool(pCache);
     if(skipInterval_> 0 && maxSkipLevel_ > 0)
         pSkipListWriter_ = new SkipListWriter(skipInterval_,maxSkipLevel_,pMemCache_);
 }
@@ -69,7 +72,12 @@ void RTPostingWriter::write(OutputDescriptor* pOutputDescriptor, TermInfo& termI
     termInfo.lastDocID_ = nLastDocID_;
 
     if(pSkipListWriter_ && nDF_ > 0 && nDF_ % skipInterval_ == 0)
-        pSkipListWriter_->addSkipPoint(nLastDocID_,pDocFreqList_->getLength(),pLocList_->getLength());
+    {
+        if (pLocList_)
+            pSkipListWriter_->addSkipPoint(nLastDocID_,pDocFreqList_->getLength(),pLocList_->getLength());
+        else
+            pSkipListWriter_->addSkipPoint(nLastDocID_,pDocFreqList_->getLength(),0);
+    }
 
     IndexOutput* pDOutput = pOutputDescriptor->getDPostingOutput();
 
@@ -93,20 +101,27 @@ void RTPostingWriter::write(OutputDescriptor* pOutputDescriptor, TermInfo& termI
 	
     termInfo.docPostingLen_ = pDOutput->getFilePointer() - termInfo.docPointer_;
 
-    IndexOutput* pPOutput = pOutputDescriptor->getPPostingOutput();
+    if(indexLevel_ == WORDLEVEL)
+    {
+        IndexOutput* pPOutput = pOutputDescriptor->getPPostingOutput();
 
-    termInfo.positionPointer_ = pPOutput->getFilePointer();
+        if (pPOutput)
+        {
+            termInfo.positionPointer_ = pPOutput->getFilePointer();
 
-    ///write position posting data
-    pLocList_->write(pPOutput);
+            ///write position posting data
+            pLocList_->write(pPOutput);
 
-    termInfo.positionPostingLen_ = pPOutput->getFilePointer() - termInfo.positionPointer_;
+            termInfo.positionPostingLen_ = pPOutput->getFilePointer() - termInfo.positionPointer_;
+        }
+    }
 }
 
 void RTPostingWriter::reset()
 {
     pDocFreqList_->reset();
-    pLocList_->reset();
+    if(pLocList_)
+        pLocList_->reset();
 
     nCTF_ = 0;
     nLastDocID_ = BAD_DOCID;
@@ -123,7 +138,8 @@ void RTPostingWriter::add(docid_t docid, loc_t location)
     if (docid == nLastDocID_)
     {
         ///see it before,only position is needed
-        pLocList_->addVData32(location - nLastLoc_);
+        if(pLocList_)
+            pLocList_->addVData32(location - nLastLoc_);
         nCurTermFreq_++;
         nLastLoc_ = location;
     }
@@ -139,10 +155,16 @@ void RTPostingWriter::add(docid_t docid, loc_t location)
         }
 
         if(pSkipListWriter_ && nDF_ > 0 && nDF_ % skipInterval_ == 0)
-            pSkipListWriter_->addSkipPoint(nLastDocID_,pDocFreqList_->getLength(),pLocList_->getLength());
+        {
+            if(pLocList_)
+                pSkipListWriter_->addSkipPoint(nLastDocID_,pDocFreqList_->getLength(),pLocList_->getLength());
+            else
+                pSkipListWriter_->addSkipPoint(nLastDocID_,pDocFreqList_->getLength(),0);
+        }
 
         pDocFreqList_->addVData32(docid - nLastDocID_);
-        pLocList_->addVData32(location);
+        if(pLocList_)
+            pLocList_->addVData32(location);
 
         nCTF_ += nCurTermFreq_;
         nCurTermFreq_ = 1;
@@ -173,7 +195,8 @@ void RTPostingWriter::flushLastDoc(bool bTruncTail)
         if (bTruncTail)
         {
             pDocFreqList_->truncTailChunk();///update real size
-            pLocList_->truncTailChunk();///update real size
+            if( pLocList_ )
+                pLocList_->truncTailChunk();///update real size
         }
         nCTF_ += nCurTermFreq_;
         nCurTermFreq_ = 0;
@@ -181,7 +204,8 @@ void RTPostingWriter::flushLastDoc(bool bTruncTail)
     else if (bTruncTail)
     {
         pDocFreqList_->truncTailChunk();///update real size
-        pLocList_->truncTailChunk();///update real size
+        if( pLocList_ )
+            pLocList_->truncTailChunk();///update real size
     }
 }
 

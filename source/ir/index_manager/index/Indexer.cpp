@@ -180,7 +180,7 @@ void Indexer::openDirectory(const std::string& storagePolicy)
     else
         pDirectory_ = new RAMDirectory();
 
-    pBarrelsInfo_ = new BarrelsInfo();
+    pBarrelsInfo_ = new BarrelsInfo(pConfigurationManager_->indexStrategy_.indexLevel_);
 
     pBarrelsInfo_->read(pDirectory_);
     if (strcasecmp(pBarrelsInfo_->getVersion(),SF1_VERSION))

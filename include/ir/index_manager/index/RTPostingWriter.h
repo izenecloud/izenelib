@@ -13,6 +13,7 @@
 #include <ir/index_manager/utility/BitVector.h>
 #include <ir/index_manager/index/PostingWriter.h>
 #include <ir/index_manager/index/RTPostingReader.h>
+#include <ir/index_manager/utility/IndexManagerConfig.h>
 
 NS_IZENELIB_IR_BEGIN
 
@@ -22,7 +23,7 @@ class SkipListWriter;
 class RTPostingWriter:public PostingWriter
 {
 public:
-    RTPostingWriter(MemCache* pMemCache, int skipInterval, int maxSkipLevel);
+    RTPostingWriter(MemCache* pMemCache, int skipInterval, int maxSkipLevel, IndexLevel indexLevel);
 
     ~RTPostingWriter();
     /**
@@ -102,6 +103,7 @@ private:
     VariantDataPool* pLocList_; 	/// Location list
     SkipListWriter* pSkipListWriter_;	///skiplist writer
     volatile bool dirty_;
+    IndexLevel indexLevel_;
     friend class MemPostingReader;
     friend class PostingMerger;
 };

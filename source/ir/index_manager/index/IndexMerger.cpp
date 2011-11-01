@@ -195,8 +195,12 @@ void IndexMerger::outputNewBarrel(MergeBarrelQueue* pBarrelQueue, const string& 
     IndexOutput* pVocStream = pDirectory_->createOutput(name);
     name = newBarrelName + ".dfp";
     IndexOutput* pDStream = pDirectory_->createOutput(name);
-    name = newBarrelName + ".pop";
-    IndexOutput* pPStream = pDirectory_->createOutput(name);
+    IndexOutput* pPStream = NULL;
+    if(pIndexer_->pConfigurationManager_->indexStrategy_.indexLevel_ == WORDLEVEL)
+    {
+        name = newBarrelName + ".pop";
+        pPStream = pDirectory_->createOutput(name);
+    }
 
     OutputDescriptor outputDesc(pVocStream,pDStream,pPStream,true);
     outputDesc.setBarrelName(newBarrelName);
@@ -282,7 +286,7 @@ void IndexMerger::outputNewBarrel(MergeBarrelQueue* pBarrelQueue, const string& 
                         {
                             if (pFieldMerger == NULL)
                             {
-                                pFieldMerger = new FieldMerger(needSortingMerge, pIndexer_->getSkipInterval(), pIndexer_->getMaxSkipLevel());
+                                pFieldMerger = new FieldMerger(needSortingMerge, pIndexer_->getSkipInterval(), pIndexer_->getMaxSkipLevel(), pIndexer_->pConfigurationManager_->indexStrategy_.indexLevel_);
                                 pFieldMerger->setDirectory(pDirectory_);
                                 if(NULL == pIndexer_->getIndexWriter()->pMemCache_) pIndexer_->getIndexWriter()->createMemCache();
                                 pFieldMerger->initPostingMerger(
@@ -314,7 +318,8 @@ void IndexMerger::outputNewBarrel(MergeBarrelQueue* pBarrelQueue, const string& 
 
                     vocOff2 = pVocStream->getFilePointer();
                     dfiOff2 = pDStream->getFilePointer();
-                    ptiOff2 = outputDesc.getPPostingOutput()->getFilePointer();
+                    if (outputDesc.getPPostingOutput())
+                        ptiOff2 = outputDesc.getPPostingOutput()->getFilePointer();
                     pFieldInfo->setDistinctNumTerms(pFieldMerger->numMergedTerms());
 
                     pFieldInfo->setLength(vocOff2-vocOff1,dfiOff2-dfiOff1,ptiOff2-ptiOff1);
@@ -405,7 +410,7 @@ BarrelInfo* IndexMerger::createNewBarrelInfo(MergeBarrelQueue* pBarrelQueue, con
     pBarrelQueue->clear();
 
     DVLOG(2)<< "IndexMerger::createNewBarrelInfo() => add new BarrelInfo ...";
-    BarrelInfo* pNewBarrelInfo = new BarrelInfo(newBarrelName,nNumDocs,pIndexer_->getIndexCompressType());
+    BarrelInfo* pNewBarrelInfo = new BarrelInfo(newBarrelName,nNumDocs,pIndexer_->pConfigurationManager_->indexStrategy_.indexLevel_, pIndexer_->getIndexCompressType());
     pNewBarrelInfo->setBaseDocID(newBaseDocIDMap);
     pNewBarrelInfo->updateMaxDoc(maxDocOfNewBarrel);
     pNewBarrelInfo->isUpdate = isNewBarrelUpdateBarrel;

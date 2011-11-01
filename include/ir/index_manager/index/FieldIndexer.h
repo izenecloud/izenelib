@@ -13,6 +13,7 @@
 #include <ir/index_manager/index/RTPostingWriter.h>
 #include <ir/index_manager/index/LAInput.h>
 #include <ir/index_manager/index/SortHelper.h>
+#include <ir/index_manager/utility/IndexManagerConfig.h>
 #include <am/external_sort/izene_sort.hpp>
 #include <util/ThreadModel.h>
 #include <boost/memory.hpp>
@@ -415,6 +416,8 @@ private:
     TermId* pHitsMax_;
 
     bool flush_;
+
+    IndexLevel indexLevel_;
 
     friend class MemTermReader;
     friend class MemTermIterator;

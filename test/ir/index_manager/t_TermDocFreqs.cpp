@@ -545,16 +545,19 @@ void TermDocFreqsTestFixture::queryOneDoc(TermReader* pTermReader, docid_t docID
             if(! isDocRemoved)
             {
                 BOOST_CHECK_EQUAL_TS(pTermPositions->freq(), termIt->second.size());
-                for(LocListT::const_iterator locIter = termIt->second.begin();
-                        locIter != termIt->second.end();
-                        ++locIter)
+                if (testConfig_.indexLevel_ == WORDLEVEL)
                 {
-#ifdef LOG_TERM_ID
-                    BOOST_TEST_MESSAGE_TS("check term position: " << *locIter);
-#endif
-                    BOOST_CHECK_EQUAL_TS(pTermPositions->nextPosition(), *locIter);
+                    for(LocListT::const_iterator locIter = termIt->second.begin();
+                            locIter != termIt->second.end();
+                            ++locIter)
+                    {
+        #ifdef LOG_TERM_ID
+                        BOOST_TEST_MESSAGE_TS("check term position: " << *locIter);
+        #endif
+                        BOOST_CHECK_EQUAL_TS(pTermPositions->nextPosition(), *locIter);
+                    }
+                    BOOST_CHECK_EQUAL_TS(pTermPositions->nextPosition(), BAD_POSITION);
                 }
-                BOOST_CHECK_EQUAL_TS(pTermPositions->nextPosition(), BAD_POSITION);
             }
         }
     }

@@ -151,7 +151,7 @@ struct MergeTermInfo
 class FieldMerger
 {
 public:
-    FieldMerger(bool sortingMerge, int skipInterval, int maxSkipLevel);
+    FieldMerger(bool sortingMerge, int skipInterval, int maxSkipLevel, IndexLevel indexLevel);
 
     virtual ~FieldMerger(void);
 public:
@@ -278,6 +278,8 @@ private:
     BitVector* pDocFilter_;
 
     MemCache* pMemCache_;
+
+    IndexLevel indexLevel_;
 };
 //////////////////////////////////////////////////////////////////////////
 //inline

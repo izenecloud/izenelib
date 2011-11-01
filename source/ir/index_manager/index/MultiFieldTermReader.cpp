@@ -6,7 +6,7 @@
 
 using namespace izenelib::ir::indexmanager;
 
-MultiFieldTermReader::MultiFieldTermReader(Directory* pDirectory,BarrelInfo* pBarrelInfo,FieldsInfo* pFieldsInfo)
+MultiFieldTermReader::MultiFieldTermReader(Directory* pDirectory,BarrelInfo* pBarrelInfo,FieldsInfo* pFieldsInfo, IndexLevel indexLevel)
         : TermReader()
         , pCurReader_(NULL)
 {
@@ -22,13 +22,13 @@ MultiFieldTermReader::MultiFieldTermReader(Directory* pDirectory,BarrelInfo* pBa
             switch(pBarrelInfo->compressType)
             {
             case BYTEALIGN:
-                pTermReader = new RTDiskTermReader(pDirectory,pBarrelInfo,pInfo);
+                pTermReader = new RTDiskTermReader(pDirectory,pBarrelInfo,pInfo, indexLevel);
                 break;
             case BLOCK:
-                pTermReader = new BlockTermReader(pDirectory,pBarrelInfo,pInfo);
+                pTermReader = new BlockTermReader(pDirectory,pBarrelInfo,pInfo, indexLevel);
                 break;
             case CHUNK:
-                pTermReader = new ChunkTermReader(pDirectory,pBarrelInfo,pInfo);
+                pTermReader = new ChunkTermReader(pDirectory,pBarrelInfo,pInfo, indexLevel);
                 break;
             default:
                 assert(false);

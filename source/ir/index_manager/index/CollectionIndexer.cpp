@@ -205,9 +205,11 @@ void CollectionIndexer::write(OutputDescriptor* desc)
 {
     IndexOutput* pVocOutput = desc->getVocOutput();
     IndexOutput* pDOutput = desc->getDPostingOutput();
-    IndexOutput* pPOutput = desc->getPPostingOutput();
+    IndexOutput* pPOutput = NULL;
+    if (desc->getPPostingOutput())
+        pPOutput = desc->getPPostingOutput();
 
-    fileoffset_t vocOff1,vocOff2,dfiOff1,dfiOff2,ptiOff1,ptiOff2;
+    fileoffset_t vocOff1,vocOff2,dfiOff1,dfiOff2,ptiOff1 = -1,ptiOff2 = -1;
     fileoffset_t vocOffset;
 
     FieldIndexer* pFieldIndexer;
@@ -231,7 +233,8 @@ void CollectionIndexer::write(OutputDescriptor* desc)
             continue;
         vocOff1 = pVocOutput->getFilePointer();
         dfiOff1 = pDOutput->getFilePointer();
-        ptiOff1 = pPOutput->getFilePointer();
+        if (pPOutput)
+            ptiOff1 = pPOutput->getFilePointer();
         vocOffset = pFieldIndexer->write(desc);///write field index data
 
         pFieldsInfo_->setDistinctNumTerms(iter->first,pFieldIndexer->distinctNumTerms());
@@ -239,7 +242,8 @@ void CollectionIndexer::write(OutputDescriptor* desc)
 
         vocOff2 = pVocOutput->getFilePointer();
         dfiOff2 = pDOutput->getFilePointer();
-        ptiOff2 = pPOutput->getFilePointer();
+        if (pPOutput)
+            ptiOff2 = pPOutput->getFilePointer();
 
         pFieldsInfo_->getField(iter->first)->
                 setLength(vocOff2-vocOff1,dfiOff2-dfiOff1,ptiOff2-ptiOff1);

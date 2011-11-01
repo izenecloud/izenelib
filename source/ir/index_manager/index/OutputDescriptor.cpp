@@ -43,5 +43,6 @@ void OutputDescriptor::flush()
 
     pVocOutput_->flush();
     pDPostingOutput_->flush();
-    pPPostingOutput_->flush();
+    if(pPPostingOutput_)
+        pPPostingOutput_->flush();
 }

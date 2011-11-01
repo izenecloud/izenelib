@@ -86,14 +86,14 @@ IndexInput* FSIndexInput::clone()
     // to avoid opening new merged barrel file,
     // throw exception if dirty
     if(isDirty())
-        SF1V5_THROW(ERROR_FILEIO, "FSIndexInput dirty before open file.");
+        SF1V5_THROW(ERROR_FILEIO, "FSIndexInput dirty before open file." + filename_);
 
     std::auto_ptr<FSIndexInput> clonePtr(new FSIndexInput(filename_.c_str(),bufferSize_));
 
     // to ensure the previous opened file is not new merged barrel,
     // check again whether current instance is dirty
     if(isDirty())
-        SF1V5_THROW(ERROR_FILEIO, "FSIndexInput dirty after open file.");
+        SF1V5_THROW(ERROR_FILEIO, "FSIndexInput dirty after open file." + filename_);
 
     clonePtr->seek(getFilePointer());
 
