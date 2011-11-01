@@ -25,7 +25,7 @@ RTPostingWriter::RTPostingWriter(MemCache* pCache, int skipInterval, int maxSkip
         ,nCurTermFreq_(0)
         ,nCTF_(0)
         ,pSkipListWriter_(0)
-	    ,dirty_(false)
+        ,dirty_(false)
         ,indexLevel_(indexLevel)
 {
     pDocFreqList_ = new VariantDataPool(pCache);
