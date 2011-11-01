@@ -1,7 +1,6 @@
 #ifndef __LIBCASSANDRA_CASSANDRA_CONNECTION_MANAGER_H
 #define __LIBCASSANDRA_CASSANDRA_CONNECTION_MANAGER_H
 
-#include "libcassandra/cassandra_factory.h"
 
 #include <boost/thread/condition_variable.hpp>
 #include <boost/thread/locks.hpp>
@@ -25,7 +24,7 @@ public:
 
     ~CassandraConnectionManager();
 
-    MyCassandraClient * borrowClient(const std::string& keyspace);
+    MyCassandraClient * borrowClient();
 
     void releaseClient(MyCassandraClient * client);
 

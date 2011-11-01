@@ -21,35 +21,21 @@
 #include "indexed_slices_query.h"
 #include "keyspace_definition.h"
 
-namespace org
-{
-namespace apache
-{
-namespace cassandra
-{
-class CassandraClient;
-}
-}
-}
-
 namespace libcassandra
 {
 
 class Keyspace;
-
+class CassandraConnectionManager;
 class Cassandra
 {
-
 public:
+    Cassandra(
+        CassandraConnectionManager *connection_manager
+    );
 
-    Cassandra();
-    Cassandra(org::apache::cassandra::CassandraClient *in_thrift_client,
-              const std::string &in_host,
-              int in_port);
-    Cassandra(org::apache::cassandra::CassandraClient *in_thrift_client,
-              const std::string &in_host,
-              int in_port,
-              const std::string& keyspace);
+    Cassandra(
+        CassandraConnectionManager *connection_manager,
+        const std::string& keyspace);
     ~Cassandra();
 
     enum FailoverPolicy
@@ -58,11 +44,6 @@ public:
         ON_FAIL_TRY_ONE_NEXT_AVAILABLE, /* try 1 random server before returning to user */
         ON_FAIL_TRY_ALL_AVAILABLE /* try all available servers in cluster before return to user */
     };
-
-    /**
-     * @return the underlying cassandra thrift client.
-     */
-    org::apache::cassandra::CassandraClient *getCassandra();
 
     /**
      * Log for the current session
@@ -476,31 +457,18 @@ public:
     void getStringProperty(std::string &return_val, const std::string &property);
 
     /**
-     * @return hostname
-     */
-    const std::string& getHost() const;
-
-    /**
-     * @return port number
-     */
-    int getPort() const;
-
-    /**
      * Finds the given keyspace in the list of keyspace definitions
      * @return true if found; false otherwise
      */
     bool findKeyspace(const std::string& name) const;
 
 private:
-
-    org::apache::cassandra::CassandraClient *thrift_client;
-    std::string host;
-    int port;
-    std::string cluster_name;
-    std::string server_version;
-    std::string current_keyspace;
-    std::vector<KeyspaceDefinition> key_spaces;
-    std::map<std::string, std::string> token_map;
+    CassandraConnectionManager * connection_manager_;
+    std::string cluster_name_;
+    std::string server_version_;
+    std::string current_keyspace_;
+    std::vector<KeyspaceDefinition> key_spaces_;
+    std::map<std::string, std::string> token_map_;
 
     Cassandra(const Cassandra&);
     Cassandra &operator=(const Cassandra&);

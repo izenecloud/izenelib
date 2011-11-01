@@ -32,6 +32,7 @@ public:
 
     void close();
 
+private:
     std::string key_space_;
     std::string host_;
     int port_;

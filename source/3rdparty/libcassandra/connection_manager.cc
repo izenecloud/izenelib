@@ -31,7 +31,7 @@ CassandraConnectionManager::~CassandraConnectionManager()
     }
 }
 
-MyCassandraClient * CassandraConnectionManager::borrowClient(const std::string& keyspace)
+MyCassandraClient * CassandraConnectionManager::borrowClient()
 {
     MyCassandraClient* client = NULL;
     boost::unique_lock<boost::mutex> lock(mutex_);

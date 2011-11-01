@@ -6,7 +6,7 @@
 #include <string>
 #include <stdio.h>
 
-#include <libcassandra/cassandra_factory.h>
+#include <libcassandra/connection_manager.h>
 #include <libcassandra/cassandra.h>
 #include <libcassandra/column_family_definition.h>
 #include <libcassandra/keyspace.h>
@@ -18,11 +18,11 @@ using namespace libcassandra;
 
 static string host("127.0.0.1");
 static int port= 9160;
-
+static size_t pool_size = 16;
 int main()
 {
-    CassandraFactory factory(host, port);
-    boost::shared_ptr<Cassandra> client(factory.create());
+    CassandraConnectionManager connect_manager(host,port,pool_size);
+    boost::shared_ptr<Cassandra> client(new Cassandra(&connect_manager));
 
     string clus_name= client->getClusterName();
     cout << "cluster name: " << clus_name << endl;
