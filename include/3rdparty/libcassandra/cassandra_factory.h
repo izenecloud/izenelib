@@ -34,11 +34,11 @@ class Cassandra;
 
 class CassandraFactory
 {
-
 public:
+    CassandraFactory(
+        const std::string& in_host, 
+        int in_port);
 
-    CassandraFactory(const std::string& server_list);
-    CassandraFactory(const std::string& in_host, int in_port);
     ~CassandraFactory();
 
     /**
@@ -62,22 +62,12 @@ public:
      */
     const std::string &getHost() const;
 
-    /**
-     * @return URL of cassandra instances created
-     */
-    const std::string &getURL() const;
+    org::apache::cassandra::CassandraClient *createThriftClient();
 
 private:
-
-    org::apache::cassandra::CassandraClient *createThriftClient(const std::string& host,
-            int port);
-
-    std::string url;
-
     std::string host;
 
     int port;
-
 };
 
 } /* end namespace libcassandra */
