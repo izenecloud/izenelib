@@ -84,7 +84,7 @@ CassandraClient *CassandraFactory::createThriftClient(const string& in_host,
         int in_port)
 {
     boost::shared_ptr<TTransport> socket(new TSocket(in_host, in_port));
-    boost::shared_ptr<TTransport> transport= boost::shared_ptr<TTransport>(new TFramedTransport(socket));
+    boost::shared_ptr<TTransport> transport(new TFramedTransport(socket));
     boost::shared_ptr<TProtocol> protocol(new TBinaryProtocol(transport));
     CassandraClient *client= new(std::nothrow) CassandraClient(protocol);
 

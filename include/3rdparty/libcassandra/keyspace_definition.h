@@ -39,21 +39,21 @@ public:
     /**
      * @return keyspace name
      */
-    std::string getName() const;
+    const std::string& getName() const;
 
     void setName(const std::string& ks_name);
 
     /**
      * @return strategy class name for this keyspace
      */
-    std::string getStrategyClass() const;
+    const std::string& getStrategyClass() const;
 
     void setStrategyClass(const std::string& strat_class);
 
     /**
      * @return strategy options for this keyspace
      */
-    std::map<std::string, std::string> getStrategyOptions() const;
+    const std::map<std::string, std::string>& getStrategyOptions() const;
 
     void setStrategyOptions(const std::map<std::string, std::string>& opts);
 
@@ -67,9 +67,9 @@ public:
     /**
      * @return the column families in this keyspace
      */
-    std::vector<ColumnFamilyDefinition> getColumnFamilies() const;
+    const std::vector<ColumnFamilyDefinition>& getColumnFamilies() const;
 
-    void setColumnFamilies(std::vector<ColumnFamilyDefinition>& cfs);
+    void setColumnFamilies(const std::vector<ColumnFamilyDefinition>& cfs);
 
 private:
 

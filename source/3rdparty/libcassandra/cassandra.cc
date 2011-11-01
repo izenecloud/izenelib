@@ -89,7 +89,7 @@ CassandraClient *Cassandra::getCassandra()
 void Cassandra::login(const string& user, const string& password)
 {
     AuthenticationRequest req;
-    std::map<std::string, std::string> credentials;
+    map<string, string> credentials;
     credentials["username"]= user;
     credentials["password"]= password;
     req.__set_credentials(credentials);
@@ -373,7 +373,8 @@ void Cassandra::getRangeSlices(
                 it != key_slices.end();
                 ++it)
         {
-            ret.insert(make_pair(it->key, getColumnList(it->columns)));
+            vector<Column>& thrift_cols = ret[it->key];
+            getColumnList(thrift_cols, it->columns);
         }
     }
 }
@@ -413,7 +414,8 @@ void Cassandra::getSuperRangeSlices(
                 it != key_slices.end();
                 ++it)
         {
-            ret.insert(make_pair(it->key, getSuperColumnList(it->columns)));
+            vector<SuperColumn>& thrift_cols = ret[it->key];
+            getSuperColumnList(thrift_cols, it->columns);
         }
     }
 }
@@ -439,7 +441,8 @@ void Cassandra::getIndexedSlices(
         const IndexedSlicesQuery& query)
 {
     vector<KeySlice> ret_vec;
-    SlicePredicate thrift_slice_pred= createSlicePredicateObject(query);
+    SlicePredicate thrift_slice_pred;
+    createSlicePredicateObject(thrift_slice_pred, query);
     ColumnParent thrift_col_parent;
     thrift_col_parent.column_family.assign(query.getColumnFamily());
     thrift_client->get_indexed_slices(ret_vec,
@@ -452,7 +455,8 @@ void Cassandra::getIndexedSlices(
             it != ret_vec.end();
             ++it)
     {
-        vector<Column> thrift_cols= getColumnList(it->columns);
+        vector<Column> thrift_cols;
+        getColumnList(thrift_cols, it->columns);
         map<string, string> rows;
         for (vector<Column>::const_iterator inner_it= thrift_cols.begin();
                 inner_it != thrift_cols.end();
@@ -508,7 +512,8 @@ const vector<KeyspaceDefinition>& Cassandra::getKeyspaces()
 string Cassandra::createColumnFamily(const ColumnFamilyDefinition& cf_def)
 {
     string schema_id;
-    CfDef thrift_cf_def= createCfDefObject(cf_def);
+    CfDef thrift_cf_def;
+    createCfDefObject(thrift_cf_def, cf_def);
     thrift_client->system_add_column_family(schema_id, thrift_cf_def);
     return schema_id;
 }
@@ -520,10 +525,11 @@ string Cassandra::dropColumnFamily(const string& cf_name)
     return schema_id;
 }
 
-std::string Cassandra::updateColumnFamily(const ColumnFamilyDefinition& cf_def)
+string Cassandra::updateColumnFamily(const ColumnFamilyDefinition& cf_def)
 {
     string schema_id;
-    CfDef thrift_cf_def= createCfDefObject(cf_def);
+    CfDef thrift_cf_def;
+    createCfDefObject(thrift_cf_def, cf_def);
     thrift_client->system_update_column_family(schema_id, thrift_cf_def);
     return schema_id;
 }
@@ -531,7 +537,8 @@ std::string Cassandra::updateColumnFamily(const ColumnFamilyDefinition& cf_def)
 string Cassandra::createKeyspace(const KeyspaceDefinition& ks_def)
 {
     string ret;
-    KsDef thrift_ks_def= createKsDefObject(ks_def);
+    KsDef thrift_ks_def;
+    createKsDefObject(thrift_ks_def, ks_def);
     thrift_client->system_add_keyspace(ret, thrift_ks_def);
     if (!findKeyspace(ks_def.getName()))
     {

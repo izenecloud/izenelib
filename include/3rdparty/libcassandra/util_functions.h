@@ -39,50 +39,48 @@ std::string parseHostFromURL(const std::string &url);
 /**
  * Convert a ColumnDefinition object to the thrift
  * equivalent - ColumnDef
+ * @param[in] thrift_col_def result thrift ColumnDef object equivalent to the col_def input
  * @param[in] col_def a ColumnDefinition object
- * @return a thrift ColumnDef object equivalent to the col_def input
  */
-org::apache::cassandra::ColumnDef createColumnDefObject(const ColumnDefinition& col_def);
+void createColumnDefObject(org::apache::cassandra::ColumnDef& thrift_col_def, const ColumnDefinition& col_def);
 
 /**
  * Convert a KeyspaceDefinition object to the thrift
  * equivalent - KsDef
+ * @param[in] thrift_ks_def result thrift KsDef object equivalent to the ks_def input
  * @param[in] ks_def a KeyspaceDefinition object
- * @return a thrift KsDef object equivalent to the ks_def input
  */
-org::apache::cassandra::KsDef createKsDefObject(const KeyspaceDefinition& ks_def);
+void createKsDefObject(org::apache::cassandra::KsDef& thrift_ks_def, const KeyspaceDefinition& ks_def);
 
 /**
  * Convert a ColumnFamilyDefinition object to the thrift
  * equivalent - CfDef
+ * @param[in] thrift_cf_def result thrift CfDef object equivalent to the cf_def input
  * @param[in] cf_def a ColumnFamilyDefinition object
- * @return a thrift CfDef object equivalent to the cf_def input
  */
-org::apache::cassandra::CfDef createCfDefObject(const ColumnFamilyDefinition& ks_def);
+void createCfDefObject(org::apache::cassandra::CfDef& thrift_cf_def, const ColumnFamilyDefinition& cf_def);
 
 /**
  * Convert a IndexedSlicesQuery object to the thrift
  * equivalent - SlicePredicate
+ * @param[in] thrift_slice_pred result thrift SlicePredicate object equivalent to the query input
  * @param[in] query an IndexedSlicesQuery object
- * @return a thrift SlicePredicate object equivalent to the query input
  */
-org::apache::cassandra::SlicePredicate createSlicePredicateObject(const IndexedSlicesQuery& query);
+void createSlicePredicateObject(org::apache::cassandra::SlicePredicate& thrift_slice_pred, const IndexedSlicesQuery& query);
 
 /**
  * Extract the columns from the vector of columns or super columns
+ * @param[in] thrift_cols result vector of Column objects
  * @param[in] cols vector to process
- * @return vector of Column objects
  */
-std::vector<org::apache::cassandra::Column>
-getColumnList(const std::vector<org::apache::cassandra::ColumnOrSuperColumn>& cols);
+void getColumnList(std::vector<org::apache::cassandra::Column>& thrift_cols, const std::vector<org::apache::cassandra::ColumnOrSuperColumn>& cols);
 
 /**
  * Extract the super columns from the vector of columns or super columns
+ * @param[in] thrift_cols result vector of SuperColumn objects
  * @param[in] cols vector to process
- * @return vector of SuperColumn objects
  */
-std::vector<org::apache::cassandra::SuperColumn>
-getSuperColumnList(const std::vector<org::apache::cassandra::ColumnOrSuperColumn>& cols);
+void getSuperColumnList(std::vector<org::apache::cassandra::SuperColumn>& thrift_cols, const std::vector<org::apache::cassandra::ColumnOrSuperColumn>& cols);
 
 /**
  * @return a timestamp in micro-seconds

@@ -42,7 +42,7 @@ Keyspace::Keyspace(Cassandra *in_client,
 {}
 
 
-string Keyspace::getName()
+const string& Keyspace::getName()
 {
     return name;
 }
@@ -51,4 +51,10 @@ string Keyspace::getName()
 ConsistencyLevel::type Keyspace::getConsistencyLevel() const
 {
     return level;
+}
+
+
+const KeyspaceDefinition& Keyspace::getDefinition()
+{
+    return keyspace_def;
 }

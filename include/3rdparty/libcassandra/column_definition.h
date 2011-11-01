@@ -36,7 +36,7 @@ public:
     /**
      * @return column name
      */
-    std::string getName() const;
+    const std::string& getName() const;
 
     /**
      * @param[in] new_name new column name
@@ -46,7 +46,7 @@ public:
     /**
      * @return validation class name for this keyspace
      */
-    std::string getValidationClass() const;
+    const std::string& getValidationClass() const;
 
     /**
      * @param[in] class_name name of the validation class to use
@@ -71,7 +71,7 @@ public:
     /**
      * @return index name
      */
-    std::string getIndexName() const;
+    const std::string& getIndexName() const;
 
     /**
      * @param[in] new_name index name
