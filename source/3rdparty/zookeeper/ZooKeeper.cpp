@@ -98,7 +98,7 @@ void ZooKeeper::connect(bool isAutoReconnect)
 
     if (zk_ == NULL)
     {
-        std::string ex = "Unable to connect to ZooKeeper running at: ";
+        std::string ex = "Unable to connect to ZooKeeper running at (servers): ";
         ex += hosts_;
         if (hosts_.empty())
             ex += "(uninitialized address)";

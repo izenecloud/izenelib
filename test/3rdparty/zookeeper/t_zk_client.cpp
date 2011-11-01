@@ -78,7 +78,7 @@ int main(int argv, char* argc[])
 {
     string hosts = "127.0.0.1:2181,127.0.0.1:2182,127.0.0.1:2183";
 
-    t_zk_client(hosts);
+    //t_zk_client(hosts);
 
     //t_DoubleBarrier(hosts);
 
