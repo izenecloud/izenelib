@@ -25,17 +25,13 @@ namespace libcassandra
 {
 
 class Keyspace;
-class CassandraConnectionManager;
 class Cassandra
 {
 public:
-    Cassandra(
-        CassandraConnectionManager *connection_manager
-    );
+    Cassandra();
 
-    Cassandra(
-        CassandraConnectionManager *connection_manager,
-        const std::string& keyspace);
+    Cassandra(const std::string& keyspace);
+
     ~Cassandra();
 
     enum FailoverPolicy
@@ -463,7 +459,6 @@ public:
     bool findKeyspace(const std::string& name) const;
 
 private:
-    CassandraConnectionManager * connection_manager_;
     std::string cluster_name_;
     std::string server_version_;
     std::string current_keyspace_;

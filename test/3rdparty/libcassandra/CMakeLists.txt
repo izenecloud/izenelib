@@ -1,6 +1,7 @@
 FIND_PACKAGE(Boost ${Boost_FIND_VERSION}
   COMPONENTS
   thread
+  system
   unit_test_framework
   program_options
   )
@@ -14,7 +15,8 @@ INCLUDE_DIRECTORIES(
 
 ADD_EXECUTABLE(t_libcassandra t_libcassandra.cc)
 TARGET_LINK_LIBRARIES(t_libcassandra 
-    cassandra 
+    cassandra
+    izene_util
     ${Thrift_LIBS} 
     ${Boost_LIBRARIES}
     ${Glog_LIBRARIES}

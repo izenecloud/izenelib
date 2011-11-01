@@ -8,12 +8,19 @@ using org::apache::cassandra::CassandraClient;
 namespace libcassandra
 {
 
-CassandraConnectionManager::CassandraConnectionManager(
+CassandraConnectionManager::CassandraConnectionManager()
+{}
+
+CassandraConnectionManager::~CassandraConnectionManager()
+{
+}
+
+void CassandraConnectionManager::init(
     const std::string& host, 
     int port,
     size_t pool_size)
-    :pool_size_(pool_size)
 {
+    clear();
     for(size_t i = 0; i < pool_size; ++i)
     {
         MyCassandraClient* client = new MyCassandraClient(host,port);
@@ -22,7 +29,7 @@ CassandraConnectionManager::CassandraConnectionManager(
     }
 }
 
-CassandraConnectionManager::~CassandraConnectionManager()
+void CassandraConnectionManager::clear()
 {
     std::list<MyCassandraClient*>::iterator it = clients_.begin();
     for(;it != clients_.end(); ++it)

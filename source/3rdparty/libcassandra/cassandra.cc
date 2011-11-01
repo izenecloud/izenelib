@@ -15,8 +15,6 @@
 #include <sstream>
 #include <iostream>
 
-#include "libcassandra/genthrift/Cassandra.h"
-
 #include "libcassandra/cassandra.h"
 #include "libcassandra/connection_manager.h"
 #include "libcassandra/cassandra_client.h"
@@ -33,18 +31,15 @@ namespace libcassandra
 {
 
 #define BORROW_CLIENT \
-    MyCassandraClient* client = connection_manager_->borrowClient(); \
+    MyCassandraClient* client = CassandraConnectionManager::instance()->borrowClient(); \
     org::apache::cassandra::CassandraClient* thrift_client = client->getCassandra(current_keyspace_); \
 
 #define RELEASE_CLIENT \
-    connection_manager_->releaseClient(client); \
+    CassandraConnectionManager::instance()->releaseClient(client); \
 
 
-Cassandra::Cassandra(
-    CassandraConnectionManager *connection_manager
-)
-    :connection_manager_(connection_manager),
-     cluster_name_(),
+Cassandra::Cassandra()
+    :cluster_name_(),
      server_version_(),
      current_keyspace_(),
      key_spaces_(),
@@ -53,12 +48,8 @@ Cassandra::Cassandra(
     reloadKeyspaces();
 }
 
-Cassandra::Cassandra(
-    CassandraConnectionManager *connection_manager,
-    const string& keyspace
-)
-    :connection_manager_(connection_manager),
-     cluster_name_(),
+Cassandra::Cassandra(const string& keyspace)
+    :cluster_name_(),
      server_version_(),
      current_keyspace_(keyspace),
      key_spaces_(),

@@ -7,6 +7,8 @@
 #include <boost/thread/mutex.hpp>
 #include <boost/thread/thread.hpp>
 
+#include <util/singleton.h>
+
 #include <string>
 #include <list>
 
@@ -14,15 +16,22 @@ namespace libcassandra
 {
 
 class MyCassandraClient;
-class CassandraConnectionManager
+class CassandraConnectionManager : private boost::noncopyable
 {
 public:
-    CassandraConnectionManager(
-        const std::string& host, 
-        int port,
-        size_t pool_size);
+    CassandraConnectionManager();
 
     ~CassandraConnectionManager();
+
+    /// for singleton 
+    static CassandraConnectionManager* instance()
+    {
+        return ::izenelib::util::Singleton<CassandraConnectionManager>::get();
+    }
+
+    void init(const std::string& host, int port,size_t pool_size);
+
+    void clear();
 
     MyCassandraClient * borrowClient();
 

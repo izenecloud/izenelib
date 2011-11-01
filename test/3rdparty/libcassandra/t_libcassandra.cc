@@ -21,8 +21,8 @@ static int port= 9160;
 static size_t pool_size = 16;
 int main()
 {
-    CassandraConnectionManager connect_manager(host,port,pool_size);
-    boost::shared_ptr<Cassandra> client(new Cassandra(&connect_manager));
+    CassandraConnectionManager::instance()->init(host,port,pool_size);
+    boost::shared_ptr<Cassandra> client(new Cassandra());
 
     string clus_name= client->getClusterName();
     cout << "cluster name: " << clus_name << endl;
