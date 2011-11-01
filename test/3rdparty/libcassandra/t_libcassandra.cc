@@ -29,13 +29,15 @@ int main()
 
     try
     {
-        const string ks_name("___drizzle___");
-        const string key("sarah");
-        const string col_value("this is data being inserted!");
-        const string col_family("Data");
-        const string col_name("third");
+        static const string ks_name("___drizzle___");
+        static const string key("sarah");
+        static const string col_value("this is data being inserted!");
+        static const string col_family("Data");
+        static const string sup_col_name("Test");
+        static const string col_name("third");
         ColumnParent col_parent;
         col_parent.__set_column_family(col_family);
+        col_parent.__set_super_column(sup_col_name);
         SlicePredicate pred;
 
         /* create keyspace */
@@ -62,25 +64,26 @@ int main()
         /* create standard column family */
         ColumnFamilyDefinition cf_def;
         cf_def.setName(col_family);
+        cf_def.setColumnType("Super");
         cf_def.setKeyspaceName(ks_def.getName());
         client->createColumnFamily(cf_def);
-        cout << "Now we have " << client->getCount(key, col_parent, pred) << " column(s) in the column family." << endl << endl;
+        cout << "Now we have " << client->getCount(key, col_parent, pred) << " column(s) in the super column." << endl << endl;
 
         /* insert data */
         cout << "Value will be inserted is: " << col_value << endl;
-        client->insertColumn(col_value, key, col_family, col_name);
+        client->insertColumn(col_value, key, col_family, sup_col_name, col_name);
         cout << endl << "Inserting...." << endl;
 
         /* retrieve that data */
-        cout << "Now we have " << client->getCount(key, col_parent, pred) << " column(s) in the column family." << endl << endl;
+        cout << "Now we have " << client->getCount(key, col_parent, pred) << " column(s) in the super column." << endl << endl;
         string res;
-        client->getColumnValue(res, key, col_family, col_name);
+        client->getColumnValue(res, key, col_family, sup_col_name, col_name);
         cout << "Value in column retrieved is: " << res << endl;
 
         /* delete data */
         cout << endl << "Deleting...." << endl;
-        client->removeColumn(key, col_family, col_name);
-        cout << "Now we have " << client->getCount(key, col_parent, pred) << " column(s) in the column family." << endl << endl;
+        client->removeColumn(key, col_family, sup_col_name, col_name);
+        cout << "Now we have " << client->getCount(key, col_parent, pred) << " column(s) in the super column." << endl << endl;
 
         /* drop column family and keyspace */
         client->dropColumnFamily(col_family);
