@@ -40,8 +40,8 @@ void createKsDefObject(KsDef& thrift_ks_def, const KeyspaceDefinition& ks_def)
 {
     thrift_ks_def.__set_name(ks_def.getName());
     thrift_ks_def.__set_strategy_class(ks_def.getStrategyClass());
-    vector<ColumnFamilyDefinition> cf_defs= ks_def.getColumnFamilies();
-    for (vector<ColumnFamilyDefinition>::iterator it= cf_defs.begin();
+    const vector<ColumnFamilyDefinition>& cf_defs = ks_def.getColumnFamilies();
+    for (vector<ColumnFamilyDefinition>::const_iterator it = cf_defs.begin();
             it != cf_defs.end();
             ++it)
     {
@@ -112,9 +112,9 @@ void createCfDefObject(CfDef& thrift_cf_def, const ColumnFamilyDefinition& cf_de
     }
     if (cf_def.isColumnMetadataSet())
     {
-        vector<ColumnDefinition> cols= cf_def.getColumnMetadata();
-        std::vector<ColumnDef>	 column_metadata;
-        for (vector<ColumnDefinition>::iterator it= cols.begin(); it != cols.end(); ++it)
+        const vector<ColumnDefinition>& cols = cf_def.getColumnMetadata();
+        vector<ColumnDef> column_metadata;
+        for (vector<ColumnDefinition>::const_iterator it = cols.begin(); it != cols.end(); ++it)
         {
             column_metadata.push_back(ColumnDef());
             createColumnDefObject(column_metadata.back(), *it);
@@ -134,8 +134,8 @@ void createSlicePredicateObject(SlicePredicate& thrift_slice_pred, const Indexed
     if (query.isColumnsSet())
     {
         thrift_slice_pred.__isset.column_names= true;
-        vector<string> cols= query.getColumns();
-        for (vector<string>::iterator it= cols.begin();
+        const vector<string>& cols = query.getColumns();
+        for (vector<string>::const_iterator it= cols.begin();
                 it != cols.end();
                 ++it)
         {

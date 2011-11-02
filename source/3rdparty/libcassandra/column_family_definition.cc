@@ -345,7 +345,7 @@ bool ColumnFamilyDefinition::isMinCompactionThresholdSet() const
     return (min_compaction_threshold > 0 ? true : false);
 }
 
-vector<ColumnDefinition> ColumnFamilyDefinition::getColumnMetadata() const
+const vector<ColumnDefinition>& ColumnFamilyDefinition::getColumnMetadata() const
 {
     return column_metadata;
 }
@@ -354,7 +354,7 @@ vector<ColumnDefinition> ColumnFamilyDefinition::getColumnMetadata() const
 void ColumnFamilyDefinition::setColumnMetadata(vector<ColumnDefinition>& meta)
 {
     column_metadata.clear();
-    for (vector<ColumnDefinition>::iterator it= meta.begin();
+    for (vector<ColumnDefinition>::const_iterator it = meta.begin();
             it != meta.end();
             ++it)
     {
@@ -379,7 +379,7 @@ void ColumnFamilyDefinition::setCompressOptions(const std::map<std::string, std:
     compression_options = val;
 }
 
-const std::map<std::string, std::string> ColumnFamilyDefinition::getCompressOptions() const
+const std::map<std::string, std::string>& ColumnFamilyDefinition::getCompressOptions() const
 {
     return compression_options;
 }
@@ -388,4 +388,3 @@ bool ColumnFamilyDefinition::isCompressOptionsSet() const
 {
     return (!compression_options.empty());
 }
-

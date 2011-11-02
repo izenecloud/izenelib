@@ -219,7 +219,7 @@ public:
      */
     bool isMinCompactionThresholdSet() const;
 
-    std::vector<ColumnDefinition> getColumnMetadata() const;
+    const std::vector<ColumnDefinition>& getColumnMetadata() const;
 
     void setColumnMetadata(std::vector<ColumnDefinition>& meta);
 
@@ -229,7 +229,7 @@ public:
 
     void setCompressOptions(const std::map<std::string, std::string> & val);
 
-    const std::map<std::string, std::string> getCompressOptions() const;
+    const std::map<std::string, std::string>& getCompressOptions() const;
 
     bool isCompressOptionsSet() const;
 

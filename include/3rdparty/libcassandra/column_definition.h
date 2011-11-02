@@ -89,7 +89,7 @@ public:
     /**
      * @return index options
      */
-    const std::map<std::string, std::string> getIndexOptions() const;
+    const std::map<std::string, std::string>& getIndexOptions() const;
 
     /**
      * @return true if index name is set; false otherwise

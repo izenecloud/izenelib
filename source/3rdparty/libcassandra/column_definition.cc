@@ -103,7 +103,7 @@ void ColumnDefinition::setIndexOptions(const std::map<std::string, std::string> 
 }
 
 
-const std::map<std::string, std::string> ColumnDefinition::getIndexOptions() const
+const std::map<std::string, std::string>& ColumnDefinition::getIndexOptions() const
 {
     return index_options;
 }
@@ -112,4 +112,3 @@ bool ColumnDefinition::isIndexOptionsSet() const
 {
     return (! index_options.empty());
 }
-

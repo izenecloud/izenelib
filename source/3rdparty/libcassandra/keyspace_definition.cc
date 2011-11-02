@@ -136,4 +136,3 @@ void KeyspaceDefinition::setDurableWrites(bool val)
 {
     durable_writes = val;
 }
-

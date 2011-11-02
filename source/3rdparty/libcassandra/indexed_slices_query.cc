@@ -144,7 +144,7 @@ void IndexedSlicesQuery::addIndexExpression(const string& column,
 
 void IndexedSlicesQuery::setColumns(vector<string>& columns)
 {
-    for (vector<string>::iterator it= columns.begin();
+    for (vector<string>::const_iterator it = columns.begin();
             it != columns.end();
             ++it)
     {
