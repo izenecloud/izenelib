@@ -72,6 +72,10 @@ int main()
         cf_def.setName(col_family);
         cf_def.setColumnType("Super");
         cf_def.setKeyspaceName(ks_def.getName());
+        std::map<std::string, std::string> compress_options;
+        compress_options["sstable_compression"] = "SnappyCompressor";
+        compress_options["chunk_length_kb"] = "64";
+        cf_def.setCompressOptions(compress_options);
         client->createColumnFamily(cf_def);
         cout << "Now we have " << client->getCount(key, col_parent, pred) << " column(s) in the super column." << endl << endl;
 
