@@ -225,7 +225,7 @@ const IndexerTestConfig INDEXER_TEST_CONFIGS[] = {
 const int INDEXER_TEST_CONFIG_NUM = sizeof(INDEXER_TEST_CONFIGS) / sizeof(IndexerTestConfig);
 
 /** if the command options of "--run_config_list" or "--run_config_range" are not specified, run configs of range [0, DEFAULT_CONFIG_RANGE] */
-const int DEFAULT_CONFIG_RANGE = 17;
+const int DEFAULT_CONFIG_RANGE = 35;
 
 /** the command option to specify a list of config numbers, such as "--run_config_list 0 1 2 3" */
 const char* OPTION_CONFIG_LIST = "run_config_list";
