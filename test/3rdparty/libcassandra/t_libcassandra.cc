@@ -6,6 +6,9 @@
 #include <string>
 #include <stdio.h>
 
+#include <unistd.h>
+#include <boost/algorithm/string/replace.hpp>
+
 #include <libcassandra/connection_manager.h>
 #include <libcassandra/cassandra.h>
 #include <libcassandra/column_family_definition.h>
@@ -16,7 +19,7 @@ using namespace std;
 using namespace org::apache::cassandra;
 using namespace libcassandra;
 
-static string host("127.0.0.1");
+static string host("172.16.0.163");
 static int port= 9160;
 static size_t pool_size = 16;
 int main()
@@ -29,7 +32,10 @@ int main()
 
     try
     {
-        static const string ks_name("___drizzle___");
+        char hostname[255];
+        gethostname(hostname, sizeof(hostname));
+        string ks_name(hostname);
+        boost::replace_all(ks_name, "-", "_");
         static const string key("sarah");
         static const string col_value("this is data being inserted!");
         static const string col_family("Data");
