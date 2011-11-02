@@ -81,6 +81,7 @@ public:
 
 
     BoolArray& operator=(const BoolArray & x) {
+        sizeinbits = x.sizeinbits;
         this->buffer = x.buffer;
         return *this;
     }
