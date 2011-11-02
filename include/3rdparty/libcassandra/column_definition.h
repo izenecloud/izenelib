@@ -81,6 +81,21 @@ public:
      */
     bool isIndexNameSet() const;
 
+    /**
+     * @param[val] index options
+     */
+    void setIndexOptions(const std::map<std::string, std::string> & val);
+
+    /**
+     * @return index options
+     */
+    const std::map<std::string, std::string> getIndexOptions() const;
+
+    /**
+     * @return true if index name is set; false otherwise
+     */
+    bool isIndexOptionsSet() const;
+
 private:
 
     std::string name;
@@ -93,6 +108,7 @@ private:
 
     std::string index_name;
 
+    std::map<std::string, std::string>  index_options;
 };
 
 } /* end namespace libcassandra */

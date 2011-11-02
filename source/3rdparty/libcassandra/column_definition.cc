@@ -96,3 +96,20 @@ bool ColumnDefinition::isIndexNameSet() const
 {
     return (! index_name.empty());
 }
+
+void ColumnDefinition::setIndexOptions(const std::map<std::string, std::string> & val)
+{
+    index_options = val;
+}
+
+
+const std::map<std::string, std::string> ColumnDefinition::getIndexOptions() const
+{
+    return index_options;
+}
+
+bool ColumnDefinition::isIndexOptionsSet() const
+{
+    return (! index_options.empty());
+}
+

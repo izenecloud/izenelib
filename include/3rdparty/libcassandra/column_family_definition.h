@@ -28,7 +28,8 @@ class ColumnFamilyDefinition
 public:
 
     ColumnFamilyDefinition();
-    ColumnFamilyDefinition(const std::string& in_keyspace_name,
+    ColumnFamilyDefinition(
+                           const std::string& in_keyspace_name,
                            const std::string& in_name,
                            const std::string& in_column_type,
                            const std::string& in_comparator_type,
@@ -44,10 +45,8 @@ public:
                            const int32_t in_min_compaction_threshold,
                            const int32_t in_max_compaction_threshold,
                            const int32_t in_row_cache_save_period_in_seconds,
-                           const int32_t in_key_cache_save_period_in_seconds);
-    //const int32_t in_memtable_flush_after_mins,
-    //const int32_t in_memtable_throughput_in_mb,
-    //const double in_memtable_operations_in_millions);
+                           const int32_t in_key_cache_save_period_in_seconds,
+                           const std::map<std::string, std::string>& in_compression_options);
     ~ColumnFamilyDefinition() {}
 
     /**
@@ -220,42 +219,6 @@ public:
      */
     bool isMinCompactionThresholdSet() const;
 
-    /**
-     * @return memtable flush after mins
-     */
-    int32_t getMemtableFlushAfterMins() const;
-
-    void setMemtableFlushAfterMins(int32_t flush);
-
-    /**
-     * @return true if memtable flush mins > 0; false otherwise
-     */
-    bool isMemtableFlushAfterMinsSet() const;
-
-    /**
-     * @return memtable operations in millions
-     */
-    double getMemtableOperationsInMillions() const;
-
-    void setMemtableOperationsInMillions(double ops);
-
-    /**
-     * @return true if memtable ops > 0; false otherwise
-     */
-    bool isMemtableOperationsInMillionsSet() const;
-
-    /**
-     * @return memtable throughput in megabytes
-     */
-    int32_t getMemtableThroughputInMb() const;
-
-    void setMemtableThroughputInMb(int32_t throughput);
-
-    /**
-     * @return true if memtable throughput > 0; false otherwise
-     */
-    bool isMemtableThroughputInMbSet() const;
-
     std::vector<ColumnDefinition> getColumnMetadata() const;
 
     void setColumnMetadata(std::vector<ColumnDefinition>& meta);
@@ -263,6 +226,12 @@ public:
     void addColumnMetadata(const ColumnDefinition& col_meta);
 
     bool isColumnMetadataSet() const;
+
+    void setCompressOptions(const std::map<std::string, std::string> & val);
+
+    const std::map<std::string, std::string> getCompressOptions() const;
+
+    bool isCompressOptionsSet() const;
 
 private:
 
@@ -298,13 +267,9 @@ private:
 
     int32_t key_cache_save_period_in_seconds;
 
-    int32_t memtable_flush_after_mins;
-
-    int32_t memtable_throughput_in_mb;
-
-    double memtable_operations_in_millions;
-
     std::vector<ColumnDefinition> column_metadata;
+
+    std::map<std::string, std::string> compression_options;
 
 };
 

@@ -19,25 +19,27 @@ namespace libcassandra
 
 void createColumnDefObject(ColumnDef& thrift_col_def, const ColumnDefinition& col_def)
 {
-    thrift_col_def.name.assign(col_def.getName());
-    thrift_col_def.validation_class.assign(col_def.getValidationClass());
+    thrift_col_def.__set_name(col_def.getName());
+    thrift_col_def.__set_validation_class(col_def.getValidationClass());
     if (col_def.isIndexTypeSet())
     {
-        thrift_col_def.index_type= col_def.getIndexType();
-        thrift_col_def.__isset.index_type= true;
+        thrift_col_def.__set_index_type(col_def.getIndexType());
     }
     if (col_def.isIndexNameSet())
     {
-        thrift_col_def.index_name.assign(col_def.getIndexName());
-        thrift_col_def.__isset.index_name= true;
+        thrift_col_def.__set_index_name(col_def.getIndexName());
+    }
+    if (col_def.isIndexOptionsSet())
+    {
+        thrift_col_def.__set_index_options(col_def.getIndexOptions());
     }
 }
 
 
 void createKsDefObject(KsDef& thrift_ks_def, const KeyspaceDefinition& ks_def)
 {
-    thrift_ks_def.name.assign(ks_def.getName());
-    thrift_ks_def.strategy_class.assign(ks_def.getStrategyClass());
+    thrift_ks_def.__set_name(ks_def.getName());
+    thrift_ks_def.__set_strategy_class(ks_def.getStrategyClass());
     vector<ColumnFamilyDefinition> cf_defs= ks_def.getColumnFamilies();
     for (vector<ColumnFamilyDefinition>::iterator it= cf_defs.begin();
             it != cf_defs.end();
@@ -47,6 +49,7 @@ void createKsDefObject(KsDef& thrift_ks_def, const KeyspaceDefinition& ks_def)
         createCfDefObject(thrift_ks_def.cf_defs.back(), *it);
     }
     thrift_ks_def.__set_replication_factor(ks_def.getReplicationFactor());
+    thrift_ks_def.__set_durable_writes(ks_def.getDurableWrites());
 }
 
 
@@ -56,95 +59,72 @@ void createCfDefObject(CfDef& thrift_cf_def, const ColumnFamilyDefinition& cf_de
      * keyspace name and cf name are required
      * TODO - throw an exception if these are not present
      */
-    thrift_cf_def.keyspace.assign(cf_def.getKeyspaceName());
-    thrift_cf_def.name.assign(cf_def.getName());
+    thrift_cf_def.__set_keyspace(cf_def.getKeyspaceName());
+    thrift_cf_def.__set_name(cf_def.getName());
     /* everything else associated with a column family is optional */
     if (cf_def.isColumnTypeSet())
     {
-        thrift_cf_def.column_type.assign(cf_def.getColumnType());
-        thrift_cf_def.__isset.column_type= true;
+        thrift_cf_def.__set_column_type(cf_def.getColumnType());
     }
     if (cf_def.isComparatorTypeSet())
     {
-        thrift_cf_def.comparator_type.assign(cf_def.getComparatorType());
-        thrift_cf_def.__isset.comparator_type= true;
+        thrift_cf_def.__set_comparator_type(cf_def.getComparatorType());
     }
     if (cf_def.isSubComparatorTypeSet())
     {
-        thrift_cf_def.subcomparator_type.assign(cf_def.getSubComparatorType());
-        thrift_cf_def.__isset.subcomparator_type= true;
+        thrift_cf_def.__set_subcomparator_type(cf_def.getSubComparatorType());
     }
     if (cf_def.isCommentSet())
     {
-        thrift_cf_def.comment.assign(cf_def.getComment());
-        thrift_cf_def.__isset.comment= true;
+        thrift_cf_def.__set_comment(cf_def.getComment());
     }
     if (cf_def.isRowCacheSizeSet())
     {
-        thrift_cf_def.row_cache_size= cf_def.getRowCacheSize();
-        thrift_cf_def.__isset.row_cache_size= true;
+        thrift_cf_def.__set_row_cache_size(cf_def.getRowCacheSize());
     }
     if (cf_def.isKeyCacheSizeSet())
     {
-        thrift_cf_def.key_cache_size= cf_def.getKeyCacheSize();
-        thrift_cf_def.__isset.key_cache_size= true;
+        thrift_cf_def.__set_key_cache_size(cf_def.getKeyCacheSize());
     }
     if (cf_def.isReadRepairChanceSet())
     {
-        thrift_cf_def.read_repair_chance= cf_def.getReadRepairChance();
-        thrift_cf_def.__isset.read_repair_chance= true;
+        thrift_cf_def.__set_read_repair_chance(cf_def.getReadRepairChance());
     }
     if (cf_def.isGcGraceSecondsSet())
     {
-        thrift_cf_def.gc_grace_seconds= cf_def.getGcGraceSeconds();
-        thrift_cf_def.__isset.gc_grace_seconds= true;
+        thrift_cf_def.__set_gc_grace_seconds(cf_def.getGcGraceSeconds());
     }
     if (cf_def.isDefaultValidationClassSet())
     {
-        thrift_cf_def.default_validation_class.assign(cf_def.getDefaultValidationClass());
-        thrift_cf_def.__isset.default_validation_class= true;
+        thrift_cf_def.__set_default_validation_class(cf_def.getDefaultValidationClass());
     }
     if (cf_def.isIdSet())
     {
-        thrift_cf_def.id= cf_def.getId();
-        thrift_cf_def.__isset.id= true;
+        thrift_cf_def.__set_id(cf_def.getId());
     }
     if (cf_def.isMaxCompactionThresholdSet())
     {
-        thrift_cf_def.max_compaction_threshold= cf_def.getMaxCompactionThreshold();
-        thrift_cf_def.__isset.max_compaction_threshold= true;
+        thrift_cf_def.__set_max_compaction_threshold(cf_def.getMaxCompactionThreshold());
     }
     if (cf_def.isMinCompactionThresholdSet())
     {
-        thrift_cf_def.min_compaction_threshold= cf_def.getMinCompactionThreshold();
-        thrift_cf_def.__isset.min_compaction_threshold= true;
-    }/*
-  if (cf_def.isMemtableFlushAfterMinsSet())
-  {
-    thrift_cf_def.memtable_flush_after_mins= cf_def.getMemtableFlushAfterMins();
-    thrift_cf_def.__isset.memtable_flush_after_mins= true;
-  }
-  if (cf_def.isMemtableOperationsInMillionsSet())
-  {
-    thrift_cf_def.memtable_operations_in_millions= cf_def.getMemtableOperationsInMillions();
-    thrift_cf_def.__isset.memtable_operations_in_millions= true;
-  }
-  if (cf_def.isMemtableThroughputInMbSet())
-  {
-    thrift_cf_def.memtable_throughput_in_mb= cf_def.getMemtableThroughputInMb();
-    thrift_cf_def.__isset.memtable_throughput_in_mb= cf_def.getMemtableThroughputInMb();
-  }*/
+        thrift_cf_def.__set_min_compaction_threshold(cf_def.getMinCompactionThreshold());
+    }
     if (cf_def.isColumnMetadataSet())
     {
         vector<ColumnDefinition> cols= cf_def.getColumnMetadata();
-        for (vector<ColumnDefinition>::iterator it= cols.begin();
-                it != cols.end();
-                ++it)
+        std::vector<ColumnDef>	 column_metadata;
+        for (vector<ColumnDefinition>::iterator it= cols.begin(); it != cols.end(); ++it)
         {
-            thrift_cf_def.column_metadata.push_back(ColumnDef());
-            createColumnDefObject(thrift_cf_def.column_metadata.back(), *it);
+            column_metadata.push_back(ColumnDef());
+            createColumnDefObject(column_metadata.back(), *it);
         }
-        thrift_cf_def.__isset.column_metadata= true;
+
+        thrift_cf_def.__set_column_metadata(column_metadata);
+    }
+    if (cf_def.isCompressOptionsSet())
+    {
+        thrift_cf_def.__set_compression_options(cf_def.getCompressOptions());
     }
 }
 

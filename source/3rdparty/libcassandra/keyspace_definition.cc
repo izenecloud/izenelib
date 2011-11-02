@@ -19,12 +19,12 @@ using namespace org::apache::cassandra;
 
 
 KeyspaceDefinition::KeyspaceDefinition()
-        :
-        name(),
-        strategy_class("org.apache.cassandra.locator.SimpleStrategy"),
-        strategy_options(),
-        replication_factor(1),
-        col_family_defs()
+    :name()
+    ,strategy_class("org.apache.cassandra.locator.SimpleStrategy")
+    ,strategy_options()
+    ,replication_factor(1)
+    ,col_family_defs()
+    ,durable_writes(true)
 {}
 
 
@@ -32,12 +32,13 @@ KeyspaceDefinition::KeyspaceDefinition(const string& in_name,
                                        const string& in_strategy_class,
                                        const map<string, string>& in_strategy_options,
                                        const int32_t in_replication_factor,
-                                       const vector<CfDef>& in_cf_defs)
-        :
-        name(in_name),
-        strategy_class(in_strategy_class),
-        strategy_options(in_strategy_options),
-        replication_factor(in_replication_factor)
+                                       const vector<CfDef>& in_cf_defs,
+                                       bool in_durable_writes)
+    :name(in_name)
+    ,strategy_class(in_strategy_class)
+    ,strategy_options(in_strategy_options)
+    ,replication_factor(in_replication_factor)
+    ,durable_writes(in_durable_writes)
 {
     for (vector<CfDef>::const_iterator it= in_cf_defs.begin();
             it != in_cf_defs.end();
@@ -60,10 +61,8 @@ KeyspaceDefinition::KeyspaceDefinition(const string& in_name,
                                      thrift_entry.min_compaction_threshold,
                                      thrift_entry.max_compaction_threshold,
                                      thrift_entry.row_cache_save_period_in_seconds,
-                                     thrift_entry.key_cache_save_period_in_seconds);
-        //thrift_entry.memtable_flush_after_mins,
-        //thrift_entry.memtable_throughput_in_mb,
-        //thrift_entry.memtable_operations_in_millions);
+                                     thrift_entry.key_cache_save_period_in_seconds,
+                                     thrift_entry.compression_options);
         col_family_defs.push_back(entry);
     }
 }
@@ -127,3 +126,14 @@ void KeyspaceDefinition::setColumnFamilies(const vector<ColumnFamilyDefinition>&
 {
     col_family_defs = cfs;
 }
+
+bool KeyspaceDefinition::getDurableWrites() const
+{
+    return durable_writes;
+}
+
+void KeyspaceDefinition::setDurableWrites(bool val)
+{
+    durable_writes = val;
+}
+
