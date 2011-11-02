@@ -29,24 +29,24 @@ public:
 
     ColumnFamilyDefinition();
     ColumnFamilyDefinition(
-                           const std::string& in_keyspace_name,
-                           const std::string& in_name,
-                           const std::string& in_column_type,
-                           const std::string& in_comparator_type,
-                           const std::string& in_sub_comparator_type,
-                           const std::string& in_comment,
-                           const double in_row_cache_size,
-                           const double in_key_cache_size,
-                           const double in_read_repair_chance,
-                           const std::vector<org::apache::cassandra::ColumnDef>& in_column_metadata,
-                           const int32_t in_gc_grace_seconds,
-                           const std::string& in_default_validation_class,
-                           const int32_t in_id,
-                           const int32_t in_min_compaction_threshold,
-                           const int32_t in_max_compaction_threshold,
-                           const int32_t in_row_cache_save_period_in_seconds,
-                           const int32_t in_key_cache_save_period_in_seconds,
-                           const std::map<std::string, std::string>& in_compression_options);
+        const std::string& in_keyspace_name,
+        const std::string& in_name,
+        const std::string& in_column_type,
+        const std::string& in_comparator_type,
+        const std::string& in_sub_comparator_type,
+        const std::string& in_comment,
+        const double in_row_cache_size,
+        const double in_key_cache_size,
+        const double in_read_repair_chance,
+        const std::vector<org::apache::cassandra::ColumnDef>& in_column_metadata,
+        const int32_t in_gc_grace_seconds,
+        const std::string& in_default_validation_class,
+        const int32_t in_id,
+        const int32_t in_min_compaction_threshold,
+        const int32_t in_max_compaction_threshold,
+        const int32_t in_row_cache_save_period_in_seconds,
+        const int32_t in_key_cache_save_period_in_seconds,
+        const std::map<std::string, std::string>& in_compression_options);
     ~ColumnFamilyDefinition() {}
 
     /**

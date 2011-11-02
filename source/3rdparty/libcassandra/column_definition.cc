@@ -15,25 +15,24 @@ using namespace org::apache::cassandra;
 
 
 ColumnDefinition::ColumnDefinition()
-        :
-        name(),
-        validation_class(),
-        index_type(),
-        is_index_type_set(false),
-        index_name()
+    :name()
+    ,validation_class()
+    ,index_type()
+    ,is_index_type_set(false)
+    ,index_name()
 {}
 
 
-ColumnDefinition::ColumnDefinition(const string& in_name,
-                                   const string& in_validation_class,
-                                   const IndexType::type in_index_type,
-                                   const string& in_index_name)
-        :
-        name(in_name),
-        validation_class(in_validation_class),
-        index_type(in_index_type),
-        is_index_type_set(true),
-        index_name(in_index_name)
+ColumnDefinition::ColumnDefinition(
+    const string& in_name,
+    const string& in_validation_class,
+    const IndexType::type in_index_type,
+    const string& in_index_name)
+    :name(in_name)
+    ,validation_class(in_validation_class)
+    ,index_type(in_index_type)
+    ,is_index_type_set(true)
+    ,index_name(in_index_name)
 {}
 
 

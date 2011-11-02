@@ -16,17 +16,16 @@ using namespace org::apache::cassandra;
 
 
 IndexedSlicesQuery::IndexedSlicesQuery()
-        :
-        keyspace(),
-        column_family(),
-        start_key(),
-        start_column(),
-        end_column(),
-        column_names(),
-        column_reversed(false),
-        count(100),
-        level(ConsistencyLevel::QUORUM),
-        index_clause()
+    :keyspace()
+    ,column_family()
+    ,start_key()
+    ,start_column()
+    ,end_column()
+    ,column_names()
+    ,column_reversed(false)
+    ,count(100)
+    ,level(ConsistencyLevel::QUORUM)
+    ,index_clause()
 {}
 
 

@@ -28,12 +28,13 @@ KeyspaceDefinition::KeyspaceDefinition()
 {}
 
 
-KeyspaceDefinition::KeyspaceDefinition(const string& in_name,
-                                       const string& in_strategy_class,
-                                       const map<string, string>& in_strategy_options,
-                                       const int32_t in_replication_factor,
-                                       const vector<CfDef>& in_cf_defs,
-                                       bool in_durable_writes)
+KeyspaceDefinition::KeyspaceDefinition(
+    const string& in_name,
+    const string& in_strategy_class,
+    const map<string, string>& in_strategy_options,
+    const int32_t in_replication_factor,
+    const vector<CfDef>& in_cf_defs,
+    bool in_durable_writes)
     :name(in_name)
     ,strategy_class(in_strategy_class)
     ,strategy_options(in_strategy_options)

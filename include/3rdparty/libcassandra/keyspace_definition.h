@@ -29,12 +29,13 @@ class KeyspaceDefinition
 public:
 
     KeyspaceDefinition();
-    KeyspaceDefinition(const std::string& in_name,
-                       const std::string& in_strategy_class,
-                       const std::map<std::string, std::string>& in_strategy_options,
-                       const int32_t in_replication_factor,
-                       const std::vector<org::apache::cassandra::CfDef>& in_cf_defs,
-                       bool in_durable_writes);
+    KeyspaceDefinition(
+        const std::string& in_name,
+        const std::string& in_strategy_class,
+        const std::map<std::string, std::string>& in_strategy_options,
+        const int32_t in_replication_factor,
+        const std::vector<org::apache::cassandra::CfDef>& in_cf_defs,
+        bool in_durable_writes);
     ~KeyspaceDefinition() {}
 
     /**
