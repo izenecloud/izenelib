@@ -20,8 +20,32 @@ NS_IZENELIB_IR_BEGIN
 namespace indexmanager
 {
 
-FieldIndexer::FieldIndexer(const char* field, MemCache* pCache, Indexer* pIndexer)
-        :field_(field),pMemCache_(pCache),pIndexer_(pIndexer),vocFilePointer_(0),alloc_(0),
+void writeTermInfo(IndexOutput* pVocWriter, termid_t tid, const TermInfo& termInfo)
+{
+    pVocWriter->writeInt(tid);					///write term id
+    pVocWriter->writeInt(termInfo.docFreq_);		///write df
+    pVocWriter->writeInt(termInfo.ctf_);			///write ctf
+    pVocWriter->writeInt(termInfo.lastDocID_);		///write last doc id
+    pVocWriter->writeInt(termInfo.skipLevel_);		///write skip level
+    pVocWriter->writeLong(termInfo.skipPointer_);	///write skip list offset offset
+    pVocWriter->writeLong(termInfo.docPointer_);	///write document posting offset
+    pVocWriter->writeInt(termInfo.docPostingLen_);	///write document posting length (without skiplist)
+    pVocWriter->writeLong(termInfo.positionPointer_);	///write position posting offset
+    pVocWriter->writeInt(termInfo.positionPostingLen_);///write position posting length
+}
+
+#pragma pack(push,1)
+struct Record
+{
+    uint8_t len;
+    uint32_t tid;
+    uint32_t docId;
+    uint32_t offset;
+};
+#pragma pack(pop)
+
+FieldIndexer::FieldIndexer(const char* field, Indexer* pIndexer)
+        :field_(field),pMemCache_(0),ownMemCache_(false),pIndexer_(pIndexer),vocFilePointer_(0),alloc_(0),
         f_(0),termCount_(0),iHitsMax_(0),recordCount_(0),run_num_(0),pHits_(0),pHitsMax_(0),flush_(false)
 {
     skipInterval_ = pIndexer_->getSkipInterval();
@@ -31,19 +55,10 @@ FieldIndexer::FieldIndexer(const char* field, MemCache* pCache, Indexer* pIndexe
     sorterFileName_ = field_+".tmp";
     bfs::path path(bfs::path(pIndexer_->pConfigurationManager_->indexStrategy_.indexLocation_) /bfs::path(sorterFileName_));
     sorterFullPath_ = path.string();
-
-    reset();
 }
 
 FieldIndexer::~FieldIndexer()
 {
-    /*
-        InMemoryPostingMap::iterator iter = postingMap_.begin()
-        for(; iter !=postingMap_.end(); ++iter)
-        {
-            delete iter->second;
-        }
-    */
     if (alloc_) delete alloc_;
     if (f_)
     {
@@ -51,7 +66,31 @@ FieldIndexer::~FieldIndexer()
         if(! boost::filesystem::remove(sorterFullPath_))
             LOG(WARNING) << "FieldIndexer::~FieldIndexer(): failed to remove file " << sorterFullPath_;
     }
-    pMemCache_ = NULL;
+    if(pMemCache_&&ownMemCache_) delete pMemCache_;
+}
+
+void FieldIndexer::setIndexMode(MemCache* pMemCache, size_t nBatchMemSize, bool realtime)
+{
+    if(!realtime)
+    {
+        if(alloc_)
+        {
+            delete alloc_;
+            alloc_ = 0;
+        }
+        pMemCache_ = new MemCache(pIndexer_->getIndexManagerConfig()->mergeStrategy_.memPoolSizeForPostingMerger_);
+        ownMemCache_ = true;
+        setHitBuffer_(nBatchMemSize);
+    }
+    else
+    {
+        hits_.reset();
+        iHitsMax_ = 0;
+        pHits_ = pHitsMax_ = 0;
+        if(pMemCache_&&ownMemCache_) delete pMemCache_;
+        pMemCache_ = pMemCache;
+    }
+    reset();
 }
 
 bool FieldIndexer::isEmpty()
@@ -74,7 +113,7 @@ bool FieldIndexer::isBatchEmpty_()
     return false;
 }
 
-void FieldIndexer::setHitBuffer(size_t size) 
+void FieldIndexer::setHitBuffer_(size_t size) 
 {
     iHitsMax_ = size;
     iHitsMax_ = iHitsMax_/sizeof(TermId) ;
@@ -122,6 +161,7 @@ void FieldIndexer::addField(docid_t docid, boost::shared_ptr<LAInput> laInput)
     if(laInput->empty()) return;
     if (pIndexer_->isRealTime())
     {
+        if(!alloc_) alloc_ = new boost::scoped_alloc(recycle_);
         RTPostingWriter* curPosting;
         for (LAInput::iterator iter = laInput->begin(); iter != laInput->end(); ++iter)
         {
@@ -191,34 +231,10 @@ void FieldIndexer::reset()
     }
     else
     {
-        delete alloc_;
+        if(alloc_) delete alloc_;
         alloc_ = new boost::scoped_alloc(recycle_);
     }
 }
-
-void writeTermInfo(IndexOutput* pVocWriter, termid_t tid, const TermInfo& termInfo)
-{
-    pVocWriter->writeInt(tid);					///write term id
-    pVocWriter->writeInt(termInfo.docFreq_);		///write df
-    pVocWriter->writeInt(termInfo.ctf_);			///write ctf
-    pVocWriter->writeInt(termInfo.lastDocID_);		///write last doc id
-    pVocWriter->writeInt(termInfo.skipLevel_);		///write skip level
-    pVocWriter->writeLong(termInfo.skipPointer_);	///write skip list offset offset
-    pVocWriter->writeLong(termInfo.docPointer_);	///write document posting offset
-    pVocWriter->writeInt(termInfo.docPostingLen_);	///write document posting length (without skiplist)
-    pVocWriter->writeLong(termInfo.positionPointer_);	///write position posting offset
-    pVocWriter->writeInt(termInfo.positionPostingLen_);///write position posting length
-}
-
-#pragma pack(push,1)
-struct Record
-{
-    uint8_t len;
-    uint32_t tid;
-    uint32_t docId;
-    uint32_t offset;
-};
-#pragma pack(pop)
 
 fileoffset_t FieldIndexer::write(OutputDescriptor* pWriterDesc)
 {

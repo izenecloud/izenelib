@@ -11,10 +11,10 @@
 
 using namespace izenelib::ir::indexmanager;
 
-IndexBarrelWriter::IndexBarrelWriter(Indexer* pIndex,MemCache* pCache)
+IndexBarrelWriter::IndexBarrelWriter(Indexer* pIndex)
         :pBarrelInfo_(NULL)
         ,pIndexer_(pIndex)
-        ,pMemCache_(pCache)
+        ,pMemCache_(NULL)
         ,pCollectionsInfo_(NULL)
         ,pDirectory_(NULL)
         ,pDocFilter_(0)
@@ -25,9 +25,10 @@ IndexBarrelWriter::IndexBarrelWriter(Indexer* pIndex,MemCache* pCache)
     pDirectory_ = pIndexer_->getDirectory();
 }
 
-IndexBarrelWriter::~IndexBarrelWriter(void)
+IndexBarrelWriter::~IndexBarrelWriter()
 {
-    pMemCache_ = NULL;
+    if (pMemCache_)
+        delete pMemCache_;
 
     if (pCollectionsInfo_)
         delete pCollectionsInfo_;
@@ -37,10 +38,25 @@ IndexBarrelWriter::~IndexBarrelWriter(void)
         delete iter->second;
 }
 
+void IndexBarrelWriter::createMemCache()
+{
+    if (!pMemCache_)
+        pMemCache_ = new MemCache((size_t)pIndexer_->getIndexManagerConfig()->indexStrategy_.memory_);
+}
+
+void IndexBarrelWriter::destroyMemCache()
+{
+    if (pMemCache_)
+    {
+        delete pMemCache_;
+        pMemCache_ = NULL;
+    }
+}
+
 void IndexBarrelWriter::close()
 {
-    writeCache();
-    resetCache();
+    flush();
+    reset();
 
     pDocFilter_ = NULL;
 }
@@ -67,16 +83,16 @@ void IndexBarrelWriter::updateDocument(IndexerDocument& oldDoc, IndexerDocument&
     if(dirty_) dirty_ = false;
 }
 
-void IndexBarrelWriter::resetCache()
+void IndexBarrelWriter::reset()
 {
     for (CollectionIndexerMap::iterator p = collectionIndexerMap_.begin( ); p != collectionIndexerMap_.end( ); ++p)
         (*p).second->reset();
 
     pCollectionsInfo_->reset();
-    pMemCache_->flushMem();
+    if(pMemCache_) pMemCache_->flushMem();
 }
 
-void IndexBarrelWriter::writeCache()
+void IndexBarrelWriter::flush()
 {
     if(! pBarrelInfo_)
         return;
@@ -96,12 +112,34 @@ void IndexBarrelWriter::setCollectionsMeta(const std::map<std::string, IndexerCo
     for (iter = collectionsMeta.begin(); iter != collectionsMeta.end(); iter++)
     {
         colID = (iter->second).getColId ();
-        pCollectionIndexer = new CollectionIndexer(colID, pMemCache_, pIndexer_);
+        pCollectionIndexer = new CollectionIndexer(colID, pIndexer_);
         pCollectionIndexer->setSchema((iter->second));
         pCollectionIndexer->setFieldIndexers();
         collectionIndexerMap_.insert(make_pair(colID,pCollectionIndexer));
         pCollectionInfo = new CollectionInfo(colID, pCollectionIndexer->getFieldsInfo());
         pCollectionsInfo_->addCollection(pCollectionInfo);
+    }
+}
+
+void IndexBarrelWriter::setIndexMode(bool realtime)
+{
+    if(!realtime)
+    {
+        destroyMemCache();
+        for(CollectionIndexerMap::iterator cit = collectionIndexerMap_.begin();
+              cit != collectionIndexerMap_.end(); ++cit)
+        {
+            cit->second->setIndexMode(NULL,realtime);
+        }
+    }
+    else
+    {
+        createMemCache();
+        for(CollectionIndexerMap::iterator cit = collectionIndexerMap_.begin();
+              cit != collectionIndexerMap_.end(); ++cit)
+        {
+            cit->second->setIndexMode(pMemCache_,realtime);
+        }
     }
 }
 

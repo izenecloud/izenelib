@@ -20,9 +20,8 @@ using namespace izenelib::util;
 
 using namespace izenelib::ir::indexmanager;
 
-CollectionIndexer::CollectionIndexer(collectionid_t id, MemCache* pCache, Indexer* pIndexer)
+CollectionIndexer::CollectionIndexer(collectionid_t id, Indexer* pIndexer)
         :colID_(id)
-        ,pMemCache_(pCache)
         ,pIndexer_(pIndexer)
         ,pDocLengthWriter_(NULL)
         ,docLengthWidth_(0)
@@ -33,7 +32,6 @@ CollectionIndexer::CollectionIndexer(collectionid_t id, MemCache* pCache, Indexe
 CollectionIndexer::~CollectionIndexer()
 {
     delete pFieldsInfo_;
-    pMemCache_ = NULL;
     pIndexer_ = NULL;
     if (pDocLengthWriter_)
     {
@@ -54,31 +52,40 @@ void CollectionIndexer::setSchema(const IndexerCollectionMeta& schema)
 
 void CollectionIndexer::setFieldIndexers()
 {
-    size_t memCacheSize = (size_t)pIndexer_->getIndexManagerConfig()->indexStrategy_.memory_;
-
     pFieldsInfo_->startIterator();
     FieldInfo* pFieldInfo = NULL;
-    size_t indexedProperties = 0;
-    while (pFieldsInfo_->hasNext())
-    {
-        pFieldInfo = pFieldsInfo_->next();
-        if (pFieldInfo->isIndexed()&&pFieldInfo->isAnalyzed())
-            indexedProperties++;
-    }
-
-    memCacheSize = (memCacheSize/indexedProperties) < 10*1024*1024 ? 
-                              10*1024*1024:(memCacheSize/indexedProperties) ;
-
-    pFieldsInfo_->startIterator();
-
     while (pFieldsInfo_->hasNext())
     {
         pFieldInfo = pFieldsInfo_->next();
         if (pFieldInfo->isIndexed()&&pFieldInfo->isAnalyzed())
         {
-            FieldIndexer* pFieldIndexer = new FieldIndexer(pFieldInfo->getName(), pMemCache_,pIndexer_);
+            FieldIndexer* pFieldIndexer = new FieldIndexer(pFieldInfo->getName(), pIndexer_);
             fieldIndexerMap_.insert(make_pair(pFieldInfo->getName(),pFieldIndexer));
-            pFieldIndexer->setHitBuffer(memCacheSize);
+        }
+    }
+}
+
+void CollectionIndexer::setIndexMode(MemCache* pMemCache, bool realtime)
+{
+    if(!realtime)
+    {
+        size_t memCacheSize = (size_t)pIndexer_->getIndexManagerConfig()->indexStrategy_.memory_;
+        assert(!fieldIndexerMap_.empty());
+        size_t indexedProperties = fieldIndexerMap_.size();
+        memCacheSize = (memCacheSize/indexedProperties) < 10*1024*1024 ? 
+                                  10*1024*1024:(memCacheSize/indexedProperties) ;
+        map<string, boost::shared_ptr<FieldIndexer> > ::iterator fit = fieldIndexerMap_.begin();
+        for(; fit != fieldIndexerMap_.end(); ++fit)
+        {
+            fit->second->setIndexMode(pMemCache,memCacheSize,realtime);
+        }
+    }
+    else
+    {
+        map<string, boost::shared_ptr<FieldIndexer> > ::iterator fit = fieldIndexerMap_.begin();
+        for(; fit != fieldIndexerMap_.end(); ++fit)
+        {
+            fit->second->setIndexMode(pMemCache,0,realtime);
         }
     }
 }

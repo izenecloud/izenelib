@@ -20,7 +20,6 @@
 NS_IZENELIB_IR_BEGIN
 
 namespace indexmanager{
-#define POSTINGMERGE_BUFFERSIZE 32768
 ///Posting Merger
 class PostingMerger
 {
@@ -31,8 +30,8 @@ public:
         CompressionType compressType, 
         bool optimize, 
         bool requireIntermediateFileForMerging,
-        MemCache* pMemCache,
-        IndexLevel indexLevel
+        IndexLevel indexLevel,
+        size_t memPoolSizeForPostingMerger
     );
 
     virtual ~PostingMerger();
@@ -180,8 +179,6 @@ private:
     uint32_t internal_freqs_buffer_[UncompressedOutBufferUpperbound(CHUNK_SIZE)];
 
     bool optimize_; /// converting BYTEALIGN  to BLOCK or CHUNK when TRUE
-
-    bool ownMemCache_;
 
     IndexLevel indexLevel_;
 };

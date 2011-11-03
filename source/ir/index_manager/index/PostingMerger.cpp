@@ -16,8 +16,8 @@ PostingMerger::PostingMerger(
     CompressionType compressType, 
     bool optimize, 
     bool requireIntermediateFileForMerging,
-    MemCache* pMemCache,
-    IndexLevel indexLevel
+    IndexLevel indexLevel,
+    size_t memPoolSizeForPostingMerger
 )
         :skipInterval_(skipInterval)
         ,maxSkipLevel_(maxSkipLevel)
@@ -45,13 +45,12 @@ PostingMerger::PostingMerger(
         ,block_buffer_(NULL)
         ,current_block_id_(0)
         ,optimize_(optimize)
-        ,ownMemCache_(true)
         ,indexLevel_(indexLevel)
 {
     // to avoid concurrent memory request,
     // such as by ChunkPostingWriter::pDocFreqDataPool_ in another thread,
-    // use memory pool exclusively
-    pMemCache_ = new MemCache(POSTINGMERGE_BUFFERSIZE*512);
+    // posting merger use a seperated memory pool exclusively
+    pMemCache_ = new MemCache(memPoolSizeForPostingMerger);
 
     init();
     reset();
@@ -59,7 +58,7 @@ PostingMerger::PostingMerger(
 
 PostingMerger::~PostingMerger()
 {
-    if(pMemCache_&&ownMemCache_)
+    if(pMemCache_)
         delete pMemCache_;
     if(pSkipListMerger_)
         delete pSkipListMerger_;

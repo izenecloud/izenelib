@@ -286,14 +286,17 @@ void IndexMerger::outputNewBarrel(MergeBarrelQueue* pBarrelQueue, const string& 
                         {
                             if (pFieldMerger == NULL)
                             {
-                                pFieldMerger = new FieldMerger(needSortingMerge, pIndexer_->getSkipInterval(), pIndexer_->getMaxSkipLevel(), pIndexer_->pConfigurationManager_->indexStrategy_.indexLevel_);
+                                pFieldMerger = new FieldMerger(
+                                                        needSortingMerge, 
+                                                        pIndexer_->getSkipInterval(), 
+                                                        pIndexer_->getMaxSkipLevel(), 
+                                                        pIndexer_->pConfigurationManager_->indexStrategy_.indexLevel_);
                                 pFieldMerger->setDirectory(pDirectory_);
-                                if(NULL == pIndexer_->getIndexWriter()->pMemCache_) pIndexer_->getIndexWriter()->createMemCache();
                                 pFieldMerger->initPostingMerger(
                                                         pIndexer_->getIndexCompressType(), 
                                                         optimize_, 
                                                         pIndexer_->getIndexManagerConfig()->mergeStrategy_.requireIntermediateFileForMerging_,
-                                                        pIndexer_->getIndexWriter()->pMemCache_);
+                                                        pIndexer_->getIndexManagerConfig()->mergeStrategy_.memPoolSizeForPostingMerger_);
                                 if(pDocFilter_)
                                     pFieldMerger->setDocFilter(pDocFilter_);
                             }

@@ -120,10 +120,11 @@ void Indexer::setIndexManagerConfig(
                 pBTreeIndexer_->setFilter(pBTreeFilter);
            }
       }
-    setIndexMode(pConfigurationManager_->indexStrategy_.indexMode_);
 
     pIndexWriter_ = new IndexWriter(this);
     pIndexReader_ = new IndexReader(this);
+
+    setIndexMode(pConfigurationManager_->indexStrategy_.indexMode_);
 
     if(! pConfigurationManager_->indexStrategy_.optimizeSchedule_.empty())
     {
@@ -163,7 +164,7 @@ void Indexer::setIndexMode(const std::string& mode)
         else
             indexingType_ = BYTEALIGN;
     }
-
+    pIndexWriter_->setIndexMode(realTime_);
 }
 
 void Indexer::openDirectory(const std::string& storagePolicy)
