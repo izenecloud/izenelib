@@ -89,6 +89,7 @@ void FieldIndexer::setIndexMode(MemCache* pMemCache, size_t nBatchMemSize, bool 
         pHits_ = pHitsMax_ = 0;
         if(pMemCache_&&ownMemCache_) delete pMemCache_;
         pMemCache_ = pMemCache;
+        ownMemCache_ = false;
     }
     reset();
 }
