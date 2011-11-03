@@ -39,7 +39,7 @@ OutputDescriptor::~OutputDescriptor()
 
 void OutputDescriptor::flush()
 {
-    assert(pVocOutput_ && pDPostingOutput_ && pPPostingOutput_);
+    assert(pVocOutput_ && pDPostingOutput_);
 
     pVocOutput_->flush();
     pDPostingOutput_->flush();
