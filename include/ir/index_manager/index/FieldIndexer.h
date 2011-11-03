@@ -374,6 +374,8 @@ private:
     void writeHitBuffer_(int iHits);
     /// whether indices for this field is empty when indexing under batch mode
     bool isBatchEmpty_();
+
+    void createAllocation_();
 private:
     InMemoryPostingMap postingMap_;
 

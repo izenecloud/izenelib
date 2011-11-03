@@ -117,11 +117,20 @@ void FieldIndexer::writeHitBuffer_(int iHits)
     ++run_num_;
 }
 
+void FieldIndexer::createAllocation_()
+{
+    if(alloc_)
+       delete alloc_;
+    alloc_ = new boost::scoped_alloc(recycle_);
+}
+
 void FieldIndexer::addField(docid_t docid, boost::shared_ptr<LAInput> laInput)
 {
     if(laInput->empty()) return;
     if (pIndexer_->isRealTime())
     {
+        if(!alloc_)
+            createAllocation_();
         RTPostingWriter* curPosting;
         for (LAInput::iterator iter = laInput->begin(); iter != laInput->end(); ++iter)
         {
