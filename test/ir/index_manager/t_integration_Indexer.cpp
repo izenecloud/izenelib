@@ -374,6 +374,7 @@ bool my_init_unit_test()
 
     test_suite* tsTermDocFreqs = BOOST_TEST_SUITE("t_TermDocFreqs");
     tsTermDocFreqs->add(BOOST_PARAM_TEST_CASE(&t_TermDocFreqs::index, pConfigStart, pConfigEnd));
+    tsTermDocFreqs->add(BOOST_PARAM_TEST_CASE(&t_TermDocFreqs::changeIndexMode, pConfigStart, pConfigEnd));
     tsTermDocFreqs->add(BOOST_PARAM_TEST_CASE(&t_TermDocFreqs::remove, pConfigStart, pConfigEnd));
     tsTermDocFreqs->add(BOOST_PARAM_TEST_CASE(&t_TermDocFreqs::update, pConfigStart, pConfigEnd));
     tsTermDocFreqs->add(BOOST_PARAM_TEST_CASE(&t_TermDocFreqs::empty, pConfigStart, pConfigEnd));
