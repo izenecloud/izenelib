@@ -26,10 +26,11 @@ class Keyspace
 
 public:
 
-    Keyspace(Cassandra *in_client,
-             const std::string &in_name,
-             const KeyspaceDefinition& in_desc,
-             org::apache::cassandra::ConsistencyLevel::type in_level);
+    Keyspace(
+        Cassandra *in_client,
+        const std::string &in_name,
+        const KeyspaceDefinition& in_desc,
+        org::apache::cassandra::ConsistencyLevel::type in_level);
     ~Keyspace() {}
 
     /**

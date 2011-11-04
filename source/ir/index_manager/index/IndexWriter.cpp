@@ -22,8 +22,7 @@ NS_IZENELIB_IR_BEGIN
 namespace indexmanager{
 
 IndexWriter::IndexWriter(Indexer* pIndex)
-        :pMemCache_(NULL)
-        ,pIndexer_(pIndex)
+        :pIndexer_(pIndex)
         ,pIndexBarrelWriter_(NULL)
         ,pBarrelsInfo_(NULL)
         ,pCurBarrelInfo_(NULL)
@@ -52,8 +51,6 @@ IndexWriter::~IndexWriter()
         Scheduler::removeJob(optimizeJobDesc_);
     if (pIndexMergeManager_)
         delete pIndexMergeManager_;
-    if (pMemCache_)
-        delete pMemCache_;
     if (pIndexBarrelWriter_)
         delete pIndexBarrelWriter_;
 }
@@ -83,26 +80,12 @@ void IndexWriter::flush()
     DVLOG(2) << "<= IndexWriter::flush()";
 }
 
-void IndexWriter::createMemCache()
-{
-    if (!pMemCache_)
-        pMemCache_ = new MemCache((size_t)pIndexer_->getIndexManagerConfig()->indexStrategy_.memory_);
-}
-
 void IndexWriter::createBarrelInfo()
 {
     DVLOG(2) << "=> IndexWriter::createBarrelInfo()...";
 
     pCurBarrelInfo_ = new BarrelInfo(pBarrelsInfo_->newBarrel(), 0, pIndexer_->pConfigurationManager_->indexStrategy_.indexLevel_, pIndexer_->getIndexCompressType());
     pCurBarrelInfo_->setSearchable(pIndexer_->isRealTime());
-
-    if(!pMemCache_)
-        createMemCache();
-    if(!pIndexBarrelWriter_)
-    {
-        pIndexBarrelWriter_ = new IndexBarrelWriter(pIndexer_, pMemCache_);
-        pIndexBarrelWriter_->setCollectionsMeta(pIndexer_->getCollectionsMeta());
-    }
 
     pCurBarrelInfo_->setWriter(pIndexBarrelWriter_);
     pIndexBarrelWriter_->setBarrelInfo(pCurBarrelInfo_);
@@ -138,7 +121,7 @@ void IndexWriter::removeDocument(collectionid_t colID, docid_t docId)
 {
     pIndexer_->getIndexReader()->delDocument(colID, docId);
     pIndexer_->pBTreeIndexer_->delDocument(pIndexer_->getBarrelsInfo()->maxDocId() + 1, docId);
-    if(pIndexBarrelWriter_ && ! pIndexBarrelWriter_->getDocFilter())
+    if(! pIndexBarrelWriter_->getDocFilter())
         pIndexBarrelWriter_->setDocFilter(pIndexer_->getIndexReader()->getDocFilter());
 }
 
@@ -208,6 +191,17 @@ void IndexWriter::scheduleOptimizeTask(std::string expression, string uuid)
     optimizeJobDesc_ = optimizeJob;
     boost::function<void (void)> task = boost::bind(&IndexWriter::lazyOptimizeIndex,this);
     Scheduler::addJob(optimizeJob, 60*1000, 0, task);
+}
+
+void IndexWriter::setIndexMode(bool realtime)
+{
+    if(!pIndexBarrelWriter_)
+    {
+        pIndexBarrelWriter_ = new IndexBarrelWriter(pIndexer_);
+        pIndexBarrelWriter_->setCollectionsMeta(pIndexer_->getCollectionsMeta());
+    }
+
+    pIndexBarrelWriter_->setIndexMode(realtime);
 }
 
 }

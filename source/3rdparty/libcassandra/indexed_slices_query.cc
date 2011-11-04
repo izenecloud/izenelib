@@ -16,17 +16,16 @@ using namespace org::apache::cassandra;
 
 
 IndexedSlicesQuery::IndexedSlicesQuery()
-        :
-        keyspace(),
-        column_family(),
-        start_key(),
-        start_column(),
-        end_column(),
-        column_names(),
-        column_reversed(false),
-        count(100),
-        level(ConsistencyLevel::QUORUM),
-        index_clause()
+    :keyspace()
+    ,column_family()
+    ,start_key()
+    ,start_column()
+    ,end_column()
+    ,column_names()
+    ,column_reversed(false)
+    ,count(100)
+    ,level(ConsistencyLevel::QUORUM)
+    ,index_clause()
 {}
 
 
@@ -144,7 +143,7 @@ void IndexedSlicesQuery::addIndexExpression(const string& column,
 
 void IndexedSlicesQuery::setColumns(vector<string>& columns)
 {
-    for (vector<string>::iterator it= columns.begin();
+    for (vector<string>::const_iterator it = columns.begin();
             it != columns.end();
             ++it)
     {

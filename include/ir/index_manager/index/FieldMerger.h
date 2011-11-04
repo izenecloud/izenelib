@@ -212,7 +212,7 @@ public:
         CompressionType compressType, 
         bool optimize, 
         bool requireIntermediateFileForMerging,
-        MemCache* pMemCache
+        size_t memPoolSizeForPostingMerger
     );
 
 private:

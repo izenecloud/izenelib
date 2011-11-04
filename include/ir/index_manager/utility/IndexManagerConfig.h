@@ -17,6 +17,8 @@ NS_IZENELIB_IR_BEGIN
 
 namespace indexmanager{
 
+#define POSTINGMERGE_BUFFERSIZE 32768
+
 enum IndexLevel
 {
     DOCLEVEL,  /// position posting does not create
@@ -104,7 +106,8 @@ private:
     public:
         _mergestrategy()
             :isAsync_(true),
-            requireIntermediateFileForMerging_(true)
+            requireIntermediateFileForMerging_(true),
+            memPoolSizeForPostingMerger_(POSTINGMERGE_BUFFERSIZE*512)
         {}
 
     private:
@@ -116,6 +119,7 @@ private:
             ar & param_;
             ar & isAsync_;
             ar & requireIntermediateFileForMerging_;
+            ar & memPoolSizeForPostingMerger_;
         }
     public:
         /// @brief  param of merge method:
@@ -129,13 +133,16 @@ private:
          */
         bool isAsync_;
 
-	/// when merging postings on disks(not SSD), if skiplist is enabled,
-	/// we need an extra storage space to store merged posting. 
-	/// in some cases, such an extra storage could not be file, because it will lead to 
-	/// low efficiency caused by too many random read, and it will be much more serious
-	/// when there exist mutiple disks with huge capacity.
-	bool requireIntermediateFileForMerging_;
-		
+        /// when merging postings on disks(not SSD), if skiplist is enabled,
+        /// we need an extra storage space to store merged posting. 
+        /// in some cases, such an extra storage could not be file, because it will lead to 
+        /// low efficiency caused by too many random read, and it will be much more serious
+        /// when there exist mutiple disks with huge capacity.
+        bool requireIntermediateFileForMerging_;
+
+        /// Each posting merger requires a seperate mem pool, the size of which should 
+        /// be able to contain single posting. Default value is 16MB
+        size_t memPoolSizeForPostingMerger_;
     };
 
     /**

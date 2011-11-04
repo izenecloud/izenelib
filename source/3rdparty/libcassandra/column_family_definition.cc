@@ -15,71 +15,64 @@ using namespace org::apache::cassandra;
 
 
 ColumnFamilyDefinition::ColumnFamilyDefinition()
-        :
-        keyspace_name(),
-        name(),
-        column_type("Standard"),
-        comparator_type(),
-        sub_comparator_type(),
-        comment(),
-        row_cache_size(0),
-        key_cache_size(200000),
-        read_repair_chance(1),
-        gc_grace_seconds(864000),
-        default_validation_class(),
-        id(0),
-        min_compaction_threshold(4),
-        max_compaction_threshold(22),
-        row_cache_save_period_in_seconds(0),
-        key_cache_save_period_in_seconds(0),
-        memtable_flush_after_mins(60),
-        memtable_throughput_in_mb(0),
-        memtable_operations_in_millions(0.0),
-        column_metadata()
+        :keyspace_name()
+        ,name()
+        ,column_type("Standard")
+        ,comparator_type()
+        ,sub_comparator_type()
+        ,comment()
+        ,row_cache_size(0)
+        ,key_cache_size(200000)
+        ,read_repair_chance(1)
+        ,gc_grace_seconds(864000)
+        ,default_validation_class()
+        ,id(0)
+        ,min_compaction_threshold(4)
+        ,max_compaction_threshold(22)
+        ,row_cache_save_period_in_seconds(0)
+        ,key_cache_save_period_in_seconds(0)
+        ,column_metadata()
+        ,compression_options()
 {}
 
 
-ColumnFamilyDefinition::ColumnFamilyDefinition(const string& in_keyspace_name,
-        const string& in_name,
-        const string& in_column_type,
-        const string& in_comparator_type,
-        const string& in_sub_comparator_type,
-        const string& in_comment,
-        const double in_row_cache_size,
-        const double in_key_cache_size,
-        const double in_read_repair_chance,
-        const vector<ColumnDef>& in_column_metadata,
-        const int32_t in_gc_grace_seconds,
-        const string& in_default_validation_class,
-        const int32_t in_id,
-        const int32_t in_min_compaction_threshold,
-        const int32_t in_max_compaction_threshold,
-        const int32_t in_row_cache_save_period_in_seconds,
-        const int32_t in_key_cache_save_period_in_seconds)
-//const int32_t in_memtable_flush_after_mins,
-//const int32_t in_memtable_throughput_in_mb,
-//const double in_memtable_operations_in_millions)
-        :
-        keyspace_name(in_keyspace_name),
-        name(in_name),
-        column_type(in_column_type),
-        comparator_type(in_comparator_type),
-        sub_comparator_type(in_sub_comparator_type),
-        comment(in_comment),
-        row_cache_size(in_row_cache_size),
-        key_cache_size(in_key_cache_size),
-        read_repair_chance(in_read_repair_chance),
-        gc_grace_seconds(in_gc_grace_seconds),
-        default_validation_class(in_default_validation_class),
-        id(in_id),
-        min_compaction_threshold(in_min_compaction_threshold),
-        max_compaction_threshold(in_max_compaction_threshold),
-        row_cache_save_period_in_seconds(in_row_cache_save_period_in_seconds),
-        key_cache_save_period_in_seconds(in_key_cache_save_period_in_seconds),
-        //memtable_flush_after_mins(in_memtable_flush_after_mins),
-        //memtable_throughput_in_mb(in_memtable_throughput_in_mb),
-        //memtable_operations_in_millions(in_memtable_operations_in_millions),
-        column_metadata()
+ColumnFamilyDefinition::ColumnFamilyDefinition(
+    const string& in_keyspace_name,
+    const string& in_name,
+    const string& in_column_type,
+    const string& in_comparator_type,
+    const string& in_sub_comparator_type,
+    const string& in_comment,
+    const double in_row_cache_size,
+    const double in_key_cache_size,
+    const double in_read_repair_chance,
+    const vector<ColumnDef>& in_column_metadata,
+    const int32_t in_gc_grace_seconds,
+    const string& in_default_validation_class,
+    const int32_t in_id,
+    const int32_t in_min_compaction_threshold,
+    const int32_t in_max_compaction_threshold,
+    const int32_t in_row_cache_save_period_in_seconds,
+    const int32_t in_key_cache_save_period_in_seconds,
+    const std::map<std::string, std::string>& in_compression_options)
+        :keyspace_name(in_keyspace_name)
+        ,name(in_name)
+        ,column_type(in_column_type)
+        ,comparator_type(in_comparator_type)
+        ,sub_comparator_type(in_sub_comparator_type)
+        ,comment(in_comment)
+        ,row_cache_size(in_row_cache_size)
+        ,key_cache_size(in_key_cache_size)
+        ,read_repair_chance(in_read_repair_chance)
+        ,gc_grace_seconds(in_gc_grace_seconds)
+        ,default_validation_class(in_default_validation_class)
+        ,id(in_id)
+        ,min_compaction_threshold(in_min_compaction_threshold)
+        ,max_compaction_threshold(in_max_compaction_threshold)
+        ,row_cache_save_period_in_seconds(in_row_cache_save_period_in_seconds)
+        ,key_cache_save_period_in_seconds(in_key_cache_save_period_in_seconds)
+        ,column_metadata()
+        ,compression_options(in_compression_options)
 {
     for (vector<ColumnDef>::const_iterator it= in_column_metadata.begin();
             it != in_column_metadata.end();
@@ -352,62 +345,7 @@ bool ColumnFamilyDefinition::isMinCompactionThresholdSet() const
     return (min_compaction_threshold > 0 ? true : false);
 }
 
-
-int32_t ColumnFamilyDefinition::getMemtableFlushAfterMins() const
-{
-    return memtable_flush_after_mins;
-}
-
-
-void ColumnFamilyDefinition::setMemtableFlushAfterMins(int32_t flush)
-{
-    memtable_flush_after_mins= flush;
-}
-
-
-bool ColumnFamilyDefinition::isMemtableFlushAfterMinsSet() const
-{
-    return (memtable_flush_after_mins > 0 ? true : false);
-}
-
-
-double ColumnFamilyDefinition::getMemtableOperationsInMillions() const
-{
-    return memtable_operations_in_millions;
-}
-
-
-void ColumnFamilyDefinition::setMemtableOperationsInMillions(double ops)
-{
-    memtable_operations_in_millions= ops;
-}
-
-
-bool ColumnFamilyDefinition::isMemtableOperationsInMillionsSet() const
-{
-    return (memtable_operations_in_millions > 0 ? true : false);
-}
-
-
-int32_t ColumnFamilyDefinition::getMemtableThroughputInMb() const
-{
-    return memtable_throughput_in_mb;
-}
-
-
-void ColumnFamilyDefinition::setMemtableThroughputInMb(int32_t throughput)
-{
-    memtable_throughput_in_mb= throughput;
-}
-
-
-bool ColumnFamilyDefinition::isMemtableThroughputInMbSet() const
-{
-    return (memtable_throughput_in_mb > 0 ? true : false);
-}
-
-
-vector<ColumnDefinition> ColumnFamilyDefinition::getColumnMetadata() const
+const vector<ColumnDefinition>& ColumnFamilyDefinition::getColumnMetadata() const
 {
     return column_metadata;
 }
@@ -416,7 +354,7 @@ vector<ColumnDefinition> ColumnFamilyDefinition::getColumnMetadata() const
 void ColumnFamilyDefinition::setColumnMetadata(vector<ColumnDefinition>& meta)
 {
     column_metadata.clear();
-    for (vector<ColumnDefinition>::iterator it= meta.begin();
+    for (vector<ColumnDefinition>::const_iterator it = meta.begin();
             it != meta.end();
             ++it)
     {
@@ -434,4 +372,19 @@ void ColumnFamilyDefinition::addColumnMetadata(const ColumnDefinition& col_meta)
 bool ColumnFamilyDefinition::isColumnMetadataSet() const
 {
     return (! column_metadata.empty());
+}
+
+void ColumnFamilyDefinition::setCompressOptions(const std::map<std::string, std::string> & val)
+{
+    compression_options = val;
+}
+
+const std::map<std::string, std::string>& ColumnFamilyDefinition::getCompressOptions() const
+{
+    return compression_options;
+}
+
+bool ColumnFamilyDefinition::isCompressOptionsSet() const
+{
+    return (!compression_options.empty());
 }

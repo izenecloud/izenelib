@@ -180,6 +180,50 @@ inline void index(const IndexerTestConfig& config)
     VLOG(2) << "<= t_TermDocFreqs::index";
 }
 
+inline void changeIndexMode(const IndexerTestConfig& config)
+{
+    VLOG(2) << "=> t_TermDocFreqs::changeIndexMode";
+
+    TermDocFreqsTestFixture fixture;
+    fixture.configTest(config);
+
+    int iterNum = config.iterNum_;
+    int leftNum = 0;
+
+    if(iterNum/2 > 0)
+    {
+        iterNum = iterNum/2;
+        leftNum = config.iterNum_ - iterNum;
+    }
+
+    for(int i = 0;  i< iterNum; ++i)
+        fixture.createDocument();
+
+    if(leftNum > 0)
+    {
+        if(!strcasecmp((config.indexMode_).c_str(),"realtime"))
+        {
+            fixture.getIndexer()->setIndexMode("default");
+            fixture.getIndexer()->getIndexManagerConfig()->indexStrategy_.indexMode_ = "default";
+        }
+        else
+        {
+            fixture.getIndexer()->setIndexMode("realtime");
+            fixture.getIndexer()->getIndexManagerConfig()->indexStrategy_.indexMode_ = "realtime";
+        }
+    }
+
+    for(int j = 0; j < leftNum; j++)
+        fixture.createDocument();
+
+    fixture.checkTermDocFreqs();
+    fixture.checkTermIterator();
+    fixture.queryCollection();
+    fixture.checkStats();
+
+    VLOG(2) << "<= t_TermDocFreqs::changeIndexMode";
+}
+
 inline void remove(const IndexerTestConfig& config)
 {
     VLOG(2) << "=> t_TermDocFreqs::remove";

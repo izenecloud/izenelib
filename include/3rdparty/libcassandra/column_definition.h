@@ -25,10 +25,11 @@ class ColumnDefinition
 public:
 
     ColumnDefinition();
-    ColumnDefinition(const std::string& in_name,
-                     const std::string& in_validation_class,
-                     const org::apache::cassandra::IndexType::type in_index_type,
-                     const std::string& in_index_name);
+    ColumnDefinition(
+        const std::string& in_name,
+        const std::string& in_validation_class,
+        const org::apache::cassandra::IndexType::type in_index_type,
+        const std::string& in_index_name);
     ~ColumnDefinition() {}
 
     /**
@@ -81,6 +82,21 @@ public:
      */
     bool isIndexNameSet() const;
 
+    /**
+     * @param[val] index options
+     */
+    void setIndexOptions(const std::map<std::string, std::string> & val);
+
+    /**
+     * @return index options
+     */
+    const std::map<std::string, std::string>& getIndexOptions() const;
+
+    /**
+     * @return true if index name is set; false otherwise
+     */
+    bool isIndexOptionsSet() const;
+
 private:
 
     std::string name;
@@ -93,6 +109,7 @@ private:
 
     std::string index_name;
 
+    std::map<std::string, std::string>  index_options;
 };
 
 } /* end namespace libcassandra */

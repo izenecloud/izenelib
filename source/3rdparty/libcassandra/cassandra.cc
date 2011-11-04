@@ -496,7 +496,8 @@ void Cassandra::reloadKeyspaces()
                 thrift_entry.strategy_class,
                 thrift_entry.strategy_options,
                 thrift_entry.replication_factor,
-                thrift_entry.cf_defs);
+                thrift_entry.cf_defs,
+                thrift_entry.durable_writes);
         key_spaces_[thrift_entry.name] = entry;
     }
     if (!current_valid)

@@ -34,7 +34,7 @@ class BarrelInfo;
 class IndexBarrelWriter
 {
 public:
-    IndexBarrelWriter(Indexer* pIndexer,MemCache* pCache);
+    IndexBarrelWriter(Indexer* pIndexer);
 
     ~IndexBarrelWriter();
 public:
@@ -56,15 +56,7 @@ public:
      */
     bool cacheFull()
     {
-        return pMemCache_->isGrowed();
-    }
-    /**
-     * determine if the memory cache for indexing is empty
-     * @return true if empty,otherwise false
-     */
-    bool cacheEmpty()
-    {
-        return pMemCache_->isEmpty();
+        return pMemCache_&&pMemCache_->isGrowed();
     }
     /**
      * set a index barrel
@@ -91,6 +83,11 @@ public:
     void setCollectionsMeta(const std::map<std::string, IndexerCollectionMeta>& collectionsMeta);
 
     /**
+    *set current indexing mode
+    */
+    void setIndexMode(bool realtime);
+
+    /**
     *return a handle of CollectionIndexer according to the collection id
     */
     CollectionIndexer* getCollectionIndexer(collectionid_t colID)
@@ -104,20 +101,6 @@ public:
     {
         return new InMemoryIndexBarrelReader(this);
     }
-    /**
-    * get memory cache for indexing
-    */
-    MemCache* getMemCache()
-    {
-        return pMemCache_;
-    }
-    /**
-     * set memory cache for indexing
-     */
-    void setMemCache(MemCache* pMemCache)
-    {
-        pMemCache_ = pMemCache;
-    }
 
     void setDocFilter(BitVector* pFilter) { pDocFilter_ = pFilter;}
 
@@ -126,14 +109,17 @@ public:
     bool isDirty() { return dirty_; }
 
 private:
+    void createMemCache();
+
+    void destroyMemCache();
     /**
      * write cache to barrels
      */
-    void writeCache();
+    void flush();
     /**
      * reset cache content
      */
-    void resetCache();
+    void reset();
 
 private:
     BarrelInfo* pBarrelInfo_;

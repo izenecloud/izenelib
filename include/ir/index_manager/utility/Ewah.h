@@ -565,7 +565,7 @@ class EWAHBoolArray {
          */
         BitmapStatistics computeStatistics() const;
 
-        BoolArray<uword> toBoolArray() const;
+        void toBoolArray(BoolArray<uword>& boolArray) const;
         void appendRowIDs(vector<uint> & out, const uint offset = 0) const;
         uint numberOfOnes();
         void swap(EWAHBoolArray & x);
@@ -915,14 +915,14 @@ void EWAHBoolArrayBitIterator<uword>::readNewWord() {
 }
 
 template <class uword>
-BoolArray<uword> EWAHBoolArray<uword>::toBoolArray() const {
+void EWAHBoolArray<uword>::toBoolArray(BoolArray<uword>& boolArray)const{
     BoolArray<uword> ans(sizeinbits);
     EWAHBoolArrayIterator<uword> i = uncompress();
     int counter = 0;
     while(i.hasNext()) {
         ans.setWord(counter++,i.next());
     }
-    return ans;
+    boolArray = ans;
 }
 
 template <class uword>

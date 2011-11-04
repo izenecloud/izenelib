@@ -28,26 +28,25 @@ class ColumnFamilyDefinition
 public:
 
     ColumnFamilyDefinition();
-    ColumnFamilyDefinition(const std::string& in_keyspace_name,
-                           const std::string& in_name,
-                           const std::string& in_column_type,
-                           const std::string& in_comparator_type,
-                           const std::string& in_sub_comparator_type,
-                           const std::string& in_comment,
-                           const double in_row_cache_size,
-                           const double in_key_cache_size,
-                           const double in_read_repair_chance,
-                           const std::vector<org::apache::cassandra::ColumnDef>& in_column_metadata,
-                           const int32_t in_gc_grace_seconds,
-                           const std::string& in_default_validation_class,
-                           const int32_t in_id,
-                           const int32_t in_min_compaction_threshold,
-                           const int32_t in_max_compaction_threshold,
-                           const int32_t in_row_cache_save_period_in_seconds,
-                           const int32_t in_key_cache_save_period_in_seconds);
-    //const int32_t in_memtable_flush_after_mins,
-    //const int32_t in_memtable_throughput_in_mb,
-    //const double in_memtable_operations_in_millions);
+    ColumnFamilyDefinition(
+        const std::string& in_keyspace_name,
+        const std::string& in_name,
+        const std::string& in_column_type,
+        const std::string& in_comparator_type,
+        const std::string& in_sub_comparator_type,
+        const std::string& in_comment,
+        const double in_row_cache_size,
+        const double in_key_cache_size,
+        const double in_read_repair_chance,
+        const std::vector<org::apache::cassandra::ColumnDef>& in_column_metadata,
+        const int32_t in_gc_grace_seconds,
+        const std::string& in_default_validation_class,
+        const int32_t in_id,
+        const int32_t in_min_compaction_threshold,
+        const int32_t in_max_compaction_threshold,
+        const int32_t in_row_cache_save_period_in_seconds,
+        const int32_t in_key_cache_save_period_in_seconds,
+        const std::map<std::string, std::string>& in_compression_options);
     ~ColumnFamilyDefinition() {}
 
     /**
@@ -220,49 +219,19 @@ public:
      */
     bool isMinCompactionThresholdSet() const;
 
-    /**
-     * @return memtable flush after mins
-     */
-    int32_t getMemtableFlushAfterMins() const;
-
-    void setMemtableFlushAfterMins(int32_t flush);
-
-    /**
-     * @return true if memtable flush mins > 0; false otherwise
-     */
-    bool isMemtableFlushAfterMinsSet() const;
-
-    /**
-     * @return memtable operations in millions
-     */
-    double getMemtableOperationsInMillions() const;
-
-    void setMemtableOperationsInMillions(double ops);
-
-    /**
-     * @return true if memtable ops > 0; false otherwise
-     */
-    bool isMemtableOperationsInMillionsSet() const;
-
-    /**
-     * @return memtable throughput in megabytes
-     */
-    int32_t getMemtableThroughputInMb() const;
-
-    void setMemtableThroughputInMb(int32_t throughput);
-
-    /**
-     * @return true if memtable throughput > 0; false otherwise
-     */
-    bool isMemtableThroughputInMbSet() const;
-
-    std::vector<ColumnDefinition> getColumnMetadata() const;
+    const std::vector<ColumnDefinition>& getColumnMetadata() const;
 
     void setColumnMetadata(std::vector<ColumnDefinition>& meta);
 
     void addColumnMetadata(const ColumnDefinition& col_meta);
 
     bool isColumnMetadataSet() const;
+
+    void setCompressOptions(const std::map<std::string, std::string> & val);
+
+    const std::map<std::string, std::string>& getCompressOptions() const;
+
+    bool isCompressOptionsSet() const;
 
 private:
 
@@ -298,13 +267,47 @@ private:
 
     int32_t key_cache_save_period_in_seconds;
 
-    int32_t memtable_flush_after_mins;
-
-    int32_t memtable_throughput_in_mb;
-
-    double memtable_operations_in_millions;
-
     std::vector<ColumnDefinition> column_metadata;
+
+    ////////////////////////////////////////////////////////////////////////////
+    //
+    // compression_options:
+    //
+    //   This is a container property for setting compression options on a
+    //   column family. The compression_options property contains the
+    //   following options:
+    //
+    //   * sstable_compression:
+    //
+    //     Which specifies the compression algorithm to use when compressing
+    //     SSTable files. Cassandra supports two built-in compression classes:
+    //
+    //     - SnappyCompressor (Snappy compression library) and
+    //     - DeflateCompressor (Java Zip implementation).
+    //
+    //     Snappy offers faster compression/decompression while Zip offers
+    //     better compression ratio. Which one to choose depends on whether you
+    //     favour space saving over speed or the contrary. For example, if you
+    //     intend for I/O intensive tasks, then SnappyCompressor should be the
+    //     choice. Developers can also implement custom compression classes
+    //     around org.apache.cassandra.io.compress.ICompressor interface.
+    //
+    //   * chunk_length_kb:
+    //
+    //     Which sets the compression chunk size in kilobytes. The default
+    //     (as 64) is a good middle ground for compressing column families
+    //     with either wide or skinny rows. For wide rows, it allows reading a
+    //     64kb slice of column data without decompressing the entire row.
+    //     For skinny rows, it is a good trade-off between maximizing the
+    //     compression ratio and minimizing the overhead of decompressing more
+    //     than needed data to access a requested row. The compression chunk
+    //     size can be adjusted to account for data access patterns (how much
+    //     data is typically requested at a time) and the average size of rows
+    //     across the column family.
+    //
+    ////////////////////////////////////////////////////////////////////////////
+
+    std::map<std::string, std::string> compression_options;
 
 };
 

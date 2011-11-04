@@ -53,17 +53,16 @@ public:
     /// set schedule 
     void scheduleOptimizeTask(std::string expression, string uuid);
 
-    void createMemCache();
-
     IndexMergeManager* getMergeManager() { return pIndexMergeManager_; }
+
+    ///set current indexing mode 
+    void setIndexMode(bool realtime);
 
 private:
     void createBarrelInfo();
     /// optimize index offline
     void lazyOptimizeIndex();
 private:
-    MemCache* pMemCache_;
-
     Indexer* pIndexer_;
 
     IndexBarrelWriter* pIndexBarrelWriter_;

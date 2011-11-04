@@ -14,15 +14,15 @@ using namespace std;
 using namespace org::apache::cassandra;
 
 
-Keyspace::Keyspace(Cassandra *in_client,
-                   const string& in_name,
-                   const KeyspaceDefinition& in_desc,
-                   ConsistencyLevel::type in_level)
-        :
-        client(in_client),
-        name(in_name),
-        keyspace_def(in_desc),
-        level(in_level)
+Keyspace::Keyspace(
+    Cassandra *in_client,
+    const string& in_name,
+    const KeyspaceDefinition& in_desc,
+    ConsistencyLevel::type in_level)
+    :client(in_client)
+    ,name(in_name)
+    ,keyspace_def(in_desc)
+    ,level(in_level)
 {}
 
 

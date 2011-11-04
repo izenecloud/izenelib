@@ -343,7 +343,7 @@ class Indexer;
 class FieldIndexer
 {
 public:
-    FieldIndexer(const char* field, MemCache* pMemcache,Indexer* pIndexer);
+    FieldIndexer(const char* field, Indexer* pIndexer);
 
     ~FieldIndexer();
 public:
@@ -352,6 +352,8 @@ public:
     void setField(const char* strfield) { field_ = strfield;}
 
     void addField(docid_t docid, boost::shared_ptr<LAInput> laInput);
+
+    void setIndexMode(MemCache* pMemCache, size_t nBatchMemSize, bool realtime);
 
     void reset();
 
@@ -365,21 +367,24 @@ public:
 
     TermReader* termReader();
 
-    ///set memory cache size for izene sort
-    void setHitBuffer(size_t size);
-
     /// whether indices for this field is empty
     bool isEmpty();
 private:
+    ///set memory cache size for izene sort
+    void setHitBuffer_(size_t size);
+
     void writeHitBuffer_(int iHits);
     /// whether indices for this field is empty when indexing under batch mode
     bool isBatchEmpty_();
+
 private:
     InMemoryPostingMap postingMap_;
 
     std::string field_;
 
     MemCache* pMemCache_;
+
+    bool ownMemCache_;
 
     Indexer* pIndexer_;
 

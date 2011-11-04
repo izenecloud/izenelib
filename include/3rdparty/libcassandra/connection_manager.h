@@ -29,7 +29,7 @@ public:
         return ::izenelib::util::Singleton<CassandraConnectionManager>::get();
     }
 
-    void init(const std::string& host = "localhost", int port = 9160, size_t pool_size = 50);
+    void init(const std::string& host = "localhost", int port = 9160, size_t pool_size = 16);
 
     void clear();
 

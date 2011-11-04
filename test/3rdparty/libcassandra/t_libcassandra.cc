@@ -6,6 +6,9 @@
 #include <string>
 #include <stdio.h>
 
+#include <unistd.h>
+#include <boost/algorithm/string/replace.hpp>
+
 #include <libcassandra/connection_manager.h>
 #include <libcassandra/cassandra.h>
 #include <libcassandra/column_family_definition.h>
@@ -16,7 +19,7 @@ using namespace std;
 using namespace org::apache::cassandra;
 using namespace libcassandra;
 
-static string host("127.0.0.1");
+static string host("172.16.0.163");
 static int port= 9160;
 static size_t pool_size = 16;
 int main()
@@ -29,7 +32,10 @@ int main()
 
     try
     {
-        static const string ks_name("___drizzle___");
+        char hostname[255];
+        gethostname(hostname, sizeof(hostname));
+        string ks_name(hostname);
+        boost::replace_all(ks_name, "-", "_");
         static const string key("sarah");
         static const string col_value("this is data being inserted!");
         static const string col_family("Data");
@@ -66,6 +72,10 @@ int main()
         cf_def.setName(col_family);
         cf_def.setColumnType("Super");
         cf_def.setKeyspaceName(ks_def.getName());
+        std::map<std::string, std::string> compress_options;
+        compress_options["sstable_compression"] = "SnappyCompressor";
+        compress_options["chunk_length_kb"] = "64";
+        cf_def.setCompressOptions(compress_options);
         client->createColumnFamily(cf_def);
         cout << "Now we have " << client->getCount(key, col_parent, pred) << " column(s) in the super column." << endl << endl;
 

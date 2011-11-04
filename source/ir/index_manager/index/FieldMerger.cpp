@@ -72,10 +72,18 @@ void FieldMerger::initPostingMerger(
     CompressionType compressType, 
     bool optimize, 
     bool requireIntermediateFileForMerging,
-    MemCache* pMemCache)
+    size_t memPoolSizeForPostingMerger)
 {
     if (pPostingMerger_ == NULL)
-        pPostingMerger_ = new PostingMerger(skipInterval_, maxSkipLevel_, compressType, optimize, requireIntermediateFileForMerging, pMemCache, indexLevel_);
+        pPostingMerger_ = 
+            new PostingMerger(
+                skipInterval_, 
+                maxSkipLevel_, 
+                compressType, 
+                optimize, 
+                requireIntermediateFileForMerging, 
+                indexLevel_,
+                memPoolSizeForPostingMerger);
 }
 
 fileoffset_t FieldMerger::merge(OutputDescriptor* pOutputDescriptor)

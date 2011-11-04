@@ -36,12 +36,14 @@ class Indexer;
 class CollectionIndexer
 {
 public:
-    CollectionIndexer(collectionid_t id,MemCache* pCache,Indexer* pIndexer);
+    CollectionIndexer(collectionid_t id,Indexer* pIndexer);
 
     ~CollectionIndexer();
 public:
 
     void setSchema(const IndexerCollectionMeta& schema);
+
+    void setIndexMode(MemCache* pMemCache, bool realtime);
 
     void setFieldIndexers();
 
@@ -61,8 +63,6 @@ public:
 
 private:
     collectionid_t colID_;
-
-    MemCache* pMemCache_;
 
     map<string, boost::shared_ptr<FieldIndexer> > fieldIndexerMap_;
 
