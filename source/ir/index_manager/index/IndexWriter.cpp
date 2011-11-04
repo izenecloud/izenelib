@@ -43,12 +43,6 @@ IndexWriter::IndexWriter(Indexer* pIndex)
         assert(pBarrelInfo->getWriter() == NULL && "the loaded BarrelInfo should not be in-memory barrel");
         pIndexMergeManager_->addToMerge(pBarrelInfo);
     }
-
-    if(!pIndexBarrelWriter_)
-    {
-        pIndexBarrelWriter_ = new IndexBarrelWriter(pIndexer_);
-        pIndexBarrelWriter_->setCollectionsMeta(pIndexer_->getCollectionsMeta());
-    }
 }
 
 IndexWriter::~IndexWriter()

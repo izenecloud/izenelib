@@ -21,7 +21,8 @@ NS_IZENELIB_AM_BEGIN
 
 namespace ssf
 {
-template <typename LenType=uint32_t>
+template <typename LenType=uint32_t,
+template <typename T> class Deserializer = izenelib::util::izene_deserialization_boost_binary>
 class Reader {
 public:
     Reader( const std::string& file ):
@@ -86,7 +87,7 @@ public:
         delete[] data;
         return false;
       }
-      izenelib::util::izene_deserialization<T> izd_value(data,recodeSize);
+      typename Deserializer<T>::type izd_value(data,recodeSize);
       izd_value.read_image(t);
       delete[] data;
       index_++;
@@ -118,7 +119,7 @@ public:
       memcpy( &key, pData, sizeof(K) );
       pData += sizeof(K);
       std::size_t valueSize = recodeSize - sizeof(K);
-      izenelib::util::izene_deserialization<V> izd_value(pData,valueSize);
+      typename Deserializer<V>::type izd_value(pData,valueSize);
       izd_value.read_image(value);
       delete[] data;
       index_++;
@@ -188,7 +189,7 @@ public:
       memcpy( &t.first, pData, sizeof(K) );
       pData += sizeof(K);
       std::size_t valueSize = recodeSize - sizeof(K);
-      izenelib::util::izene_deserialization<V> izd_value(pData,valueSize);
+      typename Deserializer<V>::type izd_value(pData,valueSize);
       izd_value.read_image(t.second);
       delete[] data;
       index_++;
@@ -224,7 +225,8 @@ private:
     bool fail_;
 };
 
-template <typename LenType=uint32_t>
+template <typename LenType=uint32_t,
+template <typename T> class Deserializer = izenelib::util::izene_deserialization_boost_binary>
 class Reader2 {
 public:
     Reader2( const std::string& file ):
@@ -285,7 +287,7 @@ public:
         delete[] data;
         return false;
       }
-      izenelib::util::izene_deserialization<T> izd_value(data,recodeSize);
+      typename Deserializer<T>::type izd_value(data,recodeSize);
       izd_value.read_image(t);
       delete[] data;
       index_++;
@@ -313,7 +315,7 @@ public:
       memcpy( &key, pData, sizeof(K) );
       pData += sizeof(K);
       std::size_t valueSize = recodeSize - sizeof(K);
-      izenelib::util::izene_deserialization<V> izd_value(pData,valueSize);
+      typename Deserializer<V>::type izd_value(pData,valueSize);
       izd_value.read_image(value);
       delete[] data;
       index_++;
@@ -375,7 +377,7 @@ public:
       memcpy( &t.first, pData, sizeof(K) );
       pData += sizeof(K);
       std::size_t valueSize = recodeSize - sizeof(K);
-      izenelib::util::izene_deserialization<V> izd_value(pData,valueSize);
+      typename Deserializer<V>::type izd_value(pData,valueSize);
       izd_value.read_image(t.second);
       delete[] data;
       index_++;
@@ -411,7 +413,8 @@ private:
     bool fail_;
 };
 
-template <typename LenType=uint32_t>
+template <typename LenType=uint32_t,
+template <typename T> class Serializer = izenelib::util::izene_serialization_boost_binary>
 class Writer {
 public:
     Writer( const std::string& file ):
@@ -466,7 +469,7 @@ public:
     {
       char* ptr;
       std::size_t valueSize;
-      izenelib::util::izene_serialization<T> izs(t);
+      typename Serializer<T>::type izs(t);
       izs.write_image(ptr, valueSize);
       LenType recodeSize = valueSize;
       char* data = new char[recodeSize + sizeof(recodeSize)];
@@ -489,7 +492,7 @@ public:
     {
       char* ptr;
       std::size_t valueSize;
-      izenelib::util::izene_serialization<V> izs(value);
+      typename Serializer<V>::type izs(value);
       izs.write_image(ptr, valueSize);
       LenType keySize = sizeof(K);
       LenType recodeSize = keySize + valueSize;

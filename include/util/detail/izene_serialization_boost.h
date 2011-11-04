@@ -2,14 +2,21 @@
 #define IZENE_SERIALIZATION_BOOST_H_
 
 #include "izene_type_traits.h"
+#include <iostream>
 #include <types.h>
 #include <am/util/Wrapper.h>
 
 // for serialization
 #include <boost/archive/text_oarchive.hpp>
 #include <boost/archive/text_iarchive.hpp>
+#include <boost/archive/text_woarchive.hpp>
+#include <boost/archive/text_wiarchive.hpp>
 #include <boost/archive/binary_oarchive.hpp>
 #include <boost/archive/binary_iarchive.hpp>
+#include <boost/archive/xml_oarchive.hpp>
+#include <boost/archive/xml_iarchive.hpp>
+#include <boost/archive/xml_woarchive.hpp>
+#include <boost/archive/xml_wiarchive.hpp>
 #include <boost/serialization/vector.hpp>
 #include <boost/serialization/map.hpp>
 #include <boost/serialization/shared_ptr.hpp> 
@@ -23,7 +30,6 @@ using namespace std;
 NS_IZENELIB_UTIL_BEGIN
 
 const int archive_flags = archive::no_header | archive::no_codecvt;
-
 
 template<typename T> class izene_serialization_boost {
 izene_streambuf buf;
@@ -51,6 +57,226 @@ boost::archive::binary_iarchive ia(buf, archive_flags);
 ia & dat;
 }
 };
+
+
+template<typename T, class oarchive> class izene_serialization_boost_base {
+izene_streambuf buf;
+public:
+izene_serialization_boost_base(const T& dat) {
+std::ostream os( &buf );
+oarchive oa(os, archive_flags);
+oa & dat;
+}
+
+void write_image(char * &ptr, size_t& size) {
+ptr = buf.gptr();
+size = buf.size();
+}
+};
+
+template<typename T, class iarchive> class izene_deserialization_boost_base {
+izene_streambuf buf;
+public:
+izene_deserialization_boost_base(const char* ptr, const size_t size) {
+buf.sputn(ptr, size);
+}
+void read_image(T& dat) {
+std::istream is( &buf );
+iarchive ia(is, archive_flags);
+ia & dat;
+}
+};
+
+//width type
+// template<typename T> class izene_serialization_boost_base<T, boost::archive::text_woarchive>  {
+// boost::asio::streambuf buf;
+// public:
+// izene_serialization_boost_base(const T& dat) {
+// std::wostream os( &buf );
+// boost::archive::text_woarchive oa(os, archive_flags);
+// oa & dat;
+// }
+// 
+// void write_image(char * &ptr, size_t& size) {
+// ptr = buf.gptr();
+// size = buf.pptr() - buf.gptr();
+// }
+// };
+// 
+// template<typename T> class izene_deserialization_boost_base<T, boost::archive::text_wiarchive> {
+// std::wstreambuf buf;
+// public:
+// izene_deserialization_boost_base(const char* ptr, const size_t size) {
+// const wchar_t* wptr = (const wchar_t*)ptr;
+// buf.sputn(wptr, size);
+// }
+// void read_image(T& dat) {
+// std::wistream is( &buf );
+// boost::archive::text_wiarchive ia(is, archive_flags);
+// ia & dat;
+// }
+// };
+
+// template<typename T> class izene_serialization_boost_base<T, boost::archive::xml_woarchive>  {
+// std::wstreambuf buf;
+// public:
+// izene_serialization_boost_base(const T& dat) {
+// std::wostream os( &buf );
+// boost::archive::xml_woarchive oa(os, archive_flags);
+// oa & dat;
+// }
+// 
+// void write_image(char * &ptr, size_t& size) {
+// ptr = buf.gptr();
+// size = buf.pptr() - buf.gptr();
+// }
+// };
+// 
+// template<typename T> class izene_deserialization_boost_base<T, boost::archive::xml_wiarchive> {
+// std::wstreambuf buf;
+// public:
+// izene_deserialization_boost_base(const char* ptr, const size_t size) {
+// const wchar_t* wptr = (const wchar_t*)ptr;
+// buf.sputn(wptr, size);
+// }
+// void read_image(T& dat) {
+// std::wistream is( &buf );
+// boost::archive::xml_wiarchive ia(is, archive_flags);
+// ia & dat;
+// }
+// };
+
+
+template<typename T> struct izene_serialization_boost_binary
+{
+    typedef izene_serialization_boost_base<T, boost::archive::binary_oarchive> type;
+};
+
+template<typename T> struct izene_deserialization_boost_binary
+{
+    typedef izene_deserialization_boost_base<T, boost::archive::binary_iarchive> type;
+};
+
+template<typename T> struct izene_serialization_boost_text
+{
+    typedef izene_serialization_boost_base<T, boost::archive::text_oarchive> type;
+};
+
+template<typename T> struct izene_deserialization_boost_text
+{
+    typedef izene_deserialization_boost_base<T, boost::archive::text_iarchive> type;
+};
+
+template<typename T> struct izene_serialization_boost_wtext
+{
+    typedef izene_serialization_boost_base<T, boost::archive::text_woarchive> type;
+};
+
+template<typename T> struct izene_deserialization_boost_wtext
+{
+    typedef izene_deserialization_boost_base<T, boost::archive::text_wiarchive> type;
+};
+
+template<typename T> struct izene_serialization_boost_xml
+{
+    typedef izene_serialization_boost_base<T, boost::archive::xml_oarchive> type;
+};
+
+template<typename T> struct izene_deserialization_boost_xml
+{
+    typedef izene_deserialization_boost_base<T, boost::archive::xml_iarchive> type;
+};
+
+template<typename T> struct izene_serialization_boost_wxml
+{
+    typedef izene_serialization_boost_base<T, boost::archive::xml_woarchive> type;
+};
+
+template<typename T> struct izene_deserialization_boost_wxml
+{
+    typedef izene_deserialization_boost_base<T, boost::archive::xml_wiarchive> type;
+};
+
+// template<typename T> class izene_serialization_boost {
+// izene_streambuf buf;
+// public:
+// izene_serialization_boost(const T& dat) {
+// 
+// boost::archive::binary_oarchive oa(buf, archive_flags);
+// oa & dat;
+// }
+// 
+// void write_image(char * &ptr, size_t& size) {
+// ptr = buf.gptr();
+// size = buf.size();
+// }
+// };
+// 
+// template<typename T> class izene_deserialization_boost {
+// izene_streambuf buf;
+// public:
+// izene_deserialization_boost(const char* ptr, const size_t size) {
+// buf.sputn(ptr, size);
+// }
+// void read_image(T& dat) {
+// boost::archive::binary_iarchive ia(buf, archive_flags);
+// ia & dat;
+// }
+// };
+// 
+// template<typename T> class izene_serialization_boost_wxml {
+// izene_streambuf buf;
+// public:
+// izene_serialization_boost_wxml(const T& dat) {
+// 
+// boost::archive::xml_woarchive oa(buf, archive_flags);
+// oa & dat;
+// }
+// 
+// void write_image(char * &ptr, size_t& size) {
+// ptr = buf.gptr();
+// size = buf.size();
+// }
+// };
+// 
+// template<typename T> class izene_deserialization_boost_wxml {
+// izene_streambuf buf;
+// public:
+// izene_deserialization_boost_wxml(const char* ptr, const size_t size) {
+// buf.sputn(ptr, size);
+// }
+// void read_image(T& dat) {
+// boost::archive::xml_wiarchive ia(buf, archive_flags);
+// ia & dat;
+// }
+// };
+// 
+// template<typename T> class izene_serialization_boost_xml {
+// izene_streambuf buf;
+// public:
+// izene_serialization_boost_xml(const T& dat) {
+// 
+// boost::archive::xml_oarchive oa(buf, archive_flags);
+// oa & dat;
+// }
+// 
+// void write_image(char * &ptr, size_t& size) {
+// ptr = buf.gptr();
+// size = buf.size();
+// }
+// };
+// 
+// template<typename T> class izene_deserialization_boost_xml {
+// izene_streambuf buf;
+// public:
+// izene_deserialization_boost_xml(const char* ptr, const size_t size) {
+// buf.sputn(ptr, size);
+// }
+// void read_image(T& dat) {
+// boost::archive::xml_iarchive ia(buf, archive_flags);
+// ia & dat;
+// }
+// };
 
 
 /*

@@ -269,25 +269,43 @@ private:
 
     std::vector<ColumnDefinition> column_metadata;
 
-    //////////////////////////////////////////////////////////////////////////////////////////////
-    // compression_options: this is a container property for setting compression options on a column family. 
-    // The compression_options property contains the following options:
+    ////////////////////////////////////////////////////////////////////////////
     //
-    //sstable_compression: specifies the compression algorithm to use when compressing SSTable files. 
-    //                                Cassandra supports two built-in compression classes: SnappyCompressor 
-    //                                (Snappy compression library) and DeflateCompressor (Java zip implementation).
-    //                                 Snappy compression offers faster compression/decompression while the Java zip 
-    //                                 compression offers better compression ratios. Choosing the right one depends on
-    //                                 your requirements for space savings over read performance. For read-heavy 
-    //                                 workloads, Snappy compression is recommended.Developers can also implement 
-    //                                 custom compression classes using the org.apache.cassandra.io.compress.ICompressor interface.
-    //chunk_length_kb: sets the compression chunk size in kilobytes. The default value (64) is a good middle-ground 
-    //                          for compressing column families with either wide rows or with skinny rows. With wide rows, it allows 
-    //                          reading a 64kb slice of column data without decompressing the entire row. For skinny rows, although 
-    //                          you may still end up decompressing more data than requested, it is a good trade-off between maximizing 
-    //                          the compression ratio and minimizing the overhead of decompressing more data than is needed to access
-    //                          a requested row.The compression chunk size can be adjusted to account for read/write access patterns 
-    //                          (how much data is typically requested at once) and the average size of rows in the column family.
+    // compression_options:
+    //
+    //   This is a container property for setting compression options on a
+    //   column family. The compression_options property contains the
+    //   following options:
+    //
+    //   * sstable_compression:
+    //
+    //     Which specifies the compression algorithm to use when compressing
+    //     SSTable files. Cassandra supports two built-in compression classes:
+    //
+    //     - SnappyCompressor (Snappy compression library) and
+    //     - DeflateCompressor (Java Zip implementation).
+    //
+    //     Snappy offers faster compression/decompression while Zip offers
+    //     better compression ratio. Which one to choose depends on whether you
+    //     favour space saving over speed or the contrary. For example, if you
+    //     intend for I/O intensive tasks, then SnappyCompressor should be the
+    //     choice. Developers can also implement custom compression classes
+    //     around org.apache.cassandra.io.compress.ICompressor interface.
+    //
+    //   * chunk_length_kb:
+    //
+    //     Which sets the compression chunk size in kilobytes. The default
+    //     (as 64) is a good middle ground for compressing column families
+    //     with either wide or skinny rows. For wide rows, it allows reading a
+    //     64kb slice of column data without decompressing the entire row.
+    //     For skinny rows, it is a good trade-off between maximizing the
+    //     compression ratio and minimizing the overhead of decompressing more
+    //     than needed data to access a requested row. The compression chunk
+    //     size can be adjusted to account for data access patterns (how much
+    //     data is typically requested at a time) and the average size of rows
+    //     across the column family.
+    //
+    ////////////////////////////////////////////////////////////////////////////
 
     std::map<std::string, std::string> compression_options;
 
