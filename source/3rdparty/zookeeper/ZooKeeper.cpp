@@ -309,6 +309,8 @@ bool ZooKeeper::setZNodeData(const std::string &path, const std::string& data, i
 
 void ZooKeeper::getZNodeChildren(const std::string &path, std::vector<std::string>& childrenList, ZNodeWatchType watch, bool inAbsPath)
 {
+    childrenList.clear();
+
     String_vector children;
     memset( &children, 0, sizeof(children) );
 
