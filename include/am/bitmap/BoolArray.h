@@ -1,10 +1,3 @@
-/**
- * \file BoolArray.h
- * \brief 
- * \date Jul 12, 2011
- * \author Vernkin Chen
- */
-
 #ifndef BOOLARRAY_H_
 #define BOOLARRAY_H_
 
@@ -14,22 +7,17 @@
 #include <stdexcept>
 #include <sstream>
 
-typedef unsigned long long int uint64;
-typedef unsigned short uword16;
-typedef unsigned int uword32;
-typedef unsigned long long uword64;
+#include <types.h>
 
 using namespace std;
 
-NS_IZENELIB_IR_BEGIN
-
-namespace indexmanager{
+NS_IZENELIB_AM_BEGIN
 
 /**
  * A dynamic bitset implementation. (without compression)
  */
 
-template <class uword=uword32>
+template <class uword=uint32_t>
 class BoolArray {
 public:
     //how many bits?
@@ -191,8 +179,6 @@ void BoolArray<uword>::append(const BoolArray & a) {
             sizeinbits += a.sizeinbits;
 }
 
-}
-
-NS_IZENELIB_IR_END
+NS_IZENELIB_AM_END
 
 #endif /* BOOLARRAY_H_ */

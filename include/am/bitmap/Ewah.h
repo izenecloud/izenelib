@@ -1,10 +1,3 @@
-/**
- * \file Ewah.h
- * \brief 
- * \date Jun 28, 2011
- * \author Xin Liu
- */
-
 #ifndef EWAH_H_
 #define EWAH_H_
 
@@ -17,9 +10,7 @@
 
 using namespace std;
 
-NS_IZENELIB_IR_BEGIN
-
-namespace indexmanager{
+NS_IZENELIB_AM_BEGIN
 
 /*
 *@brief Ewah
@@ -38,7 +29,7 @@ inline uint max(uint x, uint y) {
 /**
  * This is used below in the Enhanced Word Aligned  Hybrid (EWAH)
  */
-template <class uword=uword32>
+template <class uword=uint32_t>
 class RunningLengthWord {
     public:
         RunningLengthWord (uword & data) : mydata(data) {
@@ -143,7 +134,7 @@ class RunningLengthWord {
 };
 
 
-template <class uword=uword32>
+template <class uword=uint32_t>
 class ConstRunningLengthWord {
     public:
         ConstRunningLengthWord (const uword & data) : mydata(data) {
@@ -180,7 +171,7 @@ class ConstRunningLengthWord {
     private:
 };
 
-template <class uword=uword32>
+template <class uword=uint32_t>
 class BufferedRunningLengthWord {
     public:
         BufferedRunningLengthWord (const uword & data) : RunningBit(data & static_cast<uword>(1)),
@@ -244,7 +235,7 @@ class EWAHBoolArraySparseIterator;
 template <class uword>
 class EWAHBoolArrayBitIterator;
 
-template <class uword=uword32>
+template <class uword=uint32_t>
 class EWAHBoolArrayIterator{
     public:
         bool hasNext()  const {
@@ -297,7 +288,7 @@ class EWAHBoolArrayIterator{
         bool b;
 };
 
-template <class uword=uword32>
+template <class uword=uint32_t>
 class EWAHBoolArraySparseIterator {
     public:
         bool hasNext() const {
@@ -344,12 +335,9 @@ class EWAHBoolArraySparseIterator {
         friend class EWAHBoolArray<uword>;
 };
 
-template <class uword=uword32>
+template <class uword=uint32_t>
 class EWAHBoolArrayBitIterator{
     public:
-
-        docid_t doc() { return (docid_t)curdoc; }
-
         bool next() {
             if (currentword == zero)
             {
@@ -378,17 +366,16 @@ class EWAHBoolArrayBitIterator{
             {
                  readNewWord();
             }
-            curdoc = currentbit - 1;
             return true;
         }
 
-        EWAHBoolArrayBitIterator(const EWAHBoolArrayBitIterator<uword> & other):i(other.i),
+        EWAHBoolArrayBitIterator(const EWAHBoolArrayBitIterator<uword> & other)
+        :i(other.i),
         currentword(other.currentword),
         iscleanword(other.iscleanword),
         currentbit(other.currentbit),
         bitoffsetinword(other.bitoffsetinword),
-        numones(other.numones),
-        curdoc(other.curdoc){}
+        numones(other.numones){}
 
         static const uword zero = 0;
         static const uword notzero=~zero;
@@ -401,8 +388,7 @@ class EWAHBoolArrayBitIterator{
             iscleanword(false),
             currentbit(0),
             bitoffsetinword(0),
-            numones(ones),
-            curdoc(0)
+            numones(ones)
         {
             readNewWord();
         }
@@ -416,7 +402,6 @@ class EWAHBoolArrayBitIterator{
         uint currentbit;
         uint bitoffsetinword;
         uint numones;
-        uint curdoc;
 };
 
 
@@ -443,7 +428,7 @@ class EWAHBoolArrayRawIterator;
  * happens.
  */
 
-template <class uword=uword32>
+template <class uword=uint32_t>
 class EWAHBoolArray {
     public:
         EWAHBoolArray(): buffer(1,0), sizeinbits(0), lastRLW(0) {
@@ -532,7 +517,7 @@ class EWAHBoolArray {
         // make sure the size of the array is totalbits bits by padding with zeroes.
         // returns the number of words added (storage cost increase)
         inline uint padWithZeroes(const uint totalbits);
-        uint64 sizeOnDisk() const;
+        uint64_t sizeOnDisk() const;
         inline void write(ostream & out, const bool savesizeinbits=true) const;
         inline void writeBuffer(ostream & out) const;
         inline uint bufferSize() const {return buffer.size();}
@@ -744,7 +729,7 @@ uint EWAHBoolArray<uword>::padWithZeroes(const uint totalbits) {
  * This is a low-level iterator.
  */
 
-template <class uword=uword32>
+template <class uword=uint32_t>
 class EWAHBoolArrayRawIterator {
     public:
         EWAHBoolArrayRawIterator(const EWAHBoolArray<uword> & p) : pointer(0),
@@ -1291,7 +1276,7 @@ BitmapStatistics EWAHBoolArray<uword>::computeStatistics() const {
 template <class uword>
 void EWAHBoolArray<uword>::iterator_sanity_check() {
     EWAHBoolArrayIterator<uword> i = uncompress();
-    uint64 counter(0);
+    uint64_t counter(0);
     while(i.hasNext()) {
         i.next();
         counter += 8*sizeof(uword);
@@ -1308,12 +1293,11 @@ void EWAHBoolArray<uword>::iterator_sanity_check() {
 
 
 template <class uword>
-uint64 EWAHBoolArray<uword>::sizeOnDisk() const {
-    return sizeof(sizeinbits)+sizeof(uint)+sizeof(uword)*static_cast<uint64>(buffer.size());
+uint64_t EWAHBoolArray<uword>::sizeOnDisk() const {
+    return sizeof(sizeinbits)+sizeof(uint)+sizeof(uword)*static_cast<uint64_t>(buffer.size());
 }
 
-}
 
-NS_IZENELIB_IR_END
+NS_IZENELIB_AM_END
 
 #endif /* EWAH_H_ */

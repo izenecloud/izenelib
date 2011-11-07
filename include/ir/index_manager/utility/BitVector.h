@@ -8,15 +8,16 @@
 #define BITVECTOR_H
 
 #include <ir/index_manager/utility/system.h>
-#include <ir/index_manager/utility/Ewah.h>
 #include <ir/index_manager/store/Directory.h>
 #include <ir/index_manager/store/IndexInput.h>
 #include <ir/index_manager/store/IndexOutput.h>
 
+#include <am/bitmap/Ewah.h>
+
 NS_IZENELIB_IR_BEGIN
 
 namespace indexmanager{
-
+using namespace izenelib::am;
 /*
 *@brief BitVector
 * An implementation of bitmap
@@ -99,26 +100,26 @@ public:
         return bits_[bit >> 3] & (1 << (bit & 7));
     }
 
-    void compressed(EWAHBoolArray<uword32>& compressedBitMap)
+    void compressed(EWAHBoolArray<uint32_t>& compressedBitMap)
     {
         const size_t byteNum = getBytesNum(size_);
-        unsigned int wordinbytes = sizeof(uword32);
+        unsigned int wordinbytes = sizeof(uint32_t);
         for(size_t i = 0; i < byteNum/wordinbytes; i++)
         {
-            uword32 currentword(0);
+            uint32_t currentword(0);
             for(size_t j = 0; j < wordinbytes; j++)
             {
-                currentword |= static_cast<uword32>(bits_[i * wordinbytes + j]) << (j * 8);
+                currentword |= static_cast<uint32_t>(bits_[i * wordinbytes + j]) << (j * 8);
             }
             compressedBitMap.add(currentword);
         }
         unsigned int leftBytes = byteNum % wordinbytes;
         if ( leftBytes != 0 )
         {
-            uword32 lastWord(0);
+            uint32_t lastWord(0);
             for (size_t k = 0 ; k < leftBytes; k++)
             {
-                lastWord |= static_cast<uword32>(bits_[(byteNum / wordinbytes) * wordinbytes + k]) << (k * 8);
+                lastWord |= static_cast<uint32_t>(bits_[(byteNum / wordinbytes) * wordinbytes + k]) << (k * 8);
             }
             compressedBitMap.add(lastWord);
         }
