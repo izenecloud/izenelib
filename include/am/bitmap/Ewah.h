@@ -1,3 +1,11 @@
+/**
+*  File Ewah.h
+*  Author Daniel Lemire
+*  Daniel Lemire, Owen Kaser, Kamel Aouiche, Sorting improves
+*  word-aligned bitmap indexes. Data & Knowledge Engineering 69 (1),
+*  pages 3-28, 2010.
+*  http://arxiv.org/abs/0901.3751
+*/
 #ifndef EWAH_H_
 #define EWAH_H_
 
@@ -7,6 +15,7 @@
 #include <vector>
 #include <stdexcept>
 
+#include <util/izene_serialization.h>
 
 using namespace std;
 
@@ -529,6 +538,38 @@ public:
     {
     }
 
+    /**
+     *Please don't copy your bitmaps!
+     **/
+    EWAHBoolArray(const EWAHBoolArray& other) 
+    : buffer(other.buffer)
+    , sizeinbits(other.sizeinbits)
+    , lastRLW(other.lastRLW)
+    {
+        assert(buffer.size()<=1);// performance assert!
+        //if(buffer.size()>1) {cerr<<buffer.size()<<endl;throw "xxx";}
+    }
+    // please, never hard-copy this object. Use the swap method if you must.
+    EWAHBoolArray & operator=(const EWAHBoolArray & x)
+    {
+        buffer = x.buffer;
+        sizeinbits = x.sizeinbits;
+        lastRLW = x.lastRLW;
+        assert(buffer.size()<=1);// performance assert!
+        return *this;
+    }
+
+    /**
+     *if you don't care to copy the bitmap (performance-wise), use this!
+     */
+    void expensive_copy(const EWAHBoolArray & x)
+    {
+        buffer = x.buffer;
+        sizeinbits = x.sizeinbits;
+        lastRLW = x.lastRLW;
+    }
+
+
     void set(uint i)
     {
         // must I complete a word?
@@ -631,10 +672,23 @@ public:
     {
         return buffer.size();
     }
-
-
     inline void read(istream & in, const bool savesizeinbits=true);
     inline void readBuffer(istream & in, const uint buffersize);
+
+
+    template<class DataIO> friend
+    void DataIO_loadObject(DataIO& dio, EWAHBoolArray& x)
+    {
+        dio & x.sizeinbits;
+        dio & x.buffer;
+    }
+	
+    template<class DataIO> friend
+    void DataIO_saveObject(DataIO& dio, const EWAHBoolArray& x)
+    {
+        dio & x.sizeinbits;
+        dio & x.buffer;
+    }
 
     bool operator==(const EWAHBoolArray & x) const;
 
@@ -670,37 +724,6 @@ public:
     };
     enum { wordinbits =  sizeof(uword) * 8, sanitychecks = false};
 
-
-    /**
-     *Please don't copy your bitmaps!
-     **/
-    EWAHBoolArray(const EWAHBoolArray& other) :
-            buffer(other.buffer),
-            sizeinbits(other.sizeinbits),
-            lastRLW(other.lastRLW)
-    {
-        assert(buffer.size()<=1);// performance assert!
-        //if(buffer.size()>1) {cerr<<buffer.size()<<endl;throw "xxx";}
-    }
-    // please, never hard-copy this object. Use the swap method if you must.
-    EWAHBoolArray & operator=(const EWAHBoolArray & x)
-    {
-        buffer = x.buffer;
-        sizeinbits = x.sizeinbits;
-        lastRLW = x.lastRLW;
-        assert(buffer.size()<=1);// performance assert!
-        return *this;
-    }
-
-    /**
-     *if you don't care to copy the bitmap (performance-wise), use this!
-     */
-    void expensive_copy(const EWAHBoolArray & x)
-    {
-        buffer = x.buffer;
-        sizeinbits = x.sizeinbits;
-        lastRLW = x.lastRLW;
-    }
 
     void logicalnot(EWAHBoolArray & x) const;
     void inplace_logicalnot();
@@ -841,9 +864,6 @@ uint EWAHBoolArray<uword>::addLiteralWord(const uword  newdata)
     buffer.push_back(newdata);
     return 1;
 }
-
-
-
 
 template <class uword>
 uint EWAHBoolArray<uword>::padWithZeroes(const uint totalbits)
@@ -1138,8 +1158,6 @@ void EWAHBoolArray<uword>::appendRowIDs(vector<uint> & out, const uint offset) c
         }
 }
 
-
-
 template <class uword>
 bool EWAHBoolArray<uword>::operator!=(const EWAHBoolArray<uword> & x) const
 {
@@ -1215,8 +1233,6 @@ uint EWAHBoolArray<uword>::addStreamOfDirtyWords(const uword * v, const uint num
     return wordsadded;
 }
 
-
-
 template <class uword>
 uint EWAHBoolArray<uword>::addEmptyWord(const bool v)
 {
@@ -1253,8 +1269,6 @@ uint EWAHBoolArray<uword>::addEmptyWord(const bool v)
         return 1;
     }
 }
-
-
 
 template <class uword>
 void EWAHBoolArray<uword>::sparselogicaland(EWAHBoolArray &a, EWAHBoolArray &container)
@@ -1300,8 +1314,6 @@ void EWAHBoolArray<uword>::sparselogicaland(EWAHBoolArray &a, EWAHBoolArray &con
     container.setSizeInBits(sizeInBits());
     //return answer;
 }
-
-
 
 template <class uword>
 void EWAHBoolArray<uword>::rawlogicalor(EWAHBoolArray &a, EWAHBoolArray &container)
@@ -1393,7 +1405,6 @@ void EWAHBoolArray<uword>::rawlogicalor(EWAHBoolArray &a, EWAHBoolArray &contain
     container.setSizeInBits(sizeInBits());
 }
 
-
 template <class uword>
 void EWAHBoolArray<uword>::rawlogicaland(EWAHBoolArray &a, EWAHBoolArray &container)
 {
@@ -1483,9 +1494,6 @@ void EWAHBoolArray<uword>::rawlogicaland(EWAHBoolArray &a, EWAHBoolArray &contai
     container.setSizeInBits(sizeInBits());
 }
 
-
-
-
 template <class uword>
 BitmapStatistics EWAHBoolArray<uword>::computeStatistics() const
 {
@@ -1535,7 +1543,10 @@ uint64_t EWAHBoolArray<uword>::sizeOnDisk() const
     return sizeof(sizeinbits)+sizeof(uint)+sizeof(uword)*static_cast<uint64_t>(buffer.size());
 }
 
-
 NS_IZENELIB_AM_END
+
+MAKE_FEBIRD_SERIALIZATION(izenelib::am::EWAHBoolArray<uint16_t> )
+MAKE_FEBIRD_SERIALIZATION(izenelib::am::EWAHBoolArray<uint32_t> )
+MAKE_FEBIRD_SERIALIZATION(izenelib::am::EWAHBoolArray<uint64_t> )
 
 #endif /* EWAH_H_ */
