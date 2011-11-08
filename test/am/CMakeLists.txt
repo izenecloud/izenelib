@@ -22,6 +22,7 @@ IF (TokyoCabinet_FOUND AND Glog_FOUND AND _febird GREATER -1)
     #tc/raw/Iter.cpp
 
     luxio/Db.cpp
+    leveldb/Db.cpp
     )
 
   ADD_EXECUTABLE(t_am ${t_am_SRC})
@@ -40,7 +41,8 @@ IF (TokyoCabinet_FOUND AND Glog_FOUND AND _febird GREATER -1)
    luxio
    izene_log
    ${TokyoCabinet_LIBRARIES} 
-   lzo 
+   lzo
+   leveldb
     )
 
   ADD_EXECUTABLE(manual_t_fmm vsynonym/t_fmm.cpp )

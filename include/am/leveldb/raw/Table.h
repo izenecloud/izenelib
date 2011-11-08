@@ -1,21 +1,24 @@
 #ifndef AM_LEVELDB_RAW_TABLE_H
 #define AM_LEVELDB_RAW_TABLE_H
 /**
- * @file am/leveldb/raw/Table.h
- * @author Ian Yang
- * @date Created <2009-09-10 09:37:25>
- * @date Updated <2009-09-10 10:46:40>
+ * @file am/leveldb/Table.h
+ * @author Yingfeng Zhang
+ * @date Created <2011-05-10 10:37:24>
+ * @date Updated <2011-11-08 20:01:44>
+ * @brief LevelDB wrapper
  */
 
 #include <am/concept/DataType.h>
 #include <am/raw/Buffer.h>
-#include <am/range/IterNextRange.h>
-#include <am/range/GetNextRange.h>
 
 #include <3rdparty/am/leveldb/db.h>
 #include <3rdparty/am/leveldb/comparator.h>
 
-#include <boost/optional.hpp>
+#include <boost/filesystem.hpp>
+#include <boost/archive/xml_oarchive.hpp>
+#include <boost/archive/xml_iarchive.hpp>
+#include <boost/archive/archive_exception.hpp>
+#include <boost/shared_ptr.hpp>
 
 #include <iostream>
 namespace izenelib {
@@ -34,18 +37,22 @@ public:
     typedef Buffer value_type;
     typedef DataType<Buffer, Buffer> data_type;
     typedef int size_type;
-    typedef IterNextRange<Table> exclusive_range_type;
-    typedef IterNextRange<Table> range_type;
-    typedef boost::optional<key_type> cursor_type;
+    typedef boost::shared_ptr< ::leveldb::Iterator> cursor_type;
 
     explicit Table(const std::string& file = "")
-    : db_(NULL), dbIt_(NULL),comp_(), isOpened_(false), file_(file)
+    : db_(NULL), dbIt_(NULL),comp_(), isOpened_(false), file_(file), count_(0)
     {
     }
 
     ~Table()
     {
         close();
+    }
+
+    bool open(const std::string& file)
+    {
+        file_ = file;
+        return open();
     }
 
     bool open()
@@ -62,6 +69,9 @@ public:
 
         if(status.ok())
             isOpened_ = true;
+
+        countfile_ = boost::filesystem::path(boost::filesystem::path(file_).parent_path()/"leveldb.xml").string();
+        restoreCountDb_();
 
         return isOpened_;
     }
@@ -99,12 +109,12 @@ public:
 
     bool flush()
     {
-        return checkHandle_(db_) && isOpened();
+        return checkHandle_(db_) && isOpened() && saveCountDb_();
     }
 
     size_type size() const
     {
-        return db_ ? 0 : 0;
+        return db_ ? count_ : 0;
     }
     /**
      * @deprecated
@@ -119,7 +129,14 @@ public:
     }
     bool clear()
     {
-        return checkHandle_(db_) && isOpened();
+        if(isOpened())
+        {
+            close();
+            boost::filesystem::remove_all(file_);
+            count_ = 0;
+            open();
+        }
+        return true;
     }
 
     /**
@@ -138,7 +155,7 @@ public:
             ::leveldb::WriteOptions(),
             ::leveldb::Slice(key.data(),key.size()),
             ::leveldb::Slice(value.data(),value.size())).ok()
-        );
+        )&&(++count_);
     }
     /**
      * @brief Insert new data into database.
@@ -197,13 +214,12 @@ public:
         return false;
     }
 
-
     bool del(const Buffer& key)
     {
         return checkHandle_(db_) && isOpened() &&
             (db_->Delete(
             ::leveldb::WriteOptions(),
-            ::leveldb::Slice(key.data(),key.size())).ok());
+            ::leveldb::Slice(key.data(),key.size())).ok())&& (count_--);
     }
 
     bool iterInit()
@@ -281,23 +297,131 @@ public:
 	return iterNext(data.get_key(), data.get_value());
     }
 
-    void all(range_type& range)
+    cursor_type begin() const
     {
-        range.attach(*this);
+        if(isOpened())
+        {
+            ::leveldb::ReadOptions options;
+            options.fill_cache = false;
+            cursor_type cursor(db_->NewIterator(options));
+            cursor->SeekToFirst();
+            return cursor;
+        }
+        return cursor_type();
     }
 
-    void exclusiveAll(exclusive_range_type& range)
+    cursor_type begin(Buffer& key) const
     {
-        range.attach(*this);
+        if(isOpened())
+        {
+            ::leveldb::ReadOptions options;
+            options.fill_cache = false;
+            cursor_type cursor(db_->NewIterator(options));
+            cursor->Seek(::leveldb::Slice(key.data(),key.size()));
+            return cursor;
+        }
+        return cursor_type();
+    }
+
+    cursor_type rbegin() const
+    {
+        if(isOpened())
+        {
+            ::leveldb::ReadOptions options;
+            options.fill_cache = false;
+            cursor_type cursor(db_->NewIterator(options));
+            cursor->SeekToLast();
+            return cursor;
+        }
+        return cursor_type();
+    }
+
+    bool fetch(cursor_type& cursor, Buffer& key, Buffer& value)
+    {
+        if(isOpened() && cursor.get() && cursor->Valid())
+        {
+            key.attach(const_cast<char*>(cursor->key().data()),
+                             static_cast<std::size_t>(cursor->key().size()));
+            value.attach(const_cast<char*>(cursor->value().data()),
+                             static_cast<std::size_t>(cursor->value().size()));
+            return true;
+	}
+	return false;
+    }
+
+    bool iterNext(cursor_type& cursor)
+    {
+        if(isOpened() && cursor.get() && cursor->Valid())
+        {
+            cursor->Next();
+            return true;
+        }
+        else
+        {
+            cursor.reset();
+            return false;
+        }
+    }
+
+    bool iterPrev(cursor_type& cursor)
+    {
+        if(isOpened() && cursor.get() && cursor->Valid())
+        {
+            cursor->Prev();
+            return true;
+        }
+        else
+        {
+            cursor.reset();
+            return false;
+        }
     }
 
 private:
-
     static bool checkHandle_(::leveldb::DB* h)
     {
-        //BOOST_ASSERT(h);
-        // if (!h) // todo: add logs
         return h;
+    }
+
+    bool saveCountDb_() const
+    {
+        try
+        {
+            std::ofstream ofs(countfile_.c_str());
+            if (ofs)
+            {
+                boost::archive::xml_oarchive oa(ofs);
+                oa << boost::serialization::make_nvp(
+                        "Count", count_
+                );
+            }
+            return ofs;
+        }
+        catch (boost::archive::archive_exception& e)
+        {
+            return false;
+        }
+    }
+	
+    bool restoreCountDb_()
+    {
+        try
+        {
+            std::ifstream ifs(countfile_.c_str());
+            if (ifs)
+            {
+                boost::archive::xml_iarchive ia(ifs);
+                ia >> boost::serialization::make_nvp(
+                    "Count", count_
+                );
+            }
+            return ifs;
+        }
+        catch (boost::archive::archive_exception& e)
+        {
+            count_ = 0;
+            return false;
+        }
     }
 
     ::leveldb::DB* db_;
@@ -307,6 +431,8 @@ private:
 
     bool isOpened_;
     std::string file_;
+    std::string countfile_;
+    size_t count_;
 };
 
 }}}} // namespace izenelib::am::leveldb::raw

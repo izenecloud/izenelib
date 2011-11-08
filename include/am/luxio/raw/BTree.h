@@ -254,7 +254,7 @@ public:
     bool del(const Buffer& key)
     {
         return isOpened() &&
-            bdb_->del(key.data(), key.size()) &&(--count_);
+            bdb_->del(key.data(), key.size()) &&(count_--);
     }
 
     bool appendUpdate(const Buffer& key, const Buffer& value)
@@ -378,7 +378,7 @@ public:
             count_ = 0;
             return false;
         }
-}
+    }
 
 private:
 
