@@ -9,7 +9,6 @@
 #ifndef EWAH_H_
 #define EWAH_H_
 
-#include <ir/index_manager/index/TermDocFreqs.h>
 #include <ir/index_manager/utility/system.h>
 #include "BoolArray.h"
 #include <cassert>
@@ -20,8 +19,6 @@
 #include <util/izene_serialization.h>
 
 using namespace std;
-
-#define MAX_DOC_ID      0xFFFFFFFF
 
 NS_IZENELIB_AM_BEGIN
 
@@ -409,28 +406,12 @@ private:
 };
 
 template <class uword=uint32_t>
-class EWAHBoolArrayBitIterator : public izenelib::ir::indexmanager::TermDocFreqs{
+class EWAHBoolArrayBitIterator{
     public:
 
-        izenelib::ir::indexmanager::docid_t doc() { return (izenelib::ir::indexmanager::docid_t)curdoc; }
+        izenelib::ir::indexmanager::docid_t getCurrentPos() { return (izenelib::ir::indexmanager::docid_t)(currentbit - 1); }
 
-        int64_t getCTF() { return 1; }
-
-        izenelib::ir::indexmanager::count_t freq() { return 1; }
-
-        izenelib::ir::indexmanager::freq_t docFreq() { return numones; }
-
-        izenelib::ir::indexmanager::docid_t skipTo(izenelib::ir::indexmanager::docid_t target){
-            izenelib::ir::indexmanager::docid_t currDoc;
-            do
-            {
-                if(!next())
-                    return MAX_DOC_ID;
-                currDoc = doc();
-            } while(target > currDoc);
-
-            return currDoc;
-        }
+        izenelib::ir::indexmanager::freq_t numerOfOnes() { return numones; }
 
         bool next() {
             if (currentword == zero)
@@ -460,7 +441,6 @@ class EWAHBoolArrayBitIterator : public izenelib::ir::indexmanager::TermDocFreqs
             {
                  readNewWord();
             }
-            curdoc = currentbit - 1;
             return true;
         }
 
@@ -469,7 +449,6 @@ class EWAHBoolArrayBitIterator : public izenelib::ir::indexmanager::TermDocFreqs
         iscleanword(other.iscleanword),
         currentbit(other.currentbit),
         bitoffsetinword(other.bitoffsetinword),
-        curdoc(other.curdoc),
         numones(other.numones){}
 
         static const uword zero = 0;
@@ -483,7 +462,6 @@ class EWAHBoolArrayBitIterator : public izenelib::ir::indexmanager::TermDocFreqs
             iscleanword(false),
             currentbit(0),
             bitoffsetinword(0),
-            curdoc(0),
             numones(ones)
         {
             readNewWord();
@@ -497,7 +475,6 @@ class EWAHBoolArrayBitIterator : public izenelib::ir::indexmanager::TermDocFreqs
         bool iscleanword;
         uint currentbit;
         uint bitoffsetinword;
-        uint curdoc;
         uint numones;
 };
 
