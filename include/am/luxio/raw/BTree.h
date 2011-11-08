@@ -291,6 +291,17 @@ public:
         return cursor_type();
     }
 
+    cursor_type rbegin() const
+    {
+        if(isOpened())
+        {
+            cursor_type ans(bdb_->cursor_init());
+            bool result = bdb_->last(ans.get());
+            if(result) return ans;
+        }
+        return cursor_type();
+    }
+
     bool fetch(cursor_type& cursor, Buffer& key, Buffer& value)
     {
         if(isOpened() && cursor.get())

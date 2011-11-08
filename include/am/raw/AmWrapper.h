@@ -256,6 +256,11 @@ public:
         return rawAm().begin();
     }
 
+    cursor_type rbegin() const
+    {
+        return rawAm().rbegin();
+    }
+
     cursor_type begin(const KeyType& key) const
     {
         izenelib::am::raw::Buffer keyBuffer;

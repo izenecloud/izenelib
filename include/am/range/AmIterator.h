@@ -29,7 +29,7 @@ namespace am
 {
 
 template<typename AM>
-class AMForwardIterator;
+class AMIterator;
 template<typename AM>
 class AMReverseIterator;
 
@@ -39,7 +39,7 @@ template<typename AM>
 struct AMForwardIteratorBase
 {
     typedef std::pair<typename AM::key_type, typename AM::value_type> data_type;
-    typedef boost::iterator_facade<AMForwardIterator<AM> , data_type,
+    typedef boost::iterator_facade<AMIterator<AM> , data_type,
     boost::forward_traversal_tag, const data_type&> type;
 };
 
@@ -58,7 +58,7 @@ struct AMReverseIteratorBase
  * iteration.
  */
 template<typename AM>
-class AMForwardIterator: public detail::AMForwardIteratorBase<AM>::type
+class AMIterator: public detail::AMForwardIteratorBase<AM>::type
 {
     friend class boost::iterator_core_access;
     typedef typename detail::AMForwardIteratorBase<AM>::type super;
@@ -69,7 +69,7 @@ public:
      * @brief constructs a end sentry
      * @return iterator as end
      */
-    AMForwardIterator() :
+    AMIterator() :
             am_(0), cur_(), data_()
     {
     }
@@ -79,7 +79,7 @@ public:
      * @param am AccessMethod object supporting Cursor
      * @return iterator as begin
      */
-    explicit AMForwardIterator(AM& am) :
+    explicit AMIterator(AM& am) :
             am_(&am), cur_(am.begin()), data_()
     {
         increment();
@@ -90,7 +90,7 @@ public:
      * @param am AccessMethod object supporting Cursor
      * @return iterator as begin
      */
-    explicit AMForwardIterator(AM& am, const key_type& key) :
+    explicit AMIterator(AM& am, const key_type& key) :
             am_(&am), cur_(am.begin(key)), data_()
     {
         increment();
@@ -117,7 +117,7 @@ private:
         }
     }
 
-    bool equal(const AMForwardIterator<AM>& rhs) const
+    bool equal(const AMIterator<AM>& rhs) const
     {
         return (this == &rhs) || (am_ == 0 && rhs.am_ == 0)
                || (am_ == rhs.am_ && cur_ == rhs.cur_);
@@ -151,7 +151,7 @@ public:
      * @return iterator as begin
      */
     explicit AMReverseIterator(AM& am) :
-            am_(&am), cur_(am.begin()), data_()
+            am_(&am), cur_(am.rbegin()), data_()
     {
         increment();
     }

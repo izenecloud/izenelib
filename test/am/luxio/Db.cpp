@@ -84,7 +84,7 @@ BOOST_AUTO_TEST_CASE(BTree_test)
         BOOST_CHECK(v == "c");
     }
 
-    typedef AMForwardIterator<BTreeType > AMIteratorType;
+    typedef AMIterator<BTreeType > AMIteratorType;
     AMIteratorType iter(h);
     AMIteratorType end;
     for(; iter != end; ++iter)
@@ -109,6 +109,14 @@ BOOST_AUTO_TEST_CASE(BTree_test)
     {
         const std::string& k = iter3->first;
         const std::string& v = iter3->second;
+        std::cout<<k<<" "<<v<<std::endl;
+    }
+
+    AMRIteratorType iter4(h);
+    for(; iter4 != end2; ++iter4)
+    {
+        const std::string& k = iter4->first;
+        const std::string& v = iter4->second;
         std::cout<<k<<" "<<v<<std::endl;
     }
 

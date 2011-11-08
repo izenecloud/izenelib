@@ -288,6 +288,19 @@ public:
         return cursor_type();
     }
 
+    //@{
+    //@brief iteration
+    cursor_type rbegin() const
+    {
+        if(checkHandle_(bdb_) && isOpened())
+        {
+            cursor_type ans(::tcbdbcurnew(bdb_));
+            bool result = ::tcbdbcurlast(ans.get());
+            if(result) return ans;
+        }
+        return cursor_type();
+    }
+
     bool fetch(cursor_type& cursor, Buffer& key, Buffer& value)
     {
         if(checkHandle_(bdb_) && isOpened() && cursor.get())

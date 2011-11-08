@@ -59,7 +59,7 @@ BOOST_AUTO_TEST_CASE(BTreeIterator)
         BOOST_CHECK(h.size() == 3);
     }
     std::cout<<"Forward Iterator for TC from beginning"<<std::endl;		
-    typedef AMForwardIterator<BTreeType > AMIteratorType;
+    typedef AMIterator<BTreeType > AMIteratorType;
     AMIteratorType iter(h);
     AMIteratorType end;
     for(; iter != end; ++iter)
@@ -81,11 +81,20 @@ BOOST_AUTO_TEST_CASE(BTreeIterator)
     typedef AMReverseIterator<BTreeType > AMRIteratorType;
     AMRIteratorType iter3(h,std::string("3"));
     AMRIteratorType end2;
-    std::cout<<"Reverse Iterator for TC"<<std::endl;	
+    std::cout<<"Reverse Iterator for TC with start"<<std::endl;	
     for(; iter3 != end2; ++iter3)
     {
         const std::string& k = iter3->first;
         const std::string& v = iter3->second;
+        std::cout<<k<<" "<<v<<std::endl;
+    }
+
+    AMRIteratorType iter4(h);
+    std::cout<<"Reverse Iterator for TC"<<std::endl;	
+    for(; iter4 != end2; ++iter4)
+    {
+        const std::string& k = iter4->first;
+        const std::string& v = iter4->second;
         std::cout<<k<<" "<<v<<std::endl;
     }
 
