@@ -20,14 +20,16 @@ namespace indexmanager{
 class BitMapIterator : public TermDocFreqs {
 public:
 
-        BitMapIterator(const izenelib::am::EWAHBoolArrayBitIterator<uint32_t>& bitmapIter):
-            TermDocFreqs(),
-            bitmapIter_(bitmapIter)
+        BitMapIterator(
+                const izenelib::am::EWAHBoolArrayBitIterator<uint32_t>& bitmapIter)
+          : TermDocFreqs()
+          , bitmapIter_(bitmapIter)
         {
         }
 
-        BitMapIterator(const BitMapIterator& other):TermDocFreqs(other),
-             bitmapIter_(other.bitmapIter_)
+        BitMapIterator(const BitMapIterator& other)
+          : TermDocFreqs(other)
+          , bitmapIter_(other.bitmapIter_)
         {
         }
 
@@ -43,7 +45,7 @@ public:
 
         count_t freq() { return 1; }
 
-        docid_t doc() { return bitmapIter_.getCurrentPos(); }
+        docid_t doc() { return bitmapIter_.getCurr(); }
 
         docid_t skipTo(docid_t target){
             docid_t currDoc;

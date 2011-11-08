@@ -9,7 +9,6 @@
 #ifndef EWAH_H_
 #define EWAH_H_
 
-#include <ir/index_manager/utility/system.h>
 #include "BoolArray.h"
 #include <cassert>
 #include <iostream>
@@ -409,9 +408,9 @@ template <class uword=uint32_t>
 class EWAHBoolArrayBitIterator{
     public:
 
-        izenelib::ir::indexmanager::docid_t getCurrentPos() { return (izenelib::ir::indexmanager::docid_t)(currentbit - 1); }
+        uword getCurr() { return (uword)(currentbit - 1); }
 
-        izenelib::ir::indexmanager::freq_t numerOfOnes() { return numones; }
+        uword numerOfOnes() { return numones; }
 
         bool next() {
             if (currentword == zero)
