@@ -552,6 +552,18 @@ string Cassandra::createKeyspace(const KeyspaceDefinition& ks_def)
     return ret;
 }
 
+string Cassandra::updateKeyspace(const KeyspaceDefinition& ks_def)
+{
+    string ret;
+    KsDef thrift_ks_def;
+    createKsDefObject(thrift_ks_def, ks_def);
+    BORROW_CLIENT
+    thrift_client->system_update_keyspace(ret, thrift_ks_def);
+    RELEASE_CLIENT
+    key_spaces_[ks_def.getName()] = ks_def;
+    return ret;
+}
+
 void Cassandra::truncateColumnFamily(const string& cf_name)
 {
     BORROW_CLIENT

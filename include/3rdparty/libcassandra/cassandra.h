@@ -385,11 +385,18 @@ public:
             const org::apache::cassandra::ConsistencyLevel::type level = org::apache::cassandra::ConsistencyLevel::QUORUM);
 
     /**
-     * Create a column family
-     * @param[in] cf_def object representing defintion for column family to create
+     * Create a keyspace
+     * @param[in] ks_def object representing defintion for keyspace to create
      * @return the schema ID for the keyspace created
      */
     std::string createKeyspace(const KeyspaceDefinition& ks_def);
+
+    /**
+     * Update a keyspace
+     * @param[in] ks_def object representing defintion for keyspace to update
+     * @return the schema ID for the keyspace updated
+     */
+    std::string updateKeyspace(const KeyspaceDefinition& ks_def);
 
     /**
      * drop a keyspace

@@ -15,7 +15,7 @@ CassandraConnectionManager::~CassandraConnectionManager()
 }
 
 void CassandraConnectionManager::init(
-    const std::string& host, 
+    const std::string& host,
     int port,
     size_t pool_size)
 {

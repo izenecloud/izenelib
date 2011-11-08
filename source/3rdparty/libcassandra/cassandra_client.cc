@@ -51,7 +51,7 @@ void MyCassandraClient::open()
 
 bool MyCassandraClient::isOpen()
 {
-    if(transport_.get())
+    if(transport_)
         return transport_->isOpen();
 
     return false;
