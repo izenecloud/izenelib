@@ -31,7 +31,7 @@ int main()
 
     try
     {
-        static const string ks_name("__drizzle__");
+        static const string ks_name("drizzle");
         static const string key("sarah");
         static const string col_value("this is data being inserted!");
         static const string col_family("Data");
@@ -71,6 +71,7 @@ int main()
         cf_def.setName(col_family);
         cf_def.setColumnType("Super");
         cf_def.setKeyspaceName(ks_def.getName());
+        cf_def.setId(1000);
         std::map<std::string, std::string> compress_options;
         compress_options["sstable_compression"] = "SnappyCompressor";
         compress_options["chunk_length_kb"] = "64";
@@ -81,6 +82,7 @@ int main()
         }
         catch (...)
         {
+            client->updateColumnFamily(cf_def);
         }
         cout << "Now we have " << client->getCount(key, col_parent, pred) << " column(s) in the super column." << endl << endl;
 
