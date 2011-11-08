@@ -14,6 +14,8 @@
 #include <tcutil.h>
 #include <tcbdb.h>
 
+#include <boost/shared_ptr.hpp>
+
 namespace izenelib {
 namespace am {
 namespace tc {
@@ -29,6 +31,7 @@ public:
     typedef Buffer value_type;
     typedef DataType<Buffer, Buffer> data_type;
     typedef int size_type;
+    typedef boost::shared_ptr<BDBCUR> cursor_type;
 
     enum {
         READER = ::BDBOREADER,
@@ -217,22 +220,22 @@ public:
         return update(data.get_key(), data.get_value());
     }
 
-	bool get(const Buffer& key, Buffer& value) const
-	{
+    bool get(const Buffer& key, Buffer& value) const
+    {
         void* buffer;
         int size;
         if (checkHandle_(bdb_) && isOpened() &&
             (buffer = ::tcbdbget(bdb_, key.data(), key.size(), &size)))
         {
             value.attach(static_cast<char*>(buffer),
-                         static_cast<std::size_t>(size),
-                         &::tcfree);
+                                static_cast<std::size_t>(size),
+                                &::tcfree);
 
             return true;
         }
 
         return false;
-	}
+    }
 
     bool exist(const Buffer& key) const
     {
@@ -259,8 +262,65 @@ public:
             );
     }
 
-    //@}
+    //@{
+    //@brief iteration
+    cursor_type begin() const
+    {
+        if(checkHandle_(bdb_) && isOpened())
+        {
+            cursor_type ans(::tcbdbcurnew(bdb_));
+            bool result = ::tcbdbcurfirst(ans.get());
+            if(result) return ans;
+        }
+        return cursor_type();
+    }
 
+    cursor_type begin(Buffer& key) const
+    {
+        if(checkHandle_(bdb_) && isOpened())
+        {
+            cursor_type ans(::tcbdbcurnew(bdb_));
+            //The cursor is set to the first record corresponding the key 
+            //or the next substitute if completely matching record does not exist.		
+            bool result = ::tcbdbcurjump(ans.get(), key.data(), key.size());
+            if(result) return ans;
+        }
+        return cursor_type();
+    }
+
+    bool fetch(cursor_type& cursor, Buffer& key, Buffer& value)
+    {
+        if(checkHandle_(bdb_) && isOpened() && cursor.get())
+        {
+            int size;
+            void* buffer = ::tcbdbcurkey(cursor.get(), &size);
+            key.attach(static_cast<char*>(buffer),
+                                static_cast<std::size_t>(size),
+                                &::tcfree);
+            buffer = ::tcbdbcurval(cursor.get(), &size);
+            value.attach(static_cast<char*>(buffer),
+                                static_cast<std::size_t>(size),
+                                &::tcfree);
+            return true;
+        }
+        return false;
+    }
+
+    bool iterNext(cursor_type& cursor)
+    {
+        bool ret = ::tcbdbcurnext(cursor.get());
+        if(!ret) cursor.reset();
+        return ret;
+    }
+
+    bool iterPrev(cursor_type& cursor)
+    {
+        bool ret = ::tcbdbcurprev(cursor.get());
+        if(!ret) cursor.reset();
+        return ret;
+    }
+
+    //@}
     const char* errorMessage() const
     {
         return errorMessage(errorCode());

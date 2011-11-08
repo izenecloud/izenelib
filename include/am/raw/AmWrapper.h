@@ -12,7 +12,7 @@
 #include "WriteImage.h"
 
 #include <am/concept/DataType.h>
-
+#include <iostream>
 namespace izenelib
 {
 namespace am
@@ -55,6 +55,8 @@ public:
     typedef ValueType value_type;
     typedef DataType<KeyType, ValueType> data_type;
     typedef SizeType size_type;
+
+    typedef typename raw_am_type::cursor_type cursor_type;
 
     enum{ AMWrapperType = true };
 
@@ -247,6 +249,49 @@ public:
     bool iterNext(data_type& data)
     {
         return iterNext(data.get_key(), data.get_value());
+    }
+
+    cursor_type begin() const
+    {
+        return rawAm().begin();
+    }
+
+    cursor_type begin(const KeyType& key) const
+    {
+        izenelib::am::raw::Buffer keyBuffer;
+        izenelib::util::izene_serialization<key_type> izsKey(key);
+        write_image(izsKey, keyBuffer);
+        return rawAm().begin(keyBuffer);
+    }
+
+    bool fetch(cursor_type& cursor,key_type& key, value_type& value)
+    {
+        Buffer keyBuffer;
+        Buffer valueBuffer;
+        bool status = rawAm().fetch(cursor,keyBuffer, valueBuffer);
+
+        if (status)
+        {
+            izenelib::util::izene_deserialization<key_type> izdKey(
+                keyBuffer.data(), keyBuffer.size()
+            );
+            izdKey.read_image(key);
+            izenelib::util::izene_deserialization<value_type> izdValue(
+                valueBuffer.data(), valueBuffer.size()
+            );
+            izdValue.read_image(value);
+        }
+        return status;
+    }
+
+    bool iterNext(cursor_type& cursor)
+    {
+        return rawAm().iterNext(cursor);
+    }
+
+    bool iterPrev(cursor_type& cursor)
+    {
+        return rawAm().iterPrev(cursor);
     }
 
     bool getFirst(KeyType& key) const

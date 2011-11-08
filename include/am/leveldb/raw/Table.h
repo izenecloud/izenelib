@@ -15,6 +15,8 @@
 #include <3rdparty/am/leveldb/db.h>
 #include <3rdparty/am/leveldb/comparator.h>
 
+#include <boost/optional.hpp>
+
 #include <iostream>
 namespace izenelib {
 namespace am {
@@ -34,6 +36,7 @@ public:
     typedef int size_type;
     typedef IterNextRange<Table> exclusive_range_type;
     typedef IterNextRange<Table> range_type;
+    typedef boost::optional<key_type> cursor_type;
 
     explicit Table(const std::string& file = "")
     : db_(NULL), dbIt_(NULL),comp_(), isOpened_(false), file_(file)

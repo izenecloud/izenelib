@@ -39,34 +39,21 @@ struct BTreeLessCmp
     int compare(const char* dataA, int sizeA,
                 const char* dataB, int sizeB) const
     {
-        KeyType a;
-        izenelib::util::izene_deserialization<KeyType> izdA(
-            dataA, sizeA
-        );
-        izdA.read_image(a);
 
-        KeyType b;
-        izenelib::util::izene_deserialization<KeyType> izdB(
-            dataB, sizeB
-        );
-        izdB.read_image(b);
-
-        if (a < b)
-        {
-            return -1;
-        }
-        else if (b < a)
-        {
-            return 1;
-        }
-
-        return 0;
+        izenelib::am::CompareFunctor<KeyType> _comp;
+        KeyType keyA, keyB;
+        izene_deserialization<KeyType> izdA(dataA, sizeA);
+        izene_deserialization<KeyType> izdB(dataB, sizeB);
+        izdA.read_image(keyA);
+        izdB.read_image(keyB);
+		
+        return _comp(keyA, keyB);
     }
 };
 
 template<typename KeyType,
          typename ValueType,
-         typename Comp=BTreeLexicalCmp >
+         typename Comp=BTreeLessCmp<KeyType> >
 class BTree
     : public izenelib::am::raw::AmWrapper<BTree<KeyType, ValueType, Comp>,
                                           raw::BTree,
