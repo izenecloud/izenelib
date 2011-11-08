@@ -117,4 +117,23 @@ TARGET_LINK_LIBRARIES(t_matrix
    leveldb
    izene_util
   )
+
+ADD_EXECUTABLE(t_bitmap
+  Runner.cpp
+  bitmap/t_ewah.cpp
+  )
+
+TARGET_LINK_LIBRARIES(t_bitmap
+  am
+    ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY}
+    ${Boost_THREAD_LIBRARY}
+    ${Boost_FILESYSTEM_LIBRARY}
+    ${Boost_SYSTEM_LIBRARY}
+    ${Glog_LIBRARIES}
+   febird
+   procmeminfo
+   izene_log
+   leveldb
+   izene_util
+  )
   

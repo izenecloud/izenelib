@@ -18,86 +18,107 @@ NS_IZENELIB_AM_BEGIN
  */
 
 template <class uword=uint32_t>
-class BoolArray {
+class BoolArray
+{
 public:
     //how many bits?
-    BoolArray(const uint n, const uword initval= 0):buffer(n / wordinbits + (n % wordinbits == 0 ? 0 : 1),initval),sizeinbits(n){   }
-    BoolArray():buffer(),sizeinbits(0){}
-    BoolArray(const BoolArray & ba) : buffer(ba.buffer),sizeinbits(ba.sizeinbits){}
-    void read(istream & in){
+    BoolArray(const uint n, const uword initval= 0)
+        :buffer(n / wordinbits + (n % wordinbits == 0 ? 0 : 1),initval)
+        ,sizeinbits(n) {}
+
+    BoolArray():buffer(),sizeinbits(0) {}
+
+    BoolArray(const BoolArray & ba) 
+        :buffer(ba.buffer)
+        ,sizeinbits(ba.sizeinbits) {}
+
+    void read(istream & in)
+    {
         sizeinbits = 0;
         in.read(reinterpret_cast<char *>(&sizeinbits), sizeof(sizeinbits));
-        if(verboseIO) cout << "loading "<< sizeinbits << " bits" <<endl;
+        if (verboseIO) cout << "loading "<< sizeinbits << " bits" <<endl;
         buffer.resize(sizeinbits / wordinbits + (sizeinbits % wordinbits == 0 ? 0 : 1));
-        if(verboseIO) cout << "using "<< buffer.size() << " words" <<endl;
+        if (verboseIO) cout << "using "<< buffer.size() << " words" <<endl;
         in.read(reinterpret_cast<char *>(&buffer[0]),buffer.size()*sizeof(uword));
     }
-    void readBuffer(istream & in,const uint size){
+    void readBuffer(istream & in,const uint size)
+    {
         buffer.resize(size);
         in.read(reinterpret_cast<char *>(&buffer[0]),buffer.size()*sizeof(uword));
         sizeinbits = size*sizeof(uword)*8;
     }
 
-    void setSizeInBits(const uint sizeib) {
+    void setSizeInBits(const uint sizeib)
+    {
         sizeinbits = sizeib;
     }
 
 
-    void write(ostream & out) {
+    void write(ostream & out)
+    {
         write(out,sizeinbits);
     }
 
-    void write(ostream & out, const uint numberofbits) const {
-        if(verboseIO) cout << "dumping "<< numberofbits << " bits" <<endl;
+    void write(ostream & out, const uint numberofbits) const
+    {
+        if (verboseIO) cout << "dumping "<< numberofbits << " bits" <<endl;
         const uint size = numberofbits/wordinbits + (numberofbits%wordinbits == 0 ? 0: 1);
-        if(verboseIO) cout << "using "<< size << " words" <<endl;
+        if (verboseIO) cout << "using "<< size << " words" <<endl;
         out.write(reinterpret_cast<const char *>(&numberofbits), sizeof(numberofbits));
         out.write(reinterpret_cast<const char *>(&buffer[0]),size*sizeof(uword));
     }
 
-    void writeBuffer(ostream & out, const uint numberofbits) const {
-                if(verboseIO) cout << "dumping "<< numberofbits << " bits" <<endl;
-                const uint size = numberofbits/wordinbits + (numberofbits%wordinbits == 0 ? 0: 1);
-                if(verboseIO) cout << "using "<< size << " words" <<endl;
-                out.write(reinterpret_cast<const char *>(&buffer[0]),size*sizeof(uword));
+    void writeBuffer(ostream & out, const uint numberofbits) const
+    {
+        if (verboseIO) cout << "dumping "<< numberofbits << " bits" <<endl;
+        const uint size = numberofbits/wordinbits + (numberofbits%wordinbits == 0 ? 0: 1);
+        if (verboseIO) cout << "using "<< size << " words" <<endl;
+        out.write(reinterpret_cast<const char *>(&buffer[0]),size*sizeof(uword));
     }
 
-    uint sizeOnDisk() const {
+    uint sizeOnDisk() const
+    {
         uint size = sizeinbits/wordinbits + (sizeinbits%wordinbits == 0 ? 0: 1);
         return sizeof(sizeinbits) + size*sizeof(uword);
     }
 
 
-    BoolArray& operator=(const BoolArray & x) {
+    BoolArray& operator=(const BoolArray & x)
+    {
         sizeinbits = x.sizeinbits;
         this->buffer = x.buffer;
         return *this;
     }
 
-    bool operator==(const BoolArray & x) const {
-        if(sizeinbits != x.sizeinbits) return false;
+    bool operator==(const BoolArray & x) const
+    {
+        if (sizeinbits != x.sizeinbits) return false;
         assert(buffer.size() == x.buffer.size());
-        for(uint k = 0; k < buffer.size(); ++k)
-        if(buffer[k] != x.buffer[k]) return false;
+        for (uint k = 0; k < buffer.size(); ++k)
+            if (buffer[k] != x.buffer[k]) return false;
         return true;
     }
 
-    bool operator!=(const BoolArray & x) const {
+    bool operator!=(const BoolArray & x) const
+    {
         return ! operator==(x);
     }
 
-    void setWord(const uint pos, const uword val) {
+    void setWord(const uint pos, const uword val)
+    {
         assert(pos < buffer.size());
         buffer[pos] = val;
     }
 
-    void add(const uword val){
-        if(sizeinbits % wordinbits != 0) throw invalid_argument("you probably didn't want to do this");
+    void add(const uword val)
+    {
+        if (sizeinbits % wordinbits != 0) throw invalid_argument("you probably didn't want to do this");
         sizeinbits += wordinbits;
         buffer.push_back(val);
     }
 
-    uword getWord(const uint pos) const {
+    uword getWord(const uint pos) const
+    {
         assert(pos < buffer.size());
         return buffer[pos];
     }
@@ -108,7 +129,8 @@ public:
      * TODO this is an expensive (random access) API, you really ought to
      * prepare a new word and then append it.
      */
-    void set(const uint pos) {
+    void set(const uint pos)
+    {
         buffer[pos/wordinbits] |= ( static_cast<uword>(1) << (pos % wordinbits) ) ;
     }
 
@@ -118,7 +140,8 @@ public:
      * TODO this is an expensive (random access) API, you really ought to
      * prepare a new word and then append it.
      */
-    void unset(const uint pos) {
+    void unset(const uint pos)
+    {
         //assert(pos/wordinbits < buffer.size());
         buffer[pos/wordinbits] &= ~( static_cast<uword>(1) << (pos % wordinbits) ) ;
         //assert(!get(pos));
@@ -130,7 +153,8 @@ public:
      * TODO this is an expensive (random access) API, you really ought to
      * proceed word-by-word
      */
-    bool get(const ulong pos) const {
+    bool get(const ulong pos) const
+    {
         assert(pos/wordinbits < buffer.size());
         //cout << buffer[pos/wordinbits]<< " "<<(buffer[pos/wordinbits] & ( static_cast<uword>(1) << (pos % wordinbits) ))<<endl;
         return (buffer[pos/wordinbits] & ( static_cast<uword>(1) << (pos % wordinbits) )) != 0;
@@ -139,13 +163,17 @@ public:
     /**
      * set all bits to 0
      */
-    void reset() {
+    void reset()
+    {
         memset(&buffer[0],0,sizeof(uword)*buffer.size());
         sizeinbits = 0;
     }
 
     //inline uint size() {return buffer.size() * sizeof(uint);}
-    uint sizeInBits() const {return sizeinbits; }
+    uint sizeInBits() const
+    {
+        return sizeinbits;
+    }
     ~BoolArray() {}
 
     void logicaland(const BoolArray & ba, BoolArray & out);
@@ -154,8 +182,9 @@ public:
     void appendRowIDs(vector<ulong> & answer, const ulong offset = 0) const;
 
 
-    inline void printout(ostream &o = cout) {
-        for(uint k = 0; k < sizeinbits; ++k)
+    inline void printout(ostream &o = cout)
+    {
+        for (uint k = 0; k < sizeinbits; ++k)
             o << get(k) << " ";
         o << endl;
     }
@@ -169,14 +198,18 @@ private:
 };
 
 template <class uword>
-void BoolArray<uword>::append(const BoolArray & a) {
-            if(sizeinbits % wordinbits == 0) {
-                buffer.insert(buffer.end(),a.buffer.begin(),a.buffer.end());
-            } else {
-                // we have to work harder?
-                throw invalid_argument("I am a lazy bum, please make sure this never happens");
-            }
-            sizeinbits += a.sizeinbits;
+void BoolArray<uword>::append(const BoolArray & a)
+{
+    if (sizeinbits % wordinbits == 0)
+    {
+        buffer.insert(buffer.end(),a.buffer.begin(),a.buffer.end());
+    }
+    else
+    {
+        // we have to work harder?
+        throw invalid_argument("I am a lazy bum, please make sure this never happens");
+    }
+    sizeinbits += a.sizeinbits;
 }
 
 NS_IZENELIB_AM_END
