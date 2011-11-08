@@ -1,14 +1,17 @@
 #ifndef EWAH_H_
 #define EWAH_H_
 
+#include <ir/index_manager/index/TermDocFreqs.h>
+#include <ir/index_manager/utility/system.h>
 #include "BoolArray.h"
 #include <cassert>
 #include <iostream>
 #include <vector>
 #include <stdexcept>
 
-
 using namespace std;
+
+#define MAX_DOC_ID      0xFFFFFFFF
 
 NS_IZENELIB_AM_BEGIN
 
@@ -336,8 +339,29 @@ class EWAHBoolArraySparseIterator {
 };
 
 template <class uword=uint32_t>
-class EWAHBoolArrayBitIterator{
+class EWAHBoolArrayBitIterator : public izenelib::ir::indexmanager::TermDocFreqs{
     public:
+
+        izenelib::ir::indexmanager::docid_t doc() { return (izenelib::ir::indexmanager::docid_t)curdoc; }
+
+        int64_t getCTF() { return 1; }
+
+        izenelib::ir::indexmanager::count_t freq() { return 1; }
+
+        izenelib::ir::indexmanager::freq_t docFreq() { return numones; }
+
+        izenelib::ir::indexmanager::docid_t skipTo(izenelib::ir::indexmanager::docid_t target){
+            izenelib::ir::indexmanager::docid_t currDoc;
+            do
+            {
+                if(!next())
+                    return MAX_DOC_ID;
+                currDoc = doc();
+            } while(target > currDoc);
+
+            return currDoc;
+        }
+
         bool next() {
             if (currentword == zero)
             {
@@ -366,15 +390,16 @@ class EWAHBoolArrayBitIterator{
             {
                  readNewWord();
             }
+            curdoc = currentbit - 1;
             return true;
         }
 
-        EWAHBoolArrayBitIterator(const EWAHBoolArrayBitIterator<uword> & other)
-        :i(other.i),
+        EWAHBoolArrayBitIterator(const EWAHBoolArrayBitIterator<uword> & other):i(other.i),
         currentword(other.currentword),
         iscleanword(other.iscleanword),
         currentbit(other.currentbit),
         bitoffsetinword(other.bitoffsetinword),
+        curdoc(other.curdoc),
         numones(other.numones){}
 
         static const uword zero = 0;
@@ -388,6 +413,7 @@ class EWAHBoolArrayBitIterator{
             iscleanword(false),
             currentbit(0),
             bitoffsetinword(0),
+            curdoc(0),
             numones(ones)
         {
             readNewWord();
@@ -401,6 +427,7 @@ class EWAHBoolArrayBitIterator{
         bool iscleanword;
         uint currentbit;
         uint bitoffsetinword;
+        uint curdoc;
         uint numones;
 };
 
@@ -552,7 +579,7 @@ class EWAHBoolArray {
 
         void toBoolArray(BoolArray<uword>& boolArray) const;
         void appendRowIDs(vector<uint> & out, const uint offset = 0) const;
-        uint numberOfOnes();
+        uint numberOfOnes() const;
         void swap(EWAHBoolArray & x);
         const vector<uword> & getBuffer() const {return buffer; };
         enum { wordinbits =  sizeof(uword) * 8, sanitychecks = false};
@@ -794,7 +821,7 @@ EWAHBoolArrayRawIterator<uword> EWAHBoolArray<uword>::raw_iterator() const {
 
 template <class uword>
 EWAHBoolArrayBitIterator<uword> EWAHBoolArray<uword>::bit_iterator() const {
-    return EWAHBoolArrayBitIterator<uword>(buffer);
+    return EWAHBoolArrayBitIterator<uword>(buffer, this->numberOfOnes());
 }
 
 template <class uword>
@@ -911,7 +938,7 @@ void EWAHBoolArray<uword>::toBoolArray(BoolArray<uword>& boolArray)const{
 }
 
 template <class uword>
-uint EWAHBoolArray<uword>::numberOfOnes() {
+uint EWAHBoolArray<uword>::numberOfOnes()const{
     uint c (0);
     EWAHBoolArraySparseIterator<uword> i = sparse_uncompress();
     while(i.hasNext()) {

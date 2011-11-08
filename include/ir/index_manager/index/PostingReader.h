@@ -8,14 +8,14 @@
 #ifndef POSTING_READER_H
 #define POSTING_READER_H
 
-#include <ir/index_manager/utility/BitVector.h>
-
+#include "types.h"
+#include <ir/index_manager/utility/system.h>
 #include <cassert>
 
 NS_IZENELIB_IR_BEGIN
 
 namespace indexmanager{
-
+class BitVector;
 struct PostingReader
 {
 public:

@@ -13,7 +13,6 @@
 #include <ir/index_manager/index/ListingCache.h>
 #include <ir/index_manager/index/TermInfo.h>
 #include <ir/index_manager/index/InputDescriptor.h>
-#include <ir/index_manager/utility/BitVector.h>
 
 #include <boost/scoped_ptr.hpp>
 
@@ -21,6 +20,7 @@ NS_IZENELIB_IR_BEGIN
 
 namespace indexmanager{
 
+class BitVector;
 class OutputDescriptor;
 class InputDescriptor;
 class FixedBlockSkipListReader;

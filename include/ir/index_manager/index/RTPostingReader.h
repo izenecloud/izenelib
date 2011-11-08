@@ -11,7 +11,6 @@
 #include <ir/index_manager/index/PostingReader.h>
 #include <ir/index_manager/index/VariantDataPool.h>
 #include <ir/index_manager/index/TermInfo.h>
-#include <ir/index_manager/utility/BitVector.h>
 
 #include <boost/scoped_ptr.hpp>
 
@@ -19,6 +18,7 @@ NS_IZENELIB_IR_BEGIN
 
 namespace indexmanager{
 
+class BitVector;
 class SkipListReader;
 class OutputDescriptor;
 class InputDescriptor;
