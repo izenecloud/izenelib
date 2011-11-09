@@ -125,7 +125,7 @@ TARGET_LINK_LIBRARIES(t_matrix
 ADD_EXECUTABLE(t_bitmap
   Runner.cpp
   bitmap/t_ewah.cpp
-//  bitmap/t_bitmap_index.cpp
+#  bitmap/t_bitmap_index.cpp
   )
 
 TARGET_LINK_LIBRARIES(t_bitmap
