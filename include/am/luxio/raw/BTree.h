@@ -13,9 +13,6 @@
 #include <3rdparty/am/luxio/btree.h>
 
 #include <boost/filesystem.hpp>
-#include <boost/archive/xml_oarchive.hpp>
-#include <boost/archive/xml_iarchive.hpp>
-#include <boost/archive/archive_exception.hpp>
 #include <boost/shared_ptr.hpp>
 
 namespace izenelib {
@@ -45,7 +42,6 @@ public:
     : bdb_(new Lux::IO::Btree(Lux::IO::NONCLUSTER))
     , isOpened_(false)
     , file_(file)
-    , count_(0)
     {
         set_index_type(NON_CLUSTER_LINKING);
     }
@@ -101,8 +97,6 @@ public:
 
         if (!file_.empty())
         {
-            countfile_ = boost::filesystem::path(boost::filesystem::path(file_).parent_path()/"luxiodb.xml").string();
-            restoreCountDb_();
             if ( !boost::filesystem::exists(file_) )
             {
                 bdb_->open(file_.c_str(), Lux::IO::DB_CREAT);
@@ -145,12 +139,12 @@ public:
 
     bool flush()
     {
-        return isOpened() && saveCountDb_();
+        return isOpened();
     }
 
     size_type size() const
     {
-        return bdb_ ? count_ : 0;
+        return bdb_ ? bdb_->size() : 0;
     }
     /**
      * @deprecated
@@ -169,7 +163,6 @@ public:
         {
             close();
             boost::filesystem::remove_all(file_);
-            count_ = 0;
             open();
         }
         return false;
@@ -188,7 +181,7 @@ public:
     bool insert(const Buffer& key, const Buffer& value)
     {
         return isOpened()&& bdb_->put(
-                   key.data(),key.size(), value.data(),value.size(),Lux::IO::APPEND)&&(++count_);
+                   key.data(),key.size(), value.data(),value.size(),Lux::IO::APPEND);
     }
     /**
      * @brief Insert new data into database.
@@ -254,7 +247,7 @@ public:
     bool del(const Buffer& key)
     {
         return isOpened() &&
-            bdb_->del(key.data(), key.size()) &&(count_--);
+            bdb_->del(key.data(), key.size());
     }
 
     bool appendUpdate(const Buffer& key, const Buffer& value)
@@ -338,55 +331,10 @@ public:
         return ret;
     }
 
-    bool saveCountDb_() const
-    {
-        try
-        {
-            std::ofstream ofs(countfile_.c_str());
-            if (ofs)
-            {
-                boost::archive::xml_oarchive oa(ofs);
-                oa << boost::serialization::make_nvp(
-                    "Count", count_
-                );
-            }
-
-            return ofs;
-        }
-        catch (boost::archive::archive_exception& e)
-        {
-            return false;
-        }
-    }
-
-    bool restoreCountDb_()
-    {
-        try
-        {
-            std::ifstream ifs(countfile_.c_str());
-            if (ifs)
-            {
-                boost::archive::xml_iarchive ia(ifs);
-                ia >> boost::serialization::make_nvp(
-                    "Count", count_
-                );
-            }
-            return ifs;
-	}
-        catch (boost::archive::archive_exception& e)
-        {
-            count_ = 0;
-            return false;
-        }
-    }
-
 private:
-
     Lux::IO::Btree* bdb_;
     bool isOpened_;
     std::string file_;
-    std::string countfile_;
-    size_t count_;
 };
 
 }}}} // namespace izenelib::am::luxio::raw

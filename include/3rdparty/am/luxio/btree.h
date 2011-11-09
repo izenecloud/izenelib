@@ -154,6 +154,7 @@ namespace IO {
     bool next(cursor_t *c);
     bool prev(cursor_t *c);
     bool cursor_get(cursor_t *c, data_t **key, data_t **val, alloc_type_t atype);
+    uint32_t size();
     // comparison functions
     static int str_cmp_func(data_t &d1, data_t &d2);
     static int int32_cmp_func(data_t &d1, data_t &d2);
