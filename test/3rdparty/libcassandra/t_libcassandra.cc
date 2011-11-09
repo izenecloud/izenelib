@@ -6,8 +6,6 @@
 #include <string>
 #include <stdio.h>
 
-#include <boost/algorithm/string/replace.hpp>
-
 #include <libcassandra/connection_manager.h>
 #include <libcassandra/cassandra.h>
 #include <libcassandra/column_family_definition.h>
@@ -80,7 +78,7 @@ int main()
         {
             client->createColumnFamily(cf_def);
         }
-        catch (...)
+        catch (org::apache::cassandra::InvalidRequestException &ire)
         {
             client->updateColumnFamily(cf_def);
         }
