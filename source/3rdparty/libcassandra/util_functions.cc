@@ -192,38 +192,37 @@ int64_t createTimestamp()
 string serializeLong(int64_t t)
 {
     unsigned char raw_array[8];
-    raw_array[0]= (t >> 56) & 0xff;
-    raw_array[1]= (t >> 48) & 0xff;
-    raw_array[2]= (t >> 40) & 0xff;
-    raw_array[3]= (t >> 32) & 0xff;
-    raw_array[4]= (t >> 24) & 0xff;
-    raw_array[5]= (t >> 16) & 0xff;
-    raw_array[6]= (t >> 8) & 0xff;
-    raw_array[7]= t & 0xff;
+    raw_array[0] = (t >> 56) & 0xff;
+    raw_array[1] = (t >> 48) & 0xff;
+    raw_array[2] = (t >> 40) & 0xff;
+    raw_array[3] = (t >> 32) & 0xff;
+    raw_array[4] = (t >> 24) & 0xff;
+    raw_array[5] = (t >> 16) & 0xff;
+    raw_array[6] = (t >> 8) & 0xff;
+    raw_array[7] = t & 0xff;
     return string(reinterpret_cast<const char *>(raw_array), 8);
 }
 
 
-int64_t deserializeLong(string& t)
+int64_t deserializeLong(const string& t)
 {
     int64_t ret= 0;
-    int64_t tmp= 0;
     unsigned char *raw_array= reinterpret_cast<unsigned char *>(const_cast<char *>(t.c_str()));
-    ret|= raw_array[7];
-    tmp= raw_array[6];
-    ret|= (tmp << 8);
-    tmp= raw_array[5];
-    ret|= (tmp << 16);
-    tmp= raw_array[4];
-    ret|= (tmp << 24);
-    tmp= raw_array[3];
-    ret|= (tmp << 32);
-    tmp= raw_array[2];
-    ret|= (tmp << 40);
-    tmp= raw_array[1];
-    ret|= (tmp << 48);
-    tmp= raw_array[0];
-    ret|= (tmp << 56);
+    ret |= raw_array[0];
+    ret <<= 8;
+    ret |= raw_array[1];
+    ret <<= 8;
+    ret |= raw_array[2];
+    ret <<= 8;
+    ret |= raw_array[3];
+    ret <<= 8;
+    ret |= raw_array[4];
+    ret <<= 8;
+    ret |= raw_array[5];
+    ret <<= 8;
+    ret |= raw_array[6];
+    ret <<= 8;
+    ret |= raw_array[7];
     return ret;
 }
 
