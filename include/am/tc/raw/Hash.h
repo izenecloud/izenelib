@@ -434,7 +434,7 @@ public:
     //@{
     //@brief tc special functions
 
-    bool appendUpdate(const Buffer& key, const Buffer& value)
+    bool append(const Buffer& key, const Buffer& value)
     {
         return checkHandle_(hdb_) && isOpened() &&
             ::tchdbputcat(

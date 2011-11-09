@@ -192,7 +192,11 @@ public:
     {
         return update(data.get_key(), data.get_value());
     }
-
+    bool append(const Buffer& key, const Buffer& value)
+    {
+        ///not supported yet
+        return false;
+    }
     bool get(const Buffer& key, Buffer& value) const
     {
         if (checkHandle_(db_) && isOpened())

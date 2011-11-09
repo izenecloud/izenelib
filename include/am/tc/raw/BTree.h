@@ -252,7 +252,7 @@ public:
     //@{
     //@brief tc special functions
 
-    bool appendUpdate(const Buffer& key, const Buffer& value)
+    bool append(const Buffer& key, const Buffer& value)
     {
         return checkHandle_(bdb_) && isOpened() &&
             ::tcbdbputcat(

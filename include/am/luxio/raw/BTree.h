@@ -250,7 +250,7 @@ public:
             bdb_->del(key.data(), key.size());
     }
 
-    bool appendUpdate(const Buffer& key, const Buffer& value)
+    bool append(const Buffer& key, const Buffer& value)
     {
         return isOpened() && bdb_->put(
                    key.data(),key.size(), value.data(),value.size(),Lux::IO::APPEND);

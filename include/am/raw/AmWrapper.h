@@ -150,6 +150,18 @@ public:
     {
         return update(data.get_key(), data.get_value());
     }
+    bool append(const key_type& key, const value_type& value)
+    {
+        Buffer keyBuffer;
+        izenelib::util::izene_serialization<key_type> izsKey(key);
+        write_image(izsKey, keyBuffer);
+
+        Buffer valueBuffer;
+        izenelib::util::izene_serialization<value_type> izsValue(value);
+        write_image(izsValue, valueBuffer);
+
+        return rawAm().append(keyBuffer, valueBuffer);
+    }
     bool get(const key_type& key, value_type& value) const
     {
         Buffer keyBuffer;

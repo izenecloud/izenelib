@@ -185,7 +185,7 @@ public:
             ::hs_delete(hdb_, (char*)key.data());
     }
 
-    bool appendUpdate(const Buffer& key, const Buffer& value)
+    bool append(const Buffer& key, const Buffer& value)
     {
         return hs_append(hdb_, (char*)key.data(), (char*)value.data(), value.size());
     }

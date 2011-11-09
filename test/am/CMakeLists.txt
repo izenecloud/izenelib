@@ -125,6 +125,7 @@ TARGET_LINK_LIBRARIES(t_matrix
 ADD_EXECUTABLE(t_bitmap
   Runner.cpp
   bitmap/t_ewah.cpp
+//  bitmap/t_bitmap_index.cpp
   )
 
 TARGET_LINK_LIBRARIES(t_bitmap
@@ -133,6 +134,7 @@ TARGET_LINK_LIBRARIES(t_bitmap
     ${Boost_THREAD_LIBRARY}
     ${Boost_FILESYSTEM_LIBRARY}
     ${Boost_SYSTEM_LIBRARY}
+    ${TokyoCabinet_LIBRARIES}
     ${Glog_LIBRARIES}
    febird
    procmeminfo
