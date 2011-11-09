@@ -74,7 +74,7 @@ public:
     void setColumnFamilies(const std::vector<ColumnFamilyDefinition>& cfs);
 
     /**
-     * @return durable writes 
+     * @return durable writes
      */
     bool getDurableWrites() const;
 

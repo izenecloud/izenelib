@@ -88,7 +88,7 @@ ColumnFamilyDefinition::ColumnFamilyDefinition(
 }
 
 
-string ColumnFamilyDefinition::getName() const
+const string& ColumnFamilyDefinition::getName() const
 {
     return name;
 }
@@ -100,7 +100,7 @@ void ColumnFamilyDefinition::setName(const string& cf_name)
 }
 
 
-string ColumnFamilyDefinition::getKeyspaceName() const
+const string& ColumnFamilyDefinition::getKeyspaceName() const
 {
     return keyspace_name;
 }
@@ -112,7 +112,7 @@ void ColumnFamilyDefinition::setKeyspaceName(const string& ks_name)
 }
 
 
-string ColumnFamilyDefinition::getColumnType() const
+const string& ColumnFamilyDefinition::getColumnType() const
 {
     return column_type;
 }
@@ -130,7 +130,7 @@ bool ColumnFamilyDefinition::isColumnTypeSet() const
 }
 
 
-string ColumnFamilyDefinition::getComparatorType() const
+const string& ColumnFamilyDefinition::getComparatorType() const
 {
     return comparator_type;
 }
@@ -148,7 +148,7 @@ bool ColumnFamilyDefinition::isComparatorTypeSet() const
 }
 
 
-string ColumnFamilyDefinition::getSubComparatorType() const
+const string& ColumnFamilyDefinition::getSubComparatorType() const
 {
     return sub_comparator_type;
 }
@@ -166,7 +166,7 @@ bool ColumnFamilyDefinition::isSubComparatorTypeSet() const
 }
 
 
-string ColumnFamilyDefinition::getComment() const
+const string& ColumnFamilyDefinition::getComment() const
 {
     return comment;
 }
@@ -274,7 +274,7 @@ bool ColumnFamilyDefinition::isGcGraceSecondsSet() const
 }
 
 
-string ColumnFamilyDefinition::getDefaultValidationClass() const
+const string& ColumnFamilyDefinition::getDefaultValidationClass() const
 {
     return default_validation_class;
 }

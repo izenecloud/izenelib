@@ -52,21 +52,21 @@ public:
     /**
      * @return column family name
      */
-    std::string getName() const;
+    const std::string& getName() const;
 
     void setName(const std::string& cf_name);
 
     /**
      * @return keyspace name
      */
-    std::string getKeyspaceName() const;
+    const std::string& getKeyspaceName() const;
 
     void setKeyspaceName(const std::string& ks_name);
 
     /**
      * @return column type
      */
-    std::string getColumnType() const;
+    const std::string& getColumnType() const;
 
     void setColumnType(const std::string& col_type);
 
@@ -78,7 +78,7 @@ public:
     /**
      * @return comparator type
      */
-    std::string getComparatorType() const;
+    const std::string& getComparatorType() const;
 
     void setComparatorType(const std::string& comp_type);
 
@@ -90,7 +90,7 @@ public:
     /**
      * @return sub-comparator type
      */
-    std::string getSubComparatorType() const;
+    const std::string& getSubComparatorType() const;
 
     void setSubComparatorType(const std::string& sub_comp_type);
 
@@ -102,7 +102,7 @@ public:
     /**
      * @return comment
      */
-    std::string getComment() const;
+    const std::string& getComment() const;
 
     void setComment(const std::string& comm);
 
@@ -174,7 +174,7 @@ public:
     /**
      * @return default validation class
      */
-    std::string getDefaultValidationClass() const;
+    const std::string& getDefaultValidationClass() const;
 
     void setDefaultValidationClass(const std::string& class_name);
 

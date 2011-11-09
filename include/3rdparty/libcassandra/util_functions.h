@@ -102,7 +102,7 @@ std::string serializeLong(int64_t t);
  * @param[in] t string to work with
  * @return a int64_t
  */
-int64_t deserializeLong(std::string& t);
+int64_t deserializeLong(const std::string& t);
 
 } /* end namespace libcassandra */
 
