@@ -42,6 +42,12 @@ public:
 
     /**
      * Log for the current session
+     * @param[in] credentials to use for authentication
+     */
+    void login(const std::map<std::string, std::string>& credentials);
+
+    /**
+     * Log for the current session
      * @param[in] user to use for authentication
      * @param[in] password to use for authentication
      */

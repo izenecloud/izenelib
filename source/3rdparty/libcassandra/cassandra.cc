@@ -10,9 +10,6 @@
 #include <time.h>
 #include <netinet/in.h>
 
-#include <string>
-#include <set>
-
 #include "libcassandra/cassandra.h"
 #include "libcassandra/connection_manager.h"
 #include "libcassandra/cassandra_client.h"
@@ -54,6 +51,15 @@ Cassandra::Cassandra(const string& keyspace)
 
 Cassandra::~Cassandra()
 {}
+
+void Cassandra::login(const map<string, string>& credentials)
+{
+    AuthenticationRequest req;
+    req.__set_credentials(credentials);
+    BORROW_CLIENT
+    thrift_client->login(req);
+    RELEASE_CLIENT
+}
 
 void Cassandra::login(const string& user, const string& password)
 {
