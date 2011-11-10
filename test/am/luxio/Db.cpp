@@ -14,6 +14,7 @@
 
 #include <am/luxio/BTree.h>
 #include <am/range/AmIterator.h>
+#include <util/ClockTimer.h>
 
 #define DIR_PREFIX "./tmp/am_luxio_Db_"
 
@@ -149,6 +150,35 @@ BOOST_AUTO_TEST_CASE(BTree_test)
     BOOST_CHECK(h.get(k, v));
     BOOST_CHECK(v == "a");
     }
+}
+
+BOOST_AUTO_TEST_CASE(Btree_bench)
+{
+    bfs::path db_dir(DIR_PREFIX);
+    boost::filesystem::remove_all(db_dir);
+    bfs::create_directories(db_dir);
+    std::string db_dir_str = db_dir.string();
+    typedef BTree<uint32_t,uint32_t> BTreeType;
+    BTreeType h(db_dir_str+"/BTree_test");
+	
+    BOOST_CHECK(h.open());
+
+    size_t max = 4000;
+    for(uint32_t i = 1; i < max; ++i)
+    {
+        h.insert(i,i);
+    }
+
+    std::cout<<"Begin iterating "<<std::endl;
+
+    izenelib::util::ClockTimer timer;
+    typedef AMIterator<BTreeType > AMIteratorType;
+    AMIteratorType iter(h);
+    AMIteratorType end;
+    for(; iter != end; ++iter)
+    {
+    }
+    std::cout<<"Iterating elapsed "<<timer.elapsed()<<std::endl;
 }
 
 BOOST_AUTO_TEST_SUITE_END() // luxio_Db_test
