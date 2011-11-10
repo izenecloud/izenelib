@@ -2,6 +2,7 @@
 #include <iostream>
 #include <dag_vector/comp_vector.hpp>
 #include <string>
+#include <cstdio>
 
 using namespace std;
 
@@ -42,4 +43,3 @@ BOOST_AUTO_TEST_CASE(comp_vector)
     cout << "test passed." << endl;
 }
 BOOST_AUTO_TEST_SUITE_END() // dag_vector_test
-
