@@ -590,8 +590,18 @@ string Cassandra::createColumnFamily(const ColumnFamilyDefinition& cf_def)
     string schema_id;
     CfDef thrift_cf_def;
     createCfDefObject(thrift_cf_def, cf_def);
+    reloadKeyspaces();
+    const map<string, ColumnFamilyDefinition>& cf_defs = key_spaces_.find(current_keyspace_)->second.getColumnFamilies();
+    map<string, ColumnFamilyDefinition>::const_iterator cf_it = cf_defs.find(cf_def.getName());
+
     BORROW_CLIENT
-    thrift_client->system_add_column_family(schema_id, thrift_cf_def);
+    if (cf_it == cf_defs.end())
+        thrift_client->system_add_column_family(schema_id, thrift_cf_def);
+    else
+    {
+        thrift_cf_def.__set_id(cf_it->second.getId());
+        thrift_client->system_update_column_family(schema_id, thrift_cf_def);
+    }
     RELEASE_CLIENT
     return schema_id;
 }
@@ -621,8 +631,14 @@ string Cassandra::createKeyspace(const KeyspaceDefinition& ks_def)
     string ret;
     KsDef thrift_ks_def;
     createKsDefObject(thrift_ks_def, ks_def);
+    reloadKeyspaces();
+    map<string, KeyspaceDefinition>::const_iterator ks_it = key_spaces_.find(ks_def.getName());
+
     BORROW_CLIENT
-    thrift_client->system_add_keyspace(ret, thrift_ks_def);
+    if (ks_it == key_spaces_.end())
+        thrift_client->system_add_keyspace(ret, thrift_ks_def);
+    else
+        thrift_client->system_update_keyspace(ret, thrift_ks_def);
     RELEASE_CLIENT
     return ret;
 }

@@ -44,15 +44,7 @@ int main()
         cout << "Create keyspace: " << ks_name << endl;
         KeyspaceDefinition ks_def;
         ks_def.setName(ks_name);
-        client->reloadKeyspaces();
-        if (!client->findKeyspace(ks_name))
-        {
-            client->createKeyspace(ks_def);
-        }
-        else
-        {
-            client->updateKeyspace(ks_def);
-        }
+        client->createKeyspace(ks_def);
         client->setKeyspace(ks_def.getName());
 
         cout << "Current keyspaces are:" << endl;
@@ -75,14 +67,7 @@ int main()
         compress_options["sstable_compression"] = "SnappyCompressor";
         compress_options["chunk_length_kb"] = "64";
         cf_def.setCompressOptions(compress_options);
-        try
-        {
-            client->createColumnFamily(cf_def);
-        }
-        catch (org::apache::cassandra::InvalidRequestException &ire)
-        {
-            client->updateColumnFamily(cf_def);
-        }
+        client->createColumnFamily(cf_def);
         cout << "Now we have " << client->getCount(key, col_parent, pred) << " column(s) in the super column." << endl << endl;
 
         /* insert data */
