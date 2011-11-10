@@ -7,10 +7,6 @@
  * the COPYING file in the parent directory for full text.
  */
 
-#include <string>
-#include <vector>
-#include <map>
-
 #include "libcassandra/keyspace_definition.h"
 
 using namespace libcassandra;
@@ -64,7 +60,7 @@ KeyspaceDefinition::KeyspaceDefinition(
                                      thrift_entry.row_cache_save_period_in_seconds,
                                      thrift_entry.key_cache_save_period_in_seconds,
                                      thrift_entry.compression_options);
-        col_family_defs.push_back(entry);
+        col_family_defs[thrift_entry.name] = entry;
     }
 }
 
@@ -117,13 +113,13 @@ void KeyspaceDefinition::setReplicationFactor(int32_t rep_factor)
 }
 
 
-const vector<ColumnFamilyDefinition>& KeyspaceDefinition::getColumnFamilies() const
+const map<string, ColumnFamilyDefinition>& KeyspaceDefinition::getColumnFamilies() const
 {
     return col_family_defs;
 }
 
 
-void KeyspaceDefinition::setColumnFamilies(const vector<ColumnFamilyDefinition>& cfs)
+void KeyspaceDefinition::setColumnFamilies(const map<string, ColumnFamilyDefinition>& cfs)
 {
     col_family_defs = cfs;
 }

@@ -44,6 +44,7 @@ int main()
         cout << "Create keyspace: " << ks_name << endl;
         KeyspaceDefinition ks_def;
         ks_def.setName(ks_name);
+        client->reloadKeyspaces();
         if (!client->findKeyspace(ks_name))
         {
             client->createKeyspace(ks_def);

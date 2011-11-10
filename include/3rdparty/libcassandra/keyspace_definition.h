@@ -11,8 +11,8 @@
 #define __LIBCASSANDRA_KEYSPACE_DEFINITION_H
 
 #include <string>
-#include <map>
 #include <vector>
+#include <map>
 
 #include "genthrift/cassandra_types.h"
 
@@ -69,9 +69,9 @@ public:
     /**
      * @return the column families in this keyspace
      */
-    const std::vector<ColumnFamilyDefinition>& getColumnFamilies() const;
+    const std::map<std::string, ColumnFamilyDefinition>& getColumnFamilies() const;
 
-    void setColumnFamilies(const std::vector<ColumnFamilyDefinition>& cfs);
+    void setColumnFamilies(const std::map<std::string, ColumnFamilyDefinition>& cfs);
 
     /**
      * @return durable writes
@@ -90,7 +90,7 @@ private:
 
     int32_t replication_factor;
 
-    std::vector<ColumnFamilyDefinition> col_family_defs;
+    std::map<std::string, ColumnFamilyDefinition> col_family_defs;
 
     bool durable_writes;
 

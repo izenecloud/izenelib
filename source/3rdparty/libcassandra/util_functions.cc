@@ -40,13 +40,13 @@ void createKsDefObject(KsDef& thrift_ks_def, const KeyspaceDefinition& ks_def)
 {
     thrift_ks_def.__set_name(ks_def.getName());
     thrift_ks_def.__set_strategy_class(ks_def.getStrategyClass());
-    const vector<ColumnFamilyDefinition>& cf_defs = ks_def.getColumnFamilies();
-    for (vector<ColumnFamilyDefinition>::const_iterator it = cf_defs.begin();
+    const map<string, ColumnFamilyDefinition>& cf_defs = ks_def.getColumnFamilies();
+    for (map<string, ColumnFamilyDefinition>::const_iterator it = cf_defs.begin();
             it != cf_defs.end();
             ++it)
     {
         thrift_ks_def.cf_defs.push_back(CfDef());
-        createCfDefObject(thrift_ks_def.cf_defs.back(), *it);
+        createCfDefObject(thrift_ks_def.cf_defs.back(), it->second);
     }
     thrift_ks_def.__set_replication_factor(ks_def.getReplicationFactor());
     thrift_ks_def.__set_durable_writes(ks_def.getDurableWrites());

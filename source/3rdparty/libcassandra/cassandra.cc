@@ -41,7 +41,6 @@ Cassandra::Cassandra()
      key_spaces_(),
      token_map_()
 {
-    reloadKeyspaces();
 }
 
 Cassandra::Cassandra(const string& keyspace)
@@ -51,7 +50,6 @@ Cassandra::Cassandra(const string& keyspace)
      key_spaces_(),
      token_map_()
 {
-    reloadKeyspaces();
 }
 
 Cassandra::~Cassandra()
@@ -626,7 +624,6 @@ string Cassandra::createKeyspace(const KeyspaceDefinition& ks_def)
     BORROW_CLIENT
     thrift_client->system_add_keyspace(ret, thrift_ks_def);
     RELEASE_CLIENT
-    key_spaces_[ks_def.getName()] = ks_def;
     return ret;
 }
 
@@ -638,7 +635,6 @@ string Cassandra::updateKeyspace(const KeyspaceDefinition& ks_def)
     BORROW_CLIENT
     thrift_client->system_update_keyspace(ret, thrift_ks_def);
     RELEASE_CLIENT
-    key_spaces_[ks_def.getName()] = ks_def;
     return ret;
 }
 
@@ -662,7 +658,6 @@ string Cassandra::dropKeyspace(const string& ks_name)
     BORROW_CLIENT
     thrift_client->system_drop_keyspace(ret, ks_name);
     RELEASE_CLIENT
-    key_spaces_.erase(ks_name);
     if (current_keyspace_ == ks_name)
         current_keyspace_.clear();
 
