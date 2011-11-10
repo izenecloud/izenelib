@@ -316,6 +316,18 @@ void Cassandra::getSuperColumn(
     swap(ret, cosc.super_column);
 }
 
+void Cassandra::getRawSlice(
+        vector<ColumnOrSuperColumn>& ret,
+        const string& key,
+        const ColumnParent& col_parent,
+        const SlicePredicate& pred,
+        const ConsistencyLevel::type level)
+{
+    BORROW_CLIENT
+    thrift_client->get_slice(ret, key, col_parent, pred, level);
+    RELEASE_CLIENT
+}
+
 void Cassandra::getSlice(
         vector<Column>& ret,
         const string& key,
@@ -337,6 +349,72 @@ void Cassandra::getSlice(
             ret.push_back(it->column);
         }
     }
+}
+
+void Cassandra::getSuperSlice(
+        vector<SuperColumn>& ret,
+        const string& key,
+        const ColumnParent& col_parent,
+        const SlicePredicate& pred,
+        const ConsistencyLevel::type level)
+{
+    vector<ColumnOrSuperColumn> ret_cosc;
+    BORROW_CLIENT
+    thrift_client->get_slice(ret_cosc, key, col_parent, pred, level);
+    RELEASE_CLIENT
+
+    for (vector<ColumnOrSuperColumn>::const_iterator it= ret_cosc.begin();
+            it != ret_cosc.end();
+            ++it)
+    {
+        if (! it->super_column.name.empty())
+        {
+            ret.push_back(it->super_column);
+        }
+    }
+}
+
+void Cassandra::getRawRangeSlices(
+        map<string, vector<ColumnOrSuperColumn> >& ret,
+        const ColumnParent& col_parent,
+        const SlicePredicate& pred,
+        const KeyRange& range,
+        const ConsistencyLevel::type level)
+{
+    vector<KeySlice> key_slices;
+    BORROW_CLIENT
+    thrift_client->get_range_slices(key_slices,
+            col_parent,
+            pred,
+            range,
+            level);
+    RELEASE_CLIENT
+
+    if (! key_slices.empty())
+    {
+        for (vector<KeySlice>::const_iterator it= key_slices.begin();
+                it != key_slices.end();
+                ++it)
+        {
+            ret[it->key] = it->columns;
+        }
+    }
+}
+
+void Cassandra::getRawRangeSlices(
+        map<string, vector<ColumnOrSuperColumn> >& ret,
+        const ColumnParent& col_parent,
+        const SlicePredicate& pred,
+        const string& start,
+        const string& finish,
+        const int32_t row_count,
+        const ConsistencyLevel::type level)
+{
+    KeyRange key_range;
+    key_range.__set_start_key(start);
+    key_range.__set_end_key(finish);
+    key_range.__set_count(row_count);
+    getRawRangeSlices(ret, col_parent, pred, key_range, level);
 }
 
 void Cassandra::getRangeSlices(

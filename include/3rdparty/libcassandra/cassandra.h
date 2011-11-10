@@ -326,11 +326,41 @@ public:
             const std::string& super_column_name,
             const org::apache::cassandra::ConsistencyLevel::type level = org::apache::cassandra::ConsistencyLevel::QUORUM);
 
+    void getRawSlice(
+            std::vector<org::apache::cassandra::ColumnOrSuperColumn>& ret,
+            const std::string& key,
+            const org::apache::cassandra::ColumnParent& col_parent,
+            const org::apache::cassandra::SlicePredicate& pred,
+            const org::apache::cassandra::ConsistencyLevel::type level = org::apache::cassandra::ConsistencyLevel::QUORUM);
+
     void getSlice(
             std::vector<org::apache::cassandra::Column>& ret,
             const std::string& key,
             const org::apache::cassandra::ColumnParent& col_parent,
             const org::apache::cassandra::SlicePredicate& pred,
+            const org::apache::cassandra::ConsistencyLevel::type level = org::apache::cassandra::ConsistencyLevel::QUORUM);
+
+    void getSuperSlice(
+            std::vector<org::apache::cassandra::SuperColumn>& ret,
+            const std::string& key,
+            const org::apache::cassandra::ColumnParent& col_parent,
+            const org::apache::cassandra::SlicePredicate& pred,
+            const org::apache::cassandra::ConsistencyLevel::type level = org::apache::cassandra::ConsistencyLevel::QUORUM);
+
+    void getRawRangeSlices(
+            std::map<std::string, std::vector<org::apache::cassandra::ColumnOrSuperColumn> >& ret,
+            const org::apache::cassandra::ColumnParent& col_parent,
+            const org::apache::cassandra::SlicePredicate& pred,
+            const org::apache::cassandra::KeyRange& range,
+            const org::apache::cassandra::ConsistencyLevel::type level = org::apache::cassandra::ConsistencyLevel::QUORUM);
+
+    void getRawRangeSlices(
+            std::map<std::string, std::vector<org::apache::cassandra::ColumnOrSuperColumn> >& ret,
+            const org::apache::cassandra::ColumnParent& col_parent,
+            const org::apache::cassandra::SlicePredicate& pred,
+            const std::string& start,
+            const std::string& finish,
+            const int32_t row_count,
             const org::apache::cassandra::ConsistencyLevel::type level = org::apache::cassandra::ConsistencyLevel::QUORUM);
 
     void getRangeSlices(
@@ -441,7 +471,7 @@ public:
     void executeCqlQuery(
             org::apache::cassandra::CqlResult& result,
             const std::string& query,
-            const org::apache::cassandra::Compression::type compression = org::apache::cassandra::Compression::NONE);
+            const org::apache::cassandra::Compression::type compression = org::apache::cassandra::Compression::GZIP);
 
     /**
      * @return the target server cluster name.
