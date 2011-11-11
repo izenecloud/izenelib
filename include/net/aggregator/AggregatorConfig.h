@@ -43,7 +43,8 @@ public:
     std::string toString()
     {
         std::stringstream ss;
-        ss <<"[AggregatorConfig] localWorker enabled ? "<<enableLocalWorker_<<endl;
+        ss <<"[AggregatorConfig] "<<endl;
+        ss <<"localworker="<<(enableLocalWorker_?"true":"false")<<endl;
 
         for (size_t i = 0; i < workerInfoList_.size(); i++)
         {
