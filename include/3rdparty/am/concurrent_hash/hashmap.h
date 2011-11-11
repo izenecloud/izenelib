@@ -163,7 +163,13 @@ retry:
         };
         return false;
     }
+
     ~hashmap()
+    {
+        clear();
+    }
+
+    void clear()
     {
         for (size_t i=0; i < lock_qty_; ++i)
         {
@@ -185,6 +191,7 @@ retry:
         }
         delete[] locks_;
     }
+
     void dump()const
     {
         for (int i=0; i < lock_qty_; ++i)

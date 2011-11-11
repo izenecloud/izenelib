@@ -207,7 +207,7 @@ string serializeLong(int64_t t)
 int64_t deserializeLong(const string& t)
 {
     int64_t ret= 0;
-    unsigned char *raw_array= reinterpret_cast<unsigned char *>(const_cast<char *>(t.c_str()));
+    const unsigned char *raw_array= reinterpret_cast<const unsigned char *>(t.c_str());
     ret |= raw_array[0];
     ret <<= 8;
     ret |= raw_array[1];

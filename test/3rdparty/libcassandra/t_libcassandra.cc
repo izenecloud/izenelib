@@ -21,12 +21,6 @@ static int port= 9160;
 static size_t pool_size = 16;
 int main()
 {
-    CassandraConnectionManager::instance()->init(host,port,pool_size);
-    boost::shared_ptr<Cassandra> client(new Cassandra());
-
-    string clus_name= client->getClusterName();
-    cout << "cluster name: " << clus_name << endl;
-
     try
     {
         static const string ks_name("drizzle");
@@ -35,6 +29,13 @@ int main()
         static const string col_family("Data");
         static const string sup_col_name("Test");
         static const string col_name("third");
+
+        CassandraConnectionManager::instance()->init(host,port,pool_size);
+        boost::shared_ptr<Cassandra> client(new Cassandra());
+
+        string clus_name= client->getClusterName();
+        cout << "cluster name: " << clus_name << endl;
+
         ColumnParent col_parent;
         col_parent.__set_column_family(col_family);
         col_parent.__set_super_column(sup_col_name);
@@ -86,10 +87,15 @@ int main()
         client->removeColumn(key, col_family, sup_col_name, col_name);
         cout << "Now we have " << client->getCount(key, col_parent, pred) << " column(s) in the super column." << endl << endl;
     }
-    catch (org::apache::cassandra::InvalidRequestException &ire)
+    catch (const org::apache::cassandra::InvalidRequestException &ire)
     {
-        cout << ire.why << endl;
+        cerr << "Invalid request: " << ire.why << endl;
         return 1;
+    }
+    catch (const ::apache::thrift::TException &ex)
+    {
+        cerr << "Other error: " << ex.what() << endl;
+        return 2;
     }
 
     return 0;

@@ -78,7 +78,11 @@ void FieldIndexer::setIndexMode(MemCache* pMemCache, size_t nBatchMemSize, bool 
             delete alloc_;
             alloc_ = 0;
         }
-        pMemCache_ = new MemCache(pIndexer_->getIndexManagerConfig()->mergeStrategy_.memPoolSizeForPostingMerger_);
+        if(!(!pMemCache_&&ownMemCache_))
+        //Create memcache when :
+        // 1. Startup, then setIndexMode(realtime=true)
+        // 2. setIndexMode(realtime=false), then setIndexMode(realtime=true)
+            pMemCache_ = new MemCache(pIndexer_->getIndexManagerConfig()->mergeStrategy_.memPoolSizeForPostingMerger_);
         ownMemCache_ = true;
         setHitBuffer_(nBatchMemSize);
     }
