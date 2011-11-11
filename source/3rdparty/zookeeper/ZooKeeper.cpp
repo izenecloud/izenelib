@@ -140,6 +140,8 @@ void ZooKeeper::disconnect()
     }
 }
 
+/// Synchronous API
+
 bool ZooKeeper::createZNode(const std::string &path, const std::string &data, ZNodeCreateType flags)
 {
     memset( realNodePath_, 0, MAX_PATH_LENGTH );
@@ -348,7 +350,31 @@ void ZooKeeper::getZNodeChildren(const std::string &path, std::vector<std::strin
     }
 }
 
+/// Asynchronous API
 
+bool ZooKeeper::acreateZNode(const std::string &path, const std::string &data, ZNodeCreateType flags)
+{
+    memset( realNodePath_, 0, MAX_PATH_LENGTH );
+
+    int rc = zoo_acreate(
+                 zk_,
+                 path.c_str(),
+                 data.c_str(),
+                 data.length(),
+                 &ZOO_OPEN_ACL_UNSAFE,
+                 flags,
+                 NULL,
+                 NULL);
+
+    zkError_ = ZooKeeper::ZKErrorType(rc);
+
+    if (rc == ZOK)
+        return true;
+
+    return false;
+}
+
+/// Other
 
 void ZooKeeper::showZKNamespace(const std::string& path, int level, std::ostream& out)
 {

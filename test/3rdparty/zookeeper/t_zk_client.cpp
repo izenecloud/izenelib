@@ -1,5 +1,6 @@
 #include <cstdlib>
 #include <ctime>
+#include <string.h>
 
 #include <boost/thread.hpp>
 
@@ -103,6 +104,17 @@ void t_zk_data_pack(string& hosts)
     zdata2.loadZkData(sdata2, true);
 }
 
+void t_asyn_create(string& hosts)
+{
+    ZooKeeper cli(hosts, 2000);
+
+    cli.createZNode("/syn_create", "hear me s");
+    cli.createZNode("/asyn_create", "hear me a");
+
+    while (!cli.isConnected())
+        sleep(1);
+}
+
 void t_DoubleBarrier(string& hosts)
 {
     cout << "enter process name:"<<endl;
@@ -150,8 +162,17 @@ void t_CyclicBarrier(string& hosts)
 
 int main(int argv, char* argc[])
 {
-    string hosts = "127.0.0.1:2181,127.0.0.1:2182,127.0.0.1:2183";
+    string hosts = "127.0.0.1:2181";
     hosts = "172.16.0.161:2181,172.16.0.162:2181,172.16.0.163:2181";
+
+    if (argv >= 3)
+    {
+        if ((strcasecmp(argc[1], "delete") == 0))
+        {
+            ZooKeeper cli(hosts, 2000);
+            if (cli.deleteZNode(argc[2], true));
+        }
+    }
 
     //t_zk_client(hosts);
 
@@ -161,7 +182,9 @@ int main(int argv, char* argc[])
 
     //t_zk_watch_event(hosts);
 
-    t_zk_data_pack(hosts);
+    // t_zk_data_pack(hosts);
+
+    //t_asyn_create(hosts);
 
     return 0;
 }

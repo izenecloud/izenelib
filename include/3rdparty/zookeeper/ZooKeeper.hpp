@@ -274,7 +274,7 @@ public:
      * @{
      */
 
-    // TODO
+    bool acreateZNode(const std::string &path, const std::string &data="", ZNodeCreateType flags = ZNODE_NORMAL);
 
     /**
      * @}
