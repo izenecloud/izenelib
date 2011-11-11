@@ -223,6 +223,7 @@ MemTermIterator::~MemTermIterator(void)
 
 bool MemTermIterator::next()
 {
+    if(postingIterator_ == postingIteratorEnd_) return false;
     postingIterator_++;
     RTPostingWriter* pPostingWriter = NULL;
     if(postingIterator_ != postingIteratorEnd_)
