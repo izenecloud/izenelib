@@ -6,9 +6,6 @@
 #include <string>
 #include <stdio.h>
 
-#include <unistd.h>
-#include <boost/algorithm/string/replace.hpp>
-
 #include <libcassandra/connection_manager.h>
 #include <libcassandra/cassandra.h>
 #include <libcassandra/column_family_definition.h>
@@ -32,10 +29,7 @@ int main()
 
     try
     {
-        char hostname[255];
-        gethostname(hostname, sizeof(hostname));
-        string ks_name(hostname);
-        boost::replace_all(ks_name, "-", "_");
+        static const string ks_name("drizzle");
         static const string key("sarah");
         static const string col_value("this is data being inserted!");
         static const string col_family("Data");
@@ -50,10 +44,6 @@ int main()
         cout << "Create keyspace: " << ks_name << endl;
         KeyspaceDefinition ks_def;
         ks_def.setName(ks_name);
-        if (client->findKeyspace(ks_name))
-        {
-            client->dropKeyspace(ks_name);
-        }
         client->createKeyspace(ks_def);
         client->setKeyspace(ks_def.getName());
 
@@ -72,6 +62,7 @@ int main()
         cf_def.setName(col_family);
         cf_def.setColumnType("Super");
         cf_def.setKeyspaceName(ks_def.getName());
+        cf_def.setId(1000);
         std::map<std::string, std::string> compress_options;
         compress_options["sstable_compression"] = "SnappyCompressor";
         compress_options["chunk_length_kb"] = "64";
@@ -94,20 +85,6 @@ int main()
         cout << endl << "Deleting...." << endl;
         client->removeColumn(key, col_family, sup_col_name, col_name);
         cout << "Now we have " << client->getCount(key, col_parent, pred) << " column(s) in the super column." << endl << endl;
-
-        /* drop column family and keyspace */
-        client->dropColumnFamily(col_family);
-        cout << "Drop keyspace: " << ks_name << endl;
-        client->dropKeyspace(ks_name);
-
-        cout << "Current keyspaces are:" << endl;
-        {
-            const map<string, KeyspaceDefinition>& key_out= client->getKeyspaces();
-            for (map<string, KeyspaceDefinition>::const_iterator it = key_out.begin(); it != key_out.end(); ++it)
-            {
-                cout << it->first << endl;
-            }
-        }
     }
     catch (org::apache::cassandra::InvalidRequestException &ire)
     {

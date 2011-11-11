@@ -10,9 +10,6 @@
 #include <time.h>
 #include <netinet/in.h>
 
-#include <string>
-#include <set>
-
 #include "libcassandra/cassandra.h"
 #include "libcassandra/connection_manager.h"
 #include "libcassandra/cassandra_client.h"
@@ -41,7 +38,6 @@ Cassandra::Cassandra()
      key_spaces_(),
      token_map_()
 {
-    reloadKeyspaces();
 }
 
 Cassandra::Cassandra(const string& keyspace)
@@ -51,11 +47,19 @@ Cassandra::Cassandra(const string& keyspace)
      key_spaces_(),
      token_map_()
 {
-    reloadKeyspaces();
 }
 
 Cassandra::~Cassandra()
 {}
+
+void Cassandra::login(const map<string, string>& credentials)
+{
+    AuthenticationRequest req;
+    req.__set_credentials(credentials);
+    BORROW_CLIENT
+    thrift_client->login(req);
+    RELEASE_CLIENT
+}
 
 void Cassandra::login(const string& user, const string& password)
 {
@@ -316,6 +320,18 @@ void Cassandra::getSuperColumn(
     swap(ret, cosc.super_column);
 }
 
+void Cassandra::getRawSlice(
+        vector<ColumnOrSuperColumn>& ret,
+        const string& key,
+        const ColumnParent& col_parent,
+        const SlicePredicate& pred,
+        const ConsistencyLevel::type level)
+{
+    BORROW_CLIENT
+    thrift_client->get_slice(ret, key, col_parent, pred, level);
+    RELEASE_CLIENT
+}
+
 void Cassandra::getSlice(
         vector<Column>& ret,
         const string& key,
@@ -337,6 +353,72 @@ void Cassandra::getSlice(
             ret.push_back(it->column);
         }
     }
+}
+
+void Cassandra::getSuperSlice(
+        vector<SuperColumn>& ret,
+        const string& key,
+        const ColumnParent& col_parent,
+        const SlicePredicate& pred,
+        const ConsistencyLevel::type level)
+{
+    vector<ColumnOrSuperColumn> ret_cosc;
+    BORROW_CLIENT
+    thrift_client->get_slice(ret_cosc, key, col_parent, pred, level);
+    RELEASE_CLIENT
+
+    for (vector<ColumnOrSuperColumn>::const_iterator it= ret_cosc.begin();
+            it != ret_cosc.end();
+            ++it)
+    {
+        if (! it->super_column.name.empty())
+        {
+            ret.push_back(it->super_column);
+        }
+    }
+}
+
+void Cassandra::getRawRangeSlices(
+        map<string, vector<ColumnOrSuperColumn> >& ret,
+        const ColumnParent& col_parent,
+        const SlicePredicate& pred,
+        const KeyRange& range,
+        const ConsistencyLevel::type level)
+{
+    vector<KeySlice> key_slices;
+    BORROW_CLIENT
+    thrift_client->get_range_slices(key_slices,
+            col_parent,
+            pred,
+            range,
+            level);
+    RELEASE_CLIENT
+
+    if (! key_slices.empty())
+    {
+        for (vector<KeySlice>::const_iterator it= key_slices.begin();
+                it != key_slices.end();
+                ++it)
+        {
+            ret[it->key] = it->columns;
+        }
+    }
+}
+
+void Cassandra::getRawRangeSlices(
+        map<string, vector<ColumnOrSuperColumn> >& ret,
+        const ColumnParent& col_parent,
+        const SlicePredicate& pred,
+        const string& start,
+        const string& finish,
+        const int32_t row_count,
+        const ConsistencyLevel::type level)
+{
+    KeyRange key_range;
+    key_range.__set_start_key(start);
+    key_range.__set_end_key(finish);
+    key_range.__set_count(row_count);
+    getRawRangeSlices(ret, col_parent, pred, key_range, level);
 }
 
 void Cassandra::getRangeSlices(
@@ -514,8 +596,18 @@ string Cassandra::createColumnFamily(const ColumnFamilyDefinition& cf_def)
     string schema_id;
     CfDef thrift_cf_def;
     createCfDefObject(thrift_cf_def, cf_def);
+    reloadKeyspaces();
+    const map<string, ColumnFamilyDefinition>& cf_defs = key_spaces_.find(current_keyspace_)->second.getColumnFamilies();
+    map<string, ColumnFamilyDefinition>::const_iterator cf_it = cf_defs.find(cf_def.getName());
+
     BORROW_CLIENT
-    thrift_client->system_add_column_family(schema_id, thrift_cf_def);
+    if (cf_it == cf_defs.end())
+        thrift_client->system_add_column_family(schema_id, thrift_cf_def);
+    else
+    {
+        thrift_cf_def.__set_id(cf_it->second.getId());
+        thrift_client->system_update_column_family(schema_id, thrift_cf_def);
+    }
     RELEASE_CLIENT
     return schema_id;
 }
@@ -545,10 +637,26 @@ string Cassandra::createKeyspace(const KeyspaceDefinition& ks_def)
     string ret;
     KsDef thrift_ks_def;
     createKsDefObject(thrift_ks_def, ks_def);
+    reloadKeyspaces();
+    map<string, KeyspaceDefinition>::const_iterator ks_it = key_spaces_.find(ks_def.getName());
+
     BORROW_CLIENT
-    thrift_client->system_add_keyspace(ret, thrift_ks_def);
+    if (ks_it == key_spaces_.end())
+        thrift_client->system_add_keyspace(ret, thrift_ks_def);
+    else
+        thrift_client->system_update_keyspace(ret, thrift_ks_def);
     RELEASE_CLIENT
-    key_spaces_[ks_def.getName()] = ks_def;
+    return ret;
+}
+
+string Cassandra::updateKeyspace(const KeyspaceDefinition& ks_def)
+{
+    string ret;
+    KsDef thrift_ks_def;
+    createKsDefObject(thrift_ks_def, ks_def);
+    BORROW_CLIENT
+    thrift_client->system_update_keyspace(ret, thrift_ks_def);
+    RELEASE_CLIENT
     return ret;
 }
 
@@ -572,7 +680,6 @@ string Cassandra::dropKeyspace(const string& ks_name)
     BORROW_CLIENT
     thrift_client->system_drop_keyspace(ret, ks_name);
     RELEASE_CLIENT
-    key_spaces_.erase(ks_name);
     if (current_keyspace_ == ks_name)
         current_keyspace_.clear();
 

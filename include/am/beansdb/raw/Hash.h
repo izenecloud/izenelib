@@ -13,6 +13,7 @@
 
 #include <3rdparty/am/beansdb/hstore.h>
 
+#include <boost/optional.hpp>
 
 namespace izenelib {
 namespace am {
@@ -29,6 +30,7 @@ public:
     typedef Buffer value_type;
     typedef DataType<Buffer, Buffer> data_type;
     typedef int size_type;
+    typedef boost::optional<key_type> cursor_type;
 
     explicit Hash(const std::string& file)
     {
@@ -183,7 +185,7 @@ public:
             ::hs_delete(hdb_, (char*)key.data());
     }
 
-    bool appendUpdate(const Buffer& key, const Buffer& value)
+    bool append(const Buffer& key, const Buffer& value)
     {
         return hs_append(hdb_, (char*)key.data(), (char*)value.data(), value.size());
     }

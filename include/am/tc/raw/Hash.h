@@ -17,6 +17,8 @@
 #include <tcutil.h>
 #include <tchdb.h>
 
+#include <boost/optional.hpp>
+
 namespace izenelib {
 namespace am {
 namespace tc {
@@ -35,6 +37,8 @@ public:
 
     typedef IterNextRange<Hash> exclusive_range_type;
     typedef GetNextRange<Hash> range_type;
+
+    typedef boost::optional<key_type> cursor_type;
 
     enum {
         READER = ::HDBOREADER,
@@ -288,7 +292,7 @@ public:
 
         String tmpKey;
         String tmpValue;
-		if (::tchdbiternext3(hdb_,
+        if (::tchdbiternext3(hdb_,
                              detail::StringAccessor::handle(tmpKey),
                              detail::StringAccessor::handle(tmpValue)))
         {
@@ -303,6 +307,35 @@ public:
     bool iterNext(data_type& data)
     {
         return iterNext(data.get_key(), data.get_value());
+    }
+
+    //@{
+    //@brief iteration
+    cursor_type begin() const
+    {
+        ::tchdbiterinit(hdb_);
+        return cursor_type();
+    }
+
+    cursor_type begin(Buffer& key) const
+    {
+        ::tchdbiterinit2(hdb_, key.data(), key.size());
+        return cursor_type();
+    }
+
+    bool fetch(cursor_type& cursor, Buffer& key, Buffer& value)
+    {
+        return iterNext(key,value);
+    }
+
+    bool iterNext(cursor_type& cursor)
+    {
+        return true;
+    }
+
+    bool iterPrev(cursor_type& cursor)
+    {
+        return false;
     }
 
     bool getFirst(Buffer& key) const
@@ -401,7 +434,7 @@ public:
     //@{
     //@brief tc special functions
 
-    bool appendUpdate(const Buffer& key, const Buffer& value)
+    bool append(const Buffer& key, const Buffer& value)
     {
         return checkHandle_(hdb_) && isOpened() &&
             ::tchdbputcat(

@@ -1,19 +1,21 @@
 #ifndef AM_LEVELDB_RAW_TABLE_H
 #define AM_LEVELDB_RAW_TABLE_H
 /**
- * @file am/leveldb/raw/Table.h
- * @author Ian Yang
- * @date Created <2009-09-10 09:37:25>
- * @date Updated <2009-09-10 10:46:40>
+ * @file am/leveldb/Table.h
+ * @author Yingfeng Zhang
+ * @date Created <2011-05-10 10:37:24>
+ * @date Updated <2011-11-08 20:01:44>
+ * @brief LevelDB wrapper
  */
 
 #include <am/concept/DataType.h>
 #include <am/raw/Buffer.h>
-#include <am/range/IterNextRange.h>
-#include <am/range/GetNextRange.h>
 
 #include <3rdparty/am/leveldb/db.h>
 #include <3rdparty/am/leveldb/comparator.h>
+
+#include <boost/filesystem.hpp>
+#include <boost/shared_ptr.hpp>
 
 #include <iostream>
 namespace izenelib {
@@ -32,8 +34,7 @@ public:
     typedef Buffer value_type;
     typedef DataType<Buffer, Buffer> data_type;
     typedef int size_type;
-    typedef IterNextRange<Table> exclusive_range_type;
-    typedef IterNextRange<Table> range_type;
+    typedef boost::shared_ptr< ::leveldb::Iterator> cursor_type;
 
     explicit Table(const std::string& file = "")
     : db_(NULL), dbIt_(NULL),comp_(), isOpened_(false), file_(file)
@@ -43,6 +44,12 @@ public:
     ~Table()
     {
         close();
+    }
+
+    bool open(const std::string& file)
+    {
+        file_ = file;
+        return open();
     }
 
     bool open()
@@ -101,6 +108,7 @@ public:
 
     size_type size() const
     {
+        //Not supported until LevelDB could support
         return db_ ? 0 : 0;
     }
     /**
@@ -116,7 +124,13 @@ public:
     }
     bool clear()
     {
-        return checkHandle_(db_) && isOpened();
+        if(isOpened())
+        {
+            close();
+            boost::filesystem::remove_all(file_);
+            open();
+        }
+        return true;
     }
 
     /**
@@ -178,7 +192,11 @@ public:
     {
         return update(data.get_key(), data.get_value());
     }
-
+    bool append(const Buffer& key, const Buffer& value)
+    {
+        ///not supported yet
+        return false;
+    }
     bool get(const Buffer& key, Buffer& value) const
     {
         if (checkHandle_(db_) && isOpened())
@@ -193,7 +211,6 @@ public:
 
         return false;
     }
-
 
     bool del(const Buffer& key)
     {
@@ -278,22 +295,89 @@ public:
 	return iterNext(data.get_key(), data.get_value());
     }
 
-    void all(range_type& range)
+    cursor_type begin() const
     {
-        range.attach(*this);
+        if(isOpened())
+        {
+            ::leveldb::ReadOptions options;
+            options.fill_cache = false;
+            cursor_type cursor(db_->NewIterator(options));
+            cursor->SeekToFirst();
+            return cursor;
+        }
+        return cursor_type();
     }
 
-    void exclusiveAll(exclusive_range_type& range)
+    cursor_type begin(Buffer& key) const
     {
-        range.attach(*this);
+        if(isOpened())
+        {
+            ::leveldb::ReadOptions options;
+            options.fill_cache = false;
+            cursor_type cursor(db_->NewIterator(options));
+            cursor->Seek(::leveldb::Slice(key.data(),key.size()));
+            return cursor;
+        }
+        return cursor_type();
+    }
+
+    cursor_type rbegin() const
+    {
+        if(isOpened())
+        {
+            ::leveldb::ReadOptions options;
+            options.fill_cache = false;
+            cursor_type cursor(db_->NewIterator(options));
+            cursor->SeekToLast();
+            return cursor;
+        }
+        return cursor_type();
+    }
+
+    bool fetch(cursor_type& cursor, Buffer& key, Buffer& value)
+    {
+        if(isOpened() && cursor.get() && cursor->Valid())
+        {
+            key.attach(const_cast<char*>(cursor->key().data()),
+                             static_cast<std::size_t>(cursor->key().size()));
+            value.attach(const_cast<char*>(cursor->value().data()),
+                             static_cast<std::size_t>(cursor->value().size()));
+            return true;
+	}
+	return false;
+    }
+
+    bool iterNext(cursor_type& cursor)
+    {
+        if(isOpened() && cursor.get() && cursor->Valid())
+        {
+            cursor->Next();
+            return true;
+        }
+        else
+        {
+            cursor.reset();
+            return false;
+        }
+    }
+
+    bool iterPrev(cursor_type& cursor)
+    {
+        if(isOpened() && cursor.get() && cursor->Valid())
+        {
+            cursor->Prev();
+            return true;
+        }
+        else
+        {
+            cursor.reset();
+            return false;
+        }
     }
 
 private:
-
     static bool checkHandle_(::leveldb::DB* h)
     {
-        //BOOST_ASSERT(h);
-        // if (!h) // todo: add logs
         return h;
     }
 

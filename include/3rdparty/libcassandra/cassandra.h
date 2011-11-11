@@ -42,6 +42,12 @@ public:
 
     /**
      * Log for the current session
+     * @param[in] credentials to use for authentication
+     */
+    void login(const std::map<std::string, std::string>& credentials);
+
+    /**
+     * Log for the current session
      * @param[in] user to use for authentication
      * @param[in] password to use for authentication
      */
@@ -326,11 +332,41 @@ public:
             const std::string& super_column_name,
             const org::apache::cassandra::ConsistencyLevel::type level = org::apache::cassandra::ConsistencyLevel::QUORUM);
 
+    void getRawSlice(
+            std::vector<org::apache::cassandra::ColumnOrSuperColumn>& ret,
+            const std::string& key,
+            const org::apache::cassandra::ColumnParent& col_parent,
+            const org::apache::cassandra::SlicePredicate& pred,
+            const org::apache::cassandra::ConsistencyLevel::type level = org::apache::cassandra::ConsistencyLevel::QUORUM);
+
     void getSlice(
             std::vector<org::apache::cassandra::Column>& ret,
             const std::string& key,
             const org::apache::cassandra::ColumnParent& col_parent,
             const org::apache::cassandra::SlicePredicate& pred,
+            const org::apache::cassandra::ConsistencyLevel::type level = org::apache::cassandra::ConsistencyLevel::QUORUM);
+
+    void getSuperSlice(
+            std::vector<org::apache::cassandra::SuperColumn>& ret,
+            const std::string& key,
+            const org::apache::cassandra::ColumnParent& col_parent,
+            const org::apache::cassandra::SlicePredicate& pred,
+            const org::apache::cassandra::ConsistencyLevel::type level = org::apache::cassandra::ConsistencyLevel::QUORUM);
+
+    void getRawRangeSlices(
+            std::map<std::string, std::vector<org::apache::cassandra::ColumnOrSuperColumn> >& ret,
+            const org::apache::cassandra::ColumnParent& col_parent,
+            const org::apache::cassandra::SlicePredicate& pred,
+            const org::apache::cassandra::KeyRange& range,
+            const org::apache::cassandra::ConsistencyLevel::type level = org::apache::cassandra::ConsistencyLevel::QUORUM);
+
+    void getRawRangeSlices(
+            std::map<std::string, std::vector<org::apache::cassandra::ColumnOrSuperColumn> >& ret,
+            const org::apache::cassandra::ColumnParent& col_parent,
+            const org::apache::cassandra::SlicePredicate& pred,
+            const std::string& start,
+            const std::string& finish,
+            const int32_t row_count,
             const org::apache::cassandra::ConsistencyLevel::type level = org::apache::cassandra::ConsistencyLevel::QUORUM);
 
     void getRangeSlices(
@@ -385,11 +421,18 @@ public:
             const org::apache::cassandra::ConsistencyLevel::type level = org::apache::cassandra::ConsistencyLevel::QUORUM);
 
     /**
-     * Create a column family
-     * @param[in] cf_def object representing defintion for column family to create
+     * Create a keyspace
+     * @param[in] ks_def object representing defintion for keyspace to create
      * @return the schema ID for the keyspace created
      */
     std::string createKeyspace(const KeyspaceDefinition& ks_def);
+
+    /**
+     * Update a keyspace
+     * @param[in] ks_def object representing defintion for keyspace to update
+     * @return the schema ID for the keyspace updated
+     */
+    std::string updateKeyspace(const KeyspaceDefinition& ks_def);
 
     /**
      * drop a keyspace
@@ -434,7 +477,7 @@ public:
     void executeCqlQuery(
             org::apache::cassandra::CqlResult& result,
             const std::string& query,
-            const org::apache::cassandra::Compression::type compression = org::apache::cassandra::Compression::NONE);
+            const org::apache::cassandra::Compression::type compression = org::apache::cassandra::Compression::GZIP);
 
     /**
      * @return the target server cluster name.

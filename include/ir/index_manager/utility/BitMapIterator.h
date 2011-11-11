@@ -1,8 +1,8 @@
 /**
  * \file BitMapIterator.h
- * \brief 
+ * \brief
  * \date Nov 8, 2011
- * \author Vernkin Chen
+ * \author Xin Liu
  */
 
 #ifndef BITMAPITERATOR_H_
@@ -15,55 +15,73 @@
 
 NS_IZENELIB_IR_BEGIN
 
-namespace indexmanager{
+namespace indexmanager
+{
 
-class BitMapIterator : public TermDocFreqs {
+class BitMapIterator : public TermDocFreqs
+{
 public:
 
-        BitMapIterator(const izenelib::am::EWAHBoolArrayBitIterator<uint32_t>& bitmapIter):
-            TermDocFreqs(),
-            bitmapIter_(bitmapIter)
-        {
-        }
+    BitMapIterator(
+        const izenelib::am::EWAHBoolArrayBitIterator<uint32_t>& bitmapIter)
+            : TermDocFreqs()
+            , bitmapIter_(bitmapIter)
+    {
+    }
 
-        BitMapIterator(const BitMapIterator& other):TermDocFreqs(other),
-             bitmapIter_(other.bitmapIter_)
-        {
-        }
+    BitMapIterator(const BitMapIterator& other)
+            : TermDocFreqs(other)
+            , bitmapIter_(other.bitmapIter_)
+    {
+    }
 
-         ~BitMapIterator()
-         {
-         }
+    ~BitMapIterator()
+    {
+    }
 public:
-        void reset(PostingReader * pPosting,const TermInfo& ti,bool ownPosting = true){}
+    void reset(PostingReader * pPosting,const TermInfo& ti,bool ownPosting = true) {}
 
-        freq_t docFreq() { return bitmapIter_.numerOfOnes(); }
+    freq_t docFreq()
+    {
+        return bitmapIter_.numerOfOnes();
+    }
 
-        int64_t getCTF() { return 1; }
+    int64_t getCTF()
+    {
+        return 1;
+    }
 
-        count_t freq() { return 1; }
+    count_t freq()
+    {
+        return 1;
+    }
 
-        docid_t doc() { return bitmapIter_.getCurrentPos(); }
+    docid_t doc()
+    {
+        return bitmapIter_.getCurr();
+    }
 
-        docid_t skipTo(docid_t target){
-            docid_t currDoc;
-            do
-            {
-                if(!bitmapIter_.next())
-                    return MAX_DOC_ID;
-                currDoc = doc();
-            } while(target > currDoc);
-
-            return currDoc;
-        }
-
-        bool next()
+    docid_t skipTo(docid_t target)
+    {
+        docid_t currDoc;
+        do
         {
-            return bitmapIter_.next();
+            if (!bitmapIter_.next())
+                return MAX_DOC_ID;
+            currDoc = doc();
         }
+        while (target > currDoc);
+
+        return currDoc;
+    }
+
+    bool next()
+    {
+        return bitmapIter_.next();
+    }
 
 private:
-        izenelib::am::EWAHBoolArrayBitIterator<uint32_t> bitmapIter_;
+    izenelib::am::EWAHBoolArrayBitIterator<uint32_t> bitmapIter_;
 };
 
 }

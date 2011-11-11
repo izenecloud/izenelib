@@ -5,6 +5,8 @@
 #include <boost/filesystem/path.hpp>
 
 #include <fstream>
+#include <iostream>
+#include <cstdio>
 
 using namespace std;
 using namespace izenelib::am;
@@ -308,6 +310,33 @@ BOOST_AUTO_TEST_CASE(ewahBoolArrayAppend)
     BOOST_CHECK(testEWAHBoolArrayAppend<uint16_t > ());
     BOOST_CHECK(testEWAHBoolArrayAppend<uint32_t > ());
     BOOST_CHECK(testEWAHBoolArrayAppend<uint64_t > ());
+}
+
+BOOST_AUTO_TEST_CASE(ewahBoolArrayBench)
+{
+    EWAHBoolArray<uint32_t> myarray;
+    size_t max = 10000000;
+    size_t i = 1;
+    size_t maxstep = 10;
+    size_t count = 0;
+    for(; i < max; )
+    {
+        i += (1+rand() % maxstep);
+        myarray.set(i);
+        ++count;
+    }
+    /*
+    EWAHBoolArrayBitIterator<uint32_t> iter = myarray.bit_iterator();
+
+
+    i = 1;
+    while(iter.next())
+    {
+        BOOST_CHECK((i++) ==iter.getCurr());
+    }
+    BOOST_CHECK(i = max);
+    */	
+    std::cout<<"count "<<count<<" sizeInBytes "<<myarray.sizeInBytes()<<std::endl;
 }
 
 BOOST_AUTO_TEST_SUITE_END()

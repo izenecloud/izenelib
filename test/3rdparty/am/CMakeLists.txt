@@ -1,3 +1,5 @@
 ADD_SUBDIRECTORY(beansdb)
 ADD_SUBDIRECTORY(leveldb)
 ADD_SUBDIRECTORY(google)
+ADD_SUBDIRECTORY(dag_vector)
+ADD_SUBDIRECTORY(concurrent_hash)

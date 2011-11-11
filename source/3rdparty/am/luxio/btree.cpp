@@ -468,6 +468,11 @@ namespace IO {
               << "index_type: " << (int) dh_->index_type << std::endl;
   }
 
+  uint32_t Btree::size()
+  {
+      return  dh_->num_keys;
+  }
+
   // debug method
   void Btree::show_node(uint32_t id)
   {
