@@ -1175,26 +1175,26 @@ class Mutation {
 };
 
 typedef struct _EndpointDetails__isset {
-  _EndpointDetails__isset() : host(false), port(false), datacenter(false) {}
+  _EndpointDetails__isset() : host(false), datacenter(false), rack(false) {}
   bool host;
-  bool port;
   bool datacenter;
+  bool rack;
 } _EndpointDetails__isset;
 
 class EndpointDetails {
  public:
 
-  static const char* ascii_fingerprint; // = "70563A0628F75DF9555F4D24690B1E26";
-  static const uint8_t binary_fingerprint[16]; // = {0x70,0x56,0x3A,0x06,0x28,0xF7,0x5D,0xF9,0x55,0x5F,0x4D,0x24,0x69,0x0B,0x1E,0x26};
+  static const char* ascii_fingerprint; // = "F4A50F0EC638C7F66026F9B6678FD89B";
+  static const uint8_t binary_fingerprint[16]; // = {0xF4,0xA5,0x0F,0x0E,0xC6,0x38,0xC7,0xF6,0x60,0x26,0xF9,0xB6,0x67,0x8F,0xD8,0x9B};
 
-  EndpointDetails() : host(""), port(0), datacenter("") {
+  EndpointDetails() : host(""), datacenter(""), rack("") {
   }
 
   virtual ~EndpointDetails() throw() {}
 
   std::string host;
-  int32_t port;
   std::string datacenter;
+  std::string rack;
 
   _EndpointDetails__isset __isset;
 
@@ -1202,21 +1202,24 @@ class EndpointDetails {
     host = val;
   }
 
-  void __set_port(const int32_t val) {
-    port = val;
-  }
-
   void __set_datacenter(const std::string& val) {
     datacenter = val;
+  }
+
+  void __set_rack(const std::string& val) {
+    rack = val;
+    __isset.rack = true;
   }
 
   bool operator == (const EndpointDetails & rhs) const
   {
     if (!(host == rhs.host))
       return false;
-    if (!(port == rhs.port))
-      return false;
     if (!(datacenter == rhs.datacenter))
+      return false;
+    if (__isset.rack != rhs.__isset.rack)
+      return false;
+    else if (__isset.rack && !(rack == rhs.rack))
       return false;
     return true;
   }
@@ -1240,8 +1243,8 @@ typedef struct _TokenRange__isset {
 class TokenRange {
  public:
 
-  static const char* ascii_fingerprint; // = "E13442F05653D66C963DF3D6FB4A085C";
-  static const uint8_t binary_fingerprint[16]; // = {0xE1,0x34,0x42,0xF0,0x56,0x53,0xD6,0x6C,0x96,0x3D,0xF3,0xD6,0xFB,0x4A,0x08,0x5C};
+  static const char* ascii_fingerprint; // = "832268DC4CD6B17EE8881FC57EA04679";
+  static const uint8_t binary_fingerprint[16]; // = {0x83,0x22,0x68,0xDC,0x4C,0xD6,0xB1,0x7E,0xE8,0x88,0x1F,0xC5,0x7E,0xA0,0x46,0x79};
 
   TokenRange() : start_token(""), end_token("") {
   }
