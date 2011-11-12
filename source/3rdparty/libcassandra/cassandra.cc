@@ -90,8 +90,8 @@ void Cassandra::insertColumn(
         const string& super_column_name,
         const string& column_name,
         int64_t time_stamp,
-        const ConsistencyLevel::type level,
-        int32_t ttl)
+        int32_t ttl,
+        const ConsistencyLevel::type level)
 {
     ColumnParent col_parent;
     col_parent.__set_column_family(column_family);
@@ -126,10 +126,10 @@ void Cassandra::insertColumn(
         const string& column_family,
         const string& column_name,
         int64_t time_stamp,
-        const ConsistencyLevel::type level,
-        int32_t ttl)
+        int32_t ttl,
+        const ConsistencyLevel::type level)
 {
-    insertColumn(value, key, column_family, "", column_name, time_stamp, level, ttl);
+    insertColumn(value, key, column_family, "", column_name, time_stamp, ttl, level);
 }
 
 void Cassandra::insertColumn(
@@ -139,10 +139,10 @@ void Cassandra::insertColumn(
         const string& super_column_name,
         const string& column_name,
         int64_t time_stamp,
-        const ConsistencyLevel::type level,
-        int32_t ttl)
+        int32_t ttl,
+        const ConsistencyLevel::type level)
 {
-    insertColumn(serializeLong(value), key, column_family, super_column_name, column_name, time_stamp, level, ttl);
+    insertColumn(serializeLong(value), key, column_family, super_column_name, column_name, time_stamp, ttl, level);
 }
 
 void Cassandra::insertColumn(
@@ -151,19 +151,63 @@ void Cassandra::insertColumn(
         const string& column_family,
         const string& column_name,
         int64_t time_stamp,
-        const ConsistencyLevel::type level,
-        int32_t ttl)
+        int32_t ttl,
+        const ConsistencyLevel::type level)
 {
-    insertColumn(serializeLong(value), key, column_family, "", column_name, time_stamp, level, ttl);
+    insertColumn(serializeLong(value), key, column_family, "", column_name, time_stamp, ttl, level);
+}
+
+void Cassandra::incCounter(
+        int64_t value,
+        const std::string& key,
+        const std::string& counter_column_family,
+        const std::string& counter_super_column_name,
+        const std::string& counter_column_name,
+        const org::apache::cassandra::ConsistencyLevel::type level)
+{
+    ColumnParent col_parent;
+    col_parent.__set_column_family(counter_column_family);
+    if (! counter_super_column_name.empty())
+    {
+        col_parent.__set_super_column(counter_super_column_name);
+    }
+    CounterColumn col;
+    col.__set_name(counter_column_name);
+    col.__set_value(value);
+    /*
+     * actually perform the insert
+     * TODO - validate the ColumnParent before the insert
+     */
+    BORROW_CLIENT
+    thrift_client->add(key, col_parent, col, level);
+    RELEASE_CLIENT
+}
+
+void Cassandra::incCounter(
+        int64_t value,
+        const std::string& key,
+        const std::string& counter_column_family,
+        const std::string& counter_column_name,
+        const org::apache::cassandra::ConsistencyLevel::type level)
+{
+    incCounter(value, key, counter_column_family, "", counter_column_name, level);
 }
 
 void Cassandra::remove(
         const string &key,
         const ColumnPath &col_path,
+        bool is_counter,
         const ConsistencyLevel::type level)
 {
     BORROW_CLIENT
-    thrift_client->remove(key, col_path, createTimestamp(), level);
+    if (is_counter)
+    {
+        thrift_client->remove_counter(key, col_path, level);
+    }
+    else
+    {
+        thrift_client->remove(key, col_path, createTimestamp(), level);
+    }
     RELEASE_CLIENT
 }
 
@@ -172,6 +216,7 @@ void Cassandra::remove(
         const string& column_family,
         const string& super_column_name,
         const string& column_name,
+        bool is_counter,
         const ConsistencyLevel::type level)
 {
     ColumnPath col_path;
@@ -184,7 +229,7 @@ void Cassandra::remove(
     {
         col_path.__set_column(column_name);
     }
-    remove(key, col_path, level);
+    remove(key, col_path, is_counter, level);
 }
 
 void Cassandra::removeColumn(
@@ -192,27 +237,30 @@ void Cassandra::removeColumn(
         const string& column_family,
         const string& super_column_name,
         const string& column_name,
+        bool is_counter,
         const ConsistencyLevel::type level)
 {
-    remove(key, column_family, super_column_name, column_name, level);
+    remove(key, column_family, super_column_name, column_name, is_counter, level);
 }
 
 void Cassandra::removeColumn(
         const string& key,
         const string& column_family,
         const string& column_name,
+        bool is_counter,
         const ConsistencyLevel::type level)
 {
-    remove(key, column_family, "", column_name, level);
+    remove(key, column_family, "", column_name, is_counter, level);
 }
 
 void Cassandra::removeSuperColumn(
         const string& key,
         const string& column_family,
         const string& super_column_name,
+        bool is_counter,
         const ConsistencyLevel::type level)
 {
-    remove(key, column_family, super_column_name, "", level);
+    remove(key, column_family, super_column_name, "", is_counter, level);
 }
 
 void Cassandra::getColumn(
