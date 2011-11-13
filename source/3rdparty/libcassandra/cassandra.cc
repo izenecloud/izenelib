@@ -7,14 +7,9 @@
  * the COPYING file in the parent directory for full text.
  */
 
-#include <time.h>
-#include <netinet/in.h>
-
 #include "libcassandra/cassandra.h"
 #include "libcassandra/connection_manager.h"
 #include "libcassandra/cassandra_client.h"
-#include "libcassandra/exception.h"
-#include "libcassandra/keyspace.h"
 #include "libcassandra/util_functions.h"
 
 using namespace std;
@@ -32,20 +27,22 @@ namespace libcassandra
 
 
 Cassandra::Cassandra()
-    :cluster_name_(),
-     server_version_(),
-     current_keyspace_(),
-     key_spaces_(),
-     token_map_()
+    : cluster_name_()
+    , server_version_()
+    , current_keyspace_()
+    , current_ks_num_(-1)
+    , key_spaces_()
+    , token_map_()
 {
 }
 
 Cassandra::Cassandra(const string& keyspace)
-    :cluster_name_(),
-     server_version_(),
-     current_keyspace_(keyspace),
-     key_spaces_(),
-     token_map_()
+    : cluster_name_()
+    , server_version_()
+    , current_keyspace_(keyspace)
+    , current_ks_num_(findKeyspace(keyspace))
+    , key_spaces_()
+    , token_map_()
 {
 }
 
@@ -76,11 +73,17 @@ void Cassandra::login(const string& user, const string& password)
 void Cassandra::setKeyspace(const string& ks_name)
 {
     current_keyspace_.assign(ks_name);
+    current_ks_num_ = findKeyspace(ks_name);
 }
 
 const string& Cassandra::getCurrentKeyspace() const
 {
     return current_keyspace_;
+}
+
+const KsDef& Cassandra::getCurrentKeyspaceDefinition() const
+{
+    return key_spaces_[current_ks_num_];
 }
 
 void Cassandra::insertColumn(
@@ -608,53 +611,31 @@ void Cassandra::reloadKeyspaces()
 {
     key_spaces_.clear();
 
-    vector<KsDef> thrift_ks_defs;
     BORROW_CLIENT
-    thrift_client->describe_keyspaces(thrift_ks_defs);
+    thrift_client->describe_keyspaces(key_spaces_);
     RELEASE_CLIENT
-    bool current_valid = false;
-
-    for (vector<KsDef>::const_iterator it= thrift_ks_defs.begin();
-            it != thrift_ks_defs.end();
-            ++it)
-    {
-        const KsDef& thrift_entry= *it;
-        if (thrift_entry.name == current_keyspace_)
-            current_valid = true;
-
-        KeyspaceDefinition entry(thrift_entry.name,
-                thrift_entry.strategy_class,
-                thrift_entry.strategy_options,
-                thrift_entry.replication_factor,
-                thrift_entry.cf_defs,
-                thrift_entry.durable_writes);
-        key_spaces_[thrift_entry.name] = entry;
-    }
-    if (!current_valid)
+    if (!current_keyspace_.empty() && (current_ks_num_ = findKeyspace(current_keyspace_)) == -1)
         current_keyspace_.clear();
 }
 
-const map<string, KeyspaceDefinition>& Cassandra::getKeyspaces()
+const vector<KsDef>& Cassandra::getKeyspaces()
 {
     return key_spaces_;
 }
 
-string Cassandra::createColumnFamily(const ColumnFamilyDefinition& cf_def)
+string Cassandra::createColumnFamily(const CfDef& cf_def)
 {
     string schema_id;
-    CfDef thrift_cf_def;
-    createCfDefObject(thrift_cf_def, cf_def);
     reloadKeyspaces();
-    const map<string, ColumnFamilyDefinition>& cf_defs = key_spaces_.find(current_keyspace_)->second.getColumnFamilies();
-    map<string, ColumnFamilyDefinition>::const_iterator cf_it = cf_defs.find(cf_def.getName());
 
+    uint32_t cf_num = findColumnFamily(current_ks_num_, cf_def.name);
     BORROW_CLIENT
-    if (cf_it == cf_defs.end())
-        thrift_client->system_add_column_family(schema_id, thrift_cf_def);
+    if (cf_num == (uint32_t) -1)
+        thrift_client->system_add_column_family(schema_id, cf_def);
     else
     {
-        thrift_cf_def.__set_id(cf_it->second.getId());
-        thrift_client->system_update_column_family(schema_id, thrift_cf_def);
+        const_cast<CfDef &>(cf_def).__set_id(key_spaces_[current_ks_num_].cf_defs[cf_num].id);
+        thrift_client->system_update_column_family(schema_id, cf_def);
     }
     RELEASE_CLIENT
     return schema_id;
@@ -669,41 +650,35 @@ string Cassandra::dropColumnFamily(const string& cf_name)
     return schema_id;
 }
 
-string Cassandra::updateColumnFamily(const ColumnFamilyDefinition& cf_def)
+string Cassandra::updateColumnFamily(const CfDef& cf_def)
 {
     string schema_id;
-    CfDef thrift_cf_def;
-    createCfDefObject(thrift_cf_def, cf_def);
     BORROW_CLIENT
-    thrift_client->system_update_column_family(schema_id, thrift_cf_def);
+    thrift_client->system_update_column_family(schema_id, cf_def);
     RELEASE_CLIENT
     return schema_id;
 }
 
-string Cassandra::createKeyspace(const KeyspaceDefinition& ks_def)
+string Cassandra::createKeyspace(const KsDef& ks_def)
 {
     string ret;
-    KsDef thrift_ks_def;
-    createKsDefObject(thrift_ks_def, ks_def);
     reloadKeyspaces();
-    map<string, KeyspaceDefinition>::const_iterator ks_it = key_spaces_.find(ks_def.getName());
 
+    uint32_t ks_num = findKeyspace(ks_def.name);
     BORROW_CLIENT
-    if (ks_it == key_spaces_.end())
-        thrift_client->system_add_keyspace(ret, thrift_ks_def);
+    if (ks_num == (uint32_t) -1)
+        thrift_client->system_add_keyspace(ret, ks_def);
     else
-        thrift_client->system_update_keyspace(ret, thrift_ks_def);
+        thrift_client->system_update_keyspace(ret, ks_def);
     RELEASE_CLIENT
     return ret;
 }
 
-string Cassandra::updateKeyspace(const KeyspaceDefinition& ks_def)
+string Cassandra::updateKeyspace(const KsDef& ks_def)
 {
     string ret;
-    KsDef thrift_ks_def;
-    createKsDefObject(thrift_ks_def, ks_def);
     BORROW_CLIENT
-    thrift_client->system_update_keyspace(ret, thrift_ks_def);
+    thrift_client->system_update_keyspace(ret, ks_def);
     RELEASE_CLIENT
     return ret;
 }
@@ -729,7 +704,10 @@ string Cassandra::dropKeyspace(const string& ks_name)
     thrift_client->system_drop_keyspace(ret, ks_name);
     RELEASE_CLIENT
     if (current_keyspace_ == ks_name)
+    {
         current_keyspace_.clear();
+        current_ks_num_ = -1;
+    }
 
     return ret;
 }
@@ -756,9 +734,26 @@ const string& Cassandra::getServerVersion()
     return server_version_;
 }
 
-bool Cassandra::findKeyspace(const string& name) const
+uint32_t Cassandra::findKeyspace(const string& name) const
 {
-    return (key_spaces_.find(name) != key_spaces_.end());
+    for (uint32_t i = 0; i < key_spaces_.size(); i++)
+    {
+        if (key_spaces_[i].name == name)
+            return i;
+    }
+    return -1;
+}
+
+uint32_t Cassandra::findColumnFamily(uint32_t ks_num, const std::string& name) const
+{
+    if (ks_num == (uint32_t) -1 || ks_num >= key_spaces_.size())
+        return -1;
+    for (uint32_t i = 0; i < key_spaces_[ks_num].cf_defs.size(); i++)
+    {
+        if (key_spaces_[ks_num].cf_defs[i].name == name)
+            return i;
+    }
+    return -1;
 }
 
 }
