@@ -83,7 +83,7 @@ const string& Cassandra::getCurrentKeyspace() const
 
 const KsDef& Cassandra::getCurrentKeyspaceDefinition() const
 {
-    return key_spaces_[current_ks_num_];
+    return key_spaces_.at(current_ks_num_);
 }
 
 void Cassandra::insertColumn(
@@ -628,13 +628,14 @@ string Cassandra::createColumnFamily(const CfDef& cf_def)
     string schema_id;
     reloadKeyspaces();
 
-    uint32_t cf_num = findColumnFamily(current_ks_num_, cf_def.name);
+    uint32_t ks_num = (cf_def.keyspace == current_keyspace_) ? current_ks_num_ : findKeyspace(cf_def.keyspace);
+    uint32_t cf_num = findColumnFamily(ks_num, cf_def.name);
     BORROW_CLIENT
     if (cf_num == (uint32_t) -1)
         thrift_client->system_add_column_family(schema_id, cf_def);
     else
     {
-        const_cast<CfDef &>(cf_def).__set_id(key_spaces_[current_ks_num_].cf_defs[cf_num].id);
+        const_cast<CfDef &>(cf_def).__set_id(key_spaces_[ks_num].cf_defs[cf_num].id);
         thrift_client->system_update_column_family(schema_id, cf_def);
     }
     RELEASE_CLIENT

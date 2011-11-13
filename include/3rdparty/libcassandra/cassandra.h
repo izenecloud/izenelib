@@ -555,7 +555,7 @@ private:
     std::string cluster_name_;
     std::string server_version_;
     std::string current_keyspace_;
-    int32_t current_ks_num_;
+    uint32_t current_ks_num_;
     std::vector<org::apache::cassandra::KsDef> key_spaces_;
     std::map<std::string, std::string> token_map_;
 };
