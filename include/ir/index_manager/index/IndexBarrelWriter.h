@@ -139,6 +139,7 @@ private:
     volatile bool dirty_;
 
     friend class InMemoryIndexBarrelReader;
+    friend class IndexWriter;
 };
 
 }
