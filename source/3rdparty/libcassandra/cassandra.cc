@@ -429,6 +429,18 @@ void Cassandra::getSuperSlice(
     }
 }
 
+void Cassandra::getMultiSlice(
+        map<string, vector<ColumnOrSuperColumn> >& ret,
+        const vector<string>& key_list,
+        const ColumnParent& col_parent,
+        const SlicePredicate& pred,
+        const ConsistencyLevel::type level)
+{
+    BORROW_CLIENT
+    thrift_client->multiget_slice(ret, key_list, col_parent, pred, level);
+    RELEASE_CLIENT
+}
+
 void Cassandra::getRawRangeSlices(
         map<string, vector<ColumnOrSuperColumn> >& ret,
         const ColumnParent& col_parent,
@@ -607,6 +619,18 @@ int32_t Cassandra::getCount(
     return ret;
 }
 
+void Cassandra::getMultiCount(
+        map<string, int32_t>& ret,
+        const vector<string>& key_list,
+        const ColumnParent& col_parent,
+        const SlicePredicate& pred,
+        const ConsistencyLevel::type level)
+{
+    BORROW_CLIENT
+    thrift_client->multiget_count(ret, key_list, col_parent, pred, level);
+    RELEASE_CLIENT
+}
+
 void Cassandra::reloadKeyspaces()
 {
     key_spaces_.clear();
@@ -614,7 +638,7 @@ void Cassandra::reloadKeyspaces()
     BORROW_CLIENT
     thrift_client->describe_keyspaces(key_spaces_);
     RELEASE_CLIENT
-    if (!current_keyspace_.empty() && (current_ks_num_ = findKeyspace(current_keyspace_)) == -1)
+    if (!current_keyspace_.empty() && (current_ks_num_ = findKeyspace(current_keyspace_)) == (uint32_t) -1)
         current_keyspace_.clear();
 }
 

@@ -398,6 +398,13 @@ public:
             const org::apache::cassandra::SlicePredicate& pred,
             const org::apache::cassandra::ConsistencyLevel::type level = org::apache::cassandra::ConsistencyLevel::QUORUM);
 
+    void getMultiSlice(
+            std::map<std::string, std::vector<org::apache::cassandra::ColumnOrSuperColumn> >& ret,
+            const std::vector<std::string>& key_list,
+            const org::apache::cassandra::ColumnParent& col_parent,
+            const org::apache::cassandra::SlicePredicate& pred,
+            const org::apache::cassandra::ConsistencyLevel::type level = org::apache::cassandra::ConsistencyLevel::QUORUM);
+
     void getRawRangeSlices(
             std::map<std::string, std::vector<org::apache::cassandra::ColumnOrSuperColumn> >& ret,
             const org::apache::cassandra::ColumnParent& col_parent,
@@ -461,6 +468,13 @@ public:
      */
     int32_t getCount(
             const std::string& key,
+            const org::apache::cassandra::ColumnParent& col_parent,
+            const org::apache::cassandra::SlicePredicate& pred,
+            const org::apache::cassandra::ConsistencyLevel::type level = org::apache::cassandra::ConsistencyLevel::QUORUM);
+
+    void getMultiCount(
+            std::map<std::string, int32_t>& ret,
+            const std::vector<std::string>& key,
             const org::apache::cassandra::ColumnParent& col_parent,
             const org::apache::cassandra::SlicePredicate& pred,
             const org::apache::cassandra::ConsistencyLevel::type level = org::apache::cassandra::ConsistencyLevel::QUORUM);
