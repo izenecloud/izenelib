@@ -1819,8 +1819,8 @@ uint32_t Mutation::write(::apache::thrift::protocol::TProtocol* oprot) const {
   return xfer;
 }
 
-const char* EndpointDetails::ascii_fingerprint = "70563A0628F75DF9555F4D24690B1E26";
-const uint8_t EndpointDetails::binary_fingerprint[16] = {0x70,0x56,0x3A,0x06,0x28,0xF7,0x5D,0xF9,0x55,0x5F,0x4D,0x24,0x69,0x0B,0x1E,0x26};
+const char* EndpointDetails::ascii_fingerprint = "F4A50F0EC638C7F66026F9B6678FD89B";
+const uint8_t EndpointDetails::binary_fingerprint[16] = {0xF4,0xA5,0x0F,0x0E,0xC6,0x38,0xC7,0xF6,0x60,0x26,0xF9,0xB6,0x67,0x8F,0xD8,0x9B};
 
 uint32_t EndpointDetails::read(::apache::thrift::protocol::TProtocol* iprot) {
 
@@ -1851,17 +1851,17 @@ uint32_t EndpointDetails::read(::apache::thrift::protocol::TProtocol* iprot) {
         }
         break;
       case 2:
-        if (ftype == ::apache::thrift::protocol::T_I32) {
-          xfer += iprot->readI32(this->port);
-          this->__isset.port = true;
+        if (ftype == ::apache::thrift::protocol::T_STRING) {
+          xfer += iprot->readString(this->datacenter);
+          this->__isset.datacenter = true;
         } else {
           xfer += iprot->skip(ftype);
         }
         break;
       case 3:
         if (ftype == ::apache::thrift::protocol::T_STRING) {
-          xfer += iprot->readString(this->datacenter);
-          this->__isset.datacenter = true;
+          xfer += iprot->readString(this->rack);
+          this->__isset.rack = true;
         } else {
           xfer += iprot->skip(ftype);
         }
@@ -1884,19 +1884,21 @@ uint32_t EndpointDetails::write(::apache::thrift::protocol::TProtocol* oprot) co
   xfer += oprot->writeFieldBegin("host", ::apache::thrift::protocol::T_STRING, 1);
   xfer += oprot->writeString(this->host);
   xfer += oprot->writeFieldEnd();
-  xfer += oprot->writeFieldBegin("port", ::apache::thrift::protocol::T_I32, 2);
-  xfer += oprot->writeI32(this->port);
-  xfer += oprot->writeFieldEnd();
-  xfer += oprot->writeFieldBegin("datacenter", ::apache::thrift::protocol::T_STRING, 3);
+  xfer += oprot->writeFieldBegin("datacenter", ::apache::thrift::protocol::T_STRING, 2);
   xfer += oprot->writeString(this->datacenter);
   xfer += oprot->writeFieldEnd();
+  if (this->__isset.rack) {
+    xfer += oprot->writeFieldBegin("rack", ::apache::thrift::protocol::T_STRING, 3);
+    xfer += oprot->writeString(this->rack);
+    xfer += oprot->writeFieldEnd();
+  }
   xfer += oprot->writeFieldStop();
   xfer += oprot->writeStructEnd();
   return xfer;
 }
 
-const char* TokenRange::ascii_fingerprint = "E13442F05653D66C963DF3D6FB4A085C";
-const uint8_t TokenRange::binary_fingerprint[16] = {0xE1,0x34,0x42,0xF0,0x56,0x53,0xD6,0x6C,0x96,0x3D,0xF3,0xD6,0xFB,0x4A,0x08,0x5C};
+const char* TokenRange::ascii_fingerprint = "832268DC4CD6B17EE8881FC57EA04679";
+const uint8_t TokenRange::binary_fingerprint[16] = {0x83,0x22,0x68,0xDC,0x4C,0xD6,0xB1,0x7E,0xE8,0x88,0x1F,0xC5,0x7E,0xA0,0x46,0x79};
 
 uint32_t TokenRange::read(::apache::thrift::protocol::TProtocol* iprot) {
 

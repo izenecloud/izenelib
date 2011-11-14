@@ -8,14 +8,14 @@ INCLUDE_DIRECTORIES(
 
 # third party libraries
 # put it first, they may be referred in other components
-FILE(GLOB 
-  libcassandra_SRC 
+FILE(GLOB
+  libcassandra_SRC
   RELATIVE
   "${CMAKE_CURRENT_SOURCE_DIR}"
   "genthrift/*.cpp"
   "*.cc" )
-FILE(GLOB cassandra_server_SRC RELATIVE "${CMAKE_CURRENT_SOURCE_DIR}" "genthrift/Cassandra_server.skeleton.cpp")   
-LIST(REMOVE_ITEM libcassandra_SRC ${cassandra_server_SRC}) 
+FILE(GLOB cassandra_server_SRC RELATIVE "${CMAKE_CURRENT_SOURCE_DIR}" "genthrift/Cassandra_server.skeleton.cpp")
+LIST(REMOVE_ITEM libcassandra_SRC ${cassandra_server_SRC})
 ADD_DEFINITIONS("-fPIC")
-ADD_LIBRARY(cassandra ${libcassandra_SRC} ) 
-TARGET_LINK_LIBRARIES(cassandra ${Thrift_LIBS} ) 
+ADD_LIBRARY(cassandra ${libcassandra_SRC} )
+TARGET_LINK_LIBRARIES(cassandra ${Thrift_LIBS} )
