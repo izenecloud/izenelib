@@ -431,7 +431,15 @@ void ZooKeeper::showZKNamespace(const std::string& path, int level, std::ostream
 
     // znode path
     if (level <= 0)
+    {
         out << path;
+
+        if (!isZNodeExists(path))
+        {
+            out << " - path not exsited!"<<std::endl;
+            return;
+        }
+    }
     else
     {
         size_t pos = path.find_last_of('/');
