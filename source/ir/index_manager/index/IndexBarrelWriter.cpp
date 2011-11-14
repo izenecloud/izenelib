@@ -33,7 +33,7 @@ IndexBarrelWriter::~IndexBarrelWriter()
     if (pCollectionsInfo_)
         delete pCollectionsInfo_;
 
-    for (CollectionIndexerMap::iterator iter = collectionIndexerMap_.begin(); 
+    for (CollectionIndexerMap::iterator iter = collectionIndexerMap_.begin();
         iter != collectionIndexerMap_.end(); ++iter)
         delete iter->second;
 }
@@ -57,8 +57,6 @@ void IndexBarrelWriter::close()
 {
     flush();
     reset();
-
-    pDocFilter_ = NULL;
 }
 
 void IndexBarrelWriter::addDocument(IndexerDocument& doc)
@@ -90,6 +88,8 @@ void IndexBarrelWriter::reset()
 
     pCollectionsInfo_->reset();
     if(pMemCache_) pMemCache_->flushMem();
+
+    pDocFilter_ = NULL;
 }
 
 void IndexBarrelWriter::flush()
