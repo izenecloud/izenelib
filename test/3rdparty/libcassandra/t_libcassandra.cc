@@ -8,9 +8,6 @@
 
 #include <libcassandra/connection_manager.h>
 #include <libcassandra/cassandra.h>
-#include <libcassandra/column_family_definition.h>
-#include <libcassandra/keyspace.h>
-#include <libcassandra/keyspace_definition.h>
 
 using namespace std;
 using namespace org::apache::cassandra;
@@ -43,31 +40,32 @@ int main()
 
         /* create keyspace */
         cout << "Create keyspace: " << ks_name << endl;
-        KeyspaceDefinition ks_def;
-        ks_def.setName(ks_name);
+        KsDef ks_def;
+        ks_def.__set_name(ks_name);
         client->createKeyspace(ks_def);
-        client->setKeyspace(ks_def.getName());
+        client->setKeyspace(ks_name);
 
+        client->reloadKeyspaces();
         cout << "Current keyspaces are:" << endl;
         {
-            const map<string, KeyspaceDefinition>& key_out= client->getKeyspaces();
-            for (map<string, KeyspaceDefinition>::const_iterator it = key_out.begin(); it != key_out.end(); ++it)
+            const vector<KsDef>& key_out= client->getKeyspaces();
+            for (vector<KsDef>::const_iterator it = key_out.begin(); it != key_out.end(); ++it)
             {
-                cout << it->first << endl;
+                cout << it->name << endl;
             }
         }
         cout << endl;
 
         /* create standard column family */
-        ColumnFamilyDefinition cf_def;
-        cf_def.setName(col_family);
-        cf_def.setColumnType("Super");
-        cf_def.setKeyspaceName(ks_def.getName());
-        cf_def.setId(1000);
+        CfDef cf_def;
+        cf_def.__set_name(col_family);
+        cf_def.__set_column_type("Super");
+        cf_def.__set_keyspace(ks_def.name);
+        cf_def.__set_id(1000);
         std::map<std::string, std::string> compress_options;
         compress_options["sstable_compression"] = "SnappyCompressor";
         compress_options["chunk_length_kb"] = "64";
-        cf_def.setCompressOptions(compress_options);
+        cf_def.__set_compression_options(compress_options);
         client->createColumnFamily(cf_def);
         cout << "Now we have " << client->getCount(key, col_parent, pred) << " column(s) in the super column." << endl << endl;
 

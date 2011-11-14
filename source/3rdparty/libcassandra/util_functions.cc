@@ -17,169 +17,224 @@ using namespace org::apache::cassandra;
 namespace libcassandra
 {
 
-void createColumnDefObject(ColumnDef& thrift_col_def, const ColumnDefinition& col_def)
+void createColumnDefObject(
+        ColumnDef& col_def,
+        const string& in_name,
+        const string& in_validation_class,
+        const IndexType::type in_index_type,
+        const string& in_index_name,
+        const map<string, string>& in_index_options)
 {
-    thrift_col_def.__set_name(col_def.getName());
-    thrift_col_def.__set_validation_class(col_def.getValidationClass());
-    if (col_def.isIndexTypeSet())
+    col_def.__set_name(in_name);
+    col_def.__set_validation_class(in_validation_class);
+    if (! in_index_name.empty())
     {
-        thrift_col_def.__set_index_type(col_def.getIndexType());
-    }
-    if (col_def.isIndexNameSet())
-    {
-        thrift_col_def.__set_index_name(col_def.getIndexName());
-    }
-    if (col_def.isIndexOptionsSet())
-    {
-        thrift_col_def.__set_index_options(col_def.getIndexOptions());
+        col_def.__set_index_type(in_index_type);
+        col_def.__set_index_name(in_index_name);
+        col_def.__set_index_options(in_index_options);
     }
 }
 
-
-void createKsDefObject(KsDef& thrift_ks_def, const KeyspaceDefinition& ks_def)
+void createKsDefObject(
+        KsDef& ks_def,
+        const string& in_name,
+        const string& in_strategy_class,
+        const map<string, string>& in_strategy_options,
+        const int32_t in_replication_factor,
+        const vector<CfDef>& in_cf_defs,
+        bool in_durable_writes)
 {
-    thrift_ks_def.__set_name(ks_def.getName());
-    thrift_ks_def.__set_strategy_class(ks_def.getStrategyClass());
-    const map<string, ColumnFamilyDefinition>& cf_defs = ks_def.getColumnFamilies();
-    for (map<string, ColumnFamilyDefinition>::const_iterator it = cf_defs.begin();
-            it != cf_defs.end();
-            ++it)
+    ks_def.__set_name(in_name);
+    ks_def.__set_strategy_class(in_strategy_class);
+    if (! in_strategy_options.empty())
     {
-        thrift_ks_def.cf_defs.push_back(CfDef());
-        createCfDefObject(thrift_ks_def.cf_defs.back(), it->second);
+        ks_def.__set_strategy_options(in_strategy_options);
     }
-    thrift_ks_def.__set_replication_factor(ks_def.getReplicationFactor());
-    thrift_ks_def.__set_durable_writes(ks_def.getDurableWrites());
+    if (in_replication_factor > 0)
+    {
+        ks_def.__set_replication_factor(in_replication_factor);
+    }
+    if (! in_cf_defs.empty())
+    {
+        ks_def.__set_cf_defs(in_cf_defs);
+    }
+    ks_def.__set_durable_writes(in_durable_writes);
 }
 
-
-void createCfDefObject(CfDef& thrift_cf_def, const ColumnFamilyDefinition& cf_def)
+void createCfDefObject(
+        CfDef& cf_def,
+        const string& in_keyspace,
+        const string& in_name,
+        const string& in_column_type,
+        const string& in_comparator_type,
+        const string& in_sub_comparator_type,
+        const string& in_comment,
+        const double in_row_cache_size,
+        const double in_key_cache_size,
+        const double in_read_repair_chance,
+        const vector<ColumnDef>& in_column_metadata,
+        const int32_t in_gc_grace_seconds,
+        const string& in_default_validation_class,
+        const int32_t in_id,
+        const int32_t in_min_compaction_threshold,
+        const int32_t in_max_compaction_threshold,
+        const int32_t in_row_cache_save_period_in_seconds,
+        const int32_t in_key_cache_save_period_in_seconds,
+        int8_t in_replicate_on_write,
+        double in_merge_shards_chance,
+        const string& in_key_validation_class,
+        const string& in_row_cache_provider,
+        const string& in_key_alias,
+        const string& in_compaction_strategy,
+        const map<string, string>& in_compaction_strategy_options,
+        int32_t in_row_cache_keys_to_save,
+        const map<string, string>& in_compression_options)
 {
     /*
      * keyspace name and cf name are required
      * TODO - throw an exception if these are not present
      */
-    thrift_cf_def.__set_keyspace(cf_def.getKeyspaceName());
-    thrift_cf_def.__set_name(cf_def.getName());
+    cf_def.__set_keyspace(in_keyspace);
+    cf_def.__set_name(in_name);
     /* everything else associated with a column family is optional */
-    if (cf_def.isColumnTypeSet())
+    if (! in_column_type.empty())
     {
-        thrift_cf_def.__set_column_type(cf_def.getColumnType());
+        cf_def.__set_column_type(in_column_type);
     }
-    if (cf_def.isComparatorTypeSet())
+    if (! in_comparator_type.empty())
     {
-        thrift_cf_def.__set_comparator_type(cf_def.getComparatorType());
+        cf_def.__set_comparator_type(in_comparator_type);
     }
-    if (cf_def.isSubComparatorTypeSet())
+    if (! in_sub_comparator_type.empty())
     {
-        thrift_cf_def.__set_subcomparator_type(cf_def.getSubComparatorType());
+        cf_def.__set_subcomparator_type(in_sub_comparator_type);
     }
-    if (cf_def.isCommentSet())
+    if (! in_comment.empty())
     {
-        thrift_cf_def.__set_comment(cf_def.getComment());
+        cf_def.__set_comment(in_comment);
     }
-    if (cf_def.isRowCacheSizeSet())
+    if (in_row_cache_size > 0)
     {
-        thrift_cf_def.__set_row_cache_size(cf_def.getRowCacheSize());
+        cf_def.__set_row_cache_size(in_row_cache_size);
     }
-    if (cf_def.isKeyCacheSizeSet())
+    if (in_key_cache_size > 0)
     {
-        thrift_cf_def.__set_key_cache_size(cf_def.getKeyCacheSize());
+        cf_def.__set_key_cache_size(in_key_cache_size);
     }
-    if (cf_def.isReadRepairChanceSet())
+    if (in_read_repair_chance > 0)
     {
-        thrift_cf_def.__set_read_repair_chance(cf_def.getReadRepairChance());
+        cf_def.__set_read_repair_chance(in_read_repair_chance);
     }
-    if (cf_def.isGcGraceSecondsSet())
+    if (! in_column_metadata.empty())
     {
-        thrift_cf_def.__set_gc_grace_seconds(cf_def.getGcGraceSeconds());
+        cf_def.__set_column_metadata(in_column_metadata);
     }
-    if (cf_def.isDefaultValidationClassSet())
+    if (in_gc_grace_seconds > 0)
     {
-        thrift_cf_def.__set_default_validation_class(cf_def.getDefaultValidationClass());
+        cf_def.__set_gc_grace_seconds(in_gc_grace_seconds);
     }
-    if (cf_def.isIdSet())
+    if (! in_default_validation_class.empty())
     {
-        thrift_cf_def.__set_id(cf_def.getId());
+        cf_def.__set_default_validation_class(in_default_validation_class);
     }
-    if (cf_def.isMaxCompactionThresholdSet())
+    if (in_id > 0)
     {
-        thrift_cf_def.__set_max_compaction_threshold(cf_def.getMaxCompactionThreshold());
+        cf_def.__set_id(in_id);
     }
-    if (cf_def.isMinCompactionThresholdSet())
+    if (in_min_compaction_threshold > 0)
     {
-        thrift_cf_def.__set_min_compaction_threshold(cf_def.getMinCompactionThreshold());
+        cf_def.__set_min_compaction_threshold(in_min_compaction_threshold);
     }
-    if (cf_def.isColumnMetadataSet())
+    if (in_max_compaction_threshold > 0)
     {
-        const vector<ColumnDefinition>& cols = cf_def.getColumnMetadata();
-        vector<ColumnDef> column_metadata;
-        for (vector<ColumnDefinition>::const_iterator it = cols.begin(); it != cols.end(); ++it)
-        {
-            column_metadata.push_back(ColumnDef());
-            createColumnDefObject(column_metadata.back(), *it);
-        }
-
-        thrift_cf_def.__set_column_metadata(column_metadata);
+        cf_def.__set_max_compaction_threshold(in_max_compaction_threshold);
     }
-    if (cf_def.isCompressOptionsSet())
+    if (in_row_cache_save_period_in_seconds > 0)
     {
-        thrift_cf_def.__set_compression_options(cf_def.getCompressOptions());
+        cf_def.__set_row_cache_save_period_in_seconds(in_row_cache_save_period_in_seconds);
+    }
+    if (in_key_cache_save_period_in_seconds > 0)
+    {
+        cf_def.__set_key_cache_save_period_in_seconds(in_key_cache_save_period_in_seconds);
+    }
+    if (in_replicate_on_write >= 0)
+    {
+        cf_def.__set_replicate_on_write(in_replicate_on_write);
+    }
+    if (in_merge_shards_chance > 0)
+    {
+        cf_def.__set_merge_shards_chance(in_merge_shards_chance);
+    }
+    if (! in_key_validation_class.empty())
+    {
+        cf_def.__set_key_validation_class(in_key_validation_class);
+    }
+    if (! in_row_cache_provider.empty())
+    {
+        cf_def.__set_row_cache_provider(in_row_cache_provider);
+    }
+    if (! in_key_alias.empty())
+    {
+        cf_def.__set_key_alias(in_key_alias);
+    }
+    if (! in_compaction_strategy.empty())
+    {
+        cf_def.__set_compaction_strategy(in_compaction_strategy);
+    }
+    if (! in_compaction_strategy_options.empty())
+    {
+        cf_def.__set_compaction_strategy_options(in_compaction_strategy_options);
+    }
+    if (in_row_cache_keys_to_save > 0)
+    {
+        cf_def.__set_row_cache_keys_to_save(in_row_cache_keys_to_save);
+    }
+    if (! in_compression_options.empty())
+    {
+        cf_def.__set_compression_options(in_compression_options);
     }
 }
 
-
-void createSlicePredicateObject(SlicePredicate& thrift_slice_pred, const IndexedSlicesQuery& query)
+void createSlicePredicateObject(SlicePredicate& slice_pred, const IndexedSlicesQuery& query)
 {
     if (query.isColumnsSet())
     {
-        thrift_slice_pred.__isset.column_names= true;
-        const vector<string>& cols = query.getColumns();
-        for (vector<string>::const_iterator it= cols.begin();
-                it != cols.end();
-                ++it)
-        {
-            thrift_slice_pred.column_names.push_back(*it);
-        }
+        slice_pred.__isset.column_names = true;
+        slice_pred.__set_column_names(query.getColumns());
     }
     if (query.isRangeSet())
     {
-        SliceRange thrift_slice_range;
-        thrift_slice_range.start.assign(query.getStartColumn());
-        thrift_slice_range.finish.assign(query.getEndColumn());
-        thrift_slice_range.reversed= query.getReverseColumns();
-        thrift_slice_range.count= query.getRowCount();
-        thrift_slice_pred.__isset.slice_range= true;
-        thrift_slice_pred.slice_range= thrift_slice_range;
+        slice_pred.__isset.slice_range = true;
+        slice_pred.slice_range.__set_start(query.getStartColumn());
+        slice_pred.slice_range.__set_finish(query.getEndColumn());
+        slice_pred.slice_range.__set_reversed(query.getReverseColumns());
+        slice_pred.slice_range.__set_count(query.getRowCount());
     }
 }
 
-
-void getColumnList(vector<Column>& thrift_cols, const vector<ColumnOrSuperColumn>& cols)
+void getColumnList(vector<Column>& cols, const vector<ColumnOrSuperColumn>& raw_cols)
 {
-    vector<Column> ret(cols.size());
-    for (vector<ColumnOrSuperColumn>::const_iterator it= cols.begin();
-            it != cols.end();
+    vector<Column> ret(raw_cols.size());
+    for (vector<ColumnOrSuperColumn>::const_iterator it = raw_cols.begin();
+            it != raw_cols.end();
             ++it)
     {
         ret.push_back(it->column);
     }
-    thrift_cols.swap(ret);
+    cols.swap(ret);
 }
 
-
-void getSuperColumnList(vector<SuperColumn>& thrift_cols, const vector<ColumnOrSuperColumn>& cols)
+void getSuperColumnList(vector<SuperColumn>& super_cols, const vector<ColumnOrSuperColumn>& raw_cols)
 {
-    vector<SuperColumn> ret(cols.size());
-    for (vector<ColumnOrSuperColumn>::const_iterator it= cols.begin();
-            it != cols.end();
+    vector<SuperColumn> ret(raw_cols.size());
+    for (vector<ColumnOrSuperColumn>::const_iterator it = raw_cols.begin();
+            it != raw_cols.end();
             ++it)
     {
         ret.push_back(it->super_column);
     }
-    thrift_cols.swap(ret);
+    super_cols.swap(ret);
 }
-
 
 int64_t createTimestamp()
 {
@@ -187,7 +242,6 @@ int64_t createTimestamp()
     gettimeofday(&tv, NULL);
     return (int64_t) tv.tv_sec * 1000000 + (int64_t) tv.tv_usec;
 }
-
 
 string serializeLong(int64_t t)
 {
@@ -202,7 +256,6 @@ string serializeLong(int64_t t)
     raw_array[7] = t & 0xff;
     return string(reinterpret_cast<const char *>(raw_array), 8);
 }
-
 
 int64_t deserializeLong(const string& t)
 {

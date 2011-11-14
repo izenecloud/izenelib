@@ -10,15 +10,11 @@
 #ifndef __LIBCASSANDRA_CASSANDRA_H
 #define __LIBCASSANDRA_CASSANDRA_H
 
-#include <string>
-#include <vector>
-#include <map>
 #include <boost/shared_ptr.hpp>
 
 #include "genthrift/cassandra_types.h"
 
 #include "indexed_slices_query.h"
-#include "keyspace_definition.h"
 
 namespace libcassandra
 {
@@ -59,6 +55,11 @@ public:
     const std::string& getCurrentKeyspace() const;
 
     /**
+     * @return the keyspace definition associated with this session
+     */
+    const org::apache::cassandra::KsDef& getCurrentKeyspaceDefinition() const;
+
+    /**
      * set the keyspace for the current connection
      * @param[in] ks_name name of the keyspace to specify for current session
      */
@@ -72,7 +73,7 @@ public:
     /**
      * @return all the keyspace definitions.
      */
-    const std::map<std::string, KeyspaceDefinition>& getKeyspaces();
+    const std::vector<org::apache::cassandra::KsDef>& getKeyspaces();
 
     /**
      * Insert a column, possibly inside a supercolumn
@@ -469,14 +470,14 @@ public:
      * @param[in] ks_def object representing defintion for keyspace to create
      * @return the schema ID for the keyspace created
      */
-    std::string createKeyspace(const KeyspaceDefinition& ks_def);
+    std::string createKeyspace(const org::apache::cassandra::KsDef& ks_def);
 
     /**
      * Update a keyspace
      * @param[in] ks_def object representing defintion for keyspace to update
      * @return the schema ID for the keyspace updated
      */
-    std::string updateKeyspace(const KeyspaceDefinition& ks_def);
+    std::string updateKeyspace(const org::apache::cassandra::KsDef& ks_def);
 
     /**
      * drop a keyspace
@@ -490,7 +491,7 @@ public:
      * @param[in] cf_name the name of the column family to create
      * @return the schema ID for the column family created
      */
-    std::string createColumnFamily(const ColumnFamilyDefinition& cf_def);
+    std::string createColumnFamily(const org::apache::cassandra::CfDef& cf_def);
 
     /**
      * Drop a column family
@@ -504,7 +505,7 @@ public:
      * @param[in] cf_name the name of the column family to update
      * @return the schema ID for the column family updated
      */
-    std::string updateColumnFamily(const ColumnFamilyDefinition& cf_def);
+    std::string updateColumnFamily(const org::apache::cassandra::CfDef& cf_def);
 
     /**
      * Removes all the rows from the given column family.
@@ -542,13 +543,20 @@ public:
      * Finds the given keyspace in the list of keyspace definitions
      * @return true if found; false otherwise
      */
-    bool findKeyspace(const std::string& name) const;
+    uint32_t findKeyspace(const std::string& name) const;
+
+    /**
+     * Finds the given column family in the given keyspace definition
+     * @return true if found; false otherwise
+     */
+    uint32_t findColumnFamily(uint32_t ks_num, const std::string& name) const;
 
 private:
     std::string cluster_name_;
     std::string server_version_;
     std::string current_keyspace_;
-    std::map<std::string, KeyspaceDefinition> key_spaces_;
+    uint32_t current_ks_num_;
+    std::vector<org::apache::cassandra::KsDef> key_spaces_;
     std::map<std::string, std::string> token_map_;
 };
 
