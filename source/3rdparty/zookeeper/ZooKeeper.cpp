@@ -29,6 +29,10 @@ void watcher_callback(zhandle_t *zh, int type, int state, const char *path, void
 
 static FILE* gs_logFile = 0;
 
+#define CHECK_RETURN_ERROR(err, ERROR_TYPE)  \
+    if (err == (int)ERROR_TYPE)  \
+        return #ERROR_TYPE
+
 ZooKeeper::ZooKeeper(const std::string& hosts, const int recvTimeout, bool isAutoReconnect)
 :hosts_(hosts)
 ,recvTimeout_(recvTimeout)
@@ -84,6 +88,49 @@ void ZooKeeper::setLogFile(const std::string& logFile)
 {
     gs_logFile = fopen(logFile.c_str(), "w");
     zoo_set_log_stream(gs_logFile);
+}
+
+std::string ZooKeeper::error2String(ZKErrorType zkerror)
+{
+    CHECK_RETURN_ERROR(zkerror, ZOK);
+    CHECK_RETURN_ERROR(zkerror, ZSYSTEMERROR);
+    CHECK_RETURN_ERROR(zkerror, ZRUNTIMEINCONSISTENCY);
+    CHECK_RETURN_ERROR(zkerror, ZDATAINCONSISTENCY);
+    CHECK_RETURN_ERROR(zkerror, ZCONNECTIONLOSS);
+    CHECK_RETURN_ERROR(zkerror, ZMARSHALLINGERROR);
+    CHECK_RETURN_ERROR(zkerror, ZUNIMPLEMENTED);
+    CHECK_RETURN_ERROR(zkerror, ZOPERATIONTIMEOUT);
+    CHECK_RETURN_ERROR(zkerror, ZBADARGUMENTS);
+    CHECK_RETURN_ERROR(zkerror, ZINVALIDSTATE);
+
+    CHECK_RETURN_ERROR(zkerror, ZAPIERROR);
+    CHECK_RETURN_ERROR(zkerror, ZNONODE);
+    CHECK_RETURN_ERROR(zkerror, ZNOAUTH);
+    CHECK_RETURN_ERROR(zkerror, ZBADVERSION);
+    CHECK_RETURN_ERROR(zkerror, ZNOCHILDRENFOREPHEMERALS);
+    CHECK_RETURN_ERROR(zkerror, ZNODEEXISTS);
+    CHECK_RETURN_ERROR(zkerror, ZNOTEMPTY);
+    CHECK_RETURN_ERROR(zkerror, ZSESSIONEXPIRED);
+    CHECK_RETURN_ERROR(zkerror, ZINVALIDCALLBACK);
+    CHECK_RETURN_ERROR(zkerror, ZINVALIDACL);
+    CHECK_RETURN_ERROR(zkerror, ZAUTHFAILED);
+    CHECK_RETURN_ERROR(zkerror, ZCLOSING);
+    CHECK_RETURN_ERROR(zkerror, ZNOTHING);
+    CHECK_RETURN_ERROR(zkerror, ZSESSIONMOVED);
+
+    std::stringstream ss;
+    ss << "UNKNOWN (error="<<(int)zkerror<<")";
+    return ss.str();
+}
+
+int ZooKeeper::getState()
+{
+    return (zk_ ? zk_->state : 0);
+}
+
+std::string ZooKeeper::getStateString()
+{
+    return ZooKeeperEvent::state2String(getState());
 }
 
 void ZooKeeper::connect(bool isAutoReconnect)
@@ -408,7 +455,7 @@ void ZooKeeper::showZKNamespace(const std::string& path, int level, std::ostream
     }
 
     if (level == 0) {
-        out << "======================================="<<std::endl;
+        out << "========================================================="<<std::endl;
     }
 }
 
