@@ -21,6 +21,8 @@ MemPostingReader::MemPostingReader(
     RTPostingWriter* pPostingWriter
 )
     :pPostingWriter_(pPostingWriter)
+    ,pDocFreqList_(pPostingWriter->pDocFreqList_)
+    ,pLocList_(pPostingWriter->pLocList_)
     ,pDS_(NULL)
     ,pSkipListReader_(0)
     ,pDocFilter_(0)
@@ -111,13 +113,13 @@ int32_t MemPostingReader::DecodeNext(
     if (!pDS_)
     {
         pDS_ = new MemPostingReader::DecodeState;
-        pDS_->decodingDChunk = pPostingWriter_->pDocFreqList_->pHeadChunk_;
+        pDS_->decodingDChunk = pDocFreqList_->pHeadChunk_;
         pDS_->decodingDChunkPos = 0;
         pDS_->lastDecodedDocID = 0;
         pDS_->decodedDocCount = 0;
         pDS_->decodingPChunk = NULL;
-        if(pPostingWriter_->pLocList_)
-            pDS_->decodingPChunk = pPostingWriter_->pLocList_->pHeadChunk_;
+        if(pLocList_)
+            pDS_->decodingPChunk = pLocList_->pHeadChunk_;
         pDS_->decodingPChunkPos = 0;
         pDS_->lastDecodedPos = 0;
         pDS_->decodedPosCount = 0;
@@ -191,13 +193,13 @@ int32_t MemPostingReader::DecodeNext(
     if (!pDS_)
     {
         pDS_ = new MemPostingReader::DecodeState;
-        pDS_->decodingDChunk = pPostingWriter_->pDocFreqList_->pHeadChunk_;
+        pDS_->decodingDChunk = pDocFreqList_->pHeadChunk_;
         pDS_->decodingDChunkPos = 0;
         pDS_->lastDecodedDocID = 0;
         pDS_->decodedDocCount = 0;
         pDS_->decodingPChunk = NULL;
-        if(pPostingWriter_->pLocList_)
-            pDS_->decodingPChunk = pPostingWriter_->pLocList_->pHeadChunk_;
+        if(pLocList_)
+            pDS_->decodingPChunk = pLocList_->pHeadChunk_;
         pDS_->decodingPChunkPos = 0;
         pDS_->lastDecodedPos = 0;
         pDS_->decodedPosCount = 0;
@@ -472,13 +474,13 @@ docid_t MemPostingReader::DecodeTo(
     if (!pDS_)
     {
         pDS_ = new MemPostingReader::DecodeState;
-        pDS_->decodingDChunk = pPostingWriter_->pDocFreqList_->pHeadChunk_;
+        pDS_->decodingDChunk = pDocFreqList_->pHeadChunk_;
         pDS_->decodingDChunkPos = 0;
         pDS_->lastDecodedDocID = 0;
         pDS_->decodedDocCount = 0;
         pDS_->decodingPChunk = NULL;
-        if(pPostingWriter_->pLocList_)
-            pDS_->decodingPChunk = pPostingWriter_->pLocList_->pHeadChunk_;
+        if(pLocList_)
+            pDS_->decodingPChunk = pLocList_->pHeadChunk_;
         pDS_->decodingPChunkPos = 0;
         pDS_->lastDecodedPos = 0;
         pDS_->decodedPosCount = 0;

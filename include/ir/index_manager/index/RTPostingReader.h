@@ -142,6 +142,8 @@ protected:
     int maxSkipLevel_;
 
     RTPostingWriter* pPostingWriter_;
+    boost::shared_ptr<VariantDataPool> pDocFreqList_; /// Doc freq list
+    boost::shared_ptr<VariantDataPool> pLocList_; 	/// Location list
     DecodeState* pDS_;			///decoding state
     SkipListReader* pSkipListReader_; ///skiplist reader
     BitVector* pDocFilter_;

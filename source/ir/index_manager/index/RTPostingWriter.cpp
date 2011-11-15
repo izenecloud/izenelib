@@ -28,26 +28,15 @@ RTPostingWriter::RTPostingWriter(MemCache* pCache, int skipInterval, int maxSkip
         ,dirty_(false)
         ,indexLevel_(indexLevel)
 {
-    pDocFreqList_ = new VariantDataPool(pCache);
-    pLocList_ = NULL;
+    pDocFreqList_.reset(new VariantDataPool(pCache));
     if(indexLevel == WORDLEVEL)
-        pLocList_  = new VariantDataPool(pCache);
+        pLocList_.reset(new VariantDataPool(pCache));
     if(skipInterval_> 0 && maxSkipLevel_ > 0)
         pSkipListWriter_ = new SkipListWriter(skipInterval_,maxSkipLevel_,pMemCache_);
 }
 
 RTPostingWriter::~RTPostingWriter()
 {
-    if (pDocFreqList_)
-    {
-        delete pDocFreqList_;
-        pDocFreqList_ = NULL;
-    }
-    if (pLocList_)
-    {
-        delete pLocList_;
-        pLocList_ = NULL;
-    }
     pMemCache_ = NULL;
 
     if(pSkipListWriter_)
