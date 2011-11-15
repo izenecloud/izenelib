@@ -96,8 +96,8 @@ count_t MemPostingReader::getPPostingLen()
         }
 
 int32_t MemPostingReader::DecodeNext(
-    uint32_t* pPosting, 
-    int32_t length, 
+    uint32_t* pPosting,
+    int32_t length,
     int32_t nMaxDocs
 )
 {
@@ -151,10 +151,10 @@ int32_t MemPostingReader::DecodeNext(
         if(!pDocFilter_ || !pDocFilter_->test((size_t)did))
         {
             *pDoc++ = did;
-			
+
             ISCHUNKOVER_D();
-		
-            *pFreq++ = VariantDataPool::decodeVData32(pDChunk);					
+
+            *pFreq++ = VariantDataPool::decodeVData32(pDChunk);
             ++copiedCount;
         }
         else
@@ -174,11 +174,11 @@ int32_t MemPostingReader::DecodeNext(
 }
 
 int32_t MemPostingReader::DecodeNext(
-    uint32_t* pPosting, 
-    int32_t length, 
-    int32_t nMaxDocs, 
-    uint32_t* &pPPosting, 
-    int32_t& posBufLength, 
+    uint32_t* pPosting,
+    int32_t length,
+    int32_t nMaxDocs,
+    uint32_t* &pPPosting,
+    int32_t& posBufLength,
     int32_t& posLength)
 {
     assert(nMaxDocs > 0 && nMaxDocs <= length >> 1);
@@ -241,7 +241,7 @@ int32_t MemPostingReader::DecodeNext(
         if(!pDocFilter_ || !pDocFilter_->test((size_t)did))
         {
             *pDoc++ = did;
-			
+
             ISCHUNKOVER_D();
 
             uint32_t nCurTF = VariantDataPool::decodeVData32(pDChunk);
@@ -345,9 +345,9 @@ bool MemPostingReader::DecodeNextPositions(
 }
 
 bool MemPostingReader::DecodeNextPositions(
-    uint32_t* &pPosting, 
-    int32_t& posBufLength, 
-    int32_t decodeLength, 
+    uint32_t* &pPosting,
+    int32_t& posBufLength,
+    int32_t decodeLength,
     int32_t& nCurrentPPosting)
 {
     if(pPostingWriter_->dirty_ || ! pDS_->decodingPChunk)
@@ -388,10 +388,10 @@ bool MemPostingReader::DecodeNextPositions(
 }
 
 bool MemPostingReader::DecodeNextPositions(
-    uint32_t* &pPosting, 
-    int32_t& posBufLength, 
+    uint32_t* &pPosting,
+    int32_t& posBufLength,
     uint32_t* pFreqs,
-    int32_t nFreqs, 
+    int32_t nFreqs,
     int32_t& nCurrentPPosting)
 {
     if(pPostingWriter_->dirty_|| ! pDS_->decodingPChunk)
@@ -452,18 +452,18 @@ void MemPostingReader::ResetPosition()
 }
 
 docid_t MemPostingReader::DecodeTo(
-    docid_t target, 
-    uint32_t* pPosting, 
-    int32_t length, 
-    int32_t nMaxDocs, 
-    int32_t& decodedCount, 
+    docid_t target,
+    uint32_t* pPosting,
+    int32_t length,
+    int32_t nMaxDocs,
+    int32_t& decodedCount,
     int32_t& nCurrentPosting)
 {
     assert(nMaxDocs > 0 && nMaxDocs <= length >> 1);
 
     if(pPostingWriter_->dirty_)
     {
-        SF1V5_THROW(ERROR_FILEIO,"Index dirty.");
+        return BAD_DOCID;
     }
 
     ///skipping for in-memory posting is not that necessary
@@ -484,11 +484,6 @@ docid_t MemPostingReader::DecodeTo(
         pDS_->decodingPChunkPos = 0;
         pDS_->lastDecodedPos = 0;
         pDS_->decodedPosCount = 0;
-    }
-
-    if(! pDS_->decodingDChunk)
-    {
-        SF1V5_THROW(ERROR_FILEIO,"Index dirty.");
     }
 
 
@@ -555,9 +550,9 @@ docid_t MemPostingReader::DecodeTo(
 ///RTDiskPostingReader
 
 RTDiskPostingReader::RTDiskPostingReader(
-    int skipInterval, 
-    int maxSkipLevel, 
-    InputDescriptor* pInputDescriptor, 
+    int skipInterval,
+    int maxSkipLevel,
+    InputDescriptor* pInputDescriptor,
     const TermInfo& termInfo)
     :skipInterval_(skipInterval)
     ,maxSkipLevel_(maxSkipLevel)
@@ -621,16 +616,16 @@ void RTDiskPostingReader::reset(const TermInfo& termInfo)
 }
 
 docid_t RTDiskPostingReader::DecodeTo(
-    docid_t target, 
-    uint32_t* pPosting, 
-    int32_t length, 
-    int32_t nMaxDocs, 
-    int32_t& decodedCount, 
+    docid_t target,
+    uint32_t* pPosting,
+    int32_t length,
+    int32_t nMaxDocs,
+    int32_t& decodedCount,
     int32_t& nCurrentPosting)
 {
     assert(nMaxDocs > 0 && nMaxDocs <= length >> 1);
 
-    if((count_t)(ds_.decodedDocCount) >= postingDesc_.df)		
+    if((count_t)(ds_.decodedDocCount) >= postingDesc_.df)
         return -1;
 
     if(skipListReaderPtr_.get())
@@ -653,13 +648,13 @@ docid_t RTDiskPostingReader::DecodeTo(
     {
         nDocID += pDPostingInput->readVInt();
         ++nDecodedCount;
-        
+
         if(nDocID >= target)
         {
             nFreq = pDPostingInput->readVInt();
             break;
         }
-        else 
+        else
             nSkipPCount += pDPostingInput->readVInt();
     }
     ///update state
@@ -692,8 +687,8 @@ void RTDiskPostingReader::SeekTo(
 }
 
 int32_t RTDiskPostingReader::DecodeNext(
-    uint32_t* pPosting, 
-    int32_t length, 
+    uint32_t* pPosting,
+    int32_t length,
     int32_t nMaxDocs)
 {
     assert(nMaxDocs > 0 && nMaxDocs <= length >> 1);
@@ -725,7 +720,7 @@ int32_t RTDiskPostingReader::DecodeNext(
         {
             ///this doc is deleted
             nSkipPCount += pDPostingInput->readVInt();
-        }				
+        }
     }
 
     ///update state
@@ -737,11 +732,11 @@ int32_t RTDiskPostingReader::DecodeNext(
 }
 
 int32_t RTDiskPostingReader::DecodeNext(
-    uint32_t* pPosting, 
-    int32_t length, 
-    int32_t nMaxDocs, 
-    uint32_t* &pPPosting, 
-    int32_t& posBufLength, 
+    uint32_t* pPosting,
+    int32_t length,
+    int32_t nMaxDocs,
+    uint32_t* &pPPosting,
+    int32_t& posBufLength,
     int32_t& posLength)
 {
     assert(nMaxDocs > 0 && nMaxDocs <= length >> 1);
@@ -799,7 +794,7 @@ int32_t RTDiskPostingReader::DecodeNext(
                     pPPostingInput->readVInt();
                 }
             }
-        }				
+        }
     }
 
     ///update state
@@ -820,7 +815,7 @@ bool RTDiskPostingReader::DecodeNextPositions(
         ds_.skipPosCount_ += length;///just record the skip number
         return true;
     }
-	
+
     IndexInput* pPPostingInput = inputDescriptorPtr_->getPPostingInput();
 
     skipPositions();
@@ -844,9 +839,9 @@ bool RTDiskPostingReader::DecodeNextPositions(
 }
 
 bool RTDiskPostingReader::DecodeNextPositions(
-    uint32_t* &pPosting, 
-    int32_t& posBufLength, 
-    int32_t decodeLength, 
+    uint32_t* &pPosting,
+    int32_t& posBufLength,
+    int32_t decodeLength,
     int32_t& nCurrentPPosting)
 {
     if (decodeLength <= 0)
@@ -856,7 +851,7 @@ bool RTDiskPostingReader::DecodeNextPositions(
         ds_.skipPosCount_ += decodeLength;///just record the skip number
         return true;
     }
-	
+
     IndexInput* pPPostingInput = inputDescriptorPtr_->getPPostingInput();
 
     skipPositions();
@@ -881,10 +876,10 @@ bool RTDiskPostingReader::DecodeNextPositions(
 }
 
 bool RTDiskPostingReader::DecodeNextPositions(
-    uint32_t* &pPosting, 
-    int32_t& posBufLength, 
+    uint32_t* &pPosting,
+    int32_t& posBufLength,
     uint32_t* pFreqs,
-    int32_t nFreqs, 
+    int32_t nFreqs,
     int32_t& nCurrentPPosting)
 {
     if(!pPosting)
@@ -950,7 +945,7 @@ void RTDiskPostingReader::reset()
 }
 
 void RTDiskPostingReader::skipPositions()
-{			
+{
     if(ds_.skipPosCount_ > 0)
     {
         IndexInput* pPPostingInput = inputDescriptorPtr_->getPPostingInput();
