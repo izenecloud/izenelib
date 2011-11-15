@@ -15,6 +15,7 @@
 #include <types.h>
 #include <iostream>
 #include <new>
+#include <vector>
 
 namespace izenelib{namespace util{
 
