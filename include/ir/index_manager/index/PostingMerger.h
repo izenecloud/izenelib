@@ -76,7 +76,7 @@ private:
      */
     void ensure_decompressed_pos_buffer(int newPosNum)
     {
-        PostingReader::ensurePosBufferUpperBound(positions_, curr_position_buffer_size_,
+        PostingReader::EnsurePosBufferUpperBound(positions_, curr_position_buffer_size_,
                                                  position_buffer_pointer_ + newPosNum);
     }
 

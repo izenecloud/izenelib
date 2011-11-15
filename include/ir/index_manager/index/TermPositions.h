@@ -23,11 +23,17 @@ class TermPositions: public TermDocFreqs
 public:
     TermPositions();
 
-    TermPositions(PostingReader* pPosting,const TermInfo& ti,bool ownPosting = true);
+    TermPositions(
+        PostingReader* pPosting,
+        const TermInfo& ti,
+        bool ownPosting = true);
 
     virtual ~TermPositions();
 public:
-    virtual void reset(PostingReader * pPosting,const TermInfo& ti,bool ownPosting = true);
+    virtual void reset(
+        PostingReader * pPosting,
+        const TermInfo& ti,
+        bool ownPosting = true);
     /**
      * get document id
      * @return document id
@@ -115,7 +121,7 @@ private:
 
     /**
      * whether using fixed position buffer to decode term positions,
-     * this flag is not used as RTDiskPostingReader::decodeNextPositions()
+     * this flag is not used as RTDiskPostingReader::DecodeNextPositions()
      * has bugs when this flag is true.
      */
     bool fixed_pos_buffer_; 
@@ -129,14 +135,14 @@ inline void TermPositions::skipPositions(int32_t nSkips)
         return;
     if(nTotalDecodedPCount_ == 0)
     {
-        pPosting_->decodeNextPositions(NULL,nSkips);
+        pPosting_->DecodeNextPositions(NULL,nSkips);
         nCurrentPPosting_ = nTotalDecodedPCount_;
     }
     else if (nSkips <= (nTotalDecodedPCount_ - nCurrentPPosting_))
         nCurrentPPosting_ += nSkips;
     else
     {
-        pPosting_->decodeNextPositions(NULL,(int32_t)(nSkips - (nTotalDecodedPCount_ - nCurrentPPosting_)));
+        pPosting_->DecodeNextPositions(NULL,(int32_t)(nSkips - (nTotalDecodedPCount_ - nCurrentPPosting_)));
         nCurrentPPosting_ = nTotalDecodedPCount_;
         nLastPosting_ = -1;
     }

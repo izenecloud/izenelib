@@ -22,7 +22,10 @@ TermDocFreqs::TermDocFreqs()
 {
 }
 
-TermDocFreqs::TermDocFreqs(PostingReader* pPosting, const TermInfo& ti, bool ownPosting)
+TermDocFreqs::TermDocFreqs(
+    PostingReader* pPosting, 
+    const TermInfo& ti, 
+    bool ownPosting)
 {
     reset(pPosting,ti,ownPosting)	;
 }
@@ -38,7 +41,10 @@ TermDocFreqs::~TermDocFreqs()
     nBufferSize_ = 0;
 }
 
-void TermDocFreqs::reset(PostingReader * pPosting,const TermInfo& ti,bool ownPosting)
+void TermDocFreqs::reset(
+    PostingReader * pPosting,
+    const TermInfo& ti,
+    bool ownPosting)
 {
     termInfo_ = ti;
     pPosting_ = pPosting;
@@ -100,7 +106,8 @@ docid_t TermDocFreqs::skipTo(docid_t target)
             {
                 if(!pPostingBuffer_)
                     createBuffer();
-                return pPosting_->decodeTo(target,pPostingBuffer_,nBufferSize_,nMaxDocCount_,nCurDecodedCount_,nCurrentPosting_);
+                return pPosting_->DecodeTo(target,pPostingBuffer_,
+                               nBufferSize_,nMaxDocCount_,nCurDecodedCount_,nCurrentPosting_);
             }
        }
         start = nCurrentPosting_;
@@ -123,7 +130,12 @@ docid_t TermDocFreqs::skipTo(docid_t target)
     }
 }
 
-int32_t TermDocFreqs::bsearch(docid_t docs[],int32_t start,int32_t end,docid_t key,docid_t& keyFound)
+int32_t TermDocFreqs::bsearch(
+    docid_t docs[],
+    int32_t start,
+    int32_t end,
+    docid_t key,
+    docid_t& keyFound)
 {
     int32_t k;
     int32_t nk = end;
@@ -179,7 +191,7 @@ bool TermDocFreqs::decode()
         createBuffer();
 
     nCurrentPosting_ = 0;
-    nCurDecodedCount_ = pPosting_->decodeNext(pPostingBuffer_,nBufferSize_, nMaxDocCount_);
+    nCurDecodedCount_ = pPosting_->DecodeNext(pPostingBuffer_,nBufferSize_, nMaxDocCount_);
     if (nCurDecodedCount_ <= 0)
         return false;
     nTotalDecodedCount_ += nCurDecodedCount_;
