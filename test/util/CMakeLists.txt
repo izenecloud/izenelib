@@ -84,6 +84,7 @@ ADD_EXECUTABLE(t_compressor
 TARGET_LINK_LIBRARIES(t_compressor 
   izene_util 
   ${Boost_LIBRARIES}
+  ${Glog_LIBRARIES}
   )
 
 ADD_EXECUTABLE(t_compressed_vector
@@ -94,6 +95,7 @@ ADD_EXECUTABLE(t_compressed_vector
 TARGET_LINK_LIBRARIES(t_compressed_vector 
   izene_util 
   ${Boost_LIBRARIES}
+  ${Glog_LIBRARIES}
   )
 
 
