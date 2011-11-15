@@ -6,8 +6,6 @@ IF(WIN32)
   SET(_NOT_WIN32 FALSE)
 ENDIF(WIN32)
 
-add_subdirectory( compression )
-
 MACRO_CHECK_SHOULD_BUILD(procmeminfo _NOT_WIN32)
 IF(procmeminfo_SHOULD_BUILD)
   MACRO_ADD_LIBRARY(procmeminfo
@@ -72,6 +70,16 @@ IF(izene_util_SHOULD_BUILD)
     io/MMapBufferedInput.cpp
     io/BufferedOutput.cpp
     io/FSBufferedOutput.cpp
+
+    compression/int/pfordelta_compressor.cpp
+    compression/int/pfordelta_mix_compressor.cpp
+    compression/int/pfordelta_mix_s16_compressor.cpp
+    compression/int/s16_compressor.cpp
+    compression/int/unpack.cpp
+    compression/int/vbyte_compressor.cpp
+
+    compressed_vector/OrderedVector.cpp
+    compressed_vector/detail/Compressor.cpp
 
     sysinfo/commandparser.cpp
     sysinfo/dmiparser.cpp

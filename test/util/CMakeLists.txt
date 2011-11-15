@@ -82,9 +82,20 @@ ADD_EXECUTABLE(t_compressor
   ) 
 
 TARGET_LINK_LIBRARIES(t_compressor 
-  izene_util_compression 
+  izene_util 
   ${Boost_LIBRARIES}
   )
+
+ADD_EXECUTABLE(t_compressed_vector
+  Runner.cpp 
+  compressed_vector/t_compressed_vector.cpp
+  ) 
+
+TARGET_LINK_LIBRARIES(t_compressed_vector 
+  izene_util 
+  ${Boost_LIBRARIES}
+  )
+
 
 ADD_EXECUTABLE(t_driver
     driver/Runner.cpp
