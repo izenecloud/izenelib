@@ -24,7 +24,6 @@ FieldMerger::FieldMerger(bool sortingMerge, int skipInterval, int maxSkipLevel, 
         ,beginOfVoc_(0)
         ,nMergedTerms_(0)
         ,pDocFilter_(0)
-        ,pMemCache_(0)
         ,indexLevel_(indexLevel)
 {
 }
@@ -57,11 +56,6 @@ FieldMerger::~FieldMerger()
         nNumInfos_ = 0;
     }
     pDocFilter_ = 0;
-    if(pMemCache_)
-    {
-        delete pMemCache_;
-        pMemCache_ = NULL;
-    }
 }
 void FieldMerger::addField(BarrelInfo* pBarrelInfo,FieldInfo* pFieldInfo)
 {
@@ -267,7 +261,7 @@ fileoffset_t FieldMerger::endMerge(OutputDescriptor* pOutputDescriptor)
 void FieldMerger::sortingMerge(FieldMergeInfo** ppMergeInfos,int32_t numInfos,TermInfo& ti)
 {
     if(!pMemCache_)
-        pMemCache_ = new MemCache(MEMPOOL_SIZE_FOR_MERGING);
+        pMemCache_.reset(new MemCache(MEMPOOL_SIZE_FOR_MERGING));
     MultiPostingIterator postingIterator(numInfos);
 
     for (int32_t i = 0;i< numInfos;i++)

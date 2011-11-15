@@ -118,7 +118,7 @@ void IndexerTestFixture::configTest(const IndexerTestConfig& testConfig)
     VLOG(2) << "<= IndexerTestFixture::configTest()";
 }
 
-void IndexerTestFixture::createDocument(unsigned int docNum)
+void IndexerTestFixture::createDocument(unsigned int docNum, bool manualFlush)
 {
     VLOG(2) << "=> IndexerTestFixture::createDocument()";
 
@@ -138,7 +138,7 @@ void IndexerTestFixture::createDocument(unsigned int docNum)
             BOOST_CHECK_EQUAL(indexer_->insertDocument(document), 1);
     }
 
-    if(isRealIndex_)
+    if(isRealIndex_&&manualFlush)
         indexer_->flush();
 
     VLOG(2) << "<= IndexerTestFixture::createDocument()";
@@ -152,7 +152,7 @@ int IndexerTestFixture::randDocNum()
     return docNumRand_();
 }
 
-void IndexerTestFixture::updateDocument()
+void IndexerTestFixture::updateDocument(bool manualFlush)
 {
     VLOG(2) << "=> IndexerTestFixture::updateDocument()";
 
@@ -186,7 +186,7 @@ void IndexerTestFixture::updateDocument()
         mapDocIdLen_.erase(it);
     }
 
-    if(isRealIndex_)
+    if(isRealIndex_&&manualFlush)
         indexer_->flush();
 
     removeDocList.sort();

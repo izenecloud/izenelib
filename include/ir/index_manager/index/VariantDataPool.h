@@ -15,6 +15,8 @@
 #include <ir/index_manager/store/IndexOutput.h>
 #include <ir/index_manager/store/IndexInput.h>
 
+#include <boost/shared_ptr.hpp>
+
 NS_IZENELIB_IR_BEGIN
 
 namespace indexmanager{
@@ -34,7 +36,7 @@ struct VariantDataChunk
 class VariantDataPool : public OutputStream
 {
 public:
-    VariantDataPool(MemCache* pMemCache);
+    VariantDataPool(boost::shared_ptr<MemCache> pMemCache);
 
     VariantDataPool(const VariantDataPool& src);
 
@@ -123,7 +125,7 @@ private:
     void addChunk();
 
 private:
-    MemCache* pMemCache_;
+    boost::shared_ptr<MemCache> pMemCache_;
     VariantDataChunk* pHeadChunk_; ///Posting list header
     VariantDataChunk* pTailChunk_; ///Posting list tail
     uint32_t nTotalSize_; ///Total size

@@ -16,6 +16,8 @@
 #include <ir/index_manager/index/FixedBlockSkipListWriter.h>
 #include <ir/index_manager/utility/IndexManagerConfig.h>
 
+#include <boost/shared_ptr.hpp>
+
 NS_IZENELIB_IR_BEGIN
 
 namespace indexmanager{
@@ -28,7 +30,9 @@ namespace indexmanager{
 class BlockPostingWriter:public PostingWriter
 {
 public:
-    BlockPostingWriter(MemCache* pMemCache, IndexLevel indexLevel);
+    BlockPostingWriter(
+        boost::shared_ptr<MemCache> pMemCache, 
+        IndexLevel indexLevel);
 
     ~BlockPostingWriter();
     /**
@@ -44,7 +48,9 @@ public:
      * @param pOutputDescriptor output place
      * @param termInfo set term info for voc
      */
-    void write(OutputDescriptor* pOutputDescriptor, TermInfo& termInfo);
+    void write(
+        OutputDescriptor* pOutputDescriptor, 
+        TermInfo& termInfo);
     /**
      * reset the content of Posting list.
      */
@@ -79,7 +85,7 @@ protected:
 
 protected:
     ChunkEncoder chunk_;
-    MemCache* pMemCache_;	/// memory cache
+    boost::shared_ptr<MemCache> pMemCache_;	/// memory cache
     BlockDataPool* pBlockDataPool_;
     ChunkDataPool* pPosDataPool_;
     FixedBlockSkipListWriter* pSkipListWriter_;
@@ -111,7 +117,11 @@ class SkipListWriter;
 class ChunkPostingWriter:public PostingWriter
 {
 public:
-    ChunkPostingWriter(MemCache* pMemCache, int skipInterval, int maxSkipLevel, IndexLevel indexLevel);
+    ChunkPostingWriter(
+        boost::shared_ptr<MemCache> pMemCache, 
+        int skipInterval, 
+        int maxSkipLevel, 
+        IndexLevel indexLevel);
 
     ~ChunkPostingWriter();
     /**
@@ -127,7 +137,9 @@ public:
      * @param pOutputDescriptor output place
      * @param termInfo set term info for voc
      */
-    void write(OutputDescriptor* pOutputDescriptor, TermInfo& termInfo);
+    void write(
+        OutputDescriptor* pOutputDescriptor, 
+        TermInfo& termInfo);
     /**
      * reset the content of Posting list.
      */
@@ -161,7 +173,7 @@ protected:
 
 protected:
     ChunkEncoder chunk_;
-    MemCache* pMemCache_;	/// memory cache
+    boost::shared_ptr<MemCache> pMemCache_;	/// memory cache
 
     ChunkDataPool* pDocFreqDataPool_;
     ChunkDataPool* pPosDataPool_;

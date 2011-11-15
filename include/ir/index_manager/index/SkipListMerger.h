@@ -21,19 +21,28 @@ namespace indexmanager{
 class SkipListMerger : public SkipListWriter
 {
 public:
-    SkipListMerger(int skipInterval, int maxLevel, MemCache* pMemCache);
+    SkipListMerger(
+        int skipInterval, 
+        int maxLevel, 
+        boost::shared_ptr<MemCache> pMemCache);
 
     virtual ~SkipListMerger();
 
 public:
-    void setBasePoint(docid_t baseDocID,fileoffset_t baseOffset,fileoffset_t basePOffset)
+    void setBasePoint(
+        docid_t baseDocID,
+        fileoffset_t baseOffset,
+        fileoffset_t basePOffset)
     {
         baseDocID_ = baseDocID;
         baseOffset_ = baseOffset;
         basePOffset_ = basePOffset;
     }
 
-    bool addToMerge(SkipListReader* pSkipReader,docid_t lastDoc,int nSkipIntervalBetweenBarrels);
+    bool addToMerge(
+        SkipListReader* pSkipReader,
+        docid_t lastDoc,
+        int nSkipIntervalBetweenBarrels);
 
     void writeSkipData(int level);
 

@@ -15,18 +15,22 @@ NS_IZENELIB_IR_BEGIN
 
 namespace indexmanager{
 
-RTPostingWriter::RTPostingWriter(MemCache* pCache, int skipInterval, int maxSkipLevel, IndexLevel indexLevel)
-        :pMemCache_(pCache)
-        ,skipInterval_(skipInterval)
-        ,maxSkipLevel_(maxSkipLevel)
-        ,nDF_(0)
-        ,nLastDocID_(BAD_DOCID)
-        ,nLastLoc_(BAD_DOCID)
-        ,nCurTermFreq_(0)
-        ,nCTF_(0)
-        ,pSkipListWriter_(0)
-        ,dirty_(false)
-        ,indexLevel_(indexLevel)
+RTPostingWriter::RTPostingWriter(
+    boost::shared_ptr<MemCache> pCache, 
+    int skipInterval, 
+    int maxSkipLevel, 
+    IndexLevel indexLevel)
+    :pMemCache_(pCache)
+    ,skipInterval_(skipInterval)
+    ,maxSkipLevel_(maxSkipLevel)
+    ,nDF_(0)
+    ,nLastDocID_(BAD_DOCID)
+    ,nLastLoc_(BAD_DOCID)
+    ,nCurTermFreq_(0)
+    ,nCTF_(0)
+    ,pSkipListWriter_(0)
+    ,dirty_(false)
+    ,indexLevel_(indexLevel)
 {
     pDocFreqList_.reset(new VariantDataPool(pCache));
     if(indexLevel == WORDLEVEL)
@@ -37,8 +41,6 @@ RTPostingWriter::RTPostingWriter(MemCache* pCache, int skipInterval, int maxSkip
 
 RTPostingWriter::~RTPostingWriter()
 {
-    pMemCache_ = NULL;
-
     if(pSkipListWriter_)
     {
         delete pSkipListWriter_;
@@ -51,7 +53,9 @@ bool RTPostingWriter::isEmpty()
     return (pDocFreqList_->pTailChunk_==NULL);
 }
 
-void RTPostingWriter::write(OutputDescriptor* pOutputDescriptor, TermInfo& termInfo)
+void RTPostingWriter::write(
+    OutputDescriptor* pOutputDescriptor, 
+    TermInfo& termInfo)
 {
     ///flush last document
     flushLastDoc(true);

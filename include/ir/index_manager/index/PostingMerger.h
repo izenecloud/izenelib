@@ -138,7 +138,7 @@ private:
 
     SkipListMerger* pSkipListMerger_;
 
-    MemCache* pMemCache_; /// memory cache
+    boost::shared_ptr<MemCache> pMemCache_; /// memory cache
 
     FixedBlockSkipListWriter* pFixedSkipListWriter_;
 

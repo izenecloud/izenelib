@@ -18,6 +18,7 @@
 #include <ir/index_manager/store/IndexOutput.h>
 #include <ir/index_manager/store/IndexInput.h>
 
+#include <boost/shared_ptr.hpp>
 NS_IZENELIB_IR_BEGIN
 
 namespace indexmanager{
@@ -194,7 +195,7 @@ struct ChunkData
 class ChunkDataPool
 {
 public:
-    ChunkDataPool(MemCache* pMemCache);
+    ChunkDataPool(boost::shared_ptr<MemCache> pMemCache);
 
     ~ChunkDataPool();
 public:
@@ -226,7 +227,7 @@ private:
     /* add chunk length  */
     void add_len_of_len_(uint32_t i);
 private:
-    MemCache* pMemCache_;
+    boost::shared_ptr<MemCache> pMemCache_;
     ChunkData* pHeadChunk_; ///Posting list header
     ChunkData* pTailChunk_; ///Posting list tail
     uint32_t nTotalSize_; ///Total size
@@ -354,7 +355,7 @@ struct BlockData
 class BlockDataPool
 {
 public:
-    BlockDataPool(MemCache* pMemCache);
+    BlockDataPool(boost::shared_ptr<MemCache> pMemCache);
 
     ~BlockDataPool();
 public:
@@ -379,7 +380,7 @@ private:
     void copyBlockData();
 private:
     BlockEncoder blockEncoder_;
-    MemCache* pMemCache_;
+    boost::shared_ptr<MemCache> pMemCache_;
     BlockData* pHeadBlock_; ///Posting list header
     BlockData* pTailBlock_; ///Posting list tail
     uint32_t nTotalSize_; ///Total size

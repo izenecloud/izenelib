@@ -4,7 +4,10 @@ NS_IZENELIB_IR_BEGIN
 
 namespace indexmanager{
 
-SkipListMerger::SkipListMerger(int skipInterval, int maxLevel, MemCache* pMemCache)
+SkipListMerger::SkipListMerger(
+    int skipInterval, 
+    int maxLevel, 
+    boost::shared_ptr<MemCache> pMemCache)
     :SkipListWriter(skipInterval, maxLevel, pMemCache)
     ,baseDocID_(0)
     ,baseOffset_(0)
@@ -31,7 +34,10 @@ void SkipListMerger::writeSkipData(int level)
     ppSkipLevels_[level]->addVData64((uint64_t)(curPOffset_ - pLastPOffset_[level]));
 }
 
-bool SkipListMerger::addToMerge(SkipListReader* pSkipReader,docid_t lastDoc,int nSkipIntervalBetweenBarrels)
+bool SkipListMerger::addToMerge(
+    SkipListReader* pSkipReader,
+    docid_t lastDoc,
+    int nSkipIntervalBetweenBarrels)
 {
     int lastdoc = 0;
     while(pSkipReader->nextSkip(lastDoc))

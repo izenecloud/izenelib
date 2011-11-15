@@ -81,6 +81,13 @@ struct IndexerTestConfig
     }
 
     /**
+     * Get index working mode
+     * @return true for realtime mode
+     */
+    bool isRealTimeMode() const{
+        return indexMode_ == "realtime";
+    }
+    /**
      * Whether @c docNum_ is large,
      * so that we need set an upper bound for doc length, sample check statements, etc.
      * @return true for large, false for small.
@@ -191,12 +198,13 @@ public:
     /**
      * Create @p docNum documents.
      * @param docNum the number of docs to create
+     * @param manualFlush whether call flush operation of indexer. It's not necessary when indexer works under realtime mode
      * @note if @p docNum is 0, @c IndexerTestConfig::docNum_ would be used as @p docNum instead
      */
-    void createDocument(unsigned int docNum = 0);
+    void createDocument(unsigned int docNum = 0, bool manualFlush = true);
 
     /** Update random number of documents. */
-    void updateDocument();
+    void updateDocument(bool manualFlush = true);
 
     /** Remove random number of documents, and also remove documents exceed max doc id. */
     void removeDocument();

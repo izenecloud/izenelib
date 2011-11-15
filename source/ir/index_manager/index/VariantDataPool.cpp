@@ -6,23 +6,24 @@ using namespace izenelib::ir::indexmanager;
 ///VariantDataPool
 int32_t VariantDataPool::UPTIGHT_ALLOC_MEMSIZE = 10*1024*1024;
 
-VariantDataPool::VariantDataPool(MemCache* pMemCache)
-		:pMemCache_(pMemCache)
-		,pHeadChunk_(NULL)
-		,pTailChunk_(NULL)
-		,nTotalSize_(0)
-		,nPosInCurChunk_(0)
-		,nTotalUsed_(0)
+VariantDataPool::VariantDataPool(
+    boost::shared_ptr<MemCache> pMemCache)
+    :pMemCache_(pMemCache)
+    ,pHeadChunk_(NULL)
+    ,pTailChunk_(NULL)
+    ,nTotalSize_(0)
+    ,nPosInCurChunk_(0)
+    ,nTotalUsed_(0)
 {
 }
 
 VariantDataPool::VariantDataPool(const VariantDataPool& src)
-		:pMemCache_(src.pMemCache_)
-		,pHeadChunk_(src.pHeadChunk_)
-		,pTailChunk_(src.pTailChunk_)
-		,nTotalSize_(src.nTotalSize_)
-		,nPosInCurChunk_(src.nPosInCurChunk_)
-		,nTotalUsed_(src.nTotalUsed_)
+    :pMemCache_(src.pMemCache_)
+    ,pHeadChunk_(src.pHeadChunk_)
+    ,pTailChunk_(src.pTailChunk_)
+    ,nTotalSize_(src.nTotalSize_)
+    ,nPosInCurChunk_(src.nPosInCurChunk_)
+    ,nTotalUsed_(src.nTotalUsed_)
 {
 }
 

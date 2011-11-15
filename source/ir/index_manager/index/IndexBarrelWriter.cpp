@@ -6,20 +6,20 @@
 #include <util/ThreadModel.h>
 
 #include <boost/thread.hpp>
+#include <boost/date_time/posix_time/posix_time.hpp>
 
 #include <cassert>
 
 using namespace izenelib::ir::indexmanager;
 
 IndexBarrelWriter::IndexBarrelWriter(Indexer* pIndex)
-        :pBarrelInfo_(NULL)
-        ,pIndexer_(pIndex)
-        ,pMemCache_(NULL)
-        ,pCollectionsInfo_(NULL)
-        ,pDirectory_(NULL)
-        ,pDocFilter_(0)
-        ,dirty_(false)
-
+    :pBarrelInfo_(NULL)
+    ,pIndexer_(pIndex)
+    ,pCollectionsInfo_(NULL)
+    ,pDirectory_(NULL)
+    ,pDocFilter_(0)
+    ,dirty_(false)
+    ,numFieldIndexers_(0)
 {
     pCollectionsInfo_ = new CollectionsInfo();
     pDirectory_ = pIndexer_->getDirectory();
@@ -27,9 +27,6 @@ IndexBarrelWriter::IndexBarrelWriter(Indexer* pIndex)
 
 IndexBarrelWriter::~IndexBarrelWriter()
 {
-    if (pMemCache_)
-        delete pMemCache_;
-
     if (pCollectionsInfo_)
         delete pCollectionsInfo_;
 
@@ -41,15 +38,14 @@ IndexBarrelWriter::~IndexBarrelWriter()
 void IndexBarrelWriter::createMemCache()
 {
     if (!pMemCache_)
-        pMemCache_ = new MemCache((size_t)pIndexer_->getIndexManagerConfig()->indexStrategy_.memory_);
+        pMemCache_.reset(new MemCache((size_t)pIndexer_->getIndexManagerConfig()->indexStrategy_.memory_));
 }
 
 void IndexBarrelWriter::destroyMemCache()
 {
     if (pMemCache_)
     {
-        delete pMemCache_;
-        pMemCache_ = NULL;
+        pMemCache_.reset();
     }
 }
 
@@ -83,11 +79,30 @@ void IndexBarrelWriter::updateDocument(IndexerDocument& oldDoc, IndexerDocument&
 
 void IndexBarrelWriter::reset()
 {
-    for (CollectionIndexerMap::iterator p = collectionIndexerMap_.begin( ); p != collectionIndexerMap_.end( ); ++p)
+    CollectionIndexerMap::iterator p = collectionIndexerMap_.begin();
+    for (; p != collectionIndexerMap_.end( ); ++p)
         (*p).second->reset();
 
     pCollectionsInfo_->reset();
-    if(pMemCache_) pMemCache_->flushMem();
+    if(pMemCache_) 
+    {
+        boost::unique_lock<boost::mutex> lock(mutex_);
+        int ref_count_for_mem_cache = (1+numFieldIndexers_);
+        LOG(INFO)<<"Use count of MemCache ===========>"<<pMemCache_.use_count()<<" ref_count_for_mem_cache "<<ref_count_for_mem_cache<<std::endl;
+        //After reset() for each FieldIndexer has been called, the overall ref count of memcache
+        //should be 1+numFieldIndexers_; If the ref count is greater than that value, it means
+        //the in-memory index is reading by some queries, we should wait until they finished
+        //while(pMemCache_.use_count() > ref_count_for_mem_cache )
+        if(pMemCache_.use_count() > ref_count_for_mem_cache )
+        {
+            LOG(WARNING)<<"Wait ===========>"<<std::endl;
+            //cond_.wait(lock);
+            //TODO Currently, only timed_wait for debug usage
+            boost::system_time const timeout=boost::get_system_time()+ boost::posix_time::milliseconds(5000);//5s
+            cond_.timed_wait(lock,timeout);
+        }
+        pMemCache_->flushMem();
+    }
 
     pDocFilter_ = NULL;
 }
@@ -102,14 +117,18 @@ void IndexBarrelWriter::flush()
 }
 
 
-void IndexBarrelWriter::setCollectionsMeta(const std::map<std::string, IndexerCollectionMeta>& collectionsMeta)
+void IndexBarrelWriter::setCollectionsMeta(
+    const std::map<std::string, IndexerCollectionMeta>& collectionsMeta)
 {
-    std::map<std::string, IndexerCollectionMeta>::const_iterator iter;
     collectionid_t colID;
     CollectionInfo* pCollectionInfo = NULL;
     CollectionIndexer* pCollectionIndexer = NULL;
 
-    for (iter = collectionsMeta.begin(); iter != collectionsMeta.end(); iter++)
+    numFieldIndexers_ = 0;
+
+    std::map<std::string, IndexerCollectionMeta>::const_iterator iter
+        = collectionsMeta.begin();
+    for (; iter != collectionsMeta.end(); iter++)
     {
         colID = (iter->second).getColId ();
         pCollectionIndexer = new CollectionIndexer(colID, pIndexer_);
@@ -118,6 +137,7 @@ void IndexBarrelWriter::setCollectionsMeta(const std::map<std::string, IndexerCo
         collectionIndexerMap_.insert(make_pair(colID,pCollectionIndexer));
         pCollectionInfo = new CollectionInfo(colID, pCollectionIndexer->getFieldsInfo());
         pCollectionsInfo_->addCollection(pCollectionInfo);
+        numFieldIndexers_ += pCollectionIndexer->getNumFieldIndexers();
     }
 }
 
@@ -126,17 +146,18 @@ void IndexBarrelWriter::setIndexMode(bool realtime)
     if(!realtime)
     {
         destroyMemCache();
-        for(CollectionIndexerMap::iterator cit = collectionIndexerMap_.begin();
-              cit != collectionIndexerMap_.end(); ++cit)
+        CollectionIndexerMap::iterator cit = collectionIndexerMap_.begin();
+        for(;cit != collectionIndexerMap_.end(); ++cit)
         {
-            cit->second->setIndexMode(NULL,realtime);
+            cit->second->setIndexMode(pMemCache_,realtime);
         }
+        assert(pMemCache_.use_count() == 0);
     }
     else
     {
         createMemCache();
-        for(CollectionIndexerMap::iterator cit = collectionIndexerMap_.begin();
-              cit != collectionIndexerMap_.end(); ++cit)
+        CollectionIndexerMap::iterator cit = collectionIndexerMap_.begin();
+        for(;cit != collectionIndexerMap_.end(); ++cit)
         {
             cit->second->setIndexMode(pMemCache_,realtime);
         }

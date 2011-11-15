@@ -24,7 +24,11 @@ class SkipListWriter;
 class RTPostingWriter:public PostingWriter
 {
 public:
-    RTPostingWriter(MemCache* pMemCache, int skipInterval, int maxSkipLevel, IndexLevel indexLevel);
+    RTPostingWriter(
+        boost::shared_ptr<MemCache> pMemCache, 
+        int skipInterval, 
+        int maxSkipLevel, 
+        IndexLevel indexLevel);
 
     ~RTPostingWriter();
     /**
@@ -92,7 +96,7 @@ public:
     int32_t getSkipLevel();
 
 private:
-    MemCache* pMemCache_;	/// memory cache
+    boost::shared_ptr<MemCache> pMemCache_;	/// memory cache
     int skipInterval_;              ///skip interval
     int maxSkipLevel_;           /// max skip level
     count_t nDF_;			///document frequency of this field
