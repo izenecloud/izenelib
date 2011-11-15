@@ -100,7 +100,7 @@ public:
         return bits_[bit >> 3] & (1 << (bit & 7));
     }
 
-    void compressed(EWAHBoolArray<uint32_t>& compressedBitMap)
+    void compressed(EWAHBoolArray<uint32_t>& compressedBitMap) const
     {
         const size_t byteNum = getBytesNum(size_);
         unsigned int wordinbytes = sizeof(uint32_t);

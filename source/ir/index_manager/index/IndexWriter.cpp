@@ -12,6 +12,7 @@
 #include <ir/index_manager/index/IndexBarrelWriter.h>
 #include <ir/index_manager/index/IndexerPropertyConfig.h>
 #include <ir/index_manager/index/IndexMergeManager.h>
+#include <ir/index_manager/index/rtype/BTreeIndexerManager.h>
 
 #include <util/scheduler.h>
 

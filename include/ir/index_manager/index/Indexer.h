@@ -8,6 +8,7 @@
 #ifndef INDEXER_H
 #define INDEXER_H
 
+
 #include <ir/index_manager/index/BTreeIndex.h>
 #include <ir/index_manager/utility/IndexManagerConfig.h>
 
@@ -40,6 +41,7 @@ enum IndexStatus
 
 class BarrelsInfo;
 class IndexReader;
+class BTreeIndexerManager;
 /**
 *The interface class of IndexManager component in SF1v5.0
  * @brief It is the interface component of the IndexManager.
@@ -158,7 +160,7 @@ public:
     
     IndexReader* getIndexReader();
 
-    BTreeIndexer* getBTreeIndexer() { return pBTreeIndexer_; }
+    BTreeIndexerManager* getBTreeIndexer() { return pBTreeIndexer_; }
 
     fieldid_t getPropertyIDByName(collectionid_t colID, string property)
     {
@@ -194,7 +196,8 @@ protected:
 
     IndexManagerConfig* pConfigurationManager_;
 
-    BTreeIndexer* pBTreeIndexer_;
+//     BTreeIndexer* pBTreeIndexer_;
+    BTreeIndexerManager* pBTreeIndexer_;
 
     int skipInterval_;
 
