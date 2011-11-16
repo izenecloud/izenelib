@@ -108,7 +108,7 @@ void IndexWriter::indexDocument(IndexerDocument& doc)
         ///If indexreader has not contained the in-memory barrel reader,
         ///The dirty flag should be set, so that the new query could open the in-memory barrel
         ///for real time query
-        if(!pIndexer_->getIndexReader()->hasMemBarrelReader())
+        if(!pIndexer_->pIndexReader_->hasMemBarrelReader())
             pIndexer_->setDirty();
         if(pIndexBarrelWriter_->cacheFull())
         {
