@@ -27,6 +27,7 @@ MemPostingReader::MemPostingReader(
     ,pSkipListReader_(0)
     ,pDocFilter_(0)
 {
+    pPostingWriter_->flushLastDoc(false);
 }
 
 MemPostingReader::~MemPostingReader()

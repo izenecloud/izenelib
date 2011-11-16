@@ -92,7 +92,11 @@ bool VocIterator::next()
 
 //////////////////////////////////////////////////////////////////////////
 ///RTDiskTermIterator
-RTDiskTermIterator::RTDiskTermIterator(Directory* pDirectory,const char* barrelname,FieldInfo* pFieldInfo, IndexLevel indexLevel)
+RTDiskTermIterator::RTDiskTermIterator(
+    Directory* pDirectory,
+    const char* barrelname,
+    FieldInfo* pFieldInfo, 
+    IndexLevel indexLevel)
     :pDirectory_(pDirectory)
     ,pFieldInfo_(pFieldInfo)
     ,pCurTerm_(NULL)
@@ -192,17 +196,18 @@ bool RTDiskTermIterator::next()
 
 //////////////////////////////////////////////////////////////////////////
 //
-MemTermIterator::MemTermIterator(MemTermReader* pTermReader)
-        :pTermReader_(pTermReader)
-        ,pCurTerm_(NULL)
-        ,pCurTermInfo_(NULL)
-        ,pCurTermPosting_(NULL)
-        ,postingIterator_(pTermReader->pIndexer_->postingMap_.begin())
-        ,postingIteratorEnd_(pTermReader->pIndexer_->postingMap_.end())
+MemTermIterator::MemTermIterator(
+    MemTermReader* pTermReader)
+    :pTermReader_(pTermReader)
+    ,pCurTerm_(NULL)
+    ,pCurTermInfo_(NULL)
+    ,pCurTermPosting_(NULL)
+    ,postingIterator_(pTermReader->pIndexer_->postingMap_.begin())
+    ,postingIteratorEnd_(pTermReader->pIndexer_->postingMap_.end())
 {
 }
 
-MemTermIterator::~MemTermIterator(void)
+MemTermIterator::~MemTermIterator()
 {
     if (pCurTerm_)
     {
@@ -224,7 +229,9 @@ MemTermIterator::~MemTermIterator(void)
 bool MemTermIterator::next()
 {
     if(postingIterator_ == postingIteratorEnd_) return false;
-    postingIterator_++;
+    if(pCurTermPosting_)
+        postingIterator_++;
+
     RTPostingWriter* pPostingWriter = NULL;
     if(postingIterator_ != postingIteratorEnd_)
     {
@@ -252,12 +259,11 @@ bool MemTermIterator::next()
         pCurTermPosting_ = (MemPostingReader*)pPostingWriter->createPostingReader();
         if (pCurTermInfo_ == NULL)
             pCurTermInfo_ = new TermInfo();
-        pCurTermInfo_->set(
-                                pCurTermPosting_->docFreq(),
-                                pCurTermPosting_->getCTF(),
-                                pCurTermPosting_->lastDocID(),
-                                pCurTermPosting_->getSkipLevel(),
-                                -1,-1,0,-1,0);
+        pCurTermInfo_->set(pCurTermPosting_->docFreq(),
+                                        pCurTermPosting_->getCTF(),
+                                        pCurTermPosting_->lastDocID(),
+                                        pCurTermPosting_->getSkipLevel(),
+                                        -1,-1,0,-1,0);
         return true;
     }
     else return false;
@@ -281,7 +287,11 @@ PostingReader* MemTermIterator::termPosting()
 
 //////////////////////////////////////////////////////////////////////////
 ///BlockTermIterator
-BlockTermIterator::BlockTermIterator(Directory* pDirectory,const char* barrelname,FieldInfo* pFieldInfo, IndexLevel indexLevel)
+BlockTermIterator::BlockTermIterator(
+    Directory* pDirectory,
+    const char* barrelname,
+    FieldInfo* pFieldInfo, 
+    IndexLevel indexLevel)
     :pDirectory_(pDirectory)
     ,pFieldInfo_(pFieldInfo)
     ,pCurTerm_(NULL)
@@ -382,7 +392,11 @@ bool BlockTermIterator::next()
 
 //////////////////////////////////////////////////////////////////////////
 ///ChunkTermIterator
-ChunkTermIterator::ChunkTermIterator(Directory* pDirectory,const char* barrelname,FieldInfo* pFieldInfo, IndexLevel indexLevel)
+ChunkTermIterator::ChunkTermIterator(
+    Directory* pDirectory,
+    const char* barrelname,
+    FieldInfo* pFieldInfo, 
+    IndexLevel indexLevel)
     :pDirectory_(pDirectory)
     ,pFieldInfo_(pFieldInfo)
     ,pCurTerm_(NULL)

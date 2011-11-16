@@ -665,8 +665,6 @@ TermDocFreqs* MemTermReader::termDocFreqs()
     if( (pCurTermInfo_ == NULL)||(pCurPosting_ == NULL))
         return NULL;
 
-    //InMemoryPosting* pInMem = (InMemoryPosting*)pCurPosting_;
-    //pInMem->flushLastDoc(false);
     PostingReader* pPosting = pCurPosting_->createPostingReader();
     if(getDocFilter())
         pPosting->setFilter(getDocFilter());
@@ -680,8 +678,6 @@ TermPositions* MemTermReader::termPositions()
 
     if( (pCurTermInfo_ == NULL)||(pCurPosting_ == NULL))
         return NULL;
-    //InMemoryPosting* pInMem = (InMemoryPosting*)pCurPosting_;
-    //pInMem->flushLastDoc(false);
     PostingReader* pPosting = pCurPosting_->createPostingReader();
     if(getDocFilter())
         pPosting->setFilter(getDocFilter());
@@ -716,12 +712,13 @@ TermInfo* MemTermReader::termInfo(Term* term)
     if (!pTermInfo_)
         pTermInfo_ = new TermInfo;
 
-    pTermInfo_->set(
-                                pCurPosting_->docFreq(),
-                                pCurPosting_->getCTF(),
-                                pCurPosting_->lastDocID(),
-                                pCurPosting_->getSkipLevel(),
-                                -1,-1,0,-1,0);
+    pCurPosting_->flushLastDoc(false);
+
+    pTermInfo_->set(pCurPosting_->docFreq(),
+                               pCurPosting_->getCTF(),
+                               pCurPosting_->lastDocID(),
+                               pCurPosting_->getSkipLevel(),
+                               -1,-1,0,-1,0);
     return pTermInfo_;
 }
 
