@@ -41,7 +41,7 @@ public:
     std::string toString()
     {
         std::stringstream ss;
-        ss <<"[AggregatorConfig]  available workers:"<<endl;
+        ss <<"[AggregatorConfig] >>> available workers:"<<endl;
         for (size_t i = 0; i < workerInfoList_.size(); i++)
         {
             ss <<"worker "<<workerInfoList_[i].workerid_<<", "
@@ -49,7 +49,7 @@ public:
                <<(workerInfoList_[i].isLocal_ ? " (local worker)" : "")
                <<endl;
         }
-        ss <<"[AggregatorConfig] <<< "<<endl;
+        ss <<"[AggregatorConfig] <<<"<<endl;
         return ss.str();
     }
 

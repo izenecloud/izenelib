@@ -82,10 +82,8 @@ public:
 
     void stopWorkers()
     {
-        worker1->end();
-        worker1->join();
-        worker2->end();
-        worker2->join();
+        worker1->stop();
+        worker2->stop();
         t1->join();
         t2->join();
     }
