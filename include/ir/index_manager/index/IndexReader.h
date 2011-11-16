@@ -81,6 +81,8 @@ public:
 
     IndexLevel getIndexLevel() { return pIndexer_->pConfigurationManager_->indexStrategy_.indexLevel_; }
 
+    bool hasMemBarrelReader();
+
 private:
     void createBarrelReader();
 

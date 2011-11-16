@@ -67,6 +67,8 @@ public:
 
     void close();
 
+    bool hasMemBarrel();
+
 private:
     BarrelsInfo* pBarrelsInfo_;
 

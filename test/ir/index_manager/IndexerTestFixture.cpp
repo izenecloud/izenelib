@@ -138,7 +138,7 @@ void IndexerTestFixture::createDocument(unsigned int docNum, bool manualFlush)
             BOOST_CHECK_EQUAL(indexer_->insertDocument(document), 1);
     }
 
-    if(isRealIndex_&&manualFlush)
+    if(isRealIndex_)
         indexer_->flush();
 
     VLOG(2) << "<= IndexerTestFixture::createDocument()";
@@ -186,7 +186,7 @@ void IndexerTestFixture::updateDocument(bool manualFlush)
         mapDocIdLen_.erase(it);
     }
 
-    if(isRealIndex_&&manualFlush)
+    if(isRealIndex_)
         indexer_->flush();
 
     removeDocList.sort();

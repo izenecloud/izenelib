@@ -42,6 +42,7 @@ public:
 
     void close();
 
+    bool hasMemBarrel() {return false;}
 private:
     string name_;
 

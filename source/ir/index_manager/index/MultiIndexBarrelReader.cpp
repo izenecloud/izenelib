@@ -62,3 +62,13 @@ size_t MultiIndexBarrelReader::getDistinctNumTerms(collectionid_t colID, const s
         num += (*iter)->pBarrelReader_->getDistinctNumTerms(colID,property);
     return num;
 }
+
+bool MultiIndexBarrelReader::hasMemBarrel()
+{
+    vector<BarrelReaderEntry*>::iterator iter = readers_.begin();
+    bool ret = false;
+    for(; iter != readers_.end(); ++iter)
+        ret |= (*iter)->pBarrelReader_->hasMemBarrel();
+    return ret;
+}
+

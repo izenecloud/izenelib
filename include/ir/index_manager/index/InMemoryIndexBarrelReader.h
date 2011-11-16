@@ -34,6 +34,8 @@ public:
 
     void reopen(){}
 
+    bool hasMemBarrel() {return true;};
+
 protected:
     IndexBarrelWriter* pIndexBarrelWriter_;
     map<collectionid_t, TermReader*> termReaderMap_;

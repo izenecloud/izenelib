@@ -184,7 +184,7 @@ int32_t MemPostingReader::DecodeNext(
 {
     assert(nMaxDocs > 0 && nMaxDocs <= length >> 1);
 
-    if(pPostingWriter_->dirty_|| ! pDS_->decodingPChunk)
+    if(pPostingWriter_->dirty_)
     {
         return 0;
     }
