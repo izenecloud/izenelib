@@ -59,7 +59,9 @@ class JobAggregator
 public:
     JobAggregator()
     : debug_(false)
-    , localWorkerEnabled_(true)
+    , hasLocalWorker_(false)
+    , localWorkerId_(0)
+    , isCallLocalWorkerLocally_(true)
     {
         init();
     }
@@ -67,20 +69,29 @@ public:
 public:
     void setAggregatorConfig(const AggregatorConfig& aggregatorConfig)
     {
-        localWorkerEnabled_ = aggregatorConfig.enableLocalWorker_;
-
-        // assign unique id for each worker, 0 for local worker
-        workerid_t workerId = REMOTE_WORKER_ID_START;
-
-        const std::vector<ServerInfo>& remoteWorkerList = aggregatorConfig.getWorkerList();
+        const std::vector<WorkerServerInfo>& workerSrvList = aggregatorConfig.getWorkerList();
 
         workeridList_.clear();
         workerSessionList_.clear();
-        for (size_t i = 0; i < remoteWorkerList.size(); i ++)
+        hasLocalWorker_ = false;
+        localWorkerId_ = 0;
+        for (size_t i = 0; i < workerSrvList.size(); i ++)
         {
-            createWorkerClient(workerId, remoteWorkerList[i]);
-            workeridList_.push_back(workerId);
-            workerId ++;
+            const WorkerServerInfo& workerSrv = workerSrvList[i];
+
+            if (isCallLocalWorkerLocally_ && workerSrv.isLocal_
+                    && !hasLocalWorker_ /*only 1 local*/)
+            {
+                hasLocalWorker_ = true;
+                localWorkerId_ = workerSrv.workerid_;
+                continue;
+            }
+
+            // create worker session (client)
+            WorkerSessionPtr workerSession(
+                    new WorkerSession(workerSrv.host_, workerSrv.port_, workerSrv.workerid_));
+            workeridList_.push_back(workerSrv.workerid_);
+            workerSessionList_.push_back(workerSession);
         }
     }
 
@@ -89,20 +100,22 @@ public:
         return workeridList_;
     }
 
-    size_t getRemoteWorkerNum()
+    size_t getWorkerNum()
     {
         return workeridList_.size();
     }
 
-    size_t getWorkerNum()
+    void setDebug(bool debug)
     {
-        if (localWorkerEnabled_)
-            return getRemoteWorkerNum()+1;
-        else
-            return getRemoteWorkerNum();
+        debug_ = debug;
     }
 
-    WorkerSessionPtr& getWorkerSessionById(const workerid_t workerid)
+    void setIsCallLocalWorkerLocally(bool isCallLocalWorkerLocally)
+    {
+        isCallLocalWorkerLocally_ = isCallLocalWorkerLocally;
+    }
+
+    const WorkerSessionPtr& getWorkerSessionById(const workerid_t workerid)
     {
         for (size_t i = 0; i < workerSessionList_.size(); i++)
         {
@@ -186,16 +199,6 @@ protected:
     {
     }
 
-    void createWorkerClient(const workerid_t workerId, const ServerInfo& srvInfo)
-    {
-        WorkerSessionPtr workerSession(new WorkerSession(srvInfo.host_, srvInfo.port_, workerId));
-        workerSessionList_.push_back(workerSession);
-
-        if (debug_)
-            std::cout << "#[Aggregator] set up session to worker"<<workerId<<" ["
-                      <<srvInfo.host_<<":"<<srvInfo.port_<<"]"<<std::endl;
-    }
-
 protected:
     /**
      * Join and aggregate results
@@ -215,23 +218,28 @@ public:
 protected:
     typedef std::vector<WorkerSessionPtr>::iterator worker_iterator_t;
 
-    bool localWorkerEnabled_;
+    bool hasLocalWorker_;
+    workerid_t localWorkerId_; // available when hasLocalWorker is true
+    bool isCallLocalWorkerLocally_; // xxx reserved (true as default)
+                                    // whether request local worker by in-process call,
+                                    // rpc bring network communication cost.
     boost::shared_ptr<LocalWorkerCaller> localWorkerCaller_;
 
-    std::vector<WorkerSessionPtr> workerSessionList_;
     std::vector<workerid_t> workeridList_;
+    std::vector<WorkerSessionPtr> workerSessionList_;
 
     static const std::vector<workerid_t> NullWorkeridList;
-    static WorkerSessionPtr kDefaultWorkerSession_;
+    static const WorkerSessionPtr kDefaultWorkerSession_;
 };
 
 template <class ConcreteAggregator, class LocalWorkerCaller>
 const std::vector<workerid_t> JobAggregator<ConcreteAggregator, LocalWorkerCaller>::NullWorkeridList;
 
 template <class ConcreteAggregator, class LocalWorkerCaller>
-WorkerSessionPtr JobAggregator<ConcreteAggregator, LocalWorkerCaller>::kDefaultWorkerSession_;
+const WorkerSessionPtr JobAggregator<ConcreteAggregator, LocalWorkerCaller>::kDefaultWorkerSession_;
 
-template <class ConcreteAggregator, class LocalWorkerCaller> template<typename RequestType, typename ResultType>
+template <class ConcreteAggregator, class LocalWorkerCaller>
+template<typename RequestType, typename ResultType>
 bool JobAggregator<ConcreteAggregator, LocalWorkerCaller>::distributeRequest(
         const std::string& identity,
         const std::string& func,
@@ -264,12 +272,12 @@ bool JobAggregator<ConcreteAggregator, LocalWorkerCaller>::distributeRequest(
     }
 
     // join (aggregate)
-    if (localWorkerEnabled_ && localWorkerCaller_)
+    if (hasLocalWorker_ && localWorkerCaller_)
     {
         ResultType localResult = resultItem;
         std::string error;
         if (debug_)
-            cout << "#[Aggregator] call local worker0"<<endl;
+            cout << "#[Aggregator] call local worker"<<localWorkerId_<<endl;
         if (localWorkerCaller_->call(func, requestItem, localResult, error))
         {
             return join(func, futureList, resultItem, &localResult);
@@ -285,7 +293,8 @@ bool JobAggregator<ConcreteAggregator, LocalWorkerCaller>::distributeRequest(
     }
 }
 
-template <class ConcreteAggregator, class LocalWorkerCaller> template<typename RequestType0, typename RequestType1, typename ResultType>
+template <class ConcreteAggregator, class LocalWorkerCaller>
+template<typename RequestType0, typename RequestType1, typename ResultType>
 bool JobAggregator<ConcreteAggregator, LocalWorkerCaller>::distributeRequest(
         const std::string& identity,
         const std::string& func,
@@ -319,12 +328,12 @@ bool JobAggregator<ConcreteAggregator, LocalWorkerCaller>::distributeRequest(
     }
 
     // join (aggregate)
-    if (localWorkerEnabled_ && localWorkerCaller_)
+    if (hasLocalWorker_ && localWorkerCaller_)
     {
         ResultType localResult = resultItem;
         std::string error;
         if (debug_)
-            cout << "#[Aggregator] call local worker0"<<endl;
+            cout << "#[Aggregator] call local worker"<<localWorkerId_<<endl;
         if (localWorkerCaller_->call(func, requestItem0, requestItem1, localResult, error))
         {
             return join(func, futureList, resultItem, &localResult);
@@ -340,7 +349,8 @@ bool JobAggregator<ConcreteAggregator, LocalWorkerCaller>::distributeRequest(
     }
 }
 
-template <class ConcreteAggregator, class LocalWorkerCaller> template<typename RequestType, typename ResultType>
+template <class ConcreteAggregator, class LocalWorkerCaller>
+template<typename RequestType, typename ResultType>
 bool JobAggregator<ConcreteAggregator, LocalWorkerCaller>::distributeRequest(
         const std::string& identity,
         const std::string& func,
@@ -367,14 +377,14 @@ bool JobAggregator<ConcreteAggregator, LocalWorkerCaller>::distributeRequest(
         }
 
         // Local worker is not called remotely
-        if (workerid == LOCAL_WORKER_ID)
+        if (workerid == localWorkerId_)
         {
             pLocalRequest = pRequest;
             pLoacalResult = pResult;
             continue;
         }
 
-        WorkerSessionPtr& workerSession = getWorkerSessionById(workerid);
+        const WorkerSessionPtr& workerSession = getWorkerSessionById(workerid);
         if (!workerSession.get())
         {
             cout << "#[Aggregator] Error: not found worker" << workerid <<endl;
@@ -394,11 +404,11 @@ bool JobAggregator<ConcreteAggregator, LocalWorkerCaller>::distributeRequest(
     }
 
     // join (aggregate)
-    if (pLocalRequest != NULL && localWorkerEnabled_ && localWorkerCaller_)
+    if (pLocalRequest != NULL && hasLocalWorker_ && localWorkerCaller_)
     {
         std::string error;
         if (debug_)
-            cout << "#[Aggregator] call local worker0"<<endl;
+            cout << "#[Aggregator] call local worker"<<localWorkerId_<<endl;
         if (localWorkerCaller_->call(func, *pLocalRequest, *pLoacalResult, error))
         {
             return join(func, futureList, resultItem, pLoacalResult);
@@ -410,7 +420,7 @@ bool JobAggregator<ConcreteAggregator, LocalWorkerCaller>::distributeRequest(
     }
     else
     {
-        if (!localWorkerEnabled_) {
+        if (!hasLocalWorker_) {
             std::cerr << "#[Aggregator] Error: local worker was required but not enabled." <<endl;
         }
 
@@ -418,7 +428,8 @@ bool JobAggregator<ConcreteAggregator, LocalWorkerCaller>::distributeRequest(
     }
 }
 
-template <class ConcreteAggregator, class LocalWorkerCaller> template<typename RequestType, typename ResultType>
+template <class ConcreteAggregator, class LocalWorkerCaller>
+template<typename RequestType, typename ResultType>
 bool JobAggregator<ConcreteAggregator, LocalWorkerCaller>::singleRequest(
         const std::string& identity,
         const std::string& func,
@@ -432,9 +443,9 @@ bool JobAggregator<ConcreteAggregator, LocalWorkerCaller>::singleRequest(
         cout << "#[Aggregator] distribute request: " << func_plus << endl;
 
 
-    if (workerid == LOCAL_WORKER_ID)
+    if (workerid == localWorkerId_)
     {
-        if (localWorkerEnabled_ && localWorkerCaller_)
+        if (hasLocalWorker_ && localWorkerCaller_)
         {
             std::string error;
             return localWorkerCaller_->call(func, requestItem, resultItem, error);
@@ -446,7 +457,7 @@ bool JobAggregator<ConcreteAggregator, LocalWorkerCaller>::singleRequest(
         }
     }
 
-    WorkerSessionPtr& workerSession = getWorkerSessionById(workerid);
+    const WorkerSessionPtr& workerSession = getWorkerSessionById(workerid);
     if (!workerSession.get())
     {
         cout << "#[Aggregator] Error: not found worker" << workerid <<endl;
@@ -465,7 +476,8 @@ bool JobAggregator<ConcreteAggregator, LocalWorkerCaller>::singleRequest(
 }
 
 
-template <class ConcreteAggregator, class LocalWorkerCaller> template <typename RequestType0, typename RequestType1, typename ResultType>
+template <class ConcreteAggregator, class LocalWorkerCaller>
+template <typename RequestType0, typename RequestType1, typename ResultType>
 bool JobAggregator<ConcreteAggregator, LocalWorkerCaller>::singleRequest(
         const std::string& identity,
         const std::string& func,
@@ -475,9 +487,9 @@ bool JobAggregator<ConcreteAggregator, LocalWorkerCaller>::singleRequest(
         workerid_t workerid,
         timeout_t timeoutSec)
 {
-    if (workerid == LOCAL_WORKER_ID)
+    if (workerid == localWorkerId_)
     {
-        if (localWorkerEnabled_ && localWorkerCaller_)
+        if (hasLocalWorker_ && localWorkerCaller_)
         {
             std::string error;
             return localWorkerCaller_->call(func, requestItem0, requestItem1, resultItem, error);
@@ -493,7 +505,7 @@ bool JobAggregator<ConcreteAggregator, LocalWorkerCaller>::singleRequest(
     if (debug_)
         cout << "#[Aggregator] distribute request: " << func_plus << endl;
 
-    WorkerSessionPtr& workerSession = getWorkerSessionById(workerid);
+    const WorkerSessionPtr& workerSession = getWorkerSessionById(workerid);
     if (!workerSession.get())
     {
         cout << "#[Aggregator] Error: not found worker" << workerid <<endl;
@@ -511,7 +523,8 @@ bool JobAggregator<ConcreteAggregator, LocalWorkerCaller>::singleRequest(
     return true;
 }
 
-template <class ConcreteAggregator, class LocalWorkerCaller> template<typename ResultType>
+template <class ConcreteAggregator, class LocalWorkerCaller>
+template<typename ResultType>
 bool JobAggregator<ConcreteAggregator, LocalWorkerCaller>::join(
         const std::string& func,
         std::vector<std::pair<workerid_t, future_t> >& futureList,
@@ -521,7 +534,7 @@ bool JobAggregator<ConcreteAggregator, LocalWorkerCaller>::join(
     std::vector<std::pair<workerid_t, ResultType> > resultList;
     if (NULL != localResult)
     {
-        resultList.push_back(std::make_pair(LOCAL_WORKER_ID, *localResult));
+        resultList.push_back(std::make_pair(localWorkerId_, *localResult));
     }
 
     std::vector<std::pair<workerid_t, future_t> >::iterator it;

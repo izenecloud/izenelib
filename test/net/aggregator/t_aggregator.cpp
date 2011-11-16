@@ -109,9 +109,8 @@ BOOST_AUTO_TEST_CASE( aggregator_remote_workers )
 
     // aggregator
     AggregatorConfig config;
-    config.enableLocalWorker_ = false; // disable local
-    config.addWorker("0.0.0.0", 18111);
-    config.addWorker("0.0.0.0", 18112);
+    config.addWorker("0.0.0.0", 18111, 1);
+    config.addWorker("0.0.0.0", 18112, 2);
 
     SearchAggregator ag;
     ag.debug_ = true;
@@ -138,8 +137,8 @@ BOOST_AUTO_TEST_CASE( aggregator_local_remote_workers )
 
     // aggregator
     AggregatorConfig config;
-    config.enableLocalWorker_ = true;
-    config.addWorker("0.0.0.0", 18111);
+    config.addWorker("0.0.0.0", 18110, 1, true); // is local
+    config.addWorker("0.0.0.0", 18111, 2);
 
     SearchAggregator ag;
     ag.debug_ = true;
@@ -167,9 +166,9 @@ BOOST_AUTO_TEST_CASE( aggregator_group_requests )
 
     // aggregator
     AggregatorConfig config;
-    config.enableLocalWorker_ = true;
-    config.addWorker("0.0.0.0", 18111);
-    config.addWorker("0.0.0.0", 18112);
+    config.addWorker("0.0.0.0", 18110, 1, true); // is local
+    config.addWorker("0.0.0.0", 18111, 2);
+    config.addWorker("0.0.0.0", 18112, 3);
 
     SearchAggregator aggregator;
     aggregator.debug_ = true;
@@ -186,9 +185,9 @@ BOOST_AUTO_TEST_CASE( aggregator_group_requests )
     SearchResult res;
 
     RequestGroup<SearchRequest, SearchResult> requestGroup;
-    requestGroup.addRequest(0, &req0, &res);
-    requestGroup.addRequest(1, &req1, &res);
-    requestGroup.addRequest(2, &req2, &res);
+    requestGroup.addRequest(1, &req0, &res);
+    requestGroup.addRequest(2, &req1, &res);
+    requestGroup.addRequest(3, &req2, &res);
 
     aggregator.distributeRequest("", "getKeywordSearchResult", requestGroup, res);
 
