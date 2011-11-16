@@ -13,13 +13,13 @@ const int ChunkEncoder::kChunkSize;      // Initialized in the class definition.
 
 int32_t ChunkDataPool::UPTIGHT_ALLOC_MEMSIZE = 10*1024*1024;
 
-ChunkDataPool::ChunkDataPool(MemCache* pMemCache)
-	:pMemCache_(pMemCache)
-	,pHeadChunk_(NULL)
-	,pTailChunk_(NULL)
-	,nTotalSize_(0)
-	,nPosInCurChunk_(0)
-	,nTotalUsed_(0)
+ChunkDataPool::ChunkDataPool(boost::shared_ptr<MemCache> pMemCache)
+    :pMemCache_(pMemCache)
+    ,pHeadChunk_(NULL)
+    ,pTailChunk_(NULL)
+    ,nTotalSize_(0)
+    ,nPosInCurChunk_(0)
+    ,nTotalUsed_(0)
 {
 }
 
@@ -418,11 +418,11 @@ void BlockEncoder::getBlockBytes(unsigned char* block_bytes )
 ///BlockDataPool
 int32_t BlockDataPool::UPTIGHT_ALLOC_MEMSIZE = 10*1024*1024;
 
-BlockDataPool::BlockDataPool(MemCache* pMemCache)
-		:pMemCache_(pMemCache)
-		,pHeadBlock_(NULL)
-		,pTailBlock_(NULL)
-		,nTotalSize_(0)
+BlockDataPool::BlockDataPool(boost::shared_ptr<MemCache> pMemCache)
+    :pMemCache_(pMemCache)
+    ,pHeadBlock_(NULL)
+    ,pTailBlock_(NULL)
+    ,nTotalSize_(0)
 {
 }
 

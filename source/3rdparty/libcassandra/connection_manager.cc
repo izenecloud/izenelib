@@ -55,6 +55,7 @@ void CassandraConnectionManager::releaseClient(MyCassandraClient * client)
 {
     boost::unique_lock<boost::mutex> lock(mutex_);
     clients_.push_back(client);
+    cond_.notify_one();
 }
 
 }

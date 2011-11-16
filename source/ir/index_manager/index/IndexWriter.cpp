@@ -67,11 +67,13 @@ void IndexWriter::flush()
     }
     assert(pIndexBarrelWriter_ && "pIndexBarrelWriter_ should have been created with pCurBarrelInfo_ together in IndexWriter::createBarrelInfo()");
 
-    pIndexBarrelWriter_->close();
-    pIndexer_->setDirty();
-
+    pIndexBarrelWriter_->flush();
     if(! pIndexer_->isRealTime())
         pCurBarrelInfo_->setSearchable(true);
+    pIndexer_->setDirty();
+    pIndexer_->getIndexReader();
+    pIndexBarrelWriter_->reset();
+
 
     pIndexMergeManager_->addToMerge(pCurBarrelInfo_);
 

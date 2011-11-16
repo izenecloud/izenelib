@@ -4,7 +4,7 @@ NS_IZENELIB_IR_BEGIN
 
 namespace indexmanager{
 
-FixedBlockSkipListWriter::FixedBlockSkipListWriter(MemCache* pMemCache)
+FixedBlockSkipListWriter::FixedBlockSkipListWriter(boost::shared_ptr<MemCache> pMemCache)
     :lastDoc_(0)
     ,lastPOffset_(0)
     ,curDoc_(0)

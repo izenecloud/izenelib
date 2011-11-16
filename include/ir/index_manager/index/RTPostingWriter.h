@@ -15,6 +15,7 @@
 #include <ir/index_manager/index/RTPostingReader.h>
 #include <ir/index_manager/utility/IndexManagerConfig.h>
 
+#include <boost/shared_ptr.hpp>
 NS_IZENELIB_IR_BEGIN
 
 namespace indexmanager{
@@ -23,7 +24,11 @@ class SkipListWriter;
 class RTPostingWriter:public PostingWriter
 {
 public:
-    RTPostingWriter(MemCache* pMemCache, int skipInterval, int maxSkipLevel, IndexLevel indexLevel);
+    RTPostingWriter(
+        boost::shared_ptr<MemCache> pMemCache, 
+        int skipInterval, 
+        int maxSkipLevel, 
+        IndexLevel indexLevel);
 
     ~RTPostingWriter();
     /**
@@ -91,7 +96,7 @@ public:
     int32_t getSkipLevel();
 
 private:
-    MemCache* pMemCache_;	/// memory cache
+    boost::shared_ptr<MemCache> pMemCache_;	/// memory cache
     int skipInterval_;              ///skip interval
     int maxSkipLevel_;           /// max skip level
     count_t nDF_;			///document frequency of this field
@@ -99,8 +104,8 @@ private:
     loc_t nLastLoc_;		///current added word offset
     count_t nCurTermFreq_; ///current term freq
     int32_t nCTF_;			///Collection's total term frequency
-    VariantDataPool* pDocFreqList_; /// Doc freq list
-    VariantDataPool* pLocList_; 	/// Location list
+    boost::shared_ptr<VariantDataPool> pDocFreqList_; /// Doc freq list
+    boost::shared_ptr<VariantDataPool> pLocList_; 	/// Location list
     SkipListWriter* pSkipListWriter_;	///skiplist writer
     volatile bool dirty_;
     IndexLevel indexLevel_;

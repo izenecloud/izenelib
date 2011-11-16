@@ -18,7 +18,7 @@ namespace indexmanager{
 class FixedBlockSkipListWriter
 {
 public:
-    FixedBlockSkipListWriter(MemCache* pMemCache);
+    FixedBlockSkipListWriter(boost::shared_ptr<MemCache> pMemCache);
 
     virtual ~FixedBlockSkipListWriter();
 

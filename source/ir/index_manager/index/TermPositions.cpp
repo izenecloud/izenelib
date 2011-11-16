@@ -15,22 +15,25 @@ NS_IZENELIB_IR_BEGIN
 namespace indexmanager{
 
 TermPositions::TermPositions()
-        :pPPostingBuffer_(NULL)
-        ,nPBufferSize_(0)
-        ,nTotalDecodedPCountWithinDoc_(0)
-        ,nCurDecodedPCountWithinDoc_(0)
-        ,nCurrentPPostingWithinDoc_(0)
-        ,nTotalDecodedPCount_(0)
-        ,nCurrentPPosting_(0)
-        ,nLastUnDecodedPCount_(0)
-        ,pPPostingBufferWithinDoc_(NULL)
-        ,nPPostingCountWithinDoc_(0)
-        ,nLastPosting_(-1)
-        ,is_last_skipto_(false)
-        ,fixed_pos_buffer_(false)
+    :pPPostingBuffer_(NULL)
+    ,nPBufferSize_(0)
+    ,nTotalDecodedPCountWithinDoc_(0)
+    ,nCurDecodedPCountWithinDoc_(0)
+    ,nCurrentPPostingWithinDoc_(0)
+    ,nTotalDecodedPCount_(0)
+    ,nCurrentPPosting_(0)
+    ,nLastUnDecodedPCount_(0)
+    ,pPPostingBufferWithinDoc_(NULL)
+    ,nPPostingCountWithinDoc_(0)
+    ,nLastPosting_(-1)
+    ,is_last_skipto_(false)
+    ,fixed_pos_buffer_(false)
 {}
 
-TermPositions::TermPositions(PostingReader* pPosting,const TermInfo& ti,bool ownPosting)
+TermPositions::TermPositions(
+    PostingReader* pPosting,
+    const TermInfo& ti,
+    bool ownPosting)
 {
     reset(pPosting,ti,ownPosting)	;
 }
@@ -44,7 +47,10 @@ TermPositions::~TermPositions()
     pPPostingBufferWithinDoc_ = NULL;
 }
 
-void TermPositions::reset(PostingReader * pPosting,const TermInfo& ti,bool ownPosting)
+void TermPositions::reset(
+    PostingReader * pPosting,
+    const TermInfo& ti,
+    bool ownPosting)
 {
     TermDocFreqs::reset(pPosting,ti,ownPosting);
     pPPostingBuffer_ = NULL;
@@ -84,7 +90,7 @@ bool TermPositions::next()
         nCurDecodedPCountWithinDoc_ = 0;
         nCurrentPPostingWithinDoc_ = 0;
         //pPPostingBufferWithinDoc_ = pPPostingBuffer_ + nCurrentPPosting_;
-        pPosting_->resetPosition();
+        pPosting_->ResetPosition();
         return true;
     }
     return false;
@@ -109,7 +115,8 @@ docid_t TermPositions::skipTo(docid_t target)
             {
                 if(!pPostingBuffer_)
                     createBuffer();
-                docid_t ret = pPosting_->decodeTo(target,pPostingBuffer_,nBufferSize_,nMaxDocCount_,nCurDecodedCount_,nCurrentPosting_);
+                docid_t ret = pPosting_->DecodeTo(target,pPostingBuffer_,nBufferSize_,
+                                                   nMaxDocCount_,nCurDecodedCount_,nCurrentPosting_);
                 resetDecodingState();
                 nCurrentPPosting_ = 0;
                 nTotalDecodedPCount_ = 0;
@@ -162,7 +169,7 @@ void TermPositions::resetDecodingState()
     nCurDecodedPCountWithinDoc_ = 0;
     nTotalDecodedPCountWithinDoc_ = 0;
     nCurrentPPostingWithinDoc_ = 0;
-    pPosting_->resetPosition();
+    pPosting_->ResetPosition();
 }
 
 loc_t TermPositions::nextPosition()
@@ -202,8 +209,9 @@ bool TermPositions::decodePositionsUsingUnFixedBuf()
                 nTotalDecodedPCount_ += pPostingBuffer_[nFreqStart_ + nFreqs];
             }
 
-            //pPosting_->decodeNextPositions(pPPostingBuffer_, nPBufferSize_, NULL, 0, nCurrentPPosting_);
-            pPosting_->decodeNextPositions(pPPostingBuffer_,nPBufferSize_, nTotalDecodedPCount_, nCurrentPPosting_);
+            //pPosting_->DecodeNextPositions(pPPostingBuffer_, nPBufferSize_, NULL, 0, nCurrentPPosting_);
+            pPosting_->DecodeNextPositions(pPPostingBuffer_,nPBufferSize_, 
+                                             nTotalDecodedPCount_, nCurrentPPosting_);
 	}
 		
     }
@@ -251,11 +259,11 @@ bool TermPositions::decodePositionsUsingFixedBuf()
                 nLastUnDecodedPCount_ = 0;
                 nLastPosting_++;
             }
-            bool ret = pPosting_->decodeNextPositions(pPPostingBuffer,nTotalDecodedPCount_);
+            bool ret = pPosting_->DecodeNextPositions(pPPostingBuffer,nTotalDecodedPCount_);
             if(!ret) return false;
             pPPostingBuffer += nTotalDecodedPCount_;
             if (nLastUnDecodedPCount_ == 0)
-                pPosting_->resetPosition();
+                pPosting_->ResetPosition();
         }
         if (!bEnd)
         {
@@ -271,14 +279,16 @@ bool TermPositions::decodePositionsUsingFixedBuf()
             }
             if ((nFreqs - nLastPosting_) > 0)
             {
-                bool ret = pPosting_->decodeNextPositions(pPPostingBuffer, nPBufferSize_ ,&(pPostingBuffer_[nFreqStart_ + nLastPosting_]),nFreqs - nLastPosting_,nCurrentPPosting_);
+                bool ret = pPosting_->DecodeNextPositions(pPPostingBuffer, 
+                                    nPBufferSize_ ,&(pPostingBuffer_[nFreqStart_ + nLastPosting_]),
+                                    nFreqs - nLastPosting_,nCurrentPPosting_);
                 if(!ret) return false;
                 nLastPosting_ = nFreqs;
             }
             else if (nTotalDecodedPCount_ == 0)
             {
                 nTotalDecodedPCount_ = nPBufferSize_;
-                bool ret = pPosting_->decodeNextPositions(pPPostingBuffer,nTotalDecodedPCount_);
+                bool ret = pPosting_->DecodeNextPositions(pPPostingBuffer,nTotalDecodedPCount_);
                 if(!ret) return false;
                 nLastUnDecodedPCount_ = pPostingBuffer_[nFreqStart_ + nLastPosting_] - nTotalDecodedPCount_;
             }
@@ -335,7 +345,9 @@ bool TermPositions::decode()
 
     nCurrentPosting_ = 0;
     nCurrentPPosting_ = 0;
-    nCurDecodedCount_ = pPosting_->decodeNext(pPostingBuffer_, nBufferSize_, nMaxDocCount_, pPPostingBuffer_, nPBufferSize_, nTotalDecodedPCount_);
+    nCurDecodedCount_ = pPosting_->DecodeNext(pPostingBuffer_, 
+                    nBufferSize_, nMaxDocCount_, pPPostingBuffer_, 
+                    nPBufferSize_, nTotalDecodedPCount_);
     if (nCurDecodedCount_ <= 0)
         return false;
     nTotalDecodedCount_ += nCurDecodedCount_;

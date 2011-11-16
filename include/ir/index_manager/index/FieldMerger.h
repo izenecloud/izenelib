@@ -21,6 +21,7 @@
 #include <string>
 #include <vector>
 
+#include <boost/shared_ptr.hpp>
 
 #define NUM_CACHEDTERMINFO 100
 
@@ -277,7 +278,7 @@ private:
 
     BitVector* pDocFilter_;
 
-    MemCache* pMemCache_;
+    boost::shared_ptr<MemCache> pMemCache_;
 
     IndexLevel indexLevel_;
 };

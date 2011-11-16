@@ -31,7 +31,10 @@ class SkipListReader;
 class BlockPostingReader:public PostingReader
 {
 public:
-    BlockPostingReader(InputDescriptor* pInputDescriptor,const TermInfo& termInfo,IndexType type = WORD_LEVEL);
+    BlockPostingReader(
+        InputDescriptor* pInputDescriptor,
+        const TermInfo& termInfo,
+        IndexType type = WORD_LEVEL);
 
     ~BlockPostingReader();
 
@@ -39,13 +42,22 @@ public:
      * @pre @p nMaxDocs >= @c CHUNK_SIZE, as @c CHUNK_SIZE docs are decoded
      *      altogether each time @c ChunkDecoder::decodeDocIds() is called.
      */
-    int32_t decodeNext(uint32_t* pPosting, int32_t length, int32_t nMaxDocs);
+    int32_t DecodeNext(
+        uint32_t* pPosting, 
+        int32_t length, 
+        int32_t nMaxDocs);
 
     /**
      * @pre @p nMaxDocs >= @c CHUNK_SIZE, as @c CHUNK_SIZE docs are decoded
      *      altogether each time @c ChunkDecoder::decodeDocIds() is called.
      */
-    int32_t decodeNext(uint32_t* pPosting, int32_t length, int32_t nMaxDocs, uint32_t* &pPPosting, int32_t& posBufLength, int32_t& posLength);
+    int32_t DecodeNext(
+        uint32_t* pPosting, 
+        int32_t length, 
+        int32_t nMaxDocs, 
+        uint32_t* &pPPosting, 
+        int32_t& posBufLength, 
+        int32_t& posLength);
 
     /**
      * Get the position posting data
@@ -53,7 +65,9 @@ public:
      * @param the length of pPosting. This function is only useful for to decode positions for skipTo target
      * @return true:success,false: error or reach end
      */
-    bool decodeNextPositions(uint32_t* pPosting,int32_t length);
+    bool DecodeNextPositions(
+        uint32_t* pPosting,
+        int32_t length);
 
     /**
      * Get the position posting data
@@ -62,7 +76,11 @@ public:
      * @param decodeLength the length of decoded posting wanted.Only useful for BYTE-aligned posting
      * @return true:success,false: error or reach end
      */
-    bool decodeNextPositions(uint32_t* &pPosting, int32_t& posBufLength, int32_t decodeLength, int32_t& nCurrentPPosting);
+    bool DecodeNextPositions(
+        uint32_t* &pPosting, 
+        int32_t& posBufLength, 
+        int32_t decodeLength, 
+        int32_t& nCurrentPPosting);
 
     /**
      * Get the position posting data
@@ -70,18 +88,29 @@ public:
      * @param pFreqs freqs array
      * @param nFreqs size of freqs array
      */
-    bool decodeNextPositions(uint32_t* &pPosting, int32_t& posBufLength, uint32_t* pFreqs,int32_t nFreqs, int32_t& nCurrentPPosting);
+    bool DecodeNextPositions(
+        uint32_t* &pPosting, 
+        int32_t& posBufLength, 
+        uint32_t* pFreqs,
+        int32_t nFreqs, 
+        int32_t& nCurrentPPosting);
 
     /**
      * @pre @p nMaxDocs >= @c CHUNK_SIZE, as @c CHUNK_SIZE docs are decoded
      *      altogether each time @c ChunkDecoder::decodeDocIds() is called.
      */
-    docid_t decodeTo(docid_t target, uint32_t* pPosting, int32_t length, int32_t nMaxDocs, int32_t& decodedCount, int32_t& nCurrentPosting);
+    docid_t DecodeTo(
+        docid_t target, 
+        uint32_t* pPosting, 
+        int32_t length, 
+        int32_t nMaxDocs, 
+        int32_t& decodedCount, 
+        int32_t& nCurrentPosting);
 
     /**
      * reset the base position which used in d-gap encoding
      */
-    void resetPosition(){}
+    void ResetPosition(){}
 
     /**
      * reset the content of Posting list.
@@ -116,7 +145,8 @@ public:
     */
     count_t getCurTF() const
     {
-        return blockDecoder_.chunk_decoder_.frequencies(blockDecoder_.chunk_decoder_.curr_document_offset());		
+        return blockDecoder_.chunk_decoder_.frequencies(
+                        blockDecoder_.chunk_decoder_.curr_document_offset());		
     }
 
     docid_t lastDocID()
@@ -190,7 +220,12 @@ protected:
 class ChunkPostingReader:public PostingReader
 {
 public:
-    ChunkPostingReader(int skipInterval, int maxSkipLevel, InputDescriptor* pInputDescriptor,const TermInfo& termInfo,IndexType type = WORD_LEVEL);
+    ChunkPostingReader(
+        int skipInterval, 
+        int maxSkipLevel, 
+        InputDescriptor* pInputDescriptor,
+        const TermInfo& termInfo,
+        IndexType type = WORD_LEVEL);
 
     ~ChunkPostingReader();
 
@@ -198,13 +233,22 @@ public:
      * @pre @p nMaxDocs >= @c CHUNK_SIZE, as @c CHUNK_SIZE docs are decoded
      *      altogether each time @c ChunkDecoder::decodeDocIds() is called.
      */
-    int32_t decodeNext(uint32_t* pPosting, int32_t length, int32_t nMaxDocs);
+    int32_t DecodeNext(
+        uint32_t* pPosting, 
+        int32_t length, 
+        int32_t nMaxDocs);
 
     /**
      * @pre @p nMaxDocs >= @c CHUNK_SIZE, as @c CHUNK_SIZE docs are decoded
      *      altogether each time @c ChunkDecoder::decodeDocIds() is called.
      */
-    int32_t decodeNext(uint32_t* pPosting, int32_t length, int32_t nMaxDocs, uint32_t* &pPPosting, int32_t& posBufLength, int32_t& posLength);
+    int32_t DecodeNext(
+        uint32_t* pPosting, 
+        int32_t length, 
+        int32_t nMaxDocs, 
+        uint32_t* &pPPosting, 
+        int32_t& posBufLength, 
+        int32_t& posLength);
 
     /**
      * Get the position posting data
@@ -212,7 +256,9 @@ public:
      * @param length the length of @p pPosting. This function is only useful to decode positions for skipTo target
      * @return true for success, false for error or reach end
      */
-    bool decodeNextPositions(uint32_t* pPosting,int32_t length);
+    bool DecodeNextPositions(
+        uint32_t* pPosting,
+        int32_t length);
 
     /**
      * Get the position posting data
@@ -221,7 +267,11 @@ public:
      * @param decodeLength the length of decoded posting wanted. Only useful for BYTE-aligned posting
      * @return true for success, false for error or reach end
      */
-    bool decodeNextPositions(uint32_t* &pPosting, int32_t& posBufLength, int32_t decodeLength, int32_t& nCurrentPPosting);
+    bool DecodeNextPositions(
+        uint32_t* &pPosting, 
+        int32_t& posBufLength, 
+        int32_t decodeLength, 
+        int32_t& nCurrentPPosting);
 
     /**
      * Get the position posting data
@@ -229,18 +279,29 @@ public:
      * @param pFreqs freqs array
      * @param nFreqs size of freqs array
      */
-    bool decodeNextPositions(uint32_t* &pPosting, int32_t& posBufLength, uint32_t* pFreqs,int32_t nFreqs, int32_t& nCurrentPPosting);
+    bool DecodeNextPositions(
+        uint32_t* &pPosting, 
+        int32_t& posBufLength, 
+        uint32_t* pFreqs,
+        int32_t nFreqs, 
+        int32_t& nCurrentPPosting);
 
     /**
      * @pre @p nMaxDocs >= @c CHUNK_SIZE, as @c CHUNK_SIZE docs are decoded
      *      altogether each time @c ChunkDecoder::decodeDocIds() is called.
      */
-    docid_t decodeTo(docid_t target, uint32_t* pPosting, int32_t length, int32_t nMaxDocs, int32_t& decodedCount, int32_t& nCurrentPosting);
+    docid_t DecodeTo(
+        docid_t target, 
+        uint32_t* pPosting, 
+        int32_t length, 
+        int32_t nMaxDocs, 
+        int32_t& decodedCount, 
+        int32_t& nCurrentPosting);
 
     /**
      * reset the base position which used in d-gap encoding
      */
-    void resetPosition(){}
+    void ResetPosition(){}
 
     /**
      * reset the content of Posting list.

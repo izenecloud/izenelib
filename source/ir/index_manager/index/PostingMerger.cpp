@@ -31,7 +31,6 @@ PostingMerger::PostingMerger(
         ,nSkipIntervalBetweenBarrels_(0)
         ,bFirstPosting_(true)
         ,pSkipListMerger_(NULL)
-        ,pMemCache_(NULL)
         ,pFixedSkipListWriter_(NULL)
         ,pSkipListWriter_(NULL)
         ,compressedPos_(NULL)
@@ -50,7 +49,7 @@ PostingMerger::PostingMerger(
     // to avoid concurrent memory request,
     // such as by ChunkPostingWriter::pDocFreqDataPool_ in another thread,
     // posting merger use a seperated memory pool exclusively
-    pMemCache_ = new MemCache(memPoolSizeForPostingMerger);
+    pMemCache_.reset(new MemCache(memPoolSizeForPostingMerger));
 
     init();
     reset();
@@ -58,8 +57,6 @@ PostingMerger::PostingMerger(
 
 PostingMerger::~PostingMerger()
 {
-    if(pMemCache_)
-        delete pMemCache_;
     if(pSkipListMerger_)
         delete pSkipListMerger_;
     if(pTmpPostingOutput_)
