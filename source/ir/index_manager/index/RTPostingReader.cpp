@@ -86,32 +86,28 @@ count_t MemPostingReader::getPPostingLen()
 }
 
 #define ISCHUNKOVER_D()\
-{\
-    izenelib::util::ScopedReadLock<izenelib::util::ReadWriteLock> lock(pDocFreqList_->mutex_); \
     if(pDChunk > pDChunkEnd)\
     {\
+        izenelib::util::ScopedReadLock<izenelib::util::ReadWriteLock> lock(pDocFreqList_->mutex_); \
         pDS_->decodingDChunk = pDS_->decodingDChunk->next;\
         if(!pDS_->decodingDChunk)\
             break;\
         pDS_->decodingDChunkPos = 0;\
         pDChunk = &(pDS_->decodingDChunk->data[pDS_->decodingDChunkPos]);\
         pDChunkEnd = &(pDS_->decodingDChunk->data[pDS_->decodingDChunk->size-1]);\
-    }\
-}
+    }
 
 #define ISCHUNKOVER_P()\
-{\
-    izenelib::util::ScopedReadLock<izenelib::util::ReadWriteLock> lock(pLocList_->mutex_); \
     if(pPChunk > pPChunkEnd)\
     {\
+        izenelib::util::ScopedReadLock<izenelib::util::ReadWriteLock> lock(pLocList_->mutex_); \
         pDS_->decodingPChunk = pDS_->decodingPChunk->next;\
         if(!pDS_->decodingPChunk)\
             break;\
         pDS_->decodingPChunkPos = 0;\
         pPChunk = &(pDS_->decodingPChunk->data[pDS_->decodingPChunkPos]);\
         pPChunkEnd = &(pDS_->decodingPChunk->data[pDS_->decodingPChunk->size-1]);\
-    }\
-}
+    }
 
 int32_t MemPostingReader::DecodeNext(
     uint32_t* pPosting,
