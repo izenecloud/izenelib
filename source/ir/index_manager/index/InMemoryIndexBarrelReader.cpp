@@ -70,15 +70,12 @@ InMemoryIndexBarrelReader::~InMemoryIndexBarrelReader(void)
 
 TermReader* InMemoryIndexBarrelReader::termReader(collectionid_t colID)
 {
-    if(pIndexBarrelWriter_->dirty_) return NULL;
     return termReaderMap_[colID];//->clone();
 }
 
 
 TermReader* InMemoryIndexBarrelReader::termReader(collectionid_t colID, const char* field)
 {
-    if(pIndexBarrelWriter_->dirty_) return NULL;
-
     TermReader* pTermReader = termReaderMap_[colID];
     if (pTermReader == NULL)
         return NULL;

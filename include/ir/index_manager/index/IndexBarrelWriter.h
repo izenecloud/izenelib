@@ -110,8 +110,6 @@ public:
 
     BitVector* getDocFilter() { return pDocFilter_; }
 
-    bool isDirty() { return dirty_; }
-
 private:
     void createMemCache();
 
@@ -143,8 +141,6 @@ private:
     Directory* pDirectory_;
 
     BitVector* pDocFilter_;
-
-    volatile bool dirty_;
 
     int numFieldIndexers_;
 

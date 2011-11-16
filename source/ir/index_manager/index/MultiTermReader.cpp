@@ -84,8 +84,8 @@ TermDocFreqs* MultiTermReader::termDocFreqs()
     // use auto_ptr in case of memory leak when exception is thrown in below TermReader::termDocFreqs()
     std::auto_ptr<MultiTermDocs> termDocsPtr(new MultiTermDocs());
     bool bAdd = false;
-    for(vector<BarrelTermReaderEntry>::iterator iter = termReaders_.begin();
-            iter != termReaders_.end(); ++iter)
+    vector<BarrelTermReaderEntry>::iterator iter = termReaders_.begin();
+    for(;iter != termReaders_.end(); ++iter)
     {
         if(TermDocFreqs* pTmpTermDocs = iter->second->termDocFreqs())
         {
@@ -105,8 +105,8 @@ TermPositions* MultiTermReader::termPositions()
     // use auto_ptr in case of memory leak when exception is thrown in below TermReader::termPositions()
     std::auto_ptr<MultiTermPositions> termPositionsPtr(new MultiTermPositions());
     bool bAdd = false;
-    for(vector<BarrelTermReaderEntry>::iterator iter = termReaders_.begin();
-            iter != termReaders_.end(); ++iter)
+    vector<BarrelTermReaderEntry>::iterator iter = termReaders_.begin();
+    for(;iter != termReaders_.end(); ++iter)
     {
         if(TermPositions* pTmpTermPositions = iter->second->termPositions())
         {

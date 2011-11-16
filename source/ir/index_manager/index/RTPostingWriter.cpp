@@ -179,6 +179,8 @@ int32_t RTPostingWriter::getSkipLevel()
 
 void RTPostingWriter::flushLastDoc(bool bTruncTail)
 {
+    boost::mutex::scoped_lock docFilterLock(mutex_);
+
     if(!pMemCache_)
         return;
 

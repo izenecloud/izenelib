@@ -18,7 +18,6 @@ IndexBarrelWriter::IndexBarrelWriter(Indexer* pIndex)
     ,pCollectionsInfo_(NULL)
     ,pDirectory_(NULL)
     ,pDocFilter_(0)
-    ,dirty_(false)
     ,numFieldIndexers_(0)
 {
     pCollectionsInfo_ = new CollectionsInfo();
@@ -63,7 +62,6 @@ void IndexBarrelWriter::addDocument(IndexerDocument& doc)
     if (NULL == pCollectionIndexer)
         SF1V5_THROW(ERROR_OUTOFRANGE,"IndexBarrelWriter::addDocument(): collection id does not belong to the range");
     pCollectionIndexer->addDocument(doc);
-    if(dirty_) dirty_ = false;
 }
 
 void IndexBarrelWriter::updateDocument(IndexerDocument& oldDoc, IndexerDocument& doc)
@@ -74,7 +72,6 @@ void IndexBarrelWriter::updateDocument(IndexerDocument& oldDoc, IndexerDocument&
     if (NULL == pCollectionIndexer)
         SF1V5_THROW(ERROR_OUTOFRANGE,"IndexBarrelWriter::addDocument(): collection id does not belong to the range");
     pCollectionIndexer->updateDocument(oldDoc, doc);
-    if(dirty_) dirty_ = false;
 }
 
 void IndexBarrelWriter::reset()
@@ -95,8 +92,7 @@ void IndexBarrelWriter::reset()
         //while(pMemCache_.use_count() > ref_count_for_mem_cache )
         if(pMemCache_.use_count() > ref_count_for_mem_cache )
         {
-            LOG(WARNING)<<"Wait ===========>"<<std::endl;
-            //cond_.wait(lock);
+            LOG(WARNING)<<"Wait ===========>"<<pMemCache_.use_count()<<" ref_count_for_mem_cache "<<ref_count_for_mem_cache<<std::endl;
             //TODO Currently, only timed_wait for debug usage
             boost::system_time const timeout=boost::get_system_time()+ boost::posix_time::milliseconds(5000);//5s
             cond_.timed_wait(lock,timeout);
@@ -112,7 +108,6 @@ void IndexBarrelWriter::flush()
     if(! pBarrelInfo_)
         return;
 
-    dirty_ = true;
     pBarrelInfo_->write(pDirectory_);
 }
 

@@ -39,7 +39,6 @@ public:
         VariantDataChunk* decodingPChunk;
         int32_t decodingPChunkPos;
         loc_t lastDecodedPos; 		///the latest decoded offset
-        loc_t lastDecodedCharPos;        ///the latest decoded char offset
         int32_t decodedPosCount;
     };
 public:
@@ -136,7 +135,10 @@ public:
      * get skiplist reader
      */
     SkipListReader* getSkipListReader();
-
+private:
+    MemPostingReader(const MemPostingReader&);
+    void operator=(const MemPostingReader&);
+	
 protected:
     int skipInterval_;
     int maxSkipLevel_;

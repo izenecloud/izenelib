@@ -51,9 +51,6 @@ private:
     BarrelInfo* pBarrelInfo_;
 
     map<collectionid_t, TermReader*> termReaderMap_;
-
-    MemCache* pMemCache_; ///for deleting index;
-
 };
 
 }

@@ -86,15 +86,32 @@ count_t MemPostingReader::getPPostingLen()
 }
 
 #define ISCHUNKOVER_D()\
-        if(pDChunk > pDChunkEnd)\
-        {\
-            pDS_->decodingDChunk = pDS_->decodingDChunk->next;\
-            if(!pDS_->decodingDChunk)\
-                break;\
-            pDS_->decodingDChunkPos = 0;\
-            pDChunk = &(pDS_->decodingDChunk->data[pDS_->decodingDChunkPos]);\
-            pDChunkEnd = &(pDS_->decodingDChunk->data[pDS_->decodingDChunk->size-1]);\
-        }
+{\
+    izenelib::util::ScopedReadLock<izenelib::util::ReadWriteLock> lock(pDocFreqList_->mutex_); \
+    if(pDChunk > pDChunkEnd)\
+    {\
+        pDS_->decodingDChunk = pDS_->decodingDChunk->next;\
+        if(!pDS_->decodingDChunk)\
+            break;\
+        pDS_->decodingDChunkPos = 0;\
+        pDChunk = &(pDS_->decodingDChunk->data[pDS_->decodingDChunkPos]);\
+        pDChunkEnd = &(pDS_->decodingDChunk->data[pDS_->decodingDChunk->size-1]);\
+    }\
+}
+
+#define ISCHUNKOVER_P()\
+{\
+    izenelib::util::ScopedReadLock<izenelib::util::ReadWriteLock> lock(pLocList_->mutex_); \
+    if(pPChunk > pPChunkEnd)\
+    {\
+        pDS_->decodingPChunk = pDS_->decodingPChunk->next;\
+        if(!pDS_->decodingPChunk)\
+            break;\
+        pDS_->decodingPChunkPos = 0;\
+        pPChunk = &(pDS_->decodingPChunk->data[pDS_->decodingPChunkPos]);\
+        pPChunkEnd = &(pDS_->decodingPChunk->data[pDS_->decodingPChunk->size-1]);\
+    }\
+}
 
 int32_t MemPostingReader::DecodeNext(
     uint32_t* pPosting,
@@ -258,16 +275,7 @@ int32_t MemPostingReader::DecodeNext(
             {
                 for(uint32_t i = 0; i < nCurTF; ++i)
                 {
-                    if (pPChunk > pPChunkEnd)
-                    {
-                        pDS_->decodingPChunk = pDS_->decodingPChunk->next;
-                        if (!pDS_->decodingPChunk)
-                            break;
-                        pDS_->decodingPChunkPos = 0;
-                        pPChunk = &(pDS_->decodingPChunk->data[pDS_->decodingPChunkPos]);
-                        pPChunkEnd = &(pDS_->decodingPChunk->data[pDS_->decodingPChunk->size-1]);
-                    }
-
+                    ISCHUNKOVER_P();
                     loc += VariantDataPool::decodeVData32(pPChunk);
                     pPPosting[posLength++] = loc;
                 }
@@ -282,15 +290,7 @@ int32_t MemPostingReader::DecodeNext(
             {
                 for(uint32_t i = 0; i < nCurTF; ++i)
                 {
-                    if (pPChunk > pPChunkEnd)
-                    {
-                        pDS_->decodingPChunk = pDS_->decodingPChunk->next;
-                        if (!pDS_->decodingPChunk)
-                            break;
-                        pDS_->decodingPChunkPos = 0;
-                        pPChunk = &(pDS_->decodingPChunk->data[pDS_->decodingPChunkPos]);
-                        pPChunkEnd = &(pDS_->decodingPChunk->data[pDS_->decodingPChunk->size-1]);
-                    }
+                    ISCHUNKOVER_P();					
                     VariantDataPool::decodeVData32(pPChunk);
                 }
             }
@@ -322,16 +322,7 @@ bool MemPostingReader::DecodeNextPositions(
     int32_t  nDecoded = 0;
     while (nDecoded < length)
     {
-        if (pPChunk > pPChunkEnd)
-        {
-            pDS_->decodingPChunk = pDS_->decodingPChunk->next;
-            if (!pDS_->decodingPChunk)
-                break;
-            pDS_->decodingPChunkPos = 0;
-            pPChunk = &(pDS_->decodingPChunk->data[pDS_->decodingPChunkPos]);
-            pPChunkEnd = &(pDS_->decodingPChunk->data[pDS_->decodingPChunk->size-1]);
-        }
-
+        ISCHUNKOVER_P();
         loc += VariantDataPool::decodeVData32(pPChunk);
         if (pPos)
         {
@@ -364,16 +355,7 @@ bool MemPostingReader::DecodeNextPositions(
     int32_t  nDecoded = 0;
     while (nDecoded < decodeLength)
     {
-        if (pPChunk > pPChunkEnd)
-        {
-            pDS_->decodingPChunk = pDS_->decodingPChunk->next;
-            if (!pDS_->decodingPChunk)
-                break;
-            pDS_->decodingPChunkPos = 0;
-            pPChunk = &(pDS_->decodingPChunk->data[pDS_->decodingPChunkPos]);
-            pPChunkEnd = &(pDS_->decodingPChunk->data[pDS_->decodingPChunk->size-1]);
-        }
-
+        ISCHUNKOVER_P();
         loc += VariantDataPool::decodeVData32(pPChunk);
         if (pPos)
         {
@@ -412,16 +394,7 @@ bool MemPostingReader::DecodeNextPositions(
         nCurDecoded = 0;
         while (nCurDecoded < pFreqs[nF])
         {
-            if (pPChunk > pPChunkEnd)
-            {
-                pDS_->decodingPChunk = pDS_->decodingPChunk->next;
-                if (!pDS_->decodingPChunk)
-                    break;
-                pDS_->decodingPChunkPos = 0;
-                pPChunk = &(pDS_->decodingPChunk->data[pDS_->decodingPChunkPos]);
-                pPChunkEnd = &(pDS_->decodingPChunk->data[pDS_->decodingPChunk->size-1]);
-            }
-
+            ISCHUNKOVER_P();
             loc += VariantDataPool::decodeVData32(pPChunk);
             if (pPos)
             {
@@ -524,16 +497,7 @@ docid_t MemPostingReader::DecodeTo(
     {
         for(; nDecoded < nSkipPCount; nDecoded++)
         {
-            if (pPChunk > pPChunkEnd)
-            {
-                pDS_->decodingPChunk = pDS_->decodingPChunk->next;
-                if (!pDS_->decodingPChunk)
-                    break;
-                pDS_->decodingPChunkPos = 0;
-                pPChunk = &(pDS_->decodingPChunk->data[pDS_->decodingPChunkPos]);
-                pPChunkEnd = &(pDS_->decodingPChunk->data[pDS_->decodingPChunk->size-1]);
-            }
-
+            ISCHUNKOVER_P();
             loc += VariantDataPool::decodeVData32(pPChunk);
         }
     }

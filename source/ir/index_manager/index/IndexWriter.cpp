@@ -75,12 +75,12 @@ void IndexWriter::flush()
         pCurBarrelInfo_->setSearchable(true);
     pIndexer_->setDirty();
     pIndexer_->getIndexReader();
-    pIndexBarrelWriter_->reset();
-
 
     pIndexMergeManager_->addToMerge(pCurBarrelInfo_);
 
     pBarrelsInfo_->write(pIndexer_->getDirectory());
+
+    pIndexBarrelWriter_->reset();
     pCurBarrelInfo_ = NULL;
     DVLOG(2) << "<= IndexWriter::flush()";
 }

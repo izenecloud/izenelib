@@ -96,6 +96,9 @@ public:
     int32_t getSkipLevel();
 
 private:
+    RTPostingWriter(const RTPostingWriter&);
+    void operator=(const RTPostingWriter&);
+	
     boost::shared_ptr<MemCache> pMemCache_;	/// memory cache
     int skipInterval_;              ///skip interval
     int maxSkipLevel_;           /// max skip level
@@ -109,6 +112,8 @@ private:
     SkipListWriter* pSkipListWriter_;	///skiplist writer
     volatile bool dirty_;
     IndexLevel indexLevel_;
+    mutable boost::mutex mutex_;
+	
     friend class MemPostingReader;
     friend class PostingMerger;
 };

@@ -15,6 +15,8 @@
 #include <ir/index_manager/store/IndexOutput.h>
 #include <ir/index_manager/store/IndexInput.h>
 
+#include <util/ThreadModel.h>
+
 #include <boost/shared_ptr.hpp>
 
 NS_IZENELIB_IR_BEGIN
@@ -131,6 +133,7 @@ private:
     uint32_t nTotalSize_; ///Total size
     uint32_t nPosInCurChunk_;
     uint32_t nTotalUsed_; ///Total Unused size
+    izenelib::util::ReadWriteLock mutex_;
 
     friend class PostingMerger;
     friend class VariantDataPoolInput;
