@@ -262,8 +262,6 @@ private:
 
     RTPostingWriter* pCurPosting_;
 
-    TermInfo* pTermInfo_;
-
     friend class MemTermIterator;
 };
 

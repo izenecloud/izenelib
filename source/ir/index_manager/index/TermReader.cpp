@@ -625,7 +625,6 @@ MemTermReader::MemTermReader(const char* field,FieldIndexer* pIndexer)
         , pIndexer_(pIndexer)
         , pCurTermInfo_(NULL)
         , pCurPosting_(NULL)
-        , pTermInfo_(NULL)
 {
 }
 
@@ -709,22 +708,22 @@ TermInfo* MemTermReader::termInfo(Term* term)
     pCurPosting_ = postingIter->second;
     if (!pCurPosting_ || (pCurPosting_->isEmpty() == true))
         return NULL;
-    if (!pTermInfo_)
-        pTermInfo_ = new TermInfo;
+    if (!pCurTermInfo_)
+        pCurTermInfo_ = new TermInfo;
 
     pCurPosting_->flushLastDoc(false);
 
-    pTermInfo_->set(pCurPosting_->docFreq(),
+    pCurTermInfo_->set(pCurPosting_->docFreq(),
                                pCurPosting_->getCTF(),
                                pCurPosting_->lastDocID(),
                                pCurPosting_->getSkipLevel(),
                                -1,-1,0,-1,0);
-    return pTermInfo_;
+    return pCurTermInfo_;
 }
 
 void MemTermReader::close()
 {
-    if (pTermInfo_)
+    if (pCurTermInfo_)
     {
         delete pCurTermInfo_;
         pCurTermInfo_ = NULL;
