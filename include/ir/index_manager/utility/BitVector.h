@@ -92,7 +92,7 @@ public:
         bits_[endBit >> 3] |= endMask;
     }
 
-    bool test(size_t bit)
+    bool test(size_t bit) const
     {
         if(bit >= size_)
             return false;
@@ -141,9 +141,22 @@ public:
         for(size_t i = 0; i < byteNum; ++i )
             bits_[i] = ~bits_[i];
     }
+    
+    friend std::ostream& operator<<(std::ostream& output, const BitVector& bv) {
+        output<<"["<<bv.size()<<"] ";
+        for(std::size_t i=0;i<bv.size();i++)
+        {
+            output<<(int)bv.test(i);
+        }
+        return output;
+    }
 
     BitVector& operator&=(const BitVector& b)
     {
+        if(size()<b.size())
+        {
+            grow(b.size());
+        }
         const size_t byteNum = getBytesNum(size_);
         for(size_t i = 0; i < byteNum; ++i )
             bits_[i] &= b.bits_[i];
@@ -152,6 +165,10 @@ public:
 
     BitVector& operator|=(const BitVector& b)
     {
+        if(size()<b.size())
+        {
+            grow(b.size());
+        }
         const size_t byteNum = getBytesNum(size_);
         for(size_t i = 0; i < byteNum; ++i )
             bits_[i] |= b.bits_[i];
@@ -160,6 +177,10 @@ public:
 
     BitVector& operator^=(const BitVector& b)
     {
+        if(size()<b.size())
+        {
+            grow(b.size());
+        }
         const size_t byteNum = getBytesNum(size_);
         for(size_t i = 0; i < byteNum; ++i )
             bits_[i] ^= b.bits_[i];
@@ -188,7 +209,7 @@ public:
           o << endl;
       }
 
-    size_t size() { return size_; }
+    size_t size() const{ return size_; }
 
     void read(Directory* pDirectory,const char* name)
     {

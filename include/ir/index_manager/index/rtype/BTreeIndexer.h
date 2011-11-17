@@ -1,12 +1,14 @@
 
-#ifndef IZENELIB_IR_BTREEINDEXER_H
-#define IZENELIB_IR_BTREEINDEXER_H
+#ifndef IZENELIB_IR_BTREEINDEXER_H_
+#define IZENELIB_IR_BTREEINDEXER_H_
 
 #include <util/BoostVariantUtil.h>
 #include <am/bitmap/Ewah.h>
 #include <am/luxio/BTree.h>
 #include <am/range/AmIterator.h>
 #include <ir/index_manager/index/rtype/InMemoryBTreeCache.h>
+#include <ir/index_manager/index/rtype/TermEnum.h>
+#include <ir/index_manager/index/rtype/Compare.h>
 #include <ir/index_manager/index/IndexerDocument.h>
 #include <ir/index_manager/utility/BitVector.h>
 #include <ir/index_manager/utility/StringUtils.h>
@@ -27,9 +29,6 @@ NS_IZENELIB_IR_BEGIN
 
 namespace indexmanager
 {
-
-
-
 /**
  * BTreeIndexer
  * @brief BTreeIndexer is a wrapper which takes charges of managing all b-tree handlers.
@@ -46,17 +45,24 @@ class CBTreeIndexer
     
     typedef izenelib::am::AMIterator<DbType> ForwardIterator;
     typedef izenelib::am::AMReverseIterator<DbType> ReverseIterator;
+    
+//     typedef BTTermEnum<KeyType, CacheValueType> EnumType1;
+//     typedef AMTermEnum<DbType> EnumType2;
+    typedef TwoWayTermEnum<KeyType, CacheValueType, DbType, BitVector> EnumType;
+    typedef TermEnum<KeyType, BitVector> BaseEnumType;
+    typedef boost::function<void (const CacheValueType&,const ValueType&, BitVector&) > EnumCombineFunc;
+    
 public:
-    CBTreeIndexer(const std::string& path, const std::string& property_name, std::size_t cacheSize = 12500000)//50M for uint32_t
+    CBTreeIndexer(const std::string& path, const std::string& property_name, std::size_t cacheSize = 12500000)//5M for uint32_t
     :path_(path), property_name_(property_name)
     {
         cache_.set_max_capacity(cacheSize);
+        func_ = &combineValue_;
     }
 
     ~CBTreeIndexer()
     {
     }
-public:
     
     bool open()
     {
@@ -65,40 +71,42 @@ public:
     
     bool seek(const KeyType& key)
     {
+        boost::shared_lock<boost::shared_mutex> lock(mutex_);
         ValueType value;
-        return getValueImpl_(key, value);
+        return getValue_(key, value);
     }
 
     void getNoneEmptyList(const KeyType& key, BitVector& docs)
     {
-        getValueImpl_(key, docs);
+        boost::shared_lock<boost::shared_mutex> lock(mutex_);
+        getValue_(key, docs);
     }
 
-    void add(const KeyType& key, docid_t docid, bool isUpdate = false)
+    void add(const KeyType& key, docid_t docid)
     {
-        cache_.add(key, docid, isUpdate);
-        if(cache_.is_full())
-        {
-            cacheFull_();
-        }
+        boost::lock_guard<boost::shared_mutex> lock(mutex_);
+        cache_.add(key, docid);
+        checkCache_();
+        
     }
 
     void remove(const KeyType& key, docid_t docid)
     {
+        boost::lock_guard<boost::shared_mutex> lock(mutex_);
         cache_.remove(key, docid);
-        if(cache_.is_full())
-        {
-            cacheFull_();
-        }
+        checkCache_();
+        
     }
 
     void getValue(const KeyType& key, BitVector& docs)
     {
-        getValueImpl_(key, docs);
+        boost::shared_lock<boost::shared_mutex> lock(mutex_);
+        getValue_(key, docs);
     }
 
     void getValue(const KeyType& key, std::vector<docid_t>& docList)
     {
+        boost::shared_lock<boost::shared_mutex> lock(mutex_);
         BitVector docmap;
         getValue(key, docmap);
         for(std::size_t docid=1;docid<docmap.size();docid++)
@@ -110,82 +118,159 @@ public:
         }
     }
     
-    std::size_t getValueBetween(const KeyType& lowKey, const KeyType& highKey, KeyType* & data, std::size_t maxDoc )
+    std::size_t getValueBetween(const KeyType& lowKey, const KeyType& highKey, std::size_t maxDoc, KeyType* & data)
     {
-//         BitVector docmap;
-//         getValueBetween(lowKey, highKey, docmap);
-//         std::size_t count = 0;
-//         for(std::size_t docid=1;docid<docmap.size();docid++)
-//         {
-//             if (docid >= maxDoc)
-//                 break;
-//             if(docmap.test(docid))
-//             {
-//                 data
-//                 docList.push_back(docid);
-//             }
-//         }
-        return 0;
+        boost::shared_lock<boost::shared_mutex> lock(mutex_);
+        std::size_t result = 0;
+        std::auto_ptr<BaseEnumType> term_enum(getEnum_(lowKey));
+        std::pair<KeyType, BitVector> kvp;
+        while(term_enum->next(kvp))
+        {
+            if( compare_(kvp.first,highKey)>0 ) break;
+            for(std::size_t docid=1;docid<kvp.second.size();docid++)
+            {
+                if (docid >= maxDoc) break;
+                if(kvp.second.test(docid))
+                {
+                    data[docid] = kvp.first;
+                    ++result;
+                }
+            }
+        }
+        
+        return result;
     }
 
     void getValueBetween(const KeyType& key1, const KeyType& key2, BitVector& docs)
     {
+        boost::shared_lock<boost::shared_mutex> lock(mutex_);
+        std::auto_ptr<BaseEnumType> term_enum(getEnum_(key1));
+        std::pair<KeyType, BitVector> kvp;
+        while(term_enum->next(kvp))
+        {
+            if( compare_(kvp.first,key2)>0 ) break;
+            docs |= kvp.second;
+        }
     }
 
     void getValueLess(const KeyType& key, BitVector& docs)
     {
-        
+        boost::shared_lock<boost::shared_mutex> lock(mutex_);
+        std::auto_ptr<BaseEnumType> term_enum(getEnum_());
+        std::pair<KeyType, BitVector> kvp;
+        while(term_enum->next(kvp))
+        {
+            if( compare_(kvp.first,key)>=0 ) break;
+            docs |= kvp.second;
+        }
         
     }
 
     void getValueLessEqual(const KeyType& key, BitVector& docs)
     {
-        ReverseIterator it(db_, key);
-        ReverseIterator it_end;
-        for(;it!=it_end;++it)
+        boost::shared_lock<boost::shared_mutex> lock(mutex_);
+        std::auto_ptr<BaseEnumType> term_enum(getEnum_());
+        std::pair<KeyType, BitVector> kvp;
+        while(term_enum->next(kvp))
         {
-            const KeyType& key = it->first;
-            ValueType& value = it->second;
-            getValueImpl3_(key, value);
-            decompress_(value, docs);
+            if( compare_(kvp.first,key)>0 ) break;
+            docs |= kvp.second;
         }
     }
 
     void getValueGreat(const KeyType& key, BitVector& docs)
     {
+        boost::shared_lock<boost::shared_mutex> lock(mutex_);
+        std::auto_ptr<BaseEnumType> term_enum(getEnum_(key));
+        std::pair<KeyType, BitVector> kvp;
+        while(term_enum->next(kvp))
+        {
+            if( compare_(kvp.first,key)==0 ) continue;
+            docs |= kvp.second;
+        }
     }
 
     void getValueGreatEqual(const KeyType& key, BitVector& docs)
     {
+        boost::shared_lock<boost::shared_mutex> lock(mutex_);
+        std::auto_ptr<BaseEnumType> term_enum(getEnum_(key));
+        std::pair<KeyType, BitVector> kvp;
+        while(term_enum->next(kvp))
+        {
+            docs |= kvp.second;
+        }
     }
 
-    void getValueIn(const std::vector<KeyType>& keys, BitVector& docs)
-    {
-    }
+//     void getValueIn(const std::vector<KeyType>& keys, BitVector& docs)
+//     {
+//         for(std::size_t i=0;i<keys.size();i++)
+//         {
+//             BitVector bv;
+//             getValue(keys[i], bv);
+//             docs |= bv;
+//         }
+//     }
+// 
+//     void getValueNotIn(const std::vector<KeyType>& keys, BitVector& docs)
+//     {
+//         getValueIn(keys, docs);
+//         docs.toggle();
+//     }
+// 
+//     void getValueNotEqual(const KeyType& key, BitVector& docs)
+//     {
+//         getValue(key, docs);
+//         docs.toggle();
+//     }
 
-    void getValueNotIn(const std::vector<KeyType>& keys, BitVector& docs)
-    {
-    }
+//     void getValueStart(const KeyType& key, BitVector& docs)
+//     {
+//         if( !std::is_same( KeyType, izenelib::util::UString)::value)//not ustring
+//         {
+//             std::cout<<"call getValueStart in no ustring type"<<std::endl;
+//             return;
+//         }
+//         std::auto_ptr<BaseEnumType> term_enum(getEnum_(key));
+//         std::pair<KeyType, BitVector> kvp;
+//         while(term_enum->next(kvp))
+//         {
+//             docs |= kvp.second;
+//         }
+//     }
+// 
+//     void getValueEnd(const KeyType& key, BitVector& docs)
+//     {
+//         if( !std::is_same( KeyType, izenelib::util::UString)::value)//not ustring
+//         {
+//             std::cout<<"call getValueEnd in no ustring type"<<std::endl;
+//             return;
+//         }
+//         std::auto_ptr<BaseEnumType> term_enum(getEnum_());
+//         std::pair<KeyType, BitVector> kvp;
+//         while(term_enum->next(kvp))
+//         {
+//             if(kvp.first>key) break;
+//             docs |= kvp.second;
+//         }
+//     }
 
-    void getValueNotEqual(const KeyType& key, BitVector& docs)
-    {
-    }
-
-    void getValueStart(const KeyType& key, BitVector& docs)
-    {
-    }
-
-    void getValueEnd(const KeyType& key, BitVector& docs)
-    {
-    }
-
-    void getValueSubString(const KeyType& key, BitVector& docs)
-    {
-    }
+//     void getValueSubString(const KeyType& key, BitVector& docs)
+//     {
+//         std::auto_ptr<BaseEnumType> term_enum(getEnum_());
+//         std::pair<KeyType, BitVector> kvp;
+//         while(term_enum->next(kvp))
+//         {
+//             if(IsSubString(kvp.first, key)
+//             {
+//                 docs |= kvp.second;
+//             }
+//         }
+//     }
 
     void flush()
     {
-        cacheFull_();
+        boost::lock_guard<boost::shared_mutex> lock(mutex_);
+        cacheClear_();
         db_.flush();
     }
 
@@ -194,35 +279,67 @@ public:
 
 private:
     
-    void cacheFull_()
+    template<typename T>
+    static int compare_(const T& t1, const T& t2)
     {
-        std::cout<<"!!!cacheFull_ "<<property_name_<<std::endl;
+        return Compare::compare(t1, t2);
+    }
+    
+    
+    BaseEnumType* getEnum_(const KeyType& lowKey)
+    {
+//         EnumType1 term_enum1(cache_.getAM(), lowKey);
+//         EnumType2 term_enum2(db_, lowKey);
+        BaseEnumType* term_enum = new EnumType(cache_.getAM(), db_, lowKey, func_);
+        return term_enum;
+    }
+    
+    BaseEnumType* getEnum_()
+    {
+//         EnumType1 term_enum1(cache_.getAM());
+//         EnumType2 term_enum2(db_);
+        BaseEnumType* term_enum = new EnumType(cache_.getAM(), db_, func_);
+        return term_enum;
+    }
+    
+    void checkCache_()
+    {
+        if(cache_.is_full())
+        {
+            cacheClear_();
+        }
+    }
+    
+    void cacheClear_()
+    {
+        std::cout<<"!!!cacheFull_ "<<property_name_<<","<<cache_.key_size()<<std::endl;
         boost::function<void (const std::pair<KeyType, CacheValueType>&) > func=boost::bind( &ThisType::cacheIterator_, this, _1);
-        cache_.clear(func);
+        cache_.iterate(func);
+        cache_.clear();
     }
     
     void cacheIterator_(const std::pair<KeyType, CacheValueType>& kvp)
     {
         ValueType bitmap;
-        getValueImpl2_(kvp.first, kvp.second, bitmap);
+        getValue_(kvp.first, kvp.second, bitmap);
         db_.update(kvp.first, bitmap);
     }
     
-    bool getDbValueImpl_(const KeyType& key, ValueType& value)
+    bool getDbValue_(const KeyType& key, ValueType& value)
     {
         return db_.get(key, value);
     }
     
-    bool getCacheValueImpl_(const KeyType& key, CacheValueType& value)
+    bool getCacheValue_(const KeyType& key, CacheValueType& value)
     {
         return cache_.get(key, value);
     }
     
-    bool getValueImpl_(const KeyType& key, ValueType& bitmap)
+    bool getValue_(const KeyType& key, ValueType& bitmap)
     {
-        bool b_db = getDbValueImpl_(key, bitmap);
+        bool b_db = getDbValue_(key, bitmap);
         CacheValueType cache_value;
-        bool b_cache = getCacheValueImpl_(key, cache_value);
+        bool b_cache = getCacheValue_(key, cache_value);
         if(!b_db && !b_cache) return false;
         if(b_cache)
         {
@@ -231,24 +348,25 @@ private:
         return true;
     }
     
-    bool getValueImpl_(const KeyType& key, BitVector& value)
+    bool getValue_(const KeyType& key, BitVector& value)
     {
         ValueType compressed;
-        if(!getValueImpl_(key, compressed)) return false;
+        if(!getValue_(key, compressed)) return false;
         decompress_(compressed, value);
         return true;
     }
     
-    void getValueImpl2_(const KeyType& key, const CacheValueType& cacheValue, ValueType& value)
+    void getValue_(const KeyType& key, const CacheValueType& cacheValue, ValueType& value)
     {
-        getDbValueImpl_(key, value);
+        getDbValue_(key, value);
         setCacheValue_(value, cacheValue);
     }
     
-    void getValueImpl3_(const KeyType& key, ValueType& dbValue)
+    /// the dbValue already got before
+    void getValue2_(const KeyType& key, ValueType& dbValue)
     {
         CacheValueType cacheValue;
-        if(getCacheValueImpl_(key, cacheValue))
+        if(getCacheValue_(key, cacheValue))
         {
             setCacheValue_(dbValue, cacheValue);
         }
@@ -292,25 +410,71 @@ private:
             {
                 value.set(cacheValue.insert_item[i]);
             }
-            for(uint32_t i=0;i<cacheValue.update_item.size();i++)
-            {
-                value.set(cacheValue.update_item[i]);
-            }
             for(uint32_t i=0;i<cacheValue.delete_item.size();i++)
             {
                 value.clear(cacheValue.delete_item[i]);
             }
+            for(uint32_t i=0;i<cacheValue.update_item.size();i++)
+            {
+                value.set(cacheValue.update_item[i]);
+            }
+            
             bitmap.reset();
             compress_(value, bitmap);
         }
     }
     
+    static void combineValue_(const CacheValueType& cacheValue, const ValueType& cbitmap, BitVector& result)
+    {
+        std::cout<<"before decompress"<<std::endl;
+        std::cout<<result<<std::endl;
+        
+        decompress_(cbitmap, result);
+        
+        {
+            std::cout<<"after decompress"<<std::endl;
+            std::cout<<result<<std::endl;
+            std::cout<<cacheValue<<std::endl;
+//             std::cout<<"[I] ";
+//             for(uint32_t i=0;i<cacheValue.insert_item.size();i++)
+//             {
+//                 std::cout<<cacheValue.insert_item[i]<<",";
+//             }
+//             std::cout<<"[D] ";
+//             for(uint32_t i=0;i<cacheValue.delete_item.size();i++)
+//             {
+//                 std::cout<<cacheValue.delete_item[i]<<",";
+//             }
+//             std::cout<<"[U] ";
+//             for(uint32_t i=0;i<cacheValue.update_item.size();i++)
+//             {
+//                 std::cout<<cacheValue.update_item[i]<<",";
+//             }
+//             std::cout<<std::endl;
+        }
+        
+        for(uint32_t i=0;i<cacheValue.insert_item.size();i++)
+        {
+            result.set(cacheValue.insert_item[i]);
+        }
+        for(uint32_t i=0;i<cacheValue.delete_item.size();i++)
+        {
+            result.clear(cacheValue.delete_item[i]);
+        }
+        for(uint32_t i=0;i<cacheValue.update_item.size();i++)
+        {
+            result.set(cacheValue.update_item[i]);
+        }
+        std::cout<<result<<std::endl;
+    }
+    
 private:
     std::string path_;
+    std::string property_name_;
     DbType db_;
     CacheType cache_;
-    
-
+    EnumCombineFunc func_;
+    boost::shared_mutex mutex_;
 };
 
 

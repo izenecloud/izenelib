@@ -112,14 +112,14 @@ void Indexer::setIndexManagerConfig(
     if(pConfigurationManager_->indexStrategy_.isIndexBTree_)
       if ((!strcasecmp(storagePolicy.c_str(),"file"))||(!strcasecmp(storagePolicy.c_str(),"mmap")))
       {
-          pBTreeIndexer_ = new BTreeIndexerManager(pConfigurationManager_->indexStrategy_.indexLocation_);
+          pBTreeIndexer_ = new BTreeIndexerManager(pConfigurationManager_->indexStrategy_.indexLocation_, pDirectory_);
 //           pBTreeIndexer_ = new BTreeIndexer(pDirectory_, pConfigurationManager_->indexStrategy_.indexLocation_, degree, cacheSize, maxDataSize);
-//           if (pDirectory_->fileExists(BTREE_DELETED_DOCS))
-//           {
-//                 boost::shared_ptr<BitVector> pBTreeFilter(new BitVector);
-//                 pBTreeFilter->read(pDirectory_, BTREE_DELETED_DOCS);
-//                 pBTreeIndexer_->setFilter(pBTreeFilter);
-//            }
+          if (pDirectory_->fileExists(BTREE_DELETED_DOCS))
+          {
+                boost::shared_ptr<BitVector> pBTreeFilter(new BitVector);
+                pBTreeFilter->read(pDirectory_, BTREE_DELETED_DOCS);
+                pBTreeIndexer_->setFilter(pBTreeFilter);
+           }
       }
 
     pIndexWriter_ = new IndexWriter(this);
@@ -300,13 +300,15 @@ int Indexer::removeDocument(collectionid_t colID, docid_t docId)
 
 void Indexer::flush()
 {
+    //flush btree firstly.
+    if(pBTreeIndexer_) pBTreeIndexer_->flush();
     try{
         pIndexWriter_->flush();
     }catch(EmptyBarrelException& e)
     {
         LOG(WARNING) << "Empty barrels "<<e.what() ;
     }
-    if(pBTreeIndexer_) pBTreeIndexer_->flush();
+    
     pIndexReader_->flush();
 
     setDirty();

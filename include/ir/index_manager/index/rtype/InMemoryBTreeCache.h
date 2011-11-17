@@ -1,12 +1,12 @@
 #ifndef IZENELIB_IR_INMEMORYBTREECACHE_H_
 #define IZENELIB_IR_INMEMORYBTREECACHE_H_
-
-
 #include <boost/function.hpp>
-#include <3rdparty/am/concurrent_hash/hashmap.h>
+#include <boost/thread/mutex.hpp>
+#include <boost/thread/shared_mutex.hpp>
+#include <boost/thread/locks.hpp>
+#include <3rdparty/am/stx/btree_map.h>
 
 NS_IZENELIB_IR_BEGIN
-
 namespace indexmanager {
 
 ///@brief should be concurrency, one thread writing and multi-threads reading
@@ -19,9 +19,29 @@ public:
         std::vector<ValueItemType> insert_item;//should be ordered, and larger than current
         std::vector<ValueItemType> delete_item;
         std::vector<ValueItemType> update_item;//similar to insert_item but not ordered.
+        
+        friend std::ostream& operator<<(std::ostream& output, const ValueType& v) {
+            output<<"[I] ";
+            for(uint32_t i=0;i<v.insert_item.size();i++)
+            {
+                output<<v.insert_item[i]<<",";
+            }
+            output<<"[D] ";
+            for(uint32_t i=0;i<v.delete_item.size();i++)
+            {
+                output<<v.delete_item[i]<<",";
+            }
+            output<<"[U] ";
+            for(uint32_t i=0;i<v.update_item.size();i++)
+            {
+                output<<v.update_item[i]<<",";
+            }
+            return output;
+        }
     };
     
-    typedef concurrent::hashmap<KeyType, ValueType> AMType;
+    typedef stx::btree_map<KeyType, ValueType> AMType;
+//     typedef AMType::iterator iterator;
     
     InMemoryBTreeCache()
     :capacity_(0), max_capacity_(0)
@@ -38,34 +58,75 @@ public:
         max_capacity_ = m;
     }
     
-    void add(const KeyType& key, const ValueItemType& value_item, bool is_u = false)
+    void add(const KeyType& key, const ValueItemType& value_item)
     {
-        if(is_full()) return;
-        std::pair<const KeyType, ValueType> kvp(key, ValueType());
-        data_.get(key, kvp.second);
-        if(!is_u)
+//         boost::lock_guard<boost::shared_mutex> lock(mutex_);
+        if(is_full()) 
         {
-            kvp.second.insert_item.resize( kvp.second.insert_item.size()+1, value_item);//just expand 1
+            std::cout<<"cache full"<<std::endl;
+            return;
+        }
+        typename AMType::iterator it = data_.find(key);
+        if(it==data_.end())
+        {
+            it = data_.insert(std::make_pair(key, ValueType())).first;
+        }
+        bool ordered = false;
+        if(it.data().insert_item.size()>0)
+        {
+            if( it.data().insert_item.back()<value_item )
+            {
+                it.data().insert_item.push_back(value_item);
+                ordered = true;
+            }
         }
         else
         {
-            kvp.second.update_item.resize( kvp.second.update_item.size()+1, value_item);//just expand 1
+            it.data().insert_item.push_back(value_item);
+            ordered = true;
         }
-        data_.insert(kvp);
+        if(!ordered)
+        {
+            it.data().update_item.push_back(value_item);
+        }
         //expand the capacity
         ++capacity_;
+        
+        //test
+        {
+            typename AMType::iterator fit = data_.find(key);
+            if(fit==data_.end())
+            {
+                std::cout<<"!!error"<<std::endl;
+            }
+            else
+            {
+                std::cout<<"fit : "<<fit->first<<","<<fit->second<<std::endl;
+            }
+        }
     }
     
     void remove(const KeyType& key, const ValueItemType& value_item)
     {
-        if(is_full()) return;
-        std::pair<const KeyType, ValueType> kvp(key, ValueType());
-        data_.get(key, kvp.second);
-        kvp.second.delete_item.resize( kvp.second.delete_item.size()+1, value_item);//just expand 1
-        //TODO remove the value_item in insert_item and update_item to save memories?
-        data_.insert(kvp);
+//         boost::lock_guard<boost::shared_mutex> lock(mutex_);
+        if(is_full()) 
+        {
+            std::cout<<"cache full"<<std::endl;
+            return;
+        }
+        typename AMType::iterator it = data_.find(key);
+        if(it==data_.end())
+        {
+            it = data_.insert(std::make_pair(key, ValueType())).first;
+        }
+        it.data().delete_item.push_back(value_item);
         //expand the capacity
         ++capacity_;
+    }
+    
+    std::size_t key_size() const
+    {
+        return data_.size();
     }
     
     bool is_full()
@@ -73,32 +134,61 @@ public:
         return max_capacity_>0 && capacity_>=max_capacity_;
     }
     
-    void clear(const boost::function<void (const std::pair<KeyType, ValueType>&) >& func)
+    void iterate(const boost::function<void (const std::pair<KeyType, ValueType>&)>& func)
     {
-        typename AMType::unsafe_iterator it = data_.unsafe_begin();
-        std::pair<KeyType, ValueType> kvp;
-        while(data_.get_and_next(it, kvp))
+        typename AMType::iterator it = data_.begin();
+        while(it!=data_.end())
         {
-            func(kvp);
+//             KeyType key = it.key();
+//             ValueType value = it.data();
+            func(*it);
+            ++it;
         }
-        //real clear
+        
+    }
+    
+    void clear()
+    {
         data_.clear();
         capacity_ = 0;
     }
     
+    //search apis
     bool get(const KeyType& key, ValueType& value)
     {
-        return data_.get(key, value);
+//         boost::shared_lock<boost::shared_mutex> lock(mutex_);
+        typename AMType::iterator it = data_.find(key);
+        if(it==data_.end())
+        {
+            return false;
+        }
+        value = it.data();
+        return true;
+    }
+
+    const AMType& getAM() const
+    {
+        return data_;
     }
     
+    AMType& getAM()
+    {
+        return data_;
+    }
+    
+    
+private:
     
 private:
     AMType data_;
     std::size_t capacity_;
     std::size_t max_capacity_;
+    boost::shared_mutex mutex_;
 };
 
 }
+
 NS_IZENELIB_IR_END
 
 #endif
+
