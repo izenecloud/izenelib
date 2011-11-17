@@ -42,6 +42,10 @@ int main()
         cout << "Create keyspace: " << ks_name << endl;
         KsDef ks_def;
         ks_def.__set_name(ks_name);
+        ks_def.__set_strategy_class("SimpleStrategy");
+        map<string, string> strategy_options;
+        strategy_options["replication_factor"] = "1";
+        ks_def.__set_strategy_options(strategy_options);
         client->createKeyspace(ks_def);
         client->setKeyspace(ks_name);
 
@@ -61,7 +65,6 @@ int main()
         cf_def.__set_name(col_family);
         cf_def.__set_column_type("Super");
         cf_def.__set_keyspace(ks_def.name);
-        cf_def.__set_id(1000);
         std::map<std::string, std::string> compress_options;
         compress_options["sstable_compression"] = "SnappyCompressor";
         compress_options["chunk_length_kb"] = "64";
