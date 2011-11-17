@@ -15,6 +15,8 @@
 #include <ir/index_manager/index/RTPostingReader.h>
 #include <ir/index_manager/utility/IndexManagerConfig.h>
 
+#include <util/ThreadModel.h>
+
 #include <boost/shared_ptr.hpp>
 NS_IZENELIB_IR_BEGIN
 
@@ -34,7 +36,7 @@ public:
     /**
      * add data to posting
      */
-    void add(uint32_t docId, uint32_t pos);
+    void add(uint32_t docId, uint32_t pos, bool realTimeFlag=false);
     /**
     * whether current posting contains valid data
     */
@@ -98,6 +100,8 @@ public:
 private:
     RTPostingWriter(const RTPostingWriter&);
     void operator=(const RTPostingWriter&);
+
+    void doAdd(uint32_t docId, uint32_t pos);
 	
     boost::shared_ptr<MemCache> pMemCache_;	/// memory cache
     int skipInterval_;              ///skip interval
@@ -112,7 +116,7 @@ private:
     SkipListWriter* pSkipListWriter_;	///skiplist writer
     volatile bool dirty_;
     IndexLevel indexLevel_;
-    mutable boost::mutex mutex_;
+    izenelib::util::ReadWriteLock mutex_;
 	
     friend class MemPostingReader;
     friend class PostingMerger;

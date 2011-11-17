@@ -112,6 +112,8 @@ void RTPostingWriter::write(
 
 void RTPostingWriter::reset()
 {
+    izenelib::util::ScopedWriteLock<izenelib::util::ReadWriteLock> lock(mutex_);
+
     pDocFreqList_->reset();
     if(pLocList_)
         pLocList_->reset();
@@ -126,7 +128,17 @@ void RTPostingWriter::reset()
         pSkipListWriter_ ->reset();
 }
 
-void RTPostingWriter::add(docid_t docid, loc_t location)
+void RTPostingWriter::add(docid_t docid, loc_t location, bool realTimeFlag)
+{
+    if(realTimeFlag)
+    {
+        izenelib::util::ScopedWriteLock<izenelib::util::ReadWriteLock> lock(mutex_);
+        doAdd(docid,location);
+    }
+    else doAdd(docid,location);
+}
+
+void RTPostingWriter::doAdd(docid_t docid, loc_t location)
 {
     if (docid == nLastDocID_)
     {
@@ -179,7 +191,7 @@ int32_t RTPostingWriter::getSkipLevel()
 
 void RTPostingWriter::flushLastDoc(bool bTruncTail)
 {
-    boost::mutex::scoped_lock docFilterLock(mutex_);
+    izenelib::util::ScopedWriteLock<izenelib::util::ReadWriteLock> lock(mutex_);
 
     if(!pMemCache_)
         return;

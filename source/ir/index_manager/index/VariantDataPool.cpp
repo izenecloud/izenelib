@@ -46,7 +46,6 @@ bool VariantDataPool::addVData32(uint32_t vdata32)
         addChunk();
         return addVData32(vdata32);
     }
-    izenelib::util::ScopedWriteLock<izenelib::util::ReadWriteLock> lock(mutex_);
     uint32_t ui = vdata32;
     while ((ui & ~0x7F) != 0)
     {
@@ -216,7 +215,6 @@ void VariantDataPool::encodeVData64(uint8_t*& vdata,int64_t val)
 
 void VariantDataPool::truncTailChunk()
 {
-    izenelib::util::ScopedWriteLock<izenelib::util::ReadWriteLock> lock(mutex_);
     pTailChunk_->size = nPosInCurChunk_;
 }
 
@@ -250,7 +248,6 @@ void VariantDataPool::addChunk()
     pChunk->size = (int32_t)(POW_TABLE[chunkSize] - sizeof(VariantDataChunk*) - sizeof(int32_t));
     pChunk->next = NULL;
  
-    izenelib::util::ScopedWriteLock<izenelib::util::ReadWriteLock> lock(mutex_);
     if (pTailChunk_)
         pTailChunk_->next = pChunk;
     pTailChunk_ = pChunk;
@@ -268,7 +265,6 @@ int64_t VariantDataPool::getLength()
 
 void VariantDataPool::reset()
 {
-    izenelib::util::ScopedWriteLock<izenelib::util::ReadWriteLock> lock(mutex_);
     pHeadChunk_ = pTailChunk_ = NULL;
     nTotalSize_ = nPosInCurChunk_ = nTotalUsed_ = 0;
 }

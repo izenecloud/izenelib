@@ -196,7 +196,7 @@ void FieldIndexer::addField(
             }
             else
                 curPosting = postingIter->second;
-            curPosting->add(docid, iter->wordOffset_);
+            curPosting->add(docid, iter->wordOffset_, true);
         }
     }
     else

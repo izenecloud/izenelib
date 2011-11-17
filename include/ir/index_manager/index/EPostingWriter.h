@@ -38,7 +38,7 @@ public:
     /**
      * add data to posting
      */
-    void add(uint32_t docId, uint32_t pos);
+    void add(uint32_t docId, uint32_t pos, bool realTimeFlag=false);
     /**
     * whether current posting contains valid data
     */
@@ -127,7 +127,7 @@ public:
     /**
      * add data to posting
      */
-    void add(uint32_t docId, uint32_t pos);
+    void add(uint32_t docId, uint32_t pos, bool realTimeFlag=false);
     /**
     * whether current posting contains valid data
     */

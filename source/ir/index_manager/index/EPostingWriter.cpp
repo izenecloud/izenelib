@@ -103,7 +103,7 @@ void BlockPostingWriter::reset()
     nLastDocID_ = BAD_DOCID;
 }
 
-void BlockPostingWriter::add(docid_t docid, loc_t location)
+void BlockPostingWriter::add(docid_t docid, loc_t location, bool realTimeFlag)
 {
     if(docid == nLastDocID_)
     {
@@ -304,7 +304,7 @@ void ChunkPostingWriter::reset()
     nLastDocID_ = BAD_DOCID;
 }
 
-void ChunkPostingWriter::add(docid_t docid, loc_t location)
+void ChunkPostingWriter::add(docid_t docid, loc_t location, bool realTimeFlag)
 {
     if(docid == nLastDocID_)
     {
