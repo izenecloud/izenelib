@@ -84,6 +84,7 @@ TermDocFreqs* MultiTermReader::termDocFreqs()
     // use auto_ptr in case of memory leak when exception is thrown in below TermReader::termDocFreqs()
     std::auto_ptr<MultiTermDocs> termDocsPtr(new MultiTermDocs());
     bool bAdd = false;
+    try{
     vector<BarrelTermReaderEntry>::iterator iter = termReaders_.begin();
     for(;iter != termReaders_.end(); ++iter)
     {
@@ -98,6 +99,10 @@ TermDocFreqs* MultiTermReader::termDocFreqs()
         return NULL;
 
     return termDocsPtr.release();
+    }catch(std::exception& e)
+    {
+        return NULL;
+    }
 }
 
 TermPositions* MultiTermReader::termPositions()
@@ -105,6 +110,7 @@ TermPositions* MultiTermReader::termPositions()
     // use auto_ptr in case of memory leak when exception is thrown in below TermReader::termPositions()
     std::auto_ptr<MultiTermPositions> termPositionsPtr(new MultiTermPositions());
     bool bAdd = false;
+    try{
     vector<BarrelTermReaderEntry>::iterator iter = termReaders_.begin();
     for(;iter != termReaders_.end(); ++iter)
     {
@@ -119,6 +125,9 @@ TermPositions* MultiTermReader::termPositions()
         return NULL;
 
     return termPositionsPtr.release();
+    }catch(std::exception& e){
+        return NULL;
+    }
 }
 
 freq_t MultiTermReader::docFreq(Term* term)

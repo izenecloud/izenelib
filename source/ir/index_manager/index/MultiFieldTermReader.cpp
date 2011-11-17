@@ -11,7 +11,8 @@ MultiFieldTermReader::MultiFieldTermReader(Directory* pDirectory,BarrelInfo* pBa
         , pCurReader_(NULL)
 {
     FieldInfo* pInfo = NULL;
-    TermReader* pTermReader = NULL;
+    std::auto_ptr<TermReader> pTermReader;
+    try{
     pFieldsInfo->startIterator();
     while (pFieldsInfo->hasNext())
     {
@@ -22,19 +23,23 @@ MultiFieldTermReader::MultiFieldTermReader(Directory* pDirectory,BarrelInfo* pBa
             switch(pBarrelInfo->compressType)
             {
             case BYTEALIGN:
-                pTermReader = new RTDiskTermReader(pDirectory,pBarrelInfo,pInfo, indexLevel);
+                pTermReader.reset(new RTDiskTermReader(pDirectory,pBarrelInfo,pInfo, indexLevel));
                 break;
             case BLOCK:
-                pTermReader = new BlockTermReader(pDirectory,pBarrelInfo,pInfo, indexLevel);
+                pTermReader.reset(new BlockTermReader(pDirectory,pBarrelInfo,pInfo, indexLevel));
                 break;
             case CHUNK:
-                pTermReader = new ChunkTermReader(pDirectory,pBarrelInfo,pInfo, indexLevel);
+                pTermReader.reset(new ChunkTermReader(pDirectory,pBarrelInfo,pInfo, indexLevel));
                 break;
             default:
                 assert(false);
             }
-            fieldsTermReaders_.insert(pair<string,TermReader*>(pInfo->getName(),pTermReader));
+            fieldsTermReaders_.insert(pair<string,TermReader*>(pInfo->getName(),pTermReader.release()));
         }
+    }
+    }catch(std::exception& e)
+    {
+        close();
     }
 }
 

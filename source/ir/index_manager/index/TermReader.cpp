@@ -424,10 +424,15 @@ void RTDiskTermReader::close()
 
 bool RTDiskTermReader::seek(Term* term)
 {
+    try{
     pCurTermInfo_ = termInfo(term);
     if (pCurTermInfo_&&(pCurTermInfo_->docFreq() > 0))
         return true;
     return false;
+    }catch(std::exception& e)
+    {
+        return false;
+    }
 }
 
 TermInfo* RTDiskTermReader::searchBuffer(termid_t termId, int end)
@@ -651,10 +656,15 @@ TermIterator* MemTermReader::termIterator(const char* field)
 
 bool MemTermReader::seek(Term* term)
 {
+    try{
     pCurTermInfo_ = termInfo(term);
     if ((pCurTermInfo_)&&(pCurTermInfo_->docFreq() > 0))
         return true;
     return false;
+    }catch(std::exception& e)
+    {
+        return false;
+    }
 }
 
 TermDocFreqs* MemTermReader::termDocFreqs()
