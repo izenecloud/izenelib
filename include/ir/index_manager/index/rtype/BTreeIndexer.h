@@ -394,12 +394,14 @@ private:
 #endif        
         if(!need_decompress)
         {
-            for(uint32_t i=0;i<cacheValue.insert_item.size();i++)
+            typename CacheValueType::InsertVectorConstIteratorType IIt = cacheValue.insert_item.begin();
+            typename CacheValueType::InsertVectorConstIteratorType IEnd = cacheValue.insert_item.end();
+            for(;IIt !=IEnd;++IIt)
             {
 #ifdef BT_DEBUG
-                std::cout<<"bitmap : "<<bitmap<<" , add "<<cacheValue.insert_item[i]<<std::endl;
+                std::cout<<"bitmap : "<<bitmap<<" , add "<<*IIt<<std::endl;
 #endif   
-                bitmap.set(cacheValue.insert_item[i]);
+                bitmap.set(*IIt);
 #ifdef BT_DEBUG
                 std::cout<<"bitmap : "<<bitmap<<std::endl;
                 izenelib::am::BoolArray<uint32_t> boolArray;
@@ -412,19 +414,29 @@ private:
         {
             BitVector value;
             decompress_(bitmap, value);
-            for(uint32_t i=0;i<cacheValue.insert_item.size();i++)
+
+            ///TOBEMODIFIED
+            typename CacheValueType::InsertVectorConstIteratorType IIt = cacheValue.insert_item.begin();
+            typename CacheValueType::InsertVectorConstIteratorType IEnd = cacheValue.insert_item.end();
+            for(;IIt !=IEnd;++IIt)
             {
-                value.set(cacheValue.insert_item[i]);
+                value.set(*IIt);
             }
-            for(uint32_t i=0;i<cacheValue.delete_item.size();i++)
+			
+            typename CacheValueType::DeleteVectorConstIteratorType DIt = cacheValue.delete_item.begin();
+            typename CacheValueType::DeleteVectorConstIteratorType DEnd = cacheValue.delete_item.end();
+            for(;DIt != DEnd;++DIt)
             {
-                value.clear(cacheValue.delete_item[i]);
+                value.clear(*DIt);
             }
-            for(uint32_t i=0;i<cacheValue.update_item.size();i++)
+			
+            typename CacheValueType::UpdateVectorConstIteratorType UIt = cacheValue.update_item.begin();
+            typename CacheValueType::UpdateVectorConstIteratorType UEnd = cacheValue.update_item.end();
+            for(;UIt != UEnd;++UIt)
             {
-                value.set(cacheValue.update_item[i]);
+                value.set(*UIt);
             }
-            
+
             bitmap.reset();
             compress_(value, bitmap);
         }
@@ -444,19 +456,28 @@ private:
         std::cout<<result<<std::endl;
         std::cout<<cacheValue<<std::endl;
 #endif
-        
-        for(uint32_t i=0;i<cacheValue.insert_item.size();i++)
+        ///TOBEMODIFIED
+        typename CacheValueType::InsertVectorConstIteratorType IIt = cacheValue.insert_item.begin();
+        typename CacheValueType::InsertVectorConstIteratorType IEnd = cacheValue.insert_item.end();
+        for(;IIt !=IEnd;++IIt)
         {
-            result.set(cacheValue.insert_item[i]);
-        }
-        for(uint32_t i=0;i<cacheValue.delete_item.size();i++)
+            result.set(*IIt);
+         }
+
+        typename CacheValueType::DeleteVectorConstIteratorType DIt = cacheValue.delete_item.begin();
+        typename CacheValueType::DeleteVectorConstIteratorType DEnd = cacheValue.delete_item.end();
+        for(;DIt != DEnd;++DIt)
         {
-            result.clear(cacheValue.delete_item[i]);
+            result.clear(*DIt);
         }
-        for(uint32_t i=0;i<cacheValue.update_item.size();i++)
+
+        typename CacheValueType::UpdateVectorConstIteratorType UIt = cacheValue.update_item.begin();
+        typename CacheValueType::UpdateVectorConstIteratorType UEnd = cacheValue.update_item.end();
+        for(;UIt != UEnd;++UIt)
         {
-            result.set(cacheValue.update_item[i]);
+            result.set(*UIt);
         }
+
 #ifdef BT_DEBUG
         std::cout<<"after combine"<<std::endl;
         std::cout<<result<<std::endl;

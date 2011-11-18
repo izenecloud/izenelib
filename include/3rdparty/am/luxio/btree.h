@@ -25,7 +25,6 @@ namespace IO {
 
   class Data;
 
-  static const char *BTMAGIC = "LUXBT001";
   static const uint32_t MAX_KSIZE = 255;
   static const uint32_t CLUSTER_MAX_VSIZE = 255;
   static const uint32_t NONCLUSTER_MAX_VSIZE

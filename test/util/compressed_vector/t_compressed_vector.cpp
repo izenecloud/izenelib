@@ -23,6 +23,8 @@ BOOST_AUTO_TEST_CASE(ordered_vector)
     for(; i < count; ++i)
         v.push_back(i);
 
+    BOOST_CHECK(v.size() == count);
+
     typedef izenelib::util::compressed_vector::OrderedVector::iterator IteratorType;
     IteratorType iter(v);
     IteratorType end;
@@ -31,6 +33,15 @@ BOOST_AUTO_TEST_CASE(ordered_vector)
     {
         BOOST_CHECK(*iter == (i ++));
     }
+    typedef izenelib::util::compressed_vector::OrderedVector::const_iterator CIteratorType;
+    CIteratorType citer(v);
+    CIteratorType cend;
+    i = 1;
+    for(;citer !=cend; ++citer)
+    {
+        BOOST_CHECK(*citer == (i ++));
+    }
+	
 }
 
 BOOST_AUTO_TEST_SUITE_END() // Compressed_vectortest

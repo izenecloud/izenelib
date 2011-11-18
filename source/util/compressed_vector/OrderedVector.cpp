@@ -11,7 +11,8 @@ OrderedVector::OrderedVector(MemPool* pMemPool)
     ,nTotalSize_(0)
     ,nPosInCurChunk_(0)
     ,nTotalUsed_(0)
-    ,lastVal_(0)
+    ,nLastVal_(0)
+    ,nCount_(0)
 {
 }
 
@@ -21,8 +22,8 @@ OrderedVector::~OrderedVector()
 
 void OrderedVector::push_back(uint32_t val)
 {
-    add_v_data(val - lastVal_);
-    lastVal_ = val;
+    add_v_data(val - nLastVal_);
+    nLastVal_ = val;
 }
 
 void OrderedVector::add_v_data(uint32_t val)
@@ -51,6 +52,7 @@ void OrderedVector::add_v_data(uint32_t val)
     }
     pTailChunk_->data[nPosInCurChunk_++] = (uint8_t)ui;
     nTotalUsed_++;
+    nCount_++;
 }
 
 void OrderedVector::add_chunk()
