@@ -26,16 +26,17 @@ BOOST_AUTO_TEST_CASE(ordered_vector)
     BOOST_CHECK(v.size() == count);
 
     typedef izenelib::util::compressed_vector::OrderedVector::iterator IteratorType;
-    IteratorType iter(v);
-    IteratorType end;
+    IteratorType iter = v.begin();
+    IteratorType end = v.end();
     i = 1;
     for(;iter !=end; ++iter)
     {
         BOOST_CHECK(*iter == (i ++));
     }
+    const izenelib::util::compressed_vector::OrderedVector& vv(v);
     typedef izenelib::util::compressed_vector::OrderedVector::const_iterator CIteratorType;
-    CIteratorType citer(v);
-    CIteratorType cend;
+    CIteratorType citer = vv.begin();
+    CIteratorType cend = vv.end();
     i = 1;
     for(;citer !=cend; ++citer)
     {

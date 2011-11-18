@@ -80,7 +80,7 @@ void OrderedVector::read_internal(
     int32_t& currPosInChunk, 
     uint8_t* buffer, 
     size_t length
-)
+) const
 {
     if(!pDataChunk) return;
     size_t nLen = length;

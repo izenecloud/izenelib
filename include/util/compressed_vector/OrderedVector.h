@@ -27,7 +27,11 @@ class OrderedVector
 
     void add_chunk();
 
-    void read_internal(detail::DataChunk* &pDataChunk, int32_t& curr_pos_in_chunk, uint8_t* buffer, size_t length);
+    void read_internal(
+        detail::DataChunk* &pDataChunk, 
+        int32_t& curr_pos_in_chunk, 
+        uint8_t* buffer, 
+        size_t length) const;
 public:
     OrderedVector(MemPool* pMemPool);
 
@@ -39,9 +43,12 @@ public:
 
     template<typename Element>
     class vector_iterator
-       : public boost::iterator_facade< vector_iterator<Element>, Element, boost::forward_traversal_tag >
+       : public boost::iterator_facade< 
+                       vector_iterator<Element>, 
+                       Element, 
+                       boost::forward_traversal_tag >
     {
-        OrderedVector * vector_;
+        const OrderedVector * vector_;
         uint32_t data_len_;
         detail::DataChunk* p_data_chunk_;
         int32_t curr_pos_in_chunk_;
@@ -62,7 +69,7 @@ public:
         , buffer_start_(0)
         , buffer_pos_(0) {}
 
-        explicit vector_iterator(OrderedVector& p)
+        explicit vector_iterator(const OrderedVector& p)
         : vector_(&p)
         , data_len_(p.nTotalUsed_)
         , p_data_chunk_(p.pHeadChunk_)
@@ -131,6 +138,22 @@ public:
     };
     typedef vector_iterator<uint32_t> iterator;
     typedef vector_iterator<uint32_t const > const_iterator;
+    iterator begin()
+    {
+        return iterator(*this);
+    }
+    iterator end()
+    {
+        return iterator();
+    }
+    const_iterator begin() const
+    {
+        return const_iterator(*this);
+    }
+    const_iterator end() const
+    {
+        return const_iterator();
+    }
 };
 
 }
