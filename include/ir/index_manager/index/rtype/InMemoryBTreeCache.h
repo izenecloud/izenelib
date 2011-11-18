@@ -132,6 +132,11 @@ public:
         return data_.size();
     }
     
+    std::size_t capacity() const
+    {
+        return capacity_;
+    }
+    
     bool is_full()
     {
         return max_capacity_>0 && capacity_>=max_capacity_;

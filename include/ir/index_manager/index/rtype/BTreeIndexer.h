@@ -26,6 +26,7 @@
 #include <string>
 
 // #define BT_DEBUG
+#define BT_INFO
 
 NS_IZENELIB_IR_BEGIN
 
@@ -55,7 +56,7 @@ class CBTreeIndexer
     typedef boost::function<void (const CacheValueType&,const ValueType&, BitVector&) > EnumCombineFunc;
     
 public:
-    CBTreeIndexer(const std::string& path, const std::string& property_name, std::size_t cacheSize = 12500000)//5M for uint32_t
+    CBTreeIndexer(const std::string& path, const std::string& property_name, std::size_t cacheSize = 2000000)//an experienced value
     :path_(path), property_name_(property_name)
     {
         cache_.set_max_capacity(cacheSize);
@@ -287,6 +288,12 @@ private:
     
     void checkCache_()
     {
+#ifdef BT_INFO
+        if(cache_.capacity()%500000==0)
+        {
+            std::cout<<"!!!cache status : "<<property_name_<<", size: "<<cache_.capacity()<<std::endl;
+        }
+#endif
         if(cache_.is_full())
         {
             cacheClear_();
@@ -295,7 +302,7 @@ private:
     
     void cacheClear_()
     {
-#ifdef BT_DEBUG
+#ifdef BT_INFO
         std::cout<<"!!!cacheClear_ "<<property_name_<<", key size: "<<cache_.key_size()<<std::endl;
 #endif
         boost::function<void (const std::pair<KeyType, CacheValueType>&) > func=boost::bind( &ThisType::cacheIterator_, this, _1);
