@@ -127,6 +127,7 @@ public:
     
     std::size_t getValueBetween(const KeyType& lowKey, const KeyType& highKey, std::size_t maxDoc, KeyType* & data)
     {
+        if( compare_(lowKey,highKey)>0 ) return 0;
         boost::shared_lock<boost::shared_mutex> lock(mutex_);
         std::size_t result = 0;
         std::auto_ptr<BaseEnumType> term_enum(getEnum_(lowKey));
@@ -150,6 +151,7 @@ public:
 
     void getValueBetween(const KeyType& key1, const KeyType& key2, BitVector& docs)
     {
+        if( compare_(key1,key2)>0 ) return;
         boost::shared_lock<boost::shared_mutex> lock(mutex_);
         std::auto_ptr<BaseEnumType> term_enum(getEnum_(key1));
         std::pair<KeyType, BitVector> kvp;
