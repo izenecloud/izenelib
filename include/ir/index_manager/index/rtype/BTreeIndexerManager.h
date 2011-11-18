@@ -283,21 +283,21 @@ public:
     }
 };
 
-// class msub_string_visitor : public boost::static_visitor<void>
-// {
-// public:
-//     void operator()(BTreeIndexerManager* manager, const std::string& property_name, const izenelib::util::UString& v, BitVector& docs)
-//     {
-//         CBTreeIndexer<T>* pindexer = manager->getIndexer<T>(property_name);
-//         pindexer->getValueSubString(v, docs);
-//     }
-//     
-//     template<typename T>
-//     void operator()(BTreeIndexerManager* manager, const std::string& property_name, const T& v, BitVector& docs)
-//     {
-//         std::cout<<"error, call getValueSubString in no ustring type"<<std::endl;
-//     }
-// };
+class msub_string_visitor : public boost::static_visitor<void>
+{
+public:
+    void operator()(BTreeIndexerManager* manager, const std::string& property_name, const izenelib::util::UString& v, BitVector& docs)
+    {
+        CBTreeIndexer<izenelib::util::UString>* pindexer = manager->getIndexer<izenelib::util::UString>(property_name);
+        pindexer->getValueSubString(v, docs);
+    }
+    
+    template<typename T>
+    void operator()(BTreeIndexerManager* manager, const std::string& property_name, const T& v, BitVector& docs)
+    {
+        std::cout<<"error, call getValueSubString in no ustring type"<<std::endl;
+    }
+};
 
 ///all read only with two keys visitors below
 class mbetween_visitor : public boost::static_visitor<void>

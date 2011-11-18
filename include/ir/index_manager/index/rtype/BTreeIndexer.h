@@ -211,71 +211,42 @@ public:
         }
     }
 
-//     void getValueIn(const std::vector<KeyType>& keys, BitVector& docs)
-//     {
-//         for(std::size_t i=0;i<keys.size();i++)
-//         {
-//             BitVector bv;
-//             getValue(keys[i], bv);
-//             docs |= bv;
-//         }
-//     }
-// 
-//     void getValueNotIn(const std::vector<KeyType>& keys, BitVector& docs)
-//     {
-//         getValueIn(keys, docs);
-//         docs.toggle();
-//     }
-// 
-//     void getValueNotEqual(const KeyType& key, BitVector& docs)
-//     {
-//         getValue(key, docs);
-//         docs.toggle();
-//     }
 
-//     void getValueStart(const KeyType& key, BitVector& docs)
-//     {
-//         if( !std::is_same( KeyType, izenelib::util::UString)::value)//not ustring
-//         {
-//             std::cout<<"call getValueStart in no ustring type"<<std::endl;
-//             return;
-//         }
-//         std::auto_ptr<BaseEnumType> term_enum(getEnum_(key));
-//         std::pair<KeyType, BitVector> kvp;
-//         while(term_enum->next(kvp))
-//         {
-//             docs |= kvp.second;
-//         }
-//     }
-// 
-//     void getValueEnd(const KeyType& key, BitVector& docs)
-//     {
-//         if( !std::is_same( KeyType, izenelib::util::UString)::value)//not ustring
-//         {
-//             std::cout<<"call getValueEnd in no ustring type"<<std::endl;
-//             return;
-//         }
-//         std::auto_ptr<BaseEnumType> term_enum(getEnum_());
-//         std::pair<KeyType, BitVector> kvp;
-//         while(term_enum->next(kvp))
-//         {
-//             if(kvp.first>key) break;
-//             docs |= kvp.second;
-//         }
-//     }
+    void getValueStart(const izenelib::util::UString& key, BitVector& docs)
+    {
+        std::auto_ptr<BaseEnumType> term_enum(getEnum_(key));
+        std::pair<izenelib::util::UString, BitVector> kvp;
+        while(term_enum->next(kvp))
+        {
+            if(kvp.first.find(key)!=0) break;
+            docs |= kvp.second;
+        }
+    }
 
-//     void getValueSubString(const KeyType& key, BitVector& docs)
-//     {
-//         std::auto_ptr<BaseEnumType> term_enum(getEnum_());
-//         std::pair<KeyType, BitVector> kvp;
-//         while(term_enum->next(kvp))
-//         {
-//             if(IsSubString(kvp.first, key)
-//             {
-//                 docs |= kvp.second;
-//             }
-//         }
-//     }
+    void getValueEnd(const izenelib::util::UString& key, BitVector& docs)
+    {
+        std::auto_ptr<BaseEnumType> term_enum(getEnum_());
+        std::pair<izenelib::util::UString, BitVector> kvp;
+        while(term_enum->next(kvp))
+        {
+            if( kvp.first.length()<key.length() ) continue;
+            std::size_t c = kvp.first.length()-key.length();
+            if(kvp.first.rfind(key)!=c) continue;
+            docs |= kvp.second;
+        }
+    }
+
+    void getValueSubString(const izenelib::util::UString& key, BitVector& docs)
+    {
+        std::auto_ptr<BaseEnumType> term_enum(getEnum_());
+        std::pair<izenelib::util::UString, BitVector> kvp;
+        while(term_enum->next(kvp))
+        {
+            if( kvp.first.length()<key.length() ) continue;
+            if(kvp.first.find(key)==izenelib::util::UString::npos) continue;
+            docs |= kvp.second;
+        }
+    }
 
     void flush()
     {
