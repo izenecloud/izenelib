@@ -15,22 +15,34 @@ using namespace std;
 BOOST_AUTO_TEST_SUITE(Compressed_vector_test)
 BOOST_AUTO_TEST_CASE(ordered_vector)
 {
-    MemCache memPool(128);
+    MemPool memPool(128);
     izenelib::util::compressed_vector::OrderedVector v(&memPool);
 
     size_t count = 1000;
     size_t i = 1;
     for(; i < count; ++i)
-        v.PushBack(i);
+        v.push_back(i);
 
-    typedef izenelib::util::compressed_vector::OrderedVector::Iterator IteratorType;
-    IteratorType iter(v);
-    IteratorType end;
+    BOOST_CHECK(v.size() == count);
+
+    typedef izenelib::util::compressed_vector::OrderedVector::iterator IteratorType;
+    IteratorType iter = v.begin();
+    IteratorType end = v.end();
     i = 1;
     for(;iter !=end; ++iter)
     {
         BOOST_CHECK(*iter == (i ++));
     }
+    const izenelib::util::compressed_vector::OrderedVector& vv(v);
+    typedef izenelib::util::compressed_vector::OrderedVector::const_iterator CIteratorType;
+    CIteratorType citer = vv.begin();
+    CIteratorType cend = vv.end();
+    i = 1;
+    for(;citer !=cend; ++citer)
+    {
+        BOOST_CHECK(*citer == (i ++));
+    }
+	
 }
 
 BOOST_AUTO_TEST_SUITE_END() // Compressed_vectortest

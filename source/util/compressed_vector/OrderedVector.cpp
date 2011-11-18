@@ -4,42 +4,42 @@ NS_IZENELIB_UTIL_BEGIN
 
 namespace compressed_vector{
 
-OrderedVector::OrderedVector(MemCache* pMemPool)
+OrderedVector::OrderedVector(MemPool* pMemPool)
     :pMemPool_(pMemPool)
     ,pHeadChunk_(NULL)
     ,pTailChunk_(NULL)
     ,nTotalSize_(0)
     ,nPosInCurChunk_(0)
     ,nTotalUsed_(0)
-    ,lastVal_(0)
+    ,nLastVal_(0)
+    ,nCount_(0)
 {
-
 }
 
 OrderedVector::~OrderedVector()
 {
 }
 
-void OrderedVector::PushBack(uint32_t val)
+void OrderedVector::push_back(uint32_t val)
 {
-    AddVData(val - lastVal_);
-    lastVal_ = val;
+    add_v_data(val - nLastVal_);
+    nLastVal_ = val;
 }
 
-void OrderedVector::AddVData(uint32_t val)
+void OrderedVector::add_v_data(uint32_t val)
 {
     if (pTailChunk_ == NULL)
     {
-        AddChunk();
-        AddVData(val);
+        add_chunk();
+        add_v_data(val);
     }
     int32_t left = pTailChunk_->size - nPosInCurChunk_;
 	
     if (left < 7)///at least 4 free space
     {
         pTailChunk_->size = nPosInCurChunk_;///the real size
-        AddChunk();
-        AddVData(val);
+        add_chunk();
+        add_v_data(val);
         return;
     }
 	
@@ -52,9 +52,10 @@ void OrderedVector::AddVData(uint32_t val)
     }
     pTailChunk_->data[nPosInCurChunk_++] = (uint8_t)ui;
     nTotalUsed_++;
+    nCount_++;
 }
 
-void OrderedVector::AddChunk()
+void OrderedVector::add_chunk()
 {
     size_t chunkSize = std::min(CHUNK_ALLOC_UPPER_LIMIT, 
                   std::max(CHUNK_ALLOC_LOWER_LIMIT,(int)(nTotalSize_*0.5 + 0.5)));
@@ -74,12 +75,12 @@ void OrderedVector::AddChunk()
     nPosInCurChunk_ = 0;
 }
 
-void OrderedVector::ReadInternal(
+void OrderedVector::read_internal(
     detail::DataChunk* &pDataChunk, 
     int32_t& currPosInChunk, 
     uint8_t* buffer, 
     size_t length
-)
+) const
 {
     if(!pDataChunk) return;
     size_t nLen = length;

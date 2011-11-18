@@ -14,31 +14,41 @@ namespace compressed_vector{
 
 class OrderedVector
 {
-    MemCache* pMemPool_;
+    MemPool* pMemPool_;
     detail::DataChunk* pHeadChunk_;
     detail::DataChunk* pTailChunk_;
     uint32_t nTotalSize_;
     uint32_t nPosInCurChunk_;
     uint32_t nTotalUsed_;
-    uint32_t lastVal_;
+    uint32_t nLastVal_;
 
-    void AddVData(uint32_t val);
+    uint32_t nCount_;
+    void add_v_data(uint32_t val);
 
-    void AddChunk();
+    void add_chunk();
 
-    void ReadInternal(detail::DataChunk* &pDataChunk, int32_t& curr_pos_in_chunk, uint8_t* buffer, size_t length);
+    void read_internal(
+        detail::DataChunk* &pDataChunk, 
+        int32_t& curr_pos_in_chunk, 
+        uint8_t* buffer, 
+        size_t length) const;
 public:
-    OrderedVector(MemCache* pMemPool);
+    OrderedVector(MemPool* pMemPool);
 
     ~OrderedVector();
 
-    void PushBack(uint32_t val);
+    void push_back(uint32_t val);
 
-    
-    class Iterator
-       : public boost::iterator_facade< Iterator, uint32_t, boost::forward_traversal_tag >
+    size_t size(){ return nCount_;}
+
+    template<typename Element>
+    class vector_iterator
+       : public boost::iterator_facade< 
+                       vector_iterator<Element>, 
+                       Element, 
+                       boost::forward_traversal_tag >
     {
-        OrderedVector * vector_;
+        const OrderedVector * vector_;
         uint32_t data_len_;
         detail::DataChunk* p_data_chunk_;
         int32_t curr_pos_in_chunk_;
@@ -49,7 +59,7 @@ public:
         uint32_t buffer_pos_;
 
     public:
-        Iterator()
+        vector_iterator()
         : vector_(0)
         , data_len_(0)
         , p_data_chunk_(0)
@@ -59,7 +69,7 @@ public:
         , buffer_start_(0)
         , buffer_pos_(0) {}
 
-        explicit Iterator(OrderedVector& p)
+        explicit vector_iterator(const OrderedVector& p)
         : vector_(&p)
         , data_len_(p.nTotalUsed_)
         , p_data_chunk_(p.pHeadChunk_)
@@ -85,12 +95,12 @@ public:
             }
         }
 
-        bool equal(Iterator const& other) const
+        bool equal(vector_iterator<Element> const& other) const
         {
             return this->vector_ == other.vector_;
         }
 
-        uint32_t& dereference() const {return curr_val_; }
+        Element& dereference() const {return curr_val_; }
 
         uint32_t read_vint32()
         {
@@ -123,10 +133,27 @@ public:
             else
                 buffer_len_ =  CHUNK_ALLOC_LOWER_LIMIT;
 
-            vector_->ReadInternal(p_data_chunk_,curr_pos_in_chunk_,buffer_,buffer_len_);
+            vector_->read_internal(p_data_chunk_,curr_pos_in_chunk_,buffer_,buffer_len_);
         }
     };
-
+    typedef vector_iterator<uint32_t> iterator;
+    typedef vector_iterator<uint32_t const > const_iterator;
+    iterator begin()
+    {
+        return iterator(*this);
+    }
+    iterator end()
+    {
+        return iterator();
+    }
+    const_iterator begin() const
+    {
+        return const_iterator(*this);
+    }
+    const_iterator end() const
+    {
+        return const_iterator();
+    }
 };
 
 }

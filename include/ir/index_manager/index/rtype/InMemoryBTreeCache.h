@@ -18,25 +18,42 @@ class InMemoryBTreeCache
 public:
     struct ValueType
     {
-        std::vector<ValueItemType> insert_item;//should be ordered, and larger than current
-        std::vector<ValueItemType> delete_item;
-        std::vector<ValueItemType> update_item;//similar to insert_item but not ordered.
+        typedef std::vector<ValueItemType> InsertVectorType;
+        typedef std::vector<ValueItemType> DeleteVectorType;
+        typedef std::vector<ValueItemType> UpdateVectorType;
+        typedef typename InsertVectorType::iterator InsertVectorIteratorType;
+        typedef typename DeleteVectorType::iterator DeleteVectorIteratorType;
+        typedef typename UpdateVectorType::iterator UpdateVectorIteratorType;
+        typedef typename InsertVectorType::const_iterator InsertVectorConstIteratorType;
+        typedef typename DeleteVectorType::const_iterator DeleteVectorConstIteratorType;
+        typedef typename UpdateVectorType::const_iterator UpdateVectorConstIteratorType;
+
+        InsertVectorType insert_item;//should be ordered, and larger than current
+        DeleteVectorType delete_item;
+        UpdateVectorType update_item;//similar to insert_item but not ordered.
         
         friend std::ostream& operator<<(std::ostream& output, const ValueType& v) {
             output<<"[I] ";
-            for(uint32_t i=0;i<v.insert_item.size();i++)
+            ///TOBEMODIFIED
+            InsertVectorIteratorType IIt = v.insert_item.begin();
+            InsertVectorIteratorType IEnd = v.insert_item.end();
+            for(;IIt !=IEnd;++IIt)
             {
-                output<<v.insert_item[i]<<",";
+                output<<*IIt<<",";
             }
             output<<"[D] ";
-            for(uint32_t i=0;i<v.delete_item.size();i++)
+            DeleteVectorIteratorType DIt = v.delete_item.begin();
+            DeleteVectorIteratorType DEnd = v.delete_item.end();
+            for(;DIt != DEnd;++DIt)
             {
-                output<<v.delete_item[i]<<",";
+                output<<*DIt<<",";
             }
             output<<"[U] ";
-            for(uint32_t i=0;i<v.update_item.size();i++)
+            UpdateVectorIteratorType UIt = v.update_item.begin();
+            UpdateVectorIteratorType UEnd = v.update_item.end();
+            for(;UIt != UEnd;UIt++)
             {
-                output<<v.update_item[i]<<",";
+                output<<*UIt<<",";
             }
             return output;
         }

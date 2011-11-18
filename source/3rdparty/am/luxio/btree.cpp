@@ -32,6 +32,8 @@
 namespace Lux {
 namespace IO {
 
+static const char *BTMAGIC = "LUXBT001";
+
   Btree::Btree(db_index_t index_type)
   : map_(NULL),
     cmp_(str_cmp_func),
