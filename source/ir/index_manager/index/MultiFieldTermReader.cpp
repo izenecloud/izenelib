@@ -120,12 +120,12 @@ bool MultiFieldTermReader::seek( Term* term)
 
 TermDocFreqs* MultiFieldTermReader::termDocFreqs()
 {
-    return pCurReader_->termDocFreqs();
+    return pCurReader_ ? pCurReader_->termDocFreqs():NULL;
 }
 
 TermPositions* MultiFieldTermReader::termPositions()
 {
-    return pCurReader_->termPositions();
+    return pCurReader_ ? pCurReader_->termPositions():NULL;
 }
 
 
