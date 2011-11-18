@@ -78,7 +78,7 @@ IF(izene_util_SHOULD_BUILD)
     compression/int/unpack.cpp
     compression/int/vbyte_compressor.cpp
 
-    compressed_vector/OrderedVector.cpp
+    compressed_vector/RandomVector.cpp
     compressed_vector/detail/Compressor.cpp
 
     sysinfo/commandparser.cpp
