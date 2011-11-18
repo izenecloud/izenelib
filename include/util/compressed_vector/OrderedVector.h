@@ -22,21 +22,21 @@ class OrderedVector
     uint32_t nTotalUsed_;
     uint32_t lastVal_;
 
-    void AddVData(uint32_t val);
+    void add_v_data(uint32_t val);
 
-    void AddChunk();
+    void add_chunk();
 
-    void ReadInternal(detail::DataChunk* &pDataChunk, int32_t& curr_pos_in_chunk, uint8_t* buffer, size_t length);
+    void read_internal(detail::DataChunk* &pDataChunk, int32_t& curr_pos_in_chunk, uint8_t* buffer, size_t length);
 public:
     OrderedVector(MemPool* pMemPool);
 
     ~OrderedVector();
 
-    void PushBack(uint32_t val);
+    void push_back(uint32_t val);
 
     
-    class Iterator
-       : public boost::iterator_facade< Iterator, uint32_t, boost::forward_traversal_tag >
+    class iterator
+       : public boost::iterator_facade< iterator, uint32_t, boost::forward_traversal_tag >
     {
         OrderedVector * vector_;
         uint32_t data_len_;
@@ -49,7 +49,7 @@ public:
         uint32_t buffer_pos_;
 
     public:
-        Iterator()
+        iterator()
         : vector_(0)
         , data_len_(0)
         , p_data_chunk_(0)
@@ -59,7 +59,7 @@ public:
         , buffer_start_(0)
         , buffer_pos_(0) {}
 
-        explicit Iterator(OrderedVector& p)
+        explicit iterator(OrderedVector& p)
         : vector_(&p)
         , data_len_(p.nTotalUsed_)
         , p_data_chunk_(p.pHeadChunk_)
@@ -85,7 +85,7 @@ public:
             }
         }
 
-        bool equal(Iterator const& other) const
+        bool equal(iterator const& other) const
         {
             return this->vector_ == other.vector_;
         }
@@ -123,7 +123,7 @@ public:
             else
                 buffer_len_ =  CHUNK_ALLOC_LOWER_LIMIT;
 
-            vector_->ReadInternal(p_data_chunk_,curr_pos_in_chunk_,buffer_,buffer_len_);
+            vector_->read_internal(p_data_chunk_,curr_pos_in_chunk_,buffer_,buffer_len_);
         }
     };
 

@@ -21,9 +21,9 @@ BOOST_AUTO_TEST_CASE(ordered_vector)
     size_t count = 1000;
     size_t i = 1;
     for(; i < count; ++i)
-        v.PushBack(i);
+        v.push_back(i);
 
-    typedef izenelib::util::compressed_vector::OrderedVector::Iterator IteratorType;
+    typedef izenelib::util::compressed_vector::OrderedVector::iterator IteratorType;
     IteratorType iter(v);
     IteratorType end;
     i = 1;
