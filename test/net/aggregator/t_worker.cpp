@@ -19,6 +19,8 @@ int main( int argc, char * argv[])
         return 0;
     }
 
+    try {
+
     std::string host = argv[1];
     uint16_t port = atoi(argv[2]);
     std::cout <<"[starting job woker..] "<< host << ":" << port <<std::endl;
@@ -30,5 +32,12 @@ int main( int argc, char * argv[])
     worker.debug_ = true;
     worker.start();
     worker.join();
+
+    }
+    catch (std::exception& e)
+    {
+        exit(0);
+    }
+
     return 0;
 }

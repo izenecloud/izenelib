@@ -99,7 +99,7 @@ int main(void)
 {
     //simple_client();
 
-    sync_call();
+    //sync_call();
 
     //async_call();
 

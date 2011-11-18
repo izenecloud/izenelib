@@ -19,7 +19,10 @@ using namespace zookeeper;
 class Watcher : public ZooKeeperEventHandler
 {
 public:
-    Watcher(ZooKeeper* zk) : zk_(zk) {}
+    Watcher(ZooKeeper* zk, bool rewatch=true)
+    : zk_(zk)
+    , rewatch_(rewatch)
+    {}
 
     virtual void process(ZooKeeperEvent& zkEvent)
     {
@@ -29,32 +32,35 @@ public:
     virtual void onNodeCreated(const std::string& path)
     {
         cout << "[Watcher] onNodeCreated " << path <<endl;
-        //reset watcher
-        zk_->isZNodeExists(path, ZooKeeper::WATCH);
+        if (rewatch_)
+            zk_->isZNodeExists(path, ZooKeeper::WATCH);
     }
     virtual void onNodeDeleted(const std::string& path)
     {
         cout << "[Watcher] onNodeDeleted " << path <<endl;
-        //reset watcher
-        zk_->isZNodeExists(path, ZooKeeper::WATCH);
+        if (rewatch_)
+            zk_->isZNodeExists(path, ZooKeeper::WATCH);
     }
     virtual void onDataChanged(const std::string& path)
     {
         cout << "[Watcher] onDataChanged " << path <<endl;
-        //reset watcher
-        std::string data;
-        zk_->getZNodeData(path, data, ZooKeeper::WATCH);
+        if (rewatch_) {
+            std::string data;
+            zk_->getZNodeData(path, data, ZooKeeper::WATCH);
+        }
     }
 
     virtual void onChildrenChanged(const std::string& path)
     {
         cout << "[Watcher] onChildrenChanged " << path <<endl;
-        //reset watcher
-        std::vector<std::string> childrenList;
-        zk_->getZNodeChildren(path, childrenList, ZooKeeper::WATCH);
+        if (rewatch_) {
+            std::vector<std::string> childrenList;
+            zk_->getZNodeChildren(path, childrenList, ZooKeeper::WATCH);
+        }
     }
 
     ZooKeeper* zk_;
+    bool rewatch_;
 };
 
 void t_zk_client(string& hosts)
@@ -102,6 +108,7 @@ void t_zk_watch_event(string& hosts)
     cli.deleteZNode("/a", true);
     cli.createZNode("/a");
 
+    //*
     set_watchers(cli);
 
     while(true)
@@ -111,6 +118,22 @@ void t_zk_watch_event(string& hosts)
         cin >> s;
         break;
     }
+    //*/
+
+    /* double watch just as watch once
+    watcher.rewatch_ = false;
+    cli.isZNodeExists("/a", ZooKeeper::WATCH);
+    cli.isZNodeExists("/a", ZooKeeper::WATCH);
+    std::string data;
+    cli.getZNodeData("/a/b", data, ZooKeeper::WATCH);
+    cli.getZNodeData("/a/b", data, ZooKeeper::WATCH);
+    std::vector<std::string> childrenList;
+    cli.getZNodeChildren("/a/b", childrenList, ZooKeeper::WATCH);
+    cli.getZNodeChildren("/a/b", childrenList, ZooKeeper::WATCH);
+    //*/
+
+    char ch;
+    cin >> ch;
 
     cli.deleteZNode("/a", true);
 }
@@ -209,7 +232,7 @@ int main(int argc, char* argv[])
 
     //t_CyclicBarrier(hosts);
 
-    t_zk_watch_event(hosts);
+    //t_zk_watch_event(hosts);
 
     // t_zk_data_pack(hosts);
 
