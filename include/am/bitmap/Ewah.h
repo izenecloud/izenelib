@@ -690,6 +690,16 @@ public:
     bool operator==(const EWAHBoolArray & x) const;
 
     bool operator!=(const EWAHBoolArray & x) const;
+    
+    friend std::ostream& operator<<(std::ostream& output, const EWAHBoolArray<uword>& v) {
+        output<<"["<<v.sizeInBits()<<"] ";
+        EWAHBoolArrayBitIterator<uword> it = v.bit_iterator();
+        while(it.next())
+        {
+            output<<it.getCurr()<<",";
+        }
+        return output;
+    }
 
     EWAHBoolArrayIterator<uword> uncompress() const ;
     EWAHBoolArraySparseIterator<uword> sparse_uncompress() const ;

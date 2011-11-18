@@ -6,6 +6,8 @@
 #include <boost/thread/locks.hpp>
 #include <3rdparty/am/stx/btree_map.h>
 
+// #define BTCACHE_DEBUG
+
 NS_IZENELIB_IR_BEGIN
 namespace indexmanager {
 
@@ -92,18 +94,19 @@ public:
         //expand the capacity
         ++capacity_;
         
-        //test
+#ifdef BTCACHE_DEBUG
+        
+        typename AMType::iterator fit = data_.find(key);
+        if(fit==data_.end())
         {
-            typename AMType::iterator fit = data_.find(key);
-            if(fit==data_.end())
-            {
-                std::cout<<"!!error"<<std::endl;
-            }
-            else
-            {
-                std::cout<<"fit : "<<fit->first<<","<<fit->second<<std::endl;
-            }
+            std::cout<<"!!error"<<std::endl;
         }
+        else
+        {
+            std::cout<<"fit : "<<fit->first<<","<<fit->second<<std::endl;
+        }
+        
+#endif
     }
     
     void remove(const KeyType& key, const ValueItemType& value_item)

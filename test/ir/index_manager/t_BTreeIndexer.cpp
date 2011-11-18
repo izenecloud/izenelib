@@ -68,12 +68,7 @@ class FileController
 
 void PrintBitVector(const BitVector& docs)
 {
-    std::cout<<"["<<docs.size()<<"] ";
-    for(std::size_t i=0;i<docs.size();i++)
-    {
-        std::cout<<(int)docs.test(i);
-    }
-    std::cout<<std::endl;
+    std::cout<<"final "<<docs<<std::endl;
 }
 
 BOOST_AUTO_TEST_SUITE( t_BTreeIndexer )
@@ -88,44 +83,43 @@ BOOST_AUTO_TEST_SUITE( t_BTreeIndexer )
 
 BOOST_AUTO_TEST_CASE(simple)
 {
-    FileController file("./tbtreeindexer");
+    DirController dir("./tbtreeindexer");
     
-    CBTreeIndexer<uint32_t> bt(file.path(), "int");
+    CBTreeIndexer<uint32_t> bt(dir.path()+"/test", "int");
     BOOST_CHECK( bt.open() );
-    std::cout<<"opened"<<std::endl;
     bt.add(1, 1);
     bt.add(1, 2);
     bt.add(2, 2);
     bt.add(2, 3);
-    std::cout<<"added"<<std::endl;
-    {
-        std::cout<<"test 1"<<std::endl;
-        BitVector docs;
-        bt.getValueLess(2, docs);
-        PrintBitVector(docs);
-    }
-    
-    {
-        std::cout<<"test 2"<<std::endl;
-        BitVector docs;
-        bt.getValueGreatEqual(1, docs);
-        PrintBitVector(docs);
-    }
+//     {
+//         
+//         BitVector docs;
+//         bt.getValueLess(2, docs);
+//         PrintBitVector(docs);
+//     }
+//     
+//     {
+//         std::cout<<"test 2"<<std::endl;
+//         BitVector docs;
+//         bt.getValueGreatEqual(1, docs);
+//         PrintBitVector(docs);
+//     }
     
     bt.flush();
     {
-        std::cout<<"test 1"<<std::endl;
+        std::cout<<"test 11"<<std::endl;
         BitVector docs;
         bt.getValueLess(2, docs);
         PrintBitVector(docs);
     }
     
-    {
-        std::cout<<"test 2"<<std::endl;
-        BitVector docs;
-        bt.getValueGreatEqual(1, docs);
-        PrintBitVector(docs);
-    }
+//     {
+//         std::cout<<"test 21"<<std::endl;
+//         BitVector docs;
+//         bt.getValueGreatEqual(1, docs);
+//         PrintBitVector(docs);
+//     }
+    bt.close();
 }
 
 BOOST_AUTO_TEST_SUITE_END()

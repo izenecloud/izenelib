@@ -25,6 +25,8 @@
 #include <algorithm>
 #include <string>
 
+// #define BT_DEBUG
+
 NS_IZENELIB_IR_BEGIN
 
 namespace indexmanager
@@ -67,6 +69,11 @@ public:
     bool open()
     {
         return db_.open(path_);
+    }
+    
+    void close()
+    {
+        db_.close();
     }
     
     bool seek(const KeyType& key)
@@ -162,6 +169,9 @@ public:
         {
             if( compare_(kvp.first,key)>=0 ) break;
             docs |= kvp.second;
+#ifdef BT_DEBUG
+            std::cout<<"after this iterator : "<<kvp.first<<","<<docs<<std::endl;
+#endif
         }
         
     }
@@ -312,7 +322,9 @@ private:
     
     void cacheClear_()
     {
-        std::cout<<"!!!cacheFull_ "<<property_name_<<","<<cache_.key_size()<<std::endl;
+#ifdef BT_DEBUG
+        std::cout<<"!!!cacheClear_ "<<property_name_<<", key size: "<<cache_.key_size()<<std::endl;
+#endif
         boost::function<void (const std::pair<KeyType, CacheValueType>&) > func=boost::bind( &ThisType::cacheIterator_, this, _1);
         cache_.iterate(func);
         cache_.clear();
@@ -321,7 +333,13 @@ private:
     void cacheIterator_(const std::pair<KeyType, CacheValueType>& kvp)
     {
         ValueType bitmap;
+#ifdef BT_DEBUG
+        std::cout<<"cacheIterator : "<<kvp.first<<","<<kvp.second<<std::endl;
+#endif
         getValue_(kvp.first, kvp.second, bitmap);
+#ifdef BT_DEBUG
+        std::cout<<"cacheIterator update : "<<kvp.first<<","<<bitmap<<std::endl;
+#endif
         db_.update(kvp.first, bitmap);
     }
     
@@ -359,7 +377,13 @@ private:
     void getValue_(const KeyType& key, const CacheValueType& cacheValue, ValueType& value)
     {
         getDbValue_(key, value);
+#ifdef BT_DEBUG
+        std::cout<<"after getDbValue : "<<key<<","<<value<<std::endl;
+#endif
         setCacheValue_(value, cacheValue);
+#ifdef BT_DEBUG
+        std::cout<<"after setCacheValue : "<<key<<","<<value<<std::endl;
+#endif
     }
     
     /// the dbValue already got before
@@ -394,12 +418,23 @@ private:
         {
             need_decompress = true;
         }
-        
+#ifdef BT_DEBUG
+        std::cout<<"need_decompress : "<<(int)need_decompress<<std::endl;
+#endif        
         if(!need_decompress)
         {
             for(uint32_t i=0;i<cacheValue.insert_item.size();i++)
             {
-                bitmap.add(cacheValue.insert_item[i]);
+#ifdef BT_DEBUG
+                std::cout<<"bitmap : "<<bitmap<<" , add "<<cacheValue.insert_item[i]<<std::endl;
+#endif   
+                bitmap.set(cacheValue.insert_item[i]);
+#ifdef BT_DEBUG
+                std::cout<<"bitmap : "<<bitmap<<std::endl;
+                izenelib::am::BoolArray<uint32_t> boolArray;
+                bitmap.toBoolArray(boolArray);
+                boolArray.printout(std::cout);
+#endif   
             }
         }
         else
@@ -426,32 +461,18 @@ private:
     
     static void combineValue_(const CacheValueType& cacheValue, const ValueType& cbitmap, BitVector& result)
     {
+#ifdef BT_DEBUG
         std::cout<<"before decompress"<<std::endl;
         std::cout<<result<<std::endl;
-        
+        std::cout<<cbitmap<<std::endl;
+#endif
         decompress_(cbitmap, result);
         
-        {
-            std::cout<<"after decompress"<<std::endl;
-            std::cout<<result<<std::endl;
-            std::cout<<cacheValue<<std::endl;
-//             std::cout<<"[I] ";
-//             for(uint32_t i=0;i<cacheValue.insert_item.size();i++)
-//             {
-//                 std::cout<<cacheValue.insert_item[i]<<",";
-//             }
-//             std::cout<<"[D] ";
-//             for(uint32_t i=0;i<cacheValue.delete_item.size();i++)
-//             {
-//                 std::cout<<cacheValue.delete_item[i]<<",";
-//             }
-//             std::cout<<"[U] ";
-//             for(uint32_t i=0;i<cacheValue.update_item.size();i++)
-//             {
-//                 std::cout<<cacheValue.update_item[i]<<",";
-//             }
-//             std::cout<<std::endl;
-        }
+#ifdef BT_DEBUG
+        std::cout<<"after decompress"<<std::endl;
+        std::cout<<result<<std::endl;
+        std::cout<<cacheValue<<std::endl;
+#endif
         
         for(uint32_t i=0;i<cacheValue.insert_item.size();i++)
         {
@@ -465,7 +486,10 @@ private:
         {
             result.set(cacheValue.update_item[i]);
         }
+#ifdef BT_DEBUG
+        std::cout<<"after combine"<<std::endl;
         std::cout<<result<<std::endl;
+#endif
     }
     
 private:

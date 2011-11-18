@@ -156,6 +156,7 @@ public:
         if(size()<b.size())
         {
             grow(b.size());
+            size_ = b.size();
         }
         const size_t byteNum = getBytesNum(size_);
         for(size_t i = 0; i < byteNum; ++i )
@@ -168,6 +169,7 @@ public:
         if(size()<b.size())
         {
             grow(b.size());
+            size_ = b.size();
         }
         const size_t byteNum = getBytesNum(size_);
         for(size_t i = 0; i < byteNum; ++i )
@@ -180,6 +182,7 @@ public:
         if(size()<b.size())
         {
             grow(b.size());
+            size_ = b.size();
         }
         const size_t byteNum = getBytesNum(size_);
         for(size_t i = 0; i < byteNum; ++i )

@@ -6,6 +6,8 @@
 #include <boost/function.hpp>
 #include <3rdparty/am/stx/btree_map.h>
 
+// #define TE_DEBUG
+
 NS_IZENELIB_IR_BEGIN
 namespace indexmanager {
 
@@ -48,13 +50,17 @@ public:
     
     bool next(std::pair<KeyType, ValueType>& kvp)
     {
+#ifdef TE_DEBUG
         std::cout<<"BTTermEnum next"<<std::endl;
+#endif
         if(it_==it_end_) return false;
         else
         {
             kvp = *it_;
             ++it_;
+#ifdef TE_DEBUG
             std::cout<<"BTTermEnum key:"<<kvp.first<<", value: "<<kvp.second<<std::endl;
+#endif
             return true;
         }
     }
@@ -78,6 +84,10 @@ public:
     AMTermEnum(AMType& am)
     :it_(am), it_end_()
     {
+#ifdef TE_DEBUG
+        std::cout<<"AMTermEnum constructor1 "<<am.size()<<std::endl;
+        std::cout<<"is end : "<<(int)(it_==it_end_)<<std::endl;
+#endif
     }
     
     AMTermEnum(AMType& am, const KeyType& key)
@@ -87,14 +97,18 @@ public:
     
     bool next(std::pair<KeyType, ValueType>& kvp)
     {
+#ifdef TE_DEBUG
         std::cout<<"AMTermEnum next"<<std::endl;
+#endif
         if(it_==it_end_) return false;
         else
         {
             kvp.first = it_->first;
             kvp.second = it_->second;
             ++it_;
+#ifdef TE_DEBUG
             std::cout<<"AMTermEnum key:"<<kvp.first<<std::endl;
+#endif
             return true;
         }
     }
@@ -131,7 +145,9 @@ class TwoWayTermEnum : public TermEnum<KeyType, ValueType>
         
         bool next(DataType& kvp)
         {
+#ifdef TE_DEBUG
             std::cout<<"TwoWayTermEnum next"<<std::endl;
+#endif
 //             boost::optional<DataType1> data1;
 //             boost::optional<DataType2> data2;
             if(!data1_)
