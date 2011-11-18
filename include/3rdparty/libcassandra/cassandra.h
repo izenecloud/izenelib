@@ -538,6 +538,10 @@ public:
             const std::string& query,
             const org::apache::cassandra::Compression::type compression = org::apache::cassandra::Compression::GZIP);
 
+    void batchMutate(
+            const std::map<std::string, std::map<std::string, std::vector<org::apache::cassandra::Mutation> > >& mutation_map,
+            const org::apache::cassandra::ConsistencyLevel::type level = org::apache::cassandra::ConsistencyLevel::QUORUM);
+
     /**
      * @return the target server cluster name.
      */
