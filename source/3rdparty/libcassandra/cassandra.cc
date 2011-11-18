@@ -715,6 +715,13 @@ void Cassandra::truncateColumnFamily(const string& cf_name)
     RELEASE_CLIENT
 }
 
+void Cassandra::batchMutate(const map<string, map<string, vector<Mutation> > >& mutation_map, const ConsistencyLevel::type level)
+{
+    BORROW_CLIENT
+    thrift_client->batch_mutate(mutation_map, level);
+    RELEASE_CLIENT
+}
+
 void Cassandra::executeCqlQuery(CqlResult& result, const string& query, const Compression::type compression)
 {
     BORROW_CLIENT
