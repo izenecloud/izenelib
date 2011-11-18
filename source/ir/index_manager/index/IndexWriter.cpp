@@ -33,17 +33,6 @@ IndexWriter::IndexWriter(Indexer* pIndex)
 
     pIndexMergeManager_ = new IndexMergeManager(pIndex);
 
-    // in order to resume merging previous barrels,
-    // add them into pIndexMergeManager_
-    BarrelInfo* pBarrelInfo = NULL;
-    boost::mutex::scoped_lock lock(pBarrelsInfo_->getMutex());
-    pBarrelsInfo_->startIterator();
-    while(pBarrelsInfo_->hasNext())
-    {
-        pBarrelInfo = pBarrelsInfo_->next();
-        assert(pBarrelInfo->getWriter() == NULL && "the loaded BarrelInfo should not be in-memory barrel");
-        pIndexMergeManager_->addToMerge(pBarrelInfo);
-    }
 }
 
 IndexWriter::~IndexWriter()
@@ -56,6 +45,20 @@ IndexWriter::~IndexWriter()
         delete pIndexBarrelWriter_;
 }
 
+void IndexWriter::tryResumeExistingBarrels()
+{
+    // in order to resume merging previous barrels,
+    // add them into pIndexMergeManager_
+    BarrelInfo* pBarrelInfo = NULL;
+    boost::mutex::scoped_lock lock(pBarrelsInfo_->getMutex());
+    pBarrelsInfo_->startIterator();
+    while(pBarrelsInfo_->hasNext())
+    {
+        pBarrelInfo = pBarrelsInfo_->next();
+        assert(pBarrelInfo->getWriter() == NULL && "the loaded BarrelInfo should not be in-memory barrel");
+        pIndexMergeManager_->addToMerge(pBarrelInfo);
+    }
+}
 void IndexWriter::flush()
 {
     DVLOG(2) << "=> IndexWriter::flush()...";
@@ -68,15 +71,17 @@ void IndexWriter::flush()
     }
     assert(pIndexBarrelWriter_ && "pIndexBarrelWriter_ should have been created with pCurBarrelInfo_ together in IndexWriter::createBarrelInfo()");
 
-    pIndexBarrelWriter_->close();
-    pIndexer_->setDirty();
-
+    pIndexBarrelWriter_->flush();
     if(! pIndexer_->isRealTime())
         pCurBarrelInfo_->setSearchable(true);
+    pIndexer_->setDirty();
+    pIndexer_->getIndexReader();
 
     pIndexMergeManager_->addToMerge(pCurBarrelInfo_);
 
     pBarrelsInfo_->write(pIndexer_->getDirectory());
+
+    pIndexBarrelWriter_->reset();
     pCurBarrelInfo_ = NULL;
     DVLOG(2) << "<= IndexWriter::flush()";
 }
@@ -99,11 +104,19 @@ void IndexWriter::indexDocument(IndexerDocument& doc)
 {
     if(!pCurBarrelInfo_) createBarrelInfo();
 
-    if(pIndexer_->isRealTime() && pIndexBarrelWriter_->cacheFull())
+    if(pIndexer_->isRealTime())
     {
-        DVLOG(2) << "IndexWriter::indexDocument() => realtime cache full...";
-        flush();
-        createBarrelInfo();
+        ///If indexreader has not contained the in-memory barrel reader,
+        ///The dirty flag should be set, so that the new query could open the in-memory barrel
+        ///for real time query
+        if(!pIndexer_->pIndexReader_->hasMemBarrelReader())
+            pIndexer_->setDirty();
+        if(pIndexBarrelWriter_->cacheFull())
+        {
+            DVLOG(2) << "IndexWriter::indexDocument() => realtime cache full...";
+            flush();
+            createBarrelInfo();
+        }
     }
 
     DocId uniqueID;

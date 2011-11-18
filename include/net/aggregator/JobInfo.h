@@ -29,9 +29,8 @@ typedef msgpack::rpc::future future_t;
 
 /// constants
 const static char REQUEST_FUNC_DELIMETER = '#';
-const static workerid_t LOCAL_WORKER_ID = 0;
-const static workerid_t REMOTE_WORKER_ID_START = LOCAL_WORKER_ID + 1;
-const static timeout_t DEFAULT_TIME_OUT = 8; // seconds
+
+const static timeout_t DEFAULT_TIME_OUT = 10; // seconds xxx
 
 /// WorkerCaller performs in-procedure call to local worker,
 /// pass a suitable class type as invoker.
@@ -136,8 +135,17 @@ struct ServerInfo
     :host_(host), port_(port)
     {
     }
+};
 
-    ServerInfo(){}
+struct WorkerServerInfo : public ServerInfo
+{
+    workerid_t workerid_;
+    bool isLocal_;
+
+    WorkerServerInfo(const std::string& host, uint16_t port, uint32_t workerid, bool isLocal=false)
+    : ServerInfo(host, port), workerid_(workerid), isLocal_(isLocal)
+    {
+    }
 };
 
 template <typename RequestType, typename ResultType>

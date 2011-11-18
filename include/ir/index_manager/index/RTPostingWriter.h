@@ -15,6 +15,9 @@
 #include <ir/index_manager/index/RTPostingReader.h>
 #include <ir/index_manager/utility/IndexManagerConfig.h>
 
+#include <util/ThreadModel.h>
+
+#include <boost/shared_ptr.hpp>
 NS_IZENELIB_IR_BEGIN
 
 namespace indexmanager{
@@ -23,13 +26,17 @@ class SkipListWriter;
 class RTPostingWriter:public PostingWriter
 {
 public:
-    RTPostingWriter(MemCache* pMemCache, int skipInterval, int maxSkipLevel, IndexLevel indexLevel);
+    RTPostingWriter(
+        boost::shared_ptr<MemCache> pMemCache, 
+        int skipInterval, 
+        int maxSkipLevel, 
+        IndexLevel indexLevel);
 
     ~RTPostingWriter();
     /**
      * add data to posting
      */
-    void add(uint32_t docId, uint32_t pos);
+    void add(uint32_t docId, uint32_t pos, bool realTimeFlag=false);
     /**
     * whether current posting contains valid data
     */
@@ -91,7 +98,12 @@ public:
     int32_t getSkipLevel();
 
 private:
-    MemCache* pMemCache_;	/// memory cache
+    RTPostingWriter(const RTPostingWriter&);
+    void operator=(const RTPostingWriter&);
+
+    void doAdd(uint32_t docId, uint32_t pos);
+	
+    boost::shared_ptr<MemCache> pMemCache_;	/// memory cache
     int skipInterval_;              ///skip interval
     int maxSkipLevel_;           /// max skip level
     count_t nDF_;			///document frequency of this field
@@ -99,11 +111,13 @@ private:
     loc_t nLastLoc_;		///current added word offset
     count_t nCurTermFreq_; ///current term freq
     int32_t nCTF_;			///Collection's total term frequency
-    VariantDataPool* pDocFreqList_; /// Doc freq list
-    VariantDataPool* pLocList_; 	/// Location list
+    boost::shared_ptr<VariantDataPool> pDocFreqList_; /// Doc freq list
+    boost::shared_ptr<VariantDataPool> pLocList_; 	/// Location list
     SkipListWriter* pSkipListWriter_;	///skiplist writer
     volatile bool dirty_;
     IndexLevel indexLevel_;
+    izenelib::util::ReadWriteLock mutex_;
+	
     friend class MemPostingReader;
     friend class PostingMerger;
 };

@@ -20,7 +20,10 @@ NS_IZENELIB_IR_BEGIN
 namespace indexmanager
 {
 
-void writeTermInfo(IndexOutput* pVocWriter, termid_t tid, const TermInfo& termInfo)
+void writeTermInfo(
+    IndexOutput* pVocWriter, 
+    termid_t tid, 
+    const TermInfo& termInfo)
 {
     pVocWriter->writeInt(tid);					///write term id
     pVocWriter->writeInt(termInfo.docFreq_);		///write df
@@ -44,16 +47,30 @@ struct Record
 };
 #pragma pack(pop)
 
-FieldIndexer::FieldIndexer(const char* field, Indexer* pIndexer)
-        :field_(field),pMemCache_(0),ownMemCache_(false),pIndexer_(pIndexer),vocFilePointer_(0),alloc_(0),
-        f_(0),termCount_(0),iHitsMax_(0),recordCount_(0),run_num_(0),pHits_(0),pHitsMax_(0),flush_(false)
+FieldIndexer::FieldIndexer(
+    const char* field, 
+    Indexer* pIndexer
+)
+    :field_(field)
+    ,pIndexer_(pIndexer)
+    ,vocFilePointer_(0)
+    ,alloc_(0)
+    ,f_(0)
+    ,termCount_(0)
+    ,iHitsMax_(0)
+    ,recordCount_(0)
+    ,run_num_(0)
+    ,pHits_(0)
+    ,pHitsMax_(0)
+    ,flush_(false)
 {
     skipInterval_ = pIndexer_->getSkipInterval();
     maxSkipLevel_ = pIndexer_->getMaxSkipLevel();
     indexLevel_ = pIndexer_->pConfigurationManager_->indexStrategy_.indexLevel_;
 
     sorterFileName_ = field_+".tmp";
-    bfs::path path(bfs::path(pIndexer_->pConfigurationManager_->indexStrategy_.indexLocation_) /bfs::path(sorterFileName_));
+    bfs::path path(bfs::path(pIndexer_->pConfigurationManager_->indexStrategy_.indexLocation_) 
+                        /bfs::path(sorterFileName_));
     sorterFullPath_ = path.string();
 }
 
@@ -66,10 +83,12 @@ FieldIndexer::~FieldIndexer()
         if(! boost::filesystem::remove(sorterFullPath_))
             LOG(WARNING) << "FieldIndexer::~FieldIndexer(): failed to remove file " << sorterFullPath_;
     }
-    if(pMemCache_&&ownMemCache_) delete pMemCache_;
 }
 
-void FieldIndexer::setIndexMode(MemCache* pMemCache, size_t nBatchMemSize, bool realtime)
+void FieldIndexer::setIndexMode(
+    boost::shared_ptr<MemCache> pMemCache, 
+    size_t nBatchMemSize, 
+    bool realtime)
 {
     if(!realtime)
     {
@@ -78,8 +97,8 @@ void FieldIndexer::setIndexMode(MemCache* pMemCache, size_t nBatchMemSize, bool 
             delete alloc_;
             alloc_ = 0;
         }
-        pMemCache_ = new MemCache(pIndexer_->getIndexManagerConfig()->mergeStrategy_.memPoolSizeForPostingMerger_);
-        ownMemCache_ = true;
+        pMemCache_.reset(new MemCache(
+                pIndexer_->getIndexManagerConfig()->mergeStrategy_.memPoolSizeForPostingMerger_));
         setHitBuffer_(nBatchMemSize);
     }
     else
@@ -87,9 +106,7 @@ void FieldIndexer::setIndexMode(MemCache* pMemCache, size_t nBatchMemSize, bool 
         hits_.reset();
         iHitsMax_ = 0;
         pHits_ = pHitsMax_ = 0;
-        if(pMemCache_&&ownMemCache_) delete pMemCache_;
         pMemCache_ = pMemCache;
-        ownMemCache_ = false;
     }
     reset();
 }
@@ -157,7 +174,9 @@ void FieldIndexer::writeHitBuffer_(int iHits)
     ++run_num_;
 }
 
-void FieldIndexer::addField(docid_t docid, boost::shared_ptr<LAInput> laInput)
+void FieldIndexer::addField(
+    docid_t docid, 
+    boost::shared_ptr<LAInput> laInput)
 {
     if(laInput->empty()) return;
     if (pIndexer_->isRealTime())
@@ -171,12 +190,13 @@ void FieldIndexer::addField(docid_t docid, boost::shared_ptr<LAInput> laInput)
             {
                 //curPosting = new RTPostingWriter(pMemCache_, skipInterval_, maxSkipLevel_);
                 assert(alloc_);
-                curPosting = BOOST_NEW(*alloc_, RTPostingWriter)(pMemCache_, skipInterval_, maxSkipLevel_, indexLevel_);
+                curPosting = BOOST_NEW(*alloc_, RTPostingWriter)
+                                      (pMemCache_, skipInterval_, maxSkipLevel_, indexLevel_);
                 postingMap_[iter->termid_] = curPosting;
             }
             else
                 curPosting = postingIter->second;
-            curPosting->add(docid, iter->wordOffset_);
+            curPosting->add(docid, iter->wordOffset_, true);
         }
     }
     else
@@ -213,7 +233,8 @@ void FieldIndexer::addField(docid_t docid, boost::shared_ptr<LAInput> laInput)
 void FieldIndexer::reset()
 {
     RTPostingWriter* pPosting;
-    for (InMemoryPostingMap::iterator iter = postingMap_.begin(); iter !=postingMap_.end(); ++iter)
+    InMemoryPostingMap::iterator iter = postingMap_.begin();
+    for (; iter !=postingMap_.end(); ++iter)
     {
         pPosting = iter->second;
         if (!pPosting->isEmpty())
@@ -251,7 +272,8 @@ fileoffset_t FieldIndexer::write(OutputDescriptor* pWriterDesc)
     {
         RTPostingWriter* pPosting;
         izenelib::util::ScopedWriteLock<izenelib::util::ReadWriteLock> lock(rwLock_);
-        for (InMemoryPostingMap::iterator iter = postingMap_.begin(); iter !=postingMap_.end(); ++iter)
+        InMemoryPostingMap::iterator iter = postingMap_.begin();
+        for (; iter !=postingMap_.end(); ++iter)
         {
             pPosting = iter->second;
             pPosting->setDirty(true);
@@ -268,7 +290,7 @@ fileoffset_t FieldIndexer::write(OutputDescriptor* pWriterDesc)
             //pPosting = NULL;
         }
 
-        postingMap_.clear();
+        //postingMap_.clear();
     }
     else
     {

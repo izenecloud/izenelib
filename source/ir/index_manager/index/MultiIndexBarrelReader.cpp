@@ -6,9 +6,12 @@
 
 using namespace izenelib::ir::indexmanager;
 
-MultiIndexBarrelReader::MultiIndexBarrelReader(IndexReader* pIndexReader,BarrelsInfo* pBarrelsInfo)
-        :IndexBarrelReader(pIndexReader)
-        ,pBarrelsInfo_(pBarrelsInfo)
+MultiIndexBarrelReader::MultiIndexBarrelReader(
+    IndexReader* pIndexReader,
+    BarrelsInfo* pBarrelsInfo)
+    :IndexBarrelReader(pIndexReader)
+    ,pBarrelsInfo_(pBarrelsInfo)
+    ,hasMemBarrel_(false)
 {
     boost::mutex::scoped_lock lock(pBarrelsInfo_->getMutex());
 
@@ -21,9 +24,12 @@ MultiIndexBarrelReader::MultiIndexBarrelReader(IndexReader* pIndexReader,Barrels
         if (pBarrelInfo->getDocCount() > 0)
             readers_.push_back(new BarrelReaderEntry(pIndexReader_,pBarrelInfo));
     }
+    vector<BarrelReaderEntry*>::iterator iter = readers_.begin();
+    for(; iter != readers_.end(); ++iter)
+        hasMemBarrel_ |= (*iter)->pBarrelReader_->hasMemBarrel();
 }
 
-MultiIndexBarrelReader::~MultiIndexBarrelReader(void)
+MultiIndexBarrelReader::~MultiIndexBarrelReader()
 {
     pBarrelsInfo_ = NULL;
     close();
@@ -50,15 +56,19 @@ TermReader* MultiIndexBarrelReader::termReader(collectionid_t colID)
 
 void MultiIndexBarrelReader::close()
 {
-    for(vector<BarrelReaderEntry*>::iterator iter = readers_.begin(); iter != readers_.end(); ++iter)
+    vector<BarrelReaderEntry*>::iterator iter = readers_.begin();
+    for(; iter != readers_.end(); ++iter)
         delete (*iter);
     readers_.clear();
 }
 
-size_t MultiIndexBarrelReader::getDistinctNumTerms(collectionid_t colID, const std::string& property)
+size_t MultiIndexBarrelReader::getDistinctNumTerms(
+    collectionid_t colID, 
+    const std::string& property)
 {
     size_t num = 0;
     for(vector<BarrelReaderEntry*>::iterator iter = readers_.begin(); iter != readers_.end(); ++iter)
         num += (*iter)->pBarrelReader_->getDistinctNumTerms(colID,property);
     return num;
 }
+

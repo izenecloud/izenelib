@@ -10,15 +10,11 @@
 #ifndef __LIBCASSANDRA_CASSANDRA_H
 #define __LIBCASSANDRA_CASSANDRA_H
 
-#include <string>
-#include <vector>
-#include <map>
 #include <boost/shared_ptr.hpp>
 
 #include "genthrift/cassandra_types.h"
 
 #include "indexed_slices_query.h"
-#include "keyspace_definition.h"
 
 namespace libcassandra
 {
@@ -42,6 +38,12 @@ public:
 
     /**
      * Log for the current session
+     * @param[in] credentials to use for authentication
+     */
+    void login(const std::map<std::string, std::string>& credentials);
+
+    /**
+     * Log for the current session
      * @param[in] user to use for authentication
      * @param[in] password to use for authentication
      */
@@ -51,6 +53,11 @@ public:
      * @return the keyspace associated with this session
      */
     const std::string& getCurrentKeyspace() const;
+
+    /**
+     * @return the keyspace definition associated with this session
+     */
+    const org::apache::cassandra::KsDef& getCurrentKeyspaceDefinition() const;
 
     /**
      * set the keyspace for the current connection
@@ -66,7 +73,7 @@ public:
     /**
      * @return all the keyspace definitions.
      */
-    const std::map<std::string, KeyspaceDefinition>& getKeyspaces();
+    const std::vector<org::apache::cassandra::KsDef>& getKeyspaces();
 
     /**
      * Insert a column, possibly inside a supercolumn
@@ -76,8 +83,8 @@ public:
      * @param[in] column_family the column family
      * @param[in] super_column_name the super column name
      * @param[in] column_name the column name
-     * @param[in] level consistency level
      * @param[in] ttl time to live
+     * @param[in] level consistency level
      */
     void insertColumn(
             const std::string& value,
@@ -86,8 +93,8 @@ public:
             const std::string& super_column_name,
             const std::string& column_name,
             const int64_t time_stamp = -1,
-            const org::apache::cassandra::ConsistencyLevel::type level = org::apache::cassandra::ConsistencyLevel::QUORUM,
-            int32_t ttl = 0);
+            int32_t ttl = 0,
+            const org::apache::cassandra::ConsistencyLevel::type level = org::apache::cassandra::ConsistencyLevel::QUORUM);
 
     /**
      * Insert a column, directly in a columnfamily
@@ -96,8 +103,8 @@ public:
      * @param[in] key the column key
      * @param[in] column_family the column family
      * @param[in] column_name the column name
-     * @param[in] level consistency level
      * @param[in] ttl time to live
+     * @param[in] level consistency level
      */
     void insertColumn(
             const std::string& value,
@@ -105,8 +112,8 @@ public:
             const std::string& column_family,
             const std::string& column_name,
             const int64_t time_stamp = -1,
-            const org::apache::cassandra::ConsistencyLevel::type level = org::apache::cassandra::ConsistencyLevel::QUORUM,
-            int32_t ttl = 0);
+            int32_t ttl = 0,
+            const org::apache::cassandra::ConsistencyLevel::type level = org::apache::cassandra::ConsistencyLevel::QUORUM);
 
     /**
      * Insert a column, possibly inside a supercolumn
@@ -116,8 +123,8 @@ public:
      * @param[in] column_family the column family
      * @param[in] super_column_name the super column name
      * @param[in] column_name the column name
-     * @param[in] level consistency level
      * @param[in] ttl time to live
+     * @param[in] level consistency level
      */
     void insertColumn(
             const int64_t value,
@@ -126,8 +133,8 @@ public:
             const std::string& super_column_name,
             const std::string& column_name,
             const int64_t time_stamp = -1,
-            const org::apache::cassandra::ConsistencyLevel::type level = org::apache::cassandra::ConsistencyLevel::QUORUM,
-            int32_t ttl = 0);
+            int32_t ttl = 0,
+            const org::apache::cassandra::ConsistencyLevel::type level = org::apache::cassandra::ConsistencyLevel::QUORUM);
 
     /**
      * Insert a column, directly in a columnfamily
@@ -136,8 +143,8 @@ public:
      * @param[in] key the column key
      * @param[in] column_family the column family
      * @param[in] column_name the column name
-     * @param[in] level consistency level
      * @param[in] ttl time to live
+     * @param[in] level consistency level
      */
     void insertColumn(
             const int64_t value,
@@ -145,19 +152,55 @@ public:
             const std::string& column_family,
             const std::string& column_name,
             const int64_t time_stamp = -1,
-            const org::apache::cassandra::ConsistencyLevel::type level = org::apache::cassandra::ConsistencyLevel::QUORUM,
-            int32_t ttl = 0);
+            int32_t ttl = 0,
+            const org::apache::cassandra::ConsistencyLevel::type level = org::apache::cassandra::ConsistencyLevel::QUORUM);
+
+    /**
+     * Increment a counter column, possibly inside a supercolumn
+     *
+     * @param[in] value the counter column value
+     * @param[in] key the counter column key
+     * @param[in] counter_column_family the counter column family
+     * @param[in] counter_super_column_name the counter super column name
+     * @param[in] counter_column_name the counter column name
+     * @param[in] level consistency level
+     */
+    void incCounter(
+            int64_t value,
+            const std::string& key,
+            const std::string& counter_column_family,
+            const std::string& counter_super_column_name,
+            const std::string& counter_column_name,
+            const org::apache::cassandra::ConsistencyLevel::type level = org::apache::cassandra::ConsistencyLevel::QUORUM);
+
+    /**
+     * Increment a counter column
+     *
+     * @param[in] value the counter column value
+     * @param[in] key the counter column key
+     * @param[in] counter_column_family the counter column family
+     * @param[in] counter_column_name the counter column name
+     * @param[in] level consistency level
+     */
+    void incCounter(
+            int64_t value,
+            const std::string& key,
+            const std::string& counter_column_family,
+            const std::string& counter_column_name,
+            const org::apache::cassandra::ConsistencyLevel::type level = org::apache::cassandra::ConsistencyLevel::QUORUM);
 
     /**
      * Removes all the columns that match the given column path
      *
      * @param[in] key the column or super column key
      * @param[in] col_path the path to the column or super column
+     * @param[in] is_counter whether to remove counter or normal columns
      * @param[in] level consistency level
      */
     void remove(
             const std::string& key,
             const org::apache::cassandra::ColumnPath& col_path,
+            bool is_counter = false,
             const org::apache::cassandra::ConsistencyLevel::type level = org::apache::cassandra::ConsistencyLevel::QUORUM);
 
     /**
@@ -168,6 +211,7 @@ public:
      * @param[in] column_family the column family
      * @param[in] super_column_name the super column name
      * @param[in] column_name the column name
+     * @param[in] is_counter whether to remove counter or normal columns
      * @param[in] level consistency level
      */
     void remove(
@@ -175,6 +219,7 @@ public:
             const std::string& column_family,
             const std::string& super_column_name,
             const std::string& column_name,
+            bool is_counter = false,
             const org::apache::cassandra::ConsistencyLevel::type level = org::apache::cassandra::ConsistencyLevel::QUORUM);
 
 
@@ -185,6 +230,7 @@ public:
      * @param[in] column_family the column family
      * @param[in] super_column_name the super column name
      * @param[in] column_name the column name
+     * @param[in] is_counter whether to remove counter or normal columns
      * @param[in] level consistency level
      */
     void removeColumn(
@@ -192,6 +238,7 @@ public:
             const std::string& column_family,
             const std::string& super_column_name,
             const std::string& column_name,
+            bool is_counter = false,
             const org::apache::cassandra::ConsistencyLevel::type level = org::apache::cassandra::ConsistencyLevel::QUORUM);
 
 
@@ -201,12 +248,14 @@ public:
      * @param[in] key the column key
      * @param[in] column_family the column family
      * @param[in] column_name the column name
+     * @param[in] is_counter whether to remove counter or normal columns
      * @param[in] level consistency level
      */
     void removeColumn(
             const std::string& key,
             const std::string& column_family,
             const std::string& column_name,
+            bool is_counter = false,
             const org::apache::cassandra::ConsistencyLevel::type level = org::apache::cassandra::ConsistencyLevel::QUORUM);
 
     /**
@@ -215,12 +264,14 @@ public:
      * @param[in] key the column key
      * @param[in] column_family the column family
      * @param[in] super_column_name the super column name
+     * @param[in] is_counter whether to remove counter or normal columns
      * @param[in] level consistency level
      */
     void removeSuperColumn(
             const std::string& key,
             const std::string& column_family,
             const std::string& super_column_name,
+            bool is_counter = false,
             const org::apache::cassandra::ConsistencyLevel::type level = org::apache::cassandra::ConsistencyLevel::QUORUM);
 
     /**
@@ -347,6 +398,13 @@ public:
             const org::apache::cassandra::SlicePredicate& pred,
             const org::apache::cassandra::ConsistencyLevel::type level = org::apache::cassandra::ConsistencyLevel::QUORUM);
 
+    void getMultiSlice(
+            std::map<std::string, std::vector<org::apache::cassandra::ColumnOrSuperColumn> >& ret,
+            const std::vector<std::string>& key_list,
+            const org::apache::cassandra::ColumnParent& col_parent,
+            const org::apache::cassandra::SlicePredicate& pred,
+            const org::apache::cassandra::ConsistencyLevel::type level = org::apache::cassandra::ConsistencyLevel::QUORUM);
+
     void getRawRangeSlices(
             std::map<std::string, std::vector<org::apache::cassandra::ColumnOrSuperColumn> >& ret,
             const org::apache::cassandra::ColumnParent& col_parent,
@@ -414,19 +472,26 @@ public:
             const org::apache::cassandra::SlicePredicate& pred,
             const org::apache::cassandra::ConsistencyLevel::type level = org::apache::cassandra::ConsistencyLevel::QUORUM);
 
+    void getMultiCount(
+            std::map<std::string, int32_t>& ret,
+            const std::vector<std::string>& key,
+            const org::apache::cassandra::ColumnParent& col_parent,
+            const org::apache::cassandra::SlicePredicate& pred,
+            const org::apache::cassandra::ConsistencyLevel::type level = org::apache::cassandra::ConsistencyLevel::QUORUM);
+
     /**
      * Create a keyspace
      * @param[in] ks_def object representing defintion for keyspace to create
      * @return the schema ID for the keyspace created
      */
-    std::string createKeyspace(const KeyspaceDefinition& ks_def);
+    std::string createKeyspace(const org::apache::cassandra::KsDef& ks_def);
 
     /**
      * Update a keyspace
      * @param[in] ks_def object representing defintion for keyspace to update
      * @return the schema ID for the keyspace updated
      */
-    std::string updateKeyspace(const KeyspaceDefinition& ks_def);
+    std::string updateKeyspace(const org::apache::cassandra::KsDef& ks_def);
 
     /**
      * drop a keyspace
@@ -440,7 +505,7 @@ public:
      * @param[in] cf_name the name of the column family to create
      * @return the schema ID for the column family created
      */
-    std::string createColumnFamily(const ColumnFamilyDefinition& cf_def);
+    std::string createColumnFamily(const org::apache::cassandra::CfDef& cf_def);
 
     /**
      * Drop a column family
@@ -454,7 +519,7 @@ public:
      * @param[in] cf_name the name of the column family to update
      * @return the schema ID for the column family updated
      */
-    std::string updateColumnFamily(const ColumnFamilyDefinition& cf_def);
+    std::string updateColumnFamily(const org::apache::cassandra::CfDef& cf_def);
 
     /**
      * Removes all the rows from the given column family.
@@ -492,13 +557,20 @@ public:
      * Finds the given keyspace in the list of keyspace definitions
      * @return true if found; false otherwise
      */
-    bool findKeyspace(const std::string& name) const;
+    uint32_t findKeyspace(const std::string& name) const;
+
+    /**
+     * Finds the given column family in the given keyspace definition
+     * @return true if found; false otherwise
+     */
+    uint32_t findColumnFamily(uint32_t ks_num, const std::string& name) const;
 
 private:
     std::string cluster_name_;
     std::string server_version_;
     std::string current_keyspace_;
-    std::map<std::string, KeyspaceDefinition> key_spaces_;
+    uint32_t current_ks_num_;
+    std::vector<org::apache::cassandra::KsDef> key_spaces_;
     std::map<std::string, std::string> token_map_;
 };
 

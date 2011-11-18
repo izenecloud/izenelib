@@ -9,15 +9,18 @@ namespace indexmanager{
 //BlockPostingWriter
 ///////////////////////////////////////////////////////////////////////////////////
 
-BlockPostingWriter::BlockPostingWriter(MemCache* pCache, IndexLevel indexLevel)
-        :pMemCache_(pCache)
-        ,current_nocomp_block_pointer_(0)
-        ,position_buffer_pointer_(0)
-        ,nDF_(0)
-        ,nCurTermFreq_(0)
-        ,nCTF_(0)
-	,nLastDocID_(BAD_DOCID)
-	,current_block_id_(0)
+BlockPostingWriter::BlockPostingWriter(
+    boost::shared_ptr<MemCache> pCache, 
+    IndexLevel indexLevel
+)
+    :pMemCache_(pCache)
+    ,current_nocomp_block_pointer_(0)
+    ,position_buffer_pointer_(0)
+    ,nDF_(0)
+    ,nCurTermFreq_(0)
+    ,nCTF_(0)
+    ,nLastDocID_(BAD_DOCID)
+    ,current_block_id_(0)
     ,indexLevel_(indexLevel)
 {
     pBlockDataPool_ = new BlockDataPool(pCache);
@@ -31,7 +34,6 @@ BlockPostingWriter::BlockPostingWriter(MemCache* pCache, IndexLevel indexLevel)
 
 BlockPostingWriter::~BlockPostingWriter()
 {
-    pMemCache_ = NULL;
     delete pBlockDataPool_;
     if(pPosDataPool_)
         delete pPosDataPool_;
@@ -101,7 +103,7 @@ void BlockPostingWriter::reset()
     nLastDocID_ = BAD_DOCID;
 }
 
-void BlockPostingWriter::add(docid_t docid, loc_t location)
+void BlockPostingWriter::add(docid_t docid, loc_t location, bool realTimeFlag)
 {
     if(docid == nLastDocID_)
     {
@@ -197,17 +199,21 @@ void BlockPostingWriter::flush()
 //ChunkPostingWriter
 ///////////////////////////////////////////////////////////////////////////////////
 
-ChunkPostingWriter::ChunkPostingWriter(MemCache* pCache,int skipInterval, int maxSkipLevel, IndexLevel indexLevel)
-        :pMemCache_(pCache)
-        ,pSkipListWriter_(0)
-        ,skipInterval_(skipInterval)
-        ,maxSkipLevel_(maxSkipLevel)
-        ,current_nocomp_block_pointer_(0)
-        ,position_buffer_pointer_(0)
-        ,nDF_(0)
-        ,nCurTermFreq_(0)
-        ,nCTF_(0)
-	,nLastDocID_(BAD_DOCID)
+ChunkPostingWriter::ChunkPostingWriter(
+    boost::shared_ptr<MemCache> pCache,
+    int skipInterval, 
+    int maxSkipLevel, 
+    IndexLevel indexLevel)
+    :pMemCache_(pCache)
+    ,pSkipListWriter_(0)
+    ,skipInterval_(skipInterval)
+    ,maxSkipLevel_(maxSkipLevel)
+    ,current_nocomp_block_pointer_(0)
+    ,position_buffer_pointer_(0)
+    ,nDF_(0)
+    ,nCurTermFreq_(0)
+    ,nCTF_(0)
+    ,nLastDocID_(BAD_DOCID)
     ,indexLevel_(indexLevel)
 {
     assert(ChunkEncoder::kChunkSize == skipInterval);
@@ -223,7 +229,6 @@ ChunkPostingWriter::ChunkPostingWriter(MemCache* pCache,int skipInterval, int ma
 
 ChunkPostingWriter::~ChunkPostingWriter()
 {
-    pMemCache_ = NULL;
     delete pDocFreqDataPool_;
     if (pPosDataPool_)
         delete pPosDataPool_;
@@ -299,7 +304,7 @@ void ChunkPostingWriter::reset()
     nLastDocID_ = BAD_DOCID;
 }
 
-void ChunkPostingWriter::add(docid_t docid, loc_t location)
+void ChunkPostingWriter::add(docid_t docid, loc_t location, bool realTimeFlag)
 {
     if(docid == nLastDocID_)
     {

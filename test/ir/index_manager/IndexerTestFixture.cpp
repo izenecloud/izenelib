@@ -118,7 +118,7 @@ void IndexerTestFixture::configTest(const IndexerTestConfig& testConfig)
     VLOG(2) << "<= IndexerTestFixture::configTest()";
 }
 
-void IndexerTestFixture::createDocument(unsigned int docNum)
+void IndexerTestFixture::createDocument(unsigned int docNum, bool manualFlush)
 {
     VLOG(2) << "=> IndexerTestFixture::createDocument()";
 
@@ -152,7 +152,7 @@ int IndexerTestFixture::randDocNum()
     return docNumRand_();
 }
 
-void IndexerTestFixture::updateDocument()
+void IndexerTestFixture::updateDocument(bool manualFlush)
 {
     VLOG(2) << "=> IndexerTestFixture::updateDocument()";
 

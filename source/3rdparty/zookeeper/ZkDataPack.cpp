@@ -22,14 +22,33 @@ std::string ZkDataPack::getValue(const std::string& key)
     return kvMap_[key];
 }
 
+unsigned int ZkDataPack::getUIntValue(const std::string& key)
+{
+    unsigned int value = 0;
+
+    map_iter_t it = kvMap_.find(key);
+    if (it != kvMap_.end())
+    {
+        std::istringstream iss(kvMap_[key]);
+        iss >> value;
+    }
+
+    return value;
+}
+
 bool ZkDataPack::getValue(const std::string& key, unsigned int& value)
 {
     value = 0;
 
-    std::istringstream iss(kvMap_[key]);
-    iss >> value;
+    map_iter_t it = kvMap_.find(key);
+    if (it != kvMap_.end())
+    {
+        std::istringstream iss(kvMap_[key]);
+        iss >> value;
+        return true;
+    }
 
-    return value;
+    return false;
 }
 
 bool ZkDataPack::getValue(const std::string& key, std::string& value)

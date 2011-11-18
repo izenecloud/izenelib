@@ -20,22 +20,20 @@ namespace aggregator{
 class AggregatorConfig
 {
 public:
-    AggregatorConfig()
-    :enableLocalWorker_(false)
-    {}
+    AggregatorConfig() {}
 
     void reset()
     {
         workerInfoList_.clear();
     }
 
-    void addWorker(const std::string& host, uint16_t port)
+    void addWorker(const std::string& host, uint16_t port, uint32_t workerid, bool isLocal=false)
     {
-        ServerInfo workerInfo(host, port);
+        WorkerServerInfo workerInfo(host, port, workerid, isLocal);
         workerInfoList_.push_back(workerInfo);
     }
 
-    const std::vector<ServerInfo>& getWorkerList() const
+    const std::vector<WorkerServerInfo>& getWorkerList() const
     {
         return workerInfoList_;
     }
@@ -43,20 +41,20 @@ public:
     std::string toString()
     {
         std::stringstream ss;
-        ss <<"[AggregatorConfig] localWorker enabled ? "<<enableLocalWorker_<<endl;
-
+        ss <<"[AggregatorConfig] >>> available workers:"<<endl;
         for (size_t i = 0; i < workerInfoList_.size(); i++)
         {
-            ss << "worker="<<workerInfoList_[i].host_<<":"<<workerInfoList_[i].port_<<endl;
+            ss <<"worker "<<workerInfoList_[i].workerid_<<", "
+               <<workerInfoList_[i].host_<<":"<<workerInfoList_[i].port_
+               <<(workerInfoList_[i].isLocal_ ? " (local worker)" : "")
+               <<endl;
         }
-
+        ss <<"[AggregatorConfig] <<<"<<endl;
         return ss.str();
     }
 
 public:
-    bool enableLocalWorker_;
-
-    std::vector<ServerInfo> workerInfoList_;
+    std::vector<WorkerServerInfo> workerInfoList_;
 };
 
 

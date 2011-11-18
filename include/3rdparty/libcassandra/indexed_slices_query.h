@@ -10,9 +10,6 @@
 #ifndef __LIBCASSANDRA_INDEXED_SLICES_QUERY_H
 #define __LIBCASSANDRA_INDEXED_SLICES_QUERY_H
 
-#include <string>
-#include <vector>
-
 #include "genthrift/cassandra_types.h"
 
 namespace libcassandra

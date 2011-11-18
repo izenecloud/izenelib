@@ -11,7 +11,6 @@ using namespace izenelib::ir::indexmanager;
 SingleIndexBarrelReader::SingleIndexBarrelReader(IndexReader* pIndexReader, BarrelInfo* pBarrel)
         : IndexBarrelReader(pIndexReader)
         , pBarrelInfo_(pBarrel)
-        , pMemCache_(NULL)
 {
     pCollectionsInfo_ = new CollectionsInfo();
     open(pBarrelInfo_->getName().c_str());
@@ -25,8 +24,6 @@ SingleIndexBarrelReader::~SingleIndexBarrelReader()
         delete iter->second;
     termReaderMap_.clear();
     delete pCollectionsInfo_;
-    if(pMemCache_)
-        delete pMemCache_;
 }
 
 void SingleIndexBarrelReader::open(const char* name)

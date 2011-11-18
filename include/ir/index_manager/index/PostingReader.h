@@ -32,7 +32,10 @@ public:
      * @pre 0 < @p nMaxDocs <= @p length/2, as some decompression methods such as S9 and S16 need extra space to store decoded data
      * @post return value <= @p nMaxDocs
      */
-    virtual int32_t decodeNext(uint32_t* pPosting, int32_t length, int32_t nMaxDocs) = 0;
+    virtual int32_t DecodeNext(
+        uint32_t* pPosting, 
+        int32_t length, 
+        int32_t nMaxDocs) = 0;
 
     /**
      * Continue to decode the posting of doc, freq and position.
@@ -48,15 +51,32 @@ public:
      * @pre 0 < @p nMaxDocs <= @p length/2, as some decompression methods such as S9 and S16 need extra space to store decoded data
      * @post return value <= @p nMaxDocs
      */
-    virtual int32_t decodeNext(uint32_t* pPosting, int32_t length, int32_t nMaxDocs, uint32_t* &pPPosting, int32_t& posBufLength, int32_t& posLength) = 0;
+    virtual int32_t DecodeNext(
+        uint32_t* pPosting, 
+        int32_t length, 
+        int32_t nMaxDocs, 
+        uint32_t* &pPPosting, 
+        int32_t& posBufLength, 
+        int32_t& posLength) = 0;
 
-    virtual bool decodeNextPositions(uint32_t* pPosting, int32_t length) = 0;
+    virtual bool DecodeNextPositions(
+        uint32_t* pPosting, 
+        int32_t length) = 0;
 
-    virtual bool decodeNextPositions(uint32_t* &pPosting, int32_t& posBufLength, int32_t decodeLength, int32_t& nCurrentPPosting) = 0;
+    virtual bool DecodeNextPositions(
+        uint32_t* &pPosting, 
+        int32_t& posBufLength, 
+        int32_t decodeLength, 
+        int32_t& nCurrentPPosting) = 0;
 
-    virtual bool decodeNextPositions(uint32_t* &pPosting, int32_t& posBufLength, uint32_t* pFreqs,int32_t nFreqs, int32_t& nCurrentPPosting) = 0;
+    virtual bool DecodeNextPositions(
+        uint32_t* &pPosting, 
+        int32_t& posBufLength, 
+        uint32_t* pFreqs,
+        int32_t nFreqs, 
+        int32_t& nCurrentPPosting) = 0;
 
-    virtual void resetPosition() = 0;
+    virtual void ResetPosition() = 0;
 
     /**
      * Decode the posting of doc and freq to @p target docID
@@ -72,7 +92,13 @@ public:
      * @pre 0 < @p nMaxDocs <= @p length/2, as some decompression methods such as S9 and S16 need extra space to store decoded data
      * @post @p decodedCount <= @p nMaxDocs
      */
-    virtual docid_t decodeTo(docid_t target, uint32_t* pPosting, int32_t length, int32_t nMaxDocs, int32_t& decodedCount, int32_t& nCurrentPosting) = 0;
+    virtual docid_t DecodeTo(
+        docid_t target, 
+        uint32_t* pPosting, 
+        int32_t length, 
+        int32_t nMaxDocs, 
+        int32_t& decodedCount, 
+        int32_t& nCurrentPosting) = 0;
 
     virtual count_t docFreq()const = 0;
 
@@ -89,7 +115,10 @@ protected:
      * @param posBufLength position buffer length, it stores grown buffer size on return
      * @param minBufLength minimum buffer length, @p posBufLength would not be less than this value on return
      */
-    static void growPosBuffer(uint32_t* &pPPosting, int32_t& posBufLength, int32_t minBufLength)
+    static void GrowPosBuffer(
+        uint32_t* &pPPosting, 
+        int32_t& posBufLength, 
+        int32_t minBufLength)
     {
         assert(posBufLength < minBufLength);
 
@@ -108,7 +137,10 @@ protected:
      * @param minBufLength minimum buffer length, @p posBufLength would not be less than the upper bound of this value on return
      * @note the upper bound is met as S9 and S16 decoding need at least 28 extra bytes for decompression.
      */
-    static void ensurePosBufferUpperBound(uint32_t* &pPPosting, int32_t& posBufLength, int32_t minBufLength);
+    static void EnsurePosBufferUpperBound(
+        uint32_t* &pPPosting, 
+        int32_t& posBufLength, 
+        int32_t minBufLength);
 };
 
 }

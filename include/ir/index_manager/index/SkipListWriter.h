@@ -43,7 +43,10 @@ class SkipListReader;
 class SkipListWriter
 {
 public:
-    SkipListWriter(int skipInterval, int maxLevel, MemCache* pMemCache);
+    SkipListWriter(
+        int skipInterval, 
+        int maxLevel, 
+        boost::shared_ptr<MemCache> pMemCache);
 
     virtual ~SkipListWriter();
 

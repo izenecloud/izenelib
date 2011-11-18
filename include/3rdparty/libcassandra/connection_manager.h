@@ -9,7 +9,6 @@
 
 #include <util/singleton.h>
 
-#include <string>
 #include <list>
 
 namespace libcassandra

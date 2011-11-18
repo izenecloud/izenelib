@@ -12,7 +12,6 @@
 #include <ir/index_manager/index/IndexerCollectionMeta.h>
 #include <ir/index_manager/index/CollectionInfo.h>
 #include <ir/index_manager/index/InMemoryIndexBarrelReader.h>
-#include <ir/index_manager/index/BTreeIndex.h>
 
 #include <ir/index_manager/store/Directory.h>
 
@@ -20,6 +19,11 @@
 #include <ir/index_manager/utility/MemCache.h>
 #include <ir/index_manager/utility/BitVector.h>
 #include <util/izene_log.h>
+
+#include <boost/shared_ptr.hpp>
+#include <boost/thread/condition_variable.hpp>
+#include <boost/thread/locks.hpp>
+#include <boost/thread/mutex.hpp>
 
 #include <map>
 
@@ -106,8 +110,6 @@ public:
 
     BitVector* getDocFilter() { return pDocFilter_; }
 
-    bool isDirty() { return dirty_; }
-
 private:
     void createMemCache();
 
@@ -126,7 +128,11 @@ private:
 
     Indexer* pIndexer_;
 
-    MemCache* pMemCache_;
+    boost::shared_ptr<MemCache> pMemCache_;
+
+    boost::mutex mutex_; /// for flushing MemCache;
+
+    boost::condition_variable cond_;
 
     CollectionIndexerMap collectionIndexerMap_;
 
@@ -136,9 +142,10 @@ private:
 
     BitVector* pDocFilter_;
 
-    volatile bool dirty_;
+    int numFieldIndexers_;
 
     friend class InMemoryIndexBarrelReader;
+    friend class IndexWriter;
 };
 
 }

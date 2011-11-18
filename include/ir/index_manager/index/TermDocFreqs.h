@@ -27,11 +27,17 @@ class TermDocFreqs
 public:
     TermDocFreqs();
 
-    TermDocFreqs(PostingReader * pPosting,const TermInfo& ti,bool ownPosting = true);
+    TermDocFreqs(
+        PostingReader * pPosting,
+        const TermInfo& ti,
+        bool ownPosting = true);
 
     virtual ~TermDocFreqs();
 public:
-    virtual void reset(PostingReader * pPosting,const TermInfo& ti,bool ownPosting = true);
+    virtual void reset(
+        PostingReader * pPosting,
+        const TermInfo& ti,
+        bool ownPosting = true);
 
     virtual freq_t docFreq();
 
@@ -53,7 +59,12 @@ protected:
 
     void createBuffer();
 
-    int32_t bsearch(docid_t docs[],int32_t start,int32_t end,docid_t key,docid_t& keyFound);
+    int32_t bsearch(
+        docid_t docs[],
+        int32_t start,
+        int32_t end,
+        docid_t key,
+        docid_t& keyFound);
 
 protected:
     TermInfo termInfo_;

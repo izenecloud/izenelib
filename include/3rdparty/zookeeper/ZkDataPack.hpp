@@ -20,13 +20,14 @@ class ZkDataPack
     map_t kvMap_;
 
     static const char KV_KV_Delimiter = '$';
-    static const char K_V_Delimiter = '#';
+    static const char K_V_Delimiter = ',';
 
 public:
     void setValue(const std::string& key, const std::string& value);
     void setValue(const std::string& key, const unsigned int value);
 
     std::string getValue(const std::string& key);
+    unsigned int getUIntValue(const std::string& key);
     bool getValue(const std::string& key, std::string& value);
     bool getValue(const std::string& key, unsigned int& value);
 

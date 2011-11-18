@@ -170,7 +170,7 @@ inline void index(const IndexerTestConfig& config)
     fixture.configTest(config);
 
     for(int i=0; i<config.iterNum_; ++i)
-        fixture.createDocument();
+        fixture.createDocument(0,!config.isRealTimeMode());
 
     fixture.checkTermDocFreqs();
     fixture.checkTermIterator();
@@ -196,9 +196,6 @@ inline void changeIndexMode(const IndexerTestConfig& config)
         leftNum = config.iterNum_ - iterNum;
     }
 
-    for(int i = 0;  i< iterNum; ++i)
-        fixture.createDocument();
-
     if(leftNum > 0)
     {
         if(!strcasecmp((config.indexMode_).c_str(),"realtime"))
@@ -214,7 +211,7 @@ inline void changeIndexMode(const IndexerTestConfig& config)
     }
 
     for(int j = 0; j < leftNum; j++)
-        fixture.createDocument();
+        fixture.createDocument(0,!config.isRealTimeMode());
 
     fixture.checkTermDocFreqs();
     fixture.checkTermIterator();
@@ -254,7 +251,7 @@ inline void update(const IndexerTestConfig& config)
     TermDocFreqsTestFixture fixture;
     fixture.configTest(config);
 
-    fixture.createDocument();
+    fixture.createDocument(0,!config.isRealTimeMode());
 
     for(int i=0; i<config.iterNum_; ++i)
     {

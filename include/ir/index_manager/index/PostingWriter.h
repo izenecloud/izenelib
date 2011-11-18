@@ -18,7 +18,7 @@ struct PostingWriter
 {
     virtual ~PostingWriter(){}
 
-    virtual void add(uint32_t docId, uint32_t pos) = 0;
+    virtual void add(uint32_t docId, uint32_t pos, bool realTimeFlag=false) = 0;
 
     virtual bool isEmpty() = 0;
 

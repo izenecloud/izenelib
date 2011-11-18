@@ -47,6 +47,7 @@ public:
 	
     virtual void close() = 0;
 
+    virtual bool hasMemBarrel() = 0;
 protected:
     IndexReader* pIndexReader_;
 };

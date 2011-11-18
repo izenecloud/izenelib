@@ -184,6 +184,11 @@ public:
         return zkError_;
     }
 
+    std::string getErrorString()
+    {
+        return error2String(getErrorCode());
+    }
+
     std::string& getHosts()
     {
         return hosts_;
@@ -194,6 +199,9 @@ public:
         return recvTimeout_;
     }
 
+    int getState();
+
+    std::string getStateString();
 
 public:
     /**
@@ -274,7 +282,7 @@ public:
      * @{
      */
 
-    // TODO
+    bool acreateZNode(const std::string &path, const std::string &data="", ZNodeCreateType flags = ZNODE_NORMAL);
 
     /**
      * @}

@@ -31,3 +31,6 @@ TARGET_LINK_LIBRARIES(t_zookeeper ${libs})
 
 ADD_EXECUTABLE(t_zk_client t_zk_client.cpp)
 TARGET_LINK_LIBRARIES(t_zk_client ${libs})
+
+ADD_EXECUTABLE(zkClient zkClient.cpp)
+TARGET_LINK_LIBRARIES(zkClient ${libs})

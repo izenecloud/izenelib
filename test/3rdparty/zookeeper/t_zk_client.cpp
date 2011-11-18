@@ -1,5 +1,6 @@
 #include <cstdlib>
 #include <ctime>
+#include <string.h>
 
 #include <boost/thread.hpp>
 
@@ -18,20 +19,42 @@ using namespace zookeeper;
 class Watcher : public ZooKeeperEventHandler
 {
 public:
-    Watcher() : childChanged_(false) {}
+    Watcher(ZooKeeper* zk) : zk_(zk) {}
 
     virtual void process(ZooKeeperEvent& zkEvent)
     {
-        cout << "[Watcher] "<< zkEvent.toString()<<endl;
+        cout << "[Watcher] "<< zkEvent.toString();
+    }
+
+    virtual void onNodeCreated(const std::string& path)
+    {
+        cout << "[Watcher] onNodeCreated " << path <<endl;
+        //reset watcher
+        zk_->isZNodeExists(path, ZooKeeper::WATCH);
+    }
+    virtual void onNodeDeleted(const std::string& path)
+    {
+        cout << "[Watcher] onNodeDeleted " << path <<endl;
+        //reset watcher
+        zk_->isZNodeExists(path, ZooKeeper::WATCH);
+    }
+    virtual void onDataChanged(const std::string& path)
+    {
+        cout << "[Watcher] onDataChanged " << path <<endl;
+        //reset watcher
+        std::string data;
+        zk_->getZNodeData(path, data, ZooKeeper::WATCH);
     }
 
     virtual void onChildrenChanged(const std::string& path)
     {
         cout << "[Watcher] onChildrenChanged " << path <<endl;
-        childChanged_ = true;
+        //reset watcher
+        std::vector<std::string> childrenList;
+        zk_->getZNodeChildren(path, childrenList, ZooKeeper::WATCH);
     }
 
-    bool childChanged_;
+    ZooKeeper* zk_;
 };
 
 void t_zk_client(string& hosts)
@@ -46,35 +69,50 @@ void t_zk_client(string& hosts)
     cli.createZNode("/testchildren");
 }
 
+
+void set_watchers(ZooKeeper& cli)
+{
+    // zoo_exists
+    cli.isZNodeExists("/a", ZooKeeper::WATCH);
+    cli.isZNodeExists("/a/b", ZooKeeper::WATCH);
+    cli.isZNodeExists("/a/b/c", ZooKeeper::WATCH);
+
+    // zoo_get
+    std::string data;
+    cli.getZNodeData("/a", data, ZooKeeper::WATCH);
+    cli.getZNodeData("/a/b", data, ZooKeeper::WATCH);
+    cli.getZNodeData("/a/b/c", data, ZooKeeper::WATCH);
+
+    // zoo_get_children
+    std::vector<std::string> childrenList;
+    cli.getZNodeChildren("/a", childrenList, ZooKeeper::WATCH);
+    cli.getZNodeChildren("/a/b", childrenList, ZooKeeper::WATCH);
+    cli.getZNodeChildren("/a/b/c", childrenList, ZooKeeper::WATCH);
+}
+
 void t_zk_watch_event(string& hosts)
 {
     int recvTimeout = 2000;
     ZooKeeper cli(hosts, recvTimeout);
     sleep(2);
 
-    cli.deleteZNode("/testchildren", true);
-    cli.createZNode("/testchildren");
-
-    Watcher watcher;
+    Watcher watcher(&cli);
     cli.registerEventHandler(&watcher);
 
-    std::vector<std::string> childrenList;
-    cli.getZNodeChildren("/testchildren", childrenList, ZooKeeper::WATCH);
-    cout << "Getting children of \"/testchildren\" "<<childrenList.size()<<" , and watching changes"<<endl;
+    cli.deleteZNode("/a", true);
+    cli.createZNode("/a");
+
+    set_watchers(cli);
 
     while(true)
     {
-        sleep(1);
-        if (watcher.childChanged_)
-        {
-            // watch again, notify once for one watch...
-            childrenList.clear();
-            cli.getZNodeChildren("/testchildren", childrenList, ZooKeeper::WATCH);
-            watcher.childChanged_ = false;
-            cout << "Getting children of \"/testchildren\" "<<childrenList.size()<<" , and watching changes"<<endl;
-        }
-
+        cout << "Press anykey to exit..." <<endl;
+        std::string s;
+        cin >> s;
+        break;
     }
+
+    cli.deleteZNode("/a", true);
 }
 
 void t_zk_data_pack(string& hosts)
@@ -101,6 +139,17 @@ void t_zk_data_pack(string& hosts)
     cli.getZNodeData("/testdata", sdata2);
     cout <<"unpack: "<<sdata2 <<endl;
     zdata2.loadZkData(sdata2, true);
+}
+
+void t_asyn_create(string& hosts)
+{
+    ZooKeeper cli(hosts, 2000);
+
+    cli.createZNode("/syn_create", "hear me s");
+    cli.createZNode("/asyn_create", "hear me a");
+
+    while (!cli.isConnected())
+        sleep(1);
 }
 
 void t_DoubleBarrier(string& hosts)
@@ -148,10 +197,11 @@ void t_CyclicBarrier(string& hosts)
     cbarrier.reset();
 }
 
-int main(int argv, char* argc[])
+int main(int argc, char* argv[])
 {
-    string hosts = "127.0.0.1:2181,127.0.0.1:2182,127.0.0.1:2183";
-    hosts = "172.16.0.161:2181,172.16.0.162:2181,172.16.0.163:2181";
+    string hosts = "127.0.0.1:2181"; //"172.16.0.161:2181,172.16.0.162:2181,172.16.0.163:2181";
+    if (argc > 1)
+        hosts = argv[1];
 
     //t_zk_client(hosts);
 
@@ -159,9 +209,11 @@ int main(int argv, char* argc[])
 
     //t_CyclicBarrier(hosts);
 
-    //t_zk_watch_event(hosts);
+    t_zk_watch_event(hosts);
 
-    t_zk_data_pack(hosts);
+    // t_zk_data_pack(hosts);
+
+    //t_asyn_create(hosts);
 
     return 0;
 }

@@ -15,6 +15,7 @@
 #include <string>
 
 #include <boost/shared_ptr.hpp>
+#include <boost/shared_array.hpp>
 
 NS_IZENELIB_IR_BEGIN
 
@@ -142,7 +143,7 @@ public:
 public:
     FieldInfo fieldInfo_;
 
-    TERM_TABLE* sparseTermTable_;
+    boost::shared_array<TERM_TABLE> sparseTermTable_;
 
     InputDescriptor* pInputDescriptor_;
 
@@ -207,9 +208,9 @@ protected:
 
     IndexInput* pVocInput_;
 
-    TERM_TABLE* bufferTermTable_;
+    boost::scoped_array<TERM_TABLE> bufferTermTable_;
 
-    TERM_TABLE* sparseTermTable_;
+    boost::shared_array<TERM_TABLE> sparseTermTable_;
 
     int32_t nTermCount_;
 
@@ -260,8 +261,6 @@ private:
     TermInfo* pCurTermInfo_;
 
     RTPostingWriter* pCurPosting_;
-
-    TermInfo* pTermInfo_;
 
     friend class MemTermIterator;
 };

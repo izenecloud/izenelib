@@ -55,7 +55,9 @@ class TermReader;
 class MultiIndexBarrelReader : public IndexBarrelReader
 {
 public:
-    MultiIndexBarrelReader(IndexReader* pIndexReader,BarrelsInfo* pBarrelsInfo);
+    MultiIndexBarrelReader(
+        IndexReader* pIndexReader,
+        BarrelsInfo* pBarrelsInfo);
 
     virtual ~MultiIndexBarrelReader();
 public:
@@ -67,12 +69,16 @@ public:
 
     void close();
 
+    bool hasMemBarrel() { return hasMemBarrel_;}
+
 private:
     BarrelsInfo* pBarrelsInfo_;
 
     map<collectionid_t, TermReader*> termReaderMap_;
 
     vector<BarrelReaderEntry*> readers_;
+
+    bool hasMemBarrel_;
 
     friend class MultiTermReader;
 };

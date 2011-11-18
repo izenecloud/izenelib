@@ -5,7 +5,10 @@ NS_IZENELIB_IR_BEGIN
 
 namespace indexmanager{
 
-SkipListWriter::SkipListWriter(int skipInterval, int maxLevel, MemCache* pMemCache)
+SkipListWriter::SkipListWriter(
+    int skipInterval, 
+    int maxLevel, 
+    boost::shared_ptr<MemCache> pMemCache)
     :skipInterval_(skipInterval)
     ,maxSkipLevel_(maxLevel)
     ,numPointsInLowestLevel_(0)
@@ -16,7 +19,7 @@ SkipListWriter::SkipListWriter(int skipInterval, int maxLevel, MemCache* pMemCac
     ppSkipLevels_ = new VariantDataPool*[maxLevel];
     memset(ppSkipLevels_,0,maxLevel*sizeof(VariantDataPool*)); 
     for(int i = 0; i < maxLevel; i++)
-	ppSkipLevels_[i] = new VariantDataPool(pMemCache);
+        ppSkipLevels_[i] = new VariantDataPool(pMemCache);
 
     pLastDoc_ = new docid_t[maxLevel];
     memset(pLastDoc_,0,maxLevel*sizeof(docid_t));

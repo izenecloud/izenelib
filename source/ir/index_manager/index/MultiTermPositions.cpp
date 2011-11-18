@@ -3,13 +3,13 @@
 
 using namespace izenelib::ir::indexmanager;
 
-MultiTermPositions::MultiTermPositions(void)
+MultiTermPositions::MultiTermPositions()
 {
     current_ = NULL;
     pTermPositionQueue_ = NULL;
 }
 
-MultiTermPositions::~MultiTermPositions(void)
+MultiTermPositions::~MultiTermPositions()
 {
     close();
 }
@@ -112,12 +112,8 @@ int64_t MultiTermPositions::getCTF()
 void MultiTermPositions::close()
 {
     std::list<BarrelTermPositionsEntry*>::iterator iter = termPositionsList_.begin();
-    while (iter != termPositionsList_.end())
-    {
+    for (;iter != termPositionsList_.end();++iter)
         delete (*iter);
-        iter++;
-    }
-    termPositionsList_.clear();
     if (pTermPositionQueue_)
     {
         delete pTermPositionQueue_;
@@ -142,12 +138,11 @@ void MultiTermPositions::initQueue()
     pTermPositionQueue_ = new TermPositionQueue(termPositionsList_.size());
     std::list<BarrelTermPositionsEntry*>::iterator iter = termPositionsList_.begin();
     BarrelTermPositionsEntry* pEntry;
-    while (iter != termPositionsList_.end())
+    for(;iter != termPositionsList_.end();++iter)
     {
         pEntry = *iter;
         if (pEntry->termPositions_->next())
             pTermPositionQueue_->insert(pEntry);
-        iter++;
     }
     if (pTermPositionQueue_->size() > 0)
         current_ = pTermPositionQueue_->top();

@@ -208,7 +208,6 @@ retry:
         };
         return false;
     }
-    
     void clear()
     {
         for (size_t i=0; i < lock_qty_; ++i)
@@ -234,24 +233,7 @@ retry:
     
     ~hashmap()
     {
-        for (size_t i=0; i < lock_qty_; ++i)
-        {
-            locks_[i].lock();
-        }
-        for (size_t i=0; i < bucket_vector_.size(); i++)
-        {
-            bucket_t* ptr = const_cast<bucket_t*>(bucket_vector_[i]), *old_next;
-            while (ptr != NULL)
-            {
-                old_next = ptr->next_;
-                delete ptr;
-                ptr = old_next;
-            }
-        }
-        for (size_t i=0; i < lock_qty_; ++i)
-        {
-            locks_[i].unlock();
-        }
+        clear();
         delete[] locks_;
     }
     
@@ -371,8 +353,6 @@ private:
     mutable detail::spin_lock* locks_;
     const uint32_t max_chain_;
     marked_vector<volatile bucket_t*> bucket_vector_;
-    
-
 };
 
 }

@@ -39,7 +39,6 @@ public:
         VariantDataChunk* decodingPChunk;
         int32_t decodingPChunkPos;
         loc_t lastDecodedPos; 		///the latest decoded offset
-        loc_t lastDecodedCharPos;        ///the latest decoded char offset
         int32_t decodedPosCount;
     };
 public:
@@ -47,22 +46,13 @@ public:
 
     virtual ~MemPostingReader();
 public:
-    /**
-     * get document frequency
-     * @return DF value
-     */
+    ///Get document frequency
     count_t docFreq() const;
-    /**
-     * get collection's total term frequency
-     * @return CTF value
-     */
+    /// Get collection's total term frequency
     int64_t getCTF() const;
-    /*
-     * get current tf
-    */
+    /// get current tf
     count_t getCurTF() const;
-
-    /** get last added doc id */
+    /// Get last added doc id
     docid_t lastDocID();
 
     int32_t getSkipLevel();
@@ -76,9 +66,18 @@ public:
         pDocFilter_ = pFilter;
     }
 
-    int32_t decodeNext(uint32_t* pPosting, int32_t length, int32_t nMaxDocs);
+    int32_t DecodeNext(
+        uint32_t* pPosting, 
+        int32_t length, 
+        int32_t nMaxDocs);
 
-    int32_t decodeNext(uint32_t* pPosting, int32_t length, int32_t nMaxDocs, uint32_t* &pPPosting, int32_t& posBufLength, int32_t& posLength);
+    int32_t DecodeNext(
+        uint32_t* pPosting, 
+        int32_t length, 
+        int32_t nMaxDocs, 
+        uint32_t* &pPPosting, 
+        int32_t& posBufLength, 
+        int32_t& posLength);
 
     /**
      * Get the position posting data
@@ -86,7 +85,9 @@ public:
      * @param the length of pPosting
      * @return true:success,false: error or reach end
      */
-    bool decodeNextPositions(uint32_t* pPosting,int32_t length);
+    bool DecodeNextPositions(
+        uint32_t* pPosting,
+        int32_t length);
 
     /**
      * Get the position posting data
@@ -95,7 +96,11 @@ public:
      * @param decodeLength the length of decoded posting wanted.Only useful for BYTE-aligned posting
      * @return true:success,false: error or reach end
      */
-    bool decodeNextPositions(uint32_t* &pPosting, int32_t& posBufLength, int32_t decodeLength, int32_t& nCurrentPPosting);
+    bool DecodeNextPositions(
+        uint32_t* &pPosting, 
+        int32_t& posBufLength, 
+        int32_t decodeLength, 
+        int32_t& nCurrentPPosting);
 
     /**
      * Get the position posting data
@@ -103,28 +108,44 @@ public:
      * @param pFreqs freqs array
      * @param nFreqs size of freqs array
      */
-    bool decodeNextPositions(uint32_t* &pPosting, int32_t& posBufLength, uint32_t* pFreqs,int32_t nFreqs, int32_t& nCurrentPPosting);
+    bool DecodeNextPositions(
+        uint32_t* &pPosting, 
+        int32_t& posBufLength, 
+        uint32_t* pFreqs,
+        int32_t nFreqs, 
+        int32_t& nCurrentPPosting);
 
     /**
      * @post as RT posting reader, @p decodedCount is always 1, @p nCurrentPosting is always 0
      */
-    docid_t decodeTo(docid_t target, uint32_t* pPosting, int32_t length, int32_t nMaxDocs, int32_t& decodedCount, int32_t& nCurrentPosting);
+    docid_t DecodeTo(
+        docid_t target, 
+        uint32_t* pPosting, 
+        int32_t length, 
+        int32_t nMaxDocs, 
+        int32_t& decodedCount, 
+        int32_t& nCurrentPosting);
 
     /**
      * reset the base position which used in d-gap encoding
      */
-    void resetPosition();
+    void ResetPosition();
 
     /**
      * get skiplist reader
      */
     SkipListReader* getSkipListReader();
-
+private:
+    MemPostingReader(const MemPostingReader&);
+    void operator=(const MemPostingReader&);
+	
 protected:
     int skipInterval_;
     int maxSkipLevel_;
 
     RTPostingWriter* pPostingWriter_;
+    boost::shared_ptr<VariantDataPool> pDocFreqList_; /// Doc freq list
+    boost::shared_ptr<VariantDataPool> pLocList_; 	/// Location list
     DecodeState* pDS_;			///decoding state
     SkipListReader* pSkipListReader_; ///skiplist reader
     BitVector* pDocFilter_;
@@ -164,13 +185,26 @@ class RTDiskPostingReader:public PostingReader
         int32_t skipPosCount_; 		///position count to be skipped
     };
 public:
-    RTDiskPostingReader(int skipInterval, int maxSkipLevel, InputDescriptor* pInputDescriptor,const TermInfo& termInfo);
+    RTDiskPostingReader(
+        int skipInterval, 
+        int maxSkipLevel, 
+        InputDescriptor* pInputDescriptor,
+        const TermInfo& termInfo);
 
     ~RTDiskPostingReader();
 
-    int32_t decodeNext(uint32_t* pPosting, int32_t length, int32_t nMaxDocs);
+    int32_t DecodeNext(
+        uint32_t* pPosting, 
+        int32_t length, 
+        int32_t nMaxDocs);
 
-    int32_t decodeNext(uint32_t* pPosting, int32_t length, int32_t nMaxDocs, uint32_t* &pPPosting, int32_t& posBufLength, int32_t& posLength);
+    int32_t DecodeNext(
+        uint32_t* pPosting, 
+        int32_t length, 
+        int32_t nMaxDocs, 
+        uint32_t* &pPPosting, 
+        int32_t& posBufLength, 
+        int32_t& posLength);
 
     /**
      * Get the position posting data
@@ -178,7 +212,9 @@ public:
      * @param the length of pPosting
      * @return true:success,false: error or reach end
      */
-    bool decodeNextPositions(uint32_t* pPosting,int32_t length);
+    bool DecodeNextPositions(
+        uint32_t* pPosting,
+        int32_t length);
 
     /**
      * Get the position posting data
@@ -187,7 +223,11 @@ public:
      * @param decodeLength the length of decoded posting wanted.Only useful for BYTE-aligned posting
      * @return true:success,false: error or reach end
      */
-    bool decodeNextPositions(uint32_t* &pPosting, int32_t& posBufLength, int32_t decodeLength, int32_t& nCurrentPPosting);
+    bool DecodeNextPositions(
+        uint32_t* &pPosting, 
+        int32_t& posBufLength, 
+        int32_t decodeLength, 
+        int32_t& nCurrentPPosting);
 
     /**
      * Get the position posting data
@@ -195,22 +235,33 @@ public:
      * @param pFreqs freqs array
      * @param nFreqs size of freqs array
      */
-    bool decodeNextPositions(uint32_t* &pPosting, int32_t& posBufLength, uint32_t* pFreqs,int32_t nFreqs, int32_t& nCurrentPPosting);
+    bool DecodeNextPositions(
+        uint32_t* &pPosting, 
+        int32_t& posBufLength, 
+        uint32_t* pFreqs,
+        int32_t nFreqs, 
+        int32_t& nCurrentPPosting);
 
     /**
      * Set file pointer after skipping
      */
-    void seekTo(SkipListReader* pSkipListReader);
+    void SeekTo(SkipListReader* pSkipListReader);
 
     /**
      * @post as RT posting reader, @p decodedCount is always 1, @p nCurrentPosting is always 0
      */
-    docid_t decodeTo(docid_t target, uint32_t* pPosting, int32_t length, int32_t nMaxDocs, int32_t& decodedCount, int32_t& nCurrentPosting);
+    docid_t DecodeTo(
+        docid_t target, 
+        uint32_t* pPosting, 
+        int32_t length, 
+        int32_t nMaxDocs, 
+        int32_t& decodedCount, 
+        int32_t& nCurrentPosting);
 
     /**
      * reset the base position which used in d-gap encoding
      */
-    void resetPosition();
+    void ResetPosition();
 
     /**
      * reset the content of Posting list.

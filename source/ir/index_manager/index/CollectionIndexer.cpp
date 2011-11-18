@@ -65,7 +65,7 @@ void CollectionIndexer::setFieldIndexers()
     }
 }
 
-void CollectionIndexer::setIndexMode(MemCache* pMemCache, bool realtime)
+void CollectionIndexer::setIndexMode(boost::shared_ptr<MemCache> pMemCache, bool realtime)
 {
     if(!realtime)
     {

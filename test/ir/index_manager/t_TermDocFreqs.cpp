@@ -33,7 +33,7 @@ template<class Function> void runToSuccess(Function func) {
             func();
             isSuccess = true;
         }
-        catch(IndexManagerException& e)
+        catch(std::exception& e)
         {
             LOG(ERROR) << "start query again as exception found: " << e.what();
         }
@@ -280,6 +280,7 @@ void TermDocFreqsTestFixture::checkTermDocFreqsImpl()
         BOOST_CHECK(pTermReader->seek(&term));
 
         boost::scoped_ptr<TermDocFreqs> pTermDocFreqs(pTermReader->termDocFreqs());
+        if(!pTermDocFreqs) throw std::runtime_error("index dirty");
         BOOST_CHECK_EQUAL(pTermDocFreqs->docFreq(), termIt->second.first);
         BOOST_CHECK_EQUAL(pTermDocFreqs->getCTF(), termIt->second.second);
     }
@@ -477,7 +478,6 @@ void TermDocFreqsTestFixture::queryDocsImpl(docid_t startDocID, docid_t endDocID
         DTermIdMapT docTermIdMap;
         for(unsigned int j = 0; j < docLen; ++j)
             docTermIdMap[termIDRand2()].push_back(j);
-
         queryOneDoc(pTermReader.get(), docID, docTermIdMap, isSkipToRand2, isCheckRand2);
     }
 
@@ -522,6 +522,7 @@ void TermDocFreqsTestFixture::queryOneDoc(TermReader* pTermReader, docid_t docID
             if(pTermReader->seek(&term))
             {
                 boost::scoped_ptr<TermDocFreqs> pTermDocFreqs(pTermReader->termDocFreqs());
+                if(!pTermDocFreqs) throw std::runtime_error("index dirty");
                 if(isSkipToRand())
                     BOOST_CHECK_EQUAL_TS(pTermDocFreqs->skipTo(docID), BAD_DOCID);
                 else
@@ -532,14 +533,16 @@ void TermDocFreqsTestFixture::queryOneDoc(TermReader* pTermReader, docid_t docID
         {
             BOOST_CHECK_TS(pTermReader->seek(&term));
             boost::scoped_ptr<TermDocFreqs> pTermDocFreqs(pTermReader->termDocFreqs());
-            BOOST_REQUIRE_TS(pTermDocFreqs.get());
+            if(!pTermDocFreqs) throw std::runtime_error("index dirty");
+            //BOOST_REQUIRE_TS(pTermDocFreqs.get());
 
             moveToDoc(pTermDocFreqs.get(), docID, isDocRemoved, isSkipToRand());
             if(! isDocRemoved)
                 BOOST_CHECK_EQUAL_TS(pTermDocFreqs->freq(), termIt->second.size());
 
             boost::scoped_ptr<TermPositions> pTermPositions(pTermReader->termPositions());
-            BOOST_REQUIRE_TS(pTermPositions.get());
+            if(!pTermPositions) throw std::runtime_error("index dirty");			
+            //BOOST_REQUIRE_TS(pTermPositions.get());
 
             moveToDoc(pTermPositions.get(), docID, isDocRemoved, isSkipToRand());
             if(! isDocRemoved)

@@ -270,7 +270,6 @@ TermIterator* VocReader::termIterator(const char* field)
 ///SparseTermReaderImpl
 SparseTermReaderImpl::SparseTermReaderImpl(const FieldInfo& fieldInfo, IndexLevel indexLevel)
         :fieldInfo_(fieldInfo)
-        ,sparseTermTable_(NULL)
         ,pInputDescriptor_(NULL)
         ,pDirectory_(NULL)
         ,indexLevel_(indexLevel)
@@ -299,7 +298,7 @@ void SparseTermReaderImpl::open(Directory* pDirectory,const char* barrelname)
     ///end read vocabulary descriptor
     nBeginOfVoc_ = voffset - nVocLength_;
     pVocInput->seek(nBeginOfVoc_);///seek to begin of vocabulary data
-    sparseTermTable_ = new TERM_TABLE[nSparseSize_];
+    sparseTermTable_.reset(new TERM_TABLE[nSparseSize_]);
     termid_t tid = 0;
     freq_t df = 0;
     freq_t ctf = 0;
@@ -364,12 +363,7 @@ void SparseTermReaderImpl::close()
         pInputDescriptor_ = NULL;
     }
 
-    if (sparseTermTable_)
-    {
-        delete[] sparseTermTable_;
-        sparseTermTable_ = NULL;
-        nTermCount_ = 0;
-    }
+    nTermCount_ = 0;
 
     DVLOG(4) << "<= SparseTermReaderImpl::close()";
 }
@@ -386,7 +380,7 @@ RTDiskTermReader::RTDiskTermReader(Directory* pDirectory,BarrelInfo* pBarrelInfo
     open(pDirectory, pBarrelInfo->getName().c_str(), pFieldInfo);
     pTermReaderImpl_->pInputDescriptor_->setBarrelInfo(pBarrelInfo);
     pVocInput_ = pDirectory->openInput(pTermReaderImpl_->barrelName_ + ".voc",1025*VOC_ENTRY_LENGTH);
-    bufferTermTable_ = new TERM_TABLE[1025];
+    bufferTermTable_.reset(new TERM_TABLE[1025]);
     sparseTermTable_ = pTermReaderImpl_->sparseTermTable_;
     nTermCount_ = pTermReaderImpl_->nTermCount_;
     nBeginOfVoc_ = pTermReaderImpl_->nBeginOfVoc_;
@@ -399,7 +393,7 @@ RTDiskTermReader::RTDiskTermReader(const boost::shared_ptr<SparseTermReaderImpl>
         , pVocInput_(NULL)
 {
     pVocInput_ = pTermReaderImpl_->pDirectory_->openInput(pTermReaderImpl_->barrelName_ + ".voc",1025*VOC_ENTRY_LENGTH);
-    bufferTermTable_ = new TERM_TABLE[1025];
+    bufferTermTable_.reset(new TERM_TABLE[1025]);
     sparseTermTable_ = pTermReaderImpl_->sparseTermTable_;
     nTermCount_ = pTermReaderImpl_->nTermCount_;
     nBeginOfVoc_ = pTermReaderImpl_->nBeginOfVoc_;
@@ -408,11 +402,8 @@ RTDiskTermReader::RTDiskTermReader(const boost::shared_ptr<SparseTermReaderImpl>
 RTDiskTermReader::~RTDiskTermReader()
 {
     close();
-    sparseTermTable_ = NULL;
     if(pVocInput_)
         delete pVocInput_;
-    if(bufferTermTable_)
-        delete[] bufferTermTable_;
 }
 
 void RTDiskTermReader::open(Directory* pDirectory,const char* barrelname,FieldInfo* pFieldInfo)
@@ -433,10 +424,15 @@ void RTDiskTermReader::close()
 
 bool RTDiskTermReader::seek(Term* term)
 {
+    try{
     pCurTermInfo_ = termInfo(term);
     if (pCurTermInfo_&&(pCurTermInfo_->docFreq() > 0))
         return true;
     return false;
+    }catch(std::exception& e)
+    {
+        return false;
+    }
 }
 
 TermInfo* RTDiskTermReader::searchBuffer(termid_t termId, int end)
@@ -634,7 +630,6 @@ MemTermReader::MemTermReader(const char* field,FieldIndexer* pIndexer)
         , pIndexer_(pIndexer)
         , pCurTermInfo_(NULL)
         , pCurPosting_(NULL)
-        , pTermInfo_(NULL)
 {
 }
 
@@ -661,10 +656,15 @@ TermIterator* MemTermReader::termIterator(const char* field)
 
 bool MemTermReader::seek(Term* term)
 {
+    try{
     pCurTermInfo_ = termInfo(term);
     if ((pCurTermInfo_)&&(pCurTermInfo_->docFreq() > 0))
         return true;
     return false;
+    }catch(std::exception& e)
+    {
+        return false;
+    }
 }
 
 TermDocFreqs* MemTermReader::termDocFreqs()
@@ -674,8 +674,6 @@ TermDocFreqs* MemTermReader::termDocFreqs()
     if( (pCurTermInfo_ == NULL)||(pCurPosting_ == NULL))
         return NULL;
 
-    //InMemoryPosting* pInMem = (InMemoryPosting*)pCurPosting_;
-    //pInMem->flushLastDoc(false);
     PostingReader* pPosting = pCurPosting_->createPostingReader();
     if(getDocFilter())
         pPosting->setFilter(getDocFilter());
@@ -689,8 +687,6 @@ TermPositions* MemTermReader::termPositions()
 
     if( (pCurTermInfo_ == NULL)||(pCurPosting_ == NULL))
         return NULL;
-    //InMemoryPosting* pInMem = (InMemoryPosting*)pCurPosting_;
-    //pInMem->flushLastDoc(false);
     PostingReader* pPosting = pCurPosting_->createPostingReader();
     if(getDocFilter())
         pPosting->setFilter(getDocFilter());
@@ -722,21 +718,22 @@ TermInfo* MemTermReader::termInfo(Term* term)
     pCurPosting_ = postingIter->second;
     if (!pCurPosting_ || (pCurPosting_->isEmpty() == true))
         return NULL;
-    if (!pTermInfo_)
-        pTermInfo_ = new TermInfo;
+    if (!pCurTermInfo_)
+        pCurTermInfo_ = new TermInfo;
 
-    pTermInfo_->set(
-                                pCurPosting_->docFreq(),
-                                pCurPosting_->getCTF(),
-                                pCurPosting_->lastDocID(),
-                                pCurPosting_->getSkipLevel(),
-                                -1,-1,0,-1,0);
-    return pTermInfo_;
+    pCurPosting_->flushLastDoc(false);
+
+    pCurTermInfo_->set(pCurPosting_->docFreq(),
+                               pCurPosting_->getCTF(),
+                               pCurPosting_->lastDocID(),
+                               pCurPosting_->getSkipLevel(),
+                               -1,-1,0,-1,0);
+    return pCurTermInfo_;
 }
 
 void MemTermReader::close()
 {
-    if (pTermInfo_)
+    if (pCurTermInfo_)
     {
         delete pCurTermInfo_;
         pCurTermInfo_ = NULL;

@@ -58,6 +58,8 @@ public:
     ///set current indexing mode 
     void setIndexMode(bool realtime);
 
+    void tryResumeExistingBarrels();
+
 private:
     void createBarrelInfo();
     /// optimize index offline

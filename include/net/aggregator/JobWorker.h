@@ -74,9 +74,25 @@ public:
     : srvInfo_(host, port), threadNum_(threadNum), debug_(false)
     {}
 
+    JobWorker()
+    : srvInfo_("", 0)
+    {}
+
+
 public:
+    void init(const std::string& host, uint16_t port, unsigned int threadNum, bool debug=false)
+    {
+        srvInfo_.host_ = host;
+        srvInfo_.port_ = port;
+        threadNum_ = threadNum;
+        debug_ = debug;
+    }
+
     void start()
     {
+        if (srvInfo_.host_.empty() || srvInfo_.port_ <= 0)
+            throw std::runtime_error("Worker server uninitialized!");
+
         addHandlers(); // add before start
 
         instance.listen(srvInfo_.host_, srvInfo_.port_);
@@ -93,20 +109,15 @@ public:
         instance.start(threadnum);
     }
 
-    void run()
-    {
-        start(threadNum_);
-        join();
-    }
-
     void join()
     {
         instance.join();
     }
 
-    void end()
+    void stop()
     {
         instance.end();
+        instance.join();
     }
 
     const ServerInfo& getServerInfo() const
@@ -142,6 +153,7 @@ public:
                     method = method_plus.substr(pos+1);
             }
 
+            // preprocessing
             std::string error;
             if (!preHandle(identity, error))
             {

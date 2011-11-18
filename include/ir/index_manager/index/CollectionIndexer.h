@@ -43,7 +43,7 @@ public:
 
     void setSchema(const IndexerCollectionMeta& schema);
 
-    void setIndexMode(MemCache* pMemCache, bool realtime);
+    void setIndexMode(boost::shared_ptr<MemCache> pMemCache, bool realtime);
 
     void setFieldIndexers();
 
@@ -61,10 +61,11 @@ public:
 
     FieldsInfo* getFieldsInfo() { return pFieldsInfo_;}
 
+    size_t getNumFieldIndexers(){ return fieldIndexerMap_.size();}
 private:
     collectionid_t colID_;
 
-    map<string, boost::shared_ptr<FieldIndexer> > fieldIndexerMap_;
+    std::map<std::string, boost::shared_ptr<FieldIndexer> > fieldIndexerMap_;
 
     FieldsInfo* pFieldsInfo_;
 

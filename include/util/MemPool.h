@@ -15,10 +15,11 @@
 #include <types.h>
 #include <iostream>
 #include <new>
+#include <vector>
 
 namespace izenelib{namespace util{
 
-/// MemCache: a memory pool not for allocator usage, non-thread-safe, with emergency mechanism 
+/// MemCache: a memory pool not for allocator usage, non-thread-safe, with emergency mechanism
 class MemCache
 {
 public:
@@ -37,17 +38,17 @@ public:
 
         ~EmergencyPool();
 
-        inline void* allocate(size_t nMemSize)
+        inline void* Allocate(size_t nMemSize)
         {
             if (nUpto_ + nMemSize > pTailSlice_->size)
-                newSlice(nMemSize);
+                NewSlice(nMemSize);
             void* pMem = &(pTailSlice_->buffer[nUpto_]);
             nUpto_ += nMemSize;
             return pMem;
         }
 
     protected:
-        inline void newSlice(size_t nMinSize)
+        inline void NewSlice(size_t nMinSize)
         {
             size_t size = nSliceSize_;
             if (size < nMinSize)
@@ -82,11 +83,11 @@ public:
      * @return allocated memroy address, if the main memory block is exhausted,
      * it will be allocated from emergency block.
      */
-    inline void* allocate(size_t nMemSize)
+    inline void* Allocate(size_t nMemSize)
     {
         if ((pUpto_ - pBuffer_) + nMemSize > nBufSize_)
         {
-            return allocateFromEMPool(nMemSize);
+            return AllocateFromEMPool(nMemSize);
         }
         void* pMem = pUpto_;
         pUpto_ += nMemSize;
@@ -96,7 +97,7 @@ public:
     /**
      * get the begin of mem pool
      */
-    inline void* getBegin() const
+    inline void* GetBegin() const
     {
         return pBuffer_;
     }
@@ -104,7 +105,7 @@ public:
     /**
      * get the end of free mem poool
      */
-    inline void* getEnd() const
+    inline void* GetEnd() const
     {
         return pUpto_;
     }
@@ -112,7 +113,7 @@ public:
     /**
      * get mem pool size
      */
-    inline size_t getSize() const
+    inline size_t GetSize() const
     {
         return nBufSize_;
     }
@@ -121,7 +122,7 @@ public:
      * Is memory pool empty
      * @return true for empty
      */
-    inline bool isEmpty() const
+    inline bool IsEmpty() const
     {
         return (pBuffer_ == pUpto_);
     }
@@ -130,7 +131,7 @@ public:
      * Is the mem pool in a state of emergency
      * @return true for yes
      */
-    inline bool isEmergency() const
+    inline bool IsEmergency() const
     {
         return (pEMPool_ != NULL);
     }
@@ -138,23 +139,15 @@ public:
     /**
      * Set emergency pool size
      */
-    inline void setEMPoolSize(size_t nEMPoolSize)
+    inline void SetEMPoolSize(size_t nEMPoolSize)
     {
         nEMPoolSize_ = nEMPoolSize;
     }
 
     /**
-     * set emergency max alloc size
-     */
-    inline void setEMAllocSize(size_t nEMAllocSize)
-    {
-        nEMAllocSize_ = nEMAllocSize;
-    }
-
-    /**
      * reset for reuse
      */
-    void reset();
+    void Reset();
 
 protected:
     /**
@@ -162,13 +155,13 @@ protected:
      * @param request memory size
      * @return memory pointer, its size is <i>nMemSize</i>
      */
-    inline void* allocateFromEMPool(size_t nMemSize)
+    inline void* AllocateFromEMPool(size_t nMemSize)
     {
         if (!pEMPool_)
         {
             pEMPool_ = new EmergencyPool(nEMPoolSize_);
         }
-        return pEMPool_->allocate(nMemSize);
+        return pEMPool_->Allocate(nMemSize);
     }
 
 private:
@@ -177,12 +170,72 @@ private:
     uint8_t* pUpto_; /// the start address of free space
 
     size_t nEMPoolSize_; ///init emergency pool size
-    size_t nEMAllocSize_;///allocation size of emergency pool
 
     MemCache::EmergencyPool* pEMPool_;
 
     bool bMemOwner_; /// own the memory pool buffer or not
 };
+
+
+//////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////
+/// Arena: a simple memory pool for allocator usage, non-thread-safe
+/// Copied from LevelDB
+class Arena
+{
+public:
+    Arena();
+    ~Arena();
+
+    // Return a pointer to a newly allocated memory block of "bytes" bytes.
+    char* Allocate(size_t bytes);
+
+    // Allocate memory with the normal alignment guarantees provided by malloc
+    char* AllocateAligned(size_t bytes);
+
+    // Returns an estimate of the total memory usage of data allocated
+    // by the arena (including space allocated but not yet used for user
+    // allocations).
+    size_t MemoryUsage() const
+    {
+        return blocks_memory_ + blocks_.capacity() * sizeof(char*);
+    }
+
+private:
+    char* AllocateFallback(size_t bytes);
+    char* AllocateNewBlock(size_t block_bytes);
+
+    // Allocation state
+    char* alloc_ptr_;
+    size_t alloc_bytes_remaining_;
+
+    // Array of new[] allocated memory blocks
+    std::vector<char*> blocks_;
+
+    // Bytes of memory in blocks allocated so far
+    size_t blocks_memory_;
+
+    // No copying allowed
+    Arena(const Arena&);
+    void operator=(const Arena&);
+};
+
+inline char* Arena::Allocate(size_t bytes)
+{
+    // The semantics of what to return are a bit messy if we allow
+    // 0-byte allocations, so we disallow them here (we don't need
+    // them for our internal use).
+    assert(bytes > 0);
+    if (bytes <= alloc_bytes_remaining_)
+    {
+        char* result = alloc_ptr_;
+        alloc_ptr_ += bytes;
+        alloc_bytes_remaining_ -= bytes;
+        return result;
+    }
+    return AllocateFallback(bytes);
+}
+
 
 //////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////
@@ -283,14 +336,16 @@ public:
      */
     inline void release_memory()
     {
-#if 0  
+#if 0
         ///can not work right now
-        for (std::size_t n = 0; n < NumberOfAllocs; ++n) {
+        for (std::size_t n = 0; n < NumberOfAllocs; ++n)
+        {
             FixedSizeAlloc *pool_ptr = pools_[n].get();
             // need to lock before releasing free list because of calls
             // to pool::free()
             boost::unique_lock<boost::mutex> pool_lock(pool_ptr->mutex_);
-            while (true) {
+            while (true)
+            {
                 // get copy of free list pointer
                 FreeListPtr old_free_ptr(pool_ptr->free_ptr_);
                 if (! old_free_ptr)

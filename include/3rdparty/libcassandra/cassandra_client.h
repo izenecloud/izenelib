@@ -5,10 +5,9 @@
 #include <transport/TSocket.h>
 #include <transport/TTransportUtils.h>
 
-#include "libcassandra/genthrift/Cassandra.h"
+#include "genthrift/Cassandra.h"
 
 #include <boost/shared_ptr.hpp>
-#include <string>
 
 using org::apache::cassandra::CassandraClient;
 using namespace apache::thrift::transport;

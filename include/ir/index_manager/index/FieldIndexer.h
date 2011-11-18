@@ -353,7 +353,7 @@ public:
 
     void addField(docid_t docid, boost::shared_ptr<LAInput> laInput);
 
-    void setIndexMode(MemCache* pMemCache, size_t nBatchMemSize, bool realtime);
+    void setIndexMode(boost::shared_ptr<MemCache> pMemCache, size_t nBatchMemSize, bool realtime);
 
     void reset();
 
@@ -382,9 +382,7 @@ private:
 
     std::string field_;
 
-    MemCache* pMemCache_;
-
-    bool ownMemCache_;
+    boost::shared_ptr<MemCache> pMemCache_;
 
     Indexer* pIndexer_;
 

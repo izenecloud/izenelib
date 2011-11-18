@@ -3,13 +3,13 @@
 
 using namespace izenelib::ir::indexmanager;
 
-MultiTermDocs::MultiTermDocs(void)
+MultiTermDocs::MultiTermDocs()
 {
     current_ = NULL;
     pTermDocsQueue_ = NULL;
 }
 
-MultiTermDocs::~MultiTermDocs(void)
+MultiTermDocs::~MultiTermDocs()
 {
     close();
 }
@@ -106,13 +106,9 @@ int64_t MultiTermDocs::getCTF()
 
 void  MultiTermDocs::close()
 {
-    list<BarrelTermDocsEntry*>::iterator iter = barrelTermDocs_.begin();
-    while (iter != barrelTermDocs_.end())
-    {
+    std::list<BarrelTermDocsEntry*>::iterator iter = barrelTermDocs_.begin();
+    for(;iter != barrelTermDocs_.end();++iter)
         delete (*iter);
-        iter++;
-    }
-    barrelTermDocs_.clear();
     if (pTermDocsQueue_)
     {
         delete pTermDocsQueue_;
@@ -133,12 +129,11 @@ void MultiTermDocs::initQueue()
     pTermDocsQueue_ = new TermDocsQueue(barrelTermDocs_.size());
     std::list<BarrelTermDocsEntry*>::iterator iter = barrelTermDocs_.begin();
     BarrelTermDocsEntry* pEntry;
-    while (iter != barrelTermDocs_.end())
+    for (;iter != barrelTermDocs_.end();++iter)
     {
         pEntry = *iter;
         if (pEntry->termDocs_->next())
             pTermDocsQueue_->insert(pEntry);
-        iter++;
     }
     if (pTermDocsQueue_->size() > 0)
         current_ = pTermDocsQueue_->top();

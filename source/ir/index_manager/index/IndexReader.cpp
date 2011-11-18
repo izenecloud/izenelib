@@ -94,6 +94,16 @@ double IndexReader::getAveragePropertyLength(fieldid_t fid)
     return pDocLengthReader_->averagePropertyLength(fid);
 }
 
+bool IndexReader::hasMemBarrelReader()
+{
+    boost::mutex::scoped_lock indexReaderLock(this->mutex_);
+
+    if(pBarrelReader_)
+        return pBarrelReader_->hasMemBarrel();
+    else
+        return false;
+}
+
 void IndexReader::createBarrelReader()
 {
     boost::mutex::scoped_lock lock(this->mutex_);
