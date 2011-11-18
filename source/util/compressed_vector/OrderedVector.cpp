@@ -4,7 +4,7 @@ NS_IZENELIB_UTIL_BEGIN
 
 namespace compressed_vector{
 
-OrderedVector::OrderedVector(MemCache* pMemPool)
+OrderedVector::OrderedVector(MemPool* pMemPool)
     :pMemPool_(pMemPool)
     ,pHeadChunk_(NULL)
     ,pTailChunk_(NULL)
@@ -13,7 +13,6 @@ OrderedVector::OrderedVector(MemCache* pMemPool)
     ,nTotalUsed_(0)
     ,lastVal_(0)
 {
-
 }
 
 OrderedVector::~OrderedVector()

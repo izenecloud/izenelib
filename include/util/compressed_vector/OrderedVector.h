@@ -14,7 +14,7 @@ namespace compressed_vector{
 
 class OrderedVector
 {
-    MemCache* pMemPool_;
+    MemPool* pMemPool_;
     detail::DataChunk* pHeadChunk_;
     detail::DataChunk* pTailChunk_;
     uint32_t nTotalSize_;
@@ -28,7 +28,7 @@ class OrderedVector
 
     void ReadInternal(detail::DataChunk* &pDataChunk, int32_t& curr_pos_in_chunk, uint8_t* buffer, size_t length);
 public:
-    OrderedVector(MemCache* pMemPool);
+    OrderedVector(MemPool* pMemPool);
 
     ~OrderedVector();
 

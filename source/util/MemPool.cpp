@@ -5,8 +5,8 @@ namespace izenelib{namespace util{
 #define DEFAULT_EM_POOL_SIZE 1024*1024
 
 /////////////////////////////////////////////////////
-/// MemCache
-MemCache::EmergencyPool::EmergencyPool(size_t nInitSize)
+/// MemPool
+MemPool::EmergencyPool::EmergencyPool(size_t nInitSize)
         : nSliceSize_(nInitSize)
 {
     try
@@ -21,10 +21,10 @@ MemCache::EmergencyPool::EmergencyPool(size_t nInitSize)
     }
 }
 
-MemCache::EmergencyPool::~EmergencyPool()
+MemPool::EmergencyPool::~EmergencyPool()
 {
-    MemCache::EmergencyPool::Slice* pSlice = pHeadSlice_;
-    MemCache::EmergencyPool::Slice* pTmpSlice = NULL;
+    MemPool::EmergencyPool::Slice* pSlice = pHeadSlice_;
+    MemPool::EmergencyPool::Slice* pTmpSlice = NULL;
     while (pSlice)
     {
         pTmpSlice = pSlice->next;
@@ -36,11 +36,10 @@ MemCache::EmergencyPool::~EmergencyPool()
 
 /////////////////////////////////////////////////////////////////////////
 ///
-MemCache::MemCache(size_t nPoolSize)
+MemPool::MemPool(size_t nPoolSize)
         : nBufSize_(nPoolSize)
         , nEMPoolSize_(DEFAULT_EM_POOL_SIZE)
         , pEMPool_(NULL)
-        , bMemOwner_(true)
 {
     try
     {
@@ -53,9 +52,9 @@ MemCache::MemCache(size_t nPoolSize)
 
 }
 
-MemCache::~MemCache()
+MemPool::~MemPool()
 {
-    if (bMemOwner_ && pBuffer_)
+    if (pBuffer_)
     {
         delete[] (uint8_t*)pBuffer_;
     }
@@ -67,7 +66,7 @@ MemCache::~MemCache()
     }
 }
 
-void MemCache::Reset()
+void MemPool::Reset()
 {
     pUpto_ = pBuffer_;
     if (pEMPool_)

@@ -15,7 +15,7 @@ using namespace std;
 BOOST_AUTO_TEST_SUITE(Compressed_vector_test)
 BOOST_AUTO_TEST_CASE(ordered_vector)
 {
-    MemCache memPool(128);
+    MemPool memPool(128);
     izenelib::util::compressed_vector::OrderedVector v(&memPool);
 
     size_t count = 1000;
