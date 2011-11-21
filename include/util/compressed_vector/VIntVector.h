@@ -270,8 +270,8 @@ void VIntVector<false>::push_back(uint32_t val)
 }
 
 
-///Ugly here 
-///Need solution for specialization Ness classes
+///Ugly here, because only full specialization is permitted here
+///Another solution is to use inheritance
 template<>
 template<>
 void VIntVector<false>::vector_iterator<uint32_t>::increment()
