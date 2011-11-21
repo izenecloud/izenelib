@@ -127,6 +127,17 @@ class VIntVector
 
 
 public:
+    VIntVector()
+        :pMemPool_(NULL)
+        ,pHeadChunk_(NULL)
+        ,pTailChunk_(NULL)
+        ,nTotalSize_(0)
+        ,nPosInCurChunk_(0)
+        ,nTotalUsed_(0)
+        ,nLastVal_(0)
+        ,nCount_(0)
+	{}
+
     VIntVector(MemPool* pMemPool)
         :pMemPool_(pMemPool)
         ,pHeadChunk_(NULL)
@@ -138,6 +149,18 @@ public:
         ,nCount_(0)
 	{}
 
+
+    VIntVector(const VIntVector& other)
+        :pMemPool_(other.pMemPool_)
+        ,pHeadChunk_(other.pHeadChunk_)
+        ,pTailChunk_(other.pTailChunk_)
+        ,nTotalSize_(other.nTotalSize_)
+        ,nPosInCurChunk_(other.nPosInCurChunk_)
+        ,nTotalUsed_(other.nTotalUsed_)
+        ,nLastVal_(other.nLastVal_)
+        ,nCount_(other.nCount_)
+	{}
+
     ~VIntVector(){}
 
     void push_back(uint32_t val)
@@ -146,7 +169,7 @@ public:
         nLastVal_ = val;
     }
 
-    size_t size(){ return nCount_;}
+    size_t size() const { return nCount_;}
 
     template<typename Element>
     class vector_iterator
@@ -262,37 +285,6 @@ public:
         return const_iterator();
     }
 };
-
-template<>
-void VIntVector<false>::push_back(uint32_t val)
-{
-    add_v_data(val);
-}
-
-
-///Ugly here, because only full specialization is permitted here
-///Another solution is to use inheritance
-template<>
-template<>
-void VIntVector<false>::vector_iterator<uint32_t>::increment()
-{ 
-    if(vector_)
-    {
-        curr_val_ = read_vint32();
-        if(buffer_start_ + buffer_pos_ >= data_len_) vector_ = NULL;
-    }
-}
-
-template<>
-template<>
-void VIntVector<false>::vector_iterator<uint32_t const>::increment()
-{ 
-    if(vector_)
-    {
-        curr_val_ = read_vint32();
-        if(buffer_start_ + buffer_pos_ >= data_len_) vector_ = NULL;
-    }
-}
 
 typedef VIntVector<true> OrderedVIntVector;
 typedef VIntVector<false> UnOrderedVIntVector;
