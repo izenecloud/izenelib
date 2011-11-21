@@ -9,7 +9,7 @@
 #include <sdb/SDBCursorIterator.h>
 
 #include <3rdparty/am/google/sparse_hash_map>
- 
+
 #include <util/timestamp.h>
 #include <util/izene_serialization.h>
 #include <util/ThreadModel.h>
@@ -25,7 +25,7 @@ NS_IZENELIB_AM_BEGIN
 //
 //MatrixDB: Persistent matrix data with two features:
 // 1. Parametering cache size according to all matrix elements, instead of row numbers
-// 2. Write-back (or Write-behind) cache instead of Write through, which means writing is done 
+// 2. Write-back (or Write-behind) cache instead of Write through, which means writing is done
 //     only to the cache. A modified cache block is written back to the store, just before it is replaced.
 //
 ////////////////////////////////////////////////////////////////////////////////
@@ -35,7 +35,7 @@ typename ElementType,
 typename RowType = ::google::sparse_hash_map<KeyType, ElementType >,
 typename StorageType = izenelib::sdb::unordered_sdb_tc<KeyType, RowType, ReadWriteLock >,
 typename IteratorType = izenelib::sdb::SDBCursorIterator<StorageType>,
-typename Policy = detail::policy_lfu_nouveau<KeyType> 
+typename Policy = detail::policy_lfu_nouveau<KeyType>
 >
 class MatrixDB
 {
@@ -110,7 +110,7 @@ public:
         boost::shared_ptr<RowType> row_data = _row(x);
         izenelib::util::ScopedWriteLock<izenelib::util::ReadWriteLock> lock(_cache_access_lock);
         _cache_row_dirty_flag.insert(x);
-        typename RowType::iterator it = row_data->find(y); 
+        typename RowType::iterator it = row_data->find(y);
         if(it == row_data->end())
         {
             (*row_data)[y] = d;
@@ -127,7 +127,7 @@ public:
         boost::shared_ptr<RowType> row_data = _row(x);
         izenelib::util::ScopedWriteLock<izenelib::util::ReadWriteLock> lock(_cache_access_lock);
         _cache_row_dirty_flag.insert(x);
-        typename RowType::iterator it = row_data->find(y); 
+        typename RowType::iterator it = row_data->find(y);
         if(it == row_data->end())
         {
             (*row_data)[y] = inc;
@@ -144,7 +144,7 @@ public:
         boost::shared_ptr<RowType> row_data = _row(x);
         izenelib::util::ScopedWriteLock<izenelib::util::ReadWriteLock> lock(_cache_access_lock);
         _cache_row_dirty_flag.insert(x);
-        typename RowType::iterator it = row_data->find(y); 
+        typename RowType::iterator it = row_data->find(y);
         if(it == row_data->end())
         {
             ElementType& e = (*row_data)[y];
@@ -204,7 +204,7 @@ public:
     ElementType coeff(KeyType x, KeyType y)
     {
         boost::shared_ptr<RowType> row_data = _row(x);
-        typename RowType::iterator it = row_data->find(y); 
+        typename RowType::iterator it = row_data->find(y);
         if(it == row_data->end()) return ElementType();
         return it->second;
     }
@@ -316,7 +316,7 @@ private:
         _policy.touch(x);
     	}
         boost::shared_ptr<RowType > row_data;
-        typename CacheStorageType::iterator cit = _cache_storage.find(x);		
+        typename CacheStorageType::iterator cit = _cache_storage.find(x);
         if(cit == _cache_storage.end())
         {
             row_data.reset(new RowType);
@@ -324,7 +324,7 @@ private:
             {
                 _currEntries+=row_data->size();
             }
-            izenelib::util::ScopedWriteLock<izenelib::util::ReadWriteLock> lock(_cache_access_lock);			
+            izenelib::util::ScopedWriteLock<izenelib::util::ReadWriteLock> lock(_cache_access_lock);
             _cache_storage.insert(rde::make_pair(x,row_data));
         }
         else
@@ -345,11 +345,10 @@ template <typename T1,typename T2>
 struct IsFebirdSerial< ::google::sparse_hash_map<T1, T2 >  >{
     //enum {yes = IsFebirdSerial<T1 >::yes && IsFebirdSerial<T2 >::yes, no= !yes};
     //for compatibility issue, is_pod is not used within the definition of IsFebirdSerial
-    enum {yes =( boost::is_pod<T1>::value || boost::is_base_of<pod_tag, T1>::value ) 
+    enum {yes =( boost::is_pod<T1>::value || boost::is_base_of<pod_tag, T1>::value )
                   && ( boost::is_pod<T2>::value || boost::is_base_of<pod_tag, T2>::value) , no= !yes};
 };
 
 }}
 
 #endif
-

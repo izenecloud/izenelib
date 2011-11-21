@@ -2,7 +2,7 @@
 #define IZENELIB_AM_CACHE_POLICY_H
 
 #include <types.h>
- 
+
 #include <3rdparty/am/stx/btree_map>
 #include <3rdparty/am/stx/btree_set>
 #include <3rdparty/am/rde_hashmap/hash_map.h>
@@ -10,14 +10,28 @@
 #include <set>
 #include <map>
 #include <list>
- 
+
 NS_IZENELIB_AM_BEGIN
 
 namespace detail{
 template <typename KeyType>
 class policy_lfu_nouveau
 {
-    struct cache_entry;
+    struct freq_node;
+    struct cache_entry
+    {
+        struct cache_entry *_newer, *_older;
+        struct freq_node *_parent;
+        KeyType _key;
+
+        cache_entry(const KeyType& k)
+            : _newer(NULL), _older(NULL)
+            , _parent(NULL)
+            , _key(k)
+        {
+        }
+    };
+
     struct freq_node
     {
         unsigned long _freq, _count;
@@ -25,11 +39,11 @@ class policy_lfu_nouveau
         struct freq_node *_hotter, *_colder;
 
         freq_node(unsigned long freq = 1)
+            : _freq(freq)
+            , _count(0)
+            , _newest(NULL), _oldest(NULL)
+            , _hotter(NULL), _colder(NULL)
         {
-            _freq = freq;
-            _count = 0;
-            _newest = _oldest = NULL;
-            _hotter = _colder = NULL;
         }
 
         void insert(struct cache_entry *new_entry)
@@ -41,7 +55,8 @@ class policy_lfu_nouveau
             if (_newest)
                 _newest->_newer = new_entry;
             _newest = new_entry;
-            _count++;
+            ++_count;
+            new_entry->_parent = this;
         }
 
         bool evict(KeyType& k)
@@ -50,7 +65,7 @@ class policy_lfu_nouveau
             struct cache_entry *oldest = _oldest->_newer;
             delete _oldest;
             _oldest = oldest;
-            _count--;
+            --_count;
 
             if (_oldest)
             {
@@ -72,28 +87,14 @@ class policy_lfu_nouveau
         }
     };
 
-    struct cache_entry
-    {
-        struct cache_entry *_newer, *_older;
-        struct freq_node *_parent;
-        KeyType _key;
-
-        cache_entry(const KeyType& k)
-        {
-            _newer = _older = NULL;
-            _parent = NULL;
-            _key = k;
-        }
-    };
-
     typedef ::rde::hash_map<KeyType, struct cache_entry *> backentry_type;
     struct freq_node *_freq_list_head;
     backentry_type _backEntries;
 
 public:
     policy_lfu_nouveau()
+        : _freq_list_head(NULL)
     {
-        _freq_list_head = NULL;
     }
 
     ~policy_lfu_nouveau()
@@ -113,94 +114,94 @@ public:
             _freq_list_head = new_freq_node;
         }
         _freq_list_head->insert(new_entry);
-        new_entry->_parent = _freq_list_head;
-        _backEntries.insert(rde::pair<KeyType, struct cache_entry *>(k, new_entry));
+        _backEntries[k] = new_entry;
     }
 
     void remove(const KeyType& k)
     {
-        if (_backEntries.find(k) != _backEntries.end())
+        typename ::rde::hash_map<KeyType, struct cache_entry *>::iterator it = _backEntries.find(k);
+        if (it == _backEntries.end()) return;
+
+        struct cache_entry *entry_ptr = it->second;
+        struct freq_node *parent = entry_ptr->_parent;
+        if (entry_ptr->_newer)
+            entry_ptr->_newer->_older = entry_ptr->_older;
+        else
+            parent->_newest = entry_ptr->_older;
+
+        if (entry_ptr->_older)
+            entry_ptr->_older->_newer = entry_ptr->_newer;
+        else
+            parent->_oldest = entry_ptr->_newer;
+
+        if (--parent->_count == 0)
         {
-            struct cache_entry *ref = _backEntries[k];
-            struct freq_node *parent = ref->_parent;
-            if (ref->_newer)
-                ref->_newer->_older = ref->_older;
+            if (parent->_hotter)
+                parent->_hotter->_colder = parent->_colder;
+
+            if (parent->_colder)
+                parent->_colder->_hotter = parent->_hotter;
             else
-                parent->_newest = ref->_older;
+                _freq_list_head = parent->_hotter;
 
-            if (ref->_older)
-                ref->_older->_newer = ref->_newer;
-            else
-                parent->_oldest = ref->_newer;
-
-            delete ref;
-            if (!parent->_newest)
-            {
-                if (parent->_hotter)
-                    parent->_hotter->_colder = parent->_colder;
-
-                if (parent->_colder)
-                    parent->_colder->_hotter = parent->_hotter;
-                else
-                    _freq_list_head = parent->_hotter;
-
-                delete parent;
-            }
-            else
-                parent->_count--;
-            _backEntries.erase(k);
+            delete parent;
         }
+
+        delete entry_ptr;
+        _backEntries.erase(k);
     }
 
     void touch(const KeyType& k)
     {
-        if (_backEntries.find(k) != _backEntries.end())
+        typename ::rde::hash_map<KeyType, struct cache_entry *>::iterator it = _backEntries.find(k);
+        if (it == _backEntries.end())
         {
-            struct cache_entry *ref = _backEntries[k];
-            struct freq_node *parent = ref->_parent;
-            if (parent->_count == 1 && (!parent->_hotter || parent->_hotter->_freq != parent->_freq + 1))
-            {
-                parent->_freq++;
-                return;
-            }
-            if (ref->_newer)
-                ref->_newer->_older = ref->_older;
-            else
-                parent->_newest = ref->_older;
-
-            if (ref->_older)
-                ref->_older->_newer = ref->_newer;
-            else
-                parent->_oldest = ref->_newer;
-
-            if (!parent->_hotter || (parent->_hotter->_freq != parent->_freq + 1))
-            {
-                struct freq_node *hotter = new freq_node(parent->_freq + 1);
-                hotter->_colder = parent;
-                hotter->_hotter = parent->_hotter;
-                if (parent->_hotter)
-                    parent->_hotter->_colder = hotter;
-                parent->_hotter = hotter;
-            }
-            parent->_hotter->insert(ref);
-            ref->_parent = parent->_hotter;
-            if (!parent->_newest)
-            {
-                if (parent->_hotter)
-                    parent->_hotter->_colder = parent->_colder;
-
-                if (parent->_colder)
-                    parent->_colder->_hotter = parent->_hotter;
-                else
-                    _freq_list_head = parent->_hotter;
-
-                delete parent;
-            }
-            else
-                parent->_count--;
-        }
-        else
             insert(k);
+            return;
+        }
+
+        struct cache_entry *entry_ptr = it->second;
+        struct freq_node *parent = entry_ptr->_parent;
+        if (parent->_count == 1 && (!parent->_hotter || parent->_hotter->_freq != parent->_freq + 1))
+        {
+            parent->_freq++;
+            return;
+        }
+
+        if (entry_ptr->_newer)
+            entry_ptr->_newer->_older = entry_ptr->_older;
+        else
+            parent->_newest = entry_ptr->_older;
+
+        if (entry_ptr->_older)
+            entry_ptr->_older->_newer = entry_ptr->_newer;
+        else
+            parent->_oldest = entry_ptr->_newer;
+
+        if (!parent->_hotter || (parent->_hotter->_freq != parent->_freq + 1))
+        {
+            struct freq_node *hotter = new freq_node(parent->_freq + 1);
+            hotter->_colder = parent;
+            hotter->_hotter = parent->_hotter;
+            if (parent->_hotter)
+                parent->_hotter->_colder = hotter;
+            parent->_hotter = hotter;
+        }
+
+        parent->_hotter->insert(entry_ptr);
+
+        if (--parent->_count == 0)
+        {
+            if (parent->_hotter)
+                parent->_hotter->_colder = parent->_colder;
+
+            if (parent->_colder)
+                parent->_colder->_hotter = parent->_hotter;
+            else
+                _freq_list_head = parent->_hotter;
+
+            delete parent;
+        }
     }
 
     void clear()
@@ -223,7 +224,7 @@ public:
             count += sizeof(struct cache_entry) * it->_count;
             count += sizeof(struct freq_node);
         }
-        count += _backEntries.size() * (sizeof(KeyType) * sizeof(struct cache_entry *));
+        count += _backEntries.size() * (sizeof(KeyType) + sizeof(struct cache_entry *));
         return count;
     }
 
@@ -335,13 +336,13 @@ public:
     }
 };
 
-template <class KeyType> 
-class policy_lru 
+template <class KeyType>
+class policy_lru
 {
     std::list<KeyType> _entries;
 
 public:
-    void insert(const KeyType& k) 
+    void insert(const KeyType& k)
     {
         _entries.push_front(k);
     }
@@ -352,7 +353,7 @@ public:
     }
 
     void touch(const KeyType& k)
-    { 
+    {
         _entries.remove(k);
         _entries.push_front(k);
     }
@@ -376,8 +377,7 @@ public:
 };
 
 }
- 
+
 NS_IZENELIB_AM_END
 
- #endif
-
+#endif
