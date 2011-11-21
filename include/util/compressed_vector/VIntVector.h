@@ -198,7 +198,7 @@ public:
             {
                 uint32_t v = read_vint32();
                 curr_val_ += v;
-                if(buffer_start_ >= data_len_) vector_ = NULL;
+                if(buffer_start_ + buffer_pos_ >= data_len_) vector_ = NULL;
             }
         }
 
@@ -279,7 +279,7 @@ void VIntVector<false>::vector_iterator<uint32_t>::increment()
     if(vector_)
     {
         curr_val_ = read_vint32();
-        if(buffer_start_ >= data_len_) vector_ = NULL;
+        if(buffer_start_ + buffer_pos_ >= data_len_) vector_ = NULL;
     }
 }
 
@@ -290,7 +290,7 @@ void VIntVector<false>::vector_iterator<uint32_t const>::increment()
     if(vector_)
     {
         curr_val_ = read_vint32();
-        if(buffer_start_ >= data_len_) vector_ = NULL;
+        if(buffer_start_ + buffer_pos_ >= data_len_) vector_ = NULL;
     }
 }
 

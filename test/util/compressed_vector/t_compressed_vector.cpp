@@ -51,7 +51,7 @@ BOOST_AUTO_TEST_CASE(unordered_vector)
     MemPool memPool(128);
     izenelib::util::compressed_vector::UnOrderedVIntVector v(&memPool);
 
-    size_t count = 100;
+    size_t count = 1000;
     size_t i = 1;
     size_t magic = 3;
 
@@ -67,7 +67,6 @@ BOOST_AUTO_TEST_CASE(unordered_vector)
     for(;iter !=end; ++iter,++i)
     {
         BOOST_CHECK(*iter == i*magic );
-        //std::cout<<*iter<<" "<<i*magic<<std::endl;
     }
 }
 
