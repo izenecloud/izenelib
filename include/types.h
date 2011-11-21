@@ -50,3 +50,8 @@ typedef unsigned __int64  uint64_t;
     if (!(exp))    \
     {throw (info);}\
   }
+
+#define DISALLOW_COPY_AND_ASSIGN(TypeName)      \
+    TypeName(const TypeName&);					\
+    void operator=(const TypeName&)
+
