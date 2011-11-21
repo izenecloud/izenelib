@@ -13,6 +13,13 @@ int main(int argc, char** argv)
         return 0;
     }
 
+    for (int i = 1; i < argc; i++)
+    {
+        // disable auto test
+        if (strcasecmp(argv[i], "--build_info") == 0)
+            return 0;
+    }
+
     std::string filename = argv[1];
 
     bool isDir = false;
