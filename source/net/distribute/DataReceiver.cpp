@@ -5,11 +5,15 @@
 #include <assert.h>
 #include <fstream>
 
+#include <boost/filesystem.hpp>
+
+namespace bfs = boost::filesystem;
+
 namespace net{
 namespace distribute{
 
-DataReceiver::DataReceiver(unsigned int port, buf_size_t bufSize)
-:port_(port), bufSize_(bufSize)
+DataReceiver::DataReceiver(unsigned int port, const std::string& dataDir, buf_size_t bufSize)
+:port_(port), dataDir_(dataDir), bufSize_(bufSize)
 {
     buf_ = new char[bufSize];
     assert(buf_);
@@ -30,8 +34,17 @@ void DataReceiver::start()
     {
         std::cout<<"--> accept"<<std::endl;
         SocketIO* accSock = sockIO_.Accept();
-        // xxx start a thread
-        doReceive(accSock);
+
+        try
+        {
+            // new thread?
+            doReceive(accSock);
+        }
+        catch (std::exception& e)
+        {
+            delete accSock;
+            std::cout<<e.what()<<std::endl;
+        }
     }
 }
 
@@ -42,12 +55,23 @@ void DataReceiver::doReceive(SocketIO* sock)
     // read head
     int nread=0;
     nread = sock->syncRecv(buf_, MessageHeader::getHeadLen(), timeout);
-    std::cout<<sock->getSockFd()<<"[DataReceiver] received header size "<<nread<<" - "<<buf_<<std::endl;
+    std::cout<<sock->getSockFd()<<"[DataReceiver] received header size "<<nread/*<<" - "<<buf_*/<<std::endl;
 
     std::string fileName(buf_, nread);
-    std::cout<<"filename : "<<fileName<<std::endl;
+    std::cout<<fileName<<std::endl;
+
+    bfs::path path(fileName);
+    std::string parent = dataDir_+"/"+path.parent_path().string(); //xxx
+    //std::cout<<"parent dirs: "<<parent<<std::endl;
+    if (!parent.empty())
+        bfs::create_directories(parent);
+
     std::ofstream ofs;
     ofs.open(fileName.c_str());
+    if (!ofs.is_open())
+    {
+        std::cout<<"failed to open : "<<fileName<<std::endl;
+    }
 
     int totalread=0;
     //std::cout <<sock->getSockFd()<< "[DataReceiver] receive data "<<std::endl;
@@ -59,7 +83,7 @@ void DataReceiver::doReceive(SocketIO* sock)
     }
     std::cout <<sock->getSockFd()<< "[DataReceiver] received data size "<<totalread<<std::endl;
 
-    // xxx check filezie, checksum
+    // xxx check filezie, checksum? response
 
     ofs.close();
     delete sock;

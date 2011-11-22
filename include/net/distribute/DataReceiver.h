@@ -12,7 +12,7 @@ class DataReceiver
     const static buf_size_t DEFAULT_BUFFER_SIZE = 64*1024; // 64k
 
 public:
-    DataReceiver(unsigned int port, buf_size_t bufSize=DEFAULT_BUFFER_SIZE);
+    DataReceiver(unsigned int port, const std::string& dataDir=".", buf_size_t bufSize=DEFAULT_BUFFER_SIZE);
 
     ~DataReceiver();
 
@@ -23,6 +23,7 @@ private:
 
 private:
     unsigned int port_;
+    std::string dataDir_;
 
     SocketIO sockIO_;
 

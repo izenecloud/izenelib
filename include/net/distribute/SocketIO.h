@@ -13,6 +13,11 @@ struct ServerAddress
 {
     std::string host_;
     unsigned int port_;
+
+    ServerAddress(const std::string& host, unsigned int port)
+    : host_(host), port_(port) {}
+
+    ServerAddress() {}
 };
 
 /**
