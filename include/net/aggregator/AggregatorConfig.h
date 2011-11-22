@@ -38,6 +38,17 @@ public:
         return workerInfoList_;
     }
 
+    const WorkerServerInfo* getWorkerSrvInfoByWorkerId(uint32_t workerid) const
+    {
+        for (size_t i = 0; i < workerInfoList_.size(); i++)
+        {
+            if (workerInfoList_[i].workerid_ == workerid)
+                return &(workerInfoList_[i]);
+        }
+
+        return NULL;
+    }
+
     std::string toString()
     {
         std::stringstream ss;

@@ -44,7 +44,7 @@ DataTransfer::syncSend(const std::string& src, const std::string& curDirName, bo
 
     // src is a directory
     bfs::path path(processPath(src));
-    std::cout<<path.string()<<std::endl;
+    //std::cout<<path.string()<<std::endl;
     std::string curFileDir = curDirName.empty() ? path.filename() : curDirName; // rename dir to dirName
     //std::cout<<"[DataTransfer] dir: "<<curFileDir<<std::endl; //xxx
 
@@ -124,7 +124,8 @@ DataTransfer::syncSendFile(const std::string& fileName, const std::string& curDi
     std::cout<<"[DataTransfer] sending file: "<<fileName<<", within dir: "<<curDir<<std::endl;//xxx
 
     // new connection
-    socketIO_.Connect(serverAddr_.host_, serverAddr_.port_);
+    if (socketIO_.Connect(serverAddr_.host_, serverAddr_.port_) < 0)
+        return -1;
 
     // send head
     bfs::path path(fileName);
