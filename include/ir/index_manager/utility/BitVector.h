@@ -125,7 +125,7 @@ public:
         }
     }
 
-    bool any()
+    bool any() const
     {
         const size_t byteNum = getBytesNum(size_);
         for(size_t i = 0; i < byteNum; ++i)
@@ -133,6 +133,16 @@ public:
                 return true;
 
         return false;
+    }
+    
+    std::size_t count() const
+    {
+        std::size_t count = 0;
+        for(std::size_t i=0;i<size();i++)
+        {
+            if(test(i)) ++count;
+        }
+        return count;
     }
 
     void toggle()
@@ -173,6 +183,30 @@ public:
         for(std::size_t i=0;i<size();i++)
         {
             if(test(i)!=b.test(i)) return false;
+        }
+        return true;
+    }
+    
+    bool equal_ignore_size(const BitVector& b) const
+    {
+        std::size_t c_size = std::min(size(), b.size());
+        for(std::size_t i=0;i<c_size;i++)
+        {
+            if(test(i)!=b.test(i)) return false;
+        }
+        if(size()>c_size)
+        {
+            for(std::size_t i=c_size;i<size();i++)
+            {
+                if(test(i)) return false;//should be 0 
+            }
+        }
+        if(b.size()>c_size)
+        {
+            for(std::size_t i=c_size;i<b.size();i++)
+            {
+                if(b.test(i)) return false;//should be 0 
+            }
         }
         return true;
     }

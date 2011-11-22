@@ -51,7 +51,7 @@ public:
     bool next(std::pair<KeyType, ValueType>& kvp)
     {
 #ifdef TE_DEBUG
-        std::cout<<"BTTermEnum next"<<std::endl;
+//         std::cout<<"BTTermEnum next"<<std::endl;
 #endif
         if(it_==it_end_) return false;
         else
@@ -59,7 +59,7 @@ public:
             kvp = *it_;
             ++it_;
 #ifdef TE_DEBUG
-            std::cout<<"BTTermEnum key:"<<kvp.first<<", value: "<<kvp.second<<std::endl;
+//             std::cout<<"BTTermEnum key:"<<kvp.first<<", value: "<<kvp.second<<std::endl;
 #endif
             return true;
         }
@@ -85,8 +85,8 @@ public:
     :it_(am), it_end_()
     {
 #ifdef TE_DEBUG
-        std::cout<<"AMTermEnum constructor1 "<<am.size()<<std::endl;
-        std::cout<<"is end : "<<(int)(it_==it_end_)<<std::endl;
+//         std::cout<<"AMTermEnum constructor1 "<<am.size()<<std::endl;
+//         std::cout<<"is end : "<<(int)(it_==it_end_)<<std::endl;
 #endif
     }
     
@@ -98,7 +98,7 @@ public:
     bool next(std::pair<KeyType, ValueType>& kvp)
     {
 #ifdef TE_DEBUG
-        std::cout<<"AMTermEnum next"<<std::endl;
+//         std::cout<<"AMTermEnum next"<<std::endl;
 #endif
         if(it_==it_end_) return false;
         else
@@ -107,7 +107,7 @@ public:
             kvp.second = it_->second;
             ++it_;
 #ifdef TE_DEBUG
-            std::cout<<"AMTermEnum key:"<<kvp.first<<std::endl;
+//             std::cout<<"AMTermEnum key:"<<kvp.first<<std::endl;
 #endif
             return true;
         }
@@ -146,7 +146,7 @@ class TwoWayTermEnum : public TermEnum<KeyType, ValueType>
         bool next(DataType& kvp)
         {
 #ifdef TE_DEBUG
-            std::cout<<"TwoWayTermEnum next"<<std::endl;
+            std::cout<<"[TE] next ";
 #endif
 //             boost::optional<DataType1> data1;
 //             boost::optional<DataType2> data2;
@@ -156,7 +156,23 @@ class TwoWayTermEnum : public TermEnum<KeyType, ValueType>
                 if(enum1_.next(rdata1))
                 {
                     data1_ = rdata1;
+#ifdef TE_DEBUG
+                    std::cout<<"get key1 : "<<data1_.get().first<<",";
+#endif
                 }
+                else
+                {
+                    
+#ifdef TE_DEBUG
+                    std::cout<<"not get key1,";
+#endif
+                }
+            }
+            else
+            {
+#ifdef TE_DEBUG
+                std::cout<<"exist key1 : "<<data1_.get().first<<",";
+#endif                
             }
             if(!data2_)
             {
@@ -164,8 +180,28 @@ class TwoWayTermEnum : public TermEnum<KeyType, ValueType>
                 if(enum2_.next(rdata2))
                 {
                     data2_ = rdata2;
+#ifdef TE_DEBUG
+                    std::cout<<"get key2 : "<<data2_.get().first<<",";
+#endif
+                }
+                else
+                {
+#ifdef TE_DEBUG
+                    std::cout<<"not get key2,";
+#endif
                 }
             }
+            else
+            {
+#ifdef TE_DEBUG
+                std::cout<<"exist key2 : "<<data2_.get().first<<",";
+#endif                
+            }
+#ifdef TE_DEBUG
+            std::cout<<std::endl;
+#endif             
+            
+            
             KeyType key;
             bool select[2];
             select[0] = false;
@@ -185,6 +221,9 @@ class TwoWayTermEnum : public TermEnum<KeyType, ValueType>
                 KeyType& key1 = data1_.get().first;
                 KeyType& key2 = data2_.get().first;
                 int comp = Compare<KeyType>::compare(key1, key2);
+#ifdef TE_DEBUG
+//                 std::cout<<"comp : "<<comp<<std::endl;
+#endif
                 if(comp==0)
                 {
                     select[0] = true;

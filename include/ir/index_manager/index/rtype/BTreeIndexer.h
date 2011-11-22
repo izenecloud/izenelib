@@ -5,6 +5,7 @@
 #include <util/BoostVariantUtil.h>
 #include <am/bitmap/Ewah.h>
 #include <am/luxio/BTree.h>
+#include <am/tc/BTree.h>
 #include <am/range/AmIterator.h>
 #include <ir/index_manager/index/rtype/InMemoryBTreeCache.h>
 #include <ir/index_manager/index/rtype/TermEnum.h>
@@ -42,7 +43,8 @@ class CBTreeIndexer
 {
     typedef CBTreeIndexer<KeyType> ThisType;
     typedef izenelib::am::EWAHBoolArray<uint32_t> ValueType;
-    typedef izenelib::am::luxio::BTree<KeyType, ValueType> DbType;
+//     typedef izenelib::am::luxio::BTree<KeyType, ValueType, Compare<KeyType> > DbType;
+    typedef izenelib::am::tc::BTree<KeyType, ValueType> DbType;
     typedef InMemoryBTreeCache<KeyType, docid_t> CacheType;
     typedef typename CacheType::ValueType CacheValueType;
     
@@ -172,9 +174,6 @@ public:
         {
             if( compare_(kvp.first,key)>=0 ) break;
             docs |= kvp.second;
-#ifdef BT_DEBUG
-            std::cout<<"after this iterator : "<<kvp.first<<","<<docs<<std::endl;
-#endif
         }
         
     }
@@ -199,6 +198,7 @@ public:
         while(term_enum->next(kvp))
         {
             if( compare_(kvp.first,key)==0 ) continue;
+//             std::cout<<"getValueGreat key : "<<kvp.first<<std::endl;
             docs |= kvp.second;
         }
     }
@@ -210,6 +210,7 @@ public:
         std::pair<KeyType, BitVector> kvp;
         while(term_enum->next(kvp))
         {
+//             std::cout<<"getValueGreatEqual key : "<<kvp.first<<std::endl;
             docs |= kvp.second;
         }
     }
@@ -306,6 +307,9 @@ private:
         boost::function<void (const std::pair<KeyType, CacheValueType>&) > func=boost::bind( &ThisType::cacheIterator_, this, _1);
         cache_.iterate(func);
         cache_.clear();
+        std::cout<<"db_ flushing"<<std::endl;
+        db_.flush();
+        std::cout<<"db_ flushed"<<std::endl;
     }
     
     void cacheIterator_(const std::pair<KeyType, CacheValueType>& kvp)
@@ -318,7 +322,16 @@ private:
 #ifdef BT_DEBUG
         std::cout<<"cacheIterator update : "<<kvp.first<<","<<bitmap<<std::endl;
 #endif
-        db_.update(kvp.first, bitmap);
+        std::cout<<"cacheIterator update : "<<kvp.first<<","<<bitmap.numberOfOnes()<<std::endl;
+        if(bitmap.numberOfOnes()>0)
+        {
+            db_.update(kvp.first, bitmap);
+        }
+        else
+        {
+            db_.del(kvp.first);
+        }
+        std::cout<<"cacheIterator update finish"<<std::endl;
     }
     
     bool getDbValue_(const KeyType& key, ValueType& value)
@@ -506,3 +519,4 @@ private:
 NS_IZENELIB_IR_END
 
 #endif /*BTreeIndex_H*/
+

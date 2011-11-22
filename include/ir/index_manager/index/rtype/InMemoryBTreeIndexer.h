@@ -51,6 +51,10 @@ public:
         if(it!=data_.end())
         {
             VectorRemove_(it->second, value_item);
+            if(it->second.empty())
+            {
+                data_.erase(it);
+            }
         }
 //         update_value_(it->second, value_item, false);
     }
@@ -140,6 +144,7 @@ public:
     {
         for(const_iterator it = data_.upper_bound(key); it!=data_.end();++it)
         {
+//             std::cout<<"in memory getValueGreat key : "<<it->first<<std::endl;
             valueToBitVector_(it->second, docs);
         }
     }
@@ -148,6 +153,7 @@ public:
     {
         for(const_iterator it = data_.lower_bound(key); it!=data_.end();++it)
         {
+//             std::cout<<"in memory getValueGreatEqual key : "<<it->first<<std::endl;
             valueToBitVector_(it->second, docs);
         }
     }

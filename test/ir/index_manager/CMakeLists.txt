@@ -14,6 +14,7 @@ LIST(FIND REAL_BUILD_COMPONENTS "index_manager" _indexmanager)
 SET(libs
   ${Glog_LIBRARIES}
   ${Boost_LIBRARIES}
+  ${TokyoCabinet_LIBRARIES}
   febird
   luxio
   am
@@ -100,7 +101,7 @@ TARGET_LINK_LIBRARIES(t_FSIndexInput ${libs})
 
 ADD_EXECUTABLE(r_IndexStats r_IndexStats.cpp)
 
-TARGET_LINK_LIBRARIES(r_IndexStats ${libs} ${TokyoCabinet_LIBRARIES})
+TARGET_LINK_LIBRARIES(r_IndexStats ${libs})
 
 SET(t_btreeindexer_SRC
   rtype/t_BTreeIndexer.cpp
