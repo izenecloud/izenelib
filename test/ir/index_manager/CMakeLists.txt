@@ -103,7 +103,7 @@ ADD_EXECUTABLE(r_IndexStats r_IndexStats.cpp)
 TARGET_LINK_LIBRARIES(r_IndexStats ${libs} ${TokyoCabinet_LIBRARIES})
 
 SET(t_btreeindexer_SRC
-  t_BTreeIndexer.cpp
+  rtype/t_BTreeIndexer.cpp
   t_master_suite.cpp
 )
 

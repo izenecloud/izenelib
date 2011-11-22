@@ -184,7 +184,7 @@ class TwoWayTermEnum : public TermEnum<KeyType, ValueType>
             {
                 KeyType& key1 = data1_.get().first;
                 KeyType& key2 = data2_.get().first;
-                int comp = Compare::compare(key1, key2);
+                int comp = Compare<KeyType>::compare(key1, key2);
                 if(comp==0)
                 {
                     select[0] = true;

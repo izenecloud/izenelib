@@ -115,6 +115,8 @@ public:
 
 private:
     
+    void doFilter_(BitVector& docs);
+    
     void insertType_(const std::string& property_name, const PropertyType& value);
         
 private:

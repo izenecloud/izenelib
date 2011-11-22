@@ -16,6 +16,8 @@
 #include <ir/index_manager/index/LAInput.h>
 #include <ir/index_manager/index/rtype/BTreeIndexer.h>
 
+#include "BTreeTestFramework.h"
+
 using namespace izenelib::ir::indexmanager;
 
 
@@ -71,6 +73,16 @@ void PrintBitVector(const BitVector& docs)
     std::cout<<"final "<<docs<<std::endl;
 }
 
+void check_ustring(const std::string& s1, const std::string& s2, bool start, bool end, bool contains)
+{
+    std::cout<<"check_ustring "<<s1<<","<<s2<<std::endl;
+    izenelib::util::UString u1(s1, izenelib::util::UString::UTF_8);
+    izenelib::util::UString u2(s2, izenelib::util::UString::UTF_8);
+    BOOST_CHECK( Compare<izenelib::util::UString>::start_with(u1, u2) == start );
+    BOOST_CHECK( Compare<izenelib::util::UString>::end_with(u1, u2) == end );
+    BOOST_CHECK( Compare<izenelib::util::UString>::contains(u1, u2) == contains );
+}
+
 BOOST_AUTO_TEST_SUITE( t_BTreeIndexer )
 
 // BOOST_AUTO_TEST_CASE(io_iterator)
@@ -80,6 +92,16 @@ BOOST_AUTO_TEST_SUITE( t_BTreeIndexer )
 //     typedef izenelib::am::AMIterator<DbType> ForwardIterator;
 //     
 // }
+
+
+
+BOOST_AUTO_TEST_CASE(ustring)
+{
+    check_ustring("abcdefg", "abc", true, false, true);
+    check_ustring("wqert", "abc", false, false, false);
+    check_ustring("abc", "abcd", false, false, false);
+    check_ustring("asd123", "123", false, true, true);
+}
 
 BOOST_AUTO_TEST_CASE(simple)
 {
@@ -122,4 +144,17 @@ BOOST_AUTO_TEST_CASE(simple)
     bt.close();
 }
 
+BOOST_AUTO_TEST_CASE(framework)
+{
+    DirController dir("./t_bt_framework");
+    
+    BTreeTestRunner<uint32_t> runner(dir.path()+"/test");
+    runner.start();
+    
+}
+
+
+
 BOOST_AUTO_TEST_SUITE_END()
+
+

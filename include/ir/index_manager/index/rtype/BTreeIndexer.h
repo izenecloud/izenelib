@@ -77,19 +77,6 @@ public:
         db_.close();
     }
     
-    bool seek(const KeyType& key)
-    {
-        boost::shared_lock<boost::shared_mutex> lock(mutex_);
-        ValueType value;
-        return getValue_(key, value);
-    }
-
-    void getNoneEmptyList(const KeyType& key, BitVector& docs)
-    {
-        boost::shared_lock<boost::shared_mutex> lock(mutex_);
-        getValue_(key, docs);
-    }
-
     void add(const KeyType& key, docid_t docid)
     {
         boost::lock_guard<boost::shared_mutex> lock(mutex_);
@@ -104,6 +91,19 @@ public:
         cache_.remove(key, docid);
         checkCache_();
         
+    }
+    
+    bool seek(const KeyType& key)
+    {
+        boost::shared_lock<boost::shared_mutex> lock(mutex_);
+        ValueType value;
+        return getValue_(key, value);
+    }
+
+    void getNoneEmptyList(const KeyType& key, BitVector& docs)
+    {
+        boost::shared_lock<boost::shared_mutex> lock(mutex_);
+        getValue_(key, docs);
     }
 
     void getValue(const KeyType& key, BitVector& docs)
@@ -221,7 +221,8 @@ public:
         std::pair<izenelib::util::UString, BitVector> kvp;
         while(term_enum->next(kvp))
         {
-            if(kvp.first.find(key)!=0) break;
+            if(!Compare<izenelib::util::UString>::start_with(kvp.first, key)) break;
+//             if(kvp.first.find(key)!=0) break;
             docs |= kvp.second;
         }
     }
@@ -232,9 +233,7 @@ public:
         std::pair<izenelib::util::UString, BitVector> kvp;
         while(term_enum->next(kvp))
         {
-            if( kvp.first.length()<key.length() ) continue;
-            std::size_t c = kvp.first.length()-key.length();
-            if(kvp.first.rfind(key)!=c) continue;
+            if(!Compare<izenelib::util::UString>::end_with(kvp.first, key)) continue;
             docs |= kvp.second;
         }
     }
@@ -245,8 +244,7 @@ public:
         std::pair<izenelib::util::UString, BitVector> kvp;
         while(term_enum->next(kvp))
         {
-            if( kvp.first.length()<key.length() ) continue;
-            if(kvp.first.find(key)==izenelib::util::UString::npos) continue;
+            if(!Compare<izenelib::util::UString>::contains(kvp.first, key)) continue;
             docs |= kvp.second;
         }
     }
@@ -266,7 +264,7 @@ private:
     template<typename T>
     static int compare_(const T& t1, const T& t2)
     {
-        return Compare::compare(t1, t2);
+        return Compare<T>::compare(t1, t2);
     }
     
     

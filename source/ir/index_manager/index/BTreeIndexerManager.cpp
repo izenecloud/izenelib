@@ -18,18 +18,14 @@ BTreeIndexerManager::~BTreeIndexerManager()
     }
 }
 
-
-bool BTreeIndexerManager::seek(const std::string& property_name, const PropertyType& key)
+void BTreeIndexerManager::doFilter_(BitVector& docs)
 {
-    bool find = false;
-    izenelib::util::boost_variant_visit(boost::bind(mseek_visitor(), this, property_name, _1, boost::ref(find)), key);
-    return find;
+    if ( pFilter_&& pFilter_->any() )
+    {
+        docs.logicalNotAnd(*pFilter_);
+    }
 }
 
-void BTreeIndexerManager::getNoneEmptyList(const std::string& property_name, const PropertyType& key, BitVector& docs)
-{
-    getValue(property_name, key, docs);
-}
 
 void BTreeIndexerManager::add(const std::string& property_name, const PropertyType& key, docid_t docid)
 {
@@ -67,9 +63,24 @@ void BTreeIndexerManager::flush()
     
 }
 
+
+bool BTreeIndexerManager::seek(const std::string& property_name, const PropertyType& key)
+{
+    bool find = false;
+    izenelib::util::boost_variant_visit(boost::bind(mseek_visitor(), this, property_name, _1, boost::ref(find)), key);
+    return find;
+}
+
+void BTreeIndexerManager::getNoneEmptyList(const std::string& property_name, const PropertyType& key, BitVector& docs)
+{
+    getValue(property_name, key, docs);
+    doFilter_(docs);
+}
+
 void BTreeIndexerManager::getValue(const std::string& property_name, const PropertyType& key, BitVector& docs)
 {
     izenelib::util::boost_variant_visit(boost::bind(mget_visitor(), this, property_name, _1, boost::ref(docs)), key);
+    doFilter_(docs);
 }
 
 void BTreeIndexerManager::getValue(const std::string& property_name, const PropertyType& key, std::vector<docid_t>& docList)
@@ -88,27 +99,32 @@ void BTreeIndexerManager::getValue(const std::string& property_name, const Prope
 void BTreeIndexerManager::getValueBetween(const std::string& property_name, const PropertyType& key1, const PropertyType& key2, BitVector& docs)
 {
     izenelib::util::boost_variant_visit(boost::bind(mbetween_visitor(), this, property_name, _1, _2, boost::ref(docs)), key1, key2);
+    doFilter_(docs);
 }
 
 void BTreeIndexerManager::getValueLess(const std::string& property_name, const PropertyType& key, BitVector& docs)
 {
     izenelib::util::boost_variant_visit(boost::bind(mless_visitor(), this, property_name, _1, boost::ref(docs)), key);
+    doFilter_(docs);
     
 }
 
 void BTreeIndexerManager::getValueLessEqual(const std::string& property_name, const PropertyType& key, BitVector& docs)
 {
     izenelib::util::boost_variant_visit(boost::bind(mless_equal_visitor(), this, property_name, _1, boost::ref(docs)), key);
+    doFilter_(docs);
 }
 
 void BTreeIndexerManager::getValueGreat(const std::string& property_name, const PropertyType& key, BitVector& docs)
 {
     izenelib::util::boost_variant_visit(boost::bind(mgreat_visitor(), this, property_name, _1, boost::ref(docs)), key);
+    doFilter_(docs);
 }
 
 void BTreeIndexerManager::getValueGreatEqual(const std::string& property_name, const PropertyType& key, BitVector& docs)
 {
     izenelib::util::boost_variant_visit(boost::bind(mgreat_equal_visitor(), this, property_name, _1, boost::ref(docs)), key);
+    doFilter_(docs);
 }
 
 void BTreeIndexerManager::getValueIn(const std::string& property_name, const std::vector<PropertyType>& keys, BitVector& docs)
@@ -125,26 +141,31 @@ void BTreeIndexerManager::getValueNotIn(const std::string& property_name, const 
 {
     getValueIn(property_name, keys, docs);
     docs.toggle();
+    doFilter_(docs);
 }
 
 void BTreeIndexerManager::getValueNotEqual(const std::string& property_name, const PropertyType& key, BitVector& docs)
 {
     getValue(property_name, key, docs);
     docs.toggle();
+    doFilter_(docs);
 }
 
 void BTreeIndexerManager::getValueStart(const std::string& property_name, const PropertyType& key, BitVector& docs)
 {
     izenelib::util::boost_variant_visit(boost::bind(mstart_equal_visitor(), this, property_name, _1, boost::ref(docs)), key);
+    doFilter_(docs);
 }
 
 void BTreeIndexerManager::getValueEnd(const std::string& property_name, const PropertyType& key, BitVector& docs)
 {
     izenelib::util::boost_variant_visit(boost::bind(mend_equal_visitor(), this, property_name, _1, boost::ref(docs)), key);
+    doFilter_(docs);
 }
 
 void BTreeIndexerManager::getValueSubString(const std::string& property_name, const PropertyType& key, BitVector& docs)
 {
-//     izenelib::util::boost_variant_visit(boost::bind(msub_string_visitor(), this, property_name, _1, boost::ref(docs)), key);
+    izenelib::util::boost_variant_visit(boost::bind(msub_string_visitor(), this, property_name, _1, boost::ref(docs)), key);
+    doFilter_(docs);
 }
 

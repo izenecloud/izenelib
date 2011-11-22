@@ -163,6 +163,19 @@ public:
             bits_[i] &= b.bits_[i];
         return *this;
     }
+    
+    bool operator==(const BitVector& b)
+    {
+        if(size()!=b.size())
+        {
+            return false;
+        }
+        for(std::size_t i=0;i<size();i++)
+        {
+            if(test(i)!=b.test(i)) return false;
+        }
+        return true;
+    }
 
     BitVector& operator|=(const BitVector& b)
     {

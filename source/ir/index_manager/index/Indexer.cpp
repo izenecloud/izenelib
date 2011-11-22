@@ -579,7 +579,7 @@ bool Indexer::getDocsByPropertyValueRange(collectionid_t colID, string property,
 {
     BOOST_ASSERT(pConfigurationManager_->indexStrategy_.isIndexBTree_);
 //     fieldid_t fid = getPropertyIDByName(colID,property);
-//     pBTreeIndexer_->getValueBetween(colID, fid, value1, value2, docs);
+    pBTreeIndexer_->getValueBetween(property, value1, value2, docs);
     return true;
 }
 
@@ -587,7 +587,7 @@ bool Indexer::getDocsByPropertyValueLessThan(collectionid_t colID, string proper
 {
     BOOST_ASSERT(pConfigurationManager_->indexStrategy_.isIndexBTree_);
 //     fieldid_t fid = getPropertyIDByName(colID,property);
-//     pBTreeIndexer_->getValueLess(colID, fid, value, docList);
+    pBTreeIndexer_->getValueLess(property, value, docList);
     return true;
 }
 
@@ -595,7 +595,7 @@ bool Indexer::getDocsByPropertyValueLessThanOrEqual(collectionid_t colID, string
 {
     BOOST_ASSERT(pConfigurationManager_->indexStrategy_.isIndexBTree_);
 //     fieldid_t fid = getPropertyIDByName(colID,property);
-//     pBTreeIndexer_->getValueLessEqual(colID, fid, value, docList);
+    pBTreeIndexer_->getValueLessEqual(property, value, docList);
     return true;
 }
 
@@ -603,7 +603,7 @@ bool Indexer::getDocsByPropertyValueGreaterThan(collectionid_t colID, string pro
 {
     BOOST_ASSERT(pConfigurationManager_->indexStrategy_.isIndexBTree_);
 //     fieldid_t fid = getPropertyIDByName(colID,property);
-//     pBTreeIndexer_->getValueGreat(colID, fid, value, docList);
+    pBTreeIndexer_->getValueGreat(property, value, docList);
     return true;
 }
 
@@ -611,7 +611,7 @@ bool Indexer::getDocsByPropertyValueGreaterThanOrEqual(collectionid_t colID, str
 {
     BOOST_ASSERT(pConfigurationManager_->indexStrategy_.isIndexBTree_);
 //     fieldid_t fid = getPropertyIDByName(colID,property);
-//     pBTreeIndexer_->getValueGreatEqual(colID, fid, value, docList);
+    pBTreeIndexer_->getValueGreatEqual(property, value, docList);
     return true;
 }
 
@@ -619,7 +619,7 @@ bool Indexer::getDocsByPropertyValueIn(collectionid_t colID, string property, ve
 {
     BOOST_ASSERT(pConfigurationManager_->indexStrategy_.isIndexBTree_);
 //     fieldid_t fid = getPropertyIDByName(colID,property);
-//     pBTreeIndexer_->getValueIn(colID, fid, values, docList);
+    pBTreeIndexer_->getValueIn(property, values, docList);
     return true;
 }
 
@@ -627,7 +627,7 @@ bool Indexer::getDocsByPropertyValueNotIn(collectionid_t colID, string property,
 {
     BOOST_ASSERT(pConfigurationManager_->indexStrategy_.isIndexBTree_);
 //     fieldid_t fid = getPropertyIDByName(colID,property);
-//     pBTreeIndexer_->getValueNotIn(colID, fid, values, docList);
+    pBTreeIndexer_->getValueNotIn(property, values, docList);
     return true;
 }
 
@@ -635,7 +635,7 @@ bool Indexer::getDocsByPropertyValueNotEqual(collectionid_t colID, string proper
 {
     BOOST_ASSERT(pConfigurationManager_->indexStrategy_.isIndexBTree_);
 //     fieldid_t fid = getPropertyIDByName(colID,property);
-//     pBTreeIndexer_->getValueNotEqual(colID, fid, value, docList);
+    pBTreeIndexer_->getValueNotEqual(property, value, docList);
     return true;
 }
 
@@ -643,7 +643,7 @@ bool Indexer::getDocsByPropertyValueStart(collectionid_t colID, string property,
 {
     BOOST_ASSERT(pConfigurationManager_->indexStrategy_.isIndexBTree_);
 //     fieldid_t fid = getPropertyIDByName(colID,property);
-//     pBTreeIndexer_->getValueStart(colID, fid, value, docList);
+    pBTreeIndexer_->getValueStart(property, value, docList);
     return true;
 }
 
@@ -651,7 +651,7 @@ bool Indexer::getDocsByPropertyValueEnd(collectionid_t colID, string property, P
 {
     BOOST_ASSERT(pConfigurationManager_->indexStrategy_.isIndexBTree_);
 //     fieldid_t fid = getPropertyIDByName(colID,property);
-//     pBTreeIndexer_->getValueEnd(colID, fid, value, docList);
+    pBTreeIndexer_->getValueEnd(property, value, docList);
     return true;
 }
 
@@ -659,7 +659,7 @@ bool Indexer::getDocsByPropertyValueSubString(collectionid_t colID, string prope
 {
     BOOST_ASSERT(pConfigurationManager_->indexStrategy_.isIndexBTree_);
 //     fieldid_t fid = getPropertyIDByName(colID,property);
-//     pBTreeIndexer_->getValueSubString(colID, fid, value, docList);
+    pBTreeIndexer_->getValueSubString(property, value, docList);
     return true;
 }
 
