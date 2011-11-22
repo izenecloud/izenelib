@@ -7,7 +7,6 @@
 #ifndef COLLECTIONINDEXER_H
 #define COLLECTIONINDEXER_H
 
-#include <ir/index_manager/index/BTreeIndex.h>
 #include <ir/index_manager/index/FieldIndexer.h>
 #include <ir/index_manager/index/FieldInfo.h>
 #include <ir/index_manager/index/OutputDescriptor.h>

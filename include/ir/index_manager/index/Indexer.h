@@ -9,7 +9,6 @@
 #define INDEXER_H
 
 
-#include <ir/index_manager/index/BTreeIndex.h>
 #include <ir/index_manager/utility/IndexManagerConfig.h>
 
 #include <ir/index_manager/index/CommonItem.h>
