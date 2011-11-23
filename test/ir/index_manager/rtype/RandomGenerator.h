@@ -2,6 +2,7 @@
 #define IZENELIB_IR_RANDOMGENERATOR_H_
 #include <boost/random/mersenne_twister.hpp>
 #include <boost/random/uniform_int.hpp>
+#include <boost/random/uniform_real.hpp>
 
 template <class T>
 class RandomGenerator
@@ -17,8 +18,31 @@ public:
     
     static void Gen(T& value)
     {
+        T min = std::numeric_limits<T>::min();
         T max = std::numeric_limits<T>::max();
-        Gen(1, max, value);
+        Gen(min, max, value);
+    }
+    
+};
+
+
+template <>
+class RandomGenerator<double>
+{
+public:
+    typedef double T;
+    static void Gen(const T& low, const T& high, T& value)
+    {
+        static boost::mt19937 gen;
+        boost::uniform_real<> dist(low, high);
+        value = dist(gen);
+    }
+    
+    static void Gen(T& value)
+    {
+        T max = std::numeric_limits<T>::max();
+        T min = std::numeric_limits<T>::min();
+        Gen(min, max, value);
     }
     
 };

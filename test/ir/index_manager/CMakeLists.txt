@@ -17,6 +17,7 @@ SET(libs
   ${TokyoCabinet_LIBRARIES}
   febird
   luxio
+  leveldb
   am
   index_manager
   izene_util

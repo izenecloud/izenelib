@@ -5,7 +5,8 @@
 #include <boost/thread/shared_mutex.hpp>
 #include <boost/thread/locks.hpp>
 #include <3rdparty/am/stx/btree_map.h>
-
+#include <ir/index_manager/utility/BitVector.h>
+#include <boost/dynamic_bitset.hpp>
 // #define BTCACHE_DEBUG
 
 NS_IZENELIB_IR_BEGIN
@@ -18,42 +19,39 @@ class InMemoryBTreeCache
 public:
     struct ValueType
     {
-        typedef std::vector<ValueItemType> InsertVectorType;
-        typedef std::vector<ValueItemType> DeleteVectorType;
-        typedef std::vector<ValueItemType> UpdateVectorType;
-        typedef typename InsertVectorType::iterator InsertVectorIteratorType;
-        typedef typename DeleteVectorType::iterator DeleteVectorIteratorType;
-        typedef typename UpdateVectorType::iterator UpdateVectorIteratorType;
-        typedef typename InsertVectorType::const_iterator InsertVectorConstIteratorType;
-        typedef typename DeleteVectorType::const_iterator DeleteVectorConstIteratorType;
-        typedef typename UpdateVectorType::const_iterator UpdateVectorConstIteratorType;
-
-        InsertVectorType insert_item;//should be ordered, and larger than current
-        DeleteVectorType delete_item;
-        UpdateVectorType update_item;//similar to insert_item but not ordered.
+        typedef std::vector<ValueItemType> VectorType;
+        typedef boost::dynamic_bitset<> FlagType;
+        
+        typedef typename VectorType::iterator VectorIteratorType;
+        
+        typedef typename VectorType::const_iterator VectorConstIteratorType;
+        
+        
+        VectorType item;
+        FlagType flag;
+        
+        
+        void add(const ValueItemType& item_value, bool iorr)
+        {
+//             std::size_t index = item.size();
+//             if(iorr)
+//             {
+//                 flag.set(index);
+//             }
+//             else
+//             {
+//                 flag.clear(index);
+//             }
+            
+            item.push_back(item_value);
+            flag.push_back(iorr);
+            
+        }
         
         friend std::ostream& operator<<(std::ostream& output, const ValueType& v) {
-            output<<"[I] ";
-            ///TOBEMODIFIED
-            InsertVectorIteratorType IIt = v.insert_item.begin();
-            InsertVectorIteratorType IEnd = v.insert_item.end();
-            for(;IIt !=IEnd;++IIt)
+            for(std::size_t i=0;i<v.item.size();i++)
             {
-                output<<*IIt<<",";
-            }
-            output<<"[D] ";
-            DeleteVectorIteratorType DIt = v.delete_item.begin();
-            DeleteVectorIteratorType DEnd = v.delete_item.end();
-            for(;DIt != DEnd;++DIt)
-            {
-                output<<*DIt<<",";
-            }
-            output<<"[U] ";
-            UpdateVectorIteratorType UIt = v.update_item.begin();
-            UpdateVectorIteratorType UEnd = v.update_item.end();
-            for(;UIt != UEnd;UIt++)
-            {
-                output<<*UIt<<",";
+                output<<v.item[i]<<":"<<(int)v.flag.test(i)<<",";
             }
             return output;
         }
@@ -90,40 +88,11 @@ public:
         {
             it = data_.insert(std::make_pair(key, ValueType())).first;
         }
-        bool ordered = false;
-        if(it.data().insert_item.size()>0)
-        {
-            if( it.data().insert_item.back()<value_item )
-            {
-                it.data().insert_item.push_back(value_item);
-                ordered = true;
-            }
-        }
-        else
-        {
-            it.data().insert_item.push_back(value_item);
-            ordered = true;
-        }
-        if(!ordered)
-        {
-            it.data().update_item.push_back(value_item);
-        }
+        it.data().add(value_item, 1);
+
         //expand the capacity
         ++capacity_;
         
-#ifdef BTCACHE_DEBUG
-        
-        typename AMType::iterator fit = data_.find(key);
-        if(fit==data_.end())
-        {
-            std::cout<<"!!error"<<std::endl;
-        }
-        else
-        {
-            std::cout<<"fit : "<<fit->first<<","<<fit->second<<std::endl;
-        }
-        
-#endif
     }
     
     void remove(const KeyType& key, const ValueItemType& value_item)
@@ -139,7 +108,7 @@ public:
         {
             it = data_.insert(std::make_pair(key, ValueType())).first;
         }
-        it.data().delete_item.push_back(value_item);
+        it.data().add(value_item, 0);
         //expand the capacity
         ++capacity_;
     }

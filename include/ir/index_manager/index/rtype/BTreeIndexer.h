@@ -6,6 +6,7 @@
 #include <am/bitmap/Ewah.h>
 #include <am/luxio/BTree.h>
 #include <am/tc/BTree.h>
+#include <am/leveldb/Table.h>
 #include <am/range/AmIterator.h>
 #include <ir/index_manager/index/rtype/InMemoryBTreeCache.h>
 #include <ir/index_manager/index/rtype/TermEnum.h>
@@ -44,7 +45,8 @@ class CBTreeIndexer
     typedef CBTreeIndexer<KeyType> ThisType;
     typedef izenelib::am::EWAHBoolArray<uint32_t> ValueType;
 //     typedef izenelib::am::luxio::BTree<KeyType, ValueType, Compare<KeyType> > DbType;
-    typedef izenelib::am::tc::BTree<KeyType, ValueType> DbType;
+//     typedef izenelib::am::tc::BTree<KeyType, ValueType> DbType;
+    typedef izenelib::am::leveldb::Table<KeyType, ValueType> DbType;
     typedef InMemoryBTreeCache<KeyType, docid_t> CacheType;
     typedef typename CacheType::ValueType CacheValueType;
     
@@ -72,6 +74,7 @@ public:
     bool open()
     {
         return db_.open(path_);
+//         return db_.open(path_, DbType::WRITER | DbType::CREAT | DbType::NOLCK);
     }
     
     void close()
@@ -254,7 +257,11 @@ public:
     {
         boost::lock_guard<boost::shared_mutex> lock(mutex_);
         cacheClear_();
+        
+        std::cout<<"db_ flushing"<<std::endl;
         db_.flush();
+        std::cout<<"db_ flushed"<<std::endl;
+        
     }
 
     
@@ -307,31 +314,32 @@ private:
         boost::function<void (const std::pair<KeyType, CacheValueType>&) > func=boost::bind( &ThisType::cacheIterator_, this, _1);
         cache_.iterate(func);
         cache_.clear();
-        std::cout<<"db_ flushing"<<std::endl;
-        db_.flush();
-        std::cout<<"db_ flushed"<<std::endl;
     }
     
     void cacheIterator_(const std::pair<KeyType, CacheValueType>& kvp)
     {
-        ValueType bitmap;
+        ValueType value;
 #ifdef BT_DEBUG
         std::cout<<"cacheIterator : "<<kvp.first<<","<<kvp.second<<std::endl;
 #endif
-        getValue_(kvp.first, kvp.second, bitmap);
+        getDbValue_(kvp.first, value);
+        applyCacheValue_(value, kvp.second);
 #ifdef BT_DEBUG
-        std::cout<<"cacheIterator update : "<<kvp.first<<","<<bitmap<<std::endl;
+        std::cout<<"cacheIterator update : "<<kvp.first<<","<<value<<std::endl;
+        std::cout<<"cacheIterator update count: "<<kvp.first<<","<<value.numberOfOnes()<<std::endl;
 #endif
-        std::cout<<"cacheIterator update : "<<kvp.first<<","<<bitmap.numberOfOnes()<<std::endl;
-        if(bitmap.numberOfOnes()>0)
+        if(value.numberOfOnes()>0)
         {
-            db_.update(kvp.first, bitmap);
+            db_.update(kvp.first, value);
         }
         else
         {
+//             db_.update(kvp.first, bitmap);
             db_.del(kvp.first);
         }
+#ifdef BT_DEBUG
         std::cout<<"cacheIterator update finish"<<std::endl;
+#endif
     }
     
     bool getDbValue_(const KeyType& key, ValueType& value)
@@ -352,7 +360,7 @@ private:
         if(!b_db && !b_cache) return false;
         if(b_cache)
         {
-            setCacheValue_(bitmap, cache_value);
+            applyCacheValue_(bitmap, cache_value);
         }
         return true;
     }
@@ -365,27 +373,16 @@ private:
         return true;
     }
     
-    void getValue_(const KeyType& key, const CacheValueType& cacheValue, ValueType& value)
-    {
-        getDbValue_(key, value);
-#ifdef BT_DEBUG
-        std::cout<<"after getDbValue : "<<key<<","<<value<<std::endl;
-#endif
-        setCacheValue_(value, cacheValue);
-#ifdef BT_DEBUG
-        std::cout<<"after setCacheValue : "<<key<<","<<value<<std::endl;
-#endif
-    }
     
     /// the dbValue already got before
-    void getValue2_(const KeyType& key, ValueType& dbValue)
-    {
-        CacheValueType cacheValue;
-        if(getCacheValue_(key, cacheValue))
-        {
-            setCacheValue_(dbValue, cacheValue);
-        }
-    }
+//     void getValue2_(const KeyType& key, ValueType& dbValue)
+//     {
+//         CacheValueType cacheValue;
+//         if(getCacheValue_(key, cacheValue))
+//         {
+//             setCacheValue_(dbValue, cacheValue);
+//         }
+//     }
     
     static void decompress_(const ValueType& compressed, BitVector& value)
     {
@@ -402,65 +399,7 @@ private:
         value.compressed(compressed);
     }
     
-    static void setCacheValue_(ValueType& bitmap, const CacheValueType& cacheValue)
-    {
-        bool need_decompress = false;
-        if(cacheValue.delete_item.size()>0 || cacheValue.update_item.size()>0 )
-        {
-            need_decompress = true;
-        }
-#ifdef BT_DEBUG
-        std::cout<<"need_decompress : "<<(int)need_decompress<<std::endl;
-#endif        
-        if(!need_decompress)
-        {
-            typename CacheValueType::InsertVectorConstIteratorType IIt = cacheValue.insert_item.begin();
-            typename CacheValueType::InsertVectorConstIteratorType IEnd = cacheValue.insert_item.end();
-            for(;IIt !=IEnd;++IIt)
-            {
-#ifdef BT_DEBUG
-                std::cout<<"bitmap : "<<bitmap<<" , add "<<*IIt<<std::endl;
-#endif   
-                bitmap.set(*IIt);
-#ifdef BT_DEBUG
-                std::cout<<"bitmap : "<<bitmap<<std::endl;
-                izenelib::am::BoolArray<uint32_t> boolArray;
-                bitmap.toBoolArray(boolArray);
-                boolArray.printout(std::cout);
-#endif   
-            }
-        }
-        else
-        {
-            BitVector value;
-            decompress_(bitmap, value);
-
-            ///TOBEMODIFIED
-            typename CacheValueType::InsertVectorConstIteratorType IIt = cacheValue.insert_item.begin();
-            typename CacheValueType::InsertVectorConstIteratorType IEnd = cacheValue.insert_item.end();
-            for(;IIt !=IEnd;++IIt)
-            {
-                value.set(*IIt);
-            }
-			
-            typename CacheValueType::DeleteVectorConstIteratorType DIt = cacheValue.delete_item.begin();
-            typename CacheValueType::DeleteVectorConstIteratorType DEnd = cacheValue.delete_item.end();
-            for(;DIt != DEnd;++DIt)
-            {
-                value.clear(*DIt);
-            }
-			
-            typename CacheValueType::UpdateVectorConstIteratorType UIt = cacheValue.update_item.begin();
-            typename CacheValueType::UpdateVectorConstIteratorType UEnd = cacheValue.update_item.end();
-            for(;UIt != UEnd;++UIt)
-            {
-                value.set(*UIt);
-            }
-
-            bitmap.reset();
-            compress_(value, bitmap);
-        }
-    }
+    
     
     static void combineValue_(const CacheValueType& cacheValue, const ValueType& cbitmap, BitVector& result)
     {
@@ -476,32 +415,38 @@ private:
         std::cout<<result<<std::endl;
         std::cout<<cacheValue<<std::endl;
 #endif
-        ///TOBEMODIFIED
-        typename CacheValueType::InsertVectorConstIteratorType IIt = cacheValue.insert_item.begin();
-        typename CacheValueType::InsertVectorConstIteratorType IEnd = cacheValue.insert_item.end();
-        for(;IIt !=IEnd;++IIt)
-        {
-            result.set(*IIt);
-         }
-
-        typename CacheValueType::DeleteVectorConstIteratorType DIt = cacheValue.delete_item.begin();
-        typename CacheValueType::DeleteVectorConstIteratorType DEnd = cacheValue.delete_item.end();
-        for(;DIt != DEnd;++DIt)
-        {
-            result.clear(*DIt);
-        }
-
-        typename CacheValueType::UpdateVectorConstIteratorType UIt = cacheValue.update_item.begin();
-        typename CacheValueType::UpdateVectorConstIteratorType UEnd = cacheValue.update_item.end();
-        for(;UIt != UEnd;++UIt)
-        {
-            result.set(*UIt);
-        }
+        applyCacheValue_(result, cacheValue);
 
 #ifdef BT_DEBUG
         std::cout<<"after combine"<<std::endl;
         std::cout<<result<<std::endl;
 #endif
+    }
+    
+    static void applyCacheValue_(ValueType& value, const CacheValueType& cacheValue)
+    {
+        BitVector docs;
+        decompress_(value, docs);
+        
+        applyCacheValue_(docs, cacheValue);
+        value.reset();
+        compress_(docs, value);
+        
+    }
+    
+    static void applyCacheValue_(BitVector& value, const CacheValueType& cacheValue)
+    {
+        for(std::size_t i=0;i<cacheValue.item.size();i++)
+        {
+            if(cacheValue.flag.test(i))
+            {
+                value.set(cacheValue.item[i]);
+            }
+            else
+            {
+                value.clear(cacheValue.item[i]);
+            }
+        }
     }
     
 private:

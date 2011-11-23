@@ -154,29 +154,47 @@ public:
         switch (func_num) 
         {
             case 0:
+#ifdef TEST_DEBUG
+                std::cout<<"seek "<<key<<std::endl;
+#endif                
                 result = indexer.seek(key) == ref.seek(key);
                 break;
             case 1:
+#ifdef TEST_DEBUG
+                std::cout<<"getValue "<<key<<std::endl;
+#endif                
                 indexer.getValue(key, docs1);
                 ref.getValue(key, docs2);
                 result = docs1.equal_ignore_size(docs2);
                 break;
             case 2:
+#ifdef TEST_DEBUG
+                std::cout<<"getValueLess "<<key<<std::endl;
+#endif
                 indexer.getValueLess(key, docs1);
                 ref.getValueLess(key, docs2);
                 result = docs1.equal_ignore_size(docs2);
                 break;
             case 3:
+#ifdef TEST_DEBUG
+                std::cout<<"getValueLessEqual "<<key<<std::endl;
+#endif
                 indexer.getValueLessEqual(key, docs1);
                 ref.getValueLessEqual(key, docs2);
                 result = docs1.equal_ignore_size(docs2);
                 break;
             case 4:
+#ifdef TEST_DEBUG
+                std::cout<<"getValueGreat "<<key<<std::endl;
+#endif
                 indexer.getValueGreat(key, docs1);
                 ref.getValueGreat(key, docs2);
                 result = docs1.equal_ignore_size(docs2);
                 break;
             case 5:
+#ifdef TEST_DEBUG
+                std::cout<<"getValueGreatEqual "<<key<<std::endl;
+#endif
                 indexer.getValueGreatEqual(key, docs1);
                 ref.getValueGreatEqual(key, docs2);
                 result = docs1.equal_ignore_size(docs2);
@@ -185,22 +203,34 @@ public:
             {
                 KeyType key2;
                 RandomGenerator<KeyType>::Gen(key2);
+#ifdef TEST_DEBUG
+                std::cout<<"getValueBetween "<<key<<","<<key2<<std::endl;
+#endif
                 indexer.getValueBetween(key, key2, docs1);
                 ref.getValueBetween(key, key2, docs2);
                 result = docs1.equal_ignore_size(docs2);
             }
                 break;
             case 7:
+#ifdef TEST_DEBUG
+                std::cout<<"getValueStart "<<key<<std::endl;
+#endif
                 indexer.getValueStart(key, docs1);
                 ref.getValueStart(key, docs2);
                 result = docs1.equal_ignore_size(docs2);
                 break;
             case 8:
+#ifdef TEST_DEBUG
+                std::cout<<"getValueEnd "<<key<<std::endl;
+#endif
                 indexer.getValueEnd(key, docs1);
                 ref.getValueEnd(key, docs2);
                 result = docs1.equal_ignore_size(docs2);
                 break;
             case 9:
+#ifdef TEST_DEBUG
+                std::cout<<"getValueSubString "<<key<<std::endl;
+#endif                
                 indexer.getValueSubString(key, docs1);
                 ref.getValueSubString(key, docs2);
                 result = docs1.equal_ignore_size(docs2);
@@ -208,6 +238,15 @@ public:
             default:
                 result = false;
         }
+#ifdef TEST_DEBUG
+        if(!result)
+        {
+            std::cout<<"failed reason:"<<std::endl;
+            std::cout<<docs1<<std::endl;
+            std::cout<<docs2<<std::endl;
+        }
+#endif
+        std::cout<<"[docs count]"<<docs1.count()<<","<<docs2.count()<<std::endl;
         return result;
     }
     

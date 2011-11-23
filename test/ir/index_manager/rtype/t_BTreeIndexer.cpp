@@ -144,11 +144,29 @@ BOOST_AUTO_TEST_CASE(simple)
     bt.close();
 }
 
-BOOST_AUTO_TEST_CASE(framework)
+BOOST_AUTO_TEST_CASE(framework_int)
 {
-    DirController dir("./t_bt_framework");
+    DirController dir("./t_bt_framework_int");
     
     BTreeTestRunner<uint32_t> runner(dir.path()+"/test");
+    runner.start();
+    
+}
+
+BOOST_AUTO_TEST_CASE(framework_double)
+{
+    DirController dir("./t_bt_framework_double");
+    
+    BTreeTestRunner<double> runner(dir.path()+"/test");
+    runner.start();
+    
+}
+
+BOOST_AUTO_TEST_CASE(framework_str)
+{
+    DirController dir("./t_bt_framework_str");
+    
+    BTreeTestRunner<izenelib::util::UString> runner(dir.path()+"/test");
     runner.start();
     
 }
