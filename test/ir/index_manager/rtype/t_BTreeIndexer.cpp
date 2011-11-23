@@ -28,6 +28,10 @@ class DirController
         :dir_(dir)
         {
             boost::filesystem::remove_all(dir_);
+            if( boost::filesystem::exists(dir_) )
+            {
+                throw std::runtime_error("dir not deleted");
+            }
             boost::filesystem::create_directories(dir_);
         }
         
@@ -93,7 +97,34 @@ BOOST_AUTO_TEST_SUITE( t_BTreeIndexer )
 //     
 // }
 
+BOOST_AUTO_TEST_CASE(bitvector)
+{
+    BitVector bv;
+    bv.clear(37);
+    bv.set(31);
+    
+    izenelib::am::EWAHBoolArray<uint32_t> compressed;
+    bv.compressed(compressed);
+    std::cout<<compressed<<std::endl;
+}
 
+BOOST_AUTO_TEST_CASE(compare)
+{
+    BOOST_CHECK( Compare<uint32_t>::compare(1, 2)==-1 );
+    BOOST_CHECK( Compare<uint32_t>::compare(2, 2)==0 );
+    BOOST_CHECK( Compare<uint32_t>::compare(3, 2)==1 );
+    Compare<uint32_t> comp;
+    BOOST_CHECK( comp(3, 2)==false );
+    BOOST_CHECK( comp(2, 2)==false );
+    BOOST_CHECK( comp(1, 2)==true );
+    
+    //compare functor gives opposite result
+    izenelib::am::CompareFunctor<uint32_t> compf;
+    BOOST_CHECK( compf(3, 2)>0 );
+    BOOST_CHECK( compf(2, 2)==0 );
+    BOOST_CHECK( compf(1, 2)<0 );
+    
+}
 
 BOOST_AUTO_TEST_CASE(ustring)
 {
@@ -174,5 +205,7 @@ BOOST_AUTO_TEST_CASE(framework_str)
 
 
 BOOST_AUTO_TEST_SUITE_END()
+
+
 
 

@@ -27,8 +27,10 @@
 #include <algorithm>
 #include <string>
 
+// #define CACHE_DEBUG
 // #define BT_DEBUG
-#define BT_INFO
+// #define BT_INFO
+// #define DOCS_INFO
 
 NS_IZENELIB_IR_BEGIN
 
@@ -157,6 +159,9 @@ public:
 
     void getValueBetween(const KeyType& key1, const KeyType& key2, BitVector& docs)
     {
+#ifdef DOCS_INFO
+        std::cout<<"[start] "<<docs<<std::endl;
+#endif
         if( compare_(key1,key2)>0 ) return;
         boost::shared_lock<boost::shared_mutex> lock(mutex_);
         std::auto_ptr<BaseEnumType> term_enum(getEnum_(key1));
@@ -165,11 +170,18 @@ public:
         {
             if( compare_(kvp.first,key2)>0 ) break;
             docs |= kvp.second;
+#ifdef DOCS_INFO
+            std::cout<<"[this] "<<kvp.second<<std::endl;
+            std::cout<<"[after "<<kvp.first<<"] "<<docs<<std::endl;
+#endif
         }
     }
 
     void getValueLess(const KeyType& key, BitVector& docs)
     {
+#ifdef DOCS_INFO
+        std::cout<<"[start] "<<docs<<std::endl;
+#endif
         boost::shared_lock<boost::shared_mutex> lock(mutex_);
         std::auto_ptr<BaseEnumType> term_enum(getEnum_());
         std::pair<KeyType, BitVector> kvp;
@@ -177,12 +189,19 @@ public:
         {
             if( compare_(kvp.first,key)>=0 ) break;
             docs |= kvp.second;
+#ifdef DOCS_INFO
+            std::cout<<"[this] "<<kvp.second<<std::endl;
+            std::cout<<"[after "<<kvp.first<<"] "<<docs<<std::endl;
+#endif
         }
         
     }
 
     void getValueLessEqual(const KeyType& key, BitVector& docs)
     {
+#ifdef DOCS_INFO
+        std::cout<<"[start] "<<docs<<std::endl;
+#endif
         boost::shared_lock<boost::shared_mutex> lock(mutex_);
         std::auto_ptr<BaseEnumType> term_enum(getEnum_());
         std::pair<KeyType, BitVector> kvp;
@@ -190,11 +209,18 @@ public:
         {
             if( compare_(kvp.first,key)>0 ) break;
             docs |= kvp.second;
+#ifdef DOCS_INFO
+            std::cout<<"[this] "<<kvp.second<<std::endl;
+            std::cout<<"[after "<<kvp.first<<"] "<<docs<<std::endl;
+#endif
         }
     }
 
     void getValueGreat(const KeyType& key, BitVector& docs)
     {
+#ifdef DOCS_INFO
+        std::cout<<"[start] "<<docs<<std::endl;
+#endif
         boost::shared_lock<boost::shared_mutex> lock(mutex_);
         std::auto_ptr<BaseEnumType> term_enum(getEnum_(key));
         std::pair<KeyType, BitVector> kvp;
@@ -203,11 +229,18 @@ public:
             if( compare_(kvp.first,key)==0 ) continue;
 //             std::cout<<"getValueGreat key : "<<kvp.first<<std::endl;
             docs |= kvp.second;
+#ifdef DOCS_INFO
+            std::cout<<"[this] "<<kvp.second<<std::endl;
+            std::cout<<"[after "<<kvp.first<<"] "<<docs<<std::endl;
+#endif
         }
     }
 
     void getValueGreatEqual(const KeyType& key, BitVector& docs)
     {
+#ifdef DOCS_INFO
+        std::cout<<"[start] "<<docs<<std::endl;
+#endif
         boost::shared_lock<boost::shared_mutex> lock(mutex_);
         std::auto_ptr<BaseEnumType> term_enum(getEnum_(key));
         std::pair<KeyType, BitVector> kvp;
@@ -215,12 +248,19 @@ public:
         {
 //             std::cout<<"getValueGreatEqual key : "<<kvp.first<<std::endl;
             docs |= kvp.second;
+#ifdef DOCS_INFO
+            std::cout<<"[this] "<<kvp.second<<std::endl;
+            std::cout<<"[after "<<kvp.first<<"] "<<docs<<std::endl;
+#endif
         }
     }
 
 
     void getValueStart(const izenelib::util::UString& key, BitVector& docs)
     {
+#ifdef DOCS_INFO
+        std::cout<<"[start] "<<docs<<std::endl;
+#endif
         std::auto_ptr<BaseEnumType> term_enum(getEnum_(key));
         std::pair<izenelib::util::UString, BitVector> kvp;
         while(term_enum->next(kvp))
@@ -228,28 +268,46 @@ public:
             if(!Compare<izenelib::util::UString>::start_with(kvp.first, key)) break;
 //             if(kvp.first.find(key)!=0) break;
             docs |= kvp.second;
+#ifdef DOCS_INFO
+            std::cout<<"[this] "<<kvp.second<<std::endl;
+            std::cout<<"[after "<<kvp.first<<"] "<<docs<<std::endl;
+#endif
         }
     }
 
     void getValueEnd(const izenelib::util::UString& key, BitVector& docs)
     {
+#ifdef DOCS_INFO
+        std::cout<<"[start] "<<docs<<std::endl;
+#endif
         std::auto_ptr<BaseEnumType> term_enum(getEnum_());
         std::pair<izenelib::util::UString, BitVector> kvp;
         while(term_enum->next(kvp))
         {
             if(!Compare<izenelib::util::UString>::end_with(kvp.first, key)) continue;
             docs |= kvp.second;
+#ifdef DOCS_INFO
+            std::cout<<"[this] "<<kvp.second<<std::endl;
+            std::cout<<"[after "<<kvp.first<<"] "<<docs<<std::endl;
+#endif
         }
     }
 
     void getValueSubString(const izenelib::util::UString& key, BitVector& docs)
     {
+#ifdef DOCS_INFO
+        std::cout<<"[start] "<<docs<<std::endl;
+#endif
         std::auto_ptr<BaseEnumType> term_enum(getEnum_());
         std::pair<izenelib::util::UString, BitVector> kvp;
         while(term_enum->next(kvp))
         {
             if(!Compare<izenelib::util::UString>::contains(kvp.first, key)) continue;
             docs |= kvp.second;
+#ifdef DOCS_INFO
+            std::cout<<"[this] "<<kvp.second<<std::endl;
+            std::cout<<"[after "<<kvp.first<<"] "<<docs<<std::endl;
+#endif
         }
     }
 
@@ -257,11 +315,7 @@ public:
     {
         boost::lock_guard<boost::shared_mutex> lock(mutex_);
         cacheClear_();
-        
-        std::cout<<"db_ flushing"<<std::endl;
         db_.flush();
-        std::cout<<"db_ flushed"<<std::endl;
-        
     }
 
     
@@ -319,14 +373,16 @@ private:
     void cacheIterator_(const std::pair<KeyType, CacheValueType>& kvp)
     {
         ValueType value;
-#ifdef BT_DEBUG
+#ifdef CACHE_DEBUG
         std::cout<<"cacheIterator : "<<kvp.first<<","<<kvp.second<<std::endl;
 #endif
         getDbValue_(kvp.first, value);
+#ifdef CACHE_DEBUG
+        std::cout<<"cacheIterator before update : "<<kvp.first<<","<<value<<std::endl;
+#endif
         applyCacheValue_(value, kvp.second);
-#ifdef BT_DEBUG
-        std::cout<<"cacheIterator update : "<<kvp.first<<","<<value<<std::endl;
-        std::cout<<"cacheIterator update count: "<<kvp.first<<","<<value.numberOfOnes()<<std::endl;
+#ifdef CACHE_DEBUG
+        std::cout<<"cacheIterator after update : "<<kvp.first<<","<<value<<std::endl;
 #endif
         if(value.numberOfOnes()>0)
         {
@@ -337,7 +393,7 @@ private:
 //             db_.update(kvp.first, bitmap);
             db_.del(kvp.first);
         }
-#ifdef BT_DEBUG
+#ifdef CACHE_DEBUG
         std::cout<<"cacheIterator update finish"<<std::endl;
 #endif
     }
@@ -427,11 +483,18 @@ private:
     {
         BitVector docs;
         decompress_(value, docs);
-        
+#ifdef CACHE_DEBUG
+        std::cout<<"applyCacheValue_ after decompress_"<<docs<<std::endl;
+#endif        
         applyCacheValue_(docs, cacheValue);
+#ifdef CACHE_DEBUG
+        std::cout<<"applyCacheValue_ after applyCacheValue_ "<<docs<<std::endl;
+#endif
         value.reset();
         compress_(docs, value);
-        
+#ifdef CACHE_DEBUG
+        std::cout<<"applyCacheValue_ after compress_"<<value<<std::endl;
+#endif        
     }
     
     static void applyCacheValue_(BitVector& value, const CacheValueType& cacheValue)
@@ -447,6 +510,24 @@ private:
                 value.clear(cacheValue.item[i]);
             }
         }
+        
+//         std::cout<<"[applyCacheValue_] {insert} ";
+//         for(std::size_t i=0;i<cacheValue.item.size();i++)
+//         {
+//             if(cacheValue.flag.test(i))
+//             {
+//                 std::cout<<cacheValue.item[i]<<",";
+//             }
+//         }
+//         std::cout<<" {delete} ";
+//         for(std::size_t i=0;i<cacheValue.item.size();i++)
+//         {
+//             if(!cacheValue.flag.test(i))
+//             {
+//                 std::cout<<cacheValue.item[i]<<",";
+//             }
+//         }
+//         std::cout<<std::endl;
     }
     
 private:

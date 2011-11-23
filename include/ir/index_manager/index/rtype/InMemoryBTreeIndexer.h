@@ -172,7 +172,7 @@ public:
     {
         for(const_iterator it = data_.begin(); it!=data_.end();++it)
         {
-            if(!Compare<izenelib::util::UString>::end_with(it->first, key)) break;
+            if(!Compare<izenelib::util::UString>::end_with(it->first, key)) continue;
             valueToBitVector_(it->second, docs);
         }
     }
@@ -181,7 +181,7 @@ public:
     {
         for(const_iterator it = data_.begin(); it!=data_.end();++it)
         {
-            if(!Compare<izenelib::util::UString>::contains(it->first, key)) break;
+            if(!Compare<izenelib::util::UString>::contains(it->first, key)) continue;
             valueToBitVector_(it->second, docs);
         }
     }

@@ -54,7 +54,7 @@ public:
 
     static void Gen(izenelib::util::UString& value)
     {
-        static uint32_t max_length = 20;
+        static uint32_t max_length = 2;
         static std::string chars("1234567890ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz");
         static boost::mt19937 gen;
         uint32_t len;

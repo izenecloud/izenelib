@@ -119,6 +119,14 @@ public:
             std::cout<<"failed reason:"<<std::endl;
             std::cout<<docs1<<std::endl;
             std::cout<<docs2<<std::endl;
+            std::size_t csize = std::min(docs1.size(), docs2.size());
+            for(std::size_t i=0;i<csize;i++)
+            {
+                if(docs1.test(i)!=docs2.test(i))
+                {
+                    std::cout<<"failed bits : "<<i<<std::endl;
+                }
+            }
         }
 #endif
         std::cout<<"[docs count]"<<docs1.count()<<","<<docs2.count()<<std::endl;
@@ -244,6 +252,14 @@ public:
             std::cout<<"failed reason:"<<std::endl;
             std::cout<<docs1<<std::endl;
             std::cout<<docs2<<std::endl;
+            std::size_t csize = std::min(docs1.size(), docs2.size());
+            for(std::size_t i=0;i<csize;i++)
+            {
+                if(docs1.test(i)!=docs2.test(i))
+                {
+                    std::cout<<"failed bits : "<<i<<std::endl;
+                }
+            }
         }
 #endif
         std::cout<<"[docs count]"<<docs1.count()<<","<<docs2.count()<<std::endl;

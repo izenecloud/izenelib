@@ -692,7 +692,7 @@ public:
     bool operator!=(const EWAHBoolArray & x) const;
     
     friend std::ostream& operator<<(std::ostream& output, const EWAHBoolArray<uword>& v) {
-        output<<"["<<v.sizeInBits()<<"] ";
+        output<<"["<<v.numberOfOnes()<<"] ";
         EWAHBoolArrayBitIterator<uword> it = v.bit_iterator();
         while(it.next())
         {

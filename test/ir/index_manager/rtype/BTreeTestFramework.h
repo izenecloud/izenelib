@@ -25,7 +25,7 @@ public:
     
     BTreeTestRunner(const std::string& test_path)
     :indexer_(test_path, "this_is_test")
-    , min_docid_(1), max_docid_(10000)
+    , min_docid_(1), max_docid_(100)
 //     , low_(low), high_(high)
     , insert_ratio_(80), flush_ratio_(5)
     , write_limit_(10000000), write_count_(0), end_(false)
@@ -42,7 +42,7 @@ public:
         }
         
         boost::thread twrite(boost::bind( &BTreeTestRunner::write_thread, this)); 
-        uint32_t read_thread_count = 3;
+        uint32_t read_thread_count = 1;
         std::vector<boost::thread* > rthreads;
         for(uint32_t i=0;i<read_thread_count;++i)
         {
