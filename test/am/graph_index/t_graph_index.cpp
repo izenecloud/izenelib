@@ -1,20 +1,19 @@
-
 /// @file   t_UString.cpp
-/// @brief  A test unit for checking if all interfaces is 
+/// @brief  A test unit for checking if all interfaces is
 ///         available to use.
-/// @author Do Hyun Yun 
+/// @author Do Hyun Yun
 /// @date   2008-07-11
 ///
-///  
+///
 /// @brief Test all the interfaces in UString class.
 ///
 /// @details
-/// 
+///
 /// ==================================== [ Test Schemes ] ====================================
 ///
 ///
 /// -# Tested basic part of UString according to the certain scenario with simple usage.\n
-/// \n 
+/// \n
 ///     -# Create three UString variables in different ways : Default Initializing, Initializing with another UString, and initialize with stl string class.\n\n
 ///     -# Check attributes of some characters in UString using is_____Char() interface. With this interface, it is possible to recognize certain character is alphabet or number or something.\n\n
 ///     -# Get attribute of certain characters in UString using charType() interface.\n\n
@@ -52,7 +51,7 @@ uint32_t error_count = 0;
 
 BOOST_AUTO_TEST_SUITE(graph_index_test)
 
-#define CHECK(f)\
+#define CHECK_(f)\
   {                                                \
     if (!(f)){ BOOST_CHECK(false);++error_count; std::cout<<"ERROR: "<<__FILE__<<": "<<__LINE__<<": "<<__FUNCTION__<<endl;} \
   }
@@ -82,25 +81,25 @@ struct TEST_STRUCT
   {
     return one;
   }
-  
+
   inline TEST_STRUCT(uint32_t i, char j)
   {
     INTEGER_() = i;
     ONE_() = j;
   }
-  
+
   inline TEST_STRUCT(uint32_t i)
   {
     INTEGER_() = i;
     ONE_() = 0;
   }
-  
+
   inline TEST_STRUCT()
   {
     INTEGER_() = 0;
     ONE_() = 0;
   }
-  
+
   inline TEST_STRUCT(const TEST_STRUCT& other)
   {
     INTEGER_() = other.INTEGER();
@@ -124,7 +123,7 @@ struct TEST_STRUCT
     return (INTEGER() != other.INTEGER());
   }
 
-  inline bool operator < (const TEST_STRUCT& other)const 
+  inline bool operator < (const TEST_STRUCT& other)const
   {
     return (INTEGER() < other.INTEGER());
   }
@@ -134,7 +133,7 @@ struct TEST_STRUCT
     return (INTEGER() > other.INTEGER());
   }
 
-  inline bool operator <= (const TEST_STRUCT& other)const 
+  inline bool operator <= (const TEST_STRUCT& other)const
   {
     return (INTEGER() <= other.INTEGER());
   }
@@ -149,8 +148,8 @@ struct TEST_STRUCT
     return (INTEGER() % e);
   }
 
-  
-  
+
+
 }
   ;
 
@@ -176,22 +175,22 @@ void dyn_array_check(const VALUE_TYPE& t = VALUE_TYPE())
   typedef DynArray<VALUE_TYPE> Array;
   {
     const size_t SIZE=500000;
-    
+
     for (size_t i=0; i<SIZE; i++)
       v.push_back(random<VALUE_TYPE>());
 
     Array ar(v);
     Array br = ar;
 
-    CHECK(ar == br);
+    CHECK_(ar == br);
     br[1000] = VALUE_TYPE(222);
     v[1000] = VALUE_TYPE(222);
-    CHECK(br == v);
-  
-   
+    CHECK_(br == v);
+
+
     clock_t start, vt, at;
     vt = at = 0;
-  
+
     for (size_t i=0; i<SIZE; i++)
     {
       VALUE_TYPE k = random<VALUE_TYPE>();
@@ -199,7 +198,7 @@ void dyn_array_check(const VALUE_TYPE& t = VALUE_TYPE())
       start = clock();
       br.push_back(k);
       at += clock()-start;
-      
+
       start = clock();
       v.push_back(k);
       vt += clock()-start;
@@ -209,19 +208,19 @@ void dyn_array_check(const VALUE_TYPE& t = VALUE_TYPE())
     printf( "\n[push_back] vector: %f My Array: %f !\n", (double)(vt) / CLOCKS_PER_SEC, (double)(at) / CLOCKS_PER_SEC);
 
     br.compact();
-    CHECK(br == v);
-    CHECK(br.find(ar[100])==100);
-    CHECK(br.find(ar[1003])==1003);
+    CHECK_(br == v);
+    CHECK_(br.find(ar[100])==100);
+    CHECK_(br.find(ar[1003])==1003);
 
     br = ar;
 
-  
+
     br += v;
-  
+
     Array cr(v);
     ar += cr;
-    CHECK(br == ar);
-  
+    CHECK_(br == ar);
+
 
     //----------------------------------------------
 
@@ -234,14 +233,14 @@ void dyn_array_check(const VALUE_TYPE& t = VALUE_TYPE())
     }
 
     for (size_t i=0; i<sa.length()-1; i++)
-      CHECK(sa[i]<=sa[i+1]);
-  
-    CHECK(sa.find(sa[10])==10);
-    CHECK(sa.find(sa[5])==5);
+      CHECK_(sa[i]<=sa[i+1]);
+
+    CHECK_(sa.find(sa[10])==10);
+    CHECK_(sa.find(sa[5])==5);
 
     cr = v;
     FILE* f = fopen("./tt", "w+");
-    CHECK(cr.save(f) == cr.save_size());
+    CHECK_(cr.save(f) == cr.save_size());
     fclose(f);
   }
 
@@ -253,12 +252,12 @@ void dyn_array_check(const VALUE_TYPE& t = VALUE_TYPE())
     array.load(f);
     fclose(f);
 
-    CHECK(array == v);
+    CHECK_(array == v);
 
     f = fopen("./tt", "w+");
     array.compressed_save(f);
     fclose(f);
-  }  
+  }
 
   {
     Array array;
@@ -268,14 +267,14 @@ void dyn_array_check(const VALUE_TYPE& t = VALUE_TYPE())
     array.compressed_load(f);
     fclose(f);
 
-    CHECK(array == v);
-  }  
+    CHECK_(array == v);
+  }
 
   {
     Array array;
 
     const size_t SIZE=5000;//0000;
-    
+
     for (size_t i=0; i<SIZE; i++)
       array.push_back(random<VALUE_TYPE>());
 
@@ -286,9 +285,9 @@ void dyn_array_check(const VALUE_TYPE& t = VALUE_TYPE())
     printf( "\n[sort] Array: %f !\n", (double)(finish-start) / CLOCKS_PER_SEC);
 
     for (size_t i=0; i<SIZE-1; i++)
-      CHECK(array.at(i)<=array.at(i+1));
+      CHECK_(array.at(i)<=array.at(i+1));
   }
-  
+
 }
 
 template<typename VALUE_TYPE>
@@ -297,13 +296,13 @@ void integer_hash_check(const VALUE_TYPE& t = VALUE_TYPE())
   cout<<"IntegerHashTable checking....\n";
 
   boost::filesystem::remove_all("./tt");
-  
+
   vector<VALUE_TYPE> v;
   typedef IntegerHashTable<VALUE_TYPE> hash_t;
-  
+
   {
     const uint32_t SIZE=1000000;
-    
+
     for (size_t i=0; i<SIZE; i++)
       v.push_back(random<VALUE_TYPE>());
 
@@ -319,28 +318,28 @@ void integer_hash_check(const VALUE_TYPE& t = VALUE_TYPE())
     for (size_t i=0; i<v.size(); ++i)
     {
       VALUE_TYPE t = v[i];
-      CHECK(hash.find(t));
+      CHECK_(hash.find(t));
     }
     finish = clock();
     printf( "\nIntegerHashTable find(%d): %f s!\n", SIZE, (double)(finish-start) / CLOCKS_PER_SEC);
 
     FILE* f = fopen("./tt", "w+");
-    CHECK(hash.save(f)==hash.save_size());
+    CHECK_(hash.save(f)==hash.save_size());
     fclose(f);
   }
   {
     hash_t hash;
     //clock_t start, finish;
-    
+
     FILE* f = fopen("./tt", "r");
     hash.load(f);
 
     fclose(f);
-    
+
     for (size_t i=0; i<v.size(); ++i)
     {
       VALUE_TYPE t = v[i];
-      CHECK(hash.find(t));
+      CHECK_(hash.find(t));
     }
   }
 
@@ -354,25 +353,25 @@ void id_transfer_check()
   typedef IdTransfer<> id_t;
 
   const uint32_t SIZE=1000000;
-  
+
   {
     id_t id_tansfer;
 
     clock_t start, finish;
     start = clock();
     for (size_t i=0; i<SIZE; i++)
-      CHECK(id_tansfer.insert(SIZE+i) == i+1);
+      CHECK_(id_tansfer.insert(SIZE+i) == i+1);
     finish = clock();
     printf( "\nIdTransfer insert(%d): %f s!\n", SIZE, (double)(finish-start) / CLOCKS_PER_SEC);
 
     start = clock();
     for (size_t i=0; i<SIZE; i++)
-      CHECK(id_tansfer.get32(SIZE+i)==i+1);
+      CHECK_(id_tansfer.get32(SIZE+i)==i+1);
     finish = clock();
     printf( "\nIdTransfer find(%d): %f s!\n", SIZE, (double)(finish-start) / CLOCKS_PER_SEC);
 
     for (size_t i=0; i<SIZE; i++)
-      CHECK(id_tansfer.get64(i+1)==i+SIZE);
+      CHECK_(id_tansfer.get64(i+1)==i+SIZE);
 
     FILE* f = fopen("./tt", "w+");
     id_tansfer.save(f);
@@ -387,23 +386,23 @@ void id_transfer_check()
     fclose(f);
 
     for (size_t i=0; i<SIZE; i++)
-      CHECK(id_tansfer.get32(SIZE+i)==i+1);
+      CHECK_(id_tansfer.get32(SIZE+i)==i+1);
 
     for (size_t i=0; i<SIZE; i++)
-      CHECK(id_tansfer.get64(i+1)==i+SIZE);
+      CHECK_(id_tansfer.get64(i+1)==i+SIZE);
 
     for (size_t i=0; i<SIZE; i++)
-      CHECK(id_tansfer.insert(SIZE+i) == i+1);
+      CHECK_(id_tansfer.insert(SIZE+i) == i+1);
 
-    
-    for (size_t i=0; i<SIZE; i++)
-      CHECK(id_tansfer.get32(SIZE+i)==i+1);
 
     for (size_t i=0; i<SIZE; i++)
-      CHECK(id_tansfer.get64(i+1)==i+SIZE);
+      CHECK_(id_tansfer.get32(SIZE+i)==i+1);
+
+    for (size_t i=0; i<SIZE; i++)
+      CHECK_(id_tansfer.get64(i+1)==i+SIZE);
 
   }
-  
+
 }
 
 void sorter_check()
@@ -414,14 +413,14 @@ void sorter_check()
 
     struct timeval tvafter,tvpre;
     struct timezone tz;
-  
+
     const uint32_t SIZE = 1000000;
     const uint32_t snip_len = 10;
     vector<uint32_t> vs;
-    
+
     Sorter<
     > sorter("./tt");
-    
+
     terms_t terms;
 
     sorter.ready4add();
@@ -474,33 +473,33 @@ void sorter_check()
 
 //       std::cout<<i<<": "<<addr<<"---\n";
 //       cout<<last<<"--"<<cur<<endl;
-      
-      CHECK(last[0]<=cur[0]);
-      
+
+      CHECK_(last[0]<=cur[0]);
+
       if(last[0]>cur[0])
       {
         cout<<"ERROR: "<<last<<"++"<<cur<<endl;
         break;
       }
-      
+
       last = cur;
     }
 
   }
-  
+
 }
 
 void construct_trie(char* name, uint32_t num)
 {
   Graph<> graph(name);
-    
+
   struct timeval tvafter,tvpre;
   struct timezone tz;
-  
+
   const uint32_t SIZE = num;
   const uint32_t snip_len = 10;
   vector<uint64_t> vs;
-    
+
   graph.ready4add();
 
   gettimeofday (&tvpre , &tz);
@@ -529,7 +528,7 @@ void construct_trie(char* name, uint32_t num)
   }
   gettimeofday (&tvafter , &tz);
   cout<<"\nInsert into graph ("<<graph.doc_num()<<"): "<<((tvafter.tv_sec-tvpre.tv_sec)*1000+(tvafter.tv_usec-tvpre.tv_usec)/1000)/60000.<<" min\n";
-    
+
   gettimeofday (&tvpre , &tz);
   graph.indexing();
   gettimeofday (&tvafter , &tz);
@@ -546,12 +545,12 @@ void graph_check()
   {
     Graph<> graph("./tt");
     typedef DynArray<uint32_t> Array;
-  
+
     const uint32_t SIZE = 50000;
     vector<vector<uint32_t> > vs;
-    
+
     graph.ready4add();
-    
+
     for (uint32_t p = 0; p<SIZE; ++p)
     {
       uint32_t len = rand()%15;
@@ -565,11 +564,11 @@ void graph_check()
 
       graph.add_terms(terms, 0);
     }
-    
+
     graph.indexing();
 
     graph.ratio_load(.88);
-    
+
     for (uint32_t p = 0; p<SIZE; ++p)
       if (graph.get_freq(vs[p])<1)
       {
@@ -579,7 +578,7 @@ void graph_check()
   }
 
   boost::filesystem::remove_all("./tt");
-  
+
 }
 
 BOOST_AUTO_TEST_CASE(dyn_array_test)
@@ -610,4 +609,3 @@ BOOST_AUTO_TEST_CASE(graph_test)
 }
 
 BOOST_AUTO_TEST_SUITE_END()
- 
