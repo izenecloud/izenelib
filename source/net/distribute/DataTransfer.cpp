@@ -4,6 +4,8 @@
 #include <string.h>
 #include <boost/filesystem.hpp>
 
+#include <glog/logging.h>
+
 namespace bfs = boost::filesystem;
 
 namespace net{
@@ -121,7 +123,7 @@ DataTransfer::syncSendFile(const std::string& fileName, const std::string& curDi
         return -1;
     }
 
-    std::cout<<"[DataTransfer] sending file: "<<fileName<<", within dir: "<<curDir<<std::endl;//xxx
+    LOG(INFO)<<"Sending: "<<fileName<<", specified dir: "<<curDir;//xxx
 
     // new connection
     if (socketIO_.Connect(serverAddr_.host_, serverAddr_.port_) < 0)
@@ -132,7 +134,7 @@ DataTransfer::syncSendFile(const std::string& fileName, const std::string& curDi
     MessageHeader head;
     head.addFileName(curDir+"/"+path.filename());
     int nsend = socketIO_.syncSend(head.getHead(), head.getHeadLen());
-    std::cout<<"[DataTransfer] sent header size "<<nsend<<" - "<<head.getHead()<<std::endl;
+    LOG(INFO)<<"Sent header size "<<nsend<<" - "<<head.getHead();
 
     // send data
     std::streamsize readLen, sendLen, totalLen = 0;
@@ -149,7 +151,7 @@ DataTransfer::syncSendFile(const std::string& fileName, const std::string& curDi
 
         ifs.read(buf_, bufSize_);
     }
-    std::cout<<"[DataTransfer] sent data size "<<totalLen<<std::endl;
+    LOG(INFO)<<"Sent data size "<<totalLen;
 
     ifs.close();
 
