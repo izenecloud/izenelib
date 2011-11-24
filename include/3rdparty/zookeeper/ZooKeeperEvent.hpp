@@ -33,7 +33,7 @@ public:
     std::string toString()
     {
         std::stringstream ss;
-        ss << "[ZooKeeperEvent] "<<path_<<" - "<<watcherEvent2String(type_)<<" - "<<state2String(state_)<<std::endl;
+        ss<<watcherEvent2String(type_)<<" - "<<state2String(state_)<<" - "<<path_<<std::endl;
         return ss.str();
     }
 

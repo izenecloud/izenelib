@@ -31,10 +31,10 @@ public:
      * Copy file or directory
      * @param src source file or directory name
      * @param dest destination file or directory name
-     * @param isRecursively whether send recursively
+     * @param isRecursively whether copy recursively if src is directory
      * @return
      */
-    //int localSend(const std::string& src, const std::string& dest, bool isRecursively=false);
+    static int copy(const std::string& src, const std::string& dest, bool isRecursively=false);
 
 private:
     /**
