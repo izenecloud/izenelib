@@ -165,6 +165,15 @@ public:
         return true;
     }
 
+    bool exist(const KeyType& key)
+    {
+        typename AMType::iterator it = data_.find(key);
+        if(it==data_.end())
+            return false;
+        else
+            return true;
+    }
+
     const AMType& getAM() const
     {
         return data_;

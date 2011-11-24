@@ -99,15 +99,16 @@ public:
         boost::lock_guard<boost::shared_mutex> lock(mutex_);
         cache_.remove(key, docid);
         checkCache_();
-        
     }
     
     bool seek(const KeyType& key)
     {
         boost::shared_lock<boost::shared_mutex> lock(mutex_);
-        BitVector docs;
-        getValue_(key, docs);
-        return docs.count()>0;
+        ValueType compressed;
+        bool b_db = getDbValue_(key, compressed);
+        bool b_cache = cache_.exist(key);
+        if(!b_db && !b_cache) return false;
+        return true;
     }
 
     void getNoneEmptyList(const KeyType& key, BitVector& docs)
