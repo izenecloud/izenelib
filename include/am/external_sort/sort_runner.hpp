@@ -20,7 +20,7 @@
 #include <am/graph_index/dyn_array.hpp>
 #include <math.h>
 #include <sys/time.h>
- 
+
 NS_IZENELIB_AM_BEGIN
 
 struct DirectIOPolicy
@@ -51,7 +51,7 @@ public:
 
     void _readBytes(char* data, size_t len)
     {
-        fread(data,1,len,fd_);
+        if (fread(data,1,len,fd_) == 0);
     }
     size_t _tell()
     {
@@ -80,7 +80,7 @@ public:
       :SortIOPolicy(fd,mode)
     {}
 
-    bool isCompression() 
+    bool isCompression()
     {
         return this->_isCompression();
     }
@@ -138,7 +138,7 @@ typedef SortRunner<KEY_TYPE, LEN_TYPE, COMPARE_ALL, IO_TYPE> self_t;
   char* run_buf_;
   KEY_PTR* key_buf_;
   char* out_buf_;
-  
+
   uint32_t RUN_BUF_SIZE_;
 
   boost::mutex pre_buf_mtx_;
@@ -171,7 +171,7 @@ typedef SortRunner<KEY_TYPE, LEN_TYPE, COMPARE_ALL, IO_TYPE> self_t;
     KEY_TYPE KEY(const char* buf)const
     {
       return *(KEY_TYPE*)(buf+pos+sizeof(LEN_TYPE));
-    }    
+    }
 
     LEN_TYPE& LEN_(char* buf)
     {
@@ -181,7 +181,7 @@ typedef SortRunner<KEY_TYPE, LEN_TYPE, COMPARE_ALL, IO_TYPE> self_t;
     LEN_TYPE LEN(const char* buf)const
     {
       return *(LEN_TYPE*)(buf+pos);
-    }    
+    }
 
     inline KEY_PTR(uint32_t p)
     {
@@ -198,7 +198,7 @@ typedef SortRunner<KEY_TYPE, LEN_TYPE, COMPARE_ALL, IO_TYPE> self_t;
       pos = other.pos;
       return *this;
     }
-    
+
     int compare(KEY_PTR& p, const char* buf)const
     {
       if (KEY(buf) == p.KEY(buf) && !COMPARE_ALL)
@@ -211,7 +211,7 @@ typedef SortRunner<KEY_TYPE, LEN_TYPE, COMPARE_ALL, IO_TYPE> self_t;
 
       if (!COMPARE_ALL)
         return 0;
-      
+
       LEN_TYPE len1 = LEN(buf)/sizeof(KEY_TYPE);
       LEN_TYPE len2 = p.LEN(buf)/sizeof(KEY_TYPE);
 
@@ -229,10 +229,10 @@ typedef SortRunner<KEY_TYPE, LEN_TYPE, COMPARE_ALL, IO_TYPE> self_t;
       if (len1>len2)
         return 1;
       return -1;
-      
+
     }
   };
-  
+
   inline void new_buffer_()
   {
     if (!pre_buf_)
@@ -250,10 +250,10 @@ typedef SortRunner<KEY_TYPE, LEN_TYPE, COMPARE_ALL, IO_TYPE> self_t;
     int i = left, j = right;
     KEY_PTR tmp;
     KEY_PTR pivot = key_buf_[(left + right) / 2];
-    
+
     /* partition */
     while (i <= j) {
-      
+
       while (i < limit && key_buf_[i].compare(pivot, run_buf_)<0)
         i++;
       while (j>=0 && key_buf_[j].compare(pivot, run_buf_)>0)
@@ -277,11 +277,11 @@ typedef SortRunner<KEY_TYPE, LEN_TYPE, COMPARE_ALL, IO_TYPE> self_t;
       quick_sort_(i, right, limit);
 
   }
-  
+
   bool t_check_quick_sort_()
   {
     // uint32_t s = pos_/sizeof(struct KEY_PTR)-1;
-    
+
 //     for (uint32_t i=0; i<s-1; ++i)
 //       if (key_buf_[i].compare(key_buf_[i+1], original_f_)>0)
 //         //          || key_buf_[i].KEY(run_buf_)+1!=key_buf_[i+1].KEY(run_buf_))
@@ -290,7 +290,7 @@ typedef SortRunner<KEY_TYPE, LEN_TYPE, COMPARE_ALL, IO_TYPE> self_t;
 //         std::cout<<key_buf_[i]<<"--"<<key_buf_[i+1]<<std::endl;
 //         return false;
 //       }
-    
+
     return true;
   }
 
@@ -311,13 +311,13 @@ typedef SortRunner<KEY_TYPE, LEN_TYPE, COMPARE_ALL, IO_TYPE> self_t;
 
       while (pre_buf_size_!=0)
         pre_buf_con_.wait(lock);
-      
+
       //uint32_t s = (uint32_t)(FILE_LEN-pos>RUN_BUF_SIZE_? RUN_BUF_SIZE_: FILE_LEN-pos);
       uint32_t s;
       if(!ioStream.isCompression())
-         s = (uint32_t)(FILE_LEN-pos>RUN_BUF_SIZE_? RUN_BUF_SIZE_: FILE_LEN-pos);	  	
+         s = (uint32_t)(FILE_LEN-pos>RUN_BUF_SIZE_? RUN_BUF_SIZE_: FILE_LEN-pos);
       else
-         s = RUN_BUF_SIZE_;	  	
+         s = RUN_BUF_SIZE_;
       //std::cout<<std::endl<<pos<<"-"<<FILE_LEN<<"-"<<RUN_BUF_SIZE_<<"-"<<s<<std::endl;
       if(!ioStream.isCompression())
         ioStream.seek(pos);
@@ -424,7 +424,7 @@ typedef SortRunner<KEY_TYPE, LEN_TYPE, COMPARE_ALL, IO_TYPE> self_t;
   void output_(FILE* f)
   {
     IO_TYPE ioStream(f,"w");
-  
+
     uint64_t count = 0;
     uint64_t nextStart = 0;
     while (count< count_)
@@ -435,7 +435,7 @@ typedef SortRunner<KEY_TYPE, LEN_TYPE, COMPARE_ALL, IO_TYPE> self_t;
 
       IASSERT(fwrite(&out_buf_size_, sizeof(uint32_t), 1, f)==1);
       IASSERT(fwrite(&out_buf_num_, sizeof(uint32_t), 1, f)==1);
-      //IASSERT(fwrite(&max_record_len_of_this_run_, sizeof(uint32_t), 1, f)==1);	  //TODO 
+      //IASSERT(fwrite(&max_record_len_of_this_run_, sizeof(uint32_t), 1, f)==1);	  //TODO
       uint64_t nextStartPos = ftell(f);
       IASSERT(fwrite(&nextStart, sizeof(uint64_t), 1, f)==1);
       //IASSERT(fwrite(out_buf_, out_buf_size_, 1, f)==1);
@@ -465,10 +465,10 @@ typedef SortRunner<KEY_TYPE, LEN_TYPE, COMPARE_ALL, IO_TYPE> self_t;
         return false;
       pos += one.LEN(out_buf_)+sizeof(LEN_TYPE);
     }
-    
+
     return true;
   }
-  
+
 public:
   SortRunner(const char* filenm, uint32_t buf_size = 100000000)
     :filenm_(filenm), RUN_BUF_SIZE_((uint32_t)(1.*buf_size*0.3))
@@ -480,7 +480,7 @@ public:
 
     max_record_len_ = 0;
     max_record_len_of_this_run_ = 0;
-    min_run_buff_size_for_merger_ = 0;   
+    min_run_buff_size_for_merger_ = 0;
   }
 
   ~SortRunner()
@@ -504,13 +504,13 @@ public:
     struct timezone tz;
 
     new_buffer_();
-    
+
     gettimeofday (&tvpre , &tz);
-    
+
     FILE* f = fopen(filenm_.c_str(), "r");
     IASSERT(f);
     IASSERT(fread(&count_, sizeof(uint64_t), 1, f)==1);
-    
+
     boost::thread prefetch_thre(boost::bind(&self_t::prefetch_, this, f));
     boost::thread sort_thre(boost::bind(&self_t::sort_, this));
 
@@ -531,7 +531,7 @@ public:
     IASSERT(fwrite(&count_, sizeof(uint64_t), 1, out_f)==1);
     fclose(f);
     fclose(out_f);
-    
+
     if (boost::filesystem::exists(filenm_))
       boost::filesystem::remove(filenm_);
     if (boost::filesystem::exists(filenm_+".out"))
@@ -546,7 +546,7 @@ public:
   {
     return run_num_;
   }
-  
+
   uint32_t max_record_len()const
   {
     return max_record_len_;
