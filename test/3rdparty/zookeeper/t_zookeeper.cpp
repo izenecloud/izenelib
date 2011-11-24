@@ -65,19 +65,26 @@ public:
     }
 };
 
+static const std::string gHosts = "localhost:2181"; //"127.16.0.161:2181,127.16.0.162:2181,127.16.0.163:2181";
+//#define ENABLE_ZK_TEST
+
 BOOST_AUTO_TEST_SUITE( t_zookeeper )
 
 BOOST_AUTO_TEST_CASE( check_zookeeper_service )
 {
     std::cout << "---> Note: start ZooKeeper Service firstly before test." << std::endl;
-    std::cout << "     [ ZooKeeper Service: 127.16.0.161:2181,127.16.0.162:2181,127.16.0.163:2181] " << std::endl;
+    std::cout << "     ZooKeeper Service: "<< gHosts << std::endl;
 }
 
 BOOST_AUTO_TEST_CASE( zookeeper_client_basic )
 {
     std::cout << "---> Test ZooKeeper Client basic functions" << std::endl;
 
-    std::string hosts = "127.16.0.161:2181,127.16.0.162:2181,127.16.0.163:2181";
+#ifndef ENABLE_ZK_TEST
+    return;
+#endif
+
+    std::string hosts = gHosts;
     int recvTimeout = 3000;
 
     // Zookeeper Client
@@ -151,8 +158,12 @@ BOOST_AUTO_TEST_CASE( zookeeper_watch )
 {
     std::cout << "---> Test ZooKeeper Watcher" << std::endl;
 
+#ifndef ENABLE_ZK_TEST
+    return;
+#endif
+
     // Client
-    std::string hosts = "127.16.0.161:2181,127.16.0.162:2181,127.16.0.163:2181";
+    std::string hosts = gHosts;
     int recvTimeout = 2000;
     ZooKeeper cli(hosts, recvTimeout);
     sleep(1);
