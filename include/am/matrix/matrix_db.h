@@ -2,21 +2,17 @@
 #define IZENELIB_AM_MATRIX_DB_H
 
 #include <types.h>
-#include <am/leveldb/Table.h>
+#include "concurrent_set.h"
+#include "concurrent_matrix.h"
 #include <am/detail/cache_policy.h>
 
 #include <sdb/SequentialDB.h>
 #include <sdb/SDBCursorIterator.h>
 
 #include <3rdparty/am/google/sparse_hash_map>
- 
-#include <util/timestamp.h>
 #include <util/izene_serialization.h>
 
 #include <boost/shared_ptr.hpp>
-#include <boost/unordered_map.hpp>
-#include <boost/thread/mutex.hpp>
-
 #include <iostream>
 
 NS_IZENELIB_AM_BEGIN
@@ -39,23 +35,23 @@ typename Policy = detail::policy_lfu_nouveau<KeyType>
 >
 class MatrixDB
 {
-    typedef ::rde::hash_map<KeyType, boost::shared_ptr<RowType > > CacheStorageType;
-    CacheStorageType _cache_storage;
-    typedef ::stx::btree_set<KeyType> CacheDirtyFlagSet;
-    CacheDirtyFlagSet _cache_row_dirty_flag;
-    enum { ElementSize = sizeof(KeyType)+sizeof(ElementType) };
-    std::size_t _maxEntries;
-    std::size_t _currEntries;
+    typedef ConcurrentMatrix<KeyType, RowType> CacheType;
+    CacheType _cache;
+    const std::size_t _max_cache_elem;
+
+    typedef ConcurrentSet<KeyType> DirtyFlags;
+    DirtyFlags _dirty_flags;
+
     StorageType _db_storage;
     Policy _policy;
-    boost::mutex _mutex;
 
 public:
     typedef RowType row_type;
     typedef IteratorType iterator; // first is KeyType, second is RowType
 
     explicit MatrixDB(size_t size, const std::string& path)
-        :_maxEntries(size/ElementSize), _currEntries(0), _db_storage(path)
+        : _max_cache_elem(size/CacheType::ELEM_SIZE)
+        , _db_storage(path)
     {
         _db_storage.open();
     }
@@ -86,86 +82,59 @@ public:
         return iterator();
     }
 
-    bool erase(const KeyType& x)
-    {
-        boost::mutex::scoped_lock lock(_mutex);
-        return _erase_impl(x);
-    }
-
-    void coeff(KeyType x, KeyType y, ElementType d)
-    {
-        boost::mutex::scoped_lock lock(_mutex);
-
-        boost::shared_ptr<RowType> row_data = _row_impl(x);
-        _cache_row_dirty_flag.insert(x);
-        typename RowType::iterator it = row_data->find(y); 
-        if(it == row_data->end())
-        {
-            (*row_data)[y] = d;
-            _currEntries++;
-        }
-        else
-        {
-            it->second = d;
-        }
-    }
-
-    ElementType coeff(KeyType x, KeyType y)
+    ElementType elem(KeyType x, KeyType y)
     {
         boost::shared_ptr<const RowType> row_data = row(x);
         typename RowType::const_iterator it = row_data->find(y); 
         if(it == row_data->end())
             return ElementType();
+
         return it->second;
+    }
+
+    /**
+     * @attention as @c RowType is not thread-safe, below things are forbidden:
+     * 1. if you call this function with the same @p x in multi-threads, the result in updating row @p x is undefined.
+     * 2. if you call this function in one thread, and iterate @c RowType of the same @p x in another thread, the iteration result is undefined.
+     */
+    void update_elem(KeyType x, KeyType y, ElementType d)
+    {
+        boost::shared_ptr<RowType> row = _row_impl(x);
+        typename RowType::iterator it = row->find(y);
+        if(it == row->end())
+        {
+            (*row)[y] = d;
+            _cache.incre_elem_count();
+        }
+        else
+        {
+            it->second = d;
+        }
+        _dirty_flags.insert(x);
     }
 
     boost::shared_ptr<const RowType> row(KeyType x)
     {
-        boost::mutex::scoped_lock lock(_mutex);
         return _row_impl(x);
     }
 
     /**
-     * update row @p x with @p row_data.
+     * update row @p x with @p row.
      * @param x row number
-     * @param row_data new row data to update
-     * @post for performance consideration, after this function is called, @p row_data
-     * would become empty as its contents is swapped with a new @c RowType.
+     * @param row row data to update
+     * @post for performance consideration, after this function is called,
+     *       @p row would become empty as its contents is swapped with a new @c RowType.
      */
-    void update_row(KeyType x, RowType& row_data)
+    void update_row(KeyType x, RowType& row)
     {
-        boost::mutex::scoped_lock lock(_mutex);
+        boost::shared_ptr<RowType> newRow(new RowType);
+        newRow->swap(row);
 
-        boost::shared_ptr<RowType> new_row_data(new RowType);
-        new_row_data->swap(row_data);
-
-        typename CacheStorageType::iterator cit = _cache_storage.find(x);
-        if(cit != _cache_storage.end())
-        {
-            // remove old entry count
-            boost::shared_ptr<RowType> old_row_data(cit->second);
-            size_t old_row_size = old_row_data->size();
-            _currEntries = (_currEntries <= old_row_size)?0:(_currEntries - old_row_size);
-
-            // add new entry count
-            _evict();
-            _currEntries += new_row_data->size();
-
-            // replace cache
-            cit->second = new_row_data;
-        }
-        else
-        {
-            // add new entry count
-            _evict();
-            _currEntries += new_row_data->size();
-
-            // insert cache
-            _cache_storage.insert(rde::make_pair(x,new_row_data));
-        }
+        _evict();
+        _cache.update(x, newRow);
 
         _policy.touch(x);
-        _cache_row_dirty_flag.insert(x);
+        _dirty_flags.insert(x);
     }
 
     bool row_without_cache(KeyType x, RowType& row_data)
@@ -176,102 +145,85 @@ public:
     void clear()
     {
         _dump();
-
-        boost::mutex::scoped_lock lock(_mutex);
-        _cache_storage.clear();
+        _cache.clear();
+        _policy.clear();
     }
 
-    void status(std::ostream& ostream)
+    void print(std::ostream& ostream) const
     {
-        size_t poolcount = 0;
-        typename CacheStorageType::iterator cit = _cache_storage.begin();
-        size_t i = 0;
-        for(;cit != _cache_storage.end() ; ++cit)
-        {
-            poolcount += (cit->second->size())*ElementSize;
-            ++i;
-        }
-        size_t policycount = _policy.size();
-        size_t flagcount = (sizeof(KeyType))*_cache_row_dirty_flag.size();
-        size_t cachecount = (sizeof(KeyType)+sizeof(void*))*_cache_storage.size();
-        size_t count = policycount + flagcount + cachecount + poolcount;
-        ostream<<"_cache_storage size "<<_cache_storage.size()<<" poolcount "<<poolcount<<" policycount "<<policycount<<" flagcount "<<flagcount<<" cachecount "<<cachecount<<" count "<<count<<std::endl;
+        size_t cacheSize = _cache.occupy_size();
+        size_t flagSize = _dirty_flags.occupy_size();
+        size_t policySize = _policy.size();
+        size_t totalSize = cacheSize + flagSize + policySize;
+
+        ostream << _cache
+                << " + flag[" << flagSize
+                << "] + policy[" << policySize
+                << "] => MatrixDB[" << totalSize << "]";
     }
 
 private:
-    void _dump()
+    boost::shared_ptr<RowType> _row_impl(KeyType x)
     {
-        boost::mutex::scoped_lock lock(_mutex);
-
-        typename CacheDirtyFlagSet::iterator it = _cache_row_dirty_flag.begin();
-        for(; it != _cache_row_dirty_flag.end(); ++it)
+        boost::shared_ptr<RowType> row = _cache.get(x);
+        if (! row)
         {
-            typename CacheStorageType::iterator cit = _cache_storage.find(*it);
-            if(cit != _cache_storage.end())
-            {
-                _db_storage.update(*it, *(cit->second));
-            }
-        }
-        _cache_row_dirty_flag.clear();
-    }
+            row.reset(new RowType);
+            _db_storage.get(x, *row);
 
-    bool _erase_impl(const KeyType& x)
-    {
-        typename CacheStorageType::iterator cit = _cache_storage.find(x);
-        if(cit != _cache_storage.end())
-        {
-            boost::shared_ptr<RowType > row_data(cit->second);
-            size_t row_size = row_data->size();
-            _currEntries = (_currEntries <= row_size)?0:(_currEntries - row_size);
-            typename CacheDirtyFlagSet::iterator fit = _cache_row_dirty_flag.find(x);
-            if (fit != _cache_row_dirty_flag.end())
-            {
-                _db_storage.update(x, *row_data);
-                _cache_row_dirty_flag.erase(fit);
-            }
-            _cache_storage.erase(cit);
-            return true;
+            _evict();
+            _cache.insert(x, row);
         }
-        return false;
+        _policy.touch(x);
+
+        return row;
     }
 
     void _evict()
     {
-        while (this->_currEntries >= this->_maxEntries)
+        KeyType key;
+        while (_is_cache_full() && _policy.evict(key))
         {
-            KeyType evict;
-            if(_policy.evict(evict))
-                _erase_impl(evict);
-            else
-                break;
-        }
-    }
-
-    boost::shared_ptr<RowType> _row_impl(KeyType x)
-    {
-        _evict();
-        _policy.touch(x);
-
-        boost::shared_ptr<RowType> row_data;
-        typename CacheStorageType::iterator cit = _cache_storage.find(x);		
-        if(cit == _cache_storage.end())
-        {
-            row_data.reset(new RowType);
-            if(_db_storage.get(x,*row_data))
+            boost::shared_ptr<RowType> row = _cache.erase(key);
+            if (row && _dirty_flags.erase(key))
             {
-                _currEntries+=row_data->size();
+                _db_storage.update(key, *row);
             }
-            _cache_storage.insert(rde::make_pair(x,row_data));
         }
-        else
-        {
-            row_data = cit->second;
-        }
-
-        return row_data;
     }
 
+    bool _is_cache_full() const
+    {
+        return _cache.elem_count() >= _max_cache_elem;
+    }
+
+    void _dump()
+    {
+        typedef typename DirtyFlags::container_type FlagContainer;
+        FlagContainer flags;
+        _dirty_flags.swap(flags);
+
+        for (typename FlagContainer::const_iterator fit = flags.begin();
+            fit != flags.end(); ++fit)
+        {
+            boost::shared_ptr<RowType> row = _cache.get(*fit);
+            if (row)
+            {
+                _db_storage.update(*fit, *(row));
+            }
+        }
+    }
 };
+
+template<typename KeyType, typename ElementType, typename RowType, typename StorageType, typename IteratorType, typename Policy>
+std::ostream& operator<<(
+    std::ostream& out,
+    const MatrixDB<KeyType, ElementType, RowType, StorageType, IteratorType, Policy>& matrix
+)
+{
+    matrix.print(out);
+    return out;
+}
 
 NS_IZENELIB_AM_END
 

@@ -6,6 +6,7 @@
 #include <3rdparty/am/stx/btree_map>
 #include <3rdparty/am/stx/btree_set>
 #include <3rdparty/am/rde_hashmap/hash_map.h>
+#include <util/ThreadModel.h>
 
 #include <set>
 #include <map>
@@ -13,8 +14,11 @@
  
 NS_IZENELIB_AM_BEGIN
 
-namespace detail{
-template <typename KeyType>
+namespace detail
+{
+
+template<typename KeyType,
+         typename LockType = izenelib::util::ReadWriteLock>
 class policy_lfu_nouveau
 {
     struct cache_entry;
@@ -90,6 +94,10 @@ class policy_lfu_nouveau
     struct freq_node *_freq_list_head;
     backentry_type _backEntries;
 
+    typedef izenelib::util::ScopedReadLock<LockType> ScopedReadLock;
+    typedef izenelib::util::ScopedWriteLock<LockType> ScopedWriteLock;
+    mutable LockType lock_;
+
 public:
     policy_lfu_nouveau()
     {
@@ -101,110 +109,37 @@ public:
         clear();
     }
 
-    void insert(const KeyType& k)
-    {
-        struct cache_entry *new_entry = new cache_entry(k);
-        if (!_freq_list_head || _freq_list_head->_freq != 1)
-        {
-            struct freq_node *new_freq_node = new freq_node();
-            new_freq_node->_hotter = _freq_list_head;
-            if (_freq_list_head)
-                _freq_list_head->_colder = new_freq_node;
-            _freq_list_head = new_freq_node;
-        }
-        _freq_list_head->insert(new_entry);
-        new_entry->_parent = _freq_list_head;
-        _backEntries.insert(rde::pair<KeyType, struct cache_entry *>(k, new_entry));
-    }
-
     void remove(const KeyType& k)
     {
-        if (_backEntries.find(k) != _backEntries.end())
+        ScopedWriteLock lock(lock_);
+
+        typename backentry_type::iterator it = _backEntries.find(k);
+        if (it != _backEntries.end())
         {
-            struct cache_entry *ref = _backEntries[k];
-            struct freq_node *parent = ref->_parent;
-            if (ref->_newer)
-                ref->_newer->_older = ref->_older;
-            else
-                parent->_newest = ref->_older;
-
-            if (ref->_older)
-                ref->_older->_newer = ref->_newer;
-            else
-                parent->_oldest = ref->_newer;
-
-            delete ref;
-            if (!parent->_newest)
-            {
-                if (parent->_hotter)
-                    parent->_hotter->_colder = parent->_colder;
-
-                if (parent->_colder)
-                    parent->_colder->_hotter = parent->_hotter;
-                else
-                    _freq_list_head = parent->_hotter;
-
-                delete parent;
-            }
-            else
-                parent->_count--;
-            _backEntries.erase(k);
+            _removeEntry(it->second);
         }
     }
 
     void touch(const KeyType& k)
     {
-        if (_backEntries.find(k) != _backEntries.end())
+        ScopedWriteLock lock(lock_);
+
+        typename backentry_type::iterator it = _backEntries.find(k);
+        if (it != _backEntries.end())
         {
-            struct cache_entry *ref = _backEntries[k];
-            struct freq_node *parent = ref->_parent;
-            if (parent->_count == 1 && (!parent->_hotter || parent->_hotter->_freq != parent->_freq + 1))
-            {
-                parent->_freq++;
-                return;
-            }
-            if (ref->_newer)
-                ref->_newer->_older = ref->_older;
-            else
-                parent->_newest = ref->_older;
-
-            if (ref->_older)
-                ref->_older->_newer = ref->_newer;
-            else
-                parent->_oldest = ref->_newer;
-
-            if (!parent->_hotter || (parent->_hotter->_freq != parent->_freq + 1))
-            {
-                struct freq_node *hotter = new freq_node(parent->_freq + 1);
-                hotter->_colder = parent;
-                hotter->_hotter = parent->_hotter;
-                if (parent->_hotter)
-                    parent->_hotter->_colder = hotter;
-                parent->_hotter = hotter;
-            }
-            parent->_hotter->insert(ref);
-            ref->_parent = parent->_hotter;
-            if (!parent->_newest)
-            {
-                if (parent->_hotter)
-                    parent->_hotter->_colder = parent->_colder;
-
-                if (parent->_colder)
-                    parent->_colder->_hotter = parent->_hotter;
-                else
-                    _freq_list_head = parent->_hotter;
-
-                delete parent;
-            }
-            else
-                parent->_count--;
+            _touchEntry(it->second);
         }
         else
-            insert(k);
+        {
+            struct cache_entry *new_entry = new cache_entry(k);
+            _insertEntry(new_entry);
+        }
     }
 
     void clear()
     {
+        ScopedWriteLock lock(lock_);
+
         while (_freq_list_head)
         {
             _freq_list_head->clear();
@@ -215,8 +150,10 @@ public:
         _backEntries.clear();
     }
 
-    size_t size()
+    size_t size() const
     {
+        ScopedReadLock lock(lock_);
+
         size_t count = 0;
         for (struct freq_node *it = _freq_list_head; it != NULL; it = it->_hotter)
         {
@@ -229,6 +166,8 @@ public:
 
     bool evict(KeyType& k)
     {
+        ScopedWriteLock lock(lock_);
+
         if (!_freq_list_head)
             return false;
 
@@ -244,9 +183,107 @@ public:
 
         return true;
     }
+
+private:
+    void _insertEntry(struct cache_entry *entry)
+    {
+        const KeyType key = entry->_key;
+        if (!_freq_list_head || _freq_list_head->_freq != 1)
+        {
+            struct freq_node *new_freq_node = new freq_node();
+            new_freq_node->_hotter = _freq_list_head;
+            if (_freq_list_head)
+                _freq_list_head->_colder = new_freq_node;
+            _freq_list_head = new_freq_node;
+        }
+        _freq_list_head->insert(entry);
+        entry->_parent = _freq_list_head;
+        _backEntries.insert(rde::pair<KeyType, struct cache_entry *>(key, entry));
+    }
+
+    void _touchEntry(struct cache_entry *entry)
+    {
+        struct freq_node *parent = entry->_parent;
+        if (parent->_count == 1 && (!parent->_hotter || parent->_hotter->_freq != parent->_freq + 1))
+        {
+            parent->_freq++;
+            return;
+        }
+        if (entry->_newer)
+            entry->_newer->_older = entry->_older;
+        else
+            parent->_newest = entry->_older;
+
+        if (entry->_older)
+            entry->_older->_newer = entry->_newer;
+        else
+            parent->_oldest = entry->_newer;
+
+        if (!parent->_hotter || (parent->_hotter->_freq != parent->_freq + 1))
+        {
+            struct freq_node *hotter = new freq_node(parent->_freq + 1);
+            hotter->_colder = parent;
+            hotter->_hotter = parent->_hotter;
+            if (parent->_hotter)
+                parent->_hotter->_colder = hotter;
+            parent->_hotter = hotter;
+        }
+        parent->_hotter->insert(entry);
+        entry->_parent = parent->_hotter;
+        if (!parent->_newest)
+        {
+            if (parent->_hotter)
+                parent->_hotter->_colder = parent->_colder;
+
+            if (parent->_colder)
+                parent->_colder->_hotter = parent->_hotter;
+            else
+                _freq_list_head = parent->_hotter;
+
+            delete parent;
+        }
+        else
+            parent->_count--;
+    }
+
+    void _removeEntry(struct cache_entry *entry)
+    {
+        const KeyType key = entry->_key;
+        struct freq_node *parent = entry->_parent;
+        if (entry->_newer)
+            entry->_newer->_older = entry->_older;
+        else
+            parent->_newest = entry->_older;
+
+        if (entry->_older)
+            entry->_older->_newer = entry->_newer;
+        else
+            parent->_oldest = entry->_newer;
+
+        delete entry;
+        if (!parent->_newest)
+        {
+            if (parent->_hotter)
+                parent->_hotter->_colder = parent->_colder;
+
+            if (parent->_colder)
+                parent->_colder->_hotter = parent->_hotter;
+            else
+                _freq_list_head = parent->_hotter;
+
+            delete parent;
+        }
+        else
+        {
+            parent->_count--;
+        }
+
+        _backEntries.erase(key);
+    }
 };
 
-template <typename KeyType>
+template<typename KeyType,
+         typename LockType = izenelib::util::ReadWriteLock>
 class policy_lfu
 {
     typedef ::stx::btree_set<KeyType> keyset_type;
@@ -255,16 +292,15 @@ class policy_lfu
     entry_type _entries;
     backentry_type _backEntries;
 
-public:
-    void insert(const KeyType& k)
-    {
-        keyset_type& pad=_entries[1];
-        pad.insert(k);
-        _backEntries.insert(rde::pair<KeyType, unsigned long long>(k, 1));
-    }
+    typedef izenelib::util::ScopedReadLock<LockType> ScopedReadLock;
+    typedef izenelib::util::ScopedWriteLock<LockType> ScopedWriteLock;
+    mutable LockType lock_;
 
+public:
     void remove(const KeyType& k)
     {
+        ScopedWriteLock lock(lock_);
+
         unsigned long ref = _backEntries[k];
         if(ref > 0 )
         {
@@ -280,8 +316,9 @@ public:
 
     void touch(const KeyType& k)
     {
-        unsigned long& ref = _backEntries[k];
+        ScopedWriteLock lock(lock_);
 
+        unsigned long& ref = _backEntries[k];
         if(ref > 0)
         {
             keyset_type& pad = _entries[ref];
@@ -292,19 +329,21 @@ public:
             }
         }
         ref++;
-        keyset_type& new_pad =  _entries[ref];
+        keyset_type& new_pad = _entries[ref];
         new_pad.insert(k);
-
     }
 
     void clear()
     {
+        ScopedWriteLock lock(lock_);
         _entries.clear();
         _backEntries.clear();
     }
 
-    size_t size()
+    size_t size() const
     {
+        ScopedReadLock lock(lock_);
+
         size_t count = 0;
         for(typename entry_type::iterator it = _entries.begin(); it != _entries.end(); ++it)
         {
@@ -321,54 +360,64 @@ public:
 
     bool evict(KeyType& k)
     {
-        for(typename entry_type::iterator iter = _entries.begin(); iter != _entries.end(); ++iter)
-        {
-            keyset_type& pad = iter.data();
-            k = *(pad.begin());
-            pad.erase(k);
-            if(pad.empty())
-                _entries.erase(iter);
-            _backEntries.erase(k);
-            return true;
-        }
-        return false;
+        ScopedWriteLock lock(lock_);
+
+        typename entry_type::iterator iter = _entries.begin();
+        if (iter == _entries.end())
+            return false;
+
+        keyset_type& pad = iter.data();
+        k = *(pad.begin());
+        pad.erase(k);
+        if(pad.empty())
+            _entries.erase(iter);
+        _backEntries.erase(k);
+        return true;
     }
 };
 
-template <class KeyType> 
+template<typename KeyType,
+         typename LockType = izenelib::util::ReadWriteLock>
 class policy_lru 
 {
     std::list<KeyType> _entries;
 
-public:
-    void insert(const KeyType& k) 
-    {
-        _entries.push_front(k);
-    }
+    typedef izenelib::util::ScopedReadLock<LockType> ScopedReadLock;
+    typedef izenelib::util::ScopedWriteLock<LockType> ScopedWriteLock;
+    mutable LockType lock_;
 
+public:
     void remove(const KeyType& k)
     {
-       _entries.remove(k);
+        ScopedWriteLock lock(lock_);
+        _entries.remove(k);
     }
 
     void touch(const KeyType& k)
     { 
+        ScopedWriteLock lock(lock_);
         _entries.remove(k);
         _entries.push_front(k);
     }
+
     void clear()
     {
+        ScopedWriteLock lock(lock_);
         _entries.clear();
     }
 
-    size_t size()
+    size_t size() const
     {
+        ScopedReadLock lock(lock_);
         return _entries.size() * sizeof(KeyType);
     }
 
     bool evict(KeyType& k)
     {
-        if(_entries.empty()) return false;
+        ScopedWriteLock lock(lock_);
+
+        if(_entries.empty())
+            return false;
         k = _entries.back();
         _entries.remove(k);
         return true;
@@ -379,5 +428,4 @@ public:
  
 NS_IZENELIB_AM_END
 
- #endif
-
+#endif
