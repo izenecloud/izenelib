@@ -118,6 +118,11 @@ public:
         return data_.size();
     }
     
+    bool empty() const
+    {
+        return key_size()==0;
+    }
+    
     std::size_t capacity() const
     {
         return capacity_;

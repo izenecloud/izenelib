@@ -27,7 +27,7 @@ public:
     :indexer_(test_path, "this_is_test")
     , min_docid_(1), max_docid_(100)
 //     , low_(low), high_(high)
-    , insert_ratio_(80), flush_ratio_(5)
+    , insert_ratio_(80), flush_ratio_(10), read_thread_count_(3), ge_only_(false)
     , write_limit_(10000000), write_count_(0), end_(false)
     , read_wait_ms_(1)
     {
@@ -42,15 +42,14 @@ public:
         }
         
         boost::thread twrite(boost::bind( &BTreeTestRunner::write_thread, this)); 
-        uint32_t read_thread_count = 1;
         std::vector<boost::thread* > rthreads;
-        for(uint32_t i=0;i<read_thread_count;++i)
+        for(uint32_t i=0;i<read_thread_count_;++i)
         {
             boost::thread twrite(boost::bind( &BTreeTestRunner::read_thread, this));
             rthreads.push_back(&twrite);
         }
         twrite.join();
-        for(uint32_t i=0;i<read_thread_count;++i)
+        for(uint32_t i=0;i<read_thread_count_;++i)
         {
             rthreads[i]->join();
         }
@@ -115,7 +114,16 @@ public:
         {
             {
                 boost::shared_lock<boost::shared_mutex> lock(mutex_);
-                if(!RandomReadTest<KeyType>::Test(indexer_, ref_))
+                bool result = false;
+                if(!ge_only_)
+                {
+                    result = RandomReadTest<KeyType>::Test(indexer_, ref_);
+                }
+                else
+                {
+                    result = RandomReadTest<KeyType>::SimpleTest(indexer_, ref_);
+                }
+                if(!result)
                 {
                     //do sth.
     //                 std::cout<<"Read test failed, recode : "<<std::endl;
@@ -140,6 +148,8 @@ private:
     KeyType high_;
     uint32_t insert_ratio_; // 0-100 means 0% - 100%
     uint32_t flush_ratio_; // 0-100 means 0% - 100%
+    uint32_t read_thread_count_;
+    bool ge_only_;
     std::size_t write_limit_;
     std::size_t write_count_;
     bool end_;

@@ -693,12 +693,20 @@ public:
     
     friend std::ostream& operator<<(std::ostream& output, const EWAHBoolArray<uword>& v) {
         output<<"["<<v.numberOfOnes()<<"] ";
-        EWAHBoolArrayBitIterator<uword> it = v.bit_iterator();
-        while(it.next())
+        std::vector<uint32_t> out;
+        v.appendRowIDs(out);
+        for(uint32_t i=0;i<out.size();i++)
         {
-            output<<it.getCurr()<<",";
+            output<<out[i]<<",";
         }
         return output;
+        
+//         EWAHBoolArrayBitIterator<uword> it = v.bit_iterator();
+//         while(it.next())
+//         {
+//             output<<it.getCurr()<<",";
+//         }
+//         return output;
     }
 
     EWAHBoolArrayIterator<uword> uncompress() const ;

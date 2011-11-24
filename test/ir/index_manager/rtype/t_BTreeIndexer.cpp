@@ -99,12 +99,24 @@ BOOST_AUTO_TEST_SUITE( t_BTreeIndexer )
 
 BOOST_AUTO_TEST_CASE(bitvector)
 {
-    BitVector bv;
-    bv.clear(37);
-    bv.set(31);
-    
+//     BitVector bv;
+//     bv.clear(37);
+//     bv.set(31);
+//     std::cout<<bv<<std::endl;
     izenelib::am::EWAHBoolArray<uint32_t> compressed;
-    bv.compressed(compressed);
+//     bv.compressed(compressed);
+//     for(uint32_t i=0;i<32;i++) compressed.set(i);
+//     compressed.add(4);
+    
+    compressed.set(31);
+    compressed.add(0);
+    std::vector<uint32_t> out;
+    compressed.appendRowIDs(out);
+    for(uint32_t i=0;i<out.size();i++)
+    {
+        std::cout<<out[i]<<",";
+    }
+    std::cout<<std::endl;
     std::cout<<compressed<<std::endl;
 }
 
@@ -205,6 +217,7 @@ BOOST_AUTO_TEST_CASE(framework_str)
 
 
 BOOST_AUTO_TEST_SUITE_END()
+
 
 
 

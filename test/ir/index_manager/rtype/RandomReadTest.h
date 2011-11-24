@@ -17,6 +17,41 @@ typedef izenelib::ir::indexmanager::Compare<KeyType> CompareType;
 typedef InMemoryBTreeIndexer<KeyType, docid_t> RefType;
 
 public:
+    
+    static bool SimpleTest(IndexerType& indexer, RefType& ref)
+    {
+        KeyType key;
+        RandomGenerator<KeyType>::Gen(key);
+        bool result = false;
+        BitVector docs1;
+        BitVector docs2;
+#ifdef TEST_DEBUG
+        std::cout<<"getValueGreatEqual "<<key<<std::endl;
+#endif
+        indexer.getValueGreatEqual(key, docs1);
+        ref.getValueGreatEqual(key, docs2);
+        result = docs1.equal_ignore_size(docs2);
+        
+#ifdef TEST_DEBUG
+        if(!result)
+        {
+            std::cout<<"failed reason:"<<std::endl;
+            std::cout<<docs1<<std::endl;
+            std::cout<<docs2<<std::endl;
+            std::size_t csize = std::min(docs1.size(), docs2.size());
+            for(std::size_t i=0;i<csize;i++)
+            {
+                if(docs1.test(i)!=docs2.test(i))
+                {
+                    std::cout<<"failed bits : "<<i<<std::endl;
+                }
+            }
+        }
+#endif
+        std::cout<<"[docs count]"<<docs1.count()<<","<<docs2.count()<<std::endl;
+
+        return result;
+    }
 
     static bool Test(IndexerType& indexer, RefType& ref)
     {
@@ -148,6 +183,41 @@ typedef izenelib::ir::indexmanager::Compare<KeyType> CompareType;
 typedef InMemoryBTreeIndexer<KeyType, docid_t> RefType;
 
 public:
+    
+    static bool SimpleTest(IndexerType& indexer, RefType& ref)
+    {
+        KeyType key;
+        RandomGenerator<KeyType>::Gen(key);
+        bool result = false;
+        BitVector docs1;
+        BitVector docs2;
+#ifdef TEST_DEBUG
+        std::cout<<"getValueGreatEqual "<<key<<std::endl;
+#endif
+        indexer.getValueGreatEqual(key, docs1);
+        ref.getValueGreatEqual(key, docs2);
+        result = docs1.equal_ignore_size(docs2);
+        
+#ifdef TEST_DEBUG
+        if(!result)
+        {
+            std::cout<<"failed reason:"<<std::endl;
+            std::cout<<docs1<<std::endl;
+            std::cout<<docs2<<std::endl;
+            std::size_t csize = std::min(docs1.size(), docs2.size());
+            for(std::size_t i=0;i<csize;i++)
+            {
+                if(docs1.test(i)!=docs2.test(i))
+                {
+                    std::cout<<"failed bits : "<<i<<std::endl;
+                }
+            }
+        }
+#endif
+        std::cout<<"[docs count]"<<docs1.count()<<","<<docs2.count()<<std::endl;
+
+        return result;
+    }
 
     static bool Test(IndexerType& indexer, RefType& ref)
     {
@@ -166,6 +236,12 @@ public:
                 std::cout<<"seek "<<key<<std::endl;
 #endif                
                 result = indexer.seek(key) == ref.seek(key);
+#ifdef TEST_DEBUG
+                if(!result)
+                {
+                    std::cout<<"seek failed : "<<(int)indexer.seek(key)<<","<<(int)ref.seek(key)<<std::endl;
+                }
+#endif
                 break;
             case 1:
 #ifdef TEST_DEBUG

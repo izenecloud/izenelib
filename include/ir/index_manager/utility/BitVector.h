@@ -36,7 +36,8 @@ public:
         : bits_(0), size_(other.size_), maxBytesNum_(other.maxBytesNum_)
     {
         bits_ = new unsigned char[maxBytesNum_];
-        memset(bits_, 0 , maxBytesNum_);
+        for(size_t i = 0; i < maxBytesNum_; ++i )
+            bits_[i] = other.bits_[i];
     }
 
     BitVector(size_t n)
