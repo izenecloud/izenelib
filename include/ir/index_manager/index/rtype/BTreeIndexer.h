@@ -15,6 +15,7 @@
 #include <ir/index_manager/utility/BitVector.h>
 #include <ir/index_manager/utility/StringUtils.h>
 #include <ir/index_manager/store/Directory.h>
+#include <util/ClockTimer.h>
 
 #include <boost/variant.hpp>
 #include <boost/utility/enable_if.hpp>
@@ -29,8 +30,9 @@
 
 // #define CACHE_DEBUG
 // #define BT_DEBUG
-// #define BT_INFO
+#define BT_INFO
 // #define DOCS_INFO
+// #define CACHE_TIME_INFO
 
 NS_IZENELIB_IR_BEGIN
 
@@ -511,6 +513,7 @@ private:
 #ifdef BT_INFO
         std::cout<<"!!!cacheClear_ "<<property_name_<<", key size: "<<cache_.key_size()<<std::endl;
 #endif
+        cache_num_ = 0;
         boost::function<void (const std::pair<KeyType, CacheValueType>&) > func=boost::bind( &ThisType::cacheIterator_, this, _1);
         cache_.iterate(func);
         cache_.clear();
@@ -518,29 +521,85 @@ private:
     
     void cacheIterator_(const std::pair<KeyType, CacheValueType>& kvp)
     {
-        ValueType value;
+#ifdef CACHE_TIME_INFO
+        static double t1=0.0;
+        static double t2=0.0;
+        static double t3=0.0;
+//         std::cout<<"start buffer size : "<<common_compressed_.bufferCapacity()<<std::endl;
+        izenelib::util::ClockTimer timer;
+#endif
+        
+        
+//         ValueType value;
+        common_compressed_.reset();
 #ifdef CACHE_DEBUG
         std::cout<<"cacheIterator : "<<kvp.first<<","<<kvp.second<<std::endl;
 #endif
-        getDbValue_(kvp.first, value);
+        
+#ifdef CACHE_TIME_INFO
+//         std::cout<<"initialzed buffer size : "<<common_compressed_.bufferCapacity()<<std::endl;
+        timer.restart();
+#endif
+        getDbValue_(kvp.first, common_compressed_);
+#ifdef CACHE_TIME_INFO
+        t1 += timer.elapsed();
+//         std::cout<<"deserilized buffer size : "<<common_compressed_.bufferCapacity()<<std::endl;
+#endif
+        
 #ifdef CACHE_DEBUG
         std::cout<<"cacheIterator before update : "<<kvp.first<<","<<value<<std::endl;
 #endif
-        applyCacheValue_(value, kvp.second);
+        
+#ifdef CACHE_TIME_INFO
+        timer.restart();
+#endif
+        applyCacheValue_(common_compressed_, kvp.second);
+#ifdef CACHE_TIME_INFO
+        t2 += timer.elapsed();
+#endif
+        
+#ifdef CACHE_TIME_INFO
+        timer.restart();
+#endif
+        
+
+        
+        
 #ifdef CACHE_DEBUG
         std::cout<<"cacheIterator after update : "<<kvp.first<<","<<value<<std::endl;
 #endif
-        if(value.numberOfOnes()>0)
-        {
-            db_.update(kvp.first, value);
-        }
-        else
-        {
-//             db_.update(kvp.first, bitmap);
-            db_.del(kvp.first);
-        }
+#ifdef CACHE_TIME_INFO
+        timer.restart();
+#endif
+        db_.update(kvp.first, common_compressed_);
+#ifdef CACHE_TIME_INFO
+        t3 += timer.elapsed();
+//         std::cout<<"end buffer size : "<<common_compressed_.bufferCapacity()<<std::endl;
+#endif
+//         if(value.numberOfOnes()>0)
+//         {
+//             db_.update(kvp.first, value);
+//         }
+//         else
+//         {
+// //             db_.update(kvp.first, bitmap);
+//             db_.del(kvp.first);
+//         }
 #ifdef CACHE_DEBUG
         std::cout<<"cacheIterator update finish"<<std::endl;
+#endif
+        ++cache_num_;
+#ifdef BT_INFO
+        if(cache_num_%10000 == 0)
+        {
+            std::cout<<"cacheIterator number : "<<cache_num_<<std::endl;
+        }
+#endif
+#ifdef CACHE_TIME_INFO
+        if(cache_num_%10000 == 0)
+        {
+            std::cout<<"cacheIterator time cost : "<<t1<<","<<t2<<","<<t3<<std::endl;
+        }
 #endif
     }
     
@@ -554,18 +613,18 @@ private:
         return cache_.get(key, value);
     }
     
-    bool getValue_(const KeyType& key, ValueType& bitmap)
-    {
-        bool b_db = getDbValue_(key, bitmap);
-        CacheValueType cache_value;
-        bool b_cache = getCacheValue_(key, cache_value);
-        if(!b_db && !b_cache) return false;
-        if(b_cache)
-        {
-            applyCacheValue_(bitmap, cache_value);
-        }
-        return true;
-    }
+//     bool getValue_(const KeyType& key, ValueType& bitmap)
+//     {
+//         bool b_db = getDbValue_(key, bitmap);
+//         CacheValueType cache_value;
+//         bool b_cache = getCacheValue_(key, cache_value);
+//         if(!b_db && !b_cache) return false;
+//         if(b_cache)
+//         {
+//             applyCacheValue_(bitmap, cache_value);
+//         }
+//         return true;
+//     }
     
     bool getValue_(const KeyType& key, BitVector& value)
     {
@@ -585,18 +644,17 @@ private:
     
     static void decompress_(const ValueType& compressed, BitVector& value)
     {
-        //TODO optimize?
-//         izenelib::am::EWAHBoolArrayBitIterator<uint32_t> it = compressed.bit_iterator();
-//         while(it.next())
-//         {
-//             value.set(it.getCurr() );
-//         }
-        std::vector<uint32_t> out;
-        compressed.appendRowIDs(out);
-        for(uint32_t i=0;i<out.size();i++)
+        izenelib::am::EWAHBoolArrayBitIterator<uint32_t> it = compressed.bit_iterator();
+        while(it.next())
         {
-            value.set(out[i]);
+            value.set(it.getCurr() );
         }
+//         std::vector<uint32_t> out;
+//         compressed.appendRowIDs(out);
+//         for(uint32_t i=0;i<out.size();i++)
+//         {
+//             value.set(out[i]);
+//         }
     }
     
     static void compress_(const BitVector& value, ValueType& compressed)
@@ -605,7 +663,7 @@ private:
     }
     
     
-    
+    /// Be called in range search function.
     static void combineValue_(const CacheValueType& cacheValue, const ValueType& cbitmap, BitVector& result)
     {
 #ifdef BT_DEBUG
@@ -628,24 +686,54 @@ private:
 #endif
     }
     
-    static void applyCacheValue_(ValueType& value, const CacheValueType& cacheValue)
+    /// called only in cacheIterator_, one thread, common_bv_ is safe.
+    void applyCacheValue_(ValueType& value, const CacheValueType& cacheValue)
     {
-        BitVector docs;
-        decompress_(value, docs);
+#ifdef CACHE_TIME_INFO
+        static double t21=0.0;
+        static double t22=0.0;
+        static double t23=0.0;
+        izenelib::util::ClockTimer timer;
+#endif
+        common_bv_.clear();
+        decompress_(value, common_bv_);
+#ifdef CACHE_TIME_INFO
+        t21 += timer.elapsed();
+        timer.restart();
+#endif
+        
+        
 #ifdef CACHE_DEBUG
         std::cout<<"applyCacheValue_ after decompress_"<<docs<<std::endl;
 #endif        
-        applyCacheValue_(docs, cacheValue);
+        applyCacheValue_(common_bv_, cacheValue);
+#ifdef CACHE_TIME_INFO
+        t22 += timer.elapsed();
+        timer.restart();
+#endif
+        
+        
 #ifdef CACHE_DEBUG
         std::cout<<"applyCacheValue_ after applyCacheValue_ "<<docs<<std::endl;
 #endif
         value.reset();
-        compress_(docs, value);
+        compress_(common_bv_, value);
+#ifdef CACHE_TIME_INFO
+        t23 += timer.elapsed();
+        timer.restart();
+#endif
+        
 #ifdef CACHE_DEBUG
         std::cout<<"applyCacheValue_ after compress_"<<value<<std::endl;
-#endif        
+#endif
+#ifdef CACHE_TIME_INFO
+        if(cache_num_%10000 == 0)
+        {
+            std::cout<<"applyCacheValue_ time cost : "<<t21<<","<<t22<<","<<t23<<std::endl;
+        }
+#endif
     }
-    
+
     static void applyCacheValue_(BitVector& value, const CacheValueType& cacheValue)
     {
         for(std::size_t i=0;i<cacheValue.item.size();i++)
@@ -685,6 +773,11 @@ private:
     DbType db_;
     CacheType cache_;
     EnumCombineFunc func_;
+    /// used only in cacheIterator_, one thread,  safe.
+    BitVector common_bv_;
+    ValueType common_compressed_;
+    ///
+    std::size_t cache_num_;
     boost::shared_mutex mutex_;
 };
 

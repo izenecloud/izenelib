@@ -631,7 +631,7 @@ public:
     void rawlogicalor( EWAHBoolArray &a, EWAHBoolArray &container) ;
     void reset()
     {
-        buffer.clear();
+        buffer.resize(0);
         buffer.push_back(0);
         sizeinbits = 0;
         lastRLW = 0;
@@ -673,6 +673,10 @@ public:
     inline uint bufferSize() const
     {
         return buffer.size();
+    }
+    inline uint bufferCapacity() const
+    {
+        return buffer.capacity();
     }
     inline void read(istream & in, const bool savesizeinbits=true);
     inline void readBuffer(istream & in, const uint buffersize);
