@@ -7,6 +7,8 @@
 
 #include <boost/filesystem.hpp>
 
+#include <glog/logging.h>
+
 namespace bfs = boost::filesystem;
 
 namespace net{
@@ -55,7 +57,7 @@ void DataReceiver::doReceive(SocketIO* sock)
     // read head
     int nread=0;
     nread = sock->syncRecv(buf_, MessageHeader::getHeadLen(), timeout);
-    std::cout<<sock->getSockFd()<<"[DataReceiver] received header size "<<nread/*<<" - "<<buf_*/<<std::endl;
+    LOG(INFO)<<"Fd"<<sock->getSockFd()<<", Received header size "<<nread/*<<" - "<<buf_*/;
 
     std::string fileName(buf_, nread);
     std::cout<<fileName<<std::endl;
@@ -81,7 +83,7 @@ void DataReceiver::doReceive(SocketIO* sock)
         totalread+=nread;
         ofs.write(buf_, nread);
     }
-    std::cout <<sock->getSockFd()<< "[DataReceiver] received data size "<<totalread<<std::endl;
+    LOG(INFO)<<"Fd"<<sock->getSockFd()<<", Received data size "<<totalread;
 
     // xxx check filezie, checksum? response
 
