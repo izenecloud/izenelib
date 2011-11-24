@@ -2,6 +2,7 @@
 
 #include <fstream>
 #include <string.h>
+#include <signal.h>
 #include <boost/filesystem.hpp>
 
 #include <glog/logging.h>
@@ -48,7 +49,7 @@ DataTransfer::syncSend(const std::string& src, const std::string& curDirName, bo
     bfs::path path(processPath(src));
     //std::cout<<path.string()<<std::endl;
     std::string curFileDir = curDirName.empty() ? path.filename() : curDirName; // rename dir to dirName
-    //std::cout<<"[DataTransfer] dir: "<<curFileDir<<std::endl; //xxx
+    //std::cout<<"[DataTransfer] dir: "<<curFileDir<<std::endl;
 
     int ret = 0;
     int sent = 0;
@@ -57,7 +58,7 @@ DataTransfer::syncSend(const std::string& src, const std::string& curDirName, bo
     {
         if (bfs::is_regular_file(iter->path()))
         {
-            std::cout<<iter->path().filename()<<std::endl;//xxx
+            //std::cout<<iter->path().filename()<<std::endl;
             sent = syncSendFile(iter->path().string(), curFileDir);
             if (sent > 0)
                 ret += sent;
@@ -72,6 +73,13 @@ DataTransfer::syncSend(const std::string& src, const std::string& curDirName, bo
     }
 
     return ret;
+}
+
+int
+DataTransfer::copy(const std::string& src, const std::string& dest, bool isRecursively)
+{
+    //bfs::copy_file();
+    return 0;
 }
 
 /// private ////////////////////////////////////////////////////////////////////
@@ -123,21 +131,27 @@ DataTransfer::syncSendFile(const std::string& fileName, const std::string& curDi
         return -1;
     }
 
-    LOG(INFO)<<"Sending: "<<fileName<<", specified dir: "<<curDir;//xxx
+    LOG(INFO)<<"Transferring "<<fileName<<" to remote dir "<<curDir;
 
-    // new connection
+    // new connection to simplify data control
     if (socketIO_.Connect(serverAddr_.host_, serverAddr_.port_) < 0)
         return -1;
+
+    // don't terminate when server broken, xxx check error
+    signal(SIGPIPE, SIG_IGN);
 
     // send head
     bfs::path path(fileName);
     MessageHeader head;
     head.addFileName(curDir+"/"+path.filename());
+
     int nsend = socketIO_.syncSend(head.getHead(), head.getHeadLen());
-    LOG(INFO)<<"Sent header size "<<nsend<<" - "<<head.getHead();
+    if (nsend < head.getHeadLen())
+        LOG(INFO)<<"Sent header size "<<nsend<<" - "<<head.getHead();
 
     // send data
     std::streamsize readLen, sendLen, totalLen = 0;
+
     ifs.read(buf_, bufSize_);
     while ((readLen = ifs.gcount()) > 0)
     {
@@ -151,9 +165,9 @@ DataTransfer::syncSendFile(const std::string& fileName, const std::string& curDi
 
         ifs.read(buf_, bufSize_);
     }
-    LOG(INFO)<<"Sent data size "<<totalLen;
 
     ifs.close();
+    LOG(INFO)<<"Sent data size "<<totalLen;
 
     // xxx check server receiver status
 

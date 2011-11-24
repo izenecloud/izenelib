@@ -9,6 +9,7 @@
 #include <netinet/tcp.h>
 #include <arpa/inet.h>
 #include <netdb.h>
+#include <fcntl.h>
 
 
 namespace net{
@@ -236,6 +237,13 @@ void SocketIO::Close()
     sockFd_ = -1;
 }
 
+void SocketIO::Shutdown()
+{
+    shutdown(sockFd_, SHUT_RDWR);
+
+    Close();
+}
+
 void SocketIO::SetSocketOpt()
 {
     int bufSize = 65536; // xxx 64k
@@ -251,7 +259,8 @@ void SocketIO::SetSocketOpt()
     if (setsockopt(sockFd_, SOL_SOCKET, SO_KEEPALIVE, (char *) &flag, sizeof(flag)) < 0) {
         perror("Disabling NAGLE: ");
     }
-    //fcntl(mSockFd, F_SETFL, O_NONBLOCK);
+
+    fcntl(sockFd_, F_SETFL, O_NONBLOCK);
     // turn off NAGLE
     if (setsockopt(sockFd_, IPPROTO_TCP, TCP_NODELAY, (char *) &flag, sizeof(flag)) < 0) {
         perror("Disabling NAGLE: ");

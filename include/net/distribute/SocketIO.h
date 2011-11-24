@@ -73,6 +73,9 @@ public:
 
     void Close();
 
+    /// shutdown receptions or transmissions
+    void Shutdown();
+
     int getSockFd()
     {
         return sockFd_;
