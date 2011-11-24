@@ -34,7 +34,7 @@ DataReceiver::DataReceiver(
                 boost::bind(&DataReceiver::receive, this));
     }
 
-    std::cout<<"--> listen on receiver "<<std::endl;
+    //std::cout<<"--> listen on receiver "<<std::endl;
     sockIO_.Listen(port_);
 }
 
