@@ -123,41 +123,46 @@ public:
         getValue_(key, docs);
     }
 
-    void getValue(const KeyType& key, std::vector<docid_t>& docList)
-    {
-        boost::shared_lock<boost::shared_mutex> lock(mutex_);
-        BitVector docmap;
-        getValue_(key, docmap);
-        for(std::size_t docid=1;docid<docmap.size();docid++)
-        {
-            if(docmap.test(docid))
-            {
-                docList.push_back(docid);
-            }
-        }
-    }
-    
     std::size_t getValueBetween(const KeyType& lowKey, const KeyType& highKey, std::size_t maxDoc, KeyType* & data)
     {
         if( compare_(lowKey,highKey)>0 ) return 0;
         boost::shared_lock<boost::shared_mutex> lock(mutex_);
         std::size_t result = 0;
-        std::auto_ptr<BaseEnumType> term_enum(getEnum_(lowKey));
-        std::pair<KeyType, BitVector> kvp;
-        while(term_enum->next(kvp))
+
+        if(cache_.empty())
         {
-            if( compare_(kvp.first,highKey)>0 ) break;
-            for(std::size_t docid=1;docid<kvp.second.size();docid++)
+            std::auto_ptr<AMEnumType> term_enum(getAMEnum_(lowKey));
+            std::pair<KeyType, ValueType> kvp;
+            while(term_enum->next(kvp))
             {
-                if (docid >= maxDoc) break;
-                if(kvp.second.test(docid))
+                if( compare_(kvp.first,highKey)>0 ) break;
+                izenelib::am::EWAHBoolArrayBitIterator<uint32_t> it = kvp.second.bit_iterator();
+                while(it.next())
                 {
-                    data[docid] = kvp.first;
+                    data[it.getCurr()] = kvp.first;
                     ++result;
                 }
             }
         }
-        
+        else
+        {
+            std::auto_ptr<BaseEnumType> term_enum(getEnum_(lowKey));
+            std::pair<KeyType, BitVector> kvp;
+            while(term_enum->next(kvp))
+            {
+                if( compare_(kvp.first,highKey)>0 ) break;
+                for(std::size_t docid=1;docid<kvp.second.size();docid++)
+                {
+                    if (docid >= maxDoc) break;
+                    if(kvp.second.test(docid))
+                    {
+                        data[docid] = kvp.first;
+                        ++result;
+                    }
+                }
+            }        
+        }
+
         return result;
     }
 
