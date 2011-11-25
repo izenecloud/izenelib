@@ -94,6 +94,7 @@ IF(izene_util_SHOULD_BUILD)
     modp_numtoa.cpp
     timestamp.cpp
     MemPool.cpp
+    kv2string.cpp
 
     driver/Keys.cpp
     driver/Request.cpp
