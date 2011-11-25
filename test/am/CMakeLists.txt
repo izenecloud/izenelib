@@ -122,24 +122,12 @@ TARGET_LINK_LIBRARIES(t_matrix
    izene_util
   )
 
-ADD_EXECUTABLE(t_concurrent_set
+ADD_EXECUTABLE(t_matrix_cache
   Runner.cpp
-  matrix/t_concurrent_set.cpp
+  matrix/t_matrix_cache.cpp
 )
 
-TARGET_LINK_LIBRARIES(t_concurrent_set
-  am
-  izene_util
-  ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY}
-  ${Boost_SYSTEM_LIBRARY}
-)
-
-ADD_EXECUTABLE(t_concurrent_matrix
-  Runner.cpp
-  matrix/t_concurrent_matrix.cpp
-)
-
-TARGET_LINK_LIBRARIES(t_concurrent_matrix
+TARGET_LINK_LIBRARIES(t_matrix_cache
   am
   izene_util
   ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY}

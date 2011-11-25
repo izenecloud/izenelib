@@ -1,11 +1,11 @@
 ///
-/// @file t_concurrent_matrix.cpp
-/// @brief test functions in ConcurrentMatrix
+/// @file t_matrix_cache.cpp
+/// @brief test functions in MatrixCache
 /// @author Jun Jiang
 /// @date Created 2011-11-24
 ///
 
-#include <am/matrix/concurrent_matrix.h>
+#include <am/matrix/matrix_cache.h>
 #include <3rdparty/am/google/sparse_hash_map>
 
 #include <boost/test/unit_test.hpp>
@@ -81,14 +81,25 @@ void checkMatrix()
     }
 
     {
+        BOOST_TEST_MESSAGE("check update_elem...");
+        BOOST_CHECK(matrix.update_elem(1, 1, 2*MATRIX_VALUE));
+        BOOST_CHECK(matrix.update_elem(1, 2, 2*MATRIX_VALUE));
+
+        BOOST_CHECK(matrix.update_elem(4, 1, 2*MATRIX_VALUE) == false);
+    }
+
+    {
         BOOST_TEST_MESSAGE("check erase...");
-        SharedRowType row1 = matrix.erase(1);
-        BOOST_CHECK_EQUAL((*row1)[1], MATRIX_VALUE);
+        bool isDirty = false;
+        SharedRowType row1 = matrix.erase(1, isDirty);
+        BOOST_CHECK(isDirty); // as updated
+        BOOST_CHECK_EQUAL((*row1)[1], 2*MATRIX_VALUE);
+        BOOST_CHECK_EQUAL((*row1)[2], 2*MATRIX_VALUE);
         BOOST_CHECK_EQUAL((*row1)[3], MATRIX_VALUE);
         BOOST_CHECK_EQUAL((*row1)[5], MATRIX_VALUE);
         BOOST_CHECK(matrix.get(1) == false);
 
-        SharedRowType row4 = matrix.erase(4);
+        SharedRowType row4 = matrix.erase(4, isDirty);
         BOOST_CHECK(row4 == false);
 
         // matrix = [2][2], [3][1]
@@ -97,16 +108,17 @@ void checkMatrix()
     }
 
     {
-        BOOST_TEST_MESSAGE("check incre_elem_count...");
-        SharedRowType row2 = matrix.get(2);
-        (*row2)[30] = MATRIX_VALUE;
-        matrix.incre_elem_count();
+        BOOST_TEST_MESSAGE("check reset_dirty_flag...");
+        KeyType key;
+        SharedRowType row = matrix.reset_dirty_flag(key);
+        BOOST_CHECK_EQUAL(key, 3); // as updated
+        BOOST_CHECK_EQUAL((*row)[30], MATRIX_VALUE);
 
-        // matrix = [2][3], [3][1]
-        BOOST_CHECK_EQUAL(matrix.size(), 2U);
-        BOOST_CHECK(matrix.empty() == false);
-        BOOST_CHECK_EQUAL(matrix.elem_count(), 4U);
+        row = matrix.reset_dirty_flag(key);
+        BOOST_CHECK(row == false); // as no dirty flag
     }
+
+    BOOST_TEST_MESSAGE(matrix);
 
     {
         BOOST_TEST_MESSAGE("check clear...");
@@ -114,6 +126,7 @@ void checkMatrix()
 
         BOOST_CHECK_EQUAL(matrix.size(), 0U);
         BOOST_CHECK(matrix.empty());
+        BOOST_CHECK_EQUAL(matrix.occupy_size(), 0U);
         BOOST_CHECK_EQUAL(matrix.elem_count(), 0U);
         BOOST_CHECK(matrix.get(1) == false);
     }
@@ -121,7 +134,7 @@ void checkMatrix()
 
 }
 
-BOOST_AUTO_TEST_SUITE(ConcurrentMatrixTest)
+BOOST_AUTO_TEST_SUITE(MatrixCacheTest)
 
 BOOST_AUTO_TEST_CASE(testMatrixFunc)
 {
@@ -129,13 +142,13 @@ BOOST_AUTO_TEST_CASE(testMatrixFunc)
     typedef ::google::sparse_hash_map<int, float> RowType;
 
     BOOST_TEST_MESSAGE("=> check default container type...");
-    typedef izenelib::am::ConcurrentMatrix<KeyType, RowType> DefaultMatrix;
+    typedef izenelib::am::MatrixCache<KeyType, RowType> DefaultMatrix;
     checkMatrix<DefaultMatrix>();
 
     BOOST_TEST_MESSAGE("=> check std::map as container type...");
     typedef boost::shared_ptr<RowType> SharedRowType;
     typedef std::map<KeyType, SharedRowType> StdContainer;
-    typedef izenelib::am::ConcurrentMatrix<KeyType, RowType, StdContainer> StdMatrix;
+    typedef izenelib::am::MatrixCache<KeyType, RowType, StdContainer> StdMatrix;
     checkMatrix<StdMatrix>();
 }
 

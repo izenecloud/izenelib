@@ -2,8 +2,7 @@
 #define IZENELIB_AM_MATRIX_DB_H
 
 #include <types.h>
-#include "concurrent_set.h"
-#include "concurrent_matrix.h"
+#include "matrix_cache.h"
 #include <am/detail/cache_policy.h>
 
 #include <sdb/SequentialDB.h>
@@ -35,13 +34,10 @@ typename Policy = detail::policy_lfu_nouveau<KeyType>
 >
 class MatrixDB
 {
-    typedef ConcurrentMatrix<KeyType, RowType> CacheType;
+    typedef MatrixCache<KeyType, RowType> CacheType;
     CacheType _cache;
+
     const std::size_t _max_cache_elem;
-
-    typedef ConcurrentSet<KeyType> DirtyFlags;
-    DirtyFlags _dirty_flags;
-
     StorageType _db_storage;
     Policy _policy;
 
@@ -93,25 +89,18 @@ public:
         return it->second;
     }
 
-    /**
-     * @attention as @c RowType is not thread-safe, below things are forbidden:
-     * 1. if you call this function with the same @p x in multi-threads, the result in updating row @p x is undefined.
-     * 2. if you call this function in one thread, and iterate @c RowType of the same @p x in another thread, the iteration result is undefined.
-     */
     void update_elem(KeyType x, KeyType y, ElementType d)
     {
-        boost::shared_ptr<RowType> row = _row_impl(x);
-        typename RowType::iterator it = row->find(y);
-        if(it == row->end())
+        if (_cache.update_elem(x, y, d))
         {
-            (*row)[y] = d;
-            _cache.incre_elem_count();
+            _policy.touch(x);
+            return;
         }
-        else
-        {
-            it->second = d;
-        }
-        _dirty_flags.insert(x);
+
+        boost::shared_ptr<RowType> row(new RowType);
+        _db_storage.get(x, *row);
+        (*row)[y] = d;
+        update_row(x, row);
     }
 
     boost::shared_ptr<const RowType> row(KeyType x)
@@ -124,7 +113,6 @@ public:
         _evict();
         _cache.update(x, row);
         _policy.touch(x);
-        _dirty_flags.insert(x);
     }
 
     void clear()
@@ -137,13 +125,11 @@ public:
     void print(std::ostream& ostream) const
     {
         size_t cacheSize = _cache.occupy_size();
-        size_t flagSize = _dirty_flags.occupy_size();
         size_t policySize = _policy.size();
-        size_t totalSize = cacheSize + flagSize + policySize;
+        size_t totalSize = cacheSize + policySize;
 
         ostream << _cache
-                << " + flag[" << flagSize
-                << "] + policy[" << policySize
+                << " + policy[" << policySize
                 << "] => MatrixDB[" << totalSize << "]";
         if (_is_cache_full())
         {
@@ -173,8 +159,9 @@ private:
         KeyType key;
         while (_is_cache_full() && _policy.evict(key))
         {
-            boost::shared_ptr<RowType> row = _cache.erase(key);
-            if (row && _dirty_flags.erase(key))
+            bool isDirty = false;
+            boost::shared_ptr<RowType> row = _cache.erase(key, isDirty);
+            if (row && isDirty)
             {
                 _db_storage.update(key, *row);
             }
@@ -188,18 +175,11 @@ private:
 
     void _dump()
     {
-        typedef typename DirtyFlags::container_type FlagContainer;
-        FlagContainer flags;
-        _dirty_flags.swap(flags);
-
-        for (typename FlagContainer::const_iterator fit = flags.begin();
-            fit != flags.end(); ++fit)
+        KeyType key;
+        boost::shared_ptr<RowType> row;
+        while ((row = _cache.reset_dirty_flag(key)))
         {
-            boost::shared_ptr<RowType> row = _cache.get(*fit);
-            if (row)
-            {
-                _db_storage.update(*fit, *(row));
-            }
+            _db_storage.update(key, *row);
         }
     }
 };

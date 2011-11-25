@@ -1,15 +1,16 @@
 /**
- * @file concurrent_matrix.h
- * @brief ConcurrentMatrix is an in-memory matrix, it could be called concurrently in multi-threads.
+ * @file matrix_cache.h
+ * @brief MatrixCache is an in-memory matrix, it could be called concurrently in multi-threads.
  * @author Jun Jiang
  * @date 2011-11-23
  */
 
-#ifndef IZENELIB_AM_CONCURRENT_MATRIX_H
-#define IZENELIB_AM_CONCURRENT_MATRIX_H
+#ifndef IZENELIB_AM_MATRIX_CACHE_H
+#define IZENELIB_AM_MATRIX_CACHE_H
 
 #include <types.h>
 #include <3rdparty/am/rde_hashmap/hash_map.h>
+#include <3rdparty/am/stx/btree_set>
 #include <util/ThreadModel.h>
 
 #include <boost/shared_ptr.hpp>
@@ -19,7 +20,7 @@
 NS_IZENELIB_AM_BEGIN
 
 /**
- * @c ConcurrentMatrix is a map from @p KeyType to @p RowType,
+ * @c MatrixCache is a map from @p KeyType to @p RowType,
  * @p RowType is a map from column key to element,
  * @c RowType::size() is prerequisite to count the total number of entries in the matrix.
  */
@@ -27,21 +28,24 @@ template<typename KeyType,
          typename RowType,
          typename ContainerType = ::rde::hash_map<KeyType, boost::shared_ptr<RowType> >,
          typename LockType = izenelib::util::ReadWriteLock>
-class ConcurrentMatrix
+class MatrixCache
 {
 public:
     typedef KeyType key_type;
     typedef RowType row_type;
+    typedef typename RowType::key_type col_type;
+    typedef typename RowType::mapped_type elem_type;
     typedef ContainerType container_type;
     typedef typename container_type::size_type size_type;
 
     enum
     {
-        ELEM_SIZE = sizeof(typename row_type::key_type) + sizeof(typename row_type::mapped_type),
-        ROW_SIZE = sizeof(typename container_type::key_type) + sizeof(typename container_type::mapped_type)
+        ELEM_SIZE = sizeof(col_type) + sizeof(elem_type),
+        ROW_SIZE = sizeof(typename container_type::key_type) + sizeof(typename container_type::mapped_type),
+        FLAG_SIZE = sizeof(key_type)
     };
 
-    ConcurrentMatrix() : elemCount_(0) {}
+    MatrixCache() : elemCount_(0) {}
 
     size_type size() const
     {
@@ -57,18 +61,12 @@ public:
 
     std::size_t occupy_size() const
     {
-        return ELEM_SIZE*elemCount_ + ROW_SIZE*size();
+        return ELEM_SIZE*elemCount_ + ROW_SIZE*size() + FLAG_SIZE*dirtyFlags_.size();
     }
 
     std::size_t elem_count() const
     {
         return elemCount_;
-    }
-
-    void incre_elem_count()
-    {
-        ScopedWriteLock lock(lock_);
-        ++elemCount_;
     }
 
     boost::shared_ptr<RowType> get(const key_type& key) const
@@ -88,8 +86,8 @@ public:
     bool insert(const key_type& key, boost::shared_ptr<RowType> row)
     {
         assert(row);
-
         ScopedWriteLock lock(lock_);
+
         value_type pairValue(key, row);
         if (container_.insert(pairValue).second)
         {
@@ -102,8 +100,8 @@ public:
     void update(const key_type& key, boost::shared_ptr<RowType> row)
     {
         assert(row);
-
         ScopedWriteLock lock(lock_);
+
         boost::shared_ptr<RowType>& old = container_[key];
         if (old)
         {
@@ -112,13 +110,47 @@ public:
         }
         old = row;
         elemCount_ += old->size();
+        dirtyFlags_.insert(key);
     }
 
-    boost::shared_ptr<RowType> erase(const key_type& key)
+    bool update_elem(const key_type& x, const col_type& y, const elem_type& elem)
+    {
+        ScopedWriteLock lock(lock_);
+
+        iterator it = container_.find(x);
+        if (it == container_.end())
+            return false;
+
+        boost::shared_ptr<RowType> row = it->second;
+        typename row_type::iterator cit = row->find(y);
+        if(cit == row->end())
+        {
+            (*row)[y] = elem;
+            ++elemCount_;
+        }
+        else
+        {
+            cit->second = elem;
+        }
+        dirtyFlags_.insert(x);
+
+        return true;
+    }
+
+    /**
+     * erase a row.
+     * @param[in] key the row to erase
+     * @param[out] isDirty whether the row is dirty
+     * @return the row instance,
+     *         if @p key is not found, the return value would hold @c NULL.
+     */
+    boost::shared_ptr<RowType> erase(const key_type& key, bool& isDirty)
     {
         ScopedWriteLock lock(lock_);
 
         boost::shared_ptr<RowType> row;
+        isDirty = false;
+
         iterator it = container_.find(key);
         if (it != container_.end())
         {
@@ -127,6 +159,34 @@ public:
 
             assert(elemCount_ >= row->size());
             elemCount_ -= row->size();
+
+            isDirty = dirtyFlags_.erase(key) ? true : false;
+        }
+
+        return row;
+    }
+
+    /**
+     * find a row whose flag is dirty, and reset its flag to not dirty.
+     * @param[out] key the row whose flag is reset
+     * @return the row instance whose flag is reset,
+     *         if no flag is dirty, the return value would hold @c NULL.
+     */
+    boost::shared_ptr<RowType> reset_dirty_flag(key_type& key)
+    {
+        ScopedWriteLock lock(lock_);
+
+        boost::shared_ptr<RowType> row;
+        typename DirtyFlags::iterator it = dirtyFlags_.begin();
+        if (it != dirtyFlags_.end())
+        {
+            key = *it;
+            const_iterator rowIt = container_.find(key);
+            if (rowIt != container_.end())
+            {
+                row = rowIt->second;
+            }
+            dirtyFlags_.erase(it);
         }
 
         return row;
@@ -137,6 +197,7 @@ public:
         ScopedWriteLock lock(lock_);
         container_.clear();
         elemCount_ = 0;
+        dirtyFlags_.clear();
     }
 
     void print(std::ostream& ostream) const
@@ -145,7 +206,9 @@ public:
                 << "]*elem[" << elemCount_
                 << "] + ROW_SIZE[" << ROW_SIZE
                 << "]*row[" << size()
-                << "] => ConcurrentMatrix[" << occupy_size() << "]";
+                << "] + FLAG_SIZE[" << FLAG_SIZE
+                << "]*flag[" << dirtyFlags_.size()
+                << "] => MatrixCache[" << occupy_size() << "]";
     }
 
 private:
@@ -159,12 +222,15 @@ private:
     container_type container_;
     std::size_t elemCount_;
     mutable LockType lock_;
+
+    typedef ::stx::btree_set<key_type> DirtyFlags;
+    DirtyFlags dirtyFlags_;
 };
 
 template<typename KeyType, typename RowType, typename ContainerType, typename LockType>
 std::ostream& operator<<(
     std::ostream& out,
-    const ConcurrentMatrix<KeyType, RowType, ContainerType, LockType>& matrix
+    const MatrixCache<KeyType, RowType, ContainerType, LockType>& matrix
 )
 {
     matrix.print(out);
@@ -173,4 +239,4 @@ std::ostream& operator<<(
 
 NS_IZENELIB_AM_END
 
-#endif // IZENELIB_AM_CONCURRENT_MATRIX_H
+#endif // IZENELIB_AM_MATRIX_CACHE_H
