@@ -17,7 +17,7 @@
 
 NS_IZENELIB_AM_BEGIN
 
- ////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
 //
 //MatrixDB: Persistent matrix data with two features:
 // 1. Parametering cache size according to all matrix elements, instead of row numbers
@@ -86,6 +86,7 @@ public:
     {
         boost::shared_ptr<const RowType> row_data = row(x);
         typename RowType::const_iterator it = row_data->find(y); 
+
         if(it == row_data->end())
             return ElementType();
 
@@ -118,28 +119,12 @@ public:
         return _row_impl(x);
     }
 
-    /**
-     * update row @p x with @p row.
-     * @param x row number
-     * @param row row data to update
-     * @post for performance consideration, after this function is called,
-     *       @p row would become empty as its contents is swapped with a new @c RowType.
-     */
-    void update_row(KeyType x, RowType& row)
+    void update_row(KeyType x, boost::shared_ptr<RowType> row)
     {
-        boost::shared_ptr<RowType> newRow(new RowType);
-        newRow->swap(row);
-
         _evict();
-        _cache.update(x, newRow);
-
+        _cache.update(x, row);
         _policy.touch(x);
         _dirty_flags.insert(x);
-    }
-
-    bool row_without_cache(KeyType x, RowType& row_data)
-    {
-        return _db_storage.get(x,row_data);
     }
 
     void clear()
@@ -160,6 +145,10 @@ public:
                 << " + flag[" << flagSize
                 << "] + policy[" << policySize
                 << "] => MatrixDB[" << totalSize << "]";
+        if (_is_cache_full())
+        {
+            ostream << " FULL";
+        }
     }
 
 private:
