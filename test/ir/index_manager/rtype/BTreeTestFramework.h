@@ -14,7 +14,7 @@ using namespace izenelib::ir::indexmanager;
 template <class KeyType>
 class BTreeTestRunner
 {
-typedef CBTreeIndexer<KeyType> IndexerType;
+typedef BTreeIndexer<KeyType> IndexerType;
 typedef uint32_t docid_t;
 typedef std::vector<docid_t> RefValueType;
 typedef izenelib::ir::indexmanager::Compare<KeyType> CompareType;

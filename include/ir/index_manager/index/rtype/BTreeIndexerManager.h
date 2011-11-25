@@ -39,20 +39,20 @@ public:
 public:
     
     template<class T>
-    CBTreeIndexer<T>* getIndexer(const std::string& property_name)
+    BTreeIndexer<T>* getIndexer(const std::string& property_name)
     {
-        CBTreeIndexer<T>* result = NULL;
+        BTreeIndexer<T>* result = NULL;
         boost::unordered_map<std::string, void*>::iterator it = instance_map_.find(property_name);
         if(it==instance_map_.end())
         {
-            result = new CBTreeIndexer<T>(dir_+"/bt_property."+property_name, property_name);
+            result = new BTreeIndexer<T>(dir_+"/bt_property."+property_name, property_name);
             result->open();
             instance_map_.insert(std::make_pair( property_name, (void*)result) );
         }
         else
         {
             void* pv = it->second;
-            result = (CBTreeIndexer<T>*)pv;
+            result = (BTreeIndexer<T>*)pv;
         }
         return result;
     }
@@ -136,7 +136,7 @@ public:
     template<typename T>
     void operator()(BTreeIndexerManager* manager, const std::string& property_name, const T& v, docid_t docid)
     {
-        CBTreeIndexer<T>* pindexer = manager->getIndexer<T>(property_name);
+        BTreeIndexer<T>* pindexer = manager->getIndexer<T>(property_name);
         pindexer->add(v, docid);
     }
 };
@@ -147,7 +147,7 @@ public:
     template<typename T>
     void operator()(BTreeIndexerManager* manager, const std::string& property_name, const T& v, docid_t docid)
     {
-        CBTreeIndexer<T>* pindexer = manager->getIndexer<T>(property_name);
+        BTreeIndexer<T>* pindexer = manager->getIndexer<T>(property_name);
         pindexer->remove(v, docid);
     }
 };
@@ -158,7 +158,7 @@ public:
     template<typename T>
     void operator()(BTreeIndexerManager* manager, const std::string& property_name, const T& v)
     {
-        CBTreeIndexer<T>* pindexer = manager->getIndexer<T>(property_name);
+        BTreeIndexer<T>* pindexer = manager->getIndexer<T>(property_name);
         pindexer->flush();
     }
 };
@@ -169,7 +169,7 @@ public:
     template<typename T>
     void operator()(BTreeIndexerManager* manager, const std::string& property_name, const T& v)
     {
-        CBTreeIndexer<T>* pindexer = manager->getIndexer<T>(property_name);
+        BTreeIndexer<T>* pindexer = manager->getIndexer<T>(property_name);
         delete pindexer;
     }
 };
@@ -181,7 +181,7 @@ public:
     template<typename T>
     void operator()(BTreeIndexerManager* manager, const std::string& property_name, const T& v, bool& find)
     {
-        CBTreeIndexer<T>* pindexer = manager->getIndexer<T>(property_name);
+        BTreeIndexer<T>* pindexer = manager->getIndexer<T>(property_name);
         find = pindexer->seek(v);
     }
 };
@@ -192,7 +192,7 @@ public:
     template<typename T>
     void operator()(BTreeIndexerManager* manager, const std::string& property_name, const T& v, BitVector& docs)
     {
-        CBTreeIndexer<T>* pindexer = manager->getIndexer<T>(property_name);
+        BTreeIndexer<T>* pindexer = manager->getIndexer<T>(property_name);
         pindexer->getValue(v, docs);
     }
 };
@@ -203,7 +203,7 @@ public:
     template<typename T>
     void operator()(BTreeIndexerManager* manager, const std::string& property_name, const T& v, BitVector& docs)
     {
-        CBTreeIndexer<T>* pindexer = manager->getIndexer<T>(property_name);
+        BTreeIndexer<T>* pindexer = manager->getIndexer<T>(property_name);
         pindexer->getValueLess(v, docs);
     }
 };
@@ -214,7 +214,7 @@ public:
     template<typename T>
     void operator()(BTreeIndexerManager* manager, const std::string& property_name, const T& v, BitVector& docs)
     {
-        CBTreeIndexer<T>* pindexer = manager->getIndexer<T>(property_name);
+        BTreeIndexer<T>* pindexer = manager->getIndexer<T>(property_name);
         pindexer->getValueLessEqual(v, docs);
     }
 };
@@ -225,7 +225,7 @@ public:
     template<typename T>
     void operator()(BTreeIndexerManager* manager, const std::string& property_name, const T& v, BitVector& docs)
     {
-        CBTreeIndexer<T>* pindexer = manager->getIndexer<T>(property_name);
+        BTreeIndexer<T>* pindexer = manager->getIndexer<T>(property_name);
         pindexer->getValueGreat(v, docs);
     }
 };
@@ -236,7 +236,7 @@ public:
     template<typename T>
     void operator()(BTreeIndexerManager* manager, const std::string& property_name, const T& v, BitVector& docs)
     {
-        CBTreeIndexer<T>* pindexer = manager->getIndexer<T>(property_name);
+        BTreeIndexer<T>* pindexer = manager->getIndexer<T>(property_name);
         pindexer->getValueGreatEqual(v, docs);
     }
 };
@@ -247,7 +247,7 @@ public:
     template<typename T>
     void operator()(BTreeIndexerManager* manager, const std::string& property_name, const T& v, BitVector& docs)
     {
-        CBTreeIndexer<T>* pindexer = manager->getIndexer<T>(property_name);
+        BTreeIndexer<T>* pindexer = manager->getIndexer<T>(property_name);
         pindexer->getValueNotEqual(v, docs);
     }
 };
@@ -258,7 +258,7 @@ public:
     
     void operator()(BTreeIndexerManager* manager, const std::string& property_name, const izenelib::util::UString& v, BitVector& docs)
     {
-        CBTreeIndexer<izenelib::util::UString>* pindexer = manager->getIndexer<izenelib::util::UString>(property_name);
+        BTreeIndexer<izenelib::util::UString>* pindexer = manager->getIndexer<izenelib::util::UString>(property_name);
         pindexer->getValueGreatEqual(v, docs);
     }
     
@@ -274,7 +274,7 @@ class mend_equal_visitor : public boost::static_visitor<void>
 public:
     void operator()(BTreeIndexerManager* manager, const std::string& property_name, const izenelib::util::UString& v, BitVector& docs)
     {
-        CBTreeIndexer<izenelib::util::UString>* pindexer = manager->getIndexer<izenelib::util::UString>(property_name);
+        BTreeIndexer<izenelib::util::UString>* pindexer = manager->getIndexer<izenelib::util::UString>(property_name);
         pindexer->getValueLessEqual(v, docs);
     }
     
@@ -290,7 +290,7 @@ class msub_string_visitor : public boost::static_visitor<void>
 public:
     void operator()(BTreeIndexerManager* manager, const std::string& property_name, const izenelib::util::UString& v, BitVector& docs)
     {
-        CBTreeIndexer<izenelib::util::UString>* pindexer = manager->getIndexer<izenelib::util::UString>(property_name);
+        BTreeIndexer<izenelib::util::UString>* pindexer = manager->getIndexer<izenelib::util::UString>(property_name);
         pindexer->getValueSubString(v, docs);
     }
     
@@ -308,7 +308,7 @@ public:
     template<typename T>
     void operator()(BTreeIndexerManager* manager, const std::string& property_name, const T& low, const T& high, BitVector& docs)
     {
-        CBTreeIndexer<T>* pindexer = manager->getIndexer<T>(property_name);
+        BTreeIndexer<T>* pindexer = manager->getIndexer<T>(property_name);
         pindexer->getValueBetween(low, high, docs);
     }
     
@@ -326,7 +326,7 @@ public:
 //     template<typename T>
 //     void operator()(BTreeIndexerManager* manager, const std::string& property_name, const std::vector<T>& v_list, BitVector& docs)
 //     {
-//         CBTreeIndexer<T>* pindexer = manager->getIndexer<T>(property_name);
+//         BTreeIndexer<T>* pindexer = manager->getIndexer<T>(property_name);
 //         pindexer->getValueIn(v_list, docs);
 //     }
 // };
@@ -337,7 +337,7 @@ public:
 //     template<typename T>
 //     void operator()(BTreeIndexerManager* manager, const std::string& property_name, const std::vector<T>& v_list, BitVector& docs)
 //     {
-//         CBTreeIndexer<T>* pindexer = manager->getIndexer<T>(property_name);
+//         BTreeIndexer<T>* pindexer = manager->getIndexer<T>(property_name);
 //         pindexer->getValueNotIn(v_list, docs);
 //     }
 // };

@@ -16,6 +16,9 @@
 #include <ir/index_manager/index/LAInput.h>
 #include <ir/index_manager/index/rtype/BTreeIndexer.h>
 
+#include <3rdparty/boost/uuid/random_generator.hpp>
+#include <3rdparty/boost/uuid/uuid_io.hpp>
+
 #include "BTreeTestFramework.h"
 
 using namespace izenelib::ir::indexmanager;
@@ -146,11 +149,33 @@ BOOST_AUTO_TEST_CASE(ustring)
     check_ustring("asd123", "123", false, true, true);
 }
 
+BOOST_AUTO_TEST_CASE(flush)
+{
+    DirController dir("./t_bt_flush");
+    BTreeIndexer<izenelib::util::UString> indexer(dir.path()+"/test", "flush_test");
+    indexer.open();
+    
+    for(uint32_t docid = 1; docid<=500000;docid++)
+    {
+        boost::uuids::uuid uuid = boost::uuids::random_generator()();
+        std::string uuid_str = boost::uuids::to_string(uuid);
+//         std::cout<<"!!"<<uuid_str<<std::endl;
+        izenelib::util::UString key(uuid_str, izenelib::util::UString::UTF_8);
+        indexer.add(key, docid);
+        if(docid%1000==0)
+        {
+            std::cout<<"add docid "<<docid<<std::endl;
+        }
+    }
+    indexer.flush();
+    
+}
+
 BOOST_AUTO_TEST_CASE(simple)
 {
     DirController dir("./tbtreeindexer");
     
-    CBTreeIndexer<uint32_t> bt(dir.path()+"/test", "int");
+    BTreeIndexer<uint32_t> bt(dir.path()+"/test", "int");
     BOOST_CHECK( bt.open() );
     bt.add(1, 1);
     bt.add(1, 2);

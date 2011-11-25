@@ -23,6 +23,7 @@
 #include <boost/mpl/bool.hpp>
 #include <boost/mpl/not.hpp>
 #include <boost/bind.hpp>
+#include "dynamic_bitset2.hpp"
 #include <functional>
 
 #include <algorithm>
@@ -32,7 +33,7 @@
 // #define BT_DEBUG
 #define BT_INFO
 // #define DOCS_INFO
-// #define CACHE_TIME_INFO
+#define CACHE_TIME_INFO
 
 NS_IZENELIB_IR_BEGIN
 
@@ -40,13 +41,13 @@ namespace indexmanager
 {
 /**
  * BTreeIndexer
- * @brief BTreeIndexer is a wrapper which takes charges of managing all b-tree handlers.
+ * @brief BTreeIndexer is used for BTree search and range search.
  */
 
 template <class KeyType>
-class CBTreeIndexer
+class BTreeIndexer
 {
-    typedef CBTreeIndexer<KeyType> ThisType;
+    typedef BTreeIndexer<KeyType> ThisType;
     typedef izenelib::am::EWAHBoolArray<uint32_t> ValueType;
 //     typedef izenelib::am::luxio::BTree<KeyType, ValueType, Compare<KeyType> > DbType;
 //     typedef izenelib::am::tc::BTree<KeyType, ValueType> DbType;
@@ -62,16 +63,16 @@ class CBTreeIndexer
     typedef TwoWayTermEnum<KeyType, CacheValueType, DbType, BitVector> EnumType;
     typedef TermEnum<KeyType, BitVector> BaseEnumType;
     typedef boost::function<void (const CacheValueType&,const ValueType&, BitVector&) > EnumCombineFunc;
-    
+    typedef boost::dynamic_bitset2<uint32_t> DynBitsetType;
 public:
-    CBTreeIndexer(const std::string& path, const std::string& property_name, std::size_t cacheSize = 2000000)//an experienced value
+    BTreeIndexer(const std::string& path, const std::string& property_name, std::size_t cacheSize = 2000000)//an experienced value
     :path_(path), property_name_(property_name)
     {
         cache_.set_max_capacity(cacheSize);
         func_ = &combineValue_;
     }
 
-    ~CBTreeIndexer()
+    ~BTreeIndexer()
     {
     }
     
@@ -577,20 +578,23 @@ private:
 #ifdef CACHE_TIME_INFO
         timer.restart();
 #endif
-        db_.update(kvp.first, common_compressed_);
+//         db_.update(kvp.first, common_compressed_);
+// #ifdef CACHE_TIME_INFO
+//         t3 += timer.elapsed();
+// #endif
+        if(common_compressed_.numberOfOnes()>0)
+        {
+            db_.update(kvp.first, common_compressed_);
+        }
+        else
+        {
+            db_.del(kvp.first);
+        }
 #ifdef CACHE_TIME_INFO
         t3 += timer.elapsed();
-//         std::cout<<"end buffer size : "<<common_compressed_.bufferCapacity()<<std::endl;
 #endif
-//         if(value.numberOfOnes()>0)
-//         {
-//             db_.update(kvp.first, value);
-//         }
-//         else
-//         {
-// //             db_.update(kvp.first, bitmap);
-//             db_.del(kvp.first);
-//         }
+        
+        
 #ifdef CACHE_DEBUG
         std::cout<<"cacheIterator update finish"<<std::endl;
 #endif
@@ -669,6 +673,76 @@ private:
     }
     
     
+    
+    static void decompress_(const ValueType& compressed, DynBitsetType& value)
+    {
+        if(value.size()< compressed.sizeInBits())
+        {
+            value.resize( compressed.sizeInBits() );
+        }
+        izenelib::am::EWAHBoolArrayBitIterator<uint32_t> it = compressed.bit_iterator();
+        while(it.next())
+        {
+            value.set(it.getCurr() );
+        }
+    }
+    
+//     static void compress_(const DynBitsetType& value, ValueType& compressed)
+//     {
+//         typedef typename DynBitsetType::buffer_type buffer_type;
+//         const buffer_type& buffer = value.get_buffer();
+//         for(uint32_t i=0;i<buffer.size();i++)
+//         {
+//             compressed.add(buffer[i]);
+//         }
+//     }
+    
+//     static void compress_(const DynBitsetType& value, ValueType& compressed)
+//     {
+//         std::size_t count = value.count();
+//         std::size_t size = value.size();
+//         double ratio = (double)count/size;
+//         if(ratio<=0.00001)
+//         {
+//             std::size_t index = value.find_first();
+//             while(index!=DynBitsetType::npos)
+//             {
+//                 compressed.set(index);
+//                 index = value.find_next(index);
+//             }
+//         }
+//         else
+//         {
+//             typedef typename DynBitsetType::buffer_type buffer_type;
+//             const buffer_type& buffer = value.get_buffer();
+//             for(uint32_t i=0;i<buffer.size();i++)
+//             {
+//                 compressed.add(buffer[i]);
+//             }
+//         }
+//     }
+    
+    static void compress_(const DynBitsetType& value, ValueType& compressed)
+    {
+        std::size_t index = value.find_first();
+        while(index!=DynBitsetType::npos)
+        {
+            compressed.set(index);
+            index = value.find_next(index);
+        }
+    }
+    
+    inline static void reset_common_bv_(DynBitsetType& value)
+    {
+        value.reset();
+    }
+    
+    inline static void reset_common_bv_(BitVector& value)
+    {
+        value.clear();
+    }
+    
+    
     /// Be called in range search function.
     static void combineValue_(const CacheValueType& cacheValue, const ValueType& cbitmap, BitVector& result)
     {
@@ -701,7 +775,8 @@ private:
         static double t23=0.0;
         izenelib::util::ClockTimer timer;
 #endif
-        common_bv_.clear();
+       
+        reset_common_bv_(common_bv_);
         decompress_(value, common_bv_);
 #ifdef CACHE_TIME_INFO
         t21 += timer.elapsed();
@@ -753,24 +828,21 @@ private:
                 value.clear(cacheValue.item[i]);
             }
         }
+    }
+    
+    static void applyCacheValue_(DynBitsetType& value, const CacheValueType& cacheValue)
+    {
+        docid_t max = 0;
+        for(std::size_t i=0;i<cacheValue.item.size();i++)
+        {
+            if (cacheValue.item[i]>max) max = cacheValue.item[i];
+        }
+        if(max>= value.size()) value.resize(max+1);
         
-//         std::cout<<"[applyCacheValue_] {insert} ";
-//         for(std::size_t i=0;i<cacheValue.item.size();i++)
-//         {
-//             if(cacheValue.flag.test(i))
-//             {
-//                 std::cout<<cacheValue.item[i]<<",";
-//             }
-//         }
-//         std::cout<<" {delete} ";
-//         for(std::size_t i=0;i<cacheValue.item.size();i++)
-//         {
-//             if(!cacheValue.flag.test(i))
-//             {
-//                 std::cout<<cacheValue.item[i]<<",";
-//             }
-//         }
-//         std::cout<<std::endl;
+        for(std::size_t i=0;i<cacheValue.item.size();i++)
+        {
+            value.set(cacheValue.item[i], cacheValue.flag.test(i));
+        }
     }
     
 private:
@@ -780,7 +852,8 @@ private:
     CacheType cache_;
     EnumCombineFunc func_;
     /// used only in cacheIterator_, one thread,  safe.
-    BitVector common_bv_;
+//     BitVector common_bv_;
+    DynBitsetType common_bv_;
     ValueType common_compressed_;
     ///
     std::size_t cache_num_;
