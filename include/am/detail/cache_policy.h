@@ -2,7 +2,7 @@
 #define IZENELIB_AM_CACHE_POLICY_H
 
 #include <types.h>
- 
+
 #include <3rdparty/am/stx/btree_map>
 #include <3rdparty/am/stx/btree_set>
 #include <3rdparty/am/rde_hashmap/hash_map.h>
@@ -11,7 +11,7 @@
 #include <set>
 #include <map>
 #include <list>
- 
+
 NS_IZENELIB_AM_BEGIN
 
 namespace detail
@@ -21,7 +21,21 @@ template<typename KeyType,
          typename LockType = izenelib::util::ReadWriteLock>
 class policy_lfu_nouveau
 {
-    struct cache_entry;
+    struct freq_node;
+    struct cache_entry
+    {
+        struct cache_entry *_newer, *_older;
+        struct freq_node *_parent;
+        KeyType _key;
+
+        cache_entry(const KeyType& k)
+            : _newer(NULL), _older(NULL)
+            , _parent(NULL)
+            , _key(k)
+        {
+        }
+    };
+
     struct freq_node
     {
         unsigned long _freq, _count;
@@ -29,11 +43,11 @@ class policy_lfu_nouveau
         struct freq_node *_hotter, *_colder;
 
         freq_node(unsigned long freq = 1)
+            : _freq(freq)
+            , _count(0)
+            , _newest(NULL), _oldest(NULL)
+            , _hotter(NULL), _colder(NULL)
         {
-            _freq = freq;
-            _count = 0;
-            _newest = _oldest = NULL;
-            _hotter = _colder = NULL;
         }
 
         void insert(struct cache_entry *new_entry)
@@ -45,7 +59,8 @@ class policy_lfu_nouveau
             if (_newest)
                 _newest->_newer = new_entry;
             _newest = new_entry;
-            _count++;
+            ++_count;
+            new_entry->_parent = this;
         }
 
         bool evict(KeyType& k)
@@ -54,7 +69,7 @@ class policy_lfu_nouveau
             struct cache_entry *oldest = _oldest->_newer;
             delete _oldest;
             _oldest = oldest;
-            _count--;
+            --_count;
 
             if (_oldest)
             {
@@ -76,20 +91,6 @@ class policy_lfu_nouveau
         }
     };
 
-    struct cache_entry
-    {
-        struct cache_entry *_newer, *_older;
-        struct freq_node *_parent;
-        KeyType _key;
-
-        cache_entry(const KeyType& k)
-        {
-            _newer = _older = NULL;
-            _parent = NULL;
-            _key = k;
-        }
-    };
-
     typedef ::rde::hash_map<KeyType, struct cache_entry *> backentry_type;
     struct freq_node *_freq_list_head;
     backentry_type _backEntries;
@@ -100,8 +101,8 @@ class policy_lfu_nouveau
 
 public:
     policy_lfu_nouveau()
+        : _freq_list_head(NULL)
     {
-        _freq_list_head = NULL;
     }
 
     ~policy_lfu_nouveau()
@@ -160,7 +161,7 @@ public:
             count += sizeof(struct cache_entry) * it->_count;
             count += sizeof(struct freq_node);
         }
-        count += _backEntries.size() * (sizeof(KeyType) * sizeof(struct cache_entry *));
+        count += _backEntries.size() * (sizeof(KeyType) + sizeof(struct cache_entry *));
         return count;
     }
 
@@ -425,7 +426,7 @@ public:
 };
 
 }
- 
+
 NS_IZENELIB_AM_END
 
 #endif

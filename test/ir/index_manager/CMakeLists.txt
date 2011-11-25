@@ -1,3 +1,5 @@
+
+
 FIND_PACKAGE(Boost ${Boost_FIND_VERSION}
   COMPONENTS
   system
@@ -8,6 +10,20 @@ FIND_PACKAGE(Boost ${Boost_FIND_VERSION}
   program_options
   )
 LIST(FIND REAL_BUILD_COMPONENTS "index_manager" _indexmanager)
+
+SET(libs
+  ${Glog_LIBRARIES}
+  ${Boost_LIBRARIES}
+  ${TokyoCabinet_LIBRARIES}
+  febird
+  luxio
+  leveldb
+  am
+  index_manager
+  izene_util
+  
+  
+)
 
 IF(Boost_FOUND)
 
@@ -24,12 +40,7 @@ SET(t_indexer_SRC
 
 ADD_EXECUTABLE(t_indexer ${t_indexer_SRC})
 
-TARGET_LINK_LIBRARIES(t_indexer
-  index_manager
-  izene_util
-  ${Glog_LIBRARIES}
-  ${Boost_LIBRARIES}
-)
+TARGET_LINK_LIBRARIES(t_indexer ${libs})
 
 SET(t_mock_indexer_SRC
   t_MockIndexReader.cpp
@@ -38,13 +49,7 @@ SET(t_mock_indexer_SRC
 
 ADD_EXECUTABLE(t_mockindexer ${t_mock_indexer_SRC})
 
-TARGET_LINK_LIBRARIES(t_mockindexer
-  mock_index_manager
-  index_manager
-  izene_util
-  ${Glog_LIBRARIES}
-  ${Boost_LIBRARIES}
-)
+TARGET_LINK_LIBRARIES(t_mockindexer ${libs} mock_index_manager)
 
 SET(t_indexer_util_SRC
   t_priorityqueue.cpp
@@ -54,12 +59,7 @@ SET(t_indexer_util_SRC
 
 ADD_EXECUTABLE(t_indexer_util ${t_indexer_util_SRC})
 
-TARGET_LINK_LIBRARIES(t_indexer_util
-  index_manager
-  izene_util
-  ${Glog_LIBRARIES}
-  ${Boost_LIBRARIES}
-)
+TARGET_LINK_LIBRARIES(t_indexer_util ${libs})
 
 SET(t_indexsort_SRC
   t_indexsort.cpp
@@ -68,12 +68,7 @@ SET(t_indexsort_SRC
 
 ADD_EXECUTABLE(t_indexsort ${t_indexsort_SRC})
 
-TARGET_LINK_LIBRARIES(t_indexsort
-  index_manager
-  izene_util
-  ${Glog_LIBRARIES}
-  ${Boost_LIBRARIES}
-)
+TARGET_LINK_LIBRARIES(t_indexsort ${libs})
 
 SET(t_IndexMergePolicy_SRC
   t_IndexMergePolicy.cpp
@@ -83,12 +78,7 @@ SET(t_IndexMergePolicy_SRC
 
 ADD_EXECUTABLE(t_IndexMergePolicy ${t_IndexMergePolicy_SRC})
 
-TARGET_LINK_LIBRARIES(t_IndexMergePolicy
-  index_manager
-  izene_util
-  ${Glog_LIBRARIES}
-  ${Boost_LIBRARIES}
-)
+TARGET_LINK_LIBRARIES(t_IndexMergePolicy ${libs})
 
 SET(t_integration_Indexer_SRC
   t_integration_Indexer.cpp
@@ -99,12 +89,7 @@ SET(t_integration_Indexer_SRC
 
 ADD_EXECUTABLE(t_integration_Indexer ${t_integration_Indexer_SRC})
 
-TARGET_LINK_LIBRARIES(t_integration_Indexer
-  index_manager
-  izene_util
-  ${Glog_LIBRARIES}
-  ${Boost_LIBRARIES}
-)
+TARGET_LINK_LIBRARIES(t_integration_Indexer ${libs})
 
 SET(t_FSIndexInput_SRC
   t_FSIndexInput.cpp
@@ -113,21 +98,21 @@ SET(t_FSIndexInput_SRC
 
 ADD_EXECUTABLE(t_FSIndexInput ${t_FSIndexInput_SRC})
 
-TARGET_LINK_LIBRARIES(t_FSIndexInput
-  index_manager
-  izene_util
-  ${Glog_LIBRARIES}
-  ${Boost_LIBRARIES}
-)
+TARGET_LINK_LIBRARIES(t_FSIndexInput ${libs})
 
 ADD_EXECUTABLE(r_IndexStats r_IndexStats.cpp)
 
-TARGET_LINK_LIBRARIES(r_IndexStats
-  index_manager
-  izene_util
-  ${Glog_LIBRARIES}
-  ${TokyoCabinet_LIBRARIES}
-  ${Boost_LIBRARIES}
+TARGET_LINK_LIBRARIES(r_IndexStats ${libs})
+
+SET(t_btreeindexer_SRC
+  rtype/t_BTreeIndexer.cpp
+  t_master_suite.cpp
 )
+
+SET(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${IZENELIB_SOURCE_DIR}/testbin/rtypeindex)
+
+ADD_EXECUTABLE(t_BTreeIndexer ${t_btreeindexer_SRC})
+
+TARGET_LINK_LIBRARIES(t_BTreeIndexer ${libs})
 
 ENDIF(Boost_FOUND)

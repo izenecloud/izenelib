@@ -408,7 +408,7 @@ template <class uword=uint32_t>
 class EWAHBoolArrayBitIterator{
     public:
 
-        uword getCurr() { return (uword)(currentbit - 1); }
+        uword getCurr() { return (uword)retbit; }
 
         uword numerOfOnes() { return numones; }
 
@@ -421,6 +421,7 @@ class EWAHBoolArrayBitIterator{
             {
                 ++bitoffsetinword;
                 ++currentbit;
+                retbit = currentbit - 1;
             }
             else
             {
@@ -430,6 +431,7 @@ class EWAHBoolArrayBitIterator{
                     ++currentbit;
                     if ( (currentword & (static_cast<uword>(1) << k)) != 0)
                     {
+                        retbit = currentbit - 1;
                         break;
                     }
                 }
@@ -446,6 +448,7 @@ class EWAHBoolArrayBitIterator{
         EWAHBoolArrayBitIterator(const EWAHBoolArrayBitIterator<uword> & other):i(other.i),
         currentword(other.currentword),
         iscleanword(other.iscleanword),
+        retbit(other.retbit),
         currentbit(other.currentbit),
         bitoffsetinword(other.bitoffsetinword),
         numones(other.numones){}
@@ -459,6 +462,7 @@ class EWAHBoolArrayBitIterator{
             i(parent),
             currentword(0),
             iscleanword(false),
+            retbit(0),
             currentbit(0),
             bitoffsetinword(0),
             numones(ones)
@@ -472,6 +476,7 @@ class EWAHBoolArrayBitIterator{
         EWAHBoolArrayIterator<uword> i;
         uword currentword;
         bool iscleanword;
+        uint retbit;
         uint currentbit;
         uint bitoffsetinword;
         uint numones;
@@ -626,7 +631,7 @@ public:
     void rawlogicalor( EWAHBoolArray &a, EWAHBoolArray &container) ;
     void reset()
     {
-        buffer.clear();
+        buffer.resize(0);
         buffer.push_back(0);
         sizeinbits = 0;
         lastRLW = 0;
@@ -669,6 +674,10 @@ public:
     {
         return buffer.size();
     }
+    inline uint bufferCapacity() const
+    {
+        return buffer.capacity();
+    }
     inline void read(istream & in, const bool savesizeinbits=true);
     inline void readBuffer(istream & in, const uint buffersize);
 
@@ -690,6 +699,24 @@ public:
     bool operator==(const EWAHBoolArray & x) const;
 
     bool operator!=(const EWAHBoolArray & x) const;
+    
+    friend std::ostream& operator<<(std::ostream& output, const EWAHBoolArray<uword>& v) {
+        output<<"["<<v.numberOfOnes()<<"] ";
+        std::vector<uint32_t> out;
+        v.appendRowIDs(out);
+        for(uint32_t i=0;i<out.size();i++)
+        {
+            output<<out[i]<<",";
+        }
+        return output;
+        
+//         EWAHBoolArrayBitIterator<uword> it = v.bit_iterator();
+//         while(it.next())
+//         {
+//             output<<it.getCurr()<<",";
+//         }
+//         return output;
+    }
 
     EWAHBoolArrayIterator<uword> uncompress() const ;
     EWAHBoolArraySparseIterator<uword> sparse_uncompress() const ;

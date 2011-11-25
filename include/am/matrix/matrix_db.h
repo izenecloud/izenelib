@@ -20,7 +20,7 @@ NS_IZENELIB_AM_BEGIN
 //
 //MatrixDB: Persistent matrix data with two features:
 // 1. Parametering cache size according to all matrix elements, instead of row numbers
-// 2. Write-back (or Write-behind) cache instead of Write through, which means writing is done 
+// 2. Write-back (or Write-behind) cache instead of Write through, which means writing is done
 //     only to the cache. A modified cache block is written back to the store, just before it is replaced.
 //
 ////////////////////////////////////////////////////////////////////////////////
@@ -30,7 +30,7 @@ typename ElementType,
 typename RowType = ::google::sparse_hash_map<KeyType, ElementType >,
 typename StorageType = izenelib::sdb::unordered_sdb_tc<KeyType, RowType, ReadWriteLock >,
 typename IteratorType = izenelib::sdb::SDBCursorIterator<StorageType>,
-typename Policy = detail::policy_lfu_nouveau<KeyType> 
+typename Policy = detail::policy_lfu_nouveau<KeyType>
 >
 class MatrixDB
 {
@@ -199,11 +199,10 @@ template <typename T1,typename T2>
 struct IsFebirdSerial< ::google::sparse_hash_map<T1, T2 >  >{
     //enum {yes = IsFebirdSerial<T1 >::yes && IsFebirdSerial<T2 >::yes, no= !yes};
     //for compatibility issue, is_pod is not used within the definition of IsFebirdSerial
-    enum {yes =( boost::is_pod<T1>::value || boost::is_base_of<pod_tag, T1>::value ) 
+    enum {yes =( boost::is_pod<T1>::value || boost::is_base_of<pod_tag, T1>::value )
                   && ( boost::is_pod<T2>::value || boost::is_base_of<pod_tag, T2>::value) , no= !yes};
 };
 
 }}
 
 #endif
-

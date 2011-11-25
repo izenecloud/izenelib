@@ -19,8 +19,8 @@
 
 namespace izenelib{namespace util{
 
-/// MemCache: a memory pool not for allocator usage, non-thread-safe, with emergency mechanism
-class MemCache
+/// MemPool: a memory pool not for allocator usage, non-thread-safe, with emergency mechanism
+class MemPool
 {
 public:
     class EmergencyPool
@@ -73,9 +73,9 @@ public:
     /**
      * @param nPoolSize memory pool size
      */
-    MemCache(size_t nPoolSize);
+    MemPool(size_t nPoolSize);
 
-    ~MemCache();
+    ~MemPool();
 
 public:
     /**
@@ -168,12 +168,9 @@ private:
     uint8_t* pBuffer_; /// address of memory pool
     size_t nBufSize_; /// size of memory pool
     uint8_t* pUpto_; /// the start address of free space
-
     size_t nEMPoolSize_; ///init emergency pool size
 
-    MemCache::EmergencyPool* pEMPool_;
-
-    bool bMemOwner_; /// own the memory pool buffer or not
+    MemPool::EmergencyPool* pEMPool_;
 };
 
 

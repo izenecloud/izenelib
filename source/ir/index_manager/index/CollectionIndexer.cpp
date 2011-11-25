@@ -3,7 +3,7 @@
 #include <ir/index_manager/index/TermReader.h>
 #include <ir/index_manager/index/IndexBarrelWriter.h>
 #include <ir/index_manager/index/IndexerPropertyConfig.h>
-
+#include <ir/index_manager/index/rtype/BTreeIndexerManager.h>
 #include <ir/index_manager/utility/StringUtils.h>
 
 #include <ir/index_manager/store/IndexOutput.h>
@@ -118,7 +118,7 @@ void CollectionIndexer::addDocument(IndexerDocument& doc)
                     prop = boost::get<MultiValuePropertyType>(iter->second);
 
                 for(MultiValuePropertyType::iterator it = prop.begin(); it != prop.end(); ++it)
-                    pIndexer_->getBTreeIndexer()->add(uniqueID.colId, iter->first.getPropertyId(), *it, uniqueID.docId);
+                    pIndexer_->getBTreeIndexer()->add(iter->first.getName(), *it, uniqueID.docId);
             }
             else
             {
@@ -128,7 +128,7 @@ void CollectionIndexer::addDocument(IndexerDocument& doc)
                 else
                     prop = boost::get<PropertyType>(iter->second);
 
-                pIndexer_->getBTreeIndexer()->add(uniqueID.colId, iter->first.getPropertyId(), prop, uniqueID.docId);
+                pIndexer_->getBTreeIndexer()->add(iter->first.getName(), prop, uniqueID.docId);
             }
         }
 
@@ -181,13 +181,13 @@ void CollectionIndexer::updateDocument(IndexerDocument& oldDoc, IndexerDocument&
                     MultiValuePropertyType oldProp;
                     oldProp = boost::get<MultiValuePropertyType>(it->second);
                     for(MultiValuePropertyType::iterator multiIt = oldProp.begin(); multiIt != oldProp.end(); ++multiIt)
-                       pIndexer_->getBTreeIndexer()->remove(uniqueID.colId, iter->first.getPropertyId(), *multiIt, uniqueID.docId);
+                       pIndexer_->getBTreeIndexer()->remove(iter->first.getName(), *multiIt, uniqueID.docId);
                 }
                 else
                 {
                     PropertyType oldProp;
                     oldProp = boost::get<PropertyType>(it->second);
-                    pIndexer_->getBTreeIndexer()->remove(uniqueID.colId, iter->first.getPropertyId(), oldProp, uniqueID.docId);
+                    pIndexer_->getBTreeIndexer()->remove(iter->first.getName(), oldProp, uniqueID.docId);
                 }
 
                 if(iter->first.isMultiValue())
@@ -195,13 +195,13 @@ void CollectionIndexer::updateDocument(IndexerDocument& oldDoc, IndexerDocument&
                     MultiValuePropertyType prop;
                     prop = boost::get<MultiValuePropertyType>(iter->second);
                     for(MultiValuePropertyType::iterator multiIt = prop.begin(); multiIt != prop.end(); ++multiIt)
-                        pIndexer_->getBTreeIndexer()->add(uniqueID.colId, iter->first.getPropertyId(), *multiIt, uniqueID.docId);
+                        pIndexer_->getBTreeIndexer()->add(iter->first.getName(), *multiIt, uniqueID.docId);
                 }
                 else
                 {
                     PropertyType prop;
                     prop = boost::get<PropertyType>(iter->second);
-                    pIndexer_->getBTreeIndexer()->add(uniqueID.colId, iter->first.getPropertyId(), prop, uniqueID.docId);
+                    pIndexer_->getBTreeIndexer()->add(iter->first.getName(), prop, uniqueID.docId);
                 }
             }
         }

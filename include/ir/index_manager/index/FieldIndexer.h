@@ -34,7 +34,7 @@ namespace indexmanager{
 class FieldIndexIO
 {
 public:
-    FieldIndexIO(FILE* fd,const string& mode = "r") 
+    FieldIndexIO(FILE* fd,const string& mode = "r")
     {
         fd_ = fd;
         bufferSize_ = 4096*4;
@@ -63,7 +63,7 @@ public:
             SF1V5_THROW(ERROR_FILEIO,"Izenesort :not supported IO");
     }
 
-    ~FieldIndexIO() 
+    ~FieldIndexIO()
     {
         if(readBuffer_) delete[] readBuffer_;
         if(writeBuffer_) delete[] writeBuffer_;
@@ -140,7 +140,7 @@ public:
     void _readBytes(char* _b, size_t _len){
         int32_t len = _len;
         char* b = _b;
-	
+
         if(len <= (readBufferLength_-readBufferPosition_))
         {
             // the buffer contains enough data to satisfy this request
@@ -148,16 +148,16 @@ public:
                 memcpy(b, readBuffer_+ readBufferPosition_, len);
             readBufferPosition_+=len;
         }
-        else 
+        else
         {
             // the buffer does not have enough data. First serve all we've got.
             int32_t available = readBufferLength_- readBufferPosition_;
             if(available > 0)
             {
                 memcpy(b, readBuffer_ + readBufferPosition_, available);
-		  b += available;
-		  len -= available;
-		  readBufferPosition_ += available;
+                b += available;
+                len -= available;
+                readBufferPosition_ += available;
             }
             // and now, read the remaining 'len' bytes:
             if ( len<(int32_t)bufferSize_)
@@ -172,13 +172,13 @@ public:
                     memcpy(b, readBuffer_, readBufferLength_);
                     //_CLTHROWA(CL_ERR_IO, "read past EOF");
                 }
-                else 
+                else
                 {
                     memcpy(b, readBuffer_, len);
                     readBufferPosition_=len;
                 }
-            } 
-            else 
+            }
+            else
             {
                 // The amount left to read is larger than the buffer
                 // or we've been asked to not use our buffer -
@@ -189,8 +189,8 @@ public:
                 // had in the buffer.
                 size_t after = readBufferStart_+readBufferPosition_+len;
                 //if(after > length_)
-                    //_CLTHROWA(CL_ERR_IO, "read past EOF");
-                fread(b,len,1,fd_);
+                //_CLTHROWA(CL_ERR_IO, "read past EOF");
+                if (fread(b,len,1,fd_) == 0);
                 readBufferStart_ = after;
                 readBufferPosition_ = 0;
                 readBufferLength_ = 0; 				   // trigger refill() on read
@@ -230,7 +230,7 @@ public:
             *data++ = (uint8_t)((value & 0x7f) | 0x80);
             value >>= 7;
         }
-        *data++ = (uint8_t)(value);	
+        *data++ = (uint8_t)(value);
     }
 
 private:
@@ -250,7 +250,7 @@ private:
         if (readBufferLength_ <= 0)
            SF1V5_THROW(ERROR_FILEIO,"Izenesort :read past EOF.");
 
-        fread(readBuffer_, readBufferLength_, 1, fd_);
+        if (fread(readBuffer_, readBufferLength_, 1, fd_) == 0);
         readBufferStart_ = start;
         readBufferPosition_ = 0;
     }

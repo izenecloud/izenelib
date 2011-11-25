@@ -17,10 +17,26 @@ public:
     not_found():std::logic_error("not found") {}
 };
 
+
+
 template <typename key, typename value>
 class hashmap
 {
 public:
+    struct bucket_t
+    {
+        typedef std::pair<const key,value> pair_t;
+        pair_t kvp_;
+        bucket_t* next_;
+        bucket_t(const pair_t& k):kvp_(k),next_(NULL) {}
+    };
+    
+    struct unsafe_iterator
+    {
+        bucket_t* p_bucket;
+        std::size_t index;
+    };
+    
     hashmap(const uint32_t lk = 8,const uint32_t size = 11, const uint32_t mc = 1)
             :lock_qty_(lk),
             locks_(new detail::spin_lock[lock_qty_]),
@@ -133,6 +149,35 @@ retry:
         };
         throw not_found();
     }
+    
+    bool get(const key& k, value& v)const
+    {
+        const std::size_t hashed = hash_value(k);
+retry:
+        const size_t got_size = bucket_vector_.size();
+
+        detail::scoped_lock<detail::spin_lock>
+        lk(locks_[hashed % got_size % lock_qty_]);
+        if (got_size != bucket_vector_.size())
+        {
+            lk.unlock();
+            goto retry;
+        }
+        const bucket_t* target =
+            const_cast<const bucket_t*>(bucket_vector_[hashed % got_size]);
+
+        while (target != NULL)
+        {
+            if (target->kvp_.first == k)
+            {
+                v = target->kvp_.second;
+                return true;
+            }
+            target = target->next_;
+        };
+        return false;
+    }
+    
     bool remove(const key& k)
     {
         const std::size_t hashed = hash_value(k);
@@ -163,12 +208,6 @@ retry:
         };
         return false;
     }
-
-    ~hashmap()
-    {
-        clear();
-    }
-
     void clear()
     {
         for (size_t i=0; i < lock_qty_; ++i)
@@ -184,14 +223,60 @@ retry:
                 delete ptr;
                 ptr = old_next;
             }
+            bucket_vector_[i] = NULL;
         }
         for (size_t i=0; i < lock_qty_; ++i)
         {
             locks_[i].unlock();
         }
+    }
+    
+    ~hashmap()
+    {
+        clear();
         delete[] locks_;
     }
-
+    
+    unsafe_iterator unsafe_begin()
+    {
+        unsafe_iterator it;
+        it.index = 0;
+        if(bucket_vector_.size()==0)
+        {
+            it.p_bucket = NULL;
+        }
+        else
+        {
+            it.p_bucket = const_cast<bucket_t*>(bucket_vector_[0]);
+        }
+        return it;
+    }
+    
+    bool get_and_next(unsafe_iterator& it, std::pair<key, value>& kvp)
+    {
+        if(it.p_bucket!=NULL)
+        {
+            kvp = it.p_bucket->kvp_;
+            it.p_bucket = it.p_bucket->next_;
+            return true;
+        }
+        else
+        {
+            std::size_t next_index = it.index+1;
+            if(next_index<bucket_vector_.size())
+            {
+                unsafe_iterator new_it;
+                new_it.index = next_index;
+                new_it.p_bucket = const_cast<bucket_t*>(bucket_vector_[next_index]);
+                return get_and_next(new_it, kvp);
+            }
+            else
+            {
+                return false;
+            }
+        }
+    }
+    
     void dump()const
     {
         for (int i=0; i < lock_qty_; ++i)
@@ -262,14 +347,8 @@ private:
         }
         return true;
     }
-    struct bucket_t
-    {
-        typedef	std::pair<const key,value> pair_t;
-        pair_t kvp_;
-        bucket_t* next_;
-        bucket_t(const pair_t& k):kvp_(k),next_(NULL) {}
-    };
-
+    
+    
     const std::size_t lock_qty_;
     mutable detail::spin_lock* locks_;
     const uint32_t max_chain_;

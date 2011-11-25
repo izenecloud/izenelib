@@ -36,7 +36,8 @@ public:
         : bits_(0), size_(other.size_), maxBytesNum_(other.maxBytesNum_)
     {
         bits_ = new unsigned char[maxBytesNum_];
-        memset(bits_, 0 , maxBytesNum_);
+        for(size_t i = 0; i < maxBytesNum_; ++i )
+            bits_[i] = other.bits_[i];
     }
 
     BitVector(size_t n)
@@ -92,7 +93,7 @@ public:
         bits_[endBit >> 3] |= endMask;
     }
 
-    bool test(size_t bit)
+    bool test(size_t bit) const
     {
         if(bit >= size_)
             return false;
@@ -100,7 +101,7 @@ public:
         return bits_[bit >> 3] & (1 << (bit & 7));
     }
 
-    void compressed(EWAHBoolArray<uint32_t>& compressedBitMap)
+    void compressed(EWAHBoolArray<uint32_t>& compressedBitMap) const
     {
         const size_t byteNum = getBytesNum(size_);
         unsigned int wordinbytes = sizeof(uint32_t);
@@ -125,7 +126,7 @@ public:
         }
     }
 
-    bool any()
+    bool any() const
     {
         const size_t byteNum = getBytesNum(size_);
         for(size_t i = 0; i < byteNum; ++i)
@@ -134,6 +135,16 @@ public:
 
         return false;
     }
+    
+    std::size_t count() const
+    {
+        std::size_t count = 0;
+        for(std::size_t i=0;i<size();i++)
+        {
+            if(test(i)) ++count;
+        }
+        return count;
+    }
 
     void toggle()
     {
@@ -141,17 +152,73 @@ public:
         for(size_t i = 0; i < byteNum; ++i )
             bits_[i] = ~bits_[i];
     }
+    
+    friend std::ostream& operator<<(std::ostream& output, const BitVector& bv) {
+        output<<"["<<bv.size()<<"] ";
+        for(std::size_t i=0;i<bv.size();i++)
+        {
+            output<<(int)bv.test(i);
+        }
+        return output;
+    }
 
     BitVector& operator&=(const BitVector& b)
     {
+        if(size()<b.size())
+        {
+            grow(b.size());
+            size_ = b.size();
+        }
         const size_t byteNum = getBytesNum(size_);
         for(size_t i = 0; i < byteNum; ++i )
             bits_[i] &= b.bits_[i];
         return *this;
     }
+    
+    bool operator==(const BitVector& b)
+    {
+        if(size()!=b.size())
+        {
+            return false;
+        }
+        for(std::size_t i=0;i<size();i++)
+        {
+            if(test(i)!=b.test(i)) return false;
+        }
+        return true;
+    }
+    
+    bool equal_ignore_size(const BitVector& b) const
+    {
+        std::size_t c_size = std::min(size(), b.size());
+        for(std::size_t i=0;i<c_size;i++)
+        {
+            if(test(i)!=b.test(i)) return false;
+        }
+        if(size()>c_size)
+        {
+            for(std::size_t i=c_size;i<size();i++)
+            {
+                if(test(i)) return false;//should be 0 
+            }
+        }
+        if(b.size()>c_size)
+        {
+            for(std::size_t i=c_size;i<b.size();i++)
+            {
+                if(b.test(i)) return false;//should be 0 
+            }
+        }
+        return true;
+    }
 
     BitVector& operator|=(const BitVector& b)
     {
+        if(size()<b.size())
+        {
+            grow(b.size());
+            size_ = b.size();
+        }
         const size_t byteNum = getBytesNum(size_);
         for(size_t i = 0; i < byteNum; ++i )
             bits_[i] |= b.bits_[i];
@@ -160,6 +227,11 @@ public:
 
     BitVector& operator^=(const BitVector& b)
     {
+        if(size()<b.size())
+        {
+            grow(b.size());
+            size_ = b.size();
+        }
         const size_t byteNum = getBytesNum(size_);
         for(size_t i = 0; i < byteNum; ++i )
             bits_[i] ^= b.bits_[i];
@@ -188,7 +260,7 @@ public:
           o << endl;
       }
 
-    size_t size() { return size_; }
+    size_t size() const{ return size_; }
 
     void read(Directory* pDirectory,const char* name)
     {
