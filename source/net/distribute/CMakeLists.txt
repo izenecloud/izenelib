@@ -17,5 +17,8 @@ IF(distribute_SHOULD_BUILD)
     )
   ADD_DEFINITIONS("-fPIC -Wno-sign-compare")
   MACRO_ADD_LIBRARY(distribute SRCS ${distribute_SRC})
-
+  
+  TARGET_LINK_LIBRARIES(distribute
+      izene_util
+    )
 ENDIF(distribute_SHOULD_BUILD)
