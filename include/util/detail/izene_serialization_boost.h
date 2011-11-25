@@ -19,7 +19,7 @@
 #include <boost/archive/xml_wiarchive.hpp>
 #include <boost/serialization/vector.hpp>
 #include <boost/serialization/map.hpp>
-#include <boost/serialization/shared_ptr.hpp> 
+#include <boost/serialization/shared_ptr.hpp>
 
 #include <boost/shared_ptr.hpp>
 #include <util/streambuf.h>
@@ -96,13 +96,13 @@ ia & dat;
 // boost::archive::text_woarchive oa(os, archive_flags);
 // oa & dat;
 // }
-// 
+//
 // void write_image(char * &ptr, size_t& size) {
 // ptr = buf.gptr();
 // size = buf.pptr() - buf.gptr();
 // }
 // };
-// 
+//
 // template<typename T> class izene_deserialization_boost_base<T, boost::archive::text_wiarchive> {
 // std::wstreambuf buf;
 // public:
@@ -125,13 +125,13 @@ ia & dat;
 // boost::archive::xml_woarchive oa(os, archive_flags);
 // oa & dat;
 // }
-// 
+//
 // void write_image(char * &ptr, size_t& size) {
 // ptr = buf.gptr();
 // size = buf.pptr() - buf.gptr();
 // }
 // };
-// 
+//
 // template<typename T> class izene_deserialization_boost_base<T, boost::archive::xml_wiarchive> {
 // std::wstreambuf buf;
 // public:
@@ -201,17 +201,17 @@ template<typename T> struct izene_deserialization_boost_wxml
 // izene_streambuf buf;
 // public:
 // izene_serialization_boost(const T& dat) {
-// 
+//
 // boost::archive::binary_oarchive oa(buf, archive_flags);
 // oa & dat;
 // }
-// 
+//
 // void write_image(char * &ptr, size_t& size) {
 // ptr = buf.gptr();
 // size = buf.size();
 // }
 // };
-// 
+//
 // template<typename T> class izene_deserialization_boost {
 // izene_streambuf buf;
 // public:
@@ -223,22 +223,22 @@ template<typename T> struct izene_deserialization_boost_wxml
 // ia & dat;
 // }
 // };
-// 
+//
 // template<typename T> class izene_serialization_boost_wxml {
 // izene_streambuf buf;
 // public:
 // izene_serialization_boost_wxml(const T& dat) {
-// 
+//
 // boost::archive::xml_woarchive oa(buf, archive_flags);
 // oa & dat;
 // }
-// 
+//
 // void write_image(char * &ptr, size_t& size) {
 // ptr = buf.gptr();
 // size = buf.size();
 // }
 // };
-// 
+//
 // template<typename T> class izene_deserialization_boost_wxml {
 // izene_streambuf buf;
 // public:
@@ -250,22 +250,22 @@ template<typename T> struct izene_deserialization_boost_wxml
 // ia & dat;
 // }
 // };
-// 
+//
 // template<typename T> class izene_serialization_boost_xml {
 // izene_streambuf buf;
 // public:
 // izene_serialization_boost_xml(const T& dat) {
-// 
+//
 // boost::archive::xml_oarchive oa(buf, archive_flags);
 // oa & dat;
 // }
-// 
+//
 // void write_image(char * &ptr, size_t& size) {
 // ptr = buf.gptr();
 // size = buf.size();
 // }
 // };
-// 
+//
 // template<typename T> class izene_deserialization_boost_xml {
 // izene_streambuf buf;
 // public:
@@ -281,28 +281,28 @@ template<typename T> struct izene_deserialization_boost_wxml
 
 /*
 template<typename T> class izene_serialization_boost {
-	izenelib::am::util::DbObjPtr ptr_;
+    izenelib::am::util::DbObjPtr ptr_;
 public:
-	izene_serialization_boost(const T& dat):ptr_(new izenelib::am::util::DbObj)
-	{		
-		izenelib::am::util::write_image<T>(dat, ptr_);		
-	}
+    izene_serialization_boost(const T& dat):ptr_(new izenelib::am::util::DbObj)
+    {
+        izenelib::am::util::write_image<T>(dat, ptr_);
+    }
 
-	void write_image(char * &ptr, size_t& size) {
-		ptr = (char*)ptr_->getData();
-		size = ptr_->getSize();
-	}
+    void write_image(char * &ptr, size_t& size) {
+        ptr = (char*)ptr_->getData();
+        size = ptr_->getSize();
+    }
 };
 
 template<typename T> class izene_deserialization_boost {
-	izenelib::am::util::DbObjPtr ptr_;
+    izenelib::am::util::DbObjPtr ptr_;
 public:
-	izene_deserialization_boost(const char* ptr, const size_t size):ptr_(new izenelib::am::util::DbObj(ptr, size)) {
-		
-	}
-	void read_image(T& dat) {
-		izenelib::am::util::read_image<T>(dat, ptr_);
-	}
+    izene_deserialization_boost(const char* ptr, const size_t size):ptr_(new izenelib::am::util::DbObj(ptr, size)) {
+
+    }
+    void read_image(T& dat) {
+        izenelib::am::util::read_image<T>(dat, ptr_);
+    }
 };*/
 
 

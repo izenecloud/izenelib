@@ -259,7 +259,7 @@ public:
     void operator()(BTreeIndexerManager* manager, const std::string& property_name, const izenelib::util::UString& v, BitVector& docs)
     {
         BTreeIndexer<izenelib::util::UString>* pindexer = manager->getIndexer<izenelib::util::UString>(property_name);
-        pindexer->getValueGreatEqual(v, docs);
+        pindexer->getValueStart(v, docs);
     }
     
     template<typename T>
@@ -275,7 +275,7 @@ public:
     void operator()(BTreeIndexerManager* manager, const std::string& property_name, const izenelib::util::UString& v, BitVector& docs)
     {
         BTreeIndexer<izenelib::util::UString>* pindexer = manager->getIndexer<izenelib::util::UString>(property_name);
-        pindexer->getValueLessEqual(v, docs);
+        pindexer->getValueEnd(v, docs);
     }
     
     template<typename T>
