@@ -105,7 +105,18 @@ public:
 
     boost::shared_ptr<const RowType> row(KeyType x)
     {
-        return _row_impl(x);
+        boost::shared_ptr<RowType> row = _cache.get(x);
+        if (! row)
+        {
+            row.reset(new RowType);
+            _db_storage.get(x, *row);
+
+            _evict();
+            _cache.insert(x, row);
+        }
+        _policy.touch(x);
+
+        return row;
     }
 
     void update_row(KeyType x, boost::shared_ptr<RowType> row)
@@ -138,22 +149,6 @@ public:
     }
 
 private:
-    boost::shared_ptr<RowType> _row_impl(KeyType x)
-    {
-        boost::shared_ptr<RowType> row = _cache.get(x);
-        if (! row)
-        {
-            row.reset(new RowType);
-            _db_storage.get(x, *row);
-
-            _evict();
-            _cache.insert(x, row);
-        }
-        _policy.touch(x);
-
-        return row;
-    }
-
     void _evict()
     {
         KeyType key;
