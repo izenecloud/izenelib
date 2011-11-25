@@ -7,7 +7,10 @@
 #ifndef IZENE_UTIL_PRIORITYQUEUE_H
 #define IZENE_UTIL_PRIORITYQUEUE_H
 
-namespace izenelib{ namespace util{
+namespace izenelib
+{
+namespace util
+{
 
 /**
 * This priorityqueue is used temporarily because it does not need to allocate
@@ -16,75 +19,9 @@ namespace izenelib{ namespace util{
 template <class Type>
 class PriorityQueue
 {
-
-private:
-    Type*	heap_;
-    size_t	size_;
-    size_t	maxSize_;
-
-    void upHeap()
-    {
-        size_t i = size_;
-        Type node = heap_[i];			  // save bottom node (WAS object)
-        size_t j = i >> 1;
-        while (j > 0 && lessThan(node,heap_[j]))
-        {
-            heap_[i] = heap_[j];			  // shift parents down
-            i = j;
-            j = j >> 1;
-        }
-        heap_[i] = node;				  // install saved node
-    }
-    void downHeap()
-    {
-        size_t i = 1;
-        Type node = heap_[i];			  // save top node
-        size_t j = i << 1;				  // find smaller child
-        size_t k = j + 1;
-        if (k <= size_ && lessThan(heap_[k], heap_[j]))
-        {
-            j = k;
-        }
-        while (j <= size_ && lessThan(heap_[j],node))
-        {
-            heap_[i] = heap_[j];			  // shift up child
-            i = j;
-            j = i << 1;
-            k = j + 1;
-            if (k <= size_ && lessThan(heap_[k], heap_[j]))
-            {
-                j = k;
-            }
-        }
-        heap_[i] = node;				  // install saved node
-    }
-
-protected:
-    PriorityQueue()
-    {
-        size_ = 0;
-        heap_ = NULL;
-        maxSize_ = 0;
-    }
-
-    /**
-     * Determines the ordering of objects in this priority queue.
-     * Subclasses must define this one method.
-     */
-    virtual bool lessThan(Type a, Type b)=0;
-
-    /**
-     * Subclass constructors must call this.
-     */
-    void initialize(const size_t maxSize)
-    {
-        size_ = 0;
-        maxSize_ = maxSize;
-        size_t heapSize = maxSize_ + 1;
-        heap_ = new Type[heapSize];
-    }
-
 public:
+    typedef Type elem_type;
+
     virtual ~PriorityQueue()
     {
         delete[] heap_;
@@ -92,10 +29,10 @@ public:
 
     /**
      * Adds an Object to a PriorityQueue in log(size) time.
-     * If one tries to add more objects than maxSize_ from initialize
+     * If one tries to add more objects than capacity_ from initialize
      * a RuntimeException (ArrayIndexOutOfBound) is thrown.
      */
-    void put(Type element)
+    void put(const Type& element)
     {
         size_++;
         heap_[size_] = element;
@@ -108,9 +45,9 @@ public:
      * @param element
      * @return true if element is added, false otherwise.
      */
-    bool insert(Type element)
+    bool insert(const Type& element)
     {
-        if (size_ < maxSize_)
+        if (size_ < capacity_)
         {
             put(element);
             return true;
@@ -128,12 +65,13 @@ public:
     /**
      * Returns the least element of the PriorityQueue in constant time.
      */
-    Type top()
+    const Type& top()
     {
+        static const Type empty;
         if (size_ > 0)
             return heap_[1];
         else
-            return Type();
+            return empty;
     }
 
     /**
@@ -143,12 +81,12 @@ public:
     {
         if (size_ > 0)
         {
-            Type result = heap_[1];			  // save first value
-            heap_[1] = heap_[size_];			  // move last to first
+            Type result = heap_[1];     // save first value
+            heap_[1] = heap_[size_];    // move last to first
 
-            heap_[size_] = Type();			  // permit GC of objects
+            heap_[size_] = Type();      // permit GC of objects
             size_--;
-            downHeap();				  // adjust heap_
+            downHeap();                 // adjust heap_
             return result;
         }
         else
@@ -172,25 +110,97 @@ public:
     /**
      * Returns the number of elements currently stored in the PriorityQueue.
      */
-    size_t size()
+    size_t size() const
     {
         return size_;
     }
 
-    /** return element by position */
-    Type operator [](size_t _pos)
+    size_t capacity() const
     {
-        return heap_[_pos+1];
-    }
-    Type getAt(size_t _pos)
-    {
-        return heap_[_pos+1];
+        return capacity_;
     }
 
+    /** return element by position */
+    Type& operator [](size_t _pos)
+    {
+        return heap_[_pos + 1];
+    }
+    Type& getAt(size_t _pos)
+    {
+        return heap_[_pos + 1];
+    }
+
+protected:
+    PriorityQueue()
+        : size_(0)
+        , capacity_(0)
+        , heap_(NULL)
+    {
+    }
+
+    /**
+     * Determines the ordering of objects in this priority queue.
+     * Subclasses must define this one method.
+     */
+    virtual bool lessThan(const Type& a, const Type& b) const = 0;
+
+    /**
+     * Subclass constructors must call this.
+     */
+    void initialize(const size_t maxSize)
+    {
+        size_ = 0;
+        capacity_ = maxSize;
+        size_t heapSize = capacity_ + 1;
+        heap_ = new Type[heapSize];
+    }
+
+private:
+    void upHeap()
+    {
+        size_t i = size_;
+        Type node = heap_[i];                               // save bottom node (WAS object)
+        size_t j = i >> 1;
+        while (j > 0 && lessThan(node,heap_[j]))
+        {
+            heap_[i] = heap_[j];                            // shift parents down
+            i = j;
+            j = j >> 1;
+        }
+        heap_[i] = node;                                    // install saved node
+    }
+
+    void downHeap()
+    {
+        size_t i = 1;
+        Type node = heap_[i];                               // save top node
+        size_t j = i << 1;                                  // find smaller child
+        size_t k = j + 1;
+        if (k <= size_ && lessThan(heap_[k], heap_[j]))
+        {
+            j = k;
+        }
+        while (j <= size_ && lessThan(heap_[j],node))
+        {
+            heap_[i] = heap_[j];                            // shift up child
+            i = j;
+            j = i << 1;
+            k = j + 1;
+            if (k <= size_ && lessThan(heap_[k], heap_[j]))
+            {
+                j = k;
+            }
+        }
+        heap_[i] = node;                                    // install saved node
+    }
+
+private:
+    size_t  size_;
+    size_t  capacity_;
+    Type*   heap_;
 };
 
-
-}}
+}
+}
 
 #endif
-

@@ -12,147 +12,136 @@
 
 using namespace boost;
 
-
 NS_IZENELIB_UTIL_BEGIN
 
 template <typename T>
 struct IsFixedType{
-	enum {yes = (is_arithmetic<T >::value 
-		|| is_empty<T>::value ),
-		no= !yes};
+    enum {yes = (is_arithmetic<T >::value
+        || is_empty<T>::value ),
+        no= !yes};
 };
 
 template <typename T1, typename T2>
 struct IsFixed {
-	enum {yes = IsFixedType<T1>::yes && IsFixedType<T2>::yes ,
-		no= !yes};
+    enum {yes = IsFixedType<T1>::yes && IsFixedType<T2>::yes ,
+        no= !yes};
 };
-
 
 template <typename T>
 struct IsMemcpySerial{
-	enum {yes = (is_arithmetic<T >::value 
-		|| is_empty<T>::value ),
-		no= !yes};
+    enum {yes = (is_arithmetic<T >::value
+        || is_empty<T>::value ),
+        no= !yes};
 };
 
 template <typename T>
 struct IsMemcpySerial<std::vector<T >  >{
-	enum {yes = (is_arithmetic<T >::value || is_empty<T>::value),		
-		no= !yes};	
+    enum {yes = (is_arithmetic<T >::value || is_empty<T>::value),
+        no= !yes};
 };
-
 
 template < typename T1, typename T2   >
 struct IsMemcpySerial<std::pair<T1, T2>  >
 {
-	enum {yes = (is_arithmetic<T1 >::value || is_empty<T1>::value)
-		         && (is_arithmetic<T2 >::value || is_empty<T2 >::value),
-		no= !yes};
+    enum {yes = (is_arithmetic<T1 >::value || is_empty<T1>::value)
+                 && (is_arithmetic<T2 >::value || is_empty<T2 >::value),
+        no= !yes};
 };
-
-
 
 template < typename T1, typename T2  >
 struct IsMemcpySerial<boost::tuple<T1, T2>  >
 {
-	enum { yes = (is_arithmetic<T1 >::value || is_empty<T1>::value)
+    enum { yes = (is_arithmetic<T1 >::value || is_empty<T1>::value)
                && (is_arithmetic<T2 >::value || is_empty<T2 >::value),
-		no= !yes};
+        no= !yes};
 };
-
-
 
 template < typename T1, typename T2, typename T3  >
 struct IsMemcpySerial<boost::tuple<T1, T2, T3>  >
 {
-	enum {yes = (is_arithmetic<T1 >::value || is_empty<T1>::value)
+    enum {yes = (is_arithmetic<T1 >::value || is_empty<T1>::value)
                 && (is_arithmetic<T2 >::value || is_empty<T2 >::value)
                 && (is_arithmetic<T2 >::value || is_empty<T2 >::value),
-		no= !yes};
+        no= !yes};
 };
-
-
 
 template <typename T>
 struct IsFebirdSerial{
-	enum {yes = 0, 
-		no = !yes};	
+    enum {yes = 0,
+        no = !yes};
 };
 
 template < typename T1, typename T2   >
 struct IsFebirdSerial<std::pair<T1, T2>  >
 {
-	enum {yes = IsFebirdSerial<T1 >::yes && IsFebirdSerial<T2>::yes,
-		no= !yes};
+    enum {yes = IsFebirdSerial<T1 >::yes && IsFebirdSerial<T2>::yes,
+        no= !yes};
 };
-
-
 
 template < typename T1, typename T2  >
 struct IsFebirdSerial<boost::tuple<T1, T2>  >
 {
-	enum {yes = IsFebirdSerial<T1 >::yes && IsFebirdSerial<T2>::yes,
-			no= !yes};
+    enum {yes = IsFebirdSerial<T1 >::yes && IsFebirdSerial<T2>::yes,
+            no= !yes};
 };
-
-
 
 template < typename T1, typename T2, typename T3  >
 struct IsFebirdSerial<boost::tuple<T1, T2, T3>  >
 {
-	enum {yes = IsFebirdSerial<T1 >::yes && IsFebirdSerial<T2>::yes 
-		        && IsFebirdSerial<T3>::yes,
-			no= !yes};
+    enum {yes = IsFebirdSerial<T1 >::yes && IsFebirdSerial<T2>::yes
+                && IsFebirdSerial<T3>::yes,
+            no= !yes};
 };
-
 
 template <typename T>
 struct IsFebirdSerial<std::vector<T >  >{
-	enum {yes = IsFebirdSerial<T >::yes,		
-		no= !yes};	
+    enum {yes = IsFebirdSerial<T >::yes,
+        no= !yes};
 };
-
 
 template <typename T>
 struct IsFebirdSerial<std::list<T >  >{
-	enum {yes = IsFebirdSerial<T >::yes,		
-		no= !yes};	
+    enum {yes = IsFebirdSerial<T >::yes,
+        no= !yes};
 };
 
 template <typename T>
 struct IsFebirdSerial<std::set<T >  >{
-	enum {yes = IsFebirdSerial<T >::yes,		
-		no= !yes};	
+    enum {yes = IsFebirdSerial<T >::yes,
+        no= !yes};
 };
 
 template <typename T1, typename T2>
 struct IsFebirdSerial<std::map<T1, T2 >  >{
-	enum {yes = IsFebirdSerial<T1 >::yes && IsFebirdSerial<T2 >::yes,		
-		no= !yes};	
+    enum {yes = IsFebirdSerial<T1 >::yes && IsFebirdSerial<T2 >::yes,
+        no= !yes};
 };
-
 
 NS_IZENELIB_UTIL_END
 
-
 #define MAKE_FEBIRD_SERIALIZATION(type) \
-	 namespace izenelib{namespace util{ \
-	 template <>struct IsFebirdSerial<type >{ \
-		enum { yes=1, no=!yes}; \
-		}; \
-		} \
-		} 
-
-
+    namespace izenelib \
+    { \
+    namespace util \
+    { \
+        template <>struct IsFebirdSerial<type > \
+        { \
+            enum { yes=1, no=!yes}; \
+        }; \
+    } \
+    }
 
 #define MAKE_MEMCPY_SERIALIZATION(type) \
-	namespace izenelib{namespace util{ \
-	template <>struct IsMemcpySerial<type >{ \
-		enum { yes=1, no=!yes}; \
-		}; \
-		} \
-		}
+    namespace izenelib \
+    { \
+    namespace util \
+    { \
+        template <>struct IsMemcpySerial<type > \
+        { \
+            enum { yes=1, no=!yes}; \
+        }; \
+    } \
+    }
 
 MAKE_MEMCPY_SERIALIZATION(std::string)
 MAKE_FEBIRD_SERIALIZATION( std::vector<std::string > )
@@ -163,7 +152,6 @@ MAKE_FEBIRD_SERIALIZATION( std::vector<std::string > )
 #include <boost/tuple/tuple_comparison.hpp>
 #include <boost/serialization/nvp.hpp>
 #include <boost/preprocessor/repetition.hpp>
-
 
 //serialization for boost tuple
 namespace boost { namespace serialization {
@@ -182,6 +170,6 @@ BOOST_PP_REPEAT_FROM_TO(0,nargs,GENERATE_ELEMENT_SERIALIZE,~) \
 
 BOOST_PP_REPEAT_FROM_TO(1,10,GENERATE_TUPLE_SERIALIZE,~);
 
-}} 
+}}
 
 #endif /*IZENE_TYPE_TRAITS_H_*/
