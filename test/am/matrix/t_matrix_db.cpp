@@ -21,7 +21,7 @@ const char* MATRIX_TEST_DIR_STR = "matrix";
 
 BOOST_AUTO_TEST_SUITE(matrix_test)
 
-BOOST_AUTO_TEST_CASE(coeff)
+BOOST_AUTO_TEST_CASE(update_elem)
 {
     bfs::path matrix_path(MATRIX_TEST_DIR_STR);
     boost::filesystem::remove_all(matrix_path);
@@ -38,13 +38,15 @@ BOOST_AUTO_TEST_CASE(coeff)
     uint32_t v = 0;
     for(size_t i = 0; i < rowNum; ++i)
         for(size_t j = 0; j < colNum; ++j)
-            matrix.coeff(i, j,v++);
+            matrix.update_elem(i, j, v++);
+
+    BOOST_TEST_MESSAGE(matrix);
 
     v = 0;
     for(size_t i = 0; i < rowNum; ++i)
         for(size_t j = 0; j < colNum; ++j)
         {
-            uint32_t e = matrix.coeff(i, j);
+            uint32_t e = matrix.elem(i, j);
             BOOST_CHECK_EQUAL(e	,v++);
         }
 }
@@ -62,10 +64,11 @@ BOOST_AUTO_TEST_CASE(dump)
     for(size_t i = 0; i < rowNum; ++i)
         for(size_t j = 0; j < colNum; ++j)
         {
-            uint32_t e = matrix.coeff(i, j);
+            uint32_t e = matrix.elem(i, j);
             BOOST_CHECK_EQUAL(e	,v++);
         }
 
+    BOOST_TEST_MESSAGE(matrix);
 }
 
 BOOST_AUTO_TEST_SUITE_END()

@@ -122,6 +122,18 @@ TARGET_LINK_LIBRARIES(t_matrix
    izene_util
   )
 
+ADD_EXECUTABLE(t_matrix_cache
+  Runner.cpp
+  matrix/t_matrix_cache.cpp
+)
+
+TARGET_LINK_LIBRARIES(t_matrix_cache
+  am
+  izene_util
+  ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY}
+  ${Boost_SYSTEM_LIBRARY}
+)
+
 ADD_EXECUTABLE(t_bitmap
   Runner.cpp
   bitmap/t_ewah.cpp
