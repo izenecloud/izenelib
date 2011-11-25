@@ -46,7 +46,7 @@ struct BTreeLessCmp
         izene_deserialization<KeyType> izdB(dataB, sizeB);
         izdA.read_image(keyA);
         izdB.read_image(keyB);
-		
+
         return _comp(keyA, keyB);
     }
 };
@@ -83,11 +83,11 @@ public:
     enum { DEFAULT_OPEN_MODE = raw::BTree::DEFAULT_OPEN_MODE };
 
     explicit BTree(const std::string& file = "")
-    : hash_(file), comp_()
+    : btree_(file), comp_()
     {
         if (!boost::is_same<Comp, BTreeLexicalCmp>::value)
         {
-            hash_.setcmpfunc(&self_type::compare,
+            btree_.setcmpfunc(&self_type::compare,
                              static_cast<void*>(&comp_));
         }
     }
@@ -98,30 +98,30 @@ public:
 
     bool setmutex()
     {
-        return hash_.setmutex();
+        return btree_.setmutex();
     }
     bool setcache(int32_t lcnum, int32_t ncnum)
     {
-        return hash_.setcache(lcnum, ncnum);
+        return btree_.setcache(lcnum, ncnum);
     }
     bool tune(int32_t lmemb, int32_t nmemb,
               int64_t bnum, int8_t apow, int8_t fpow, uint8_t opts)
     {
-        return hash_.tune(lmemb, nmemb, bnum, apow, fpow, opts);
+        return btree_.tune(lmemb, nmemb, bnum, apow, fpow, opts);
     }
     bool setxmsiz(int64_t xmsiz)
     {
-        return hash_.setxmsiz(xmsiz);
+        return btree_.setxmsiz(xmsiz);
     }
     bool setdfunit(int32_t dfunit)
     {
-        return hash_.setdfunit(dfunit);
+        return btree_.setdfunit(dfunit);
     }
     //@}
 
     const char* errorMessage() const
     {
-        return hash_.errorMessage();
+        return btree_.errorMessage();
     }
     static inline const char* errorMessage(int code)
     {
@@ -129,7 +129,7 @@ public:
     }
     int errorCode() const
     {
-        return hash_.errorCode();
+        return btree_.errorCode();
     }
 
     static int compare(const char* dataA, int sizeA,
@@ -141,16 +141,16 @@ public:
     }
 
 private:
-    raw::BTree hash_;
+    raw::BTree btree_;
     Comp comp_;
 
     raw::BTree& rawAm()
     {
-        return hash_;
+        return btree_;
     }
     const raw::BTree& rawAm() const
     {
-        return hash_;
+        return btree_;
     }
 
     friend struct izenelib::am::raw::detail::AmWrapperAccess;

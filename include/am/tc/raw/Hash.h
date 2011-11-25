@@ -53,7 +53,7 @@ public:
     enum { DEFAULT_OPEN_MODE = WRITER | CREAT };
 
     explicit Hash(const std::string& file = "")
-    : hdb_(::tchdbnew()), isOpened_(false), file_(file)
+        : hdb_(::tchdbnew()), isOpened_(false), file_(file)
     {
         checkHandle_(hdb_);
     }
@@ -220,8 +220,8 @@ public:
         return update(data.get_key(), data.get_value());
     }
 
-	bool get(const Buffer& key, Buffer& value) const
-	{
+    bool get(const Buffer& key, Buffer& value) const
+    {
         void* buffer;
         int size;
         if (checkHandle_(hdb_) && isOpened() &&
@@ -235,7 +235,7 @@ public:
         }
 
         return false;
-	}
+    }
 
     bool exist(const Buffer& key) const
     {

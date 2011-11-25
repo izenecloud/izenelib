@@ -379,7 +379,7 @@ public:
 
 template<typename KeyType,
          typename LockType = izenelib::util::ReadWriteLock>
-class policy_lru 
+class policy_lru
 {
     std::list<KeyType> _entries;
 
@@ -395,7 +395,7 @@ public:
     }
 
     void touch(const KeyType& k)
-    { 
+    {
         ScopedWriteLock lock(lock_);
         _entries.remove(k);
         _entries.push_front(k);

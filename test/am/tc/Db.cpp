@@ -47,7 +47,7 @@ BOOST_AUTO_TEST_CASE(BTreeIterator)
     {
         std::string key("2");
         std::string value("b");
-		
+
         BOOST_CHECK(h.insert(key, value));
         BOOST_CHECK(h.size() == 2);
     }
@@ -58,7 +58,7 @@ BOOST_AUTO_TEST_CASE(BTreeIterator)
         BOOST_CHECK(h.insert(key, value));
         BOOST_CHECK(h.size() == 3);
     }
-    std::cout<<"Forward Iterator for TC from beginning"<<std::endl;		
+    std::cout<<"Forward Iterator for TC from beginning"<<std::endl;
     typedef AMIterator<BTreeType > AMIteratorType;
     AMIteratorType iter(h);
     AMIteratorType end;
@@ -69,7 +69,7 @@ BOOST_AUTO_TEST_CASE(BTreeIterator)
         std::cout<<k<<" "<<v<<std::endl;
     }
 
-    std::cout<<"Forward Iterator for TC with start"<<std::endl;	
+    std::cout<<"Forward Iterator for TC with start"<<std::endl;
     AMIteratorType iter2(h,std::string("2"));
     for(; iter2 != end; ++iter2)
     {
@@ -81,7 +81,7 @@ BOOST_AUTO_TEST_CASE(BTreeIterator)
     typedef AMReverseIterator<BTreeType > AMRIteratorType;
     AMRIteratorType iter3(h,std::string("3"));
     AMRIteratorType end2;
-    std::cout<<"Reverse Iterator for TC with start"<<std::endl;	
+    std::cout<<"Reverse Iterator for TC with start"<<std::endl;
     for(; iter3 != end2; ++iter3)
     {
         const std::string& k = iter3->first;
@@ -90,7 +90,7 @@ BOOST_AUTO_TEST_CASE(BTreeIterator)
     }
 
     AMRIteratorType iter4(h);
-    std::cout<<"Reverse Iterator for TC"<<std::endl;	
+    std::cout<<"Reverse Iterator for TC"<<std::endl;
     for(; iter4 != end2; ++iter4)
     {
         const std::string& k = iter4->first;

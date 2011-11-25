@@ -280,8 +280,8 @@ public:
         if(checkHandle_(bdb_) && isOpened())
         {
             cursor_type ans(::tcbdbcurnew(bdb_));
-            //The cursor is set to the first record corresponding the key 
-            //or the next substitute if completely matching record does not exist.		
+            //The cursor is set to the first record corresponding the key
+            //or the next substitute if completely matching record does not exist.
             bool result = ::tcbdbcurjump(ans.get(), key.data(), key.size());
             if(result) return ans;
         }
