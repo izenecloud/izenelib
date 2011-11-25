@@ -36,7 +36,6 @@ public:
     typedef typename RowType::key_type col_type;
     typedef typename RowType::mapped_type elem_type;
     typedef ContainerType container_type;
-    typedef typename container_type::size_type size_type;
 
     enum
     {
@@ -47,7 +46,7 @@ public:
 
     MatrixCache() : elemCount_(0) {}
 
-    size_type size() const
+    std::size_t size() const
     {
         ScopedReadLock lock(lock_);
         return container_.size();
