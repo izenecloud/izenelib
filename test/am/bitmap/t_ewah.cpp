@@ -12,6 +12,23 @@ using namespace std;
 using namespace izenelib::am;
 namespace bfs = boost::filesystem;
 
+static uint32_t *int_data;
+void init_data(int data_size)
+{
+    std::cout<<"generating data... "<<std::endl;
+    int MAXID = 10000000;
+
+    int_data = new unsigned[data_size];
+    srand( (unsigned)time(NULL) );
+
+    for (int i = 0; i < data_size; ++i) {
+        int_data[i] = rand() % MAXID;
+    }
+    std::sort(int_data, int_data+ data_size);
+
+    std::cout<<"done!\n";
+}
+
 const char* BITMAP_TEST_DIR_STR = "bitmap";
 
 template<class uword>
@@ -312,53 +329,32 @@ BOOST_AUTO_TEST_CASE(ewahBoolArrayAppend)
     BOOST_CHECK(testEWAHBoolArrayAppend<uint64_t > ());
 }
 
-BOOST_AUTO_TEST_CASE(ewahBoolArrayBench)
-{
-    EWAHBoolArray<uint32_t> myarray;
-    size_t max = 10000000;
-    size_t i = 1;
-    size_t maxstep = 10;
-    size_t count = 0;
-    for(; i < max; )
-    {
-        i += (1+rand() % maxstep);
-        myarray.set(i);
-        ++count;
-    }
-    /*
-    EWAHBoolArrayBitIterator<uint32_t> iter = myarray.bit_iterator();
-
-
-    i = 1;
-    while(iter.next())
-    {
-        BOOST_CHECK((i++) ==iter.getCurr());
-    }
-    BOOST_CHECK(i = max);
-    */	
-    std::cout<<"count "<<count<<" sizeInBytes "<<myarray.sizeInBytes()<<std::endl;
-}
-
 BOOST_AUTO_TEST_CASE(ewahBitIterator)
 {
+    int data_size = 1000;
+    init_data(data_size);
+
     EWAHBoolArray<uint32_t> myarray1;
     BoolArray<uint32_t> boolarray1;
-    size_t max = 2000; //10000000;
-    size_t maxstep = 100;
-    size_t i = 1;
+    int i = 0;
 
-    for(; i < max; )
+    for(; i < data_size; ++i)
     {
-        myarray1.set(i);
-        i += (1 + rand() % maxstep);
+        myarray1.set(int_data[i]);
     }
 
-    myarray1.toBoolArray(boolarray1);
+    //myarray1.toBoolArray(boolarray1);
     EWAHBoolArrayBitIterator<uint32_t> iter = myarray1.bit_iterator();
+    i = 0;
     while(iter.next())
     {
-        BOOST_CHECK( boolarray1.get(iter.getCurr()) == true);
+        //BOOST_CHECK( boolarray1.get(iter.getCurr()) == true);
+        //BOOST_CHECK( iter.getCurr() == int_data[i++]);
+        if(iter.getCurr() != int_data[i])
+        std::cout<<iter.getCurr()<<" "<<int_data[i]<<std::endl;
+        i++;
     }
+    delete[] int_data;
 }
 
 BOOST_AUTO_TEST_SUITE_END()
