@@ -339,5 +339,27 @@ BOOST_AUTO_TEST_CASE(ewahBoolArrayBench)
     std::cout<<"count "<<count<<" sizeInBytes "<<myarray.sizeInBytes()<<std::endl;
 }
 
+BOOST_AUTO_TEST_CASE(ewahBitIterator)
+{
+    EWAHBoolArray<uint32_t> myarray1;
+    BoolArray<uint32_t> boolarray1;
+    size_t max = 2000; //10000000;
+    size_t maxstep = 100;
+    size_t i = 1;
+
+    for(; i < max; )
+    {
+        myarray1.set(i);
+        i += (1 + rand() % maxstep);
+    }
+
+    myarray1.toBoolArray(boolarray1);
+    EWAHBoolArrayBitIterator<uint32_t> iter = myarray1.bit_iterator();
+    while(iter.next())
+    {
+        BOOST_CHECK( boolarray1.get(iter.getCurr()) == true);
+    }
+}
+
 BOOST_AUTO_TEST_SUITE_END()
 
